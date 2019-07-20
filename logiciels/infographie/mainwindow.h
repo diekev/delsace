@@ -35,10 +35,13 @@ class Scene;
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-	Ui::MainWindow *ui;
-	Scene *m_scene;
+	Ui::MainWindow *ui = nullptr;
+	Scene *m_scene = nullptr;
 
 public:
-	explicit MainWindow(QWidget *parent = 0);
+	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+
+	MainWindow(MainWindow const &) = default;
+	MainWindow &operator=(MainWindow const &) = default;
 };

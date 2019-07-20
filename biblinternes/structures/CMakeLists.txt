@@ -32,30 +32,42 @@ set(BIBLIOTHEQUES
 add_library(${NOM_CIBLE} STATIC
 	arbre_kd.cc
 	chaine.cc
+	chaine_referencee.cc
+	chaine_utf8.cc
 	dico.cc
 	dico_desordonne.cc
+	dico_fixe.cc
 	ensemble.cc
 	file.cc
 	flux_chaine.cc
 	grille_particules.cc
 	hachage_spatiale.cc
+	liste.cc
 	pile.cc
+	plage.cc
 	tableau.cc
 	vue_chaine.cc
 
 	arbre_kd.hh
 	chaine.hh
+	chaine_referencee.hh
+	chaine_utf8.hh
 	dico.hh
 	dico_desordonne.hh
+	dico_fixe.hh
 	ensemble.hh
 	file.hh
 	flux_chaine.hh
 	grille_particules.hh
 	hachage_spatiale.hh
+	liste.hh
 	pile.hh
+	plage.hh
 	tableau.hh
 	vue_chaine.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+add_executable(test_structs main.cc)

@@ -43,6 +43,7 @@
 
 #include "evenement.h"
 #include "composite.h"
+#include "contexte_evaluation.hh"
 #include "objet.h"
 #include "mikisa.h"
 #include "noeud_image.h"
@@ -127,7 +128,7 @@ static void sauvegarde_proprietes(
 					for (auto const &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
 						element_cle->SetAttribut("temps", valeur.first);
-						element_cle->SetAttribut("valeur", std::experimental::any_cast<int>(valeur.second));
+						element_cle->SetAttribut("valeur", std::any_cast<int>(valeur.second));
 						element_animation->InsertEndChild(element_cle);
 					}
 
@@ -147,7 +148,7 @@ static void sauvegarde_proprietes(
 					for (auto const &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
 						element_cle->SetAttribut("temps", valeur.first);
-						element_cle->SetAttribut("valeur", std::experimental::any_cast<float>(valeur.second));
+						element_cle->SetAttribut("valeur", std::any_cast<float>(valeur.second));
 						element_animation->InsertEndChild(element_cle);
 					}
 
@@ -169,7 +170,7 @@ static void sauvegarde_proprietes(
 
 					for (auto const &valeur : prop.courbe) {
 						auto element_cle = doc.NewElement("cle");
-						auto vec = std::experimental::any_cast<dls::math::vec3f>(valeur.second);
+						auto vec = std::any_cast<dls::math::vec3f>(valeur.second);
 						element_cle->SetAttribut("temps", valeur.first);
 						element_cle->SetAttribut("valeurx", vec.x);
 						element_cle->SetAttribut("valeury", vec.y);
@@ -205,6 +206,7 @@ static void sauvegarde_proprietes(
 			case danjo::COURBE_COULEUR:
 			case danjo::COURBE_VALEUR:
 			case danjo::RAMPE_COULEUR:
+			case danjo::TypePropriete::LISTE_MANIP:
 				/* À FAIRE */
 				break;
 		}
@@ -378,7 +380,9 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		racine_scenes->InsertEndChild(racine_scene);
 
 		compileuse.reseau = &scene->reseau;
-		compileuse.compile_reseau(scene);
+
+		auto contexte = cree_contexte_evaluation(mikisa);
+		compileuse.compile_reseau(contexte, scene, nullptr);
 
 		auto plan = planifieuse.requiers_plan_pour_scene(scene->reseau);
 
@@ -535,6 +539,7 @@ static void lecture_propriete(
 		case danjo::COURBE_COULEUR:
 		case danjo::COURBE_VALEUR:
 		case danjo::RAMPE_COULEUR:
+		case danjo::TypePropriete::LISTE_MANIP:
 			/* À FAIRE */
 			break;
 	}
@@ -786,6 +791,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	mikisa.scene = mikisa.bdd.scenes()[0];
 	mikisa.graphe = &mikisa.scene->graphe;
 	mikisa.chemin_courant = "/scènes/" + mikisa.scene->nom + "/";
+	mikisa.contexte = GRAPHE_SCENE;
 
 	requiers_evaluation(mikisa, FICHIER_OUVERT, "chargement d'un projet");
 

@@ -27,8 +27,8 @@
 #include "biblinternes/langage/analyseuse.hh"
 #include "biblinternes/structures/chaine.hh"
 
-#include <experimental/any>
-#include <vector>
+#include <any>
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 
@@ -48,7 +48,7 @@ struct Colonne {
 	bool peut_etre_nulle = true;
 	bool a_valeur_defaut = false;
 	size_t id_valeur_defaut = 0;
-	std::experimental::any defaut;
+	std::any defaut;
 	dls::chaine table = "";
 	dls::chaine ref = "";
 	size_t suppression = 0;
@@ -56,12 +56,12 @@ struct Colonne {
 };
 
 struct Table {
-	std::vector<Colonne> colonnes{};
+	dls::tableau<Colonne> colonnes{};
 	dls::vue_chaine nom{};
 };
 
 struct Schema {
-	std::vector<Table> tables{};
+	dls::tableau<Table> tables{};
 	dls::vue_chaine nom{};
 };
 
@@ -82,7 +82,7 @@ private:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	[[noreturn]] void lance_erreur(const std::string &quoi, int type = 0);
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi, int type = 0);
 
 	void analyse_schema();
 	void analyse_declaration_table();

@@ -30,16 +30,16 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <utility>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
-class code_vector : public std::vector<std::uint8_t> {
+class code_vector : public dls::tableau<std::uint8_t> {
 public:
 	template <typename T>
-	void push_value(iterator whither, T what)
+	void push_value(iteratrice whither, T what)
 	{
-		auto position = whither - begin();
-		insert(whither, sizeof(T), 0x00);
-		*reinterpret_cast<T*>(&(*this)[static_cast<size_t>(position)]) = what;
+		auto position = whither - debut();
+		insere(whither, static_cast<long>(sizeof(T)), 0x00);
+		*reinterpret_cast<T*>(&(*this)[position]) = what;
 	}
 };
 

@@ -34,6 +34,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "biblinternes/outils/constantes.h"
+
 double distance_carre(double x0, double y0, double x1, double y1)
 {
 	const auto dx = x0 - x1;
@@ -43,7 +45,7 @@ double distance_carre(double x0, double y0, double x1, double y1)
 }
 
 class Grille2D {
-	size_t m_arriere_plan = -1;
+	size_t m_arriere_plan = -1ul;
 	size_t m_res_x = 0;
 	size_t m_res_y = 0;
 
@@ -53,7 +55,7 @@ class Grille2D {
 	double m_taille_x = 0.0;
 	double m_taille_y = 0.0;
 
-	std::vector<QPointF> m_points;
+	std::vector<QPointF> m_points{};
 
 public:
 	Grille2D() = default;
@@ -65,9 +67,9 @@ public:
 		m_taille_x = taille_x;
 		m_taille_y = taille_y;
 		m_taille_cellule = r / std::sqrt(2.0);
-		m_res_x = std::ceil(taille_x / m_taille_cellule);
-		m_res_y = std::ceil(taille_y / m_taille_cellule);
-		m_points.resize(m_res_x * m_res_y, QPointF(INFINITY, INFINITY));
+		m_res_x = static_cast<size_t>(std::ceil(taille_x / m_taille_cellule));
+		m_res_y = static_cast<size_t>(std::ceil(taille_y / m_taille_cellule));
+		m_points.resize(m_res_x * m_res_y, QPointF(constantes<double>::INFINITE, constantes<double>::INFINITE));
 
 		std::cerr << "Pour un rayon de " << r
 				  << ", la résolution de la grille est de "
@@ -92,8 +94,8 @@ public:
 
 	bool insert_distance(const double px, const double py)
 	{
-		const size_t index_x = std::floor(px / m_taille_cellule);
-		const size_t index_y = std::floor(py / m_taille_cellule);
+		auto const index_x = static_cast<size_t>(std::floor(px / m_taille_cellule));
+		auto const index_y = static_cast<size_t>(std::floor(py / m_taille_cellule));
 
 		if (index_x >= m_res_x) {
 			return false;
@@ -105,7 +107,7 @@ public:
 
 		const auto index = index_x + index_y * m_res_x;
 
-		if (m_points[index].x() != INFINITY) {
+		if (m_points[index].x() != constantes<double>::INFINITE) {
 			return false;
 		}
 
@@ -118,7 +120,7 @@ public:
 			for (size_t x = min_x; x <= max_x; ++x) {
 				const auto index1 = x + y * m_res_x;
 
-				if (m_points[index1].x() != INFINITY) {
+				if (m_points[index1].x() != constantes<double>::INFINITE) {
 					continue;
 				}
 
@@ -147,8 +149,8 @@ public:
 };
 
 class WidgetTriangleDelaunay final : public QWidget {
-	QVector<QPointF> m_points;
-	Grille2D m_grille_points;
+	QVector<QPointF> m_points{};
+	Grille2D m_grille_points{};
 
 public:
 	explicit WidgetTriangleDelaunay(QWidget *parent = nullptr)
@@ -160,10 +162,10 @@ public:
 
 	void genere_points(const double px, const double py)
 	{
-		const auto min_distance = 0.1 * 512;
+		const auto min_distance = 0.1 * 512.0;
 
-		std::uniform_real_distribution<float> dist_r(0.00, min_distance);
-		std::uniform_real_distribution<float> dist_TAU(0.0, 2 * M_PI);
+		std::uniform_real_distribution<double> dist_r(0.0, min_distance);
+		std::uniform_real_distribution<double> dist_TAU(0.0, constantes<double>::TAU);
 		std::mt19937 rng(19937);
 
 #if 0
@@ -214,15 +216,15 @@ public:
 		peintre.setPen(QPen(QBrush(Qt::gray), 1.0));
 
 		for (size_t i = 1; i < m_grille_points.res_x(); ++i) {
-			auto x = i * m_grille_points.taille_cellule() * this->size().width();
+			auto x = static_cast<double>(i) * m_grille_points.taille_cellule() * this->size().width();
 
-			peintre.drawLine(x, 0, x, this->rect().height());
+			peintre.drawLine(static_cast<int>(x), 0, static_cast<int>(x), this->rect().height());
 		}
 
 		for (size_t i = 1; i < m_grille_points.res_y(); ++i) {
-			auto y = i * m_grille_points.taille_cellule() * this->size().height();
+			auto y = static_cast<double>(i) * m_grille_points.taille_cellule() * this->size().height();
 
-			peintre.drawLine(0, y, this->size().width(), y);
+			peintre.drawLine(0, static_cast<int>(y), this->size().width(), static_cast<int>(y));
 		}
 
 		/* dessine les points */
@@ -232,11 +234,11 @@ public:
 		for (const auto &point : m_grille_points.points()) {
 			auto x = point.x();
 			auto y = point.y();
-			peintre.drawPoint(x, y);
+			peintre.drawPoint(static_cast<int>(x), static_cast<int>(y));
 		}
 	}
 
-	void mousePressEvent(QMouseEvent *event)
+	void mousePressEvent(QMouseEvent *event) override
 	{
 		genere_points(event->pos().x(),
 					  event->pos().y());

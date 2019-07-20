@@ -1,11 +1,11 @@
 #pragma once
 
 #include "bcrypt.h"
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 #include <stdexcept>
 
 namespace bcrypt {
-    static std::string genere_empreinte(const std::string &mot_de_passe, int workload = 12)
+    static dls::chaine genere_empreinte(const dls::chaine &mot_de_passe, int workload = 12)
 	{
 		char salt[BCRYPT_HASHSIZE];
 		char hash[BCRYPT_HASHSIZE];
@@ -21,10 +21,10 @@ namespace bcrypt {
 			throw std::runtime_error{"bcrypt: can not generate hash"};
 		}
 
-		return std::string{hash};
+		return dls::chaine{hash};
 	}
 
-	static bool compare_empreinte(const std::string & password, const std::string & hash)
+	static bool compare_empreinte(const dls::chaine & password, const dls::chaine & hash)
 	{
 		return (bcrypt_checkpw(password.c_str(), hash.c_str()) == 0);
 	}

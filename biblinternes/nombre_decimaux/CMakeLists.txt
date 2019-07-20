@@ -21,6 +21,10 @@
 
 set(NOM_BIBLIOTHEQUE nombre_decimaux)
 
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
 set(ENTETES
 	imprimeur.h
 	ordre.h
@@ -34,6 +38,8 @@ set(SOURCES
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
 
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})

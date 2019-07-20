@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/parallèle/synchronisé.hh"
+#include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/tableau.hh"
 
 struct Corps;
@@ -88,7 +88,7 @@ struct magasin_tableau {
 
 	void reinitialise()
 	{
-		tableaux.clear();
+		tableaux.efface();
 	}
 };
 

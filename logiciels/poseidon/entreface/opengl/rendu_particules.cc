@@ -24,10 +24,9 @@
 
 #include "rendu_particules.h"
 
-#include "biblinternes/ego/outils.h"
-
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/fluide.h"
 
@@ -39,11 +38,11 @@ static TamponRendu *cree_tampon()
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -85,19 +84,19 @@ void RenduParticules::initialise()
 {
 	m_tampon = cree_tampon();
 
-	std::vector<dls::math::vec3f> points;
-	points.reserve(m_fluide->particules.size());
+	dls::tableau<dls::math::vec3f> points;
+	points.reserve(m_fluide->particules.taille());
 
 	for (auto const &particule : m_fluide->particules) {
-		points.push_back(particule.pos);
+		points.pousse(particule.pos);
 	}
 
 	ParametresTampon parametres;
 	parametres.attribut = "sommets";
 	parametres.dimension_attribut = 3;
-	parametres.pointeur_sommets = points.data();
-	parametres.elements = points.size();
-	parametres.taille_octet_sommets = points.size() * sizeof(dls::math::vec3f);
+	parametres.pointeur_sommets = points.donnees();
+	parametres.elements = static_cast<size_t>(points.taille());
+	parametres.taille_octet_sommets = static_cast<size_t>(points.taille()) * sizeof(dls::math::vec3f);
 
 	m_tampon->remplie_tampon(parametres);
 }

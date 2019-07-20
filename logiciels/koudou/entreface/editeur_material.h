@@ -24,23 +24,23 @@
 
 #pragma once
 
-#include "coeur/persona.h"
+#include "danjo/manipulable.h"
 
-#include "controles/assembleur_controles.h"
 #include "base_editeur.h"
 
 class Nuanceur;
 class QScrollArea;
+class QGridLayout;
 
 /* ************************************************************************** */
 
 class VueMaterial {
-	Persona *m_persona_diffus;
-	Persona *m_persona_angle_vue;
-	Persona *m_persona_reflection;
-	Persona *m_persona_refraction;
-	Persona *m_persona_volume;
-	Persona *m_persona_emission;
+	danjo::Manipulable *m_persona_diffus;
+	danjo::Manipulable *m_persona_angle_vue;
+	danjo::Manipulable *m_persona_reflection;
+	danjo::Manipulable *m_persona_refraction;
+	danjo::Manipulable *m_persona_volume;
+	danjo::Manipulable *m_persona_emission;
 
 	Nuanceur *m_nuanceur;
 
@@ -57,7 +57,7 @@ public:
 	void ajourne_donnees();
 	bool ajourne_proprietes();
 
-	Persona *persona() const;
+	danjo::Manipulable *persona() const;
 };
 
 /* ************************************************************************** */
@@ -70,7 +70,6 @@ class EditeurMaterial final : public BaseEditrice {
 	QWidget *m_widget;
 	QScrollArea *m_scroll;
 	QGridLayout *m_glayout;
-	AssembleurControles m_assembleur_controles;
 
 public:
 	EditeurMaterial(Koudou *koudou, QWidget *parent = nullptr);

@@ -26,8 +26,8 @@
 
 #include <cmath>
 #include <iostream>
-#include <stack>
-#include <vector>
+
+#include "biblinternes/structures/pile.hh"
 
 #include "morceaux.h"
 
@@ -158,44 +158,44 @@ bool precedence_faible(int identifiant1, int identifiant2)
 			|| ((p2.first == DROITE) && (p1.second > p2.second));
 }
 
-double evalue_expression(const std::vector<Variable> &expression)
+double evalue_expression(const dls::tableau<Variable> &expression)
 {
-	std::stack<double> stack;
+	dls::pile<double> stack;
 
 	/* Push a zero on the stack in case the expression starts with a negative
 	 * number, or is empty. */
-	stack.push(0);
+	stack.empile(0);
 
 	for (const Variable &variable : expression) {
 		if (est_operateur(variable.identifiant)) {
-			auto op1 = stack.top();
-			stack.pop();
+			auto op1 = stack.haut();
+			stack.depile();
 
-			auto op2 = stack.top();
-			stack.pop();
+			auto op2 = stack.haut();
+			stack.depile();
 
 			auto result = evalue_operation(op2, op1, variable.identifiant);
-			stack.push(result);
+			stack.empile(result);
 		}
 		else if (est_operateur_logique(variable.identifiant)) {
-			auto op1 = stack.top();
-			stack.pop();
+			auto op1 = stack.haut();
+			stack.depile();
 
 			auto result = evalue_operation_logique(op1, variable.identifiant);
-			stack.push(result);
+			stack.empile(result);
 		}
 		else {
 			if (variable.identifiant == IDENTIFIANT_NOMBRE) {
-				stack.push(std::stod(variable.valeur));
+				stack.empile(std::stod(variable.valeur.c_str()));
 			}
 			else if (variable.identifiant == IDENTIFIANT_CHAINE_CARACTERE) {
 				/* À FAIRE : évalue la propriété. */
-				stack.push(1.0);
+				stack.empile(1.0);
 			}
 		}
 	}
 
-	return stack.top();
+	return stack.haut();
 }
 
 }  /* namespace langage */

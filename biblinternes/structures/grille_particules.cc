@@ -32,26 +32,26 @@ GrilleParticules::GrilleParticules(const dls::math::point3d &min, const dls::mat
 	, m_dim(max - min)
 	, m_distance(static_cast<double>(distance) * 10.0)
 {
-	m_res_x = std::max(1ul, static_cast<size_t>(m_dim.x / m_distance));
-	m_res_y = std::max(1ul, static_cast<size_t>(m_dim.y / m_distance));
-	m_res_z = std::max(1ul, static_cast<size_t>(m_dim.z / m_distance));
+	m_res_x = std::max(1l, static_cast<long>(m_dim.x / m_distance));
+	m_res_y = std::max(1l, static_cast<long>(m_dim.y / m_distance));
+	m_res_z = std::max(1l, static_cast<long>(m_dim.z / m_distance));
 
 //	std::cerr << "Résolution Grille Particules : " << m_res_x << ", " << m_res_y << ", " << m_res_z << '\n';
 
-	m_grille.resize(m_res_x * m_res_y * m_res_z);
+	m_grille.redimensionne(m_res_x * m_res_y * m_res_z);
 }
 
 void GrilleParticules::ajoute(const dls::math::vec3f &position)
 {
 	auto index = calcul_index_pos(position);
-	m_grille[index].push_back(position);
+	m_grille[index].pousse(position);
 }
 
 bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, float distance)
 {
 #if 1
 	auto moitie = distance * 0.5f;
-	dls::ensemble<size_t> indices;
+	dls::ensemble<long> indices;
 
 	for (auto dx = -moitie; dx <= moitie; dx += moitie) {
 		for (auto dy = -moitie; dy <= moitie; dy += moitie) {
@@ -66,7 +66,7 @@ bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, f
 	for (auto &index : indices) {
 		auto const &points = m_grille[index];
 
-		for (auto p = 0ul; p < points.size(); ++p) {
+		for (auto p = 0l; p < points.taille(); ++p) {
 			if (longueur(point - points[p]) < distance) {
 				return false;
 			}
@@ -78,7 +78,7 @@ bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, f
 	auto index = calcul_index_pos(point);
 	auto const &points = m_grille[index];
 
-	for (auto p = 0ul; p < points.size(); ++p) {
+	for (auto p = 0ul; p < points.taille(); ++p) {
 		if (longueur(point - points[p]) < distance) {
 			return false;
 		}
@@ -91,7 +91,7 @@ bool GrilleParticules::verifie_distance_minimal(const dls::math::vec3f &point, f
 bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::math::vec3f &v1, const dls::math::vec3f &v2, const float radius)
 {
 #if 1
-	dls::ensemble<size_t> indices;
+	dls::ensemble<long> indices;
 	indices.insere(calcul_index_pos(v0));
 	indices.insere(calcul_index_pos(v1));
 	indices.insere(calcul_index_pos(v2));
@@ -99,7 +99,7 @@ bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::m
 	for (auto &index : indices) {
 		auto const &points = m_grille[index];
 
-		for (auto p = 0ul; p < points.size(); ++p) {
+		for (auto p = 0l; p < points.taille(); ++p) {
 			if (longueur(v0 - points[p]) <= radius
 					&& longueur(v1 - points[p]) <= radius
 					&& longueur(v2 - points[p]) <= radius)
@@ -113,7 +113,7 @@ bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::m
 	auto const index_triangle = calcul_index_pos(centre_triangle);
 	auto const points = m_grille[index_triangle];
 
-	for (auto p = 0ul; p < points.size(); ++p) {
+	for (auto p = 0l; p < points.taille(); ++p) {
 		if (longueur(v0 - points[p]) <= radius
 				&& longueur(v1 - points[p]) <= radius
 				&& longueur(v2 - points[p]) <= radius)
@@ -126,19 +126,19 @@ bool GrilleParticules::triangle_couvert(const dls::math::vec3f &v0, const dls::m
 	return false;
 }
 
-size_t GrilleParticules::calcul_index_pos(const dls::math::vec3f &point)
+long GrilleParticules::calcul_index_pos(const dls::math::vec3f &point)
 {
 	auto px = dls::math::restreint(static_cast<double>(point.x), m_min.x, m_max.x);
 	auto py = dls::math::restreint(static_cast<double>(point.y), m_min.y, m_max.y);
 	auto pz = dls::math::restreint(static_cast<double>(point.z), m_min.z, m_max.z);
 
-	auto index_x = static_cast<size_t>((px - m_min.x) / m_distance);
-	auto index_y = static_cast<size_t>((py - m_min.y) / m_distance);
-	auto index_z = static_cast<size_t>((pz - m_min.z) / m_distance);
+	auto index_x = static_cast<long>((px - m_min.x) / m_distance);
+	auto index_y = static_cast<long>((py - m_min.y) / m_distance);
+	auto index_z = static_cast<long>((pz - m_min.z) / m_distance);
 
-	index_x = dls::math::restreint(index_x, 0ul, m_res_x - 1);
-	index_y = dls::math::restreint(index_y, 0ul, m_res_y - 1);
-	index_z = dls::math::restreint(index_z, 0ul, m_res_z - 1);
+	index_x = dls::math::restreint(index_x, 0l, m_res_x - 1);
+	index_y = dls::math::restreint(index_y, 0l, m_res_y - 1);
+	index_z = dls::math::restreint(index_z, 0l, m_res_z - 1);
 
 	return index_x + index_y * m_res_x + index_z * m_res_x * m_res_y;
 }

@@ -28,11 +28,11 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 #include "corps/corps.h"
 
-#include "biblinternes/parallèle/synchronisé.hh"
+#include "biblinternes/moultfilage/synchronise.hh"
 
 struct Objet {
 	/* transformation */

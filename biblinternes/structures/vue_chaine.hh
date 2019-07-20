@@ -35,6 +35,12 @@ private:
 	long m_taille = 0;
 
 public:
+	template <unsigned long N>
+	vue_chaine(char const (&c)[N])
+		: m_ptr(&c[0])
+		, m_taille(N)
+	{}
+
 	vue_chaine() = default;
 
 	vue_chaine(char const *ptr);
@@ -55,6 +61,18 @@ public:
 bool operator<(vue_chaine const &c1, vue_chaine const &c2);
 
 bool operator>(vue_chaine const &c1, vue_chaine const &c2);
+
+bool operator==(vue_chaine const &vc1, vue_chaine const &vc2);
+
+bool operator==(vue_chaine const &vc1, char const *vc2);
+
+bool operator==(char const *vc1, vue_chaine const &vc2);
+
+bool operator!=(vue_chaine const &vc1, vue_chaine const &vc2);
+
+bool operator!=(vue_chaine const &vc1, char const *vc2);
+
+bool operator!=(char const *vc1, vue_chaine const &vc2);
 
 std::ostream &operator<<(std::ostream &os, vue_chaine const &vc);
 

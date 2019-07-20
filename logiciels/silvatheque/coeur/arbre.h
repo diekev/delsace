@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/outils/iterateurs.h"
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 struct Parametres;
 
@@ -36,7 +36,7 @@ struct Parametres;
  */
 struct Sommet {
 	dls::math::vec3f pos{};
-	size_t index{};
+	long index{};
 };
 
 /**
@@ -50,16 +50,16 @@ struct Arrete {
 };
 
 class Arbre {
-	std::vector<Sommet *> m_sommets{};
-	std::vector<Arrete *> m_arretes{};
+	dls::tableau<Sommet *> m_sommets{};
+	dls::tableau<Arrete *> m_arretes{};
 
 	math::transformation m_transformation{};
 
 	Parametres *m_parametres{};
 
 public:
-	using plage_sommets = dls::outils::plage_iterable<std::vector<Sommet *>::const_iterator>;
-	using plage_arretes = dls::outils::plage_iterable<std::vector<Arrete *>::const_iterator>;
+	using plage_sommets = dls::outils::plage_iterable<dls::tableau<Sommet *>::const_iteratrice>;
+	using plage_arretes = dls::outils::plage_iterable<dls::tableau<Arrete *>::const_iteratrice>;
 
 	Arbre();
 

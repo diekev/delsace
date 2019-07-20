@@ -25,7 +25,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace dls {
 namespace systeme_fichier {
@@ -49,10 +49,10 @@ class File {
 
 public:
 	File() noexcept = default;
-	File(const std::string &filename, const std::string &modes);
+	File(const dls::chaine &filename, const dls::chaine &modes);
 	~File() = default;
 
-	void open(const std::string &filename, const std::string &modes);
+	void open(const dls::chaine &filename, const dls::chaine &modes);
 	bool isGood() const noexcept;
 
 	int getc();
@@ -89,12 +89,12 @@ class Pipe {
 
 public:
 	Pipe();
-	Pipe(const std::string &filename, const std::string &modes);
+	Pipe(const dls::chaine &filename, const dls::chaine &modes);
 	~Pipe() = default;
 
-	void open(const std::string &filename, const std::string &modes);
+	void open(const dls::chaine &filename, const dls::chaine &modes);
 
-	std::string output();
+	dls::chaine output();
 };
 
 }  /* namespace systeme_fichier */

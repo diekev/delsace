@@ -71,7 +71,7 @@ public:
 	}
 };
 
-auto has_lower_precedence(const std::string &o1, const std::string &o2)
+auto has_lower_precedence(const dls::chaine &o1, const dls::chaine &o2)
 {
 	const auto &op1 = Operator(o1.c_str());
 	const auto &op2 = Operator(o2.c_str());
@@ -79,12 +79,12 @@ auto has_lower_precedence(const std::string &o1, const std::string &o2)
 	return op1.has_lower_precedence(op2);
 }
 
-bool is_operator(const std::string &token)
+bool is_operator(const dls::chaine &token)
 {
 	return dls::outils::est_element(token, "+", "-", "/", "*", "^");
 }
 
-auto is_function(const std::string &token)
+auto is_function(const dls::chaine &token)
 {
 	return dls::outils::est_element(token, "sqrt", "sin", "cos", "tan", "!");
 }
@@ -94,11 +94,11 @@ auto is_operator(const char token)
 	return dls::outils::est_element(token, '+', '-', '/', '*', '^');
 }
 
-auto split(const std::string &source)
+auto split(const dls::chaine &source)
 {
-	std::vector<std::string> result;
+	dls::tableau<dls::chaine> result;
 
-	for (size_t i(0); i < source.size(); ++i) {
+	for (auto i(0); i < source.taille(); ++i) {
 		if (source[i] == ' ') {
 			continue;
 		}
@@ -120,7 +120,7 @@ auto split(const std::string &source)
 				++next;
 			}
 
-			result.push_back(source.substr(i, next - i));
+			result.pousse(source.sous_chaine(i, next - i));
 			i += (next - i - 1);
 			continue;
 		}
@@ -129,10 +129,10 @@ auto split(const std::string &source)
 	return result;
 }
 
-auto postfix(const std::string &expression) -> dls::file<std::string>
+auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>
 {
-	dls::file<std::string> output;
-	dls::pile<std::string> stack;
+	dls::file<dls::chaine> output;
+	dls::pile<dls::chaine> stack;
 
 	const auto &tokens = split(expression);
 

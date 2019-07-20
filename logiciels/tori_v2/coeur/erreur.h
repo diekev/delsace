@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace langage {
 
@@ -33,7 +33,7 @@ namespace langage {
  * erreur de frappe est repérée.
  */
 class ErreurFrappe {
-	std::string m_quoi{""};
+	dls::chaine m_quoi{""};
 
 public:
 	/**
@@ -43,7 +43,7 @@ public:
 			const dls::vue_chaine &ligne,
 			int numero_ligne,
 			int position_ligne,
-			const std::string &quoi);
+			const dls::chaine &quoi);
 
 	/**
 	 * Retourne le message d'erreur.
@@ -56,7 +56,7 @@ public:
  * erreur de syntaxe est repérée.
  */
 class ErreurSyntactique {
-	std::string m_quoi{""};
+	dls::chaine m_quoi{""};
 
 public:
 	/**
@@ -66,8 +66,8 @@ public:
 			const dls::vue_chaine &ligne,
 			int numero_ligne,
 			int position_ligne,
-			const std::string &quoi,
-			const std::string &contenu);
+			const dls::chaine &quoi,
+			const dls::chaine &contenu);
 
 	/**
 	 * Retourne le message d'erreur.

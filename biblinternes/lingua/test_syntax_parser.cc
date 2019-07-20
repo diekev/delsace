@@ -24,34 +24,34 @@
 
 #include "syntax_parser.h"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
-std::vector<std::string> determiners;
-std::vector<std::string> adjectives;
-std::vector<std::string> nouns;
-std::vector<std::string> verbs;
+dls::tableau<dls::chaine> determiners;
+dls::tableau<dls::chaine> adjectives;
+dls::tableau<dls::chaine> nouns;
+dls::tableau<dls::chaine> verbs;
 
 static void init_dicts()
 {
-	determiners.push_back("a");
-	determiners.push_back("an");
-	determiners.push_back("the");
-	determiners.push_back("this");
-	determiners.push_back("those");
+	determiners.pousse("a");
+	determiners.pousse("an");
+	determiners.pousse("the");
+	determiners.pousse("this");
+	determiners.pousse("those");
 
-	adjectives.push_back("beautiful");
-	adjectives.push_back("small");
-	adjectives.push_back("chirping");
-	adjectives.push_back("perching");
+	adjectives.pousse("beautiful");
+	adjectives.pousse("small");
+	adjectives.pousse("chirping");
+	adjectives.pousse("perching");
 
-	nouns.push_back("bird");
-	nouns.push_back("birds");
-	nouns.push_back("grain");
-	nouns.push_back("grains");
+	nouns.pousse("bird");
+	nouns.pousse("birds");
+	nouns.pousse("grain");
+	nouns.pousse("grains");
 
-	verbs.push_back("peck");
-	verbs.push_back("pecks");
-	verbs.push_back("pecking");
+	verbs.pousse("peck");
+	verbs.pousse("pecks");
+	verbs.pousse("pecking");
 }
 
 void test_syntax_parser(std::ostream &os)

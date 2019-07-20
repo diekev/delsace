@@ -32,6 +32,7 @@
 #include <QToolBar>
 
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/outils/fichier.hh"
 
 #include "controles/action.h"
 
@@ -77,6 +78,11 @@ GestionnaireInterface::~GestionnaireInterface()
 
 //		delete barre_outils;
 //	}
+}
+
+void GestionnaireInterface::parent_dialogue(QWidget *p)
+{
+	m_parent_dialogue = p;
 }
 
 void GestionnaireInterface::ajourne_menu(const dls::chaine &nom)
@@ -321,27 +327,10 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 		return false;
 	}
 
-	Dialogue dialogue(disposition);
+	auto dialogue = Dialogue(disposition, this->m_parent_dialogue);
 	dialogue.show();
 
 	return dialogue.exec() == QDialog::Accepted;
-}
-
-/* ************************************************************************** */
-
-dls::chaine contenu_fichier(const std::experimental::filesystem::path &chemin)
-{
-	if (!std::experimental::filesystem::exists(chemin)) {
-		return "";
-	}
-
-	std::ifstream entree;
-	entree.open(chemin.c_str());
-
-	std::string contenu((std::istreambuf_iterator<char>(entree)),
-						(std::istreambuf_iterator<char>()));
-
-	return dls::chaine(contenu);
 }
 
 /* ************************************************************************** */
@@ -365,7 +354,7 @@ QBoxLayout *compile_entreface(
 		return nullptr;
 	}
 
-	const auto texte_entree = contenu_fichier(chemin_texte.c_str());
+	const auto texte_entree = dls::contenu_fichier(chemin_texte.c_str());
 	return __gestionnaire.compile_entreface(donnees, texte_entree.c_str(), temps);
 }
 

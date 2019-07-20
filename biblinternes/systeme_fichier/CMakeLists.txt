@@ -21,7 +21,13 @@
 
 set(NOM_BIBLIOTHEQUE systeme_fichier)
 
-set(HEADERS_LIB
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
+set(BIBLIOTHEQUES
+	bib_structures
+	stdc++fs
 )
 
 set(HEADERS
@@ -37,6 +43,10 @@ set(SOURCES
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${HEADERS})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
 install(FILES ${HEADERS} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})

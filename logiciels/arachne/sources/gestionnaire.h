@@ -26,6 +26,8 @@
 
 #include <experimental/filesystem>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace arachne {
 
 /**
@@ -35,7 +37,7 @@ namespace arachne {
 class gestionnaire {
 	std::experimental::filesystem::path m_chemin_racine;
 	std::experimental::filesystem::path m_chemin_courant;
-	std::string m_base_courante;
+	dls::chaine m_base_courante;
 
 public:
 	/**
@@ -54,7 +56,7 @@ public:
 	 * créé, mais l'état du gestionnaire est changé pour se plavé sur la base
 	 * de données existante.
 	 */
-	void cree_base_donnees(const std::string &nom);
+	void cree_base_donnees(const dls::chaine &nom);
 
 	/**
 	 * Supprime le dossier où se trouve la base de données, le nom duquel étant
@@ -62,7 +64,7 @@ public:
 	 * chemin courant et la base de données courante sont réinitialisés avec des
 	 * valeurs par défaut.
 	 */
-	void supprime_base_donnees(const std::string &nom);
+	void supprime_base_donnees(const dls::chaine &nom);
 
 	/**
 	 * Change la base de données courante pour celle dont le nom est spécifiée
@@ -71,7 +73,7 @@ public:
 	 *
 	 * Retourne vrai si la base de données courante a été changé.
 	 */
-	bool change_base_donnees(const std::string &nom);
+	bool change_base_donnees(const dls::chaine &nom);
 
 	/**
 	 * Retourne le chemin racine où se trouve les dossiers des bases de données.
@@ -88,7 +90,7 @@ public:
 	 * Retourne le nom de la base de données courante. Si aucune base de données
 	 * n'est sélectionnée, retourne un nom vide.
 	 */
-	std::string base_courante() const;
+	dls::chaine base_courante() const;
 };
 
 }  /* namespace arachne */

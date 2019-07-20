@@ -36,15 +36,12 @@
 #include "coeur/configuration.h"
 #include "coeur/koudou.h"
 
-#include "outils.h"
-
 /* ************************************************************************** */
 
 BaseDialogue::BaseDialogue(Koudou &koudou, QWidget *parent)
     : QDialog(parent)
 	, m_agencement(new QVBoxLayout(this))
 	, m_agencement_grille(new QGridLayout())
-	, m_assembleur_controles(m_agencement_grille)
 	, m_koudou(&koudou)
 {
 	this->setWindowTitle("Preferences");
@@ -60,7 +57,7 @@ BaseDialogue::BaseDialogue(Koudou &koudou, QWidget *parent)
 
 void BaseDialogue::montre()
 {
-	cree_controles(m_assembleur_controles, m_koudou->configuration);
+//	cree_controles(m_assembleur_controles, m_koudou->configuration);
 	this->show();
 }
 
@@ -76,7 +73,6 @@ ProjectSettingsDialog::ProjectSettingsDialog(Koudou &koudou, QWidget *parent)
     : QDialog(parent)
 	, m_agencement(new QVBoxLayout(this))
 	, m_agencement_grille(new QGridLayout())
-	, m_assembleur_controles(m_agencement_grille)
 	, m_koudou(&koudou)
 {
 	this->setWindowTitle("Project Settings");
@@ -92,7 +88,7 @@ ProjectSettingsDialog::ProjectSettingsDialog(Koudou &koudou, QWidget *parent)
 
 void ProjectSettingsDialog::montre()
 {
-	cree_controles(m_assembleur_controles, m_koudou->parametres_projet);
+//	cree_controles(m_assembleur_controles, m_koudou->parametres_projet);
 	this->show();
 }
 

@@ -28,7 +28,7 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include "biblinternes/geometrie/limites.hh"
+#include "biblinternes/math/limites.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -207,8 +207,8 @@ public:
 
 		m_nombre_tuiles = m_tuile.x * m_tuile.y * m_tuile.z;
 
-		m_table_index.resize(m_nombre_tuiles);
-		std::fill(m_table_index.begin(), m_table_index.end(), -1ul);
+		m_table_index.redimensionne(m_nombre_tuiles);
+		std::fill(m_table_index.debut(), m_table_index.fin(), -1ul);
 #else
 		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), T(0));
 #endif
@@ -364,7 +364,7 @@ public:
 	size_t taille_octet() const
 	{
 #ifdef UTILISE_TUILES
-		return m_tuiles.size() * (TAILLE_TUILLE * TAILLE_TUILLE * TAILLE_TUILLE) * sizeof(T);
+		return m_tuiles.taille() * (TAILLE_TUILLE * TAILLE_TUILLE * TAILLE_TUILLE) * sizeof(T);
 #else
 		return m_nombre_voxels * sizeof(T);
 #endif

@@ -1,7 +1,9 @@
 //#include "document.h"
 #include <iostream>
 #include <memory>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Node {
 	struct node_concept {
@@ -37,13 +39,13 @@ public:
 	}
 };
 
-using graph_t = std::vector<Node>;
+using graph_t = dls::tableau<Node>;
 
 class MathNode {
 public:
-	std::string name() const
+	dls::chaine name() const
 	{
-		return std::string("MathNode");
+		return dls::chaine("MathNode");
 	}
 };
 
@@ -54,9 +56,9 @@ void process_node(const MathNode &node)
 
 class StringNode {
 public:
-	std::string name() const
+	dls::chaine name() const
 	{
-		return std::string("StringNode");
+		return dls::chaine("StringNode");
 	}
 };
 
@@ -67,9 +69,9 @@ void process_node(const StringNode &node)
 
 class AdvectNode {
 public:
-	std::string name() const
+	dls::chaine name() const
 	{
-		return std::string("AdvectNode");
+		return dls::chaine("AdvectNode");
 	}
 };
 
@@ -92,9 +94,9 @@ public:
 		m_graph.emplace_back(AdvectNode());
 	}
 
-	std::string name() const
+	dls::chaine name() const
 	{
-		return std::string("SimulationNode");
+		return dls::chaine("SimulationNode");
 	}
 
 	const graph_t &graph() const

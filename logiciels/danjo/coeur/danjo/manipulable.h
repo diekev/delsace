@@ -24,19 +24,22 @@
 
 #pragma once
 
-#include <experimental/any>
+#include <any>
 
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/phys/couleur.hh"
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 struct CourbeBezier;
 struct CourbeCouleur;
 struct RampeCouleur;
 
 namespace danjo {
+
+struct ListeManipulable;
 
 enum TypePropriete {
 	ENTIER,
@@ -52,10 +55,11 @@ enum TypePropriete {
 	COURBE_VALEUR,
 	RAMPE_COULEUR,
 	TEXTE,
+	LISTE_MANIP,
 };
 
 struct Propriete {
-	std::experimental::any valeur{};
+	std::any valeur{};
 	TypePropriete type{};
 
 	bool est_extra = false;
@@ -64,7 +68,7 @@ struct Propriete {
 
 	bool pad[2];
 
-	std::vector<std::pair<int, std::experimental::any>> courbe{};
+	dls::tableau<std::pair<int, std::any>> courbe{};
 
 	void ajoute_cle(const int v, int temps);
 
@@ -80,20 +84,20 @@ struct Propriete {
 
 	bool possede_cle(int temps) const;
 
-	int evalue_entier(int temps);
+	int evalue_entier(int temps) const;
 
-	float evalue_decimal(int temps);
+	float evalue_decimal(int temps) const;
 
-	dls::math::vec3f evalue_vecteur(int temps);
+	dls::math::vec3f evalue_vecteur(int temps) const;
 
-	dls::phys::couleur32 evalue_couleur(int temps);
+	dls::phys::couleur32 evalue_couleur(int temps) const;
 
 private:
-	void ajoute_cle_impl(const std::experimental::any &v, int temps);
+	void ajoute_cle_impl(const std::any &v, int temps);
 
 	void tri_courbe();
 
-	bool trouve_valeurs_temps(int temps, std::experimental::any &v1, std::experimental::any &v2, int &t1, int &t2);
+	bool trouve_valeurs_temps(int temps, std::any &v1, std::any &v2, int &t1, int &t2) const;
 };
 
 /**
@@ -129,7 +133,7 @@ public:
 	 *
 	 * La valeur spécifiée est la valeur par défaut du manipulable.
 	 */
-	void ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::experimental::any &valeur);
+	void ajoute_propriete(const dls::chaine &nom, TypePropriete type, const std::any &valeur);
 
 	/**
 	 * Ajoute une propriété extra à ce manipulable avec le nom spécifié.
@@ -146,67 +150,72 @@ public:
 	/**
 	 * Évalue la valeur d'une propriété de type 'entier' du nom spécifié.
 	 */
-	int evalue_entier(const dls::chaine &nom, int temps = 0);
+	int evalue_entier(const dls::chaine &nom, int temps = 0) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'décimal' du nom spécifié.
 	 */
-	float evalue_decimal(const dls::chaine &nom, int temps = 0);
+	float evalue_decimal(const dls::chaine &nom, int temps = 0) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'vecteur' du nom spécifié.
 	 */
-	dls::math::vec3f evalue_vecteur(const dls::chaine &nom, int temps = 0);
+	dls::math::vec3f evalue_vecteur(const dls::chaine &nom, int temps = 0) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'couleur' du nom spécifié.
 	 */
-	dls::phys::couleur32 evalue_couleur(const dls::chaine &nom, int temps = 0);
+	dls::phys::couleur32 evalue_couleur(const dls::chaine &nom, int temps = 0) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_entrée' du nom spécifié.
 	 */
-	dls::chaine evalue_fichier_entree(const dls::chaine &nom);
+	dls::chaine evalue_fichier_entree(const dls::chaine &nom) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'fichier_sortie' du nom spécifié.
 	 */
-	dls::chaine evalue_fichier_sortie(const dls::chaine &nom);
+	dls::chaine evalue_fichier_sortie(const dls::chaine &nom) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'chaine' du nom spécifié.
 	 */
-	dls::chaine evalue_chaine(const dls::chaine &nom);
+	dls::chaine evalue_chaine(const dls::chaine &nom) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'bool' du nom spécifié.
 	 */
-	bool evalue_bool(const dls::chaine &nom);
+	bool evalue_bool(const dls::chaine &nom) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'énum' du nom spécifié.
 	 */
-	dls::chaine evalue_enum(const dls::chaine &nom);
+	dls::chaine evalue_enum(const dls::chaine &nom) const;
 
 	/**
 	 * Évalue la valeur d'une propriété de type 'liste' du nom spécifié.
 	 */
-	dls::chaine evalue_liste(const dls::chaine &nom);
+	dls::chaine evalue_liste(const dls::chaine &nom) const;
 
 	/**
 	 * Retourne la courbe de la propriété 'courbe_couleur' du nom spécifié.
 	 */
-	CourbeCouleur *evalue_courbe_couleur(const dls::chaine &nom);
+	CourbeCouleur const *evalue_courbe_couleur(const dls::chaine &nom) const;
 
 	/**
 	 * Retourne la courbe de la propriété 'courbe_valeur' du nom spécifié.
 	 */
-	CourbeBezier *evalue_courbe_valeur(const dls::chaine &nom);
+	CourbeBezier const *evalue_courbe_valeur(const dls::chaine &nom) const;
 
 	/**
 	 * Retourne la rampe de la propriété 'rampe_couleur' du nom spécifié.
 	 */
-	RampeCouleur *evalue_rampe_couleur(const dls::chaine &nom);
+	RampeCouleur const *evalue_rampe_couleur(const dls::chaine &nom) const;
+
+	/**
+	 * Retourne la liste de la propriété 'liste_manip' du nom spécifié.
+	 */
+	ListeManipulable const *evalue_liste_manip(const dls::chaine &nom) const;
 
 	/**
 	 * Rends la propriété spécifiée visible dans l'entreface.
@@ -258,9 +267,11 @@ public:
 	/**
 	 * Retourne le type de la propriété du nom spécifié.
 	 */
-	TypePropriete type_propriete(const dls::chaine &nom);
+	TypePropriete type_propriete(const dls::chaine &nom) const;
 
 	Propriete *propriete(const dls::chaine &nom);
+
+	Propriete const *propriete(const dls::chaine &nom) const;
 };
 
 }  /* namespace danjo */

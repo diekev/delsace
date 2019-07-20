@@ -193,9 +193,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);
 		}
@@ -539,9 +541,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);
 		}
@@ -785,7 +789,7 @@ public:
 /* ************************************************************************** */
 
 #include <mutex>
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 class OpTransfereAttributs final : public OperatriceCorps {
 public:
@@ -902,9 +906,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
 			entree(1)->obtiens_liste_attributs(chaines);
 		}
@@ -1091,9 +1097,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
 			entree(1)->obtiens_liste_attributs(chaines);
 		}

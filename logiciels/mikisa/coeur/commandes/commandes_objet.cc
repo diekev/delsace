@@ -24,7 +24,8 @@
 
 #include "commandes_objet.hh"
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "../evaluation/evaluation.hh"
 
@@ -80,7 +81,7 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 		throw std::runtime_error("Type de préréglage inconnu");
 	}
 
-	auto texte = danjo::contenu_fichier(op->chemin_entreface());
+	auto texte = dls::contenu_fichier(op->chemin_entreface());
 	danjo::initialise_entreface(op, texte.c_str());
 
 	synchronise_donnees_operatrice(noeud_creation);	

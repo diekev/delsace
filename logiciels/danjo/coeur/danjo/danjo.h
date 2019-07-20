@@ -33,6 +33,7 @@
 class QBoxLayout;
 class QMenu;
 class QToolBar;
+class QWidget;
 
 namespace danjo {
 
@@ -65,8 +66,12 @@ class GestionnaireInterface {
 	dls::dico_desordonne<dls::chaine, QBoxLayout *> m_dispositions{};
 	dls::tableau<QToolBar *> m_barres_outils{};
 
+	QWidget *m_parent_dialogue = nullptr;
+
 public:
 	~GestionnaireInterface();
+
+	void parent_dialogue(QWidget *p);
 
 	void ajourne_menu(const dls::chaine &nom);
 
@@ -93,13 +98,6 @@ public:
 
 	bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
 };
-
-/**
- * Retourne une chaîne de caractère ayant le contenu du fichier pointé par le
- * chemin spécifié. Si le chemin pointe vers un fichier non-existant, la chaîne
- * retournée sera vide.
- */
-dls::chaine contenu_fichier(const std::experimental::filesystem::path &chemin);
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
 

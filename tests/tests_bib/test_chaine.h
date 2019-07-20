@@ -26,4 +26,4 @@
 
 #include <test_unitaire/test_unitaire.h>
 
-void test_chaine_utf8(numero7::test_unitaire::ControleurUnitaire &controleur);
+void test_chaine_utf8(dls::test_unitaire::ControleurUnitaire &controleur);

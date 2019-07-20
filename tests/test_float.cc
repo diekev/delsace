@@ -24,7 +24,7 @@
 
 #include "tests.hh"
 
-#include "../nombre_decimaux/ordre.h"
+#include "biblinternes/nombre_decimaux/ordre.h"
 
 void test_float_total(dls::test_unitaire::Controleuse &controleur)
 {

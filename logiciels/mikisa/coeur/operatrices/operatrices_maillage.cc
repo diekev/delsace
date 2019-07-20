@@ -27,10 +27,11 @@
 #include "biblinternes/math/bruit.hh"
 #include <eigen3/Eigen/Eigenvalues>
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -1236,18 +1237,6 @@ static auto calcul_donnees_dist_centroide(Corps &corps)
 	return calcul_donnees_dist_point(corps, centre_masse);
 }
 
-template <typename T1, typename T2>
-auto est_element(T1 &&a, T2 &&b) -> bool
-{
-	return a == b;
-}
-
-template <typename T1, typename T2, typename... Ts>
-auto est_element(T1 &&a, T2 &&b, Ts &&... t) -> bool
-{
-	return a == b || est_element(a, t...);
-}
-
 static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_max)
 {
 	for (auto i = 0; i < attr->taille(); ++i) {
@@ -1367,7 +1356,7 @@ public:
 		else if (type_metrie == "tangeante") {
 			attr_sortie = calcul_tangeantes(m_corps);
 		}
-		else if (est_element(type_metrie, "courbure_min", "courbure_max", "direction_min", "direction_max", "var_géom", "gaussien", "moyenne")) {
+		else if (dls::outils::est_element(type_metrie, "courbure_min", "courbure_max", "direction_min", "direction_max", "var_géom", "gaussien", "moyenne")) {
 			auto attr_N = m_corps.attribut("N");
 
 			if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {

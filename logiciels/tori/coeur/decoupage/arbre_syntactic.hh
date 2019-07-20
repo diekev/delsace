@@ -25,7 +25,7 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 
@@ -45,7 +45,7 @@ enum class type_noeud : unsigned int {
 
 class Noeud {
 protected:
-	std::vector<Noeud *> enfants{};
+	dls::tableau<Noeud *> enfants{};
 
 public:
 	DonneesMorceaux donnees_morceaux;

@@ -33,7 +33,8 @@
 #include <QSettings>
 #include <QTimer>
 
-#include <utils/filesystem.h>
+#include <filesystem>
+#include "biblinternes/systeme_fichier/utilitaires.h"
 
 #include "glcanvas.h"
 #include "mainwindow.h"
@@ -124,7 +125,7 @@ void MainWindow::reset()
 	m_canvas->hide();
 }
 
-void MainWindow::closeEvent(QCloseEvent *) const
+void MainWindow::closeEvent(QCloseEvent *)
 {
 	writeSettings();
 }
@@ -226,9 +227,9 @@ void MainWindow::resetRNG()
 	m_dist.param(p);
 }
 
-static bool is_supported_file(const filesystem::path &path)
+static bool is_supported_file(const std::filesystem::path &path)
 {
-	if (!filesystem::is_regular_file(path)) {
+	if (!std::filesystem::is_regular_file(path)) {
 		return false;
 	}
 
@@ -253,7 +254,7 @@ void get_directory_content(DirIterator iter, QVector<QString> &images)
 			continue;
 		}
 
-		images.push_back(entry.path_().c_str());
+		images.push_back(entry.path().c_str());
 	}
 }
 
@@ -262,11 +263,11 @@ void MainWindow::getDirectoryContent(const QDir &dir)
 	m_images.clear();
 
 	if (m_user_pref->openSubdirs()) {
-		filesystem::recursive_directory_iterator dir_iter(dir.path().toStdString());
+		std::filesystem::recursive_directory_iterator dir_iter(dir.path().toStdString());
 		get_directory_content(dir_iter, m_images);
 	}
 	else {
-		filesystem::directory_iterator dir_iter(dir.path().toStdString());
+		std::filesystem::directory_iterator dir_iter(dir.path().toStdString());
 		get_directory_content(dir_iter, m_images);
 	}
 }
@@ -277,23 +278,23 @@ void MainWindow::deleteImage()
 		return;
 	}
 
-	auto name = m_images[m_image_id];
+	auto name = m_images[static_cast<int>(m_image_id)];
 	auto removed = false;
 	auto remove_method = m_user_pref->fileRemovingMethod();
 
 	if (remove_method == DELETE_PERMANENTLY) {
-		removed = filesystem::remove(name.toStdString());
+		removed = std::filesystem::remove(name.toStdString());
 	}
 	else if (remove_method == MOVE_TO_TRASH) {
-		filesystem::move_to_trash(name.toStdString());
-		removed = !filesystem::exists(name.toStdString());
+		dls::systeme_fichier::mettre_poubelle(name.toStdString());
+		removed = !std::filesystem::exists(name.toStdString());
 	}
 	else {
 		auto old_name = QFileInfo(name).fileName();
 		auto new_name = m_user_pref->changeFolderPath().append("/").append(old_name);
 
-		filesystem::rename(name.toStdString(), new_name.toStdString());
-		removed = !filesystem::exists(name.toStdString());
+		std::filesystem::rename(name.toStdString(), new_name.toStdString());
+		removed = !std::filesystem::exists(name.toStdString());
 	}
 
 	if (removed) {
@@ -304,7 +305,7 @@ void MainWindow::deleteImage()
 			reset();
 		}
 		else {
-			loadImage(m_images[m_image_id]);
+			loadImage(m_images[static_cast<int>(m_image_id)]);
 		}
 	}
 }
@@ -399,7 +400,7 @@ void MainWindow::nextImage(const bool forward)
 		}
 	}
 
-	loadImage(m_images[m_image_id]);
+	loadImage(m_images[static_cast<int>(m_image_id)]);
 }
 
 void MainWindow::startDiap()
@@ -430,10 +431,10 @@ auto MainWindow::scaleImage(const float factor) -> void
 {
 	m_scale_factor *= factor;
 
-	auto w = m_current_width * m_scale_factor;
-	auto h = m_current_height * m_scale_factor;
+	auto w = static_cast<float>(m_current_width) * m_scale_factor;
+	auto h = static_cast<float>(m_current_height) * m_scale_factor;
 
-	m_canvas->resize(w, h);
+	m_canvas->resize(static_cast<int>(w), static_cast<int>(h));
 
 	adjustScrollBar(ui->m_scroll_area->horizontalScrollBar(), factor);
 	adjustScrollBar(ui->m_scroll_area->verticalScrollBar(), factor);
@@ -444,8 +445,8 @@ auto MainWindow::scaleImage(const float factor) -> void
 
 void MainWindow::adjustScrollBar(QScrollBar *scrollBar, const float factor)
 {
-    scrollBar->setValue(int(factor * scrollBar->value()
-	                        + ((factor - 1) * scrollBar->pageStep() / 2)));
+	scrollBar->setValue(int(factor * static_cast<float>(scrollBar->value())
+							+ ((factor - 1.0f) * static_cast<float>(scrollBar->pageStep()) / 2.0f)));
 }
 
 void MainWindow::normalSize()
@@ -467,14 +468,14 @@ void MainWindow::fitScreen()
 	const auto screen_width = ui->centralWidget->width() - 2;
 
 	if (image_height > screen_height) {
-		auto ratio = screen_height / float(image_height);
-		m_current_width = image_width * ratio;
+		auto ratio = static_cast<float>(screen_height) / static_cast<float>(image_height);
+		m_current_width = static_cast<int>(static_cast<float>(image_width) * ratio);
 		m_current_height = screen_height;
 	}
 	else if (image_width > screen_width) {
-		auto ratio = screen_width / float(image_width);
+		auto ratio = static_cast<float>(screen_width) / static_cast<float>(image_width);
 		m_current_width = screen_width;
-		m_current_height = image_height * ratio;
+		m_current_height = static_cast<int>(static_cast<float>(image_height) * ratio);
 	}
 	else {
 		m_current_height = image_height;

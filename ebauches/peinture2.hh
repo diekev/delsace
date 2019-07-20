@@ -1,24 +1,24 @@
 struct Calque {
 	float *tampon;
-	std::string nom;
+	dls::chaine nom;
 };
 
 struct Composite {
-	std::vector<Calque *> calques;
+	dls::tableau<Calque *> calques;
 	int res_x;
 	int res_y;
 };
 
 struct Maillage {
 	Composite *composite;
-	std::string nom;
+	dls::chaine nom;
 };
 
 struct Object {
-	std::vector<Maillage *> versions;
-	std::string nom;
+	dls::tableau<Maillage *> versions;
+	dls::chaine nom;
 };
 
 struct Scene {
-	std::vector<Object *> objects;
+	dls::tableau<Object *> objects;
 };

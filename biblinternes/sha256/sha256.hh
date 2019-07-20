@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace sha256 {
 
-std::string empreinte(const std::string &entree);
+dls::chaine empreinte(const dls::chaine &entree);
 
 }

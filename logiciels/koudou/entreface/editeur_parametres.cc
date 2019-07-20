@@ -36,8 +36,6 @@
 #include "coeur/koudou.h"
 #include "coeur/moteur_rendu.h"
 
-#include "outils.h"
-
 /* ************************************************************************** */
 
 enum {
@@ -63,61 +61,61 @@ static const int RESOLUTIONS[][2] = {
 VueParametres::VueParametres(Koudou *koudou)
 	: m_koudou(koudou)
 {
-	ProprieteEnumerante enum_resolution;
-	enum_resolution.ajoute("HD 720 (1280x720)", RES_720);
-	enum_resolution.ajoute("HD 1080 (1920×1080)", RES_1080);
-	enum_resolution.ajoute("2K FLAT (1998×1080)", RES_2K_FLAT);
-	enum_resolution.ajoute("2K Digital Cinema (2048×1080)", RES_2K_DC);
-	enum_resolution.ajoute("4K UHDTV (3840×2160)", RES_4K_UHDTV);
-	enum_resolution.ajoute("4K Digital Cinema (4096×2160)", RES_4K_DC);
-	enum_resolution.ajoute("8K UHDTV (7680×4320)", RES_8K_UHDTV);
+//	ProprieteEnumerante enum_resolution;
+//	enum_resolution.ajoute("HD 720 (1280x720)", RES_720);
+//	enum_resolution.ajoute("HD 1080 (1920×1080)", RES_1080);
+//	enum_resolution.ajoute("2K FLAT (1998×1080)", RES_2K_FLAT);
+//	enum_resolution.ajoute("2K Digital Cinema (2048×1080)", RES_2K_DC);
+//	enum_resolution.ajoute("4K UHDTV (3840×2160)", RES_4K_UHDTV);
+//	enum_resolution.ajoute("4K Digital Cinema (4096×2160)", RES_4K_DC);
+//	enum_resolution.ajoute("8K UHDTV (7680×4320)", RES_8K_UHDTV);
 
-	ajoute_propriete("resolution", "Résolution image", TypePropriete::ENUM);
-	etablie_valeur_enum(enum_resolution);
+	ajoute_propriete("resolution", danjo::TypePropriete::ENUM);
+//	etablie_valeur_enum(enum_resolution);
 
-	ajoute_propriete("largeur_carreau", "Largeur carreau", TypePropriete::INT);
-	etablie_valeur_int_defaut(32);
-	etablie_min_max(1, 100);
+	ajoute_propriete("largeur_carreau", danjo::TypePropriete::ENTIER);
+//	etablie_valeur_int_defaut(32);
+//	etablie_min_max(1, 100);
 
-	ajoute_propriete("hauteur_carreau", "Hauteur carreau", TypePropriete::INT);
-	etablie_valeur_int_defaut(32);
-	etablie_min_max(1, 100);
+	ajoute_propriete("hauteur_carreau", danjo::TypePropriete::ENTIER);
+//	etablie_valeur_int_defaut(32);
+//	etablie_min_max(1, 100);
 
-	ajoute_propriete("echantillons", "Échantillons", TypePropriete::INT);
-	etablie_valeur_int_defaut(32);
-	etablie_min_max(1, 100);
+	ajoute_propriete("echantillons", danjo::TypePropriete::ENTIER);
+//	etablie_valeur_int_defaut(32);
+//	etablie_min_max(1, 100);
 
-	ajoute_propriete("rebonds", "Rebonds", TypePropriete::INT);
-	etablie_valeur_int_defaut(5);
-	etablie_min_max(1, 100);
+	ajoute_propriete("rebonds", danjo::TypePropriete::ENTIER);
+//	etablie_valeur_int_defaut(5);
+//	etablie_min_max(1, 100);
 }
 
 void VueParametres::ajourne_donnees()
 {
-	m_koudou->parametres_rendu.nombre_echantillons = static_cast<unsigned>(evalue_int("echantillons"));
-	m_koudou->parametres_rendu.nombre_rebonds = static_cast<unsigned>(evalue_int("rebonds"));
-	m_koudou->parametres_rendu.largeur_carreau = static_cast<unsigned>(evalue_int("largeur_carreau"));
-	m_koudou->parametres_rendu.hauteur_carreau = static_cast<unsigned>(evalue_int("hauteur_carreau"));
+//	m_koudou->parametres_rendu.nombre_echantillons = static_cast<unsigned>(evalue_int("echantillons"));
+//	m_koudou->parametres_rendu.nombre_rebonds = static_cast<unsigned>(evalue_int("rebonds"));
+//	m_koudou->parametres_rendu.largeur_carreau = static_cast<unsigned>(evalue_int("largeur_carreau"));
+//	m_koudou->parametres_rendu.hauteur_carreau = static_cast<unsigned>(evalue_int("hauteur_carreau"));
 
-	auto const resolution = static_cast<unsigned>(evalue_enum("resolution"));
+//	auto const resolution = static_cast<unsigned>(evalue_enum("resolution"));
 
-	if (m_koudou->parametres_rendu.resolution != resolution) {
-		auto const largeur = dls::math::Largeur(RESOLUTIONS[resolution][0]);
-		auto const hauteur = dls::math::Hauteur(RESOLUTIONS[resolution][1]);
+//	if (m_koudou->parametres_rendu.resolution != resolution) {
+//		auto const largeur = dls::math::Largeur(RESOLUTIONS[resolution][0]);
+//		auto const hauteur = dls::math::Hauteur(RESOLUTIONS[resolution][1]);
 
-		m_koudou->moteur_rendu->pointeur_pellicule()->redimensionne(hauteur, largeur);
-	}
+//		m_koudou->moteur_rendu->pointeur_pellicule()->redimensionne(hauteur, largeur);
+//	}
 
-	m_koudou->parametres_rendu.resolution = resolution;
+//	m_koudou->parametres_rendu.resolution = resolution;
 }
 
 bool VueParametres::ajourne_proprietes()
 {
-	ajourne_valeur_int("echantillons", static_cast<int>(m_koudou->parametres_rendu.nombre_echantillons));
-	ajourne_valeur_int("rebonds", static_cast<int>(m_koudou->parametres_rendu.nombre_rebonds));
-	ajourne_valeur_int("resolution", static_cast<int>(m_koudou->parametres_rendu.resolution));
-	ajourne_valeur_int("largeur_carreau", static_cast<int>(m_koudou->parametres_rendu.largeur_carreau));
-	ajourne_valeur_int("hauteur_carreau", static_cast<int>(m_koudou->parametres_rendu.hauteur_carreau));
+	valeur_entier("echantillons", static_cast<int>(m_koudou->parametres_rendu.nombre_echantillons));
+	valeur_entier("rebonds", static_cast<int>(m_koudou->parametres_rendu.nombre_rebonds));
+	valeur_entier("resolution", static_cast<int>(m_koudou->parametres_rendu.resolution));
+	valeur_entier("largeur_carreau", static_cast<int>(m_koudou->parametres_rendu.largeur_carreau));
+	valeur_entier("hauteur_carreau", static_cast<int>(m_koudou->parametres_rendu.hauteur_carreau));
 
 	return true;
 }
@@ -130,7 +128,6 @@ EditeurParametres::EditeurParametres(Koudou *koudou, QWidget *parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())
 	, m_glayout(new QGridLayout(m_widget))
-	, m_assembleur_controles(m_glayout)
 {
 	m_widget->setSizePolicy(m_cadre->sizePolicy());
 
@@ -152,8 +149,8 @@ EditeurParametres::~EditeurParametres()
 void EditeurParametres::ajourne_etat(int /*evenement*/)
 {
 	m_vue->ajourne_proprietes();
-	cree_controles(m_assembleur_controles, m_vue);
-	m_assembleur_controles.setContext(this, SLOT(ajourne_vue()));
+	//cree_controles(m_assembleur_controles, m_vue);
+	//m_assembleur_controles.setContext(this, SLOT(ajourne_vue()));
 }
 
 void EditeurParametres::ajourne_vue()

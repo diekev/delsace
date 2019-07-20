@@ -191,24 +191,24 @@ void VisionneurScene::reconstruit_scene()
 
 	auto &scene = m_koudou->parametres_rendu.scene;
 
-	m_maillages.clear();
-	m_maillages.reserve(scene.maillages.size());
+	m_maillages.efface();
+	m_maillages.reserve(scene.maillages.taille());
 
-	m_lumieres.clear();
-	m_lumieres.reserve(scene.lumieres.size());
+	m_lumieres.efface();
+	m_lumieres.reserve(scene.lumieres.taille());
 
 	for (auto &objet : scene.objets) {
 		if (objet->type == TypeObjet::LUMIERE) {
 			auto rendu_lumiere = new RenduLumiere(objet->lumiere);
 			rendu_lumiere->initialise();
 
-			m_lumieres.push_back(rendu_lumiere);
+			m_lumieres.pousse(rendu_lumiere);
 		}
 		else if (objet->type == TypeObjet::MAILLAGE) {
 			auto rendu_maillage = new RenduMaillage(objet->maillage);
 			rendu_maillage->initialise();
 
-			m_maillages.push_back(rendu_maillage);
+			m_maillages.pousse(rendu_maillage);
 		}
 	}
 }

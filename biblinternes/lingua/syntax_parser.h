@@ -26,6 +26,8 @@
 
 #include <sstream>
 
+#include "biblinternes/structures/chaine.hh"
+
 enum class token {
 	determiner,
 	noun,
@@ -37,13 +39,13 @@ enum class token {
 std::ostream &operator<<(std::ostream &os, token tok);
 
 class SyntaxParser {
-	std::string m_sentence = "";
+	dls::chaine m_sentence = "";
 	std::stringstream m_stream{};
 
 public:
 	SyntaxParser() = default;
 
-	void operator()(const std::string &sentence);
+	void operator()(const dls::chaine &sentence);
 
 	token get_token();
 };

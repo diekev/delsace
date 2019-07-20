@@ -538,7 +538,7 @@ struct MTree {
 //		this->stem->get_leaf_candidates(leaf_candidates, max_radius);
 
 //		if (!extremity_only) {
-//			if (number > static_cast<int>(leaf_candidates.size())) {
+//			if (number > static_cast<int>(leaf_candidates.taille())) {
 //				auto factor = number / len([i for i in leaf_candidates if not i[-1]]); // remove extremities from factor because they won't participate in candidate addition
 //				add_candidates(leaf_candidates, factor);
 //			}
@@ -1228,12 +1228,12 @@ struct stemSpline {
 	// This method determines the quaternion of the end of the spline
 	dls::math::quaternion<float> quat()
 	{
-		if (this->spline->bezier_points.size() == 1) {
+		if (this->spline->bezier_points.taille() == 1) {
 			return to_track_quat(normalise(this->spline->bezier_points.back()->handle_right -
 					 this->spline->bezier_points.back()->co), 2, 1);
 		}
 
-		return to_track_quat(normalise(this->spline->bezier_points.back()->co - this->spline->bezier_points[this->spline->bezier_points.size() - 2]->co), 2, 1);
+		return to_track_quat(normalise(this->spline->bezier_points.back()->co - this->spline->bezier_points[this->spline->bezier_points.taille() - 2]->co), 2, 1);
 	}
 
 	// Determine the declination
@@ -1472,9 +1472,9 @@ void fabricate_stems(
 				childP_L.pousse(p);
 			}
 			else {
-				auto iter = std::find(childP_T0.begin(), childP_T0.end(), p.offset);
+				auto iter = std::find(childP_T0.debut(), childP_T0.fin(), p.offset);
 
-				if (iter == childP_T0.end()) {
+				if (iter == childP_T0.fin()) {
 					childP_T0[p.offset] = { p };
 				}
 				else {
@@ -1563,7 +1563,7 @@ void fabricate_stems(
 			}
 			else {
 				// À FAIRE
-				auto idx = 0ul; //randint(0, p.size() - 1);
+				auto idx = 0ul; //randint(0, p.taille() - 1);
 				childP.pousse(p[idx]);
 			}
 			// childP.append(p[idx])
@@ -1720,7 +1720,7 @@ void fabricate_stems(
 				stemSpline(
 					newSpline, curveVal, curveVar, attractUp[n],
 					0, curveRes[n], branchL / curveRes[n], childStems,
-					startRad, endRad, cu.splines.size() - 1, 0, p.quat
+					startRad, endRad, cu.splines.taille() - 1, 0, p.quat
 					);
 
 		addstem.pousse(stem);
@@ -2230,7 +2230,7 @@ public {
 							rotate, rotateV
 							);
 
-				levelCount.pousse(cu.splines.size());
+				levelCount.pousse(cu.splines.taille());
 			}
 		}
 #endif

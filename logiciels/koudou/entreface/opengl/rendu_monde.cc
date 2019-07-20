@@ -24,13 +24,13 @@
 
 #include "rendu_monde.h"
 
-#include "biblinternes/ego/outils.h"
 #include <GL/glew.h>
 
 #include "biblinternes/objets/adaptrice_creation.h"
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
 
 #include "coeur/koudou.h"
@@ -39,8 +39,8 @@
 
 class AdaptriceCreation final : public objets::AdaptriceCreationObjet {
 public:
-	std::vector<dls::math::vec3f> sommets{};
-	std::vector<unsigned int> index{};
+	dls::tableau<dls::math::vec3f> sommets{};
+	dls::tableau<unsigned int> index{};
 
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;
 
@@ -72,7 +72,7 @@ public:
 void AdaptriceCreation::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
 	INUTILISE(w);
-	sommets.push_back(dls::math::vec3f(x, y, z));
+	sommets.pousse(dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreation::ajoute_normal(const float x, const float y, const float z)
@@ -101,14 +101,14 @@ void AdaptriceCreation::ajoute_polygone(const int *index_sommet, const int *inde
 	INUTILISE(index_uv);
 	INUTILISE(index_normal);
 
-	index.push_back(static_cast<unsigned>(index_sommet[0]));
-	index.push_back(unsigned(index_sommet[1]));
-	index.push_back(unsigned(index_sommet[2]));
+	index.pousse(static_cast<unsigned>(index_sommet[0]));
+	index.pousse(unsigned(index_sommet[1]));
+	index.pousse(unsigned(index_sommet[2]));
 
 	if (nombre == 4) {
-		index.push_back(unsigned(index_sommet[0]));
-		index.push_back(unsigned(index_sommet[2]));
-		index.push_back(unsigned(index_sommet[3]));
+		index.pousse(unsigned(index_sommet[0]));
+		index.pousse(unsigned(index_sommet[2]));
+		index.pousse(unsigned(index_sommet[3]));
 	}
 }
 
@@ -161,17 +161,17 @@ static TamponRendu *cree_tampon(TypeTexture type_texture)
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	if (type_texture == TypeTexture::COULEUR) {
 		tampon->charge_source_programme(
 					dls::ego::Nuanceur::FRAGMENT,
-					dls::ego::util::str_from_file("nuanceurs/couleur.frag"));
+					dls::contenu_fichier("nuanceurs/couleur.frag"));
 	}
 	else {
 		tampon->charge_source_programme(
 					dls::ego::Nuanceur::FRAGMENT,
-					dls::ego::util::str_from_file("nuanceurs/texture.frag"));
+					dls::contenu_fichier("nuanceurs/texture.frag"));
 	}
 
 	tampon->finalise_programme();
@@ -243,11 +243,11 @@ RenduMonde::RenduMonde(Koudou *koudou)
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = m_sommets.data();
-	parametres_tampon.taille_octet_sommets = m_sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = m_index.data();
-	parametres_tampon.taille_octet_index = m_index.size() * sizeof(unsigned int);
-	parametres_tampon.elements = m_index.size();
+	parametres_tampon.pointeur_sommets = m_sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(m_sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = m_index.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(m_index.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(m_index.taille());
 
 	m_tampon->remplie_tampon(parametres_tampon);
 
@@ -271,11 +271,11 @@ void RenduMonde::ajourne()
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
 			parametres_tampon.dimension_attribut = 3;
-			parametres_tampon.pointeur_sommets = m_sommets.data();
-			parametres_tampon.taille_octet_sommets = m_sommets.size() * sizeof(dls::math::vec3f);
-			parametres_tampon.pointeur_index = m_index.data();
-			parametres_tampon.taille_octet_index = m_index.size() * sizeof(unsigned int);
-			parametres_tampon.elements = m_index.size();
+			parametres_tampon.pointeur_sommets = m_sommets.donnees();
+			parametres_tampon.taille_octet_sommets = static_cast<size_t>(m_sommets.taille()) * sizeof(dls::math::vec3f);
+			parametres_tampon.pointeur_index = m_index.donnees();
+			parametres_tampon.taille_octet_index = static_cast<size_t>(m_index.taille()) * sizeof(unsigned int);
+			parametres_tampon.elements = static_cast<size_t>(m_index.taille());
 
 			m_tampon->remplie_tampon(parametres_tampon);
 

@@ -56,7 +56,7 @@ public:
 	}
 };
 
-static void *get_symbol(void *handle, const std::string &name, std::error_code &ec)
+static void *get_symbol(void *handle, const dls::chaine &name, std::error_code &ec)
 {
 	dlerror();  /* clear any existing error */
 
@@ -70,7 +70,7 @@ static void *get_symbol(void *handle, const std::string &name, std::error_code &
 	return sym;
 }
 
-static void *get_symbol(void *handle, const std::string &name)
+static void *get_symbol(void *handle, const dls::chaine &name)
 {
 	std::error_code ec;
 	const auto sym = get_symbol(handle, name, ec);
@@ -143,7 +143,7 @@ void shared_library::swap(shared_library &other)
 
 void shared_library::open(const std::experimental::filesystem::path &filename, dso_loading flag)
 {
-	if (m_chemin == filename) {
+	if (m_chemin == filename.c_str()) {
 		return;
 	}
 
@@ -151,14 +151,14 @@ void shared_library::open(const std::experimental::filesystem::path &filename, d
 	open(filename, ec, flag);
 
 	if (ec != std::error_code()) {
-		//const std::string error = dlerror();
-		throw std::experimental::filesystem::filesystem_error("Cannot open shared library", m_chemin, filename, ec);
+		//const dls::chaine error = dlerror();
+		throw std::experimental::filesystem::filesystem_error("Cannot open shared library", m_chemin.c_str(), filename, ec);
 	}
 }
 
 void shared_library::open(const std::experimental::filesystem::path &filename, std::error_code &ec, dso_loading flag) noexcept
 {
-	if (m_chemin == filename) {
+	if (m_chemin == filename.c_str()) {
 		return;
 	}
 
@@ -176,22 +176,22 @@ void shared_library::open(const std::experimental::filesystem::path &filename, s
 		return;
 	}
 
-	m_chemin = filename;
+	m_chemin = filename.c_str();
 }
 
-dso_symbol shared_library::operator()(const std::string &symbol_name)
+dso_symbol shared_library::operator()(const dls::chaine &symbol_name)
 {
 	return dso_symbol{ __detail::get_symbol(m_handle, symbol_name) };
 }
 
-dso_symbol shared_library::operator()(const std::string &symbol_name, std::error_code &ec) noexcept
+dso_symbol shared_library::operator()(const dls::chaine &symbol_name, std::error_code &ec) noexcept
 {
 	return dso_symbol{ __detail::get_symbol(m_handle, symbol_name, ec) };
 }
 
 std::experimental::filesystem::path shared_library::chemin() const
 {
-	return m_chemin;
+	return m_chemin.c_str();
 }
 
 shared_library::operator bool() const noexcept
@@ -199,22 +199,22 @@ shared_library::operator bool() const noexcept
 	return (m_handle != nullptr);
 }
 
-dso_symbol symbol_next(const std::string &name)
+dso_symbol symbol_next(const dls::chaine &name)
 {
 	return dso_symbol{ __detail::get_symbol(RTLD_NEXT, name) };
 }
 
-dso_symbol symbol_next(const std::string &name, std::error_code &ec)
+dso_symbol symbol_next(const dls::chaine &name, std::error_code &ec)
 {
 	return dso_symbol{ __detail::get_symbol(RTLD_NEXT, name, ec) };
 }
 
-dso_symbol symbol_default(const std::string &name)
+dso_symbol symbol_default(const dls::chaine &name)
 {
 	return dso_symbol{ __detail::get_symbol(RTLD_DEFAULT, name) };
 }
 
-dso_symbol symbol_default(const std::string &name, std::error_code &ec)
+dso_symbol symbol_default(const dls::chaine &name, std::error_code &ec)
 {
 	return dso_symbol{ __detail::get_symbol(RTLD_DEFAULT, name, ec) };
 }

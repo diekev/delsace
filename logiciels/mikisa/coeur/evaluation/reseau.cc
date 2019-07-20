@@ -30,6 +30,24 @@
 
 /* ************************************************************************** */
 
+static void marque_execution_graphe(NoeudReseau *racine)
+{
+	for (auto noeud_res : racine->sorties) {
+		auto objet = noeud_res->objet;
+		auto &graphe = objet->graphe;
+
+		for (auto &noeud : graphe.noeuds()) {
+			noeud->besoin_execution(true);
+			auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+			op->amont_change();
+		}
+
+		marque_execution_graphe(noeud_res);
+	}
+}
+
+/* ************************************************************************** */
+
 Reseau::~Reseau()
 {
 	reinitialise();
@@ -38,10 +56,11 @@ Reseau::~Reseau()
 void Reseau::reinitialise()
 {
 	for (auto noeud : this->noeuds) {
-		delete noeud;
+		memoire::deloge("NoeudReseau", noeud);
 	}
 
-	noeuds.clear();
+	noeuds.efface();
+	noeud_temps.sorties.efface();
 }
 
 /* ************************************************************************** */
@@ -54,7 +73,7 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 		throw std::runtime_error("Un noeud existe déjà pour l'objet !");
 	}
 
-	auto noeud = new NoeudReseau{};
+	auto noeud = memoire::loge<NoeudReseau>("NoeudReseau");
 	noeud->objet = objet;
 	noeud->noeud_objet = noeud_objet;
 	reseau->noeuds.pousse(noeud);
@@ -62,7 +81,7 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 	m_table_objet_noeud.insere({objet, noeud});
 }
 
-void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
+NoeudReseau *CompilatriceReseau::trouve_noeud_pour_objet(Objet *objet)
 {
 	auto iter_noeud = m_table_objet_noeud.trouve(objet);
 
@@ -70,16 +89,21 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
 		throw std::runtime_error("Aucun noeud n'existe pour l'objet !");
 	}
 
-	ajoute_dependance(noeud, iter_noeud->second);
+	return iter_noeud->second;
+}
+
+void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
+{
+	ajoute_dependance(trouve_noeud_pour_objet(objet), noeud);
 }
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers)
 {
-	noeud_de->entrees.insere(noeud_vers);
-	noeud_vers->sorties.insere(noeud_de);
+	noeud_de->sorties.insere(noeud_vers);
+	noeud_vers->entrees.insere(noeud_de);
 }
 
-void CompilatriceReseau::compile_reseau(Scene *scene)
+void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet)
 {
 	reseau->reinitialise();
 
@@ -90,7 +114,7 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 
 	/* crée les dépendances */
 	for (auto noeud_dep : reseau->noeuds) {
-		auto objet = noeud_dep->objet;
+		auto objet_noeud = noeud_dep->objet;
 
 		/* À FAIRE : les objets ne sont pas des 'Manipulables'. */
 //		if (objet->possede_animation()) {
@@ -100,7 +124,7 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 		/* À FAIRE : n'ajoute les dépendances que pour les noeuds connectés au
 		 * noeud de sortie. */
 
-		for (auto noeud : objet->graphe.noeuds()) {
+		for (auto noeud : objet_noeud->graphe.noeuds()) {
 			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
 
 			if (operatrice->possede_animation()) {
@@ -110,7 +134,19 @@ void CompilatriceReseau::compile_reseau(Scene *scene)
 				ajoute_dependance(&reseau->noeud_temps, noeud_dep);
 			}
 
-			operatrice->renseigne_dependance(*this, noeud_dep);
+			operatrice->renseigne_dependance(contexte, *this, noeud_dep);
 		}
 	}
+
+	/* Marque les graphes des objets en aval comm ayant besoin d'une exécution.
+	 * À FAIRE : trouve les noeuds exacts à exécuter. */
+	if (objet != nullptr) {
+		auto noeud_objet = trouve_noeud_pour_objet(objet);
+		marque_execution_graphe(noeud_objet);
+	}
+}
+
+void CompilatriceReseau::marque_execution_temps_change()
+{
+	marque_execution_graphe(&reseau->noeud_temps);
 }

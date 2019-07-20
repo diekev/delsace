@@ -35,7 +35,8 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
@@ -67,7 +68,7 @@ void EditriceRendu::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto const &texte = danjo::contenu_fichier("entreface/disposition_rendu.jo");
+	auto const &texte = dls::contenu_fichier("entreface/disposition_rendu.jo");
 
 	if (texte.est_vide()) {
 		return;

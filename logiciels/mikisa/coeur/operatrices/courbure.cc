@@ -24,7 +24,7 @@
 
 #include "courbure.hh"
 
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 #include "biblexternes/Patate/grenaille.h"
 
 #include "biblinternes/structures/tableau.hh"

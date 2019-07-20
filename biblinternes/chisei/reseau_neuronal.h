@@ -26,7 +26,7 @@
 
 #include "../math/matrice/matrice.hh"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 using Matrice = dls::math::matrice_dyn<double>;
 
@@ -58,7 +58,7 @@ struct CoucheReseau {
 };
 
 class ReseauNeuronal {
-	std::vector<CoucheReseau *> m_couches;
+	dls::tableau<CoucheReseau *> m_couches;
 
 public:
 	ReseauNeuronal() = default;

@@ -38,7 +38,7 @@ namespace langage {
 
 struct PaireIndentifiantChaine {
 	int identifiant;
-	std::string chaine;
+	dls::chaine chaine;
 };
 
 static bool comparaison_paires_identifiant(
@@ -116,7 +116,7 @@ Iterateur recherche_binaire(
 	return fin;
 }
 
-static int trouve_identifiant(const std::string &chaine)
+static int trouve_identifiant(const dls::chaine &chaine)
 {
 	auto iterateur = std::lower_bound(
 				std::begin(paires_identifiant),
@@ -157,18 +157,18 @@ static bool est_nombre(const char caractere)
 
 /* ************************************************************************** */
 
-size_t trouve_taille_ligne(const std::string_view &chaine, size_t pos)
+long trouve_taille_ligne(const dls::vue_chaine &chaine, long pos)
 {
 	const auto debut = pos;
 
-	while (pos < chaine.size() && chaine[pos] != '\n') {
+	while (pos < chaine.taille() && chaine[pos] != '\n') {
 		++pos;
 	}
 
 	return pos - debut;
 }
 
-Decoupeur::Decoupeur(const std::string_view &chaine)
+Decoupeur::Decoupeur(const dls::vue_chaine &chaine)
 	: m_chaine(chaine)
 	, m_position(0)
 	, m_position_ligne(0)
@@ -184,11 +184,11 @@ Decoupeur::Decoupeur(const std::string_view &chaine)
 			  std::end(paires_identifiant_caractere),
 			  comparaison_paires_identifiant_caractere);
 
-	m_lignes.push_back({&m_chaine[m_position],
+	m_lignes.pousse({&m_chaine[m_position],
 						trouve_taille_ligne(m_chaine, m_position)});
 }
 
-void Decoupeur::impression_debogage(const std::string &quoi)
+void Decoupeur::impression_debogage(const dls::chaine &quoi)
 {
 	std::cout << "Trouvé symbole " << quoi
 			  << ", ligne : " << m_ligne
@@ -203,7 +203,7 @@ void Decoupeur::saute_espaces_blancs()
 		++m_position;
 		++m_position_ligne;
 
-		if (m_position == m_chaine.size()) {
+		if (m_position == m_chaine.taille()) {
 			m_fini = true;
 			break;
 		}
@@ -212,7 +212,7 @@ void Decoupeur::saute_espaces_blancs()
 	}
 
 	if (caractere == '\n') {
-		m_lignes.push_back({&m_chaine[m_position + 1],
+		m_lignes.pousse({&m_chaine[m_position + 1],
 							trouve_taille_ligne(m_chaine, m_position + 1)});
 
 		++m_ligne;
@@ -222,7 +222,7 @@ void Decoupeur::saute_espaces_blancs()
 
 char Decoupeur::regarde_caractere_suivant()
 {
-	if (m_position >= m_chaine.size()) {
+	if (m_position >= m_chaine.taille()) {
 		return '\0';
 	}
 
@@ -234,7 +234,7 @@ char Decoupeur::caractere_suivant()
 	m_caractere_courant = m_chaine[m_position++];
 	++m_position_ligne;
 
-	if (m_position == m_chaine.size()) {
+	if (m_position == m_chaine.taille()) {
 		m_fini = true;
 	}
 
@@ -246,23 +246,23 @@ char Decoupeur::caractere_courant()
 	return m_caractere_courant;
 }
 
-std::string Decoupeur::decoupe_chaine_litterale()
+dls::chaine Decoupeur::decoupe_chaine_litterale()
 {
-	std::string mot_courant;
+	dls::chaine mot_courant;
 
 	while (caractere_suivant() != '"') {
-		mot_courant.push_back(caractere_courant());
+		mot_courant.pousse(caractere_courant());
 	}
 
 	return mot_courant;
 }
 
-std::string Decoupeur::decoupe_nombre()
+dls::chaine Decoupeur::decoupe_nombre()
 {
-	std::string mot_courant;
+	dls::chaine mot_courant;
 
 	while (est_nombre(caractere_courant())) {
-		mot_courant.push_back(caractere_courant());
+		mot_courant.pousse(caractere_courant());
 
 		if (!est_nombre(regarde_caractere_suivant())) {
 			break;
@@ -281,7 +281,7 @@ void Decoupeur::decoupe()
 			  << m_chaine.size() << " caractères.\n";
 #endif
 
-	std::string mot_courant;
+	dls::chaine mot_courant;
 	m_ligne = 0;
 	m_position = 0;
 	m_position_ligne = 0;
@@ -294,7 +294,7 @@ void Decoupeur::decoupe()
 		identifiant = trouve_identifiant_caractere(caractere);
 
 		if (identifiant != IDENTIFIANT_NUL) {
-			if (!mot_courant.empty()) {
+			if (!mot_courant.est_vide()) {
 				ajoute_identifiant(
 							IDENTIFIANT_CHAINE_CARACTERE,
 							m_lignes[m_ligne],
@@ -310,11 +310,11 @@ void Decoupeur::decoupe()
 				identifiant = IDENTIFIANT_CHAINE_CARACTERE;
 			}
 			else {
-				mot_courant.push_back(caractere);
+				mot_courant.pousse(caractere);
 			}
 		}
 		else if (caractere >= '0' && caractere <= '9') {
-			if (!mot_courant.empty()) {
+			if (!mot_courant.est_vide()) {
 				throw ErreurFrappe(
 							m_lignes[m_ligne],
 							m_ligne,
@@ -326,7 +326,7 @@ void Decoupeur::decoupe()
 			identifiant = IDENTIFIANT_NOMBRE;
 		}
 		else {
-			mot_courant.push_back(caractere);
+			mot_courant.pousse(caractere);
 			identifiant = trouve_identifiant(mot_courant);
 		}
 
@@ -351,7 +351,7 @@ void Decoupeur::decoupe()
 			  << ". Position : " << m_position << ".\n";
 #endif
 
-	if (!mot_courant.empty()) {
+	if (!mot_courant.est_vide()) {
 		throw ErreurFrappe(
 					m_lignes[m_ligne],
 					m_ligne,
@@ -360,12 +360,12 @@ void Decoupeur::decoupe()
 	}
 }
 
-void Decoupeur::ajoute_identifiant(int identifiant, const std::string_view &ligne, int numero_ligne, int position_ligne, const std::string &contenu)
+void Decoupeur::ajoute_identifiant(int identifiant, const dls::vue_chaine &ligne, int numero_ligne, int position_ligne, const dls::chaine &contenu)
 {
-	m_identifiants.push_back({identifiant, numero_ligne, position_ligne, contenu, ligne});
+	m_identifiants.pousse({identifiant, numero_ligne, position_ligne, contenu, ligne});
 }
 
-const std::vector<DonneesMorceaux> &Decoupeur::morceaux() const
+dls::tableau<DonneesMorceaux> &Decoupeur::morceaux()
 {
 	return m_identifiants;
 }

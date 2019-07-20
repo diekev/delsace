@@ -10,6 +10,7 @@ menu "Noeud Objet" {
 		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
 		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
 		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
+		action(valeur="Import Alembic"; attache=ajouter_noeud; métadonnée="Import Alembic")
 		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
 		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
@@ -61,6 +62,7 @@ menu "Noeud Objet" {
 	}
 	menu "Simulation" {
 	    action(valeur="Création Kelvinlet"; attache=ajouter_noeud; métadonnée="Création Kelvinlet")
+		action(valeur="Déformation Kelvinlet"; attache=ajouter_noeud; métadonnée="Déformation Kelvinlet")
 		action(valeur="Évaluation Kelvinlet"; attache=ajouter_noeud; métadonnée="Évaluation Kelvinlet")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")

@@ -33,7 +33,7 @@ namespace flux {
  * Iterate over a file and at each step call @c op(line).
  *
  * @param ifs The input file to iterate on.
- * @param op  A functor of the form <tt>void op(const std::string &)</tt>
+ * @param op  A functor of the form <tt>void op(const dls::chaine &)</tt>
  *
  * @par Example:
  * Count the number of lines in a file.
@@ -45,7 +45,7 @@ namespace flux {
  *         : lines(0)
  *     {}
  *
- *     void operator()(const std::string &)
+ *     void operator()(const dls::chaine &)
  *     {
  * 	        lines++;
  *     }
@@ -63,7 +63,7 @@ namespace flux {
  * or with a lambda:
  * @code
  * size_t lines(0);
- * foreach_line(infile, [&](const std::string &) { lines++; });
+ * foreach_line(infile, [&](const dls::chaine &) { lines++; });
  * @endcode
  */
 template <typename ForEachLineOp>

@@ -24,11 +24,9 @@
 
 #include "rendu_manipulatrice.h"
 
-#include "biblinternes/ego/outils.h"
-
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/constantes.h"
-
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/manipulatrice.h"
@@ -65,15 +63,15 @@ static const dls::math::vec4f couleurs[NOMBRE_TAMPON] = {
 
 static TamponRendu *cree_tampon_base(dls::math::vec4f const &couleur)
 {
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -262,10 +260,10 @@ RenduManipulatricePosition::RenduManipulatricePosition()
 
 RenduManipulatricePosition::~RenduManipulatricePosition()
 {
-	delete m_tampon_axe_x;
-	delete m_tampon_axe_y;
-	delete m_tampon_axe_z;
-	delete m_tampon_poignee_xyz;
+	memoire::deloge("TamponRendu", m_tampon_axe_x);
+	memoire::deloge("TamponRendu", m_tampon_axe_y);
+	memoire::deloge("TamponRendu", m_tampon_axe_z);
+	memoire::deloge("TamponRendu", m_tampon_poignee_xyz);
 }
 
 void RenduManipulatricePosition::manipulatrice(Manipulatrice3D *pointeur)
@@ -352,10 +350,10 @@ RenduManipulatriceEchelle::RenduManipulatriceEchelle()
 
 RenduManipulatriceEchelle::~RenduManipulatriceEchelle()
 {
-	delete m_tampon_axe_x;
-	delete m_tampon_axe_y;
-	delete m_tampon_axe_z;
-	delete m_tampon_poignee_xyz;
+	memoire::deloge("TamponRendu", m_tampon_axe_x);
+	memoire::deloge("TamponRendu", m_tampon_axe_y);
+	memoire::deloge("TamponRendu", m_tampon_axe_z);
+	memoire::deloge("TamponRendu", m_tampon_poignee_xyz);
 }
 
 void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
@@ -368,9 +366,9 @@ void RenduManipulatriceEchelle::manipulatrice(Manipulatrice3D *pointeur)
 
 	/* Ajourne la taille de la manipulatrice. */
 //	if (m_tampon_axe_x) {
-//		delete m_tampon_axe_x;
-//		delete m_tampon_axe_y;
-//		delete m_tampon_axe_z;
+//		memoire::deloge("TamponRendu", m_tampon_axe_x);
+//		memoire::deloge("TamponRendu", m_tampon_axe_y);
+//		memoire::deloge("TamponRendu", m_tampon_axe_z);
 //		m_tampon_axe_x = cree_tampon_axe(0, pointeur->taille().x);
 //		m_tampon_axe_y = cree_tampon_axe(1, pointeur->taille().y);
 //		m_tampon_axe_z = cree_tampon_axe(2, pointeur->taille().z);
@@ -538,9 +536,9 @@ RenduManipulatriceRotation::RenduManipulatriceRotation()
 
 RenduManipulatriceRotation::~RenduManipulatriceRotation()
 {
-	delete m_tampon_axe_x;
-	delete m_tampon_axe_y;
-	delete m_tampon_axe_z;
+	memoire::deloge("TamponRendu", m_tampon_axe_x);
+	memoire::deloge("TamponRendu", m_tampon_axe_y);
+	memoire::deloge("TamponRendu", m_tampon_axe_z);
 }
 
 void RenduManipulatriceRotation::manipulatrice(Manipulatrice3D *pointeur)

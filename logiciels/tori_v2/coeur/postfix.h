@@ -24,20 +24,20 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace langage {
 
 struct Variable {
-	int identifiant;
-	std::string valeur;
+	int identifiant = 0;
+	dls::chaine valeur = "";
 };
 
 bool est_operateur(int identifiant);
 
 bool precedence_faible(int identifiant1, int identifiant2);
 
-double evalue_expression(const std::vector<Variable> &expression);
+double evalue_expression(const dls::tableau<Variable> &expression);
 
 }  /* namespace langage */

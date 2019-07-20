@@ -146,7 +146,7 @@ DonneesMorceaux const &base::donnees_morceau() const
 
 base *base::dernier_enfant() const
 {
-	if (this->enfants.empty()) {
+	if (this->enfants.est_vide()) {
 		return nullptr;
 	}
 
@@ -155,7 +155,7 @@ base *base::dernier_enfant() const
 
 void base::ajoute_noeud(base *noeud)
 {
-	this->enfants.push_back(noeud);
+	this->enfants.pousse(noeud);
 }
 
 void base::imprime_code(std::ostream &os, int tab)
@@ -223,8 +223,8 @@ void rassemble_feuilles(
 
 void ajoute_nom_argument(base *b, const dls::vue_chaine &nom)
 {
-	auto noms_arguments = std::any_cast<std::list<dls::vue_chaine>>(&b->valeur_calculee);
-	noms_arguments->push_back(nom);
+	auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine>>(&b->valeur_calculee);
+	noms_arguments->pousse(nom);
 }
 
 }  /* namespace noeud */

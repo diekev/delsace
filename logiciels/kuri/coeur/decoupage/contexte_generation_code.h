@@ -47,7 +47,7 @@ class FunctionPassManager;
 }  /* namespace llvm */
 #endif
 
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/pile.hh"
@@ -144,7 +144,7 @@ struct ContexteGenerationCode {
 	 * coroutines)
 	 * utilisation d'une liste afin d'éviter les crashs quand on tient une
 	 * référence à une chaine qui sera libéré */
-	std::list<dls::chaine> magasin_chaines{};
+	dls::liste<dls::chaine> magasin_chaines{};
 
 	ContexteGenerationCode() = default;
 

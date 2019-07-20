@@ -26,12 +26,24 @@
 
 namespace dls {
 
+chaine::chaine(char c)
+	: chaine(1, c)
+{}
+
 chaine::chaine(const char *__c_str)
 	: m_chaine(__c_str)
 {}
 
+chaine::chaine(const char *__c_str, long taille)
+	: m_chaine(__c_str, static_cast<size_t>(taille))
+{}
+
 chaine::chaine(const vue_chaine &vue)
 	: m_chaine(&vue[0], static_cast<size_t>(vue.taille()))
+{}
+
+chaine::chaine(long nombre, char c)
+	: m_chaine(static_cast<size_t>(nombre), c)
 {}
 
 void chaine::efface()
@@ -85,9 +97,14 @@ chaine chaine::sous_chaine(long pos, long combien) const
 	return m_chaine.substr(static_cast<size_t>(pos), static_cast<size_t>(combien));
 }
 
-long chaine::trouve(const chaine &motif) const
+long chaine::trouve(char c, long pos) const
 {
-	return static_cast<long>(m_chaine.find(motif.c_str()));
+	return static_cast<long>(m_chaine.find(c, static_cast<size_t>(pos)));
+}
+
+long chaine::trouve(const chaine &motif, long pos) const
+{
+	return static_cast<long>(m_chaine.find(motif.c_str(), static_cast<size_t>(pos)));
 }
 
 long chaine::trouve_premier_de(char c) const
@@ -95,9 +112,29 @@ long chaine::trouve_premier_de(char c) const
 	return static_cast<long>(m_chaine.find_first_of(c));
 }
 
+long chaine::trouve_premier_non_de(char c) const
+{
+	return static_cast<long>(m_chaine.find_first_not_of(c));
+}
+
+long chaine::trouve_premier_non_de(chaine const &c) const
+{
+	return static_cast<long>(m_chaine.find_first_not_of(c.c_str()));
+}
+
 long chaine::trouve_dernier_de(char c) const
 {
 	return static_cast<long>(m_chaine.find_last_of(c));
+}
+
+long chaine::trouve_dernier_non_de(char c) const
+{
+	return static_cast<long>(m_chaine.find_last_not_of(c));
+}
+
+long chaine::trouve_dernier_non_de(chaine const &c) const
+{
+	return static_cast<long>(m_chaine.find_last_not_of(c.c_str()));
 }
 
 void chaine::insere(long pos, long combien, char c)
@@ -150,6 +187,26 @@ chaine::const_iteratrice chaine::fin() const
 	return m_chaine.cend();
 }
 
+chaine::iteratrice_inverse chaine::debut_inverse()
+{
+	return m_chaine.rbegin();
+}
+
+chaine::iteratrice_inverse chaine::fin_inverse()
+{
+	return m_chaine.rend();
+}
+
+chaine::const_iteratrice_inverse chaine::debut_inverse() const
+{
+	return m_chaine.rbegin();
+}
+
+chaine::const_iteratrice_inverse chaine::fin_inverse() const
+{
+	return m_chaine.rend();
+}
+
 chaine &chaine::operator+=(char c)
 {
 	this->pousse(c);
@@ -175,12 +232,60 @@ std::ostream &operator<<(std::ostream &os, const chaine &c)
 	return os;
 }
 
+std::istream &operator>>(std::istream &is, chaine &c)
+{
+	std::string s;
+	is >> s;
+	c = s;
+	return is;
+}
+
 bool operator==(const chaine &c1, const chaine &c2)
 {
 	return std::strcmp(c1.c_str(), c2.c_str()) == 0;
 }
 
+bool operator==(chaine const &c1, vue_chaine const &c2)
+{
+	return vue_chaine(c1) == c2;
+}
+
+bool operator==(vue_chaine const &c1, chaine const &c2)
+{
+	return vue_chaine(c2) == c1;
+}
+
+bool operator==(chaine const &c1, char const *c2)
+{
+	return std::strcmp(c1.c_str(), c2) == 0;
+}
+
+bool operator==(char const *c1, chaine const &c2)
+{
+	return std::strcmp(c1, c2.c_str()) == 0;
+}
+
 bool operator!=(const chaine &c1, const chaine &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(chaine const &c1, vue_chaine const &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(vue_chaine const &c1, chaine const &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(chaine const &c1, char const *c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(char const *c1, chaine const &c2)
 {
 	return !(c1 == c2);
 }

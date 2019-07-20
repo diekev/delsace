@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
-#include "biblinternes/geometrie/boite_englobante.hh"
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/boite_englobante.hh"
+#include "biblinternes/math/transformation.hh"
 
 class Nuanceur;
 class Rayon;
@@ -49,14 +49,14 @@ struct Triangle {
  * tridimensionel.
  */
 class Maillage {
-	std::vector<Triangle *> m_triangles{};
+	dls::tableau<Triangle *> m_triangles{};
 
 	BoiteEnglobante m_boite_englobante{};
 	math::transformation m_transformation{};
 
 	Nuanceur *m_nuanceur = nullptr;
 
-	std::string m_nom = "maillage";
+	dls::chaine m_nom = "maillage";
 
 	bool m_dessine_normaux = false;
 
@@ -68,8 +68,8 @@ public:
 
 	~Maillage();
 
-	using iterateur = std::vector<Triangle *>::iterator;
-	using const_iterateur = std::vector<Triangle *>::const_iterator;
+	using iterateur = dls::tableau<Triangle *>::iteratrice;
+	using const_iterateur = dls::tableau<Triangle *>::const_iteratrice;
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste de triangle de
@@ -149,12 +149,12 @@ public:
 	/**
 	 * Modifie le nom de ce maillage en fonction de celui passé en paramètre.
 	 */
-	void nom(std::string const &nom);
+	void nom(dls::chaine const &nom);
 
 	/**
 	 * Retourne le nom de ce maillage.
 	 */
-	std::string const &nom() const;
+	dls::chaine const &nom() const;
 
 	/**
 	 * Défini si oui ou non il faut dessiner les vecteurs normaux de ce maillage.

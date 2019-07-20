@@ -90,7 +90,7 @@ public:
 			memoire::deloge("Triangle", tri);
 		}
 
-		m_triangles.clear();
+		m_triangles.efface();
 	}
 
 	void ajoute_triangle(Triangle *tri)

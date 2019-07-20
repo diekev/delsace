@@ -49,8 +49,8 @@ class VisionneurScene {
 	RenduMonde *m_rendu_monde;
 	RenduTexte *m_rendu_texte;
 
-	std::vector<RenduMaillage *> m_maillages{};
-	std::vector<RenduLumiere *> m_lumieres{};
+	dls::tableau<RenduMaillage *> m_maillages{};
+	dls::tableau<RenduLumiere *> m_lumieres{};
 
 	ContexteRendu m_contexte{};
 

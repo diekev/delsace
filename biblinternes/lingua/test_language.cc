@@ -30,15 +30,15 @@
 
 #ifdef FIND_DIFFERENCE
 /* longest common substrings */
-static auto find_diff(const std::string &lhs, const std::string &rhs)
+static auto find_diff(const dls::chaine &lhs, const dls::chaine &rhs)
 {
-	std::vector<int> L(lhs.size() * rhs.size());
-	std::vector<std::string> ret{};
+	dls::tableau<int> L(lhs.taille() * rhs.taille());
+	dls::tableau<dls::chaine> ret{};
 	auto z = 0;
 	auto index = 0;
 
-	for (auto i = 0ul; i < lhs.size(); ++i) {
-		for (auto j = 0ul; j < rhs.size(); ++j, ++index) {
+	for (auto i = 0ul; i < lhs.taille(); ++i) {
+		for (auto j = 0ul; j < rhs.taille(); ++j, ++index) {
 			if (lhs[i] != rhs[j]) {
 				L[index] = 0;
 				continue;
@@ -48,16 +48,16 @@ static auto find_diff(const std::string &lhs, const std::string &rhs)
 				L[index] = 1;
 			}
 			else {
-				L[index] = L[(i - 1) + rhs.size() * (j - 1)] + 1;
+				L[index] = L[(i - 1) + rhs.taille() * (j - 1)] + 1;
 			}
 
 			if (L[index] > z) {
 				z = L[index];
-				ret.clear();
-				ret.push_back(rhs.substr(i - z + 1, i));
+				ret.efface();
+				ret.pousse(rhs.substr(i - z + 1, i));
 			}
 			else if (L[index] == z) {
-				ret.push_back(rhs.substr(i - z + 1, i));
+				ret.pousse(rhs.substr(i - z + 1, i));
 			}
 		}
 	}
@@ -113,7 +113,7 @@ void test_langage(std::ostream &os)
 	tree.connect(middle_french, high_french);
 
 	for (const auto &pair : sample) {
-		std::string word = pair.second;
+		dls::chaine word = pair.second;
 		tree.walk(word);
 
 		os << word << '\n';

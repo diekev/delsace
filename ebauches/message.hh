@@ -1,21 +1,21 @@
 struct requete {
 	int version;   // 10 ou 11
-	std::string methode; // "GET", "POST"
-	std::string target; // "/index.html"
-	dls::dico<std::string, std::string> champs; // paires nom/valeurs
-	std::string corps; // taille variable
+	dls::chaine methode; // "GET", "POST"
+	dls::chaine target; // "/index.html"
+	dls::dico<dls::chaine, dls::chaine> champs; // paires nom/valeurs
+	dls::chaine corps; // taille variable
 };
 
 struct reponse {
 	int version; // 10 ou 11
 	int status; // 200 veut dire OK
-	std::string raison; // humainement lisible
-	dls::dico<std::string, std::string> champs; // paires nom/valeurs
-	std::string corps; // taille variable
+	dls::chaine raison; // humainement lisible
+	dls::dico<dls::chaine, dls::chaine> champs; // paires nom/valeurs
+	dls::chaine corps; // taille variable
 };
 
 // ne connaissent pas les allocateurs
-// le corps est codé en dur en std::string
+// le corps est codé en dur en dls::chaine
 // les champs sont codé en dur en dls::dico
 // les noms ne sont pas sensible à la casse
 // les types requete, reponse sont distint, unrelated, mais nous ne voulons qu'un seul type pour dédupliquer le code :
@@ -33,7 +33,7 @@ using requete = message<true>;
 using reponse = message<false>;
 
 struct corps_chaine {
-	using value_type = std::string;
+	using value_type = dls::chaine;
 
 	static void lis(std::istream &, value_type &corps)
 	{
@@ -63,7 +63,7 @@ struct corps_vide {
 };
 
 struct corps_fichier {
-	using value_type = std::string;
+	using value_type = dls::chaine;
 
 	static void ecrit(std::ostream &os, const value_type &chemin)
 	{
@@ -85,9 +85,9 @@ template <
 >
 struct message<true, Corps, Champs> {
 	int version;   // 10 ou 11
-	std::string methode; // "GET", "POST"
-	std::string target; // "/index.html"
-	dls::dico<std::string, std::string> champs; // paires nom/valeurs
+	dls::chaine methode; // "GET", "POST"
+	dls::chaine target; // "/index.html"
+	dls::dico<dls::chaine, dls::chaine> champs; // paires nom/valeurs
 
 	/* Arugments forwardés au constructeur du corps, au cas où le corps aurait besoin d'un allocateur. */
 	template <class... Args>
@@ -111,8 +111,8 @@ template <
 struct message<false, Corps> : private Corps::value_type, private Champs {
 	int version; // 10 ou 11
 	int status; // 200 veut dire OK
-	std::string raison; // humainement lisible
-	dls::dico<std::string, std::string> champs; // paires nom/valeurs
+	dls::chaine raison; // humainement lisible
+	dls::dico<dls::chaine, dls::chaine> champs; // paires nom/valeurs
 
 	// taille variable
 	typename Corps::value_type &corps()

@@ -86,14 +86,14 @@ static auto fini_par(dls::chaine const &ligne, dls::chaine const &motif)
 
 	return ligne.trouve(motif) != dls::chaine::npos;
 
-//	auto index = ligne.size() - 1;
+//	auto index = ligne.taille() - 1;
 
 //	/* Évite les espaces blancs. */
 //	while (index >= 0 && (ligne[index] == '\t' || ligne[index] == ' ')) {
 //		--index;
 //	}
 
-//	return ligne.substr((index + 1) - motif.size(), motif.size()) == motif;
+//	return ligne.substr((index + 1) - motif.taille(), motif.taille()) == motif;
 }
 
 /* Considère les lignes comme étant vides si elles ne contiennent que des

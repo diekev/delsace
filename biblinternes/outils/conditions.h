@@ -39,5 +39,14 @@ auto est_element(T &&a, Ts &&... ts)
 	return ((a == ts) || ...);
 }
 
+/**
+ * Retourne vrai si tous les éléments sont égaux les uns aux autres.
+ */
+template <typename T, typename... Ts>
+auto sont_egaux(T &&a, Ts &&... ts)
+{
+	return ((a == ts) && ...);
+}
+
 }  /* namespace outils */
 }  /* namespace dls */

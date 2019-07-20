@@ -28,7 +28,7 @@
 
 #include <cstring>  /* for std::memcpy */
 #include <tuple>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 namespace image {
@@ -37,7 +37,7 @@ namespace operation {
 /**
  * Type pour le retour de la fonction `calcul_index_et_poids`.
  */
-using tuple_vecteurs = std::tuple<std::vector<int>, std::vector<int>, std::vector<float>>;
+using tuple_vecteurs = std::tuple<dls::tableau<int>, dls::tableau<int>, dls::tableau<float>>;
 
 /**
  * Retourne des vecteurs contenant les index à gauche et à droite, ainsi que le
@@ -46,8 +46,8 @@ using tuple_vecteurs = std::tuple<std::vector<int>, std::vector<int>, std::vecto
  * C'est-à-dire que cet algorithme définit quel pixel d'origine ira vers quel
  * pixel de destinantion avec quel poids.
  *
- * L'algorithme retourne un std::tuple<std::vector<int>, std::vector<int>,
- * std::vector<float>>, où les deux premiers vecteurs sont les index à gauche et
+ * L'algorithme retourne un std::tuple<dls::tableau<int>, dls::tableau<int>,
+ * dls::tableau<float>>, où les deux premiers vecteurs sont les index à gauche et
  * les index à doite, et le troisième vecteur, les poids à gauche. Les tailles
  * des vecteurs sont égales à la taille source.
  *
@@ -74,8 +74,8 @@ using tuple_vecteurs = std::tuple<std::vector<int>, std::vector<int>, std::vecto
  * pour une ligne ou colonne.
  */
 tuple_vecteurs calcul_index_et_poids(
-		const size_t taille_soure,
-		const size_t taille_dest);
+		const long taille_soure,
+		const long taille_dest);
 
 /**
  * Sous-échantillone sur l'axe horizontal l'image src dans l'image dst. Les deux
@@ -85,9 +85,9 @@ tuple_vecteurs calcul_index_et_poids(
 template <ConceptNombre nombre>
 static void sousechantillonage_horizontal(const math::matrice_dyn<nombre> &src, math::matrice_dyn<nombre> &dst)
 {
-	std::vector<int>   index_gauche;
-	std::vector<int>   index_droite;
-	std::vector<float> poids;
+	dls::tableau<int>   index_gauche;
+	dls::tableau<int>   index_droite;
+	dls::tableau<float> poids;
 
 	std::tie(index_gauche, index_droite, poids) = calcul_index_et_poids(
 					static_cast<size_t>(src.nombre_colonnes()),
@@ -118,9 +118,9 @@ static void sousechantillonage_horizontal(const math::matrice_dyn<nombre> &src, 
 template <ConceptNombre nombre>
 static void sousechantillonage_vertical(const math::matrice_dyn<nombre> &src, math::matrice_dyn<nombre> &dst)
 {
-	std::vector<int>   index_haut;
-	std::vector<int>   index_bas;
-	std::vector<float> poids;
+	dls::tableau<int>   index_haut;
+	dls::tableau<int>   index_bas;
+	dls::tableau<float> poids;
 
 	std::tie(index_haut, index_bas, poids) = calcul_index_et_poids(
 				static_cast<size_t>(src.nombre_lignes()),
@@ -161,12 +161,12 @@ static void surechantillonage(const math::matrice_dyn<nombre> &src, math::matric
 	auto scale_x = static_cast<float>(src_width) / static_cast<float>(dst_width);
 	auto scale_y = static_cast<float>(src_height) / static_cast<float>(dst_height);
 
-	std::vector<int> xofs_i_arr(static_cast<size_t>(dst_width));
-	std::vector<int> yofs_i_arr(static_cast<size_t>(dst_height));
-	std::vector<float> xofs_f_arr(static_cast<size_t>(dst_width));
-	std::vector<float> yofs_f_arr(static_cast<size_t>(dst_height));
-	std::vector<nombre> buf0_arr(static_cast<size_t>(dst_width));
-	std::vector<nombre> buf1_arr(static_cast<size_t>(dst_width));
+	dls::tableau<int> xofs_i_arr(static_cast<size_t>(dst_width));
+	dls::tableau<int> yofs_i_arr(static_cast<size_t>(dst_height));
+	dls::tableau<float> xofs_f_arr(static_cast<size_t>(dst_width));
+	dls::tableau<float> yofs_f_arr(static_cast<size_t>(dst_height));
+	dls::tableau<nombre> buf0_arr(static_cast<size_t>(dst_width));
+	dls::tableau<nombre> buf1_arr(static_cast<size_t>(dst_width));
 	auto xofs_i = &xofs_i_arr[0];
 	auto yofs_i = &yofs_i_arr[0];
 	auto xofs_f = &xofs_f_arr[0];

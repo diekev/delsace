@@ -31,6 +31,7 @@
 class Noeud;
 class Objet;
 class Scene;
+struct ContexteEvaluation;
 
 /* ************************************************************************** */
 
@@ -83,6 +84,8 @@ struct CompilatriceReseau {
 private:
 	dls::dico_desordonne<Objet *, NoeudReseau *> m_table_objet_noeud{};
 
+	NoeudReseau *trouve_noeud_pour_objet(Objet *objet);
+
 public:
 	Reseau *reseau = nullptr;
 
@@ -97,5 +100,7 @@ public:
 
 	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
-	void compile_reseau(Scene *scene);
+	void compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet);
+
+	void marque_execution_temps_change();
 };

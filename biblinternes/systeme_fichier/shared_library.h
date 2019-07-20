@@ -26,7 +26,8 @@
 
 #include <experimental/filesystem>
 #include <functional>
-#include <string>
+
+#include "biblinternes/structures/chaine.hh"
 
 namespace dls {
 namespace systeme_fichier {
@@ -79,10 +80,10 @@ class dso_symbol {
 	template <typename>
 	friend class dso_function;
 
-	friend dso_symbol symbol_default(const std::string &name);
-	friend dso_symbol symbol_default(const std::string &name, std::error_code &ec);
-	friend dso_symbol symbol_next(const std::string &name);
-	friend dso_symbol symbol_next(const std::string &name, std::error_code &ec);
+	friend dso_symbol symbol_default(const dls::chaine &name);
+	friend dso_symbol symbol_default(const dls::chaine &name, std::error_code &ec);
+	friend dso_symbol symbol_next(const dls::chaine &name);
+	friend dso_symbol symbol_next(const dls::chaine &name, std::error_code &ec);
 };
 
 template <typename>
@@ -123,7 +124,7 @@ bool operator!=(const dso_function<R(Args...)> &func, std::nullptr_t)
 
 class shared_library {
 	void *m_handle = nullptr;
-	std::string m_chemin{};
+	dls::chaine m_chemin{};
 
 public:
 	shared_library() = default;
@@ -150,8 +151,8 @@ public:
 
 	explicit operator bool() const noexcept;
 
-	dso_symbol operator()(const std::string &symbol_name);
-	dso_symbol operator()(const std::string &symbol_name, std::error_code &ec) noexcept;
+	dso_symbol operator()(const dls::chaine &symbol_name);
+	dso_symbol operator()(const dls::chaine &symbol_name, std::error_code &ec) noexcept;
 
 	std::experimental::filesystem::path chemin() const;
 };
@@ -160,25 +161,25 @@ public:
  * Find the first occurrence of the desired symbol using the default library
  * search order.
  */
-dso_symbol symbol_default(const std::string &name);
+dso_symbol symbol_default(const dls::chaine &name);
 
 /**
  * Find the first occurrence of the desired symbol using the default library
  * search order.
  */
-dso_symbol symbol_default(const std::string &name, std::error_code &ec);
+dso_symbol symbol_default(const dls::chaine &name, std::error_code &ec);
 
 /**
  * Find the next occurrence of a function in the search order after the
  * current library.
  */
-dso_symbol symbol_next(const std::string &name);
+dso_symbol symbol_next(const dls::chaine &name);
 
 /**
  * Find the next occurrence of a function in the search order after the
  * current library.
  */
-dso_symbol symbol_next(const std::string &name, std::error_code &ec);
+dso_symbol symbol_next(const dls::chaine &name, std::error_code &ec);
 
 }  /* namespace systeme_fichier */
 }  /* namespace dls */

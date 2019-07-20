@@ -50,9 +50,8 @@ dls::math::vec3f Ray::GetPointAlongRay(const float& distance) const
 
 Ray Ray::Transform(const dls::math::mat4x4f& m) const
 {
-	auto transformedOrigin = dls::math::vec3f(utilityCore::multiply(m, dls::math::vec4f(m_origin, 1.0f)));
-	auto transformedPoint = dls::math::vec3f(utilityCore::multiply(m, dls::math::vec4f(m_origin+m_direction,
-                                                                              1.0f)));
+	auto transformedOrigin = dls::math::vec3f(m * dls::math::vec4f(m_origin, 1.0f));
+	auto transformedPoint = dls::math::vec3f(m * dls::math::vec4f(m_origin + m_direction, 1.0f));
 	auto transformedDirection = transformedPoint - transformedOrigin;
     return Ray(transformedOrigin, transformedDirection, m_frame, m_trackingID);
 }

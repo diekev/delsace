@@ -24,8 +24,10 @@
 
 #include "glcanvas.h"
 
-#include <ego/utils.h>
 #include <QTimer>
+
+#include "biblinternes/ego/outils.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "fluid.h"
 
@@ -52,27 +54,27 @@ void GLCanvas::initializeGL()
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
 
-	m_program.load(numero7::ego::VERTEX_SHADER, numero7::ego::util::str_from_file("shaders/simple.vert"));
-	m_program.load(numero7::ego::FRAGMENT_SHADER, numero7::ego::util::str_from_file("shaders/render.frag"));
+	m_program.charge(dls::ego::Nuanceur::VERTEX, dls::contenu_fichier("shaders/simple.vert"));
+	m_program.charge(dls::ego::Nuanceur::FRAGMENT, dls::contenu_fichier("shaders/render.frag"));
 
-	m_program.createAndLinkProgram();
+	m_program.cree_et_lie_programme();
 
-	m_program.enable();
+	m_program.active();
 	{
-		m_program.addAttribute("vertex");
-		m_program.addUniform("sampler");
-		m_program.addUniform("fill_color");
-		m_program.addUniform("scale");
+		m_program.ajoute_attribut("vertex");
+		m_program.ajoute_uniforme("sampler");
+		m_program.ajoute_uniforme("fill_color");
+		m_program.ajoute_uniforme("scale");
 	}
-	m_program.disable();
+	m_program.desactive();
 
-	m_buffer = numero7::ego::BufferObject::create();
+	m_buffer = dls::ego::TamponObjet::cree_unique();
 
-	m_buffer->bind();
-	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
-	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attribPointer(m_program["vertex"], 2);
-	m_buffer->unbind();
+	m_buffer->attache();
+	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
+	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
+	m_buffer->detache();
 
 	m_fluid->init(m_width, m_height);
 
@@ -87,18 +89,18 @@ void GLCanvas::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
 
-	if (m_program.isValid()) {
-		m_program.enable();
-		m_buffer->bind();
+	if (m_program.est_valide()) {
+		m_program.active();
+		m_buffer->attache();
 
 		glViewport(0, 0, m_width, m_height);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		glUniform1i(m_program("sampler"), m_fluid->m_density.ping.texture->bindcode());
+		glUniform1i(m_program("sampler"), static_cast<int>(m_fluid->m_density.ping.texture->code_attache()));
 
 		m_fluid->bindTexture(FLUID_FIELD_DENSITY);
 		glUniform3f(m_program("fill_color"), 1.0f, 1.0f, 1.0f);
-		glUniform2f(m_program("scale"), 1.0f / m_width, 1.0f / m_height);
+		glUniform2f(m_program("scale"), 1.0f / static_cast<float>(m_width), 1.0f / static_cast<float>(m_height));
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
@@ -115,8 +117,8 @@ void GLCanvas::paintGL()
 		m_fluid->unbindTexture(FLUID_FIELD_OBSTACLE);
 #endif
 
-		m_buffer->unbind();
-		m_program.disable();
+		m_buffer->detache();
+		m_program.desactive();
 	}
 
 	glDisable(GL_BLEND);

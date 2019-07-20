@@ -27,13 +27,13 @@
 namespace dls {
 namespace types {
 
-pystring::pystring(const size_t size)
+pystring::pystring(const long size)
 	: m_data((size == 0) ? nullptr : new char[size + 1])
 	, m_size(size)
 	, m_capacity(size)
 {}
 
-pystring::pystring(const size_t size, const char c)
+pystring::pystring(const long size, const char c)
 	: pystring(size)
 {
 	std::fill(begin(), end(), c);
@@ -41,17 +41,17 @@ pystring::pystring(const size_t size, const char c)
 }
 
 pystring::pystring(const char *ch)
-	: pystring(strlen(ch))
+	: pystring(static_cast<long>(strlen(ch)))
 {
 	if (m_size != 0) {
 		copy_data(ch);
 	}
 }
 
-pystring::pystring(const char *ch, size_t n)
+pystring::pystring(const char *ch, long n)
 	: pystring()
 {
-	if (strlen(ch) < n) {
+	if (static_cast<long>(strlen(ch)) < n) {
 		throw std::out_of_range("");
 	}
 
@@ -62,8 +62,8 @@ pystring::pystring(const char *ch, size_t n)
 	copy_data(ch);
 }
 
-pystring::pystring(const std::string &s)
-	: pystring(s.size())
+pystring::pystring(const dls::chaine &s)
+	: pystring(s.taille())
 {
 	if (m_size != 0) {
 		copy_data(s.c_str());
@@ -157,32 +157,32 @@ pystring::const_reverse_iterator pystring::crend() const noexcept
 	return const_reverse_iterator(this->cbegin());
 }
 
-size_t pystring::size() const noexcept
+long pystring::taille() const noexcept
 {
 	return m_size;
 }
 
-size_t pystring::length() const noexcept
+long pystring::length() const noexcept
 {
 	return m_size;
 }
 
-size_t pystring::capacity() const noexcept
+long pystring::capacity() const noexcept
 {
 	return m_capacity;
 }
 
-size_t pystring::max_size() const noexcept
+long pystring::max_size() const noexcept
 {
-	return std::numeric_limits<size_t>::max();
+	return std::numeric_limits<long>::max();
 }
 
-void pystring::resize(size_t n)
+void pystring::resize(long n)
 {
 	this->resize(n, '\0');
 }
 
-void pystring::resize(size_t n, char c)
+void pystring::resize(long n, char c)
 {
 	if (n == m_size) {
 		return;
@@ -196,7 +196,7 @@ void pystring::resize(size_t n, char c)
 		save_data_n(buffer, min_size);
 	}
 
-	for (size_t i(min_size); i < max_size; ++i) {
+	for (long i(min_size); i < max_size; ++i) {
 		buffer[i] = c;
 	}
 
@@ -207,7 +207,7 @@ void pystring::resize(size_t n, char c)
 	m_capacity = std::max(m_size, m_capacity);
 }
 
-void pystring::reserve(size_t n)
+void pystring::reserve(long n)
 {
 	if (n <= m_capacity) {
 		return;
@@ -287,54 +287,54 @@ const pystring &pystring::capitalize()
 	return *this;
 }
 
-size_t pystring::count(const pystring &sub, size_t start, size_t end)
+long pystring::count(const pystring &sub, long start, long end)
 {
-	if (m_size == 0 || sub.length() == 0) {
+	if (m_size == 0 || sub.taille() == 0) {
 		return 0;
 	}
 
 	const auto st = ((start == npos) ? 0 : start);
 	const auto en = ((end == npos) ? m_size : end);
 
-	auto count = 0ul;
+	auto count = 0l;
 
-	for (size_t i = st; i < en; ++i) {
+	for (long i = st; i < en; ++i) {
 		auto idx = find(sub, i);
 
 		if (idx != npos) {
 			++count;
-			i = idx + (sub.length() - 1);
+			i = idx + (sub.taille() - 1);
 		}
 	}
 
 	return count;
 }
 
-bool pystring::endswith(const pystring &suffix, size_t start, size_t end) const
+bool pystring::endswith(const pystring &suffix, long start, long end) const
 {
 	return _string_tailmatch(*this, suffix, start, end, -1);
 }
 
-size_t pystring::find(const pystring &sub, size_t pos) const
+long pystring::find(const pystring &sub, long pos) const
 {
-	if (sub.size() > m_size) {
+	if (sub.taille() > m_size) {
 		return npos;
 	}
 
-	for (size_t i = pos, ie = m_size; i < ie; ++i) {
+	for (long i = pos, ie = m_size; i < ie; ++i) {
 		if (m_data[i] != sub[0]) {
 			continue;
 		}
 
 		auto subcount = 1ul;
 
-		for (size_t j = 1, je = sub.size(); j < je; ++j, ++subcount) {
+		for (long j = 1, je = sub.taille(); j < je; ++j, ++subcount) {
 			if (m_data[i + j] != sub[j]) {
 				break;
 			}
 		}
 
-		if (subcount == sub.length()) {
+		if (subcount == sub.taille()) {
 			return i;
 		}
 	}
@@ -342,14 +342,14 @@ size_t pystring::find(const pystring &sub, size_t pos) const
 	return npos;
 }
 
-size_t pystring::find(const char *sub, size_t pos)
+long pystring::find(const char *sub, long pos)
 {
 	return find(pystring(sub), pos);
 }
 
-size_t pystring::find(char c, size_t pos)
+long pystring::find(char c, long pos)
 {
-	for (size_t i = pos; i < m_size; ++i) {
+	for (long i = pos; i < m_size; ++i) {
 		if (m_data[i] == c) {
 			return i;
 		}
@@ -399,33 +399,33 @@ const pystring &pystring::lower()
 	return *this;
 }
 
-pystring pystring::substr(size_t pos, size_t n) const
+pystring pystring::substr(long pos, long n) const
 {
-	if (pos > size()) {
+	if (pos > taille()) {
 		throw std::out_of_range("");
 	}
 
-	auto rlen = std::min(n, size() - pos);
+	auto rlen = std::min(n, taille() - pos);
 	return pystring(data() + pos, rlen);
 }
 
-std::vector<pystring> pystring::split(const pystring &sep, int maxsplit) const
+dls::tableau<pystring> pystring::split(const pystring &sep, int maxsplit) const
 {
-	std::vector<pystring> v;
+	dls::tableau<pystring> v;
 
-	if (sep.size() == 0) {
+	if (sep.taille() == 0) {
 		return split_whitespace(maxsplit);
 	}
 
-	auto i = size_t(0), j = size_t(0), n = sep.size();
+	auto i = long(0), j = long(0), n = sep.taille();
 
 	while (i + n < m_size) {
 		if (m_data[i] == sep[0] && (substr(i, n) == sep)) {
-			if (v.size() == maxsplit) {
+			if (v.taille() == maxsplit) {
 				break;
 			}
 
-			v.push_back(substr(j, i - j));
+			v.pousse(substr(j, i - j));
 			i = j = i + n;
 		}
 		else {
@@ -436,29 +436,29 @@ std::vector<pystring> pystring::split(const pystring &sep, int maxsplit) const
 	return v;
 }
 
-std::vector<pystring> pystring::rsplit(const pystring &sep, int maxsplit) const
+dls::tableau<pystring> pystring::rsplit(const pystring &sep, int maxsplit) const
 {
 	if (maxsplit < 0) {
 		return split(sep, maxsplit);
 	}
 
-	std::vector<pystring> result;
+	dls::tableau<pystring> result;
 
-	if (sep.size() == 0) {
+	if (sep.taille() == 0) {
 		return rsplit_whitespace(maxsplit);
 	}
 
-	size_t i,j, n = sep.size();
+	long i,j, n = sep.taille();
 
 	i = j = m_size;
 
 	while (i >= n) {
 		if (m_data[i - 1] == m_data[n - 1] && substr(i - n, n) == sep) {
-			if (result.size() == static_cast<size_t>(maxsplit)) {
+			if (result.taille() == static_cast<long>(maxsplit)) {
 				break;
 			}
 
-			result.push_back(substr(i, j - i));
+			result.pousse(substr(i, j - i));
 			i = j = i - n;
 		}
 		else {
@@ -466,15 +466,15 @@ std::vector<pystring> pystring::rsplit(const pystring &sep, int maxsplit) const
 		}
 	}
 
-	result.push_back(substr(0, j));
+	result.pousse(substr(0, j));
 	reverse_strings(result);
 
 	return result;
 }
 
-std::vector<pystring> pystring::partition(const pystring &sep) const
+dls::tableau<pystring> pystring::partition(const pystring &sep) const
 {
-	std::vector<pystring> result(3);
+	dls::tableau<pystring> result(3);
 
 	auto index = find(sep);
 	if (index == npos) {
@@ -485,15 +485,15 @@ std::vector<pystring> pystring::partition(const pystring &sep) const
 	else {
 		result[0] = substr(0, index);
 		result[1] = sep;
-		result[2] = substr(index + sep.size(), m_size);
+		result[2] = substr(index + sep.taille(), m_size);
 	}
 
 	return result;
 }
 
-pystring pystring::join(const std::vector<pystring> &seq) const
+pystring pystring::join(const dls::tableau<pystring> &seq) const
 {
-	size_t seqlen = seq.size(), i;
+	long seqlen = seq.taille(), i;
 	pystring sep(this->m_data);
 
 	if (seqlen == 0) return sep;
@@ -509,7 +509,7 @@ pystring pystring::join(const std::vector<pystring> &seq) const
 	return result;
 }
 
-bool pystring::startswith(const pystring &suffix, size_t start, size_t end) const
+bool pystring::startswith(const pystring &suffix, long start, long end) const
 {
 	return _string_tailmatch(*this, suffix, start, end, 1);
 }
@@ -571,7 +571,7 @@ bool pystring::istitle() const
 
 	auto cased = false, previous_is_cased = false;
 
-	for (auto i = size_t(0); i < m_size; ++i) {
+	for (auto i = long(0); i < m_size; ++i) {
 		if (::isupper(m_data[i])) {
 			if (previous_is_cased) {
 				return false;
@@ -621,7 +621,7 @@ pystring pystring::zfill(unsigned width) const
 	return s;
 }
 
-pystring pystring::ljust(size_t width)
+pystring pystring::ljust(long width)
 {
 	if (m_size >= width)
 		return *this;
@@ -629,7 +629,7 @@ pystring pystring::ljust(size_t width)
 	return *this + pystring(width - m_size, ' ');
 }
 
-pystring pystring::rjust(size_t width)
+pystring pystring::rjust(long width)
 {
 	if (m_size >= width)
 		return *this;
@@ -637,7 +637,7 @@ pystring pystring::rjust(size_t width)
 	return pystring(width - m_size, ' ') + *this;
 }
 
-pystring pystring::center(size_t width)
+pystring pystring::center(long width)
 {
 	if (m_size >= width)
 		return *this;
@@ -648,7 +648,7 @@ pystring pystring::center(size_t width)
 	return pystring(left, ' ') + *this + pystring(marg - left, ' ');
 }
 
-pystring pystring::slice(size_t start, size_t end)
+pystring pystring::slice(long start, long end)
 {
 	ADJUST_INDICES(start, end, m_size);
 
@@ -658,31 +658,31 @@ pystring pystring::slice(size_t start, size_t end)
 	return substr(start, end - start);
 }
 
-size_t pystring::find(const pystring &sub, size_t start, size_t end) const
+long pystring::find(const pystring &sub, long start, long end) const
 {
 	ADJUST_INDICES(start, end, m_size);
 
-	size_t result = find(sub, start);
+	long result = find(sub, start);
 
 	// If we cannot find the string, or if the end-point of our found substring is past
 	// the allowed end limit, return that it can't be found.
 	if (    result == npos
-			|| (result + sub.size() > end))
+			|| (result + sub.taille() > end))
 	{
-		return -1ul;
+		return -1l;
 	}
 
 	return result;
 }
 
-size_t pystring::index(const pystring &sub, size_t start, size_t end) const
+long pystring::index(const pystring &sub, long start, long end) const
 {
 	return find(sub, start, end);
 }
 
-size_t pystring::count(const pystring &substr, size_t start, size_t end) const
+long pystring::count(const pystring &substr, long start, long end) const
 {
-	auto nummatches = 0ul;
+	auto nummatches = 0l;
 	auto cursor = start;
 
 	while (true) {
@@ -691,17 +691,17 @@ size_t pystring::count(const pystring &substr, size_t start, size_t end) const
 		if (cursor == npos)
 			break;
 
-		cursor += substr.size();
+		cursor += substr.taille();
 		++nummatches;
 	}
 
 	return nummatches;
 }
 
-std::vector<pystring> pystring::splitlines(bool keepends) const
+dls::tableau<pystring> pystring::splitlines(bool keepends) const
 {
-	std::vector<pystring> result;
-	size_t i, j;
+	dls::tableau<pystring> result;
+	long i, j;
 
 	for (i = j = 0; i < m_size;) {
 		while (i < m_size && m_data[i] != '\n' && m_data[i] != '\r') ++i;
@@ -719,29 +719,29 @@ std::vector<pystring> pystring::splitlines(bool keepends) const
 				eol = i;
 		}
 
-		result.push_back(substr(j, eol - j));
+		result.pousse(substr(j, eol - j));
 		j = i;
 
 	}
 
 	if (j < m_size) {
-		result.push_back(substr(j, m_size - j));
+		result.pousse(substr(j, m_size - j));
 	}
 
 	return result;
 }
 
-char &pystring::operator[](size_t pos)       { return *(m_data + pos); }
+char &pystring::operator[](long pos)       { return *(m_data + pos); }
 
-char &pystring::operator[](size_t pos) const { return *(m_data + pos); }
+char &pystring::operator[](long pos) const { return *(m_data + pos); }
 
 char &pystring::front()                { return operator[](0); }
 
 char &pystring::front() const noexcept { return operator[](0); }
 
-char &pystring::back()                 { return operator[](this->size() - 1); }
+char &pystring::back()                 { return operator[](this->taille() - 1); }
 
-char &pystring::back() const noexcept { return operator[](this->size() - 1); }
+char &pystring::back() const noexcept { return operator[](this->taille() - 1); }
 
 void swap(pystring &first, pystring &second)
 {
@@ -754,7 +754,7 @@ void swap(pystring &first, pystring &second)
 
 pystring &pystring::append(const pystring &other)
 {
-	const auto len = m_size + other.size();
+	const auto len = m_size + other.taille();
 
 	char *buffer = new char[len + 1];
 	strcpy(buffer, m_data);
@@ -787,24 +787,24 @@ void pystring::copy_data(const char *ch)
 	assert(m_data != nullptr);
 	assert(ch != nullptr);
 
-	memcpy(m_data, ch, m_size * sizeof(char));
+	memcpy(m_data, ch, static_cast<size_t>(m_size) * sizeof(char));
 	m_data[m_size] = '\0';
 }
 
-void pystring::save_data_n(char *buffer, size_t n)
+void pystring::save_data_n(char *buffer, long n)
 {
-	memcpy(buffer, m_data, n * sizeof(char));
+	memcpy(buffer, m_data, static_cast<size_t>(n) * sizeof(char));
 
 	delete [] m_data;
 	m_data = nullptr;
 }
 
-std::vector<pystring> pystring::split_whitespace(int maxsplit) const
+dls::tableau<pystring> pystring::split_whitespace(int maxsplit) const
 {
-	std::vector<pystring> v;
+	dls::tableau<pystring> v;
 
-	size_t j = 0;
-	for (size_t i = 0; i < m_size;) {
+	long j = 0;
+	for (long i = 0; i < m_size;) {
 		while (i < m_size && ::isspace(m_data[i])) {
 			++i;
 		}
@@ -816,11 +816,11 @@ std::vector<pystring> pystring::split_whitespace(int maxsplit) const
 		}
 
 		if (j < i) {
-			if (v.size() == static_cast<size_t>(maxsplit)) {
+			if (v.taille() == static_cast<long>(maxsplit)) {
 				break;
 			}
 
-			v.push_back(substr(j, i - j));
+			v.pousse(substr(j, i - j));
 
 			while (i < m_size && ::isspace(m_data[i])) {
 				++i;
@@ -831,23 +831,23 @@ std::vector<pystring> pystring::split_whitespace(int maxsplit) const
 	}
 
 	if (j < m_size) {
-		v.push_back(substr(j, m_size - j));
+		v.pousse(substr(j, m_size - j));
 	}
 
 	return v;
 }
 
-void pystring::reverse_strings(std::vector<pystring> &result) const
+void pystring::reverse_strings(dls::tableau<pystring> &result) const
 {
-	for (std::vector<pystring>::size_type i = 0; i < result.size() / 2; ++i) {
-		std::swap(result[i], result[result.size() - 1 - i]);
+	for (auto i = 0; i < result.taille() / 2; ++i) {
+		std::swap(result[i], result[result.taille() - 1 - i]);
 	}
 }
 
-std::vector<pystring> pystring::rsplit_whitespace(int maxsplit) const
+dls::tableau<pystring> pystring::rsplit_whitespace(int maxsplit) const
 {
-	std::vector<pystring> result;
-	std::string::size_type i, j;
+	dls::tableau<pystring> result;
+	long i, j;
 	for (i = j = m_size; i > 0;) {
 		while (i > 0 && ::isspace(m_data[i - 1]))
 			i--;
@@ -860,7 +860,7 @@ std::vector<pystring> pystring::rsplit_whitespace(int maxsplit) const
 		if (j > i) {
 			if (maxsplit-- <= 0) break;
 
-			result.push_back(substr(i, j - i));
+			result.pousse(substr(i, j - i));
 
 			while (i > 0 && ::isspace(m_data[i - 1]))
 				i--;
@@ -870,10 +870,10 @@ std::vector<pystring> pystring::rsplit_whitespace(int maxsplit) const
 	}
 
 	if (j > 0) {
-		result.push_back(substr(0, j));
+		result.pousse(substr(0, j));
 	}
 
-	//std::reverse(result, result.begin(), result.end());
+	//std::reverse(result, result.debut(), result.fin());
 	reverse_strings(result);
 
 	return result;
@@ -881,7 +881,7 @@ std::vector<pystring> pystring::rsplit_whitespace(int maxsplit) const
 
 pystring pystring::do_strip(const pystring &chars, int striptype)
 {
-	size_t i, j, charslen = chars.size();
+	long i, j, charslen = chars.taille();
 
 	if (charslen == 0) {
 		i = 0;
@@ -905,7 +905,7 @@ pystring pystring::do_strip(const pystring &chars, int striptype)
 		const char * sep = chars.c_str();
 		i = 0;
 		if (striptype != RIGHTSTRIP) {
-			while (i < m_size && memchr(sep, m_data[i], charslen)) {
+			while (i < m_size && memchr(sep, m_data[i], static_cast<size_t>(charslen))) {
 				i++;
 			}
 		}
@@ -915,7 +915,7 @@ pystring pystring::do_strip(const pystring &chars, int striptype)
 			do {
 				j--;
 			}
-			while (j >= i &&  memchr(sep, m_data[j], charslen));
+			while (j >= i &&  memchr(sep, m_data[j], static_cast<size_t>(charslen)));
 			j++;
 		}
 	}
@@ -927,10 +927,10 @@ pystring pystring::do_strip(const pystring &chars, int striptype)
 	return substr(i, j - i);
 }
 
-bool pystring::_string_tailmatch(const pystring &self, const pystring &substr, size_t start, size_t end, int direction) const
+bool pystring::_string_tailmatch(const pystring &self, const pystring &substr, long start, long end, int direction) const
 {
-	const auto len = self.size();
-	const auto slen = substr.size();
+	const auto len = self.taille();
+	const auto slen = substr.taille();
 
 	const char* sub = substr.c_str();
 	const char* str = self.c_str();
@@ -949,19 +949,19 @@ bool pystring::_string_tailmatch(const pystring &self, const pystring &substr, s
 			start = end - slen;
 	}
 	if (end-start >= slen)
-		return (!std::memcmp(str + start, sub, slen));
+		return (!std::memcmp(str + start, sub, static_cast<size_t>(slen)));
 
 	return false;
 }
 
-void permute(std::ostream &os, std::string str, size_t pos)
+void permute(std::ostream &os, dls::chaine str, long pos)
 {
-	if (pos == str.length() - 1) {
+	if (pos == str.taille() - 1) {
 		os << str << "\n";
 		return;
 	}
 
-	for (size_t ch(pos), e(str.length()); ch != e; ++ch) {
+	for (long ch(pos), e(str.taille()); ch != e; ++ch) {
 		std::swap(str[pos], str[ch]);
 		permute(os, str, pos + 1);
 	}

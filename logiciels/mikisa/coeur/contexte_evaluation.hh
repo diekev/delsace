@@ -24,11 +24,12 @@
 
 #pragma once
 
-#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/math/rectangle.hh"
 
 class BaseDeDonnees;
 class ChefExecution;
 struct GestionnaireFichier;
+struct Mikisa;
 
 struct ContexteEvaluation {
 	/* Le rectangle définissant l'aire de rendu. */
@@ -52,3 +53,5 @@ struct ContexteEvaluation {
 	ContexteEvaluation(ContexteEvaluation const &) = default;
 	ContexteEvaluation &operator=(ContexteEvaluation const &) = default;
 };
+
+ContexteEvaluation cree_contexte_evaluation(Mikisa const &mikisa);

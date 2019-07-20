@@ -285,7 +285,7 @@ static auto derniere_instruction(base *b)
 	}
 
 	if (b->type == type_noeud::SI) {
-		if (b->enfants.size() != 3) {
+		if (b->enfants.taille() != 3) {
 			return static_cast<base *>(nullptr);
 		}
 	}
@@ -305,7 +305,7 @@ static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
 static auto valide_appel_pointeur_fonction(
 		base *b,
 		ContexteGenerationCode &contexte,
-		std::list<dls::vue_chaine> const &noms_arguments,
+		dls::liste<dls::vue_chaine> const &noms_arguments,
 		dls::chaine const &nom_fonction)
 {
 	for (auto const &nom : noms_arguments) {
@@ -343,7 +343,7 @@ static auto valide_appel_pointeur_fonction(
 	auto nombre_type_retour = 0l;
 	auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
 
-	auto enfant = b->enfants.begin();
+	auto enfant = b->enfants.debut();
 
 	/* Validation des types passés en paramètre. */
 	for (auto i = 0l; i < dt_params.taille() - nombre_type_retour; ++i) {
@@ -512,7 +512,7 @@ static void valide_acces_membre(
 
 		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
 		 * même vides, et il nous faut le bon compte de noms */
-		auto *nom_args = std::any_cast<std::list<dls::vue_chaine>>(&membre->valeur_calculee);
+		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine>>(&membre->valeur_calculee);
 		nom_args->push_front("");
 
 		performe_validation_semantique(membre, contexte);
@@ -663,7 +663,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::APPEL_FONCTION:
 		{
 			auto const nom_fonction = dls::chaine(b->morceau.chaine);
-			auto noms_arguments = std::any_cast<std::list<dls::vue_chaine>>(&b->valeur_calculee);
+			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine>>(&b->valeur_calculee);
 
 			/* Nous avons un pointeur vers une fonction. */
 			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
@@ -731,7 +731,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* les drapeaux pour les arguments variadics */
 			if (!candidate->exprs.est_vide()) {
 				auto noeud_tableau = candidate->exprs.back();
-				auto enfant_tabl = noeud_tableau->enfants.begin();
+				auto enfant_tabl = noeud_tableau->enfants.debut();
 
 				for (; i < nombre_args_variadics; ++i) {
 					auto ncompat = candidate->drapeaux[i];
@@ -749,10 +749,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = donnees_fonction->idx_types_retours[0];
 			}
 
-			b->enfants.clear();
+			b->enfants.efface();
 
 			for (auto enfant : candidate->exprs) {
-				b->enfants.push_back(enfant);
+				b->enfants.pousse(enfant);
 			}
 
 			if (donnees_fonction->nom_broye.est_vide()) {
@@ -1161,16 +1161,16 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto enfant1de = enfant2->enfants.front();
 				auto enfant2de = enfant2->enfants.back();
 
-				b->enfants.clear();
-				enfant2->enfants.clear();
+				b->enfants.efface();
+				enfant2->enfants.efface();
 
 				/* inverse les enfants pour que le 'pointeur' soit à gauche et
 				 * l'index à droite */
-				b->enfants.push_back(enfant2);
-				b->enfants.push_back(enfant1de);
+				b->enfants.pousse(enfant2);
+				b->enfants.pousse(enfant1de);
 
-				enfant2->enfants.push_back(enfant1);
-				enfant2->enfants.push_back(enfant2de);
+				enfant2->enfants.pousse(enfant1);
+				enfant2->enfants.pousse(enfant2de);
 
 				enfant1 = b->enfants.front();
 				enfant2 = b->enfants.back();
@@ -1330,7 +1330,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto df = contexte.donnees_fonction;
 
-			if (b->enfants.empty()) {
+			if (b->enfants.est_vide()) {
 				b->index_type = contexte.magasin_types[TYPE_RIEN];
 
 				if (!df->est_coroutine && (df->idx_types_retours[0] != b->index_type)) {
@@ -1343,7 +1343,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				return;
 			}
 
-			assert(b->enfants.size() == 1);
+			assert(b->enfants.taille() == 1);
 
 			auto enfant = b->enfants.front();
 
@@ -1460,8 +1460,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		{
-			auto const nombre_enfants = b->enfants.size();
-			auto iter_enfant = b->enfants.begin();
+			auto const nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
 
 			auto enfant1 = *iter_enfant++;
 			auto enfant2 = *iter_enfant++;
@@ -1499,7 +1499,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			valides_enfants(b, contexte);
 
-			if (b->enfants.empty()) {
+			if (b->enfants.est_vide()) {
 				b->index_type = contexte.magasin_types[TYPE_RIEN];
 			}
 			else {
@@ -1512,8 +1512,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::POUR:
 		{
-			auto const nombre_enfants = b->enfants.size();
-			auto iter = b->enfants.begin();
+			auto const nombre_enfants = b->enfants.taille();
+			auto iter = b->enfants.debut();
 
 			/* on génère d'abord le type de la variable */
 			auto enfant1 = *iter++;
@@ -1633,7 +1633,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				 * lors de l'itération de chaines ou de tableaux, ceci duplique
 				 * le code dans la coulisse C pour le nom de la variable. */
 				auto nom_var = "__i" + dls::vers_chaine(b->morceau.ligne_pos);
-				contexte.magasin_chaines.push_back(nom_var);
+				contexte.magasin_chaines.pousse(nom_var);
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.donnees_type = contexte.magasin_types[TYPE_Z32];
@@ -1753,7 +1753,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::PLAGE:
 		{
-			auto iter = b->enfants.begin();
+			auto iter = b->enfants.debut();
 
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
@@ -1809,7 +1809,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			valides_enfants(b, contexte);
 
-			auto chaine_var = b->enfants.empty() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
 
 			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
 					? contexte.goto_continue(chaine_var)
@@ -1858,8 +1858,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::TANTQUE:
 		{
-			assert(b->enfants.size() == 2);
-			auto iter = b->enfants.begin();
+			assert(b->enfants.taille() == 2);
+			auto iter = b->enfants.debut();
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
 
@@ -2054,8 +2054,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::LOGE:
 		{
-			auto nombre_enfant = b->enfants.size();
-			auto enfant = b->enfants.begin();
+			auto nombre_enfant = b->enfants.taille();
+			auto enfant = b->enfants.debut();
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
@@ -2094,8 +2094,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-			auto nombre_enfant = b->enfants.size();
-			auto enfant = b->enfants.begin();
+			auto nombre_enfant = b->enfants.taille();
+			auto enfant = b->enfants.debut();
 			auto enfant1 = *enfant++;
 			performe_validation_semantique(enfant1, contexte);
 

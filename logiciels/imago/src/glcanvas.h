@@ -24,16 +24,16 @@
 
 #pragma once
 
-#include "biblinternes/ego/program.h"
-#include "biblinternes/ego/bufferobject.h"
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/tampon_objet.h"
 #include "biblinternes/ego/texture.h"
 
 #include <QGLWidget>
 
 class GLCanvas : public QGLWidget {
-	ego::Program m_program;
-	ego::BufferObject::Ptr m_buffer;
-	ego::Texture2D::Ptr m_texture;
+	dls::ego::Programme m_program{};
+	dls::ego::TamponObjet::Ptr m_buffer{};
+	dls::ego::Texture2D::Ptr m_texture{};
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,
@@ -47,6 +47,9 @@ class GLCanvas : public QGLWidget {
 public:
 	explicit GLCanvas(QWidget *parent = nullptr);
 	~GLCanvas() = default;
+
+	GLCanvas(GLCanvas const &) = default;
+	GLCanvas &operator=(GLCanvas const &) = default;
 
 	void initializeGL();
 	void paintGL();

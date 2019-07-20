@@ -25,9 +25,9 @@
 #pragma once
 
 #include <any>
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
-#include "biblinternes/geometrie/rectangle.h"
+#include "biblinternes/math/rectangle.hh"
 #include "biblinternes/image/pixel.h"
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/outils/iterateurs.h"
@@ -103,12 +103,12 @@ struct Calque {
 /* ************************************************************************** */
 
 class Image {
-	std::list<Calque *> m_calques{};
+	dls::liste<Calque *> m_calques{};
 	dls::chaine m_nom_calque{};
 
 public:
-	using plage_calques = dls::outils::plage_iterable<std::list<Calque *>::iterator>;
-	using plage_calques_const = dls::outils::plage_iterable<std::list<Calque *>::const_iterator>;
+	using plage_calques = dls::outils::plage_iterable<dls::liste<Calque *>::iteratrice>;
+	using plage_calques_const = dls::outils::plage_iterable<dls::liste<Calque *>::const_iteratrice>;
 
 	~Image();
 
@@ -380,14 +380,17 @@ public:
 	 * spécifiée.
 	 */
 	virtual void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines);
 
-	virtual void renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const;
+	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud);
 
 	bool possede_animation();
 
 	virtual bool depend_sur_temps() const;
+
+	virtual void amont_change();
 };
 
 /* ************************************************************************** */

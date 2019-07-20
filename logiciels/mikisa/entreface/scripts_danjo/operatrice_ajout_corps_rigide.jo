@@ -1,4 +1,8 @@
 disposition "operatrice_ajout_corps_rigide" {
+	ligne {
+		étiquette(valeur="Nom Objet")
+		liste(valeur=""; attache=nom_objet)
+	}
     ligne {
 	    étiquette(valeur="Masse")
 		décimal(valeur=1.0; attache=masse; min=0.0)

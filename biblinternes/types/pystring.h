@@ -28,8 +28,8 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../outils/definitions.h"
 #include "../outils/iterateurs.h"
@@ -57,8 +57,8 @@ bool operator==(const pystring &str1, const pystring &str2);
 
 class pystring {
 	char  *m_data;
-	size_t m_size;
-	size_t m_capacity;
+	long m_size;
+	long m_capacity;
 
 	enum {
 		LEFTSTRIP,
@@ -67,17 +67,17 @@ class pystring {
 	};
 
 public:
-	explicit pystring(const size_t size = 0);
+	explicit pystring(const long size = 0);
 
-	pystring(const size_t size, const char c);
+	pystring(const long size, const char c);
 
 	explicit pystring(const char *ch);
 
-	pystring(const char *ch, size_t n);
+	pystring(const char *ch, long n);
 
 	pystring(const pystring &s) = default;
 
-	explicit pystring(const std::string &s);
+	explicit pystring(const dls::chaine &s);
 
 	pystring(pystring &&other);
 
@@ -89,7 +89,7 @@ public:
 
 	pystring &operator=(const char *ch);
 
-	static constexpr size_t npos = -1ul;
+	static constexpr long npos = -1l;
 
 	/* ******************* iterators ******************** */
 
@@ -125,19 +125,19 @@ public:
 
 	/* ******************* capacity ******************** */
 
-	size_t size() const noexcept;
+	long taille() const noexcept;
 
-	size_t length() const noexcept;
+	long length() const noexcept;
 
-	size_t capacity() const noexcept;
+	long capacity() const noexcept;
 
-	size_t max_size() const noexcept;
+	long max_size() const noexcept;
 
-	void resize(size_t n);
+	void resize(long n);
 
-	void resize(size_t n, char c);
+	void resize(long n, char c);
 
-	void reserve(size_t n);
+	void reserve(long n);
 
 	bool empty() const;
 
@@ -158,15 +158,15 @@ public:
 
 	const pystring &capitalize();
 
-	size_t count(const pystring &sub, size_t start = -1ul, size_t end = -1ul);
+	long count(const pystring &sub, long start = -1l, long end = -1l);
 
-	bool endswith(const pystring &suffix, size_t start = -1ul, size_t end = -1ul) const;
+	bool endswith(const pystring &suffix, long start = -1l, long end = -1l) const;
 
-	size_t find(const pystring &sub, size_t pos = 0) const;
+	long find(const pystring &sub, long pos = 0) const;
 
-	size_t find(const char *sub, size_t pos = 0);
+	long find(const char *sub, long pos = 0);
 
-	size_t find(char c, size_t pos = 0);
+	long find(char c, long pos = 0);
 
 	bool isalnum() const;
 
@@ -186,17 +186,17 @@ public:
 
 	const pystring &lower();
 
-	pystring substr(size_t pos = 0, size_t n = npos) const;
+	pystring substr(long pos = 0, long n = npos) const;
 
-	std::vector<pystring> split(const pystring &sep = pystring(""), int maxsplit = -1) const;
+	dls::tableau<pystring> split(const pystring &sep = pystring(""), int maxsplit = -1) const;
 
-	std::vector<pystring> rsplit(const pystring &sep = pystring(""), int maxsplit = -1) const;
+	dls::tableau<pystring> rsplit(const pystring &sep = pystring(""), int maxsplit = -1) const;
 
-	std::vector<pystring> partition(const pystring &sep) const;
+	dls::tableau<pystring> partition(const pystring &sep) const;
 
-//	std::vector<pystring> rpartition(const pystring & sep) const
+//	dls::tableau<pystring> rpartition(const pystring & sep) const
 //	{
-//		std::vector<pystring> result(3);
+//		dls::tableau<pystring> result(3);
 
 //		auto index = rfind(sep);
 //		if (index == npos) {
@@ -207,17 +207,17 @@ public:
 //		else {
 //			result[0] = substr(0, index);
 //			result[1] = sep;
-//			result[2] = substr(index + sep.size(), m_data);
+//			result[2] = substr(index + sep.taille(), m_data);
 //		}
 
 //		return result;
 //	}
 
-	pystring join(const std::vector<pystring> &seq) const;
+	pystring join(const dls::tableau<pystring> &seq) const;
 
-	std::vector<pystring> splitlines(const bool keepends = false);
+	dls::tableau<pystring> splitlines(const bool keepends = false);
 
-	bool startswith(const pystring &suffix, size_t start = -1ul, size_t end = -1ul) const;
+	bool startswith(const pystring &suffix, long start = -1l, long end = -1l) const;
 
 	pystring strip(const pystring &chars);
 
@@ -236,34 +236,34 @@ public:
 
 	pystring zfill(unsigned width) const;
 
-	pystring ljust(size_t width);
+	pystring ljust(long width);
 
-	pystring rjust(size_t width);
+	pystring rjust(long width);
 
-	pystring center(size_t width);
+	pystring center(long width);
 
 
-	pystring slice(size_t start, size_t end);
+	pystring slice(long start, long end);
 
-	size_t find(const pystring &sub, size_t start, size_t end) const;
+	long find(const pystring &sub, long start, long end) const;
 
-	size_t index(const pystring &sub, size_t start, size_t end) const;
+	long index(const pystring &sub, long start, long end) const;
 
-//	size_t rfind(const pystring &sub, size_t start, size_t end) const
+//	long rfind(const pystring &sub, long start, long end) const
 //	{
 //		ADJUST_INDICES(start, end, m_size);
 
-//		size_t result = rfind(sub, end);
+//		long result = rfind(sub, end);
 
 //		if (   result == npos
 //		    || result < start
-//		    || (result + sub.size() > end))
+//		    || (result + sub.taille() > end))
 //			return -1;
 
 //		return result;
 //	}
 
-//	size_t rindex(const pystring &sub, size_t start, size_t end) const
+//	long rindex(const pystring &sub, long start, long end) const
 //	{
 //		return rfind(sub, start, end);
 //	}
@@ -275,7 +275,7 @@ public:
 //		int offset = 0;
 //		int j = 0;
 
-//		for (size_t i = 0; i < m_size; ++i) {
+//		for (long i = 0; i < m_size; ++i) {
 //			if (m_data[i] == '\t') {
 //				if (tabsize > 0) {
 //					int fillsize = tabsize - (j % tabsize);
@@ -300,17 +300,17 @@ public:
 //		return s;
 //	}
 
-	size_t count(const pystring &substr, size_t start, size_t end) const;
+	long count(const pystring &substr, long start, long end) const;
 
 //	pystring replace(const pystring &oldstr, const pystring &newstr, int count) const
 //	{
 //		int sofar = 0;
 //		pystring s(*this);
 
-//		auto oldlen = oldstr.size(), newlen = newstr.size();
+//		auto oldlen = oldstr.taille(), newlen = newstr.taille();
 //		auto cursor = s.find(oldstr, 0);
 
-//		while (cursor != -1 && cursor <= (int)s.size()) {
+//		while (cursor != -1 && cursor <= (int)s.taille()) {
 //			if (count > -1 && sofar >= count) {
 //				break;
 //			}
@@ -331,12 +331,12 @@ public:
 //		return s;
 //	}
 
-	std::vector<pystring> splitlines(bool keepends) const;
+	dls::tableau<pystring> splitlines(bool keepends) const;
 
 	/* ******************* element access ******************** */
 
-	char &operator[](size_t pos);
-	char &operator[](size_t pos) const;
+	char &operator[](long pos);
+	char &operator[](long pos) const;
 
 	char &front();
 	char &front() const noexcept;
@@ -361,7 +361,7 @@ private:
 			return false;
 		}
 
-		for (size_t i(0); i < m_size; ++i) {
+		for (long i(0); i < m_size; ++i) {
 			if (!op(m_data[i])) {
 				return false;
 			}
@@ -370,18 +370,18 @@ private:
 		return true;
 	}
 
-	inline void save_data_n(char *buffer, size_t n);
+	inline void save_data_n(char *buffer, long n);
 
-	std::vector<pystring> split_whitespace(int maxsplit = -1) const;
+	dls::tableau<pystring> split_whitespace(int maxsplit = -1) const;
 
-	void reverse_strings(std::vector<pystring> &result) const;
+	void reverse_strings(dls::tableau<pystring> &result) const;
 
-	std::vector<pystring> rsplit_whitespace(int maxsplit = -1) const;
+	dls::tableau<pystring> rsplit_whitespace(int maxsplit = -1) const;
 
 	pystring do_strip(const pystring &chars, int striptype);
 
 	bool _string_tailmatch(const pystring &self, const pystring &substr,
-						  size_t start, size_t end, int direction) const;
+						  long start, long end, int direction) const;
 };
 
 inline pystring operator+(const pystring &lhs, const pystring &rhs)
@@ -486,12 +486,12 @@ inline bool operator>=(const char *lhs, const pystring &rhs)
 
 std::ostream &operator<<(std::ostream &os, const pystring &str);
 
-void permute(std::ostream &os, std::string str, size_t pos);
+void permute(std::ostream &os, dls::chaine str, long pos);
 
 // SPI pystring
 #if 0
 
-std::string mul(const std::string & str, int n)
+dls::chaine mul(const dls::chaine & str, int n)
 {
 	// Early exits
 	if (n <= 0) return "";

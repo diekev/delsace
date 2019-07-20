@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "autrice_fichier.h"
 #include "lectrice_fichier.h"
@@ -102,9 +102,9 @@ struct etiquette {
 };
 
 struct noeud {
-	std::list<propriete *> proprietes{};
-	std::list<relation *> relations{};
-	std::list<etiquette *> etiquettes{};
+	dls::liste<propriete *> proprietes{};
+	dls::liste<relation *> relations{};
+	dls::liste<etiquette *> etiquettes{};
 
 	unsigned int id = 0;
 	char utilise = 0;
@@ -121,7 +121,7 @@ struct relation {
 
 	unsigned int type_relation{};
 
-	std::list<propriete *> proprietes{};
+	dls::liste<propriete *> proprietes{};
 	unsigned int id{};
 };
 
@@ -152,10 +152,10 @@ struct infos_fichiers {
 };
 
 class graphe {
-	std::list<noeud *> m_noeuds{};
-	std::list<relation *> m_relations{};
-	std::list<propriete *> m_proprietes{};
-	std::list<etiquette *> m_etiquettes{};
+	dls::liste<noeud *> m_noeuds{};
+	dls::liste<relation *> m_relations{};
+	dls::liste<propriete *> m_proprietes{};
+	dls::liste<etiquette *> m_etiquettes{};
 
 	magasin_chaine m_nom_proprietes{};
 	magasin_chaine m_type_relations{};
@@ -203,15 +203,15 @@ public:
 
 	~graphe();
 
-	noeud *ajoute_noeud(const std::string &nom, int valeur);
+	noeud *ajoute_noeud(const dls::chaine &nom, int valeur);
 
-	void ajoute_propriete(noeud *n, const std::string &nom, int valeur);
+	void ajoute_propriete(noeud *n, const dls::chaine &nom, int valeur);
 
-	void ajoute_etiquette(noeud *n, const std::string &nom);
+	void ajoute_etiquette(noeud *n, const dls::chaine &nom);
 
-	void ajoute_propriete(relation *r, const std::string &nom, int valeur);
+	void ajoute_propriete(relation *r, const dls::chaine &nom, int valeur);
 
-	void ajoute_relation(noeud *debut, noeud *fin, const std::string &nom);
+	void ajoute_relation(noeud *debut, noeud *fin, const dls::chaine &nom);
 
 	void ecris_noeud();
 
@@ -257,9 +257,9 @@ public:
 
 	void lis_noms_etiquettes();
 
-	unsigned int id_etiquette(const std::string &etiq) const;
+	unsigned int id_etiquette(const dls::chaine &etiq) const;
 
-	std::list<noeud *> noeuds() const;
+	dls::liste<noeud *> noeuds() const;
 };
 
 }  /* namespace arachne */

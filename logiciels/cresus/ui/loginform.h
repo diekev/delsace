@@ -33,12 +33,13 @@ class LoginForm;
 class LoginForm : public QDialog {
 	Q_OBJECT
 
-	QSqlDatabase m_database;
-	QString m_user, m_username;
+	QSqlDatabase m_database = {};
+	QString m_user = "";
+	QString m_username = "";
 
-	Ui::LoginForm *ui;
+	Ui::LoginForm *ui = nullptr;
 
-	bool m_new_user;
+	bool m_new_user = false;
 
 private Q_SLOTS:
 	void onLoginButClicked();	
@@ -47,6 +48,9 @@ private Q_SLOTS:
 public:
 	explicit LoginForm(QWidget *parent = nullptr);
 	~LoginForm();
+
+	LoginForm(LoginForm const &) = default;
+	LoginForm &operator=(LoginForm const &) = default;
 
 	void setDatabase(const QSqlDatabase &db);
 	void setUser(const QString &name);

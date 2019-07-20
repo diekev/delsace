@@ -24,7 +24,7 @@
 
 #include <iostream>
 #include <tuple>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "../chrono/chronometre_de_portee.hh"
 
@@ -42,7 +42,7 @@ class TestReference {
 	Fonction m_fonction;
 
 
-	std::vector<std::tuple<Args...>> m_parametres{};
+	dls::tableau<std::tuple<Args...>> m_parametres{};
 
 public:
 	explicit TestReference(Fonction &&fonction, Args... args)
@@ -53,7 +53,7 @@ public:
 
 	void ajoute_parametres(Args... args)
 	{
-		m_parametres.push_back(std::make_tuple(std::forward<Args...>(args)...));
+		m_parametres.pousse(std::make_tuple(std::forward<Args...>(args)...));
 	}
 
 	void lance_tests()
@@ -68,7 +68,7 @@ template <typename Fonction1, typename Fonction2>
 class TestReference3 {
 	Fonction1 m_fonction;
 
-	std::vector<Fonction2> m_fonctions_genratrices{};
+	dls::tableau<Fonction2> m_fonctions_genratrices{};
 
 public:
 	explicit TestReference3(Fonction1 &&fonction)
@@ -77,7 +77,7 @@ public:
 
 	void ajoute_parametres(Fonction2 &&fonction)
 	{
-		m_fonctions_genratrices.push_back(std::forward<Fonction2>(fonction));
+		m_fonctions_genratrices.pousse(std::forward<Fonction2>(fonction));
 	}
 
 	void lance_tests()

@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/observation/observation.hh"
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/observation.hh"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "scene.h"
 
@@ -114,5 +114,5 @@ struct Koudou : public Sujette {
 
 	void enregistre_commandes();
 
-	std::string requiers_dialogue(int type);
+	dls::chaine requiers_dialogue(int type);
 };

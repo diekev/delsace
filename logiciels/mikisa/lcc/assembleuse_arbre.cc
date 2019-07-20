@@ -122,7 +122,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "------------------------------------------------------------------\n";
 	os << "lcc::noeud::base              : " << sizeof(lcc::noeud::base) << '\n';
 	os << "DonneesMorceaux               : " << sizeof(DonneesMorceaux) << '\n';
-	os << "std::list<lcc::noeud::base *> : " << sizeof(std::list<lcc::noeud::base *>) << '\n';
+	os << "dls::liste<lcc::noeud::base *> : " << sizeof(dls::liste<lcc::noeud::base *>) << '\n';
 	os << "std::any                      : " << sizeof(std::any) << '\n';
 	os << "------------------------------------------------------------------\n";
 }

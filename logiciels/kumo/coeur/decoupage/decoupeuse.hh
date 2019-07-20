@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/vue_chaine.hh"
 
@@ -79,7 +80,7 @@ private:
 
 	dls::vue_chaine mot_courant() const;
 
-	[[noreturn]] void lance_erreur(const std::string &quoi) const;
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 
 	void analyse_caractere_simple();
 

@@ -34,10 +34,11 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/vision/camera.h"
+#include "biblinternes/structures/liste.hh"
 
 #include "adaptrice_creation_maillage.h"
 
@@ -175,7 +176,7 @@ struct TexelProjete {
 	dls::math::point2f pos{};
 
 	/* L'index du polygone possédant le texel. */
-	size_t index{};
+	long index{};
 
 	/* La position u du texel. */
 	unsigned int u{};
@@ -185,14 +186,14 @@ struct TexelProjete {
 };
 
 struct Seau {
-	std::list<TexelProjete> texels = std::list<TexelProjete>{};
+	dls::liste<TexelProjete> texels = dls::liste<TexelProjete>{};
 	dls::math::vec2f min = dls::math::vec2f(0.0);
 	dls::math::vec2f max = dls::math::vec2f(0.0);
 
 	Seau() = default;
 };
 
-Seau *cherche_seau(std::vector<Seau> &seaux, dls::math::point2f const &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
+Seau *cherche_seau(dls::tableau<Seau> &seaux, dls::math::point2f const &pos, int seaux_x, int seaux_y, int largeur, int hauteur)
 {
 	auto x = pos.x / static_cast<float>(largeur);
 	auto y = pos.y / static_cast<float>(hauteur);
@@ -200,9 +201,9 @@ Seau *cherche_seau(std::vector<Seau> &seaux, dls::math::point2f const &pos, int 
 	auto sx = static_cast<float>(seaux_x) * x;
 	auto sy = static_cast<float>(seaux_y) * y;
 
-	auto index = static_cast<size_t>(sx + sy * static_cast<float>(seaux_y));
+	auto index = static_cast<long>(sx + sy * static_cast<float>(seaux_y));
 
-	index = restreint(index, 0ul, seaux.size() - 1);
+	index = restreint(index, 0l, seaux.taille() - 1);
 
 	return &seaux[index];
 }
@@ -241,7 +242,7 @@ public:
 		//		std::cerr << "Taille écran " << camera->largeur() << "x" << camera->hauteur() << "\n";
 		//		std::cerr << "Taille seaux " << seaux_x * diametre_brosse << "x" << seaux_y * diametre_brosse << "\n";
 
-		std::vector<Seau> seaux(static_cast<size_t>(seaux_x * seaux_y));
+		dls::tableau<Seau> seaux(seaux_x * seaux_y);
 
 		for (auto &seau : seaux) {
 			seau = Seau();
@@ -254,7 +255,7 @@ public:
 							  -camera->dir().y,
 							  -camera->dir().z);
 
-		for (size_t i = 0; i < nombre_polys; ++i) {
+		for (auto i = 0; i < nombre_polys; ++i) {
 			auto poly = maillage->polygone(i);
 			auto const &angle = produit_scalaire(poly->nor, dir);
 
@@ -300,7 +301,7 @@ public:
 					texel.u = j;
 					texel.v = k;
 
-					seau->texels.push_back(texel);
+					seau->texels.pousse(texel);
 				}
 			}
 		}
@@ -312,11 +313,11 @@ public:
 		auto const &rayon_inverse = 1.0f / static_cast<float>(brosse->rayon);
 
 		for (auto const &seau : seaux) {
-			if (seau.texels.empty()) {
+			if (seau.texels.est_vide()) {
 				continue;
 			}
 
-			//std::cerr << "Il y a " << seau.texels.size() << " texels dans le seau !\n";
+			//std::cerr << "Il y a " << seau.texels.taille() << " texels dans le seau !\n";
 
 			for (auto const &texel : seau.texels) {
 				auto dist = longueur(texel.pos - pos_brosse);

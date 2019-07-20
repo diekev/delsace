@@ -121,7 +121,7 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 					 static_cast<int>(p2.x * largeurf),
 					 static_cast<int>((1.0f - p2.y) * hauteurf));
 
-	for (size_t i = 0; i < m_courbe->table.size() - 1; ++i) {
+	for (auto i = 0; i < m_courbe->table.taille() - 1; ++i) {
 		p1 = m_courbe->table[i];
 		p2 = m_courbe->table[i + 1];
 
@@ -131,7 +131,7 @@ void ControleCourbeCouleur::paintEvent(QPaintEvent *)
 						 static_cast<int>((1.0f - p2.y) * hauteurf));
 	}
 
-	p1 = m_courbe->table[m_courbe->table.size() - 1];
+	p1 = m_courbe->table[m_courbe->table.taille() - 1];
 	p2 = m_courbe->extension_max.co[POINT_CENTRE];
 
 	painter.drawLine(static_cast<int>(p1.x * largeurf),

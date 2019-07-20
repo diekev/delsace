@@ -52,7 +52,7 @@ Scene::Scene()
 
 void Scene::reinitialise()
 {
-	m_objets.clear();
+	m_objets.efface();
 	m_camera = nullptr;
 }
 

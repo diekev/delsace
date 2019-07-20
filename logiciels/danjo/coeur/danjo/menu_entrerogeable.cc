@@ -50,7 +50,7 @@ static bool correspondance_floue(const QString &entree, const QString &texte)
 		}
 
 		/* Si tous les caractères de l'entrée sont trouvés, retourne vrai. */
-		if (compte == entree.length()) {
+		if (compte == entree.size()) {
 			return true;
 		}
 	}
@@ -143,7 +143,7 @@ void MenuEntrerogeable::changement_texte(const QString &texte)
 	m_menu_auxiliaire->hide();
 	m_menu_auxiliaire->clear();
 
-	assert(actions().length() > 0);
+	assert(actions().size() > 0);
 	auto wa = dynamic_cast<QWidgetAction *>(actions()[0]);
 	assert(wa != nullptr);
 
@@ -160,7 +160,7 @@ void MenuEntrerogeable::changement_texte(const QString &texte)
 				close();
 			});
 
-			if (m_menu_auxiliaire->actions().length() == 1) {
+			if (m_menu_auxiliaire->actions().size() == 1) {
 				m_menu_auxiliaire->setActiveAction(act);
 			}
 		}

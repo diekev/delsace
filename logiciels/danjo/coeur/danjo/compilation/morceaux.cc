@@ -26,113 +26,113 @@
  
 #include "morceaux.h"
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
 namespace danjo {
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {
-	{ "action", id_morceau::ACTION },
-	{ "attache", id_morceau::ATTACHE },
-	{ "barre_outils", id_morceau::BARRE_OUTILS },
-	{ "bouton", id_morceau::BOUTON },
-	{ "case", id_morceau::CASE },
-	{ "chaine", id_morceau::CHAINE },
-	{ "colonne", id_morceau::COLONNE },
-	{ "couleur", id_morceau::COULEUR },
-	{ "courbe_couleur", id_morceau::COURBE_COULEUR },
-	{ "courbe_valeur", id_morceau::COURBE_VALEUR },
-	{ "disposition", id_morceau::DISPOSITION },
-	{ "dossier", id_morceau::DOSSIER },
-	{ "décimal", id_morceau::DECIMAL },
-	{ "entier", id_morceau::ENTIER },
-	{ "entreface", id_morceau::ENTREFACE },
-	{ "entrée", id_morceau::ENTREE },
-	{ "faux", id_morceau::FAUX },
-	{ "feuille", id_morceau::FEUILLE },
-	{ "fichier_entrée", id_morceau::FICHIER_ENTREE },
-	{ "fichier_sortie", id_morceau::FICHIER_SORTIE },
-	{ "filtres", id_morceau::FILTRES },
-	{ "icône", id_morceau::ICONE },
-	{ "infobulle", id_morceau::INFOBULLE },
-	{ "items", id_morceau::ITEMS },
-	{ "ligne", id_morceau::LIGNE },
-	{ "liste", id_morceau::LISTE },
-	{ "logique", id_morceau::LOGIQUE },
-	{ "max", id_morceau::MAX },
-	{ "menu", id_morceau::MENU },
-	{ "min", id_morceau::MIN },
-	{ "métadonnée", id_morceau::METADONNEE },
-	{ "nom", id_morceau::NOM },
-	{ "onglet", id_morceau::ONGLET },
-	{ "pas", id_morceau::PAS },
-	{ "précision", id_morceau::PRECISION },
-	{ "quand", id_morceau::QUAND },
-	{ "rampe_couleur", id_morceau::RAMPE_COULEUR },
-	{ "relation", id_morceau::RELATION },
-	{ "résultat", id_morceau::RESULTAT },
-	{ "sortie", id_morceau::SORTIE },
-	{ "suffixe", id_morceau::SUFFIXE },
-	{ "séparateur", id_morceau::SEPARATEUR },
-	{ "texte", id_morceau::TEXTE },
-	{ "valeur", id_morceau::VALEUR },
-	{ "vecteur", id_morceau::VECTEUR },
-	{ "vrai", id_morceau::VRAI },
-	{ "énum", id_morceau::ENUM },
-	{ "étiquette", id_morceau::ETIQUETTE },
-};
+static auto paires_mots_cles = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("action"), id_morceau::ACTION },
+	dls::paire{ dls::vue_chaine("attache"), id_morceau::ATTACHE },
+	dls::paire{ dls::vue_chaine("barre_outils"), id_morceau::BARRE_OUTILS },
+	dls::paire{ dls::vue_chaine("bouton"), id_morceau::BOUTON },
+	dls::paire{ dls::vue_chaine("case"), id_morceau::CASE },
+	dls::paire{ dls::vue_chaine("chaine"), id_morceau::CHAINE },
+	dls::paire{ dls::vue_chaine("colonne"), id_morceau::COLONNE },
+	dls::paire{ dls::vue_chaine("couleur"), id_morceau::COULEUR },
+	dls::paire{ dls::vue_chaine("courbe_couleur"), id_morceau::COURBE_COULEUR },
+	dls::paire{ dls::vue_chaine("courbe_valeur"), id_morceau::COURBE_VALEUR },
+	dls::paire{ dls::vue_chaine("disposition"), id_morceau::DISPOSITION },
+	dls::paire{ dls::vue_chaine("dossier"), id_morceau::DOSSIER },
+	dls::paire{ dls::vue_chaine("décimal"), id_morceau::DECIMAL },
+	dls::paire{ dls::vue_chaine("entier"), id_morceau::ENTIER },
+	dls::paire{ dls::vue_chaine("entreface"), id_morceau::ENTREFACE },
+	dls::paire{ dls::vue_chaine("entrée"), id_morceau::ENTREE },
+	dls::paire{ dls::vue_chaine("faux"), id_morceau::FAUX },
+	dls::paire{ dls::vue_chaine("feuille"), id_morceau::FEUILLE },
+	dls::paire{ dls::vue_chaine("fichier_entrée"), id_morceau::FICHIER_ENTREE },
+	dls::paire{ dls::vue_chaine("fichier_sortie"), id_morceau::FICHIER_SORTIE },
+	dls::paire{ dls::vue_chaine("filtres"), id_morceau::FILTRES },
+	dls::paire{ dls::vue_chaine("icône"), id_morceau::ICONE },
+	dls::paire{ dls::vue_chaine("infobulle"), id_morceau::INFOBULLE },
+	dls::paire{ dls::vue_chaine("items"), id_morceau::ITEMS },
+	dls::paire{ dls::vue_chaine("ligne"), id_morceau::LIGNE },
+	dls::paire{ dls::vue_chaine("liste"), id_morceau::LISTE },
+	dls::paire{ dls::vue_chaine("liste_manip"), id_morceau::LISTE_MANIP },
+	dls::paire{ dls::vue_chaine("logique"), id_morceau::LOGIQUE },
+	dls::paire{ dls::vue_chaine("max"), id_morceau::MAX },
+	dls::paire{ dls::vue_chaine("menu"), id_morceau::MENU },
+	dls::paire{ dls::vue_chaine("min"), id_morceau::MIN },
+	dls::paire{ dls::vue_chaine("métadonnée"), id_morceau::METADONNEE },
+	dls::paire{ dls::vue_chaine("nom"), id_morceau::NOM },
+	dls::paire{ dls::vue_chaine("onglet"), id_morceau::ONGLET },
+	dls::paire{ dls::vue_chaine("pas"), id_morceau::PAS },
+	dls::paire{ dls::vue_chaine("précision"), id_morceau::PRECISION },
+	dls::paire{ dls::vue_chaine("quand"), id_morceau::QUAND },
+	dls::paire{ dls::vue_chaine("rampe_couleur"), id_morceau::RAMPE_COULEUR },
+	dls::paire{ dls::vue_chaine("relation"), id_morceau::RELATION },
+	dls::paire{ dls::vue_chaine("résultat"), id_morceau::RESULTAT },
+	dls::paire{ dls::vue_chaine("sortie"), id_morceau::SORTIE },
+	dls::paire{ dls::vue_chaine("suffixe"), id_morceau::SUFFIXE },
+	dls::paire{ dls::vue_chaine("séparateur"), id_morceau::SEPARATEUR },
+	dls::paire{ dls::vue_chaine("texte"), id_morceau::TEXTE },
+	dls::paire{ dls::vue_chaine("valeur"), id_morceau::VALEUR },
+	dls::paire{ dls::vue_chaine("vecteur"), id_morceau::VECTEUR },
+	dls::paire{ dls::vue_chaine("vrai"), id_morceau::VRAI },
+	dls::paire{ dls::vue_chaine("énum"), id_morceau::ENUM },
+	dls::paire{ dls::vue_chaine("étiquette"), id_morceau::ETIQUETTE }
+);
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_caracteres_double = {
-	{ "!=", id_morceau::DIFFERENCE },
-	{ "&&", id_morceau::ESP_ESP },
-	{ "&=", id_morceau::ET_EGAL },
-	{ "*=", id_morceau::FOIS_EGAL },
-	{ "++", id_morceau::PLUS_PLUS },
-	{ "+=", id_morceau::PLUS_EGAL },
-	{ "--", id_morceau::MOINS_MOINS },
-	{ "-=", id_morceau::MOINS_EGAL },
-	{ "->", id_morceau::FLECHE },
-	{ "...", id_morceau::TROIS_POINT },
-	{ "/=", id_morceau::DIVISE_EGAL },
-	{ "<<", id_morceau::DECALAGE_GAUCHE },
-	{ "<=", id_morceau::INFERIEUR_EGAL },
-	{ "==", id_morceau::EGALITE },
-	{ ">=", id_morceau::SUPERIEUR_EGAL },
-	{ ">>", id_morceau::DECALAGE_DROITE },
-	{ "^=", id_morceau::OUX_EGAL },
-	{ "|=", id_morceau::OU_EGAL },
-	{ "||", id_morceau::BARE_BARRE },
-};
+static auto paires_caracteres_double = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("!="), id_morceau::DIFFERENCE },
+	dls::paire{ dls::vue_chaine("&&"), id_morceau::ESP_ESP },
+	dls::paire{ dls::vue_chaine("&="), id_morceau::ET_EGAL },
+	dls::paire{ dls::vue_chaine("*="), id_morceau::FOIS_EGAL },
+	dls::paire{ dls::vue_chaine("++"), id_morceau::PLUS_PLUS },
+	dls::paire{ dls::vue_chaine("+="), id_morceau::PLUS_EGAL },
+	dls::paire{ dls::vue_chaine("--"), id_morceau::MOINS_MOINS },
+	dls::paire{ dls::vue_chaine("-="), id_morceau::MOINS_EGAL },
+	dls::paire{ dls::vue_chaine("->"), id_morceau::FLECHE },
+	dls::paire{ dls::vue_chaine("..."), id_morceau::TROIS_POINT },
+	dls::paire{ dls::vue_chaine("/="), id_morceau::DIVISE_EGAL },
+	dls::paire{ dls::vue_chaine("<<"), id_morceau::DECALAGE_GAUCHE },
+	dls::paire{ dls::vue_chaine("<="), id_morceau::INFERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine("=="), id_morceau::EGALITE },
+	dls::paire{ dls::vue_chaine(">="), id_morceau::SUPERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine(">>"), id_morceau::DECALAGE_DROITE },
+	dls::paire{ dls::vue_chaine("^="), id_morceau::OUX_EGAL },
+	dls::paire{ dls::vue_chaine("|="), id_morceau::OU_EGAL },
+	dls::paire{ dls::vue_chaine("||"), id_morceau::BARE_BARRE }
+);
 
-static dls::dico<char, id_morceau> paires_caracteres_speciaux = {
-	{ '!', id_morceau::EXCLAMATION },
-	{ '"', id_morceau::GUILLEMET },
-	{ '#', id_morceau::DIESE },
-	{ '%', id_morceau::POURCENT },
-	{ '&', id_morceau::ESPERLUETTE },
-	{ '\'', id_morceau::APOSTROPHE },
-	{ '(', id_morceau::PARENTHESE_OUVRANTE },
-	{ ')', id_morceau::PARENTHESE_FERMANTE },
-	{ '*', id_morceau::FOIS },
-	{ '+', id_morceau::PLUS },
-	{ ',', id_morceau::VIRGULE },
-	{ '-', id_morceau::MOINS },
-	{ '.', id_morceau::POINT },
-	{ '/', id_morceau::DIVISE },
-	{ ':', id_morceau::DOUBLE_POINTS },
-	{ ';', id_morceau::POINT_VIRGULE },
-	{ '<', id_morceau::INFERIEUR },
-	{ '=', id_morceau::EGAL },
-	{ '>', id_morceau::SUPERIEUR },
-	{ '@', id_morceau::AROBASE },
-	{ '[', id_morceau::CROCHET_OUVRANT },
-	{ ']', id_morceau::CROCHET_FERMANT },
-	{ '^', id_morceau::CHAPEAU },
-	{ '{', id_morceau::ACCOLADE_OUVRANTE },
-	{ '|', id_morceau::BARRE },
-	{ '}', id_morceau::ACCOLADE_FERMANTE },
-	{ '~', id_morceau::TILDE },
-};
+static auto paires_caracteres_speciaux = dls::cree_dico(
+	dls::paire{ '!', id_morceau::EXCLAMATION },
+	dls::paire{ '"', id_morceau::GUILLEMET },
+	dls::paire{ '#', id_morceau::DIESE },
+	dls::paire{ '%', id_morceau::POURCENT },
+	dls::paire{ '&', id_morceau::ESPERLUETTE },
+	dls::paire{ '\'', id_morceau::APOSTROPHE },
+	dls::paire{ '(', id_morceau::PARENTHESE_OUVRANTE },
+	dls::paire{ ')', id_morceau::PARENTHESE_FERMANTE },
+	dls::paire{ '*', id_morceau::FOIS },
+	dls::paire{ '+', id_morceau::PLUS },
+	dls::paire{ ',', id_morceau::VIRGULE },
+	dls::paire{ '-', id_morceau::MOINS },
+	dls::paire{ '.', id_morceau::POINT },
+	dls::paire{ '/', id_morceau::DIVISE },
+	dls::paire{ ':', id_morceau::DOUBLE_POINTS },
+	dls::paire{ ';', id_morceau::POINT_VIRGULE },
+	dls::paire{ '<', id_morceau::INFERIEUR },
+	dls::paire{ '=', id_morceau::EGAL },
+	dls::paire{ '>', id_morceau::SUPERIEUR },
+	dls::paire{ '@', id_morceau::AROBASE },
+	dls::paire{ '[', id_morceau::CROCHET_OUVRANT },
+	dls::paire{ ']', id_morceau::CROCHET_FERMANT },
+	dls::paire{ '^', id_morceau::CHAPEAU },
+	dls::paire{ '{', id_morceau::ACCOLADE_OUVRANTE },
+	dls::paire{ '|', id_morceau::BARRE },
+	dls::paire{ '}', id_morceau::ACCOLADE_FERMANTE },
+	dls::paire{ '~', id_morceau::TILDE }
+);
 
 const char *chaine_identifiant(id_morceau id)
 {
@@ -281,6 +281,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::LIGNE";
 		case id_morceau::LISTE:
 			return "id_morceau::LISTE";
+		case id_morceau::LISTE_MANIP:
+			return "id_morceau::LISTE_MANIP";
 		case id_morceau::LOGIQUE:
 			return "id_morceau::LOGIQUE";
 		case id_morceau::MAX:
@@ -362,17 +364,32 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
-		tables_caracteres[int(iter.first)] = true;
-		tables_identifiants[int(iter.first)] = iter.second;
+    {
+	    auto plg = paires_caracteres_speciaux.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres[int(plg.front().premier)] = true;
+		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_caracteres_double) {
-		tables_caracteres_double[int(iter.first[0])] = true;
+    {
+	    auto plg = paires_caracteres_double.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres_double[int(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -392,10 +409,10 @@ id_morceau id_caractere_double(const dls::vue_chaine &chaine)
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.trouve(chaine);
+	auto iterateur = paires_caracteres_double.trouve_binaire(chaine);
 
-	if (iterateur != paires_caracteres_double.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::INCONNU;
@@ -411,10 +428,10 @@ id_morceau id_chaine(const dls::vue_chaine &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::CHAINE_CARACTERE;

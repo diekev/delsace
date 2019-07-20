@@ -36,8 +36,9 @@
 #include <QMenu>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
+#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/mikisa.h"
 
@@ -62,19 +63,19 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 
 	auto gestionnaire = m_mikisa.gestionnaire_entreface;
 
-	auto texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_composite.jo");
+	auto texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_composite.jo");
 	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
-	texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_objet.jo");
+	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_objet.jo");
 	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
-	texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_point3d.jo");
+	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_point3d.jo");
 	m_menu_ajout_noeud_point3d = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
-	texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_scene.jo");
+	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_scene.jo");
 	m_menu_ajout_noeud_scene = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
-	texte_entree = danjo::contenu_fichier("entreface/menu_ajouter_noeud_simulation.jo");
+	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_simulation.jo");
 	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 }
 

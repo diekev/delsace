@@ -26,9 +26,9 @@
 
 #include "biblinternes/math/vecteur.hh"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
-#include "biblinternes/spectre/spectre.h"
+#include "biblinternes/phys/spectre.hh"
 
 #include "types.h"
 
@@ -61,10 +61,10 @@ Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction);
 struct Scene {
 	Monde monde{};
 
-	std::vector<Lumiere *> lumieres{};
-	std::vector<Maillage *> maillages{};
+	dls::tableau<Lumiere *> lumieres{};
+	dls::tableau<Maillage *> maillages{};
 
-	std::vector<Objet *> objets{};
+	dls::tableau<Objet *> objets{};
 	Objet *objet_actif = nullptr;
 
 	Scene();

@@ -26,17 +26,17 @@
  
 #include "morceaux.hh"
 
-#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
-static dls::dico<dls::vue_chaine, int> paires_mots_cles = {
-	{ "dans", ID_DANS },
-	{ "finpour", ID_FINPOUR },
-	{ "finsi", ID_FINSI },
-	{ "pour", ID_POUR },
-	{ "si", ID_SI },
-	{ "sinon", ID_SINON },
-	{ "étend", ID_ETEND },
-};
+static auto paires_mots_cles = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("dans"), ID_DANS },
+	dls::paire{ dls::vue_chaine("finpour"), ID_FINPOUR },
+	dls::paire{ dls::vue_chaine("finsi"), ID_FINSI },
+	dls::paire{ dls::vue_chaine("pour"), ID_POUR },
+	dls::paire{ dls::vue_chaine("si"), ID_SI },
+	dls::paire{ dls::vue_chaine("sinon"), ID_SINON },
+	dls::paire{ dls::vue_chaine("étend"), ID_ETEND }
+);
 
 const char *chaine_identifiant(int id)
 {
@@ -80,8 +80,13 @@ void construit_tables_caractere_speciaux()
 		tables_mots_cles[i] = false;
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -91,10 +96,10 @@ int id_chaine(const dls::vue_chaine &chaine)
 		return ID_CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return ID_CHAINE_CARACTERE;

@@ -24,7 +24,7 @@
 
 #include "commandes_projet.h"
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "../evenement.h"
 #include "../mikisa.h"

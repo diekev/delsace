@@ -36,19 +36,16 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
-
-#include "outils.h"
 
 EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
 	: BaseEditrice(koudou, parent)
     , m_widget(new QWidget())
     , m_scroll(new QScrollArea())
     , m_glayout(new QGridLayout(m_widget))
-	, m_assembleur_controles(m_glayout)
 	, m_info_temps_ecoule(new QLabel("0 s", this))
 	, m_info_temps_restant(new QLabel("0 s", this))
 	, m_info_temps_echantillon(new QLabel("0 s", this))

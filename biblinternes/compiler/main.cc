@@ -39,7 +39,7 @@ static void test_jit()
 	code_vector code;
 
 	/* mov %rdi %rax */
-	code.insert(code.end(), { 0x48, 0x89, 0xf8 });
+	code.insere(code.fin(), { 0x48, 0x89, 0xf8 });
 
 	int c, dummy;
 	while ((c = std::fgetc(stdin)) != '\n' && c != EOF) {
@@ -53,40 +53,40 @@ static void test_jit()
 		dummy = std::scanf("%ld", &operand);
 
 		/* mov operand, %rdi */
-		code.insert(code.end(), { 0x48, 0xbf });
+		code.insere(code.fin(), { 0x48, 0xbf });
 
-		code.push_value(code.end(), operand);
+		code.push_value(code.fin(), operand);
 
 		switch (operator_) {
 			case '+':
 				/* add %rdi, %rax */
-				code.insert(code.end(), { 0x48, 0x01, 0xf8 });
+				code.insere(code.fin(), { 0x48, 0x01, 0xf8 });
 				break;
 			case '-':
 				/* sub %rdi, %rax */
-				code.insert(code.end(), { 0x48, 0x29, 0xf8 });
+				code.insere(code.fin(), { 0x48, 0x29, 0xf8 });
 				break;
 			case '*':
 				/* imul %rdi, %rax */
-				code.insert(code.end(), { 0x48, 0x0f, 0xaf, 0xc7 });
+				code.insere(code.fin(), { 0x48, 0x0f, 0xaf, 0xc7 });
 				break;
 			case '/':
 				/* xor %rdx, %rdx */
-				code.insert(code.end(), { 0x48, 0x31, 0xd2 });
+				code.insere(code.fin(), { 0x48, 0x31, 0xd2 });
 				/* idiv  %rdi */
-				code.insert(code.end(), { 0x48, 0xf7, 0xff });
+				code.insere(code.fin(), { 0x48, 0xf7, 0xff });
 				break;
 		}
 	}
 
 	/* ret */
-	code.insert(code.end(), { 0xc3 });
+	code.insere(code.fin(), { 0xc3 });
 
 	long init;
 	unsigned long term;
 	dummy = std::scanf("%ld %lu", &init, &term);
 
-	auto recurrence = function<long(long)>(code.begin(), code.end());
+	auto recurrence = function<long(long)>(code.debut(), code.fin());
 
 	for (long i = 0, x = init; i <= static_cast<long>(term); i++, x = recurrence(x)) {
 		std::fprintf(stderr, "Term %lu: %ld\n", i, x);
@@ -95,7 +95,7 @@ static void test_jit()
 	static_cast<void>(dummy);
 }
 
-static void test_scanner(const std::string &filename)
+static void test_scanner(const dls::chaine &filename)
 {
 	FileBuffer map(filename);
 
@@ -145,17 +145,17 @@ static void test_scanner(const std::string &filename)
 static function<int64_t(int64_t)> adder(int64_t n)
 {
 	code_vector code;
-	code.insert(code.end(), { 0x48, 0xB8 } );
+	code.insere(code.fin(), { 0x48, 0xB8 } );
 
-	code.push_value(code.end(), n);
+	code.push_value(code.fin(), n);
 
 	/* add %rdi, %rax */
-	code.insert(code.end(), { 0x48, 0x01, 0xF8 });
+	code.insere(code.fin(), { 0x48, 0x01, 0xF8 });
 
 	/* ret */
-	code.insert(code.end(), { 0xC3 });
+	code.insere(code.fin(), { 0xC3 });
 
-	return function<int64_t(int64_t)>(code.begin(), code.end());
+	return function<int64_t(int64_t)>(code.debut(), code.fin());
 }
 
 template <typename T>
@@ -168,40 +168,40 @@ static auto debug_queue(dls::file<T> queue)
 }
 
 #if 0
-static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
+static function<int(void)> evaluate_postfix(dls::file<dls::chaine> &expression)
 {
 	code_vector code;
 
 	/* mov %rdi %rax */
-	code.insert(code.end(), { 0x48, 0x89, 0xf8 });
+	code.insere(code.fin(), { 0x48, 0x89, 0xf8 });
 
-//	code.insert(code.end(), { 0x48, 0xB8 } );
-//	code.push_value(code.end(), 0);
+//	code.insere(code.fin(), { 0x48, 0xB8 } );
+//	code.push_value(code.fin(), 0);
 	/* Push a zero on the stack in case the expression starts with a negative
 	 * number, or is empty. */
 
-	while (!expression.empty()) {
+	while (!expression.est_vide()) {
 		auto token = expression.front();
 		expression.pop();
 
 		if (is_operator(token)) {
 			if (token == "+") {
 				/* add %rdi, %rax */
-				code.insert(code.end(), { 0x48, 0x01, 0xf8 });
+				code.insere(code.fin(), { 0x48, 0x01, 0xf8 });
 			}
 			else if (token == "-") {
 				/* sub %rdi, %rax */
-				code.insert(code.end(), { 0x48, 0x29, 0xf8 });
+				code.insere(code.fin(), { 0x48, 0x29, 0xf8 });
 			}
 			else if (token == "*") {
 				/* imul %rdi, %rax */
-				code.insert(code.end(), { 0x48, 0x0f, 0xaf, 0xc7 });
+				code.insere(code.fin(), { 0x48, 0x0f, 0xaf, 0xc7 });
 			}
 			else if (token == "/") {
 				/* xor %rdx, %rdx */
-				code.insert(code.end(), { 0x48, 0x31, 0xd2 });
+				code.insere(code.fin(), { 0x48, 0x31, 0xd2 });
 				/* idiv  %rdi */
-				code.insert(code.end(), { 0x48, 0xf7, 0xff });
+				code.insere(code.fin(), { 0x48, 0xf7, 0xff });
 			}
 
 			continue;
@@ -210,19 +210,19 @@ static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
 			int val = std::stoi(token);
 
 			/* mov operand, %rdi */
-			code.insert(code.end(), { 0x48, 0xbf });
-			code.push_value(code.end(), val);
+			code.insere(code.fin(), { 0x48, 0xbf });
+			code.push_value(code.fin(), val);
 
 			continue;
 		}
 	}
 
-	code.insert(code.end(), { 0xC3 });
+	code.insere(code.fin(), { 0xC3 });
 
-	return function<int(void)>(code.begin(), code.end());
+	return function<int(void)>(code.debut(), code.fin());
 }
 #else
-static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
+static function<int(void)> evaluate_postfix(dls::file<dls::chaine> &expression)
 {
 	jit::state state;
 
@@ -259,7 +259,7 @@ static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
 			continue;
 		}
 		else {
-			int val = std::stoi(token);
+			int val = std::stoi(token.c_str());
 
 			/* mov operand, %rdi */
 			state.emit(jit::operation::push, stack_ptr, jit::reg::fp, jit::reg::r0);
@@ -277,13 +277,13 @@ static function<int(void)> evaluate_postfix(dls::file<std::string> &expression)
 
 	std::cerr << std::hex << std::showbase;
 
-	for (auto i = 0ul; i < state.code().size(); i += 4) {
+	for (auto i = 0l; i < state.code().taille(); i += 4) {
 		std::cerr << *(reinterpret_cast<int *>(&(state.code()[i]))) << ' ';
 	}
 
 	std::cerr << '\n';
 
-	return function<int(void)>((state.code()).begin(), (state.code()).end());
+	return function<int(void)>((state.code()).debut(), (state.code()).fin());
 }
 #endif
 

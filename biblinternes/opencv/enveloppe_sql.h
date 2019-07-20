@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace sql {
 
@@ -62,9 +62,9 @@ public:
 
 	/**
 	 * Retourne la valeur de la colonne dont le nom est passé en paramètre sous
-	 * forme d'une std::string. Lance une exception si la colonne n'existe pas.
+	 * forme d'une dls::chaine. Lance une exception si la colonne n'existe pas.
 	 */
-	std::string valeur(const std::string &colonne) noexcept(false);
+	dls::chaine valeur(const dls::chaine &colonne) noexcept(false);
 };
 
 /* *************************** DeclarationSQL ******************************* */
@@ -90,5 +90,5 @@ public:
 	 * un objet `ResultatsSQL` contenant les résultats de la requête. Lance une
 	 * exception si la requête échoue.
 	 */
-	ResultatsSQL requiert(const std::string &requete) noexcept(false);
+	ResultatsSQL requiert(const dls::chaine &requete) noexcept(false);
 };

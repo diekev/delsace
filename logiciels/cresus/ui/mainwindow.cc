@@ -33,12 +33,12 @@
 #include <QSqlQuery>
 #include <QTextStream>
 
+#include "biblinternes/outils/conditions.h"
+
 #include "dialogs.h"
 #include "interfacewidgets.h"
 #include "ui_mainwindow.h"
 #include "utilisateur.h"
-
-#include "util/util_bool.h"
 
 MainWindow::MainWindow()
     : ui(new Ui::MainWindow)
@@ -52,8 +52,8 @@ MainWindow::MainWindow()
 	ui->setupUi(this);
 
 	ui->m_cash_amount->setName(tr("Argent Liquide"));
-	connect(ui->m_cash_amount, SIGNAL(valueChanged(QString, float)),
-	        this, SLOT(editAccount(QString, float)));
+	connect(ui->m_cash_amount, SIGNAL(valueChanged(QString, double)),
+			this, SLOT(editAccount(QString, double)));
 	ui->m_user_info->setSize(14);
 	ui->m_user_info->setBold(true, true);
 	ui->m_user_info->showPushButton(false);
@@ -149,29 +149,29 @@ auto MainWindow::createUser(const QString &name) -> void
 {
 	m_user = new Utilisateur(name);
 
-	if (!(std::find(m_users.begin(), m_users.end(), m_user) != m_users.end())) {
-		m_users.push_back(m_user);
+	if (!(std::find(m_users.debut(), m_users.fin(), m_user) != m_users.fin())) {
+		m_users.pousse(m_user);
 	}
 }
 
 auto MainWindow::createDefaultTableWidgets() -> void
 {
 	ui->m_net_salary->setCategory(tr("Salaire Net"));
-	m_active_revenues.push_back(ui->m_net_salary);
+	m_active_revenues.pousse(ui->m_net_salary);
 
 	ui->m_interests->setCategory(tr("Intérêts"));
-	m_passive_revenues.push_back(ui->m_interests);
+	m_passive_revenues.pousse(ui->m_interests);
 
 	ui->m_groceries->setCategory(tr("Alimentaire"));
-	m_personal_expenses.push_back(ui->m_groceries);
+	m_personal_expenses.pousse(ui->m_groceries);
 	ui->m_clothing->setCategory(tr("Habillement"));
-	m_personal_expenses.push_back(ui->m_clothing);
+	m_personal_expenses.pousse(ui->m_clothing);
 	ui->m_hygiene->setCategory(tr("Hygiène"));
-	m_personal_expenses.push_back(ui->m_hygiene);
+	m_personal_expenses.pousse(ui->m_hygiene);
 	ui->m_health->setCategory(tr("Santé"));
-	m_personal_expenses.push_back(ui->m_health);
+	m_personal_expenses.pousse(ui->m_health);
 	ui->m_phone->setCategory(tr("Téléphone"));
-	m_personal_expenses.push_back(ui->m_phone);
+	m_personal_expenses.pousse(ui->m_phone);
 
 	/* TODO: make it a separate function */
 	for (const auto &expense : m_personal_expenses) {
@@ -194,9 +194,9 @@ auto MainWindow::createWidgetForAccount(const Compte &compte) -> void
 	m_transaction_dialog->addCompteItem(name);
 
 	auto widget = new AccountWidget(name, compte.value());
-	connect(widget, SIGNAL(valueChanged(QString, float)),
-	        this, SLOT(editAccount(QString, float)));
-	m_account_widgets.push_back(widget);
+	connect(widget, SIGNAL(valueChanged(QString, double)),
+			this, SLOT(editAccount(QString, double)));
+	m_account_widgets.pousse(widget);
 
 	if (compte.type() == COMPTE_COURANT) {
 		ui->m_capital_liquid->layout()->addWidget(widget);
@@ -210,7 +210,7 @@ auto MainWindow::createWidgetForAccount(const Compte &compte) -> void
 	}
 }
 
-void MainWindow::editAccount(const QString &name, const float value)
+void MainWindow::editAccount(const QString &name, const double value)
 {
 	if (name == "Argent Liquide") {
 		m_user->setArgentLiquide(value);
@@ -283,7 +283,7 @@ auto MainWindow::addTransaction(const bool income) -> void
 		if (medium == TRANSACTION_LIQUID) {
 			m_user->setArgentLiquide(m_user->getArgentLiquide() + ((income) ? montant : -montant));
 		}
-		else if (is_elem(medium, TRANSACTION_CHECK, TRANSACTION_WIRE)) {
+		else if (dls::outils::est_element(medium, TRANSACTION_CHECK, TRANSACTION_WIRE)) {
 			Compte *compte = &m_user->account(m_transaction_dialog->accountIndex());
 			compte->addTransaction(montant, income);
 			updateBilanWidget(compte->name(), compte->value());
@@ -457,7 +457,7 @@ auto MainWindow::updateBilanTab() -> void
 	ui->m_user_info->setValue(m_user->netValue());
 }
 
-auto MainWindow::updateBilanWidget(const QString &name, const float value) -> void
+auto MainWindow::updateBilanWidget(const QString &name, const double value) -> void
 {
 	for (auto widget : m_account_widgets) {
 		if (widget->name() == name) {
@@ -467,7 +467,7 @@ auto MainWindow::updateBilanWidget(const QString &name, const float value) -> vo
 	}
 }
 
-auto MainWindow::updateUserTables(QDate date, int mois, int annee, float montant, QString category) -> void
+auto MainWindow::updateUserTables(QDate date, int mois, int annee, double montant, QString category) -> void
 {
 	if (!m_database.isOpen()) {
 		qDebug() << "La base de données n'est pas ouverte !";
@@ -507,11 +507,11 @@ auto MainWindow::updateUserTables() -> void
 	updateUserTables("kevin_monthly_expense_table", DEPENSE_PERS, DEPENSE_TRSPRT, annee);
 }
 
-void MainWindow::updateUserTables(QString table_name, int begin, int end, int annee)
+void MainWindow::updateUserTables(QString table_name, int debut, int end, int annee)
 {
 	QSqlQuery query;
 
-	for (auto type = begin; type <= end; ++type) {
+	for (auto type = debut; type <= end; ++type) {
 		for (auto mois(1); mois <= 12; ++mois) {
 			auto str = QString("select valeur, catégorie from %1 where mois=%2 and année=%3");
 			auto ret = query.exec(str.arg(table_name).arg(mois).arg(annee));
@@ -530,7 +530,7 @@ void MainWindow::updateUserTables(QString table_name, int begin, int end, int an
 	}
 }
 
-auto MainWindow::updateTableWidget(const QString &category, const float value, const int mois, int type) -> void
+auto MainWindow::updateTableWidget(const QString &category, const double value, const int mois, int type) -> void
 {
 	auto container = m_personal_expenses;
 

@@ -12,7 +12,7 @@ struct Carreau {
 static constexpr auto TAILLE_CARREAU = 32;
 
 class Image {
-	std::vector<Carreau> m_carreaux{};
+	dls::tableau<Carreau> m_carreaux{};
 	long res_x = 0;
 	long res_y = 0;
 
@@ -38,7 +38,7 @@ public:
 
 	long nombre_carreau()
 	{
-		return m_carreaux.size();
+		return m_carreaux.taille();
 	}
 };
 

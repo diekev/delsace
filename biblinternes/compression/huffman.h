@@ -25,15 +25,16 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 constexpr int MAGIC_NUMBER = 0x48554646;
 
 struct Node {
 	Node *left, *right;
-	std::string code;
+	dls::chaine code;
 	char character;
 	int frequency;
 
@@ -62,20 +63,20 @@ struct Node {
 	}
 };
 
-std::vector<Node *> nodes_from_distribution(int letters[]);
+dls::tableau<Node *> nodes_from_distribution(int letters[]);
 
 class BinaryTree {
-	using HuffMap = dls::dico_desordonne<char, std::string>;
+	using HuffMap = dls::dico_desordonne<char, dls::chaine>;
 
 	Node *m_root;
 	HuffMap m_map;
-	size_t m_leaves_count;
-	size_t m_encode_length;
+	long m_leaves_count;
+	long m_encode_length;
 
 	void destroy_tree(Node *node);
-	void build_huffman_map(Node *node, const std::string &code);
-	char decode_ex(Node *node, const std::string &code, size_t &i);
-	void compute_probability(Node *node, const float frequency, std::vector<float> &freqs) const;
+	void build_huffman_map(Node *node, const dls::chaine &code);
+	char decode_ex(Node *node, const dls::chaine &code, long &i);
+	void compute_probability(Node *node, const float frequency, dls::tableau<float> &freqs) const;
 
 public:
 	BinaryTree();
@@ -85,10 +86,10 @@ public:
 	BinaryTree &operator=(const BinaryTree &) = delete;
 
 	void build_huffman_map();
-	void build_tree_from_nodes(std::vector<Node *> &nodes);
+	void build_tree_from_nodes(dls::tableau<Node *> &nodes);
 
-	std::string encode(const std::string &to_encode);
-	std::string decode(const std::string &to_decode);
+	dls::chaine encode(const dls::chaine &to_encode);
+	dls::chaine decode(const dls::chaine &to_decode);
 
 	float entropy() const;
 };
@@ -110,7 +111,7 @@ public:
 
 class HuffManFile {
 	std::unique_ptr<HuffManFileHeader> m_header;
-	std::vector<unsigned char> m_bytes;
+	dls::tableau<unsigned char> m_bytes;
 
 public:
 	HuffManFile();
@@ -125,6 +126,6 @@ public:
 	HuffManFileHeader *header() const;
 	void setHeader(HuffManFileHeader *header);
 
-	void setBytesFromStr(const std::string &str);
-	std::string strFromBytes() const;
+	void setBytesFromStr(const dls::chaine &str);
+	dls::chaine strFromBytes() const;
 };

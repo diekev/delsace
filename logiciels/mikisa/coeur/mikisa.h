@@ -26,8 +26,8 @@
 
 #include <thread>
 
-#include "biblinternes/observation/observation.hh"
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/observation.hh"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "biblinternes/structures/tableau.hh"
 

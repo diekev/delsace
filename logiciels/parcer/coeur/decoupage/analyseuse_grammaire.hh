@@ -47,9 +47,9 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 	 * appel vers 'analyse_expression_droite()', mais cela rend la classe peu
 	 * sûre niveau multi-threading.
 	 */
-	using paire_vecteurs = std::pair<std::vector<noeud::base *>, std::vector<noeud::base *>>;
-	std::vector<paire_vecteurs> m_paires_vecteurs;
-	size_t m_profondeur = 0;
+	using paire_vecteurs = std::pair<dls::tableau<noeud::base *>, dls::tableau<noeud::base *>>;
+	dls::tableau<paire_vecteurs> m_paires_vecteurs;
+	long m_profondeur = 0;
 
 	dls::chaine m_racine_kuri{};
 

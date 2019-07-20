@@ -24,7 +24,7 @@
 
 #include "operatrice_pixel.h"
 
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "contexte_evaluation.hh"
 

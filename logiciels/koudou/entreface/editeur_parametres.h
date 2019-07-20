@@ -24,15 +24,15 @@
 
 #pragma once
 
-#include "coeur/persona.h"
+#include "danjo/manipulable.h"
 
-#include "controles/assembleur_controles.h"
 #include "base_editeur.h"
 
 class Koudou;
 class QScrollArea;
+class QGridLayout;
 
-class VueParametres : public Persona {
+class VueParametres : public danjo::Manipulable {
 	Koudou *m_koudou;
 
 public:
@@ -53,7 +53,6 @@ class EditeurParametres final : public BaseEditrice {
 	QWidget *m_widget;
 	QScrollArea *m_scroll;
 	QGridLayout *m_glayout;
-	AssembleurControles m_assembleur_controles;
 
 public:
 	EditeurParametres(Koudou *koudou, QWidget *parent = nullptr);

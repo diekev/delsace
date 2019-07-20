@@ -20,8 +20,9 @@
 #include "aabb.hpp"
 #include "spatial.hpp"
 #include "../ray/ray.hpp"
-#include "../utilities/utilities.h"
 #include "../utilities/datastructures.hpp"
+
+#include "biblinternes/outils/constantes.h"
 
 enum Axis{
 	axis_x,
@@ -372,19 +373,19 @@ void Bvh<T>::BuildBvh(const unsigned int &maxDepth)
 					nextLayer.pousse(right);
 					nextLayerRefs.pousse(rightRefs);
 					//cleanup
-					leftRefs.clear();
-					rightRefs.clear();
+					leftRefs.efface();
+					rightRefs.efface();
 				}
 			}
 		}
 		//clear current layer's temp buffers, swap in next layer
-		currentLayer.clear();
+		currentLayer.efface();
 
 		for (auto &ref : currentRefs) {
-			ref.clear();
+			ref.efface();
 		}
 
-		currentRefs.clear();
+		currentRefs.efface();
 		currentLayer = nextLayer;
 		currentRefs = nextLayerRefs;
 	}

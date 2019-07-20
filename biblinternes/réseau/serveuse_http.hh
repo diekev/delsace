@@ -35,7 +35,7 @@ template <typename SiteInternet>
 struct serveuse_http {
 	static constexpr uint16_t PORT_DEFAUT = 5007;
 
-	static type_requete construit_requete(const std::string &requete)
+	static type_requete construit_requete(const dls::chaine &requete)
 	{
 		dls::dico<dls::vue_chaine, dls::vue_chaine> champs;
 
@@ -67,8 +67,8 @@ struct serveuse_http {
 
 		auto version = dls::vue_chaine(&requete[decalage], pos - decalage + 1);
 
-		std::string cible_corrige;
-		cible_corrige.reserve(cible.size());
+		dls::chaine cible_corrige;
+		cible_corrige.reserve(cible.taille());
 
 		auto converti_hex = [](const char c)
 		{
@@ -87,15 +87,15 @@ struct serveuse_http {
 			return 0;
 		};
 
-		for (size_t i = 0; i < cible.size(); ++i) {
+		for (size_t i = 0; i < cible.taille(); ++i) {
 			if (cible[i] == '%') {
 				auto f1 = converti_hex(cible[i + 1]);
 				auto f2 = converti_hex(cible[i + 2]);
-				cible_corrige.push_back(static_cast<char>((f1 << 4) | f2));
+				cible_corrige.pousse(static_cast<char>((f1 << 4) | f2));
 				i += 2;
 			}
 			else {
-				cible_corrige.push_back(cible[i]);
+				cible_corrige.pousse(cible[i]);
 			}
 		}
 
@@ -134,10 +134,10 @@ struct serveuse_http {
 			methode = methode_http::PATCH;
 		}
 
-		return type_requete{methode, uri(std::string("http:").append(cible_corrige))};
+		return type_requete{methode, uri(dls::chaine("http:").append(cible_corrige))};
 	}
 
-	static void construit_reponse(const type_reponse &reponse, std::string &chaine)
+	static void construit_reponse(const type_reponse &reponse, dls::chaine &chaine)
 	{
 		std::stringstream ss;
 
@@ -267,7 +267,7 @@ struct serveuse_http {
 
 		ss << "Date: " << "Tue, 09 Oct 2018 02:19:14 GMT" << NOUVELLE_LIGNE;
 		ss << "Server: " << "agaric" << NOUVELLE_LIGNE;
-		ss << "Content-Length: " << reponse.corps.size() << NOUVELLE_LIGNE;
+		ss << "Content-Length: " << reponse.corps.taille() << NOUVELLE_LIGNE;
 		ss << "Connection: " << "close" << NOUVELLE_LIGNE;
 
 		for (const auto &entete : reponse.entetes) {

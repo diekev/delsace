@@ -24,15 +24,15 @@
 
 #include <iostream>
 
-#include "../tests/test_aleatoire.hh"
+#include "biblinternes/tests/test_aleatoire.hh"
 
-#include "../base64/base64.hh"
+#include "biblinternes/base64/base64.hh"
 //#include "../réseau/uri.hh"
-#include "../sha256/sha256.hh"
+#include "biblinternes/sha256/sha256.hh"
 
 //int test_aleatoire_uri(const u_char *donnees, size_t taille)
 //{
-//	std::string chaine(reinterpret_cast<const char *>(donnees), taille);
+//	dls::chaine chaine(reinterpret_cast<const char *>(donnees), taille);
 //	reseau::uri uri(chaine);
 //	return !uri.est_valide();
 //}
@@ -45,18 +45,18 @@ int test_aleatoire_base64_encode(const u_char *donnees, size_t taille)
 	return 0;
 }
 
-int test_aleatoire_base64_decode(const u_char *donnees, size_t taille)
+int test_aleatoire_base64_decode(const u_char *donnees, long taille)
 {
-	std::string chaine(reinterpret_cast<const char *>(donnees), taille);
+	dls::chaine chaine(reinterpret_cast<const char *>(donnees), taille);
 	base64::decode(chaine);
 	base64::decode_pour_url(chaine);
 
 	return 0;
 }
 
-int test_aleatoire_sha256(const u_char *donnees, size_t taille)
+int test_aleatoire_sha256(const u_char *donnees, long taille)
 {
-	std::string chaine(reinterpret_cast<const char *>(donnees), taille);
+	dls::chaine chaine(reinterpret_cast<const char *>(donnees), taille);
 	sha256::empreinte(chaine);
 
 	return 0;

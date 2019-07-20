@@ -24,10 +24,10 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 class InvalidNumberExcetion : public std::exception {
-	std::string m_what;
+	dls::chaine m_what;
 
 public:
 	InvalidNumberExcetion() = delete;
@@ -44,5 +44,5 @@ enum class hangman_player : char {
 	human    = 1
 };
 
-auto to_words(int number) -> std::string;
+auto to_words(int number) -> dls::chaine;
 auto hangman(std::ostream &os, std::istream &is, hangman_player player) -> void;

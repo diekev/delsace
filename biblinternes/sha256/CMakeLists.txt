@@ -22,11 +22,11 @@
 set(NOM_PROJET sha256)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
+	bib_structures
 )
 
 add_library(${NOM_PROJET} STATIC

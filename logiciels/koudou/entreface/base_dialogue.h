@@ -30,10 +30,9 @@
 #include <QDialog>
 #pragma GCC diagnostic pop
 
-#include "controles/assembleur_controles.h"
-
 class Koudou;
 class QVBoxLayout;
+class QGridLayout;
 
 /* ************************************************************************** */
 
@@ -42,7 +41,6 @@ class BaseDialogue : public QDialog {
 
 	QVBoxLayout *m_agencement;
 	QGridLayout *m_agencement_grille;
-	AssembleurControles m_assembleur_controles;
 	Koudou *m_koudou;
 
 public:
@@ -62,7 +60,6 @@ class ProjectSettingsDialog : public QDialog {
 
 	QVBoxLayout *m_agencement;
 	QGridLayout *m_agencement_grille;
-	AssembleurControles m_assembleur_controles;
 	Koudou *m_koudou;
 
 public:

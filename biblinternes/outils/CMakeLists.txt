@@ -25,20 +25,29 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
+set(BIBLIOTHEQUES
+	bib_structures
+	stdc++fs
+)
+
 set(ENTETES
+	chaine.hh
+	chemin.hh
 	constantes.h
 	conditions.h
 	definitions.h
+	fichier.hh
 	gna.hh
 	garde_portee.h
 	iterateurs.h
 	masque_binaire.h
-	parallelisme.h
-	synchrone.h
 	temps.hh
 )
 
 set(SOURCES
+	chaine.cc
+	chemin.cc
+	fichier.cc
 	gna.cc
 	garde_portee.cc
 	iterateurs.cc
@@ -49,6 +58,7 @@ set(SOURCES
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
 
 install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})

@@ -8,8 +8,9 @@
 #define FLUIDGRID_HPP
 
 #include <tbb/tbb.h>
-#include "../utilities/utilities.h"
 #include "grid.hpp"
+#include "biblinternes/math/vecteur.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace fluidCore {
 //====================================

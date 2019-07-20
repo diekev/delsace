@@ -75,6 +75,38 @@ bool operator>(const vue_chaine &c1, const vue_chaine &c2)
 	return std::strncmp(&c1[0], &c2[0], static_cast<size_t>(taille)) > 0;
 }
 
+bool operator==(vue_chaine const &vc1, vue_chaine const &vc2)
+{
+	auto taille = std::max(vc1.taille(), vc2.taille());
+	return std::strncmp(&vc1[0], &vc2[0], static_cast<size_t>(taille)) == 0;
+}
+
+bool operator==(vue_chaine const &vc1, char const *vc2)
+{
+	return vc1 == vue_chaine(vc2);
+}
+
+bool operator==(char const *vc1, vue_chaine const &vc2)
+{
+	return vc2 == vue_chaine(vc1);
+}
+
+bool operator!=(vue_chaine const &vc1, vue_chaine const &vc2)
+{
+	auto taille = std::max(vc1.taille(), vc2.taille());
+	return std::strncmp(&vc1[0], &vc2[0], static_cast<size_t>(taille)) != 0;
+}
+
+bool operator!=(vue_chaine const &vc1, char const *vc2)
+{
+	return !(vc1 == vc2);
+}
+
+bool operator!=(char const *vc1, vue_chaine const &vc2)
+{
+	return !(vc1 == vc2);
+}
+
 std::ostream &operator<<(std::ostream &os, const vue_chaine &vc)
 {
 	for (auto i = 0; i < vc.taille(); ++i) {

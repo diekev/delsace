@@ -75,9 +75,9 @@ void ColorWidget::paintEvent(QPaintEvent *)
 		case COLOR_R:
 			for (int x = 0; x < sx; ++x) {
 				for (int y = 0; y < sy; ++y) {
-					const auto cx = x / static_cast<float>(sx) * 255;
-					const auto cy = y / static_cast<float>(sy) * 255;
-					color.setRgb(255 - cy, cx, cx);
+					const auto cx = static_cast<float>(x) / static_cast<float>(sx) * 255.0f;
+					const auto cy = static_cast<float>(y) / static_cast<float>(sy) * 255.0f;
+					color.setRgb(static_cast<int>(255.0f - cy), static_cast<int>(cx), static_cast<int>(cx));
 					painter.setPen(color);
 					painter.drawPoint(x, y);
 				}
@@ -86,9 +86,9 @@ void ColorWidget::paintEvent(QPaintEvent *)
 		case COLOR_G:
 			for (int x = 0; x < sx; ++x) {
 				for (int y = 0; y < sy; ++y) {
-					const auto cx = x / static_cast<float>(sx) * 255;
-					const auto cy = y / static_cast<float>(sy) * 255;
-					color.setRgb(cx, 255 - cy, cx);
+					const auto cx = static_cast<float>(x) / static_cast<float>(sx) * 255.0f;
+					const auto cy = static_cast<float>(y) / static_cast<float>(sy) * 255.0f;
+					color.setRgb(static_cast<int>(cx), 255 - static_cast<int>(cy), static_cast<int>(cx));
 					painter.setPen(color);
 					painter.drawPoint(x, y);
 				}
@@ -97,9 +97,9 @@ void ColorWidget::paintEvent(QPaintEvent *)
 		case COLOR_B:
 			for (int x = 0; x < sx; ++x) {
 				for (int y = 0; y < sy; ++y) {
-					const auto cx = x / static_cast<float>(sx) * 255;
-					const auto cy = y / static_cast<float>(sy) * 255;
-					color.setRgb(cx, cx, 255 - cy);
+					const auto cx = static_cast<float>(x) / static_cast<float>(sx) * 255.0f;
+					const auto cy = static_cast<float>(y) / static_cast<float>(sy) * 255.0f;
+					color.setRgb(static_cast<int>(cx), static_cast<int>(cx), 255 - static_cast<int>(cy));
 					painter.setPen(color);
 					painter.drawPoint(x, y);
 				}
@@ -108,9 +108,9 @@ void ColorWidget::paintEvent(QPaintEvent *)
 		case COLOR_A:
 			for (int x = 0; x < sx; ++x) {
 				for (int y = 0; y < sy; ++y) {
-					const auto cx = x / static_cast<float>(sx) * 255;
-					const auto cy = y / static_cast<float>(sy) * 255;
-					int col = (cx + cy) / 2;
+					const auto cx = static_cast<float>(x) / static_cast<float>(sx) * 255.0f;
+					const auto cy = static_cast<float>(y) / static_cast<float>(sy) * 255.0f;
+					int col = static_cast<int>((cx + cy) / 2.0f);
 					color.setRgb(255 - col, 255 - col, 255 - col);
 					painter.setPen(color);
 					painter.drawPoint(x, y);
@@ -136,14 +136,21 @@ void ColorWidget::paintEvent(QPaintEvent *)
 
 	painter.setPen(QPen(Qt::black, 5));
 	for (const auto &point : m_curves[m_role]) {
-		painter.drawPoint(point.x() * sx, point.y() * sy);
+		painter.drawPoint(static_cast<int>(point.x() * sx), static_cast<int>(point.y() * sy));
 	}
 
 	painter.setPen(QPen(Qt::black, 1));
-	painter.drawLine(m_curves[m_role][0].x() * sx, m_curves[m_role][0].y() * sy,
-	                 m_curves[m_role][1].x() * sx, m_curves[m_role][1].y() * sy);
-	painter.drawLine(m_curves[m_role][1].x() * sx, m_curves[m_role][1].y() * sy,
-	                 m_curves[m_role][2].x() * sx, m_curves[m_role][2].y() * sy);
+	painter.drawLine(
+				static_cast<int>(m_curves[m_role][0].x() * sx),
+			static_cast<int>(m_curves[m_role][0].y() * sy),
+			static_cast<int>(m_curves[m_role][1].x() * sx),
+			static_cast<int>(m_curves[m_role][1].y() * sy));
+
+	painter.drawLine(
+				static_cast<int>(m_curves[m_role][1].x() * sx),
+			static_cast<int>(m_curves[m_role][1].y() * sy),
+			static_cast<int>(m_curves[m_role][2].x() * sx),
+			static_cast<int>(m_curves[m_role][2].y() * sy));
 
 	painter.setPen(Qt::black);
 	painter.drawRect(this->rect());
@@ -156,7 +163,7 @@ void ColorWidget::resizeEvent(QResizeEvent */*e*/)
 
 void ColorWidget::mousePressEvent(QMouseEvent *e)
 {
-	qreal distance = std::numeric_limits<qreal>::max();
+	auto distance = std::numeric_limits<float>::max();
 	const auto size = this->size();
 	const auto sx = size.width();
 	const auto sy = size.height();
@@ -181,13 +188,13 @@ void ColorWidget::mousePressEvent(QMouseEvent *e)
 void ColorWidget::mouseMoveEvent(QMouseEvent *e)
 {
 	if (m_mouse_down) {
-		auto x = e->pos().x() / static_cast<float>(this->size().width());
-		auto y = e->pos().y() / static_cast<float>(this->size().height());
+		auto x = static_cast<float>(e->pos().x()) / static_cast<float>(this->size().width());
+		auto y = static_cast<float>(e->pos().y()) / static_cast<float>(this->size().height());
 
 		x = clamp(x, 0.0f, 1.0f);
 		y = clamp(y, 0.0f, 1.0f);
 
-		*m_cur_point = { x, y };
+		*m_cur_point = { static_cast<double>(x), static_cast<double>(y) };
 		repaint();
 	}
 }
@@ -200,9 +207,9 @@ void ColorWidget::mouseReleaseEvent(QMouseEvent *)
 
 void ColorWidget::setCurvesPos()
 {
-	QPointF bottom(0.0f, 1.0f);
-	QPointF middle(0.5f, 0.5f);
-	QPointF top(1.0f, 0.0f);
+	QPointF bottom(0.0, 1.0);
+	QPointF middle(0.5, 0.5);
+	QPointF top(1.0, 0.0);
 
 	for (int i = 0; i < COLOR_A + 1; ++i) {
 		m_curves[i].clear();

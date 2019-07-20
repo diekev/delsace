@@ -26,7 +26,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "huffman.h"
 
@@ -47,28 +47,28 @@ void BinaryTree::build_huffman_map()
 	build_huffman_map(m_root, "");
 }
 
-void BinaryTree::build_tree_from_nodes(std::vector<Node *> &nodes)
+void BinaryTree::build_tree_from_nodes(dls::tableau<Node *> &nodes)
 {
-	m_leaves_count = nodes.size();
+	m_leaves_count = nodes.taille();
 
-	while (nodes.size() > 1) {
+	while (nodes.taille() > 1) {
 		Node *na = nodes[0];
 		Node *nb = nodes[1];
 		Node *parent = new Node(na, nb);
 
-		nodes.erase(nodes.begin(), nodes.begin() + 2);
+		nodes.erase(nodes.debut(), nodes.debut() + 2);
 
-		auto lb = std::lower_bound(nodes.begin(), nodes.end(), parent, Node::compByFrequecy);
+		auto lb = std::lower_bound(nodes.debut(), nodes.fin(), parent, Node::compByFrequecy);
 
-		nodes.insert(lb, parent);
+		nodes.insere(lb, parent);
 	}
 
 	m_root = nodes[0];
 }
 
-std::string BinaryTree::encode(const std::string &to_encode)
+dls::chaine BinaryTree::encode(const dls::chaine &to_encode)
 {
-	std::string encoded("");
+	dls::chaine encoded("");
 	encoded.reserve(m_encode_length);
 
 	for (const auto &ch : to_encode) {
@@ -79,17 +79,17 @@ std::string BinaryTree::encode(const std::string &to_encode)
 	return encoded;
 }
 
-std::string BinaryTree::decode(const std::string &to_decode)
+dls::chaine BinaryTree::decode(const dls::chaine &to_decode)
 {
-	std::string str("");
-	str.reserve(static_cast<size_t>(m_root->frequency));
+	dls::chaine str("");
+	str.reserve(m_root->frequency);
 
-	size_t i(0);
-	while (i < to_decode.size()) {
-		str.push_back(decode_ex(m_root, to_decode, i));
+	long i(0);
+	while (i < to_decode.taille()) {
+		str.pousse(decode_ex(m_root, to_decode, i));
 	}
 
-	if (str.empty()) {
+	if (str.est_vide()) {
 		std::cout << "decoded str is empty!\n";
 	}
 
@@ -98,7 +98,7 @@ std::string BinaryTree::decode(const std::string &to_decode)
 
 float BinaryTree::entropy() const
 {
-	std::vector<float> probabilities;
+	dls::tableau<float> probabilities;
 	probabilities.reserve(m_leaves_count);
 
 	auto const inv_frequency = 1.0f / static_cast<float>(m_root->frequency);
@@ -122,7 +122,7 @@ void BinaryTree::destroy_tree(Node *node)
 	}
 }
 
-void BinaryTree::build_huffman_map(Node *node, const std::string &code)
+void BinaryTree::build_huffman_map(Node *node, const dls::chaine &code)
 {
 	if (node == nullptr) {
 		return;
@@ -130,7 +130,7 @@ void BinaryTree::build_huffman_map(Node *node, const std::string &code)
 
 	if (node->left == nullptr && node->right == nullptr) {
 		m_map.insere(std::make_pair(node->character, node->code));
-		m_encode_length += static_cast<size_t>(node->frequency) * node->code.length();
+		m_encode_length += node->frequency * node->code.taille();
 		return;
 	}
 
@@ -141,7 +141,7 @@ void BinaryTree::build_huffman_map(Node *node, const std::string &code)
 	build_huffman_map(node->right, node->right->code);
 }
 
-char BinaryTree::decode_ex(Node *node, const std::string &code, size_t &i)
+char BinaryTree::decode_ex(Node *node, const dls::chaine &code, long &i)
 {
 	if (node == nullptr) {
 		return '\0';
@@ -160,14 +160,14 @@ char BinaryTree::decode_ex(Node *node, const std::string &code, size_t &i)
 	return decode_ex(node->left, code, i);
 }
 
-void BinaryTree::compute_probability(Node *node, const float frequency, std::vector<float> &freqs) const
+void BinaryTree::compute_probability(Node *node, const float frequency, dls::tableau<float> &freqs) const
 {
 	if (node == nullptr) {
 		return;
 	}
 
 	if (node->left == nullptr && node->right == nullptr) {
-		freqs.push_back(static_cast<float>(node->frequency) * frequency);
+		freqs.pousse(static_cast<float>(node->frequency) * frequency);
 		return;
 	}
 
@@ -219,9 +219,9 @@ void HuffManFile::write(std::ostream &os)
 {
 	m_header->write(os);
 
-	size_t num_bytes = m_bytes.size();
+	auto num_bytes = m_bytes.taille();
 	os.write(reinterpret_cast<char *>(&num_bytes), sizeof(size_t));
-	os.write(reinterpret_cast<char *>(&m_bytes[0]), static_cast<long>(m_bytes.size() * sizeof(unsigned char)));
+	os.write(reinterpret_cast<char *>(&m_bytes[0]), m_bytes.taille() * static_cast<long>(sizeof(unsigned char)));
 }
 
 bool HuffManFile::read(std::istream &in)
@@ -229,11 +229,11 @@ bool HuffManFile::read(std::istream &in)
 	m_header.reset(new HuffManFileHeader());
 
 	if (m_header->read(in)) {
-		size_t num_bytes;
+		long num_bytes;
 		in.read(reinterpret_cast<char *>(&num_bytes), sizeof(size_t));
 
-		m_bytes.resize(num_bytes);
-		in.read(reinterpret_cast<char *>(&m_bytes[0]), static_cast<long>(sizeof(unsigned char) * num_bytes));
+		m_bytes.redimensionne(num_bytes);
+		in.read(reinterpret_cast<char *>(&m_bytes[0]), static_cast<long>(sizeof(unsigned char)) * num_bytes);
 
 		return true;
 	}
@@ -251,11 +251,11 @@ void HuffManFile::setHeader(HuffManFileHeader *header)
 	m_header.reset(header);
 }
 
-void HuffManFile::setBytesFromStr(const std::string &str)
+void HuffManFile::setBytesFromStr(const dls::chaine &str)
 {
-	m_bytes.reserve((str.size() >> 3) + 1);
+	m_bytes.reserve((str.taille() >> 3) + 1);
 
-	for (size_t i(0); i < str.size();) {
+	for (auto i(0); i < str.taille();) {
 		auto byte = 0;
 		auto j = 8;
 
@@ -263,16 +263,16 @@ void HuffManFile::setBytesFromStr(const std::string &str)
 			byte |= ((str[i++] - '0') << j);
 		}
 
-		m_bytes.push_back(static_cast<unsigned char>(byte));
+		m_bytes.pousse(static_cast<unsigned char>(byte));
 	}
 }
 
-std::string HuffManFile::strFromBytes() const
+dls::chaine HuffManFile::strFromBytes() const
 {
-	std::string str;
-	str.resize(m_bytes.size() << 3);
+	dls::chaine str;
+	str.redimensionne(m_bytes.taille() << 3);
 
-	for (size_t i(0); i < str.size();) {
+	for (auto i(0); i < str.taille();) {
 		unsigned char byte = m_bytes[i >> 3];
 		int j = 8;
 
@@ -284,18 +284,18 @@ std::string HuffManFile::strFromBytes() const
 	return str;
 }
 
-std::vector<Node *> nodes_from_distribution(int letters[])
+dls::tableau<Node *> nodes_from_distribution(int letters[])
 {
-	std::vector<Node *> nodes;
+	dls::tableau<Node *> nodes;
 
 	for (int i(0); i < 256; ++i) {
 		if (letters[i] != 0) {
 			auto node = new Node(static_cast<char>(i), letters[i]);
-			nodes.push_back(node);
+			nodes.pousse(node);
 		}
 	}
 
-	std::sort(nodes.begin(), nodes.end(), Node::compByFrequecy);
+	std::sort(nodes.debut(), nodes.fin(), Node::compByFrequecy);
 
 	return nodes;
 }

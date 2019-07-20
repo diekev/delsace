@@ -87,11 +87,11 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 		m_corps1.reinitialise();
 		m_corps2.reinitialise();
 
-		m_graphe.entrees.clear();
+		m_graphe.entrees.efface();
 		m_graphe.entrees.pousse(&m_corps1);
 		m_graphe.entrees.pousse(&m_corps2);
 
-		m_graphe.donnees.clear();
+		m_graphe.donnees.efface();
 		m_graphe.donnees.pousse(&m_corps);
 
 		/* copie l'état de base */
@@ -148,4 +148,24 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 bool OperatriceSimulation::depend_sur_temps() const
 {
 	return true;
+}
+
+void OperatriceSimulation::amont_change()
+{
+	for (auto noeud : m_graphe.noeuds()) {
+		noeud->besoin_execution(true);
+		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+		op->amont_change();
+	}
+}
+
+void OperatriceSimulation::renseigne_dependance(
+		ContexteEvaluation const &contexte,
+		CompilatriceReseau &compilatrice,
+		NoeudReseau *noeud_res)
+{
+	for (auto noeud : m_graphe.noeuds()) {
+		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+		op->renseigne_dependance(contexte, compilatrice, noeud_res);
+	}
 }

@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/ego/program.h"
-#include "biblinternes/ego/bufferobject.h"
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/tampon_objet.h"
 #include "biblinternes/ego/texture.h"
 #include <sstream>
 
@@ -36,12 +36,13 @@ extern const char *basic_fragment;
 class GLCanvas : public QGLWidget {
 	Q_OBJECT
 
-	dls::ego::Program m_program;
-	dls::ego::BufferObject::Ptr m_buffer;
-	std::stringstream m_stringstream;
+	dls::ego::Programme m_program{};
+	dls::ego::TamponObjet::Ptr m_buffer{};
+	std::stringstream m_stringstream{};
 
-	int m_width, m_height;
-	float m_aspect;
+	int m_width = 0;
+	int m_height = 0;
+	float m_aspect = 0.0f;
 
 	const float m_vertices[8] = {
 	    0.0f, 0.0f,

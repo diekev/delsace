@@ -24,11 +24,12 @@
 
 #include "rendu_maillage.h"
 
-#include "biblinternes/ego/outils.h"
 #include <numeric>
 
+#include "biblinternes/ego/outils.h"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
 
 #include "coeur/maillage.h"
@@ -41,11 +42,11 @@ TamponRendu *cree_tampon_arrete()
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -71,28 +72,28 @@ TamponRendu *genere_tampon_arrete(Maillage *maillage)
 	auto const nombre_elements = nombre_arretes * 2;
 	auto tampon = cree_tampon_arrete();
 
-	std::vector<dls::math::vec3f> sommets;
+	dls::tableau<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_elements);
 
 	/* OpenGL ne travaille qu'avec des floats. */
-	for (size_t	i = 0; i < nombre_arretes; ++i) {
+	for (auto	i = 0; i < nombre_arretes; ++i) {
 		auto const arrete = maillage->arrete(i);
 
-		sommets.push_back(arrete->s[0]->pos);
-		sommets.push_back(arrete->s[1]->pos);
+		sommets.pousse(arrete->s[0]->pos);
+		sommets.pousse(arrete->s[1]->pos);
 	}
 
-	std::vector<unsigned int> indices(sommets.size());
-	std::iota(indices.begin(), indices.end(), 0);
+	dls::tableau<unsigned int> indices(sommets.taille());
+	std::iota(indices.debut(), indices.fin(), 0);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = indices.data();
-	parametres_tampon.taille_octet_index = indices.size() * sizeof(unsigned int);
-	parametres_tampon.elements = indices.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = indices.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(indices.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(indices.taille());
 
 	tampon->remplie_tampon(parametres_tampon);
 

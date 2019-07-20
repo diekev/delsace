@@ -26,173 +26,173 @@
  
 #include "morceaux.hh"
 
-#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {
-	{ "alignas", id_morceau::ALIGNAS },
-	{ "alignof", id_morceau::ALIGNOF },
-	{ "and", id_morceau::AND },
-	{ "and_eq", id_morceau::AND_EQ },
-	{ "asm", id_morceau::ASM },
-	{ "atomic_cancel", id_morceau::ATOMIC_CANCEL },
-	{ "atomic_commit", id_morceau::ATOMIC_COMMIT },
-	{ "atomic_noexcept", id_morceau::ATOMIC_NOEXCEPT },
-	{ "audit", id_morceau::AUDIT },
-	{ "auto", id_morceau::AUTO },
-	{ "axiom", id_morceau::AXIOM },
-	{ "bitand", id_morceau::BITAND },
-	{ "bitor", id_morceau::BITOR },
-	{ "bool", id_morceau::BOOL },
-	{ "break", id_morceau::BREAK },
-	{ "case", id_morceau::CASE },
-	{ "catch", id_morceau::CATCH },
-	{ "char", id_morceau::CHAR },
-	{ "char16_t", id_morceau::CHAR16_T },
-	{ "char32_t", id_morceau::CHAR32_T },
-	{ "char8_t", id_morceau::CHAR8_T },
-	{ "class", id_morceau::CLASS },
-	{ "co_await", id_morceau::CO_AWAIT },
-	{ "co_return", id_morceau::CO_RETURN },
-	{ "co_yield", id_morceau::CO_YIELD },
-	{ "compl", id_morceau::COMPL },
-	{ "concept", id_morceau::CONCEPT },
-	{ "const", id_morceau::CONST },
-	{ "const_cast", id_morceau::CONST_CAST },
-	{ "consteval", id_morceau::CONSTEVAL },
-	{ "constexpr", id_morceau::CONSTEXPR },
-	{ "continue", id_morceau::CONTINUE },
-	{ "decltype", id_morceau::DECLTYPE },
-	{ "default", id_morceau::DEFAULT },
-	{ "delete", id_morceau::DELETE },
-	{ "do", id_morceau::DO },
-	{ "double", id_morceau::DOUBLE },
-	{ "dynamic_cast", id_morceau::DYNAMIC_CAST },
-	{ "else", id_morceau::ELSE },
-	{ "enum", id_morceau::ENUM },
-	{ "explicit", id_morceau::EXPLICIT },
-	{ "export", id_morceau::EXPORT },
-	{ "extern", id_morceau::EXTERN },
-	{ "false", id_morceau::FALSE },
-	{ "final", id_morceau::FINAL },
-	{ "float", id_morceau::FLOAT },
-	{ "for", id_morceau::FOR },
-	{ "friend", id_morceau::FRIEND },
-	{ "goto", id_morceau::GOTO },
-	{ "if", id_morceau::IF },
-	{ "import", id_morceau::IMPORT },
-	{ "inline", id_morceau::INLINE },
-	{ "int", id_morceau::INT },
-	{ "long", id_morceau::LONG },
-	{ "module", id_morceau::MODULE },
-	{ "mutable", id_morceau::MUTABLE },
-	{ "namespace", id_morceau::NAMESPACE },
-	{ "new", id_morceau::NEW },
-	{ "noexcept", id_morceau::NOEXCEPT },
-	{ "not", id_morceau::NOT },
-	{ "not_eq", id_morceau::NOT_EQ },
-	{ "nullptr", id_morceau::NULLPTR },
-	{ "operator", id_morceau::OPERATOR },
-	{ "or", id_morceau::OR },
-	{ "or_eq", id_morceau::OR_EQ },
-	{ "override", id_morceau::OVERRIDE },
-	{ "private", id_morceau::PRIVATE },
-	{ "protected", id_morceau::PROTECTED },
-	{ "public", id_morceau::PUBLIC },
-	{ "reflexpr", id_morceau::REFLEXPR },
-	{ "register", id_morceau::REGISTER },
-	{ "reinterpret_cast", id_morceau::REINTERPRET_CAST },
-	{ "requires", id_morceau::REQUIRES },
-	{ "return", id_morceau::RETURN },
-	{ "short", id_morceau::SHORT },
-	{ "signed", id_morceau::SIGNED },
-	{ "sizeof", id_morceau::SIZEOF },
-	{ "static", id_morceau::STATIC },
-	{ "static_assert", id_morceau::STATIC_ASSERT },
-	{ "static_cast", id_morceau::STATIC_CAST },
-	{ "struct", id_morceau::STRUCT },
-	{ "switch", id_morceau::SWITCH },
-	{ "synchronized", id_morceau::SYNCHRONIZED },
-	{ "template", id_morceau::TEMPLATE },
-	{ "this", id_morceau::THIS },
-	{ "thread_local", id_morceau::THREAD_LOCAL },
-	{ "throw", id_morceau::THROW },
-	{ "transaction_safe", id_morceau::TRANSACTION_SAFE },
-	{ "transaction_safe_dynamic", id_morceau::TRANSACTION_SAFE_DYNAMIC },
-	{ "true", id_morceau::TRUE },
-	{ "try", id_morceau::TRY },
-	{ "typedef", id_morceau::TYPEDEF },
-	{ "typeid", id_morceau::TYPEID },
-	{ "typename", id_morceau::TYPENAME },
-	{ "union", id_morceau::UNION },
-	{ "unsigned", id_morceau::UNSIGNED },
-	{ "using", id_morceau::USING },
-	{ "virtual", id_morceau::VIRTUAL },
-	{ "void", id_morceau::VOID },
-	{ "volatile", id_morceau::VOLATILE },
-	{ "wchar_t", id_morceau::WCHAR_T },
-	{ "while", id_morceau::WHILE },
-	{ "xor", id_morceau::XOR },
-	{ "xor_eq", id_morceau::XOR_EQ },
-};
+static auto paires_mots_cles = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("alignas"), id_morceau::ALIGNAS },
+	dls::paire{ dls::vue_chaine("alignof"), id_morceau::ALIGNOF },
+	dls::paire{ dls::vue_chaine("and"), id_morceau::AND },
+	dls::paire{ dls::vue_chaine("and_eq"), id_morceau::AND_EQ },
+	dls::paire{ dls::vue_chaine("asm"), id_morceau::ASM },
+	dls::paire{ dls::vue_chaine("atomic_cancel"), id_morceau::ATOMIC_CANCEL },
+	dls::paire{ dls::vue_chaine("atomic_commit"), id_morceau::ATOMIC_COMMIT },
+	dls::paire{ dls::vue_chaine("atomic_noexcept"), id_morceau::ATOMIC_NOEXCEPT },
+	dls::paire{ dls::vue_chaine("audit"), id_morceau::AUDIT },
+	dls::paire{ dls::vue_chaine("auto"), id_morceau::AUTO },
+	dls::paire{ dls::vue_chaine("axiom"), id_morceau::AXIOM },
+	dls::paire{ dls::vue_chaine("bitand"), id_morceau::BITAND },
+	dls::paire{ dls::vue_chaine("bitor"), id_morceau::BITOR },
+	dls::paire{ dls::vue_chaine("bool"), id_morceau::BOOL },
+	dls::paire{ dls::vue_chaine("break"), id_morceau::BREAK },
+	dls::paire{ dls::vue_chaine("case"), id_morceau::CASE },
+	dls::paire{ dls::vue_chaine("catch"), id_morceau::CATCH },
+	dls::paire{ dls::vue_chaine("char"), id_morceau::CHAR },
+	dls::paire{ dls::vue_chaine("char16_t"), id_morceau::CHAR16_T },
+	dls::paire{ dls::vue_chaine("char32_t"), id_morceau::CHAR32_T },
+	dls::paire{ dls::vue_chaine("char8_t"), id_morceau::CHAR8_T },
+	dls::paire{ dls::vue_chaine("class"), id_morceau::CLASS },
+	dls::paire{ dls::vue_chaine("co_await"), id_morceau::CO_AWAIT },
+	dls::paire{ dls::vue_chaine("co_return"), id_morceau::CO_RETURN },
+	dls::paire{ dls::vue_chaine("co_yield"), id_morceau::CO_YIELD },
+	dls::paire{ dls::vue_chaine("compl"), id_morceau::COMPL },
+	dls::paire{ dls::vue_chaine("concept"), id_morceau::CONCEPT },
+	dls::paire{ dls::vue_chaine("const"), id_morceau::CONST },
+	dls::paire{ dls::vue_chaine("const_cast"), id_morceau::CONST_CAST },
+	dls::paire{ dls::vue_chaine("consteval"), id_morceau::CONSTEVAL },
+	dls::paire{ dls::vue_chaine("constexpr"), id_morceau::CONSTEXPR },
+	dls::paire{ dls::vue_chaine("continue"), id_morceau::CONTINUE },
+	dls::paire{ dls::vue_chaine("decltype"), id_morceau::DECLTYPE },
+	dls::paire{ dls::vue_chaine("default"), id_morceau::DEFAULT },
+	dls::paire{ dls::vue_chaine("delete"), id_morceau::DELETE },
+	dls::paire{ dls::vue_chaine("do"), id_morceau::DO },
+	dls::paire{ dls::vue_chaine("double"), id_morceau::DOUBLE },
+	dls::paire{ dls::vue_chaine("dynamic_cast"), id_morceau::DYNAMIC_CAST },
+	dls::paire{ dls::vue_chaine("else"), id_morceau::ELSE },
+	dls::paire{ dls::vue_chaine("enum"), id_morceau::ENUM },
+	dls::paire{ dls::vue_chaine("explicit"), id_morceau::EXPLICIT },
+	dls::paire{ dls::vue_chaine("export"), id_morceau::EXPORT },
+	dls::paire{ dls::vue_chaine("extern"), id_morceau::EXTERN },
+	dls::paire{ dls::vue_chaine("false"), id_morceau::FALSE },
+	dls::paire{ dls::vue_chaine("final"), id_morceau::FINAL },
+	dls::paire{ dls::vue_chaine("float"), id_morceau::FLOAT },
+	dls::paire{ dls::vue_chaine("for"), id_morceau::FOR },
+	dls::paire{ dls::vue_chaine("friend"), id_morceau::FRIEND },
+	dls::paire{ dls::vue_chaine("goto"), id_morceau::GOTO },
+	dls::paire{ dls::vue_chaine("if"), id_morceau::IF },
+	dls::paire{ dls::vue_chaine("import"), id_morceau::IMPORT },
+	dls::paire{ dls::vue_chaine("inline"), id_morceau::INLINE },
+	dls::paire{ dls::vue_chaine("int"), id_morceau::INT },
+	dls::paire{ dls::vue_chaine("long"), id_morceau::LONG },
+	dls::paire{ dls::vue_chaine("module"), id_morceau::MODULE },
+	dls::paire{ dls::vue_chaine("mutable"), id_morceau::MUTABLE },
+	dls::paire{ dls::vue_chaine("namespace"), id_morceau::NAMESPACE },
+	dls::paire{ dls::vue_chaine("new"), id_morceau::NEW },
+	dls::paire{ dls::vue_chaine("noexcept"), id_morceau::NOEXCEPT },
+	dls::paire{ dls::vue_chaine("not"), id_morceau::NOT },
+	dls::paire{ dls::vue_chaine("not_eq"), id_morceau::NOT_EQ },
+	dls::paire{ dls::vue_chaine("nullptr"), id_morceau::NULLPTR },
+	dls::paire{ dls::vue_chaine("operator"), id_morceau::OPERATOR },
+	dls::paire{ dls::vue_chaine("or"), id_morceau::OR },
+	dls::paire{ dls::vue_chaine("or_eq"), id_morceau::OR_EQ },
+	dls::paire{ dls::vue_chaine("override"), id_morceau::OVERRIDE },
+	dls::paire{ dls::vue_chaine("private"), id_morceau::PRIVATE },
+	dls::paire{ dls::vue_chaine("protected"), id_morceau::PROTECTED },
+	dls::paire{ dls::vue_chaine("public"), id_morceau::PUBLIC },
+	dls::paire{ dls::vue_chaine("reflexpr"), id_morceau::REFLEXPR },
+	dls::paire{ dls::vue_chaine("register"), id_morceau::REGISTER },
+	dls::paire{ dls::vue_chaine("reinterpret_cast"), id_morceau::REINTERPRET_CAST },
+	dls::paire{ dls::vue_chaine("requires"), id_morceau::REQUIRES },
+	dls::paire{ dls::vue_chaine("return"), id_morceau::RETURN },
+	dls::paire{ dls::vue_chaine("short"), id_morceau::SHORT },
+	dls::paire{ dls::vue_chaine("signed"), id_morceau::SIGNED },
+	dls::paire{ dls::vue_chaine("sizeof"), id_morceau::SIZEOF },
+	dls::paire{ dls::vue_chaine("static"), id_morceau::STATIC },
+	dls::paire{ dls::vue_chaine("static_assert"), id_morceau::STATIC_ASSERT },
+	dls::paire{ dls::vue_chaine("static_cast"), id_morceau::STATIC_CAST },
+	dls::paire{ dls::vue_chaine("struct"), id_morceau::STRUCT },
+	dls::paire{ dls::vue_chaine("switch"), id_morceau::SWITCH },
+	dls::paire{ dls::vue_chaine("synchronized"), id_morceau::SYNCHRONIZED },
+	dls::paire{ dls::vue_chaine("template"), id_morceau::TEMPLATE },
+	dls::paire{ dls::vue_chaine("this"), id_morceau::THIS },
+	dls::paire{ dls::vue_chaine("thread_local"), id_morceau::THREAD_LOCAL },
+	dls::paire{ dls::vue_chaine("throw"), id_morceau::THROW },
+	dls::paire{ dls::vue_chaine("transaction_safe"), id_morceau::TRANSACTION_SAFE },
+	dls::paire{ dls::vue_chaine("transaction_safe_dynamic"), id_morceau::TRANSACTION_SAFE_DYNAMIC },
+	dls::paire{ dls::vue_chaine("true"), id_morceau::TRUE },
+	dls::paire{ dls::vue_chaine("try"), id_morceau::TRY },
+	dls::paire{ dls::vue_chaine("typedef"), id_morceau::TYPEDEF },
+	dls::paire{ dls::vue_chaine("typeid"), id_morceau::TYPEID },
+	dls::paire{ dls::vue_chaine("typename"), id_morceau::TYPENAME },
+	dls::paire{ dls::vue_chaine("union"), id_morceau::UNION },
+	dls::paire{ dls::vue_chaine("unsigned"), id_morceau::UNSIGNED },
+	dls::paire{ dls::vue_chaine("using"), id_morceau::USING },
+	dls::paire{ dls::vue_chaine("virtual"), id_morceau::VIRTUAL },
+	dls::paire{ dls::vue_chaine("void"), id_morceau::VOID },
+	dls::paire{ dls::vue_chaine("volatile"), id_morceau::VOLATILE },
+	dls::paire{ dls::vue_chaine("wchar_t"), id_morceau::WCHAR_T },
+	dls::paire{ dls::vue_chaine("while"), id_morceau::WHILE },
+	dls::paire{ dls::vue_chaine("xor"), id_morceau::XOR },
+	dls::paire{ dls::vue_chaine("xor_eq"), id_morceau::XOR_EQ }
+);
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_digraphes = {
-	{ "!=", id_morceau::DIFFERENCE },
-	{ "%=", id_morceau::MODULO_EGAL },
-	{ "&&", id_morceau::ESP_ESP },
-	{ "&=", id_morceau::ET_EGAL },
-	{ "*/", id_morceau::FIN_COMMENTAIRE_C },
-	{ "*=", id_morceau::MULTIPLIE_EGAL },
-	{ "+=", id_morceau::PLUS_EGAL },
-	{ "-=", id_morceau::MOINS_EGAL },
-	{ "/*", id_morceau::DEBUT_COMMENTAIRE_C },
-	{ "//", id_morceau::DEBUT_COMMENTAIRE_CPP },
-	{ "/=", id_morceau::DIVISE_EGAL },
-	{ "::", id_morceau::SCOPE },
-	{ "<<", id_morceau::DECALAGE_GAUCHE },
-	{ "<=", id_morceau::INFERIEUR_EGAL },
-	{ "==", id_morceau::EGALITE },
-	{ ">=", id_morceau::SUPERIEUR_EGAL },
-	{ ">>", id_morceau::DECALAGE_DROITE },
-	{ "^=", id_morceau::OUX_EGAL },
-	{ "|=", id_morceau::OU_EGAL },
-	{ "||", id_morceau::BARRE_BARRE },
-};
+static auto paires_digraphes = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("!="), id_morceau::DIFFERENCE },
+	dls::paire{ dls::vue_chaine("%="), id_morceau::MODULO_EGAL },
+	dls::paire{ dls::vue_chaine("&&"), id_morceau::ESP_ESP },
+	dls::paire{ dls::vue_chaine("&="), id_morceau::ET_EGAL },
+	dls::paire{ dls::vue_chaine("*/"), id_morceau::FIN_COMMENTAIRE_C },
+	dls::paire{ dls::vue_chaine("*="), id_morceau::MULTIPLIE_EGAL },
+	dls::paire{ dls::vue_chaine("+="), id_morceau::PLUS_EGAL },
+	dls::paire{ dls::vue_chaine("-="), id_morceau::MOINS_EGAL },
+	dls::paire{ dls::vue_chaine("/*"), id_morceau::DEBUT_COMMENTAIRE_C },
+	dls::paire{ dls::vue_chaine("//"), id_morceau::DEBUT_COMMENTAIRE_CPP },
+	dls::paire{ dls::vue_chaine("/="), id_morceau::DIVISE_EGAL },
+	dls::paire{ dls::vue_chaine("::"), id_morceau::SCOPE },
+	dls::paire{ dls::vue_chaine("<<"), id_morceau::DECALAGE_GAUCHE },
+	dls::paire{ dls::vue_chaine("<="), id_morceau::INFERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine("=="), id_morceau::EGALITE },
+	dls::paire{ dls::vue_chaine(">="), id_morceau::SUPERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine(">>"), id_morceau::DECALAGE_DROITE },
+	dls::paire{ dls::vue_chaine("^="), id_morceau::OUX_EGAL },
+	dls::paire{ dls::vue_chaine("|="), id_morceau::OU_EGAL },
+	dls::paire{ dls::vue_chaine("||"), id_morceau::BARRE_BARRE }
+);
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_trigraphes = {
-	{ "...", id_morceau::TROIS_POINTS },
-	{ "<<=", id_morceau::DEC_DROITE_EGAL },
-	{ ">>=", id_morceau::DEC_GAUCHE_EGAL },
-};
+static auto paires_trigraphes = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("..."), id_morceau::TROIS_POINTS },
+	dls::paire{ dls::vue_chaine("<<="), id_morceau::DEC_DROITE_EGAL },
+	dls::paire{ dls::vue_chaine(">>="), id_morceau::DEC_GAUCHE_EGAL }
+);
 
-static dls::dico<char, id_morceau> paires_caracteres_speciaux = {
-	{ '!', id_morceau::EXCLAMATION },
-	{ '"', id_morceau::GUILLEMET },
-	{ '#', id_morceau::DIESE },
-	{ '%', id_morceau::POURCENT },
-	{ '&', id_morceau::ESPERLUETTE },
-	{ '\'', id_morceau::APOSTROPHE },
-	{ '(', id_morceau::PARENTHESE_OUVRANTE },
-	{ ')', id_morceau::PARENTHESE_FERMANTE },
-	{ '*', id_morceau::FOIS },
-	{ '+', id_morceau::PLUS },
-	{ ',', id_morceau::VIRGULE },
-	{ '-', id_morceau::MOINS },
-	{ '.', id_morceau::POINT },
-	{ '/', id_morceau::DIVISE },
-	{ ':', id_morceau::DOUBLE_POINTS },
-	{ ';', id_morceau::POINT_VIRGULE },
-	{ '<', id_morceau::INFERIEUR },
-	{ '=', id_morceau::EGAL },
-	{ '>', id_morceau::SUPERIEUR },
-	{ '@', id_morceau::AROBASE },
-	{ '[', id_morceau::CROCHET_OUVRANT },
-	{ ']', id_morceau::CROCHET_FERMANT },
-	{ '^', id_morceau::CHAPEAU },
-	{ '{', id_morceau::ACCOLADE_OUVRANTE },
-	{ '|', id_morceau::BARRE },
-	{ '}', id_morceau::ACCOLADE_FERMANTE },
-	{ '~', id_morceau::TILDE },
-};
+static auto paires_caracteres_speciaux = dls::cree_dico(
+	dls::paire{ '!', id_morceau::EXCLAMATION },
+	dls::paire{ '"', id_morceau::GUILLEMET },
+	dls::paire{ '#', id_morceau::DIESE },
+	dls::paire{ '%', id_morceau::POURCENT },
+	dls::paire{ '&', id_morceau::ESPERLUETTE },
+	dls::paire{ '\'', id_morceau::APOSTROPHE },
+	dls::paire{ '(', id_morceau::PARENTHESE_OUVRANTE },
+	dls::paire{ ')', id_morceau::PARENTHESE_FERMANTE },
+	dls::paire{ '*', id_morceau::FOIS },
+	dls::paire{ '+', id_morceau::PLUS },
+	dls::paire{ ',', id_morceau::VIRGULE },
+	dls::paire{ '-', id_morceau::MOINS },
+	dls::paire{ '.', id_morceau::POINT },
+	dls::paire{ '/', id_morceau::DIVISE },
+	dls::paire{ ':', id_morceau::DOUBLE_POINTS },
+	dls::paire{ ';', id_morceau::POINT_VIRGULE },
+	dls::paire{ '<', id_morceau::INFERIEUR },
+	dls::paire{ '=', id_morceau::EGAL },
+	dls::paire{ '>', id_morceau::SUPERIEUR },
+	dls::paire{ '@', id_morceau::AROBASE },
+	dls::paire{ '[', id_morceau::CROCHET_OUVRANT },
+	dls::paire{ ']', id_morceau::CROCHET_FERMANT },
+	dls::paire{ '^', id_morceau::CHAPEAU },
+	dls::paire{ '{', id_morceau::ACCOLADE_OUVRANTE },
+	dls::paire{ '|', id_morceau::BARRE },
+	dls::paire{ '}', id_morceau::ACCOLADE_FERMANTE },
+	dls::paire{ '~', id_morceau::TILDE }
+);
 
 const char *chaine_identifiant(id_morceau id)
 {
@@ -560,21 +560,41 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
-		tables_caracteres[int(iter.first)] = true;
-		tables_identifiants[int(iter.first)] = iter.second;
+    {
+	    auto plg = paires_caracteres_speciaux.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres[int(plg.front().premier)] = true;
+		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_digraphes) {
-		tables_digraphes[int(iter.first[0])] = true;
+    {
+	    auto plg = paires_digraphes.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_digraphes[int(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_trigraphes) {
-		tables_trigraphes[int(iter.first[0])] = true;
+    {
+	    auto plg = paires_trigraphes.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_trigraphes[int(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -588,37 +608,37 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_digraphe(const dls::vue_chaine &chaine)
+id_morceau id_digraphe(dls::vue_chaine const &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_digraphes.trouve(chaine);
+	auto iterateur = paires_digraphes.trouve_binaire(chaine);
 
-	if (iterateur != paires_digraphes.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_trigraphe(const dls::vue_chaine &chaine)
+id_morceau id_trigraphe(dls::vue_chaine const &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_trigraphes.trouve(chaine);
+	auto iterateur = paires_trigraphes.trouve_binaire(chaine);
 
-	if (iterateur != paires_trigraphes.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_chaine(const dls::vue_chaine &chaine)
+id_morceau id_chaine(dls::vue_chaine const &chaine)
 {
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;
@@ -628,10 +648,10 @@ id_morceau id_chaine(const dls::vue_chaine &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::CHAINE_CARACTERE;

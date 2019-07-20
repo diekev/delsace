@@ -32,6 +32,7 @@ set(BIBLIOTHEQUES
 	bib_opengl
 	bib_texture
 	mikisa_coeur
+	bib_outils
 )
 
 add_library(${NOM_CIBLE} STATIC

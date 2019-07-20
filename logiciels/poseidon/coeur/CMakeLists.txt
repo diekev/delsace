@@ -31,11 +31,9 @@ set(INC_SYS
 set(BIBLIOTHEQUES
 	math
 	image
-	bib_observation
-	bib_commandes
+	bib_patrons
 	bib_objets
 	bib_vision
-	bib_transformation
 )
 
 add_compile_options(-fPIC)

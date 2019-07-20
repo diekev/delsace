@@ -25,7 +25,7 @@
 #include <QApplication>
 #include <QFileInfo>
 
-#include "mainwindow.h"
+#include "src/mainwindow.h"
 
 #include <iostream>
 

@@ -27,25 +27,13 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <vector>
+
+#include "biblinternes/outils/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "adaptrice_creation.h"
 
 namespace objets {
-
-static dls::tableau<std::string> brise(std::string const &chaine)
-{
-	std::stringstream ss(chaine);
-	dls::tableau<std::string> res;
-	std::string tmp;
-	tmp.reserve(3);
-
-	while (std::getline(ss, tmp, '/')) {
-		res.pousse(tmp);
-	}
-
-	return res;
-}
 
 static void lis_normal_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
@@ -81,7 +69,7 @@ static void lis_sommet(AdaptriceCreationObjet *adaptrice, std::istringstream &is
 
 static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
-	std::string info_poly;
+	dls::chaine info_poly;
 	dls::tableau<int> index_polygones;
 	dls::tableau<int> index_normaux;
 	dls::tableau<int> index_coords_uv;
@@ -91,12 +79,12 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 	auto ptr_coords = static_cast<int *>(nullptr);
 
 	while (is >> info_poly) {
-		auto morceaux = brise(info_poly);
+		auto morceaux = dls::morcelle(info_poly, '/');
 
 		switch (morceaux.taille()) {
 			case 1:
 			{
-				index_polygones.pousse(std::stoi(morceaux[0]) - 1);
+				index_polygones.pousse(std::stoi(morceaux[0].c_str()) - 1);
 
 				ptr_index = index_polygones.donnees();
 
@@ -104,8 +92,8 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 			}
 			case 2:
 			{
-				index_polygones.pousse(std::stoi(morceaux[0]) - 1);
-				index_coords_uv.pousse(std::stoi(morceaux[1]) - 1);
+				index_polygones.pousse(std::stoi(morceaux[0].c_str()) - 1);
+				index_coords_uv.pousse(std::stoi(morceaux[1].c_str()) - 1);
 
 				ptr_index = index_polygones.donnees();
 				ptr_coords = index_coords_uv.donnees();
@@ -114,14 +102,14 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 			}
 			case 3:
 			{
-				index_polygones.pousse(std::stoi(morceaux[0]) - 1);
+				index_polygones.pousse(std::stoi(morceaux[0].c_str()) - 1);
 
-				if (!morceaux[1].empty()) {
-					index_coords_uv.pousse(std::stoi(morceaux[1]) - 1);
+				if (!morceaux[1].est_vide()) {
+					index_coords_uv.pousse(std::stoi(morceaux[1].c_str()) - 1);
 					ptr_coords = index_coords_uv.donnees();
 				}
 
-				index_normaux.pousse(std::stoi(morceaux[2]) - 1);
+				index_normaux.pousse(std::stoi(morceaux[2].c_str()) - 1);
 
 				ptr_index = index_polygones.donnees();
 				ptr_normaux = index_normaux.donnees();
@@ -140,7 +128,7 @@ static void lis_polygone(AdaptriceCreationObjet *adaptrice, std::istringstream &
 
 static void lis_objet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
-	std::string nom_objet;
+	dls::chaine nom_objet;
 	is >> nom_objet;
 
 	adaptrice->ajoute_objet(nom_objet);
@@ -148,11 +136,11 @@ static void lis_objet(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 
 static void lis_ligne(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
-	std::string info_poly;
+	dls::chaine info_poly;
 	dls::tableau<int> index;
 
 	while (is >> info_poly) {
-		index.pousse(std::stoi(info_poly) - 1);
+		index.pousse(std::stoi(info_poly.c_str()) - 1);
 	}
 
 	adaptrice->ajoute_ligne(index.donnees(), static_cast<size_t>(index.taille()));
@@ -160,7 +148,7 @@ static void lis_ligne(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 
 static void lis_groupes_geometries(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
-	std::string groupe;
+	dls::chaine groupe;
 	dls::tableau<dls::chaine> groupes;
 
 	while (is >> groupe) {
@@ -172,19 +160,19 @@ static void lis_groupes_geometries(AdaptriceCreationObjet *adaptrice, std::istri
 
 static void lis_groupe_nuancage(AdaptriceCreationObjet *adaptrice, std::istringstream &is)
 {
-	std::string groupe;
+	dls::chaine groupe;
 	is >> groupe;
 
 	if (groupe == "off") {
 		return;
 	}
 
-	int index = std::stoi(groupe);
+	int index = std::stoi(groupe.c_str());
 
 	adaptrice->groupe_nuancage(index);
 }
 
-void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, std::string const &chemin)
+void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, dls::chaine const &chemin)
 {
 	std::ifstream ifs;
 	ifs.open(chemin.c_str());
@@ -194,7 +182,7 @@ void charge_fichier_OBJ(AdaptriceCreationObjet *adaptrice, std::string const &ch
 	}
 
 	std::string ligne;
-	std::string entete;
+	dls::chaine entete;
 
 	while (std::getline(ifs, ligne)) {
 		std::istringstream is(ligne);
@@ -259,7 +247,7 @@ static void charge_STL_ascii(AdaptriceCreationObjet *adaptrice, std::ifstream &f
 	std::string tampon;
 	std::getline(fichier, tampon);
 
-	std::string mot;
+	dls::chaine mot;
 
 	int sommets[3] = { 0, 1, 2 };
 	int normaux[3] = { 0, 0, 0 };
@@ -361,7 +349,7 @@ static void charge_STL_binaire(AdaptriceCreationObjet *adaptrice, std::ifstream 
 	}
 }
 
-void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, std::string const &chemin)
+void charge_fichier_STL(AdaptriceCreationObjet *adaptrice, dls::chaine const &chemin)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());

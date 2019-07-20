@@ -14,7 +14,7 @@ template <typename T> MultiQueue<T>::MultiQueue() {
 } 
 
 template <typename T> MultiQueue<T>::~MultiQueue() {
-    m_queue.clear();
+    m_queue.efface();
 }
 
 template <typename T> void MultiQueue<T>::Push(const T& item) {
@@ -48,7 +48,7 @@ template <typename T> unsigned int MultiQueue<T>::Size() {
 }
 
 template <typename T> bool MultiQueue<T>::Empty() {
-    bool empty = m_queue.empty();
+    bool empty = m_queue.est_vide();
     return empty;
 }
 

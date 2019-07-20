@@ -27,6 +27,8 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
+#include "biblinternes/outils/chaine.hh"
+
 #include "compilation/morceaux.h"
 
 #include "controles/controle_echelle_valeur.h"
@@ -37,26 +39,13 @@
 
 #include <sstream>
 
-static std::vector<dls::chaine> decoupe(const dls::chaine &chaine, const char delimiteur)
-{
-	std::vector<dls::chaine> resultat;
-	std::stringstream ss(chaine.c_str());
-	std::string temp;
-
-	while (std::getline(ss, temp, delimiteur)) {
-		resultat.push_back(temp);
-	}
-
-	return resultat;
-}
-
 namespace danjo {
 
 /* Il s'emblerait que std::atof a du mal à convertir les string en float. */
 template <typename T>
-static T convertie(const std::string &valeur)
+static T convertie(const dls::chaine &valeur)
 {
-	std::istringstream ss(valeur);
+	std::istringstream ss(valeur.c_str());
 	T result;
 
 	ss >> result;
@@ -138,7 +127,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 	m_z->ajourne_plage(min, max);
 
 	if (donnees.initialisation) {
-		auto valeurs = decoupe(donnees.valeur_defaut, ',');
+		auto valeurs = dls::morcelle(donnees.valeur_defaut, ',');
 		auto index = 0ul;
 
 		auto valeur_defaut = dls::math::vec3f();
@@ -164,7 +153,7 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		m_z->valeur(valeur[2]);
 	}
 	else {
-		const auto &valeur = std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur);
+		const auto &valeur = std::any_cast<dls::math::vec3f>(m_propriete->valeur);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
@@ -200,14 +189,14 @@ void ControleProprieteVec3::bascule_animation()
 
 	if (m_animation == false) {
 		m_propriete->supprime_animation();
-		const auto &valeur = std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur);
+		const auto &valeur = std::any_cast<dls::math::vec3f>(m_propriete->valeur);
 		m_x->valeur(valeur[0]);
 		m_y->valeur(valeur[1]);
 		m_z->valeur(valeur[2]);
 		m_bouton_animation->setText("C");
 	}
 	else {
-		m_propriete->ajoute_cle(std::experimental::any_cast<dls::math::vec3f>(m_propriete->valeur), m_temps);
+		m_propriete->ajoute_cle(std::any_cast<dls::math::vec3f>(m_propriete->valeur), m_temps);
 		m_bouton_animation->setText("c");
 	}
 

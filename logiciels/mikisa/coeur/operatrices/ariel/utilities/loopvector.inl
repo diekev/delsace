@@ -15,11 +15,11 @@ template <typename T> LoopVector<T>::LoopVector() {
 }
 
 template <typename T> LoopVector<T>::~LoopVector() {
-    m_vector.clear();
+    m_vector.efface();
 }
 
 template <typename T> void LoopVector<T>::PushBack(const T& item) {
-    m_vector.push_back(item);
+    m_vector.pousse(item);
     m_size = m_size + 1;
 }
 

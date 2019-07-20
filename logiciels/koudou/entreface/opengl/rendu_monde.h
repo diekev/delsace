@@ -26,7 +26,7 @@
 
 #include <experimental/filesystem>
 #include "biblinternes/math/vecteur.hh"
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 class ContexteRendu;
 class Koudou;
@@ -40,8 +40,8 @@ class RenduMonde {
 	TamponRendu *m_tampon = nullptr;
 	Monde *m_monde{};
 
-	std::vector<dls::math::vec3f> m_sommets{};
-	std::vector<unsigned int> m_index{};
+	dls::tableau<dls::math::vec3f> m_sommets{};
+	dls::tableau<unsigned int> m_index{};
 
 	/* Mémorisation des anciennes données. */
 	int m_ancien_type{};

@@ -191,7 +191,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 
-	std::vector<Symbole> expression;
+	dls::tableau<Symbole> expression;
 	dls::pile<Symbole> pile;
 
 	Symbole symbole;
@@ -202,29 +202,29 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 		valeur = m_identifiants[position() + 1].chaine;
 
 		if (est_identifiant(id_morceau::NOMBRE)) {
-			symbole.valeur = std::experimental::any(std::stoi(valeur.c_str()));
-			expression.push_back(symbole);
+			symbole.valeur = std::any(std::stoi(valeur.c_str()));
+			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
-			symbole.valeur = std::experimental::any(std::stof(valeur.c_str()));
-			expression.push_back(symbole);
+			symbole.valeur = std::any(std::stof(valeur.c_str()));
+			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::VRAI) || est_identifiant(id_morceau::FAUX)) {
 			symbole.valeur = (valeur == "vrai");
 			symbole.identifiant = id_morceau::BOOL;
-			expression.push_back(symbole);
+			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::COULEUR)) {
 			/* À FAIRE */
-			expression.push_back(symbole);
+			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::VECTEUR)) {
 			/* À FAIRE */
-			expression.push_back(symbole);
+			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::CHAINE_LITTERALE)) {
 			symbole.valeur = valeur;
-			expression.push_back(symbole);
+			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 			if (!m_assembleuse.variable_connue(valeur)) {
@@ -236,19 +236,19 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 				connecte(cont, variable);
 			}
 
-			symbole.valeur = std::experimental::any(valeur);
-			expression.push_back(symbole);
+			symbole.valeur = std::any(valeur);
+			expression.pousse(symbole);
 		}
 		else if (est_operateur(symbole.identifiant)) {
 			while (!pile.est_vide()
 				   && est_operateur(pile.haut().identifiant)
 				   && (precedence_faible(symbole.identifiant, pile.haut().identifiant)))
 			{
-				expression.push_back(pile.haut());
+				expression.pousse(pile.haut());
 				pile.depile();
 			}
 
-			symbole.valeur = std::experimental::any(valeur);
+			symbole.valeur = std::any(valeur);
 			pile.empile(symbole);
 		}
 		else if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
@@ -260,7 +260,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			}
 
 			while (pile.haut().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
-				expression.push_back(pile.haut());
+				expression.pousse(pile.haut());
 				pile.depile();
 			}
 
@@ -278,7 +278,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.push_back(pile.haut());
+		expression.pousse(pile.haut());
 		pile.depile();
 	}
 

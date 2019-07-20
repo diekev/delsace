@@ -32,7 +32,7 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 
@@ -483,12 +483,12 @@ public:
 
 				ss << "<hr/>";
 
-				ss << "<p>Groupes points : " << corps->groupes_points().size() << "</p>";
-				ss << "<p>Groupes prims  : " << corps->groupes_prims().size() << "</p>";
+				ss << "<p>Groupes points : " << corps->groupes_points().taille() << "</p>";
+				ss << "<p>Groupes prims  : " << corps->groupes_prims().taille() << "</p>";
 
 				ss << "<hr/>";
 
-				ss << "<p>Attributs : " << corps->attributs().size() << "</p>";
+				ss << "<p>Attributs : " << corps->attributs().taille() << "</p>";
 
 				for (auto attr : corps->attributs()) {
 					ss << "<p>"
@@ -760,12 +760,12 @@ static void corrige_niveau_selon_enfant(Noeud *noeud)
 
 static bool est_racine(Noeud *noeud)
 {
-	return noeud->entrees.size() == 0;
+	return noeud->entrees.taille() == 0;
 }
 
 static bool est_feuille(Noeud *noeud)
 {
-	return noeud->sorties.size() == 0;
+	return noeud->sorties.taille() == 0;
 }
 
 static constexpr DISTANCE_ENTRE_NOEUDS_X = 200

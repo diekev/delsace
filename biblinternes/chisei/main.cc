@@ -28,9 +28,10 @@
 #include <iostream>
 #include <random>
 
-#include "../../biblexternes/docopt/docopt.hh"
+#include "biblexternes/docopt/docopt.hh"
 
-#include "../math/statistique.hh"
+#include "biblinternes/math/statistique.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #define SERIAL
 
@@ -159,10 +160,10 @@ static RaceData us_races[] = {
 
 #ifndef SERIAL
 static std::atomic<int> thread_index(0);
-static std::vector<unsigned char> indices(1000);
+static dls::tableau<unsigned char> indices(1000);
 
 struct ThreadRaceData {
-	std::vector<RaceData> races;
+	dls::tableau<RaceData> races;
 
 	ThreadRaceData()
 	    : races(std::begin(us_races), std::end(us_races))
@@ -182,7 +183,7 @@ struct ThreadRaceData {
 
 		thread_index.fetch_add(1, std::memory_order_relaxed);
 
-		for (auto i = r.begin(); i < r.end(); ++i) {
+		for (auto i = r.debut(); i < r.fin(); ++i) {
 			const auto index = random_index(index_rng);
 			const auto income = random_income(income_rng);
 
@@ -250,16 +251,16 @@ static void test_wage_gap(std::ostream &os)
 	}
 #endif
 
-	std::vector<double> revenus_moyens;
+	dls::tableau<double> revenus_moyens;
 
 	for (RaceData &race : us_races) {
 		race.avg_income = race.total_income / static_cast<double>(race.number_of_income);
-		revenus_moyens.push_back(race.avg_income);
+		revenus_moyens.pousse(race.avg_income);
 		os << race.name << ", average income: " << race.avg_income << '\n';
 	}
 
-	const auto moyenne = dls::math::moyenne<double>(revenus_moyens.begin(), revenus_moyens.end());
-	const auto ecart_type = dls::math::ecart_type<double>(revenus_moyens.begin(), revenus_moyens.end(), moyenne);
+	const auto moyenne = dls::math::moyenne<double>(revenus_moyens.debut(), revenus_moyens.fin());
+	const auto ecart_type = dls::math::ecart_type<double>(revenus_moyens.debut(), revenus_moyens.fin(), moyenne);
 
 	os << "Moyenne : " << moyenne << '\n';
 	os << "Écart type : " << ecart_type << '\n';

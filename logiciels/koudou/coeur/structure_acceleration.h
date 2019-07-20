@@ -26,7 +26,7 @@
 
 #include "types.h"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 class Scene;
 
@@ -55,7 +55,7 @@ class VolumeEnglobant final : public StructureAcceleration {
 		bool entresecte(Rayon const &rayon, double *numerateur_precalcule, double *denominateur_precalcule, double &d_proche, double &d_eloigne, uint8_t &index_plan) const;
 	};
 
-	std::vector<Etendue> m_etendues{};
+	dls::tableau<Etendue> m_etendues{};
 
 public:
 	void construit(Scene const &scene);

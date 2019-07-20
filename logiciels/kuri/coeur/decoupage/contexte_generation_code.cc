@@ -134,7 +134,7 @@ void ContexteGenerationCode::bloc_courant(llvm::BasicBlock *bloc)
 
 void ContexteGenerationCode::empile_bloc_continue(dls::vue_chaine chaine, llvm::BasicBlock *bloc)
 {
-	m_pile_continue.push_back({chaine, bloc});
+	m_pile_continue.pousse({chaine, bloc});
 }
 
 void ContexteGenerationCode::depile_bloc_continue()
@@ -144,11 +144,11 @@ void ContexteGenerationCode::depile_bloc_continue()
 
 llvm::BasicBlock *ContexteGenerationCode::bloc_continue(dls::vue_chaine chaine)
 {
-	if (m_pile_continue.empty()) {
+	if (m_pile_continue.est_vide()) {
 		return nullptr;
 	}
 
-	if (chaine.empty()) {
+	if (chaine.est_vide()) {
 		return m_pile_continue.back().second;
 	}
 
@@ -163,7 +163,7 @@ llvm::BasicBlock *ContexteGenerationCode::bloc_continue(dls::vue_chaine chaine)
 
 void ContexteGenerationCode::empile_bloc_arrete(dls::vue_chaine chaine, llvm::BasicBlock *bloc)
 {
-	m_pile_arrete.push_back({chaine, bloc});
+	m_pile_arrete.pousse({chaine, bloc});
 }
 
 void ContexteGenerationCode::depile_bloc_arrete()
@@ -173,11 +173,11 @@ void ContexteGenerationCode::depile_bloc_arrete()
 
 llvm::BasicBlock *ContexteGenerationCode::bloc_arrete(dls::vue_chaine chaine)
 {
-	if (m_pile_arrete.empty()) {
+	if (m_pile_arrete.est_vide()) {
 		return nullptr;
 	}
 
-	if (chaine.empty()) {
+	if (chaine.est_vide()) {
 		return m_pile_arrete.back().second;
 	}
 
@@ -265,7 +265,7 @@ llvm::Value *ContexteGenerationCode::valeur_globale(const dls::vue_chaine &nom)
 {
 	auto iter = globales.find(nom);
 
-	if (iter == globales.end()) {
+	if (iter == globales.fin()) {
 		return nullptr;
 	}
 
@@ -500,7 +500,7 @@ void ContexteGenerationCode::commence_fonction(DonneesFonction *df)
 {
 	this->donnees_fonction = df;
 	m_nombre_locales = 0;
-	m_locales.clear();
+	m_locales.efface();
 }
 
 void ContexteGenerationCode::termine_fonction()
@@ -511,7 +511,7 @@ void ContexteGenerationCode::termine_fonction()
 #endif
 	this->donnees_fonction = nullptr;
 	m_nombre_locales = 0;
-	m_locales.clear();
+	m_locales.efface();
 
 	while (!m_noeuds_differes.est_vide()) {
 		m_noeuds_differes.pop_back();

@@ -45,8 +45,8 @@ public:
 	 * paramètres.
 	 */
 	void entraine(
-			const std::vector<cv::Mat> &images,
-			const std::vector<int> &etiquettes);
+			const dls::tableau<cv::Mat> &images,
+			const dls::tableau<int> &etiquettes);
 
 	/**
 	 * Essaye de reconnaître le visage passé en paramètre. Retourne la confiance
@@ -58,13 +58,13 @@ public:
 	 * Sauvegarde les données du modèle de reconnaissance dans le fichier pointé
 	 * par le chemin passé en paramètre.
 	 */
-	void sauvegarde(const std::string &chemin);
+	void sauvegarde(const dls::chaine &chemin);
 
 	/**
 	 * Charge les données du modèle de reconnaissance depuis le fichier pointé
 	 * par le chemin passé en paramètre.
 	 */
-	void charge(const std::string &chemin);
+	void charge(const dls::chaine &chemin);
 
 	/**
 	 * Essaye de reconnaître le visage passé en paramètre. Retourne un vecteur
@@ -73,7 +73,7 @@ public:
 	 * nombre de paires est égale au nombre total d'images utilisées lors de
 	 * l'entraînement.
 	 */
-	std::vector<std::pair<int, double>> reconnaissance(const cv::Mat &visage);
+	dls::tableau<std::pair<int, double>> reconnaissance(const cv::Mat &visage);
 
 	/**
 	 * Sauvegarde les eignevectors dans des fichiers images séparés.

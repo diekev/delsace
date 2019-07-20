@@ -24,16 +24,16 @@
 
 #include "tests.hh"
 
-#include "../types/pystring.h"
+#include "biblinternes/types/pystring.h"
 
 void test_pystring(dls::test_unitaire::Controleuse &controleur)
 {
 	{
-		std::string stdstr("stdstr");
+		dls::chaine stdstr("stdstr");
 		dls::types::pystring str = dls::types::pystring(stdstr.c_str());
 
 		CU_VERIFIE_CONDITION(controleur, !str.empty());
-		CU_VERIFIE_CONDITION(controleur, str.length() == 6);
+		CU_VERIFIE_CONDITION(controleur, str.taille() == 6);
 
 		CU_VERIFIE_CONDITION(controleur, str.isalpha());
 		CU_VERIFIE_CONDITION(controleur, str.isalnum());
@@ -47,9 +47,9 @@ void test_pystring(dls::test_unitaire::Controleuse &controleur)
 		CU_VERIFIE_CONDITION(controleur, str.capacity() == 6);
 		str.reserve(1000);
 		CU_VERIFIE_CONDITION(controleur, str.capacity() == 1000);
-		CU_VERIFIE_CONDITION(controleur, str.capacity() != str.length());
+		CU_VERIFIE_CONDITION(controleur, str.capacity() != str.taille());
 		CU_VERIFIE_CONDITION(controleur, str.front() == str[0]);
-		CU_VERIFIE_CONDITION(controleur, str.back() == str[str.length() - 1]);
+		CU_VERIFIE_CONDITION(controleur, str.back() == str[str.taille() - 1]);
 
 		CU_VERIFIE_CONDITION(controleur, str == dls::types::pystring("stdstr"));
 	}

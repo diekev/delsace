@@ -190,6 +190,28 @@ struct logeuse_guardee {
 		}
 	}
 
+	void construct(T *p, T &&val)
+	{
+		if (p != nullptr) {
+			new (p) T(std::move(val));
+		}
+	}
+
+	void construct(T *p, T val)
+	{
+		if (p != nullptr) {
+			new (p) T(val);
+		}
+	}
+
+	template <typename... Args>
+	void construct(T *p, Args &&... args)
+	{
+		if (p != nullptr) {
+			new (p) T(args...);
+		}
+	}
+
 	void destroy(T *p)
 	{
 		p->~T();

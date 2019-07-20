@@ -51,7 +51,7 @@ auto RetraitDialog::accountIndex() const -> int
 	return ui->m_comptes_box->currentIndex();
 }
 
-auto RetraitDialog::montant() const -> float
+auto RetraitDialog::montant() const -> double
 {
 	return ui->m_montant->value();
 }
@@ -82,7 +82,7 @@ TransactionDialog::TransactionDialog(QWidget *parent)
 	ui->m_date_edit->setDate(QDate::currentDate());
 	ui->m_error_label->setStyleSheet("QLabel { color : red; }");
 
-	setCash(0.0f);
+	setCash(0.0);
 
 	/* those are added in such order so that they are aligned with enum defined
 	 * in dialogs.h */
@@ -98,7 +98,7 @@ TransactionDialog::~TransactionDialog()
 	delete ui;
 }
 
-auto TransactionDialog::setCash(const float cash) -> void
+auto TransactionDialog::setCash(const double cash) -> void
 {
 	m_cash = cash;
 }
@@ -131,13 +131,13 @@ auto TransactionDialog::category(const bool income) const -> QString
 	return ui->m_outcome_box->itemText(ui->m_outcome_box->currentIndex());
 }
 
-auto TransactionDialog::addTypeItem(const QString &name, const QVariant data, const bool income) -> void
+auto TransactionDialog::addTypeItem(const QString &name, const QVariant data_, const bool income) -> void
 {
 	if (income) {
-		ui->m_income_box->addItem(name, data);
+		ui->m_income_box->addItem(name, data_);
 	}
 	else {
-		ui->m_outcome_box->addItem(name, data);
+		ui->m_outcome_box->addItem(name, data_);
 	}
 }
 
@@ -146,7 +146,7 @@ auto TransactionDialog::mediumItem() const -> int
 	return ui->m_pay_box->currentIndex();
 }
 
-auto TransactionDialog::montant() const -> float
+auto TransactionDialog::montant() const -> double
 {
 	return ui->m_montant->value();
 }
@@ -195,7 +195,7 @@ auto TransactionDialog::date() const -> QDate
 
 auto TransactionDialog::onAcceptButtonClicked() -> void
 {
-	if (!m_is_income && (mediumItem() == TRANSACTION_LIQUID) && (m_cash - ui->m_montant->value()) < 0.0f) {
+	if (!m_is_income && (mediumItem() == TRANSACTION_LIQUID) && (m_cash - ui->m_montant->value()) < 0.0) {
 		ui->m_error_label->setText(tr("Montant incorrecte : vous n'avez pas assez de liquides !"));
 		ui->m_montant->setFocus();
 	}
@@ -258,7 +258,7 @@ void MonnaieDialog::setTotalValue()
 	ui->m_total_value->setText(QLocale().toCurrencyString(m_total_value));
 }
 
-auto MonnaieDialog::totalValue() const -> float
+auto MonnaieDialog::totalValue() const -> double
 {
 	return m_total_value;
 }
@@ -291,7 +291,7 @@ auto AccountDialog::type() const -> int
 	return ui->m_combo_box->currentIndex();
 }
 
-auto AccountDialog::value() const -> float
+auto AccountDialog::value() const -> double
 {
 	return ui->m_value_box->value();
 }

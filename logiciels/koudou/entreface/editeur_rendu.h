@@ -26,8 +26,6 @@
 
 #include "base_editeur.h"
 
-#include "controles/assembleur_controles.h"
-
 class ImageNode;
 class AssembleurControles;
 class QFrame;
@@ -42,7 +40,6 @@ class EditriceRendu : public BaseEditrice {
 	QWidget *m_widget;
 	QScrollArea *m_scroll;
 	QGridLayout *m_glayout;
-	AssembleurControles m_assembleur_controles;
 
 	QLabel *m_info_temps_ecoule, *m_info_temps_restant, *m_info_temps_echantillon;
 	QLabel *m_info_echantillon;

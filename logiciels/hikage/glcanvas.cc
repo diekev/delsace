@@ -25,8 +25,9 @@
 #include "glcanvas.h"
 
 #include <cassert>
-#include <ego/utils.h>
 #include <iostream>
+
+#include "biblinternes/ego/outils.h"
 
 const char *vert_shader =
         "#version 330 core\n"
@@ -65,62 +66,62 @@ void GLCanvas::initializeGL()
 		std::cerr << "Error: " << glewGetErrorString(err) << "\n";
 	}
 
-	m_buffer = numero7::ego::BufferObject::create();
+	m_buffer = dls::ego::TamponObjet::cree_unique();
 
-	m_buffer->bind();
-	m_buffer->generateVertexBuffer(m_vertices, sizeof(float) * 8);
-	m_buffer->generateIndexBuffer(&m_indices[0], sizeof(GLushort) * 6);
-	m_buffer->attribPointer(m_program["vertex"], 2);
-	m_buffer->unbind();
+	m_buffer->attache();
+	m_buffer->genere_tampon_sommet(m_vertices, sizeof(float) * 8);
+	m_buffer->genere_tampon_index(&m_indices[0], sizeof(GLushort) * 6);
+	m_buffer->pointeur_attribut(static_cast<unsigned>(m_program["vertex"]), 2);
+	m_buffer->detache();
 }
 
 void GLCanvas::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (!m_program.isValid(m_stringstream)) {
+	if (!m_program.est_valide(m_stringstream)) {
 		checkErrors();
 		return;
 	}
 
-	m_program.enable();
-	m_buffer->bind();
+	m_program.active();
+	m_buffer->attache();
 
 	glUniform1f(m_program("aspect"), m_aspect);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
 
-	m_buffer->unbind();
-	m_program.disable();
+	m_buffer->detache();
+	m_program.desactive();
 }
 
 void GLCanvas::resizeGL(int w, int h)
 {
 	m_width = w;
 	m_height = h;
-	m_aspect = static_cast<float>(m_width) / m_height;
+	m_aspect = static_cast<float>(m_width) / static_cast<float>(m_height);
 	glViewport(0, 0, w, h);
 }
 
 void GLCanvas::loadProgram(const QString &shader)
 {
-	m_program.load(numero7::ego::VERTEX_SHADER, vert_shader, m_stringstream);
+	m_program.charge(dls::ego::Nuanceur::VERTEX, vert_shader, m_stringstream);
 
 	checkErrors();
 
-	m_program.load(numero7::ego::FRAGMENT_SHADER, shader.toStdString(), m_stringstream);
+	m_program.charge(dls::ego::Nuanceur::FRAGMENT, shader.toStdString(), m_stringstream);
 
 	checkErrors();
 
-	m_program.createAndLinkProgram(m_stringstream);
+	m_program.cree_et_lie_programme(m_stringstream);
 
 	checkErrors();
 
-	m_program.enable();
+	m_program.active();
 	{
-		m_program.addAttribute("vertex");
-		m_program.addUniform("aspect");
+		m_program.ajoute_attribut("vertex");
+		m_program.ajoute_uniforme("aspect");
 	}
-	m_program.disable();
+	m_program.desactive();
 
 	updateGL();
 }

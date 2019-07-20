@@ -319,23 +319,23 @@ void analyseuse_grammaire::analyse_expression_droite(
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 	auto profondeur = m_profondeur++;
 
-	if (profondeur >= m_paires_vecteurs.size()) {
+	if (profondeur >= m_paires_vecteurs.taille()) {
 		lance_erreur("Excès de la pile d'expression autorisée");
 	}
 
 	auto &expression = m_paires_vecteurs[profondeur].first;
-	expression.clear();
+	expression.efface();
 
 	auto &pile = m_paires_vecteurs[profondeur].second;
-	pile.clear();
+	pile.efface();
 
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
 	{
-		while (!pile.empty()
+		while (!pile.est_vide()
 			   && pile.back() != NOEUD_PARENTHESE
 			   && (precedence_faible(id_operateur, pile.back()->identifiant())))
 		{
-			expression.push_back(pile.back());
+			expression.pousse(pile.back());
 			pile.pop_back();
 		}
 	};
@@ -374,7 +374,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 					m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
 
-					expression.push_back(noeud);
+					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
 				else if (racine_expr == id_morceau::EGAL && est_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
@@ -386,12 +386,12 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_STRUCTURE);
 
-					expression.push_back(noeud);
+					expression.pousse(noeud);
 				}
 				/* variable : chaine */
 				else {
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
-					expression.push_back(noeud);
+					expression.pousse(noeud);
 
 					noeud->drapeaux |= drapeaux;
 					drapeaux = 0;
@@ -402,7 +402,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::NOMBRE_REEL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, m_contexte, morceau);
-				expression.push_back(noeud);
+				expression.pousse(noeud);
 				break;
 			}
 			case id_morceau::NOMBRE_BINAIRE:
@@ -411,19 +411,19 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::NOMBRE_OCTAL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, m_contexte, morceau);
-				expression.push_back(noeud);
+				expression.pousse(noeud);
 				break;
 			}
 			case id_morceau::CHAINE_LITTERALE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, m_contexte, morceau);
-				expression.push_back(noeud);
+				expression.pousse(noeud);
 				break;
 			}
 			case id_morceau::CARACTERE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, m_contexte, morceau);
-				expression.push_back(noeud);
+				expression.pousse(noeud);
 				break;
 			}
 			case id_morceau::REINTERPRET_CAST:
@@ -437,7 +437,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::PARENTHESE_OUVRANTE:
 			{
 				++paren;
-				pile.push_back(NOEUD_PARENTHESE);
+				pile.pousse(NOEUD_PARENTHESE);
 				break;
 			}
 			case id_morceau::PARENTHESE_FERMANTE:
@@ -454,12 +454,12 @@ void analyseuse_grammaire::analyse_expression_droite(
 					break;
 				}
 
-				if (pile.empty()) {
+				if (pile.est_vide()) {
 					lance_erreur("Il manque une paranthèse dans l'expression !");
 				}
 
 				while (pile.back() != NOEUD_PARENTHESE) {
-					expression.push_back(pile.back());
+					expression.pousse(pile.back());
 					pile.pop_back();
 				}
 
@@ -493,7 +493,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 				vide_pile_operateur(id_operateur);
 
-				pile.push_back(noeud);
+				pile.pousse(noeud);
 
 				break;
 			}
@@ -524,13 +524,13 @@ void analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::VIRGULE:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
-				if (expression.empty() && est_operateur_binaire(morceau.identifiant)) {
+				if (expression.est_vide() && est_operateur_binaire(morceau.identifiant)) {
 					lance_erreur("Opérateur binaire utilisé en début d'expression");
 				}
 
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau);
-				pile.push_back(noeud);
+				pile.pousse(noeud);
 
 				break;
 			}
@@ -538,14 +538,14 @@ void analyseuse_grammaire::analyse_expression_droite(
 			{
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::PLAGE, m_contexte, morceau);
-				pile.push_back(noeud);
+				pile.pousse(noeud);
 				break;
 			}
 			case id_morceau::POINT:
 			{
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_POINT, m_contexte, morceau);
-				pile.push_back(noeud);
+				pile.pousse(noeud);
 				break;
 			}
 			case id_morceau::EGAL:
@@ -559,7 +559,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 				vide_pile_operateur(morceau.identifiant);
 
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau);
-				pile.push_back(noeud);
+				pile.pousse(noeud);
 				break;
 			}
 			case id_morceau::CROCHET_OUVRANT:
@@ -571,21 +571,21 @@ void analyseuse_grammaire::analyse_expression_droite(
 					vide_pile_operateur(morceau.identifiant);
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
-					pile.push_back(noeud);
+					pile.pousse(noeud);
 
 					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
 
 					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
 					 * la compilation de l'expression à la fin de la fonction. */
 					auto noeud_expr = noeud->enfants.front();
-					noeud->enfants.clear();
+					noeud->enfants.efface();
 
 					/* Si la racine de l'expression est un opérateur, il faut
 					 * l'empêcher d'être prise en compte pour l'expression
 					 * courante. */
 					noeud_expr->drapeaux |= IGNORE_OPERATEUR;
 
-					expression.push_back(noeud_expr);
+					expression.pousse(noeud_expr);
 
 					m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
 				}
@@ -598,7 +598,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_TABLEAU);
 
-					expression.push_back(noeud);
+					expression.pousse(noeud);
 				}
 
 				break;
@@ -612,7 +612,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 			{
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
-				pile.push_back(noeud);
+				pile.pousse(noeud);
 				break;
 			}
 			case id_morceau::ACCOLADE_FERMANTE:
@@ -640,21 +640,21 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
 	 * éviter de crasher lors des fuzz-tests. */
-	if (expression.empty()) {
+	if (expression.est_vide()) {
 		--m_profondeur;
 		return;
 	}
 
-	while (!pile.empty()) {
+	while (!pile.est_vide()) {
 		if (pile.back() == NOEUD_PARENTHESE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.push_back(pile.back());
+		expression.pousse(pile.back());
 		pile.pop_back();
 	}
 
-	pile.reserve(expression.size());
+	pile.reserve(expression.taille());
 
 	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Expression :" << FIN_LOG_EXPRESSION;
 
@@ -662,7 +662,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
 		if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
-			if (pile.size() < 2) {
+			if (pile.taille() < 2) {
 				erreur::lance_erreur(
 							"Expression malformée pour opérateur binaire",
 							m_contexte,
@@ -693,7 +693,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 				}
 			}
 			else if (calcul_expression) {
-				if (pile.size() < 1) {
+				if (pile.taille() < 1) {
 					erreur::lance_erreur(
 								"Expression malformée pour opérateur unaire",
 								m_contexte,
@@ -708,7 +708,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 				noeud->ajoute_noeud(n2);
 			}
 
-			pile.push_back(noeud);
+			pile.pousse(noeud);
 		}
 		else if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
 			auto n1 = pile.back();
@@ -733,17 +733,17 @@ void analyseuse_grammaire::analyse_expression_droite(
 				noeud->ajoute_noeud(n1);
 			}
 
-			pile.push_back(noeud);
+			pile.pousse(noeud);
 		}
 		else {
-			pile.push_back(noeud);
+			pile.pousse(noeud);
 		}
 	}
 
 	m_assembleuse->ajoute_noeud(pile.back());
 	pile.pop_back();
 
-	if (pile.size() != 0) {
+	if (pile.taille() != 0) {
 		auto premier_noeud = pile.back();
 		auto dernier_noeud = premier_noeud;
 		pile.pop_back();
@@ -751,7 +751,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 		auto pos_premier = premier_noeud->donnees_morceau().ligne_pos & 0xffffffff;
 		auto pos_dernier = pos_premier;
 
-		while (!pile.empty()) {
+		while (!pile.est_vide()) {
 			auto n = pile.back();
 			pile.pop_back();
 

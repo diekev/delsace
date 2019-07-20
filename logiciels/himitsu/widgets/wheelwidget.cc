@@ -32,7 +32,7 @@
 
 WheelWidget::WheelWidget(int num_values, QWidget *parent)
     : QWidget(parent)
-    , m_num_values(num_values)
+	, m_num_values(static_cast<unsigned>(num_values))
 {
 	m_spin_box = new QSpinBox(this);
 	m_spin_box->setValue(1);
@@ -83,7 +83,7 @@ void WheelWidget::updateLabel(int value)
 
 PinWheel::PinWheel(int num_values, QWidget *parent)
     : WheelWidget(num_values, parent)
-    , m_rng(19337 + num_values)
+	, m_rng(static_cast<unsigned>(19337 + num_values))
     , m_pins(0ll)
 {
 	m_pins_str = "";
@@ -93,8 +93,8 @@ PinWheel::PinWheel(int num_values, QWidget *parent)
 
 int PinWheel::pinValue() const
 {
-	auto pin = m_spin_box->value() - 1;
-	return (m_pins & (1ll << pin)) >> pin;
+	auto pin = static_cast<unsigned long long>(m_spin_box->value() - 1);
+	return static_cast<int>((m_pins & (1ull << pin)) >> pin);
 }
 
 QString PinWheel::pinStr() const
@@ -117,8 +117,8 @@ void PinWheel::generatePins()
 
 void PinWheel::updateLabel(int value)
 {
-	auto pin = value - 1;
-	m_pin_label->setText(QString::number((m_pins & (1ll << pin)) >> pin));
+	auto pin = static_cast<unsigned long long>(value - 1);
+	m_pin_label->setText(QString::number(static_cast<int>((m_pins & (1ull << pin)) >> pin)));
 }
 
 void PinWheel::setPins(const QString &pins)
@@ -126,9 +126,9 @@ void PinWheel::setPins(const QString &pins)
 	m_pins_str = pins;
 	m_pins &= 0ll;
 
-	for (u_int64_t i(0ll); i < (u_int64_t)m_pins_str.size(); ++i) {
-		auto val = ((m_pins_str[(int)i] == '0') ? 0ll : 1ll);
-		m_pins |= (val << i);
+	for (u_int64_t i(0ll); i < static_cast<u_int64_t>(m_pins_str.size()); ++i) {
+		auto val = ((m_pins_str[static_cast<unsigned>(i)] == '0') ? 0ll : 1ll);
+		m_pins |= static_cast<unsigned>(val << i);
 	}
 
 	updateLabel(m_spin_box->value());
@@ -140,7 +140,7 @@ LetterWheel::LetterWheel(int num_values, QWidget *parent)
     : WheelWidget(num_values, parent)
 {}
 
-void LetterWheel::setKeys(const std::string &keys)
+void LetterWheel::setKeys(const dls::chaine &keys)
 {
 	m_keys = keys;
 	updateLabel(m_spin_box->value());

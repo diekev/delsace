@@ -248,3 +248,23 @@ void trouve_noeud_prise(Graphe::plage_noeud noeuds,
  * de leurs degrés d'entrée.
  */
 void tri_topologique(Graphe &graphe);
+
+/**
+ * Implémentation de la logique de tri topologique. Le prédicat est la partie
+ * qui permet de spécialiser le tri pour chaque graphe.
+ */
+template <typename I, typename P>
+void tri_topologique(I debut, I fin, P predicat)
+{
+	while (debut != fin) {
+		auto nouveau_debut = std::partition(debut, fin, predicat);
+
+		/* Aucune solution n'a été trouvée, il est possible qu'il y ait
+		 * un cycle dans le graphe. */
+		if (nouveau_debut == debut) {
+			break;
+		}
+
+		debut = nouveau_debut;
+	}
+}

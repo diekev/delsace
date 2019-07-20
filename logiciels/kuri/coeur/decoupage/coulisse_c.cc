@@ -383,7 +383,7 @@ static auto cree_info_type_enum_C(
 	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	auto noeud_decl = donnees_structure.noeud_decl;
-	auto nombre_enfants = noeud_decl->enfants.size();
+	auto nombre_enfants = noeud_decl->enfants.taille();
 
 	/* crée un tableau pour les noms des énumérations */
 
@@ -676,7 +676,7 @@ static void cree_appel(
 		dls::flux_chaine &os,
 		ContexteGenerationCode &contexte,
 		dls::chaine const &nom_broye,
-		std::list<base *> const &enfants)
+		dls::liste<base *> const &enfants)
 {
 	for (auto enf : enfants) {
 		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
@@ -807,11 +807,11 @@ static void cree_appel(
 
 	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-	std::list<base *> liste_var_retour{};
+	dls::liste<base *> liste_var_retour{};
 	dls::tableau<dls::chaine> liste_noms_retour{};
 
 	if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET) {
-		liste_var_retour = std::any_cast<std::list<base *>>(b->valeur_calculee);
+		liste_var_retour = std::any_cast<dls::liste<base *>>(b->valeur_calculee);
 		/* la valeur calculée doit être toujours valide. */
 		b->valeur_calculee = dls::chaine("");
 	}
@@ -836,7 +836,7 @@ static void cree_appel(
 
 	auto virgule = '(';
 
-	if (enfants.empty() && liste_var_retour.empty() && liste_noms_retour.est_vide()) {
+	if (enfants.est_vide() && liste_var_retour.est_vide() && liste_noms_retour.est_vide()) {
 		os << virgule;
 		virgule = ' ';
 	}
@@ -1206,7 +1206,7 @@ static void genere_code_C_prepasse(
 				dls::tableau<base *> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
-				std::list<base *> noeuds;
+				dls::liste<base *> noeuds;
 
 				for (auto f : feuilles) {
 					f->drapeaux |= POUR_ASSIGNATION;
@@ -1219,7 +1219,7 @@ static void genere_code_C_prepasse(
 
 					f->drapeaux &= static_cast<unsigned short>(~POUR_ASSIGNATION);
 					f->aide_generation_code = 0;
-					noeuds.push_back(f);
+					noeuds.pousse(f);
 				}
 
 				expression->aide_generation_code = APPEL_FONCTION_MOULT_RET;
@@ -1356,7 +1356,7 @@ static void genere_code_C_prepasse(
 			/* utilisé principalement pour convertir les listes d'arguments
 			 * variadics en un tableau */
 
-			auto taille_tableau = b->enfants.size();
+			auto taille_tableau = b->enfants.taille();
 
 			auto &type = contexte.magasin_types.donnees_types[b->index_type];
 
@@ -1512,7 +1512,7 @@ void genere_code_C(
 			for (auto noeud : b->enfants) {
 				auto debut_validation = dls::chrono::maintenant();
 				performe_validation_semantique(noeud, contexte);
-				contexte.magasin_chaines.clear();
+				contexte.magasin_chaines.efface();
 				temps_validation += dls::chrono::delta(debut_validation);
 			}
 
@@ -1532,7 +1532,7 @@ void genere_code_C(
 			for (auto noeud : b->enfants) {
 				debut_generation = dls::chrono::maintenant();
 				genere_code_C(noeud, contexte, false, os, os);
-				contexte.magasin_chaines.clear();
+				contexte.magasin_chaines.efface();
 				temps_generation += dls::chrono::delta(debut_generation);
 			}
 
@@ -1907,7 +1907,7 @@ void genere_code_C(
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
-			assert(b->enfants.size() == 2);
+			assert(b->enfants.taille() == 2);
 
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
@@ -2253,8 +2253,8 @@ void genere_code_C(
 		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		{
-			auto const nombre_enfants = b->enfants.size();
-			auto iter_enfant = b->enfants.begin();
+			auto const nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
 
 			/* noeud 1 : condition */
 			auto enfant1 = *iter_enfant++;
@@ -2320,8 +2320,8 @@ void genere_code_C(
 		}
 		case type_noeud::POUR:
 		{
-			auto nombre_enfants = b->enfants.size();
-			auto iter = b->enfants.begin();
+			auto nombre_enfants = b->enfants.taille();
+			auto iter = b->enfants.debut();
 
 			/* on génère d'abord le type de la variable */
 			auto enfant1 = *iter++;
@@ -2462,7 +2462,7 @@ void genere_code_C(
 				case GENERE_BOUCLE_TABLEAU_INDEX:
 				{
 					auto nom_var = "__i" + dls::vers_chaine(b->morceau.ligne_pos);
-					contexte.magasin_chaines.push_back(nom_var);
+					contexte.magasin_chaines.pousse(nom_var);
 
 					auto donnees_var = DonneesVariable{};
 					donnees_var.donnees_type = contexte.magasin_types[TYPE_Z32];
@@ -2603,7 +2603,7 @@ void genere_code_C(
 		}
 		case type_noeud::CONTINUE_ARRETE:
 		{
-			auto chaine_var = b->enfants.empty() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
 
 			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
 					? contexte.goto_continue(chaine_var)
@@ -2624,7 +2624,7 @@ void genere_code_C(
 
 			/* À FAIRE : bloc sinon. */
 
-			auto iter = b->enfants.begin();
+			auto iter = b->enfants.debut();
 			auto enfant1 = *iter++;
 
 			/* création des blocs */
@@ -2650,8 +2650,8 @@ void genere_code_C(
 		}
 		case type_noeud::TANTQUE:
 		{
-			assert(b->enfants.size() == 2);
-			auto iter = b->enfants.begin();
+			assert(b->enfants.taille() == 2);
+			auto iter = b->enfants.debut();
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
 
@@ -2761,7 +2761,7 @@ void genere_code_C(
 		{
 			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine>>(&b->valeur_calculee);
 
-			auto enfant = b->enfants.begin();
+			auto enfant = b->enfants.debut();
 			auto nom_param = liste_params->debut();
 			auto virgule = '{';
 
@@ -2802,8 +2802,8 @@ void genere_code_C(
 		case type_noeud::LOGE:
 		{
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-			auto enfant = b->enfants.begin();
-			auto nombre_enfant = b->enfants.size();
+			auto enfant = b->enfants.debut();
+			auto nombre_enfant = b->enfants.taille();
 			auto a_pointeur = false;
 			auto nom_ptr_ret = dls::chaine("");
 			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
@@ -2991,9 +2991,9 @@ void genere_code_C(
 		case type_noeud::RELOGE:
 		{
 			auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
-			auto enfant = b->enfants.begin();
+			auto enfant = b->enfants.debut();
 			auto enfant1 = *enfant++;
-			auto nombre_enfant = b->enfants.size();
+			auto nombre_enfant = b->enfants.taille();
 			auto a_pointeur = false;
 			auto nom_ptr_ret = dls::chaine("");
 			auto nom_ancienne_taille = "__ancienne_taille" + dls::vers_chaine(index++);
@@ -3102,8 +3102,8 @@ void genere_code_C(
 		{
 			/* le premier enfant est l'expression, les suivants les paires */
 
-			auto nombre_enfants = b->enfants.size();
-			auto iter_enfant = b->enfants.begin();
+			auto nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
 			auto expression = *iter_enfant++;
 
 			auto condition = "if";

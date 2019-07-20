@@ -26,7 +26,7 @@
 
 #include <algorithm>
 
-#include "math/outils.hh"
+#include "biblinternes/math/outils.hh"
 
 namespace dls::phys {
 

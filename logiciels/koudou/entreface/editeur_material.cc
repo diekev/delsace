@@ -39,43 +39,43 @@
 #include "coeur/nuanceur.h"
 #include "coeur/objet.h"
 
-#include "outils.h"
-
 /* ************************************************************************** */
 
 static auto converti_couleur(Spectre const &spectre)
 {
-	return dls::math::vec4f(spectre[0], spectre[1], spectre[2], 1.0f);
+	return dls::phys::couleur32(spectre[0], spectre[1], spectre[2], 1.0f);
 }
 
 VueMaterial::VueMaterial(Nuanceur *nuaceur)
-	: m_persona_diffus(new Persona)
-	, m_persona_angle_vue(new Persona)
-	, m_persona_reflection(new Persona)
-	, m_persona_refraction(new Persona)
-	, m_persona_volume(new Persona)
-	, m_persona_emission(new Persona)
+	: m_persona_diffus(new danjo::Manipulable)
+	, m_persona_angle_vue(new danjo::Manipulable)
+	, m_persona_reflection(new danjo::Manipulable)
+	, m_persona_refraction(new danjo::Manipulable)
+	, m_persona_volume(new danjo::Manipulable)
+	, m_persona_emission(new danjo::Manipulable)
 	, m_nuanceur(nuaceur)
 {
-	m_persona_diffus->ajoute_propriete("spectre", "Spectre", TypePropriete::COULEUR);
-	m_persona_diffus->etablie_min_max(0.0f, 1.0f);
+	m_persona_diffus->ajoute_propriete("spectre", danjo::TypePropriete::COULEUR);
+	//m_persona_diffus->etablie_min_max(0.0f, 1.0f);
 
-	m_persona_angle_vue->ajoute_propriete("spectre", "Spectre", TypePropriete::COULEUR);
-	m_persona_angle_vue->etablie_min_max(0.0f, 1.0f);
+	m_persona_angle_vue->ajoute_propriete("spectre", danjo::TypePropriete::COULEUR);
+	//m_persona_angle_vue->etablie_min_max(0.0f, 1.0f);
 
-	m_persona_refraction->ajoute_propriete("index", "Index de réfraction", TypePropriete::FLOAT);
-	m_persona_refraction->etablie_min_max(0.0f, 2.0f);
-	m_persona_refraction->etablie_valeur_float_defaut(1.45f);
+	m_persona_refraction->ajoute_propriete("index", danjo::TypePropriete::DECIMAL);
+//	m_persona_refraction->etablie_min_max(0.0f, 2.0f);
+//	m_persona_refraction->etablie_valeur_float_defaut(1.45f);
 
-	m_persona_volume->ajoute_propriete("absorption", "Absorption", TypePropriete::COULEUR);
-	m_persona_volume->etablie_min_max(0.0f, 1.0f);
-	m_persona_volume->ajoute_propriete("diffusion", "Diffusion", TypePropriete::COULEUR);
-	m_persona_volume->etablie_min_max(0.0f, 1.0f);
+	m_persona_volume->ajoute_propriete("absorption", danjo::TypePropriete::COULEUR);
+//	m_persona_volume->etablie_min_max(0.0f, 1.0f);
 
-	m_persona_emission->ajoute_propriete("spectre", "Spectre", TypePropriete::COULEUR);
-	m_persona_emission->etablie_min_max(0.0f, 1.0f);
-	m_persona_emission->ajoute_propriete("exposition", "Exposition", TypePropriete::FLOAT);
-	m_persona_emission->etablie_min_max(0.0f, 32.0f);
+	m_persona_volume->ajoute_propriete("diffusion", danjo::TypePropriete::COULEUR);
+//	m_persona_volume->etablie_min_max(0.0f, 1.0f);
+
+	m_persona_emission->ajoute_propriete("spectre", danjo::TypePropriete::COULEUR);
+//	m_persona_emission->etablie_min_max(0.0f, 1.0f);
+
+	m_persona_emission->ajoute_propriete("exposition", danjo::TypePropriete::DECIMAL);
+//	m_persona_emission->etablie_min_max(0.0f, 32.0f);
 }
 
 VueMaterial::~VueMaterial()
@@ -100,14 +100,14 @@ void VueMaterial::ajourne_donnees()
 		{
 			auto nuanceur = static_cast<NuanceurDiffus *>(m_nuanceur);
 			auto couleur = m_persona_diffus->evalue_couleur("spectre");
-			nuanceur->spectre = Spectre::depuis_rgb(couleur.x, couleur.y, couleur.z);
+			nuanceur->spectre = Spectre::depuis_rgb(couleur.r, couleur.v, couleur.b);
 			break;
 		}
 		case TypeNuanceur::ANGLE_VUE:
 		{
 			auto nuanceur = static_cast<NuanceurAngleVue *>(m_nuanceur);
 			auto couleur = m_persona_angle_vue->evalue_couleur("spectre");
-			nuanceur->spectre = Spectre::depuis_rgb(couleur.x, couleur.y, couleur.z);
+			nuanceur->spectre = Spectre::depuis_rgb(couleur.r, couleur.v, couleur.b);
 			break;
 		}
 		case TypeNuanceur::REFLECTION:
@@ -117,25 +117,25 @@ void VueMaterial::ajourne_donnees()
 		case TypeNuanceur::REFRACTION:
 		{
 			auto nuanceur = static_cast<NuanceurRefraction *>(m_nuanceur);
-			auto index = m_persona_refraction->evalue_float("index");
-			nuanceur->index_refraction = index;
+			auto index = m_persona_refraction->evalue_decimal("index");
+			nuanceur->index_refraction = static_cast<double>(index);
 			break;
 		}
 		case TypeNuanceur::VOLUME:
 		{
 			auto nuanceur = static_cast<NuanceurVolume *>(m_nuanceur);
 			auto sigma_a = m_persona_volume->evalue_couleur("absorption");
-			nuanceur->sigma_a = Spectre::depuis_rgb(sigma_a.x, sigma_a.y, sigma_a.z);
+			nuanceur->sigma_a = Spectre::depuis_rgb(sigma_a.r, sigma_a.v, sigma_a.b);
 			auto sigma_s = m_persona_volume->evalue_couleur("diffusion");
-			nuanceur->sigma_s = Spectre::depuis_rgb(sigma_s.x, sigma_s.y, sigma_s.z);
+			nuanceur->sigma_s = Spectre::depuis_rgb(sigma_s.r, sigma_s.v, sigma_s.b);
 			break;
 		}
 		case TypeNuanceur::EMISSION:
 		{
 			auto nuanceur = static_cast<NuanceurEmission *>(m_nuanceur);
 			auto couleur = m_persona_emission->evalue_couleur("spectre");
-			nuanceur->spectre = Spectre::depuis_rgb(couleur.x, couleur.y, couleur.z);
-			nuanceur->exposition = m_persona_emission->evalue_float("exposition");
+			nuanceur->spectre = Spectre::depuis_rgb(couleur.r, couleur.v, couleur.b);
+			nuanceur->exposition = static_cast<double>(m_persona_emission->evalue_decimal("exposition"));
 			break;
 		}
 	}
@@ -147,13 +147,13 @@ bool VueMaterial::ajourne_proprietes()
 		case TypeNuanceur::DIFFUS:
 		{
 			auto nuanceur = static_cast<NuanceurDiffus *>(m_nuanceur);
-			m_persona_diffus->ajourne_valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
+			m_persona_diffus->valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
 			break;
 		}
 		case TypeNuanceur::ANGLE_VUE:
 		{
 			auto nuanceur = static_cast<NuanceurAngleVue *>(m_nuanceur);
-			m_persona_angle_vue->ajourne_valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
+			m_persona_angle_vue->valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
 			break;
 		}
 		case TypeNuanceur::REFLECTION:
@@ -163,21 +163,21 @@ bool VueMaterial::ajourne_proprietes()
 		case TypeNuanceur::REFRACTION:
 		{
 			auto nuanceur = static_cast<NuanceurRefraction *>(m_nuanceur);
-			m_persona_refraction->ajourne_valeur_float("index", static_cast<float>(nuanceur->index_refraction));
+			m_persona_refraction->valeur_decimal("index", static_cast<float>(nuanceur->index_refraction));
 			break;
 		}
 		case TypeNuanceur::VOLUME:
 		{
 			auto nuanceur = static_cast<NuanceurVolume *>(m_nuanceur);
-			m_persona_volume->ajourne_valeur_couleur("absorption", converti_couleur(nuanceur->sigma_a));
-			m_persona_volume->ajourne_valeur_couleur("diffusion", converti_couleur(nuanceur->sigma_s));
+			m_persona_volume->valeur_couleur("absorption", converti_couleur(nuanceur->sigma_a));
+			m_persona_volume->valeur_couleur("diffusion", converti_couleur(nuanceur->sigma_s));
 			break;
 		}
 		case TypeNuanceur::EMISSION:
 		{
 			auto nuanceur = static_cast<NuanceurEmission *>(m_nuanceur);
-			m_persona_emission->ajourne_valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
-			m_persona_emission->ajourne_valeur_float("exposition", static_cast<float>(nuanceur->exposition));
+			m_persona_emission->valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
+			m_persona_emission->valeur_decimal("exposition", static_cast<float>(nuanceur->exposition));
 			break;
 		}
 	}
@@ -185,7 +185,7 @@ bool VueMaterial::ajourne_proprietes()
 	return true;
 }
 
-Persona *VueMaterial::persona() const
+danjo::Manipulable *VueMaterial::persona() const
 {
 	switch (m_nuanceur->type) {
 		case TypeNuanceur::DIFFUS:
@@ -212,7 +212,6 @@ EditeurMaterial::EditeurMaterial(Koudou *koudou, QWidget *parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())
 	, m_glayout(new QGridLayout(m_widget))
-	, m_assembleur_controles(m_glayout)
 {
 	m_widget->setSizePolicy(m_cadre->sizePolicy());
 
@@ -243,7 +242,7 @@ void EditeurMaterial::ajourne_etat(int evenement)
 
 	auto &scene = m_koudou->parametres_rendu.scene;
 
-	if (scene.objets.empty()) {
+	if (scene.objets.est_vide()) {
 		return;
 	}
 
@@ -266,8 +265,9 @@ void EditeurMaterial::ajourne_etat(int evenement)
 		return;
 	}
 
-	cree_controles(m_assembleur_controles, m_vue->persona());
-	m_assembleur_controles.setContext(this, SLOT(ajourne_material()));
+	// À FAIRE
+//	cree_controles(m_assembleur_controles, m_vue->persona());
+//	m_assembleur_controles.setContext(this, SLOT(ajourne_material()));
 }
 
 void EditeurMaterial::ajourne_material()

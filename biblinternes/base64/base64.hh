@@ -24,24 +24,24 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace base64 {
 
-std::string encode(const unsigned char *chaine, unsigned long in_len);
+dls::chaine encode(const unsigned char *chaine, unsigned long in_len);
 
-std::string encode(const char *chaine, unsigned long in_len);
+dls::chaine encode(const char *chaine, unsigned long in_len);
 
-std::string encode(const std::string &chaine);
+dls::chaine encode(const dls::chaine &chaine);
 
-std::string encode_pour_url(unsigned char const* chaine, unsigned long in_len);
+dls::chaine encode_pour_url(unsigned char const* chaine, unsigned long in_len);
 
-std::string encode_pour_url(const char *chaine, unsigned long in_len);
+dls::chaine encode_pour_url(const char *chaine, unsigned long in_len);
 
-std::string encode_pour_url(const std::string &chaine);
+dls::chaine encode_pour_url(const dls::chaine &chaine);
 
-std::string decode(const std::string &chaine);
+dls::chaine decode(const dls::chaine &chaine);
 
-std::string decode_pour_url(const std::string &chaine);
+dls::chaine decode_pour_url(const dls::chaine &chaine);
 
 }

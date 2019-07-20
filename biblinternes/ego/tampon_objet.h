@@ -26,7 +26,7 @@
 
 #include <functional>
 #include <memory>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "version.h"
 
@@ -48,7 +48,7 @@ class TamponObjet {
 	unsigned int m_tampon_sommet = 0;
 	unsigned int m_tampon_index = 0;
 	unsigned int m_tampon_normal = 0;
-	std::vector<unsigned int> m_tampons_extra = {};
+	dls::tableau<unsigned int> m_tampons_extra = {};
 
 public:
 	TamponObjet() noexcept;

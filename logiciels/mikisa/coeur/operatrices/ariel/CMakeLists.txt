@@ -34,11 +34,11 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	math
 	${BIBLIOTHEQUES_OPENVDB}
-	bib_rmsd
 	${BIBLIOTHEQUES_OPENEXR}
 	z
 	/opt/lib/blosc/lib/libblosc.so
 	/opt/lib/boost/lib/libboost_iostreams.so
+	bib_outils
 )
 
 set(SOURCES
@@ -75,9 +75,7 @@ set(SOURCES
     utilities/datastructures.hpp
     utilities/loopvector.inl
     utilities/multiqueue.inl
-    utilities/shortstack.inl
-	utilities/utilities.cc
-	utilities/utilities.h
+	utilities/shortstack.inl
 )
 
 add_library(${NOM_CIBLE} STATIC ${SOURCES})

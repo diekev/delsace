@@ -49,13 +49,13 @@ void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelChar> &i
 {
 	const auto &extension = chemin.extension();
 
-	if (outils::est_extension_jpeg(extension)) {
+	if (outils::est_extension_jpeg(extension.c_str())) {
 		AuteurJPEG::ecris(chemin, image);
 	}
-	else if (outils::est_extension_pnm(extension)) {
+	else if (outils::est_extension_pnm(extension.c_str())) {
 		AuteurPNM::ecris(chemin, image);
 	}
-	else if (outils::est_extension_exr(extension)) {
+	else if (outils::est_extension_exr(extension.c_str())) {
 		auto float_image = operation::converti_en_float(image);
 		AuteurEXR::ecris(chemin, float_image);
 	}
@@ -68,15 +68,15 @@ void ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &
 {
 	const auto &extension = chemin.extension();
 
-	if (outils::est_extension_jpeg(extension)) {
+	if (outils::est_extension_jpeg(extension.c_str())) {
 		auto byte_image = operation::converti_en_char(image);
 		AuteurJPEG::ecris(chemin, byte_image);
 	}
-	else if (outils::est_extension_pnm(extension)) {
+	else if (outils::est_extension_pnm(extension.c_str())) {
 		auto byte_image = operation::converti_en_char(image);
 		AuteurPNM::ecris(chemin, byte_image);
 	}
-	else if (outils::est_extension_exr(extension)) {
+	else if (outils::est_extension_exr(extension.c_str())) {
 		AuteurEXR::ecris(chemin, image);
 	}
 	else {
@@ -185,7 +185,7 @@ void AuteurEXR::ecris(const filesystem::path &chemin, const math::matrice_dyn<Pi
 	openexr::Header header(width, height);
 	openexr::RgbaOutputFile file(chemin.c_str(), header, openexr::WRITE_RGBA);
 
-	std::vector<openexr::Rgba> pixels(image.resolution());
+	dls::tableau<openexr::Rgba> pixels(image.resolution());
 
 	size_t idx(0);
 	for (size_t y = 0; y < height; ++y) {

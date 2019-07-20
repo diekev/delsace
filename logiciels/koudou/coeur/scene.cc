@@ -27,9 +27,9 @@
 #include <cassert>
 
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/texture/texture.h"
 
-#include "gna.h"
 #include "koudou.h"
 #include "lumiere.h"
 #include "maillage.h"
@@ -150,10 +150,10 @@ void Scene::ajoute_maillage(Maillage *maillage)
 	objet->transformation = maillage->transformation();
 	objet->nuanceur = maillage->nuanceur();
 
-	objets.push_back(objet);
+	objets.pousse(objet);
 	objet_actif = objet;
 
-	maillages.push_back(maillage);
+	maillages.pousse(maillage);
 }
 
 void Scene::ajoute_lumiere(Lumiere *lumiere)
@@ -162,10 +162,10 @@ void Scene::ajoute_lumiere(Lumiere *lumiere)
 	objet->transformation = lumiere->transformation;
 	objet->nuanceur = lumiere->nuanceur;
 
-	objets.push_back(objet);
+	objets.pousse(objet);
 	objet_actif = objet;
 
-	lumieres.push_back(lumiere);
+	lumieres.pousse(lumiere);
 }
 
 /* ************************************************************************** */
@@ -291,7 +291,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 
 dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::vec3d const &rd)
 {
-	if (gna.nombre_aleatoire() < 0.793) {
+	if (gna.uniforme(0.0, 1.0) < 0.793) {
 		return cosine_direction(gna, nor);
 	}
 
@@ -301,7 +301,7 @@ dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::
 
 dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor)
 {
-	auto r = dls::math::vec2d(gna.nombre_aleatoire() * constantes<double>::TAU, gna.nombre_aleatoire() * constantes<double>::TAU);
+	auto r = dls::math::vec2d(gna.uniforme(0.0, 1.0) * constantes<double>::TAU, gna.uniforme(0.0, 1.0) * constantes<double>::TAU);
 	auto sin_r = sin(r[0]);
 	auto dr = dls::math::vec3d(sin_r * sin(r[1]), sin_r * cos(r[1]), cos(r[0]));
 

@@ -26,16 +26,16 @@
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 /* Natural Langage Processing - Syntax Parser, based on:
  * - http://www.tutorialspoint.com/artificial_intelligence/artificial_intelligence_natural_language_processing.htm
  */
 
-extern std::vector<std::string> determiners;
-extern std::vector<std::string> adjectives;
-extern std::vector<std::string> nouns;
-extern std::vector<std::string> verbs;
+extern dls::tableau<dls::chaine> determiners;
+extern dls::tableau<dls::chaine> adjectives;
+extern dls::tableau<dls::chaine> nouns;
+extern dls::tableau<dls::chaine> verbs;
 
 /* ************************************************************************** */
 
@@ -64,10 +64,10 @@ std::ostream &operator<<(std::ostream &os, token tok)
 
 /* ************************************************************************** */
 
-static inline auto find_token(const std::vector<std::string> &dict, const std::string &str)
+static inline auto find_token(const dls::tableau<dls::chaine> &dict, const dls::chaine &str)
 {
-	auto iter = std::find(dict.begin(), dict.end(), str);
-	return iter != dict.end();
+	auto iter = std::find(dict.debut(), dict.fin(), str);
+	return iter != dict.fin();
 }
 
 static bool parse_noun_phrase(SyntaxParser *parser)
@@ -116,7 +116,7 @@ static void parse_sentence(SyntaxParser *parser)
 
 /* ************************************************************************** */
 
-void SyntaxParser::operator()(const std::string &sentence)
+void SyntaxParser::operator()(const dls::chaine &sentence)
 {
 	m_sentence = sentence;
 	m_stream << m_sentence;
@@ -126,7 +126,7 @@ void SyntaxParser::operator()(const std::string &sentence)
 
 token SyntaxParser::get_token()
 {
-	std::string str;
+	dls::chaine str;
 	if (!(m_stream >> str)) {
 		return token::invalid;
 	}

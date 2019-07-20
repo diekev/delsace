@@ -28,7 +28,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/chrono/outils.hh"
 
@@ -58,11 +58,11 @@ void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction
 		fonctions.insere({nom_fonction, {donnees}});
 	}
 	else {
-		iter->second.push_back(donnees);
+		iter->second.pousse(donnees);
 	}
 }
 
-std::vector<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept
+dls::tableau<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept
 {
 	auto iter = fonctions.trouve(nom_fonction);
 
@@ -80,7 +80,7 @@ bool DonneesModule::fonction_existe(dls::vue_chaine const &nom_fonction) const n
 
 size_t DonneesModule::memoire_utilisee() const noexcept
 {
-	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(std::vector<DonneesFonction>) + sizeof(dls::vue_chaine));
+	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(dls::tableau<DonneesFonction>) + sizeof(dls::vue_chaine));
 
 	for (auto const &df : fonctions) {
 		for (auto const &fonc : df.second) {
@@ -93,8 +93,8 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 
 /* ************************************************************************** */
 
-std::string charge_fichier(
-		std::string const &chemin,
+dls::chaine charge_fichier(
+		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau)
 {
@@ -110,16 +110,16 @@ std::string charge_fichier(
 	}
 
 	fichier.seekg(0, fichier.end);
-	auto const taille_fichier = static_cast<std::string::size_type>(fichier.tellg());
+	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
 	std::string tampon;
-	std::string res;
+	dls::chaine res;
 	res.reserve(taille_fichier);
 
 	while (std::getline(fichier, tampon)) {
 		res += tampon;
-		res.append(1, '\n');
+		res.pousse('\n');
 	}
 
 	return res;
@@ -127,19 +127,19 @@ std::string charge_fichier(
 
 void charge_module(
 		std::ostream &os,
-		std::string const &racine_kuri,
-		std::string const &nom,
+		dls::chaine const &racine_kuri,
+		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau,
 		bool est_racine)
 {
 	auto chemin = nom;
 
-	if (!std::filesystem::exists(chemin)) {
+	if (!std::filesystem::exists(chemin.c_str())) {
 		/* essaie dans la racine kuri */
 		chemin = racine_kuri + "/bibliotheques/" + chemin;
 
-		if (!std::filesystem::exists(chemin)) {
+		if (!std::filesystem::exists(chemin.c_str())) {
 			erreur::lance_erreur(
 						"Impossible de trouver le fichier correspondant au module",
 						contexte,
@@ -148,7 +148,7 @@ void charge_module(
 		}
 	}
 
-	if (!std::filesystem::is_regular_file(chemin)) {
+	if (!std::filesystem::is_regular_file(chemin.c_str())) {
 		erreur::lance_erreur(
 					"Le nom du module ne pointe pas vers un fichier régulier",
 					contexte,
@@ -157,11 +157,11 @@ void charge_module(
 	}
 
 	/* trouve le chemin absolu du module */
-	auto chemin_absolu = std::filesystem::absolute(chemin);
+	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
 
 	/* Le module racine n'a pas de nom, afin que les noms de ses fonctions ne
 	 * soient pas broyés. */
-	auto module = contexte.cree_module(est_racine ? "" : nom, chemin_absolu);
+	auto module = contexte.cree_module(est_racine ? "" : nom, chemin_absolu.c_str());
 
 	if (module == nullptr) {
 		/* le module a déjà été chargé */

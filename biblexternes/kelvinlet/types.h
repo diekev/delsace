@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // I. LICENSE CONDITIONS
 //
-// Copyright (c) 2018 by Disney-Pixar
+// Copyright (c) 2019 by Disney-Pixar
 //
 // Permission is hereby granted to use this software solely for non-commercial applications 
 // and purposes including academic or industrial research, evaluation and not-for-profit media

@@ -19,12 +19,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(docopt)
-add_subdirectory(kelvinlet)
-add_subdirectory(Patate)
-add_subdirectory(snh)
-add_subdirectory(voro)
-
-if(AVEC_MENGE)
-	add_subdirectory(Menge)
-endif(AVEC_MENGE)
+ajoute_sousdossier(REQUIERS_DOCOPT docopt)
+ajoute_sousdossier(REQUIERS_KELVINLET kelvinlet)
+ajoute_sousdossier(REQUIERS_PATATE Patate)
+ajoute_sousdossier(REQUIERS_SNH snh)
+ajoute_sousdossier(REQUIERS_VORO voro)
+ajoute_sousdossier(AVEC_MENGE Menge)

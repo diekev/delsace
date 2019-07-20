@@ -26,6 +26,8 @@
 
 #include <cassert>
 
+#include "biblinternes/structures/tableau.hh"
+
 namespace arachne {
 
 graphe::graphe(const infos_fichiers &infos)
@@ -51,11 +53,11 @@ graphe::~graphe()
 	}
 }
 
-noeud *graphe::ajoute_noeud(const std::string &nom, int valeur)
+noeud *graphe::ajoute_noeud(const dls::chaine &nom, int valeur)
 {
 	std::fprintf(stderr, "Création d'un noeud...\n");
 
-	if (nom.empty()) {
+	if (nom.est_vide()) {
 		/* À FAIRE : lance erreur, un noeud doit avoir au moins une
 			 * propriété pour l'identifier. */
 		return nullptr;
@@ -67,12 +69,12 @@ noeud *graphe::ajoute_noeud(const std::string &nom, int valeur)
 
 	ajoute_propriete(n, nom, valeur);
 
-	m_noeuds.push_back(n);
+	m_noeuds.pousse(n);
 
 	return n;
 }
 
-void graphe::ajoute_propriete(noeud *n, const std::string &nom, int valeur)
+void graphe::ajoute_propriete(noeud *n, const dls::chaine &nom, int valeur)
 {
 	std::fprintf(stderr, "Création d'une propriété <%s, %d> pour un noeud...\n", nom.c_str(), valeur);
 
@@ -81,7 +83,7 @@ void graphe::ajoute_propriete(noeud *n, const std::string &nom, int valeur)
 		return;
 	}
 
-	if (nom.empty()) {
+	if (nom.est_vide()) {
 		/* À FAIRE : lance erreur, une propriété doit avoir un nom pour
 			 * pouvoir l'identifier. */
 		return;
@@ -89,28 +91,28 @@ void graphe::ajoute_propriete(noeud *n, const std::string &nom, int valeur)
 
 	propriete *p = new propriete;
 	p->suivante = nullptr;
-	p->id_nom = m_nom_proprietes.ajoute_chaine(nom);
+	p->id_nom = static_cast<unsigned>(m_nom_proprietes.ajoute_chaine(nom));
 	p->valeur = valeur;
 	p->id = ++m_nombre_proprietes;
 	assert(p->id != 0);
 
-	m_proprietes.push_back(p);
+	m_proprietes.pousse(p);
 
-	if (!n->proprietes.empty()) {
+	if (!n->proprietes.est_vide()) {
 		n->proprietes.back()->suivante = p;
 	}
 
-	n->proprietes.push_back(p);
+	n->proprietes.pousse(p);
 }
 
-void graphe::ajoute_etiquette(noeud *n, const std::string &nom)
+void graphe::ajoute_etiquette(noeud *n, const dls::chaine &nom)
 {
 	if (n == nullptr || n->id == 0) {
 		/* À FAIRE : lance erreur. */
 		return;
 	}
 
-	if (nom.empty()) {
+	if (nom.est_vide()) {
 		/* À FAIRE : lance erreur, une propriété doit avoir un nom pour
 			 * pouvoir l'identifier. */
 		return;
@@ -121,19 +123,19 @@ void graphe::ajoute_etiquette(noeud *n, const std::string &nom)
 	auto e = new etiquette();
 	e->suivante = nullptr;
 	e->id = ++m_nombre_etiquettes;
-	e->id_nom = m_nom_etiquettes.ajoute_chaine(nom);
+	e->id_nom = static_cast<unsigned>(m_nom_etiquettes.ajoute_chaine(nom));
 	assert(e->id != 0);
 
-	m_etiquettes.push_back(e);
+	m_etiquettes.pousse(e);
 
-	if (!n->etiquettes.empty()) {
+	if (!n->etiquettes.est_vide()) {
 		n->etiquettes.back()->suivante = e;
 	}
 
-	n->etiquettes.push_back(e);
+	n->etiquettes.pousse(e);
 }
 
-void graphe::ajoute_propriete(relation *r, const std::string &nom, int valeur)
+void graphe::ajoute_propriete(relation *r, const dls::chaine &nom, int valeur)
 {
 	std::fprintf(stderr, "Création d'une propriété pour une relation...\n");
 
@@ -142,7 +144,7 @@ void graphe::ajoute_propriete(relation *r, const std::string &nom, int valeur)
 		return;
 	}
 
-	if (nom.empty()) {
+	if (nom.est_vide()) {
 		/* À FAIRE : lance erreur, une propriété doit avoir un nom pour
 			 * pouvoir l'identifier. */
 		return;
@@ -150,21 +152,21 @@ void graphe::ajoute_propriete(relation *r, const std::string &nom, int valeur)
 
 	propriete *p = new propriete;
 	p->suivante = nullptr;
-	p->id_nom = m_nom_proprietes.ajoute_chaine(nom);
+	p->id_nom = static_cast<unsigned>(m_nom_proprietes.ajoute_chaine(nom));
 	p->valeur = valeur;
 	p->id = ++m_nombre_proprietes;
 	assert(p->id != 0);
 
-	m_proprietes.push_back(p);
+	m_proprietes.pousse(p);
 
-	if (!r->proprietes.empty()) {
+	if (!r->proprietes.est_vide()) {
 		r->proprietes.back()->suivante = p;
 	}
 
-	r->proprietes.push_back(p);
+	r->proprietes.pousse(p);
 }
 
-void graphe::ajoute_relation(noeud *debut, noeud *fin, const std::string &nom)
+void graphe::ajoute_relation(noeud *debut, noeud *fin, const dls::chaine &nom)
 {
 	if (debut == nullptr || fin == nullptr) {
 		/* À FAIRE : lance erreur. */
@@ -182,27 +184,27 @@ void graphe::ajoute_relation(noeud *debut, noeud *fin, const std::string &nom)
 	r->debut = debut;
 	r->fin = fin;
 	r->id = ++m_nombre_relations;
-	r->type_relation = m_type_relations.ajoute_chaine(nom);
+	r->type_relation = static_cast<unsigned>(m_type_relations.ajoute_chaine(nom));
 	r->rel_prev_debut = nullptr;
 	r->rel_suiv_debut = nullptr;
 	r->rel_prev_fin = nullptr;
 	r->rel_suiv_fin = nullptr;
 	assert(r->id != 0);
 
-	if (!debut->relations.empty()) {
+	if (!debut->relations.est_vide()) {
 		r->rel_prev_debut = debut->relations.back();
 		debut->relations.back()->rel_suiv_debut = r;
 	}
 
-	if (!fin->relations.empty()) {
+	if (!fin->relations.est_vide()) {
 		r->rel_prev_fin = fin->relations.back();
 		debut->relations.back()->rel_suiv_fin = r;
 	}
 
-	debut->relations.push_back(r);
-	fin->relations.push_back(r);
+	debut->relations.pousse(r);
+	fin->relations.pousse(r);
 
-	m_relations.push_back(r);
+	m_relations.pousse(r);
 }
 
 void graphe::ecris_noeud()
@@ -213,22 +215,22 @@ void graphe::ecris_noeud()
 
 	m_autrice_noeuds.ouvre(m_infos_fichiers.chemin_fichier_noeud);
 
-	std::vector<char> tampon;
-	tampon.resize(m_noeuds.size() * TAILLE_REGISTRE_NOEUD, '\0');
-	auto decalage = 0ul;
+	dls::tableau<char> tampon;
+	tampon.redimensionne(m_noeuds.taille() * TAILLE_REGISTRE_NOEUD, '\0');
+	auto decalage = 0l;
 
 	for (noeud *n : m_noeuds) {
 		tampon[decalage + 0] = 1; //n->utilise;
 
-		if (!n->relations.empty()) {
+		if (!n->relations.est_vide()) {
 			*reinterpret_cast<unsigned int *>(&tampon[decalage + 1]) = n->relations.front()->id;
 		}
 
-		if (!n->proprietes.empty()) {
+		if (!n->proprietes.est_vide()) {
 			*reinterpret_cast<unsigned int *>(&tampon[decalage + 5]) = n->proprietes.front()->id;
 		}
 
-		if (!n->etiquettes.empty()) {
+		if (!n->etiquettes.est_vide()) {
 			*reinterpret_cast<unsigned int *>(&tampon[decalage + 9]) = n->etiquettes.front()->id;
 		}
 
@@ -237,7 +239,7 @@ void graphe::ecris_noeud()
 		decalage += TAILLE_REGISTRE_NOEUD;
 	}
 
-	m_autrice_noeuds.ecrit_tampon(tampon.data(), tampon.size());
+	m_autrice_noeuds.ecrit_tampon(tampon.donnees(), tampon.taille());
 
 	m_autrice_noeuds.ferme();
 }
@@ -266,7 +268,7 @@ void graphe::lis_noeud()
 
 	char tampon[TAILLE_REGISTRE_NOEUD];
 
-	for (size_t i = 0; i < nombre_entrees; ++i) {
+	for (auto i = 0; i < nombre_entrees; ++i) {
 		m_lectrice_noeuds.lis_tampon(tampon, TAILLE_REGISTRE_NOEUD);
 
 		auto utilise = tampon[0];
@@ -295,9 +297,9 @@ void graphe::ecris_proprietes()
 				 "Écriture des propriétés dans le fichier %s...\n",
 				 m_infos_fichiers.chemin_fichier_propriete.c_str());
 
-	std::vector<char> tampon;
-	tampon.resize(m_proprietes.size() * TAILLE_REGISTRE_PROPRIETE, '\0');
-	auto decalage = 0ul;
+	dls::tableau<char> tampon;
+	tampon.redimensionne(m_proprietes.taille() * TAILLE_REGISTRE_PROPRIETE, '\0');
+	auto decalage = 0l;
 
 	for (propriete *p : m_proprietes) {
 		tampon[decalage + 0] = 1; //p->utilise;
@@ -311,7 +313,7 @@ void graphe::ecris_proprietes()
 		decalage += TAILLE_REGISTRE_PROPRIETE;
 	}
 
-	m_autrice_proprietes.ecrit_tampon(tampon.data(), tampon.size());
+	m_autrice_proprietes.ecrit_tampon(tampon.donnees(), tampon.taille());
 
 	m_autrice_proprietes.ferme();
 }
@@ -334,7 +336,7 @@ void graphe::lis_proprietes()
 
 	char tampon[TAILLE_REGISTRE_PROPRIETE];
 
-	for (size_t i = 0; i < nombre_entrees; ++i) {
+	for (auto i = 0; i < nombre_entrees; ++i) {
 		m_lectrice_proprietes.lis_tampon(tampon, TAILLE_REGISTRE_PROPRIETE);
 
 		auto utilise = tampon[0];
@@ -373,12 +375,12 @@ void graphe::ecris_relations()
 
 	std::fprintf(stderr,
 				 "Écriture de %lu relations dans le fichier %s...\n",
-				 m_relations.size(),
+				 m_relations.taille(),
 				 m_infos_fichiers.chemin_fichier_relation.c_str());
 
-	std::vector<char> tampon;
-	tampon.resize(m_relations.size() * TAILLE_REGISTRE_RELATION, '\0');
-	auto decalage = 0ul;
+	dls::tableau<char> tampon;
+	tampon.redimensionne(m_relations.taille() * TAILLE_REGISTRE_RELATION, '\0');
+	auto decalage = 0l;
 
 	for (relation *r : m_relations) {
 		tampon[decalage + 0] = 1;  /* À FAIRE : utilisé */
@@ -402,13 +404,13 @@ void graphe::ecris_relations()
 			*reinterpret_cast<unsigned int *>(&tampon[decalage + 25]) = r->rel_suiv_fin->id;
 		}
 
-		*reinterpret_cast<unsigned int *>(&tampon[decalage + 29]) = (r->proprietes.empty()) ? 0 : r->proprietes.front()->id;
+		*reinterpret_cast<unsigned int *>(&tampon[decalage + 29]) = (r->proprietes.est_vide()) ? 0 : r->proprietes.front()->id;
 		tampon[decalage + 33] = 0; /* À FAIRE : drapeaux */
 
 		decalage += TAILLE_REGISTRE_RELATION;
 	}
 
-	m_autrice_relations.ecrit_tampon(tampon.data(), tampon.size());
+	m_autrice_relations.ecrit_tampon(tampon.donnees(), tampon.taille());
 
 	m_autrice_relations.ferme();
 }
@@ -430,7 +432,7 @@ void graphe::lis_relations()
 
 	char tampon[TAILLE_REGISTRE_RELATION];
 
-	for (size_t i = 0; i < nombre_entrees; ++i) {
+	for (auto i = 0; i < nombre_entrees; ++i) {
 		m_lectrice_relations.lis_tampon(tampon, TAILLE_REGISTRE_RELATION);
 
 		auto utilise = tampon[0];
@@ -489,12 +491,12 @@ void graphe::lis_noms_etiquettes()
 	lis_magasin_chaine(m_infos_fichiers.chemin_fichier_nom_etiquette);
 }
 
-unsigned int graphe::id_etiquette(const std::string &etiq) const
+unsigned int graphe::id_etiquette(const dls::chaine &etiq) const
 {
 	return m_nom_etiquettes.index_chaine(etiq);
 }
 
-std::list<noeud *> graphe::noeuds() const
+dls::liste<noeud *> graphe::noeuds() const
 {
 	return m_noeuds;
 }

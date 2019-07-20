@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "../tests/test_unitaire.hh"
+#include "biblinternes/tests/test_unitaire.hh"
 
 void test_matrice(dls::test_unitaire::Controleuse &controleur);
 void test_math(dls::test_unitaire::Controleuse &controleur);

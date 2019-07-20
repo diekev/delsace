@@ -67,7 +67,7 @@ ControleProprieteEntier::~ControleProprieteEntier()
 
 void ControleProprieteEntier::montre_echelle()
 {
-	m_echelle->valeur(std::experimental::any_cast<int>(m_propriete->valeur));
+	m_echelle->valeur(std::any_cast<int>(m_propriete->valeur));
 	m_echelle->plage(m_controle->min(), m_controle->max());
 	m_echelle->show();
 }
@@ -78,11 +78,11 @@ void ControleProprieteEntier::bascule_animation()
 
 	if (m_animation == false) {
 		m_propriete->supprime_animation();
-		m_controle->valeur(std::experimental::any_cast<int>(m_propriete->valeur));
+		m_controle->valeur(std::any_cast<int>(m_propriete->valeur));
 		m_bouton_animation->setText("C");
 	}
 	else {
-		m_propriete->ajoute_cle(std::experimental::any_cast<int>(m_propriete->valeur), m_temps);
+		m_propriete->ajoute_cle(std::any_cast<int>(m_propriete->valeur), m_temps);
 		m_bouton_animation->setText("c");
 	}
 
@@ -117,7 +117,7 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 		m_controle->valeur(m_propriete->evalue_entier(m_temps));
 	}
 	else {
-		m_controle->valeur(std::experimental::any_cast<int>(m_propriete->valeur));
+		m_controle->valeur(std::any_cast<int>(m_propriete->valeur));
 	}
 
 	m_controle->suffixe(donnees.suffixe.c_str());

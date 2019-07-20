@@ -25,7 +25,7 @@
 #pragma once
 
 #include <experimental/filesystem>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace sql {
 
@@ -58,10 +58,10 @@ public:
 	 * @param schema        Le schéma de la base de données à utiliser.
 	 */
 	void initialise_base_de_donnees(
-			const std::string &hote,
-			const std::string &usager,
-			const std::string &mot_de_passe,
-			const std::string &schema);
+			const dls::chaine &hote,
+			const dls::chaine &usager,
+			const dls::chaine &mot_de_passe,
+			const dls::chaine &schema);
 
 	/**
 	 * @return Un pointer vers la connection de la base de données.

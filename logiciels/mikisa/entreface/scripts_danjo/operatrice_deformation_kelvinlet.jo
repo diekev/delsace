@@ -1,0 +1,31 @@
+disposition "operatrice_creation_kelvinlet" {
+	ligne {
+		étiquette(valeur="Type")
+		énum(valeur="cusp"; attache=type;
+			 items=[
+				{nom="Regulier", valeur="regulier"},
+				{nom="Biscale", valeur="biscale"},
+				{nom="Triscale", valeur="triscale"},
+				{nom="Laplacien", valeur="laplacien"},
+				{nom="Bilaplacien", valeur="bilaplacien"},
+				{nom="Cusp", valeur="cusp"},
+				{nom="Cusp Laplacien", valeur="cusp_laplacien"},
+				{nom="Cusp Bilaplacien", valeur="cusp_bilaplacien"},
+				{nom="Twist", valeur="twist"},
+				{nom="Scale", valeur="scale"},
+				{nom="Pinch", valeur="pinch"}
+			 ])
+	}
+	ligne {
+		étiquette(valeur="Incompressibilité")
+		décimal(valeur=0.45; max=0.5; attache=incompressibilité)
+	}
+	ligne {
+		étiquette(valeur="Échelle Régularisation")
+		décimal(valeur=1.5; min=0; attache=échelle)
+	}
+	ligne {
+		étiquette(valeur="Répétition")
+		entier(valeur=1; min=0; max=10; attache=répétition)
+	}
+}

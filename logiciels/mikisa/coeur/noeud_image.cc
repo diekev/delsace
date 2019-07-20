@@ -67,6 +67,7 @@ void execute_noeud(
 
 		noeud->incremente_compte_execution();
 		noeud->temps_execution(static_cast<float>(delta) - temps_parent);
+		noeud->besoin_execution(false);
 	}
 }
 

@@ -410,10 +410,10 @@ void analyseuse_grammaire::analyse_expression(
 	}
 
 	auto &expression = m_paires_vecteurs[profondeur].first;
-	expression.clear();
+	expression.efface();
 
 	auto &pile = m_paires_vecteurs[profondeur].second;
-	pile.clear();
+	pile.efface();
 
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
 	{

@@ -43,8 +43,8 @@ struct message<true> {
 template <>
 struct message<false> {
 	status_http status;
-	std::string corps;
-	dls::dico<std::string, std::string> entetes;
+	dls::chaine corps;
+	dls::dico<dls::chaine, dls::chaine> entetes;
 };
 
 using type_requete = message<true>;

@@ -20,7 +20,6 @@
 #include "geom.hpp"
 #include "obj/obj.hpp"
 #include "../spatial/bvh.hpp"
-#include "../utilities/utilities.h"
 
 namespace geomCore {
 

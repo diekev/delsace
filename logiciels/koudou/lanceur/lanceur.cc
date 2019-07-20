@@ -31,7 +31,7 @@
 #include <QFile>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/spectre/spectre.h"
+#include "biblinternes/phys/spectre.hh"
 
 #include "entreface/fenetre_principale.h"
 

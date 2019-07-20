@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace langage {
 
@@ -77,15 +77,16 @@ enum {
 };
 
 struct DonneesMorceaux {
+	static constexpr int INCONNU = IDENTIFIANT_NUL;
+	using type = int;
+
 	int identifiant = 0;
 	int numero_ligne = 0;
 	int position_ligne = 0;
-	std::string contenu = "";
+	dls::chaine contenu = "";
 	dls::vue_chaine ligne;
 
 	DonneesMorceaux() = default;
 };
-
-std::vector<std::string> decoupe(const std::string &chaine, const char delimiteur = ' ');
 
 }  /* namespace langage */

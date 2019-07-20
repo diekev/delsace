@@ -24,7 +24,7 @@
 
 #include "tests.hh"
 
-#include "../types/date.h"
+#include "biblinternes/types/date.h"
 
 void test_date(dls::test_unitaire::Controleuse &controleur)
 {

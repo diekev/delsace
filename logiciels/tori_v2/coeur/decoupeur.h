@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
 
@@ -35,15 +35,15 @@ namespace langage {
  * mots-clés du langage.
  */
 class Decoupeur {
-	dls::vue_chaine m_chaine;
-	int m_position;
-	int m_position_ligne;
-	int m_ligne;
-	bool m_fini;
-	char m_caractere_courant;
+	dls::vue_chaine m_chaine = "";
+	int m_position = 0;
+	int m_position_ligne = 0;
+	int m_ligne = 0;
+	bool m_fini = 0;
+	char m_caractere_courant = 0;
 
-	std::vector<dls::vue_chaine> m_lignes;
-	std::vector<DonneesMorceaux> m_identifiants{};
+	dls::tableau<dls::vue_chaine> m_lignes{};
+	dls::tableau<DonneesMorceaux> m_identifiants{};
 
 public:
 	/**
@@ -67,12 +67,12 @@ public:
 	 * Ajoute un identifiant au vecteur d'identifiants avec les données passées
 	 * en paramètres.
 	 */
-	void ajoute_identifiant(int identifiant, const dls::vue_chaine &ligne, int numero_ligne, int position_ligne, const std::string &contenu);
+	void ajoute_identifiant(int identifiant, const dls::vue_chaine &ligne, int numero_ligne, int position_ligne, const dls::chaine &contenu);
 
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
-	const std::vector<DonneesMorceaux> &morceaux() const;
+	dls::tableau<DonneesMorceaux> &morceaux();
 
 private:
 	/**
@@ -80,7 +80,7 @@ private:
 	 * le mot courant passé via le paramètre 'quoi'.
 	 */
 	/* cppcheck-suppress unusedPrivateFunction */
-	void impression_debogage(const std::string &quoi);
+	void impression_debogage(const dls::chaine &quoi);
 
 	/**
 	 * Avance la position du découpeur sur la chaîne de caractère tant que le
@@ -110,14 +110,14 @@ private:
 
 	/**
 	 * Isole le contenu se trouvant entre deux guillemets (") et retourne-le
-	 * sous forme de std::string.
+	 * sous forme de dls::chaine.
 	 */
-	std::string decoupe_chaine_litterale();
+	dls::chaine decoupe_chaine_litterale();
 
 	/**
 	 * Retourne une chaîne contenant un nombre découpé du texte d'entrée.
 	 */
-	std::string decoupe_nombre();
+	dls::chaine decoupe_nombre();
 };
 
 }  /* namespace langage */

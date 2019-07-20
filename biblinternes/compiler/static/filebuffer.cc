@@ -26,10 +26,10 @@
 
 #include <fstream>
 
-FileBuffer::FileBuffer(const std::string &filename) noexcept(false)
+FileBuffer::FileBuffer(const dls::chaine &filename) noexcept(false)
     : m_buffer{}
 {
-	std::ifstream file(filename);
+	std::ifstream file(filename.c_str());
 
 	if (!file.is_open()) {
 		std::printf("File not open!\n");
@@ -43,7 +43,7 @@ FileBuffer::FileBuffer(const std::string &filename) noexcept(false)
 
 auto FileBuffer::size() const noexcept
 {
-	return m_buffer.size();
+	return m_buffer.taille();
 }
 
 const char *FileBuffer::begin() const noexcept
@@ -53,10 +53,10 @@ const char *FileBuffer::begin() const noexcept
 
 const char *FileBuffer::end() const noexcept
 {
-	return &m_buffer[m_buffer.size() - 1];
+	return &m_buffer[m_buffer.taille() - 1];
 }
 
 FileBuffer::operator bool() const noexcept
 {
-	return m_buffer.size() != 0;
+	return m_buffer.taille() != 0;
 }

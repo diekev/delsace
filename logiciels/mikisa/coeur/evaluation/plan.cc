@@ -24,27 +24,11 @@
 
 #include "plan.hh"
 
-#include <algorithm>
+#include "biblinternes/graphe/graphe.h"
 
 #include "reseau.hh"
 
 /* ************************************************************************** */
-
-template <typename I, typename P>
-static void tri_topologique(I debut, I fin, P predicat)
-{
-	while (debut != fin) {
-		auto nouveau_debut = std::partition(debut, fin, predicat);
-
-		/* Aucune solution n'a été trouvée, il est possible qu'il y ait
-		 * un cycle dans le graphe. */
-		if (nouveau_debut == debut) {
-			break;
-		}
-
-		debut = nouveau_debut;
-	}
-}
 
 static void tri_graphe_plan(Planifieuse::PtrPlan plan, NoeudReseau *noeud_temps)
 {
@@ -143,8 +127,11 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_nouveau_temps(Reseau &resea
 
 	dls::ensemble<NoeudReseau *> noeuds_visites;
 
-	/* À FAIRE : le noeud temps ne doit pas être dans le plan. */
-	rassemble_noeuds(plan->noeuds, noeuds_visites, &reseau.noeud_temps);
+	/* Cela duplique la boucle dans rassemble_noeuds, mais le noeud temps ne
+	 * doit pas être dans le plan. */
+	for (auto noeud : reseau.noeud_temps.sorties) {
+		rassemble_noeuds(plan->noeuds, noeuds_visites, noeud);
+	}
 
 	/* Prépare les noeuds au tri topologique, le degré doit être égal au nombre
 	 * de noeuds parents dans la branche. */

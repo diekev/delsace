@@ -34,7 +34,7 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "../evenement.h"
 #include "../kanba.h"

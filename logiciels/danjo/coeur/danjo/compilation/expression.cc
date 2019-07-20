@@ -79,8 +79,8 @@ static id_morceau promeut(id_morceau id1, id_morceau id2)
 	Symbole __nom(const Symbole &s1, const Symbole &s2) \
 	{ \
 		Symbole ret; \
-		ret.valeur = std::experimental::any_cast<T1>(s1.valeur) \
-					  __op static_cast<T1>(std::experimental::any_cast<T2>(s2.valeur)); \
+		ret.valeur = std::any_cast<T1>(s1.valeur) \
+					  __op static_cast<T1>(std::any_cast<T2>(s2.valeur)); \
 		ret.identifiant = promeut(s1.identifiant, s2.identifiant); \
 		return ret; \
 	}
@@ -166,7 +166,7 @@ auto evalue_operation_logique(const Symbole &s1, id_morceau identifiant)
 	resultat.identifiant = id_morceau::NOMBRE;
 	resultat.valeur = 0;
 
-	auto op1 = std::experimental::any_cast<int>(s1.valeur);
+	auto op1 = std::any_cast<int>(s1.valeur);
 
 	switch (identifiant) {
 		case id_morceau::TILDE:
@@ -214,13 +214,13 @@ bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 			|| ((p2.first == DROITE) && (p1.second < p2.second));
 }
 
-Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *manipulable)
+Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *manipulable)
 {
 	dls::pile<Symbole> pile;
 
 	/* Pousse un zéro sur la pile si jamais l'expression est vide ou démarre
 	 * avec un nombre négatif. */
-	pile.empile({std::experimental::any(0), id_morceau::NOMBRE});
+	pile.empile({std::any(0), id_morceau::NOMBRE});
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
@@ -256,7 +256,7 @@ Symbole evalue_expression(const std::vector<Symbole> &expression, Manipulable *m
 				}
 				case id_morceau::CHAINE_CARACTERE:
 				{
-					auto nom = std::experimental::any_cast<std::string>(symbole.valeur);
+					auto nom = std::any_cast<dls::chaine>(symbole.valeur);
 
 					Symbole tmp;
 
@@ -321,16 +321,16 @@ void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
 {
 	switch (symbole.identifiant) {
 		case id_morceau::NOMBRE:
-			os << std::experimental::any_cast<int>(symbole.valeur) << ' ';
+			os << std::any_cast<int>(symbole.valeur) << ' ';
 			break;
 		case id_morceau::NOMBRE_DECIMAL:
-			os << std::experimental::any_cast<float>(symbole.valeur) << ' ';
+			os << std::any_cast<float>(symbole.valeur) << ' ';
 			break;
 		case id_morceau::BOOL:
-			os << std::experimental::any_cast<bool>(symbole.valeur) << ' ';
+			os << std::any_cast<bool>(symbole.valeur) << ' ';
 			break;
 		default:
-			os << std::experimental::any_cast<std::string>(symbole.valeur) << ' ';
+			os << std::any_cast<dls::chaine>(symbole.valeur) << ' ';
 			break;
 	}
 }

@@ -27,6 +27,8 @@
 #include <random>
 #include <sstream>
 
+#include "biblinternes/structures/tableau.hh"
+
 #include "includes.h"
 
 #include "entraineur_cerebral.h"
@@ -49,8 +51,8 @@ static constexpr auto NUM_PERCEPTRON = 7;
 static constexpr auto NUM_OUTPUT = 3;
 
 struct NeuralNetwork {
-	std::vector<std::vector<double>> inputs = {};
-	std::vector<std::vector<double>> outputs = {};
+	dls::tableau<dls::tableau<double>> inputs = {};
+	dls::tableau<dls::tableau<double>> outputs = {};
 
 	double input[NUM_INPUT];
 	double target_output[NUM_OUTPUT];
@@ -64,7 +66,7 @@ struct NeuralNetwork {
 };
 
 template <typename T>
-static inline void print_vec(std::ostream &os, const std::vector<T> &v)
+static inline void print_vec(std::ostream &os, const dls::tableau<T> &v)
 {
 	for (const auto value : v) {
 		os << value << ' ';
@@ -92,18 +94,18 @@ void test_neural_net(std::ostream &os)
 
 	os << std::fixed << std::setprecision(2) << std::setfill('0');
 
-	network.inputs.resize(SAMPLE_SIZE);
-	network.outputs.resize(SAMPLE_SIZE);
+	network.inputs.redimensionne(SAMPLE_SIZE);
+	network.outputs.redimensionne(SAMPLE_SIZE);
 
-	for (std::vector<double> &input : network.inputs) {
-		input.resize(NUM_INPUT);
+	for (dls::tableau<double> &input : network.inputs) {
+		input.redimensionne(NUM_INPUT);
 	}
 
-	for (std::vector<double> &output : network.outputs) {
-		output.resize(NUM_OUTPUT);
+	for (dls::tableau<double> &output : network.outputs) {
+		output.redimensionne(NUM_OUTPUT);
 	}
 
-	auto index = 0ul;
+	auto index = 0l;
 	std::string line;
 
 	while (std::getline(in, line)) {
@@ -128,7 +130,7 @@ void test_neural_net(std::ostream &os)
 
 	os << "First 6 rows of training data:\n";
 
-	for (auto i = 0ul; i < 6; ++i) {
+	for (auto i = 0l; i < 6; ++i) {
 		os << "  " << i << ": ";
 		print_vec(os, network.inputs[i]);
 		os << '\n';
@@ -148,13 +150,13 @@ void test_neural_net(std::ostream &os)
 	/* compute means */
 	double mean[NUM_INPUT] = { 0.0, 0.0, 0.0, 0.0 };
 
-	for (const std::vector<double> &input : network.inputs) {
-		for (auto i = 0ul; i < NUM_INPUT; ++i) {
+	for (const dls::tableau<double> &input : network.inputs) {
+		for (auto i = 0l; i < NUM_INPUT; ++i) {
 			mean[i] += input[i];
 		}
 	}
 
-	const auto &size = network.inputs.size();
+	const auto &size = network.inputs.taille();
 	for (int i = 0; i < NUM_INPUT; ++i) {
 		mean[i] /= static_cast<double>(size);
 	}
@@ -164,58 +166,58 @@ void test_neural_net(std::ostream &os)
 
 	auto sqr = [](double x) { return x * x; };
 
-	for (const std::vector<double> &input : network.inputs) {
-		for (auto i = 0ul; i < NUM_INPUT; ++i) {
+	for (const dls::tableau<double> &input : network.inputs) {
+		for (auto i = 0l; i < NUM_INPUT; ++i) {
 			stddev[i] += sqr(input[i] - mean[i]);
 		}
 	}
 
-	for (auto i = 0ul; i < NUM_INPUT; ++i) {
+	for (auto i = 0l; i < NUM_INPUT; ++i) {
 		stddev[i] /= static_cast<double>(size);
 	}
 
 	/* normalise */
 
-	for (std::vector<double> &input : network.inputs) {
-		for (auto i = 0ul; i < NUM_INPUT; ++i) {
+	for (dls::tableau<double> &input : network.inputs) {
+		for (auto i = 0l; i < NUM_INPUT; ++i) {
 			input[i] = (input[i] - mean[i]) / stddev[i];
 		}
 	}
 
 	os << "First 6 rows of normalised training data:\n";
 
-	for (auto i = 0ul; i < 6; ++i) {
+	for (auto i = 0l; i < 6; ++i) {
 		os << "  " << i << ": ";
 		print_vec(os, network.inputs[i]);
 		os << '\n';
 	}
 
 	/* Copy input */
-	for (auto i = 0ul; i < NUM_INPUT; ++i) {
+	for (auto i = 0l; i < NUM_INPUT; ++i) {
 		network.input[i] = network.inputs[0][i];
 	}
 
-	for (auto i = 0ul; i < NUM_OUTPUT; ++i) {
+	for (auto i = 0l; i < NUM_OUTPUT; ++i) {
 		network.target_output[i] = network.outputs[0][i];
 	}
 
 #if 0
 	ReseauNeuronal reseau_neuronal(NUM_INPUT, NUM_PERCEPTRON, NUM_OUTPUT);
 
-	std::vector<DonneeFormation> donnees;
+	dls::tableau<DonneeFormation> donnees;
 
 	for (size_t i = 0; i < 120; ++i) {
 		DonneeFormation donnee;
 		donnee.entrees = network.inputs[i];
 		donnee.desirees = network.outputs[i];
 
-		donnees.push_back(donnee);
+		donnees.pousse(donnee);
 	}
 
 	EntraineurCerebral entraineur(reseau_neuronal);
 	entraineur.execute_apprentissage(donnees);
 
-	for (std::vector<double> &input : network.inputs) {
+	for (dls::tableau<double> &input : network.inputs) {
 		auto output = reseau_neuronal.avance_entrees(input.data());
 
 		os << "Input:  ";

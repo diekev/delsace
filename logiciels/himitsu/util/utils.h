@@ -25,6 +25,7 @@
 #pragma once
 
 #include <cassert>
+#include <cctype>
 
 class QSpinBox;
 
@@ -39,13 +40,13 @@ inline int letter_index(const char letter)
 inline char letter_add(const char letter, const int num)
 {
 	char first = ((isupper(letter)) ? 'A' : 'a');
-	return (((letter - first) + num) % 26) + first;
+	return static_cast<char>((((letter - first) + num) % 26) + first);
 }
 
 inline char letter_sub(const char letter, const int num)
 {
 	char first = ((isupper(letter)) ? 'A' : 'a');
-	return (((letter - first) + 26 - num) % 26) + first;
+	return static_cast<char>((((letter - first) + 26 - num) % 26) + first);
 }
 
 /**
@@ -53,21 +54,3 @@ inline char letter_sub(const char letter, const int num)
  */
 int beaudot_encode(const char ch);
 char beaudot_decode(const int code);
-
-/**
- * Return true if both arguments are equal.
- */
-template<typename T1, typename T2>
-auto is_elem(T1 &&a, T2 &&b) -> bool
-{
-	return a == b;
-}
-
-/**
- * Return true if the first argument is equal to one of the other arguments.
- */
-template<typename T1, typename T2, typename... Ts>
-auto is_elem(T1 &&a, T2 &&b, Ts &&... t) -> bool
-{
-	return a == b || is_elem(a, t...);
-}

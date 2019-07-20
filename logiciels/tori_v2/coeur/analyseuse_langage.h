@@ -24,41 +24,50 @@
 
 #pragma once
 
-#include "analyseur.h"
-
+#include "biblinternes/langage/analyseuse.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
+#include "morceaux.h"
 #include "postfix.h"
 
 namespace langage {
 
 struct DonneesVariables {
-	std::string valeur{};
+	dls::chaine valeur{};
 
 	DonneesVariables() = default;
 };
 
-using Expression = std::vector<Variable>;
+using Expression = dls::tableau<Variable>;
 
 struct DonneesFonction {
-	dls::dico_desordonne<std::string, DonneesVariables> variables_locales;
-	std::vector<Expression> expressions;
-	Expression expression_retour;
+	dls::dico_desordonne<dls::chaine, DonneesVariables> variables_locales{};
+	dls::tableau<Expression> expressions{};
+	Expression expression_retour{};
 };
 
 struct DonneesScript {
-	dls::dico_desordonne<std::string, DonneesVariables> variables;
-	dls::dico_desordonne<std::string, DonneesFonction> fonctions;
+	dls::dico_desordonne<dls::chaine, DonneesVariables> variables{};
+	dls::dico_desordonne<dls::chaine, DonneesFonction> fonctions{};
 };
 
-class AnalyseuseLangage : public Analyseuse {
-	DonneesScript m_donnees_script;
-	dls::dico_desordonne<std::string, double> m_chronometres;
+class AnalyseuseLangage : public lng::analyseuse<DonneesMorceaux> {
+	DonneesScript m_donnees_script{};
+	dls::dico_desordonne<dls::chaine, double> m_chronometres{};
 
 public:
-	void lance_analyse(const std::vector<DonneesMorceaux> &morceaux) override;
+	AnalyseuseLangage(dls::tableau<DonneesMorceaux> &morceaux);
+
+	void lance_analyse(std::ostream &os) override;
 
 private:
+	/**
+	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée
+	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
+	 * contenues dans l'instance DonneesMorceaux lui correspondant.
+	 */
+	void lance_erreur(const dls::chaine &quoi);
+
 	void analyse_declaration();
 	void analyse_imprime();
 	void analyse_variable();

@@ -57,29 +57,29 @@ double time_dt()
 	return now.tv_sec + now.tv_usec*1e-6;
 }
 
-std::string get_name_for_frame(const std::string &basename, const int frame)
+dls::chaine get_name_for_frame(const dls::chaine &basename, const int frame)
 {
 	std::ostringstream os;
 	os << frame;
-	std::string framenr = os.str();
-	framenr.insert(framenr.begin(), 4 - framenr.size(), '0');
+	dls::chaine framenr = os.str();
+	framenr.insere(framenr.debut(), 4 - framenr.taille(), '0');
 
 	return basename + framenr + ".vdb";
 }
 
-std::vector<std::string> generate_filenames(const std::string &name, const int num_frame)
+dls::tableau<dls::chaine> generate_filenames(const dls::chaine &name, const int num_frame)
 {
-	std::vector<std::string> v;
+	dls::tableau<dls::chaine> v;
 
 	for (int i = 0; i < num_frame; ++i) {
-		v.push_back(get_name_for_frame(name, i + 1));
+		v.pousse(get_name_for_frame(name, i + 1));
 //		std::cout << v[i] << std::endl;
 	}
 
 	return v;
 }
 
-void copyFile(const std::string &from_file, const std::string &to_file)
+void copyFile(const dls::chaine &from_file, const dls::chaine &to_file)
 {
 	openvdb::io::File from(from_file), to(to_file);
 	from.open();
@@ -117,7 +117,7 @@ int main(int argc, const char *argv[])
 
 	const auto frame_step = 1.0f / time_scale;
 	const auto time_step = time_scale * 100;
-	const auto basename = filename.substr(0, filename.size() - 8);
+	const auto basename = filename.substr(0, filename.taille() - 8);
 	const auto frame_range = end_frame - start_frame + 1;
 	const auto files = generate_filenames(basename, frame_range);
 	const auto r_files = generate_filenames(basename + "retime.", frame_range * frame_step);

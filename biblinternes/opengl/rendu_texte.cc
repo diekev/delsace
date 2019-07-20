@@ -241,7 +241,7 @@ void RenduTexte::ajourne(dls::chaine const &texte)
 	dls::tableau<dls::math::vec2f> uvs;
 
 #if 0
-	auto const echelle_lettres = 1.0 / table_uv_texte.size();
+	auto const echelle_lettres = 1.0 / table_uv_texte.taille();
 
 	for (auto const &caractere : texte) {
 		auto const decalage = table_uv_texte[caractere] * echelle_lettres;

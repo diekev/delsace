@@ -22,8 +22,7 @@
 set(NOM_BIBLIOTHEQUE bib_phys)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
@@ -31,10 +30,12 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	couleur.hh
+	spectre.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
 	couleur.cc
+	spectre.cc
 
 	${ENTETES}
 )

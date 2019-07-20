@@ -28,6 +28,8 @@
 
 #include <iostream>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace dls {
 namespace chrono {
 
@@ -37,12 +39,12 @@ namespace chrono {
  */
 class chronometre_de_portee {
 	double m_debut = 0.0;
-	std::string m_message = {};
+	dls::chaine m_message = {};
 	std::ostream &m_flux;
 
 public:
 	explicit chronometre_de_portee(
-			const std::string &message,
+			const dls::chaine &message,
 			std::ostream &flux = std::cerr)
 		: m_debut(maintenant())
 		, m_message(message)

@@ -44,8 +44,8 @@
 #include "biblinternes/image/operations/operations.h"
 #include "biblinternes/image/pixel.h"
 
-#include "biblinternes/commandes/commande.h"
-#include "biblinternes/commandes/repondant_commande.h"
+#include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 #include "biblinternes/outils/constantes.h"
 
 #include "coeur/composite.h"
@@ -65,8 +65,8 @@ Visionneuse2D::Visionneuse2D(Mikisa &mikisa, EditriceVue2D *base, QWidget *paren
 
 Visionneuse2D::~Visionneuse2D()
 {
-	delete m_rendu_image;
-	delete m_rendu_manipulatrice;
+	memoire::deloge("RenduImage", m_rendu_image);
+	memoire::deloge("RenduManipulatrice", m_rendu_manipulatrice);
 }
 
 void Visionneuse2D::initializeGL()
@@ -79,8 +79,8 @@ void Visionneuse2D::initializeGL()
 		return;
 	}
 
-	m_rendu_image = new RenduImage();
-	m_rendu_manipulatrice = new RenduManipulatrice2D();
+	m_rendu_image = memoire::loge<RenduImage>("RenduImage");
+	m_rendu_manipulatrice = memoire::loge<RenduManipulatrice2D>("RenduManipulatrice");
 }
 
 void Visionneuse2D::paintGL()

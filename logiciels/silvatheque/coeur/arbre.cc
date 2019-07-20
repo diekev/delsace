@@ -53,9 +53,9 @@ void Arbre::ajoute_sommet(dls::math::vec3f const &pos)
 {
 	Sommet *s = new Sommet;
 	s->pos = pos;
-	s->index = m_sommets.size();
+	s->index = m_sommets.taille();
 
-	m_sommets.push_back(s);
+	m_sommets.pousse(s);
 }
 
 void Arbre::ajoute_arrete(int s0, int s1)
@@ -64,7 +64,7 @@ void Arbre::ajoute_arrete(int s0, int s1)
 	a->s[0] = m_sommets[static_cast<size_t>(s0)];
 	a->s[1] = m_sommets[static_cast<size_t>(s1)];
 
-	m_arretes.push_back(a);
+	m_arretes.pousse(a);
 }
 
 void Arbre::reinitialise()
@@ -73,13 +73,13 @@ void Arbre::reinitialise()
 		delete s;
 	}
 
-	m_sommets.clear();
+	m_sommets.efface();
 
 	for (auto &a : m_arretes) {
 		delete a;
 	}
 
-	m_arretes.clear();
+	m_arretes.efface();
 }
 
 math::transformation const &Arbre::transformation() const
@@ -89,12 +89,12 @@ math::transformation const &Arbre::transformation() const
 
 Arbre::plage_sommets Arbre::sommets() const
 {
-	return plage_sommets(m_sommets.begin(), m_sommets.end());
+	return plage_sommets(m_sommets.debut(), m_sommets.fin());
 }
 
 Arbre::plage_arretes Arbre::arretes() const
 {
-	return plage_arretes(m_arretes.begin(), m_arretes.end());
+	return plage_arretes(m_arretes.debut(), m_arretes.fin());
 }
 
 Parametres *Arbre::parametres()

@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <list>
-#include <string>
+#include "biblinternes/structures/liste.hh"
+#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -56,8 +56,8 @@ struct DonneesArgument {
 
 struct DonneesCoroutine {
 	using paire_donnees = std::pair<size_t, char>;
-	using paire_variable = std::pair<std::string, paire_donnees>;
-	std::vector<paire_variable> variables{};
+	using paire_variable = std::pair<dls::chaine, paire_donnees>;
+	dls::tableau<paire_variable> variables{};
 	int nombre_retenues = 0;
 };
 
@@ -65,8 +65,8 @@ struct DonneesFonction {
 	dls::dico_desordonne<dls::vue_chaine, DonneesArgument> args{};
 	size_t index_type_retour{-1ul};
 	size_t index_type{-1ul};
-	std::vector<dls::vue_chaine> nom_args{};
-	std::string nom_broye{};
+	dls::tableau<dls::vue_chaine> nom_args{};
+	dls::chaine nom_broye{};
 	noeud::base *noeud_decl = nullptr;
 	bool est_externe = false;
 	bool est_variadique = false;
@@ -81,10 +81,10 @@ struct DonneesModule {
 	dls::tableau<DonneesMorceaux> morceaux{};
 	dls::ensemble<dls::vue_chaine> modules_importes{};
 	dls::ensemble<dls::vue_chaine> fonctions_exportees{};
-	dls::dico_desordonne<dls::vue_chaine, std::vector<DonneesFonction>> fonctions{};
-	size_t id = 0ul;
-	std::string nom{""};
-	std::string chemin{""};
+	dls::dico_desordonne<dls::vue_chaine, dls::tableau<DonneesFonction>> fonctions{};
+	long id = 0l;
+	dls::chaine nom{""};
+	dls::chaine chemin{""};
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;
@@ -113,7 +113,7 @@ struct DonneesModule {
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] std::vector<DonneesFonction> &donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept;
+	[[nodiscard]] dls::tableau<DonneesFonction> &donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
@@ -133,8 +133,8 @@ private:
 	DonneesFonction m_donnees_invalides{};
 };
 
-std::string charge_fichier(
-		std::string const &chemin,
+dls::chaine charge_fichier(
+		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau);
 
@@ -159,8 +159,8 @@ std::string charge_fichier(
  */
 void charge_module(
 		std::ostream &os,
-		std::string const &racine_kuri,
-		std::string const &nom,
+		dls::chaine const &racine_kuri,
+		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
 		DonneesMorceaux const &morceau,
 		bool est_racine = false);
@@ -188,22 +188,22 @@ struct DonneesCandidate {
 	double poids_args = 0.0;
 	dls::vue_chaine nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
-	std::vector<noeud::base *> exprs{};
+	dls::tableau<noeud::base *> exprs{};
 	DonneesType type1{};
 	DonneesType type2{};
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
-//	std::vector<niveau_compat> drapeaux{};
+//	dls::tableau<niveau_compat> drapeaux{};
 };
 
 struct ResultatRecherche {
-	std::vector<DonneesCandidate> candidates{};
+	dls::tableau<DonneesCandidate> candidates{};
 };
 
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom,
-		std::list<dls::vue_chaine> &noms_arguments,
-		std::list<noeud::base *> const &exprs,
+		dls::liste<dls::vue_chaine> &noms_arguments,
+		dls::liste<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel);

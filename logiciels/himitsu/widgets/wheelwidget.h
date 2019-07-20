@@ -27,6 +27,8 @@
 #include <QWidget>
 #include <random>
 
+#include "biblinternes/structures/chaine.hh"
+
 class QHBoxLayout;
 class QLabel;
 class QSpinBox;
@@ -35,10 +37,10 @@ class WheelWidget : public QWidget {
 	Q_OBJECT
 
 protected:
-	QHBoxLayout *m_layout;
-	QLabel *m_pin_label;
-	QSpinBox *m_spin_box;
-	u_int64_t m_num_values;
+	QHBoxLayout *m_layout = nullptr;
+	QLabel *m_pin_label = nullptr;
+	QSpinBox *m_spin_box = nullptr;
+	u_int64_t m_num_values = 0;
 
 private Q_SLOTS:
 	virtual void updateLabel(int value);
@@ -46,6 +48,9 @@ private Q_SLOTS:
 public:
 	WheelWidget(int num_values, QWidget *parent = nullptr);
 	~WheelWidget();
+
+	WheelWidget(WheelWidget const &) = default;
+	WheelWidget &operator=(WheelWidget const &) = default;
 
 	virtual void rotate(const int increment);
 	virtual int value() const;
@@ -55,10 +60,10 @@ public:
 class PinWheel : public WheelWidget {
 	Q_OBJECT
 
-	std::mt19937 m_rng;
-	u_int64_t m_pins;
-	QString m_pins_str;
-	std::string m_keys;
+	std::mt19937 m_rng{};
+	u_int64_t m_pins = 0;
+	QString m_pins_str = "";
+	dls::chaine m_keys = "";
 
 private Q_SLOTS:
 	virtual void updateLabel(int value);
@@ -68,6 +73,9 @@ public:
 	PinWheel(int num_values, QWidget *parent = nullptr);
 	~PinWheel() = default;
 
+	PinWheel(PinWheel const &) = default;
+	PinWheel &operator=(PinWheel const &) = default;
+
 	int pinValue() const;
 	QString pinStr() const;
 	void generatePins();
@@ -76,7 +84,7 @@ public:
 class LetterWheel : public WheelWidget {
 	Q_OBJECT
 
-	std::string m_keys;
+	dls::chaine m_keys = "";
 
 private Q_SLOTS:
 	virtual void updateLabel(int value);
@@ -85,7 +93,10 @@ public:
 	LetterWheel(int num_values, QWidget *parent = nullptr);
 	~LetterWheel() = default;
 
-	void setKeys(const std::string &keys);
+	LetterWheel(LetterWheel const &) = default;
+	LetterWheel &operator=(LetterWheel const &) = default;
+
+	void setKeys(const dls::chaine &keys);
 	char key();
 	char key(const int pos);
 };

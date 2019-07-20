@@ -27,7 +27,7 @@
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 struct CarreauPellicule {
 	unsigned int x;
@@ -44,7 +44,7 @@ struct PixelPellicule {
 class Pellicule {
 	dls::math::matrice_dyn<dls::math::vec3d> m_matrice;
 
-	std::vector<PixelPellicule> m_pixels_pellicule{};
+	dls::tableau<PixelPellicule> m_pixels_pellicule{};
 
 public:
 	Pellicule();
@@ -53,7 +53,7 @@ public:
 
 	int largeur() const;
 
-	void ajoute_echantillon(size_t i, size_t j, dls::math::vec3d const &couleur, const double poids = 1.0);
+	void ajoute_echantillon(long i, long j, dls::math::vec3d const &couleur, const double poids = 1.0);
 
 	dls::math::vec3d const &couleur(int i, int j);
 

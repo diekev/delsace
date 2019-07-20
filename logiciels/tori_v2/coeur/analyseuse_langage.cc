@@ -25,27 +25,33 @@
 #include "analyseuse_langage.h"
 
 #include <iostream>
-#include <stack>
-#include <sys/time.h>
 
-#include "postfix.h"
+#include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/structures/pile.hh"
+
+#include "erreur.h"
 
 namespace langage {
 
-inline double maintenant()
-{
-	struct timeval now;
-	gettimeofday(&now, nullptr);
+AnalyseuseLangage::AnalyseuseLangage(dls::tableau<DonneesMorceaux> &morceaux)
+	: lng::analyseuse<DonneesMorceaux>(morceaux)
+{}
 
-	return now.tv_sec + now.tv_usec * 1e-6;
-}
-
-void AnalyseuseLangage::lance_analyse(const std::vector<DonneesMorceaux> &morceaux)
+void AnalyseuseLangage::lance_analyse(std::ostream &)
 {
 	m_position = 0;
-	m_identifiants = morceaux;
 
 	analyse_declaration();
+}
+
+void AnalyseuseLangage::lance_erreur(const dls::chaine &quoi)
+{
+	const auto numero_ligne = m_identifiants[position()].numero_ligne;
+	const auto ligne = m_identifiants[position()].ligne;
+	const auto position_ligne = m_identifiants[position()].position_ligne;
+	const auto contenu = m_identifiants[position()].contenu;
+
+	throw ErreurSyntactique(ligne, numero_ligne, position_ligne, quoi, contenu);
 }
 
 void AnalyseuseLangage::analyse_declaration()
@@ -92,10 +98,10 @@ void AnalyseuseLangage::analyse_imprime()
 		}
 
 		auto valeur = m_identifiants[position()].contenu;
-		auto iter = m_chronometres.find(valeur);
+		auto iter = m_chronometres.trouve(valeur);
 
-		if (iter != m_chronometres.end()) {
-			std::cout << maintenant() - iter->second  << "s";
+		if (iter != m_chronometres.fin()) {
+			std::cout << dls::chrono::maintenant() - iter->second  << "s";
 		}
 		else {
 			lance_erreur("Chronomètre inconnu");
@@ -106,9 +112,9 @@ void AnalyseuseLangage::analyse_imprime()
 		avance();
 
 		auto valeur = m_identifiants[position()].contenu;
-		auto iter = m_donnees_script.variables.find(valeur);
+		auto iter = m_donnees_script.variables.trouve(valeur);
 
-		if (iter != m_donnees_script.variables.end()) {
+		if (iter != m_donnees_script.variables.fin()) {
 			const DonneesVariables &donnees_variable = iter->second;
 			std::cout << donnees_variable.valeur;
 		}
@@ -175,7 +181,7 @@ void AnalyseuseLangage::analyse_variable()
 		donnees_variable.valeur = reponse;
 	}
 
-	m_donnees_script.variables.insert({nom_variable, donnees_variable});
+	m_donnees_script.variables.insere({nom_variable, donnees_variable});
 }
 
 void AnalyseuseLangage::analyse_chronometre()
@@ -188,7 +194,7 @@ void AnalyseuseLangage::analyse_chronometre()
 		lance_erreur("Attendu une chaîne de caractère");
 	}
 
-	m_chronometres.insert({m_identifiants[position()].contenu, maintenant()});
+	m_chronometres.insere({m_identifiants[position()].contenu, dls::chrono::maintenant()});
 }
 
 void AnalyseuseLangage::analyse_fonction()
@@ -241,7 +247,7 @@ void AnalyseuseLangage::analyse_fonction()
 		lance_erreur("Attendu une accolade fermée");
 	}
 
-	m_donnees_script.fonctions.insert({nom_fonction, donnees_fonction});
+	m_donnees_script.fonctions.insere({nom_fonction, donnees_fonction});
 }
 
 void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
@@ -254,12 +260,12 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 		return;
 	}
 
-	donnees_fonction.variables_locales.insert({m_identifiants[position() + 1].contenu, DonneesVariables{}});
+	donnees_fonction.variables_locales.insere({m_identifiants[position() + 1].contenu, DonneesVariables{}});
 
 	/* Algorithme de Dijkstra pour générer une notation polonaire inversée. */
 
-	std::vector<Variable> output;
-	std::stack<Variable> stack;
+	dls::tableau<Variable> output;
+	dls::pile<Variable> stack;
 
 	Variable variable;
 
@@ -268,65 +274,65 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 		variable.valeur = m_identifiants[position() + 1].contenu;
 
 		if (est_identifiant(IDENTIFIANT_NOMBRE)) {
-			output.push_back(variable);
+			output.pousse(variable);
 		}
 		else if (est_identifiant(IDENTIFIANT_CHAINE_CARACTERE)) {
 //			if (!m_assembleuse.variable_connue(variable.valeur)) {
 //				lance_erreur("Variable inconnue : " + variable.valeur);
 //			}
 
-			output.push_back(variable);
+			output.pousse(variable);
 		}
 		else if (est_operateur(variable.identifiant)) {
-			while (!stack.empty()
-				   && est_operateur(stack.top().identifiant)
-				   && (precedence_faible(variable.identifiant, stack.top().identifiant)))
+			while (!stack.est_vide()
+				   && est_operateur(stack.haut().identifiant)
+				   && (precedence_faible(variable.identifiant, stack.haut().identifiant)))
 			{
-				output.push_back(stack.top());
-				stack.pop();
+				output.pousse(stack.haut());
+				stack.depile();
 			}
 
-			stack.push(variable);
+			stack.empile(variable);
 		}
 		else if (est_identifiant(IDENTIFIANT_PARENTHESE_OUVERTE)) {
-			stack.push(variable);
+			stack.empile(variable);
 		}
 		else if (est_identifiant(IDENTIFIANT_PARENTHESE_FERMEE)) {
-			if (stack.empty()) {
+			if (stack.est_vide()) {
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (stack.top().identifiant != IDENTIFIANT_PARENTHESE_OUVERTE) {
-				output.push_back(stack.top());
-				stack.pop();
+			while (stack.haut().identifiant != IDENTIFIANT_PARENTHESE_OUVERTE) {
+				output.pousse(stack.haut());
+				stack.depile();
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
-				stack.pop();
+			if (stack.haut().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
+				stack.depile();
 			}
 		}
 
 		avance();
 	}
 
-	while (!stack.empty()) {
-		if (stack.top().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
+	while (!stack.est_vide()) {
+		if (stack.haut().identifiant == IDENTIFIANT_PARENTHESE_OUVERTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		output.push_back(stack.top());
-		stack.pop();
+		output.pousse(stack.haut());
+		stack.depile();
 	}
 
-	donnees_fonction.expressions.push_back(output);
+	donnees_fonction.expressions.pousse(output);
 
 #define DEBOGUE_EXPRESSION
 
 #ifdef DEBOGUE_EXPRESSION
 	std::cerr << "Expression  : " ;
-	for (const Variable &variable : output) {
-		std::cerr << variable.valeur << ' ';
+	for (const Variable &var : output) {
+		std::cerr << var.valeur << ' ';
 	}
 	std::cerr << '\n';
 

@@ -24,9 +24,8 @@
 
 #include "rendu_camera.h"
 
-#include "biblinternes/ego/outils.h"
 #include "biblinternes/ego/programme.h"
-
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "tampon_rendu.h"
@@ -150,20 +149,20 @@ void RenduCamera::initialise()
 {
 	m_tampon = cree_tampon(dls::math::vec4f(1.0), 1.0);
 
-	std::vector<dls::math::vec3f> sommets(
+	dls::tableau<dls::math::vec3f> sommets(
 				std::begin(donnees_sommets), std::end(donnees_sommets));
 
-	std::vector<unsigned int> index(
+	dls::tableau<unsigned int> index(
 				std::begin(donnees_index), std::end(donnees_index));
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = index.data();
-	parametres_tampon.taille_octet_index = index.size() * sizeof(unsigned int);
-	parametres_tampon.elements = index.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = index.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(index.taille());
 
 	m_tampon->remplie_tampon(parametres_tampon);
 }
@@ -177,11 +176,11 @@ static TamponRendu *cree_tampon(dls::math::vec4f const &couleur)
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 

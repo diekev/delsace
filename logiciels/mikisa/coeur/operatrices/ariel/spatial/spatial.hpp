@@ -18,7 +18,8 @@
 #endif
 
 #include "../ray/ray.hpp"
-#include "../utilities/utilities.h"
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace spaceCore {
 

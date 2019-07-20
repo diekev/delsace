@@ -146,9 +146,9 @@ static void test_arbre_binaire(std::ostream &os)
 /* ************************************************************************** */
 
 struct object {
-	std::string nom = "";
+	dls::chaine nom = "";
 
-	explicit object(std::string nom_)
+	explicit object(dls::chaine nom_)
 		: nom(std::move(nom_))
 	{}
 };
@@ -224,7 +224,7 @@ static void test_forest(std::ostream &os)
 	/*auto noeud_d =*/ arbre.insert(noeud_c, object("noeud_d"));
 	//genere_enfants(arbre, noeud_d);
 
-	os << "Taille de l'arbre : " << arbre.size() << '\n';
+	os << "Taille de l'arbre : " << arbre.taille() << '\n';
 
 	auto iterations = 0;
 
@@ -233,7 +233,7 @@ static void test_forest(std::ostream &os)
 //		++iterations;
 //	}
 
-	std::for_each(arbre.begin(), arbre.end(), [&](const object &ob)
+	std::for_each(arbre.begin(), arbre.fin(), [&](const object &ob)
 	{
 		os << ob.nom << '\n';
 		++iterations;

@@ -150,7 +150,7 @@ void TamponObjet::genere_tampon_extra(void const *data, long const size) noexcep
 {
 	auto extra_buffer = 0u;
 	genere_tampon(extra_buffer, data, size, GL_ARRAY_BUFFER);
-	m_tampons_extra.push_back(extra_buffer);
+	m_tampons_extra.pousse(extra_buffer);
 }
 
 void TamponObjet::ajourne_tampon_sommet(void const *vertices, long const size) const noexcept

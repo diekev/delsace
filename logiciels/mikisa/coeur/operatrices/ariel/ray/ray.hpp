@@ -17,7 +17,8 @@
 #define SHARED
 #endif
 
-#include "../utilities/utilities.h"
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/math/vecteur.hh"
 
 namespace rayCore {
 

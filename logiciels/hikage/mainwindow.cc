@@ -34,9 +34,12 @@
 #include <QTimer>
 
 class scope_timer {
-	QTimer *m_timer;
+	QTimer *m_timer = nullptr;
 
 public:
+	scope_timer(scope_timer const &) = default;
+	scope_timer &operator=(scope_timer const &) = default;
+
 	scope_timer(QTimer *timer)
 	    : m_timer(timer)
 	{

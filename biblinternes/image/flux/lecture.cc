@@ -57,13 +57,13 @@ math::matrice_dyn<PixelChar> lecture_uchar(const filesystem::path &chemin)
 {
 	const auto &extension = chemin.extension();
 
-	if (outils::est_extension_jpeg(extension)) {
+	if (outils::est_extension_jpeg(extension.c_str())) {
 		return LecteurJPEG::ouvre(chemin);
 	}
-	else if (outils::est_extension_pnm(extension)) {
+	else if (outils::est_extension_pnm(extension.c_str())) {
 		return LecteurPNM::ouvre(chemin);
 	}
-	else if (outils::est_extension_exr(extension)) {
+	else if (outils::est_extension_exr(extension.c_str())) {
 		auto float_image = LecteurEXR::ouvre(chemin);
 		return operation::converti_en_char(float_image);
 	}
@@ -76,15 +76,15 @@ math::matrice_dyn<PixelFloat> lecture_float(const filesystem::path &chemin)
 {
 	const auto &extension = chemin.extension();
 
-	if (outils::est_extension_jpeg(extension)) {
+	if (outils::est_extension_jpeg(extension.c_str())) {
 		auto byte_image = LecteurJPEG::ouvre(chemin);
 		return operation::converti_en_float(byte_image);
 	}
-	else if (outils::est_extension_pnm(extension)) {
+	else if (outils::est_extension_pnm(extension.c_str())) {
 		auto byte_image = LecteurPNM::ouvre(chemin);
 		return operation::converti_en_float(byte_image);
 	}
-	else if (outils::est_extension_exr(extension)) {
+	else if (outils::est_extension_exr(extension.c_str())) {
 		return LecteurEXR::ouvre(chemin);
 	}
 	else {
@@ -235,7 +235,7 @@ math::matrice_dyn<PixelFloat> LecteurEXR::ouvre(const filesystem::path &chemin)
 	auto width = dw.max.x - dw.min.x + 1;
 	auto height = dw.max.y - dw.min.y + 1;
 
-	std::vector<openexr::Rgba> pixels(width * height);
+	dls::tableau<openexr::Rgba> pixels(width * height);
 
 	file.setFrameBuffer(&pixels[0]- dw.min.x - dw.min.y * width, 1, width);
 	file.readPixels(dw.min.y, dw.max.y);

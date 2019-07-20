@@ -26,7 +26,7 @@
 
 #include <iostream>
 #include <memory>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/structures/dico_desordonne.hh"
 
@@ -61,8 +61,8 @@ enum {
 class Programme {
 	unsigned int m_programme = 0;
 	unsigned int m_nuanceurs[NOMBRE_NUANCEURS] = { 0, 0, 0, 0, 0, 0 };
-	dls::dico_desordonne<std::string, int> m_attributs{};
-	dls::dico_desordonne<std::string, int> m_uniformes{};
+	dls::dico_desordonne<dls::chaine, int> m_attributs{};
+	dls::dico_desordonne<dls::chaine, int> m_uniformes{};
 
 public:
 	Programme() = default;
@@ -89,7 +89,7 @@ public:
 	 *               the file path!
 	 * @param os the stream used to redirect the error log.
 	 */
-	void charge(Nuanceur type_nuanceur, std::string const &source, std::ostream &os = std::cerr);
+	void charge(Nuanceur type_nuanceur, dls::chaine const &source, std::ostream &os = std::cerr);
 
 	/**
 	 * @brief create a program and attach the various shaders to it.
@@ -100,8 +100,8 @@ public:
 	void active() const;
 	void desactive() const;
 
-	void ajoute_attribut(std::string const &attribut);
-	void ajoute_uniforme(std::string const &uniforme);
+	void ajoute_attribut(dls::chaine const &attribut);
+	void ajoute_uniforme(dls::chaine const &uniforme);
 
 	/**
 	 * @brief Check whether or not the program can be used for display.
@@ -112,33 +112,33 @@ public:
 	/**
 	 * @brief Return the location of the given attribute value.
 	 */
-	int operator[](std::string const &attribute);
+	int operator[](dls::chaine const &attribute);
 
 	/**
 	 * @brief Return the location of the given uniform value.
 	 */
-	int operator()(std::string const &uniforme);
+	int operator()(dls::chaine const &uniforme);
 
-	void uniforme(std::string const &uniforme, double const value);
-	void uniforme(std::string const &uniforme, double const v0, double const v1);
-	void uniforme(std::string const &uniforme, double const v0, double const v1, double const v2);
-	void uniforme(std::string const &uniforme, double const v0, double const v1, double const v2, double const v4);
-	void uniforme(std::string const &uniforme, float const value);
-	void uniforme(std::string const &uniforme, float const v0, float const v1);
-	void uniforme(std::string const &uniforme, float const v0, float const v1, float const v2);
-	void uniforme(std::string const &uniforme, float const v0, float const v1, float const v2, float const v4);
-	void uniforme(std::string const &uniforme, int const value);
-	void uniforme(std::string const &uniforme, int const v0, int const v1);
-	void uniforme(std::string const &uniforme, int const v0, int const v1, int const v2);
-	void uniforme(std::string const &uniforme, int const v0, int const v1, int const v2, int const v4);
-	void uniforme(std::string const &uniforme, unsigned int const value);
-	void uniforme(std::string const &uniforme, unsigned int const v0, unsigned int const v1);
-	void uniforme(std::string const &uniforme, unsigned int const v0, unsigned int const v1, unsigned int const v2);
-	void uniforme(std::string const &uniforme, unsigned int const v0, unsigned int const v1, unsigned int const v2, unsigned int const v4);
-	void uniforme(std::string const &uniforme, double const *value, int const n);
-	void uniforme(std::string const &uniforme, float const *value, int const n);
-	void uniforme(std::string const &uniforme, int const *value, int const n);
-	void uniforme(std::string const &uniforme, unsigned int const *value, int const n);
+	void uniforme(dls::chaine const &uniforme, double const value);
+	void uniforme(dls::chaine const &uniforme, double const v0, double const v1);
+	void uniforme(dls::chaine const &uniforme, double const v0, double const v1, double const v2);
+	void uniforme(dls::chaine const &uniforme, double const v0, double const v1, double const v2, double const v4);
+	void uniforme(dls::chaine const &uniforme, float const value);
+	void uniforme(dls::chaine const &uniforme, float const v0, float const v1);
+	void uniforme(dls::chaine const &uniforme, float const v0, float const v1, float const v2);
+	void uniforme(dls::chaine const &uniforme, float const v0, float const v1, float const v2, float const v4);
+	void uniforme(dls::chaine const &uniforme, int const value);
+	void uniforme(dls::chaine const &uniforme, int const v0, int const v1);
+	void uniforme(dls::chaine const &uniforme, int const v0, int const v1, int const v2);
+	void uniforme(dls::chaine const &uniforme, int const v0, int const v1, int const v2, int const v4);
+	void uniforme(dls::chaine const &uniforme, unsigned int const value);
+	void uniforme(dls::chaine const &uniforme, unsigned int const v0, unsigned int const v1);
+	void uniforme(dls::chaine const &uniforme, unsigned int const v0, unsigned int const v1, unsigned int const v2);
+	void uniforme(dls::chaine const &uniforme, unsigned int const v0, unsigned int const v1, unsigned int const v2, unsigned int const v4);
+	void uniforme(dls::chaine const &uniforme, double const *value, int const n);
+	void uniforme(dls::chaine const &uniforme, float const *value, int const n);
+	void uniforme(dls::chaine const &uniforme, int const *value, int const n);
+	void uniforme(dls::chaine const &uniforme, unsigned int const *value, int const n);
 };
 
 EGO_VERSION_NAMESPACE_END

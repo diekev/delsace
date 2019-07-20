@@ -26,7 +26,6 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_geometrie
 )
 
 add_library(${NOM_CIBLE} STATIC
@@ -41,3 +40,39 @@ add_library(${NOM_CIBLE} STATIC
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})
 target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
+
+################################################################################
+
+set(NOM_BIBLIOTHEQUE graph_theory)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
+set(BIBLIOTHEQUES
+	docopt
+	pthread
+	bib_structures
+)
+
+set(ENTETES
+	dataflow.h
+	layout.h
+	graph.h
+)
+
+set(SOURCES
+	main.cc
+	matching.cc
+	dataflow.cc
+	layout.cc
+	graph.cc
+)
+
+add_executable(${NOM_BIBLIOTHEQUE} ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+
+install(TARGETS ${NOM_BIBLIOTHEQUE} RUNTIME DESTINATION ${NOM_BIBLIOTHEQUE})

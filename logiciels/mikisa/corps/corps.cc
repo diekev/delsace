@@ -140,11 +140,7 @@ size_t Corps::ajoute_point(float x, float y, float z)
 		return index;
 	}
 
-	auto point = memoire::loge<Point3D>("Point3D");
-	point->x = x;
-	point->y = y;
-	point->z = z;
-
+	auto point = dls::math::vec3f(x, y, z);
 	m_points.pousse(point);
 
 	return static_cast<size_t>(m_points.taille()) - 1;
@@ -157,8 +153,8 @@ size_t Corps::index_point(float x, float y, float z)
 	INUTILISE(z);
 //	int i = 0;
 
-//	for (Point3D *point : m_points.points()) {
-//		if (point->x == x && point->y == y && point->z == z) {
+//	for (auto const &point : m_points.points()) {
+//		if (point.x == x && point.y == y && point.z == z) {
 //			return i;
 //		}
 
@@ -213,10 +209,10 @@ void Corps::reinitialise()
 		memoire::deloge("Attribut", attribut);
 	}
 
-	m_attributs.clear();
+	m_attributs.efface();
 
-	m_groupes_prims.clear();
-	m_groupes_points.clear();
+	m_groupes_prims.efface();
+	m_groupes_points.efface();
 }
 
 Corps *Corps::copie() const

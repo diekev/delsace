@@ -51,17 +51,17 @@ auto fait_parti(T1 &&a, T2 &&b, Ts &&... t) -> bool
 
 }  /* namespace detail */
 
-bool est_extension_exr(const std::string &extension)
+bool est_extension_exr(const dls::chaine &extension)
 {
 	return detail::fait_parti(extension, ".exr");
 }
 
-bool est_extension_jpeg(const std::string &extension)
+bool est_extension_jpeg(const dls::chaine &extension)
 {
 	return detail::fait_parti(extension, ".jpg", ".jpeg");
 }
 
-bool est_extension_pnm(const std::string &extension)
+bool est_extension_pnm(const dls::chaine &extension)
 {
 	return detail::fait_parti(extension, ".ppm", ".pgm", ".pbm", ".pnm");
 }

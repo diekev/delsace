@@ -336,33 +336,33 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	for (auto id : sequence_declaration_fonction) {
 		dm.identifiant = id;
-		morceaux.push_back(dm);
+		morceaux.pousse(dm);
 	}
 
-	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
+	for (auto n = morceaux.taille(); n < max_morceaux - 1; ++n) {
 		auto arbre = arbre_expression::arbre{};
 		arbre.construit_expression();
 
 		auto visiteur = [&](id_morceau id)
 		{
 			dm.identifiant = static_cast<id_morceau>(id);
-			morceaux.push_back(dm);
+			morceaux.pousse(dm);
 		};
 
 		arbre.visite(visiteur);
 
 		dm.identifiant = id_morceau::POINT_VIRGULE;
-		morceaux.push_back(dm);
+		morceaux.pousse(dm);
 
-		n += arbre.noeuds.size();
+		n += arbre.noeuds.taille();
 	}
 
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
-	morceaux.push_back(dm);
+	morceaux.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.taille();
 
-	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #else
 	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
 
@@ -417,20 +417,20 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	for (auto id : sequence_declaration_fonction) {
 		dm.identifiant = id;
-		morceaux.push_back(dm);
+		morceaux.pousse(dm);
 	}
 
-	for (auto n = morceaux.size(); n < max_morceaux - 1; ++n) {
+	for (auto n = morceaux.taille(); n < max_morceaux - 1; ++n) {
 		dm.identifiant = static_cast<id_morceau>(rng(device));
-		morceaux.push_back(dm);
+		morceaux.pousse(dm);
 	}
 
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
-	morceaux.push_back(dm);
+	morceaux.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.size();
+	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.taille();
 
-	memcpy(donnees, morceaux.data(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #else
 	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
 

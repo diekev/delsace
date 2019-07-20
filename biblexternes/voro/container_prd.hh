@@ -11,7 +11,6 @@
 #define VOROPP_CONTAINER_PRD_HH
 
 #include <cstdio>
-#include <vector>
 
 #include "config.hh"
 #include "common.hh"

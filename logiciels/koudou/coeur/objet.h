@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/transformation/transformation.h"
+#include "biblinternes/math/transformation.hh"
 
 class Lumiere;
 class Maillage;
@@ -39,7 +39,7 @@ struct Objet {
 	math::transformation transformation{};
 	Nuanceur *nuanceur{};
 	TypeObjet type{};
-	std::string nom{};
+	dls::chaine nom{};
 
 	union {
 		Lumiere *lumiere;
@@ -56,5 +56,5 @@ struct Objet {
 
 	explicit Objet(Maillage *maillage);
 
-	std::string chemin() const;
+	dls::chaine chemin() const;
 };

@@ -39,9 +39,9 @@ gestionnaire::gestionnaire()
 	}
 }
 
-void gestionnaire::cree_base_donnees(const std::string &nom)
+void gestionnaire::cree_base_donnees(const dls::chaine &nom)
 {
-	const auto chemin = m_chemin_racine / nom;
+	const auto chemin = m_chemin_racine / nom.c_str();
 
 	if (!std::experimental::filesystem::exists(chemin)) {
 		std::fprintf(stderr, "Création du dossier '%s'\n", chemin.c_str());
@@ -52,9 +52,9 @@ void gestionnaire::cree_base_donnees(const std::string &nom)
 	m_base_courante = nom;
 }
 
-void gestionnaire::supprime_base_donnees(const std::string &nom)
+void gestionnaire::supprime_base_donnees(const dls::chaine &nom)
 {
-	auto chemin = m_chemin_racine / nom;
+	auto chemin = m_chemin_racine / nom.c_str();
 
 	if (!std::experimental::filesystem::exists(chemin)) {
 		return;
@@ -65,9 +65,9 @@ void gestionnaire::supprime_base_donnees(const std::string &nom)
 	m_chemin_courant = "";
 }
 
-bool gestionnaire::change_base_donnees(const std::string &nom)
+bool gestionnaire::change_base_donnees(const dls::chaine &nom)
 {
-	auto chemin = m_chemin_racine / nom;
+	auto chemin = m_chemin_racine / nom.c_str();
 
 	if (!std::experimental::filesystem::exists(chemin)) {
 		return false;
@@ -89,7 +89,7 @@ std::experimental::filesystem::path gestionnaire::chemin_courant() const
 	return m_chemin_courant;
 }
 
-std::string gestionnaire::base_courante() const
+dls::chaine gestionnaire::base_courante() const
 {
 	return m_base_courante;
 }

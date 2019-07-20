@@ -24,7 +24,7 @@
 
 #include "operatrices_script.hh"
 
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "corps/attribut.h"
 
@@ -192,6 +192,7 @@ static auto converti_type_prop(danjo::TypePropriete type)
 		case danjo::TypePropriete::COURBE_VALEUR:
 		case danjo::TypePropriete::COURBE_COULEUR:
 		case danjo::TypePropriete::RAMPE_COULEUR:
+		case danjo::TypePropriete::LISTE_MANIP:
 		{
 			return lcc::type_var::INVALIDE;
 		}
@@ -286,6 +287,7 @@ static auto ajoute_proprietes_extra(
 			case danjo::TypePropriete::COURBE_VALEUR:
 			case danjo::TypePropriete::COURBE_COULEUR:
 			case danjo::TypePropriete::RAMPE_COULEUR:
+			case danjo::TypePropriete::LISTE_MANIP:
 			{
 				/* À FAIRE */
 			}

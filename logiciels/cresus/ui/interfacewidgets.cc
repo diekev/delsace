@@ -39,7 +39,7 @@ AccountWidget::AccountWidget(QWidget *parent)
 	: AccountWidget("", 0.0f, parent)
 {}
 
-AccountWidget::AccountWidget(const QString &text, const float value, QWidget *parent)
+AccountWidget::AccountWidget(const QString &text, const double value, QWidget *parent)
 	: QWidget(parent)
     , m_text(new QLabel(text, this))
     , m_value(new QLabel(this))
@@ -81,12 +81,12 @@ auto AccountWidget::setName(const QString &name) const -> void
 	m_text->setText(name);
 }
 
-auto AccountWidget::setValue(const float value) const -> void
+auto AccountWidget::setValue(const double value) const -> void
 {
 	m_value->setText(QLocale().toCurrencyString(value));
 
 	auto stylesheet = QString{"QLabel { color : "};
-	stylesheet += ((value < 0.0f) ? "red; }" : "black; }");
+	stylesheet += ((value < 0.0) ? "red; }" : "black; }");
 
 	m_value->setStyleSheet(stylesheet);
 }
@@ -127,7 +127,7 @@ void AccountWidget::editValue()
 	m_dialog->show();
 
 	if (m_dialog->exec() == QDialog::Accepted) {
-		const float value = m_value_edit->text().toFloat();
+		auto const value = m_value_edit->text().toDouble();
 		m_value->setText(QLocale().toCurrencyString(value));
 		Q_EMIT valueChanged(m_text->text(), value);
 	}
@@ -166,7 +166,7 @@ auto MonthlyTableWidget::setCategory(const QString &category) const -> void
 	m_category->setText(category);
 }
 
-auto MonthlyTableWidget::setValue(const float value, const int mois) const -> void
+auto MonthlyTableWidget::setValue(const double value, const int mois) const -> void
 {
 	m_values[mois - 1]->setText(QLocale().toCurrencyString(value));
 }

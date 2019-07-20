@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -202,7 +202,7 @@ struct ResultatRecherche {
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom,
-		std::list<dls::vue_chaine> &noms_arguments,
-		std::list<noeud::base *> const &exprs,
+		dls::liste<dls::vue_chaine> &noms_arguments,
+		dls::liste<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel);

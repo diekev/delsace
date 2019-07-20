@@ -63,9 +63,9 @@ void autrice_fichier::ferme()
 	}
 }
 
-size_t autrice_fichier::ecrit_tampon(const char *tampon, size_t taille) const
+long autrice_fichier::ecrit_tampon(const char *tampon, long taille) const
 {
-	return std::fwrite(tampon, sizeof(char), taille, m_pointeur);
+	return static_cast<long>(std::fwrite(tampon, sizeof(char), static_cast<size_t>(taille), m_pointeur));
 }
 
 bool autrice_fichier::est_ouverte() const

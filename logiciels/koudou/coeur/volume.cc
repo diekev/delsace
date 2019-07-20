@@ -25,9 +25,9 @@
 #include "volume.h"
 
 #include "biblinternes/math/bruit.hh"
+#include "biblinternes/outils/gna.hh"
 
 #include "bsdf.h"
-#include "gna.h"
 #include "koudou.h"
 #include "nuanceur.h"
 #include "structure_acceleration.h"
@@ -117,7 +117,7 @@ Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, ParametresRendu const 
 	auto bruit = dls::math::BruitPerlin3D();
 
 	do {
-		auto zeta = gna.nombre_aleatoire();
+		auto zeta = gna.uniforme(0.0, 1.0);
 		t = t - std::log(1.0 - zeta) / absorption_max;
 
 		if (t > distance) {
@@ -131,7 +131,7 @@ Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, ParametresRendu const 
 		/* Calcul l'absorption locale en évaluant le graphe de nuançage. À FAIRE. */
 		auto absorp = bruit(static_cast<float>(P.x), static_cast<float>(P.y), static_cast<float>(P.z));
 
-		auto xi = gna.nombre_aleatoire();
+		auto xi = gna.uniforme(0.0, 1.0);
 
 		if (xi < (static_cast<double>(absorp) / absorption_max)) {
 			termine = true;
@@ -177,7 +177,7 @@ bool VolumeDiffusionSimple::integre(
 
 	/* Calcul la position de l'échantillon de diffusion, basé sur la PDF
 	 * normalisée selon la transmittance. */
-	auto xi = gna.nombre_aleatoire();
+	auto xi = gna.uniforme(0.0, 1.0);
 	auto distance_diffusion = -std::log(1.0f - static_cast<float>(xi) * (1.0f - tr.y())) / extinction.y();
 
 	/* Initialise le nuançage au point de diffusion. */
@@ -265,7 +265,7 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 	auto bruit = dls::math::BruitPerlin3D();
 
 	do {
-		auto zeta = gna.nombre_aleatoire();
+		auto zeta = gna.uniforme(0.0, 1.0);
 		t = t - std::log(1.0 - zeta) / extinction_max;
 
 		if (t > distance) {
@@ -280,7 +280,7 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 		/* Calcul l'absorption locale en évaluant le graphe de nuançage. À FAIRE. */
 		auto extinct = Spectre(bruit(static_cast<float>(nP.x), static_cast<float>(nP.y), static_cast<float>(nP.z)));
 
-		auto xi = gna.nombre_aleatoire();
+		auto xi = gna.uniforme(0.0, 1.0);
 
 		if (static_cast<float>(xi) < (extinct.y() / static_cast<float>(extinction_max))) {
 			termine = true;

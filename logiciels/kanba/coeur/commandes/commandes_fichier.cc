@@ -26,7 +26,7 @@
 
 #include <fstream>
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/objets/import_objet.h"
 
 #include "adaptrice_creation_maillage.h"
@@ -45,7 +45,7 @@ public:
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto const chemin_projet = kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
-		if (chemin_projet.empty()) {
+		if (chemin_projet.est_vide()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
@@ -75,10 +75,10 @@ void ecris_fichier(std::ofstream &fichier, T valeur)
 	fichier.write(reinterpret_cast<char *>(&valeur), sizeof(T));
 }
 
-void ecris_fichier(std::ofstream &fichier, std::string const &valeur)
+void ecris_fichier(std::ofstream &fichier, dls::chaine const &valeur)
 {
-	ecris_fichier(fichier, valeur.size());
-	fichier.write(valeur.c_str(), static_cast<long int>(valeur.size()));
+	ecris_fichier(fichier, valeur.taille());
+	fichier.write(valeur.c_str(), valeur.taille());
 }
 
 template <typename T>
@@ -87,14 +87,14 @@ void lis_fichier(std::ifstream &fichier, T &valeur)
 	fichier.read(reinterpret_cast<char *>(&valeur), sizeof(T));
 }
 
-void lis_fichier(std::ifstream &fichier, std::string &valeur)
+void lis_fichier(std::ifstream &fichier, dls::chaine &valeur)
 {
-	size_t taille;
+	long taille;
 	lis_fichier(fichier, taille);
 
-	valeur.resize(taille);
+	valeur.redimensionne(taille);
 
-	fichier.read(&valeur[0], static_cast<long int>(taille));
+	fichier.read(&valeur[0], taille);
 }
 
 static bool lis_nombre_magic(std::ifstream &fichier)
@@ -152,7 +152,7 @@ static bool lis_projet(std::ifstream &fichier)
 		return false;
 	}
 
-	std::string nom;
+	dls::chaine nom;
 	lis_fichier(fichier, nom);
 
 	std::cerr << "Nom projet : " << nom << '\n';
@@ -164,7 +164,7 @@ static void ecris_projet(std::ofstream &fichier)
 {
 	ecris_fichier(fichier, 'P');
 	ecris_fichier(fichier, 'R');
-	std::string nom("stargate SG-1");
+	dls::chaine nom("stargate SG-1");
 	ecris_fichier(fichier, nom);
 }
 
@@ -222,16 +222,16 @@ static bool lis_maillage(std::ifstream &fichier, Maillage *maillage)
 		return false;
 	}
 
-	std::string nom;
+	dls::chaine nom;
 	lis_fichier(fichier, nom);
 	maillage->nom(nom);
 
-	size_t nombre_sommets, nombre_arretes, nombre_polygones;
+	long nombre_sommets, nombre_arretes, nombre_polygones;
 	lis_fichier(fichier, nombre_sommets);
 
 	dls::math::vec3f pos;
 
-	for (size_t i = 0; i < nombre_sommets; ++i) {
+	for (auto i = 0; i < nombre_sommets; ++i) {
 		lis_fichier(fichier, pos.x);
 		lis_fichier(fichier, pos.y);
 		lis_fichier(fichier, pos.z);
@@ -245,17 +245,13 @@ static bool lis_maillage(std::ifstream &fichier, Maillage *maillage)
 
 	dls::math::vec4i poly;
 
-	for (size_t i = 0; i < nombre_polygones; ++i) {
+	for (auto i = 0; i < nombre_polygones; ++i) {
 		lis_fichier(fichier, poly.x);
 		lis_fichier(fichier, poly.y);
 		lis_fichier(fichier, poly.z);
 		lis_fichier(fichier, poly.w);
 
-		maillage->ajoute_quad(
-					static_cast<size_t>(poly.x),
-					static_cast<size_t>(poly.y),
-					static_cast<size_t>(poly.z),
-					static_cast<size_t>(poly.w));
+		maillage->ajoute_quad(poly.x, poly.y, poly.z, poly.w);
 
 		auto polygone = maillage->polygone(i);
 
@@ -279,7 +275,7 @@ static void ecris_maillage(std::ofstream &fichier, Maillage *maillage)
 	auto nombre_sommets = maillage->nombre_sommets();
 	ecris_fichier(fichier, nombre_sommets);
 
-	for (size_t i = 0; i < nombre_sommets; ++i) {
+	for (auto i = 0; i < nombre_sommets; ++i) {
 		auto sommet = maillage->sommet(i);
 
 		ecris_fichier(fichier, sommet->pos.x);
@@ -293,7 +289,7 @@ static void ecris_maillage(std::ofstream &fichier, Maillage *maillage)
 	auto nombre_polygones = maillage->nombre_polygones();
 	ecris_fichier(fichier, nombre_polygones);
 
-	for (size_t i = 0; i < nombre_polygones; ++i) {
+	for (auto i = 0; i < nombre_polygones; ++i) {
 		auto polygone = maillage->polygone(i);
 
 		ecris_fichier(fichier, polygone->s[0]->index);
@@ -381,12 +377,12 @@ static bool lis_canaux(std::ifstream &fichier, CanauxTexture &canaux)
 	lis_fichier(fichier, canaux.hauteur);
 	lis_fichier(fichier, canaux.largeur);
 
-	size_t nombre_calques;
+	long nombre_calques;
 	lis_fichier(fichier, nombre_calques);
 
 	std::cerr << "Lecture de " << nombre_calques << " calques....\n";
 
-	canaux.calques[TypeCanal::DIFFUSION].resize(nombre_calques);
+	canaux.calques[TypeCanal::DIFFUSION].redimensionne(nombre_calques);
 
 	for (auto &calque : canaux.calques[TypeCanal::DIFFUSION]) {
 		calque = new Calque;
@@ -430,7 +426,7 @@ static void ecris_canaux(std::ofstream &fichier, CanauxTexture &canaux)
 	ecris_fichier(fichier, canaux.hauteur);
 	ecris_fichier(fichier, canaux.largeur);
 
-	auto nombre_calques = canaux.calques[TypeCanal::DIFFUSION].size();
+	auto nombre_calques = canaux.calques[TypeCanal::DIFFUSION].taille();
 	ecris_fichier(fichier, nombre_calques);
 
 	auto resolution = canaux.hauteur * canaux.largeur;
@@ -461,7 +457,7 @@ public:
 		auto kanba = std::any_cast<Kanba *>(pointeur);
 		auto const chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
-//		if (chemin_projet.empty()) {
+//		if (chemin_projet.est_vide()) {
 //			return;
 //		}
 
@@ -530,7 +526,7 @@ public:
 
 		auto const chemin_projet = "/home/kevin/test.cnvs" ;// kanba->requiers_dialogue(FICHIER_OUVERTURE);
 
-//		if (chemin_projet.empty()) {
+//		if (chemin_projet.est_vide()) {
 //			return;
 //		}
 

@@ -113,7 +113,7 @@ base::base(ContexteGenerationCode &contexte, DonneesMorceaux const &donnees_, ty
 
 void base::ajoute_noeud(base *noeud)
 {
-	enfants.push_back(noeud);
+	enfants.pousse(noeud);
 }
 
 const DonneesMorceaux &base::donnees_morceau() const
@@ -336,7 +336,7 @@ int genere_code(
 				{
 					auto taille = taille_type(b->donnees_type);
 
-					if (b->enfants.empty()) {
+					if (b->enfants.est_vide()) {
 						b->pointeur_donnees = compileuse.donnees().loge_donnees(taille);
 					}
 					else {
@@ -430,7 +430,7 @@ int genere_code(
 			/* rassemble les pointeurs et crée les conversions au besoin */
 			dls::tableau<int> pointeurs;
 			auto taille = donnees_fonc.entrees.types.taille();
-			auto enfant = b->enfants.begin();
+			auto enfant = b->enfants.debut();
 
 			for (auto i = 0; i < taille; ++i) {
 				auto type_entree = donnees_fonc.entrees.types[i];
@@ -768,7 +768,7 @@ int genere_code(
 
 			if (enfant_droite->type == type_noeud::FONCTION) {
 				/* le premier paramètre doit être la 'structure' que l'on accède */
-				enfant_droite->enfants.insert(enfant_droite->enfants.begin(), enfant_gauche);
+				enfant_droite->enfants.insere(enfant_droite->enfants.debut(), enfant_gauche);
 
 				genere_code(enfant_droite, contexte_generation, compileuse, expr_gauche);
 
@@ -891,10 +891,10 @@ int genere_code(
 		}
 		case type_noeud::SI:
 		{
-			auto iter_enfant = b->enfants.begin();
+			auto iter_enfant = b->enfants.debut();
 			auto enfant1 = *iter_enfant++;
 			auto enfant2 = *iter_enfant++;
-			auto enfant3 = (b->enfants.size() == 3) ? *iter_enfant++ : nullptr;
+			auto enfant3 = (b->enfants.taille() == 3) ? *iter_enfant++ : nullptr;
 
 			/* génère le code de l'expression */
 			genere_code(enfant1, contexte_generation, compileuse, expr_gauche);
@@ -947,7 +947,7 @@ int genere_code(
 		case type_noeud::POUR:
 		{
 			/* 3 enfants : var plage bloc */
-			auto iter_enfant = b->enfants.begin();
+			auto iter_enfant = b->enfants.debut();
 			auto enfant1 = *iter_enfant++;
 			auto enfant2 = *iter_enfant++;
 			auto enfant3 = *iter_enfant++;

@@ -140,7 +140,7 @@ CoucheReseau *ReseauNeuronal::ajoute_couche(CoucheReseau *couche_precedente, int
 	couche->biais = Matrice(dls::math::Hauteur(1), dls::math::Largeur(taille_couche));
 	couche->neurones = Matrice(dls::math::Hauteur(1), dls::math::Largeur(taille_couche));
 
-	INSCRIT_JOURNAL << "\tCouche " << m_couches.size() << " :\n";
+	INSCRIT_JOURNAL << "\tCouche " << m_couches.taille() << " :\n";
 	INSCRIT_JOURNAL << "\tTaille biais : 1x" << taille_couche << ".\n";
 	INSCRIT_JOURNAL << "\tTaille neurones : 1x" << taille_couche << ".\n";
 
@@ -148,7 +148,7 @@ CoucheReseau *ReseauNeuronal::ajoute_couche(CoucheReseau *couche_precedente, int
 		couche_precedente->suivante = couche;
 	}
 
-	m_couches.push_back(couche);
+	m_couches.pousse(couche);
 
 	INSCRIT_JOURNAL << "Création couche terminée.\n";
 	return couche;
@@ -164,7 +164,7 @@ void ReseauNeuronal::compile()
 	INSCRIT_JOURNAL << "Compilation réseau neuronal....\n";
 
 	/* Création des matrices de poids. */
-	for (size_t i = 0ul; i < m_couches.size() - 1; ++i) {
+	for (auto i = 0l; i < m_couches.taille() - 1; ++i) {
 		/* Le nombre de lignes de la matrice de poids est égal au nombre de colonnes de la matrice i. */
 		const auto hauteur = m_couches[i]->taille;
 		const auto largeur = m_couches[i + 1]->taille;
@@ -182,7 +182,7 @@ void ReseauNeuronal::initialise_couches(TypeInitialisation initialisation)
 {
 	switch (initialisation) {
 		case TypeInitialisation::ZERO:
-			for (size_t i = 0ul; i < m_couches.size(); ++i) {
+			for (auto i = 0l; i < m_couches.taille(); ++i) {
 				m_couches[i]->poids.remplie(0);
 				m_couches[i]->biais.remplie(0);
 				m_couches[i]->neurones.remplie(0);
@@ -190,7 +190,7 @@ void ReseauNeuronal::initialise_couches(TypeInitialisation initialisation)
 
 			break;
 		case TypeInitialisation::UNITE:
-			for (size_t i = 0ul; i < m_couches.size(); ++i) {
+			for (auto i = 0l; i < m_couches.taille(); ++i) {
 				m_couches[i]->poids.remplie(1);
 				m_couches[i]->biais.remplie(1);
 				m_couches[i]->neurones.remplie(1);
@@ -207,7 +207,7 @@ void ReseauNeuronal::initialise_couches(TypeInitialisation initialisation)
 				return dist(rng);
 			};
 
-			for (size_t i = 0ul; i < m_couches.size(); ++i) {
+			for (auto i = 0l; i < m_couches.taille(); ++i) {
 				dls::math::applique_fonction(m_couches[i]->poids, fonction);
 				dls::math::applique_fonction(m_couches[i]->biais, fonction);
 				dls::math::applique_fonction(m_couches[i]->neurones, fonction);

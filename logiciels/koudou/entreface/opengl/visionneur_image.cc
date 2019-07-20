@@ -179,11 +179,11 @@ void VisionneurImage::charge_image(dls::math::matrice_dyn<dls::math::vec3d> cons
 		image.nombre_lignes()
 	};
 
-	auto const resolution = static_cast<size_t>(image.nombre_colonnes() * image.nombre_lignes());
+	auto const resolution = image.nombre_colonnes() * image.nombre_lignes();
 
-	m_donnees_r.resize(resolution);
-	m_donnees_g.resize(resolution);
-	m_donnees_b.resize(resolution);
+	m_donnees_r.redimensionne(resolution);
+	m_donnees_g.redimensionne(resolution);
+	m_donnees_b.redimensionne(resolution);
 
 	extrait_canal(image, &m_donnees_r[0], dls::image::CANAL_R);
 	extrait_canal(image, &m_donnees_g[0], dls::image::CANAL_G);
@@ -196,9 +196,9 @@ void VisionneurImage::charge_image(dls::math::matrice_dyn<dls::math::vec3d> cons
 		m_parent->resize(m_hauteur, m_largeur);
 	}
 
-	generate_texture(m_texture_R, m_donnees_r.data(), size);
-	generate_texture(m_texture_G, m_donnees_g.data(), size);
-	generate_texture(m_texture_B, m_donnees_b.data(), size);
+	generate_texture(m_texture_R, m_donnees_r.donnees(), size);
+	generate_texture(m_texture_G, m_donnees_g.donnees(), size);
+	generate_texture(m_texture_B, m_donnees_b.donnees(), size);
 
 	dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

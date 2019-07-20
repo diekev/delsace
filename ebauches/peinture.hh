@@ -1,6 +1,6 @@
 namespace v1 {
 
-Carreau *trouve_par_UV(const std::vector<Carreau> &carreaux, int u, int v)
+Carreau *trouve_par_UV(const dls::tableau<Carreau> &carreaux, int u, int v)
 {
 	for (const auto &carreau : carreaux) {
 		if (carreau.u == u && carreau.v == v) {
@@ -17,7 +17,7 @@ struct Carreau {
 	int largeur;
 	int u;
 	int v;
-	std::string chemin;
+	dls::chaine chemin;
 };
 
 struct Effets {
@@ -25,14 +25,14 @@ struct Effets {
 };
 
 struct Calque {
-	std::vector<Carreau> carreaux;
-	std::vector<Effets> effets;
+	dls::tableau<Carreau> carreaux;
+	dls::tableau<Effets> effets;
 	int mode_fusion;
-	std::string nom;
+	dls::chaine nom;
 };
 
 struct Peinture {
-	std::vector<Calque> calques;
+	dls::tableau<Calque> calques;
 };
 
 }
@@ -45,7 +45,7 @@ struct Layer {
 	int blend_mode;
 
 	/* parametres création */
-	std::string name;
+	dls::chaine name;
 	int size;
 	int save_as; // TIFF, PNG, etc...
 	///int channel; // diffuse, specular, bump...
@@ -64,12 +64,12 @@ enum ChannelType {
 };
 
 struct Channel { // diffuse, specular, bump, etc...
-	std::vector<Layer> layers;
+	dls::tableau<Layer> layers;
 	bool visible;
 };
 
 struct X {
-	std::vector<Channel> channels;
+	dls::tableau<Channel> channels;
 };
 
 struct PaintingData {
@@ -115,18 +115,18 @@ struct Calque {
 	float *donnees;
 	ModeFusion mode_fusion;
 	float opacite;
-	std::string nom;
+	dls::chaine nom;
 	bool visible;
 };
 
 struct DonneesCalques {
-	std::vector<Calque *> calques_diffus; // FLOAT4
-	std::vector<Calque *> calques_specularite; // FLOAT
-	std::vector<Calque *> calques_brillance; // FLOAT
-	std::vector<Calque *> calques_incandescence; // FLOAT
-	std::vector<Calque *> calques_relief; // FLOAT
-	std::vector<Calque *> calques_normal; // FLOAT3
-	std::vector<Calque *> calques_reflection; // FLOAT
+	dls::tableau<Calque *> calques_diffus; // FLOAT4
+	dls::tableau<Calque *> calques_specularite; // FLOAT
+	dls::tableau<Calque *> calques_brillance; // FLOAT
+	dls::tableau<Calque *> calques_incandescence; // FLOAT
+	dls::tableau<Calque *> calques_relief; // FLOAT
+	dls::tableau<Calque *> calques_normal; // FLOAT3
+	dls::tableau<Calque *> calques_reflection; // FLOAT
 
 	float *diffusion_finale;
 	float *specularite_finale;

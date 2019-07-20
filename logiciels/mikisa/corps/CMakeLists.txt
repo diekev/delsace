@@ -23,12 +23,11 @@ set(NOM_CIBLE bib_corps)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
-	${INCLUSIONS_DELSACE_MATH}
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
 set(BIBLIOTHEQUES
-	bib_transformation
+	math
 )
 
 add_library(${NOM_CIBLE} STATIC

@@ -114,22 +114,7 @@ static void evalue_composite(Mikisa &mikisa)
 		return;
 	}
 
-	Rectangle rectangle;
-	rectangle.x = 0;
-	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
-
-	auto contexte = ContexteEvaluation{};
-	contexte.bdd = &mikisa.bdd;
-	contexte.cadence = mikisa.cadence;
-	contexte.temps_debut = mikisa.temps_debut;
-	contexte.temps_fin = mikisa.temps_fin;
-	contexte.temps_courant = mikisa.temps_courant;
-	contexte.resolution_rendu = rectangle;
-	contexte.gestionnaire_fichier = &mikisa.gestionnaire_fichier;
-	contexte.chef = &mikisa.chef_execution;
-
+	auto contexte = cree_contexte_evaluation(mikisa);
 	execute_noeud(visionneuse, contexte, nullptr);
 
 	Image image;
@@ -272,7 +257,10 @@ void TacheEvaluationPlan::evalue()
 						 << FIN_LOG_EVALUATION;
 
 	for (auto &noeud : m_plan->noeuds) {
-		DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+		if (noeud->objet != nullptr) {
+			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+		}
+
 		evalue_objet(m_contexte, noeud->objet);
 	}
 
@@ -291,8 +279,17 @@ void Executrice::execute_plan(Mikisa &mikisa,
 
 	/* nous sommes déjà dans un thread */
 	if (plan->est_animation) {
+		DEBUT_LOG_EVALUATION << "Évaluation animation pour '"
+							 << plan->message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
+
 		/* tag les noeuds des graphes pour l'exécution temporelle */
 		for (auto &noeud : plan->noeuds) {
+			if (noeud->objet != nullptr) {
+				DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+			}
+
 			evalue_objet(contexte, noeud->objet);
 		}
 

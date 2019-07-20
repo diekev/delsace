@@ -45,7 +45,7 @@ static const char *source_fragment_bordure =
 		"}\n";
 
 RenduManipulatrice2D::RenduManipulatrice2D()
-	: m_tampon(new TamponRendu())
+	: m_tampon(memoire::loge<TamponRendu>("TamponRendu"))
 {
 	m_tampon->charge_source_programme(dls::ego::Nuanceur::VERTEX, source_vertex_bordure);
 	m_tampon->charge_source_programme(dls::ego::Nuanceur::FRAGMENT, source_fragment_bordure);
@@ -87,7 +87,7 @@ RenduManipulatrice2D::RenduManipulatrice2D()
 
 RenduManipulatrice2D::~RenduManipulatrice2D()
 {
-	delete m_tampon;
+	memoire::deloge("TamponRendu", m_tampon);
 }
 
 void RenduManipulatrice2D::dessine(ContexteRendu const &contexte)

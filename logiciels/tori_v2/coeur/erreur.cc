@@ -29,10 +29,10 @@
 namespace langage {
 
 ErreurFrappe::ErreurFrappe(
-		const std::string_view &ligne,
+		const dls::vue_chaine &ligne,
 		int numero_ligne,
 		int position_ligne,
-		const std::string &quoi)
+		const dls::chaine &quoi)
 {
 	std::stringstream ss;
 
@@ -51,11 +51,11 @@ const char *ErreurFrappe::quoi() const
 }
 
 ErreurSyntactique::ErreurSyntactique(
-		const std::string_view &ligne,
+		const dls::vue_chaine &ligne,
 		int numero_ligne,
 		int position_ligne,
-		const std::string &quoi,
-		const std::string &contenu)
+		const dls::chaine &quoi,
+		const dls::chaine &contenu)
 {
 	std::stringstream ss;
 

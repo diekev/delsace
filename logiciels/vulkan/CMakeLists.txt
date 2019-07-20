@@ -20,6 +20,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(NOM_CIBLE test_vulkan)
+set(NOM_PROJET vulkan)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../

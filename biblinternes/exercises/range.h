@@ -66,7 +66,7 @@ public:
 	    , m_end(end)
 	{}
 
-	bool empty() noexcept
+	bool est_vide() noexcept
 	{
 		return m_begin > m_end;
 	}
@@ -103,9 +103,9 @@ public:
 	    : m_range(r)
 	{}
 
-	bool empty() noexcept
+	bool est_vide() noexcept
 	{
-		return m_range.empty();
+		return m_range.est_vide();
 	}
 
 	void pop_front() noexcept

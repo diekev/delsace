@@ -24,10 +24,12 @@
 
 #include "test_initialisation.h"
 
+#include "biblinternes/outils/fichier.hh"
+
 #include "coeur/danjo/danjo.h"
 #include "coeur/danjo/manipulable.h"
 
-static bool possede_propriete(danjo::Manipulable &manipulable, const std::string &nom)
+static bool possede_propriete(danjo::Manipulable &manipulable, const dls::chaine &nom)
 {
 	return manipulable.propriete(nom) != nullptr;
 }
@@ -36,7 +38,7 @@ void test_initialisation(dls::test_unitaire::Controleuse &controleuse)
 {
 	auto manipulable = danjo::Manipulable();
 
-	const auto texte_entree = danjo::contenu_fichier("exemples/disposition_test.jo");
+	const auto texte_entree = dls::contenu_fichier("exemples/disposition_test.jo");
 	danjo::initialise_entreface(&manipulable, texte_entree.c_str());
 
 	CU_VERIFIE_CONDITION(controleuse, possede_propriete(manipulable, "taille_x"));

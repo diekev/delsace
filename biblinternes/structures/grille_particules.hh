@@ -26,17 +26,18 @@
 
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class GrilleParticules {
 	dls::math::point3d m_min{};
 	dls::math::point3d m_max{};
 	dls::math::point3d m_dim{};
-	size_t m_res_x{};
-	size_t m_res_y{};
-	size_t m_res_z{};
+	long m_res_x{};
+	long m_res_y{};
+	long m_res_z{};
 	double m_distance{};
 
-	std::vector<std::vector<dls::math::vec3f>> m_grille{};
+	dls::tableau<dls::tableau<dls::math::vec3f>> m_grille{};
 
 public:
 	explicit GrilleParticules(dls::math::point3d const &min, dls::math::point3d const &max, float distance);
@@ -51,5 +52,5 @@ public:
 			dls::math::vec3f const &v2,
 			const float radius);
 
-	size_t calcul_index_pos(dls::math::vec3f const &point);
+	long calcul_index_pos(dls::math::vec3f const &point);
 };

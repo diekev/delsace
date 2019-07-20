@@ -37,14 +37,17 @@ class QTimer;
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
-	Ui::MainWindow *ui;
-	ProjectManager *m_project_manager;
-	ProjectDialog *m_project_dialog;
-	QTimer *m_timer;
+	Ui::MainWindow *ui = nullptr;
+	ProjectManager *m_project_manager = nullptr;
+	ProjectDialog *m_project_dialog = nullptr;
+	QTimer *m_timer = nullptr;
 
 public:
 	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+
+	MainWindow(MainWindow const &) = default;
+	MainWindow &operator=(MainWindow const &) = default;
 
 public Q_SLOTS:
 	void updateCanvasShader();

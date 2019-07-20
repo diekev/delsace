@@ -35,22 +35,6 @@ namespace ego {
 EGO_VERSION_NAMESPACE_BEGIN
 namespace util {
 
-std::string str_from_file(const std::string &filename)
-{
-	std::ifstream fp(filename.c_str());
-
-	if (!fp) {
-		std::cerr << "Error loading file: " << filename << '\n';
-		return std::string("");
-	}
-
-	std::stringstream data;
-	data << fp.rdbuf();
-	fp.close();
-
-	return data.str();
-}
-
 /* Adapted from Blender. */
 static void system_backtrace(std::ostream &os)
 {
@@ -67,8 +51,8 @@ static void system_backtrace(std::ostream &os)
 	free(strings);
 }
 
-void gl_check_errors(const std::string &message,
-                     const std::string &file,
+void gl_check_errors(const dls::chaine &message,
+                     const dls::chaine &file,
                      const int line)
 {
 	unsigned int error = glGetError();
@@ -108,8 +92,8 @@ bool check_bad_alloc()
 	return glGetError() == GL_OUT_OF_MEMORY;
 }
 
-void gl_check_framebuffer(const std::string &message,
-                          const std::string &file,
+void gl_check_framebuffer(const dls::chaine &message,
+                          const dls::chaine &file,
                           const int line)
 {
 	unsigned int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -160,7 +144,7 @@ void gl_check_framebuffer(const std::string &message,
  * not. Prints an error message if linking failed. */
 bool check_status(unsigned int index,
                   unsigned int pname,
-                  const std::string &prefix,
+                  const dls::chaine &prefix,
                   get_ivfunc ivfunc,
                   get_logfunc log_func,
                   std::ostream &os)

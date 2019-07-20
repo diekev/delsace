@@ -28,51 +28,53 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "../outils/conditions.h"
 
 struct StructField {
-	std::string type = {};
-	std::string name = {};
-	std::string default_value = {};
+	dls::chaine type = {};
+	dls::chaine name = {};
+	dls::chaine default_value = {};
 	bool is_pointer = false;
 	bool is_owner = false;
 };
 
 struct StructDecl {
-	std::string name = {};
+	dls::chaine name = {};
 	bool need_dtor = false;
 
-	std::vector<std::shared_ptr<StructField>> fields = {};
+	dls::tableau<std::shared_ptr<StructField>> fields = {};
 };
 
-std::vector<std::string> types;
+dls::tableau<dls::chaine> types;
 
-bool is_type(const std::string &token)
+bool is_type(const dls::chaine &token)
 {
 	if (dls::outils::est_element(token, "bool", "char", "short", "int", "long", "float", "double")) {
 		return true;
 	}
 
-	auto iter = std::find(types.begin(), types.end(), token);
+	auto iter = std::find(types.debut(), types.fin(), token);
 
-	if (iter != types.end()) {
+	if (iter != types.fin()) {
 		return true;
 	}
 
 	return false;
 }
 
-StructDecl read_struct(std::ifstream &is, const std::string &name)
+StructDecl read_struct(std::ifstream &is, const dls::chaine &name)
 {
 	std::string line;
-	std::string token;
+	dls::chaine token;
 
 	StructDecl decl;
 	decl.name = name;
 
-	types.push_back(name);
+	types.pousse(name);
 
 	while (std::getline(is, line)) {
 		if (line == "};") {
@@ -102,17 +104,17 @@ StructDecl read_struct(std::ifstream &is, const std::string &name)
 					strip_ptr = true;
 				}
 
-				if (token.size() == 1) {
+				if (token.taille() == 1) {
 					continue;
 				}
 
-				field->name = token.substr(
-							static_cast<size_t>(0 + strip_ptr),
-							token.size() - (1ul + strip_ptr));
+				field->name = token.sous_chaine(
+							(0 + strip_ptr),
+							token.taille() - (1l + strip_ptr));
 			}
 		}
 
-		decl.fields.push_back(field);
+		decl.fields.pousse(field);
 	}
 
 	return decl;
@@ -120,7 +122,7 @@ StructDecl read_struct(std::ifstream &is, const std::string &name)
 
 void write_struct(const StructDecl &struct_decl, std::ofstream &outfile);
 
-void read_file(const std::string &filename)
+void read_file(const dls::chaine &filename)
 {
 	std::ifstream is;
 	is.open(filename.c_str());
@@ -130,9 +132,9 @@ void read_file(const std::string &filename)
 	}
 
 	std::string line;
-	std::string token;
+	dls::chaine token;
 
-	std::vector<StructDecl> decls;
+	dls::tableau<StructDecl> decls;
 
 	while (std::getline(is, line)) {
 		std::stringstream ss;
@@ -143,7 +145,7 @@ void read_file(const std::string &filename)
 				ss >> token;
 
 				StructDecl decl = read_struct(is, token);
-				decls.push_back(decl);
+				decls.pousse(decl);
 			}
 		}
 	}

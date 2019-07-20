@@ -193,7 +193,7 @@ void Graphe::supprime_tout()
 	}
 
 	m_noeuds_selectionnes.efface();
-	m_noeuds.clear();
+	m_noeuds.efface();
 }
 
 /* ************************************************************************** */
@@ -227,11 +227,11 @@ PriseEntree *trouve_prise_entree_pos(
 	};
 
 	auto iter = std::find_if(
-				noeud->entrees().begin(),
-				noeud->entrees().end(),
+				noeud->entrees().debut(),
+				noeud->entrees().fin(),
 				pred);
 
-	if (iter != noeud->entrees().end()) {
+	if (iter != noeud->entrees().fin()) {
 		return *iter;
 	}
 
@@ -267,11 +267,11 @@ PriseSortie *trouve_prise_sortie_pos(
 	};
 
 	auto iter = std::find_if(
-				noeud->sorties().begin(),
-				noeud->sorties().end(),
+				noeud->sorties().debut(),
+				noeud->sorties().fin(),
 				pred);
 
-	if (iter != noeud->sorties().end()) {
+	if (iter != noeud->sorties().fin()) {
 		return *iter;
 	}
 
@@ -333,30 +333,14 @@ void calcule_degree(Noeud *noeud)
 	}
 }
 
-template <typename I, typename P>
-void tri_topologique(I debut, I fin, P predicat)
-{
-	while (debut != fin) {
-		auto nouveau_debut = std::partition(debut, fin, predicat);
-
-		/* Aucune solution n'a été trouvée, il est possible qu'il y ait
-		 * un cycle dans le graphe. */
-		if (nouveau_debut == debut) {
-			break;
-		}
-
-		debut = nouveau_debut;
-	}
-}
-
 void tri_topologique(Graphe &graphe)
 {
 	for (auto &noeud : graphe.noeuds()) {
 		calcule_degree(noeud);
 	}
 
-	auto debut = graphe.noeuds().begin();
-	auto fin = graphe.noeuds().end();
+	auto debut = graphe.noeuds().debut();
+	auto fin = graphe.noeuds().fin();
 
 	auto predicat = [](Noeud *noeud)
 	{

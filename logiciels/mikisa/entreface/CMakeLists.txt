@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 	ego
 	bib_opengl
 	bib_texture
+	bib_outils
 )
 
 add_compile_options(-fPIC)
@@ -114,6 +115,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_creation_kelvinlet.jo
 	scripts_danjo/operatrice_daltonisme.jo
 	scripts_danjo/operatrice_deformation.jo
+	scripts_danjo/operatrice_deformation_kelvinlet.jo
 	scripts_danjo/operatrice_degrade.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
 	scripts_danjo/operatrice_dispersion_points.jo
@@ -131,6 +133,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_gigue_points.jo
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo
+	scripts_danjo/operatrice_import_alembic.jo
 	scripts_danjo/operatrice_import_objet.jo
 	scripts_danjo/operatrice_incrustation.jo
 	scripts_danjo/operatrice_lecture_fichier.jo

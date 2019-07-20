@@ -51,5 +51,5 @@ public:
 
 	~detecteur_visage() = default;
 
-	void trouve_visages(const cv::Mat &image, std::vector<cv::Rect> &resultats);
+	void trouve_visages(const cv::Mat &image, dls::tableau<cv::Rect> &resultats);
 };

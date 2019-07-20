@@ -95,7 +95,7 @@ CourbeCouleur::CourbeCouleur()
 
 void cree_courbe_defaut(CourbeBezier &courbe)
 {
-	courbe.points.clear();
+	courbe.points.efface();
 
 	ajoute_point_courbe(courbe, 0.0f, 0.0f);
 	ajoute_point_courbe(courbe, 1.0f, 1.0f);
@@ -114,9 +114,9 @@ void ajoute_point_courbe(CourbeBezier &courbe, float x, float y)
 	point.co[POINT_CONTROLE2].x = x + 0.1f;
 	point.co[POINT_CONTROLE2].y = y;
 
-	courbe.points.push_back(point);
+	courbe.points.pousse(point);
 
-	std::sort(courbe.points.begin(), courbe.points.end(),
+	std::sort(courbe.points.debut(), courbe.points.fin(),
 			  [](const PointBezier &p1, const PointBezier &p2)
 	{
 		return p1.co[POINT_CENTRE].x < p2.co[POINT_CENTRE].x;
@@ -125,7 +125,7 @@ void ajoute_point_courbe(CourbeBezier &courbe, float x, float y)
 	courbe.extension_min.co[POINT_CENTRE].x = -1.0f;
 	courbe.extension_min.co[POINT_CENTRE].y = courbe.points[0].co[POINT_CENTRE].y;
 	courbe.extension_max.co[POINT_CENTRE].x = 2.0f;
-	courbe.extension_max.co[POINT_CENTRE].y = courbe.points[courbe.points.size() - 1].co[POINT_CENTRE].y;
+	courbe.extension_max.co[POINT_CENTRE].y = courbe.points[courbe.points.taille() - 1].co[POINT_CENTRE].y;
 
 	construit_table_courbe(courbe);
 }
@@ -135,10 +135,10 @@ void construit_table_courbe(CourbeBezier &courbe)
 	const auto res_courbe = 32;
 	const auto facteur = 1.0f / res_courbe;
 
-	courbe.table.clear();
+	courbe.table.efface();
 	courbe.table.reserve(res_courbe + 1);
 
-	for (size_t i = 0; i < courbe.points.size() - 1; ++i) {
+	for (long i = 0; i < courbe.points.taille() - 1; ++i) {
 		const auto &p1 = courbe.points[i];
 		const auto &p2 = courbe.points[i + 1];
 
@@ -158,7 +158,7 @@ void construit_table_courbe(CourbeBezier &courbe)
 		const auto &x3 =     p2.co[POINT_CENTRE].x;
 		const auto &y3 =     p2.co[POINT_CENTRE].y;
 
-		courbe.table.push_back(Point{x0, y0});
+		courbe.table.pousse(Point{x0, y0});
 
 		for (int j = 1; j <= res_courbe; ++j) {
 			const auto fac_i = facteur * static_cast<float>(j);
@@ -173,7 +173,7 @@ void construit_table_courbe(CourbeBezier &courbe)
 			const auto p3x = x3 * std::pow(fac_i, 3.0f);
 			const auto p3y = y3 * std::pow(fac_i, 3.0f);
 
-			courbe.table.push_back(Point{p0x + p1x + p2x + p3x, p0y + p1y + p2y + p3y});
+			courbe.table.pousse(Point{p0x + p1x + p2x + p3x, p0y + p1y + p2y + p3y});
 		}
 	}
 }
@@ -186,10 +186,10 @@ static constexpr auto KAPPA = 2.5614f;
 
 void calcule_controles_courbe(CourbeBezier &courbe)
 {
-	const auto nombre_points = courbe.points.size();
+	const auto nombre_points = courbe.points.taille();
 
 	/* fais pointer les controles vers le centre des points environnants */
-	for (size_t i = 0; i < nombre_points; ++i) {
+	for (long i = 0; i < nombre_points; ++i) {
 		auto &p = courbe.points[i];
 
 		if (i == 0) {
@@ -295,7 +295,7 @@ void calcule_controles_courbe(CourbeBezier &courbe)
 
 float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur)
 {
-	const auto nombre_points = courbe.table.size();
+	const auto nombre_points = courbe.table.taille();
 
 	if (valeur <= courbe.valeur_min) {
 		return courbe.table[0].y;
@@ -306,7 +306,7 @@ float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur)
 	}
 
 	if (courbe.utilise_table) {
-		for (size_t i = 0; i < nombre_points - 1; ++i) {
+		for (long i = 0; i < nombre_points - 1; ++i) {
 			const auto &p0 = courbe.table[i];
 			const auto &p1 = courbe.table[i + 1];
 
@@ -317,7 +317,7 @@ float evalue_courbe_bezier(const CourbeBezier &courbe, float valeur)
 		}
 	}
 	else {
-		for (size_t i = 0; i < courbe.points.size() - 1; ++i) {
+		for (long i = 0; i < courbe.points.taille() - 1; ++i) {
 			const auto &p0 = courbe.points[i];
 			const auto &p1 = courbe.points[i + 1];
 

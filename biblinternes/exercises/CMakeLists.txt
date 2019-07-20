@@ -23,9 +23,11 @@ set(NOM_BIBLIOTHEQUE exercices)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
 set(BIBLIOTHEQUES
+	bib_outils
 )
 
 set(ENTETES
@@ -33,7 +35,6 @@ set(ENTETES
     curry.h
     itoa.h
     divers.h
-    string_utils.h
     range.h
 )
 

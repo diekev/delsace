@@ -59,7 +59,7 @@ void GroupePoint::reserve(long const nombre)
 void GroupePoint::reinitialise()
 {
 	detache();
-	m_points->clear();
+	m_points->efface();
 }
 
 long GroupePoint::taille() const
@@ -126,7 +126,7 @@ void GroupePrimitive::reserve(long const nombre)
 void GroupePrimitive::reinitialise()
 {
 	detache();
-	m_primitives->clear();
+	m_primitives->efface();
 }
 
 long GroupePrimitive::taille() const

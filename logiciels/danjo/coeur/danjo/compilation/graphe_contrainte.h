@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/structures/chaine.hh"
 
@@ -36,29 +36,29 @@ class Variable;
 
 class contrainte {
 public:
-	std::vector<Variable *> m_variables{};
-	std::vector<Symbole> m_expression{};
+	dls::tableau<Variable *> m_variables{};
+	dls::tableau<Symbole> m_expression{};
 	Variable *m_sortie{};
-	std::vector<Symbole> m_condition{};
+	dls::tableau<Symbole> m_condition{};
 };
 
 class Variable {
 public:
-	std::vector<contrainte *> m_contraintes{};
+	dls::tableau<contrainte *> m_contraintes{};
 
 	dls::chaine nom{}; // nom de la propriété du manipulable
 	int degree{};
 };
 
 class graphe_contrainte {
-	std::vector<contrainte *> m_contraintes{};
-	std::vector<Variable *> m_variables{};
+	dls::tableau<contrainte *> m_contraintes{};
+	dls::tableau<Variable *> m_variables{};
 
 public:
-	using iterateur_contrainte = std::vector<contrainte *>::iterator;
-	using iterateur_contrainte_const = std::vector<contrainte *>::const_iterator;
-	using iterateur_variable = std::vector<Variable *>::iterator;
-	using iterateur_variable_const = std::vector<Variable *>::const_iterator;
+	using iterateur_contrainte = dls::tableau<contrainte *>::iteratrice;
+	using iterateur_contrainte_const = dls::tableau<contrainte *>::const_iteratrice;
+	using iterateur_variable = dls::tableau<Variable *>::iteratrice;
+	using iterateur_variable_const = dls::tableau<Variable *>::const_iteratrice;
 
 	~graphe_contrainte();
 

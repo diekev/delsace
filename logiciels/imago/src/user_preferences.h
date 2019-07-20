@@ -39,7 +39,7 @@ enum {
 class UserPreferences final : public QDialog {
 	Q_OBJECT
 
-	Ui::UserPreferences *ui;
+	Ui::UserPreferences *ui = nullptr;
 
 private slots:
 	void chooseFolder();
@@ -48,6 +48,9 @@ private slots:
 public:
 	explicit UserPreferences(QWidget *parent = nullptr);
 	~UserPreferences();
+
+	UserPreferences(UserPreferences const &) = default;
+	UserPreferences &operator=(UserPreferences const &) = default;
 
 	auto getRandomMode() const -> bool;
 	auto setRandomMode(const bool b) -> void;

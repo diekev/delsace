@@ -62,4 +62,8 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	bool depend_sur_temps() const override;
+
+	void amont_change() override;
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override;
 };

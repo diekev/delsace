@@ -26,11 +26,11 @@
 
 #include <cmath>
 #include <limits>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 #include "concepts.hh"
 
-#include "../outils/definitions.h"
+#include "biblinternes/outils/definitions.h"
 
 namespace dls::math {
 
@@ -284,10 +284,10 @@ template <>
 struct est_double<double> : std::true_type {};
 
 template <typename T>
-struct est_string : std::false_type {};
+struct est_chaine : std::false_type {};
 
 template <>
-struct est_string<std::string> : std::true_type {};
+struct est_chaine<dls::chaine> : std::true_type {};
 
 template <typename T>
 struct est_bool : std::false_type {};
@@ -301,14 +301,14 @@ struct est_bool<bool> : std::true_type {};
 template <typename T>
 inline auto valeur_nulle()
 {
-	if constexpr (est_string<T>::value) {
-		return std::string{""};
+	if constexpr (est_chaine<T>::value) {
+		return dls::chaine{""};
 	}
 	else if constexpr (est_bool<T>::value) {
 		return false;
 	}
 
-	return static_cast<T>(0);
+	return T{};
 }
 
 /**
@@ -316,7 +316,7 @@ inline auto valeur_nulle()
  * retourne 0.
  *
  * NOTE : ne peut utiliser ConceptNombre car valeur_nulle peut prendre une
- * std::string.
+ * dls::chaine.
  */
 template <typename nombre>
 inline auto tolerance()

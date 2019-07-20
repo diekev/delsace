@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.h"
 
@@ -36,7 +36,7 @@ namespace arachne {
  * mots-clés du langage.
  */
 class Decoupeuse {
-	std::string m_chaine;
+	dls::chaine m_chaine;
 	int m_position;
 	int m_position_ligne;
 	int m_ligne;
@@ -45,17 +45,17 @@ class Decoupeuse {
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
 
-	std::vector<std::string> m_lignes;
-	std::vector<DonneesMorceaux> m_identifiants{};
+	dls::tableau<dls::chaine> m_lignes;
+	dls::tableau<DonneesMorceaux> m_identifiants{};
 
 public:
-	using iterateur = std::vector<DonneesMorceaux>::iterator;
-	using iterateur_const = std::vector<DonneesMorceaux>::const_iterator;
+	using iterateur = dls::tableau<DonneesMorceaux>::iterator;
+	using iterateur_const = dls::tableau<DonneesMorceaux>::const_iterator;
 
 	/**
 	 * Construit une instance de Decoupeuse pour la chaîne spécifiée.
 	 */
-	explicit Decoupeuse(const std::string &chaine);
+	explicit Decoupeuse(const dls::chaine &chaine);
 
 	/**
 	 * Lance la découpe de la chaîne de caractère spécifiée en paramètre du
@@ -73,12 +73,12 @@ public:
 	 * Ajoute un identifiant au vecteur d'identifiants avec les données passées
 	 * en paramètres.
 	 */
-	void ajoute_identifiant(int identifiant, const std::string &contenu);
+	void ajoute_identifiant(int identifiant, const dls::chaine &contenu);
 
 	/**
 	 * Retourne la liste de morceaux découpés.
 	 */
-	const std::vector<DonneesMorceaux> &morceaux() const;
+	const dls::tableau<DonneesMorceaux> &morceaux() const;
 
 	void avance(int compte = 1);
 
@@ -110,7 +110,7 @@ private:
 	 * le mot courant passé via le paramètre 'quoi'.
 	 */
 	/* cppcheck-suppress unusedPrivateFunction */
-	void impression_debogage(const std::string &quoi);
+	void impression_debogage(const dls::chaine &quoi);
 };
 
 } /* namespace arachne */

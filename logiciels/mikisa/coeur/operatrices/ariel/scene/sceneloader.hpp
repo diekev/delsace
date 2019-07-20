@@ -11,7 +11,6 @@
 #include "biblinternes/structures/tableau.hh"
 
 //#include <json/json.h>
-#include "../utilities/utilities.h"
 #include "../geom/geomlist.hpp"
 #include "scene.hpp"
 
@@ -26,7 +25,7 @@ namespace sceneCore {
 
 class SceneLoader {
 public:
-	SceneLoader(const std::string& filename);
+	SceneLoader(const dls::chaine& filename);
 	~SceneLoader();
 
 	SceneLoader(SceneLoader const &) = default;
@@ -58,14 +57,14 @@ private:
 	dls::math::vec3f                               m_dimensions{};
 	float                                   m_density{};
 	float                                   m_stepsize{};
-	std::string                             m_relativePath{};
-	std::string                             m_imagePath{};
-	std::string                             m_meshPath{};
-	std::string                             m_vdbPath{};
-	std::string                             m_partioPath{};
+	dls::chaine                             m_relativePath{};
+	dls::chaine                             m_imagePath{};
+	dls::chaine                             m_meshPath{};
+	dls::chaine                             m_vdbPath{};
+	dls::chaine                             m_partioPath{};
 	dls::tableau<dls::math::vec3f>                  m_externalForces{};
 
-	dls::dico<std::string, unsigned int>                         m_linkNames{};
+	dls::dico<dls::chaine, unsigned int>                         m_linkNames{};
 	dls::tableau< dls::tableau<
 	spaceCore::Bvh<objCore::InterpolatedObj>* > >  m_animMeshSequences{};
 };

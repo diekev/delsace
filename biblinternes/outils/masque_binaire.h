@@ -27,6 +27,7 @@
 namespace dls {
 namespace outils {
 
+#if defined __cpp_concepts && __cpp_concepts >= 201507
 /**
  * Concept pour les types pouvant être utilisé pour les masques binaires.
  *
@@ -44,6 +45,9 @@ concept bool ConceptValeurMasque = requires(T a, T b)
 	a ^= b;
 	a = ~b;
 };
+#else
+#	define ConceptValeurMasque typename
+#endif
 
 /**
  * La classe `MasqueBinaire` sert à créer un type pouvant être utilisé pour

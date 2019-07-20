@@ -35,7 +35,7 @@ void link(word *head, word *dependent)
 {
 	assert(dependent->head == nullptr);
 
-	head->dependents.push_back(dependent);
+	head->dependents.pousse(dependent);
 	dependent->head = head;
 }
 
@@ -46,11 +46,11 @@ static bool grammar_permits(word */*head*/, word */*dependent*/)
 }
 
 /* Exhaustive left-to-right search, heads first */
-void esh_heads_first(const std::vector<word *> &sentence)
+void esh_heads_first(const dls::tableau<word *> &sentence)
 {
-	auto begin = sentence.begin();
-	auto first = sentence.begin() + 1;
-	auto last = sentence.end();
+	auto begin = sentence.debut();
+	auto first = sentence.debut() + 1;
+	auto last = sentence.fin();
 
 	for (; first != last; ++first) {
 		for (auto second = first - 1; second != begin; --second) {
@@ -66,11 +66,11 @@ void esh_heads_first(const std::vector<word *> &sentence)
 }
 
 /* Exhaustive left-to-right search, dependents first */
-void esh_dependents_first(const std::vector<word *> &sentence)
+void esh_dependents_first(const dls::tableau<word *> &sentence)
 {
-	auto begin = sentence.begin();
-	auto first = sentence.begin() + 1;
-	auto last = sentence.end();
+	auto begin = sentence.debut();
+	auto first = sentence.debut() + 1;
+	auto last = sentence.fin();
 
 	for (; first != last; ++first) {
 		for (auto second = first - 1; second != begin; --second) {
@@ -86,11 +86,11 @@ void esh_dependents_first(const std::vector<word *> &sentence)
 }
 
 /* Exhaustive left-to-right search, heads first, with uniqueness */
-void esh_heads_first_unique(const std::vector<word *> &sentence)
+void esh_heads_first_unique(const dls::tableau<word *> &sentence)
 {
-	auto begin = sentence.begin();
-	auto first = sentence.begin() + 1;
-	auto last = sentence.end();
+	auto begin = sentence.debut();
+	auto first = sentence.debut() + 1;
+	auto last = sentence.fin();
 
 	for (; first != last; ++first) {
 		word *wi = *first;
@@ -104,7 +104,7 @@ void esh_heads_first_unique(const std::vector<word *> &sentence)
 
 			word *wj = *second;
 
-			if (wj->dependents.empty()) {
+			if (wj->dependents.est_vide()) {
 				if (grammar_permits(*first, *second)) {
 					link(*first, *second);
 				}
@@ -114,11 +114,11 @@ void esh_heads_first_unique(const std::vector<word *> &sentence)
 }
 
 /* Exhaustive left-to-right search, dependents first, with uniqueness */
-void esh_dependents_first_unique(const std::vector<word *> &sentence)
+void esh_dependents_first_unique(const dls::tableau<word *> &sentence)
 {
-	auto begin = sentence.begin();
-	auto first = sentence.begin() + 1;
-	auto last = sentence.end();
+	auto begin = sentence.debut();
+	auto first = sentence.debut() + 1;
+	auto last = sentence.fin();
 
 	for (; first != last; ++first) {
 		word *wi = *first;
@@ -126,7 +126,7 @@ void esh_dependents_first_unique(const std::vector<word *> &sentence)
 		for (auto second = first - 1; second != begin; --second) {
 			word *wj = *second;
 
-			if (wj->dependents.empty()) {
+			if (wj->dependents.est_vide()) {
 				if (grammar_permits(*first, *second)) {
 					link(*first, *second);
 				}
@@ -174,20 +174,20 @@ static bool is_independent(word */*head*/)
 }
 
 /* List-based search with uniqueness and projectivity */
-void lsup(const std::vector<word *> &sentence)
+void lsup(const dls::tableau<word *> &sentence)
 {
-	std::vector<word *> head_list{};
-	std::vector<word *> word_list{};
+	dls::tableau<word *> head_list{};
+	dls::tableau<word *> word_list{};
 
-	auto first = sentence.begin() + 1;
-	auto last = sentence.end();
+	auto first = sentence.debut() + 1;
+	auto last = sentence.fin();
 
 	for (; first != last; ++first) {
-		word_list.push_back(*first);
+		word_list.pousse(*first);
 
 		/* look for dependents of w, they can only be the consecutive elements
 		 * of head_list, starting with the most recently added */
-		for (auto iter = head_list.begin(); iter != head_list.end(); ++iter) {
+		for (auto iter = head_list.debut(); iter != head_list.fin(); ++iter) {
 			if (can_depend(*first, *iter)) {
 				link(*first, *iter);
 				head_list.erase(iter);
@@ -216,9 +216,9 @@ void lsup(const std::vector<word *> &sentence)
 		}
 
 		if ((*first)->head == nullptr) {
-			head_list.push_back(*first);
+			head_list.pousse(*first);
 		}
 	}
 
-	std::cerr << "Head list size: " << head_list.size() << '\n';
+	std::cerr << "Head list size: " << head_list.taille() << '\n';
 }

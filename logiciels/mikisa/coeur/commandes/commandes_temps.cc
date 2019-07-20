@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <chrono>
 
-#include "biblinternes/commandes/commande.h"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 

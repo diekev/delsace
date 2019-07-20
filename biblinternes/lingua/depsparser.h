@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 /* The folowing enums were derived from
  * "A Free-Word-Order Dependency Parser in Prolog", Michael A. Covington, 2003
@@ -59,9 +59,9 @@ enum class gcase {
 
 struct word {
 	word *head = nullptr;
-	std::vector<word *> dependents{};
+	dls::tableau<word *> dependents{};
 
-	std::string label;
+	dls::chaine label;
 	int count = 0;
 	category cat;
 	gender gend;
@@ -69,7 +69,7 @@ struct word {
 	gcase cas;
 	int person;
 
-	word(const std::string &l, category c, gender g, number n, gcase gc, int pers)
+	word(const dls::chaine &l, category c, gender g, number n, gcase gc, int pers)
 	    : label(l)
 	    , cat(c)
 	    , gend(g)
@@ -84,10 +84,10 @@ struct word {
 
 void link(word *head, word *dependent);
 
-void esh_heads_first(const std::vector<word *> &sentence);
-void esh_dependents_first(const std::vector<word *> &sentence);
+void esh_heads_first(const dls::tableau<word *> &sentence);
+void esh_dependents_first(const dls::tableau<word *> &sentence);
 
-void esh_heads_first_unique(const std::vector<word *> &sentence);
-void esh_dependents_first_unique(const std::vector<word *> &sentence);
+void esh_heads_first_unique(const dls::tableau<word *> &sentence);
+void esh_dependents_first_unique(const dls::tableau<word *> &sentence);
 
-void lsup(const std::vector<word *> &words);
+void lsup(const dls::tableau<word *> &words);

@@ -25,7 +25,7 @@
 #pragma once
 
 #include <any>
-#include <list>
+#include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
 #include "morceaux.hh"
@@ -82,7 +82,7 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-/* Notes pour supprimer le std::list de la structure noeud et n'utiliser de la
+/* Notes pour supprimer le dls::liste de la structure noeud et n'utiliser de la
  * mémoire que quand nécessaire.
  *
  * noeud racine : multiples enfants pouvant être dans des tableaux différents
@@ -214,7 +214,7 @@ namespace noeud {
  * Classe de base représentant un noeud dans l'arbre.
  */
 struct base {
-	std::list<base *> enfants{};
+	dls::liste<base *> enfants{};
 	DonneesMorceaux const &morceau;
 
 	std::any valeur_calculee{};

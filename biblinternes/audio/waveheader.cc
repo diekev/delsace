@@ -39,9 +39,9 @@ WaveHeader::WaveHeader()
 
 void WaveHeader::write(std::ostream &os)
 {
-	os.write(m_group_id.c_str(), static_cast<long>(sizeof(char) * m_group_id.size()));
+	os.write(m_group_id.c_str(), static_cast<long>(sizeof(char) * static_cast<size_t>(m_group_id.taille())));
 	os.write(reinterpret_cast<char *>(&m_file_length), sizeof(unsigned int));
-	os.write(m_riff_type.c_str(), static_cast<long>(sizeof(char) * m_riff_type.size()));
+	os.write(m_riff_type.c_str(), static_cast<long>(sizeof(char) * static_cast<size_t>(m_riff_type.taille())));
 }
 
 WaveFormatChunk::WaveFormatChunk()
@@ -57,7 +57,7 @@ WaveFormatChunk::WaveFormatChunk()
 
 void WaveFormatChunk::write(std::ostream &os)
 {
-	os.write(m_chunk_id.c_str(), static_cast<long>(sizeof(char) * m_chunk_id.size()));
+	os.write(m_chunk_id.c_str(), static_cast<long>(sizeof(char) * static_cast<size_t>(m_chunk_id.taille())));
 	os.write(reinterpret_cast<char *>(&m_chunk_size), sizeof(unsigned int));
 	os.write(reinterpret_cast<char *>(&m_format_tag), sizeof(unsigned short));
 	os.write(reinterpret_cast<char *>(&m_num_channels), sizeof(unsigned short));
@@ -73,7 +73,7 @@ WaveDataChunk::WaveDataChunk()
     , m_array(0)
 {}
 
-std::vector<short> &WaveDataChunk::array()
+dls::tableau<short> &WaveDataChunk::array()
 {
 	return m_array;
 }
@@ -83,16 +83,16 @@ void WaveDataChunk::chunkSize(uint size)
 	m_chunk_size = size;
 }
 
-const uint WaveDataChunk::chunkSize() const
+uint WaveDataChunk::chunkSize() const
 {
 	return m_chunk_size;
 }
 
 void WaveDataChunk::write(std::ostream &os)
 {
-	os.write(m_chunk_id.c_str(), static_cast<long>(sizeof(char) * m_chunk_id.size()));
+	os.write(m_chunk_id.c_str(), static_cast<long>(sizeof(char) * static_cast<size_t>(m_chunk_id.taille())));
 	os.write(reinterpret_cast<char *>(&m_chunk_size), sizeof(unsigned int));
-	os.write(reinterpret_cast<char *>(&m_array[0]), static_cast<long>(sizeof(short) * m_array.size()));
+	os.write(reinterpret_cast<char *>(&m_array[0]), static_cast<long>(sizeof(short) * static_cast<size_t>(m_array.taille())));
 }
 
 WaveGenerator::WaveGenerator()
@@ -118,29 +118,29 @@ void WaveGenerator::addFreq(double freq, int amplitude, double length)
 	}
 
 	auto array = &m_data->array();
-	auto array_size = array->size();
-	array->resize(array_size + static_cast<size_t>(num_samples - 1.0));
+	auto array_size = array->taille();
+	array->redimensionne(array_size + static_cast<long>(num_samples - 1.0));
 
-	assert(array->size() != 0);
+	assert(array->taille() != 0);
 
 	auto t = (M_PI * 2.0 * freq) / (m_format->samplesPerSecond() * m_format->numChannels());
 
-	for (size_t i = array_size, ie = array_size + static_cast<size_t>(num_samples - 3.0); i < ie; ++i) {
-		for (size_t c = 0ul, ce = m_format->numChannels(); c < ce; ++c) {
+	for (auto i = array_size, ie = array_size + static_cast<long>(num_samples - 3.0); i < ie; ++i) {
+		for (long c = 0l, ce = m_format->numChannels(); c < ce; ++c) {
 			(*array)[i + c] = static_cast<short>(amplitude * std::sin(t * static_cast<double>(i)));
 		}
 	}
 
-	assert(array->size() != 0);
+	assert(array->taille() != 0);
 
-	m_data->chunkSize(static_cast<uint>(array->size()) * static_cast<uint>(m_format->bitsPerSample() / 8));
+	m_data->chunkSize(static_cast<uint>(array->taille()) * static_cast<uint>(m_format->bitsPerSample() / 8));
 
 	assert(m_data->chunkSize() != 0);
 }
 
-void WaveGenerator::save(const std::string &filename)
+void WaveGenerator::save(const dls::chaine &filename)
 {
-	std::ofstream outfile(filename, std::ios::out | std::ios::binary);
+	std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);
 	m_header->write(outfile);
 	m_format->write(outfile);
 	m_data->write(outfile);

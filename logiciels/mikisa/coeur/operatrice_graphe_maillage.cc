@@ -465,7 +465,7 @@ int OperatricePoint3D::execute(ContexteEvaluation const &contexte, DonneesAval *
 
 void GestionnaireDonneesGraphe::reinitialise()
 {
-	m_bruits.clear();
+	m_bruits.efface();
 }
 
 size_t GestionnaireDonneesGraphe::ajoute_bruit(dls::math::BruitPerlin3D *bruit)

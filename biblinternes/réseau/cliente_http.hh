@@ -38,9 +38,9 @@ struct cliente_http {
 		reseau::uri uri;
 	};
 
-	static void construit_requete(const donnees_requete &donnees, std::string &chaine)
+	static void construit_requete(const donnees_requete &donnees, dls::chaine &chaine)
 	{
-		chaine.clear();
+		chaine.efface();
 
 		std::stringstream ss;
 
@@ -74,7 +74,7 @@ struct cliente_http {
 				break;
 		}
 
-		if (!donnees.uri.chemin().empty()) {
+		if (!donnees.uri.chemin().est_vide()) {
 			ss << donnees.uri.chemin();
 			ss << donnees.uri.requete();
 			ss << donnees.uri.fragment();
@@ -103,7 +103,7 @@ struct cliente_http {
 		std::cerr << chaine;
 	}
 
-	static void construit_reponse(const std::string &chaine)
+	static void construit_reponse(const dls::chaine &chaine)
 	{
 		std::cerr << "Réponse : \n";
 		std::cerr << chaine;

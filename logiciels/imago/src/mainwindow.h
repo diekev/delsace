@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <random>
 #include <QDir>
 #include <QMainWindow>
 
@@ -47,7 +48,7 @@ class MainWindow : public QMainWindow {
 
 	QVector<QString> m_images = {};
 	QVector<QString> m_recent_files = {};
-	int m_image_id = 0;
+	long m_image_id = 0;
 
 	QImage *m_current_image = nullptr;
 	QVector<QAction *> m_recent_act = {};
@@ -61,10 +62,10 @@ class MainWindow : public QMainWindow {
 	bool m_diaporama_started = false;
 	bool m_trash_initialized = false;
 
-	QString m_supported_file_types;
+	QString m_supported_file_types = "";
 
 	/* Event handling */
-	void closeEvent(QCloseEvent *) const;
+	void closeEvent(QCloseEvent *) override;
 	void keyPressEvent(QKeyEvent *e);
 
 	void getDirectoryContent(const QDir &dir);
@@ -95,6 +96,9 @@ private slots:
 public:
 	explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+
+	MainWindow(MainWindow const &) = default;
+	MainWindow &operator=(MainWindow const &) = default;
 
 	/* Image operations */
 	auto loadImage(const QString &filename) -> void;

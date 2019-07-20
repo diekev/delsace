@@ -94,7 +94,7 @@ Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
 
 	tampon->tampon.remplie(pixel);
 
-	m_calques.push_back(tampon);
+	m_calques.pousse(tampon);
 
 	return tampon;
 }
@@ -112,12 +112,12 @@ Calque *Image::calque(dls::chaine const &nom) const
 
 Image::plage_calques Image::calques()
 {
-	return plage_calques(m_calques.begin(), m_calques.end());
+	return plage_calques(m_calques.debut(), m_calques.fin());
 }
 
 Image::plage_calques_const Image::calques() const
 {
-	return plage_calques_const(m_calques.cbegin(), m_calques.cend());
+	return plage_calques_const(m_calques.debut(), m_calques.fin());
 }
 
 void Image::reinitialise(bool garde_memoires)
@@ -128,7 +128,7 @@ void Image::reinitialise(bool garde_memoires)
 		}
 	}
 
-	m_calques.clear();
+	m_calques.efface();
 }
 
 void Image::nom_calque_actif(dls::chaine const &nom)
@@ -160,7 +160,7 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 
 	auto lien = m_ptr->liens[0];
 
-	m_liste_noms_calques.clear();
+	m_liste_noms_calques.efface();
 
 	if (lien != nullptr) {
 		auto noeud = lien->parent;
@@ -481,7 +481,7 @@ void OperatriceImage::ajoute_avertissement(dls::chaine const &avertissement)
 
 void OperatriceImage::reinitialise_avertisements()
 {
-	m_avertissements.clear();
+	m_avertissements.efface();
 }
 
 dls::tableau<dls::chaine> const &OperatriceImage::avertissements() const
@@ -517,10 +517,16 @@ Manipulatrice3D *OperatriceImage::manipulatrice_3d(int /*type*/)
 void OperatriceImage::ajourne_selon_manipulatrice_3d(int /*type*/, const int /*temps*/)
 {}
 
-void OperatriceImage::obtiens_liste(dls::chaine const &/*attache*/, dls::tableau<dls::chaine> &chaines)
+void OperatriceImage::obtiens_liste(
+		ContexteEvaluation const &contexte,
+		dls::chaine const &attache,
+		dls::tableau<dls::chaine> &chaines)
 {
+	INUTILISE(contexte);
+	INUTILISE(attache);
+
 	if (entrees() == 0) {
-		chaines.clear();
+		chaines.efface();
 		return;
 	}
 
@@ -528,8 +534,9 @@ void OperatriceImage::obtiens_liste(dls::chaine const &/*attache*/, dls::tableau
 	entree(0)->obtiens_liste_calque(chaines);
 }
 
-void OperatriceImage::renseigne_dependance(CompilatriceReseau &compilatrice, NoeudReseau *noeud) const
+void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud)
 {
+	INUTILISE(contexte);
 	INUTILISE(compilatrice);
 	INUTILISE(noeud);
 }
@@ -550,6 +557,11 @@ bool OperatriceImage::possede_animation()
 bool OperatriceImage::depend_sur_temps() const
 {
 	return false;
+}
+
+void OperatriceImage::amont_change()
+{
+	return;
 }
 
 /* ************************************************************************** */

@@ -30,7 +30,7 @@ set(BIBLIOTHEQUES
 	image
 	png
 	jpeg
-	bib_spectre
+	bib_phys
 )
 
 add_library(${NOM_CIBLE} STATIC

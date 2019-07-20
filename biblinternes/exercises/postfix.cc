@@ -26,7 +26,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/structures/pile.hh"
 
@@ -73,7 +73,7 @@ public:
 	}
 };
 
-auto has_lower_precedence(const std::string &o1, const std::string &o2)
+auto has_lower_precedence(const dls::chaine &o1, const dls::chaine &o2)
 {
 	const auto &op1 = Operator(o1.c_str());
 	const auto &op2 = Operator(o2.c_str());
@@ -81,12 +81,12 @@ auto has_lower_precedence(const std::string &o1, const std::string &o2)
 	return op1.has_lower_precedence(op2);
 }
 
-auto is_operator(const std::string &token)
+auto is_operator(const dls::chaine &token)
 {
 	return dls::outils::est_element(token, "+", "-", "/", "*", "^");
 }
 
-auto is_function(const std::string &token)
+auto is_function(const dls::chaine &token)
 {
 	return dls::outils::est_element(token, "sqrt", "sin", "cos", "tan", "!");
 }
@@ -96,11 +96,11 @@ auto is_operator(const char token)
 	return dls::outils::est_element(token, '+', '-', '/', '*', '^');
 }
 
-auto split(const std::string &source)
+auto split(const dls::chaine &source)
 {
-	std::vector<std::string> result;
+	dls::tableau<dls::chaine> result;
 
-	for (size_t i(0); i < source.size(); ++i) {
+	for (auto i(0); i < source.taille(); ++i) {
 		if (source[i] == ' ') {
 			continue;
 		}
@@ -122,7 +122,7 @@ auto split(const std::string &source)
 				++next;
 			}
 
-			result.push_back(source.substr(i, next - i));
+			result.pousse(source.sous_chaine(i, next - i));
 			i += (next - i - 1);
 			continue;
 		}
@@ -131,10 +131,10 @@ auto split(const std::string &source)
 	return result;
 }
 
-auto postfix(const std::string &expression) -> dls::file<std::string>
+auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>
 {
-	dls::file<std::string> output;
-	dls::pile<std::string> stack;
+	dls::file<dls::chaine> output;
+	dls::pile<dls::chaine> stack;
 
 	const auto &tokens = split(expression);
 
@@ -227,7 +227,7 @@ auto factorial(double value)
 	return value * factorial(value - 1.0);
 }
 
-auto evaluate(const double value, const std::string &fn)
+auto evaluate(const double value, const dls::chaine &fn)
 {
 	if (fn == "sqrt") {
 		return sqrt(value);
@@ -248,7 +248,7 @@ auto evaluate(const double value, const std::string &fn)
 	return 0.0;
 }
 
-auto evaluate_postfix(dls::file<std::string> &expression) -> double
+auto evaluate_postfix(dls::file<dls::chaine> &expression) -> double
 {
 	dls::pile<double> stack;
 
@@ -282,7 +282,7 @@ auto evaluate_postfix(dls::file<std::string> &expression) -> double
 			continue;
 		}
 
-		stack.empile(std::stod(token));
+		stack.empile(std::stod(token.c_str()));
 	}
 
 	return stack.haut();

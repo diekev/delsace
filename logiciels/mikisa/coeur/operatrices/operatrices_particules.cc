@@ -28,7 +28,7 @@
 
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/temps.hh"
 #include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -48,6 +48,18 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
+
+/* Opératrices ou faitures intéressantes pour les systèmes de particules :
+ * - distribution poisson (bruit bleu)
+ * - systèmes de particules imbriqués
+ * - entrecollision (grains, sables, etc.)
+ * - suivi de l'age (ex : attribut + script LCC pour grouper les particules)
+ * - groupement des particules de manière aléatoire (voir opératrice groupe)
+ * - émission/évènement par collision (ex : émet une fois, tue les parents,
+ *   rebondis, traverse objet, etc.)
+ * - colle aux surfaces, avec possibilité de se promener sur la surface
+ * - filtre particules selon attribut (script LCC)
+ */
 
 /* ************************************************************************** */
 
@@ -109,7 +121,7 @@ public:
 		}
 
 		dls::tableau<std::pair<Attribut *, Attribut *>> paires_attrs;
-		paires_attrs.reserve(static_cast<long>(corps->attributs().size()));
+		paires_attrs.reserve(corps->attributs().taille());
 
 		for (auto attr : corps->attributs()) {
 			auto attr2 = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
@@ -188,9 +200,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_points(chaines);
 		}
@@ -540,9 +554,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "groupe_origine") {
 			auto origine = evalue_enum("origine");
 
@@ -581,7 +597,19 @@ class ListeTriangle {
 
 public:
 	ListeTriangle() = default;
-	~ListeTriangle() = default;
+
+	ListeTriangle(ListeTriangle const &) = default;
+	ListeTriangle &operator=(ListeTriangle const &) = default;
+
+	~ListeTriangle()
+	{
+		auto triangle = m_premier_triangle;
+		while (triangle != nullptr) {
+			auto tri_suiv = triangle->suivant;
+			memoire::deloge("Triangle", triangle);
+			triangle = tri_suiv;
+		}
+	}
 
 	Triangle *ajoute(dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
 	{
@@ -1006,9 +1034,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_groupe") {
 			entree(0)->obtiens_liste_groupes_prims(chaines);
 		}
@@ -1086,12 +1116,7 @@ static void trouve_points_voisins(
 		}
 
 		if (longueur(point - pi) < radius) {
-			auto p3d = memoire::loge<Point3D>("Point3D");
-			p3d->x = pi.x;
-			p3d->y = pi.y;
-			p3d->z = pi.z;
-
-			rpoints.pousse(p3d);
+			rpoints.pousse(pi);
 		}
 	}
 }
@@ -1306,13 +1331,13 @@ public:
 #else	/* À FAIRE : le réindexage n'est pas correcte. */
 		/* Supprime les points */
 
-		auto tamis_point = dls::tableau<bool>(doublons.size(), false);
-		auto reindexage = dls::tableau<long>(doublons.size(), -1);
+		auto tamis_point = dls::tableau<bool>(doublons.taille(), false);
+		auto reindexage = dls::tableau<long>(doublons.taille(), -1);
 		auto nouvel_index = 0;
 
 		std::cerr << "Calcul tamis, reindexage\n";
 
-		for (auto i = 0ul; i < doublons.size(); ++i) {
+		for (auto i = 0ul; i < doublons.taille(); ++i) {
 			auto supprime = (doublons[i] != -1) && (doublons[i] != static_cast<int>(i));
 			tamis_point[i] = supprime;
 
@@ -1543,9 +1568,11 @@ public:
 	}
 
 	void obtiens_liste(
+			ContexteEvaluation const &contexte,
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines) override
 	{
+		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
 			entree(0)->obtiens_liste_attributs(chaines);
 		}

@@ -42,7 +42,7 @@ add_executable(application_test
 
 target_include_directories(application_test PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(application_test "${BIBLIOTHEQUES}" danjo)
+target_link_libraries(application_test "${BIBLIOTHEQUES}" danjo bib_outils)
 
 install(TARGETS application_test RUNTIME DESTINATION bin)
 

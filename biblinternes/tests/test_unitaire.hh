@@ -27,7 +27,9 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
-#include <vector>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls {
 namespace test_unitaire {
@@ -73,16 +75,16 @@ concept bool ConceptDecimal = std::is_floating_point<T>::value;
 
 class Controleuse {
 	std::ostream &m_flux = std::cerr;
-	size_t m_total = 0;
+	long m_total = 0;
 
 	using fonction_test = void(*)(Controleuse&);
 
-	std::string m_proposition = "";
+	dls::chaine m_proposition = "";
 
-	std::string::size_type m_taille_max_erreur = 0ul;
+	long m_taille_max_erreur = 0l;
 
-	std::vector<fonction_test> m_fonctions = {};
-	std::vector<std::string> m_echecs = {};
+	dls::tableau<fonction_test> m_fonctions = {};
+	dls::tableau<dls::chaine> m_echecs = {};
 
 public:
 	explicit Controleuse(std::ostream &os = std::cerr);
@@ -106,7 +108,7 @@ public:
 	 * proposition. Cette raison sera imprimée en introduction chaque erreur
 	 * de la proposition
 	 */
-	void debute_proposition(const std::string &raison);
+	void debute_proposition(const dls::chaine &raison);
 
 	/**
 	 * Indique la fin d'une proposition. Si d'autres tests sont performés
@@ -182,7 +184,7 @@ public:
 	template <ConceptFonctionTest FonctionTest>
 	void ajoute_fonction(FonctionTest &&test)
 	{
-		m_fonctions.push_back(test);
+		m_fonctions.pousse(test);
 	}
 
 	/**
@@ -191,7 +193,7 @@ public:
 	void performe_controles();
 
 private:
-	void pousse_erreur(const std::string &erreur);
+	void pousse_erreur(const dls::chaine &erreur);
 };
 
 template <ConceptComparaison TypeComparable>

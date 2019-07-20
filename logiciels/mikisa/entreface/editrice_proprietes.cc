@@ -37,9 +37,12 @@
 #include <QScrollArea>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/fichier.hh"
+
 #include "coeur/evaluation/evaluation.hh"
 
 #include "coeur/composite.h"
+#include "coeur/contexte_evaluation.hh"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
@@ -130,7 +133,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto const &texte = danjo::contenu_fichier(operatrice->chemin_entreface());
+	auto const &texte = dls::contenu_fichier(operatrice->chemin_entreface());
 
 	if (texte.est_vide()) {
 		return;
@@ -162,6 +165,25 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 	}
 }
 
+/* À FAIRE : déduplique. */
+static void marque_surannee_(Noeud *noeud)
+{
+	if (noeud == nullptr) {
+		return;
+	}
+
+	noeud->besoin_execution(true);
+
+	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+	op->amont_change();
+
+	for (PriseSortie *sortie : noeud->sorties()) {
+		for (PriseEntree *entree : sortie->liens) {
+			marque_surannee(entree->parent);
+		}
+	}
+}
+
 void EditriceProprietes::ajourne_manipulable()
 {
 	auto graphe = m_mikisa.graphe;
@@ -172,7 +194,7 @@ void EditriceProprietes::ajourne_manipulable()
 	}
 
 	/* Marque le noeud courant et ceux en son aval surannées. */
-	marque_surannee(noeud);
+	marque_surannee_(noeud);
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
 }
@@ -189,5 +211,7 @@ void EditriceProprietes::obtiens_liste(
 	}
 
 	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-	operatrice->obtiens_liste(attache, chaines);
+	auto contexte = cree_contexte_evaluation(m_mikisa);
+
+	operatrice->obtiens_liste(contexte, attache, chaines);
 }

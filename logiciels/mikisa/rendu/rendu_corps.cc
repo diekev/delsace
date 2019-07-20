@@ -24,11 +24,11 @@
 
 #include "rendu_corps.h"
 
-#include "biblinternes/ego/outils.h"
 #include <numeric>
 
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/tampon_rendu.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/texture/texture.h"
 #include "biblinternes/vision/camera.h"
 
@@ -228,15 +228,15 @@ void compile_sources_nuanceur(Maillage *maillage)
 
 static TamponRendu *cree_tampon_surface(bool possede_uvs)
 {
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/diffus.vert"));
+				dls::contenu_fichier("nuanceurs/diffus.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/diffus.frag"));
+				dls::contenu_fichier("nuanceurs/diffus.frag"));
 
 	tampon->finalise_programme();
 
@@ -312,6 +312,12 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
 					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
 				}
+				else if (attr_couleurs->portee == portee_attr::VERTEX) {
+					/* À FAIRE : indexage des vertex. */
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+				}
 			}
 			else {
 				if (attr_couleurs->portee == portee_attr::POINT) {
@@ -320,6 +326,12 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i)).xyz);
 				}
 				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+				}
+				else if (attr_couleurs->portee == portee_attr::VERTEX) {
+					/* À FAIRE : indexage des vertex. */
 					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
 					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
 					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
@@ -376,15 +388,15 @@ void ajoute_polygone_segment(
 
 static TamponRendu *cree_tampon_segments()
 {
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/simple.vert"));
+				dls::contenu_fichier("nuanceurs/simple.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/simple.frag"));
+				dls::contenu_fichier("nuanceurs/simple.frag"));
 
 	tampon->finalise_programme();
 
@@ -513,15 +525,15 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 {
 	auto grille = volume->grille;
 
-	auto tampon = new TamponRendu;
+	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::ego::util::str_from_file("nuanceurs/volume.vert"));
+				dls::contenu_fichier("nuanceurs/volume.vert"));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				dls::ego::util::str_from_file("nuanceurs/volume.frag"));
+				dls::contenu_fichier("nuanceurs/volume.frag"));
 
 	tampon->finalise_programme();
 
@@ -588,10 +600,10 @@ RenduCorps::RenduCorps(Corps const *corps)
 
 RenduCorps::~RenduCorps()
 {
-	delete m_tampon_points;
-	delete m_tampon_polygones;
-	delete m_tampon_segments;
-	delete m_tampon_volume;
+	memoire::deloge("TamponRendu", m_tampon_points);
+	memoire::deloge("TamponRendu", m_tampon_polygones);
+	memoire::deloge("TamponRendu", m_tampon_segments);
+	memoire::deloge("TamponRendu", m_tampon_volume);
 }
 
 void RenduCorps::initialise(ContexteRendu const &contexte)

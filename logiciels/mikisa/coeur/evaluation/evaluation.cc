@@ -47,26 +47,18 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto planifieuse = Planifieuse{};
 	auto executrice = Executrice{};
 
-	auto rectangle = Rectangle{};
-	rectangle.x = 0;
-	rectangle.y = 0;
-	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
-	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
-
-	auto contexte = ContexteEvaluation{};
-	contexte.bdd = &mikisa.bdd;
-	contexte.cadence = mikisa.cadence;
-	contexte.temps_debut = mikisa.temps_debut;
-	contexte.temps_fin = mikisa.temps_fin;
-	contexte.temps_courant = mikisa.temps_courant;
-	contexte.resolution_rendu = rectangle;
-	contexte.gestionnaire_fichier = &mikisa.gestionnaire_fichier;
-	contexte.chef = &mikisa.chef_execution;
-
 	auto compileuse = CompilatriceReseau{};
 	compileuse.reseau = &mikisa.scene->reseau;
 
-	compileuse.compile_reseau(mikisa.scene);
+	auto scene = mikisa.scene;
+	auto objet = static_cast<Objet *>(nullptr);
+
+	if (scene->graphe.noeud_actif != nullptr) {
+		objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
+	}
+
+	auto contexte = cree_contexte_evaluation(mikisa);
+	compileuse.compile_reseau(contexte, mikisa.scene, objet);
 
 	auto plan = Planifieuse::PtrPlan{nullptr};
 
@@ -77,18 +69,21 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		case GRAPHE_MODIFIE:
 		case PARAMETRE_CHANGE:
 		{
-			auto scene = mikisa.scene;
-			auto objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
 			plan = planifieuse.requiers_plan_pour_objet(mikisa.scene->reseau, objet);
 			break;
 		}
 		case OBJET_AJOUTE:
 		case OBJET_ENLEVE:
-		case TEMPS_CHANGE:
 		case FICHIER_OUVERT:
 		case RENDU_REQUIS:
 		{
 			plan = planifieuse.requiers_plan_pour_scene(mikisa.scene->reseau);
+			break;
+		}
+		case TEMPS_CHANGE:
+		{
+			compileuse.marque_execution_temps_change();
+			plan = planifieuse.requiers_plan_pour_nouveau_temps(mikisa.scene->reseau, mikisa.temps_courant, mikisa.animation);
 			break;
 		}
 	}

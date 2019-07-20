@@ -10,8 +10,6 @@
 #ifndef VOROPP_UNITCELL_HH
 #define VOROPP_UNITCELL_HH
 
-#include <vector>
-
 #include "config.hh"
 #include "cell.hh"
 

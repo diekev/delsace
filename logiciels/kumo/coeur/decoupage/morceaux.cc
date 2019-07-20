@@ -26,47 +26,47 @@
  
 #include "morceaux.hh"
 
-#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
-static dls::dico<dls::vue_chaine, int> paires_mots_cles = {
-	{ "ajourne", ID_AJOURNE },
-	{ "auto_incrémente", ID_AUTO_INCREMENTE },
-	{ "binaire", ID_BINAIRE },
-	{ "bit", ID_BIT },
-	{ "cascade", ID_CASCADE },
-	{ "chaîne", ID_CHAINE },
-	{ "clé", ID_CLE },
-	{ "clé_primaire", ID_CLE_PRIMAIRE },
-	{ "défaut", ID_DEFAUT },
-	{ "entier", ID_ENTIER },
-	{ "faux", ID_FAUX },
-	{ "nul", ID_NUL },
-	{ "octet", ID_OCTET },
-	{ "réel", ID_REEL },
-	{ "référence", ID_REFERENCE },
-	{ "signé", ID_SIGNE },
-	{ "supprime", ID_SUPPRIME },
-	{ "table", ID_TABLE },
-	{ "taille", ID_TAILLE },
-	{ "temps", ID_TEMPS },
-	{ "temps_courant", ID_TEMPS_COURANT },
-	{ "temps_date", ID_TEMPS_DATE },
-	{ "texte", ID_TEXTE },
-	{ "variable", ID_VARIABLE },
-	{ "vrai", ID_VRAI },
-	{ "zerofill", ID_ZEROFILL },
-};
+static auto paires_mots_cles = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("ajourne"), ID_AJOURNE },
+	dls::paire{ dls::vue_chaine("auto_incrémente"), ID_AUTO_INCREMENTE },
+	dls::paire{ dls::vue_chaine("binaire"), ID_BINAIRE },
+	dls::paire{ dls::vue_chaine("bit"), ID_BIT },
+	dls::paire{ dls::vue_chaine("cascade"), ID_CASCADE },
+	dls::paire{ dls::vue_chaine("chaîne"), ID_CHAINE },
+	dls::paire{ dls::vue_chaine("clé"), ID_CLE },
+	dls::paire{ dls::vue_chaine("clé_primaire"), ID_CLE_PRIMAIRE },
+	dls::paire{ dls::vue_chaine("défaut"), ID_DEFAUT },
+	dls::paire{ dls::vue_chaine("entier"), ID_ENTIER },
+	dls::paire{ dls::vue_chaine("faux"), ID_FAUX },
+	dls::paire{ dls::vue_chaine("nul"), ID_NUL },
+	dls::paire{ dls::vue_chaine("octet"), ID_OCTET },
+	dls::paire{ dls::vue_chaine("réel"), ID_REEL },
+	dls::paire{ dls::vue_chaine("référence"), ID_REFERENCE },
+	dls::paire{ dls::vue_chaine("signé"), ID_SIGNE },
+	dls::paire{ dls::vue_chaine("supprime"), ID_SUPPRIME },
+	dls::paire{ dls::vue_chaine("table"), ID_TABLE },
+	dls::paire{ dls::vue_chaine("taille"), ID_TAILLE },
+	dls::paire{ dls::vue_chaine("temps"), ID_TEMPS },
+	dls::paire{ dls::vue_chaine("temps_courant"), ID_TEMPS_COURANT },
+	dls::paire{ dls::vue_chaine("temps_date"), ID_TEMPS_DATE },
+	dls::paire{ dls::vue_chaine("texte"), ID_TEXTE },
+	dls::paire{ dls::vue_chaine("variable"), ID_VARIABLE },
+	dls::paire{ dls::vue_chaine("vrai"), ID_VRAI },
+	dls::paire{ dls::vue_chaine("zerofill"), ID_ZEROFILL }
+);
 
-static dls::dico<char, int> paires_caracteres_speciaux = {
-	{ '(', ID_PARENTHESE_OUVRANTE },
-	{ ')', ID_PARENTHESE_FERMANTE },
-	{ ',', ID_VIRGULE },
-	{ '.', ID_POINT },
-	{ ':', ID_DOUBLE_POINTS },
-	{ ';', ID_POINT_VIRGULE },
-	{ '{', ID_ACCOLADE_OUVRANTE },
-	{ '}', ID_ACCOLADE_FERMANTE },
-};
+static auto paires_caracteres_speciaux = dls::cree_dico(
+	dls::paire{ '(', ID_PARENTHESE_OUVRANTE },
+	dls::paire{ ')', ID_PARENTHESE_FERMANTE },
+	dls::paire{ ',', ID_VIRGULE },
+	dls::paire{ '.', ID_POINT },
+	dls::paire{ ':', ID_DOUBLE_POINTS },
+	dls::paire{ ';', ID_POINT_VIRGULE },
+	dls::paire{ '{', ID_ACCOLADE_OUVRANTE },
+	dls::paire{ '}', ID_ACCOLADE_FERMANTE }
+);
 
 const char *chaine_identifiant(int id)
 {
@@ -170,13 +170,23 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = -1;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
-		tables_caracteres[int(iter.first)] = true;
-		tables_identifiants[int(iter.first)] = iter.second;
+    {
+	    auto plg = paires_caracteres_speciaux.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres[int(plg.front().premier)] = true;
+		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -196,10 +206,10 @@ int id_chaine(const dls::vue_chaine &chaine)
 		return ID_CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return ID_CHAINE_CARACTERE;

@@ -27,8 +27,9 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
+#if defined __cpp_concepts && __cpp_concepts >= 201507
 template <typename C>
 concept bool ConceptConteneur()
 {
@@ -38,17 +39,17 @@ concept bool ConceptConteneur()
 		C(a);
 		a = b;
 		(&a)->~C();
-		a.begin();
-		a.end();
+		a.debut();
+		a.fin();
 		a.cbegin();
 		a.cend();
 		a.swap(b);
 		std::swap(a, b);
 		a == b;
 		a != b;
-		a.size();
+		a.taille();
 		a.max_size();
-		a.empty();
+		a.est_vide();
 	};
 }
 
@@ -95,106 +96,6 @@ concept bool ConceptFonction = requires(C op, Args... args)
 	op(args...);
 };
 
-namespace dls {
-namespace chisei {
-
-/* ************************************************************************** */
-
-/**
- * Créé une chaine de type std::string de la longueur spécifiée contenant des
- * caractères aléatoire générés par le générateur donnée.
- */
-std::string chaine_aleatoire(std::mt19937 &generateur, size_t longueur);
-
-/**
- * Croise les valeurs pointées par deux itérateurs entre debut1-fin1 et
- * debut2-fin2 selon la fonction spécifiée. À chaque itération, la fonction est
- * appelée, et selon son résultat la valeur de l'un ou l'autre itérateur est
- * choisie et mise dans le conteneur pointé par l'itérateur sortie.
- */
-template <
-		ConceptIterateurEntree IterEntree1,
-		ConceptIterateurEntree IterEntree2,
-		ConceptIterateurSortie IterSortie1,
-		ConceptFonction Fonction>
-inline auto croise_si(
-		IterEntree1 debut1,
-		IterEntree1 fin1,
-		IterEntree2 debut2,
-		IterEntree2 fin2,
-		IterSortie1 sortie,
-		Fonction fonction)
-{
-	while ((debut1 != fin1) && (debut2 != fin2)) {
-		if (fonction()) {
-			*sortie++ = *debut1;
-		}
-		else {
-			*sortie++ = *debut2;
-		}
-
-		++debut1;
-		++debut2;
-	}
-}
-
-/**
- * Croise les valeurs de deux conteneurs, conteneur1 et conteneur2, selon la
- * fonction spécifiée. À chaque itération, la fonction est appelée, et selon son
- * résultat la valeur de l'un ou l'autre conteneur est choisie et mise dans le
- * conteneur sortie.
- */
-template <
-		ConceptConteneur Cont1,
-		ConceptConteneur Cont2,
-		ConceptConteneur ContSortie1,
-		ConceptFonction Fonction>
-inline auto croise_si(
-		const Cont1 &conteneur1,
-		const Cont2 &conteneur2,
-		ContSortie1 &conteneur_sortie,
-		Fonction fonction)
-{
-	croise_si(conteneur1.begin(), conteneur1.end(),
-			  conteneur2.begin(), conteneur2.end(),
-			  conteneur_sortie.begin(),
-			  fonction);
-}
-
-/**
- * Compte le nombre de correspondances entre les valeurs pointés par deux
- * itérateurs.
- */
-template <
-		ConceptIterateurEntree IterEntree1,
-		ConceptIterateurEntree IterEntree2>
-inline auto compte_correspondances(
-		IterEntree1 debut1,
-		IterEntree1 fin1,
-		IterEntree2 debut2,
-		IterEntree2 fin2)
-{
-	auto compte = 0;
-
-	while ((debut1 != fin1) && (debut2 != fin2)) {
-		if (*debut1++ == *debut2++) {
-			++compte;
-		}
-	}
-
-	return compte;
-}
-
-/**
- * Compte le nombre de correspondances entre les valeurs de deux conteneurs.
- */
-template <ConceptConteneur Cont1, ConceptConteneur Cont2>
-inline auto compte_correspondances(Cont1 conteneur1, Cont2 conteneur2)
-{
-	return compte_correspondances(
-				conteneur1.begin(), conteneur1.end(),
-				conteneur2.begin(), conteneur2.end());
-}
 
 /**
  * Concept pour définir le type de problème à résoudre à l'aide de l'algorithme
@@ -250,7 +151,7 @@ concept bool ConceptTypeProbleme = requires(
 	/**
 	 * Créer la population à partir des données principales et d'un générateur
 	 * de nombre aléatoire de type std::mt19937. Cette fonction doit retourner
-	 * un std::vector<typename T::type_chromosome.
+	 * un dls::tableau<typename T::type_chromosome.
 	 */
 	T::cree_population(donnees, rng);
 
@@ -305,6 +206,115 @@ concept bool ConceptTypeProbleme = requires(
 	 */
 	T::rappel_pour_meilleur(donnees, chromosome);
 };
+#else
+#	define ConceptConteneur typename
+#	define ConceptIterateur typename
+#	define ConceptIterateurEntree typename
+#	define ConceptIterateurSortie typename
+#	define ConceptFonction typename
+#	define ConceptTypeProbleme typename
+#endif
+
+namespace dls {
+namespace chisei {
+
+/* ************************************************************************** */
+
+/**
+ * Créé une chaine de type dls::chaine de la longueur spécifiée contenant des
+ * caractères aléatoire générés par le générateur donnée.
+ */
+dls::chaine chaine_aleatoire(std::mt19937 &generateur, long longueur);
+
+/**
+ * Croise les valeurs pointées par deux itérateurs entre debut1-fin1 et
+ * debut2-fin2 selon la fonction spécifiée. À chaque itération, la fonction est
+ * appelée, et selon son résultat la valeur de l'un ou l'autre itérateur est
+ * choisie et mise dans le conteneur pointé par l'itérateur sortie.
+ */
+template <
+		ConceptIterateurEntree IterEntree1,
+		ConceptIterateurEntree IterEntree2,
+		ConceptIterateurSortie IterSortie1,
+		ConceptFonction Fonction>
+inline auto croise_si(
+		IterEntree1 debut1,
+		IterEntree1 fin1,
+		IterEntree2 debut2,
+		IterEntree2 fin2,
+		IterSortie1 sortie,
+		Fonction fonction)
+{
+	while ((debut1 != fin1) && (debut2 != fin2)) {
+		if (fonction()) {
+			*sortie++ = *debut1;
+		}
+		else {
+			*sortie++ = *debut2;
+		}
+
+		++debut1;
+		++debut2;
+	}
+}
+
+/**
+ * Croise les valeurs de deux conteneurs, conteneur1 et conteneur2, selon la
+ * fonction spécifiée. À chaque itération, la fonction est appelée, et selon son
+ * résultat la valeur de l'un ou l'autre conteneur est choisie et mise dans le
+ * conteneur sortie.
+ */
+template <
+		ConceptConteneur Cont1,
+		ConceptConteneur Cont2,
+		ConceptConteneur ContSortie1,
+		ConceptFonction Fonction>
+inline auto croise_si(
+		const Cont1 &conteneur1,
+		const Cont2 &conteneur2,
+		ContSortie1 &conteneur_sortie,
+		Fonction fonction)
+{
+	croise_si(conteneur1.debut(), conteneur1.fin(),
+			  conteneur2.debut(), conteneur2.fin(),
+			  conteneur_sortie.debut(),
+			  fonction);
+}
+
+/**
+ * Compte le nombre de correspondances entre les valeurs pointés par deux
+ * itérateurs.
+ */
+template <
+		ConceptIterateurEntree IterEntree1,
+		ConceptIterateurEntree IterEntree2>
+inline auto compte_correspondances(
+		IterEntree1 debut1,
+		IterEntree1 fin1,
+		IterEntree2 debut2,
+		IterEntree2 fin2)
+{
+	auto compte = 0;
+
+	while ((debut1 != fin1) && (debut2 != fin2)) {
+		if (*debut1++ == *debut2++) {
+			++compte;
+		}
+	}
+
+	return compte;
+}
+
+/**
+ * Compte le nombre de correspondances entre les valeurs de deux conteneurs.
+ */
+template <ConceptConteneur Cont1, ConceptConteneur Cont2>
+inline auto compte_correspondances(Cont1 conteneur1, Cont2 conteneur2)
+{
+	return compte_correspondances(
+				conteneur1.debut(), conteneur1.fin(),
+				conteneur2.debut(), conteneur2.fin());
+}
 
 /* ************************************************************************** */
 
@@ -348,7 +358,7 @@ auto lance_algorithme_genetique(std::ostream &os, const typename TypeProbleme::t
 	auto meilleur_chromosome = type_chromosome();
 
 	while (generation++ < TypeProbleme::GENERATIONS_MAX) {
-		std::sort(population.begin(), population.end(), TypeProbleme::compare_aptitude);
+		std::sort(population.debut(), population.fin(), TypeProbleme::compare_aptitude);
 
 		moyenne = 0.0;
 		auto parent = 0;

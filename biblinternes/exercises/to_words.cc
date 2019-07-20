@@ -23,15 +23,15 @@
  */
 
 #include "divers.h"
-#include "string_utils.h"
 
 #include <algorithm>
 #include <cstring>
 #include <iostream>
-#include <vector>
 
-#include "../chrono/chronometre_de_portee.hh"
-#include "../outils/iterateurs.h"
+#include "biblinternes/chrono/chronometre_de_portee.hh"
+#include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/iterateurs.h"
+#include "biblinternes/structures/tableau.hh"
 
 InvalidNumberExcetion::InvalidNumberExcetion(int n)
     : m_what("Invalid number: ")
@@ -46,7 +46,7 @@ const char *InvalidNumberExcetion::what() const noexcept
 
 namespace french {
 
-std::pair<std::string, std::string> dict[] = {
+std::pair<dls::chaine, dls::chaine> dict[] = {
     { "deux dix", "vingt" },
     { "trois dix", "trente" },
     { "quatre dix", "quarante" },
@@ -106,7 +106,7 @@ auto big_unit_to_string(const int n)
 
 namespace german {
 
-std::pair<std::string, std::string> dict[] = {
+std::pair<dls::chaine, dls::chaine> dict[] = {
     { "zwei zehn", "zwanzig" },
     { "drei zehn", "dreizig" },
     { "vier zehn", "vierzig" },
@@ -164,7 +164,7 @@ auto big_unit_to_string(const int n)
 
 namespace japanese {
 
-std::pair<std::string, std::string> dict[] = {
+std::pair<dls::chaine, dls::chaine> dict[] = {
     { "san hyaku", "sanbyaku" },
     { "roku hyaku", "roppyaku" },
     { "hachi hyaku", "happyaku" },
@@ -210,7 +210,7 @@ auto big_unit_to_string(const int n)
 
 namespace english {
 
-std::pair<std::string, std::string> dict[] = {
+std::pair<dls::chaine, dls::chaine> dict[] = {
     { "two ten", "twenty" },
     { "three ten", "thirty" },
     { "four ten", "forty" },
@@ -268,12 +268,12 @@ auto big_unit_to_string(const int n)
 
 namespace language = japanese;
 
-auto to_words(int number) -> std::string
+auto to_words(int number) -> dls::chaine
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 
-	auto num_str = std::to_string(number);
-	std::vector<std::string> vec;
+	auto num_str = dls::chaine(std::to_string(number));
+	dls::tableau<dls::chaine> vec;
 
 	auto size = 0ul;
 	auto j = 0;
@@ -300,15 +300,15 @@ auto to_words(int number) -> std::string
 		size += std::strlen(tmp);
 	}
 
-	std::string str;
-	str.reserve(size);
+	dls::chaine str;
+	str.reserve(static_cast<long>(size));
 	for (const auto &v : dls::outils::inverse_iterateur(vec)) {
 		str += v;
 		str += ' ';
 	}
 
 	for (const auto &it : language::dict) {
-		replace_substr(str, it.first, it.second);
+		remplace_souschaine(str, it.first, it.second);
 	}
 
 	return str;

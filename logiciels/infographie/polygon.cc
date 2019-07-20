@@ -31,11 +31,11 @@ static float area(const QVector<QPoint> &vertices)
 	auto area = float(0);
 
 	/* "start" at the last vertex since we need to loop around the vertices */
-	for (size_t i = 0, ie = vertices.size(), j = ie - 1; i < ie; j = i++) {
+	for (auto i = 0, ie = vertices.size(), j = ie - 1; i < ie; j = i++) {
 		const auto &v1 = vertices[j];
 		const auto &v2 = vertices[i];
 
-		area += (v1.x() * v2.y() - v1.y() * v2.x());
+		area += static_cast<float>(v1.x() * v2.y() - v1.y() * v2.x());
 		j = i;
 	}
 
@@ -48,7 +48,7 @@ static QPoint centroid(const QVector<QPoint> &vertices, const float area)
 	auto cent = QPoint(0, 0);
 
 	/* "start" at the last vertex since we need to loop around the vertices */
-	for (size_t i = 0, ie = vertices.size(), j = ie - 1; i < ie; j = i++) {
+	for (auto i = 0, ie = vertices.size(), j = ie - 1; i < ie; j = i++) {
 		const auto &v1 = vertices[j];
 		const auto &v2 = vertices[i];
 		auto c = v1;

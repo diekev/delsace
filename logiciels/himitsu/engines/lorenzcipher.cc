@@ -24,6 +24,8 @@
 
 #include <QLineEdit>
 
+#include "biblinternes/outils/conditions.h"
+
 #include "cipherengine.h"
 #include "ui_lorenz_sz40.h"
 
@@ -69,7 +71,7 @@ LorenzCipher::~LorenzCipher()
 
 char LorenzCipher::getCipheredChar(char to_encrypt)
 {
-	if (isalpha(to_encrypt) || is_elem(to_encrypt, ' ', '<', '>', '[', ']', '\0')) {
+	if (isalpha(to_encrypt) || dls::outils::est_element(to_encrypt, ' ', '<', '>', '[', ']', '\0')) {
 		auto beaudot_char = beaudot_encode(to_encrypt);
 		auto is_upper = isupper(to_encrypt);
 		auto new_char = beaudot_char ^ getCipherKey();
@@ -77,7 +79,7 @@ char LorenzCipher::getCipheredChar(char to_encrypt)
 		to_encrypt = beaudot_decode(new_char);
 
 		if (is_upper) {
-			to_encrypt = toupper(to_encrypt);
+			to_encrypt = static_cast<char>(toupper(to_encrypt));
 		}
 	}
 

@@ -25,7 +25,7 @@
 #include "operatrice_graphe_pixel.h"
 
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/parallelisme.h"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 

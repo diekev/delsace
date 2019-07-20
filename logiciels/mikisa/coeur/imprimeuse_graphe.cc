@@ -26,12 +26,10 @@
 
 #include <iomanip>
 
-#include <systeme_fichier/file.h>
-
 #include "biblinternes/graphe/graphe.h"
-
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/systeme_fichier/file.h"
 
 #include "noeud_image.h"
 
@@ -138,8 +136,8 @@ inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
 	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
 	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom().c_str());
 
-	auto const numin = static_cast<long>(node->entrees().size());
-	auto const numout = static_cast<long>(node->sorties().size());
+	auto const numin = node->entrees().taille();
+	auto const numout = node->sorties().taille();
 
 	for (auto i = 0; (i < numin) || (i < numout); ++i) {
 		file.print("<TR>");
@@ -225,7 +223,7 @@ ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
 
 void ImprimeuseGraphe::operator()(filesystem::path const &path)
 {
-	dls::systeme_fichier::File file(path, "w");
+	dls::systeme_fichier::File file(path.c_str(), "w");
 
 	if (!file) {
 		return;

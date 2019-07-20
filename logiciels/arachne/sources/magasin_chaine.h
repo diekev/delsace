@@ -26,6 +26,7 @@
 
 #include <experimental/filesystem>
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
 namespace arachne {
@@ -36,28 +37,28 @@ namespace arachne {
  * fois.
  */
 struct magasin_chaine {
-	dls::dico_desordonne<std::string, int> m_tableau = {};
-	unsigned int m_nombre_chaines = 0;
-	size_t m_taille_chaines = 0ul;
+	dls::dico_desordonne<dls::chaine, int> m_tableau = {};
+	long m_nombre_chaines = 0;
+	long m_taille_chaines = 0l;
 
 public:
 	magasin_chaine() = default;
 	~magasin_chaine() = default;
 
-	using iterateur = dls::dico_desordonne<std::string, int>::iteratrice;
-	using iterateur_const = dls::dico_desordonne<std::string, int>::const_iteratrice;
+	using iterateur = dls::dico_desordonne<dls::chaine, int>::iteratrice;
+	using iterateur_const = dls::dico_desordonne<dls::chaine, int>::const_iteratrice;
 
 	/**
 	 * Ajoute la chaîne spécifiée en paramètre dans le magasin si elle n'y est
 	 * pas déjà et retourne son index.
 	 */
-	unsigned int ajoute_chaine(const std::string &chaine);
+	long ajoute_chaine(const dls::chaine &chaine);
 
 	/**
 	 * Retourne l'index de la chaîne spécifiée. Si la chaîne n'a pas été
 	 * indexée, retourne 0.
 	 */
-	unsigned int index_chaine(const std::string &chaine) const;
+	unsigned int index_chaine(const dls::chaine &chaine) const;
 
 	/**
 	 * Retourne vrai si le nombre de chaîne dans l'index du magasin est égal au
@@ -68,12 +69,12 @@ public:
 	/**
 	 * Retourne le nombre de chaînes dans le magasin.
 	 */
-	size_t taille() const;
+	long taille() const;
 
 	/**
 	 * Retourne la taille concaténée de toutes les chaînes dans le magasin.
 	 */
-	size_t taille_chaines() const;
+	long taille_chaines() const;
 
 	/**
 	 * Retourne un itérateur pointant vers le début du tableau de chaînes du

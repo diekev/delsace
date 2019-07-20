@@ -49,7 +49,7 @@ Objet::Objet(Maillage *m)
 	, maillage(m)
 {}
 
-std::string Objet::chemin() const
+dls::chaine Objet::chemin() const
 {
 	if (type == TypeObjet::LUMIERE) {
 		return "/objets/lumières/" + nom + "/";

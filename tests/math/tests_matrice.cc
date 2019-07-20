@@ -24,7 +24,7 @@
 
 #include "tests_matrice.hh"
 
-#include "math/matrice.hh"
+#include "biblinternes/math/matrice.hh"
 
 static void test_matrice_identite(dls::test_unitaire::Controleuse &controleuse)
 {

@@ -47,10 +47,10 @@ class VisionneurImage {
 	dls::ego::Texture2D::Ptr m_texture_B{};
 	dls::ego::Texture2D::Ptr m_texture_A{};
 
-	std::vector<float> m_donnees_r{};
-	std::vector<float> m_donnees_g{};
-	std::vector<float> m_donnees_b{};
-	std::vector<float> m_donnees_a{};
+	dls::tableau<float> m_donnees_r{};
+	dls::tableau<float> m_donnees_g{};
+	dls::tableau<float> m_donnees_b{};
+	dls::tableau<float> m_donnees_a{};
 
 	const float m_vertices[8] = {
 		0.0f, 0.0f,

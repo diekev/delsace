@@ -26,6 +26,10 @@
 
 namespace dls {
 
+flux_chaine::flux_chaine(const flux_chaine::type_chaine &c)
+	: m_flux(c)
+{}
+
 flux_chaine::type_chaine flux_chaine::chn() const
 {
 	return m_flux.str();

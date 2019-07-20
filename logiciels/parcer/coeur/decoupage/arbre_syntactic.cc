@@ -146,7 +146,7 @@ DonneesMorceaux const &base::donnees_morceau() const
 
 base *base::dernier_enfant() const
 {
-	if (this->enfants.empty()) {
+	if (this->enfants.est_vide()) {
 		return nullptr;
 	}
 
@@ -155,7 +155,7 @@ base *base::dernier_enfant() const
 
 void base::ajoute_noeud(base *noeud)
 {
-	this->enfants.push_back(noeud);
+	this->enfants.pousse(noeud);
 }
 
 void base::imprime_code(std::ostream &os, int tab)
@@ -175,7 +175,7 @@ void base::imprime_code(std::ostream &os, int tab)
 			os << ((std::any_cast<bool>(this->valeur_calculee)) ? "vrai" : "faux");
 		}
 		else if (this->type == type_noeud::CHAINE_LITTERALE) {
-			os << std::any_cast<std::string>(this->valeur_calculee);
+			os << std::any_cast<dls::chaine>(this->valeur_calculee);
 		}
 	}
 	else if (this->type == type_noeud::TRANSTYPE) {
@@ -204,22 +204,22 @@ id_morceau base::identifiant() const
 
 void rassemble_feuilles(
 		base *noeud_base,
-		std::vector<base *> &feuilles)
+		dls::tableau<base *> &feuilles)
 {
 	for (auto enfant : noeud_base->enfants) {
 		if (enfant->identifiant() == id_morceau::VIRGULE) {
 			rassemble_feuilles(enfant, feuilles);
 		}
 		else {
-			feuilles.push_back(enfant);
+			feuilles.pousse(enfant);
 		}
 	}
 }
 
 void ajoute_nom_argument(base *b, const dls::vue_chaine &nom)
 {
-	auto noms_arguments = std::any_cast<std::list<dls::vue_chaine>>(&b->valeur_calculee);
-	noms_arguments->push_back(nom);
+	auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine>>(&b->valeur_calculee);
+	noms_arguments->pousse(nom);
 }
 
 }  /* namespace noeud */

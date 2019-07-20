@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/ego/bufferobject.h"
-#include "biblinternes/ego/program.h"
-#include <glm/glm.hpp>
+#include "biblinternes/ego/programme.h"
+#include "biblinternes/ego/tampon_objet.h"
+#include "biblinternes/math/vecteur.hh"
 
 #include "slab.h"
 
@@ -40,7 +40,7 @@ enum {
 };
 
 class Fluid {
-	dls::ego::BufferObject::Ptr m_buffer;
+	dls::ego::TamponObjet::Ptr m_buffer{};
 
 	const float m_vertices[8] = {
 	    -1.0f, -1.0f,
@@ -50,40 +50,44 @@ class Fluid {
 	};
 
 	const GLushort m_indices[6] = { 0, 1, 2, 0, 2, 3 };
+
 public:
-	Slab m_velocity;
-	Slab m_density;
-	Slab m_pressure;
-	Slab m_temperature;
+	Slab m_velocity{};
+	Slab m_density{};
+	Slab m_pressure{};
+	Slab m_temperature{};
 
-	Surface m_obstacles;
-	Surface m_obstacles_high_res;
-	Surface m_divergence;
+	Surface m_obstacles{};
+	Surface m_obstacles_high_res{};
+	Surface m_divergence{};
 
-	dls::ego::Program m_program;
-	dls::ego::Program m_advect_program;
-	dls::ego::Program m_jacobi_program;
-	dls::ego::Program m_gradient_program;
-	dls::ego::Program m_divergence_program;
-	dls::ego::Program m_impulse_program;
-	dls::ego::Program m_buoyancy_program;
+	dls::ego::Programme m_program{};
+	dls::ego::Programme m_advect_program{};
+	dls::ego::Programme m_jacobi_program{};
+	dls::ego::Programme m_gradient_program{};
+	dls::ego::Programme m_divergence_program{};
+	dls::ego::Programme m_impulse_program{};
+	dls::ego::Programme m_buoyancy_program{};
 
-	float m_impulse_temperature, m_impulse_density;
-	float m_dissipation_rate;
-	int m_jacobi_iterations;
-	int m_grid_width, m_grid_height;
+	float m_impulse_temperature = 0.0f;
+	float m_impulse_density = 0.0f;
+	float m_dissipation_rate = 0.0f;
+	int m_jacobi_iterations = 0;
+	int m_grid_width = 0;
+	int m_grid_height = 0;
 
-	float m_temperature_ambient;
-	float m_cell_size;
-	int m_width, m_height;
-	float m_dt;
-	float m_gradient_scale;
-	float m_splat_radius;
-	float m_smoke_density;
-	float m_smoke_weight;
-	float m_smoke_buoyancy;
+	float m_temperature_ambient = 0.0f;
+	float m_cell_size = 0.0f;
+	int m_width = 0;
+	int m_height = 0;
+	float m_dt = 0.0f;
+	float m_gradient_scale = 0.0f;
+	float m_splat_radius = 0.0f;
+	float m_smoke_density = 0.0f;
+	float m_smoke_weight = 0.0f;
+	float m_smoke_buoyancy = 0.0f;
 
-	glm::vec2 m_impulse_pos;
+	dls::math::vec2f m_impulse_pos{};
 
 public:
 	Fluid();
@@ -105,7 +109,7 @@ public:
 	            const Surface &obstacles,
 	            const Surface &dest);
 
-	void applyImpulse(const Surface &dest, const glm::vec2 &position, float value);
+	void applyImpulse(const Surface &dest, const dls::math::vec2f &position, float value);
 
 	void subtractGradient(const Surface &velocity,
 	                      const Surface &pressure,

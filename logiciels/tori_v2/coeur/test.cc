@@ -28,7 +28,7 @@
 #include "decoupeur.h"
 #include "erreur.h"
 
-const char *texte =
+static const char *texte =
 		R"(chronomètre "chrono"
 		entrée = exprime "Entrez votre nom : "
 		imprime entrée
@@ -48,8 +48,8 @@ int main()
 		langage::Decoupeur decoupeur(texte);
 		decoupeur.decoupe();
 
-		langage::AnalyseuseLangage analyseuse;
-		analyseuse.lance_analyse(decoupeur.morceaux());
+		langage::AnalyseuseLangage analyseuse(decoupeur.morceaux());
+		analyseuse.lance_analyse(std::cerr);
 	}
 	catch (langage::ErreurFrappe &e) {
 		std::cerr << e.quoi() << '\n';

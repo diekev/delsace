@@ -45,6 +45,7 @@
 #include "controles_proprietes/controle_propriete_enum.h"
 #include "controles_proprietes/controle_propriete_fichier.h"
 #include "controles_proprietes/controle_propriete_liste.h"
+#include "controles_proprietes/controle_propriete_liste_manip.hh"
 #include "controles_proprietes/controle_propriete_rampe_couleur.h"
 #include "controles_proprietes/controle_propriete_vecteur.h"
 
@@ -156,6 +157,10 @@ void AssembleurDisposition::ajoute_controle(id_morceau identifiant)
 		case id_morceau::TEXTE:
 			controle = new ControleProprieteEditeurTexte;
 			m_donnees_controle.type = TypePropriete::TEXTE;
+			break;
+		case id_morceau::LISTE_MANIP:
+			controle = new ControleProprieteListeManip;
+			m_donnees_controle.type = TypePropriete::LISTE_MANIP;
 			break;
 		default:
 			break;

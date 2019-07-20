@@ -26,81 +26,81 @@
  
 #include "morceaux.hh"
 
-#include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_mots_cles = {
-	{ "arrête", id_morceau::ARRETE },
-	{ "associe", id_morceau::ASSOCIE },
-	{ "bool", id_morceau::BOOL },
-	{ "boucle", id_morceau::BOUCLE },
-	{ "continue", id_morceau::CONTINUE },
-	{ "dans", id_morceau::DANS },
-	{ "de", id_morceau::DE },
-	{ "diffère", id_morceau::DIFFERE },
-	{ "déc", id_morceau::DEC },
-	{ "ent", id_morceau::ENT },
-	{ "faux", id_morceau::FAUX },
-	{ "hors", id_morceau::HORS },
-	{ "mat3", id_morceau::MAT3 },
-	{ "mat4", id_morceau::MAT4 },
-	{ "nul", id_morceau::NUL },
-	{ "pour", id_morceau::POUR },
-	{ "renvoie", id_morceau::RENVOIE },
-	{ "retiens", id_morceau::RETIENS },
-	{ "sansarrêt", id_morceau::SANSARRET },
-	{ "si", id_morceau::SI },
-	{ "sinon", id_morceau::SINON },
-	{ "vec2", id_morceau::VEC2 },
-	{ "vec3", id_morceau::VEC3 },
-	{ "vec4", id_morceau::VEC4 },
-	{ "vrai", id_morceau::VRAI },
-};
+static auto paires_mots_cles = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("arrête"), id_morceau::ARRETE },
+	dls::paire{ dls::vue_chaine("associe"), id_morceau::ASSOCIE },
+	dls::paire{ dls::vue_chaine("bool"), id_morceau::BOOL },
+	dls::paire{ dls::vue_chaine("boucle"), id_morceau::BOUCLE },
+	dls::paire{ dls::vue_chaine("continue"), id_morceau::CONTINUE },
+	dls::paire{ dls::vue_chaine("dans"), id_morceau::DANS },
+	dls::paire{ dls::vue_chaine("de"), id_morceau::DE },
+	dls::paire{ dls::vue_chaine("diffère"), id_morceau::DIFFERE },
+	dls::paire{ dls::vue_chaine("déc"), id_morceau::DEC },
+	dls::paire{ dls::vue_chaine("ent"), id_morceau::ENT },
+	dls::paire{ dls::vue_chaine("faux"), id_morceau::FAUX },
+	dls::paire{ dls::vue_chaine("hors"), id_morceau::HORS },
+	dls::paire{ dls::vue_chaine("mat3"), id_morceau::MAT3 },
+	dls::paire{ dls::vue_chaine("mat4"), id_morceau::MAT4 },
+	dls::paire{ dls::vue_chaine("nul"), id_morceau::NUL },
+	dls::paire{ dls::vue_chaine("pour"), id_morceau::POUR },
+	dls::paire{ dls::vue_chaine("renvoie"), id_morceau::RENVOIE },
+	dls::paire{ dls::vue_chaine("retiens"), id_morceau::RETIENS },
+	dls::paire{ dls::vue_chaine("sansarrêt"), id_morceau::SANSARRET },
+	dls::paire{ dls::vue_chaine("si"), id_morceau::SI },
+	dls::paire{ dls::vue_chaine("sinon"), id_morceau::SINON },
+	dls::paire{ dls::vue_chaine("vec2"), id_morceau::VEC2 },
+	dls::paire{ dls::vue_chaine("vec3"), id_morceau::VEC3 },
+	dls::paire{ dls::vue_chaine("vec4"), id_morceau::VEC4 },
+	dls::paire{ dls::vue_chaine("vrai"), id_morceau::VRAI }
+);
 
-static dls::dico<dls::vue_chaine, id_morceau> paires_caracteres_double = {
-	{ "!=", id_morceau::DIFFERENCE },
-	{ "&&", id_morceau::ESP_ESP },
-	{ "*=", id_morceau::FOIS_EGAL },
-	{ "+=", id_morceau::PLUS_EGAL },
-	{ "-=", id_morceau::MOINS_EGAL },
-	{ "/=", id_morceau::DIVISE_EGAL },
-	{ "<<", id_morceau::DECALAGE_GAUCHE },
-	{ "<=", id_morceau::INFERIEUR_EGAL },
-	{ "==", id_morceau::EGALITE },
-	{ ">=", id_morceau::SUPERIEUR_EGAL },
-	{ ">>", id_morceau::DECALAGE_DROITE },
-	{ "||", id_morceau::BARRE_BARRE },
-};
+static auto paires_caracteres_double = dls::cree_dico(
+	dls::paire{ dls::vue_chaine("!="), id_morceau::DIFFERENCE },
+	dls::paire{ dls::vue_chaine("&&"), id_morceau::ESP_ESP },
+	dls::paire{ dls::vue_chaine("*="), id_morceau::FOIS_EGAL },
+	dls::paire{ dls::vue_chaine("+="), id_morceau::PLUS_EGAL },
+	dls::paire{ dls::vue_chaine("-="), id_morceau::MOINS_EGAL },
+	dls::paire{ dls::vue_chaine("/="), id_morceau::DIVISE_EGAL },
+	dls::paire{ dls::vue_chaine("<<"), id_morceau::DECALAGE_GAUCHE },
+	dls::paire{ dls::vue_chaine("<="), id_morceau::INFERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine("=="), id_morceau::EGALITE },
+	dls::paire{ dls::vue_chaine(">="), id_morceau::SUPERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine(">>"), id_morceau::DECALAGE_DROITE },
+	dls::paire{ dls::vue_chaine("||"), id_morceau::BARRE_BARRE }
+);
 
-static dls::dico<char, id_morceau> paires_caracteres_speciaux = {
-	{ '!', id_morceau::EXCLAMATION },
-	{ '"', id_morceau::GUILLEMET },
-	{ '#', id_morceau::DIESE },
-	{ '$', id_morceau::DOLLAR },
-	{ '%', id_morceau::POURCENT },
-	{ '&', id_morceau::ESPERLUETTE },
-	{ '\'', id_morceau::APOSTROPHE },
-	{ '(', id_morceau::PARENTHESE_OUVRANTE },
-	{ ')', id_morceau::PARENTHESE_FERMANTE },
-	{ '*', id_morceau::FOIS },
-	{ '+', id_morceau::PLUS },
-	{ ',', id_morceau::VIRGULE },
-	{ '-', id_morceau::MOINS },
-	{ '.', id_morceau::POINT },
-	{ '/', id_morceau::DIVISE },
-	{ ':', id_morceau::DOUBLE_POINTS },
-	{ ';', id_morceau::POINT_VIRGULE },
-	{ '<', id_morceau::INFERIEUR },
-	{ '=', id_morceau::EGAL },
-	{ '>', id_morceau::SUPERIEUR },
-	{ '@', id_morceau::AROBASE },
-	{ '[', id_morceau::CROCHET_OUVRANT },
-	{ ']', id_morceau::CROCHET_FERMANT },
-	{ '^', id_morceau::CHAPEAU },
-	{ '{', id_morceau::ACCOLADE_OUVRANTE },
-	{ '|', id_morceau::BARRE },
-	{ '}', id_morceau::ACCOLADE_FERMANTE },
-	{ '~', id_morceau::TILDE },
-};
+static auto paires_caracteres_speciaux = dls::cree_dico(
+	dls::paire{ '!', id_morceau::EXCLAMATION },
+	dls::paire{ '"', id_morceau::GUILLEMET },
+	dls::paire{ '#', id_morceau::DIESE },
+	dls::paire{ '$', id_morceau::DOLLAR },
+	dls::paire{ '%', id_morceau::POURCENT },
+	dls::paire{ '&', id_morceau::ESPERLUETTE },
+	dls::paire{ '\'', id_morceau::APOSTROPHE },
+	dls::paire{ '(', id_morceau::PARENTHESE_OUVRANTE },
+	dls::paire{ ')', id_morceau::PARENTHESE_FERMANTE },
+	dls::paire{ '*', id_morceau::FOIS },
+	dls::paire{ '+', id_morceau::PLUS },
+	dls::paire{ ',', id_morceau::VIRGULE },
+	dls::paire{ '-', id_morceau::MOINS },
+	dls::paire{ '.', id_morceau::POINT },
+	dls::paire{ '/', id_morceau::DIVISE },
+	dls::paire{ ':', id_morceau::DOUBLE_POINTS },
+	dls::paire{ ';', id_morceau::POINT_VIRGULE },
+	dls::paire{ '<', id_morceau::INFERIEUR },
+	dls::paire{ '=', id_morceau::EGAL },
+	dls::paire{ '>', id_morceau::SUPERIEUR },
+	dls::paire{ '@', id_morceau::AROBASE },
+	dls::paire{ '[', id_morceau::CROCHET_OUVRANT },
+	dls::paire{ ']', id_morceau::CROCHET_FERMANT },
+	dls::paire{ '^', id_morceau::CHAPEAU },
+	dls::paire{ '{', id_morceau::ACCOLADE_OUVRANTE },
+	dls::paire{ '|', id_morceau::BARRE },
+	dls::paire{ '}', id_morceau::ACCOLADE_FERMANTE },
+	dls::paire{ '~', id_morceau::TILDE }
+);
 
 const char *chaine_identifiant(id_morceau id)
 {
@@ -282,17 +282,32 @@ void construit_tables_caractere_speciaux()
 		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
-	for (const auto &iter : paires_caracteres_speciaux) {
-		tables_caracteres[int(iter.first)] = true;
-		tables_identifiants[int(iter.first)] = iter.second;
+    {
+	    auto plg = paires_caracteres_speciaux.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres[int(plg.front().premier)] = true;
+		    tables_identifiants[int(plg.front().premier)] = plg.front().second;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_caracteres_double) {
-		tables_caracteres_double[int(iter.first[0])] = true;
+    {
+	    auto plg = paires_caracteres_double.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_caracteres_double[int(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 
-	for (const auto &iter : paires_mots_cles) {
-		tables_mots_cles[static_cast<unsigned char>(iter.first[0])] = true;
+    {
+	    auto plg = paires_mots_cles.plage();
+
+	    while (!plg.est_finie()) {
+		    tables_mots_cles[static_cast<unsigned char>(plg.front().premier[0])] = true;
+	   		plg.effronte();
+	    }
 	}
 }
 
@@ -312,10 +327,10 @@ id_morceau id_caractere_double(const dls::vue_chaine &chaine)
 		return id_morceau::INCONNU;
 	}
 
-	auto iterateur = paires_caracteres_double.trouve(chaine);
+	auto iterateur = paires_caracteres_double.trouve_binaire(chaine);
 
-	if (iterateur != paires_caracteres_double.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::INCONNU;
@@ -331,10 +346,10 @@ id_morceau id_chaine(const dls::vue_chaine &chaine)
 		return id_morceau::CHAINE_CARACTERE;
 	}
 
-	auto iterateur = paires_mots_cles.trouve(chaine);
+	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
 
-	if (iterateur != paires_mots_cles.fin()) {
-		return (*iterateur).second;
+	if (!iterateur.est_finie()) {
+		return iterateur.front().second;
 	}
 
 	return id_morceau::CHAINE_CARACTERE;

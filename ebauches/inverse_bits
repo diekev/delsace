@@ -23,11 +23,11 @@ static const unsigned char BitReverseTable256[] =
 };
 
 
-	std::string email = "kevin.dietrich@mailoo.org";
+	dls::chaine email = "kevin.dietrich@mailoo.org";
 
 	std::cerr << "Courriel     : " << email << '\n';
 
-	std::reverse(email.begin(), email.end());
+	std::reverse(email.debut(), email.fin());
 
 	std::cerr << "Inversé      : " << email << '\n';
 
@@ -44,6 +44,6 @@ static const unsigned char BitReverseTable256[] =
 
 	std::cerr << "Bit inversé  : " << email << '\n';
 
-	std::reverse(email.begin(), email.end());
+	std::reverse(email.debut(), email.fin());
 
 	std::cerr << "Inversé      : " << email << '\n';

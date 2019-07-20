@@ -24,3 +24,26 @@
 
 #include "contexte_evaluation.hh"
 
+#include "configuration.h"
+#include "mikisa.h"
+
+ContexteEvaluation cree_contexte_evaluation(const Mikisa &mikisa)
+{
+	auto rectangle = Rectangle{};
+	rectangle.x = 0;
+	rectangle.y = 0;
+	rectangle.hauteur = static_cast<float>(mikisa.project_settings->hauteur);
+	rectangle.largeur = static_cast<float>(mikisa.project_settings->largeur);
+
+	auto contexte = ContexteEvaluation{};
+	contexte.bdd = &mikisa.bdd;
+	contexte.cadence = mikisa.cadence;
+	contexte.temps_debut = mikisa.temps_debut;
+	contexte.temps_fin = mikisa.temps_fin;
+	contexte.temps_courant = mikisa.temps_courant;
+	contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&mikisa.gestionnaire_fichier);
+	contexte.chef = const_cast<ChefExecution *>(&mikisa.chef_execution);
+	contexte.resolution_rendu = rectangle;
+
+	return contexte;
+}

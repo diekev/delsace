@@ -5,7 +5,10 @@
 // Implements obj.hpp
 
 #include <tbb/tbb.h>
-#include <vector>
+
+#include "biblinternes/outils/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
+
 #include "obj.hpp"
 
 namespace objCore {
@@ -29,7 +32,7 @@ Obj::Obj()
 	m_keep = false;
 }
 
-Obj::Obj(const std::string& filename)
+Obj::Obj(const dls::chaine& filename)
 {
 	ReadObj(filename);
 	m_keep = false;
@@ -72,7 +75,7 @@ void Obj::BakeTransform(const dls::math::mat4x4f& transform)
 	});
 }
 
-bool Obj::ReadObj(const std::string& filename)
+bool Obj::ReadObj(const dls::chaine& filename)
 {
 	PrereadObj(filename);
 
@@ -99,10 +102,10 @@ bool Obj::ReadObj(const std::string& filename)
 			getline(fp_in, line);
 
 			if (!line.empty()) {
-				auto tokens = utilityCore::tokenizeString(line, " ");
+				auto tokens = dls::morcelle(line, ' ');
 
 				if (tokens.taille()>1) {
-					if (tokens[0].compare("v")==0) {
+					if (tokens[0] == "v") {
 						auto x = static_cast<float>(atof(tokens[1].c_str()));
 						auto y = static_cast<float>(atof(tokens[2].c_str()));
 						auto z = static_cast<float>(atof(tokens[3].c_str()));
@@ -110,7 +113,7 @@ bool Obj::ReadObj(const std::string& filename)
 						m_vertices[currentVertex] = dls::math::vec3f(x, y, z);
 						currentVertex++;
 					}
-					else if (tokens[0].compare("vn")==0) {
+					else if (tokens[0] == "vn") {
 						auto x = static_cast<float>(atof(tokens[1].c_str()));
 						auto y = static_cast<float>(atof(tokens[2].c_str()));
 						auto z = static_cast<float>(atof(tokens[3].c_str()));
@@ -118,19 +121,19 @@ bool Obj::ReadObj(const std::string& filename)
 						m_normals[currentNormal] = dls::math::vec3f(x, y, z);
 						currentNormal++;
 					}
-					else if (tokens[0].compare("vt")==0) {
+					else if (tokens[0] == "vt") {
 						auto u = static_cast<float>(atof(tokens[1].c_str()));
 						auto v = static_cast<float>(atof(tokens[2].c_str()));
 						m_uvs[currentUV] = dls::math::vec2f(u, v);
 						currentUV++;
 					}
-					else if (tokens[0].compare("f")==0) {
+					else if (tokens[0] == "f") {
 						dls::math::vec4i vertices(0);
 						dls::math::vec4i normals(0);
 						dls::math::vec4i uvs(0);
 						unsigned int loops = std::min(4u, static_cast<unsigned int>(tokens.taille())-1)+1;
 						for (unsigned int i=1; i<loops; i++) {
-							auto faceindices = utilityCore::tokenizeString(tokens[i], "/");
+							auto faceindices = dls::morcelle(tokens[i], '/');
 							vertices[i-1] = atoi(faceindices[0].c_str());
 							if (faceindices.taille()==2 && m_numberOfNormals>1) {
 								normals[i-1] = atoi(faceindices[1].c_str());
@@ -198,7 +201,7 @@ bool Obj::ReadObj(const std::string& filename)
 	return true;
 }
 
-bool Obj::WriteObj(const std::string& filename) {
+bool Obj::WriteObj(const dls::chaine& filename) {
 	std::ofstream outputFile(filename.c_str());
 
 	if (outputFile.is_open()) {
@@ -257,7 +260,7 @@ bool Obj::WriteObj(const std::string& filename) {
 	return false;
 }
 
-void Obj::PrereadObj(const std::string& filename)
+void Obj::PrereadObj(const dls::chaine& filename)
 {
 	std::ifstream fp_in;
 	auto vertexCount = 0u;
@@ -273,18 +276,18 @@ void Obj::PrereadObj(const std::string& filename)
 			getline(fp_in, line);
 
 			if (!line.empty()) {
-				auto header = utilityCore::getFirstNCharactersOfString(line, 2);
+				auto header = dls::premier_n_caracteres(line, 2);
 
-				if (header.compare("v ")==0) {
+				if (header == "v ") {
 					vertexCount++;
 				}
-				else if (header.compare("vt")==0) {
+				else if (header == "vt") {
 					uvCount++;
 				}
-				else if (header.compare("vn")==0) {
+				else if (header == "vn") {
 					normalCount++;
 				}
-				else if (header.compare("f ")==0) {
+				else if (header == "f ") {
 					faceCount++;
 				}
 			}
@@ -332,8 +335,8 @@ Poly Obj::GetPoly(const unsigned int& polyIndex)
 Point Obj::TransformPoint(const Point& p, const dls::math::mat4x4f& m)
 {
 	Point r = p;
-	r.m_position = dls::math::vec3f( utilityCore::multiply(m,dls::math::vec4f(p.m_position,1.0f)) );
-	r.m_normal = normalise(dls::math::vec3f( utilityCore::multiply(m,dls::math::vec4f(p.m_normal,0.0f)) ));
+	r.m_position = dls::math::vec3f(m * dls::math::vec4f(p.m_position,1.0f));
+	r.m_normal = normalise(dls::math::vec3f(m * dls::math::vec4f(p.m_normal, 0.0f)));
 	return r;
 }
 

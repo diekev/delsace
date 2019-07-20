@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/outils/fichier.hh"
 
 #include "danjo/compilation/decoupeuse.h"
 #include "danjo/compilation/analyseuse_disposition.h"
@@ -45,14 +46,14 @@ static void imprime_morceaux(danjo::Decoupeuse::iterateur debut, danjo::Decoupeu
 static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 {
 	try {
-		auto texte = danjo::contenu_fichier(chemin);
+		auto texte = dls::contenu_fichier(chemin.c_str());
 
 		auto tampon = lng::tampon_source(texte.c_str());
 		auto decoupeuse = danjo::Decoupeuse(tampon);
 		decoupeuse.decoupe();
 
-		auto debut = decoupeuse.begin();
-		auto fin = decoupeuse.end();
+		auto debut = decoupeuse.morceaux().debut();
+		auto fin = decoupeuse.morceaux().fin();
 
 		if (debut->identifiant != danjo::id_morceau::DISPOSITION) {
 			return;
@@ -108,7 +109,7 @@ static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
 			}
 
 			if (nom_propriete.est_vide()) {
-				//imprime_morceaux(decoupeuse.begin(), decoupeuse.end());
+				//imprime_morceaux(decoupeuse.debut(), decoupeuse.fin());
 				std::cerr << "Fichier " << chemin << " : attache manquante !\n";
 				continue;
 			}

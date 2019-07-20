@@ -41,15 +41,14 @@ set(BIBLIOTHEQUES
 	bib_opengl
 	bib_texture
 	bib_structures
+	bib_outils
+	danjo
 )
 
 add_compile_options(-fPIC)
 
 qt5_wrap_cpp(
 	moc_headers
-
-	controles/base_controles.h
-	controles/controles.h
 
 	base_editeur.h
 	base_dialogue.h
@@ -83,11 +82,6 @@ set(NUANCEURS
 )
 
 add_library(${NOM_CIBLE} STATIC
-	controles/assembleur_controles.h
-	controles/base_controles.h
-	controles/controles.h
-	controles/usine_controles.h
-
 	opengl/rendu_lumiere.h
 	opengl/rendu_maillage.h
 	opengl/rendu_monde.h
@@ -105,12 +99,6 @@ add_library(${NOM_CIBLE} STATIC
 	editeur_objet.h
 	editeur_rendu.h
 	fenetre_principale.h
-	outils.h
-
-	controles/assembleur_controles.cc
-	controles/base_controles.cc
-	controles/controles.cc
-	controles/usine_controles.cc
 
 	opengl/rendu_lumiere.cc
 	opengl/rendu_maillage.cc
@@ -129,7 +117,6 @@ add_library(${NOM_CIBLE} STATIC
 	editeur_objet.cc
 	editeur_rendu.cc
 	fenetre_principale.cc
-	outils.cc
 
 	${NUANCEURS}
 )

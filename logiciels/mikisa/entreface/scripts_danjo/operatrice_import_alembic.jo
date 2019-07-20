@@ -1,0 +1,10 @@
+disposition "operatrice_import_alembic" {
+	ligne {
+		étiquette(valeur="Chemin archive")
+		fichier_entrée(valeur=""; attache=chemin_archive; filtres="Alembic (*.abc *.ABC)")
+	}
+	ligne {
+		étiquette(valeur="Chemin objet")
+		liste(valeur=""; attache=chemin_objet)
+	}
+}

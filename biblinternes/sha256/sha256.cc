@@ -194,14 +194,14 @@ void SHA256::final(uint8 *digest)
 	}
 }
 
-std::string empreinte(const std::string &entree)
+dls::chaine empreinte(const dls::chaine &entree)
 {
 	uint8 digest[SHA256::DIGEST_SIZE];
 	memset(digest, 0, SHA256::DIGEST_SIZE);
 
 	auto ctx = SHA256{};
 	ctx.init();
-	ctx.update(reinterpret_cast<const unsigned char*>(entree.c_str()), static_cast<uint32_t>(entree.length()));
+	ctx.update(reinterpret_cast<const unsigned char*>(entree.c_str()), static_cast<uint32_t>(entree.taille()));
 	ctx.final(digest);
 
 	char buf[2 * SHA256::DIGEST_SIZE + 1];
@@ -211,7 +211,7 @@ std::string empreinte(const std::string &entree)
 		sprintf(buf+i*2, "%02x", digest[i]);
 	}
 
-	return std::string(buf);
+	return dls::chaine(buf);
 }
 
 }

@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 	math
 	stdc++fs
 	bib_opengl
+	bib_outils
 )
 
 add_compile_options(-fPIC)

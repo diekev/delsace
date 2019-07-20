@@ -108,33 +108,33 @@ void RenduBrosse::initialise()
 
 	m_tampon_contour = creer_tampon();
 
-	auto const &points = 64ul;
+	auto const &points = 64l;
 
-	std::vector<dls::math::vec3f> sommets(points + 1);
+	dls::tableau<dls::math::vec3f> sommets(points + 1);
 
-	for (auto i = 0ul; i <= points; i++){
+	for (auto i = 0l; i <= points; i++){
 		auto const angle = constantes<float>::TAU * static_cast<float>(i) / static_cast<float>(points);
 		auto const x = std::cos(angle);
 		auto const y = std::sin(angle);
 		sommets[i] = dls::math::vec3f(x, y, 0.0f);
 	}
 
-	std::vector<unsigned int> index;
+	dls::tableau<unsigned int> index;
 	index.reserve(points * 2);
 
 	for (unsigned i = 0; i < 64; ++i) {
-		index.push_back(i);
-		index.push_back(i + 1);
+		index.pousse(i);
+		index.pousse(i + 1);
 	}
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
 	parametres_tampon.dimension_attribut = 3;
-	parametres_tampon.pointeur_sommets = sommets.data();
-	parametres_tampon.taille_octet_sommets = sommets.size() * sizeof(dls::math::vec3f);
-	parametres_tampon.pointeur_index = index.data();
-	parametres_tampon.taille_octet_index = index.size() * sizeof(unsigned int);
-	parametres_tampon.elements = index.size();
+	parametres_tampon.pointeur_sommets = sommets.donnees();
+	parametres_tampon.taille_octet_sommets = static_cast<size_t>(sommets.taille()) * sizeof(dls::math::vec3f);
+	parametres_tampon.pointeur_index = index.donnees();
+	parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) * sizeof(unsigned int);
+	parametres_tampon.elements = static_cast<size_t>(index.taille());
 
 	m_tampon_contour->remplie_tampon(parametres_tampon);
 }

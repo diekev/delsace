@@ -26,7 +26,7 @@
 
 #include "vecteur.hh"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 namespace dls::math {
 
@@ -50,7 +50,7 @@ public:
  * http://graphics.cs.kuleuven.be/publications/LD06LPHFPT/LD06LPHFPT_paper.pdf
  */
 class BruitPerlinLong2D {
-	std::vector<unsigned int> m_table;
+	dls::tableau<unsigned int> m_table;
 
 public:
 	BruitPerlinLong2D();
@@ -122,7 +122,7 @@ class BruitCourbe2D {
 	float m_expansion_sillage = 0.3f;
 
 	/* Le premier élément est la longueur du bruit, le second son accroissement. */
-	std::vector<std::pair<float, float>> m_echelle_longueur_accroissement_bruit = {};
+	dls::tableau<std::pair<float, float>> m_echelle_longueur_accroissement_bruit = {};
 
 	BruitFlux2D m_noise{};
 

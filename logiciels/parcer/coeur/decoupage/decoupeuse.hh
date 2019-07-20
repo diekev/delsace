@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <vector>
-
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/vue_chaine.hh"
 
 #include "morceaux.hh"
@@ -51,7 +51,7 @@ class decoupeuse_texte {
 	int m_drapeaux = 0;
 
 public:
-	using iterateur = std::vector<DonneesMorceaux>::iterator;
+	using iterateur = dls::tableau<DonneesMorceaux>::iteratrice;
 
 	explicit decoupeuse_texte(DonneesModule *module, int drapeaux = 0);
 
@@ -75,7 +75,7 @@ private:
 
 	dls::vue_chaine mot_courant() const;
 
-	[[noreturn]] void lance_erreur(const std::string &quoi) const;
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 
 	void analyse_caractere_simple();
 

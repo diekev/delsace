@@ -49,7 +49,7 @@ private:
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
 	 * contenues dans l'instance DonneesMorceaux lui correspondant.
 	 */
-	[[noreturn]] void lance_erreur(const std::string &quoi, int type = 0);
+	[[noreturn]] void lance_erreur(const dls::chaine &quoi, int type = 0);
 
 	void analyse_page();
 	void analyse_expression();

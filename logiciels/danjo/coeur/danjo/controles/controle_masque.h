@@ -29,8 +29,8 @@
 #include "types/courbe_bezier.h"
 
 struct CerceBezier {
-	std::vector<PointBezier> points{};
-	std::vector<Point> table{};
+	dls::tableau<PointBezier> points{};
+	dls::tableau<Point> table{};
 	bool ferme = false;
 	char pad[3];
 

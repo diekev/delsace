@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <string>
+#include "biblinternes/structures/chaine.hh"
 
 namespace arachne {
 
@@ -33,17 +33,17 @@ namespace arachne {
  * erreur de frappe est repérée.
  */
 class ErreurFrappe {
-	std::string m_quoi{""};
+	dls::chaine m_quoi{""};
 
 public:
 	/**
 	 * Construit le message d'erreur selon les paramètres passés.
 	 */
 	ErreurFrappe(
-			const std::string &ligne,
+			const dls::chaine &ligne,
 			int numero_ligne,
 			int position_ligne,
-			const std::string &quoi);
+			const dls::chaine &quoi);
 
 	/**
 	 * Retourne le message d'erreur.
@@ -56,18 +56,18 @@ public:
  * erreur de syntaxe est repérée.
  */
 class ErreurSyntactique {
-	std::string m_quoi{""};
+	dls::chaine m_quoi{""};
 
 public:
 	/**
 	 * Construit le message d'erreur selon les paramètres passés.
 	 */
 	ErreurSyntactique(
-			const std::string &ligne,
+			const dls::chaine &ligne,
 			int numero_ligne,
 			int position_ligne,
-			const std::string &quoi,
-			const std::string &contenu);
+			const dls::chaine &quoi,
+			const dls::chaine &contenu);
 
 	/**
 	 * Retourne le message d'erreur.

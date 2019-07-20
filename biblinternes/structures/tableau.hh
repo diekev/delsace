@@ -33,12 +33,18 @@
 
 namespace dls {
 
-/* pour l'instant enrobe un std::vector, notre tableau a des bogues et crash
+/* pour l'instant enrobe un dls::tableau, notre tableau a des bogues et crash
  * trop lors des réallocations, en plus d'être lent lors des réallocations */
 template <typename T>
 struct tableau {
+	using type_vecteur = std::vector<T, memoire::logeuse_guardee<T>>;
+	using value_type = typename type_vecteur::value_type;
+	using reference = T&;
+	using const_reference = const T&;
+	using size_type = long;
+
 private:
-	std::vector<T, memoire::logeuse_guardee<T>> m_vecteur{};
+	type_vecteur m_vecteur{};
 
 public:
 	tableau() = default;
@@ -64,6 +70,16 @@ public:
 	tableau(__iter_horsin __deb, __iter_horsin __fin)
 		: m_vecteur(__deb, __fin)
 	{}
+
+	tableau(std::initializer_list<T> init_list)
+		: m_vecteur(init_list)
+	{}
+
+	tableau &operator=(std::initializer_list<T> init_list)
+	{
+		m_vecteur = init_list;
+		return *this;
+	}
 
 	~tableau() = default;
 
@@ -113,7 +129,7 @@ public:
 		return this->taille() == 0;
 	}
 
-	void clear()
+	void efface()
 	{
 		m_vecteur.clear();
 	}
@@ -131,6 +147,11 @@ public:
 	void pousse(T const &valeur)
 	{
 		m_vecteur.push_back(valeur);
+	}
+
+	void pousse(T &&valeur)
+	{
+		m_vecteur.push_back(std::move(valeur));
 	}
 
 	void reserve(long nombre)
@@ -246,6 +267,16 @@ public:
 	void insere(iteratrice ou, T const &quoi)
 	{
 		m_vecteur.insert(ou, quoi);
+	}
+
+	void insere(iteratrice ou, long nombre, T const &quoi)
+	{
+		m_vecteur.insert(ou, static_cast<size_t>(nombre), quoi);
+	}
+
+	void insere(iteratrice ou, std::initializer_list<T> init)
+	{
+		m_vecteur.insert(ou, init);
 	}
 
 	template <typename __iter_horsin>

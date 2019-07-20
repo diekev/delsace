@@ -26,14 +26,14 @@
 
 #include "biblinternes/objets/adaptrice_creation.h"
 
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "biblinternes/math/vecteur.hh"
 
 class Maillage;
 
 class AdaptriceChargementMaillage : public objets::AdaptriceCreationObjet {
-	std::vector<dls::math::vec3d> m_sommets{};
+	dls::tableau<dls::math::vec3d> m_sommets{};
 
 public:
 	void ajoute_sommet(const float x, const float y, const float z, const float w = 1.0f) override;

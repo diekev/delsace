@@ -103,7 +103,7 @@ double EntraineurCerebral::gradient_erreur_couche(int j)
 	return m_reseau->couches()[j] * (1.0 - m_reseau->couches()[j]) * somme_pesee;
 }
 
-void EntraineurCerebral::execute_apprentissage(const std::vector<DonneeFormation> &donnees)
+void EntraineurCerebral::execute_apprentissage(const dls::tableau<DonneeFormation> &donnees)
 {
 	for (const DonneeFormation &donnee : donnees) {
 		m_reseau->avance(donnee.entrees.data());

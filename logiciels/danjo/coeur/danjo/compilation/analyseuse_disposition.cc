@@ -54,6 +54,7 @@ bool est_identifiant_controle(id_morceau identifiant)
 		case id_morceau::COURBE_VALEUR:
 		case id_morceau::RAMPE_COULEUR:
 		case id_morceau::TEXTE:
+		case id_morceau::LISTE_MANIP:
 			return true;
 		default:
 			return false;

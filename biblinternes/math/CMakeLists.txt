@@ -22,8 +22,7 @@
 set(NOM_BIBLIOTHEQUE math)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
 set(BIBLIOTHEQUES
@@ -39,24 +38,36 @@ set(ENTETES_MATRICE
 set(ENTETES
 	aleatoire.hh
 	base_vecteur.hh
+	boite_englobante.hh
 	bruit.hh
 	concepts.hh
 	entrepolation.hh
+	limites.hh
 	matrice.hh
 	outils.hh
+	rmsd.hh
+	rotation.hh
 	statistique.hh
 	swizzler.hh
 	quaternion.hh
+	rectangle.hh
+	transformation.hh
 	vecteur.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
+	boite_englobante.cc
 	bruit.cc
 	concepts.cc
 	entrepolation.cc
+	limites.cc
 	matrice.cc
 	outils.cc
 	quaternion.cc
+	rectangle.cc
+	rmsd.cc
+	rotation.cc
+	transformation.cc
 	vecteur.cc
 
 	matrice/dimensions.cc

@@ -26,7 +26,7 @@
 
 #include <functional>
 #include <iostream>
-#include <vector>
+#include "biblinternes/structures/tableau.hh"
 
 #include "../../math/vecteur.hh"
 
@@ -39,7 +39,7 @@ typedef std::function<bool(const dls::math::vec3i &, const dls::math::vec3i &)> 
 
 namespace octree {
 
-void find_nodes(OctreeNode *node, FindNodesFunc &func, std::vector<OctreeNode *> &nodes)
+void find_nodes(OctreeNode *node, FindNodesFunc &func, dls::tableau<OctreeNode *> &nodes)
 {
 	if (!node) {
 		return;
@@ -50,7 +50,7 @@ void find_nodes(OctreeNode *node, FindNodesFunc &func, std::vector<OctreeNode *>
 	}
 
 	if (node->type == node_type::leaf) {
-		nodes.push_back(node);
+		nodes.pousse(node);
 	}
 	else {
 		for (int i = 0; i < 8; ++i) {
@@ -71,9 +71,9 @@ public:
 		return m_min;
 	}
 
-	std::vector<OctreeNode *> findNodes(FilterNodesFunc filterFunc)
+	dls::tableau<OctreeNode *> findNodes(FilterNodesFunc filterFunc)
 	{
-		std::vector<OctreeNode *> nodes;
+		dls::tableau<OctreeNode *> nodes;
 		octree::find_nodes(m_octree_root, filterFunc, nodes);
 		return nodes;
 	}
@@ -84,7 +84,7 @@ Chunk *GetChunk(const dls::math::vec3i &/*min*/)
 	return nullptr;
 }
 
-std::vector<OctreeNode *> FindSeamNode(Chunk *chunk)
+dls::tableau<OctreeNode *> FindSeamNode(Chunk *chunk)
 {
 	const auto &baseChunkMin = chunk->getMin();
 	const auto &seamValues = baseChunkMin + dls::math::vec3i(CHUNK_SIZE);
@@ -131,7 +131,7 @@ std::vector<OctreeNode *> FindSeamNode(Chunk *chunk)
 		},
 	};
 
-	std::vector<OctreeNode *> seamNodes;
+	dls::tableau<OctreeNode *> seamNodes;
 
 	for (int i = 0; i < 8; ++i) {
 		const auto &offsetMin = CHILD_MIN_OFFSET[i] * CHUNK_SIZE;
@@ -139,7 +139,7 @@ std::vector<OctreeNode *> FindSeamNode(Chunk *chunk)
 
 		if (Chunk *c = GetChunk(chunkMin)) {
 			auto chunkNodes = c->findNodes(selectionFuncs[i]);
-			seamNodes.insert(std::end(seamNodes), std::begin(chunkNodes), std::end(chunkNodes));
+			seamNodes.insere(dls::end(seamNodes), dls::begin(chunkNodes), dls::end(chunkNodes));
 		}
 	}
 
