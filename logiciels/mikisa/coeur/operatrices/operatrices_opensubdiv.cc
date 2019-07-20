@@ -37,6 +37,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
@@ -132,91 +133,91 @@ public:
 		using Refineur      = OpenSubdiv::Far::TopologyRefiner;
 		using UsineRafineur = OpenSubdiv::Far::TopologyRefinerFactory<Descripteur>;
 
-		auto niveau_max = evalue_entier("niveau_max");
+		auto const niveau_max = evalue_entier("niveau_max");
 
-		auto schema = evalue_enum("schéma");
-		OpenSubdiv::Sdc::SchemeType type_subdiv;
+		auto const schema = evalue_enum("schéma");
 
-		if (schema == "catmark") {
-			type_subdiv = OpenSubdiv::Sdc::SCHEME_CATMARK;
-		}
-		else if (schema == "bilineaire") {
-			type_subdiv = OpenSubdiv::Sdc::SCHEME_BILINEAR;
-		}
-		else if (schema == "boucle") {
-			/* À FAIRE : CRASH */
-			//type_subdiv = OpenSubdiv::Sdc::SCHEME_LOOP;
-			type_subdiv = OpenSubdiv::Sdc::SCHEME_CATMARK;
-		}
-		else {
+		static auto dico_schema = dls::cree_dico(
+					dls::paire{ dls::chaine("catmark"), OpenSubdiv::Sdc::SCHEME_CATMARK },
+					dls::paire{ dls::chaine("bilineaire"), OpenSubdiv::Sdc::SCHEME_BILINEAR },
+					/* À FAIRE : CRASH avec OpenSubdiv::Sdc::SCHEME_LOOP */
+					dls::paire{ dls::chaine("boucle"), OpenSubdiv::Sdc::SCHEME_CATMARK });
+
+		auto plg_subdiv = dico_schema.trouve(schema);
+
+		if (plg_subdiv.est_finie()) {
 			ajoute_avertissement("Type de schéma invalide !");
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto const type_subdiv = plg_subdiv.front().second;
+
 		OpenSubdiv::Sdc::Options options;
 
-		auto entrep_bord = evalue_enum("entrep_bord");
+		auto const entrep_bord = evalue_enum("entrep_bord");
 
-		if (entrep_bord == "aucune") {
-			options.SetVtxBoundaryInterpolation(OpenSubdiv::Sdc::Options::VTX_BOUNDARY_NONE);
-		}
-		else if (entrep_bord == "segment") {
-			options.SetVtxBoundaryInterpolation(OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
-		}
-		else if (entrep_bord == "segment_coin") {
-			options.SetVtxBoundaryInterpolation(OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_AND_CORNER);
-		}
-		else {
+		static auto dico_entrep = dls::cree_dico(
+					dls::paire{ dls::chaine("aucune"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_NONE },
+					dls::paire{ dls::chaine("segment"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_ONLY },
+					dls::paire{ dls::chaine("segment_coin"), OpenSubdiv::Sdc::Options::VTX_BOUNDARY_EDGE_AND_CORNER });
+
+		auto plg_entrep_bord = dico_entrep.trouve(entrep_bord);
+
+		if (plg_entrep_bord.est_finie()) {
 			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
+			return EXECUTION_ECHOUEE;
 		}
 
-		auto entrep_fvar = evalue_enum("entrep_fvar");
+		options.SetVtxBoundaryInterpolation(plg_entrep_bord.front().second);
 
-		if (entrep_fvar == "aucune") {
-			options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_NONE);
-		}
-		else if (entrep_fvar == "coins_seuls") {
-			options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_ONLY);
-		}
-		else if (entrep_fvar == "coins_p1") {
-			options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1);
-		}
-		else if (entrep_fvar == "coins_p2") {
-			options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS2);
-		}
-		else if (entrep_fvar == "bordures") {
-			options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_BOUNDARIES);
-		}
-		else if (entrep_fvar == "tout") {
-			options.SetFVarLinearInterpolation(OpenSubdiv::Sdc::Options::FVAR_LINEAR_ALL);
-		}
-		else {
+		static auto dico_entrep_fvar = dls::cree_dico(
+					dls::paire{ dls::chaine("aucune"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_NONE },
+					dls::paire{ dls::chaine("coins_seuls"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_ONLY },
+					dls::paire{ dls::chaine("coins_p1"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS1 },
+					dls::paire{ dls::chaine("coins_p2"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_CORNERS_PLUS2 },
+					dls::paire{ dls::chaine("bordures"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_BOUNDARIES },
+					dls::paire{ dls::chaine("tout"), OpenSubdiv::Sdc::Options::FVAR_LINEAR_ALL });
+
+		auto const entrep_fvar = evalue_enum("entrep_fvar");
+
+		auto plg_entrep_fvar = dico_entrep_fvar.trouve(entrep_fvar);
+
+		if (plg_entrep_fvar.est_finie()) {
 			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
+			return EXECUTION_ECHOUEE;
 		}
 
-		auto pliage = evalue_enum("pliage");
+		options.SetFVarLinearInterpolation(plg_entrep_fvar.front().second);
 
-		if (pliage == "uniforme") {
-			options.SetCreasingMethod(OpenSubdiv::Sdc::Options::CREASE_UNIFORM);
-		}
-		else if (pliage == "chaikin") {
-			options.SetCreasingMethod(OpenSubdiv::Sdc::Options::CREASE_CHAIKIN);
-		}
-		else {
+		static auto dico_pliure = dls::cree_dico(
+					dls::paire{ dls::chaine("uniforme"), OpenSubdiv::Sdc::Options::CREASE_UNIFORM },
+					dls::paire{ dls::chaine("chaikin"), OpenSubdiv::Sdc::Options::CREASE_CHAIKIN });
+
+		auto const pliure = evalue_enum("pliage");
+
+		auto plg_pliure = dico_pliure.trouve(pliure);
+
+		if (plg_pliure.est_finie()) {
 			ajoute_avertissement("Type de pliage invalide !");
+			return EXECUTION_ECHOUEE;
 		}
 
-		auto sousdivision_triangle = evalue_enum("sousdivision_triangle");
+		options.SetCreasingMethod(plg_pliure.front().second);
 
-		if (sousdivision_triangle == "catmark") {
-			options.SetTriangleSubdivision(OpenSubdiv::Sdc::Options::TRI_SUB_CATMARK);
-		}
-		else if (sousdivision_triangle == "lisse") {
-			options.SetTriangleSubdivision(OpenSubdiv::Sdc::Options::TRI_SUB_SMOOTH);
-		}
-		else {
+		static auto dico_sd_tri = dls::cree_dico(
+					dls::paire{ dls::chaine("catmark"), OpenSubdiv::Sdc::Options::TRI_SUB_CATMARK },
+					dls::paire{ dls::chaine("lisse"), OpenSubdiv::Sdc::Options::TRI_SUB_SMOOTH });
+
+		auto const sousdivision_triangle = evalue_enum("sousdivision_triangle");
+
+		auto plg_sd_tri = dico_sd_tri.trouve(sousdivision_triangle);
+
+		if (plg_sd_tri.est_finie()) {
 			ajoute_avertissement("Type de sousdivision triangulaire invalide !");
+			return EXECUTION_ECHOUEE;
 		}
+
+		options.SetTriangleSubdivision(plg_sd_tri.front().second);
 
 		auto nombre_sommets = corps_entree->points()->taille();
 		auto nombre_polygones = corps_entree->prims()->taille();
