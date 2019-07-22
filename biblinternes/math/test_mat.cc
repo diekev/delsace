@@ -29,88 +29,7 @@
  * Incredibles 2 »
  * http://graphics.pixar.com/library/SkinForIncredibles2/paper.pdf
  */
-
 namespace dls::math {
-
-template <typename T>
-using mat3x2 = matrice<T, vecteur, paquet_index<0, 1>, paquet_index<0, 1, 2>>;
-using mat3x2f = mat3x2<float>;
-using mat3x2d = mat3x2<double>;
-
-template <
-		typename type_scalaire,
-		template <int, typename, int...> class type_vecteur,
-		size_t... Colonnes,
-		size_t... Lignes
-		>
-auto imprime_mat(
-		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Lignes...>> &m1)
-{
-	auto &os = std::cerr;
-
-	os << "matrice :\n";
-
-	for (size_t i = 0; i < sizeof...(Lignes); ++i) {
-		for (size_t j = 0; j < sizeof...(Colonnes); ++j) {
-			os << m1[i][j] << ' ';
-		}
-
-		os << '\n';
-	}
-
-	os << '\n';
-}
-template <
-		typename type_scalaire,
-		template <int, typename, int...> class type_vecteur,
-		size_t... Colonnes,
-		size_t... Lignes
-		>
-[[nodiscard]] auto transpose2(
-		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Lignes...>> &m1)
-{
-	auto mat = matrice<type_scalaire, type_vecteur, paquet_index<Lignes...>, paquet_index<Colonnes...>>();
-	//((mat[Lignes][Colonnes] = m1[Colonnes][Lignes]), ...);
-
-	for (size_t i = 0; i < sizeof...(Lignes); ++i) {
-		for (size_t j = 0; j < sizeof...(Colonnes); ++j) {
-			mat[j][i] = m1[i][j];
-		}
-	}
-
-	return mat;
-}
-
-template <
-		typename type_scalaire,
-		template <int, typename, int...> class type_vecteur,
-		size_t... Colonnes1,
-		size_t... Lignes1,
-		size_t... Colonnes2,
-		size_t... Lignes2
-		>
-[[nodiscard]] auto multiplie(
-		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes1...>, paquet_index<Lignes1...>> &m1,
-		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes2...>, paquet_index<Lignes2...>> &m2)
-{
-	static_assert (sizeof...(Lignes1) == sizeof...(Colonnes2), "");
-
-	auto mat = matrice<type_scalaire, type_vecteur, paquet_index<Lignes1...>, paquet_index<Colonnes2...>>();
-
-	for (auto l = 0ul; l < sizeof...(Lignes1); ++l) {
-		for (auto c = 0ul; c < sizeof...(Colonnes2); ++c) {
-			auto valeur = static_cast<type_scalaire>(0);
-
-			for (auto m = 0ul; m < sizeof...(Colonnes1); ++m) {
-				valeur += m1[l][m] * m2[m][c];
-			}
-
-			mat[l][c] = valeur;
-		}
-	}
-
-	return mat;
-}
 
 template <typename T>
 static void decomposition_QR(
@@ -119,30 +38,17 @@ static void decomposition_QR(
 		mat2x2<T> &R)
 {
 	/* extrait les vecteurs colonnes */
-	auto m1 = dls::math::vec3<T>(M[0][0], M[1][0], M[2][0]);
-	auto m2 = dls::math::vec3<T>(M[0][1], M[1][1], M[2][1]);
-
-//	std::cerr << "m1 :\n" << m1 << '\n';
-//	std::cerr << "m2 :\n" << m2 << '\n';
+	auto m1 = vec3<T>(M[0][0], M[1][0], M[2][0]);
+	auto m2 = vec3<T>(M[0][1], M[1][1], M[2][1]);
 
 	/* trouve les bases orthonormales */
 	auto q1 = normalise(m1);
 	auto q2 = m2 - (produit_scalaire(m2, m1) / produit_scalaire(m1, m1)) * m1;
 	q2 = normalise(q2);
 
-//	std::cerr << "q1 :\n" << q1 << '\n';
-//	std::cerr << "q2 :\n" << q2 << '\n';
-
-	Q = dls::math::mat3x2<T>(
-				q1[0], q2[0],
-			q1[1], q2[1],
-			q1[2], q2[2]
-				);
-
-//	std::cerr << "Q = ";
-//	imprime_mat(Q);
-//	std::cerr << "QT = ";
-//	imprime_mat(transpose2(Q));
+	Q = mat3x2<T>(q1.x, q2.x,
+				  q1.y, q2.y,
+				  q1.z, q2.z);
 
 	/* NOTE : puisque nous avons Q et M, et que nous devons trouver M = QR,
 	 * R = Q^-1M. Mais puisque Q n'est pas carrée, il nous faudrait la
@@ -150,17 +56,7 @@ static void decomposition_QR(
 	 * est orthonormale, (Q^T * Q)^-1 = (I)^-1 = I, donc nous pouvons simplement
 	 * calculer R = Q^T * M.
 	 */
-
-	R = multiplie(transpose2(Q), M);
-
-//	std::cerr << "R = ";
-//	dls::math::imprime_mat(R);
-}
-
-template <typename T>
-[[nodiscard]] auto produit_croix(vec2<T> const &u, vec2<T> const &v)
-{
-	return (u.x * v.y) - (v.x * u.y);
+	R = transpose(Q) * M;
 }
 
 }  /* namespace dls::math */
@@ -221,21 +117,25 @@ int main()
 
 		/* décomposition QR */
 		decomposition_QR(M, Q, R);
+
+		std::cerr << "M =\n" << M << '\n';
+		std::cerr << "Q =\n" << Q << '\n';
+		std::cerr << "R =\n" << R << '\n';
 	}
 
 	/* ********************************************************************** */
 	/* Algorithme du papier :
 	 * - a0 : la position de l'ancre
 	 * - as : la position après la simulation de peau
-	 * - a1 : la position corrigé
+	 * - a1 : la position corrigée
 	 * - d  : le vecteur entre a0 et as
 	 * - v0, v1, v2 : les vertex du triangle où se trouve a0
 	 */
 
-//	auto a0 = dls::math::vec3f();
-//	auto as = dls::math::vec3f();
+	auto a0 = dls::math::vec3f();
+	auto as = dls::math::vec3f();
 //	auto a1 = dls::math::vec3f();
-	//auto d  = as - a0;
+	auto d  = as - a0;
 	auto v0 = dls::math::vec3f();
 	auto v1 = dls::math::vec3f();
 	auto v2 = dls::math::vec3f();
@@ -256,8 +156,9 @@ int main()
 	decomposition_QR(Dm, Q, R);
 
 	/* transforme l'ancre et la direction dans l'espace canonique */
-	auto ah = dls::math::vec2f(); //inverse(R) * transpose2(Q) * (as - v0);
-	auto dh = dls::math::vec2f(); //inverse(R) * transpose2(Q) * d;
+	auto tf_canon = inverse(R) * transpose(Q);
+	auto ah = tf_canon * (as - v0);
+	auto dh = tf_canon * d;
 
 	/* Care must be taken to ensure that the transformed point aˆ is always
 	 * inside the canonical triangle, but we found that a simple clamp

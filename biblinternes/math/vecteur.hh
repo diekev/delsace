@@ -473,6 +473,15 @@ template <int O, typename T, int... Ns>
 }
 
 /**
+ * Spécialisation du produit en croix pour des vecteurs 2D.
+ */
+template <int O, typename T>
+[[nodiscard]] constexpr auto produit_croix(vecteur<O, T, 0, 1> const &u, vecteur<O, T, 0, 1> const &v)
+{
+	return (u.x * v.y) - (v.x * u.y);
+}
+
+/**
  * Retourne un vecteur dont les valeurs correspondent à celles du vecteur
  * spécifié mais ayant une longueur égale à un.
  */
