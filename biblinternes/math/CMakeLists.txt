@@ -87,3 +87,28 @@ install(
 install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
 
 install(FILES ${ENTETES_MATRICE} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE}/matrice)
+
+################################################################################
+
+set(NOM_BIBLIOTHEQUE test_mat)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
+)
+
+set(BIBLIOTHEQUES
+)
+
+set(ENTETES
+)
+
+set(SOURCES
+	test_mat.cc
+)
+
+add_executable(${NOM_BIBLIOTHEQUE} ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+
