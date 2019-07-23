@@ -606,8 +606,10 @@ RenduCorps::~RenduCorps()
 	memoire::deloge("TamponRendu", m_tampon_volume);
 }
 
-void RenduCorps::initialise(ContexteRendu const &contexte)
+void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &stats)
 {
+	stats.nombre_objets += 1;
+
 	auto liste_points = m_corps->points();
 	auto liste_prims = m_corps->prims();
 
@@ -631,9 +633,11 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 			if (prim->type_prim() == type_primitive::POLYGONE) {
 				auto polygone = dynamic_cast<Polygone *>(prim);
 				if (polygone->type == type_polygone::FERME) {
+					stats.nombre_polygones += 1;
 					ajoute_polygone_surface(polygone, liste_points, attr_N, attr_C, points_polys, normaux, couleurs_polys);
 				}
 				else if (polygone->type == type_polygone::OUVERT) {
+					stats.nombre_polylignes += 1;
 					ajoute_polygone_segment(polygone, liste_points, attr_C, points_segment, couleurs_segment);
 				}
 
@@ -643,6 +647,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				if (m_tampon_volume == nullptr) {
+					stats.nombre_volumes += 1;
 					m_tampon_volume = cree_tampon_volume(dynamic_cast<Volume *>(prim), contexte.vue());
 				}
 			}
@@ -720,6 +725,8 @@ void RenduCorps::initialise(ContexteRendu const &contexte)
 	couleurs.reserve(liste_points->taille());
 
 	auto attr_C = m_corps->attribut("C");
+
+	stats.nombre_points += liste_points->taille();
 
 	for (auto i = 0; i < liste_points->taille(); ++i) {
 		if (point_utilise[i]) {

@@ -28,6 +28,14 @@ class Corps;
 class ContexteRendu;
 class TamponRendu;
 
+struct StatistiquesRendu {
+	long nombre_objets = 0;
+	long nombre_polygones = 0;
+	long nombre_polylignes = 0;
+	long nombre_volumes = 0;
+	long nombre_points = 0;
+};
+
 /**
  * La classe RenduCorps contient la logique de rendu d'un corps dans la
  * scène 3D.
@@ -55,7 +63,7 @@ public:
 	 */
 	~RenduCorps();
 
-	void initialise(ContexteRendu const &contexte);
+	void initialise(ContexteRendu const &contexte, StatistiquesRendu &stats);
 
 	/**
 	 * Dessine le maillage dans le contexte spécifié.

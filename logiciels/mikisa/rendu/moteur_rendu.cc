@@ -380,6 +380,7 @@ void MoteurRendu::scene(Scene *scene)
 }
 
 void MoteurRendu::calcule_rendu(
+		StatistiquesRendu &stats,
 		float *tampon,
 		int hauteur,
 		int largeur,
@@ -593,14 +594,14 @@ void MoteurRendu::calcule_rendu(
 
 			pile.pousse(objet->transformation.matrice());
 
-			objet->corps.accede_lecture([&pile, &contexte](Corps const &corps)
+			objet->corps.accede_lecture([&pile, &contexte, &stats](Corps const &corps)
 			{
 				pile.pousse(corps.transformation.matrice());
 
 				contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
 
 				RenduCorps rendu_corps(&corps);
-				rendu_corps.initialise(contexte);
+				rendu_corps.initialise(contexte, stats);
 				rendu_corps.dessine(contexte);
 
 				pile.enleve_sommet();

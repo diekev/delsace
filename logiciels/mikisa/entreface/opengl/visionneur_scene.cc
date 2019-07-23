@@ -37,6 +37,7 @@
 #include "coeur/scene.h"
 
 #include "rendu/moteur_rendu.hh"
+#include "rendu/rendu_corps.h"
 
 #include "rendu_image.h"
 #include "rendu_manipulatrice.h"
@@ -108,7 +109,10 @@ void VisionneurScene::peint_opengl()
 	auto scene = m_mikisa.scene;
 	m_moteur_rendu->scene(scene);
 
+	auto stats = StatistiquesRendu{};
+
 	m_moteur_rendu->calcule_rendu(
+				stats,
 				m_tampon,
 				m_camera->hauteur(),
 				m_camera->largeur(),
@@ -194,6 +198,26 @@ void VisionneurScene::peint_opengl()
 
 	ss.chn("");
 	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre objets     : " << stats.nombre_objets;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre points     : " << stats.nombre_points;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre polygones  : " << stats.nombre_polygones;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre polylignes : " << stats.nombre_polylignes;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre volumes    : " << stats.nombre_volumes;
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 #if 0

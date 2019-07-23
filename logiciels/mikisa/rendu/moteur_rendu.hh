@@ -35,6 +35,7 @@ class Scene;
 class TamponRendu;
 
 struct deleguee_scene;
+struct StatistiquesRendu;
 
 class MoteurRendu {
 	vision::Camera3D *m_camera = nullptr;
@@ -55,7 +56,7 @@ public:
 
 	void scene(Scene *scene);
 
-	void calcule_rendu(float *tampon, int hauteur, int largeur, bool rendu_final);
+	void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final);
 
 	void construit_scene();
 };
