@@ -54,7 +54,8 @@ menu "Noeud Objet" {
 		action(valeur="Visualiation Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualiation Arbre Octernaire")
 	}
 	menu "Particules" {
-	    action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
+		action(valeur="Contraint Points"; attache=ajouter_noeud; métadonnée="Contraint Points")
+		action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
 		action(valeur="Gigue Points"; attache=ajouter_noeud; métadonnée="Gigue Points")
 		action(valeur="Maillage Alpha"; attache=ajouter_noeud; métadonnée="Maillage Alpha")
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")

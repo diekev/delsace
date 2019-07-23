@@ -1891,6 +1891,235 @@ public:
 
 /* ************************************************************************** */
 
+namespace dls::math {
+
+template <typename T>
+static void decomposition_QR(
+		mat3x2<T> const &M,
+		mat3x2<T> &Q,
+		mat2x2<T> &R)
+{
+#if 0
+	/* extrait les vecteurs colonnes */
+	auto m1 = vec3<T>(M[0][0], M[1][0], M[2][0]);
+	auto m2 = vec3<T>(M[0][1], M[1][1], M[2][1]);
+
+	/* trouve les bases orthonormales */
+	auto q1 = normalise(m1);
+	auto q2 = m2 - (produit_scalaire(m2, m1) / produit_scalaire(m1, m1)) * m1;
+	q2 = normalise(q2);
+
+	Q = mat3x2<T>(q1.x, q2.x,
+				  q1.y, q2.y,
+				  q1.z, q2.z);
+
+	/* NOTE : puisque nous avons Q et M, et que nous devons trouver M = QR,
+	 * R = Q^-1M. Mais puisque Q n'est pas carrée, il nous faudrait la
+	 * « fausse » inverse, à savoir (Q^T * Q)^-1 * Q^T. Or, puisque la matrice
+	 * est orthonormale, (Q^T * Q)^-1 = (I)^-1 = I, donc nous pouvons simplement
+	 * calculer R = Q^T * M.
+	 */
+	R = transpose(Q) * M;
+#else
+	Eigen::Matrix<float, 3, 2> m;
+	m << M[0][0], M[0][1], M[1][0], M[1][1], M[2][0], M[2][1];
+
+	auto holder = m.colPivHouseholderQr();
+	auto Qeigen = holder.matrixQ() * Eigen::Matrix<float, 3, 2>::Identity();
+	auto Reigen = holder.matrixR().template triangularView<Eigen::Upper>() * Eigen::Matrix<float, 2, 2>::Identity();
+
+	for (auto i = 0; i < 3; ++i) {
+		for (auto j = 0; j < 2; ++j) {
+			Q[static_cast<size_t>(i)][static_cast<size_t>(j)] = Qeigen.row(i)[j];
+		}
+	}
+
+	for (auto i = 0; i < 2; ++i) {
+		for (auto j = 0; j < 2; ++j) {
+			R[static_cast<size_t>(i)][static_cast<size_t>(j)] = Reigen.row(i)[j];
+		}
+	}
+#endif
+}
+
+auto mul_m32_v3(
+		matrice<float, vecteur, paquet_index<0, 1>, paquet_index<0, 1, 2>> const &m,
+		vecteur<TYPE_VECTEUR, float, 0, 1, 2> const &v)
+{
+	auto res = vecteur<TYPE_VECTEUR, float, 0, 1>{};
+
+	res[0] = m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2];
+	res[1] = m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2];
+
+	return res;
+}
+
+}  /* namespace dls::math */
+
+/* Test d'implémentation d'une opératrice contraignant des points bougeant sur
+ * une surface en s'inspirant de l'algorithme de contrainte de simulation de
+ * peau de Pixar. Voir test_mat.cc */
+class OpContraintPoints final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Contraint Points";
+	static constexpr auto AIDE = "Contraint des particules sur la surface d'un maillage.";
+
+	explicit OpContraintPoints(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_entree == nullptr) {
+			m_corps.reinitialise();
+			this->ajoute_avertissement("Il n'y a pas de corps en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims_entree = corps_entree->prims();
+
+		if (prims_entree->taille() == 0) {
+			m_corps.reinitialise();
+			this->ajoute_avertissement("Il n'y a pas de points en entrée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto gna = GNA{};
+
+		if (contexte.temps_courant == 1) {
+			/* ajoute des points qui devraient vraiment venir d'un autre noeud */
+			m_corps.reinitialise();
+
+			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::ENT32, portee_attr::POINT);
+			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::VEC3, portee_attr::POINT);
+
+			for (auto i = 0; i < 100; ++i) {
+				auto idx_prim = gna.uniforme(0l, prims_entree->taille() - 1);
+				auto prim = prims_entree->prim(idx_prim);
+
+				auto poly = dynamic_cast<Polygone *>(prim);
+
+				auto const v0 = corps_entree->point_transforme(poly->index_point(0));
+				auto const v1 = corps_entree->point_transforme(poly->index_point(1));
+				auto const v2 = corps_entree->point_transforme(poly->index_point(2));
+
+				auto const e0 = v1 - v0;
+				auto const e1 = v2 - v0;
+
+				/* Génère des coordonnées barycentriques aléatoires. */
+				auto r = gna.uniforme(0.0, 1.0);
+				auto s = gna.uniforme(0.0, 1.0);
+
+				if (r + s >= 1.0) {
+					r = 1.0 - r;
+					s = 1.0 - s;
+				}
+
+				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
+
+				m_corps.ajoute_point(pos);
+				attr_P->pousse(pos);
+
+				attr_Prim->pousse(static_cast<int>(idx_prim));
+			}
+		}
+		else {
+			/* simule une étape où les points de controles bougent */
+			auto points = m_corps.points();
+			auto attr_P = m_corps.attribut("P");
+
+			for (auto i = 0; i < points->taille(); ++i) {
+				auto p = points->point(i);
+				attr_P->vec3(i) = p;
+				p.x += gna.uniforme(-0.1f, 0.1f);
+				p.y += gna.uniforme(-0.1f, 0.1f);
+				p.z += gna.uniforme(-0.1f, 0.1f);
+				points->point(i, p);
+			}
+
+			/* essaye de contraindre les points via l'algorithme du papier */
+			auto attr_Prim = m_corps.attribut("prim_idx");
+
+			for (auto i = 0; i < points->taille(); ++i) {
+				auto idx_prim = attr_Prim->ent32(i);
+				auto prim = prims_entree->prim(idx_prim);
+
+				auto poly = dynamic_cast<Polygone *>(prim);
+
+				auto a0 = attr_P->vec3(i);
+				//auto as = points->point(i);
+				//auto const d = as - a0;
+
+				auto const v0 = corps_entree->point_transforme(poly->index_point(0));
+				auto const v1 = corps_entree->point_transforme(poly->index_point(1));
+				auto const v2 = corps_entree->point_transforme(poly->index_point(2));
+
+				/* construit la matrice de l'espace canonique */
+				auto e0 = v1 - v0;
+				auto e1 = v2 - v0;
+
+				auto Dm = dls::math::mat3x2f(
+							e0.x, e1.x,
+							e0.y, e1.y,
+							e0.z, e1.z
+							);
+
+				auto Q = dls::math::mat3x2f();
+				auto R = dls::math::mat2x2f();
+
+				decomposition_QR(Dm, Q, R);
+
+				std::cerr << "--------------------------------------\n";
+				std::cerr << "Dm =\n" << Dm << '\n';
+				std::cerr << "Q =\n" << Q << '\n';
+				std::cerr << "R =\n" << R << '\n';
+
+				/* transforme l'ancre et la direction dans l'espace canonique */
+				auto tf_canon = inverse(R) * transpose(Q);
+				std::cerr << "tf_canon =\n" << tf_canon << '\n';
+				auto ah = dls::math::mul_m32_v3(tf_canon, (a0 - v0));
+				std::cerr << "ah =\n" << ah << '\n';
+				//auto dh = tf_canon * d;
+
+				auto h = transpose(Dm) * ah;
+				h += v0;
+				std::cerr << "a0 =\n" << a0 << '\n';
+				std::cerr << "h =\n" << h << '\n';
+
+				points->point(i, h);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_particules(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationPoints>());
@@ -1901,6 +2130,7 @@ void enregistre_operatrices_particules(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceGiguePoints>());
 	usine.enregistre_type(cree_desc<OperatriceCreationTrainee>());
 	usine.enregistre_type(cree_desc<OpForceInteraction>());
+	usine.enregistre_type(cree_desc<OpContraintPoints>());
 }
 
 #pragma clang diagnostic pop
