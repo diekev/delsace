@@ -530,6 +530,8 @@ static dls::chaine cree_info_type_C(
 			os_decl << "static InfoTypePointeur " << nom_info_type << ";\n";
 			os_init << nom_info_type << ".id = id_info_POINTEUR;\n";
 			os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
+			os_init << nom_info_type << broye_nom_simple(".est_référence = ")
+					<< (donnees_type.type_base() == id_morceau::REFERENCE) << ";\n";
 
 			valeur = nom_info_type;
 			donnees_type.ptr_info_type = valeur;
