@@ -1008,12 +1008,34 @@ llvm::Type *converti_type_simple(
 
 	/* type paramètres */
 	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+		if (*debut == id_morceau::FONC || *debut == id_morceau::COROUT) {
+			/* fonc ou corout */
 			dt.pousse(*debut--);
 
-			if (*debut == id_morceau::VIRGULE) {
-				--debut;
-				break;
+			/* ( */
+			dt.pousse(*debut--);
+			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+				dt.pousse(*debut--);
+			}
+			/* ) */
+			dt.pousse(*debut--);
+
+			/* ( */
+			dt.pousse(*debut--);
+			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+				dt.pousse(*debut--);
+			}
+			/* ) */
+			dt.pousse(*debut--);
+		}
+		else {
+			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+				dt.pousse(*debut--);
+
+				if (*debut == id_morceau::VIRGULE) {
+					--debut;
+					break;
+				}
 			}
 		}
 

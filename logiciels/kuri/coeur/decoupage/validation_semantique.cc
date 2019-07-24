@@ -2014,6 +2014,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 				case id_morceau::COROUT:
 				case id_morceau::FONC:
+				{
+					nom_struct = "InfoTypeFonction";
+					break;
+				}
 				case id_morceau::EINI:
 				case id_morceau::NUL: /* À FAIRE */
 				case id_morceau::RIEN:

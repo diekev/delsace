@@ -594,8 +594,57 @@ static dls::chaine cree_info_type_C(
 		case id_morceau::COROUT:
 		case id_morceau::FONC:
 		{
-			/* À FAIRE : type params, tag coroutine */
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_FONCTION");
+			auto nom_info_type = "__info_type_FONCTION" + dls::vers_chaine(index++);
+
+			os_decl << "static InfoTypeFonction " << nom_info_type << ";\n";
+			os_init << nom_info_type << ".id = id_info_FONCTION;\n";
+			os_init << nom_info_type << ".est_coroutine = " << (donnees_type.type_base() == id_morceau::COROUT) << ";\n";
+
+			donnees_type.ptr_info_type = nom_info_type;
+
+			auto nombre_types_retour = 0l;
+			auto dt_params = donnees_types_parametres(donnees_type, nombre_types_retour);
+			auto nombre_types_entree = dt_params.taille() - nombre_types_retour;
+
+			for (auto i = 0; i < dt_params.taille(); ++i) {
+				if (dt_params[i].ptr_info_type != "") {
+					continue;
+				}
+
+				cree_info_type_C(contexte, os_decl, os_init, dt_params[i]);
+			}
+
+			auto nom_tabl_fix_entree = "__tabl_fix_entree" + dls::vers_chaine(index++);
+
+			os_init << "InfoType *" << nom_tabl_fix_entree << "[" << nombre_types_entree << "] = {";
+
+			auto virgule = ' ';
+			for (auto i = 0; i < nombre_types_entree; ++i) {
+				os_init << virgule << "(InfoType *)&" << dt_params[i].ptr_info_type;
+				virgule = ',';
+			}
+
+			os_init << "};";
+
+			os_init << nom_info_type << broye_nom_simple(".types_entrée.pointeur = ") << nom_tabl_fix_entree << ";\n";
+			os_init << nom_info_type << broye_nom_simple(".types_entrée.taille = ") << nombre_types_entree << ";\n";
+
+			auto nom_tabl_fix_sortie = "__tabl_fix_sortie" + dls::vers_chaine(index++);
+
+			os_init << "InfoType *" << nom_tabl_fix_sortie << "[" << nombre_types_retour << "] = {";
+
+			virgule = ' ';
+			for (auto i = nombre_types_entree; i < nombre_types_retour; ++i) {
+				os_init << virgule << "(InfoType *)&" << dt_params[i].ptr_info_type;
+				virgule = ',';
+			}
+
+			os_init << "};";
+
+			os_init << nom_info_type << ".types_sortie.pointeur = " << nom_tabl_fix_sortie << ";\n";
+			os_init << nom_info_type << ".types_sortie.taille = " << nombre_types_retour << ";\n";
+
+			valeur = nom_info_type;
 			break;
 		}
 		case id_morceau::EINI:
