@@ -985,6 +985,50 @@ llvm::Type *converti_type_simple(
 }
 #endif
 
+static DonneesType analyse_type(
+		DonneesType::iterateur_const &debut,
+		bool pousse_virgule = false)
+{
+	auto dt = DonneesType{};
+
+	if (*debut == id_morceau::FONC || *debut == id_morceau::COROUT) {
+		/* fonc ou corout */
+		dt.pousse(*debut--);
+
+		/* ( */
+		dt.pousse(*debut--);
+		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+			dt.pousse(analyse_type(debut, true));
+		}
+		/* ) */
+		dt.pousse(*debut--);
+
+		/* ( */
+		dt.pousse(*debut--);
+		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+			dt.pousse(analyse_type(debut, true));
+		}
+		/* ) */
+		dt.pousse(*debut--);
+	}
+	else {
+		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
+			dt.pousse(*debut--);
+
+			if (*debut == id_morceau::VIRGULE) {
+				if (pousse_virgule) {
+					dt.pousse(*debut);
+				}
+
+				--debut;
+				break;
+			}
+		}
+	}
+
+	return dt;
+}
+
 /**
  * Retourne un vecteur contenant les DonneesType de chaque paramètre et du type
  * de retour d'un DonneesType d'un pointeur fonction. Si le DonneesType passé en
@@ -999,7 +1043,6 @@ llvm::Type *converti_type_simple(
 		return {};
 	}
 
-	auto dt = DonneesType{};
 	auto donnees_types = dls::tableau<long>{};
 
 	auto debut = donnees_type.end() - 1;
@@ -1009,40 +1052,8 @@ llvm::Type *converti_type_simple(
 
 	/* type paramètres */
 	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-		if (*debut == id_morceau::FONC || *debut == id_morceau::COROUT) {
-			/* fonc ou corout */
-			dt.pousse(*debut--);
-
-			/* ( */
-			dt.pousse(*debut--);
-			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-				dt.pousse(*debut--);
-			}
-			/* ) */
-			dt.pousse(*debut--);
-
-			/* ( */
-			dt.pousse(*debut--);
-			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-				dt.pousse(*debut--);
-			}
-			/* ) */
-			dt.pousse(*debut--);
-		}
-		else {
-			while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-				dt.pousse(*debut--);
-
-				if (*debut == id_morceau::VIRGULE) {
-					--debut;
-					break;
-				}
-			}
-		}
-
+		auto dt = analyse_type(debut);
 		donnees_types.pousse(magasin.ajoute_type(dt));
-
-		dt = DonneesType{};
 	}
 
 	--debut; /* ) */
@@ -1051,19 +1062,9 @@ llvm::Type *converti_type_simple(
 
 	/* type retour */
 	while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
-			dt.pousse(*debut--);
-
-			if (*debut == id_morceau::VIRGULE) {
-				--debut;
-				break;
-			}
-		}
-
+		auto dt = analyse_type(debut);
 		donnees_types.pousse(magasin.ajoute_type(dt));
 		++nombre_types_retour;
-
-		dt = DonneesType{};
 	}
 
 	--debut; /* ) */
