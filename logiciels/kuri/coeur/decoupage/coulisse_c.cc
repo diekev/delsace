@@ -634,7 +634,7 @@ static dls::chaine cree_info_type_C(
 			os_init << "InfoType *" << nom_tabl_fix_sortie << "[" << nombre_types_retour << "] = {";
 
 			virgule = ' ';
-			for (auto i = nombre_types_entree; i < nombre_types_retour; ++i) {
+			for (auto i = nombre_types_entree; i < dt_params.taille(); ++i) {
 				os_init << virgule << "(InfoType *)&" << dt_params[i].ptr_info_type;
 				virgule = ',';
 			}
