@@ -25,6 +25,7 @@
 #include "operatrices_poseidon.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/moultfilage/boucle.hh"
 
 #include "corps/volume.hh"
 
@@ -293,36 +294,41 @@ static auto SemiLagrange(
 		float dt)
 {
 	auto res = flags->resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-	auto iter = IteratricePosition(limites);
-
 	auto echant = Echantilloneuse(orig);
 
-	while (!iter.fini()) {
-		auto pos_iter = iter.suivante();
+	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(0, 0, plage.begin());
+		lims.max = dls::math::vec3i(res.x - 1, res.y - 1, plage.end());
 
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
+		auto iter = IteratricePosition(lims);
 
-		auto pos = dls::math::vec3f(
-					static_cast<float>(i) + 0.5f,
-					static_cast<float>(j) + 0.5f,
-					static_cast<float>(k) + 0.5f);
+		while (!iter.fini()) {
+			auto pos_iter = iter.suivante();
 
-		auto v = vel->valeur_centree(pos_iter);
-		v *= dt;
+			auto i = pos_iter.x;
+			auto j = pos_iter.y;
+			auto k = pos_iter.z;
 
-		pos -= v;
+			auto pos = dls::math::vec3f(
+						static_cast<float>(i) + 0.5f,
+						static_cast<float>(j) + 0.5f,
+						static_cast<float>(k) + 0.5f);
 
-		fwd.valeur(pos_iter, echant.echantillone_trilineaire(pos));
-	}
+			auto v = vel->valeur_centree(pos_iter);
+			v *= dt;
+
+			pos -= v;
+
+			fwd.valeur(pos_iter, echant.echantillone_trilineaire(pos));
+		}
+	});
 }
 
 template <typename T>
-static auto advectSemiLagrange(
+static auto advecte_semi_lagrange(
 		Grille<int> *flags,
 		GrilleMAC *vel,
 		Grille<T> *orig,
@@ -355,7 +361,7 @@ static auto advectSemiLagrange(
 	}
 }
 
-static auto addBuoyancy(
+static auto ajoute_flottance(
 		Grille<float> *density,
 		GrilleMAC *vel,
 		dls::math::vec3f const &gravity,
@@ -367,106 +373,127 @@ static auto addBuoyancy(
 	auto f = -gravity * dt / dx * coefficient;
 
 	auto res = flags->resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(1);
-	limites.max = res;
-	auto iter = IteratricePosition(limites);
 
-	while (!iter.fini()) {
-		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+	//auto min_velocite = dls::math::vec3f( 1000.0f);
+	//auto max_velocite = dls::math::vec3f(-1000.0f);
 
-		if (flags->valeur(i, j, k) != TypeFluid) {
-			continue;
+	boucle_parallele(tbb::blocked_range<int>(1, res.z),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(1, 1, plage.begin());
+		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
+
+		auto iter = IteratricePosition(lims);
+
+		while (!iter.fini()) {
+			auto pos_iter = iter.suivante();
+			auto i = static_cast<size_t>(pos_iter.x);
+			auto j = static_cast<size_t>(pos_iter.y);
+			auto k = static_cast<size_t>(pos_iter.z);
+
+			if (flags->valeur(i, j, k) != TypeFluid) {
+				continue;
+			}
+
+			auto &v = vel->valeur(i, j, k);
+
+			if (flags->valeur(i - 1, j, k) == TypeFluid) {
+				v.x += (0.5f * f.x) * (density->valeur(i, j, k) + density->valeur(i - 1, j, k));
+			}
+
+			if (flags->valeur(i, j - 1, k) == TypeFluid) {
+				v.y += (0.5f * f.y) * (density->valeur(i, j, k) + density->valeur(i, j - 1, k));
+			}
+
+			if (flags->valeur(i, j, k - 1) == TypeFluid) {
+				v.z += (0.5f * f.z) * (density->valeur(i, j, k) + density->valeur(i, j, k - 1));
+			}
+
+			//auto velocite = vel->valeur(i, j, k);
+
+			//dls::math::extrait_min_max(velocite, min_velocite, max_velocite);
 		}
+	});
 
-		auto &v = vel->valeur(i, j, k);
-
-		if (flags->valeur(i - 1, j, k) == TypeFluid) {
-			v.x += (0.5f * f.x) * (density->valeur(i, j, k) + density->valeur(i - 1, j, k));
-		}
-
-		if (flags->valeur(i, j - 1, k) == TypeFluid) {
-			v.y += (0.5f * f.y) * (density->valeur(i, j, k) + density->valeur(i, j - 1, k));
-		}
-
-		if (flags->valeur(i, j, k - 1) == TypeFluid) {
-			v.z += (0.5f * f.z) * (density->valeur(i, j, k) + density->valeur(i, j, k - 1));
-		}
-	}
+	//std::cerr << __func__ << " : vélocité max = " << max_velocite << '\n';
 }
 
-static auto setWallBcs(
+static auto ajourne_conditions_bordures_murs(
 		Grille<int> *flags,
 		GrilleMAC *vel)
 {
 	auto res = flags->resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-	auto iter = IteratricePosition(limites);
 
-	while (!iter.fini()) {
-		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+	boucle_parallele(tbb::blocked_range<int>(0, res.z),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(0, 0, plage.begin());
+		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-		auto curFluid = flags->valeur(i, j, k) == TypeFluid;
-		auto curObs   = flags->valeur(i, j, k) == TypeObstacle;
-		auto bcsVel = dls::math::vec3f(0.0f, 0.0f, 0.0f);
+		auto iter = IteratricePosition(lims);
 
-		if (!curFluid && !curObs) {
-			continue;
-		}
+		while (!iter.fini()) {
+			auto pos_iter = iter.suivante();
+			auto i = static_cast<size_t>(pos_iter.x);
+			auto j = static_cast<size_t>(pos_iter.y);
+			auto k = static_cast<size_t>(pos_iter.z);
 
-	//	if (obvel) {
-	//		bcsVel.x = (*obvel)(i,j,k).x;
-	//		bcsVel.y = (*obvel)(i,j,k).y;
-	//		if((*obvel).is3D()) bcsVel.z = (*obvel)(i,j,k).z;
-	//	}
+			auto curFluid = flags->valeur(i, j, k) == TypeFluid;
+			auto curObs   = flags->valeur(i, j, k) == TypeObstacle;
+			auto bcsVel = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 
-		// we use i>0 instead of bnd=1 to check outer wall
-		if (i > 0 && flags->valeur(i-1,j,k) == TypeObstacle) {
-			vel->valeur(i,j,k).x = bcsVel.x;
-		}
-
-		if (i > 0 && curObs && flags->valeur(i-1,j,k) == TypeFluid) {
-			vel->valeur(i,j,k).x = bcsVel.x;
-		}
-
-		if (j > 0 && flags->valeur(i,j-1,k) == TypeObstacle) {
-			vel->valeur(i,j,k).y = bcsVel.y;
-		}
-
-		if (j > 0 && curObs && flags->valeur(i,j-1,k) == TypeFluid) {
-			vel->valeur(i,j,k).y = bcsVel.y;
-		}
-
-		if (k > 0 && flags->valeur(i,j,k-1) == TypeObstacle) {
-			vel->valeur(i,j,k).z = bcsVel.z;
-		}
-
-		if (k > 0 && curObs && flags->valeur(i,j,k-1) == TypeFluid) {
-			vel->valeur(i,j,k).z = bcsVel.z;
-		}
-
-		if (curFluid) {
-			if ((i > 0 && flags->valeur(i - 1, j, k) == TypeStick) || (i < static_cast<size_t>(res.x - 1) && flags->valeur(i+1,j,k) == TypeStick)) {
-				vel->valeur(i,j,k).y = vel->valeur(i,j,k).z = 0.0f;
+			if (!curFluid && !curObs) {
+				continue;
 			}
 
-			if ((j > 0 && flags->valeur(i, j - 1, k) == TypeStick) || (j < static_cast<size_t>(res.y - 1) && flags->valeur(i,j+1,k) == TypeStick)) {
-				vel->valeur(i,j,k).x = vel->valeur(i,j,k).z = 0.0f;
+			//	if (obvel) {
+			//		bcsVel.x = (*obvel)(i,j,k).x;
+			//		bcsVel.y = (*obvel)(i,j,k).y;
+			//		if((*obvel).is3D()) bcsVel.z = (*obvel)(i,j,k).z;
+			//	}
+
+			// we use i>0 instead of bnd=1 to check outer wall
+			if (i > 0 && flags->valeur(i-1,j,k) == TypeObstacle) {
+				vel->valeur(i,j,k).x = bcsVel.x;
 			}
 
-			if ((k > 0 && flags->valeur(i, j, k - 1) == TypeStick) || (k < static_cast<size_t>(res.z - 1) && flags->valeur(i,j,k+1) == TypeStick)) {
-				vel->valeur(i,j,k).x = vel->valeur(i,j,k).y = 0.0f;
+			if (i > 0 && curObs && flags->valeur(i-1,j,k) == TypeFluid) {
+				vel->valeur(i,j,k).x = bcsVel.x;
+			}
+
+			if (j > 0 && flags->valeur(i,j-1,k) == TypeObstacle) {
+				vel->valeur(i,j,k).y = bcsVel.y;
+			}
+
+			if (j > 0 && curObs && flags->valeur(i,j-1,k) == TypeFluid) {
+				vel->valeur(i,j,k).y = bcsVel.y;
+			}
+
+			if (k > 0 && flags->valeur(i,j,k-1) == TypeObstacle) {
+				vel->valeur(i,j,k).z = bcsVel.z;
+			}
+
+			if (k > 0 && curObs && flags->valeur(i,j,k-1) == TypeFluid) {
+				vel->valeur(i,j,k).z = bcsVel.z;
+			}
+
+			if (curFluid) {
+				if ((i > 0 && flags->valeur(i - 1, j, k) == TypeStick) || (i < static_cast<size_t>(res.x - 1) && flags->valeur(i+1,j,k) == TypeStick)) {
+					vel->valeur(i,j,k).y = vel->valeur(i,j,k).z = 0.0f;
+				}
+
+				if ((j > 0 && flags->valeur(i, j - 1, k) == TypeStick) || (j < static_cast<size_t>(res.y - 1) && flags->valeur(i,j+1,k) == TypeStick)) {
+					vel->valeur(i,j,k).x = vel->valeur(i,j,k).z = 0.0f;
+				}
+
+				if ((k > 0 && flags->valeur(i, j, k - 1) == TypeStick) || (k < static_cast<size_t>(res.z - 1) && flags->valeur(i,j,k+1) == TypeStick)) {
+					vel->valeur(i,j,k).x = vel->valeur(i,j,k).y = 0.0f;
+				}
 			}
 		}
-	}
+	});
 }
 
 /* ************************************************************************** */
@@ -970,6 +997,11 @@ struct PoseidonGaz {
 	GrilleMAC *velocite = nullptr;
 };
 
+static inline auto extrait_poseidon(DonneesAval *da)
+{
+	return std::any_cast<PoseidonGaz *>(da->table["poseidon_gaz"]);
+}
+
 class OpEntreeGaz : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
@@ -1074,7 +1106,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto poseidon_gaz = std::any_cast<PoseidonGaz *>(donnees_aval->table["poseidon_gaz"]);
+		if (contexte.temps_courant > 100) {
+			return EXECUTION_REUSSIE;
+		}
+
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 		auto grille = poseidon_gaz->densite;
 
 		if (grille == nullptr) {
@@ -1112,6 +1148,11 @@ public:
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
 	}
 };
 
@@ -1164,6 +1205,8 @@ static void dessine_boite(
 }
 
 class OpSimulationGaz : public OperatriceCorps {
+	PoseidonGaz m_poseidon{};
+
 public:
 	static constexpr auto NOM = "Simulation Gaz";
 	static constexpr auto AIDE = "";
@@ -1172,6 +1215,13 @@ public:
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
+	}
+
+	~OpSimulationGaz() override
+	{
+		memoire::deloge("grilles", m_poseidon.densite);
+		memoire::deloge("grilles", m_poseidon.drapeaux);
+		memoire::deloge("grilles", m_poseidon.velocite);
 	}
 
 	const char *chemin_entreface() const override
@@ -1206,7 +1256,6 @@ public:
 		m_corps.reinitialise();
 #if 1
 		/* init domaine */
-		auto poseidon_gaz = PoseidonGaz{};
 		auto res = 64;
 
 		auto etendu = limites3f{};
@@ -1215,23 +1264,28 @@ public:
 		auto fenetre_donnees = etendu;
 		auto taille_voxel = 10.0f / static_cast<float>(res);
 
-		poseidon_gaz.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
-		poseidon_gaz.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
-		poseidon_gaz.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
+		if (m_poseidon.densite == nullptr) {
+			m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+			m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
+			m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
+		}
 
-		fill_grid(poseidon_gaz.drapeaux, TypeFluid);
+		fill_grid(m_poseidon.drapeaux, TypeFluid);
 
 		/* init simulation */
 
 		auto da = DonneesAval{};
-		da.table.insere({ "poseidon_gaz", &poseidon_gaz });
+		da.table.insere({ "poseidon_gaz", &m_poseidon });
 
 		entree(0)->requiers_corps(contexte, &da);
+
+		/* lance simulation */
+		entree(1)->requiers_corps(contexte, &da);
 
 		/* sauve données (INCLURE VELOCITÉ !) */
 
 		auto volume = memoire::loge<Volume>("Volume");
-		volume->grille = poseidon_gaz.densite;
+		volume->grille = m_poseidon.densite->copie();
 
 		std::cerr << "Fin exécution algorithme\n";
 
@@ -1239,9 +1293,6 @@ public:
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 		dessine_boite(m_corps, etendu.min, etendu.max, attr_C);
 		dessine_boite(m_corps, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), attr_C);
-
-		memoire::deloge("grilles", poseidon_gaz.drapeaux);
-		memoire::deloge("grilles", poseidon_gaz.velocite);
 
 		m_corps.ajoute_primitive(volume);
 #else
@@ -1274,28 +1325,6 @@ public:
 
 		fill_grid(dynamic_cast<Grille<float> *>(density), 1.0f);
 
-//		advectSemiLagrange(
-//					dynamic_cast<Grille<int> *>(flags),
-//					dynamic_cast<GrilleMAC *>(vel),
-//					dynamic_cast<Grille<float> *>(density),
-//					1);
-
-//		advectSemiLagrange(
-//					dynamic_cast<Grille<int> *>(flags),
-//					dynamic_cast<GrilleMAC *>(vel),
-//					dynamic_cast<GrilleMAC *>(vel),
-//					1);
-
-//		/* À FAIRE : plus de paramètres, voir MF. */
-//		setWallBcs(dynamic_cast<Grille<int> *>(flags), dynamic_cast<GrilleMAC *>(vel));
-
-//		addBuoyancy(
-//					dynamic_cast<Grille<float> *>(density),
-//					dynamic_cast<GrilleMAC *>(vel),
-//					dls::math::vec3f(0.0f, -6e-4f, 0.0f),
-//					dynamic_cast<Grille<int> *>(flags));
-
-
 
 //		solvePressure(
 //					*dynamic_cast<GrilleMAC *>(vel),
@@ -1312,9 +1341,160 @@ public:
 #endif
 		return EXECUTION_REUSSIE;
 	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
 };
 
 #endif
+
+/* ************************************************************************** */
+
+class OpAdvectionGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Advection Gaz";
+	static constexpr auto AIDE = "";
+
+	explicit OpAdvectionGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon_gaz")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto ordre = 1;
+		auto densite = poseidon_gaz->densite;
+		auto velocite = poseidon_gaz->velocite;
+		auto drapeaux = poseidon_gaz->drapeaux;
+
+		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->etendu(), velocite->fenetre_donnees(), velocite->taille_voxel());
+		vieille_vel->copie_donnees(*velocite);
+
+		advecte_semi_lagrange(drapeaux, vieille_vel, densite, ordre);
+
+		advecte_semi_lagrange(drapeaux, vieille_vel, velocite, ordre);
+
+		/* À FAIRE : plus de paramètres, voir MF. */
+		ajourne_conditions_bordures_murs(drapeaux, velocite);
+
+		memoire::deloge("grilles", vieille_vel);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpFlottanceGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Flottance Gaz";
+	static constexpr auto AIDE = "";
+
+	explicit OpFlottanceGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon_gaz")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto gravite = dls::math::vec3f(0.0f, -1.0f, 0.0f);
+		auto densite = poseidon_gaz->densite;
+		auto velocite = poseidon_gaz->velocite;
+		auto drapeaux = poseidon_gaz->drapeaux;
+
+		ajoute_flottance(densite, velocite, gravite, drapeaux);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
 
 /* ************************************************************************** */
 
@@ -1323,5 +1503,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 #ifdef AVEC_POSEIDON
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
 	usine.enregistre_type(cree_desc<OpSimulationGaz>());
+	usine.enregistre_type(cree_desc<OpAdvectionGaz>());
+	usine.enregistre_type(cree_desc<OpFlottanceGaz>());
 #endif
 }

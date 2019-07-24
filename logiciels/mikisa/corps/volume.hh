@@ -355,7 +355,7 @@ public:
 	{
 #ifdef UTILISE_TUILES
 #else
-		for (size_t i = 0; i < m_nombre_voxels; ++i) {
+		for (auto i = 0; i < m_nombre_voxels; ++i) {
 			m_donnees[i] = grille.m_donnees[i];
 		}
 #endif

@@ -61,13 +61,17 @@ menu "Noeud Objet" {
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
 		action(valeur="Trainée"; attache=ajouter_noeud; métadonnée="Trainée")
 	}
+	menu "Poseidon" {
+		action(valeur="Advection Gaz"; attache=ajouter_noeud; métadonnée="Advection Gaz")
+		action(valeur="Entrée Gaz"; attache=ajouter_noeud; métadonnée="Entrée Gaz")
+		action(valeur="Flottance Gaz"; attache=ajouter_noeud; métadonnée="Flottance Gaz")
+		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
+	}
 	menu "Simulation" {
 	    action(valeur="Création Kelvinlet"; attache=ajouter_noeud; métadonnée="Création Kelvinlet")
 		action(valeur="Déformation Kelvinlet"; attache=ajouter_noeud; métadonnée="Déformation Kelvinlet")
 		action(valeur="Évaluation Kelvinlet"; attache=ajouter_noeud; métadonnée="Évaluation Kelvinlet")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
-		action(valeur="Entrée Gaz"; attache=ajouter_noeud; métadonnée="Entrée Gaz")
-		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
 		action(valeur="Simulation Muscles"; attache=ajouter_noeud; métadonnée="Simulation Muscles")
 		action(valeur="Stable Neo Hookean"; attache=ajouter_noeud; métadonnée="Stable Neo Hookean")

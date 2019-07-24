@@ -31,6 +31,12 @@ menu "Noeud Simulation" {
 	menu "Groupe" {
 	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
 	}
+	menu "Poseidon" {
+		action(valeur="Advection Gaz"; attache=ajouter_noeud; métadonnée="Advection Gaz")
+		action(valeur="Entrée Gaz"; attache=ajouter_noeud; métadonnée="Entrée Gaz")
+		action(valeur="Flottance Gaz"; attache=ajouter_noeud; métadonnée="Flottance Gaz")
+		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
+	}
 	menu "Physique" {
 	    action(valeur="Ariel"; attache=ajouter_noeud; métadonnée="Ariel")
 		action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
@@ -40,7 +46,6 @@ menu "Noeud Simulation" {
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Simulation Foule"; attache=ajouter_noeud; métadonnée="Simulation Foule")
-		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
 		action(valeur="Simulation Vêtement"; attache=ajouter_noeud; métadonnée="Simulation Vêtement")
 		action(valeur="Solveur N-Corps"; attache=ajouter_noeud; métadonnée="Solveur N-Corps")
 		action(valeur="Solveur Particules"; attache=ajouter_noeud; métadonnée="Solveur Particules")
