@@ -31,6 +31,10 @@ namespace dls {
 
 chaine contenu_fichier(chaine const &chemin)
 {
+	if (chemin.est_vide()) {
+		return "";
+	}
+
 	if (!std::filesystem::exists(chemin.c_str())) {
 		std::cerr << "Le fichier '" << chemin << "' n'existe pas !\n";
 		return "";
