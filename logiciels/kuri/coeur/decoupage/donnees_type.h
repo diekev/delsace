@@ -344,8 +344,9 @@ private:
 /* ************************************************************************** */
 
 [[nodiscard]] auto donnees_types_parametres(
+		MagasinDonneesType &magasin,
 		const DonneesType &donnees_type,
-		long &nombre_types_retour) noexcept(false) -> dls::tableau<DonneesType>;
+		long &nombre_types_retour) noexcept(false) -> dls::tableau<long>;
 
 #ifdef AVEC_LLVM
 [[nodiscard]] llvm::Type *converti_type(

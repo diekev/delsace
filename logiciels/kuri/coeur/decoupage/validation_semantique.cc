@@ -341,19 +341,20 @@ static auto valide_appel_pointeur_fonction(
 	/* vérifie la compatibilité des arguments pour déterminer
 	 * s'il y aura besoin d'une conversion. */
 	auto nombre_type_retour = 0l;
-	auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
+	auto dt_params = donnees_types_parametres(contexte.magasin_types, dt_fonc, nombre_type_retour);
 
 	auto enfant = b->enfants.debut();
 
 	/* Validation des types passés en paramètre. */
 	for (auto i = 0l; i < dt_params.taille() - nombre_type_retour; ++i) {
+		auto &type_prm = contexte.magasin_types.donnees_types[dt_params[i]];
 		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
 
-		if (dt_params[i].type_base() == id_morceau::TROIS_POINTS) {
-			verifie_compatibilite(b, contexte, dt_params[i].derefence(), type_enf, *enfant);
+		if (type_prm.type_base() == id_morceau::TROIS_POINTS) {
+			verifie_compatibilite(b, contexte, type_prm.derefence(), type_enf, *enfant);
 		}
 		else {
-			verifie_compatibilite(b, contexte, dt_params[i], type_enf, *enfant);
+			verifie_compatibilite(b, contexte, type_prm, type_enf, *enfant);
 		}
 
 		++enfant;
@@ -361,8 +362,7 @@ static auto valide_appel_pointeur_fonction(
 
 	b->nom_fonction_appel = nom_fonction;
 	/* À FAIRE : multiples types retours */
-	auto &dt = dt_params[dt_params.taille() - nombre_type_retour];
-	b->index_type = contexte.magasin_types.ajoute_type(dt);
+	b->index_type = dt_params[dt_params.taille() - nombre_type_retour];
 	b->index_type_fonc = index_type;
 	b->aide_generation_code = APPEL_POINTEUR_FONCTION;
 }
@@ -1064,7 +1064,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto &dt_fonc = contexte.magasin_types.donnees_types[idx_dt_fonc];
 
 				auto nombre_type_retour = 0l;
-				auto dt_params = donnees_types_parametres(dt_fonc, nombre_type_retour);
+				auto dt_params = donnees_types_parametres(contexte.magasin_types, dt_fonc, nombre_type_retour);
 
 				if (feuilles.taille() != nombre_type_retour) {
 					erreur::lance_erreur(
@@ -1078,10 +1078,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				for (auto i = 0l; i < feuilles.taille(); ++i) {
 					auto &f = feuilles[i];
-					auto &dtr = dt_params[decalage + i];
 
 					if (f->index_type == -1l) {
-						f->index_type = contexte.magasin_types.ajoute_type(dtr);
+						f->index_type = dt_params[decalage + i];
 					}
 
 					f->aide_generation_code = GAUCHE_ASSIGNATION;

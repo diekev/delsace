@@ -605,15 +605,17 @@ static dls::chaine cree_info_type_C(
 			donnees_type.ptr_info_type = nom_info_type;
 
 			auto nombre_types_retour = 0l;
-			auto dt_params = donnees_types_parametres(donnees_type, nombre_types_retour);
+			auto dt_params = donnees_types_parametres(contexte.magasin_types, donnees_type, nombre_types_retour);
 			auto nombre_types_entree = dt_params.taille() - nombre_types_retour;
 
 			for (auto i = 0; i < dt_params.taille(); ++i) {
-				if (dt_params[i].ptr_info_type != "") {
+				auto &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
+
+				if (dt_prm.ptr_info_type != "") {
 					continue;
 				}
 
-				cree_info_type_C(contexte, os_decl, os_init, dt_params[i]);
+				cree_info_type_C(contexte, os_decl, os_init, dt_prm);
 			}
 
 			auto nom_tabl_fix_entree = "__tabl_fix_entree" + dls::vers_chaine(index++);
@@ -622,7 +624,8 @@ static dls::chaine cree_info_type_C(
 
 			auto virgule = ' ';
 			for (auto i = 0; i < nombre_types_entree; ++i) {
-				os_init << virgule << "(InfoType *)&" << dt_params[i].ptr_info_type;
+				auto const &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
+				os_init << virgule << "(InfoType *)&" << dt_prm.ptr_info_type;
 				virgule = ',';
 			}
 
@@ -637,7 +640,8 @@ static dls::chaine cree_info_type_C(
 
 			virgule = ' ';
 			for (auto i = nombre_types_entree; i < dt_params.taille(); ++i) {
-				os_init << virgule << "(InfoType *)&" << dt_params[i].ptr_info_type;
+				auto const &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
+				os_init << virgule << "(InfoType *)&" << dt_prm.ptr_info_type;
 				virgule = ',';
 			}
 

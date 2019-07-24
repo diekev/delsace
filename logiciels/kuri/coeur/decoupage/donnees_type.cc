@@ -991,15 +991,16 @@ llvm::Type *converti_type_simple(
  * paramètre n'est pas un pointeur fonction, retourne un vecteur vide.
  */
 [[nodiscard]] auto donnees_types_parametres(
-		const DonneesType &donnees_type,
-		long &nombre_types_retour) noexcept(false) -> dls::tableau<DonneesType>
+		MagasinDonneesType &magasin,
+		DonneesType const &donnees_type,
+		long &nombre_types_retour) noexcept(false) -> dls::tableau<long>
 {
 	if (donnees_type.type_base() != id_morceau::FONC && donnees_type.type_base() != id_morceau::COROUT) {
 		return {};
 	}
 
 	auto dt = DonneesType{};
-	dls::tableau<DonneesType> donnees_types;
+	auto donnees_types = dls::tableau<long>{};
 
 	auto debut = donnees_type.end() - 1;
 
@@ -1039,7 +1040,7 @@ llvm::Type *converti_type_simple(
 			}
 		}
 
-		donnees_types.pousse(dt);
+		donnees_types.pousse(magasin.ajoute_type(dt));
 
 		dt = DonneesType{};
 	}
@@ -1059,7 +1060,7 @@ llvm::Type *converti_type_simple(
 			}
 		}
 
-		donnees_types.pousse(dt);
+		donnees_types.pousse(magasin.ajoute_type(dt));
 		++nombre_types_retour;
 
 		dt = DonneesType{};
