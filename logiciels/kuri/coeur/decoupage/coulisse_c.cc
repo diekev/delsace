@@ -2680,8 +2680,6 @@ void genere_code_C(
 			 *	...
 			 */
 
-			/* À FAIRE : bloc sinon. */
-
 			auto iter = b->enfants.debut();
 			auto enfant1 = *iter++;
 
