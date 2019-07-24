@@ -118,7 +118,7 @@ static void evalue_composite(Mikisa &mikisa)
 	execute_noeud(visionneuse, contexte, nullptr);
 
 	Image image;
-	auto operatrice = std::any_cast<OperatriceImage *>(visionneuse->donnees());
+	auto operatrice = extrait_opimage(visionneuse->donnees());
 	operatrice->transfere_image(image);
 	composite->image(image);
 	image.reinitialise(true);
@@ -185,7 +185,7 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 		return;
 	}
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud_sortie->donnees());
+	auto operatrice = extrait_opimage(noeud_sortie->donnees());
 
 	auto const t0 = tbb::tick_count::now();
 

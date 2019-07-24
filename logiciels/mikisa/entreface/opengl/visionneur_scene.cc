@@ -224,7 +224,7 @@ void VisionneurScene::peint_opengl()
 	noeud = m_mikisa.graphe->noeud_actif;
 
 	if (noeud != nullptr) {
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = extrait_opimage(noeud->donnees());
 
 		if (operatrice->type() == OPERATRICE_OBJET && operatrice->objet()) {
 			auto objet = operatrice->objet();

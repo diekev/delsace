@@ -126,7 +126,7 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	donnees_sim.dernier_temps = m_dernier_temps;
 
 	for (auto &noeud : m_graphe.noeuds()) {
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto op = extrait_opimage(noeud->donnees());
 
 		if (op->type() == OPERATRICE_CORPS) {
 			auto op_corps = dynamic_cast<OperatriceCorps *>(op);
@@ -137,7 +137,7 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	/* exécute graphe */
 	execute_noeud(sortie_graphe, contexte, donnees_aval);
 
-	auto op_sortie = std::any_cast<OperatriceImage *>(sortie_graphe->donnees());
+	auto op_sortie = extrait_opimage(sortie_graphe->donnees());
 
 	m_corps.reinitialise();
 	op_sortie->corps()->copie_vers(&m_corps);
@@ -154,7 +154,7 @@ void OperatriceSimulation::amont_change()
 {
 	for (auto noeud : m_graphe.noeuds()) {
 		noeud->besoin_execution(true);
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto op = extrait_opimage(noeud->donnees());
 		op->amont_change();
 	}
 }
@@ -165,7 +165,7 @@ void OperatriceSimulation::renseigne_dependance(
 		NoeudReseau *noeud_res)
 {
 	for (auto noeud : m_graphe.noeuds()) {
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto op = extrait_opimage(noeud->donnees());
 		op->renseigne_dependance(contexte, compilatrice, noeud_res);
 	}
 }

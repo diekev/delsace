@@ -53,7 +53,7 @@ class CommandeZoomCamera3D : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto const delta = donnees.y;
 
 		auto camera = mikisa->camera_3d;
@@ -96,7 +96,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto camera = mikisa->camera_3d;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -132,7 +132,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto camera = mikisa->camera_3d;
 
 		const float dx = (donnees.x - m_vieil_x);
@@ -155,7 +155,7 @@ class CommandeSurvoleScene : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto manipulatrice = mikisa->manipulatrice_3d;
 
 		if (manipulatrice == nullptr) {
@@ -209,7 +209,7 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		if (mikisa->manipulation_3d_activee == false) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -285,7 +285,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		if (mikisa->manipulation_3d_activee == false) {
 			return;
@@ -348,7 +348,7 @@ public:
 		/* ajourne l'opératrice */
 		auto graphe = mikisa->graphe;
 		auto noeud_actif = graphe->noeud_actif;
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud_actif->donnees());
+		auto operatrice = extrait_opimage(noeud_actif->donnees());
 		operatrice->ajourne_selon_manipulatrice_3d(mikisa->type_manipulation_3d, mikisa->temps_courant);
 
 		/* Évalue tout le graphe pour ajourner proprement les données dépendants

@@ -44,7 +44,7 @@ class CommandeAjouterPropriete final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto gestionnaire = mikisa->gestionnaire_entreface;
 		auto graphe = mikisa->graphe;
 
@@ -66,7 +66,7 @@ public:
 		}
 
 		auto noeud = graphe->noeud_actif;
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = extrait_opimage(noeud->donnees());
 
 		auto attache = resultat.evalue_chaine("attache_propriete");
 		auto type = resultat.evalue_enum("type_propriete");

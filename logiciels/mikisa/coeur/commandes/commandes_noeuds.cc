@@ -97,7 +97,7 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 		return besoin_ajournement;
 	}
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 
 	if (operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
 		mikisa.manipulatrice_3d = operatrice->manipulatrice_3d(mikisa.type_manipulation_3d);
@@ -159,7 +159,7 @@ class CommandeDessineGrapheComposite final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto composite = mikisa->composite;
 
 		ImprimeuseGraphe gd(&composite->graph());
@@ -180,7 +180,7 @@ class CommandeAjoutNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		auto nom = donnees.metadonnee;
 		auto noeud = mikisa->graphe->cree_noeud(nom);
@@ -227,7 +227,7 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
 		Noeud *noeud_selection = nullptr;
@@ -278,7 +278,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
 		if (graphe->connexion_active != nullptr) {
@@ -301,7 +301,7 @@ public:
 
 	void termine_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
 		bool connexion = false;
@@ -348,7 +348,7 @@ class CommandeSupprimeSelection final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->noeud_actif;
 
@@ -369,7 +369,7 @@ public:
 			besoin_execution = true;
 
 			auto scene = mikisa->scene;
-			auto objet = std::any_cast<Objet *>(noeud->donnees());
+			auto objet = extrait_objet(noeud->donnees());
 
 			/* À FAIRE : redondance avec la suppression de la BDD et du graphe
 			 * de dépendance. */
@@ -378,7 +378,7 @@ public:
 			mikisa->bdd.enleve_objet(objet);
 		}
 		else {
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees());
 
 			if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
 				mikisa->manipulatrice_3d = nullptr;
@@ -453,7 +453,7 @@ class CommandeInfoNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SCENE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -472,7 +472,7 @@ public:
 			ss << "<p>Opératrice : " << noeud->nom() << "</p>";
 			ss << "<hr/>";
 
-			auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto op = extrait_opimage(noeud->donnees());
 
 			if (op->type() == OPERATRICE_CORPS || op->type() == OPERATRICE_SORTIE_CORPS) {
 				auto op_objet = dynamic_cast<OperatriceCorps *>(op);
@@ -525,7 +525,7 @@ public:
 	{
 		INUTILISE(donnees);
 
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
 		memoire::deloge("InfoNoeud", graphe->info_noeud);
@@ -555,7 +555,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
 		graphe->centre_x += m_orig_x - donnees.x;
@@ -573,7 +573,7 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
 		graphe->zoom *= (donnees.y > 0) ? constantes<float>::PHI : constantes<float>::PHI_INV;
@@ -590,7 +590,7 @@ class CommandeEntreNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
 		selectionne_noeud(*mikisa, noeud, *graphe);
@@ -600,7 +600,7 @@ public:
 		}
 
 		if (noeud->type() == GRAPHE_OBJET) {
-			auto objet = std::any_cast<Objet *>(noeud->donnees());
+			auto objet = extrait_objet(noeud->donnees());
 
 			assert(mikisa->contexte == GRAPHE_SCENE);
 
@@ -610,7 +610,7 @@ public:
 			mikisa->chemin_courant = "/scènes/Scène/" + objet->nom + "/";
 		}
 		else {
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees());
 
 			if (operatrice->type() == OPERATRICE_GRAPHE_PIXEL) {
 				auto operatrice_graphe = dynamic_cast<OperatriceGraphePixel *>(operatrice);
@@ -654,7 +654,7 @@ class CommandeSorsNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		if (mikisa->contexte == GRAPHE_COMPOSITE || mikisa->contexte == GRAPHE_SCENE) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -669,7 +669,7 @@ public:
 		else if (mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
 			auto scene = mikisa->scene;
 			auto noeud_actif = scene->graphe.noeud_actif;
-			auto objet = std::any_cast<Objet *>(noeud_actif->donnees());
+			auto objet = extrait_objet(noeud_actif->donnees());
 
 			mikisa->graphe = &objet->graphe;
 			mikisa->contexte = GRAPHE_OBJET;
@@ -835,7 +835,7 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		//auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		//auto mikisa = extrait_mikisa(pointeur);
 		//auto graphe = mikisa->graphe;
 
 		//autodispose_graphe(*graphe);

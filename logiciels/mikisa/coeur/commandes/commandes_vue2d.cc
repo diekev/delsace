@@ -50,7 +50,7 @@ class CommandeZoomCamera2D final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto camera = mikisa->camera_2d;
 
 		camera->zoom *= (donnees.y < 0) ? constantes<float>::PHI_INV : constantes<float>::PHI;
@@ -81,7 +81,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 		auto camera = mikisa->camera_2d;
 
 		camera->pos_x += (m_vieil_x - donnees.x) / static_cast<float>(camera->largeur);

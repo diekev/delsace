@@ -83,7 +83,7 @@ class CommandeChangementTemps final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		if (donnees.metadonnee == "va_image_debut") {
 			mikisa->temps_courant = mikisa->temps_debut;

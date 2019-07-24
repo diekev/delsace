@@ -38,7 +38,7 @@ static void marque_execution_graphe(NoeudReseau *racine)
 
 		for (auto &noeud : graphe.noeuds()) {
 			noeud->besoin_execution(true);
-			auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto op = extrait_opimage(noeud->donnees());
 			op->amont_change();
 		}
 
@@ -125,7 +125,7 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, Scene *sce
 		 * noeud de sortie. */
 
 		for (auto noeud : objet_noeud->graphe.noeuds()) {
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees());
 
 			if (operatrice->possede_animation()) {
 				ajoute_dependance(&reseau->noeud_temps, noeud_dep);

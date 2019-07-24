@@ -178,3 +178,8 @@ public:
 
 	void ajourne_pour_nouveau_temps(const char *message);
 };
+
+inline Mikisa *extrait_mikisa(std::any const &any)
+{
+	return std::any_cast<Mikisa *>(any);
+}

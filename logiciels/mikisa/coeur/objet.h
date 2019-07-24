@@ -55,3 +55,8 @@ struct Objet {
 	Objet(Objet const &) = default;
 	Objet &operator=(Objet const &) = default;
 };
+
+inline Objet *extrait_objet(std::any const &any)
+{
+	return std::any_cast<Objet *>(any);
+}

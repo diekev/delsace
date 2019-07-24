@@ -270,7 +270,7 @@ static auto ecris_noeud(
 	switch (noeud->type()) {
 		case NOEUD_OBJET:
 		{
-			auto objet = std::any_cast<Objet *>(noeud->donnees());
+			auto objet = extrait_objet(noeud->donnees());
 
 			auto element_objet = doc.NewElement("objet");
 			element_objet->SetAttribut("nom", objet->nom.c_str());
@@ -281,7 +281,7 @@ static auto ecris_noeud(
 		}
 		default:
 		{
-			auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees());
 			auto element_operatrice = doc.NewElement("operatrice");
 			element_operatrice->SetAttribut("nom", operatrice->nom_classe());
 
@@ -727,7 +727,7 @@ static void lis_scenes(
 
 		/* met en place les objets */
 		for (auto noeud : scene->graphe.noeuds()) {
-			scene->ajoute_objet(noeud, std::any_cast<Objet *>(noeud->donnees()));
+			scene->ajoute_objet(noeud, extrait_objet(noeud->donnees()));
 		}
 	}
 }

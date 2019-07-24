@@ -29,6 +29,7 @@
 #include "../configuration.h"
 #include "../contexte_evaluation.hh"
 #include "../mikisa.h"
+#include "../objet.h"
 #include "../scene.h"
 
 #include "execution.hh"
@@ -54,7 +55,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto objet = static_cast<Objet *>(nullptr);
 
 	if (scene->graphe.noeud_actif != nullptr) {
-		objet = std::any_cast<Objet *>(scene->graphe.noeud_actif->donnees());
+		objet = extrait_objet(scene->graphe.noeud_actif->donnees());
 	}
 
 	auto contexte = cree_contexte_evaluation(mikisa);

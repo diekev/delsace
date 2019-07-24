@@ -97,7 +97,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	operatrice->ajourne_proprietes();
 
 	/* avertissements */
@@ -174,7 +174,7 @@ static void marque_surannee_(Noeud *noeud)
 
 	noeud->besoin_execution(true);
 
-	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto op = extrait_opimage(noeud->donnees());
 	op->amont_change();
 
 	for (PriseSortie *sortie : noeud->sorties()) {
@@ -210,7 +210,7 @@ void EditriceProprietes::obtiens_liste(
 		return;
 	}
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	auto contexte = cree_contexte_evaluation(m_mikisa);
 
 	operatrice->obtiens_liste(contexte, attache, chaines);

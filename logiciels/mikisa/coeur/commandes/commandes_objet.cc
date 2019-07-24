@@ -47,7 +47,7 @@ public:
 
 int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCommande &donnees)
 {
-	auto mikisa = std::any_cast<Mikisa *>(pointeur);
+	auto mikisa = extrait_mikisa(pointeur);
 	auto &bdd = mikisa->bdd;
 	auto nom = donnees.metadonnee;
 	auto op = static_cast<OperatriceImage *>(nullptr);

@@ -154,7 +154,7 @@ class CommandeRenduImage final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		if (mikisa->nom_calque_sortie == "") {
 			/* À FAIRE : erreur. */
@@ -187,7 +187,7 @@ class CommandeRenduSequence final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto mikisa = std::any_cast<Mikisa *>(pointeur);
+		auto mikisa = extrait_mikisa(pointeur);
 
 		auto const temps_originale = mikisa->temps_courant;
 

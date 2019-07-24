@@ -76,7 +76,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		brosse_couleur = brosse_pour_type(OPERATRICE_OBJET);
 	}
 	else {
-		operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		operatrice = extrait_opimage(noeud->donnees());
 		brosse_couleur = brosse_pour_type(operatrice->type());
 	}
 

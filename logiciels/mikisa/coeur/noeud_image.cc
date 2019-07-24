@@ -43,7 +43,7 @@ void execute_noeud(
 
 	auto const t0 = tbb::tick_count::now();
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	operatrice->reinitialise_avertisements();
 
 	auto const resultat = operatrice->execute(contexte, donnees_aval);
@@ -73,7 +73,7 @@ void execute_noeud(
 
 void synchronise_donnees_operatrice(Noeud *noeud)
 {
-	auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto op = extrait_opimage(noeud->donnees());
 
 	for (auto i = 0; i < op->entrees(); ++i) {
 		noeud->ajoute_entree(op->nom_entree(i), op->type_entree(i));

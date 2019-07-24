@@ -398,3 +398,8 @@ public:
 Noeud *cree_noeud_image();
 
 void supprime_noeud_image(Noeud *noeud);
+
+inline OperatriceImage *extrait_opimage(std::any const &any)
+{
+	return std::any_cast<OperatriceImage *>(any);
+}

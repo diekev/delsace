@@ -167,7 +167,7 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 
 		execute_noeud(noeud, contexte, donnees_aval);
 
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+		auto operatrice = extrait_opimage(noeud->donnees());
 		operatrice->transfere_image(image);
 
 		for (auto const &calque : image.calques()) {
@@ -192,7 +192,7 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &co
 
 	execute_noeud(noeud, contexte, donnees_aval);
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	return operatrice->camera();
 }
 
@@ -212,7 +212,7 @@ TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &conte
 
 	execute_noeud(noeud, contexte, donnees_aval);
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	return operatrice->texture();
 }
 
@@ -232,7 +232,7 @@ const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte
 
 	execute_noeud(noeud, contexte, donnees_aval);
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 
 	return operatrice->corps();
 }
@@ -271,7 +271,7 @@ void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaine
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -296,7 +296,7 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &ch
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -321,7 +321,7 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees());
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -568,7 +568,7 @@ void OperatriceImage::amont_change()
 
 static void supprime_operatrice_image(std::any pointeur)
 {
-	auto ptr = std::any_cast<OperatriceImage *>(pointeur);
+	auto ptr = extrait_opimage(pointeur);
 
 	/* Lorsque nous logeons un pointeur nous utilisons la taille de la classe
 	 * dérivée pour estimer la quantité de mémoire allouée. Donc pour déloger
