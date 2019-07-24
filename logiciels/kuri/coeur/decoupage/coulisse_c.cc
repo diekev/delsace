@@ -1678,6 +1678,9 @@ void genere_code_C(
 				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "static void __attribute__ ((noinline)) ";
 				}
+				else {
+					os << "static void ";
+				}
 
 				os << nom_fonction;
 			}
