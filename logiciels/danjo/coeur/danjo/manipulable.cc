@@ -498,4 +498,8 @@ Propriete const *Manipulable::propriete(const dls::chaine &nom) const
 	return &(iter->second);
 }
 
+void Manipulable::performe_versionnage()
+{
+}
+
 }  /* namespace danjo */

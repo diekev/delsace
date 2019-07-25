@@ -272,6 +272,8 @@ public:
 	Propriete *propriete(const dls::chaine &nom);
 
 	Propriete const *propriete(const dls::chaine &nom) const;
+
+	virtual void performe_versionnage();
 };
 
 }  /* namespace danjo */
