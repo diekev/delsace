@@ -220,6 +220,14 @@ void VisionneurScene::peint_opengl()
 	ss << "Nombre volumes    : " << stats.nombre_volumes;
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
+	ss.chn("");
+	ss << "Nombre commandes  : " << m_mikisa.usine_commandes().taille();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
 #if 0
 	noeud = m_mikisa.graphe->noeud_actif;
 
