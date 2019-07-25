@@ -38,6 +38,10 @@
 #include "operatrice_corps.h"
 #include "usine_operatrice.h"
 
+#include "fluide.hh"
+#include "gradient_conjugue.hh"
+#include "iter_volume.hh"
+
 #include "limites_corps.hh"
 
 #define AVEC_POSEIDON
@@ -89,57 +93,6 @@ static BaseGrille *cree_grille(Solveur const &s, int type)
 	return nullptr;
 }
 
-enum {
-	TypeNone     = 0,
-	TypeFluid    = 1,
-	TypeObstacle = 2,
-	TypeVide     = 4,
-	TypeInflow   = 8,
-	TypeOutflow  = 16,
-	TypeOpen     = 32,
-	TypeStick    = 64,
-	// internal use only, for fast marching
-	TypeReserved = 256,
-	// 2^10 - 2^14 reserved for moving obstacles
-};
-
-class IteratricePosition {
-	limites3i m_lim;
-	dls::math::vec3i m_etat;
-
-public:
-	IteratricePosition(limites3i const &lim)
-		: m_lim(lim)
-		, m_etat(lim.min)
-	{}
-
-	dls::math::vec3i suivante()
-	{
-		auto etat = m_etat;
-
-		m_etat.x += 1;
-
-		if (m_etat.x >= m_lim.max.x) {
-			m_etat.x = m_lim.min.x;
-
-			m_etat.y += 1;
-
-			if (m_etat.y >= m_lim.max.y) {
-				m_etat.y = m_lim.min.y;
-
-				m_etat.z += 1;
-			}
-		}
-
-		return etat;
-	}
-
-	bool fini() const
-	{
-		return m_etat.z >= m_lim.max.z;
-	}
-};
-
 static auto init_domain(Grille<int> *flags)
 {
 	auto res = flags->resolution();
@@ -147,7 +100,6 @@ static auto init_domain(Grille<int> *flags)
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
 
-	/* set const */
 	auto iter = IteratricePosition(limites);
 
 	while (!iter.fini()) {
@@ -532,22 +484,17 @@ inline static auto surfTensHelper(const long idx, const int offset, const Grille
 static auto computePressureRhs(
 		Grille<float>& rhs,
 		const GrilleMAC& vel,
-		const Grille<float>& pressure,
 		const Grille<int>& flags,
-		float cgAccuracy = 1e-3f,
 		const Grille<float>* phi = nullptr,
 		const Grille<float>* perCellCorr = nullptr,
 		const GrilleMAC* fractions = nullptr,
 		float gfClamp = 1e-04f,
-		float cgMaxIterFac = 1.5f,
-		bool precondition = true, // Deprecated, use preconditioner instead
-		int preconditioner = PcMIC,
 		bool enforceCompatibility = false,
-		bool useL2Norm = false,
-		bool zeroPressureFixing = false,
 		const Grille<float> *curv = nullptr,
 		const float surfTens = 0.0f )
 {
+	std::cerr << __func__ << '\n';
+
 	// compute divergence and init right hand side
 	auto res = flags.resolution();
 	auto limites = limites3i{};
@@ -693,10 +640,12 @@ static auto MakeLaplaceMatrix(
 		Grille<float>& Ak,
 		const GrilleMAC* fractions = nullptr)
 {
+	std::cerr << __func__ << '\n';
+
 	auto res = flags.resolution();
 	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
+	limites.min = dls::math::vec3i(1);
+	limites.max = res - dls::math::vec3i(1);
 	auto iter = IteratricePosition(limites);
 
 	while (!iter.fini()) {
@@ -774,36 +723,25 @@ static auto MakeLaplaceMatrix(
 
 }
 
-#if 0
 static auto solvePressureSystem(
 		Grille<float>& rhs,
-		GrilleMAC& vel,
 		Grille<float>& pressure,
 		const Grille<int>& flags,
 		float cgAccuracy = 1e-3f,
 		const Grille<float>* phi = nullptr,
-		const Grille<float>* perCellCorr = nullptr,
 		const GrilleMAC* fractions = nullptr,
 		float gfClamp = 1e-04f,
 		float cgMaxIterFac = 1.5f,
-		bool precondition = true, // Deprecated, use preconditioner instead
 		int preconditioner = PcMIC,
-		bool enforceCompatibility = false,
 		bool useL2Norm = false,
-		bool zeroPressureFixing = false,
-		const Grille<float> *curv = nullptr,
-		const float surfTens = 0.0f)
+		bool zeroPressureFixing = false)
 {
-	if (precondition == false) {
-		preconditioner = PcNone; // for backwards compatibility
-	}
+	std::cerr << __func__ << '\n';
 
 	// reserve temp grids
-	auto etendu = limites3f{};
-	etendu.min = dls::math::vec3f(-1.0f);
-	etendu.max = dls::math::vec3f(1.0f);
-	auto fenetre_donnees = etendu;
-	auto taille_voxel = 1.0f / 64.0f;
+	auto etendu = pressure.etendu();
+	auto fenetre_donnees = pressure.fenetre_donnees();
+	auto taille_voxel = pressure.taille_voxel();
 	Grille<float> residual(etendu, fenetre_donnees, taille_voxel);
 	Grille<float> search(etendu, fenetre_donnees, taille_voxel);
 	Grille<float> A0(etendu, fenetre_donnees, taille_voxel);
@@ -881,8 +819,7 @@ static auto solvePressureSystem(
 
 	// CG setup
 	// note: the last factor increases the max iterations for 2d, which right now can't use a preconditioner
-	GridCgInterface *gcg = new GridCg<ApplyMatrix>(pressure, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
-
+	auto gcg = new GridCg(pressure, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
 	gcg->setAccuracy( cgAccuracy );
 	gcg->setUseL2Norm( useL2Norm );
 
@@ -906,15 +843,16 @@ static auto solvePressureSystem(
 	else if (preconditioner == PcMGDynamic || preconditioner == PcMGStatic) {
 		maxIter = 100;
 
-		pmg = gMapMG[parent];
-		if (!pmg) {
-			pmg = new GridMg(pressure.resolution());
-			gMapMG[parent] = pmg;
-		}
+//		pmg = gMapMG[parent];
+//		if (!pmg) {
+//			pmg = new GridMg(pressure.resolution());
+//			gMapMG[parent] = pmg;
+//		}
 
 		gcg->setMGPreconditioner( GridCgInterface::PC_MGP, pmg);
 	}
 
+	std::cerr << "Lance CG solver...." << '\n';
 	// CG solve
 	for (int iter = 0; iter < maxIter; iter++) {
 		if (!gcg->iterate()) {
@@ -937,7 +875,93 @@ static auto solvePressureSystem(
 	// PcMGDynamic: always delete multigrid solver after use
 	// PcMGStatic: keep multigrid solver for next solve
 	if (pmg && preconditioner == PcMGDynamic) {
-		releaseMG(parent);
+//		releaseMG(parent);
+	}
+}
+
+static auto knCorrectVelocity(const Grille<int>& flags, GrilleMAC& vel, const Grille<float>& pressure)
+{
+	auto res = flags.resolution();
+	auto limites = limites3i{};
+	limites.min = dls::math::vec3i(1);
+	limites.max = res;
+	auto iter = IteratricePosition(limites);
+
+	while (!iter.fini()) {
+		auto pos_iter = iter.suivante();
+		auto i = static_cast<size_t>(pos_iter.x);
+		auto j = static_cast<size_t>(pos_iter.y);
+		auto k = static_cast<size_t>(pos_iter.z);
+
+		auto idx = flags.calcul_index(i, j, k);
+
+		if (est_fluide(flags, idx)) {
+			if (est_fluide(flags, i-1,j,k)) {
+				vel.valeur(idx).x -= (pressure.valeur(idx) - pressure.valeur(i-1,j,k));
+			}
+
+			if (est_fluide(flags, i,j-1,k)) {
+				vel.valeur(idx).y -= (pressure.valeur(idx) - pressure.valeur(i,j-1,k));
+			}
+
+			if (est_fluide(flags, i,j,k-1)) {
+				vel.valeur(idx).z -= (pressure.valeur(idx) - pressure.valeur(i,j,k-1));
+			}
+
+			if (est_vide(flags, i-1,j,k)) {
+				vel.valeur(idx).x -= pressure.valeur(idx);
+			}
+
+			if (est_vide(flags, i,j-1,k)) {
+				vel.valeur(idx).y -= pressure.valeur(idx);
+			}
+
+			if (est_vide(flags, i,j,k-1)) {
+				vel.valeur(idx).z -= pressure.valeur(idx);
+			}
+		}
+		/* Ne changeons pas les vélocités dans les cellules d'outflow. */
+		else if (est_vide(flags, idx) && !est_outflow(flags, idx)) {
+			if (est_fluide(flags, i-1,j,k)) {
+				vel.valeur(idx).x += pressure.valeur(i-1,j,k);
+			}
+			else {
+				vel.valeur(idx).x  = 0.f;
+			}
+
+			if (est_fluide(flags, i,j-1,k)) {
+				vel.valeur(idx).y += pressure.valeur(i,j-1,k);
+			}
+			else {
+				vel.valeur(idx).y  = 0.f;
+			}
+
+			if (est_fluide(flags, i,j,k-1)) {
+				vel.valeur(idx).z += pressure.valeur(i,j,k-1);
+			}
+			else {
+				vel.valeur(idx).z  = 0.f;
+			}
+		}
+	}
+}
+
+static auto correctVelocity(
+		GrilleMAC& vel,
+		Grille<float>& pressure,
+		const Grille<int>& flags,
+		const Grille<float>* phi = nullptr,
+		float gfClamp = 1e-04f,
+		const Grille<float> *curv = nullptr,
+		const float surfTens = 0.0f)
+{
+	std::cerr << __func__ << '\n';
+	knCorrectVelocity(flags, vel, pressure);
+
+	if (phi) {
+//		knCorrectVelocityGhostFluid (vel, flags, pressure, *phi, gfClamp,  curv, surfTens );
+//		// improve behavior of clamping for large time steps:
+//		knReplaceClampedGhostFluidVels (vel, flags, pressure, *phi, gfClamp);
 	}
 }
 
@@ -951,8 +975,7 @@ static auto solvePressure(
 		const GrilleMAC* fractions = nullptr,
 		float gfClamp = 1e-04f,
 		float cgMaxIterFac = 1.5f,
-		bool precondition = true, // Deprecated, use preconditioner instead
-		int preconditioner = PcMIC,
+		int preconditioner = PcNone,
 		bool enforceCompatibility = false,
 		bool useL2Norm = false,
 		bool zeroPressureFixing = false,
@@ -960,6 +983,7 @@ static auto solvePressure(
 		const float surfTens = 0.0f,
 		Grille<float>* retRhs = nullptr)
 {
+	std::cerr << __func__ << '\n';
 	auto etendu = limites3f{};
 	etendu.min = dls::math::vec3f(-1.0f);
 	etendu.max = dls::math::vec3f(1.0f);
@@ -967,33 +991,27 @@ static auto solvePressure(
 	auto taille_voxel = 1.0f / 64.0f;
 	auto rhs = Grille<float>(etendu, fenetre_donnees, taille_voxel);
 
-	computePressureRhs(rhs, vel, pressure, flags, cgAccuracy,
-		phi, perCellCorr, fractions, gfClamp,
-		cgMaxIterFac, precondition, preconditioner, enforceCompatibility,
-		useL2Norm, zeroPressureFixing, curv, surfTens);
+	computePressureRhs(rhs, vel, flags, phi, perCellCorr, fractions, gfClamp,
+					   enforceCompatibility, curv, surfTens);
 
-	solvePressureSystem(rhs, vel, pressure, flags, cgAccuracy,
-		phi, perCellCorr, fractions, gfClamp,
-		cgMaxIterFac, precondition, preconditioner, enforceCompatibility,
-		useL2Norm, zeroPressureFixing, curv, surfTens);
+	solvePressureSystem(rhs, pressure, flags, cgAccuracy, phi, fractions,
+						gfClamp, cgMaxIterFac, preconditioner, useL2Norm,
+						zeroPressureFixing);
 
-	correctVelocity(vel, pressure, flags, cgAccuracy,
-		phi, perCellCorr, fractions, gfClamp,
-		cgMaxIterFac, precondition, preconditioner, enforceCompatibility,
-		useL2Norm, zeroPressureFixing, curv, surfTens);
+	correctVelocity(vel, pressure, flags, phi, gfClamp, curv, surfTens);
 
 	// optionally , return RHS
-//	if(retRhs) {
-//		retRhs->copyFrom( rhs );
-//	}
+	if (retRhs) {
+		retRhs->copie_donnees(rhs);
+	}
 }
-#endif
 
 /* ************************************************************************** */
 
 struct PoseidonGaz {
 	Grille<int> *drapeaux = nullptr;
 	Grille<float> *densite = nullptr;
+	Grille<float> *pression = nullptr;
 	GrilleMAC *velocite = nullptr;
 };
 
@@ -1125,7 +1143,6 @@ public:
 		});
 
 		/* À FAIRE : considère la surface des maillages. */
-		std::cerr << "résolution grille " << grille->resolution() << '\n';
 		auto res = grille->resolution();
 		auto lim = calcule_limites_mondiales_corps(m_corps);
 		auto min_idx = grille->monde_vers_unit(lim.min);
@@ -1220,6 +1237,7 @@ public:
 	~OpSimulationGaz() override
 	{
 		memoire::deloge("grilles", m_poseidon.densite);
+		memoire::deloge("grilles", m_poseidon.pression);
 		memoire::deloge("grilles", m_poseidon.drapeaux);
 		memoire::deloge("grilles", m_poseidon.velocite);
 	}
@@ -1227,16 +1245,6 @@ public:
 	const char *chemin_entreface() const override
 	{
 		return "";
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *nom_classe() const override
@@ -1254,7 +1262,7 @@ public:
 		INUTILISE(donnees_aval);
 
 		m_corps.reinitialise();
-#if 1
+
 		/* init domaine */
 		auto res = 64;
 
@@ -1266,6 +1274,7 @@ public:
 
 		if (m_poseidon.densite == nullptr) {
 			m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+			m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
 			m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
 			m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
 		}
@@ -1282,12 +1291,10 @@ public:
 		/* lance simulation */
 		entree(1)->requiers_corps(contexte, &da);
 
-		/* sauve données (INCLURE VELOCITÉ !) */
+		/* sauve données */
 
 		auto volume = memoire::loge<Volume>("Volume");
 		volume->grille = m_poseidon.densite->copie();
-
-		std::cerr << "Fin exécution algorithme\n";
 
 		/* visualise domaine */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
@@ -1295,50 +1302,7 @@ public:
 		dessine_boite(m_corps, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), attr_C);
 
 		m_corps.ajoute_primitive(volume);
-#else
-		/* paramètres solver */
-		auto res = 64;
-		auto gs = dls::math::vec3i(res, res * 3 / 2, res);
-		auto s = cree_solveur(gs);
 
-		/* prépare les grilles */
-		auto flags    = cree_grille(s, TYPE_GRILLE_FLAG);
-		auto vel      = cree_grille(s, TYPE_GRILLE_MAC);
-		auto density  = cree_grille(s, TYPE_GRILLE_REEL);
-	//	auto pressure = cree_grille(s, TYPE_GRILLE_REEL);
-
-		/* noise field */
-
-		/* À FAIRE : réinitialisation. */
-		if (contexte.temps_courant == 1) {
-			init_domain(dynamic_cast<Grille<int> *>(flags));
-		//	fill_grid(dynamic_cast<Grille<int> *>(flags), TypeFluid);
-		}
-
-		fill_grid(dynamic_cast<Grille<int> *>(flags), TypeFluid);
-
-		auto corps_entree = entree(0)->requiers_corps(contexte, nullptr);
-
-		if (contexte.temps_courant < 100) {
-			densityInflow(dynamic_cast<Grille<int> *>(flags), dynamic_cast<Grille<float> *>(density), nullptr, corps_entree, 1.0f, 0.5f);
-		}
-
-		fill_grid(dynamic_cast<Grille<float> *>(density), 1.0f);
-
-
-//		solvePressure(
-//					*dynamic_cast<GrilleMAC *>(vel),
-//					*dynamic_cast<Grille<float> *>(pressure),
-//					*dynamic_cast<Grille<int> *>(flags));
-
-		auto volume = memoire::loge<Volume>("Volume");
-		volume->grille = density;
-
-		m_corps.ajoute_primitive(volume);
-
-		memoire::deloge("grilles", flags);
-		memoire::deloge("grilles", vel);
-#endif
 		return EXECUTION_REUSSIE;
 	}
 
@@ -1347,7 +1311,6 @@ public:
 		return true;
 	}
 };
-
 #endif
 
 /* ************************************************************************** */
@@ -1366,16 +1329,6 @@ public:
 	const char *chemin_entreface() const override
 	{
 		return "";
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *nom_classe() const override
@@ -1446,16 +1399,6 @@ public:
 		return "";
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *nom_classe() const override
 	{
 		return NOM;
@@ -1498,6 +1441,66 @@ public:
 
 /* ************************************************************************** */
 
+class OpIncompressibiliteGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Incompressibilité Gaz";
+	static constexpr auto AIDE = "";
+
+	explicit OpIncompressibiliteGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon_gaz")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		std::cerr << "------------------------------------------------\n";
+		std::cerr << "Incompressibilité, image " << contexte.temps_courant << '\n';
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto pression = poseidon_gaz->pression;
+		auto velocite = poseidon_gaz->velocite;
+		auto drapeaux = poseidon_gaz->drapeaux;
+
+		solvePressure(*velocite, *pression, *drapeaux);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 #ifdef AVEC_POSEIDON
@@ -1505,5 +1508,6 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpSimulationGaz>());
 	usine.enregistre_type(cree_desc<OpAdvectionGaz>());
 	usine.enregistre_type(cree_desc<OpFlottanceGaz>());
+	usine.enregistre_type(cree_desc<OpIncompressibiliteGaz>());
 #endif
 }

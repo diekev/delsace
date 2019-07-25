@@ -100,6 +100,9 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/arbre_bvh.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
+	operatrices/fluide.hh
+	operatrices/gradient_conjugue.hh
+	operatrices/iter_volume.hh
 	operatrices/limites_corps.hh
 	operatrices/normaux.hh
 	operatrices/ocean.hh
@@ -172,6 +175,9 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/arbre_bvh.cc
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc
+	operatrices/fluide.cc
+	operatrices/gradient_conjugue.cc
+	operatrices/iter_volume.cc
 	operatrices/limites_corps.cc
 	operatrices/ocean.cc
 	operatrices/normaux.cc

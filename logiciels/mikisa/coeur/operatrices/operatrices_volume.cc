@@ -38,6 +38,8 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#include "iter_volume.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -47,43 +49,6 @@ class OperatriceAdvectionVolume;
 class OperatriceConditionLimite;
 class OperatriceAjoutFlottabilite;
 class OperatriceResolutionPression;
-
-class IteratricePosition {
-	limites3i m_lim;
-	dls::math::vec3i m_etat;
-
-public:
-	IteratricePosition(limites3i const &lim)
-		: m_lim(lim)
-		, m_etat(lim.min)
-	{}
-
-	dls::math::vec3i suivante()
-	{
-		auto etat = m_etat;
-
-		m_etat.x += 1;
-
-		if (m_etat.x >= m_lim.max.x) {
-			m_etat.x = m_lim.min.x;
-
-			m_etat.y += 1;
-
-			if (m_etat.y >= m_lim.max.y) {
-				m_etat.y = m_lim.min.y;
-
-				m_etat.z += 1;
-			}
-		}
-
-		return etat;
-	}
-
-	bool fini() const
-	{
-		return m_etat.z >= m_lim.max.z;
-	}
-};
 
 /* ************************************************************************** */
 

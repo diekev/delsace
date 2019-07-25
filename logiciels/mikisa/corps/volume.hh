@@ -115,8 +115,6 @@ protected:
 	limites3f m_etendu{};
 	limites3f m_fenetre_donnees{};
 
-	long calcul_index(size_t x, size_t y, size_t z) const;
-
 	bool hors_des_limites(size_t x, size_t y, size_t z) const;
 
 public:
@@ -156,6 +154,10 @@ public:
 	limites3f const &fenetre_donnees() const;
 
 	float taille_voxel() const;
+
+	long calcul_index(size_t x, size_t y, size_t z) const;
+
+	long nombre_voxels() const;
 };
 
 /* ************************************************************************** */

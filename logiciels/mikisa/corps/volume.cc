@@ -38,6 +38,11 @@ long BaseGrille::calcul_index(size_t x, size_t y, size_t z) const
 	return static_cast<long>(x + (y + z * static_cast<size_t>(m_res[1])) * static_cast<size_t>(m_res[0]));
 }
 
+long BaseGrille::nombre_voxels() const
+{
+	return static_cast<long>(m_nombre_voxels);
+}
+
 bool BaseGrille::hors_des_limites(size_t x, size_t y, size_t z) const
 {
 	if (x >= static_cast<size_t>(m_res[0])) {
