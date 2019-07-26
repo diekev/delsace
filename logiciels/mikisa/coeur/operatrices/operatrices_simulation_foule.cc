@@ -30,6 +30,8 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#include "outils_visualisation.hh"
+
 /* ************************************************************************** */
 
 /**
@@ -40,60 +42,6 @@
  * - BlenderPeople : http://www.harkyman.com/bp.html
  * - CrowdMaster : https://github.com/johnroper100/CrowdMaster
  */
-
-/* ************************************************************************** */
-
-static void dessine_boite(
-		Corps &corps,
-		dls::math::vec3f const &min,
-		dls::math::vec3f const &max,
-		dls::math::vec3f const &couleur)
-{
-	auto attr_C = corps.attribut("C");
-
-	if (attr_C == nullptr) {
-		attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-	}
-
-	dls::math::vec3f sommets[8] = {
-		dls::math::vec3f(min.x, min.y, min.z),
-		dls::math::vec3f(min.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, min.z),
-		dls::math::vec3f(min.x, max.y, min.z),
-		dls::math::vec3f(min.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, min.z),
-	};
-
-	long cotes[12][2] = {
-		{ 0, 1 },
-		{ 1, 2 },
-		{ 2, 3 },
-		{ 3, 0 },
-		{ 0, 4 },
-		{ 1, 5 },
-		{ 2, 6 },
-		{ 3, 7 },
-		{ 4, 5 },
-		{ 5, 6 },
-		{ 6, 7 },
-		{ 7, 4 },
-	};
-
-	auto decalage = corps.points()->taille();
-
-	for (int i = 0; i < 8; ++i) {
-		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-		attr_C->pousse(couleur);
-	}
-
-	for (int i = 0; i < 12; ++i) {
-		auto poly = Polygone::construit(&corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(decalage + cotes[i][0]);
-		poly->ajoute_sommet(decalage + cotes[i][1]);
-	}
-}
 
 /* ************************************************************************** */
 
@@ -447,10 +395,11 @@ public:
 			}
 		}
 
-		m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 
 		dessine_boite(
 					m_corps,
+					attr_C,
 					cible_globale - dls::math::vec3f(0.5f),
 					cible_globale + dls::math::vec3f(0.5f),
 					dls::math::vec3f(0.0f, 0.0f, 1.0f));
@@ -458,6 +407,7 @@ public:
 		for (auto &personne : m_personnes) {
 			dessine_boite(
 						m_corps,
+						attr_C,
 						personne.location - dls::math::vec3f(0.5f),
 						personne.location + dls::math::vec3f(0.5f),
 						dls::math::vec3f(0.0f, 1.0f, 0.0f));

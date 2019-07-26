@@ -108,6 +108,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/limites_corps.hh
 	operatrices/normaux.hh
 	operatrices/ocean.hh
+	operatrices/outils_visualisation.hh
 	operatrices/operatrices_3d.h
 	operatrices/operatrices_alembic.hh
 	operatrices/operatrices_arbre.hh
@@ -184,6 +185,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices/iter_volume.cc
 	operatrices/limites_corps.cc
 	operatrices/ocean.cc
+	operatrices/outils_visualisation.cc
 	operatrices/normaux.cc
 	operatrices/operatrices_3d.cc
 	operatrices/operatrices_alembic.cc

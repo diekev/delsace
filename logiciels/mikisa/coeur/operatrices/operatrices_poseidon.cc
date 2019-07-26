@@ -1175,51 +1175,7 @@ public:
 
 /* ************************************************************************** */
 
-static void dessine_boite(
-		Corps &corps,
-		dls::math::vec3f const &min,
-		dls::math::vec3f const &max,
-		Attribut *attr_C)
-{
-	dls::math::vec3f sommets[8] = {
-		dls::math::vec3f(min.x, min.y, min.z),
-		dls::math::vec3f(min.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, min.z),
-		dls::math::vec3f(min.x, max.y, min.z),
-		dls::math::vec3f(min.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, min.z),
-	};
-
-	long cotes[12][2] = {
-		{ 0, 1 },
-		{ 1, 2 },
-		{ 2, 3 },
-		{ 3, 0 },
-		{ 0, 4 },
-		{ 1, 5 },
-		{ 2, 6 },
-		{ 3, 7 },
-		{ 4, 5 },
-		{ 5, 6 },
-		{ 6, 7 },
-		{ 7, 4 },
-	};
-
-	auto decalage = corps.points()->taille();
-
-	for (int i = 0; i < 8; ++i) {
-		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-		attr_C->pousse(dls::math::vec3f(0.0f, 1.0f, 0.0f));
-	}
-
-	for (int i = 0; i < 12; ++i) {
-		auto poly = Polygone::construit(&corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(decalage + cotes[i][0]);
-		poly->ajoute_sommet(decalage + cotes[i][1]);
-	}
-}
+#include "outils_visualisation.hh"
 
 class OpSimulationGaz : public OperatriceCorps {
 	PoseidonGaz m_poseidon{};
@@ -1298,8 +1254,8 @@ public:
 
 		/* visualise domaine */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-		dessine_boite(m_corps, etendu.min, etendu.max, attr_C);
-		dessine_boite(m_corps, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), attr_C);
+		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
+		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
 
 		m_corps.ajoute_primitive(volume);
 

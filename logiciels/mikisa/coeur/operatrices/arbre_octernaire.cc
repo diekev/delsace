@@ -30,6 +30,8 @@
 
 #include "corps/corps.h"
 
+#include "outils_visualisation.hh"
+
 ArbreOcternaire::Noeud::~Noeud()
 {
 	for (int i = 0; i < 8; ++i) {
@@ -128,43 +130,7 @@ void rassemble_topologie(ArbreOcternaire::Noeud *noeud, Corps &corps)
 	auto const &min = noeud->limites.min;
 	auto const &max = noeud->limites.max;
 
-	dls::math::vec3f sommets[8] = {
-		dls::math::vec3f(min.x, min.y, min.z),
-		dls::math::vec3f(min.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, min.z),
-		dls::math::vec3f(min.x, max.y, min.z),
-		dls::math::vec3f(min.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, min.z),
-	};
-
-	long cotes[12][2] = {
-		{ 0, 1 },
-		{ 1, 2 },
-		{ 2, 3 },
-		{ 3, 0 },
-		{ 0, 4 },
-		{ 1, 5 },
-		{ 2, 6 },
-		{ 3, 7 },
-		{ 4, 5 },
-		{ 5, 6 },
-		{ 6, 7 },
-		{ 7, 4 },
-	};
-
-	auto decalage = corps.points()->taille();
-
-	for (int i = 0; i < 8; ++i) {
-		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-	}
-
-	for (int i = 0; i < 12; ++i) {
-		auto poly = Polygone::construit(&corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(decalage + cotes[i][0]);
-		poly->ajoute_sommet(decalage + cotes[i][1]);
-	}
+	dessine_boite(corps, nullptr, min, max, dls::math::vec3f(0.0f));
 
 	if (noeud->est_feuille) {
 		return;

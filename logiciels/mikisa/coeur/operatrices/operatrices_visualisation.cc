@@ -34,6 +34,7 @@
 #include "arbre_octernaire.hh"
 #include "delegue_hbe.hh"
 #include "limites_corps.hh"
+#include "outils_visualisation.hh"
 
 /* ************************************************************************** */
 
@@ -102,60 +103,14 @@ public:
 
 /* ************************************************************************** */
 
-static auto cree_cube(
-		Corps &corps,
-		dls::math::vec3f const &min,
-		dls::math::vec3f const &max,
-		dls::math::vec3f const &couleur)
-{
-	dls::math::vec3f sommets[8] = {
-		dls::math::vec3f(min.x, min.y, min.z),
-		dls::math::vec3f(min.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, min.z),
-		dls::math::vec3f(min.x, max.y, min.z),
-		dls::math::vec3f(min.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, min.z),
-	};
-
-	long cotes[12][2] = {
-		{ 0, 1 },
-		{ 1, 2 },
-		{ 2, 3 },
-		{ 3, 0 },
-		{ 0, 4 },
-		{ 1, 5 },
-		{ 2, 6 },
-		{ 3, 7 },
-		{ 4, 5 },
-		{ 5, 6 },
-		{ 6, 7 },
-		{ 7, 4 },
-	};
-
-	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-
-	auto decalage = corps.points()->taille();
-
-	for (int i = 0; i < 8; ++i) {
-		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-		attr_C->pousse(couleur);
-	}
-
-	for (int i = 0; i < 12; ++i) {
-		auto poly = Polygone::construit(&corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(decalage + cotes[i][0]);
-		poly->ajoute_sommet(decalage + cotes[i][1]);
-	}
-}
-
 static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
 {
 	dls::math::vec3f couleurs[2] = {
 		dls::math::vec3f(0.0f, 1.0f, 0.0f),
 		dls::math::vec3f(0.0f, 0.0f, 1.0f),
 	};
+
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 
 	for (auto const &noeud : arbre.noeuds) {
 		auto const &min = dls::math::vec3f(
@@ -170,7 +125,7 @@ static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
 
 		auto couleur = (noeud.est_feuille()) ? couleurs[0] : couleurs[1];
 
-		cree_cube(corps, min, max, couleur);
+		dessine_boite(corps, attr_C, min, max, couleur);
 	}
 }
 
