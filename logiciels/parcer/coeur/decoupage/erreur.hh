@@ -39,26 +39,8 @@ namespace erreur {
 enum class type_erreur : int {
 	NORMAL,
 	DECOUPAGE,
-	NOMBRE_ARGUMENT,
-	TYPE_ARGUMENT,
-	ARGUMENT_INCONNU,
-	ARGUMENT_REDEFINI,
-	VARIABLE_INCONNUE,
-	VARIABLE_REDEFINIE,
-	FONCTION_INCONNUE,
-	FONCTION_REDEFINIE,
-	ASSIGNATION_RIEN,
-	TYPE_INCONNU,
-	TYPE_DIFFERENTS,
-	STRUCTURE_INCONNUE,
-	STRUCTURE_REDEFINIE,
-	MEMBRE_INCONNU,
-	MEMBRE_REDEFINI,
 	ASSIGNATION_INVALIDE,
-	ASSIGNATION_MAUVAIS_TYPE,
-	CONTROLE_INVALIDE,
 	MODULE_INCONNU,
-	APPEL_INVALIDE,
 
 	AUCUNE_ERREUR,
 };
@@ -87,52 +69,5 @@ public:
 		const DonneesMorceaux &premier_morceau,
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
-
-[[noreturn]] void lance_erreur_nombre_arguments(
-		const size_t nombre_arguments,
-		const size_t nombre_recus,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_type_arguments(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_type_retour(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_argument_inconnu(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_redeclaration_argument(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_assignation_type_differents(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_type_operation(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_fonction_inconnue(
-		ContexteGenerationCode const &contexte,
-		noeud::base *n,
-		dls::tableau<DonneesCandidate> const &candidates);
 
 }

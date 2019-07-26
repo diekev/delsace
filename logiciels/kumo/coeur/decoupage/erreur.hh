@@ -39,19 +39,6 @@ namespace erreur {
 enum {
 	NORMAL,
 	DECOUPAGE,
-	NOMBRE_ARGUMENT,
-	TYPE_ARGUMENT,
-	ARGUMENT_INCONNU,
-	ARGUMENT_REDEFINI,
-	VARIABLE_INCONNUE,
-	VARIABLE_REDEFINIE,
-	FONCTION_INCONNUE,
-	FONCTION_REDEFINIE,
-	ASSIGNATION_RIEN,
-	TYPE_INCONNU,
-	TYPE_DIFFERENTS,
-	STRUCTURE_INCONNUE,
-	STRUCTURE_REDEFINIE,
 
 	AUCUNE_ERREUR,
 };
@@ -73,28 +60,5 @@ public:
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau,
 		int type = NORMAL);
-
-[[noreturn]] void lance_erreur_nombre_arguments(
-		const size_t nombre_arguments,
-		const size_t nombre_recus,
-		lng::tampon_source const &tampon,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_type_arguments(
-		const id_morceau type_arg,
-		const id_morceau type_enf,
-		const dls::vue_chaine &nom_arg,
-		lng::tampon_source const &tampon,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_argument_inconnu(
-		const dls::vue_chaine &nom_arg,
-		lng::tampon_source const &tampon,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_redeclaration_argument(
-		const dls::vue_chaine &nom_arg,
-		lng::tampon_source const &tampon,
-		const DonneesMorceaux &morceau);
 
 }

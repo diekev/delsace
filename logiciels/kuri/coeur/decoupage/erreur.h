@@ -86,12 +86,6 @@ public:
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
 
-[[noreturn]] void lance_erreur_nombre_arguments(
-		const size_t nombre_arguments,
-		const size_t nombre_recus,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
@@ -104,16 +98,6 @@ public:
 		const DonneesType &type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_argument_inconnu(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
-
-[[noreturn]] void lance_erreur_redeclaration_argument(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(

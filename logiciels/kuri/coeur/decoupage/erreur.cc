@@ -149,33 +149,6 @@ void lance_erreur_plage(
 	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
-[[noreturn]] void lance_erreur_nombre_arguments(
-		const size_t nombre_arguments,
-		const size_t nombre_recus,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Le nombre d'arguments de la fonction est incorrect.\n";
-	ss << "Requiers : " << nombre_arguments << '\n';
-	ss << "Obtenu : " << nombre_recus << '\n';
-
-	throw frappe(ss.chn().c_str(), type_erreur::NOMBRE_ARGUMENT);
-}
-
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesType &type_arg,
 		const DonneesType &type_enf,
@@ -250,56 +223,6 @@ void lance_erreur_plage(
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
-}
-
-[[noreturn]] void lance_erreur_argument_inconnu(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Fonction : '" << morceau.chaine
-	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
-
-	throw frappe(ss.chn().c_str(), type_erreur::ARGUMENT_INCONNU);
-}
-
-[[noreturn]] void lance_erreur_redeclaration_argument(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Fonction : '" << morceau.chaine
-	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
-
-	throw frappe(ss.chn().c_str(), type_erreur::ARGUMENT_REDEFINI);
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
