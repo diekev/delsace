@@ -15,28 +15,18 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#include "nombres.h"
+#include "nombres.hh"
 
 #include <cmath>
 
-#include "erreur.h"
-
-/* Logique de découpage et de conversion de nombres.
- *
- */
-
-enum class etat_nombre : char {
-	POINT,
-	EXPONENTIEL,
-	DEBUT,
-};
+namespace lng {
 
 static inline constexpr bool est_nombre_binaire(char c)
 {
@@ -56,7 +46,9 @@ static inline constexpr bool est_nombre_hexadecimal(char c)
 			 || (c == '_');
 }
 
-static auto extrait_nombre_binaire(const char *debut, const char *fin)
+/* ************************************************************************** */
+
+size_t extrait_nombre_binaire(const char *debut, const char *fin)
 {
 	auto compte = 0ul;
 
@@ -72,7 +64,7 @@ static auto extrait_nombre_binaire(const char *debut, const char *fin)
 	return compte;
 }
 
-static auto extrait_nombre_octal(const char *debut, const char *fin)
+size_t extrait_nombre_octal(const char *debut, const char *fin)
 {
 	auto compte = 0ul;
 
@@ -88,7 +80,7 @@ static auto extrait_nombre_octal(const char *debut, const char *fin)
 	return compte;
 }
 
-static auto extrait_nombre_hexadecimal(const char *debut, const char *fin)
+size_t extrait_nombre_hexadecimal(const char *debut, const char *fin)
 {
 	auto compte = 0ul;
 
@@ -104,63 +96,9 @@ static auto extrait_nombre_hexadecimal(const char *debut, const char *fin)
 	return compte;
 }
 
-static auto extrait_nombre_decimal(const char *debut, const char *fin, id_morceau &id_nombre)
-{
-	auto compte = 0ul;
-	auto etat = etat_nombre::DEBUT;
-	id_nombre = id_morceau::NOMBRE_ENTIER;
-
-	while (debut != fin) {
-		if (!est_nombre_decimal(*debut) && (*debut != '_') && *debut != '.') {
-			break;
-		}
-
-		if (*debut == '.') {
-			if ((*(debut + 1) == '.') && (*(debut + 2) == '.')) {
-				break;
-			}
-
-			if (etat == etat_nombre::POINT) {
-				throw erreur::frappe("Erreur ! Le nombre contient un point en trop !\n", erreur::type_erreur::DECOUPAGE);
-			}
-
-			etat = etat_nombre::POINT;
-			id_nombre = id_morceau::NOMBRE_REEL;
-		}
-
-		++debut;
-		++compte;
-	}
-
-	return compte;
-}
-
-size_t extrait_nombre(const char *debut, const char *fin, id_morceau &id_nombre)
-{
-	if (*debut == '0' && (*(debut + 1) == 'b' || *(debut + 1) == 'B')) {
-		id_nombre = id_morceau::NOMBRE_BINAIRE;
-		debut += 2;
-		return extrait_nombre_binaire(debut, fin) + 2;
-	}
-
-	if (*debut == '0' && (*(debut + 1) == 'o' || *(debut + 1) == 'O')) {
-		id_nombre = id_morceau::NOMBRE_OCTAL;
-		debut += 2;
-		return extrait_nombre_octal(debut, fin) + 2;
-	}
-
-	if (*debut == '0' && (*(debut + 1) == 'x' || *(debut + 1) == 'X')) {
-		id_nombre = id_morceau::NOMBRE_HEXADECIMAL;
-		debut += 2;
-		return extrait_nombre_hexadecimal(debut, fin) + 2;
-	}
-
-	return extrait_nombre_decimal(debut, fin, id_nombre);
-}
-
 /* ************************************************************************** */
 
-static long converti_chaine_nombre_binaire(const dls::vue_chaine &chaine)
+long converti_chaine_nombre_binaire(dls::vue_chaine const &chaine)
 {
 	auto resultat = 0l;
 	auto n = 0;
@@ -184,7 +122,7 @@ static long converti_chaine_nombre_binaire(const dls::vue_chaine &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_octal(const dls::vue_chaine &chaine)
+long converti_chaine_nombre_octal(dls::vue_chaine const &chaine)
 {
 	auto resultat = 0l;
 	auto n = 0;
@@ -208,7 +146,7 @@ static long converti_chaine_nombre_octal(const dls::vue_chaine &chaine)
 	return resultat;
 }
 
-static long converti_chaine_nombre_hexadecimal(const dls::vue_chaine &chaine)
+long converti_chaine_nombre_hexadecimal(dls::vue_chaine const &chaine)
 {
 	auto resultat = 0l;
 	auto n = 0;
@@ -239,7 +177,7 @@ static long converti_chaine_nombre_hexadecimal(const dls::vue_chaine &chaine)
 	return resultat;
 }
 
-static auto converti_nombre_entier(const dls::vue_chaine &chaine)
+long converti_nombre_entier(dls::vue_chaine const &chaine)
 {
 	long valeur = 0l;
 	auto i = 0l;
@@ -266,23 +204,7 @@ static auto converti_nombre_entier(const dls::vue_chaine &chaine)
 	return valeur;
 }
 
-long converti_chaine_nombre_entier(const dls::vue_chaine &chaine, id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::NOMBRE_ENTIER:
-			return converti_nombre_entier(chaine);
-		case id_morceau::NOMBRE_BINAIRE:
-			return converti_chaine_nombre_binaire({&chaine[2], chaine.taille() - 2});
-		case id_morceau::NOMBRE_OCTAL:
-			return converti_chaine_nombre_octal({&chaine[2], chaine.taille() - 2});
-		case id_morceau::NOMBRE_HEXADECIMAL:
-			return converti_chaine_nombre_hexadecimal({&chaine[2], chaine.taille() - 2});
-		default:
-			return 0l;
-	}
-}
-
-static auto converti_nombre_reel(const dls::vue_chaine &chaine)
+double converti_nombre_reel(dls::vue_chaine const &chaine)
 {
 	double valeur = 0.0;
 	auto i = 0l;
@@ -328,12 +250,4 @@ static auto converti_nombre_reel(const dls::vue_chaine &chaine)
 	return valeur;
 }
 
-double converti_chaine_nombre_reel(const dls::vue_chaine &chaine, id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::NOMBRE_REEL:
-			return converti_nombre_reel(chaine);
-		default:
-			return 0.0;
-	}
-}
+}  /* namespace lng */

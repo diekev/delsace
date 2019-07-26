@@ -87,7 +87,7 @@ void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, con
 	ss << '\n';
 
 	ss << quoi;
-	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(int(identifiant)) << ')';
+	ss << ", obtenu : " << chaine << " (" << chaine_identifiant(identifiant) << ')';
 
 	throw erreur::frappe(ss.chn().c_str(), type);
 }
@@ -119,8 +119,8 @@ void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, con
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const int type_arg,
-		const int type_enf,
+		const id_morceau type_arg,
+		const id_morceau type_enf,
 		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau)

@@ -30,12 +30,14 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	analyseuse.hh
+	nombres.hh
 	tampon_source.hh
 	unicode.hh
 )
 
 set(SOURCES
 	analyseuse.cc
+	nombres.cc
 	tampon_source.cc
 	unicode.cc
 

@@ -27,13 +27,15 @@
 #include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/langage/nombres.hh"
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "expression.h"
 #include "modules.hh"
-#include "nombres.h"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 #undef DEBOGUE_EXPRESSION
 
@@ -1943,7 +1945,7 @@ long analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_type
 					}
 
 					auto const &morceau = donnees();
-					taille = static_cast<int>(converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
+					taille = static_cast<int>(denombreuse::converti_chaine_nombre_entier(morceau.chaine, morceau.identifiant));
 #endif
 				}
 

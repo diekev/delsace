@@ -50,7 +50,6 @@ set(SOURCES
 	fonctions.hh
 	modules.hh
 	morceaux.hh
-	nombres.h
 	code_inst.hh
 
 	analyseuse_grammaire.cc
@@ -66,7 +65,6 @@ set(SOURCES
 	fonctions.cc
 	modules.cc
 	morceaux.cc
-	nombres.cc
 	code_inst.cc
 )
 

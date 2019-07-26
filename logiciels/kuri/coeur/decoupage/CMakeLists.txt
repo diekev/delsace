@@ -45,7 +45,6 @@ set(SOURCES
 	expression.h
 	modules.hh
 	morceaux.hh
-	nombres.h
 	validation_semantique.hh
 
 	analyseuse_grammaire.cc
@@ -60,7 +59,6 @@ set(SOURCES
 	expression.cc
 	modules.cc
 	morceaux.cc
-	nombres.cc
 	validation_semantique.cc
 )
 

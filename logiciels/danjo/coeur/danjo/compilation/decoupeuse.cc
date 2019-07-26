@@ -27,12 +27,14 @@
 #include <algorithm>
 #include <iostream>
 
+#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/langage/unicode.hh"
 
 #include "erreur.h"
 #include "morceaux.h"
-#include "nombres.h"
+
+using denombreuse = lng::decoupeuse_nombre<danjo::id_morceau>;
 
 namespace danjo {
 
@@ -373,7 +375,7 @@ void Decoupeuse::analyse_caractere_simple()
 			}
 		}
 	}
-	else if (m_taille_mot_courant == 0 && est_nombre_decimal(this->caractere_courant())) {
+	else if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
 		this->enregistre_pos_mot();
 
 		id_morceau id_nombre;
@@ -383,7 +385,7 @@ void Decoupeuse::analyse_caractere_simple()
 		 * m_taille_mot_courant est remis à 0 dans pousse_mot() donc on ne peut
 		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
 		 * infinie. */
-		const auto compte = extrait_nombre(m_debut, m_fin, id_nombre);
+		const auto compte = denombreuse::extrait_nombre(m_debut, m_fin, id_nombre);
 		m_taille_mot_courant = static_cast<long>(compte);
 
 		this->pousse_mot(id_nombre);

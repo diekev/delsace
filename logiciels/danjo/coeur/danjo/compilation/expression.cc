@@ -71,7 +71,7 @@ static id_morceau promeut(id_morceau id1, id_morceau id2)
 		return id1;
 	}
 
-	return id_morceau::NOMBRE_DECIMAL;
+	return id_morceau::NOMBRE_REEL;
 }
 
 #define DEFINI_FONCTION(__nom, __op) \
@@ -101,10 +101,10 @@ DEFINI_FONCTION(octet_oux, ^)
 
 #define DEFINI_CAS_SIMPLE(__id, __fonction) \
 	case __id: \
-		if (s1.identifiant == id_morceau::NOMBRE) { \
+		if (s1.identifiant == id_morceau::NOMBRE_ENTIER) { \
 			return __fonction<int>(s1, s2); \
 		} \
-		if (s1.identifiant == id_morceau::NOMBRE_DECIMAL) { \
+		if (s1.identifiant == id_morceau::NOMBRE_REEL) { \
 			return __fonction<float>(s1, s2); \
 		} \
 		if (s1.identifiant == id_morceau::BOOL) { \
@@ -114,10 +114,10 @@ DEFINI_FONCTION(octet_oux, ^)
 
 #define DEFINI_CAS_DOUBLE(__id, __fonction) \
 	case __id: \
-		if (s1.identifiant == id_morceau::NOMBRE && s2.identifiant == id_morceau::NOMBRE_DECIMAL) { \
+		if (s1.identifiant == id_morceau::NOMBRE_ENTIER && s2.identifiant == id_morceau::NOMBRE_REEL) { \
 			return __fonction<int, float>(s1, s2); \
 		} \
-		if (s1.identifiant == id_morceau::NOMBRE_DECIMAL && s2.identifiant == id_morceau::NOMBRE) { \
+		if (s1.identifiant == id_morceau::NOMBRE_REEL && s2.identifiant == id_morceau::NOMBRE_ENTIER) { \
 			return __fonction<float, int>(s1, s2); \
 		} \
 		break;
@@ -163,7 +163,7 @@ Symbole evalue_operation(const Symbole &s1, const Symbole &s2, id_morceau operat
 auto evalue_operation_logique(const Symbole &s1, id_morceau identifiant)
 {
 	Symbole resultat;
-	resultat.identifiant = id_morceau::NOMBRE;
+	resultat.identifiant = id_morceau::NOMBRE_ENTIER;
 	resultat.valeur = 0;
 
 	auto op1 = std::any_cast<int>(s1.valeur);
@@ -220,7 +220,7 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 
 	/* Pousse un zéro sur la pile si jamais l'expression est vide ou démarre
 	 * avec un nombre négatif. */
-	pile.empile({std::any(0), id_morceau::NOMBRE});
+	pile.empile({std::any(0), id_morceau::NOMBRE_ENTIER});
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
@@ -245,8 +245,8 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 				default:
 					break;
 				case id_morceau::BOOL:
-				case id_morceau::NOMBRE:
-				case id_morceau::NOMBRE_DECIMAL:
+				case id_morceau::NOMBRE_ENTIER:
+				case id_morceau::NOMBRE_REEL:
 				case id_morceau::CHAINE_LITTERALE:
 				case id_morceau::COULEUR:
 				case id_morceau::VECTEUR:
@@ -264,13 +264,13 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 						case TypePropriete::ENTIER:
 						{
 							tmp.valeur = manipulable->evalue_entier(nom);
-							tmp.identifiant = id_morceau::NOMBRE;
+							tmp.identifiant = id_morceau::NOMBRE_ENTIER;
 							break;
 						}
 						case TypePropriete::DECIMAL:
 						{
 							tmp.valeur = manipulable->evalue_decimal(nom);
-							tmp.identifiant = id_morceau::NOMBRE_DECIMAL;
+							tmp.identifiant = id_morceau::NOMBRE_REEL;
 							break;
 						}
 						case TypePropriete::BOOL:
@@ -320,10 +320,10 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
 {
 	switch (symbole.identifiant) {
-		case id_morceau::NOMBRE:
+		case id_morceau::NOMBRE_ENTIER:
 			os << std::any_cast<int>(symbole.valeur) << ' ';
 			break;
-		case id_morceau::NOMBRE_DECIMAL:
+		case id_morceau::NOMBRE_REEL:
 			os << std::any_cast<float>(symbole.valeur) << ' ';
 			break;
 		case id_morceau::BOOL:

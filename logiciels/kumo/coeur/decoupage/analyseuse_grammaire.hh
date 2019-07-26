@@ -38,7 +38,7 @@ class tampon_source;
 
 struct Colonne {
 	dls::chaine nom = "";
-	size_t type{};
+	id_morceau type{};
 	int taille = 0;
 	int octet = 4;
 	bool cle_primaire = false;
@@ -47,11 +47,11 @@ struct Colonne {
 	bool signee = true;
 	bool peut_etre_nulle = true;
 	bool a_valeur_defaut = false;
-	size_t id_valeur_defaut = 0;
+	id_morceau id_valeur_defaut = id_morceau::INCONNU;
 	std::any defaut;
 	dls::chaine table = "";
 	dls::chaine ref = "";
-	size_t suppression = 0;
+	id_morceau suppression = id_morceau::INCONNU;
 	int ajournement = 0;
 };
 

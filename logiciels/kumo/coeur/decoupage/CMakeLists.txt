@@ -37,13 +37,11 @@ set(SOURCES
 	decoupeuse.cc
 	erreur.cc
 	morceaux.cc
-	nombres.cc
 
 	analyseuse_grammaire.hh
 	decoupeuse.hh
 	erreur.hh
 	morceaux.hh
-	nombres.hh
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")

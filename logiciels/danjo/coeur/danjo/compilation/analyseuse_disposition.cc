@@ -479,7 +479,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 							avance();
 						}
 
-						if (!est_identifiant(id_morceau::NOMBRE) && !est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
+						if (!est_identifiant(id_morceau::NOMBRE_ENTIER) && !est_identifiant(id_morceau::NOMBRE_REEL)) {
 							lance_erreur("Attendu un nombre !");
 						}
 
@@ -536,7 +536,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 					avance();
 				}
 
-				if (!est_identifiant(id_morceau::NOMBRE) && !est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
+				if (!est_identifiant(id_morceau::NOMBRE_ENTIER) && !est_identifiant(id_morceau::NOMBRE_REEL)) {
 					lance_erreur("Attendu un nombre !");
 				}
 

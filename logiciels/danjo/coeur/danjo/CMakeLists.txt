@@ -142,7 +142,6 @@ set(SOURCES
 	compilation/expression.cc
 	compilation/graphe_contrainte.cc
 	compilation/morceaux.cc
-	compilation/nombres.cc
 
 	dialogues/dialogue_couleur.cc
 
@@ -199,7 +198,6 @@ set(SOURCES
 	compilation/expression.h
 	compilation/graphe_contrainte.h
 	compilation/morceaux.h
-	compilation/nombres.h
 
 	dialogues/dialogue_couleur.h
 

@@ -26,11 +26,14 @@
 
 #include <cassert>
 
+#include "biblinternes/langage/nombres.hh"
+
 #include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "erreur.h"
-#include "nombres.h"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 enum class dir_associativite : int {
 	GAUCHE,
@@ -290,12 +293,12 @@ static bool sont_compatibles(id_morceau id1, id_morceau id2)
 
 static inline long extrait_nombre_entier(noeud::base *n)
 {
-	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<long>(n->valeur_calculee) : converti_chaine_nombre_entier(n->chaine(), n->identifiant());
+	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<long>(n->valeur_calculee) : denombreuse::converti_chaine_nombre_entier(n->chaine(), n->identifiant());
 }
 
 static inline double extrait_nombre_reel(noeud::base *n)
 {
-	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<double>(n->valeur_calculee) : converti_chaine_nombre_reel(n->chaine(), n->identifiant());
+	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<double>(n->valeur_calculee) : denombreuse::converti_chaine_nombre_reel(n->chaine(), n->identifiant());
 }
 
 static inline bool extrait_valeur_bool(noeud::base *n)

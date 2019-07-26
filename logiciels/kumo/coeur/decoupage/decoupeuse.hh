@@ -86,7 +86,7 @@ private:
 
 	void pousse_caractere();
 
-	void pousse_mot(int identifiant);
+	void pousse_mot(id_morceau identifiant);
 
 	void enregistre_pos_mot();
 };

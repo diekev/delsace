@@ -333,10 +333,16 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::CHAINE_LITTERALE";
 		case id_morceau::CARACTERE:
 			return "id_morceau::CARACTERE";
-		case id_morceau::NOMBRE:
-			return "id_morceau::NOMBRE";
-		case id_morceau::NOMBRE_DECIMAL:
-			return "id_morceau::NOMBRE_DECIMAL";
+		case id_morceau::NOMBRE_BINAIRE:
+			return "id_morceau::NOMBRE_BINAIRE";
+		case id_morceau::NOMBRE_ENTIER:
+			return "id_morceau::NOMBRE_ENTIER";
+		case id_morceau::NOMBRE_REEL:
+			return "id_morceau::NOMBRE_REEL";
+		case id_morceau::NOMBRE_OCTAL:
+			return "id_morceau::NOMBRE_OCTAL";
+		case id_morceau::NOMBRE_HEXADECIMAL:
+			return "id_morceau::NOMBRE_HEXADECIMAL";
 		case id_morceau::BOOL:
 			return "id_morceau::BOOL";
 		case id_morceau::NUL:

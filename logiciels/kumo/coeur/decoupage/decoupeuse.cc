@@ -27,12 +27,12 @@
 #include <iostream>
 #include <cstring>
 
+#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/langage/unicode.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "erreur.hh"
-#include "nombres.hh"
 
 /* ************************************************************************** */
 
@@ -174,7 +174,7 @@ void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
 //    ajoute caractere mot courant
 void decoupeuse_texte::analyse_caractere_simple()
 {
-	int idc = ID_INCONNU;
+	auto idc = id_morceau::INCONNU;
 
 	if (est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
@@ -193,24 +193,26 @@ void decoupeuse_texte::analyse_caractere_simple()
 		this->pousse_mot(idc);
 		this->avance();
 	}
-	else if (est_nombre_decimal(this->caractere_courant()) && m_taille_mot_courant == 0) {
+	else if (lng::est_nombre_decimal(this->caractere_courant()) && m_taille_mot_courant == 0) {
 		this->enregistre_pos_mot();
 
-		int id_nombre;
-		dls::chaine nombre;
-		const auto compte = extrait_nombre(m_debut, m_fin, nombre, id_nombre);
+		using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
-		m_taille_mot_courant = compte;
+		id_morceau id_nombre;
+		dls::chaine nombre;
+		const auto compte = denombreuse::extrait_nombre(m_debut, m_fin, id_nombre);
+
+		m_taille_mot_courant = static_cast<long>(compte);
 
 		/* À FAIRE : reconsidération de la manière de découper les nombres. */
-		if (id_nombre != ID_NOMBRE_ENTIER && id_nombre != ID_NOMBRE_REEL) {
+		if (id_nombre != id_morceau::NOMBRE_ENTIER && id_nombre != id_morceau::NOMBRE_REEL) {
 			m_pos_mot += 2;
 			m_debut_mot += 2;
 			m_taille_mot_courant -= 2;
 		}
 
 		this->pousse_mot(id_nombre);
-		this->avance(compte);
+		this->avance(static_cast<int>(compte));
 	}
 	else {
 		if (m_taille_mot_courant == 0) {
@@ -227,9 +229,9 @@ void decoupeuse_texte::pousse_caractere()
 	m_taille_mot_courant += 1;
 }
 
-void decoupeuse_texte::pousse_mot(int identifiant)
+void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), static_cast<size_t>(identifiant) });
+	m_morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), identifiant });
 	m_taille_mot_courant = 0;
 }
 

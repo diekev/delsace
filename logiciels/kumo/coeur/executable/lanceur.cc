@@ -67,7 +67,9 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 {
 	switch (colonne.type) {
-		case ID_ENTIER:
+		default:
+			break;
+		case id_morceau::ENTIER:
 			if (colonne.octet == 1) {
 				os << "TINYINT";
 			}
@@ -92,30 +94,30 @@ static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 				os << " UNSIGNED";
 			}
 			break;
-		case ID_BIT:
+		case id_morceau::BIT:
 			os << "BIT" << '(' << colonne.taille << ')';
 			break;
-		case ID_CHAINE:
+		case id_morceau::CHAINE:
 			if (colonne.variable) {
 				os << "VAR";
 			}
 
 			os << "CHAR(" << colonne.taille << ')';
 			break;
-		case ID_BINAIRE:
+		case id_morceau::BINAIRE:
 			if (colonne.variable) {
 				os << "VAR";
 			}
 
 			os << "BINARY";
 			break;
-		case ID_TEMPS:
+		case id_morceau::TEMPS:
 			os << "TIMESTAMP";
 			break;
-		case ID_TEMPS_DATE:
+		case id_morceau::TEMPS_DATE:
 			os << "DATETIME";
 			break;
-		case ID_TEXTE:
+		case id_morceau::TEXTE:
 			os << "TEXT";
 			break;
 	}
@@ -124,10 +126,12 @@ static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 		os << " DEFAULT";
 
 		switch (colonne.id_valeur_defaut) {
-			case ID_TEMPS_COURANT:
+			default:
+				break;
+			case id_morceau::TEMPS_COURANT:
 				os << " CURRENT_TIMESTAMP";
 				break;
-			case ID_NUL:
+			case id_morceau::NUL:
 				os << " NULL";
 				break;
 		}
@@ -171,7 +175,7 @@ const Colonne &trouve_colonne(const Table &table, const dls::chaine &nom)
 static void imprime_cles_etrangeres(std::ostream &os, const Table &table)
 {
 	for (const auto &colonne : table.colonnes) {
-		if (colonne.type != ID_CLE) {
+		if (colonne.type != id_morceau::CLE) {
 			continue;
 		}
 
@@ -196,7 +200,7 @@ static void imprime_creation_schema(std::ostream &os, const Schema *schema)
 
 			os << colonne.nom << ' ';
 
-			if (colonne.type == ID_CLE) {
+			if (colonne.type == id_morceau::CLE) {
 				const auto &tab_ref = trouve_table(*schema, colonne.table);
 				const auto &col_ref = trouve_colonne(tab_ref, colonne.ref);
 

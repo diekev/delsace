@@ -25,6 +25,7 @@
 #include "coulisse_c.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/langage/nombres.hh"
 
 #include <cassert>
 #include <iostream>
@@ -34,8 +35,9 @@
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "modules.hh"
-#include "nombres.h"
 #include "validation_semantique.hh"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 namespace noeud {
 
@@ -2041,7 +2043,7 @@ void genere_code_C(
 		{
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
-											 converti_chaine_nombre_reel(
+											 denombreuse::converti_chaine_nombre_reel(
 												 b->morceau.chaine,
 												 b->morceau.identifiant);
 
@@ -2052,7 +2054,7 @@ void genere_code_C(
 		{
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
-											 converti_chaine_nombre_entier(
+											 denombreuse::converti_chaine_nombre_entier(
 												 b->morceau.chaine,
 												 b->morceau.identifiant);
 

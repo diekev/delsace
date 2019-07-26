@@ -33,7 +33,6 @@
 #include "erreur.h"
 #include "expression.h"
 #include "modules.hh"
-#include "nombres.h"
 
 #undef DEBOGUE_EXPRESSION
 

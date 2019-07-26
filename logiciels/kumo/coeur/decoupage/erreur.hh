@@ -28,6 +28,8 @@
 
 struct DonneesMorceaux;
 
+enum class id_morceau : unsigned int;
+
 namespace lng {
 class tampon_source;
 }
@@ -79,8 +81,8 @@ public:
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const int type_arg,
-		const int type_enf,
+		const id_morceau type_arg,
+		const id_morceau type_enf,
 		const dls::vue_chaine &nom_arg,
 		lng::tampon_source const &tampon,
 		const DonneesMorceaux &morceau);

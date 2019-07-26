@@ -72,11 +72,11 @@ def construit_structures():
 	structures = u''
 
 	structures += u'\nstruct DonneesMorceaux {\n'
-	structures += u'\tusing type = unsigned long;\n'
-	structures += u'\tstatic constexpr type INCONNU = ID_INCONNU;\n\n'
+	structures += u'\tusing type = id_morceau;\n'
+	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n\n'
 	structures += u'\tdls::vue_chaine chaine;\n'
 	structures += u'\tunsigned long ligne_pos;\n'
-	structures += u'\tunsigned long identifiant;\n'
+	structures += u'\tid_morceau identifiant;\n'
 	structures += u'};\n'
 
 	return structures
@@ -93,7 +93,7 @@ def construit_tableaux():
 		tableaux += virgule
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), ID_{} }}'.format(mot, m)
+		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), id_morceau::{} }}'.format(mot, m)
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -107,7 +107,7 @@ def construit_tableaux():
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u"\tdls::paire{{ '{}', ID_{} }}".format(c[0], c[1])
+		tableaux += u"\tdls::paire{{ '{}', id_morceau::{} }}".format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -116,16 +116,16 @@ def construit_tableaux():
 
 
 def constuit_enumeration():
-	enumeration = u'enum {\n'
+	enumeration = u'enum class id_morceau : unsigned int {\n'
 
 	for car in caracteres_simple:
-		enumeration += u'\tID_{},\n'.format(car[1])
+		enumeration += u'\t{},\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
 		m = enleve_accent(mot)
 		m = m.upper()
 
-		enumeration += u'\tID_{},\n'.format(m)
+		enumeration += u'\t{},\n'.format(m)
 
 	enumeration += u'};\n'
 
@@ -133,19 +133,19 @@ def constuit_enumeration():
 
 
 def construit_fonction_chaine_identifiant():
-	fonction = u'const char *chaine_identifiant(int id)\n{\n'
+	fonction = u'const char *chaine_identifiant(id_morceau id)\n{\n'
 	fonction += u'\tswitch (id) {\n'
 
 	for car in caracteres_simple:
-		fonction += u'\t\tcase ID_{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "ID_{}";\n'.format(car[1])
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
 		m = enleve_accent(mot)
 		m = m.upper()
 
-		fonction += u'\t\tcase ID_{}:\n'.format(m)
-		fonction += u'\t\t\treturn "ID_{}";\n'.format(m)
+		fonction += u'\t\tcase id_morceau::{}:\n'.format(m)
+		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(m)
 
 	fonction += u'\t};\n'
 	fonction += u'\n\treturn "ERREUR";\n'
@@ -188,7 +188,7 @@ tableaux = construit_tableaux()
 
 fonctions = u"""
 static bool tables_caracteres[256] = {};
-static int tables_identifiants[256] = {};
+static id_morceau tables_identifiants[256] = {};
 static bool tables_mots_cles[256] = {};
 
 void construit_tables_caractere_speciaux()
@@ -196,7 +196,7 @@ void construit_tables_caractere_speciaux()
 	for (int i = 0; i < 256; ++i) {
 		tables_caracteres[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = -1;
+		tables_identifiants[i] = id_morceau::INCONNU;
 	}
 
     {
@@ -219,7 +219,7 @@ void construit_tables_caractere_speciaux()
 	}
 }
 
-bool est_caractere_special(char c, int &i)
+bool est_caractere_special(char c, id_morceau &i)
 {
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
@@ -229,10 +229,10 @@ bool est_caractere_special(char c, int &i)
 	return true;
 }
 
-int id_chaine(const dls::vue_chaine &chaine)
+id_morceau id_chaine(const dls::vue_chaine &chaine)
 {
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return ID_CHAINE_CARACTERE;
+		return id_morceau::CHAINE_CARACTERE;
 	}
 
 	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
@@ -241,18 +241,18 @@ int id_chaine(const dls::vue_chaine &chaine)
 		return iterateur.front().second;
 	}
 
-	return ID_CHAINE_CARACTERE;
+	return id_morceau::CHAINE_CARACTERE;
 }
 """
 
 declaration_fonctions = u"""
-const char *chaine_identifiant(int id);
+const char *chaine_identifiant(id_morceau id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, int &i);
+bool est_caractere_special(char c, id_morceau &i);
 
-int id_chaine(const dls::vue_chaine &chaine);
+id_morceau id_chaine(const dls::vue_chaine &chaine);
 """
 
 with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
