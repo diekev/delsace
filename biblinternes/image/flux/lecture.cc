@@ -60,16 +60,18 @@ math::matrice_dyn<PixelChar> lecture_uchar(const filesystem::path &chemin)
 	if (outils::est_extension_jpeg(extension.c_str())) {
 		return LecteurJPEG::ouvre(chemin);
 	}
-	else if (outils::est_extension_pnm(extension.c_str())) {
+
+	if (outils::est_extension_pnm(extension.c_str())) {
 		return LecteurPNM::ouvre(chemin);
 	}
-	else if (outils::est_extension_exr(extension.c_str())) {
+
+	if (outils::est_extension_exr(extension.c_str())) {
 		auto float_image = LecteurEXR::ouvre(chemin);
 		return operation::converti_en_char(float_image);
 	}
-	else {
-		assert(!"Cannot open file for reading, file type not supported!\n");
-	}
+
+	assert("Cannot open file for reading, file type not supported!\n" != nullptr);
+	return {};
 }
 
 math::matrice_dyn<PixelFloat> lecture_float(const filesystem::path &chemin)
@@ -80,16 +82,18 @@ math::matrice_dyn<PixelFloat> lecture_float(const filesystem::path &chemin)
 		auto byte_image = LecteurJPEG::ouvre(chemin);
 		return operation::converti_en_float(byte_image);
 	}
-	else if (outils::est_extension_pnm(extension.c_str())) {
+
+	if (outils::est_extension_pnm(extension.c_str())) {
 		auto byte_image = LecteurPNM::ouvre(chemin);
 		return operation::converti_en_float(byte_image);
 	}
-	else if (outils::est_extension_exr(extension.c_str())) {
+
+	if (outils::est_extension_exr(extension.c_str())) {
 		return LecteurEXR::ouvre(chemin);
 	}
-	else {
-		assert(!"Cannot open file for reading, file type not supported!\n");
-	}
+
+	assert("Cannot open file for reading, file type not supported!\n" != nullptr);
+	return {};
 }
 
 /* ************************************************************************** */
@@ -167,7 +171,12 @@ math::matrice_dyn<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
 
 	char id[2];
 	int nombre_colonnes, nombre_lignes;
-	std::fscanf(fichier, "%2c\n%d %d\n%*3d\n", id, &nombre_colonnes, &nombre_lignes);
+	auto lu = std::fscanf(fichier, "%2c\n%d %d\n%*3d\n", id, &nombre_colonnes, &nombre_lignes);
+
+	if (lu == 0) {
+		std::fclose(fichier);
+		return { math::Hauteur(0), math::Largeur(0) };
+	}
 
 	const int channels = ((strcmp(id, "P5") == 0) ? 1 : 3);
 
@@ -182,7 +191,11 @@ math::matrice_dyn<PixelChar> LecteurPNM::ouvre(const filesystem::path &chemin)
 
 	for (int x = 0; x < img.nombre_lignes(); ++x) {
 		for (int y = 0; y < img.nombre_colonnes(); ++y) {
-			std::fscanf(fichier, "%c%c%c", &img[x][y].r, &img[x][y].g, &img[x][y].b);
+			lu = std::fscanf(fichier, "%c%c%c", &img[x][y].r, &img[x][y].g, &img[x][y].b);
+
+			if (lu == 0) {
+				break;
+			}
 		}
 	}
 

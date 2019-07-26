@@ -233,6 +233,8 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 			return 0;
 		}
 	}
+
+	return 0;
 }
 
 static auto cree_info_type_structure_C(
@@ -3166,7 +3168,7 @@ void genere_code_C(
 
 			auto condition = "if";
 
-			for (auto i = 1ul; i < nombre_enfants; ++i) {
+			for (auto i = 1l; i < nombre_enfants; ++i) {
 				auto paire = *iter_enfant++;
 				auto enf0 = paire->enfants.front();
 				auto enf1 = paire->enfants.back();
