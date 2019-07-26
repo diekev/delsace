@@ -1,0 +1,496 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#pragma once
+
+#include "biblinternes/math/vecteur.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/structures/pile.hh"
+#include "biblinternes/structures/tableau.hh"
+
+struct RayonHBE {
+	dls::math::point3d origine = dls::math::point3d(0.0);
+	dls::math::vec3d direction = dls::math::vec3d(0.0);
+};
+
+struct BoiteEngl {
+	dls::math::point3d min = dls::math::point3d( constantes<double>::INFINITE);
+	dls::math::point3d max = dls::math::point3d(-constantes<double>::INFINITE);
+	dls::math::point3d centroide = dls::math::point3d(0.0);
+	long id = 0;
+
+
+	void etend(const BoiteEngl &autre)
+	{
+		for (size_t i = 0; i < 3; ++i) {
+			min[i] = std::min(autre.min[i], min[i]);
+			max[i] = std::max(autre.max[i], max[i]);
+		}
+
+		centroide = (min + max) * 0.5;
+	}
+
+	double aire_surface() const
+	{
+		auto longueur_x = max.x - min.x;
+		auto longueur_y = max.y - min.y;
+		auto longueur_z = max.z - min.z;
+		return (2.0 * ((longueur_x * longueur_y) + (longueur_y * longueur_z) + (longueur_z * longueur_x)));
+	}
+
+	double test_intersection_rapide(RayonHBE const &r)
+	{
+		if (r.origine.x >= min.x && r.origine.y >= min.y && r.origine.z >= min.z &&
+				r.origine.x <= max.x && r.origine.y <= max.y && r.origine.z <= max.z) {
+			return 0;
+		}
+
+		auto const rdirection = r.direction;
+		auto const dirfrac = dls::math::vec3d(1.0 / rdirection.x, 1.0 / rdirection.y, 1.0 / rdirection.z);
+
+		auto const t1 = (min.x - r.origine.x)*dirfrac.x;
+		auto const t2 = (max.x - r.origine.x)*dirfrac.x;
+		auto const t3 = (min.y - r.origine.y)*dirfrac.y;
+		auto const t4 = (max.y - r.origine.y)*dirfrac.y;
+		auto const t5 = (min.z - r.origine.z)*dirfrac.z;
+		auto const t6 = (max.z - r.origine.z)*dirfrac.z;
+		auto const tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
+		auto const tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
+
+		if (tmax < 0) {
+			return -1.0;
+		}
+
+		if (tmin > tmax) {
+			return -1.0;
+		}
+
+		return tmin;
+	}
+};
+
+enum Axis{
+	axis_x,
+	axis_y,
+	axis_z
+};
+
+/* À FAIRE : fonction similaire dans dls::math */
+
+Axis trouve_axe_plus_grand(BoiteEngl const &box);
+
+struct ArbreHBE {
+	struct Noeud {
+		Noeud() = default;
+
+		BoiteEngl limites{};
+
+		long gauche = 0;
+		long droite = 0;
+		long nombre_references = 0;
+		long decalage_reference = 0;
+		long id_noeud = 0;
+
+		bool est_feuille() const
+		{
+			return gauche == 0 && droite == 0;
+		}
+
+		double test_intersection_rapide(RayonHBE const &r)
+		{
+			return limites.test_intersection_rapide(r);
+		}
+	};
+
+	long nombre_noeud = 0;
+	dls::tableau<ArbreHBE::Noeud> noeuds{};
+	long nombre_index_refs = 0;
+	dls::tableau<long> index_refs{};
+
+	ArbreHBE() = default;
+};
+
+double calcul_cout_scission(
+		double const scission,
+		const ArbreHBE::Noeud &noeud,
+		dls::tableau<long> &references,
+		Axis const direction,
+		dls::tableau<BoiteEngl> const &boites_alignees,
+		long &compte_gauche,
+		long &compte_droite);
+
+double trouve_meilleure_scission(
+		ArbreHBE::Noeud &noeud,
+		dls::tableau<long> &references,
+		Axis const direction,
+		unsigned int const qualite,
+		dls::tableau<BoiteEngl> const &boites_alignees,
+		long &compte_gauche,
+		long &compte_droite);
+
+template <typename T>
+auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
+{
+	/* rassemble la liste des boîtes alignées */
+	auto const nombre_de_boites = delegue_prims.nombre_elements();
+	auto boites_alignees  = dls::tableau<BoiteEngl>(nombre_de_boites);
+
+	for (auto i = 0; i < boites_alignees.taille(); ++i) {
+		boites_alignees[i] = delegue_prims.boite_englobante(i);
+	}
+
+	/* tableau pour contenir les noeuds durant la construction */
+	auto const taille_estimee = static_cast<long>(std::pow(2.0f, static_cast<float>(profondeur_max)));
+
+	auto arbre = dls::tableau<ArbreHBE::Noeud>();
+	arbre.reserve(taille_estimee);
+
+	auto compte_noeud = 0u;
+	auto compte_couche = 0u;
+
+	auto refs_courantes = dls::tableau<dls::tableau<long>>();
+	refs_courantes.reserve(taille_estimee);
+
+	auto couche_courante = dls::tableau<ArbreHBE::Noeud *>();
+	auto liste_ref_finale = dls::tableau<long>();
+
+	/* crée un noeud nul pour l'index 0; l'arbre commence à l'index 1 */
+	arbre.pousse(ArbreHBE::Noeud());
+	++compte_noeud;
+
+	/* crée une racine avec une boîte englobant toutes les autres */
+	arbre.pousse(ArbreHBE::Noeud());
+	++compte_noeud;
+
+	auto racine = &arbre[1];
+
+	for (auto const &boite : boites_alignees) {
+		racine->limites.etend(boite);
+	}
+
+	/* peuple la racine avec tous les ids */
+	racine->nombre_references = nombre_de_boites;
+	racine->decalage_reference = 0;
+	racine->id_noeud = 1;
+
+	auto references_racine = dls::tableau<long>();
+	references_racine.reserve(nombre_de_boites);
+
+	for (auto const &boite : boites_alignees) {
+		references_racine.pousse(boite.id);
+	}
+
+	couche_courante.pousse(racine);
+	refs_courantes.pousse(references_racine);
+
+	/* pour chaque couche, scinde les noeuds et va à la suivante */
+	for (auto couche = 0u; couche < profondeur_max; ++couche) {
+		auto couche_refs_suivante = dls::tableau<dls::tableau<long>>();
+		auto couche_suivante = dls::tableau<ArbreHBE::Noeud *>();
+
+		/* pour chaque noeud dans la couche courante, scinde et pousse résultat */
+		auto nombre_noeud_couche = couche_courante.taille();
+
+		if (nombre_noeud_couche > 0) {
+			++compte_couche;
+		}
+
+		for (auto i = 0; i < nombre_noeud_couche; ++i) {
+			auto compte_ref = refs_courantes[i].taille();
+			auto noeud = couche_courante[i];
+
+			if (compte_ref <= 5 || (couche == profondeur_max - 1)) {
+				noeud->gauche = 0;
+				noeud->droite = 0;
+				noeud->nombre_references = compte_ref;
+				noeud->decalage_reference = liste_ref_finale.taille();
+
+				for (auto j = 0; j < noeud->nombre_references; ++j) {
+					liste_ref_finale.pousse(refs_courantes[i][j]);
+				}
+			}
+			else {
+				/* trouve la meilleure scission via SAH et ajoute les enfants à
+				 * la couche suivante. */
+				auto axe_scission = trouve_axe_plus_grand(noeud->limites);
+				auto compte_gauche = 0l;
+				auto compte_droite = 0l;
+
+				auto meilleure_scission = trouve_meilleure_scission(
+							*noeud, refs_courantes[i], axe_scission, 10, boites_alignees, compte_gauche, compte_droite);
+
+				if (compte_gauche == 0 || compte_droite == 0) {
+					compte_gauche = 0;
+					compte_droite = 0;
+
+					if (axe_scission == axis_x) {
+						axe_scission = axis_y;
+					}
+					else if (axe_scission == axis_y) {
+						axe_scission = axis_z;
+					}
+					else if (axe_scission == axis_z) {
+						axe_scission = axis_x;
+					}
+
+					meilleure_scission = trouve_meilleure_scission(
+								*noeud, refs_courantes[i], axe_scission, 10, boites_alignees, compte_gauche, compte_droite);
+				}
+
+				if (compte_gauche == 0 || compte_droite == 0) {
+					compte_gauche = 0;
+					compte_droite = 0;
+
+					if (axe_scission == axis_x) {
+						axe_scission = axis_y;
+					}
+					else if (axe_scission == axis_y) {
+						axe_scission = axis_z;
+					}
+					else if (axe_scission == axis_z) {
+						axe_scission = axis_x;
+					}
+
+					meilleure_scission = trouve_meilleure_scission(
+								*noeud, refs_courantes[i], axe_scission, 10, boites_alignees, compte_gauche, compte_droite);
+				}
+
+				if (compte_gauche == 0 || compte_droite == 0) {
+					noeud->gauche = 0;
+					noeud->droite = 0;
+					noeud->nombre_references = compte_ref;
+					noeud->decalage_reference = liste_ref_finale.taille();
+
+					for (auto j = 0; j < noeud->nombre_references; ++j) {
+						liste_ref_finale.pousse(refs_courantes[i][j]);
+					}
+				}
+				else {
+					/* crée les noeuds gauche et droite */
+					arbre.pousse(ArbreHBE::Noeud());
+					++compte_noeud;
+
+					auto id_gauche = arbre.taille() - 1;
+					auto gauche = &arbre[id_gauche];
+					gauche->id_noeud = id_gauche;
+					gauche->nombre_references = compte_gauche;
+
+					arbre.pousse(ArbreHBE::Noeud());
+					++compte_noeud;
+
+					auto id_droite = arbre.taille() - 1;
+					auto droite = &arbre[id_droite];
+					droite->id_noeud = id_droite;
+					droite->nombre_references = compte_droite;
+
+					noeud->gauche = id_gauche;
+					noeud->droite = id_droite;
+
+					/* crée les listes des objets gauche et droite en se basant
+					 * sur le centroïde */
+					auto refs_gauche = dls::tableau<long>();
+					auto refs_droite = dls::tableau<long>();
+					refs_gauche.reserve(compte_gauche);
+					refs_gauche.reserve(compte_droite);
+
+					for (auto j = 0; j < noeud->nombre_references; ++j) {
+						auto const &index_ref = refs_courantes[i][j];
+						auto const &ref = boites_alignees[index_ref];
+
+						if (ref.centroide[axe_scission] <= meilleure_scission) {
+							refs_gauche.pousse(index_ref);
+							gauche->limites.etend(ref);
+						}
+						else {
+							refs_droite.pousse(index_ref);
+							droite->limites.etend(ref);
+						}
+					}
+
+					/* ajoute les enfants à la couche suivante */
+					couche_suivante.pousse(gauche);
+					couche_suivante.pousse(droite);
+
+					couche_refs_suivante.pousse(refs_gauche);
+					couche_refs_suivante.pousse(refs_droite);
+				}
+			}
+		}
+
+		couche_courante = couche_suivante;
+		refs_courantes = couche_refs_suivante;
+	}
+
+	auto arbre_hbe = ArbreHBE{};
+	arbre_hbe.nombre_noeud = arbre.taille();
+	arbre_hbe.noeuds = arbre;
+	arbre_hbe.nombre_index_refs = liste_ref_finale.taille();
+	arbre_hbe.index_refs = liste_ref_finale;
+
+	return arbre_hbe;
+}
+
+struct Intersection {
+	bool touche = false;
+	dls::math::point3d point{};
+};
+
+struct AccumulatriceTraverse {
+private:
+	Intersection m_intersection{};
+	long m_id_noeud{};
+	long m_nombre_touche{};
+	dls::math::point3d m_origine{};
+
+public:
+	AccumulatriceTraverse(dls::math::point3d const &origine)
+		: m_nombre_touche(0)
+		, m_origine(origine)
+	{}
+
+	void enregistre_intersection(Intersection const &intersect, long id_noeud)
+	{
+		if (m_intersection.touche == false && intersect.touche==true) {
+			m_intersection = intersect;
+			m_id_noeud = id_noeud;
+			m_nombre_touche++;
+		}
+		else if (intersect.touche == true) {
+			auto currentDistance = longueur(m_intersection.point - m_origine);
+			auto newDistance = longueur(intersect.point - m_origine);
+
+			if (newDistance < currentDistance) {
+				m_intersection = intersect;
+				m_id_noeud = id_noeud;
+			}
+
+			m_nombre_touche++;
+		}
+	}
+
+	Intersection const &intersection() const
+	{
+		return m_intersection;
+	}
+
+	long nombre_touche() const
+	{
+		return m_nombre_touche;
+	}
+};
+
+template <typename T>
+void traverse(ArbreHBE &arbre, T const &delegue, RayonHBE const r, AccumulatriceTraverse &resultat)
+{
+	if (arbre.nombre_noeud < 2) {
+		return;
+	}
+
+	/* À FAIRE : petite pile. */
+	auto pile = dls::pile<ArbreHBE::Noeud *>();
+	pile.empile(&arbre.noeuds[1]);
+
+	auto courant = &arbre.noeuds[1];
+
+	auto distance_courant = courant->test_intersection_rapide(r);
+
+	if (distance_courant < -0.5) {
+		return;
+	}
+
+	distance_courant = 10000000000000.0;
+
+	while (!pile.est_vide()) {
+		/* traverse et empile jusqu'à l'obtention d'une feuille */
+		auto est_vide = false;
+
+		while (!courant->est_feuille() && !est_vide) {
+			auto gauche = &arbre.noeuds[courant->gauche];
+			auto droite = &arbre.noeuds[courant->droite];
+
+			/* trouve l'enfant le plus proche et le plus éloigné */
+			auto distance_gauche = gauche->test_intersection_rapide(r);
+			auto distance_droite = droite->test_intersection_rapide(r);
+
+			/* si le rayon intersecte les deux enfants, empile le noeud courant */
+			if (distance_gauche > -0.5 && distance_droite > -0.5) {
+				pile.empile(courant);
+
+				if (distance_gauche < distance_droite) {
+					courant = gauche;
+				}
+				else {
+					courant = droite;
+				}
+			}
+			else if (distance_gauche > -0.5 && distance_droite < -0.5) {
+				courant = gauche;
+			}
+			else if (distance_gauche < -0.5 && distance_droite > -0.5) {
+				courant = droite;
+			}
+			else {
+				est_vide = true;
+			}
+		}
+
+		if (courant->est_feuille()) {
+			for (auto i = 0; i < courant->nombre_references; ++i) {
+				auto id_prim = arbre.index_refs[courant->decalage_reference + i];
+				auto intersection = delegue.intersecte_element(id_prim, r);
+
+				if (!intersection.touche) {
+					continue;
+				}
+
+				auto n = normalise(intersection.point - r.origine);
+				auto degree = std::acos(produit_scalaire(n, r.direction));
+
+				if (degree < (constantes<double>::PI / 2.0) || degree != degree) {
+					resultat.enregistre_intersection(intersection, courant->id_noeud);
+				}
+			}
+		}
+
+		if (pile.est_vide()) {
+			continue;
+		}
+
+		courant = pile.haut();
+		pile.depile();
+
+		auto gauche = &arbre.noeuds[courant->gauche];
+		auto droite = &arbre.noeuds[courant->droite];
+
+		auto distance_gauche = gauche->test_intersection_rapide(r);
+		auto distance_droite = droite->test_intersection_rapide(r);
+
+		if (distance_gauche >= distance_droite) {
+			courant = gauche;
+		}
+		else {
+			courant = droite;
+		}
+	}
+}

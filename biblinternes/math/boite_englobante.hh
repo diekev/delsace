@@ -76,6 +76,12 @@ public:
 	void etend(double delta);
 
 	/**
+	 * Étend les limite de la boîte selon la boite spécifiée, qui est enlevé au
+	 * point minimum, et ajouté au point maximum.
+	 */
+	void etend(BoiteEnglobante const &autre);
+
+	/**
 	 * Retourne l'aire de la surface des six faces de cette boîte.
 	 */
 	double aire_surface() const;

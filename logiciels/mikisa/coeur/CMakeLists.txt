@@ -98,8 +98,10 @@ add_library(${NOM_CIBLE} STATIC
 	evaluation/reseau.hh
 
 	operatrices/arbre_bvh.hh
+	operatrices/arbre_hbe.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
+	operatrices/delegue_hbe.hh
 	operatrices/fluide.hh
 	operatrices/gradient_conjugue.hh
 	operatrices/iter_volume.hh
@@ -173,8 +175,10 @@ add_library(${NOM_CIBLE} STATIC
 	evaluation/reseau.cc
 
 	operatrices/arbre_bvh.cc
+	operatrices/arbre_hbe.cc
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc
+	operatrices/delegue_hbe.cc
 	operatrices/fluide.cc
 	operatrices/gradient_conjugue.cc
 	operatrices/iter_volume.cc

@@ -30,7 +30,9 @@
 #include "../usine_operatrice.h"
 
 #include "arbre_bvh.hh"
+#include "arbre_hbe.hh"
 #include "arbre_octernaire.hh"
+#include "delegue_hbe.hh"
 #include "limites_corps.hh"
 
 /* ************************************************************************** */
@@ -148,19 +150,25 @@ static auto cree_cube(
 	}
 }
 
-static auto rassemble_topologie(ArbreBVH *arbre, Corps &corps)
+static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
 {
 	dls::math::vec3f couleurs[2] = {
 		dls::math::vec3f(0.0f, 1.0f, 0.0f),
 		dls::math::vec3f(0.0f, 0.0f, 1.0f),
 	};
 
-	for (auto i = 0; i < arbre->totleaf + arbre->totbranch; ++i) {
-		auto noeud = arbre->nodes[static_cast<size_t>(i)];
-		auto const &min = dls::math::vec3f(noeud->bv[0], noeud->bv[2], noeud->bv[4]);
-		auto const &max = dls::math::vec3f(noeud->bv[1], noeud->bv[3], noeud->bv[5]);
+	for (auto const &noeud : arbre.noeuds) {
+		auto const &min = dls::math::vec3f(
+					static_cast<float>(noeud.limites.min.x),
+					static_cast<float>(noeud.limites.min.y),
+					static_cast<float>(noeud.limites.min.z));
 
-		auto couleur = (i < arbre->totleaf) ? couleurs[0] : couleurs[1];
+		auto const &max = dls::math::vec3f(
+					static_cast<float>(noeud.limites.max.x),
+					static_cast<float>(noeud.limites.max.y),
+					static_cast<float>(noeud.limites.max.z));
+
+		auto couleur = (noeud.est_feuille()) ? couleurs[0] : couleurs[1];
 
 		cree_cube(corps, min, max, couleur);
 	}
@@ -227,35 +235,10 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto nombre_triangles = 0;
+		auto delegue_prims = DeleguePrim(*corps_entree);
+		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
-		pour_chaque_polygone_ferme(*corps_entree,
-								   [&](Corps const &, Polygone *poly)
-		{
-			nombre_triangles += static_cast<int>(poly->nombre_sommets()) - 2;
-		});
-
-		auto const epsilon = 1e-6f * 2.0f * 10.0f;
-		auto arbre = nouvelle_arbre_bvh(nombre_triangles, epsilon, 8, 8);
-
-		pour_chaque_polygone_ferme(*corps_entree,
-								   [&](Corps const &, Polygone *poly)
-		{
-			for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-				auto triangle = Triangle{};
-				triangle.v0 = points_entree->point(poly->index_point(0));
-				triangle.v1 = points_entree->point(poly->index_point(j - 1));
-				triangle.v2 = points_entree->point(poly->index_point(j));
-
-				arbre->insert_triangle(static_cast<int>(poly->index), triangle);
-			}
-		});
-
-		arbre->balance();
-
-		rassemble_topologie(arbre, m_corps);
-
-		memoire::deloge("ArbreBVH", arbre);
+		rassemble_topologie(arbre_hbe, m_corps);
 
 		return EXECUTION_REUSSIE;
 	}

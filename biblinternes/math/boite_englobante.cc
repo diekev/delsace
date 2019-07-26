@@ -60,6 +60,14 @@ void BoiteEnglobante::etend(double delta)
 	}
 }
 
+void BoiteEnglobante::etend(const BoiteEnglobante &autre)
+{
+	for (size_t i = 0; i < 3; ++i) {
+		min[i] = std::min(autre.min[i], min[i]);
+		max[i] = std::max(autre.max[i], max[i]);
+	}
+}
+
 double BoiteEnglobante::aire_surface() const
 {
 	auto const d = max - min;

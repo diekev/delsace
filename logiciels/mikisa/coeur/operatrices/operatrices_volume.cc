@@ -38,6 +38,8 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#include "arbre_hbe.hh"
+#include "delegue_hbe.hh"
 #include "iter_volume.hh"
 
 #pragma clang diagnostic push
@@ -182,7 +184,6 @@ public:
 		chef->demarre_evaluation("maillage vers volume");
 
 		/* calcul boite englobante */
-		auto liste_points = corps_entree->points();
 		auto limites = calcule_limites_points(*corps_entree);
 
 		auto const taille_voxel = evalue_decimal("taille_voxel");
@@ -190,13 +191,15 @@ public:
 
 		auto volume =  memoire::loge<Volume>("Volume");
 		auto grille_scalaire =  memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
-		auto dim = limites.taille();
 		auto res = grille_scalaire->resolution();
+
+		auto delegue_prims = DeleguePrim(*corps_entree);
+		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
 		boucle_parallele(tbb::blocked_range<int>(0, res.z),
 						 [&](tbb::blocked_range<int> const &plage)
 		{
-			auto rayon = Rayon{};
+			auto rayon = RayonHBE{};
 
 			auto lims = limites3i{};
 			lims.min = dls::math::vec3i(0, 0, plage.begin());
@@ -210,42 +213,21 @@ public:
 				}
 
 				auto isp = iter.suivante();
-				rayon.origine = grille_scalaire->index_vers_monde(isp);
+				auto origine = grille_scalaire->index_vers_monde(isp);
+
+				rayon.origine.x = static_cast<double>(origine.x);
+				rayon.origine.y = static_cast<double>(origine.y);
+				rayon.origine.z = static_cast<double>(origine.z);
 
 				auto axis = axe_dominant_abs(rayon.origine);
 
-				rayon.direction = dls::math::vec3f(0.0f, 0.0f, 0.0f);
-				rayon.direction[axis] = 1.0f;
+				rayon.direction = dls::math::vec3d(0.0);
+				rayon.direction[axis] = 1.0;
 
-				auto distance = dim.x * 0.5f;
+				auto accumulatrice = AccumulatriceTraverse(rayon.origine);
+				traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
 
-				auto index_prim = cherche_collision(corps_entree, rayon, distance);
-
-				if (index_prim < 0) {
-					continue;
-				}
-
-				auto prim_coll = corps_entree->prims()->prim(index_prim);
-
-				/* calcul normal au niveau de la prim */
-				auto poly = dynamic_cast<Polygone *>(prim_coll);
-				auto const &v0 = liste_points->point(poly->index_point(0));
-				auto const &v1 = liste_points->point(poly->index_point(1));
-				auto const &v2 = liste_points->point(poly->index_point(2));
-
-				auto const e1 = v1 - v0;
-				auto const e2 = v2 - v0;
-				auto nor_poly = normalise(produit_croix(e1, e2));
-
-				//grille_scalaire->valeur(x, y, z, dist(rng));
-				if (produit_scalaire(nor_poly, rayon.direction) < 0.0f) {
-					continue;
-				}
-
-				rayon.direction = -rayon.direction;
-				distance = dim.x * 0.5f;
-
-				if (cherche_collision(corps_entree, rayon, distance) != -1) {
+				if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
 					grille_scalaire->valeur(
 								static_cast<size_t>(isp.x),
 								static_cast<size_t>(isp.y),
