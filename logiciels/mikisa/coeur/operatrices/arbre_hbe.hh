@@ -157,7 +157,21 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 	}
 
 	/* tableau pour contenir les noeuds durant la construction */
-	auto const taille_estimee = static_cast<long>(std::pow(2.0f, static_cast<float>(profondeur_max)));
+	auto const feuilles_max = boites_alignees.taille();
+	auto const coeff_arbre = 8; /* 2^3 */
+
+	/* La taille estimée fut 2^profondeur_max, mais pouvait réserver plusieurs
+	 * gigaoctets pour quelques centaines de triangles. Ceci vient de Blender.
+	 */
+	auto branches_implicites = [](long coef, long feuiles)
+	{
+		return std::max(1l, (feuiles + coef - 3) / (coef - 1));
+	};
+
+	auto const taille_estimee =
+			feuilles_max
+			+ branches_implicites(coeff_arbre, feuilles_max)
+			+ coeff_arbre;
 
 	auto arbre = dls::tableau<ArbreHBE::Noeud>();
 	arbre.reserve(taille_estimee);
