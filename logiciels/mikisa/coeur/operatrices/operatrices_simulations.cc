@@ -26,17 +26,18 @@
 
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/moultfilage/boucle.hh"
-
+#include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
-#include "corps/collision.hh"
 #include "corps/groupes.h"
 
+#include "../chef_execution.hh"
 #include "../contexte_evaluation.hh"
 #include "../operatrice_simulation.hh"
 #include "../usine_operatrice.h"
 
+#include "delegue_hbe.hh"
 #include "ocean.hh"
 
 #pragma clang diagnostic push
@@ -418,86 +419,116 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("maillage vers volume");
+
 		auto groupe = m_corps.ajoute_groupe_point("collision");
 		groupe->reinitialise();
+
+		auto groupe_sync = dls::synchronise<GroupePoint *>();
+		groupe_sync = groupe;
 
 		auto attr_desactiv = m_corps.ajoute_attribut("part_desactiv",
 												  type_attribut::ENT8,
 												  portee_attr::POINT);
 
-		for (long i = 0; i < nombre_points; ++i) {
-			auto pos_cou = liste_points->point(i);
-			auto vel = attr_V->vec3(i);
-			auto pos_pre = attr_P->vec3(i);
-			auto desactivee = attr_desactiv->ent8(i);
+		auto delegue_prims = DeleguePrim(*corps_collision);
+		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
-			if (desactivee == 1) {
-				continue;
-			}
+		m_corps.points()->detache();
 
-			/* Calcul la position en espace objet. */
-			auto pos_monde_d = m_corps.transformation(dls::math::point3d(pos_pre));
-			auto pos_monde = dls::math::point3f(
-								 static_cast<float>(pos_monde_d.x),
-								 static_cast<float>(pos_monde_d.y),
-								 static_cast<float>(pos_monde_d.z));
+		boucle_parallele(tbb::blocked_range<long>(0, nombre_points),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			for (long i = plage.begin(); i < plage.end(); ++i) {
+				auto pos_cou = liste_points->point(i);
+				auto vel = attr_V->vec3(i);
+				auto pos_pre = attr_P->vec3(i);
+				auto desactivee = attr_desactiv->ent8(i);
 
-			auto rayon_part = dls::phys::rayonf{};
-			rayon_part.origine = pos_monde;
-			rayon_part.direction = normalise(pos_cou - pos_pre);
-
-			auto dist = 1000.0f;
-			auto index_prim = cherche_collision(corps_collision, rayon_part, dist);
-
-			if (index_prim < 0) {
-				continue;
-			}
-
-			if (dist > rayon) {
-				continue;
-			}
-
-			groupe->ajoute_point(static_cast<size_t>(i));
-
-			switch (reponse) {
-				case rep_collision::RIEN:
-				{
-					break;
+				if (desactivee == 1) {
+					continue;
 				}
-				case rep_collision::REBONDIS:
-				{
-					auto prim = prims_collision->prim(index_prim);
-					auto poly = dynamic_cast<Polygone *>(prim);
-					auto const &v0 = points_collision->point(poly->index_point(0));
-					auto const &v1 = points_collision->point(poly->index_point(1));
-					auto const &v2 = points_collision->point(poly->index_point(2));
 
-					auto const e1 = v1 - v0;
-					auto const e2 = v2 - v0;
-					auto nor_poly = normalise(produit_croix(e1, e2));
+				/* Calcul la position en espace objet. */
+				auto pos_monde = m_corps.transformation(dls::math::point3d(pos_pre));
 
-					/* Trouve le normal de la vélocité au point de collision. */
-					auto nv = dls::math::produit_scalaire(nor_poly, vel) * nor_poly;
+				auto rayon_part = dls::phys::rayond{};
+				rayon_part.origine = pos_monde;
 
-					/* Trouve la tangente de la vélocité. */
-					auto tv = vel - nv;
+				auto dir = normalise(pos_cou - pos_pre);
+				rayon_part.direction.x = static_cast<double>(dir.x);
+				rayon_part.direction.y = static_cast<double>(dir.y);
+				rayon_part.direction.z = static_cast<double>(dir.z);
 
-					/* Le normal de la vélocité est multiplité par le coefficient
-					 * d'élasticité. */
-					vel = -elasticite * nv + tv;
-					attr_V->valeur(i, vel);
-					break;
+				auto accumulatrice = AccumulatriceTraverse(rayon_part.origine);
+				traverse(arbre_hbe, delegue_prims, rayon_part, accumulatrice);
+
+				auto const &esect = accumulatrice.intersection();
+
+				if (!esect.touche) {
+					continue;
 				}
-				case rep_collision::COLLE:
+
+				if (esect.distance > static_cast<double>(rayon)) {
+					continue;
+				}
+
+				auto index_prim = esect.idx;
+
+				groupe_sync.accede_ecriture([&](GroupePoint *groupe_point)
 				{
-					pos_cou = pos_pre + dist * rayon_part.direction;
-					liste_points->point(i, pos_cou);
-					attr_V->valeur(i, dls::math::vec3f(0.0f));
-					attr_desactiv->valeur(i, char(1));
-					break;
+					groupe_point->ajoute_point(static_cast<size_t>(i));
+				});
+
+				switch (reponse) {
+					case rep_collision::RIEN:
+					{
+						break;
+					}
+					case rep_collision::REBONDIS:
+					{
+						auto prim = prims_collision->prim(index_prim);
+						auto poly = dynamic_cast<Polygone *>(prim);
+						auto const &v0 = points_collision->point(poly->index_point(0));
+						auto const &v1 = points_collision->point(poly->index_point(1));
+						auto const &v2 = points_collision->point(poly->index_point(2));
+
+						auto const e1 = v1 - v0;
+						auto const e2 = v2 - v0;
+						auto nor_poly = normalise(produit_croix(e1, e2));
+
+						/* Trouve le normal de la vélocité au point de collision. */
+						auto nv = dls::math::produit_scalaire(nor_poly, vel) * nor_poly;
+
+						/* Trouve la tangente de la vélocité. */
+						auto tv = vel - nv;
+
+						/* Le normal de la vélocité est multiplité par le coefficient
+						 * d'élasticité. */
+						vel = -elasticite * nv + tv;
+						attr_V->valeur(i, vel);
+						break;
+					}
+					case rep_collision::COLLE:
+					{
+						pos_cou.x = static_cast<float>(esect.point.x);
+						pos_cou.y = static_cast<float>(esect.point.y);
+						pos_cou.z = static_cast<float>(esect.point.z);
+
+						liste_points->point(i, pos_cou);
+						attr_V->valeur(i, dls::math::vec3f(0.0f));
+						attr_desactiv->valeur(i, char(1));
+						break;
+					}
 				}
 			}
-		}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			auto total = static_cast<float>(nombre_points);
+
+			chef->indique_progression_parallele(delta / total * 100.0f);
+		});
 
 		return EXECUTION_REUSSIE;
 	}

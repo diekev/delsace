@@ -26,9 +26,6 @@
 
 #include "biblinternes/phys/rayon.hh"
 
-struct Corps;
-struct Triangle;
-
 /**
  * Algorithme de Möller-Trumbore.
  * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
@@ -81,13 +78,3 @@ auto entresecte_triangle(
 	 * le rayon. */
 	return false;
 }
-
-bool entresecte_triangle(
-		Triangle const &triangle,
-		dls::phys::rayonf const &rayon,
-		float &distance);
-
-long cherche_collision(
-		Corps const *corps_collision,
-		dls::phys::rayonf const &rayon_part,
-		float &dist);

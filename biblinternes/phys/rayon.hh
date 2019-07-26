@@ -37,6 +37,8 @@ struct rayon {
 template <typename T>
 struct entresection {
 	math::point3<T> point{};
+	long idx = 0;
+	T distance = 0;
 	bool touche = false;
 };
 

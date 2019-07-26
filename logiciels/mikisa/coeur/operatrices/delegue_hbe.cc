@@ -88,6 +88,8 @@ dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::ray
 		if (entresecte_triangle(v0_d, v1_d, v2_d, r, dist)) {
 			intersection.touche = true;
 			intersection.point = r.origine + dist * r.direction;
+			intersection.idx = idx;
+			intersection.distance = dist;
 			break;
 		}
 	}
