@@ -1,4 +1,8 @@
 disposition "operatrice_trainee_points" {
+	ligne {
+		étiquette(valeur="Mode")
+		énum(valeur="ligne"; attache=mode; items=[{nom="Ligne", valeur="ligne"}, {nom="Points", valeur="points"}])
+	}
     ligne {
 	    étiquette(valeur="Attribut")
 		liste(valeur="V"; attache=nom_attribut)
@@ -6,6 +10,10 @@ disposition "operatrice_trainee_points" {
 	ligne {
 	    étiquette(valeur="Taille")
 		décimal(valeur=1.0; attache=taille; min=0)
+	}
+	ligne {
+		étiquette(valeur="Nombre de points")
+		entier(valeur=1; attache=nombre_points; min=0)
 	}
     ligne {
 	    étiquette(valeur="Dt")

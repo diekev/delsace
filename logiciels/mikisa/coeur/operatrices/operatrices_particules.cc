@@ -1534,6 +1534,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto const chaine_mode = evalue_enum("mode");
+		auto const nombre_points = evalue_entier("nombre_points");
+
+		auto mode = (chaine_mode == "ligne") ? 0 : 1;
+
 		/* À FAIRE : transfère d'attributs */
 
 		m_corps.points()->reserve(points_entree->taille() * 2);
@@ -1546,22 +1551,30 @@ public:
 			auto p = points_entree->point(i);
 			auto v = attr_V->vec3(i) * taille;
 
-			m_corps.ajoute_point(p.x, p.y, p.z);
-
 			/* Par défaut nous utilisons la vélocité, donc la direction normale
 			 * est celle d'où nous venons. */
-			if (inverse_direction) {
-				p += v;
-			}
-			else {
-				p -= v;
+			if (!inverse_direction) {
+				v = -v;
 			}
 
 			m_corps.ajoute_point(p.x, p.y, p.z);
 
-			auto seg = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-			seg->ajoute_sommet(i * 2);
-			seg->ajoute_sommet(i * 2 + 1);
+			if (mode == 0) {
+				p += v;
+				m_corps.ajoute_point(p.x, p.y, p.z);
+
+				auto seg = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
+				seg->ajoute_sommet(i * 2);
+				seg->ajoute_sommet(i * 2 + 1);
+			}
+			else {
+				v /= static_cast<float>(nombre_points);
+
+				for (auto j = 0; j < nombre_points; ++j) {
+					p += v;
+					m_corps.ajoute_point(p.x, p.y, p.z);
+				}
+			}
 		}
 
 		return EXECUTION_REUSSIE;
