@@ -24,83 +24,18 @@
 
 #pragma once
 
+#include "biblinternes/math/boite_englobante.hh"
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/phys/rayon.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
-struct BoiteEngl {
-	dls::math::point3d min = dls::math::point3d( constantes<double>::INFINITE);
-	dls::math::point3d max = dls::math::point3d(-constantes<double>::INFINITE);
-	dls::math::point3d centroide = dls::math::point3d(0.0);
-	long id = 0;
-
-
-	void etend(const BoiteEngl &autre)
-	{
-		for (size_t i = 0; i < 3; ++i) {
-			min[i] = std::min(autre.min[i], min[i]);
-			max[i] = std::max(autre.max[i], max[i]);
-		}
-
-		centroide = (min + max) * 0.5;
-	}
-
-	double aire_surface() const
-	{
-		auto longueur_x = max.x - min.x;
-		auto longueur_y = max.y - min.y;
-		auto longueur_z = max.z - min.z;
-		return (2.0 * ((longueur_x * longueur_y) + (longueur_y * longueur_z) + (longueur_z * longueur_x)));
-	}
-
-	double test_intersection_rapide(dls::phys::rayond const &r)
-	{
-		if (r.origine.x >= min.x && r.origine.y >= min.y && r.origine.z >= min.z &&
-				r.origine.x <= max.x && r.origine.y <= max.y && r.origine.z <= max.z) {
-			return 0;
-		}
-
-		auto const rdirection = r.direction;
-		auto const dirfrac = dls::math::vec3d(1.0 / rdirection.x, 1.0 / rdirection.y, 1.0 / rdirection.z);
-
-		auto const t1 = (min.x - r.origine.x)*dirfrac.x;
-		auto const t2 = (max.x - r.origine.x)*dirfrac.x;
-		auto const t3 = (min.y - r.origine.y)*dirfrac.y;
-		auto const t4 = (max.y - r.origine.y)*dirfrac.y;
-		auto const t5 = (min.z - r.origine.z)*dirfrac.z;
-		auto const t6 = (max.z - r.origine.z)*dirfrac.z;
-		auto const tmin = std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6));
-		auto const tmax = std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6));
-
-		if (tmax < 0) {
-			return -1.0;
-		}
-
-		if (tmin > tmax) {
-			return -1.0;
-		}
-
-		return tmin;
-	}
-};
-
-enum Axis{
-	axis_x,
-	axis_y,
-	axis_z
-};
-
-/* À FAIRE : fonction similaire dans dls::math */
-
-Axis trouve_axe_plus_grand(BoiteEngl const &box);
-
 struct ArbreHBE {
 	struct Noeud {
 		Noeud() = default;
 
-		BoiteEngl limites{};
+		BoiteEnglobante limites{};
 
 		long gauche = 0;
 		long droite = 0;
@@ -115,7 +50,7 @@ struct ArbreHBE {
 
 		double test_intersection_rapide(dls::phys::rayond const &r)
 		{
-			return limites.test_intersection_rapide(r);
+			return entresection_rapide_min_max(r, limites.min, limites.max);
 		}
 	};
 
@@ -131,17 +66,17 @@ double calcul_cout_scission(
 		double const scission,
 		const ArbreHBE::Noeud &noeud,
 		dls::tableau<long> &references,
-		Axis const direction,
-		dls::tableau<BoiteEngl> const &boites_alignees,
+		Axe const direction,
+		dls::tableau<BoiteEnglobante> const &boites_alignees,
 		long &compte_gauche,
 		long &compte_droite);
 
 double trouve_meilleure_scission(
 		ArbreHBE::Noeud &noeud,
 		dls::tableau<long> &references,
-		Axis const direction,
+		Axe const direction,
 		unsigned int const qualite,
-		dls::tableau<BoiteEngl> const &boites_alignees,
+		dls::tableau<BoiteEnglobante> const &boites_alignees,
 		long &compte_gauche,
 		long &compte_droite);
 
@@ -150,7 +85,7 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 {
 	/* rassemble la liste des boîtes alignées */
 	auto const nombre_de_boites = delegue_prims.nombre_elements();
-	auto boites_alignees  = dls::tableau<BoiteEngl>(nombre_de_boites);
+	auto boites_alignees  = dls::tableau<BoiteEnglobante>(nombre_de_boites);
 
 	for (auto i = 0; i < boites_alignees.taille(); ++i) {
 		boites_alignees[i] = delegue_prims.boite_englobante(i);
@@ -243,7 +178,7 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 			else {
 				/* trouve la meilleure scission via SAH et ajoute les enfants à
 				 * la couche suivante. */
-				auto axe_scission = trouve_axe_plus_grand(noeud->limites);
+				auto axe_scission = noeud->limites.ampleur_maximale();
 				auto compte_gauche = 0l;
 				auto compte_droite = 0l;
 
@@ -254,14 +189,14 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 					compte_gauche = 0;
 					compte_droite = 0;
 
-					if (axe_scission == axis_x) {
-						axe_scission = axis_y;
+					if (axe_scission == Axe::X) {
+						axe_scission = Axe::Y;
 					}
-					else if (axe_scission == axis_y) {
-						axe_scission = axis_z;
+					else if (axe_scission == Axe::Y) {
+						axe_scission = Axe::Z;
 					}
-					else if (axe_scission == axis_z) {
-						axe_scission = axis_x;
+					else if (axe_scission == Axe::Z) {
+						axe_scission = Axe::X;
 					}
 
 					meilleure_scission = trouve_meilleure_scission(
@@ -272,14 +207,14 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 					compte_gauche = 0;
 					compte_droite = 0;
 
-					if (axe_scission == axis_x) {
-						axe_scission = axis_y;
+					if (axe_scission == Axe::X) {
+						axe_scission = Axe::Y;
 					}
-					else if (axe_scission == axis_y) {
-						axe_scission = axis_z;
+					else if (axe_scission == Axe::Y) {
+						axe_scission = Axe::Z;
 					}
-					else if (axe_scission == axis_z) {
-						axe_scission = axis_x;
+					else if (axe_scission == Axe::Z) {
+						axe_scission = Axe::X;
 					}
 
 					meilleure_scission = trouve_meilleure_scission(
@@ -328,7 +263,7 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 						auto const &index_ref = refs_courantes[i][j];
 						auto const &ref = boites_alignees[index_ref];
 
-						if (ref.centroide[axe_scission] <= meilleure_scission) {
+						if (ref.centroide[static_cast<size_t>(axe_scission)] <= meilleure_scission) {
 							refs_gauche.pousse(index_ref);
 							gauche->limites.etend(ref);
 						}

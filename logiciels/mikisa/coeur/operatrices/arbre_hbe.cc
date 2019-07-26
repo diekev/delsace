@@ -24,13 +24,13 @@
 
 #include "arbre_hbe.hh"
 
-static inline auto axe_depuis_direction(Axis const direction)
+static inline auto axe_depuis_direction(Axe const direction)
 {
-	if (direction == axis_y) {
+	if (direction == Axe::Y) {
 		return 1u;
 	}
 
-	if (direction == axis_z) {
+	if (direction == Axe::Z) {
 		return 2u;
 	}
 
@@ -41,16 +41,16 @@ double calcul_cout_scission(
 		double const scission,
 		const ArbreHBE::Noeud &noeud,
 		dls::tableau<long> &references,
-		Axis const direction,
-		dls::tableau<BoiteEngl> const &boites_alignees,
+		Axe const direction,
+		dls::tableau<BoiteEnglobante> const &boites_alignees,
 		long &compte_gauche,
 		long &compte_droite)
 {
 	auto const axe_scission = axe_depuis_direction(direction);
 
-	auto boite_gauche = BoiteEngl{};
+	auto boite_gauche = BoiteEnglobante{};
 	auto gauche = 0;
-	auto boite_droite = BoiteEngl{};
+	auto boite_droite = BoiteEnglobante{};
 	auto droite = 0;
 
 	/* Parcours les références du noeud et fusionne les dans 'gauche' ou 'droite' */
@@ -84,9 +84,9 @@ double calcul_cout_scission(
 double trouve_meilleure_scission(
 		ArbreHBE::Noeud &noeud,
 		dls::tableau<long> &references,
-		Axis const direction,
+		Axe const direction,
 		unsigned int const qualite,
-		dls::tableau<BoiteEngl> const &boites_alignees,
+		dls::tableau<BoiteEnglobante> const &boites_alignees,
 		long &compte_gauche,
 		long &compte_droite)
 {
@@ -134,21 +134,4 @@ double trouve_meilleure_scission(
 	compte_droite = droite;
 
 	return meilleure_scission;
-}
-
-Axis trouve_axe_plus_grand(const BoiteEngl &box)
-{
-	auto longueur_axe_x = box.max.x - box.min.x;
-	auto longueur_axe_y = box.max.y - box.min.y;
-	auto longueur_axe_z = box.max.z - box.min.z;
-
-	if (longueur_axe_x >= longueur_axe_y && longueur_axe_x >= longueur_axe_z) {
-		return axis_x;
-	}
-
-	if (longueur_axe_y >= longueur_axe_x && longueur_axe_y >= longueur_axe_z) {
-		return axis_y;
-	}
-
-	return axis_z;
 }

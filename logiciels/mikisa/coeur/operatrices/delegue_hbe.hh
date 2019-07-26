@@ -35,7 +35,7 @@ struct DeleguePrim {
 
 	long nombre_elements() const;
 
-	BoiteEngl boite_englobante(long idx) const;
+	BoiteEnglobante boite_englobante(long idx) const;
 
 	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
 };

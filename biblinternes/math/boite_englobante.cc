@@ -27,6 +27,7 @@
 BoiteEnglobante::BoiteEnglobante(dls::math::point3d const &point)
 	: min(point)
 	, max(point)
+	, centroide(point)
 {}
 
 BoiteEnglobante::BoiteEnglobante(dls::math::point3d const &p1, dls::math::point3d const &p2)
@@ -58,6 +59,8 @@ void BoiteEnglobante::etend(double delta)
 		min[i] -= delta;
 		max[i] += delta;
 	}
+
+	centroide = (min + max) * 0.5;
 }
 
 void BoiteEnglobante::etend(const BoiteEnglobante &autre)
@@ -66,6 +69,8 @@ void BoiteEnglobante::etend(const BoiteEnglobante &autre)
 		min[i] = std::min(autre.min[i], min[i]);
 		max[i] = std::max(autre.max[i], max[i]);
 	}
+
+	centroide = (min + max) * 0.5;
 }
 
 double BoiteEnglobante::aire_surface() const
@@ -80,19 +85,19 @@ double BoiteEnglobante::volume() const
 	return (d.x * d.y * d.z);
 }
 
-int BoiteEnglobante::ampleur_maximale() const
+Axe BoiteEnglobante::ampleur_maximale() const
 {
 	auto const diagonale = max - min;
 
 	if (diagonale.x > diagonale.y && diagonale.x > diagonale.z) {
-		return 0;
+		return Axe::X;
 	}
 
 	if (diagonale.y > diagonale.z) {
-		return 1;
+		return Axe::Y;
 	}
 
-	return 2;
+	return Axe::Z;
 }
 
 dls::math::vec3d BoiteEnglobante::decalage(dls::math::point3d const &point)
@@ -112,6 +117,8 @@ BoiteEnglobante unie(BoiteEnglobante const &boite, dls::math::point3d const &poi
 		resultat.max[i] = std::max(boite.max[i], point[i]);
 	}
 
+	resultat.centroide = (resultat.min + resultat.max) * 0.5;
+
 	return resultat;
 }
 
@@ -123,6 +130,8 @@ BoiteEnglobante unie(BoiteEnglobante const &boite1, BoiteEnglobante const &boite
 		resultat.min[i] = std::min(boite1.min[i], boite2.min[i]);
 		resultat.max[i] = std::max(boite1.max[i], boite2.max[i]);
 	}
+
+	resultat.centroide = (resultat.min + resultat.max) * 0.5;
 
 	return resultat;
 }

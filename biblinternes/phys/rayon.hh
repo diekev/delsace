@@ -68,4 +68,44 @@ using rayond = rayon<double>;
 using esectf = entresection<float>;
 using esectd = entresection<double>;
 
+/**
+ * Performe un test d'entresection rapide entre le rayon et les bornes d'une
+ * boite englobante.
+ *
+ * Algorithme issu de
+ * https://tavianator.com/fast-branchless-raybounding-box-entresections-part-2-nans/
+ */
+template <typename T>
+auto entresection_rapide_min_max(
+		rayon<T> const &r,
+		math::point3<T> const &min,
+		math::point3<T> const &max)
+{
+	if (r.origine >= min && r.origine <= max) {
+		return static_cast<T>(0.0);
+	}
+
+	auto t1 = (min[0] - r.origine[0]) * r.direction_inverse[0];
+	auto t2 = (max[0] - r.origine[0]) * r.direction_inverse[0];
+
+	auto tmin = std::min(t1, t2);
+	auto tmax = std::max(t1, t2);
+
+	for (size_t i = 1; i < 3; ++i) {
+		t1 = (min[i] - r.origine[i]) * r.direction_inverse[i];
+		t2 = (max[i] - r.origine[i]) * r.direction_inverse[i];
+
+		tmin = std::max(tmin, std::min(t1, t2));
+		tmax = std::min(tmax, std::max(t1, t2));
+	}
+
+	/* pour retourner une valeur booléenne : return tmax > std::max(tmin, 0.0); */
+
+	if (tmax < static_cast<T>(0.0) || tmin > tmax) {
+		return static_cast<T>(-1.0);
+	}
+
+	return tmin;
+}
+
 }  /* namespace dls::phys */

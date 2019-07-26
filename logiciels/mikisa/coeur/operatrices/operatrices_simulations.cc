@@ -460,6 +460,7 @@ public:
 				rayon_part.direction.x = static_cast<double>(dir.x);
 				rayon_part.direction.y = static_cast<double>(dir.y);
 				rayon_part.direction.z = static_cast<double>(dir.z);
+				rayon_part.direction_inverse = 1.0 / rayon_part.direction;
 
 				auto accumulatrice = AccumulatriceTraverse(rayon_part.origine);
 				traverse(arbre_hbe, delegue_prims, rayon_part, accumulatrice);

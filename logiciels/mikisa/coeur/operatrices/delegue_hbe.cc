@@ -37,12 +37,12 @@ long DeleguePrim::nombre_elements() const
 	return m_corps.prims()->taille();
 }
 
-BoiteEngl DeleguePrim::boite_englobante(long idx) const
+BoiteEnglobante DeleguePrim::boite_englobante(long idx) const
 {
 	auto prim = m_corps.prims()->prim(idx);
 	auto poly = dynamic_cast<Polygone *>(prim);
 
-	auto boite = BoiteEngl{};
+	auto boite = BoiteEnglobante{};
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
 		auto p = m_corps.point_transforme(poly->index_point(i));
