@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,37 +24,48 @@
 
 #pragma once
 
-#include "biblinternes/langage/erreur.hh"
 #include "biblinternes/structures/chaine.hh"
 
-#include "morceaux.hh"
+namespace dls {
+struct flux_chaine;
+}
 
-struct DonneesType;
+namespace lng::erreur {
 
-struct DonneesMorceaux;
-struct ContexteGenerationCode;
+template <typename type_erreur>
+class frappe {
+	dls::chaine m_message;
+	type_erreur m_type;
 
-namespace erreur {
+public:
+	frappe(const char *message, type_erreur type)
+		: m_message(message)
+		, m_type(type)
+	{}
 
-enum class type_erreur : int {
-	NORMAL,
-	DECOUPAGE,
+	type_erreur type() const
+	{
+		return m_type;
+	}
 
-	AUCUNE_ERREUR,
+	const char *message() const
+	{
+		return m_message.c_str();
+	}
 };
 
-using frappe = lng::erreur::frappe<type_erreur>;
+/* Fonctions communes de formattage d'erreurs. */
 
-[[noreturn]] void lance_erreur(const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
-		type_erreur type = type_erreur::NORMAL);
+void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine);
 
-[[noreturn]] void lance_erreur_plage(
-		const dls::chaine &quoi,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &premier_morceau,
-		const DonneesMorceaux &dernier_morceau,
-		type_erreur type = type_erreur::NORMAL);
+void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine);
 
-}
+void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine, long debut, long fin);
+
+void imprime_ligne_entre(
+		dls::flux_chaine &os,
+		const dls::vue_chaine &chaine,
+		long debut,
+		long fin);
+
+}  /* namespace lng::erreur */

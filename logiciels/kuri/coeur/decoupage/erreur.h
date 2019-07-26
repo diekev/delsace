@@ -27,6 +27,8 @@
 #include "modules.hh"
 #include "morceaux.hh"
 
+#include "biblinternes/langage/erreur.hh"
+
 class DonneesType;
 
 struct DonneesMorceaux;
@@ -61,17 +63,7 @@ enum class type_erreur : int {
 	AUCUNE_ERREUR,
 };
 
-class frappe {
-	dls::chaine m_message;
-	type_erreur m_type;
-
-public:
-	frappe(const char *message, type_erreur type);
-
-	type_erreur type() const;
-
-	const char *message() const;
-};
+using frappe = lng::erreur::frappe<type_erreur>;
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/langage/erreur.hh"
 #include "biblinternes/structures/chaine.hh"
 
 #include "modules.hh"
@@ -45,17 +46,7 @@ enum class type_erreur : int {
 	AUCUNE_ERREUR,
 };
 
-class frappe {
-	dls::chaine m_message;
-	type_erreur m_type;
-
-public:
-	frappe(const char *message, type_erreur type);
-
-	type_erreur type() const;
-
-	const char *message() const;
-};
+using frappe = lng::erreur::frappe<type_erreur>;
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,

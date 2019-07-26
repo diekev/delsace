@@ -24,8 +24,6 @@
 
 #include "erreur.h"
 
-#include "biblinternes/langage/unicode.hh"
-
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
@@ -33,64 +31,6 @@
 #include "morceaux.hh"
 
 namespace erreur {
-
-frappe::frappe(const char *message, type_erreur type)
-	: m_message(message)
-	, m_type(type)
-{}
-
-type_erreur frappe::type() const
-{
-	return m_type;
-}
-
-const char *frappe::message() const
-{
-	return m_message.c_str();
-}
-
-static void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine)
-{
-	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
-	 * de chaque point de code pour bien formater l'erreur. */
-	for (auto i = 0l; i < std::min(nombre, chaine.taille());) {
-		if (chaine[i] == '\t') {
-			os << '\t';
-		}
-		else {
-			os << ' ';
-		}
-
-		i += lng::decalage_pour_caractere(chaine, i);
-	}
-}
-
-static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine)
-{
-	for (auto i = 0l; i < chaine.taille() - 1;) {
-		os << '~';
-		i += lng::decalage_pour_caractere(chaine, i);
-	}
-}
-
-static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine, long debut, long fin)
-{
-	for (auto i = debut; i < fin;) {
-		os << '~';
-		i += lng::decalage_pour_caractere(chaine, i);
-	}
-}
-
-static void imprime_ligne_entre(
-		dls::flux_chaine &os,
-		const dls::vue_chaine &chaine,
-		long debut,
-		long fin)
-{
-	for (auto i = debut; i < fin; ++i) {
-		os << chaine[i];
-	}
-}
 
 void lance_erreur(
 		const dls::chaine &quoi,
@@ -110,9 +50,9 @@ void lance_erreur(
 	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
-	imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
 	ss << '^';
-	imprime_tilde(ss, chaine);
+	lng::erreur::imprime_tilde(ss, chaine);
 	ss << '\n';
 
 	ss << quoi;
@@ -139,9 +79,9 @@ void lance_erreur_plage(
 	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
-	imprime_caractere_vide(ss, pos_premier, ligne_courante);
+	lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
 	ss << '^';
-	imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
+	lng::erreur::imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
 	ss << '\n';
 
 	ss << quoi;
@@ -167,9 +107,9 @@ void lance_erreur_plage(
 	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, pos_mot, ligne);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	imprime_tilde(ss, morceau_enfant.chaine);
+	lng::erreur::imprime_tilde(ss, morceau_enfant.chaine);
 	ss << '\n';
 
 	ss << "Le type de l'argument '" << morceau_enfant.chaine << "' ne correspond pas à celui requis !\n";
@@ -179,9 +119,9 @@ void lance_erreur_plage(
 	ss << "Astuce :\n";
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
-	imprime_ligne_entre(ss, ligne, 0, pos_mot);
+	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
 	ss << "transtype(" << morceau_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
-	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
+	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
@@ -205,9 +145,9 @@ void lance_erreur_plage(
 	ss << "Dans l'expression de '" << morceau.chaine << "':\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, pos_mot, ligne);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	imprime_tilde(ss, morceau_enfant.chaine);
+	lng::erreur::imprime_tilde(ss, morceau_enfant.chaine);
 	ss << '\n';
 
 	ss << "Le type de '" << morceau_enfant.chaine << "' ne correspond pas à celui requis !\n";
@@ -217,9 +157,9 @@ void lance_erreur_plage(
 	ss << "Astuce :\n";
 	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
 
-	imprime_ligne_entre(ss, ligne, 0, pos_mot);
+	lng::erreur::imprime_ligne_entre(ss, ligne, 0, pos_mot);
 	ss << "transtype(" << morceau_enfant.chaine << " : " << chaine_type(type_arg, contexte) << ")";
-	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
+	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
@@ -240,9 +180,9 @@ void lance_erreur_plage(
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, pos_mot, ligne);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
+	lng::erreur::imprime_tilde(ss, morceau.chaine);
 	ss << '\n';
 
 	ss << "Ne peut pas assigner des types différents !\n";
@@ -267,9 +207,9 @@ void lance_erreur_type_operation(
 	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, pos_mot, ligne);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
+	lng::erreur::imprime_tilde(ss, morceau.chaine);
 	ss << '\n';
 
 	ss << "Les types de l'opération sont différents !\n";
@@ -297,9 +237,9 @@ void lance_erreur_fonction_inconnue(
 	ss << "\nDans l'appel de la fonction '" << b->morceau.chaine << "'\n";
 	ss << ligne;
 
-	imprime_caractere_vide(ss, pos_mot, ligne);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
 	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
+	lng::erreur::imprime_tilde(ss, morceau.chaine);
 	ss << '\n';
 
 	if (candidates.est_vide()) {

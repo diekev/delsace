@@ -25,48 +25,11 @@
 #include "erreur.hh"
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/langage/unicode.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "morceaux.hh"
 
 namespace erreur {
-
-frappe::frappe(const char *message, int type)
-	: m_message(message)
-	, m_type(type)
-{}
-
-int frappe::type() const
-{
-	return m_type;
-}
-
-const char *frappe::message() const
-{
-	return m_message.c_str();
-}
-
-static void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine)
-{
-	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
-	 * de chaque point de code pour bien formater l'erreur. */
-	for (auto i = 0; i < nombre; i += lng::nombre_octets(&chaine[i])) {
-		if (chaine[i] == '\t') {
-			os << '\t';
-		}
-		else {
-			os << ' ';
-		}
-	}
-}
-
-static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine)
-{
-	for (auto i = 0; i < chaine.taille() - 1; i += lng::nombre_octets(&chaine[i])) {
-		os << '~';
-	}
-}
 
 void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, const DonneesMorceaux &morceau, int type)
 {
@@ -81,9 +44,9 @@ void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, con
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
-	imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
 	ss << '^';
-	imprime_tilde(ss, chaine);
+	lng::erreur::imprime_tilde(ss, chaine);
 	ss << '\n';
 
 	ss << quoi;

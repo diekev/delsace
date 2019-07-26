@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/langage/erreur.hh"
 #include "biblinternes/structures/chaine.hh"
 
 struct DonneesMorceaux;
@@ -40,17 +41,7 @@ enum {
 	AUCUNE_ERREUR,
 };
 
-class frappe {
-	dls::chaine m_message;
-	int m_type;
-
-public:
-	frappe(const char *message, int type);
-
-	int type() const;
-
-	const char *message() const;
-};
+using frappe = lng::erreur::frappe<int>;
 
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
