@@ -31,6 +31,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	decoupage_parcer
 	stdc++fs
+	bib_outils
 )
 
 add_executable(${NOM_PROJET}

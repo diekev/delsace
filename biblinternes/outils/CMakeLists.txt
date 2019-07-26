@@ -37,6 +37,7 @@ set(ENTETES
 	conditions.h
 	definitions.h
 	fichier.hh
+	format.hh
 	gna.hh
 	garde_portee.h
 	iterateurs.h
@@ -48,6 +49,7 @@ set(SOURCES
 	chaine.cc
 	chemin.cc
 	fichier.cc
+	format.cc
 	gna.cc
 	garde_portee.cc
 	iterateurs.cc

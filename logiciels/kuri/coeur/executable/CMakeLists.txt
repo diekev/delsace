@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	kuri_decoupage
 	stdc++fs
+	bib_outils
 )
 
 add_executable(kuri

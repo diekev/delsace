@@ -60,6 +60,7 @@
 #include "decoupage/modules.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/format.hh"
 
 static const char *options =
 R"(kuri [OPTIONS...] FICHIER
@@ -336,102 +337,7 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 
 	return true;
 }
-#endif
 
-struct temps_seconde {
-	double valeur;
-
-	explicit temps_seconde(double v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const temps_seconde &t)
-{
-	auto valeur = static_cast<int>(t.valeur * 1000);
-
-	if (valeur < 1) {
-		valeur = static_cast<int>(t.valeur * 1000000);
-		if (valeur < 10) {
-			os << ' ' << ' ' << ' ';
-		}
-		else if (valeur < 100) {
-			os << ' ' << ' ';
-		}
-		else if (valeur < 1000) {
-			os << ' ';
-		}
-
-		os << valeur << "ns";
-	}
-	else {
-		if (valeur < 10) {
-			os << ' ' << ' ' << ' ';
-		}
-		else if (valeur < 100) {
-			os << ' ' << ' ';
-		}
-		else if (valeur < 1000) {
-			os << ' ';
-		}
-
-		os << valeur << "ms";
-	}
-
-	return os;
-}
-
-struct pourcentage {
-	double valeur;
-
-	explicit pourcentage(double v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const pourcentage &p)
-{
-	auto const valeur = static_cast<int>(p.valeur * 100) / 100.0;
-
-	if (valeur < 10) {
-		os << ' ' << ' ';
-	}
-	else if (valeur < 100) {
-		os << ' ';
-	}
-
-	os << valeur << "%";
-
-	return os;
-}
-
-struct taille_octet {
-	size_t valeur;
-
-	explicit taille_octet(size_t v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
-{
-	if (taille.valeur > (1024 * 1024 * 1024)) {
-		os << (taille.valeur / (1024 * 1024 * 1024)) << "Go";
-	}
-	else if (taille.valeur > (1024 * 1024)) {
-		os << (taille.valeur / (1024 * 1024)) << "Mo";
-	}
-	else if (taille.valeur > 1024) {
-		os << (taille.valeur / 1024) << "Ko";
-	}
-	else {
-		os << (taille.valeur) << "o";
-	}
-
-	return os;
-}
-
-#ifdef AVEC_LLVM
 static void cree_executable(const std::filesystem::path &dest, const std::filesystem::path &racine_kuri)
 {
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
