@@ -30,6 +30,8 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
+#include "corps/volume.hh"
+
 #ifdef WITH_ARIEL
 #include "ariel/geom/cubegen.hpp"
 #include "ariel/sim/flip.hpp"
@@ -40,120 +42,11 @@
 
 /* ************************************************************************** */
 
+#if 0
 struct Particule {
 	dls::math::vec3f pos{};
 	dls::math::vec3f vel{};
 	dls::math::vec3f vel_pic{};
-};
-
-template <typename T>
-class Grille {
-	dls::tableau<T> m_donnees = {};
-
-	dls::math::vec3<size_t> m_res = dls::math::vec3<size_t>(0ul, 0ul, 0ul);
-	size_t m_nombre_voxels = 0;
-
-	T m_arriere_plan = T(0);
-
-	size_t calcul_index(size_t x, size_t y, size_t z) const
-	{
-		return x + (y + z * m_res[1]) * m_res[0];
-	}
-
-	bool hors_des_limites(size_t x, size_t y, size_t z) const
-	{
-		if (x >= m_res[0]) {
-			return true;
-		}
-
-		if (y >= m_res[1]) {
-			return true;
-		}
-
-		if (z >= m_res[2]) {
-			return true;
-		}
-
-		return false;
-	}
-
-public:
-	Grille() = default;
-
-	void initialise(size_t res_x, size_t res_y, size_t res_z)
-	{
-		m_res[0] = res_x;
-		m_res[1] = res_y;
-		m_res[2] = res_z;
-
-		m_nombre_voxels = res_x * res_y * res_z;
-
-		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels));
-		std::fill(m_donnees.debut(), m_donnees.fin(), T(0));
-	}
-
-	dls::math::vec3<size_t> resolution() const
-	{
-		return m_res;
-	}
-
-	T valeur(size_t index) const
-	{
-		if (index >= m_nombre_voxels) {
-			return m_arriere_plan;
-		}
-
-		return m_donnees[index];
-	}
-
-	T valeur(size_t x, size_t y, size_t z) const
-	{
-		if (hors_des_limites(x, y, z)) {
-			return m_arriere_plan;
-		}
-
-		return m_donnees[calcul_index(x, y, z)];
-	}
-
-	void valeur(size_t index, T v)
-	{
-		if (index >= m_nombre_voxels) {
-			return;
-		}
-
-		m_donnees[index] = v;
-	}
-
-	void valeur(size_t x, size_t y, size_t z, T v)
-	{
-		if (hors_des_limites(x, y, z)) {
-			return;
-		}
-
-		m_donnees[calcul_index(x, y, z)] = v;
-	}
-
-	void copie(Grille<T> const &grille)
-	{
-		for (size_t i = 0; i < m_nombre_voxels; ++i) {
-			m_donnees[i] = grille.m_donnees[i];
-		}
-	}
-
-	void arriere_plan(T const &v)
-	{
-		m_arriere_plan = v;
-	}
-
-	void *donnees() const
-	{
-		return m_donnees.donnees();
-	}
-
-	size_t taille_octet() const
-	{
-		return m_nombre_voxels * sizeof(T);
-	}
 };
 
 class GrilleParticule {
@@ -389,6 +282,7 @@ void cree_particules_source(Fluide *fluide, size_t nombre)
 		}
 	}
 }
+#endif
 
 class OperatriceAriel final : public OperatriceCorps {
 #ifdef WITH_ARIEL
@@ -397,7 +291,7 @@ class OperatriceAriel final : public OperatriceCorps {
 	objCore::Obj geom_ariel = objCore::Obj{};
 #endif
 
-	Fluide m_fluide{};
+	//Fluide m_fluide{};
 
 public:
 	static constexpr auto NOM = "Ariel";
@@ -446,6 +340,7 @@ public:
 	{
 		m_corps.reinitialise();
 
+#if 0
 		/* paramètres */
 		//auto densite = 0.5f;
 		auto dimensions = dls::math::vec3i(32);
@@ -473,7 +368,7 @@ public:
 		/* visualise domaine */
 		dessine_boite(m_corps, attr_C, m_fluide.min, m_fluide.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 		dessine_boite(m_corps, attr_C, m_fluide.min, m_fluide.min + m_fluide.taille_voxel, dls::math::vec3f(0.0f, 1.0f, 0.0f));
-
+#endif
 		return EXECUTION_REUSSIE;
 	}
 
