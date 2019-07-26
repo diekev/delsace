@@ -97,7 +97,6 @@ add_library(${NOM_CIBLE} STATIC
 	evaluation/plan.hh
 	evaluation/reseau.hh
 
-	operatrices/arbre_bvh.hh
 	operatrices/arbre_hbe.hh
 	operatrices/arbre_octernaire.hh
 	operatrices/courbure.hh
@@ -175,7 +174,6 @@ add_library(${NOM_CIBLE} STATIC
 	evaluation/plan.cc
 	evaluation/reseau.cc
 
-	operatrices/arbre_bvh.cc
 	operatrices/arbre_hbe.cc
 	operatrices/arbre_octernaire.cc
 	operatrices/courbure.cc

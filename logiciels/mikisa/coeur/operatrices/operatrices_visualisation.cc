@@ -29,7 +29,6 @@
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
-#include "arbre_bvh.hh"
 #include "arbre_hbe.hh"
 #include "arbre_octernaire.hh"
 #include "delegue_hbe.hh"
