@@ -151,10 +151,7 @@ void BSDFReflectance::genere_echantillon(GNA &gna, ParametresRendu const &parame
 	rayon_local.origine = contexte.P + contexte.N * 1e-4;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
-
-	for (size_t i = 0; i < 3; ++i) {
-		rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
-	}
+	calcul_direction_inverse(rayon_local);
 
 	L = 0.8f * calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 }
@@ -197,20 +194,14 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 	/* Calcul la réfraction s'il n'y a pas un cas de réflection interne totale. */
 	if (kr <= gna.nombre_aleatoire()) {
 		rayon_local.direction = normalise(refracte(rayon.direction, contexte.N, index_refraction));
-
-		for (auto i = 0ul; i < 3; ++i) {
-			rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
-		}
+		calcul_direction_inverse(rayon_local);
 
 		L = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 		return;
 	}
 
 	rayon_local.direction = normalise(reflechi(rayon.direction, contexte.N));
-
-	for (auto i = 0ul; i < 3; ++i) {
-		rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
-	}
+	calcul_direction_inverse(rayon_local);
 
 	L = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 #else
@@ -231,10 +222,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 		rayon_local.origine = refractionRayOrig;
 		rayon_local.distance_min = rayon.distance_min;
 		rayon_local.distance_max = rayon.distance_max;
-
-		for (size_t i = 0; i < 3; ++i) {
-			rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
-		}
+		calcul_direction_inverse(rayon_local);
 
 		refractionColor = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 	}
@@ -244,10 +232,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 	rayon_local.origine = contexte.P + bias;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
-
-	for (size_t i = 0; i < 3; ++i) {
-		rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
-	}
+	calcul_direction_inverse(rayon_local);
 
 	auto reflectionColor = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 

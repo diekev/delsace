@@ -377,10 +377,7 @@ Rayon Camera3D::genere_rayon(EchantillonCamera const &echantillon) const
 	Rayon r;
 	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
 	r.direction = dls::math::vec3d(direction.x, direction.y, direction.z);
-
-	for (int i = 0; i < 3; ++i) {
-		r.direction_inverse[i] = 1.0 / r.direction[i];
-	}
+	calcul_direction_inverse(r);
 
 	r.distance_min = 0.0;
 	r.distance_max = INFINITE;
@@ -592,10 +589,7 @@ Rayon CameraPerspective::genere_rayon(EchantillonCamera const &echantillon) cons
 
 	m_camera_vers_monde(rayon.origine, &rayon.origine);
 	m_camera_vers_monde(rayon.direction, &rayon.direction);
-
-	for (int i = 0; i < 3; ++i) {
-		rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
-	}
+	calcul_direction_inverse(rayon);
 
 	return rayon;
 }

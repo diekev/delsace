@@ -200,7 +200,7 @@ public:
 
 				rayon.direction = dls::math::vec3d(0.0);
 				rayon.direction[axis] = 1.0;
-				rayon.direction_inverse = 1.0 / rayon.direction;
+				calcul_direction_inverse(rayon);
 
 				auto accumulatrice = AccumulatriceTraverse(rayon.origine);
 				traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);

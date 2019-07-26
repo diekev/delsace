@@ -228,10 +228,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 			}
 
 			rayon.direction = direction_op;
-
-			for (size_t i = 0; i < 3; ++i) {
-				rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
-			}
+			calcul_direction_inverse(rayon);
 
 			auto const ombre = ombre_scene(parametres, scene, rayon, 1000.0);
 
@@ -259,10 +256,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 			}
 
 			rayon.direction = direction_op;
-
-			for (size_t i = 0; i < 3; ++i) {
-				rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
-			}
+			calcul_direction_inverse(rayon);
 
 			auto const ombre = ombre_scene(parametres, scene, rayon, dist2);
 
@@ -281,9 +275,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 	auto const posv = dls::math::vec3d(pos.x, pos.y, pos.z); /* XXX - PAS BEAU. */
 	auto const direction = dls::math::normalise(point - posv);
 	rayon.direction = direction;
-	for (size_t i = 0; i < 3; ++i) {
-		rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
-	}
+	calcul_direction_inverse(rayon);
 	spectre += spectre_monde(scene.monde, direction) * static_cast<float>(ombre_scene(parametres, scene, rayon, 1000.0));
 
 	return spectre;

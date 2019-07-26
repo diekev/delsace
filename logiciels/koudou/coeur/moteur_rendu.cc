@@ -70,10 +70,7 @@ static dls::phys::rayond genere_rayon(vision::Camera3D *camera, vision::Echantil
 	dls::phys::rayond r;
 	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
 	r.direction = dls::math::vec3d(direction.x, direction.y, direction.z);
-
-	for (size_t i = 0; i < 3; ++i) {
-		r.direction_inverse[i] = 1.0 / r.direction[i];
-	}
+	calcul_direction_inverse(r);
 
 	r.distance_min = 0.0;
 	r.distance_max = constantes<double>::INFINITE;
@@ -160,9 +157,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 			break;
 		}
 
-		for (size_t j = 0; j < 3; ++j) {
-			rayon_local.direction_inverse[j] = 1.0 / rayon_local.direction[j];
-		}
+		calcul_direction_inverse(rayon_local);
 	}
 
 	return spectre_pixel;

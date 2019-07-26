@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/math/vecteur.hh"
 
 namespace dls::phys {
@@ -40,6 +41,20 @@ struct rayon {
 	/* Pour les moteurs de rendu afin d'entrepoler les flous de mouvement. */
 	T temps = 0;
 };
+
+/**
+ * NOTE : pour certains algorithmes, comme l'entresection de boites englobantes
+ * plus bas, nous utilisons les propriétés des NaNs pour économiser certaines
+ * vérifications ; donc nous performons la division sans vérifier si la
+ * direction est égale à 0.
+ */
+template <typename T>
+inline void calcul_direction_inverse(rayon<T> &r)
+{
+	for (size_t j = 0; j < 3; ++j) {
+		r.direction_inverse[j] = 1.0 / r.direction[j];
+	}
+}
 
 template <typename T>
 struct entresection {
