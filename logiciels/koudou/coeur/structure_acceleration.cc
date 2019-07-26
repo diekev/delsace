@@ -25,6 +25,7 @@
 #include "structure_acceleration.h"
 
 #include "biblinternes/math/boite_englobante.hh"
+#include "biblinternes/phys/collision.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "maillage.h"
@@ -37,8 +38,8 @@ static void entresecte_triangles_maillage(
 		Maillage const &maillage,
 		long index,
 		double distance_maximale,
-		Rayon const &rayon,
-		Entresection &entresection)
+		dls::phys::rayond const &rayon,
+		dls::phys::esectd &entresection)
 {
 	auto index_triangle = 0l;
 
@@ -48,16 +49,19 @@ static void entresecte_triangles_maillage(
 #endif
 		auto distance = distance_maximale;
 
-		if (entresecte_triangle(*triangle, rayon, distance)) {
+		auto v0 = dls::math::point3d(triangle->v0);
+		auto v1 = dls::math::point3d(triangle->v1);
+		auto v2 = dls::math::point3d(triangle->v2);
+
+		if (entresecte_triangle(v0, v1, v2, rayon, distance)) {
 #ifdef STATISTIQUES
 			statistiques.nombre_entresections_triangles.fetch_add(1, std::memory_order_relaxed);
 #endif
 			if (distance > 0.0 && distance < entresection.distance) {
-				entresection.id = index;
-				entresection.id_triangle = index_triangle;
+				entresection.idx_objet = index;
+				entresection.idx = index_triangle;
 				entresection.distance = distance;
-				entresection.type_objet = OBJET_TYPE_TRIANGLE;
-				entresection.maillage = &maillage;
+				entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
 			}
 		}
 
@@ -68,17 +72,17 @@ static void entresecte_triangles_maillage(
 /* Algorithme issu de
  * https://tavianator.com/fast-branchless-raybounding-box-entresections-part-2-nans/
  */
-static bool entresecte_boite(BoiteEnglobante const &boite, Rayon const &rayon)
+static bool entresecte_boite(BoiteEnglobante const &boite, dls::phys::rayond const &rayon)
 {
-	auto t1 = (boite.min[0] - rayon.origine[0]) * rayon.inverse_direction[0];
-	auto t2 = (boite.max[0] - rayon.origine[0]) * rayon.inverse_direction[0];
+	auto t1 = (boite.min[0] - rayon.origine[0]) * rayon.direction_inverse[0];
+	auto t2 = (boite.max[0] - rayon.origine[0]) * rayon.direction_inverse[0];
 
 	auto tmin = std::min(t1, t2);
 	auto tmax = std::max(t1, t2);
 
 	for (size_t i = 1; i < 3; ++i) {
-		t1 = (boite.min[i] - rayon.origine[i]) * rayon.inverse_direction[i];
-		t2 = (boite.max[i] - rayon.origine[i]) * rayon.inverse_direction[i];
+		t1 = (boite.min[i] - rayon.origine[i]) * rayon.direction_inverse[i];
+		t2 = (boite.max[i] - rayon.origine[i]) * rayon.direction_inverse[i];
 
 		tmin = std::max(tmin, std::min(t1, t2));
 		tmax = std::min(tmax, std::max(t1, t2));
@@ -87,16 +91,16 @@ static bool entresecte_boite(BoiteEnglobante const &boite, Rayon const &rayon)
 	return tmax > std::max(tmin, 0.0);
 }
 
-Entresection StructureAcceleration::entresecte(
+dls::phys::esectd StructureAcceleration::entresecte(
 		Scene const &scene,
-		Rayon const &rayon,
+		dls::phys::rayond const &rayon,
 		double distance_maximale) const
 {
 	auto index = 0l;
-	auto entresection = Entresection();
+	auto entresection = dls::phys::esectd();
 	entresection.distance = distance_maximale;
 
-	Rayon rayon_local;
+	dls::phys::rayond rayon_local;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
 	rayon_local.temps = rayon.temps;
@@ -140,7 +144,7 @@ VolumeEnglobant::Etendue::Etendue()
 	}
 }
 
-bool VolumeEnglobant::Etendue::entresecte(Rayon const &rayon,
+bool VolumeEnglobant::Etendue::entresecte(dls::phys::rayond const &rayon,
 		double *numerateur_precalcule,
 		double *denominateur_precalcule,
 		double &d_proche,
@@ -186,21 +190,21 @@ void VolumeEnglobant::construit(Scene const &scene)
 	}
 }
 
-Entresection VolumeEnglobant::entresecte(
+dls::phys::esectd VolumeEnglobant::entresecte(
 		Scene const &scene,
-		Rayon const &rayon,
+		dls::phys::rayond const &rayon,
 		double distance_maximale) const
 {
 	double numerateur_precalcule[NOMBRE_NORMAUX_PLAN];
 	double denominateur_precalcule[NOMBRE_NORMAUX_PLAN];
 
-	Rayon rayon_local;
+	dls::phys::rayond rayon_local;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
 	rayon_local.temps = rayon.temps;
 
 	auto index = 0l;
-	auto entresection = Entresection();
+	auto entresection = dls::phys::esectd();
 	entresection.distance = distance_maximale;
 
 	for (Maillage *maillage : scene.maillages) {

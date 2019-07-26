@@ -26,6 +26,7 @@
 
 #include "types.h"
 
+#include "biblinternes/phys/rayon.hh"
 #include "biblinternes/structures/tableau.hh"
 
 class Scene;
@@ -36,7 +37,7 @@ class StructureAcceleration {
 public:
 	virtual ~StructureAcceleration() = default;
 
-	virtual Entresection entresecte(Scene const &scene, Rayon const &rayon, double distance_maximale) const;
+	virtual dls::phys::esectd entresecte(Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale) const;
 };
 
 /* ************************************************************************** */
@@ -52,7 +53,7 @@ class VolumeEnglobant final : public StructureAcceleration {
 
 		double d[NOMBRE_NORMAUX_PLAN][2];
 
-		bool entresecte(Rayon const &rayon, double *numerateur_precalcule, double *denominateur_precalcule, double &d_proche, double &d_eloigne, uint8_t &index_plan) const;
+		bool entresecte(dls::phys::rayond const &rayon, double *numerateur_precalcule, double *denominateur_precalcule, double &d_proche, double &d_eloigne, uint8_t &index_plan) const;
 	};
 
 	dls::tableau<Etendue> m_etendues{};
@@ -60,5 +61,5 @@ class VolumeEnglobant final : public StructureAcceleration {
 public:
 	void construit(Scene const &scene);
 
-	Entresection entresecte(Scene const &scene, Rayon const &rayon, double distance_maximale) const override;
+	dls::phys::esectd entresecte(Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale) const override;
 };

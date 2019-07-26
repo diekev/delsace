@@ -27,6 +27,7 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/phys/rayon.hh"
 
 #include "koudou.h"
 #include "moteur_rendu.h"
@@ -145,14 +146,14 @@ void BSDFReflectance::genere_echantillon(GNA &gna, ParametresRendu const &parame
 	auto const &rayon = contexte.rayon;
 	auto const &R = reflechi(rayon.direction, contexte.N);
 
-	Rayon rayon_local;
+	dls::phys::rayond rayon_local;
 	rayon_local.direction = R;
 	rayon_local.origine = contexte.P + contexte.N * 1e-4;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
 
 	for (size_t i = 0; i < 3; ++i) {
-		rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
+		rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
 	}
 
 	L = 0.8f * calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
@@ -188,7 +189,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 	auto outside = produit_scalaire(rayon.direction, contexte.N) < 0;
 	auto bias = outside ? -1e-4 * contexte.N : 1e-4 * contexte.N;
 
-	Rayon rayon_local;
+	dls::phys::rayond rayon_local;
 	rayon_local.origine = contexte.P + bias;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
@@ -198,7 +199,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 		rayon_local.direction = normalise(refracte(rayon.direction, contexte.N, index_refraction));
 
 		for (auto i = 0ul; i < 3; ++i) {
-			rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
+			rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
 		}
 
 		L = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
@@ -208,7 +209,7 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 	rayon_local.direction = normalise(reflechi(rayon.direction, contexte.N));
 
 	for (auto i = 0ul; i < 3; ++i) {
-		rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
+		rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
 	}
 
 	L = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
@@ -225,27 +226,27 @@ void BSDFVerre::genere_echantillon(GNA &gna, ParametresRendu const &parametres, 
 		auto refractionDirection = normalise(refracte(rayon.direction, contexte.N, index_refraction));
 		auto refractionRayOrig = contexte.P + bias;
 
-		Rayon rayon_local;
+		dls::phys::rayond rayon_local;
 		rayon_local.direction = refractionDirection;
 		rayon_local.origine = refractionRayOrig;
 		rayon_local.distance_min = rayon.distance_min;
 		rayon_local.distance_max = rayon.distance_max;
 
 		for (size_t i = 0; i < 3; ++i) {
-			rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
+			rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
 		}
 
 		refractionColor = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
 	}
 
-	Rayon rayon_local;
+	dls::phys::rayond rayon_local;
 	rayon_local.direction = normalise(reflechi(rayon.direction, contexte.N));
 	rayon_local.origine = contexte.P + bias;
 	rayon_local.distance_min = rayon.distance_min;
 	rayon_local.distance_max = rayon.distance_max;
 
 	for (size_t i = 0; i < 3; ++i) {
-		rayon_local.inverse_direction[i] = 1.0 / rayon_local.direction[i];
+		rayon_local.direction_inverse[i] = 1.0 / rayon_local.direction[i];
 	}
 
 	auto reflectionColor = calcul_spectre(gna, parametres, rayon_local, profondeur + 1);
@@ -284,7 +285,7 @@ void BSDFVolume::genere_echantillon(GNA &gna, ParametresRendu const &parametres,
 
 	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
 
-	if (isect.type_objet == OBJET_TYPE_AUCUN) {
+	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		L = Spectre(0.0);
 		return;
 	}

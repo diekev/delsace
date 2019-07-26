@@ -33,7 +33,6 @@ set(BIBLIOTHEQUES
 add_library(${NOM_CIBLE} STATIC
     adaptrice_creation_corps.cc
 	attribut.cc
-    collision.cc
     corps.cc
     groupes.cc
     iteration_corps.cc
@@ -44,7 +43,6 @@ add_library(${NOM_CIBLE} STATIC
 
     adaptrice_creation_corps.h
 	attribut.h
-    collision.hh
     corps.h
     groupes.h
     iteration_corps.hh

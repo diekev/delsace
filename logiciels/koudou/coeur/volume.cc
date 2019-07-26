@@ -45,14 +45,14 @@ VolumeLoiBeers::VolumeLoiBeers(ContexteNuancage &ctx)
 	: Volume(ctx)
 {}
 
-bool VolumeLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo)
+bool VolumeLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo)
 {
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
 	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
 
-	if (isect.type_objet == OBJET_TYPE_AUCUN) {
+	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
 	}
 
@@ -84,14 +84,14 @@ VolumeHeterogeneLoiBeers::VolumeHeterogeneLoiBeers(ContexteNuancage &ctx)
 	: Volume(ctx)
 {}
 
-bool VolumeHeterogeneLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, Rayon &wo)
+bool VolumeHeterogeneLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo)
 {
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
 	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
 
-	if (isect.type_objet == OBJET_TYPE_AUCUN) {
+	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
 	}
 
@@ -159,14 +159,14 @@ bool VolumeDiffusionSimple::integre(
 		Spectre &L,
 		Spectre &tr,
 		Spectre &poids,
-		Rayon &wo)
+		dls::phys::rayond &wo)
 {
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
 	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
 
-	if (isect.type_objet == OBJET_TYPE_AUCUN) {
+	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
 	}
 
@@ -244,14 +244,14 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 		Spectre &L,
 		Spectre &tr,
 		Spectre &poids,
-		Rayon &wo)
+		dls::phys::rayond &wo)
 {
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
 	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
 
-	if (isect.type_objet == OBJET_TYPE_AUCUN) {
+	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
 	}
 

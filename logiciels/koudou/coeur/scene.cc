@@ -170,29 +170,29 @@ void Scene::ajoute_lumiere(Lumiere *lumiere)
 
 /* ************************************************************************** */
 
-dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, Entresection const &entresection)
+dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, dls::phys::esectd const &entresection)
 {
-	switch (entresection.type_objet) {
+	switch (entresection.type) {
 		default:
-		case OBJET_TYPE_AUCUN:
-		case OBJET_TYPE_LUMIERE:
+		case ESECT_OBJET_TYPE_AUCUN:
+		case ESECT_OBJET_TYPE_LUMIERE:
 		{
 			return dls::math::vec3d(0.0);
 		}
-		case OBJET_TYPE_TRIANGLE:
+		case ESECT_OBJET_TYPE_TRIANGLE:
 		{
-			auto maillage = scene.maillages[entresection.id];
-			auto triangle = maillage->begin() + static_cast<long int>(entresection.id_triangle);
+			auto maillage = scene.maillages[entresection.idx_objet];
+			auto triangle = maillage->begin() + static_cast<long int>(entresection.idx);
 			return (*triangle)->normal;
 		}
 	}
 }
 
-double ombre_scene(ParametresRendu const &parametres, Scene const &scene, Rayon const &rayon, double distance_maximale)
+double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale)
 {
 	auto entresection = parametres.acceleratrice->entresecte(scene, rayon, distance_maximale);
 
-	if (entresection.type_objet == OBJET_TYPE_AUCUN) {
+	if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 		return 1.0;
 	}
 
@@ -205,7 +205,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 	auto const biais = 1e-4;
 	auto spectre = Spectre(0.0);
 
-	Rayon rayon;
+	dls::phys::rayond rayon;
 	/* Déplace l'origine un temps soit peu pour éviter que le rayon n'entresecte
 	 * l'objet lui-même lors du lancement de rayon d'ombrage. */
 	rayon.origine = pos + nor * biais;
@@ -230,7 +230,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 			rayon.direction = direction_op;
 
 			for (size_t i = 0; i < 3; ++i) {
-				rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
+				rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
 			}
 
 			auto const ombre = ombre_scene(parametres, scene, rayon, 1000.0);
@@ -261,7 +261,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 			rayon.direction = direction_op;
 
 			for (size_t i = 0; i < 3; ++i) {
-				rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
+				rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
 			}
 
 			auto const ombre = ombre_scene(parametres, scene, rayon, dist2);
@@ -282,7 +282,7 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 	auto const direction = dls::math::normalise(point - posv);
 	rayon.direction = direction;
 	for (size_t i = 0; i < 3; ++i) {
-		rayon.inverse_direction[i] = 1.0 / rayon.direction[i];
+		rayon.direction_inverse[i] = 1.0 / rayon.direction[i];
 	}
 	spectre += spectre_monde(scene.monde, direction) * static_cast<float>(ombre_scene(parametres, scene, rayon, 1000.0));
 

@@ -23,37 +23,3 @@
  */
 
 #include "types.h"
-
-/* ************************************************************************** */
-
-Entresection::Entresection(Entresection const &entresection)
-	: id(entresection.id)
-	, type_objet(entresection.type_objet)
-	, distance(entresection.distance)
-{}
-
-Entresection &Entresection::operator=(Entresection const &entresection)
-{
-	id = entresection.id;
-	type_objet = entresection.type_objet;
-	distance = entresection.distance;
-
-	return *this;
-}
-
-Entresection::Entresection(Entresection &&entresection)
-	: Entresection()
-{
-	std::swap(id, entresection.id);
-	std::swap(type_objet, entresection.type_objet);
-	std::swap(distance, entresection.distance);
-}
-
-Entresection &Entresection::operator=(Entresection &&entresection)
-{
-	std::swap(id, entresection.id);
-	std::swap(type_objet, entresection.type_objet);
-	std::swap(distance, entresection.distance);
-
-	return *this;
-}

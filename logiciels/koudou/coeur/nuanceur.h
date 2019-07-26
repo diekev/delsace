@@ -24,15 +24,14 @@
 
 #pragma once
 
+#include "biblinternes/phys/rayon.hh"
 #include "biblinternes/phys/spectre.hh"
-
-#include "types.h"
 
 struct BSDF;
 struct Volume;
 
 struct ContexteNuancage {
-	Rayon rayon{};
+	dls::phys::rayond rayon{};
 	dls::math::point3d P{};
 	dls::math::vec3d N{};
 	dls::math::vec3d V{};

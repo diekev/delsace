@@ -24,45 +24,11 @@
 
 #pragma once
 
-#include "biblinternes/math/vecteur.hh"
-
 /* ************************************************************************** */
 
-class Maillage;
-
+/* Pour les entresections. */
 enum {
-	OBJET_TYPE_AUCUN    = 0,
-	OBJET_TYPE_LUMIERE  = 1,
-	OBJET_TYPE_TRIANGLE = 2,
+	ESECT_OBJET_TYPE_AUCUN    = 0,
+	ESECT_OBJET_TYPE_LUMIERE  = 1,
+	ESECT_OBJET_TYPE_TRIANGLE = 2,
 };
-
-struct Entresection {
-	long id = 0;
-	long id_triangle = 0;
-	int type_objet = OBJET_TYPE_AUCUN;
-	double distance = 0.0;
-	const Maillage *maillage = nullptr;
-
-	Entresection() = default;
-
-	Entresection(Entresection const &entresection);
-
-	Entresection &operator=(Entresection const &entresection);
-
-	Entresection(Entresection &&entresection);
-
-	Entresection &operator=(Entresection &&entresection);
-};
-
-/* ************************************************************************** */
-
-struct Rayon {
-	dls::math::point3d origine{};
-	dls::math::vec3d direction{};
-	dls::math::vec3d inverse_direction{};
-
-	double distance_min = 0.0;
-	double distance_max = 0.0;
-	double temps = 0.0;
-};
-

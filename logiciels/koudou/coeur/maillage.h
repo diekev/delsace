@@ -24,13 +24,11 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau.hh"
-
 #include "biblinternes/math/boite_englobante.hh"
 #include "biblinternes/math/transformation.hh"
+#include "biblinternes/structures/tableau.hh"
 
 class Nuanceur;
-class Rayon;
 
 /**
  * Représentation d'un triangle et de son vecteur normal dans l'espace
@@ -177,12 +175,3 @@ public:
  * Calcul et retourne le normal du triangle spécifié.
  */
 dls::math::vec3d calcul_normal(Triangle const &triangle);
-
-/**
- * Retourne vrai s'il y a entresection entre le triangle et le rayon spécifiés.
- * Si oui, la distance spécifiée est mise à jour.
- */
-bool entresecte_triangle(
-		Triangle const &triangle,
-		Rayon const &rayon,
-		double &distance);

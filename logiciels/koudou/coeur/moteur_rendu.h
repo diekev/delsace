@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/phys/rayon.hh"
 #include "biblinternes/phys/spectre.hh"
 
 #include "pellicule.h"
@@ -31,7 +32,6 @@
 
 class GNA;
 class ParametresRendu;
-class Rayon;
 
 class MoteurRendu {
 	Pellicule m_pellicule{};
@@ -50,7 +50,7 @@ public:
 	void arrete();
 };
 
-Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const &rayon, uint profondeur = 0);
+Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::rayond const &rayon, uint profondeur = 0);
 
 /* ************************************************************************** */
 

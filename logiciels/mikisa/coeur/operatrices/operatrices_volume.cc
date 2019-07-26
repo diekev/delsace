@@ -30,7 +30,6 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
-#include "corps/collision.hh"
 #include "corps/volume.hh"
 
 #include "../chef_execution.hh"

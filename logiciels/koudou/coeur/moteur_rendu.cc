@@ -51,7 +51,7 @@ vision::EchantillonCamera genere_echantillon(GNA &gna, unsigned int x, unsigned 
 	return echantillon;
 }
 
-static Rayon genere_rayon(vision::Camera3D *camera, vision::EchantillonCamera const &echantillon)
+static dls::phys::rayond genere_rayon(vision::Camera3D *camera, vision::EchantillonCamera const &echantillon)
 {
 	auto pos = dls::math::point3f(
 				   static_cast<float>(echantillon.x / camera->largeur()),
@@ -67,12 +67,12 @@ static Rayon genere_rayon(vision::Camera3D *camera, vision::EchantillonCamera co
 	auto const origine = camera->pos();
 	auto const direction = normalise(fin - debut);
 
-	Rayon r;
+	dls::phys::rayond r;
 	r.origine = dls::math::point3d(origine.x, origine.y, origine.z);
 	r.direction = dls::math::vec3d(direction.x, direction.y, direction.z);
 
 	for (size_t i = 0; i < 3; ++i) {
-		r.inverse_direction[i] = 1.0 / r.direction[i];
+		r.direction_inverse[i] = 1.0 / r.direction[i];
 	}
 
 	r.distance_min = 0.0;
@@ -81,7 +81,7 @@ static Rayon genere_rayon(vision::Camera3D *camera, vision::EchantillonCamera co
 	return r;
 }
 
-Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const &rayon, uint profondeur)
+Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::rayond const &rayon, uint profondeur)
 {
 	Scene const &scene = parametres.scene;
 
@@ -94,7 +94,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const 
 	auto spectre_pixel = Spectre(0.0);
 	auto spectre_entresection = Spectre(1.0);
 
-	Rayon rayon_local = rayon;
+	dls::phys::rayond rayon_local = rayon;
 	ContexteNuancage contexte;
 
 	for (auto i = 0u; i < parametres.nombre_rebonds; ++i) {
@@ -103,7 +103,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const 
 									  rayon_local,
 									  1000.0);
 
-		if (entresection.type_objet == OBJET_TYPE_AUCUN) {
+		if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 			if (i == 0) {
 				auto point = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
 				auto vecteur = point;
@@ -121,14 +121,15 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const 
 		contexte.rayon = rayon_local;
 
 		// get color from the surface
-		auto nuanceur = entresection.maillage->nuanceur();
+		auto maillage = scene.maillages[entresection.idx_objet];
+		auto nuanceur = maillage->nuanceur();
 
 		if (nuanceur->a_volume()) {
 			auto volume = nuanceur->cree_volume(contexte);
 			Spectre Lv;
 			Spectre transmittance;
 			Spectre poids;
-			Rayon wo;
+			dls::phys::rayond wo;
 
 			if (!volume->integre(gna, parametres, Lv, transmittance, poids, wo)) {
 				delete volume;
@@ -160,7 +161,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, Rayon const 
 		}
 
 		for (size_t j = 0; j < 3; ++j) {
-			rayon_local.inverse_direction[j] = 1.0 / rayon_local.direction[j];
+			rayon_local.direction_inverse[j] = 1.0 / rayon_local.direction[j];
 		}
 	}
 
@@ -195,7 +196,7 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
 					auto echantillon_camera = genere_echantillon(gna, x, y);
 
-					Rayon rayon = genere_rayon(camera, echantillon_camera);
+					dls::phys::rayond rayon = genere_rayon(camera, echantillon_camera);
 #ifdef STATISTIQUES
 					statistiques.nombre_rayons_primaires.fetch_add(1, std::memory_order_relaxed);
 #endif

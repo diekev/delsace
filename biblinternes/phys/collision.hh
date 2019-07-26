@@ -24,9 +24,12 @@
 
 #pragma once
 
-#include "biblinternes/phys/rayon.hh"
+#include "rayon.hh"
 
 /**
+ * Retourne vrai s'il y a entresection entre le triangle et le rayon spécifiés.
+ * Si oui, la distance spécifiée est mise à jour.
+ *
  * Algorithme de Möller-Trumbore.
  * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
  */

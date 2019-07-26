@@ -25,10 +25,9 @@
 #pragma once
 
 #include "biblinternes/math/vecteur.hh"
-
-#include "biblinternes/structures/tableau.hh"
-
+#include "biblinternes/phys/rayon.hh"
 #include "biblinternes/phys/spectre.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "types.h"
 
@@ -79,9 +78,9 @@ struct Scene {
 
 /* ************************************************************************** */
 
-dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, Entresection const &entresection);
+dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, dls::phys::esectd const &entresection);
 
-double ombre_scene(ParametresRendu const &parametres, Scene const &scene, Rayon const &rayon, double distance_maximale);
+double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale);
 
 Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, GNA &gna, dls::math::point3d const &pos, dls::math::vec3d const &nor);
 

@@ -29,12 +29,14 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
+	collision.hh
 	couleur.hh
 	rayon.hh
 	spectre.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
+	collision.cc
 	couleur.cc
 	rayon.cc
 	spectre.cc

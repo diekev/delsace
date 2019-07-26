@@ -24,7 +24,8 @@
 
 #include "delegue_hbe.hh"
 
-#include "corps/collision.hh"
+#include "biblinternes/phys/collision.hh"
+
 #include "corps/corps.h"
 
 DeleguePrim::DeleguePrim(const Corps &corps)

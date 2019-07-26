@@ -32,13 +32,33 @@ template <typename T>
 struct rayon {
 	math::point3<T> origine{};
 	math::vec3<T> direction{};
+	math::vec3<T> direction_inverse{};
+
+	T distance_min = 0;
+	T distance_max = 0;
+
+	/* Pour les moteurs de rendu afin d'entrepoler les flous de mouvement. */
+	T temps = 0;
 };
 
 template <typename T>
 struct entresection {
 	math::point3<T> point{};
-	long idx = 0;
+
+	/* Un peu redondant avec point au dessus, mais peut tout de même être utile */
 	T distance = 0;
+
+	/* Utilisé principalement pour définir le triangle ou autre primitive ayant
+	 * été entresecté. */
+	long idx = 0;
+
+	/* Peut être utilisé par les moteurs de rendu pour pointer sur le bon objet */
+	long idx_objet = 0;
+
+	/* Peut être utilisé par les moteurs de rendu pour discriminer le type de
+	 * l'objet ayant été entresecté. */
+	int type = 0;
+
 	bool touche = false;
 };
 
