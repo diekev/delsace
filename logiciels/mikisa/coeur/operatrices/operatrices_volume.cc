@@ -177,7 +177,7 @@ public:
 		boucle_parallele(tbb::blocked_range<int>(0, res.z),
 						 [&](tbb::blocked_range<int> const &plage)
 		{
-			auto rayon = RayonHBE{};
+			auto rayon = dls::phys::rayond{};
 
 			auto lims = limites3i{};
 			lims.min = dls::math::vec3i(0, 0, plage.begin());

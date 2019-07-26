@@ -25,55 +25,25 @@
 #include "collision.hh"
 
 #include "corps.h"
+#include "triangulation.hh"
 
-bool entresecte_triangle(const Triangle &triangle, const Rayon &rayon, float &distance)
+bool entresecte_triangle(
+		Triangle const &triangle,
+		dls::phys::rayonf const &rayon,
+		float &distance)
 {
-	constexpr auto epsilon = 0.000001f;
-
-	auto const &vertex0 = triangle.v0;
-	auto const &vertex1 = triangle.v1;
-	auto const &vertex2 = triangle.v2;
-
-	auto const &cote1 = vertex1 - vertex0;
-	auto const &cote2 = vertex2 - vertex0;
-	auto const &h = dls::math::produit_croix(rayon.direction, cote2);
-	auto const angle = dls::math::produit_scalaire(cote1, h);
-
-	if (angle > -epsilon && angle < epsilon) {
-		return false;
-	}
-
-	auto const f = 1.0f / angle;
-	auto const &s = Triangle::type_vec(rayon.origine) - vertex0;
-	auto const angle_u = f * dls::math::produit_scalaire(s, h);
-
-	if (angle_u < 0.0f || angle_u > 1.0f) {
-		return false;
-	}
-
-	auto const q = dls::math::produit_croix(s, cote1);
-	auto const angle_v = f * dls::math::produit_scalaire(rayon.direction, q);
-
-	if (angle_v < 0.0f || angle_u + angle_v > 1.0f) {
-		return false;
-	}
-
-	/* À cette étape on peut calculer t pour trouver le point d'entresection sur
-	 * la ligne. */
-	auto const t = f * dls::math::produit_scalaire(cote2, q);
-
-	/* Entresection avec le rayon. */
-	if (t > epsilon) {
-		distance = t;
-		return true;
-	}
-
-	/* Cela veut dire qu'il y a une entresection avec une ligne, mais pas avec
-	 * le rayon. */
-	return false;
+	return entresecte_triangle(
+				dls::math::point3f(triangle.v0),
+				dls::math::point3f(triangle.v1),
+				dls::math::point3f(triangle.v2),
+				rayon,
+				distance);
 }
 
-long cherche_collision(const Corps *corps_collision, const Rayon &rayon_part, float &dist)
+long cherche_collision(
+		Corps const *corps_collision,
+		dls::phys::rayonf const &rayon_part,
+		float &dist)
 {
 	auto const prims_collision = corps_collision->prims();
 	auto const points_collision = corps_collision->points();

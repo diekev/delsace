@@ -30,11 +30,13 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	couleur.hh
+	rayon.hh
 	spectre.hh
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
 	couleur.cc
+	rayon.cc
 	spectre.cc
 
 	${ENTETES}

@@ -437,12 +437,12 @@ public:
 
 			/* Calcul la position en espace objet. */
 			auto pos_monde_d = m_corps.transformation(dls::math::point3d(pos_pre));
-			auto pos_monde = dls::math::vec3f(
+			auto pos_monde = dls::math::point3f(
 								 static_cast<float>(pos_monde_d.x),
 								 static_cast<float>(pos_monde_d.y),
 								 static_cast<float>(pos_monde_d.z));
 
-			auto rayon_part = Rayon{};
+			auto rayon_part = dls::phys::rayonf{};
 			rayon_part.origine = pos_monde;
 			rayon_part.direction = normalise(pos_cou - pos_pre);
 

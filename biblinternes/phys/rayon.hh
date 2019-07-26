@@ -24,18 +24,26 @@
 
 #pragma once
 
-#include "arbre_hbe.hh"
+#include "biblinternes/math/vecteur.hh"
 
-struct Corps;
+namespace dls::phys {
 
-struct DeleguePrim {
-	Corps const &m_corps;
-
-	DeleguePrim(Corps const &corps);
-
-	long nombre_elements() const;
-
-	BoiteEngl boite_englobante(long idx) const;
-
-	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
+template <typename T>
+struct rayon {
+	math::point3<T> origine{};
+	math::vec3<T> direction{};
 };
+
+template <typename T>
+struct entresection {
+	math::point3<T> point{};
+	bool touche = false;
+};
+
+using rayonf = rayon<float>;
+using rayond = rayon<double>;
+
+using esectf = entresection<float>;
+using esectd = entresection<double>;
+
+}  /* namespace dls::phys */

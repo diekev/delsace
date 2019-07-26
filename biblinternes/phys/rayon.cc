@@ -22,20 +22,8 @@
  *
  */
 
-#pragma once
+#include "rayon.hh"
 
-#include "arbre_hbe.hh"
+namespace dls::phys {
 
-struct Corps;
-
-struct DeleguePrim {
-	Corps const &m_corps;
-
-	DeleguePrim(Corps const &corps);
-
-	long nombre_elements() const;
-
-	BoiteEngl boite_englobante(long idx) const;
-
-	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
-};
+}  /* namespace dls::phys */

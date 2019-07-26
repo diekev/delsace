@@ -26,13 +26,9 @@
 
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/phys/rayon.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
-
-struct RayonHBE {
-	dls::math::point3d origine = dls::math::point3d(0.0);
-	dls::math::vec3d direction = dls::math::vec3d(0.0);
-};
 
 struct BoiteEngl {
 	dls::math::point3d min = dls::math::point3d( constantes<double>::INFINITE);
@@ -59,7 +55,7 @@ struct BoiteEngl {
 		return (2.0 * ((longueur_x * longueur_y) + (longueur_y * longueur_z) + (longueur_z * longueur_x)));
 	}
 
-	double test_intersection_rapide(RayonHBE const &r)
+	double test_intersection_rapide(dls::phys::rayond const &r)
 	{
 		if (r.origine.x >= min.x && r.origine.y >= min.y && r.origine.z >= min.z &&
 				r.origine.x <= max.x && r.origine.y <= max.y && r.origine.z <= max.z) {
@@ -117,7 +113,7 @@ struct ArbreHBE {
 			return gauche == 0 && droite == 0;
 		}
 
-		double test_intersection_rapide(RayonHBE const &r)
+		double test_intersection_rapide(dls::phys::rayond const &r)
 		{
 			return limites.test_intersection_rapide(r);
 		}
@@ -351,14 +347,9 @@ auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
 	return arbre_hbe;
 }
 
-struct Intersection {
-	bool touche = false;
-	dls::math::point3d point{};
-};
-
 struct AccumulatriceTraverse {
 private:
-	Intersection m_intersection{};
+	dls::phys::esectd m_intersection{};
 	long m_id_noeud{};
 	long m_nombre_touche{};
 	dls::math::point3d m_origine{};
@@ -369,7 +360,7 @@ public:
 		, m_origine(origine)
 	{}
 
-	void enregistre_intersection(Intersection const &intersect, long id_noeud)
+	void enregistre_intersection(dls::phys::esectd const &intersect, long id_noeud)
 	{
 		if (m_intersection.touche == false && intersect.touche==true) {
 			m_intersection = intersect;
@@ -389,7 +380,7 @@ public:
 		}
 	}
 
-	Intersection const &intersection() const
+	dls::phys::esectd const &intersection() const
 	{
 		return m_intersection;
 	}
@@ -401,7 +392,7 @@ public:
 };
 
 template <typename T>
-void traverse(ArbreHBE &arbre, T const &delegue, RayonHBE const r, AccumulatriceTraverse &resultat)
+void traverse(ArbreHBE &arbre, T const &delegue, dls::phys::rayond const r, AccumulatriceTraverse &resultat)
 {
 	if (arbre.nombre_noeud < 2) {
 		return;

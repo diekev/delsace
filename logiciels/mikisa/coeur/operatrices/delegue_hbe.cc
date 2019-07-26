@@ -58,58 +58,9 @@ BoiteEngl DeleguePrim::boite_englobante(long idx) const
 	return boite;
 }
 
-/* À FAIRE : déduplique */
-static bool entresecte_triangle(
-		dls::math::point3d const &vertex0,
-		dls::math::point3d const &vertex1,
-		dls::math::point3d const &vertex2,
-		const RayonHBE &rayon,
-		double &distance)
+dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::rayond &r) const
 {
-	constexpr auto epsilon = 0.000001;
-
-	auto const &cote1 = vertex1 - vertex0;
-	auto const &cote2 = vertex2 - vertex0;
-	auto const &h = dls::math::produit_croix(rayon.direction, cote2);
-	auto const angle = dls::math::produit_scalaire(cote1, h);
-
-	if (angle > -epsilon && angle < epsilon) {
-		return false;
-	}
-
-	auto const f = 1.0 / angle;
-	auto const &s = (rayon.origine - vertex0);
-	auto const angle_u = f * dls::math::produit_scalaire(s, h);
-
-	if (angle_u < 0.0 || angle_u > 1.0) {
-		return false;
-	}
-
-	auto const q = dls::math::produit_croix(s, cote1);
-	auto const angle_v = f * dls::math::produit_scalaire(rayon.direction, q);
-
-	if (angle_v < 0.0 || angle_u + angle_v > 1.0) {
-		return false;
-	}
-
-	/* À cette étape on peut calculer t pour trouver le point d'entresection sur
-	 * la ligne. */
-	auto const t = f * dls::math::produit_scalaire(cote2, q);
-
-	/* Entresection avec le rayon. */
-	if (t > epsilon) {
-		distance = t;
-		return true;
-	}
-
-	/* Cela veut dire qu'il y a une entresection avec une ligne, mais pas avec
-	 * le rayon. */
-	return false;
-}
-
-Intersection DeleguePrim::intersecte_element(long idx, const RayonHBE &r) const
-{
-	auto intersection = Intersection{};
+	auto intersection = dls::phys::esectd{};
 	auto prim = m_corps.prims()->prim(idx);
 	auto points = m_corps.points();
 
