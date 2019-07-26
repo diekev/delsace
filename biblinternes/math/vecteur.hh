@@ -337,8 +337,8 @@ template <int O, typename T, int... Ns>
 template <int O, typename T, int... Ns>
 [[nodiscard]] auto operator/(const T valeur, vecteur<O, T, Ns...> const &v)
 {
-	auto tmp(v);
-	tmp /= valeur;
+	auto tmp = vecteur<O, T, Ns...>(valeur);
+	tmp /= v;
 	return tmp;
 }
 
