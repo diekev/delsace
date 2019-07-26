@@ -44,6 +44,7 @@
 #include "coeur/composite.h"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/evenement.h"
+#include "coeur/objet.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
 #include "coeur/operatrice_image.h"
@@ -93,36 +94,49 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
-	if (noeud == nullptr || noeud->type() == GRAPHE_OBJET) {
+	if (noeud == nullptr) {
 		return;
 	}
 
-	auto operatrice = extrait_opimage(noeud->donnees());
-	operatrice->ajourne_proprietes();
+	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
+	auto chemin_entreface = "";
 
-	/* avertissements */
-	if (operatrice->avertissements().taille() > 0) {
-		auto disposition_avertissements = new QGridLayout();
-		auto ligne = 0;
-		auto const &pixmap = QPixmap("icones/icone_avertissement.png");
-
-		for (auto const &avertissement : operatrice->avertissements()) {
-			auto icone = new QLabel();
-			icone->setPixmap(pixmap);
-
-			auto texte = new QLabel(avertissement.c_str());
-
-			disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
-			disposition_avertissements->addWidget(texte, ligne, 1);
-
-			++ligne;
-		}
-
-		m_conteneur_avertissements->setLayout(disposition_avertissements);
-		m_conteneur_avertissements->show();
+	if (noeud->type() == NOEUD_OBJET) {
+		auto objet = extrait_objet(noeud->donnees());
+		chemin_entreface = objet->chemin_entreface();
+		manipulable = objet;
 	}
 	else {
-		m_conteneur_avertissements->hide();
+		auto operatrice = extrait_opimage(noeud->donnees());
+		chemin_entreface = operatrice->chemin_entreface();
+		manipulable = operatrice;
+
+		operatrice->ajourne_proprietes();
+
+		/* avertissements */
+		if (operatrice->avertissements().taille() > 0) {
+			auto disposition_avertissements = new QGridLayout();
+			auto ligne = 0;
+			auto const &pixmap = QPixmap("icones/icone_avertissement.png");
+
+			for (auto const &avertissement : operatrice->avertissements()) {
+				auto icone = new QLabel();
+				icone->setPixmap(pixmap);
+
+				auto texte = new QLabel(avertissement.c_str());
+
+				disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
+				disposition_avertissements->addWidget(texte, ligne, 1);
+
+				++ligne;
+			}
+
+			m_conteneur_avertissements->setLayout(disposition_avertissements);
+			m_conteneur_avertissements->show();
+		}
+		else {
+			m_conteneur_avertissements->hide();
+		}
 	}
 
 	/* l'évènement a peut-être été lancé depuis cet éditeur, supprimer
@@ -133,14 +147,14 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto const &texte = dls::contenu_fichier(operatrice->chemin_entreface());
+	auto const &texte = dls::contenu_fichier(chemin_entreface);
 
 	if (texte.est_vide()) {
 		return;
 	}
 
 	danjo::DonneesInterface donnees{};
-	donnees.manipulable = operatrice;
+	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
 
 	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
@@ -193,8 +207,14 @@ void EditriceProprietes::ajourne_manipulable()
 		return;
 	}
 
-	/* Marque le noeud courant et ceux en son aval surannées. */
-	marque_surannee_(noeud);
+	if (noeud->type() == NOEUD_OBJET) {
+		auto objet = extrait_objet(noeud->donnees());
+		objet->ajourne_parametres();
+	}
+	else {
+		/* Marque le noeud courant et ceux en son aval surannées. */
+		marque_surannee_(noeud);
+	}
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
 }
@@ -206,7 +226,7 @@ void EditriceProprietes::obtiens_liste(
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
-	if (noeud == nullptr) {
+	if (noeud == nullptr || noeud->type() == NOEUD_OBJET) {
 		return;
 	}
 

@@ -342,6 +342,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		racine_objet->InsertEndChild(racine_graphe);
 
 		ecris_graphe(doc, racine_graphe, objet->graphe);
+		sauvegarde_proprietes(doc, racine_objet, objet);
 	}
 
 	/* composites */
@@ -550,6 +551,11 @@ static void lecture_proprietes(
 		danjo::Manipulable *manipulable)
 {
 	auto const racine_propriete = element->FirstChildElement("proprietes");
+
+	if (racine_propriete == nullptr) {
+		return;
+	}
+
 	auto element_propriete = racine_propriete->FirstChildElement("propriete");
 
 	for (; element_propriete != nullptr; element_propriete = element_propriete->NextSiblingElement("propriete")) {
@@ -694,6 +700,9 @@ static void lis_objets(
 		auto racine_graphe = element_objet->FirstChildElement("graphe");
 
 		lecture_graphe(racine_graphe, mikisa, &objet->graphe);
+		lecture_proprietes(element_objet, objet);
+
+		objet->performe_versionnage();
 	}
 }
 

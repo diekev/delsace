@@ -117,16 +117,19 @@ public:
 	virtual	~Manipulable() = default;
 
 	using iterateur = dls::dico_desordonne<dls::chaine, Propriete>::iteratrice;
+	using iterateur_const = dls::dico_desordonne<dls::chaine, Propriete>::const_iteratrice;
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste de propriétés.
 	 */
 	iterateur debut();
+	iterateur_const debut() const;
 
 	/**
 	 * Retourne un itérateur pointant vers la fin de la liste de propriétés.
 	 */
 	iterateur fin();
+	iterateur_const fin() const;
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
@@ -272,6 +275,8 @@ public:
 	Propriete *propriete(const dls::chaine &nom);
 
 	Propriete const *propriete(const dls::chaine &nom) const;
+
+	bool possede_animation() const;
 
 	virtual void performe_versionnage();
 };

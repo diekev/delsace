@@ -541,19 +541,6 @@ void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, C
 	INUTILISE(noeud);
 }
 
-bool OperatriceImage::possede_animation()
-{
-	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
-		auto &prop = iter->second;
-
-		if (prop.est_anime()) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 bool OperatriceImage::depend_sur_temps() const
 {
 	return false;

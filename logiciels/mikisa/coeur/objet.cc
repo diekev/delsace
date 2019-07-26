@@ -24,8 +24,45 @@
 
 #include "objet.h"
 
+#include "biblinternes/outils/constantes.h"
+
 #include "operatrice_image.h"
 
 Objet::Objet()
 	: graphe(cree_noeud_image, supprime_noeud_image)
 {}
+
+void Objet::performe_versionnage()
+{
+	if (this->propriete("pivot") == nullptr) {
+		this->ajoute_propriete("pivot", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
+		this->ajoute_propriete("position", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
+		this->ajoute_propriete("echelle", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0f));
+		this->ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
+		this->ajoute_propriete("echelle_uniforme", danjo::TypePropriete::DECIMAL, dls::math::vec3f(1.0f));
+		this->ajoute_propriete("nom", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("objet"));
+		this->ajoute_propriete("rendu_scene", danjo::TypePropriete::BOOL, true);
+	}
+}
+
+const char *Objet::chemin_entreface() const
+{
+	return "entreface/objet.jo";
+}
+
+void Objet::ajourne_parametres()
+{
+	rendu_scene = evalue_bool("rendu_scene");
+	pivot = dls::math::point3f(evalue_vecteur("pivot"));
+	position = dls::math::point3f(evalue_vecteur("position"));
+	echelle = dls::math::point3f(evalue_vecteur("echelle"));
+	rotation = dls::math::point3f(evalue_vecteur("rotation"));
+	echelle_uniforme = evalue_decimal("echelle_uniforme");
+
+	transformation = math::transformation();
+	transformation *= math::translation(position.x, position.y, position.z);
+	transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
+	transformation *= math::echelle(echelle.x * echelle_uniforme, echelle.y * echelle_uniforme, echelle.z * echelle_uniforme);
+}

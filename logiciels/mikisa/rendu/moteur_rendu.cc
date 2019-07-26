@@ -592,6 +592,10 @@ void MoteurRendu::calcule_rendu(
 		for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
 			auto objet = m_delegue->objet(i);
 
+			if (!objet->rendu_scene) {
+				continue;
+			}
+
 			pile.pousse(objet->transformation.matrice());
 
 			objet->corps.accede_lecture([&pile, &contexte, &stats](Corps const &corps)

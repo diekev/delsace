@@ -25,16 +25,15 @@
 #pragma once
 
 #include "biblinternes/graphe/graphe.h"
-
+#include "biblinternes/math/transformation.hh"
+#include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/chaine.hh"
 
-#include "biblinternes/math/transformation.hh"
+#include "danjo/manipulable.h"
 
 #include "corps/corps.h"
 
-#include "biblinternes/moultfilage/synchronise.hh"
-
-struct Objet {
+struct Objet : public danjo::Manipulable {
 	/* transformation */
 	math::transformation transformation = math::transformation();
 	dls::math::point3f pivot        = dls::math::point3f(0.0f);
@@ -50,10 +49,18 @@ struct Objet {
 
 	Graphe graphe;
 
+	bool rendu_scene = true;
+
 	Objet();
 
 	Objet(Objet const &) = default;
 	Objet &operator=(Objet const &) = default;
+
+	void performe_versionnage() override;
+
+	const char *chemin_entreface() const;
+
+	void ajourne_parametres();
 };
 
 inline Objet *extrait_objet(std::any const &any)

@@ -219,7 +219,17 @@ Manipulable::iterateur Manipulable::debut()
 	return m_proprietes.debut();
 }
 
+Manipulable::iterateur_const Manipulable::debut() const
+{
+	return m_proprietes.debut();
+}
+
 Manipulable::iterateur Manipulable::fin()
+{
+	return m_proprietes.fin();
+}
+
+Manipulable::iterateur_const Manipulable::fin() const
 {
 	return m_proprietes.fin();
 }
@@ -496,6 +506,19 @@ Propriete const *Manipulable::propriete(const dls::chaine &nom) const
 	}
 
 	return &(iter->second);
+}
+
+bool Manipulable::possede_animation() const
+{
+	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
+		auto &prop = iter->second;
+
+		if (prop.est_anime()) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void Manipulable::performe_versionnage()

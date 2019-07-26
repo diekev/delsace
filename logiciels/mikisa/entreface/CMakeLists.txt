@@ -80,6 +80,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/menu_edition.jo
 	scripts_danjo/menu_fichier.jo
 	scripts_danjo/menu_prereglage.jo
+	scripts_danjo/objet.jo
 	scripts_danjo/operatrice_3d_cercle.jo
 	scripts_danjo/operatrice_3d_cone.jo
 	scripts_danjo/operatrice_3d_creation_attribut.jo
@@ -146,7 +147,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_normalise_covariance.jo
 	scripts_danjo/operatrice_nuage.jo
-        scripts_danjo/operatrice_objet.jo
 	scripts_danjo/operatrice_ocean.jo
         scripts_danjo/operatrice_ondelette_haar.jo
 	scripts_danjo/operatrice_opensubdiv.jo

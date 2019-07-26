@@ -1,0 +1,30 @@
+disposition "objet" {
+	ligne {
+		étiquette(valeur="Nom")
+		chaine(valeur="objet"; attache=nom_objet)
+	}
+	ligne {
+		étiquette(valeur="Pivot")
+		vecteur(valeur="0,0,0"; attache=pivot)
+	}
+	ligne {
+	    étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=position)
+	}
+	ligne {
+	    étiquette(valeur="Rotation")
+		vecteur(valeur="0,0,0"; attache=rotation)
+	}
+	ligne {
+	    étiquette(valeur="Taille")
+		vecteur(valeur="1,1,1"; attache=echelle)
+	}
+	ligne {
+		étiquette(valeur="Échelle Uniforme")
+		décimal(valeur=1.0; attache=echelle_uniforme)
+	}
+	ligne {
+		étiquette(valeur="Rendu Scène")
+		case(valeur=vrai; attache=rendu_scene)
+	}
+}

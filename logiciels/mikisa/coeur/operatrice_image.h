@@ -386,8 +386,6 @@ public:
 
 	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud);
 
-	bool possede_animation();
-
 	virtual bool depend_sur_temps() const;
 
 	virtual void amont_change();
