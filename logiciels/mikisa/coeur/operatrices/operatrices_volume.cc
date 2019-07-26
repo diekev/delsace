@@ -41,6 +41,7 @@
 #include "arbre_hbe.hh"
 #include "delegue_hbe.hh"
 #include "iter_volume.hh"
+#include "limites_corps.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -113,29 +114,6 @@ public:
 
 /* ************************************************************************** */
 
-static auto initialise_limites3f()
-{
-	auto limites = limites3f{};
-	limites.min = dls::math::vec3f( std::numeric_limits<float>::max());
-	limites.max = dls::math::vec3f(-std::numeric_limits<float>::max());
-	return limites;
-}
-
-/* Retourne les limites en espace globale des points du corps. */
-static auto calcule_limites_points(Corps const &corps)
-{
-	auto limites = initialise_limites3f();
-
-	auto const &points = corps.points();
-
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto point = corps.point_transforme(i);
-		dls::math::extrait_min_max(point, limites.min, limites.max);
-	}
-
-	return limites;
-}
-
 class OperatriceMaillageVersVolume : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Maillage vers Volume";
@@ -184,7 +162,7 @@ public:
 		chef->demarre_evaluation("maillage vers volume");
 
 		/* calcul boite englobante */
-		auto limites = calcule_limites_points(*corps_entree);
+		auto limites = calcule_limites_mondiales_corps(*corps_entree);
 
 		auto const taille_voxel = evalue_decimal("taille_voxel");
 		auto const densite = evalue_decimal("densité");
@@ -462,7 +440,7 @@ public:
 		auto const nombre_echantillons = evalue_entier("nombre_échantillons");
 
 		/* calcul les limites des primitives d'entrées */
-		auto limites = calcule_limites_points(*corps_entree);
+		auto limites = calcule_limites_mondiales_corps(*corps_entree);
 
 		/* À FAIRE : prendre en compte le déplacement pour le bruit */
 		limites.etends(dls::math::vec3f(rayon));
