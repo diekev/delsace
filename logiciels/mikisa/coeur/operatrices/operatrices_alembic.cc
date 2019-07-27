@@ -53,9 +53,10 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "../contexte_evaluation.hh"
 #include "../chef_execution.hh"
+#include "../contexte_evaluation.hh"
 #include "../donnees_aval.hh"
+#include "../gestionnaire_fichier.hh"
 #include "../operatrice_corps.h"
 #include "../usine_operatrice.h"
 
@@ -67,42 +68,49 @@ namespace ABG = Alembic::AbcGeom;
 /* ************************************************************************** */
 
 static auto ouvre_archive(
-		dls::chaine const &chemin,
+		PoigneeFichier *poignee,
 		OperatriceImage &operatrice)
 {
-	try {
-		Alembic::AbcCoreOgawa::ReadArchive archive_reader;
+	auto archive = ABC::IArchive();
 
-		return ABC::IArchive(archive_reader(chemin.c_str()), ABC::kWrapExisting, ABC::ErrorHandler::kThrowPolicy);
-	}
-	catch (...) {
-		/* Inspect the file to see whether it's really a HDF5 file. */
-		char header[4]; /* char(0x89) + "HDF" */
-		std::ifstream le_fichier(chemin.c_str(), std::ios::in | std::ios::binary);
+	poignee->lecture_chemin(
+				[&](const char *chemin, std::any const &donnees)
+	{
+		INUTILISE(donnees);
 
-		dls::flux_chaine fc;
-
-		if (!le_fichier) {
-			fc << "Impossible d'ouvrir le fichier " << chemin;
+		try {
+			Alembic::AbcCoreOgawa::ReadArchive archive_reader;
+			archive = ABC::IArchive(archive_reader(chemin), ABC::kWrapExisting, ABC::ErrorHandler::kThrowPolicy);
 		}
-		else if (!le_fichier.read(header, sizeof(header))) {
-			fc << "Impossible de lire le fichier " << chemin;
-		}
-		else if (strncmp(header + 1, "HDF", 3)) {
-			fc << chemin << " a un format de fichier inconnu, impossible à lire.";
-		}
-		else {
-			fc << chemin << " utilise le format obsolète HDF5, impossible à lire.";
-		}
+		catch (...) {
+			/* Inspect the file to see whether it's really a HDF5 file. */
+			char header[4]; /* char(0x89) + "HDF" */
+			std::ifstream le_fichier(chemin, std::ios::in | std::ios::binary);
 
-		if (le_fichier.is_open()) {
-			le_fichier.close();
+			dls::flux_chaine fc;
+
+			if (!le_fichier) {
+				fc << "Impossible d'ouvrir le fichier " << chemin;
+			}
+			else if (!le_fichier.read(header, sizeof(header))) {
+				fc << "Impossible de lire le fichier " << chemin;
+			}
+			else if (strncmp(header + 1, "HDF", 3)) {
+				fc << chemin << " a un format de fichier inconnu, impossible à lire.";
+			}
+			else {
+				fc << chemin << " utilise le format obsolète HDF5, impossible à lire.";
+			}
+
+			if (le_fichier.is_open()) {
+				le_fichier.close();
+			}
+
+			operatrice.ajoute_avertissement(fc.chn());
 		}
+	}, nullptr);
 
-		operatrice.ajoute_avertissement(fc.chn());
-	}
-
-	return ABC::IArchive{};
+	return archive;
 }
 
 static auto trouve_iobjet(const ABC::IObject &object, dls::chaine const &chemin)
@@ -408,7 +416,14 @@ int OpImportAlembic::execute(
 
 	auto chemin_archive = evalue_fichier_entree("chemin_archive");
 
-	m_archive = ouvre_archive(chemin_archive, *this);
+	auto poignee = contexte.gestionnaire_fichier->poignee_fichier(chemin_archive);
+
+	if (poignee == nullptr) {
+		this->ajoute_avertissement("Impossible d'obtenir une poignée sur le fichier !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	m_archive = ouvre_archive(poignee, *this);
 
 	if (!m_archive.valid()) {
 		chef->indique_progression(1.0f);
