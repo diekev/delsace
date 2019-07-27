@@ -25,7 +25,6 @@
 #pragma once
 
 #include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 
@@ -34,10 +33,6 @@ struct DonneesModule {
 	dls::tableau<DonneesMorceaux> morceaux{};
 	dls::chaine nom{""};
 	size_t id = 0;
-	double temps_chargement = 0.0;
-	double temps_analyse = 0.0;
-	double temps_tampon = 0.0;
-	double temps_decoupage = 0.0;
 
 	DonneesModule() = default;
 };

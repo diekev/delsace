@@ -24,12 +24,8 @@
 
 #pragma once
 
-//#include "biblinternes/graphe/compileuse_graphe.h"
-
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/phys/couleur.hh"
-
-#include "biblinternes/structures/tableau.hh"
 
 #include "contexte_execution.hh"
 

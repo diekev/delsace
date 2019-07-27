@@ -26,7 +26,6 @@
 
 #include "biblinternes/math/entrepolation.hh"
 
-#include <cstring>
 #include <random>
 
 #include "corps/corps.h"

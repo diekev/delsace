@@ -29,6 +29,7 @@
 #include "corps/attribut.h"
 
 #include "lcc/analyseuse_grammaire.h"
+#include "lcc/assembleuse_arbre.h"
 #include "lcc/contexte_execution.hh"
 #include "lcc/contexte_generation_code.h"
 #include "lcc/decoupeuse.h"

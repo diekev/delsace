@@ -24,13 +24,8 @@
 
 #include "analyseuse_grammaire.h"
 
-#include <iostream>
-
-#include "biblinternes/outils/definitions.h"
-
-#include "arbre_syntactic.h"
+#include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "erreur.h"
 #include "expression.h"
 #include "modules.hh"
 

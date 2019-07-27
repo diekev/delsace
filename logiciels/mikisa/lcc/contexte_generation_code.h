@@ -26,15 +26,6 @@
 
 #include <any>
 
-#include "biblinternes/phys/couleur.hh"
-#include "biblinternes/math/vecteur.hh"
-
-#include "biblinternes/memoire/logeuse_memoire.hh"
-
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/pile.hh"
-
-#include "donnees_type.h"
 #include "execution_pile.hh"
 #include "fonctions.hh"
 
@@ -72,22 +63,6 @@ struct compileuse_lng {
 private:
 	lcc::pile m_donnees{};
 	lcc::pile m_instructions{};
-};
-
-/* ************************************************************************** */
-
-struct Metriques {
-	size_t nombre_modules = 0ul;
-	size_t nombre_lignes = 0ul;
-	size_t nombre_morceaux = 0ul;
-	size_t memoire_tampons = 0ul;
-	size_t memoire_morceaux = 0ul;
-	double temps_chargement = 0.0;
-	double temps_analyse = 0.0;
-	double temps_tampon = 0.0;
-	double temps_decoupage = 0.0;
-	double temps_validation = 0.0;
-	double temps_generation = 0.0;
 };
 
 /* ************************************************************************** */
@@ -239,89 +214,6 @@ struct ContexteGenerationCode {
 	 */
 	bool locale_existe(const dls::vue_chaine &nom);
 
-	/**
-	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
-	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
-	 * retournées.
-	 */
-	size_t type_locale(const dls::vue_chaine &nom);
-
-	/**
-	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
-	 * assignée.
-	 */
-	bool peut_etre_assigne(const dls::vue_chaine &nom);
-
-	/**
-	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous
-	 * enregistrons le nombre de variables jusqu'ici. Voir 'pop_bloc_locales'
-	 * pour la gestion des variables.
-	 */
-	void empile_nombre_locales();
-
-	/**
-	 * Indique que nous sortons d'un bloc, donc toutes les variables du bloc
-	 * sont 'effacées'. En fait les variables des fonctions sont tenues dans un
-	 * vecteur. À chaque fois que l'on rencontre un bloc, on pousse le nombre de
-	 * variables sur une pile, ainsi toutes les variables se trouvant entre
-	 * l'index de début du bloc et l'index de fin d'un bloc sont des variables
-	 * locales à ce bloc. Quand on sort du bloc, l'index de fin des variables
-	 * est réinitialisé pour être égal à ce qu'il était avant le début du bloc.
-	 * Ainsi, nous pouvons réutilisé la mémoire du vecteur de variable d'un bloc
-	 * à l'autre, d'une fonction à l'autre, tout en faisant en sorte que peut
-	 * importe le bloc dans lequel nous nous trouvons, on a accès à toutes les
-	 * variables jusqu'ici déclarées.
-	 */
-	void depile_nombre_locales();
-
-	/**
-	 * Imprime le nom des variables locales dans le flux précisé.
-	 */
-	void imprime_locales(std::ostream &os);
-
-	/**
-	 * Retourne vrai si la variable est un argument variadic. Autrement,
-	 * retourne faux.
-	 */
-	bool est_locale_variadique(const dls::vue_chaine &nom);
-
-	conteneur_locales::iteratrice iter_locale(const dls::vue_chaine &nom);
-
-	conteneur_locales::iteratrice fin_locales();
-
-	/* ********************************************************************** */
-
-	size_t memoire_utilisee() const;
-
-	/**
-	 * Retourne les métriques de ce contexte. Les métriques sont calculées à
-	 * chaque appel à cette fonction, et une structure neuve est retournée à
-	 * chaque fois.
-	 */
-	Metriques rassemble_metriques() const;
-
-	/* ********************************************************************** */
-
-	/**
-	 * Définie si oui ou non le contexte est non-sûr, c'est-à-dire que l'on peut
-	 * manipuler des objets dangereux.
-	 */
-	void non_sur(bool ouinon);
-
-	/**
-	 * Retourne si oui ou non le contexte est non-sûr.
-	 */
-	bool non_sur() const;
-
 private:
 	conteneur_locales m_locales{};
-	dls::pile<size_t> m_pile_nombre_locales{};
-	size_t m_nombre_locales = 0;
-
-	bool m_non_sur = false;
-
-public:
-	/* À FAIRE : bouge ça d'ici. */
-	double temps_validation = 0.0;
-	double temps_generation = 0.0;
 };

@@ -50,6 +50,7 @@ const char *chaine_type_var(type_var type);
 
 /* ************************************************************************** */
 
+/* Le paramètre de gabarit est utilisé pour définir des types différents. */
 template <int N>
 struct donnees_type {
 	dls::tableau<type_var> types{};

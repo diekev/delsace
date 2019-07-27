@@ -24,13 +24,8 @@
 
 #include "arbre_syntactic.h"
 
-#include "biblinternes/graphe/compileuse_graphe.h"
-#include "biblinternes/outils/definitions.h"
-
 #include "biblinternes/structures/flux_chaine.hh"
-#include "biblinternes/structures/tableau.hh"
 
-#include "contexte_execution.hh"
 #include "contexte_generation_code.h"
 #include "code_inst.hh"
 

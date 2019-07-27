@@ -25,12 +25,12 @@
 #pragma once
 
 #include "biblinternes/langage/analyseuse.hh"
-#include "biblinternes/structures/chaine.hh"
 
-#include "assembleuse_arbre.h"
+#include "arbre_syntactic.h"
 #include "morceaux.hh"
 #include "erreur.h"
 
+struct assembleuse_arbre;
 struct ContexteGenerationCode;
 struct DonneesModule;
 

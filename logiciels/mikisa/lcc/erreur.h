@@ -25,9 +25,6 @@
 #pragma once
 
 #include "biblinternes/langage/erreur.hh"
-#include "biblinternes/structures/chaine.hh"
-
-#include "morceaux.hh"
 
 struct DonneesType;
 

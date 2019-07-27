@@ -24,9 +24,6 @@
 
 #include "assembleuse_arbre.h"
 
-#include <cassert>
-#include <iostream>
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "contexte_generation_code.h"

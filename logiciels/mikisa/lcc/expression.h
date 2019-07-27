@@ -26,13 +26,4 @@
 
 #include "morceaux.hh"
 
-class assembleuse_arbre;
-class Noeud;
-
-struct ContexteGenerationCode;
-
 bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
-
-Noeud *calcul_expression_double(assembleuse_arbre &assembleuse, ContexteGenerationCode &contexte, Noeud *op, Noeud *n1, Noeud *n2);
-
-Noeud *calcul_expression_simple(assembleuse_arbre &assembleuse, Noeud *op, Noeud *n1);

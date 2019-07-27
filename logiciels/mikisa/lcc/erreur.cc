@@ -24,12 +24,9 @@
 
 #include "erreur.h"
 
-#include <iostream>
-
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "contexte_generation_code.h"
-#include "donnees_type.h"
 #include "modules.hh"
 
 namespace erreur {
