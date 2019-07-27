@@ -319,22 +319,6 @@ static auto ratisse_triangle(
 
 /* ************************************************************************** */
 
-template <typename T>
-static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
-{
-	dls::math::mat4x4<float> resultat;
-
-	for (size_t i = 0; i < 4; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			resultat[i][j] = static_cast<float>(matrice[i][j]);
-		}
-	}
-
-	return resultat;
-}
-
-/* ************************************************************************** */
-
 /* Concernant ce déléguée_scène :
  * La finalité du MoteurRendu est d'abstraire différents moteurs de rendus
  * (traçage de rayon, ratissage, OpenGL, etc.) dans un système où il y a
@@ -404,7 +388,7 @@ void MoteurRendu::calcule_rendu(
 	contexte.projection(P);
 	contexte.MVP(MVP);
 	contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
+	contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 	contexte.pour_surlignage(false);
 
 	/* couleur d'arrière plan */
@@ -465,7 +449,7 @@ void MoteurRendu::calcule_rendu(
 			{
 				pile.pousse(corps.transformation.matrice());
 
-				contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
+				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
 				auto liste_points = corps.points();
 				auto liste_prims = corps.prims();
@@ -556,7 +540,7 @@ void MoteurRendu::calcule_rendu(
 	contexte.projection(P);
 	contexte.MVP(MVP);
 	contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
+	contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 	contexte.pour_surlignage(false);
 
 	/* Peint la grille. */
@@ -583,7 +567,7 @@ void MoteurRendu::calcule_rendu(
 			matrice = dls::math::translation(matrice, dls::math::vec3d(camera_scene->pos()));
 			matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera_scene->eloigne())));
 			pile.pousse(matrice);
-			contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
+			contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
 			RenduCamera rendu_camera(camera_scene);
 			rendu_camera.initialise();
@@ -605,7 +589,7 @@ void MoteurRendu::calcule_rendu(
 			{
 				pile.pousse(corps.transformation.matrice());
 
-				contexte.matrice_objet(converti_matrice_glm(pile.sommet()));
+				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
 				RenduCorps rendu_corps(&corps);
 				rendu_corps.initialise(contexte, stats);

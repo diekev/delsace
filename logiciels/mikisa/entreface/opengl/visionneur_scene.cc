@@ -25,6 +25,7 @@
 #include "visionneur_scene.h"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/math/transformation.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/opengl/rendu_texte.h"
 #include "biblinternes/opengl/tampon_rendu.h"
@@ -41,22 +42,6 @@
 
 #include "rendu_image.h"
 #include "rendu_manipulatrice.h"
-
-/* ************************************************************************** */
-
-template <typename T>
-static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
-{
-	dls::math::mat4x4<float> resultat;
-
-	for (size_t i = 0; i < 4; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			resultat[i][j] = static_cast<float>(matrice[i][j]);
-		}
-	}
-
-	return resultat;
-}
 
 /* ************************************************************************** */
 
@@ -154,7 +139,7 @@ void VisionneurScene::peint_opengl()
 		auto matrice = dls::math::mat4x4d(1.0);
 		matrice = dls::math::translation(matrice, dls::math::vec3d(pos.x, pos.y, pos.z));
 		m_stack.pousse(matrice);
-		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
 		if (m_mikisa.type_manipulation_3d == MANIPULATION_ROTATION) {
 			m_rendu_manipulatrice_rot->manipulatrice(m_mikisa.manipulatrice_3d);

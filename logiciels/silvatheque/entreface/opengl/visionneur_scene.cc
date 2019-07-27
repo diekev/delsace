@@ -37,20 +37,6 @@
 
 #include "rendu_arbre.h"
 
-template <typename T>
-static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
-{
-	dls::math::mat4x4<float> resultat;
-
-	for (size_t i = 0; i < 4; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			resultat[i][j] = static_cast<float>(matrice[i][j]);
-		}
-	}
-
-	return resultat;
-}
-
 VisionneurScene::VisionneurScene(VueCanevas *parent, Silvatheque *silvatheque)
 	: m_parent(parent)
 	, m_silvatheque(silvatheque)
@@ -98,7 +84,7 @@ void VisionneurScene::peint_opengl()
 	m_contexte.projection(P);
 	m_contexte.MVP(MVP);
 	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+	m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 	m_contexte.pour_surlignage(false);
 
 	/* Peint la scene. */

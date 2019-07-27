@@ -40,20 +40,6 @@
 #include "rendu_maillage.h"
 #include "rendu_monde.h"
 
-template <typename T>
-static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
-{
-	dls::math::mat4x4<float> resultat;
-
-	for (size_t i = 0; i < 4; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			resultat[i][j] = static_cast<float>(matrice[i][j]);
-		}
-	}
-
-	return resultat;
-}
-
 VisionneurScene::VisionneurScene(VueCanevas3D *parent, Koudou *koudou)
 	: m_parent(parent)
 	, m_koudou(koudou)
@@ -116,7 +102,7 @@ void VisionneurScene::peint_opengl()
 	m_contexte.projection(P);
 	m_contexte.MVP(MVP);
 	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+	m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 	m_contexte.pour_surlignage(false);
 
 	/* Peint la scene. */
@@ -127,7 +113,7 @@ void VisionneurScene::peint_opengl()
 
 #ifdef NOUVELLE_CAMERA
 	auto const transform = m_koudou->parametres_rendu.camera->camera_vers_monde();
-	auto const matrice = converti_matrice_glm(transform.matrice());
+	auto const matrice = math::matf_depuis_matd(transform.matrice());
 
 	m_stack.pousse(matrice);
 	m_contexte.matrice_objet(m_stack.sommet());
@@ -139,7 +125,7 @@ void VisionneurScene::peint_opengl()
 
 	for (auto &rendu_maillage : m_maillages) {
 		m_stack.pousse(rendu_maillage->matrice());
-		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
 		rendu_maillage->dessine(m_contexte, m_koudou->parametres_rendu.scene);
 
@@ -148,7 +134,7 @@ void VisionneurScene::peint_opengl()
 
 	for (auto &rendu_lumiere : m_lumieres) {
 		m_stack.pousse(rendu_lumiere->matrice());
-		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
 		rendu_lumiere->dessine(m_contexte);
 
