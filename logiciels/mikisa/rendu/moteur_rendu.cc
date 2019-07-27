@@ -562,7 +562,10 @@ void MoteurRendu::calcule_rendu(
 	/* Peint la grille. */
 	if (!rendu_final) {
 		if (m_rendu_grille == nullptr) {
-			m_rendu_grille = memoire::loge<RenduGrille>("RenduGrille", 20, 20);
+			/* Simule une grille infini en en dessinant une aussi grande que la
+			 * caméra peut voir. */
+			auto taille_grille = static_cast<int>(m_camera->eloigne() * 2.0f);
+			m_rendu_grille = memoire::loge<RenduGrille>("RenduGrille", taille_grille, taille_grille);
 		}
 
 		m_rendu_grille->dessine(contexte);

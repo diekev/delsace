@@ -149,7 +149,10 @@ RenduGrille::~RenduGrille()
 
 void RenduGrille::dessine(ContexteRendu const &contexte)
 {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	m_tampon_grille->dessine(contexte);
 	m_tampon_axe_x->dessine(contexte);
 	m_tampon_axe_z->dessine(contexte);
+	glDisable(GL_BLEND);
 }
