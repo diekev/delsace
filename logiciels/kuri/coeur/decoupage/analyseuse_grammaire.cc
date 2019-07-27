@@ -24,17 +24,13 @@
 
 #include "analyseuse_grammaire.h"
 
-#include <iostream>
-
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
-#include "arbre_syntactic.h"
+#include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "erreur.h"
 #include "expression.h"
-#include "modules.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 

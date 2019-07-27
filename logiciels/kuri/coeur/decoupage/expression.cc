@@ -24,15 +24,11 @@
 
 #include "expression.h"
 
-#include <cassert>
-
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
-#include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "erreur.h"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 

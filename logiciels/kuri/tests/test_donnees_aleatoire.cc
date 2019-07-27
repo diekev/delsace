@@ -23,6 +23,7 @@
  */
 
 #include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/assembleuse_arbre.h"
 #include "decoupage/contexte_generation_code.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/modules.hh"

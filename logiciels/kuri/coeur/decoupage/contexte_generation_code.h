@@ -47,11 +47,8 @@ class FunctionPassManager;
 }  /* namespace llvm */
 #endif
 
-#include "biblinternes/structures/liste.hh"
-
-#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
 

@@ -33,10 +33,6 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <algorithm>
-#include <cassert>
-#include <iostream>
-
 #include "broyage.hh"
 #include "modules.hh"
 

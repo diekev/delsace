@@ -24,9 +24,6 @@
 
 #include "assembleuse_arbre.h"
 
-#include <cassert>
-
-#include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "coulisse_c.hh"
 

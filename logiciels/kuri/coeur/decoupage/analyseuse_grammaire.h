@@ -26,11 +26,11 @@
 
 #include "biblinternes/langage/analyseuse.hh"
 
-#include "assembleuse_arbre.h"
 #include "erreur.h"
 
 class DonneesType;
 
+struct assembleuse_arbre;
 struct ContexteGenerationCode;
 struct DonneesFonction;
 struct DonneesModule;

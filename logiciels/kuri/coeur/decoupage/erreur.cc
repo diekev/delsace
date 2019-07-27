@@ -26,8 +26,6 @@
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
-#include "donnees_type.h"
-#include "modules.hh"
 #include "morceaux.hh"
 
 namespace erreur {

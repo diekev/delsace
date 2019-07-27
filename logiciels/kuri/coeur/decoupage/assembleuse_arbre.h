@@ -24,9 +24,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/liste.hh"
-
 #include "biblinternes/structures/pile.hh"
+#include "biblinternes/structures/liste.hh"
 
 #include "arbre_syntactic.h"
 

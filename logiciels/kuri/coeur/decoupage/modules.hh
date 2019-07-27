@@ -24,14 +24,11 @@
 
 #pragma once
 
+#include "biblinternes/langage/tampon_source.hh"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/liste.hh"
 
-#include "biblinternes/langage/tampon_source.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/ensemble.hh"
-
 #include "donnees_type.h"
-#include "morceaux.hh"
 
 namespace llvm {
 class Type;

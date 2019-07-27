@@ -24,15 +24,11 @@
 
 #include "validation_semantique.hh"
 
-#include <cassert>
-#include <iostream>
-
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
-#include "donnees_type.h"
 #include "erreur.h"
 
 namespace noeud {

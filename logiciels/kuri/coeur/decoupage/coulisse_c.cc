@@ -28,13 +28,9 @@
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
-#include <cassert>
-#include <iostream>
-
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
-#include "erreur.h"
 #include "modules.hh"
 #include "validation_semantique.hh"
 

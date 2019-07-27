@@ -24,10 +24,8 @@
 
 #include "modules.hh"
 
-#include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/conditions.h"
@@ -36,7 +34,6 @@
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
-#include "erreur.h"
 
 /* ************************************************************************** */
 

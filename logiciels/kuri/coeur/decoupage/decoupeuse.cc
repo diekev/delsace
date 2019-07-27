@@ -24,15 +24,10 @@
 
 #include "decoupeuse.h"
 
-#include <iostream>
-#include <cstring>
-
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/langage/unicode.hh"
 
-#include "contexte_generation_code.h"  // pour DonneesModule
 #include "erreur.h"
-#include "modules.hh"
 
 /* ************************************************************************** */
 

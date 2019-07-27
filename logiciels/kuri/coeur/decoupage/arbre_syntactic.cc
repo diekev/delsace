@@ -26,12 +26,6 @@
 
 #include "biblinternes/outils/conditions.h"
 
-#include "assembleuse_arbre.h"
-#include "broyage.hh"
-#include "contexte_generation_code.h"
-#include "erreur.h"
-#include "modules.hh"
-
 /* ************************************************************************** */
 
 static void imprime_tab(std::ostream &os, int tab)

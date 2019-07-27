@@ -28,7 +28,6 @@
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
-#include "morceaux.hh"
 
 char caractere_echape(char const *sequence);
 

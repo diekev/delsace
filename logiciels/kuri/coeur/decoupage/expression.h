@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "morceaux.hh"
+enum class id_morceau : unsigned int;
 
 namespace noeud {
 struct base;

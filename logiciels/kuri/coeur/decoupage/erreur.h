@@ -25,7 +25,6 @@
 #pragma once
 
 #include "modules.hh"
-#include "morceaux.hh"
 
 #include "biblinternes/langage/erreur.hh"
 
