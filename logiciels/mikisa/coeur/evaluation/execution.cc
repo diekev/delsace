@@ -210,14 +210,7 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 	auto rotation = evalue_vecteur("rotation", contexte.temps_courant);
 	auto taille = evalue_vecteur("taille", contexte.temps_courant);
 
-	auto transformation = math::transformation();
-	transformation *= math::translation(position.x, position.y, position.z);
-	transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::echelle(taille.x, taille.y, taille.z);
-
-	m_objet.transformation = transformation;
+	m_objet.transformation = math::construit_transformation(position, rotation, taille);
 #endif
 }
 

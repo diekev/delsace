@@ -143,12 +143,7 @@ public:
 		auto rotation = evalue_vecteur("rotation", temps);
 		auto taille = evalue_vecteur("taille", temps);
 
-		m_corps.transformation = math::transformation();
-		m_corps.transformation *= math::translation(position.x, position.y, position.z);
-		m_corps.transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
-		m_corps.transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
-		m_corps.transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
-		m_corps.transformation *= math::echelle(taille.x, taille.y, taille.z);
+		m_corps.transformation = math::construit_transformation(position, rotation, taille);
 
 		m_manipulatrice_position.pos(dls::math::point3f(position.x, position.y, position.z));
 		m_manipulatrice_rotation.pos(dls::math::point3f(position.x, position.y, position.z));
@@ -713,14 +708,10 @@ public:
 		auto taille = evalue_vecteur("taille", contexte.temps_courant);
 		auto echelle_uniforme = evalue_decimal("echelle_uniforme", contexte.temps_courant);
 
-		m_transformation = math::transformation();
-		m_transformation *= math::translation(position.x, position.y, position.z);
-		m_transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
-		m_transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
-		m_transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
-		m_transformation *= math::echelle(taille.x * echelle_uniforme,
-										  taille.y * echelle_uniforme,
-										  taille.z * echelle_uniforme);
+		m_transformation = math::construit_transformation(
+					dls::math::vec3f(position),
+					rotation,
+					taille * echelle_uniforme);
 
 		m_corps.transformation = m_transformation;
 

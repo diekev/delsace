@@ -53,16 +53,17 @@ const char *Objet::chemin_entreface() const
 void Objet::ajourne_parametres()
 {
 	rendu_scene = evalue_bool("rendu_scene");
-	pivot = dls::math::point3f(evalue_vecteur("pivot"));
-	position = dls::math::point3f(evalue_vecteur("position"));
-	echelle = dls::math::point3f(evalue_vecteur("echelle"));
-	rotation = dls::math::point3f(evalue_vecteur("rotation"));
+
+	auto pvt = evalue_vecteur("pivot");
+	auto pos = evalue_vecteur("position");
+	auto ech = evalue_vecteur("echelle");
+	auto rot = evalue_vecteur("rotation");
+
+	pivot = dls::math::point3f(pvt);
+	position = dls::math::point3f(pos);
+	echelle = dls::math::point3f(ech);
+	rotation = dls::math::point3f(rot);
 	echelle_uniforme = evalue_decimal("echelle_uniforme");
 
-	transformation = math::transformation();
-	transformation *= math::translation(position.x, position.y, position.z);
-	transformation *= math::rotation_x(rotation.x * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::rotation_y(rotation.y * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::rotation_z(rotation.z * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::echelle(echelle.x * echelle_uniforme, echelle.y * echelle_uniforme, echelle.z * echelle_uniforme);
+	transformation = math::construit_transformation(pos, rot, ech * echelle_uniforme);
 }

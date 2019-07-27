@@ -76,12 +76,7 @@ void VueObjet::ajourne_donnees()
 	auto rot = evalue_vecteur("rotation");
 	auto ech = evalue_vecteur("échelle");
 
-	auto transformation = math::transformation();
-	transformation *= math::translation(pos.x, pos.y, pos.z);
-	transformation *= math::rotation_x(rot.x * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::rotation_y(rot.y * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::rotation_z(rot.z * constantes<float>::POIDS_DEG_RAD);
-	transformation *= math::echelle(ech.x, ech.y, ech.z);
+	auto transformation = math::construit_transformation(pos, rot, ech);
 
 	m_objet->transformation = transformation;
 
