@@ -24,6 +24,8 @@
 
 #include "arbre_syntactic.h"
 
+#include "biblinternes/outils/conditions.h"
+
 #include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
@@ -164,7 +166,7 @@ void base::imprime_code(std::ostream &os, int tab)
 
 	os << chaine_type_noeud(this->type) << ' ';
 
-	if (possede_drapeau(this->drapeaux, EST_CALCULE)) {
+	if (dls::outils::possede_drapeau(this->drapeaux, EST_CALCULE)) {
 		if (this->type == type_noeud::NOMBRE_ENTIER) {
 			os << std::any_cast<long>(this->valeur_calculee);
 		}

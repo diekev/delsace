@@ -28,6 +28,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
@@ -533,7 +534,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 		if (dt.type_base() == type_id::TROIS_POINTS) {
 			noeud->drapeaux |= VARIADIC;
 
-			if (!possede_drapeau(noeud->drapeaux, EST_EXTERNE) && dt.derefence().est_invalide()) {
+			if (!dls::outils::possede_drapeau(noeud->drapeaux, EST_EXTERNE) && dt.derefence().est_invalide()) {
 				lance_erreur("La déclaration de fonction variadique sans type n'est"
 							 " implémentée que pour les fonctions externes");
 			}
@@ -1006,7 +1007,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.pousse(noeud);
 
-					noeud->drapeaux |= drapeaux;
+					noeud->drapeaux |= static_cast<drapeaux_noeud>(drapeaux);
 					drapeaux = 0;
 
 					/* nous avons la déclaration d'un type dans la structure */
@@ -1563,7 +1564,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	for (auto noeud : expression) {
 		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
-		if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
+		if (!dls::outils::possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
 			if (pile.taille() < 2) {
 				erreur::lance_erreur(
 							"Expression malformée pour opérateur binaire",
@@ -1612,7 +1613,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 			pile.pousse(noeud);
 		}
-		else if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
+		else if (!dls::outils::possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
 			auto n1 = pile.back();
 			pile.pop_back();
 

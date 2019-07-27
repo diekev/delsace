@@ -26,6 +26,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include <cassert>
 #include <iostream>
@@ -933,7 +934,7 @@ static void cree_appel(
 			 * donc on le désactive pour ne générer que '&x'.
 			 */
 
-			enf->drapeaux &= static_cast<unsigned short>(~PREND_REFERENCE);
+			enf->drapeaux &= ~PREND_REFERENCE;
 
 			/* Pour les références des accès membres, on ne doit pas avoir de
 			 * prépasse, donc expr_gauche = true. */
@@ -1102,7 +1103,7 @@ static void prepasse_acces_membre(
 		base *membre,
 		dls::flux_chaine &os)
 {
-	if (possede_drapeau(b->drapeaux, PREND_REFERENCE)) {
+	if (dls::outils::possede_drapeau(b->drapeaux, PREND_REFERENCE)) {
 		return;
 	}
 
@@ -1276,7 +1277,7 @@ static void genere_code_C_prepasse(
 						os << ';' << '\n';
 					}
 
-					f->drapeaux &= static_cast<unsigned short>(~POUR_ASSIGNATION);
+					f->drapeaux &= ~POUR_ASSIGNATION;
 					f->aide_generation_code = 0;
 					noeuds.pousse(f);
 				}
@@ -1626,7 +1627,7 @@ void genere_code_C(
 			 * Nos tableaux, quant à eux, sont portables.
 			 */
 
-			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
+			auto const est_externe = dls::outils::possede_drapeau(b->drapeaux, EST_EXTERNE);
 
 			if (est_externe) {
 				return;
@@ -1675,17 +1676,17 @@ void genere_code_C(
 
 				os << "static ";
 
-				if (!possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+				if (!dls::outils::possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "inline ";
 				}
 
 				os << "void " << nom_fonction;
 			}
 			else if (moult_retour) {
-				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+				if (dls::outils::possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
 					os << "static inline void ";
 				}
-				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+				else if (dls::outils::possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "static void __attribute__ ((noinline)) ";
 				}
 				else {
@@ -1695,10 +1696,10 @@ void genere_code_C(
 				os << nom_fonction;
 			}
 			else {
-				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+				if (dls::outils::possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
 					os << "static inline ";
 				}
-				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+				else if (dls::outils::possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "__attribute__ ((noinline)) ";
 				}
 
@@ -1861,7 +1862,7 @@ void genere_code_C(
 
 				/* pour les assignations de tableaux fixes, remplace les crochets
 				 * par des pointeurs pour la déclaration */
-				if (possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
+				if (dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
 					if (dt.type_base() != id_morceau::TABLEAU && (dt.type_base() & 0xff) == id_morceau::TABLEAU) {
 						auto ndt = DonneesType{};
 						ndt.pousse(id_morceau::POINTEUR);
@@ -1893,7 +1894,7 @@ void genere_code_C(
 				}
 
 				/* nous avons une déclaration, initialise à zéro */
-				if (!possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
+				if (!dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
 					os << ";\n";
 					cree_initialisation(
 								contexte,
@@ -2043,7 +2044,7 @@ void genere_code_C(
 		}
 		case type_noeud::NOMBRE_REEL:
 		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_reel(
 												 b->morceau.chaine,
@@ -2054,7 +2055,7 @@ void genere_code_C(
 		}
 		case type_noeud::NOMBRE_ENTIER:
 		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_entier(
 												 b->morceau.chaine,
@@ -2291,7 +2292,7 @@ void genere_code_C(
 		}
 		case type_noeud::BOOLEEN:
 		{
-			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
+			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<bool>(b->valeur_calculee)
 										   : (b->chaine() == "vrai");
 			os << valeur;

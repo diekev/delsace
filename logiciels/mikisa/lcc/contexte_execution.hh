@@ -64,12 +64,6 @@ inline auto operator|(ctx_script ctx0, ctx_script ctx1)
 				static_cast<unsigned short>(ctx0) | static_cast<unsigned short>(ctx1));
 }
 
-template <typename T>
-auto possede_drapeau(T v, T d)
-{
-	return (v & d) != static_cast<T>(0);
-}
-
 /* ************************************************************************** */
 
 struct magasin_tableau {

@@ -25,6 +25,7 @@
 #include "analyseuse_grammaire.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.hh"
 #include "contexte_generation_code.hh"
@@ -389,7 +390,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.pousse(noeud);
 
-					noeud->drapeaux |= drapeaux;
+					noeud->drapeaux |= static_cast<drapeaux_noeud>(drapeaux);
 					drapeaux = 0;
 				}
 
@@ -656,7 +657,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 	for (auto noeud : expression) {
 		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(noeud->identifiant()) << FIN_LOG_EXPRESSION;
 
-		if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
+		if (!dls::outils::possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_binaire(noeud->identifiant())) {
 			if (pile.taille() < 2) {
 				erreur::lance_erreur(
 							"Expression malformée pour opérateur binaire",
@@ -676,7 +677,7 @@ void analyseuse_grammaire::analyse_expression_droite(
 
 			pile.pousse(noeud);
 		}
-		else if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
+		else if (!dls::outils::possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
 			if (pile.taille() < 1) {
 				erreur::lance_erreur(
 							"Expression malformée pour opérateur unaire",

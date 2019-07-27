@@ -153,7 +153,7 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-enum : unsigned short {
+enum drapeaux_noeud : unsigned short {
 	DYNAMIC                = (1 << 0),
 	VARIADIC               = (1 << 1),
 	DECLARATION            = (1 << 2),
@@ -173,9 +173,29 @@ enum : unsigned short {
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };
 
-inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
+inline auto operator&(drapeaux_noeud gauche, drapeaux_noeud droite)
 {
-	return (drapeau & valeur) != 0;
+	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) & static_cast<int>(droite));
+}
+
+inline auto operator|(drapeaux_noeud gauche, drapeaux_noeud droite)
+{
+	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) | static_cast<int>(droite));
+}
+
+inline auto operator~(drapeaux_noeud droite)
+{
+	return static_cast<drapeaux_noeud>(~static_cast<int>(droite));
+}
+
+inline auto operator&=(drapeaux_noeud &gauche, drapeaux_noeud droite)
+{
+	return (gauche = gauche | droite);
+}
+
+inline auto operator|=(drapeaux_noeud &gauche, drapeaux_noeud droite)
+{
+	return (gauche = gauche & droite);
 }
 
 enum {
@@ -229,7 +249,7 @@ struct base {
 	long index_type_fonc = -1l;
 
 	char aide_generation_code = 0;
-	unsigned short drapeaux = 0;
+	drapeaux_noeud drapeaux{};
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 

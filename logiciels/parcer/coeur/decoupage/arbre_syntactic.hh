@@ -79,14 +79,24 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
-{
-	return (drapeau & valeur) != 0;
-}
-
-enum : unsigned short {
+enum drapeaux_noeud : unsigned short {
 	IGNORE_OPERATEUR = (1 << 0),
 };
+
+inline auto operator&(drapeaux_noeud gauche, drapeaux_noeud droite)
+{
+	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) & static_cast<int>(droite));
+}
+
+inline auto operator|(drapeaux_noeud gauche, drapeaux_noeud droite)
+{
+	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) | static_cast<int>(droite));
+}
+
+inline auto operator|=(drapeaux_noeud &gauche, drapeaux_noeud droite)
+{
+	return (gauche = gauche | droite);
+}
 
 struct DonneesFonction;
 
@@ -106,7 +116,7 @@ struct base {
 	long index_type = -1l;
 
 	char aide_generation_code = 0;
-	unsigned short drapeaux = 0;
+	drapeaux_noeud drapeaux{};
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 

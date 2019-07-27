@@ -27,6 +27,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "biblinternes/outils/conditions.h"
+
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
@@ -541,7 +543,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			 * - considération du type de retour des fonctions récursive
 			 */
 
-			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
+			auto const est_externe = dls::outils::possede_drapeau(b->drapeaux, EST_EXTERNE);
 
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
 			auto nom_fonction = b->morceau.chaine;
@@ -777,7 +779,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			 * x = 6; # illégal car non dynamique
 			 */
 
-			if (possede_drapeau(b->drapeaux, DECLARATION)) {
+			if (dls::outils::possede_drapeau(b->drapeaux, DECLARATION)) {
 				auto existe = contexte.locale_existe(b->morceau.chaine);
 
 				if (existe) {
