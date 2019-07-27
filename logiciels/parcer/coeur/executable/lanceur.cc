@@ -28,6 +28,7 @@
 #include <iostream>
 
 #include "decoupage/analyseuse_grammaire.hh"
+#include "decoupage/assembleuse_arbre.hh"
 #include "decoupage/contexte_generation_code.hh"
 #include "decoupage/decoupeuse.hh"
 #include "decoupage/erreur.hh"

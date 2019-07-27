@@ -26,11 +26,8 @@
 
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "arbre_syntactic.hh"
 #include "contexte_generation_code.hh"
-#include "donnees_type.hh"
 #include "modules.hh"
-#include "morceaux.hh"
 
 namespace erreur {
 

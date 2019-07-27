@@ -25,14 +25,11 @@
 #include "analyseuse_grammaire.hh"
 
 #include "biblinternes/chrono/outils.hh"
-#include <iostream>
 
-#include "arbre_syntactic.hh"
+#include "assembleuse_arbre.hh"
 #include "contexte_generation_code.hh"
-#include "erreur.hh"
 #include "expression.hh"
 #include "modules.hh"
-#include "nombres.hh"
 
 #undef DEBOGUE_EXPRESSION
 
@@ -313,8 +310,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 
 void analyseuse_grammaire::analyse_expression_droite(
 		id_morceau identifiant_final,
-		id_morceau racine_expr,
-		bool const calcul_expression)
+		id_morceau racine_expr)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
 	auto profondeur = m_profondeur++;
@@ -675,63 +671,24 @@ void analyseuse_grammaire::analyse_expression_droite(
 			auto n1 = pile.back();
 			pile.pop_back();
 
-			if (est_constant(n1) && est_constant(n2)) {
-				if (est_operateur_constant(noeud->identifiant())) {
-					noeud = calcul_expression_double(*m_assembleuse, m_contexte, noeud, n1, n2);
-
-					if (noeud == nullptr) {
-						lance_erreur("Ne peut pas calculer l'expression");
-					}
-				}
-				else if (calcul_expression) {
-					lance_erreur("Ne peut pas calculer l'expression car l'opérateur n'est pas constant");
-				}
-				else {
-					noeud->ajoute_noeud(n1);
-					noeud->ajoute_noeud(n2);
-				}
-			}
-			else if (calcul_expression) {
-				if (pile.taille() < 1) {
-					erreur::lance_erreur(
-								"Expression malformée pour opérateur unaire",
-								m_contexte,
-								noeud->donnees_morceau(),
-								erreur::type_erreur::NORMAL);
-				}
-
-				lance_erreur("Ne peut pas calculer l'expression pour la constante");
-			}
-			else {
-				noeud->ajoute_noeud(n1);
-				noeud->ajoute_noeud(n2);
-			}
+			noeud->ajoute_noeud(n1);
+			noeud->ajoute_noeud(n2);
 
 			pile.pousse(noeud);
 		}
 		else if (!possede_drapeau(noeud->drapeaux, IGNORE_OPERATEUR) && est_operateur_unaire(noeud->identifiant())) {
+			if (pile.taille() < 1) {
+				erreur::lance_erreur(
+							"Expression malformée pour opérateur unaire",
+							m_contexte,
+							noeud->donnees_morceau(),
+							erreur::type_erreur::NORMAL);
+			}
+
 			auto n1 = pile.back();
 			pile.pop_back();
 
-			if (est_constant(n1)) {
-				if (est_operateur_constant(noeud->identifiant())) {
-					noeud = calcul_expression_simple(*m_assembleuse, noeud, n1);
-
-					if (noeud == nullptr) {
-						lance_erreur("Ne peut pas calculer l'expression");
-					}
-				}
-				else if (calcul_expression) {
-					lance_erreur("Ne peut pas calculer l'expression car l'opérateur n'est pas constant");
-				}
-			}
-			else if (calcul_expression) {
-				lance_erreur("Ne peut pas calculer l'expression car le noeud n'est pas constant");
-			}
-			else {
-				noeud->ajoute_noeud(n1);
-			}
-
+			noeud->ajoute_noeud(n1);
 			pile.pousse(noeud);
 		}
 		else {

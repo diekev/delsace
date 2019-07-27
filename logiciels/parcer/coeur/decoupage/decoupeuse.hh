@@ -25,8 +25,6 @@
 #pragma once
 
 #include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
-#include "biblinternes/structures/vue_chaine.hh"
 
 #include "morceaux.hh"
 
@@ -51,8 +49,6 @@ class decoupeuse_texte {
 	int m_drapeaux = 0;
 
 public:
-	using iterateur = dls::tableau<DonneesMorceaux>::iteratrice;
-
 	explicit decoupeuse_texte(DonneesModule *module, int drapeaux = 0);
 
 	void genere_morceaux();

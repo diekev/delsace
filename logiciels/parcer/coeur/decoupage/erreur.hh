@@ -27,9 +27,6 @@
 #include "biblinternes/langage/erreur.hh"
 #include "biblinternes/structures/chaine.hh"
 
-#include "modules.hh"
-#include "morceaux.hh"
-
 class DonneesType;
 
 struct DonneesMorceaux;

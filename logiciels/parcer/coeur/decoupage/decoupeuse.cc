@@ -24,16 +24,14 @@
 
 #include "decoupeuse.hh"
 
-#include <iostream>
-#include <cstring>
-
+#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/langage/unicode.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "contexte_generation_code.hh"  // pour DonneesModule
 #include "erreur.hh"
 #include "modules.hh"
-#include "nombres.hh"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 /* ************************************************************************** */
 
@@ -477,7 +475,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 			}
 		}
 	}
-	else if (m_taille_mot_courant == 0 && est_nombre_decimal(this->caractere_courant())) {
+	else if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
 		this->enregistre_pos_mot();
 
 		id_morceau id_nombre;
@@ -487,7 +485,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 		 * m_taille_mot_courant est remis à 0 dans pousse_mot() donc on ne peut
 		 * l'utiliser en paramètre de avance() (ce qui causerait une boucle
 		 * infinie. */
-		auto const compte = extrait_nombre(m_debut, m_fin, id_nombre);
+		auto const compte = denombreuse::extrait_nombre(m_debut, m_fin, id_nombre);
 		m_taille_mot_courant = static_cast<long>(compte);
 
 		this->pousse_mot(id_nombre);

@@ -24,10 +24,9 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau.hh"
-
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
 
