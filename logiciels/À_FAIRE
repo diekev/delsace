@@ -351,6 +351,25 @@ danjo
 -- rampe (sélection couleur par point de controle)
 -- meilleur différence interface sélection, entrée de nombre valeur entière ou décimale
 -- roue couleur (sélection couleur par valeur chaine)
+-- séparation drapeau activé / visibilité
+-- remémoration de l'onglet choisi
+-- remémoration du texte dans l'éditeur de texte pour quand on redessine l'interface
+-- ajout d'un widget pour afficher les valeurs des attributs (danjo ?)
+-- ajout d'un widget de liste (similaire Blender -> liste matériaux, textures, etc..)
+-- ajout d'un drapeau d'animabilité
+-- ajout d'un drapeau pour l'activabilité (if est_activé("valeur_max"))
+-- ajout d'une icone pour les échelles de valeurs
+-- ajout d'une icone pour les chronomètres
+-- ajout d'un opérateur pour remettre les valeurs à la valeur par défaut
+-- ajout d'un callback pour quand une valeur change, avec la valeur précédente
+-- dessine les boites de valeurs selon les min/max
+-- vérifie que les params des propriétés soient correctes (i.e. par de min/max pour les énums)
+-- évaluation des scripts .dan
+-- les dialogues ferment quand on appuie sur entrée pour terminer l'édition d'une entrée de texte
+-- lecture et écriture des propriétés dans des flux
+
+un widget est activé quand l'utilisateur peut changer sa valeur
+un widget est visible quand l'utiisateur peut le voir dans l'interface
 
 ########
 poséidon
