@@ -26,6 +26,8 @@
 
 #include "base_analyseuse.h"
 
+#include "biblinternes/structures/magasin.hh"
+
 namespace danjo {
 
 class AssembleurDisposition;
@@ -124,7 +126,7 @@ private:
 	 * avec identifiant_propriété pouvant prendre l'une des valeurs suivantes :
 	 * valeur, min, max, items, infobulle, précision, pas, attache.
 	 */
-	void analyse_propriete(id_morceau type_controle);
+	void analyse_propriete(id_morceau type_controle, dls::magasin<id_morceau> const &magasin);
 
 	/**
 	 * Analyse la déclaration d'une liste d'items pour un contrôle de type
