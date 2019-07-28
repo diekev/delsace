@@ -153,6 +153,7 @@ const char *chaine_type_noeud(type_noeud type);
 /* ************************************************************************** */
 
 enum drapeaux_noeud : unsigned short {
+	AUCUN                  = 0,
 	DYNAMIC                = (1 << 0),
 	VARIADIC               = (1 << 1),
 	DECLARATION            = (1 << 2),
@@ -174,27 +175,27 @@ enum drapeaux_noeud : unsigned short {
 
 inline auto operator&(drapeaux_noeud gauche, drapeaux_noeud droite)
 {
-	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) & static_cast<int>(droite));
+	return static_cast<drapeaux_noeud>(static_cast<unsigned short>(gauche) & static_cast<unsigned short>(droite));
 }
 
 inline auto operator|(drapeaux_noeud gauche, drapeaux_noeud droite)
 {
-	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) | static_cast<int>(droite));
+	return static_cast<drapeaux_noeud>(static_cast<unsigned short>(gauche) | static_cast<unsigned short>(droite));
 }
 
 inline auto operator~(drapeaux_noeud droite)
 {
-	return static_cast<drapeaux_noeud>(~static_cast<int>(droite));
+	return static_cast<drapeaux_noeud>(~static_cast<unsigned short>(droite));
 }
 
 inline auto operator&=(drapeaux_noeud &gauche, drapeaux_noeud droite)
 {
-	return (gauche = gauche | droite);
+	return (gauche = gauche & droite);
 }
 
 inline auto operator|=(drapeaux_noeud &gauche, drapeaux_noeud droite)
 {
-	return (gauche = gauche & droite);
+	return (gauche = gauche | droite);
 }
 
 enum {
@@ -248,7 +249,7 @@ struct base {
 	long index_type_fonc = -1l;
 
 	char aide_generation_code = 0;
-	drapeaux_noeud drapeaux{};
+	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 
