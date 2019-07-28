@@ -47,6 +47,7 @@ add_library(${NOM_CIBLE} STATIC
 	pile.cc
 	plage.cc
 	tableau.cc
+	tableau_fixe.cc
 	vue_chaine.cc
 
 	arbre_kd.hh
@@ -66,6 +67,7 @@ add_library(${NOM_CIBLE} STATIC
 	pile.hh
 	plage.hh
 	tableau.hh
+	tableau_fixe.hh
 	vue_chaine.hh
 )
 
