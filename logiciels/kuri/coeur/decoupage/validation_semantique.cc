@@ -33,6 +33,63 @@
 
 namespace noeud {
 
+#if 0 // ébauche variable
+// cherche variable
+
+enum {
+	REDEFINITION_VARIABLE_LOCALE,
+	REDEFINITION_MEMBRE_VARIABLE_EMPLOYEE,
+	REDEFINITION_VARIABLE_GLOBALE,
+	REDEFINITION_ENUM,
+	REDEFINITION_FONCTION,
+	REDEFINITION_NULLE,
+};
+
+// empl :
+// - si le type est une structure ou une énumération
+// - si le type de la variable n'a pas déjà été employé
+
+static int variable_redefinie(
+	contexte,
+	nom)
+{
+	if (contexte.locale_existe(nom)) {
+		return REDEFINITION_VARIABLE_LOCALE;
+	}
+
+	/* vérifie si des variables employées ont un membre du même nom */
+	if (est_membre_employe()) {
+		return REDEFINITION_MEMBRE_VARIABLE_EMPLOYEE;
+	}
+
+	if (contexte.globale_existe(nom)) {
+		return REDEFINITION_VARIABLE_GLOBALE;
+	}
+
+	if (contexte.enum_existe(nom)) {
+		return REDEFINITION_ENUM;
+	}
+
+//	if (contexte.fonction_existe(nom)) {
+//		return REDEFINITION_FONCTION;
+//	}
+
+	return REDEFINITION_NULLE;
+}
+
+enum {
+	GENERE_CODE_DECLARATION_CONST,
+	GENERE_CODE_DECLARATION_DYN,
+	GENERE_CODE_ACCES,
+	GENERE_CODE_ACCES_EMPL,
+};
+
+// si pour déclaration
+//    vérifie préexistence
+// si pour accès
+//    si non connue -> vérifie variables employées
+#endif
+
 /* ************************************************************************** */
 
 static void drapeau_depuis_niveau_compat(
