@@ -37,16 +37,6 @@
 
 /* ************************************************************************** */
 
-template <typename T>
-static auto est_zero(T v)
-{
-	if constexpr (std::is_floating_point<T>::value) {
-		return std::abs(v) <= std::numeric_limits<T>::epsilon();
-	}
-
-	return v == 0;
-}
-
 /* Retourne un nombre aléatoire avec une distribution normale (Gaussienne),
  * avec le sigma spécifié. Ceci utilise la forme polaire de Marsaglia de la
  * méthode de Box-Muller */
@@ -66,7 +56,7 @@ static auto gaussRand(GNA &gna, T moyenne = 0,  T sigma = 1)
 		x = gna.uniforme(static_cast<T>(-1), static_cast<T>(1));
 		y = gna.uniforme(static_cast<T>(-1), static_cast<T>(1));
 		longueur_carree = x * x + y * y;
-	} while (longueur_carree >= static_cast<T>(1) || est_zero(longueur_carree));
+	} while (longueur_carree >= static_cast<T>(1) || dls::math::est_environ_zero(longueur_carree));
 
 	auto g = std::sqrt(static_cast<T>(-2) * std::log(longueur_carree) / longueur_carree);
 
