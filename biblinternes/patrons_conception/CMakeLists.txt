@@ -58,10 +58,6 @@ target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 
 target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 
-install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
-
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
-
 ################################################################################
 
 add_executable(patrons_conception main.cc)

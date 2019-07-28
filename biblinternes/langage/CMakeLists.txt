@@ -50,6 +50,3 @@ add_library(${NOM_PROJET} STATIC "${SOURCES}")
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(TARGETS ${NOM_PROJET} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_PROJET})

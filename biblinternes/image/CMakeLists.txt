@@ -68,9 +68,3 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES} ${ENTETES_OPERATION
 target_link_libraries(${NOM_BIBLIOTHEQUE} ${JPEG_LIBRARIES} stdc++fs bib_structures)
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${JPEG_INCLUDE_DIR})
-
-install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
-install(FILES ${ENTETES_LECTURE} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE}/flux)
-install(FILES ${ENTETES_OPERATIONS} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE}/operations)
-install(FILES ${ENTETES_OUTILS} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE}/outils)

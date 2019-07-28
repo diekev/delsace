@@ -19,6 +19,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+set(NOM_PROJET kuri)
+
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../
@@ -35,15 +37,17 @@ add_executable(kuri
     lanceur.cc
 )
 
-target_include_directories(kuri PUBLIC "${INCLUSIONS}")
+target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(kuri "${BIBLIOTHEQUES}")
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
 
 install(
-    TARGETS kuri RUNTIME DESTINATION .
+	TARGETS ${NOM_PROJET} RUNTIME DESTINATION ${RACINE_INSTALLATION}
 )
 
-install(FILES fichiers/execution_kuri.S DESTINATION fichiers)
+install(FILES fichiers/execution_kuri.S DESTINATION ${RACINE_INSTALLATION}/fichiers)
+
+################################################################################
 
 add_executable(converti_html
 	converti_html.cc
@@ -54,5 +58,5 @@ target_include_directories(converti_html PUBLIC "${INCLUSIONS}")
 target_link_libraries(converti_html "${BIBLIOTHEQUES}")
 
 install(
-	TARGETS converti_html RUNTIME DESTINATION .
+	TARGETS converti_html RUNTIME DESTINATION ${RACINE_INSTALLATION}
 )

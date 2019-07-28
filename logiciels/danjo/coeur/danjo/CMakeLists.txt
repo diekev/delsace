@@ -219,15 +219,3 @@ add_library(danjo STATIC ${SOURCES})
 target_include_directories(danjo PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(danjo "${BIBLIOTHEQUES}")
-
-install(TARGETS danjo ARCHIVE DESTINATION lib)
-
-install(
-	FILES ${ENTETES}
-	DESTINATION include/danjo
-)
-
-install(
-	FILES ${ENTETES_TYPES}
-	DESTINATION include/danjo/types
-)

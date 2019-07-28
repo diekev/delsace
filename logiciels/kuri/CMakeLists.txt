@@ -30,6 +30,8 @@ endif()
 
 # ------------------------------------------------------------------------------
 
+set(RACINE_INSTALLATION kuri)
+
 add_subdirectory(coeur)
 add_subdirectory(exemples)
 add_subdirectory(tests)
@@ -48,5 +50,5 @@ set(FICHIERS_BIBLIOTHEQUES
 )
 install(
 	FILES ${FICHIERS_BIBLIOTHEQUES}
-	DESTINATION bibliotheques
+	DESTINATION ${RACINE_INSTALLATION}/bibliotheques
 )

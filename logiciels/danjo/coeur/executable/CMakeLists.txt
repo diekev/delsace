@@ -33,7 +33,7 @@ target_include_directories(outils_danjo PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(outils_danjo danjo)
 
-install(TARGETS outils_danjo RUNTIME DESTINATION bin)
+install(TARGETS outils_danjo RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 add_executable(application_test
 	application_test.h
@@ -44,7 +44,7 @@ target_include_directories(application_test PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(application_test "${BIBLIOTHEQUES}" danjo bib_outils)
 
-install(TARGETS application_test RUNTIME DESTINATION bin)
+install(TARGETS application_test RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 add_executable(controles
 	controles.cc
@@ -54,4 +54,4 @@ target_include_directories(controles PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(controles "${BIBLIOTHEQUES}" danjo)
 
-install(TARGETS controles RUNTIME DESTINATION bin)
+install(TARGETS controles RUNTIME DESTINATION ${RACINE_INSTALLATION})

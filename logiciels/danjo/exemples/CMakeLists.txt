@@ -35,5 +35,5 @@ set(FICHIERS
 
 install(
     FILES ${FICHIERS}
-	DESTINATION bin/exemples
+	DESTINATION ${RACINE_INSTALLATION}/exemples
 )
