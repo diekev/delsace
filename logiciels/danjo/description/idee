@@ -1,0 +1,48 @@
+interface "disposition_aléa" {
+	entrée {
+		min = vec4(0.0, 0.0, 0.0, 0.0);
+		max = vec4(0.0, 0.0, 0.0, 0.0);
+		moyenne = vec4(0.0, 0.0, 0.0, 0.0);
+		écart = vec4(0.0, 0.0, 0.0, 0.0);
+		distribution = "normal";
+	}
+	logique {
+		relation {
+
+		}
+		activité {
+			min ==> distribution == "uniforme";
+			max ==> distribution == "uniforme";
+			moyenne ==> distribution == "normal";
+			écart ==> distribution == "normal";
+		}
+	}
+}
+
+propriétés :
+- animable
+- activable (ajoute une case près de la propriété)
+- connectable
+
+signaux :
+- valeur_changee(std::string const &attache, std::any &vieille_valeur)
+- cle_ajoutee(std::string const &attache)
+
+disposition {
+	entête { # une entête à la Blender
+
+	}
+	panneau {
+
+	}
+	panneau {
+
+	}
+
+	listes {
+		icônes="";
+		éléments=éléments_liste_cerce;
+		bouton_ajoute=ajoute_cerce;
+		bouton_enlève=enlève_cerce;
+	}
+}
