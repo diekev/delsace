@@ -28,7 +28,7 @@
 
 namespace dls {
 
-template <typename T, int N>
+template <typename T, unsigned long N>
 struct tableau_fixe {
 	using type_valeur = T;
 	using type_pointeur = type_valeur*;

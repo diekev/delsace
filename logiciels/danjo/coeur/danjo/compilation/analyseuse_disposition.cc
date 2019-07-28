@@ -479,7 +479,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle, dls::mag
 
 	const auto identifiant_propriete = identifiant_courant();
 
-	if (!mgs.possede(identifiant_propriete)) {
+	if (!magasin.possede(identifiant_propriete)) {
 		std::cerr << "'Attention : propriété '"
 				  << chaine_identifiant(identifiant_propriete)
 				  << "' inutile pour type '"
