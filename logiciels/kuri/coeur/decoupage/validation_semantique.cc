@@ -104,7 +104,7 @@ bool peut_operer(
 
 	if (type1.type_base() == id_morceau::FONC) {
 		/* x : fonc()rien = nul; */
-		if (type2.type_base() == id_morceau::POINTEUR && type2.derefence().type_base() == id_morceau::NUL) {
+		if (type2.type_base() == id_morceau::POINTEUR && type2.derefence().front() == id_morceau::NUL) {
 			return true;
 		}
 	}
@@ -611,7 +611,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					auto id_structure = 0l;
 
 					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
-						id_structure = static_cast<long>(dt_var.derefence().type_base() >> 8);
+						id_structure = static_cast<long>(dt_var.derefence().front() >> 8);
 					}
 					else {
 						id_structure = static_cast<long>(dt_var.type_base() >> 8);

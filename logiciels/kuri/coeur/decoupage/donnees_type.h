@@ -42,6 +42,7 @@ class Type;
 
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "morceaux.hh"
@@ -68,6 +69,8 @@ class DonneesType {
 #endif
 
 public:
+	using type_plage = dls::plage_continue<const id_morceau>;
+
 	dls::chaine ptr_info_type{};
 
 	noeud::base *expr = nullptr;
@@ -79,6 +82,8 @@ public:
 	DonneesType(id_morceau i0);
 
 	DonneesType(id_morceau i0, id_morceau i1);
+
+	DonneesType(type_plage autre);
 
 	DonneesType(const DonneesType &) = default;
 	DonneesType &operator=(const DonneesType &) = default;
@@ -98,6 +103,15 @@ public:
 	 * pousser des données correctes dans un ordre correcte.
 	 */
 	void pousse(const DonneesType &autre);
+
+	/**
+	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
+	 * Cette fonction est principalement là pour générer les données relatives
+	 * à la prise de l'addresse d'une variable. Il ne sera pas possible de
+	 * supprimer les identifiants poussés, donc il vaut mieux faire en sorte de
+	 * pousser des données correctes dans un ordre correcte.
+	 */
+	void pousse(DonneesType::type_plage autre);
 
 	/**
 	 * Retourne le type de base, à savoir le premier élément déclaré. Par
@@ -133,12 +147,14 @@ public:
 	 */
 	iterateur_const end() const;
 
+	type_plage plage() const;
+
 	/**
 	 * Retourne des données pour un type correspondant au déréférencement de ce
 	 * type. Si le type n'est ni un pointeur, ni un tableau, retourne des
 	 * données invalides.
 	 */
-	DonneesType derefence() const;
+	type_plage derefence() const;
 
 	long taille() const;
 
@@ -158,42 +174,59 @@ public:
 /**
  * Compare deux DonneesType et retourne vrai s'ils sont égaux.
  */
-[[nodiscard]] inline bool operator==(const DonneesType &type_a, const DonneesType &type_b) noexcept
+[[nodiscard]] inline bool operator==(DonneesType::type_plage type_a, DonneesType::type_plage type_b) noexcept
 {
 	/* Petite optimisation. */
-	if (type_a.type_base() != type_b.type_base()) {
+	if (type_a.taille() != type_b.taille()) {
 		return false;
 	}
 
-	auto debut_a = type_a.begin();
-	auto fin_a = type_a.end();
-
-	auto debut_b = type_b.begin();
-	auto fin_b = type_b.end();
-
-	auto distance_a = std::distance(debut_a, fin_a);
-	auto distance_b = std::distance(debut_b, fin_b);
-
-	if (distance_a != distance_b) {
-		return false;
-	}
-
-	while (debut_a != fin_a) {
-		if (*debut_a != *debut_b) {
+	while (!type_a.est_finie()) {
+		if (type_a.front() != type_b.front()) {
 			return false;
 		}
 
-		++debut_a;
-		++debut_b;
+		type_a.effronte();
+		type_b.effronte();
 	}
 
 	return true;
 }
 
+[[nodiscard]] inline bool operator==(const DonneesType &type_a, const DonneesType &type_b) noexcept
+{
+	return (type_a.plage() == type_b.plage());
+}
+
+[[nodiscard]] inline bool operator==(DonneesType const &type_a, DonneesType::type_plage type_b) noexcept
+{
+	return (type_a.plage() == type_b);
+}
+
+[[nodiscard]] inline bool operator==(DonneesType::type_plage type_a, DonneesType const &type_b) noexcept
+{
+	return (type_a == type_b.plage());
+}
+
 /**
  * Compare deux DonneesType et retourne vrai s'ils sont inégaux.
  */
-[[nodiscard]] inline bool operator!=(const DonneesType &type_a, const DonneesType &type_b) noexcept
+[[nodiscard]] inline bool operator!=(DonneesType const &type_a, DonneesType const &type_b) noexcept
+{
+	return !(type_a == type_b);
+}
+
+[[nodiscard]] inline bool operator!=(DonneesType const &type_a, DonneesType::type_plage type_b) noexcept
+{
+	return !(type_a == type_b);
+}
+
+[[nodiscard]] inline bool operator!=(DonneesType::type_plage type_a, DonneesType const &type_b) noexcept
+{
+	return !(type_a == type_b);
+}
+
+[[nodiscard]] inline bool operator!=(DonneesType::type_plage type_a, DonneesType::type_plage type_b) noexcept
 {
 	return !(type_a == type_b);
 }
@@ -208,6 +241,20 @@ inline bool est_type_tableau_fixe(id_morceau id)
 inline bool est_type_tableau_fixe(DonneesType const &dt)
 {
 	return est_type_tableau_fixe(dt.type_base());
+}
+
+inline bool est_type_tableau_fixe(DonneesType::type_plage dt)
+{
+	return est_type_tableau_fixe(dt.front());
+}
+
+inline bool est_invalide(DonneesType::type_plage p)
+{
+	if (p.est_finie()) {
+		return true;
+	}
+
+	return false;
 }
 
 /* ************************************************************************** */
@@ -315,7 +362,7 @@ struct MagasinDonneesType {
 	void converti_type_C(
 			ContexteGenerationCode &contexte,
 			dls::vue_chaine const &nom_variable,
-			DonneesType const &donnees,
+			DonneesType::type_plage donnees,
 			dls::flux_chaine &os,
 			bool echappe = false,
 			bool echappe_struct = false,

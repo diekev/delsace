@@ -326,7 +326,7 @@ static auto cree_info_type_structure_C(
 	auto nom_tableau_fixe = dls::chaine("__tabl_fix_membres") + dls::vers_chaine(index++);
 
 	contexte.magasin_types.converti_type_C(
-				contexte, nom_tableau_fixe, dt_tfixe, os_init);
+				contexte, nom_tableau_fixe, dt_tfixe.plage(), os_init);
 
 	os_init << " = ";
 
@@ -348,7 +348,7 @@ static auto cree_info_type_structure_C(
 	auto nom_tableau_dyn = dls::chaine("__tabl_dyn_membres") + dls::vers_chaine(index++);
 
 	contexte.magasin_types.converti_type_C(
-				contexte, nom_tableau_dyn, dt_tdyn, os_init);
+				contexte, nom_tableau_dyn, dt_tdyn.plage(), os_init);
 
 	os_init << ";\n";
 	os_init << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
@@ -415,7 +415,7 @@ static auto cree_info_type_enum_C(
 	contexte.magasin_types.converti_type_C(
 				contexte,
 				"",
-				dt,
+				dt.plage(),
 				os_init);
 
 	os_init << " " << nom_tabl_fixe_vals << "[" << nombre_enfants << "] = {\n";
@@ -573,7 +573,7 @@ static dls::chaine cree_info_type_C(
 			auto nom_info_type = "__info_type_tableau" + dls::vers_chaine(index++);
 
 			/* dans le cas des arguments variadics des fonctions externes */
-			if (deref.est_invalide()) {
+			if (est_invalide(deref)) {
 				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
 				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
 				os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = 0;\n";
@@ -703,7 +703,7 @@ static auto cree_eini(ContexteGenerationCode &contexte, dls::flux_chaine &os, ba
 		contexte.magasin_types.converti_type_C(
 					contexte,
 					nom_var,
-					dt,
+					dt.plage(),
 					os);
 
 		os << " = ";
@@ -795,7 +795,7 @@ static void cree_appel(
 					os << ");\n";
 
 					os << nom_var_tableau << ".taille = sizeof(";
-					contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+					contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
 					os << ");\n";
 					break;
 				}
@@ -878,7 +878,7 @@ static void cree_appel(
 	}
 	else if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
 		auto nom_indirection = "__ret" + dls::vers_chaine(b->morceau.ligne_pos);
-		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt, os);
+		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt.plage(), os);
 
 		os << " = ";
 		b->valeur_calculee = nom_indirection;
@@ -991,7 +991,7 @@ static void declare_structures_C(
 					contexte.magasin_types.converti_type_C(
 								contexte,
 								nom,
-								dt,
+								dt.plage(),
 								os,
 								false,
 								true);
@@ -1039,22 +1039,22 @@ static auto genere_code_acces_membre(
 
 static void cree_initialisation(
 		ContexteGenerationCode &contexte,
-		DonneesType const &dt_parent,
+		DonneesType::type_plage dt_parent,
 		dls::chaine const &chaine_parent,
 		dls::vue_chaine const &accesseur,
 		dls::flux_chaine &os)
 {
-	if (dt_parent.type_base() == id_morceau::CHAINE || dt_parent.type_base() == id_morceau::TABLEAU) {
+	if (dt_parent.front() == id_morceau::CHAINE || dt_parent.front() == id_morceau::TABLEAU) {
 		os << chaine_parent << accesseur << "pointeur = 0;\n";
 		os << chaine_parent << accesseur << "taille = 0;\n";
 	}
-	else if ((dt_parent.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-		auto const index_structure = static_cast<long>(dt_parent.type_base() >> 8);
+	else if ((dt_parent.front() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+		auto const index_structure = static_cast<long>(dt_parent.front() >> 8);
 		auto const &ds = contexte.donnees_structure(index_structure);
 
 		for (auto i = 0l; i < ds.donnees_types.taille(); ++i) {
 			auto index_dt = ds.donnees_types[i];
-			auto &dt_enf = contexte.magasin_types.donnees_types[index_dt];
+			auto dt_enf = contexte.magasin_types.donnees_types[index_dt].plage();
 
 			for (auto paire_idx_mb : ds.donnees_membres) {
 				auto const &donnees_membre = paire_idx_mb.second;
@@ -1084,7 +1084,7 @@ static void cree_initialisation(
 			}
 		}
 	}
-	else if ((dt_parent.type_base() & 0xff) == id_morceau::TABLEAU) {
+	else if ((dt_parent.front() & 0xff) == id_morceau::TABLEAU) {
 		/* À FAIRE */
 	}
 	else {
@@ -1110,19 +1110,19 @@ static void prepasse_acces_membre(
 	}
 
 	auto const &index_type = structure->index_type;
-	auto type_structure = contexte.magasin_types.donnees_types[index_type];
+	auto type_structure = contexte.magasin_types.donnees_types[index_type].plage();
 
-	auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
+	auto est_pointeur = type_structure.front() == id_morceau::POINTEUR;
 
 	if (est_pointeur) {
-		type_structure = type_structure.derefence();
+		type_structure.effronte();
 	}
 
 	auto nom_acces = "__acces" + dls::vers_chaine(b->morceau.ligne_pos);
 	b->valeur_calculee = nom_acces;
 
-	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-		auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
+	if ((type_structure.front() & 0xff) == id_morceau::TABLEAU) {
+		auto taille = static_cast<size_t>(type_structure.front() >> 8);
 
 		if (taille != 0) {
 			os << "long " << nom_acces << " = " << taille << ";\n";
@@ -1131,7 +1131,7 @@ static void prepasse_acces_membre(
 	}
 
 	if (est_type_tableau_fixe(type_structure)) {
-		auto taille_tableau = static_cast<size_t>(type_structure.type_base() >> 8);
+		auto taille_tableau = static_cast<size_t>(type_structure.front() >> 8);
 		os << "long " << nom_acces << " = " << taille_tableau << ";\n";
 		return;
 	}
@@ -1163,7 +1163,7 @@ static void prepasse_acces_membre(
 		contexte.magasin_types.converti_type_C(
 					contexte,
 					nom_acces,
-					dt,
+					dt.plage(),
 					os,
 					false,
 					false,
@@ -1176,7 +1176,7 @@ static void prepasse_acces_membre(
 		contexte.magasin_types.converti_type_C(
 					contexte,
 					nom_acces,
-					dt,
+					dt.plage(),
 					os,
 					false,
 					false,
@@ -1390,7 +1390,7 @@ static void genere_code_C_prepasse(
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
 			os << "sizeof(";
-			contexte.magasin_types.converti_type_C(contexte, "", donnees, os);
+			contexte.magasin_types.converti_type_C(contexte, "", donnees.plage(), os);
 			os << ")";
 			break;
 		}
@@ -1432,7 +1432,7 @@ static void genere_code_C_prepasse(
 					.append(dls::vers_chaine(b->morceau.ligne_pos >> 32));
 
 			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tfixe, os);
+						contexte, nom_tableau_fixe, dt_tfixe.plage(), os);
 
 			os << " = ";
 
@@ -1461,7 +1461,7 @@ static void genere_code_C_prepasse(
 					.append(dls::vers_chaine(b->morceau.ligne_pos));
 
 			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_dyn, dt_tdyn, os);
+						contexte, nom_tableau_dyn, dt_tdyn.plage(), os);
 
 			os << ";\n";
 			os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
@@ -1482,7 +1482,7 @@ static void genere_code_C_prepasse(
 			contexte.magasin_types.converti_type_C(
 						contexte,
 						nom_tableau,
-						dt,
+						dt.plage(),
 						os);
 
 			os << " = ";
@@ -1645,7 +1645,7 @@ void genere_code_C(
 					contexte.magasin_types.converti_type_C(
 								contexte,
 								nom_ret,
-								dt,
+								dt.plage(),
 								os);
 
 					os << ";\n";
@@ -1656,7 +1656,7 @@ void genere_code_C(
 				for (auto const &paire : donnees_coroutine.variables) {
 					contexte.magasin_types.converti_type_C(contexte,
 												"",
-												contexte.magasin_types.donnees_types[paire.second.first],
+												contexte.magasin_types.donnees_types[paire.second.first].plage(),
 											os);
 
 					/* Stocke un pointeur pour ne pas qu'il soit invalidé par
@@ -1701,7 +1701,7 @@ void genere_code_C(
 
 				contexte.magasin_types.converti_type_C(contexte,
 							nom_fonction,
-							contexte.magasin_types.donnees_types[b->index_type],
+							contexte.magasin_types.donnees_types[b->index_type].plage(),
 						os);
 			}
 
@@ -1748,7 +1748,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_broye,
-							dt,
+							dt.plage(),
 							os);
 
 				virgule = ',';
@@ -1761,8 +1761,8 @@ void genere_code_C(
 
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
-					dt = dt.derefence();
-					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt);
+					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt.derefence());
+					dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
 				}
 
 				contexte.pousse_locale(nom, donnees_var);
@@ -1774,7 +1774,7 @@ void genere_code_C(
 
 					if (dt_var.type_base() == id_morceau::POINTEUR) {
 						est_pointeur = true;
-						id_structure = static_cast<long>(dt_var.derefence().type_base() >> 8);
+						id_structure = static_cast<long>(dt_var.derefence().front() >> 8);
 					}
 					else {
 						id_structure = static_cast<long>(dt_var.type_base() >> 8);
@@ -1809,7 +1809,7 @@ void genere_code_C(
 					contexte.magasin_types.converti_type_C(
 								contexte,
 								nom_ret,
-								dt,
+								dt.plage(),
 								os);
 
 					virgule = ',';
@@ -1873,7 +1873,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_broye,
-							dt,
+							dt.plage(),
 							os);
 
 				if (contexte.donnees_fonction == nullptr) {
@@ -1894,7 +1894,7 @@ void genere_code_C(
 					os << ";\n";
 					cree_initialisation(
 								contexte,
-								dt,
+								dt.plage(),
 								nom_broye,
 								".",
 								os);
@@ -2003,11 +2003,11 @@ void genere_code_C(
 
 				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
 
-				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+				contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
 
 				os << " " << nom_eini << " = *(";
 
-				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+				contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
 
 				os << " *)(";
 				genere_code_C(expression, contexte, false, os, os);
@@ -2262,7 +2262,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_variable,
-							dt,
+							dt.plage(),
 							os);
 
 				os << " = ";
@@ -2406,7 +2406,7 @@ void genere_code_C(
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
-					DonneesType const &dt,
+					DonneesType::type_plage dt,
 					dls::chaine const &nom_var)
 			{
 				auto var = enfant_1;
@@ -2437,7 +2437,7 @@ void genere_code_C(
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
-					DonneesType const &dt,
+					DonneesType::type_plage dt,
 					dls::chaine const &nom_var,
 					uint64_t taille_tableau)
 			{
@@ -2483,7 +2483,7 @@ void genere_code_C(
 					contexte.magasin_types.converti_type_C(
 								contexte,
 								"",
-								type_debut,
+								type_debut.plage(),
 								os);
 					os << " " << nom_broye << " = ";
 					genere_code_C(enfant2->enfants.front(), contexte, false, os, os);
@@ -2541,7 +2541,7 @@ void genere_code_C(
 					else if (type == id_morceau::CHAINE) {
 						auto dt = DonneesType(id_morceau::Z8);
 						index_type = contexte.magasin_types[TYPE_Z8];
-						genere_code_tableau_chaine(os, contexte, enfant1, enfant2, dt, nom_var);
+						genere_code_tableau_chaine(os, contexte, enfant1, enfant2, dt.plage(), nom_var);
 					}
 
 					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
@@ -2605,7 +2605,7 @@ void genere_code_C(
 						contexte.magasin_types.converti_type_C(
 									contexte,
 									nom_var_broye,
-									type_debut,
+									type_debut.plage(),
 									os);
 
 						os << ';'
@@ -2763,7 +2763,7 @@ void genere_code_C(
 			/* À FAIRE : vérifie compatibilité */
 			if (type_de == id_morceau::POINTEUR && type_vers == id_morceau::POINTEUR) {
 				os << "(";
-				contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+				contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
 				os << ")(";
 				genere_code_C(enfant, contexte, false, os, os);
 				os << ")";
@@ -2771,7 +2771,7 @@ void genere_code_C(
 			}
 
 			os << "(";
-			contexte.magasin_types.converti_type_C(contexte, "", dt, os);
+			contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
 			os << ")(";
 			genere_code_C(enfant, contexte, true, os, os);
 			os << ")";
@@ -2787,7 +2787,7 @@ void genere_code_C(
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
 			os << "sizeof(";
-			contexte.magasin_types.converti_type_C(contexte, "", donnees, os);
+			contexte.magasin_types.converti_type_C(contexte, "", donnees.plage(), os);
 			os << ")";
 			break;
 		}
@@ -2886,14 +2886,14 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt_ptr,
+							dt_ptr.plage(),
 							os);
 
 				os << nom_ptr << " = (";
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt_ptr,
+							dt_ptr.plage(),
 							os);
 
 				os << ")(malloc(" << nom_taille << ");\n";
@@ -2901,7 +2901,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt,
+							dt.plage(),
 							os);
 
 				os << " " << nom_tabl << ";\n";
@@ -2950,7 +2950,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt,
+							dt.plage(),
 							os);
 
 				os << " " << nom_ptr << " = (";
@@ -2958,13 +2958,13 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt,
+							dt.plage(),
 							os);
 
 				os << ")(malloc(" << nom_taille << "));\n";
 
 				/* initialise la structure */
-				if ((dt_deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+				if ((dt_deref.front() & 0xff) == id_morceau::CHAINE_CARACTERE) {
 					cree_initialisation(
 								contexte,
 								dt_deref,
@@ -3095,7 +3095,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt_pointeur,
+							dt_pointeur.plage(),
 							os);
 				os << ")(realloc(";
 				genere_code_C(enfant1, contexte, true, os, os);
@@ -3142,7 +3142,7 @@ void genere_code_C(
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
-							dt,
+							dt.plage(),
 							os);
 
 				auto enf0 = enfant->enfants.front();

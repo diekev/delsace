@@ -399,7 +399,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		/* À FAIRE : arguments variadics : comment les passer d'une
 		 * fonction à une autre. */
 		if (iter->second.est_variadic) {
-			if (!type_arg.derefence().est_invalide()) {
+			if (!est_invalide(type_arg.derefence())) {
 				auto drapeau = niveau_compat::ok;
 				poids_args *= verifie_compatibilite(type_arg.derefence(), type_enf, *enfant, drapeau);
 
