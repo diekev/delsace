@@ -40,6 +40,7 @@ set(ENTETES
 	base_vecteur.hh
 	boite_englobante.hh
 	bruit.hh
+	complexe.hh
 	concepts.hh
 	entrepolation.hh
 	limites.hh
@@ -58,6 +59,7 @@ set(ENTETES
 add_library(${NOM_BIBLIOTHEQUE} STATIC
 	boite_englobante.cc
 	bruit.cc
+	complexe.cc
 	concepts.cc
 	entrepolation.cc
 	limites.cc
