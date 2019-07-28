@@ -33,7 +33,7 @@ namespace vision {
 /* retourne deux solutions, pour pouvoir choisir la meilleure */
 void angles_euler_depuis_matrice(dls::math::mat4x4f const &matrice, dls::math::vec3f &angle1, dls::math::vec3f &angle2)
 {
-	auto const sy = std::hypot(matrice[0][0], matrice[0][1]);
+	auto const sy = dls::math::hypotenuse(matrice[0][0], matrice[0][1]);
 
 	if (sy > 1e-6f) {
 		angle1.x = std::atan2( matrice[1][2], matrice[2][2]);

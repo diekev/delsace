@@ -35,6 +35,26 @@
 namespace dls::math {
 
 /**
+ * Retourne l'hypoténuse des nombres réels a et b en évitant les
+ * sous/dépassements via (a * racine(1 + (b/a) * (b/a))) au lieu de
+ * racine(a*a + b*b).
+ */
+template <typename T>
+[[nodiscard]] constexpr auto hypotenuse(T const a, T const b)
+{
+	if (a == 0) {
+		return std::abs(b);
+	}
+
+	if (b == 0) {
+		return std::abs(a);
+	}
+
+	auto const c = b / a;
+	return std::abs(a) * std::sqrt(static_cast<T>(1) + c * c);
+}
+
+/**
  * Retourne une valeur équivalente à la restriction de la valeur 'a' entre 'min'
  * et 'max'.
  */

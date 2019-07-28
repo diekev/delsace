@@ -658,7 +658,7 @@ public:
 			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
 			auto const fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
 
-			auto const rayon = std::hypot(fc, fl) * taille;
+			auto const rayon = dls::math::hypotenuse(fc, fl) * taille;
 			auto const angle = std::atan2(fl, fc) * periodes + rayon;
 
 			auto nc = rayon * std::cos(angle) * static_cast<float>(largeur) + 0.5f;
