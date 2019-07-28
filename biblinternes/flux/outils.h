@@ -25,49 +25,43 @@
 #pragma once
 
 #include <fstream>
+#include <functional>
 
-namespace dls {
-namespace flux {
+#include "biblinternes/structures/chaine.hh"
+
+namespace dls::flux {
+
+using type_op_pour_chaque_ligne = std::function<void(dls::chaine const &)>;
 
 /**
- * Iterate over a file and at each step call @c op(line).
+ * Itère sur un fichier et appèle op(ligne) à chaque ligne.
  *
- * @param ifs The input file to iterate on.
- * @param op  A functor of the form <tt>void op(const dls::chaine &)</tt>
+ * @param ifs Le fichier d'entrée.
+ * @param op  Un foncteur de type <tt>void(dls::chaine const &)</tt>
  *
- * @par Example:
- * Count the number of lines in a file.
+ * @par Exemple:
+ * Compte le nombre de lignes dans le fichier.
  * @code
- * struct CountLinesOp {
- *     size_t lines;
+ * struct OpCompteLigne {
+ *     size_t lignes = 0;
  *
- *     CountLinesOp()
- *         : lines(0)
- *     {}
- *
- *     void operator()(const dls::chaine &)
+ *     void operator()(dls::chaine const &)
  *     {
  * 	        lines++;
  *     }
- *
- *     size_t result() const
- *     {
- * 	        return lines;
- *     }
  * };
  *
- * CountLinesOp op;
- * foreach_line(infile, op);
- * size_t lines = op.result();
+ * OpCompteLigne op;
+ * pour_chaque_ligne(fichier, op);
+ * auto lignes = op.lignes;
  * @endcode
- * or with a lambda:
+ * ou avec un lambda:
  * @code
- * size_t lines(0);
- * foreach_line(infile, [&](const dls::chaine &) { lines++; });
+ * auto lignes = 0;
+ * pour_chaque_ligne(infile, [&](dls::chaine const &) { lignes++; });
  * @endcode
  */
-template <typename ForEachLineOp>
-void foreach_line(std::ifstream &ifs, ForEachLineOp &&op)
+inline void pour_chaque_ligne(std::ifstream &ifs, type_op_pour_chaque_ligne &&op)
 {
 	std::string line;
 	while (std::getline(ifs, line)) {
@@ -162,5 +156,4 @@ FONCTION_COULEUR(neutral,     "\033[0m")
 
 }  /* namespace couleur */
 
-}  /* namespace flux */
-}  /* namespace dls */
+}  /* namespace dls::flux */

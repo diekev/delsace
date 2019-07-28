@@ -24,9 +24,9 @@
 
 #include <cstring>
 #include <experimental/filesystem>
-#include <fstream>
 #include <iostream>
 
+#include "biblinternes/flux/outils.h"
 #include "biblinternes/langage/tampon_source.hh"
 
 #include "decoupage/analyseuse_grammaire.hh"
@@ -38,15 +38,20 @@ static lng::tampon_source charge_fichier(const char *chemin_fichier)
 	std::ifstream fichier;
 	fichier.open(chemin_fichier);
 
-	dls::chaine tampon;
-	std::string temp;
+	fichier.seekg(0, fichier.end);
+	auto const taille_fichier = fichier.tellg();
+	fichier.seekg(0, fichier.beg);
 
-	while (std::getline(fichier, temp)) {
-		tampon += temp;
-		tampon.pousse('\n');
-	}
+	dls::chaine res;
+	res.reserve(taille_fichier);
 
-	return lng::tampon_source{tampon};
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
+		res.pousse('\n');
+	});
+
+	return lng::tampon_source{res};
 }
 
 struct OptionsCompilation {

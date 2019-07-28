@@ -25,9 +25,9 @@
 #include "modules.hh"
 
 #include <filesystem>
-#include <fstream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
 
 #include "analyseuse_grammaire.h"
@@ -110,14 +110,14 @@ dls::chaine charge_fichier(
 	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
-	std::string tampon;
 	dls::chaine res;
 	res.reserve(taille_fichier);
 
-	while (std::getline(fichier, tampon)) {
-		res += tampon;
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
 		res.pousse('\n');
-	}
+	});
 
 	return res;
 }

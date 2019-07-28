@@ -26,11 +26,11 @@
 
 #include <cassert>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/flux/outils.h"
+#include "biblinternes/structures/chaine.hh"
 
 #include "analyseuse_grammaire.hh"
 #include "assembleuse_arbre.hh"
@@ -113,14 +113,14 @@ dls::chaine charge_fichier(
 	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
-	std::string tampon;
 	dls::chaine res;
 	res.reserve(taille_fichier);
 
-	while (std::getline(fichier, tampon)) {
-		res += tampon;
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
 		res.pousse('\n');
-	}
+	});
 
 	return res;
 }

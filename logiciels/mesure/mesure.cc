@@ -21,11 +21,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <fstream>
 #include <iostream>
 #include <experimental/filesystem>
 
 #include "biblinternes/chrono/chronometre_de_portee.hh"
+#include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
 
@@ -110,18 +110,18 @@ static auto est_ligne_vide(dls::chaine const &ligne)
 	return true;
 }
 
-static auto compte_lignes(std::istream &is)
+static auto compte_lignes(std::ifstream &is)
 {
 	auto nombre_lignes = 0;
 	auto nombre_commentaires = 0;
 	auto nombre_inutiles = 0;
 
-	std::string ligne;
 	auto commentaire_c = false;
 
-	while (std::getline(is, ligne)) {
-		if (ligne.empty()) {
-			continue;
+	dls::flux::pour_chaque_ligne(is, [&](dls::chaine const &ligne)
+	{
+		if (ligne.est_vide()) {
+			return;
 		}
 
 		if (commentaire_c) {
@@ -130,12 +130,12 @@ static auto compte_lignes(std::istream &is)
 			}
 
 			nombre_commentaires++;
-			continue;
+			return;
 		}
 
 		if (commence_par(ligne, "//")) {
 			nombre_commentaires++;
-			continue;
+			return;
 		}
 
 		if (commence_par(ligne, "/*")) {
@@ -144,16 +144,16 @@ static auto compte_lignes(std::istream &is)
 			}
 
 			nombre_commentaires++;
-			continue;
+			return;
 		}
 
 		if (est_ligne_vide(ligne)) {
 			++nombre_inutiles;
-			continue;
+			return;
 		}
 
 		nombre_lignes++;
-	}
+	});
 
 	return std::pair<int, int>(nombre_lignes, nombre_commentaires);
 }
