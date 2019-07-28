@@ -162,7 +162,7 @@ void feasible_tree()
 	Node *incident_node;
 
 	while (tight_tree() < nodes.taille()) {
-		Edge *e = nullptr; // todo
+		Edge *e = nullptr; // À FAIRE
 		auto delta = slack(e);
 
 		if (e->head == incident_node) {
@@ -239,7 +239,7 @@ float force_directed_graph(Graph &graph, float x, float tolerance)
 			auto f = 0.0f;
 			auto xi = pos(vertex);
 
-			/* todo */
+			/* À FAIRE */
 
 			// for every edge v0 <-> v1:
 			f += fa(v0, v1) / length(pos(v1) - pos(v0)) * (pos(v1) - pos(v0));

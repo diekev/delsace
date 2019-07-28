@@ -314,7 +314,7 @@ public:
 				// valid cell, store
 				cells[i] = c;
 			}
-			else { // invalid cell, set NULL XXX TODO (Somehow !!!)
+			else { // invalid cell, set NULL XXX À FAIRE (Somehow !!!)
 				c.centroid[0] = 0.0f;
 				c.centroid[1] = 0.0f;
 				c.centroid[2] = 0.0f;

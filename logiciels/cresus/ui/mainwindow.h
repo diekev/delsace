@@ -61,7 +61,7 @@ class MainWindow : public QMainWindow {
 	TransactionDialog *m_transaction_dialog = nullptr;
 	MonnaieDialog *m_monnaie_dialog = nullptr;
 	RetraitDialog *m_retrait_dialog = nullptr;
-	/* TODO: per-user preferences */
+	/* À FAIRE: per-user preferences */
 	UserPreferences *m_user_prefs = nullptr;
 
 	Utilisateur *m_user = nullptr;

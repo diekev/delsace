@@ -87,7 +87,7 @@ EntraineurCerebral::~EntraineurCerebral()
 
 EntraineurCerebral &EntraineurCerebral::operator=(const EntraineurCerebral &)
 {
-	/* TODO */
+	/* À FAIRE */
 	return *this;
 }
 

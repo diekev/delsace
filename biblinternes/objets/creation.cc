@@ -41,7 +41,7 @@ void cree_boite(AdaptriceCreationObjet *adaptrice,
 				const float centre_z)
 {
 #if 0
-	/* todo: expose this to the UI */
+	/* À FAIRE: expose this to the UI */
 	auto const &x_div = 2;
 	auto const &y_div = 2;
 	auto const &z_div = 2;

@@ -32,7 +32,7 @@
 
 #include "version.h"
 
-/* TODO:
+/* À FAIRE:
  * - Make regular type:
  *   - Copyable
  *   - Assignable

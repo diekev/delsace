@@ -226,7 +226,7 @@ void real_printer<real>::operator()(real f)
 			}
 		}
 		else if ((exp > 0) && (exp < 3)) {
-			// TODO: exponent > 2
+			// À FAIRE: exponent > 2
 			for (int ie = 0; ie < exp; ++ie) {
 				char tmp[54] = { 0 };
 				alg::multiply_with_carry(&actual[0], &actual[53], &tmp[53]);
@@ -248,7 +248,7 @@ void real_printer<real>::operator()(real f)
 			flux::print_array(&actual[1], &actual[53], m_os);
 		}
 		else {
-			m_os << "todo, not implemented.";
+			m_os << "À FAIRE, not implemented.";
 		}
 
 		m_os << "\n";

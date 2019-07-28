@@ -571,7 +571,7 @@ protected:
 		int children[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // We do not use pointer here to save memory bandwidth(64
 		// bit v.s. 32 bit)
 		// There are so many ways to optimize and I'll consider them later...
-		dls::math::vec3i bounds[2];  // TODO: this is quite brute-force...
+		dls::math::vec3i bounds[2];  // À FAIRE: this is quite brute-force...
 
 		Node() = default;
 
@@ -767,8 +767,8 @@ public:
 	/*
   template<typename T>
   dls::math::vec3f summation(const Particle &p, const T &func) {
-	  // TODO: fine level
-	  // TODO: only one particle?
+	  // À FAIRE: fine level
+	  // À FAIRE: only one particle?
 	  int t = 1;
 	  dls::math::vec3f ret(0.0f);
 	  dls::math::vec3f u = get_coord(p.position);

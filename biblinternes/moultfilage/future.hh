@@ -217,7 +217,7 @@ auto async(F &&f, Args &&... args)
 	auto pack = package<result_type()>(std::bind(std::forward<F>(f),
 	                                             std::forward<Args>(args)...));
 
-	/* TODO: replace with task queue */
+	/* À FAIRE: replace with task queue */
 	std::thread(std::move(std::get<0>(pack))).detach();
 
 	return std::get<1>(pack);

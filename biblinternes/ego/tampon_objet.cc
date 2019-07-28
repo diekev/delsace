@@ -44,7 +44,7 @@ static void genere_tampon(
 
 	auto draw_type = static_cast<GLenum>(GL_STATIC_DRAW);
 
-	// TODO: feels a bit hackish
+	// À FAIRE: feels a bit hackish
 	if (data == nullptr) {
 		draw_type = GL_DYNAMIC_DRAW;
 	}

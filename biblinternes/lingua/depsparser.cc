@@ -41,7 +41,7 @@ void link(word *head, word *dependent)
 
 static bool grammar_permits(word */*head*/, word */*dependent*/)
 {
-	/* TODO */
+	/* À FAIRE */
 	return false;
 }
 

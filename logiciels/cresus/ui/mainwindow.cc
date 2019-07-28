@@ -67,7 +67,7 @@ MainWindow::MainWindow()
 	readSettings();
 	createDefaultTableWidgets();
 
-	/* TODO: de-duplicate this, make it prettier */
+	/* À FAIRE: de-duplicate this, make it prettier */
 	auto locale = QLocale::system().name();
 	locale.truncate(locale.lastIndexOf('_'));
 	m_current_language = locale;
@@ -173,7 +173,7 @@ auto MainWindow::createDefaultTableWidgets() -> void
 	ui->m_phone->setCategory(tr("Téléphone"));
 	m_personal_expenses.pousse(ui->m_phone);
 
-	/* TODO: make it a separate function */
+	/* À FAIRE: make it a separate function */
 	for (const auto &expense : m_personal_expenses) {
 		m_transaction_dialog->addTypeItem(expense->category(), QVariant(DEPENSE_PERS), false);
 	}
@@ -544,7 +544,7 @@ auto MainWindow::updateTableWidget(const QString &category, const double value, 
 		case DEPENSE_PERS:
 			break;
 		case DEPENSE_PROF:
-			/* TODO */
+			/* À FAIRE */
 			break;
 		case DEPENSE_LGMT:
 			container = m_housing_expenses;

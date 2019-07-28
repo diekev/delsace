@@ -371,7 +371,7 @@ spaceCore::Aabb Obj::GetElementAabb(const unsigned int& primID)
 
 	auto min = std::min(std::min(std::min(v0, v1), v2), v3);
 	auto max = std::max(std::max(std::max(v0, v1), v2), v3);
-	//if v0 and v3 are the same, it's a triangle! else, it's a quad. TODO: find better way to
+	//if v0 and v3 are the same, it's a triangle! else, it's a quad. À FAIRE: find better way to
 	//handle this check
 	auto centroid = dls::math::vec3f(0.0f);
 

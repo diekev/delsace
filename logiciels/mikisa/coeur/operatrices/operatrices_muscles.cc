@@ -639,7 +639,7 @@ void SimMesh::CalculateStresses(){
 	Eigen::Vector3f fm,fmR ; // fiber direction
 	fm<<1,0,0; // initialised to x direction, teporary
 	fmR<<1,0,0;
-	// TODO later add fiber direction in each tet
+	// À FAIRE later add fiber direction in each tet
 
 	Eigen::Matrix3f F,F_orig,P,P_r,P_r1,P_r2,P_r3,P_r4,P_r123;
 	Eigen::Matrix3f C; // Cauchy stress

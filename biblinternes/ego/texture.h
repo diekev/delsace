@@ -33,7 +33,7 @@ namespace dls {
 namespace ego {
 EGO_VERSION_NAMESPACE_BEGIN
 
-/* TODO:
+/* À FAIRE:
  * - Make regular type:
  *   - Default constructible
  *   - Copyable

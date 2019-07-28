@@ -173,7 +173,7 @@ void AuteurPNM::ecris(const filesystem::path &chemin, const math::matrice_dyn<Pi
 }
 
 
-// TODO: catch exceptions (std::exception)?
+// À FAIRE: catch exceptions (std::exception)?
 void AuteurEXR::ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &image)
 {
 #ifdef AVEC_OPENEXR

@@ -1238,7 +1238,7 @@ void BKE_ocean_bake(Ocean *o, OceanCache *och, void (*update_cb)(void *, float p
 				rgb_to_rgba_unit_alpha(&ibuf_disp->rect_float[4 * (res_x * y + x)], ocr.disp);
 
 				if (o->_do_jacobian) {
-					/* TODO, cleanup unused code - campbell */
+					/* À FAIRE, cleanup unused code - campbell */
 
 					float /*r, */ /* UNUSED */ pr = 0.0f, foam_result;
 					float neg_disp, neg_eplus;

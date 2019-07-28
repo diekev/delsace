@@ -74,7 +74,7 @@ struct matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_in
 	{
 		static_assert((sizeof...(args) <= N*M), "too many arguments");
 
-		size_t i = 0; //TODO: get rid of this
+		size_t i = 0; //À FAIRE: get rid of this
 		(construct_at_index(i, detail::dechoie(std::forward<Args>(args))), ...);
 	}
 
@@ -163,7 +163,7 @@ private:
 	template<int O, typename Other, size_t... Other_Ns>
 	void construct_at_index(size_t &i, type_vecteur<O, Other, Other_Ns...> &&arg)
 	{
-		//TODO: do not go over N*M
+		//À FAIRE: do not go over N*M
 		detail::boucle_statique<0, sizeof...(Other_Ns)>()([&](size_t j) {
 			data[i / N][i % N] = arg[j];
 			i++;
