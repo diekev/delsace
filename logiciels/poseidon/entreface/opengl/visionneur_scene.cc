@@ -26,7 +26,6 @@
 
 #include <GL/glew.h>
 
-#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/opengl/rendu_grille.h"
 #include "biblinternes/opengl/rendu_texte.h"
@@ -48,7 +47,6 @@ VisionneurScene::VisionneurScene(VueCanevas *parent, Poseidon *poseidon)
 	, m_rendu_texte(nullptr)
 	, m_pos_x(0)
 	, m_pos_y(0)
-	, m_temps_debut(0)
 {}
 
 VisionneurScene::~VisionneurScene()
@@ -67,7 +65,7 @@ void VisionneurScene::initialise()
 	m_rendu_texte = new RenduTexte();
 
 	m_camera->ajourne();
-	m_temps_debut = dls::chrono::maintenant();
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::peint_opengl()
@@ -114,10 +112,7 @@ void VisionneurScene::peint_opengl()
 	rendu_champs_distance.dessine(m_contexte);
 #endif
 
-	auto const fin = dls::chrono::maintenant();
-
-	auto const temps = fin - m_temps_debut;
-	auto const fps = static_cast<int>(1.0 / temps);
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
 	dls::flux_chaine ss;
 	ss << fps << " IPS, particules : " << m_poseidon->fluide->particules.taille();
@@ -129,7 +124,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_temps_debut = dls::chrono::maintenant();
+	m_chrono_rendu.reprend();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)

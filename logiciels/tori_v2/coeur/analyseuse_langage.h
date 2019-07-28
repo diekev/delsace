@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/langage/analyseuse.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
@@ -53,7 +54,7 @@ struct DonneesScript {
 
 class AnalyseuseLangage : public lng::analyseuse<DonneesMorceaux> {
 	DonneesScript m_donnees_script{};
-	dls::dico_desordonne<dls::chaine, double> m_chronometres{};
+	dls::dico_desordonne<dls::chaine, dls::chrono::compte_seconde> m_chronometres{};
 
 public:
 	AnalyseuseLangage(dls::tableau<DonneesMorceaux> &morceaux);

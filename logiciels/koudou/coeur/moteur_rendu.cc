@@ -299,13 +299,11 @@ void TacheRendu::commence(Koudou const &koudou)
 			break;
 		}
 
-		auto const debut_echantillon = dls::chrono::maintenant();
+		auto const debut_echantillon = dls::chrono::compte_seconde();
 
 		moteur_rendu->echantillone_scene(koudou.parametres_rendu, carreaux, e);
 
-		auto const fin_echantillon = dls::chrono::maintenant();
-
-		temps_echantillon = fin_echantillon - debut_echantillon;
+		temps_echantillon = debut_echantillon.temps();
 		temps_ecoule += temps_echantillon;
 		temps_restant = (temps_ecoule / (e + 1.0) * nombre_echantillons) - temps_ecoule;
 

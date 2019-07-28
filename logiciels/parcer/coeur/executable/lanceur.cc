@@ -225,8 +225,8 @@ int main(int argc, char *argv[])
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
-	auto debut_compilation   = dls::chrono::maintenant();
-	auto debut_nettoyage     = 0.0;
+	auto debut_compilation   = dls::chrono::compte_seconde();
+	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 	auto temps_nettoyage     = 0.0;
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 
 		of.close();
 
-		auto debut_executable = dls::chrono::maintenant();
+		auto debut_executable = dls::chrono::compte_seconde();
 //		auto commande = dls::chaine("gcc /tmp/conversion.kuri ");
 
 //		commande += " -o ";
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
 //		if (err != 0) {
 //			std::cerr << "Ne peut pas créer l'executable !\n";
 //		}
-		temps_executable = dls::chrono::delta(debut_executable);
+		temps_executable = debut_executable.temps();
 
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
@@ -296,14 +296,14 @@ int main(int argc, char *argv[])
 		mem_contexte = contexte_generation.memoire_utilisee();
 
 		os << "Nettoyage..." << std::endl;
-		debut_nettoyage = dls::chrono::maintenant();
+		debut_nettoyage.commence();
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	temps_nettoyage = dls::chrono::delta(debut_nettoyage);
-	auto const temps_total = dls::chrono::delta(debut_compilation);
+	temps_nettoyage = debut_nettoyage.temps();
+	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage

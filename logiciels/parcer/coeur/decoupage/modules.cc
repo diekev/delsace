@@ -170,18 +170,18 @@ void charge_module(
 
 	os << "Chargement du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
 
-	auto debut_chargement = dls::chrono::maintenant();
+	auto debut_chargement = dls::chrono::compte_seconde();
 	auto tampon = charge_fichier(chemin, contexte, morceau);
-	module->temps_chargement = dls::chrono::delta(debut_chargement);
+	module->temps_chargement = debut_chargement.temps();
 
-	auto debut_tampon = dls::chrono::maintenant();
+	auto debut_tampon = dls::chrono::compte_seconde();
 	module->tampon = lng::tampon_source(tampon);
-	module->temps_tampon = dls::chrono::delta(debut_tampon);
+	module->temps_tampon = debut_tampon.temps();
 
 	auto decoupeuse = decoupeuse_texte(module);
-	auto debut_decoupage = dls::chrono::maintenant();
+	auto debut_decoupage = dls::chrono::compte_seconde();
 	decoupeuse.genere_morceaux();
-	module->temps_decoupage = dls::chrono::delta(debut_decoupage);
+	module->temps_decoupage = debut_decoupage.temps();
 
 	decoupeuse.imprime_morceaux(std::cerr);
 

@@ -26,7 +26,6 @@
 
 #include <GL/glew.h>
 
-#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/opengl/rendu_grille.h"
 #include "biblinternes/opengl/rendu_texte.h"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -45,7 +44,6 @@ VisionneurScene::VisionneurScene(VueCanevas *parent, Silvatheque *silvatheque)
 	, m_rendu_texte(nullptr)
 	, m_pos_x(0)
 	, m_pos_y(0)
-	, m_debut(0)
 {}
 
 VisionneurScene::~VisionneurScene()
@@ -65,7 +63,7 @@ void VisionneurScene::initialise()
 
 	m_camera->ajourne();
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::peint_opengl()
@@ -94,10 +92,7 @@ void VisionneurScene::peint_opengl()
 	rendu_arbre.initialise();
 	rendu_arbre.dessine(m_contexte);
 
-	auto const fin = dls::chrono::maintenant();
-
-	auto const temps = fin - m_debut;
-	auto const fps = static_cast<int>(1.0 / temps);
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
 	dls::flux_chaine ss;
 	ss << fps << " IPS";
@@ -109,7 +104,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.reprend();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)

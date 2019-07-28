@@ -24,7 +24,6 @@
 
 #include "visionneur_scene.h"
 
-#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/opengl/rendu_texte.h"
@@ -83,7 +82,7 @@ void VisionneurScene::initialise()
 
 	m_camera->ajourne();
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.commence();
 
 	m_moteur_rendu->camera(m_camera);
 }
@@ -157,10 +156,7 @@ void VisionneurScene::peint_opengl()
 		m_stack.enleve_sommet();
 	}
 
-	auto const fin = dls::chrono::maintenant();
-
-	auto const temps = fin - m_debut;
-	auto const fps = static_cast<int>(1.0 / temps);
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
 	glEnable(GL_BLEND);
 
@@ -247,7 +243,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.reprend();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)

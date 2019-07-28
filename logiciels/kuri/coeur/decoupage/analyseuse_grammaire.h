@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/langage/analyseuse.hh"
 
 #include "erreur.h"
@@ -54,7 +55,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	DonneesModule *m_module;
 
-	double m_debut_analyse = 0.0;
+	dls::chrono::metre_seconde m_chrono_analyse{};
 
 	bool m_etiquette_enligne = false;
 	bool m_etiquette_horsligne = false;

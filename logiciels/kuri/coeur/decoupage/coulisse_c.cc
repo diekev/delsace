@@ -1566,15 +1566,15 @@ void genere_code_C(
 			auto temps_generation = 0.0;
 
 			for (auto noeud : b->enfants) {
-				auto debut_validation = dls::chrono::maintenant();
+				auto debut_validation = dls::chrono::compte_seconde();
 				performe_validation_semantique(noeud, contexte);
 				contexte.magasin_chaines.efface();
-				temps_validation += dls::chrono::delta(debut_validation);
+				temps_validation += debut_validation.temps();
 			}
 
 			declare_structures_C(contexte, os);
 
-			auto debut_generation = dls::chrono::maintenant();
+			auto debut_generation = dls::chrono::compte_seconde();
 			/* Crée les infos types pour tous les types connus.
 			 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
 			for (auto &dt : contexte.magasin_types.donnees_types) {
@@ -1582,14 +1582,14 @@ void genere_code_C(
 					cree_info_type_C(contexte, os, os_init, dt);
 				}
 			}
-			temps_generation += dls::chrono::delta(debut_generation);
+			temps_generation += debut_generation.temps();
 
 			/* génère le code */
 			for (auto noeud : b->enfants) {
-				debut_generation = dls::chrono::maintenant();
+				debut_generation.commence();
 				genere_code_C(noeud, contexte, false, os, os);
 				contexte.magasin_chaines.efface();
-				temps_generation += dls::chrono::delta(debut_generation);
+				temps_generation += debut_generation.temps();
 			}
 
 			contexte.temps_generation = temps_generation;

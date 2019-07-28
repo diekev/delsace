@@ -47,4 +47,89 @@ namespace dls::chrono {
 	return maintenant() - temps;
 }
 
+/**
+ * Structure pour enrober les fonctions maintenant() et delta(temps) afin de
+ * mieux controler leurs précisions (heure/minute/secondes...)
+ */
+template <int D>
+struct compte_temps {
+private:
+	double m_temps = 0.0;
+
+public:
+	explicit compte_temps(bool commence_ = true)
+	{
+		if (commence_) {
+			commence();
+		}
+	}
+
+	inline void commence()
+	{
+		m_temps = maintenant();
+	}
+
+	[[nodiscard]] inline double temps() const
+	{
+		return delta(m_temps) / static_cast<double>(D);
+	}
+};
+
+using compte_seconde = compte_temps<1>;
+using compte_minute = compte_temps<60>;
+using compte_heure = compte_temps<3600>;
+
+/**
+ * Structure définissant un chronomètre pouvant être arrêté et repris. Elle
+ * s'appele seulement 'metre' car avec l'espace de nom, cela donne
+ * chrono::metre, forçant ainsi une bonne utilisation des espaces de nom.
+ */
+template <int D>
+struct metre {
+private:
+	compte_temps<D> m_compteuse{false};
+	double m_total = 0.0;
+	bool m_lance = false;
+
+public:
+	inline void commence()
+	{
+		m_lance = true;
+		m_total = 0.0;
+		m_compteuse.commence();
+	}
+
+	[[nodiscard]] inline double arrete()
+	{
+		if (m_lance) {
+			m_total += m_compteuse.temps();
+			m_lance = false;
+		}
+
+		return m_total;
+	}
+
+	inline void reprend()
+	{
+		if (!m_lance) {
+			m_compteuse.commence();
+			m_lance = true;
+		}
+	}
+
+	[[nodiscard]] inline double lis()
+	{
+		if (m_lance) {
+			arrete();
+			reprend();
+		}
+
+		return m_total;
+	}
+};
+
+using metre_seconde = metre<1>;
+using metre_minute = metre<60>;
+using metre_heure = metre<3600>;
+
 }  /* namespace dls::chrono */

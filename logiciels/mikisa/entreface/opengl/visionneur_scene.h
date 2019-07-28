@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/pile_matrice.h"
 
@@ -66,6 +67,7 @@ class VisionneurScene {
 
 	float m_pos_x, m_pos_y;
 	double m_debut;
+	dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
 	/**

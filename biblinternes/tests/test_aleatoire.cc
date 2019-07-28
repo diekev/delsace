@@ -80,7 +80,7 @@ int Testeuse::performe_tests(std::ostream &os)
 				return foncs.entree_test(tampon, taille);
 			}
 			else if (pid > 0) {
-				auto debut = chrono::maintenant();
+				auto debut = chrono::compte_seconde();
 
 				while (true) {
 					int status;
@@ -106,7 +106,7 @@ int Testeuse::performe_tests(std::ostream &os)
 						break;
 					}
 
-					auto temps = chrono::delta(debut);
+					auto temps = debut.temps();
 
 					if (temps > 25.0) {
 						auto chemin_test = chemin + foncs.nom + "_boucle_infini" + std::to_string(n) + ".bin";

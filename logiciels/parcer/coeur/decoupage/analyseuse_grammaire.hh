@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/langage/analyseuse.hh"
 
 #include "arbre_syntactic.hh"
@@ -56,7 +57,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	DonneesModule *m_module;
 
-	double m_debut_analyse = 0.0;
+	dls::chrono::compte_seconde m_chrono_analyse{};
 
 public:
 	analyseuse_grammaire(

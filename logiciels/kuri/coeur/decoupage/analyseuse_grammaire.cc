@@ -24,7 +24,6 @@
 
 #include "analyseuse_grammaire.h"
 
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 
@@ -305,9 +304,9 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 	}
 
 	m_module->temps_analyse = 0.0;
-	m_debut_analyse = dls::chrono::maintenant();
+	m_chrono_analyse.commence();
 	analyse_corps(os);
-	m_module->temps_analyse += dls::chrono::delta(m_debut_analyse);
+	m_module->temps_analyse += m_chrono_analyse.arrete();
 }
 
 void analyseuse_grammaire::analyse_corps(std::ostream &os)
@@ -347,9 +346,9 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 				/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
 				 * également en compte le chargement, le découpage, et l'analyse du
 				 * module importé */
-				m_module->temps_analyse += dls::chrono::delta(m_debut_analyse);
+				m_module->temps_analyse += m_chrono_analyse.arrete();
 				charge_module(os, m_racine_kuri, dls::chaine(nom_module), m_contexte, donnees());
-				m_debut_analyse = dls::chrono::maintenant();
+				m_chrono_analyse.reprend();
 				break;
 			}
 			default:
