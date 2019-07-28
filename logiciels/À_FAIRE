@@ -1,5 +1,6 @@
-######
+################################################################################
 koudou
+
 - cryptomatte
 - groupes de lumières (Arnold, LuxRender)
 - assignation de matériaux selon des critères (chemins (ex : "/racine/objets/../"), nom (ex : "oeil")) (Katana)
@@ -29,7 +30,8 @@ koudou
 -- IDÉES
 ---- cuisson des textures connectées aux nuanceurs pour sauver de la mémoire https://blender.community/c/rightclickselect/3Rbbbc/blender-pbr-workflow-enhanced
 
-#####
+################################################################################
+
 kanba
 - GÉNÉRALE
 -- empaquettage des textures
@@ -69,7 +71,7 @@ kanba
 ---- texture n'est pas bonne
 ---- calque actif n'est pas peignable
 
-######
+################################################################################
 mikisa
 
 - EN COURS/URGENT
@@ -210,104 +212,6 @@ mikisa
 -- orientation autour d'un point (modification du pivot)
 -- orientation automatique selon le chemin de mouvement (motion path) défini par une courbe de bézier
 
-struct Bande {
-    Graphe graphe;
-    int image_debut;
-    int image_fin;
-    int piste; // plusieurs pistes audio/vidéo
-};
-
-struct Projet {
-    std::list<std::shared_ptr<Bande>> bandes;
-    int hauteur;
-    int largeur;
-    int debut;
-    int fin;
-};
-
-struct Mikisa {
-    std::vector<Projet> projets;
-    std::vector<Projet> historique;
-};
-
-class DelegueScene {
-    struct donnees_corps {
-        Corps *corps;
-        Materiel *mat;
-        matrice mat;
-    };
-
-public:
-    bool besoin_ajournement() const
-    {
-        return m_scene->besoin_ajournement;
-    }
-
-    /* charge les données de la scène */
-    void construit_scene() const
-    {
-        for (Objet *objet : scene->objets()) {
-            for (Corps *corps : objet->collection.plage()) {
-                donnees_.push_back(corps, matrice);
-            }
-        }
-
-        if (dessine_cameras) {
-            for (Camera *camera : scene->cameras()) {
-                donnees_.push_back(camera, matrice);
-            }
-        }
-
-        if (dessine_grille) {
-            donnees_.push_back(scene->grille);
-        }
-    }
-
-    size_t nombre_objets() const
-    {
-        return donnees_.size();
-    }
-
-    int type_objet(int i) const
-    {
-        return donnees_[i].corps->type;
-    }
-
-    Corps *corps(size_t i) const
-    {
-        return donnees_[i].corps;
-    }
-};
-
-class MoteurRendu {
-    std::vector<RenduCorps *> m_rendu_corps;
-    DelegueScene *m_delegue_scene;
-
-public:
-    void ajourne()
-    {
-        if (!m_delegue_scene->besoin_ajournement()) {
-            return;
-        }
-
-        m_delegue_scene->construit_scene();
-        m_rendu_corps.clear();
-
-        auto nombre_objet = m_delegue_scene->nombre_objet();
-
-        for (int i = 0; i < nombre_objet; ++i) {
-            // construit rendu pour objet i
-        }
-    }
-
-    void calcul_rendu()
-    {
-        for (const auto &rendu_corps : m_rendu_corps) {
-            rendu_corps.dessine(m_contexte);
-        }
-    }
-};
-
 STRUCTURE
 -- /
 -- /audios/
@@ -331,16 +235,18 @@ BUGS
 -- l'inversion de l'étalonnage ne fonctionne pas correctement
 -- crash lors de l'évaluation d'une courbe ou d'une rampe lue depuis un fichier de sauvegarde, car les données de ces types ne sont pas écrits dans les fichiers.
 
-########
+################################################################################
 kamikaze
+
 - création de liens entre les noeuds avec les commandes
 - système de physique
 - système de mise en cache
 - poséidon
 - implémentation danjo
 
-#####
+################################################################################
 danjo
+
 - initialisation propriétés
 - animation des propriétés selon le temps
 -- courbes
@@ -371,15 +277,16 @@ danjo
 un widget est activé quand l'utilisateur peut changer sa valeur
 un widget est visible quand l'utiisateur peut le voir dans l'interface
 
-########
+################################################################################
 poséidon
+
 -- macgrid
 -- incompressibilité
 
-########
+################################################################################
 - deduplique
 -- noeud, graphe, impression graphe
 
-#######
+################################################################################
 papiers
 - comparison of different image interpolation http://wvuscholar.wvu.edu/reports/Doma_Divya.pdf
