@@ -124,7 +124,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_chrono_rendu.reprend();
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)
