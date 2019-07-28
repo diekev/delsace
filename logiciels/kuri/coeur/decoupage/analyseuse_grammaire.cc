@@ -951,7 +951,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 	auto assignation = false;
 
-	auto drapeaux = static_cast<unsigned short>(0);
+	auto drapeaux = drapeaux_noeud::AUCUN;
 
 	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
@@ -1002,8 +1002,8 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.pousse(noeud);
 
-					noeud->drapeaux |= static_cast<drapeaux_noeud>(drapeaux);
-					drapeaux = 0;
+					noeud->drapeaux |= drapeaux;
+					drapeaux = drapeaux_noeud::AUCUN;
 
 					/* nous avons la déclaration d'un type dans la structure */
 					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(id_morceau::DOUBLE_POINTS)) {
