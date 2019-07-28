@@ -29,32 +29,32 @@
 namespace dls::chrono {
 
 /**
- * Retourne le temps courrant en seconde.
- */
-[[nodiscard]] inline double maintenant() noexcept
-{
-	struct timeval now;
-	gettimeofday(&now, nullptr);
-
-	return static_cast<double>(now.tv_sec) + static_cast<double>(now.tv_usec) * 1e-6;
-}
-
-/**
- * Retourne le temps en seconde s'étant écoulé depuis le temps passé en paramètre.
- */
-[[nodiscard]] inline double delta(double temps) noexcept
-{
-	return maintenant() - temps;
-}
-
-/**
  * Structure pour enrober les fonctions maintenant() et delta(temps) afin de
  * mieux controler leurs précisions (heure/minute/secondes...)
  */
-template <int D>
+template <long D>
 struct compte_temps {
 private:
 	double m_temps = 0.0;
+
+	/**
+	 * Retourne le temps courrant en microseconde.
+	 */
+	[[nodiscard]] inline double maintenant() const noexcept
+	{
+		struct timeval now;
+		gettimeofday(&now, nullptr);
+
+		return static_cast<double>(now.tv_sec) * 1000000.0 + static_cast<double>(now.tv_usec);
+	}
+
+	/**
+	 * Retourne le temps en microseconde s'étant écoulé depuis le temps passé en paramètre.
+	 */
+	[[nodiscard]] inline double delta(double temps) const noexcept
+	{
+		return maintenant() - temps;
+	}
 
 public:
 	explicit compte_temps(bool commence_ = true)
@@ -75,16 +75,18 @@ public:
 	}
 };
 
-using compte_seconde = compte_temps<1>;
-using compte_minute = compte_temps<60>;
-using compte_heure = compte_temps<3600>;
+using compte_microseconde = compte_temps<1>;
+using compte_milliseconde = compte_temps<1000>;
+using compte_seconde = compte_temps<1000000>;
+using compte_minute = compte_temps<60000000>;
+using compte_heure = compte_temps<3600000000>;
 
 /**
  * Structure définissant un chronomètre pouvant être arrêté et repris. Elle
  * s'appele seulement 'metre' car avec l'espace de nom, cela donne
  * chrono::metre, forçant ainsi une bonne utilisation des espaces de nom.
  */
-template <int D>
+template <long D>
 struct metre {
 private:
 	compte_temps<D> m_compteuse{false};
@@ -120,7 +122,7 @@ public:
 	[[nodiscard]] inline double lis()
 	{
 		if (m_lance) {
-			arrete();
+			m_total = arrete();
 			reprend();
 		}
 
@@ -128,8 +130,10 @@ public:
 	}
 };
 
-using metre_seconde = metre<1>;
-using metre_minute = metre<60>;
-using metre_heure = metre<3600>;
+using metre_microseconde = metre<1>;
+using metre_milliseconde = metre<1000>;
+using metre_seconde = metre<1000000>;
+using metre_minute = metre<60000000>;
+using metre_heure = metre<3600000000>;
 
 }  /* namespace dls::chrono */

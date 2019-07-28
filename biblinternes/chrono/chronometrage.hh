@@ -65,11 +65,11 @@ inline void clobber()
 template <typename Fonction, typename... Parametres>
 double chronometre_fonction(Fonction &&fonction, Parametres &&... params)
 {
-	auto debut = maintenant();
+	auto debut = compte_seconde();
 
 	fonction(std::forward<Parametres>(params)...);
 
-	return delta(debut);
+	return debut.temps();
 }
 
 /**
@@ -85,18 +85,18 @@ double chronometre_boucle(
 	auto i = iterations;
 
 	/* Chronomètre une boucle vide. */
-	auto debut = maintenant();
+	auto debut = compte_seconde();
 
 	while (i-- > 0) {
 		__privee::empeche_optimisation();
 	}
 
-	auto temps_iterations = delta(debut);
+	auto temps_iterations = debut.temps();
 
 	i = iterations;
 
 	/* Chronomètre une boucle avec la fonction. */
-	debut = maintenant();
+	debut = compte_seconde();
 
 	while (i-- > 0) {
 		__privee::empeche_optimisation(
@@ -107,10 +107,10 @@ double chronometre_boucle(
 	 * avec boucle. */
 
 	if (normalise) {
-		return (delta(debut) - temps_iterations) / static_cast<double>(iterations);
+		return (debut.temps() - temps_iterations) / static_cast<double>(iterations);
 	}
 
-	return (delta(debut) - temps_iterations);
+	return (debut.temps() - temps_iterations);
 }
 
 /**
@@ -140,13 +140,13 @@ double chronometre_boucle_epoque(
 		auto i = iterations;
 
 		/* Chronomètre une boucle vide. */
-		auto debut = maintenant();
+		auto debut = compte_seconde();
 
 		while (i-- > 0) {
 			__privee::empeche_optimisation();
 		}
 
-		auto temps_iterations = delta(debut);
+		auto temps_iterations = debut.temps();
 
 		if (temps_iterations_min > temps_iterations) {
 			temps_iterations_min = temps_iterations;
@@ -160,14 +160,14 @@ double chronometre_boucle_epoque(
 		auto i = iterations;
 
 		/* Chronomètre une boucle avec la fonction. */
-		auto debut = maintenant();
+		auto debut = compte_seconde();
 
 		while (i-- > 0) {
 			__privee::empeche_optimisation(
 						fonction(std::forward<Parametres>(params)...));
 		}
 
-		auto temps_fonction = delta(debut);
+		auto temps_fonction = debut.temps();
 
 		if (temps_fonction_min > temps_fonction) {
 			temps_fonction_min = temps_fonction;

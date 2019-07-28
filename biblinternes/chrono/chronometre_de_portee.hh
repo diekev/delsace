@@ -38,7 +38,7 @@ namespace chrono {
  * du cadre dans lequel une de ses instance vit.
  */
 class chronometre_de_portee {
-	double m_debut = 0.0;
+	compte_seconde m_debut{};
 	dls::chaine m_message = {};
 	std::ostream &m_flux;
 
@@ -46,14 +46,14 @@ public:
 	explicit chronometre_de_portee(
 			const dls::chaine &message,
 			std::ostream &flux = std::cerr)
-		: m_debut(maintenant())
+		: m_debut(compte_seconde())
 		, m_message(message)
 		, m_flux(flux)
 	{}
 
 	~chronometre_de_portee()
 	{
-		m_flux << m_message << " : " << delta(m_debut) << '\n';
+		m_flux << m_message << " : " << m_debut.temps() << '\n';
 	}
 };
 
