@@ -1393,7 +1393,7 @@ public:
 		}
 
 		if (contexte.temps_courant == 1) {
-			for (auto i = 0; i < m_poseidon.densite->taille_voxel(); ++i) {
+			for (auto i = 0; i < m_poseidon.densite->nombre_voxels(); ++i) {
 				m_poseidon.densite->valeur(i) = 0.0f;
 				m_poseidon.pression->valeur(i) = 0.0f;
 				m_poseidon.velocite->valeur(i) = dls::math::vec3f(0.0f);
