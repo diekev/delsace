@@ -116,7 +116,7 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, Scene *sce
 	for (auto noeud_dep : reseau->noeuds) {
 		auto objet_noeud = noeud_dep->objet;
 
-		if (objet->possede_animation()) {
+		if (objet_noeud->possede_animation()) {
 			ajoute_dependance(&reseau->noeud_temps, noeud_dep);
 		}
 
