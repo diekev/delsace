@@ -39,7 +39,7 @@ void Objet::performe_versionnage()
 		this->ajoute_propriete("position", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
 		this->ajoute_propriete("echelle", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0f));
 		this->ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
-		this->ajoute_propriete("echelle_uniforme", danjo::TypePropriete::DECIMAL, dls::math::vec3f(1.0f));
+		this->ajoute_propriete("echelle_uniforme", danjo::TypePropriete::DECIMAL, 1.0f);
 		this->ajoute_propriete("nom", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("objet"));
 		this->ajoute_propriete("rendu_scene", danjo::TypePropriete::BOOL, true);
 	}
