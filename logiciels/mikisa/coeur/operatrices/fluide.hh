@@ -77,5 +77,5 @@ inline auto est_outflow(Grille<int> const &flags, long idx)
 
 inline auto est_outflow(Grille<int> const &flags, size_t i, size_t j, size_t k)
 {
-	return est_vide(flags, flags.calcul_index(i, j, k));
+	return est_outflow(flags, flags.calcul_index(i, j, k));
 }
