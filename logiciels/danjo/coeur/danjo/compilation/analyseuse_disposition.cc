@@ -104,6 +104,28 @@ static auto valeurs_possibles = dls::cree_dico(
 	dls::paire{ id_morceau::BOUTON,         dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ICONE, id_morceau::METADONNEE) }
 );
 
+bool valideuse_propriete::cherche_magasin(id_morceau id)
+{
+	auto const &magasin_valeur = valeurs_possibles.trouve(id);
+
+	if (magasin_valeur.est_finie()) {
+		return false;
+	}
+
+	this->magasin = &magasin_valeur.front().second;
+
+	return this->magasin != nullptr;
+}
+
+bool valideuse_propriete::est_propriete_valide(id_morceau id)
+{
+	if (this->magasin == nullptr) {
+		return false;
+	}
+
+	return this->magasin->possede(id);
+}
+
 /* ************************************************************************** */
 
 AnalyseuseDisposition::AnalyseuseDisposition(
@@ -271,9 +293,11 @@ void AnalyseuseDisposition::analyse_action()
 
 	m_assembleur->ajoute_action();
 
-	auto const &magasin_valeur = valeurs_possibles.trouve(id_morceau::ACTION);
+	if (!m_valideuse.cherche_magasin(id_morceau::ACTION)) {
+		lance_erreur("Impossible de trouver le magasin de propriétés pour l'action");
+	}
 
-	analyse_propriete(id_morceau::ACTION, magasin_valeur.front().second);
+	analyse_propriete(id_morceau::ACTION);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu la fermeture d'une paranthèse !");
@@ -435,9 +459,11 @@ void AnalyseuseDisposition::analyse_controle()
 
 	m_assembleur->ajoute_controle(identifiant_controle);
 
-	auto const &magasin_valeur = valeurs_possibles.trouve(identifiant_controle);
+	if (!m_valideuse.cherche_magasin(identifiant_controle)) {
+		lance_erreur("Impossible de trouver le magasin de propriétés pour le controle");
+	}
 
-	analyse_propriete(identifiant_controle, magasin_valeur.front().second);
+	analyse_propriete(identifiant_controle);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du contrôle !");
@@ -458,16 +484,18 @@ void AnalyseuseDisposition::analyse_bouton()
 
 	m_assembleur->ajoute_bouton();
 
-	auto const &magasin_valeur = valeurs_possibles.trouve(id_morceau::BOUTON);
+	if (!m_valideuse.cherche_magasin(id_morceau::BOUTON)) {
+		lance_erreur("Impossible de trouver le magasin de propriétés pour le bouton");
+	}
 
-	analyse_propriete(id_morceau::BOUTON, magasin_valeur.front().second);
+	analyse_propriete(id_morceau::BOUTON);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une parenthèse fermante après la déclaration du contenu du 'bouton' !");
 	}
 }
 
-void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle, dls::magasin<id_morceau> const &magasin)
+void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 {
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << '\n';
@@ -479,7 +507,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle, dls::mag
 
 	const auto identifiant_propriete = identifiant_courant();
 
-	if (!magasin.possede(identifiant_propriete)) {
+	if (!m_valideuse.est_propriete_valide(identifiant_propriete)) {
 		std::cerr << "'Attention : propriété '"
 				  << chaine_identifiant(identifiant_propriete)
 				  << "' inutile pour type '"
@@ -621,7 +649,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle, dls::mag
 		return;
 	}
 
-	analyse_propriete(type_controle, magasin);
+	analyse_propriete(type_controle);
 }
 
 void AnalyseuseDisposition::analyse_liste_item()

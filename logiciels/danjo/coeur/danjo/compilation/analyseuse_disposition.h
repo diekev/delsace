@@ -32,6 +32,20 @@ namespace danjo {
 
 class AssembleurDisposition;
 
+struct valideuse_propriete {
+private:
+	dls::magasin<id_morceau> const *magasin = nullptr;
+
+public:
+	valideuse_propriete() = default;
+	valideuse_propriete(valideuse_propriete const &) = default;
+	valideuse_propriete &operator=(valideuse_propriete const &) = default;
+
+	bool cherche_magasin(id_morceau id);
+
+	bool est_propriete_valide(id_morceau id);
+};
+
 /**
  * La classe AnalyseuseDisposition s'occupe de vérifié que la grammaire du
  * langage de définition des dispositions respectée. Dès que possible,
@@ -43,6 +57,8 @@ class AssembleurDisposition;
  */
 class AnalyseuseDisposition : public base_analyseuse {
 	AssembleurDisposition *m_assembleur = nullptr;
+
+	valideuse_propriete m_valideuse{};
 
 public:
 	explicit AnalyseuseDisposition(
@@ -126,7 +142,7 @@ private:
 	 * avec identifiant_propriété pouvant prendre l'une des valeurs suivantes :
 	 * valeur, min, max, items, infobulle, précision, pas, attache.
 	 */
-	void analyse_propriete(id_morceau type_controle, dls::magasin<id_morceau> const &magasin);
+	void analyse_propriete(id_morceau type_controle);
 
 	/**
 	 * Analyse la déclaration d'une liste d'items pour un contrôle de type
