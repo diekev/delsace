@@ -321,7 +321,7 @@ static auto ajoute_flottance(
 		float coefficient = 1.0f)
 {
 	auto dt = 0.1f; // flags.getParent()->getDt();
-	auto dx = 1.0f / 64.0f; // flags.getParent()->getDx()
+	auto dx = density->taille_voxel();
 	auto f = -gravity * dt / dx * coefficient;
 
 	auto res = flags->resolution();
@@ -1175,6 +1175,163 @@ public:
 
 /* ************************************************************************** */
 
+class OpObstacleGaz : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Obstacle Gaz";
+	static constexpr auto AIDE = "";
+
+	explicit OpObstacleGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(2);
+	}
+
+	OpObstacleGaz(OpObstacleGaz const &) = default;
+	OpObstacleGaz &operator=(OpObstacleGaz const &) = default;
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_entree_gaz.jo";
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_objet");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
+		}
+
+		compilatrice.ajoute_dependance(noeud, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_objet") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->nom);
+			}
+		}
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon_gaz")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		/* passe à notre exécution */
+
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Aucun objet sélectionné");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (contexte.temps_courant > 100) {
+			return EXECUTION_REUSSIE;
+		}
+
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto densite = poseidon_gaz->densite;
+		auto drapeaux = poseidon_gaz->drapeaux;
+
+		if (densite == nullptr) {
+			this->ajoute_avertissement("La simulation n'est pas encore commencée");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* copie par convénience */
+		m_objet->corps.accede_lecture([this](Corps const &_corps_)
+		{
+			_corps_.copie_vers(&m_corps);
+		});
+
+		/* À FAIRE : considère la surface des maillages. */
+		auto res = densite->resolution();
+		auto lim = calcule_limites_mondiales_corps(m_corps);
+		auto min_idx = densite->monde_vers_unit(lim.min);
+		auto max_idx = densite->monde_vers_unit(lim.max);
+
+		auto limites = limites3i{};
+		limites.min.x = static_cast<int>(static_cast<float>(res.x) * min_idx.x);
+		limites.min.y = static_cast<int>(static_cast<float>(res.y) * min_idx.y);
+		limites.min.z = static_cast<int>(static_cast<float>(res.z) * min_idx.z);
+		limites.max.x = static_cast<int>(static_cast<float>(res.x) * max_idx.x);
+		limites.max.y = static_cast<int>(static_cast<float>(res.y) * max_idx.y);
+		limites.max.z = static_cast<int>(static_cast<float>(res.z) * max_idx.z);
+		auto iter = IteratricePosition(limites);
+
+		while (!iter.fini()) {
+			auto pos = iter.suivante();
+			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
+
+			densite->valeur(idx) = 0.0f;
+			drapeaux->valeur(idx) = TypeObstacle;
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 #include "outils_visualisation.hh"
 
 class OpSimulationGaz : public OperatriceCorps {
@@ -1233,6 +1390,14 @@ public:
 			m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
 			m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
 			m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
+		}
+
+		if (contexte.temps_courant == 1) {
+			for (auto i = 0; i < m_poseidon.densite->taille_voxel(); ++i) {
+				m_poseidon.densite->valeur(i) = 0.0f;
+				m_poseidon.pression->valeur(i) = 0.0f;
+				m_poseidon.velocite->valeur(i) = dls::math::vec3f(0.0f);
+			}
 		}
 
 		fill_grid(m_poseidon.drapeaux, TypeFluid);
@@ -2396,6 +2561,323 @@ void rend_imcompressible(GrilleMAC &grille, Grille<char> const &drapeaux)
 }  /* namespace poseidon */
 #endif
 
+namespace poseidon2 {
+
+static auto calcul_divergence(
+		GrilleMAC const &velocite,
+		Grille<int> const &drapeaux)
+{
+	auto divergence = Grille<float>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
+
+	auto res = velocite.resolution();
+	auto _slabSize = res.x * res.y;
+	auto _xRes = res.x;
+	auto _yRes = res.y;
+	auto _zRes = res.z;
+	auto _dx = velocite.taille_voxel();
+
+	auto index = _slabSize + _xRes + 1;
+	for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes) {
+		for (auto y = 1; y < _yRes - 1; y++, index += 2) {
+			for (auto x = 1; x < _xRes - 1; x++, index++) {
+
+				if (est_obstacle(drapeaux, index)) {
+					divergence.valeur(index) = 0.0f;
+					continue;
+				}
+
+				float xright = velocite.valeur(index + 1).x;
+				float xleft  = velocite.valeur(index - 1).x;
+				float yup    = velocite.valeur(index + _xRes).y;
+				float ydown  = velocite.valeur(index - _xRes).y;
+				float ztop   = velocite.valeur(index + _slabSize).z;
+				float zbottom = velocite.valeur(index - _slabSize).z;
+
+				if (est_obstacle(drapeaux, index+1)) xright = - velocite.valeur(index).x; // DG: +=
+				if (est_obstacle(drapeaux, index-1)) xleft  = - velocite.valeur(index).x;
+				if (est_obstacle(drapeaux, index+_xRes)) yup    = - velocite.valeur(index).y;
+				if (est_obstacle(drapeaux, index-_xRes)) ydown  = - velocite.valeur(index).y;
+				if (est_obstacle(drapeaux, index+_slabSize)) ztop    = - velocite.valeur(index).z;
+				if (est_obstacle(drapeaux, index-_slabSize)) zbottom = - velocite.valeur(index).z;
+
+				//				if(_obstacles[index+1] & 8)			xright	+= _xVelocityOb.valeur(index + 1);
+				//				if(_obstacles[index-1] & 8)			xleft	+= _xVelocityOb.valeur(index - 1);
+				//				if(_obstacles[index+_xRes] & 8)		yup		+= _yVelocityOb.valeur(index + _xRes);
+				//				if(_obstacles[index-_xRes] & 8)		ydown	+= _yVelocityOb.valeur(index - _xRes);
+				//				if(_obstacles[index+_slabSize] & 8) ztop    += _zVelocityOb.valeur(index + _slabSize);
+				//				if(_obstacles[index-_slabSize] & 8) zbottom += _zVelocityOb.valeur(index - _slabSize);
+
+				divergence.valeur(index) = -_dx * 0.5f * (
+							xright - xleft +
+							yup - ydown +
+							ztop - zbottom );
+
+				// Pressure is zero anyway since now a local array is used
+				//				_pressure.valeur(index) = 0.0f;
+			}
+		}
+	}
+
+	return divergence;
+}
+
+static auto resoud_pression(
+		Grille<float> &pression,
+		Grille<float> const &divergence,
+		Grille<int> const &drapeaux)
+{
+	auto _iterations = 100;
+	auto res = pression.resolution();
+	auto _slabSize = res.x * res.y;
+	auto _xRes = res.x;
+	auto _yRes = res.y;
+	auto _zRes = res.z;
+
+	// i = 0
+	int i = 0;
+
+	auto _residual  = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto _direction = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto _q         = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto _h			= Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto _Precond	= Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+
+	auto deltaNew = 0.0f;
+
+	// r = b - Ax
+	auto index = _slabSize + _xRes + 1;
+	for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes) {
+		for (auto y = 1; y < _yRes - 1; y++, index += 2) {
+			for (auto x = 1; x < _xRes - 1; x++, index++) {
+				// if the cell is a variable
+				float Acenter = 0.0f;
+
+				if (!est_obstacle(drapeaux, index)) {
+					// set the matrix to the Poisson stencil in order
+					if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
+					if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
+					if (!est_obstacle(drapeaux, index + _xRes)) Acenter += 1.0f;
+					if (!est_obstacle(drapeaux, index - _xRes)) Acenter += 1.0f;
+					if (!est_obstacle(drapeaux, index + _slabSize)) Acenter += 1.0f;
+					if (!est_obstacle(drapeaux, index - _slabSize)) Acenter += 1.0f;
+
+					_residual.valeur(index) = divergence.valeur(index) - (Acenter * pression.valeur(index) +
+																 pression.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
+																 pression.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
+																 pression.valeur(index - _xRes) * (est_obstacle(drapeaux, index - _xRes) ? 0.0f : -1.0f)+
+																 pression.valeur(index + _xRes) * (est_obstacle(drapeaux, index + _xRes) ? 0.0f : -1.0f)+
+																 pression.valeur(index - _slabSize) * (est_obstacle(drapeaux, index - _slabSize) ? 0.0f : -1.0f)+
+																 pression.valeur(index + _slabSize) * (est_obstacle(drapeaux, index + _slabSize) ? 0.0f : -1.0f) );
+				}
+				else
+				{
+					_residual.valeur(index) = 0.0f;
+				}
+
+				// P^-1
+				if(Acenter < 1.0f)
+					_Precond.valeur(index) = 0.0;
+				else
+					_Precond.valeur(index) = 1.0f / Acenter;
+
+				// p = P^-1 * r
+				_direction.valeur(index) = _residual.valeur(index) * _Precond.valeur(index);
+
+				deltaNew += _residual.valeur(index) * _direction.valeur(index);
+			}
+		}
+	}
+
+
+	// While deltaNew > (eps^2) * delta0
+	const float eps  = 1e-06f;
+	//while ((i < _iterations) && (deltaNew > eps*delta0))
+	float maxR = 2.0f * eps;
+	// while (i < _iterations)
+	while ((i < _iterations) && (maxR > 0.001f * eps))
+	{
+
+		float alpha = 0.0f;
+
+		index = _slabSize + _xRes + 1;
+		for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
+			for (auto y = 1; y < _yRes - 1; y++, index += 2)
+				for (auto x = 1; x < _xRes - 1; x++, index++)
+				{
+					// if the cell is a variable
+					float Acenter = 0.0f;
+					if (!est_obstacle(drapeaux, index))
+					{
+						// set the matrix to the Poisson stencil in order
+						if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
+						if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
+						if (!est_obstacle(drapeaux, index + _xRes)) Acenter += 1.0f;
+						if (!est_obstacle(drapeaux, index - _xRes)) Acenter += 1.0f;
+						if (!est_obstacle(drapeaux, index + _slabSize)) Acenter += 1.0f;
+						if (!est_obstacle(drapeaux, index - _slabSize)) Acenter += 1.0f;
+
+						_q.valeur(index) = Acenter * _direction.valeur(index) +
+								_direction.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
+								_direction.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
+								_direction.valeur(index - _xRes) * (est_obstacle(drapeaux, index - _xRes) ? 0.0f : -1.0f) +
+								_direction.valeur(index + _xRes) * (est_obstacle(drapeaux, index + _xRes) ? 0.0f : -1.0f)+
+								_direction.valeur(index - _slabSize) * (est_obstacle(drapeaux, index - _slabSize) ? 0.0f : -1.0f) +
+								_direction.valeur(index + _slabSize) * (est_obstacle(drapeaux, index + _slabSize) ? 0.0f : -1.0f);
+					}
+					else
+					{
+						_q.valeur(index) = 0.0f;
+					}
+
+					alpha += _direction.valeur(index) * _q.valeur(index);
+				}
+
+
+		if (std::abs(alpha) > 0.0f) {
+			alpha = deltaNew / alpha;
+		}
+
+		float deltaOld = deltaNew;
+		deltaNew = 0.0f;
+
+		maxR = 0.0;
+
+		float tmp;
+
+		// x = x + alpha * d
+		index = _slabSize + _xRes + 1;
+		for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
+			for (auto y = 1; y < _yRes - 1; y++, index += 2)
+				for (auto x = 1; x < _xRes - 1; x++, index++)
+				{
+					pression.valeur(index) += alpha * _direction.valeur(index);
+
+					_residual.valeur(index) -= alpha * _q.valeur(index);
+
+					_h.valeur(index) = _Precond.valeur(index) * _residual.valeur(index);
+
+					tmp = _residual.valeur(index) * _h.valeur(index);
+					deltaNew += tmp;
+					maxR = (tmp > maxR) ? tmp : maxR;
+
+				}
+
+
+		// beta = deltaNew / deltaOld
+		float beta = deltaNew / deltaOld;
+
+		// d = h + beta * d
+		index = _slabSize + _xRes + 1;
+		for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
+			for (auto y = 1; y < _yRes - 1; y++, index += 2)
+				for (auto x = 1; x < _xRes - 1; x++, index++)
+					_direction.valeur(index) = _h.valeur(index) + beta * _direction.valeur(index);
+
+		// i = i + 1
+		i++;
+	}
+	std::cout << i << " iterations converged to " << std::sqrt(maxR) << '\n';
+}
+
+static auto projette_solution(
+		GrilleMAC &velocite,
+		Grille<float> &_pressure,
+		Grille<int> const &drapeaux)
+{
+	auto res = _pressure.resolution();
+	auto _slabSize = res.x * res.y;
+	auto _xRes = res.x;
+	auto _yRes = res.y;
+	auto _zRes = res.z;
+	auto _dx = _pressure.taille_voxel();
+	float invDx = 1.0f / _dx;
+	auto index = _slabSize + _xRes + 1;
+	for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
+		for (auto y = 1; y < _yRes - 1; y++, index += 2)
+			for (auto x = 1; x < _xRes - 1; x++, index++)
+			{
+				float vMask[3] = {1.0f, 1.0f, 1.0f}, vObst[3] = {0, 0, 0};
+				// float vR = 0.0f, vL = 0.0f, vT = 0.0f, vB = 0.0f, vD = 0.0f, vU = 0.0f;  // UNUSED
+
+				float pC = _pressure.valeur(index); // center
+				float pR = _pressure.valeur(index + 1); // right
+				float pL = _pressure.valeur(index - 1); // left
+				float pU = _pressure.valeur(index + _xRes); // Up
+				float pD = _pressure.valeur(index - _xRes); // Down
+				float pT = _pressure.valeur(index + _slabSize); // top
+				float pB = _pressure.valeur(index - _slabSize); // bottom
+
+				if(!est_obstacle(drapeaux, index))
+				{
+					// DG TODO: What if obstacle is left + right and one of them is moving?
+					if(est_obstacle(drapeaux, index+1))			{ pR = pC; /*vObst[0] = _xVelocityOb.valeur(index + 1);*/			vMask[0] = 0; }
+					if(est_obstacle(drapeaux, index-1))			{ pL = pC; /*vObst[0]	= _xVelocityOb.valeur(index - 1);*/			vMask[0] = 0; }
+					if(est_obstacle(drapeaux, index+_xRes))		{ pU = pC; /*vObst[1]	= _yVelocityOb.valeur(index + _xRes);*/		vMask[1] = 0; }
+					if(est_obstacle(drapeaux, index-_xRes))		{ pD = pC; /*vObst[1]	= _yVelocityOb.valeur(index - _xRes);*/		vMask[1] = 0; }
+					if(est_obstacle(drapeaux, index+_slabSize)) { pT = pC; /*vObst[2] = _zVelocityOb.valeur(index + _slabSize);*/	vMask[2] = 0; }
+					if(est_obstacle(drapeaux, index-_slabSize)) { pB = pC; /*vObst[2]	= _zVelocityOb.valeur(index - _slabSize);*/	vMask[2] = 0; }
+
+					velocite.valeur(index).x -= 0.5f * (pR - pL) * invDx;
+					velocite.valeur(index).y -= 0.5f * (pU - pD) * invDx;
+					velocite.valeur(index).z -= 0.5f * (pT - pB) * invDx;
+
+					velocite.valeur(index).x = (vMask[0] * velocite.valeur(index).x) + vObst[0];
+					velocite.valeur(index).y = (vMask[1] * velocite.valeur(index).y) + vObst[1];
+					velocite.valeur(index).z = (vMask[2] * velocite.valeur(index).z) + vObst[2];
+				}
+				else
+				{
+//					_xVelocity.valeur(index) = _xVelocityOb.valeur(index);
+//					_yVelocity.valeur(index) = _yVelocityOb.valeur(index);
+//					_zVelocity.valeur(index) = _zVelocityOb.valeur(index);
+				}
+			}
+}
+
+static void projette_velocite(
+		GrilleMAC &velocite,
+		Grille<int> const &drapeaux)
+{
+	auto res = velocite.resolution();
+	auto limites = limites3i{};
+	limites.min = dls::math::vec3i(0);
+	limites.max = res;
+
+	auto iter = IteratricePosition(limites);
+	while (!iter.fini()) {
+		auto pos = iter.suivante();
+		auto i = static_cast<size_t>(pos.x);
+		auto j = static_cast<size_t>(pos.y);
+		auto k = static_cast<size_t>(pos.z);
+
+		if (i == 0 || i == static_cast<size_t>(res[0]-1)) {
+			velocite.valeur(i, j, k).x = 0.0f;
+		}
+
+		if (j == 0 || j == static_cast<size_t>(res[1]-1)) {
+			velocite.valeur(i, j, k).y = 0.0f;
+		}
+
+		if (k == 0 || k == static_cast<size_t>(res[2]-1)) {
+			velocite.valeur(i, j, k).z = 0.0f;
+		}
+	}
+
+	auto divergence = calcul_divergence(velocite, drapeaux);
+
+	auto pression = Grille<float>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
+
+	for (auto i = 0; i < pression.nombre_voxels(); ++i) {
+		pression.valeur(i) = 0.0f;
+	}
+
+	resoud_pression(pression, divergence, drapeaux);
+
+	projette_solution(velocite, pression, drapeaux);
+}
+
+}  /* namespace poseidon2 */
+
 /* ************************************************************************** */
 
 class OpIncompressibiliteGaz : public OperatriceCorps {
@@ -2443,15 +2925,15 @@ public:
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 //		auto pression = poseidon_gaz->pression;
 		auto velocite = poseidon_gaz->velocite;
-//		auto drapeaux = poseidon_gaz->drapeaux;
+		auto drapeaux = poseidon_gaz->drapeaux;
 
 		//solvePressure(*velocite, *pression, *drapeaux);
-
-		auto drapeaux = Grille<char>(velocite->etendu(), velocite->fenetre_donnees(), velocite->taille_voxel());
 
 		//construct::rend_incompressible(*velocite, 300);
 
 #ifdef SOLVEUR_POSEIDON
+		auto drapeaux = Grille<char>(velocite->etendu(), velocite->fenetre_donnees(), velocite->taille_voxel());
+
 		auto res = velocite->resolution();
 		auto limites = limites3i{};
 		limites.min = dls::math::vec3i(0);
@@ -2473,6 +2955,8 @@ public:
 		poseidon::rend_imcompressible(*velocite, drapeaux);
 #endif
 
+		poseidon2::projette_velocite(*velocite, *drapeaux);
+
 		return EXECUTION_REUSSIE;
 	}
 
@@ -2488,6 +2972,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 #ifdef AVEC_POSEIDON
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
+	usine.enregistre_type(cree_desc<OpObstacleGaz>());
 	usine.enregistre_type(cree_desc<OpSimulationGaz>());
 	usine.enregistre_type(cree_desc<OpAdvectionGaz>());
 	usine.enregistre_type(cree_desc<OpFlottanceGaz>());

@@ -50,6 +50,16 @@ inline auto est_fluide(Grille<int> const &flags, size_t i, size_t j, size_t k)
 	return est_fluide(flags, flags.calcul_index(i, j, k));
 }
 
+inline auto est_obstacle(Grille<int> const &flags, long idx)
+{
+	return (flags.valeur(idx) & TypeObstacle) != 0;
+}
+
+inline auto est_obstacle(Grille<int> const &flags, size_t i, size_t j, size_t k)
+{
+	return est_obstacle(flags, flags.calcul_index(i, j, k));
+}
+
 inline auto est_vide(Grille<int> const &flags, long idx)
 {
 	return (flags.valeur(idx) & TypeVide) != 0;
