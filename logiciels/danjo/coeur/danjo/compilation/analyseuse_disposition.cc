@@ -62,7 +62,7 @@ bool est_identifiant_controle(id_morceau identifiant)
 	}
 }
 
-static bool est_identifiant_propriete(id_morceau identifiant)
+bool est_identifiant_propriete(id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::INFOBULLE:

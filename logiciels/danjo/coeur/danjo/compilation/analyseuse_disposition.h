@@ -186,4 +186,6 @@ private:
 
 bool est_identifiant_controle(id_morceau identifiant);
 
+bool est_identifiant_propriete(id_morceau identifiant);
+
 }  /* namespace danjo */
