@@ -43,7 +43,7 @@ static void imprime_morceaux(danjo::Decoupeuse::iterateur debut, danjo::Decoupeu
 	}
 }
 
-static void cree_fichier_dan(const std::experimental::filesystem::path &chemin)
+static void cree_fichier_dan(const std::filesystem::path &chemin)
 {
 	try {
 		auto texte = dls::contenu_fichier(chemin.c_str());
@@ -159,13 +159,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	auto chemin = std::experimental::filesystem::path(argv[1]);
+	auto chemin = std::filesystem::path(argv[1]);
 
-	if (std::experimental::filesystem::is_directory(chemin)) {
-		for (const auto &donnees : std::experimental::filesystem::directory_iterator(chemin)) {
+	if (std::filesystem::is_directory(chemin)) {
+		for (const auto &donnees : std::filesystem::directory_iterator(chemin)) {
 			auto chemin_fichier = donnees.path();
 
-			if (std::experimental::filesystem::is_directory(chemin_fichier)) {
+			if (std::filesystem::is_directory(chemin_fichier)) {
 				continue;
 			}
 

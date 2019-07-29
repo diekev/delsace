@@ -48,7 +48,7 @@ dls::math::matrice_dyn<Spectre> image_nulle()
 	return image;
 }
 
-dls::math::matrice_dyn<Spectre> ouvre_png(std::experimental::filesystem::path const &chemin)
+dls::math::matrice_dyn<Spectre> ouvre_png(std::filesystem::path const &chemin)
 {
 	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 
@@ -152,7 +152,7 @@ dls::math::matrice_dyn<Spectre> ouvre_png(std::experimental::filesystem::path co
 	return image;
 }
 
-dls::math::matrice_dyn<Spectre> ouvre_jpeg(std::experimental::filesystem::path const &chemin)
+dls::math::matrice_dyn<Spectre> ouvre_jpeg(std::filesystem::path const &chemin)
 {
 	FILE *file = std::fopen(chemin.c_str(), "rb");
 
@@ -390,12 +390,12 @@ vision::Camera3D *TextureImage::camera() const
 	return m_camera;
 }
 
-void TextureImage::etablie_chemin(std::experimental::filesystem::path const &chemin)
+void TextureImage::etablie_chemin(std::filesystem::path const &chemin)
 {
 	m_chemin = chemin;
 }
 
-std::experimental::filesystem::path const &TextureImage::chemin() const
+std::filesystem::path const &TextureImage::chemin() const
 {
 	return m_chemin;
 }
@@ -405,7 +405,7 @@ TypeTexture TextureImage::type() const
 	return TypeTexture::IMAGE;
 }
 
-TextureImage *charge_texture(std::experimental::filesystem::path const &chemin)
+TextureImage *charge_texture(std::filesystem::path const &chemin)
 {
 	auto texture = new TextureImage();
 

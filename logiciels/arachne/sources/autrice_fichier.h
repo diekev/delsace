@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 namespace arachne {
 
@@ -37,11 +37,11 @@ public:
 	autrice_fichier(autrice_fichier const &autre) = default;
 	autrice_fichier &operator=(autrice_fichier const &autre) = default;
 
-	explicit autrice_fichier(const std::experimental::filesystem::path &chemin);
+	explicit autrice_fichier(const std::filesystem::path &chemin);
 
 	~autrice_fichier();
 
-	void ouvre(const std::experimental::filesystem::path &chemin);
+	void ouvre(const std::filesystem::path &chemin);
 
 	void ferme();
 

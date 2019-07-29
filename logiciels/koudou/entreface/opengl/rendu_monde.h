@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -45,7 +45,7 @@ class RenduMonde {
 
 	/* Mémorisation des anciennes données. */
 	int m_ancien_type{};
-	std::experimental::filesystem::path m_ancien_chemin{};
+	std::filesystem::path m_ancien_chemin{};
 
 public:
 	/**

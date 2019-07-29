@@ -26,7 +26,7 @@
 
 #include "definitions.h"
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 OUVRE_GARDE_INCLUSION_OPENCV
 #	include <opencv/cv.hpp>
@@ -43,7 +43,7 @@ class detecteur_visage {
 
 public:
 	detecteur_visage(
-			const std::experimental::filesystem::path &chemin_cascade,
+			const std::filesystem::path &chemin_cascade,
 			double facteur_echelle,
 			int voisins_minimum,
 			double ratio_taille_min,

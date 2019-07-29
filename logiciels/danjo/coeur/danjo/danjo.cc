@@ -347,7 +347,7 @@ QBoxLayout *compile_entreface(
 
 QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
-		const std::experimental::filesystem::path &chemin_texte,
+		const std::filesystem::path &chemin_texte,
 		int temps)
 {
 	if (donnees.manipulable == nullptr) {

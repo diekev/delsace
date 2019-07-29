@@ -24,11 +24,11 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 class Mikisa;
 
-namespace filesystem = std::experimental::filesystem;
+namespace filesystem = std::filesystem;
 
 namespace coeur {
 

@@ -142,13 +142,13 @@ static constexpr const char *FICHIER_ETIQUETTE = "arachne.etiquette.bd";
 static constexpr const char *FICHIER_NOM_ETIQUETTE = "arachne.nom_etiquette.bd";
 
 struct infos_fichiers {
-	std::experimental::filesystem::path chemin_fichier_noeud{};
-	std::experimental::filesystem::path chemin_fichier_propriete{};
-	std::experimental::filesystem::path chemin_fichier_nom_proprietes{};
-	std::experimental::filesystem::path chemin_fichier_relation{};
-	std::experimental::filesystem::path chemin_fichier_type_relation{};
-	std::experimental::filesystem::path chemin_fichier_etiquette{};
-	std::experimental::filesystem::path chemin_fichier_nom_etiquette{};
+	std::filesystem::path chemin_fichier_noeud{};
+	std::filesystem::path chemin_fichier_propriete{};
+	std::filesystem::path chemin_fichier_nom_proprietes{};
+	std::filesystem::path chemin_fichier_relation{};
+	std::filesystem::path chemin_fichier_type_relation{};
+	std::filesystem::path chemin_fichier_etiquette{};
+	std::filesystem::path chemin_fichier_nom_etiquette{};
 };
 
 class graphe {

@@ -26,7 +26,7 @@
 
 #include "definitions.h"
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 OUVRE_GARDE_INCLUSION_OPENCV
 #	include <opencv/cv.hpp>
@@ -38,7 +38,7 @@ class auteur_video {
 
 public:
 	auteur_video(
-			const std::experimental::filesystem::path &chemin_video,
+			const std::filesystem::path &chemin_video,
 			double cadence,
 			cv::Size taille,
 			int fourcc);

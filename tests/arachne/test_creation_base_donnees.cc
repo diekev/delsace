@@ -37,20 +37,20 @@ void test_creation_base_donnees(dls::test_unitaire::Controleuse &controlleur)
 	const auto chemin_test1 = gestionnaire.chemin_racine() / "test_creation1";
 	const auto chemin_test2 = gestionnaire.chemin_racine() / "test_creation2";
 
-	CU_VERIFIE_CONDITION(controlleur, std::experimental::filesystem::exists(chemin_test1));
-	CU_VERIFIE_CONDITION(controlleur, std::experimental::filesystem::exists(chemin_test2));
+	CU_VERIFIE_CONDITION(controlleur, std::filesystem::exists(chemin_test1));
+	CU_VERIFIE_CONDITION(controlleur, std::filesystem::exists(chemin_test2));
 	CU_VERIFIE_CONDITION(controlleur, gestionnaire.base_courante() == "test_creation2");
 
 	gestionnaire.supprime_base_donnees("test_creation1");
 	gestionnaire.supprime_base_donnees("test_creation2");
 
-	CU_VERIFIE_CONDITION(controlleur, !std::experimental::filesystem::exists(chemin_test1));
-	CU_VERIFIE_CONDITION(controlleur, !std::experimental::filesystem::exists(chemin_test2));
+	CU_VERIFIE_CONDITION(controlleur, !std::filesystem::exists(chemin_test1));
+	CU_VERIFIE_CONDITION(controlleur, !std::filesystem::exists(chemin_test2));
 	CU_VERIFIE_CONDITION(controlleur, gestionnaire.base_courante() == "");
 
 	gestionnaire.cree_base_donnees("test_creation1");
 
-	CU_VERIFIE_CONDITION(controlleur, std::experimental::filesystem::exists(chemin_test1));
+	CU_VERIFIE_CONDITION(controlleur, std::filesystem::exists(chemin_test1));
 	CU_VERIFIE_CONDITION(controlleur, gestionnaire.base_courante() == "test_creation1");
 
 	gestionnaire.supprime_base_donnees("test_creation1");

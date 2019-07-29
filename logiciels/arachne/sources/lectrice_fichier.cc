@@ -26,7 +26,7 @@
 
 namespace arachne {
 
-lectrice_fichier::lectrice_fichier(const std::experimental::filesystem::path &chemin)
+lectrice_fichier::lectrice_fichier(const std::filesystem::path &chemin)
 	: lectrice_fichier()
 {
 	ouvre(chemin);
@@ -39,7 +39,7 @@ lectrice_fichier::~lectrice_fichier()
 	}
 }
 
-void lectrice_fichier::ouvre(const std::experimental::filesystem::path &chemin)
+void lectrice_fichier::ouvre(const std::filesystem::path &chemin)
 {
 	auto pointeur = std::fopen(chemin.c_str(), "r");
 

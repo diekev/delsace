@@ -22,14 +22,14 @@
  */
 
 #include <iostream>
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "biblinternes/chrono/chronometre_de_portee.hh"
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
 
-namespace filesystem = std::experimental::filesystem;
+namespace filesystem = std::filesystem;
 
 static auto formatte(int nombre)
 {

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <functional>
 
 #include "biblinternes/structures/chaine.hh"
@@ -129,10 +129,10 @@ class shared_library {
 public:
 	shared_library() = default;
 
-	explicit shared_library(const std::experimental::filesystem::path &filename,
+	explicit shared_library(const std::filesystem::path &filename,
 	                        dso_loading flag = dso_loading::lazy);
 
-	shared_library(const std::experimental::filesystem::path &filename,
+	shared_library(const std::filesystem::path &filename,
 	               std::error_code &ec,
 	               dso_loading flag = dso_loading::lazy) noexcept;
 
@@ -146,15 +146,15 @@ public:
 
 	void swap(shared_library &other);
 
-	void open(const std::experimental::filesystem::path &filename, dso_loading flag = dso_loading::lazy);
-	void open(const std::experimental::filesystem::path &filename, std::error_code &ec, dso_loading flag = dso_loading::lazy) noexcept;
+	void open(const std::filesystem::path &filename, dso_loading flag = dso_loading::lazy);
+	void open(const std::filesystem::path &filename, std::error_code &ec, dso_loading flag = dso_loading::lazy) noexcept;
 
 	explicit operator bool() const noexcept;
 
 	dso_symbol operator()(const dls::chaine &symbol_name);
 	dso_symbol operator()(const dls::chaine &symbol_name, std::error_code &ec) noexcept;
 
-	std::experimental::filesystem::path chemin() const;
+	std::filesystem::path chemin() const;
 };
 
 /**

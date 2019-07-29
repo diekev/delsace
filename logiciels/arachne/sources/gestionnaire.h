@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "biblinternes/structures/chaine.hh"
 
@@ -35,8 +35,8 @@ namespace arachne {
  * se situe les bases de données.
  */
 class gestionnaire {
-	std::experimental::filesystem::path m_chemin_racine;
-	std::experimental::filesystem::path m_chemin_courant;
+	std::filesystem::path m_chemin_racine;
+	std::filesystem::path m_chemin_courant;
 	dls::chaine m_base_courante;
 
 public:
@@ -78,13 +78,13 @@ public:
 	/**
 	 * Retourne le chemin racine où se trouve les dossiers des bases de données.
 	 */
-	std::experimental::filesystem::path chemin_racine() const;
+	std::filesystem::path chemin_racine() const;
 
 	/**
 	 * Retourne le chemin de la base de données courante. Si aucune base de
 	 * données n'est sélectionnée, retourne un chemin vide.
 	 */
-	std::experimental::filesystem::path chemin_courant() const;
+	std::filesystem::path chemin_courant() const;
 
 	/**
 	 * Retourne le nom de la base de données courante. Si aucune base de données

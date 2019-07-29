@@ -26,7 +26,7 @@
 
 #include "definitions.h"
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 OUVRE_GARDE_INCLUSION_OPENCV
 #	include <opencv/cv.hpp>
@@ -39,7 +39,7 @@ class lecteur_video {
 
 public:
 	lecteur_video(
-			const std::experimental::filesystem::path &chemin_video,
+			const std::filesystem::path &chemin_video,
 			int image_debut = -1,
 			int image_fin = -1,
 			int delta = -1);

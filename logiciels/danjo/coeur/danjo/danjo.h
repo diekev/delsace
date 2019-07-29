@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -118,7 +118,7 @@ QBoxLayout *compile_entreface(
  */
 QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
-		const std::experimental::filesystem::path &chemin_texte,
+		const std::filesystem::path &chemin_texte,
 		int temps = 0);
 
 void compile_feuille_logique(const char *texte_entree);

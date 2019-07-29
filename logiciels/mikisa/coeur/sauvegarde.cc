@@ -743,7 +743,7 @@ static void lis_scenes(
 
 erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 {
-	if (!std::experimental::filesystem::exists(chemin)) {
+	if (!std::filesystem::exists(chemin)) {
 		return erreur_fichier::NON_TROUVE;
 	}
 

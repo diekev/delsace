@@ -23,7 +23,7 @@
  */
 
 #include <cstring>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <iostream>
 
 #include "biblinternes/flux/outils.h"
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!std::experimental::filesystem::exists(chemin_fichier)) {
+	if (!std::filesystem::exists(chemin_fichier)) {
 		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
 		return 1;
 	}
