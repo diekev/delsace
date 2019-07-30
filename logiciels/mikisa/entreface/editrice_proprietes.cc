@@ -188,12 +188,14 @@ static void marque_surannee_(Noeud *noeud)
 
 	noeud->besoin_execution(true);
 
-	auto op = extrait_opimage(noeud->donnees());
-	op->amont_change();
-
 	for (PriseSortie *sortie : noeud->sorties()) {
 		for (PriseEntree *entree : sortie->liens) {
-			marque_surannee(entree->parent);
+			auto noeud_enfant = entree->parent;
+
+			auto op = extrait_opimage(noeud_enfant->donnees());
+			op->amont_change(entree);
+
+			marque_surannee(noeud_enfant);
 		}
 	}
 }
@@ -214,6 +216,9 @@ void EditriceProprietes::ajourne_manipulable()
 	else {
 		/* Marque le noeud courant et ceux en son aval surannées. */
 		marque_surannee_(noeud);
+
+		auto op = extrait_opimage(noeud->donnees());
+		op->parametres_changes();
 	}
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");

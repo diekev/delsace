@@ -388,7 +388,9 @@ public:
 
 	virtual bool depend_sur_temps() const;
 
-	virtual void amont_change();
+	virtual void amont_change(PriseEntree *entree);
+
+	virtual void parametres_changes();
 };
 
 /* ************************************************************************** */

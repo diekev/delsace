@@ -546,7 +546,13 @@ bool OperatriceImage::depend_sur_temps() const
 	return false;
 }
 
-void OperatriceImage::amont_change()
+void OperatriceImage::amont_change(PriseEntree *entree)
+{
+	INUTILISE(entree);
+	return;
+}
+
+void OperatriceImage::parametres_changes()
 {
 	return;
 }

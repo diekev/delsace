@@ -39,7 +39,7 @@ static void marque_execution_graphe(NoeudReseau *racine)
 		for (auto &noeud : graphe.noeuds()) {
 			noeud->besoin_execution(true);
 			auto op = extrait_opimage(noeud->donnees());
-			op->amont_change();
+			op->amont_change(nullptr);
 		}
 
 		marque_execution_graphe(noeud_res);

@@ -150,12 +150,14 @@ bool OperatriceSimulation::depend_sur_temps() const
 	return true;
 }
 
-void OperatriceSimulation::amont_change()
+void OperatriceSimulation::amont_change(PriseEntree *entree)
 {
+	INUTILISE(entree);
+
 	for (auto noeud : m_graphe.noeuds()) {
 		noeud->besoin_execution(true);
 		auto op = extrait_opimage(noeud->donnees());
-		op->amont_change();
+		op->amont_change(nullptr);
 	}
 }
 
