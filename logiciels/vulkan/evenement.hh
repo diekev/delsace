@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-#include <delsace/math/vecteur.hh>
+#include "biblinternes/math/vecteur.hh"
 
 enum class evenement_fenetre : short {
 	NUL,

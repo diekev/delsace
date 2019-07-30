@@ -391,7 +391,7 @@ texture_font_load_glyph( texture_font_t * self,
     int ft_glyph_left = 0;
 
     ivec4 region;
-    size_t missed = 0;
+	//size_t missed = 0;
 
 
     if (!texture_font_load_face(self, self->size, &library, &face))
@@ -409,26 +409,26 @@ texture_font_load_glyph( texture_font_t * self,
      */
     if( !codepoint )
     {
-        ivec4 region = texture_atlas_get_region( self->atlas, 5, 5 );
-        texture_glyph_t * glyph = texture_glyph_new( );
+		ivec4 region_ = texture_atlas_get_region( self->atlas, 5, 5 );
+		texture_glyph_t * glyph_ = texture_glyph_new( );
         static unsigned char data[4*4*3] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
                                             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
                                             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
                                             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-        if ( region.x < 0 )
+		if ( region_.x < 0 )
         {
             fprintf( stderr, "Texture atlas is full (line %d)\n",  __LINE__ );
             FT_Done_Face( face );
             FT_Done_FreeType( library );
             return 0;
         }
-        texture_atlas_set_region( self->atlas, region.x, region.y, 4, 4, data, 0 );
-        glyph->codepoint = -1;
-        glyph->s0 = (region.x+2)/(float)self->atlas->width;
-        glyph->t0 = (region.y+2)/(float)self->atlas->height;
-        glyph->s1 = (region.x+3)/(float)self->atlas->width;
-        glyph->t1 = (region.y+3)/(float)self->atlas->height;
-        vector_push_back( self->glyphs, &glyph );
+		texture_atlas_set_region( self->atlas, region_.x, region_.y, 4, 4, data, 0 );
+		glyph_->codepoint = -1;
+		glyph_->s0 = (region_.x+2)/(float)self->atlas->width;
+		glyph_->t0 = (region_.y+2)/(float)self->atlas->height;
+		glyph_->s1 = (region_.x+3)/(float)self->atlas->width;
+		glyph_->t1 = (region_.y+3)/(float)self->atlas->height;
+		vector_push_back( self->glyphs, &glyph_ );
 
         FT_Done_Face(face);
         FT_Done_FreeType(library);
@@ -659,7 +659,7 @@ size_t
 texture_font_load_glyphs( texture_font_t * self,
                           const char * codepoints )
 {
-    size_t i, c;
+	size_t i;
 
     /* Load each glyph */
     for( i = 0; i < strlen(codepoints); i += utf8_surrogate_len(codepoints + i) ) {

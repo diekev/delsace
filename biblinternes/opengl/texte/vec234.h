@@ -6,6 +6,9 @@
 #ifndef __VEC234_H__
 #define __VEC234_H__
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+
 #ifdef __cplusplus
 extern "C" {
 namespace ftgl {
@@ -207,5 +210,7 @@ typedef union
 }
 }
 #endif
+
+#pragma GCC diagnostic pop
 
 #endif /* __VEC234_H__ */

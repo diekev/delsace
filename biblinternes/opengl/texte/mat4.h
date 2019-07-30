@@ -11,6 +11,8 @@ extern "C" {
 namespace ftgl {
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 /**
  *
@@ -25,6 +27,7 @@ typedef union
         float m30, m31, m32, m33;
     };
 } mat4;
+#pragma GCC diagnostic pop
 
 
 mat4 *

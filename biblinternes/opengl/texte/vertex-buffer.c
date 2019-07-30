@@ -181,7 +181,7 @@ void
 vertex_buffer_print( vertex_buffer_t * self )
 {
     int i = 0;
-    static char *gltypes[9] = {
+	static const char *gltypes[9] = {
         "GL_BOOL",
         "GL_BYTE",
         "GL_UNSIGNED_BYTE",
@@ -634,11 +634,11 @@ vertex_buffer_erase( vertex_buffer_t * self,
     // Update items
     for( i=0; i<vector_size(self->items); ++i )
     {
-        ivec4 * item = (ivec4 *) vector_get( self->items, i );
-        if( item->vstart > vstart)
+		ivec4 * item_ = (ivec4 *) vector_get( self->items, i );
+		if( item_->vstart > vstart)
         {
-            item->vstart -= vcount;
-            item->istart -= icount;
+			item_->vstart -= vcount;
+			item_->istart -= icount;
         }
     }
 

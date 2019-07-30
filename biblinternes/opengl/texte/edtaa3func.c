@@ -64,16 +64,14 @@
  */
 void computegradient(double *img, int w, int h, double *gx, double *gy)
 {
-    int i,j,k,p,q;
-    double glength, phi, phiscaled, ascaled, errsign, pfrac, qfrac, err0, err1, err;
 #define SQRT2 1.4142136
-    for(i = 1; i < h-1; i++) { // Avoid edges where the kernels would spill over
-        for(j = 1; j < w-1; j++) {
-            k = i*w + j;
+	for(int i = 1; i < h-1; i++) { // Avoid edges where the kernels would spill over
+		for(int j = 1; j < w-1; j++) {
+			int k = i*w + j;
             if((img[k]>0.0) && (img[k]<1.0)) { // Compute gradient for edge pixels only
                 gx[k] = -img[k-w-1] - SQRT2*img[k-1] - img[k+w-1] + img[k-w+1] + SQRT2*img[k+1] + img[k+w+1];
                 gy[k] = -img[k-w-1] - SQRT2*img[k-w] - img[k-w+1] + img[k+w-1] + SQRT2*img[k+w] + img[k+w+1];
-                glength = gx[k]*gx[k] + gy[k]*gy[k];
+				double glength = gx[k]*gx[k] + gy[k]*gy[k];
                 if(glength > 0.0) { // Avoid division by zero
                     glength = sqrt(glength);
                     gx[k]=gx[k]/glength;

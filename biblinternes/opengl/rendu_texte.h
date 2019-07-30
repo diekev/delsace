@@ -30,6 +30,11 @@ class ContexteRendu;
 class TamponRendu;
 class TextureImage;
 
+namespace ftgl {
+struct texture_atlas_t;
+struct texture_font_t;
+}
+
 /**
  * La classe RenduTexte contient la logique pour rendre du texte à travers
  * OpenGL. Le texte est rendu en utilisant une texture dérivée d'une police qui
@@ -47,7 +52,11 @@ class RenduTexte {
 	int m_largeur = 1;
 	int m_hauteur = 1;
 
-	float m_decalage = 0.0f;
+	double m_decalage = 0.0;
+
+	ftgl::texture_atlas_t *m_atlas = nullptr;
+	ftgl::texture_font_t *m_font = nullptr;
+	double m_taille_fonte = 16.0;
 
 public:
 	/**
