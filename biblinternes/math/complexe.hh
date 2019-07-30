@@ -145,4 +145,22 @@ auto exp(complexe<T> const &c)
 	return complexe<T>(std::cos(c.imag()) * r, std::sin(c.imag()) * r);
 }
 
+template <typename T>
+auto est_nan(complexe<T> const &c)
+{
+	return std::isnan(c.imag()) || std::isnan(c.imag());
+}
+
+template <typename T>
+auto est_fini(complexe<T> const &c)
+{
+	return std::isfinite(c.imag()) && std::isfinite(c.imag());
+}
+
+template <typename T>
+auto est_infini(complexe<T> const &c)
+{
+	return !est_fini(c);
+}
+
 }  /* namespace dls::math */
