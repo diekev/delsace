@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET bib_lcc)
+set(NOM_PROJET mikisa_lcc)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
@@ -28,7 +28,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_corps
+	mikisa_corps
 	stdc++fs
 	bib_phys
 	memoire

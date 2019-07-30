@@ -26,8 +26,11 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	mikisa_entreface
 	mikisa_coeur
+	mikisa_commandes
+	mikisa_corps
+	mikisa_entreface
+	mikisa_operatrices
 	mikisa_rendu
 )
 

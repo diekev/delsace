@@ -39,7 +39,7 @@
 
 #include "biblinternes/outils/fichier.hh"
 
-#include "coeur/evaluation/evaluation.hh"
+#include "evaluation/evaluation.hh"
 
 #include "coeur/composite.h"
 #include "coeur/contexte_evaluation.hh"

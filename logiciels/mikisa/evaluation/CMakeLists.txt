@@ -14,42 +14,34 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2019 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE mikisa_corps)
+set(NOM_CIBLE mikisa_evaluation)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
 )
 
 set(BIBLIOTHEQUES
-	math
+	mikisa_coeur
+	${BIBLIOTHEQUES_TBB}
 )
 
 add_library(${NOM_CIBLE} STATIC
-    adaptrice_creation_corps.cc
-	attribut.cc
-    corps.cc
-    groupes.cc
-    iteration_corps.cc
-    listes.cc
-    primitive.cc
-    triangulation.cc
-    volume.cc
+	evaluation.cc
+	execution.cc
+	plan.cc
+	reseau.cc
 
-    adaptrice_creation_corps.h
-	attribut.h
-    corps.h
-    groupes.h
-    iteration_corps.hh
-    listes.h
-    primitive.hh
-    triangulation.hh
-    volume.hh
+	evaluation.hh
+	execution.hh
+	plan.hh
+	reseau.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")

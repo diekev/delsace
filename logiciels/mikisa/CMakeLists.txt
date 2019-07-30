@@ -23,9 +23,13 @@
 
 set(NOM_PROJET mikisa)
 
-add_subdirectory(corps)
 add_subdirectory(coeur)
+add_subdirectory(commandes)
+add_subdirectory(corps)
 add_subdirectory(entreface)
+add_subdirectory(evaluation)
+add_subdirectory(operatrices)
+add_subdirectory(operatrices/ariel)
 add_subdirectory(lanceur)
 add_subdirectory(lcc)
 add_subdirectory(rendu)

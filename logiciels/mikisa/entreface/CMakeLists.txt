@@ -38,6 +38,8 @@ set(BIBLIOTHEQUES
 	bib_opengl
 	bib_texture
 	bib_outils
+	mikisa_coeur
+	mikisa_evaluation
 )
 
 add_compile_options(-fPIC)
