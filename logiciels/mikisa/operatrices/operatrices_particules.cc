@@ -572,6 +572,11 @@ public:
 			entree(0)->obtiens_liste_attributs(chaines);
 		}
 	}
+
+	bool depend_sur_temps() const override
+	{
+		return evalue_bool("anime_graine");
+	}
 };
 
 /* ************************************************************************** */
