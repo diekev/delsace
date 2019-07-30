@@ -28,6 +28,7 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 
 namespace dls {
@@ -58,7 +59,7 @@ public:
 };
 
 #define CHRONOMETRE_PORTEE(message, flux) \
-	dls::chrono::chronometre_de_portee chrono_portee(message, flux);
+	auto VARIABLE_ANONYME(chrono_portee) = dls::chrono::chronometre_de_portee(message, flux);
 
 }  /* namespace chrono */
 }  /* namespace dls */
