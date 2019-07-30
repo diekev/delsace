@@ -51,6 +51,7 @@ set(BIBLIOTHEQUES
 	mikisa_coeur
 	mikisa_evaluation
 	mikisa_lcc
+	mikisa_poseidon
 	${BIBLIOTHEQUES_ALEMBIC}
 	${BIBLIOTHEQUES_BULLET}
 	${BIBLIOTHEQUES_OPENSUBDIV}
@@ -62,10 +63,6 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_octernaire.cc
 	courbure.cc
 	delegue_hbe.cc
-	fluide.cc
-	gradient_conjugue.cc
-	iter_volume.cc
-	limites_corps.cc
 	ocean.cc
 	outils_visualisation.cc
 	normaux.cc
@@ -100,10 +97,6 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_octernaire.hh
 	courbure.hh
 	delegue_hbe.hh
-	fluide.hh
-	gradient_conjugue.hh
-	iter_volume.hh
-	limites_corps.hh
 	normaux.hh
 	ocean.hh
 	outils_visualisation.hh

@@ -26,7 +26,7 @@
 
 #include "biblinternes/math/outils.hh"
 
-#include "iter_volume.hh"
+#include "corps/iter_volume.hh"
 
 static void verifie_nans(Grille<float> const &grille, char const *message0, char const *nom_grille)
 {

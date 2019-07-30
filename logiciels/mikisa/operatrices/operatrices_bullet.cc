@@ -52,9 +52,9 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
-#include "evaluation/reseau.hh"
+#include "corps/limites_corps.hh"
 
-#include "limites_corps.hh"
+#include "evaluation/reseau.hh"
 
 /* ************************************************************************** */
 

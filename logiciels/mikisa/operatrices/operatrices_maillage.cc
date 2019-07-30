@@ -38,6 +38,7 @@
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
+#include "corps/limites_corps.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -45,7 +46,6 @@
 #include "coeur/usine_operatrice.h"
 
 #include "courbure.hh"
-#include "limites_corps.hh"
 #include "normaux.hh"
 
 #pragma clang diagnostic push

@@ -25,6 +25,7 @@
 #include "operatrices_visualisation.hh"
 
 #include "corps/iteration_corps.hh"
+#include "corps/limites_corps.hh"
 
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
@@ -32,7 +33,6 @@
 #include "arbre_hbe.hh"
 #include "arbre_octernaire.hh"
 #include "delegue_hbe.hh"
-#include "limites_corps.hh"
 #include "outils_visualisation.hh"
 
 /* ************************************************************************** */

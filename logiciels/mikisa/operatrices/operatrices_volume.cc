@@ -34,12 +34,12 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#include "corps/limites_corps.hh"
+#include "corps/iter_volume.hh"
 #include "corps/volume.hh"
 
 #include "arbre_hbe.hh"
 #include "delegue_hbe.hh"
-#include "iter_volume.hh"
-#include "limites_corps.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
