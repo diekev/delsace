@@ -610,6 +610,7 @@ static void lecture_noeud(
 			OperatriceImage *operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, noeud);
 			lecture_proprietes(element_operatrice, operatrice);
 			synchronise_donnees_operatrice(noeud);
+			operatrice->performe_versionnage();
 
 			if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
 				noeud->type(NOEUD_IMAGE_SORTIE);
