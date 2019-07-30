@@ -476,6 +476,13 @@ void AssembleurDisposition::ajoute_dossier()
 
 void AssembleurDisposition::finalise_dossier()
 {
+	m_dernier_dossier->setCurrentIndex(m_manipulable->onglet_courant);
+
+	if (m_conteneur != nullptr) {
+		QObject::connect(m_dernier_dossier, &QTabWidget::currentChanged,
+						 m_conteneur, &ConteneurControles::onglet_dossier_change);
+	}
+
 	m_dernier_dossier = nullptr;
 }
 

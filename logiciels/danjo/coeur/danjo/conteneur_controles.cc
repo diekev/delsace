@@ -24,11 +24,18 @@
 
 #include "conteneur_controles.h"
 
+#include "biblinternes/outils/definitions.h"
+
 namespace danjo {
 
 ConteneurControles::ConteneurControles(QWidget *parent)
 	: QWidget(parent)
 {}
+
+void ConteneurControles::onglet_dossier_change(int index)
+{
+	INUTILISE(index);
+}
 
 void ConteneurControles::obtiens_liste(
 		const dls::chaine &/*attache*/,

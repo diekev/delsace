@@ -240,3 +240,22 @@ void EditriceProprietes::obtiens_liste(
 
 	operatrice->obtiens_liste(contexte, attache, chaines);
 }
+
+void EditriceProprietes::onglet_dossier_change(int index)
+{
+	auto graphe = m_mikisa.graphe;
+	auto noeud = graphe->noeud_actif;
+
+	if (noeud == nullptr) {
+		return;
+	}
+
+	if (noeud->type() == NOEUD_OBJET) {
+		auto objet = extrait_objet(noeud->donnees());
+		objet->onglet_courant = index;
+	}
+	else {
+		auto op = extrait_opimage(noeud->donnees());
+		op->onglet_courant = index;
+	}
+}

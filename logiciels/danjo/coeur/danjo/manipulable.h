@@ -116,6 +116,9 @@ public:
 
 	virtual	~Manipulable() = default;
 
+	/* Pour l'entreface des dossier. */
+	int onglet_courant = 0;
+
 	using iterateur = dls::dico_desordonne<dls::chaine, Propriete>::iteratrice;
 	using iterateur_const = dls::dico_desordonne<dls::chaine, Propriete>::const_iteratrice;
 

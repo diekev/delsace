@@ -49,5 +49,7 @@ public:
 
 	void obtiens_liste(dls::chaine const &attache, dls::tableau<dls::chaine> &chaines) override;
 
+	void onglet_dossier_change(int index) override;
+
 	void reinitialise_entreface(bool creation_avert);
 };
