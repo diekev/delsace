@@ -372,11 +372,7 @@ public:
 		}
 
 		if (contexte.temps_courant == 1) {
-			for (auto i = 0; i < m_poseidon.densite->nombre_voxels(); ++i) {
-				m_poseidon.densite->valeur(i) = 0.0f;
-				m_poseidon.pression->valeur(i) = 0.0f;
-				m_poseidon.velocite->valeur(i) = dls::math::vec3f(0.0f);
-			}
+			reinitialise();
 		}
 
 		psn::fill_grid(*m_poseidon.drapeaux, TypeFluid);
@@ -413,6 +409,34 @@ public:
 	bool depend_sur_temps() const override
 	{
 		return true;
+	}
+
+	void parametres_changes() override
+	{
+		reinitialise();
+	}
+
+	void amont_change(PriseEntree *prise) override
+	{
+		if (prise == nullptr) {
+			return;
+		}
+
+		if (prise == entree(0)->pointeur()) {
+			reinitialise();
+		}
+	}
+
+	void reinitialise()
+	{
+		m_poseidon.monde.sources.efface();
+		m_poseidon.monde.obstacles.efface();
+
+		for (auto i = 0; i < m_poseidon.densite->nombre_voxels(); ++i) {
+			m_poseidon.densite->valeur(i) = 0.0f;
+			m_poseidon.pression->valeur(i) = 0.0f;
+			m_poseidon.velocite->valeur(i) = dls::math::vec3f(0.0f);
+		}
 	}
 };
 #endif
