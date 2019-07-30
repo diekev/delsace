@@ -43,6 +43,7 @@ set(ENTETES
 	complexe.hh
 	concepts.hh
 	entrepolation.hh
+	fourier.hh
 	limites.hh
 	matrice.hh
 	outils.hh
@@ -62,6 +63,7 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC
 	complexe.cc
 	concepts.cc
 	entrepolation.cc
+	fourier.cc
 	limites.cc
 	matrice.cc
 	outils.cc
