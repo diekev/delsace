@@ -105,6 +105,8 @@ struct Ocean {
 
 	float L = 0.0f;
 
+	int graine = 0;
+
 	/* dimensions of computational grid */
 	int res_x = 0;
 	int res_y = 0;
@@ -132,7 +134,6 @@ struct Ocean {
 	fftw_complex *fft_in_jxz = nullptr;
 	fftw_complex *fft_in_nx = nullptr;
 	fftw_complex *fft_in_nz = nullptr;
-	fftw_complex *htilda = nullptr;
 
 	/* fftw "plans" */
 	fftw_plan disp_y_plan = nullptr;
@@ -159,16 +160,9 @@ struct Ocean {
 	double *Jzz = nullptr;
 	double *Jxz = nullptr;
 
-	/* two dimensional float array */
-	float *k = nullptr;
-
 	/* one dimensional float array */
 	float *kx = nullptr;
 	float *kz = nullptr;
-
-	/* two dimensional complex array */
-	fftw_complex *h0 = nullptr;
-	fftw_complex *h0_minus = nullptr;
 
 	~Ocean();
 };
@@ -187,7 +181,7 @@ struct OceanResult {
 
 void deloge_donnees_ocean(struct Ocean *oc);
 
-void initialise_donnees_ocean(struct Ocean *o, int seed, float gravite);
+void initialise_donnees_ocean(struct Ocean *o, float gravite);
 
 /* échantillonnage de la surface de l'océan */
 float ocean_jminus_vers_ecume(float jminus, float coverage);

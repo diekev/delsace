@@ -387,26 +387,43 @@ void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravi
 	boucle_parallele(tbb::blocked_range<int>(0, o->res_x),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
+		auto gna = GNA(o->graine + plage.begin());
+
 		for (int i = plage.begin(); i < plage.end(); ++i) {
 			/* note the <= _N/2 here, see the fftw doco about the mechanics of the complex->real fft storage */
 			for (int j = 0; j <= o->res_y / 2; ++j) {
 				auto index = i * (1 + o->res_y / 2) + j;
 
+				auto r1 = gaussRand(gna, 0.0f, 1.0f);
+
+				fftw_complex r1r2;
+				init_complex(r1r2, r1.x, r1.y);
+
+				fftw_complex h0;
+				fftw_complex h0_minus;
+
+				mul_complex_f(h0, r1r2, std::sqrt(spectre_phillips(o, o->kx[i], o->kz[j]) / 2.0f));
+				mul_complex_f(h0_minus, r1r2, std::sqrt(spectre_phillips(o, -o->kx[i], -o->kz[j]) / 2.0f));
+
+				auto k = std::sqrt(o->kx[i] * o->kx[i] + o->kz[j] * o->kz[j]);
+
 				fftw_complex exp_param1;
 				fftw_complex exp_param2;
 				fftw_complex conj_param;
 
-				init_complex(exp_param1, 0.0, omega(o->k[index], o->profondeur, gravite) * t);
-				init_complex(exp_param2, 0.0, -omega(o->k[index], o->profondeur, gravite) * t);
+				init_complex(exp_param1, 0.0, omega(k, o->profondeur, gravite) * t);
+				init_complex(exp_param2, 0.0, -omega(k, o->profondeur, gravite) * t);
 				exp_complex(exp_param1, exp_param1);
 				exp_complex(exp_param2, exp_param2);
-				conj_complex(conj_param, o->h0_minus[i * o->res_y + j]);
+				conj_complex(conj_param, h0_minus);
 
-				mul_complex_c(exp_param1, o->h0[i * o->res_y + j], exp_param1);
+				mul_complex_c(exp_param1, h0, exp_param1);
 				mul_complex_c(exp_param2, conj_param, exp_param2);
 
-				add_comlex_c(o->htilda[index], exp_param1, exp_param2);
-				mul_complex_f(o->fft_in[index], o->htilda[index], scale);
+				fftw_complex htilda;
+				add_comlex_c(htilda, exp_param1, exp_param2);
+
+				mul_complex_f(o->fft_in[index], htilda, scale);
 
 				if (o->calcul_chop) {
 					fftw_complex mul_param;
@@ -416,10 +433,10 @@ void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravi
 					init_complex(mul_param, -scale, 0);
 					mul_complex_f(mul_param, mul_param, chop_amount);
 					mul_complex_c(mul_param, mul_param, minus_i);
-					mul_complex_c(mul_param, mul_param, o->htilda[index]);
+					mul_complex_c(mul_param, mul_param, htilda);
 
-					auto kx = ((o->k[index] == 0.0f) ? 0.0f : o->kx[i] / o->k[index]);
-					auto kz = ((o->k[index] == 0.0f) ? 0.0f : o->kz[j] / o->k[index]);
+					auto kx = ((k == 0.0f) ? 0.0f : o->kx[i] / k);
+					auto kz = ((k == 0.0f) ? 0.0f : o->kz[j] / k);
 
 					init_complex(o->fft_in_x[index], real_c(mul_param) * kx, image_c(mul_param) * kx);
 					init_complex(o->fft_in_z[index], real_c(mul_param) * kz, image_c(mul_param) * kz);
@@ -429,7 +446,7 @@ void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravi
 					fftw_complex mul_param;
 
 					init_complex(mul_param, 0.0, -1.0);
-					mul_complex_c(mul_param, mul_param, o->htilda[index]);
+					mul_complex_c(mul_param, mul_param, htilda);
 
 					init_complex(o->fft_in_nx[index], real_c(mul_param) * o->kx[i], image_c(mul_param) * o->kx[i]);
 					init_complex(o->fft_in_nz[index], real_c(mul_param) * o->kz[i], image_c(mul_param) * o->kz[i]);
@@ -442,26 +459,20 @@ void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravi
 					init_complex(mul_param, -1, 0);
 
 					mul_complex_f(mul_param, mul_param, chop_amount);
-					mul_complex_c(mul_param, mul_param, o->htilda[index]);
+					mul_complex_c(mul_param, mul_param, htilda);
 
 					/* calcul jacobien XX */
-					auto kxx = ((o->k[index] == 0.0f) ?
-									0.0f :
-									o->kx[i] * o->kx[i] / o->k[index]);
+					auto kxx = ((k == 0.0f) ? 0.0f : o->kx[i] * o->kx[i] / k);
 
 					init_complex(o->fft_in_jxx[index], real_c(mul_param) * kxx, image_c(mul_param) * kxx);
 
 					/* calcul jacobien ZZ */
-					auto kzz = ((o->k[index] == 0.0f) ?
-									0.0f :
-									o->kz[j] * o->kz[j] / o->k[index]);
+					auto kzz = ((k == 0.0f) ? 0.0f : o->kz[j] * o->kz[j] / k);
 
 					init_complex(o->fft_in_jzz[index], real_c(mul_param) * kzz, image_c(mul_param) * kzz);
 
 					/* calcul jacobien XZ */
-					auto kxz = ((o->k[index] == 0.0f) ?
-									0.0f :
-									o->kx[i] * o->kz[j] / o->k[index]);
+					auto kxz = ((k == 0.0f) ? 0.0f : o->kx[i] * o->kz[j] / k);
 
 					init_complex(o->fft_in_jxz[index], real_c(mul_param) * kxz, image_c(mul_param) * kxz);
 				}
@@ -537,15 +548,11 @@ static void set_height_normalize_factor(Ocean *oc, float gravite)
 
 void initialise_donnees_ocean(
 		Ocean *o,
-		int seed,
 		float gravite)
 {
 	auto taille = (o->res_x * o->res_y);
 	auto taille_complex = (o->res_x * (1 + o->res_y / 2));
 
-	o->k = memoire::loge_tableau<float>("k", taille_complex);
-	o->h0 = memoire::loge_tableau<fftw_complex>("h0", taille);
-	o->h0_minus = memoire::loge_tableau<fftw_complex>("h0_minus", taille);
 	o->kx = memoire::loge_tableau<float>("kx", o->res_x);
 	o->kz = memoire::loge_tableau<float>("kz", o->res_y);
 
@@ -578,28 +585,7 @@ void initialise_donnees_ocean(
 		o->kz[i] = -constantes<float>::TAU * static_cast<float>(ii) / o->taille_spaciale_z;
 	}
 
-	/* pre-calculate the k matrix */
-	for (auto i = 0; i < o->res_x; ++i) {
-		for (auto j = 0; j <= o->res_y / 2; ++j) {
-			o->k[i * (1 + o->res_y / 2) + j] = std::sqrt(o->kx[i] * o->kx[i] + o->kz[j] * o->kz[j]);
-		}
-	}
-
-	auto gna = GNA(seed);
-
-	for (auto i = 0; i < o->res_x; ++i) {
-		for (auto j = 0; j < o->res_y; ++j) {
-			auto r1 = gaussRand(gna, 0.0f, 1.0f);
-
-			fftw_complex r1r2;
-			init_complex(r1r2, r1.x, r1.y);
-			mul_complex_f(o->h0[i * o->res_y + j], r1r2, std::sqrt(spectre_phillips(o, o->kx[i], o->kz[j]) / 2.0f));
-			mul_complex_f(o->h0_minus[i * o->res_y + j], r1r2, std::sqrt(spectre_phillips(o, -o->kx[i], -o->kz[j]) / 2.0f));
-		}
-	}
-
 	o->fft_in = memoire::loge_tableau<fftw_complex>("fft_in", taille_complex);
-	o->htilda = memoire::loge_tableau<fftw_complex>("htilda", taille_complex);
 
 	if (o->calcul_deplacement_y) {
 		o->disp_y = memoire::loge_tableau<double>("disp_y", taille);
@@ -693,12 +679,7 @@ void deloge_donnees_ocean(Ocean *oc)
 		memoire::deloge_tableau("fft_in", oc->fft_in, taille_complex);
 	}
 
-	/* check that ocean data has been initialized */
-	if (oc->htilda) {
-		memoire::deloge_tableau("htilda", oc->htilda, taille_complex);
-		memoire::deloge_tableau("k", oc->k, taille_complex);
-		memoire::deloge_tableau("h0", oc->h0, taille);
-		memoire::deloge_tableau("h0_minus", oc->h0_minus, taille);
+	if (oc->kx) {
 		memoire::deloge_tableau("kx", oc->kx, oc->res_x);
 		memoire::deloge_tableau("kz", oc->kz, oc->res_y);
 	}

@@ -1033,10 +1033,11 @@ public:
 		/* plus grosse vague pour une certaine vélocité */
 		m_ocean.L = velocite_vent * velocite_vent / gravite;
 		m_ocean.temps = temps;
+		m_ocean.graine = graine;
 
 		if (contexte.temps_courant == contexte.temps_debut || m_reinit) {
 			deloge_donnees_ocean(&m_ocean);
-			initialise_donnees_ocean(&m_ocean, graine, gravite);
+			initialise_donnees_ocean(&m_ocean, gravite);
 
 			m_ecume_precedente.efface();
 
