@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/math/vecteur.hh"
 #include "biblinternes/structures/chaine.hh"
 
 class ContexteRendu;
@@ -84,7 +85,10 @@ public:
 	/**
 	 * Dessine le texte passé en paramètre dans le contexte spécifié.
 	 */
-	void dessine(ContexteRendu const &contexte, dls::chaine const &texte);
+	void dessine(
+			ContexteRendu const &contexte,
+			dls::chaine const &texte,
+			dls::math::vec4f const &couleur = dls::math::vec4f(1.0f));
 
 	/**
 	 * Établie les dimensions de la fenêtre où est dessinée le texte. Les

@@ -25,7 +25,6 @@
 #include "rendu_texte.h"
 
 #include "biblinternes/ego/outils.h"
-#include "biblinternes/math/vecteur.hh"
 
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -301,13 +300,17 @@ static void rend_lettres(
 	glDeleteTextures( 1, &atlas->id );
 }
 
-void RenduTexte::dessine(ContexteRendu const &contexte, dls::chaine const &texte)
+void RenduTexte::dessine(
+		ContexteRendu const &contexte,
+		dls::chaine const &texte,
+		dls::math::vec4f const &couleur)
 {
 	char const *filename = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf";
 
-	vec4 white  = {{1.0, 1.0, 1.0, 1.0}};
+	vec4 white  = {{couleur.r, couleur.g, couleur.b, couleur.a}};
 	vec4 noir   = {{0.0, 0.0, 0.0, 1.0}};
 	vec4 none   = {{1.0, 1.0, 1.0, 0.0}};
+
 	markup_t markup;
 	markup.family  = const_cast<char *>(filename);
 	markup.size    = static_cast<float>(m_taille_fonte);
