@@ -69,6 +69,7 @@ set(FTGL
 
 add_library(ftgl STATIC ${FTGL})
 target_include_directories(ftgl PUBLIC "${INCLUSIONS}")
+target_link_libraries(ftgl PUBLIC freetype)
 get_target_property(EXTLIB_COMPILE_FLAGS ftgl COMPILE_OPTIONS)
 list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wpedantic)
 list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wconversion)
