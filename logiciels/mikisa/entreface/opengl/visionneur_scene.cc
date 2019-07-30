@@ -216,38 +216,6 @@ void VisionneurScene::peint_opengl()
 	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-#if 0
-	noeud = m_mikisa.graphe->noeud_actif;
-
-	if (noeud != nullptr) {
-		auto operatrice = extrait_opimage(noeud->donnees());
-
-		if (operatrice->type() == OPERATRICE_OBJET && operatrice->objet()) {
-			auto objet = operatrice->objet();
-			auto maillage = objet->donnees;
-
-			ss.chn("");
-			ss << "Maillage : " << maillage->nom;
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre sommets   : " << maillage->nombre_sommets();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre polygones : " << maillage->nombre_polygones();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre arrêtes   : " << maillage->nombre_arretes();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre uvs       : " << maillage->nombre_uvs();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre normaux   : " << maillage->nombre_normaux();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-		}
-	}
-#endif
-
 	glDisable(GL_BLEND);
 
 	m_chrono_rendu.commence();
