@@ -39,9 +39,6 @@ void ajoute_flottance(
 
 	auto res = flags->resolution();
 
-	//auto min_velocite = dls::math::vec3f( 1000.0f);
-	//auto max_velocite = dls::math::vec3f(-1000.0f);
-
 	boucle_parallele(tbb::blocked_range<int>(1, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
@@ -74,14 +71,8 @@ void ajoute_flottance(
 			if (flags->valeur(i, j, k - 1) == TypeFluid) {
 				v.z += (0.5f * f.z) * (density->valeur(i, j, k) + density->valeur(i, j, k - 1));
 			}
-
-			//auto velocite = vel->valeur(i, j, k);
-
-			//dls::math::extrait_min_max(velocite, min_velocite, max_velocite);
 		}
 	});
-
-	//std::cerr << __func__ << " : vélocité max = " << max_velocite << '\n';
 }
 
 void ajourne_conditions_bordures_murs(Grille<int> *flags, GrilleMAC *vel)

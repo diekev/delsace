@@ -47,16 +47,14 @@
 
 #include "outils_visualisation.hh"
 
-#define AVEC_POSEIDON
-
-#ifdef AVEC_POSEIDON
-
 /* ************************************************************************** */
 
 static inline auto extrait_poseidon(DonneesAval *da)
 {
 	return std::any_cast<psn::Poseidon *>(da->table["poseidon"]);
 }
+
+/* ************************************************************************** */
 
 class OpEntreeGaz : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
@@ -506,7 +504,6 @@ public:
 		}
 	}
 };
-#endif
 
 /* ************************************************************************** */
 
@@ -715,12 +712,10 @@ public:
 
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
-#ifdef AVEC_POSEIDON
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
 	usine.enregistre_type(cree_desc<OpObstacleGaz>());
 	usine.enregistre_type(cree_desc<OpSimulationGaz>());
 	usine.enregistre_type(cree_desc<OpAdvectionGaz>());
 	usine.enregistre_type(cree_desc<OpFlottanceGaz>());
 	usine.enregistre_type(cree_desc<OpIncompressibiliteGaz>());
-#endif
 }

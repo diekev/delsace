@@ -78,67 +78,6 @@ static auto densityInflow(
 	}
 }
 
-static auto init_domain(Grille<int> *flags)
-{
-	auto res = flags->resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-
-	auto iter = IteratricePosition(limites);
-
-	while (!iter.fini()) {
-		auto pos = iter.suivante();
-		flags->valeur(pos, TypeVide);
-	}
-
-	int types[6] = {
-		TypeObstacle,
-		TypeObstacle,
-		TypeObstacle,
-		TypeObstacle,
-		TypeObstacle,
-		TypeObstacle,
-	};
-
-	/* init boundaries */
-	iter = IteratricePosition(limites);
-
-	auto const boundaryWidth = 0;
-	auto const w = boundaryWidth;
-
-	while (!iter.fini()) {
-		auto pos = iter.suivante();
-
-		auto i = pos.x;
-		auto j = pos.y;
-		auto k = pos.z;
-
-		if (i <= w) {
-			flags->valeur(pos, types[0]);
-		}
-
-		if (i >= res.x - 1 - w) {
-			flags->valeur(pos, types[1]);
-		}
-
-		if (j <= w) {
-			flags->valeur(pos, types[2]);
-		}
-
-		if (j >= res.y - 1 - w) {
-			flags->valeur(pos, types[3]);
-		}
-
-		if (k <= w) {
-			flags->valeur(pos, types[4]);
-		}
-
-		if (k >= res.z - 1 - w) {
-			flags->valeur(pos, types[5]);
-		}
-	}
-}
 template <typename T>
 static auto fill_grid(Grille<T> *flags, T valeur)
 {
