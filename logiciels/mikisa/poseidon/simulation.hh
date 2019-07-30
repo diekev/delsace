@@ -83,10 +83,9 @@ auto advecte_semi_lagrange(
 		Grille<int> *flags,
 		GrilleMAC *vel,
 		Grille<T> *orig,
+		float dt,
 		int order)
 {
-	auto dt = 0.1f;
-
 	auto fwd = Grille<T>(flags->etendu(), flags->fenetre_donnees(), flags->taille_voxel());
 
 	SemiLagrange(flags, vel, fwd, *orig, dt);
@@ -115,9 +114,10 @@ auto advecte_semi_lagrange(
 void ajoute_flottance(
 		Grille<float> *density,
 		GrilleMAC *vel,
-		dls::math::vec3f const &gravity,
 		Grille<int> *flags,
-		float coefficient = 1.0f);
+		dls::math::vec3f const &gravity,
+		float dt,
+		float coefficient);
 
 void ajourne_conditions_bordures_murs(
 		Grille<int> *flags,

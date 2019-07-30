@@ -192,6 +192,8 @@ public:
 		params.objet = m_objet;
 		params.densite = evalue_decimal("densité");
 		params.facteur = evalue_decimal("facteur");
+		params.debut = evalue_entier("début");
+		params.fin = evalue_entier("fin");
 
 		auto plage_mode = dico_mode.trouve_binaire(evalue_enum("mode_fusion"));
 
@@ -220,6 +222,11 @@ public:
 			ajoute_propriete("facteur", danjo::TypePropriete::DECIMAL, 1.0f);
 			ajoute_propriete("densité", danjo::TypePropriete::DECIMAL, 1.0f);
 		}
+
+		if (propriete("début") == nullptr) {
+			ajoute_propriete("début", danjo::TypePropriete::ENTIER, 1);
+			ajoute_propriete("fin", danjo::TypePropriete::ENTIER, 100);
+		}
 	}
 };
 
@@ -244,7 +251,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_entree_gaz.jo";
+		return "entreface/operatrice_obstacle_gaz.jo";
 	}
 
 	int type_entree(int) const override
@@ -376,7 +383,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_simulation_gaz.jo";
 	}
 
 	const char *nom_classe() const override
@@ -396,13 +403,18 @@ public:
 		m_corps.reinitialise();
 
 		/* init domaine */
-		auto res = 32;
+		auto res = evalue_entier("résolution");
+		auto temps_debut = evalue_entier("début");
+		auto temps_fin = evalue_entier("fin");
+		auto dt = evalue_decimal("dt");
 
 		auto etendu = limites3f{};
 		etendu.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
 		etendu.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
 		auto fenetre_donnees = etendu;
 		auto taille_voxel = 10.0f / static_cast<float>(res);
+
+		m_poseidon.dt = dt;
 
 		if (m_poseidon.densite == nullptr) {
 			m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
@@ -411,7 +423,12 @@ public:
 			m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
 		}
 
-		if (contexte.temps_courant == 1) {
+		if (contexte.temps_courant < temps_debut || contexte.temps_courant > temps_fin) {
+			reinitialise();
+			return EXECUTION_REUSSIE;
+		}
+
+		if (contexte.temps_courant == temps_debut) {
 			reinitialise();
 		}
 
@@ -424,7 +441,7 @@ public:
 
 		entree(0)->requiers_corps(contexte, &da);
 
-		psn::ajourne_sources(m_poseidon);
+		psn::ajourne_sources(m_poseidon, contexte.temps_courant);
 
 		psn::ajourne_obstables(m_poseidon);
 
@@ -478,6 +495,16 @@ public:
 			m_poseidon.velocite->valeur(i) = dls::math::vec3f(0.0f);
 		}
 	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("résolution") == nullptr) {
+			ajoute_propriete("résolution", danjo::TypePropriete::ENTIER, 32);
+			ajoute_propriete("début", danjo::TypePropriete::ENTIER, 1);
+			ajoute_propriete("fin", danjo::TypePropriete::ENTIER, 250);
+			ajoute_propriete("dt", danjo::TypePropriete::DECIMAL, 0.1f);
+		}
+	}
 };
 #endif
 
@@ -496,7 +523,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_advection_gaz.jo";
 	}
 
 	const char *nom_classe() const override
@@ -523,7 +550,7 @@ public:
 
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
-		auto ordre = 1;
+		auto ordre = (evalue_enum("ordre") == "semi_lagrangienne") ? 1 : 0;
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
@@ -531,9 +558,9 @@ public:
 		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->etendu(), velocite->fenetre_donnees(), velocite->taille_voxel());
 		vieille_vel->copie_donnees(*velocite);
 
-		psn::advecte_semi_lagrange(drapeaux, vieille_vel, densite, ordre);
+		psn::advecte_semi_lagrange(drapeaux, vieille_vel, densite, poseidon_gaz->dt, ordre);
 
-		psn::advecte_semi_lagrange(drapeaux, vieille_vel, velocite, ordre);
+		psn::advecte_semi_lagrange(drapeaux, vieille_vel, velocite, poseidon_gaz->dt, ordre);
 
 		/* À FAIRE : plus de paramètres, voir MF. */
 		psn::ajourne_conditions_bordures_murs(drapeaux, velocite);
@@ -546,6 +573,13 @@ public:
 	bool depend_sur_temps() const override
 	{
 		return true;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("ordre") == nullptr) {
+			ajoute_propriete("ordre", danjo::TypePropriete::ENUM, dls::chaine("semi_lagrangienne"));
+		}
 	}
 };
 
@@ -564,7 +598,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_flottance_gaz.jo";
 	}
 
 	const char *nom_classe() const override
@@ -591,12 +625,14 @@ public:
 
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
-		auto gravite = dls::math::vec3f(0.0f, -1.0f, 0.0f);
+		auto coefficient = evalue_decimal("coefficient");
+		auto gravite_y = evalue_decimal("gravité");
+		auto gravite = dls::math::vec3f(0.0f, -gravite_y, 0.0f);
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
-		psn::ajoute_flottance(densite, velocite, gravite, drapeaux);
+		psn::ajoute_flottance(densite, velocite, drapeaux, gravite, poseidon_gaz->dt, coefficient);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -604,6 +640,14 @@ public:
 	bool depend_sur_temps() const override
 	{
 		return true;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("gravité") == nullptr) {
+			ajoute_propriete("gravité", danjo::TypePropriete::DECIMAL, 1.0f);
+			ajoute_propriete("coefficient", danjo::TypePropriete::DECIMAL, 1.0f);
+		}
 	}
 };
 

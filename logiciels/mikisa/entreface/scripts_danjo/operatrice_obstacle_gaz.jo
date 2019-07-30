@@ -1,0 +1,6 @@
+disposition "operatrice_obstacle_gaz" {
+	ligne {
+		étiquette(valeur="Nom Objet")
+		liste(valeur=""; attache=nom_objet)
+	}
+}

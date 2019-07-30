@@ -26,9 +26,14 @@
 
 namespace psn {
 
-void ajoute_flottance(Grille<float> *density, GrilleMAC *vel, const dls::math::vec3f &gravity, Grille<int> *flags, float coefficient)
+void ajoute_flottance(
+		Grille<float> *density,
+		GrilleMAC *vel,
+		Grille<int> *flags,
+		dls::math::vec3f const &gravity,
+		float dt,
+		float coefficient)
 {
-	auto dt = 0.1f; // flags.getParent()->getDt();
 	auto dx = density->taille_voxel();
 	auto f = -gravity * dt / dx * coefficient;
 

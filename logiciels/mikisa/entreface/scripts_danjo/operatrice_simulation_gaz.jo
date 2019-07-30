@@ -1,0 +1,18 @@
+disposition "operatrice_simulation_gaz" {
+	ligne {
+		étiquette(valeur="Résolution")
+		entier(valeur=32; attache=résolution; min=2)
+	}
+	ligne {
+		étiquette(valeur="Début")
+		entier(valeur=1; attache=début)
+	}
+	ligne {
+		étiquette(valeur="Fin")
+		entier(valeur=250; attache=fin)
+	}
+	ligne {
+		étiquette(valeur="Dt")
+		décimal(valeur=0.1; attache=dt; min=0.0)
+	}
+}

@@ -1,0 +1,10 @@
+disposition "operatrice_flottance_gaz" {
+	ligne {
+		étiquette(valeur="Gravité")
+		décimal(valeur=1.0; attache=gravité)
+	}
+	ligne {
+		étiquette(valeur="Coefficient")
+		décimal(valeur=1.0; attache=coefficient; min=0.0)
+	}
+}

@@ -23,4 +23,12 @@ disposition "operatrice_entree_gaz" {
 		étiquette(valeur="Densité")
 		décimal(valeur=1.0; attache=densité; min=0.0; max=1.0)
 	}
+	ligne {
+		étiquette(valeur="Début")
+		entier(valeur=1; attache=début)
+	}
+	ligne {
+		étiquette(valeur="Fin")
+		entier(valeur=100; attache=fin)
+	}
 }

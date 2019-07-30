@@ -46,6 +46,8 @@ struct ParametresSource {
 	float densite = 1.0f;
 	float facteur = 1.0f;
 	Objet *objet = nullptr;
+	int debut = 0;
+	int fin = 0;
 };
 
 struct Monde {
@@ -60,9 +62,11 @@ struct Poseidon {
 	Grille<float> *densite = nullptr;
 	Grille<float> *pression = nullptr;
 	GrilleMAC *velocite = nullptr;
+
+	float dt = 0.0f;
 };
 
-void ajourne_sources(Poseidon &poseidon);
+void ajourne_sources(Poseidon &poseidon, int temps);
 
 void ajourne_obstables(Poseidon &poseidon);
 

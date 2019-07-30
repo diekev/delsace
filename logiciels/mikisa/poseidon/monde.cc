@@ -232,7 +232,7 @@ static auto ajourne_murs_domaine(Grille<int> &drapeaux)
 	}
 }
 
-void ajourne_sources(Poseidon &poseidon)
+void ajourne_sources(Poseidon &poseidon, int temps)
 {
 	auto corps = Corps();
 
@@ -241,6 +241,10 @@ void ajourne_sources(Poseidon &poseidon)
 
 	for (auto const &params : poseidon.monde.sources) {
 		auto objet = params.objet;
+
+		if (temps < params.debut || temps > params.fin) {
+			continue;
+		}
 
 		/* copie par convénience */
 		objet->corps.accede_lecture([&](Corps const &corps_objet)

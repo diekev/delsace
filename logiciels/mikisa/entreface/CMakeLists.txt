@@ -98,6 +98,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_3d_sphere_uv.jo
 	scripts_danjo/operatrice_3d_suppression_attribut.jo
 	scripts_danjo/operatrice_3d_torus.jo
+	scripts_danjo/operatrice_advection_gaz.jo
 	scripts_danjo/operatrice_ajout_corps_rigide.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
@@ -128,6 +129,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_evaluation_kelvinlet.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
+	scripts_danjo/operatrice_flottance_gaz.jo
 	scripts_danjo/operatrice_fonte_maillage.jo
 	scripts_danjo/operatrice_force_interaction.jo
 	scripts_danjo/operatrice_flou.jo
@@ -149,8 +151,9 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_normalise_covariance.jo
 	scripts_danjo/operatrice_nuage.jo
+	scripts_danjo/operatrice_obstacle_gaz.jo
 	scripts_danjo/operatrice_ocean.jo
-        scripts_danjo/operatrice_ondelette_haar.jo
+	scripts_danjo/operatrice_ondelette_haar.jo
 	scripts_danjo/operatrice_opensubdiv.jo
 	scripts_danjo/operatrice_patch_triangle.jo
 	scripts_danjo/operatrice_premultiplication.jo
@@ -165,6 +168,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_foule.jo
+	scripts_danjo/operatrice_simulation_gaz.jo
 	scripts_danjo/operatrice_simulation_grain.jo
 	scripts_danjo/operatrice_simulation_vetement.jo
 	scripts_danjo/operatrice_solveur_n_corps.jo
