@@ -26,6 +26,7 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
 #include "coeur/base_de_donnees.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -172,7 +173,37 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		poseidon_gaz->monde.sources.insere(m_objet);
+		for (auto const &params : poseidon_gaz->monde.sources) {
+			if (params.objet == m_objet) {
+				return EXECUTION_REUSSIE;
+			}
+		}
+
+		auto dico_mode = dls::cree_dico(
+					dls::paire{ dls::vue_chaine("addition"), psn::mode_fusion::ADDITION },
+					dls::paire{ dls::vue_chaine("maximum"), psn::mode_fusion::MAXIMUM },
+					dls::paire{ dls::vue_chaine("minimum"), psn::mode_fusion::MINIMUM },
+					dls::paire{ dls::vue_chaine("multiplication"), psn::mode_fusion::MULTIPLICATION },
+					dls::paire{ dls::vue_chaine("soustraction"), psn::mode_fusion::SOUSTRACTION },
+					dls::paire{ dls::vue_chaine("superposition"), psn::mode_fusion::SUPERPOSITION }
+					);
+
+		auto params = psn::ParametresSource{};
+		params.objet = m_objet;
+		params.densite = evalue_decimal("densité");
+		params.facteur = evalue_decimal("facteur");
+
+		auto plage_mode = dico_mode.trouve_binaire(evalue_enum("mode_fusion"));
+
+		if (plage_mode.est_finie()) {
+			this->ajoute_avertissement("Mode de fusion inconnu !");
+			params.fusion = psn::mode_fusion::SUPERPOSITION;
+		}
+		else {
+			params.fusion = plage_mode.front().second;
+		}
+
+		poseidon_gaz->monde.sources.pousse(params);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -180,6 +211,15 @@ public:
 	bool depend_sur_temps() const override
 	{
 		return true;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("mode_fusion") == nullptr) {
+			ajoute_propriete("mode_fusion", danjo::TypePropriete::ENUM, dls::chaine("superposition"));
+			ajoute_propriete("facteur", danjo::TypePropriete::DECIMAL, 1.0f);
+			ajoute_propriete("densité", danjo::TypePropriete::DECIMAL, 1.0f);
+		}
 	}
 };
 

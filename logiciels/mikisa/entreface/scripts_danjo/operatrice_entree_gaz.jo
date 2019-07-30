@@ -3,4 +3,24 @@ disposition "operatrice_entree_gaz" {
 		étiquette(valeur="Nom Objet")
 		liste(valeur=""; attache=nom_objet)
 	}
+	ligne {
+		étiquette(valeur="Mode de fusion")
+		énum(valeur="superposition"; attache=mode_fusion; items=
+		[
+			{ nom="Addition", valeur="addition" },
+			{ nom="Maximum", valeur="maximum" },
+			{ nom="Minimum", valeur="minimum" },
+			{ nom="Multiplication", valeur="multiplication" },
+			{ nom="Soustraction", valeur="soustraction" },
+			{ nom="Superposition", valeur="superposition" }
+		])
+	}
+	ligne {
+		étiquette(valeur="Facteur")
+		décimal(valeur=1.0; attache=facteur; min=0.0; max=1.0)
+	}
+	ligne {
+		étiquette(valeur="Densité")
+		décimal(valeur=1.0; attache=densité; min=0.0; max=1.0)
+	}
 }

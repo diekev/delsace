@@ -32,8 +32,24 @@
 
 namespace psn {
 
+enum mode_fusion {
+	ADDITION,
+	SOUSTRACTION,
+	MULTIPLICATION,
+	MINIMUM,
+	MAXIMUM,
+	SUPERPOSITION
+};
+
+struct ParametresSource {
+	mode_fusion fusion{};
+	float densite = 1.0f;
+	float facteur = 1.0f;
+	Objet *objet = nullptr;
+};
+
 struct Monde {
-	dls::ensemble<Objet *> sources{};
+	dls::tableau<ParametresSource> sources{};
 	dls::ensemble<Objet *> obstacles{};
 };
 

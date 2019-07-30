@@ -24,6 +24,8 @@
 
 #include "monde.hh"
 
+#include "biblinternes/math/entrepolation.hh"
+
 #include "corps/limites_corps.hh"
 #include "corps/iter_volume.hh"
 
@@ -237,7 +239,9 @@ void ajourne_sources(Poseidon &poseidon)
 	auto densite = poseidon.densite;
 	auto res = densite->resolution();
 
-	for (auto objet : poseidon.monde.sources) {
+	for (auto const &params : poseidon.monde.sources) {
+		auto objet = params.objet;
+
 		/* copie par convénience */
 		objet->corps.accede_lecture([&](Corps const &corps_objet)
 		{
@@ -262,7 +266,56 @@ void ajourne_sources(Poseidon &poseidon)
 			auto pos = iter.suivante();
 			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
 
-			densite->valeur(idx) = 1.0f;
+			switch (params.fusion) {
+				case mode_fusion::SUPERPOSITION:
+				{
+					auto u = densite->valeur(idx);
+					auto v = params.densite;
+
+					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, v, params.facteur);
+					break;
+				}
+				case mode_fusion::ADDITION:
+				{
+					auto u = densite->valeur(idx);
+					auto v = params.densite;
+
+					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u + v, params.facteur);
+					break;
+				}
+				case mode_fusion::SOUSTRACTION:
+				{
+					auto u = densite->valeur(idx);
+					auto v = params.densite;
+
+					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u - v, params.facteur);
+					break;
+				}
+				case mode_fusion::MINIMUM:
+				{
+					auto u = densite->valeur(idx);
+					auto v = params.densite;
+
+					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
+					break;
+				}
+				case mode_fusion::MAXIMUM:
+				{
+					auto u = densite->valeur(idx);
+					auto v = params.densite;
+
+					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
+					break;
+				}
+				case mode_fusion::MULTIPLICATION:
+				{
+					auto u = densite->valeur(idx);
+					auto v = params.densite;
+
+					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u * v, params.facteur);
+					break;
+				}
+			}
 		}
 	}
 }
