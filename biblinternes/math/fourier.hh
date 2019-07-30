@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/structures/tableau.hh"
 
