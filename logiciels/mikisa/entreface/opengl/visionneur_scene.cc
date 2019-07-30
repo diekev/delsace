@@ -164,7 +164,14 @@ void VisionneurScene::peint_opengl()
 
 	dls::flux_chaine ss;
 	ss << fps << " IPS";
-	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	auto couleur_fps = dls::math::vec4f(1.0f);
+
+	if (fps < 12) {
+		couleur_fps = dls::math::vec4f(0.8f, 0.1f, 0.1f, 1.0f);
+	}
+
+	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
 
 	if (scene != nullptr) {
 		ss.chn("");
