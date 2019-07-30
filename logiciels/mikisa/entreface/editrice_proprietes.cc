@@ -82,6 +82,13 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	creation |= (evenement == (type_evenement::objet | type_evenement::manipule));
 	creation |= (evenement == (type_evenement::rafraichissement));
 
+	/* n'ajourne pas durant les animation */
+	if (evenement == (type_evenement::temps | type_evenement::modifie)) {
+		if (m_mikisa.animation) {
+			return;
+		}
+	}
+
 	/* ajourne l'entreface d'avertissement */
 	auto creation_avert = (evenement == (type_evenement::image | type_evenement::traite));
 
