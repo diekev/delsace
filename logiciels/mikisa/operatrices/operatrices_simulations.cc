@@ -25,6 +25,7 @@
 #include "operatrices_simulations.hh"
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -39,6 +40,8 @@
 
 #include "delegue_hbe.hh"
 #include "ocean.hh"
+
+#include "biblinternes/math/complexe.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -946,6 +949,12 @@ public:
 /* ************************************************************************** */
 
 class OperatriceSimulationOcean : public OperatriceCorps {
+	Ocean m_ocean{};
+	bool m_reinit = false;
+
+	/* À FAIRE : image */
+	dls::tableau<float> m_ecume_precedente{};
+
 public:
 	static constexpr auto NOM = "Océan";
 	static constexpr auto AIDE = "";
@@ -970,10 +979,6 @@ public:
 	{
 		return AIDE;
 	}
-	void simulate_ocean_modifier(struct OceanModifierData *omd)
-	{
-		BKE_ocean_simulate(omd->ocean, omd->time, omd->wave_scale, omd->chop_amount, omd->gravite);
-	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
@@ -985,65 +990,88 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		OceanModifierData omd;
-
 		/* paramètres simulations */
-		omd.resolution = evalue_entier("résolution");
-
-		omd.wave_alignment = evalue_decimal("alignement_vague");
-		omd.wind_velocity = evalue_decimal("vélocité_vent");
-
-		omd.damp = evalue_decimal("damping");
-		omd.smallest_wave = evalue_decimal("plus_petite_vague");
-		omd.wave_direction = evalue_decimal("direction_vague");
-		omd.depth = evalue_decimal("profondeur");
-
-		omd.wave_scale = evalue_decimal("échelle_vague");
-
-		omd.chop_amount = evalue_decimal("quantité_chop");
-
-		omd.foam_coverage = evalue_decimal("couverture_écume");
-
-		omd.seed = evalue_entier("graine");
-		omd.time = static_cast<float>(contexte.temps_courant) / 10.0f; //evalue_decimal("temps");
-
-		omd.gravite = evalue_decimal("gravité");
-
-		omd.foam_fade = evalue_decimal("atténuation_écume");
-
-		/* paramètres déplacements */
+		auto resolution = dls::math::restreint(evalue_entier("résolution"), 4, 11);
+		auto velocite_vent = evalue_decimal("vélocité_vent");
+		auto echelle_vague = evalue_decimal("échelle_vague");
+		auto alignement_vague = evalue_decimal("alignement_vague");
+		auto plus_petite_vague = evalue_decimal("plus_petite_vague");
+		auto direction_vague = evalue_decimal("direction_vague");
+		auto profondeur = evalue_decimal("profondeur");
+		auto gravite = evalue_decimal("gravité");
+		auto damp = evalue_decimal("damping");
+		auto quantite_chop = evalue_decimal("quantité_chop");
+		auto graine = evalue_entier("graine");
+		auto temps = evalue_decimal("temps", contexte.temps_courant) / static_cast<float>(contexte.cadence);
+		auto couverture_ecume = evalue_decimal("couverture_écume");
+		auto attenuation_ecume = evalue_decimal("atténuation_écume");
 		auto taille = evalue_decimal("taille");
-		omd.spatial_size = static_cast<float>(evalue_entier("taille_spaciale"));
+		auto taille_spaciale = static_cast<float>(evalue_entier("taille_spaciale"));
 
-		omd.oceancache = nullptr;
+		auto const taille_inverse = 1.0f / (taille * taille_spaciale);
 
-		const float size_co_inv = 1.0f / (taille * omd.spatial_size);
-
-		if (!std::isfinite(size_co_inv)) {
+		if (!std::isfinite(taille_inverse)) {
 			this->ajoute_avertissement("La taille inverse n'est pas finie");
 			return EXECUTION_ECHOUEE;
 		}
 
-		omd.ocean = BKE_ocean_add();
-		BKE_ocean_init_from_modifier(omd.ocean, &omd);
+		m_ocean.res_x = static_cast<int>(std::pow(2.0, resolution));
+		m_ocean.res_y = m_ocean.res_x;
+		m_ocean.calcul_deplacement_y = true;
+		m_ocean.calcul_normaux = true;
+		m_ocean.calcul_ecume = true;
+		m_ocean.calcul_chop = (quantite_chop > 0.0f);
+		m_ocean.l = plus_petite_vague;
+		m_ocean.amplitude = 1.0f;
+		m_ocean.reflections_damp = 1.0f - damp;
+		m_ocean.alignement_vent = alignement_vague;
+		m_ocean.profondeur = profondeur;
+		m_ocean.taille_spaciale_x = taille_spaciale;
+		m_ocean.taille_spaciale_z = taille_spaciale;
+		m_ocean.vent_x = std::cos(direction_vague);
+		m_ocean.vent_z = -std::sin(direction_vague);
+		/* plus grosse vague pour une certaine vélocité */
+		m_ocean.L = velocite_vent * velocite_vent / gravite;
+		m_ocean.temps = temps;
 
-		simulate_ocean_modifier(&omd);
+		if (contexte.temps_courant == contexte.temps_debut || m_reinit) {
+			deloge_donnees_ocean(&m_ocean);
+			initialise_donnees_ocean(&m_ocean, graine, gravite);
 
-		/* À FAIRE : foam */
+			m_ecume_precedente.efface();
+
+			m_ecume_precedente.redimensionne(m_ocean.res_x * m_ocean.res_y);
+
+			for (auto &v : m_ecume_precedente) {
+				v = 0.0f;
+			}
+
+			m_reinit = false;
+		}
+
+		simule_ocean(&m_ocean, temps, echelle_vague, quantite_chop, gravite);
 
 		/* applique les déplacements à la géométrie d'entrée */
 		auto points = m_corps.points();
-		auto res_x = omd.resolution * omd.resolution;
-		auto res_y = omd.resolution * omd.resolution;
+		auto res_x = m_ocean.res_x;
+		auto res_y = m_ocean.res_y;
+
+		auto N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		N->redimensionne(points->taille());
+
+		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		C->redimensionne(points->taille());
 
 		OceanResult ocr;
+
+		auto gna = GNA{graine};
 
 		for (auto i = 0; i < points->taille(); ++i) {
 			auto p = points->point(i);
 
 			/* converti la position du point en espace grille */
-			auto u = std::fmod(p.x * size_co_inv + 0.5f, 1.0f);
-			auto v = std::fmod(p.z * size_co_inv + 0.5f, 1.0f);
+			auto u = std::fmod(p.x * taille_inverse + 0.5f, 1.0f);
+			auto v = std::fmod(p.z * taille_inverse + 0.5f, 1.0f);
 
 			if (u < 0.0f) {
 				u += 1.0f;
@@ -1053,23 +1081,56 @@ public:
 				v += 1.0f;
 			}
 
+			auto x = static_cast<int>(u * (static_cast<float>(res_x)));
+			auto y = static_cast<int>(v * (static_cast<float>(res_y)));
+
 			/* À FAIRE : échantillonage bilinéaire. */
-			BKE_ocean_eval_ij(
-						omd.ocean,
-						&ocr,
-						static_cast<int>(u * (static_cast<float>(res_x))),
-						static_cast<int>(v * (static_cast<float>(res_y))));
+			evalue_ocean_ij(&m_ocean, &ocr, x, y);
 
 			p[0] += ocr.disp[0];
 			p[1] += ocr.disp[1];
 			p[2] += ocr.disp[2];
 
 			points->point(i, p);
+			N->vec3(i) = ocr.normal;
+
+			if (m_ocean.calcul_ecume) {
+				auto ecume = ocean_jminus_vers_ecume(ocr.Jminus, couverture_ecume);
+
+				/* accumule l'écume précédente pour cette cellule. */
+				auto ecume_prec = m_ecume_precedente[res_x * y + x];
+
+				/* réduit aléatoirement l'écume */
+				ecume_prec *= gna.uniforme(0.0f, 1.0f);
+
+				if (ecume_prec < 1.0f) {
+					ecume_prec *= ecume_prec;
+				}
+
+				/* brise l'écume là où la hauteur (Y) est basse (vallée), et le
+				 * déplacement X et Z est au plus haut.
+				 */
+
+				auto eplus_neg = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2] : 1.0f;
+				eplus_neg = eplus_neg < 0.0f ? 0.0f : eplus_neg;
+
+				ecume_prec *= attenuation_ecume * (0.75f + eplus_neg * 0.25f);
+
+				/* Une restriction pleine ne devrait pas être nécessaire ! */
+				auto resultat_ecume = std::min(ecume_prec + ecume, 1.0f);
+
+				m_ecume_precedente[res_x * y + x] = resultat_ecume;
+
+				C->vec3(i) = dls::math::vec3f(resultat_ecume, resultat_ecume, 1.0f);
+			}
 		}
 
-		BKE_ocean_free(omd.ocean);
-
 		return EXECUTION_REUSSIE;
+	}
+
+	void parametres_changes() override
+	{
+		m_reinit = true;
 	}
 };
 
