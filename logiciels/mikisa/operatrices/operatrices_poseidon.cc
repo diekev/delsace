@@ -67,7 +67,7 @@ public:
 	explicit OpEntreeGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(2);
+		entrees(1);
 	}
 
 	OpEntreeGaz(OpEntreeGaz const &) = default;
@@ -241,7 +241,7 @@ public:
 	explicit OpObstacleGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(2);
+		entrees(1);
 	}
 
 	OpObstacleGaz(OpObstacleGaz const &) = default;
