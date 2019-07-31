@@ -1937,6 +1937,7 @@ static auto projette_solution(
 
 void projette_velocite(
 		GrilleMAC &velocite,
+		Grille<float> &pression,
 		Grille<int> const &drapeaux)
 {
 	//solvePressure(velocite, pression, drapeaux);
@@ -1993,12 +1994,6 @@ void projette_velocite(
 	}
 
 	auto divergence = calcul_divergence(velocite, drapeaux);
-
-	auto pression = Grille<float>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
-
-	for (auto i = 0; i < pression.nombre_voxels(); ++i) {
-		pression.valeur(i) = 0.0f;
-	}
 
 	resoud_pression(pression, divergence, drapeaux);
 

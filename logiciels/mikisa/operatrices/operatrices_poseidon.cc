@@ -693,11 +693,11 @@ public:
 
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
-//		auto pression = poseidon_gaz->pression;
+		auto pression = poseidon_gaz->pression;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
-		psn::projette_velocite(*velocite, *drapeaux);
+		psn::projette_velocite(*velocite, *pression, *drapeaux);
 
 		return EXECUTION_REUSSIE;
 	}

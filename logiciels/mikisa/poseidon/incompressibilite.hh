@@ -30,6 +30,7 @@ namespace psn {
 
 void projette_velocite(
 		GrilleMAC &velocite,
+		Grille<float> &pression,
 		Grille<int> const &drapeaux);
 
 }  /* namespace psn */
