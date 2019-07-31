@@ -115,190 +115,163 @@ static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
 	dessine_boite(corps, attr_C, limites.min, limites.max, dls::math::vec3f(0.1f, 0.8f, 0.1f));
 }
 
-class OperatriceMaillageVersVolume : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Maillage vers Volume";
-	static constexpr auto AIDE = "";
+static int maillage_vers_volume(
+		OperatriceCorps &op,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		Corps const &corps_entree)
+{
+	INUTILISE(donnees_aval);
 
-	explicit OperatriceMaillageVersVolume(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceCorps(graphe_parent, noeud)
-	{
-		entrees(1);
+	op.corps()->reinitialise();
+
+	auto prims = corps_entree.prims();
+
+	if (prims->taille() == 0) {
+		op.ajoute_avertissement("Aucune primitive dans le corps !");
+		return EXECUTION_ECHOUEE;
 	}
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_maillage_vers_volume.jo";
-	}
+	auto chef = contexte.chef;
+	chef->demarre_evaluation("maillage vers volume");
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+	/* calcul boite englobante */
+	auto limites = calcule_limites_mondiales_corps(corps_entree);
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
-
-		if (corps_entree == nullptr) {
-			ajoute_avertissement("Aucun corps connecté !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = corps_entree->prims();
-
-		if (prims->taille() == 0) {
-			ajoute_avertissement("Aucune primitive dans le corps !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("maillage vers volume");
-
-		/* calcul boite englobante */
-		auto limites = calcule_limites_mondiales_corps(*corps_entree);
-
-		auto const taille_voxel = evalue_decimal("taille_voxel");
-		auto const densite = evalue_decimal("densité");
+	auto const taille_voxel = op.evalue_decimal("taille_voxel");
+	auto const densite = op.evalue_decimal("densité");
 
 #if 1
-		/* crée une grille éparse */
-		auto limites_grille = limites3f{};
-		limites_grille.min = limites.min * 2.0f;
-		limites_grille.max = limites.max * 2.0f;
+	/* crée une grille éparse */
+	auto limites_grille = limites3f{};
+	limites_grille.min = limites.min * 2.0f;
+	limites_grille.max = limites.max * 2.0f;
 
-		limites_grille = limites;
+	limites_grille = limites;
 
-		auto desc_volume = description_volume{};
-		desc_volume.etendues = limites_grille;
-		desc_volume.fenetre_donnees = limites_grille;
-		desc_volume.taille_voxel = taille_voxel;
+	auto desc_volume = description_volume{};
+	desc_volume.etendues = limites_grille;
+	desc_volume.fenetre_donnees = limites_grille;
+	desc_volume.taille_voxel = taille_voxel;
 
-		auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", desc_volume);
-		grille->assure_tuiles(limites);
+	auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", desc_volume);
+	grille->assure_tuiles(limites);
 
-		auto volume =  memoire::loge<Volume>("Volume");
-		volume->grille = grille;
+	auto volume =  memoire::loge<Volume>("Volume");
+	volume->grille = grille;
 
-		auto plg = grille->plage();
+	auto plg = grille->plage();
 
-		auto delegue_prims = DeleguePrim(*corps_entree);
-		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
+	auto delegue_prims = DeleguePrim(corps_entree);
+	auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
-		while (!plg.est_finie()) {
-			auto tuile = plg.front();
-			plg.effronte();
+	while (!plg.est_finie()) {
+		auto tuile = plg.front();
+		plg.effronte();
 
-			auto index_tuile = 0;
+		auto index_tuile = 0;
 
-			auto rayon = dls::phys::rayond{};
+		auto rayon = dls::phys::rayond{};
 
-			for (auto k = 0; k < TAILLE_TUILE; ++k) {
-				for (auto j = 0; j < TAILLE_TUILE; ++j) {
-					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
-						auto pos_tuile = tuile->min;
-						pos_tuile.x += i;
-						pos_tuile.y += j;
-						pos_tuile.z += k;
+		for (auto k = 0; k < TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+					auto pos_tuile = tuile->min;
+					pos_tuile.x += i;
+					pos_tuile.y += j;
+					pos_tuile.z += k;
 
-						auto mnd = grille->index_vers_monde(pos_tuile);
+					auto mnd = grille->index_vers_monde(pos_tuile);
 
-						rayon.origine.x = static_cast<double>(mnd.x);
-						rayon.origine.y = static_cast<double>(mnd.y);
-						rayon.origine.z = static_cast<double>(mnd.z);
+					rayon.origine.x = static_cast<double>(mnd.x);
+					rayon.origine.y = static_cast<double>(mnd.y);
+					rayon.origine.z = static_cast<double>(mnd.z);
 
-						auto axis = axe_dominant_abs(rayon.origine);
+					auto axis = axe_dominant_abs(rayon.origine);
 
-						rayon.direction = dls::math::vec3d(0.0);
-						rayon.direction[axis] = 1.0;
-						calcul_direction_inverse(rayon);
+					rayon.direction = dls::math::vec3d(0.0);
+					rayon.direction[axis] = 1.0;
+					calcul_direction_inverse(rayon);
 
-						auto accumulatrice = AccumulatriceTraverse(rayon.origine);
-						traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
+					auto accumulatrice = AccumulatriceTraverse(rayon.origine);
+					traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
 
-						if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
-							tuile->donnees[index_tuile] = densite;
-						}
+					if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
+						tuile->donnees[index_tuile] = densite;
 					}
 				}
 			}
 		}
+	}
 
-		grille->elague();
+	grille->elague();
 
-		visualise_topologie(m_corps, *grille);
+	visualise_topologie(*op.corps(), *grille);
 
 #else
-		auto volume =  memoire::loge<Volume>("Volume");
-		auto grille_scalaire =  memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
-		auto res = grille_scalaire->resolution();
+	auto volume =  memoire::loge<Volume>("Volume");
+	auto grille_scalaire =  memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
+	auto res = grille_scalaire->resolution();
 
-		auto delegue_prims = DeleguePrim(*corps_entree);
-		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
+	auto delegue_prims = DeleguePrim(corps_entree);
+	auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
-		boucle_parallele(tbb::blocked_range<int>(0, res.z),
-						 [&](tbb::blocked_range<int> const &plage)
-		{
-			auto rayon = dls::phys::rayond{};
+	boucle_parallele(tbb::blocked_range<int>(0, res.z),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto rayon = dls::phys::rayond{};
 
-			auto lims = limites3i{};
-			lims.min = dls::math::vec3i(0, 0, plage.begin());
-			lims.max = dls::math::vec3i(res.x, res.y, plage.end());
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(0, 0, plage.begin());
+		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-			auto iter = IteratricePosition(lims);
+		auto iter = IteratricePosition(lims);
 
-			while (!iter.fini()) {
-				if (chef->interrompu()) {
-					return;
-				}
-
-				auto isp = iter.suivante();
-				auto origine = grille_scalaire->index_vers_monde(isp);
-
-				rayon.origine.x = static_cast<double>(origine.x);
-				rayon.origine.y = static_cast<double>(origine.y);
-				rayon.origine.z = static_cast<double>(origine.z);
-
-				auto axis = axe_dominant_abs(rayon.origine);
-
-				rayon.direction = dls::math::vec3d(0.0);
-				rayon.direction[axis] = 1.0;
-				calcul_direction_inverse(rayon);
-
-				auto accumulatrice = AccumulatriceTraverse(rayon.origine);
-				traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
-
-				if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
-					grille_scalaire->valeur(
-								static_cast<size_t>(isp.x),
-								static_cast<size_t>(isp.y),
-								static_cast<size_t>(isp.z),
-								densite);
-				}
+		while (!iter.fini()) {
+			if (chef->interrompu()) {
+				return;
 			}
 
-			auto delta = static_cast<float>(plage.end() - plage.begin());
-			auto total = static_cast<float>(res.x);
+			auto isp = iter.suivante();
+			auto origine = grille_scalaire->index_vers_monde(isp);
 
-			chef->indique_progression_parallele(delta / total * 100.0f);
-		});
+			rayon.origine.x = static_cast<double>(origine.x);
+			rayon.origine.y = static_cast<double>(origine.y);
+			rayon.origine.z = static_cast<double>(origine.z);
 
-		chef->indique_progression(100.0f);
+			auto axis = axe_dominant_abs(rayon.origine);
 
-		volume->grille = grille_scalaire;
+			rayon.direction = dls::math::vec3d(0.0);
+			rayon.direction[axis] = 1.0;
+			calcul_direction_inverse(rayon);
+
+			auto accumulatrice = AccumulatriceTraverse(rayon.origine);
+			traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
+
+			if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
+				grille_scalaire->valeur(
+							static_cast<size_t>(isp.x),
+							static_cast<size_t>(isp.y),
+							static_cast<size_t>(isp.z),
+							densite);
+			}
+		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		auto total = static_cast<float>(res.x);
+
+		chef->indique_progression_parallele(delta / total * 100.0f);
+	});
+
+	chef->indique_progression(100.0f);
+
+	volume->grille = grille_scalaire;
 #endif
-		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
-	}
-};
+	op.corps()->prims()->pousse(volume);
+
+	return EXECUTION_REUSSIE;
+}
 
 /* ************************************************************************** */
 
@@ -457,109 +430,82 @@ static void rasterise_ligne(
 	}
 }
 
-class OpRasterisationPrimitive : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Rastérisation Prim";
-	static constexpr auto AIDE = "";
+static int ratisse_primitives(
+		OperatriceCorps &op,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		Corps const &corps_entree)
+{
+	INUTILISE(donnees_aval);
 
-	explicit OpRasterisationPrimitive(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceCorps(graphe_parent, noeud)
-	{
-		entrees(1);
+	op.corps()->reinitialise();
+
+	auto prims_entree = corps_entree.prims();
+
+	if (prims_entree->taille() == 0) {
+		op.ajoute_avertissement("Aucune primitive en entrée");
+		return EXECUTION_ECHOUEE;
 	}
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_rasterisation_prim.jo";
-	}
+	auto chef = contexte.chef;
+	chef->demarre_evaluation("rastérisation prim");
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+	/* paramètres */
+	auto const rayon = op.evalue_decimal("rayon");
+	auto const taille_voxel = op.evalue_decimal("taille_voxel");
+	auto const graine = op.evalue_entier("graine");
+	auto const densite = op.evalue_decimal("densité");
+	auto const nombre_echantillons = op.evalue_entier("nombre_échantillons");
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
+	/* calcul les limites des primitives d'entrées */
+	auto limites = calcule_limites_mondiales_corps(corps_entree);
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+	/* À FAIRE : prendre en compte le déplacement pour le bruit */
+	limites.etends(dls::math::vec3f(rayon));
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps en entrée");
-			return EXECUTION_ECHOUEE;
-		}
+	auto gna = GNA(graine);
 
-		auto prims_entree = corps_entree->prims();
+	auto volume = memoire::loge<Volume>("Volume");
+	auto grille_scalaire = memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
 
-		if (prims_entree->taille() == 0) {
-			this->ajoute_avertissement("Aucune primitive en entrée");
-			return EXECUTION_ECHOUEE;
-		}
+	auto fbm = FBM{};
 
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("rastérisation prim");
+	auto rast = Rasteriseur(*grille_scalaire);
 
-		/* paramètres */
-		auto const rayon = evalue_decimal("rayon");
-		auto const taille_voxel = evalue_decimal("taille_voxel");
-		auto const graine = evalue_entier("graine");
-		auto const densite = evalue_decimal("densité");
-		auto const nombre_echantillons = evalue_entier("nombre_échantillons");
+	for (auto i = 0; i < prims_entree->taille(); ++i) {
+		auto prim = prims_entree->prim(i);
 
-		/* calcul les limites des primitives d'entrées */
-		auto limites = calcule_limites_mondiales_corps(*corps_entree);
+		if (prim->type_prim() == type_primitive::POLYGONE) {
+			auto poly = dynamic_cast<Polygone *>(prim);
 
-		/* À FAIRE : prendre en compte le déplacement pour le bruit */
-		limites.etends(dls::math::vec3f(rayon));
-
-		auto gna = GNA(graine);
-
-		auto volume = memoire::loge<Volume>("Volume");
-		auto grille_scalaire = memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
-
-		auto fbm = FBM{};
-
-		auto rast = Rasteriseur(*grille_scalaire);
-
-		for (auto i = 0; i < prims_entree->taille(); ++i) {
-			auto prim = prims_entree->prim(i);
-
-			if (prim->type_prim() == type_primitive::POLYGONE) {
-				auto poly = dynamic_cast<Polygone *>(prim);
-
-				if (poly->type == type_polygone::FERME) {
-					rasterise_polygone(*corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, &fbm);
-				}
-				else {
-					rasterise_ligne(*corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, &fbm);
-				}
+			if (poly->type == type_polygone::FERME) {
+				rasterise_polygone(corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, &fbm);
 			}
-
-			chef->indique_progression(static_cast<float>(i + 1) / static_cast<float>(prims_entree->taille()) * 100.0f);
+			else {
+				rasterise_ligne(corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, &fbm);
+			}
 		}
 
-		/* À FAIRE : filtrage de l'échantillonage. */
-
-		chef->indique_progression(100.0f);
-
-		volume->grille = grille_scalaire;
-		m_corps.prims()->pousse(volume);
-
-		return EXECUTION_REUSSIE;
+		chef->indique_progression(static_cast<float>(i + 1) / static_cast<float>(prims_entree->taille()) * 100.0f);
 	}
-};
+
+	/* À FAIRE : filtrage de l'échantillonage. */
+
+	chef->indique_progression(100.0f);
+
+	volume->grille = grille_scalaire;
+	op.corps()->prims()->pousse(volume);
+
+	return EXECUTION_REUSSIE;
+}
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc("Créer volume", "", "", cree_volume, false));
-	usine.enregistre_type(cree_desc<OperatriceMaillageVersVolume>());
-	usine.enregistre_type(cree_desc<OpRasterisationPrimitive>());
+	usine.enregistre_type(cree_desc("Maillage vers Volume", "", "entreface/operatrice_maillage_vers_volume.jo", maillage_vers_volume, false));
+	usine.enregistre_type(cree_desc("Rastérisation Prim", "", "entreface/operatrice_rasterisation_prim.jo", ratisse_primitives, false));
 }
 
 #pragma clang diagnostic pop
