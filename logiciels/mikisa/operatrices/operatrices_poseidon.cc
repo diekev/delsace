@@ -557,12 +557,12 @@ public:
 		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->etendu(), velocite->fenetre_donnees(), velocite->taille_voxel());
 		vieille_vel->copie_donnees(*velocite);
 
-		psn::advecte_semi_lagrange(drapeaux, vieille_vel, densite, poseidon_gaz->dt, ordre);
+		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
 
-		psn::advecte_semi_lagrange(drapeaux, vieille_vel, velocite, poseidon_gaz->dt, ordre);
+		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *velocite, poseidon_gaz->dt, ordre);
 
 		/* À FAIRE : plus de paramètres, voir MF. */
-		psn::ajourne_conditions_bordures_murs(drapeaux, velocite);
+		psn::ajourne_conditions_bordures_murs(*drapeaux, *velocite);
 
 		memoire::deloge("grilles", vieille_vel);
 
@@ -631,7 +631,7 @@ public:
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
-		psn::ajoute_flottance(densite, velocite, drapeaux, gravite, poseidon_gaz->dt, coefficient);
+		psn::ajoute_flottance(*densite, *velocite, *drapeaux, gravite, poseidon_gaz->dt, coefficient);
 
 		return EXECUTION_REUSSIE;
 	}

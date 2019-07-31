@@ -27,17 +27,17 @@
 namespace psn {
 
 void ajoute_flottance(
-		Grille<float> *density,
-		GrilleMAC *vel,
-		Grille<int> *flags,
+		Grille<float> &density,
+		GrilleMAC &vel,
+		Grille<int> &flags,
 		dls::math::vec3f const &gravity,
 		float dt,
 		float coefficient)
 {
-	auto dx = density->taille_voxel();
+	auto dx = density.taille_voxel();
 	auto f = -gravity * dt / dx * coefficient;
 
-	auto res = flags->resolution();
+	auto res = flags.resolution();
 
 	boucle_parallele(tbb::blocked_range<int>(1, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -54,30 +54,30 @@ void ajoute_flottance(
 			auto j = static_cast<size_t>(pos_iter.y);
 			auto k = static_cast<size_t>(pos_iter.z);
 
-			if (flags->valeur(i, j, k) != TypeFluid) {
+			if (flags.valeur(i, j, k) != TypeFluid) {
 				continue;
 			}
 
-			auto &v = vel->valeur(i, j, k);
+			auto &v = vel.valeur(i, j, k);
 
-			if (flags->valeur(i - 1, j, k) == TypeFluid) {
-				v.x += (0.5f * f.x) * (density->valeur(i, j, k) + density->valeur(i - 1, j, k));
+			if (flags.valeur(i - 1, j, k) == TypeFluid) {
+				v.x += (0.5f * f.x) * (density.valeur(i, j, k) + density.valeur(i - 1, j, k));
 			}
 
-			if (flags->valeur(i, j - 1, k) == TypeFluid) {
-				v.y += (0.5f * f.y) * (density->valeur(i, j, k) + density->valeur(i, j - 1, k));
+			if (flags.valeur(i, j - 1, k) == TypeFluid) {
+				v.y += (0.5f * f.y) * (density.valeur(i, j, k) + density.valeur(i, j - 1, k));
 			}
 
-			if (flags->valeur(i, j, k - 1) == TypeFluid) {
-				v.z += (0.5f * f.z) * (density->valeur(i, j, k) + density->valeur(i, j, k - 1));
+			if (flags.valeur(i, j, k - 1) == TypeFluid) {
+				v.z += (0.5f * f.z) * (density.valeur(i, j, k) + density.valeur(i, j, k - 1));
 			}
 		}
 	});
 }
 
-void ajourne_conditions_bordures_murs(Grille<int> *flags, GrilleMAC *vel)
+void ajourne_conditions_bordures_murs(Grille<int> &flags, GrilleMAC &vel)
 {
-	auto res = flags->resolution();
+	auto res = flags.resolution();
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -94,8 +94,8 @@ void ajourne_conditions_bordures_murs(Grille<int> *flags, GrilleMAC *vel)
 			auto j = static_cast<size_t>(pos_iter.y);
 			auto k = static_cast<size_t>(pos_iter.z);
 
-			auto curFluid = flags->valeur(i, j, k) == TypeFluid;
-			auto curObs   = flags->valeur(i, j, k) == TypeObstacle;
+			auto curFluid = flags.valeur(i, j, k) == TypeFluid;
+			auto curObs   = flags.valeur(i, j, k) == TypeObstacle;
 			auto bcsVel = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 
 			if (!curFluid && !curObs) {
@@ -109,41 +109,41 @@ void ajourne_conditions_bordures_murs(Grille<int> *flags, GrilleMAC *vel)
 			//	}
 
 			// we use i>0 instead of bnd=1 to check outer wall
-			if (i > 0 && flags->valeur(i-1,j,k) == TypeObstacle) {
-				vel->valeur(i,j,k).x = bcsVel.x;
+			if (i > 0 && flags.valeur(i-1,j,k) == TypeObstacle) {
+				vel.valeur(i,j,k).x = bcsVel.x;
 			}
 
-			if (i > 0 && curObs && flags->valeur(i-1,j,k) == TypeFluid) {
-				vel->valeur(i,j,k).x = bcsVel.x;
+			if (i > 0 && curObs && flags.valeur(i-1,j,k) == TypeFluid) {
+				vel.valeur(i,j,k).x = bcsVel.x;
 			}
 
-			if (j > 0 && flags->valeur(i,j-1,k) == TypeObstacle) {
-				vel->valeur(i,j,k).y = bcsVel.y;
+			if (j > 0 && flags.valeur(i,j-1,k) == TypeObstacle) {
+				vel.valeur(i,j,k).y = bcsVel.y;
 			}
 
-			if (j > 0 && curObs && flags->valeur(i,j-1,k) == TypeFluid) {
-				vel->valeur(i,j,k).y = bcsVel.y;
+			if (j > 0 && curObs && flags.valeur(i,j-1,k) == TypeFluid) {
+				vel.valeur(i,j,k).y = bcsVel.y;
 			}
 
-			if (k > 0 && flags->valeur(i,j,k-1) == TypeObstacle) {
-				vel->valeur(i,j,k).z = bcsVel.z;
+			if (k > 0 && flags.valeur(i,j,k-1) == TypeObstacle) {
+				vel.valeur(i,j,k).z = bcsVel.z;
 			}
 
-			if (k > 0 && curObs && flags->valeur(i,j,k-1) == TypeFluid) {
-				vel->valeur(i,j,k).z = bcsVel.z;
+			if (k > 0 && curObs && flags.valeur(i,j,k-1) == TypeFluid) {
+				vel.valeur(i,j,k).z = bcsVel.z;
 			}
 
 			if (curFluid) {
-				if ((i > 0 && flags->valeur(i - 1, j, k) == TypeStick) || (i < static_cast<size_t>(res.x - 1) && flags->valeur(i+1,j,k) == TypeStick)) {
-					vel->valeur(i,j,k).y = vel->valeur(i,j,k).z = 0.0f;
+				if ((i > 0 && flags.valeur(i - 1, j, k) == TypeStick) || (i < static_cast<size_t>(res.x - 1) && flags.valeur(i+1,j,k) == TypeStick)) {
+					vel.valeur(i,j,k).y = vel.valeur(i,j,k).z = 0.0f;
 				}
 
-				if ((j > 0 && flags->valeur(i, j - 1, k) == TypeStick) || (j < static_cast<size_t>(res.y - 1) && flags->valeur(i,j+1,k) == TypeStick)) {
-					vel->valeur(i,j,k).x = vel->valeur(i,j,k).z = 0.0f;
+				if ((j > 0 && flags.valeur(i, j - 1, k) == TypeStick) || (j < static_cast<size_t>(res.y - 1) && flags.valeur(i,j+1,k) == TypeStick)) {
+					vel.valeur(i,j,k).x = vel.valeur(i,j,k).z = 0.0f;
 				}
 
-				if ((k > 0 && flags->valeur(i, j, k - 1) == TypeStick) || (k < static_cast<size_t>(res.z - 1) && flags->valeur(i,j,k+1) == TypeStick)) {
-					vel->valeur(i,j,k).x = vel->valeur(i,j,k).y = 0.0f;
+				if ((k > 0 && flags.valeur(i, j, k - 1) == TypeStick) || (k < static_cast<size_t>(res.z - 1) && flags.valeur(i,j,k+1) == TypeStick)) {
+					vel.valeur(i,j,k).x = vel.valeur(i,j,k).y = 0.0f;
 				}
 			}
 		}

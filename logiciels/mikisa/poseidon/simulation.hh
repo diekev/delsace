@@ -38,13 +38,13 @@ namespace psn {
 
 template <typename T>
 static auto SemiLagrange(
-		Grille<int> *flags,
-		GrilleMAC *vel,
+		Grille<int> &flags,
+		GrilleMAC &vel,
 		Grille<T> &fwd,
 		Grille<T> const &orig,
 		float dt)
 {
-	auto res = flags->resolution();
+	auto res = flags.resolution();
 	auto echant = Echantilloneuse(orig);
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
@@ -68,7 +68,7 @@ static auto SemiLagrange(
 						static_cast<float>(j) + 0.5f,
 						static_cast<float>(k) + 0.5f);
 
-			auto v = vel->valeur_centree(pos_iter);
+			auto v = vel.valeur_centree(pos_iter);
 			v *= dt;
 
 			pos -= v;
@@ -80,23 +80,23 @@ static auto SemiLagrange(
 
 template <typename T>
 auto advecte_semi_lagrange(
-		Grille<int> *flags,
-		GrilleMAC *vel,
-		Grille<T> *orig,
+		Grille<int> &flags,
+		GrilleMAC &vel,
+		Grille<T> &orig,
 		float dt,
 		int order)
 {
-	auto fwd = Grille<T>(flags->etendu(), flags->fenetre_donnees(), flags->taille_voxel());
+	auto fwd = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
 
-	SemiLagrange(flags, vel, fwd, *orig, dt);
+	SemiLagrange(flags, vel, fwd, orig, dt);
 
 	if (order == 1) {
-		orig->echange(fwd);
+		orig.echange(fwd);
 	}
 	/* MacCormack */
 	else if (order == 2) {
-		auto bwd = Grille<T>(flags->etendu(), flags->fenetre_donnees(), flags->taille_voxel());
-		auto newGrid = Grille<T>(flags->etendu(), flags->fenetre_donnees(), flags->taille_voxel());
+		auto bwd = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
+		auto newGrid = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
 
 		// bwd <- backwards step
 		SemiLagrange(flags, vel, bwd, fwd, -dt/*, levelset, orderSpace*/);
@@ -107,20 +107,20 @@ auto advecte_semi_lagrange(
 		// clamp values
 		//MacCormackClamp(flags, vel, newGrid, orig, fwd, dt/*, clampMode*/);
 
-		orig->echange(newGrid);
+		orig.echange(newGrid);
 	}
 }
 
 void ajoute_flottance(
-		Grille<float> *density,
-		GrilleMAC *vel,
-		Grille<int> *flags,
+		Grille<float> &density,
+		GrilleMAC &vel,
+		Grille<int> &flags,
 		dls::math::vec3f const &gravity,
 		float dt,
 		float coefficient);
 
 void ajourne_conditions_bordures_murs(
-		Grille<int> *flags,
-		GrilleMAC *vel);
+		Grille<int> &flags,
+		GrilleMAC &vel);
 
 }  /* namespace psn */
