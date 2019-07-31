@@ -520,7 +520,9 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 
 	avance();
 
-	if (!requiers_identifiant(id_morceau::EGAL)) {
+	auto est_drapeaux = dls::outils::est_element(identifiant_propriete, id_morceau::ANIMABLE, id_morceau::ACTIVABLE);
+
+	if (!est_drapeaux && !requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
