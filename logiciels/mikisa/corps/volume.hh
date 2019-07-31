@@ -528,6 +528,10 @@ public:
 
 	plage_tuile plage()
 	{
+		if (m_tuiles.taille() == 0) {
+			return plage_tuile(nullptr, nullptr);
+		}
+
 		auto d = &m_tuiles[0];
 		auto f = d + m_tuiles.taille();
 		return plage_tuile(d, f);
@@ -535,6 +539,10 @@ public:
 
 	plage_tuile_const plage() const
 	{
+		if (m_tuiles.taille() == 0) {
+			return plage_tuile_const(nullptr, nullptr);
+		}
+
 		auto d = &m_tuiles[0];
 		auto f = d + m_tuiles.taille();
 		return plage_tuile_const(d, f);
