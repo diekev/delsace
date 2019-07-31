@@ -523,8 +523,6 @@ static auto slice(
 
 static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 {
-	auto grille = volume->grille;
-
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
 	tampon->charge_source_programme(
@@ -557,15 +555,89 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	tampon->ajoute_texture_3d();
 	auto texture = tampon->texture_3d();
 
+	auto etendue = limites3f{};
+	auto resolution = dls::math::vec3i{};
+	auto voxels = dls::tableau<float>{};
+	auto ptr_donnees = static_cast<const void *>(nullptr);
+
+	auto grille = volume->grille;
+
+	if (!grille->est_eparse()) {
+		etendue = grille->etendu();
+		resolution = grille->resolution();
+
+		if (grille->type() == type_volume::SCALAIRE) {
+			auto grille_scalaire = dynamic_cast<Grille<float> *>(grille);
+			ptr_donnees = grille_scalaire->donnees();
+		}
+	}
+	else {
+		auto grille_eprs = dynamic_cast<grille_eparse<float> *>(grille);
+		auto plg = grille_eprs->plage();
+		auto min_grille = dls::math::vec3i{100000};
+		auto max_grille = dls::math::vec3i{-100000};
+
+		while (!plg.est_finie()) {
+			auto tuile = plg.front();
+			plg.effronte();
+
+			extrait_min_max(tuile->min, min_grille, max_grille);
+			extrait_min_max(tuile->max, min_grille, max_grille);
+		}
+
+		resolution = max_grille - min_grille;
+		etendue.min = grille->index_vers_monde(min_grille);
+		etendue.max = grille->index_vers_monde(max_grille);
+
+		auto nombre_voxels = resolution.x * resolution.y * resolution.z;
+		voxels.redimensionne(nombre_voxels);
+
+		auto index_voxel = 0l;
+#if 0
+		for (auto z = 0; z < resolution.z; ++z) {
+			for (auto y = 0; y < resolution.y; ++y) {
+				for (auto x = 0; x < resolution.x; ++x, ++index_voxel) {
+					voxels[index_voxel] = grille->valeur(x, y, z);
+				}
+			}
+		}
+#else
+		plg = grille_eprs->plage();
+
+		while (!plg.est_finie()) {
+			auto tuile = plg.front();
+			plg.effronte();
+
+			auto index_tuile = 0;
+
+			for (auto k = 0; k < TAILLE_TUILE; ++k) {
+				for (auto j = 0; j < TAILLE_TUILE; ++j) {
+					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+						auto pos_tuile = tuile->min;
+						pos_tuile.x += i;
+						pos_tuile.y += j;
+						pos_tuile.z += k;
+
+						index_voxel = pos_tuile.x + (pos_tuile.y + pos_tuile.z * resolution.y) * resolution.x;
+
+						voxels[index_voxel] = tuile->donnees[index_tuile];
+					}
+				}
+			}
+		}
+#endif
+		ptr_donnees = voxels.donnees();
+	}
+
 	auto programme = tampon->programme();
 	programme->active();
 	programme->uniforme("volume", texture->code_attache());
-	programme->uniforme("offset", grille->etendu().min.x, grille->etendu().min.y, grille->etendu().min.z);
-	programme->uniforme("dimension", grille->etendu().taille().x, grille->etendu().taille().y, grille->etendu().taille().z);
+	programme->uniforme("offset", etendue.min.x, etendue.min.y, etendue.min.z);
+	programme->uniforme("dimension", etendue.taille().x, etendue.taille().y, etendue.taille().z);
 	programme->desactive();
 
 	/* crée vertices */
-	slice(view_dir, -1ul, tampon, grille->etendu().min, grille->etendu().max);
+	slice(view_dir, -1ul, tampon, etendue.min, etendue.max);
 
 	/* crée texture 3d */
 
@@ -574,18 +646,13 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	texture->filtre_min_mag(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 	texture->enveloppe(GL_CLAMP_TO_BORDER);
 
-	auto res_grille = grille->resolution();
 	int res[3] = {
-		res_grille[0],
-		res_grille[1],
-		res_grille[2]
+		resolution[0],
+		resolution[1],
+		resolution[2]
 	};
 
-	if (volume->grille->type() == type_volume::SCALAIRE) {
-		auto grille_scalaire = dynamic_cast<Grille<float> *>(volume->grille);
-		texture->remplie(grille_scalaire->donnees(), res);
-	}
-
+	texture->remplie(ptr_donnees, res);
 	texture->genere_mip_map(0, 4);
 	texture->detache();
 

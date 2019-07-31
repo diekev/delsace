@@ -140,17 +140,35 @@ float BaseGrille::taille_voxel() const
 
 Volume::~Volume()
 {
+	if (grille == nullptr) {
+		return;
+	}
+
 	switch (grille->type()) {
 		case type_volume::SCALAIRE:
 		{
-			auto ptr = dynamic_cast<Grille<float> *>(grille);
-			memoire::deloge("grille", ptr);
+			if (!grille->est_eparse()) {
+				auto ptr = dynamic_cast<Grille<float> *>(grille);
+				memoire::deloge("grille", ptr);
+			}
+			else {
+				auto ptr = dynamic_cast<grille_eparse<float> *>(grille);
+				memoire::deloge("grille_eparse", ptr);
+			}
+
 			break;
 		}
 		case type_volume::VECTOR:
 		{
-			auto ptr = dynamic_cast<Grille<dls::math::vec3f> *>(grille);
-			memoire::deloge("grille", ptr);
+			if (!grille->est_eparse()) {
+				auto ptr = dynamic_cast<Grille<dls::math::vec3f> *>(grille);
+				memoire::deloge("grille", ptr);
+			}
+			else {
+				auto ptr = dynamic_cast<grille_eparse<dls::math::vec3f> *>(grille);
+				memoire::deloge("grille_eparse", ptr);
+			}
+
 			break;
 		}
 	}

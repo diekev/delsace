@@ -28,6 +28,7 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/plage.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -40,6 +41,7 @@
 
 #include "arbre_hbe.hh"
 #include "delegue_hbe.hh"
+#include "outils_visualisation.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -112,6 +114,26 @@ public:
 
 /* ************************************************************************** */
 
+template <typename T>
+static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
+{
+	auto limites = grille.desc().etendues;
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	auto plg = grille.plage();
+
+	while (!plg.est_finie()) {
+		auto tuile = plg.front();
+		plg.effronte();
+
+		auto min_tuile = grille.index_vers_monde(tuile->min);
+		auto max_tuile = grille.index_vers_monde(tuile->max);
+
+		dessine_boite(corps, attr_C, min_tuile, max_tuile, dls::math::vec3f(0.1f, 0.1f, 0.8f));
+	}
+
+	dessine_boite(corps, attr_C, limites.min, limites.max, dls::math::vec3f(0.1f, 0.8f, 0.1f));
+}
+
 class OperatriceMaillageVersVolume : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Maillage vers Volume";
@@ -165,6 +187,74 @@ public:
 		auto const taille_voxel = evalue_decimal("taille_voxel");
 		auto const densite = evalue_decimal("densité");
 
+#if 1
+		/* crée une grille éparse */
+		auto limites_grille = limites3f{};
+		limites_grille.min = limites.min * 2.0f;
+		limites_grille.max = limites.max * 2.0f;
+
+		limites_grille = limites;
+
+		auto desc_volume = description_volume{};
+		desc_volume.etendues = limites_grille;
+		desc_volume.fenetre_donnees = limites_grille;
+		desc_volume.taille_voxel = taille_voxel;
+
+		auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", desc_volume);
+		grille->assure_tuiles(limites);
+
+		auto volume =  memoire::loge<Volume>("Volume");
+		volume->grille = grille;
+
+		auto plg = grille->plage();
+
+		auto delegue_prims = DeleguePrim(*corps_entree);
+		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
+
+		while (!plg.est_finie()) {
+			auto tuile = plg.front();
+			plg.effronte();
+
+			auto index_tuile = 0;
+
+			auto rayon = dls::phys::rayond{};
+
+			for (auto k = 0; k < TAILLE_TUILE; ++k) {
+				for (auto j = 0; j < TAILLE_TUILE; ++j) {
+					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+						auto pos_tuile = tuile->min;
+						pos_tuile.x += i;
+						pos_tuile.y += j;
+						pos_tuile.z += k;
+
+						auto mnd = grille->index_vers_monde(pos_tuile);
+
+						rayon.origine.x = static_cast<double>(mnd.x);
+						rayon.origine.y = static_cast<double>(mnd.y);
+						rayon.origine.z = static_cast<double>(mnd.z);
+
+						auto axis = axe_dominant_abs(rayon.origine);
+
+						rayon.direction = dls::math::vec3d(0.0);
+						rayon.direction[axis] = 1.0;
+						calcul_direction_inverse(rayon);
+
+						auto accumulatrice = AccumulatriceTraverse(rayon.origine);
+						traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
+
+						if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
+							tuile->donnees[index_tuile] = densite;
+						}
+					}
+				}
+			}
+		}
+
+		grille->elague();
+
+		visualise_topologie(m_corps, *grille);
+
+#else
 		auto volume =  memoire::loge<Volume>("Volume");
 		auto grille_scalaire =  memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
 		auto res = grille_scalaire->resolution();
@@ -222,6 +312,7 @@ public:
 		chef->indique_progression(100.0f);
 
 		volume->grille = grille_scalaire;
+#endif
 		m_corps.prims()->pousse(volume);
 
 		return EXECUTION_REUSSIE;

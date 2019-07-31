@@ -26,11 +26,10 @@
 
 #include "primitive.hh"
 
-#include "biblinternes/math/vecteur.hh"
-
 #include "biblinternes/math/limites.hh"
-
+#include "biblinternes/math/vecteur.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau.hh"
 
 enum class type_volume : char {
@@ -128,6 +127,7 @@ public:
 
 	virtual BaseGrille *copie() const = 0;
 	virtual type_volume type() const = 0;
+	virtual bool est_eparse() const = 0;
 
 	/* converti un point de l'espace voxel discret vers l'espace unitaire */
 	dls::math::vec3f index_vers_unit(dls::math::vec3i const &vsp) const;
@@ -162,58 +162,19 @@ public:
 
 /* ************************************************************************** */
 
-#undef UTILISE_TUILES
-
-#ifdef UTILISE_TUILES
-
-#include <cassert>
-
-static constexpr auto TAILLE_TUILLE = 16;
-
-template <typename T>
-struct Tuile {
-	//T donnees[TAILLE_TUILLE * TAILLE_TUILLE * TAILLE_TUILLE];
-
-	/* optimisation pour les tuiles ayant une valeur constante */
-	T valeur = T(0);
-	T *donnees = nullptr;
-
-	/* position dans l'espace pour accélerer le calcul des index */
-	dls::math::vec3i pos;
-};
-#endif
-
 template <typename T>
 class Grille : public BaseGrille {
 protected:
-#ifdef UTILISE_TUILES
-	dls::tableau<Tuile<T> *> m_tuiles{};
-	dls::tableau<size_t> m_table_index{};
-	dls::math::vec3i m_tuile{};
-#else
 	dls::tableau<T> m_donnees = {};
-#endif
 
 	T m_arriere_plan = T(0);
 	T m_dummy = T(0);
-	size_t m_nombre_tuiles{};
 
 public:
 	Grille(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel)
 		: BaseGrille(etendu, fenetre_donnees, taille_voxel)
 	{
-#ifdef UTILISE_TUILES
-		m_tuile.x = m_res[0] / TAILLE_TUILLE;
-		m_tuile.y = m_res[1] / TAILLE_TUILLE;
-		m_tuile.z = m_res[2] / TAILLE_TUILLE;
-
-		m_nombre_tuiles = m_tuile.x * m_tuile.y * m_tuile.z;
-
-		m_table_index.redimensionne(m_nombre_tuiles);
-		std::fill(m_table_index.debut(), m_table_index.fin(), -1ul);
-#else
 		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), T(0));
-#endif
 	}
 
 	T &valeur(long index)
@@ -222,12 +183,7 @@ public:
 			return m_arriere_plan;
 		}
 
-#ifdef UTILISE_TUILES
-		assert(false);
-		return m_arriere_plan;
-#else
 		return m_donnees[index];
-#endif
 	}
 
 	T const &valeur(long index) const
@@ -236,12 +192,7 @@ public:
 			return m_arriere_plan;
 		}
 
-#ifdef UTILISE_TUILES
-		assert(false);
-		return m_arriere_plan;
-#else
 		return m_donnees[index];
-#endif
 	}
 
 	T const &valeur(size_t x, size_t y, size_t z) const
@@ -250,27 +201,7 @@ public:
 			return m_arriere_plan;
 		}
 
-#ifdef UTILISE_TUILES
-		auto tx = x / TAILLE_TUILLE;
-		auto ty = y / TAILLE_TUILLE;
-		auto tz = z / TAILLE_TUILLE;
-
-		auto idx_table = tx + ty * m_tuile.x + tz * m_tuile.x * m_tuile.y;
-
-		if (m_table_index[idx_table] == -1ul) {
-			return m_arriere_plan;
-		}
-
-		auto const &tuile = m_tuiles[m_table_index[idx_table]];
-
-		tx = x - tuile->pos.x; // x % TAILLE_TUILLE;
-		ty = y - tuile->pos.y; // y % TAILLE_TUILLE;
-		tz = z - tuile->pos.z; // z % TAILLE_TUILLE;
-
-		return tuile->donnees[tx + TAILLE_TUILLE * (ty + tz * TAILLE_TUILLE)];
-#else
 		return m_donnees[calcul_index(x, y, z)];
-#endif
 	}
 
 	/* XXX ne fais pas de vérification de limites */
@@ -280,27 +211,7 @@ public:
 			return m_dummy;
 		}
 
-#ifdef UTILISE_TUILES
-		auto tx = x / TAILLE_TUILLE;
-		auto ty = y / TAILLE_TUILLE;
-		auto tz = z / TAILLE_TUILLE;
-
-		auto idx_table = tx + ty * m_tuile.x + tz * m_tuile.x * m_tuile.y;
-
-		if (m_table_index[idx_table] == -1ul) {
-			return m_dummy;
-		}
-
-		auto &tuile = m_tuiles[m_table_index[idx_table]];
-
-		tx = x - tuile->pos.x; // x % TAILLE_TUILLE;
-		ty = y - tuile->pos.y; // y % TAILLE_TUILLE;
-		tz = z - tuile->pos.z; // z % TAILLE_TUILLE;
-
-		return tuile->donnees[tx + TAILLE_TUILLE * (ty + tz * TAILLE_TUILLE)];
-#else
 		return m_donnees[calcul_index(x, y, z)];
-#endif
 	}
 
 	void valeur(long index, T v)
@@ -309,11 +220,7 @@ public:
 			return;
 		}
 
-#ifdef UTILISE_TUILES
-		assert(false);
-#else
 		m_donnees[index] = v;
-#endif
 	}
 
 	void valeur(size_t x, size_t y, size_t z, T v)
@@ -322,30 +229,7 @@ public:
 			return;
 		}
 
-#ifdef UTILISE_TUILES
-		auto tx = x / TAILLE_TUILLE;
-		auto ty = y / TAILLE_TUILLE;
-		auto tz = z / TAILLE_TUILLE;
-
-		auto idx_table = tx + ty * m_tuile.x + tz * m_tuile.x * m_tuile.y;
-
-		auto tuile = static_cast<Tuile<T>>(nullptr);
-
-		if (m_table_index[idx_table] == -1ul) {
-			tuile = new Tuile<T>{};
-		}
-		else {
-			tuile = m_tuiles[m_table_index[idx_table]];
-		}
-
-		tx = x - tuile->pos.x; // x % TAILLE_TUILLE;
-		ty = y - tuile->pos.y; // y % TAILLE_TUILLE;
-		tz = z - tuile->pos.z; // z % TAILLE_TUILLE;
-
-		tuile->donnees[tx + TAILLE_TUILLE * (ty + tz * TAILLE_TUILLE)] = v;
-#else
 		m_donnees[calcul_index(x, y, z)] = v;
-#endif
 	}
 
 	void valeur(dls::math::vec3i const &pos, T v)
@@ -355,12 +239,9 @@ public:
 
 	void copie_donnees(const Grille<T> &grille)
 	{
-#ifdef UTILISE_TUILES
-#else
 		for (auto i = 0; i < m_nombre_voxels; ++i) {
 			m_donnees[i] = grille.m_donnees[i];
 		}
-#endif
 	}
 
 	void arriere_plan(const T &v)
@@ -370,33 +251,26 @@ public:
 
 	void const *donnees() const
 	{
-#ifdef UTILISE_TUILES
-		return nullptr;
-#else
 		return m_donnees.donnees();
-#endif
 	}
 
 	size_t taille_octet() const
 	{
-#ifdef UTILISE_TUILES
-		return m_tuiles.taille() * (TAILLE_TUILLE * TAILLE_TUILLE * TAILLE_TUILLE) * sizeof(T);
-#else
 		return m_nombre_voxels * sizeof(T);
-#endif
 	}
 
 	BaseGrille *copie() const override
 	{
 		auto grille = memoire::loge<Grille<T>>("grille", etendu(), fenetre_donnees(), taille_voxel());
 		grille->m_arriere_plan = this->m_arriere_plan;
-
-#ifdef UTILISE_TUILES
-#else
 		grille->m_donnees = this->m_donnees;
-#endif
 
 		return grille;
+	}
+
+	bool est_eparse() const override
+	{
+		return false;
 	}
 
 	type_volume type() const override
@@ -406,17 +280,10 @@ public:
 
 	void echange(Grille<T> &autre)
 	{
-#ifdef UTILISE_TUILES
-		m_tuiles.echange(autre.m_tuiles);
-		m_tuiles.echange(autre.m_tuiles);
-		std::swap(m_tuile, autre.m_tuile);
-#else
 		m_donnees.echange(autre.m_donnees);
-#endif
 
 		std::swap(m_arriere_plan, autre.m_arriere_plan);
 		std::swap(m_dummy, autre.m_dummy);
-		std::swap(m_nombre_tuiles, autre.m_nombre_tuiles);
 	}
 };
 
@@ -443,6 +310,265 @@ public:
 					0.5f * (m_donnees[idx].x + m_donnees[idx + 1].x),
 					0.5f * (m_donnees[idx].y + m_donnees[idx + m_res.x].y),
 					0.5f * (m_donnees[idx].z + m_donnees[idx + m_res.x * m_res.y].z));
+	}
+};
+
+/* ************************************************************************** */
+
+struct description_volume {
+	limites3f etendues{};
+	limites3f fenetre_donnees{};
+	dls::math::vec3i resolution{};
+	float taille_voxel = 0.0f;
+};
+
+static constexpr auto TAILLE_TUILE = 8;
+
+template <typename T>
+struct grille_eparse : public BaseGrille {
+	using type_valeur = T;
+
+	struct tuile {
+		type_valeur donnees[static_cast<size_t>(TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE)];
+		dls::math::vec3i min{};
+		dls::math::vec3i max{};
+		bool garde = false;
+	};
+
+private:
+	dls::tableau<long> m_index_tuiles{};
+	dls::tableau<tuile *> m_tuiles{};
+	description_volume m_desc{};
+
+	int m_tuiles_x = 0;
+	int m_tuiles_y = 0;
+	int m_tuiles_z = 0;
+
+	type_valeur m_arriere_plan = type_valeur(0);
+
+	bool hors_des_limites(int i, int j, int k) const
+	{
+		if (i < 0 || i >= m_tuiles_x) {
+			return true;
+		}
+
+		if (j < 0 || j >= m_tuiles_y) {
+			return true;
+		}
+
+		if (k < 0 || k >= m_tuiles_z) {
+			return true;
+		}
+
+		return false;
+	}
+
+	inline long index_tuile(long i, long j, long k) const
+	{
+		return i + (j + k * m_tuiles_y) * m_tuiles_x;
+	}
+
+	inline int converti_nombre_tuile(int i) const
+	{
+		return i / TAILLE_TUILE + ((i % TAILLE_TUILE) != 0);
+	}
+
+public:
+	using plage_tuile = dls::plage_continue<tuile *>;
+	using plage_tuile_const = dls::plage_continue<tuile * const>;
+
+	grille_eparse(description_volume const &descr)
+		: BaseGrille(descr.etendues, descr.fenetre_donnees, descr.taille_voxel)
+		, m_desc(descr)
+	{
+		auto taille_x = descr.etendues.max.x - descr.etendues.min.x;
+		auto taille_y = descr.etendues.max.y - descr.etendues.min.y;
+		auto taille_z = descr.etendues.max.z - descr.etendues.min.z;
+
+		auto res_x = static_cast<int>(taille_x / descr.taille_voxel);
+		auto res_y = static_cast<int>(taille_y / descr.taille_voxel);
+		auto res_z = static_cast<int>(taille_z / descr.taille_voxel);
+
+		m_tuiles_x = converti_nombre_tuile(res_x);
+		m_tuiles_y = converti_nombre_tuile(res_y);
+		m_tuiles_z = converti_nombre_tuile(res_z);
+
+		m_desc.resolution.x = res_x;
+		m_desc.resolution.y = res_y;
+		m_desc.resolution.z = res_z;
+
+		auto nombre_tuiles = m_tuiles_x * m_tuiles_y * m_tuiles_z;
+
+		m_index_tuiles.redimensionne(nombre_tuiles, -1l);
+	}
+
+	~grille_eparse()
+	{
+		for (auto t : m_tuiles) {
+			memoire::deloge("tuile", t);
+		}
+	}
+
+	description_volume const &desc() const
+	{
+		return m_desc;
+	}
+
+	dls::math::vec3i monde_vers_index(dls::math::vec3f const &mnd)
+	{
+		auto pnt = (mnd - m_desc.etendues.min) / m_desc.etendues.taille();
+		auto i = static_cast<int>(pnt.x * static_cast<float>(m_desc.resolution.x));
+		auto j = static_cast<int>(pnt.y * static_cast<float>(m_desc.resolution.y));
+		auto k = static_cast<int>(pnt.z * static_cast<float>(m_desc.resolution.z));
+
+		return dls::math::vec3i(i, j, k);
+	}
+
+	void assure_tuiles(limites3f const &fenetre_donnees)
+	{
+		auto min = monde_vers_index(fenetre_donnees.min);
+		auto max = monde_vers_index(fenetre_donnees.max);
+
+		assure_tuiles(limites3i{min, max});
+	}
+
+	void assure_tuiles(limites3i const &fenetre_donnees)
+	{
+		auto min_tx = fenetre_donnees.min.x / TAILLE_TUILE;
+		auto min_ty = fenetre_donnees.min.y / TAILLE_TUILE;
+		auto min_tz = fenetre_donnees.min.z / TAILLE_TUILE;
+
+		auto max_tx = converti_nombre_tuile(fenetre_donnees.max.x);
+		auto max_ty = converti_nombre_tuile(fenetre_donnees.max.y);
+		auto max_tz = converti_nombre_tuile(fenetre_donnees.max.z);
+
+		for (auto z = min_tz; z < max_tz; ++z) {
+			for (auto y = min_ty; y < max_ty; ++y) {
+				for (auto x = min_tx; x < max_tx; ++x) {
+					auto idx_tuile = index_tuile(x, y, z);
+
+					if (m_index_tuiles[idx_tuile] != -1) {
+						continue;
+					}
+
+					auto t = memoire::loge<tuile>("tuile");
+					t->min = dls::math::vec3i(x, y, z) * TAILLE_TUILE;
+					t->max = t->min + dls::math::vec3i(TAILLE_TUILE);
+
+					m_index_tuiles[idx_tuile] = m_tuiles.taille();
+					m_tuiles.pousse(t);
+				}
+			}
+		}
+	}
+
+	void elague()
+	{
+		auto tuiles_gardees = dls::tableau<tuile *>();
+
+		for (auto t : m_tuiles) {
+			t->garde = false;
+
+			for (auto i = 0; i < (TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE); ++i) {
+				if (t->donnees[i] != m_arriere_plan) {
+					tuiles_gardees.pousse(t);
+					t->garde = true;
+					break;
+				}
+			}
+		}
+
+		auto suppr = 0;
+		for (auto t : m_tuiles) {
+			if (t->garde == false) {
+				memoire::deloge("tuile", t);
+				suppr++;
+			}
+		}
+
+		m_tuiles = tuiles_gardees;
+
+		for (auto i = 0; i < m_index_tuiles.taille(); ++i) {
+			m_index_tuiles[i] = -1;
+		}
+
+		auto i = 0;
+		for (auto t : m_tuiles) {
+			auto idx_tuile = index_tuile(t->min.x / TAILLE_TUILE, t->min.y / TAILLE_TUILE, t->min.z / TAILLE_TUILE);
+			m_index_tuiles[idx_tuile] = i++;
+		}
+	}
+
+	float valeur(int i, int j, int k) const
+	{
+		// trouve la tuile
+		auto it = i / TAILLE_TUILE;
+		auto jt = j / TAILLE_TUILE;
+		auto kt = k / TAILLE_TUILE;
+
+		if (hors_des_limites(it, jt, kt)) {
+			return m_arriere_plan;
+		}
+
+		auto idx_tuile = index_tuile(it, jt, kt);
+
+		if (m_index_tuiles[idx_tuile] == -1) {
+			return m_arriere_plan;
+		}
+
+		auto t = m_tuiles[idx_tuile];
+
+		// calcul l'index dans la tuile
+		auto xt = i - it * TAILLE_TUILE;
+		auto yt = j - jt * TAILLE_TUILE;
+		auto zt = k - kt * TAILLE_TUILE;
+
+		return t->donnees[static_cast<size_t>(xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE)];
+	}
+
+	plage_tuile plage()
+	{
+		auto d = &m_tuiles[0];
+		auto f = d + m_tuiles.taille();
+		return plage_tuile(d, f);
+	}
+
+	plage_tuile_const plage() const
+	{
+		auto d = &m_tuiles[0];
+		auto f = d + m_tuiles.taille();
+		return plage_tuile_const(d, f);
+	}
+
+	BaseGrille *copie() const override
+	{
+		auto grille = memoire::loge<grille_eparse<T>>("grille", m_desc);
+		grille->m_arriere_plan = this->m_arriere_plan;
+		grille->m_index_tuiles = this->m_index_tuiles;
+		grille->m_tuiles = this->m_tuiles;
+
+		return grille;
+	}
+
+	bool est_eparse() const override
+	{
+		return true;
+	}
+
+	type_volume type() const override
+	{
+		return type_volume::SCALAIRE;
+	}
+
+	void echange(Grille<T> &autre)
+	{
+		m_index_tuiles.echange(autre.m_index_tuiles);
+		m_tuiles.echange(autre.m_tuiles);
+
+		std::swap(m_arriere_plan, autre.m_arriere_plan);
+		std::swap(m_tuiles_x, autre.m_tuiles_x);
+		std::swap(m_tuiles_y, autre.m_tuiles_y);
+		std::swap(m_tuiles_z, autre.m_tuiles_z);
 	}
 };
 
