@@ -401,34 +401,19 @@ public:
 		m_corps.reinitialise();
 
 		/* init domaine */
-		auto res = evalue_entier("résolution");
 		auto temps_debut = evalue_entier("début");
 		auto temps_fin = evalue_entier("fin");
-		auto dt = evalue_decimal("dt");
-
-		auto etendu = limites3f{};
-		etendu.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
-		etendu.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
-		auto fenetre_donnees = etendu;
-		auto taille_voxel = 10.0f / static_cast<float>(res);
-
-		m_poseidon.dt = dt;
-
-		if (m_poseidon.densite == nullptr) {
-			m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
-			m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
-			m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
-			m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
-		}
 
 		if (contexte.temps_courant < temps_debut || contexte.temps_courant > temps_fin) {
-			reinitialise();
 			return EXECUTION_REUSSIE;
 		}
 
 		if (contexte.temps_courant == temps_debut) {
 			reinitialise();
 		}
+		auto dt = evalue_decimal("dt");
+
+		m_poseidon.dt = dt;
 
 		psn::fill_grid(*m_poseidon.drapeaux, TypeFluid);
 
@@ -452,6 +437,9 @@ public:
 		volume->grille = m_poseidon.densite->copie();
 
 		/* visualise domaine */
+		auto etendu = m_poseidon.densite->etendu();
+		auto taille_voxel = m_poseidon.densite->taille_voxel();
+
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
@@ -487,11 +475,25 @@ public:
 		m_poseidon.monde.sources.efface();
 		m_poseidon.monde.obstacles.efface();
 
-		for (auto i = 0; i < m_poseidon.densite->nombre_voxels(); ++i) {
-			m_poseidon.densite->valeur(i) = 0.0f;
-			m_poseidon.pression->valeur(i) = 0.0f;
-			m_poseidon.velocite->valeur(i) = dls::math::vec3f(0.0f);
+		if (m_poseidon.densite != nullptr) {
+			memoire::deloge("grilles", m_poseidon.densite);
+			memoire::deloge("grilles", m_poseidon.pression);
+			memoire::deloge("grilles", m_poseidon.drapeaux);
+			memoire::deloge("grilles", m_poseidon.velocite);
 		}
+
+		auto res = evalue_entier("résolution");
+
+		auto etendu = limites3f{};
+		etendu.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
+		etendu.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
+		auto fenetre_donnees = etendu;
+		auto taille_voxel = 10.0f / static_cast<float>(res);
+
+		m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+		m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+		m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
+		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
 	}
 
 	void performe_versionnage() override
