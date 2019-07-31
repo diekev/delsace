@@ -25,6 +25,8 @@
 #include "validation_semantique.hh"
 
 #include "biblinternes/outils/conditions.h"
+#include "biblinternes/structures/dico_fixe.hh"
+#include "biblinternes/structures/magasin.hh"
 
 #include "arbre_syntactic.h"
 #include "broyage.hh"
@@ -88,6 +90,62 @@ enum {
 //    vérifie préexistence
 // si pour accès
 //    si non connue -> vérifie variables employées
+
+static id_morceau operateurs_binaires[] = {
+	/* arithmétique */
+	id_morceau::PLUS,
+	id_morceau::MOINS,
+	id_morceau::FOIS,
+	id_morceau::DIVISE,
+	id_morceau::POURCENT,
+	id_morceau::DECALAGE_DROITE,
+	id_morceau::DECALAGE_GAUCHE,
+	/* arithmétique + assignation */
+	id_morceau::MODULO_EGAL,
+	id_morceau::MULTIPLIE_EGAL,
+	id_morceau::DIVISE_EGAL,
+	id_morceau::PLUS_EGAL,
+	id_morceau::MOINS_EGAL,
+	id_morceau::DEC_DROITE_EGAL,
+	id_morceau::DEC_GAUCHE_EGAL,
+	/* booléen */
+	id_morceau::ESP_ESP,
+	id_morceau::ESPERLUETTE,
+	id_morceau::CHAPEAU,
+	id_morceau::BARRE,
+	id_morceau::BARRE_BARRE,
+};
+
+struct valideuse_operateurs {
+	using type_paire = dls::paire<id_morceau, id_morceau>;
+	using type_valeur = dls::tableau<type_paire>;
+	dls::dico_desordonne<id_morceau, type_valeur> m_dico{};
+
+	valideuse_operateurs()
+	{
+		for (auto operateur : operateurs_binaires) {
+			m_dico.insere({operateur, type_valeur()});
+		}
+
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::N8, id_morceau::N8);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::N16, id_morceau::N16);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::N32, id_morceau::N32);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::N64, id_morceau::N64);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::Z8, id_morceau::Z8);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::Z16, id_morceau::Z16);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::Z32, id_morceau::Z32);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::Z64, id_morceau::Z64);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::R16, id_morceau::R16);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::R32, id_morceau::R32);
+		ajoute_surchage_operateur(id_morceau::PLUS, id_morceau::R64, id_morceau::R64);
+	}
+
+	void ajoute_surchage_operateur(id_morceau id_op, id_morceau id1, id_morceau id2)
+	{
+		auto &tabl_op = m_dico.trouve(id_op)->second;
+		tabl_op.pousse({id1, id2});
+	}
+};
 #endif
 
 /* ************************************************************************** */
