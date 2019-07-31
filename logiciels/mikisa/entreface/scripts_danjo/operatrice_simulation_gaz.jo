@@ -1,18 +1,18 @@
 disposition "operatrice_simulation_gaz" {
 	ligne {
 		étiquette(valeur="Résolution")
-		entier(valeur=32; attache=résolution; min=2)
+		entier(valeur=32; attache=résolution; min=2; animable)
 	}
 	ligne {
 		étiquette(valeur="Début")
-		entier(valeur=1; attache=début)
+		entier(valeur=1; attache=début; animable)
 	}
 	ligne {
 		étiquette(valeur="Fin")
-		entier(valeur=250; attache=fin)
+		entier(valeur=250; attache=fin; animable)
 	}
 	ligne {
 		étiquette(valeur="Dt")
-		décimal(valeur=0.1; attache=dt; min=0.0)
+		décimal(valeur=0.1; attache=dt; min=0.0; animable)
 	}
 }

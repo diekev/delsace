@@ -9,6 +9,6 @@ disposition "operatrice_commutation_corps" {
 	}
 	ligne {
 	    étiquette(valeur="Valeur")
-		entier(valeur=1; attache=valeur_condition)
+		entier(valeur=1; attache=valeur_condition; animable)
 	}
 }

@@ -17,18 +17,18 @@ disposition "operatrice_entree_gaz" {
 	}
 	ligne {
 		étiquette(valeur="Facteur")
-		décimal(valeur=1.0; attache=facteur; min=0.0; max=1.0)
+		décimal(valeur=1.0; attache=facteur; min=0.0; max=1.0; animable)
 	}
 	ligne {
 		étiquette(valeur="Densité")
-		décimal(valeur=1.0; attache=densité; min=0.0; max=1.0)
+		décimal(valeur=1.0; attache=densité; min=0.0; max=1.0; animable)
 	}
 	ligne {
 		étiquette(valeur="Début")
-		entier(valeur=1; attache=début)
+		entier(valeur=1; attache=début; animable)
 	}
 	ligne {
 		étiquette(valeur="Fin")
-		entier(valeur=100; attache=fin)
+		entier(valeur=100; attache=fin; animable)
 	}
 }

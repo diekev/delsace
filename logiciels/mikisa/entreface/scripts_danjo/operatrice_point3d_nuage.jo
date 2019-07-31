@@ -1,7 +1,7 @@
 disposition "operatrice_point3d_nuage" {
     ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=0)
+		entier(valeur=1; attache=graine; min=0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Dimension")
@@ -14,30 +14,30 @@ disposition "operatrice_point3d_nuage" {
 	}
 	ligne {
 	    étiquette(valeur="Fréquence")
-		vecteur(valeur="1,1,1"; attache=fréquence; min=0; max=10)
+		vecteur(valeur="1,1,1"; attache=fréquence; min=0; max=10; animable)
 	}
 	ligne {
 	    étiquette(valeur="Décalage")
-		vecteur(valeur="0,0,0"; attache=décalage)
+		vecteur(valeur="0,0,0"; attache=décalage; animable)
 	}
 	ligne {
 	    étiquette(valeur="Octaves")
-		entier(valeur=8; attache=octaves; min=1; max=10)
+		entier(valeur=8; attache=octaves; min=1; max=10; animable)
 	}
 	ligne {
 	    étiquette(valeur="Amplitude")
-		décimal(valeur=1.0; attache=amplitude; min=0; max=10)
+		décimal(valeur=1.0; attache=amplitude; min=0; max=10; animable)
 	}
 	ligne {
 	    étiquette(valeur="Persistence")
-		décimal(valeur=0.5; attache=persistence; min=0; max=10)
+		décimal(valeur=0.5; attache=persistence; min=0; max=10; animable)
 	}
 	ligne {
 	    étiquette(valeur="Lacunarité")
-		décimal(valeur=2.0; attache=lacunarité; min=0; max=10)
+		décimal(valeur=2.0; attache=lacunarité; min=0; max=10; animable)
 	}
 	ligne {
 	    étiquette(valeur="Temps")
-		décimal(valeur=1.0; attache=temps; min=0; max=10)
+		décimal(valeur=1.0; attache=temps; min=0; max=10; animable)
 	}
 }

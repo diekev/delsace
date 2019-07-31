@@ -9,11 +9,11 @@ disposition "operatrice_simulation_foule" {
 	}
 	ligne {
 	    étiquette(valeur="Vitesse Min")
-		décimal(valeur=1; attache=vitesse_min; infobulle="Vitesse minimale des gens.")
+		décimal(valeur=1; attache=vitesse_min; infobulle="Vitesse minimale des gens."; animable)
 	}
 	ligne {
 	    étiquette(valeur="Vitesse Max")
-		décimal(valeur=1; attache=vitesse_max; infobulle="Vitesse maximale des gens.")
+		décimal(valeur=1; attache=vitesse_max; infobulle="Vitesse maximale des gens."; animable)
 	}
 	ligne {
 	    étiquette(valeur="Nom des progénitures")
@@ -21,14 +21,14 @@ disposition "operatrice_simulation_foule" {
 	}
 	ligne {
 	    étiquette(valeur="Nombre de progénitures")
-		entier(valeur=10; attache=nombre_progénitures; infobulle="Combien de gens doivent être générés.")
+		entier(valeur=10; attache=nombre_progénitures; infobulle="Combien de gens doivent être générés."; animable)
 	}
 	ligne {
 	    étiquette(valeur="Temps de début")
-		entier(valeur=1; attache=temps_début; infobulle="Décide sur quel image commencer.")
+		entier(valeur=1; attache=temps_début; infobulle="Décide sur quel image commencer."; animable)
 	}
 	ligne {
 	    étiquette(valeur="Temps de fin")
-		entier(valeur=1; attache=temps_fin; infobulle="Décide sur quel image s'arrêter.")
+		entier(valeur=1; attache=temps_fin; infobulle="Décide sur quel image s'arr; animableêter.")
 	}
 }

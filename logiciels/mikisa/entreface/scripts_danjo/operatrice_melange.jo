@@ -22,6 +22,6 @@ disposition "operatrice_melange" {
     }
     ligne {
         étiquette(valeur="Facteur")
-		décimal(valeur=1.0; attache=facteur; min=0; max=1)
+		décimal(valeur=1.0; attache=facteur; min=0; max=1; animable)
     }
 }

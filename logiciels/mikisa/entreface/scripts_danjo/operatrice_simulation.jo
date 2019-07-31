@@ -1,10 +1,10 @@
 disposition "operatrice_simulation" {
 	ligne {
 	    étiquette(valeur="Temps début")
-		entier(valeur=1; attache=temps_début)
+		entier(valeur=1; attache=temps_début; animable)
 	}
 	ligne {
 	    étiquette(valeur="Temps fin")
-		entier(valeur=250; attache=temps_fin)
+		entier(valeur=250; attache=temps_fin; animable)
 	}
 }

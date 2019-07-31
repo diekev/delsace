@@ -1,26 +1,26 @@
 disposition "operatrice_3d_cone" {
     ligne {
 	    étiquette(valeur="Segments")
-		entier(valeur=32; attache=segments; min=3)
+		entier(valeur=32; attache=segments; min=3; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rayon majeur")
-		décimal(valeur=1.0; attache=rayon_majeur; min=0.0)
+		décimal(valeur=1.0; attache=rayon_majeur; min=0.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Profondeur")
-		décimal(valeur=1.0; attache=profondeur; min=0.0)
+		décimal(valeur=1.0; attache=profondeur; min=0.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Position")
-		vecteur(valeur="0,0,0"; attache=position)
+		vecteur(valeur="0,0,0"; attache=position; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rotation")
-		vecteur(valeur="0,0,0"; attache=rotation)
+		vecteur(valeur="0,0,0"; attache=rotation; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		vecteur(valeur="1,1,1"; attache=taille)
+		vecteur(valeur="1,1,1"; attache=taille; animable)
 	}
 }

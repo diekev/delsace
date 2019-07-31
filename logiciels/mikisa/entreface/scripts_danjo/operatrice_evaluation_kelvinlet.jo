@@ -1,11 +1,11 @@
 disposition "operatrice_evaluation_kelvinlet" {
     ligne {
 	    étiquette(valeur="Temps")
-		décimal(valeur=1.0; min=1; attache=temps)
+		décimal(valeur=1.0; min=1; attache=temps; animable)
 	}
 	ligne {
 		étiquette(valeur="Début")
-		entier(valeur=1; attache=début)
+		entier(valeur=1; attache=début; animable)
 	}
 	ligne {
 		étiquette(valeur="Intégration")

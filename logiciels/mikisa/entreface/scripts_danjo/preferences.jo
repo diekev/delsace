@@ -1,7 +1,7 @@
 disposition "Préférences" {
     ligne {
         étiquette(valeur="Rayon coeur noeud")
-		décimal(attache=rayon_coeur_noeud; valeur=25.0; min=0; max=100; infobulle="Rayon du coeur de tous les noeuds en pixel.")
+		décimal(attache=rayon_coeur_noeud; valeur=25.0; min=0; max=100; infobulle="Rayon du coeur de tous les noeuds en pixel."; animable)
     }
     ligne {
         étiquette(valeur="Couleur noeud repos")
@@ -17,22 +17,22 @@ disposition "Préférences" {
     }
     ligne {
         étiquette(valeur="Largeur contour noeud")
-		décimal(attache=largeur_contour; valeur=3.0; min=0; max=10; infobulle="Largeur du contour du noeud en pixel.")
+		décimal(attache=largeur_contour; valeur=3.0; min=0; max=10; infobulle="Largeur du contour du noeud en pixel."; animable)
     }
     ligne {
         étiquette(valeur="Plug Sweep")
-		décimal(attache=plug_sweep; valeur=32.0; min=0; max=100; infobulle="Arclength sweep of a Plug in pixels.")
+		décimal(attache=plug_sweep; valeur=32.0; min=0; max=100; infobulle="Arclength sweep of a Plug in pixels."; animable)
     }
     ligne {
         étiquette(valeur="Plug Gap")
-		décimal(attache=plug_gap; valeur=8.0; min=0; max=25; infobulle="Arclength size of the mandatory gap between two Plugs.")
+		décimal(attache=plug_gap; valeur=8.0; min=0; max=25; infobulle="Arclength size of the mandatory gap between two Plugs."; animable)
     }
     ligne {
         étiquette(valeur="Durée expansion")
-		entier(attache=durée_expansion; valeur=400; min=0; max=1000; infobulle="Durée de l'animation de l'expansion des noeuds en millisecondes.")
+		entier(attache=durée_expansion; valeur=400; min=0; max=1000; infobulle="Durée de l'animation de l'expansion des noeuds en millisecondes."; animable)
     }
     ligne {
         étiquette(valeur="Durée fermeture")
-		entier(attache=durée_fermeture; valeur=400; min=0; max=1000; infobulle="Durée de l'animation de la fermeture des noeuds en millisecondes.")
+		entier(attache=durée_fermeture; valeur=400; min=0; max=1000; infobulle="Durée de l'animation de la fermeture des noeuds en millisecondes."; animable)
     }
 }

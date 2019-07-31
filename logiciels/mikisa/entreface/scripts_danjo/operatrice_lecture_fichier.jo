@@ -21,7 +21,7 @@ disposition "operatrice_lecture_fichier" {
 			}
 			ligne {
 			    étiquette(valeur="Première Image")
-				entier(valeur=1; min=1; infobulle="La première image de la séquence à charger"; attache=première_image)
+				entier(valeur=1; min=1; infobulle="La première image de la séquence à charger"; attache=première_image; animable)
 			}
 			ligne {
 			    étiquette(valeur="Avant")
@@ -30,7 +30,7 @@ disposition "operatrice_lecture_fichier" {
 			}
 			ligne {
 			    étiquette(valeur="Dernière Image")
-				entier(valeur=1; min=1; infobulle="La dernière image de la séquence à charger"; attache=dernière_image)
+				entier(valeur=1; min=1; infobulle="La dernière image de la séquence à charger"; attache=dernière_image; animable)
 			}
 			ligne {
 			    étiquette(valeur="Après")
@@ -39,7 +39,7 @@ disposition "operatrice_lecture_fichier" {
 			}
 			ligne {
 			    étiquette(valeur="Décalage")
-				entier(valeur=0; infobulle="Décale la séquence d'un nombre d'image équivalent à la valeur indiqué"; attache=décalage)
+				entier(valeur=0; infobulle="Décale la séquence d'un nombre d'image équivalent à la valeur indiqué"; attache=décalage; animable)
 			}
 			ligne {
 			    étiquette(valeur="Images manquantes")

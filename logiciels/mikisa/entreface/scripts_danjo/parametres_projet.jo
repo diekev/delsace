@@ -1,10 +1,10 @@
 disposition "Paramètres Projet" {
     ligne {
         étiquette(valeur="Largeur")
-	entier(valeur=1920; min=4; max=8096; attache=largeur)
+	entier(valeur=1920; min=4; max=8096; attache=largeur; animable)
     }
     ligne {
         étiquette(valeur="Hauteur")
-	entier(valeur=720; min=4; max=8096; attache=hauteur)
+	entier(valeur=720; min=4; max=8096; attache=hauteur; animable)
     }
 }

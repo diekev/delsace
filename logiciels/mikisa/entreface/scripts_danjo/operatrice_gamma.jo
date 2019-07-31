@@ -5,6 +5,6 @@ disposition "operatrice_gamma" {
 	}
     ligne {
         étiquette(valeur="Gamma")
-		décimal(valeur=1.0; attache=gamma; min=0; max=10)
+		décimal(valeur=1.0; attache=gamma; min=0; max=10; animable)
     }
 }

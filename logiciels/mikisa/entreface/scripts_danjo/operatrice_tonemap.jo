@@ -17,6 +17,6 @@ disposition "operatrice_tonemap" {
     }
     ligne {
         étiquette(valeur="Exposition")
-		décimal(valeur=0.0; attache=exposition; min=-10; max=10; infobulle="Multiplie les couleurs par un facteur de 2^exposition")
+		décimal(valeur=0.0; attache=exposition; min=-10; max=10; infobulle="Multiplie les couleurs par un facteur de 2^exposition"; animable)
     }
 }

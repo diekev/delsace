@@ -3,333 +3,333 @@ disposition "Paramètres Arbre" {
 	    onglet "Générale" {
 		    ligne {
 			    étiquette(valeur="Shape")
-				entier(valeur=1; min=0; max=8; attache=Shape)
+				entier(valeur=1; min=0; max=8; attache=Shape; animable)
 			}
 			ligne {
 			    étiquette(valeur="BaseSize")
-				décimal(valeur=1.0; min=0; max=1; attache=BaseSize)
+				décimal(valeur=1.0; min=0; max=1; attache=BaseSize; animable)
 			}
 			ligne {
 			    étiquette(valeur="Scale")
-				décimal(valeur=1.0; min=0; max=100; attache=Scale)
+				décimal(valeur=1.0; min=0; max=100; attache=Scale; animable)
 			}
 			ligne {
 			    étiquette(valeur="ScaleV")
-				décimal(valeur=1.0; min=0; max=100; attache=ScaleV)
+				décimal(valeur=1.0; min=0; max=100; attache=ScaleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="ZScale")
-				décimal(valeur=1.0; min=0; max=1; attache=ZScale)
+				décimal(valeur=1.0; min=0; max=1; attache=ZScale; animable)
 			}
 			ligne {
 			    étiquette(valeur="ZScaleV")
-				décimal(valeur=1.0; min=0; max=1; attache=ZScaleV)
+				décimal(valeur=1.0; min=0; max=1; attache=ZScaleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="Levels")
-				entier(valeur=1; min=1; max=4; attache=Levels)
+				entier(valeur=1; min=1; max=4; attache=Levels; animable)
 			}
 			ligne {
 			    étiquette(valeur="Ratio")
-				décimal(valeur=1.0; min=0; max=1; attache=Ratio)
+				décimal(valeur=1.0; min=0; max=1; attache=Ratio; animable)
 			}
 			ligne {
 			    étiquette(valeur="RatioPower")
-				décimal(valeur=1.0; min=0; max=2; attache=RatioPower)
+				décimal(valeur=1.0; min=0; max=2; attache=RatioPower; animable)
 			}
 			ligne {
 			    étiquette(valeur="Lobes")
-				entier(valeur=1; min=0; max=100; attache=Lobes)
+				entier(valeur=1; min=0; max=100; attache=Lobes; animable)
 			}
 			ligne {
 			    étiquette(valeur="LobeDepth")
-				décimal(valeur=1.0; min=0; max=1; attache=LobeDepth)
+				décimal(valeur=1.0; min=0; max=1; attache=LobeDepth; animable)
 			}
 			ligne {
 			    étiquette(valeur="Flare")
-				décimal(valeur=1.0; min=0; max=1; attache=Flare)
+				décimal(valeur=1.0; min=0; max=1; attache=Flare; animable)
 			}
 		}
 		onglet "Niveau 0" {
 		    ligne {
 			    étiquette(valeur="_0Scale")
-				décimal(valeur=1.0; attache=_0Scale)
+				décimal(valeur=1.0; attache=_0Scale; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0ScaleV")
-				décimal(valeur=1.0; min=0; max=1; attache=_0ScaleV)
+				décimal(valeur=1.0; min=0; max=1; attache=_0ScaleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0Length")
-				décimal(valeur=1.0; min=0; max=1; attache=_0Length)
+				décimal(valeur=1.0; min=0; max=1; attache=_0Length; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0LengthV")
-				décimal(valeur=1.0; min=0; max=1; attache=_0LengthV)
+				décimal(valeur=1.0; min=0; max=1; attache=_0LengthV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0Taper")
-				décimal(valeur=1.0; min=0; max=3; attache=_0Taper)
+				décimal(valeur=1.0; min=0; max=3; attache=_0Taper; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0BaseSplits")
-				décimal(valeur=1.0; min=0; max=1; attache=_0BaseSplits)
+				décimal(valeur=1.0; min=0; max=1; attache=_0BaseSplits; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0SegSplits")
-				décimal(valeur=1.0; attache=_0SegSplits)
+				décimal(valeur=1.0; attache=_0SegSplits; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0SplitAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_0SplitAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_0SplitAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0SplitAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_0SplitAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_0SplitAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0CurveRes")
-				décimal(valeur=1.0; attache=_0CurveRes)
+				décimal(valeur=1.0; attache=_0CurveRes; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0Curve")
-				décimal(valeur=1.0; attache=_0Curve)
+				décimal(valeur=1.0; attache=_0Curve; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0CurveBack")
-				décimal(valeur=1.0; attache=_0CurveBack)
+				décimal(valeur=1.0; attache=_0CurveBack; animable)
 			}
 			ligne {
 			    étiquette(valeur="_0CurveV")
-				décimal(valeur=1.0; attache=_0CurveV)
+				décimal(valeur=1.0; attache=_0CurveV; animable)
 			}
 		}
 		onglet "Niveau 1" {
 		    ligne {
 			    étiquette(valeur="_1DownAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_1DownAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_1DownAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1DownAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_1DownAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_1DownAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1Rotate")
-				décimal(valeur=1.0; attache=_1Rotate)
+				décimal(valeur=1.0; attache=_1Rotate; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1RotateV")
-				décimal(valeur=1.0; attache=_1RotateV)
+				décimal(valeur=1.0; attache=_1RotateV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1Branches")
-				décimal(valeur=1.0; attache=_1Branches)
+				décimal(valeur=1.0; attache=_1Branches; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1Length")
-				décimal(valeur=1.0; min=0; max=1; attache=_1Length)
+				décimal(valeur=1.0; min=0; max=1; attache=_1Length; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1LengthV")
-				décimal(valeur=1.0; min=0; max=1; attache=_1LengthV)
+				décimal(valeur=1.0; min=0; max=1; attache=_1LengthV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1Taper")
-				décimal(valeur=1.0; min=0; max=3; attache=_1Taper)
+				décimal(valeur=1.0; min=0; max=3; attache=_1Taper; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1SegSplits")
-				décimal(valeur=1.0; attache=_1SegSplits)
+				décimal(valeur=1.0; attache=_1SegSplits; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1SplitAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_1SplitAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_1SplitAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1SplitAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_1SplitAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_1SplitAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1CurveRes")
-				décimal(valeur=1.0; attache=_1CurveRes)
+				décimal(valeur=1.0; attache=_1CurveRes; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1Curve")
-				décimal(valeur=1.0; attache=_1Curve)
+				décimal(valeur=1.0; attache=_1Curve; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1CurveBack")
-				décimal(valeur=1.0; attache=_1CurveBack)
+				décimal(valeur=1.0; attache=_1CurveBack; animable)
 			}
 			ligne {
 			    étiquette(valeur="_1CurveV")
-				décimal(valeur=1.0; attache=_1CurveV)
+				décimal(valeur=1.0; attache=_1CurveV; animable)
 			}
 		}
 		onglet "Niveau 2" {
 		    ligne {
 			    étiquette(valeur="_2DownAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_2DownAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_2DownAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2DownAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_2DownAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_2DownAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2Rotate")
-				décimal(valeur=1.0; min=0; max=360; attache=_2Rotate)
+				décimal(valeur=1.0; min=0; max=360; attache=_2Rotate; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2RotateV")
-				décimal(valeur=1.0; min=0; max=360; attache=_2RotateV)
+				décimal(valeur=1.0; min=0; max=360; attache=_2RotateV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2Branches")
-				décimal(valeur=1.0; attache=_2Branches)
+				décimal(valeur=1.0; attache=_2Branches; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2Length")
-				décimal(valeur=1.0; min=0; max=1; attache=_2Length)
+				décimal(valeur=1.0; min=0; max=1; attache=_2Length; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2LengthV")
-				décimal(valeur=1.0; min=0; max=1; attache=_2LengthV)
+				décimal(valeur=1.0; min=0; max=1; attache=_2LengthV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2Taper")
-				décimal(valeur=1.0; min=0; max=3; attache=_2Taper)
+				décimal(valeur=1.0; min=0; max=3; attache=_2Taper; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2SegSplits")
-				décimal(valeur=1.0; attache=_2SegSplits)
+				décimal(valeur=1.0; attache=_2SegSplits; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2SplitAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_2SplitAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_2SplitAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2SplitAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_2SplitAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_2SplitAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2CurveRes")
-				décimal(valeur=1.0; attache=_2CurveRes)
+				décimal(valeur=1.0; attache=_2CurveRes; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2Curve")
-				décimal(valeur=1.0; attache=_2Curve)
+				décimal(valeur=1.0; attache=_2Curve; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2CurveBack")
-				décimal(valeur=1.0; attache=_2CurveBack)
+				décimal(valeur=1.0; attache=_2CurveBack; animable)
 			}
 			ligne {
 			    étiquette(valeur="_2CurveV")
-				décimal(valeur=1.0; attache=_2CurveV)
+				décimal(valeur=1.0; attache=_2CurveV; animable)
 			}
 		}
 		onglet "Niveau 3" {
 		    ligne {
 			    étiquette(valeur="_3DownAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_3DownAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_3DownAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3DownAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_3DownAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_3DownAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3Rotate")
-				décimal(valeur=1.0; min=0; max=360; attache=_3Rotate)
+				décimal(valeur=1.0; min=0; max=360; attache=_3Rotate; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3RotateV")
-				décimal(valeur=1.0; min=0; max=360; attache=_3RotateV)
+				décimal(valeur=1.0; min=0; max=360; attache=_3RotateV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3Branches")
-				décimal(valeur=1.0; attache=_3Branches)
+				décimal(valeur=1.0; attache=_3Branches; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3Length")
-				décimal(valeur=1.0; min=0; max=1; attache=_3Length)
+				décimal(valeur=1.0; min=0; max=1; attache=_3Length; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3LengthV")
-				décimal(valeur=1.0; min=0; max=1; attache=_3LengthV)
+				décimal(valeur=1.0; min=0; max=1; attache=_3LengthV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3Taper")
-				décimal(valeur=1.0; min=0; max=3; attache=_3Taper)
+				décimal(valeur=1.0; min=0; max=3; attache=_3Taper; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3SegSplits")
-				décimal(valeur=1.0; attache=_3SegSplits)
+				décimal(valeur=1.0; attache=_3SegSplits; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3SplitAngle")
-				décimal(valeur=1.0; min=0; max=360; attache=_3SplitAngle)
+				décimal(valeur=1.0; min=0; max=360; attache=_3SplitAngle; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3SplitAngleV")
-				décimal(valeur=1.0; min=0; max=360; attache=_3SplitAngleV)
+				décimal(valeur=1.0; min=0; max=360; attache=_3SplitAngleV; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3CurveRes")
-				décimal(valeur=1.0; attache=_3CurveRes)
+				décimal(valeur=1.0; attache=_3CurveRes; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3Curve")
-				décimal(valeur=1.0; attache=_3Curve)
+				décimal(valeur=1.0; attache=_3Curve; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3CurveBack")
-				décimal(valeur=1.0; attache=_3CurveBack)
+				décimal(valeur=1.0; attache=_3CurveBack; animable)
 			}
 			ligne {
 			    étiquette(valeur="_3CurveV")
-				décimal(valeur=1.0; attache=_3CurveV)
+				décimal(valeur=1.0; attache=_3CurveV; animable)
 			}
 		}
 		onglet "Feuillage" {
 		    ligne {
 			    étiquette(valeur="Leaves")
-				décimal(valeur=1.0; attache=Leaves)
+				décimal(valeur=1.0; attache=Leaves; animable)
 			}
 			ligne {
 			    étiquette(valeur="LeafShape")
-				décimal(valeur=1.0; attache=LeafShape)
+				décimal(valeur=1.0; attache=LeafShape; animable)
 			}
 			ligne {
 			    étiquette(valeur="LeafScale")
-				décimal(valeur=1.0; attache=LeafScale)
+				décimal(valeur=1.0; attache=LeafScale; animable)
 			}
 			ligne {
 			    étiquette(valeur="LeafScaleX")
-				décimal(valeur=1.0; attache=LeafScaleX)
+				décimal(valeur=1.0; attache=LeafScaleX; animable)
 			}
 			ligne {
 			    étiquette(valeur="AttractionUp")
-				décimal(valeur=1.0; attache=AttractionUp)
+				décimal(valeur=1.0; attache=AttractionUp; animable)
 			}
 			ligne {
 			    étiquette(valeur="PruneRatio")
-				décimal(valeur=1.0; attache=PruneRatio)
+				décimal(valeur=1.0; attache=PruneRatio; animable)
 			}
 			ligne {
 			    étiquette(valeur="PruneWidth")
-				décimal(valeur=1.0; attache=PruneWidth)
+				décimal(valeur=1.0; attache=PruneWidth; animable)
 			}
 			ligne {
 			    étiquette(valeur="PruneWidthPeak")
-				décimal(valeur=1.0; attache=PruneWidthPeak)
+				décimal(valeur=1.0; attache=PruneWidthPeak; animable)
 			}
 			ligne {
 			    étiquette(valeur="PrunePowerLow")
-				décimal(valeur=1.0; attache=PrunePowerLow)
+				décimal(valeur=1.0; attache=PrunePowerLow; animable)
 			}
 			ligne {
 			    étiquette(valeur="PrunePowerHigh")
-				décimal(valeur=1.0; attache=PrunePowerHigh)
+				décimal(valeur=1.0; attache=PrunePowerHigh; animable)
 			}
 		}
 	}

@@ -9,15 +9,15 @@ disposition "operatrice_trainee_points" {
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		décimal(valeur=1.0; attache=taille; min=0)
+		décimal(valeur=1.0; attache=taille; min=0; animable)
 	}
 	ligne {
 		étiquette(valeur="Nombre de points")
-		entier(valeur=1; attache=nombre_points; min=0)
+		entier(valeur=1; attache=nombre_points; min=0; animable)
 	}
     ligne {
 	    étiquette(valeur="Dt")
-		décimal(valeur=0.046; attache=dt; min=0; infobulle="Dérivée du temps pour évaluer les vecteurs de vélocités.")
+		décimal(valeur=0.046; attache=dt; min=0; infobulle="Dérivée du temps pour évaluer les vecteurs de vélocités."; animable)
 	}
 	ligne {
 	    étiquette(valeur="Inverse Direction")

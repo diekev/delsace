@@ -1,22 +1,22 @@
 disposition "operatrice_rasterisation_prim" {
     ligne {
 	    étiquette(valeur="Taille Voxel")
-		décimal(valeur=0.1; min=0.0001; attache=taille_voxel)
+		décimal(valeur=0.1; min=0.0001; attache=taille_voxel; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rayon")
-		décimal(valeur=0.1; min=0.0001; attache=rayon)
+		décimal(valeur=0.1; min=0.0001; attache=rayon; animable)
 	}
 	ligne {
 	    étiquette(valeur="Densité")
-		décimal(valeur=1.0; attache=densité)
+		décimal(valeur=1.0; attache=densité; animable)
 	}
 	ligne {
 	    étiquette(valeur="Échantillons par prims/segments")
-		entier(valeur=32; min=1; attache=nombre_échantillons)
+		entier(valeur=32; min=1; attache=nombre_échantillons; animable)
 	}
 	ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=1; min=0; attache=graine)
+		entier(valeur=1; min=0; attache=graine; animable)
 	}
 }

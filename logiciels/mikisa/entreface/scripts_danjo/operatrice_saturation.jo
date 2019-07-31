@@ -16,6 +16,6 @@ disposition "operatrice_saturation" {
     }
     ligne {
 	étiquette(valeur="Saturation")
-	décimal(valeur=1.0; attache=saturation; min=0; max=4)
+	décimal(valeur=1.0; attache=saturation; min=0; max=4; animable)
     }
 }

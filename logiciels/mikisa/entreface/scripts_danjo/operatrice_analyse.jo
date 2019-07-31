@@ -29,18 +29,18 @@ disposition "operatrice_analyse" {
 	}
 	ligne {
 	    étiquette(valeur="Dx0")
-		entier(valeur=1; attache=dx0; min=0; max=1)
+		entier(valeur=1; attache=dx0; min=0; max=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Dx1")
-		entier(valeur=1; attache=dx1; min=0; max=1)
+		entier(valeur=1; attache=dx1; min=0; max=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Dy0")
-		entier(valeur=1; attache=dy0; min=0; max=1)
+		entier(valeur=1; attache=dy0; min=0; max=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Dy1")
-		entier(valeur=1; attache=dy1; min=0; max=1)
+		entier(valeur=1; attache=dy1; min=0; max=1; animable)
 	}
 }

@@ -17,23 +17,23 @@ disposition "operatrice_transformation" {
     }
     ligne {
         étiquette(valeur="Translation")
-		vecteur(valeur="0,0,0"; attache=translation; min=-10; max=10)
+		vecteur(valeur="0,0,0"; attache=translation; min=-10; max=10; animable)
     }
     ligne {
         étiquette(valeur="Rotation")
-		vecteur(valeur="0,0,0"; attache=rotation; min=0; max=360)
+		vecteur(valeur="0,0,0"; attache=rotation; min=0; max=360; animable)
     }
     ligne {
         étiquette(valeur="Taille")
-		vecteur(valeur="1,1,1"; attache=taille; min=0; max=10)
+		vecteur(valeur="1,1,1"; attache=taille; min=0; max=10; animable)
     }
     ligne {
         étiquette(valeur="Pivot")
-		vecteur(valeur="0,0,0"; attache=pivot; min=-10; max=10)
+		vecteur(valeur="0,0,0"; attache=pivot; min=-10; max=10; animable)
     }
     ligne {
         étiquette(valeur="Échelle")
-		décimal(valeur=1.0; attache=échelle; min=0; max=10)
+		décimal(valeur=1.0; attache=échelle; min=0; max=10; animable)
     }
     ligne {
         étiquette(valeur="Inverse Transformation")

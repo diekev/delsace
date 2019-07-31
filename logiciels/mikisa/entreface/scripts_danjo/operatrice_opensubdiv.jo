@@ -1,7 +1,7 @@
 disposition "operatrice_opensubdiv" {
     ligne {
 	    étiquette(valeur="Niveau")
-		entier(valeur=2; min=0; max=8; attache=niveau_max)
+		entier(valeur=2; min=0; max=8; attache=niveau_max; animable)
 	}
 	ligne {
 	    étiquette(valeur="Schéma")

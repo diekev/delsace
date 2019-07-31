@@ -1,18 +1,18 @@
 disposition "operatrice_3d_ligne" {
     ligne {
 	    étiquette(valeur="Taille")
-		décimal(valeur=1.0; attache=taille; min=0)
+		décimal(valeur=1.0; attache=taille; min=0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Segments")
-		entier(valeur=1; attache=segments; min=1)
+		entier(valeur=1; attache=segments; min=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Origine")
-		vecteur(valeur="0,0,0"; attache=origine)
+		vecteur(valeur="0,0,0"; attache=origine; animable)
 	}
 	ligne {
 	    étiquette(valeur="Direction")
-		vecteur(valeur="1,1,1"; attache=direction)
+		vecteur(valeur="1,1,1"; attache=direction; animable)
 	}
 }

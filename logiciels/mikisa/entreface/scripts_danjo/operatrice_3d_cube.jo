@@ -1,18 +1,18 @@
 disposition "operatrice_3d_cube" {
     ligne {
 	    étiquette(valeur="Rayon")
-		vecteur(valeur="1,1,1"; attache=rayon)
+		vecteur(valeur="1,1,1"; attache=rayon; animable)
 	}
 	ligne {
 	    étiquette(valeur="Position")
-		vecteur(valeur="0,0,0"; attache=position)
+		vecteur(valeur="0,0,0"; attache=position; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rotation")
-		vecteur(valeur="0,0,0"; attache=rotation)
+		vecteur(valeur="0,0,0"; attache=rotation; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		vecteur(valeur="1,1,1"; attache=taille)
+		vecteur(valeur="1,1,1"; attache=taille; animable)
 	}
 }

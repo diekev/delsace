@@ -12,6 +12,6 @@ disposition "operatrice_flou" {
     }
     ligne {
         étiquette(valeur="Rayon")
-		décimal(valeur=1.0; attache=rayon; min=0; max=10)
+		décimal(valeur=1.0; attache=rayon; min=0; max=10; animable)
     }
 }

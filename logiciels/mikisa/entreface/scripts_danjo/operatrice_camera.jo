@@ -3,16 +3,16 @@ disposition "operatrice_camera" {
 	    onglet "Transformation" {
 		    ligne {
 			    étiquette(valeur="Position")
-				vecteur(valeur="0,0,0"; attache=position)
+				vecteur(valeur="0,0,0"; attache=position; animable)
 			}
 			ligne {
 			    étiquette(valeur="Rotation")
-				vecteur(valeur="0,0,0"; attache=rotation)
+				vecteur(valeur="0,0,0"; attache=rotation; animable)
 			}
 			ligne {
 			    étiquette(valeur="Taille")
-				entier(valeur=1280; attache=largeur; min=4; max=8192; suffixe="px")
-				entier(valeur=720; attache=hauteur; min=4; max=8192; suffixe="px")
+				entier(valeur=1280; attache=largeur; min=4; max=8192; suffixe="px"; animable)
+				entier(valeur=720; attache=hauteur; min=4; max=8192; suffixe="px"; animable)
 			}
 		}
 		onglet "Projection" {
@@ -26,19 +26,19 @@ disposition "operatrice_camera" {
 			}
 			ligne {
 			    étiquette(valeur="Proche")
-				décimal(valeur=0.01; attache=proche; min=0.0; suffixe="m")
+				décimal(valeur=0.01; attache=proche; min=0.0; suffixe="m"; animable)
 			}
 			ligne {
 			    étiquette(valeur="Éloigné")
-				décimal(valeur=1000.0; attache=éloigné; min=0.0; suffixe="m")
+				décimal(valeur=1000.0; attache=éloigné; min=0.0; suffixe="m"; animable)
 			}
 			ligne {
 			    étiquette(valeur="Longueur Focale")
-				décimal(valeur=35.0; attache=longueur_focale; min=0.0; suffixe="mm")
+				décimal(valeur=35.0; attache=longueur_focale; min=0.0; suffixe="mm"; animable)
 			}
 			ligne {
 			    étiquette(valeur="Largeur Senseur")
-				décimal(valeur=22.0; attache=largeur_senseur; min=0.0; suffixe="mm")
+				décimal(valeur=22.0; attache=largeur_senseur; min=0.0; suffixe="mm"; animable)
 			}
 		}
 	}

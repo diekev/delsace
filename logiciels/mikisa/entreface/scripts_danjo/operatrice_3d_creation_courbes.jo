@@ -7,19 +7,19 @@ disposition "operatrice_creation_courbes" {
 			}
 			ligne {
 			    étiquette(valeur="Normal")
-				vecteur(valeur="0,1,0"; attache=normal; min=-1; max=1; infobulle="Direction de la courbe.")
+				vecteur(valeur="0,1,0"; attache=normal; min=-1; max=1; infobulle="Direction de la courbe."; animable)
 			}
 			ligne {
 			    étiquette(valeur="Taille min")
-				décimal(valeur=1; attache=taille_min; min=0; infobulle="Taille min de chaque courbe.")
+				décimal(valeur=1; attache=taille_min; min=0; infobulle="Taille min de chaque courbe."; animable)
 				}
 			ligne {
 			    étiquette(valeur="Taille max")
-				décimal(valeur=1; attache=taille_max; min=0; infobulle="Taille max de chaque courbe.")
+				décimal(valeur=1; attache=taille_max; min=0; infobulle="Taille max de chaque courbe."; animable)
 			}
 			ligne {
 			    étiquette(valeur="Multiplication taille ")
-				décimal(valeur=1; attache=multiplication_taille; min=0)
+				décimal(valeur=1; attache=multiplication_taille; min=0; animable)
 			}
 		}
 		onglet "Géométrie" {
@@ -32,11 +32,11 @@ disposition "operatrice_creation_courbes" {
 			}
 			ligne {
 			    étiquette(valeur="Nombre segments")
-				entier(valeur=1; attache=segments; min=1; max=10; infobulle="Nombre de segments dans chaque courbe")
+				entier(valeur=1; attache=segments; min=1; max=10; infobulle="Nombre de segments dans chaque courbe"; animable)
 			}
 			ligne {
 			    étiquette(valeur="Taille segment")
-				décimal(valeur=0.5; attache=taille_segment; min=0; max=1.0)
+				décimal(valeur=0.5; attache=taille_segment; min=0; max=1.0; animable)
 			}
 		}
 	}

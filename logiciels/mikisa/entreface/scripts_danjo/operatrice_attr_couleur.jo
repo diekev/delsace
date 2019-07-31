@@ -23,6 +23,6 @@ disposition "operatrice_attr_couleur" {
     }
     ligne {
         étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=1; max=100000)
+		entier(valeur=1; attache=graine; min=1; max=100000; animable)
     }
 }

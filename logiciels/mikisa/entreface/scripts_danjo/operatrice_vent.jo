@@ -1,10 +1,10 @@
 disposition "operatrice_vent" {
     ligne {
 	    étiquette(valeur="Direction")
-		vecteur(valeur="0.0, 0.0, 0.0"; attache=direction)
+		vecteur(valeur="0.0, 0.0, 0.0"; attache=direction; animable)
 	}
 	ligne {
 	    étiquette(valeur="Amplitude")
-		décimal(valeur=1.0; attache=amplitude; min=0)
+		décimal(valeur=1.0; attache=amplitude; min=0; animable)
 	}
 }

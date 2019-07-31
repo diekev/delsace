@@ -1,30 +1,30 @@
 disposition "operatrice_3d_torus" {
     ligne {
 	    étiquette(valeur="Segments mineur")
-		entier(valeur=24; attache=segment_mineur; min=3)
+		entier(valeur=24; attache=segment_mineur; min=3; animable)
 	}
 	ligne {
 	    étiquette(valeur="Segments majeur")
-		entier(valeur=12; attache=segment_majeur; min=3)
+		entier(valeur=12; attache=segment_majeur; min=3; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rayon mineur")
-		décimal(valeur=0.25; attache=rayon_mineur; min=0.0)
+		décimal(valeur=0.25; attache=rayon_mineur; min=0.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rayon majeur")
-		décimal(valeur=1.0; attache=rayon_majeur; min=0.0)
+		décimal(valeur=1.0; attache=rayon_majeur; min=0.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Position")
-		vecteur(valeur="0,0,0"; attache=position)
+		vecteur(valeur="0,0,0"; attache=position; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rotation")
-		vecteur(valeur="0,0,0"; attache=rotation)
+		vecteur(valeur="0,0,0"; attache=rotation; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		vecteur(valeur="1,1,1"; attache=taille)
+		vecteur(valeur="1,1,1"; attache=taille; animable)
 	}
 }

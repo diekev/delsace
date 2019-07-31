@@ -5,10 +5,10 @@ disposition "operatrice_3d_randomisation_attribut" {
 	}
     ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=1)
+		entier(valeur=1; attache=graine; min=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Distance")
-		décimal(valeur=0.1; attache=distance; min=0; infobulle="La distance minimale en unité mondiale entre deux points.")
+		décimal(valeur=0.1; attache=distance; min=0; infobulle="La distance minimale en unité mondiale entre deux points."; animable)
 	}
 }

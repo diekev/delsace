@@ -1,11 +1,11 @@
 disposition "operatrice_3d_lissage_laplacien" {
     ligne {
 	    étiquette(valeur="Poids")
-		décimal(valeur=1.0; attache=poids)
+		décimal(valeur=1.0; attache=poids; animable)
 	}
     ligne {
 	    étiquette(valeur="Itérations")
-		entier(valeur=1; min=0; attache=itérations)
+		entier(valeur=1; min=0; attache=itérations; animable)
 	}
 	ligne {
 	    étiquette(valeur="Pondère selon distance")

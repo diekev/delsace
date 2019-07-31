@@ -5,7 +5,7 @@ disposition "operatrice_3d_randomisation_attribut" {
 	}
 	ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=1)
+		entier(valeur=1; attache=graine; min=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Opération")
@@ -29,22 +29,22 @@ disposition "operatrice_3d_randomisation_attribut" {
 		}
 	ligne {
 	    étiquette(valeur="Valeur")
-		décimal(valeur=1.0; attache=constante)
+		décimal(valeur=1.0; attache=constante; animable)
 	}
 	ligne {
 	    étiquette(valeur="Valeur Minimum")
-		décimal(valeur=0.0; attache=valeur_min)
+		décimal(valeur=0.0; attache=valeur_min; animable)
 	}
 	ligne {
 	    étiquette(valeur="Valeur Maximum")
-		décimal(valeur=1.0; attache=valeur_max)
+		décimal(valeur=1.0; attache=valeur_max; animable)
 	}
 	ligne {
 	    étiquette(valeur="Moyenne")
-		décimal(valeur=1.0; attache=moyenne)
+		décimal(valeur=1.0; attache=moyenne; animable)
 	}
 	ligne {
 	    étiquette(valeur="Écart Type")
-		décimal(valeur=1.0; attache=écart_type)
+		décimal(valeur=1.0; attache=écart_type; animable)
 	}
 }

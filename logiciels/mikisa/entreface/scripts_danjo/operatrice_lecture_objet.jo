@@ -13,7 +13,7 @@ dossier {
 		}
 		ligne {
 		    étiquette(valeur="Premier Fichier")
-			entier(valeur=1; min=1; infobulle="Le premier fichier de la séquence à charger"; attache=premier_fichier)
+			entier(valeur=1; min=1; infobulle="Le premier fichier de la séquence à charger"; attache=premier_fichier; animable)
 		}
 		ligne {
 		    étiquette(valeur="Avant")
@@ -22,7 +22,7 @@ dossier {
 		}
 		ligne {
 		    étiquette(valeur="Dernier Fichier")
-			entier(valeur=1; min=1; infobulle="Le dernier fichier de la séquence à charger"; attache=dernier_fichier)
+			entier(valeur=1; min=1; infobulle="Le dernier fichier de la séquence à charger"; attache=dernier_fichier; animable)
 		}
 		ligne {
 		    étiquette(valeur="Après")
@@ -31,7 +31,7 @@ dossier {
 		}
 		ligne {
 		    étiquette(valeur="Décalage")
-			entier(valeur=0; infobulle="Décale la séquence d'un nombre d'image équivalent à la valeur indiqué"; attache=décalage)
+			entier(valeur=0; infobulle="Décale la séquence d'un nombre d'image équivalent à la valeur indiqué"; attache=décalage; animable)
 		}
 		ligne {
 		    étiquette(valeur="Fichiers manquants")
@@ -42,19 +42,19 @@ dossier {
 	onglet "Transformation" {
 	    ligne {
 		    étiquette(valeur="Position")
-			vecteur(valeur="0,0,0"; attache=position)
+			vecteur(valeur="0,0,0"; attache=position; animable)
 		}
 		ligne {
 		    étiquette(valeur="Rotation")
-			vecteur(valeur="0,0,0"; attache=rotation)
+			vecteur(valeur="0,0,0"; attache=rotation; animable)
 		}
 		ligne {
 		    étiquette(valeur="Taille")
-			vecteur(valeur="1,1,1"; attache=taille)
+			vecteur(valeur="1,1,1"; attache=taille; animable)
 		}
 		ligne {
 		    étiquette(valeur="Échelle Uniforme")
-			décimal(valeur=1.0; attache=echelle_uniforme)
+			décimal(valeur=1.0; attache=echelle_uniforme; animable)
 		}
 	}
 }

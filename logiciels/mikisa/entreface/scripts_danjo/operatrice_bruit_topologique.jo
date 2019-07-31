@@ -1,18 +1,18 @@
 disposition "operatrice_bruit_topologique" {
     ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=0)
+		entier(valeur=1; attache=graine; min=0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Poids")
-		décimal(valeur=1.0; attache=poids)
+		décimal(valeur=1.0; attache=poids; animable)
 	}
 	ligne {
 	    étiquette(valeur="Poids Normaux")
-		décimal(valeur=1.0; attache=poids_normaux)
+		décimal(valeur=1.0; attache=poids_normaux; animable)
 	}
 	ligne {
 	    étiquette(valeur="Poids Tangeantes")
-		décimal(valeur=1.0; attache=poids_tangeantes)
+		décimal(valeur=1.0; attache=poids_tangeantes; animable)
 	}
 }

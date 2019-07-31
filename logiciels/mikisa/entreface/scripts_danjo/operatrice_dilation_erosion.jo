@@ -5,6 +5,6 @@ disposition "operatrice_dilation_erosion" {
 	}
 	ligne {
 	    étiquette(valeur="Rayon")
-		entier(valeur=1; attache=rayon; min=1)
+		entier(valeur=1; attache=rayon; min=1; animable)
 	}
 }

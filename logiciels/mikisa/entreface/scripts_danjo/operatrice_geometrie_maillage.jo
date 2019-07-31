@@ -20,7 +20,7 @@ disposition "operatrice_geometrie_maillage" {
 	}
 	ligne {
 	    étiquette(valeur="Valeur Max")
-		décimal(valeur=0.0; attache=valeur_max)
+		décimal(valeur=0.0; attache=valeur_max; animable)
 	}
 	ligne {
 	    étiquette(valeur="Courbure Relative")
@@ -29,7 +29,7 @@ disposition "operatrice_geometrie_maillage" {
 	}
 	ligne {
 	    étiquette(valeur="Rayon Courbure")
-		décimal(valeur=1.0; attache=rayon)
+		décimal(valeur=1.0; attache=rayon; animable)
 	}
 	ligne {
 	    étiquette(valeur="Limite Rayon Par Arrête")
