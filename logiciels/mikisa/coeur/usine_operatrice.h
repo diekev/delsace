@@ -75,6 +75,21 @@ inline DescOperatrice cree_desc()
 	});
 }
 
+class OperatriceCorps;
+struct ContexteEvaluation;
+struct DonneesAval;
+
+using type_operatrice_sans_entree = std::function<int(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*)>;
+
+DescOperatrice cree_desc(
+		const char *nom,
+		const char *aide,
+		const char *chemin_entreface,
+		type_operatrice_sans_entree &&fonction,
+		bool depend_sur_temps);
+
+/* ************************************************************************** */
+
 class UsineOperatrice final {
 public:
 	/**

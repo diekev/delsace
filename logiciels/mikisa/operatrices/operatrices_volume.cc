@@ -55,62 +55,43 @@ class OperatriceResolutionPression;
 
 /* ************************************************************************** */
 
-class OperatriceCreationVolume : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Créer volume";
-	static constexpr auto AIDE = "";
+static int cree_volume(
+		OperatriceCorps &op,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
+	INUTILISE(contexte);
+	INUTILISE(donnees_aval);
 
-	explicit OperatriceCreationVolume(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceCorps(graphe_parent, noeud)
-	{
-		entrees(0);
+	op.corps()->reinitialise();
+
+	auto gna = GNA();
+
+	auto etendu = limites3f{};
+	etendu.min = dls::math::vec3f(-1.0f);
+	etendu.max = dls::math::vec3f(1.0f);
+	auto fenetre_donnees = etendu;
+	auto taille_voxel = 2.0f / 32.0f;
+
+	auto volume = memoire::loge<Volume>("Volume");
+	auto grille_scalaire = memoire::loge<Grille<float>>("grille", etendu, fenetre_donnees, taille_voxel);
+
+	auto limites = limites3i{};
+	limites.min = dls::math::vec3i(0);
+	limites.max = grille_scalaire->resolution();
+
+	auto iter = IteratricePosition(limites);
+
+	while (!iter.fini()) {
+		auto pos = iter.suivante();
+		grille_scalaire->valeur(pos, gna.uniforme(0.0f, 1.0f));
 	}
 
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
+	volume->grille = grille_scalaire;
+	op.corps()->prims()->pousse(volume);
 
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		INUTILISE(contexte);
-		INUTILISE(donnees_aval);
-
-		m_corps.reinitialise();
-
-		auto gna = GNA();
-
-		auto etendu = limites3f{};
-		etendu.min = dls::math::vec3f(-1.0f);
-		etendu.max = dls::math::vec3f(1.0f);
-		auto fenetre_donnees = etendu;
-		auto taille_voxel = 2.0f / 32.0f;
-
-		auto volume = memoire::loge<Volume>("Volume");
-		auto grille_scalaire = memoire::loge<Grille<float>>("grille", etendu, fenetre_donnees, taille_voxel);
-
-		auto limites = limites3i{};
-		limites.min = dls::math::vec3i(0);
-		limites.max = grille_scalaire->resolution();
-
-		auto iter = IteratricePosition(limites);
-
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			grille_scalaire->valeur(pos, gna.uniforme(0.0f, 1.0f));
-		}
-
-		volume->grille = grille_scalaire;
-		m_corps.prims()->pousse(volume);
-
-		return EXECUTION_REUSSIE;
-	}
-};
+	return EXECUTION_REUSSIE;
+}
 
 /* ************************************************************************** */
 
@@ -576,7 +557,7 @@ public:
 
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceCreationVolume>());
+	usine.enregistre_type(cree_desc("Créer volume", "", "", cree_volume, false));
 	usine.enregistre_type(cree_desc<OperatriceMaillageVersVolume>());
 	usine.enregistre_type(cree_desc<OpRasterisationPrimitive>());
 }

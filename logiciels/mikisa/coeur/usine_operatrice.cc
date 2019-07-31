@@ -26,7 +26,104 @@
 
 #include <cassert>
 
+#include "operatrice_corps.h"
 #include "operatrice_image.h"
+
+/* ************************************************************************** */
+
+class OperatriceCorpsSE : public OperatriceCorps {
+public:
+	type_operatrice_sans_entree m_fonction{};
+	const char *m_nom_classe = "";
+	const char *m_aide = "";
+	const char *m_chemin_entreface = "";
+	bool m_depend_sur_temps = false;
+	char pad[7];
+
+	explicit OperatriceCorpsSE(Graphe &graphe_parent, Noeud *noeud);
+
+	OperatriceCorpsSE(OperatriceCorpsSE const &) = default;
+	OperatriceCorpsSE &operator=(OperatriceCorpsSE const &) = default;
+
+	const char *nom_classe() const override;
+
+	const char *texte_aide() const override;
+
+	const char *chemin_entreface() const override;
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+
+	bool depend_sur_temps() const override;
+};
+
+OperatriceCorpsSE::OperatriceCorpsSE(Graphe &graphe_parent, Noeud *noeud)
+	: OperatriceCorps(graphe_parent, noeud)
+{
+	entrees(0);
+	sorties(1);
+}
+
+const char *OperatriceCorpsSE::nom_classe() const
+{
+	return m_nom_classe;
+}
+
+const char *OperatriceCorpsSE::texte_aide() const
+{
+	return m_aide;
+}
+
+const char *OperatriceCorpsSE::chemin_entreface() const
+{
+	return m_chemin_entreface;
+}
+
+int OperatriceCorpsSE::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+{
+	if (m_fonction == nullptr) {
+		this->ajoute_avertissement("La fonction est nulle !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	return m_fonction(*this, contexte, donnees_aval);
+}
+
+bool OperatriceCorpsSE::depend_sur_temps() const
+{
+	return m_depend_sur_temps;
+}
+
+/* ************************************************************************** */
+
+DescOperatrice cree_desc(
+		const char *nom,
+		const char *aide,
+		const char *chemin_entreface,
+		type_operatrice_sans_entree &&fonction,
+		bool depend_sur_temps)
+{
+	return DescOperatrice(
+				nom,
+				aide,
+				[=](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
+	{
+		auto ptr = memoire::loge<OperatriceCorpsSE>(nom, graphe_parent, noeud);
+		ptr->m_nom_classe = nom;
+		ptr->m_aide = aide;
+		ptr->m_chemin_entreface = chemin_entreface;
+		ptr->m_fonction = fonction;
+		ptr->m_depend_sur_temps = depend_sur_temps;
+
+		return ptr;
+	},
+	[=](OperatriceImage *operatrice) -> void
+	{
+		auto derivee = dynamic_cast<OperatriceCorpsSE *>(operatrice);
+		memoire::deloge(nom, derivee);
+	});
+}
+
+/* ************************************************************************** */
 
 long UsineOperatrice::enregistre_type(DescOperatrice const &desc)
 {
