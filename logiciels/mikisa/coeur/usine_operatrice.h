@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -34,16 +36,16 @@ class Noeud;
 class OperatriceImage;
 
 struct DescOperatrice {
-	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
-	typedef void (*fonc_suppression)(OperatriceImage *);
+	using fonction_construction = std::function<OperatriceImage *(Graphe &, Noeud *)>;
+	using fonction_destruction = std::function<void(OperatriceImage *)>;
 
 	DescOperatrice() = default;
 
 	DescOperatrice(
 			dls::chaine const &opname,
 			dls::chaine const &ophelp,
-			factory_func func,
-			fonc_suppression func_supp)
+			fonction_construction func,
+			fonction_destruction func_supp)
 	    : name(opname)
 	    , tooltip(ophelp)
 	    , build_operator(func)
@@ -52,8 +54,8 @@ struct DescOperatrice {
 
 	dls::chaine name = "";
 	dls::chaine tooltip = "";
-	factory_func build_operator = nullptr;
-	fonc_suppression supprime_operatrice = nullptr;
+	fonction_construction build_operator = nullptr;
+	fonction_destruction supprime_operatrice = nullptr;
 };
 
 template <typename T>
@@ -75,8 +77,6 @@ inline DescOperatrice cree_desc()
 
 class UsineOperatrice final {
 public:
-	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
-
 	/**
 	 * @brief register_type Register a new element in this factory.
 	 *
