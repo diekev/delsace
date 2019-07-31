@@ -43,16 +43,6 @@
 #include "delegue_hbe.hh"
 #include "outils_visualisation.hh"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
-
-/* ************************************************************************** */
-
-class OperatriceAdvectionVolume;
-class OperatriceConditionLimite;
-class OperatriceAjoutFlottabilite;
-class OperatriceResolutionPression;
-
 /* ************************************************************************** */
 
 static int cree_volume(
@@ -507,5 +497,3 @@ void enregistre_operatrices_volume(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc("Maillage vers Volume", "", "entreface/operatrice_maillage_vers_volume.jo", maillage_vers_volume, false));
 	usine.enregistre_type(cree_desc("Rastérisation Prim", "", "entreface/operatrice_rasterisation_prim.jo", ratisse_primitives, false));
 }
-
-#pragma clang diagnostic pop
