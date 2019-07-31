@@ -58,9 +58,45 @@ enum TypePropriete {
 	LISTE_MANIP,
 };
 
+enum etat_propriete : char {
+	VIERGE            = 0,
+	EST_ANIMEE        = (1 << 0),
+	EST_ANIMABLE      = (1 << 1),
+	EST_ACTIVEE       = (1 << 2),
+	EST_ACTIVABLE     = (1 << 3),
+	EST_VERROUILLEE   = (1 << 4),
+};
+
+inline auto operator&(etat_propriete gauche, etat_propriete droite)
+{
+	return static_cast<etat_propriete>(static_cast<unsigned short>(gauche) & static_cast<unsigned short>(droite));
+}
+
+inline auto operator|(etat_propriete gauche, etat_propriete droite)
+{
+	return static_cast<etat_propriete>(static_cast<unsigned short>(gauche) | static_cast<unsigned short>(droite));
+}
+
+inline auto operator~(etat_propriete droite)
+{
+	return static_cast<etat_propriete>(~static_cast<unsigned short>(droite));
+}
+
+inline auto operator&=(etat_propriete &gauche, etat_propriete droite)
+{
+	return (gauche = gauche & droite);
+}
+
+inline auto operator|=(etat_propriete &gauche, etat_propriete droite)
+{
+	return (gauche = gauche | droite);
+}
+
 struct Propriete {
 	std::any valeur{};
 	TypePropriete type{};
+
+	etat_propriete etat = etat_propriete::VIERGE;
 
 	bool est_extra = false;
 
@@ -80,7 +116,7 @@ struct Propriete {
 
 	void supprime_animation();
 
-	bool est_anime() const;
+	bool est_animee() const;
 
 	bool possede_cle(int temps) const;
 

@@ -63,7 +63,7 @@ void Propriete::supprime_animation()
 	courbe.efface();
 }
 
-bool Propriete::est_anime() const
+bool Propriete::est_animee() const
 {
 	return !courbe.est_vide();
 }
@@ -305,7 +305,7 @@ int Manipulable::evalue_entier(const dls::chaine &nom, int temps) const
 {
 	auto prop = propriete(nom);
 
-	if (prop->est_anime()) {
+	if (prop->est_animee()) {
 		return prop->evalue_entier(temps);
 	}
 
@@ -316,7 +316,7 @@ float Manipulable::evalue_decimal(const dls::chaine &nom, int temps) const
 {
 	auto prop = propriete(nom);
 
-	if (prop->est_anime()) {
+	if (prop->est_animee()) {
 		return prop->evalue_decimal(temps);
 	}
 
@@ -327,7 +327,7 @@ dls::math::vec3f Manipulable::evalue_vecteur(const dls::chaine &nom, int temps) 
 {
 	auto prop = propriete(nom);
 
-	if (prop->est_anime()) {
+	if (prop->est_animee()) {
 		return prop->evalue_vecteur(temps);
 	}
 
@@ -338,7 +338,7 @@ dls::phys::couleur32 Manipulable::evalue_couleur(const dls::chaine &nom, int tem
 {
 	auto prop = propriete(nom);
 
-	if (prop->est_anime()) {
+	if (prop->est_animee()) {
 		return prop->evalue_couleur(temps);
 	}
 
@@ -513,7 +513,7 @@ bool Manipulable::possede_animation() const
 	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
 		auto &prop = iter->second;
 
-		if (prop.est_anime()) {
+		if (prop.est_animee()) {
 			return true;
 		}
 	}

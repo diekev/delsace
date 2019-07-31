@@ -106,7 +106,7 @@ static void sauvegarde_proprietes(
 //		element_prop->SetAttribut("max", prop.max);
 		element_prop->SetAttribut("visible", prop.visible);
 		element_prop->SetAttribut("type", static_cast<int>(prop.type));
-		element_prop->SetAttribut("anime", prop.est_anime());
+		element_prop->SetAttribut("anime", prop.est_animee());
 
 		auto element_donnees = doc.NewElement("donnees");
 
@@ -122,7 +122,7 @@ static void sauvegarde_proprietes(
 				auto donnees = manipulable->evalue_entier(nom);
 				element_donnees->SetAttribut("valeur", donnees);
 
-				if (prop.est_anime()) {
+				if (prop.est_animee()) {
 					auto element_animation = doc.NewElement("animation");
 
 					for (auto const &valeur : prop.courbe) {
@@ -142,7 +142,7 @@ static void sauvegarde_proprietes(
 				auto donnees = manipulable->evalue_decimal(nom);
 				element_donnees->SetAttribut("valeur", donnees);
 
-				if (prop.est_anime()) {
+				if (prop.est_animee()) {
 					auto element_animation = doc.NewElement("animation");
 
 					for (auto const &valeur : prop.courbe) {
@@ -165,7 +165,7 @@ static void sauvegarde_proprietes(
 				element_donnees->SetAttribut("valeury", donnees.y);
 				element_donnees->SetAttribut("valeurz", donnees.z);
 
-				if (prop.est_anime()) {
+				if (prop.est_animee()) {
 					auto element_animation = doc.NewElement("animation");
 
 					for (auto const &valeur : prop.courbe) {

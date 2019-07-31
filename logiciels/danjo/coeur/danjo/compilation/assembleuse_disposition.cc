@@ -281,7 +281,14 @@ void AssembleurDisposition::finalise_controle()
 
 	/* NOTE : l'initialisation de la valeur par défaut de la propriété se fait
 	 * dans la méthode 'finalise' du controle. */
-	m_dernier_controle->proriete(m_manipulable->propriete(m_donnees_controle.nom));
+	auto prop = m_manipulable->propriete(m_donnees_controle.nom);
+
+	/* Les étiquettes n'ont pas de pointeur dans le Manipulable. */
+	if (prop != nullptr) {
+		prop->etat = m_donnees_controle.etat;
+	}
+
+	m_dernier_controle->proriete(prop);
 	m_dernier_controle->temps(m_temps);
 	m_dernier_controle->finalise(m_donnees_controle);
 
@@ -333,6 +340,12 @@ void AssembleurDisposition::propriete_controle(id_morceau identifiant, const dls
 			break;
 		case id_morceau::SUFFIXE:
 			m_donnees_controle.suffixe = valeur;
+			break;
+		case id_morceau::ANIMABLE:
+			m_donnees_controle.etat |= EST_ANIMABLE;
+			break;
+		case id_morceau::ACTIVABLE:
+			m_donnees_controle.etat |= EST_ACTIVABLE;
 			break;
 		default:
 			break;

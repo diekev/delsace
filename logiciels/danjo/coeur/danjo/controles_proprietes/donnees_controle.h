@@ -50,6 +50,7 @@ struct DonneesControle {
 	dls::chaine suffixe = "";
 	dls::tableau<std::pair<dls::chaine, dls::chaine>> valeur_enum{};
 	TypePropriete type = {};
+	etat_propriete etat = etat_propriete::VIERGE;
 
 	bool initialisation = false;
 

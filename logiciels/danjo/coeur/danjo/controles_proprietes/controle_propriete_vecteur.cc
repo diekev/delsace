@@ -139,7 +139,11 @@ void ControleProprieteVec3::finalise(const DonneesControle &donnees)
 		m_propriete->valeur = valeur_defaut;
 	}
 
-	m_animation = m_propriete->est_anime();
+	if ((m_propriete->etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE) {
+		m_bouton_animation->hide();
+	}
+
+	m_animation = m_propriete->est_animee();
 
 	if (m_animation) {
 		m_bouton_animation->setText("c");

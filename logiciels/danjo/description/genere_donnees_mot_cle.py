@@ -54,6 +54,8 @@ mot_cles = [
 	u"rampe_couleur",
 	u"texte",
 	u"liste_manip",
+	u"animable",
+	u"activable",
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)

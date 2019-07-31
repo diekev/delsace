@@ -32,6 +32,8 @@ namespace danjo {
 
 static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine("action"), id_morceau::ACTION },
+	dls::paire{ dls::vue_chaine("activable"), id_morceau::ACTIVABLE },
+	dls::paire{ dls::vue_chaine("animable"), id_morceau::ANIMABLE },
 	dls::paire{ dls::vue_chaine("attache"), id_morceau::ATTACHE },
 	dls::paire{ dls::vue_chaine("barre_outils"), id_morceau::BARRE_OUTILS },
 	dls::paire{ dls::vue_chaine("bouton"), id_morceau::BOUTON },
@@ -231,6 +233,10 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::BARE_BARRE";
 		case id_morceau::ACTION:
 			return "id_morceau::ACTION";
+		case id_morceau::ACTIVABLE:
+			return "id_morceau::ACTIVABLE";
+		case id_morceau::ANIMABLE:
+			return "id_morceau::ANIMABLE";
 		case id_morceau::ATTACHE:
 			return "id_morceau::ATTACHE";
 		case id_morceau::BARRE_OUTILS:

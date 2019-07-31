@@ -78,6 +78,8 @@ enum class id_morceau : unsigned int {
 	OU_EGAL,
 	BARE_BARRE,
 	ACTION,
+	ACTIVABLE,
+	ANIMABLE,
 	ATTACHE,
 	BARRE_OUTILS,
 	BOUTON,
