@@ -24,6 +24,8 @@
 
 #include "incompressibilite.hh"
 
+#include <tbb/parallel_reduce.h>
+
 #include "biblinternes/moultfilage/boucle.hh"
 
 #include "corps/iter_volume.hh"
@@ -1611,55 +1613,55 @@ static auto calcul_divergence(
 		Grille<int> const &drapeaux)
 {
 	auto divergence = Grille<float>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
+	auto const res = velocite.resolution();
+	auto const taille_dalle = res.x * res.y;
+	auto const dx = velocite.taille_voxel();
 
-	auto res = velocite.resolution();
-	auto _slabSize = res.x * res.y;
-	auto _xRes = res.x;
-	auto _yRes = res.y;
-	auto _zRes = res.z;
-	auto _dx = velocite.taille_voxel();
+	boucle_parallele(tbb::blocked_range<int>(1, res.z - 1),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			for (auto y = 1; y < res.y - 1; ++y) {
+				for (auto x = 1; x < res.x - 1; ++x) {
+					auto const index = x + (y + z * res.y) * res.x;
 
-	auto index = _slabSize + _xRes + 1;
-	for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes) {
-		for (auto y = 1; y < _yRes - 1; y++, index += 2) {
-			for (auto x = 1; x < _xRes - 1; x++, index++) {
+					if (est_obstacle(drapeaux, index)) {
+						divergence.valeur(index) = 0.0f;
+						continue;
+					}
 
-				if (est_obstacle(drapeaux, index)) {
-					divergence.valeur(index) = 0.0f;
-					continue;
+					float xright = velocite.valeur(index + 1).x;
+					float xleft  = velocite.valeur(index - 1).x;
+					float yup    = velocite.valeur(index + res.x).y;
+					float ydown  = velocite.valeur(index - res.x).y;
+					float ztop   = velocite.valeur(index + taille_dalle).z;
+					float zbottom = velocite.valeur(index - taille_dalle).z;
+
+					if (est_obstacle(drapeaux, index+1)) xright = - velocite.valeur(index).x; // DG: +=
+					if (est_obstacle(drapeaux, index-1)) xleft  = - velocite.valeur(index).x;
+					if (est_obstacle(drapeaux, index+res.x)) yup    = - velocite.valeur(index).y;
+					if (est_obstacle(drapeaux, index-res.x)) ydown  = - velocite.valeur(index).y;
+					if (est_obstacle(drapeaux, index+taille_dalle)) ztop    = - velocite.valeur(index).z;
+					if (est_obstacle(drapeaux, index-taille_dalle)) zbottom = - velocite.valeur(index).z;
+
+					//				if(_obstacles[index+1] & 8)			xright	+= _xVelocityOb.valeur(index + 1);
+					//				if(_obstacles[index-1] & 8)			xleft	+= _xVelocityOb.valeur(index - 1);
+					//				if(_obstacles[index+res.x] & 8)		yup		+= _yVelocityOb.valeur(index + res.x);
+					//				if(_obstacles[index-res.x] & 8)		ydown	+= _yVelocityOb.valeur(index - res.x);
+					//				if(_obstacles[index+taille_dalle] & 8) ztop    += _zVelocityOb.valeur(index + taille_dalle);
+					//				if(_obstacles[index-taille_dalle] & 8) zbottom += _zVelocityOb.valeur(index - taille_dalle);
+
+					divergence.valeur(index) = -dx * 0.5f * (
+								xright - xleft +
+								yup - ydown +
+								ztop - zbottom );
+
+					// Pressure is zero anyway since now a local array is used
+					//				_pressure.valeur(index) = 0.0f;
 				}
-
-				float xright = velocite.valeur(index + 1).x;
-				float xleft  = velocite.valeur(index - 1).x;
-				float yup    = velocite.valeur(index + _xRes).y;
-				float ydown  = velocite.valeur(index - _xRes).y;
-				float ztop   = velocite.valeur(index + _slabSize).z;
-				float zbottom = velocite.valeur(index - _slabSize).z;
-
-				if (est_obstacle(drapeaux, index+1)) xright = - velocite.valeur(index).x; // DG: +=
-				if (est_obstacle(drapeaux, index-1)) xleft  = - velocite.valeur(index).x;
-				if (est_obstacle(drapeaux, index+_xRes)) yup    = - velocite.valeur(index).y;
-				if (est_obstacle(drapeaux, index-_xRes)) ydown  = - velocite.valeur(index).y;
-				if (est_obstacle(drapeaux, index+_slabSize)) ztop    = - velocite.valeur(index).z;
-				if (est_obstacle(drapeaux, index-_slabSize)) zbottom = - velocite.valeur(index).z;
-
-				//				if(_obstacles[index+1] & 8)			xright	+= _xVelocityOb.valeur(index + 1);
-				//				if(_obstacles[index-1] & 8)			xleft	+= _xVelocityOb.valeur(index - 1);
-				//				if(_obstacles[index+_xRes] & 8)		yup		+= _yVelocityOb.valeur(index + _xRes);
-				//				if(_obstacles[index-_xRes] & 8)		ydown	+= _yVelocityOb.valeur(index - _xRes);
-				//				if(_obstacles[index+_slabSize] & 8) ztop    += _zVelocityOb.valeur(index + _slabSize);
-				//				if(_obstacles[index-_slabSize] & 8) zbottom += _zVelocityOb.valeur(index - _slabSize);
-
-				divergence.valeur(index) = -_dx * 0.5f * (
-							xright - xleft +
-							yup - ydown +
-							ztop - zbottom );
-
-				// Pressure is zero anyway since now a local array is used
-				//				_pressure.valeur(index) = 0.0f;
 			}
 		}
-	}
+	});
 
 	return divergence;
 }
@@ -1669,212 +1671,268 @@ static auto resoud_pression(
 		Grille<float> const &divergence,
 		Grille<int> const &drapeaux)
 {
-	auto _iterations = 100;
-	auto res = pression.resolution();
-	auto _slabSize = res.x * res.y;
-	auto _xRes = res.x;
-	auto _yRes = res.y;
-	auto _zRes = res.z;
+	auto const iterations = 100;
+	auto const res = pression.resolution();
+	auto const taille_dalle = res.x * res.y;
 
-	// i = 0
-	int i = 0;
+	auto residue   = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto direction = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto q         = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto h         = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto precond   = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
 
-	auto _residual  = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto _direction = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto _q         = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto _h			= Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto _Precond	= Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-
-	auto deltaNew = 0.0f;
-
-	// r = b - Ax
-	auto index = _slabSize + _xRes + 1;
-	for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes) {
-		for (auto y = 1; y < _yRes - 1; y++, index += 2) {
-			for (auto x = 1; x < _xRes - 1; x++, index++) {
-				// if the cell is a variable
-				float Acenter = 0.0f;
-
-				if (!est_obstacle(drapeaux, index)) {
-					// set the matrix to the Poisson stencil in order
-					if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
-					if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
-					if (!est_obstacle(drapeaux, index + _xRes)) Acenter += 1.0f;
-					if (!est_obstacle(drapeaux, index - _xRes)) Acenter += 1.0f;
-					if (!est_obstacle(drapeaux, index + _slabSize)) Acenter += 1.0f;
-					if (!est_obstacle(drapeaux, index - _slabSize)) Acenter += 1.0f;
-
-					_residual.valeur(index) = divergence.valeur(index) - (Acenter * pression.valeur(index) +
-																 pression.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
-																 pression.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
-																 pression.valeur(index - _xRes) * (est_obstacle(drapeaux, index - _xRes) ? 0.0f : -1.0f)+
-																 pression.valeur(index + _xRes) * (est_obstacle(drapeaux, index + _xRes) ? 0.0f : -1.0f)+
-																 pression.valeur(index - _slabSize) * (est_obstacle(drapeaux, index - _slabSize) ? 0.0f : -1.0f)+
-																 pression.valeur(index + _slabSize) * (est_obstacle(drapeaux, index + _slabSize) ? 0.0f : -1.0f) );
-				}
-				else
-				{
-					_residual.valeur(index) = 0.0f;
-				}
-
-				// P^-1
-				if(Acenter < 1.0f)
-					_Precond.valeur(index) = 0.0;
-				else
-					_Precond.valeur(index) = 1.0f / Acenter;
-
-				// p = P^-1 * r
-				_direction.valeur(index) = _residual.valeur(index) * _Precond.valeur(index);
-
-				deltaNew += _residual.valeur(index) * _direction.valeur(index);
-			}
-		}
-	}
-
-
-	// While deltaNew > (eps^2) * delta0
-	const float eps  = 1e-06f;
-	//while ((i < _iterations) && (deltaNew > eps*delta0))
-	float maxR = 2.0f * eps;
-	// while (i < _iterations)
-	while ((i < _iterations) && (maxR > 0.001f * eps))
+	auto nouveau_delta = tbb::parallel_reduce(
+				tbb::blocked_range<int>(1, res.z - 1),
+				0.0f,
+				[&](tbb::blocked_range<int> const &plage, float init)
 	{
+			auto delta = init;
 
-		float alpha = 0.0f;
+			for (auto z = plage.begin(); z < plage.end(); ++z) {
+				for (auto y = 1; y < res.y - 1; ++y) {
+					for (auto x = 1; x < res.x - 1; ++x) {
+						auto index = x + (y + z * res.y) * res.x;
+						// if the cell is a variable
+						float Acenter = 0.0f;
 
-		index = _slabSize + _xRes + 1;
-		for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
-			for (auto y = 1; y < _yRes - 1; y++, index += 2)
-				for (auto x = 1; x < _xRes - 1; x++, index++)
-				{
-					// if the cell is a variable
-					float Acenter = 0.0f;
-					if (!est_obstacle(drapeaux, index))
-					{
-						// set the matrix to the Poisson stencil in order
-						if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
-						if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
-						if (!est_obstacle(drapeaux, index + _xRes)) Acenter += 1.0f;
-						if (!est_obstacle(drapeaux, index - _xRes)) Acenter += 1.0f;
-						if (!est_obstacle(drapeaux, index + _slabSize)) Acenter += 1.0f;
-						if (!est_obstacle(drapeaux, index - _slabSize)) Acenter += 1.0f;
+						if (!est_obstacle(drapeaux, index)) {
+							// set the matrix to the Poisson stencil in order
+							if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
+							if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
+							if (!est_obstacle(drapeaux, index + res.x)) Acenter += 1.0f;
+							if (!est_obstacle(drapeaux, index - res.x)) Acenter += 1.0f;
+							if (!est_obstacle(drapeaux, index + taille_dalle)) Acenter += 1.0f;
+							if (!est_obstacle(drapeaux, index - taille_dalle)) Acenter += 1.0f;
 
-						_q.valeur(index) = Acenter * _direction.valeur(index) +
-								_direction.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
-								_direction.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
-								_direction.valeur(index - _xRes) * (est_obstacle(drapeaux, index - _xRes) ? 0.0f : -1.0f) +
-								_direction.valeur(index + _xRes) * (est_obstacle(drapeaux, index + _xRes) ? 0.0f : -1.0f)+
-								_direction.valeur(index - _slabSize) * (est_obstacle(drapeaux, index - _slabSize) ? 0.0f : -1.0f) +
-								_direction.valeur(index + _slabSize) * (est_obstacle(drapeaux, index + _slabSize) ? 0.0f : -1.0f);
+							residue.valeur(index) = divergence.valeur(index) - (Acenter * pression.valeur(index) +
+																		 pression.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
+																		 pression.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
+																		 pression.valeur(index - res.x) * (est_obstacle(drapeaux, index - res.x) ? 0.0f : -1.0f)+
+																		 pression.valeur(index + res.x) * (est_obstacle(drapeaux, index + res.x) ? 0.0f : -1.0f)+
+																		 pression.valeur(index - taille_dalle) * (est_obstacle(drapeaux, index - taille_dalle) ? 0.0f : -1.0f)+
+																		 pression.valeur(index + taille_dalle) * (est_obstacle(drapeaux, index + taille_dalle) ? 0.0f : -1.0f) );
+						}
+						else
+						{
+							residue.valeur(index) = 0.0f;
+						}
+
+						// P^-1
+						if(Acenter < 1.0f)
+							precond.valeur(index) = 0.0;
+						else
+							precond.valeur(index) = 1.0f / Acenter;
+
+						// p = P^-1 * r
+						direction.valeur(index) = residue.valeur(index) * precond.valeur(index);
+
+						delta += residue.valeur(index) * direction.valeur(index);
 					}
-					else
-					{
-						_q.valeur(index) = 0.0f;
-					}
+				}
+			}
 
-					alpha += _direction.valeur(index) * _q.valeur(index);
+		return delta;
+	},
+	std::plus<float>());
+
+	/* résoud r = b - Ax */
+
+	auto const eps  = 1e-06f;
+	auto residue_max = 2.0f * eps;
+	auto i = 0;
+
+	while ((i < iterations) && (residue_max > 0.001f * eps)) {
+		auto alpha = tbb::parallel_reduce(
+					tbb::blocked_range<int>(1, res.z - 1),
+					0.0f,
+					[&](tbb::blocked_range<int> const &plage, float init)
+		{
+				auto alpha = init;
+
+				for (auto z = plage.begin(); z < plage.end(); ++z) {
+					for (auto y = 1; y < res.y - 1; ++y) {
+						for (auto x = 1; x < res.x - 1; ++x) {
+							auto index = x + (y + z * res.y) * res.x;
+							// if the cell is a variable
+							auto Acenter = 0.0f;
+
+							if (!est_obstacle(drapeaux, index)) {
+								// set the matrix to the Poisson stencil in order
+								if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
+								if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
+								if (!est_obstacle(drapeaux, index + res.x)) Acenter += 1.0f;
+								if (!est_obstacle(drapeaux, index - res.x)) Acenter += 1.0f;
+								if (!est_obstacle(drapeaux, index + taille_dalle)) Acenter += 1.0f;
+								if (!est_obstacle(drapeaux, index - taille_dalle)) Acenter += 1.0f;
+
+								q.valeur(index) = Acenter * direction.valeur(index) +
+										direction.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
+										direction.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
+										direction.valeur(index - res.x) * (est_obstacle(drapeaux, index - res.x) ? 0.0f : -1.0f) +
+										direction.valeur(index + res.x) * (est_obstacle(drapeaux, index + res.x) ? 0.0f : -1.0f)+
+										direction.valeur(index - taille_dalle) * (est_obstacle(drapeaux, index - taille_dalle) ? 0.0f : -1.0f) +
+										direction.valeur(index + taille_dalle) * (est_obstacle(drapeaux, index + taille_dalle) ? 0.0f : -1.0f);
+							}
+							else {
+								q.valeur(index) = 0.0f;
+							}
+
+							alpha += direction.valeur(index) * q.valeur(index);
+						}
+					}
 				}
 
+			return alpha;
+		},
+		std::plus<float>());
 
 		if (std::abs(alpha) > 0.0f) {
-			alpha = deltaNew / alpha;
+			alpha = nouveau_delta / alpha;
 		}
 
-		float deltaOld = deltaNew;
-		deltaNew = 0.0f;
+		auto const ancien_delta = nouveau_delta;
 
-		maxR = 0.0;
+		/* x = x + alpha * d */
+		auto p_dm = tbb::parallel_reduce(
+					tbb::blocked_range<int>(1, res.z - 1),
+					std::pair(0.0f, 0.0f),
+					[&](tbb::blocked_range<int> const &plage, std::pair<float, float> init)
+		{
+				auto delta = init.first;
+				auto max_r = init.second;
 
-		float tmp;
+				for (auto z = plage.begin(); z < plage.end(); ++z) {
+					for (auto y = 1; y < res.y - 1; ++y) {
+						for (auto x = 1; x < res.x - 1; ++x) {
+							auto index = x + (y + z * res.y) * res.x;
 
-		// x = x + alpha * d
-		index = _slabSize + _xRes + 1;
-		for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
-			for (auto y = 1; y < _yRes - 1; y++, index += 2)
-				for (auto x = 1; x < _xRes - 1; x++, index++)
-				{
-					pression.valeur(index) += alpha * _direction.valeur(index);
+							pression.valeur(index) += alpha * direction.valeur(index);
 
-					_residual.valeur(index) -= alpha * _q.valeur(index);
+							residue.valeur(index) -= alpha * q.valeur(index);
 
-					_h.valeur(index) = _Precond.valeur(index) * _residual.valeur(index);
+							h.valeur(index) = precond.valeur(index) * residue.valeur(index);
 
-					tmp = _residual.valeur(index) * _h.valeur(index);
-					deltaNew += tmp;
-					maxR = (tmp > maxR) ? tmp : maxR;
-
+							auto tmp = residue.valeur(index) * h.valeur(index);
+							delta += tmp;
+							max_r = (tmp > max_r) ? tmp : max_r;
+						}
+					}
 				}
 
+			return std::pair<float, float>(delta, max_r);
+		},
+		[](std::pair<float, float> p1, std::pair<float, float> p2)
+{
+	return std::pair(p1.first + p2.first, std::max(p1.second, p2.second));
+});
 
-		// beta = deltaNew / deltaOld
-		float beta = deltaNew / deltaOld;
+		nouveau_delta = p_dm.first;
+		residue_max = p_dm.second;
+
+		auto const beta = nouveau_delta / ancien_delta;
 
 		// d = h + beta * d
-		index = _slabSize + _xRes + 1;
-		for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
-			for (auto y = 1; y < _yRes - 1; y++, index += 2)
-				for (auto x = 1; x < _xRes - 1; x++, index++)
-					_direction.valeur(index) = _h.valeur(index) + beta * _direction.valeur(index);
+		boucle_parallele(tbb::blocked_range<int>(1, res.z - 1),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			for (auto z = plage.begin(); z < plage.end(); ++z) {
+				for (auto y = 1; y < res.y - 1; ++y) {
+					for (auto x = 1; x < res.x - 1; ++x) {
+						auto const index = x + (y + z * res.y) * res.x;
+						direction.valeur(index) = h.valeur(index) + beta * direction.valeur(index);
+					}
+				}
+			}
+		});
 
-		// i = i + 1
 		i++;
 	}
-	std::cout << i << " iterations converged to " << std::sqrt(maxR) << '\n';
+
+	std::cout << i << " iterations converged to " << std::sqrt(residue_max) << '\n';
 }
 
 static auto projette_solution(
 		GrilleMAC &velocite,
-		Grille<float> &_pressure,
+		Grille<float> &pression,
 		Grille<int> const &drapeaux)
 {
-	auto res = _pressure.resolution();
-	auto _slabSize = res.x * res.y;
-	auto _xRes = res.x;
-	auto _yRes = res.y;
-	auto _zRes = res.z;
-	auto _dx = _pressure.taille_voxel();
-	float invDx = 1.0f / _dx;
-	auto index = _slabSize + _xRes + 1;
-	for (auto z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
-		for (auto y = 1; y < _yRes - 1; y++, index += 2)
-			for (auto x = 1; x < _xRes - 1; x++, index++)
-			{
-				float vMask[3] = {1.0f, 1.0f, 1.0f}, vObst[3] = {0, 0, 0};
-				// float vR = 0.0f, vL = 0.0f, vT = 0.0f, vB = 0.0f, vD = 0.0f, vU = 0.0f;  // UNUSED
+	auto res = pression.resolution();
+	auto taille_dalle = res.x * res.y;
+	auto dx_inv = 1.0f / pression.taille_voxel();
 
-				float pC = _pressure.valeur(index); // center
-				float pR = _pressure.valeur(index + 1); // right
-				float pL = _pressure.valeur(index - 1); // left
-				float pU = _pressure.valeur(index + _xRes); // Up
-				float pD = _pressure.valeur(index - _xRes); // Down
-				float pT = _pressure.valeur(index + _slabSize); // top
-				float pB = _pressure.valeur(index - _slabSize); // bottom
+	boucle_parallele(tbb::blocked_range<int>(1, res.z - 1),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			for (auto y = 1; y < res.y - 1; ++y) {
+				for (auto x = 1; x < res.x - 1; ++x) {
+					auto const index = x + (y + z * res.y) * res.x;
 
-				if(!est_obstacle(drapeaux, index))
-				{
-					// DG TODO: What if obstacle is left + right and one of them is moving?
-					if(est_obstacle(drapeaux, index+1))			{ pR = pC; /*vObst[0] = _xVelocityOb.valeur(index + 1);*/			vMask[0] = 0; }
-					if(est_obstacle(drapeaux, index-1))			{ pL = pC; /*vObst[0]	= _xVelocityOb.valeur(index - 1);*/			vMask[0] = 0; }
-					if(est_obstacle(drapeaux, index+_xRes))		{ pU = pC; /*vObst[1]	= _yVelocityOb.valeur(index + _xRes);*/		vMask[1] = 0; }
-					if(est_obstacle(drapeaux, index-_xRes))		{ pD = pC; /*vObst[1]	= _yVelocityOb.valeur(index - _xRes);*/		vMask[1] = 0; }
-					if(est_obstacle(drapeaux, index+_slabSize)) { pT = pC; /*vObst[2] = _zVelocityOb.valeur(index + _slabSize);*/	vMask[2] = 0; }
-					if(est_obstacle(drapeaux, index-_slabSize)) { pB = pC; /*vObst[2]	= _zVelocityOb.valeur(index - _slabSize);*/	vMask[2] = 0; }
+					float vMask[3] = {1.0f, 1.0f, 1.0f}, vObst[3] = {0, 0, 0};
 
-					velocite.valeur(index).x -= 0.5f * (pR - pL) * invDx;
-					velocite.valeur(index).y -= 0.5f * (pU - pD) * invDx;
-					velocite.valeur(index).z -= 0.5f * (pT - pB) * invDx;
+					auto p_centre   = pression.valeur(index);
+					auto p_droite   = pression.valeur(index + 1);
+					auto p_gauche   = pression.valeur(index - 1);
+					auto p_devant   = pression.valeur(index + res.x);
+					auto p_derriere = pression.valeur(index - res.x);
+					auto p_dessus   = pression.valeur(index + taille_dalle);
+					auto p_dessous  = pression.valeur(index - taille_dalle);
 
-					velocite.valeur(index).x = (vMask[0] * velocite.valeur(index).x) + vObst[0];
-					velocite.valeur(index).y = (vMask[1] * velocite.valeur(index).y) + vObst[1];
-					velocite.valeur(index).z = (vMask[2] * velocite.valeur(index).z) + vObst[2];
-				}
-				else
-				{
-//					_xVelocity.valeur(index) = _xVelocityOb.valeur(index);
-//					_yVelocity.valeur(index) = _yVelocityOb.valeur(index);
-//					_zVelocity.valeur(index) = _zVelocityOb.valeur(index);
+					if (!est_obstacle(drapeaux, index)) {
+						// DG TODO: What if obstacle is left + right and one of them is moving?
+						if (est_obstacle(drapeaux, index + 1)) {
+							p_droite = p_centre;
+							/*vObst[0] = _xVelocityOb.valeur(index + 1);*/
+							vMask[0] = 0.0f;
+						}
+
+						if (est_obstacle(drapeaux, index - 1)) {
+							p_gauche = p_centre;
+							/*vObst[0]	= _xVelocityOb.valeur(index - 1);*/
+							vMask[0] = 0.0f;
+						}
+
+						if (est_obstacle(drapeaux, index + res.x)) {
+							p_devant = p_centre;
+							/*vObst[1]	= _yVelocityOb.valeur(index + res.x);*/
+							vMask[1] = 0.0f;
+						}
+
+						if (est_obstacle(drapeaux, index - res.x))		{
+							p_derriere = p_centre;
+							/*vObst[1]	= _yVelocityOb.valeur(index - res.x);*/
+							vMask[1] = 0.0f;
+						}
+
+						if (est_obstacle(drapeaux, index + taille_dalle)) {
+							p_dessus = p_centre;
+							/*vObst[2] = _zVelocityOb.valeur(index + taille_dalle);*/
+							vMask[2] = 0.0f;
+						}
+
+						if (est_obstacle(drapeaux, index - taille_dalle)) {
+							p_dessous = p_centre;
+							/*vObst[2]	= _zVelocityOb.valeur(index - taille_dalle);*/
+							vMask[2] = 0.0f;
+						}
+
+						velocite.valeur(index).x -= 0.5f * (p_droite - p_gauche) * dx_inv;
+						velocite.valeur(index).y -= 0.5f * (p_devant - p_derriere) * dx_inv;
+						velocite.valeur(index).z -= 0.5f * (p_dessus - p_dessous) * dx_inv;
+
+						velocite.valeur(index).x = (vMask[0] * velocite.valeur(index).x) + vObst[0];
+						velocite.valeur(index).y = (vMask[1] * velocite.valeur(index).y) + vObst[1];
+						velocite.valeur(index).z = (vMask[2] * velocite.valeur(index).z) + vObst[2];
+					}
+					else {
+						//					_xVelocity.valeur(index) = _xVelocityOb.valeur(index);
+						//					_yVelocity.valeur(index) = _yVelocityOb.valeur(index);
+						//					_zVelocity.valeur(index) = _zVelocityOb.valeur(index);
+					}
 				}
 			}
+		}
+	});
 }
 
 void projette_velocite(
