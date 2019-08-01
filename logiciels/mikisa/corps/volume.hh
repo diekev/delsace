@@ -55,56 +55,6 @@ using co_discrete = dls::math::vec3i;    // (0 : res - 1)
  * - voxiales (entre 0 et res - 1)
  */
 
-/**
- * L'espace voxel peut être accéder de deux façons : par des coordonnées entière
- * ou par des coordonnées décimales. L'accès entier est utilisé pour des accès
- * directs à un voxel individuel, et l'accès décimal pour les interpolations. Il
- * faut faire attention en convertissant entre les deux. Le centre du voxel
- * (0, 0, 0) a les coordonnées (0.5, 0.5, 0.5). Ainsi, les côtés d'un champs
- * avec une résolution de 100 sont à 0.0 et 100.0 quand on utilise des
- * coordonnées décimales, mais à 0 et 99 pour des entières. Un bon survol de
- * ceci peut se trouver dans un article de Paul S. Heckbert :
- * What Are The Coordinates Of A Pixel? [Heckbert, 1990]
- */
-
-//static int continue_vers_discret(float cont)
-//{
-//	return static_cast<int>(std::floor(cont));
-//}
-
-//static float discret_vers_continue(int disc)
-//{
-//	return static_cast<float>(disc) + 0.5f;
-//}
-
-namespace dls::math {
-
-template <typename Ent, int O, typename Dec, int... Ns>
-[[nodiscard]] auto continue_vers_discret(vecteur<O, Dec, Ns...> const &cont) noexcept
-{
-	static_assert(std::is_floating_point<Dec>::value
-				  && std::is_integral<Ent>::value,
-				  "continue_vers_discret va de décimal à entier");
-
-	auto tmp = vecteur<O, Ent, Ns...>();
-	((tmp[Ns] = static_cast<Ent>(std::floor(cont[Ns]))), ...);
-	return tmp;
-}
-
-template <typename Dec, int O, typename Ent, int... Ns>
-[[nodiscard]] auto discret_vers_continue(vecteur<O, Ent, Ns...> const &cont) noexcept
-{
-	static_assert(std::is_floating_point<Dec>::value
-				  && std::is_integral<Ent>::value,
-				  "discret_vers_continue va de entier à décimal");
-
-	auto tmp = vecteur<O, Dec, Ns...>();
-	((tmp[Ns] = static_cast<Dec>(cont[Ns]) + static_cast<Dec>(0.5)), ...);
-	return tmp;
-}
-
-}
-
 struct description_volume {
 	limites3f etendues{};
 	limites3f fenetre_donnees{};
@@ -134,6 +84,32 @@ public:
 	virtual type_volume type() const = 0;
 	virtual bool est_eparse() const = 0;
 
+	description_volume const &desc() const;
+
+	dls::math::vec3i resolution() const;
+
+	limites3f const &etendu() const;
+
+	limites3f const &fenetre_donnees() const;
+
+	float taille_voxel() const;
+
+	long calcul_index(size_t x, size_t y, size_t z) const;
+
+	long nombre_voxels() const;
+
+	/**
+	 * L'espace voxel peut être accéder de deux façons : par des coordonnées entière
+	 * ou par des coordonnées décimales. L'accès entier est utilisé pour des accès
+	 * directs à un voxel individuel, et l'accès décimal pour les interpolations. Il
+	 * faut faire attention en convertissant entre les deux. Le centre du voxel
+	 * (0, 0, 0) a les coordonnées (0.5, 0.5, 0.5). Ainsi, les côtés d'un champs
+	 * avec une résolution de 100 sont à 0.0 et 100.0 quand on utilise des
+	 * coordonnées décimales, mais à 0 et 99 pour des entières. Un bon survol de
+	 * ceci peut se trouver dans un article de Paul S. Heckbert :
+	 * What Are The Coordinates Of A Pixel? [Heckbert, 1990]
+	 */
+
 	/* converti un point de l'espace voxel discret vers l'espace unitaire */
 	dls::math::vec3f index_vers_unit(dls::math::vec3i const &vsp) const;
 
@@ -154,20 +130,6 @@ public:
 
 	/* converti un point de l'espace mondiale vers l'espace index */
 	dls::math::vec3i monde_vers_index(dls::math::vec3f const &wsp) const;
-
-	description_volume const &desc() const;
-
-	dls::math::vec3i resolution() const;
-
-	limites3f const &etendu() const;
-
-	limites3f const &fenetre_donnees() const;
-
-	float taille_voxel() const;
-
-	long calcul_index(size_t x, size_t y, size_t z) const;
-
-	long nombre_voxels() const;
 };
 
 /* ************************************************************************** */
@@ -604,7 +566,7 @@ public:
 	{
 		/* continue_vers_discret nous donne la même chose que l'on recherche :
 		 * le voxel où le point d'échantillons se trouve */
-		auto dvsp = dls::math::continue_vers_discret<int>(vsp);
+		auto dvsp = dls::math::continu_vers_discret<int>(vsp);
 
 		m_grille.valeur(static_cast<size_t>(dvsp.x), static_cast<size_t>(dvsp.y), static_cast<size_t>(dvsp.z), valeur);
 	}
@@ -623,7 +585,7 @@ public:
 
 		/* Trouve le coin en bas à gauche du cube de 8 voxels qu'il nous faut
 		 * accéder. */
-		auto c = dls::math::continue_vers_discret<int>(p);
+		auto c = dls::math::continu_vers_discret<int>(p);
 
 		/* Calcul la distance fractionnelle entre les voxels.
 		 * Nous commençons avec (1.0 - fraction) puisque chaque étape de la
@@ -681,7 +643,7 @@ public:
 
 		/* Trouve le coin en bas à gauche du cube de 8 voxels qu'il nous faut
 		 * accéder. */
-		auto c = dls::math::continue_vers_discret<int>(p);
+		auto c = dls::math::continu_vers_discret<int>(p);
 
 		float poids[3];
 		auto valeur = static_cast<T>(0.0);

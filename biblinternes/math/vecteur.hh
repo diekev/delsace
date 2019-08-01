@@ -742,6 +742,38 @@ auto reflechi(
 	return I - static_cast<T>(2) * produit_scalaire(I, N) * N;
 }
 
+/**
+ * Retourne un vecteur correspondant à la conversion du vecteur d'entrée de
+ * l'espace continu vers l'espace discret.
+ */
+template <typename Ent, int O, typename Dec, int... Ns>
+[[nodiscard]] auto continu_vers_discret(vecteur<O, Dec, Ns...> const &cont) noexcept
+{
+	static_assert(std::is_floating_point<Dec>::value
+				  && std::is_integral<Ent>::value,
+				  "continu_vers_discret va de décimal à entier");
+
+	auto tmp = vecteur<O, Ent, Ns...>();
+	((tmp[Ns] = static_cast<Ent>(std::floor(cont[Ns]))), ...);
+	return tmp;
+}
+
+/**
+ * Retourne un vecteur correspondant à la conversion du vecteur d'entrée de
+ * l'espace discret vers l'espace continu.
+ */
+template <typename Dec, int O, typename Ent, int... Ns>
+[[nodiscard]] auto discret_vers_continu(vecteur<O, Ent, Ns...> const &cont) noexcept
+{
+	static_assert(std::is_floating_point<Dec>::value
+				  && std::is_integral<Ent>::value,
+				  "discret_vers_continu va de entier à décimal");
+
+	auto tmp = vecteur<O, Dec, Ns...>();
+	((tmp[Ns] = static_cast<Dec>(cont[Ns]) + static_cast<Dec>(0.5)), ...);
+	return tmp;
+}
+
 /* ***************************** opérateurs flux **************************** */
 
 /**

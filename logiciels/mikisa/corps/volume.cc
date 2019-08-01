@@ -73,7 +73,7 @@ BaseGrille::BaseGrille(description_volume const &descr)
 
 dls::math::vec3f BaseGrille::index_vers_unit(const dls::math::vec3i &vsp) const
 {
-	auto p = dls::math::discret_vers_continue<float>(vsp);
+	auto p = dls::math::discret_vers_continu<float>(vsp);
 	return index_vers_unit(p);
 }
 
@@ -89,7 +89,7 @@ dls::math::vec3f BaseGrille::index_vers_monde(const dls::math::vec3i &isp) const
 {
 	auto const dim = etendu().taille();
 	auto const min = etendu().min;
-	auto const cont = dls::math::discret_vers_continue<float>(isp);
+	auto const cont = dls::math::discret_vers_continu<float>(isp);
 	return dls::math::vec3f(
 				cont.x / static_cast<float>(m_desc.resolution.x) * dim.x + min.x,
 				cont.y / static_cast<float>(m_desc.resolution.y) * dim.y + min.y,

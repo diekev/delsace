@@ -35,6 +35,28 @@
 namespace dls::math {
 
 /**
+ * Converti un nombre de l'espace continu vers l'espace discret.
+ */
+template <typename Ent, typename Dec>
+[[nodiscard]] inline auto continu_vers_discret(Dec cont)
+{
+	static_assert(std::is_floating_point<Dec>::value
+				  && std::is_integral<Ent>::value,
+				  "continu_vers_discret va de décimal à entier");
+
+	return static_cast<Ent>(std::floor(cont));
+}
+
+/**
+ * Converti un nombre de l'espace discret vers l'espace continu.
+ */
+template <typename Dec, typename Ent>
+[[nodiscard]] inline auto discret_vers_continu(Ent disc)
+{
+	return static_cast<Dec>(disc) + static_cast<Dec>(0.5);
+}
+
+/**
  * Retourne l'hypoténuse des nombres réels a et b en évitant les
  * sous/dépassements via (a * racine(1 + (b/a) * (b/a))) au lieu de
  * racine(a*a + b*b).
