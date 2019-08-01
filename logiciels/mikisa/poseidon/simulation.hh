@@ -38,13 +38,12 @@ namespace psn {
 
 template <typename T>
 static auto SemiLagrange(
-		Grille<int> &flags,
 		GrilleMAC &vel,
 		Grille<T> &fwd,
 		Grille<T> const &orig,
 		float dt)
 {
-	auto res = flags.resolution();
+	auto res = orig.resolution();
 	auto echant = Echantilloneuse(orig);
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
@@ -59,6 +58,14 @@ static auto SemiLagrange(
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
 
+			/* Dû au découplage possible il faut nous assurer que la position
+			 * corresponde au niveau mondial. */
+			auto pos_mnd_grille = orig.index_vers_monde(pos_iter);
+			auto pos_vec = vel.monde_vers_index(pos_mnd_grille);
+
+			auto v = vel.valeur_centree(pos_vec);
+			v *= dt;
+
 			auto i = pos_iter.x;
 			auto j = pos_iter.y;
 			auto k = pos_iter.z;
@@ -67,9 +74,6 @@ static auto SemiLagrange(
 						static_cast<float>(i) + 0.5f,
 						static_cast<float>(j) + 0.5f,
 						static_cast<float>(k) + 0.5f);
-
-			auto v = vel.valeur_centree(pos_iter);
-			v *= dt;
 
 			pos -= v;
 
@@ -86,9 +90,9 @@ auto advecte_semi_lagrange(
 		float dt,
 		int order)
 {
-	auto fwd = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
+	auto fwd = Grille<T>(orig.etendu(), orig.fenetre_donnees(), orig.taille_voxel());
 
-	SemiLagrange(flags, vel, fwd, orig, dt);
+	SemiLagrange(vel, fwd, orig, dt);
 
 	if (order == 1) {
 		orig.echange(fwd);
@@ -99,7 +103,7 @@ auto advecte_semi_lagrange(
 		auto newGrid = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
 
 		// bwd <- backwards step
-		SemiLagrange(flags, vel, bwd, fwd, -dt/*, levelset, orderSpace*/);
+		SemiLagrange(vel, bwd, fwd, -dt/*, levelset, orderSpace*/);
 
 		// newGrid <- compute correction
 		//MacCormackCorrect(flags, newGrid, orig, fwd, bwd/*, strength, levelset*/);

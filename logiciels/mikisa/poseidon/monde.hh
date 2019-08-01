@@ -64,6 +64,7 @@ struct Poseidon {
 	GrilleMAC *velocite = nullptr;
 
 	float dt = 0.0f;
+	bool decouple = false;
 };
 
 void ajourne_sources(Poseidon &poseidon, int temps);

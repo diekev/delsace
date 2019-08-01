@@ -116,6 +116,15 @@ dls::math::vec3f BaseGrille::monde_vers_continue(const dls::math::vec3f &wsp) co
 				static_cast<float>(m_res.z));
 }
 
+dls::math::vec3i BaseGrille::monde_vers_index(const dls::math::vec3f &wsp) const
+{
+	auto mnd = monde_vers_continue(wsp);
+	return dls::math::vec3i(
+				static_cast<int>(mnd.x),
+				static_cast<int>(mnd.y),
+				static_cast<int>(mnd.z));
+}
+
 dls::math::vec3i BaseGrille::resolution() const
 {
 	return m_res;

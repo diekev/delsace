@@ -296,7 +296,11 @@ void ajourne_obstables(Poseidon &poseidon)
 			auto pos = iter.suivante();
 			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
 
-			densite->valeur(idx) = 0.0f;
+			/* À FAIRE : decouplage */
+			if (!poseidon.decouple) {
+				densite->valeur(idx) = 0.0f;
+			}
+
 			drapeaux->valeur(idx) = TypeObstacle;
 		}
 	}

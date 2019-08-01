@@ -4,6 +4,10 @@ disposition "operatrice_simulation_gaz" {
 		entier(valeur=32; attache=résolution; min=2; animable)
 	}
 	ligne {
+		étiquette(valeur="Découple")
+		case(valeur=faux; attache=découple)
+	}
+	ligne {
 		étiquette(valeur="Début")
 		entier(valeur=1; attache=début; animable)
 	}

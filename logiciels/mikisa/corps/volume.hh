@@ -117,6 +117,8 @@ protected:
 	bool hors_des_limites(size_t x, size_t y, size_t z) const;
 
 public:
+	BaseGrille() = default;
+
 	/**
 	 * Une grille peut avoir plusieurs limites : les limites de son tampon de
 	 * voxels, ou les limites de sa fenêtre de données.
@@ -147,6 +149,9 @@ public:
 	/* converti un point de l'espace mondiale vers l'espace continue */
 	dls::math::vec3f monde_vers_continue(dls::math::vec3f const &wsp) const;
 
+	/* converti un point de l'espace mondiale vers l'espace index */
+	dls::math::vec3i monde_vers_index(dls::math::vec3f const &wsp) const;
+
 	dls::math::vec3i resolution() const;
 
 	limites3f const &etendu() const;
@@ -171,6 +176,8 @@ protected:
 	T m_dummy = T(0);
 
 public:
+	Grille() = default;
+
 	Grille(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel)
 		: BaseGrille(etendu, fenetre_donnees, taille_voxel)
 	{
@@ -312,10 +319,15 @@ public:
 
 		auto idx = calcul_index(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k));
 
+		auto vc = this->valeur(idx);
+		auto vx = this->valeur(static_cast<size_t>(i) + 1, static_cast<size_t>(j), static_cast<size_t>(k));
+		auto vy = this->valeur(static_cast<size_t>(i), static_cast<size_t>(j) + 1, static_cast<size_t>(k));
+		auto vz = this->valeur(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k) + 1);
+
 		return dls::math::vec3f(
-					0.5f * (m_donnees[idx].x + m_donnees[idx + 1].x),
-					0.5f * (m_donnees[idx].y + m_donnees[idx + m_res.x].y),
-					0.5f * (m_donnees[idx].z + m_donnees[idx + m_res.x * m_res.y].z));
+					0.5f * (vc.x + vx.x),
+					0.5f * (vc.y + vy.y),
+					0.5f * (vc.z + vz.z));
 	}
 };
 
@@ -418,16 +430,6 @@ public:
 	description_volume const &desc() const
 	{
 		return m_desc;
-	}
-
-	dls::math::vec3i monde_vers_index(dls::math::vec3f const &mnd)
-	{
-		auto pnt = (mnd - m_desc.etendues.min) / m_desc.etendues.taille();
-		auto i = static_cast<int>(pnt.x * static_cast<float>(m_desc.resolution.x));
-		auto j = static_cast<int>(pnt.y * static_cast<float>(m_desc.resolution.y));
-		auto k = static_cast<int>(pnt.z * static_cast<float>(m_desc.resolution.z));
-
-		return dls::math::vec3i(i, j, k);
 	}
 
 	void assure_tuiles(limites3f const &fenetre_donnees)

@@ -35,6 +35,7 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#include "corps/echantillonnage_volume.hh"
 #include "corps/iter_volume.hh"
 #include "corps/volume.hh"
 
@@ -358,6 +359,18 @@ public:
 
 /* ************************************************************************** */
 
+template <typename T>
+auto est_vide(Grille<T> const &grille)
+{
+	for (auto i = 0; i < grille.nombre_voxels(); ++i) {
+		if (grille.valeur(i) != T(0)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 class OpSimulationGaz : public OperatriceCorps {
 	psn::Poseidon m_poseidon{};
 
@@ -405,9 +418,12 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
+		m_poseidon.decouple = evalue_bool("découple");
+
 		if (contexte.temps_courant == temps_debut) {
 			reinitialise();
 		}
+
 		auto dt = evalue_decimal("dt");
 
 		m_poseidon.dt = dt;
@@ -485,6 +501,11 @@ public:
 		auto taille_voxel = 10.0f / static_cast<float>(res);
 
 		m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+
+		if (m_poseidon.decouple) {
+			taille_voxel *= 2.0f;
+		}
+
 		m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
 		m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
 		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
@@ -505,6 +526,10 @@ public:
 			ajoute_propriete("début", danjo::TypePropriete::ENTIER, 1);
 			ajoute_propriete("fin", danjo::TypePropriete::ENTIER, 250);
 			ajoute_propriete("dt", danjo::TypePropriete::DECIMAL, 0.1f);
+		}
+
+		if (propriete("découple") == nullptr) {
+			ajoute_propriete("découple", danjo::TypePropriete::BOOL, false);
 		}
 	}
 };
@@ -632,6 +657,13 @@ public:
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
+		auto densite_basse = Grille<float>();
+
+		if (poseidon_gaz->decouple) {
+			/* rééchantillone la densité pour être alignée avec la vélocité */
+			densite_basse = reechantillonne(*densite, velocite->taille_voxel());
+			densite = &densite_basse;
+		}
 
 		psn::ajoute_flottance(*densite, *velocite, *drapeaux, gravite, poseidon_gaz->dt, coefficient);
 
