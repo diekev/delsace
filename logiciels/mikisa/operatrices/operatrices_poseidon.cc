@@ -78,6 +78,7 @@ public:
 	explicit OpEntreeGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
+		m_execute_toujours = true;
 		entrees(1);
 	}
 
@@ -219,11 +220,6 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	bool depend_sur_temps() const override
-	{
-		return true;
-	}
-
 	void performe_versionnage() override
 	{
 		if (propriete("mode_fusion") == nullptr) {
@@ -252,6 +248,7 @@ public:
 	explicit OpObstacleGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
+		m_execute_toujours = true;
 		entrees(1);
 	}
 
@@ -359,11 +356,6 @@ public:
 		poseidon->monde.obstacles.insere(m_objet);
 
 		return EXECUTION_REUSSIE;
-	}
-
-	bool depend_sur_temps() const override
-	{
-		return true;
 	}
 };
 
@@ -654,6 +646,7 @@ public:
 	explicit OpAdvectionGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
+		m_execute_toujours = true;
 		entrees(1);
 	}
 
@@ -716,11 +709,6 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	bool depend_sur_temps() const override
-	{
-		return true;
-	}
-
 	void performe_versionnage() override
 	{
 		if (propriete("ordre") == nullptr) {
@@ -739,6 +727,7 @@ public:
 	explicit OpFlottanceGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
+		m_execute_toujours = true;
 		entrees(1);
 	}
 
@@ -790,11 +779,6 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	bool depend_sur_temps() const override
-	{
-		return true;
-	}
-
 	void performe_versionnage() override
 	{
 		if (propriete("gravité") == nullptr) {
@@ -814,6 +798,7 @@ public:
 	explicit OpIncompressibiliteGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
+		m_execute_toujours = true;
 		entrees(1);
 	}
 
@@ -856,11 +841,6 @@ public:
 		psn::projette_velocite(*velocite, *pression, *drapeaux);
 
 		return EXECUTION_REUSSIE;
-	}
-
-	bool depend_sur_temps() const override
-	{
-		return true;
 	}
 };
 
