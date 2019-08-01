@@ -1747,7 +1747,7 @@ static auto resoud_pression(
 					0.0f,
 					[&](tbb::blocked_range<int> const &plage, float init)
 		{
-				auto alpha = init;
+				auto alpha_loc = init;
 
 				for (auto z = plage.begin(); z < plage.end(); ++z) {
 					for (auto y = 1; y < res.y - 1; ++y) {
@@ -1777,12 +1777,12 @@ static auto resoud_pression(
 								q.valeur(index) = 0.0f;
 							}
 
-							alpha += direction.valeur(index) * q.valeur(index);
+							alpha_loc += direction.valeur(index) * q.valeur(index);
 						}
 					}
 				}
 
-			return alpha;
+			return alpha_loc;
 		},
 		std::plus<float>());
 
