@@ -605,7 +605,7 @@ public:
 				calcul_dt(m_poseidon, vel_max);
 
 				if (m_poseidon.dt <= (m_poseidon.dt_min / 2.0f)) {
-					this->ajoute_avertissement("Dt invalide, ne devrais pas arriver !");
+					this->ajoute_avertissement("Dt invalide, ne devrait pas arriver !");
 				}
 			}
 
@@ -631,7 +631,7 @@ public:
 		volume->grille = m_poseidon.densite->copie();
 
 		/* visualise domaine */
-		auto etendu = m_poseidon.densite->etendu();
+		auto etendu = m_poseidon.densite->etendue();
 		auto taille_voxel = m_poseidon.densite->taille_voxel();
 
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
@@ -686,9 +686,9 @@ public:
 		m_poseidon.resolution = res;
 
 		auto desc = description_volume{};
-		desc.etendues.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
-		desc.etendues.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
-		desc.fenetre_donnees = desc.etendues;
+		desc.etendue.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
+		desc.etendue.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
+		desc.fenetre_donnees = desc.etendue;
 		desc.taille_voxel = 10.0f / static_cast<float>(res);
 
 		m_poseidon.densite = memoire::loge<Grille<float>>("grilles", desc);
@@ -793,7 +793,7 @@ public:
 						  [&](long i)
 		{
 			auto p = poseidon_gaz->particules[i];
-			auto pos = velocite->monde_vers_continue(p->pos);
+			auto pos = velocite->monde_vers_continu(p->pos);
 
 			p->pos += echant.echantillone_trilineaire(pos) * mult;
 		});

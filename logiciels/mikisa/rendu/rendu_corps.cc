@@ -563,7 +563,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	auto grille = volume->grille;
 
 	if (!grille->est_eparse()) {
-		etendue = grille->etendu();
+		etendue = grille->etendue();
 		resolution = grille->resolution();
 
 		if (grille->type() == type_volume::SCALAIRE) {

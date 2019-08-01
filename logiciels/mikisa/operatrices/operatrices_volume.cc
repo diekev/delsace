@@ -59,9 +59,9 @@ static int cree_volume(
 	auto gna = GNA();
 
 	auto desc = description_volume{};
-	desc.etendues.min = dls::math::vec3f(-1.0f);
-	desc.etendues.max = dls::math::vec3f(1.0f);
-	desc.fenetre_donnees = desc.etendues;
+	desc.etendue.min = dls::math::vec3f(-1.0f);
+	desc.etendue.max = dls::math::vec3f(1.0f);
+	desc.fenetre_donnees = desc.etendue;
 	desc.taille_voxel = 2.0f / 32.0f;
 
 	auto volume = memoire::loge<Volume>("Volume");
@@ -89,7 +89,7 @@ static int cree_volume(
 template <typename T>
 static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
 {
-	auto limites = grille.desc().etendues;
+	auto limites = grille.desc().etendue;
 	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 	auto plg = grille.plage();
 
@@ -141,7 +141,7 @@ static int maillage_vers_volume(
 	limites_grille = limites;
 
 	auto desc_volume = description_volume{};
-	desc_volume.etendues = limites_grille;
+	desc_volume.etendue = limites_grille;
 	desc_volume.fenetre_donnees = limites_grille;
 	desc_volume.taille_voxel = taille_voxel;
 
@@ -201,7 +201,7 @@ static int maillage_vers_volume(
 
 #else
 	auto desc = description_volume{};
-	desc.etendues = limites;
+	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = taille_voxel;
 
@@ -355,7 +355,7 @@ static void rasterise_polygone(
 		}
 
 		// transforme la position en espace unitaire
-		auto Eu = rast.grille().monde_vers_continue(wsP);
+		auto Eu = rast.grille().monde_vers_continu(wsP);
 		rast.ecris_trilineaire(Eu, densite);
 	}
 }
@@ -420,7 +420,7 @@ static void rasterise_ligne(
 			}
 
 			// transforme la position en espace unitaire
-			auto Eu = rast.grille().monde_vers_continue(wsP);
+			auto Eu = rast.grille().monde_vers_continu(wsP);
 			rast.ecris_trilineaire(Eu, densite);
 		}
 	}
@@ -462,7 +462,7 @@ static int ratisse_primitives(
 	auto gna = GNA(graine);
 
 	auto desc = description_volume{};
-	desc.etendues = limites;
+	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = taille_voxel;
 

@@ -41,7 +41,7 @@ enum class type_volume : char {
 
 /* idée pour un typage strict
 using co_monde = dls::math::vec3f;
-using co_local = dls::math::vecteur<10, float, 0, 1, 2>;    // (0.0 : 1.0)
+using co_locale = dls::math::vecteur<10, float, 0, 1, 2>;    // (0.0 : 1.0)
 using co_continue = dls::math::vecteur<11, float, 0, 1, 2>; // (0.0 : res.0)
 using co_discrete = dls::math::vec3i;    // (0 : res - 1)
 */
@@ -56,7 +56,7 @@ using co_discrete = dls::math::vec3i;    // (0 : res - 1)
  */
 
 struct description_volume {
-	limites3f etendues{};
+	limites3f etendue{};
 	limites3f fenetre_donnees{};
 	dls::math::vec3i resolution{};
 	float taille_voxel = 0.0f;
@@ -88,7 +88,7 @@ public:
 
 	dls::math::vec3i resolution() const;
 
-	limites3f const &etendu() const;
+	limites3f const &etendue() const;
 
 	limites3f const &fenetre_donnees() const;
 
@@ -113,26 +113,26 @@ public:
 	/* converti un point de l'espace voxel discret vers l'espace unitaire */
 	dls::math::vec3f index_vers_unit(dls::math::vec3i const &vsp) const;
 
-	/* converti un point de l'espace voxel continue vers l'espace unitaire */
+	/* converti un point de l'espace voxel continu vers l'espace unitaire */
 	dls::math::vec3f index_vers_unit(dls::math::vec3f const &vsp) const;
 
-	/* converti un point de l'espace voxel continue vers l'espace unitaire */
+	/* converti un point de l'espace voxel continu vers l'espace unitaire */
 	dls::math::vec3f index_vers_monde(dls::math::vec3i const &isp) const;
 
-	/* converti un point de l'espace unitaire (0.0 - 1.0) vers l'espace mondiale */
+	/* converti un point de l'espace unitaire (0.0 - 1.0) vers l'espace mondial */
 	dls::math::vec3f unit_vers_monde(dls::math::vec3f const &vsp) const;
 
-	/* converti un point de l'espace mondiale vers l'espace unitaire (0.0 - 1.0) */
+	/* converti un point de l'espace mondial vers l'espace unitaire (0.0 - 1.0) */
 	dls::math::vec3f monde_vers_unit(dls::math::vec3f const &wsp) const;
 
-	/* converti un point de l'espace mondiale vers l'espace continue */
-	dls::math::vec3f monde_vers_continue(dls::math::vec3f const &wsp) const;
+	/* converti un point de l'espace mondial vers l'espace continu */
+	dls::math::vec3f monde_vers_continu(dls::math::vec3f const &wsp) const;
 
-	/* converti un point de l'espace mondiale vers l'espace index */
+	/* converti un point de l'espace mondial vers l'espace index */
 	dls::math::vec3i monde_vers_index(dls::math::vec3f const &wsp) const;
 
 	/* converti un point de l'espace continu vers l'espace mondial */
-	dls::math::vec3f continue_vers_monde(dls::math::vec3f const &csp) const;
+	dls::math::vec3f continu_vers_monde(dls::math::vec3f const &csp) const;
 };
 
 /* ************************************************************************** */
@@ -258,7 +258,7 @@ public:
 
 	void echange(Grille<T> &autre)
 	{
-		std::swap(m_desc.etendues, autre.m_desc.etendues);
+		std::swap(m_desc.etendue, autre.m_desc.etendue);
 		std::swap(m_desc.resolution, autre.m_desc.resolution);
 		std::swap(m_desc.fenetre_donnees, autre.m_desc.fenetre_donnees);
 		std::swap(m_desc.taille_voxel, autre.m_desc.taille_voxel);
@@ -523,7 +523,7 @@ public:
 
 	void echange(Grille<T> &autre)
 	{
-		std::swap(m_desc.etendues, autre.m_desc.etendues);
+		std::swap(m_desc.etendue, autre.m_desc.etendue);
 		std::swap(m_desc.resolution, autre.m_desc.resolution);
 		std::swap(m_desc.fenetre_donnees, autre.m_desc.fenetre_donnees);
 		std::swap(m_desc.taille_voxel, autre.m_desc.taille_voxel);

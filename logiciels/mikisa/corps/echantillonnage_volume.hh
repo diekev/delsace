@@ -56,7 +56,7 @@ public:
 	 * se mélangerons quand prises ensembles. */
 	void ecris_voisin_plus_proche(dls::math::vec3f const &vsp, T valeur) const
 	{
-		/* continue_vers_discret nous donne la même chose que l'on recherche :
+		/* continu_vers_discret nous donne la même chose que l'on recherche :
 		 * le voxel où le point d'échantillons se trouve */
 		auto dvsp = dls::math::continu_vers_discret<int>(vsp);
 

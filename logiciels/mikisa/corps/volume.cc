@@ -63,7 +63,7 @@ bool BaseGrille::hors_des_limites(size_t x, size_t y, size_t z) const
 BaseGrille::BaseGrille(description_volume const &descr)
 	: m_desc(descr)
 {
-	auto taille = m_desc.etendues.taille();
+	auto taille = m_desc.etendue.taille();
 	m_desc.resolution[0] = static_cast<int>(taille.x / m_desc.taille_voxel);
 	m_desc.resolution[1] = static_cast<int>(taille.y / m_desc.taille_voxel);
 	m_desc.resolution[2] = static_cast<int>(taille.z / m_desc.taille_voxel);
@@ -87,8 +87,8 @@ dls::math::vec3f BaseGrille::index_vers_unit(const dls::math::vec3f &vsp) const
 
 dls::math::vec3f BaseGrille::index_vers_monde(const dls::math::vec3i &isp) const
 {
-	auto const dim = etendu().taille();
-	auto const min = etendu().min;
+	auto const dim = etendue().taille();
+	auto const min = etendue().min;
 	auto const cont = dls::math::discret_vers_continu<float>(isp);
 	return dls::math::vec3f(
 				cont.x / static_cast<float>(m_desc.resolution.x) * dim.x + min.x,
@@ -98,15 +98,15 @@ dls::math::vec3f BaseGrille::index_vers_monde(const dls::math::vec3i &isp) const
 
 dls::math::vec3f BaseGrille::unit_vers_monde(const dls::math::vec3f &vsp) const
 {
-	return vsp * etendu().taille() + etendu().min;
+	return vsp * etendue().taille() + etendue().min;
 }
 
 dls::math::vec3f BaseGrille::monde_vers_unit(const dls::math::vec3f &wsp) const
 {
-	return (wsp - etendu().min) / etendu().taille();
+	return (wsp - etendue().min) / etendue().taille();
 }
 
-dls::math::vec3f BaseGrille::monde_vers_continue(const dls::math::vec3f &wsp) const
+dls::math::vec3f BaseGrille::monde_vers_continu(const dls::math::vec3f &wsp) const
 {
 	return monde_vers_unit(wsp) * dls::math::vec3f(
 				static_cast<float>(m_desc.resolution.x),
@@ -116,16 +116,16 @@ dls::math::vec3f BaseGrille::monde_vers_continue(const dls::math::vec3f &wsp) co
 
 dls::math::vec3i BaseGrille::monde_vers_index(const dls::math::vec3f &wsp) const
 {
-	auto mnd = monde_vers_continue(wsp);
+	auto mnd = monde_vers_continu(wsp);
 	return dls::math::vec3i(
 				static_cast<int>(mnd.x),
 				static_cast<int>(mnd.y),
 				static_cast<int>(mnd.z));
 }
 
-dls::math::vec3f BaseGrille::continue_vers_monde(const dls::math::vec3f &csp) const
+dls::math::vec3f BaseGrille::continu_vers_monde(const dls::math::vec3f &csp) const
 {
-	return (csp / etendu().taille()) + etendu().min;
+	return (csp / etendue().taille()) + etendue().min;
 }
 
 const description_volume &BaseGrille::desc() const
@@ -138,9 +138,9 @@ dls::math::vec3i BaseGrille::resolution() const
 	return m_desc.resolution;
 }
 
-const limites3f &BaseGrille::etendu() const
+const limites3f &BaseGrille::etendue() const
 {
-	return m_desc.etendues;
+	return m_desc.etendue;
 }
 
 const limites3f &BaseGrille::fenetre_donnees() const
