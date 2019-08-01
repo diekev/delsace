@@ -373,10 +373,7 @@ public:
 
 	~OpSimulationGaz() override
 	{
-		memoire::deloge("grilles", m_poseidon.densite);
-		memoire::deloge("grilles", m_poseidon.pression);
-		memoire::deloge("grilles", m_poseidon.drapeaux);
-		memoire::deloge("grilles", m_poseidon.velocite);
+		supprime_grilles();
 	}
 
 	const char *chemin_entreface() const override
@@ -476,10 +473,7 @@ public:
 		m_poseidon.monde.obstacles.efface();
 
 		if (m_poseidon.densite != nullptr) {
-			memoire::deloge("grilles", m_poseidon.densite);
-			memoire::deloge("grilles", m_poseidon.pression);
-			memoire::deloge("grilles", m_poseidon.drapeaux);
-			memoire::deloge("grilles", m_poseidon.velocite);
+			supprime_grilles();
 		}
 
 		auto res = evalue_entier("résolution");
@@ -494,6 +488,14 @@ public:
 		m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
 		m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
 		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
+	}
+
+	void supprime_grilles()
+	{
+		memoire::deloge("grilles", m_poseidon.densite);
+		memoire::deloge("grilles", m_poseidon.pression);
+		memoire::deloge("grilles", m_poseidon.drapeaux);
+		memoire::deloge("grilles", m_poseidon.velocite);
 	}
 
 	void performe_versionnage() override
