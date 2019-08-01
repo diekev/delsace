@@ -381,6 +381,97 @@ auto est_vide(Grille<T> const &grille)
 	return true;
 }
 
+namespace psn {
+
+/* Low order B-Spline. */
+struct KernelBSP2 {
+	static const int rayon = 1;
+
+	static inline float poids(dls::math::vec3f const &v, float dx_inv)
+	{
+		auto r = longueur(v) * dx_inv;
+
+		if (r > 1.0f) {
+			return 0.0f;
+		}
+
+		return (1.0f - r);
+	}
+};
+
+/* Fonction M'4 */
+struct KernelMP4 {
+	static const int rayon = 2;
+
+	static inline float poids(dls::math::vec3f const &v, float dx_inv)
+	{
+		auto r = longueur(v) * dx_inv;
+
+		if (r > 2.0f) {
+			return 0.0f;
+		}
+
+		if (r >= 1.0f) {
+			return 0.5f * (2.0f * r * r) * (1.0f - r);
+		}
+
+		return 1.0f - (2.5f * r * r) + (1.5f * r * r * r);
+	}
+};
+
+void transfere_particules_grille(Poseidon &poseidon)
+{
+	auto densite = poseidon.densite;
+	auto &grille_particules = poseidon.grille_particule;
+	grille_particules = GrilleParticule(densite->desc());
+	grille_particules.tri(poseidon.particules);
+
+	for (auto i = 0; i < densite->nombre_voxels(); ++i) {
+		densite->valeur(i) = 0.0f;
+	}
+
+	auto dx_inv = 1.0f / densite->taille_voxel();
+	auto res = densite->resolution();
+
+	using type_kernel = KernelBSP2;
+
+	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(0, 0, plage.begin());
+		lims.max = dls::math::vec3i(res.x - 1, res.y - 1, plage.end());
+
+		auto iter = IteratricePosition(lims);
+
+		while (!iter.fini()) {
+			auto pos_index = iter.suivante();
+
+			auto pos_monde = densite->index_vers_monde(pos_index);
+
+			auto voisines = grille_particules.voisines_cellules(pos_index, dls::math::vec3i(type_kernel::rayon));
+
+			/* utilise le filtre BSP2 */
+			auto valeur = 0.0f;
+			auto poids = 0.0f;
+
+			for (auto pv : voisines) {
+				auto r = type_kernel::poids(pos_monde - pv->pos, dx_inv);
+				valeur += r * pv->densite;
+				poids += r;
+			}
+
+			if (poids != 0.0f) {
+				valeur /= poids;
+			}
+
+			densite->valeur(pos_index.x, pos_index.y, pos_index.z) = valeur;
+		}
+	});
+}
+
+}
+
 class OpSimulationGaz : public OperatriceCorps {
 	psn::Poseidon m_poseidon{};
 
@@ -451,6 +542,8 @@ public:
 
 		psn::ajourne_obstables(m_poseidon);
 
+		psn::transfere_particules_grille(m_poseidon);
+
 		/* lance simulation */
 		entree(1)->requiers_corps(contexte, &da);
 
@@ -466,6 +559,11 @@ public:
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
+
+		for (auto p : m_poseidon.particules) {
+			m_corps.ajoute_point(p->pos);
+			attr_C->pousse(dls::math::vec3f(0.435f, 0.284f, 0.743f));
+		}
 
 		m_corps.ajoute_primitive(volume);
 
@@ -527,6 +625,8 @@ public:
 		memoire::deloge("grilles", m_poseidon.pression);
 		memoire::deloge("grilles", m_poseidon.drapeaux);
 		memoire::deloge("grilles", m_poseidon.velocite);
+
+		m_poseidon.supprime_particules();
 	}
 
 	void performe_versionnage() override
@@ -587,14 +687,24 @@ public:
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 		auto ordre = (evalue_enum("ordre") == "semi_lagrangienne") ? 1 : 0;
-		auto densite = poseidon_gaz->densite;
+		//auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
 		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->desc());
 		vieille_vel->copie_donnees(*velocite);
 
-		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
+		/* advecte particules */
+		auto mult = poseidon_gaz->dt * velocite->taille_voxel();
+		tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
+						  [&](long i)
+		{
+			auto p = poseidon_gaz->particules[i];
+			auto pos = velocite->monde_vers_index(p->pos);
+			p->pos += velocite->valeur_centree(pos) * mult;
+		});
+
+		//psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
 
 		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *velocite, poseidon_gaz->dt, ordre);
 

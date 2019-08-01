@@ -62,12 +62,12 @@ auto advection_semi_lagrange(
 	auto res = orig.resolution();
 	auto echant = Echantilloneuse(orig);
 
-	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
+	boucle_parallele(tbb::blocked_range<int>(0, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
 		auto lims = limites3i{};
 		lims.min = dls::math::vec3i(0, 0, plage.begin());
-		lims.max = dls::math::vec3i(res.x - 1, res.y - 1, plage.end());
+		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
 		auto iter = IteratricePosition(lims);
 

@@ -177,6 +177,9 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 		limites.max.z = static_cast<int>(static_cast<float>(res.z) * max_idx.z);
 		auto iter = IteratricePosition(limites);
 
+		auto gna_part = GNA{};
+		auto dx2 = densite->taille_voxel() * 0.5f;
+
 		while (!iter.fini()) {
 			auto pos = iter.suivante();
 			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
@@ -188,13 +191,15 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			auto densite_cible = params.densite;
 #endif
 
+			auto densite_finale = 0.0f;
+
 			switch (params.fusion) {
 				case mode_fusion::SUPERPOSITION:
 				{
 					auto u = densite->valeur(idx);
 					auto v = densite_cible;
 
-					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, v, params.facteur);
+					densite_finale = dls::math::entrepolation_lineaire(u, v, params.facteur);
 					break;
 				}
 				case mode_fusion::ADDITION:
@@ -202,7 +207,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 					auto u = densite->valeur(idx);
 					auto v = densite_cible;
 
-					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u + v, params.facteur);
+					densite_finale = dls::math::entrepolation_lineaire(u, u + v, params.facteur);
 					break;
 				}
 				case mode_fusion::SOUSTRACTION:
@@ -210,7 +215,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 					auto u = densite->valeur(idx);
 					auto v = densite_cible;
 
-					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u - v, params.facteur);
+					densite_finale = dls::math::entrepolation_lineaire(u, u - v, params.facteur);
 					break;
 				}
 				case mode_fusion::MINIMUM:
@@ -218,7 +223,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 					auto u = densite->valeur(idx);
 					auto v = densite_cible;
 
-					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
+					densite_finale = dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
 					break;
 				}
 				case mode_fusion::MAXIMUM:
@@ -226,7 +231,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 					auto u = densite->valeur(idx);
 					auto v = densite_cible;
 
-					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
+					densite_finale = dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
 					break;
 				}
 				case mode_fusion::MULTIPLICATION:
@@ -234,9 +239,24 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 					auto u = densite->valeur(idx);
 					auto v = densite_cible;
 
-					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u * v, params.facteur);
+					densite_finale = dls::math::entrepolation_lineaire(u, u * v, params.facteur);
 					break;
 				}
+			}
+
+			//densite->valeur(idx) = densite_finale;
+
+			auto centre_voxel = densite->index_vers_monde(pos);
+
+			for (auto i = 0; i < 8; ++i) {
+				auto particule = memoire::loge<Particule>("part_psn");
+				particule->densite = densite_finale / 8.0f;
+				particule->pos = centre_voxel;
+				particule->pos.x += gna_part.uniforme(-dx2, dx2);
+				particule->pos.y += gna_part.uniforme(-dx2, dx2);
+				particule->pos.z += gna_part.uniforme(-dx2, dx2);
+
+				poseidon.particules.pousse(particule);
 			}
 		}
 	}
@@ -285,6 +305,20 @@ void ajourne_obstables(Poseidon &poseidon)
 	}
 
 	ajourne_murs_domaine(*poseidon.drapeaux);
+}
+
+Poseidon::~Poseidon()
+{
+	supprime_particules();
+}
+
+void Poseidon::supprime_particules()
+{
+	for (auto p : particules) {
+		memoire::deloge("part_psn", p);
+	}
+
+	particules.efface();
 }
 
 }  /* namespace psn */

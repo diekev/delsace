@@ -39,6 +39,7 @@ add_library(${NOM_CIBLE} STATIC
 	gradient_conjugue.cc
 	incompressibilite.cc
 	monde.cc
+	particules.cc
 	simulation.cc
 
 	bruit_vaguelette.hh
@@ -46,6 +47,7 @@ add_library(${NOM_CIBLE} STATIC
 	gradient_conjugue.hh
 	incompressibilite.hh
 	monde.hh
+	particules.hh
 	simulation.hh
 )
 

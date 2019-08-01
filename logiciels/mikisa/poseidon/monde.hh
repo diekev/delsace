@@ -30,6 +30,7 @@
 #include "corps/volume.hh"
 
 #include "bruit_vaguelette.hh"
+#include "particules.hh"
 
 namespace psn {
 
@@ -66,8 +67,15 @@ struct Poseidon {
 
 	bruit_vaguelette bruit{};
 
+	dls::tableau<Particule *> particules{};
+	GrilleParticule grille_particule{};
+
 	float dt = 0.0f;
 	bool decouple = false;
+
+	~Poseidon();
+
+	void supprime_particules();
 };
 
 void ajourne_sources(Poseidon &poseidon, int temps);

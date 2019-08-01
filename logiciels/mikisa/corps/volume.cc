@@ -123,6 +123,11 @@ dls::math::vec3i BaseGrille::monde_vers_index(const dls::math::vec3f &wsp) const
 				static_cast<int>(mnd.z));
 }
 
+dls::math::vec3f BaseGrille::continue_vers_monde(const dls::math::vec3f &csp) const
+{
+	return (csp / etendu().taille()) + etendu().min;
+}
+
 const description_volume &BaseGrille::desc() const
 {
 	return m_desc;

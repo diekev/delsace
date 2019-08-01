@@ -130,6 +130,9 @@ public:
 
 	/* converti un point de l'espace mondiale vers l'espace index */
 	dls::math::vec3i monde_vers_index(dls::math::vec3f const &wsp) const;
+
+	/* converti un point de l'espace continu vers l'espace mondial */
+	dls::math::vec3f continue_vers_monde(dls::math::vec3f const &csp) const;
 };
 
 /* ************************************************************************** */
@@ -145,10 +148,11 @@ protected:
 public:
 	Grille() = default;
 
-	Grille(description_volume const &descr)
+	Grille(description_volume const &descr, T arriere_plan = T(0))
 		: BaseGrille(descr)
+		, m_arriere_plan(arriere_plan)
 	{
-		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), T(0));
+		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), m_arriere_plan);
 	}
 
 	T &valeur(long index)
