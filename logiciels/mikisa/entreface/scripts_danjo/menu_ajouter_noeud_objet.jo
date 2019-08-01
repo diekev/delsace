@@ -82,6 +82,7 @@ menu "Noeud Objet" {
 	    action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
 		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
 		action(valeur="Rastérisation Prim"; attache=ajouter_noeud; métadonnée="Rastérisation Prim")
+		action(valeur="Rééchantillone Volume"; attache=ajouter_noeud; métadonnée="Rééchantillone Volume")
 	}
 	menu "Script" {
 	    action(valeur="Script Détail"; attache=ajouter_noeud; métadonnée="Script Détail")

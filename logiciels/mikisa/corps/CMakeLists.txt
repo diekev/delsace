@@ -34,6 +34,7 @@ add_library(${NOM_CIBLE} STATIC
     adaptrice_creation_corps.cc
 	attribut.cc
     corps.cc
+	echantillonnage_volume.cc
     groupes.cc
 	iter_volume.cc
     iteration_corps.cc
@@ -46,6 +47,7 @@ add_library(${NOM_CIBLE} STATIC
     adaptrice_creation_corps.h
 	attribut.h
     corps.h
+	echantillonnage_volume.hh
     groupes.h
 	iter_volume.hh
     iteration_corps.hh

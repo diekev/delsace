@@ -35,6 +35,7 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#include "corps/echantillonnage_volume.hh"
 #include "corps/limites_corps.hh"
 #include "corps/iter_volume.hh"
 #include "corps/volume.hh"
@@ -491,9 +492,69 @@ static int ratisse_primitives(
 
 /* ************************************************************************** */
 
+static int reechantillonne_volume(
+		OperatriceCorps &op,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		Corps const &corps_entree)
+{
+	INUTILISE(donnees_aval);
+	INUTILISE(contexte);
+
+	op.corps()->reinitialise();
+
+	auto prims = corps_entree.prims();
+
+	if (prims->taille() == 0) {
+		op.ajoute_avertissement("Aucune primitive en entrée !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	auto volume_entree = static_cast<Volume *>(nullptr);
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::VOLUME) {
+			volume_entree = dynamic_cast<Volume *>(prim);
+			break;
+		}
+	}
+
+	if (volume_entree == nullptr) {
+		op.ajoute_avertissement("Aucun volume en entrée !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	auto grille_entree = volume_entree->grille;
+
+	if (grille_entree->type() != type_volume::SCALAIRE) {
+		op.ajoute_avertissement("La grille n'est pas scalaire !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	auto grille_scalaire = dynamic_cast<Grille<float> *>(grille_entree);
+
+	auto resultat = reechantillonne(*grille_scalaire, grille_scalaire->taille_voxel() * 2.0f);
+
+	auto volume = memoire::loge<Volume>("Volume");
+	auto grille = memoire::loge<Grille<float>>("grille");
+
+	volume->grille = grille;
+
+	grille->echange(resultat);
+
+	op.corps()->ajoute_primitive(volume);
+
+	return EXECUTION_REUSSIE;
+}
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc("Créer volume", "", "", cree_volume, false));
 	usine.enregistre_type(cree_desc("Maillage vers Volume", "", "entreface/operatrice_maillage_vers_volume.jo", maillage_vers_volume, false));
 	usine.enregistre_type(cree_desc("Rastérisation Prim", "", "entreface/operatrice_rasterisation_prim.jo", ratisse_primitives, false));
+	usine.enregistre_type(cree_desc("Rééchantillonne Volume", "", "", reechantillonne_volume, false));
 }
