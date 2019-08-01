@@ -278,12 +278,6 @@ un widget est activé quand l'utilisateur peut changer sa valeur
 un widget est visible quand l'utiisateur peut le voir dans l'interface
 
 ################################################################################
-poséidon
-
--- macgrid
--- incompressibilité
-
-################################################################################
 - deduplique
 -- noeud, graphe, impression graphe
 

@@ -47,10 +47,44 @@
  * traquant le bug.
  */
 
+#undef SOLVEUR_MANTAFLOW
+#undef SOLVEUR_POSEIDON
+#define SOLVEUR_BLENDER
+
 namespace psn {
+
+template <typename TypeGrille, typename Op>
+void applique_parallele(
+		TypeGrille &grille,
+		limites3i const &limites,
+		Op &&op)
+{
+	auto min = limites.min;
+	auto max = limites.max;
+
+	boucle_parallele(tbb::blocked_range<int>(min.z, max.z),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(min.x, min.y, plage.begin());
+		lims.max = dls::math::vec3i(max.x, max.y, plage.end());
+
+		auto iter = IteratricePosition(lims);
+
+		while (!iter.fini()) {
+			auto pos_iter = iter.suivante();
+			auto i = static_cast<size_t>(pos_iter.x);
+			auto j = static_cast<size_t>(pos_iter.y);
+			auto k = static_cast<size_t>(pos_iter.z);
+
+			op(grille, i, j, k);
+		}
+	});
+}
 
 /* ************************************************************************** */
 
+#ifdef SOLVEUR_MANTAFLOW
 enum Preconditioner { PcNone = 0, PcMIC = 1, PcMGDynamic = 2, PcMGStatic = 3 };
 
 inline static auto thetaHelper(float inside, float outside)
@@ -599,539 +633,9 @@ static auto solvePressure(
 		retRhs->copie_donnees(rhs);
 	}
 }
+#endif
 
 /* ************************************************************************** */
-
-template <typename TypeGrille, typename Op>
-static void applique_parallele(
-		TypeGrille &grille,
-		limites3i const &limites,
-		Op &&op)
-{
-	auto min = limites.min;
-	auto max = limites.max;
-
-	boucle_parallele(tbb::blocked_range<int>(min.z, max.z),
-					 [&](tbb::blocked_range<int> const &plage)
-	{
-		auto lims = limites3i{};
-		lims.min = dls::math::vec3i(min.x, min.y, plage.begin());
-		lims.max = dls::math::vec3i(max.x, max.y, plage.end());
-
-		auto iter = IteratricePosition(lims);
-
-		while (!iter.fini()) {
-			auto pos_iter = iter.suivante();
-			auto i = static_cast<size_t>(pos_iter.x);
-			auto j = static_cast<size_t>(pos_iter.y);
-			auto k = static_cast<size_t>(pos_iter.z);
-
-			op(grille, i, j, k);
-		}
-	});
-}
-
-namespace construct {
-
-#define EN_SERIE
-
-static void rend_incompressible(
-		GrilleMAC &vel,
-		int iterations = 100)
-{
-	auto p = Grille<float>(vel.desc());
-	auto divergence = Grille<float>(vel.desc());
-
-	auto r = Grille<float>(vel.desc());
-	auto d = Grille<float>(vel.desc());
-	auto q = Grille<float>(vel.desc());
-	auto skip = Grille<float>(vel.desc());
-
-	auto res = vel.resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-
-	// Outside "skip" area
-	{
-#ifdef EN_SERIE
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-
-			if (i == 0 || i == static_cast<size_t>(res[0]-1) || j==0 || j== static_cast<size_t>(res[1]-1) || k==0 || k== static_cast<size_t>(res[2]-1))
-				skip.valeur(i, j, k, 1.0f);
-			else
-				skip.valeur(i, j, k, 0.0f);
-
-			// Add in extra boundaries
-//			if (boundary.eval(position(i, j, k)) > 0)
-//				skip.valeur(i, j, k, 1);
-		}
-#else
-		applique_parallele(skip, limites,
-						   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-		{
-			if (i == 0 || i == static_cast<size_t>(res[0]-1) || j==0 || j== static_cast<size_t>(res[1]-1) || k==0 || k== static_cast<size_t>(res[2]-1))
-				grille.valeur(i, j, k, 1.0f);
-			else
-				grille.valeur(i, j, k, 0.0f);
-		});
-#endif
-	}
-
-
-	// TODO: Generalize this for other boundaries and conditions (Dirichlet, etc)
-	// Set no flux for velocity
-	{
-#ifdef EN_SERIE
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-
-			if (i==0 || i== static_cast<size_t>(res[0]-1)) {
-				vel.valeur(i, j, k).x = 0.0f;
-			}
-
-			if (j==0 || j== static_cast<size_t>(res[1]-1)) {
-				vel.valeur(i, j, k).y = 0.0f;
-			}
-
-			if (k==0 || k== static_cast<size_t>(res[2]-1)) {
-				vel.valeur(i, j, k).z = 0.0f;
-			}
-		}
-#else
-		applique_parallele(vel, limites,
-						   [&](GrilleMAC &grille, size_t i, size_t j, size_t k)
-		{
-			if (i==0 || i== static_cast<size_t>(res[0]-1)) {
-				grille.valeur(i, j, k).x = 0.0f;
-			}
-
-			if (j==0 || j== static_cast<size_t>(res[1]-1)) {
-				grille.valeur(i, j, k).y = 0.0f;
-			}
-
-			if (k==0 || k== static_cast<size_t>(res[2]-1)) {
-				grille.valeur(i, j, k).z = 0.0f;
-			}
-		});
-#endif
-	}
-
-	// Compute divergence of non-boundary cells
-	{
-		limites.min = dls::math::vec3i(1);
-		limites.max = res - dls::math::vec3i(1);
-#ifdef EN_SERIE
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-
-			auto D = vel.valeur(i+1, j, k)[0] + vel.valeur(i, j+1, k)[1] + vel.valeur(i, j, k+1)[2];
-			D -= vel.valeur(i-1, j, k)[0] + vel.valeur(i, j-1, k)[1] + vel.valeur(i, j, k-1)[2];
-			D *= .5f;
-			divergence.valeur(i, j, k, D); // ASSUMED CUBIC CELLS!
-		}
-#else
-		applique_parallele(divergence, limites,
-						   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-		{
-			auto D = vel.valeur(i+1, j, k)[0] + vel.valeur(i, j+1, k)[1] + vel.valeur(i, j, k+1)[2];
-			D -= vel.valeur(i-1, j, k)[0] + vel.valeur(i, j-1, k)[1] + vel.valeur(i, j, k-1)[2];
-			D *= .5f;
-			grille.valeur(i, j, k, D); // ASSUMED CUBIC CELLS!
-		});
-#endif
-	}
-
-	// Conjugate Gradient
-	// (http://en.wikipedia.org/wiki/Conjugate_gradient_method)
-	// r = b - Ax
-	{
-		limites.min = dls::math::vec3i(1);
-		limites.max = res - dls::math::vec3i(1);
-
-#ifdef EN_SERIE
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-			auto center = 0.0f, R = 0.0f;
-
-			if (skip.valeur(i-1, j, k)!=1.0f) {
-				center += 1; R += p.valeur(i-1, j, k);
-			}
-			if (skip.valeur(i, j-1, k)!=1.0f) {
-				center += 1; R += p.valeur(i, j-1, k);
-			}
-
-			if (skip.valeur(i, j, k-1)!=1.0f) {
-				center += 1; R += p.valeur(i, j, k-1);
-			}
-
-			if (skip.valeur(i+1, j, k)!=1.0f) {
-				center += 1; R += p.valeur(i+1, j, k);
-			}
-
-			if (skip.valeur(i, j+1, k)!=1.0f) {
-				center += 1; R += p.valeur(i, j+1, k);
-			}
-
-			if (skip.valeur(i, j, k+1)!=1.0f) {
-				center += 1; R += p.valeur(i, j, k+1);
-			}
-
-			R = -divergence.valeur(i, j, k) - (center * p.valeur(i, j, k) - R);
-
-			r.valeur(i, j, k, skip.valeur(i, j, k)==1.0f ? 0.0f : R);
-		}
-#else
-		applique_parallele(r, limites,
-						   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-		{
-			auto center = 0.0f, R = 0.0f;
-
-			if (skip.valeur(i-1, j, k)!=1.0f) {
-				center += 1; R += p.valeur(i-1, j, k);
-			}
-			if (skip.valeur(i, j-1, k)!=1.0f) {
-				center += 1; R += p.valeur(i, j-1, k);
-			}
-
-			if (skip.valeur(i, j, k-1)!=1.0f) {
-				center += 1; R += p.valeur(i, j, k-1);
-			}
-
-			if (skip.valeur(i+1, j, k)!=1.0f) {
-				center += 1; R += p.valeur(i+1, j, k);
-			}
-
-			if (skip.valeur(i, j+1, k)!=1.0f) {
-				center += 1; R += p.valeur(i, j+1, k);
-			}
-
-			if (skip.valeur(i, j, k+1)!=1.0f) {
-				center += 1; R += p.valeur(i, j, k+1);
-			}
-
-			R = -divergence.valeur(i, j, k) - (center * p.valeur(i, j, k) - R);
-
-			grille.valeur(i, j, k, skip.valeur(i, j, k)==1.0f ? 0.0f : R);
-		});
-#endif
-	}
-
-	// d = r
-	{
-		limites.min = dls::math::vec3i(1);
-		limites.max = res - dls::math::vec3i(1);
-#ifdef EN_SERIE
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-
-			d.valeur(i, j, k, r.valeur(i, j, k));
-		}
-#else
-		applique_parallele(d, limites,
-						   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-		{
-			grille.valeur(i, j, k, r.valeur(i, j, k));
-		});
-#endif
-	}
-
-	// deltaNew = transpose(r) * r
-	auto deltaNew = 0.0f;
-	{
-		limites.min = dls::math::vec3i(1);
-		limites.max = res - dls::math::vec3i(1);
-
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-			deltaNew += r.valeur(i, j, k) * r.valeur(i, j, k);
-		}
-	}
-
-	// delta = deltaNew
-	const auto eps = 1.e-4f;
-	auto maxR = 1.0f;
-	int iteration = 0 ;
-	while((iteration<iterations) && (maxR > eps)) {
-		// q = A d
-		{
-			limites.min = dls::math::vec3i(1);
-			limites.max = res - dls::math::vec3i(1);
-#ifdef EN_SERIE
-			auto iter = IteratricePosition(limites);
-			while (!iter.fini()) {
-				auto pos = iter.suivante();
-				auto i = static_cast<size_t>(pos.x);
-				auto j = static_cast<size_t>(pos.y);
-				auto k = static_cast<size_t>(pos.z);
-
-				auto center = 0.0f, R = 0.0f;
-
-				if (skip.valeur(i-1, j, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i-1, j, k);
-				}
-
-				if (skip.valeur(i, j-1, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j-1, k);
-				}
-
-				if (skip.valeur(i, j, k-1)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j, k-1);
-				}
-
-				if (skip.valeur(i+1, j, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i+1, j, k);
-				}
-
-				if (skip.valeur(i, j+1, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j+1, k);
-				}
-
-				if (skip.valeur(i, j, k+1)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j, k+1);
-				}
-
-				R = (center * d.valeur(i, j, k) - R);
-				q.valeur(i, j, k, skip.valeur(i, j, k) == 1.0f ? 0.0f : R);
-			}
-#else
-			applique_parallele(q, limites,
-							   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-			{
-				auto center = 0.0f, R = 0.0f;
-
-				if (skip.valeur(i-1, j, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i-1, j, k);
-				}
-
-				if (skip.valeur(i, j-1, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j-1, k);
-				}
-
-				if (skip.valeur(i, j, k-1)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j, k-1);
-				}
-
-				if (skip.valeur(i+1, j, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i+1, j, k);
-				}
-
-				if (skip.valeur(i, j+1, k)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j+1, k);
-				}
-
-				if (skip.valeur(i, j, k+1)!=1.0f) {
-					center += 1.0f;
-					R += d.valeur(i, j, k+1);
-				}
-
-				R = (center * d.valeur(i, j, k) - R);
-				grille.valeur(i, j, k, skip.valeur(i, j, k) == 1.0f ? 0.0f : R);
-			});
-#endif
-		}
-
-		// alpha = deltaNew / (d'q)
-		auto alpha = 0.0f;
-		{
-			limites.min = dls::math::vec3i(1);
-			limites.max = res - dls::math::vec3i(1);
-
-			auto iter = IteratricePosition(limites);
-			while (!iter.fini()) {
-				auto pos = iter.suivante();
-				auto i = static_cast<size_t>(pos.x);
-				auto j = static_cast<size_t>(pos.y);
-				auto k = static_cast<size_t>(pos.z);
-
-				alpha += d.valeur(i, j, k) * q.valeur(i, j, k);
-			}
-		}
-
-		if (std::abs(alpha) > 0.0f) {
-			alpha = deltaNew / alpha;
-		}
-
-		// x = x + alpha * d
-		{
-			limites.min = dls::math::vec3i(1);
-			limites.max = res - dls::math::vec3i(1);
-
-#ifdef EN_SERIE
-			auto iter = IteratricePosition(limites);
-			while (!iter.fini()) {
-				auto pos = iter.suivante();
-				auto i = static_cast<size_t>(pos.x);
-				auto j = static_cast<size_t>(pos.y);
-				auto k = static_cast<size_t>(pos.z);
-
-				p.valeur(i, j, k, p.valeur(i, j, k) + alpha * d.valeur(i, j, k));
-				r.valeur(i, j, k, r.valeur(i, j, k) - alpha * q.valeur(i, j, k));
-			}
-#else
-			applique_parallele(p, limites,
-							   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-			{
-				grille.valeur(i, j, k, grille.valeur(i, j, k) + alpha * d.valeur(i, j, k));
-				r.valeur(i, j, k, r.valeur(i, j, k) - alpha * q.valeur(i, j, k));
-			});
-#endif
-		}
-
-		// r = r - alpha * q
-		maxR = 0.;
-
-		//#pragma omp parallel for reduction(+:maxR)
-		{
-			limites.min = dls::math::vec3i(1);
-			limites.max = res - dls::math::vec3i(1);
-
-			auto iter = IteratricePosition(limites);
-			while (!iter.fini()) {
-				auto pos = iter.suivante();
-				auto i = static_cast<size_t>(pos.x);
-				auto j = static_cast<size_t>(pos.y);
-				auto k = static_cast<size_t>(pos.z);
-
-				maxR = r.valeur(i, j, k) > maxR ? r.valeur(i, j, k) : maxR;
-			}
-		}
-
-		auto deltaOld = deltaNew;
-
-		// deltaNew = r'r
-		deltaNew = 0.0f;
-		{
-			limites.min = dls::math::vec3i(1);
-			limites.max = res - dls::math::vec3i(1);
-
-			auto iter = IteratricePosition(limites);
-			while (!iter.fini()) {
-				auto pos = iter.suivante();
-				auto i = static_cast<size_t>(pos.x);
-				auto j = static_cast<size_t>(pos.y);
-				auto k = static_cast<size_t>(pos.z);
-
-				deltaNew += r.valeur(i, j, k) * r.valeur(i, j, k);
-			}
-		}
-
-		auto beta = deltaNew / deltaOld;
-
-		// d = r + beta * d
-		{
-			limites.min = dls::math::vec3i(1);
-			limites.max = res - dls::math::vec3i(1);
-
-#ifdef EN_SERIE
-			auto iter = IteratricePosition(limites);
-			while (!iter.fini()) {
-				auto pos = iter.suivante();
-				auto i = static_cast<size_t>(pos.x);
-				auto j = static_cast<size_t>(pos.y);
-				auto k = static_cast<size_t>(pos.z);
-
-				d.valeur(i, j, k, r.valeur(i, j, k) + beta * d.valeur(i, j, k));
-			}
-#else
-			applique_parallele(d, limites,
-							   [&](Grille<float> &grille, size_t i, size_t j, size_t k)
-			{
-				grille.valeur(i, j, k, r.valeur(i, j, k) + beta * grille.valeur(i, j, k));
-			});
-#endif
-		}
-
-		// Next iteration...
-		++iteration;
-#if 1
-		if (iteration%10==0) {
-			using namespace std;
-			cout << "Iteration " << iteration << " -- Error: " << maxR << endl;
-		}
-#endif
-	}
-
-	{
-		limites.min = dls::math::vec3i(0);
-		limites.max = res;
-
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-
-			if (i==0) p.valeur(i, j, k, p.valeur(1, j, k));
-			if (j==0) p.valeur(i, j, k, p.valeur(i, 1, k));
-			if (k==0) p.valeur(i, j, k, p.valeur(i, j, 1));
-			if (i==static_cast<size_t>(res[0]-1)) p.valeur(i, j, k, p.valeur(static_cast<size_t>(res[0]-2), j, k));
-			if (j==static_cast<size_t>(res[1]-1)) p.valeur(i, j, k, p.valeur(i, static_cast<size_t>(res[1]-2), k));
-			if (k==static_cast<size_t>(res[2]-1)) p.valeur(i, j, k, p.valeur(i, j, static_cast<size_t>(res[2]-2)));
-		}
-	}
-
-	// Subtract gradient of "pressure"
-	{
-		limites.min = dls::math::vec3i(1);
-		limites.max = res - dls::math::vec3i(1);
-
-		auto iter = IteratricePosition(limites);
-		while (!iter.fini()) {
-			auto pos = iter.suivante();
-			auto i = static_cast<size_t>(pos.x);
-			auto j = static_cast<size_t>(pos.y);
-			auto k = static_cast<size_t>(pos.z);
-
-			auto V = vel.valeur(i, j, k);
-			V[0] -= (p.valeur(i+1, j, k) - p.valeur(i-1, j, k)) * .5f;
-			V[1] -= (p.valeur(i, j+1, k) - p.valeur(i, j-1, k)) * .5f;
-			V[2] -= (p.valeur(i, j, k+1) - p.valeur(i, j, k-1)) * .5f;
-			vel.valeur(i, j, k, V);
-		}
-	}
-}
-
-}  /* namespace construct */
-
-#undef SOLVEUR_POSEIDON
 
 #ifdef SOLVEUR_POSEIDON
 namespace poseidon {
@@ -1933,9 +1437,9 @@ void projette_velocite(
 		Grille<float> &pression,
 		Grille<int> const &drapeaux)
 {
-	//solvePressure(velocite, pression, drapeaux);
-
-	//construct::rend_incompressible(velocite, 300);
+#ifdef SOLVEUR_MANTAFLOW
+	solvePressure(velocite, pression, drapeaux);
+#endif
 
 #ifdef SOLVEUR_POSEIDON
 	auto drapeaux = Grille<char>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
@@ -1961,6 +1465,7 @@ void projette_velocite(
 	poseidon::rend_imcompressible(velocite, drapeaux);
 #endif
 
+#ifdef SOLVEUR_BLENDER
 	auto res = velocite.resolution();
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
@@ -1991,6 +1496,7 @@ void projette_velocite(
 	resoud_pression(pression, divergence, drapeaux);
 
 	projette_solution(velocite, pression, drapeaux);
+#endif
 }
 
 }  /* namespace psn */

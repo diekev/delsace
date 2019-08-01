@@ -34,7 +34,6 @@ ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
 ajoute_sousdossier(AVEC_MIKISA mikisa)
 ajoute_sousdossier(AVEC_MESURE mesure)
 ajoute_sousdossier(AVEC_PARCER parcer)
-ajoute_sousdossier(AVEC_POSEIDON poseidon)
 ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
 ajoute_sousdossier(AVEC_TORI tori)
 ajoute_sousdossier(AVEC_TORI_V2 tori_v2)
@@ -112,23 +111,6 @@ if (AVEC_MIKISA)
 		DESTINATION mikisa/texte
 	)
 endif (AVEC_MIKISA)
-
-if (AVEC_POSEIDON)
-	install(
-		FILES ${ICONES}
-		DESTINATION poseidon/icones
-	)
-
-	install(
-		FILES ${STYLES}
-		DESTINATION poseidon/styles
-	)
-
-	install(
-		FILES fichiers/texte/texture_texte.png
-		DESTINATION poseidon/texte
-	)
-endif (AVEC_POSEIDON)
 
 if (AVEC_SILVATHEQUE)
 	install(
