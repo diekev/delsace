@@ -90,7 +90,7 @@ auto advecte_semi_lagrange(
 		float dt,
 		int order)
 {
-	auto fwd = Grille<T>(orig.etendu(), orig.fenetre_donnees(), orig.taille_voxel());
+	auto fwd = Grille<T>(orig.desc());
 
 	SemiLagrange(vel, fwd, orig, dt);
 
@@ -99,8 +99,8 @@ auto advecte_semi_lagrange(
 	}
 	/* MacCormack */
 	else if (order == 2) {
-		auto bwd = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
-		auto newGrid = Grille<T>(flags.etendu(), flags.fenetre_donnees(), flags.taille_voxel());
+		auto bwd = Grille<T>(orig.desc());
+		auto newGrid = Grille<T>(orig.desc());
 
 		// bwd <- backwards step
 		SemiLagrange(vel, bwd, fwd, -dt/*, levelset, orderSpace*/);

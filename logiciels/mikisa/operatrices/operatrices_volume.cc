@@ -58,14 +58,14 @@ static int cree_volume(
 
 	auto gna = GNA();
 
-	auto etendu = limites3f{};
-	etendu.min = dls::math::vec3f(-1.0f);
-	etendu.max = dls::math::vec3f(1.0f);
-	auto fenetre_donnees = etendu;
-	auto taille_voxel = 2.0f / 32.0f;
+	auto desc = description_volume{};
+	desc.etendues.min = dls::math::vec3f(-1.0f);
+	desc.etendues.max = dls::math::vec3f(1.0f);
+	desc.fenetre_donnees = desc.etendues;
+	desc.taille_voxel = 2.0f / 32.0f;
 
 	auto volume = memoire::loge<Volume>("Volume");
-	auto grille_scalaire = memoire::loge<Grille<float>>("grille", etendu, fenetre_donnees, taille_voxel);
+	auto grille_scalaire = memoire::loge<Grille<float>>("grille", desc);
 
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
@@ -200,8 +200,13 @@ static int maillage_vers_volume(
 	visualise_topologie(*op.corps(), *grille);
 
 #else
+	auto desc = description_volume{};
+	desc.etendues = limites;
+	desc.fenetre_donnees = limites;
+	desc.taille_voxel = taille_voxel;
+
 	auto volume =  memoire::loge<Volume>("Volume");
-	auto grille_scalaire =  memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
+	auto grille_scalaire =  memoire::loge<Grille<float>>("grille", desc);
 	auto res = grille_scalaire->resolution();
 
 	auto delegue_prims = DeleguePrim(corps_entree);
@@ -456,8 +461,13 @@ static int ratisse_primitives(
 
 	auto gna = GNA(graine);
 
+	auto desc = description_volume{};
+	desc.etendues = limites;
+	desc.fenetre_donnees = limites;
+	desc.taille_voxel = taille_voxel;
+
 	auto volume = memoire::loge<Volume>("Volume");
-	auto grille_scalaire = memoire::loge<Grille<float>>("grille", limites, limites, taille_voxel);
+	auto grille_scalaire = memoire::loge<Grille<float>>("grille", desc);
 
 	auto fbm = FBM{};
 

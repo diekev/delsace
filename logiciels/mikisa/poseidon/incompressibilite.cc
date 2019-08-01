@@ -340,16 +340,13 @@ static auto solvePressureSystem(
 	std::cerr << __func__ << '\n';
 
 	// reserve temp grids
-	auto etendu = pressure.etendu();
-	auto fenetre_donnees = pressure.fenetre_donnees();
-	auto taille_voxel = pressure.taille_voxel();
-	Grille<float> residual(etendu, fenetre_donnees, taille_voxel);
-	Grille<float> search(etendu, fenetre_donnees, taille_voxel);
-	Grille<float> A0(etendu, fenetre_donnees, taille_voxel);
-	Grille<float> Ai(etendu, fenetre_donnees, taille_voxel);
-	Grille<float> Aj(etendu, fenetre_donnees, taille_voxel);
-	Grille<float> Ak(etendu, fenetre_donnees, taille_voxel);
-	Grille<float> tmp(etendu, fenetre_donnees, taille_voxel);
+	Grille<float> residual(rhs.desc());
+	Grille<float> search(rhs.desc());
+	Grille<float> A0(rhs.desc());
+	Grille<float> Ai(rhs.desc());
+	Grille<float> Aj(rhs.desc());
+	Grille<float> Ak(rhs.desc());
+	Grille<float> tmp(rhs.desc());
 
 	// setup matrix and boundaries
 	MakeLaplaceMatrix(flags, A0, Ai, Aj, Ak, fractions);
@@ -433,10 +430,10 @@ static auto solvePressureSystem(
 	if (preconditioner == PcNone || preconditioner == PcMIC) {
 		maxIter = static_cast<int>(cgMaxIterFac * static_cast<float>(max(flags.resolution())) * 4.0f);
 
-		pca0 = new Grille<float>(etendu, fenetre_donnees, taille_voxel);
-		pca1 = new Grille<float>(etendu, fenetre_donnees, taille_voxel);
-		pca2 = new Grille<float>(etendu, fenetre_donnees, taille_voxel);
-		pca3 = new Grille<float>(etendu, fenetre_donnees, taille_voxel);
+		pca0 = new Grille<float>(rhs.desc());
+		pca1 = new Grille<float>(rhs.desc());
+		pca2 = new Grille<float>(rhs.desc());
+		pca3 = new Grille<float>(rhs.desc());
 
 		gcg->setICPreconditioner( preconditioner == PcMIC ? GridCgInterface::PC_mICP : GridCgInterface::PC_None,
 			pca0, pca1, pca2, pca3);
@@ -585,12 +582,8 @@ static auto solvePressure(
 		Grille<float>* retRhs = nullptr)
 {
 	std::cerr << __func__ << '\n';
-	auto etendu = limites3f{};
-	etendu.min = dls::math::vec3f(-1.0f);
-	etendu.max = dls::math::vec3f(1.0f);
-	auto fenetre_donnees = etendu;
-	auto taille_voxel = 1.0f / 64.0f;
-	auto rhs = Grille<float>(etendu, fenetre_donnees, taille_voxel);
+
+	auto rhs = Grille<float>(vel.desc());
 
 	computePressureRhs(rhs, vel, flags, phi, perCellCorr, fractions, gfClamp,
 					   enforceCompatibility, curv, surfTens);
@@ -646,13 +639,13 @@ static void rend_incompressible(
 		GrilleMAC &vel,
 		int iterations = 100)
 {
-	auto p = Grille<float>(vel.etendu(), vel.fenetre_donnees(), vel.taille_voxel());
-	auto divergence = Grille<float>(vel.etendu(), vel.fenetre_donnees(), vel.taille_voxel());
+	auto p = Grille<float>(vel.desc());
+	auto divergence = Grille<float>(vel.desc());
 
-	auto r = Grille<float>(vel.etendu(), vel.fenetre_donnees(), vel.taille_voxel());
-	auto d = Grille<float>(vel.etendu(), vel.fenetre_donnees(), vel.taille_voxel());
-	auto q = Grille<float>(vel.etendu(), vel.fenetre_donnees(), vel.taille_voxel());
-	auto skip = Grille<float>(vel.etendu(), vel.fenetre_donnees(), vel.taille_voxel());
+	auto r = Grille<float>(vel.desc());
+	auto d = Grille<float>(vel.desc());
+	auto q = Grille<float>(vel.desc());
+	auto skip = Grille<float>(vel.desc());
 
 	auto res = vel.resolution();
 	auto limites = limites3i{};
@@ -1612,7 +1605,7 @@ static auto calcul_divergence(
 		GrilleMAC const &velocite,
 		Grille<int> const &drapeaux)
 {
-	auto divergence = Grille<float>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
+	auto divergence = Grille<float>(velocite.desc());
 	auto const res = velocite.resolution();
 	auto const taille_dalle = res.x * res.y;
 	auto const dx = velocite.taille_voxel();
@@ -1675,11 +1668,11 @@ static auto resoud_pression(
 	auto const res = pression.resolution();
 	auto const taille_dalle = res.x * res.y;
 
-	auto residue   = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto direction = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto q         = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto h         = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
-	auto precond   = Grille<float>(pression.etendu(), pression.fenetre_donnees(), pression.taille_voxel());
+	auto residue   = Grille<float>(pression.desc());
+	auto direction = Grille<float>(pression.desc());
+	auto q         = Grille<float>(pression.desc());
+	auto h         = Grille<float>(pression.desc());
+	auto precond   = Grille<float>(pression.desc());
 
 	auto nouveau_delta = tbb::parallel_reduce(
 				tbb::blocked_range<int>(1, res.z - 1),

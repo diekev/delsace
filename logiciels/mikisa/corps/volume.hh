@@ -105,14 +105,17 @@ template <typename Dec, int O, typename Ent, int... Ns>
 
 }
 
+struct description_volume {
+	limites3f etendues{};
+	limites3f fenetre_donnees{};
+	dls::math::vec3i resolution{};
+	float taille_voxel = 0.0f;
+};
+
 class BaseGrille {
 protected:
-	dls::math::vec3i m_res = dls::math::vec3i(0);
-	float m_taille_voxel{};
-	size_t m_nombre_voxels = 0;
-
-	limites3f m_etendu{};
-	limites3f m_fenetre_donnees{};
+	description_volume m_desc{};
+	size_t m_nombre_voxels = 0;	
 
 	bool hors_des_limites(size_t x, size_t y, size_t z) const;
 
@@ -123,7 +126,7 @@ public:
 	 * Une grille peut avoir plusieurs limites : les limites de son tampon de
 	 * voxels, ou les limites de sa fenêtre de données.
 	 */
-	BaseGrille(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel);
+	BaseGrille(description_volume const &descr);
 
 	virtual ~BaseGrille() = default;
 
@@ -152,6 +155,8 @@ public:
 	/* converti un point de l'espace mondiale vers l'espace index */
 	dls::math::vec3i monde_vers_index(dls::math::vec3f const &wsp) const;
 
+	description_volume const &desc() const;
+
 	dls::math::vec3i resolution() const;
 
 	limites3f const &etendu() const;
@@ -178,8 +183,8 @@ protected:
 public:
 	Grille() = default;
 
-	Grille(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel)
-		: BaseGrille(etendu, fenetre_donnees, taille_voxel)
+	Grille(description_volume const &descr)
+		: BaseGrille(descr)
 	{
 		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), T(0));
 	}
@@ -268,7 +273,7 @@ public:
 
 	BaseGrille *copie() const override
 	{
-		auto grille = memoire::loge<Grille<T>>("grille", etendu(), fenetre_donnees(), taille_voxel());
+		auto grille = memoire::loge<Grille<T>>("grille", desc());
 		grille->m_arriere_plan = this->m_arriere_plan;
 		grille->m_donnees = this->m_donnees;
 
@@ -287,10 +292,10 @@ public:
 
 	void echange(Grille<T> &autre)
 	{
-		std::swap(m_res, autre.m_res);
-		std::swap(m_etendu, autre.m_etendu);
-		std::swap(m_fenetre_donnees, autre.m_fenetre_donnees);
-		std::swap(m_taille_voxel, autre.m_taille_voxel);
+		std::swap(m_desc.etendues, autre.m_desc.etendues);
+		std::swap(m_desc.resolution, autre.m_desc.resolution);
+		std::swap(m_desc.fenetre_donnees, autre.m_desc.fenetre_donnees);
+		std::swap(m_desc.taille_voxel, autre.m_desc.taille_voxel);
 
 		m_donnees.echange(autre.m_donnees);
 
@@ -302,8 +307,8 @@ public:
 
 class GrilleMAC : public Grille<dls::math::vec3f> {
 public:
-	GrilleMAC(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel)
-		: Grille<dls::math::vec3f>(etendu, fenetre_donnees, taille_voxel)
+	GrilleMAC(description_volume const &descr)
+		: Grille<dls::math::vec3f>(descr)
 	{}
 
 	dls::math::vec3f valeur_centree(dls::math::vec3i const &pos)
@@ -333,13 +338,6 @@ public:
 
 /* ************************************************************************** */
 
-struct description_volume {
-	limites3f etendues{};
-	limites3f fenetre_donnees{};
-	dls::math::vec3i resolution{};
-	float taille_voxel = 0.0f;
-};
-
 static constexpr auto TAILLE_TUILE = 8;
 
 template <typename T>
@@ -356,7 +354,6 @@ struct grille_eparse : public BaseGrille {
 private:
 	dls::tableau<long> m_index_tuiles{};
 	dls::tableau<tuile *> m_tuiles{};
-	description_volume m_desc{};
 
 	int m_tuiles_x = 0;
 	int m_tuiles_y = 0;
@@ -396,24 +393,11 @@ public:
 	using plage_tuile_const = dls::plage_continue<tuile * const>;
 
 	grille_eparse(description_volume const &descr)
-		: BaseGrille(descr.etendues, descr.fenetre_donnees, descr.taille_voxel)
-		, m_desc(descr)
+		: BaseGrille(descr)
 	{
-		auto taille_x = descr.etendues.max.x - descr.etendues.min.x;
-		auto taille_y = descr.etendues.max.y - descr.etendues.min.y;
-		auto taille_z = descr.etendues.max.z - descr.etendues.min.z;
-
-		auto res_x = static_cast<int>(taille_x / descr.taille_voxel);
-		auto res_y = static_cast<int>(taille_y / descr.taille_voxel);
-		auto res_z = static_cast<int>(taille_z / descr.taille_voxel);
-
-		m_tuiles_x = converti_nombre_tuile(res_x);
-		m_tuiles_y = converti_nombre_tuile(res_y);
-		m_tuiles_z = converti_nombre_tuile(res_z);
-
-		m_desc.resolution.x = res_x;
-		m_desc.resolution.y = res_y;
-		m_desc.resolution.z = res_z;
+		m_tuiles_x = converti_nombre_tuile(m_desc.resolution.x);
+		m_tuiles_y = converti_nombre_tuile(m_desc.resolution.y);
+		m_tuiles_z = converti_nombre_tuile(m_desc.resolution.z);
 
 		auto nombre_tuiles = m_tuiles_x * m_tuiles_y * m_tuiles_z;
 
@@ -425,11 +409,6 @@ public:
 		for (auto t : m_tuiles) {
 			memoire::deloge("tuile", t);
 		}
-	}
-
-	description_volume const &desc() const
-	{
-		return m_desc;
 	}
 
 	void assure_tuiles(limites3f const &fenetre_donnees)
@@ -558,7 +537,7 @@ public:
 
 	BaseGrille *copie() const override
 	{
-		auto grille = memoire::loge<grille_eparse<T>>("grille", m_desc);
+		auto grille = memoire::loge<grille_eparse<T>>("grille", desc());
 		grille->m_arriere_plan = this->m_arriere_plan;
 		grille->m_index_tuiles = this->m_index_tuiles;
 		grille->m_tuiles = this->m_tuiles;

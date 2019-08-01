@@ -504,21 +504,21 @@ public:
 
 		auto res = evalue_entier("résolution");
 
-		auto etendu = limites3f{};
-		etendu.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
-		etendu.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
-		auto fenetre_donnees = etendu;
-		auto taille_voxel = 10.0f / static_cast<float>(res);
+		auto desc = description_volume{};
+		desc.etendues.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
+		desc.etendues.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
+		desc.fenetre_donnees = desc.etendues;
+		desc.taille_voxel = 10.0f / static_cast<float>(res);
 
-		m_poseidon.densite = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
+		m_poseidon.densite = memoire::loge<Grille<float>>("grilles", desc);
 
 		if (m_poseidon.decouple) {
-			taille_voxel *= 2.0f;
+			desc.taille_voxel *= 2.0f;
 		}
 
-		m_poseidon.pression = memoire::loge<Grille<float>>("grilles", etendu, fenetre_donnees, taille_voxel);
-		m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", etendu, fenetre_donnees, taille_voxel);
-		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", etendu, fenetre_donnees, taille_voxel);
+		m_poseidon.pression = memoire::loge<Grille<float>>("grilles", desc);
+		m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", desc);
+		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", desc);
 	}
 
 	void supprime_grilles()
@@ -591,7 +591,7 @@ public:
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
-		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->etendu(), velocite->fenetre_donnees(), velocite->taille_voxel());
+		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->desc());
 		vieille_vel->copie_donnees(*velocite);
 
 		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);

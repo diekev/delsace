@@ -31,7 +31,10 @@ auto reechantillonne(
 		Grille<T> const &entree,
 		float taille_voxel)
 {
-	auto resultat = Grille<T>(entree.etendu(), entree.fenetre_donnees(), taille_voxel);
+	auto desc = entree.desc();
+	desc.taille_voxel = taille_voxel;
+
+	auto resultat = Grille<T>(desc);
 	auto res = resultat.resolution();
 	auto res0 = entree.resolution();
 
