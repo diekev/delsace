@@ -462,6 +462,64 @@ void transfere_particules_grille(Poseidon &poseidon)
 	});
 }
 
+auto calcul_vel_max(GrilleMAC const &vel)
+{
+	auto vel_max = 0.0f;
+
+	for (auto i = 0; i < vel.nombre_voxels(); ++i) {
+		vel_max = std::max(vel_max, longueur(vel.valeur(i)));
+	}
+
+	return vel_max;
+}
+
+auto calcul_dt(Poseidon &poseidon, float vel_max)
+{
+	/* Méthode de Mantaflow, limitant Dt selon le temps de l'image, où Dt se
+	 * rapproche de 30 image/seconde (d'où les epsilon de 10^-4). */
+	auto dt = poseidon.dt;
+	auto cfl = poseidon.cfl;
+	auto dt_min = poseidon.dt_min;
+	auto dt_max = poseidon.dt_max;
+	auto temps_par_frame = poseidon.temps_par_frame;
+	auto duree_frame = poseidon.duree_frame;
+	auto vel_max_dt = vel_max * poseidon.dt;
+
+	if (!poseidon.verrouille_dt) {
+		dt = std::max(std::min(dt * (cfl / (vel_max_dt + 1e-05f)), dt_max), dt_min);
+
+		if ((temps_par_frame + dt * 1.05f) > duree_frame) {
+			/* à 5% d'une durée d'image ? ajoute epsilon pour prévenir les
+			 * erreurs d'arrondissement... */
+			dt = (duree_frame - temps_par_frame) + 1e-04f;
+		}
+		else if ((temps_par_frame + dt + dt_min) > duree_frame || (temps_par_frame + (dt * 1.25f)) > duree_frame) {
+			/* évite les petits pas ainsi que ceux avec beaucoup de variance,
+			 * donc divisons par 2 pour en faire des moyens au besoin */
+			dt = (duree_frame - temps_par_frame + 1e-04f) * 0.5f;
+			poseidon.verrouille_dt = true;
+		}
+	}
+
+	poseidon.dt = dt;
+
+#if 0
+	/* Méthode de Bridson, limitant Dt selon la vélocité max pour éviter qu'il
+	 * n'y ait un déplacement de plus de 5 cellules lors des advections.
+	 * "Fluid Simulation Course Notes", SIGGRAPH 2007.
+	 * https://www.cs.ubc.ca/~rbridson/fluidsimulation/fluids_notes.pdf
+	 *
+	 * Ancien code gardé pour référence.
+	 */
+	auto const factor = poseidon.cfl;
+	auto const dh = 5.0f / static_cast<float>(poseidon.resolution);
+	auto const vel_max_ = std::max(1e-16f, std::max(dh, vel_max));
+
+	/* dt <= (5dh / max_u) */
+	poseidon.dt = std::min(poseidon.dt, factor * dh / std::sqrt(vel_max_));
+#endif
+}
+
 }
 
 class OpSimulationGaz : public OperatriceCorps {
@@ -517,9 +575,13 @@ public:
 			reinitialise();
 		}
 
-		auto dt = evalue_decimal("dt");
+		auto dt_adaptif = evalue_bool("dt_adaptif");
 
-		m_poseidon.dt = dt;
+		m_poseidon.dt_min = evalue_decimal("dt_min");
+		m_poseidon.dt_max = evalue_decimal("dt_max");
+		m_poseidon.cfl = evalue_decimal("cfl");
+		m_poseidon.duree_frame = evalue_decimal("durée_frame");
+		m_poseidon.dt = (m_poseidon.dt_min + m_poseidon.dt_max) * 0.5f;
 
 		psn::fill_grid(*m_poseidon.drapeaux, TypeFluid);
 
@@ -537,7 +599,31 @@ public:
 		psn::transfere_particules_grille(m_poseidon);
 
 		/* lance simulation */
-		entree(1)->requiers_corps(contexte, &da);
+		while (true) {
+			if (dt_adaptif) {
+				auto vel_max = psn::calcul_vel_max(*m_poseidon.velocite);
+				calcul_dt(m_poseidon, vel_max);
+
+				if (m_poseidon.dt <= (m_poseidon.dt_min / 2.0f)) {
+					this->ajoute_avertissement("Dt invalide, ne devrais pas arriver !");
+				}
+			}
+
+			entree(1)->requiers_corps(contexte, &da);
+
+			m_poseidon.temps_par_frame += m_poseidon.dt;
+			m_poseidon.temps_total     += m_poseidon.dt;
+
+			if ((m_poseidon.temps_par_frame + 1e-6f) > m_poseidon.duree_frame) {
+				m_poseidon.image += 1;
+				/* Recalcul le temps temps pour éviter les erreurs inhérentes à
+				 * l'accumulation de nombre décimaux. */
+				m_poseidon.temps_total = static_cast<float>(m_poseidon.image) * m_poseidon.duree_frame;
+				m_poseidon.temps_par_frame = 0.0f;
+				m_poseidon.verrouille_dt = false;
+				break;
+			}
+		}
 
 		/* sauve données */
 
@@ -587,12 +673,17 @@ public:
 	{
 		m_poseidon.monde.sources.efface();
 		m_poseidon.monde.obstacles.efface();
+		m_poseidon.temps_par_frame = 0.0f;
+		m_poseidon.temps_total = 0.0f;
+		m_poseidon.verrouille_dt = false;
+		m_poseidon.image = 0;
 
 		if (m_poseidon.densite != nullptr) {
 			supprime_grilles();
 		}
 
 		auto res = evalue_entier("résolution");
+		m_poseidon.resolution = res;
 
 		auto desc = description_volume{};
 		desc.etendues.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
@@ -632,6 +723,14 @@ public:
 
 		if (propriete("découple") == nullptr) {
 			ajoute_propriete("découple", danjo::TypePropriete::BOOL, false);
+		}
+
+		if (propriete("dt_adaptif") == nullptr) {
+			ajoute_propriete("dt_adaptif", danjo::TypePropriete::BOOL, false);
+			ajoute_propriete("dt_min", danjo::TypePropriete::DECIMAL, 0.2f);
+			ajoute_propriete("dt_max", danjo::TypePropriete::DECIMAL, 2.0f);
+			ajoute_propriete("durée_frame", danjo::TypePropriete::DECIMAL, 1.0f);
+			ajoute_propriete("cfl", danjo::TypePropriete::DECIMAL, 3.0f);
 		}
 	}
 };

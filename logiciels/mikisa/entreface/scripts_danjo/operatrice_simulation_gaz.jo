@@ -16,7 +16,23 @@ disposition "operatrice_simulation_gaz" {
 		entier(valeur=250; attache=fin; animable)
 	}
 	ligne {
-		étiquette(valeur="Dt")
-		décimal(valeur=0.1; attache=dt; min=0.0; animable)
+		étiquette(valeur="Durée Frame")
+		décimal(valeur=1.0; attache=durée_frame; min=0.0; infobulle="La durée d'une frame en temps réel.")
+	}
+	ligne {
+		étiquette(valeur="Dt Adaptif")
+		case(valeur=faux; attache=dt_adaptif)
+	}
+	ligne {
+		étiquette(valeur="Dt Minimum")
+		décimal(valeur=0.1; attache=dt_min; min=0.0)
+	}
+	ligne {
+		étiquette(valeur="Dt Maximum")
+		décimal(valeur=2.0; attache=dt_max; min=0.0)
+	}
+	ligne {
+		étiquette(valeur="CFL")
+		décimal(valeur=3.0; attache=cfl; min=0.0; infobulle="Vélocité maximale par cellule.")
 	}
 }

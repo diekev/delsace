@@ -71,6 +71,16 @@ struct Poseidon {
 	GrilleParticule grille_particule{};
 
 	float dt = 0.0f;
+	float dt_min = 0.0f;
+	float dt_max = 0.0f;
+	float cfl = 0.0f;
+	float duree_frame = 0.0f;
+	float temps_par_frame = 0.0f;
+	float temps_total = 0.0f;
+	int image = 0;
+	int resolution = 0;
+
+	bool verrouille_dt = false;
 	bool decouple = false;
 
 	~Poseidon();
