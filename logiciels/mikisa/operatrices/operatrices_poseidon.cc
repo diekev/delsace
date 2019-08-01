@@ -48,6 +48,16 @@
 
 #include "outils_visualisation.hh"
 
+/**
+ * Publications utilisées pour élaborer le système :
+ *
+ * « Scalable fluid simulation in linear time on shared memory multiprocessors »
+ * https://www.deepdyve.com/lp/association-for-computing-machinery/scalable-fluid-simulation-in-linear-time-on-shared-memory-Fr9a4RSL2d
+ *
+ * « Capturing Thin Features in Smoke Simulations »
+ * http://library.imageworks.com/pdfs/imageworks-library-capturing-thin-features-in-smoke-simulation.pdf
+ */
+
 /* ************************************************************************** */
 
 static inline auto extrait_poseidon(DonneesAval *da)
