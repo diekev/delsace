@@ -280,6 +280,7 @@ class OperatriceImage : public danjo::Manipulable {
 protected:
 	Graphe &m_graphe_parent;
 	Image m_image{};
+	bool m_execute_toujours = false;
 
 public:
 	/* Prevent creating an operator without an accompanying node. */
@@ -296,6 +297,8 @@ public:
 	 * Voir supprime_operatrice_image. */
 	void usine(UsineOperatrice *usine_op);
 	UsineOperatrice *usine() const;
+
+	bool execute_toujours() const;
 
 	virtual int type() const;
 

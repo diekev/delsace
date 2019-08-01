@@ -35,7 +35,9 @@ void execute_noeud(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
-	if (!noeud->besoin_execution()) {
+	auto operatrice = extrait_opimage(noeud->donnees());
+
+	if (!noeud->besoin_execution() && !operatrice->execute_toujours()) {
 		return;
 	}
 
@@ -43,7 +45,6 @@ void execute_noeud(
 
 	auto const t0 = tbb::tick_count::now();
 
-	auto operatrice = extrait_opimage(noeud->donnees());
 	operatrice->reinitialise_avertisements();
 
 	auto const resultat = operatrice->execute(contexte, donnees_aval);

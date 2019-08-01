@@ -353,6 +353,11 @@ UsineOperatrice *OperatriceImage::usine() const
 	return m_usine;
 }
 
+bool OperatriceImage::execute_toujours() const
+{
+	return m_execute_toujours;
+}
+
 int OperatriceImage::type() const
 {
 	return OPERATRICE_IMAGE;
