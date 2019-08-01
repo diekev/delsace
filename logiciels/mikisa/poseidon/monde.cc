@@ -25,6 +25,7 @@
 #include "monde.hh"
 
 #include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/outils/gna.hh"
 
 #include "corps/limites_corps.hh"
 #include "corps/iter_volume.hh"
@@ -34,49 +35,6 @@
 #include "fluide.hh"
 
 namespace psn {
-
-static auto densityInflow(
-		Grille<int> *flags,
-		Grille<float> *density,
-		Grille<float> *noise,
-		Corps const *corps_entree,
-		float scale,
-		float sigma)
-{
-	if (corps_entree == nullptr) {
-		return;
-	}
-
-	/* À FAIRE : converti mesh en sdf */
-
-	auto res = flags->resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-	auto iter = IteratricePosition(limites);
-
-	auto facteur = dls::math::restreint(1.0f - 0.5f / sigma + sigma, 0.0f, 1.0f);
-
-	/* evalue noise */
-	auto target = 1.0f * scale * facteur;
-
-	while (!iter.fini()) {
-		auto pos = iter.suivante();
-
-		auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
-		auto val = flags->valeur(idx);
-
-		if (val != TypeFluid) {
-			continue;
-		}
-
-		auto dens = density->valeur(idx);
-
-		if (dens < target) {
-			density->valeur(idx, dens);
-		}
-	}
-}
 
 template <typename T>
 static auto fill_grid(Grille<T> *flags, T valeur)
@@ -178,12 +136,20 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto densite = poseidon.densite;
 	auto res = densite->resolution();
 
+	poseidon.bruit.genere_donnees();
+
+	auto echelle_bruit = 1.0f;
+	auto sigma = 0.5f;
+	auto facteur_bruit = dls::math::restreint(1.0f - 0.5f / sigma + sigma, 0.0f, 1.0f);
+
 	for (auto const &params : poseidon.monde.sources) {
 		auto objet = params.objet;
 
 		if (temps < params.debut || temps > params.fin) {
 			continue;
 		}
+
+		auto facteur_densite = echelle_bruit * facteur_bruit * params.densite;
 
 		/* copie par convénience */
 		objet->corps.accede_lecture([&](Corps const &corps_objet)
@@ -209,11 +175,15 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			auto pos = iter.suivante();
 			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
 
+			auto pos_monde = dls::math::discret_vers_continu<float>(pos);
+
+			auto densite_cible = facteur_densite * poseidon.bruit.evalue(&pos_monde[0]);
+
 			switch (params.fusion) {
 				case mode_fusion::SUPERPOSITION:
 				{
 					auto u = densite->valeur(idx);
-					auto v = params.densite;
+					auto v = densite_cible;
 
 					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, v, params.facteur);
 					break;
@@ -221,7 +191,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				case mode_fusion::ADDITION:
 				{
 					auto u = densite->valeur(idx);
-					auto v = params.densite;
+					auto v = densite_cible;
 
 					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u + v, params.facteur);
 					break;
@@ -229,7 +199,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				case mode_fusion::SOUSTRACTION:
 				{
 					auto u = densite->valeur(idx);
-					auto v = params.densite;
+					auto v = densite_cible;
 
 					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u - v, params.facteur);
 					break;
@@ -237,7 +207,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				case mode_fusion::MINIMUM:
 				{
 					auto u = densite->valeur(idx);
-					auto v = params.densite;
+					auto v = densite_cible;
 
 					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
 					break;
@@ -245,7 +215,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				case mode_fusion::MAXIMUM:
 				{
 					auto u = densite->valeur(idx);
-					auto v = params.densite;
+					auto v = densite_cible;
 
 					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
 					break;
@@ -253,7 +223,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				case mode_fusion::MULTIPLICATION:
 				{
 					auto u = densite->valeur(idx);
-					auto v = params.densite;
+					auto v = densite_cible;
 
 					densite->valeur(idx) = dls::math::entrepolation_lineaire(u, u * v, params.facteur);
 					break;

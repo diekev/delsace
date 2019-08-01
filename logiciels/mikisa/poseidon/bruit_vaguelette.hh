@@ -24,56 +24,19 @@
 
 #pragma once
 
-#include "biblinternes/structures/ensemble.hh"
+struct bruit_vaguelette {
+private:
+	float *m_donnees = nullptr;
 
-#include "coeur/objet.h"
-#include "corps/volume.hh"
+public:
+	bruit_vaguelette() = default;
 
-#include "bruit_vaguelette.hh"
+	bruit_vaguelette(bruit_vaguelette const &) = default;
+	bruit_vaguelette &operator=(bruit_vaguelette const &) = default;
 
-namespace psn {
+	~bruit_vaguelette();
 
-enum mode_fusion {
-	ADDITION,
-	SOUSTRACTION,
-	MULTIPLICATION,
-	MINIMUM,
-	MAXIMUM,
-	SUPERPOSITION
+	void genere_donnees();
+
+	float evalue(float pos[3]) const;
 };
-
-struct ParametresSource {
-	mode_fusion fusion{};
-	float densite = 1.0f;
-	float facteur = 1.0f;
-	Objet *objet = nullptr;
-	int debut = 0;
-	int fin = 0;
-};
-
-struct Monde {
-	dls::tableau<ParametresSource> sources{};
-	dls::ensemble<Objet *> obstacles{};
-};
-
-struct Poseidon {
-	Monde monde{};
-
-	Grille<int> *drapeaux = nullptr;
-	Grille<float> *densite = nullptr;
-	Grille<float> *pression = nullptr;
-	GrilleMAC *velocite = nullptr;
-
-	bruit_vaguelette bruit{};
-
-	float dt = 0.0f;
-	bool decouple = false;
-};
-
-void ajourne_sources(Poseidon &poseidon, int temps);
-
-void ajourne_obstables(Poseidon &poseidon);
-
-void fill_grid(Grille<int> &flags, int type);
-
-}  /* namespace psn */

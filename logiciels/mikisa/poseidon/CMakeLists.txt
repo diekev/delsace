@@ -34,12 +34,14 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
+	bruit_vaguelette.cc
 	fluide.cc
 	gradient_conjugue.cc
 	incompressibilite.cc
 	monde.cc
 	simulation.cc
 
+	bruit_vaguelette.hh
 	fluide.hh
 	gradient_conjugue.hh
 	incompressibilite.hh
