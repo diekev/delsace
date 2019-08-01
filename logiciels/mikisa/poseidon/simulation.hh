@@ -27,6 +27,7 @@
 #include "biblinternes/moultfilage/boucle.hh"
 
 #include "corps/corps.h"
+#include "corps/echantillonnage_volume.hh"
 #include "corps/iter_volume.hh"
 #include "corps/volume.hh"
 
