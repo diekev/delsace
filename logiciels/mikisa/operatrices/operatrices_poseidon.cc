@@ -787,13 +787,15 @@ public:
 		vieille_vel->copie_donnees(*velocite);
 
 		/* advecte particules */
+		auto echant = Echantilloneuse(*velocite);
 		auto mult = poseidon_gaz->dt * velocite->taille_voxel();
 		tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
 						  [&](long i)
 		{
 			auto p = poseidon_gaz->particules[i];
-			auto pos = velocite->monde_vers_index(p->pos);
-			p->pos += velocite->valeur_centree(pos) * mult;
+			auto pos = velocite->monde_vers_continue(p->pos);
+
+			p->pos += echant.echantillone_trilineaire(pos) * mult;
 		});
 
 		//psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
