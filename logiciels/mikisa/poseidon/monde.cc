@@ -129,6 +129,8 @@ static auto ajourne_murs_domaine(Grille<int> &drapeaux)
 	}
 }
 
+#undef UTILISE_BRUIT
+
 void ajourne_sources(Poseidon &poseidon, int temps)
 {
 	auto corps = Corps();
@@ -136,11 +138,13 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto densite = poseidon.densite;
 	auto res = densite->resolution();
 
+#ifdef UTILISE_BRUIT
 	poseidon.bruit.genere_donnees();
 
 	auto echelle_bruit = 1.0f;
 	auto sigma = 0.5f;
 	auto facteur_bruit = dls::math::restreint(1.0f - 0.5f / sigma + sigma, 0.0f, 1.0f);
+#endif
 
 	for (auto const &params : poseidon.monde.sources) {
 		auto objet = params.objet;
@@ -149,7 +153,9 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			continue;
 		}
 
+#ifdef UTILISE_BRUIT
 		auto facteur_densite = echelle_bruit * facteur_bruit * params.densite;
+#endif
 
 		/* copie par convénience */
 		objet->corps.accede_lecture([&](Corps const &corps_objet)
@@ -175,9 +181,12 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			auto pos = iter.suivante();
 			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
 
+#ifdef UTILISE_BRUIT
 			auto pos_monde = dls::math::discret_vers_continu<float>(pos);
-
 			auto densite_cible = facteur_densite * poseidon.bruit.evalue(&pos_monde[0]);
+#else
+			auto densite_cible = params.densite;
+#endif
 
 			switch (params.fusion) {
 				case mode_fusion::SUPERPOSITION:
