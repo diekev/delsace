@@ -273,12 +273,12 @@ public:
 		: Grille<dls::math::vec3f>(descr)
 	{}
 
-	dls::math::vec3f valeur_centree(dls::math::vec3i const &pos)
+	dls::math::vec3f valeur_centree(dls::math::vec3i const &pos) const
 	{
 		return valeur_centree(pos.x, pos.y, pos.z);
 	}
 
-	dls::math::vec3f valeur_centree(int i, int j, int k)
+	dls::math::vec3f valeur_centree(int i, int j, int k) const
 	{
 		if (hors_des_limites(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k))) {
 			return m_arriere_plan;
