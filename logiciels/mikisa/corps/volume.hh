@@ -280,10 +280,16 @@ public:
 
 	void echange(Grille<T> &autre)
 	{
+		std::swap(m_res, autre.m_res);
+		std::swap(m_etendu, autre.m_etendu);
+		std::swap(m_fenetre_donnees, autre.m_fenetre_donnees);
+		std::swap(m_taille_voxel, autre.m_taille_voxel);
+
 		m_donnees.echange(autre.m_donnees);
 
 		std::swap(m_arriere_plan, autre.m_arriere_plan);
 		std::swap(m_dummy, autre.m_dummy);
+		std::swap(m_nombre_voxels, autre.m_nombre_voxels);
 	}
 };
 
@@ -570,6 +576,11 @@ public:
 
 	void echange(Grille<T> &autre)
 	{
+		std::swap(m_desc.etendues, autre.m_desc.etendues);
+		std::swap(m_desc.resolution, autre.m_desc.resolution);
+		std::swap(m_desc.fenetre_donnees, autre.m_desc.fenetre_donnees);
+		std::swap(m_desc.taille_voxel, autre.m_desc.taille_voxel);
+
 		m_index_tuiles.echange(autre.m_index_tuiles);
 		m_tuiles.echange(autre.m_tuiles);
 
