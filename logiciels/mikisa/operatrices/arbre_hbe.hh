@@ -28,6 +28,7 @@
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/phys/rayon.hh"
+#include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -437,8 +438,6 @@ void traverse(ArbreHBE &arbre, T const &delegue, dls::phys::rayond const r, Accu
 
 /* ************************************************************************** */
 
-#include <queue>
-
 struct PaireDistanceNoeud {
 	ArbreHBE::Noeud *noeud = nullptr;
 	double distance = 0.0;
@@ -472,7 +471,7 @@ auto cherche_point_plus_proche_ex(
 		ArbreHBE &arbre,
 		TypeDelegue const &delegue,
 		DonneesRecherchePoint &donnees,
-		std::priority_queue<PaireDistanceNoeud> &file,
+		dls::file_priorite<PaireDistanceNoeud> &file,
 		ArbreHBE::Noeud const &noeud)
 {
 	if (noeud.est_feuille()) {
@@ -495,13 +494,13 @@ auto cherche_point_plus_proche_ex(
 		auto dist = calcul_point_plus_proche(*gauche, donnees.point, plus_proche);
 
 		if (dist < donnees.dn_plus_proche.distance_carree) {
-			file.push({ gauche, dist });
+			file.enfile({ gauche, dist });
 		}
 
 		dist = calcul_point_plus_proche(*droite, donnees.point, plus_proche);
 
 		if (dist < donnees.dn_plus_proche.distance_carree) {
-			file.push({ droite, dist });
+			file.enfile({ droite, dist });
 		}
 	}
 }
@@ -531,13 +530,13 @@ double cherche_point_plus_proche(
 		return -1.0;
 	}
 
-	auto file = std::priority_queue<PaireDistanceNoeud>();
+	auto file = dls::file_priorite<PaireDistanceNoeud>();
 
 	cherche_point_plus_proche_ex(arbre, delegue, donnees, file, racine);
 
-	while (!file.empty() && file.top().distance < donnees.dn_plus_proche.distance_carree) {
-		auto node = file.top().noeud;
-		file.pop();
+	while (!file.est_vide() && file.haut().distance < donnees.dn_plus_proche.distance_carree) {
+		auto node = file.haut().noeud;
+		file.defile();
 		cherche_point_plus_proche_ex(arbre, delegue, donnees, file, *node);
 	}
 

@@ -26,8 +26,9 @@
 
 #include <chrono>
 #include <iostream>
-#include <queue>
 #include <thread>
+
+#include "biblinternes/structures/file.hh"
 
 /*** Presto ****/
 
@@ -122,7 +123,7 @@ inline bool operator<(const Plan &lhs, const Plan &rhs)
 }
 
 class Planificateur {
-	std::priority_queue<Plan> m_plans{};
+	dls::file_priorite<Plan> m_plans{};
 	Executeur m_executeur = {};
 	bool m_continue = true;
 	std::unique_ptr<std::thread> m_thread;
@@ -134,7 +135,7 @@ public:
 
 	~Planificateur()
 	{
-		while (!m_plans.empty()) {
+		while (!m_plans.est_vide()) {
 			/* Faisons en sorte que tous les plans soient executé. */
 		}
 
@@ -144,7 +145,7 @@ public:
 
 	void planifie(Reseau *reseau)
 	{
-		m_plans.push(Plan(std::chrono::system_clock::now(), reseau));
+		m_plans.enfile(Plan(std::chrono::system_clock::now(), reseau));
 	}
 
 	void thread_loop()
@@ -152,24 +153,24 @@ public:
 		while (m_continue) {
 			auto now = std::chrono::system_clock::now();
 
-			if (m_plans.empty()) {
+			if (m_plans.est_vide()) {
 				std::cerr << "Il n'y a aucun plan à exécuter\n";
 			}
-			else if (m_plans.top().temps() >= now) {
+			else if (m_plans.haut().temps() >= now) {
 				std::cerr << "Le premier plan est dans le future\n";
 			}
 
-			while(!m_plans.empty() && m_plans.top().temps() <= now) {
-				Plan plan = m_plans.top();
+			while(!m_plans.est_vide() && m_plans.haut().temps() <= now) {
+				Plan plan = m_plans.haut();
 				m_executeur.execute(plan.reseau());
-				m_plans.pop();
+				m_plans.defile();
 			}
 
-			if (m_plans.empty()) {
+			if (m_plans.est_vide()) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			}
 			else {
-				std::this_thread::sleep_for(m_plans.top().temps() - std::chrono::system_clock::now());
+				std::this_thread::sleep_for(m_plans.haut().temps() - std::chrono::system_clock::now());
 			}
 		}
 	}

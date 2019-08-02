@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <queue>
+
 #include "biblinternes/structures/tableau.hh"
 
 namespace dls {
@@ -66,6 +68,62 @@ public:
 	void defile()
 	{
 		m_file.pop_front();
+	}
+};
+
+template <typename T, typename Compare = std::less<T>>
+struct file_priorite {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
+
+private:
+	std::priority_queue<T, std::vector<T, memoire::logeuse_guardee<T>>, Compare> m_file{};
+
+public:
+	file_priorite() = default;
+	~file_priorite() = default;
+
+	bool est_vide() const
+	{
+		return m_file.empty();
+	}
+
+	type_taille taille() const
+	{
+		return static_cast<long>(m_file.size());
+	}
+
+	type_reference_const haut() const
+	{
+		return m_file.top();
+	}
+
+	void defile()
+	{
+		m_file.pop();
+	}
+
+	void enfile(type_valeur const &valeur)
+	{
+		m_file.push(valeur);
+	}
+
+	void enfile(type_valeur &&valeur)
+	{
+		m_file.push(valeur);
+	}
+
+	template<typename... Args>
+	void emplace(Args &&... args)
+	{
+		m_file.emplace(std::forward<Args...>(args...));
+	}
+
+	void echange(file_priorite &autre)
+	{
+		m_file.swap(autre);
 	}
 };
 

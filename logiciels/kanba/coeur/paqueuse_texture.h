@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <queue>
+#include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau.hh"
 
 struct Polygone;
@@ -64,7 +64,7 @@ class PaqueuseTexture {
 
 	Noeud *m_racine = nullptr;
 
-	std::priority_queue<Noeud *, dls::tableau<Noeud *>, CompareNoeud> m_queue_priorite{};
+	dls::file_priorite<Noeud *, CompareNoeud> m_queue_priorite{};
 
 	unsigned int max_x = 0;
 	unsigned int max_y = 0;
