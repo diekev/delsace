@@ -38,4 +38,6 @@ struct DeleguePrim {
 	BoiteEnglobante boite_englobante(long idx) const;
 
 	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
+
+	double calcule_point_plus_proche(long idx, dls::math::point3d const &p) const;
 };

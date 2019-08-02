@@ -97,3 +97,45 @@ dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::ray
 
 	return intersection;
 }
+
+double DeleguePrim::calcule_point_plus_proche(long idx, const dls::math::point3d &p) const
+{
+	auto prim = m_corps.prims()->prim(idx);
+	auto points = m_corps.points();
+
+	if (prim->type_prim() != type_primitive::POLYGONE) {
+		return std::numeric_limits<double>::max();
+	}
+
+	auto poly = dynamic_cast<Polygone *>(prim);
+
+	if (poly->type != type_polygone::FERME) {
+		return std::numeric_limits<double>::max();
+	}
+
+	auto distance_min = std::numeric_limits<double>::max();
+
+	for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+		auto const &v0 = points->point(poly->index_point(0));
+		auto const &v1 = points->point(poly->index_point(j - 1));
+		auto const &v2 = points->point(poly->index_point(j));
+
+		auto const &v0_d = m_corps.transformation(dls::math::point3d(v0));
+		auto const &v1_d = m_corps.transformation(dls::math::point3d(v1));
+		auto const &v2_d = m_corps.transformation(dls::math::point3d(v2));
+
+		auto pnt_pls_prch = plus_proche_point_triangle(
+					dls::math::vec3d(p),
+					dls::math::vec3d(v0_d),
+					dls::math::vec3d(v1_d),
+					dls::math::vec3d(v2_d));
+
+		auto distance = longueur_carree(dls::math::vec3d(p) - pnt_pls_prch);
+
+		if (distance < distance_min) {
+			distance_min = distance;
+		}
+	}
+
+	return distance_min;
+}

@@ -135,3 +135,28 @@ double trouve_meilleure_scission(
 
 	return meilleure_scission;
 }
+
+double calcul_point_plus_proche(
+		ArbreHBE::Noeud const &noeud,
+		dls::math::point3d const &point,
+		dls::math::point3d &plus_proche)
+{
+	auto const &min = noeud.limites.min;
+	auto const &max = noeud.limites.max;
+
+	for (auto i = 0ul; i < 3; ++i) {
+		auto val = point[i];
+
+		if (min[i] > val) {
+			val = min[i];
+		}
+
+		if (max[i] < val) {
+			val = max[i];
+		}
+
+		plus_proche[i] = val;
+	}
+
+	return dls::math::longueur_carree(point - plus_proche);
+}

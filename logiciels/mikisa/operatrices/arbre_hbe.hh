@@ -434,3 +434,116 @@ void traverse(ArbreHBE &arbre, T const &delegue, dls::phys::rayond const r, Accu
 		}
 	}
 }
+
+/* ************************************************************************** */
+
+#include <queue>
+
+struct PaireDistanceNoeud {
+	ArbreHBE::Noeud *noeud = nullptr;
+	double distance = 0.0;
+};
+
+inline bool operator<(PaireDistanceNoeud const &p1, PaireDistanceNoeud const &p2)
+{
+	return p1.distance < p2.distance;
+}
+
+struct DonneesPointPlusProche {
+	/* Distance entre l'origine de la recherche et le point. */
+	double distance_carree{};
+
+	/* Index de la primitive contenant le point. */
+	long index = -1;
+};
+
+struct DonneesRecherchePoint {
+	DonneesPointPlusProche dn_plus_proche{};
+	dls::math::point3d point{};
+};
+
+double calcul_point_plus_proche(
+		ArbreHBE::Noeud const &noeud,
+		dls::math::point3d const &point,
+		dls::math::point3d &plus_proche);
+
+template <typename TypeDelegue>
+auto cherche_point_plus_proche_ex(
+		ArbreHBE &arbre,
+		TypeDelegue const &delegue,
+		DonneesRecherchePoint &donnees,
+		std::priority_queue<PaireDistanceNoeud> &file,
+		ArbreHBE::Noeud const &noeud)
+{
+	if (noeud.est_feuille()) {
+		for (auto i = 0; i < noeud.nombre_references; ++i) {
+			auto id_prim = arbre.index_refs[noeud.decalage_reference + i];
+			auto dist = delegue.calcule_point_plus_proche(id_prim, donnees.point);
+
+			if (dist < donnees.dn_plus_proche.distance_carree) {
+				donnees.dn_plus_proche.index = id_prim;
+				donnees.dn_plus_proche.distance_carree = dist;
+			}
+		}
+	}
+	else {
+		dls::math::point3d plus_proche;
+
+		auto gauche = &arbre.noeuds[noeud.gauche];
+		auto droite = &arbre.noeuds[noeud.droite];
+
+		auto dist = calcul_point_plus_proche(*gauche, donnees.point, plus_proche);
+
+		if (dist < donnees.dn_plus_proche.distance_carree) {
+			file.push({ gauche, dist });
+		}
+
+		dist = calcul_point_plus_proche(*droite, donnees.point, plus_proche);
+
+		if (dist < donnees.dn_plus_proche.distance_carree) {
+			file.push({ droite, dist });
+		}
+	}
+}
+
+template <typename TypeDelegue>
+double cherche_point_plus_proche(
+		ArbreHBE &arbre,
+		TypeDelegue const &delegue,
+		const dls::math::point3d &point,
+		const double distance_max)
+{
+	if (arbre.nombre_noeud < 2) {
+		return -1.0;
+	}
+
+	auto plus_proche = dls::math::point3d();
+
+	auto donnees = DonneesRecherchePoint{};
+	donnees.point = point;
+	donnees.dn_plus_proche.distance_carree = distance_max;
+
+	auto const &racine = arbre.noeuds[1];
+
+	auto dist_sq = calcul_point_plus_proche(racine, donnees.point, plus_proche);
+
+	if (dist_sq >= distance_max) {
+		return -1.0;
+	}
+
+	auto file = std::priority_queue<PaireDistanceNoeud>();
+
+	cherche_point_plus_proche_ex(arbre, delegue, donnees, file, racine);
+
+	while (!file.empty() && file.top().distance < donnees.dn_plus_proche.distance_carree) {
+		auto node = file.top().noeud;
+		file.pop();
+		cherche_point_plus_proche_ex(arbre, delegue, donnees, file, *node);
+	}
+
+	if (donnees.dn_plus_proche.index == -1) {
+		return -1.0;
+	}
+
+	return donnees.dn_plus_proche.distance_carree;
+}

@@ -178,6 +178,22 @@ static int maillage_vers_volume(
 					rayon.origine.y = static_cast<double>(mnd.y);
 					rayon.origine.z = static_cast<double>(mnd.z);
 
+					auto dist_max = static_cast<double>(grille->taille_voxel());
+					dist_max *= dist_max;
+#if 1
+					auto dist = cherche_point_plus_proche(arbre_hbe, delegue_prims, rayon.origine, dist_max);
+
+					if (dist < -0.5) {
+						continue;
+					}
+
+					if (dist >= dist_max) {
+						continue;
+					}
+
+					tuile->donnees[index_tuile] = densite;
+#else
+
 					auto axis = axe_dominant_abs(rayon.origine);
 
 					rayon.direction = dls::math::vec3d(0.0);
@@ -190,6 +206,7 @@ static int maillage_vers_volume(
 					if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
 						tuile->donnees[index_tuile] = densite;
 					}
+#endif
 				}
 			}
 		}
