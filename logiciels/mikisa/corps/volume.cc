@@ -33,27 +33,27 @@ type_primitive Volume::type_prim() const
 	return type_primitive::VOLUME;
 }
 
-long BaseGrille::calcul_index(size_t x, size_t y, size_t z) const
+long BaseGrille::calcul_index(long x, long y, long z) const
 {
-	return static_cast<long>(x + (y + z * static_cast<size_t>(m_desc.resolution[1])) * static_cast<size_t>(m_desc.resolution[0]));
+	return x + (y + z * m_desc.resolution[1]) * m_desc.resolution[0];
 }
 
 long BaseGrille::nombre_voxels() const
 {
-	return static_cast<long>(m_nombre_voxels);
+	return m_nombre_voxels;
 }
 
-bool BaseGrille::hors_des_limites(size_t x, size_t y, size_t z) const
+bool BaseGrille::hors_des_limites(long x, long y, long z) const
 {
-	if (x >= static_cast<size_t>(m_desc.resolution[0])) {
+	if (x >= m_desc.resolution[0]) {
 		return true;
 	}
 
-	if (y >= static_cast<size_t>(m_desc.resolution[1])) {
+	if (y >= m_desc.resolution[1]) {
 		return true;
 	}
 
-	if (z >= static_cast<size_t>(m_desc.resolution[2])) {
+	if (z >= m_desc.resolution[2]) {
 		return true;
 	}
 
@@ -68,7 +68,7 @@ BaseGrille::BaseGrille(description_volume const &descr)
 	m_desc.resolution[1] = static_cast<int>(taille.y / m_desc.taille_voxel);
 	m_desc.resolution[2] = static_cast<int>(taille.z / m_desc.taille_voxel);
 
-	m_nombre_voxels = static_cast<size_t>(m_desc.resolution[0]) * static_cast<size_t>(m_desc.resolution[1]) * static_cast<size_t>(m_desc.resolution[2]);
+	m_nombre_voxels = static_cast<long>(m_desc.resolution[0]) * static_cast<long>(m_desc.resolution[1]) * static_cast<long>(m_desc.resolution[2]);
 }
 
 dls::math::vec3f BaseGrille::index_vers_unit(const dls::math::vec3i &vsp) const

@@ -108,9 +108,9 @@ void InitPreconditionIncompCholesky(const Grille<int>& flags,
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		if (est_fluide(flags, i,j,k)) {
 			auto idx = A0.calcul_index(i,j,k);
@@ -157,9 +157,9 @@ void InitPreconditionModifiedIncompCholesky2(const Grille<int>& flags,
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		if (!est_fluide(flags, i,j,k)) continue;
 
@@ -218,9 +218,9 @@ void ApplyPreconditionIncompCholesky(Grille<float>& dst, Grille<float>& Var1, co
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		if (!est_fluide(flags, i,j,k)){
 			continue;
@@ -241,9 +241,9 @@ void ApplyPreconditionIncompCholesky(Grille<float>& dst, Grille<float>& Var1, co
 
 	while (!iter_inv.fini()) {
 		auto pos_iter = iter_inv.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 		auto const idx = A0.calcul_index(i,j,k);
 
 		if (!est_fluide(flags, idx)) {
@@ -272,9 +272,9 @@ void ApplyPreconditionModifiedIncompCholesky2(Grille<float>& dst, Grille<float>&
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		if (!est_fluide(flags, i, j, k)) {
 			continue;
@@ -297,9 +297,9 @@ void ApplyPreconditionModifiedIncompCholesky2(Grille<float>& dst, Grille<float>&
 
 	while (!iter_inv.fini()) {
 		auto pos_iter = iter_inv.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 		auto const idx = A0.calcul_index(i,j,k);
 
 		if (!est_fluide(flags, idx)) {

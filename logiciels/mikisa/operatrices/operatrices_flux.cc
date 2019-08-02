@@ -237,13 +237,13 @@ public:
 			tampon->tampon = type_image(m_image_chargee.dimensions());
 		}
 
-		auto debut_x = std::max(0ul, static_cast<size_t>(rectangle.x));
-		auto fin_x = static_cast<size_t>(std::min(m_image_chargee.nombre_colonnes(), largeur));
-		auto debut_y = std::max(0ul, static_cast<size_t>(rectangle.y));
-		auto fin_y = static_cast<size_t>(std::min(m_image_chargee.nombre_lignes(), hauteur));
+		auto debut_x = std::max(0l, static_cast<long>(rectangle.x));
+		auto fin_x = static_cast<long>(std::min(m_image_chargee.nombre_colonnes(), largeur));
+		auto debut_y = std::max(0l, static_cast<long>(rectangle.y));
+		auto fin_y = static_cast<long>(std::min(m_image_chargee.nombre_lignes(), hauteur));
 
-		for (size_t x = debut_x; x < fin_x; ++x) {
-			for (size_t y = debut_y; y < fin_y; ++y) {
+		for (auto x = debut_x; x < fin_x; ++x) {
+			for (auto y = debut_y; y < fin_y; ++y) {
 				/* À FAIRE : alpha. */
 				auto pixel = m_image_chargee[static_cast<int>(y)][x];
 				pixel.a = 1.0f;

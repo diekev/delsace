@@ -73,9 +73,9 @@ void applique_parallele(
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
-			auto i = static_cast<size_t>(pos_iter.x);
-			auto j = static_cast<size_t>(pos_iter.y);
-			auto k = static_cast<size_t>(pos_iter.z);
+			auto i = pos_iter.x;
+			auto j = pos_iter.y;
+			auto k = pos_iter.z;
 
 			op(grille, i, j, k);
 		}
@@ -146,9 +146,9 @@ static auto computePressureRhs(
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		if (flags.valeur(i,j,k) != TypeFluid) {
 			rhs.valeur(i, j, k) = 0.0f;
@@ -285,9 +285,9 @@ static auto MakeLaplaceMatrix(
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		if (flags.valeur(i,j,k) != TypeFluid) {
 			continue;
@@ -410,7 +410,7 @@ static auto solvePressureSystem(
 			};
 
 			for (auto const &pos : preferredPos) {
-				if (flags.valeur(static_cast<size_t>(pos.x), static_cast<size_t>(pos.y), static_cast<size_t>(pos.z)) == TypeFluid) {
+				if (flags.valeur(pos.x, pos.y, pos.z) == TypeFluid) {
 					fixPidx = pos.x + (pos.y + pos.z * res.y) * res.x;
 					break;
 				}
@@ -429,7 +429,7 @@ static auto solvePressureSystem(
 					auto j = pos_iter.y;
 					auto k = pos_iter.z;
 
-					if (flags.valeur(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k)) == TypeFluid) {
+					if (flags.valeur(i, j, k) == TypeFluid) {
 						fixPidx = i + (j + k * res.y) * res.x;
 						break;
 					}
@@ -521,9 +521,9 @@ static auto knCorrectVelocity(const Grille<int>& flags, GrilleMAC& vel, const Gr
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = static_cast<size_t>(pos_iter.x);
-		auto j = static_cast<size_t>(pos_iter.y);
-		auto k = static_cast<size_t>(pos_iter.z);
+		auto i = pos_iter.x;
+		auto j = pos_iter.y;
+		auto k = pos_iter.z;
 
 		auto idx = flags.calcul_index(i, j, k);
 
@@ -1452,11 +1452,11 @@ void projette_velocite(
 	auto iter = IteratricePosition(limites);
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
-		auto i = static_cast<size_t>(pos.x);
-		auto j = static_cast<size_t>(pos.y);
-		auto k = static_cast<size_t>(pos.z);
+		auto i = pos.x;
+		auto j = pos.y;
+		auto k = pos.z;
 
-		if (i == 0 || i == static_cast<size_t>(res[0]-1) || j==0 || j== static_cast<size_t>(res[1]-1) || k==0 || k== static_cast<size_t>(res[2]-1))
+		if (i == 0 || i == (res[0]-1) || j==0 || j== (res[1]-1) || k==0 || k== (res[2]-1))
 			drapeaux.valeur(i, j, k, '\1');
 		else
 			drapeaux.valeur(i, j, k, '\0');
@@ -1474,19 +1474,19 @@ void projette_velocite(
 	auto iter = IteratricePosition(limites);
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
-		auto i = static_cast<size_t>(pos.x);
-		auto j = static_cast<size_t>(pos.y);
-		auto k = static_cast<size_t>(pos.z);
+		auto i = pos.x;
+		auto j = pos.y;
+		auto k = pos.z;
 
-		if (i == 0 || i == static_cast<size_t>(res[0]-1)) {
+		if (i == 0 || i == res[0]-1) {
 			velocite.valeur(i, j, k).x = 0.0f;
 		}
 
-		if (j == 0 || j == static_cast<size_t>(res[1]-1)) {
+		if (j == 0 || j == res[1]-1) {
 			velocite.valeur(i, j, k).y = 0.0f;
 		}
 
-		if (k == 0 || k == static_cast<size_t>(res[2]-1)) {
+		if (k == 0 || k == res[2]-1) {
 			velocite.valeur(i, j, k).z = 0.0f;
 		}
 	}

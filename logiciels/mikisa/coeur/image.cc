@@ -26,17 +26,17 @@
 
 /* ************************************************************************** */
 
-dls::image::Pixel<float> Calque::valeur(size_t x, size_t y) const
+dls::image::Pixel<float> Calque::valeur(long x, long y) const
 {
-	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
-	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
+	x = std::max(0l, std::min(x, static_cast<long>(tampon.nombre_colonnes()) - 1));
+	y = std::max(0l, std::min(y, static_cast<long>(tampon.nombre_lignes()) - 1));
 	return tampon[static_cast<int>(y)][static_cast<int>(x)];
 }
 
-void Calque::valeur(size_t x, size_t y, dls::image::Pixel<float> const &pixel)
+void Calque::valeur(long x, long y, dls::image::Pixel<float> const &pixel)
 {
-	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
-	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
+	x = std::max(0l, std::min(x, static_cast<long>(tampon.nombre_colonnes()) - 1));
+	y = std::max(0l, std::min(y, static_cast<long>(tampon.nombre_lignes()) - 1));
 	tampon[static_cast<int>(y)][static_cast<int>(x)] = pixel;
 }
 

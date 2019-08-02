@@ -245,11 +245,7 @@ static int maillage_vers_volume(
 			traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
 
 			if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
-				grille_scalaire->valeur(
-							static_cast<size_t>(isp.x),
-							static_cast<size_t>(isp.y),
-							static_cast<size_t>(isp.z),
-							densite);
+				grille_scalaire->valeur(isp.x, isp.y, isp.z, densite);
 			}
 		}
 

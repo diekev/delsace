@@ -211,9 +211,9 @@ auto restriction_maccormarck(
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
 
-			auto i = static_cast<size_t>(pos_iter.x);
-			auto j = static_cast<size_t>(pos_iter.y);
-			auto k = static_cast<size_t>(pos_iter.z);
+			auto i = pos_iter.x;
+			auto j = pos_iter.y;
+			auto k = pos_iter.z;
 
 			auto pos_cont = dls::math::vec3f(i,j,k);
 

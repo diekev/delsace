@@ -323,15 +323,15 @@ int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte, DonneesAv
 
 	compile_graphe(contexte.temps_courant);
 
-	boucle_parallele(tbb::blocked_range<size_t>(0, static_cast<size_t>(rectangle.hauteur)),
-					 [&](tbb::blocked_range<size_t> const &plage)
+	boucle_parallele(tbb::blocked_range<long>(0, static_cast<long>(rectangle.hauteur)),
+					 [&](tbb::blocked_range<long> const &plage)
 	{
 		/* fais une copie locale pour éviter les problèmes de concurrence
 		 * critique */
 		auto pile = m_compileuse.pile();
 
-		for (size_t l = plage.begin(); l < plage.end(); ++l) {
-			for (size_t c = 0; c < static_cast<size_t>(rectangle.largeur); ++c) {
+		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			for (auto c = 0; c < static_cast<long>(rectangle.largeur); ++c) {
 //				auto const x = c * largeur_inverse;
 //				auto const y = l * hauteur_inverse;
 

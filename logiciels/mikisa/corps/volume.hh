@@ -65,9 +65,9 @@ struct description_volume {
 class BaseGrille {
 protected:
 	description_volume m_desc{};
-	size_t m_nombre_voxels = 0;	
+	long m_nombre_voxels = 0;
 
-	bool hors_des_limites(size_t x, size_t y, size_t z) const;
+	bool hors_des_limites(long x, long y, long z) const;
 
 public:
 	BaseGrille() = default;
@@ -94,7 +94,7 @@ public:
 
 	float taille_voxel() const;
 
-	long calcul_index(size_t x, size_t y, size_t z) const;
+	long calcul_index(long x, long y, long z) const;
 
 	long nombre_voxels() const;
 
@@ -152,7 +152,7 @@ public:
 		: BaseGrille(descr)
 		, m_arriere_plan(arriere_plan)
 	{
-		m_donnees.redimensionne(static_cast<long>(m_nombre_voxels), m_arriere_plan);
+		m_donnees.redimensionne(m_nombre_voxels, m_arriere_plan);
 	}
 
 	T &valeur(long index)
@@ -173,7 +173,7 @@ public:
 		return m_donnees[index];
 	}
 
-	T const &valeur(size_t x, size_t y, size_t z) const
+	T const &valeur(long x, long y, long z) const
 	{
 		if (hors_des_limites(x, y, z)) {
 			return m_arriere_plan;
@@ -183,7 +183,7 @@ public:
 	}
 
 	/* XXX ne fais pas de vérification de limites */
-	T &valeur(size_t x, size_t y, size_t z)
+	T &valeur(long x, long y, long z)
 	{
 		if (hors_des_limites(x, y, z)) {
 			return m_dummy;
@@ -201,7 +201,7 @@ public:
 		m_donnees[index] = v;
 	}
 
-	void valeur(size_t x, size_t y, size_t z, T v)
+	void valeur(long x, long y, long z, T v)
 	{
 		if (hors_des_limites(x, y, z)) {
 			return;
@@ -212,7 +212,7 @@ public:
 
 	void valeur(dls::math::vec3i const &pos, T v)
 	{
-		this->valeur(static_cast<size_t>(pos.x), static_cast<size_t>(pos.y), static_cast<size_t>(pos.z), v);
+		this->valeur(static_cast<long>(pos.x), static_cast<long>(pos.y), static_cast<long>(pos.z), v);
 	}
 
 	void copie_donnees(const Grille<T> &grille)
@@ -232,7 +232,7 @@ public:
 		return m_donnees.donnees();
 	}
 
-	size_t taille_octet() const
+	long taille_octet() const
 	{
 		return m_nombre_voxels * sizeof(T);
 	}
@@ -284,16 +284,16 @@ public:
 
 	dls::math::vec3f valeur_centree(int i, int j, int k) const
 	{
-		if (hors_des_limites(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k))) {
+		if (hors_des_limites(static_cast<long>(i), static_cast<long>(j), static_cast<long>(k))) {
 			return m_arriere_plan;
 		}
 
-		auto idx = calcul_index(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k));
+		auto idx = calcul_index(static_cast<long>(i), static_cast<long>(j), static_cast<long>(k));
 
 		auto vc = this->valeur(idx);
-		auto vx = this->valeur(static_cast<size_t>(i) + 1, static_cast<size_t>(j), static_cast<size_t>(k));
-		auto vy = this->valeur(static_cast<size_t>(i), static_cast<size_t>(j) + 1, static_cast<size_t>(k));
-		auto vz = this->valeur(static_cast<size_t>(i), static_cast<size_t>(j), static_cast<size_t>(k) + 1);
+		auto vx = this->valeur(static_cast<long>(i) + 1, static_cast<long>(j), static_cast<long>(k));
+		auto vy = this->valeur(static_cast<long>(i), static_cast<long>(j) + 1, static_cast<long>(k));
+		auto vz = this->valeur(static_cast<long>(i), static_cast<long>(j), static_cast<long>(k) + 1);
 
 		return dls::math::vec3f(
 					0.5f * (vc.x + vx.x),

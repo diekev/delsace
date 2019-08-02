@@ -50,9 +50,9 @@ void ajoute_flottance(
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
-			auto i = static_cast<size_t>(pos_iter.x);
-			auto j = static_cast<size_t>(pos_iter.y);
-			auto k = static_cast<size_t>(pos_iter.z);
+			auto i = pos_iter.x;
+			auto j = pos_iter.y;
+			auto k = pos_iter.z;
 
 			if (flags.valeur(i, j, k) != TypeFluid) {
 				continue;
@@ -90,9 +90,9 @@ void ajourne_conditions_bordures_murs(Grille<int> &flags, GrilleMAC &vel)
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
-			auto i = static_cast<size_t>(pos_iter.x);
-			auto j = static_cast<size_t>(pos_iter.y);
-			auto k = static_cast<size_t>(pos_iter.z);
+			auto i = pos_iter.x;
+			auto j = pos_iter.y;
+			auto k = pos_iter.z;
 
 			auto curFluid = flags.valeur(i, j, k) == TypeFluid;
 			auto curObs   = flags.valeur(i, j, k) == TypeObstacle;
@@ -134,15 +134,15 @@ void ajourne_conditions_bordures_murs(Grille<int> &flags, GrilleMAC &vel)
 			}
 
 			if (curFluid) {
-				if ((i > 0 && flags.valeur(i - 1, j, k) == TypeStick) || (i < static_cast<size_t>(res.x - 1) && flags.valeur(i+1,j,k) == TypeStick)) {
+				if ((i > 0 && flags.valeur(i - 1, j, k) == TypeStick) || (i < (res.x - 1) && flags.valeur(i+1,j,k) == TypeStick)) {
 					vel.valeur(i,j,k).y = vel.valeur(i,j,k).z = 0.0f;
 				}
 
-				if ((j > 0 && flags.valeur(i, j - 1, k) == TypeStick) || (j < static_cast<size_t>(res.y - 1) && flags.valeur(i,j+1,k) == TypeStick)) {
+				if ((j > 0 && flags.valeur(i, j - 1, k) == TypeStick) || (j < (res.y - 1) && flags.valeur(i,j+1,k) == TypeStick)) {
 					vel.valeur(i,j,k).x = vel.valeur(i,j,k).z = 0.0f;
 				}
 
-				if ((k > 0 && flags.valeur(i, j, k - 1) == TypeStick) || (k < static_cast<size_t>(res.z - 1) && flags.valeur(i,j,k+1) == TypeStick)) {
+				if ((k > 0 && flags.valeur(i, j, k - 1) == TypeStick) || (k < (res.z - 1) && flags.valeur(i,j,k+1) == TypeStick)) {
 					vel.valeur(i,j,k).x = vel.valeur(i,j,k).y = 0.0f;
 				}
 			}

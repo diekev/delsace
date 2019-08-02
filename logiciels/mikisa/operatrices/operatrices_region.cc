@@ -189,26 +189,26 @@ public:
 
 			if (filtre == ANALYSE_GRADIENT) {
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
 
 					resultat.r = (px1.r - px0.r);
 					resultat.g = (px1.g - px0.g);
 					resultat.b = (px1.b - px0.b);
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					resultat.r = (py1.r - py0.r);
 					resultat.g = (py1.g - py0.g);
 					resultat.b = (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					resultat.r = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f;
 					resultat.g = ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f;
@@ -219,23 +219,23 @@ public:
 				auto valeur = 0.0f;
 
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
 
 					valeur = (px1.r - px0.r) + (px1.g - px0.g) + (px1.b - px0.b);
 
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					valeur = (py1.r - py0.r) + (py1.g - py0.g) + (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					valeur = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f
 							 + ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f
@@ -247,28 +247,28 @@ public:
 				resultat.b = valeur;
 			}
 			else if (filtre == ANALYSE_LAPLACIEN) {
-				auto px  = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l));
+				auto px  = tampon->valeur(c, l);
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
 
 					resultat.r = px1.r + px0.r - px.r * 2.0f;
 					resultat.g = px1.g + px0.g - px.g * 2.0f;
 					resultat.b = px1.b + px0.b - px.b * 2.0f;
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					resultat.r = py1.r + py0.r - px.r * 2.0f;
 					resultat.g = py1.g + py0.g - px.g * 2.0f;
 					resultat.b = py1.b + py0.b - px.b * 2.0f;
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					resultat.r = px1.r + px0.r + py1.r + py0.r - px.r * 4.0f;
 					resultat.g = px1.g + px0.g + py1.g + py0.g - px.g * 4.0f;
@@ -276,30 +276,30 @@ public:
 				}
 			}
 			else if (filtre == ANALYSE_COURBE) {
-				auto px  = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l));
+				auto px  = tampon->valeur(c, l);
 				auto gradient = dls::image::PixelFloat();
 
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
 
 					gradient.r = (px1.r - px0.r);
 					gradient.g = (px1.g - px0.g);
 					gradient.b = (px1.b - px0.b);
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					gradient.r = (py1.r - py0.r);
 					gradient.g = (py1.g - py0.g);
 					gradient.b = (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(static_cast<size_t>(c - dx0), static_cast<size_t>(l));
-					auto px1 = tampon->valeur(static_cast<size_t>(c + dx1), static_cast<size_t>(l));
-					auto py0 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l - dy0));
-					auto py1 = tampon->valeur(static_cast<size_t>(c), static_cast<size_t>(l + dy1));
+					auto px0 = tampon->valeur(c - dx0, l);
+					auto px1 = tampon->valeur(c + dx1, l);
+					auto py0 = tampon->valeur(c, l - dy0);
+					auto py1 = tampon->valeur(c, l + dy1);
 
 					gradient.r = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f;
 					gradient.g = ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f;
@@ -545,11 +545,11 @@ public:
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y)).a;
+			valeur.a = tampon->valeur(x, y).a;
 
 			for (auto ix = x - static_cast<long>(rayon), k = 0l; ix < x + static_cast<long>(rayon) + 1; ix++, ++k) {
 				auto const xx = std::min(static_cast<long>(largeur - 1), std::max(0l, ix));
-				auto const &p = tampon->valeur(static_cast<size_t>(xx), static_cast<size_t>(y));
+				auto const &p = tampon->valeur(xx, y);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -574,11 +574,11 @@ public:
 			valeur.r = 0.0f;
 			valeur.g = 0.0f;
 			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y)).a;
+			valeur.a = tampon->valeur(x, y).a;
 
 			for (auto iy = y - static_cast<long>(rayon), k = 0l; iy < y + static_cast<long>(rayon) + 1; iy++, ++k) {
 				auto const yy = std::min(static_cast<long>(hauteur - 1), std::max(0l, iy));
-				auto const &p = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(yy));
+				auto const &p = tampon->valeur(x, yy);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -1277,8 +1277,8 @@ public:
 			auto const taille_y = res_y / 2;
 			for (int y = 0; y < taille_y; ++y) {
 				for (int x = 0; x < res_x; ++x) {
-					auto const p0 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2);
-					auto const p1 = tampon->valeur(static_cast<size_t>(x), static_cast<size_t>(y) * 2 + 1);
+					auto const p0 = tampon->valeur(x, y * 2);
+					auto const p1 = tampon->valeur(x, y * 2 + 1);
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
@@ -1296,8 +1296,8 @@ public:
 			auto const taille_x = res_x / 2;
 			for (int y = 0; y < res_y; ++y) {
 				for (int x = 0; x < taille_x; ++x) {
-					auto const p0 = tampon->valeur(static_cast<size_t>(x) * 2, static_cast<size_t>(y));
-					auto const p1 = tampon->valeur(static_cast<size_t>(x) * 2 + 1, static_cast<size_t>(y));
+					auto const p0 = tampon->valeur(x * 2, y);
+					auto const p1 = tampon->valeur(x * 2 + 1, y);
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
@@ -1380,7 +1380,7 @@ public:
 
 			for (int sy = debut_y; sy < fin_y; ++sy) {
 				for (int sx = debut_x; sx < fin_x; ++sx) {
-					auto const p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
+					auto const p1 = tampon->valeur(sx, sy);
 
 					p0.r = std::max(p0.r, p1.r);
 					p0.g = std::max(p0.g, p1.g);
@@ -1459,7 +1459,7 @@ public:
 
 			for (int sy = debut_y; sy < fin_y; ++sy) {
 				for (int sx = debut_x; sx < fin_x; ++sx) {
-					auto const p1 = tampon->valeur(static_cast<size_t>(sx), static_cast<size_t>(sy));
+					auto const p1 = tampon->valeur(sx, sy);
 
 					p0.r = std::min(p0.r, p1.r);
 					p0.g = std::min(p0.g, p1.g);

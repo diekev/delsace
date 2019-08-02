@@ -41,12 +41,12 @@ struct Calque {
 	/**
 	 * Retourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	dls::image::Pixel<float> valeur(size_t x, size_t y) const;
+	dls::image::Pixel<float> valeur(long x, long y) const;
 
 	/**
 	 * Ajourne la valeur du tampon de ce calque à la position <x, y>.
 	 */
-	void valeur(size_t x, size_t y, dls::image::Pixel<float> const &pixel);
+	void valeur(long x, long y, dls::image::Pixel<float> const &pixel);
 
 	/**
 	 * Échantillonne le tampon de ce calque à la position <x, y> en utilisant
