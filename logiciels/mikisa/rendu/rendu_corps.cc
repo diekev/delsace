@@ -613,7 +613,9 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 			for (auto k = 0; k < TAILLE_TUILE; ++k) {
 				for (auto j = 0; j < TAILLE_TUILE; ++j) {
 					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
-						auto pos_tuile = tuile->min;
+						/* décale par rapport à min_grille au cas où le minimum
+						 * n'est pas zéro */
+						auto pos_tuile = tuile->min - min_grille;
 						pos_tuile.x += i;
 						pos_tuile.y += j;
 						pos_tuile.z += k;
