@@ -34,6 +34,17 @@
 
 namespace dls::math {
 
+template <typename T>
+inline auto extrait_min_max(T const v, T &min, T &max)
+{
+	if (v < min) {
+		min = v;
+	}
+	if (v > max) {
+		max = v;
+	}
+}
+
 /**
  * Converti un nombre de l'espace continu vers l'espace discret.
  */

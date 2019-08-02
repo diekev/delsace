@@ -59,3 +59,26 @@ struct limites {
 
 using limites3f = limites<dls::math::vec3f>;
 using limites3i = limites<dls::math::vec3i>;
+
+namespace dls::math {
+
+template <typename T>
+inline auto hors_limites(T const &valeur, T const &min, T const &max)
+{
+	return valeur < min || valeur > max;
+}
+
+template <typename T>
+inline auto hors_limites(vec3<T> const &valeur, vec3<T> const &min, vec3<T> const &max)
+{
+	return valeur < min || valeur > max;
+}
+
+template <typename T>
+inline auto hors_limites(T const &valeur, limites<T> const &lmt)
+{
+	return hors_limites(valeur, lmt.min, lmt.max);
+}
+
+}  /* namespace dls::math */
+

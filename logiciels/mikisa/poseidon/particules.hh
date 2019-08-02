@@ -65,16 +65,17 @@ public:
 
 		auto res = m_grille.resolution();
 
-		for (auto sx = ix - numberOfNeighbors.x; sx <= ix + nvx; sx += 1) {
-			for (auto sy = iy - numberOfNeighbors.y; sy <= iy + nvy; sy += 1) {
-				for (auto sz = iz - numberOfNeighbors.z; sz <= iz + nvz; sz += 1) {
-					if ( sx < 0 || sx > res.x-1
-						 || sy < 0 || sy > res.y-1
-						 || sz < 0 || sz > res.z-1 ) {
+		auto limites = limites3i(dls::math::vec3i(0), res - dls::math::vec3i(1));
+		auto pos = dls::math::vec3i();
+
+		for (pos.x = ix - numberOfNeighbors.x; pos.x <= ix + nvx; pos.x += 1) {
+			for (pos.y = iy - numberOfNeighbors.y; pos.y <= iy + nvy; pos.y += 1) {
+				for (pos.z = iz - numberOfNeighbors.z; pos.z <= iz + nvz; pos.z += 1) {
+					if (hors_limites(pos, limites)) {
 						continue;
 					}
 
-					auto cellindex = m_grille.valeur(sx, sy, sz);
+					auto cellindex = m_grille.valeur(pos.x, pos.y, pos.z);
 
 					if (cellindex != -1l) {
 						auto cellparticlecount = m_cellules[cellindex].taille();

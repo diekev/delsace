@@ -33,21 +33,6 @@
 
 #include "fluide.hh"
 
-namespace dls::math {
-
-template <typename T>
-inline auto extrait_min_max(T const v, T &min, T &max)
-{
-	if (v < min) {
-		min = v;
-	}
-	if (v > max) {
-		max = v;
-	}
-}
-
-}
-
 namespace psn {
 
 /* ************************************************************************** */
@@ -118,18 +103,6 @@ void MacCormackCorrect(
 	}
 }
 
-//! detect out of bounds value
-template<class T> inline bool cmpMinMax(T& minv, T& maxv, const T& val) {
-	if (val < minv) return true;
-	if (val > maxv) return true;
-	return false;
-}
-template<>
-inline bool cmpMinMax<dls::math::vec3f>(dls::math::vec3f& minv, dls::math::vec3f& maxv, const dls::math::vec3f& val)
-{
-	return( cmpMinMax(minv.x, maxv.x, val.x) | cmpMinMax(minv.y, maxv.y, val.y) | cmpMinMax(minv.z, maxv.z, val.z));
-}
-
 #define checkFlag(x,y,z) (flags.valeur((x),(y),(z)) & (TypeFluid|TypeVide))
 
 template<class T>
@@ -181,7 +154,7 @@ inline T doClampComponent(
 	if(clampMode==1) {
 		dst = dls::math::restreint(dst, minv, maxv); // hard clamp
 	} else {
-		if(cmpMinMax(minv,maxv,dst)) dst = fwd; // recommended in paper, "softer"
+		if(dls::math::hors_limites(dst,minv,maxv)) dst = fwd; // recommended in paper, "softer"
 	}
 	return dst;
 }
