@@ -81,8 +81,10 @@ double trouve_meilleure_scission(
 		long &compte_gauche,
 		long &compte_droite);
 
-template <typename T>
-auto construit_arbre_hbe(T const &delegue_prims, unsigned int profondeur_max)
+template <typename TypeDelegue>
+auto construit_arbre_hbe(
+		TypeDelegue const &delegue_prims,
+		unsigned int profondeur_max)
 {
 	/* rassemble la liste des boîtes alignées */
 	auto const nombre_de_boites = delegue_prims.nombre_elements();
@@ -341,8 +343,12 @@ public:
 	}
 };
 
-template <typename T>
-void traverse(ArbreHBE &arbre, T const &delegue, dls::phys::rayond const r, AccumulatriceTraverse &resultat)
+template <typename TypeDelegue>
+void traverse(
+		ArbreHBE &arbre,
+		TypeDelegue const &delegue,
+		dls::phys::rayond const r,
+		AccumulatriceTraverse &resultat)
 {
 	if (arbre.nombre_noeud < 2) {
 		return;
