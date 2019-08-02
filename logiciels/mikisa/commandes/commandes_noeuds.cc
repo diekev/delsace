@@ -846,6 +846,30 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeChangeContexte final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+
+		auto const &metadonnee = donnees.metadonnee;
+
+		if (metadonnee == "composites") {
+			/* À FAIRE : graphe des composites */
+			mikisa->graphe = nullptr;
+		}
+		else if (metadonnee == "scènes") {
+			mikisa->graphe = &mikisa->scene->graphe;
+		}
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_graphes(UsineCommande &usine)
 {
 	usine.enregistre_type("dessine_graphe_composite",
@@ -895,6 +919,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 	usine.enregistre_type("arrange_graphe",
 						   description_commande<CommandeArrangeGraphe>(
 							   "graphe", 0, 0, Qt::Key_L, false));
+
+	usine.enregistre_type("change_contexte",
+						   description_commande<CommandeChangeContexte>(
+							   "graphe", 0, 0, 0, false));
 }
 
 #pragma clang diagnostic pop

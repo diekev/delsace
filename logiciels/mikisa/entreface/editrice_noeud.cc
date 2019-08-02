@@ -29,12 +29,14 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "graphe/item_noeud.h"
@@ -49,12 +51,22 @@ EditriceGraphe::EditriceGraphe(Mikisa &mikisa, QWidget *parent)
 	, m_scene(new QGraphicsScene(this))
 	, m_vue(new VueEditeurNoeud(mikisa, this, this))
 	, m_barre_chemin(new QLineEdit())
+	, m_selecteur_graphe(new QComboBox(this))
 {
 	m_vue->setScene(m_scene);
 
 	auto disposition_vert = new QVBoxLayout();
 	auto disposition_barre = new QHBoxLayout();
 
+	m_selecteur_graphe->addItem("Graphe Composite", QVariant("composites"));
+	m_selecteur_graphe->addItem("Graphe Scène", QVariant("scènes"));
+
+	m_selecteur_graphe->setCurrentIndex(1);
+
+	connect(m_selecteur_graphe, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(change_contexte(int)));
+
+	disposition_barre->addWidget(m_selecteur_graphe);
 	disposition_barre->addWidget(m_barre_chemin);
 
 	auto bouton_retour = new QPushButton("^");
@@ -90,6 +102,10 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	assert(m_scene->items().size() == 0);
 
 	auto const graphe = m_mikisa.graphe;
+
+	if (graphe == nullptr) {
+		return;
+	}
 
 	m_vue->resetTransform();
 
@@ -168,4 +184,13 @@ void EditriceGraphe::ajourne_etat(int evenement)
 void EditriceGraphe::sors_noeud()
 {
 	m_mikisa.repondant_commande()->repond_clique("sors_noeud", "");
+}
+
+void EditriceGraphe::change_contexte(int index)
+{
+	INUTILISE(index);
+	auto repondant_commande = m_mikisa.repondant_commande();
+	auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
+
+	repondant_commande->repond_clique("change_contexte", valeur);
 }
