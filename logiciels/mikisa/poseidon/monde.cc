@@ -139,7 +139,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto res = densite->resolution();
 
 #ifdef UTILISE_BRUIT
-	poseidon.bruit.genere_donnees();
+	poseidon.bruit = bruit_vaguelette::construit();
 
 	auto echelle_bruit = 1.0f;
 	auto sigma = 0.5f;

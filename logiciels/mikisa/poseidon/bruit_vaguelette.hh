@@ -34,9 +34,7 @@ public:
 	bruit_vaguelette(bruit_vaguelette const &) = default;
 	bruit_vaguelette &operator=(bruit_vaguelette const &) = default;
 
-	~bruit_vaguelette();
-
-	void genere_donnees();
+	static bruit_vaguelette construit();
 
 	float evalue(float pos[3]) const;
 };

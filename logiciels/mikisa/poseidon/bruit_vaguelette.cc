@@ -26,11 +26,22 @@
 
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/moultfilage/boucle.hh"
 
-/* http://graphics.pixar.com/library/WaveletNoise/paper.pdf */
-/* Note: this code is designed for brevity, not efficiency; many operations can be hoisted,
-* precomputed, or vectorized. Some of the straightforward details, such as tile meshing,
-* decorrelating bands and fading out the last band, are omitted in the interest of space.*/
+/**
+ * Implémentation de la génération de tuiles pour les bruits de vaguelettes.
+ * L'implémentation dérive principalement de la publication « Wavelet Noise » de
+ * Pixar : http://graphics.pixar.com/library/WaveletNoise/paper.pdf.
+ *
+ * Des choses manquent par rapport au papier :
+ * - tile meshing
+ * - decorrelating bands
+ * - fading out the last band, pour l'évaluation multi-band
+ *
+ * Il faudra également voir d'autres implémentation de cet algorithme pour des
+ * améliorations possibles.
+ */
+
 static inline auto mod_lent(int x, int n)
 {
 	int m = x % n;
@@ -42,17 +53,18 @@ static inline auto mod_rapide_128(int n)
 	return n & 127;
 }
 
-#define ARAD 16
-void Downsample (float *from, float *to, int n, int stride )
-{
-	float *a, aCoeffs[2*ARAD] = {
-		0.000334f,-0.001528f, 0.000410f, 0.003545f,-0.000938f,-0.008233f, 0.002172f, 0.019120f,
-		-0.005040f,-0.044412f, 0.011655f, 0.103311f,-0.025936f,-0.243780f, 0.033979f, 0.655340f,
-		0.655340f, 0.033979f,-0.243780f,-0.025936f, 0.103311f, 0.011655f,-0.044412f,-0.005040f,
-		0.019120f, 0.002172f,-0.008233f,-0.000938f, 0.003546f, 0.000410f,-0.001528f, 0.000334f
-	};
+static constexpr auto ARAD = 16;
 
-	a = &aCoeffs[ARAD];
+static float coeffs_a[2 * ARAD] = {
+	0.000334f,-0.001528f, 0.000410f, 0.003545f,-0.000938f,-0.008233f, 0.002172f, 0.019120f,
+	-0.005040f,-0.044412f, 0.011655f, 0.103311f,-0.025936f,-0.243780f, 0.033979f, 0.655340f,
+	0.655340f, 0.033979f,-0.243780f,-0.025936f, 0.103311f, 0.011655f,-0.044412f,-0.005040f,
+	0.019120f, 0.002172f,-0.008233f,-0.000938f, 0.003546f, 0.000410f,-0.001528f, 0.000334f
+};
+
+void sous_echantillonne(float *from, float *to, int n, int stride)
+{
+	float *a = &coeffs_a[ARAD];
 
 	for (int i = 0; i < n / 2; i++) {
 		to[i * stride] = 0;
@@ -65,10 +77,11 @@ void Downsample (float *from, float *to, int n, int stride )
 	}
 }
 
-void Upsample( float *from, float *to, int n, int stride)
+static float coeffs_p[4] = { 0.25, 0.75, 0.75, 0.25 };
+
+void sur_echantillonne(float *from, float *to, int n, int stride)
 {
-	float *p, pCoeffs[4] = { 0.25, 0.75, 0.75, 0.25 };
-	p = &pCoeffs[2];
+	float *p = &coeffs_p[2];
 
 	for (int i = 0; i < n; i++) {
 		to[i * stride] = 0;
@@ -79,81 +92,140 @@ void Upsample( float *from, float *to, int n, int stride)
 	}
 }
 
-void GenerateNoiseTile(float *&noise, int n, int olap)
+/* Cette fonction prenait un paramètre d'overlapping. */
+static void genere_tuile_bruit(float *&bruit, int n)
 {
+	/* La taille doit être paire. */
 	if (n % 2 != 0) {
-		n++; /* tile size must be even */
+		n++;
 	}
 
 	auto const sz = n * n * n * static_cast<long>(sizeof(float));
 
 	auto temp1 = memoire::loge_tableau<float>("temp1", sz);
 	auto temp2 = memoire::loge_tableau<float>("temp2", sz);
-	noise = memoire::loge_tableau<float>("noise", sz);
 
-	/* Step 1. Fill the tile with random numbers in the range -1 to 1. */
-	auto gna = GNA{};
-	for (auto i = 0; i < sz; i++) {
-		noise[i] = gna.normale(0.0f, 1.0f);
-	}
+	/* On ne peut pas utiliser memoire::loge_tableau car la déallocation se
+	 * fera après la fin du début quand C++ appelera les destructeurs des
+	 * globales, et on ne peut savoir si constructrice_bruit sera détruite avant
+	 * ou après logeuse_memoire, donc nous allouons via new. */
+	bruit = new float[static_cast<size_t>(sz)];
 
-	/* Steps 2 and 3. Downsample and upsample the tile */
-	for (auto iy = 0; iy < n; iy++) {
-		for (auto iz = 0; iz < n; iz++) { /* each x row */
-			auto i = iy * n + iz * n * n;
-			Downsample(&noise[i], &temp1[i], n, 1);
-			Upsample(&temp1[i], &temp2[i], n, 1);
+	/* NOTE : toutes les implémentation du bruit vaguelette semblent être les
+	 * mêmes, venant d'une même source, mais personne ne calcul le bruit en
+	 * parallèle, ce qui n'est pas impossible. La raison semblerait que le bruit
+	 * est mis en cache dans un fichier temporaire. La génération en série peut
+	 * prendre plusieurs secondes au lancement des programmes quand le fichier
+	 * temporaire à été supprimé ou est non encore généré.
+	 *
+	 * Il existe une différence entre le résultat calculé en série et celui en
+	 * parallèle due à la génération parallèle de nombre aléatoire : utiliser
+	 * l'index de début de plage comme décalage de graine ne semble pas suffir
+	 * pour générer la même séquence.
+	 *
+	 * Enfin, après un simple profilage, les emboutteillages de l'algorithme
+	 * sont la génération de nombres aléatoires avec une distribuion gaussienne,
+	 * et le sur/sous-échantillonnage sur l'axe Z. Cette dernière opération
+	 * prenant jusque 40% du temps de génération de la tuile.
+	 */
+
+	/* Étape 1. Remplis la tuile avec des nombres aléatoires entre -1 et 1. */
+	boucle_parallele(tbb::blocked_range<long>(0, sz),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		auto gna = GNA{static_cast<int>(plage.begin())};
+
+		for (auto i = plage.begin(); i < plage.end(); i++) {
+			bruit[i] = gna.normale(0.0f, 1.0f);
 		}
-	}
+	});
 
-	for (auto ix = 0; ix < n; ix++) {
-		for (auto iz = 0; iz < n; iz++) { /* each y row */
-			auto i = ix + iz * n * n;
-			Downsample( &temp2[i], &temp1[i], n, n );
-			Upsample( &temp1[i], &temp2[i], n, n );
+	/* Étape 2 and 3. Sur et souséchantillonne la tuile. */
+
+	/* chaque ligne X */
+	boucle_parallele(tbb::blocked_range<long>(0, n),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		for (auto iz = plage.begin(); iz < plage.end(); iz++) {
+			for (auto iy = 0; iy < n; iy++) {
+				auto i = iy * n + iz * n * n;
+				sous_echantillonne(&bruit[i], &temp1[i], n, 1);
+				sur_echantillonne(&temp1[i], &temp2[i], n, 1);
+			}
 		}
-	}
+	});
 
-	for (auto ix = 0; ix < n; ix++) {
-		for (auto iy = 0; iy < n; iy++) { /* each z row */
-			auto i = ix + iy * n;
-			Downsample( &temp2[i], &temp1[i], n, n*n );
-			Upsample( &temp1[i], &temp2[i], n, n*n );
+	/* chaque ligne Y */
+	boucle_parallele(tbb::blocked_range<long>(0, n),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		for (auto iz = plage.begin(); iz < plage.end(); iz++) {
+			for (auto ix = 0; ix < n; ix++) {
+				auto i = ix + iz * n * n;
+				sous_echantillonne(&temp2[i], &temp1[i], n, n);
+				sur_echantillonne(&temp1[i], &temp2[i], n, n);
+			}
 		}
+	});
+
+	/* chaque ligne Z */
+	boucle_parallele(tbb::blocked_range<long>(0, n),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		for (auto iy = plage.begin(); iy < plage.end(); iy++) {
+			for (auto ix = 0; ix < n; ix++) {
+				auto i = ix + iy * n;
+				sous_echantillonne(&temp2[i], &temp1[i], n, n*n);
+				sur_echantillonne(&temp1[i], &temp2[i], n, n*n);
+			}
+		}
+	});
+
+	/* Étape 4. Soustrait la contribution de la version sous-échantillonnée. */
+	for (auto i = 0; i < sz; i += 4) {
+		bruit[i + 0] -= temp2[i + 0];
+		bruit[i + 1] -= temp2[i + 1];
+		bruit[i + 2] -= temp2[i + 2];
+		bruit[i + 3] -= temp2[i + 3];
 	}
 
-	/* Step 4. Subtract out the coarse-scale contribution */
-	for (auto i = 0; i < sz; i++) {
-		noise[i] -= temp2[i];
-	}
-
-	/* Avoid even/odd variance difference by adding odd-offset version of noise to itself.*/
+	/* Ajout d'une différence de variance paire/impaire par l'ajout d'une
+	 * version du bruit décalée par un nombre impair à lui-même. */
 	auto offset = n / 2;
 
 	if (offset % 2 == 0){
 		offset++;
 	}
 
-	for (auto i = 0, ix = 0; ix < n; ix++) {
+	auto idx = 0;
+	for (auto iz = 0; iz < n; iz++) {
+		auto co_z = mod_lent(iz + offset, n) * n * n;
+
 		for (auto iy = 0; iy < n; iy++) {
-			for (auto iz = 0; iz < n; iz++) {
-				temp1[i++] = noise[ mod_lent(ix+offset,n) + mod_lent(iy+offset,n)*n + mod_lent(iz+offset,n)*n*n ];
+			auto co_y = mod_lent(iy + offset, n) * n;
+
+			for (auto ix = 0; ix < n; ix++) {
+				auto co_x = mod_lent(ix + offset, n);
+
+				temp1[idx++] = bruit[co_x + co_y + co_z];
 			}
 		}
 	}
 
-	for (auto i = 0; i < sz; i++) {
-		noise[i] += temp1[i];
+	for (auto i = 0; i < sz; i += 4) {
+		bruit[i + 0] += temp1[i + 0];
+		bruit[i + 1] += temp1[i + 1];
+		bruit[i + 2] += temp1[i + 2];
+		bruit[i + 3] += temp1[i + 3];
 	}
 
 	memoire::deloge_tableau("temp1", temp1, sz);
 	memoire::deloge_tableau("temp2", temp2, sz);
 }
 
-static float WNoise(float *noiseTileData, int noiseTileSize, float p[3])
+/* Bruit 3D non-projetté. */
+static float evalue_bruit(float *tuile, int n, float p[3])
 {
-	auto n = noiseTileSize;
-	/* Non-projected 3D noise */
 	int f[3], c[3], mid[3]; /* f, c = filter, noise coeff indices */
 	float w[3][3];
 
@@ -180,7 +252,7 @@ static float WNoise(float *noiseTileData, int noiseTileSize, float p[3])
 					weight *= w[i][f[i] + 1];
 				}
 
-				result += weight * noiseTileData[c[2]*n*n+c[1]*n+c[0]];
+				result += weight * tuile[c[2]*n*n+c[1]*n+c[0]];
 			}
 		}
 	}
@@ -188,23 +260,143 @@ static float WNoise(float *noiseTileData, int noiseTileSize, float p[3])
 	return result;
 }
 
-/* ************************************************************************** */
-
-bruit_vaguelette::~bruit_vaguelette()
+/* Bruit 3D projetté en 2D. */
+static float evalue_bruit_projette(float *tuile, int n, float p[3], float normal[3])
 {
-	memoire::deloge_tableau("noise", m_donnees, 128 * 128 * 128 * static_cast<long>(sizeof(float)));
-}
+	int c[3], min[3], max[3]; /* c = noise coeff location */
+	auto resultat = 0.0f;
 
-void bruit_vaguelette::genere_donnees()
-{
-	if (m_donnees != nullptr) {
-		return;
+	/* Borne le support des fonctions de bases pour la direction de cette projection. */
+	for (auto i = 0; i < 3; i++) {
+		auto support = 3.0f * std::abs(normal[i]) + 3.0f * std::sqrt((1.0f - normal[i] * normal[i]) / 2.0f);
+		min[i] = static_cast<int>(std::ceil(p[i] - (support)));
+		max[i] = static_cast<int>(std::floor(p[i] + (support)));
 	}
 
-	GenerateNoiseTile(m_donnees, 128, 1);
+	/* Boucle sur les coefficients à l'intérieur des bornes. */
+	for (c[2] = min[2]; c[2] <= max[2]; c[2]++) {
+		for (c[1] = min[1]; c[1] <= max[1]; c[1]++) {
+			for (c[0] = min[0]; c[0] <= max[0]; c[0]++) {
+				auto dot = 0.0f;
+				auto poids = 1.0f;
+
+				/* Produit scalaire du normal avec le vecteur allant de c à p. */
+				for (auto i = 0; i < 3; i++) {
+					dot += normal[i] * (p[i] - static_cast<float>(c[i]));
+				}
+
+				/* Évalue la fonction de base à c déplacé à mi-chemin vers p
+				 * sur le normal. */
+				for (auto i = 0; i < 3; i++) {
+					auto t = (static_cast<float>(c[i]) + normal[i] * dot / 2.0f) - (p[i] - 1.5f);
+					auto t1 = t - 1.0f;
+					auto t2 = 2.0f - t;
+					auto t3 = 3.0f - t;
+
+					poids *= (t <= 0.0f || t >= 3.0f)
+							? 0
+							: (t < 1.0f)
+							  ? t * t / 2.0f
+							  : (t < 2.0f )
+								? 1.0f - (t1 * t1 + t2 * t2) / 2.0f
+								: t3 * t3 / 2.0f;
+				}
+
+				/* Évalue le bruit en pondérant les coefficients de bruit par
+				 * les valeurs de la fonction de base. */
+				resultat += poids * tuile[mod_lent(c[2], n) * n * n + mod_lent(c[1], n) * n + mod_lent(c[0],n)];
+			}
+		}
+	}
+
+	return resultat;
+}
+
+static float evalue_bruit_multi_bande(
+		float *tuile,
+		int n,
+		float p[3],
+		float s,
+		float *normal,
+		int firstBand,
+		int nbands,
+		float *w)
+{
+	float q[3], resultat = 0.0f, variance = 0.0f;
+
+	for (auto b = 0; b < nbands && s + static_cast<float>(firstBand + b) < 0.0f; b++) {
+		for (auto i = 0; i <= 2; i++) {
+			q[i] = 2.0f * p[i] * std::pow(2.0f, static_cast<float>(firstBand + b));
+		}
+
+		resultat += (normal) ? w[b] * evalue_bruit_projette(tuile, n, q, normal)
+							 : w[b] * evalue_bruit(tuile, n, q);
+	}
+
+	for (auto b = 0; b < nbands; b++) {
+		variance += w[b] * w[b];
+	}
+
+	/* Adjustement du bruit pour que sa variance soit de 1.0f. */
+	if (variance != 0.0f) {
+		resultat /= std::sqrt(variance * ((normal) ? 0.296f : 0.210f));
+	}
+
+	return resultat;
+}
+
+/* ************************************************************************** */
+
+/* Le bruit de vaguelette est coûteux à produire donc assurons qu'une seule
+ * version existe via cette variable globale.
+ *
+ * À FAIRE : génération unique en cas d'accès en parallèle.
+ * À FAIRE : stockage dans un fichier.
+ */
+
+struct constructrice_bruit {
+private:
+	static constructrice_bruit m_instance;
+	float *m_donnees = nullptr;
+
+public:
+	static constructrice_bruit &instance()
+	{
+		return m_instance;
+	}
+
+	~constructrice_bruit()
+	{
+		delete [] m_donnees;
+	}
+
+	float *genere_donnees()
+	{
+		if (m_donnees != nullptr) {
+			return m_donnees;
+		}
+
+		genere_tuile_bruit(m_donnees, 128);
+
+		return m_donnees;
+	}
+};
+
+constructrice_bruit constructrice_bruit::m_instance = constructrice_bruit{};
+
+/* ************************************************************************** */
+
+bruit_vaguelette bruit_vaguelette::construit()
+{
+	auto &inst_const = constructrice_bruit::instance();
+
+	auto bruit = bruit_vaguelette();
+	bruit.m_donnees = inst_const.genere_donnees();
+
+	return bruit;
 }
 
 float bruit_vaguelette::evalue(float pos[3]) const
 {
-	return WNoise(m_donnees, 128, pos);
+	return evalue_bruit(m_donnees, 128, pos);
 }
