@@ -119,9 +119,11 @@ RenduTexte::~RenduTexte()
 	delete m_texture;
 	delete m_tampon;
 
-	m_atlas->id = 0;
-	texture_atlas_delete(m_atlas);
-	texture_font_delete(m_font);
+	if (m_atlas != nullptr) {
+		m_atlas->id = 0;
+		texture_atlas_delete(m_atlas);
+		texture_font_delete(m_font);
+	}
 }
 
 void RenduTexte::reinitialise()
