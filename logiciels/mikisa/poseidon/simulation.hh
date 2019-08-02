@@ -197,7 +197,6 @@ auto restriction_maccormarck(
 		const int clampMode)
 {
 	auto res = flags.resolution();
-	auto echant = Echantilloneuse(orig);
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -215,7 +214,7 @@ auto restriction_maccormarck(
 			auto j = pos_iter.y;
 			auto k = pos_iter.z;
 
-			auto pos_cont = dls::math::vec3f(i,j,k);
+			auto pos_cont = dls::math::vec3f(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k));
 
 			auto dval       = dst.valeur(i,j,k);
 			auto gridUpper  = flags.resolution() - dls::math::vec3i(1);

@@ -33,7 +33,7 @@ namespace psn {
 
 struct Particule {
 	dls::math::vec3f pos{};
-	float densite;
+	float densite{};
 };
 
 struct GrilleParticule {
