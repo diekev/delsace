@@ -117,6 +117,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_creation_arbre.jo
 	scripts_danjo/operatrice_creation_groupe.jo
 	scripts_danjo/operatrice_creation_kelvinlet.jo
+	scripts_danjo/operatrice_creation_volume.jo
 	scripts_danjo/operatrice_daltonisme.jo
 	scripts_danjo/operatrice_deformation.jo
 	scripts_danjo/operatrice_deformation_kelvinlet.jo

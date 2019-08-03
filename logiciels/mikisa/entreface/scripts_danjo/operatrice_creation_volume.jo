@@ -1,0 +1,56 @@
+disposition "operatrice_creation_volume" {
+	dossier {
+		onglet "Volume" {
+			ligne {
+				étiquette(valeur="Limite minimale")
+				vecteur(valeur="-1,-1,-1"; attache=limite_min)
+			}
+			ligne {
+				étiquette(valeur="Limite maximale")
+				vecteur(valeur="1,1,1"; attache=limite_max)
+			}
+			ligne {
+				étiquette(valeur="Taille voxel")
+				décimal(valeur=0.2; attache=taille_voxel)
+			}
+		}
+		onglet "Bruit" {
+			ligne {
+				étiquette(valeur="Graine")
+				entier(valeur=1; attache=graine)
+			}
+			ligne {
+				étiquette(valeur="Temps")
+				décimal(valeur=1.0; attache=temps_anim)
+			}
+			ligne {
+				étiquette(valeur="Décalage position")
+				vecteur(valeur="0,0,0"; attache=décalage_pos)
+			}
+			ligne {
+				étiquette(valeur="Échelle position")
+				vecteur(valeur="1,1,1"; attache=échelle_pos)
+			}
+			ligne {
+				étiquette(valeur="Décalage valeur")
+				décimal(valeur=0.0; attache=décalage_valeur)
+			}
+			ligne {
+				étiquette(valeur="Échelle valeur")
+				décimal(valeur=1.0; attache=échelle_valeur)
+			}
+			ligne {
+				étiquette(valeur="Restreint valeur")
+				case(valeur=faux; attache=restreint)
+			}
+			ligne {
+				étiquette(valeur="Valeur minimale")
+				décimal(valeur=0.0; attache=restreint_neg)
+			}
+			ligne {
+				étiquette(valeur="Valeur maximale")
+				décimal(valeur=1.0; attache=restreint_pos)
+			}
+		}
+	}
+}

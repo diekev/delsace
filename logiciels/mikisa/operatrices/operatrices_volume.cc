@@ -40,6 +40,8 @@
 #include "corps/iter_volume.hh"
 #include "corps/volume.hh"
 
+#include "poseidon/bruit_vaguelette.hh"
+
 #include "arbre_hbe.hh"
 #include "delegue_hbe.hh"
 #include "outils_visualisation.hh"
@@ -56,13 +58,28 @@ static int cree_volume(
 
 	op.corps()->reinitialise();
 
-	auto gna = GNA();
+	auto min = op.evalue_vecteur("limite_min");
+	auto max = op.evalue_vecteur("limite_max");
 
 	auto desc = description_volume{};
-	desc.etendue.min = dls::math::vec3f(-1.0f);
-	desc.etendue.max = dls::math::vec3f(1.0f);
+	desc.etendue.min = min;
+	desc.etendue.max = max;
 	desc.fenetre_donnees = desc.etendue;
-	desc.taille_voxel = 2.0f / 32.0f;
+	desc.taille_voxel = op.evalue_decimal("taille_voxel");
+
+	auto graine = op.evalue_entier("graine");
+
+	auto bruit = bruit_vaguelette::construit(graine);
+	bruit.dx = desc.taille_voxel;
+	bruit.taille_grille_inv = 1.0f / desc.taille_voxel;
+	bruit.decalage_pos = op.evalue_vecteur("décalage_pos");
+	bruit.echelle_pos = op.evalue_vecteur("échelle_pos");
+	bruit.decalage_valeur = op.evalue_decimal("décalage_valeur");
+	bruit.echelle_valeur = op.evalue_decimal("échelle_valeur");
+	bruit.restreint = op.evalue_bool("restreint");
+	bruit.restreint_neg = op.evalue_decimal("restreint_neg");
+	bruit.restraint_pos = op.evalue_decimal("restreint_pos");
+	bruit.temps_anim = op.evalue_decimal("temps_anim");
 
 	auto volume = memoire::loge<Volume>("Volume");
 	auto grille_scalaire = memoire::loge<Grille<float>>("grille", desc);
@@ -75,7 +92,8 @@ static int cree_volume(
 
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
-		grille_scalaire->valeur(pos, gna.uniforme(0.0f, 1.0f));
+		auto pos_mnd = dls::math::discret_vers_continu<float>(pos);
+		grille_scalaire->valeur(pos, bruit.evalue(pos_mnd));
 	}
 
 	volume->grille = grille_scalaire;
@@ -576,7 +594,7 @@ static int reechantillonne_volume(
 
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc("Créer volume", "", "", cree_volume, false));
+	usine.enregistre_type(cree_desc("Créer volume", "", "entreface/operatrice_creation_volume.jo", cree_volume, false));
 	usine.enregistre_type(cree_desc("Maillage vers Volume", "", "entreface/operatrice_maillage_vers_volume.jo", maillage_vers_volume, false));
 	usine.enregistre_type(cree_desc("Rastérisation Prim", "", "entreface/operatrice_rasterisation_prim.jo", ratisse_primitives, false));
 	usine.enregistre_type(cree_desc("Rééchantillonne Volume", "", "", reechantillonne_volume, false));
