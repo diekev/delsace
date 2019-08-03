@@ -27,6 +27,32 @@
 #include "rayon.hh"
 
 /**
+ * Collision avec un plan infini.
+ */
+template <typename T>
+auto entresecte_plan(
+		dls::math::vec3<T> const &pos_plan,
+		dls::math::vec3<T> const &nor_plan,
+		dls::math::vec3<T> const &pos,
+		dls::math::vec3<T> const &vel,
+		T distance)
+{
+	auto const &XPdotN = produit_scalaire(pos - pos_plan, nor_plan);
+
+	/* Est-on à une distance epsilon du plan ? */
+	if (XPdotN >= distance + std::numeric_limits<T>::epsilon()) {
+		return false;
+	}
+
+	/* Va-t-on vers le plan ? */
+	if (produit_scalaire(nor_plan, vel) >= static_cast<T>(0)) {
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * Retourne vrai s'il y a entresection entre le triangle et le rayon spécifiés.
  * Si oui, la distance spécifiée est mise à jour.
  *

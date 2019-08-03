@@ -305,31 +305,6 @@ public:
 
 /* ************************************************************************** */
 
-#if 0
-/* collision avec un plan infini */
-static auto verifie_collision(
-		dls::math::vec3f const &pos_plan,
-		dls::math::vec3f const &nor_plan,
-		dls::math::vec3f const &pos,
-		dls::math::vec3f const &vel,
-		float rayon)
-{
-	const auto &XPdotN = dls::math::produit_scalaire(pos - pos_plan, nor_plan);
-
-	/* Est-on à une distance epsilon du plan ? */
-	if (XPdotN >= rayon + std::numeric_limits<float>::epsilon()) {
-		return false;
-	}
-
-	/* Va-t-on vers le plan ? */
-	if (dls::math::produit_scalaire(nor_plan, vel) >= 0.0f) {
-		return false;
-	}
-
-	return true;
-}
-#endif
-
 enum rep_collision {
 	RIEN,
 	REBONDIS,
