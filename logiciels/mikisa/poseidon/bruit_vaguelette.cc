@@ -25,6 +25,7 @@
 #include "bruit_vaguelette.hh"
 
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/math/outils.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 
@@ -386,17 +387,45 @@ constructrice_bruit constructrice_bruit::m_instance = constructrice_bruit{};
 
 /* ************************************************************************** */
 
-bruit_vaguelette bruit_vaguelette::construit()
+bruit_vaguelette bruit_vaguelette::construit(int graine)
 {
 	auto &inst_const = constructrice_bruit::instance();
 
 	auto bruit = bruit_vaguelette();
 	bruit.m_donnees = inst_const.genere_donnees();
 
+	auto gna = GNA{graine};
+	auto rand_x = gna.uniforme(0.0f, 1.0f);
+	auto rand_y = gna.uniforme(0.0f, 1.0f);
+	auto rand_z = gna.uniforme(0.0f, 1.0f);
+
+	bruit.m_decalage_graine = normalise(dls::math::vec3f(rand_x, rand_y, rand_z));
+
 	return bruit;
 }
 
-float bruit_vaguelette::evalue(float pos[3]) const
+float bruit_vaguelette::evalue(dls::math::vec3f pos) const
 {
-	return evalue_bruit(m_donnees, 128, pos);
+	pos[0] *= taille_grille_inv;
+	pos[1] *= taille_grille_inv;
+	pos[2] *= taille_grille_inv;
+	pos += m_decalage_graine;
+
+	pos += dls::math::vec3f(temps_anim * dx);
+
+	pos[0] *= echelle_pos[0];
+	pos[1] *= echelle_pos[1];
+	pos[2] *= echelle_pos[2];
+	pos += decalage_pos;
+
+	auto v = evalue_bruit(m_donnees, 128, &pos[0]);
+
+	v += decalage_valeur;
+	v *= echelle_valeur;
+
+	if (restreint) {
+		v = dls::math::restreint(v, restreint_neg, restraint_pos);
+	}
+
+	return v;
 }

@@ -24,17 +24,44 @@
 
 #pragma once
 
+#include <biblinternes/math/vecteur.hh>
+
 struct bruit_vaguelette {
 private:
 	float *m_donnees = nullptr;
 
+	/* décalage aléatoire dans la tuile pour simuler différentes graines */
+	dls::math::vec3f m_decalage_graine{};
+
 public:
+	/* taille d'un voxel */
+	float dx = 1.0f;
+
+	/* normalisation de la taille */
+	float taille_grille_inv = 0.0f;
+
+	/* décalage et échelle de la position */
+	dls::math::vec3f decalage_pos{0.0f};
+	dls::math::vec3f echelle_pos{1.0f};
+
+	/* décalage et échelle de la valeur */
+	float decalage_valeur = 0.0f;
+	float echelle_valeur = 1.0f;
+
+	/* restriction de la valeur de sortie */
+	bool restreint = false;
+	float restreint_neg = 0.0f;
+	float restraint_pos = 1.0f;
+
+	/* animation */
+	float temps_anim = 0.0f;
+
 	bruit_vaguelette() = default;
 
 	bruit_vaguelette(bruit_vaguelette const &) = default;
 	bruit_vaguelette &operator=(bruit_vaguelette const &) = default;
 
-	static bruit_vaguelette construit();
+	static bruit_vaguelette construit(int graine);
 
-	float evalue(float pos[3]) const;
+	float evalue(dls::math::vec3f pos) const;
 };
