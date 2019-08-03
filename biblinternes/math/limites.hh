@@ -57,6 +57,8 @@ struct limites {
 	}
 };
 
+using limites2f = limites<dls::math::vec2f>;
+using limites2i = limites<dls::math::vec2i>;
 using limites3f = limites<dls::math::vec3f>;
 using limites3i = limites<dls::math::vec3i>;
 

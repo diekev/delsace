@@ -923,12 +923,383 @@ public:
 
 /* ************************************************************************** */
 
+#include "biblinternes/math/limites.hh"
+
+enum class type_grille {
+	Z8,
+	Z32,
+	R32,
+	R64,
+	VEC2,
+	VEC3,
+};
+
+struct description_grille {
+	limites2f etendue{};
+	limites2f fenetre_donnees{};
+	dls::math::vec2i resolution{};
+	double taille_pixel = 0.0;
+	type_grille type_donnees{};
+	char pad[4];
+};
+
+struct base_grille_2d {
+protected:
+	description_grille m_desc{};
+	long m_nombre_pixels = 0;
+
+	bool hors_des_limites(long x, long y) const
+	{
+		if (x < 0 || x >= m_desc.resolution.x) {
+			return true;
+		}
+
+		if (y < 0 || y >= m_desc.resolution.y) {
+			return true;
+		}
+
+		return false;
+	}
+
+public:
+	base_grille_2d(description_grille const &descr)
+		: m_desc(descr)
+	{
+		auto taille = m_desc.etendue.taille();
+		m_desc.resolution[0] = static_cast<int>(static_cast<double>(taille.x) / m_desc.taille_pixel);
+		m_desc.resolution[1] = static_cast<int>(static_cast<double>(taille.y) / m_desc.taille_pixel);
+
+		m_nombre_pixels = static_cast<long>(m_desc.resolution[0]) * static_cast<long>(m_desc.resolution[1]);
+	}
+
+	virtual ~base_grille_2d() = default;
+
+	/* entreface */
+
+	virtual base_grille_2d *copie() const = 0;
+
+	/* accès propriétés */
+
+	description_grille const &desc() const
+	{
+		return m_desc;
+	}
+
+	long nombre_pixels() const
+	{
+		return m_nombre_pixels;
+	}
+
+	long calcul_index(long x, long y) const
+	{
+		return x * y + m_desc.resolution.x;
+	}
+
+	/* conversion coordonnées */
+
+	dls::math::vec2f index_vers_unit(const dls::math::vec2i &vsp) const
+	{
+		auto p = dls::math::discret_vers_continu<float>(vsp);
+		return index_vers_unit(p);
+	}
+
+	dls::math::vec2f index_vers_unit(const dls::math::vec2f &vsp) const
+	{
+		return dls::math::vec2f(
+					vsp.x / static_cast<float>(m_desc.resolution.x),
+					vsp.y / static_cast<float>(m_desc.resolution.y));
+	}
+
+	dls::math::vec2f index_vers_monde(const dls::math::vec2i &isp) const
+	{
+		auto const dim = m_desc.etendue.taille();
+		auto const min = m_desc.etendue.min;
+		auto const cont = dls::math::discret_vers_continu<float>(isp);
+		return dls::math::vec2f(
+					cont.x / static_cast<float>(m_desc.resolution.x) * dim.x + min.x,
+					cont.y / static_cast<float>(m_desc.resolution.y) * dim.y + min.y);
+	}
+
+	dls::math::vec2f unit_vers_monde(const dls::math::vec2f &vsp) const
+	{
+		return vsp * m_desc.etendue.taille() + m_desc.etendue.min;
+	}
+
+	dls::math::vec2f monde_vers_unit(const dls::math::vec2f &wsp) const
+	{
+		return (wsp - m_desc.etendue.min) / m_desc.etendue.taille();
+	}
+
+	dls::math::vec2f monde_vers_continu(const dls::math::vec2f &wsp) const
+	{
+		return monde_vers_unit(wsp) * dls::math::vec2f(
+					static_cast<float>(m_desc.resolution.x),
+					static_cast<float>(m_desc.resolution.y));
+	}
+
+	dls::math::vec2i monde_vers_index(const dls::math::vec2f &wsp) const
+	{
+		auto mnd = monde_vers_continu(wsp);
+		return dls::math::vec2i(
+					static_cast<int>(mnd.x),
+					static_cast<int>(mnd.y));
+	}
+
+	dls::math::vec2f continu_vers_monde(const dls::math::vec2f &csp) const
+	{
+		return (csp / m_desc.etendue.taille()) + m_desc.etendue.min;
+	}
+};
+
+template <typename T>
+struct grille_2d : public base_grille_2d {
+private:
+	dls::tableau<T> m_donnees = {};
+
+	T m_arriere_plan = T(0);
+
+public:
+	grille_2d() = default;
+
+	grille_2d(description_grille const &descr, T arriere_plan = T(0))
+		: base_grille_2d(descr)
+		, m_arriere_plan(arriere_plan)
+	{
+		m_donnees.redimensionne(m_nombre_pixels, m_arriere_plan);
+	}
+
+	T &valeur(long index)
+	{
+		if (index >= m_nombre_pixels) {
+			return m_arriere_plan;
+		}
+
+		return m_donnees[index];
+	}
+
+	T const &valeur(long index) const
+	{
+		if (index >= m_nombre_pixels) {
+			return m_arriere_plan;
+		}
+
+		return m_donnees[index];
+	}
+
+	T const &valeur(long x, long y) const
+	{
+		if (hors_des_limites(x, y)) {
+			return m_arriere_plan;
+		}
+
+		return m_donnees[calcul_index(x, y)];
+	}
+
+	/* XXX ne fais pas de vérification de limites */
+	T &valeur(long x, long y)
+	{
+		if (hors_des_limites(x, y)) {
+			return m_arriere_plan;
+		}
+
+		return m_donnees[calcul_index(x, y)];
+	}
+
+	void valeur(long index, T v)
+	{
+		if (index >= m_nombre_pixels) {
+			return;
+		}
+
+		m_donnees[index] = v;
+	}
+
+	void valeur(long x, long y, T v)
+	{
+		if (hors_des_limites(x, y)) {
+			return;
+		}
+
+		m_donnees[calcul_index(x, y)] = v;
+	}
+
+	void valeur(dls::math::vec3i const &pos, T v)
+	{
+		this->valeur(static_cast<long>(pos.x), static_cast<long>(pos.y), static_cast<long>(pos.z), v);
+	}
+
+	void copie_donnees(const grille_2d<T> &grille)
+	{
+		for (auto i = 0; i < m_nombre_pixels; ++i) {
+			m_donnees[i] = grille.m_donnees[i];
+		}
+	}
+
+	void arriere_plan(const T &v)
+	{
+		m_arriere_plan = v;
+	}
+
+	void const *donnees() const
+	{
+		return m_donnees.donnees();
+	}
+
+	long taille_octet() const
+	{
+		return m_nombre_pixels * sizeof(T);
+	}
+
+	base_grille_2d *copie() const override
+	{
+		auto grille = memoire::loge<grille_2d<T>>("grille", desc());
+		grille->m_arriere_plan = this->m_arriere_plan;
+		grille->m_donnees = this->m_donnees;
+
+		return grille;
+	}
+
+	void echange(grille_2d<T> &autre)
+	{
+		std::swap(m_desc.etendue, autre.m_desc.etendue);
+		std::swap(m_desc.resolution, autre.m_desc.resolution);
+		std::swap(m_desc.fenetre_donnees, autre.m_desc.fenetre_donnees);
+		std::swap(m_desc.taille_pixel, autre.m_desc.taille_pixel);
+
+		m_donnees.echange(autre.m_donnees);
+
+		std::swap(m_arriere_plan, autre.m_arriere_plan);
+		std::swap(m_nombre_pixels, autre.m_nombre_pixels);
+	}
+};
+
+static void deloge_grille(base_grille_2d *&tampon)
+{
+	if (tampon == nullptr) {
+		return;
+	}
+
+	auto const &desc = tampon->desc();
+
+	switch (desc.type_donnees) {
+		case type_grille::Z8:
+		{
+			auto grille = dynamic_cast<grille_2d<char> *>(tampon);
+			memoire::deloge("grille_2d", grille);
+			break;
+		}
+		case type_grille::Z32:
+		{
+			auto grille = dynamic_cast<grille_2d<char> *>(tampon);
+			memoire::deloge("grille_2d", grille);
+			break;
+		}
+		case type_grille::R32:
+		{
+			auto grille = dynamic_cast<grille_2d<char> *>(tampon);
+			memoire::deloge("grille_2d", grille);
+			break;
+		}
+		case type_grille::R64:
+		{
+			auto grille = dynamic_cast<grille_2d<char> *>(tampon);
+			memoire::deloge("grille_2d", grille);
+			break;
+		}
+		case type_grille::VEC2:
+		{
+			auto grille = dynamic_cast<grille_2d<char> *>(tampon);
+			memoire::deloge("grille_2d", grille);
+			break;
+		}
+		case type_grille::VEC3:
+		{
+			auto grille = dynamic_cast<grille_2d<char> *>(tampon);
+			memoire::deloge("grille_2d", grille);
+			break;
+		}
+	}
+
+	tampon = nullptr;
+}
+
+struct calque_image {
+	base_grille_2d *tampon = nullptr;
+
+	calque_image() = default;
+
+	calque_image(calque_image const &autre)
+	{
+		if (autre.tampon == nullptr) {
+			return;
+		}
+
+		this->tampon = autre.tampon->copie();
+	}
+
+	calque_image &operator=(calque_image const &autre)
+	{
+		deloge_grille(tampon);
+
+		if (autre.tampon == nullptr) {
+			return *this;
+		}
+
+		tampon = autre.tampon->copie();
+		return *this;
+	}
+
+	~calque_image()
+	{
+		deloge_grille(tampon);
+	}
+
+	static calque_image construit_calque(description_grille const &desc)
+	{
+		auto calque = calque_image();
+
+		switch (desc.type_donnees) {
+			case type_grille::Z8:
+			{
+				calque.tampon = memoire::loge<grille_2d<char>>("grille_2d", desc);
+				break;
+			}
+			case type_grille::Z32:
+			{
+				calque.tampon = memoire::loge<grille_2d<int>>("grille_2d", desc);
+				break;
+			}
+			case type_grille::R32:
+			{
+				calque.tampon = memoire::loge<grille_2d<float>>("grille_2d", desc);
+				break;
+			}
+			case type_grille::R64:
+			{
+				calque.tampon = memoire::loge<grille_2d<double>>("grille_2d", desc);
+				break;
+			}
+			case type_grille::VEC2:
+			{
+				calque.tampon = memoire::loge<grille_2d<dls::math::vec2f>>("grille_2d", desc);
+				break;
+			}
+			case type_grille::VEC3:
+			{
+				calque.tampon = memoire::loge<grille_2d<dls::math::vec3f>>("grille_2d", desc);
+				break;
+			}
+		}
+
+		return calque;
+	}
+};
+
 class OperatriceSimulationOcean : public OperatriceCorps {
 	Ocean m_ocean{};
 	bool m_reinit = false;
 
-	/* À FAIRE : image */
-	dls::tableau<float> m_ecume_precedente{};
+	calque_image m_ecume_precedente{};
 
 public:
 	static constexpr auto NOM = "Océan";
@@ -1014,18 +1385,21 @@ public:
 			deloge_donnees_ocean(&m_ocean);
 			initialise_donnees_ocean(&m_ocean, gravite);
 
-			m_ecume_precedente.efface();
+			auto desc = description_grille{};
+			desc.etendue.min = dls::math::vec2f(0.0f);
+			desc.etendue.max = dls::math::vec2f(1.0f);
+			desc.fenetre_donnees = desc.etendue;
+			desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
+			desc.type_donnees = type_grille::R32;
 
-			m_ecume_precedente.redimensionne(m_ocean.res_x * m_ocean.res_y);
-
-			for (auto &v : m_ecume_precedente) {
-				v = 0.0f;
-			}
+			m_ecume_precedente = calque_image::construit_calque(desc);
 
 			m_reinit = false;
 		}
 
 		simule_ocean(&m_ocean, temps, echelle_vague, quantite_chop, gravite);
+
+		auto grille_ecume = dynamic_cast<grille_2d<float> *>(m_ecume_precedente.tampon);
 
 		/* applique les déplacements à la géométrie d'entrée */
 		auto points = m_corps.points();
@@ -1071,10 +1445,11 @@ public:
 			N->vec3(i) = ocr.normal;
 
 			if (m_ocean.calcul_ecume) {
+				auto index = grille_ecume->calcul_index(x, y);
 				auto ecume = ocean_jminus_vers_ecume(ocr.Jminus, couverture_ecume);
 
 				/* accumule l'écume précédente pour cette cellule. */
-				auto ecume_prec = m_ecume_precedente[res_x * y + x];
+				auto ecume_prec = grille_ecume->valeur(index);
 
 				/* réduit aléatoirement l'écume */
 				ecume_prec *= gna.uniforme(0.0f, 1.0f);
@@ -1095,7 +1470,7 @@ public:
 				/* Une restriction pleine ne devrait pas être nécessaire ! */
 				auto resultat_ecume = std::min(ecume_prec + ecume, 1.0f);
 
-				m_ecume_precedente[res_x * y + x] = resultat_ecume;
+				grille_ecume->valeur(index) = resultat_ecume;
 
 				C->vec3(i) = dls::math::vec3f(resultat_ecume, resultat_ecume, 1.0f);
 			}
