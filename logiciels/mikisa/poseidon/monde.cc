@@ -186,7 +186,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 
 #ifdef UTILISE_BRUIT
 			auto pos_monde = dls::math::discret_vers_continu<float>(pos);
-			auto densite_cible = facteur_densite * poseidon.bruit.evalue(&pos_monde[0]);
+			auto densite_cible = facteur_densite * poseidon.bruit.evalue(pos_monde);
 #else
 			auto densite_cible = params.densite;
 #endif
