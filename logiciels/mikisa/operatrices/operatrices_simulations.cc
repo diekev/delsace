@@ -999,9 +999,9 @@ public:
 		m_ocean.amplitude = 1.0f;
 		m_ocean.reflections_damp = 1.0f - damp;
 		m_ocean.alignement_vent = alignement_vague;
-		m_ocean.profondeur = profondeur;
-		m_ocean.taille_spaciale_x = taille_spaciale;
-		m_ocean.taille_spaciale_z = taille_spaciale;
+		m_ocean.profondeur = static_cast<double>(profondeur);
+		m_ocean.taille_spaciale_x = static_cast<double>(taille_spaciale);
+		m_ocean.taille_spaciale_z = static_cast<double>(taille_spaciale);
 		m_ocean.vent_x = std::cos(direction_vague);
 		m_ocean.vent_z = -std::sin(direction_vague);
 		/* plus grosse vague pour une certaine vélocité */
@@ -1011,7 +1011,7 @@ public:
 
 		if (contexte.temps_courant == contexte.temps_debut || m_reinit) {
 			deloge_donnees_ocean(&m_ocean);
-			initialise_donnees_ocean(&m_ocean, gravite);
+			initialise_donnees_ocean(&m_ocean, static_cast<double>(gravite));
 
 			auto desc = desc_grille_2d{};
 			desc.etendue.min = dls::math::vec2f(0.0f);
@@ -1025,7 +1025,7 @@ public:
 			m_reinit = false;
 		}
 
-		simule_ocean(&m_ocean, temps, echelle_vague, quantite_chop, gravite);
+		simule_ocean(&m_ocean, static_cast<double>(temps), static_cast<double>(echelle_vague), static_cast<double>(quantite_chop), static_cast<double>(gravite));
 
 		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
 

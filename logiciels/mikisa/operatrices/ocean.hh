@@ -98,7 +98,7 @@ struct Ocean {
 	float amplitude = 0.0f;
 	float reflections_damp = 0.0f;
 	float alignement_vent = 0.0f;
-	float profondeur = 0.0f;
+	double profondeur = 0.0;
 
 	float vent_x = 0.0f;
 	float vent_z = 0.0f;
@@ -112,10 +112,10 @@ struct Ocean {
 	int res_y = 0;
 
 	/* spatial size of computational grid */
-	float taille_spaciale_x = 0.0f;
-	float taille_spaciale_z = 0.0f;
+	double taille_spaciale_x = 0.0;
+	double taille_spaciale_z = 0.0;
 
-	float facteur_normalisation = 0.0f;
+	double facteur_normalisation = 0.0;
 	float temps = 0.0f;
 
 	bool calcul_deplacement_y = false;
@@ -161,8 +161,8 @@ struct Ocean {
 	double *Jxz = nullptr;
 
 	/* one dimensional float array */
-	float *kx = nullptr;
-	float *kz = nullptr;
+	double *kx = nullptr;
+	double *kz = nullptr;
 
 	~Ocean();
 };
@@ -181,7 +181,7 @@ struct OceanResult {
 
 void deloge_donnees_ocean(struct Ocean *oc);
 
-void initialise_donnees_ocean(struct Ocean *o, float gravite);
+void initialise_donnees_ocean(struct Ocean *o, double gravite);
 
 /* échantillonnage de la surface de l'océan */
 float ocean_jminus_vers_ecume(float jminus, float coverage);
@@ -191,4 +191,4 @@ void evalue_ocean_xz(Ocean *oc, OceanResult *ocr, float x, float z);
 void evalue_ocean_xz_catrom(Ocean *oc, OceanResult *ocr, float x, float z);
 void evalue_ocean_ij(Ocean *oc, OceanResult *ocr, int i, int j);
 
-void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravite);
+void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double gravite);

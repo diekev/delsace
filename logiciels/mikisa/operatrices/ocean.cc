@@ -26,6 +26,7 @@
 
 #include <cmath>
 
+#include "biblinternes/math/complexe.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
@@ -89,17 +90,17 @@ auto spectre_phillips(Ocean *o, T kx, T kz)
 
 	if (dls::math::est_environ_zero(k2)) {
 		/* no DC component */
-		return 0.0f;
+		return 0.0;
 	}
 
 	/* damp out the waves going in the direction opposite the wind */
-	auto tmp = (o->vent_x * kx + o->vent_z * kz) / std::sqrt(k2);
+	auto tmp = (static_cast<T>(o->vent_x) * kx + static_cast<T>(o->vent_z) * kz) / std::sqrt(k2);
 
 	if (tmp < 0) {
-		tmp *= o->reflections_damp;
+		tmp *= static_cast<T>(o->reflections_damp);
 	}
 
-	return o->amplitude * std::exp(-1.0f / (k2 * (o->L * o->L))) * std::exp(-k2 * (o->l * o->l)) *
+	return o->amplitude * std::exp(-1.0 / (k2 * static_cast<T>(o->L * o->L))) * std::exp(-k2 * static_cast<T>(o->l * o->l)) *
 			std::pow(std::abs(tmp), o->alignement_vent) / (k2 * k2);
 }
 
@@ -131,55 +132,10 @@ static void compute_eigenstuff(OceanResult *ocr, float jxx, float jzz, float jxz
  * in fftw.h "fftw_complex" typedefed as double[2]
  * below you can see functions are needed to work with such complex numbers.
  * */
-static void init_complex(fftw_complex cmpl, float real, float image)
+static void init_complex(fftw_complex cmpl, double real, double image)
 {
-	cmpl[0] = static_cast<double>(real);
-	cmpl[1] = static_cast<double>(image);
-}
-
-static void add_comlex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl2)
-{
-	res[0] = cmpl1[0] + cmpl2[0];
-	res[1] = cmpl1[1] + cmpl2[1];
-}
-
-static void mul_complex_f(fftw_complex res, fftw_complex cmpl, float f)
-{
-	res[0] = cmpl[0] * static_cast<double>(f);
-	res[1] = cmpl[1] * static_cast<double>(f);
-}
-
-static void mul_complex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl2)
-{
-	fftwf_complex temp;
-	temp[0] = static_cast<float>(cmpl1[0] * cmpl2[0] - cmpl1[1] * cmpl2[1]);
-	temp[1] = static_cast<float>(cmpl1[0] * cmpl2[1] + cmpl1[1] * cmpl2[0]);
-	res[0] = static_cast<double>(temp[0]);
-	res[1] = static_cast<double>(temp[1]);
-}
-
-static float real_c(fftw_complex cmpl)
-{
-	return static_cast<float>(cmpl[0]);
-}
-
-static float image_c(fftw_complex cmpl)
-{
-	return static_cast<float>(cmpl[1]);
-}
-
-static void conj_complex(fftw_complex res, fftw_complex cmpl1)
-{
-	res[0] = cmpl1[0];
-	res[1] = -cmpl1[1];
-}
-
-static void exp_complex(fftw_complex res, fftw_complex cmpl)
-{
-	auto r = std::exp(cmpl[0]);
-
-	res[0] = std::cos(cmpl[1]) * r;
-	res[1] = std::sin(cmpl[1]) * r;
+	cmpl[0] = real;
+	cmpl[1] = image;
 }
 
 float ocean_jminus_vers_ecume(float jminus, float coverage)
@@ -336,12 +292,12 @@ void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v)
 
 void evalue_ocean_xz(Ocean *oc, OceanResult *ocr, float x, float z)
 {
-	evalue_ocean_uv(oc, ocr, x / oc->taille_spaciale_x, z / oc->taille_spaciale_z);
+	evalue_ocean_uv(oc, ocr, x / static_cast<float>(oc->taille_spaciale_x), z / static_cast<float>(oc->taille_spaciale_z));
 }
 
 void evalue_ocean_xz_catrom(Ocean *oc, OceanResult *ocr, float x, float z)
 {
-	evalue_ocean_uv_catrom(oc, ocr, x / oc->taille_spaciale_x, z / oc->taille_spaciale_z);
+	evalue_ocean_uv_catrom(oc, ocr, x / static_cast<float>(oc->taille_spaciale_x), z / static_cast<float>(oc->taille_spaciale_z));
 }
 
 /* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being just a way to get
@@ -378,7 +334,7 @@ void evalue_ocean_ij(Ocean *oc, OceanResult *ocr, int i, int j)
 	}
 }
 
-void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravite)
+void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double gravite)
 {
 	scale *= o->facteur_normalisation;
 
@@ -394,87 +350,72 @@ void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravi
 			for (int j = 0; j <= o->res_y / 2; ++j) {
 				auto index = i * (1 + o->res_y / 2) + j;
 
-				auto r1 = gaussRand(gna, 0.0f, 1.0f);
-
-				fftw_complex r1r2;
-				init_complex(r1r2, r1.x, r1.y);
-
-				fftw_complex h0;
-				fftw_complex h0_minus;
-
-				mul_complex_f(h0, r1r2, std::sqrt(spectre_phillips(o, o->kx[i], o->kz[j]) / 2.0f));
-				mul_complex_f(h0_minus, r1r2, std::sqrt(spectre_phillips(o, -o->kx[i], -o->kz[j]) / 2.0f));
-
+				auto r1 = gaussRand(gna, 0.0, 1.0);
 				auto k = std::sqrt(o->kx[i] * o->kx[i] + o->kz[j] * o->kz[j]);
 
-				fftw_complex exp_param1;
-				fftw_complex exp_param2;
-				fftw_complex conj_param;
+				auto r1r2 = dls::math::complexe(r1.x, r1.y);
 
-				init_complex(exp_param1, 0.0, omega(k, o->profondeur, gravite) * t);
-				init_complex(exp_param2, 0.0, -omega(k, o->profondeur, gravite) * t);
-				exp_complex(exp_param1, exp_param1);
-				exp_complex(exp_param2, exp_param2);
-				conj_complex(conj_param, h0_minus);
+				auto h0 = r1r2 * std::sqrt(spectre_phillips(o, o->kx[i], o->kz[j]) / 2.0);
+				auto h0_minus = r1r2 * std::sqrt(spectre_phillips(o, -o->kx[i], -o->kz[j]) / 2.0);
 
-				mul_complex_c(exp_param1, h0, exp_param1);
-				mul_complex_c(exp_param2, conj_param, exp_param2);
+				auto exp_param1 = dls::math::complexe(0.0, omega(k, o->profondeur, gravite) * t);
+				auto exp_param2 = dls::math::complexe(0.0, -omega(k, o->profondeur, gravite) * t);
+				exp_param1 = dls::math::exp(exp_param1);
+				exp_param2 = dls::math::exp(exp_param2);
 
-				fftw_complex htilda;
-				add_comlex_c(htilda, exp_param1, exp_param2);
+				auto conj_param = dls::math::conjugue(h0_minus);
 
-				mul_complex_f(o->fft_in[index], htilda, scale);
+				exp_param1 = h0 * exp_param1;
+				exp_param2 = conj_param * exp_param2;
 
-				if (o->calcul_chop) {
-					fftw_complex mul_param;
-					fftw_complex minus_i;
+				auto htilda = exp_param1 + exp_param2;
+				auto htilda_ = htilda * scale;
 
-					init_complex(minus_i, 0.0, -1.0);
-					init_complex(mul_param, -scale, 0);
-					mul_complex_f(mul_param, mul_param, chop_amount);
-					mul_complex_c(mul_param, mul_param, minus_i);
-					mul_complex_c(mul_param, mul_param, htilda);
+				init_complex(o->fft_in[index], htilda_.reel(), htilda_.imag());
 
-					auto kx = ((k == 0.0f) ? 0.0f : o->kx[i] / k);
-					auto kz = ((k == 0.0f) ? 0.0f : o->kz[j] / k);
+				if (o->calcul_chop) {					
+					auto kx = ((k == 0.0) ? 0.0 : o->kx[i] / k);
+					auto kz = ((k == 0.0) ? 0.0 : o->kz[j] / k);
 
-					init_complex(o->fft_in_x[index], real_c(mul_param) * kx, image_c(mul_param) * kx);
-					init_complex(o->fft_in_z[index], real_c(mul_param) * kz, image_c(mul_param) * kz);
+					auto mul_param = dls::math::complexe(0.0, -1.0);
+					mul_param *= chop_amount;
+
+					auto minus_i = dls::math::complexe(-scale, 0.0);
+					mul_param *= minus_i;
+					mul_param *= htilda;
+
+					init_complex(o->fft_in_x[index], mul_param.reel() * kx, mul_param.imag() * kx);
+					init_complex(o->fft_in_z[index], mul_param.reel() * kz, mul_param.imag() * kz);
 				}
 
 				if (o->calcul_normaux) {
-					fftw_complex mul_param;
+					auto mul_param = dls::math::complexe(0.0, -1.0);
+					mul_param *= htilda;
 
-					init_complex(mul_param, 0.0, -1.0);
-					mul_complex_c(mul_param, mul_param, htilda);
-
-					init_complex(o->fft_in_nx[index], real_c(mul_param) * o->kx[i], image_c(mul_param) * o->kx[i]);
-					init_complex(o->fft_in_nz[index], real_c(mul_param) * o->kz[i], image_c(mul_param) * o->kz[i]);
+					init_complex(o->fft_in_nx[index], mul_param.reel() * o->kx[i], mul_param.imag() * o->kx[i]);
+					init_complex(o->fft_in_nz[index], mul_param.reel() * o->kz[i], mul_param.imag() * o->kz[i]);
 				}
 
 				if (o->calcul_ecume) {
-					fftw_complex mul_param;
-
 					/* init_complex(mul_param, -scale, 0); */
-					init_complex(mul_param, -1, 0);
-
-					mul_complex_f(mul_param, mul_param, chop_amount);
-					mul_complex_c(mul_param, mul_param, htilda);
+					auto mul_param = dls::math::complexe(-1.0, 0.0);
+					mul_param *= chop_amount;
+					mul_param *= htilda;
 
 					/* calcul jacobien XX */
-					auto kxx = ((k == 0.0f) ? 0.0f : o->kx[i] * o->kx[i] / k);
+					auto kxx = ((k == 0.0) ? 0.0 : o->kx[i] * o->kx[i] / k);
 
-					init_complex(o->fft_in_jxx[index], real_c(mul_param) * kxx, image_c(mul_param) * kxx);
+					init_complex(o->fft_in_jxx[index], mul_param.reel() * kxx, mul_param.imag() * kxx);
 
 					/* calcul jacobien ZZ */
-					auto kzz = ((k == 0.0f) ? 0.0f : o->kz[j] * o->kz[j] / k);
+					auto kzz = ((k == 0.0) ? 0.0 : o->kz[j] * o->kz[j] / k);
 
-					init_complex(o->fft_in_jzz[index], real_c(mul_param) * kzz, image_c(mul_param) * kzz);
+					init_complex(o->fft_in_jzz[index], mul_param.reel() * kzz, mul_param.imag() * kzz);
 
 					/* calcul jacobien XZ */
-					auto kxz = ((k == 0.0f) ? 0.0f : o->kx[i] * o->kz[j] / k);
+					auto kxz = ((k == 0.0) ? 0.0 : o->kx[i] * o->kz[j] / k);
 
-					init_complex(o->fft_in_jxz[index], real_c(mul_param) * kxz, image_c(mul_param) * kxz);
+					init_complex(o->fft_in_jxz[index], mul_param.reel() * kxz, mul_param.imag() * kxz);
 				}
 			}
 		}
@@ -516,9 +457,8 @@ void simule_ocean(Ocean *o, float t, float scale, float chop_amount, float gravi
 	}
 }
 
-static void set_height_normalize_factor(Ocean *oc, float gravite)
+static void set_height_normalize_factor(Ocean *oc, double gravite)
 {
-	auto res = 1.0;
 	auto max_h = 0.0;
 
 	if (!oc->calcul_deplacement_y) {
@@ -541,48 +481,46 @@ static void set_height_normalize_factor(Ocean *oc, float gravite)
 		max_h = 0.00001;  /* just in case ... */
 	}
 
-	res = 1.0 / (max_h);
-
-	oc->facteur_normalisation = static_cast<float>(res);
+	oc->facteur_normalisation = 1.0 / (max_h);
 }
 
 void initialise_donnees_ocean(
 		Ocean *o,
-		float gravite)
+		double gravite)
 {
 	auto taille = (o->res_x * o->res_y);
 	auto taille_complex = (o->res_x * (1 + o->res_y / 2));
 
-	o->kx = memoire::loge_tableau<float>("kx", o->res_x);
-	o->kz = memoire::loge_tableau<float>("kz", o->res_y);
+	o->kx = memoire::loge_tableau<double>("kx", o->res_x);
+	o->kz = memoire::loge_tableau<double>("kz", o->res_y);
 
 	/* make this robust in the face of erroneous usage */
-	if (o->taille_spaciale_x == 0.0f) {
-		o->taille_spaciale_x = 0.001f;
+	if (o->taille_spaciale_x == 0.0) {
+		o->taille_spaciale_x = 0.001;
 	}
 
-	if (o->taille_spaciale_z == 0.0f) {
-		o->taille_spaciale_z = 0.001f;
+	if (o->taille_spaciale_z == 0.0) {
+		o->taille_spaciale_z = 0.001;
 	}
 
 	/* the +ve components and DC */
 	for (auto i = 0; i <= o->res_x / 2; ++i) {
-		o->kx[i] = constantes<float>::TAU * static_cast<float>(i) / o->taille_spaciale_x;
+		o->kx[i] = constantes<double>::TAU * static_cast<double>(i) / o->taille_spaciale_x;
 	}
 
 	/* the -ve components */
 	for (auto i = o->res_x - 1, ii = 0; i > o->res_x / 2; --i, ++ii) {
-		o->kx[i] = -constantes<float>::TAU * static_cast<float>(ii) / o->taille_spaciale_x;
+		o->kx[i] = -constantes<double>::TAU * static_cast<double>(ii) / o->taille_spaciale_x;
 	}
 
 	/* the +ve components and DC */
 	for (auto i = 0; i <= o->res_y / 2; ++i) {
-		o->kz[i] = constantes<float>::TAU * static_cast<float>(i) / o->taille_spaciale_z;
+		o->kz[i] = constantes<double>::TAU * static_cast<double>(i) / o->taille_spaciale_z;
 	}
 
 	/* the -ve components */
 	for (auto i = o->res_y - 1, ii = 0; i > o->res_y / 2; --i, ++ii) {
-		o->kz[i] = -constantes<float>::TAU * static_cast<float>(ii) / o->taille_spaciale_z;
+		o->kz[i] = -constantes<double>::TAU * static_cast<double>(ii) / o->taille_spaciale_z;
 	}
 
 	o->fft_in = memoire::loge_tableau<fftw_complex>("fft_in", taille_complex);
