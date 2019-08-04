@@ -159,8 +159,9 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 #endif
 
 		/* copie par convénience */
-		objet->corps.accede_lecture([&](Corps const &corps_objet)
+		objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
 		{
+			auto const &corps_objet = static_cast<DonneesCorps const *>(donnees)->corps;
 			corps_objet.copie_vers(&corps);
 		});
 
@@ -298,8 +299,9 @@ void ajourne_obstables(Poseidon &poseidon)
 
 	for (auto objet : poseidon.monde.obstacles) {
 		/* copie par convénience */
-		objet->corps.accede_lecture([&](Corps const &corps_objet)
+		objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
 		{
+			auto const &corps_objet = static_cast<DonneesCorps const *>(donnees)->corps;
 			corps_objet.copie_vers(&corps);
 		});
 

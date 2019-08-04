@@ -199,8 +199,9 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
 	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
 	 * le rendu prend plus de temps que l'évaluation asynchrone. */
-	objet->corps.accede_ecriture([operatrice](Corps &_corps_)
+	objet->donnees.accede_ecriture([operatrice](DonneesObjet *donnees_objet)
 	{
+		auto &_corps_ = static_cast<DonneesCorps *>(donnees_objet)->corps;
 		_corps_.reinitialise();
 		operatrice->corps()->copie_vers(&_corps_);
 	});

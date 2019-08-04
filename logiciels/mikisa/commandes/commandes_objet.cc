@@ -52,7 +52,7 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	auto nom = donnees.metadonnee;
 	auto op = static_cast<OperatriceImage *>(nullptr);
 
-	auto objet = bdd.cree_objet(nom);
+	auto objet = bdd.cree_objet(nom, type_objet::CORPS);
 
 	auto noeud_creation = objet->graphe.cree_noeud(nom);
 
@@ -107,9 +107,45 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 
 /* ************************************************************************** */
 
+
+class CommandeAjouteObjet final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override;
+};
+
+int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande &donnees)
+{
+	auto mikisa = extrait_mikisa(pointeur);
+	auto &bdd = mikisa->bdd;
+	auto nom = donnees.metadonnee;
+
+	auto objet = static_cast<Objet *>(nullptr);
+
+	if (nom == "caméra") {
+		objet = bdd.cree_objet(nom, type_objet::CAMERA);
+	}
+	else {
+		throw std::runtime_error("Type de préréglage inconnu");
+	}
+
+	mikisa->scene->ajoute_objet(objet);
+
+	mikisa->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
+
+	requiers_evaluation(*mikisa, OBJET_AJOUTE, "exécution préréglage");
+
+	return EXECUTION_COMMANDE_REUSSIE;
+}
+
+/* ************************************************************************** */
+
 void enregistre_commandes_objet(UsineCommande &usine)
 {
 	usine.enregistre_type("ajoute_prereglage",
 						   description_commande<CommandeAjoutePrereglage>(
+							   "objet", 0, 0, 0, false));
+
+	usine.enregistre_type("ajoute_objet",
+						   description_commande<CommandeAjouteObjet>(
 							   "objet", 0, 0, 0, false));
 }

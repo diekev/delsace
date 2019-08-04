@@ -28,12 +28,39 @@
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/vision/camera.h"
 
 #include "danjo/manipulable.h"
 
 #include "corps/corps.h"
 
+enum class type_objet : char {
+	NUL,
+	CORPS,
+	CAMERA,
+};
+
+struct DonneesObjet {};
+
+struct DonneesCorps : public DonneesObjet {
+	Corps corps{};
+};
+
+struct DonneesCamera : public DonneesObjet {
+	vision::Camera3D camera;
+
+	DonneesCamera(int largeur, int hauteur)
+		: camera(largeur, hauteur)
+	{
+		camera.ajourne();
+	}
+};
+
 struct Objet : public danjo::Manipulable {
+	type_objet type = type_objet::NUL;
+
+	bool rendu_scene = true;
+
 	/* transformation */
 	math::transformation transformation = math::transformation();
 	dls::math::point3f pivot        = dls::math::point3f(0.0f);
@@ -45,13 +72,12 @@ struct Objet : public danjo::Manipulable {
 	/* autres propriétés */
 	dls::chaine nom = "objet";
 
-	dls::synchronise<Corps> corps{};
+	dls::synchronise<DonneesObjet *> donnees{};
 
 	Graphe graphe;
 
-	bool rendu_scene = true;
-
 	Objet();
+	~Objet() override;
 
 	Objet(Objet const &) = default;
 	Objet &operator=(Objet const &) = default;

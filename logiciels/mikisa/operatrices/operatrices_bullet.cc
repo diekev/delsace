@@ -117,7 +117,7 @@ static btTransform converti_transformation(Corps &corps)
 
 /* ************************************************************************** */
 
-struct DonneesObjet {
+struct DonneesObjetBullet {
 	Objet *objet{};
 	math::transformation transformation_orig{};
 };
@@ -133,7 +133,7 @@ class MondePhysique {
 
 	btAlignedObjectArray<btCollisionShape *> m_formes_collisions{};
 
-	dls::dico_desordonne<btRigidBody *, DonneesObjet> m_dico_objets{};
+	dls::dico_desordonne<btRigidBody *, DonneesObjetBullet> m_dico_objets{};
 
 public:
 	~MondePhysique()
@@ -187,8 +187,9 @@ public:
 				std::cerr << "- objet : " << objet->nom << '\n';
 				std::cerr << transforme.matrice() << '\n';
 
-				objet->corps.accede_ecriture([&transforme](Corps &corps)
+				objet->donnees.accede_ecriture([&transforme](DonneesObjet *donnees)
 				{
+					auto &corps = static_cast<DonneesCorps *>(donnees)->corps;
 					corps.transformation = transforme;
 				});
 			}
@@ -338,8 +339,9 @@ public:
 		auto monde = std::any_cast<MondePhysique *>(donnees_aval->table["monde_physique"]);
 
 		/* copie par convénience */
-		m_objet->corps.accede_lecture([this](Corps const &_corps_)
+		m_objet->donnees.accede_lecture([this](DonneesObjet const *donnees_objet)
 		{
+			auto &_corps_ = static_cast<DonneesCorps const *>(donnees_objet)->corps;
 			_corps_.copie_vers(&m_corps);
 		});
 
@@ -531,8 +533,9 @@ public:
 				std::cerr << "Ajourne matrice pour objet '" << objet->nom << "'\n";
 				std::cerr << transformation.matrice() << '\n';
 
-				objet->corps.accede_ecriture([&transformation](Corps &corps)
+				objet->donnees.accede_ecriture([&transformation](DonneesObjet *donnees)
 				{
+					auto &corps = static_cast<DonneesCorps *>(donnees)->corps;
 					corps.transformation = transformation;
 				});
 				//m_corps.transformation = transformation;

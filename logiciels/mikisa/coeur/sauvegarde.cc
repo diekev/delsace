@@ -334,6 +334,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		/* Écriture de l'objet. */
 		auto racine_objet = doc.NewElement("objet");
 		racine_objet->SetAttribut("nom", objet->nom.c_str());
+		racine_objet->SetAttribut("type", static_cast<int>(objet->type));
 
 		racine_objets->InsertEndChild(racine_objet);
 
@@ -697,7 +698,15 @@ static void lis_objets(
 
 	for (; element_objet != nullptr; element_objet = element_objet->NextSiblingElement("objet")) {
 		auto const nom = element_objet->attribut("nom");
-		auto objet = mikisa.bdd.cree_objet(nom);
+		auto const attr_type = element_objet->attribut("type");
+		auto type = type_objet::CORPS;
+
+		/* versionnage */
+		if (attr_type != nullptr) {
+			type = static_cast<type_objet>(std::atoi(attr_type));
+		}
+
+		auto objet = mikisa.bdd.cree_objet(nom, type);
 		auto racine_graphe = element_objet->FirstChildElement("graphe");
 
 		lecture_graphe(racine_graphe, mikisa, &objet->graphe);

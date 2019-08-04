@@ -32,6 +32,28 @@ Objet::Objet()
 	: graphe(cree_noeud_image, supprime_noeud_image)
 {}
 
+Objet::~Objet()
+{
+	switch (this->type) {
+		case type_objet::NUL:
+		{
+			break;
+		}
+		case type_objet::CORPS:
+		{
+			auto ptr = static_cast<DonneesCorps *>(donnees.m_ptr);
+			memoire::deloge("DonneesCorps", ptr);
+			break;
+		}
+		case type_objet::CAMERA:
+		{
+			auto ptr = static_cast<DonneesCamera *>(donnees.m_ptr);
+			memoire::deloge("DonneesCamera", ptr);
+			break;
+		}
+	}
+}
+
 void Objet::performe_versionnage()
 {
 	if (this->propriete("pivot") == nullptr) {

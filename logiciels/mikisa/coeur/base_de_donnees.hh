@@ -27,6 +27,8 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+enum class type_objet : char;
+
 class Composite;
 class Objet;
 class Scene;
@@ -45,7 +47,7 @@ public:
 
 	/* ********************************************************************** */
 
-	Objet *cree_objet(dls::chaine const &nom);
+	Objet *cree_objet(dls::chaine const &nom, type_objet type);
 
 	Objet *objet(dls::chaine const &nom) const;
 

@@ -474,8 +474,9 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		m_objet->corps.accede_lecture([this](Corps const &_corps_)
+		m_objet->donnees.accede_lecture([this](DonneesObjet const *donnees)
 		{
+			auto &_corps_ = static_cast<DonneesCorps const *>(donnees)->corps;
 			_corps_.copie_vers(&m_corps);
 		});
 

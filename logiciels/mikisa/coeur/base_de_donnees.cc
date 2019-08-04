@@ -63,10 +63,28 @@ void BaseDeDonnees::reinitialise()
 	m_composites.efface();
 }
 
-Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom)
+Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 {
 	auto objet = memoire::loge<Objet>("objet");
 	objet->nom = nom;
+	objet->type = type;
+
+	switch (objet->type) {
+		case type_objet::NUL:
+		{
+			break;
+		}
+		case type_objet::CORPS:
+		{
+			objet->donnees = memoire::loge<DonneesCorps>("DonneesCorps");
+			break;
+		}
+		case type_objet::CAMERA:
+		{
+			objet->donnees = memoire::loge<DonneesCamera>("DonneesCamera", 1920, 1080);
+			break;
+		}
+	}
 
 	m_objets.pousse(objet);
 

@@ -604,6 +604,10 @@ public:
 
 			assert(mikisa->contexte == GRAPHE_SCENE);
 
+			if (objet->type != type_objet::CORPS) {
+				return EXECUTION_COMMANDE_ECHOUEE;
+			}
+
 			mikisa->graphe = &objet->graphe;
 			mikisa->contexte = GRAPHE_OBJET;
 
