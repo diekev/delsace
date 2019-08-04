@@ -98,19 +98,21 @@ dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::ray
 	return intersection;
 }
 
-double DeleguePrim::calcule_point_plus_proche(long idx, const dls::math::point3d &p) const
+DonneesPointPlusProche DeleguePrim::calcule_point_plus_proche(long idx, const dls::math::point3d &p) const
 {
 	auto prim = m_corps.prims()->prim(idx);
 	auto points = m_corps.points();
 
+	auto donnees = DonneesPointPlusProche{};
+
 	if (prim->type_prim() != type_primitive::POLYGONE) {
-		return std::numeric_limits<double>::max();
+		return donnees;
 	}
 
 	auto poly = dynamic_cast<Polygone *>(prim);
 
 	if (poly->type != type_polygone::FERME) {
-		return std::numeric_limits<double>::max();
+		return donnees;
 	}
 
 	auto distance_min = std::numeric_limits<double>::max();
@@ -134,8 +136,11 @@ double DeleguePrim::calcule_point_plus_proche(long idx, const dls::math::point3d
 
 		if (distance < distance_min) {
 			distance_min = distance;
+			donnees.distance_carree = distance;
+			donnees.index = idx;
+			donnees.point = dls::math::point3d(pnt_pls_prch);
 		}
 	}
 
-	return distance_min;
+	return donnees;
 }

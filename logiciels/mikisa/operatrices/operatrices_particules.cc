@@ -1973,6 +1973,9 @@ auto mul_m32_v3(
 
 }  /* namespace dls::math */
 
+#include "arbre_hbe.hh"
+#include "delegue_hbe.hh"
+
 /* Test d'implémentation d'une opératrice contraignant des points bougeant sur
  * une surface en s'inspirant de l'algorithme de contrainte de simulation de
  * peau de Pixar. Voir test_mat.cc */
@@ -2067,12 +2070,36 @@ public:
 			for (auto i = 0; i < points->taille(); ++i) {
 				auto p = points->point(i);
 				attr_P->vec3(i) = p;
-				p.x += gna.uniforme(-0.1f, 0.1f);
-				p.y += gna.uniforme(-0.1f, 0.1f);
-				p.z += gna.uniforme(-0.1f, 0.1f);
+				p.x += gna.uniforme(-0.2f, 0.2f);
+				p.y += gna.uniforme(-0.2f, 0.2f);
+				p.z += gna.uniforme(-0.2f, 0.2f);
 				points->point(i, p);
 			}
 
+#if 1
+			/* essaye de contraindre les points via une transformée de point le
+			 * plus proche */
+			auto delegue = DeleguePrim(*corps_entree);
+			auto arbre_hbe = construit_arbre_hbe(delegue, 12);
+
+			for (auto i = 0; i < points->taille(); ++i) {
+				auto dist_max = 0.4;
+				auto pointf = points->point(i);
+				auto point = dls::math::point3d(
+							static_cast<double>(pointf.x),
+							static_cast<double>(pointf.y),
+							static_cast<double>(pointf.z));
+
+				auto dpp = cherche_point_plus_proche(arbre_hbe, delegue, point, dist_max);
+
+				pointf = dls::math::vec3f(
+							static_cast<float>(dpp.point.x),
+							static_cast<float>(dpp.point.y),
+							static_cast<float>(dpp.point.z));
+
+				points->point(i, pointf);
+			}
+#else
 			/* essaye de contraindre les points via l'algorithme du papier */
 			auto attr_Prim = m_corps.attribut("prim_idx");
 
@@ -2124,6 +2151,7 @@ public:
 
 				points->point(i, h);
 			}
+#endif
 		}
 
 		return EXECUTION_REUSSIE;

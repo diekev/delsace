@@ -39,5 +39,5 @@ struct DeleguePrim {
 
 	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
 
-	double calcule_point_plus_proche(long idx, dls::math::point3d const &p) const;
+	DonneesPointPlusProche calcule_point_plus_proche(long idx, dls::math::point3d const &p) const;
 };

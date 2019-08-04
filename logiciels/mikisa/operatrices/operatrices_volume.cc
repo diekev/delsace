@@ -204,13 +204,13 @@ static int maillage_vers_volume(
 					auto dist_max = grille->desc().taille_voxel;
 					dist_max *= dist_max;
 #if 1
-					auto dist = cherche_point_plus_proche(arbre_hbe, delegue_prims, rayon.origine, dist_max);
+					auto dpp = cherche_point_plus_proche(arbre_hbe, delegue_prims, rayon.origine, dist_max);
 
-					if (dist < -0.5) {
+					if (dpp.distance_carree < -0.5) {
 						continue;
 					}
 
-					if (dist >= dist_max) {
+					if (dpp.distance_carree >= dist_max) {
 						continue;
 					}
 

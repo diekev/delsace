@@ -456,10 +456,13 @@ inline bool operator<(PaireDistanceNoeud const &p1, PaireDistanceNoeud const &p2
 
 struct DonneesPointPlusProche {
 	/* Distance entre l'origine de la recherche et le point. */
-	double distance_carree{};
+	double distance_carree = std::numeric_limits<double>::max();
 
 	/* Index de la primitive contenant le point. */
 	long index = -1;
+
+	/* Le point le plus proche. */
+	dls::math::point3d point{};
 };
 
 struct DonneesRecherchePoint {
@@ -483,11 +486,10 @@ auto cherche_point_plus_proche_ex(
 	if (noeud.est_feuille()) {
 		for (auto i = 0; i < noeud.nombre_references; ++i) {
 			auto id_prim = arbre.index_refs[noeud.decalage_reference + i];
-			auto dist = delegue.calcule_point_plus_proche(id_prim, donnees.point);
+			auto dn_plus_proche = delegue.calcule_point_plus_proche(id_prim, donnees.point);
 
-			if (dist < donnees.dn_plus_proche.distance_carree) {
-				donnees.dn_plus_proche.index = id_prim;
-				donnees.dn_plus_proche.distance_carree = dist;
+			if (dn_plus_proche.distance_carree < donnees.dn_plus_proche.distance_carree) {
+				donnees.dn_plus_proche = dn_plus_proche;
 			}
 		}
 	}
@@ -512,14 +514,14 @@ auto cherche_point_plus_proche_ex(
 }
 
 template <typename TypeDelegue>
-double cherche_point_plus_proche(
+auto cherche_point_plus_proche(
 		ArbreHBE &arbre,
 		TypeDelegue const &delegue,
 		const dls::math::point3d &point,
 		const double distance_max)
 {
 	if (arbre.nombre_noeud < 2) {
-		return -1.0;
+		return DonneesPointPlusProche{0.0, -1l};
 	}
 
 	auto plus_proche = dls::math::point3d();
@@ -533,7 +535,7 @@ double cherche_point_plus_proche(
 	auto dist_sq = calcul_point_plus_proche(racine, donnees.point, plus_proche);
 
 	if (dist_sq >= distance_max) {
-		return -1.0;
+		return donnees.dn_plus_proche;
 	}
 
 	auto file = dls::file_priorite<PaireDistanceNoeud>();
@@ -546,9 +548,5 @@ double cherche_point_plus_proche(
 		cherche_point_plus_proche_ex(arbre, delegue, donnees, file, *node);
 	}
 
-	if (donnees.dn_plus_proche.index == -1) {
-		return -1.0;
-	}
-
-	return donnees.dn_plus_proche.distance_carree;
+	return donnees.dn_plus_proche;
 }
