@@ -22,19 +22,180 @@
  *
  */
 
-#include "ocean.hh"
+#include "operatrices_ocean.hh"
 
 #include <cmath>
+#include <fftw3.h>
 
 #include "biblinternes/math/complexe.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/tableau.hh"
+
+#include "coeur/contexte_evaluation.hh"
+#include "coeur/operatrice_corps.h"
+#include "coeur/usine_operatrice.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
+/* ************************************************************************** */
+
+#if 0
+struct champs_simulation {
+	fftw_complex *entrees = nullptr;
+	double *sorties = nullptr;
+	fftw_plan_s *plan = nullptr;
+	long taille = 0;
+	long taille_complexe = 0;
+
+	champs_simulation() = default;
+
+	champs_simulation(int M, int N)
+		: taille(M * N)
+		, taille_complexe(M * (1 + N / 2))
+	{
+		entrees = memoire::loge_tableau<fftw_complex>(taille_complexe);
+		sorties = memoire::loge_tableau<double>(taille);
+		plan = fftw_plan_dft_c2r_2d(M, N, entrees, sorties, FFTW_ESTIMATE);
+	}
+
+	~champs_simulation()
+	{
+		memoire::deloge_tableau(entrees, taille_complexe);
+		fftw_destroy_plan(this->plan);
+		memoire::deloge_tableau(sorties, taille);
+	}
+
+	champs_simulation(champs_simulation const &) = default;
+	champs_simulation &operator=(champs_simulation const &) = default;
+};
+
+struct ocean {
+	/* déplacment */
+	champs_simulation disp_y{};
+
+	/* normaux */
+	champs_simulation norm_x{};
+	champs_simulation norm_z{};
+
+	/* chop */
+	champs_simulation chop_x{};
+	champs_simulation chop_z{};
+
+	/* jacobien */
+	champs_simulation jxx{};
+	champs_simulation jzz{};
+	champs_simulation jxz{};
+
+	/* autres données */
+	fftw_complex *_htilda = nullptr;          /* init w	sim w (only once) */
+	/* one dimensional float array */
+	float *_kx = nullptr;
+	float *_kz = nullptr;
+
+	/* two dimensional complex array */
+	fftw_complex *_h0 = nullptr;
+	fftw_complex *_h0_minus = nullptr;
+
+	/* two dimensional float array */
+	float *_k = nullptr;
+};
+#endif
+
+/* ************************************************************************** */
+
+struct Ocean {
+	/* ********* input parameters to the sim ********* */
+	float l = 0.0f;
+	float amplitude = 0.0f;
+	float reflections_damp = 0.0f;
+	float alignement_vent = 0.0f;
+	double profondeur = 0.0;
+
+	float vent_x = 0.0f;
+	float vent_z = 0.0f;
+
+	float L = 0.0f;
+
+	int graine = 0;
+
+	/* dimensions of computational grid */
+	int res_x = 0;
+	int res_y = 0;
+
+	/* spatial size of computational grid */
+	double taille_spaciale_x = 0.0;
+	double taille_spaciale_z = 0.0;
+
+	double facteur_normalisation = 0.0;
+	float temps = 0.0f;
+
+	bool calcul_deplacement_y = false;
+	bool calcul_normaux = false;
+	bool calcul_chop = false;
+	bool calcul_ecume = false;
+
+	/* ********* sim data arrays ********* */
+
+	/* two dimensional arrays of complex */
+	fftw_complex *fft_in = nullptr;
+	fftw_complex *fft_in_x = nullptr;
+	fftw_complex *fft_in_z = nullptr;
+	fftw_complex *fft_in_jxx = nullptr;
+	fftw_complex *fft_in_jzz = nullptr;
+	fftw_complex *fft_in_jxz = nullptr;
+	fftw_complex *fft_in_nx = nullptr;
+	fftw_complex *fft_in_nz = nullptr;
+
+	/* fftw "plans" */
+	fftw_plan disp_y_plan = nullptr;
+	fftw_plan disp_x_plan = nullptr;
+	fftw_plan disp_z_plan = nullptr;
+	fftw_plan N_x_plan = nullptr;
+	fftw_plan N_z_plan = nullptr;
+	fftw_plan Jxx_plan = nullptr;
+	fftw_plan Jxz_plan = nullptr;
+	fftw_plan Jzz_plan = nullptr;
+
+	/* two dimensional arrays of float */
+	double *disp_y = nullptr;
+	double *N_x = nullptr;
+	/* N_y est constant donc inutile de recourir à un tableau. */
+	double N_y = 0.0;
+	double *N_z = nullptr;
+	double *disp_x = nullptr;
+	double *disp_z = nullptr;
+
+	/* two dimensional arrays of float */
+	/* Jacobian and minimum eigenvalue */
+	double *Jxx = nullptr;
+	double *Jzz = nullptr;
+	double *Jxz = nullptr;
+
+	/* one dimensional float array */
+	double *kx = nullptr;
+	double *kz = nullptr;
+
+	~Ocean();
+};
+
+struct OceanResult {
+	dls::math::vec3f disp{};
+	dls::math::vec3f normal{};
+	float foam{};
+
+	/* raw eigenvalues/vectors */
+	float Jminus{};
+	float Jplus{};
+	float Eminus[3];
+	float Eplus[3];
+};
 
 /* ************************************************************************** */
 
@@ -100,7 +261,7 @@ auto spectre_phillips(Ocean *o, T kx, T kz)
 		tmp *= static_cast<T>(o->reflections_damp);
 	}
 
-	return o->amplitude * std::exp(-1.0 / (k2 * static_cast<T>(o->L * o->L))) * std::exp(-k2 * static_cast<T>(o->l * o->l)) *
+	return static_cast<T>(o->amplitude) * std::exp(-1.0 / (k2 * static_cast<T>(o->L * o->L))) * std::exp(-k2 * static_cast<T>(o->l * o->l)) *
 			std::pow(std::abs(tmp), o->alignement_vent) / (k2 * k2);
 }
 
@@ -138,14 +299,14 @@ static void init_complex(fftw_complex cmpl, double real, double image)
 	cmpl[1] = image;
 }
 
-float ocean_jminus_vers_ecume(float jminus, float coverage)
+static float ocean_jminus_vers_ecume(float jminus, float coverage)
 {
 	float foam = jminus * -0.005f + coverage;
 	foam = dls::math::restreint(foam, 0.0f, 1.0f);
 	return foam * foam;
 }
 
-void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
+static void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
 {
 	int i0, i1, j0, j1;
 	float frac_x, frac_z;
@@ -212,7 +373,7 @@ void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
 }
 
 /* use catmullrom interpolation rather than linear */
-void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v)
+static void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v)
 {
 	int i0, i1, i2, i3, j0, j1, j2, j3;
 	float frac_x, frac_z;
@@ -290,20 +451,10 @@ void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v)
 	}
 }
 
-void evalue_ocean_xz(Ocean *oc, OceanResult *ocr, float x, float z)
-{
-	evalue_ocean_uv(oc, ocr, x / static_cast<float>(oc->taille_spaciale_x), z / static_cast<float>(oc->taille_spaciale_z));
-}
-
-void evalue_ocean_xz_catrom(Ocean *oc, OceanResult *ocr, float x, float z)
-{
-	evalue_ocean_uv_catrom(oc, ocr, x / static_cast<float>(oc->taille_spaciale_x), z / static_cast<float>(oc->taille_spaciale_z));
-}
-
 /* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being just a way to get
  * the raw data out to save in some image format.
  */
-void evalue_ocean_ij(Ocean *oc, OceanResult *ocr, int i, int j)
+static void evalue_ocean_ij(Ocean *oc, OceanResult *ocr, int i, int j)
 {
 	i = abs(i) % oc->res_x;
 	j = abs(j) % oc->res_y;
@@ -334,7 +485,7 @@ void evalue_ocean_ij(Ocean *oc, OceanResult *ocr, int i, int j)
 	}
 }
 
-void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double gravite)
+static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double gravite)
 {
 	scale *= o->facteur_normalisation;
 
@@ -494,7 +645,7 @@ static void set_height_normalize_factor(Ocean *oc, double gravite)
 	oc->facteur_normalisation = 1.0 / (max_h);
 }
 
-void initialise_donnees_ocean(
+static void initialise_donnees_ocean(
 		Ocean *o,
 		double gravite)
 {
@@ -579,7 +730,7 @@ void initialise_donnees_ocean(
 	set_height_normalize_factor(o, gravite);
 }
 
-void deloge_donnees_ocean(Ocean *oc)
+static void deloge_donnees_ocean(Ocean *oc)
 {
 	if (oc == nullptr) {
 		return;
@@ -633,7 +784,210 @@ void deloge_donnees_ocean(Ocean *oc)
 	}
 }
 
+/* ************************************************************************** */
+
 Ocean::~Ocean()
 {
 	deloge_donnees_ocean(this);
 }
+
+/* ************************************************************************** */
+
+class OperatriceSimulationOcean : public OperatriceCorps {
+	Ocean m_ocean{};
+	bool m_reinit = false;
+
+	calque_image m_ecume_precedente{};
+
+public:
+	static constexpr auto NOM = "Océan";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceSimulationOcean(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_ocean.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		if (m_corps.points()->taille() == 0) {
+			this->ajoute_avertissement("Le corps d'entrée est vide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* paramètres simulations */
+		auto resolution = dls::math::restreint(evalue_entier("résolution"), 4, 11);
+		auto velocite_vent = evalue_decimal("vélocité_vent");
+		auto echelle_vague = evalue_decimal("échelle_vague");
+		auto alignement_vague = evalue_decimal("alignement_vague");
+		auto plus_petite_vague = evalue_decimal("plus_petite_vague");
+		auto direction_vague = evalue_decimal("direction_vague");
+		auto profondeur = evalue_decimal("profondeur");
+		auto gravite = evalue_decimal("gravité");
+		auto damp = evalue_decimal("damping");
+		auto quantite_chop = evalue_decimal("quantité_chop");
+		auto graine = evalue_entier("graine");
+		auto temps = evalue_decimal("temps", contexte.temps_courant) / static_cast<float>(contexte.cadence);
+		auto couverture_ecume = evalue_decimal("couverture_écume");
+		auto attenuation_ecume = evalue_decimal("atténuation_écume");
+		auto taille = evalue_decimal("taille");
+		auto taille_spaciale = static_cast<float>(evalue_entier("taille_spaciale"));
+
+		auto const taille_inverse = 1.0f / (taille * taille_spaciale);
+
+		if (!std::isfinite(taille_inverse)) {
+			this->ajoute_avertissement("La taille inverse n'est pas finie");
+			return EXECUTION_ECHOUEE;
+		}
+
+		m_ocean.res_x = static_cast<int>(std::pow(2.0, resolution));
+		m_ocean.res_y = m_ocean.res_x;
+		m_ocean.calcul_deplacement_y = true;
+		m_ocean.calcul_normaux = true;
+		m_ocean.calcul_ecume = true;
+		m_ocean.calcul_chop = (quantite_chop > 0.0f);
+		m_ocean.l = plus_petite_vague;
+		m_ocean.amplitude = 1.0f;
+		m_ocean.reflections_damp = 1.0f - damp;
+		m_ocean.alignement_vent = alignement_vague;
+		m_ocean.profondeur = static_cast<double>(profondeur);
+		m_ocean.taille_spaciale_x = static_cast<double>(taille_spaciale);
+		m_ocean.taille_spaciale_z = static_cast<double>(taille_spaciale);
+		m_ocean.vent_x = std::cos(direction_vague);
+		m_ocean.vent_z = -std::sin(direction_vague);
+		/* plus grosse vague pour une certaine vélocité */
+		m_ocean.L = velocite_vent * velocite_vent / gravite;
+		m_ocean.temps = temps;
+		m_ocean.graine = graine;
+
+		if (contexte.temps_courant == contexte.temps_debut || m_reinit) {
+			deloge_donnees_ocean(&m_ocean);
+			initialise_donnees_ocean(&m_ocean, static_cast<double>(gravite));
+
+			auto desc = desc_grille_2d{};
+			desc.etendue.min = dls::math::vec2f(0.0f);
+			desc.etendue.max = dls::math::vec2f(1.0f);
+			desc.fenetre_donnees = desc.etendue;
+			desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
+			desc.type_donnees = type_grille::R32;
+
+			m_ecume_precedente = calque_image::construit_calque(desc);
+
+			m_reinit = false;
+		}
+
+		simule_ocean(&m_ocean, static_cast<double>(temps), static_cast<double>(echelle_vague), static_cast<double>(quantite_chop), static_cast<double>(gravite));
+
+		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
+
+		/* applique les déplacements à la géométrie d'entrée */
+		auto points = m_corps.points();
+		auto res_x = m_ocean.res_x;
+		auto res_y = m_ocean.res_y;
+
+		auto N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		N->redimensionne(points->taille());
+
+		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		C->redimensionne(points->taille());
+
+		OceanResult ocr;
+
+		auto gna = GNA{graine};
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			auto p = points->point(i);
+
+			/* converti la position du point en espace grille */
+			auto u = std::fmod(p.x * taille_inverse + 0.5f, 1.0f);
+			auto v = std::fmod(p.z * taille_inverse + 0.5f, 1.0f);
+
+			if (u < 0.0f) {
+				u += 1.0f;
+			}
+
+			if (v < 0.0f) {
+				v += 1.0f;
+			}
+
+			auto x = static_cast<int>(u * (static_cast<float>(res_x)));
+			auto y = static_cast<int>(v * (static_cast<float>(res_y)));
+
+			/* À FAIRE : échantillonage bilinéaire. */
+			evalue_ocean_ij(&m_ocean, &ocr, x, y);
+
+			p[0] += ocr.disp[0];
+			p[1] += ocr.disp[1];
+			p[2] += ocr.disp[2];
+
+			points->point(i, p);
+			N->vec3(i) = ocr.normal;
+
+			if (m_ocean.calcul_ecume) {
+				auto index = grille_ecume->calcul_index(dls::math::vec2i(x, y));
+				auto ecume = ocean_jminus_vers_ecume(ocr.Jminus, couverture_ecume);
+
+				/* accumule l'écume précédente pour cette cellule. */
+				auto ecume_prec = grille_ecume->valeur(index);
+
+				/* réduit aléatoirement l'écume */
+				ecume_prec *= gna.uniforme(0.0f, 1.0f);
+
+				if (ecume_prec < 1.0f) {
+					ecume_prec *= ecume_prec;
+				}
+
+				/* brise l'écume là où la hauteur (Y) est basse (vallée), et le
+				 * déplacement X et Z est au plus haut.
+				 */
+
+				auto eplus_neg = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2] : 1.0f;
+				eplus_neg = eplus_neg < 0.0f ? 0.0f : eplus_neg;
+
+				ecume_prec *= attenuation_ecume * (0.75f + eplus_neg * 0.25f);
+
+				/* Une restriction pleine ne devrait pas être nécessaire ! */
+				auto resultat_ecume = std::min(ecume_prec + ecume, 1.0f);
+
+				grille_ecume->valeur(index) = resultat_ecume;
+
+				C->vec3(i) = dls::math::vec3f(resultat_ecume, resultat_ecume, 1.0f);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void parametres_changes() override
+	{
+		m_reinit = true;
+	}
+};
+
+/* ************************************************************************** */
+
+void enregistre_operatrices_ocean(UsineOperatrice &usine)
+{
+	usine.enregistre_type(cree_desc<OperatriceSimulationOcean>());
+}
+
+#pragma clang diagnostic pop

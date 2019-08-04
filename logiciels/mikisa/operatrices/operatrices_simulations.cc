@@ -24,12 +24,9 @@
 
 #include "operatrices_simulations.hh"
 
-#include "biblinternes/outils/definitions.h"
-#include "biblinternes/outils/gna.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/flux_chaine.hh"
-#include "biblinternes/structures/tableau.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -39,12 +36,6 @@
 #include "corps/groupes.h"
 
 #include "delegue_hbe.hh"
-#include "ocean.hh"
-
-#include "biblinternes/math/complexe.hh"
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
@@ -923,198 +914,6 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceSimulationOcean : public OperatriceCorps {
-	Ocean m_ocean{};
-	bool m_reinit = false;
-
-	calque_image m_ecume_precedente{};
-
-public:
-	static constexpr auto NOM = "Océan";
-	static constexpr auto AIDE = "";
-
-	explicit OperatriceSimulationOcean(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceCorps(graphe_parent, noeud)
-	{
-		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_ocean.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-
-		if (m_corps.points()->taille() == 0) {
-			this->ajoute_avertissement("Le corps d'entrée est vide");
-			return EXECUTION_ECHOUEE;
-		}
-
-		/* paramètres simulations */
-		auto resolution = dls::math::restreint(evalue_entier("résolution"), 4, 11);
-		auto velocite_vent = evalue_decimal("vélocité_vent");
-		auto echelle_vague = evalue_decimal("échelle_vague");
-		auto alignement_vague = evalue_decimal("alignement_vague");
-		auto plus_petite_vague = evalue_decimal("plus_petite_vague");
-		auto direction_vague = evalue_decimal("direction_vague");
-		auto profondeur = evalue_decimal("profondeur");
-		auto gravite = evalue_decimal("gravité");
-		auto damp = evalue_decimal("damping");
-		auto quantite_chop = evalue_decimal("quantité_chop");
-		auto graine = evalue_entier("graine");
-		auto temps = evalue_decimal("temps", contexte.temps_courant) / static_cast<float>(contexte.cadence);
-		auto couverture_ecume = evalue_decimal("couverture_écume");
-		auto attenuation_ecume = evalue_decimal("atténuation_écume");
-		auto taille = evalue_decimal("taille");
-		auto taille_spaciale = static_cast<float>(evalue_entier("taille_spaciale"));
-
-		auto const taille_inverse = 1.0f / (taille * taille_spaciale);
-
-		if (!std::isfinite(taille_inverse)) {
-			this->ajoute_avertissement("La taille inverse n'est pas finie");
-			return EXECUTION_ECHOUEE;
-		}
-
-		m_ocean.res_x = static_cast<int>(std::pow(2.0, resolution));
-		m_ocean.res_y = m_ocean.res_x;
-		m_ocean.calcul_deplacement_y = true;
-		m_ocean.calcul_normaux = true;
-		m_ocean.calcul_ecume = true;
-		m_ocean.calcul_chop = (quantite_chop > 0.0f);
-		m_ocean.l = plus_petite_vague;
-		m_ocean.amplitude = 1.0f;
-		m_ocean.reflections_damp = 1.0f - damp;
-		m_ocean.alignement_vent = alignement_vague;
-		m_ocean.profondeur = static_cast<double>(profondeur);
-		m_ocean.taille_spaciale_x = static_cast<double>(taille_spaciale);
-		m_ocean.taille_spaciale_z = static_cast<double>(taille_spaciale);
-		m_ocean.vent_x = std::cos(direction_vague);
-		m_ocean.vent_z = -std::sin(direction_vague);
-		/* plus grosse vague pour une certaine vélocité */
-		m_ocean.L = velocite_vent * velocite_vent / gravite;
-		m_ocean.temps = temps;
-		m_ocean.graine = graine;
-
-		if (contexte.temps_courant == contexte.temps_debut || m_reinit) {
-			deloge_donnees_ocean(&m_ocean);
-			initialise_donnees_ocean(&m_ocean, static_cast<double>(gravite));
-
-			auto desc = desc_grille_2d{};
-			desc.etendue.min = dls::math::vec2f(0.0f);
-			desc.etendue.max = dls::math::vec2f(1.0f);
-			desc.fenetre_donnees = desc.etendue;
-			desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
-			desc.type_donnees = type_grille::R32;
-
-			m_ecume_precedente = calque_image::construit_calque(desc);
-
-			m_reinit = false;
-		}
-
-		simule_ocean(&m_ocean, static_cast<double>(temps), static_cast<double>(echelle_vague), static_cast<double>(quantite_chop), static_cast<double>(gravite));
-
-		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
-
-		/* applique les déplacements à la géométrie d'entrée */
-		auto points = m_corps.points();
-		auto res_x = m_ocean.res_x;
-		auto res_y = m_ocean.res_y;
-
-		auto N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
-		N->redimensionne(points->taille());
-
-		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-		C->redimensionne(points->taille());
-
-		OceanResult ocr;
-
-		auto gna = GNA{graine};
-
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto p = points->point(i);
-
-			/* converti la position du point en espace grille */
-			auto u = std::fmod(p.x * taille_inverse + 0.5f, 1.0f);
-			auto v = std::fmod(p.z * taille_inverse + 0.5f, 1.0f);
-
-			if (u < 0.0f) {
-				u += 1.0f;
-			}
-
-			if (v < 0.0f) {
-				v += 1.0f;
-			}
-
-			auto x = static_cast<int>(u * (static_cast<float>(res_x)));
-			auto y = static_cast<int>(v * (static_cast<float>(res_y)));
-
-			/* À FAIRE : échantillonage bilinéaire. */
-			evalue_ocean_ij(&m_ocean, &ocr, x, y);
-
-			p[0] += ocr.disp[0];
-			p[1] += ocr.disp[1];
-			p[2] += ocr.disp[2];
-
-			points->point(i, p);
-			N->vec3(i) = ocr.normal;
-
-			if (m_ocean.calcul_ecume) {
-				auto index = grille_ecume->calcul_index(dls::math::vec2i(x, y));
-				auto ecume = ocean_jminus_vers_ecume(ocr.Jminus, couverture_ecume);
-
-				/* accumule l'écume précédente pour cette cellule. */
-				auto ecume_prec = grille_ecume->valeur(index);
-
-				/* réduit aléatoirement l'écume */
-				ecume_prec *= gna.uniforme(0.0f, 1.0f);
-
-				if (ecume_prec < 1.0f) {
-					ecume_prec *= ecume_prec;
-				}
-
-				/* brise l'écume là où la hauteur (Y) est basse (vallée), et le
-				 * déplacement X et Z est au plus haut.
-				 */
-
-				auto eplus_neg = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2] : 1.0f;
-				eplus_neg = eplus_neg < 0.0f ? 0.0f : eplus_neg;
-
-				ecume_prec *= attenuation_ecume * (0.75f + eplus_neg * 0.25f);
-
-				/* Une restriction pleine ne devrait pas être nécessaire ! */
-				auto resultat_ecume = std::min(ecume_prec + ecume, 1.0f);
-
-				grille_ecume->valeur(index) = resultat_ecume;
-
-				C->vec3(i) = dls::math::vec3f(resultat_ecume, resultat_ecume, 1.0f);
-			}
-		}
-
-		return EXECUTION_REUSSIE;
-	}
-
-	void parametres_changes() override
-	{
-		m_reinit = true;
-	}
-};
-
-/* ************************************************************************** */
-
 void enregistre_operatrices_simulations(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceSimulation>());
@@ -1125,7 +924,6 @@ void enregistre_operatrices_simulations(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCollision>());
 	usine.enregistre_type(cree_desc<OperatriceVent>());
 	usine.enregistre_type(cree_desc<OperatriceSolveurNCorps>());
-	usine.enregistre_type(cree_desc<OperatriceSimulationOcean>());
 }
 
 #pragma clang diagnostic pop

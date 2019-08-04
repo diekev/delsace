@@ -63,7 +63,6 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_octernaire.cc
 	courbure.cc
 	delegue_hbe.cc
-	ocean.cc
 	outils_visualisation.cc
 	normaux.cc
 	operatrices_3d.cc
@@ -79,6 +78,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_groupes.cc
 	operatrices_maillage.cc
 	operatrices_muscles.cc
+	operatrices_ocean.cc
 	operatrices_opensubdiv.cc
 	operatrices_particules.cc
 	operatrices_pixel.cc
@@ -98,7 +98,6 @@ add_library(${NOM_CIBLE} STATIC
 	courbure.hh
 	delegue_hbe.hh
 	normaux.hh
-	ocean.hh
 	outils_visualisation.hh
 	operatrices_3d.h
 	operatrices_alembic.hh
@@ -113,6 +112,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_groupes.hh
 	operatrices_maillage.hh
 	operatrices_muscles.hh
+	operatrices_ocean.hh
 	operatrices_opensubdiv.hh
 	operatrices_particules.h
 	operatrices_pixel.h
