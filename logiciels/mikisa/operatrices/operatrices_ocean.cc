@@ -501,7 +501,7 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 {
 	scale *= o->facteur_normalisation;
 
-	o->N_y = 1.0 / static_cast<double>(scale);
+	o->N_y = 1.0 / scale;
 
 	boucle_parallele(tbb::blocked_range<int>(0, o->res_x),
 					 [&](tbb::blocked_range<int> const &plage)
