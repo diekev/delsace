@@ -1,5 +1,15 @@
 menu "Noeud Scène" {
-    menu "3D" {
-	    action(valeur="Caméra"; attache=ajouter_noeud; métadonnée="Caméra")
+	action(valeur="Caméra"; attache=ajouter_noeud; métadonnée="Caméra")
+
+	séparateur
+
+	menu "Objet" {
+		action(valeur="Boîte"; attache=ajoute_prereglage; métadonnée="boîte")
+		action(valeur="Cercle"; attache=ajoute_prereglage; métadonnée="cercle")
+		action(valeur="Cone"; attache=ajoute_prereglage; métadonnée="cone")
+		action(valeur="Grille"; attache=ajoute_prereglage; métadonnée="grille")
+		action(valeur="Icosphère"; attache=ajoute_prereglage; métadonnée="icosphère")
+		action(valeur="Torus"; attache=ajoute_prereglage; métadonnée="torus")
+		action(valeur="Tube"; attache=ajoute_prereglage; métadonnée="tube")
 	}
 }
