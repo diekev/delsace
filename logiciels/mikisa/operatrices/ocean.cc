@@ -373,19 +373,25 @@ void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double g
 
 				init_complex(o->fft_in[index], htilda_.reel(), htilda_.imag());
 
-				if (o->calcul_chop) {					
-					auto kx = ((k == 0.0) ? 0.0 : o->kx[i] / k);
-					auto kz = ((k == 0.0) ? 0.0 : o->kz[j] / k);
+				if (o->calcul_chop) {
+					if (k == 0.0) {
+						init_complex(o->fft_in_x[index], 0.0, 0.0);
+						init_complex(o->fft_in_z[index], 0.0, 0.0);
+					}
+					else {
+						auto kx = o->kx[i] / k;
+						auto kz = o->kz[j] / k;
 
-					auto mul_param = dls::math::complexe(0.0, -1.0);
-					mul_param *= chop_amount;
+						auto mul_param = dls::math::complexe(0.0, -1.0);
+						mul_param *= chop_amount;
 
-					auto minus_i = dls::math::complexe(-scale, 0.0);
-					mul_param *= minus_i;
-					mul_param *= htilda;
+						auto minus_i = dls::math::complexe(-scale, 0.0);
+						mul_param *= minus_i;
+						mul_param *= htilda;
 
-					init_complex(o->fft_in_x[index], mul_param.reel() * kx, mul_param.imag() * kx);
-					init_complex(o->fft_in_z[index], mul_param.reel() * kz, mul_param.imag() * kz);
+						init_complex(o->fft_in_x[index], mul_param.reel() * kx, mul_param.imag() * kx);
+						init_complex(o->fft_in_z[index], mul_param.reel() * kz, mul_param.imag() * kz);
+					}
 				}
 
 				if (o->calcul_normaux) {
@@ -397,25 +403,29 @@ void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double g
 				}
 
 				if (o->calcul_ecume) {
-					/* init_complex(mul_param, -scale, 0); */
-					auto mul_param = dls::math::complexe(-1.0, 0.0);
-					mul_param *= chop_amount;
-					mul_param *= htilda;
+					if (k == 0.0) {
+						init_complex(o->fft_in_jxx[index], 0.0, 0.0);
+						init_complex(o->fft_in_jzz[index], 0.0, 0.0);
+						init_complex(o->fft_in_jxz[index], 0.0, 0.0);
+					}
+					else {
+						/* init_complex(mul_param, -scale, 0); */
+						auto mul_param = dls::math::complexe(-1.0, 0.0);
+						mul_param *= chop_amount;
+						mul_param *= htilda;
 
-					/* calcul jacobien XX */
-					auto kxx = ((k == 0.0) ? 0.0 : o->kx[i] * o->kx[i] / k);
+						/* calcul jacobien XX */
+						auto kxx = o->kx[i] * o->kx[i] / k;
+						init_complex(o->fft_in_jxx[index], mul_param.reel() * kxx, mul_param.imag() * kxx);
 
-					init_complex(o->fft_in_jxx[index], mul_param.reel() * kxx, mul_param.imag() * kxx);
+						/* calcul jacobien ZZ */
+						auto kzz = o->kz[j] * o->kz[j] / k;
+						init_complex(o->fft_in_jzz[index], mul_param.reel() * kzz, mul_param.imag() * kzz);
 
-					/* calcul jacobien ZZ */
-					auto kzz = ((k == 0.0) ? 0.0 : o->kz[j] * o->kz[j] / k);
-
-					init_complex(o->fft_in_jzz[index], mul_param.reel() * kzz, mul_param.imag() * kzz);
-
-					/* calcul jacobien XZ */
-					auto kxz = ((k == 0.0) ? 0.0 : o->kx[i] * o->kz[j] / k);
-
-					init_complex(o->fft_in_jxz[index], mul_param.reel() * kxz, mul_param.imag() * kxz);
+						/* calcul jacobien XZ */
+						auto kxz = o->kx[i] * o->kz[j] / k;
+						init_complex(o->fft_in_jxz[index], mul_param.reel() * kxz, mul_param.imag() * kxz);
+					}
 				}
 			}
 		}
