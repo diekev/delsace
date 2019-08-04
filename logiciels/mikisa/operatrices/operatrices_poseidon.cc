@@ -730,6 +730,7 @@ public:
 		m_poseidon.cfl = evalue_decimal("cfl");
 		m_poseidon.duree_frame = evalue_decimal("durée_frame");
 		m_poseidon.dt = (m_poseidon.dt_min + m_poseidon.dt_max) * 0.5f;
+		m_poseidon.solveur_flip = evalue_bool("solveur_flip");
 
 		psn::fill_grid(*m_poseidon.drapeaux, TypeFluid);
 
@@ -740,15 +741,19 @@ public:
 
 		entree(0)->requiers_corps(contexte, &da);
 
-		/* commence par trier les particules, car nous aurons besoin d'une
-		 * grille triée pour vérifier l'insertion de particules */
-		m_poseidon.grille_particule.tri(m_poseidon.particules);
+		if (m_poseidon.solveur_flip) {
+			/* commence par trier les particules, car nous aurons besoin d'une
+			 * grille triée pour vérifier l'insertion de particules */
+			m_poseidon.grille_particule.tri(m_poseidon.particules);
+		}
 
 		psn::ajourne_sources(m_poseidon, contexte.temps_courant);
 
 		psn::ajourne_obstables(m_poseidon);
 
-		psn::transfere_particules_grille(m_poseidon);
+		if (m_poseidon.solveur_flip) {
+			psn::transfere_particules_grille(m_poseidon);
+		}
 
 		/* lance simulation */
 		while (true) {
@@ -829,6 +834,7 @@ public:
 		m_poseidon.temps_total = 0.0f;
 		m_poseidon.verrouille_dt = false;
 		m_poseidon.image = 0;
+		m_poseidon.solveur_flip = evalue_bool("solveur_flip");
 
 		if (m_poseidon.densite != nullptr) {
 			supprime_grilles();
@@ -846,8 +852,10 @@ public:
 
 		m_poseidon.densite = memoire::loge<grille_dense_3d<float>>("grilles", desc);
 
-		desc.type_donnees = type_grille::Z32;
-		m_poseidon.grille_particule = psn::GrilleParticule(desc);
+		if (m_poseidon.solveur_flip) {
+			desc.type_donnees = type_grille::Z32;
+			m_poseidon.grille_particule = psn::GrilleParticule(desc);
+		}
 
 		if (m_poseidon.decouple) {
 			desc.taille_voxel *= 2.0;
@@ -890,6 +898,10 @@ public:
 			ajoute_propriete("dt_max", danjo::TypePropriete::DECIMAL, 2.0f);
 			ajoute_propriete("durée_frame", danjo::TypePropriete::DECIMAL, 1.0f);
 			ajoute_propriete("cfl", danjo::TypePropriete::DECIMAL, 3.0f);
+		}
+
+		if (propriete("solveur_flip") == nullptr) {
+			ajoute_propriete("solveur_flip", danjo::TypePropriete::BOOL, false);
 		}
 	}
 };
@@ -938,26 +950,29 @@ public:
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 		auto ordre = (evalue_enum("ordre") == "semi_lagrangienne") ? 1 : 0;
-		//auto densite = poseidon_gaz->densite;
+		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
 		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->desc());
 		vieille_vel->copie_donnees(*velocite);
 
-		/* advecte particules */
-		auto echant = Echantilloneuse(*velocite);
-		auto mult = poseidon_gaz->dt * static_cast<float>(velocite->desc().taille_voxel);
-		tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
-						  [&](long i)
-		{
-			auto p = poseidon_gaz->particules[i];
-			auto pos = velocite->monde_vers_continu(p->pos);
+		if (poseidon_gaz->solveur_flip) {
+			/* advecte particules */
+			auto echant = Echantilloneuse(*velocite);
+			auto mult = poseidon_gaz->dt * static_cast<float>(velocite->desc().taille_voxel);
+			tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
+							  [&](long i)
+			{
+				auto p = poseidon_gaz->particules[i];
+				auto pos = velocite->monde_vers_continu(p->pos);
 
-			p->pos += echant.echantillone_trilineaire(pos) * mult;
-		});
-
-		//psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
+				p->pos += echant.echantillone_trilineaire(pos) * mult;
+			});
+		}
+		else {
+			psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
+		}
 
 		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *velocite, poseidon_gaz->dt, ordre);
 

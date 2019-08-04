@@ -82,6 +82,7 @@ struct Poseidon {
 
 	bool verrouille_dt = false;
 	bool decouple = false;
+	bool solveur_flip = false;
 
 	~Poseidon();
 

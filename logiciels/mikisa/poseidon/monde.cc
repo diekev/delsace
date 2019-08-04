@@ -191,6 +191,11 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			auto densite_cible = facteur_densite * poseidon.bruit.evalue(pos_monde);
 #else
 			auto densite_cible = params.densite;
+
+			if (!poseidon.solveur_flip) {
+				densite->valeur(idx) = densite_cible;
+				continue;
+			}
 #endif
 			auto densite_courante = 0.0f;
 			auto densite_finale = 0.0f;
