@@ -30,7 +30,30 @@
 #include "biblinternes/outils/iterateurs.h"
 #include "biblinternes/structures/liste.hh"
 
+#include "corps/grille.hh"
+
 using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
+
+/* ************************************************************************** */
+
+/* À FAIRE : déduplique la structure calque */
+struct calque_image {
+	base_grille_2d *tampon = nullptr;
+
+	calque_image() = default;
+
+	calque_image(calque_image const &autre);
+
+	calque_image(calque_image &&autre);
+
+	calque_image &operator=(calque_image const &autre);
+
+	calque_image &operator=(calque_image &&autre);
+
+	~calque_image();
+
+	static calque_image construit_calque(base_grille_2d::type_desc const &desc);
+};
 
 /* ************************************************************************** */
 

@@ -35,6 +35,7 @@ add_library(${NOM_CIBLE} STATIC
 	attribut.cc
     corps.cc
 	echantillonnage_volume.cc
+	grille.cc
     groupes.cc
 	iter_volume.cc
     iteration_corps.cc
@@ -48,6 +49,7 @@ add_library(${NOM_CIBLE} STATIC
 	attribut.h
     corps.h
 	echantillonnage_volume.hh
+	grille.hh
     groupes.h
 	iter_volume.hh
     iteration_corps.hh

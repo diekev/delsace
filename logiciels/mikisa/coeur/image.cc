@@ -26,6 +26,85 @@
 
 /* ************************************************************************** */
 
+calque_image::calque_image(const calque_image &autre)
+{
+	if (autre.tampon == nullptr) {
+		return;
+	}
+
+	this->tampon = autre.tampon->copie();
+}
+
+calque_image::calque_image(calque_image &&autre)
+{
+	std::swap(tampon, autre.tampon);
+}
+
+calque_image &calque_image::operator=(const calque_image &autre)
+{
+	deloge_grille(tampon);
+
+	if (autre.tampon == nullptr) {
+		return *this;
+	}
+
+	tampon = autre.tampon->copie();
+	return *this;
+}
+
+calque_image &calque_image::operator=(calque_image &&autre)
+{
+	std::swap(tampon, autre.tampon);
+	return *this;
+}
+
+calque_image::~calque_image()
+{
+	deloge_grille(tampon);
+}
+
+calque_image calque_image::construit_calque(base_grille_2d::type_desc const &desc)
+{
+	auto calque = calque_image();
+
+	switch (desc.type_donnees) {
+		case type_grille::Z8:
+		{
+			calque.tampon = memoire::loge<grille_dense_2d<char>>("grille_dense_2d", desc);
+			break;
+		}
+		case type_grille::Z32:
+		{
+			calque.tampon = memoire::loge<grille_dense_2d<int>>("grille_dense_2d", desc);
+			break;
+		}
+		case type_grille::R32:
+		{
+			calque.tampon = memoire::loge<grille_dense_2d<float>>("grille_dense_2d", desc);
+			break;
+		}
+		case type_grille::R64:
+		{
+			calque.tampon = memoire::loge<grille_dense_2d<double>>("grille_dense_2d", desc);
+			break;
+		}
+		case type_grille::VEC2:
+		{
+			calque.tampon = memoire::loge<grille_dense_2d<dls::math::vec2f>>("grille_dense_2d", desc);
+			break;
+		}
+		case type_grille::VEC3:
+		{
+			calque.tampon = memoire::loge<grille_dense_2d<dls::math::vec3f>>("grille_dense_2d", desc);
+			break;
+		}
+	}
+
+	return calque;
+}
+
+/* ************************************************************************** */
+
 dls::image::Pixel<float> Calque::valeur(long x, long y) const
 {
 	x = std::max(0l, std::min(x, static_cast<long>(tampon.nombre_colonnes()) - 1));
@@ -130,4 +209,3 @@ dls::chaine const &Image::nom_calque_actif() const
 {
 	return m_nom_calque;
 }
-
