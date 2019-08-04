@@ -46,30 +46,42 @@
 
 /* ************************************************************************** */
 
+static fftw_plan cree_plan(
+		int M,
+		int N,
+		dls::tableau<dls::math::complexe<double>> &comp_entree,
+		dls::tableau<double> &reel_sortie)
+{
+	auto entree = reinterpret_cast<double(*)[2]>(comp_entree.donnees());
+	auto sortie = reel_sortie.donnees();
+	return fftw_plan_dft_c2r_2d(M, N, entree, sortie, FFTW_ESTIMATE);
+}
+
 #if 0
 struct champs_simulation {
-	fftw_complex *entrees = nullptr;
-	double *sorties = nullptr;
-	fftw_plan_s *plan = nullptr;
-	long taille = 0;
-	long taille_complexe = 0;
+	dls::tableau<dls::math::complexe<double>> entrees{};
+	dls::tableau<double> sorties{};
+	fftw_plan plan = nullptr;
 
 	champs_simulation() = default;
 
 	champs_simulation(int M, int N)
-		: taille(M * N)
-		, taille_complexe(M * (1 + N / 2))
 	{
-		entrees = memoire::loge_tableau<fftw_complex>(taille_complexe);
-		sorties = memoire::loge_tableau<double>(taille);
-		plan = fftw_plan_dft_c2r_2d(M, N, entrees, sorties, FFTW_ESTIMATE);
+		auto taille_reel = (M * N);
+		auto taille_complexe = (M * (1 + N / 2));
+		entrees.redimensionne(taille_complexe);
+		sorties.redimensionne(taille_reel);
+		plan = cree_plan(M, N, entrees, sorties);
 	}
 
 	~champs_simulation()
 	{
-		memoire::deloge_tableau(entrees, taille_complexe);
 		fftw_destroy_plan(this->plan);
-		memoire::deloge_tableau(sorties, taille);
+	}
+
+	dls::math::complexe<double> &complexe(long idx)
+	{
+		return entrees[idx];
 	}
 
 	champs_simulation(champs_simulation const &) = default;
@@ -641,17 +653,6 @@ static void set_height_normalize_factor(Ocean *oc, double gravite)
 	}
 
 	oc->facteur_normalisation = 1.0 / (max_h);
-}
-
-static fftw_plan cree_plan(
-		int M,
-		int N,
-		dls::tableau<dls::math::complexe<double>> &comp_entree,
-		dls::tableau<double> &reel_sortie)
-{
-	auto entree = reinterpret_cast<double(*)[2]>(comp_entree.donnees());
-	auto sortie = reel_sortie.donnees();
-	return fftw_plan_dft_c2r_2d(M, N, entree, sortie, FFTW_ESTIMATE);
 }
 
 static void initialise_donnees_ocean(
