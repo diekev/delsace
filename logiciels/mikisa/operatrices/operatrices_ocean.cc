@@ -257,7 +257,7 @@ auto omega(T k, T depth, T gravite)
 
 /* Spectre de Phillips modifié. */
 template <typename T>
-auto spectre_phillips(Ocean *o, T kx, T kz)
+auto spectre_phillips(Ocean &o, T kx, T kz)
 {
 	auto k2 = kx * kx + kz * kz;
 
@@ -267,14 +267,14 @@ auto spectre_phillips(Ocean *o, T kx, T kz)
 	}
 
 	/* damp out the waves going in the direction opposite the wind */
-	auto tmp = (static_cast<T>(o->vent_x) * kx + static_cast<T>(o->vent_z) * kz) / std::sqrt(k2);
+	auto tmp = (static_cast<T>(o.vent_x) * kx + static_cast<T>(o.vent_z) * kz) / std::sqrt(k2);
 
 	if (tmp < 0) {
-		tmp *= static_cast<T>(o->reflections_damp);
+		tmp *= static_cast<T>(o.reflections_damp);
 	}
 
-	return static_cast<T>(o->amplitude) * std::exp(-1.0 / (k2 * static_cast<T>(o->L * o->L))) * std::exp(-k2 * static_cast<T>(o->l * o->l)) *
-			std::pow(std::abs(tmp), o->alignement_vent) / (k2 * k2);
+	return static_cast<T>(o.amplitude) * std::exp(-1.0 / (k2 * static_cast<T>(o.L * o.L))) * std::exp(-k2 * static_cast<T>(o.l * o.l)) *
+			std::pow(std::abs(tmp), o.alignement_vent) / (k2 * k2);
 }
 
 static void compute_eigenstuff(OceanResult *ocr, float jxx, float jzz, float jxz)
@@ -318,7 +318,7 @@ static float ocean_jminus_vers_ecume(float jminus, float coverage)
 	return foam * foam;
 }
 
-static void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
+static void evalue_ocean_uv(Ocean &oc, OceanResult *ocr, float u, float v)
 {
 	int i0, i1, j0, j1;
 	float frac_x, frac_z;
@@ -331,8 +331,8 @@ static void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
 	if (u < 0) u += 1.0f;
 	if (v < 0) v += 1.0f;
 
-	uu = u * static_cast<float>(oc->res_x);
-	vv = v * static_cast<float>(oc->res_y);
+	uu = u * static_cast<float>(oc.res_x);
+	vv = v * static_cast<float>(oc.res_y);
 
 	i0 = static_cast<int>(std::floor(uu));
 	j0 = static_cast<int>(std::floor(vv));
@@ -343,49 +343,49 @@ static void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
 	frac_x = uu - static_cast<float>(i0);
 	frac_z = vv - static_cast<float>(j0);
 
-	i0 = i0 % oc->res_x;
-	j0 = j0 % oc->res_y;
+	i0 = i0 % oc.res_x;
+	j0 = j0 % oc.res_y;
 
-	i1 = i1 % oc->res_x;
-	j1 = j1 % oc->res_y;
+	i1 = i1 % oc.res_x;
+	j1 = j1 % oc.res_y;
 
 	auto bilerp = [&](dls::tableau<double> const &m)
 	{
 		return static_cast<float>(dls::math::entrepolation_bilineaire(
-									  m[i1 * oc->res_y + j1],
-								  m[i0 * oc->res_y + j1],
-				m[i1 * oc->res_y + j0],
-				m[i0 * oc->res_y + j0], static_cast<double>(frac_x), static_cast<double>(frac_z)));
+									  m[i1 * oc.res_y + j1],
+								  m[i0 * oc.res_y + j1],
+				m[i1 * oc.res_y + j0],
+				m[i0 * oc.res_y + j0], static_cast<double>(frac_x), static_cast<double>(frac_z)));
 	};
 
 	{
-		if (oc->calcul_deplacement_y) {
-			ocr->disp[1] = bilerp(oc->disp_y);
+		if (oc.calcul_deplacement_y) {
+			ocr->disp[1] = bilerp(oc.disp_y);
 		}
 
-		if (oc->calcul_normaux) {
-			ocr->normal[0] = bilerp(oc->N_x);
-			ocr->normal[1] = static_cast<float>(oc->N_y);
-			ocr->normal[2] = bilerp(oc->N_z);
+		if (oc.calcul_normaux) {
+			ocr->normal[0] = bilerp(oc.N_x);
+			ocr->normal[1] = static_cast<float>(oc.N_y);
+			ocr->normal[2] = bilerp(oc.N_z);
 		}
 
-		if (oc->calcul_chop) {
-			ocr->disp[0] = bilerp(oc->disp_x);
-			ocr->disp[2] = bilerp(oc->disp_z);
+		if (oc.calcul_chop) {
+			ocr->disp[0] = bilerp(oc.disp_x);
+			ocr->disp[2] = bilerp(oc.disp_z);
 		}
 		else {
 			ocr->disp[0] = 0.0;
 			ocr->disp[2] = 0.0;
 		}
 
-		if (oc->calcul_ecume) {
-			compute_eigenstuff(ocr, bilerp(oc->Jxx), bilerp(oc->Jzz), bilerp(oc->Jxz));
+		if (oc.calcul_ecume) {
+			compute_eigenstuff(ocr, bilerp(oc.Jxx), bilerp(oc.Jzz), bilerp(oc.Jxz));
 		}
 	}
 }
 
 /* use catmullrom interpolation rather than linear */
-static void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v)
+static void evalue_ocean_uv_catrom(Ocean &oc, OceanResult *ocr, float u, float v)
 {
 	int i0, i1, i2, i3, j0, j1, j2, j3;
 	float frac_x, frac_z;
@@ -398,8 +398,8 @@ static void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v
 	if (u < 0) u += 1.0f;
 	if (v < 0) v += 1.0f;
 
-	uu = u * static_cast<float>(oc->res_x);
-	vv = v * static_cast<float>(oc->res_y);
+	uu = u * static_cast<float>(oc.res_x);
+	vv = v * static_cast<float>(oc.res_y);
 
 	i1 = static_cast<int>(std::floor(uu));
 	j1 = static_cast<int>(std::floor(vv));
@@ -410,55 +410,55 @@ static void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v
 	frac_x = uu - static_cast<float>(i1);
 	frac_z = vv - static_cast<float>(j1);
 
-	i1 = i1 % oc->res_x;
-	j1 = j1 % oc->res_y;
+	i1 = i1 % oc.res_x;
+	j1 = j1 % oc.res_y;
 
-	i2 = i2 % oc->res_x;
-	j2 = j2 % oc->res_y;
+	i2 = i2 % oc.res_x;
+	j2 = j2 % oc.res_y;
 
 	i0 = (i1 - 1);
 	i3 = (i2 + 1);
-	i0 = i0 <   0 ? i0 + oc->res_x : i0;
-	i3 = i3 >= oc->res_x ? i3 - oc->res_x : i3;
+	i0 = i0 <   0 ? i0 + oc.res_x : i0;
+	i3 = i3 >= oc.res_x ? i3 - oc.res_x : i3;
 
 	j0 = (j1 - 1);
 	j3 = (j2 + 1);
-	j0 = j0 <   0 ? j0 + oc->res_y : j0;
-	j3 = j3 >= oc->res_y ? j3 - oc->res_y : j3;
+	j0 = j0 <   0 ? j0 + oc.res_y : j0;
+	j3 = j3 >= oc.res_y ? j3 - oc.res_y : j3;
 
 	auto interp = [&](dls::tableau<double> const &m)
 	{
-		return static_cast<float>(catrom(catrom(m[i0 * oc->res_y + j0], m[i1 * oc->res_y + j0], \
-								  m[i2 * oc->res_y + j0], m[i3 * oc->res_y + j0], static_cast<double>(frac_x)), \
-				catrom(m[i0 * oc->res_y + j1], m[i1 * oc->res_y + j1], \
-				m[i2 * oc->res_y + j1], m[i3 * oc->res_y + j1], static_cast<double>(frac_x)), \
-				catrom(m[i0 * oc->res_y + j2], m[i1 * oc->res_y + j2], \
-				m[i2 * oc->res_y + j2], m[i3 * oc->res_y + j2], static_cast<double>(frac_x)), \
-				catrom(m[i0 * oc->res_y + j3], m[i1 * oc->res_y + j3], \
-				m[i2 * oc->res_y + j3], m[i3 * oc->res_y + j3], static_cast<double>(frac_x)), \
+		return static_cast<float>(catrom(catrom(m[i0 * oc.res_y + j0], m[i1 * oc.res_y + j0], \
+								  m[i2 * oc.res_y + j0], m[i3 * oc.res_y + j0], static_cast<double>(frac_x)), \
+				catrom(m[i0 * oc.res_y + j1], m[i1 * oc.res_y + j1], \
+				m[i2 * oc.res_y + j1], m[i3 * oc.res_y + j1], static_cast<double>(frac_x)), \
+				catrom(m[i0 * oc.res_y + j2], m[i1 * oc.res_y + j2], \
+				m[i2 * oc.res_y + j2], m[i3 * oc.res_y + j2], static_cast<double>(frac_x)), \
+				catrom(m[i0 * oc.res_y + j3], m[i1 * oc.res_y + j3], \
+				m[i2 * oc.res_y + j3], m[i3 * oc.res_y + j3], static_cast<double>(frac_x)), \
 				static_cast<double>(frac_z)));
 	};
 
 	{
-		if (oc->calcul_deplacement_y) {
-			ocr->disp[1] = interp(oc->disp_y);
+		if (oc.calcul_deplacement_y) {
+			ocr->disp[1] = interp(oc.disp_y);
 		}
-		if (oc->calcul_normaux) {
-			ocr->normal[0] = interp(oc->N_x);
-			ocr->normal[1] = static_cast<float>(oc->N_y);
-			ocr->normal[2] = interp(oc->N_z);
+		if (oc.calcul_normaux) {
+			ocr->normal[0] = interp(oc.N_x);
+			ocr->normal[1] = static_cast<float>(oc.N_y);
+			ocr->normal[2] = interp(oc.N_z);
 		}
-		if (oc->calcul_chop) {
-			ocr->disp[0] = interp(oc->disp_x);
-			ocr->disp[2] = interp(oc->disp_z);
+		if (oc.calcul_chop) {
+			ocr->disp[0] = interp(oc.disp_x);
+			ocr->disp[2] = interp(oc.disp_z);
 		}
 		else {
 			ocr->disp[0] = 0.0;
 			ocr->disp[2] = 0.0;
 		}
 
-		if (oc->calcul_ecume) {
-			compute_eigenstuff(ocr, interp(oc->Jxx), interp(oc->Jzz), interp(oc->Jxz));
+		if (oc.calcul_ecume) {
+			compute_eigenstuff(ocr, interp(oc.Jxx), interp(oc.Jzz), interp(oc.Jxz));
 		}
 	}
 }
@@ -466,63 +466,63 @@ static void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v
 /* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being just a way to get
  * the raw data out to save in some image format.
  */
-static void evalue_ocean_ij(Ocean *oc, OceanResult *ocr, int i, int j)
+static void evalue_ocean_ij(Ocean &oc, OceanResult *ocr, int i, int j)
 {
-	i = abs(i) % oc->res_x;
-	j = abs(j) % oc->res_y;
+	i = abs(i) % oc.res_x;
+	j = abs(j) % oc.res_y;
 
-	ocr->disp[1] = oc->calcul_deplacement_y ? static_cast<float>(oc->disp_y[i * oc->res_y + j]) : 0.0f;
+	ocr->disp[1] = oc.calcul_deplacement_y ? static_cast<float>(oc.disp_y[i * oc.res_y + j]) : 0.0f;
 
-	if (oc->calcul_chop) {
-		ocr->disp[0] = static_cast<float>(oc->disp_x[i * oc->res_y + j]);
-		ocr->disp[2] = static_cast<float>(oc->disp_z[i * oc->res_y + j]);
+	if (oc.calcul_chop) {
+		ocr->disp[0] = static_cast<float>(oc.disp_x[i * oc.res_y + j]);
+		ocr->disp[2] = static_cast<float>(oc.disp_z[i * oc.res_y + j]);
 	}
 	else {
 		ocr->disp[0] = 0.0f;
 		ocr->disp[2] = 0.0f;
 	}
 
-	if (oc->calcul_normaux) {
-		ocr->normal[0] = static_cast<float>(oc->N_x[i * oc->res_y + j]);
-		ocr->normal[1] = static_cast<float>(oc->N_y);
-		ocr->normal[2] = static_cast<float>(oc->N_z[i * oc->res_y + j]);
+	if (oc.calcul_normaux) {
+		ocr->normal[0] = static_cast<float>(oc.N_x[i * oc.res_y + j]);
+		ocr->normal[1] = static_cast<float>(oc.N_y);
+		ocr->normal[2] = static_cast<float>(oc.N_z[i * oc.res_y + j]);
 
 		ocr->normal = normalise(ocr->normal);
 	}
 
-	if (oc->calcul_ecume) {
+	if (oc.calcul_ecume) {
 		compute_eigenstuff(ocr,
-						   static_cast<float>(oc->Jxx[i * oc->res_y + j]),
-				static_cast<float>(oc->Jzz[i * oc->res_y + j]), static_cast<float>(oc->Jxz[i * oc->res_y + j]));
+						   static_cast<float>(oc.Jxx[i * oc.res_y + j]),
+				static_cast<float>(oc.Jzz[i * oc.res_y + j]), static_cast<float>(oc.Jxz[i * oc.res_y + j]));
 	}
 }
 
-static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, double gravite)
+static void simule_ocean(Ocean &o, double t, double scale, double chop_amount, double gravite)
 {
-	scale *= o->facteur_normalisation;
+	scale *= o.facteur_normalisation;
 
-	o->N_y = 1.0 / scale;
+	o.N_y = 1.0 / scale;
 
-	boucle_parallele(tbb::blocked_range<int>(0, o->res_x),
+	boucle_parallele(tbb::blocked_range<int>(0, o.res_x),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
-		auto gna = GNA(o->graine + plage.begin());
+		auto gna = GNA(o.graine + plage.begin());
 
 		for (int i = plage.begin(); i < plage.end(); ++i) {
 			/* note the <= _N/2 here, see the fftw doco about the mechanics of the complex->real fft storage */
-			for (int j = 0; j <= o->res_y / 2; ++j) {
-				auto index = i * (1 + o->res_y / 2) + j;
+			for (int j = 0; j <= o.res_y / 2; ++j) {
+				auto index = i * (1 + o.res_y / 2) + j;
 
 				auto r1 = gaussRand(gna, 0.0, 1.0);
-				auto k = std::sqrt(o->kx[i] * o->kx[i] + o->kz[j] * o->kz[j]);
+				auto k = std::sqrt(o.kx[i] * o.kx[i] + o.kz[j] * o.kz[j]);
 
 				auto r1r2 = dls::math::complexe(r1.x, r1.y);
 
-				auto h0 = r1r2 * std::sqrt(spectre_phillips(o, o->kx[i], o->kz[j]) / 2.0);
-				auto h0_minus = r1r2 * std::sqrt(spectre_phillips(o, -o->kx[i], -o->kz[j]) / 2.0);
+				auto h0 = r1r2 * std::sqrt(spectre_phillips(o, o.kx[i], o.kz[j]) / 2.0);
+				auto h0_minus = r1r2 * std::sqrt(spectre_phillips(o, -o.kx[i], -o.kz[j]) / 2.0);
 
-				auto exp_param1 = dls::math::complexe(0.0, omega(k, o->profondeur, gravite) * t);
-				auto exp_param2 = dls::math::complexe(0.0, -omega(k, o->profondeur, gravite) * t);
+				auto exp_param1 = dls::math::complexe(0.0, omega(k, o.profondeur, gravite) * t);
+				auto exp_param2 = dls::math::complexe(0.0, -omega(k, o.profondeur, gravite) * t);
 				exp_param1 = dls::math::exp(exp_param1);
 				exp_param2 = dls::math::exp(exp_param2);
 
@@ -532,16 +532,16 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 				exp_param2 = conj_param * exp_param2;
 
 				auto htilda = exp_param1 + exp_param2;
-				o->fft_in[index] = htilda * scale;
+				o.fft_in[index] = htilda * scale;
 
-				if (o->calcul_chop) {
+				if (o.calcul_chop) {
 					if (k == 0.0) {
-						o->fft_in_x[index] = dls::math::complexe(0.0, 0.0);
-						o->fft_in_z[index] = dls::math::complexe(0.0, 0.0);
+						o.fft_in_x[index] = dls::math::complexe(0.0, 0.0);
+						o.fft_in_z[index] = dls::math::complexe(0.0, 0.0);
 					}
 					else {
-						auto kx = o->kx[i] / k;
-						auto kz = o->kz[j] / k;
+						auto kx = o.kx[i] / k;
+						auto kz = o.kz[j] / k;
 
 						auto mul_param = dls::math::complexe(0.0, -1.0);
 						mul_param *= chop_amount;
@@ -550,24 +550,24 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 						mul_param *= minus_i;
 						mul_param *= htilda;
 
-						o->fft_in_x[index] = mul_param * kx;
-						o->fft_in_z[index] = mul_param * kz;
+						o.fft_in_x[index] = mul_param * kx;
+						o.fft_in_z[index] = mul_param * kz;
 					}
 				}
 
-				if (o->calcul_normaux) {
+				if (o.calcul_normaux) {
 					auto mul_param = dls::math::complexe(0.0, -1.0);
 					mul_param *= htilda;
 
-					o->fft_in_nx[index] = mul_param * o->kx[i];
-					o->fft_in_nz[index] = mul_param * o->kz[i];
+					o.fft_in_nx[index] = mul_param * o.kx[i];
+					o.fft_in_nz[index] = mul_param * o.kz[i];
 				}
 
-				if (o->calcul_ecume) {
+				if (o.calcul_ecume) {
 					if (k == 0.0) {
-						o->fft_in_jxx[index] = dls::math::complexe(0.0, 0.0);
-						o->fft_in_jzz[index] = dls::math::complexe(0.0, 0.0);
-						o->fft_in_jxz[index] = dls::math::complexe(0.0, 0.0);
+						o.fft_in_jxx[index] = dls::math::complexe(0.0, 0.0);
+						o.fft_in_jzz[index] = dls::math::complexe(0.0, 0.0);
+						o.fft_in_jxz[index] = dls::math::complexe(0.0, 0.0);
 					}
 					else {
 						/* init_complex(mul_param, -scale, 0); */
@@ -576,16 +576,16 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 						mul_param *= htilda;
 
 						/* calcul jacobien XX */
-						auto kxx = o->kx[i] * o->kx[i] / k;
-						o->fft_in_jxx[index] = mul_param * kxx;
+						auto kxx = o.kx[i] * o.kx[i] / k;
+						o.fft_in_jxx[index] = mul_param * kxx;
 
 						/* calcul jacobien ZZ */
-						auto kzz = o->kz[j] * o->kz[j] / k;
-						o->fft_in_jzz[index] = mul_param * kzz;
+						auto kzz = o.kz[j] * o.kz[j] / k;
+						o.fft_in_jzz[index] = mul_param * kzz;
 
 						/* calcul jacobien XZ */
-						auto kxz = o->kx[i] * o->kz[j] / k;
-						o->fft_in_jxz[index] = mul_param * kxz;
+						auto kxz = o.kx[i] * o.kz[j] / k;
+						o.fft_in_jxz[index] = mul_param * kxz;
 					}
 				}
 			}
@@ -594,24 +594,24 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 
 	dls::tableau<fftw_plan> plans;
 
-	if (!o->disp_y.est_vide()) {
-		plans.pousse(o->disp_y_plan);
+	if (!o.disp_y.est_vide()) {
+		plans.pousse(o.disp_y_plan);
 	}
 
-	if (o->calcul_chop) {
-		plans.pousse(o->disp_x_plan);
-		plans.pousse(o->disp_z_plan);
+	if (o.calcul_chop) {
+		plans.pousse(o.disp_x_plan);
+		plans.pousse(o.disp_z_plan);
 	}
 
-	if (o->calcul_normaux) {
-		plans.pousse(o->N_x_plan);
-		plans.pousse(o->N_z_plan);
+	if (o.calcul_normaux) {
+		plans.pousse(o.N_x_plan);
+		plans.pousse(o.N_z_plan);
 	}
 
-	if (o->calcul_ecume) {
-		plans.pousse(o->Jxx_plan);
-		plans.pousse(o->Jzz_plan);
-		plans.pousse(o->Jxz_plan);
+	if (o.calcul_ecume) {
+		plans.pousse(o.Jxx_plan);
+		plans.pousse(o.Jzz_plan);
+		plans.pousse(o.Jxz_plan);
 	}
 
 	tbb::parallel_for(0l, plans.taille(),
@@ -620,30 +620,30 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 		fftw_execute(plans[i]);
 	});
 
-	if (o->calcul_ecume) {
-		for (auto i = 0; i < o->res_x * o->res_y; ++i) {
-			o->Jxx[i] += 1.0;
-			o->Jzz[i] += 1.0;
+	if (o.calcul_ecume) {
+		for (auto i = 0; i < o.res_x * o.res_y; ++i) {
+			o.Jxx[i] += 1.0;
+			o.Jzz[i] += 1.0;
 		}
 	}
 }
 
-static void set_height_normalize_factor(Ocean *oc, double gravite)
+static void set_height_normalize_factor(Ocean &oc, double gravite)
 {
 	auto max_h = 0.0;
 
-	if (!oc->calcul_deplacement_y) {
+	if (!oc.calcul_deplacement_y) {
 		return;
 	}
 
-	oc->facteur_normalisation = 1.0;
+	oc.facteur_normalisation = 1.0;
 
 	simule_ocean(oc, 0.0, 1.0, 0, gravite);
 
-	for (int i = 0; i < oc->res_x; ++i) {
-		for (int j = 0; j < oc->res_y; ++j) {
-			if (max_h < std::fabs(oc->disp_y[i * oc->res_y + j])) {
-				max_h = std::fabs(oc->disp_y[i * oc->res_y + j]);
+	for (int i = 0; i < oc.res_x; ++i) {
+		for (int j = 0; j < oc.res_y; ++j) {
+			if (max_h < std::fabs(oc.disp_y[i * oc.res_y + j])) {
+				max_h = std::fabs(oc.disp_y[i * oc.res_y + j]);
 			}
 		}
 	}
@@ -652,118 +652,114 @@ static void set_height_normalize_factor(Ocean *oc, double gravite)
 		max_h = 0.00001;  /* just in case ... */
 	}
 
-	oc->facteur_normalisation = 1.0 / (max_h);
+	oc.facteur_normalisation = 1.0 / (max_h);
 }
 
 static void initialise_donnees_ocean(
-		Ocean *o,
+		Ocean &o,
 		double gravite)
 {
-	auto taille = (o->res_x * o->res_y);
-	auto taille_complex = (o->res_x * (1 + o->res_y / 2));
+	auto taille = (o.res_x * o.res_y);
+	auto taille_complex = (o.res_x * (1 + o.res_y / 2));
 
-	o->kx.redimensionne(o->res_x);
-	o->kz.redimensionne(o->res_y);
+	o.kx.redimensionne(o.res_x);
+	o.kz.redimensionne(o.res_y);
 
 	/* make this robust in the face of erroneous usage */
-	if (o->taille_spaciale_x == 0.0) {
-		o->taille_spaciale_x = 0.001;
+	if (o.taille_spaciale_x == 0.0) {
+		o.taille_spaciale_x = 0.001;
 	}
 
-	if (o->taille_spaciale_z == 0.0) {
-		o->taille_spaciale_z = 0.001;
-	}
-
-	/* the +ve components and DC */
-	for (auto i = 0; i <= o->res_x / 2; ++i) {
-		o->kx[i] = constantes<double>::TAU * static_cast<double>(i) / o->taille_spaciale_x;
-	}
-
-	/* the -ve components */
-	for (auto i = o->res_x - 1, ii = 0; i > o->res_x / 2; --i, ++ii) {
-		o->kx[i] = -constantes<double>::TAU * static_cast<double>(ii) / o->taille_spaciale_x;
+	if (o.taille_spaciale_z == 0.0) {
+		o.taille_spaciale_z = 0.001;
 	}
 
 	/* the +ve components and DC */
-	for (auto i = 0; i <= o->res_y / 2; ++i) {
-		o->kz[i] = constantes<double>::TAU * static_cast<double>(i) / o->taille_spaciale_z;
+	for (auto i = 0; i <= o.res_x / 2; ++i) {
+		o.kx[i] = constantes<double>::TAU * static_cast<double>(i) / o.taille_spaciale_x;
 	}
 
 	/* the -ve components */
-	for (auto i = o->res_y - 1, ii = 0; i > o->res_y / 2; --i, ++ii) {
-		o->kz[i] = -constantes<double>::TAU * static_cast<double>(ii) / o->taille_spaciale_z;
+	for (auto i = o.res_x - 1, ii = 0; i > o.res_x / 2; --i, ++ii) {
+		o.kx[i] = -constantes<double>::TAU * static_cast<double>(ii) / o.taille_spaciale_x;
 	}
 
-	o->fft_in.redimensionne(taille_complex);
-
-	if (o->calcul_deplacement_y) {
-		o->disp_y.redimensionne(taille);
-		o->disp_y_plan = cree_plan(o->res_x, o->res_y, o->fft_in, o->disp_y);
+	/* the +ve components and DC */
+	for (auto i = 0; i <= o.res_y / 2; ++i) {
+		o.kz[i] = constantes<double>::TAU * static_cast<double>(i) / o.taille_spaciale_z;
 	}
 
-	if (o->calcul_normaux) {
-		o->fft_in_nx.redimensionne(taille_complex);
-		o->fft_in_nz.redimensionne(taille_complex);
-
-		o->N_x.redimensionne(taille);
-		o->N_z.redimensionne(taille);
-
-		o->N_x_plan = cree_plan(o->res_x, o->res_y, o->fft_in_nx, o->N_x);
-		o->N_z_plan = cree_plan(o->res_x, o->res_y, o->fft_in_nz, o->N_z);
+	/* the -ve components */
+	for (auto i = o.res_y - 1, ii = 0; i > o.res_y / 2; --i, ++ii) {
+		o.kz[i] = -constantes<double>::TAU * static_cast<double>(ii) / o.taille_spaciale_z;
 	}
 
-	if (o->calcul_chop) {
-		o->fft_in_x.redimensionne(taille_complex);
-		o->fft_in_z.redimensionne(taille_complex);
+	o.fft_in.redimensionne(taille_complex);
 
-		o->disp_x.redimensionne(taille);
-		o->disp_z.redimensionne(taille);
-
-		o->disp_x_plan = cree_plan(o->res_x, o->res_y, o->fft_in_x, o->disp_x);
-		o->disp_z_plan = cree_plan(o->res_x, o->res_y, o->fft_in_z, o->disp_z);
+	if (o.calcul_deplacement_y) {
+		o.disp_y.redimensionne(taille);
+		o.disp_y_plan = cree_plan(o.res_x, o.res_y, o.fft_in, o.disp_y);
 	}
 
-	if (o->calcul_ecume) {
-		o->fft_in_jxx.redimensionne(taille_complex);
-		o->fft_in_jzz.redimensionne(taille_complex);
-		o->fft_in_jxz.redimensionne(taille_complex);
+	if (o.calcul_normaux) {
+		o.fft_in_nx.redimensionne(taille_complex);
+		o.fft_in_nz.redimensionne(taille_complex);
 
-		o->Jxx.redimensionne(taille);
-		o->Jzz.redimensionne(taille);
-		o->Jxz.redimensionne(taille);
+		o.N_x.redimensionne(taille);
+		o.N_z.redimensionne(taille);
 
-		o->Jxx_plan = cree_plan(o->res_x, o->res_y, o->fft_in_jxx, o->Jxx);
-		o->Jzz_plan = cree_plan(o->res_x, o->res_y, o->fft_in_jzz, o->Jzz);
-		o->Jxz_plan = cree_plan(o->res_x, o->res_y, o->fft_in_jxz, o->Jxz);
+		o.N_x_plan = cree_plan(o.res_x, o.res_y, o.fft_in_nx, o.N_x);
+		o.N_z_plan = cree_plan(o.res_x, o.res_y, o.fft_in_nz, o.N_z);
+	}
+
+	if (o.calcul_chop) {
+		o.fft_in_x.redimensionne(taille_complex);
+		o.fft_in_z.redimensionne(taille_complex);
+
+		o.disp_x.redimensionne(taille);
+		o.disp_z.redimensionne(taille);
+
+		o.disp_x_plan = cree_plan(o.res_x, o.res_y, o.fft_in_x, o.disp_x);
+		o.disp_z_plan = cree_plan(o.res_x, o.res_y, o.fft_in_z, o.disp_z);
+	}
+
+	if (o.calcul_ecume) {
+		o.fft_in_jxx.redimensionne(taille_complex);
+		o.fft_in_jzz.redimensionne(taille_complex);
+		o.fft_in_jxz.redimensionne(taille_complex);
+
+		o.Jxx.redimensionne(taille);
+		o.Jzz.redimensionne(taille);
+		o.Jxz.redimensionne(taille);
+
+		o.Jxx_plan = cree_plan(o.res_x, o.res_y, o.fft_in_jxx, o.Jxx);
+		o.Jzz_plan = cree_plan(o.res_x, o.res_y, o.fft_in_jzz, o.Jzz);
+		o.Jxz_plan = cree_plan(o.res_x, o.res_y, o.fft_in_jxz, o.Jxz);
 	}
 
 	set_height_normalize_factor(o, gravite);
 }
 
-static void deloge_donnees_ocean(Ocean *oc)
+static void deloge_donnees_ocean(Ocean &oc)
 {
-	if (oc == nullptr) {
-		return;
+	if (oc.calcul_deplacement_y) {
+		fftw_destroy_plan(oc.disp_y_plan);
 	}
 
-	if (oc->calcul_deplacement_y) {
-		fftw_destroy_plan(oc->disp_y_plan);
+	if (oc.calcul_normaux) {
+		fftw_destroy_plan(oc.N_x_plan);
+		fftw_destroy_plan(oc.N_z_plan);
 	}
 
-	if (oc->calcul_normaux) {
-		fftw_destroy_plan(oc->N_x_plan);
-		fftw_destroy_plan(oc->N_z_plan);
+	if (oc.calcul_chop) {
+		fftw_destroy_plan(oc.disp_x_plan);
+		fftw_destroy_plan(oc.disp_z_plan);
 	}
 
-	if (oc->calcul_chop) {
-		fftw_destroy_plan(oc->disp_x_plan);
-		fftw_destroy_plan(oc->disp_z_plan);
-	}
-
-	if (oc->calcul_ecume) {
-		fftw_destroy_plan(oc->Jxx_plan);
-		fftw_destroy_plan(oc->Jzz_plan);
-		fftw_destroy_plan(oc->Jxz_plan);
+	if (oc.calcul_ecume) {
+		fftw_destroy_plan(oc.Jxx_plan);
+		fftw_destroy_plan(oc.Jzz_plan);
+		fftw_destroy_plan(oc.Jxz_plan);
 	}
 }
 
@@ -771,7 +767,7 @@ static void deloge_donnees_ocean(Ocean *oc)
 
 Ocean::~Ocean()
 {
-	deloge_donnees_ocean(this);
+	deloge_donnees_ocean(*this);
 }
 
 /* ************************************************************************** */
@@ -863,8 +859,8 @@ public:
 		m_ocean.graine = graine;
 
 		if (contexte.temps_courant == contexte.temps_debut || m_reinit) {
-			deloge_donnees_ocean(&m_ocean);
-			initialise_donnees_ocean(&m_ocean, static_cast<double>(gravite));
+			deloge_donnees_ocean(m_ocean);
+			initialise_donnees_ocean(m_ocean, static_cast<double>(gravite));
 
 			auto desc = desc_grille_2d{};
 			desc.etendue.min = dls::math::vec2f(0.0f);
@@ -878,7 +874,7 @@ public:
 			m_reinit = false;
 		}
 
-		simule_ocean(&m_ocean, static_cast<double>(temps), static_cast<double>(echelle_vague), static_cast<double>(quantite_chop), static_cast<double>(gravite));
+		simule_ocean(m_ocean, static_cast<double>(temps), static_cast<double>(echelle_vague), static_cast<double>(quantite_chop), static_cast<double>(gravite));
 
 		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
 
@@ -916,7 +912,7 @@ public:
 			auto y = static_cast<int>(v * (static_cast<float>(res_y)));
 
 			/* À FAIRE : échantillonage bilinéaire. */
-			evalue_ocean_ij(&m_ocean, &ocr, x, y);
+			evalue_ocean_ij(m_ocean, &ocr, x, y);
 
 			p[0] += ocr.disp[0];
 			p[1] += ocr.disp[1];
