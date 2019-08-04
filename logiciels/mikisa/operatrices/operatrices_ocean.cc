@@ -144,14 +144,14 @@ struct Ocean {
 	/* ********* sim data arrays ********* */
 
 	/* two dimensional arrays of complex */
-	fftw_complex *fft_in = nullptr;
-	fftw_complex *fft_in_x = nullptr;
-	fftw_complex *fft_in_z = nullptr;
-	fftw_complex *fft_in_jxx = nullptr;
-	fftw_complex *fft_in_jzz = nullptr;
-	fftw_complex *fft_in_jxz = nullptr;
-	fftw_complex *fft_in_nx = nullptr;
-	fftw_complex *fft_in_nz = nullptr;
+	dls::tableau<dls::math::complexe<double>> fft_in{};
+	dls::tableau<dls::math::complexe<double>> fft_in_x{};
+	dls::tableau<dls::math::complexe<double>> fft_in_z{};
+	dls::tableau<dls::math::complexe<double>> fft_in_jxx{};
+	dls::tableau<dls::math::complexe<double>> fft_in_jzz{};
+	dls::tableau<dls::math::complexe<double>> fft_in_jxz{};
+	dls::tableau<dls::math::complexe<double>> fft_in_nx{};
+	dls::tableau<dls::math::complexe<double>> fft_in_nz{};
 
 	/* fftw "plans" */
 	fftw_plan disp_y_plan = nullptr;
@@ -164,23 +164,23 @@ struct Ocean {
 	fftw_plan Jzz_plan = nullptr;
 
 	/* two dimensional arrays of float */
-	double *disp_y = nullptr;
-	double *N_x = nullptr;
+	dls::tableau<double> N_x{};
 	/* N_y est constant donc inutile de recourir à un tableau. */
 	double N_y = 0.0;
-	double *N_z = nullptr;
-	double *disp_x = nullptr;
-	double *disp_z = nullptr;
+	dls::tableau<double> N_z{};
+	dls::tableau<double> disp_x{};
+	dls::tableau<double> disp_y{};
+	dls::tableau<double> disp_z{};
 
 	/* two dimensional arrays of float */
 	/* Jacobian and minimum eigenvalue */
-	double *Jxx = nullptr;
-	double *Jzz = nullptr;
-	double *Jxz = nullptr;
+	dls::tableau<double> Jxx{};
+	dls::tableau<double> Jzz{};
+	dls::tableau<double> Jxz{};
 
 	/* one dimensional float array */
-	double *kx = nullptr;
-	double *kz = nullptr;
+	dls::tableau<double> kx{};
+	dls::tableau<double> kz{};
 
 	~Ocean();
 };
@@ -337,7 +337,7 @@ static void evalue_ocean_uv(Ocean *oc, OceanResult *ocr, float u, float v)
 	i1 = i1 % oc->res_x;
 	j1 = j1 % oc->res_y;
 
-	auto bilerp = [&](double *m)
+	auto bilerp = [&](dls::tableau<double> const &m)
 	{
 		return static_cast<float>(dls::math::entrepolation_bilineaire(
 									  m[i1 * oc->res_y + j1],
@@ -414,7 +414,7 @@ static void evalue_ocean_uv_catrom(Ocean *oc, OceanResult *ocr, float u, float v
 	j0 = j0 <   0 ? j0 + oc->res_y : j0;
 	j3 = j3 >= oc->res_y ? j3 - oc->res_y : j3;
 
-	auto interp = [&](double *m)
+	auto interp = [&](dls::tableau<double> const &m)
 	{
 		return static_cast<float>(catrom(catrom(m[i0 * oc->res_y + j0], m[i1 * oc->res_y + j0], \
 								  m[i2 * oc->res_y + j0], m[i3 * oc->res_y + j0], static_cast<double>(frac_x)), \
@@ -520,14 +520,12 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 				exp_param2 = conj_param * exp_param2;
 
 				auto htilda = exp_param1 + exp_param2;
-				auto htilda_ = htilda * scale;
-
-				init_complex(o->fft_in[index], htilda_.reel(), htilda_.imag());
+				o->fft_in[index] = htilda * scale;
 
 				if (o->calcul_chop) {
 					if (k == 0.0) {
-						init_complex(o->fft_in_x[index], 0.0, 0.0);
-						init_complex(o->fft_in_z[index], 0.0, 0.0);
+						o->fft_in_x[index] = dls::math::complexe(0.0, 0.0);
+						o->fft_in_z[index] = dls::math::complexe(0.0, 0.0);
 					}
 					else {
 						auto kx = o->kx[i] / k;
@@ -540,8 +538,8 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 						mul_param *= minus_i;
 						mul_param *= htilda;
 
-						init_complex(o->fft_in_x[index], mul_param.reel() * kx, mul_param.imag() * kx);
-						init_complex(o->fft_in_z[index], mul_param.reel() * kz, mul_param.imag() * kz);
+						o->fft_in_x[index] = mul_param * kx;
+						o->fft_in_z[index] = mul_param * kz;
 					}
 				}
 
@@ -549,15 +547,15 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 					auto mul_param = dls::math::complexe(0.0, -1.0);
 					mul_param *= htilda;
 
-					init_complex(o->fft_in_nx[index], mul_param.reel() * o->kx[i], mul_param.imag() * o->kx[i]);
-					init_complex(o->fft_in_nz[index], mul_param.reel() * o->kz[i], mul_param.imag() * o->kz[i]);
+					o->fft_in_nx[index] = mul_param * o->kx[i];
+					o->fft_in_nz[index] = mul_param * o->kz[i];
 				}
 
 				if (o->calcul_ecume) {
 					if (k == 0.0) {
-						init_complex(o->fft_in_jxx[index], 0.0, 0.0);
-						init_complex(o->fft_in_jzz[index], 0.0, 0.0);
-						init_complex(o->fft_in_jxz[index], 0.0, 0.0);
+						o->fft_in_jxx[index] = dls::math::complexe(0.0, 0.0);
+						o->fft_in_jzz[index] = dls::math::complexe(0.0, 0.0);
+						o->fft_in_jxz[index] = dls::math::complexe(0.0, 0.0);
 					}
 					else {
 						/* init_complex(mul_param, -scale, 0); */
@@ -567,15 +565,15 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 
 						/* calcul jacobien XX */
 						auto kxx = o->kx[i] * o->kx[i] / k;
-						init_complex(o->fft_in_jxx[index], mul_param.reel() * kxx, mul_param.imag() * kxx);
+						o->fft_in_jxx[index] = mul_param * kxx;
 
 						/* calcul jacobien ZZ */
 						auto kzz = o->kz[j] * o->kz[j] / k;
-						init_complex(o->fft_in_jzz[index], mul_param.reel() * kzz, mul_param.imag() * kzz);
+						o->fft_in_jzz[index] = mul_param * kzz;
 
 						/* calcul jacobien XZ */
 						auto kxz = o->kx[i] * o->kz[j] / k;
-						init_complex(o->fft_in_jxz[index], mul_param.reel() * kxz, mul_param.imag() * kxz);
+						o->fft_in_jxz[index] = mul_param * kxz;
 					}
 				}
 			}
@@ -584,7 +582,7 @@ static void simule_ocean(Ocean *o, double t, double scale, double chop_amount, d
 
 	dls::tableau<fftw_plan> plans;
 
-	if (o->disp_y) {
+	if (!o->disp_y.est_vide()) {
 		plans.pousse(o->disp_y_plan);
 	}
 
@@ -645,6 +643,17 @@ static void set_height_normalize_factor(Ocean *oc, double gravite)
 	oc->facteur_normalisation = 1.0 / (max_h);
 }
 
+static fftw_plan cree_plan(
+		int M,
+		int N,
+		dls::tableau<dls::math::complexe<double>> &comp_entree,
+		dls::tableau<double> &reel_sortie)
+{
+	auto entree = reinterpret_cast<double(*)[2]>(comp_entree.donnees());
+	auto sortie = reel_sortie.donnees();
+	return fftw_plan_dft_c2r_2d(M, N, entree, sortie, FFTW_ESTIMATE);
+}
+
 static void initialise_donnees_ocean(
 		Ocean *o,
 		double gravite)
@@ -652,8 +661,8 @@ static void initialise_donnees_ocean(
 	auto taille = (o->res_x * o->res_y);
 	auto taille_complex = (o->res_x * (1 + o->res_y / 2));
 
-	o->kx = memoire::loge_tableau<double>("kx", o->res_x);
-	o->kz = memoire::loge_tableau<double>("kz", o->res_y);
+	o->kx.redimensionne(o->res_x);
+	o->kz.redimensionne(o->res_y);
 
 	/* make this robust in the face of erroneous usage */
 	if (o->taille_spaciale_x == 0.0) {
@@ -684,47 +693,47 @@ static void initialise_donnees_ocean(
 		o->kz[i] = -constantes<double>::TAU * static_cast<double>(ii) / o->taille_spaciale_z;
 	}
 
-	o->fft_in = memoire::loge_tableau<fftw_complex>("fft_in", taille_complex);
+	o->fft_in.redimensionne(taille_complex);
 
 	if (o->calcul_deplacement_y) {
-		o->disp_y = memoire::loge_tableau<double>("disp_y", taille);
-		o->disp_y_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in, o->disp_y, FFTW_ESTIMATE);
+		o->disp_y.redimensionne(taille);
+		o->disp_y_plan = cree_plan(o->res_x, o->res_y, o->fft_in, o->disp_y);
 	}
 
 	if (o->calcul_normaux) {
-		o->fft_in_nx = memoire::loge_tableau<fftw_complex>("fft_in_nx", taille_complex);
-		o->fft_in_nz = memoire::loge_tableau<fftw_complex>("fft_in_nz", taille_complex);
+		o->fft_in_nx.redimensionne(taille_complex);
+		o->fft_in_nz.redimensionne(taille_complex);
 
-		o->N_x = memoire::loge_tableau<double>("N_x", taille);
-		o->N_z = memoire::loge_tableau<double>("N_z", taille);
+		o->N_x.redimensionne(taille);
+		o->N_z.redimensionne(taille);
 
-		o->N_x_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_nx, o->N_x, FFTW_ESTIMATE);
-		o->N_z_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_nz, o->N_z, FFTW_ESTIMATE);
+		o->N_x_plan = cree_plan(o->res_x, o->res_y, o->fft_in_nx, o->N_x);
+		o->N_z_plan = cree_plan(o->res_x, o->res_y, o->fft_in_nz, o->N_z);
 	}
 
 	if (o->calcul_chop) {
-		o->fft_in_x = memoire::loge_tableau<fftw_complex>("fft_in_x", taille_complex);
-		o->fft_in_z = memoire::loge_tableau<fftw_complex>("fft_in_z", taille_complex);
+		o->fft_in_x.redimensionne(taille_complex);
+		o->fft_in_z.redimensionne(taille_complex);
 
-		o->disp_x = memoire::loge_tableau<double>("disp_x", taille);
-		o->disp_z = memoire::loge_tableau<double>("disp_z", taille);
+		o->disp_x.redimensionne(taille);
+		o->disp_z.redimensionne(taille);
 
-		o->disp_x_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_x, o->disp_x, FFTW_ESTIMATE);
-		o->disp_z_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_z, o->disp_z, FFTW_ESTIMATE);
+		o->disp_x_plan = cree_plan(o->res_x, o->res_y, o->fft_in_x, o->disp_x);
+		o->disp_z_plan = cree_plan(o->res_x, o->res_y, o->fft_in_z, o->disp_z);
 	}
 
 	if (o->calcul_ecume) {
-		o->fft_in_jxx = memoire::loge_tableau<fftw_complex>("fft_in_jxx", taille_complex);
-		o->fft_in_jzz = memoire::loge_tableau<fftw_complex>("fft_in_jzz", taille_complex);
-		o->fft_in_jxz = memoire::loge_tableau<fftw_complex>("fft_in_jxz", taille_complex);
+		o->fft_in_jxx.redimensionne(taille_complex);
+		o->fft_in_jzz.redimensionne(taille_complex);
+		o->fft_in_jxz.redimensionne(taille_complex);
 
-		o->Jxx = memoire::loge_tableau<double>("Jxx", taille);
-		o->Jzz = memoire::loge_tableau<double>("Jzz", taille);
-		o->Jxz = memoire::loge_tableau<double>("Jxz", taille);
+		o->Jxx.redimensionne(taille);
+		o->Jzz.redimensionne(taille);
+		o->Jxz.redimensionne(taille);
 
-		o->Jxx_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_jxx, o->Jxx, FFTW_ESTIMATE);
-		o->Jzz_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_jzz, o->Jzz, FFTW_ESTIMATE);
-		o->Jxz_plan = fftw_plan_dft_c2r_2d(o->res_x, o->res_y, o->fft_in_jxz, o->Jxz, FFTW_ESTIMATE);
+		o->Jxx_plan = cree_plan(o->res_x, o->res_y, o->fft_in_jxx, o->Jxx);
+		o->Jzz_plan = cree_plan(o->res_x, o->res_y, o->fft_in_jzz, o->Jzz);
+		o->Jxz_plan = cree_plan(o->res_x, o->res_y, o->fft_in_jxz, o->Jxz);
 	}
 
 	set_height_normalize_factor(o, gravite);
@@ -736,51 +745,24 @@ static void deloge_donnees_ocean(Ocean *oc)
 		return;
 	}
 
-	auto taille = (oc->res_x * oc->res_y);
-	auto taille_complex = (oc->res_x * (1 + oc->res_y / 2));
-
 	if (oc->calcul_deplacement_y) {
 		fftw_destroy_plan(oc->disp_y_plan);
-		memoire::deloge_tableau("disp_y", oc->disp_y, taille);
 	}
 
 	if (oc->calcul_normaux) {
-		memoire::deloge_tableau("fft_in_nx", oc->fft_in_nx, taille_complex);
-		memoire::deloge_tableau("fft_in_nz", oc->fft_in_nz, taille_complex);
 		fftw_destroy_plan(oc->N_x_plan);
 		fftw_destroy_plan(oc->N_z_plan);
-		memoire::deloge_tableau("N_x", oc->N_x, taille);
-		memoire::deloge_tableau("N_z", oc->N_z, taille);
 	}
 
 	if (oc->calcul_chop) {
-		memoire::deloge_tableau("fft_in_x", oc->fft_in_x, taille_complex);
-		memoire::deloge_tableau("fft_in_z", oc->fft_in_z, taille_complex);
 		fftw_destroy_plan(oc->disp_x_plan);
 		fftw_destroy_plan(oc->disp_z_plan);
-		memoire::deloge_tableau("disp_x", oc->disp_x, taille);
-		memoire::deloge_tableau("disp_z", oc->disp_z, taille);
 	}
 
 	if (oc->calcul_ecume) {
-		memoire::deloge_tableau("fft_in_jxx", oc->fft_in_jxx, taille_complex);
-		memoire::deloge_tableau("fft_in_jzz", oc->fft_in_jzz, taille_complex);
-		memoire::deloge_tableau("fft_in_jxz", oc->fft_in_jxz, taille_complex);
 		fftw_destroy_plan(oc->Jxx_plan);
 		fftw_destroy_plan(oc->Jzz_plan);
 		fftw_destroy_plan(oc->Jxz_plan);
-		memoire::deloge_tableau("Jxx", oc->Jxx, taille);
-		memoire::deloge_tableau("Jzz,", oc->Jzz, taille);
-		memoire::deloge_tableau("Jxz", oc->Jxz, taille);
-	}
-
-	if (oc->fft_in) {
-		memoire::deloge_tableau("fft_in", oc->fft_in, taille_complex);
-	}
-
-	if (oc->kx) {
-		memoire::deloge_tableau("kx", oc->kx, oc->res_x);
-		memoire::deloge_tableau("kz", oc->kz, oc->res_y);
 	}
 }
 
