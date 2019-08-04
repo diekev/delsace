@@ -415,10 +415,6 @@ void transfere_particules_grille(Poseidon &poseidon)
 {
 	auto densite = poseidon.densite;
 	auto &grille_particules = poseidon.grille_particule;
-	auto desc = densite->desc();
-	desc.type_donnees = type_grille::Z32;
-	grille_particules = GrilleParticule(desc);
-	grille_particules.tri(poseidon.particules);
 
 	for (auto i = 0; i < densite->nombre_elements(); ++i) {
 		densite->valeur(i) = 0.0f;
@@ -594,6 +590,10 @@ public:
 
 		entree(0)->requiers_corps(contexte, &da);
 
+		/* commence par trier les particules, car nous aurons besoin d'une
+		 * grille triée pour vérifier l'insertion de particules */
+		m_poseidon.grille_particule.tri(m_poseidon.particules);
+
 		psn::ajourne_sources(m_poseidon, contexte.temps_courant);
 
 		psn::ajourne_obstables(m_poseidon);
@@ -696,10 +696,14 @@ public:
 
 		m_poseidon.densite = memoire::loge<grille_dense_3d<float>>("grilles", desc);
 
+		desc.type_donnees = type_grille::Z32;
+		m_poseidon.grille_particule = psn::GrilleParticule(desc);
+
 		if (m_poseidon.decouple) {
 			desc.taille_voxel *= 2.0;
 		}
 
+		desc.type_donnees = type_grille::R32;
 		m_poseidon.pression = memoire::loge<grille_dense_3d<float>>("grilles", desc);
 		m_poseidon.drapeaux = memoire::loge<grille_dense_3d<int>>("grilles", desc);
 

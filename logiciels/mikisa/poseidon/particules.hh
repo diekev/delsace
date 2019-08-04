@@ -48,6 +48,20 @@ public:
 		: m_grille(desc, -1)
 	{}
 
+	dls::tableau<Particule *> &cellule(long idx)
+	{
+		auto idx_cellule = m_grille.valeur(idx);
+
+		if (idx_cellule >= 0) {
+			return m_cellules[idx_cellule];
+		}
+
+		m_grille.valeur(idx) = static_cast<int>(m_cellules.taille());
+		m_cellules.pousse({});
+
+		return m_cellules.back();
+	}
+
 	dls::tableau<Particule *> voisines_cellules(
 			const dls::math::vec3i& index,
 			const dls::math::vec3i& numberOfNeighbors)
@@ -98,18 +112,10 @@ public:
 		}
 
 		for (auto p : particles) {
-			auto pos_cellule = m_grille.monde_vers_index(p->pos);
-			auto idx_cellule = m_grille.valeur(pos_cellule);
-
-			if (idx_cellule >= 0) {
-				m_cellules[idx_cellule].pousse(p);
-			}
-			else {
-				dls::tableau<Particule *> cellule;
-				cellule.pousse(p);
-				m_grille.valeur(pos_cellule) = static_cast<int>(m_cellules.taille());
-				m_cellules.pousse(cellule);
-			}
+			auto pos_idx = m_grille.monde_vers_index(p->pos);
+			auto idx = m_grille.calcul_index(pos_idx);
+			auto &cellule_idx = this->cellule(idx);
+			cellule_idx.pousse(p);
 		}
 	}
 };

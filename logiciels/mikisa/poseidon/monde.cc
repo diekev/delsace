@@ -136,6 +136,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto corps = Corps();
 
 	auto densite = poseidon.densite;
+	auto &grille_particule = poseidon.grille_particule;
 	auto res = densite->desc().resolution;
 
 #ifdef UTILISE_BRUIT
@@ -190,13 +191,32 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 #else
 			auto densite_cible = params.densite;
 #endif
-
+			auto densite_courante = 0.0f;
 			auto densite_finale = 0.0f;
+
+			auto nombre_a_genere = 0;
+
+			auto &cellule_part = grille_particule.cellule(idx);
+
+			if (cellule_part.taille() == 0) {
+				nombre_a_genere = 8;
+			}
+			else {
+				/* calcul la densité, compose avec les particules courantes */
+				for (auto p : cellule_part) {
+					densite_courante += p->densite;
+				}
+
+				/* s'il y a plus que 8 particules, nous aurons un nombre négatif
+				 * indiquant que nous ne ferons que modifier la densité
+				 * existante */
+				nombre_a_genere = 8 - static_cast<int>(cellule_part.taille());
+			}
 
 			switch (params.fusion) {
 				case mode_fusion::SUPERPOSITION:
 				{
-					auto u = densite->valeur(idx);
+					auto u = densite_courante;
 					auto v = densite_cible;
 
 					densite_finale = dls::math::entrepolation_lineaire(u, v, params.facteur);
@@ -204,7 +224,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				}
 				case mode_fusion::ADDITION:
 				{
-					auto u = densite->valeur(idx);
+					auto u = densite_courante;
 					auto v = densite_cible;
 
 					densite_finale = dls::math::entrepolation_lineaire(u, u + v, params.facteur);
@@ -212,7 +232,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				}
 				case mode_fusion::SOUSTRACTION:
 				{
-					auto u = densite->valeur(idx);
+					auto u = densite_courante;
 					auto v = densite_cible;
 
 					densite_finale = dls::math::entrepolation_lineaire(u, u - v, params.facteur);
@@ -220,7 +240,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				}
 				case mode_fusion::MINIMUM:
 				{
-					auto u = densite->valeur(idx);
+					auto u = densite_courante;
 					auto v = densite_cible;
 
 					densite_finale = dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
@@ -228,7 +248,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				}
 				case mode_fusion::MAXIMUM:
 				{
-					auto u = densite->valeur(idx);
+					auto u = densite_courante;
 					auto v = densite_cible;
 
 					densite_finale = dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
@@ -236,7 +256,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				}
 				case mode_fusion::MULTIPLICATION:
 				{
-					auto u = densite->valeur(idx);
+					auto u = densite_courante;
 					auto v = densite_cible;
 
 					densite_finale = dls::math::entrepolation_lineaire(u, u * v, params.facteur);
@@ -244,19 +264,25 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				}
 			}
 
-			//densite->valeur(idx) = densite_finale;
-
 			auto centre_voxel = densite->index_vers_monde(pos);
 
-			for (auto i = 0; i < 8; ++i) {
-				auto particule = memoire::loge<Particule>("part_psn");
-				particule->densite = densite_finale / 8.0f;
-				particule->pos = centre_voxel;
-				particule->pos.x += gna_part.uniforme(-dx2, dx2);
-				particule->pos.y += gna_part.uniforme(-dx2, dx2);
-				particule->pos.z += gna_part.uniforme(-dx2, dx2);
+			if (nombre_a_genere > 0) {
+				for (auto i = 0; i < nombre_a_genere; ++i) {
+					auto particule = memoire::loge<Particule>("part_psn");
+					particule->densite = densite_finale / static_cast<float>(nombre_a_genere);
+					particule->pos = centre_voxel;
+					particule->pos.x += gna_part.uniforme(-dx2, dx2);
+					particule->pos.y += gna_part.uniforme(-dx2, dx2);
+					particule->pos.z += gna_part.uniforme(-dx2, dx2);
 
-				poseidon.particules.pousse(particule);
+					poseidon.particules.pousse(particule);
+					cellule_part.pousse(particule);
+				}
+			}
+			else {
+				for (auto p : cellule_part) {
+					p->densite = densite_finale / static_cast<float>(cellule_part.taille());
+				}
 			}
 		}
 	}
