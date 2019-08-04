@@ -69,6 +69,18 @@ void Objet::performe_versionnage()
 
 const char *Objet::chemin_entreface() const
 {
+	switch (this->type) {
+		case type_objet::NUL:
+		case type_objet::CORPS:
+		{
+			break;
+		}
+		case type_objet::CAMERA:
+		{
+			return "entreface/objet_camera.jo";
+		}
+	}
+
 	return "entreface/objet.jo";
 }
 
@@ -87,5 +99,41 @@ void Objet::ajourne_parametres()
 	rotation = dls::math::point3f(rot);
 	echelle_uniforme = evalue_decimal("echelle_uniforme");
 
-	transformation = math::construit_transformation(pos, rot, ech * echelle_uniforme);
+	if (this->type == type_objet::CAMERA) {
+		/* N'applique pas de transformation car la caméra prend en charge la
+		 * position et la rotation.
+		 * À FAIRE : pivot caméra. */
+		transformation = math::transformation();
+
+		this->donnees.accede_ecriture([this, &pos, &rot](DonneesObjet *donnees_)
+		{
+			auto &camera = static_cast<DonneesCamera *>(donnees_)->camera;
+
+			auto const largeur = evalue_entier("largeur");
+			auto const hauteur = evalue_entier("hauteur");
+			auto const longueur_focale = evalue_decimal("longueur_focale");
+			auto const largeur_senseur = evalue_decimal("largeur_senseur");
+			auto const proche = evalue_decimal("proche");
+			auto const eloigne = evalue_decimal("éloigné");
+			auto const projection = evalue_enum("projection");
+
+			if (projection == "perspective") {
+				camera.projection(vision::TypeProjection::PERSPECTIVE);
+			}
+			else if (projection == "orthographique") {
+				camera.projection(vision::TypeProjection::ORTHOGRAPHIQUE);
+			}
+
+			camera.redimensionne(largeur, hauteur);
+			camera.longueur_focale(longueur_focale);
+			camera.largeur_senseur(largeur_senseur);
+			camera.profondeur(proche, eloigne);
+			camera.position(pos);
+			camera.rotation(rot * constantes<float>::POIDS_DEG_RAD);
+			camera.ajourne_pour_operatrice();
+		});
+	}
+	else {
+		transformation = math::construit_transformation(pos, rot, ech * echelle_uniforme);
+	}
 }

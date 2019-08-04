@@ -83,6 +83,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/menu_fichier.jo
 	scripts_danjo/menu_prereglage.jo
 	scripts_danjo/objet.jo
+	scripts_danjo/objet_camera.jo
 	scripts_danjo/operatrice_3d_cercle.jo
 	scripts_danjo/operatrice_3d_cone.jo
 	scripts_danjo/operatrice_3d_creation_attribut.jo
@@ -104,7 +105,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_attr_couleur.jo
 	scripts_danjo/operatrice_bruit_cheveux.jo
 	scripts_danjo/operatrice_bruit_topologique.jo
-	scripts_danjo/operatrice_camera.jo
 	scripts_danjo/operatrice_champs_distance.jo
 	scripts_danjo/operatrice_collision.jo
 	scripts_danjo/operatrice_commutateur.jo

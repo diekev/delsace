@@ -38,131 +38,6 @@
 
 /* ************************************************************************** */
 
-class OperatriceCamera final : public OperatriceImage {
-	vision::Camera3D m_camera;
-	ManipulatricePosition3D m_manipulatrice_position{};
-	ManipulatriceRotation3D m_manipulatrice_rotation{};
-
-public:
-	static constexpr auto NOM = "Caméra";
-	static constexpr auto AIDE = "Crée une caméra.";
-
-	explicit OperatriceCamera(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceImage(graphe_parent, noeud)
-		, m_camera(0, 0)
-	{
-		entrees(0);
-		sorties(1);
-	}
-
-	int type() const override
-	{
-		return OPERATRICE_CAMERA;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CAMERA;
-	}
-
-	vision::Camera3D *camera() override
-	{
-		return &m_camera;
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_camera.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	bool possede_manipulatrice_3d(int type) const override
-	{
-		return type == MANIPULATION_POSITION || type == MANIPULATION_ROTATION;
-	}
-
-	Manipulatrice3D *manipulatrice_3d(int type) override
-	{
-		if (type == MANIPULATION_POSITION) {
-			return &m_manipulatrice_position;
-		}
-
-		if (type == MANIPULATION_ROTATION) {
-			return &m_manipulatrice_rotation;
-		}
-
-		return nullptr;
-	}
-
-	void ajourne_selon_manipulatrice_3d(int type, const int temps) override
-	{
-		dls::math::vec3f position;
-
-		if (type == MANIPULATION_POSITION) {
-			position = dls::math::vec3f(m_manipulatrice_position.pos());
-			m_camera.position(position);
-			m_camera.ajourne_pour_operatrice();
-
-			valeur_vecteur("position", position);
-		}
-		else if (type == MANIPULATION_ROTATION) {
-			auto rotation = dls::math::vec3f(m_manipulatrice_rotation.rotation());
-			m_camera.rotation(rotation);
-			m_camera.ajourne_pour_operatrice();
-
-			position = evalue_vecteur("position", temps);
-
-			valeur_vecteur("rotation", rotation * constantes<float>::POIDS_RAD_DEG);
-		}
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		INUTILISE(donnees_aval);
-
-		auto const largeur = evalue_entier("largeur");
-		auto const hauteur = evalue_entier("hauteur");
-		auto const longueur_focale = evalue_decimal("longueur_focale");
-		auto const largeur_senseur = evalue_decimal("largeur_senseur");
-		auto const proche = evalue_decimal("proche");
-		auto const eloigne = evalue_decimal("éloigné");
-		auto const projection = evalue_enum("projection");
-		auto const position = evalue_vecteur("position", contexte.temps_courant);
-		auto const rotation = evalue_vecteur("rotation", contexte.temps_courant);
-
-		if (projection == "perspective") {
-			m_camera.projection(vision::TypeProjection::PERSPECTIVE);
-		}
-		else if (projection == "orthographique") {
-			m_camera.projection(vision::TypeProjection::ORTHOGRAPHIQUE);
-		}
-
-		m_camera.redimensionne(largeur, hauteur);
-		m_camera.longueur_focale(longueur_focale);
-		m_camera.largeur_senseur(largeur_senseur);
-		m_camera.profondeur(proche, eloigne);
-		m_camera.position(position);
-		m_camera.rotation(rotation * constantes<float>::POIDS_DEG_RAD);
-		m_camera.ajourne_pour_operatrice();
-
-		m_manipulatrice_position.pos(dls::math::point3f(position));
-		m_manipulatrice_rotation.pos(dls::math::point3f(position));
-
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
 class OperatriceTexture final : public OperatriceImage {
 	vision::Camera3D *m_camera = nullptr;
 	TextureImage m_texture{};
@@ -316,7 +191,6 @@ public:
 
 void enregistre_operatrices_3d(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceCamera>());
 	usine.enregistre_type(cree_desc<OperatriceTexture>());
 }
 
