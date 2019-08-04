@@ -1127,19 +1127,19 @@ static auto calcul_divergence(
 						continue;
 					}
 
-					float xright = velocite.valeur(index + 1).x;
-					float xleft  = velocite.valeur(index - 1).x;
-					float yup    = velocite.valeur(index + res.x).y;
-					float ydown  = velocite.valeur(index - res.x).y;
-					float ztop   = velocite.valeur(index + taille_dalle).z;
-					float zbottom = velocite.valeur(index - taille_dalle).z;
+					float xright = velocite.valeur_centree(x + 1, y, z).x;
+					float xleft  = velocite.valeur_centree(x - 1, y, z).x;
+					float yup    = velocite.valeur_centree(x, y + 1, z).y;
+					float ydown  = velocite.valeur_centree(x, y - 1, z).y;
+					float ztop   = velocite.valeur_centree(x, y, z + 1).z;
+					float zbottom = velocite.valeur_centree(x, y, z - 1).z;
 
-					if (est_obstacle(drapeaux, index+1)) xright = - velocite.valeur(index).x; // DG: +=
-					if (est_obstacle(drapeaux, index-1)) xleft  = - velocite.valeur(index).x;
-					if (est_obstacle(drapeaux, index+res.x)) yup    = - velocite.valeur(index).y;
-					if (est_obstacle(drapeaux, index-res.x)) ydown  = - velocite.valeur(index).y;
-					if (est_obstacle(drapeaux, index+taille_dalle)) ztop    = - velocite.valeur(index).z;
-					if (est_obstacle(drapeaux, index-taille_dalle)) zbottom = - velocite.valeur(index).z;
+					if (est_obstacle(drapeaux, index+1)) xright = - velocite.valeur_centree(x, y, z).x; // DG: +=
+					if (est_obstacle(drapeaux, index-1)) xleft  = - velocite.valeur_centree(x, y, z).x;
+					if (est_obstacle(drapeaux, index+res.x)) yup    = - velocite.valeur_centree(x, y, z).y;
+					if (est_obstacle(drapeaux, index-res.x)) ydown  = - velocite.valeur_centree(x, y, z).y;
+					if (est_obstacle(drapeaux, index+taille_dalle)) ztop    = - velocite.valeur_centree(x, y, z).z;
+					if (est_obstacle(drapeaux, index-taille_dalle)) zbottom = - velocite.valeur_centree(x, y, z).z;
 
 					//				if(_obstacles[index+1] & 8)			xright	+= _xVelocityOb.valeur(index + 1);
 					//				if(_obstacles[index-1] & 8)			xleft	+= _xVelocityOb.valeur(index - 1);
