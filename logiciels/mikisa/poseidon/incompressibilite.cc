@@ -1466,32 +1466,6 @@ void projette_velocite(
 #endif
 
 #ifdef SOLVEUR_BLENDER
-	auto res = velocite.desc().resolution;
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-
-	auto iter = IteratricePosition(limites);
-	while (!iter.fini()) {
-		auto pos = iter.suivante();
-		auto idx = velocite.calcul_index(pos);
-		auto i = pos.x;
-		auto j = pos.y;
-		auto k = pos.z;
-
-		if (i == 0 || i == res[0]-1) {
-			velocite.valeur(idx).x = 0.0f;
-		}
-
-		if (j == 0 || j == res[1]-1) {
-			velocite.valeur(idx).y = 0.0f;
-		}
-
-		if (k == 0 || k == res[2]-1) {
-			velocite.valeur(idx).z = 0.0f;
-		}
-	}
-
 	auto divergence = calcul_divergence(velocite, drapeaux);
 
 	resoud_pression(pression, divergence, drapeaux);
