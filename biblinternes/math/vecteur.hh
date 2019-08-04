@@ -774,6 +774,35 @@ template <typename Dec, int O, typename Ent, int... Ns>
 	return tmp;
 }
 
+/**
+ * Converti les valeurs du vecteur d'un type à un autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<O, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Retourne la valeur de la somme de toutes les valeurs du vecteur.
+ */
+template <int O, typename T, int... Ns>
+[[nodiscard]] inline auto somme_interne(vecteur<O, T, Ns...> const &vec)
+{
+	return (vec[Ns] + ...);
+}
+
+/**
+ * Retourne la valeur du produit de toutes les valeurs du vecteur.
+ */
+template <int O, typename T, int... Ns>
+[[nodiscard]] inline auto produit_interne(vecteur<O, T, Ns...> const &vec)
+{
+	return (vec[Ns] * ...);
+}
+
 /* ***************************** opérateurs flux **************************** */
 
 /**
@@ -895,6 +924,22 @@ void cree_base_orthonormale(
 	auto const b = n.x * n.y * a;
 	b0 = vec3<T>(static_cast<T>(1.0) + sign * n.x * n.x * a, sign * b, -sign * n.x);
 	b1 = vec3<T>(b, sign + n.y * n.y * a, -n.y);
+}
+
+/**
+ * Calcul l'index d'un pixel ou plus généralement d'un point dans une grille.
+ */
+[[nodiscard]] inline auto calcul_index(vec2i const &co, vec2i const &res)
+{
+	return static_cast<long>(co.x + co.y * res.x);
+}
+
+/**
+ * Calcul l'index d'un voxel ou plus généralement d'un point dans une grille.
+ */
+[[nodiscard]] inline auto calcul_index(vec3i const &co, vec3i const &res)
+{
+	return static_cast<long>(co.x + (co.y + co.z * res.y) * res.x);
 }
 
 }  /* namespace dls::math */

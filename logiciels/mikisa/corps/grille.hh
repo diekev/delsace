@@ -47,34 +47,6 @@ using co_discrete = dls::math::vec3i;    // (0 : res - 1)
 
 /* ************************************************************************** */
 
-namespace dls::math {
-
-template <typename TypeRet, typename T, int O, int... Ns>
-[[nodiscard]] inline auto converti_type(vecteur<O, T, Ns...> const &vec)
-{
-	auto tmp = vecteur<O, TypeRet, Ns...>();
-	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
-	return tmp;
-}
-
-template <int O, typename T, int... Ns>
-[[nodiscard]] inline auto produit_interne(vecteur<O, T, Ns...> const &vec)
-{
-	return (vec[Ns] * ...);
-}
-
-[[nodiscard]] inline auto calcul_index(vec2i const &co, vec2i const &res)
-{
-	return static_cast<long>(co.x + co.y * res.x);
-}
-
-[[nodiscard]] inline auto calcul_index(vec3i const &co, vec3i const &res)
-{
-	return static_cast<long>(co.x + (co.y + co.z * res.y) * res.x);
-}
-
-}  /* namespace dls::math */
-
 enum class type_grille {
 	Z8,
 	Z32,
