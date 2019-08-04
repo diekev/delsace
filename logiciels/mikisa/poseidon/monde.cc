@@ -37,7 +37,7 @@
 namespace psn {
 
 template <typename T>
-static auto fill_grid(Grille<T> *flags, T valeur)
+static auto fill_grid(grille_dense_3d<T> *flags, T valeur)
 {
 	std::cerr << __func__ << '\n';
 
@@ -55,9 +55,9 @@ static auto fill_grid(Grille<T> *flags, T valeur)
 	}
 }
 
-void fill_grid(Grille<int> &flags, int type)
+void fill_grid(grille_dense_3d<int> &flags, int type)
 {
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
@@ -75,9 +75,9 @@ void fill_grid(Grille<int> &flags, int type)
 	}
 }
 
-static auto ajourne_murs_domaine(Grille<int> &drapeaux)
+static auto ajourne_murs_domaine(grille_dense_3d<int> &drapeaux)
 {
-	auto res = drapeaux.resolution();
+	auto res = drapeaux.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
@@ -136,7 +136,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto corps = Corps();
 
 	auto densite = poseidon.densite;
-	auto res = densite->resolution();
+	auto res = densite->desc().resolution;
 
 #ifdef UTILISE_BRUIT
 	poseidon.bruit = bruit_vaguelette::construit();
@@ -178,7 +178,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 		auto iter = IteratricePosition(limites);
 
 		auto gna_part = GNA{};
-		auto dx2 = densite->taille_voxel() * 0.5f;
+		auto dx2 = static_cast<float>(densite->desc().taille_voxel * 0.5);
 
 		while (!iter.fini()) {
 			auto pos = iter.suivante();
@@ -268,7 +268,7 @@ void ajourne_obstables(Poseidon &poseidon)
 
 	auto densite = poseidon.densite;
 	auto drapeaux = poseidon.drapeaux;
-	auto res = densite->resolution();
+	auto res = densite->desc().resolution;
 
 	for (auto objet : poseidon.monde.obstacles) {
 		/* copie par convénience */

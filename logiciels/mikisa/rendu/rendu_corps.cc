@@ -563,11 +563,11 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	auto grille = volume->grille;
 
 	if (!grille->est_eparse()) {
-		etendue = grille->etendue();
-		resolution = grille->resolution();
+		etendue = grille->desc().etendue;
+		resolution = grille->desc().resolution;
 
-		if (grille->type() == type_volume::SCALAIRE) {
-			auto grille_scalaire = dynamic_cast<Grille<float> *>(grille);
+		if (grille->desc().type_donnees == type_grille::R32) {
+			auto grille_scalaire = dynamic_cast<grille_dense_3d<float> *>(grille);
 			ptr_donnees = grille_scalaire->donnees();
 		}
 	}

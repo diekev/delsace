@@ -28,9 +28,9 @@
 
 #include "corps/iter_volume.hh"
 
-static void verifie_nans(Grille<float> const &grille, char const *message0, char const *nom_grille)
+static void verifie_nans(grille_dense_3d<float> const &grille, char const *message0, char const *nom_grille)
 {
-	for (auto i = 0; i < grille.nombre_voxels(); ++i) {
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
 		if (std::isnan(grille.valeur(i))) {
 			std::cerr << message0 << " : " << nom_grille << " a des NANs !\n";
 			break;
@@ -38,9 +38,9 @@ static void verifie_nans(Grille<float> const &grille, char const *message0, char
 	}
 }
 
-static void verifie_infs(Grille<float> const &grille, char const *message0, char const *nom_grille)
+static void verifie_infs(grille_dense_3d<float> const &grille, char const *message0, char const *nom_grille)
 {
-	for (auto i = 0; i < grille.nombre_voxels(); ++i) {
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
 		if (std::isinf(grille.valeur(i))) {
 			std::cerr << message0 << " : " << nom_grille << " a des INFs !\n";
 			break;
@@ -48,9 +48,9 @@ static void verifie_infs(Grille<float> const &grille, char const *message0, char
 	}
 }
 
-void InvertCheckFluid (const Grille<int>& flags, Grille<float>& grid)
+void InvertCheckFluid (const grille_dense_3d<int>& flags, grille_dense_3d<float>& grid)
 {
-	for (auto idx = 0; idx < flags.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < flags.nombre_elements(); ++idx) {
 		if (est_fluide(flags, idx) && grid.valeur(idx) > 0.0f){
 			grid.valeur(idx) = 1.0f / grid.valeur(idx);
 		}
@@ -58,11 +58,11 @@ void InvertCheckFluid (const Grille<int>& flags, Grille<float>& grid)
 }
 
 //! Kernel: Squared sum over grid
-double somme_carree(const Grille<float>& grid)
+double somme_carree(const grille_dense_3d<float>& grid)
 {
 	auto somme = 0.0;
 
-	for (auto idx = 0; idx < grid.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < grid.nombre_elements(); ++idx) {
 		somme += dls::math::carre(static_cast<double>(grid.valeur(idx)));
 	}
 
@@ -70,17 +70,17 @@ double somme_carree(const Grille<float>& grid)
 }
 
 template <typename T>
-auto gridScaledAdd(Grille<T>& grid1, const Grille<T>& grid2, T facteur)
+auto gridScaledAdd(grille_dense_3d<T>& grid1, const grille_dense_3d<T>& grid2, T facteur)
 {
-	for (auto idx = 0; idx < grid1.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < grid1.nombre_elements(); ++idx) {
 		grid1.valeur(idx) += grid2.valeur(idx) * facteur;
 	}
 }
 
 template <typename T>
-auto efface(Grille<T> &grille)
+auto efface(grille_dense_3d<T> &grille)
 {
-	for (auto idx = 0; idx < grille.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < grille.nombre_elements(); ++idx) {
 		grille.valeur(idx) = static_cast<T>(0);
 	}
 }
@@ -89,9 +89,16 @@ auto efface(Grille<T> &grille)
 //  Precondition helpers
 
 //! Preconditioning a la Wavelet Turbulence (needs 4 add. grids)
-void InitPreconditionIncompCholesky(const Grille<int>& flags,
-									Grille<float>& A0, Grille<float>& Ai, Grille<float>& Aj, Grille<float>& Ak,
-									Grille<float>& orgA0, Grille<float>& orgAi, Grille<float>& orgAj, Grille<float>& orgAk)
+void InitPreconditionIncompCholesky(
+		grille_dense_3d<int> const &flags,
+		grille_dense_3d<float>& A0,
+		grille_dense_3d<float>& Ai,
+		grille_dense_3d<float>& Aj,
+		grille_dense_3d<float>& Ak,
+		grille_dense_3d<float>& orgA0,
+		grille_dense_3d<float>& orgAi,
+		grille_dense_3d<float>& orgAj,
+		grille_dense_3d<float>& orgAk)
 {
 	// compute IC according to Golub and Van Loan
 	A0.copie_donnees(orgA0);
@@ -99,7 +106,11 @@ void InitPreconditionIncompCholesky(const Grille<int>& flags,
 	Aj.copie_donnees(orgAj);
 	Ak.copie_donnees(orgAk);
 
-	auto res = A0.resolution();
+	auto res = A0.desc().resolution;
+	auto dalle_x = 1;
+	auto dalle_y = res.x;
+	auto dalle_z = res.x * res.y;
+
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res - dls::math::vec3i(1);
@@ -108,12 +119,9 @@ void InitPreconditionIncompCholesky(const Grille<int>& flags,
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
+		auto idx = A0.calcul_index(pos_iter);
 
-		if (est_fluide(flags, i,j,k)) {
-			auto idx = A0.calcul_index(i,j,k);
+		if (est_fluide(flags, idx)) {
 			A0.valeur(idx) = std::sqrt(A0.valeur(idx));
 
 			// correct left and top stencil in other entries
@@ -130,9 +138,9 @@ void InitPreconditionIncompCholesky(const Grille<int>& flags,
 			//   for i = j:n
 			//      if (A(i,j) != 0)
 			//        A(i,j) = A(i,j) - A(i,k) * A(j,k)
-			A0.valeur(i+1,j,k) -= dls::math::carre(Ai.valeur(idx));
-			A0.valeur(i,j+1,k) -= dls::math::carre(Aj.valeur(idx));
-			A0.valeur(i,j,k+1) -= dls::math::carre(Ak.valeur(idx));
+			A0.valeur(idx + dalle_x) -= dls::math::carre(Ai.valeur(idx));
+			A0.valeur(idx + dalle_y) -= dls::math::carre(Aj.valeur(idx));
+			A0.valeur(idx + dalle_z) -= dls::math::carre(Ak.valeur(idx));
 		}
 	}
 
@@ -141,14 +149,18 @@ void InitPreconditionIncompCholesky(const Grille<int>& flags,
 }
 
 //! Preconditioning using modified IC ala Bridson (needs 1 add. grid)
-void InitPreconditionModifiedIncompCholesky2(const Grille<int>& flags,
-											 Grille<float>&Aprecond,
-											 Grille<float>&A0, Grille<float>& Ai, Grille<float>& Aj, Grille<float>& Ak)
+void InitPreconditionModifiedIncompCholesky2(const grille_dense_3d<int>& flags,
+											 grille_dense_3d<float>&Aprecond,
+											 grille_dense_3d<float>&A0, grille_dense_3d<float>& Ai, grille_dense_3d<float>& Aj, grille_dense_3d<float>& Ak)
 {
 	// compute IC according to Golub and Van Loan
 	efface(Aprecond);
 
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
+	auto dalle_x = 1;
+	auto dalle_y = res.x;
+	auto dalle_z = res.x * res.y;
+
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
@@ -157,41 +169,47 @@ void InitPreconditionModifiedIncompCholesky2(const Grille<int>& flags,
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
+		auto idx = flags.calcul_index(pos_iter);
 
-		if (!est_fluide(flags, i,j,k)) continue;
+		if (!est_fluide(flags, idx)) {
+			continue;
+		}
 
 		auto const tau = 0.97f;
 		auto const sigma = 0.25f;
 
 		// compute modified incomplete cholesky
 		float e = 0.0f;
-		e = A0.valeur(i,j,k)
-				- dls::math::carre(Ai.valeur(i-1,j,k) * Aprecond.valeur(i-1,j,k))
-				- dls::math::carre(Aj.valeur(i,j-1,k) * Aprecond.valeur(i,j-1,k))
-				- dls::math::carre(Ak.valeur(i,j,k-1) * Aprecond.valeur(i,j,k-1));
+		e = A0.valeur(idx)
+				- dls::math::carre(Ai.valeur(idx - dalle_x) * Aprecond.valeur(idx - dalle_x))
+				- dls::math::carre(Aj.valeur(idx - dalle_y) * Aprecond.valeur(idx - dalle_y))
+				- dls::math::carre(Ak.valeur(idx - dalle_z) * Aprecond.valeur(idx - dalle_z));
 
 		e -= tau * (
-					Ai.valeur(i-1,j,k) * (Aj.valeur(i-1,j,k) + Ak.valeur(i-1,j,k))* dls::math::carre(Aprecond.valeur(i-1,j,k)) +
-					Aj.valeur(i,j-1,k) * (Ai.valeur(i,j-1,k) + Ak.valeur(i,j-1,k))* dls::math::carre(Aprecond.valeur(i,j-1,k)) +
-					Ak.valeur(i,j,k-1) * (Ai.valeur(i,j,k-1) + Aj.valeur(i,j,k-1))* dls::math::carre(Aprecond.valeur(i,j,k-1)) +
+					Ai.valeur(idx - dalle_x) * (Aj.valeur(idx - dalle_x) + Ak.valeur(idx - dalle_x))* dls::math::carre(Aprecond.valeur(idx - dalle_x)) +
+					Aj.valeur(idx - dalle_y) * (Ai.valeur(idx - dalle_y) + Ak.valeur(idx - dalle_y))* dls::math::carre(Aprecond.valeur(idx - dalle_y)) +
+					Ak.valeur(idx - dalle_z) * (Ai.valeur(idx - dalle_z) + Aj.valeur(idx - dalle_z))* dls::math::carre(Aprecond.valeur(idx - dalle_z)) +
 					0.0f);
 
 		// stability cutoff
-		if(e < sigma * A0.valeur(i,j,k)){
-			e = A0.valeur(i,j,k);
+		if(e < sigma * A0.valeur(idx)){
+			e = A0.valeur(idx);
 		}
 
 		if (e != 0.0f) {
-			Aprecond.valeur(i,j,k) = 1.0f / std::sqrt(e);
+			Aprecond.valeur(idx) = 1.0f / std::sqrt(e);
 		}
 	}
 }
 
 //! Preconditioning using multigrid ala Dick et al.
-void InitPreconditionMultigrid(GridMg* MG, Grille<float>&A0, Grille<float>& Ai, Grille<float>& Aj, Grille<float>& Ak, float mAccuracy)
+void InitPreconditionMultigrid(
+		GridMg* MG,
+		grille_dense_3d<float>&A0,
+		grille_dense_3d<float>& Ai,
+		grille_dense_3d<float>& Aj,
+		grille_dense_3d<float>& Ak,
+		float mAccuracy)
 {
 	// build multigrid hierarchy if necessary
 	//	if (!MG->isASet()) {
@@ -203,13 +221,26 @@ void InitPreconditionMultigrid(GridMg* MG, Grille<float>&A0, Grille<float>& Ai, 
 }
 
 //! Apply WT-style ICP
-void ApplyPreconditionIncompCholesky(Grille<float>& dst, Grille<float>& Var1, const Grille<int>& flags,
-									 Grille<float>& A0, Grille<float>& Ai, Grille<float>& Aj, Grille<float>& Ak,
-									 Grille<float>& orgA0, Grille<float>& orgAi, Grille<float>& orgAj, Grille<float>& orgAk)
+void ApplyPreconditionIncompCholesky(
+		grille_dense_3d<float>& dst,
+		grille_dense_3d<float>& Var1,
+		const grille_dense_3d<int>& flags,
+		grille_dense_3d<float>& A0,
+		grille_dense_3d<float>& Ai,
+		grille_dense_3d<float>& Aj,
+		grille_dense_3d<float>& Ak,
+		grille_dense_3d<float>& orgA0,
+		grille_dense_3d<float>& orgAi,
+		grille_dense_3d<float>& orgAj,
+		grille_dense_3d<float>& orgAk)
 {
 
 	// forward substitution
-	auto res = dst.resolution();
+	auto res = dst.desc().resolution;
+	auto dalle_x = 1;
+	auto dalle_y = res.x;
+	auto dalle_z = res.x * res.y;
+
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
@@ -218,18 +249,16 @@ void ApplyPreconditionIncompCholesky(Grille<float>& dst, Grille<float>& Var1, co
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
+		auto idx = flags.calcul_index(pos_iter);
 
-		if (!est_fluide(flags, i,j,k)){
+		if (!est_fluide(flags, idx)){
 			continue;
 		}
 
-		dst.valeur(i,j,k) = A0.valeur(i,j,k) * (Var1.valeur(i,j,k)
-								  - dst.valeur(i-1,j,k) * Ai.valeur(i-1,j,k)
-								  - dst.valeur(i,j-1,k) * Aj.valeur(i,j-1,k)
-								  - dst.valeur(i,j,k-1) * Ak.valeur(i,j,k-1));
+		dst.valeur(idx) = A0.valeur(idx) * (Var1.valeur(idx)
+								  - dst.valeur(idx - dalle_x) * Ai.valeur(idx - dalle_x)
+								  - dst.valeur(idx - dalle_y) * Aj.valeur(idx - dalle_y)
+								  - dst.valeur(idx - dalle_z) * Ak.valeur(idx - dalle_z));
 	}
 
 	// backward substitution
@@ -241,29 +270,36 @@ void ApplyPreconditionIncompCholesky(Grille<float>& dst, Grille<float>& Var1, co
 
 	while (!iter_inv.fini()) {
 		auto pos_iter = iter_inv.suivante();
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
-		auto const idx = A0.calcul_index(i,j,k);
+		auto const idx = A0.calcul_index(pos_iter);
 
 		if (!est_fluide(flags, idx)) {
 			continue;
 		}
 
 		dst.valeur(idx) = A0.valeur(idx) * (dst.valeur(idx)
-											- dst.valeur(i+1,j,k) * Ai.valeur(idx)
-											- dst.valeur(i,j+1,k) * Aj.valeur(idx)
-											- dst.valeur(i,j,k+1) * Ak.valeur(idx));
+											- dst.valeur(idx + dalle_x) * Ai.valeur(idx)
+											- dst.valeur(idx + dalle_y) * Aj.valeur(idx)
+											- dst.valeur(idx + dalle_z) * Ak.valeur(idx));
 	}
 }
 
 //! Apply Bridson-style mICP
-void ApplyPreconditionModifiedIncompCholesky2(Grille<float>& dst, Grille<float>& Var1, const Grille<int>& flags,
-											  Grille<float>& Aprecond,
-											  Grille<float>& A0, Grille<float>& Ai, Grille<float>& Aj, Grille<float>& Ak)
+void ApplyPreconditionModifiedIncompCholesky2(
+		grille_dense_3d<float>& dst,
+		grille_dense_3d<float>& Var1,
+		const grille_dense_3d<int>& flags,
+		grille_dense_3d<float>& Aprecond,
+		grille_dense_3d<float>& A0,
+		grille_dense_3d<float>& Ai,
+		grille_dense_3d<float>& Aj,
+		grille_dense_3d<float>& Ak)
 {
 	// forward substitution
-	auto res = dst.resolution();
+	auto res = dst.desc().resolution;
+	auto dalle_x = 1;
+	auto dalle_y = res.x;
+	auto dalle_z = res.x * res.y;
+
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
@@ -272,20 +308,18 @@ void ApplyPreconditionModifiedIncompCholesky2(Grille<float>& dst, Grille<float>&
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
+		auto idx = flags.calcul_index(pos_iter);
 
-		if (!est_fluide(flags, i, j, k)) {
+		if (!est_fluide(flags, idx)) {
 			continue;
 		}
 
-		const float p = Aprecond.valeur(i,j,k);
+		const float p = Aprecond.valeur(idx);
 
-		dst.valeur(i,j,k) = p * (Var1.valeur(i,j,k)
-						  - dst.valeur(i-1,j,k) * Ai.valeur(i-1,j,k) * Aprecond.valeur(i-1,j,k)
-						  - dst.valeur(i,j-1,k) * Aj.valeur(i,j-1,k) * Aprecond.valeur(i,j-1,k)
-						  - dst.valeur(i,j,k-1) * Ak.valeur(i,j,k-1) * Aprecond.valeur(i,j,k-1));
+		dst.valeur(idx) = p * (Var1.valeur(idx)
+						  - dst.valeur(idx - dalle_x) * Ai.valeur(idx - dalle_x) * Aprecond.valeur(idx - dalle_x)
+						  - dst.valeur(idx - dalle_y) * Aj.valeur(idx - dalle_y) * Aprecond.valeur(idx - dalle_y)
+						  - dst.valeur(idx - dalle_z) * Ak.valeur(idx - dalle_z) * Aprecond.valeur(idx - dalle_z));
 	}
 
 	// backward substitution
@@ -297,10 +331,7 @@ void ApplyPreconditionModifiedIncompCholesky2(Grille<float>& dst, Grille<float>&
 
 	while (!iter_inv.fini()) {
 		auto pos_iter = iter_inv.suivante();
-		auto i = pos_iter.x;
-		auto j = pos_iter.y;
-		auto k = pos_iter.z;
-		auto const idx = A0.calcul_index(i,j,k);
+		auto const idx = A0.calcul_index(pos_iter);
 
 		if (!est_fluide(flags, idx)) {
 			continue;
@@ -309,43 +340,45 @@ void ApplyPreconditionModifiedIncompCholesky2(Grille<float>& dst, Grille<float>&
 		const float p = Aprecond.valeur(idx);
 
 		dst.valeur(idx) = p * (dst.valeur(idx)
-						- dst.valeur(i+1,j,k) * Ai.valeur(idx) * p
-						- dst.valeur(i,j+1,k) * Aj.valeur(idx) * p
-						- dst.valeur(i,j,k+1) * Ak.valeur(idx) * p);
+						- dst.valeur(idx + dalle_x) * Ai.valeur(idx) * p
+						- dst.valeur(idx + dalle_y) * Aj.valeur(idx) * p
+						- dst.valeur(idx + dalle_z) * Ak.valeur(idx) * p);
 	}
 }
 
 //! Perform one Multigrid VCycle
-void ApplyPreconditionMultigrid(GridMg* pMG, Grille<float>& dst, Grille<float>& Var1)
+void ApplyPreconditionMultigrid(
+		GridMg* pMG,
+		grille_dense_3d<float>& dst,
+		grille_dense_3d<float>& Var1)
 {
 	// one VCycle on "A*dst = Var1" with initial guess dst=0
 	//	pMG->setRhs(Var1);
 	//	pMG->doVCycle(dst);
 }
 
-
 //*****************************************************************************
 // Kernels
 
 //! Kernel: Compute the dot product between two float grids
 /*! Uses double precision internally */
-double produit_scalaire(Grille<float> const &a, Grille<float> const &b)
+double produit_scalaire(grille_dense_3d<float> const &a, grille_dense_3d<float> const &b)
 {
 	auto result = 0.0;
 
-	for (auto idx = 0; idx < a.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < a.nombre_elements(); ++idx) {
 		result += static_cast<double>(a.valeur(idx) * b.valeur(idx));
 	}
 
 	return result;
 }
 
-float max_abs(Grille<float> const &grille)
+float max_abs(grille_dense_3d<float> const &grille)
 {
 	auto min =  std::numeric_limits<float>::max();
 	auto max = -std::numeric_limits<float>::max();
 
-	for (auto idx = 0; idx < grille.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < grille.nombre_elements(); ++idx) {
 		auto v = grille.valeur(idx);
 
 		if (v < min) {
@@ -360,11 +393,11 @@ float max_abs(Grille<float> const &grille)
 }
 
 //! Kernel: compute residual (init) and add to sigma
-double InitSigma (const Grille<int>& flags, Grille<float>& dst, Grille<float>& rhs, Grille<float>& temp)
+double InitSigma (const grille_dense_3d<int>& flags, grille_dense_3d<float>& dst, grille_dense_3d<float>& rhs, grille_dense_3d<float>& temp)
 {
 	auto sigma = 0.0;
 
-	for (auto idx = 0; idx < flags.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < flags.nombre_elements(); ++idx) {
 		auto const res = rhs.valeur(idx) - temp.valeur(idx);
 		dst.valeur(idx) = res;
 
@@ -378,9 +411,9 @@ double InitSigma (const Grille<int>& flags, Grille<float>& dst, Grille<float>& r
 }
 
 //! Kernel: update search vector
-void UpdateSearchVec (Grille<float>& dst, Grille<float>& src, float factor)
+void UpdateSearchVec (grille_dense_3d<float>& dst, grille_dense_3d<float>& src, float factor)
 {
-	for (auto idx = 0; idx < dst.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < dst.nombre_elements(); ++idx) {
 		dst.valeur(idx) = src.valeur(idx) + factor * dst.valeur(idx);
 	}
 }
@@ -400,16 +433,16 @@ void GridCgInterface::setUseL2Norm(bool set)
 static constexpr auto VECTOR_EPSILON = 1e-6f;
 
 GridCg::GridCg(
-		Grille<float>& dst,
-		Grille<float>& rhs,
-		Grille<float>& residual,
-		Grille<float>& search,
-		const Grille<int>& flags,
-		Grille<float>& tmp,
-		Grille<float>* pA0,
-		Grille<float>* pAi,
-		Grille<float>* pAj,
-		Grille<float>* pAk)
+		grille_dense_3d<float>& dst,
+		grille_dense_3d<float>& rhs,
+		grille_dense_3d<float>& residual,
+		grille_dense_3d<float>& search,
+		const grille_dense_3d<int>& flags,
+		grille_dense_3d<float>& tmp,
+		grille_dense_3d<float>* pA0,
+		grille_dense_3d<float>* pAi,
+		grille_dense_3d<float>* pAj,
+		grille_dense_3d<float>* pAk)
 	: GridCgInterface()
 	, mInited(false)
 	, mIterations(0)
@@ -547,7 +580,7 @@ void GridCg::solve(int maxIter) {
 	return;
 }
 
-void GridCg::setICPreconditioner(PreconditionType method, Grille<float> *A0, Grille<float> *Ai, Grille<float> *Aj, Grille<float> *Ak)
+void GridCg::setICPreconditioner(PreconditionType method, grille_dense_3d<float> *A0, grille_dense_3d<float> *Ai, grille_dense_3d<float> *Aj, grille_dense_3d<float> *Ak)
 {
 	//assertMsg(method==PC_ICP || method==PC_mICP, "GridCg<APPLYMAT>::setICPreconditioner: Invalid method specified.");
 
@@ -576,7 +609,7 @@ void GridCg::setMGPreconditioner(PreconditionType method, GridMg* MG)
 //  rescale in python file for discretization independence (or physical correspondence)
 //  see lidDrivenCavity.py for an example
 void cgSolveDiffusion(
-		const Grille<int>& flags,
+		const grille_dense_3d<int>& flags,
 		GridBase& grid,
 		float alpha = 0.25,
 		float cgMaxIterFac = 1.0,
@@ -584,25 +617,25 @@ void cgSolveDiffusion(
 {
 	// reserve temp grids
 	FluidSolver* parent = flags.getParent();
-	Grille<float> rhs(parent);
-	Grille<float> residual(parent), search(parent), tmp(parent);
-	Grille<float> A0(parent), Ai(parent), Aj(parent), Ak(parent);
+	grille_dense_3d<float> rhs(parent);
+	grille_dense_3d<float> residual(parent), search(parent), tmp(parent);
+	grille_dense_3d<float> A0(parent), Ai(parent), Aj(parent), Ak(parent);
 
 	// setup matrix and boundaries
-	Grille<int> flagsDummy(parent);
-	flagsDummy.setConst(Grille<int>::TypeFluid);
+	grille_dense_3d<int> flagsDummy(parent);
+	flagsDummy.setConst(grille_dense_3d<int>::TypeFluid);
 	MakeLaplaceMatrix (flagsDummy, A0, Ai, Aj, Ak);
 
 	FOR_IJK(flags) {
-		if(flags.isObstacle(i,j,k)) {
-			Ai(i,j,k)  = Aj(i,j,k)  = Ak(i,j,k)  = 0.0;
-			A0(i,j,k)  = 1.0;
+		if(flags.isObstacle(idx)) {
+			Ai(idx)  = Aj(idx)  = Ak(idx)  = 0.0;
+			A0(idx)  = 1.0;
 		} else {
-			Ai(i,j,k) *= alpha;
-			Aj(i,j,k) *= alpha;
-			Ak(i,j,k) *= alpha;
-			A0(i,j,k) *= alpha;
-			A0(i,j,k) += 1.;
+			Ai(idx) *= alpha;
+			Aj(idx) *= alpha;
+			Ak(idx) *= alpha;
+			A0(idx) *= alpha;
+			A0(idx) += 1.;
 		}
 	}
 
@@ -611,7 +644,7 @@ void cgSolveDiffusion(
 	const int maxIter = (int)(cgMaxIterFac * flags.getSize().max()) * (flags.is3D() ? 1 : 4);
 
 	if (grid.getType() & GridBase::Typefloat) {
-		auto &u = ((Grille<float>&) grid);
+		auto &u = ((grille_dense_3d<float>&) grid);
 		rhs.copie_donnees(u);
 		gcg = new GridCg<ApplyMatrix  >(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
 		gcg->setAccuracy(cgAccuracy);
@@ -621,8 +654,8 @@ void cgSolveDiffusion(
 	}
 	else if((grid.getType() & GridBase::TypeVec3))
 	{
-		Grille<Vec3>& vec = ((Grille<Vec3>&) grid);
-		Grille<float> u(parent);
+		grille_dense_3d<Vec3>& vec = ((grille_dense_3d<Vec3>&) grid);
+		grille_dense_3d<float> u(parent);
 
 		// core solve is same as for a regular real grid
 		gcg = new GridCg<ApplyMatrix  >(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
@@ -647,13 +680,13 @@ void cgSolveDiffusion(
 }
 #endif
 
-void ApplyMatrix(const Grille<int> &flags, Grille<float> &dst, const Grille<float> &src, Grille<float> &A0, Grille<float> &Ai, Grille<float> &Aj, Grille<float> &Ak)
+void ApplyMatrix(const grille_dense_3d<int> &flags, grille_dense_3d<float> &dst, const grille_dense_3d<float> &src, grille_dense_3d<float> &A0, grille_dense_3d<float> &Ai, grille_dense_3d<float> &Aj, grille_dense_3d<float> &Ak)
 {
 	auto const X = 1;
-	auto const Y = flags.resolution().x;
-	auto const Z = flags.resolution().x * flags.resolution().y;
+	auto const Y = flags.desc().resolution.x;
+	auto const Z = flags.desc().resolution.x * flags.desc().resolution.y;
 
-	for (auto idx = 0; idx < flags.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < flags.nombre_elements(); ++idx) {
 		if (!est_fluide(flags, idx)) {
 			dst.valeur(idx) = src.valeur(idx);
 			return;

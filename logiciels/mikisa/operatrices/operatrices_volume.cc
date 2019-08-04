@@ -61,17 +61,18 @@ static int cree_volume(
 	auto min = op.evalue_vecteur("limite_min");
 	auto max = op.evalue_vecteur("limite_max");
 
-	auto desc = description_volume{};
+	auto desc = desc_grille_3d{};
 	desc.etendue.min = min;
 	desc.etendue.max = max;
 	desc.fenetre_donnees = desc.etendue;
-	desc.taille_voxel = op.evalue_decimal("taille_voxel");
+	desc.taille_voxel = static_cast<double>(op.evalue_decimal("taille_voxel"));
+	desc.type_donnees = type_grille::R32;
 
 	auto graine = op.evalue_entier("graine");
 
 	auto bruit = bruit_vaguelette::construit(graine);
-	bruit.dx = desc.taille_voxel;
-	bruit.taille_grille_inv = 1.0f / desc.taille_voxel;
+	bruit.dx = static_cast<float>(desc.taille_voxel);
+	bruit.taille_grille_inv = 1.0f / static_cast<float>(desc.taille_voxel);
 	bruit.decalage_pos = op.evalue_vecteur("décalage_pos");
 	bruit.echelle_pos = op.evalue_vecteur("échelle_pos");
 	bruit.decalage_valeur = op.evalue_decimal("décalage_valeur");
@@ -82,18 +83,21 @@ static int cree_volume(
 	bruit.temps_anim = op.evalue_decimal("temps_anim");
 
 	auto volume = memoire::loge<Volume>("Volume");
-	auto grille_scalaire = memoire::loge<Grille<float>>("grille", desc);
+	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);
 
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
-	limites.max = grille_scalaire->resolution();
+	limites.max = grille_scalaire->desc().resolution;
 
 	auto iter = IteratricePosition(limites);
 
+	std::cerr << "Nombre de voxels : " << grille_scalaire->nombre_elements() << '\n';
+
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
+		auto idx = grille_scalaire->calcul_index(pos);
 		auto pos_mnd = dls::math::discret_vers_continu<float>(pos);
-		grille_scalaire->valeur(pos, bruit.evalue(pos_mnd));
+		grille_scalaire->valeur(idx, bruit.evalue(pos_mnd));
 	}
 
 	volume->grille = grille_scalaire;
@@ -158,10 +162,11 @@ static int maillage_vers_volume(
 
 	limites_grille = limites;
 
-	auto desc_volume = description_volume{};
+	auto desc_volume = desc_grille_3d{};
 	desc_volume.etendue = limites_grille;
 	desc_volume.fenetre_donnees = limites_grille;
 	desc_volume.taille_voxel = taille_voxel;
+	desc_volume.type_donnees = type_grille::R32;
 
 	auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", desc_volume);
 	grille->assure_tuiles(limites);
@@ -196,7 +201,7 @@ static int maillage_vers_volume(
 					rayon.origine.y = static_cast<double>(mnd.y);
 					rayon.origine.z = static_cast<double>(mnd.z);
 
-					auto dist_max = static_cast<double>(grille->taille_voxel());
+					auto dist_max = grille->desc().taille_voxel;
 					dist_max *= dist_max;
 #if 1
 					auto dist = cherche_point_plus_proche(arbre_hbe, delegue_prims, rayon.origine, dist_max);
@@ -235,10 +240,11 @@ static int maillage_vers_volume(
 	visualise_topologie(*op.corps(), *grille);
 
 #else
-	auto desc = description_volume{};
+	auto desc = desc_grille_3d{};
 	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = taille_voxel;
+	desc.type_donnees = type_grille::R32;
 
 	auto volume =  memoire::loge<Volume>("Volume");
 	auto grille_scalaire =  memoire::loge<Grille<float>>("grille", desc);
@@ -492,13 +498,14 @@ static int ratisse_primitives(
 
 	auto gna = GNA(graine);
 
-	auto desc = description_volume{};
+	auto desc = desc_grille_3d{};
 	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
-	desc.taille_voxel = taille_voxel;
+	desc.taille_voxel = static_cast<double>(taille_voxel);
+	desc.type_donnees = type_grille::R32;
 
 	auto volume = memoire::loge<Volume>("Volume");
-	auto grille_scalaire = memoire::loge<Grille<float>>("grille", desc);
+	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);
 
 	auto fbm = FBM{};
 
@@ -569,17 +576,17 @@ static int reechantillonne_volume(
 
 	auto grille_entree = volume_entree->grille;
 
-	if (grille_entree->type() != type_volume::SCALAIRE) {
+	if (grille_entree->desc().type_donnees != type_grille::R32) {
 		op.ajoute_avertissement("La grille n'est pas scalaire !");
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto grille_scalaire = dynamic_cast<Grille<float> *>(grille_entree);
+	auto grille_scalaire = dynamic_cast<grille_dense_3d<float> *>(grille_entree);
 
-	auto resultat = reechantillonne(*grille_scalaire, grille_scalaire->taille_voxel() * 2.0f);
+	auto resultat = reechantillonne(*grille_scalaire, grille_scalaire->desc().taille_voxel * 2.0);
 
 	auto volume = memoire::loge<Volume>("Volume");
-	auto grille = memoire::loge<Grille<float>>("grille");
+	auto grille = memoire::loge<grille_dense_3d<float>>("grille");
 
 	volume->grille = grille;
 

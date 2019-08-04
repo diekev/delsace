@@ -51,7 +51,7 @@ public:
 	virtual void solve(int maxIter) = 0;
 
 	// precond
-	virtual void setICPreconditioner(PreconditionType method, Grille<float> *A0, Grille<float> *Ai, Grille<float> *Aj, Grille<float> *Ak) = 0;
+	virtual void setICPreconditioner(PreconditionType method, grille_dense_3d<float> *A0, grille_dense_3d<float> *Ai, grille_dense_3d<float> *Aj, grille_dense_3d<float> *Ak) = 0;
 	virtual void setMGPreconditioner(PreconditionType method, GridMg* MG) = 0;
 
 	// access
@@ -81,8 +81,8 @@ protected:
 class GridCg : public GridCgInterface {
 public:
 	//! constructor
-	GridCg(Grille<float>& dst, Grille<float>& rhs, Grille<float>& residual, Grille<float>& search, const Grille<int>& flags, Grille<float>& tmp,
-		   Grille<float>* A0, Grille<float>* pAi, Grille<float>* pAj, Grille<float>* pAk);
+	GridCg(grille_dense_3d<float>& dst, grille_dense_3d<float>& rhs, grille_dense_3d<float>& residual, grille_dense_3d<float>& search, const grille_dense_3d<int>& flags, grille_dense_3d<float>& tmp,
+		   grille_dense_3d<float>* A0, grille_dense_3d<float>* pAi, grille_dense_3d<float>* pAj, grille_dense_3d<float>* pAk);
 	~GridCg() = default;
 
 	GridCg(GridCg const &) = default;
@@ -92,7 +92,7 @@ public:
 	bool iterate();
 	void solve(int maxIter);
 	//! init pointers, and copy values from "normal" matrix
-	void setICPreconditioner(PreconditionType method, Grille<float> *A0, Grille<float> *Ai, Grille<float> *Aj, Grille<float> *Ak);
+	void setICPreconditioner(PreconditionType method, grille_dense_3d<float> *A0, grille_dense_3d<float> *Ai, grille_dense_3d<float> *Aj, grille_dense_3d<float> *Ak);
 	void setMGPreconditioner(PreconditionType method, GridMg* MG);
 	void forceReinit() { mInited = false; }
 
@@ -110,23 +110,23 @@ protected:
 	char pad2[3] = {};
 	int mIterations = 0;
 	// grids
-	Grille<float>& mDst;
-	Grille<float>& mRhs;
-	Grille<float>& mResidual;
-	Grille<float>& mSearch;
-	const Grille<int>& mFlags;
-	Grille<float>& mTmp;
+	grille_dense_3d<float>& mDst;
+	grille_dense_3d<float>& mRhs;
+	grille_dense_3d<float>& mResidual;
+	grille_dense_3d<float>& mSearch;
+	const grille_dense_3d<int>& mFlags;
+	grille_dense_3d<float>& mTmp;
 
-	Grille<float> *mpA0 = nullptr;
-	Grille<float> *mpAi = nullptr;
-	Grille<float> *mpAj = nullptr;
-	Grille<float> *mpAk = nullptr;
+	grille_dense_3d<float> *mpA0 = nullptr;
+	grille_dense_3d<float> *mpAi = nullptr;
+	grille_dense_3d<float> *mpAj = nullptr;
+	grille_dense_3d<float> *mpAk = nullptr;
 
 	//! preconditioning grids
-	Grille<float> *mpPCA0 = nullptr;
-	Grille<float> *mpPCAi = nullptr;
-	Grille<float> *mpPCAj = nullptr;
-	Grille<float> *mpPCAk = nullptr;
+	grille_dense_3d<float> *mpPCA0 = nullptr;
+	grille_dense_3d<float> *mpPCAi = nullptr;
+	grille_dense_3d<float> *mpPCAj = nullptr;
+	grille_dense_3d<float> *mpPCAk = nullptr;
 	GridMg* mMG = nullptr;
 
 	PreconditionType mPcMethod{};
@@ -142,5 +142,5 @@ protected:
 
 //! Kernel: Apply symmetric stored Matrix
 
-void ApplyMatrix (const Grille<int>& flags, Grille<float>& dst, const Grille<float>& src,
-				  Grille<float>& A0, Grille<float>& Ai, Grille<float>& Aj, Grille<float>& Ak);
+void ApplyMatrix (const grille_dense_3d<int>& flags, grille_dense_3d<float>& dst, const grille_dense_3d<float>& src,
+				  grille_dense_3d<float>& A0, grille_dense_3d<float>& Ai, grille_dense_3d<float>& Aj, grille_dense_3d<float>& Ak);

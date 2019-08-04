@@ -40,11 +40,11 @@ namespace psn {
 template <typename T>
 auto advection_semi_lagrange(
 		GrilleMAC &vel,
-		Grille<T> &fwd,
-		Grille<T> const &orig,
+		grille_dense_3d<T> &fwd,
+		grille_dense_3d<T> const &orig,
 		float dt)
 {
-	auto res = orig.resolution();
+	auto res = orig.desc().resolution;
 	auto echant = Echantilloneuse(orig);
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z),
@@ -86,14 +86,14 @@ auto advection_semi_lagrange(
 //! Kernel: Correct based on forward and backward SL steps (for both centered & mac grids)
 template<class T>
 void MacCormackCorrect(
-		const Grille<int>& flags,
-		Grille<T>& dst,
-		const Grille<T>& old,
-		const Grille<T>& fwd,
-		const Grille<T>& bwd,
+		const grille_dense_3d<int>& flags,
+		grille_dense_3d<T>& dst,
+		const grille_dense_3d<T>& old,
+		const grille_dense_3d<T>& fwd,
+		const grille_dense_3d<T>& bwd,
 		float strength)
 {
-	for (auto idx = 0; idx < flags.nombre_voxels(); ++idx) {
+	for (auto idx = 0; idx < flags.nombre_elements(); ++idx) {
 		dst.valeur(idx) = fwd.valeur(idx);
 
 		if (est_fluide(flags, idx)) {
@@ -103,14 +103,14 @@ void MacCormackCorrect(
 	}
 }
 
-#define checkFlag(x,y,z) (flags.valeur((x),(y),(z)) & (TypeFluid|TypeVide))
+#define checkFlag(x,y,z) (flags.valeur(dls::math::vec3i((x),(y),(z))) & (TypeFluid|TypeVide))
 
 template<class T>
 inline T doClampComponent(
 		const dls::math::vec3i& gridSize,
-		const Grille<int>& flags,
+		const grille_dense_3d<int>& flags,
 		T dst,
-		const Grille<T>& orig,
+		const grille_dense_3d<T>& orig,
 		const T fwd,
 		const dls::math::vec3f& pos,
 		const dls::math::vec3f& vel,
@@ -139,15 +139,15 @@ inline T doClampComponent(
 		const int i1 = i0+1, j1 = j0+1, k1= (k0+1);
 
 		// find min/max around source pos
-		if(checkFlag(i0,j0,k0)) { dls::math::extrait_min_max(orig.valeur(i0,j0,k0), minv, maxv);  haveFl=true; }
-		if(checkFlag(i1,j0,k0)) { dls::math::extrait_min_max(orig.valeur(i1,j0,k0), minv, maxv);  haveFl=true; }
-		if(checkFlag(i0,j1,k0)) { dls::math::extrait_min_max(orig.valeur(i0,j1,k0), minv, maxv);  haveFl=true; }
-		if(checkFlag(i1,j1,k0)) { dls::math::extrait_min_max(orig.valeur(i1,j1,k0), minv, maxv);  haveFl=true; }
+		if(checkFlag(i0,j0,k0)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i0,j0,k0)), minv, maxv);  haveFl=true; }
+		if(checkFlag(i1,j0,k0)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i1,j0,k0)), minv, maxv);  haveFl=true; }
+		if(checkFlag(i0,j1,k0)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i0,j1,k0)), minv, maxv);  haveFl=true; }
+		if(checkFlag(i1,j1,k0)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i1,j1,k0)), minv, maxv);  haveFl=true; }
 
-		if(checkFlag(i0,j0,k1)) { dls::math::extrait_min_max(orig.valeur(i0,j0,k1), minv, maxv); haveFl=true; }
-		if(checkFlag(i1,j0,k1)) { dls::math::extrait_min_max(orig.valeur(i1,j0,k1), minv, maxv); haveFl=true; }
-		if(checkFlag(i0,j1,k1)) { dls::math::extrait_min_max(orig.valeur(i0,j1,k1), minv, maxv); haveFl=true; }
-		if(checkFlag(i1,j1,k1)) { dls::math::extrait_min_max(orig.valeur(i1,j1,k1), minv, maxv); haveFl=true; }
+		if(checkFlag(i0,j0,k1)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i0,j0,k1)), minv, maxv); haveFl=true; }
+		if(checkFlag(i1,j0,k1)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i1,j0,k1)), minv, maxv); haveFl=true; }
+		if(checkFlag(i0,j1,k1)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i0,j1,k1)), minv, maxv); haveFl=true; }
+		if(checkFlag(i1,j1,k1)) { dls::math::extrait_min_max(orig.valeur(dls::math::vec3i(i1,j1,k1)), minv, maxv); haveFl=true; }
 	}
 
 	if(!haveFl) return fwd;
@@ -161,15 +161,15 @@ inline T doClampComponent(
 
 template <typename T>
 auto restriction_maccormarck(
-		const Grille<int>& flags,
+		const grille_dense_3d<int>& flags,
 		const GrilleMAC& vel,
-		Grille<T>& dst,
-		const Grille<T>& orig,
-		const Grille<T>& fwd,
+		grille_dense_3d<T>& dst,
+		const grille_dense_3d<T>& orig,
+		const grille_dense_3d<T>& fwd,
 		float dt,
 		const int clampMode)
 {
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -182,6 +182,7 @@ auto restriction_maccormarck(
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
+			auto idx = dst.calcul_index(pos_iter);
 
 			auto i = pos_iter.x;
 			auto j = pos_iter.y;
@@ -189,10 +190,10 @@ auto restriction_maccormarck(
 
 			auto pos_cont = dls::math::vec3f(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k));
 
-			auto dval       = dst.valeur(i,j,k);
-			auto gridUpper  = flags.resolution() - dls::math::vec3i(1);
+			auto dval       = dst.valeur(idx);
+			auto gridUpper  = flags.desc().resolution - dls::math::vec3i(1);
 
-			dval = doClampComponent<T>(gridUpper, flags, dval, orig, fwd.valeur(i,j,k), pos_cont, vel.valeur_centree(pos_iter) * dt, clampMode );
+			dval = doClampComponent<T>(gridUpper, flags, dval, orig, fwd.valeur(idx), pos_cont, vel.valeur_centree(pos_iter) * dt, clampMode );
 
 			if (clampMode == 1) {
 				// lookup forward/backward , round to closest NB
@@ -206,25 +207,25 @@ auto restriction_maccormarck(
 					posBwd.x > gridUpper.x || posBwd.y > gridUpper.y || ((posBwd.z > gridUpper.z)) ||
 					est_obstacle(flags, posFwd.x, posFwd.y, posFwd.z) || est_obstacle(flags, posBwd.x, posBwd.y, posBwd.z) )
 				{
-					dval = fwd.valeur(i,j,k);
+					dval = fwd.valeur(idx);
 				}
 			}
 			// clampMode 2 handles flags in doClampComponent call
 
-			dst.valeur(i,j,k) = dval;
+			dst.valeur(idx) = dval;
 		}
 	});
 }
 
 template <typename T>
 auto advecte_semi_lagrange(
-		Grille<int> &flags,
+		grille_dense_3d<int> &flags,
 		GrilleMAC &vel,
-		Grille<T> &orig,
+		grille_dense_3d<T> &orig,
 		float dt,
 		int order)
 {
-	auto fwd = Grille<T>(orig.desc());
+	auto fwd = grille_dense_3d<T>(orig.desc());
 
 	advection_semi_lagrange(vel, fwd, orig, dt);
 
@@ -233,8 +234,8 @@ auto advecte_semi_lagrange(
 	}
 	/* MacCormack */
 	else if (order == 2) {
-		auto bwd = Grille<T>(orig.desc());
-		auto newGrid = Grille<T>(orig.desc());
+		auto bwd = grille_dense_3d<T>(orig.desc());
+		auto newGrid = grille_dense_3d<T>(orig.desc());
 
 		// bwd <- backwards step
 		advection_semi_lagrange(vel, bwd, fwd, -dt/*, levelset, orderSpace*/);
@@ -250,15 +251,15 @@ auto advecte_semi_lagrange(
 }
 
 void ajoute_flottance(
-		Grille<float> &density,
+		grille_dense_3d<float> &density,
 		GrilleMAC &vel,
-		Grille<int> &flags,
+		grille_dense_3d<int> &flags,
 		dls::math::vec3f const &gravity,
 		float dt,
 		float coefficient);
 
 void ajourne_conditions_bordures_murs(
-		Grille<int> &flags,
+		grille_dense_3d<int> &flags,
 		GrilleMAC &vel);
 
 }  /* namespace psn */

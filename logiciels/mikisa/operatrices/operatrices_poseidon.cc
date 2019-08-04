@@ -362,9 +362,9 @@ public:
 /* ************************************************************************** */
 
 template <typename T>
-auto est_vide(Grille<T> const &grille)
+auto est_vide(grille_dense_3d<T> const &grille)
 {
-	for (auto i = 0; i < grille.nombre_voxels(); ++i) {
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
 		if (grille.valeur(i) != T(0)) {
 			return false;
 		}
@@ -415,15 +415,17 @@ void transfere_particules_grille(Poseidon &poseidon)
 {
 	auto densite = poseidon.densite;
 	auto &grille_particules = poseidon.grille_particule;
-	grille_particules = GrilleParticule(densite->desc());
+	auto desc = densite->desc();
+	desc.type_donnees = type_grille::Z32;
+	grille_particules = GrilleParticule(desc);
 	grille_particules.tri(poseidon.particules);
 
-	for (auto i = 0; i < densite->nombre_voxels(); ++i) {
+	for (auto i = 0; i < densite->nombre_elements(); ++i) {
 		densite->valeur(i) = 0.0f;
 	}
 
-	auto dx_inv = 1.0f / densite->taille_voxel();
-	auto res = densite->resolution();
+	auto dx_inv = static_cast<float>(1.0 / densite->desc().taille_voxel);
+	auto res = densite->desc().resolution;
 
 	using type_kernel = KernelBSP2;
 
@@ -457,7 +459,7 @@ void transfere_particules_grille(Poseidon &poseidon)
 				valeur /= poids;
 			}
 
-			densite->valeur(pos_index.x, pos_index.y, pos_index.z) = valeur;
+			densite->valeur(pos_index) = valeur;
 		}
 	});
 }
@@ -466,7 +468,7 @@ auto calcul_vel_max(GrilleMAC const &vel)
 {
 	auto vel_max = 0.0f;
 
-	for (auto i = 0; i < vel.nombre_voxels(); ++i) {
+	for (auto i = 0; i < vel.nombre_elements(); ++i) {
 		vel_max = std::max(vel_max, longueur(vel.valeur(i)));
 	}
 
@@ -631,8 +633,8 @@ public:
 		volume->grille = m_poseidon.densite->copie();
 
 		/* visualise domaine */
-		auto etendu = m_poseidon.densite->etendue();
-		auto taille_voxel = m_poseidon.densite->taille_voxel();
+		auto etendu = m_poseidon.densite->desc().etendue;
+		auto taille_voxel = static_cast<float>(m_poseidon.densite->desc().taille_voxel);
 
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
@@ -685,20 +687,23 @@ public:
 		auto res = evalue_entier("résolution");
 		m_poseidon.resolution = res;
 
-		auto desc = description_volume{};
+		auto desc = desc_grille_3d{};
 		desc.etendue.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
 		desc.etendue.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
 		desc.fenetre_donnees = desc.etendue;
-		desc.taille_voxel = 10.0f / static_cast<float>(res);
+		desc.taille_voxel = 10.0 / static_cast<double>(res);
+		desc.type_donnees = type_grille::R32;
 
-		m_poseidon.densite = memoire::loge<Grille<float>>("grilles", desc);
+		m_poseidon.densite = memoire::loge<grille_dense_3d<float>>("grilles", desc);
 
 		if (m_poseidon.decouple) {
-			desc.taille_voxel *= 2.0f;
+			desc.taille_voxel *= 2.0;
 		}
 
-		m_poseidon.pression = memoire::loge<Grille<float>>("grilles", desc);
-		m_poseidon.drapeaux = memoire::loge<Grille<int>>("grilles", desc);
+		m_poseidon.pression = memoire::loge<grille_dense_3d<float>>("grilles", desc);
+		m_poseidon.drapeaux = memoire::loge<grille_dense_3d<int>>("grilles", desc);
+
+		desc.type_donnees = type_grille::VEC3;
 		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", desc);
 	}
 
@@ -788,7 +793,7 @@ public:
 
 		/* advecte particules */
 		auto echant = Echantilloneuse(*velocite);
-		auto mult = poseidon_gaz->dt * velocite->taille_voxel();
+		auto mult = poseidon_gaz->dt * static_cast<float>(velocite->desc().taille_voxel);
 		tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
 						  [&](long i)
 		{
@@ -867,11 +872,11 @@ public:
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
-		auto densite_basse = Grille<float>();
+		auto densite_basse = grille_dense_3d<float>();
 
 		if (poseidon_gaz->decouple) {
 			/* rééchantillone la densité pour être alignée avec la vélocité */
-			densite_basse = reechantillonne(*densite, velocite->taille_voxel());
+			densite_basse = reechantillonne(*densite, velocite->desc().taille_voxel);
 			densite = &densite_basse;
 		}
 

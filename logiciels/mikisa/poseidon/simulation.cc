@@ -27,17 +27,21 @@
 namespace psn {
 
 void ajoute_flottance(
-		Grille<float> &density,
+		grille_dense_3d<float> &density,
 		GrilleMAC &vel,
-		Grille<int> &flags,
+		grille_dense_3d<int> &flags,
 		dls::math::vec3f const &gravity,
 		float dt,
 		float coefficient)
 {
-	auto dx = density.taille_voxel();
+	auto dx = static_cast<float>(density.desc().taille_voxel);
 	auto f = -gravity * dt / dx * coefficient;
 
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
+
+	auto const dalle_x = 1;
+	auto const dalle_y = res.x;
+	auto const dalle_z = res.x * res.y;
 
 	boucle_parallele(tbb::blocked_range<int>(1, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -50,34 +54,36 @@ void ajoute_flottance(
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
-			auto i = pos_iter.x;
-			auto j = pos_iter.y;
-			auto k = pos_iter.z;
+			auto idx = flags.calcul_index(pos_iter);
 
-			if (flags.valeur(i, j, k) != TypeFluid) {
+			if (flags.valeur(idx) != TypeFluid) {
 				continue;
 			}
 
-			auto &v = vel.valeur(i, j, k);
+			auto &v = vel.valeur(idx);
 
-			if (flags.valeur(i - 1, j, k) == TypeFluid) {
-				v.x += (0.5f * f.x) * (density.valeur(i, j, k) + density.valeur(i - 1, j, k));
+			if (flags.valeur(idx - dalle_x) == TypeFluid) {
+				v.x += (0.5f * f.x) * (density.valeur(idx) + density.valeur(idx - dalle_x));
 			}
 
-			if (flags.valeur(i, j - 1, k) == TypeFluid) {
-				v.y += (0.5f * f.y) * (density.valeur(i, j, k) + density.valeur(i, j - 1, k));
+			if (flags.valeur(idx - dalle_y) == TypeFluid) {
+				v.y += (0.5f * f.y) * (density.valeur(idx) + density.valeur(idx - dalle_y));
 			}
 
-			if (flags.valeur(i, j, k - 1) == TypeFluid) {
-				v.z += (0.5f * f.z) * (density.valeur(i, j, k) + density.valeur(i, j, k - 1));
+			if (flags.valeur(idx - dalle_z) == TypeFluid) {
+				v.z += (0.5f * f.z) * (density.valeur(idx) + density.valeur(idx - dalle_z));
 			}
 		}
 	});
 }
 
-void ajourne_conditions_bordures_murs(Grille<int> &flags, GrilleMAC &vel)
+void ajourne_conditions_bordures_murs(grille_dense_3d<int> &flags, GrilleMAC &vel)
 {
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
+
+	auto const dalle_x = 1;
+	auto const dalle_y = res.x;
+	auto const dalle_z = res.x * res.y;
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -90,12 +96,13 @@ void ajourne_conditions_bordures_murs(Grille<int> &flags, GrilleMAC &vel)
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
+			auto idx = flags.calcul_index(pos_iter);
 			auto i = pos_iter.x;
 			auto j = pos_iter.y;
 			auto k = pos_iter.z;
 
-			auto curFluid = flags.valeur(i, j, k) == TypeFluid;
-			auto curObs   = flags.valeur(i, j, k) == TypeObstacle;
+			auto curFluid = flags.valeur(idx) == TypeFluid;
+			auto curObs   = flags.valeur(idx) == TypeObstacle;
 			auto bcsVel = dls::math::vec3f(0.0f, 0.0f, 0.0f);
 
 			if (!curFluid && !curObs) {
@@ -103,47 +110,47 @@ void ajourne_conditions_bordures_murs(Grille<int> &flags, GrilleMAC &vel)
 			}
 
 			//	if (obvel) {
-			//		bcsVel.x = (*obvel)(i,j,k).x;
-			//		bcsVel.y = (*obvel)(i,j,k).y;
-			//		if((*obvel).is3D()) bcsVel.z = (*obvel)(i,j,k).z;
+			//		bcsVel.x = (*obvel)(idx).x;
+			//		bcsVel.y = (*obvel)(idx).y;
+			//		if((*obvel).is3D()) bcsVel.z = (*obvel)(idx).z;
 			//	}
 
 			// we use i>0 instead of bnd=1 to check outer wall
-			if (i > 0 && flags.valeur(i-1,j,k) == TypeObstacle) {
-				vel.valeur(i,j,k).x = bcsVel.x;
+			if (i > 0 && flags.valeur(idx - dalle_x) == TypeObstacle) {
+				vel.valeur(idx).x = bcsVel.x;
 			}
 
-			if (i > 0 && curObs && flags.valeur(i-1,j,k) == TypeFluid) {
-				vel.valeur(i,j,k).x = bcsVel.x;
+			if (i > 0 && curObs && flags.valeur(idx - dalle_x) == TypeFluid) {
+				vel.valeur(idx).x = bcsVel.x;
 			}
 
-			if (j > 0 && flags.valeur(i,j-1,k) == TypeObstacle) {
-				vel.valeur(i,j,k).y = bcsVel.y;
+			if (j > 0 && flags.valeur(idx - dalle_y) == TypeObstacle) {
+				vel.valeur(idx).y = bcsVel.y;
 			}
 
-			if (j > 0 && curObs && flags.valeur(i,j-1,k) == TypeFluid) {
-				vel.valeur(i,j,k).y = bcsVel.y;
+			if (j > 0 && curObs && flags.valeur(idx - dalle_y) == TypeFluid) {
+				vel.valeur(idx).y = bcsVel.y;
 			}
 
-			if (k > 0 && flags.valeur(i,j,k-1) == TypeObstacle) {
-				vel.valeur(i,j,k).z = bcsVel.z;
+			if (k > 0 && flags.valeur(idx - dalle_z) == TypeObstacle) {
+				vel.valeur(idx).z = bcsVel.z;
 			}
 
-			if (k > 0 && curObs && flags.valeur(i,j,k-1) == TypeFluid) {
-				vel.valeur(i,j,k).z = bcsVel.z;
+			if (k > 0 && curObs && flags.valeur(idx - dalle_z) == TypeFluid) {
+				vel.valeur(idx).z = bcsVel.z;
 			}
 
 			if (curFluid) {
-				if ((i > 0 && flags.valeur(i - 1, j, k) == TypeStick) || (i < (res.x - 1) && flags.valeur(i+1,j,k) == TypeStick)) {
-					vel.valeur(i,j,k).y = vel.valeur(i,j,k).z = 0.0f;
+				if ((i > 0 && flags.valeur(idx - dalle_x) == TypeStick) || (i < (res.x - 1) && flags.valeur(idx + dalle_x) == TypeStick)) {
+					vel.valeur(idx).y = vel.valeur(idx).z = 0.0f;
 				}
 
-				if ((j > 0 && flags.valeur(i, j - 1, k) == TypeStick) || (j < (res.y - 1) && flags.valeur(i,j+1,k) == TypeStick)) {
-					vel.valeur(i,j,k).x = vel.valeur(i,j,k).z = 0.0f;
+				if ((j > 0 && flags.valeur(idx - dalle_y) == TypeStick) || (j < (res.y - 1) && flags.valeur(idx + dalle_y) == TypeStick)) {
+					vel.valeur(idx).x = vel.valeur(idx).z = 0.0f;
 				}
 
-				if ((k > 0 && flags.valeur(i, j, k - 1) == TypeStick) || (k < (res.z - 1) && flags.valeur(i,j,k+1) == TypeStick)) {
-					vel.valeur(i,j,k).x = vel.valeur(i,j,k).y = 0.0f;
+				if ((k > 0 && flags.valeur(idx - dalle_z) == TypeStick) || (k < (res.z - 1) && flags.valeur(idx + dalle_z) == TypeStick)) {
+					vel.valeur(idx).x = vel.valeur(idx).y = 0.0f;
 				}
 			}
 		}

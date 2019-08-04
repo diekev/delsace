@@ -28,129 +28,19 @@
 
 /* ************************************************************************** */
 
-type_primitive Volume::type_prim() const
+template <typename T>
+static auto deloge_grille_impl(base_grille_3d *&grille)
 {
-	return type_primitive::VOLUME;
-}
-
-long BaseGrille::calcul_index(long x, long y, long z) const
-{
-	return x + (y + z * m_desc.resolution[1]) * m_desc.resolution[0];
-}
-
-long BaseGrille::nombre_voxels() const
-{
-	return m_nombre_voxels;
-}
-
-bool BaseGrille::hors_des_limites(long x, long y, long z) const
-{
-	if (x >= m_desc.resolution[0]) {
-		return true;
+	if (!grille->est_eparse()) {
+		auto ptr = dynamic_cast<grille_dense_3d<T> *>(grille);
+		memoire::deloge("grille", ptr);
+	}
+	else {
+		auto ptr = dynamic_cast<grille_eparse<T> *>(grille);
+		memoire::deloge("grille_eparse", ptr);
 	}
 
-	if (y >= m_desc.resolution[1]) {
-		return true;
-	}
-
-	if (z >= m_desc.resolution[2]) {
-		return true;
-	}
-
-	return false;
-}
-
-BaseGrille::BaseGrille(description_volume const &descr)
-	: m_desc(descr)
-{
-	auto taille = m_desc.etendue.taille();
-	m_desc.resolution[0] = static_cast<int>(taille.x / m_desc.taille_voxel);
-	m_desc.resolution[1] = static_cast<int>(taille.y / m_desc.taille_voxel);
-	m_desc.resolution[2] = static_cast<int>(taille.z / m_desc.taille_voxel);
-
-	m_nombre_voxels = static_cast<long>(m_desc.resolution[0]) * static_cast<long>(m_desc.resolution[1]) * static_cast<long>(m_desc.resolution[2]);
-}
-
-dls::math::vec3f BaseGrille::index_vers_unit(const dls::math::vec3i &vsp) const
-{
-	auto p = dls::math::discret_vers_continu<float>(vsp);
-	return index_vers_unit(p);
-}
-
-dls::math::vec3f BaseGrille::index_vers_unit(const dls::math::vec3f &vsp) const
-{
-	return dls::math::vec3f(
-				vsp.x / static_cast<float>(m_desc.resolution.x),
-				vsp.y / static_cast<float>(m_desc.resolution.y),
-				vsp.z / static_cast<float>(m_desc.resolution.z));
-}
-
-dls::math::vec3f BaseGrille::index_vers_monde(const dls::math::vec3i &isp) const
-{
-	auto const dim = etendue().taille();
-	auto const min = etendue().min;
-	auto const cont = dls::math::discret_vers_continu<float>(isp);
-	return dls::math::vec3f(
-				cont.x / static_cast<float>(m_desc.resolution.x) * dim.x + min.x,
-				cont.y / static_cast<float>(m_desc.resolution.y) * dim.y + min.y,
-				cont.z / static_cast<float>(m_desc.resolution.z) * dim.z + min.z);
-}
-
-dls::math::vec3f BaseGrille::unit_vers_monde(const dls::math::vec3f &vsp) const
-{
-	return vsp * etendue().taille() + etendue().min;
-}
-
-dls::math::vec3f BaseGrille::monde_vers_unit(const dls::math::vec3f &wsp) const
-{
-	return (wsp - etendue().min) / etendue().taille();
-}
-
-dls::math::vec3f BaseGrille::monde_vers_continu(const dls::math::vec3f &wsp) const
-{
-	return monde_vers_unit(wsp) * dls::math::vec3f(
-				static_cast<float>(m_desc.resolution.x),
-				static_cast<float>(m_desc.resolution.y),
-				static_cast<float>(m_desc.resolution.z));
-}
-
-dls::math::vec3i BaseGrille::monde_vers_index(const dls::math::vec3f &wsp) const
-{
-	auto mnd = monde_vers_continu(wsp);
-	return dls::math::vec3i(
-				static_cast<int>(mnd.x),
-				static_cast<int>(mnd.y),
-				static_cast<int>(mnd.z));
-}
-
-dls::math::vec3f BaseGrille::continu_vers_monde(const dls::math::vec3f &csp) const
-{
-	return (csp / etendue().taille()) + etendue().min;
-}
-
-const description_volume &BaseGrille::desc() const
-{
-	return m_desc;
-}
-
-dls::math::vec3i BaseGrille::resolution() const
-{
-	return m_desc.resolution;
-}
-
-const limites3f &BaseGrille::etendue() const
-{
-	return m_desc.etendue;
-}
-
-const limites3f &BaseGrille::fenetre_donnees() const
-{
-	return m_desc.fenetre_donnees;
-}
-
-float BaseGrille::taille_voxel() const
-{
-	return m_desc.taille_voxel;
+	grille = nullptr;
 }
 
 /* ************************************************************************** */
@@ -161,32 +51,43 @@ Volume::~Volume()
 		return;
 	}
 
-	switch (grille->type()) {
-		case type_volume::SCALAIRE:
-		{
-			if (!grille->est_eparse()) {
-				auto ptr = dynamic_cast<Grille<float> *>(grille);
-				memoire::deloge("grille", ptr);
-			}
-			else {
-				auto ptr = dynamic_cast<grille_eparse<float> *>(grille);
-				memoire::deloge("grille_eparse", ptr);
-			}
+	auto const &desc = grille->desc();
 
+	switch (desc.type_donnees) {
+		case type_grille::Z8:
+		{
+			deloge_grille_impl<char>(grille);
 			break;
 		}
-		case type_volume::VECTOR:
+		case type_grille::Z32:
 		{
-			if (!grille->est_eparse()) {
-				auto ptr = dynamic_cast<Grille<dls::math::vec3f> *>(grille);
-				memoire::deloge("grille", ptr);
-			}
-			else {
-				auto ptr = dynamic_cast<grille_eparse<dls::math::vec3f> *>(grille);
-				memoire::deloge("grille_eparse", ptr);
-			}
-
+			deloge_grille_impl<int>(grille);
+			break;
+		}
+		case type_grille::R32:
+		{
+			deloge_grille_impl<float>(grille);
+			break;
+		}
+		case type_grille::R64:
+		{
+			deloge_grille_impl<double>(grille);
+			break;
+		}
+		case type_grille::VEC2:
+		{
+			deloge_grille_impl<dls::math::vec2f>(grille);
+			break;
+		}
+		case type_grille::VEC3:
+		{
+			deloge_grille_impl<dls::math::vec3f>(grille);
 			break;
 		}
 	}
+}
+
+type_primitive Volume::type_prim() const
+{
+	return type_primitive::VOLUME;
 }

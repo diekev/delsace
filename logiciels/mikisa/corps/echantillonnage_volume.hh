@@ -37,14 +37,14 @@
 template <typename T>
 struct Rasteriseur {
 private:
-	Grille<T> &m_grille;
+	grille_dense_3d<T> &m_grille;
 
 public:
-	explicit Rasteriseur(Grille<T> &grille)
+	explicit Rasteriseur(grille_dense_3d<T> &grille)
 		: m_grille(grille)
 	{}
 
-	Grille<T> const &grille() const
+	grille_dense_3d<T> const &grille() const
 	{
 		return m_grille;
 	}
@@ -85,17 +85,22 @@ public:
 		auto fraction = dls::math::vec3f(1.0f) - (dls::math::vec3f(static_cast<float>(c.x) + 1.0f, static_cast<float>(c.y) + 1.0f, static_cast<float>(c.z) + 1.0f) - p);
 
 		/* Boucle sur les 8 voxels et distribue la valeur. */
+		auto cur = dls::math::vec3i();
+
 		for (int k = 0; k < 2; ++k) {
 			fraction[2] = 1.0f - fraction[2];
+			cur.z = c.z + k;
 
 			for (int j = 0; j < 2; ++j) {
 				fraction[1] = 1.0f - fraction[1];
+				cur.y = c.y + j;
 
 				for (int i = 0; i < 2; ++i) {
 					fraction[0] = 1.0f - fraction[0];
+					cur.x = c.x + i;
 
 					auto poids = fraction[0] * fraction[1] * fraction[2];
-					m_grille.valeur(static_cast<size_t>(c.x + i), static_cast<size_t>(c.y + j), static_cast<size_t>(c.z + k)) += valeur * poids;
+					m_grille.valeur(cur) += valeur * poids;
 				}
 			}
 		}
@@ -120,10 +125,10 @@ public:
 template <typename T>
 struct Echantilloneuse {
 private:
-	Grille<T> const &m_grille;
+	grille_dense_3d<T> const &m_grille;
 
 public:
-	explicit Echantilloneuse(Grille<T> const &grille)
+	explicit Echantilloneuse(grille_dense_3d<T> const &grille)
 		: m_grille(grille)
 	{}
 
@@ -140,19 +145,21 @@ public:
 		float poids[3];
 		auto valeur = static_cast<T>(0.0);
 
+		auto cur = dls::math::vec3i();
+
 		for (int i = 0; i < 2; ++i) {
-			int cur_x = c[0] + i;
-			poids[0] = 1.0f - std::abs(p[0] - static_cast<float>(cur_x));
+			cur.x = c[0] + i;
+			poids[0] = 1.0f - std::abs(p[0] - static_cast<float>(cur.x));
 
 			for (int j = 0; j < 2; ++j) {
-				int cur_y = c[1] + j;
-				poids[1] = 1.0f - std::abs(p[1] - static_cast<float>(cur_y));
+				cur.y  = c[1] + j;
+				poids[1] = 1.0f - std::abs(p[1] - static_cast<float>(cur.y));
 
 				for (int k = 0; k < 2; ++k) {
-					int cur_z = c[2] + k;
-					poids[2] = 1.0f - std::abs(p[2] - static_cast<float>(cur_z));
+					cur.z = c[2] + k;
+					poids[2] = 1.0f - std::abs(p[2] - static_cast<float>(cur.z));
 
-					valeur += poids[0] * poids[1] * poids[2] * m_grille.valeur(static_cast<size_t>(cur_x), static_cast<size_t>(cur_y), static_cast<size_t>(cur_z));
+					valeur += poids[0] * poids[1] * poids[2] * m_grille.valeur(cur);
 				}
 			}
 		}
@@ -165,15 +172,15 @@ public:
 
 template <typename T>
 auto reechantillonne(
-		Grille<T> const &entree,
-		float taille_voxel)
+		grille_dense_3d<T> const &entree,
+		double taille_voxel)
 {
 	auto desc = entree.desc();
 	desc.taille_voxel = taille_voxel;
 
-	auto resultat = Grille<T>(desc);
-	auto res = resultat.resolution();
-	auto res0 = entree.resolution();
+	auto resultat = grille_dense_3d<T>(desc);
+	auto res = resultat.desc().resolution;
+	auto res0 = entree.desc().resolution;
 
 	for (auto z = 0; z < res.z; ++z) {
 		for (auto y = 0; y < res.y; ++y) {

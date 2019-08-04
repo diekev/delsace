@@ -60,9 +60,9 @@ struct Monde {
 struct Poseidon {
 	Monde monde{};
 
-	Grille<int> *drapeaux = nullptr;
-	Grille<float> *densite = nullptr;
-	Grille<float> *pression = nullptr;
+	grille_dense_3d<int> *drapeaux = nullptr;
+	grille_dense_3d<float> *densite = nullptr;
+	grille_dense_3d<float> *pression = nullptr;
 	GrilleMAC *velocite = nullptr;
 
 	bruit_vaguelette bruit{};
@@ -92,6 +92,6 @@ void ajourne_sources(Poseidon &poseidon, int temps);
 
 void ajourne_obstables(Poseidon &poseidon);
 
-void fill_grid(Grille<int> &flags, int type);
+void fill_grid(grille_dense_3d<int> &flags, int type);
 
 }  /* namespace psn */

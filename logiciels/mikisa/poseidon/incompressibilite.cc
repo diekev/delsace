@@ -99,7 +99,7 @@ inline static auto thetaHelper(float inside, float outside)
 }
 
 // calculate ghost fluid factor, cell at idx should be a fluid cell
-inline static auto ghostFluidHelper(long idx, int offset, const Grille<float> &phi, float gfClamp)
+inline static auto ghostFluidHelper(long idx, int offset, const grille_dense_3d<float> &phi, float gfClamp)
 {
 	auto alpha = thetaHelper(phi.valeur(idx), phi.valeur(idx + offset));
 
@@ -110,28 +110,28 @@ inline static auto ghostFluidHelper(long idx, int offset, const Grille<float> &p
 	return (1.0f - (1.0f / alpha));
 }
 
-inline static auto surfTensHelper(const long idx, const int offset, const Grille<float> &phi, const Grille<float> &curv, const float surfTens, const float gfClamp)
+inline static auto surfTensHelper(const long idx, const int offset, const grille_dense_3d<float> &phi, const grille_dense_3d<float> &curv, const float surfTens, const float gfClamp)
 {
 	return surfTens*(curv.valeur(idx + offset) - ghostFluidHelper(idx, offset, phi, gfClamp) * curv.valeur(idx));
 }
 
 //! Compute rhs for pressure solve
 static auto computePressureRhs(
-		Grille<float>& rhs,
+		grille_dense_3d<float>& rhs,
 		const GrilleMAC& vel,
-		const Grille<int>& flags,
-		const Grille<float>* phi = nullptr,
-		const Grille<float>* perCellCorr = nullptr,
+		const grille_dense_3d<int>& flags,
+		const grille_dense_3d<float>* phi = nullptr,
+		const grille_dense_3d<float>* perCellCorr = nullptr,
 		const GrilleMAC* fractions = nullptr,
 		float gfClamp = 1e-04f,
 		bool enforceCompatibility = false,
-		const Grille<float> *curv = nullptr,
+		const grille_dense_3d<float> *curv = nullptr,
 		const float surfTens = 0.0f )
 {
 	std::cerr << __func__ << '\n';
 
 	// compute divergence and init right hand side
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
@@ -217,9 +217,9 @@ static auto computePressureRhs(
 	}
 }
 
-static auto compte_cellules_vides(Grille<int> const &drapeaux)
+static auto compte_cellules_vides(grille_dense_3d<int> const &drapeaux)
 {
-	auto res = drapeaux.resolution();
+	auto res = drapeaux.desc().resolution;
 
 	auto nombre_voxels = static_cast<long>(res.x * res.y * res.z);
 
@@ -237,15 +237,15 @@ static auto compte_cellules_vides(Grille<int> const &drapeaux)
 static auto fixPressure(
 		int fixPidx,
 		float value,
-		Grille<float>& rhs,
-		Grille<float>& A0,
-		Grille<float>& Ai,
-		Grille<float>& Aj,
-		Grille<float>& Ak)
+		grille_dense_3d<float>& rhs,
+		grille_dense_3d<float>& A0,
+		grille_dense_3d<float>& Ai,
+		grille_dense_3d<float>& Aj,
+		grille_dense_3d<float>& Ak)
 {
 	auto fix_p_idx = static_cast<long>(fixPidx);
 
-	auto res = rhs.resolution();
+	auto res = rhs.desc().resolution;
 	auto stride_x = 1l;
 	auto stride_y = static_cast<long>(res.x);
 	auto stride_z = static_cast<long>(res.x * res.y);
@@ -268,16 +268,16 @@ static auto fixPressure(
 }
 
 static auto MakeLaplaceMatrix(
-		Grille<int> const &flags,
-		Grille<float>& A0,
-		Grille<float>& Ai,
-		Grille<float>& Aj,
-		Grille<float>& Ak,
+		grille_dense_3d<int> const &flags,
+		grille_dense_3d<float>& A0,
+		grille_dense_3d<float>& Ai,
+		grille_dense_3d<float>& Aj,
+		grille_dense_3d<float>& Ak,
 		const GrilleMAC* fractions = nullptr)
 {
 	std::cerr << __func__ << '\n';
 
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(1);
 	limites.max = res - dls::math::vec3i(1);
@@ -359,11 +359,11 @@ static auto MakeLaplaceMatrix(
 }
 
 static auto solvePressureSystem(
-		Grille<float>& rhs,
-		Grille<float>& pressure,
-		const Grille<int>& flags,
+		grille_dense_3d<float>& rhs,
+		grille_dense_3d<float>& pressure,
+		const grille_dense_3d<int>& flags,
 		float cgAccuracy = 1e-3f,
-		const Grille<float>* phi = nullptr,
+		const grille_dense_3d<float>* phi = nullptr,
 		const GrilleMAC* fractions = nullptr,
 		float gfClamp = 1e-04f,
 		float cgMaxIterFac = 1.5f,
@@ -374,13 +374,13 @@ static auto solvePressureSystem(
 	std::cerr << __func__ << '\n';
 
 	// reserve temp grids
-	Grille<float> residual(rhs.desc());
-	Grille<float> search(rhs.desc());
-	Grille<float> A0(rhs.desc());
-	Grille<float> Ai(rhs.desc());
-	Grille<float> Aj(rhs.desc());
-	Grille<float> Ak(rhs.desc());
-	Grille<float> tmp(rhs.desc());
+	grille_dense_3d<float> residual(rhs.desc());
+	grille_dense_3d<float> search(rhs.desc());
+	grille_dense_3d<float> A0(rhs.desc());
+	grille_dense_3d<float> Ai(rhs.desc());
+	grille_dense_3d<float> Aj(rhs.desc());
+	grille_dense_3d<float> Ak(rhs.desc());
+	grille_dense_3d<float> tmp(rhs.desc());
 
 	// setup matrix and boundaries
 	MakeLaplaceMatrix(flags, A0, Ai, Aj, Ak, fractions);
@@ -398,7 +398,7 @@ static auto solvePressureSystem(
 		auto fixPidx = -1;
 
 		if (numEmpty == 0) {
-			auto const res = flags.resolution();
+			auto const res = flags.desc().resolution;
 			// Determine appropriate fluid cell for pressure fixing
 			// 1) First check some preferred positions for approx. symmetric zeroPressureFixing
 			auto topCenter = dls::math::vec3i(res.x / 2, res.y - 1, res.z / 2);
@@ -457,17 +457,17 @@ static auto solvePressureSystem(
 
 	int maxIter = 0;
 
-	Grille<float> *pca0 = nullptr, *pca1 = nullptr, *pca2 = nullptr, *pca3 = nullptr;
+	grille_dense_3d<float> *pca0 = nullptr, *pca1 = nullptr, *pca2 = nullptr, *pca3 = nullptr;
 	GridMg* pmg = nullptr;
 
 	// optional preconditioning
 	if (preconditioner == PcNone || preconditioner == PcMIC) {
-		maxIter = static_cast<int>(cgMaxIterFac * static_cast<float>(max(flags.resolution())) * 4.0f);
+		maxIter = static_cast<int>(cgMaxIterFac * static_cast<float>(max(flags.desc().resolution)) * 4.0f);
 
-		pca0 = new Grille<float>(rhs.desc());
-		pca1 = new Grille<float>(rhs.desc());
-		pca2 = new Grille<float>(rhs.desc());
-		pca3 = new Grille<float>(rhs.desc());
+		pca0 = new grille_dense_3d<float>(rhs.desc());
+		pca1 = new grille_dense_3d<float>(rhs.desc());
+		pca2 = new grille_dense_3d<float>(rhs.desc());
+		pca3 = new grille_dense_3d<float>(rhs.desc());
 
 		gcg->setICPreconditioner( preconditioner == PcMIC ? GridCgInterface::PC_mICP : GridCgInterface::PC_None,
 			pca0, pca1, pca2, pca3);
@@ -477,7 +477,7 @@ static auto solvePressureSystem(
 
 //		pmg = gMapMG[parent];
 //		if (!pmg) {
-//			pmg = new GridMg(pressure.resolution());
+//			pmg = new GridMg(pressure.desc().resolution);
 //			gMapMG[parent] = pmg;
 //		}
 
@@ -511,9 +511,9 @@ static auto solvePressureSystem(
 	}
 }
 
-static auto knCorrectVelocity(const Grille<int>& flags, GrilleMAC& vel, const Grille<float>& pressure)
+static auto knCorrectVelocity(const grille_dense_3d<int>& flags, GrilleMAC& vel, const grille_dense_3d<float>& pressure)
 {
-	auto res = flags.resolution();
+	auto res = flags.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
@@ -580,11 +580,11 @@ static auto knCorrectVelocity(const Grille<int>& flags, GrilleMAC& vel, const Gr
 
 static auto correctVelocity(
 		GrilleMAC& vel,
-		Grille<float>& pressure,
-		const Grille<int>& flags,
-		const Grille<float>* phi = nullptr,
+		grille_dense_3d<float>& pressure,
+		const grille_dense_3d<int>& flags,
+		const grille_dense_3d<float>* phi = nullptr,
 		float gfClamp = 1e-04f,
-		const Grille<float> *curv = nullptr,
+		const grille_dense_3d<float> *curv = nullptr,
 		const float surfTens = 0.0f)
 {
 	std::cerr << __func__ << '\n';
@@ -599,11 +599,11 @@ static auto correctVelocity(
 
 static auto solvePressure(
 		GrilleMAC &vel,
-		Grille<float> &pressure,
-		Grille<int> const &flags,
+		grille_dense_3d<float> &pressure,
+		grille_dense_3d<int> const &flags,
 		float cgAccuracy = 1e-3f,
-		const Grille<float>* phi = nullptr,
-		const Grille<float>* perCellCorr = nullptr,
+		const grille_dense_3d<float>* phi = nullptr,
+		const grille_dense_3d<float>* perCellCorr = nullptr,
 		const GrilleMAC* fractions = nullptr,
 		float gfClamp = 1e-04f,
 		float cgMaxIterFac = 1.5f,
@@ -611,13 +611,13 @@ static auto solvePressure(
 		bool enforceCompatibility = false,
 		bool useL2Norm = false,
 		bool zeroPressureFixing = false,
-		const Grille<float> *curv = nullptr,
+		const grille_dense_3d<float> *curv = nullptr,
 		const float surfTens = 0.0f,
-		Grille<float>* retRhs = nullptr)
+		grille_dense_3d<float>* retRhs = nullptr)
 {
 	std::cerr << __func__ << '\n';
 
-	auto rhs = Grille<float>(vel.desc());
+	auto rhs = grille_dense_3d<float>(vel.desc());
 
 	computePressureRhs(rhs, vel, flags, phi, perCellCorr, fractions, gfClamp,
 					   enforceCompatibility, curv, surfTens);
@@ -641,23 +641,23 @@ static auto solvePressure(
 namespace poseidon {
 
 struct PCGSolver {
-	Grille<float> M;
-	Grille<float> Adiag;
-	Grille<float> Aplusi;
-	Grille<float> Aplusj;
-	Grille<float> Aplusk;
+	grille_dense_3d<float> M;
+	grille_dense_3d<float> Adiag;
+	grille_dense_3d<float> Aplusi;
+	grille_dense_3d<float> Aplusj;
+	grille_dense_3d<float> Aplusk;
 
 	/* Pression */
-	Grille<float> p;
+	grille_dense_3d<float> p;
 
 	/* Résidus, initiallement la divergence du champs de vélocité. */
-	Grille<float> r;
+	grille_dense_3d<float> r;
 
 	/* Vecteur auxiliaire */
-	Grille<float> z;
+	grille_dense_3d<float> z;
 
 	/* Vecteur de recherche */
-	Grille<float> s;
+	grille_dense_3d<float> s;
 
 	PCGSolver(limites3f const &etendu, limites3f const &fenetre_donnees, float taille_voxel)
 		: M(etendu, fenetre_donnees, taille_voxel)
@@ -673,12 +673,12 @@ struct PCGSolver {
 };
 
 float calcul_divergence(
-		Grille<float> const &grille_x,
-		Grille<float> const &grille_y,
-		Grille<float> const &grille_z,
-		Grille<float> &d)
+		grille_dense_3d<float> const &grille_x,
+		grille_dense_3d<float> const &grille_y,
+		grille_dense_3d<float> const &grille_z,
+		grille_dense_3d<float> &d)
 {
-	auto const res = d.resolution();
+	auto const res = d.desc().resolution;
 	float max_divergence = 0.0f;
 
 	for (long z = 0; z < res.z; ++z) {
@@ -704,10 +704,10 @@ float calcul_divergence(
 }
 
 float calcul_divergence(
-		Grille<dls::math::vec3f> const &grille,
-		Grille<float> &d)
+		grille_dense_3d<dls::math::vec3f> const &grille,
+		grille_dense_3d<float> &d)
 {
-	auto const res = d.resolution();
+	auto const res = d.desc().resolution;
 	float max_divergence = 0.0f;
 
 	for (long z = 0; z < res.z; ++z) {
@@ -734,9 +734,9 @@ float calcul_divergence(
 
 void construit_preconditionneur(
 		PCGSolver &pcg_solver,
-		Grille<char> const &drapeaux)
+		grille_dense_3d<char> const &drapeaux)
 {
-	auto const res = drapeaux.resolution();
+	auto const res = drapeaux.desc().resolution;
 
 	constexpr auto T = 0.97f;
 
@@ -783,11 +783,11 @@ void construit_preconditionneur(
 
 void applique_preconditionneur(
 		PCGSolver &pcg_solver,
-		Grille<char> const &drapeaux)
+		grille_dense_3d<char> const &drapeaux)
 {
-	auto const res = pcg_solver.M.resolution();
+	auto const res = pcg_solver.M.desc().resolution;
 
-	Grille<float> q(pcg_solver.M.etendu(), pcg_solver.M.fenetre_donnees(), pcg_solver.M.taille_voxel());
+	grille_dense_3d<float> q(pcg_solver.M.etendu(), pcg_solver.M.fenetre_donnees(), pcg_solver.M.desc().taille_voxel);
 //	q.initialise(res.x, res.y, res.z);
 
 	/* Résoud Lq = r */
@@ -857,11 +857,11 @@ void applique_preconditionneur(
 	}
 }
 
-float produit_scalaire(Grille<float> const &a, Grille<float> const &b)
+float produit_scalaire(grille_dense_3d<float> const &a, grille_dense_3d<float> const &b)
 {
-	auto const res_x = a.resolution().x;
-	auto const res_y = a.resolution().y;
-	auto const res_z = a.resolution().z;
+	auto const res_x = a.desc().resolution.x;
+	auto const res_y = a.desc().resolution.y;
+	auto const res_z = a.desc().resolution.z;
 
 	auto valeur = 0.0f;
 
@@ -876,11 +876,11 @@ float produit_scalaire(Grille<float> const &a, Grille<float> const &b)
 	return valeur;
 }
 
-float maximum(Grille<float> const &a)
+float maximum(grille_dense_3d<float> const &a)
 {
-	auto const res_x = a.resolution().x;
-	auto const res_y = a.resolution().y;
-	auto const res_z = a.resolution().z;
+	auto const res_x = a.desc().resolution.x;
+	auto const res_y = a.desc().resolution.y;
+	auto const res_z = a.desc().resolution.z;
 
 	auto max = std::numeric_limits<float>::min();
 
@@ -898,11 +898,11 @@ float maximum(Grille<float> const &a)
 	return max;
 }
 
-void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float> &r, Grille<float> const &a, Grille<float> const &b)
+void ajourne_pression_residus(const float alpha, grille_dense_3d<float> &p, grille_dense_3d<float> &r, grille_dense_3d<float> const &a, grille_dense_3d<float> const &b)
 {
-	auto const res_x = a.resolution().x;
-	auto const res_y = a.resolution().y;
-	auto const res_z = a.resolution().z;
+	auto const res_x = a.desc().resolution.x;
+	auto const res_y = a.desc().resolution.y;
+	auto const res_z = a.desc().resolution.z;
 
 	for (long x = 0; x < res_x; ++x) {
 		for (long y = 0; y < res_y; ++y) {
@@ -919,11 +919,11 @@ void ajourne_pression_residus(const float alpha, Grille<float> &p, Grille<float>
 	}
 }
 
-void ajourne_vecteur_recherche(Grille<float> &s, Grille<float> const &a, const float beta)
+void ajourne_vecteur_recherche(grille_dense_3d<float> &s, grille_dense_3d<float> const &a, const float beta)
 {
-	auto const res_x = s.resolution().x;
-	auto const res_y = s.resolution().y;
-	auto const res_z = s.resolution().z;
+	auto const res_x = s.desc().resolution.x;
+	auto const res_y = s.desc().resolution.y;
+	auto const res_z = s.desc().resolution.z;
 
 	for (long x = 0; x < res_x; ++x) {
 		for (long y = 0; y < res_y; ++y) {
@@ -940,7 +940,7 @@ void ajourne_vecteur_recherche(Grille<float> &s, Grille<float> const &a, const f
 /* z = A*s */
 void applique_A(PCGSolver &pcg_solver)
 {
-	auto const res = pcg_solver.M.resolution();
+	auto const res = pcg_solver.M.desc().resolution;
 
 	for (long z = 0; z < res.z; ++z) {
 		for (long y = 0; y < res.y; ++y) {
@@ -970,7 +970,7 @@ void applique_A(PCGSolver &pcg_solver)
 }
 
 // https://www.cs.ubc.ca/~rbridson/fluidsimulation/fluids_notes.pdf page 34
-void solve_pressure(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
+void solve_pressure(PCGSolver &pcg_solver, grille_dense_3d<char> const &drapeaux)
 {
 	construit_preconditionneur(pcg_solver, drapeaux);
 	applique_preconditionneur(pcg_solver, drapeaux);
@@ -1020,9 +1020,9 @@ void solve_pressure(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
 	std::cerr << "Nombre d'itération : " << i << ", max_divergence " << max_divergence << '\n';
 }
 
-void construit_A(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
+void construit_A(PCGSolver &pcg_solver, grille_dense_3d<char> const &drapeaux)
 {
-	auto const &res = drapeaux.resolution();
+	auto const &res = drapeaux.desc().resolution;
 
 	for (long z = 0; z < res.z; ++z) {
 		for (long y = 0; y < res.y; ++y) {
@@ -1049,7 +1049,7 @@ void construit_A(PCGSolver &pcg_solver, Grille<char> const &drapeaux)
 
 void soustrait_gradient_pression(GrilleMAC &grille, PCGSolver const &pcg_solver)
 {
-	auto const &res = grille.resolution();
+	auto const &res = grille.desc().resolution;
 
 	for (long z = 0; z < res.z; ++z) {
 		for (long y = 0; y < res.y; ++y) {
@@ -1077,11 +1077,11 @@ void soustrait_gradient_pression(GrilleMAC &grille, PCGSolver const &pcg_solver)
 	}
 }
 
-void rend_imcompressible(GrilleMAC &grille, Grille<char> const &drapeaux)
+void rend_imcompressible(GrilleMAC &grille, grille_dense_3d<char> const &drapeaux)
 {
-	auto const &res = grille.resolution();
+	auto const &res = grille.desc().resolution;
 
-	auto pcg_solver = PCGSolver(grille.etendu(), grille.fenetre_donnees(), grille.taille_voxel());
+	auto pcg_solver = PCGSolver(grille.etendu(), grille.fenetre_donnees(), grille.desc().taille_voxel);
 
 	//auto max_divergence = calcul_divergence(grille, grille, grille, pcg_solver.r);
 	auto max_divergence = calcul_divergence(grille, pcg_solver.r);
@@ -1107,12 +1107,12 @@ void rend_imcompressible(GrilleMAC &grille, Grille<char> const &drapeaux)
 
 static auto calcul_divergence(
 		GrilleMAC const &velocite,
-		Grille<int> const &drapeaux)
+		grille_dense_3d<int> const &drapeaux)
 {
-	auto divergence = Grille<float>(velocite.desc());
-	auto const res = velocite.resolution();
+	auto divergence = grille_dense_3d<float>(velocite.desc());
+	auto const res = velocite.desc().resolution;
 	auto const taille_dalle = res.x * res.y;
-	auto const dx = velocite.taille_voxel();
+	auto const dx = static_cast<float>(velocite.desc().taille_voxel);
 
 	boucle_parallele(tbb::blocked_range<int>(1, res.z - 1),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -1164,19 +1164,19 @@ static auto calcul_divergence(
 }
 
 static auto resoud_pression(
-		Grille<float> &pression,
-		Grille<float> const &divergence,
-		Grille<int> const &drapeaux)
+		grille_dense_3d<float> &pression,
+		grille_dense_3d<float> const &divergence,
+		grille_dense_3d<int> const &drapeaux)
 {
 	auto const iterations = 100;
-	auto const res = pression.resolution();
+	auto const res = pression.desc().resolution;
 	auto const taille_dalle = res.x * res.y;
 
-	auto residue   = Grille<float>(pression.desc());
-	auto direction = Grille<float>(pression.desc());
-	auto q         = Grille<float>(pression.desc());
-	auto h         = Grille<float>(pression.desc());
-	auto precond   = Grille<float>(pression.desc());
+	auto residue   = grille_dense_3d<float>(pression.desc());
+	auto direction = grille_dense_3d<float>(pression.desc());
+	auto q         = grille_dense_3d<float>(pression.desc());
+	auto h         = grille_dense_3d<float>(pression.desc());
+	auto precond   = grille_dense_3d<float>(pression.desc());
 
 	auto nouveau_delta = tbb::parallel_reduce(
 				tbb::blocked_range<int>(1, res.z - 1),
@@ -1350,12 +1350,12 @@ static auto resoud_pression(
 
 static auto projette_solution(
 		GrilleMAC &velocite,
-		Grille<float> &pression,
-		Grille<int> const &drapeaux)
+		grille_dense_3d<float> &pression,
+		grille_dense_3d<int> const &drapeaux)
 {
-	auto res = pression.resolution();
+	auto res = pression.desc().resolution;
 	auto taille_dalle = res.x * res.y;
-	auto dx_inv = 1.0f / pression.taille_voxel();
+	auto dx_inv = static_cast<float>(1.0 / pression.desc().taille_voxel);
 
 	boucle_parallele(tbb::blocked_range<int>(1, res.z - 1),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -1434,15 +1434,15 @@ static auto projette_solution(
 
 void projette_velocite(
 		GrilleMAC &velocite,
-		Grille<float> &pression,
-		Grille<int> const &drapeaux)
+		grille_dense_3d<float> &pression,
+		grille_dense_3d<int> const &drapeaux)
 {
 #ifdef SOLVEUR_MANTAFLOW
 	solvePressure(velocite, pression, drapeaux);
 #endif
 
 #ifdef SOLVEUR_POSEIDON
-	auto drapeaux = Grille<char>(velocite.etendu(), velocite.fenetre_donnees(), velocite.taille_voxel());
+	auto drapeaux = grille_dense_3d<char>(velocite.etendu(), velocite.fenetre_donnees(), velocite.desc().taille_voxel);
 
 	auto res = velocite->resolution();
 	auto limites = limites3i{};
@@ -1466,7 +1466,7 @@ void projette_velocite(
 #endif
 
 #ifdef SOLVEUR_BLENDER
-	auto res = velocite.resolution();
+	auto res = velocite.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
@@ -1474,20 +1474,21 @@ void projette_velocite(
 	auto iter = IteratricePosition(limites);
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
+		auto idx = velocite.calcul_index(pos);
 		auto i = pos.x;
 		auto j = pos.y;
 		auto k = pos.z;
 
 		if (i == 0 || i == res[0]-1) {
-			velocite.valeur(i, j, k).x = 0.0f;
+			velocite.valeur(idx).x = 0.0f;
 		}
 
 		if (j == 0 || j == res[1]-1) {
-			velocite.valeur(i, j, k).y = 0.0f;
+			velocite.valeur(idx).y = 0.0f;
 		}
 
 		if (k == 0 || k == res[2]-1) {
-			velocite.valeur(i, j, k).z = 0.0f;
+			velocite.valeur(idx).z = 0.0f;
 		}
 	}
 

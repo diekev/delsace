@@ -38,13 +38,13 @@ struct Particule {
 
 struct GrilleParticule {
 private:
-	Grille<int> m_grille{};
+	grille_dense_3d<int> m_grille{};
 	dls::tableau< dls::tableau<Particule *>> m_cellules{};
 
 public:
 	GrilleParticule() = default;
 
-	GrilleParticule(description_volume const &desc)
+	GrilleParticule(desc_grille_3d const &desc)
 		: m_grille(desc, -1)
 	{}
 
@@ -63,7 +63,7 @@ public:
 		auto nvy = numberOfNeighbors.y;
 		auto nvz = numberOfNeighbors.z;
 
-		auto res = m_grille.resolution();
+		auto res = m_grille.desc().resolution;
 
 		auto limites = limites3i(dls::math::vec3i(0), res - dls::math::vec3i(1));
 		auto pos = dls::math::vec3i();
@@ -75,7 +75,7 @@ public:
 						continue;
 					}
 
-					auto cellindex = m_grille.valeur(pos.x, pos.y, pos.z);
+					auto cellindex = m_grille.valeur(pos);
 
 					if (cellindex != -1l) {
 						auto cellparticlecount = m_cellules[cellindex].taille();
@@ -99,7 +99,7 @@ public:
 
 		for (auto p : particles) {
 			auto pos_cellule = m_grille.monde_vers_index(p->pos);
-			auto idx_cellule = m_grille.valeur(pos_cellule.x, pos_cellule.y, pos_cellule.z);
+			auto idx_cellule = m_grille.valeur(pos_cellule);
 
 			if (idx_cellule >= 0) {
 				m_cellules[idx_cellule].pousse(p);
@@ -107,7 +107,7 @@ public:
 			else {
 				dls::tableau<Particule *> cellule;
 				cellule.pousse(p);
-				m_grille.valeur(pos_cellule.x, pos_cellule.y, pos_cellule.z) = static_cast<int>(m_cellules.taille());
+				m_grille.valeur(pos_cellule) = static_cast<int>(m_cellules.taille());
 				m_cellules.pousse(cellule);
 			}
 		}

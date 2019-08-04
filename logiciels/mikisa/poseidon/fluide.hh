@@ -40,42 +40,46 @@ enum {
 	// 2^10 - 2^14 reserved for moving obstacles
 };
 
-inline auto est_fluide(Grille<int> const &flags, long idx)
+inline auto est_fluide(grille_dense_3d<int> const &flags, long idx)
 {
 	return (flags.valeur(idx) & TypeFluid) != 0;
 }
 
-inline auto est_fluide(Grille<int> const &flags, long i, long j, long k)
+inline auto est_fluide(grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	return est_fluide(flags, flags.calcul_index(i, j, k));
+	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+	return est_fluide(flags, flags.calcul_index(co));
 }
 
-inline auto est_obstacle(Grille<int> const &flags, long idx)
+inline auto est_obstacle(grille_dense_3d<int> const &flags, long idx)
 {
 	return (flags.valeur(idx) & TypeObstacle) != 0;
 }
 
-inline auto est_obstacle(Grille<int> const &flags, long i, long j, long k)
+inline auto est_obstacle(grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	return est_obstacle(flags, flags.calcul_index(i, j, k));
+	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+	return est_obstacle(flags, flags.calcul_index(co));
 }
 
-inline auto est_vide(Grille<int> const &flags, long idx)
+inline auto est_vide(grille_dense_3d<int> const &flags, long idx)
 {
 	return (flags.valeur(idx) & TypeVide) != 0;
 }
 
-inline auto est_vide(Grille<int> const &flags, long i, long j, long k)
+inline auto est_vide(grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	return est_vide(flags, flags.calcul_index(i, j, k));
+	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+	return est_vide(flags, flags.calcul_index(co));
 }
 
-inline auto est_outflow(Grille<int> const &flags, long idx)
+inline auto est_outflow(grille_dense_3d<int> const &flags, long idx)
 {
 	return (flags.valeur(idx) & TypeOutflow) != 0;
 }
 
-inline auto est_outflow(Grille<int> const &flags, long i, long j, long k)
+inline auto est_outflow(grille_dense_3d<int> const &flags, long i, long j, long k)
 {
-	return est_outflow(flags, flags.calcul_index(i, j, k));
+	auto co = dls::math::converti_type<int>(dls::math::vec3<long>(i, j, k));
+	return est_outflow(flags, flags.calcul_index(co));
 }
