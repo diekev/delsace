@@ -43,6 +43,7 @@ struct ArbreHBE {
 		long nombre_references = 0;
 		long decalage_reference = 0;
 		long id_noeud = 0;
+		Axe axe_princ{};
 
 		bool est_feuille() const
 		{
@@ -254,6 +255,7 @@ auto construit_arbre_hbe(
 
 					noeud->gauche = id_gauche;
 					noeud->droite = id_droite;
+					noeud->axe_princ = axe_scission;
 
 					/* crée les listes des objets gauche et droite en se basant
 					 * sur le centroïde */
@@ -344,12 +346,74 @@ public:
 };
 
 template <typename TypeDelegue>
+void traverse_impl(
+		ArbreHBE const &arbre,
+		TypeDelegue const &delegue,
+		dls::phys::rayond const r,
+		AccumulatriceTraverse &resultat,
+		ArbreHBE::Noeud const &noeud,
+		dls::math::vec3d const &ray_dot_axis)
+{
+	auto distance = noeud.test_intersection_rapide(r);
+
+	if (distance < -0.5) {
+		return;
+	}
+
+	if (distance >= r.distance_max) {
+		return;
+	}
+
+	if (noeud.est_feuille()) {
+		for (auto i = 0; i < noeud.nombre_references; ++i) {
+			auto id_prim = arbre.index_refs[noeud.decalage_reference + i];
+			auto intersection = delegue.intersecte_element(id_prim, r);
+
+			if (!intersection.touche) {
+				continue;
+			}
+
+			auto n = normalise(intersection.point - r.origine);
+			auto degree = std::acos(produit_scalaire(n, r.direction));
+
+			if (degree < (constantes<double>::PI / 2.0) || degree != degree) {
+				resultat.enregistre_intersection(intersection, noeud.id_noeud);
+			}
+		}
+	}
+	else {
+		auto const &gauche = arbre.noeuds[noeud.gauche];
+		auto const &droite = arbre.noeuds[noeud.droite];
+
+		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
+		if (ray_dot_axis[static_cast<size_t>(noeud.axe_princ)] > 0.0) {
+			traverse_impl(arbre, delegue, r, resultat, gauche, ray_dot_axis);
+			traverse_impl(arbre, delegue, r, resultat, droite, ray_dot_axis);
+		}
+		else {
+			traverse_impl(arbre, delegue, r, resultat, droite, ray_dot_axis);
+			traverse_impl(arbre, delegue, r, resultat, gauche, ray_dot_axis);
+		}
+	}
+}
+
+template <typename TypeDelegue>
 void traverse(
 		ArbreHBE const &arbre,
 		TypeDelegue const &delegue,
 		dls::phys::rayond const r,
 		AccumulatriceTraverse &resultat)
 {
+#if 0
+	auto const &racine = arbre.noeuds[1];
+
+	auto ray_dot_axis = dls::math::vec3d{};
+	ray_dot_axis[0] = produit_scalaire(dls::math::vec3d(1.0, 0.0, 0.0), r.direction);
+	ray_dot_axis[1] = produit_scalaire(dls::math::vec3d(0.0, 1.0, 0.0), r.direction);
+	ray_dot_axis[2] = produit_scalaire(dls::math::vec3d(0.0, 0.0, 1.0), r.direction);
+
+	traverse_impl(arbre, delegue, r, resultat, racine, ray_dot_axis);
+#else
 	if (arbre.nombre_noeud < 2) {
 		return;
 	}
@@ -440,6 +504,7 @@ void traverse(
 			courant = droite;
 		}
 	}
+#endif
 }
 
 /* ************************************************************************** */

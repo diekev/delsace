@@ -94,6 +94,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 	auto spectre_entresection = Spectre(1.0);
 
 	dls::phys::rayond rayon_local = rayon;
+	rayon_local.distance_max = 1000.0;
 	ContexteNuancage contexte;
 
 	for (auto i = 0u; i < parametres.nombre_rebonds; ++i) {
