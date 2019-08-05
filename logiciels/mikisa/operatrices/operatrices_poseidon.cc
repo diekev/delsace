@@ -1032,11 +1032,20 @@ public:
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 		auto coefficient = evalue_decimal("coefficient");
 		auto gravite_y = evalue_decimal("gravité");
+		auto alpha = evalue_decimal("alpha");
+		auto beta = evalue_decimal("beta");
+		auto temperature_ambiante = evalue_decimal("température");
 		auto gravite = dls::math::vec3f(0.0f, -gravite_y, 0.0f);
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 		auto densite_basse = grille_dense_3d<float>();
+
+		/* converti la gravité à l'espace domaine */
+		// auto mag = longueur(gravite);
+		// gravite = densite->monde_vers_unit(gravite);
+		// gravite = normalise(gravite);
+		// gravite *= magnitude;
 
 		if (poseidon_gaz->decouple) {
 			/* rééchantillone la densité pour être alignée avec la vélocité */
@@ -1044,7 +1053,17 @@ public:
 			densite = &densite_basse;
 		}
 
-		psn::ajoute_flottance(*densite, *velocite, *drapeaux, gravite, poseidon_gaz->dt, coefficient);
+		psn::ajoute_flottance(
+					*densite,
+					*velocite,
+					*drapeaux,
+					nullptr,
+					gravite,
+					alpha,
+					beta,
+					temperature_ambiante,
+					poseidon_gaz->dt,
+					coefficient);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1054,6 +1073,12 @@ public:
 		if (propriete("gravité") == nullptr) {
 			ajoute_propriete("gravité", danjo::TypePropriete::DECIMAL, 1.0f);
 			ajoute_propriete("coefficient", danjo::TypePropriete::DECIMAL, 1.0f);
+		}
+
+		if (propriete("alpha") == nullptr) {
+			ajoute_propriete("alpha", danjo::TypePropriete::DECIMAL, 0.001f);
+			ajoute_propriete("beta", danjo::TypePropriete::DECIMAL, 0.1f);
+			ajoute_propriete("température", danjo::TypePropriete::DECIMAL, 0.0f);
 		}
 	}
 };

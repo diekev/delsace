@@ -254,7 +254,11 @@ void ajoute_flottance(
 		grille_dense_3d<float> &density,
 		GrilleMAC &vel,
 		grille_dense_3d<int> &flags,
+		grille_dense_3d<float> *temperature,
 		dls::math::vec3f const &gravity,
+		float alpha,
+		float beta,
+		float temperature_ambiante,
 		float dt,
 		float coefficient);
 
