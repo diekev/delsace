@@ -39,7 +39,7 @@
 #include "rendu_maillage.h"
 #include "rendu_monde.h"
 
-VisionneurScene::VisionneurScene(VueCanevas3D *parent, Koudou *koudou)
+VisionneurScene::VisionneurScene(VueCanevas3D *parent, kdo::Koudou *koudou)
 	: m_parent(parent)
 	, m_koudou(koudou)
 	, m_rendu_camera(new RenduCamera(koudou->camera))
@@ -179,13 +179,13 @@ void VisionneurScene::reconstruit_scene()
 	m_lumieres.reserve(scene.lumieres.taille());
 
 	for (auto &objet : scene.objets) {
-		if (objet->type == TypeObjet::LUMIERE) {
+		if (objet->type == kdo::TypeObjet::LUMIERE) {
 			auto rendu_lumiere = new RenduLumiere(objet->lumiere);
 			rendu_lumiere->initialise();
 
 			m_lumieres.pousse(rendu_lumiere);
 		}
-		else if (objet->type == TypeObjet::MAILLAGE) {
+		else if (objet->type == kdo::TypeObjet::MAILLAGE) {
 			auto rendu_maillage = new RenduMaillage(objet->maillage);
 			rendu_maillage->initialise();
 

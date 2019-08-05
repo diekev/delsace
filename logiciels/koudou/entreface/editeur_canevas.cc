@@ -57,7 +57,7 @@
 
 /* ************************************************************************** */
 
-VueCanevas::VueCanevas(Koudou *koudou, QWidget *parent)
+VueCanevas::VueCanevas(kdo::Koudou *koudou, QWidget *parent)
 	: QGLWidget(parent)
 	, m_koudou(koudou)
 	, m_visionneur_image(new VisionneurImage(this))
@@ -146,7 +146,7 @@ void VueCanevas::charge_image(dls::math::matrice_dyn<dls::math::vec3d> const &im
 
 /* ************************************************************************** */
 
-EditeurCanevas::EditeurCanevas(Koudou &koudou, QWidget *parent)
+EditeurCanevas::EditeurCanevas(kdo::Koudou &koudou, QWidget *parent)
 	: BaseEditrice(koudou, parent)
 	, m_vue(new VueCanevas(&koudou, this))
 	, m_zone_defilement(new QScrollArea(this))
@@ -174,7 +174,7 @@ EditeurCanevas::~EditeurCanevas()
 
 /* ************************************************************************** */
 
-VueCanevas3D::VueCanevas3D(Koudou *koudou, QWidget *parent)
+VueCanevas3D::VueCanevas3D(kdo::Koudou *koudou, QWidget *parent)
 	: QGLWidget(parent)
 	, m_koudou(koudou)
 	, m_visionneur_scene(new VisionneurScene(this, koudou))
@@ -264,7 +264,7 @@ void VueCanevas3D::reconstruit_scene() const
 
 /* ************************************************************************** */
 
-EditriceVue3D::EditriceVue3D(Koudou &koudou, QWidget *parent)
+EditriceVue3D::EditriceVue3D(kdo::Koudou &koudou, QWidget *parent)
 	: BaseEditrice(koudou, parent)
 	, m_vue(new VueCanevas3D(&koudou, this))
 {

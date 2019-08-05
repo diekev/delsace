@@ -38,6 +38,8 @@
 #include "statistiques.h"
 #include "structure_acceleration.h"
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 Monde::~Monde()
@@ -308,3 +310,5 @@ dls::math::vec3d reflect(dls::math::vec3d const &nor, dls::math::vec3d const &di
 {
 	return dir - (2.0 * produit_scalaire(dir, nor) * nor);
 }
+
+}  /* namespace kdo */

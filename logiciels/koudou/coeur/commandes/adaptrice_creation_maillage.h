@@ -30,7 +30,9 @@
 
 #include "biblinternes/math/vecteur.hh"
 
+namespace kdo {
 class Maillage;
+}
 
 class AdaptriceChargementMaillage : public objets::AdaptriceCreationObjet {
 	dls::tableau<dls::math::vec3d> m_sommets{};
@@ -62,5 +64,5 @@ public:
 
 	void groupe_nuancage(const int index) override;
 
-	Maillage *maillage{};
+	kdo::Maillage *maillage{};
 };

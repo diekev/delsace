@@ -28,7 +28,10 @@
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/pile_matrice.h"
 
+namespace kdo {
 class Koudou;
+}
+
 class RenduCamera;
 class RenduGrille;
 class RenduLumiere;
@@ -43,7 +46,7 @@ class VueCanevas3D;
  */
 class VisionneurScene {
 	VueCanevas3D *m_parent;
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 
 	RenduCamera *m_rendu_camera;
 	RenduGrille *m_rendu_grille;
@@ -69,7 +72,7 @@ public:
 	 * Construit un visionneur avec un pointeur vers le VueCanevas parent, et un
 	 * pointeur vers l'instance de Koudou du programme en cours.
 	 */
-	VisionneurScene(VueCanevas3D *parent, Koudou *koudou);
+	VisionneurScene(VueCanevas3D *parent, kdo::Koudou *koudou);
 
 	/**
 	 * Empêche la copie d'un visionneur.

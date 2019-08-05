@@ -29,6 +29,8 @@
 #include "biblinternes/phys/rayon.hh"
 #include "biblinternes/structures/tableau.hh"
 
+namespace kdo {
+
 class Scene;
 
 /* ************************************************************************** */
@@ -63,3 +65,5 @@ public:
 
 	dls::phys::esectd entresecte(Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale) const override;
 };
+
+}  /* namespace kdo */

@@ -28,15 +28,14 @@
 
 #include "base_editeur.h"
 
-class Koudou;
 class QScrollArea;
 class QGridLayout;
 
 class VueParametres : public danjo::Manipulable {
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 
 public:
-	explicit VueParametres(Koudou *koudou);
+	explicit VueParametres(kdo::Koudou *koudou);
 
 	VueParametres(VueParametres const &) = default;
 	VueParametres &operator=(VueParametres const &) = default;
@@ -55,7 +54,7 @@ class EditeurParametres final : public BaseEditrice {
 	QGridLayout *m_glayout;
 
 public:
-	EditeurParametres(Koudou *koudou, QWidget *parent = nullptr);
+	EditeurParametres(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	EditeurParametres(EditeurParametres const &) = default;
 	EditeurParametres &operator=(EditeurParametres const &) = default;

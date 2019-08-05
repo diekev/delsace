@@ -34,22 +34,24 @@
 #include <QTreeWidget>
 #pragma GCC diagnostic pop
 
+namespace kdo {
 class Objet;
+}
 class QScrollArea;
 class QGridLayout;
 
 /* ************************************************************************** */
 
 class ItemObjet : public QTreeWidgetItem {
-	const Objet *m_pointeur;
+	const kdo::Objet *m_pointeur;
 
 public:
-	explicit ItemObjet(const Objet *pointeur, QTreeWidgetItem *parent = nullptr);
+	explicit ItemObjet(const kdo::Objet *pointeur, QTreeWidgetItem *parent = nullptr);
 
 	ItemObjet(ItemObjet const &) = default;
 	ItemObjet &operator=(ItemObjet const &) = default;
 
-	const Objet *pointeur() const;
+	const kdo::Objet *pointeur() const;
 };
 
 /* ************************************************************************** */
@@ -80,7 +82,7 @@ class EditeurArbreScene final : public BaseEditrice {
 	QGridLayout *m_glayout;
 
 public:
-	EditeurArbreScene(Koudou *koudou, QWidget *parent = nullptr);
+	EditeurArbreScene(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	EditeurArbreScene(EditeurArbreScene const &) = default;
 	EditeurArbreScene &operator=(EditeurArbreScene const &) = default;

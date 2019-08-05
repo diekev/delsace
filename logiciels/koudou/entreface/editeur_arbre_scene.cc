@@ -41,14 +41,14 @@
 
 /* ************************************************************************** */
 
-ItemObjet::ItemObjet(const Objet *pointeur, QTreeWidgetItem *parent)
+ItemObjet::ItemObjet(const kdo::Objet *pointeur, QTreeWidgetItem *parent)
 	: QTreeWidgetItem(parent)
 	, m_pointeur(pointeur)
 {
 	setText(0, pointeur->nom.c_str());
 }
 
-const Objet *ItemObjet::pointeur() const
+const kdo::Objet *ItemObjet::pointeur() const
 {
 	return m_pointeur;
 }
@@ -84,7 +84,7 @@ void WidgetArbre::mousePressEvent(QMouseEvent *e)
 
 /* ************************************************************************** */
 
-EditeurArbreScene::EditeurArbreScene(Koudou *koudou, QWidget *parent)
+EditeurArbreScene::EditeurArbreScene(kdo::Koudou *koudou, QWidget *parent)
 	: BaseEditrice(*koudou, parent)
 	, m_widget_arbre(new WidgetArbre(this))
 	, m_widget(new QWidget())
@@ -141,10 +141,10 @@ void EditeurArbreScene::ajourne_etat(int evenement)
 		auto item = new ItemObjet(objet);
 		item->setSelected(objet == scene.objet_actif);
 
-		if (objet->type == TypeObjet::MAILLAGE) {
+		if (objet->type == kdo::TypeObjet::MAILLAGE) {
 			racine_maillages->addChild(item);
 		}
-		else if (objet->type == TypeObjet::LUMIERE) {
+		else if (objet->type == kdo::TypeObjet::LUMIERE) {
 			racine_lumieres->addChild(item);
 		}
 	}
@@ -172,6 +172,6 @@ void EditeurArbreScene::repond_selection()
 	}
 
 	auto &scene = m_koudou->parametres_rendu.scene;
-	scene.objet_actif = const_cast<Objet *>(item_objet->pointeur());
+	scene.objet_actif = const_cast<kdo::Objet *>(item_objet->pointeur());
 	m_koudou->notifie_observatrices(type_evenement::objet | type_evenement::selectione);
 }

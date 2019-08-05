@@ -26,6 +26,8 @@
 
 #include "nuanceur.h"
 
+namespace kdo {
+
 Lumiere::Lumiere(math::transformation const &transform)
 	: transformation(transform)
 {}
@@ -55,3 +57,5 @@ LumiereDistante::LumiereDistante(math::transformation const &transform, Spectre 
 	transform(dls::math::vec3d(0.0, 0.0, -1.0), &this->dir);
 	this->dir = dls::math::normalise(this->dir);
 }
+
+}  /* namespace kdo */

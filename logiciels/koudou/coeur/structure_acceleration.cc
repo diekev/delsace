@@ -32,6 +32,8 @@
 #include "scene.h"
 #include "statistiques.h"
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 static void entresecte_triangles_maillage(
@@ -229,3 +231,5 @@ dls::phys::esectd VolumeEnglobant::entresecte(
 
 	return entresection;
 }
+
+}  /* namespace kdo */

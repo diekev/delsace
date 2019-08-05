@@ -46,11 +46,11 @@ class VisionneurImage;
 class VisionneurScene;
 
 class VueCanevas : public QGLWidget {
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 	VisionneurImage *m_visionneur_image;
 
 public:
-	explicit VueCanevas(Koudou *koudou, QWidget *parent = nullptr);
+	explicit VueCanevas(kdo::Koudou *koudou, QWidget *parent = nullptr);
 	~VueCanevas() override;
 
 	VueCanevas(VueCanevas const &) = default;
@@ -78,7 +78,7 @@ class EditeurCanevas : public BaseEditrice {
 	QScrollArea *m_zone_defilement;
 
 public:
-	explicit EditeurCanevas(Koudou &koudou, QWidget *parent = nullptr);
+	explicit EditeurCanevas(kdo::Koudou &koudou, QWidget *parent = nullptr);
 
 	EditeurCanevas(EditeurCanevas const &) = default;
 	EditeurCanevas &operator=(EditeurCanevas const &) = default;
@@ -91,11 +91,11 @@ public:
 /* ************************************************************************** */
 
 class VueCanevas3D : public QGLWidget {
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 	VisionneurScene *m_visionneur_scene;
 
 public:
-	explicit VueCanevas3D(Koudou *koudou, QWidget *parent = nullptr);
+	explicit VueCanevas3D(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	VueCanevas3D(VueCanevas3D const &) = default;
 	VueCanevas3D &operator=(VueCanevas3D const &) = default;
@@ -127,7 +127,7 @@ class EditriceVue3D : public BaseEditrice {
 	VueCanevas3D *m_vue;
 
 public:
-	explicit EditriceVue3D(Koudou &koudou, QWidget *parent = nullptr);
+	explicit EditriceVue3D(kdo::Koudou &koudou, QWidget *parent = nullptr);
 
 	EditriceVue3D(EditriceVue3D const &) = default;
 	EditriceVue3D &operator=(EditriceVue3D const &) = default;

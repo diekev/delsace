@@ -49,7 +49,7 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto koudou = std::any_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<kdo::Koudou *>(pointeur);
 		auto const delta = donnees.x;
 
 		auto camera = koudou->camera;
@@ -92,7 +92,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto koudou = std::any_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<kdo::Koudou *>(pointeur);
 		auto camera = koudou->camera;
 
 		const float dx = donnees.x - m_vieil_x;
@@ -128,7 +128,7 @@ public:
 
 	void ajourne_execution_modale(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		auto koudou = std::any_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<kdo::Koudou *>(pointeur);
 		auto camera = koudou->camera;
 
 		const float dx = donnees.x - m_vieil_x;

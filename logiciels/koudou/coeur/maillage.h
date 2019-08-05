@@ -28,6 +28,8 @@
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/structures/tableau.hh"
 
+namespace kdo {
+
 class Nuanceur;
 
 /**
@@ -175,3 +177,5 @@ public:
  * Calcul et retourne le normal du triangle spécifié.
  */
 dls::math::vec3d calcul_normal(Triangle const &triangle);
+
+}  /* namespace kdo */

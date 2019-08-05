@@ -34,7 +34,9 @@
 
 #include "biblinternes/patrons_conception/observation.hh"
 
+namespace kdo {
 class Koudou;
+}
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;
@@ -44,13 +46,13 @@ class BaseEditrice : public QWidget, public Observatrice {
 	Q_OBJECT
 
 protected:
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 	QFrame *m_cadre;
 	QVBoxLayout *m_agencement;
 	QHBoxLayout *m_agencement_principal;
 
 public:
-	explicit BaseEditrice(Koudou &koudou, QWidget *parent = nullptr);
+	explicit BaseEditrice(kdo::Koudou &koudou, QWidget *parent = nullptr);
 
 	BaseEditrice(BaseEditrice const &) = default;
 	BaseEditrice &operator=(BaseEditrice const &) = default;

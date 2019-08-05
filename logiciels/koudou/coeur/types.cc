@@ -23,3 +23,7 @@
  */
 
 #include "types.h"
+
+namespace kdo {
+
+}  /* namespace kdo */

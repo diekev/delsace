@@ -26,6 +26,8 @@
 
 #include "biblinternes/math/transformation.hh"
 
+namespace kdo {
+
 class Lumiere;
 class Maillage;
 class Nuanceur;
@@ -58,3 +60,5 @@ struct Objet {
 
 	dls::chaine chemin() const;
 };
+
+}  /* namespace kdo */

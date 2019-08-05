@@ -42,21 +42,21 @@ class CommandeOuvrirFichier : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto koudou = std::any_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<kdo::Koudou *>(pointeur);
 		auto const chemin_projet = koudou->requiers_dialogue(FICHIER_OUVERTURE);
 
 		if (chemin_projet.est_vide()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		Maillage *maillage = new Maillage();
+		auto maillage = new kdo::Maillage();
 
 		AdaptriceChargementMaillage adaptrice;
 		adaptrice.maillage = maillage;
 
 		objets::charge_fichier_OBJ(&adaptrice, chemin_projet);
 
-		maillage->nuanceur(NuanceurDiffus::defaut());
+		maillage->nuanceur(kdo::NuanceurDiffus::defaut());
 
 		koudou->parametres_rendu.scene.ajoute_maillage(maillage);
 

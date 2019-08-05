@@ -24,6 +24,8 @@
 
 #include "statistiques.h"
 
+namespace kdo {
+
 Statistiques statistiques;
 
 void init_statistiques()
@@ -45,3 +47,5 @@ void imprime_statistiques(std::ostream &os)
 	os << "Pourcentage d'entresections               : " << statistiques.nombre_entresections_triangles * 100.0 / statistiques.test_entresections_triangles << '\n';
 	os << std::endl;
 }
+
+}  /* namespace kdo */

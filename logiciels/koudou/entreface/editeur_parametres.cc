@@ -58,7 +58,7 @@ static const int RESOLUTIONS[][2] = {
 	{ 7680, 4320 },
 };
 
-VueParametres::VueParametres(Koudou *koudou)
+VueParametres::VueParametres(kdo::Koudou *koudou)
 	: m_koudou(koudou)
 {
 //	ProprieteEnumerante enum_resolution;
@@ -122,7 +122,7 @@ bool VueParametres::ajourne_proprietes()
 
 /* ************************************************************************** */
 
-EditeurParametres::EditeurParametres(Koudou *koudou, QWidget *parent)
+EditeurParametres::EditeurParametres(kdo::Koudou *koudou, QWidget *parent)
 	: BaseEditrice(*koudou, parent)
 	, m_vue(new VueParametres(koudou))
 	, m_widget(new QWidget())

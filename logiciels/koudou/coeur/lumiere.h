@@ -27,6 +27,8 @@
 #include "biblinternes/phys/spectre.hh"
 #include "biblinternes/math/transformation.hh"
 
+namespace kdo {
+
 class Nuanceur;
 
 enum class type_lumiere : char {
@@ -71,3 +73,5 @@ struct LumiereDistante final : public Lumiere {
 
 	LumiereDistante(math::transformation const &transform, Spectre spec = Spectre(1.0), double intens = 1.0);
 };
+
+}  /* namespace kdo */

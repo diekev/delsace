@@ -28,8 +28,11 @@
 
 #include "biblinternes/phys/spectre.hh"
 
-struct ContexteNuancage;
 class GNA;
+
+namespace kdo {
+
+struct ContexteNuancage;
 class ParametresRendu;
 
 struct BSDF {
@@ -133,3 +136,5 @@ private:
 	double calcul_pdf(double cos_theta) const;
 	double inverse_cdf(double xi) const;
 };
+
+}  /* namespace kdo */

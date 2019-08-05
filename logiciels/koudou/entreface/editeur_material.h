@@ -28,7 +28,9 @@
 
 #include "base_editeur.h"
 
+namespace kdo {
 class Nuanceur;
+}
 class QScrollArea;
 class QGridLayout;
 
@@ -42,17 +44,17 @@ class VueMaterial {
 	danjo::Manipulable *m_persona_volume;
 	danjo::Manipulable *m_persona_emission;
 
-	Nuanceur *m_nuanceur;
+	kdo::Nuanceur *m_nuanceur;
 
 public:
-	explicit VueMaterial(Nuanceur *nuaceur);
+	explicit VueMaterial(kdo::Nuanceur *nuaceur);
 	~VueMaterial();
 
 	/* pour faire taire cppcheck */
 	VueMaterial(VueMaterial const &) = delete;
 	VueMaterial &operator=(VueMaterial const &) = delete;
 
-	void nuanceur(Nuanceur *nuanceur);
+	void nuanceur(kdo::Nuanceur *nuanceur);
 
 	void ajourne_donnees();
 	bool ajourne_proprietes();
@@ -72,7 +74,7 @@ class EditeurMaterial final : public BaseEditrice {
 	QGridLayout *m_glayout;
 
 public:
-	EditeurMaterial(Koudou *koudou, QWidget *parent = nullptr);
+	EditeurMaterial(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	EditeurMaterial(EditeurMaterial const &) = default;
 	EditeurMaterial &operator=(EditeurMaterial const &) = default;

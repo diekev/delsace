@@ -47,7 +47,7 @@ class FenetrePrincipale : public QMainWindow {
 
 	QProgressBar *m_progress_bar;
 
-	Koudou m_koudou{};
+	kdo::Koudou m_koudou{};
 
 public:
 	explicit FenetrePrincipale(QWidget *parent = nullptr);

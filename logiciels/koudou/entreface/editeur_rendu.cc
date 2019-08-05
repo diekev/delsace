@@ -41,7 +41,7 @@
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
 
-EditriceRendu::EditriceRendu(Koudou &koudou, QWidget *parent)
+EditriceRendu::EditriceRendu(kdo::Koudou &koudou, QWidget *parent)
 	: BaseEditrice(koudou, parent)
     , m_widget(new QWidget())
     , m_scroll(new QScrollArea())

@@ -66,7 +66,7 @@ void NotaireTache::signale_progres_temps(unsigned int echantillon, double temps_
 	Q_EMIT(progres_temps(echantillon, temps_echantillon, temps_ecoule, temps_restant));
 }
 
-Tache::Tache(Koudou const &koudou)
+Tache::Tache(kdo::Koudou const &koudou)
 	: m_notaire(new NotaireTache(koudou.fenetre_principale))
 	, m_koudou(koudou)
 {}

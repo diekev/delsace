@@ -41,7 +41,7 @@
 
 #include "coeur/koudou.h"
 
-BaseEditrice::BaseEditrice(Koudou &koudou, QWidget *parent)
+BaseEditrice::BaseEditrice(kdo::Koudou &koudou, QWidget *parent)
     : QWidget(parent)
 	, m_koudou(&koudou)
 	, m_cadre(new QFrame(this))

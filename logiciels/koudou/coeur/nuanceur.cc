@@ -27,6 +27,8 @@
 #include "bsdf.h"
 #include "volume.h"
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 BSDF *Nuanceur::cree_BSDF(ContexteNuancage &ctx)
@@ -132,3 +134,5 @@ BSDF *NuanceurEmission::cree_BSDF(ContexteNuancage &ctx)
 {
 	return new BSDFTrivial(ctx);
 }
+
+}  /* namespace kdo */

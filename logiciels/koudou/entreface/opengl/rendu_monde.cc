@@ -223,7 +223,7 @@ static void genere_texture(dls::ego::Texture2D *texture, const void *data, GLint
 
 /* ************************************************************************** */
 
-RenduMonde::RenduMonde(Koudou *koudou)
+RenduMonde::RenduMonde(kdo::Koudou *koudou)
 	: m_monde(&koudou->parametres_rendu.scene.monde)
 	, m_ancien_type(0)
 {

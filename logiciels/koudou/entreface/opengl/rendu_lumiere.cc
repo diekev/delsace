@@ -31,7 +31,7 @@
 
 #include "coeur/lumiere.h"
 
-RenduLumiere::RenduLumiere(Lumiere *lumiere)
+RenduLumiere::RenduLumiere(kdo::Lumiere *lumiere)
 	: m_lumiere(lumiere)
 {}
 
@@ -75,7 +75,7 @@ void RenduLumiere::initialise()
 
 	dls::tableau<dls::math::vec3f> sommets;
 
-	if (m_lumiere->type == type_lumiere::POINT) {
+	if (m_lumiere->type == kdo::type_lumiere::POINT) {
 		sommets.redimensionne(6);
 
 		sommets[0] = dls::math::vec3f(-1.0f,  0.0f,  0.0f);

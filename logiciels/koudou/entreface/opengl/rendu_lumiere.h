@@ -26,8 +26,11 @@
 
 #include "biblinternes/math/matrice.hh"
 
-class ContexteRendu;
+namespace kdo {
 struct Lumiere;
+}
+
+class ContexteRendu;
 class TamponRendu;
 
 /**
@@ -36,13 +39,13 @@ class TamponRendu;
  */
 class RenduLumiere {
 	TamponRendu *m_tampon = nullptr;
-	Lumiere *m_lumiere = nullptr;
+	kdo::Lumiere *m_lumiere = nullptr;
 
 public:
 	/**
 	 * Construit une instance de RenduLumiere pour la lumière spécifié.
 	 */
-	explicit RenduLumiere(Lumiere *lumiere);
+	explicit RenduLumiere(kdo::Lumiere *lumiere);
 
 	RenduLumiere(RenduLumiere const &) = default;
 	RenduLumiere &operator=(RenduLumiere const &) = default;

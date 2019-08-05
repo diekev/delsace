@@ -46,7 +46,7 @@ static auto converti_couleur(Spectre const &spectre)
 	return dls::phys::couleur32(spectre[0], spectre[1], spectre[2], 1.0f);
 }
 
-VueMaterial::VueMaterial(Nuanceur *nuaceur)
+VueMaterial::VueMaterial(kdo::Nuanceur *nuaceur)
 	: m_persona_diffus(new danjo::Manipulable)
 	, m_persona_angle_vue(new danjo::Manipulable)
 	, m_persona_reflection(new danjo::Manipulable)
@@ -88,7 +88,7 @@ VueMaterial::~VueMaterial()
 	delete m_persona_emission;
 }
 
-void VueMaterial::nuanceur(Nuanceur *nuanceur)
+void VueMaterial::nuanceur(kdo::Nuanceur *nuanceur)
 {
 	m_nuanceur = nuanceur;
 }
@@ -96,43 +96,43 @@ void VueMaterial::nuanceur(Nuanceur *nuanceur)
 void VueMaterial::ajourne_donnees()
 {
 	switch (m_nuanceur->type) {
-		case TypeNuanceur::DIFFUS:
+		case kdo::TypeNuanceur::DIFFUS:
 		{
-			auto nuanceur = static_cast<NuanceurDiffus *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurDiffus *>(m_nuanceur);
 			auto couleur = m_persona_diffus->evalue_couleur("spectre");
 			nuanceur->spectre = Spectre::depuis_rgb(couleur.r, couleur.v, couleur.b);
 			break;
 		}
-		case TypeNuanceur::ANGLE_VUE:
+		case kdo::TypeNuanceur::ANGLE_VUE:
 		{
-			auto nuanceur = static_cast<NuanceurAngleVue *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurAngleVue *>(m_nuanceur);
 			auto couleur = m_persona_angle_vue->evalue_couleur("spectre");
 			nuanceur->spectre = Spectre::depuis_rgb(couleur.r, couleur.v, couleur.b);
 			break;
 		}
-		case TypeNuanceur::REFLECTION:
+		case kdo::TypeNuanceur::REFLECTION:
 		{
 			break;
 		}
-		case TypeNuanceur::REFRACTION:
+		case kdo::TypeNuanceur::REFRACTION:
 		{
-			auto nuanceur = static_cast<NuanceurRefraction *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurRefraction *>(m_nuanceur);
 			auto index = m_persona_refraction->evalue_decimal("index");
 			nuanceur->index_refraction = static_cast<double>(index);
 			break;
 		}
-		case TypeNuanceur::VOLUME:
+		case kdo::TypeNuanceur::VOLUME:
 		{
-			auto nuanceur = static_cast<NuanceurVolume *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurVolume *>(m_nuanceur);
 			auto sigma_a = m_persona_volume->evalue_couleur("absorption");
 			nuanceur->sigma_a = Spectre::depuis_rgb(sigma_a.r, sigma_a.v, sigma_a.b);
 			auto sigma_s = m_persona_volume->evalue_couleur("diffusion");
 			nuanceur->sigma_s = Spectre::depuis_rgb(sigma_s.r, sigma_s.v, sigma_s.b);
 			break;
 		}
-		case TypeNuanceur::EMISSION:
+		case kdo::TypeNuanceur::EMISSION:
 		{
-			auto nuanceur = static_cast<NuanceurEmission *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurEmission *>(m_nuanceur);
 			auto couleur = m_persona_emission->evalue_couleur("spectre");
 			nuanceur->spectre = Spectre::depuis_rgb(couleur.r, couleur.v, couleur.b);
 			nuanceur->exposition = static_cast<double>(m_persona_emission->evalue_decimal("exposition"));
@@ -144,38 +144,38 @@ void VueMaterial::ajourne_donnees()
 bool VueMaterial::ajourne_proprietes()
 {
 	switch (m_nuanceur->type) {
-		case TypeNuanceur::DIFFUS:
+		case kdo::TypeNuanceur::DIFFUS:
 		{
-			auto nuanceur = static_cast<NuanceurDiffus *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurDiffus *>(m_nuanceur);
 			m_persona_diffus->valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
 			break;
 		}
-		case TypeNuanceur::ANGLE_VUE:
+		case kdo::TypeNuanceur::ANGLE_VUE:
 		{
-			auto nuanceur = static_cast<NuanceurAngleVue *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurAngleVue *>(m_nuanceur);
 			m_persona_angle_vue->valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
 			break;
 		}
-		case TypeNuanceur::REFLECTION:
+		case kdo::TypeNuanceur::REFLECTION:
 		{
 			break;
 		}
-		case TypeNuanceur::REFRACTION:
+		case kdo::TypeNuanceur::REFRACTION:
 		{
-			auto nuanceur = static_cast<NuanceurRefraction *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurRefraction *>(m_nuanceur);
 			m_persona_refraction->valeur_decimal("index", static_cast<float>(nuanceur->index_refraction));
 			break;
 		}
-		case TypeNuanceur::VOLUME:
+		case kdo::TypeNuanceur::VOLUME:
 		{
-			auto nuanceur = static_cast<NuanceurVolume *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurVolume *>(m_nuanceur);
 			m_persona_volume->valeur_couleur("absorption", converti_couleur(nuanceur->sigma_a));
 			m_persona_volume->valeur_couleur("diffusion", converti_couleur(nuanceur->sigma_s));
 			break;
 		}
-		case TypeNuanceur::EMISSION:
+		case kdo::TypeNuanceur::EMISSION:
 		{
-			auto nuanceur = static_cast<NuanceurEmission *>(m_nuanceur);
+			auto nuanceur = static_cast<kdo::NuanceurEmission *>(m_nuanceur);
 			m_persona_emission->valeur_couleur("spectre", converti_couleur(nuanceur->spectre));
 			m_persona_emission->valeur_decimal("exposition", static_cast<float>(nuanceur->exposition));
 			break;
@@ -188,17 +188,17 @@ bool VueMaterial::ajourne_proprietes()
 danjo::Manipulable *VueMaterial::persona() const
 {
 	switch (m_nuanceur->type) {
-		case TypeNuanceur::DIFFUS:
+		case kdo::TypeNuanceur::DIFFUS:
 			return m_persona_diffus;
-		case TypeNuanceur::ANGLE_VUE:
+		case kdo::TypeNuanceur::ANGLE_VUE:
 			return m_persona_angle_vue;
-		case TypeNuanceur::REFLECTION:
+		case kdo::TypeNuanceur::REFLECTION:
 			return m_persona_reflection;
-		case TypeNuanceur::REFRACTION:
+		case kdo::TypeNuanceur::REFRACTION:
 			return m_persona_refraction;
-		case TypeNuanceur::VOLUME:
+		case kdo::TypeNuanceur::VOLUME:
 			return m_persona_volume;
-		case TypeNuanceur::EMISSION:
+		case kdo::TypeNuanceur::EMISSION:
 			return m_persona_emission;
 	}
 
@@ -207,7 +207,7 @@ danjo::Manipulable *VueMaterial::persona() const
 
 /* ************************************************************************** */
 
-EditeurMaterial::EditeurMaterial(Koudou *koudou, QWidget *parent)
+EditeurMaterial::EditeurMaterial(kdo::Koudou *koudou, QWidget *parent)
 	: BaseEditrice(*koudou, parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())

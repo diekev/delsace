@@ -31,6 +31,9 @@
 #include "tache.h"
 
 class GNA;
+
+namespace kdo {
+
 class ParametresRendu;
 
 class MoteurRendu {
@@ -60,3 +63,5 @@ public:
 
 	void commence(Koudou const &koudou) override;
 };
+
+}  /* namespace kdo */

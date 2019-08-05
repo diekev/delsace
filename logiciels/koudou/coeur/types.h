@@ -24,6 +24,8 @@
 
 #pragma once
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 /* Pour les entresections. */
@@ -32,3 +34,5 @@ enum {
 	ESECT_OBJET_TYPE_LUMIERE  = 1,
 	ESECT_OBJET_TYPE_TRIANGLE = 2,
 };
+
+}  /* namespace kdo */

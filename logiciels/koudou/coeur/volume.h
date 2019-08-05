@@ -27,9 +27,12 @@
 #include "biblinternes/phys/rayon.hh"
 #include "biblinternes/phys/spectre.hh"
 
+class GNA;
+
+namespace kdo {
+
 struct ContexteNuancage;
 
-class GNA;
 class ParametresRendu;
 
 struct Volume {
@@ -85,3 +88,5 @@ struct VolumeHeterogeneDiffusionSimple : public Volume {
 
 	Spectre transmittance(GNA &gna, ParametresRendu const &parametres, dls::math::point3d const &P0, dls::math::point3d const &P1) override;
 };
+
+}  /* namespace kdo */

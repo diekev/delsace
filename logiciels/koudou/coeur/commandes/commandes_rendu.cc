@@ -37,8 +37,8 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto koudou = std::any_cast<Koudou *>(pointeur);
-		auto tache_rendu = new(tbb::task::allocate_root()) TacheRendu(*koudou);
+		auto koudou = std::any_cast<kdo::Koudou *>(pointeur);
+		auto tache_rendu = new(tbb::task::allocate_root()) kdo::TacheRendu(*koudou);
 		tbb::task::enqueue(*tache_rendu);
 
 		return EXECUTION_COMMANDE_REUSSIE;
@@ -53,7 +53,7 @@ public:
 
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
-		auto koudou = std::any_cast<Koudou *>(pointeur);
+		auto koudou = std::any_cast<kdo::Koudou *>(pointeur);
 		koudou->moteur_rendu->arrete();
 
 		return EXECUTION_COMMANDE_REUSSIE;

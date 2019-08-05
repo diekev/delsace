@@ -27,12 +27,14 @@
 #include "base_editeur.h"
 #include "danjo/manipulable.h"
 
+namespace kdo {
 class Objet;
+}
 class QScrollArea;
 class QGridLayout;
 
 class VueObjet final : public danjo::Manipulable {
-	Objet *m_objet = nullptr;
+	kdo::Objet *m_objet = nullptr;
 
 public:
 	VueObjet();
@@ -40,7 +42,7 @@ public:
 	VueObjet(VueObjet const &) = default;
 	VueObjet &operator=(VueObjet const &) = default;
 
-	void objet(Objet *o);
+	void objet(kdo::Objet *o);
 
 	void ajourne_donnees();
 	bool ajourne_proprietes() override;
@@ -56,7 +58,7 @@ class EditeurObjet final : public BaseEditrice {
 	QGridLayout *m_glayout;
 
 public:
-	EditeurObjet(Koudou *koudou, QWidget *parent = nullptr);
+	EditeurObjet(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	EditeurObjet(EditeurObjet const &) = default;
 	EditeurObjet &operator=(EditeurObjet const &) = default;

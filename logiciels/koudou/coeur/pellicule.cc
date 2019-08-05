@@ -24,6 +24,8 @@
 
 #include "pellicule.h"
 
+namespace kdo {
+
 Pellicule::Pellicule()
 	: m_matrice(dls::math::Hauteur(720), dls::math::Largeur(1280))
 {}
@@ -95,3 +97,5 @@ void Pellicule::redimensionne(dls::math::Hauteur const &hauteur, dls::math::Larg
 {
 	m_matrice = dls::math::matrice_dyn<dls::math::vec3d>(hauteur, largeur);
 }
+
+}  /* namespace kdo */

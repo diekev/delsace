@@ -31,6 +31,8 @@
 #include "nuanceur.h"
 #include "types.h"
 
+namespace kdo {
+
 Maillage::Maillage()
 	: m_transformation(dls::math::mat4x4d(1.0))
 	, m_nuanceur(nullptr)
@@ -232,3 +234,5 @@ dls::math::vec3d calcul_normal(Triangle const &triangle)
 
 	return dls::math::normalise(dls::math::produit_croix(c1, c2));
 }
+
+}  /* namespace kdo */

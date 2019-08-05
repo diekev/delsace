@@ -38,7 +38,7 @@
 
 /* ************************************************************************** */
 
-BaseDialogue::BaseDialogue(Koudou &koudou, QWidget *parent)
+BaseDialogue::BaseDialogue(kdo::Koudou &koudou, QWidget *parent)
     : QDialog(parent)
 	, m_agencement(new QVBoxLayout(this))
 	, m_agencement_grille(new QGridLayout())
@@ -69,7 +69,7 @@ void BaseDialogue::ajourne()
 
 /* ************************************************************************** */
 
-ProjectSettingsDialog::ProjectSettingsDialog(Koudou &koudou, QWidget *parent)
+ProjectSettingsDialog::ProjectSettingsDialog(kdo::Koudou &koudou, QWidget *parent)
     : QDialog(parent)
 	, m_agencement(new QVBoxLayout(this))
 	, m_agencement_grille(new QGridLayout())

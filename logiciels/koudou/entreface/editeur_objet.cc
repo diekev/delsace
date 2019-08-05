@@ -61,7 +61,7 @@ VueObjet::VueObjet()
 //	etablie_valeur_bool_defaut(false);
 }
 
-void VueObjet::objet(Objet *o)
+void VueObjet::objet(kdo::Objet *o)
 {
 	m_objet = o;
 }
@@ -80,10 +80,10 @@ void VueObjet::ajourne_donnees()
 
 	m_objet->transformation = transformation;
 
-	if (m_objet->type == TypeObjet::LUMIERE) {
+	if (m_objet->type == kdo::TypeObjet::LUMIERE) {
 		m_objet->lumiere->transformation = transformation;
 	}
-	else if (m_objet->type == TypeObjet::MAILLAGE) {
+	else if (m_objet->type == kdo::TypeObjet::MAILLAGE) {
 		m_objet->maillage->transformation(transformation);
 
 		m_objet->maillage->dessine_normaux(evalue_bool("dessine_normaux"));
@@ -92,7 +92,7 @@ void VueObjet::ajourne_donnees()
 
 bool VueObjet::ajourne_proprietes()
 {
-	auto const est_maillage = (m_objet->type == TypeObjet::MAILLAGE);
+	auto const est_maillage = (m_objet->type == kdo::TypeObjet::MAILLAGE);
 
 	if (est_maillage) {
 		valeur_bool("dessine_normaux", m_objet->maillage->dessine_normaux());
@@ -105,7 +105,7 @@ bool VueObjet::ajourne_proprietes()
 
 /* ************************************************************************** */
 
-EditeurObjet::EditeurObjet(Koudou *koudou, QWidget *parent)
+EditeurObjet::EditeurObjet(kdo::Koudou *koudou, QWidget *parent)
 	: BaseEditrice(*koudou, parent)
 	, m_vue(new VueObjet())
 	, m_widget(new QWidget())

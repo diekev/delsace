@@ -48,7 +48,7 @@ static auto moyenne(
 
 /* ************************************************************************** */
 
-RenduMaillage::RenduMaillage(Maillage *maillage)
+RenduMaillage::RenduMaillage(kdo::Maillage *maillage)
 	: m_maillage(maillage)
 {}
 
@@ -106,7 +106,7 @@ void RenduMaillage::genere_tampon_surface()
 	normaux.reserve(nombre_sommets * 3);
 
 	/* OpenGL ne travaille qu'avec des floats. */
-	for (const Triangle *triangle : *m_maillage) {
+	for (const kdo::Triangle *triangle : *m_maillage) {
 		sommets.pousse(dls::math::vec3f(static_cast<float>(triangle->v0.x), static_cast<float>(triangle->v0.y), static_cast<float>(triangle->v0.z)));
 		sommets.pousse(dls::math::vec3f(static_cast<float>(triangle->v1.x), static_cast<float>(triangle->v1.y), static_cast<float>(triangle->v1.z)));
 		sommets.pousse(dls::math::vec3f(static_cast<float>(triangle->v2.x), static_cast<float>(triangle->v2.y), static_cast<float>(triangle->v2.z)));
@@ -177,7 +177,7 @@ void RenduMaillage::genere_tampon_normal()
 	dls::tableau<dls::math::vec3f> sommets;
 	sommets.reserve(nombre_triangle * 2);
 
-	for (const Triangle *triangle : *m_maillage) {
+	for (const kdo::Triangle *triangle : *m_maillage) {
 		auto const &N = normalise(triangle->normal);
 		auto const &V = moyenne(triangle->v0, triangle->v1, triangle->v2);
 
@@ -213,17 +213,17 @@ void RenduMaillage::initialise()
 	genere_tampon_normal();
 }
 
-void RenduMaillage::dessine(ContexteRendu const &contexte, Scene const &scene)
+void RenduMaillage::dessine(ContexteRendu const &contexte, kdo::Scene const &scene)
 {
 	Spectre spectre(1.0f);
 	auto nuanceur = m_maillage->nuanceur();
 
 	switch (nuanceur->type) {
-		case TypeNuanceur::DIFFUS:
-			spectre = dynamic_cast<NuanceurDiffus *>(nuanceur)->spectre;
+		case kdo::TypeNuanceur::DIFFUS:
+			spectre = dynamic_cast<kdo::NuanceurDiffus *>(nuanceur)->spectre;
 			break;
-		case TypeNuanceur::ANGLE_VUE:
-			spectre = dynamic_cast<NuanceurAngleVue *>(nuanceur)->spectre;
+		case kdo::TypeNuanceur::ANGLE_VUE:
+			spectre = dynamic_cast<kdo::NuanceurAngleVue *>(nuanceur)->spectre;
 			break;
 		default:
 			break;
@@ -242,7 +242,7 @@ void RenduMaillage::dessine(ContexteRendu const &contexte, Scene const &scene)
 		auto transform = lumiere->transformation.matrice();
 		programme->uniforme("lumieres[" + std::to_string(i) + "].couleur", spectre[0], spectre[1], spectre[2], 1.0f);
 
-		if (lumiere->type == type_lumiere::DISTANTE) {
+		if (lumiere->type == kdo::type_lumiere::DISTANTE) {
 			programme->uniforme("lumieres[" + std::to_string(i) + "].position", 0.0f, 0.0f, 1.0f);
 		}
 		else {

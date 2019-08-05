@@ -36,6 +36,8 @@
 #include "structure_acceleration.h"
 #include "types.h"
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 BSDF::BSDF(ContexteNuancage &ctx)
@@ -428,3 +430,5 @@ double BSDFPhaseAnisotropique::inverse_cdf(double xi) const
 	auto const t = (un_moins_g2) / (1.0 - g + 2.0 * g * xi);
 	return un_sur_2g * (un_plus_g2 - t * t);
 }
+
+}  /* namespace kdo */

@@ -109,7 +109,7 @@ bool VueCamera::ajourne_proprietes()
 
 /* ************************************************************************** */
 
-EditeurCamera::EditeurCamera(Koudou *koudou, QWidget *parent)
+EditeurCamera::EditeurCamera(kdo::Koudou *koudou, QWidget *parent)
 	: BaseEditrice(*koudou, parent)
 	, m_widget(new QWidget())
 	, m_scroll(new QScrollArea())

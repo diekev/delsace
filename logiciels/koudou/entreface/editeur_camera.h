@@ -55,7 +55,7 @@ class EditeurCamera final : public BaseEditrice {
 	QGridLayout *m_glayout;
 
 public:
-	EditeurCamera(Koudou *koudou, QWidget *parent = nullptr);
+	EditeurCamera(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	EditeurCamera(EditeurCamera const &) = default;
 	EditeurCamera &operator=(EditeurCamera const &) = default;

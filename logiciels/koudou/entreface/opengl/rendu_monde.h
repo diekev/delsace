@@ -28,9 +28,12 @@
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/structures/tableau.hh"
 
-class ContexteRendu;
+namespace kdo {
 class Koudou;
 class Monde;
+}
+
+class ContexteRendu;
 class TamponRendu;
 
 /**
@@ -38,7 +41,7 @@ class TamponRendu;
  */
 class RenduMonde {
 	TamponRendu *m_tampon = nullptr;
-	Monde *m_monde{};
+	kdo::Monde *m_monde{};
 
 	dls::tableau<dls::math::vec3f> m_sommets{};
 	dls::tableau<unsigned int> m_index{};
@@ -53,7 +56,7 @@ public:
 	 * création d'un tampon OpenGL, donc elle doit se faire dans un contexte
 	 * OpenGL valide.
 	 */
-	explicit RenduMonde(Koudou *koudou);
+	explicit RenduMonde(kdo::Koudou *koudou);
 
 	RenduMonde(RenduMonde const &) = default;
 	RenduMonde &operator=(RenduMonde const &) = default;

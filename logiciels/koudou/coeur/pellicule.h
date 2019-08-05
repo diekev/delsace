@@ -29,6 +29,8 @@
 
 #include "biblinternes/structures/tableau.hh"
 
+namespace kdo {
+
 struct CarreauPellicule {
 	unsigned int x;
 	unsigned int y;
@@ -65,3 +67,5 @@ public:
 
 	void creer_image();
 };
+
+}  /* namespace kdo */

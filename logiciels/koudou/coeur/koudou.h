@@ -33,11 +33,9 @@ class Camera;
 class CameraPerspective;
 class Configuration;
 class FenetrePrincipale;
-class MoteurRendu;
 class ParametresProjet;
 class BaseEditrice;
 class RepondantCommande;
-class StructureAcceleration;
 class UsineCommande;
 
 namespace vision {
@@ -47,6 +45,11 @@ class Camera3D;
 enum {
 	FICHIER_OUVERTURE,
 };
+
+namespace kdo {
+
+class MoteurRendu;
+class StructureAcceleration;
 
 struct ParametresRendu {
 	unsigned int nombre_echantillons = 32;
@@ -116,3 +119,5 @@ struct Koudou : public Sujette {
 
 	dls::chaine requiers_dialogue(int type);
 };
+
+}  /* namespace kdo */

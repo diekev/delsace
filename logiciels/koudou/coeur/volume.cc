@@ -33,6 +33,8 @@
 #include "structure_acceleration.h"
 #include "types.h"
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 Volume::Volume(ContexteNuancage &ctx)
@@ -343,3 +345,5 @@ Spectre VolumeHeterogeneDiffusionSimple::transmittance(
 				 std::exp(-distance)
 			);
 }
+
+}  /* namespace kdo */

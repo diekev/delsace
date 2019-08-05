@@ -30,7 +30,10 @@
 #include <QDialog>
 #pragma GCC diagnostic pop
 
+namespace kdo {
 class Koudou;
+}
+
 class QVBoxLayout;
 class QGridLayout;
 
@@ -41,10 +44,10 @@ class BaseDialogue : public QDialog {
 
 	QVBoxLayout *m_agencement;
 	QGridLayout *m_agencement_grille;
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 
 public:
-	explicit BaseDialogue(Koudou &koudou, QWidget *parent = nullptr);
+	explicit BaseDialogue(kdo::Koudou &koudou, QWidget *parent = nullptr);
 
 	BaseDialogue(BaseDialogue const &) = default;
 	BaseDialogue &operator=(BaseDialogue const &) = default;
@@ -60,10 +63,10 @@ class ProjectSettingsDialog : public QDialog {
 
 	QVBoxLayout *m_agencement;
 	QGridLayout *m_agencement_grille;
-	Koudou *m_koudou;
+	kdo::Koudou *m_koudou;
 
 public:
-	explicit ProjectSettingsDialog(Koudou &koudou, QWidget *parent = nullptr);
+	explicit ProjectSettingsDialog(kdo::Koudou &koudou, QWidget *parent = nullptr);
 
 	ProjectSettingsDialog(ProjectSettingsDialog const &) = default;
 	ProjectSettingsDialog &operator=(ProjectSettingsDialog const &) = default;

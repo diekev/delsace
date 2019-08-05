@@ -28,15 +28,17 @@
 
 #include "base_editeur.h"
 
+namespace kdo {
 class Monde;
+}
 class QScrollArea;
 class QGridLayout;
 
 class VueMonde final : public danjo::Manipulable {
-	Monde *m_monde;
+	kdo::Monde *m_monde;
 
 public:
-	explicit VueMonde(Monde *monde);
+	explicit VueMonde(kdo::Monde *monde);
 
 	VueMonde(VueMonde const &) = default;
 	VueMonde &operator=(VueMonde const &) = default;
@@ -55,7 +57,7 @@ class EditeurMonde final : public BaseEditrice {
 	QGridLayout *m_glayout;
 
 public:
-	EditeurMonde(Koudou *koudou, QWidget *parent = nullptr);
+	EditeurMonde(kdo::Koudou *koudou, QWidget *parent = nullptr);
 
 	EditeurMonde(EditeurMonde const &) = default;
 	EditeurMonde &operator=(EditeurMonde const &) = default;

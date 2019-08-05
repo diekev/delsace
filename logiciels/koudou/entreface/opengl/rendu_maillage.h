@@ -26,9 +26,12 @@
 
 #include "biblinternes/math/matrice.hh"
 
-class ContexteRendu;
+namespace kdo {
 class Maillage;
 class Scene;
+}
+
+class ContexteRendu;
 class TamponRendu;
 
 /**
@@ -38,13 +41,13 @@ class TamponRendu;
 class RenduMaillage {
 	TamponRendu *m_tampon_surface = nullptr;
 	TamponRendu *m_tampon_normal = nullptr;
-	Maillage *m_maillage = nullptr;
+	kdo::Maillage *m_maillage = nullptr;
 
 public:
 	/**
 	 * Construit une instance de RenduMaillage pour le maillage spécifié.
 	 */
-	explicit RenduMaillage(Maillage *maillage);
+	explicit RenduMaillage(kdo::Maillage *maillage);
 
 	RenduMaillage(RenduMaillage const &) = default;
 	RenduMaillage &operator=(RenduMaillage const &) = default;
@@ -60,7 +63,7 @@ public:
 	/**
 	 * Dessine le maillage dans le contexte spécifié.
 	 */
-	void dessine(ContexteRendu const &contexte, Scene const &scene);
+	void dessine(ContexteRendu const &contexte, kdo::Scene const &scene);
 
 	/**
 	 * Retourne la matrice du maillage.

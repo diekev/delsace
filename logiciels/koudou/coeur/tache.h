@@ -36,7 +36,9 @@
 
 #include <tbb/task.h>
 
+namespace kdo {
 class Koudou;
+}
 class FenetrePrincipale;
 
 /* Apparemment nous ne pouvons pas dériver un objet depuis QObject et tbb::task
@@ -68,12 +70,12 @@ Q_SIGNALS:
 class Tache : public tbb::task {
 protected:
 	std::unique_ptr<NotaireTache> m_notaire = nullptr;
-	Koudou const &m_koudou;
+	kdo::Koudou const &m_koudou;
 
 public:
-	explicit Tache(Koudou const &koudou);
+	explicit Tache(kdo::Koudou const &koudou);
 
 	tbb::task *execute() override;
 
-	virtual void commence(Koudou const &koudou) = 0;
+	virtual void commence(kdo::Koudou const &koudou) = 0;
 };

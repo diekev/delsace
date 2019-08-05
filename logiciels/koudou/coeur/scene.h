@@ -32,11 +32,14 @@
 #include "types.h"
 
 class GNA;
+class Texture;
+
+namespace kdo {
+
 class Lumiere;
 class Maillage;
 class Nuanceur;
 struct ParametresRendu;
-class Texture;
 
 struct Objet;
 
@@ -92,3 +95,5 @@ dls::math::vec3d reflect(dls::math::vec3d const &nor, dls::math::vec3d const &di
 dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor);
 
 dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::vec3d const &rd);
+
+}  /* namespace kdo */

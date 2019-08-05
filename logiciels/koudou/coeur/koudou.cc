@@ -43,6 +43,8 @@
 #include "commandes/commandes_rendu.h"
 #include "commandes/commandes_vue3d.h"
 
+namespace kdo {
+
 ParametresRendu::ParametresRendu()
 	: acceleratrice(new VolumeEnglobant())
 {}
@@ -123,3 +125,5 @@ dls::chaine Koudou::requiers_dialogue(int type)
 
 	return "";
 }
+
+}  /* namespace kdo */

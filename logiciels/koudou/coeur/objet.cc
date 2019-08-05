@@ -27,6 +27,8 @@
 #include "lumiere.h"
 #include "maillage.h"
 
+namespace kdo {
+
 Objet::~Objet()
 {
 	if (type == TypeObjet::LUMIERE) {
@@ -57,3 +59,5 @@ dls::chaine Objet::chemin() const
 
 	return "/objets/maillages/" + nom + "/";
 }
+
+}  /* namespace kdo */

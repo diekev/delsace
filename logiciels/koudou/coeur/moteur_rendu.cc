@@ -40,6 +40,8 @@
 #include "types.h"
 #include "volume.h"
 
+namespace kdo {
+
 /* ************************************************************************** */
 
 vision::EchantillonCamera genere_echantillon(GNA &gna, unsigned int x, unsigned int y)
@@ -323,3 +325,5 @@ void TacheRendu::commence(Koudou const &koudou)
 
 	m_notaire->signale_progres_temps(e + 1, temps_echantillon, temps_ecoule, temps_restant);
 }
+
+}  /* namespace kdo */

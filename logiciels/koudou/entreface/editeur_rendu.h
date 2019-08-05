@@ -45,7 +45,7 @@ class EditriceRendu : public BaseEditrice {
 	QLabel *m_info_echantillon;
 
 public:
-	explicit EditriceRendu(Koudou &koudou, QWidget *parent = nullptr);
+	explicit EditriceRendu(kdo::Koudou &koudou, QWidget *parent = nullptr);
 
 	EditriceRendu(EditriceRendu const &) = default;
 	EditriceRendu &operator=(EditriceRendu const &) = default;

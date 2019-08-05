@@ -38,7 +38,7 @@
 #include "coeur/evenement.h"
 #include "coeur/koudou.h"
 
-VueMonde::VueMonde(Monde *monde)
+VueMonde::VueMonde(kdo::Monde *monde)
 	: m_monde(monde)
 {
 //	ProprieteEnumerante enum_texture;
@@ -121,7 +121,7 @@ bool VueMonde::ajourne_proprietes()
 
 /* ************************************************************************** */
 
-EditeurMonde::EditeurMonde(Koudou *koudou, QWidget *parent)
+EditeurMonde::EditeurMonde(kdo::Koudou *koudou, QWidget *parent)
 	: BaseEditrice(*koudou, parent)
 	, m_vue(new VueMonde(&koudou->parametres_rendu.scene.monde))
 	, m_widget(new QWidget())
