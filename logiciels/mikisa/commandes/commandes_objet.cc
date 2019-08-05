@@ -151,7 +151,9 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 		cree_graphe_ocean(objet->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
 	}
 	else {
-		throw std::runtime_error("Type de préréglage inconnu");
+		mikisa->affiche_erreur("Type de préréglage inconnu");
+		bdd.enleve_objet(objet);
+		return EXECUTION_COMMANDE_ECHOUEE;
 	}
 
 	mikisa->scene->ajoute_objet(objet);
@@ -183,7 +185,9 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 		objet = bdd.cree_objet(nom, type_objet::CAMERA);
 	}
 	else {
-		throw std::runtime_error("Type de préréglage inconnu");
+		mikisa->affiche_erreur("Type de préréglage objet inconnu");
+		bdd.enleve_objet(objet);
+		return EXECUTION_COMMANDE_ECHOUEE;
 	}
 
 	mikisa->scene->ajoute_objet(objet);
