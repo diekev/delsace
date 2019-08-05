@@ -57,6 +57,7 @@ set(ICONES
 	fichiers/icones/icon_torus.png
 	fichiers/icones/icon_tube.png
 	fichiers/icones/icon_uvsphere.png
+	fichiers/icones/icone_ocean.png
 	fichiers/icones/icone_echelle.png
 	fichiers/icones/icone_manipulation.png
 	fichiers/icones/icone_position.png

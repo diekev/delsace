@@ -77,6 +77,35 @@ static auto cree_graphe_creation_objet(
 	graphe.dernier_noeud_sortie = noeud_sortie;
 }
 
+static auto cree_graphe_ocean(
+		Graphe &graphe,
+		UsineOperatrice &usine,
+		int temps_debut,
+		int temps_fin)
+{
+	auto noeud_grille = cree_noeud_op(graphe, usine, "grille", "Création Grille", false);
+	auto noeud_ocean = cree_noeud_op(graphe, usine, "océan", "Océan", false);
+	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps", true);
+
+	graphe.connecte(noeud_grille->sortie(0), noeud_ocean->entree(0));
+	graphe.connecte(noeud_ocean->sortie(0), noeud_sortie->entree(0));
+	graphe.dernier_noeud_sortie = noeud_sortie;
+
+	/* donne des valeurs sensées à la grille */
+	auto op = extrait_opimage(noeud_grille->donnees());
+	op->valeur_decimal("taille_x", 10.0f);
+	op->valeur_decimal("taille_y", 10.0f);
+	op->valeur_entier("lignes", 200);
+	op->valeur_entier("colonnes", 200);
+
+	/* anime l'océan */
+	op = extrait_opimage(noeud_ocean->donnees());
+
+	auto prop = op->propriete("temps");
+	prop->ajoute_cle(static_cast<float>(temps_debut), temps_debut);
+	prop->ajoute_cle(static_cast<float>(temps_fin), temps_fin);
+}
+
 /* ************************************************************************** */
 
 class CommandeAjoutePrereglage final : public Commande {
@@ -112,6 +141,9 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	}
 	else if (nom == "torus") {
 		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Torus");
+	}
+	else if (nom == "océan") {
+		cree_graphe_ocean(objet->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
 	}
 	else {
 		throw std::runtime_error("Type de préréglage inconnu");
