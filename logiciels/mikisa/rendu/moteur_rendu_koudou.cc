@@ -70,11 +70,12 @@ void MoteurRenduKoudou::calcule_rendu(
 	/* ********************************************************************** */
 
 	auto transformation = math::transformation();
+	transformation *= math::translation(0.0, 2.0, 4.0);
 
-	auto soleil = new kdo::LumiereDistante(transformation, Spectre(0.95));
-	soleil->nuanceur = kdo::NuanceurEmission::defaut();
-
-	scene_koudou.ajoute_lumiere(soleil);
+	float rgb1[3] = {1.0f, 0.6f, 0.6f};
+	auto lumiere_point = new kdo::LumierePoint(transformation, Spectre::depuis_rgb(rgb1), 100);
+	scene_koudou.ajoute_lumiere(lumiere_point);
+	lumiere_point->nuanceur = kdo::NuanceurEmission::defaut();
 
 	for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
 		auto objet = m_delegue->objet(i);
@@ -120,7 +121,7 @@ void MoteurRenduKoudou::calcule_rendu(
 	/* ********************************************************************** */
 
 	auto moteur_rendu = m_koudou->moteur_rendu;
-	auto nombre_echantillons = m_koudou->parametres_rendu.nombre_echantillons;
+	auto nombre_echantillons = 4; //m_koudou->parametres_rendu.nombre_echantillons;
 
 #ifdef STATISTIQUES
 	init_statistiques();
