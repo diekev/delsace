@@ -71,6 +71,8 @@ public:
 
 	void scene(Scene *scene);
 
+	virtual const char *id() const = 0;
+
 	virtual void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final) = 0;
 
 	virtual void construit_scene();

@@ -66,9 +66,15 @@ VisionneurScene::~VisionneurScene()
 	memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
 	memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
 
-	auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
+	if (m_moteur_rendu->id() == dls::chaine("opengl")) {
+		auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
+		memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
+	}
+	else if (m_moteur_rendu->id() == dls::chaine("koudou")) {
+		auto moteur_rendu = dynamic_cast<MoteurRenduKoudou *>(m_moteur_rendu);
+		memoire::deloge("MoteurRenduKoudou", moteur_rendu);
+	}
 
-	memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
 	memoire::deloge("TamponRendu", m_tampon_image);
 
 	if (m_tampon != nullptr) {
@@ -241,4 +247,22 @@ void VisionneurScene::position_souris(int x, int y)
 {
 	m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
 	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / static_cast<float>(m_camera->hauteur()) * 2.0f - 1.0f;
+}
+
+void VisionneurScene::change_moteur_rendu(const dls::chaine &id)
+{
+	if (id == "opengl") {
+		auto moteur_rendu = dynamic_cast<MoteurRenduKoudou *>(m_moteur_rendu);
+		memoire::deloge("MoteurRenduKoudou", moteur_rendu);
+
+		m_moteur_rendu = memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL");
+	}
+	else if (id == "koudou") {
+		auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
+		memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
+
+		m_moteur_rendu = memoire::loge<MoteurRenduKoudou>("MoteurRenduKoudou");
+	}
+
+	m_moteur_rendu->camera(this->m_camera);
 }

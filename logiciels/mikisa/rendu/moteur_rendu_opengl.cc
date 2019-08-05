@@ -324,6 +324,11 @@ MoteurRenduOpenGL::~MoteurRenduOpenGL()
 	memoire::deloge("RenduGrille", m_rendu_grille);
 }
 
+const char *MoteurRenduOpenGL::id() const
+{
+	return "opengl";
+}
+
 void MoteurRenduOpenGL::calcule_rendu(
 		StatistiquesRendu &stats,
 		float *tampon,

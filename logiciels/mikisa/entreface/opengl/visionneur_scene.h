@@ -113,4 +113,6 @@ public:
 	 * Renseigne la position de la souris.
 	 */
 	void position_souris(int x, int y);
+
+	void change_moteur_rendu(const dls::chaine &id);
 };

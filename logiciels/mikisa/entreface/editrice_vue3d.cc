@@ -32,6 +32,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QToolButton>
@@ -174,6 +175,11 @@ void VueCanevas3D::reconstruit_scene() const
 	//m_visionneur_scene->reconstruit_scene();
 }
 
+void VueCanevas3D::change_moteur_rendu(dls::chaine const &id) const
+{
+	m_visionneur_scene->change_moteur_rendu(id);
+}
+
 /* ************************************************************************** */
 
 EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
@@ -237,6 +243,15 @@ EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
 	connect(bouton, &QToolButton::clicked, this, &EditriceVue3D::manipule_echelle);
 	disp_boutons->addWidget(bouton);
 	m_bouton_echelle = bouton;
+
+	m_selecteur_rendu = new QComboBox(this);
+	m_selecteur_rendu->addItem("OpenGL", QVariant("opengl"));
+	m_selecteur_rendu->addItem("Koudou", QVariant("koudou"));
+
+	connect(m_selecteur_rendu, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(change_moteur_rendu(int)));
+
+	disp_boutons->addWidget(m_selecteur_rendu);
 
 	disp_boutons->addStretch();
 
@@ -302,5 +317,14 @@ void EditriceVue3D::manipule_echelle()
 	m_bouton_actif = m_bouton_echelle;
 
 	charge_manipulatrice(m_mikisa, MANIPULATION_ECHELLE);
+	m_vue->update();
+}
+
+void EditriceVue3D::change_moteur_rendu(int idx)
+{
+	INUTILISE(idx);
+	auto valeur = m_selecteur_rendu->currentData().toString().toStdString();
+
+	m_vue->change_moteur_rendu(valeur);
 	m_vue->update();
 }

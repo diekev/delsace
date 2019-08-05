@@ -44,6 +44,8 @@ public:
 	MoteurRenduOpenGL(MoteurRenduOpenGL const &) = default;
 	MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = default;
 
+	const char *id() const override;
+
 	void calcule_rendu(
 			StatistiquesRendu &stats,
 			float *tampon,

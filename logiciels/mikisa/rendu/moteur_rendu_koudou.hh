@@ -41,6 +41,8 @@ public:
 	MoteurRenduKoudou(MoteurRenduKoudou const &) = default;
 	MoteurRenduKoudou &operator=(MoteurRenduKoudou const &) = default;
 
+	const char *id() const override;
+
 	void calcule_rendu(
 			StatistiquesRendu &stats,
 			float *tampon,

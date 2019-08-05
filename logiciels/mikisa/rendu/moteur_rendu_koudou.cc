@@ -47,6 +47,11 @@ MoteurRenduKoudou::~MoteurRenduKoudou()
 	delete m_koudou;
 }
 
+const char *MoteurRenduKoudou::id() const
+{
+	return "koudou";
+}
+
 void MoteurRenduKoudou::calcule_rendu(
 		StatistiquesRendu &stats,
 		float *tampon,
