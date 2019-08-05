@@ -129,6 +129,59 @@ static auto ajourne_murs_domaine(grille_dense_3d<int> &drapeaux)
 	}
 }
 
+static auto compose_valeur(
+		ParametresSource const &params,
+		float densite_courante)
+{
+
+	switch (params.fusion) {
+		case mode_fusion::SUPERPOSITION:
+		{
+			auto u = densite_courante;
+			auto v = params.densite;
+
+			return dls::math::entrepolation_lineaire(u, v, params.facteur);
+		}
+		case mode_fusion::ADDITION:
+		{
+			auto u = densite_courante;
+			auto v = params.densite;
+
+			return dls::math::entrepolation_lineaire(u, u + v, params.facteur);
+		}
+		case mode_fusion::SOUSTRACTION:
+		{
+			auto u = densite_courante;
+			auto v = params.densite;
+
+			return dls::math::entrepolation_lineaire(u, u - v, params.facteur);
+		}
+		case mode_fusion::MINIMUM:
+		{
+			auto u = densite_courante;
+			auto v = params.densite;
+
+			return dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
+		}
+		case mode_fusion::MAXIMUM:
+		{
+			auto u = densite_courante;
+			auto v = params.densite;
+
+			return dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
+		}
+		case mode_fusion::MULTIPLICATION:
+		{
+			auto u = densite_courante;
+			auto v = params.densite;
+
+			return dls::math::entrepolation_lineaire(u, u * v, params.facteur);
+		}
+	}
+
+	return densite_courante;
+}
+
 #undef UTILISE_BRUIT
 
 void ajourne_sources(Poseidon &poseidon, int temps)
@@ -190,15 +243,13 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			auto pos_monde = dls::math::discret_vers_continu<float>(pos);
 			auto densite_cible = facteur_densite * poseidon.bruit.evalue(pos_monde);
 #else
-			auto densite_cible = params.densite;
 
 			if (!poseidon.solveur_flip) {
-				densite->valeur(idx) = densite_cible;
+				densite->valeur(idx) = compose_valeur(params, densite->valeur(idx));
 				continue;
 			}
 #endif
 			auto densite_courante = 0.0f;
-			auto densite_finale = 0.0f;
 
 			auto nombre_a_genere = 0;
 
@@ -219,56 +270,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				nombre_a_genere = 8 - static_cast<int>(cellule_part.taille());
 			}
 
-			switch (params.fusion) {
-				case mode_fusion::SUPERPOSITION:
-				{
-					auto u = densite_courante;
-					auto v = densite_cible;
-
-					densite_finale = dls::math::entrepolation_lineaire(u, v, params.facteur);
-					break;
-				}
-				case mode_fusion::ADDITION:
-				{
-					auto u = densite_courante;
-					auto v = densite_cible;
-
-					densite_finale = dls::math::entrepolation_lineaire(u, u + v, params.facteur);
-					break;
-				}
-				case mode_fusion::SOUSTRACTION:
-				{
-					auto u = densite_courante;
-					auto v = densite_cible;
-
-					densite_finale = dls::math::entrepolation_lineaire(u, u - v, params.facteur);
-					break;
-				}
-				case mode_fusion::MINIMUM:
-				{
-					auto u = densite_courante;
-					auto v = densite_cible;
-
-					densite_finale = dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
-					break;
-				}
-				case mode_fusion::MAXIMUM:
-				{
-					auto u = densite_courante;
-					auto v = densite_cible;
-
-					densite_finale = dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
-					break;
-				}
-				case mode_fusion::MULTIPLICATION:
-				{
-					auto u = densite_courante;
-					auto v = densite_cible;
-
-					densite_finale = dls::math::entrepolation_lineaire(u, u * v, params.facteur);
-					break;
-				}
-			}
+			auto densite_finale = compose_valeur(params, densite_courante);
 
 			auto centre_voxel = densite->index_vers_monde(pos);
 
