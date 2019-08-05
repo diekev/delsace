@@ -29,6 +29,8 @@
 #include "biblinternes/phys/rayon.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "coeur/arbre_hbe.hh"
+
 namespace kdo {
 
 class Scene;
@@ -62,6 +64,32 @@ class VolumeEnglobant final : public StructureAcceleration {
 
 public:
 	void construit(Scene const &scene);
+
+	dls::phys::esectd entresecte(Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale) const override;
+};
+
+/* ************************************************************************** */
+
+struct DelegueScene {
+	Scene const &m_scene;
+
+	DelegueScene(Scene const &scene);
+
+	long nombre_elements() const;
+
+	BoiteEnglobante boite_englobante(long idx) const;
+
+	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
+};
+
+class AccelArbreHBE final : public StructureAcceleration {
+	ArbreHBE m_arbre{};
+	DelegueScene m_delegue;
+
+public:
+	AccelArbreHBE(Scene const &scene);
+
+	void construit();
 
 	dls::phys::esectd entresecte(Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale) const override;
 };

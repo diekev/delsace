@@ -29,6 +29,7 @@
 #include "biblinternes/outils/definitions.h"
 
 #include "maillage.hh"
+#include "objet.hh"
 #include "scene.hh"
 #include "statistiques.hh"
 
@@ -231,5 +232,121 @@ dls::phys::esectd VolumeEnglobant::entresecte(
 
 	return entresection;
 }
+
+/* ************************************************************************** */
+
+DelegueScene::DelegueScene(const Scene &scene)
+	: m_scene(scene)
+{}
+
+long DelegueScene::nombre_elements() const
+{
+	auto nombre_triangle = 0l;
+
+	for (auto &maillage : m_scene.maillages) {
+		nombre_triangle += maillage->m_triangles.taille();
+	}
+
+	return nombre_triangle;
+}
+
+BoiteEnglobante DelegueScene::boite_englobante(long idx) const
+{
+	auto nombre_triangle = 0l;
+	auto maillage = static_cast<Maillage *>(nullptr);
+
+	for (auto &maillage_ : m_scene.maillages) {
+		if (nombre_triangle + maillage_->m_triangles.taille() > idx) {
+			maillage = maillage_;
+			break;
+		}
+
+		nombre_triangle += maillage_->m_triangles.taille();
+	}
+
+	auto triangle = maillage->m_triangles[idx - nombre_triangle];
+
+	auto boite = BoiteEnglobante();
+	dls::math::extrait_min_max(dls::math::point3d(triangle->v0), boite.min, boite.max);
+	dls::math::extrait_min_max(dls::math::point3d(triangle->v1), boite.min, boite.max);
+	dls::math::extrait_min_max(dls::math::point3d(triangle->v2), boite.min, boite.max);
+	boite.id = idx;
+	boite.centroide = (boite.min + boite.max) * 0.5;
+
+	return boite;
+}
+
+dls::phys::esectd DelegueScene::intersecte_element(long idx, const dls::phys::rayond &r) const
+{
+	auto idx_objet = 0;
+	auto nombre_triangle = 0l;
+	auto maillage = static_cast<Maillage *>(nullptr);
+
+	for (auto &maillage_ : m_scene.maillages) {
+		if (nombre_triangle + maillage_->m_triangles.taille() > idx) {
+			maillage = maillage_;
+			break;
+		}
+
+		nombre_triangle += maillage_->m_triangles.taille();
+		idx_objet += 1;
+	}
+
+	auto idx_triangle = idx - nombre_triangle;
+	auto triangle = maillage->m_triangles[idx_triangle];
+
+	auto distance = 1000.0;
+
+	auto v0 = dls::math::point3d(triangle->v0);
+	auto v1 = dls::math::point3d(triangle->v1);
+	auto v2 = dls::math::point3d(triangle->v2);
+
+	auto entresection = dls::phys::esectd();
+	entresection.type = ESECT_OBJET_TYPE_AUCUN;
+
+	if (entresecte_triangle(v0, v1, v2, r, distance)) {
+#ifdef STATISTIQUES
+		statistiques.nombre_entresections_triangles.fetch_add(1, std::memory_order_relaxed);
+#endif
+		if (distance > 0.0 && distance < 1000.0) {
+			entresection.idx_objet = idx_objet;
+			entresection.idx = idx_triangle;
+			entresection.distance = distance;
+			entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
+			entresection.touche = true;
+		}
+	}
+
+	return entresection;
+}
+
+/* ************************************************************************** */
+
+AccelArbreHBE::AccelArbreHBE(const Scene &scene)
+	: m_delegue(scene)
+{}
+
+void AccelArbreHBE::construit()
+{
+	m_arbre = construit_arbre_hbe(m_delegue, 24);
+}
+
+dls::phys::esectd AccelArbreHBE::entresecte(const Scene &scene, const dls::phys::rayond &rayon, double distance_maximale) const
+{
+	auto accumulatrice = AccumulatriceTraverse(rayon.origine);
+	traverse(m_arbre, m_delegue, rayon, accumulatrice);
+	auto entresection = accumulatrice.intersection();
+
+	if (entresection.touche) {
+		entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
+	}
+	else {
+		entresection.type = ESECT_OBJET_TYPE_AUCUN;
+	}
+
+	return entresection;
+}
+
+/* ************************************************************************** */
 
 }  /* namespace kdo */

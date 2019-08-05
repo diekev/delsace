@@ -120,7 +120,7 @@ void MoteurRenduKoudou::calcule_rendu(
 	/* ********************************************************************** */
 
 	auto moteur_rendu = m_koudou->moteur_rendu;
-	auto nombre_echantillons = 2;// m_koudou->parametres_rendu.nombre_echantillons;
+	auto nombre_echantillons = m_koudou->parametres_rendu.nombre_echantillons;
 
 #ifdef STATISTIQUES
 	init_statistiques();
@@ -132,11 +132,17 @@ void MoteurRenduKoudou::calcule_rendu(
 				dls::math::Hauteur(m_camera->hauteur()),
 				dls::math::Largeur(m_camera->largeur()));
 
-	auto volume_englobant = dynamic_cast<kdo::VolumeEnglobant *>(m_koudou->parametres_rendu.acceleratrice);
+	auto acceleratrice = static_cast<kdo::AccelArbreHBE *>(nullptr);
 
-	if (volume_englobant != nullptr) {
-		volume_englobant->construit(m_koudou->parametres_rendu.scene);
+	if (m_koudou->parametres_rendu.acceleratrice == nullptr) {
+		acceleratrice = new kdo::AccelArbreHBE(scene_koudou);
+		m_koudou->parametres_rendu.acceleratrice = acceleratrice;
 	}
+	else {
+		acceleratrice = dynamic_cast<kdo::AccelArbreHBE *>(m_koudou->parametres_rendu.acceleratrice);
+	}
+
+	acceleratrice->construit();
 
 	/* Génère carreaux. */
 	auto const largeur_carreau = m_koudou->parametres_rendu.largeur_carreau;

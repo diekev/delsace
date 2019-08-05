@@ -32,7 +32,7 @@
 namespace kdo {
 
 ParametresRendu::ParametresRendu()
-	: acceleratrice(new VolumeEnglobant())
+	: acceleratrice(nullptr)
 {}
 
 ParametresRendu::~ParametresRendu()
