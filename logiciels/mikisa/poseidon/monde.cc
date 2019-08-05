@@ -131,50 +131,35 @@ static auto ajourne_murs_domaine(grille_dense_3d<int> &drapeaux)
 
 static auto compose_valeur(
 		ParametresSource const &params,
-		float densite_courante)
+		float densite_courante,
+		float densite_cible)
 {
+	auto u = densite_courante;
+	auto v = densite_cible;
 
 	switch (params.fusion) {
 		case mode_fusion::SUPERPOSITION:
 		{
-			auto u = densite_courante;
-			auto v = params.densite;
-
 			return dls::math::entrepolation_lineaire(u, v, params.facteur);
 		}
 		case mode_fusion::ADDITION:
 		{
-			auto u = densite_courante;
-			auto v = params.densite;
-
 			return dls::math::entrepolation_lineaire(u, u + v, params.facteur);
 		}
 		case mode_fusion::SOUSTRACTION:
 		{
-			auto u = densite_courante;
-			auto v = params.densite;
-
 			return dls::math::entrepolation_lineaire(u, u - v, params.facteur);
 		}
 		case mode_fusion::MINIMUM:
 		{
-			auto u = densite_courante;
-			auto v = params.densite;
-
 			return dls::math::entrepolation_lineaire(u, std::min(u, v), params.facteur);
 		}
 		case mode_fusion::MAXIMUM:
 		{
-			auto u = densite_courante;
-			auto v = params.densite;
-
 			return dls::math::entrepolation_lineaire(u, std::max(u, v), params.facteur);
 		}
 		case mode_fusion::MULTIPLICATION:
 		{
-			auto u = densite_courante;
-			auto v = params.densite;
-
 			return dls::math::entrepolation_lineaire(u, u * v, params.facteur);
 		}
 	}
@@ -193,7 +178,11 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto res = densite->desc().resolution;
 
 #ifdef UTILISE_BRUIT
-	poseidon.bruit = bruit_vaguelette::construit();
+	poseidon.bruit = bruit_vaguelette::construit(5);
+	poseidon.bruit.temps_anim = poseidon.temps_total * poseidon.dt;
+	poseidon.bruit.echelle_pos = dls::math::vec3f(45.0f);
+	poseidon.bruit.dx = static_cast<float>(densite->desc().taille_voxel);
+	poseidon.bruit.taille_grille_inv = 1.0f / static_cast<float>(poseidon.bruit.dx);
 
 	auto echelle_bruit = 1.0f;
 	auto sigma = 0.5f;
@@ -243,14 +232,15 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			auto pos_monde = dls::math::discret_vers_continu<float>(pos);
 			auto densite_cible = facteur_densite * poseidon.bruit.evalue(pos_monde);
 #else
+			auto densite_cible = params.densite;
+#endif
 
 			if (!poseidon.solveur_flip) {
-				densite->valeur(idx) = compose_valeur(params, densite->valeur(idx));
+				densite->valeur(idx) = compose_valeur(params, densite->valeur(idx), densite_cible);
 				continue;
 			}
-#endif
-			auto densite_courante = 0.0f;
 
+			auto densite_courante = 0.0f;
 			auto nombre_a_genere = 0;
 
 			auto &cellule_part = grille_particule.cellule(idx);
@@ -270,7 +260,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				nombre_a_genere = 8 - static_cast<int>(cellule_part.taille());
 			}
 
-			auto densite_finale = compose_valeur(params, densite_courante);
+			auto densite_finale = compose_valeur(params, densite_courante, densite_cible);
 
 			auto centre_voxel = densite->index_vers_monde(pos);
 
