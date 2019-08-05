@@ -68,7 +68,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_3d.cc
 	operatrices_alembic.cc
 	operatrices_arbre.cc
-	operatrices_ariel.cc
 	operatrices_attributs.cc
 	operatrices_bullet.cc
 	operatrices_cheveux.cc
@@ -102,7 +101,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_3d.h
 	operatrices_alembic.hh
 	operatrices_arbre.hh
-	operatrices_ariel.hh
 	operatrices_attributs.hh
 	operatrices_bullet.hh
 	operatrices_cheveux.h
