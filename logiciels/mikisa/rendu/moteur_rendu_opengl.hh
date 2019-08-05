@@ -22,43 +22,32 @@
  *
  */
 
+#pragma once
+
+#include "biblinternes/structures/tableau.hh"
+
 #include "moteur_rendu.hh"
 
-#include "coeur/scene.h"
+class RenduGrille;
+class TamponRendu;
 
-/* ************************************************************************** */
+class MoteurRenduOpenGL final : public MoteurRendu {
+	RenduGrille *m_rendu_grille = nullptr;
 
-long deleguee_scene::nombre_objets() const
-{
-	return scene->objets().taille();
-}
+	dls::tableau<TamponRendu *> m_tampons{};
 
-Objet *deleguee_scene::objet(long idx) const
-{
-	return scene->objets()[idx];
-}
+public:
+	MoteurRenduOpenGL() = default;
 
-/* ************************************************************************** */
+	~MoteurRenduOpenGL() override;
 
-MoteurRendu::MoteurRendu()
-	: m_delegue(memoire::loge<deleguee_scene>("Délégué Scène"))
-{}
+	MoteurRenduOpenGL(MoteurRenduOpenGL const &) = default;
+	MoteurRenduOpenGL &operator=(MoteurRenduOpenGL const &) = default;
 
-MoteurRendu::~MoteurRendu()
-{
-	memoire::deloge("Délégué Scène", m_delegue);
-}
-
-void MoteurRendu::camera(vision::Camera3D *camera)
-{
-	m_camera = camera;
-}
-
-void MoteurRendu::scene(Scene *scene)
-{
-	m_delegue->scene = scene;
-}
-
-void MoteurRendu::construit_scene()
-{
-}
+	void calcule_rendu(
+			StatistiquesRendu &stats,
+			float *tampon,
+			int hauteur,
+			int largeur,
+			bool rendu_final) override;
+};

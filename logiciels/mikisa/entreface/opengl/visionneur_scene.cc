@@ -36,7 +36,7 @@
 #include "coeur/mikisa.h"
 #include "coeur/scene.h"
 
-#include "rendu/moteur_rendu.hh"
+#include "rendu/moteur_rendu_opengl.hh"
 #include "rendu/rendu_corps.h"
 
 #include "rendu_image.h"
@@ -52,7 +52,7 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
 	, m_rendu_manipulatrice_ech(nullptr)
-	, m_moteur_rendu(memoire::loge<MoteurRendu>("MoteurRendu"))
+	, m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 	, m_pos_x(0)
 	, m_pos_y(0)
 	, m_debut(0)
@@ -64,7 +64,10 @@ VisionneurScene::~VisionneurScene()
 	memoire::deloge("RenduManipulatricePosition", m_rendu_manipulatrice_pos);
 	memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
 	memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
-	memoire::deloge("MoteurRendu", m_moteur_rendu);
+
+	auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
+
+	memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
 	memoire::deloge("TamponRendu", m_tampon_image);
 
 	if (m_tampon != nullptr) {

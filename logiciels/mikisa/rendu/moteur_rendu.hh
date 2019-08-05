@@ -24,30 +24,45 @@
 
 #pragma once
 
-#include "biblinternes/structures/tableau.hh"
-
 namespace vision {
 class Camera3D;
 }
 
-class RenduGrille;
+class Objet;
 class Scene;
-class TamponRendu;
 
 struct deleguee_scene;
 struct StatistiquesRendu;
 
-class MoteurRendu {
-	vision::Camera3D *m_camera = nullptr;
-	RenduGrille *m_rendu_grille = nullptr;
-	deleguee_scene *m_delegue = nullptr;
+/* ************************************************************************** */
 
-	dls::tableau<TamponRendu *> m_tampons{};
+/* Concernant ce déléguée_scène :
+ * La finalité du MoteurRendu est d'abstraire différents moteurs de rendus
+ * (traçage de rayon, ratissage, OpenGL, etc.) dans un système où il y a
+ * plusieurs moteurs de rendu, et plusieurs représentation scénique différentes,
+ * opérants en même temps. La Déléguée de scène servira de pont entre les
+ * différentes représentations scéniques et les différents moteurs de rendus.
+ * L'idée est similaire à celle présente dans Hydra de Pixar.
+ */
+struct deleguee_scene {
+	Scene *scene = nullptr;
+
+	long nombre_objets() const;
+
+	Objet *objet(long idx) const;
+};
+
+/* ************************************************************************** */
+
+class MoteurRendu {
+protected:
+	vision::Camera3D *m_camera = nullptr;
+	deleguee_scene *m_delegue = nullptr;
 
 public:
 	MoteurRendu();
 
-	~MoteurRendu();
+	virtual ~MoteurRendu();
 
 	MoteurRendu(MoteurRendu const &) = default;
 	MoteurRendu &operator=(MoteurRendu const &) = default;
@@ -56,7 +71,7 @@ public:
 
 	void scene(Scene *scene);
 
-	void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final);
+	virtual void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final) = 0;
 
-	void construit_scene();
+	virtual void construit_scene();
 };

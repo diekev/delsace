@@ -37,9 +37,11 @@ set(BIBLIOTHEQUES
 
 add_library(${NOM_CIBLE} STATIC
 	moteur_rendu.cc
+	moteur_rendu_opengl.cc
 	rendu_corps.cc
 
 	moteur_rendu.hh
+	moteur_rendu_opengl.hh
 	rendu_corps.h
 )
 
