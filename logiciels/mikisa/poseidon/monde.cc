@@ -30,6 +30,7 @@
 #include "corps/limites_corps.hh"
 #include "corps/iter_volume.hh"
 
+#include "coeur/delegue_hbe.hh"
 #include "coeur/objet.h"
 
 #include "fluide.hh"
@@ -207,18 +208,12 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 			corps_objet.copie_vers(&corps);
 		});
 
-		/* À FAIRE : considère la surface des maillages. */
-		auto lim = calcule_limites_mondiales_corps(corps);
-		auto min_idx = densite->monde_vers_unit(lim.min);
-		auto max_idx = densite->monde_vers_unit(lim.max);
+		auto delegue = DeleguePrim(corps);
+		auto arbre = construit_arbre_hbe(delegue, 12);
 
 		auto limites = limites3i{};
-		limites.min.x = static_cast<int>(static_cast<float>(res.x) * min_idx.x);
-		limites.min.y = static_cast<int>(static_cast<float>(res.y) * min_idx.y);
-		limites.min.z = static_cast<int>(static_cast<float>(res.z) * min_idx.z);
-		limites.max.x = static_cast<int>(static_cast<float>(res.x) * max_idx.x);
-		limites.max.y = static_cast<int>(static_cast<float>(res.y) * max_idx.y);
-		limites.max.z = static_cast<int>(static_cast<float>(res.z) * max_idx.z);
+		limites.min = dls::math::vec3i(0);
+		limites.max = densite->desc().resolution;
 		auto iter = IteratricePosition(limites);
 
 		auto gna_part = GNA{};
@@ -227,6 +222,25 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 		while (!iter.fini()) {
 			auto pos = iter.suivante();
 			auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
+
+			auto pos_mnd = densite->index_vers_monde(pos);
+			auto pos_mnd_d = dls::math::point3d(
+						static_cast<double>(pos_mnd.x),
+						static_cast<double>(pos_mnd.y),
+						static_cast<double>(pos_mnd.z));
+
+			auto dist_max = densite->desc().taille_voxel;
+			dist_max *= dist_max;
+
+			auto dpp = cherche_point_plus_proche(arbre, delegue, pos_mnd_d, dist_max);
+
+			if (dpp.distance_carree < -0.5) {
+				continue;
+			}
+
+			if (dpp.distance_carree >= dist_max) {
+				continue;
+			}
 
 #ifdef UTILISE_BRUIT
 			auto pos_monde = dls::math::discret_vers_continu<float>(pos);
