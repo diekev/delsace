@@ -1155,7 +1155,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_vorticite_gaz.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1183,8 +1183,8 @@ public:
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 
-		auto quantite_vorticite = 2.0f;
-		auto vorticite_flamme = 0.5f;
+		auto quantite_vorticite = evalue_decimal("quantité", contexte.temps_courant);
+		auto vorticite_flamme = evalue_decimal("vort_flamme", contexte.temps_courant);
 
 		psn::ajoute_vorticite(
 					*poseidon_gaz,
