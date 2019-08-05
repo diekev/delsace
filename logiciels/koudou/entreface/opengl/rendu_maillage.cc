@@ -37,17 +37,6 @@
 
 /* ************************************************************************** */
 
-template <typename T>
-static auto moyenne(
-		dls::math::vec3<T> const &v0,
-		dls::math::vec3<T> const &v1,
-		dls::math::vec3<T> const &v2)
-{
-	return (v0 + v1 + v2) / static_cast<T>(3);
-}
-
-/* ************************************************************************** */
-
 RenduMaillage::RenduMaillage(kdo::Maillage *maillage)
 	: m_maillage(maillage)
 {}

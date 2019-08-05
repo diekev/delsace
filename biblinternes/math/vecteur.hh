@@ -803,6 +803,15 @@ template <int O, typename T, int... Ns>
 	return (vec[Ns] * ...);
 }
 
+/**
+ * Retourne la moyenne de tous les vecteurs spécifiés.
+ */
+template <template<int, typename, int...> typename... Vecs, int O, typename T, int... Ds>
+[[nodiscard]] inline auto moyenne(Vecs<O, T, Ds...> const &... vs)
+{
+	return (vs + ...) / static_cast<T>(sizeof...(vs));
+}
+
 /* ***************************** opérateurs flux **************************** */
 
 /**
