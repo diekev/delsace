@@ -89,8 +89,6 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 
 /* ************************************************************************** */
 
-dls::math::vec3d reflect(dls::math::vec3d const &nor, dls::math::vec3d const &dir);
-
 // return a random direction on the hemisphere
 dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor);
 

@@ -289,7 +289,7 @@ dls::math::vec3d get_brdf_ray(GNA &gna, dls::math::vec3d const &nor, dls::math::
 		return cosine_direction(gna, nor);
 	}
 
-	auto const p = reflect(nor, rd);
+	auto const p = reflechi(rd, nor);
 	return dls::math::normalise(p + cosine_direction(gna, p) * 0.1);
 }
 
@@ -304,11 +304,6 @@ dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor)
 	}
 
 	return dr;
-}
-
-dls::math::vec3d reflect(dls::math::vec3d const &nor, dls::math::vec3d const &dir)
-{
-	return dir - (2.0 * produit_scalaire(dir, nor) * nor);
 }
 
 }  /* namespace kdo */
