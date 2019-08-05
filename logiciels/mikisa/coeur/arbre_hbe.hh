@@ -49,7 +49,7 @@ struct ArbreHBE {
 			return gauche == 0 && droite == 0;
 		}
 
-		double test_intersection_rapide(dls::phys::rayond const &r)
+		double test_intersection_rapide(dls::phys::rayond const &r) const
 		{
 			return entresection_rapide_min_max(r, limites.min, limites.max);
 		}
@@ -345,7 +345,7 @@ public:
 
 template <typename TypeDelegue>
 void traverse(
-		ArbreHBE &arbre,
+		ArbreHBE const &arbre,
 		TypeDelegue const &delegue,
 		dls::phys::rayond const r,
 		AccumulatriceTraverse &resultat)
@@ -355,7 +355,7 @@ void traverse(
 	}
 
 	/* À FAIRE : petite pile. */
-	auto pile = dls::pile<ArbreHBE::Noeud *>();
+	auto pile = dls::pile<ArbreHBE::Noeud const *>();
 	pile.empile(&arbre.noeuds[1]);
 
 	auto courant = &arbre.noeuds[1];
