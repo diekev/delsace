@@ -36,6 +36,7 @@
 #include "coeur/mikisa.h"
 #include "coeur/scene.h"
 
+#include "rendu/moteur_rendu_koudou.hh"
 #include "rendu/moteur_rendu_opengl.hh"
 #include "rendu/rendu_corps.h"
 

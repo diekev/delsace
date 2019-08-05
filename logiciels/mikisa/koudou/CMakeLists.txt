@@ -14,41 +14,55 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2017 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE mikisa_rendu)
+set(NOM_CIBLE mikisa_koudou)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${INCLUSIONS_MATH}
 )
 
 set(BIBLIOTHEQUES
-	${BIBLIOTHEQUES_OPENGL}
-	ego
-	bib_opengl
-	bib_texture
-	mikisa_coeur
+	${BIBLIOTHEQUES_IMAGE}
 	bib_outils
-	mikisa_koudou
+	bib_vision
 )
 
 add_library(${NOM_CIBLE} STATIC
+	bsdf.cc
+	koudou.cc
+	lumiere.cc
+	maillage.cc
 	moteur_rendu.cc
-	moteur_rendu_koudou.cc
-	moteur_rendu_opengl.cc
-	rendu_corps.cc
+	nuanceur.cc
+	objet.cc
+	pellicule.cc
+	scene.cc
+	statistiques.cc
+	structure_acceleration.cc
+	types.cc
+	volume.cc
 
+	bsdf.hh
+	koudou.hh
+	lumiere.hh
+	maillage.hh
+	objet.hh
+	pellicule.hh
 	moteur_rendu.hh
-	moteur_rendu_koudou.hh
-	moteur_rendu_opengl.hh
-	rendu_corps.h
+	nuanceur.hh
+	scene.hh
+	statistiques.hh
+	structure_acceleration.hh
+	types.hh
+	volume.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
-
+target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
