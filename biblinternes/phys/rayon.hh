@@ -74,6 +74,8 @@ struct entresection {
 	 * l'objet ayant été entresecté. */
 	int type = 0;
 
+	math::vec3<T> normal{};
+
 	bool touche = false;
 };
 

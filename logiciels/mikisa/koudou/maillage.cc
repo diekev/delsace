@@ -39,7 +39,7 @@ Maillage::Maillage()
 Maillage::~Maillage()
 {
 	for (auto &triangle : m_triangles) {
-		delete triangle;
+		memoire::deloge("kdo::Triangle", triangle);
 	}
 
 	m_triangles.efface();

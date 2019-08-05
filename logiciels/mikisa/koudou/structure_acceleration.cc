@@ -304,7 +304,10 @@ dls::phys::esectd DelegueScene::intersecte_element(long idx, const dls::phys::ra
 	auto entresection = dls::phys::esectd();
 	entresection.type = ESECT_OBJET_TYPE_AUCUN;
 
-	if (entresecte_triangle(v0, v1, v2, r, distance)) {
+	auto u = 0.0;
+	auto v = 0.0;
+
+	if (entresecte_triangle(v0, v1, v2, r, distance, &u, &v)) {
 #ifdef STATISTIQUES
 		statistiques.nombre_entresections_triangles.fetch_add(1, std::memory_order_relaxed);
 #endif
@@ -314,6 +317,10 @@ dls::phys::esectd DelegueScene::intersecte_element(long idx, const dls::phys::ra
 			entresection.distance = distance;
 			entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
 			entresection.touche = true;
+
+			auto w = 1.0 - u - v;
+			auto N = w * triangle->n0 + u * triangle->n1 + v * triangle->n2;
+			entresection.normal = N;
 		}
 	}
 

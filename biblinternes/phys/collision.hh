@@ -65,7 +65,9 @@ auto entresecte_triangle(
 		dls::math::point3<T> const &vertex1,
 		dls::math::point3<T> const &vertex2,
 		dls::phys::rayon<T> const &rayon,
-		T &distance)
+		T &distance,
+		T *r_u = nullptr,
+		T *r_v = nullptr)
 {
 	constexpr auto epsilon = static_cast<T>(0.000001);
 
@@ -100,6 +102,15 @@ auto entresecte_triangle(
 	/* Entresection avec le rayon. */
 	if (t > epsilon) {
 		distance = t;
+
+		if (r_u) {
+			*r_u = angle_u;
+		}
+
+		if (r_v) {
+			*r_v = angle_v;
+		}
+
 		return true;
 	}
 

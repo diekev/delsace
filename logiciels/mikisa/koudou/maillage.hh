@@ -41,6 +41,10 @@ struct Triangle {
 	dls::math::vec3d v1{};
 	dls::math::vec3d v2{};
 
+	dls::math::vec3d n0{};
+	dls::math::vec3d n1{};
+	dls::math::vec3d n2{};
+
 	dls::math::vec3d normal{};
 };
 

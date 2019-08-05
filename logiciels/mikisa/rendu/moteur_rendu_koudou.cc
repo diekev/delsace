@@ -93,24 +93,37 @@ void MoteurRenduKoudou::calcule_rendu(
 
 			pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
 			{
-//				auto attr_N = corps.attribut("N");
+				auto attr_N = corps.attribut("N");
 
 				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 					auto const &v0 = corps.point_transforme(poly->index_point(0));
 					auto const &v1 = corps.point_transforme(poly->index_point(j - 1));
 					auto const &v2 = corps.point_transforme(poly->index_point(j));
 
-					auto const &v0d = dls::math::converti_type<double>(v0);
-					auto const &v1d = dls::math::converti_type<double>(v1);
-					auto const &v2d = dls::math::converti_type<double>(v2);
+					auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
+					tri->v0 = dls::math::converti_type<double>(v0);
+					tri->v1 = dls::math::converti_type<double>(v1);
+					tri->v2 = dls::math::converti_type<double>(v2);
 
-					maillage->ajoute_triangle(v0d, v1d, v2d);
+					if (attr_N) {
+						if (attr_N->portee == portee_attr::PRIMITIVE) {
+							tri->n0 = dls::math::converti_type<double>(attr_N->vec3(static_cast<long>(poly->index)));
+							tri->n1 = tri->n0;
+							tri->n2 = tri->n0;
+						}
+						else {
+							tri->n0 = dls::math::converti_type<double>(attr_N->vec3(poly->index_point(0)));
+							tri->n1 = dls::math::converti_type<double>(attr_N->vec3(poly->index_point(j - 1)));
+							tri->n2 = dls::math::converti_type<double>(attr_N->vec3(poly->index_point(j)));
+						}
+					}
+					else {
+						tri->n0 = calcul_normal(*tri);
+						tri->n1 = tri->n0;
+						tri->n2 = tri->n0;
+					}
 
-//					if (attr_N) {
-//						auto tri = maillage->m_triangles.back();
-
-//						tri->normal = dls::math::converti_type<double>(attr_N->vec3(poly->index));
-//					}
+					maillage->m_triangles.pousse(tri);
 				}
 			});
 

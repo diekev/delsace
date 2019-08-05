@@ -114,7 +114,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 
 		// get pos and normal at the entresection point
 		contexte.P = rayon_local.origine + entresection.distance * dls::math::point3d(rayon_local.direction);
-		contexte.N = normale_scene(scene, contexte.P, entresection);
+		contexte.N = entresection.normal;// normale_scene(scene, contexte.P, entresection);
 		contexte.V = -rayon_local.direction;
 
 		contexte.rayon = rayon_local;
