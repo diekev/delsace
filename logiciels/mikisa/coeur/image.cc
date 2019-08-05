@@ -63,11 +63,11 @@ calque_image::~calque_image()
 	deloge_grille(tampon);
 }
 
-calque_image calque_image::construit_calque(base_grille_2d::type_desc const &desc)
+calque_image calque_image::construit_calque(base_grille_2d::type_desc const &desc, type_grille type_donnees)
 {
 	auto calque = calque_image();
 
-	switch (desc.type_donnees) {
+	switch (type_donnees) {
 		case type_grille::Z8:
 		{
 			calque.tampon = memoire::loge<grille_dense_2d<char>>("grille_dense_2d", desc);

@@ -66,7 +66,6 @@ static int cree_volume(
 	desc.etendue.max = max;
 	desc.fenetre_donnees = desc.etendue;
 	desc.taille_voxel = static_cast<double>(op.evalue_decimal("taille_voxel"));
-	desc.type_donnees = type_grille::R32;
 
 	auto graine = op.evalue_entier("graine");
 
@@ -244,7 +243,6 @@ static int maillage_vers_volume(
 	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = taille_voxel;
-	desc.type_donnees = type_grille::R32;
 
 	auto volume =  memoire::loge<Volume>("Volume");
 	auto grille_scalaire =  memoire::loge<Grille<float>>("grille", desc);
@@ -502,7 +500,6 @@ static int ratisse_primitives(
 	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = static_cast<double>(taille_voxel);
-	desc.type_donnees = type_grille::R32;
 
 	auto volume = memoire::loge<Volume>("Volume");
 	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);

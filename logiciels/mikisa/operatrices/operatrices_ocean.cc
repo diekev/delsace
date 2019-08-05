@@ -867,9 +867,8 @@ public:
 			desc.etendue.max = dls::math::vec2f(1.0f);
 			desc.fenetre_donnees = desc.etendue;
 			desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
-			desc.type_donnees = type_grille::R32;
 
-			m_ecume_precedente = calque_image::construit_calque(desc);
+			m_ecume_precedente = calque_image::construit_calque(desc, type_grille::R32);
 
 			m_reinit = false;
 		}

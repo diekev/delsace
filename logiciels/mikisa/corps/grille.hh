@@ -56,6 +56,18 @@ enum class type_grille {
 	VEC3,
 };
 
+template <typename T>
+struct selectrice_type_grille;
+
+template <> struct selectrice_type_grille<char>             { static constexpr auto type = type_grille::Z8; };
+template <> struct selectrice_type_grille<int>              { static constexpr auto type = type_grille::Z32; };
+template <> struct selectrice_type_grille<float>            { static constexpr auto type = type_grille::R32; };
+template <> struct selectrice_type_grille<double>           { static constexpr auto type = type_grille::R64; };
+template <> struct selectrice_type_grille<dls::math::vec2f> { static constexpr auto type = type_grille::VEC2; };
+template <> struct selectrice_type_grille<dls::math::vec3f> { static constexpr auto type = type_grille::VEC3; };
+
+/* ************************************************************************** */
+
 /**
  * Une grille peut avoir plusieurs limites : les limites de son tampon de
  * données (pixels, voxels), ou les limites de sa fenêtre de données.
@@ -219,6 +231,7 @@ public:
 		: base_grille<type_vec>(descr)
 		, m_arriere_plan(arriere_plan)
 	{
+		this->m_desc.type_donnees = selectrice_type_grille<T>::type;
 		m_donnees.redimensionne(this->m_nombre_elements, m_arriere_plan);
 	}
 

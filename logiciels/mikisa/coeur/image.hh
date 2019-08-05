@@ -52,7 +52,7 @@ struct calque_image {
 
 	~calque_image();
 
-	static calque_image construit_calque(base_grille_2d::type_desc const &desc);
+	static calque_image construit_calque(base_grille_2d::type_desc const &desc, type_grille type_donnees);
 };
 
 /* ************************************************************************** */

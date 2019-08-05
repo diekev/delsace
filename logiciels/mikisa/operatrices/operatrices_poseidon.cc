@@ -548,7 +548,6 @@ void ajoute_vorticite(
 		return;
 	}
 
-	desc.type_donnees = type_grille::R32;
 	auto vorticite_x = grille_dense_3d<float>(desc);
 	auto vorticite_y = grille_dense_3d<float>(desc);
 	auto vorticite_z = grille_dense_3d<float>(desc);
@@ -848,12 +847,10 @@ public:
 		desc.etendue.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
 		desc.fenetre_donnees = desc.etendue;
 		desc.taille_voxel = 10.0 / static_cast<double>(res);
-		desc.type_donnees = type_grille::R32;
 
 		m_poseidon.densite = memoire::loge<grille_dense_3d<float>>("grilles", desc);
 
 		if (m_poseidon.solveur_flip) {
-			desc.type_donnees = type_grille::Z32;
 			m_poseidon.grille_particule = psn::GrilleParticule(desc);
 		}
 
@@ -861,11 +858,9 @@ public:
 			desc.taille_voxel *= 2.0;
 		}
 
-		desc.type_donnees = type_grille::R32;
 		m_poseidon.pression = memoire::loge<grille_dense_3d<float>>("grilles", desc);
 		m_poseidon.drapeaux = memoire::loge<grille_dense_3d<int>>("grilles", desc);
 
-		desc.type_donnees = type_grille::VEC3;
 		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", desc);
 	}
 
