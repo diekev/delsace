@@ -37,6 +37,7 @@
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/delegue_hbe.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
@@ -1972,9 +1973,6 @@ auto mul_m32_v3(
 }
 
 }  /* namespace dls::math */
-
-#include "arbre_hbe.hh"
-#include "delegue_hbe.hh"
 
 /* Test d'implémentation d'une opératrice contraignant des points bougeant sur
  * une surface en s'inspirant de l'algorithme de contrainte de simulation de

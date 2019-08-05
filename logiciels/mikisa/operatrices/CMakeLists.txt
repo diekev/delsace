@@ -59,10 +59,8 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
-	arbre_hbe.cc
 	arbre_octernaire.cc
 	courbure.cc
-	delegue_hbe.cc
 	outils_visualisation.cc
 	normaux.cc
 	operatrices_3d.cc
@@ -92,10 +90,8 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_visualisation.cc
 	operatrices_volume.cc
 
-	arbre_hbe.hh
 	arbre_octernaire.hh
 	courbure.hh
-	delegue_hbe.hh
 	normaux.hh
 	outils_visualisation.hh
 	operatrices_3d.h

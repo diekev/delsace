@@ -32,6 +32,7 @@
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/delegue_hbe.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
@@ -42,8 +43,6 @@
 
 #include "poseidon/bruit_vaguelette.hh"
 
-#include "arbre_hbe.hh"
-#include "delegue_hbe.hh"
 #include "outils_visualisation.hh"
 
 /* ************************************************************************** */

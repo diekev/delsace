@@ -63,11 +63,13 @@ list(REMOVE_ITEM EXTLIB_COMPILE_FLAGS -Wsign-conversion)
 set_target_properties(qt_mikisa_coeur PROPERTIES COMPILE_OPTIONS "${EXTLIB_COMPILE_FLAGS}")
 
 add_library(${NOM_CIBLE} STATIC
+	arbre_hbe.cc
 	base_de_donnees.cc
 	chef_execution.cc
 	composite.cc
 	configuration.cc
 	contexte_evaluation.cc
+	delegue_hbe.cc
 	donnees_aval.cc
 	donnees_simulation.cc
 	evenement.cc
@@ -89,11 +91,13 @@ add_library(${NOM_CIBLE} STATIC
 	tache.cc
 	usine_operatrice.cc
 
+	arbre_hbe.hh
 	base_de_donnees.hh
 	chef_execution.hh
 	composite.h
 	configuration.h
 	contexte_evaluation.hh
+	delegue_hbe.hh
 	donnees_aval.hh
 	donnees_simulation.hh
 	evenement.h

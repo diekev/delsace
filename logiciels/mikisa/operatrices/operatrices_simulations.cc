@@ -30,12 +30,11 @@
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/delegue_hbe.hh"
 #include "coeur/operatrice_simulation.hh"
 #include "coeur/usine_operatrice.h"
 
 #include "corps/groupes.h"
-
-#include "delegue_hbe.hh"
 
 /* ************************************************************************** */
 
