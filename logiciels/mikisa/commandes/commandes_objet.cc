@@ -27,6 +27,8 @@
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/fichier.hh"
 
+#include "danjo/danjo.h"
+
 #include "evaluation/evaluation.hh"
 
 #include "coeur/evenement.h"
@@ -38,7 +40,44 @@
 
 /* ************************************************************************** */
 
-#include "danjo/danjo.h"
+static auto cree_noeud_op(
+		Graphe &graphe,
+		UsineOperatrice &usine,
+		dls::chaine const &nom_noeud,
+		const char *nom_op,
+		bool est_sortie)
+{
+	auto noeud = graphe.cree_noeud(nom_noeud);
+
+	/* À FAIRE : un oublie peut faire boguer le logiciel. */
+	if (est_sortie) {
+		noeud->type(NOEUD_OBJET_SORTIE);
+	}
+
+	auto op = usine(nom_op, graphe, noeud);
+
+	auto texte = dls::contenu_fichier(op->chemin_entreface());
+	danjo::initialise_entreface(op, texte.c_str());
+
+	synchronise_donnees_operatrice(noeud);
+
+	return noeud;
+}
+
+static auto cree_graphe_creation_objet(
+		Graphe &graphe,
+		UsineOperatrice &usine,
+		dls::chaine const &nom_noeud,
+		const char *nom_op)
+{
+	auto noeud_creation = cree_noeud_op(graphe, usine, nom_noeud, nom_op, false);
+	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps", true);
+
+	graphe.connecte(noeud_creation->sortie(0), noeud_sortie->entree(0));
+	graphe.dernier_noeud_sortie = noeud_sortie;
+}
+
+/* ************************************************************************** */
 
 class CommandeAjoutePrereglage final : public Commande {
 public:
@@ -50,51 +89,33 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	auto mikisa = extrait_mikisa(pointeur);
 	auto &bdd = mikisa->bdd;
 	auto nom = donnees.metadonnee;
-	auto op = static_cast<OperatriceImage *>(nullptr);
 
 	auto objet = bdd.cree_objet(nom, type_objet::CORPS);
 
-	auto noeud_creation = objet->graphe.cree_noeud(nom);
-
 	if (nom == "boîte") {
-		op = (mikisa->usine_operatrices())("Création Cube", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Cube");
 	}
 	else if (nom == "grille") {
-		op = (mikisa->usine_operatrices())("Création Grille", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Grille");
 	}
 	else if (nom == "cercle") {
-		op = (mikisa->usine_operatrices())("Création Cercle", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Cercle");
 	}
 	else if (nom == "icosphère") {
-		op = (mikisa->usine_operatrices())("Création Sphère Ico", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Sphère Ico");
 	}
 	else if (nom == "tube") {
-		op = (mikisa->usine_operatrices())("Création Cylindre", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Cylindre");
 	}
 	else if (nom == "cone") {
-		op = (mikisa->usine_operatrices())("Création Cone", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Cone");
 	}
 	else if (nom == "torus") {
-		op = (mikisa->usine_operatrices())("Création Torus", objet->graphe, noeud_creation);
+		cree_graphe_creation_objet(objet->graphe, mikisa->usine_operatrices(), nom, "Création Torus");
 	}
 	else {
 		throw std::runtime_error("Type de préréglage inconnu");
 	}
-
-	auto texte = dls::contenu_fichier(op->chemin_entreface());
-	danjo::initialise_entreface(op, texte.c_str());
-
-	synchronise_donnees_operatrice(noeud_creation);	
-
-	auto noeud_sortie = objet->graphe.cree_noeud("Sortie Corps");
-	/* À FAIRE : un oublie peut faire boguer le logiciel. */
-	noeud_sortie->type(NOEUD_OBJET_SORTIE);
-	op = (mikisa->usine_operatrices())("Sortie Corps", objet->graphe, noeud_sortie);
-	synchronise_donnees_operatrice(noeud_sortie);
-
-	objet->graphe.dernier_noeud_sortie = noeud_sortie;
-
-	objet->graphe.connecte(noeud_creation->sortie(0), noeud_sortie->entree(0));
 
 	mikisa->scene->ajoute_objet(objet);
 
