@@ -73,6 +73,8 @@ static auto cree_graphe_creation_objet(
 	auto noeud_creation = cree_noeud_op(graphe, usine, nom_noeud, nom_op, false);
 	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps", true);
 
+	noeud_creation->pos_y(-200.0f);
+
 	graphe.connecte(noeud_creation->sortie(0), noeud_sortie->entree(0));
 	graphe.dernier_noeud_sortie = noeud_sortie;
 }
@@ -86,6 +88,9 @@ static auto cree_graphe_ocean(
 	auto noeud_grille = cree_noeud_op(graphe, usine, "grille", "Création Grille", false);
 	auto noeud_ocean = cree_noeud_op(graphe, usine, "océan", "Océan", false);
 	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps", true);
+
+	noeud_grille->pos_y(-200.0f);
+	noeud_sortie->pos_y( 200.0f);
 
 	graphe.connecte(noeud_grille->sortie(0), noeud_ocean->entree(0));
 	graphe.connecte(noeud_ocean->sortie(0), noeud_sortie->entree(0));
