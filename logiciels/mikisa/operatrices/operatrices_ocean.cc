@@ -241,15 +241,6 @@ static auto gaussRand(GNA &gna, T moyenne = 0,  T sigma = 1)
  * Some useful functions
  */
 template <typename T>
-auto catrom(T p0, T p1, T p2, T p3, T f)
-{
-	return 0.5 * ((2.0 * p1) +
-				  (-p0 + p2) * f +
-				  (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * f * f +
-				  (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * f * f * f);
-}
-
-template <typename T>
 auto omega(T k, T depth, T gravite)
 {
 	return std::sqrt(gravite * k * std::tanh(k * depth));
@@ -305,151 +296,6 @@ static float ocean_jminus_vers_ecume(float jminus, float coverage)
 	float foam = jminus * -0.005f + coverage;
 	foam = dls::math::restreint(foam, 0.0f, 1.0f);
 	return foam * foam;
-}
-
-static void evalue_ocean_uv(Ocean &oc, OceanResult *ocr, float u, float v)
-{
-	int i0, i1, j0, j1;
-	float frac_x, frac_z;
-	float uu, vv;
-
-	/* first wrap the texture so 0 <= (u, v) < 1 */
-	u = fmodf(u, 1.0f);
-	v = fmodf(v, 1.0f);
-
-	if (u < 0) u += 1.0f;
-	if (v < 0) v += 1.0f;
-
-	uu = u * static_cast<float>(oc.res_x);
-	vv = v * static_cast<float>(oc.res_y);
-
-	i0 = static_cast<int>(std::floor(uu));
-	j0 = static_cast<int>(std::floor(vv));
-
-	i1 = (i0 + 1);
-	j1 = (j0 + 1);
-
-	frac_x = uu - static_cast<float>(i0);
-	frac_z = vv - static_cast<float>(j0);
-
-	i0 = i0 % oc.res_x;
-	j0 = j0 % oc.res_y;
-
-	i1 = i1 % oc.res_x;
-	j1 = j1 % oc.res_y;
-
-	auto bilerp = [&](dls::tableau<double> const &m)
-	{
-		return static_cast<float>(dls::math::entrepolation_bilineaire(
-									  m[i1 * oc.res_y + j1],
-								  m[i0 * oc.res_y + j1],
-				m[i1 * oc.res_y + j0],
-				m[i0 * oc.res_y + j0], static_cast<double>(frac_x), static_cast<double>(frac_z)));
-	};
-
-	{
-		if (oc.calcul_deplacement_y) {
-			ocr->disp[1] = bilerp(oc.disp_y);
-		}
-
-		if (oc.calcul_normaux) {
-			ocr->normal[0] = bilerp(oc.N_x);
-			ocr->normal[1] = static_cast<float>(oc.N_y);
-			ocr->normal[2] = bilerp(oc.N_z);
-		}
-
-		if (oc.calcul_chop) {
-			ocr->disp[0] = bilerp(oc.disp_x);
-			ocr->disp[2] = bilerp(oc.disp_z);
-		}
-		else {
-			ocr->disp[0] = 0.0;
-			ocr->disp[2] = 0.0;
-		}
-
-		if (oc.calcul_ecume) {
-			compute_eigenstuff(ocr, bilerp(oc.Jxx), bilerp(oc.Jzz), bilerp(oc.Jxz));
-		}
-	}
-}
-
-/* use catmullrom interpolation rather than linear */
-static void evalue_ocean_uv_catrom(Ocean &oc, OceanResult *ocr, float u, float v)
-{
-	int i0, i1, i2, i3, j0, j1, j2, j3;
-	float frac_x, frac_z;
-	float uu, vv;
-
-	/* first wrap the texture so 0 <= (u, v) < 1 */
-	u = std::fmod(u, 1.0f);
-	v = std::fmod(v, 1.0f);
-
-	if (u < 0) u += 1.0f;
-	if (v < 0) v += 1.0f;
-
-	uu = u * static_cast<float>(oc.res_x);
-	vv = v * static_cast<float>(oc.res_y);
-
-	i1 = static_cast<int>(std::floor(uu));
-	j1 = static_cast<int>(std::floor(vv));
-
-	i2 = (i1 + 1);
-	j2 = (j1 + 1);
-
-	frac_x = uu - static_cast<float>(i1);
-	frac_z = vv - static_cast<float>(j1);
-
-	i1 = i1 % oc.res_x;
-	j1 = j1 % oc.res_y;
-
-	i2 = i2 % oc.res_x;
-	j2 = j2 % oc.res_y;
-
-	i0 = (i1 - 1);
-	i3 = (i2 + 1);
-	i0 = i0 <   0 ? i0 + oc.res_x : i0;
-	i3 = i3 >= oc.res_x ? i3 - oc.res_x : i3;
-
-	j0 = (j1 - 1);
-	j3 = (j2 + 1);
-	j0 = j0 <   0 ? j0 + oc.res_y : j0;
-	j3 = j3 >= oc.res_y ? j3 - oc.res_y : j3;
-
-	auto interp = [&](dls::tableau<double> const &m)
-	{
-		return static_cast<float>(catrom(catrom(m[i0 * oc.res_y + j0], m[i1 * oc.res_y + j0], \
-								  m[i2 * oc.res_y + j0], m[i3 * oc.res_y + j0], static_cast<double>(frac_x)), \
-				catrom(m[i0 * oc.res_y + j1], m[i1 * oc.res_y + j1], \
-				m[i2 * oc.res_y + j1], m[i3 * oc.res_y + j1], static_cast<double>(frac_x)), \
-				catrom(m[i0 * oc.res_y + j2], m[i1 * oc.res_y + j2], \
-				m[i2 * oc.res_y + j2], m[i3 * oc.res_y + j2], static_cast<double>(frac_x)), \
-				catrom(m[i0 * oc.res_y + j3], m[i1 * oc.res_y + j3], \
-				m[i2 * oc.res_y + j3], m[i3 * oc.res_y + j3], static_cast<double>(frac_x)), \
-				static_cast<double>(frac_z)));
-	};
-
-	{
-		if (oc.calcul_deplacement_y) {
-			ocr->disp[1] = interp(oc.disp_y);
-		}
-		if (oc.calcul_normaux) {
-			ocr->normal[0] = interp(oc.N_x);
-			ocr->normal[1] = static_cast<float>(oc.N_y);
-			ocr->normal[2] = interp(oc.N_z);
-		}
-		if (oc.calcul_chop) {
-			ocr->disp[0] = interp(oc.disp_x);
-			ocr->disp[2] = interp(oc.disp_z);
-		}
-		else {
-			ocr->disp[0] = 0.0;
-			ocr->disp[2] = 0.0;
-		}
-
-		if (oc.calcul_ecume) {
-			compute_eigenstuff(ocr, interp(oc.Jxx), interp(oc.Jzz), interp(oc.Jxz));
-		}
-	}
 }
 
 /* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being just a way to get
@@ -795,6 +641,152 @@ Ocean::~Ocean()
 
 /* ************************************************************************** */
 
+template <typename T>
+auto echantillonne_proche(grille_dense_2d<T> const &grille, float x, float y)
+{
+	auto const res = grille.desc().resolution;
+
+	/* enveloppe pour que 0 <= (x, y) < 1 */
+	x = std::fmod(x, 1.0f);
+	y = std::fmod(y, 1.0f);
+
+	if (x < 0.0f) {
+		x += 1.0f;
+	}
+
+	if (y < 0.0f) {
+		y += 1.0f;
+	}
+
+	auto xc = x * static_cast<float>(res.x);
+	auto yc = y * static_cast<float>(res.y);
+
+	auto const entier_x = static_cast<int>(xc);
+	auto const entier_y = static_cast<int>(yc);
+
+	auto const x1 = std::max(0, std::min(entier_x, res.x - 1));
+	auto const y1 = std::max(0, std::min(entier_y, res.y - 1));
+
+	auto const index = x1 + y1 * res.y;
+
+	return grille.valeur(index);
+}
+
+template <typename T>
+auto echantillonne_lineaire(grille_dense_2d<T> const &grille, float x, float y)
+{
+	auto const res = grille.desc().resolution;
+
+	/* enveloppe pour que 0 <= (x, y) < 1 */
+	x = std::fmod(x, 1.0f);
+	y = std::fmod(y, 1.0f);
+
+	if (x < 0.0f) {
+		x += 1.0f;
+	}
+
+	if (y < 0.0f) {
+		y += 1.0f;
+	}
+
+	auto xc = x * static_cast<float>(res.x);
+	auto yc = y * static_cast<float>(res.y);
+
+	auto i0 = static_cast<int>(xc);
+	auto j0 = static_cast<int>(yc);
+
+	auto i1 = i0 + 1;
+	auto j1 = j0 + 1;
+
+	auto const frac_x = xc - static_cast<float>(i0);
+	auto const frac_y = yc - static_cast<float>(j0);
+
+	i0 %= res.x;
+	j0 %= res.y;
+
+	i1 %= res.x;
+	j1 %= res.y;
+
+	auto const idx0 = i0 + j0 * res.x;
+	auto const idx1 = i1 + j0 * res.x;
+	auto const idx2 = i0 + j1 * res.x;
+	auto const idx3 = i1 + j1 * res.x;
+
+	auto valeur = T(0);
+	valeur += frac_x * frac_y * grille.valeur(idx0);
+	valeur += (1.0f - frac_x) * frac_y * grille.valeur(idx1);
+	valeur += frac_x * (1.0f - frac_y) * grille.valeur(idx2);
+	valeur += (1.0f - frac_x) * (1.0f - frac_y) * grille.valeur(idx3);
+
+	return valeur;
+}
+
+template <typename T>
+inline auto catrom(T p0, T p1, T p2, T p3, T f)
+{
+	auto const MOITIE = static_cast<T>(0.5);
+	auto const DEUX = static_cast<T>(2.0);
+	auto const TROIS = static_cast<T>(2.0);
+	auto const QUATRE = static_cast<T>(2.0);
+	auto const CINQ = static_cast<T>(2.0);
+
+	return MOITIE * ((DEUX * p1) +
+				  (-p0 + p2) * f +
+				  (DEUX * p0 - CINQ * p1 + QUATRE * p2 - p3) * f * f +
+				  (-p0 + TROIS * p1 - TROIS * p2 + p3) * f * f * f);
+}
+
+template <typename T>
+auto echantillonne_catrom(grille_dense_2d<T> const &grille, float x, float y)
+{
+	auto const res = grille.desc().resolution;
+
+	/* enveloppe pour que 0 <= (x, y) < 1 */
+	x = std::fmod(x, 1.0f);
+	y = std::fmod(y, 1.0f);
+
+	if (x < 0) x += 1.0f;
+	if (y < 0) y += 1.0f;
+
+	auto uu = x * static_cast<float>(res.x);
+	auto vv = y * static_cast<float>(res.y);
+
+	auto i1 = static_cast<int>(std::floor(uu));
+	auto j1 = static_cast<int>(std::floor(vv));
+
+	auto i2 = (i1 + 1);
+	auto j2 = (j1 + 1);
+
+	auto frac_x = uu - static_cast<float>(i1);
+	auto frac_y = vv - static_cast<float>(j1);
+
+	i1 = i1 % res.x;
+	j1 = j1 % res.y;
+
+	i2 = i2 % res.x;
+	j2 = j2 % res.y;
+
+	auto i0 = (i1 - 1);
+	auto i3 = (i2 + 1);
+	i0 = i0 <   0 ? i0 + res.x : i0;
+	i3 = i3 >= res.x ? i3 - res.x : i3;
+
+	auto j0 = (j1 - 1);
+	auto j3 = (j2 + 1);
+	j0 = j0 <   0 ? j0 + res.y : j0;
+	j3 = j3 >= res.y ? j3 - res.y : j3;
+
+	return catrom(catrom(grille.valeur(i0 + res.x * j0), grille.valeur(i1 + res.x * j0),
+						 grille.valeur(i2 + res.x * j0), grille.valeur(i3 + res.x * j0), T(frac_x)),
+				  catrom(grille.valeur(i0 + res.x * j1), grille.valeur(i1 + res.x * j1),
+						 grille.valeur(i2 + res.x * j1), grille.valeur(i3 + res.x * j1), T(frac_x)),
+				  catrom(grille.valeur(i0 + res.x * j2), grille.valeur(i1 + res.x * j2),
+						 grille.valeur(i2 + res.x * j2), grille.valeur(i3 + res.x * j2), T(frac_x)),
+				  catrom(grille.valeur(i0 + res.x * j3), grille.valeur(i1 + res.x * j3),
+						 grille.valeur(i2 + res.x * j3), grille.valeur(i3 + res.x * j3), T(frac_x)),
+				  T(frac_y));
+}
+
 class OperatriceSimulationOcean : public OperatriceCorps {
 	Ocean m_ocean{};
 	bool m_reinit = false;
@@ -962,8 +954,6 @@ public:
 
 		/* applique les déplacements à la géométrie d'entrée */
 		auto points = m_corps.points_pour_ecriture();
-		auto res_x = m_ocean.res_x;
-		auto res_y = m_ocean.res_y;
 
 		auto N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
 		N->redimensionne(points->taille());
@@ -971,34 +961,66 @@ public:
 		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 		C->redimensionne(points->taille());
 
+		auto const chn_entrep = evalue_enum("entrepolation");
+		auto entrepolation = 0;
+
+		if (chn_entrep == "linéaire") {
+			entrepolation = 1;
+		}
+		else if (chn_entrep == "catrom") {
+			entrepolation = 2;
+		}
+
 		for (auto i = 0; i < points->taille(); ++i) {
 			auto p = points->point(i);
 
 			/* converti la position du point en espace grille */
-			auto u = std::fmod(p.x * taille_inverse + 0.5f, 1.0f);
-			auto v = std::fmod(p.z * taille_inverse + 0.5f, 1.0f);
+			auto x = p.x * taille_inverse + 0.5f;
+			auto y = p.z * taille_inverse + 0.5f;
 
-			if (u < 0.0f) {
-				u += 1.0f;
-			}
+			switch (entrepolation) {
+				case 0:
+				{
+					p += echantillonne_proche(*grille_depl, x, y);
+					points->point(i, p);
 
-			if (v < 0.0f) {
-				v += 1.0f;
-			}
+					N->vec3(i) = echantillonne_proche(*grille_norm, x, y);
 
-			auto x = static_cast<int>(u * (static_cast<float>(res_x)));
-			auto y = static_cast<int>(v * (static_cast<float>(res_y)));
+					if (m_ocean.calcul_ecume) {
+						auto ecume = echantillonne_proche(*grille_ecume, x, y);
+						C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+					}
 
-			auto index = grille_depl->calcul_index(dls::math::vec2i(x, y));
+					break;
+				}
+				case 1:
+				{
+					p += echantillonne_lineaire(*grille_depl, x, y);
+					points->point(i, p);
 
-			p += grille_depl->valeur(index);
-			points->point(i, p);
+					N->vec3(i) = echantillonne_lineaire(*grille_norm, x, y);
 
-			N->vec3(i) = grille_norm->valeur(index);
+					if (m_ocean.calcul_ecume) {
+						auto ecume = echantillonne_lineaire(*grille_ecume, x, y);
+						C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+					}
 
-			if (m_ocean.calcul_ecume) {
-				auto ecume = grille_ecume->valeur(index);
-				C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+					break;
+				}
+				case 2:
+				{
+					p += echantillonne_catrom(*grille_depl, x, y);
+					points->point(i, p);
+
+					N->vec3(i) = echantillonne_catrom(*grille_norm, x, y);
+
+					if (m_ocean.calcul_ecume) {
+						auto ecume = echantillonne_catrom(*grille_ecume, x, y);
+						C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+					}
+
+					break;
+				}
 			}
 		}
 
@@ -1022,6 +1044,10 @@ public:
 
 			ajoute_propriete("chop_x", danjo::TypePropriete::DECIMAL, chop);
 			ajoute_propriete("chop_z", danjo::TypePropriete::DECIMAL, chop);
+		}
+
+		if (propriete("entrepolation") == nullptr) {
+			ajoute_propriete("entrepolation", danjo::TypePropriete::ENUM, dls::chaine("proche"));
 		}
 	}
 };

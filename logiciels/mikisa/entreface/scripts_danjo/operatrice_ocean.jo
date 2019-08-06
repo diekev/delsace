@@ -16,6 +16,14 @@ disposition "operatrice_ocean" {
 		entier(valeur=50; min=1; max=512; attache=taille_spaciale; animable)
 	}
 	ligne {
+		étiquette(valeur="Entrepolation")
+		énum(valeur="proche"; attache=entrepolation; items=[
+			{nom="Proche", valeur="proche"},
+			{nom="Linéaire", valeur="linéaire"},
+			{nom="Cat-Rom", valeur="catrom"}
+		])
+	}
+	ligne {
 	    étiquette(valeur="Gravité")
 		décimal(valeur=9.81; attache=gravité; min=0; animable)
 	}
