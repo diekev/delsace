@@ -74,6 +74,7 @@ static constexpr auto TAILLE_TUILE = 8;
 template <typename T>
 struct grille_eparse : public base_grille_3d {
 	using type_valeur = T;
+	using type_topologie = dls::tableau<long>;
 
 	struct tuile {
 		type_valeur donnees[static_cast<size_t>(TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE)];
@@ -83,7 +84,7 @@ struct grille_eparse : public base_grille_3d {
 	};
 
 private:
-	dls::tableau<long> m_index_tuiles{};
+	type_topologie m_index_tuiles{};
 	dls::tableau<tuile *> m_tuiles{};
 
 	int m_tuiles_x = 0;
@@ -242,6 +243,16 @@ public:
 		auto zt = k - kt * TAILLE_TUILE;
 
 		return t->donnees[static_cast<size_t>(xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE)];
+	}
+
+	type_topologie const &topologie() const
+	{
+		return m_index_tuiles;
+	}
+
+	dls::math::vec3i res_tuile() const
+	{
+		return dls::math::vec3i(m_tuiles_x, m_tuiles_y, m_tuiles_z);
 	}
 
 	plage_tuile plage()

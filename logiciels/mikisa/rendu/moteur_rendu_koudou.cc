@@ -28,8 +28,8 @@
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/objet.h"
-
 #include "corps/iteration_corps.hh"
+#include "corps/volume.hh"
 
 #include "koudou/koudou.hh"
 #include "koudou/lumiere.hh"
@@ -39,6 +39,293 @@
 #include "koudou/structure_acceleration.hh"
 
 #include "rendu_corps.h"
+
+/* ************************************************************************** */
+
+enum {
+	QUAD_X_MIN = 0,
+	QUAD_X_MAX = 1,
+	QUAD_Y_MIN = 2,
+	QUAD_Y_MAX = 3,
+	QUAD_Z_MIN = 4,
+	QUAD_Z_MAX = 5,
+};
+
+const int quads_indices[6][4] = {
+	/* QUAD_X_MIN */
+	{4, 0, 3, 7},
+	/* QUAD_X_MAX */
+	{1, 5, 6, 2},
+	/* QUAD_Y_MIN */
+	{4, 5, 1, 0},
+	/* QUAD_Y_MAX */
+	{3, 2, 6, 7},
+	/* QUAD_Z_MIN */
+	{0, 1, 2, 3},
+	/* QUAD_Z_MAX */
+	{5, 4, 7, 6},
+};
+
+const dls::math::vec3d quads_normals[6] = {
+	/* QUAD_X_MIN */
+	dls::math::vec3d(-1.0, 0.0, 0.0),
+	/* QUAD_X_MAX */
+	dls::math::vec3d(1.0, 0.0, 0.0),
+	/* QUAD_Y_MIN */
+	dls::math::vec3d(0.0, -1.0, 0.0),
+	/* QUAD_Y_MAX */
+	dls::math::vec3d(0.0, 1.0, 0.0),
+	/* QUAD_Z_MIN */
+	dls::math::vec3d(0.0, 0.0, -1.0),
+	/* QUAD_Z_MAX */
+	dls::math::vec3d(0.0, 0.0, 1.0),
+};
+
+static int ajoute_vertex(
+		dls::tableau<dls::math::vec3i> &vertex,
+		dls::dico_desordonne<size_t, int> &utilises,
+		dls::math::vec3i const &res,
+		dls::math::vec3i const &v)
+{
+	auto vert_key = static_cast<size_t>(v.x + v.y * (res.x + 1) + v.z * (res.x + 1) * (res.y + 1));
+	auto it = utilises.trouve(vert_key);
+
+	if (it != utilises.fin()) {
+		return it->second;
+	}
+
+	auto vertex_offset = static_cast<int>(vertex.taille());
+	utilises[vert_key] = vertex_offset;
+	vertex.pousse(v);
+	return vertex_offset;
+}
+
+static void ajoute_quad(
+		int i,
+		kdo::Maillage *maillage,
+		dls::tableau<dls::math::vec3i> &vertex,
+		dls::dico_desordonne<size_t, int> &utilises,
+		dls::math::vec3i const &res,
+		dls::math::vec3i coins[8])
+{
+	auto decalage_normal = static_cast<int>(maillage->normaux.taille());
+
+	auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
+
+	auto v0 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][0]]);
+	auto v1 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][1]]);
+	auto v2 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][2]]);
+	auto v3 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][3]]);
+
+	tri->v0 = v0;
+	tri->v1 = v1;
+	tri->v2 = v2;
+
+	tri->n0 = decalage_normal;
+	tri->n1 = decalage_normal;
+	tri->n2 = decalage_normal;
+
+	maillage->m_triangles.pousse(tri);
+
+	tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
+
+	tri->v0 = v0;
+	tri->v1 = v2;
+	tri->v2 = v3;
+
+	tri->n0 = decalage_normal;
+	tri->n1 = decalage_normal;
+	tri->n2 = decalage_normal;
+
+	maillage->m_triangles.pousse(tri);
+
+	maillage->normaux.pousse(quads_normals[i]);
+}
+
+/* ************************************************************************** */
+
+static auto possede_volume(Corps const &corps)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::VOLUME) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* À FAIRE : meilleure moyen de sélectionner les volumes, peut-être via un
+ * éditeur de nuanceur ou un graphe de rendu. */
+static auto volume_prim(Corps const &corps)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::VOLUME) {
+			return dynamic_cast<Volume *>(prim);
+		}
+	}
+
+	return static_cast<Volume *>(nullptr);
+}
+
+static void ajoute_volume(kdo::Maillage *maillage, Corps const &corps)
+{
+	maillage->nuanceur(kdo::NuanceurDiffus::defaut());
+	//maillage->nuanceur(kdo::NuanceurVolume::defaut());
+
+	auto volume = volume_prim(corps);
+
+	if (!volume) {
+		return;
+	}
+
+	auto grille = volume->grille;
+
+	if (grille->est_eparse()) {
+		auto grille_eprs = dynamic_cast<grille_eparse<float> *>(grille);
+
+		/* ajoute un cube pour chaque tuile de la grille */
+		auto const &topologie = grille_eprs->topologie();
+		auto res_tuile = grille_eprs->res_tuile();
+		auto dalle_x = 1;
+		auto dalle_y = res_tuile.x;
+		auto dalle_z = res_tuile.x * res_tuile.y;
+
+		/* Les points sont générés en espace index pour pouvoir mieux les
+		 * dédupliquer. */
+		auto vertex = dls::tableau<dls::math::vec3i>();
+		auto utilises = dls::dico_desordonne<size_t, int>();
+
+		auto index = 0;
+		for (auto z = 0; z < res_tuile.z; ++z) {
+			for (auto y = 0; y < res_tuile.y; ++y) {
+				for (auto x = 0; x < res_tuile.x; ++x, ++index) {
+					if (topologie[index] == -1) {
+						continue;
+					}
+
+					auto min = dls::math::vec3i(x * 8, y * 8, z * 8);
+					auto max = min + dls::math::vec3i(8);
+
+					dls::math::vec3i coins[8] = {
+						dls::math::vec3i(min[0], min[1], min[2]),
+						dls::math::vec3i(max[0], min[1], min[2]),
+						dls::math::vec3i(max[0], max[1], min[2]),
+						dls::math::vec3i(min[0], max[1], min[2]),
+						dls::math::vec3i(min[0], min[1], max[2]),
+						dls::math::vec3i(max[0], min[1], max[2]),
+						dls::math::vec3i(max[0], max[1], max[2]),
+						dls::math::vec3i(min[0], max[1], max[2]),
+					};
+
+					if (x == 0 || topologie[index - dalle_x] == -1) {
+						ajoute_quad(QUAD_X_MIN, maillage, vertex, utilises, res_tuile, coins);
+					}
+
+					if (y == 0 || topologie[index - dalle_y] == -1) {
+						ajoute_quad(QUAD_Y_MIN, maillage, vertex, utilises, res_tuile, coins);
+					}
+
+					if (z == 0 || topologie[index - dalle_z] == -1) {
+						ajoute_quad(QUAD_Z_MIN, maillage, vertex, utilises, res_tuile, coins);
+					}
+
+					if (x == (res_tuile.x - 1) || topologie[index + dalle_x] == -1) {
+						ajoute_quad(QUAD_X_MAX, maillage, vertex, utilises, res_tuile, coins);
+					}
+
+					if (y == (res_tuile.y - 1) || topologie[index + dalle_y] == -1) {
+						ajoute_quad(QUAD_Y_MAX, maillage, vertex, utilises, res_tuile, coins);
+					}
+
+					if (z == (res_tuile.z - 1) || topologie[index + dalle_z] == -1) {
+						ajoute_quad(QUAD_Z_MAX, maillage, vertex, utilises, res_tuile, coins);
+					}
+				}
+			}
+		}
+
+		for (auto const &v : vertex) {
+			auto vmnd = grille_eprs->index_vers_monde(v);
+			maillage->points.pousse(dls::math::converti_type<double>(vmnd));
+		}
+	}
+}
+
+static void ajoute_maillage(kdo::Maillage *maillage, Corps const &corps)
+{
+	maillage->nuanceur(kdo::NuanceurDiffus::defaut());
+
+	auto points = corps.points_pour_lecture();
+	maillage->points.reserve(points->taille());
+
+	for (auto j = 0; j < points->taille(); ++j) {
+		auto p = dls::math::converti_type<double>(corps.point_transforme(j));
+		maillage->points.pousse(p);
+	}
+
+	auto attr_N = corps.attribut("N");
+
+	if (attr_N) {
+		maillage->normaux.reserve(attr_N->taille());
+
+		for (auto j = 0; j < attr_N->taille(); ++j) {
+			auto p = dls::math::converti_type<double>(attr_N->vec3(j));
+			maillage->normaux.pousse(p);
+		}
+	}
+
+	pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
+	{
+		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+			auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
+			tri->v0 = static_cast<int>(poly->index_point(0));
+			tri->v1 = static_cast<int>(poly->index_point(j - 1));
+			tri->v2 = static_cast<int>(poly->index_point(j));
+
+			if (attr_N) {
+				if (attr_N->portee == portee_attr::PRIMITIVE) {
+					tri->n0 = static_cast<int>(poly->index);
+					tri->n1 = tri->n0;
+					tri->n2 = tri->n0;
+				}
+				else {
+					tri->n0 = static_cast<int>(poly->index_point(0));
+					tri->n1 = static_cast<int>(poly->index_point(j - 1));
+					tri->n2 = static_cast<int>(poly->index_point(j));
+				}
+			}
+			else {
+				auto const &v0 = maillage->points[tri->v0];
+				auto const &v1 = maillage->points[tri->v1];
+				auto const &v2 = maillage->points[tri->v2];
+
+				auto e0 = v1 - v0;
+				auto e1 = v2 - v0;
+
+				auto N = normalise(produit_croix(e0, e1));
+
+				tri->n0 = static_cast<int>(maillage->normaux.taille());
+				tri->n1 = tri->n0;
+				tri->n2 = tri->n0;
+
+				maillage->normaux.pousse(N);
+			}
+
+			maillage->m_triangles.pousse(tri);
+		}
+	});
+}
+
+/* ************************************************************************** */
 
 MoteurRenduKoudou::MoteurRenduKoudou()
 	: m_koudou(new kdo::Koudou())
@@ -95,67 +382,13 @@ void MoteurRenduKoudou::calcule_rendu(
 			auto const &corps = static_cast<DonneesCorps const *>(donnees)->corps;
 
 			auto maillage = memoire::loge<kdo::Maillage>("Maillage");
-			maillage->nuanceur(kdo::NuanceurDiffus::defaut());
 
-			auto points = corps.points_pour_lecture();
-			maillage->points.reserve(points->taille());
-
-			for (auto j = 0; j < points->taille(); ++j) {
-				auto p = dls::math::converti_type<double>(corps.point_transforme(j));
-				maillage->points.pousse(p);
+			if (possede_volume(corps)) {
+				ajoute_volume(maillage, corps);
 			}
-
-			auto attr_N = corps.attribut("N");
-
-			if (attr_N) {
-				maillage->normaux.reserve(attr_N->taille());
-
-				for (auto j = 0; j < attr_N->taille(); ++j) {
-					auto p = dls::math::converti_type<double>(attr_N->vec3(j));
-					maillage->normaux.pousse(p);
-				}
+			else {
+				ajoute_maillage(maillage, corps);
 			}
-
-			pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
-			{
-				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-					auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
-					tri->v0 = static_cast<int>(poly->index_point(0));
-					tri->v1 = static_cast<int>(poly->index_point(j - 1));
-					tri->v2 = static_cast<int>(poly->index_point(j));
-
-					if (attr_N) {
-						if (attr_N->portee == portee_attr::PRIMITIVE) {
-							tri->n0 = static_cast<int>(poly->index);
-							tri->n1 = tri->n0;
-							tri->n2 = tri->n0;
-						}
-						else {
-							tri->n0 = static_cast<int>(poly->index_point(0));
-							tri->n1 = static_cast<int>(poly->index_point(j - 1));
-							tri->n2 = static_cast<int>(poly->index_point(j));
-						}
-					}
-					else {
-						auto const &v0 = maillage->points[tri->v0];
-						auto const &v1 = maillage->points[tri->v1];
-						auto const &v2 = maillage->points[tri->v2];
-
-						auto e0 = v1 - v0;
-						auto e1 = v2 - v0;
-
-						auto N = normalise(produit_croix(e0, e1));
-
-						tri->n0 = static_cast<int>(maillage->normaux.taille());
-						tri->n1 = tri->n0;
-						tri->n2 = tri->n0;
-
-						maillage->normaux.pousse(N);
-					}
-
-					maillage->m_triangles.pousse(tri);
-				}
-			});
 
 			stats.nombre_points += maillage->points.taille();
 			stats.nombre_polygones += maillage->m_triangles.taille();
