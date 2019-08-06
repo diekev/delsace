@@ -34,6 +34,11 @@ struct rayon {
 	math::point3<T> origine{};
 	math::vec3<T> direction{};
 	math::vec3<T> direction_inverse{};
+	math::vec3<T> shear{};
+
+	int kx = 0;
+	int ky = 0;
+	int kz = 0;
 
 	T distance_min = 0;
 	T distance_max = 0;
@@ -41,6 +46,28 @@ struct rayon {
 	/* Pour les moteurs de rendu afin d'entrepoler les flous de mouvement. */
 	T temps = 0;
 };
+
+template <typename T>
+auto precalc_rayon_impermeable(rayon<T> &r)
+{
+	/* calcule la dimension où la direction est maximale */
+	auto kz = static_cast<int>(dls::math::axe_dominant_abs(r.direction));
+	auto kx = std::min(0, kz + 1);
+	auto ky = std::min(0, kx + 1);
+
+	/* échange kx et ky pour préserver la direction autour du triangle */
+	if (r.direction[kz] < 0.0) {
+		std::swap(kx, ky);
+	}
+
+	r.kx = kx;
+	r.ky = ky;
+	r.kz = kz;
+
+	r.shear.x = r.direction[kx] / r.direction[kz];
+	r.shear.y = r.direction[ky] / r.direction[kz];
+	r.shear.z = 1.0 / r.direction[kz];
+}
 
 /**
  * NOTE : pour certains algorithmes, comme l'entresection de boites englobantes
@@ -123,6 +150,112 @@ auto entresection_rapide_min_max(
 	}
 
 	return tmin;
+}
+
+template <typename T>
+auto entresection_rapide_min_max_impermeable(
+		rayon<T> const &r,
+		math::point3<T> const &min,
+		math::point3<T> const &max)
+{
+	/* Calcule le décalage aux plans proche et éloigné pour les dimensions kx,
+	 * ky, et kz pour une boite stockée dans l'ordre min_x, min_y, min_z, max_x,
+	 * max_y, max_z en mémoire.
+	 */
+
+	auto id_proche  = dls::math::vec3<unsigned long>(0ul, 1ul, 2ul);
+	auto id_eloigne = dls::math::vec3<unsigned long>(0ul, 1ul, 2ul);
+
+	auto kx = static_cast<unsigned long>(r.kx);
+	auto ky = static_cast<unsigned long>(r.ky);
+	auto kz = static_cast<unsigned long>(r.kz);
+
+	auto proche_x  = id_proche[kx];
+	auto eloigne_x = id_eloigne[kx];
+	auto proche_y  = id_proche[ky];
+	auto eloigne_y = id_eloigne[ky];
+	auto proche_z  = id_proche[kz];
+	auto eloigne_z = id_eloigne[kz];
+
+	if (r.direction[kx] < 0.0) {
+		std::swap(proche_x, eloigne_x);
+	}
+
+	if (r.direction[ky] < 0.0) {
+		std::swap(proche_y, eloigne_y);
+	}
+
+	if (r.direction[kz] < 0.0) {
+		std::swap(proche_z, eloigne_z);
+	}
+
+	/* arrondissement conservateur */
+	auto p = 1.0 + std::pow(2.0, -23);
+	auto m = 1.0 - std::pow(2.0, -23);
+	//auto up = [=](double a) { return a > 0.0 ? a * p : a * m; };
+	auto dn = [=](double a) { return a > 0.0 ? a * m : a * p; };
+
+	/* arrondissement rapide */
+	auto Up = [=](double a) { return a * p; };
+	auto Dn = [=](double a) { return a * m; };
+
+	/* Calcul l'origine corigée pour les calculs de distance des plans proche et
+	 * éloigné. Chaque opération en point-flottant est forcée de s'arrondir dans
+	 * la bonne direction.
+	 */
+
+	auto const eps = 5.0 * std::pow(2.0, -24);
+	auto lower = dls::math::vec3<T>();
+	auto upper = dls::math::vec3<T>();
+
+	for (auto i = 0ul; i < 3; ++i) {
+		lower[i] = Dn(std::abs(r.origine[i] - min[i]));
+		upper[i] = Up(std::abs(r.origine[i] - max[i]));
+	}
+
+	auto max_z = std::max(lower[kz], upper[kz]);
+
+	auto err_proche_x = Up(lower[kx] + max_z);
+	auto err_proche_y = Up(lower[ky] + max_z);
+	auto org_proche_x = dn(r.origine[kx] - Up(eps * err_proche_x));
+	auto org_proche_y = dn(r.origine[ky] - Up(eps * err_proche_y));
+	auto org_proche_z = r.origine[kz];
+
+	auto err_eloigne_x = Up(upper[kx] + max_z);
+	auto err_eloigne_y = Up(upper[ky] + max_z);
+	auto org_eloigne_x = dn(r.origine[kx] - Up(eps * err_eloigne_x));
+	auto org_eloigne_y = dn(r.origine[ky] - Up(eps * err_eloigne_y));
+	auto org_eloigne_z = r.origine[kz];
+
+	if (r.direction[kx] < 0.0) {
+		std::swap(err_proche_x, err_eloigne_x);
+	}
+
+	if (r.direction[ky] < 0.0) {
+		std::swap(err_proche_y, err_eloigne_y);
+	}
+
+	auto rdir_near_x = Dn(Dn(r.direction_inverse[kx]));
+	auto rdir_near_y = Dn(Dn(r.direction_inverse[ky]));
+	auto rdir_near_z = Dn(Dn(r.direction_inverse[kz]));
+	auto rdir_far_x = Up(Up(r.direction_inverse[kx]));
+	auto rdir_far_y = Up(Up(r.direction_inverse[ky]));
+	auto rdir_far_z = Up(Up(r.direction_inverse[kz]));
+
+	auto tNearX = (min[proche_x] - org_proche_x) * rdir_near_x;
+	auto tNearY = (min[proche_y] - org_proche_y) * rdir_near_y;
+	auto tNearZ = (min[proche_z] - org_proche_z) * rdir_near_z;
+	auto tFarX = (max[eloigne_x] - org_eloigne_x) * rdir_far_x;
+	auto tFarY = (max[eloigne_y] - org_eloigne_y) * rdir_far_y;
+	auto tFarZ = (max[eloigne_z] - org_eloigne_z) * rdir_far_z;
+	auto tNear = std::max(tNearX, std::max(tNearY, tNearZ)/*, r.distance_min*/);
+	auto tFar = std::min(tFarX , std::min(tFarY ,tFarZ)/* , r.distance_max*/);
+
+	if (tNear <= tFar) {
+		return tNear;
+	}
+
+	return static_cast<T>(-1.0);
 }
 
 }  /* namespace dls::phys */

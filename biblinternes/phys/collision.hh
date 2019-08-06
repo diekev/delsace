@@ -119,6 +119,112 @@ auto entresecte_triangle(
 	return false;
 }
 
+/**
+ * Retourne vrai s'il y a entresection entre le triangle et le rayon spécifiés.
+ * Si oui, la distance spécifiée est mise à jour.
+ *
+ * Algorithme de Woop et al.
+ * « Watertight Ray/Triangle Intersection »
+ * http://jcgt.org/published/0002/01/05/paper.pdf
+ */
+template <typename T>
+auto entresecte_triangle_impermeable(
+		dls::math::point3<T> const &vertex0,
+		dls::math::point3<T> const &vertex1,
+		dls::math::point3<T> const &vertex2,
+		dls::phys::rayon<T> const &rayon,
+		T &distance,
+		T *r_u = nullptr,
+		T *r_v = nullptr)
+{
+	/* calcul vertex relatif à l'origine */
+	auto const A = vertex0 - rayon.origine;
+	auto const B = vertex1 - rayon.origine;
+	auto const C = vertex2 - rayon.origine;
+
+	/* performe la mise à l'échelle et le shear des vertex */
+	auto const Ax = A[rayon.kx] - rayon.shear.x * A[rayon.kz];
+	auto const Ay = A[rayon.ky] - rayon.shear.y * A[rayon.kz];
+	auto const Bx = B[rayon.kx] - rayon.shear.x * B[rayon.kz];
+	auto const By = B[rayon.ky] - rayon.shear.y * B[rayon.kz];
+	auto const Cx = C[rayon.kx] - rayon.shear.x * C[rayon.kz];
+	auto const Cy = C[rayon.ky] - rayon.shear.y * C[rayon.kz];
+
+	/* calcul les coordonnées barycentriques mises à l'échelle */
+	auto U = Cx*By - Cy*Bx;
+	auto V = Ax*Cy - Ay*Cx;
+	auto W = Bx*Ay - By*Ax;
+
+#if 0
+	/* utilise une précision double pour retester contre les cotés */
+	if (U == 0.0f || V == 0.0f || W == 0.0f) {
+	double CxBy = (double)Cx*(double)By;
+	double CyBx = (double)Cy*(double)Bx;
+	U = (float)(CxBy - CyBx);
+	double AxCy = (double)Ax*(double)Cy;
+	double AyCx = (double)Ay*(double)Cx;
+	V = (float)(AxCy - AyCx);
+	double BxAy = (double)Bx*(double)Ay;
+	double ByAx = (double)By*(double)Ax;
+	W = (float)(BxAy - ByAx);
+	}
+#endif
+
+	/* Performe les tests de cotés.
+	 * Bouger ce test avant et après la condition précédente donne une meilleure
+	 * performance.
+	 */
+#ifdef BACKFACE_CULLING
+	if (U < 0.0 || V < 0.0 || W < 0.0) {
+		return false;
+	}
+#else
+	if ((U < 0.0 || V < 0.0 || W < 0.0) && (U > 0.0 || V > 0.0 || W > 0.0)) {
+		return false;
+	}
+#endif
+
+	/* calcul le déterminant */
+	auto const det = U + V + W;
+
+	if (det == 0.0) {
+		return false;
+	}
+
+	/* calcul les coordonnées Z à l'échelle des vertex et utilise les pour
+	 * calculer la distance */
+	auto const Az = rayon.shear.z * A[rayon.kz];
+	auto const Bz = rayon.shear.z * B[rayon.kz];
+	auto const Cz = rayon.shear.z * C[rayon.kz];
+	auto const D = U * Az + V * Bz + W * Cz;
+
+#ifdef BACKFACE_CULLING
+	if (D < 0.0f || T > hit.t * det) {
+		return false;
+	}
+#else
+//	int det_sign = sign_mask(det);
+//	if ((xorf(D,det_sign) < 0.0f) || xorf(D,det_sign) > hit.t * xorf(det, det_sign)) {
+//		return false;
+//	}
+#endif
+
+	/* normalise U, V, W, et D */
+	auto const rcpDet = 1.0 / det;
+
+	if (r_u) {
+		*r_u = U * rcpDet;
+	}
+
+	if (r_v) {
+		*r_v = V * rcpDet;
+	}
+
+	// *r_w = W * rcpDet
+	distance = D * rcpDet;
+	return true;
+}
+
 /* Retourne le point dans le triangle (a, b, c) le plus proche de 'p'.
  *
  * Adapté de "Real-Time Collision Detection" par Christer Ericson,

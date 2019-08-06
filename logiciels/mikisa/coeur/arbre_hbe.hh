@@ -54,6 +54,11 @@ struct ArbreHBE {
 		{
 			return entresection_rapide_min_max(r, limites.min, limites.max);
 		}
+
+		double test_intersection_rapide_imper(dls::phys::rayond const &r) const
+		{
+			return entresection_rapide_min_max_impermeable(r, limites.min, limites.max);
+		}
 	};
 
 	long nombre_noeud = 0;
@@ -401,9 +406,12 @@ template <typename TypeDelegue>
 void traverse(
 		ArbreHBE const &arbre,
 		TypeDelegue const &delegue,
-		dls::phys::rayond const r,
+		dls::phys::rayond const rayon,
 		AccumulatriceTraverse &resultat)
 {
+	auto r = rayon;
+	//r.direction_inverse = 1.0 / r.direction;
+	//precalc_rayon_impermeable(r);
 #if 0
 	auto const &racine = arbre.noeuds[1];
 
