@@ -56,8 +56,9 @@ disposition "operatrice_ocean" {
 		décimal(valeur=0.98; attache=atténuation_écume; animable)
 	}
 	ligne {
-	    étiquette(valeur="Quantité chop")
-		décimal(valeur=1.0; attache=quantité_chop; min=0.0; max=4.0; animable)
+		étiquette(valeur="Quantité chop X/Z")
+		décimal(valeur=1.0; attache=chop_x; min=0.0; max=4.0; animable)
+		décimal(valeur=1.0; attache=chop_z; min=0.0; max=4.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Graine")

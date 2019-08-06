@@ -486,7 +486,13 @@ static void evalue_ocean_ij(Ocean &oc, OceanResult *ocr, int i, int j)
 	}
 }
 
-static void simule_ocean(Ocean &o, double t, double scale, double chop_amount, double gravite)
+static void simule_ocean(
+		Ocean &o,
+		double t,
+		double scale,
+		double chop_x,
+		double chop_z,
+		double gravite)
 {
 	scale *= o.facteur_normalisation;
 
@@ -529,18 +535,37 @@ static void simule_ocean(Ocean &o, double t, double scale, double chop_amount, d
 						o.fft_in_z[index] = dls::math::complexe(0.0, 0.0);
 					}
 					else {
-						auto kx = o.kx[i] / k;
-						auto kz = o.kz[j] / k;
+						if (chop_x == 0.0) {
+							o.fft_in_x[index] = dls::math::complexe(0.0, 0.0);
+						}
+						else {
+							auto kx = o.kx[i] / k;
 
-						auto mul_param = dls::math::complexe(0.0, -1.0);
-						mul_param *= chop_amount;
+							auto mul_param = dls::math::complexe(0.0, -1.0);
+							mul_param *= chop_x;
 
-						auto minus_i = dls::math::complexe(-scale, 0.0);
-						mul_param *= minus_i;
-						mul_param *= htilda;
+							auto minus_i = dls::math::complexe(-scale, 0.0);
+							mul_param *= minus_i;
+							mul_param *= htilda;
 
-						o.fft_in_x[index] = mul_param * kx;
-						o.fft_in_z[index] = mul_param * kz;
+							o.fft_in_x[index] = mul_param * kx;
+						}
+
+						if (chop_z == 0.0) {
+							o.fft_in_z[index] = dls::math::complexe(0.0, 0.0);
+						}
+						else {
+							auto kz = o.kz[i] / k;
+
+							auto mul_param = dls::math::complexe(0.0, -1.0);
+							mul_param *= chop_z;
+
+							auto minus_i = dls::math::complexe(-scale, 0.0);
+							mul_param *= minus_i;
+							mul_param *= htilda;
+
+							o.fft_in_z[index] = mul_param * kz;
+						}
 					}
 				}
 
@@ -560,19 +585,28 @@ static void simule_ocean(Ocean &o, double t, double scale, double chop_amount, d
 					}
 					else {
 						/* auto mul_param = dls::math::complexe(-scale, 0.0); */
-						auto mul_param = dls::math::complexe(-1.0, 0.0);
-						mul_param *= chop_amount;
-						mul_param *= htilda;
 
 						/* calcul jacobien XX */
+						auto mul_param = dls::math::complexe(-1.0, 0.0);
+						mul_param *= chop_x;
+						mul_param *= htilda;
+
 						auto kxx = o.kx[i] * o.kx[i] / k;
 						o.fft_in_jxx[index] = mul_param * kxx;
 
 						/* calcul jacobien ZZ */
+						mul_param = dls::math::complexe(-1.0, 0.0);
+						mul_param *= chop_z;
+						mul_param *= htilda;
+
 						auto kzz = o.kz[j] * o.kz[j] / k;
 						o.fft_in_jzz[index] = mul_param * kzz;
 
 						/* calcul jacobien XZ */
+						mul_param = dls::math::complexe(-1.0, 0.0);
+						mul_param *= (chop_x + chop_z) * 0.5;
+						mul_param *= htilda;
+
 						auto kxz = o.kx[i] * o.kz[j] / k;
 						o.fft_in_jxz[index] = mul_param * kxz;
 					}
@@ -627,7 +661,7 @@ static void set_height_normalize_factor(Ocean &oc, double gravite)
 
 	oc.facteur_normalisation = 1.0;
 
-	simule_ocean(oc, 0.0, 1.0, 0, gravite);
+	simule_ocean(oc, 0.0, 1.0, 0.0, 0.0, gravite);
 
 	for (int i = 0; i < oc.res_x; ++i) {
 		for (int j = 0; j < oc.res_y; ++j) {
@@ -812,7 +846,8 @@ public:
 		auto profondeur = evalue_decimal("profondeur");
 		auto gravite = evalue_decimal("gravité");
 		auto damp = evalue_decimal("damping");
-		auto quantite_chop = evalue_decimal("quantité_chop");
+		auto chop_x = evalue_decimal("chop_x");
+		auto chop_z = evalue_decimal("chop_z");
 		auto graine = evalue_entier("graine");
 		auto temps = evalue_decimal("temps", contexte.temps_courant) / static_cast<float>(contexte.cadence);
 		auto couverture_ecume = evalue_decimal("couverture_écume");
@@ -832,7 +867,7 @@ public:
 		m_ocean.calcul_deplacement_y = true;
 		m_ocean.calcul_normaux = true;
 		m_ocean.calcul_ecume = true;
-		m_ocean.calcul_chop = (quantite_chop > 0.0f);
+		m_ocean.calcul_chop = (chop_x > 0.0f) || (chop_z > 0.0f);
 		m_ocean.l = plus_petite_vague;
 		m_ocean.amplitude = 1.0f;
 		m_ocean.reflections_damp = 1.0f - damp;
@@ -862,7 +897,12 @@ public:
 			m_reinit = false;
 		}
 
-		simule_ocean(m_ocean, static_cast<double>(temps), static_cast<double>(echelle_vague), static_cast<double>(quantite_chop), static_cast<double>(gravite));
+		simule_ocean(m_ocean,
+					 static_cast<double>(temps),
+					 static_cast<double>(echelle_vague),
+					 static_cast<double>(chop_x),
+					 static_cast<double>(chop_z),
+					 static_cast<double>(gravite));
 
 		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
 
@@ -947,6 +987,21 @@ public:
 	void parametres_changes() override
 	{
 		m_reinit = true;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("chop_x") == nullptr) {
+			auto prop_chop = propriete("quantité_chop");
+			auto chop = 1.0f;
+
+			if (prop_chop != nullptr) {
+				chop = std::any_cast<float>(prop_chop->valeur);
+			}
+
+			ajoute_propriete("chop_x", danjo::TypePropriete::DECIMAL, chop);
+			ajoute_propriete("chop_z", danjo::TypePropriete::DECIMAL, chop);
+		}
 	}
 };
 
