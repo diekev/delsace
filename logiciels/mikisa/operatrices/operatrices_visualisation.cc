@@ -26,6 +26,7 @@
 
 #include "corps/iteration_corps.hh"
 #include "corps/limites_corps.hh"
+#include "corps/volume.hh"
 
 #include "coeur/delegue_hbe.hh"
 #include "coeur/operatrice_corps.h"
@@ -199,8 +200,109 @@ public:
 
 /* ************************************************************************** */
 
+template <typename T>
+static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
+{
+	auto limites = grille.desc().etendue;
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	auto plg = grille.plage();
+
+	while (!plg.est_finie()) {
+		auto tuile = plg.front();
+		plg.effronte();
+
+		auto min_tuile = grille.index_vers_monde(tuile->min);
+		auto max_tuile = grille.index_vers_monde(tuile->max);
+
+		dessine_boite(corps, attr_C, min_tuile, max_tuile, dls::math::vec3f(0.1f, 0.1f, 0.8f));
+	}
+
+	dessine_boite(corps, attr_C, limites.min, limites.max, dls::math::vec3f(0.1f, 0.8f, 0.1f));
+}
+
+class OpVisualiseGrilleEparse : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Visualiation Grille Éparse";
+	static constexpr auto AIDE = "";
+
+	OpVisualiseGrilleEparse(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	int type_entree(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	int type_sortie(int) const override
+	{
+		return OPERATRICE_CORPS;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Aucun corps n'est connecté !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (!possede_volume(*corps_entree)) {
+			this->ajoute_avertissement("Le Corps ne possède pas de volume");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims = corps_entree->prims();
+		auto volume = static_cast<Volume *>(nullptr);
+
+		for (auto i = 0; i < prims->taille(); ++i) {
+			auto prim = prims->prim(i);
+
+			if (prim->type_prim() == type_primitive::VOLUME) {
+				volume = dynamic_cast<Volume *>(prim);
+			}
+		}
+
+		auto grille = volume->grille;
+
+		if (!grille->est_eparse()) {
+			this->ajoute_avertissement("Le volume n'est pas épars");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto grille_eprs = dynamic_cast<grille_eparse<float> *>(grille);
+
+		visualise_topologie(m_corps, *grille_eprs);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_visualisation(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceVisualiationArbreOcternaire>());
 	usine.enregistre_type(cree_desc<OperatriceVisualiationArbreBVH>());
+	usine.enregistre_type(cree_desc<OpVisualiseGrilleEparse>());
 }

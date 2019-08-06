@@ -144,21 +144,6 @@ static void ajoute_quad(
 
 /* ************************************************************************** */
 
-static auto possede_volume(Corps const &corps)
-{
-	auto prims = corps.prims();
-
-	for (auto i = 0; i < prims->taille(); ++i) {
-		auto prim = prims->prim(i);
-
-		if (prim->type_prim() == type_primitive::VOLUME) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 /* À FAIRE : meilleure moyen de sélectionner les volumes, peut-être via un
  * éditeur de nuanceur ou un graphe de rendu. */
 static auto volume_prim(Corps const &corps)

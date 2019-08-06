@@ -356,3 +356,20 @@ Corps::plage_const_grp_prims Corps::groupes_prims() const
 {
 	return plage_const_grp_prims(m_groupes_prims.debut(), m_groupes_prims.fin());
 }
+
+/* ************************************************************************** */
+
+bool possede_volume(const Corps &corps)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::VOLUME) {
+			return true;
+		}
+	}
+
+	return false;
+}

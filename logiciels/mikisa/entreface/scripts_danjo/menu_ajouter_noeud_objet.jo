@@ -50,8 +50,6 @@ menu "Noeud Objet" {
 		action(valeur="Séparation Primitives"; attache=ajouter_noeud; métadonnée="Séparation Primitives")
 		action(valeur="Texture"; attache=ajouter_noeud; métadonnée="Texture")
 		action(valeur="Triangulation"; attache=ajouter_noeud; métadonnée="Triangulation")
-		action(valeur="Visualiation Arbre BVH"; attache=ajouter_noeud; métadonnée="Visualiation Arbre BVH")
-		action(valeur="Visualiation Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualiation Arbre Octernaire")
 	}
 	menu "Particules" {
 		action(valeur="Contraint Points"; attache=ajouter_noeud; métadonnée="Contraint Points")
@@ -95,5 +93,10 @@ menu "Noeud Objet" {
 	}
 	menu "Transformation" {
 	    action(valeur="Transformation"; attache=ajouter_noeud; métadonnée="Transformation")
+	}
+	menu "Visualisation" {
+		action(valeur="Visualiation Arbre BVH"; attache=ajouter_noeud; métadonnée="Visualiation Arbre BVH")
+		action(valeur="Visualiation Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualiation Arbre Octernaire")
+		action(valeur="Grille Éparse"; attache=ajouter_noeud; métadonnée="Visualiation Grille Éparse")
 	}
 }

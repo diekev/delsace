@@ -173,3 +173,5 @@ private:
 	dls::tableau<GroupePoint> m_groupes_points{};
 	dls::tableau<GroupePrimitive> m_groupes_prims{};
 };
+
+bool possede_volume(Corps const &corps);

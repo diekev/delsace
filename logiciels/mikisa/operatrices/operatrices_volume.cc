@@ -106,26 +106,6 @@ static int cree_volume(
 
 /* ************************************************************************** */
 
-template <typename T>
-static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
-{
-	auto limites = grille.desc().etendue;
-	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
-	auto plg = grille.plage();
-
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
-
-		auto min_tuile = grille.index_vers_monde(tuile->min);
-		auto max_tuile = grille.index_vers_monde(tuile->max);
-
-		dessine_boite(corps, attr_C, min_tuile, max_tuile, dls::math::vec3f(0.1f, 0.1f, 0.8f));
-	}
-
-	dessine_boite(corps, attr_C, limites.min, limites.max, dls::math::vec3f(0.1f, 0.8f, 0.1f));
-}
-
 static int maillage_vers_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
@@ -234,8 +214,6 @@ static int maillage_vers_volume(
 	}
 
 	grille->elague();
-
-	visualise_topologie(*op.corps(), *grille);
 
 #else
 	auto desc = desc_grille_3d{};
