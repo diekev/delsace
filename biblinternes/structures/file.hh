@@ -63,9 +63,28 @@ public:
 		m_file.pousse(valeur);
 	}
 
+	void enfile(dls::tableau<T> const &valeurs)
+	{
+		for (auto const &valeur : valeurs) {
+			m_file.pousse(valeur);
+		}
+	}
+
 	void defile()
 	{
 		m_file.pop_front();
+	}
+
+	dls::tableau<T> defile(long compte)
+	{
+		auto ret = dls::tableau<T>(compte);
+
+		for (auto i = 0; i < compte; ++i) {
+			ret.pousse(m_file.front());
+			m_file.pop_front();
+		}
+
+		return ret;
 	}
 };
 
