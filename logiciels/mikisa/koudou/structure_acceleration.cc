@@ -52,9 +52,9 @@ static void entresecte_triangles_maillage(
 #endif
 		auto distance = distance_maximale;
 
-		auto v0 = dls::math::point3d(triangle->v0);
-		auto v1 = dls::math::point3d(triangle->v1);
-		auto v2 = dls::math::point3d(triangle->v2);
+		auto v0 = dls::math::point3d(maillage.points[triangle->v0]);
+		auto v1 = dls::math::point3d(maillage.points[triangle->v1]);
+		auto v2 = dls::math::point3d(maillage.points[triangle->v2]);
 
 		if (entresecte_triangle(v0, v1, v2, rayon, distance)) {
 #ifdef STATISTIQUES
@@ -266,10 +266,14 @@ BoiteEnglobante DelegueScene::boite_englobante(long idx) const
 
 	auto triangle = maillage->m_triangles[idx - nombre_triangle];
 
+	auto v0 = dls::math::point3d(maillage->points[triangle->v0]);
+	auto v1 = dls::math::point3d(maillage->points[triangle->v1]);
+	auto v2 = dls::math::point3d(maillage->points[triangle->v2]);
+
 	auto boite = BoiteEnglobante();
-	dls::math::extrait_min_max(dls::math::point3d(triangle->v0), boite.min, boite.max);
-	dls::math::extrait_min_max(dls::math::point3d(triangle->v1), boite.min, boite.max);
-	dls::math::extrait_min_max(dls::math::point3d(triangle->v2), boite.min, boite.max);
+	dls::math::extrait_min_max(v0, boite.min, boite.max);
+	dls::math::extrait_min_max(v1, boite.min, boite.max);
+	dls::math::extrait_min_max(v2, boite.min, boite.max);
 	boite.id = idx;
 	boite.centroide = (boite.min + boite.max) * 0.5;
 
@@ -297,9 +301,9 @@ dls::phys::esectd DelegueScene::intersecte_element(long idx, const dls::phys::ra
 
 	auto distance = 1000.0;
 
-	auto v0 = dls::math::point3d(triangle->v0);
-	auto v1 = dls::math::point3d(triangle->v1);
-	auto v2 = dls::math::point3d(triangle->v2);
+	auto v0 = dls::math::point3d(maillage->points[triangle->v0]);
+	auto v1 = dls::math::point3d(maillage->points[triangle->v1]);
+	auto v2 = dls::math::point3d(maillage->points[triangle->v2]);
 
 	auto entresection = dls::phys::esectd();
 	entresection.type = ESECT_OBJET_TYPE_AUCUN;
@@ -318,8 +322,12 @@ dls::phys::esectd DelegueScene::intersecte_element(long idx, const dls::phys::ra
 			entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
 			entresection.touche = true;
 
+			auto n0 = maillage->normaux[triangle->n0];
+			auto n1 = maillage->normaux[triangle->n1];
+			auto n2 = maillage->normaux[triangle->n2];
+
 			auto w = 1.0 - u - v;
-			auto N = w * triangle->n0 + u * triangle->n1 + v * triangle->n2;
+			auto N = w * n0 + u * n1 + v * n2;
 			entresection.normal = N;
 		}
 	}

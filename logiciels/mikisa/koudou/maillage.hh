@@ -37,15 +37,13 @@ class Nuanceur;
  * tridimensionel.
  */
 struct Triangle {
-	dls::math::vec3d v0{};
-	dls::math::vec3d v1{};
-	dls::math::vec3d v2{};
+	int v0 = 0;
+	int v1 = 0;
+	int v2 = 0;
 
-	dls::math::vec3d n0{};
-	dls::math::vec3d n1{};
-	dls::math::vec3d n2{};
-
-	dls::math::vec3d normal{};
+	int n0 = 0;
+	int n1 = 0;
+	int n2 = 0;
 };
 
 /**
@@ -65,6 +63,10 @@ class Maillage {
 
 public:
 	dls::tableau<Triangle *> m_triangles{};
+
+	dls::tableau<dls::math::vec3d> points{};
+	dls::tableau<dls::math::vec3d> normaux{};
+
 	Maillage();
 
 	Maillage(Maillage const &autre) = default;
@@ -98,15 +100,6 @@ public:
 	 * triangle de ce maillage.
 	 */
 	const_iterateur end() const;
-
-	/**
-	 * Ajoute un triangle à partir des trois points passés en paramètres. Le
-	 * normal du triangle est calculé en fonction de ces trois points.
-	 */
-	void ajoute_triangle(
-			dls::math::vec3d const &v0,
-			dls::math::vec3d const &v1,
-			dls::math::vec3d const &v2);
 
 	void transformation(math::transformation const &transforme);
 
@@ -160,10 +153,5 @@ public:
 		return m_dessine_normaux;
 	}
 };
-
-/**
- * Calcul et retourne le normal du triangle spécifié.
- */
-dls::math::vec3d calcul_normal(Triangle const &triangle);
 
 }  /* namespace kdo */

@@ -192,9 +192,9 @@ dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &pos
 		}
 		case ESECT_OBJET_TYPE_TRIANGLE:
 		{
-			auto maillage = scene.maillages[entresection.idx_objet];
-			auto triangle = maillage->begin() + static_cast<long int>(entresection.idx);
-			return (*triangle)->normal;
+	//		auto maillage = scene.maillages[entresection.idx_objet];
+//			auto triangle = maillage->begin() + static_cast<long int>(entresection.idx);
+			return dls::math::vec3d(0.0);
 		}
 	}
 }

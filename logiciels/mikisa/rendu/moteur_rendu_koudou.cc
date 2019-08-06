@@ -93,34 +93,58 @@ void MoteurRenduKoudou::calcule_rendu(
 
 			pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
 			{
+				auto points = corps.points_pour_lecture();
+				maillage->points.reserve(points->taille());
+
+				for (auto j = 0; j < points->taille(); ++j) {
+					auto p = dls::math::converti_type<double>(corps.point_transforme(j));
+					maillage->points.pousse(p);
+				}
+
 				auto attr_N = corps.attribut("N");
 
-				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-					auto const &v0 = corps.point_transforme(poly->index_point(0));
-					auto const &v1 = corps.point_transforme(poly->index_point(j - 1));
-					auto const &v2 = corps.point_transforme(poly->index_point(j));
+				if (attr_N) {
+					maillage->normaux.reserve(attr_N->taille());
 
+					for (auto j = 0; j < attr_N->taille(); ++j) {
+						auto p = dls::math::converti_type<double>(attr_N->vec3(j));
+						maillage->normaux.pousse(p);
+					}
+				}
+
+				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 					auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
-					tri->v0 = dls::math::converti_type<double>(v0);
-					tri->v1 = dls::math::converti_type<double>(v1);
-					tri->v2 = dls::math::converti_type<double>(v2);
+					tri->v0 = static_cast<int>(poly->index_point(0));
+					tri->v1 = static_cast<int>(poly->index_point(j - 1));
+					tri->v2 = static_cast<int>(poly->index_point(j));
 
 					if (attr_N) {
 						if (attr_N->portee == portee_attr::PRIMITIVE) {
-							tri->n0 = dls::math::converti_type<double>(attr_N->vec3(static_cast<long>(poly->index)));
+							tri->n0 = static_cast<int>(poly->index);
 							tri->n1 = tri->n0;
 							tri->n2 = tri->n0;
 						}
 						else {
-							tri->n0 = dls::math::converti_type<double>(attr_N->vec3(poly->index_point(0)));
-							tri->n1 = dls::math::converti_type<double>(attr_N->vec3(poly->index_point(j - 1)));
-							tri->n2 = dls::math::converti_type<double>(attr_N->vec3(poly->index_point(j)));
+							tri->n0 = static_cast<int>(poly->index_point(0));
+							tri->n1 = static_cast<int>(poly->index_point(j - 1));
+							tri->n2 = static_cast<int>(poly->index_point(j));
 						}
 					}
 					else {
-						tri->n0 = calcul_normal(*tri);
+						auto const &v0 = maillage->points[tri->v0];
+						auto const &v1 = maillage->points[tri->v1];
+						auto const &v2 = maillage->points[tri->v2];
+
+						auto e0 = v1 - v0;
+						auto e1 = v2 - v0;
+
+						auto N = normalise(produit_croix(e0, e1));
+
+						tri->n0 = static_cast<int>(maillage->normaux.taille());
 						tri->n1 = tri->n0;
 						tri->n2 = tri->n0;
+
+						maillage->normaux.pousse(N);
 					}
 
 					maillage->m_triangles.pousse(tri);

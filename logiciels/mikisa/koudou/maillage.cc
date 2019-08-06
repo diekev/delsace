@@ -66,20 +66,6 @@ Maillage::const_iterateur Maillage::end() const
 	return m_triangles.fin();
 }
 
-void Maillage::ajoute_triangle(
-		dls::math::vec3d const &v0,
-		dls::math::vec3d const &v1,
-		dls::math::vec3d const &v2)
-{
-	auto triangle = new Triangle;
-	triangle->v0 = v0;
-	triangle->v1 = v1;
-	triangle->v2 = v2;
-	triangle->normal = calcul_normal(*triangle);
-
-	m_triangles.pousse(triangle);
-}
-
 void Maillage::transformation(math::transformation const &transforme)
 {
 	m_transformation = transforme;
@@ -114,9 +100,9 @@ void Maillage::calcule_boite_englobante()
 	dls::math::vec3d max(-constantes<double>::INFINITE);
 
 	for (const Triangle *triangle : *this) {
-		dls::math::extrait_min_max(triangle->v0, min, max);
-		dls::math::extrait_min_max(triangle->v1, min, max);
-		dls::math::extrait_min_max(triangle->v2, min, max);
+		dls::math::extrait_min_max(this->points[triangle->v0], min, max);
+		dls::math::extrait_min_max(this->points[triangle->v1], min, max);
+		dls::math::extrait_min_max(this->points[triangle->v2], min, max);
 	}
 
 	m_boite_englobante = BoiteEnglobante(
@@ -130,7 +116,7 @@ void Maillage::calcule_limites(
 		double &d_eloigne) const
 {
 	for (auto const &tri : m_triangles) {
-		auto d = dls::math::produit_scalaire(normal, tri->v0);
+		auto d = dls::math::produit_scalaire(normal, this->points[tri->v0]);
 
 		if (d < d_proche) {
 			d_proche = d;
@@ -139,7 +125,7 @@ void Maillage::calcule_limites(
 			d_eloigne = d;
 		}
 
-		d = dls::math::produit_scalaire(normal, tri->v1);
+		d = dls::math::produit_scalaire(normal, this->points[tri->v1]);
 
 		if (d < d_proche) {
 			d_proche = d;
@@ -148,7 +134,7 @@ void Maillage::calcule_limites(
 			d_eloigne = d;
 		}
 
-		d = dls::math::produit_scalaire(normal, tri->v2);
+		d = dls::math::produit_scalaire(normal, this->points[tri->v2]);
 
 		if (d < d_proche) {
 			d_proche = d;
@@ -167,14 +153,6 @@ void Maillage::nom(dls::chaine const &nom)
 dls::chaine const &Maillage::nom() const
 {
 	return m_nom;
-}
-
-dls::math::vec3d calcul_normal(Triangle const &triangle)
-{
-	auto c1 = triangle.v1 - triangle.v0;
-	auto c2 = triangle.v2 - triangle.v0;
-
-	return dls::math::normalise(dls::math::produit_croix(c1, c2));
 }
 
 }  /* namespace kdo */
