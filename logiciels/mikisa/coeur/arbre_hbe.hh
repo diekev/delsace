@@ -321,6 +321,7 @@ public:
 
 	void enregistre_intersection(dls::phys::esectd const &intersect, long id_noeud)
 	{
+//		m_intersection = intersect;
 		if (m_intersection.touche == false && intersect.touche==true) {
 			m_intersection = intersect;
 			m_id_noeud = id_noeud;
@@ -402,6 +403,110 @@ void traverse_impl(
 	}
 }
 
+struct ElementTraverse {
+	ArbreHBE::Noeud const *noeud = nullptr;
+	double t = 0.0;
+};
+
+inline bool operator<(ElementTraverse const &p1, ElementTraverse const &p2)
+{
+	return p1.t < p2.t;
+}
+
+template <typename TypeDelegue>
+void traverse_impl0(
+		ArbreHBE const &arbre,
+		TypeDelegue const &delegue,
+		dls::phys::rayond const rayon,
+		AccumulatriceTraverse &resultat)
+{
+	auto const &racine = arbre.noeuds[1];
+	auto t_proche = 0.0;
+	auto t_loin = rayon.distance_max;
+
+	auto distance_courant = racine.test_intersection_rapide(rayon);
+
+	if (distance_courant < -0.5) {
+		return;
+	}
+
+	t_proche = t_loin;
+
+	auto file = dls::file_priorite<ElementTraverse>();
+	file.enfile({ &racine, 0.0 });
+
+	while (!file.est_vide()) {
+		auto const noeud = file.haut().noeud;
+		file.defile();
+
+		if (noeud->est_feuille()) {
+			auto const &gauche = arbre.noeuds[noeud->gauche];
+			auto const &droite = arbre.noeuds[noeud->droite];
+
+//			for (uint32_t i = 0; i < node->data.size(); ++i) {
+//				IsectData isectDataCurrent;
+//				if (node->data[i]->object->intersect(ray, isectDataCurrent)) {
+//					if (isectDataCurrent.t < tMin) {
+//						tMin = isectDataCurrent.t;
+//						hitObject = node->data[i]->object;
+//						isectData = isectDataCurrent;
+//					}
+//				}
+//			}
+
+			for (auto i = 0; i < gauche.nombre_references; ++i) {
+				auto id_prim = arbre.index_refs[gauche.decalage_reference + i];
+				auto intersection = delegue.intersecte_element(id_prim, rayon);
+
+				if (!intersection.touche) {
+					continue;
+				}
+
+				if (intersection.distance < t_proche) {
+					t_proche = intersection.distance;
+					resultat.enregistre_intersection(intersection, gauche.id_noeud);
+				}
+			}
+
+			for (auto i = 0; i < droite.nombre_references; ++i) {
+				auto id_prim = arbre.index_refs[droite.decalage_reference + i];
+				auto intersection = delegue.intersecte_element(id_prim, rayon);
+
+				if (!intersection.touche) {
+					continue;
+				}
+
+				if (intersection.distance < t_proche) {
+					t_proche = intersection.distance;
+					resultat.enregistre_intersection(intersection, gauche.id_noeud);
+				}
+			}
+		}
+		else {
+//			float tNearChild = 0, tFarChild = tFar;
+//			if (node->child[i]->extents.intersect(precomputedNumerator, precomputeDenominator,
+//												  tNearChild, tFarChild, planeIndex)) {
+//				float t = (tNearChild < 0 && tFarChild >= 0) ? tFarChild : tNearChild;
+//				queue.push(BVH::Octree::QueueElement(node->child[i], t));
+//			}
+			auto const &gauche = arbre.noeuds[noeud->gauche];
+			auto const &droite = arbre.noeuds[noeud->droite];
+
+			auto dist_gauche = gauche.test_intersection_rapide(rayon);
+
+			if (dist_gauche > -0.5) {
+				file.enfile({ &gauche, dist_gauche });
+			}
+
+			auto dist_droite = droite.test_intersection_rapide(rayon);
+
+			if (dist_droite > -0.5) {
+				file.enfile({ &droite, dist_droite });
+			}
+		}
+	}
+}
+
 template <typename TypeDelegue>
 void traverse(
 		ArbreHBE const &arbre,
@@ -410,17 +515,20 @@ void traverse(
 		AccumulatriceTraverse &resultat)
 {
 	auto r = rayon;
+	//r.distance_max = 1000.0;
 	//r.direction_inverse = 1.0 / r.direction;
 	//precalc_rayon_impermeable(r);
 #if 0
-	auto const &racine = arbre.noeuds[1];
+//	auto const &racine = arbre.noeuds[1];
 
-	auto ray_dot_axis = dls::math::vec3d{};
-	ray_dot_axis[0] = produit_scalaire(dls::math::vec3d(1.0, 0.0, 0.0), r.direction);
-	ray_dot_axis[1] = produit_scalaire(dls::math::vec3d(0.0, 1.0, 0.0), r.direction);
-	ray_dot_axis[2] = produit_scalaire(dls::math::vec3d(0.0, 0.0, 1.0), r.direction);
+//	auto ray_dot_axis = dls::math::vec3d{};
+//	ray_dot_axis[0] = produit_scalaire(dls::math::vec3d(1.0, 0.0, 0.0), r.direction);
+//	ray_dot_axis[1] = produit_scalaire(dls::math::vec3d(0.0, 1.0, 0.0), r.direction);
+//	ray_dot_axis[2] = produit_scalaire(dls::math::vec3d(0.0, 0.0, 1.0), r.direction);
 
-	traverse_impl(arbre, delegue, r, resultat, racine, ray_dot_axis);
+//	traverse_impl(arbre, delegue, r, resultat, racine, ray_dot_axis);
+
+	traverse_impl0(arbre, delegue, r, resultat);
 #else
 	if (arbre.nombre_noeud < 2) {
 		return;
