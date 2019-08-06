@@ -103,6 +103,11 @@ public:
 		return m_index < 0;
 	}
 
+	bool est_pleine() const
+	{
+		return m_index == N;
+	}
+
 	long taille() const
 	{
 		return m_index + 1;
