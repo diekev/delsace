@@ -68,7 +68,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -174,7 +174,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");

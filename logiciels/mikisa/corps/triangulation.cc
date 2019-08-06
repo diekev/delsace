@@ -42,7 +42,7 @@ float calcule_aire(const Triangle &triangle)
 dls::tableau<Triangle> convertis_maillage_triangles(const Corps *corps_entree, GroupePrimitive *groupe)
 {
 	dls::tableau<Triangle> triangles;
-	auto const points = corps_entree->points();
+	auto const points = corps_entree->points_pour_lecture();
 	auto const prims  = corps_entree->prims();
 
 	/* Convertis le maillage en triangles.

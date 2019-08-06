@@ -110,7 +110,7 @@ public:
 
 		/* création de tous les index possibles */
 		if (contenu == "points") {
-			n = m_corps.points()->taille();
+			n = m_corps.points_pour_lecture()->taille();
 		}
 		else if (contenu == "primitives") {
 			n = m_corps.prims()->taille();

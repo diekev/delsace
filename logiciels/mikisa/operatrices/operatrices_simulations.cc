@@ -111,7 +111,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_lecture();
 		auto const nombre_points = liste_points->taille();
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
@@ -165,7 +165,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_lecture();
 		auto const nombre_points = liste_points->taille();
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
 
@@ -231,7 +231,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_ecriture();
 		auto const nombre_points = liste_points->taille();
 		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
@@ -257,8 +257,6 @@ public:
 		auto attr_desactiv = m_corps.ajoute_attribut("part_desactiv",
 												  type_attribut::ENT8,
 												  portee_attr::POINT);
-
-		liste_points->detache();
 
 		boucle_parallele(
 					tbb::blocked_range<long>(0, nombre_points),
@@ -336,7 +334,7 @@ public:
 		}
 
 		auto const prims_collision = corps_collision->prims();
-		auto const points_collision = corps_collision->points();
+		auto const points_collision = corps_collision->points_pour_lecture();
 
 		if (prims_collision->taille() == 0l) {
 			ajoute_avertissement("Aucune primitive trouvé dans le Corps collision !");
@@ -346,7 +344,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_ecriture();
 		auto const nombre_points = liste_points->taille();
 
 		auto const elasticite = evalue_decimal("élasticité", contexte.temps_courant);
@@ -402,8 +400,6 @@ public:
 
 		auto delegue_prims = DeleguePrim(*corps_collision);
 		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
-
-		m_corps.points()->detache();
 
 		boucle_parallele(tbb::blocked_range<long>(0, nombre_points),
 						 [&](tbb::blocked_range<long> const &plage)
@@ -815,7 +811,7 @@ public:
 
 	void initialise_attributs()
 	{
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_lecture();
 		auto const nombre_points = liste_points->taille();
 
 		auto attr_V = m_corps.attribut("V");
@@ -835,7 +831,7 @@ public:
 
 	void sous_etape(float gravitation, float dt)
 	{
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_ecriture();
 		auto const nombre_points = liste_points->taille();
 		auto attr_V = m_corps.attribut("V");
 		auto attr_P = m_corps.attribut("pos_pre");
@@ -888,7 +884,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_lecture();
 		auto const nombre_points = liste_points->taille();
 
 		if (nombre_points == 0) {

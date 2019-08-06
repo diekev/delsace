@@ -336,7 +336,7 @@ const char *OperatriceSNH::texte_aide() const
 void OperatriceSNH::converti_corps()
 {
 	m_corps.reinitialise();
-	auto points = m_corps.points();
+	auto points = m_corps.points_pour_ecriture();
 	points->reserve(static_cast<long>(g_tetMesh.GetVertices().size()));
 
 	for (const CubeSim::Vector3& p : g_tetMesh.GetVertices()) {

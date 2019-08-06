@@ -72,7 +72,7 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 		if (attr_normaux->taille() == corps->prims()->taille()) {
 			attr_normaux->portee = portee_attr::PRIMITIVE;
 		}
-		else  if (attr_normaux->taille() == corps->points()->taille()) {
+		else  if (attr_normaux->taille() == corps->points_pour_lecture()->taille()) {
 			attr_normaux->portee = portee_attr::POINT;
 		}
 	}
@@ -775,9 +775,9 @@ public:
 
 	void fusionne_points(Corps const *corps1, Corps const *corps2)
 	{
-		auto liste_point  = m_corps.points();
-		auto liste_point1 = corps1->points();
-		auto liste_point2 = corps2->points();
+		auto liste_point  = m_corps.points_pour_ecriture();
+		auto liste_point1 = corps1->points_pour_lecture();
+		auto liste_point2 = corps2->points_pour_lecture();
 
 		liste_point->reserve(liste_point1->taille() + liste_point2->taille());
 
@@ -824,7 +824,7 @@ public:
 			}
 		});
 
-		auto const decalage_point = corps1->points()->taille();
+		auto const decalage_point = corps1->points_pour_lecture()->taille();
 
 		pour_chaque_polygone(*corps2,
 							 [&](Corps const &, Polygone *poly)
@@ -936,7 +936,7 @@ public:
 			}
 		}
 
-		auto const decalage_points = corps1->points()->taille();
+		auto const decalage_points = corps1->points_pour_lecture()->taille();
 
 		for (auto const &alveole : tableau) {
 			auto const &paire_attr = alveole.second;
@@ -1227,7 +1227,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		pour_chaque_polygone(*corps_entree,
 							 [&](Corps const &, Polygone *poly)
@@ -1443,7 +1443,7 @@ public:
 
 		if (corps_entree != nullptr) {
 			// ajoute un déformeur pour chaque points de l'entrée
-			auto points = corps_entree->points();
+			auto points = corps_entree->points_pour_lecture();
 
 			for (auto i = 0; i < points->taille(); ++i) {
 				auto point = corps_entree->point_transforme(i);
@@ -1511,7 +1511,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points()->taille() == 0) {
+		if (m_corps.points_pour_lecture()->taille() == 0) {
 			this->ajoute_avertissement("Le corps d'entrée est vide !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -1533,11 +1533,9 @@ public:
 		entree(1)->requiers_corps(contexte, &mes_donnnes);
 
 		/* calcule la déformation */
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_ecriture();
 
 		auto const rk4 = integration == "rk4";
-
-		points_entree->detache();
 
 		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
 						 [&](tbb::blocked_range<long> const &plage)
@@ -1632,7 +1630,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points()->taille() == 0) {
+		if (m_corps.points_pour_lecture()->taille() == 0) {
 			this->ajoute_avertissement("Le corps d'entrée est vide !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -1712,9 +1710,7 @@ public:
 		chef->indique_progression(0.0f);
 
 		/* calcule la déformation */
-		auto points_entree = m_corps.points();
-
-		points_entree->detache();
+		auto points_entree = m_corps.points_pour_ecriture();
 
 		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
 						 [&](tbb::blocked_range<long> const &plage)
@@ -2066,7 +2062,7 @@ public:
 						static_cast<float>(point.z));
 		}
 
-		auto nombre_points = m_corps.points()->taille();
+		auto nombre_points = m_corps.points_pour_lecture()->taille();
 		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_points);
 
 		for (auto i = 0; i < nombre_points; ++i) {

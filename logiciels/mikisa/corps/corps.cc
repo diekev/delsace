@@ -60,7 +60,7 @@ Attribut *Corps::ajoute_attribut(
 		auto taille_attrib = 0l;
 
 		if (!force_vide) {
-			auto liste_points = this->points();
+			auto liste_points = this->points_pour_lecture();
 			auto liste_prims = this->prims();
 
 			switch (portee) {
@@ -170,12 +170,13 @@ void Corps::ajoute_primitive(Primitive *p)
 	m_prims.pousse(p);
 }
 
-ListePoints3D *Corps::points()
+ListePoints3D *Corps::points_pour_ecriture()
 {
+	m_points.detache();
 	return &m_points;
 }
 
-const ListePoints3D *Corps::points() const
+ListePoints3D const *Corps::points_pour_lecture() const
 {
 	return &m_points;
 }

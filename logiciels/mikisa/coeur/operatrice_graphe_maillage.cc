@@ -415,13 +415,14 @@ int OperatriceGrapheMaillage::execute(ContexteEvaluation const &contexte, Donnee
 
 	/* fais une copie locale pour éviter les problèmes de concurrence critique */
 	auto pile = m_compileuse.pile();
+	auto points = m_corps.points_pour_ecriture();
 
-	for (auto i = 0; i < m_corps.points()->taille(); ++i) {
-		auto pos = m_corps.points()->point(i);
+	for (auto i = 0; i < points->taille(); ++i) {
+		auto pos = points->point(i);
 
 		execute_graphe(pile.debut(), pile.fin(), m_gestionnaire, pos, pos);
 
-		m_corps.points()->point(i, pos);
+		points->point(i, pos);
 	}
 
 	return EXECUTION_REUSSIE;

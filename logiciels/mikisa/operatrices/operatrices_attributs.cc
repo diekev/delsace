@@ -830,8 +830,8 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points = m_corps.points();
-		auto points_orig = corps_orig->points();
+		auto points = m_corps.points_pour_lecture();
+		auto points_orig = corps_orig->points_pour_lecture();
 
 		if (points_orig->taille() == 0) {
 			this->ajoute_avertissement("Aucun point dans le corps d'origine");

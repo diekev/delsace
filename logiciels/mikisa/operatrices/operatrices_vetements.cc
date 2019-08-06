@@ -343,7 +343,7 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 {
 	auto attr_P = corps.attribut("P_prev");
 	auto attr_F = corps.attribut("F");
-	auto points = corps.points();
+	auto points = corps.points_pour_ecriture();
 
 	boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
 					 [&](tbb::blocked_range<long> const &plage)
@@ -367,7 +367,7 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 
 static void contraintes_distance_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_ecriture();
 
 	for (auto const &contrainte : donnees_sim.contrainte_distance) {
 		auto vec1 = points->point(contrainte.v0);
@@ -390,7 +390,7 @@ static void contraintes_position_verlet(Corps &corps, DonneesSimVerlet const &/*
 {
 	auto attr_P = corps.attribut("P_prev");
 	auto attr_W = corps.attribut("W");
-	auto points = corps.points();
+	auto points = corps.points_pour_ecriture();
 
 	boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
 					 [&](tbb::blocked_range<long> const &plage)
@@ -483,7 +483,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y a aucun point en entrée !");
@@ -511,7 +511,7 @@ public:
 
 	int simule_verlet(int temps)
 	{
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_lecture();
 
 		auto const gravity = evalue_vecteur("gravité", temps);
 		auto const mass = evalue_decimal("masse") / static_cast<float>(points_entree->taille());
@@ -569,7 +569,7 @@ public:
 
 	int simule_dbp(int temps)
 	{
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_ecriture();
 		auto prims_entree = m_corps.prims();
 
 		auto total_points = static_cast<size_t>(points_entree->taille());

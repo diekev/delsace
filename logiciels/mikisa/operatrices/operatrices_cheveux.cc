@@ -151,7 +151,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto const liste_points = corps_particules->points();
+		auto const liste_points = corps_particules->points_pour_lecture();
 
 		if (liste_points->taille() == 0l) {
 			ajoute_avertissement("Aucune particule trouvée dans le nuage de points !");
@@ -424,7 +424,7 @@ public:
 		donnees.rigidite = 10.0f;// eval_float("rigidité");
 		donnees.temps_par_image = 1.0f / 24.0f;
 
-		auto liste_points = m_corps.points();
+		auto liste_points = m_corps.points_pour_ecriture();
 
 		auto dt = 0.1f;
 
@@ -569,7 +569,7 @@ public:
 		 * fibres s'envole loin de la touffe */
 	//	auto const envole = evalue_decimal("envole");
 
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_ecriture();
 
 		for (auto ip = 0; ip < m_corps.prims()->taille(); ++ip) {
 			auto prim = m_corps.prims()->prim(ip);
@@ -612,7 +612,7 @@ public:
 	{
 		auto poly_ret = static_cast<Polygone *>(nullptr);
 		auto dist_min = std::numeric_limits<float>::max();
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_lecture();
 
 		for (auto ip = 0; ip < prims->taille(); ++ip) {
 			auto prim = prims->prim(ip);
@@ -679,7 +679,7 @@ public:
 		}
 
 		auto prims = m_corps.prims();
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_ecriture();
 
 		/* quantité de bruit */
 		auto const quantite = evalue_decimal("quantité");
@@ -798,8 +798,8 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points1 = m_corps.points();
-		auto points2 = corps2->points();
+		auto points1 = m_corps.points_pour_ecriture();
+		auto points2 = corps2->points_pour_lecture();
 
 		auto const fac = evalue_decimal("facteur");
 

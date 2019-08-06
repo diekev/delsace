@@ -103,9 +103,17 @@ struct Corps {
 
 	void ajoute_primitive(Primitive *p);
 
-	ListePoints3D *points();
+	/**
+	 * Copie la liste de points de ce corps avant de la rendre unique à lui,
+	 * pour la copie sur écriture, et retourne le nouveau pointeur.
+	 */
+	ListePoints3D *points_pour_ecriture();
 
-	const ListePoints3D *points() const;
+	/**
+	 * Retourne un pointeur vers la liste de point de ce corps. Les points ne
+	 * sont pas modifiables.
+	 */
+	ListePoints3D const *points_pour_lecture() const;
 
 	/**
 	 * Retourne le point à l'index précisé transformé pour être dans l'espace

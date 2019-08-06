@@ -808,7 +808,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points()->taille() == 0) {
+		if (m_corps.points_pour_lecture()->taille() == 0) {
 			this->ajoute_avertissement("Le corps d'entrée est vide");
 			return EXECUTION_ECHOUEE;
 		}
@@ -878,7 +878,7 @@ public:
 		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
 
 		/* applique les déplacements à la géométrie d'entrée */
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_ecriture();
 		auto res_x = m_ocean.res_x;
 		auto res_y = m_ocean.res_y;
 
@@ -2059,7 +2059,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points()->taille() == 0) {
+		if (m_corps.points_pour_lecture()->taille() == 0) {
 			this->ajoute_avertissement("Le corps d'entrée est vide");
 			return EXECUTION_ECHOUEE;
 		}

@@ -1045,7 +1045,7 @@ public:
 
 	void convertie_geometrie_muscle(SimMesh *mesh, long i, bool show_stresses, Attribut *attr_C)
 	{
-		auto decalage = m_corps.points()->taille();
+		auto decalage = m_corps.points_pour_lecture()->taille();
 
 		auto pi = constantes<float>::PI;
 

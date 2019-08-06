@@ -123,7 +123,7 @@ public:
 		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
 		auto max = dls::math::vec3d(-std::numeric_limits<double>::max());
 
-		auto points_maillage = corps_maillage->points();
+		auto points_maillage = corps_maillage->points_pour_lecture();
 
 		for (auto i = 0; i < points_maillage->taille(); ++i) {
 			auto point = points_maillage->point(i);
@@ -145,7 +145,7 @@ public:
 		/* À FAIRE : 0 ou 1 sur chaque axe. */
 		auto periode = dls::math::vec3i(0);
 
-		auto points_entree = corps_points->points();
+		auto points_entree = corps_points->points_pour_lecture();
 
 		/* À FAIRE : rayon de particules : container_poly. */
 		auto cont_voro = memoire::loge<voro::container>(

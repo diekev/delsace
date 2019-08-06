@@ -47,7 +47,7 @@ static auto acos(T fac)
 static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 {
 	auto attr_N = corps.attribut("N_poly");
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	switch (poly->nombre_sommets()) {
 		case 3:
@@ -133,7 +133,7 @@ static auto rappel_pesee_normal_aire(Corps const &corps, Polygone *poly)
  * du vertex */
 static auto rappel_pesee_normal_angle(Corps const &corps, Polygone *poly)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
 
@@ -187,7 +187,7 @@ static auto rappel_pesee_normal_moyenne(Corps const &corps, Polygone *poly)
  * produit de la taille des côtés adjacents au vertex */
 static auto rappel_pesee_normal_max(Corps const &corps, Polygone *poly)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");

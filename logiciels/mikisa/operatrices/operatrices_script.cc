@@ -620,7 +620,9 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points = m_corps.points();
+		/* À FAIRE : la copie est peut-être inutile, à vérifier si le script les
+		 * modifie. */
+		auto points = m_corps.points_pour_ecriture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
@@ -702,10 +704,6 @@ public:
 			}
 
 			auto ctx_exec = lcc::ctx_exec{};
-
-			/* À FAIRE : vérifie que les données sont bel et bien requises avant
-			 * d'en faire des copies. */
-			points->detache();
 
 			auto taille_donnees = compileuse.donnees().taille();
 			auto taille_instructions = compileuse.instructions().taille();

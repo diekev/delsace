@@ -107,7 +107,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_corps = corps->points();
+		auto points_corps = corps->points_pour_lecture();
 		auto groupe = corps->groupe_point(nom_groupe);
 
 		if (groupe == nullptr) {
@@ -133,7 +133,7 @@ public:
 			/* À FAIRE : copie attributs restants. */
 		}
 
-		m_corps.points()->reserve(points_corps->taille() - groupe->taille());
+		m_corps.points_pour_ecriture()->reserve(points_corps->taille() - groupe->taille());
 
 		/* Utilisation d'un tableau pour définir plus rapidement si un point est
 		 * à garder ou non. Ceci donne une accélération de 10x avec des
@@ -276,7 +276,7 @@ public:
 
 	int genere_points_depuis_points(Corps const *corps_entree, int temps)
 	{
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
@@ -309,7 +309,7 @@ public:
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
 		}
 
-		auto points_sorties = m_corps.points();
+		auto points_sorties = m_corps.points_pour_ecriture();
 
 		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
 		points_sorties->reserve(nombre_points_emis);
@@ -348,7 +348,7 @@ public:
 		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
 		auto max = dls::math::vec3d(-std::numeric_limits<double>::max());
 
-		auto points_maillage = corps_entree->points();
+		auto points_maillage = corps_entree->points_pour_lecture();
 
 		for (auto i = 0; i < points_maillage->taille(); ++i) {
 			auto point = points_maillage->point(i);
@@ -380,7 +380,7 @@ public:
 
 		auto const nombre_points = evalue_entier("nombre_points", temps);
 
-		auto points_sorties = m_corps.points();
+		auto points_sorties = m_corps.points_pour_ecriture();
 		points_sorties->reserve(nombre_points);
 
 		auto const anime_graine = evalue_bool("anime_graine");
@@ -443,7 +443,7 @@ public:
 
 		auto const nombre_points = evalue_entier("nombre_points", temps);
 
-		auto points_sorties = m_corps.points();
+		auto points_sorties = m_corps.points_pour_ecriture();
 		points_sorties->reserve(nombre_points);
 
 		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
@@ -906,7 +906,7 @@ public:
 		auto const nombre_points = static_cast<long>((aire_totale * DENSITE_CERCLE) / aire_cercle);
 		std::cerr << "Nombre points prédits : " << nombre_points << '\n';
 
-		auto points_nuage = m_corps.points();
+		auto points_nuage = m_corps.points_pour_ecriture();
 		points_nuage->reserve(nombre_points);
 
 		auto const graine = evalue_entier("graine");
@@ -1176,7 +1176,7 @@ static void construit_maillage_alpha(
 		float const radius,
 		Corps &sortie)
 {
-	auto points_entree = corps_entree.points();
+	auto points_entree = corps_entree.points_pour_lecture();
 	auto tri_offset = 0;
 
 	for (auto i = 0; i < points_entree->taille(); ++i) {
@@ -1222,7 +1222,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y pas de points dans le corps d'entrée !");
@@ -1274,7 +1274,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		auto dist = evalue_decimal("distance", contexte.temps_courant);
 
@@ -1448,7 +1448,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_ecriture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points en entrée");
@@ -1518,7 +1518,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_entree = corps_entree->points();
+		auto points_entree = corps_entree->points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points en entrée");
@@ -1546,7 +1546,7 @@ public:
 
 		/* À FAIRE : transfère d'attributs */
 
-		m_corps.points()->reserve(points_entree->taille() * 2);
+		m_corps.points_pour_ecriture()->reserve(points_entree->taille() * 2);
 
 		auto const dt = evalue_decimal("dt", contexte.temps_courant);
 		auto const taille = evalue_decimal("taille", contexte.temps_courant) * dt;
@@ -1728,7 +1728,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points en entrée");
@@ -1889,7 +1889,7 @@ public:
 		float rayon)
 	{
 		dls::tableau<dls::math::vec3f> res;
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_lecture();
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
 			if (i == index) {
@@ -2062,7 +2062,7 @@ public:
 		}
 		else {
 			/* simule une étape où les points de controles bougent */
-			auto points = m_corps.points();
+			auto points = m_corps.points_pour_ecriture();
 			auto attr_P = m_corps.attribut("P");
 
 			for (auto i = 0; i < points->taille(); ++i) {

@@ -679,7 +679,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 {
 	stats.nombre_objets += 1;
 
-	auto liste_points = m_corps->points();
+	auto liste_points = m_corps->points_pour_lecture();
 	auto liste_prims = m_corps->prims();
 
 	if (liste_points->taille() == 0l && liste_prims->taille() == 0l) {

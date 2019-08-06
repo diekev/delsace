@@ -59,7 +59,7 @@ void dessine_boite(
 		{ 7, 4 },
 	};
 
-	auto decalage = corps.points()->taille();
+	auto decalage = corps.points_pour_lecture()->taille();
 
 	for (int i = 0; i < 8; ++i) {
 		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);

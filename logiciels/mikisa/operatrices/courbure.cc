@@ -41,7 +41,7 @@ using Vecteur = Eigen::Matrix<Scalaire, 3, 1>;
 /* ************************************************************************** */
 
 struct DonneesMaillage {
-	ListePoints3D *points{};
+	ListePoints3D const *points{};
 	Attribut *normaux{};
 	Attribut *courbure_min{};
 	Attribut *courbure_max{};
@@ -301,7 +301,7 @@ DonneesCalculCourbure calcule_courbure(
 		Corps &corps,
 		double rayon)
 {
-	auto points_entree = corps.points();
+	auto points_entree = corps.points_pour_lecture();
 
 	chef->demarre_evaluation("courbure, préparation attributs");
 

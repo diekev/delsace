@@ -63,7 +63,7 @@ dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::ray
 {
 	auto intersection = dls::phys::esectd{};
 	auto prim = m_corps.prims()->prim(idx);
-	auto points = m_corps.points();
+	auto points = m_corps.points_pour_lecture();
 
 	if (prim->type_prim() != type_primitive::POLYGONE) {
 		return intersection;
@@ -101,7 +101,7 @@ dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::ray
 DonneesPointPlusProche DeleguePrim::calcule_point_plus_proche(long idx, const dls::math::point3d &p) const
 {
 	auto prim = m_corps.prims()->prim(idx);
-	auto points = m_corps.points();
+	auto points = m_corps.points_pour_lecture();
 
 	auto donnees = DonneesPointPlusProche{};
 

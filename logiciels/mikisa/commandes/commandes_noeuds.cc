@@ -478,7 +478,7 @@ public:
 				auto op_objet = dynamic_cast<OperatriceCorps *>(op);
 				auto corps = op_objet->corps();
 
-				ss << "<p>Points         : " << corps->points()->taille() << "</p>";
+				ss << "<p>Points         : " << corps->points_pour_lecture()->taille() << "</p>";
 				ss << "<p>Prims          : " << corps->prims()->taille() << "</p>";
 
 				ss << "<hr/>";

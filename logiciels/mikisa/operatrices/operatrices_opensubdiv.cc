@@ -219,7 +219,8 @@ public:
 
 		options.SetTriangleSubdivision(plg_sd_tri.front().second);
 
-		auto nombre_sommets = corps_entree->points()->taille();
+		auto points_entree = corps_entree->points_pour_lecture();
+		auto nombre_sommets = points_entree->taille();
 		auto nombre_polygones = corps_entree->prims()->taille();
 
 		Descripteur desc;
@@ -259,8 +260,8 @@ public:
 
 		/* Initialise les positions du maillage grossier. */
 		auto index_point = 0;
-		for (auto i = 0; i < corps_entree->points()->taille(); ++i) {
-			auto point = corps_entree->points()->point(i);
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			auto point = points_entree->point(i);
 			auto const v0 = corps_entree->transformation(dls::math::point3d(point));
 
 			sommets[index_point++].SetPosition(static_cast<float>(v0.x), static_cast<float>(v0.y), static_cast<float>(v0.z));
@@ -285,15 +286,14 @@ public:
 
 			auto attr_N = corps_entree->attribut("N");
 
-			m_corps.points()->reserve(nombre_sommets);
+			auto points_sortie = m_corps.points_pour_ecriture();
+			points_sortie->reserve(nombre_sommets);
 			m_corps.prims()->reserve(nombre_polygones);
-
-			auto liste_points = m_corps.points();
 
 			for (long vert = 0; vert < nombre_sommets; ++vert) {
 				float const * pos = sommets[premier_sommet + vert].GetPosition();
 				auto point = dls::math::vec3f(pos[0], pos[1], pos[2]);
-				liste_points->pousse(point);
+				points_sortie->pousse(point);
 			}
 
 			for (long face = 0; face < nombre_polygones; ++face) {

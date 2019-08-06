@@ -55,7 +55,7 @@
 
 static auto cherche_index_voisins(Corps const &corps)
 {
-	auto points_entree = corps.points();
+	auto points_entree = corps.points_pour_lecture();
 
 	dls::tableau<dls::ensemble<long>> voisins(points_entree->taille());
 
@@ -84,7 +84,7 @@ static auto cherche_index_voisins(Corps const &corps)
 
 static auto cherche_index_adjacents(Corps const &corps)
 {
-	auto points_entree = corps.points();
+	auto points_entree = corps.points_pour_lecture();
 
 	dls::tableau<dls::ensemble<long>> adjacents(points_entree->taille());
 
@@ -298,7 +298,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points();
+		auto points_entree = m_corps.points_pour_ecriture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -332,8 +332,6 @@ public:
 		}
 
 		dls::tableau<dls::math::vec3f> deplacement(points_entree->taille());
-
-		points_entree->detache();
 
 		/* IDÉES :
 		 * - application de l'algorithme sur les normaux des points.
@@ -402,8 +400,8 @@ public:
 		}
 
 		/* copie les points, À FAIRE : partage */
-		auto points_entree = corps_entree->points();
-		m_corps.points()->reserve(points_entree->taille());
+		auto points_entree = corps_entree->points_pour_lecture();
+		m_corps.points_pour_ecriture()->reserve(points_entree->taille());
 		m_corps.transformation = corps_entree->transformation;
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
@@ -447,7 +445,7 @@ public:
 
 static auto centre_masse_maillage(Corps const &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 	auto centre_masse = dls::math::vec3f(0.0f);
 	auto masse_totale = 0.0f;
 
@@ -481,7 +479,7 @@ static auto centre_masse_maillage(Corps const &corps)
 
 static auto covariance_maillage(Corps const &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto MC = dls::math::mat3x3f(0.0f);
 	auto aire_totale = 0.0f;
@@ -577,7 +575,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_ecriture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -647,7 +645,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_ecriture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -776,7 +774,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_ecriture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -879,7 +877,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points = corps_entree->points();
+		auto points = corps_entree->points_pour_lecture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -971,7 +969,7 @@ public:
 
 /* ************************************************************************** */
 
-static auto calcul_barycentre(ListePoints3D *points)
+static auto calcul_barycentre(ListePoints3D const *points)
 {
 	auto barycentre = dls::math::vec3f(0.0f);
 
@@ -1022,7 +1020,7 @@ static auto couleur_min_max(float valeur, float valeur_min, float valeur_max)
 
 static auto calcul_donnees_aire(Corps &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto aires = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
 
@@ -1051,7 +1049,7 @@ static auto calcul_donnees_aire(Corps &corps)
 
 static auto calcul_donnees_perimetres(Corps &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto perimetres = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
 
@@ -1080,7 +1078,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 
 static auto calcul_barycentre_poly(Corps &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto barycentres = corps.ajoute_attribut("barycentre", type_attribut::VEC3, portee_attr::PRIMITIVE);
 
@@ -1107,7 +1105,7 @@ static auto calcul_barycentre_poly(Corps &corps)
  * polygones les entourants. */
 static auto calcul_centroide_poly(Corps &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto idx_voisins = cherche_index_adjacents(corps);
 	auto aires_poly = calcul_donnees_aire(corps);
@@ -1154,7 +1152,7 @@ static auto calcul_centroide_poly(Corps &corps)
 
 static auto calcul_arrete_plus_longues(Corps &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 	auto longueur_max = 0.0f;
 
 	pour_chaque_polygone_ferme(corps,
@@ -1180,7 +1178,7 @@ static auto calcul_arrete_plus_longues(Corps &corps)
 static auto calcul_tangeantes(Corps &corps)
 {
 	auto tangeantes = corps.ajoute_attribut("tangeantes", type_attribut::VEC3, portee_attr::POINT);
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto index_voisins = cherche_index_voisins(corps);
 
@@ -1211,7 +1209,7 @@ static auto calcul_tangeantes(Corps &corps)
 
 static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &centre)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 
 	auto dist = corps.ajoute_attribut("distance", type_attribut::DECIMAL, portee_attr::POINT);
 
@@ -1226,7 +1224,7 @@ static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &cent
 
 static auto calcul_donnees_dist_barycentre(Corps &corps)
 {
-	auto points = corps.points();
+	auto points = corps.points_pour_lecture();
 	auto barycentre = calcul_barycentre(points);
 	return calcul_donnees_dist_point(corps, barycentre);
 }
@@ -1316,7 +1314,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_lecture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée est vide !");
@@ -1519,7 +1517,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points = m_corps.points();
+		auto points = m_corps.points_pour_ecriture();
 
 		if (points->taille() == 0) {
 			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
@@ -1566,8 +1564,6 @@ public:
 		}
 
 		auto distance = (max.y - min.y);
-
-		points->detache();
 
 		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
 						 [&](tbb::blocked_range<long> const &plage)

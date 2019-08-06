@@ -40,7 +40,7 @@ limites3f calcule_limites_mondiales_corps(Corps const &corps)
 {
 	auto limites = initialise_limites3f();
 
-	auto const &points = corps.points();
+	auto const &points = corps.points_pour_lecture();
 
 	for (auto i = 0; i < points->taille(); ++i) {
 		auto point = corps.point_transforme(i);
@@ -54,7 +54,7 @@ limites3f calcule_limites_locales_corps(const Corps &corps)
 {
 	auto limites = initialise_limites3f();
 
-	auto const &points = corps.points();
+	auto const &points = corps.points_pour_lecture();
 
 	for (auto i = 0; i < points->taille(); ++i) {
 		auto point = points->point(i);
