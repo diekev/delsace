@@ -904,7 +904,61 @@ public:
 					 static_cast<double>(chop_z),
 					 static_cast<double>(gravite));
 
+		/* converti les données en images */
+		auto desc = desc_grille_2d{};
+		desc.etendue.min = dls::math::vec2f(0.0f);
+		desc.etendue.max = dls::math::vec2f(1.0f);
+		desc.fenetre_donnees = desc.etendue;
+		desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
+
+		auto calque_depl = calque_image::construit_calque(desc, type_grille::VEC3);
+		auto calque_norm = calque_image::construit_calque(desc, type_grille::VEC3);
+
+		auto grille_depl = dynamic_cast<grille_dense_2d<dls::math::vec3f> *>(calque_depl.tampon);
+		auto grille_norm = dynamic_cast<grille_dense_2d<dls::math::vec3f> *>(calque_norm.tampon);
 		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
+
+		OceanResult ocr;
+		auto gna = GNA{graine};
+
+		for (auto j = 0; j < m_ocean.res_y; ++j) {
+			for (auto i = 0; i < m_ocean.res_y; ++i) {
+				auto index = grille_depl->calcul_index(dls::math::vec2i(i, j));
+
+				evalue_ocean_ij(m_ocean, &ocr, i, j);
+
+				grille_depl->valeur(index) = ocr.disp;
+				grille_norm->valeur(index) = ocr.normal;
+
+				if (m_ocean.calcul_ecume) {
+					auto ecume = ocean_jminus_vers_ecume(ocr.Jminus, couverture_ecume);
+
+					/* accumule l'écume précédente pour cette cellule. */
+					auto ecume_prec = grille_ecume->valeur(index);
+
+					/* réduit aléatoirement l'écume */
+					ecume_prec *= gna.uniforme(0.0f, 1.0f);
+
+					if (ecume_prec < 1.0f) {
+						ecume_prec *= ecume_prec;
+					}
+
+					/* brise l'écume là où la hauteur (Y) est basse (vallée), et le
+					 * déplacement X et Z est au plus haut.
+					 */
+
+					auto eplus_neg = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2] : 1.0f;
+					eplus_neg = eplus_neg < 0.0f ? 0.0f : eplus_neg;
+
+					ecume_prec *= attenuation_ecume * (0.75f + eplus_neg * 0.25f);
+
+					/* Une restriction pleine ne devrait pas être nécessaire ! */
+					auto resultat_ecume = std::min(ecume_prec + ecume, 1.0f);
+
+					grille_ecume->valeur(index) = resultat_ecume;
+				}
+			}
+		}
 
 		/* applique les déplacements à la géométrie d'entrée */
 		auto points = m_corps.points_pour_ecriture();
@@ -916,10 +970,6 @@ public:
 
 		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 		C->redimensionne(points->taille());
-
-		OceanResult ocr;
-
-		auto gna = GNA{graine};
 
 		for (auto i = 0; i < points->taille(); ++i) {
 			auto p = points->point(i);
@@ -939,45 +989,16 @@ public:
 			auto x = static_cast<int>(u * (static_cast<float>(res_x)));
 			auto y = static_cast<int>(v * (static_cast<float>(res_y)));
 
-			/* À FAIRE : échantillonage bilinéaire. */
-			evalue_ocean_ij(m_ocean, &ocr, x, y);
+			auto index = grille_depl->calcul_index(dls::math::vec2i(x, y));
 
-			p[0] += ocr.disp[0];
-			p[1] += ocr.disp[1];
-			p[2] += ocr.disp[2];
-
+			p += grille_depl->valeur(index);
 			points->point(i, p);
-			N->vec3(i) = ocr.normal;
+
+			N->vec3(i) = grille_norm->valeur(index);
 
 			if (m_ocean.calcul_ecume) {
-				auto index = grille_ecume->calcul_index(dls::math::vec2i(x, y));
-				auto ecume = ocean_jminus_vers_ecume(ocr.Jminus, couverture_ecume);
-
-				/* accumule l'écume précédente pour cette cellule. */
-				auto ecume_prec = grille_ecume->valeur(index);
-
-				/* réduit aléatoirement l'écume */
-				ecume_prec *= gna.uniforme(0.0f, 1.0f);
-
-				if (ecume_prec < 1.0f) {
-					ecume_prec *= ecume_prec;
-				}
-
-				/* brise l'écume là où la hauteur (Y) est basse (vallée), et le
-				 * déplacement X et Z est au plus haut.
-				 */
-
-				auto eplus_neg = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2] : 1.0f;
-				eplus_neg = eplus_neg < 0.0f ? 0.0f : eplus_neg;
-
-				ecume_prec *= attenuation_ecume * (0.75f + eplus_neg * 0.25f);
-
-				/* Une restriction pleine ne devrait pas être nécessaire ! */
-				auto resultat_ecume = std::min(ecume_prec + ecume, 1.0f);
-
-				grille_ecume->valeur(index) = resultat_ecume;
-
-				C->vec3(i) = dls::math::vec3f(resultat_ecume, resultat_ecume, 1.0f);
+				auto ecume = grille_ecume->valeur(index);
+				C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
 			}
 		}
 
