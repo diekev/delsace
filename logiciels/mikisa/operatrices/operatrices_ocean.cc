@@ -300,17 +300,6 @@ static void compute_eigenstuff(OceanResult *ocr, float jxx, float jzz, float jxz
 	ocr->Eminus[2] = qminus / b;
 }
 
-/*
- * instead of Complex.h
- * in fftw.h "fftw_complex" typedefed as double[2]
- * below you can see functions are needed to work with such complex numbers.
- * */
-static void init_complex(fftw_complex cmpl, double real, double image)
-{
-	cmpl[0] = real;
-	cmpl[1] = image;
-}
-
 static float ocean_jminus_vers_ecume(float jminus, float coverage)
 {
 	float foam = jminus * -0.005f + coverage;
@@ -570,7 +559,7 @@ static void simule_ocean(Ocean &o, double t, double scale, double chop_amount, d
 						o.fft_in_jxz[index] = dls::math::complexe(0.0, 0.0);
 					}
 					else {
-						/* init_complex(mul_param, -scale, 0); */
+						/* auto mul_param = dls::math::complexe(-scale, 0.0); */
 						auto mul_param = dls::math::complexe(-1.0, 0.0);
 						mul_param *= chop_amount;
 						mul_param *= htilda;
