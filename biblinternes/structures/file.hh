@@ -30,8 +30,6 @@
 
 namespace dls {
 
-/* À FAIRE : priority_queue */
-
 template <typename T>
 struct file {
 private:
