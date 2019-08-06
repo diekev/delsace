@@ -37,12 +37,12 @@
 
 /* ************************************************************************** */
 
-class OperatriceVisualiationArbreOcternaire : public OperatriceCorps {
+class OperatriceVisualisationArbreOcternaire : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Visualiation Arbre Octernaire";
+	static constexpr auto NOM = "Visualisation Arbre Octernaire";
 	static constexpr auto AIDE = "";
 
-	OperatriceVisualiationArbreOcternaire(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVisualisationArbreOcternaire(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -128,12 +128,12 @@ static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
 	}
 }
 
-class OperatriceVisualiationArbreBVH : public OperatriceCorps {
+class OperatriceVisualisationArbreBVH : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Visualiation Arbre BVH";
+	static constexpr auto NOM = "Visualisation Arbre BVH";
 	static constexpr auto AIDE = "";
 
-	OperatriceVisualiationArbreBVH(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVisualisationArbreBVH(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -222,7 +222,7 @@ static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
 
 class OpVisualiseGrilleEparse : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Visualiation Grille Éparse";
+	static constexpr auto NOM = "Visualisation Grille Éparse";
 	static constexpr auto AIDE = "";
 
 	OpVisualiseGrilleEparse(Graphe &graphe_parent, Noeud *noeud)
@@ -302,7 +302,7 @@ public:
 
 void enregistre_operatrices_visualisation(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceVisualiationArbreOcternaire>());
-	usine.enregistre_type(cree_desc<OperatriceVisualiationArbreBVH>());
+	usine.enregistre_type(cree_desc<OperatriceVisualisationArbreOcternaire>());
+	usine.enregistre_type(cree_desc<OperatriceVisualisationArbreBVH>());
 	usine.enregistre_type(cree_desc<OpVisualiseGrilleEparse>());
 }

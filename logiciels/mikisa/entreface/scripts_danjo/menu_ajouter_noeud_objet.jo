@@ -95,8 +95,8 @@ menu "Noeud Objet" {
 	    action(valeur="Transformation"; attache=ajouter_noeud; métadonnée="Transformation")
 	}
 	menu "Visualisation" {
-		action(valeur="Visualiation Arbre BVH"; attache=ajouter_noeud; métadonnée="Visualiation Arbre BVH")
-		action(valeur="Visualiation Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualiation Arbre Octernaire")
-		action(valeur="Grille Éparse"; attache=ajouter_noeud; métadonnée="Visualiation Grille Éparse")
+		action(valeur="Arbre BVH"; attache=ajouter_noeud; métadonnée="Visualisation Arbre BVH")
+		action(valeur="Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualisation Arbre Octernaire")
+		action(valeur="Grille Éparse"; attache=ajouter_noeud; métadonnée="Visualisation Grille Éparse")
 	}
 }
