@@ -71,6 +71,58 @@ public:
 	}
 };
 
+template <typename T, unsigned long N>
+struct file_fixe {
+private:
+	T m_file[N];
+	long m_taille = 0;
+
+public:
+	file_fixe() = default;
+
+	bool est_vide() const noexcept
+	{
+		return m_taille == 0;
+	}
+
+	bool est_pleine() const noexcept
+	{
+		return m_taille == N;
+	}
+
+	long taille() const noexcept
+	{
+		return m_taille;
+	}
+
+	T &front() noexcept
+	{
+		return m_file[0];
+	}
+
+	T const &front() const noexcept
+	{
+		return m_file[0];
+	}
+
+	void enfile(T const &valeur)
+	{
+		if (m_taille + 1 < N) {
+			m_file[m_taille] = valeur;
+			m_taille += 1;
+		}
+	}
+
+	void defile() noexcept
+	{
+		for (auto i = 1l; i < m_taille; ++i) {
+			m_file[i - 1] = m_file[i];
+		}
+
+		m_taille -= 1;
+	}
+};
+
 template <typename T, typename Compare = std::less<T>>
 struct file_priorite {
 	using type_valeur = T;
