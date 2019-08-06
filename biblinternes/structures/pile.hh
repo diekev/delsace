@@ -67,4 +67,46 @@ public:
 	}
 };
 
+template <typename T, unsigned long N>
+struct pile_fixe {
+private:
+	T m_pile[N];
+	long m_index = -1;
+
+public:
+	pile_fixe() = default;
+
+	void empile(T const &valeur)
+	{
+		if (m_index + 1 < N) {
+			m_pile[++m_index] = valeur;
+		}
+	}
+
+	void depile()
+	{
+		--m_index;
+	}
+
+	T &haut()
+	{
+		return m_pile[m_index];
+	}
+
+	T const &haut() const
+	{
+		return m_pile[m_index];
+	}
+
+	bool est_vide() const
+	{
+		return m_index < 0;
+	}
+
+	long taille() const
+	{
+		return m_index + 1;
+	}
+};
+
 }  /* namespace dls */

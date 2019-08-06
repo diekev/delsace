@@ -37,6 +37,8 @@ enum {
 	NOEUD_DROITE,
 };
 
+static constexpr auto PROFONDEUR_MAX = 24ul;
+
 struct ArbreHBE {
 	struct Noeud {
 		Noeud() = default;
@@ -521,8 +523,7 @@ void traverse(
 		return;
 	}
 
-	/* À FAIRE : petite pile. */
-	auto pile = dls::pile<ArbreHBE::Noeud const *>();
+	auto pile = dls::pile_fixe<ArbreHBE::Noeud const *, PROFONDEUR_MAX>();
 	pile.empile(&arbre.noeuds[1]);
 
 	auto courant = &arbre.noeuds[1];
