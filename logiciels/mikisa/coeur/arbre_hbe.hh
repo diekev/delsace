@@ -32,14 +32,18 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
+enum {
+	NOEUD_GAUCHE,
+	NOEUD_DROITE,
+};
+
 struct ArbreHBE {
 	struct Noeud {
 		Noeud() = default;
 
 		BoiteEnglobante limites{};
 
-		long gauche = 0;
-		long droite = 0;
+		long enfants[2];
 		long nombre_references = 0;
 		long decalage_reference = 0;
 		long id_noeud = 0;
@@ -47,7 +51,7 @@ struct ArbreHBE {
 
 		bool est_feuille() const
 		{
-			return gauche == 0 && droite == 0;
+			return enfants[0] == 0 && enfants[1] == 0;
 		}
 
 		double test_intersection_rapide(dls::phys::rayond const &r) const
@@ -175,8 +179,8 @@ auto construit_arbre_hbe(
 			auto noeud = couche_courante[i];
 
 			if (compte_ref <= 5 || (couche == profondeur_max - 1)) {
-				noeud->gauche = 0;
-				noeud->droite = 0;
+				noeud->enfants[NOEUD_GAUCHE] = 0;
+				noeud->enfants[NOEUD_DROITE] = 0;
 				noeud->nombre_references = compte_ref;
 				noeud->decalage_reference = liste_ref_finale.taille();
 
@@ -231,8 +235,8 @@ auto construit_arbre_hbe(
 				}
 
 				if (compte_gauche == 0 || compte_droite == 0) {
-					noeud->gauche = 0;
-					noeud->droite = 0;
+					noeud->enfants[NOEUD_GAUCHE] = 0;
+					noeud->enfants[NOEUD_DROITE] = 0;
 					noeud->nombre_references = compte_ref;
 					noeud->decalage_reference = liste_ref_finale.taille();
 
@@ -258,8 +262,8 @@ auto construit_arbre_hbe(
 					droite->id_noeud = id_droite;
 					droite->nombre_references = compte_droite;
 
-					noeud->gauche = id_gauche;
-					noeud->droite = id_droite;
+					noeud->enfants[NOEUD_GAUCHE] = id_gauche;
+					noeud->enfants[NOEUD_DROITE] = id_droite;
 					noeud->axe_princ = axe_scission;
 
 					/* crée les listes des objets gauche et droite en se basant
@@ -388,8 +392,8 @@ void traverse_impl(
 		}
 	}
 	else {
-		auto const &gauche = arbre.noeuds[noeud.gauche];
-		auto const &droite = arbre.noeuds[noeud.droite];
+		auto const &gauche = arbre.noeuds[noeud.enfants[NOEUD_GAUCHE]];
+		auto const &droite = arbre.noeuds[noeud.enfants[NOEUD_DROITE]];
 
 		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
 		if (ray_dot_axis[static_cast<size_t>(noeud.axe_princ)] > 0.0) {
@@ -440,9 +444,6 @@ void traverse_impl0(
 		file.defile();
 
 		if (noeud->est_feuille()) {
-			auto const &gauche = arbre.noeuds[noeud->gauche];
-			auto const &droite = arbre.noeuds[noeud->droite];
-
 //			for (uint32_t i = 0; i < node->data.size(); ++i) {
 //				IsectData isectDataCurrent;
 //				if (node->data[i]->object->intersect(ray, isectDataCurrent)) {
@@ -454,31 +455,21 @@ void traverse_impl0(
 //				}
 //			}
 
-			for (auto i = 0; i < gauche.nombre_references; ++i) {
-				auto id_prim = arbre.index_refs[gauche.decalage_reference + i];
-				auto intersection = delegue.intersecte_element(id_prim, rayon);
+			for (auto e = 0; e < 2; ++e) {
+				auto const &enfant = arbre.noeuds[noeud->enfants[e]];
 
-				if (!intersection.touche) {
-					continue;
-				}
+				for (auto i = 0; i < enfant.nombre_references; ++i) {
+					auto id_prim = arbre.index_refs[enfant.decalage_reference + i];
+					auto intersection = delegue.intersecte_element(id_prim, rayon);
 
-				if (intersection.distance < t_proche) {
-					t_proche = intersection.distance;
-					resultat.enregistre_intersection(intersection, gauche.id_noeud);
-				}
-			}
+					if (!intersection.touche) {
+						continue;
+					}
 
-			for (auto i = 0; i < droite.nombre_references; ++i) {
-				auto id_prim = arbre.index_refs[droite.decalage_reference + i];
-				auto intersection = delegue.intersecte_element(id_prim, rayon);
-
-				if (!intersection.touche) {
-					continue;
-				}
-
-				if (intersection.distance < t_proche) {
-					t_proche = intersection.distance;
-					resultat.enregistre_intersection(intersection, gauche.id_noeud);
+					if (intersection.distance < t_proche) {
+						t_proche = intersection.distance;
+						resultat.enregistre_intersection(intersection, enfant.id_noeud);
+					}
 				}
 			}
 		}
@@ -489,19 +480,15 @@ void traverse_impl0(
 //				float t = (tNearChild < 0 && tFarChild >= 0) ? tFarChild : tNearChild;
 //				queue.push(BVH::Octree::QueueElement(node->child[i], t));
 //			}
-			auto const &gauche = arbre.noeuds[noeud->gauche];
-			auto const &droite = arbre.noeuds[noeud->droite];
 
-			auto dist_gauche = gauche.test_intersection_rapide(rayon);
+			for (auto e = 0; e < 2; ++e) {
+				auto const &enfant = arbre.noeuds[noeud->enfants[e]];
 
-			if (dist_gauche > -0.5) {
-				file.enfile({ &gauche, dist_gauche });
-			}
+				auto dist_gauche = enfant.test_intersection_rapide(rayon);
 
-			auto dist_droite = droite.test_intersection_rapide(rayon);
-
-			if (dist_droite > -0.5) {
-				file.enfile({ &droite, dist_droite });
+				if (dist_gauche > -0.5) {
+					file.enfile({ &enfant, dist_gauche });
+				}
 			}
 		}
 	}
@@ -553,8 +540,8 @@ void traverse(
 		auto est_vide = false;
 
 		while (!courant->est_feuille() && !est_vide) {
-			auto gauche = &arbre.noeuds[courant->gauche];
-			auto droite = &arbre.noeuds[courant->droite];
+			auto gauche = &arbre.noeuds[courant->enfants[NOEUD_GAUCHE]];
+			auto droite = &arbre.noeuds[courant->enfants[NOEUD_DROITE]];
 
 			/* trouve l'enfant le plus proche et le plus éloigné */
 			auto distance_gauche = gauche->test_intersection_rapide(r);
@@ -607,8 +594,8 @@ void traverse(
 		courant = pile.haut();
 		pile.depile();
 
-		auto gauche = &arbre.noeuds[courant->gauche];
-		auto droite = &arbre.noeuds[courant->droite];
+		auto gauche = &arbre.noeuds[courant->enfants[NOEUD_GAUCHE]];
+		auto droite = &arbre.noeuds[courant->enfants[NOEUD_DROITE]];
 
 		auto distance_gauche = gauche->test_intersection_rapide(r);
 		auto distance_droite = droite->test_intersection_rapide(r);
@@ -677,19 +664,14 @@ auto cherche_point_plus_proche_ex(
 	else {
 		dls::math::point3d plus_proche;
 
-		auto gauche = &arbre.noeuds[noeud.gauche];
-		auto droite = &arbre.noeuds[noeud.droite];
+		for (auto e = 0; e < 2; ++e) {
+			auto enfant = &arbre.noeuds[noeud.enfants[e]];
 
-		auto dist = calcul_point_plus_proche(*gauche, donnees.point, plus_proche);
+			auto dist = calcul_point_plus_proche(*enfant, donnees.point, plus_proche);
 
-		if (dist < donnees.dn_plus_proche.distance_carree) {
-			file.enfile({ gauche, dist });
-		}
-
-		dist = calcul_point_plus_proche(*droite, donnees.point, plus_proche);
-
-		if (dist < donnees.dn_plus_proche.distance_carree) {
-			file.enfile({ droite, dist });
+			if (dist < donnees.dn_plus_proche.distance_carree) {
+				file.enfile({ enfant, dist });
+			}
 		}
 	}
 }
