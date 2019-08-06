@@ -38,6 +38,8 @@
 #include "koudou/nuanceur.hh"
 #include "koudou/structure_acceleration.hh"
 
+#include "rendu_corps.h"
+
 MoteurRenduKoudou::MoteurRenduKoudou()
 	: m_koudou(new kdo::Koudou())
 {}
@@ -77,6 +79,10 @@ void MoteurRenduKoudou::calcule_rendu(
 	scene_koudou.ajoute_lumiere(lumiere_point);
 	lumiere_point->nuanceur = kdo::NuanceurEmission::defaut();
 
+	stats.nombre_objets = 0;
+	stats.nombre_points = 0;
+	stats.nombre_polygones = 0;
+
 	for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
 		auto objet = m_delegue->objet(i);
 
@@ -91,27 +97,27 @@ void MoteurRenduKoudou::calcule_rendu(
 			auto maillage = memoire::loge<kdo::Maillage>("Maillage");
 			maillage->nuanceur(kdo::NuanceurDiffus::defaut());
 
+			auto points = corps.points_pour_lecture();
+			maillage->points.reserve(points->taille());
+
+			for (auto j = 0; j < points->taille(); ++j) {
+				auto p = dls::math::converti_type<double>(corps.point_transforme(j));
+				maillage->points.pousse(p);
+			}
+
+			auto attr_N = corps.attribut("N");
+
+			if (attr_N) {
+				maillage->normaux.reserve(attr_N->taille());
+
+				for (auto j = 0; j < attr_N->taille(); ++j) {
+					auto p = dls::math::converti_type<double>(attr_N->vec3(j));
+					maillage->normaux.pousse(p);
+				}
+			}
+
 			pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
 			{
-				auto points = corps.points_pour_lecture();
-				maillage->points.reserve(points->taille());
-
-				for (auto j = 0; j < points->taille(); ++j) {
-					auto p = dls::math::converti_type<double>(corps.point_transforme(j));
-					maillage->points.pousse(p);
-				}
-
-				auto attr_N = corps.attribut("N");
-
-				if (attr_N) {
-					maillage->normaux.reserve(attr_N->taille());
-
-					for (auto j = 0; j < attr_N->taille(); ++j) {
-						auto p = dls::math::converti_type<double>(attr_N->vec3(j));
-						maillage->normaux.pousse(p);
-					}
-				}
-
 				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 					auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
 					tri->v0 = static_cast<int>(poly->index_point(0));
@@ -150,6 +156,10 @@ void MoteurRenduKoudou::calcule_rendu(
 					maillage->m_triangles.pousse(tri);
 				}
 			});
+
+			stats.nombre_points += maillage->points.taille();
+			stats.nombre_polygones += maillage->m_triangles.taille();
+			stats.nombre_objets += 1;
 
 			scene_koudou.ajoute_maillage(maillage);
 		});
