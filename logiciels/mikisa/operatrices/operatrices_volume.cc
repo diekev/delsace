@@ -664,7 +664,7 @@ static void ajoute_volume_temps(
 		auto tuile_aux = grille_aux.tuile_par_index(idx_tuile);
 
 		/* Étape 1 : entresecte les topologies et alloue les tuiles non-déjà
-		 * présentes. Pour s'assurere que les tuiles possèdent des valeurs
+		 * présentes. Pour s'assurer que les tuiles possèdent des valeurs
 		 * sensées, on les initialise avec une valeur zéro, pour
 		 * temps = temps - dt, autrement un échantillonage entre le temps dans
 		 * (temps - dt, temps) renverrai une valeur qui n'existait pas.
