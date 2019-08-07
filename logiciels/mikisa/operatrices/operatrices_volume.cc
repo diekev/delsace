@@ -822,7 +822,6 @@ public:
 	}
 };
 
-
 static void ajoute_volume_temps(
 		grille_auxilliaire &grille_aux,
 		grille_eparse<float> const &grille,
@@ -1061,13 +1060,6 @@ static auto echantillonne_grille_temp(
 		for (auto k = 0; k < TAILLE_TUILE; ++k) {
 			for (auto j = 0; j < TAILLE_TUILE; ++j) {
 				for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
-					auto pos_tuile = tuile->min;
-					pos_tuile.x += i;
-					pos_tuile.y += j;
-					pos_tuile.z += k;
-
-					//auto mnd = grille->index_vers_monde(pos_tuile);
-
 					/* voisin le plus proche */
 					auto deb = tuile_temp->decalage[index_tuile];
 					auto dec = tuile_temp->decalage[index_tuile + 1] - deb;
@@ -1122,7 +1114,7 @@ public:
 	OpCreationVolumeTemp(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-	//	entrees(1);
+		entrees(0);
 		sorties(1);
 	}
 
@@ -1151,22 +1143,9 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
-//		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-//		if (corps_entree == nullptr) {
-//			this->ajoute_avertissement("Aucun corps n'est connecté !");
-//			return EXECUTION_ECHOUEE;
-//		}
-
-//		if (!possede_volume(*corps_entree)) {
-//			this->ajoute_avertissement("Aucun volume en entrée !");
-//			return EXECUTION_ECHOUEE;
-//		}
-
-#if 0
-		auto grille = obtiens_grille(static_cast<float>(contexte.temps_courant));
-#else
 		if (m_dernier_temps != contexte.temps_courant) {
 			memoire::deloge("grille", m_grille_temps);
 		}
@@ -1180,7 +1159,6 @@ public:
 		}
 
 		auto grille = echantillonne_grille_temp(*m_grille_temps, temps);
-#endif
 
 		auto volume = memoire::loge<Volume>("Volume");
 		volume->grille = grille;
