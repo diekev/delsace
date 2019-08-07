@@ -331,7 +331,10 @@ public:
 		if (m_intersection.touche == false && intersect.touche==true) {
 			m_intersection = intersect;
 			m_id_noeud = id_noeud;
-			m_nombre_touche++;
+
+			//if (this->type == ACCUMULATRICE_DEBUG) {
+				m_nombre_touche++;
+			//}
 		}
 		else if (intersect.touche == true) {
 			auto currentDistance = longueur(m_intersection.point - m_origine);
@@ -342,8 +345,15 @@ public:
 				m_id_noeud = id_noeud;
 			}
 
-			m_nombre_touche++;
+			//if (this->type == ACCUMULATRICE_COMPTE) {
+				m_nombre_touche++;
+			//}
 		}
+
+		//if (this->type == ACCUMULATRICE_DEBUG) {
+		//	m_entresections.pousse(intersect);
+		//	m_ids_noeuds.pousse(id_noeud);
+		//}
 	}
 
 	dls::phys::esectd const &intersection() const
