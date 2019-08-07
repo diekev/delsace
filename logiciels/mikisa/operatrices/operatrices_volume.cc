@@ -576,12 +576,14 @@ static int reechantillonne_volume(
  * réanimer les simumlations de fluide.
  */
 
-struct Courbe {
+struct paire_valeur_temps {
 	float valeur{};
 	float temps{};
 };
 
-using grille_auxilliaire = grille_eparse<dls::tableau<Courbe>>;
+using type_courbe = dls::tableau<paire_valeur_temps>;
+
+using grille_auxilliaire = grille_eparse<type_courbe>;
 
 struct tuile_temporelle {
 	using type_valeur = float;
@@ -726,10 +728,30 @@ static void simplifie_courbes(
 				continue;
 			}
 
-			/* À FAIRE : enlève les valeurs répétées puisque nous présumons une
+			/* enlève les valeurs répétées puisque nous présumons une
 			 * entrepolation linéaire */
+			auto nv_courbe = type_courbe();
+			nv_courbe.pousse(donnees[0]);
+
+			for (auto j = 1; j < donnees.taille() - 1; ++j) {
+				auto const &v0 = donnees[j - 1].valeur;
+				auto const &v1 = donnees[j    ].valeur;
+				auto const &v2 = donnees[j + 1].valeur;
+
+				if (dls::math::sont_environ_egaux(v0, v1) && dls::math::sont_environ_egaux(v1, v2)) {
+					continue;
+				}
+
+				nv_courbe.pousse(donnees[j]);
+			}
+
+			nv_courbe.pousse(donnees.back());
+
+			donnees = nv_courbe;
 
 			/* À FAIRE : enlève les points les moins saillants */
+			nv_courbe = type_courbe();
+
 			auto eps_u = 1.0f; // À FAIRE : paramètre utilisateur
 			auto eps_r = eps_u * (donnees.back().valeur - donnees.front().valeur);
 
