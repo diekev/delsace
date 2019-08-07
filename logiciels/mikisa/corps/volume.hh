@@ -236,6 +236,13 @@ public:
 
 	type_valeur valeur(int i, int j, int k, float temps = 0.0f) const
 	{
+		/* ceci est redondant avec le code en dessous mais nécessaire pour
+		 * éviter les coordonnées négatives entre -(TAILLE_TUILE - 1) et 0 qui
+		 * deviennent 0 via la division par TAILLE_TUILE. */
+		if (dls::math::hors_limites(dls::math::vec3i(i, j, k), dls::math::vec3i(0), this->m_desc.resolution - dls::math::vec3i(1))) {
+			return m_arriere_plan;
+		}
+
 		/* trouve la tuile */
 		auto it = i / TAILLE_TUILE;
 		auto jt = j / TAILLE_TUILE;
