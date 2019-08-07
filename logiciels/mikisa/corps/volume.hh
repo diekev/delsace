@@ -29,6 +29,7 @@
 #include "biblinternes/math/limites.hh"
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -72,21 +73,35 @@ public:
 static constexpr auto TAILLE_TUILE = 8;
 
 template <typename T>
+struct tuile_scalaire {
+	using type_valeur = T;
+
+	type_valeur donnees[static_cast<size_t>(TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE)];
+	dls::math::vec3i min{};
+	dls::math::vec3i max{};
+	bool garde = false;
+	bool visite = false;
+
+	static void detruit(tuile_scalaire *&t)
+	{
+		memoire::deloge("tuile", t);
+	}
+
+	static type_valeur echantillonne(tuile_scalaire *t, long index, float temps)
+	{
+		INUTILISE(temps);
+		return t->donnees[static_cast<size_t>(index)];
+	}
+};
+
+template <typename T, typename type_tuile = tuile_scalaire<T>>
 struct grille_eparse : public base_grille_3d {
 	using type_valeur = T;
 	using type_topologie = dls::tableau<long>;
 
-	struct tuile {
-		type_valeur donnees[static_cast<size_t>(TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE)];
-		dls::math::vec3i min{};
-		dls::math::vec3i max{};
-		bool garde = false;
-		bool visite = false;
-	};
-
 private:
 	type_topologie m_index_tuiles{};
-	dls::tableau<tuile *> m_tuiles{};
+	dls::tableau<type_tuile *> m_tuiles{};
 
 	int m_tuiles_x = 0;
 	int m_tuiles_y = 0;
@@ -122,8 +137,8 @@ private:
 	}
 
 public:
-	using plage_tuile = dls::plage_continue<tuile *>;
-	using plage_tuile_const = dls::plage_continue<tuile * const>;
+	using plage_tuile = dls::plage_continue<type_tuile *>;
+	using plage_tuile_const = dls::plage_continue<type_tuile * const>;
 
 	grille_eparse(desc_grille_3d const &descr)
 		: base_grille_3d(descr)
@@ -140,7 +155,7 @@ public:
 	~grille_eparse()
 	{
 		for (auto t : m_tuiles) {
-			memoire::deloge("tuile", t);
+			type_tuile::detruit(t);
 		}
 	}
 
@@ -171,7 +186,7 @@ public:
 						continue;
 					}
 
-					auto t = memoire::loge<tuile>("tuile");
+					auto t = memoire::loge<type_tuile>("tuile");
 					t->min = dls::math::vec3i(x, y, z) * TAILLE_TUILE;
 					t->max = t->min + dls::math::vec3i(TAILLE_TUILE);
 
@@ -184,7 +199,7 @@ public:
 
 	void elague()
 	{
-		auto tuiles_gardees = dls::tableau<tuile *>();
+		auto tuiles_gardees = dls::tableau<type_tuile *>();
 
 		for (auto t : m_tuiles) {
 			t->garde = false;
@@ -201,7 +216,7 @@ public:
 		auto suppr = 0;
 		for (auto t : m_tuiles) {
 			if (t->garde == false) {
-				memoire::deloge("tuile", t);
+				type_tuile::detruit(t);
 				suppr++;
 			}
 		}
@@ -219,9 +234,9 @@ public:
 		}
 	}
 
-	float valeur(int i, int j, int k) const
+	type_valeur valeur(int i, int j, int k, float temps = 0.0f) const
 	{
-		// trouve la tuile
+		/* trouve la tuile */
 		auto it = i / TAILLE_TUILE;
 		auto jt = j / TAILLE_TUILE;
 		auto kt = k / TAILLE_TUILE;
@@ -238,15 +253,15 @@ public:
 
 		auto t = m_tuiles[idx_tuile];
 
-		// calcul l'index dans la tuile
+		/* calcul l'index dans la tuile */
 		auto xt = i - it * TAILLE_TUILE;
 		auto yt = j - jt * TAILLE_TUILE;
 		auto zt = k - kt * TAILLE_TUILE;
 
-		return t->donnees[static_cast<size_t>(xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE)];
+		return type_tuile::echantillone(t, xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE, temps);
 	}
 
-	tuile *tuile_par_index(long idx)
+	type_tuile *tuile_par_index(long idx) const
 	{
 		auto idx_tuile = m_index_tuiles[idx];
 
@@ -257,10 +272,10 @@ public:
 		return m_tuiles[idx_tuile];
 	}
 
-	tuile *cree_tuile(dls::math::vec3i const &co)
+	type_tuile *cree_tuile(dls::math::vec3i const &co)
 	{
 		auto idx = dls::math::calcul_index(co / TAILLE_TUILE, res_tuile());
-		auto t = memoire::loge<tuile>("tuile");
+		auto t = memoire::loge<type_tuile>("tuile");
 		t->min = co;
 		t->max = t->min + dls::math::vec3i(TAILLE_TUILE);
 		m_index_tuiles[idx] = m_tuiles.taille();
@@ -302,7 +317,7 @@ public:
 
 	base_grille *copie() const override
 	{
-		auto grille = memoire::loge<grille_eparse<T>>("grille", desc());
+		auto grille = memoire::loge<grille_eparse<T, type_tuile>>("grille", desc());
 		grille->m_arriere_plan = this->m_arriere_plan;
 		grille->m_index_tuiles = this->m_index_tuiles;
 		grille->m_tuiles = this->m_tuiles;
@@ -315,7 +330,7 @@ public:
 		return true;
 	}
 
-	void echange(grille_eparse<T> &autre)
+	void echange(grille_eparse<T, type_tuile> &autre)
 	{
 		std::swap(m_desc.etendue, autre.m_desc.etendue);
 		std::swap(m_desc.resolution, autre.m_desc.resolution);
