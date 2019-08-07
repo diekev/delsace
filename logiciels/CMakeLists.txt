@@ -27,7 +27,6 @@ ajoute_sousdossier(AVEC_HIMITSU himitsu)
 ajoute_sousdossier(AVEC_IMAGO imago)
 ajoute_sousdossier(AVEC_INFOGRAPHIE infographie)
 ajoute_sousdossier(AVEC_KANBA kanba)
-ajoute_sousdossier(AVEC_KOUDOU koudou)
 ajoute_sousdossier(AVEC_KUMO kumo)
 ajoute_sousdossier(AVEC_KURI kuri)
 ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
@@ -83,18 +82,6 @@ if (AVEC_KANBA)
 		DESTINATION kanba/texte
 	)
 endif (AVEC_KANBA)
-
-if (AVEC_KOUDOU)
-	install(
-		FILES ${STYLES}
-		DESTINATION koudou/styles
-	)
-
-	install(
-		FILES fichiers/texte/texture_texte.png
-		DESTINATION koudou/texte
-	)
-endif (AVEC_KOUDOU)
 
 if (AVEC_MIKISA)
 	install(
