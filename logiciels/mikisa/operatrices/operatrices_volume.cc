@@ -712,10 +712,18 @@ static void ajoute_volume_temps(
 	}
 }
 
+#undef LOG_COMPRESSION
+
 static void simplifie_courbes(
-		grille_auxilliaire &grille)
+		grille_auxilliaire &grille,
+		float seuil_saillance)
 {
 	auto plg = grille.plage();
+
+#ifdef LOG_COMPRESSION
+	auto ancien_nombre_points = 0l;
+	auto nouveau_nombre_points = 0l;
+#endif
 
 	while (!plg.est_finie()) {
 		auto tuile = plg.front();
@@ -723,13 +731,19 @@ static void simplifie_courbes(
 
 		for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
 			auto &donnees = tuile->donnees[i];
+#ifdef LOG_COMPRESSION
+			ancien_nombre_points += donnees.taille();
+#endif
 
 			if (donnees.taille() == 0 || donnees.taille() == 1) {
+#ifdef LOG_COMPRESSION
+				nouveau_nombre_points += donnees.taille();
+#endif
 				continue;
 			}
 
-			/* enlève les valeurs répétées puisque nous présumons une
-			 * entrepolation linéaire */
+			/* Étape 1 : enlève les valeurs répétées puisque nous présumons une
+			 * entrepolation linéaire. */
 			auto nv_courbe = type_courbe();
 			nv_courbe.pousse(donnees[0]);
 
@@ -749,15 +763,52 @@ static void simplifie_courbes(
 
 			donnees = nv_courbe;
 
-			/* À FAIRE : enlève les points les moins saillants */
+			/* Étape 2 : enlève les points les moins saillants. */
 			nv_courbe = type_courbe();
+			nv_courbe.pousse(donnees[0]);
 
-			auto eps_u = 1.0f; // À FAIRE : paramètre utilisateur
-			auto eps_r = eps_u * (donnees.back().valeur - donnees.front().valeur);
+			auto const valeur_totale = (donnees.back().valeur - donnees.front().valeur);
+			auto const temps_total = (donnees.back().temps - donnees.front().temps);
+			auto const eps_u = seuil_saillance;
+			auto const eps_r = std::abs(eps_u * valeur_totale);
 
-			INUTILISE(eps_r);
+			for (auto j = 1; j < donnees.taille() - 1; ++j) {
+				auto const &p = donnees[j];
+
+				/* les points avec une valeur à zéro sont préservés pour ne pas
+				 * risquer d'introduire de matière quand il ne faut pas */
+				if (p.valeur == 0.0f) {
+					nv_courbe.pousse(donnees[j]);
+					continue;
+				}
+
+				auto const fac = (p.temps - donnees.front().temps) / temps_total;
+
+				/* trouve où la valeur serait si la courbe était une droite */
+				auto const v = donnees.front().temps + fac * valeur_totale;
+				auto const eps = std::abs(p.valeur - v);
+
+				if (eps <= eps_r) {
+					continue;
+				}
+
+				nv_courbe.pousse(donnees[j]);
+			}
+
+			nv_courbe.pousse(donnees.back());
+
+			donnees = nv_courbe;
+#ifdef LOG_COMPRESSION
+			nouveau_nombre_points += donnees.taille();
+#endif
 		}
 	}
+
+#ifdef LOG_COMPRESSION
+	std::cerr << "Ancien  nombre de points : " << ancien_nombre_points << '\n';
+	std::cerr << "Nouveau nombre de points : " << nouveau_nombre_points << '\n';
+	std::cerr << "Compression              : " << (1.0 - (static_cast<double>(nouveau_nombre_points) / static_cast<double>(ancien_nombre_points))) << '\n';
+#endif
 }
 
 static auto compresse_grille_aux(
@@ -854,7 +905,9 @@ static auto obtiens_grille(float temps)
 	return grille;
 }
 
-static auto cree_volume_temporelle(float temps_courant)
+static auto cree_volume_temporelle(
+		float temps_courant,
+		float seuil_saillance)
 {
 	float const temps[3] = { -1.0f, 0.0f, 1.0f };
 
@@ -872,7 +925,7 @@ static auto cree_volume_temporelle(float temps_courant)
 		memoire::deloge("grille", grille);
 	}
 
-	simplifie_courbes(*grille_aux);
+	simplifie_courbes(*grille_aux, seuil_saillance);
 
 	auto grille_temp = compresse_grille_aux(*grille_aux);
 
@@ -916,6 +969,7 @@ static auto echantillonne_grille_temp(
 class OpCreationVolumeTemp : public OperatriceCorps {
 	grille_temporelle *m_grille_temps = nullptr;
 	int m_dernier_temps = 0;
+	float m_dernier_seuil = 1.0f;
 
 public:
 	static constexpr auto NOM = "Création Volume Temporel";
@@ -962,10 +1016,18 @@ public:
 
 		m_dernier_temps = contexte.temps_courant;
 
-		auto temps = evalue_decimal("temps");
+		auto const temps = evalue_decimal("temps");
+		auto const seuil_saillance = evalue_decimal("seuil_saillance");
+
+		/* reconstruit le volume si le seuil a changé */
+		if (!dls::math::sont_environ_egaux(m_dernier_seuil, seuil_saillance)) {
+			memoire::deloge("grille", m_grille_temps);
+		}
+
+		m_dernier_seuil = seuil_saillance;
 
 		if (m_grille_temps == nullptr) {
-			m_grille_temps = cree_volume_temporelle(static_cast<float>(contexte.temps_courant));
+			m_grille_temps = cree_volume_temporelle(static_cast<float>(contexte.temps_courant), seuil_saillance);
 		}
 
 		auto grille = echantillonne_grille_temp(*m_grille_temps, temps);
