@@ -46,7 +46,6 @@ set(BIBLIOTHEQUES
 	pthread
 	math
 	memoire
-	mikisa_ariel
 	mikisa_corps
 	mikisa_coeur
 	mikisa_evaluation
