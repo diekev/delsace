@@ -106,6 +106,30 @@ struct entresection {
 	bool touche = false;
 };
 
+template <typename T>
+auto esect_plus_proche(
+		entresection<T> const &a,
+		entresection<T> const &b,
+		math::point3<T> const &point)
+{
+	if (a.touche && !b.touche) {
+		return a;
+	}
+
+	if (!a.touche && b.touche) {
+		return b;
+	}
+
+	auto dist_a = longueur(a.point - point);
+	auto dist_b = longueur(b.point - point);
+
+	if (dist_a <= dist_b) {
+		return a;
+	}
+
+	return b;
+}
+
 using rayonf = rayon<float>;
 using rayond = rayon<double>;
 
