@@ -577,6 +577,12 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 		auto min_grille = dls::math::vec3i{100000};
 		auto max_grille = dls::math::vec3i{-100000};
 
+		if (plg.est_finie()) {
+			/* la grille est vide */
+			min_grille = dls::math::vec3i{0};
+			max_grille = dls::math::vec3i{0};
+		}
+
 		while (!plg.est_finie()) {
 			auto tuile = plg.front();
 			plg.effronte();
