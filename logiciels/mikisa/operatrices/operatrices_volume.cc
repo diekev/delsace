@@ -1072,13 +1072,36 @@ static auto echantillonne_grille_temp(
 					auto deb = tuile_temp->decalage[index_tuile];
 					auto dec = tuile_temp->decalage[index_tuile + 1] - deb;
 
+					auto valeur = 0.0f;
+
 					/* trouve le temps */
 					for (auto x = deb; x < deb + dec; ++x) {
-						if (tuile_temp->temps[x] == temps) {
-							tuile->donnees[index_tuile] = tuile_temp->valeurs[x];
+						/* temps exacte */
+						if (dls::math::sont_environ_egaux(tuile_temp->temps[x], temps)) {
+							valeur = tuile_temp->valeurs[x];
 							break;
 						}
+
+						/* interpole depuis le premier temps le plus grand */
+						if (tuile_temp->temps[x] >= temps) {
+							if (x == deb) {
+								valeur = tuile_temp->valeurs[x];
+								break;
+							}
+
+							auto t = (temps - tuile_temp->temps[x - 1]);
+							valeur = tuile_temp->valeurs[x] * t + (1.0f - t) * tuile_temp->valeurs[x - 1];
+							break;
+						}
+
+						/* cas où le temps d'échantillonnage est supérieur au
+						 * dernier temps */
+						if (temps > tuile_temp->temps[x] && x == deb + dec - 1) {
+							valeur = tuile_temp->valeurs[x];
+						}
 					}
+
+					tuile->donnees[index_tuile] = valeur;
 				}
 			}
 		}
@@ -1088,6 +1111,9 @@ static auto echantillonne_grille_temp(
 }
 
 class OpCreationVolumeTemp : public OperatriceCorps {
+	grille_temporelle *m_grille_temps = nullptr;
+	int m_dernier_temps = 0;
+
 public:
 	static constexpr auto NOM = "Création Volume Temporel";
 	static constexpr auto AIDE = "";
@@ -1095,8 +1121,16 @@ public:
 	OpCreationVolumeTemp(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
-		entrees(1);
+	//	entrees(1);
 		sorties(1);
+	}
+
+	OpCreationVolumeTemp(OpCreationVolumeTemp const &) = default;
+	OpCreationVolumeTemp &operator=(OpCreationVolumeTemp const &) = default;
+
+	~OpCreationVolumeTemp() override
+	{
+		memoire::deloge("grille", m_grille_temps);
 	}
 
 	const char *nom_classe() const override
@@ -1107,6 +1141,11 @@ public:
 	const char *texte_aide() const override
 	{
 		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1127,10 +1166,19 @@ public:
 #if 0
 		auto grille = obtiens_grille(static_cast<float>(contexte.temps_courant));
 #else
-		auto grille_temp = cree_volume_temporelle(static_cast<float>(contexte.temps_courant));
-		auto grille = echantillonne_grille_temp(*grille_temp, 0.0f);
+		if (m_dernier_temps != contexte.temps_courant) {
+			memoire::deloge("grille", m_grille_temps);
+		}
 
-		memoire::deloge("grille", grille_temp);
+		m_dernier_temps = contexte.temps_courant;
+
+		auto temps = evalue_decimal("temps");
+
+		if (m_grille_temps == nullptr) {
+			m_grille_temps = cree_volume_temporelle(static_cast<float>(contexte.temps_courant));
+		}
+
+		auto grille = echantillonne_grille_temp(*m_grille_temps, temps);
 #endif
 
 		auto volume = memoire::loge<Volume>("Volume");
