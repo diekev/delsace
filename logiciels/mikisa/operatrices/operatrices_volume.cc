@@ -1089,7 +1089,8 @@ static auto echantillonne_grille_temp(
 								break;
 							}
 
-							auto t = (temps - tuile_temp->temps[x - 1]);
+							/* fait en sorte que t soit entre 0 et 1 */
+							auto t = (temps - tuile_temp->temps[x - 1]) / (tuile_temp->temps[x] - tuile_temp->temps[x - 1]);
 							valeur = tuile_temp->valeurs[x] * t + (1.0f - t) * tuile_temp->valeurs[x - 1];
 							break;
 						}
