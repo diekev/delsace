@@ -181,24 +181,6 @@ void Scene::reinitialise()
 
 /* ************************************************************************** */
 
-dls::math::vec3d normale_scene(Scene const &scene, dls::math::point3d const &position, dls::phys::esectd const &entresection)
-{
-	switch (entresection.type) {
-		default:
-		case ESECT_OBJET_TYPE_AUCUN:
-		case ESECT_OBJET_TYPE_LUMIERE:
-		{
-			return dls::math::vec3d(0.0);
-		}
-		case ESECT_OBJET_TYPE_TRIANGLE:
-		{
-	//		auto maillage = scene.maillages[entresection.idx_objet];
-//			auto triangle = maillage->begin() + static_cast<long int>(entresection.idx);
-			return dls::math::vec3d(0.0);
-		}
-	}
-}
-
 double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale)
 {
 	auto entresection = parametres.acceleratrice->entresecte(scene, rayon, distance_maximale);
