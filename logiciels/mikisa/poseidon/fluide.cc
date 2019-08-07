@@ -1201,7 +1201,7 @@ void Scene::AddLiquidParticle(
 	auto worldpos = pos*scale;
 
 	if (CheckPointInsideGeomByID(worldpos, static_cast<float>(frame), liquidGeomID)==true) {
-		if particles are in a solid, don't generate them
+		//if particles are in a solid, don't generate them
 		unsigned int solidGeomID;
 		if (CheckPointInsideSolidGeom(worldpos, static_cast<float>(frame), solidGeomID)==false) {
 			fluidCore::Particle* p = new fluidCore::Particle;
