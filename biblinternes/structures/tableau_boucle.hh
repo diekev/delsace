@@ -36,7 +36,7 @@ namespace dls {
 template <typename T>
 struct tableau_boucle {
 private:
-	tableau m_tabl{};
+	tableau<T> m_tabl{};
 	long m_index = 0;
 
 public:
