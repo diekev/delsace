@@ -1046,6 +1046,127 @@ public:
 
 /* ************************************************************************** */
 
+class OpFiltrageVolume : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Filtrage Volume";
+	static constexpr auto AIDE = "";
+
+	OpFiltrageVolume(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_creation_volume_temporel.jo";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto grille_entree = static_cast<grille_eparse<float> *>(nullptr);
+
+		for (auto i = 0; i < corps_entree->prims()->taille(); ++i) {
+			auto prim = corps_entree->prims()->prim(i);
+
+			if (prim->type_prim() != type_primitive::VOLUME) {
+				continue;
+			}
+
+			auto volume = dynamic_cast<Volume *>(prim);
+
+			auto grille = volume->grille;
+
+			if (grille->est_eparse() && grille->desc().type_donnees == type_grille::R32) {
+				grille_entree = dynamic_cast<grille_eparse<float> *>(grille);
+				break;
+			}
+		}
+
+		if (grille_entree == nullptr) {
+			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", grille_entree->desc());
+		grille->assure_tuiles(grille_entree->desc().etendue);
+
+		auto taille_fenetre = 2;
+
+		auto plg = grille_entree->plage();
+
+		while (!plg.est_finie()) {
+			auto tuile = plg.front();
+			plg.effronte();
+
+			auto min_tuile = tuile->min / TAILLE_TUILE;
+			auto idx_tuile = dls::math::calcul_index(min_tuile, grille_entree->res_tuile());
+			auto tuile_b = grille->tuile_par_index(idx_tuile);
+
+			auto index_tuile = 0;
+			for (auto k = 0; k < TAILLE_TUILE; ++k) {
+				for (auto j = 0; j < TAILLE_TUILE; ++j) {
+					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+						auto pos_tuile = tuile->min;
+						pos_tuile.x += i;
+						pos_tuile.y += j;
+						pos_tuile.z += k;
+
+						auto valeur = 0.0f;
+						auto poids = 0.0f;
+
+						for (auto kk = k - taille_fenetre; kk < k + taille_fenetre; ++kk) {
+							for (auto jj = j - taille_fenetre; jj < j + taille_fenetre; ++jj) {
+								for (auto ii = i - taille_fenetre; ii < i + taille_fenetre; ++ii) {
+									valeur += grille_entree->valeur(ii, jj, kk);
+									poids += 1.0f;
+								}
+							}
+						}
+
+						tuile_b->donnees[index_tuile] = valeur / poids;
+					}
+				}
+			}
+		}
+
+		grille->elague();
+
+		auto volume = memoire::loge<Volume>("Volume", grille);
+		m_corps.prims()->pousse(volume);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc("Créer volume", "", "entreface/operatrice_creation_volume.jo", cree_volume, false));
@@ -1053,4 +1174,5 @@ void enregistre_operatrices_volume(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc("Rastérisation Prim", "", "entreface/operatrice_rasterisation_prim.jo", ratisse_primitives, false));
 	usine.enregistre_type(cree_desc("Rééchantillonne Volume", "", "", reechantillonne_volume, false));
 	usine.enregistre_type(cree_desc<OpCreationVolumeTemp>());
+	usine.enregistre_type(cree_desc<OpFiltrageVolume>());
 }
