@@ -81,6 +81,7 @@ struct grille_eparse : public base_grille_3d {
 		dls::math::vec3i min{};
 		dls::math::vec3i max{};
 		bool garde = false;
+		bool visite = false;
 	};
 
 private:
@@ -243,6 +244,28 @@ public:
 		auto zt = k - kt * TAILLE_TUILE;
 
 		return t->donnees[static_cast<size_t>(xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE)];
+	}
+
+	tuile *tuile_par_index(long idx)
+	{
+		auto idx_tuile = m_index_tuiles[idx];
+
+		if (idx_tuile == -1) {
+			return nullptr;
+		}
+
+		return m_tuiles[idx_tuile];
+	}
+
+	tuile *cree_tuile(dls::math::vec3i const &co)
+	{
+		auto idx = dls::math::calcul_index(co / TAILLE_TUILE, res_tuile());
+		auto t = memoire::loge<tuile>("tuile");
+		t->min = co;
+		t->max = t->min + dls::math::vec3i(TAILLE_TUILE);
+		m_index_tuiles[idx] = m_tuiles.taille();
+		m_tuiles.pousse(t);
+		return t;
 	}
 
 	type_topologie const &topologie() const

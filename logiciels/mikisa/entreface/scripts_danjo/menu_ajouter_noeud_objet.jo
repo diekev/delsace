@@ -80,6 +80,7 @@ menu "Noeud Objet" {
 	}
 	menu "Volume" {
 	    action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
+		action(valeur="Créer Volume Temporel"; attache=ajouter_noeud; métadonnée="Création Volume Temporel")
 		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
 		action(valeur="Rastérisation Prim"; attache=ajouter_noeud; métadonnée="Rastérisation Prim")
 		action(valeur="Rééchantillone Volume"; attache=ajouter_noeud; métadonnée="Rééchantillone Volume")
