@@ -30,6 +30,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	mikisa_coeur
 	mikisa_corps
+	wolika
 	${BIBLIOTHEQUES_TBB}
 )
 

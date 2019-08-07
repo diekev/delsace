@@ -22,4 +22,8 @@
  *
  */
 
-#include "echantillonnage_volume.hh"
+#include "echantillonnage.hh"
+
+namespace wlk {
+
+}  /* namespace wlk */

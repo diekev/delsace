@@ -27,9 +27,10 @@
 #include "biblinternes/moultfilage/boucle.hh"
 
 #include "corps/corps.h"
-#include "corps/echantillonnage_volume.hh"
-#include "corps/iter_volume.hh"
 #include "corps/volume.hh"
+
+#include "wolika/echantillonnage.hh"
+#include "wolika/iteration.hh"
 
 #include "fluide.hh"
 
@@ -39,13 +40,13 @@ namespace psn {
 
 template <typename T>
 auto advection_semi_lagrange(
-		GrilleMAC &vel,
-		grille_dense_3d<T> &fwd,
-		grille_dense_3d<T> const &orig,
+		wlk::GrilleMAC &vel,
+		wlk::grille_dense_3d<T> &fwd,
+		wlk::grille_dense_3d<T> const &orig,
 		float dt)
 {
 	auto res = orig.desc().resolution;
-	auto echant = Echantilloneuse(orig);
+	auto echant = wlk::Echantilloneuse(orig);
 
 	boucle_parallele(tbb::blocked_range<int>(0, res.z),
 					 [&](tbb::blocked_range<int> const &plage)
@@ -54,7 +55,7 @@ auto advection_semi_lagrange(
 		lims.min = dls::math::vec3i(0, 0, plage.begin());
 		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-		auto iter = IteratricePosition(lims);
+		auto iter = wlk::IteratricePosition(lims);
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
@@ -86,11 +87,11 @@ auto advection_semi_lagrange(
 //! Kernel: Correct based on forward and backward SL steps (for both centered & mac grids)
 template<class T>
 void MacCormackCorrect(
-		const grille_dense_3d<int>& flags,
-		grille_dense_3d<T>& dst,
-		const grille_dense_3d<T>& old,
-		const grille_dense_3d<T>& fwd,
-		const grille_dense_3d<T>& bwd,
+		const wlk::grille_dense_3d<int>& flags,
+		wlk::grille_dense_3d<T>& dst,
+		const wlk::grille_dense_3d<T>& old,
+		const wlk::grille_dense_3d<T>& fwd,
+		const wlk::grille_dense_3d<T>& bwd,
 		float strength)
 {
 	for (auto idx = 0; idx < flags.nombre_elements(); ++idx) {
@@ -108,9 +109,9 @@ void MacCormackCorrect(
 template<class T>
 inline T doClampComponent(
 		const dls::math::vec3i& gridSize,
-		const grille_dense_3d<int>& flags,
+		const wlk::grille_dense_3d<int>& flags,
 		T dst,
-		const grille_dense_3d<T>& orig,
+		const wlk::grille_dense_3d<T>& orig,
 		const T fwd,
 		const dls::math::vec3f& pos,
 		const dls::math::vec3f& vel,
@@ -161,11 +162,11 @@ inline T doClampComponent(
 
 template <typename T>
 auto restriction_maccormarck(
-		const grille_dense_3d<int>& flags,
-		const GrilleMAC& vel,
-		grille_dense_3d<T>& dst,
-		const grille_dense_3d<T>& orig,
-		const grille_dense_3d<T>& fwd,
+		const wlk::grille_dense_3d<int>& flags,
+		const wlk::GrilleMAC& vel,
+		wlk::grille_dense_3d<T>& dst,
+		const wlk::grille_dense_3d<T>& orig,
+		const wlk::grille_dense_3d<T>& fwd,
 		float dt,
 		const int clampMode)
 {
@@ -178,7 +179,7 @@ auto restriction_maccormarck(
 		lims.min = dls::math::vec3i(0, 0, plage.begin());
 		lims.max = dls::math::vec3i(res.x - 1, res.y - 1, plage.end());
 
-		auto iter = IteratricePosition(lims);
+		auto iter = wlk::IteratricePosition(lims);
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
@@ -219,13 +220,13 @@ auto restriction_maccormarck(
 
 template <typename T>
 auto advecte_semi_lagrange(
-		grille_dense_3d<int> &flags,
-		GrilleMAC &vel,
-		grille_dense_3d<T> &orig,
+		wlk::grille_dense_3d<int> &flags,
+		wlk::GrilleMAC &vel,
+		wlk::grille_dense_3d<T> &orig,
 		float dt,
 		int order)
 {
-	auto fwd = grille_dense_3d<T>(orig.desc());
+	auto fwd = wlk::grille_dense_3d<T>(orig.desc());
 
 	advection_semi_lagrange(vel, fwd, orig, dt);
 
@@ -234,8 +235,8 @@ auto advecte_semi_lagrange(
 	}
 	/* MacCormack */
 	else if (order == 2) {
-		auto bwd = grille_dense_3d<T>(orig.desc());
-		auto newGrid = grille_dense_3d<T>(orig.desc());
+		auto bwd = wlk::grille_dense_3d<T>(orig.desc());
+		auto newGrid = wlk::grille_dense_3d<T>(orig.desc());
 
 		// bwd <- backwards step
 		advection_semi_lagrange(vel, bwd, fwd, -dt/*, levelset, orderSpace*/);
@@ -251,10 +252,10 @@ auto advecte_semi_lagrange(
 }
 
 void ajoute_flottance(
-		grille_dense_3d<float> &density,
-		GrilleMAC &vel,
-		grille_dense_3d<int> &flags,
-		grille_dense_3d<float> *temperature,
+		wlk::grille_dense_3d<float> &density,
+		wlk::GrilleMAC &vel,
+		wlk::grille_dense_3d<int> &flags,
+		wlk::grille_dense_3d<float> *temperature,
 		dls::math::vec3f const &gravity,
 		float alpha,
 		float beta,
@@ -263,7 +264,7 @@ void ajoute_flottance(
 		float coefficient);
 
 void ajourne_conditions_bordures_murs(
-		grille_dense_3d<int> &flags,
-		GrilleMAC &vel);
+		wlk::grille_dense_3d<int> &flags,
+		wlk::GrilleMAC &vel);
 
 }  /* namespace psn */

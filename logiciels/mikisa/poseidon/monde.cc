@@ -28,17 +28,18 @@
 #include "biblinternes/outils/gna.hh"
 
 #include "corps/limites_corps.hh"
-#include "corps/iter_volume.hh"
 
 #include "coeur/delegue_hbe.hh"
 #include "coeur/objet.h"
+
+#include "wolika/iteration.hh"
 
 #include "fluide.hh"
 
 namespace psn {
 
 template <typename T>
-static auto fill_grid(grille_dense_3d<T> *flags, T valeur)
+static auto fill_grid(wlk::grille_dense_3d<T> *flags, T valeur)
 {
 	std::cerr << __func__ << '\n';
 
@@ -46,7 +47,7 @@ static auto fill_grid(grille_dense_3d<T> *flags, T valeur)
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
@@ -56,13 +57,13 @@ static auto fill_grid(grille_dense_3d<T> *flags, T valeur)
 	}
 }
 
-void fill_grid(grille_dense_3d<int> &flags, int type)
+void fill_grid(wlk::grille_dense_3d<int> &flags, int type)
 {
 	auto res = flags.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	while (!iter.fini()) {
 		auto pos = iter.suivante();
@@ -76,14 +77,14 @@ void fill_grid(grille_dense_3d<int> &flags, int type)
 	}
 }
 
-static auto ajourne_murs_domaine(grille_dense_3d<int> &drapeaux)
+static auto ajourne_murs_domaine(wlk::grille_dense_3d<int> &drapeaux)
 {
 	auto res = drapeaux.desc().resolution;
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = res;
 
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	auto const boundaryWidth = 0;
 	auto const w = boundaryWidth;
@@ -214,7 +215,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 		auto limites = limites3i{};
 		limites.min = dls::math::vec3i(0);
 		limites.max = densite->desc().resolution;
-		auto iter = IteratricePosition(limites);
+		auto iter = wlk::IteratricePosition(limites);
 
 		auto gna_part = GNA{};
 		auto dx2 = static_cast<float>(densite->desc().taille_voxel * 0.5);
@@ -328,7 +329,7 @@ void ajourne_obstables(Poseidon &poseidon)
 		limites.max.x = static_cast<int>(static_cast<float>(res.x) * max_idx.x);
 		limites.max.y = static_cast<int>(static_cast<float>(res.y) * max_idx.y);
 		limites.max.z = static_cast<int>(static_cast<float>(res.z) * max_idx.z);
-		auto iter = IteratricePosition(limites);
+		auto iter = wlk::IteratricePosition(limites);
 
 		while (!iter.fini()) {
 			auto pos = iter.suivante();

@@ -26,17 +26,20 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include "wolika/grille_dense.hh"
+#include "wolika/grille_eparse.hh"
+
 /* ************************************************************************** */
 
 template <typename T>
-static auto deloge_grille_impl(base_grille_3d *&grille)
+static auto deloge_grille_impl(wlk::base_grille_3d *&grille)
 {
 	if (!grille->est_eparse()) {
-		auto ptr = dynamic_cast<grille_dense_3d<T> *>(grille);
+		auto ptr = dynamic_cast<wlk::grille_dense_3d<T> *>(grille);
 		memoire::deloge("grille", ptr);
 	}
 	else {
-		auto ptr = dynamic_cast<grille_eparse<T> *>(grille);
+		auto ptr = dynamic_cast<wlk::grille_eparse<T> *>(grille);
 		memoire::deloge("grille_eparse", ptr);
 	}
 
@@ -45,7 +48,7 @@ static auto deloge_grille_impl(base_grille_3d *&grille)
 
 /* ************************************************************************** */
 
-Volume::Volume(base_grille_3d *grl)
+Volume::Volume(wlk::base_grille_3d *grl)
 	: grille(grl)
 {}
 
@@ -58,32 +61,32 @@ Volume::~Volume()
 	auto const &desc = grille->desc();
 
 	switch (desc.type_donnees) {
-		case type_grille::Z8:
+		case wlk::type_grille::Z8:
 		{
 			deloge_grille_impl<char>(grille);
 			break;
 		}
-		case type_grille::Z32:
+		case wlk::type_grille::Z32:
 		{
 			deloge_grille_impl<int>(grille);
 			break;
 		}
-		case type_grille::R32:
+		case wlk::type_grille::R32:
 		{
 			deloge_grille_impl<float>(grille);
 			break;
 		}
-		case type_grille::R64:
+		case wlk::type_grille::R64:
 		{
 			deloge_grille_impl<double>(grille);
 			break;
 		}
-		case type_grille::VEC2:
+		case wlk::type_grille::VEC2:
 		{
 			deloge_grille_impl<dls::math::vec2f>(grille);
 			break;
 		}
-		case type_grille::VEC3:
+		case wlk::type_grille::VEC3:
 		{
 			deloge_grille_impl<dls::math::vec3f>(grille);
 			break;

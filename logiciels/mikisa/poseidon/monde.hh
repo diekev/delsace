@@ -27,7 +27,8 @@
 #include "biblinternes/structures/ensemble.hh"
 
 #include "coeur/objet.h"
-#include "corps/volume.hh"
+
+#include "wolika/grille_dense.hh"
 
 #include "bruit_vaguelette.hh"
 #include "particules.hh"
@@ -60,10 +61,10 @@ struct Monde {
 struct Poseidon {
 	Monde monde{};
 
-	grille_dense_3d<int> *drapeaux = nullptr;
-	grille_dense_3d<float> *densite = nullptr;
-	grille_dense_3d<float> *pression = nullptr;
-	GrilleMAC *velocite = nullptr;
+	wlk::grille_dense_3d<int> *drapeaux = nullptr;
+	wlk::grille_dense_3d<float> *densite = nullptr;
+	wlk::grille_dense_3d<float> *pression = nullptr;
+	wlk::GrilleMAC *velocite = nullptr;
 
 	bruit_vaguelette bruit{};
 
@@ -93,6 +94,6 @@ void ajourne_sources(Poseidon &poseidon, int temps);
 
 void ajourne_obstables(Poseidon &poseidon);
 
-void fill_grid(grille_dense_3d<int> &flags, int type);
+void fill_grid(wlk::grille_dense_3d<int> &flags, int type);
 
 }  /* namespace psn */

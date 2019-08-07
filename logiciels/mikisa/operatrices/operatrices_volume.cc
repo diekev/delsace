@@ -36,10 +36,14 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
-#include "corps/echantillonnage_volume.hh"
 #include "corps/limites_corps.hh"
-#include "corps/iter_volume.hh"
 #include "corps/volume.hh"
+
+#include "wolika/echantillonnage.hh"
+#include "wolika/grille_dense.hh"
+#include "wolika/grille_eparse.hh"
+#include "wolika/grille_temporelle.hh"
+#include "wolika/iteration.hh"
 
 #include "poseidon/bruit_vaguelette.hh"
 
@@ -60,7 +64,7 @@ static int cree_volume(
 	auto min = op.evalue_vecteur("limite_min");
 	auto max = op.evalue_vecteur("limite_max");
 
-	auto desc = desc_grille_3d{};
+	auto desc = wlk::desc_grille_3d{};
 	desc.etendue.min = min;
 	desc.etendue.max = max;
 	desc.fenetre_donnees = desc.etendue;
@@ -80,13 +84,13 @@ static int cree_volume(
 	bruit.restraint_pos = op.evalue_decimal("restreint_pos");
 	bruit.temps_anim = op.evalue_decimal("temps_anim");
 
-	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);
+	auto grille_scalaire = memoire::loge<wlk::grille_dense_3d<float>>("grille", desc);
 
 	auto limites = limites3i{};
 	limites.min = dls::math::vec3i(0);
 	limites.max = grille_scalaire->desc().resolution;
 
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	std::cerr << "Nombre de voxels : " << grille_scalaire->nombre_elements() << '\n';
 
@@ -139,13 +143,13 @@ static int maillage_vers_volume(
 
 	limites_grille = limites;
 
-	auto desc_volume = desc_grille_3d{};
+	auto desc_volume = wlk::desc_grille_3d{};
 	desc_volume.etendue = limites_grille;
 	desc_volume.fenetre_donnees = limites_grille;
 	desc_volume.taille_voxel = taille_voxel;
-	desc_volume.type_donnees = type_grille::R32;
+	desc_volume.type_donnees = wlk::type_grille::R32;
 
-	auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", desc_volume);
+	auto grille = memoire::loge<wlk::grille_eparse<float>>("wlk::grille_eparse", desc_volume);
 	grille->assure_tuiles(limites);
 
 	auto volume =  memoire::loge<Volume>("Volume", grille);
@@ -163,9 +167,9 @@ static int maillage_vers_volume(
 
 		auto rayon = dls::phys::rayond{};
 
-		for (auto k = 0; k < TAILLE_TUILE; ++k) {
-			for (auto j = 0; j < TAILLE_TUILE; ++j) {
-				for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
 					auto pos_tuile = tuile->min;
 					pos_tuile.x += i;
 					pos_tuile.y += j;
@@ -319,7 +323,7 @@ struct FBM {
 static void rasterise_polygone(
 		Corps const &corps,
 		Polygone &poly,
-		Rasteriseur<float> &rast,
+		wlk::Rasteriseur<float> &rast,
 		float rayon,
 		float densite,
 		GNA &gna,
@@ -387,7 +391,7 @@ static auto echantillone_disque(GNA &gna)
 static void rasterise_ligne(
 		Corps const &corps,
 		Polygone &poly,
-		Rasteriseur<float> &rast,
+		wlk::Rasteriseur<float> &rast,
 		float rayon,
 		float densite,
 		GNA &gna,
@@ -470,16 +474,16 @@ static int ratisse_primitives(
 
 	auto gna = GNA(graine);
 
-	auto desc = desc_grille_3d{};
+	auto desc = wlk::desc_grille_3d{};
 	desc.etendue = limites;
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = static_cast<double>(taille_voxel);
 
-	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);
+	auto grille_scalaire = memoire::loge<wlk::grille_dense_3d<float>>("grille", desc);
 
 	auto fbm = FBM{};
 
-	auto rast = Rasteriseur(*grille_scalaire);
+	auto rast = wlk::Rasteriseur(*grille_scalaire);
 
 	for (auto i = 0; i < prims_entree->taille(); ++i) {
 		auto prim = prims_entree->prim(i);
@@ -546,16 +550,16 @@ static int reechantillonne_volume(
 
 	auto grille_entree = volume_entree->grille;
 
-	if (grille_entree->desc().type_donnees != type_grille::R32) {
+	if (grille_entree->desc().type_donnees != wlk::type_grille::R32) {
 		op.ajoute_avertissement("La grille n'est pas scalaire !");
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto grille_scalaire = dynamic_cast<grille_dense_3d<float> *>(grille_entree);
+	auto grille_scalaire = dynamic_cast<wlk::grille_dense_3d<float> *>(grille_entree);
 
-	auto resultat = reechantillonne(*grille_scalaire, grille_scalaire->desc().taille_voxel * 2.0);
+	auto resultat = wlk::reechantillonne(*grille_scalaire, grille_scalaire->desc().taille_voxel * 2.0);
 
-	auto grille = memoire::loge<grille_dense_3d<float>>("grille");
+	auto grille = memoire::loge<wlk::grille_dense_3d<float>>("grille");
 	grille->echange(resultat);
 
 	auto volume = memoire::loge<Volume>("Volume", grille);
@@ -566,87 +570,9 @@ static int reechantillonne_volume(
 
 /* ************************************************************************** */
 
-/**
- * Implémentation de volume temporel basée sur
- * « Efficient Rendering of Volumetric Motion Blur using Temporally Unstructured Volumes »
- * par Magnus Wrenninge, Pixar Animation Studio.
- * http://magnuswrenninge.com/wp-content/uploads/2010/03/Wrenninge-EfficientRenderingOfVolumetricMotionBlur.pdf
- *
- * Ce type de volume est utile pour rendre le flou directionel ou encore
- * réanimer les simumlations de fluide.
- */
-
-struct paire_valeur_temps {
-	float valeur{};
-	float temps{};
-};
-
-using type_courbe = dls::tableau<paire_valeur_temps>;
-
-using grille_auxilliaire = grille_eparse<type_courbe>;
-
-struct tuile_temporelle {
-	using type_valeur = float;
-
-	int decalage[TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE + 1];
-	float *valeurs = nullptr;
-	float *temps = nullptr;
-	dls::math::vec3i min{};
-	dls::math::vec3i max{};
-
-	static void detruit(tuile_temporelle *&t)
-	{
-		auto nombre_valeurs = t->decalage[TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE];
-		memoire::deloge_tableau("tuile_temp::valeurs", t->valeurs, nombre_valeurs);
-		memoire::deloge_tableau("tuile_temp::temps", t->temps, nombre_valeurs);
-		memoire::deloge("tuile", t);
-	}
-
-	static type_valeur echantillonne(tuile_temporelle *t, long index, float temps)
-	{
-		/* voisin le plus proche */
-		auto deb = t->decalage[index];
-		auto dec = t->decalage[index + 1] - deb;
-
-		auto valeur = 0.0f;
-
-		/* trouve le temps */
-		for (auto x = deb; x < deb + dec; ++x) {
-			/* temps exacte */
-			if (dls::math::sont_environ_egaux(t->temps[x], temps)) {
-				valeur = t->valeurs[x];
-				break;
-			}
-
-			/* interpole depuis le premier temps le plus grand */
-			if (t->temps[x] >= temps) {
-				if (x == deb) {
-					valeur = t->valeurs[x];
-					break;
-				}
-
-				/* fait en sorte que t soit entre 0 et 1 */
-				auto fac = (temps - t->temps[x - 1]) / (t->temps[x] - t->temps[x - 1]);
-				valeur = t->valeurs[x] * fac + (1.0f - fac) * t->valeurs[x - 1];
-				break;
-			}
-
-			/* cas où le temps d'échantillonnage est supérieur au
-			 * dernier temps */
-			if (temps > t->temps[x] && x == deb + dec - 1) {
-				valeur = t->valeurs[x];
-			}
-		}
-
-		return valeur;
-	}
-};
-
-using grille_temporelle = grille_eparse<float, tuile_temporelle>;
-
 static void ajoute_volume_temps(
-		grille_auxilliaire &grille_aux,
-		grille_eparse<float> const &grille,
+		wlk::grille_auxilliaire &grille_aux,
+		wlk::grille_eparse<float> const &grille,
 		float temps,
 		float dt,
 		bool debut)
@@ -658,7 +584,7 @@ static void ajoute_volume_temps(
 		auto tuile = plg.front();
 		plg.effronte();
 
-		auto co_tuile = tuile->min / TAILLE_TUILE;
+		auto co_tuile = tuile->min / wlk::TAILLE_TUILE;
 		auto idx_tuile = dls::math::calcul_index(co_tuile, res);
 
 		auto tuile_aux = grille_aux.tuile_par_index(idx_tuile);
@@ -676,7 +602,7 @@ static void ajoute_volume_temps(
 			tuile_aux = grille_aux.cree_tuile(tuile->min);
 
 			if (!debut) {
-				for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
+				for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 					tuile_aux->donnees[i].pousse({ 0.0f, temps - dt });
 				}
 			}
@@ -684,7 +610,7 @@ static void ajoute_volume_temps(
 
 		/* Étape 2 : insère les valeurs pour ce temps.
 		 */
-		for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
+		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 			tuile_aux->donnees[i].pousse({ tuile->donnees[i], temps });
 		}
 
@@ -705,7 +631,7 @@ static void ajoute_volume_temps(
 			tuile->visite = false;
 		}
 		else {
-			for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
+			for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 				tuile->donnees[i].pousse({ 0.0f, temps });
 			}
 		}
@@ -715,7 +641,7 @@ static void ajoute_volume_temps(
 #undef LOG_COMPRESSION
 
 static void simplifie_courbes(
-		grille_auxilliaire &grille,
+		wlk::grille_auxilliaire &grille,
 		float seuil_saillance)
 {
 	auto plg = grille.plage();
@@ -729,7 +655,7 @@ static void simplifie_courbes(
 		auto tuile = plg.front();
 		plg.effronte();
 
-		for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
+		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 			auto &donnees = tuile->donnees[i];
 #ifdef LOG_COMPRESSION
 			ancien_nombre_points += donnees.taille();
@@ -744,7 +670,7 @@ static void simplifie_courbes(
 
 			/* Étape 1 : enlève les valeurs répétées puisque nous présumons une
 			 * entrepolation linéaire. */
-			auto nv_courbe = type_courbe();
+			auto nv_courbe = wlk::type_courbe();
 			nv_courbe.pousse(donnees[0]);
 
 			for (auto j = 1; j < donnees.taille() - 1; ++j) {
@@ -764,7 +690,7 @@ static void simplifie_courbes(
 			donnees = nv_courbe;
 
 			/* Étape 2 : enlève les points les moins saillants. */
-			nv_courbe = type_courbe();
+			nv_courbe = wlk::type_courbe();
 			nv_courbe.pousse(donnees[0]);
 
 			auto const valeur_totale = (donnees.back().valeur - donnees.front().valeur);
@@ -812,9 +738,9 @@ static void simplifie_courbes(
 }
 
 static auto compresse_grille_aux(
-		grille_auxilliaire &grille)
+		wlk::grille_auxilliaire &grille)
 {
-	auto grille_temp = memoire::loge<grille_temporelle>("grille", grille.desc());
+	auto grille_temp = memoire::loge<wlk::grille_temporelle>("grille", grille.desc());
 
 	auto plg_aux = grille.plage();
 
@@ -825,7 +751,7 @@ static auto compresse_grille_aux(
 		auto tuile_temp = grille_temp->cree_tuile(tuile_aux->min);
 		auto nombre_valeurs = 0l;
 
-		for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
+		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 			nombre_valeurs += tuile_aux->donnees[i].taille();
 		}
 
@@ -835,7 +761,7 @@ static auto compresse_grille_aux(
 		tuile_temp->decalage[0] = 0;
 		nombre_valeurs = 0;
 
-		for (auto i = 0; i < TAILLE_TUILE * TAILLE_TUILE * TAILLE_TUILE; ++i) {
+		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 			auto const &courbe = tuile_aux->donnees[i];
 
 			for (auto j = 0; j < courbe.taille(); ++j) {
@@ -856,7 +782,7 @@ static auto obtiens_grille(float temps)
 	auto min = dls::math::vec3f(-1.0f);
 	auto max = dls::math::vec3f( 1.0f);
 
-	auto desc = desc_grille_3d{};
+	auto desc = wlk::desc_grille_3d{};
 	desc.etendue.min = min;
 	desc.etendue.max = max;
 	desc.fenetre_donnees = desc.etendue;
@@ -876,7 +802,7 @@ static auto obtiens_grille(float temps)
 	bruit.restraint_pos = 1.0f;
 	bruit.temps_anim = temps;
 
-	auto grille = memoire::loge<grille_eparse<float>>("grille", desc);
+	auto grille = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(desc.etendue);
 
 	auto plg = grille->plage();
@@ -886,9 +812,9 @@ static auto obtiens_grille(float temps)
 		plg.effronte();
 
 		auto index_tuile = 0;
-		for (auto k = 0; k < TAILLE_TUILE; ++k) {
-			for (auto j = 0; j < TAILLE_TUILE; ++j) {
-				for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
 					auto pos_tuile = tuile->min;
 					pos_tuile.x += i;
 					pos_tuile.y += j;
@@ -911,13 +837,13 @@ static auto cree_volume_temporelle(
 {
 	float const temps[3] = { -1.0f, 0.0f, 1.0f };
 
-	auto grille_aux = static_cast<grille_auxilliaire *>(nullptr);
+	auto grille_aux = static_cast<wlk::grille_auxilliaire *>(nullptr);
 
 	for (auto i = 0; i < 3; ++i) {
 		auto grille = obtiens_grille(temps_courant + temps[i]);
 
 		if (i == 0) {
-			grille_aux = memoire::loge<grille_auxilliaire>("grille_auxilliaire", grille->desc());
+			grille_aux = memoire::loge<wlk::grille_auxilliaire>("wlk::grille_auxilliaire", grille->desc());
 		}
 
 		ajoute_volume_temps(*grille_aux, *grille, temps[i], 1.0f, i == 0);
@@ -929,18 +855,18 @@ static auto cree_volume_temporelle(
 
 	auto grille_temp = compresse_grille_aux(*grille_aux);
 
-	memoire::deloge("grille_auxilliaire", grille_aux);
+	memoire::deloge("wlk::grille_auxilliaire", grille_aux);
 
 	return grille_temp;
 }
 
 static auto echantillonne_grille_temp(
-		grille_temporelle const &grille_temp,
+		wlk::grille_temporelle const &grille_temp,
 		float temps)
 {
 	auto desc = grille_temp.desc();
-	desc.type_donnees = type_grille::R32; // XXX - À FAIRE
-	auto grille = memoire::loge<grille_eparse<float>>("grille", desc);
+	desc.type_donnees = wlk::type_grille::R32; // XXX - À FAIRE
+	auto grille = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(grille_temp.desc().etendue);
 
 	auto plg = grille->plage();
@@ -949,15 +875,15 @@ static auto echantillonne_grille_temp(
 		auto tuile = plg.front();
 		plg.effronte();
 
-		auto min_tuile = tuile->min / TAILLE_TUILE;
+		auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
 		auto idx_tuile = dls::math::calcul_index(min_tuile, grille->res_tuile());
 		auto tuile_temp = grille_temp.tuile_par_index(idx_tuile);
 
 		auto index_tuile = 0;
-		for (auto k = 0; k < TAILLE_TUILE; ++k) {
-			for (auto j = 0; j < TAILLE_TUILE; ++j) {
-				for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
-					tuile->donnees[index_tuile] = tuile_temporelle::echantillonne(tuile_temp, index_tuile, temps);
+		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+					tuile->donnees[index_tuile] = wlk::tuile_temporelle::echantillonne(tuile_temp, index_tuile, temps);
 				}
 			}
 		}
@@ -967,7 +893,7 @@ static auto echantillonne_grille_temp(
 }
 
 class OpCreationVolumeTemp : public OperatriceCorps {
-	grille_temporelle *m_grille_temps = nullptr;
+	wlk::grille_temporelle *m_grille_temps = nullptr;
 	int m_dernier_temps = 0;
 	float m_dernier_seuil = 1.0f;
 
@@ -1085,7 +1011,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto grille_entree = static_cast<grille_eparse<float> *>(nullptr);
+		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
 
 		for (auto i = 0; i < corps_entree->prims()->taille(); ++i) {
 			auto prim = corps_entree->prims()->prim(i);
@@ -1098,8 +1024,8 @@ public:
 
 			auto grille = volume->grille;
 
-			if (grille->est_eparse() && grille->desc().type_donnees == type_grille::R32) {
-				grille_entree = dynamic_cast<grille_eparse<float> *>(grille);
+			if (grille->est_eparse() && grille->desc().type_donnees == wlk::type_grille::R32) {
+				grille_entree = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 				break;
 			}
 		}
@@ -1109,7 +1035,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", grille_entree->desc());
+		auto grille = memoire::loge<wlk::grille_eparse<float>>("wlk::grille_eparse", grille_entree->desc());
 		grille->assure_tuiles(grille_entree->desc().etendue);
 
 		auto taille_fenetre = 2;
@@ -1120,14 +1046,14 @@ public:
 			auto tuile = plg.front();
 			plg.effronte();
 
-			auto min_tuile = tuile->min / TAILLE_TUILE;
+			auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
 			auto idx_tuile = dls::math::calcul_index(min_tuile, grille_entree->res_tuile());
 			auto tuile_b = grille->tuile_par_index(idx_tuile);
 
 			auto index_tuile = 0;
-			for (auto k = 0; k < TAILLE_TUILE; ++k) {
-				for (auto j = 0; j < TAILLE_TUILE; ++j) {
-					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+			for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+				for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+					for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
 						auto pos_tuile = tuile->min;
 						pos_tuile.x += i;
 						pos_tuile.y += j;

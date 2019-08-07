@@ -642,7 +642,7 @@ Ocean::~Ocean()
 /* ************************************************************************** */
 
 template <typename T>
-auto echantillonne_proche(grille_dense_2d<T> const &grille, float x, float y)
+auto echantillonne_proche(wlk::grille_dense_2d<T> const &grille, float x, float y)
 {
 	auto const res = grille.desc().resolution;
 
@@ -673,7 +673,7 @@ auto echantillonne_proche(grille_dense_2d<T> const &grille, float x, float y)
 }
 
 template <typename T>
-auto echantillonne_lineaire(grille_dense_2d<T> const &grille, float x, float y)
+auto echantillonne_lineaire(wlk::grille_dense_2d<T> const &grille, float x, float y)
 {
 	auto const res = grille.desc().resolution;
 
@@ -737,7 +737,7 @@ inline auto catrom(T p0, T p1, T p2, T p3, T f)
 }
 
 template <typename T>
-auto echantillonne_catrom(grille_dense_2d<T> const &grille, float x, float y)
+auto echantillonne_catrom(wlk::grille_dense_2d<T> const &grille, float x, float y)
 {
 	auto const res = grille.desc().resolution;
 
@@ -878,13 +878,13 @@ public:
 			deloge_donnees_ocean(m_ocean);
 			initialise_donnees_ocean(m_ocean, static_cast<double>(gravite));
 
-			auto desc = desc_grille_2d{};
+			auto desc = wlk::desc_grille_2d{};
 			desc.etendue.min = dls::math::vec2f(0.0f);
 			desc.etendue.max = dls::math::vec2f(1.0f);
 			desc.fenetre_donnees = desc.etendue;
 			desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
 
-			m_ecume_precedente = calque_image::construit_calque(desc, type_grille::R32);
+			m_ecume_precedente = calque_image::construit_calque(desc, wlk::type_grille::R32);
 
 			m_reinit = false;
 		}
@@ -897,18 +897,18 @@ public:
 					 static_cast<double>(gravite));
 
 		/* converti les données en images */
-		auto desc = desc_grille_2d{};
+		auto desc = wlk::desc_grille_2d{};
 		desc.etendue.min = dls::math::vec2f(0.0f);
 		desc.etendue.max = dls::math::vec2f(1.0f);
 		desc.fenetre_donnees = desc.etendue;
 		desc.taille_pixel = 1.0 / (static_cast<double>(m_ocean.res_x));
 
-		auto calque_depl = calque_image::construit_calque(desc, type_grille::VEC3);
-		auto calque_norm = calque_image::construit_calque(desc, type_grille::VEC3);
+		auto calque_depl = calque_image::construit_calque(desc, wlk::type_grille::VEC3);
+		auto calque_norm = calque_image::construit_calque(desc, wlk::type_grille::VEC3);
 
-		auto grille_depl = dynamic_cast<grille_dense_2d<dls::math::vec3f> *>(calque_depl.tampon);
-		auto grille_norm = dynamic_cast<grille_dense_2d<dls::math::vec3f> *>(calque_norm.tampon);
-		auto grille_ecume = dynamic_cast<grille_dense_2d<float> *>(m_ecume_precedente.tampon);
+		auto grille_depl = dynamic_cast<wlk::grille_dense_2d<dls::math::vec3f> *>(calque_depl.tampon);
+		auto grille_norm = dynamic_cast<wlk::grille_dense_2d<dls::math::vec3f> *>(calque_norm.tampon);
+		auto grille_ecume = dynamic_cast<wlk::grille_dense_2d<float> *>(m_ecume_precedente.tampon);
 
 		OceanResult ocr;
 		auto gna = GNA{graine};

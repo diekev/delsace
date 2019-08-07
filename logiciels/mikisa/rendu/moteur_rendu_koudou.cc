@@ -38,6 +38,8 @@
 #include "koudou/nuanceur.hh"
 #include "koudou/structure_acceleration.hh"
 
+#include "wolika/grille_eparse.hh"
+
 #include "rendu_corps.h"
 
 /* ************************************************************************** */
@@ -175,7 +177,7 @@ static void ajoute_volume(kdo::Maillage *maillage, Corps const &corps)
 	auto grille = volume->grille;
 
 	if (grille->est_eparse()) {
-		auto grille_eprs = dynamic_cast<grille_eparse<float> *>(grille);
+		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 
 		/* ajoute un cube pour chaque tuile de la grille */
 		auto const &topologie = grille_eprs->topologie();

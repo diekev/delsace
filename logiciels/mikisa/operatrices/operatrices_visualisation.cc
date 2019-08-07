@@ -32,6 +32,8 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#include "wolika/grille_eparse.hh"
+
 #include "arbre_octernaire.hh"
 #include "outils_visualisation.hh"
 
@@ -201,7 +203,7 @@ public:
 /* ************************************************************************** */
 
 template <typename T>
-static auto visualise_topologie(Corps &corps, grille_eparse<T> const &grille)
+static auto visualise_topologie(Corps &corps, wlk::grille_eparse<T> const &grille)
 {
 	auto limites = grille.desc().etendue;
 	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
@@ -290,7 +292,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto grille_eprs = dynamic_cast<grille_eparse<float> *>(grille);
+		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 
 		visualise_topologie(m_corps, *grille_eprs);
 

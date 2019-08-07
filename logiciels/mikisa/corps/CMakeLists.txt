@@ -28,16 +28,14 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	math
+	wolika
 )
 
 add_library(${NOM_CIBLE} STATIC
     adaptrice_creation_corps.cc
 	attribut.cc
     corps.cc
-	echantillonnage_volume.cc
-	grille.cc
     groupes.cc
-	iter_volume.cc
     iteration_corps.cc
 	limites_corps.cc
     listes.cc
@@ -48,10 +46,7 @@ add_library(${NOM_CIBLE} STATIC
     adaptrice_creation_corps.h
 	attribut.h
     corps.h
-	echantillonnage_volume.hh
-	grille.hh
     groupes.h
-	iter_volume.hh
     iteration_corps.hh
 	limites_corps.hh
     listes.h

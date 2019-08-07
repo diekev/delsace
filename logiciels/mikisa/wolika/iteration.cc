@@ -22,5 +22,8 @@
  *
  */
 
-#include "iter_volume.hh"
+#include "iteration.hh"
 
+namespace wlk {
+
+}  /* namespace wlk */

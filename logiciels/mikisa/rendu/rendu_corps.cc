@@ -38,6 +38,9 @@
 #include "corps/corps.h"
 #include "corps/volume.hh"
 
+#include "wolika/grille_dense.hh"
+#include "wolika/grille_eparse.hh"
+
 /* ************************************************************************** */
 
 #if 0
@@ -566,13 +569,13 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 		etendue = grille->desc().etendue;
 		resolution = grille->desc().resolution;
 
-		if (grille->desc().type_donnees == type_grille::R32) {
-			auto grille_scalaire = dynamic_cast<grille_dense_3d<float> *>(grille);
+		if (grille->desc().type_donnees == wlk::type_grille::R32) {
+			auto grille_scalaire = dynamic_cast<wlk::grille_dense_3d<float> *>(grille);
 			ptr_donnees = grille_scalaire->donnees();
 		}
 	}
 	else {
-		auto grille_eprs = dynamic_cast<grille_eparse<float> *>(grille);
+		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 		auto plg = grille_eprs->plage();
 		auto min_grille = dls::math::vec3i{100000};
 		auto max_grille = dls::math::vec3i{-100000};
@@ -616,9 +619,9 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 
 			auto index_tuile = 0;
 
-			for (auto k = 0; k < TAILLE_TUILE; ++k) {
-				for (auto j = 0; j < TAILLE_TUILE; ++j) {
-					for (auto i = 0; i < TAILLE_TUILE; ++i, ++index_tuile) {
+			for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+				for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+					for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
 						/* décale par rapport à min_grille au cas où le minimum
 						 * n'est pas zéro */
 						auto pos_tuile = tuile->min - min_grille;

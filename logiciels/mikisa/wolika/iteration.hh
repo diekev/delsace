@@ -26,6 +26,9 @@
 
 #include "biblinternes/math/limites.hh"
 
+namespace wlk {
+
+
 class IteratricePosition {
 	limites3i m_lim;
 	dls::math::vec3i m_etat;
@@ -99,3 +102,5 @@ public:
 		return m_etat.z < m_lim.min.z;
 	}
 };
+
+}  /* namespace wlk */

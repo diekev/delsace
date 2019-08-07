@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include "volume.hh"
+#include "grille_dense.hh"
 
-/* ************************************************************************** */
+namespace wlk {
 
 /**
  * Le but fondamental d'un tampon de voxel est évidemment d'être écrit vers, et
@@ -221,3 +221,5 @@ auto reechantillonne(
 
 	return resultat;
 }
+
+}  /* namespace wlk */

@@ -52,6 +52,7 @@ set(BIBLIOTHEQUES
 	mikisa_evaluation
 	mikisa_lcc
 	mikisa_poseidon
+	wolika
 	${BIBLIOTHEQUES_ALEMBIC}
 	${BIBLIOTHEQUES_BULLET}
 	${BIBLIOTHEQUES_OPENSUBDIV}

@@ -35,8 +35,6 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
-#include "corps/echantillonnage_volume.hh"
-#include "corps/iter_volume.hh"
 #include "corps/volume.hh"
 
 #include "evaluation/reseau.hh"
@@ -45,6 +43,8 @@
 #include "poseidon/incompressibilite.hh"
 #include "poseidon/monde.hh"
 #include "poseidon/simulation.hh"
+
+#include "wolika/grille_dense.hh"
 
 #include "outils_visualisation.hh"
 
@@ -362,7 +362,7 @@ public:
 /* ************************************************************************** */
 
 template <typename T>
-auto est_vide(grille_dense_3d<T> const &grille)
+auto est_vide(wlk::grille_dense_3d<T> const &grille)
 {
 	for (auto i = 0; i < grille.nombre_elements(); ++i) {
 		if (grille.valeur(i) != T(0)) {
@@ -432,7 +432,7 @@ void transfere_particules_grille(Poseidon &poseidon)
 		lims.min = dls::math::vec3i(0, 0, plage.begin());
 		lims.max = dls::math::vec3i(res.x - 1, res.y - 1, plage.end());
 
-		auto iter = IteratricePosition(lims);
+		auto iter = wlk::IteratricePosition(lims);
 
 		while (!iter.fini()) {
 			auto pos_index = iter.suivante();
@@ -460,7 +460,7 @@ void transfere_particules_grille(Poseidon &poseidon)
 	});
 }
 
-auto calcul_vel_max(GrilleMAC const &vel)
+auto calcul_vel_max(wlk::GrilleMAC const &vel)
 {
 	auto vel_max = 0.0f;
 
@@ -528,7 +528,7 @@ void ajoute_vorticite(
 	auto &drapeaux = *poseidon.drapeaux;
 	auto &velocite = poseidon.velocite;
 	/* À FAIRE */
-	auto fioul = static_cast<grille_dense_3d<float> *>(nullptr);
+	auto fioul = static_cast<wlk::grille_dense_3d<float> *>(nullptr);
 	auto desc = velocite->desc();
 	auto res = desc.resolution;
 	auto dalle_x = 1;
@@ -548,10 +548,10 @@ void ajoute_vorticite(
 		return;
 	}
 
-	auto vorticite_x = grille_dense_3d<float>(desc);
-	auto vorticite_y = grille_dense_3d<float>(desc);
-	auto vorticite_z = grille_dense_3d<float>(desc);
-	auto vorticite   = grille_dense_3d<float>(desc);
+	auto vorticite_x = wlk::grille_dense_3d<float>(desc);
+	auto vorticite_y = wlk::grille_dense_3d<float>(desc);
+	auto vorticite_z = wlk::grille_dense_3d<float>(desc);
+	auto vorticite   = wlk::grille_dense_3d<float>(desc);
 
 //	objvelocity[0] = _xVelocityOb;
 //	objvelocity[1] = _yVelocityOb;
@@ -841,13 +841,13 @@ public:
 		auto res = evalue_entier("résolution");
 		m_poseidon.resolution = res;
 
-		auto desc = desc_grille_3d{};
+		auto desc = wlk::desc_grille_3d{};
 		desc.etendue.min = dls::math::vec3f(-5.0f, -1.0f, -5.0f);
 		desc.etendue.max = dls::math::vec3f( 5.0f,  9.0f,  5.0f);
 		desc.fenetre_donnees = desc.etendue;
 		desc.taille_voxel = 10.0 / static_cast<double>(res);
 
-		m_poseidon.densite = memoire::loge<grille_dense_3d<float>>("grilles", desc);
+		m_poseidon.densite = memoire::loge<wlk::grille_dense_3d<float>>("grilles", desc);
 
 		if (m_poseidon.solveur_flip) {
 			m_poseidon.grille_particule = psn::GrilleParticule(desc);
@@ -857,10 +857,10 @@ public:
 			desc.taille_voxel *= 2.0;
 		}
 
-		m_poseidon.pression = memoire::loge<grille_dense_3d<float>>("grilles", desc);
-		m_poseidon.drapeaux = memoire::loge<grille_dense_3d<int>>("grilles", desc);
+		m_poseidon.pression = memoire::loge<wlk::grille_dense_3d<float>>("grilles", desc);
+		m_poseidon.drapeaux = memoire::loge<wlk::grille_dense_3d<int>>("grilles", desc);
 
-		m_poseidon.velocite = memoire::loge<GrilleMAC>("grilles", desc);
+		m_poseidon.velocite = memoire::loge<wlk::GrilleMAC>("grilles", desc);
 	}
 
 	void supprime_grilles()
@@ -948,12 +948,12 @@ public:
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
-		auto vieille_vel = memoire::loge<GrilleMAC>("grilles", velocite->desc());
+		auto vieille_vel = memoire::loge<wlk::GrilleMAC>("grilles", velocite->desc());
 		vieille_vel->copie_donnees(*velocite);
 
 		if (poseidon_gaz->solveur_flip) {
 			/* advecte particules */
-			auto echant = Echantilloneuse(*velocite);
+			auto echant = wlk::Echantilloneuse(*velocite);
 			auto mult = poseidon_gaz->dt * static_cast<float>(velocite->desc().taille_voxel);
 			tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
 							  [&](long i)
@@ -1038,7 +1038,7 @@ public:
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
-		auto densite_basse = grille_dense_3d<float>();
+		auto densite_basse = wlk::grille_dense_3d<float>();
 
 		/* converti la gravité à l'espace domaine */
 		// auto mag = longueur(gravite);

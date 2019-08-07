@@ -63,39 +63,41 @@ calque_image::~calque_image()
 	deloge_grille(tampon);
 }
 
-calque_image calque_image::construit_calque(base_grille_2d::type_desc const &desc, type_grille type_donnees)
+calque_image calque_image::construit_calque(
+		wlk::base_grille_2d::type_desc const &desc,
+		wlk::type_grille type_donnees)
 {
 	auto calque = calque_image();
 
 	switch (type_donnees) {
-		case type_grille::Z8:
+		case wlk::type_grille::Z8:
 		{
-			calque.tampon = memoire::loge<grille_dense_2d<char>>("grille_dense_2d", desc);
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<char>>("grille_dense_2d", desc);
 			break;
 		}
-		case type_grille::Z32:
+		case wlk::type_grille::Z32:
 		{
-			calque.tampon = memoire::loge<grille_dense_2d<int>>("grille_dense_2d", desc);
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<int>>("grille_dense_2d", desc);
 			break;
 		}
-		case type_grille::R32:
+		case wlk::type_grille::R32:
 		{
-			calque.tampon = memoire::loge<grille_dense_2d<float>>("grille_dense_2d", desc);
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<float>>("grille_dense_2d", desc);
 			break;
 		}
-		case type_grille::R64:
+		case wlk::type_grille::R64:
 		{
-			calque.tampon = memoire::loge<grille_dense_2d<double>>("grille_dense_2d", desc);
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<double>>("grille_dense_2d", desc);
 			break;
 		}
-		case type_grille::VEC2:
+		case wlk::type_grille::VEC2:
 		{
-			calque.tampon = memoire::loge<grille_dense_2d<dls::math::vec2f>>("grille_dense_2d", desc);
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec2f>>("grille_dense_2d", desc);
 			break;
 		}
-		case type_grille::VEC3:
+		case wlk::type_grille::VEC3:
 		{
-			calque.tampon = memoire::loge<grille_dense_2d<dls::math::vec3f>>("grille_dense_2d", desc);
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec3f>>("grille_dense_2d", desc);
 			break;
 		}
 	}

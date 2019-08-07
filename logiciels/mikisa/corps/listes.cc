@@ -268,7 +268,7 @@ void ListePrimitives::detache()
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				auto volume = dynamic_cast<Volume *>(prim);
-				auto grille = static_cast<base_grille_3d *>(nullptr);
+				auto grille = static_cast<wlk::base_grille_3d *>(nullptr);
 
 				if (volume->grille) {
 					grille = volume->grille->copie();

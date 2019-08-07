@@ -14,24 +14,38 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2019 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# ------------------------------------------------------------------------------
+set(NOM_CIBLE wolika)
 
-set(NOM_PROJET mikisa)
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../
+)
 
-add_subdirectory(coeur)
-add_subdirectory(commandes)
-add_subdirectory(corps)
-add_subdirectory(entreface)
-add_subdirectory(evaluation)
-add_subdirectory(koudou)
-add_subdirectory(operatrices)
-add_subdirectory(lanceur)
-add_subdirectory(lcc)
-add_subdirectory(poseidon)
-add_subdirectory(rendu)
-add_subdirectory(wolika)
+set(BIBLIOTHEQUES
+)
+
+add_library(${NOM_CIBLE} STATIC
+    base_grille.cc
+	echantillonnage.cc
+    grille_dense.cc
+    grille_eparse.cc
+    grille_temporelle.cc
+	iteration.cc
+
+    base_grille.hh
+	echantillonnage.hh
+    grille_dense.hh
+    grille_eparse.hh
+    grille_temporelle.hh
+	iteration.hh
+)
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
+

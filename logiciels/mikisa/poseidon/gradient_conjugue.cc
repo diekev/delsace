@@ -26,9 +26,9 @@
 
 #include "biblinternes/math/outils.hh"
 
-#include "corps/iter_volume.hh"
+#include "wolika/iteration.hh"
 
-static void verifie_nans(grille_dense_3d<float> const &grille, char const *message0, char const *nom_grille)
+static void verifie_nans(wlk::grille_dense_3d<float> const &grille, char const *message0, char const *nom_grille)
 {
 	for (auto i = 0; i < grille.nombre_elements(); ++i) {
 		if (std::isnan(grille.valeur(i))) {
@@ -38,7 +38,7 @@ static void verifie_nans(grille_dense_3d<float> const &grille, char const *messa
 	}
 }
 
-static void verifie_infs(grille_dense_3d<float> const &grille, char const *message0, char const *nom_grille)
+static void verifie_infs(wlk::grille_dense_3d<float> const &grille, char const *message0, char const *nom_grille)
 {
 	for (auto i = 0; i < grille.nombre_elements(); ++i) {
 		if (std::isinf(grille.valeur(i))) {
@@ -48,7 +48,7 @@ static void verifie_infs(grille_dense_3d<float> const &grille, char const *messa
 	}
 }
 
-void InvertCheckFluid (const grille_dense_3d<int>& flags, grille_dense_3d<float>& grid)
+void InvertCheckFluid (const wlk::grille_dense_3d<int>& flags, wlk::grille_dense_3d<float>& grid)
 {
 	for (auto idx = 0; idx < flags.nombre_elements(); ++idx) {
 		if (est_fluide(flags, idx) && grid.valeur(idx) > 0.0f){
@@ -58,7 +58,7 @@ void InvertCheckFluid (const grille_dense_3d<int>& flags, grille_dense_3d<float>
 }
 
 //! Kernel: Squared sum over grid
-double somme_carree(const grille_dense_3d<float>& grid)
+double somme_carree(const wlk::grille_dense_3d<float>& grid)
 {
 	auto somme = 0.0;
 
@@ -70,7 +70,7 @@ double somme_carree(const grille_dense_3d<float>& grid)
 }
 
 template <typename T>
-auto gridScaledAdd(grille_dense_3d<T>& grid1, const grille_dense_3d<T>& grid2, T facteur)
+auto gridScaledAdd(wlk::grille_dense_3d<T>& grid1, const wlk::grille_dense_3d<T>& grid2, T facteur)
 {
 	for (auto idx = 0; idx < grid1.nombre_elements(); ++idx) {
 		grid1.valeur(idx) += grid2.valeur(idx) * facteur;
@@ -78,7 +78,7 @@ auto gridScaledAdd(grille_dense_3d<T>& grid1, const grille_dense_3d<T>& grid2, T
 }
 
 template <typename T>
-auto efface(grille_dense_3d<T> &grille)
+auto efface(wlk::grille_dense_3d<T> &grille)
 {
 	for (auto idx = 0; idx < grille.nombre_elements(); ++idx) {
 		grille.valeur(idx) = static_cast<T>(0);
@@ -90,15 +90,15 @@ auto efface(grille_dense_3d<T> &grille)
 
 //! Preconditioning a la Wavelet Turbulence (needs 4 add. grids)
 void InitPreconditionIncompCholesky(
-		grille_dense_3d<int> const &flags,
-		grille_dense_3d<float>& A0,
-		grille_dense_3d<float>& Ai,
-		grille_dense_3d<float>& Aj,
-		grille_dense_3d<float>& Ak,
-		grille_dense_3d<float>& orgA0,
-		grille_dense_3d<float>& orgAi,
-		grille_dense_3d<float>& orgAj,
-		grille_dense_3d<float>& orgAk)
+		wlk::grille_dense_3d<int> const &flags,
+		wlk::grille_dense_3d<float>& A0,
+		wlk::grille_dense_3d<float>& Ai,
+		wlk::grille_dense_3d<float>& Aj,
+		wlk::grille_dense_3d<float>& Ak,
+		wlk::grille_dense_3d<float>& orgA0,
+		wlk::grille_dense_3d<float>& orgAi,
+		wlk::grille_dense_3d<float>& orgAj,
+		wlk::grille_dense_3d<float>& orgAk)
 {
 	// compute IC according to Golub and Van Loan
 	A0.copie_donnees(orgA0);
@@ -115,7 +115,7 @@ void InitPreconditionIncompCholesky(
 	limites.min = dls::math::vec3i(0);
 	limites.max = res - dls::math::vec3i(1);
 
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
@@ -149,9 +149,9 @@ void InitPreconditionIncompCholesky(
 }
 
 //! Preconditioning using modified IC ala Bridson (needs 1 add. grid)
-void InitPreconditionModifiedIncompCholesky2(const grille_dense_3d<int>& flags,
-											 grille_dense_3d<float>&Aprecond,
-											 grille_dense_3d<float>&A0, grille_dense_3d<float>& Ai, grille_dense_3d<float>& Aj, grille_dense_3d<float>& Ak)
+void InitPreconditionModifiedIncompCholesky2(const wlk::grille_dense_3d<int>& flags,
+											 wlk::grille_dense_3d<float>&Aprecond,
+											 wlk::grille_dense_3d<float>&A0, wlk::grille_dense_3d<float>& Ai, wlk::grille_dense_3d<float>& Aj, wlk::grille_dense_3d<float>& Ak)
 {
 	// compute IC according to Golub and Van Loan
 	efface(Aprecond);
@@ -165,7 +165,7 @@ void InitPreconditionModifiedIncompCholesky2(const grille_dense_3d<int>& flags,
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
 
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
@@ -205,10 +205,10 @@ void InitPreconditionModifiedIncompCholesky2(const grille_dense_3d<int>& flags,
 //! Preconditioning using multigrid ala Dick et al.
 void InitPreconditionMultigrid(
 		GridMg* MG,
-		grille_dense_3d<float>&A0,
-		grille_dense_3d<float>& Ai,
-		grille_dense_3d<float>& Aj,
-		grille_dense_3d<float>& Ak,
+		wlk::grille_dense_3d<float>&A0,
+		wlk::grille_dense_3d<float>& Ai,
+		wlk::grille_dense_3d<float>& Aj,
+		wlk::grille_dense_3d<float>& Ak,
 		float mAccuracy)
 {
 	// build multigrid hierarchy if necessary
@@ -222,17 +222,17 @@ void InitPreconditionMultigrid(
 
 //! Apply WT-style ICP
 void ApplyPreconditionIncompCholesky(
-		grille_dense_3d<float>& dst,
-		grille_dense_3d<float>& Var1,
-		const grille_dense_3d<int>& flags,
-		grille_dense_3d<float>& A0,
-		grille_dense_3d<float>& Ai,
-		grille_dense_3d<float>& Aj,
-		grille_dense_3d<float>& Ak,
-		grille_dense_3d<float>& orgA0,
-		grille_dense_3d<float>& orgAi,
-		grille_dense_3d<float>& orgAj,
-		grille_dense_3d<float>& orgAk)
+		wlk::grille_dense_3d<float>& dst,
+		wlk::grille_dense_3d<float>& Var1,
+		const wlk::grille_dense_3d<int>& flags,
+		wlk::grille_dense_3d<float>& A0,
+		wlk::grille_dense_3d<float>& Ai,
+		wlk::grille_dense_3d<float>& Aj,
+		wlk::grille_dense_3d<float>& Ak,
+		wlk::grille_dense_3d<float>& orgA0,
+		wlk::grille_dense_3d<float>& orgAi,
+		wlk::grille_dense_3d<float>& orgAj,
+		wlk::grille_dense_3d<float>& orgAk)
 {
 
 	// forward substitution
@@ -245,7 +245,7 @@ void ApplyPreconditionIncompCholesky(
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
 
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
@@ -266,7 +266,7 @@ void ApplyPreconditionIncompCholesky(
 	limites.min = dls::math::vec3i(0);
 	limites.max = res - dls::math::vec3i(1);
 
-	auto iter_inv = IteratricePositionInv(limites);
+	auto iter_inv = wlk::IteratricePositionInv(limites);
 
 	while (!iter_inv.fini()) {
 		auto pos_iter = iter_inv.suivante();
@@ -285,14 +285,14 @@ void ApplyPreconditionIncompCholesky(
 
 //! Apply Bridson-style mICP
 void ApplyPreconditionModifiedIncompCholesky2(
-		grille_dense_3d<float>& dst,
-		grille_dense_3d<float>& Var1,
-		const grille_dense_3d<int>& flags,
-		grille_dense_3d<float>& Aprecond,
-		grille_dense_3d<float>& A0,
-		grille_dense_3d<float>& Ai,
-		grille_dense_3d<float>& Aj,
-		grille_dense_3d<float>& Ak)
+		wlk::grille_dense_3d<float>& dst,
+		wlk::grille_dense_3d<float>& Var1,
+		const wlk::grille_dense_3d<int>& flags,
+		wlk::grille_dense_3d<float>& Aprecond,
+		wlk::grille_dense_3d<float>& A0,
+		wlk::grille_dense_3d<float>& Ai,
+		wlk::grille_dense_3d<float>& Aj,
+		wlk::grille_dense_3d<float>& Ak)
 {
 	// forward substitution
 	auto res = dst.desc().resolution;
@@ -304,7 +304,7 @@ void ApplyPreconditionModifiedIncompCholesky2(
 	limites.min = dls::math::vec3i(1);
 	limites.max = res;
 
-	auto iter = IteratricePosition(limites);
+	auto iter = wlk::IteratricePosition(limites);
 
 	while (!iter.fini()) {
 		auto pos_iter = iter.suivante();
@@ -327,7 +327,7 @@ void ApplyPreconditionModifiedIncompCholesky2(
 	limites.min = dls::math::vec3i(0);
 	limites.max = res - dls::math::vec3i(1);
 
-	auto iter_inv = IteratricePositionInv(limites);
+	auto iter_inv = wlk::IteratricePositionInv(limites);
 
 	while (!iter_inv.fini()) {
 		auto pos_iter = iter_inv.suivante();
@@ -349,8 +349,8 @@ void ApplyPreconditionModifiedIncompCholesky2(
 //! Perform one Multigrid VCycle
 void ApplyPreconditionMultigrid(
 		GridMg* pMG,
-		grille_dense_3d<float>& dst,
-		grille_dense_3d<float>& Var1)
+		wlk::grille_dense_3d<float>& dst,
+		wlk::grille_dense_3d<float>& Var1)
 {
 	// one VCycle on "A*dst = Var1" with initial guess dst=0
 	//	pMG->setRhs(Var1);
@@ -362,7 +362,7 @@ void ApplyPreconditionMultigrid(
 
 //! Kernel: Compute the dot product between two float grids
 /*! Uses double precision internally */
-double produit_scalaire(grille_dense_3d<float> const &a, grille_dense_3d<float> const &b)
+double produit_scalaire(wlk::grille_dense_3d<float> const &a, wlk::grille_dense_3d<float> const &b)
 {
 	auto result = 0.0;
 
@@ -373,7 +373,7 @@ double produit_scalaire(grille_dense_3d<float> const &a, grille_dense_3d<float> 
 	return result;
 }
 
-float max_abs(grille_dense_3d<float> const &grille)
+float max_abs(wlk::grille_dense_3d<float> const &grille)
 {
 	auto min =  std::numeric_limits<float>::max();
 	auto max = -std::numeric_limits<float>::max();
@@ -393,7 +393,7 @@ float max_abs(grille_dense_3d<float> const &grille)
 }
 
 //! Kernel: compute residual (init) and add to sigma
-double InitSigma (const grille_dense_3d<int>& flags, grille_dense_3d<float>& dst, grille_dense_3d<float>& rhs, grille_dense_3d<float>& temp)
+double InitSigma (const wlk::grille_dense_3d<int>& flags, wlk::grille_dense_3d<float>& dst, wlk::grille_dense_3d<float>& rhs, wlk::grille_dense_3d<float>& temp)
 {
 	auto sigma = 0.0;
 
@@ -411,7 +411,7 @@ double InitSigma (const grille_dense_3d<int>& flags, grille_dense_3d<float>& dst
 }
 
 //! Kernel: update search vector
-void UpdateSearchVec (grille_dense_3d<float>& dst, grille_dense_3d<float>& src, float factor)
+void UpdateSearchVec (wlk::grille_dense_3d<float>& dst, wlk::grille_dense_3d<float>& src, float factor)
 {
 	for (auto idx = 0; idx < dst.nombre_elements(); ++idx) {
 		dst.valeur(idx) = src.valeur(idx) + factor * dst.valeur(idx);
@@ -433,16 +433,16 @@ void GridCgInterface::setUseL2Norm(bool set)
 static constexpr auto VECTOR_EPSILON = 1e-6f;
 
 GridCg::GridCg(
-		grille_dense_3d<float>& dst,
-		grille_dense_3d<float>& rhs,
-		grille_dense_3d<float>& residual,
-		grille_dense_3d<float>& search,
-		const grille_dense_3d<int>& flags,
-		grille_dense_3d<float>& tmp,
-		grille_dense_3d<float>* pA0,
-		grille_dense_3d<float>* pAi,
-		grille_dense_3d<float>* pAj,
-		grille_dense_3d<float>* pAk)
+		wlk::grille_dense_3d<float>& dst,
+		wlk::grille_dense_3d<float>& rhs,
+		wlk::grille_dense_3d<float>& residual,
+		wlk::grille_dense_3d<float>& search,
+		const wlk::grille_dense_3d<int>& flags,
+		wlk::grille_dense_3d<float>& tmp,
+		wlk::grille_dense_3d<float>* pA0,
+		wlk::grille_dense_3d<float>* pAi,
+		wlk::grille_dense_3d<float>* pAj,
+		wlk::grille_dense_3d<float>* pAk)
 	: GridCgInterface()
 	, mInited(false)
 	, mIterations(0)
@@ -580,7 +580,7 @@ void GridCg::solve(int maxIter) {
 	return;
 }
 
-void GridCg::setICPreconditioner(PreconditionType method, grille_dense_3d<float> *A0, grille_dense_3d<float> *Ai, grille_dense_3d<float> *Aj, grille_dense_3d<float> *Ak)
+void GridCg::setICPreconditioner(PreconditionType method, wlk::grille_dense_3d<float> *A0, wlk::grille_dense_3d<float> *Ai, wlk::grille_dense_3d<float> *Aj, wlk::grille_dense_3d<float> *Ak)
 {
 	//assertMsg(method==PC_ICP || method==PC_mICP, "GridCg<APPLYMAT>::setICPreconditioner: Invalid method specified.");
 
@@ -609,7 +609,7 @@ void GridCg::setMGPreconditioner(PreconditionType method, GridMg* MG)
 //  rescale in python file for discretization independence (or physical correspondence)
 //  see lidDrivenCavity.py for an example
 void cgSolveDiffusion(
-		const grille_dense_3d<int>& flags,
+		const wlk::grille_dense_3d<int>& flags,
 		GridBase& grid,
 		float alpha = 0.25,
 		float cgMaxIterFac = 1.0,
@@ -617,13 +617,13 @@ void cgSolveDiffusion(
 {
 	// reserve temp grids
 	FluidSolver* parent = flags.getParent();
-	grille_dense_3d<float> rhs(parent);
-	grille_dense_3d<float> residual(parent), search(parent), tmp(parent);
-	grille_dense_3d<float> A0(parent), Ai(parent), Aj(parent), Ak(parent);
+	wlk::grille_dense_3d<float> rhs(parent);
+	wlk::grille_dense_3d<float> residual(parent), search(parent), tmp(parent);
+	wlk::grille_dense_3d<float> A0(parent), Ai(parent), Aj(parent), Ak(parent);
 
 	// setup matrix and boundaries
-	grille_dense_3d<int> flagsDummy(parent);
-	flagsDummy.setConst(grille_dense_3d<int>::TypeFluid);
+	wlk::grille_dense_3d<int> flagsDummy(parent);
+	flagsDummy.setConst(wlk::grille_dense_3d<int>::TypeFluid);
 	MakeLaplaceMatrix (flagsDummy, A0, Ai, Aj, Ak);
 
 	FOR_IJK(flags) {
@@ -644,7 +644,7 @@ void cgSolveDiffusion(
 	const int maxIter = (int)(cgMaxIterFac * flags.getSize().max()) * (flags.is3D() ? 1 : 4);
 
 	if (grid.getType() & GridBase::Typefloat) {
-		auto &u = ((grille_dense_3d<float>&) grid);
+		auto &u = ((wlk::grille_dense_3d<float>&) grid);
 		rhs.copie_donnees(u);
 		gcg = new GridCg<ApplyMatrix  >(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
 		gcg->setAccuracy(cgAccuracy);
@@ -654,8 +654,8 @@ void cgSolveDiffusion(
 	}
 	else if((grid.getType() & GridBase::TypeVec3))
 	{
-		grille_dense_3d<Vec3>& vec = ((grille_dense_3d<Vec3>&) grid);
-		grille_dense_3d<float> u(parent);
+		wlk::grille_dense_3d<Vec3>& vec = ((wlk::grille_dense_3d<Vec3>&) grid);
+		wlk::grille_dense_3d<float> u(parent);
 
 		// core solve is same as for a regular real grid
 		gcg = new GridCg<ApplyMatrix  >(u, rhs, residual, search, flags, tmp, &A0, &Ai, &Aj, &Ak);
@@ -680,7 +680,7 @@ void cgSolveDiffusion(
 }
 #endif
 
-void ApplyMatrix(const grille_dense_3d<int> &flags, grille_dense_3d<float> &dst, const grille_dense_3d<float> &src, grille_dense_3d<float> &A0, grille_dense_3d<float> &Ai, grille_dense_3d<float> &Aj, grille_dense_3d<float> &Ak)
+void ApplyMatrix(const wlk::grille_dense_3d<int> &flags, wlk::grille_dense_3d<float> &dst, const wlk::grille_dense_3d<float> &src, wlk::grille_dense_3d<float> &A0, wlk::grille_dense_3d<float> &Ai, wlk::grille_dense_3d<float> &Aj, wlk::grille_dense_3d<float> &Ak)
 {
 	auto const X = 1;
 	auto const Y = flags.desc().resolution.x;

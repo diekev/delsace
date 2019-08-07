@@ -27,7 +27,7 @@
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/structures/tableau.hh"
 
-#include "corps/volume.hh"
+#include "wolika/grille_dense.hh"
 
 namespace psn {
 
@@ -38,13 +38,13 @@ struct Particule {
 
 struct GrilleParticule {
 private:
-	grille_dense_3d<int> m_grille{};
+	wlk::grille_dense_3d<int> m_grille{};
 	dls::tableau< dls::tableau<Particule *>> m_cellules{};
 
 public:
 	GrilleParticule() = default;
 
-	GrilleParticule(desc_grille_3d const &desc)
+	GrilleParticule(wlk::desc_grille_3d const &desc)
 		: m_grille(desc, -1)
 	{}
 

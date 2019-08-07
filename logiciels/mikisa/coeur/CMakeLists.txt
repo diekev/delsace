@@ -42,6 +42,7 @@ set(BIBLIOTHEQUES
 	mikisa_corps
 	pthread
 	systeme_fichier
+	wolika
 	${BIBLIOTHEQUES_TBB}
 )
 

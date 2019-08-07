@@ -22,7 +22,13 @@
  *
  */
 
-#include "grille.hh"
+#include "base_grille.hh"
+
+#include "biblinternes/memoire/logeuse_memoire.hh"
+
+#include "grille_dense.hh"
+
+namespace wlk {
 
 void deloge_grille(base_grille_2d *&tampon)
 {
@@ -73,3 +79,5 @@ void deloge_grille(base_grille_2d *&tampon)
 
 	tampon = nullptr;
 }
+
+}  /* namespace wlk */

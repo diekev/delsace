@@ -27,10 +27,10 @@
 namespace psn {
 
 void ajoute_flottance(
-		grille_dense_3d<float> &density,
-		GrilleMAC &vel,
-		grille_dense_3d<int> &flags,
-		grille_dense_3d<float> *temperature,
+		wlk::grille_dense_3d<float> &density,
+		wlk::GrilleMAC &vel,
+		wlk::grille_dense_3d<int> &flags,
+		wlk::grille_dense_3d<float> *temperature,
 		dls::math::vec3f const &gravity,
 		float alpha,
 		float beta,
@@ -54,7 +54,7 @@ void ajoute_flottance(
 		lims.min = dls::math::vec3i(1, 1, plage.begin());
 		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-		auto iter = IteratricePosition(lims);
+		auto iter = wlk::IteratricePosition(lims);
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();
@@ -102,7 +102,7 @@ void ajoute_flottance(
 	});
 }
 
-void ajourne_conditions_bordures_murs(grille_dense_3d<int> &flags, GrilleMAC &vel)
+void ajourne_conditions_bordures_murs(wlk::grille_dense_3d<int> &flags, wlk::GrilleMAC &vel)
 {
 	auto res = flags.desc().resolution;
 
@@ -117,7 +117,7 @@ void ajourne_conditions_bordures_murs(grille_dense_3d<int> &flags, GrilleMAC &ve
 		lims.min = dls::math::vec3i(0, 0, plage.begin());
 		lims.max = dls::math::vec3i(res.x, res.y, plage.end());
 
-		auto iter = IteratricePosition(lims);
+		auto iter = wlk::IteratricePosition(lims);
 
 		while (!iter.fini()) {
 			auto pos_iter = iter.suivante();

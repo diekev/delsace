@@ -30,7 +30,7 @@
 #include "biblinternes/outils/iterateurs.h"
 #include "biblinternes/structures/liste.hh"
 
-#include "corps/grille.hh"
+#include "wolika/grille_dense.hh"
 
 using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
 
@@ -38,7 +38,7 @@ using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
 
 /* À FAIRE : déduplique la structure calque */
 struct calque_image {
-	base_grille_2d *tampon = nullptr;
+	wlk::base_grille_2d *tampon = nullptr;
 
 	calque_image() = default;
 
@@ -52,7 +52,7 @@ struct calque_image {
 
 	~calque_image();
 
-	static calque_image construit_calque(base_grille_2d::type_desc const &desc, type_grille type_donnees);
+	static calque_image construit_calque(wlk::base_grille_2d::type_desc const &desc, wlk::type_grille type_donnees);
 };
 
 /* ************************************************************************** */
