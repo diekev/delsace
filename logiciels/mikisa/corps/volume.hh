@@ -258,7 +258,7 @@ public:
 		auto yt = j - jt * TAILLE_TUILE;
 		auto zt = k - kt * TAILLE_TUILE;
 
-		return type_tuile::echantillone(t, xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE, temps);
+		return type_tuile::echantillonne(t, xt + (yt + zt * TAILLE_TUILE) * TAILLE_TUILE, temps);
 	}
 
 	type_tuile *tuile_par_index(long idx) const
