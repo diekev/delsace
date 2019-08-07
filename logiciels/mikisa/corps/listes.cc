@@ -271,12 +271,13 @@ void ListePrimitives::detache()
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				auto volume = dynamic_cast<Volume *>(prim);
-				auto nouveau_volume = memoire::loge<Volume>("Volume");
+				auto grille = static_cast<base_grille_3d *>(nullptr);
 
 				if (volume->grille) {
-					nouveau_volume->grille = volume->grille->copie();
+					grille = volume->grille->copie();
 				}
 
+				auto nouveau_volume = memoire::loge<Volume>("Volume", grille);
 				nouveau_volume->index = volume->index;
 				m_primitives->pousse(nouveau_volume);
 			}

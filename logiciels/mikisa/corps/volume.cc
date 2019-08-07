@@ -45,6 +45,10 @@ static auto deloge_grille_impl(base_grille_3d *&grille)
 
 /* ************************************************************************** */
 
+Volume::Volume(base_grille_3d *grl)
+	: grille(grl)
+{}
+
 Volume::~Volume()
 {
 	if (grille == nullptr) {

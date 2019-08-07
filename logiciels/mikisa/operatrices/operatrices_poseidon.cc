@@ -783,8 +783,7 @@ public:
 
 		/* sauve données */
 
-		auto volume = memoire::loge<Volume>("Volume");
-		volume->grille = m_poseidon.densite->copie();
+		auto volume = memoire::loge<Volume>("Volume", m_poseidon.densite->copie());
 
 		/* visualise domaine */
 		auto etendu = m_poseidon.densite->desc().etendue;

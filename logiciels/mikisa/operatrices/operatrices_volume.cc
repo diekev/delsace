@@ -80,7 +80,6 @@ static int cree_volume(
 	bruit.restraint_pos = op.evalue_decimal("restreint_pos");
 	bruit.temps_anim = op.evalue_decimal("temps_anim");
 
-	auto volume = memoire::loge<Volume>("Volume");
 	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);
 
 	auto limites = limites3i{};
@@ -98,7 +97,7 @@ static int cree_volume(
 		grille_scalaire->valeur(idx, bruit.evalue(pos_mnd));
 	}
 
-	volume->grille = grille_scalaire;
+	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
 
 	return EXECUTION_REUSSIE;
@@ -149,8 +148,7 @@ static int maillage_vers_volume(
 	auto grille = memoire::loge<grille_eparse<float>>("grille_eparse", desc_volume);
 	grille->assure_tuiles(limites);
 
-	auto volume =  memoire::loge<Volume>("Volume");
-	volume->grille = grille;
+	auto volume =  memoire::loge<Volume>("Volume", grille);
 
 	auto plg = grille->plage();
 
@@ -221,7 +219,6 @@ static int maillage_vers_volume(
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = taille_voxel;
 
-	auto volume =  memoire::loge<Volume>("Volume");
 	auto grille_scalaire =  memoire::loge<Grille<float>>("grille", desc);
 	auto res = grille_scalaire->resolution();
 
@@ -273,7 +270,7 @@ static int maillage_vers_volume(
 
 	chef->indique_progression(100.0f);
 
-	volume->grille = grille_scalaire;
+	auto volume =  memoire::loge<Volume>("Volume", grille_scalaire);
 #endif
 
 	op.corps()->prims()->pousse(volume);
@@ -478,7 +475,6 @@ static int ratisse_primitives(
 	desc.fenetre_donnees = limites;
 	desc.taille_voxel = static_cast<double>(taille_voxel);
 
-	auto volume = memoire::loge<Volume>("Volume");
 	auto grille_scalaire = memoire::loge<grille_dense_3d<float>>("grille", desc);
 
 	auto fbm = FBM{};
@@ -506,7 +502,7 @@ static int ratisse_primitives(
 
 	chef->indique_progression(100.0f);
 
-	volume->grille = grille_scalaire;
+	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
 
 	return EXECUTION_REUSSIE;
@@ -559,13 +555,10 @@ static int reechantillonne_volume(
 
 	auto resultat = reechantillonne(*grille_scalaire, grille_scalaire->desc().taille_voxel * 2.0);
 
-	auto volume = memoire::loge<Volume>("Volume");
 	auto grille = memoire::loge<grille_dense_3d<float>>("grille");
-
-	volume->grille = grille;
-
 	grille->echange(resultat);
 
+	auto volume = memoire::loge<Volume>("Volume", grille);
 	op.corps()->ajoute_primitive(volume);
 
 	return EXECUTION_REUSSIE;
@@ -1160,8 +1153,7 @@ public:
 
 		auto grille = echantillonne_grille_temp(*m_grille_temps, temps);
 
-		auto volume = memoire::loge<Volume>("Volume");
-		volume->grille = grille;
+		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
 		return EXECUTION_REUSSIE;

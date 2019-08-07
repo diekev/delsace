@@ -338,6 +338,8 @@ class Volume final : public Primitive {
 public:
 	base_grille_3d *grille = nullptr;
 
+	explicit Volume(base_grille_3d *grl);
+
 	~Volume();
 
 	type_primitive type_prim() const;
