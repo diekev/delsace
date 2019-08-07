@@ -79,6 +79,14 @@ static auto cree_graphe_creation_objet(
 	graphe.dernier_noeud_sortie = noeud_sortie;
 }
 
+static auto cree_graphe_objet_vide(
+		Graphe &graphe,
+		UsineOperatrice &usine)
+{
+	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps", true);
+	graphe.dernier_noeud_sortie = noeud_sortie;
+}
+
 static auto cree_graphe_ocean(
 		Graphe &graphe,
 		UsineOperatrice &usine,
@@ -149,6 +157,9 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	}
 	else if (nom == "océan") {
 		cree_graphe_ocean(objet->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
+	}
+	else if (nom == "vide") {
+		cree_graphe_objet_vide(objet->graphe, mikisa->usine_operatrices());
 	}
 	else {
 		mikisa->affiche_erreur("Type de préréglage inconnu");

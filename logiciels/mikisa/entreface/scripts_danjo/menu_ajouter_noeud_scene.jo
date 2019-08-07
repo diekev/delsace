@@ -3,6 +3,10 @@ menu "Noeud Scène" {
 
 	séparateur
 
+	action(valeur="Objet Vide"; attache=ajoute_prereglage; métadonnée="vide")
+
+	séparateur
+
 	menu "Objet" {
 		action(valeur="Boîte"; attache=ajoute_prereglage; métadonnée="boîte")
 		action(valeur="Cercle"; attache=ajoute_prereglage; métadonnée="cercle")
