@@ -864,6 +864,7 @@ static auto echantillonne_grille_temp(
 		float temps)
 {
 	auto desc = grille_temp.desc();
+	desc.type_donnees = type_grille::R32; // XXX - À FAIRE
 	auto grille = memoire::loge<grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(grille_temp.desc().etendue);
 
