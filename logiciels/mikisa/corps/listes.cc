@@ -258,9 +258,6 @@ void ListePrimitives::detache()
 				auto p = memoire::loge<Polygone>("Polygone");
 				p->type = polygone->type;
 				p->reserve_sommets(polygone->nombre_sommets());
-
-				/* Nous obtenons des crashs lors des copies car l'index devient
-				 * différent ou n'est pas correctement initialisé ? */
 				p->index = polygone->index;
 
 				for (long i = 0; i < polygone->nombre_sommets(); ++i) {
