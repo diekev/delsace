@@ -197,7 +197,6 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 	}
 	else {
 		mikisa->affiche_erreur("Type de préréglage objet inconnu");
-		bdd.enleve_objet(objet);
 		return EXECUTION_COMMANDE_ECHOUEE;
 	}
 
