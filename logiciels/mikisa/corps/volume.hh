@@ -355,6 +355,9 @@ public:
 
 	explicit Volume(base_grille_3d *grl);
 
+	Volume(Volume const &) = default;
+	Volume &operator=(Volume const &) = default;
+
 	~Volume();
 
 	type_primitive type_prim() const;
