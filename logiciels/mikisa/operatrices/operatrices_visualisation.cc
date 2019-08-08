@@ -39,6 +39,65 @@
 
 /* ************************************************************************** */
 
+static void rassemble_topologie(arbre_octernaire::noeud const *noeud, Corps &corps)
+{
+	auto const &min = noeud->limites.min;
+	auto const &max = noeud->limites.max;
+
+	if (noeud->est_feuille) {
+		dessine_boite(corps, nullptr, min, max, dls::math::vec3f(0.0f));
+		return;
+	}
+
+	for (int i = 0; i < arbre_octernaire::NOMBRE_ENFANTS; ++i) {
+		if (noeud->enfants[i] == nullptr) {
+			continue;
+		}
+
+		rassemble_topologie(noeud->enfants[i], corps);
+	}
+}
+
+static void rassemble_topologie(arbre_octernaire const &arbre, Corps &corps)
+{
+	rassemble_topologie(arbre.racine(), corps);
+}
+
+struct delegue_arbre_octernaire {
+	Corps const &corps;
+
+	explicit delegue_arbre_octernaire(Corps const &c)
+		: corps(c)
+	{}
+
+	long nombre_elements() const
+	{
+		return corps.prims()->taille();
+	}
+
+	limites3f limites_globales() const
+	{
+		return calcule_limites_mondiales_corps(corps);
+	}
+
+	limites3f calcule_limites(long idx) const
+	{
+		auto prim = corps.prims()->prim(idx);
+		auto poly = dynamic_cast<Polygone *>(prim);
+
+		auto limites = limites3f(
+					dls::math::vec3f( constantes<float>::INFINITE),
+					dls::math::vec3f(-constantes<float>::INFINITE));
+
+		for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+			auto const &p = corps.point_transforme(poly->index_point(i));
+			extrait_min_max(p, limites.min, limites.max);
+		}
+
+		return limites;
+	}
+};
+
 class OperatriceVisualisationArbreOcternaire : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Visualisation Arbre Octernaire";
@@ -85,18 +144,10 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto delegue = delegue_arbre_octernaire(*corps_entree);
+		auto arbre = arbre_octernaire::construit(delegue);
 
-		auto limites = calcule_limites_mondiales_corps(*corps_entree);
-
-		auto arbre = ArbreOcternaire(limites);
-
-		auto triangles = convertis_maillage_triangles(corps_entree, nullptr);
-
-		for (auto const &triangle : triangles) {
-			arbre.ajoute_triangle(triangle);
-		}
-
-		rassemble_topologie(arbre.racine(), m_corps);
+		rassemble_topologie(arbre, m_corps);
 
 		return EXECUTION_REUSSIE;
 	}
