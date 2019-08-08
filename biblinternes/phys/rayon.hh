@@ -141,7 +141,7 @@ using esectd = entresection<double>;
  * boite englobante.
  *
  * Algorithme issu de
- * https://tavianator.com/fast-branchless-raybounding-box-entresections-part-2-nans/
+ * https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
  */
 template <typename T>
 auto entresection_rapide_min_max(
