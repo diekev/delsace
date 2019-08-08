@@ -2032,12 +2032,8 @@ public:
 		auto positions = dls::tableau<dls::math::vec3f>{};
 		auto intensites = dls::tableau<dls::math::vec3f>{};
 
-		auto plg = grille_entree->plage();
-
-		while (!plg.est_finie()) {
-			auto tuile = plg.front();
-			plg.effronte();
-
+		wlk::pour_chaque_tuile(*grille_entree, [&](wlk::tuile_scalaire<float> const *tuile)
+		{
 			auto index_tuile = 0;
 			for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
 				for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
@@ -2059,7 +2055,7 @@ public:
 					}
 				}
 			}
-		}
+		});
 
 		auto lumieres_min = evalue_entier("lumières_min");
 		auto niveaux_max = evalue_entier("niveaux_max");
