@@ -113,6 +113,9 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		chemin_entreface = objet->chemin_entreface();
 		manipulable = objet;
 	}
+	else if (noeud->type() == NOEUD_COMPOSITE) {
+		/* RÀF */
+	}
 	else {
 		auto operatrice = extrait_opimage(noeud->donnees());
 		chemin_entreface = operatrice->chemin_entreface();
@@ -220,6 +223,9 @@ void EditriceProprietes::ajourne_manipulable()
 		auto objet = extrait_objet(noeud->donnees());
 		objet->ajourne_parametres();
 	}
+	else if (noeud->type() == NOEUD_COMPOSITE) {
+		/* RÀF */
+	}
 	else {
 		/* Marque le noeud courant et ceux en son aval surannées. */
 		marque_surannee_(noeud);
@@ -260,6 +266,9 @@ void EditriceProprietes::onglet_dossier_change(int index)
 	if (noeud->type() == NOEUD_OBJET) {
 		auto objet = extrait_objet(noeud->donnees());
 		objet->onglet_courant = index;
+	}
+	else if (noeud->type() == NOEUD_COMPOSITE) {
+		/* RÀF */
 	}
 	else {
 		auto op = extrait_opimage(noeud->donnees());

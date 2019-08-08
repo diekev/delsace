@@ -24,7 +24,9 @@
 
 #pragma once
 
+#include "biblinternes/graphe/graphe.h"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
 enum class type_objet : char;
@@ -38,8 +40,14 @@ class BaseDeDonnees final {
 	dls::tableau<Objet *> m_objets{};
 	dls::tableau<Scene *> m_scenes{};
 
+	Graphe m_graphe_composites;
+	Graphe m_graphe_objets;
+
+	dls::dico_desordonne<Composite *, Noeud *> m_table_composites_noeud{};
+	dls::dico_desordonne<Objet *, Noeud *> m_table_objet_noeud{};
+
 public:
-	BaseDeDonnees() = default;
+	BaseDeDonnees();
 
 	~BaseDeDonnees();
 
@@ -55,6 +63,10 @@ public:
 
 	dls::tableau<Objet *> const &objets() const;
 
+	Graphe *graphe_objets();
+
+	Graphe const *graphe_objets() const;
+
 	/* ********************************************************************** */
 
 	Scene *cree_scene(dls::chaine const &nom);
@@ -69,5 +81,11 @@ public:
 
 	Composite *composite(dls::chaine const &nom) const;
 
+	void enleve_composite(Composite *compo);
+
 	dls::tableau<Composite *> const &composites() const;
+
+	Graphe *graphe_composites();
+
+	Graphe const *graphe_composites() const;
 };

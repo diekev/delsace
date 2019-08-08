@@ -26,9 +26,36 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include "base_de_donnees.hh"
 #include "composite.h"
+#include "noeud_image.h"
 #include "objet.h"
 #include "scene.h"
+
+/* ************************************************************************** */
+
+static auto cree_noeud_objet()
+{
+	auto noeud = memoire::loge<Noeud>("Noeud");
+	noeud->type(NOEUD_OBJET);
+
+	return noeud;
+}
+
+static auto cree_noeud_composite()
+{
+	auto noeud = memoire::loge<Noeud>("Noeud");
+	noeud->type(NOEUD_COMPOSITE);
+
+	return noeud;
+}
+
+static auto detruit_noeud(Noeud *noeud)
+{
+	memoire::deloge("Noeud", noeud);
+}
+
+/* ************************************************************************** */
 
 /* À FAIRE : noms uniques. Les graphes des composites et objets ainsi que les
  * scènes sont pour le moment chargés de maintenir les listes des noms pour
@@ -36,6 +63,11 @@
  * tous détruire pour s'assurer que les listes des noms soient bel et bien
  * détruites pour ne pas colléser avec les noms des objets lus. Peut-être que
  * la gestion des noms peut être releguée à la BaseDeDonnées. */
+
+BaseDeDonnees::BaseDeDonnees()
+	: m_graphe_composites(Graphe(cree_noeud_composite, detruit_noeud))
+	, m_graphe_objets(Graphe(cree_noeud_objet, detruit_noeud))
+{}
 
 BaseDeDonnees::~BaseDeDonnees()
 {
@@ -49,6 +81,8 @@ void BaseDeDonnees::reinitialise()
 	}
 
 	m_objets.efface();
+	m_graphe_objets.supprime_tout();
+	m_table_objet_noeud.efface();
 
 	for (auto scene : m_scenes) {
 		memoire::deloge("scene", scene);
@@ -61,7 +95,11 @@ void BaseDeDonnees::reinitialise()
 	}
 
 	m_composites.efface();
+	m_graphe_composites.supprime_tout();
+	m_table_composites_noeud.efface();
 }
+
+/* ************************************************************************** */
 
 Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 {
@@ -86,6 +124,15 @@ Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 		}
 	}
 
+	auto noeud = m_graphe_objets.cree_noeud(objet->nom);
+
+	if (objet->nom != noeud->nom()) {
+		objet->nom = noeud->nom();
+	}
+
+	noeud->donnees(objet);
+
+	m_table_objet_noeud.insere({objet, noeud});
 	m_objets.pousse(objet);
 
 	return objet;
@@ -106,6 +153,15 @@ void BaseDeDonnees::enleve_objet(Objet *objet)
 {
 	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
+
+	auto iter_noeud = m_table_objet_noeud.trouve(objet);
+
+	if (iter_noeud == m_table_objet_noeud.fin()) {
+		throw std::runtime_error("L'objet n'est pas la table objets/noeuds de la base de données !");
+	}
+
+	m_graphe_objets.supprime(iter_noeud->second);
+
 	memoire::deloge("objet", objet);
 }
 
@@ -113,6 +169,18 @@ const dls::tableau<Objet *> &BaseDeDonnees::objets() const
 {
 	return m_objets;
 }
+
+Graphe *BaseDeDonnees::graphe_objets()
+{
+	return &m_graphe_objets;
+}
+
+const Graphe *BaseDeDonnees::graphe_objets() const
+{
+	return &m_graphe_objets;
+}
+
+/* ************************************************************************** */
 
 Scene *BaseDeDonnees::cree_scene(dls::chaine const &nom)
 {
@@ -140,10 +208,22 @@ const dls::tableau<Scene *> &BaseDeDonnees::scenes() const
 	return m_scenes;
 }
 
+/* ************************************************************************** */
+
 Composite *BaseDeDonnees::cree_composite(dls::chaine const &nom)
 {
 	auto compo = memoire::loge<Composite>("compo");
 	compo->nom = nom;
+
+	auto noeud = m_graphe_composites.cree_noeud(compo->nom);
+
+	if (compo->nom != noeud->nom()) {
+		compo->nom = noeud->nom();
+	}
+
+	noeud->donnees(compo);
+
+	m_table_composites_noeud.insere({compo, noeud});
 
 	m_composites.pousse(compo);
 
@@ -161,7 +241,33 @@ Composite *BaseDeDonnees::composite(dls::chaine const &nom) const
 	return nullptr;
 }
 
+void BaseDeDonnees::enleve_composite(Composite *compo)
+{
+	auto iter = std::find(m_composites.debut(), m_composites.fin(), compo);
+	m_composites.erase(iter);
+
+	auto iter_noeud = m_table_composites_noeud.trouve(compo);
+
+	if (iter_noeud == m_table_composites_noeud.fin()) {
+		throw std::runtime_error("Le composite n'est pas la table objets/composites de la base de données !");
+	}
+
+	m_graphe_composites.supprime(iter_noeud->second);
+
+	memoire::deloge("compo", compo);
+}
+
 const dls::tableau<Composite *> &BaseDeDonnees::composites() const
 {
 	return m_composites;
+}
+
+Graphe *BaseDeDonnees::graphe_composites()
+{
+	return &m_graphe_composites;
+}
+
+const Graphe *BaseDeDonnees::graphe_composites() const
+{
+	return &m_graphe_composites;
 }

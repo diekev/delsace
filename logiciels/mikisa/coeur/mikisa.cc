@@ -109,7 +109,7 @@ Mikisa::Mikisa()
 {
 	scene = bdd.cree_scene("Scène");
 	composite = bdd.cree_composite("composite");
-	graphe = &scene->graphe;
+	graphe = bdd.graphe_objets();
 
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
 }

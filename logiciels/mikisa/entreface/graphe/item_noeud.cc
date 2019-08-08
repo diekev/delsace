@@ -72,7 +72,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	auto operatrice = static_cast<OperatriceImage *>(nullptr);
 	auto brosse_couleur = QBrush();
 
-	if (noeud->type() == NOEUD_OBJET) {
+	if (noeud->type() == NOEUD_OBJET || noeud->type() == NOEUD_COMPOSITE) {
 		brosse_couleur = brosse_pour_type(OPERATRICE_OBJET);
 	}
 	else {

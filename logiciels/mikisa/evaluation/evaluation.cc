@@ -51,11 +51,12 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto compileuse = CompilatriceReseau{};
 	compileuse.reseau = &mikisa.scene->reseau;
 
-	auto scene = mikisa.scene;
 	auto objet = static_cast<Objet *>(nullptr);
+	/* À FAIRE : ceci n'est que pour les évalution d'objets. */
+	auto noeud_actif = mikisa.bdd.graphe_objets()->noeud_actif;
 
-	if (scene->graphe.noeud_actif != nullptr) {
-		objet = extrait_objet(scene->graphe.noeud_actif->donnees());
+	if (noeud_actif != nullptr) {
+		objet = extrait_objet(noeud_actif->donnees());
 	}
 
 	auto contexte = cree_contexte_evaluation(mikisa);

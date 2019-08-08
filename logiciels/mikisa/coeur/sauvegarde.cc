@@ -279,6 +279,17 @@ static auto ecris_noeud(
 
 			break;
 		}
+		case NOEUD_COMPOSITE:
+		{
+			auto composite = extrait_composite(noeud->donnees());
+
+			auto element_composite = doc.NewElement("composite");
+			element_composite->SetAttribut("nom", composite->nom.c_str());
+
+			element_noeud->InsertEndChild(element_composite);
+
+			break;
+		}
 		default:
 		{
 			auto operatrice = extrait_opimage(noeud->donnees());
@@ -603,6 +614,17 @@ static void lecture_noeud(
 
 			break;
 		}
+		case NOEUD_COMPOSITE:
+		{
+			auto const element_compo = element_noeud->FirstChildElement("composite");
+			auto const nom_objet = element_compo->attribut("nom");
+
+			auto composite = mikisa.bdd.composite(nom_objet);
+
+			noeud->donnees(composite);
+
+			break;
+		}
 		default:
 		{
 			auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
@@ -808,7 +830,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	/* À FAIRE : restaure état. */
 	mikisa.composite = mikisa.bdd.composites()[0];
 	mikisa.scene = mikisa.bdd.scenes()[0];
-	mikisa.graphe = &mikisa.scene->graphe;
+	mikisa.graphe = mikisa.bdd.graphe_objets();
 	mikisa.chemin_courant = "/scènes/" + mikisa.scene->nom + "/";
 	mikisa.contexte = GRAPHE_SCENE;
 

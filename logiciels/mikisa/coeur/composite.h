@@ -47,3 +47,8 @@ public:
 	Graphe const &graph() const;
 	Graphe &graph();
 };
+
+inline Composite *extrait_composite(std::any const &any)
+{
+	return std::any_cast<Composite *>(any);
+}

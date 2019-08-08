@@ -75,7 +75,7 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 		return false;
 	}
 
-	if (noeud->type() == NOEUD_OBJET) {
+	if (noeud->type() == NOEUD_OBJET || noeud->type() == NOEUD_COMPOSITE) {
 		/* À FAIRE : considère avoir et mettre en place un objet actif. */
 		return false;
 	}
@@ -368,14 +368,14 @@ public:
 		if (noeud->type() == NOEUD_OBJET) {
 			besoin_execution = true;
 
-			auto scene = mikisa->scene;
 			auto objet = extrait_objet(noeud->donnees());
-
-			/* À FAIRE : redondance avec la suppression de la BDD et du graphe
-			 * de dépendance. */
-			scene->enleve_objet(objet);
-
 			mikisa->bdd.enleve_objet(objet);
+		}
+		else if (noeud->type() == NOEUD_COMPOSITE) {
+			besoin_execution = true;
+
+			auto compo = extrait_composite(noeud->donnees());
+			mikisa->bdd.enleve_composite(compo);
 		}
 		else {
 			auto operatrice = extrait_opimage(noeud->donnees());
@@ -665,19 +665,17 @@ public:
 		}
 
 		if (mikisa->contexte == GRAPHE_OBJET) {
-			auto scene = mikisa->scene;
-			mikisa->graphe = &scene->graphe;
+			mikisa->graphe = mikisa->bdd.graphe_objets();
 			mikisa->contexte = GRAPHE_SCENE;
-			mikisa->chemin_courant = "/scènes/" + scene->nom + "/";
+			mikisa->chemin_courant = "/objets/";
 		}
 		else if (mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
-			auto scene = mikisa->scene;
-			auto noeud_actif = scene->graphe.noeud_actif;
+			auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
 			auto objet = extrait_objet(noeud_actif->donnees());
 
 			mikisa->graphe = &objet->graphe;
 			mikisa->contexte = GRAPHE_OBJET;
-			mikisa->chemin_courant = "/scènes/" + scene->nom + "/" + objet->nom + "/";
+			mikisa->chemin_courant = "/objets/" + objet->nom + "/";
 		}
 		else {
 			auto composite = mikisa->composite;
@@ -859,11 +857,10 @@ public:
 		auto const &metadonnee = donnees.metadonnee;
 
 		if (metadonnee == "composites") {
-			/* À FAIRE : graphe des composites */
-			mikisa->graphe = nullptr;
+			mikisa->graphe = mikisa->bdd.graphe_composites();
 		}
 		else if (metadonnee == "scènes") {
-			mikisa->graphe = &mikisa->scene->graphe;
+			mikisa->graphe = mikisa->bdd.graphe_objets();
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
