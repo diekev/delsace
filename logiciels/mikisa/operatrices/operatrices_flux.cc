@@ -476,7 +476,7 @@ public:
 
 		m_objet->donnees.accede_lecture([this](DonneesObjet const *donnees)
 		{
-			auto &_corps_ = static_cast<DonneesCorps const *>(donnees)->corps;
+			auto &_corps_ = extrait_corps(donnees);
 			_corps_.copie_vers(&m_corps);
 		});
 

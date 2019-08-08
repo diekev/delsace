@@ -201,7 +201,7 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 	 * le rendu prend plus de temps que l'évaluation asynchrone. */
 	objet->donnees.accede_ecriture([operatrice](DonneesObjet *donnees_objet)
 	{
-		auto &_corps_ = static_cast<DonneesCorps *>(donnees_objet)->corps;
+		auto &_corps_ = extrait_corps(donnees_objet);
 		_corps_.reinitialise();
 		operatrice->corps()->copie_vers(&_corps_);
 	});

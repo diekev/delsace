@@ -189,7 +189,7 @@ public:
 
 				objet->donnees.accede_ecriture([&transforme](DonneesObjet *donnees)
 				{
-					auto &corps = static_cast<DonneesCorps *>(donnees)->corps;
+					auto &corps = extrait_corps(donnees);
 					corps.transformation = transforme;
 				});
 			}
@@ -341,7 +341,7 @@ public:
 		/* copie par convénience */
 		m_objet->donnees.accede_lecture([this](DonneesObjet const *donnees_objet)
 		{
-			auto &_corps_ = static_cast<DonneesCorps const *>(donnees_objet)->corps;
+			auto &_corps_ = extrait_corps(donnees_objet);
 			_corps_.copie_vers(&m_corps);
 		});
 
@@ -535,7 +535,7 @@ public:
 
 				objet->donnees.accede_ecriture([&transformation](DonneesObjet *donnees)
 				{
-					auto &corps = static_cast<DonneesCorps *>(donnees)->corps;
+					auto &corps = extrait_corps(donnees);
 					corps.transformation = transformation;
 				});
 				//m_corps.transformation = transformation;

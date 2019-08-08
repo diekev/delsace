@@ -536,7 +536,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats](DonneesObjet const *donnees)
 		{
 			if (objet->type == type_objet::CAMERA) {
-				auto const &camera = static_cast<DonneesCamera const *>(donnees)->camera;
+				auto const &camera = extrait_camera(donnees);
 
 				/* la rotation de la caméra est appliquée aux points dans
 				 * RenduCamera, donc on recrée une matrice sans rotation, et dont
@@ -555,7 +555,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 				pile.enleve_sommet();
 			}
 			else {
-				auto const &corps = static_cast<DonneesCorps const *>(donnees)->corps;
+				auto const &corps = extrait_corps(donnees);
 				pile.pousse(corps.transformation.matrice());
 
 				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));

@@ -46,6 +46,16 @@ struct DonneesCorps : public DonneesObjet {
 	Corps corps{};
 };
 
+inline Corps &extrait_corps(DonneesObjet *donnees)
+{
+	return static_cast<DonneesCorps *>(donnees)->corps;
+}
+
+inline Corps const &extrait_corps(DonneesObjet const *donnees)
+{
+	return static_cast<DonneesCorps const *>(donnees)->corps;
+}
+
 struct DonneesCamera : public DonneesObjet {
 	vision::Camera3D camera;
 
@@ -55,6 +65,16 @@ struct DonneesCamera : public DonneesObjet {
 		camera.ajourne();
 	}
 };
+
+inline vision::Camera3D &extrait_camera(DonneesObjet *donnees)
+{
+	return static_cast<DonneesCamera *>(donnees)->camera;
+}
+
+inline vision::Camera3D const &extrait_camera(DonneesObjet const *donnees)
+{
+	return static_cast<DonneesCamera const *>(donnees)->camera;
+}
 
 struct Objet : public danjo::Manipulable {
 	type_objet type = type_objet::NUL;

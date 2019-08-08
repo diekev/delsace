@@ -366,7 +366,7 @@ void MoteurRenduKoudou::calcule_rendu(
 				return;
 			}
 
-			auto const &corps = static_cast<DonneesCorps const *>(donnees)->corps;
+			auto const &corps = extrait_corps(donnees);
 
 			auto maillage = memoire::loge<kdo::Maillage>("Maillage");
 
