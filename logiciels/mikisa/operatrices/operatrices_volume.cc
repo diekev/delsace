@@ -177,9 +177,7 @@ static int maillage_vers_volume(
 
 					auto mnd = grille->index_vers_monde(pos_tuile);
 
-					rayon.origine.x = static_cast<double>(mnd.x);
-					rayon.origine.y = static_cast<double>(mnd.y);
-					rayon.origine.z = static_cast<double>(mnd.z);
+					rayon.origine = dls::math::converti_type_point<double>(mnd);
 
 					auto dist_max = grille->desc().taille_voxel;
 					dist_max *= dist_max;
@@ -196,19 +194,28 @@ static int maillage_vers_volume(
 
 					tuile->donnees[index_tuile] = densite;
 #else
-
 					auto axis = axe_dominant_abs(rayon.origine);
 
 					rayon.direction = dls::math::vec3d(0.0);
 					rayon.direction[axis] = 1.0;
 					calcul_direction_inverse(rayon);
 
-					auto accumulatrice = AccumulatriceTraverse(rayon.origine);
-					traverse(arbre_hbe, delegue_prims, rayon, accumulatrice);
+					auto esect = traverse(arbre_hbe, delegue_prims, rayon);
 
-					if (accumulatrice.intersection().touche && accumulatrice.nombre_touche() % 2 == 1) {
-						tuile->donnees[index_tuile] = densite;
+					if (!esect.touche) {
+						continue;
 					}
+
+					rayon.direction = -rayon.direction;
+					calcul_direction_inverse(rayon);
+
+					esect = traverse(arbre_hbe, delegue_prims, rayon);
+
+					if (!esect.touche) {
+						continue;
+					}
+
+					tuile->donnees[index_tuile] = densite;
 #endif
 				}
 			}
