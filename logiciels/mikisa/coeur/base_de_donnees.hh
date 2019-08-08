@@ -33,12 +33,10 @@ enum class type_objet : char;
 
 class Composite;
 class Objet;
-class Scene;
 
 class BaseDeDonnees final {
 	dls::tableau<Composite *> m_composites{};
 	dls::tableau<Objet *> m_objets{};
-	dls::tableau<Scene *> m_scenes{};
 
 	Graphe m_graphe_composites;
 	Graphe m_graphe_objets;
@@ -67,13 +65,7 @@ public:
 
 	Graphe const *graphe_objets() const;
 
-	/* ********************************************************************** */
-
-	Scene *cree_scene(dls::chaine const &nom);
-
-	Scene *scene(dls::chaine const &nom) const;
-
-	dls::tableau<Scene *> const &scenes() const;
+	dls::dico_desordonne<Objet *, Noeud *> const &table_objets() const;
 
 	/* ********************************************************************** */
 

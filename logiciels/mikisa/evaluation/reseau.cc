@@ -24,9 +24,9 @@
 
 #include "reseau.hh"
 
+#include "coeur/base_de_donnees.hh"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
-#include "coeur/scene.h"
 
 /* ************************************************************************** */
 
@@ -103,12 +103,12 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *n
 	noeud_vers->entrees.insere(noeud_de);
 }
 
-void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet)
+void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Objet *objet)
 {
 	reseau->reinitialise();
 
 	/* crée les noeuds */
-	for (auto paire : scene->table_objets()) {
+	for (auto paire : bdd->table_objets()) {
 		cree_noeud(paire.first, paire.second);
 	}
 

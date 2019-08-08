@@ -24,18 +24,24 @@
 
 #include "moteur_rendu.hh"
 
-#include "coeur/scene.h"
-
 /* ************************************************************************** */
 
 long deleguee_scene::nombre_objets() const
 {
-	return scene->objets().taille();
+	if (scene == nullptr) {
+		return 0;
+	}
+
+	return scene->taille();
 }
 
 Objet *deleguee_scene::objet(long idx) const
 {
-	return scene->objets()[idx];
+	if (scene == nullptr) {
+		return nullptr;
+	}
+
+	return (*scene)[idx];
 }
 
 /* ************************************************************************** */
@@ -54,7 +60,7 @@ void MoteurRendu::camera(vision::Camera3D *camera)
 	m_camera = camera;
 }
 
-void MoteurRendu::scene(Scene *scene)
+void MoteurRendu::scene(const dls::tableau<Objet *> *scene)
 {
 	m_delegue->scene = scene;
 }

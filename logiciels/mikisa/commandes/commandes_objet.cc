@@ -36,7 +36,6 @@
 #include "coeur/operatrice_image.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
-#include "coeur/scene.h"
 
 /* ************************************************************************** */
 
@@ -167,8 +166,6 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 		return EXECUTION_COMMANDE_ECHOUEE;
 	}
 
-	mikisa->scene->ajoute_objet(objet);
-
 	mikisa->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
 
 	requiers_evaluation(*mikisa, OBJET_AJOUTE, "exécution préréglage");
@@ -190,17 +187,13 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 	auto &bdd = mikisa->bdd;
 	auto nom = donnees.metadonnee;
 
-	auto objet = static_cast<Objet *>(nullptr);
-
 	if (nom == "caméra") {
-		objet = bdd.cree_objet(nom, type_objet::CAMERA);
+		bdd.cree_objet(nom, type_objet::CAMERA);
 	}
 	else {
 		mikisa->affiche_erreur("Type de préréglage objet inconnu");
 		return EXECUTION_COMMANDE_ECHOUEE;
 	}
-
-	mikisa->scene->ajoute_objet(objet);
 
 	mikisa->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
 

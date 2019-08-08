@@ -37,6 +37,8 @@
 #include "gestionnaire_fichier.hh"
 #include "usine_operatrice.h"
 
+#include "evaluation/reseau.hh"
+
 class BaseEditrice;
 class Composite;
 class Configuration;
@@ -47,7 +49,6 @@ class Manipulatrice2D;
 class Noeud;
 class ProjectSettings;
 class RepondantCommande;
-class Scene;
 class TaskNotifier;
 
 namespace vision {
@@ -144,8 +145,6 @@ public:
 	int contexte = GRAPHE_SCENE;
 	Graphe *graphe = nullptr;
 
-	Scene *scene = nullptr;
-
 	Noeud *derniere_visionneuse_selectionnee = nullptr;
 
 	/* manipulation objets 2d */
@@ -175,6 +174,9 @@ public:
 	ChefExecution chef_execution;
 
 	BaseDeDonnees bdd{};
+
+	/* pour l'évaluation du graphe d'objets */
+	Reseau reseau{};
 
 	void ajourne_pour_nouveau_temps(const char *message);
 };

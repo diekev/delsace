@@ -30,7 +30,6 @@
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
-#include "coeur/scene.h"
 
 #include "execution.hh"
 #include "reseau.hh"
@@ -49,7 +48,8 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto executrice = Executrice{};
 
 	auto compileuse = CompilatriceReseau{};
-	compileuse.reseau = &mikisa.scene->reseau;
+	auto &reseau = mikisa.reseau;
+	compileuse.reseau = &reseau;
 
 	auto objet = static_cast<Objet *>(nullptr);
 	/* À FAIRE : ceci n'est que pour les évalution d'objets. */
@@ -60,7 +60,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	}
 
 	auto contexte = cree_contexte_evaluation(mikisa);
-	compileuse.compile_reseau(contexte, mikisa.scene, objet);
+	compileuse.compile_reseau(contexte, &mikisa.bdd, objet);
 
 	auto plan = Planifieuse::PtrPlan{nullptr};
 
@@ -71,7 +71,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		case GRAPHE_MODIFIE:
 		case PARAMETRE_CHANGE:
 		{
-			plan = planifieuse.requiers_plan_pour_objet(mikisa.scene->reseau, objet);
+			plan = planifieuse.requiers_plan_pour_objet(reseau, objet);
 			break;
 		}
 		case OBJET_AJOUTE:
@@ -79,13 +79,13 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		case FICHIER_OUVERT:
 		case RENDU_REQUIS:
 		{
-			plan = planifieuse.requiers_plan_pour_scene(mikisa.scene->reseau);
+			plan = planifieuse.requiers_plan_pour_scene(reseau);
 			break;
 		}
 		case TEMPS_CHANGE:
 		{
 			compileuse.marque_execution_temps_change();
-			plan = planifieuse.requiers_plan_pour_nouveau_temps(mikisa.scene->reseau, mikisa.temps_courant, mikisa.animation);
+			plan = planifieuse.requiers_plan_pour_nouveau_temps(reseau, mikisa.temps_courant, mikisa.animation);
 			break;
 		}
 	}

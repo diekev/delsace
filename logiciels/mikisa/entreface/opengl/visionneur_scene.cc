@@ -34,7 +34,6 @@
 #include "coeur/composite.h"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
-#include "coeur/scene.h"
 
 #include "rendu/moteur_rendu_koudou.hh"
 #include "rendu/moteur_rendu_opengl.hh"
@@ -100,8 +99,7 @@ void VisionneurScene::initialise()
 void VisionneurScene::peint_opengl()
 {
 	/* dessine la scène dans le tampon */
-	auto scene = m_mikisa.scene;
-	m_moteur_rendu->scene(scene);
+	m_moteur_rendu->scene(&m_mikisa.bdd.objets());
 
 	auto stats = StatistiquesRendu{};
 
@@ -182,13 +180,6 @@ void VisionneurScene::peint_opengl()
 	}
 
 	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
-
-	if (scene != nullptr) {
-		ss.chn("");
-		ss << "Scène : " << scene->nom;
-
-		m_rendu_texte->dessine(m_contexte, ss.chn());
-	}
 
 	ss.chn("");
 	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());

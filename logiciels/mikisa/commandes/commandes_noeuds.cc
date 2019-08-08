@@ -52,7 +52,6 @@
 #include "coeur/operatrice_graphe_pixel.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/operatrice_simulation.hh"
-#include "coeur/scene.h"
 #include "coeur/usine_operatrice.h"
 
 #pragma clang diagnostic push
@@ -611,7 +610,7 @@ public:
 			mikisa->graphe = &objet->graphe;
 			mikisa->contexte = GRAPHE_OBJET;
 
-			mikisa->chemin_courant = "/scènes/Scène/" + objet->nom + "/";
+			mikisa->chemin_courant = "/objets/" + objet->nom + "/";
 		}
 		else {
 			auto operatrice = extrait_opimage(noeud->donnees());
@@ -682,7 +681,7 @@ public:
 
 			mikisa->graphe = &composite->graph();
 			mikisa->contexte = GRAPHE_COMPOSITE;
-			mikisa->chemin_courant = "/composite/";
+			mikisa->chemin_courant = "/composites/";
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);

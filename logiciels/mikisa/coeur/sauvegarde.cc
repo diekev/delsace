@@ -51,7 +51,6 @@
 #include "operatrice_graphe_pixel.h"
 #include "operatrice_image.h"
 #include "operatrice_simulation.hh"
-#include "scene.h"
 #include "usine_operatrice.h"
 
 namespace coeur {
@@ -374,38 +373,6 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		racine_composite->InsertEndChild(racine_graphe);
 
 		ecris_graphe(doc, racine_graphe, composite->graph());
-	}
-
-	/* scenes */
-
-	auto racine_scenes = doc.NewElement("scenes");
-	racine_projet->InsertEndChild(racine_scenes);
-
-
-	auto planifieuse = Planifieuse{};
-	auto compileuse = CompilatriceReseau{};
-
-	for (auto const scene : bdd.scenes()) {
-		/* Écriture de la scène. */
-		auto racine_scene = doc.NewElement("scene");
-		racine_scene->SetAttribut("nom", scene->nom.c_str());
-
-		racine_scenes->InsertEndChild(racine_scene);
-
-		compileuse.reseau = &scene->reseau;
-
-		auto contexte = cree_contexte_evaluation(mikisa);
-		compileuse.compile_reseau(contexte, scene, nullptr);
-
-		auto plan = planifieuse.requiers_plan_pour_scene(scene->reseau);
-
-		/* Écriture du graphe. */
-		auto racine_graphe = doc.NewElement("graphe");
-		racine_scene->InsertEndChild(racine_graphe);
-
-		for (auto &noeud : plan->noeuds) {
-			ecris_noeud(doc, racine_graphe, noeud->noeud_objet);
-		}
 	}
 
 	auto const resultat = doc.SaveFile(chemin.c_str());
@@ -753,26 +720,6 @@ static void lis_composites(
 	}
 }
 
-static void lis_scenes(
-		dls::xml::Element *racine_objets,
-		Mikisa &mikisa)
-{
-	auto element_scene = racine_objets->FirstChildElement("scene");
-
-	for (; element_scene != nullptr; element_scene = element_scene->NextSiblingElement("scene")) {
-		auto const nom = element_scene->attribut("nom");
-		auto scene = mikisa.bdd.cree_scene(nom);
-		auto racine_graphe = element_scene->FirstChildElement("graphe");
-
-		lecture_graphe(racine_graphe, mikisa, &scene->graphe);
-
-		/* met en place les objets */
-		for (auto noeud : scene->graphe.noeuds()) {
-			scene->ajoute_objet(noeud, extrait_objet(noeud->donnees()));
-		}
-	}
-}
-
 erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 {
 	if (!std::filesystem::exists(chemin)) {
@@ -790,7 +737,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	mikisa.manipulation_3d_activee = false;
 	mikisa.type_manipulation_3d = 0;
 	mikisa.manipulatrice_3d = nullptr;
-	mikisa.chemin_courant = "/composite/";
+	mikisa.chemin_courant = "/composites/";
 	mikisa.bdd.reinitialise();
 
 	/* Lecture du projet. */
@@ -818,20 +765,10 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 
 	lis_composites(racine_composites, mikisa);
 
-	/* scènes */
-	auto const racine_scenes = racine_projet->FirstChildElement("scenes");
-
-	if (racine_scenes == nullptr) {
-		return erreur_fichier::CORROMPU;
-	}
-
-	lis_scenes(racine_scenes, mikisa);
-
 	/* À FAIRE : restaure état. */
 	mikisa.composite = mikisa.bdd.composites()[0];
-	mikisa.scene = mikisa.bdd.scenes()[0];
 	mikisa.graphe = mikisa.bdd.graphe_objets();
-	mikisa.chemin_courant = "/scènes/" + mikisa.scene->nom + "/";
+	mikisa.chemin_courant = "/objets/";
 	mikisa.contexte = GRAPHE_SCENE;
 
 	requiers_evaluation(mikisa, FICHIER_OUVERT, "chargement d'un projet");

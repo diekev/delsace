@@ -49,7 +49,6 @@
 #include "configuration.h"
 #include "manipulatrice.h"
 #include "noeud_image.h"
-#include "scene.h"
 #include "tache.h"
 
 #include "commandes/commandes_edition.h"
@@ -103,11 +102,10 @@ Mikisa::Mikisa()
 	, camera_3d(memoire::loge<vision::Camera3D>("vision::Camera3D", 0, 0))
 	, graphe(nullptr)
 	, type_manipulation_3d(MANIPULATION_POSITION)
-	, chemin_courant("/scènes/Scène")
+	, chemin_courant("/objets/")
 	, notifiant_thread(nullptr)
 	, chef_execution(*this)
 {
-	scene = bdd.cree_scene("Scène");
 	composite = bdd.cree_composite("composite");
 	graphe = bdd.graphe_objets();
 

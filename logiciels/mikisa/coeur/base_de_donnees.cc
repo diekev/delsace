@@ -30,7 +30,6 @@
 #include "composite.h"
 #include "noeud_image.h"
 #include "objet.h"
-#include "scene.h"
 
 /* ************************************************************************** */
 
@@ -83,12 +82,6 @@ void BaseDeDonnees::reinitialise()
 	m_objets.efface();
 	m_graphe_objets.supprime_tout();
 	m_table_objet_noeud.efface();
-
-	for (auto scene : m_scenes) {
-		memoire::deloge("scene", scene);
-	}
-
-	m_scenes.efface();
 
 	for (auto compo : m_composites) {
 		memoire::deloge("compo", compo);
@@ -180,32 +173,9 @@ const Graphe *BaseDeDonnees::graphe_objets() const
 	return &m_graphe_objets;
 }
 
-/* ************************************************************************** */
-
-Scene *BaseDeDonnees::cree_scene(dls::chaine const &nom)
+const dls::dico_desordonne<Objet *, Noeud *> &BaseDeDonnees::table_objets() const
 {
-	auto scene = memoire::loge<Scene>("scene");
-	scene->nom = nom;
-
-	m_scenes.pousse(scene);
-
-	return scene;
-}
-
-Scene *BaseDeDonnees::scene(const dls::chaine &nom) const
-{
-	for (auto scene : m_scenes) {
-		if (scene->nom == nom) {
-			return scene;
-		}
-	}
-
-	return nullptr;
-}
-
-const dls::tableau<Scene *> &BaseDeDonnees::scenes() const
-{
-	return m_scenes;
+	return m_table_objet_noeud;
 }
 
 /* ************************************************************************** */

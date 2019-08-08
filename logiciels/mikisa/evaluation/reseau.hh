@@ -28,9 +28,9 @@
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
 
+class BaseDeDonnees;
 class Noeud;
 class Objet;
-class Scene;
 struct ContexteEvaluation;
 
 /* ************************************************************************** */
@@ -100,7 +100,7 @@ public:
 
 	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
-	void compile_reseau(ContexteEvaluation &contexte, Scene *scene, Objet *objet);
+	void compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Objet *objet);
 
 	void marque_execution_temps_change();
 };

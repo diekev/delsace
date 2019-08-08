@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/structures/tableau.hh"
+
 namespace vision {
 class Camera3D;
 }
@@ -45,7 +47,7 @@ struct StatistiquesRendu;
  * L'idée est similaire à celle présente dans Hydra de Pixar.
  */
 struct deleguee_scene {
-	Scene *scene = nullptr;
+	dls::tableau<Objet *> const *scene = nullptr;
 
 	long nombre_objets() const;
 
@@ -69,7 +71,7 @@ public:
 
 	void camera(vision::Camera3D *camera);
 
-	void scene(Scene *scene);
+	void scene(dls::tableau<Objet *> const *scene);
 
 	virtual const char *id() const = 0;
 

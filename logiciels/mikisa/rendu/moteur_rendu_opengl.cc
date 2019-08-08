@@ -34,7 +34,6 @@
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/objet.h"
-#include "coeur/scene.h"
 
 #include "rendu_corps.h"
 
@@ -521,77 +520,55 @@ void MoteurRenduOpenGL::calcule_rendu(
 		m_rendu_grille->dessine(contexte);
 	}
 
-	if (m_delegue->scene != nullptr) {
-		auto camera_scene = m_delegue->scene->camera();
+	for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
+		auto objet = m_delegue->objet(i);
 
-		if (!rendu_final && camera_scene != nullptr) {
-			/* la rotation de la caméra est appliquée aux points dans
-			 * RenduCamera, donc on recrée une matrice sans rotation, et dont
-			 * la taille dans la scène est de 1.0 (en mettant à l'échelle
-			 * avec un facteur de 1.0 / distance éloignée. */
-			auto matrice = dls::math::mat4x4d(1.0);
-			matrice = dls::math::translation(matrice, dls::math::vec3d(camera_scene->pos()));
-			matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera_scene->eloigne())));
-			pile.pousse(matrice);
-			contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-
-			RenduCamera rendu_camera(camera_scene);
-			rendu_camera.initialise();
-			rendu_camera.dessine(contexte);
-
-			pile.enleve_sommet();
+		if (!objet->rendu_scene) {
+			continue;
 		}
 
-		for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
-			auto objet = m_delegue->objet(i);
-
-			if (!objet->rendu_scene) {
-				continue;
-			}
-
-			if (objet->type == type_objet::CAMERA && rendu_final) {
-				continue;
-			}
-
-			pile.pousse(objet->transformation.matrice());
-
-			objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats](DonneesObjet const *donnees)
-			{
-				if (objet->type == type_objet::CAMERA) {
-					auto const &camera = static_cast<DonneesCamera const *>(donnees)->camera;
-
-					/* la rotation de la caméra est appliquée aux points dans
-					 * RenduCamera, donc on recrée une matrice sans rotation, et dont
-					 * la taille dans la scène est de 1.0 (en mettant à l'échelle
-					 * avec un facteur de 1.0 / distance éloignée. */
-					auto matrice = dls::math::mat4x4d(1.0);
-					matrice = dls::math::translation(matrice, dls::math::vec3d(camera.pos()));
-					matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera.eloigne())));
-					pile.pousse(matrice);
-					contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-
-					RenduCamera rendu_camera(const_cast<vision::Camera3D *>(&camera));
-					rendu_camera.initialise();
-					rendu_camera.dessine(contexte);
-
-					pile.enleve_sommet();
-				}
-				else {
-					auto const &corps = static_cast<DonneesCorps const *>(donnees)->corps;
-					pile.pousse(corps.transformation.matrice());
-
-					contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
-
-					RenduCorps rendu_corps(&corps);
-					rendu_corps.initialise(contexte, stats);
-					rendu_corps.dessine(contexte);
-
-					pile.enleve_sommet();
-				}
-			});
-
-			pile.enleve_sommet();
+		if (objet->type == type_objet::CAMERA && rendu_final) {
+			continue;
 		}
+
+		pile.pousse(objet->transformation.matrice());
+
+		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats](DonneesObjet const *donnees)
+		{
+			if (objet->type == type_objet::CAMERA) {
+				auto const &camera = static_cast<DonneesCamera const *>(donnees)->camera;
+
+				/* la rotation de la caméra est appliquée aux points dans
+				 * RenduCamera, donc on recrée une matrice sans rotation, et dont
+				 * la taille dans la scène est de 1.0 (en mettant à l'échelle
+				 * avec un facteur de 1.0 / distance éloignée. */
+				auto matrice = dls::math::mat4x4d(1.0);
+				matrice = dls::math::translation(matrice, dls::math::vec3d(camera.pos()));
+				matrice = dls::math::dimension(matrice, dls::math::vec3d(static_cast<double>(1.0f / camera.eloigne())));
+				pile.pousse(matrice);
+				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+				RenduCamera rendu_camera(const_cast<vision::Camera3D *>(&camera));
+				rendu_camera.initialise();
+				rendu_camera.dessine(contexte);
+
+				pile.enleve_sommet();
+			}
+			else {
+				auto const &corps = static_cast<DonneesCorps const *>(donnees)->corps;
+				pile.pousse(corps.transformation.matrice());
+
+				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+				RenduCorps rendu_corps(&corps);
+				rendu_corps.initialise(contexte, stats);
+				rendu_corps.dessine(contexte);
+
+				pile.enleve_sommet();
+			}
+		});
+
+		pile.enleve_sommet();
 	}
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

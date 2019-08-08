@@ -88,7 +88,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrice_pixel.cc
 	operatrice_simulation.cc
 	sauvegarde.cc
-	scene.cc
 	tache.cc
 	usine_operatrice.cc
 
@@ -116,7 +115,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrice_pixel.h
 	operatrice_simulation.hh
 	sauvegarde.h
-	scene.h
 	tache.h
 	usine_operatrice.h
 )

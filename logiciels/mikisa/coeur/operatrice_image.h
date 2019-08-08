@@ -35,7 +35,6 @@ class Graphe;
 class Manipulatrice3D;
 class Noeud;
 class PriseEntree;
-class Scene;
 class TextureImage;
 class CompilatriceReseau;
 class NoeudReseau;
