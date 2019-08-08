@@ -24,6 +24,7 @@
 
 #include "creation.h"
 
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/math/vecteur.hh"
 
 #include "adaptrice_creation.h"
@@ -174,8 +175,8 @@ void cree_sphere_uv(AdaptriceCreationObjet *adaptrice,
 	 * U est la longitude, V la latitude. */
 	auto const debut_u = 0.0f;
 	auto const debut_v = 0.0f;
-	auto const fin_u = static_cast<float>(M_PI * 2);
-	auto const fin_v = static_cast<float>(M_PI);
+	auto const fin_u = constantes<float>::TAU;
+	auto const fin_v = constantes<float>::PI;
 
 	/* Taille entre deux points de longitude. */
 	auto const taille_pas_u = (fin_u - debut_u) / static_cast<float>(resolution_u);
@@ -332,10 +333,8 @@ void cree_torus(AdaptriceCreationObjet *adaptrice,
 				const float centre_y,
 				const float centre_z)
 {
-	constexpr auto tau = static_cast<float>(M_PI) * 2.0f;
-
-	auto const vertical_angle_stride = tau / static_cast<float>(segment_majeur);
-	auto const horizontal_angle_stride = tau / static_cast<float>(segment_mineur);
+	auto const vertical_angle_stride = constantes<float>::TAU / static_cast<float>(segment_majeur);
+	auto const horizontal_angle_stride = constantes<float>::TAU / static_cast<float>(segment_mineur);
 
 	long f1 = 0, f2, f3, f4;
 	auto const tot_verts = segment_majeur * segment_mineur;
@@ -472,7 +471,7 @@ void cree_cercle(AdaptriceCreationObjet *adaptrice,
 				 const float centre_y,
 				 const float centre_z)
 {
-	auto const phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
+	auto const phid = constantes<float>::TAU / static_cast<float>(segments);
 	auto phi = 0.0f;
 
 	adaptrice->reserve_sommets(segments + 1);
@@ -517,7 +516,7 @@ void cree_cylindre(AdaptriceCreationObjet *adaptrice,
 				   const float centre_y,
 				   const float centre_z)
 {
-	auto const phid = 2.0f * static_cast<float>(M_PI) / static_cast<float>(segments);
+	auto const phid = constantes<float>::TAU / static_cast<float>(segments);
 	auto phi = 0.0f;
 
 	adaptrice->reserve_sommets((rayon_majeur != 0.0f) ? segments * 2 + 2 : segments + 2);
