@@ -348,18 +348,7 @@ void AccelArbreHBE::construit()
 
 dls::phys::esectd AccelArbreHBE::entresecte(const Scene &scene, const dls::phys::rayond &rayon, double distance_maximale) const
 {
-	auto accumulatrice = AccumulatriceTraverse(rayon.origine);
-	traverse(m_arbre, m_delegue, rayon, accumulatrice);
-	auto entresection = accumulatrice.intersection();
-
-	if (entresection.touche) {
-		entresection.type = ESECT_OBJET_TYPE_TRIANGLE;
-	}
-	else {
-		entresection.type = ESECT_OBJET_TYPE_AUCUN;
-	}
-
-	return entresection;
+	return traverse(m_arbre, m_delegue, rayon);
 }
 
 /* ************************************************************************** */

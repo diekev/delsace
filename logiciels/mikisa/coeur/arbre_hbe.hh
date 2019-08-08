@@ -312,112 +312,7 @@ auto construit_arbre_hbe(
 	return arbre_hbe;
 }
 
-struct AccumulatriceTraverse {
-private:
-	dls::phys::esectd m_intersection{};
-	long m_id_noeud{};
-	long m_nombre_touche{};
-	dls::math::point3d m_origine{};
-
-public:
-	AccumulatriceTraverse(dls::math::point3d const &origine)
-		: m_nombre_touche(0)
-		, m_origine(origine)
-	{}
-
-	void enregistre_intersection(dls::phys::esectd const &intersect, long id_noeud)
-	{
-//		m_intersection = intersect;
-		if (m_intersection.touche == false && intersect.touche==true) {
-			m_intersection = intersect;
-			m_id_noeud = id_noeud;
-
-			//if (this->type == ACCUMULATRICE_DEBUG) {
-				m_nombre_touche++;
-			//}
-		}
-		else if (intersect.touche == true) {
-			auto currentDistance = longueur(m_intersection.point - m_origine);
-			auto newDistance = longueur(intersect.point - m_origine);
-
-			if (newDistance < currentDistance) {
-				m_intersection = intersect;
-				m_id_noeud = id_noeud;
-			}
-
-			//if (this->type == ACCUMULATRICE_COMPTE) {
-				m_nombre_touche++;
-			//}
-		}
-
-		//if (this->type == ACCUMULATRICE_DEBUG) {
-		//	m_entresections.pousse(intersect);
-		//	m_ids_noeuds.pousse(id_noeud);
-		//}
-	}
-
-	dls::phys::esectd const &intersection() const
-	{
-		return m_intersection;
-	}
-
-	long nombre_touche() const
-	{
-		return m_nombre_touche;
-	}
-};
-
-template <typename TypeDelegue>
-void traverse_impl(
-		ArbreHBE const &arbre,
-		TypeDelegue const &delegue,
-		dls::phys::rayond const r,
-		AccumulatriceTraverse &resultat,
-		ArbreHBE::Noeud const &noeud,
-		dls::math::vec3d const &ray_dot_axis)
-{
-	auto distance = noeud.test_intersection_rapide(r);
-
-	if (distance < -0.5) {
-		return;
-	}
-
-	if (distance >= r.distance_max) {
-		return;
-	}
-
-	if (noeud.est_feuille()) {
-		for (auto i = 0; i < noeud.nombre_references; ++i) {
-			auto id_prim = arbre.index_refs[noeud.decalage_reference + i];
-			auto intersection = delegue.intersecte_element(id_prim, r);
-
-			if (!intersection.touche) {
-				continue;
-			}
-
-			auto n = normalise(intersection.point - r.origine);
-			auto degree = std::acos(produit_scalaire(n, r.direction));
-
-			if (degree < (constantes<double>::PI / 2.0) || degree != degree) {
-				resultat.enregistre_intersection(intersection, noeud.id_noeud);
-			}
-		}
-	}
-	else {
-		auto const &gauche = arbre.noeuds[noeud.enfants[NOEUD_GAUCHE]];
-		auto const &droite = arbre.noeuds[noeud.enfants[NOEUD_DROITE]];
-
-		/* pick loop direction to dive into the tree (based on ray direction and split axis) */
-		if (ray_dot_axis[static_cast<size_t>(noeud.axe_princ)] > 0.0) {
-			traverse_impl(arbre, delegue, r, resultat, gauche, ray_dot_axis);
-			traverse_impl(arbre, delegue, r, resultat, droite, ray_dot_axis);
-		}
-		else {
-			traverse_impl(arbre, delegue, r, resultat, droite, ray_dot_axis);
-			traverse_impl(arbre, delegue, r, resultat, gauche, ray_dot_axis);
-		}
-	}
-}
+/* ************************************************************************** */
 
 struct ElementTraverse {
 	ArbreHBE::Noeud const *noeud = nullptr;
@@ -430,23 +325,21 @@ inline bool operator<(ElementTraverse const &p1, ElementTraverse const &p2)
 }
 
 template <typename TypeDelegue>
-void traverse_impl0(
+auto traverse(
 		ArbreHBE const &arbre,
 		TypeDelegue const &delegue,
-		dls::phys::rayond const rayon,
-		AccumulatriceTraverse &resultat)
+		dls::phys::rayond const &rayon)
 {
 	auto const &racine = arbre.noeuds[1];
-	auto t_proche = 0.0;
-	auto t_loin = rayon.distance_max;
 
 	auto distance_courant = racine.test_intersection_rapide(rayon);
+	auto esect = dls::phys::esectd{};
 
 	if (distance_courant < -0.5) {
-		return;
+		return esect;
 	}
 
-	t_proche = t_loin;
+	auto t_proche = rayon.distance_max;
 
 	auto file = dls::file_priorite<ElementTraverse>();
 	file.enfile({ &racine, 0.0 });
@@ -456,43 +349,21 @@ void traverse_impl0(
 		file.defile();
 
 		if (noeud->est_feuille()) {
-//			for (uint32_t i = 0; i < node->data.size(); ++i) {
-//				IsectData isectDataCurrent;
-//				if (node->data[i]->object->intersect(ray, isectDataCurrent)) {
-//					if (isectDataCurrent.t < tMin) {
-//						tMin = isectDataCurrent.t;
-//						hitObject = node->data[i]->object;
-//						isectData = isectDataCurrent;
-//					}
-//				}
-//			}
+			for (auto i = 0; i < noeud->nombre_references; ++i) {
+				auto id_prim = arbre.index_refs[noeud->decalage_reference + i];
+				auto intersection = delegue.intersecte_element(id_prim, rayon);
 
-			for (auto e = 0; e < 2; ++e) {
-				auto const &enfant = arbre.noeuds[noeud->enfants[e]];
+				if (!intersection.touche) {
+					continue;
+				}
 
-				for (auto i = 0; i < enfant.nombre_references; ++i) {
-					auto id_prim = arbre.index_refs[enfant.decalage_reference + i];
-					auto intersection = delegue.intersecte_element(id_prim, rayon);
-
-					if (!intersection.touche) {
-						continue;
-					}
-
-					if (intersection.distance < t_proche) {
-						t_proche = intersection.distance;
-						resultat.enregistre_intersection(intersection, enfant.id_noeud);
-					}
+				if (intersection.distance < t_proche) {
+					t_proche = intersection.distance;
+					esect = intersection;
 				}
 			}
 		}
 		else {
-//			float tNearChild = 0, tFarChild = tFar;
-//			if (node->child[i]->extents.intersect(precomputedNumerator, precomputeDenominator,
-//												  tNearChild, tFarChild, planeIndex)) {
-//				float t = (tNearChild < 0 && tFarChild >= 0) ? tFarChild : tNearChild;
-//				queue.push(BVH::Octree::QueueElement(node->child[i], t));
-//			}
-
 			for (auto e = 0; e < 2; ++e) {
 				auto const &enfant = arbre.noeuds[noeud->enfants[e]];
 
@@ -504,121 +375,8 @@ void traverse_impl0(
 			}
 		}
 	}
-}
 
-template <typename TypeDelegue>
-void traverse(
-		ArbreHBE const &arbre,
-		TypeDelegue const &delegue,
-		dls::phys::rayond const rayon,
-		AccumulatriceTraverse &resultat)
-{
-	auto r = rayon;
-	//r.distance_max = 1000.0;
-	//r.direction_inverse = 1.0 / r.direction;
-	//precalc_rayon_impermeable(r);
-#if 0
-//	auto const &racine = arbre.noeuds[1];
-
-//	auto ray_dot_axis = dls::math::vec3d{};
-//	ray_dot_axis[0] = produit_scalaire(dls::math::vec3d(1.0, 0.0, 0.0), r.direction);
-//	ray_dot_axis[1] = produit_scalaire(dls::math::vec3d(0.0, 1.0, 0.0), r.direction);
-//	ray_dot_axis[2] = produit_scalaire(dls::math::vec3d(0.0, 0.0, 1.0), r.direction);
-
-//	traverse_impl(arbre, delegue, r, resultat, racine, ray_dot_axis);
-
-	traverse_impl0(arbre, delegue, r, resultat);
-#else
-	if (arbre.nombre_noeud < 2) {
-		return;
-	}
-
-	auto pile = dls::pile_fixe<ArbreHBE::Noeud const *, PROFONDEUR_MAX>();
-	pile.empile(&arbre.noeuds[1]);
-
-	auto courant = &arbre.noeuds[1];
-
-	auto distance_courant = courant->test_intersection_rapide(r);
-
-	if (distance_courant < -0.5) {
-		return;
-	}
-
-	distance_courant = 10000000000000.0;
-
-	while (!pile.est_vide()) {
-		/* traverse et empile jusqu'à l'obtention d'une feuille */
-		auto est_vide = false;
-
-		while (!courant->est_feuille() && !est_vide) {
-			auto gauche = &arbre.noeuds[courant->enfants[NOEUD_GAUCHE]];
-			auto droite = &arbre.noeuds[courant->enfants[NOEUD_DROITE]];
-
-			/* trouve l'enfant le plus proche et le plus éloigné */
-			auto distance_gauche = gauche->test_intersection_rapide(r);
-			auto distance_droite = droite->test_intersection_rapide(r);
-
-			/* si le rayon intersecte les deux enfants, empile le noeud courant */
-			if (distance_gauche > -0.5 && distance_droite > -0.5) {
-				pile.empile(courant);
-
-				if (distance_gauche < distance_droite) {
-					courant = gauche;
-				}
-				else {
-					courant = droite;
-				}
-			}
-			else if (distance_gauche > -0.5 && distance_droite < -0.5) {
-				courant = gauche;
-			}
-			else if (distance_gauche < -0.5 && distance_droite > -0.5) {
-				courant = droite;
-			}
-			else {
-				est_vide = true;
-			}
-		}
-
-		if (courant->est_feuille()) {
-			for (auto i = 0; i < courant->nombre_references; ++i) {
-				auto id_prim = arbre.index_refs[courant->decalage_reference + i];
-				auto intersection = delegue.intersecte_element(id_prim, r);
-
-				if (!intersection.touche) {
-					continue;
-				}
-
-				auto n = normalise(intersection.point - r.origine);
-				auto degree = std::acos(produit_scalaire(n, r.direction));
-
-				if (degree < (constantes<double>::PI / 2.0) || degree != degree) {
-					resultat.enregistre_intersection(intersection, courant->id_noeud);
-				}
-			}
-		}
-
-		if (pile.est_vide()) {
-			continue;
-		}
-
-		courant = pile.haut();
-		pile.depile();
-
-		auto gauche = &arbre.noeuds[courant->enfants[NOEUD_GAUCHE]];
-		auto droite = &arbre.noeuds[courant->enfants[NOEUD_DROITE]];
-
-		auto distance_gauche = gauche->test_intersection_rapide(r);
-		auto distance_droite = droite->test_intersection_rapide(r);
-
-		if (distance_gauche >= distance_droite) {
-			courant = gauche;
-		}
-		else {
-			courant = droite;
-		}
-	}
-#endif
+	return esect;
 }
 
 /* ************************************************************************** */
