@@ -292,9 +292,9 @@ void ajoute_polygone_surface(
 				normaux.pousse(attr_normaux->vec3(polygone->index_point(i)));
 			}
 			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
-				normaux.pousse(attr_normaux->vec3(static_cast<long>(polygone->index)));
-				normaux.pousse(attr_normaux->vec3(static_cast<long>(polygone->index)));
-				normaux.pousse(attr_normaux->vec3(static_cast<long>(polygone->index)));
+				normaux.pousse(attr_normaux->vec3(polygone->index));
+				normaux.pousse(attr_normaux->vec3(polygone->index));
+				normaux.pousse(attr_normaux->vec3(polygone->index));
 			}
 			else if (attr_normaux->portee == portee_attr::CORPS) {
 				normaux.pousse(attr_normaux->vec3(0));
@@ -311,15 +311,15 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i)));
 				}
 				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
 				}
 				else if (attr_couleurs->portee == portee_attr::VERTEX) {
 					/* À FAIRE : indexage des vertex. */
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
 				}
 			}
 			else {
@@ -329,15 +329,15 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i)).xyz);
 				}
 				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
 				}
 				else if (attr_couleurs->portee == portee_attr::VERTEX) {
 					/* À FAIRE : indexage des vertex. */
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
 				}
 			}
 		}
@@ -367,8 +367,8 @@ void ajoute_polygone_segment(
 					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i + 1)));
 				}
 				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
-					couleurs.pousse(attr_couleurs->vec3(static_cast<long>(polygone->index)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index));
 				}
 			}
 			else {
@@ -377,8 +377,8 @@ void ajoute_polygone_segment(
 					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i + 1)).xyz);
 				}
 				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(static_cast<long>(polygone->index)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
 				}
 			}
 		}

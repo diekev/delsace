@@ -448,7 +448,7 @@ public:
 
 				groupe_sync.accede_ecriture([&](GroupePoint *groupe_point)
 				{
-					groupe_point->ajoute_point(static_cast<size_t>(i));
+					groupe_point->ajoute_point(i);
 				});
 
 				switch (reponse) {
@@ -482,9 +482,7 @@ public:
 					}
 					case rep_collision::COLLE:
 					{
-						pos_cou.x = static_cast<float>(esect.point.x);
-						pos_cou.y = static_cast<float>(esect.point.y);
-						pos_cou.z = static_cast<float>(esect.point.z);
+						pos_cou = dls::math::converti_type_vecteur<float>(esect.point);
 
 						liste_points->point(i, pos_cou);
 						attr_V->valeur(i, dls::math::vec3f(0.0f));

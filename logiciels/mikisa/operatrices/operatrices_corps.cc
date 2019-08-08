@@ -782,26 +782,12 @@ public:
 		liste_point->reserve(liste_point1->taille() + liste_point2->taille());
 
 		for (auto i = 0; i < liste_point1->taille(); ++i) {
-			auto point = liste_point1->point(i);
-			auto const p_monde = corps1->transformation(
-						dls::math::point3d(point));
-
-			auto p = dls::math::vec3f(
-						static_cast<float>(p_monde.x),
-						static_cast<float>(p_monde.y),
-						static_cast<float>(p_monde.z));
+			auto p = corps1->point_transforme(i);
 			liste_point->pousse(p);
 		}
 
 		for (auto i = 0; i < liste_point2->taille(); ++i) {
-			auto point = liste_point2->point(i);
-			auto const p_monde = corps2->transformation(
-						dls::math::point3d(point));
-
-			auto p = dls::math::vec3f(
-						static_cast<float>(p_monde.x),
-						static_cast<float>(p_monde.y),
-						static_cast<float>(p_monde.z));
+			auto p = corps2->point_transforme(i);
 			liste_point->pousse(p);
 		}
 	}
@@ -954,7 +940,7 @@ public:
 				}
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_point(static_cast<size_t>(decalage_points) + groupe2->index(i));
+					groupe->ajoute_point(decalage_points + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -972,7 +958,7 @@ public:
 				groupe->reserve(groupe2->taille());
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_point(static_cast<size_t>(decalage_points) + groupe2->index(i));
+					groupe->ajoute_point(decalage_points + groupe2->index(i));
 				}
 			}
 		}
@@ -1018,7 +1004,7 @@ public:
 				}
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_primitive(static_cast<size_t>(decalage_prims) + groupe2->index(i));
+					groupe->ajoute_primitive(decalage_prims + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -1036,7 +1022,7 @@ public:
 				groupe->reserve(groupe2->taille());
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_primitive(static_cast<size_t>(decalage_prims) + groupe2->index(i));
+					groupe->ajoute_primitive(decalage_prims + groupe2->index(i));
 				}
 			}
 		}
@@ -1240,7 +1226,7 @@ public:
 
 				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
 
-				npoly->ajoute_sommet(static_cast<long>(index));
+				npoly->ajoute_sommet(index);
 			}
 		});
 
@@ -2055,11 +2041,7 @@ public:
 
 		for (auto &co_geo : coordonnees) {
 			auto point = converti_vers_vec3(co_geo);
-
-			m_corps.ajoute_point(
-						static_cast<float>(point.x),
-						static_cast<float>(point.y),
-						static_cast<float>(point.z));
+			m_corps.ajoute_point(dls::math::converti_type<float>(point));
 		}
 
 		auto nombre_points = m_corps.points_pour_lecture()->taille();

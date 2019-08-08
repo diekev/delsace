@@ -129,24 +129,24 @@ Attribut *Corps::attribut(dls::chaine const &nom_attribut) const
 
 long Corps::ajoute_point(const dls::math::vec3f &pos)
 {
-	return static_cast<long>(ajoute_point(pos.x, pos.y, pos.z));
+	return ajoute_point(pos.x, pos.y, pos.z);
 }
 
-size_t Corps::ajoute_point(float x, float y, float z)
+long Corps::ajoute_point(float x, float y, float z)
 {
 	auto index = index_point(x, y, z);
 
-	if (index != -1ul) {
+	if (index != -1l) {
 		return index;
 	}
 
 	auto point = dls::math::vec3f(x, y, z);
 	m_points.pousse(point);
 
-	return static_cast<size_t>(m_points.taille()) - 1;
+	return m_points.taille() - 1;
 }
 
-size_t Corps::index_point(float x, float y, float z)
+long Corps::index_point(float x, float y, float z)
 {
 	INUTILISE(x);
 	INUTILISE(y);
@@ -161,12 +161,12 @@ size_t Corps::index_point(float x, float y, float z)
 //		++i;
 //	};
 
-	return -1ul;
+	return -1l;
 }
 
 void Corps::ajoute_primitive(Primitive *p)
 {
-	p->index = static_cast<size_t>(m_prims.taille());
+	p->index = m_prims.taille();
 	m_prims.pousse(p);
 }
 
@@ -185,10 +185,7 @@ dls::math::vec3f Corps::point_transforme(long i) const
 {
 	auto p = m_points.point(i);
 	auto pos_monde_d = this->transformation(dls::math::point3d(p));
-	return dls::math::vec3f(
-						 static_cast<float>(pos_monde_d.x),
-						 static_cast<float>(pos_monde_d.y),
-						 static_cast<float>(pos_monde_d.z));
+	return dls::math::converti_type_vecteur<float>(pos_monde_d);
 }
 
 ListePrimitives *Corps::prims()

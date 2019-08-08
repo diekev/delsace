@@ -96,7 +96,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 		for (auto j = 0; j < polygone->nombre_sommets(); ++j) {
 			auto i0 = polygone->index_point(j);
 
-			adjacents[i0].insere(static_cast<long>(polygone->index));
+			adjacents[i0].insere(polygone->index);
 		}
 	});
 
@@ -1041,7 +1041,7 @@ static auto calcul_donnees_aire(Corps &corps)
 			aire_poly += aire_tri;
 		}
 
-		aires->valeur(static_cast<long>(poly->index), aire_poly);
+		aires->valeur(poly->index, aire_poly);
 	});
 
 	return aires;
@@ -1070,7 +1070,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 			k = idx;
 		}
 
-		perimetres->valeur(static_cast<long>(poly->index), peri_poly);
+		perimetres->valeur(poly->index, peri_poly);
 	});
 
 	return perimetres;
@@ -1095,7 +1095,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
 
-		barycentres->valeur(static_cast<long>(poly->index), barycentre);
+		barycentres->valeur(poly->index, barycentre);
 	});
 
 	return barycentres;
@@ -1144,7 +1144,7 @@ static auto calcul_centroide_poly(Corps &corps)
 			centroide /= poids;
 		}
 
-		centroides->valeur(static_cast<long>(poly->index), centroide);
+		centroides->valeur(poly->index, centroide);
 	});
 
 	return centroides;

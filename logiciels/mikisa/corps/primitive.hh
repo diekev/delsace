@@ -32,7 +32,7 @@ enum class type_primitive : char {
 class Primitive {
 public:
 	/* L'index de cette primitive. */
-	unsigned long index = 0;
+	long index = 0;
 
 	virtual ~Primitive() = default;
 

@@ -165,15 +165,8 @@ static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
 	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 
 	for (auto const &noeud : arbre.noeuds) {
-		auto const &min = dls::math::vec3f(
-					static_cast<float>(noeud.limites.min.x),
-					static_cast<float>(noeud.limites.min.y),
-					static_cast<float>(noeud.limites.min.z));
-
-		auto const &max = dls::math::vec3f(
-					static_cast<float>(noeud.limites.max.x),
-					static_cast<float>(noeud.limites.max.y),
-					static_cast<float>(noeud.limites.max.z));
+		auto const &min = dls::math::converti_type_vecteur<float>(noeud.limites.min);
+		auto const &max = dls::math::converti_type_vecteur<float>(noeud.limites.max);
 
 		auto couleur = (noeud.est_feuille()) ? couleurs[0] : couleurs[1];
 

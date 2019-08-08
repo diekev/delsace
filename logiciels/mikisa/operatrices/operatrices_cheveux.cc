@@ -233,13 +233,13 @@ public:
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
 			auto polygone = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_segment + 1);
-			polygone->ajoute_sommet(static_cast<long>(index_npoint));
+			polygone->ajoute_sommet(index_npoint);
 
 			for (long j = 0; j < nombre_segment; ++j) {
 				pos += (taille_segment * normal);
 
 				index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
-				polygone->ajoute_sommet(static_cast<long>(index_npoint));
+				polygone->ajoute_sommet(index_npoint);
 			}
 
 			attr_L->pousse(taille_segment);
@@ -475,7 +475,7 @@ public:
 				auto const pos_precedent = attr_P->vec3(pa);
 				auto cur_pos = attr_P->vec3(pb);
 				auto dir = normalise(cur_pos - pos_precedent);
-				auto tmp_pos = pos_precedent + dir * attr_L->decimal(static_cast<long>(polygone->index));
+				auto tmp_pos = pos_precedent + dir * attr_L->decimal(polygone->index);
 				attr_P->valeur(pb, tmp_pos);
 				attr_D->valeur(pb, cur_pos - tmp_pos);
 			}

@@ -34,7 +34,7 @@
 /* ************************************************************************** */
 
 class GroupePoint {
-	using type_liste = dls::tableau<size_t>;
+	using type_liste = dls::tableau<long>;
 	using ptr_liste = std::shared_ptr<type_liste>;
 
 	ptr_liste m_points{};
@@ -42,7 +42,7 @@ class GroupePoint {
 public:
 	dls::chaine nom{};
 
-	void ajoute_point(size_t index_point);
+	void ajoute_point(long index_point);
 
 	void reserve(long const nombre);
 
@@ -50,11 +50,11 @@ public:
 
 	long taille() const;
 
-	bool contiens(size_t index_point) const;
+	bool contiens(long index_point) const;
 
-	size_t index(long i) const;
+	long index(long i) const;
 
-	void remplace_index(long i, size_t j);
+	void remplace_index(long i, long j);
 
 private:
 	void detache();
@@ -63,7 +63,7 @@ private:
 /* ************************************************************************** */
 
 class GroupePrimitive {
-	using type_liste = dls::tableau<size_t>;
+	using type_liste = dls::tableau<long>;
 	using ptr_liste = std::shared_ptr<type_liste>;
 
 	ptr_liste m_primitives{};
@@ -71,9 +71,9 @@ class GroupePrimitive {
 public:
 	dls::chaine nom{};
 
-	void ajoute_primitive(size_t index_poly);
+	void ajoute_primitive(long index_poly);
 
-	void remplace_index(long i, size_t j);
+	void remplace_index(long i, long j);
 
 	void reserve(long const nombre);
 
@@ -81,7 +81,7 @@ public:
 
 	long taille() const;
 
-	size_t index(long i) const;
+	long index(long i) const;
 
 private:
 	void detache();

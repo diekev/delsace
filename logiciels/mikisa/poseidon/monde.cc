@@ -323,12 +323,8 @@ void ajourne_obstables(Poseidon &poseidon)
 		auto max_idx = densite->monde_vers_unit(lim.max);
 
 		auto limites = limites3i{};
-		limites.min.x = static_cast<int>(static_cast<float>(res.x) * min_idx.x);
-		limites.min.y = static_cast<int>(static_cast<float>(res.y) * min_idx.y);
-		limites.min.z = static_cast<int>(static_cast<float>(res.z) * min_idx.z);
-		limites.max.x = static_cast<int>(static_cast<float>(res.x) * max_idx.x);
-		limites.max.y = static_cast<int>(static_cast<float>(res.y) * max_idx.y);
-		limites.max.z = static_cast<int>(static_cast<float>(res.z) * max_idx.z);
+		limites.min = dls::math::converti_type<int>(dls::math::converti_type<float>(res) * min_idx);
+		limites.max = dls::math::converti_type<int>(dls::math::converti_type<float>(res) * max_idx);
 		auto iter = wlk::IteratricePosition(limites);
 
 		while (!iter.fini()) {

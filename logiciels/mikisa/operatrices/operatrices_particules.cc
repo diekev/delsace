@@ -147,7 +147,7 @@ public:
 		dls::tableau<char> dans_le_groupe(points_corps->taille(), 0);
 
 		for (auto i = 0; i < groupe->taille(); ++i) {
-			dans_le_groupe[static_cast<long>(groupe->index(i))] = 1;
+			dans_le_groupe[groupe->index(i)] = 1;
 		}
 
 		for (auto i = 0l; i < points_corps->taille(); ++i) {
@@ -323,15 +323,10 @@ public:
 				: nombre_points_emis / points_entree->taille();
 
 		for (auto i : iter) {
-			auto point = points_entree->point(i);
-			auto const p_monde = corps_entree->transformation(
-								dls::math::point3d(point.x, point.y, point.z));
+			auto point = corps_entree->point_transforme(i);
 
 			for (long j = 0; j < nombre_points_par_points; ++j) {
-				auto index = m_corps.ajoute_point(
-							static_cast<float>(p_monde.x),
-							static_cast<float>(p_monde.y),
-							static_cast<float>(p_monde.z));
+				auto index = m_corps.ajoute_point(point);
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -468,10 +463,7 @@ public:
 			auto const e1 = v2 - v0;
 
 			auto const nor_triangle_d = normalise(produit_croix(e0, e1));
-			auto const nor_triangle = dls::math::vec3f(
-						static_cast<float>(nor_triangle_d.x),
-						static_cast<float>(nor_triangle_d.y),
-						static_cast<float>(nor_triangle_d.z));
+			auto const nor_triangle = dls::math::converti_type<float>(nor_triangle_d);
 
 			for (long j = 0; j < nombre_points_triangle; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */
@@ -485,10 +477,7 @@ public:
 
 				auto pos = v0 + r * e0 + s * e1;
 
-				auto index = m_corps.ajoute_point(
-							static_cast<float>(pos.x),
-							static_cast<float>(pos.y),
-							static_cast<float>(pos.z));
+				auto index = m_corps.ajoute_point(dls::math::converti_type_vecteur<float>(pos));
 
 				/* À FAIRE : échantillone proprement selon le type de normaux */
 				attr_N->pousse(nor_triangle);
@@ -892,9 +881,9 @@ public:
 			}
 
 			ajoute_triangle_boite(&boites[index_boite],
-								  dls::math::vec3f(static_cast<float>(v0_m.x), static_cast<float>(v0_m.y), static_cast<float>(v0_m.z)),
-								  dls::math::vec3f(static_cast<float>(v1_m.x), static_cast<float>(v1_m.y), static_cast<float>(v1_m.z)),
-								  dls::math::vec3f(static_cast<float>(v2_m.x), static_cast<float>(v2_m.y), static_cast<float>(v2_m.z)));
+								  dls::math::converti_type_vecteur<float>(v0_m),
+								  dls::math::converti_type_vecteur<float>(v1_m),
+								  dls::math::converti_type_vecteur<float>(v2_m));
 		}
 
 		/* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
@@ -2090,10 +2079,7 @@ public:
 
 				auto dpp = cherche_point_plus_proche(arbre_hbe, delegue, point, dist_max);
 
-				pointf = dls::math::vec3f(
-							static_cast<float>(dpp.point.x),
-							static_cast<float>(dpp.point.y),
-							static_cast<float>(dpp.point.z));
+				pointf = dls::math::converti_type_vecteur<float>(dpp.point);
 
 				points->point(i, pointf);
 			}

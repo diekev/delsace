@@ -786,6 +786,42 @@ template <typename TypeRet, typename T, int O, int... Ns>
 }
 
 /**
+ * Converti les valeurs d'un point ou d'un normal d'un type vers un vecteur d'un
+ * autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type_vecteur(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<TYPE_VECTEUR, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Converti les valeurs d'un vecteur ou d'un normal d'un type vers un point d'un
+ * autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type_point(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<TYPE_POINT, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Converti les valeurs d'un point ou d'un vecteur d'un type vers un normal d'un
+ * autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type_normal(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<TYPE_NORMAL, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
  * Retourne la valeur de la somme de toutes les valeurs du vecteur.
  */
 template <int O, typename T, int... Ns>

@@ -91,7 +91,7 @@ struct Corps {
 
 	long ajoute_point(dls::math::vec3f const &pos);
 
-	size_t ajoute_point(float x, float y, float z);
+	long ajoute_point(float x, float y, float z);
 
 	void enleve_point(size_t i);
 
@@ -99,7 +99,7 @@ struct Corps {
 	 * Retourne l'index du point se trouvant aux coordonnées x, y, z spécifiée.
 	 * Si aucun point ne s'y trouve, retourne -1.
 	 */
-	size_t index_point(float x, float y, float z);
+	long index_point(float x, float y, float z);
 
 	void ajoute_primitive(Primitive *p);
 

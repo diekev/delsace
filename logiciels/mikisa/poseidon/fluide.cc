@@ -112,9 +112,7 @@ void Fluide::construit_grille_particule()
 		pos_domaine.y /= taille_domaine.y;
 		pos_domaine.z /= taille_domaine.z;
 
-		pos_domaine.x *= static_cast<float>(res.x);
-		pos_domaine.y *= static_cast<float>(res.y);
-		pos_domaine.z *= static_cast<float>(res.z);
+		pos_domaine *= dls::math::converti_type<float>(res);
 
 		grille_particules.ajoute_particule(
 					static_cast<long>(pos_domaine.x),
@@ -191,11 +189,7 @@ void Fluide::ajoute_acceleration()
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	auto const &taille_domaine = domaine->taille();
 
-	dls::math::vec3f dh_domaine(
-		taille_domaine[0] / static_cast<float>(res.x),
-		taille_domaine[1] / static_cast<float>(res.y),
-		taille_domaine[2] / static_cast<float>(res.z)
-	);
+	auto dh_domaine = (taille_domaine / dls::math::converti_type<float>(res));
 
 	auto dt = 1.0f / 24.0f;
 	auto gravite = -9.81f * dh_domaine.x * dt;

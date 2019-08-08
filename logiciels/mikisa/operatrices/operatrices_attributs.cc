@@ -947,7 +947,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 				INUTILISE(corps_entree);
 
 				auto donnee = donnees_promotion{};
-				donnee.idx_dest = static_cast<long>(prim->index);
+				donnee.idx_dest = prim->index;
 
 				auto nombre_points = prim->nombre_sommets();
 

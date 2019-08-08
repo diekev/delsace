@@ -122,11 +122,11 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		dls::tableau<size_t> index_possibles;
+		dls::tableau<long> index_possibles;
 		index_possibles.reserve(n);
 
 		for (auto i = depart; i < n; i += decalage) {
-			index_possibles.pousse(static_cast<size_t>(i));
+			index_possibles.pousse(i);
 		}
 
 		if (contenu == "points") {
@@ -165,7 +165,7 @@ public:
 						continue;
 					}
 
-					groupe->ajoute_point(static_cast<size_t>(i));
+					groupe->ajoute_point(i);
 				}
 			}
 		}
@@ -205,7 +205,7 @@ public:
 						continue;
 					}
 
-					groupe->ajoute_primitive(static_cast<size_t>(i));
+					groupe->ajoute_primitive(i);
 				}
 			}
 		}

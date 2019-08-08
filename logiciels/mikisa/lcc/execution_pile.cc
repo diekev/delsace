@@ -1435,7 +1435,7 @@ void execute_pile(
 				ptr_corps.accede_ecriture([type, &index](Corps *corps)
 				{
 					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
-					index = static_cast<long>(poly->index);
+					index = poly->index;
 				});
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
@@ -1453,7 +1453,7 @@ void execute_pile(
 				ptr_corps.accede_ecriture([type, &index, &tableau](Corps *corps)
 				{
 					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
-					index = static_cast<long>(poly->index);
+					index = poly->index;
 
 					for (auto const &v : tableau) {
 						poly->ajoute_sommet(v);

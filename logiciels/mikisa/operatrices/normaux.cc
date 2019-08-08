@@ -62,7 +62,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 			auto const c1 = p2 - p0;
 
 			auto nor = produit_croix(c0, c1);
-			attr_N->valeur(static_cast<long>(poly->index), nor);
+			attr_N->valeur(poly->index, nor);
 
 			break;
 		}
@@ -79,7 +79,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 			auto const c1 = p1 - p3;
 
 			auto nor = produit_croix(c0, c1);
-			attr_N->valeur(static_cast<long>(poly->index), nor);
+			attr_N->valeur(poly->index, nor);
 
 			break;
 		}
@@ -107,7 +107,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 				i1 = (i1 + 1) % poly->nombre_sommets();
 			}
 
-			attr_N->valeur(static_cast<long>(poly->index), nor);
+			attr_N->valeur(poly->index, nor);
 
 			break;
 		}
@@ -120,7 +120,7 @@ static auto rappel_pesee_normal_aire(Corps const &corps, Polygone *poly)
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
 
-	auto nor = attr_N_poly->vec3(static_cast<long>(poly->index));
+	auto nor = attr_N_poly->vec3(poly->index);
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
 		auto idx_s = poly->index_point(i);
@@ -137,7 +137,7 @@ static auto rappel_pesee_normal_angle(Corps const &corps, Polygone *poly)
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
 
-	auto nor = normalise(attr_N_poly->vec3(static_cast<long>(poly->index)));
+	auto nor = normalise(attr_N_poly->vec3(poly->index));
 
 	auto i0 = poly->nombre_sommets() - 1;
 	auto i1 = 0l;
@@ -174,7 +174,7 @@ static auto rappel_pesee_normal_moyenne(Corps const &corps, Polygone *poly)
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
 
-	auto nor = normalise(attr_N_poly->vec3(static_cast<long>(poly->index)));
+	auto nor = normalise(attr_N_poly->vec3(poly->index));
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
 		auto idx_s = poly->index_point(i);
@@ -192,7 +192,7 @@ static auto rappel_pesee_normal_max(Corps const &corps, Polygone *poly)
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
 
-	auto nor = attr_N_poly->vec3(static_cast<long>(poly->index));
+	auto nor = attr_N_poly->vec3(poly->index);
 
 	auto i0 = poly->nombre_sommets() - 1;
 	auto i1 = 0l;
