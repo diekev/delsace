@@ -154,15 +154,11 @@ static int maillage_vers_volume(
 
 	auto volume =  memoire::loge<Volume>("Volume", grille);
 
-	auto plg = grille->plage();
-
 	auto delegue_prims = DeleguePrim(corps_entree);
 	auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
-
+	wlk::pour_chaque_tuile_parallele(*grille, [&](wlk::tuile_scalaire<float> *tuile)
+	{
 		auto index_tuile = 0;
 
 		auto rayon = dls::phys::rayond{};
@@ -220,7 +216,7 @@ static int maillage_vers_volume(
 				}
 			}
 		}
-	}
+	});
 
 	grille->elague();
 
@@ -584,13 +580,9 @@ static void ajoute_volume_temps(
 		float dt,
 		bool debut)
 {
-	auto plg = grille.plage();
-	auto res = grille.res_tuile();
-
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
-
+	wlk::pour_chaque_tuile(grille, [&](wlk::tuile_scalaire<float> const *tuile)
+	{
+		auto res = grille.res_tuile();
 		auto co_tuile = tuile->min / wlk::TAILLE_TUILE;
 		auto idx_tuile = dls::math::calcul_index(co_tuile, res);
 
@@ -622,17 +614,14 @@ static void ajoute_volume_temps(
 		}
 
 		tuile_aux->visite = true;
-	}
+	});
 
 	/* Étape 3 : il reste le cas où une tuile existait avant et n'existe plus
 	 * maintenant -> ajoute valeur (0, temps).
 	 */
-	auto plg_aux = grille_aux.plage();
-
-	while (!plg_aux.est_finie()) {
-		auto tuile = plg_aux.front();
-		plg_aux.effronte();
-
+	wlk::pour_chaque_tuile_parallele(grille_aux,
+									 [&](wlk::grille_auxilliaire::type_tuile *tuile)
+	{
 		if (tuile->visite) {
 			/* remet à zéro pour après */
 			tuile->visite = false;
@@ -642,7 +631,7 @@ static void ajoute_volume_temps(
 				tuile->donnees[i].pousse({ 0.0f, temps });
 			}
 		}
-	}
+	});
 }
 
 #undef LOG_COMPRESSION
@@ -651,17 +640,13 @@ static void simplifie_courbes(
 		wlk::grille_auxilliaire &grille,
 		float seuil_saillance)
 {
-	auto plg = grille.plage();
-
 #ifdef LOG_COMPRESSION
 	auto ancien_nombre_points = 0l;
 	auto nouveau_nombre_points = 0l;
 #endif
 
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
-
+	wlk::pour_chaque_tuile_parallele(grille, [&](wlk::grille_auxilliaire::type_tuile *tuile)
+	{
 		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
 			auto &donnees = tuile->donnees[i];
 #ifdef LOG_COMPRESSION
@@ -735,7 +720,7 @@ static void simplifie_courbes(
 			nouveau_nombre_points += donnees.taille();
 #endif
 		}
-	}
+	});
 
 #ifdef LOG_COMPRESSION
 	std::cerr << "Ancien  nombre de points : " << ancien_nombre_points << '\n';
@@ -745,16 +730,13 @@ static void simplifie_courbes(
 }
 
 static auto compresse_grille_aux(
-		wlk::grille_auxilliaire &grille)
+		wlk::grille_auxilliaire const &grille)
 {
 	auto grille_temp = memoire::loge<wlk::grille_temporelle>("grille", grille.desc());
 
-	auto plg_aux = grille.plage();
-
-	while (!plg_aux.est_finie()) {
-		auto tuile_aux = plg_aux.front();
-		plg_aux.effronte();
-
+	wlk::pour_chaque_tuile(grille,
+						   [&](wlk::grille_auxilliaire::type_tuile const *tuile_aux)
+	{
 		auto tuile_temp = grille_temp->cree_tuile(tuile_aux->min);
 		auto nombre_valeurs = 0l;
 
@@ -779,7 +761,7 @@ static auto compresse_grille_aux(
 			nombre_valeurs += courbe.taille();
 			tuile_temp->decalage[i + 1] = static_cast<int>(nombre_valeurs);
 		}
-	}
+	});
 
 	return grille_temp;
 }
@@ -812,12 +794,8 @@ static auto obtiens_grille(float temps)
 	auto grille = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(desc.etendue);
 
-	auto plg = grille->plage();
-
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
-
+	wlk::pour_chaque_tuile_parallele(*grille, [&](wlk::tuile_scalaire<float> *tuile)
+	{
 		auto index_tuile = 0;
 		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
 			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
@@ -833,7 +811,7 @@ static auto obtiens_grille(float temps)
 				}
 			}
 		}
-	}
+	});
 
 	return grille;
 }
@@ -876,12 +854,8 @@ static auto echantillonne_grille_temp(
 	auto grille = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(grille_temp.desc().etendue);
 
-	auto plg = grille->plage();
-
-	while (!plg.est_finie()) {
-		auto tuile = plg.front();
-		plg.effronte();
-
+	wlk::pour_chaque_tuile_parallele(*grille, [&](wlk::tuile_scalaire<float> *tuile)
+	{
 		auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
 		auto idx_tuile = dls::math::calcul_index(min_tuile, grille->res_tuile());
 		auto tuile_temp = grille_temp.tuile_par_index(idx_tuile);
@@ -894,7 +868,7 @@ static auto echantillonne_grille_temp(
 				}
 			}
 		}
-	}
+	});
 
 	return grille;
 }
@@ -1047,12 +1021,8 @@ public:
 
 		auto taille_fenetre = 2;
 
-		auto plg = grille_entree->plage();
-
-		while (!plg.est_finie()) {
-			auto tuile = plg.front();
-			plg.effronte();
-
+		wlk::pour_chaque_tuile_parallele(*grille_entree, [&](wlk::tuile_scalaire<float> *tuile)
+		{
 			auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
 			auto idx_tuile = dls::math::calcul_index(min_tuile, grille_entree->res_tuile());
 			auto tuile_b = grille->tuile_par_index(idx_tuile);
@@ -1082,7 +1052,7 @@ public:
 					}
 				}
 			}
-		}
+		});
 
 		grille->elague();
 

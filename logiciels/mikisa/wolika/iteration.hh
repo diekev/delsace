@@ -26,8 +26,11 @@
 
 #include "biblinternes/math/limites.hh"
 
-namespace wlk {
+#include <tbb/parallel_for.h>
 
+#include "grille_eparse.hh"
+
+namespace wlk {
 
 class IteratricePosition {
 	limites3i m_lim;
@@ -102,5 +105,61 @@ public:
 		return m_etat.z < m_lim.min.z;
 	}
 };
+
+template <typename T, typename type_tuile, typename Op>
+auto pour_chaque_tuile(
+		grille_eparse<T, type_tuile> const &grille,
+		Op &&op)
+{
+	auto plg = grille.plage();
+
+	while (!plg.est_finie()) {
+		auto tuile = plg.front();
+		plg.effronte();
+
+		op(tuile);
+	}
+}
+
+template <typename T, typename type_tuile, typename Op>
+auto pour_chaque_tuile(
+		grille_eparse<T, type_tuile> &grille,
+		Op &&op)
+{
+	auto plg = grille.plage();
+
+	while (!plg.est_finie()) {
+		auto tuile = plg.front();
+		plg.effronte();
+
+		op(tuile);
+	}
+}
+
+template <typename T, typename type_tuile, typename Op>
+auto pour_chaque_tuile_parallele(
+		grille_eparse<T, type_tuile> const &grille,
+		Op &&op)
+{
+	auto nombre_tuiles = grille.nombre_tuile();
+
+	tbb::parallel_for(0l, nombre_tuiles, [&](long i)
+	{
+		op(grille.tuile(i));
+	});
+}
+
+template <typename T, typename type_tuile, typename Op>
+auto pour_chaque_tuile_parallele(
+		grille_eparse<T, type_tuile> &grille,
+		Op &&op)
+{
+	auto nombre_tuiles = grille.nombre_tuile();
+
+	tbb::parallel_for(0l, nombre_tuiles, [&](long i)
+	{
+		op(grille.tuile(i));
+	});
+}
 
 }  /* namespace wlk */

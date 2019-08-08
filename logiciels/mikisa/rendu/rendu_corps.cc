@@ -40,6 +40,7 @@
 
 #include "wolika/grille_dense.hh"
 #include "wolika/grille_eparse.hh"
+#include "wolika/iteration.hh"
 
 /* ************************************************************************** */
 
@@ -576,22 +577,20 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 	}
 	else {
 		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
-		auto plg = grille_eprs->plage();
 		auto min_grille = dls::math::vec3i{100000};
 		auto max_grille = dls::math::vec3i{-100000};
 
-		if (plg.est_finie()) {
+		if (grille_eprs->nombre_tuile() == 0) {
 			/* la grille est vide */
 			min_grille = dls::math::vec3i{0};
 			max_grille = dls::math::vec3i{0};
 		}
-
-		while (!plg.est_finie()) {
-			auto tuile = plg.front();
-			plg.effronte();
-
-			extrait_min_max(tuile->min, min_grille, max_grille);
-			extrait_min_max(tuile->max, min_grille, max_grille);
+		else {
+			wlk::pour_chaque_tuile(*grille_eprs, [&](wlk::tuile_scalaire<float> *tuile)
+			{
+				extrait_min_max(tuile->min, min_grille, max_grille);
+				extrait_min_max(tuile->max, min_grille, max_grille);
+			});
 		}
 
 		resolution = max_grille - min_grille;
@@ -611,12 +610,8 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 			}
 		}
 #else
-		plg = grille_eprs->plage();
-
-		while (!plg.est_finie()) {
-			auto tuile = plg.front();
-			plg.effronte();
-
+		wlk::pour_chaque_tuile_parallele(*grille_eprs, [&](wlk::tuile_scalaire<float> *tuile)
+		{
 			auto index_tuile = 0;
 
 			for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
@@ -635,7 +630,7 @@ static auto cree_tampon_volume(Volume *volume, dls::math::vec3f const &view_dir)
 					}
 				}
 			}
-		}
+		});
 #endif
 		ptr_donnees = voxels.donnees();
 	}

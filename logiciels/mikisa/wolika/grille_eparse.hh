@@ -59,10 +59,11 @@ struct tuile_scalaire {
 	}
 };
 
-template <typename T, typename type_tuile = tuile_scalaire<T>>
+template <typename T, typename TypeTuile = tuile_scalaire<T>>
 struct grille_eparse : public base_grille_3d {
 	using type_valeur = T;
 	using type_topologie = dls::tableau<long>;
+	using type_tuile = TypeTuile;
 
 private:
 	type_topologie m_index_tuiles{};
@@ -253,6 +254,21 @@ public:
 		m_index_tuiles[idx] = m_tuiles.taille();
 		m_tuiles.pousse(t);
 		return t;
+	}
+
+	long nombre_tuile() const
+	{
+		return m_tuiles.taille();
+	}
+
+	type_tuile *tuile(long idx)
+	{
+		return m_tuiles[idx];
+	}
+
+	type_tuile const *tuile(long idx) const
+	{
+		return m_tuiles[idx];
 	}
 
 	type_topologie const &topologie() const
