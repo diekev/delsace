@@ -675,7 +675,7 @@ static void simplifie_courbes(
 
 			for (auto j = 1; j < donnees.taille() - 1; ++j) {
 				auto const &v0 = donnees[j - 1].valeur;
-				auto const &v1 = donnees[j    ].valeur;
+				auto const &v1 = donnees[j   ].valeur;
 				auto const &v2 = donnees[j + 1].valeur;
 
 				if (dls::math::sont_environ_egaux(v0, v1) && dls::math::sont_environ_egaux(v1, v2)) {
@@ -780,7 +780,7 @@ static auto compresse_grille_aux(
 static auto obtiens_grille(float temps)
 {
 	auto min = dls::math::vec3f(-1.0f);
-	auto max = dls::math::vec3f( 1.0f);
+	auto max = dls::math::vec3f(1.0f);
 
 	auto desc = wlk::desc_grille_3d{};
 	desc.etendue.min = min;
@@ -794,7 +794,7 @@ static auto obtiens_grille(float temps)
 	bruit.dx = static_cast<float>(desc.taille_voxel);
 	bruit.taille_grille_inv = 1.0f / static_cast<float>(desc.taille_voxel);
 	bruit.decalage_pos = dls::math::vec3f(45.0f);
-	bruit.echelle_pos = dls::math::vec3f( 1.0f);
+	bruit.echelle_pos = dls::math::vec3f(1.0f);
 	bruit.decalage_valeur = 0.0f;
 	bruit.echelle_valeur = 1.0f;
 	bruit.restreint = false;
@@ -1093,6 +1093,1027 @@ public:
 
 /* ************************************************************************** */
 
+//! A point cloud class that uses a k-d tree for storing points.
+//!
+//! The GetPoints and GetClosest methods return the neighboring points to a given location.
+
+template <typename PointType, typename FType, uint32_t DIMENSIONS, typename SIZE_TYPE=uint32_t>
+class PointCloud {
+public:
+	/////////////////////////////////////////////////////////////////////////////////
+	//!@name Constructors and Destructor
+
+	PointCloud() = default;
+	PointCloud(SIZE_TYPE numPts, const PointType *pts, const SIZE_TYPE *customIndices=nullptr) : points(nullptr), pointCount(0) { Build(numPts,pts,customIndices); }
+	~PointCloud() { delete [] points; }
+
+	PointCloud(PointCloud const &) = default;
+	PointCloud &operator=(PointCloud const &) = default;
+
+	/////////////////////////////////////////////////////////////////////////////////
+	//!@ Access to internal data
+
+	SIZE_TYPE GetPointCount() const { return pointCount-1; }					//!< Returns the point count
+	const PointType& GetPoint(SIZE_TYPE i) const { return points[i+1].Pos(); }	//!< Returns the point at position i
+	SIZE_TYPE GetPointIndex(SIZE_TYPE i) const { return points[i+1].Index(); }	//!< Returns the index of the point at position i
+
+	/////////////////////////////////////////////////////////////////////////////////
+	//!@ Initialization
+
+	//! Builds a k-d tree for the given points.
+	//! The positions are stored internally.
+	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
+	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
+	void Build(SIZE_TYPE numPts, const PointType *pts) { BuildWithFunc(numPts, [&pts](SIZE_TYPE i){ return pts[i]; }); }
+
+	//! Builds a k-d tree for the given points.
+	//! The positions are stored internally, along with the indices to the given array.
+	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
+	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
+	void Build(SIZE_TYPE numPts, const PointType *pts, const SIZE_TYPE *customIndices) { BuildWithFunc(numPts, [&pts](SIZE_TYPE i){ return pts[i]; }, [&customIndices](SIZE_TYPE i){ return customIndices[i]; }); }
+
+	//! Builds a k-d tree for the given points.
+	//! The positions are stored internally, retrieved from the given function.
+	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
+	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
+	template <typename PointPosFunc>
+	void BuildWithFunc(SIZE_TYPE numPts, PointPosFunc ptPosFunc) { BuildWithFunc(numPts, ptPosFunc, [](SIZE_TYPE i){ return i; }); }
+
+	//! Builds a k-d tree for the given points.
+	//! The positions are stored internally, along with the indices to the given array.
+	//! The positions and custom indices are retrieved from the given functions.
+	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
+	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
+	template <typename PointPosFunc, typename CustomIndexFunc>
+	void BuildWithFunc(SIZE_TYPE numPts, PointPosFunc ptPosFunc, CustomIndexFunc custIndexFunc)
+	{
+		if (points) delete [] points;
+		pointCount = numPts;
+		if (pointCount == 0) { points = nullptr; return; }
+		points = new PointData[static_cast<size_t>((pointCount|1)+1)];
+		PointData *orig = new PointData[static_cast<size_t>(pointCount)];
+		PointType boundMin((std::numeric_limits<FType>::max)()), boundMax((std::numeric_limits<FType>::min)());
+		for (SIZE_TYPE i=0; i<pointCount; i++) {
+			PointType p = ptPosFunc(i);
+			orig[i].Set(p, custIndexFunc(i));
+			for (auto j=0ul; j<DIMENSIONS; j++) {
+				if (boundMin[j] > p[j]) boundMin[j] = p[j];
+				if (boundMax[j] < p[j]) boundMax[j] = p[j];
+			}
+		}
+		BuildKDTree(orig, boundMin, boundMax, 1, 0, pointCount);
+		delete [] orig;
+		if ((pointCount & 1) == 0) {
+			// if the point count is even, we should add a bogus point
+			points[pointCount+1].Set(PointType(std::numeric_limits<FType>::infinity()), 0, 0);
+		}
+		numInternal = pointCount / 2;
+	}
+
+	//! Returns true if the Build or BuildWithFunc methods would perform the build in parallel using multi-threading.
+	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
+	//! if ttb.h or ppl.h are included prior to including cyPointCloud.h.
+	static bool IsBuildParallel()
+	{
+#ifdef _CY_PARALLEL_LIB
+		return true;
+#else
+		return false;
+#endif
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////
+	//!@ General search methods
+
+	//! Returns all points to the given position within the given radius.
+	//! Calls the given pointFound function for each point found.
+	//!
+	//! The given pointFound function can reduce the radiusSquared value.
+	//! However, increasing the radiusSquared value can have unpredictable results.
+	//! The callback function must be in the following form:
+	//!
+	//! void _CALLBACK(SIZE_TYPE index, const PointType &p, FType distanceSquared, FType &radiusSquared)
+	template <typename _CALLBACK>
+	void GetPoints(const PointType &position, FType radius, _CALLBACK pointFound) const
+	{
+		FType r2 = radius*radius;
+		GetPoints(position, r2, pointFound, 1);
+	}
+
+	//! Used by one of the PointCloud::GetPoints() methods.
+	//!
+	//! Keeps the point index, position, and distance squared to a given search position.
+	//! Used by one of the GetPoints methods.
+	struct PointInfo {
+		SIZE_TYPE index;			//!< The index of the point
+		PointType pos;				//!< The position of the point
+		FType     distanceSquared;	//!< Squared distance from the search position
+		bool operator < (const PointInfo &b) const { return distanceSquared < b.distanceSquared; }	//!< Comparison operator
+	};
+
+	//! Returns the closest points to the given position within the given radius.
+	//! It returns the number of points found.
+	int GetPoints(const PointType &position, FType radius, SIZE_TYPE maxCount, PointInfo *closestPoints) const
+	{
+		int pointsFound = 0;
+		GetPoints(position, radius, [&](SIZE_TYPE i, const PointType &p, FType d2, FType &r2) {
+			if (pointsFound == maxCount) {
+				std::pop_heap(closestPoints, closestPoints+maxCount);
+				closestPoints[maxCount-1].index = i;
+				closestPoints[maxCount-1].pos = p;
+				closestPoints[maxCount-1].distanceSquared = d2;
+				std::push_heap(closestPoints, closestPoints+maxCount);
+				r2 = closestPoints[0].distanceSquared;
+			} else {
+				closestPoints[pointsFound].index = i;
+				closestPoints[pointsFound].pos = p;
+				closestPoints[pointsFound].distanceSquared = d2;
+				pointsFound++;
+				if (pointsFound == maxCount) {
+					std::make_heap(closestPoints, closestPoints+maxCount);
+					r2 = closestPoints[0].distanceSquared;
+				}
+			}
+		});
+		return pointsFound;
+	}
+
+	//! Returns the closest points to the given position.
+	//! It returns the number of points found.
+	int GetPoints(const PointType &position, SIZE_TYPE maxCount, PointInfo *closestPoints) const
+	{
+		return GetPoints(position, (std::numeric_limits<FType>::max)(), maxCount, closestPoints);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////
+	//!@name Closest point methods
+
+	//! Returns the closest point to the given position within the given radius.
+	//! It returns true, if a point is found.
+	bool GetClosest(const PointType &position, FType radius, SIZE_TYPE &closestIndex, PointType &closestPosition, FType &closestDistanceSquared) const
+	{
+		bool found = false;
+		FType dist2 = radius * radius;
+		GetPoints(position, dist2, [&](SIZE_TYPE i, const PointType &p, FType d2, FType &r2){ found=true; closestIndex=i; closestPosition=p; closestDistanceSquared=d2; r2=d2; }, 1);
+		return found;
+	}
+
+	//! Returns the closest point to the given position.
+	//! It returns true, if a point is found.
+	bool GetClosest(const PointType &position, SIZE_TYPE &closestIndex, PointType &closestPosition, FType &closestDistanceSquared) const
+	{
+		return GetClosest(position, (std::numeric_limits<FType>::max)(), closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point index and position to the given position within the given index.
+	//! It returns true, if a point is found.
+	bool GetClosest(const PointType &position, FType radius, SIZE_TYPE &closestIndex, PointType &closestPosition) const
+	{
+		FType closestDistanceSquared;
+		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point index and position to the given position.
+	//! It returns true, if a point is found.
+	bool GetClosest(const PointType &position, SIZE_TYPE &closestIndex, PointType &closestPosition) const
+	{
+		FType closestDistanceSquared;
+		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point index to the given position within the given radius.
+	//! It returns true, if a point is found.
+	bool GetClosestIndex(const PointType &position, FType radius, SIZE_TYPE &closestIndex) const
+	{
+		FType closestDistanceSquared;
+		PointType closestPosition;
+		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point index to the given position.
+	//! It returns true, if a point is found.
+	bool GetClosestIndex(const PointType &position, SIZE_TYPE &closestIndex) const
+	{
+		FType closestDistanceSquared;
+		PointType closestPosition;
+		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point position to the given position within the given radius.
+	//! It returns true, if a point is found.
+	bool GetClosestPosition(const PointType &position, FType radius, PointType &closestPosition) const
+	{
+		SIZE_TYPE closestIndex;
+		FType closestDistanceSquared;
+		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point position to the given position.
+	//! It returns true, if a point is found.
+	bool GetClosestPosition(const PointType &position, PointType &closestPosition) const
+	{
+		SIZE_TYPE closestIndex;
+		FType closestDistanceSquared;
+		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point distance squared to the given position within the given radius.
+	//! It returns true, if a point is found.
+	bool GetClosestDistanceSquared(const PointType &position, FType radius, FType &closestDistanceSquared) const
+	{
+		SIZE_TYPE closestIndex;
+		PointType closestPosition;
+		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	//! Returns the closest point distance squared to the given position.
+	//! It returns true, if a point is found.
+	bool GetClosestDistanceSquared(const PointType &position, FType &closestDistanceSquared) const
+	{
+		SIZE_TYPE closestIndex;
+		PointType closestPosition;
+		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////
+
+private:
+
+	/////////////////////////////////////////////////////////////////////////////////
+	//!@name Internal Structures and Methods
+
+	class PointData {
+	private:
+		SIZE_TYPE indexAndSplitPlane{};	// first NBits bits indicates the splitting plane, the rest of the bits store the point index.
+		PointType p{};					// point position
+
+	public:
+		void Set(const PointType &pt, SIZE_TYPE index, uint32_t plane=0)
+		{
+			p = pt;
+			indexAndSplitPlane = static_cast<int>((static_cast<uint32_t>(index) << NBits()) | (plane & ((1u << NBits()) - 1u)));
+		}
+
+		void SetPlane(uint32_t plane)
+		{
+			indexAndSplitPlane = static_cast<int>((static_cast<uint32_t>(indexAndSplitPlane) & (~((1u << NBits()) - 1u))) | plane);
+		}
+
+		int       Plane() const { return indexAndSplitPlane & ((1<<NBits())-1); }
+		SIZE_TYPE Index() const { return indexAndSplitPlane >> NBits(); }
+		const PointType& Pos() const { return p; }
+	private:
+#if defined(__cpp_constexpr) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+		constexpr uint32_t NBits(uint32_t v = DIMENSIONS) const
+		{
+			return v < 2 ? v : 1 + NBits(v >> 1);
+		}
+#else
+		int NBits() const { int v = DIMENSIONS-1, r, s; r=(v>0xF)<<2; v>>=r; s=(v>0x3)<<1; v>>=s; r|=s|(v>>1); return r+1; }	// Supports up to 256 dimensions
+#endif
+	};
+
+	PointData *points = nullptr;		// Keeps the points as a k-d tree.
+	SIZE_TYPE  pointCount = 0;	// Keeps the point count.
+	SIZE_TYPE  numInternal = 0;	// Keeps the number of internal k-d tree nodes.
+
+	// The main method for recursively building the k-d tree.
+	void BuildKDTree(PointData *orig, PointType boundMin, PointType boundMax, SIZE_TYPE kdIndex, SIZE_TYPE ixStart, SIZE_TYPE ixEnd)
+	{
+		SIZE_TYPE n = ixEnd - ixStart;
+		if (n > 1) {
+			auto axis = static_cast<unsigned>(SplitAxis(boundMin, boundMax));
+			SIZE_TYPE leftSize = LeftSize(n);
+			SIZE_TYPE ixMid = ixStart+leftSize;
+			std::nth_element(orig+ixStart, orig+ixMid, orig+ixEnd, [axis](const PointData &a, const PointData &b){ return a.Pos()[axis] < b.Pos()[axis]; });
+			points[kdIndex] = orig[ixMid];
+			points[kdIndex].SetPlane(axis);
+			PointType bMax = boundMax;
+			bMax[axis] = orig[ixMid].Pos()[axis];
+			PointType bMin = boundMin;
+			bMin[axis] = orig[ixMid].Pos()[axis];
+#ifdef _CY_PARALLEL_LIB
+			const SIZE_TYPE parallel_invoke_threshold = 256;
+			if (ixMid-ixStart > parallel_invoke_threshold && ixEnd - ixMid+1 > parallel_invoke_threshold) {
+				_CY_PARALLEL_LIB::parallel_invoke(
+					[&]{ BuildKDTree(orig, boundMin, bMax, kdIndex*2,   ixStart, ixMid); },
+					[&]{ BuildKDTree(orig, bMin, boundMax, kdIndex*2+1, ixMid+1, ixEnd); }
+				);
+			} else
+#endif
+			{
+				BuildKDTree(orig, boundMin, bMax, kdIndex*2,   ixStart, ixMid);
+				BuildKDTree(orig, bMin, boundMax, kdIndex*2+1, ixMid+1, ixEnd);
+			}
+		} else if (n > 0) {
+			points[kdIndex] = orig[ixStart];
+		}
+	}
+
+	// Returns the total number of nodes on the left sub-tree of a complete k-d tree of size n.
+	static SIZE_TYPE LeftSize(SIZE_TYPE n)
+	{
+		SIZE_TYPE f = n; // Size of the full tree
+		for (SIZE_TYPE s=1; s<static_cast<int>(8*sizeof(SIZE_TYPE)); s*=2) f |= f >> s;
+		SIZE_TYPE l = f >> 1; // Size of the full left child
+		SIZE_TYPE r = l >> 1; // Size of the full right child without leaf nodes
+		return (l+r+1 <= n) ? l : n-r-1;
+	}
+
+	// Returns axis with the largest span, used as the splitting axis for building the k-d tree
+	static int SplitAxis(const PointType &boundMin, const PointType &boundMax)
+	{
+		PointType d = boundMax - boundMin;
+		int axis = 0;
+		FType dmax = d[0];
+		for (auto j=1ul; j<DIMENSIONS; j++) {
+			if (dmax < d[j]) {
+				axis = static_cast<int>(j);
+				dmax = d[j];
+			}
+		}
+		return axis;
+	}
+
+	template <typename _CALLBACK>
+	void GetPoints(const PointType &position, FType &dist2, _CALLBACK pointFound, SIZE_TYPE nodeID) const
+	{
+		SIZE_TYPE stack[sizeof(SIZE_TYPE)*8];
+		SIZE_TYPE stackPos = 0;
+
+		TraverseCloser(position, dist2, pointFound, nodeID, stack, stackPos);
+
+		// empty the stack
+		while (stackPos > 0) {
+			SIZE_TYPE nodeID_loc = stack[--stackPos];
+			// check the internal node point
+			const PointData &p = points[nodeID_loc];
+			const PointType pos = p.Pos();
+			int axis = p.Plane();
+			float dist1 = position[axis] - pos[axis];
+			if (dist1*dist1 < dist2) {
+				// check its point
+				FType d2 = (position - pos).LengthSquared();
+				if (d2 < dist2) pointFound(p.Index(), pos, d2, dist2);
+				// traverse down the other child node
+				SIZE_TYPE child = 2*nodeID_loc;
+				nodeID_loc = dist1 < 0 ? child+1 : child;
+				TraverseCloser(position, dist2, pointFound, nodeID_loc, stack, stackPos);
+			}
+		}
+	}
+
+	template <typename _CALLBACK>
+	void TraverseCloser(const PointType &position, FType &dist2, _CALLBACK pointFound, SIZE_TYPE nodeID, SIZE_TYPE *stack, SIZE_TYPE &stackPos) const
+	{
+		// Traverse down to a leaf node along the closer branch
+		while (nodeID <= numInternal) {
+			stack[stackPos++] = nodeID;
+			const PointData &p = points[nodeID];
+			const PointType pos = p.Pos();
+			int axis = p.Plane();
+			float dist1 = position[axis] - pos[axis];
+			uint32_t child = 2*nodeID;
+			nodeID = dist1 < 0 ? child : child + 1;
+		}
+		// Now we are at a leaf node, do the test
+		const PointData &p = points[nodeID];
+		const PointType pos = p.Pos();
+		FType d2 = (position - pos).LengthSquared();
+		if (d2 < dist2) pointFound(p.Index(), pos, d2, dist2);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////
+};
+
+namespace dls::math {
+
+inline auto operator<<=(dls::math::vec3i &v, int s)
+{
+	v.x <<= s;
+	v.y <<= s;
+	v.z <<= s;
+
+	return v;
+}
+
+}
+
+//! An implementation of the Lighting Grid Hierarchy method.
+//!
+//! Can Yuksel and Cem Yuksel. 2017. Lighting Grid Hierarchy for
+//! Self-illuminating Explosions. ACM Transactions on Graphics
+//! (Proceedings of SIGGRAPH 2017) 36, 4, Article 110 (July 2017).
+//! http://www.cemyuksel.com/research/lgh/
+//!
+//! This class builds the Lighting Grid Hierarchy and uses it for lighting.
+
+class LightingGridHierarchy {
+	struct Level {
+		PointCloud<dls::math::vec3f, float, 3, int> pc{};
+		dls::tableau<dls::math::vec3f> colors{};
+		 // position deviation for random shadow sampling
+		dls::tableau<dls::math::vec3f> pDev{};
+
+		Level() = default;
+		~Level() = default;
+	};
+
+	dls::tableau<Level> m_niveaux{};
+	int    m_nombre_niveaux = 0;
+	float  m_taille_cellule = 0.0f;
+	dls::math::vec3f m_dev_pos_n0 = dls::math::vec3f(0.0f);
+
+public:
+	LightingGridHierarchy() = default;
+
+	~LightingGridHierarchy()
+	{
+		Clear();
+	}
+
+	int nombre_points(int niveau) const
+	{
+		if (m_niveaux.est_vide()) {
+			return 0;
+		}
+
+		return m_niveaux[niveau].pc.GetPointCount();
+	}
+
+	int   GetNumLevels() const { return m_nombre_niveaux; }	//!< Returns the number of levels in the hierarchy.
+	float GetCellSize () const { return m_taille_cellule; }		//!< Returns the size of a cell in the lowest (finest) level of the hierarchy.
+	const dls::math::vec3f& GetLightPos   (int level, int i) const { return m_niveaux[level].pc.GetPoint(i); }							//!< Returns the i^th light position at the given level. Note that this is not the position of the light with index i.
+	int      GetLightIndex (int level, int i) const { return m_niveaux[level].pc.GetPointIndex(i); }						//!< Returns the i^th light index at the given level.
+	const dls::math::vec3f&   GetLightIntens(int level, int ix) const { return m_niveaux[level].colors[ix]; }								//!< Returns the intensity of the light with index ix at the given level.
+	const dls::math::vec3f& GetLightPosDev(int level, int ix) const { return level > 0 ? m_niveaux[level].pDev[ix] : m_dev_pos_n0; }	//!< Returns the position variation of the light with index ix at the given level.
+
+	void Clear() { m_niveaux.efface(); m_nombre_niveaux = 0; }	//!< Deletes all data.
+
+	//! Builds the Lighting Grid Hierarchy for the given point light positions and intensities using the given parameters.
+	//! This method builds the hierarchy using the given cellSize as the size of the lowest (finest) level grid cells.
+	bool Build(const dls::math::vec3f *lightPos,			//!< Light positions.
+				const dls::math::vec3f   *lightIntensities, 	//!< Light intensities.
+				int            numLights, 			//!< Number of lights.
+				int            minLevelLights,		//!< The minimum number of lights permitted for the highest (coarsest) level of the hierarchy. The build stops if a higher (coarser) level would have fewer lights.
+				float          cellSize,			//!< The size of a grid cell in the lowest (finest) level of the hierarchy.
+				int            highestLevel			//!< The highest level permitted, where level 0 contains the original lights.
+			)
+	{
+		return DoBuild(lightPos, lightIntensities, numLights, 0, minLevelLights, cellSize, highestLevel);
+	}
+
+	//! Builds the Lighting Grid Hierarchy for the given point light positions and intensities using the given parameters.
+	//! This method automatically determines the grid cell size based on the bounding box of the light positions.
+	bool Build(const dls::math::vec3f *lightPos,			//!< Light positions.
+				const dls::math::vec3f   *lightIntensities, 	//!< Light intensities.
+				int            numLights, 			//!< Number of lights.
+				int            minLevelLights, 		//!< The minimum number of lights permitted for the highest (coarsest) level of the hierarchy. The build stops if a higher (coarser) level would have fewer lights.
+				float          autoFitScale = 1.01f	//!< Extends the bounding box of the light positions using the given scale. This value must be 1 or greater. A value slightly greater than 1 often provides a good fit for the grid.
+			)
+	{
+		return DoBuild(lightPos, lightIntensities, numLights, autoFitScale, minLevelLights);
+	}
+
+	//! Computes the illumination at the given position using the given accuracy parameter alpha.
+	template <typename LightingFunction>
+	void Light(const dls::math::vec3f    &pos,						//!< The position where the lighting will be evaluated.
+				float            alpha,						//!< The accuracy parameter. It should be 1 or greater. Larger values produce more accurate results with substantially more computation.
+				LightingFunction lightingFunction			//!< This function is called for each light used for lighting computation. It should be in the form void LightingFunction(int level, int light_id, const dls::math::vec3f &light_position, const dls::math::vec3f &light_intensity).
+			)
+	{
+		Light(pos, alpha, 0, lightingFunction);
+	}
+
+	//! Computes the illumination at the given position using the given accuracy parameter alpha.
+	//! This method provides stochastic sampling by randomly changing the given light position when calling the lighting function.
+	template <typename LightingFunction>
+	void Light(const dls::math::vec3f    &pos,						//!< The position where the lighting will be evaluated.
+				float            alpha,						//!< The accuracy parameter. It should be 1 or greater. Larger values produce more accurate results with substantially more computation.
+				int              stochasticShadowSamples,   //!< When this parameter is zero, the given lightingFunction is called once per light, using the position of the light. Otherwise, it is called as many times as this parameter specifies, using random positions around each light position.
+				LightingFunction lightingFunction			//!< This function is called for each light used for lighting computation. It should be in the form void LightingFunction(int level, int light_id, const dls::math::vec3f &light_position, const dls::math::vec3f &light_intensity).
+			)
+	{
+		if (m_nombre_niveaux > 1) {
+
+			// First level
+			auto r = alpha * m_taille_cellule;
+			auto rr = r * r;
+
+			m_niveaux[0].pc.GetPoints(pos, r*2, [&](int i, const dls::math::vec3f &p, float dist2, float &radius2)
+			{
+				INUTILISE(radius2);
+				auto c = m_niveaux[0].colors[i];
+
+				if (dist2 > rr) {
+					c *= 1.0f - (std::sqrt(dist2) - r) / r;
+				}
+
+				lightingFunction(0, i, p, c);
+			});
+
+			auto callLightingFunc = [&](int level, int i, const dls::math::vec3f &p, const dls::math::vec3f &c)
+			{
+				if (stochasticShadowSamples > 0) {
+					auto cc = c / static_cast<float>(stochasticShadowSamples);
+
+					for (auto j = 0; j<stochasticShadowSamples; j++) {
+						auto pj = p + RandomPos() * m_niveaux[level].pDev[i];
+						lightingFunction(level, i, pj, cc);
+					}
+				}
+				else {
+					lightingFunction(level, i, p, c);
+				}
+			};
+
+			// Middle levels
+			for (int level=1; level<m_nombre_niveaux-1; level++) {
+				float r_min = r;
+				float rr_min = r * r;
+				r *= 2;
+
+				m_niveaux[level].pc.GetPoints(pos, r*2, [&](int i, const dls::math::vec3f &p, float dist2, float &radius2)
+				{
+					INUTILISE(radius2);
+
+					if (dist2 <= rr_min) {
+						return;
+					}
+
+					auto c = m_niveaux[level].colors[i];
+					auto d = std::sqrt(dist2);
+
+					if (d > r) {
+						c *= 1.0f - (d - r) / r;
+					}
+					else {
+						c *= (d - r_min) / r_min;
+					}
+
+					callLightingFunc(level, i, p, c);
+				});
+			}
+
+			// Last level
+			auto r_min = r;
+			auto rr_min = r * r;
+			r *= 2;
+			rr = r * r;
+			auto n = m_niveaux[m_nombre_niveaux - 1].pc.GetPointCount();
+
+			for (auto i = 0; i < n; i++) {
+				auto const &p = m_niveaux[m_nombre_niveaux-1].pc.GetPoint(i);
+				auto dist2 = longueur_carree(pos - p);
+
+				if (dist2 <= rr_min) {
+					continue;
+				}
+
+				auto id = m_niveaux[m_nombre_niveaux-1].pc.GetPointIndex(i);
+				auto c = m_niveaux[m_nombre_niveaux-1].colors[id];
+
+				if (dist2 < rr) {
+					c *= (std::sqrt(dist2) - r_min) / r_min;
+				}
+
+				callLightingFunc(m_nombre_niveaux-1, i, p, c);
+			}
+		}
+		else {
+			// Single-level (a.k.a. brute-force)
+			auto n = m_niveaux[0].pc.GetPointCount();
+			for (auto i=0; i<n; i++) {
+				auto const &p = m_niveaux[0].pc.GetPoint(i);
+				auto id = m_niveaux[0].pc.GetPointIndex(i);
+				auto const &c = m_niveaux[0].colors[id];
+				lightingFunction(0, i, p, c);
+			}
+		}
+	}
+
+private:
+	float RandomX()
+	{
+		static thread_local std::mt19937 generator;
+		std::uniform_real_distribution<float> distribution;
+		float x = distribution(generator);
+		float y = distribution(generator);
+		if (y > (cosf(x*constantes<float>::PI)+1)*0.5f) x -= 1;
+		return x;
+	}
+
+	dls::math::vec3f RandomPos()
+	{
+		dls::math::vec3f p;
+		p.x = RandomX();
+		p.y = RandomX();
+		p.z = RandomX();
+		return p;
+	}
+
+	bool DoBuild(const dls::math::vec3f *lightPos, const dls::math::vec3f *lightColor, int numLights, float autoFitScale, int minLevelLights, float cellSize=0, int highestLevel=10)
+	{
+		Clear();
+
+		if (numLights <= 0 || highestLevel <= 0) {
+			return false;
+		}
+
+		// Compute the bounding box for the lighPoss
+		auto boundMin = dls::math::vec3f(lightPos[0]);
+		auto boundMax = dls::math::vec3f(lightPos[0]);
+
+		for (auto i = 1; i < numLights; i++) {
+			dls::math::extrait_min_max(lightPos[i], boundMin, boundMax);
+		}
+
+		auto boundDif = boundMax - boundMin;
+		auto boundDifMin = min(boundDif);
+
+		// Determine the actual highest level
+		float highestCellSize;
+		dls::math::vec3i highestGridRes;
+		if (autoFitScale > 0) {
+			highestCellSize = max(boundDif) * autoFitScale;
+			int s = int(1.0f/autoFitScale) + 2;
+			if (s < 2) s = 2;
+			highestGridRes = dls::math::vec3i(s);
+		}
+		else {
+			int highestLevelMult = 1 << (highestLevel-1);
+			highestCellSize = cellSize * static_cast<float>(highestLevelMult);
+			while (highestLevel>1 && highestCellSize > boundDifMin*2) {
+				highestLevel--;
+				highestLevelMult = 1 << (highestLevel-1);
+				highestCellSize = cellSize * static_cast<float>(highestLevelMult);
+			}
+			highestGridRes = dls::math::converti_type<int>(boundDif / highestCellSize) + dls::math::vec3i(2);
+		}
+
+		struct Node {
+			Node() = default;
+
+			dls::math::vec3f position = dls::math::vec3f(0.0f);
+			dls::math::vec3f color = dls::math::vec3f(0.0f);
+#ifdef CY_LIGHTING_GRID_ORIG_POS
+			dls::math::vec3f origPos = dls::math::vec3f(0.0f);
+#endif // CY_LIGHTING_GRID_ORIG_POS
+			dls::math::vec3f stdev = dls::math::vec3f(0.0f);
+			float weight = 0.0f;
+			int firstChild = -1;
+
+			void AddLight(float w, const dls::math::vec3f &p, const dls::math::vec3f &c)
+			{
+				weight   += w;
+				position += w * p;
+				color    += w * c;
+				stdev    += w * (p*p);
+			}
+			void Normalize()
+			{
+				if (weight > 0) {
+					position /= weight;
+					stdev = stdev/weight - position*position;
+				}
+			}
+		};
+
+		// Allocate the temporary nodes
+		m_nombre_niveaux = highestLevel+1;
+		auto nodes = dls::tableau< dls::tableau<Node> >(m_nombre_niveaux);
+
+		auto gridIndex = [](dls::math::vec3i &index, const dls::math::vec3f &pos, float dx_loc)
+		{
+			auto normP = pos / dx_loc;
+			index = dls::math::converti_type<int>(normP);
+			return normP - dls::math::converti_type<float>(index);
+		};
+
+		auto addLightToNodes = [](dls::tableau<Node> &nds, const int nodeIDs[8], const dls::math::vec3f &interp, const dls::math::vec3f &light_pos, const dls::math::vec3f &light_color)
+		{
+			for (int j=0; j<8; j++) {
+				float w = ((j&1) ? interp.x : (1-interp.x)) * ((j&2) ? interp.y : (1-interp.y)) * ((j&4) ? interp.z : (1-interp.z));
+				nds[nodeIDs[j]].AddLight(w, light_pos, light_color);
+			}
+		};
+
+		// Generate the grid for the highest level
+		auto highestGridSize = dls::math::converti_type<float>(highestGridRes - dls::math::vec3i(1)) * highestCellSize;
+		auto center = (boundMax + boundMin) / dls::math::vec3f(2.0f);
+		auto corner = center - highestGridSize * 0.5f;
+		nodes[highestLevel].redimensionne(highestGridRes.x * highestGridRes.y * highestGridRes.z);
+#ifdef CY_LIGHTING_GRID_ORIG_POS
+		for (int z=0, j=0; z<highestGridRes.z; z++) {
+			for (int y=0; y<highestGridRes.y; y++) {
+				for (int x=0; x<highestGridRes.x; x++, j++) {
+					nodes[highestLevel][j].origPos = corner + dls::math::vec3f(x,y,z)*highestCellSize;
+				}
+			}
+		}
+#endif // CY_LIGHTING_GRID_ORIG_POS
+		for (int i=0; i<numLights; i++) {
+			dls::math::vec3i index;
+			auto interp = gridIndex(index, dls::math::vec3f(lightPos[i])-corner, highestCellSize);
+			int is = index.z*highestGridRes.y*highestGridRes.x + index.y*highestGridRes.x + index.x;
+
+			int nodeIDs[8] = {
+				is,
+				is + 1,
+				is + highestGridRes.x,
+				is + highestGridRes.x + 1,
+				is + highestGridRes.x*highestGridRes.y,
+				is + highestGridRes.x*highestGridRes.y + 1,
+				is + highestGridRes.x*highestGridRes.y + highestGridRes.x,
+				is + highestGridRes.x*highestGridRes.y + highestGridRes.x + 1,
+			};
+
+			for (int j=0; j<8; j++) {
+				assert(nodeIDs[j] >= 0 && nodeIDs[j] < nodes[highestLevel].taille());
+			}
+
+			addLightToNodes(nodes[highestLevel], nodeIDs, interp, lightPos[i], lightColor[i]);
+		}
+
+		for (auto i = 0; i < nodes[highestLevel].taille(); i++) {
+			nodes[highestLevel][i].Normalize();
+		}
+
+		// Generate the lower levels
+		auto nodeCellSize = highestCellSize;
+		auto gridRes = highestGridRes;
+		auto levelSkip = 0;
+
+		for (auto level = highestLevel - 1; level > 0; level--) {
+			// Find the number of nodes for this level
+			auto nodeCount = 0;
+
+			for (auto i = 0; i < nodes[level + 1].taille(); i++) {
+				if (nodes[level+1][i].weight > 0) {
+					nodes[level+1][i].firstChild = nodeCount;
+					nodeCount += 8;
+				}
+			}
+
+			if (nodeCount > numLights/4) {
+				levelSkip = level;
+				break;
+			}
+
+			nodes[level].redimensionne(nodeCount);
+			// Add the lights to the nodes
+			nodeCellSize /= 2;
+			gridRes *= 2;
+#ifdef CY_LIGHTING_GRID_ORIG_POS
+			for (int i=0; i<(int)nodes[level+1].size(); i++) {
+				int fc = nodes[level+1][i].firstChild;
+				if (fc < 0) continue;
+				for (int z=0, j=0; z<2; z++) {
+					for (int y=0; y<2; y++) {
+						for (int x=0; x<2; x++, j++) {
+							nodes[level][fc+j].origPos = nodes[level+1][i].origPos + dls::math::vec3f(x,y,z)*nodeCellSize;
+						}
+					}
+				}
+			}
+#endif // CY_LIGHTING_GRID_ORIG_POS
+
+			for (int i=0; i<numLights; i++) {
+				dls::math::vec3i index;
+				auto interp = gridIndex(index, dls::math::vec3f(lightPos[i])-corner, nodeCellSize);
+				// find the node IDs
+				int nodeIDs[8];
+				index <<= level+2;
+
+				for (auto z=0, j=0; z<2; z++) {
+					auto iz = index.z + z;
+
+					for (auto y=0; y<2; y++) {
+						auto iy = index.y + y;
+
+						for (auto x=0; x<2; x++, j++) {
+							auto ix = index.x + x;
+							auto hix = ix >> (highestLevel+2);
+							auto hiy = iy >> (highestLevel+2);
+							auto hiz = iz >> (highestLevel+2);
+							auto nid = hiz*highestGridRes.y*highestGridRes.x + hiy*highestGridRes.x + hix;
+
+							for (auto l=highestLevel-1; l>=level; l--) {
+								auto ii = ((index.z >> l)&4) | ((index.y >> (l+1))&2) |  ((index.x >> (l+2))&1);
+								assert(nodes[l+1][nid].firstChild >= 0);
+								nid = nodes[l+1][nid].firstChild + ii;
+								assert(nid >= 0 && nid < nodes[l].taille());
+							}
+
+							nodeIDs[j] = nid;
+						}
+					}
+				}
+
+				addLightToNodes(nodes[level], nodeIDs, interp, lightPos[i], lightColor[i]);
+			}
+
+			for (auto i = 0; i < nodes[level].taille(); i++) {
+				nodes[level][i].Normalize();
+			}
+		}
+
+		// Copy light data
+		m_nombre_niveaux = highestLevel + 1 - levelSkip;
+		//auto levelBaseSkip = 0;
+		// Skip levels that have two few lights (based on minLevelLights).
+		for (int level=1; level<m_nombre_niveaux; level++) {
+			auto &levelNodes = nodes[level+levelSkip];
+			int count = 0;
+
+			for (auto i = 0; i < levelNodes.taille(); i++) {
+				if (levelNodes[i].weight > 0) {
+					count++;
+				}
+			}
+
+			if (count < minLevelLights) {
+				m_nombre_niveaux = level;
+				break;
+			}
+		}
+
+		m_niveaux.redimensionne(m_nombre_niveaux);
+
+		for (auto level = 1; level < m_nombre_niveaux; level++) {
+			auto &levelNodes = nodes[level+levelSkip];
+			auto &thisLevel = m_niveaux[level];
+			auto pos = dls::tableau<dls::math::vec3f>(levelNodes.taille());
+			auto lightCount = 0;
+
+			for (auto i = 0; i < levelNodes.taille(); i++) {
+				if (levelNodes[i].weight > 0) {
+					pos[lightCount++] = levelNodes[i].position;
+				}
+			}
+
+			thisLevel.pc.Build(lightCount, pos.donnees());
+			thisLevel.colors = dls::tableau<dls::math::vec3f>(lightCount);
+			thisLevel.pDev = dls::tableau<dls::math::vec3f>(lightCount);
+
+			for (auto i = 0, j = 0; i < levelNodes.taille(); i++) {
+				if (levelNodes[i].weight > 0) {
+					assert(j < lightCount);
+					thisLevel.colors[j] = levelNodes[i].color;
+					thisLevel.pDev[j].x = sqrtf(levelNodes[i].stdev.x) * constantes<float>::PI;
+					thisLevel.pDev[j].y = sqrtf(levelNodes[i].stdev.y) * constantes<float>::PI;
+					thisLevel.pDev[j].z = sqrtf(levelNodes[i].stdev.z) * constantes<float>::PI;
+					j++;
+				}
+			}
+
+			levelNodes.redimensionne(0);
+			levelNodes.adapte_taille();
+		}
+
+		auto pos = dls::tableau<dls::math::vec3f>(numLights);
+		m_niveaux[0].colors = dls::tableau<dls::math::vec3f>(numLights);
+
+		for (auto i=0; i<numLights; i++) {
+			pos[i] = lightPos[i];
+			m_niveaux[0].colors[i] = lightColor[i];
+		}
+
+		m_niveaux[0].pc.Build(numLights, pos.donnees());
+		this->m_taille_cellule = nodeCellSize;
+
+		return true;
+	}
+};
+
+
+class OpGrilleEclairage : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Création Grille Éclairage";
+	static constexpr auto AIDE = "";
+
+	OpGrilleEclairage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_creation_grille_eclairage.jo";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
+
+		for (auto i = 0; i < corps_entree->prims()->taille(); ++i) {
+			auto prim = corps_entree->prims()->prim(i);
+
+			if (prim->type_prim() != type_primitive::VOLUME) {
+				continue;
+			}
+
+			auto volume = dynamic_cast<Volume *>(prim);
+
+			auto grille = volume->grille;
+
+			if (grille->est_eparse() && grille->desc().type_donnees == wlk::type_grille::R32) {
+				grille_entree = dynamic_cast<wlk::grille_eparse<float> *>(grille);
+				break;
+			}
+		}
+
+		if (grille_entree == nullptr) {
+			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto intensite_min = evalue_decimal("intensité_min");
+
+		auto positions = dls::tableau<dls::math::vec3f>{};
+		auto intensites = dls::tableau<dls::math::vec3f>{};
+
+		auto plg = grille_entree->plage();
+
+		while (!plg.est_finie()) {
+			auto tuile = plg.front();
+			plg.effronte();
+
+			auto index_tuile = 0;
+			for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+				for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+					for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+						auto pos_tuile = tuile->min;
+						pos_tuile.x += i;
+						pos_tuile.y += j;
+						pos_tuile.z += k;
+
+						auto intensite = tuile->donnees[index_tuile];
+
+						if (intensite < intensite_min) {
+							continue;
+						}
+
+						auto pos_monde = grille_entree->index_vers_monde(pos_tuile);
+						positions.pousse(pos_monde);
+						intensites.pousse(dls::math::vec3f(intensite));
+					}
+				}
+			}
+		}
+
+		auto lumieres_min = evalue_entier("lumières_min");
+		auto niveaux_max = evalue_entier("niveaux_max");
+
+		auto hierarchie = LightingGridHierarchy();
+		hierarchie.Build(
+					positions.donnees(),
+					intensites.donnees(),
+					static_cast<int>(positions.taille()),
+					lumieres_min,
+					static_cast<float>(grille_entree->desc().taille_voxel),
+					niveaux_max);
+
+		auto dernier_niveau = std::max(0, hierarchie.GetNumLevels() - 1);
+
+		auto vis_niveau = evalue_entier("vis_niveau");
+		vis_niveau = dls::math::restreint(vis_niveau, 0, dernier_niveau);
+
+		auto nombre_points = hierarchie.nombre_points(vis_niveau);
+
+		for (auto i = 0; i < nombre_points; ++i) {
+			auto pos = hierarchie.GetLightPos(vis_niveau, i);
+			m_corps.ajoute_point(pos);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc("Créer volume", "", "entreface/operatrice_creation_volume.jo", cree_volume, false));
@@ -1101,4 +2122,5 @@ void enregistre_operatrices_volume(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc("Rééchantillonne Volume", "", "", reechantillonne_volume, false));
 	usine.enregistre_type(cree_desc<OpCreationVolumeTemp>());
 	usine.enregistre_type(cree_desc<OpFiltrageVolume>());
+	usine.enregistre_type(cree_desc<OpGrilleEclairage>());
 }

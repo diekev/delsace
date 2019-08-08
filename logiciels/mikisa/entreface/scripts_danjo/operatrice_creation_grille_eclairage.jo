@@ -1,0 +1,18 @@
+disposition "operatrice_creation_grille_eclairage" {
+	ligne {
+		étiquette(valeur="Intensité Minimale")
+		décimal(valeur=1.0; min=0.0; attache=intensité_min; infobulle="La plus petite valeur qu'un voxel doit avoit pour créer une lumière.")
+	}
+	ligne {
+		étiquette(valeur="Nombre Minimum Lumières")
+		entier(valeur=10; min=1; attache=lumières_min; infobulle="Le nombre minimum de lumières dans le dernier niveau.")
+	}
+	ligne {
+		étiquette(valeur="Nombre Maximum Niveaux")
+		entier(valeur=5; min=1; attache=niveaux_max; infobulle="Le nombre maximum de niveau dans la hiérarchie.")
+	}
+	ligne {
+		étiquette(valeur="Visualise Niveau")
+		entier(valeur=0; min=0; attache=vis_niveau; infobulle="L'index du niveau à visualiser.")
+	}
+}
