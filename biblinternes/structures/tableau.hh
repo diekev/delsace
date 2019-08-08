@@ -169,6 +169,11 @@ public:
 		m_vecteur.resize(static_cast<size_t>(nouvelle_taille), valeur);
 	}
 
+	void adapte_taille()
+	{
+		m_vecteur.shrink_to_fit();
+	}
+
 	long taille() const
 	{
 		return static_cast<long>(m_vecteur.size());
