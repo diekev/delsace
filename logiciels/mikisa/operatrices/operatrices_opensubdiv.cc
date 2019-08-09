@@ -53,42 +53,30 @@
 /* ************************************************************************** */
 
 struct SommetOSD {
+	dls::math::vec3f valeur{};
+
+	/* IPA requise par OSD */
+
 	SommetOSD() = default;
 
 	SommetOSD(SommetOSD const & src)
 	{
-		_position[0] = src._position[0];
-		_position[1] = src._position[1];
-		_position[2] = src._position[2];
+		valeur[0] = src.valeur[0];
+		valeur[1] = src.valeur[1];
+		valeur[2] = src.valeur[2];
 	}
 
 	void Clear( void * = nullptr )
 	{
-		_position[0] = _position[1] = _position[2] = 0.0f;
+		valeur[0] = valeur[1] = valeur[2] = 0.0f;
 	}
 
-	void AddWithWeight(SommetOSD const & src, float weight)
+	void AddWithWeight(SommetOSD const &src, float poids)
 	{
-		_position[0] += weight * src._position[0];
-		_position[1] += weight * src._position[1];
-		_position[2] += weight * src._position[2];
+		valeur[0] += poids * src.valeur[0];
+		valeur[1] += poids * src.valeur[1];
+		valeur[2] += poids * src.valeur[2];
 	}
-
-	// Public entreface ------------------------------------
-	void SetPosition(float x, float y, float z)
-	{
-		_position[0] = x;
-		_position[1] = y;
-		_position[2] = z;
-	}
-
-	const float *GetPosition() const
-	{
-		return _position;
-	}
-
-private:
-	float _position[3];
 };
 
 class OperatriceOpenSubDiv final : public OperatriceCorps {
@@ -221,7 +209,8 @@ public:
 
 		auto points_entree = corps_entree->points_pour_lecture();
 		auto nombre_sommets = points_entree->taille();
-		auto nombre_polygones = corps_entree->prims()->taille();
+		auto prims_entree = corps_entree->prims();
+		auto nombre_polygones = prims_entree->taille();
 
 		Descripteur desc;
 		desc.numVertices = static_cast<int>(nombre_sommets);
@@ -254,27 +243,90 @@ public:
 		rafineur->RefineUniform(Refineur::UniformOptions(niveau_max));
 
 		/* Alloue un tampon pouvant contenir le nombre total de sommets à
-			 * 'niveau_max' de rafinement. */
+		 * 'niveau_max' de rafinement. */
 		dls::tableau<SommetOSD> sommets_osd(rafineur->GetNumVerticesTotal());
 		SommetOSD *sommets = &sommets_osd[0];
 
-		/* Initialise les positions du maillage grossier. */
-		auto index_point = 0;
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto point = points_entree->point(i);
-			auto const v0 = corps_entree->transformation(dls::math::point3d(point));
+		dls::tableau<Attribut const *> attrs_points;
+		dls::tableau<dls::tableau<SommetOSD>> tampon_attr_points;
+		dls::tableau<SommetOSD *> ptr_attrs_pnt;
 
-			sommets[index_point++].SetPosition(static_cast<float>(v0.x), static_cast<float>(v0.y), static_cast<float>(v0.z));
+		dls::tableau<Attribut const *> attrs_prims;
+		dls::tableau<dls::tableau<SommetOSD>> tampon_attr_prims;
+		dls::tableau<SommetOSD *> ptr_attrs_prims;
+
+		for (auto const &attr : corps_entree->attributs()) {
+			if (attr.portee == portee_attr::POINT && attr.type() == type_attribut::VEC3) {
+				tampon_attr_points.pousse(dls::tableau<SommetOSD>(rafineur->GetNumVerticesTotal()));
+				attrs_points.pousse(&attr);
+			}
+
+			if (attr.portee == portee_attr::PRIMITIVE && attr.type() == type_attribut::VEC3) {
+				if (attr.nom() == "N") {
+					/* l'attribut normal ne peut-être copié */
+					continue;
+				}
+
+				tampon_attr_prims.pousse(dls::tableau<SommetOSD>(rafineur->GetNumFacesTotal()));
+				attrs_prims.pousse(&attr);
+			}
+		}
+
+		for (auto &attr : tampon_attr_points) {
+			ptr_attrs_pnt.pousse(&attr[0]);
+		}
+
+		for (auto &attr : tampon_attr_prims) {
+			ptr_attrs_prims.pousse(&attr[0]);
+		}
+
+		/* Initialise les positions du maillage grossier. */
+		for (auto i = 0; i < points_entree->taille(); ++i) {
+			sommets[i].valeur = corps_entree->point_transforme(i);
+
+			for (auto j = 0; j < attrs_points.taille(); ++j) {
+				ptr_attrs_pnt[j][i].valeur = attrs_points[j]->vec3(i);
+			}
+		}
+
+		for (auto i = 0; i < prims_entree->taille(); ++i) {
+			for (auto j = 0; j < attrs_prims.taille(); ++j) {
+				ptr_attrs_prims[j][i].valeur = attrs_prims[j]->vec3(i);
+			}
 		}
 
 		/* Entrepole les sommets */
 		OpenSubdiv::Far::PrimvarRefiner rafineur_primvar(*rafineur);
 
-		SommetOSD *src_sommets = sommets;
+		auto decalage_src = 0;
+		auto decalage_dst = 0;
+		auto decalage_src_prims = 0;
+		auto decalage_dst_prims = 0;
 		for (int niveau = 1; niveau <= niveau_max; ++niveau) {
-			auto dst_sommets = src_sommets + rafineur->GetLevel(niveau - 1).GetNumVertices();
+			decalage_dst += rafineur->GetLevel(niveau - 1).GetNumVertices();
+			decalage_dst_prims += rafineur->GetLevel(niveau - 1).GetNumFaces();
+
+			auto src_sommets = sommets + decalage_src;
+			auto dst_sommets = sommets + decalage_dst;
+
 			rafineur_primvar.Interpolate(niveau, src_sommets, dst_sommets);
-			src_sommets = dst_sommets;
+
+			for (auto j = 0; j < attrs_points.taille(); ++j) {
+				auto src_attr = ptr_attrs_pnt[j] + decalage_src;
+				auto dst_attr = ptr_attrs_pnt[j] + decalage_dst;
+
+				rafineur_primvar.InterpolateVarying(niveau, src_attr, dst_attr);
+			}
+
+			for (auto j = 0; j < attrs_prims.taille(); ++j) {
+				auto src_attr = ptr_attrs_prims[j] + decalage_src_prims;
+				auto dst_attr = ptr_attrs_prims[j] + decalage_dst_prims;
+
+				rafineur_primvar.InterpolateFaceUniform(niveau, src_attr, dst_attr);
+			}
+
+			decalage_src = decalage_dst;
+			decalage_src_prims = decalage_dst_prims;
 		}
 
 		{
@@ -291,9 +343,17 @@ public:
 			m_corps.prims()->reserve(nombre_polygones);
 
 			for (long vert = 0; vert < nombre_sommets; ++vert) {
-				float const * pos = sommets[premier_sommet + vert].GetPosition();
-				auto point = dls::math::vec3f(pos[0], pos[1], pos[2]);
-				points_sortie->pousse(point);
+				points_sortie->pousse(sommets[premier_sommet + vert].valeur);
+			}
+
+			for (auto j = 0; j < attrs_points.taille(); ++j) {
+				auto attr = attrs_points[j];
+				auto ptr = ptr_attrs_pnt[j];
+				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+
+				for (auto i = 0; i < nattr->taille(); ++i) {
+					nattr->vec3(i) = ptr[premier_sommet + i].valeur;
+				}
 			}
 
 			for (long face = 0; face < nombre_polygones; ++face) {
@@ -306,9 +366,20 @@ public:
 				}
 			}
 
-			if (attr_N != nullptr) {
+			auto premier_poly = rafineur->GetNumFacesTotal() - nombre_polygones;
+			for (auto j = 0; j < attrs_prims.taille(); ++j) {
+				auto attr = attrs_prims[j];
+				auto ptr = ptr_attrs_prims[j];
+				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+
+				for (auto i = 0; i < nattr->taille(); ++i) {
+					nattr->vec3(i) = ptr[premier_poly + i].valeur;
+				}
+			}
+
+			if (attr_N != nullptr && attr_N->portee == portee_attr::PRIMITIVE) {
 				/* À FAIRE : savoir si les normaux ont été inversé. */
-				calcul_normaux(m_corps, attr_N->portee == portee_attr::PRIMITIVE, false);
+				calcul_normaux(m_corps, true, false);
 			}
 		}
 
