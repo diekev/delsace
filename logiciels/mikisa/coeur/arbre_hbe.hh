@@ -309,6 +309,30 @@ auto construit_arbre_hbe(
 	arbre_hbe.nombre_index_refs = liste_ref_finale.taille();
 	arbre_hbe.index_refs = liste_ref_finale;
 
+#if 0
+	std::cerr << "-----------------------------------------------\n";
+	for (auto noeud : arbre_hbe.noeuds) {
+		if (!noeud.est_feuille()) {
+			continue;
+		}
+
+		std::cerr << "Nombre de réfs : "
+				  << noeud.nombre_references
+//				  << ", min : " << noeud.limites.min
+//				  << ", max : " << noeud.limites.max
+				  << ' ';
+
+		auto virgule = '(';
+		for (auto i = 0; i < noeud.nombre_references; ++i) {
+			auto id_prim = arbre_hbe.index_refs[noeud.decalage_reference + i];
+			std::cerr << virgule << id_prim;
+			virgule = ',';
+		}
+
+		std::cerr <<")\n";
+	}
+#endif
+
 	return arbre_hbe;
 }
 
@@ -324,6 +348,10 @@ inline bool operator<(ElementTraverse const &p1, ElementTraverse const &p2)
 	return p1.t < p2.t;
 }
 
+/* À FAIRE : la traversé contient un bug au niveau de l'intersection des boites
+ * englobantes de l'arbre : la désactiver nous donne un rendu de toutes les
+ * primitives, alors qu'avec certains triangles disparaissent.
+ */
 template <typename TypeDelegue>
 auto traverse(
 		ArbreHBE const &arbre,
