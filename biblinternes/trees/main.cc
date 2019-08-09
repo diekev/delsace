@@ -27,22 +27,7 @@
 
 #include "binary_tree/binary_tree.h"
 
-#include "octree/octree.h"
-#include "octree/octree_node.h"
-
 #include <iostream>
-
-/* ************************************************************************** */
-
-static void test_octree(std::ostream &os)
-{
-	octree::Octree o;
-	o(1, 2, 3) = 1.0f;
-	o(3, 2, 1) = 2.5f;
-
-	os << o(1, 2, 3) << '\n';
-	os << o(3, 2, 1) << '\n';
-}
 
 /* ************************************************************************** */
 
@@ -272,33 +257,30 @@ static void test_arborescence_pile(std::ostream &os)
 
 int main()
 {
-	constexpr auto test = 7;
+	constexpr auto test = 6;
 
 	switch (test) {
 		case 0:
-			test_octree(std::cerr);
-			break;
-		case 1:
 			test_heap_tree(std::cerr);
 			break;
-		case 2:
+		case 1:
 			test_bsearch_tree(std::cerr);
 			break;
-		case 3:
+		case 2:
 			test_binary_tree(std::cerr);
 			break;
-		case 4:
+		case 3:
 			test_arborescence_pile(std::cerr);
 			break;
-		case 5:
+		case 4:
 			test_arborescence(std::cerr);
 			break;
 #ifdef ADOBE_FORET
-		case 6:
+		case 5:
 			test_forest(std::cerr);
 			break;
 #endif
-		case 7:
+		case 6:
 			test_arbre_binaire(std::cerr);
 			break;
 	}

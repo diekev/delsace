@@ -29,8 +29,6 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
-    octree/octree_node.h
-    octree/octree.h
     binary_tree/binary_tree.h
     arborescence.h
     arborescence_pile.h
@@ -38,10 +36,7 @@ set(ENTETES
 )
 
 set(SOURCES
-    main.cc
-    octree/octree.cc
-    octree/dc_chunk.cc
-    octree/octree_node.cc
+	main.cc
 )
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
