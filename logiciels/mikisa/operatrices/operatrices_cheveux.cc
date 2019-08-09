@@ -171,7 +171,22 @@ public:
 		/* À FAIRE : biais de longueur entre [-1.0, 1.0], où -1.0 = plus de
 		 * petites courbes que de grandes, et 1.0 = plus de grandes courbes que
 		 * de petites.
+		 *
+		 * méthode :
+		 * ta = aléa(min, max)
+		 * tb = aléa(influence)
+		 * t = ta * (1 - biais) + tb * biais
 		 */
+//		auto const biais = (evalue_decimal("biais") + 1.0f) * 0.5f;
+//		auto inf_min = taille_min;
+//		auto inf_max = taille_max;
+
+//		if (biais < 0.5f) {
+//			inf_max = (taille_min + taille_max) * 0.5f;
+//		}
+//		else if (biais > 0.5f) {
+//			inf_min = (taille_min + taille_max) * 0.5f;
+//		}
 
 		int style_creation;
 
@@ -210,6 +225,9 @@ public:
 		attr_L->reserve(liste_points->taille());
 
 		for (auto i = 0; i < liste_points->taille(); ++i) {
+//			auto const ta = gna.uniforme(taille_min, taille_max);
+//			auto const tb = gna.uniforme(inf_min, inf_max);
+//			auto const taille_courbe = (tb * (1.0f - biais) + ta * biais) * multiplication_taille;
 			auto const taille_courbe = gna.uniforme(taille_min, taille_max) * multiplication_taille;
 
 			long nombre_segment;
@@ -246,6 +264,13 @@ public:
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("biais") == nullptr) {
+			this->ajoute_propriete("biais", danjo::TypePropriete::DECIMAL, 0.0f);
+		}
 	}
 };
 

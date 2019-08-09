@@ -18,6 +18,10 @@ disposition "operatrice_creation_courbes" {
 				décimal(valeur=1; attache=taille_max; min=0; infobulle="Taille max de chaque courbe."; animable)
 			}
 			ligne {
+				étiquette(valeur="Biais")
+				décimal(valeur=0.0; attache=biais; min=-1.0; max=1.0; infobulle="Définie la distribution de la taille des courbes où -1 indique plus de petites courbes, et +1 plus de grandes."; animable)
+			}
+			ligne {
 			    étiquette(valeur="Multiplication taille ")
 				décimal(valeur=1; attache=multiplication_taille; min=0; animable)
 			}
