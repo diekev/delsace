@@ -70,73 +70,6 @@ Scene::Scene()
 	texture_couleur->etablie_spectre(Spectre::depuis_rgb(rgb_monde));
 
 	monde.texture = texture;
-
-#if 0
-	/* Création du soleil. */
-	auto transformation = math::transformation();
-
-	auto soleil = new LumiereDistante(transformation, Spectre(0.95));
-	soleil->nuanceur = NuanceurEmission::defaut();
-
-	ajoute_lumiere(soleil);
-
-	transformation *= math::translation(0.0, 2.0, 4.0);
-
-	float rgb1[3] = {1.0f, 0.6f, 0.6f};
-	auto lumiere_point = new LumierePoint(transformation, Spectre::depuis_rgb(rgb1), 100);
-	ajoute_lumiere(lumiere_point);
-	lumiere_point->nuanceur = NuanceurEmission::defaut();
-
-	transformation = math::transformation();
-	transformation *= math::translation(-1.0, 4.0, -1.0);
-
-	float rgb2[3] = {0.6f, 0.6f, 1.0f};
-	lumiere_point = new LumierePoint(transformation, Spectre::depuis_rgb(rgb2), 100);
-	lumiere_point->nuanceur = NuanceurEmission::defaut();
-	ajoute_lumiere(lumiere_point);
-
-	transformation = math::transformation();
-	transformation *= math::translation(0.0, 1.0, 1.5);
-
-	auto maillage = Maillage::cree_sphere_uv();
-	maillage->transformation(transformation);
-	auto nuanceur = static_cast<NuanceurDiffus *>(NuanceurDiffus::defaut());
-
-	float rouge[3] = { 1.0f, 0.0, 0.0 };
-	nuanceur->spectre = Spectre::depuis_rgb(rouge);
-	maillage->nuanceur(nuanceur);
-
-	ajoute_maillage(maillage);
-
-	transformation = math::transformation();
-	transformation *= math::translation(0.0, 0.5, -2.0);
-	transformation *= math::echelle(0.5, 0.5, 0.5);
-
-	maillage = Maillage::cree_sphere_uv();
-	maillage->transformation(transformation);
-	maillage->nuanceur(NuanceurDiffus::defaut());
-
-	ajoute_maillage(maillage);
-
-	maillage = Maillage::cree_plan();
-	maillage->nuanceur(NuanceurDiffus::defaut());
-	ajoute_maillage(maillage);
-
-//#else
-	auto maillage = Maillage::cree_cube();
-	maillage->nuanceur(NuanceurVolume::defaut());
-
-	transformation = math::transformation();
-	transformation *= math::translation(0.0, 1.0, 0.0);
-
-	maillage->transformation(transformation);
-
-	ajoute_maillage(maillage);
-
-	maillage = Maillage::cree_plan();
-	maillage->nuanceur(NuanceurDiffus::defaut());
-	ajoute_maillage(maillage);
-#endif
 }
 
 Scene::~Scene()
@@ -205,60 +138,59 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 
 	/* Échantillone lumières. */
 	for (const Lumiere *lumiere : scene.lumieres) {
-		auto lumiere_distante = dynamic_cast<const LumiereDistante *>(lumiere);
+		switch (lumiere->type) {
+			case type_lumiere::POINT:
+			{
+				auto lumiere_point = dynamic_cast<const LumierePoint *>(lumiere);
 
-		if (lumiere_distante != nullptr) {
-			auto const direction = lumiere_distante->dir;
-			auto const direction_op = dls::math::vec3d(
-										  -direction.x,
-										  -direction.y,
-										  -direction.z);
+				auto const direction = pos - lumiere_point->pos;
+				auto const dist2 = dls::math::longueur_carree(direction);
+				auto dist = sqrt(dist2);
+				auto const direction_op = -direction / dist;
 
-			auto const angle = dls::math::produit_scalaire(direction_op, nor);
+				auto const angle = dls::math::produit_scalaire(direction_op, nor);
 
-			if (angle <= 0.0) {
-				continue;
+				if (angle <= 0.0) {
+					continue;
+				}
+
+				rayon.direction = direction_op;
+				calcul_direction_inverse(rayon);
+
+				auto const ombre = ombre_scene(parametres, scene, rayon, dist2);
+
+				if (ombre > 0.0) {
+					/* La contribution d'une lumière point est proportionelle à
+					 * l'inverse de sa distance. */
+					spectre += ((lumiere->spectre * static_cast<float>(lumiere->intensite))
+								* static_cast<float>(1.0 / (4.0 * constantes<double>::PI * dist)))
+							   * static_cast<float>(angle * ombre);
+				}
+
+				break;
 			}
+			case type_lumiere::DISTANTE:
+			{
+				auto lumiere_distante = dynamic_cast<const LumiereDistante *>(lumiere);
+				auto const direction = lumiere_distante->dir;
+				auto const direction_op = -direction;
 
-			rayon.direction = direction_op;
-			calcul_direction_inverse(rayon);
+				auto const angle = dls::math::produit_scalaire(direction_op, nor);
 
-			auto const ombre = ombre_scene(parametres, scene, rayon, 1000.0);
+				if (angle <= 0.0) {
+					continue;
+				}
 
-			if (ombre > 0.0) {
-				spectre += lumiere->spectre * static_cast<float>(lumiere->intensite * angle * ombre);
-			}
-		}
+				rayon.direction = direction_op;
+				calcul_direction_inverse(rayon);
 
-		auto lumiere_point = dynamic_cast<const LumierePoint *>(lumiere);
+				auto const ombre = ombre_scene(parametres, scene, rayon, 1000.0);
 
-		if (lumiere_point != nullptr) {
-			auto const direction = pos - lumiere_point->pos;
-			auto const dist2 = dls::math::longueur_carree(direction);
-			auto dist = sqrt(dist2);
+				if (ombre > 0.0) {
+					spectre += lumiere->spectre * static_cast<float>(lumiere->intensite * angle * ombre);
+				}
 
-			auto const direction_op = dls::math::vec3d(
-										  -direction.x / dist,
-										  -direction.y / dist,
-										  -direction.z / dist);
-
-			auto const angle = dls::math::produit_scalaire(direction_op, nor);
-
-			if (angle <= 0.0) {
-				continue;
-			}
-
-			rayon.direction = direction_op;
-			calcul_direction_inverse(rayon);
-
-			auto const ombre = ombre_scene(parametres, scene, rayon, dist2);
-
-			if (ombre > 0.0) {
-				/* La contribution d'une lumière point est proportionelle à
-				 * l'inverse de sa distance. */
-				spectre += ((lumiere->spectre * static_cast<float>(lumiere->intensite))
-							* static_cast<float>(1.0 / (4.0 * constantes<double>::PI * dist)))
-						   * static_cast<float>(angle * ombre);
+				break;
 			}
 		}
 	}

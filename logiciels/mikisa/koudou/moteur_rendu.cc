@@ -155,7 +155,6 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 
 		rayon_local.origine = contexte.P;
 
-
 		if (spectre_entresection.y() <= 0.1f) {
 			break;
 		}

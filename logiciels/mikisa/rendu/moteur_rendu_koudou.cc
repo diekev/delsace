@@ -385,9 +385,6 @@ void MoteurRenduKoudou::calcule_rendu(
 								objet->transformation,
 								Spectre::depuis_rgb(&spectre.r),
 								intensite);
-
-					lumiere_koudou->intensite = static_cast<double>(lumiere.intensite);
-					lumiere_koudou->transformation = objet->transformation;
 				}
 				else if (lumiere.type == LUMIERE_DISTANTE) {
 					auto intensite = static_cast<double>(lumiere.intensite);
@@ -398,9 +395,6 @@ void MoteurRenduKoudou::calcule_rendu(
 								objet->transformation,
 								Spectre::depuis_rgb(&spectre.r),
 								intensite);
-
-					lumiere_koudou->intensite = static_cast<double>(lumiere.intensite);
-					lumiere_koudou->transformation = objet->transformation;
 				}
 
 				scene_koudou.ajoute_lumiere(lumiere_koudou);
