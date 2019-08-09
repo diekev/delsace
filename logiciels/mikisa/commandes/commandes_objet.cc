@@ -190,6 +190,9 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 	if (nom == "caméra") {
 		bdd.cree_objet(nom, type_objet::CAMERA);
 	}
+	else if (nom == "lumière") {
+		bdd.cree_objet(nom, type_objet::LUMIERE);
+	}
 	else {
 		mikisa->affiche_erreur("Type de préréglage objet inconnu");
 		return EXECUTION_COMMANDE_ECHOUEE;

@@ -32,7 +32,14 @@ namespace kdo {
 Objet::~Objet()
 {
 	if (type == TypeObjet::LUMIERE) {
-		delete lumiere;
+		if (lumiere->type == type_lumiere::POINT) {
+			auto ptr = dynamic_cast<LumierePoint *>(lumiere);
+			memoire::deloge("kdo::LumierePoint", ptr);
+		}
+		else if (lumiere->type == type_lumiere::DISTANTE) {
+			auto ptr = dynamic_cast<LumiereDistante *>(lumiere);
+			memoire::deloge("kdo::LumiereDistante", ptr);
+		}
 	}
 	else if (type == TypeObjet::MAILLAGE) {
 		memoire::deloge("Maillage", maillage);

@@ -29,9 +29,9 @@
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/outils/fichier.hh"
 
-#include "coeur/lumiere.h"
+#include "coeur/objet.h"
 
-RenduLumiere::RenduLumiere(kdo::Lumiere *lumiere)
+RenduLumiere::RenduLumiere(Lumiere const *lumiere)
 	: m_lumiere(lumiere)
 {}
 
@@ -70,12 +70,12 @@ void RenduLumiere::initialise()
 
 	auto programme = m_tampon->programme();
 	programme->active();
-	programme->uniforme("couleur", 1.0f, 0.0f, 0.0f, 1.0f);
+	programme->uniforme("couleur", m_lumiere->spectre.r, m_lumiere->spectre.v, m_lumiere->spectre.b, m_lumiere->spectre.a);
 	programme->desactive();
 
 	dls::tableau<dls::math::vec3f> sommets;
 
-	if (m_lumiere->type == kdo::type_lumiere::POINT) {
+	if (m_lumiere->type == LUMIERE_POINT) {
 		sommets.redimensionne(6);
 
 		sommets[0] = dls::math::vec3f(-1.0f,  0.0f,  0.0f);
@@ -119,9 +119,4 @@ void RenduLumiere::initialise()
 void RenduLumiere::dessine(ContexteRendu const &contexte)
 {
 	m_tampon->dessine(contexte);
-}
-
-dls::math::mat4x4d RenduLumiere::matrice() const
-{
-	return m_lumiere->transformation.matrice();
 }

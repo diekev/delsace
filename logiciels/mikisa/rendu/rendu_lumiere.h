@@ -26,9 +26,7 @@
 
 #include "biblinternes/math/matrice.hh"
 
-namespace kdo {
 struct Lumiere;
-}
 
 class ContexteRendu;
 class TamponRendu;
@@ -39,13 +37,13 @@ class TamponRendu;
  */
 class RenduLumiere {
 	TamponRendu *m_tampon = nullptr;
-	kdo::Lumiere *m_lumiere = nullptr;
+	Lumiere const *m_lumiere = nullptr;
 
 public:
 	/**
 	 * Construit une instance de RenduLumiere pour la lumière spécifié.
 	 */
-	explicit RenduLumiere(kdo::Lumiere *lumiere);
+	explicit RenduLumiere(Lumiere const *lumiere);
 
 	RenduLumiere(RenduLumiere const &) = default;
 	RenduLumiere &operator=(RenduLumiere const &) = default;
@@ -62,10 +60,5 @@ public:
 	 * Dessine le maillage dans le contexte spécifié.
 	 */
 	void dessine(ContexteRendu const &contexte);
-
-	/**
-	 * Retourne la matrice de la lumière.
-	 */
-	dls::math::mat4x4d matrice() const;
 };
 

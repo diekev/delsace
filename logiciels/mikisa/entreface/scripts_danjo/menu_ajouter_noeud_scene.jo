@@ -3,6 +3,10 @@ menu "Noeud Scène" {
 
 	séparateur
 
+	action(valeur="Lumière"; attache=ajoute_objet; métadonnée="lumière")
+
+	séparateur
+
 	action(valeur="Objet Vide"; attache=ajoute_prereglage; métadonnée="vide")
 
 	séparateur

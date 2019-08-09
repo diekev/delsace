@@ -345,14 +345,6 @@ void MoteurRenduKoudou::calcule_rendu(
 
 	/* ********************************************************************** */
 
-	auto transformation = math::transformation();
-	transformation *= math::translation(0.0, 2.0, 4.0);
-
-	float rgb1[3] = {1.0f, 0.6f, 0.6f};
-	auto lumiere_point = new kdo::LumierePoint(transformation, Spectre::depuis_rgb(rgb1), 100);
-	scene_koudou.ajoute_lumiere(lumiere_point);
-	lumiere_point->nuanceur = kdo::NuanceurEmission::defaut();
-
 	stats.nombre_objets = 0;
 	stats.nombre_points = 0;
 	stats.nombre_polygones = 0;
@@ -362,26 +354,59 @@ void MoteurRenduKoudou::calcule_rendu(
 
 		objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
 		{
-			if (objet->type != type_objet::CORPS) {
-				return;
+			if (objet->type == type_objet::CORPS) {
+				auto const &corps = extrait_corps(donnees);
+
+				auto maillage = memoire::loge<kdo::Maillage>("Maillage");
+
+				if (possede_volume(corps)) {
+					ajoute_volume(maillage, corps);
+				}
+				else {
+					ajoute_maillage(maillage, corps);
+				}
+
+				stats.nombre_points += maillage->points.taille();
+				stats.nombre_polygones += maillage->m_triangles.taille();
+
+				scene_koudou.ajoute_maillage(maillage);
+			}
+			else if (objet->type == type_objet::LUMIERE) {
+				auto const &lumiere = extrait_lumiere(donnees);
+
+				auto lumiere_koudou = static_cast<kdo::Lumiere *>(nullptr);
+
+				if (lumiere.type == LUMIERE_POINT) {
+					auto intensite = static_cast<double>(lumiere.intensite);
+					auto spectre = lumiere.spectre;
+
+					lumiere_koudou = memoire::loge<kdo::LumierePoint>(
+								"kdo::LumierePoint",
+								objet->transformation,
+								Spectre::depuis_rgb(&spectre.r),
+								intensite);
+
+					lumiere_koudou->intensite = static_cast<double>(lumiere.intensite);
+					lumiere_koudou->transformation = objet->transformation;
+				}
+				else if (lumiere.type == LUMIERE_DISTANTE) {
+					auto intensite = static_cast<double>(lumiere.intensite);
+					auto spectre = lumiere.spectre;
+
+					lumiere_koudou = memoire::loge<kdo::LumiereDistante>(
+								"kdo::LumiereDistante",
+								objet->transformation,
+								Spectre::depuis_rgb(&spectre.r),
+								intensite);
+
+					lumiere_koudou->intensite = static_cast<double>(lumiere.intensite);
+					lumiere_koudou->transformation = objet->transformation;
+				}
+
+				scene_koudou.ajoute_lumiere(lumiere_koudou);
 			}
 
-			auto const &corps = extrait_corps(donnees);
-
-			auto maillage = memoire::loge<kdo::Maillage>("Maillage");
-
-			if (possede_volume(corps)) {
-				ajoute_volume(maillage, corps);
-			}
-			else {
-				ajoute_maillage(maillage, corps);
-			}
-
-			stats.nombre_points += maillage->points.taille();
-			stats.nombre_polygones += maillage->m_triangles.taille();
 			stats.nombre_objets += 1;
-
-			scene_koudou.ajoute_maillage(maillage);
 		});
 	}
 

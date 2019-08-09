@@ -115,6 +115,11 @@ Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 			objet->donnees = memoire::loge<DonneesCamera>("DonneesCamera", 1920, 1080);
 			break;
 		}
+		case type_objet::LUMIERE:
+		{
+			objet->donnees = memoire::loge<DonneesLumiere>("DonneesLumiere");
+			break;
+		}
 	}
 
 	auto noeud = m_graphe_objets.cree_noeud(objet->nom);

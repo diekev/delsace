@@ -51,6 +51,12 @@ Objet::~Objet()
 			memoire::deloge("DonneesCamera", ptr);
 			break;
 		}
+		case type_objet::LUMIERE:
+		{
+			auto ptr = static_cast<DonneesLumiere *>(donnees.m_ptr);
+			memoire::deloge("DonneesLumiere", ptr);
+			break;
+		}
 	}
 }
 
@@ -78,6 +84,10 @@ const char *Objet::chemin_entreface() const
 		case type_objet::CAMERA:
 		{
 			return "entreface/objet_camera.jo";
+		}
+		case type_objet::LUMIERE:
+		{
+			return "entreface/objet_lumiere.jo";
 		}
 	}
 
@@ -131,6 +141,26 @@ void Objet::ajourne_parametres()
 			camera.position(pos);
 			camera.rotation(rot * constantes<float>::POIDS_DEG_RAD);
 			camera.ajourne_pour_operatrice();
+		});
+	}
+	else if (this->type == type_objet::LUMIERE) {
+		transformation = math::construit_transformation(pos, rot, ech * echelle_uniforme);
+
+		this->donnees.accede_ecriture([this](DonneesObjet *donnees_)
+		{
+			auto &lumiere = extrait_lumiere(donnees_);
+
+			auto type_lum = evalue_enum("type");
+
+			if (type_lum == "point") {
+				lumiere.type = LUMIERE_POINT;
+			}
+			else if (type_lum == "distante") {
+				lumiere.type = LUMIERE_DISTANTE;
+			}
+
+			lumiere.intensite = evalue_decimal("intensité");
+			lumiere.spectre = evalue_couleur("spectre");
 		});
 	}
 	else {

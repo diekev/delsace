@@ -36,6 +36,7 @@
 #include "coeur/objet.h"
 
 #include "rendu_corps.h"
+#include "rendu_lumiere.h"
 
 #undef RATISSAGE
 
@@ -527,7 +528,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 			continue;
 		}
 
-		if (objet->type == type_objet::CAMERA && rendu_final) {
+		if (objet->type != type_objet::CORPS && rendu_final) {
 			continue;
 		}
 
@@ -553,6 +554,15 @@ void MoteurRenduOpenGL::calcule_rendu(
 				rendu_camera.dessine(contexte);
 
 				pile.enleve_sommet();
+			}
+			else if (objet->type == type_objet::LUMIERE) {
+				auto const &lumiere = extrait_lumiere(donnees);
+
+				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
+
+				auto rendu_lumiere = RenduLumiere(&lumiere);
+				rendu_lumiere.initialise();
+				rendu_lumiere.dessine(contexte);
 			}
 			else {
 				auto const &corps = extrait_corps(donnees);
