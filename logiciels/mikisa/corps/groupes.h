@@ -79,6 +79,8 @@ public:
 
 	void reinitialise();
 
+	bool contient(long index_poly) const;
+
 	long taille() const;
 
 	long index(long i) const;

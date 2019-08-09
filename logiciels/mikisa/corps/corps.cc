@@ -198,6 +198,12 @@ const ListePrimitives *Corps::prims() const
 	return &m_prims;
 }
 
+void Corps::supprime_primitives()
+{
+	m_prims.reinitialise();
+	m_groupes_prims.efface();
+}
+
 void Corps::reinitialise()
 {
 	m_points.reinitialise();

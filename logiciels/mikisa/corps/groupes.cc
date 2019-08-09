@@ -129,6 +129,17 @@ void GroupePrimitive::reinitialise()
 	m_primitives->efface();
 }
 
+bool GroupePrimitive::contient(long index_poly) const
+{
+	for (auto i = 0; i < m_primitives->taille(); ++i) {
+		if ((*m_primitives)[i] == index_poly) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 long GroupePrimitive::taille() const
 {
 	if (m_primitives == nullptr) {

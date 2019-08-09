@@ -126,6 +126,8 @@ struct Corps {
 
 	const ListePrimitives *prims() const;
 
+	void supprime_primitives();
+
 	void reinitialise();
 
 	Corps *copie() const;
