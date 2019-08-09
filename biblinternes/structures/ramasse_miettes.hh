@@ -56,13 +56,20 @@ public:
 		}
 
 		auto idx = m_miettes.front();
-		m_miettes.effronte();
+		m_miettes.defile();
 		return idx;
 	}
 
 	long nombre_miettes() const
 	{
 		return m_miettes.taille();
+	}
+
+	void efface()
+	{
+		while (!m_miettes.est_vide()) {
+			m_miettes.defile();
+		}
 	}
 };
 
