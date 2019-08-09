@@ -42,6 +42,37 @@ public:
 		return (m_fin - m_debut);
 	}
 };
+template <typename T>
+struct plage_iterable_liste {
+	T m_debut;
+	T m_fin;
+
+public:
+	plage_iterable_liste(T d, T f)
+		: m_debut(d)
+		, m_fin(f)
+	{}
+
+	T debut()
+	{
+		return m_debut;
+	}
+
+	T fin()
+	{
+		return m_fin;
+	}
+
+	T begin()
+	{
+		return m_debut;
+	}
+
+	T end()
+	{
+		return m_fin;
+	}
+};
 
 /**
  * Simple itérateur avant pour utiliser des boucle for basé sur des plages.
