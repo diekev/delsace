@@ -24,6 +24,8 @@
 
 #include "operatrices_visualisation.hh"
 
+#include "biblinternes/outils/gna.hh"
+
 #include "corps/iteration_corps.hh"
 #include "corps/limites_corps.hh"
 #include "corps/volume.hh"
@@ -39,13 +41,67 @@
 
 /* ************************************************************************** */
 
-static void rassemble_topologie(arbre_octernaire::noeud const *noeud, Corps &corps)
+static void rassemble_topologie(
+		arbre_octernaire::noeud const *noeud,
+		Corps &corps,
+		bool dessine_branches,
+		bool dessine_feuilles)
 {
+	dls::math::vec3f couleurs[2] = {
+		dls::math::vec3f(0.0f, 1.0f, 0.0f),
+		dls::math::vec3f(0.0f, 0.0f, 1.0f),
+	};
+
 	auto const &min = noeud->limites.min;
 	auto const &max = noeud->limites.max;
 
 	if (noeud->est_feuille) {
-		dessine_boite(corps, nullptr, min, max, dls::math::vec3f(0.0f));
+		if (dessine_feuilles) {
+			dessine_boite(corps, corps.attribut("C"), min, max, couleurs[0]);
+		}
+
+		return;
+	}
+	else if (dessine_branches) {
+		dessine_boite(corps, corps.attribut("C"), min, max, couleurs[1]);
+	}
+
+	for (int i = 0; i < arbre_octernaire::NOMBRE_ENFANTS; ++i) {
+		if (noeud->enfants[i] == nullptr) {
+			continue;
+		}
+
+		rassemble_topologie(noeud->enfants[i], corps, dessine_branches, dessine_feuilles);
+	}
+}
+
+static void rassemble_topologie(
+		arbre_octernaire const &arbre,
+		Corps &corps,
+		bool dessine_branches,
+		bool dessine_feuilles)
+{
+	corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	rassemble_topologie(arbre.racine(), corps, dessine_branches, dessine_feuilles);
+}
+
+static void colore_prims(
+		arbre_octernaire::noeud const *noeud,
+		Corps &corps,
+		Attribut *attr,
+		GNA &gna)
+{
+	if (noeud->est_feuille) {
+		auto couleur = dls::math::vec3f();
+		couleur.x = gna.uniforme(0.0f, 1.0f);
+		couleur.y = gna.uniforme(0.0f, 1.0f);
+		couleur.z = gna.uniforme(0.0f, 1.0f);
+
+		for (auto ref : noeud->refs) {
+			/* Une même primitive peut être dans plusieurs noeuds... */
+			attr->vec3(ref) = couleur;
+		}
+
 		return;
 	}
 
@@ -54,13 +110,8 @@ static void rassemble_topologie(arbre_octernaire::noeud const *noeud, Corps &cor
 			continue;
 		}
 
-		rassemble_topologie(noeud->enfants[i], corps);
+		colore_prims(noeud->enfants[i], corps, attr, gna);
 	}
-}
-
-static void rassemble_topologie(arbre_octernaire const &arbre, Corps &corps)
-{
-	rassemble_topologie(arbre.racine(), corps);
 }
 
 struct delegue_arbre_octernaire {
@@ -120,6 +171,11 @@ public:
 		return AIDE;
 	}
 
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_vis_arbre_hbe.jo";
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
@@ -144,10 +200,34 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto dessine_branches = evalue_bool("dessine_branches");
+		auto dessine_feuilles = evalue_bool("dessine_feuilles");
+		auto type_visualisation = evalue_enum("type_visualisation");
+
 		auto delegue = delegue_arbre_octernaire(*corps_entree);
 		auto arbre = arbre_octernaire::construit(delegue);
 
-		rassemble_topologie(arbre, m_corps);
+		if (type_visualisation == "topologie") {
+			if (dessine_branches || dessine_feuilles) {
+				rassemble_topologie(arbre, m_corps, dessine_branches, dessine_feuilles);
+			}
+		}
+		else if (type_visualisation == "noeuds_colorés") {
+			corps_entree->copie_vers(&m_corps);
+			auto attr = m_corps.attribut("C");
+
+			if (attr == nullptr) {
+				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			}
+			else if (attr->portee != portee_attr::PRIMITIVE) {
+				m_corps.supprime_attribut("C");
+				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			}
+
+			auto gna = GNA{};
+
+			colore_prims(arbre.racine(), m_corps, attr, gna);
+		}
 
 		return EXECUTION_REUSSIE;
 	}
@@ -155,7 +235,11 @@ public:
 
 /* ************************************************************************** */
 
-static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
+static auto rassemble_topologie(
+		ArbreHBE &arbre,
+		Corps &corps,
+		bool dessine_branches,
+		bool dessine_feuilles)
 {
 	dls::math::vec3f couleurs[2] = {
 		dls::math::vec3f(0.0f, 1.0f, 0.0f),
@@ -168,9 +252,12 @@ static auto rassemble_topologie(ArbreHBE &arbre, Corps &corps)
 		auto const &min = dls::math::converti_type_vecteur<float>(noeud.limites.min);
 		auto const &max = dls::math::converti_type_vecteur<float>(noeud.limites.max);
 
-		auto couleur = (noeud.est_feuille()) ? couleurs[0] : couleurs[1];
-
-		dessine_boite(corps, attr_C, min, max, couleur);
+		if (noeud.est_feuille() && dessine_feuilles) {
+			dessine_boite(corps, attr_C, min, max, couleurs[0]);
+		}
+		else if (!noeud.est_feuille() && dessine_branches) {
+			dessine_boite(corps, attr_C, min, max, couleurs[1]);
+		}
 	}
 }
 
@@ -198,7 +285,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_vis_arbre_hbe.jo";
 	}
 
 	const char *nom_classe() const override
@@ -214,6 +301,7 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
+
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
@@ -235,10 +323,49 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto dessine_branches = evalue_bool("dessine_branches");
+		auto dessine_feuilles = evalue_bool("dessine_feuilles");
+		auto type_visualisation = evalue_enum("type_visualisation");
+
 		auto delegue_prims = DeleguePrim(*corps_entree);
 		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
 
-		rassemble_topologie(arbre_hbe, m_corps);
+		if (type_visualisation == "topologie") {
+			if (dessine_branches || dessine_feuilles) {
+				rassemble_topologie(arbre_hbe, m_corps, dessine_branches, dessine_feuilles);
+			}
+		}
+		else if (type_visualisation == "noeuds_colorés") {
+			corps_entree->copie_vers(&m_corps);
+
+			auto attr = m_corps.attribut("C");
+
+			if (attr == nullptr) {
+				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			}
+			else if (attr->portee != portee_attr::PRIMITIVE) {
+				m_corps.supprime_attribut("C");
+				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			}
+
+			auto gna = GNA{};
+
+			for (auto noeud : arbre_hbe.noeuds) {
+				if (!noeud.est_feuille()) {
+					continue;
+				}
+
+				auto couleur = dls::math::vec3f();
+				couleur.x = gna.uniforme(0.0f, 1.0f);
+				couleur.y = gna.uniforme(0.0f, 1.0f);
+				couleur.z = gna.uniforme(0.0f, 1.0f);
+
+				for (auto i = 0; i < noeud.nombre_references; ++i) {
+					auto id_prim = arbre_hbe.index_refs[noeud.decalage_reference + i];
+					attr->vec3(id_prim) = couleur;
+				}
+			}
+		}
 
 		return EXECUTION_REUSSIE;
 	}

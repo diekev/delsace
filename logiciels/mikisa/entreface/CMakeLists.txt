@@ -186,6 +186,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_transfere_attribut.jo
 	scripts_danjo/operatrice_transformation.jo
 	scripts_danjo/operatrice_vent.jo
+	scripts_danjo/operatrice_vis_arbre_hbe.jo
 	scripts_danjo/operatrice_visionnage.jo
 	scripts_danjo/operatrice_vorticite_gaz.jo
 	scripts_danjo/parametres_projet.jo
