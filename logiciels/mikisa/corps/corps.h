@@ -26,7 +26,7 @@
 
 #include "biblinternes/math/transformation.hh"
 
-#include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/liste.hh"
 
 #include "attribut.h"
 #include "groupes.h"
@@ -69,8 +69,8 @@ struct Corps {
 
 	int type = CORPS_NUL;
 
-	using plage_attributs = dls::outils::plage_iterable<dls::tableau<Attribut *>::iteratrice>;
-	using plage_const_attributs = dls::outils::plage_iterable<dls::tableau<Attribut *>::const_iteratrice>;
+	using plage_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::iteratrice>;
+	using plage_const_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::const_iteratrice>;
 
 	Corps() = default;
 	virtual ~Corps();
@@ -87,7 +87,9 @@ struct Corps {
 
 	void supprime_attribut(dls::chaine const &nom_attribut);
 
-	Attribut *attribut(dls::chaine const &nom_attribut) const;
+	Attribut *attribut(dls::chaine const &nom_attribut);
+
+	Attribut const *attribut(dls::chaine const &nom_attribut) const;
 
 	long ajoute_point(dls::math::vec3f const &pos);
 
@@ -166,7 +168,7 @@ struct Corps {
 
 
 protected:
-	dls::tableau<Attribut *> m_attributs{};
+	dls::liste<Attribut> m_attributs{};
 
 private:
 	ListePoints3D m_points{};

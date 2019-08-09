@@ -225,9 +225,9 @@ static auto ajoute_attributs_contexte(
 	auto &gest_attrs = ctx_gen.gest_attrs;
 
 	for (auto &attr : corps.attributs()) {
-		if (attr->portee == portee) {
-			auto idx = compileuse.donnees().loge_donnees(taille_attr(attr->type()));
-			gest_attrs.ajoute_propriete(attr->nom(), converti_type_attr(attr->type()), idx);
+		if (attr.portee == portee) {
+			auto idx = compileuse.donnees().loge_donnees(taille_attr(attr.type()));
+			gest_attrs.ajoute_propriete(attr.nom(), converti_type_attr(attr.type()), idx);
 		}
 	}
 }

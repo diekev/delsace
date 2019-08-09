@@ -825,23 +825,23 @@ public:
 
 	void fusionne_attributs(Corps const *corps1, Corps const *corps2)
 	{
-		using paire_attribut = std::pair<Attribut *, Attribut *>;
+		using paire_attribut = std::pair<Attribut const *, Attribut const *>;
 		using tableau_attribut = dls::dico_desordonne<dls::chaine, paire_attribut>;
 
 		auto tableau = tableau_attribut{};
 
-		for (auto attr : corps1->attributs()) {
-			tableau.insere({attr->nom(), std::make_pair(attr, nullptr)});
+		for (auto const &attr : corps1->attributs()) {
+			tableau.insere({ attr.nom(), std::make_pair(&attr, nullptr) });
 		}
 
-		for (auto attr : corps2->attributs()) {
-			auto iter = tableau.trouve(attr->nom());
+		for (auto const &attr : corps2->attributs()) {
+			auto iter = tableau.trouve(attr.nom());
 
 			if (iter == tableau.fin()) {
-				tableau.insere({attr->nom(), std::make_pair(nullptr, attr)});
+				tableau.insere({ attr.nom(), std::make_pair(nullptr, &attr) });
 			}
 			else {
-				tableau[attr->nom()].second = attr;
+				tableau[attr.nom()].second = &attr;
 			}
 		}
 

@@ -28,6 +28,11 @@
 
 /* ************************************************************************** */
 
+static void supprime_liste(dls::tableau<char> *liste)
+{
+	memoire::deloge("attribut", liste);
+}
+
 long taille_octet_type_attribut(type_attribut type)
 {
 	switch (type) {
@@ -62,14 +67,14 @@ Attribut::Attribut(dls::chaine const &name, type_attribut type, portee_attr port
 	, portee(portee_)
 {
 	assert(taille >= 0);
-
-	m_tampon.redimensionne(taille * taille_octet_type_attribut(m_type));
+	detache();
+	m_tampon->redimensionne(taille * taille_octet_type_attribut(m_type));
 }
 
 Attribut::Attribut(Attribut const &rhs)
 	: Attribut(rhs.nom(), rhs.type(), rhs.portee, rhs.taille())
 {
-	std::copy(rhs.m_tampon.debut(), rhs.m_tampon.fin(), m_tampon.debut());
+	std::copy(rhs.m_tampon->debut(), rhs.m_tampon->fin(), m_tampon->debut());
 }
 
 type_attribut Attribut::type() const
@@ -90,43 +95,57 @@ void Attribut::nom(dls::chaine const &n)
 void Attribut::reserve(long n)
 {
 	assert(n >= 0);
-	m_tampon.reserve(n * taille_octet_type_attribut(m_type));
+	detache();
+	m_tampon->reserve(n * taille_octet_type_attribut(m_type));
 }
 
 void Attribut::redimensionne(long n)
 {
 	assert(n >= 0);
-	m_tampon.redimensionne(n * taille_octet_type_attribut(m_type));
+	detache();
+	m_tampon->redimensionne(n * taille_octet_type_attribut(m_type));
 }
 
 long Attribut::taille() const
 {
-	return m_tampon.taille() / taille_octet_type_attribut(m_type);
+	return m_tampon->taille() / taille_octet_type_attribut(m_type);
+}
+
+void Attribut::detache()
+{
+	if (m_tampon == nullptr) {
+		m_tampon = ptr_liste(memoire::loge<type_liste>("attribut"), supprime_liste);
+		return;
+	}
+
+	if (!m_tampon.unique()) {
+		m_tampon = ptr_liste(memoire::loge<type_liste>("attribut", *(m_tampon.get())), supprime_liste);
+	}
 }
 
 void Attribut::reinitialise()
 {
-	m_tampon.efface();
+	m_tampon->efface();
 }
 
 const void *Attribut::donnees() const
 {
-	return m_tampon.donnees();
+	return m_tampon->donnees();
 }
 
 void *Attribut::donnees()
 {
-	return m_tampon.donnees();
+	return m_tampon->donnees();
 }
 
 long Attribut::taille_octets() const
 {
-	return m_tampon.taille();
+	return m_tampon->taille();
 }
 
 /* ************************************************************************** */
 
-void copie_attribut(Attribut *attr_orig, long idx_orig, Attribut *attr_dest, long idx_dest)
+void copie_attribut(Attribut const *attr_orig, long idx_orig, Attribut *attr_dest, long idx_dest)
 {
 	switch (attr_orig->type()) {
 		case type_attribut::ENT8:
@@ -138,7 +157,7 @@ void copie_attribut(Attribut *attr_orig, long idx_orig, Attribut *attr_dest, lon
 		case type_attribut::MAT3:
 		case type_attribut::MAT4:
 		{
-			auto donnees_orig = static_cast<char *>(attr_orig->donnees());
+			auto donnees_orig = static_cast<char const *>(attr_orig->donnees());
 			auto donnees_dest = static_cast<char *>(attr_dest->donnees());
 
 			auto octets_type = taille_octet_type_attribut(attr_orig->type());

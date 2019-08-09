@@ -24,10 +24,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include "biblinternes/math/matrice.hh"
-
 #include "biblinternes/outils/iterateurs.h"
-
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -129,7 +129,9 @@ class Attribut {
 	dls::chaine m_nom;
 	type_attribut m_type;
 
-	dls::tableau<char> m_tampon{};
+	using type_liste = dls::tableau<char>;
+	using ptr_liste = std::shared_ptr<type_liste>;
+	ptr_liste m_tampon{};
 
 public:
 	portee_attr portee;
@@ -162,7 +164,8 @@ public:
 		assert(idx >= 0);
 		assert(idx < taille());
 		assert(this->type() == type_attribut_depuis_type<T>::type);
-		return *reinterpret_cast<T *>(&m_tampon[idx * static_cast<long>(sizeof(T))]);
+		detache();
+		return *reinterpret_cast<T *>(&(*m_tampon)[idx * static_cast<long>(sizeof(T))]);
 	}
 
 	template <typename T>
@@ -171,12 +174,13 @@ public:
 		assert(idx >= 0);
 		assert(idx < taille());
 		assert(this->type() == type_attribut_depuis_type<T>::type);
-		return *reinterpret_cast<T const *>(&m_tampon[idx * static_cast<long>(sizeof(T))]);
+		return *reinterpret_cast<T const *>(&(*m_tampon)[idx * static_cast<long>(sizeof(T))]);
 	}
 
 	template <typename T>
 	auto valeur(long idx, T const &v)
 	{
+		detache();
 		this->valeur<T>(idx) = v;
 	}
 
@@ -193,15 +197,18 @@ public:
 	template <typename T>
 	auto pousse(T const &v)
 	{
+		detache();
 		redimensionne(taille() + 1);
 		this->valeur<T>(taille() - 1) = v;
 	}
+
+	void detache();
 };
 
 /* ************************************************************************** */
 
 void copie_attribut(
-		Attribut *attr_orig,
+		Attribut const *attr_orig,
 		long idx_orig,
 		Attribut *attr_dest,
 		long idx_dest);

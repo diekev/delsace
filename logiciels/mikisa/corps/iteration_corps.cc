@@ -27,7 +27,7 @@
 #include "corps.h"
 #include "volume.hh"
 
-void pour_chaque_polygone(const Corps &corps, type_fonc_rap_poly fonction_rappel)
+void pour_chaque_polygone(Corps &corps, type_fonc_rap_poly fonction_rappel)
 {
 	auto prims = corps.prims();
 
@@ -43,7 +43,7 @@ void pour_chaque_polygone(const Corps &corps, type_fonc_rap_poly fonction_rappel
 	}
 }
 
-void pour_chaque_polygone_ferme(Corps const &corps, type_fonc_rap_poly fonction_rappel)
+void pour_chaque_polygone_ferme(Corps &corps, type_fonc_rap_poly fonction_rappel)
 {
 	auto prims = corps.prims();
 
@@ -64,7 +64,7 @@ void pour_chaque_polygone_ferme(Corps const &corps, type_fonc_rap_poly fonction_
 	}
 }
 
-void pour_chaque_polygone_ouvert(Corps const &corps, type_fonc_rap_poly fonction_rappel)
+void pour_chaque_polygone_ouvert(Corps &corps, type_fonc_rap_poly fonction_rappel)
 {
 	auto prims = corps.prims();
 
@@ -85,7 +85,7 @@ void pour_chaque_polygone_ouvert(Corps const &corps, type_fonc_rap_poly fonction
 	}
 }
 
-void pour_chaque_primitive(Corps const &corps, type_fonc_rap_prim fonction_rappel)
+void pour_chaque_primitive(Corps &corps, type_fonc_rap_prim fonction_rappel)
 {
 	auto prims = corps.prims();
 
@@ -95,7 +95,94 @@ void pour_chaque_primitive(Corps const &corps, type_fonc_rap_prim fonction_rappe
 	}
 }
 
-void pour_chaque_volume(Corps const &corps, type_fonc_rap_volume fonction_rappel)
+void pour_chaque_volume(Corps &corps, type_fonc_rap_volume fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() != type_primitive::VOLUME) {
+			continue;
+		}
+
+		auto volume = dynamic_cast<Volume *>(prim);
+
+		fonction_rappel(corps, volume);
+	}
+}
+
+/* versions const */
+
+void pour_chaque_polygone(const Corps &corps, type_fonc_rap_poly_const fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() != type_primitive::POLYGONE) {
+			continue;
+		}
+
+		auto polygone = dynamic_cast<Polygone *>(prim);
+		fonction_rappel(corps, polygone);
+	}
+}
+
+void pour_chaque_polygone_ferme(Corps const &corps, type_fonc_rap_poly_const fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() != type_primitive::POLYGONE) {
+			continue;
+		}
+
+		auto polygone = dynamic_cast<Polygone *>(prim);
+
+		if (polygone->type != type_polygone::FERME) {
+			continue;
+		}
+
+		fonction_rappel(corps, polygone);
+	}
+}
+
+void pour_chaque_polygone_ouvert(Corps const &corps, type_fonc_rap_poly_const fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() != type_primitive::POLYGONE) {
+			continue;
+		}
+
+		auto polygone = dynamic_cast<Polygone *>(prim);
+
+		if (polygone->type != type_polygone::OUVERT) {
+			continue;
+		}
+
+		fonction_rappel(corps, polygone);
+	}
+}
+
+void pour_chaque_primitive(Corps const &corps, type_fonc_rap_prim_const fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+		fonction_rappel(corps, prim);
+	}
+}
+
+void pour_chaque_volume(Corps const &corps, type_fonc_rap_volume_const fonction_rappel)
 {
 	auto prims = corps.prims();
 

@@ -487,14 +487,14 @@ public:
 
 				ss << "<hr/>";
 
-				ss << "<p>Attributs : " << corps->attributs().taille() << "</p>";
+				ss << "<p>Attributs : </p>";
 
-				for (auto attr : corps->attributs()) {
+				for (auto const &attr : corps->attributs()) {
 					ss << "<p>"
-					   << attr->nom()
+					   << attr.nom()
 					   << " : "
-					   << chaine_attribut(attr->type())
-					   << " (" << chaine_portee(attr->portee) << ")"
+					   << chaine_attribut(attr.type())
+					   << " (" << chaine_portee(attr.portee) << ")"
 					   << "</p>";
 				}
 

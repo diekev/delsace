@@ -120,14 +120,14 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
-		dls::tableau<std::pair<Attribut *, Attribut *>> paires_attrs;
-		paires_attrs.reserve(corps->attributs().taille());
+		dls::tableau<std::pair<Attribut const *, Attribut *>> paires_attrs;
+		//paires_attrs.reserve(corps->attributs().taille());
 
-		for (auto attr : corps->attributs()) {
-			auto attr2 = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+		for (auto const &attr : corps->attributs()) {
+			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
 
-			if (attr->portee == portee_attr::POINT) {
-				paires_attrs.pousse({ attr, attr2 });
+			if (attr.portee == portee_attr::POINT) {
+				paires_attrs.pousse({ &attr, attr2 });
 			}
 
 			/* À FAIRE : copie attributs restants. */

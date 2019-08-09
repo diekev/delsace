@@ -45,7 +45,7 @@ bool Corps::possede_attribut(dls::chaine const &nom_attribut)
 
 void Corps::ajoute_attribut(Attribut *attr)
 {
-	this->m_attributs.pousse(attr);
+	this->m_attributs.pousse(*attr);
 }
 
 Attribut *Corps::ajoute_attribut(
@@ -90,8 +90,9 @@ Attribut *Corps::ajoute_attribut(
 			}
 		}
 
-		attr = memoire::loge<Attribut>("Attribut", nom_attribut, type_, portee, taille_attrib);
-		m_attributs.pousse(attr);
+		auto nattr = Attribut(nom_attribut, type_, portee, taille_attrib);
+		m_attributs.pousse(nattr);
+		attr = &m_attributs.back();
 	}
 
 	return attr;
@@ -100,28 +101,39 @@ Attribut *Corps::ajoute_attribut(
 void Corps::supprime_attribut(dls::chaine const &nom_attribut)
 {
 	auto iter = std::find_if(m_attributs.debut(), m_attributs.fin(),
-							 [&](Attribut *attr)
+							 [&](Attribut const &attr)
 	{
-		return attr->nom() == nom_attribut;
+		return attr.nom() == nom_attribut;
 	});
 
 	if (iter == m_attributs.fin()) {
 		return;
 	}
 
-	memoire::deloge("Attribut", *iter);
-
-	m_attributs.erase(iter);
+	m_attributs.efface(iter);
 }
 
-Attribut *Corps::attribut(dls::chaine const &nom_attribut) const
+Attribut *Corps::attribut(const dls::chaine &nom_attribut)
 {
-	for (auto const &attr : m_attributs) {
-		if (attr->nom() != nom_attribut) {
+	for (auto &attr : m_attributs) {
+		if (attr.nom() != nom_attribut) {
 			continue;
 		}
 
-		return attr;
+		return &attr;
+	}
+
+	return nullptr;
+}
+
+Attribut const *Corps::attribut(dls::chaine const &nom_attribut) const
+{
+	for (auto const &attr : m_attributs) {
+		if (attr.nom() != nom_attribut) {
+			continue;
+		}
+
+		return &attr;
 	}
 
 	return nullptr;
@@ -209,10 +221,6 @@ void Corps::reinitialise()
 	m_points.reinitialise();
 	m_prims.reinitialise();
 
-	for (auto &attribut : m_attributs) {
-		memoire::deloge("Attribut", attribut);
-	}
-
 	m_attributs.efface();
 
 	m_groupes_prims.efface();
@@ -242,10 +250,8 @@ void Corps::copie_vers(Corps *corps) const
 	corps->m_prims = this->m_prims;
 
 	/* copie les attributs */
-	for (Attribut *attr : this->m_attributs) {
-		auto attr_corps = memoire::loge<Attribut>("Attribut", *attr);
-
-		corps->m_attributs.pousse(attr_corps);
+	for (auto attr : this->m_attributs) {
+		corps->m_attributs.pousse(attr);
 	}
 
 	/* copie les groupes */

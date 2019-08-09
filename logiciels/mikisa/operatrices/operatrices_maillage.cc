@@ -402,17 +402,17 @@ public:
 		corps_entree->copie_vers(&m_corps);
 
 		/* À FAIRE : attributs vertex */
-		auto paires_attrs = dls::tableau<std::pair<Attribut *, Attribut *>>();
+		auto paires_attrs = dls::tableau<std::pair<Attribut const *, Attribut *>>();
 
-		for (auto attr : corps_entree->attributs()) {
-			if (attr->portee == portee_attr::PRIMITIVE) {
-				auto nattr = m_corps.attribut(attr->nom());
+		for (auto const &attr : corps_entree->attributs()) {
+			if (attr.portee == portee_attr::PRIMITIVE) {
+				auto nattr = m_corps.attribut(attr.nom());
 				nattr->reinitialise();
 
-				paires_attrs.pousse({ attr, nattr });
+				paires_attrs.pousse({ &attr, nattr });
 			}
-			else if (attr->portee == portee_attr::VERTEX) {
-				m_corps.supprime_attribut(attr->nom());
+			else if (attr.portee == portee_attr::VERTEX) {
+				m_corps.supprime_attribut(attr.nom());
 			}
 		}
 
@@ -458,7 +458,7 @@ public:
 	void copie_donnees(
 			Polygone *poly,
 			Polygone *npoly,
-			dls::tableau<std::pair<Attribut *, Attribut *>> const &paires_attrs,
+			dls::tableau<std::pair<Attribut const *, Attribut *>> const &paires_attrs,
 			dls::tableau<std::pair<GroupePrimitive const *, GroupePrimitive *>> const &paires_grps)
 	{
 		for (auto paire : paires_attrs) {

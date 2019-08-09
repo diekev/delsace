@@ -182,7 +182,7 @@ public:
 			style_creation = STYLE_CREATION_LONGUEUR;
 		}
 
-		Attribut *attr_N = nullptr;
+		Attribut const *attr_N = nullptr;
 		int direction;
 
 		if (chaine_direction == "normal") {

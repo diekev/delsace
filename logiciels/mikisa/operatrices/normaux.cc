@@ -44,7 +44,7 @@ static auto acos(T fac)
 }
 
 /* calcul les normaux pour chaque polygone, ne les normalise pas */
-static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
+static auto rappel_calcul_normal_poly(Corps &corps, Polygone *poly)
 {
 	auto attr_N = corps.attribut("N_poly");
 	auto points = corps.points_pour_lecture();
@@ -115,7 +115,7 @@ static auto rappel_calcul_normal_poly(Corps const &corps, Polygone *poly)
 }
 
 /* accumule les normaux non "normalisés" des faces adjacentes */
-static auto rappel_pesee_normal_aire(Corps const &corps, Polygone *poly)
+static auto rappel_pesee_normal_aire(Corps &corps, Polygone *poly)
 {
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
@@ -131,7 +131,7 @@ static auto rappel_pesee_normal_aire(Corps const &corps, Polygone *poly)
 
 /* normalise les normaux des faces adjacentes et pondère selon l'angle au niveau
  * du vertex */
-static auto rappel_pesee_normal_angle(Corps const &corps, Polygone *poly)
+static auto rappel_pesee_normal_angle(Corps &corps, Polygone *poly)
 {
 	auto points = corps.points_pour_lecture();
 	auto attr_N_poly = corps.attribut("N_poly");
@@ -169,7 +169,7 @@ static auto rappel_pesee_normal_angle(Corps const &corps, Polygone *poly)
 }
 
 /* accumule les normaux "normalisés" des faces adjacentes */
-static auto rappel_pesee_normal_moyenne(Corps const &corps, Polygone *poly)
+static auto rappel_pesee_normal_moyenne(Corps &corps, Polygone *poly)
 {
 	auto attr_N_poly = corps.attribut("N_poly");
 	auto attr_N = corps.attribut("N");
@@ -185,7 +185,7 @@ static auto rappel_pesee_normal_moyenne(Corps const &corps, Polygone *poly)
 
 /* accumule les normaux des faces adjacentes et pondère selon l'inverse du
  * produit de la taille des côtés adjacents au vertex */
-static auto rappel_pesee_normal_max(Corps const &corps, Polygone *poly)
+static auto rappel_pesee_normal_max(Corps &corps, Polygone *poly)
 {
 	auto points = corps.points_pour_lecture();
 

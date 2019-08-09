@@ -275,8 +275,8 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 void ajoute_polygone_surface(
 		Polygone *polygone,
 		ListePoints3D const *liste_points,
-		Attribut *attr_normaux,
-		Attribut *attr_couleurs,
+		Attribut const *attr_normaux,
+		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &normaux,
 		dls::tableau<dls::math::vec3f> &couleurs)
@@ -353,7 +353,7 @@ void ajoute_polygone_surface(
 void ajoute_polygone_segment(
 		Polygone *polygone,
 		ListePoints3D const *liste_points,
-		Attribut *attr_couleurs,
+		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &couleurs)
 {

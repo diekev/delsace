@@ -171,8 +171,8 @@ void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaine
 		return;
 	}
 
-	for (auto attributs : corps->attributs()) {
-		chaines.pousse(attributs->nom());
+	for (auto const &attributs : corps->attributs()) {
+		chaines.pousse(attributs.nom());
 	}
 }
 
