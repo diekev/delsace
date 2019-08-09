@@ -68,7 +68,7 @@ struct Poseidon {
 
 	bruit_vaguelette bruit{};
 
-	dls::tableau<Particule *> particules{};
+	particules parts{};
 	GrilleParticule grille_particule{};
 
 	float dt = 0.0f;

@@ -25,21 +25,215 @@
 #pragma once
 
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/ramasse_miettes.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "wolika/grille_dense.hh"
 
 namespace psn {
 
-struct Particule {
-	dls::math::vec3f pos{};
-	float densite{};
+struct particules {
+	using type_index = long;
+	using type_scalaire = float;
+	using type_vecteur = dls::math::vec3f;
+
+	enum class type_champs {
+		R32,
+		VEC3,
+	};
+
+	struct champs {
+		dls::tableau<char> donnees{};
+		dls::chaine nom{};
+		type_champs type{};
+		int pad{};
+
+		void redimensionne(type_index ntaille)
+		{
+			auto n = 0l;
+
+			switch (type) {
+				case type_champs::R32:
+				{
+					n = ntaille * static_cast<long>(sizeof(type_scalaire));
+					break;
+				}
+				case type_champs::VEC3:
+				{
+					n = ntaille * static_cast<long>(sizeof(type_vecteur));
+					break;
+				}
+			}
+
+			donnees.redimensionne(n);
+		}
+	};
+
+private:
+	dls::tableau<champs> m_champs{};
+	dls::ramasse_miette<type_index> m_ramasse_miettes{-1};
+	type_index m_nombre_particules{};
+
+	champs *trouve_champs(dls::chaine const &nom)
+	{
+		for (auto &chm : m_champs) {
+			if (chm.nom == nom) {
+				return &chm;
+			}
+		}
+
+		return nullptr;
+	}
+
+	champs const *trouve_champs(dls::chaine const &nom) const
+	{
+		for (auto &chm : m_champs) {
+			if (chm.nom == nom) {
+				return &chm;
+			}
+		}
+
+		return nullptr;
+	}
+
+public:
+	static particules construit_systeme_gaz()
+	{
+		auto parts = particules();
+
+		auto requiers_temperature = false;
+		auto requiers_couleur = false;
+		auto requiers_divergence = false;
+		auto requiers_feu = false;
+
+		parts.ajoute_champs("position", type_champs::VEC3);
+		//parts.ajoute_champs("position_prev", type_champs::VEC3);
+		//parts.ajoute_champs("vélocité", type_champs::VEC3);
+		//parts.ajoute_champs("vélocité_prev", type_champs::VEC3);
+		parts.ajoute_champs("densité", type_champs::R32);
+		//parts.ajoute_champs("pression", type_champs::R32);
+
+		if (requiers_temperature) {
+			parts.ajoute_champs("température", type_champs::R32);
+		}
+
+		if (requiers_divergence) {
+			parts.ajoute_champs("divergence", type_champs::R32);
+		}
+
+		if (requiers_feu) {
+			parts.ajoute_champs("fioul", type_champs::R32);
+			parts.ajoute_champs("réaction", type_champs::R32);
+			parts.ajoute_champs("feu", type_champs::R32);
+		}
+
+		if (requiers_couleur) {
+			parts.ajoute_champs("couleur", type_champs::VEC3);
+		}
+
+		return parts;
+	}
+
+	void efface()
+	{
+		for (auto &chm : m_champs) {
+			chm.donnees.efface();
+		}
+
+		m_nombre_particules = 0;
+		m_ramasse_miettes.efface();
+	}
+
+	void ajoute_champs(dls::chaine const &nom, type_champs type)
+	{
+		auto chm = champs{};
+		chm.nom = nom;
+		chm.type = type;
+
+		m_champs.pousse(chm);
+	}
+
+	type_index ajoute_particule()
+	{
+		auto index = m_ramasse_miettes.trouve_miette();
+
+		if (index == -1) {
+			index = m_nombre_particules;
+			m_nombre_particules += 1;
+
+			for (auto &chm : m_champs) {
+				chm.redimensionne(m_nombre_particules);
+			}
+		}
+
+		return index;
+	}
+
+	void enleve_particule(type_index idx)
+	{
+		m_ramasse_miettes.ajoute_miette(idx);
+	}
+
+	void compresse()
+	{
+		/* À FAIRE */
+	}
+
+	type_index taille() const
+	{
+		return m_nombre_particules;
+	}
+
+	type_scalaire *champs_scalaire(dls::chaine const &nom)
+	{
+		auto chm = trouve_champs(nom);
+
+		if (chm == nullptr) {
+			return nullptr;
+		}
+
+		return reinterpret_cast<type_scalaire *>(chm->donnees.donnees());
+	}
+
+	type_scalaire const *champs_scalaire(dls::chaine const &nom) const
+	{
+		auto chm = trouve_champs(nom);
+
+		if (chm == nullptr) {
+			return nullptr;
+		}
+
+		return reinterpret_cast<type_scalaire const *>(chm->donnees.donnees());
+	}
+
+	type_vecteur *champs_vectoriel(dls::chaine const &nom)
+	{
+		auto chm = trouve_champs(nom);
+
+		if (chm == nullptr) {
+			return nullptr;
+		}
+
+		return reinterpret_cast<type_vecteur *>(chm->donnees.donnees());
+	}
+
+	type_vecteur const *champs_vectoriel(dls::chaine const &nom) const
+	{
+		auto chm = trouve_champs(nom);
+
+		if (chm == nullptr) {
+			return nullptr;
+		}
+
+		return reinterpret_cast<type_vecteur const *>(chm->donnees.donnees());
+	}
 };
 
 struct GrilleParticule {
 private:
 	wlk::grille_dense_3d<int> m_grille{};
-	dls::tableau< dls::tableau<Particule *>> m_cellules{};
+	dls::tableau< dls::tableau<int>> m_cellules{};
 
 public:
 	GrilleParticule() = default;
@@ -48,7 +242,7 @@ public:
 		: m_grille(desc, -1)
 	{}
 
-	dls::tableau<Particule *> &cellule(long idx)
+	dls::tableau<int> &cellule(long idx)
 	{
 		auto idx_cellule = m_grille.valeur(idx);
 
@@ -62,12 +256,12 @@ public:
 		return m_cellules.back();
 	}
 
-	dls::tableau<Particule *> voisines_cellules(
+	dls::tableau<int> voisines_cellules(
 			const dls::math::vec3i& index,
 			const dls::math::vec3i& numberOfNeighbors)
 	{
 		//loop through neighbors, for each neighbor, check if cell has particles and push back contents
-		dls::tableau<Particule *> neighbors;
+		dls::tableau<int> neighbors;
 
 		auto ix = index.x;
 		auto iy = index.y;
@@ -105,17 +299,19 @@ public:
 		return neighbors;
 	}
 
-	void tri(dls::tableau<Particule *> const &particles)
+	void tri(particules const &parts)
 	{
 		for (auto &cellule : m_cellules) {
 			cellule.efface();
 		}
 
-		for (auto p : particles) {
-			auto pos_idx = m_grille.monde_vers_index(p->pos);
+		auto pos = parts.champs_vectoriel("position");
+
+		for (auto i = 0; i < parts.taille(); ++i) {
+			auto pos_idx = m_grille.monde_vers_index(pos[i]);
 			auto idx = m_grille.calcul_index(pos_idx);
 			auto &cellule_idx = this->cellule(idx);
-			cellule_idx.pousse(p);
+			cellule_idx.pousse(i);
 		}
 	}
 };

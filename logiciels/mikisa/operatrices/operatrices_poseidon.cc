@@ -425,6 +425,9 @@ void transfere_particules_grille(Poseidon &poseidon)
 
 	using type_kernel = KernelBSP2;
 
+	auto dens_parts = poseidon.parts.champs_scalaire("densité");
+	auto pos_parts  = poseidon.parts.champs_vectoriel("position");
+
 	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
@@ -446,8 +449,8 @@ void transfere_particules_grille(Poseidon &poseidon)
 			auto poids = 0.0f;
 
 			for (auto pv : voisines) {
-				auto r = type_kernel::poids(pos_monde - pv->pos, dx_inv);
-				valeur += r * pv->densite;
+				auto r = type_kernel::poids(pos_monde - pos_parts[pv], dx_inv);
+				valeur += r * dens_parts[pv];
 				poids += r;
 			}
 
@@ -743,7 +746,7 @@ public:
 		if (m_poseidon.solveur_flip) {
 			/* commence par trier les particules, car nous aurons besoin d'une
 			 * grille triée pour vérifier l'insertion de particules */
-			m_poseidon.grille_particule.tri(m_poseidon.particules);
+			m_poseidon.grille_particule.tri(m_poseidon.parts);
 		}
 
 		psn::ajourne_sources(m_poseidon, contexte.temps_courant);
@@ -793,8 +796,10 @@ public:
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
 
-		for (auto p : m_poseidon.particules) {
-			m_corps.ajoute_point(p->pos);
+		auto pos_parts = m_poseidon.parts.champs_vectoriel("position");
+
+		for (auto i = 0; i < m_poseidon.parts.taille(); ++i) {
+			m_corps.ajoute_point(pos_parts[i]);
 			attr_C->pousse(dls::math::vec3f(0.435f, 0.284f, 0.743f));
 		}
 
@@ -861,6 +866,8 @@ public:
 		m_poseidon.drapeaux = memoire::loge<wlk::grille_dense_3d<int>>("grilles", desc);
 
 		m_poseidon.velocite = memoire::loge<wlk::GrilleMAC>("grilles", desc);
+
+		m_poseidon.parts = psn::particules::construit_systeme_gaz();
 	}
 
 	void supprime_grilles()
@@ -955,13 +962,16 @@ public:
 			/* advecte particules */
 			auto echant = wlk::Echantilloneuse(*velocite);
 			auto mult = poseidon_gaz->dt * static_cast<float>(velocite->desc().taille_voxel);
-			tbb::parallel_for(0l, poseidon_gaz->particules.taille(),
+
+			auto pos_parts = poseidon_gaz->parts.champs_vectoriel("position");
+
+			tbb::parallel_for(0l, poseidon_gaz->parts.taille(),
 							  [&](long i)
 			{
-				auto p = poseidon_gaz->particules[i];
-				auto pos = velocite->monde_vers_continu(p->pos);
+				auto &p = pos_parts[i];
+				auto pos = velocite->monde_vers_continu(p);
 
-				p->pos += echant.echantillone_trilineaire(pos) * mult;
+				p += echant.echantillone_trilineaire(pos) * mult;
 			});
 		}
 		else {

@@ -264,9 +264,11 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 				nombre_a_genere = 8;
 			}
 			else {
+				auto dens_parts = poseidon.parts.champs_scalaire("densité");
+
 				/* calcul la densité, compose avec les particules courantes */
 				for (auto p : cellule_part) {
-					densite_courante += p->densite;
+					densite_courante += dens_parts[p];
 				}
 
 				/* s'il y a plus que 8 particules, nous aurons un nombre négatif
@@ -281,20 +283,25 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 
 			if (nombre_a_genere > 0) {
 				for (auto i = 0; i < nombre_a_genere; ++i) {
-					auto particule = memoire::loge<Particule>("part_psn");
-					particule->densite = densite_finale / static_cast<float>(nombre_a_genere);
-					particule->pos = centre_voxel;
-					particule->pos.x += gna_part.uniforme(-dx2, dx2);
-					particule->pos.y += gna_part.uniforme(-dx2, dx2);
-					particule->pos.z += gna_part.uniforme(-dx2, dx2);
+					auto index = poseidon.parts.ajoute_particule();
 
-					poseidon.particules.pousse(particule);
-					cellule_part.pousse(particule);
+					/* ajoute particule peut modifier les pointeurs */
+					auto dens_parts = poseidon.parts.champs_scalaire("densité");
+					auto pos_parts = poseidon.parts.champs_vectoriel("position");
+
+					dens_parts[index] = densite_finale / static_cast<float>(nombre_a_genere);
+					auto p = centre_voxel;
+					p.x += gna_part.uniforme(-dx2, dx2);
+					p.y += gna_part.uniforme(-dx2, dx2);
+					p.z += gna_part.uniforme(-dx2, dx2);
+					pos_parts[index] = p;
 				}
 			}
 			else {
+				auto dens_parts = poseidon.parts.champs_scalaire("densité");
+
 				for (auto p : cellule_part) {
-					p->densite = densite_finale / static_cast<float>(cellule_part.taille());
+					dens_parts[p] = densite_finale / static_cast<float>(cellule_part.taille());
 				}
 			}
 		}
@@ -350,11 +357,7 @@ Poseidon::~Poseidon()
 
 void Poseidon::supprime_particules()
 {
-	for (auto p : particules) {
-		memoire::deloge("part_psn", p);
-	}
-
-	particules.efface();
+	parts.efface();
 }
 
 }  /* namespace psn */
