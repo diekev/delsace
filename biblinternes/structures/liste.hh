@@ -33,6 +33,8 @@ namespace dls {
 template <typename T>
 struct liste {
 	using type_liste = std::list<T, memoire::logeuse_guardee<T>>;
+	using iteratrice = typename type_liste::iterator;
+	using const_iteratrice = typename type_liste::const_iterator;
 
 private:
 	type_liste m_liste{};
@@ -93,8 +95,10 @@ public:
 		m_liste.clear();
 	}
 
-	using iteratrice = typename type_liste::iterator;
-	using const_iteratrice = typename type_liste::const_iterator;
+	void efface(iteratrice iter)
+	{
+		m_liste.erase(iter);
+	}
 
 	iteratrice debut()
 	{
