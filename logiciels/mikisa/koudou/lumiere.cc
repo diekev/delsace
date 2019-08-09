@@ -51,8 +51,8 @@ LumiereDistante::LumiereDistante(math::transformation const &transform, Spectre 
 	: Lumiere(transform)
 {
 	this->type = type_lumiere::DISTANTE;
-	this->spectre = spectre;
-	this->intensite = intensite;
+	this->spectre = spec;
+	this->intensite = intens;
 
 	transform(dls::math::vec3d(0.0, 0.0, -1.0), &this->dir);
 	this->dir = dls::math::normalise(this->dir);
