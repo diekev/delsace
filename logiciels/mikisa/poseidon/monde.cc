@@ -289,7 +289,14 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 					auto dens_parts = poseidon.parts.champs_scalaire("densité");
 					auto pos_parts = poseidon.parts.champs_vectoriel("position");
 
-					dens_parts[index] = densite_finale / static_cast<float>(nombre_a_genere);
+					auto d = densite_finale / static_cast<float>(nombre_a_genere);
+
+					if (d < 0.0f) {
+						d = 0.0f;
+					}
+
+					dens_parts[index] = d;
+
 					auto p = centre_voxel;
 					p.x += gna_part.uniforme(-dx2, dx2);
 					p.y += gna_part.uniforme(-dx2, dx2);
