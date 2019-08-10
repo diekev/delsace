@@ -91,6 +91,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 
 	auto spectre_pixel = Spectre(0.0);
 	auto spectre_entresection = Spectre(1.0);
+	auto spectre_alpha = Spectre(0.0);
 
 	dls::phys::rayond rayon_local = rayon;
 	rayon_local.distance_max = 1000.0;
@@ -105,7 +106,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 			if (i == 0) {
 				auto vecteur = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
-				return spectre_monde(scene.monde, vecteur);
+				return spectre_pixel * spectre_alpha + spectre_monde(scene.monde, vecteur);
 			}
 
 			break;
@@ -137,6 +138,10 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 			spectre_entresection *= transmittance;
 			spectre_pixel += poids * spectre_entresection * Lv;
 
+			spectre_alpha += Spectre(1.0) - transmittance;
+
+			rayon_local = wo;
+
 			delete volume;
 		}
 		else {
@@ -149,9 +154,9 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 			spectre_pixel += spectre_entresection;
 
 			delete bsdf;
-		}
 
-		rayon_local.origine = contexte.P;
+			rayon_local.origine = contexte.P;
+		}
 
 		if (spectre_entresection.y() <= 0.1f) {
 			break;

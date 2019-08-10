@@ -110,7 +110,7 @@ BSDF *NuanceurVolume::cree_BSDF(ContexteNuancage &ctx)
 
 Volume *NuanceurVolume::cree_volume(ContexteNuancage &ctx)
 {
-	return new VolumeHeterogeneDiffusionSimple(ctx);
+	return new VolumeLoiBeers(ctx);
 }
 
 bool NuanceurVolume::a_volume() const

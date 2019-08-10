@@ -60,7 +60,15 @@ bool VolumeLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectr
 
 	auto P = rayon_local.origine + isect.distance * rayon_local.direction;
 	L = Spectre(1.0);
-	tr = transmittance(gna, parametres, P, contexte.P);
+	//tr = transmittance(gna, parametres, P, contexte.P);
+
+	auto const distance = static_cast<float>(isect.distance);
+
+	tr = Spectre();
+	tr[0] = std::exp(absorption[0] * -distance);
+	tr[1] = std::exp(absorption[1] * -distance);
+	tr[2] = std::exp(absorption[2] * -distance);
+
 	poids = Spectre(1.0);
 	wo.origine = P;
 	wo.direction = contexte.rayon.direction;

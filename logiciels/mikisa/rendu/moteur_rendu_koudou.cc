@@ -165,8 +165,8 @@ static auto volume_prim(Corps const &corps)
 
 static void ajoute_volume(kdo::Maillage *maillage, Corps const &corps)
 {
-	maillage->nuanceur(kdo::NuanceurDiffus::defaut());
-	//maillage->nuanceur(kdo::NuanceurVolume::defaut());
+	//maillage->nuanceur(kdo::NuanceurDiffus::defaut());
+	maillage->nuanceur(kdo::NuanceurVolume::defaut());
 
 	auto volume = volume_prim(corps);
 
