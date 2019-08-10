@@ -79,6 +79,7 @@ menu "Noeud Objet" {
 		action(valeur="Stable Neo Hookean"; attache=ajouter_noeud; métadonnée="Stable Neo Hookean")
 	}
 	menu "Volume" {
+		action(valeur="Affinage Volume"; attache=ajouter_noeud; métadonnée="Affinage Volume")
 		action(valeur="Créer Grille Éclairage"; attache=ajouter_noeud; métadonnée="Création Grille Éclairage")
 		action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
 		action(valeur="Créer Volume Temporel"; attache=ajouter_noeud; métadonnée="Création Volume Temporel")

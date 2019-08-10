@@ -953,6 +953,161 @@ public:
 
 /* ************************************************************************** */
 
+namespace wlk {
+
+template <typename T, typename type_tuile>
+auto floute_volume(
+		grille_eparse<T, type_tuile> const &grille_entree,
+		int taille_fenetre)
+{
+	auto grille = memoire::loge<wlk::grille_eparse<T>>("wlk::grille_eparse", grille_entree.desc());
+	grille->assure_tuiles(grille_entree.desc().etendue);
+
+	wlk::pour_chaque_tuile_parallele(grille_entree, [&](wlk::tuile_scalaire<T> const *tuile)
+	{
+		auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
+		auto idx_tuile = dls::math::calcul_index(min_tuile, grille_entree.res_tuile());
+		auto tuile_b = grille->tuile_par_index(idx_tuile);
+
+		auto index_tuile = 0;
+		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+					auto pos_tuile = tuile->min;
+					pos_tuile.x += i;
+					pos_tuile.y += j;
+					pos_tuile.z += k;
+
+					auto valeur = 0.0f;
+					auto poids = 0.0f;
+
+					for (auto kk = k - taille_fenetre; kk < k + taille_fenetre; ++kk) {
+						for (auto jj = j - taille_fenetre; jj < j + taille_fenetre; ++jj) {
+							for (auto ii = i - taille_fenetre; ii < i + taille_fenetre; ++ii) {
+								valeur += grille_entree.valeur(ii, jj, kk);
+								poids += 1.0f;
+							}
+						}
+					}
+
+					tuile_b->donnees[index_tuile] = valeur / poids;
+				}
+			}
+		}
+	});
+
+	grille->elague();
+
+	return grille;
+}
+
+template <typename T, typename type_tuile>
+auto affine_volume(
+		grille_eparse<T, type_tuile> const &grille_entree,
+		int taille_fenetre,
+		T const &poids_affinage)
+{
+	auto grille = memoire::loge<wlk::grille_eparse<T>>("wlk::grille_eparse", grille_entree.desc());
+	grille->assure_tuiles(grille_entree.desc().etendue);
+
+	wlk::pour_chaque_tuile_parallele(grille_entree, [&](wlk::tuile_scalaire<T> const *tuile)
+	{
+		auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
+		auto idx_tuile = dls::math::calcul_index(min_tuile, grille_entree.res_tuile());
+		auto tuile_b = grille->tuile_par_index(idx_tuile);
+
+		auto index_tuile = 0;
+		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+					auto pos_tuile = tuile->min;
+					pos_tuile.x += i;
+					pos_tuile.y += j;
+					pos_tuile.z += k;
+
+					auto valeur = 0.0f;
+					auto poids = 0.0f;
+
+					for (auto kk = k - taille_fenetre; kk < k + taille_fenetre; ++kk) {
+						for (auto jj = j - taille_fenetre; jj < j + taille_fenetre; ++jj) {
+							for (auto ii = i - taille_fenetre; ii < i + taille_fenetre; ++ii) {
+								valeur += grille_entree.valeur(ii, jj, kk);
+								poids += 1.0f;
+							}
+						}
+					}
+
+					auto valeur_orig = tuile->donnees[index_tuile];
+					auto valeur_grossiere = valeur / poids;
+					auto valeur_fine = valeur_orig - valeur_grossiere;
+					auto valeur_affinee = valeur_orig + valeur_fine * poids_affinage;
+
+					tuile_b->donnees[index_tuile] = valeur_affinee;
+				}
+			}
+		}
+	});
+
+	grille->elague();
+
+	return grille;
+}
+
+template <typename T, typename type_tuile>
+auto soustrait_grille(
+		grille_eparse<T, type_tuile> const &grille_a,
+		grille_eparse<T, type_tuile> const &grille_b)
+{
+	auto grille = memoire::loge<wlk::grille_eparse<T>>("wlk::grille_eparse", grille_a.desc());
+	grille->assure_tuiles(grille_a.desc().etendue);
+
+	wlk::pour_chaque_tuile_parallele(grille_a, [&](wlk::tuile_scalaire<T> const *tuile_a)
+	{
+		auto min_tuile = tuile_a->min / wlk::TAILLE_TUILE;
+		auto idx_tuile = dls::math::calcul_index(min_tuile, grille_a.res_tuile());
+		auto tuile_b = grille_b.tuile_par_index(idx_tuile);
+		auto tuile_r = grille->tuile_par_index(idx_tuile);
+
+		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
+			tuile_r->donnees[i] = tuile_a->donnees[i] - tuile_b->donnees[i];
+		}
+
+	});
+
+	grille->elague();
+
+	return grille;
+}
+
+template <typename T, typename type_tuile>
+auto ajoute_grille(
+		grille_eparse<T, type_tuile> const &grille_a,
+		grille_eparse<T, type_tuile> const &grille_b,
+		T const &poids)
+{
+	auto grille = memoire::loge<wlk::grille_eparse<T>>("wlk::grille_eparse", grille_a.desc());
+	grille->assure_tuiles(grille_a.desc().etendue);
+
+	wlk::pour_chaque_tuile_parallele(grille_a, [&](wlk::tuile_scalaire<T> const *tuile_a)
+	{
+		auto min_tuile = tuile_a->min / wlk::TAILLE_TUILE;
+		auto idx_tuile = dls::math::calcul_index(min_tuile, grille_a.res_tuile());
+		auto tuile_b = grille_b.tuile_par_index(idx_tuile);
+		auto tuile_r = grille->tuile_par_index(idx_tuile);
+
+		for (auto i = 0; i < wlk::VOXELS_TUILE; ++i) {
+			tuile_r->donnees[i] = tuile_a->donnees[i] + tuile_b->donnees[i] * poids;
+		}
+
+	});
+
+	grille->elague();
+
+	return grille;
+}
+
+}  /* namespace wlk */
+
 class OpFiltrageVolume : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Filtrage Volume";
@@ -1016,45 +1171,88 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto grille = memoire::loge<wlk::grille_eparse<float>>("wlk::grille_eparse", grille_entree->desc());
-		grille->assure_tuiles(grille_entree->desc().etendue);
+		auto taille_fenetre = 2;
+		auto grille = wlk::floute_volume(*grille_entree, taille_fenetre);
+
+		auto volume = memoire::loge<Volume>("Volume", grille);
+		m_corps.prims()->pousse(volume);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpAffinageVolume : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Affinage Volume";
+	static constexpr auto AIDE = "";
+
+	OpAffinageVolume(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_creation_volume_temporel.jo";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
+
+		for (auto i = 0; i < corps_entree->prims()->taille(); ++i) {
+			auto prim = corps_entree->prims()->prim(i);
+
+			if (prim->type_prim() != type_primitive::VOLUME) {
+				continue;
+			}
+
+			auto volume = dynamic_cast<Volume *>(prim);
+
+			auto grille = volume->grille;
+
+			if (grille->est_eparse() && grille->desc().type_donnees == wlk::type_grille::R32) {
+				grille_entree = dynamic_cast<wlk::grille_eparse<float> *>(grille);
+				break;
+			}
+		}
+
+		if (grille_entree == nullptr) {
+			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
+			return EXECUTION_ECHOUEE;
+		}
 
 		auto taille_fenetre = 2;
-
-		wlk::pour_chaque_tuile_parallele(*grille_entree, [&](wlk::tuile_scalaire<float> *tuile)
-		{
-			auto min_tuile = tuile->min / wlk::TAILLE_TUILE;
-			auto idx_tuile = dls::math::calcul_index(min_tuile, grille_entree->res_tuile());
-			auto tuile_b = grille->tuile_par_index(idx_tuile);
-
-			auto index_tuile = 0;
-			for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
-				for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
-					for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
-						auto pos_tuile = tuile->min;
-						pos_tuile.x += i;
-						pos_tuile.y += j;
-						pos_tuile.z += k;
-
-						auto valeur = 0.0f;
-						auto poids = 0.0f;
-
-						for (auto kk = k - taille_fenetre; kk < k + taille_fenetre; ++kk) {
-							for (auto jj = j - taille_fenetre; jj < j + taille_fenetre; ++jj) {
-								for (auto ii = i - taille_fenetre; ii < i + taille_fenetre; ++ii) {
-									valeur += grille_entree->valeur(ii, jj, kk);
-									poids += 1.0f;
-								}
-							}
-						}
-
-						tuile_b->donnees[index_tuile] = valeur / poids;
-					}
-				}
-			}
-		});
-
-		grille->elague();
+		auto grille = wlk::affine_volume(*grille_entree, taille_fenetre, 0.5f);
 
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
@@ -2095,5 +2293,6 @@ void enregistre_operatrices_volume(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc("Rééchantillonne Volume", "", "", reechantillonne_volume, false));
 	usine.enregistre_type(cree_desc<OpCreationVolumeTemp>());
 	usine.enregistre_type(cree_desc<OpFiltrageVolume>());
+	usine.enregistre_type(cree_desc<OpAffinageVolume>());
 	usine.enregistre_type(cree_desc<OpGrilleEclairage>());
 }
