@@ -241,30 +241,13 @@ DelegueScene::DelegueScene(const Scene &scene)
 
 long DelegueScene::nombre_elements() const
 {
-	auto nombre_triangle = 0l;
-
-	for (auto &maillage : m_scene.maillages) {
-		nombre_triangle += maillage->m_triangles.taille();
-	}
-
-	return nombre_triangle;
+	return triangles.taille();
 }
 
 void DelegueScene::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
 {
-	auto nombre_triangle = 0l;
-	auto maillage = static_cast<Maillage *>(nullptr);
-
-	for (auto &maillage_ : m_scene.maillages) {
-		if (nombre_triangle + maillage_->m_triangles.taille() > idx) {
-			maillage = maillage_;
-			break;
-		}
-
-		nombre_triangle += maillage_->m_triangles.taille();
-	}
-
-	auto triangle = maillage->m_triangles[idx - nombre_triangle];
+	auto triangle = triangles[idx];
+	auto maillage = m_scene.maillages[triangle->idx_maillage];
 
 	cos.efface();
 	cos.pousse(dls::math::converti_type<float>(maillage->points[triangle->v0]));
@@ -272,21 +255,27 @@ void DelegueScene::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) 
 	cos.pousse(dls::math::converti_type<float>(maillage->points[triangle->v2]));
 }
 
-BoiteEnglobante DelegueScene::boite_englobante(long idx) const
+void DelegueScene::construit()
 {
-	auto nombre_triangle = 0l;
-	auto maillage = static_cast<Maillage *>(nullptr);
+	auto idx_maillage = 0;
+	triangles.efface();
 
-	for (auto &maillage_ : m_scene.maillages) {
-		if (nombre_triangle + maillage_->m_triangles.taille() > idx) {
-			maillage = maillage_;
-			break;
+	for (auto &maillage : m_scene.maillages) {
+		triangles.reserve(triangles.taille() + maillage->m_triangles.taille());
+
+		for (auto tri : maillage->m_triangles) {
+			tri->idx_maillage = idx_maillage;
+			triangles.pousse(tri);
 		}
 
-		nombre_triangle += maillage_->m_triangles.taille();
+		idx_maillage += 1;
 	}
+}
 
-	auto triangle = maillage->m_triangles[idx - nombre_triangle];
+BoiteEnglobante DelegueScene::boite_englobante(long idx) const
+{
+	auto triangle = triangles[idx];
+	auto maillage = m_scene.maillages[triangle->idx_maillage];
 
 	auto v0 = dls::math::point3d(maillage->points[triangle->v0]);
 	auto v1 = dls::math::point3d(maillage->points[triangle->v1]);
@@ -371,6 +360,12 @@ AccelArbreHBE::~AccelArbreHBE()
 void AccelArbreHBE::construit()
 {
 	//m_arbre = construit_arbre_hbe(m_delegue, 24);
+	m_delegue.construit();
+
+	if (m_bvh_tree != nullptr) {
+		memoire::deloge("BVHTree", m_bvh_tree);
+	}
+
 	m_bvh_tree = bli::cree_arbre_bvh(m_delegue);
 }
 

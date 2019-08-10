@@ -70,14 +70,19 @@ public:
 
 /* ************************************************************************** */
 
+struct Triangle;
+
 struct DelegueScene {
 	Scene const &m_scene;
+	dls::tableau<Triangle *> triangles{};
 
 	DelegueScene(Scene const &scene);
 
 	long nombre_elements() const;
 
 	void coords_element(int i, dls::tableau<dls::math::vec3f> &cos) const;
+
+	void construit();
 
 	BoiteEnglobante boite_englobante(long idx) const;
 
@@ -86,7 +91,7 @@ struct DelegueScene {
 
 class AccelArbreHBE final : public StructureAcceleration {
 	ArbreHBE m_arbre{};
-	bli::BVHTree *m_bvh_tree{};
+	bli::BVHTree *m_bvh_tree = nullptr;
 	DelegueScene m_delegue;
 
 public:

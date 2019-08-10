@@ -44,6 +44,9 @@ struct Triangle {
 	int n0 = 0;
 	int n1 = 0;
 	int n2 = 0;
+
+	/* ceci est pour savoir quel est le maillage du triangle dans le délégué scène */
+	int idx_maillage = 0;
 };
 
 /**
