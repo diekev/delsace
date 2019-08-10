@@ -104,11 +104,9 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 									  1000.0);
 
 		if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
-			if (i == 0) {
-				auto vecteur = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
-				return spectre_pixel * spectre_alpha + spectre_monde(scene.monde, vecteur);
-			}
-
+			auto vecteur = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
+			spectre_entresection *= spectre_monde(scene.monde, vecteur);
+			spectre_pixel += spectre_entresection;
 			break;
 		}
 
@@ -136,7 +134,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 			}
 
 			spectre_entresection *= transmittance;
-			spectre_pixel += poids * spectre_entresection * Lv;
+			spectre_pixel += (Spectre(1.0) - poids) * spectre_entresection * Lv;
 
 			spectre_alpha += Spectre(1.0) - transmittance;
 
