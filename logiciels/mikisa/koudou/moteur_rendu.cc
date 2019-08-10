@@ -85,8 +85,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 	Scene const &scene = parametres.scene;
 
 	if (profondeur > 5) {
-		auto point = rayon.origine + rayon.direction;
-		auto vecteur = dls::math::vec3d(point);
+		auto vecteur = dls::math::vec3d(rayon.origine) + rayon.direction;
 		return spectre_monde(scene.monde, vecteur);
 	}
 
@@ -105,8 +104,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 
 		if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 			if (i == 0) {
-				auto point = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
-				auto vecteur = point;
+				auto vecteur = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
 				return spectre_monde(scene.monde, vecteur);
 			}
 
@@ -114,7 +112,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		}
 
 		// get pos and normal at the entresection point
-		contexte.P = rayon_local.origine + entresection.distance * dls::math::point3d(rayon_local.direction);
+		contexte.P = rayon_local.origine + entresection.distance * rayon_local.direction;
 		contexte.N = entresection.normal;
 		contexte.V = -rayon_local.direction;
 
