@@ -612,7 +612,7 @@ auto cree_arbre_bvh(TypeDelegue const &delegue)
 	auto const tree_type = 4;
 	auto const axis = 6;
 
-	auto nombre_element = delegue.nombre_elements();
+	auto nombre_element = static_cast<int>(delegue.nombre_elements());
 
 	auto arbre_hbe = bvhtree_new(nombre_element, epsilon, tree_type, axis);
 
