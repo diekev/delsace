@@ -58,6 +58,24 @@
  * http://library.imageworks.com/pdfs/imageworks-library-capturing-thin-features-in-smoke-simulation.pdf
  */
 
+/**
+ * Champs à considérer :
+ * - divergence
+ * - oxygène (pour controler là ou le feu se forme)
+ * - couleur
+ *
+ * Opératrices à considérer :
+ * - (FumeFX) affinage vélocité
+ * - (FumeFX) turbulence vélocité
+ * - réanimation cache (volume temporel, réadvection)
+ * - visualisation (vecteur vélocité, tranche des champs, etc.)
+ * - (FumeFX, Blender) haute-résolution/turbulence ondelette, via cache
+ *
+ * Options simulation :
+ * - (FumeFX) qualité et itérations des gradients conjugués, flottance, etc.
+ * - (FumeFX, Blender) dissipation des champs de simulations
+ */
+
 /* ************************************************************************** */
 
 static inline auto extrait_poseidon(DonneesAval *da)
