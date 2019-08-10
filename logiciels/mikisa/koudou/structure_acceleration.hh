@@ -77,6 +77,8 @@ struct DelegueScene {
 
 	long nombre_elements() const;
 
+	void coords_element(int i, dls::tableau<dls::math::vec3f> &cos) const;
+
 	BoiteEnglobante boite_englobante(long idx) const;
 
 	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
@@ -84,10 +86,16 @@ struct DelegueScene {
 
 class AccelArbreHBE final : public StructureAcceleration {
 	ArbreHBE m_arbre{};
+	bli::BVHTree *m_bvh_tree{};
 	DelegueScene m_delegue;
 
 public:
 	AccelArbreHBE(Scene const &scene);
+
+	~AccelArbreHBE() override;
+
+	AccelArbreHBE(AccelArbreHBE const &) = default;
+	AccelArbreHBE &operator=(AccelArbreHBE const &) = default;
 
 	void construit();
 

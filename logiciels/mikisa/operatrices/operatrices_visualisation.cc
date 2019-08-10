@@ -235,6 +235,66 @@ public:
 
 /* ************************************************************************** */
 
+
+// epsilon = 0.0
+// tree_type = 4
+// axis = 6
+
+struct delegue_arbre_bvh {
+	Corps const &corps;
+
+	delegue_arbre_bvh(Corps const &c)
+		: corps(c)
+	{}
+
+	int nombre_elements() const
+	{
+		return static_cast<int>(corps.prims()->taille());
+	}
+
+	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
+	{
+		auto poly = dynamic_cast<Polygone *>(corps.prims()->prim(idx));
+
+		cos.efface();
+		cos.reserve(poly->nombre_sommets());
+
+		for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+			cos.pousse(corps.point_transforme(poly->index_point(i)));
+		}
+	}
+};
+
+static auto rassemble_topologie(
+		bli::BVHTree &arbre,
+		Corps &corps,
+		bool dessine_branches,
+		bool dessine_feuilles)
+{
+	dls::math::vec3f couleurs[2] = {
+		dls::math::vec3f(0.0f, 1.0f, 0.0f),
+		dls::math::vec3f(0.0f, 0.0f, 1.0f),
+	};
+
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+
+	for (auto const &noeud : arbre.nodearray) {
+		auto bv = noeud.bv;
+
+		auto min = dls::math::vec3f(bv[0], bv[2], bv[4]);
+		auto max = dls::math::vec3f(bv[1], bv[3], bv[5]);
+
+		if (noeud.totnode == 0 && dessine_feuilles) {
+			dessine_boite(corps, attr_C, min, max, couleurs[0]);
+		}
+		else if (noeud.totnode != 0 && dessine_branches) {
+			dessine_boite(corps, attr_C, min, max, couleurs[1]);
+		}
+	}
+}
+
+/* ************************************************************************** */
+
 static auto rassemble_topologie(
 		ArbreHBE &arbre,
 		Corps &corps,
@@ -327,45 +387,47 @@ public:
 		auto dessine_feuilles = evalue_bool("dessine_feuilles");
 		auto type_visualisation = evalue_enum("type_visualisation");
 
-		auto delegue_prims = DeleguePrim(*corps_entree);
-		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
+		auto delegue_prims = delegue_arbre_bvh(*corps_entree);
+		auto arbre_hbe = bli::cree_arbre_bvh(delegue_prims);
 
 		if (type_visualisation == "topologie") {
 			if (dessine_branches || dessine_feuilles) {
-				rassemble_topologie(arbre_hbe, m_corps, dessine_branches, dessine_feuilles);
+				rassemble_topologie(*arbre_hbe, m_corps, dessine_branches, dessine_feuilles);
 			}
 		}
 		else if (type_visualisation == "noeuds_colorés") {
-			corps_entree->copie_vers(&m_corps);
+//			corps_entree->copie_vers(&m_corps);
 
-			auto attr = m_corps.attribut("C");
+//			auto attr = m_corps.attribut("C");
 
-			if (attr == nullptr) {
-				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
-			}
-			else if (attr->portee != portee_attr::PRIMITIVE) {
-				m_corps.supprime_attribut("C");
-				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
-			}
+//			if (attr == nullptr) {
+//				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+//			}
+//			else if (attr->portee != portee_attr::PRIMITIVE) {
+//				m_corps.supprime_attribut("C");
+//				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+//			}
 
-			auto gna = GNA{};
+//			auto gna = GNA{};
 
-			for (auto noeud : arbre_hbe.noeuds) {
-				if (!noeud.est_feuille()) {
-					continue;
-				}
+//			for (auto noeud : arbre_hbe.noeuds) {
+//				if (!noeud.est_feuille()) {
+//					continue;
+//				}
 
-				auto couleur = dls::math::vec3f();
-				couleur.x = gna.uniforme(0.0f, 1.0f);
-				couleur.y = gna.uniforme(0.0f, 1.0f);
-				couleur.z = gna.uniforme(0.0f, 1.0f);
+//				auto couleur = dls::math::vec3f();
+//				couleur.x = gna.uniforme(0.0f, 1.0f);
+//				couleur.y = gna.uniforme(0.0f, 1.0f);
+//				couleur.z = gna.uniforme(0.0f, 1.0f);
 
-				for (auto i = 0; i < noeud.nombre_references; ++i) {
-					auto id_prim = arbre_hbe.index_refs[noeud.decalage_reference + i];
-					attr->vec3(id_prim) = couleur;
-				}
-			}
+//				for (auto i = 0; i < noeud.nombre_references; ++i) {
+//					auto id_prim = arbre_hbe.index_refs[noeud.decalage_reference + i];
+//					attr->vec3(id_prim) = couleur;
+//				}
+//			}
 		}
+
+		memoire::deloge("BVHTree", arbre_hbe);
 
 		return EXECUTION_REUSSIE;
 	}

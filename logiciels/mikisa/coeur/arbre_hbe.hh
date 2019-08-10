@@ -348,6 +348,39 @@ inline bool operator<(ElementTraverse const &p1, ElementTraverse const &p2)
 	return p1.t < p2.t;
 }
 
+template <typename T>
+auto fast_ray_nearest_hit(
+		ArbreHBE::Noeud const *node,
+		int *index,
+		dls::phys::rayon<T> const &ray,
+		dls::math::vec3<T> const &idot_axis,
+		T dist)
+{
+	const T bv[6] = {
+		node->limites.min[0],
+		node->limites.max[0],
+		node->limites.min[1],
+		node->limites.max[1],
+		node->limites.min[2],
+		node->limites.max[2]
+	};
+
+	auto t1x = (bv[index[0]] - ray.origine[0]) * idot_axis[0];
+	auto t2x = (bv[index[1]] - ray.origine[0]) * idot_axis[0];
+	auto t1y = (bv[index[2]] - ray.origine[1]) * idot_axis[1];
+	auto t2y = (bv[index[3]] - ray.origine[1]) * idot_axis[1];
+	auto t1z = (bv[index[4]] - ray.origine[2]) * idot_axis[2];
+	auto t2z = (bv[index[5]] - ray.origine[2]) * idot_axis[2];
+
+	if ((t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) ||
+			(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) ||
+			(t1x > dist || t1y > dist || t1z > dist)) {
+		return constantes<T>::INFINITE;
+	}
+
+	return std::max(t1x, std::max(t1y, t1z));
+}
+
 /* À FAIRE : la traversé contient un bug au niveau de l'intersection des boites
  * englobantes de l'arbre : la désactiver nous donne un rendu de toutes les
  * primitives, alors qu'avec certains triangles disparaissent.
@@ -358,12 +391,39 @@ auto traverse(
 		TypeDelegue const &delegue,
 		dls::phys::rayond const &rayon)
 {
+	/* précalcule quelque données */
+	auto ray_dot_axis = dls::math::vec3d();
+	auto idot_axis = dls::math::vec3d();
+	int index[6];
+
+	static const dls::math::vec3d kdop_axes[3] = {
+		dls::math::vec3d(1.0, 0.0, 0.0),
+		dls::math::vec3d(0.0, 1.0, 0.0),
+		dls::math::vec3d(0.0, 0.0, 1.0)
+	};
+
+	for (auto i = 0ul; i < 3; i++) {
+	 ray_dot_axis[i] = produit_scalaire(rayon.direction, kdop_axes[i]);
+	  idot_axis[i] = 1.0 / ray_dot_axis[i];
+
+	  if (std::abs(ray_dot_axis[i]) < 1e-6) {
+		ray_dot_axis[i] = 0.0;
+	  }
+	  index[2 * i] = idot_axis[i] < 0.0 ? 1 : 0;
+	  index[2 * i + 1] = 1 - index[2 * i];
+	  index[2 * i] += 2 * static_cast<int>(i);
+	  index[2 * i + 1] += 2 * static_cast<int>(i);
+	}
+
 	auto const &racine = arbre.noeuds[1];
 
-	auto distance_courant = racine.test_intersection_rapide(rayon);
+	auto dist_max = constantes<double>::INFINITE / 2.0;
+
+	//auto distance_courant = racine.test_intersection_rapide(rayon);
+	auto distance_courant = fast_ray_nearest_hit(&racine, index, rayon, idot_axis, dist_max);
 	auto esect = dls::phys::esectd{};
 
-	if (distance_courant < -0.5) {
+	if (distance_courant > dist_max) {
 		return esect;
 	}
 
@@ -395,9 +455,9 @@ auto traverse(
 			for (auto e = 0; e < 2; ++e) {
 				auto const &enfant = arbre.noeuds[noeud->enfants[e]];
 
-				auto dist_gauche = enfant.test_intersection_rapide(rayon);
+				auto dist_gauche = fast_ray_nearest_hit(&enfant, index, rayon, idot_axis, dist_max);
 
-				if (dist_gauche > -0.5) {
+				if (dist_gauche < dist_max) {
 					file.enfile({ &enfant, dist_gauche });
 				}
 			}
@@ -509,4 +569,187 @@ auto cherche_point_plus_proche(
 	}
 
 	return donnees.dn_plus_proche;
+}
+
+namespace bli {
+
+typedef unsigned char axis_t;
+
+struct BVHNode {
+	float *bv{};
+	BVHNode **children{};
+	struct BVHNode *parent{};
+	int index{};
+	char totnode{};
+	char main_axis{};
+};
+
+struct BVHTree {
+	float epsilon{};
+	int tree_type{};
+	axis_t axis{};
+	axis_t start_axis{};
+	axis_t stop_axis{};
+	int totleaf{};
+	int totbranch{};
+
+	dls::tableau<BVHNode *> nodes{};
+	dls::tableau<float> nodebv{};
+	dls::tableau<BVHNode *> nodechild{};
+	dls::tableau<BVHNode> nodearray{};
+};
+
+BVHTree *bvhtree_new(int nombre_elements, float epsilon, char tree_type, char axis);
+
+void insere(BVHTree *tree, int index, dls::math::vec3f const *co, int numpoints);
+
+void balance(BVHTree *tree);
+
+template <typename TypeDelegue>
+auto cree_arbre_bvh(TypeDelegue const &delegue)
+{
+	auto const epsilon = 0.0f;
+	auto const tree_type = 4;
+	auto const axis = 6;
+
+	auto nombre_element = delegue.nombre_elements();
+
+	auto arbre_hbe = bvhtree_new(nombre_element, epsilon, tree_type, axis);
+
+	for (auto i = 0; i < nombre_element; ++i) {
+		auto cos = dls::tableau<dls::math::vec3f>();
+		delegue.coords_element(i, cos);
+
+		insere(arbre_hbe, i, cos.donnees(), static_cast<int>(cos.taille()));
+	}
+
+	balance(arbre_hbe);
+
+	return arbre_hbe;
+}
+
+template <typename T>
+auto fast_ray_nearest_hit(
+		BVHNode const *node,
+		int *index,
+		dls::phys::rayon<T> const &ray,
+		dls::math::vec3<T> const &idot_axis,
+		T dist)
+{
+	auto t1x = (static_cast<T>(node->bv[index[0]]) - ray.origine[0]) * idot_axis[0];
+	auto t2x = (static_cast<T>(node->bv[index[1]]) - ray.origine[0]) * idot_axis[0];
+	auto t1y = (static_cast<T>(node->bv[index[2]] )- ray.origine[1]) * idot_axis[1];
+	auto t2y = (static_cast<T>(node->bv[index[3]]) - ray.origine[1]) * idot_axis[1];
+	auto t1z = (static_cast<T>(node->bv[index[4]]) - ray.origine[2]) * idot_axis[2];
+	auto t2z = (static_cast<T>(node->bv[index[5]]) - ray.origine[2]) * idot_axis[2];
+
+	if ((t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) ||
+			(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) ||
+			(t1x > dist || t1y > dist || t1z > dist)) {
+		return constantes<T>::INFINITE;
+	}
+
+	return std::max(t1x, std::max(t1y, t1z));
+}
+
+struct BVHElement {
+	BVHNode const *noeud = nullptr;
+	double t = 0.0;
+};
+
+inline bool operator<(BVHElement const &p1, BVHElement const &p2)
+{
+	return p1.t < p2.t;
+}
+
+template <typename TypeDelegue>
+auto traverse(BVHTree *tree, TypeDelegue const &delegue, dls::phys::rayond const &rayon)
+{
+	/* précalcule quelque données */
+	auto ray_dot_axis = dls::math::vec3d();
+	auto idot_axis = dls::math::vec3d();
+	int index[6];
+
+	static const dls::math::vec3d kdop_axes[3] = {
+		dls::math::vec3d(1.0, 0.0, 0.0),
+		dls::math::vec3d(0.0, 1.0, 0.0),
+		dls::math::vec3d(0.0, 0.0, 1.0)
+	};
+
+	for (auto i = 0ul; i < 3; i++) {
+		ray_dot_axis[i] = produit_scalaire(rayon.direction, kdop_axes[i]);
+		idot_axis[i] = 1.0 / ray_dot_axis[i];
+
+		if (std::abs(ray_dot_axis[i]) < 1e-6) {
+			ray_dot_axis[i] = 0.0;
+		}
+
+		index[2 * i] = idot_axis[i] < 0.0 ? 1 : 0;
+		index[2 * i + 1] = 1 - index[2 * i];
+		index[2 * i] += 2 * static_cast<int>(i);
+		index[2 * i + 1] += 2 * static_cast<int>(i);
+	}
+
+	auto const &racine = tree->nodes[tree->totleaf];
+
+	auto dist_max = constantes<double>::INFINITE / 2.0;
+
+	//auto distance_courant = racine.test_intersection_rapide(rayon);
+	auto distance_courant = fast_ray_nearest_hit(racine, index, rayon, idot_axis, dist_max);
+	auto esect = dls::phys::esectd{};
+
+	if (distance_courant > dist_max) {
+		return esect;
+	}
+
+	auto t_proche = rayon.distance_max;
+
+	auto file = dls::file_priorite<BVHElement>();
+	file.enfile({ racine, 0.0 });
+
+	while (!file.est_vide()) {
+		auto const noeud = file.haut().noeud;
+		file.defile();
+
+		if (noeud->totnode == 0) {
+			auto intersection = delegue.intersecte_element(noeud->index, rayon);
+
+			if (!intersection.touche) {
+				continue;
+			}
+
+			if (intersection.distance < t_proche) {
+				t_proche = intersection.distance;
+				esect = intersection;
+			}
+		}
+		else {
+			if (ray_dot_axis[static_cast<size_t>(noeud->main_axis)] > 0.0) {
+				for (auto i = 0; i < noeud->totnode; ++i) {
+					auto enfant = noeud->children[i];
+
+					distance_courant = fast_ray_nearest_hit(enfant, index, rayon, idot_axis, dist_max);
+
+					if (distance_courant < dist_max) {
+						file.enfile({ enfant, distance_courant });
+					}
+				}
+			}
+			else {
+				for (auto i = noeud->totnode - 1; i >= 0; --i) {
+					auto enfant = noeud->children[i];
+
+					distance_courant = fast_ray_nearest_hit(enfant, index, rayon, idot_axis, dist_max);
+
+					if (distance_courant < dist_max) {
+						file.enfile({ enfant, distance_courant });
+					}
+				}
+			}
+		}
+	}
+
+	return esect;
+}
+
 }

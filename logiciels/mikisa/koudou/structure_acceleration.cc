@@ -250,6 +250,28 @@ long DelegueScene::nombre_elements() const
 	return nombre_triangle;
 }
 
+void DelegueScene::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
+{
+	auto nombre_triangle = 0l;
+	auto maillage = static_cast<Maillage *>(nullptr);
+
+	for (auto &maillage_ : m_scene.maillages) {
+		if (nombre_triangle + maillage_->m_triangles.taille() > idx) {
+			maillage = maillage_;
+			break;
+		}
+
+		nombre_triangle += maillage_->m_triangles.taille();
+	}
+
+	auto triangle = maillage->m_triangles[idx - nombre_triangle];
+
+	cos.efface();
+	cos.pousse(dls::math::converti_type<float>(maillage->points[triangle->v0]));
+	cos.pousse(dls::math::converti_type<float>(maillage->points[triangle->v1]));
+	cos.pousse(dls::math::converti_type<float>(maillage->points[triangle->v2]));
+}
+
 BoiteEnglobante DelegueScene::boite_englobante(long idx) const
 {
 	auto nombre_triangle = 0l;
@@ -341,14 +363,21 @@ AccelArbreHBE::AccelArbreHBE(const Scene &scene)
 	: m_delegue(scene)
 {}
 
+AccelArbreHBE::~AccelArbreHBE()
+{
+	memoire::deloge("BVHTree", m_bvh_tree);
+}
+
 void AccelArbreHBE::construit()
 {
-	m_arbre = construit_arbre_hbe(m_delegue, 24);
+	//m_arbre = construit_arbre_hbe(m_delegue, 24);
+	m_bvh_tree = bli::cree_arbre_bvh(m_delegue);
 }
 
 dls::phys::esectd AccelArbreHBE::entresecte(const Scene &scene, const dls::phys::rayond &rayon, double distance_maximale) const
 {
-	return traverse(m_arbre, m_delegue, rayon);
+	//return traverse(m_arbre, m_delegue, rayon);
+	return bli::traverse(m_bvh_tree, m_delegue, rayon);
 }
 
 /* ************************************************************************** */
