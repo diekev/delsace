@@ -37,6 +37,19 @@ long DeleguePrim::nombre_elements() const
 	return m_corps.prims()->taille();
 }
 
+void DeleguePrim::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
+{
+	auto prim = m_corps.prims()->prim(idx);
+	auto poly = dynamic_cast<Polygone *>(prim);
+
+	cos.efface();
+
+	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+		auto p = m_corps.point_transforme(poly->index_point(i));
+		cos.pousse(p);
+	}
+}
+
 BoiteEnglobante DeleguePrim::boite_englobante(long idx) const
 {
 	auto prim = m_corps.prims()->prim(idx);

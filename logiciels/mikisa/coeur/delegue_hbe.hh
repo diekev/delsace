@@ -35,6 +35,8 @@ struct DeleguePrim {
 
 	long nombre_elements() const;
 
+	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
+
 	BoiteEnglobante boite_englobante(long idx) const;
 
 	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
