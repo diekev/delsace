@@ -55,7 +55,6 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	, m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 	, m_pos_x(0)
 	, m_pos_y(0)
-	, m_debut(0)
 {}
 
 VisionneurScene::~VisionneurScene()

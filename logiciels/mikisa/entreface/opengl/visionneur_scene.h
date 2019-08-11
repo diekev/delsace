@@ -66,7 +66,6 @@ class VisionneurScene {
 	float *m_tampon = nullptr;
 
 	float m_pos_x, m_pos_y;
-	double m_debut;
 	dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
