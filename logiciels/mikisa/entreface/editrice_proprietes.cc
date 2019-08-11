@@ -231,9 +231,6 @@ void EditriceProprietes::ajourne_manipulable()
 			break;
 		}
 		case GRAPHE_OBJET:
-		{
-			break;
-		}
 		case GRAPHE_PIXEL:
 		case GRAPHE_COMPOSITE:
 		case GRAPHE_MAILLAGE:
@@ -244,7 +241,6 @@ void EditriceProprietes::ajourne_manipulable()
 
 			auto op = extrait_opimage(noeud->donnees());
 			op->parametres_changes();
-
 
 			break;
 		}
