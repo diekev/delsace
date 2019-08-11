@@ -598,7 +598,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		if (noeud->type() == GRAPHE_OBJET) {
+		if (noeud->type() == NOEUD_OBJET) {
 			auto objet = extrait_objet(noeud->donnees());
 
 			assert(mikisa->contexte == GRAPHE_SCENE);
