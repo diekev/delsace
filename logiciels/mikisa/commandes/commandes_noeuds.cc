@@ -34,8 +34,8 @@
 
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -454,7 +454,14 @@ public:
 	{
 		auto mikisa = extrait_mikisa(pointeur);
 
-		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
+		auto sans_info = dls::outils::est_element(
+					mikisa->contexte,
+					GRAPHE_PIXEL,
+					GRAPHE_MAILLAGE,
+					GRAPHE_RACINE_OBJETS,
+					GRAPHE_RACINE_COMPOSITES);
+
+		if (sans_info) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
