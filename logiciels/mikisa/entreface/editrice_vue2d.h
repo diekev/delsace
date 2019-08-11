@@ -35,6 +35,7 @@
 #include <QGLWidget>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/vision/camera_2d.h"
 
@@ -43,6 +44,7 @@
 /* ************************************************************************** */
 
 class EditriceVue2D;
+class RenduTexte;
 class RenduImage;
 class RenduManipulatrice2D;
 
@@ -51,9 +53,11 @@ class Visionneuse2D : public QGLWidget {
 	RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
 	Mikisa &m_mikisa;
 	EditriceVue2D *m_base;
+	RenduTexte *m_rendu_texte = nullptr;
 
 	ContexteRendu m_contexte{};
 	dls::math::mat4x4f m_matrice_image{};
+	dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
 	explicit Visionneuse2D(Mikisa &mikisa, EditriceVue2D *base, QWidget *parent = nullptr);

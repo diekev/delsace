@@ -43,10 +43,11 @@
 
 #include "biblinternes/image/operations/operations.h"
 #include "biblinternes/image/pixel.h"
-
+#include "biblinternes/opengl/rendu_texte.h"
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/outils/constantes.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
@@ -65,6 +66,7 @@ Visionneuse2D::Visionneuse2D(Mikisa &mikisa, EditriceVue2D *base, QWidget *paren
 
 Visionneuse2D::~Visionneuse2D()
 {
+	memoire::deloge("RenduTexte", m_rendu_texte);
 	memoire::deloge("RenduImage", m_rendu_image);
 	memoire::deloge("RenduManipulatrice", m_rendu_manipulatrice);
 }
@@ -80,7 +82,9 @@ void Visionneuse2D::initializeGL()
 	}
 
 	m_rendu_image = memoire::loge<RenduImage>("RenduImage");
+	m_rendu_texte = memoire::loge<RenduTexte>("RenduTexte");
 	m_rendu_manipulatrice = memoire::loge<RenduManipulatrice2D>("RenduManipulatrice");
+	m_chrono_rendu.commence();
 }
 
 void Visionneuse2D::paintGL()
@@ -101,7 +105,40 @@ void Visionneuse2D::paintGL()
 	/* À FAIRE */
 	m_rendu_manipulatrice->dessine(m_contexte);
 
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
+
+	m_rendu_texte->reinitialise();
+
+	dls::flux_chaine ss;
+	ss << fps << " IPS";
+
+	auto couleur_fps = dls::math::vec4f(1.0f);
+
+	if (fps < 12) {
+		couleur_fps = dls::math::vec4f(0.8f, 0.1f, 0.1f, 1.0f);
+	}
+
+	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
+
+	ss.chn("");
+	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre commandes  : " << m_mikisa.usine_commandes().taille();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
 	glDisable(GL_BLEND);
+
+	m_chrono_rendu.commence();
 }
 
 void Visionneuse2D::resizeGL(int w, int h)
@@ -112,6 +149,7 @@ void Visionneuse2D::resizeGL(int w, int h)
 	m_mikisa.camera_2d->largeur = w;
 
 	m_mikisa.camera_2d->ajourne_matrice();
+	m_rendu_texte->etablie_dimension_fenetre(w, h);
 
 	m_matrice_image = dls::math::mat4x4f(1.0);
 	m_matrice_image[0][0] = 1.0;
