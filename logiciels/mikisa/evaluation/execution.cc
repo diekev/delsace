@@ -28,9 +28,11 @@
 #include <tbb/task.h>
 #include <tbb/tick_count.h>
 
+#include "coeur/composite.h"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
+#include "coeur/noeud_image.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/tache.h"
@@ -87,87 +89,6 @@ tbb::task *TacheMikisa::execute()
 	m_mikisa.tache_en_cours = false;
 	return nullptr;
 }
-
-#if 0 /* À FAIRE : évaluation des composites. */
-static void evalue_composite(Mikisa &mikisa)
-{
-	auto &composite = mikisa.composite;
-	auto &graphe = composite->graph();
-
-	/* Essaie de trouver une visionneuse. */
-
-	Noeud *visionneuse = mikisa.derniere_visionneuse_selectionnee;
-
-	if (visionneuse == nullptr) {
-		for (std::shared_ptr<Noeud> const &node : graphe.noeuds()) {
-			Noeud *pointeur_noeud = node.get();
-
-			if (pointeur_noeud->type() == NOEUD_IMAGE_SORTIE) {
-				visionneuse = pointeur_noeud;
-				break;
-			}
-		}
-	}
-
-	/* Quitte si aucune visionneuse. */
-	if (visionneuse == nullptr) {
-		return;
-	}
-
-	auto contexte = cree_contexte_evaluation(mikisa);
-	execute_noeud(visionneuse, contexte, nullptr);
-
-	Image image;
-	auto operatrice = extrait_opimage(visionneuse->donnees());
-	operatrice->transfere_image(image);
-	composite->image(image);
-	image.reinitialise(true);
-}
-
-class GraphEvalTask : public TacheMikisa {
-public:
-	explicit GraphEvalTask(Mikisa &mikisa);
-
-	GraphEvalTask(GraphEvalTask const &) = default;
-	GraphEvalTask &operator=(GraphEvalTask const &) = default;
-
-	void evalue() override;
-};
-
-GraphEvalTask::GraphEvalTask(Mikisa &mikisa)
-	: TacheMikisa(mikisa)
-{}
-
-void GraphEvalTask::evalue()
-{
-	evalue_composite(m_mikisa);
-	notifier.signalImageProcessed();
-}
-
-void evalue_graphe(Mikisa &mikisa, const char *message)
-{
-	DEBUT_LOG_EVALUATION << "Évaluation composite pour '"
-						 << message
-						 << "' ..."
-						 << FIN_LOG_EVALUATION;
-
-#if 0
-	if (mikisa.tache_en_cours) {
-		return;
-	}
-
-	mikisa.tache_en_cours = true;
-
-	auto t = new(tbb::task::allocate_root()) GraphEvalTask(mikisa);
-	tbb::task::enqueue(*t);
-#else
-	/* À FAIRE : le rendu OpenGL pour les noeuds scènes ne peut se faire dans un
-	 * thread séparé... */
-	evalue_composite(mikisa);
-	mikisa.notifie_observatrices(type_evenement::image | type_evenement::traite);
-#endif
-}
-#endif
 
 /* ************************************************************************** */
 
@@ -298,5 +219,75 @@ void Executrice::execute_plan(Mikisa &mikisa,
 						 << FIN_LOG_EVALUATION;
 
 	auto t = new(tbb::task::allocate_root()) TacheEvaluationPlan(mikisa, plan, contexte);
+	tbb::task::enqueue(*t);
+}
+
+/* ************************************************************************** */
+
+class TacheEvaluationComposite : public TacheMikisa {
+	Planifieuse::PtrPlan m_plan;
+	Composite *m_composite;
+
+public:
+	explicit TacheEvaluationComposite(
+			Mikisa &mikisa,
+			Composite *composite);
+
+	TacheEvaluationComposite(TacheEvaluationComposite const &) = default;
+	TacheEvaluationComposite &operator=(TacheEvaluationComposite const &) = default;
+
+	void evalue() override;
+};
+
+TacheEvaluationComposite::TacheEvaluationComposite(
+		Mikisa &mikisa,
+		Composite *composite)
+	: TacheMikisa(mikisa)
+	, m_composite(composite)
+{}
+
+void TacheEvaluationComposite::evalue()
+{
+	auto &graphe = m_composite->graph();
+
+	/* Essaie de trouver une visionneuse. */
+
+	Noeud *visionneuse = m_mikisa.derniere_visionneuse_selectionnee;
+
+	if (visionneuse == nullptr) {
+		for (auto noeud : graphe.noeuds()) {
+			if (noeud->type() == NOEUD_IMAGE_SORTIE) {
+				visionneuse = noeud;
+				break;
+			}
+		}
+	}
+
+	/* Quitte si aucune visionneuse. */
+	if (visionneuse == nullptr) {
+		return;
+	}
+
+	auto contexte = cree_contexte_evaluation(m_mikisa);
+	execute_noeud(visionneuse, contexte, nullptr);
+
+	Image image;
+	auto operatrice = extrait_opimage(visionneuse->donnees());
+	operatrice->transfere_image(image);
+	m_composite->image(image);
+	image.reinitialise(true);
+
+	notifier.signalise_proces(type_evenement::image | type_evenement::traite);
+}
+
+void execute_graphe_composite(Mikisa &mikisa, Composite *composite, const char *message)
+{
+	/* nous avons un objet simple, lance un thread */
+	DEBUT_LOG_EVALUATION << "Évaluation asynchrone composite pour '"
+						 << message
+						 << "' ..."
+						 << FIN_LOG_EVALUATION;
+
+	auto t = new(tbb::task::allocate_root()) TacheEvaluationComposite(mikisa, composite);
 	tbb::task::enqueue(*t);
 }

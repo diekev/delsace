@@ -26,6 +26,7 @@
 
 #include <iostream>
 
+#include "coeur/composite.h"
 #include "coeur/configuration.h"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/mikisa.h"
@@ -44,6 +45,13 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 
 	mikisa.tache_en_cours = true;
 
+	if (mikisa.contexte == GRAPHE_COMPOSITE) {
+		auto noeud_actif = mikisa.bdd.graphe_composites()->noeud_actif;
+		auto composite = extrait_composite(noeud_actif->donnees());
+		execute_graphe_composite(mikisa, composite, message);
+		return;
+	}
+
 	auto planifieuse = Planifieuse{};
 	auto executrice = Executrice{};
 
@@ -52,7 +60,6 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	compileuse.reseau = &reseau;
 
 	auto objet = static_cast<Objet *>(nullptr);
-	/* À FAIRE : ceci n'est que pour les évalution d'objets. */
 	auto noeud_actif = mikisa.bdd.graphe_objets()->noeud_actif;
 
 	if (noeud_actif != nullptr) {

@@ -219,19 +219,35 @@ void EditriceProprietes::ajourne_manipulable()
 		return;
 	}
 
-	if (noeud->type() == NOEUD_OBJET) {
-		auto objet = extrait_objet(noeud->donnees());
-		objet->ajourne_parametres();
-	}
-	else if (noeud->type() == NOEUD_COMPOSITE) {
-		/* RÀF */
-	}
-	else {
-		/* Marque le noeud courant et ceux en son aval surannées. */
-		marque_surannee_(noeud);
+	switch (m_mikisa.contexte) {
+		case GRAPHE_RACINE_COMPOSITES:
+		{
+			break;
+		}
+		case GRAPHE_SCENE:
+		{
+			auto objet = extrait_objet(noeud->donnees());
+			objet->ajourne_parametres();
+			break;
+		}
+		case GRAPHE_OBJET:
+		{
+			break;
+		}
+		case GRAPHE_PIXEL:
+		case GRAPHE_COMPOSITE:
+		case GRAPHE_MAILLAGE:
+		case GRAPHE_SIMULATION:
+		{
+			/* Marque le noeud courant et ceux en son aval surannées. */
+			marque_surannee_(noeud);
 
-		auto op = extrait_opimage(noeud->donnees());
-		op->parametres_changes();
+			auto op = extrait_opimage(noeud->donnees());
+			op->parametres_changes();
+
+
+			break;
+		}
 	}
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");

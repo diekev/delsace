@@ -63,3 +63,9 @@ struct Mikisa;
 struct Executrice {
 	void execute_plan(Mikisa &mikisa, Planifieuse::PtrPlan const &plan, ContexteEvaluation const &contexte);
 };
+
+/* ************************************************************************** */
+
+class Composite;
+
+void execute_graphe_composite(Mikisa &mikisa, Composite *composite, const char *message);
