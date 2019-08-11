@@ -224,7 +224,7 @@ void EditriceProprietes::ajourne_manipulable()
 		{
 			break;
 		}
-		case GRAPHE_SCENE:
+		case GRAPHE_RACINE_OBJETS:
 		{
 			auto objet = extrait_objet(noeud->donnees());
 			objet->ajourne_parametres();

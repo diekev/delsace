@@ -99,7 +99,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 			case GRAPHE_COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;
-			case GRAPHE_SCENE:
+			case GRAPHE_RACINE_OBJETS:
 				m_menu_ajout_noeud_scene->popup(QCursor::pos());
 				break;
 			case GRAPHE_OBJET:

@@ -201,7 +201,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
 
-		if (mikisa->contexte == GRAPHE_SCENE) {
+		if (mikisa->contexte == GRAPHE_RACINE_OBJETS) {
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
 		}
 
@@ -454,7 +454,7 @@ public:
 	{
 		auto mikisa = extrait_mikisa(pointeur);
 
-		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SCENE) {
+		if (mikisa->contexte == GRAPHE_PIXEL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
@@ -601,7 +601,7 @@ public:
 		if (noeud->type() == NOEUD_OBJET) {
 			auto objet = extrait_objet(noeud->donnees());
 
-			assert(mikisa->contexte == GRAPHE_SCENE);
+			assert(mikisa->contexte == GRAPHE_RACINE_OBJETS);
 
 			if (objet->type != type_objet::CORPS) {
 				return EXECUTION_COMMANDE_ECHOUEE;
@@ -671,14 +671,14 @@ public:
 
 		switch (mikisa->contexte) {
 			case GRAPHE_RACINE_COMPOSITES:
-			case GRAPHE_SCENE:
+			case GRAPHE_RACINE_OBJETS:
 			{
 				return EXECUTION_ECHOUEE;
 			}
 			case GRAPHE_OBJET:
 			{
 				mikisa->graphe = mikisa->bdd.graphe_objets();
-				mikisa->contexte = GRAPHE_SCENE;
+				mikisa->contexte = GRAPHE_RACINE_OBJETS;
 				mikisa->chemin_courant = "/objets/";
 				break;
 			}
@@ -884,7 +884,7 @@ public:
 		}
 		else if (metadonnee == "scènes") {
 			mikisa->graphe = mikisa->bdd.graphe_objets();
-			mikisa->contexte = GRAPHE_SCENE;
+			mikisa->contexte = GRAPHE_RACINE_OBJETS;
 			mikisa->chemin_courant = "/objets/";
 		}
 

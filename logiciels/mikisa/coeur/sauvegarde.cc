@@ -769,7 +769,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	mikisa.composite = mikisa.bdd.composites()[0];
 	mikisa.graphe = mikisa.bdd.graphe_objets();
 	mikisa.chemin_courant = "/objets/";
-	mikisa.contexte = GRAPHE_SCENE;
+	mikisa.contexte = GRAPHE_RACINE_OBJETS;
 
 	requiers_evaluation(mikisa, FICHIER_OUVERT, "chargement d'un projet");
 

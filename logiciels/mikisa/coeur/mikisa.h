@@ -66,10 +66,12 @@ enum {
 };
 
 enum {
+	/* composite */
 	GRAPHE_RACINE_COMPOSITES,
 	GRAPHE_COMPOSITE,
 	GRAPHE_PIXEL,
-	GRAPHE_SCENE,
+	/* objet */
+	GRAPHE_RACINE_OBJETS,
 	GRAPHE_OBJET,
 	GRAPHE_MAILLAGE,
 	GRAPHE_SIMULATION,
@@ -143,7 +145,7 @@ public:
 	bool animation = false;
 
 	/* contexte graphe */
-	int contexte = GRAPHE_SCENE;
+	int contexte = GRAPHE_RACINE_OBJETS;
 	Graphe *graphe = nullptr;
 
 	Noeud *derniere_visionneuse_selectionnee = nullptr;
