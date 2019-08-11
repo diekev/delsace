@@ -32,11 +32,11 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "evaluation/evaluation.hh"
