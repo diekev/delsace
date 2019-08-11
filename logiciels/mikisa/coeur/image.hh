@@ -36,8 +36,13 @@ using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
 
 /* ************************************************************************** */
 
+namespace wlk {
+enum class type_grille : int;
+}
+
 /* À FAIRE : déduplique la structure calque */
 struct calque_image {
+	dls::chaine nom{};
 	wlk::base_grille_2d *tampon = nullptr;
 
 	calque_image() = default;
@@ -86,9 +91,13 @@ private:
 	dls::liste<Calque *> m_calques{};
 	dls::chaine m_nom_calque{};
 
+	dls::liste<calque_image *> m_calques_profond{};
+
 public:
 	using plage_calques = dls::outils::plage_iterable<dls::liste<Calque *>::iteratrice>;
 	using plage_calques_const = dls::outils::plage_iterable<dls::liste<Calque *>::const_iteratrice>;
+
+	bool est_profonde = false;
 
 	~Image();
 
@@ -98,6 +107,8 @@ public:
 	 * vers le calque ajouté.
 	 */
 	Calque *ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle);
+
+	calque_image *ajoute_calque_profond(dls::chaine const &nom, int largeur, int hauteur, wlk::type_grille type);
 
 	/**
 	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si
@@ -131,4 +142,6 @@ public:
 	 * Retourne le nom du calque actif.
 	 */
 	dls::chaine const &nom_calque_actif() const;
+
+	calque_image *calque_profond(const dls::chaine &nom) const;
 };

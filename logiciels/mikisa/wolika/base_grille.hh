@@ -49,11 +49,12 @@ using co_discrete = dls::math::vec3i;    // (0 : res - 1)
 
 namespace wlk {
 
-
-enum class type_grille {
+enum class type_grille : int {
+	N32,
 	Z8,
 	Z32,
 	R32,
+	R32_PTR, /* pour les calques profond */
 	R64,
 	VEC2,
 	VEC3,
@@ -62,9 +63,11 @@ enum class type_grille {
 template <typename T>
 struct selectrice_type_grille;
 
+template <> struct selectrice_type_grille<unsigned int>     { static constexpr auto type = type_grille::N32; };
 template <> struct selectrice_type_grille<char>             { static constexpr auto type = type_grille::Z8; };
 template <> struct selectrice_type_grille<int>              { static constexpr auto type = type_grille::Z32; };
 template <> struct selectrice_type_grille<float>            { static constexpr auto type = type_grille::R32; };
+template <> struct selectrice_type_grille<float *>          { static constexpr auto type = type_grille::R32_PTR; };
 template <> struct selectrice_type_grille<double>           { static constexpr auto type = type_grille::R64; };
 template <> struct selectrice_type_grille<dls::math::vec2f> { static constexpr auto type = type_grille::VEC2; };
 template <> struct selectrice_type_grille<dls::math::vec3f> { static constexpr auto type = type_grille::VEC3; };

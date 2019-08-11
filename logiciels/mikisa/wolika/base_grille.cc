@@ -39,6 +39,12 @@ void deloge_grille(base_grille_2d *&tampon)
 	auto const &desc = tampon->desc();
 
 	switch (desc.type_donnees) {
+		case type_grille::N32:
+		{
+			auto grille = dynamic_cast<grille_dense_2d<unsigned int> *>(tampon);
+			memoire::deloge("grille_dense", grille);
+			break;
+		}
 		case type_grille::Z8:
 		{
 			auto grille = dynamic_cast<grille_dense_2d<char> *>(tampon);
@@ -54,6 +60,12 @@ void deloge_grille(base_grille_2d *&tampon)
 		case type_grille::R32:
 		{
 			auto grille = dynamic_cast<grille_dense_2d<float> *>(tampon);
+			memoire::deloge("grille_dense", grille);
+			break;
+		}
+		case type_grille::R32_PTR:
+		{
+			auto grille = dynamic_cast<grille_dense_2d<float *> *>(tampon);
 			memoire::deloge("grille_dense", grille);
 			break;
 		}

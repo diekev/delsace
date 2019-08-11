@@ -70,6 +70,11 @@ calque_image calque_image::construit_calque(
 	auto calque = calque_image();
 
 	switch (type_donnees) {
+		case wlk::type_grille::N32:
+		{
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<unsigned int>>("grille_dense_2d", desc);
+			break;
+		}
 		case wlk::type_grille::Z8:
 		{
 			calque.tampon = memoire::loge<wlk::grille_dense_2d<char>>("grille_dense_2d", desc);
@@ -83,6 +88,11 @@ calque_image calque_image::construit_calque(
 		case wlk::type_grille::R32:
 		{
 			calque.tampon = memoire::loge<wlk::grille_dense_2d<float>>("grille_dense_2d", desc);
+			break;
+		}
+		case wlk::type_grille::R32_PTR:
+		{
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<float *>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::R64:
@@ -170,11 +180,40 @@ Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
 	return tampon;
 }
 
+calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, int largeur, int hauteur, wlk::type_grille type)
+{
+	auto calque = memoire::loge<calque_image>("calque_image");
+	calque->nom = nom;
+
+	auto desc = wlk::desc_grille_2d{};
+	desc.etendue.min = dls::math::vec2f(0.0f);
+	desc.etendue.max = dls::math::vec2f(1.0f, static_cast<float>(hauteur) / static_cast<float>(largeur));
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_pixel = 1.0 / static_cast<double>(std::max(largeur, hauteur));
+
+	*calque = calque_image::construit_calque(desc, type);
+
+	m_calques_profond.pousse(calque);
+
+	return calque;
+}
+
 Calque *Image::calque(dls::chaine const &nom) const
 {
 	for (Calque *tampon : m_calques) {
 		if (tampon->nom == nom) {
 			return tampon;
+		}
+	}
+
+	return nullptr;
+}
+
+calque_image *Image::calque_profond(dls::chaine const &nom) const
+{
+	for (auto clq : m_calques_profond) {
+		if (clq->nom == nom) {
+			return clq;
 		}
 	}
 
@@ -191,15 +230,56 @@ Image::plage_calques_const Image::calques() const
 	return plage_calques_const(m_calques.debut(), m_calques.fin());
 }
 
+static void deloge_donnees_profondes(Image &image)
+{
+	auto S = image.calque_profond("S");
+	auto R = image.calque_profond("R");
+	auto G = image.calque_profond("G");
+	auto B = image.calque_profond("B");
+	auto A = image.calque_profond("A");
+	auto Z = image.calque_profond("Z");
+
+	auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
+	auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
+	auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
+	auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
+	auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
+	auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+
+	auto largeur = tampon_S->desc().resolution.x;
+	auto hauteur = tampon_S->desc().resolution.y;
+
+	for (auto i = 0; i < hauteur; ++i) {
+		for (auto j = 0; j < largeur; ++j) {
+			auto index = j + i * largeur;
+			auto const n = tampon_S->valeur(index);
+			memoire::deloge_tableau("deep_r", tampon_R->valeur(index), n);
+			memoire::deloge_tableau("deep_g", tampon_G->valeur(index), n);
+			memoire::deloge_tableau("deep_b", tampon_B->valeur(index), n);
+			memoire::deloge_tableau("deep_a", tampon_A->valeur(index), n);
+			memoire::deloge_tableau("deep_z", tampon_Z->valeur(index), n);
+		}
+	}
+}
+
 void Image::reinitialise(bool garde_memoires)
 {
 	if (!garde_memoires) {
 		for (Calque *tampon : m_calques) {
 			memoire::deloge("Calque", tampon);
 		}
+
+		if (est_profonde && !m_calques_profond.est_vide()) {
+			deloge_donnees_profondes(*this);
+		}
+
+		for (auto calque : m_calques_profond) {
+			memoire::deloge("calque_image", calque);
+		}
 	}
 
 	m_calques.efface();
+	m_calques_profond.efface();
 }
 
 void Image::nom_calque_actif(dls::chaine const &nom)

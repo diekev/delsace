@@ -42,6 +42,9 @@ protected:
 public:
 	grille_dense() = default;
 
+	grille_dense(grille_dense const &) = default;
+	grille_dense &operator=(grille_dense const &) = default;
+
 	grille_dense(type_desc const &descr, T arriere_plan = T(0))
 		: base_grille<type_vec>(descr)
 		, m_arriere_plan(arriere_plan)
@@ -117,6 +120,11 @@ public:
 		m_arriere_plan = v;
 	}
 
+	void *donnees()
+	{
+		return m_donnees.donnees();
+	}
+
 	void const *donnees() const
 	{
 		return m_donnees.donnees();
@@ -124,7 +132,7 @@ public:
 
 	long taille_octet() const
 	{
-		return this->m_nombre_elements * sizeof(T);
+		return this->m_nombre_elements * static_cast<long>(sizeof(T));
 	}
 
 	base_grille<type_vec> *copie() const override

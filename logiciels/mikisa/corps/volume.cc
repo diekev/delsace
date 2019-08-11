@@ -61,6 +61,11 @@ Volume::~Volume()
 	auto const &desc = grille->desc();
 
 	switch (desc.type_donnees) {
+		case wlk::type_grille::N32:
+		{
+			deloge_grille_impl<char>(grille);
+			break;
+		}
 		case wlk::type_grille::Z8:
 		{
 			deloge_grille_impl<char>(grille);
@@ -74,6 +79,11 @@ Volume::~Volume()
 		case wlk::type_grille::R32:
 		{
 			deloge_grille_impl<float>(grille);
+			break;
+		}
+		case wlk::type_grille::R32_PTR:
+		{
+			deloge_grille_impl<float *>(grille);
 			break;
 		}
 		case wlk::type_grille::R64:

@@ -153,67 +153,108 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 
 	//imprime_canaux(cannaux);
 
+	auto image = std::any_cast<Image *>(donnees);
+	image->est_profonde = true;
+
+	auto S = image->ajoute_calque_profond("S", largeur, hauteur, wlk::type_grille::N32);
+	auto R = image->ajoute_calque_profond("R", largeur, hauteur, wlk::type_grille::R32_PTR);
+	auto G = image->ajoute_calque_profond("G", largeur, hauteur, wlk::type_grille::R32_PTR);
+	auto B = image->ajoute_calque_profond("B", largeur, hauteur, wlk::type_grille::R32_PTR);
+	auto A = image->ajoute_calque_profond("A", largeur, hauteur, wlk::type_grille::R32_PTR);
+	auto Z = image->ajoute_calque_profond("Z", largeur, hauteur, wlk::type_grille::R32_PTR);
+
+	auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned int> *>(S->tampon);
+	auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
+	auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
+	auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
+	auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
+	auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+
+	/* À FAIRE : ceci duplique la mémoire mais il y a un crash quand on utilise
+	 * les pointeurs des grilles. */
 	auto compte_echantillons = dls::tableau<unsigned>(largeur * hauteur);
+	auto aR = openexr::Array2D<float *>(hauteur, largeur);
+	auto aG = openexr::Array2D<float *>(hauteur, largeur);
+	auto aB = openexr::Array2D<float *>(hauteur, largeur);
+	auto aA = openexr::Array2D<float *>(hauteur, largeur);
+	auto aZ = openexr::Array2D<float *>(hauteur, largeur);
+
+	auto ptr_S = compte_echantillons.donnees() - dw.min.x - dw.min.y * largeur;
+	auto ptr_R = &aR[0][0] - dw.min.x - dw.min.y * largeur;
+	auto ptr_G = &aG[0][0] - dw.min.x - dw.min.y * largeur;
+	auto ptr_B = &aB[0][0] - dw.min.x - dw.min.y * largeur;
+	auto ptr_A = &aA[0][0] - dw.min.x - dw.min.y * largeur;
+	auto ptr_Z = &aZ[0][0] - dw.min.x - dw.min.y * largeur;
 
 	auto tampon_frame = openexr::DeepFrameBuffer();
 	tampon_frame.insertSampleCountSlice(openexr::DeepSlice(
 											openexr::UINT,
-											reinterpret_cast<char *>(compte_echantillons.donnees() - dw.min.x - dw.min.y * largeur),
+											reinterpret_cast<char *>(ptr_S),
 											sizeof(unsigned),
 											sizeof(unsigned) * static_cast<unsigned>(largeur)));
 
-	auto R = openexr::Array2D<float *>(hauteur, largeur);
-	auto G = openexr::Array2D<float *>(hauteur, largeur);
-	auto B = openexr::Array2D<float *>(hauteur, largeur);
-	auto A = openexr::Array2D<float *>(hauteur, largeur);
-	auto Z = openexr::Array2D<float *>(hauteur, largeur);
-
 	tampon_frame.insert("R", openexr::DeepSlice(
 							openexr::FLOAT,
-							reinterpret_cast<char *>(&R[0][0] - dw.min.x - dw.min.y * largeur),
+							reinterpret_cast<char *>(ptr_R),
 			sizeof(float *),
 			sizeof(float *) * static_cast<unsigned>(largeur),
 			sizeof(float)));
 
 	tampon_frame.insert("G", openexr::DeepSlice(
 							openexr::FLOAT,
-							reinterpret_cast<char *>(&G[0][0] - dw.min.x - dw.min.y * largeur),
+							reinterpret_cast<char *>(ptr_G),
 			sizeof(float *),
 			sizeof(float *) * static_cast<unsigned>(largeur),
 			sizeof(float)));
 
 	tampon_frame.insert("B", openexr::DeepSlice(
 							openexr::FLOAT,
-							reinterpret_cast<char *>(&B[0][0] - dw.min.x - dw.min.y * largeur),
+							reinterpret_cast<char *>(ptr_B),
 			sizeof(float *),
 			sizeof(float *) * static_cast<unsigned>(largeur),
 			sizeof(float)));
 
 	tampon_frame.insert("A", openexr::DeepSlice(
 							openexr::FLOAT,
-							reinterpret_cast<char *>(&A[0][0] - dw.min.x - dw.min.y * largeur),
+							reinterpret_cast<char *>(ptr_A),
 			sizeof(float *),
 			sizeof(float *) * static_cast<unsigned>(largeur),
 			sizeof(float)));
 
 	tampon_frame.insert("Z", openexr::DeepSlice(
 							openexr::FLOAT,
-							reinterpret_cast<char *>(&Z[0][0] - dw.min.x - dw.min.y * largeur),
+							reinterpret_cast<char *>(ptr_Z),
 			sizeof(float *),
 			sizeof(float *) * static_cast<unsigned>(largeur),
 			sizeof(float)));
 
 	fichier.setFrameBuffer(tampon_frame);
+
 	fichier.readPixelSampleCounts(dw.min.y, dw.max.y);
 
 	for (auto i = 0; i < hauteur; ++i) {
 		for (auto j = 0; j < largeur; ++j) {
-			auto const n = compte_echantillons[j + i * largeur];
-			R[i][j] = memoire::loge_tableau<float>("deep_r", n);
-			G[i][j] = memoire::loge_tableau<float>("deep_g", n);
-			B[i][j] = memoire::loge_tableau<float>("deep_b", n);
-			A[i][j] = memoire::loge_tableau<float>("deep_a", n);
-			Z[i][j] = memoire::loge_tableau<float>("deep_z", n);
+			auto index = j + i * largeur;
+
+			auto const n = compte_echantillons[index];
+
+			if (n == 0) {
+				continue;
+			}
+
+			tampon_S->valeur(index) = n;
+
+			aR[i][j] = memoire::loge_tableau<float>("deep_r", n);
+			aG[i][j] = memoire::loge_tableau<float>("deep_g", n);
+			aB[i][j] = memoire::loge_tableau<float>("deep_b", n);
+			aA[i][j] = memoire::loge_tableau<float>("deep_a", n);
+			aZ[i][j] = memoire::loge_tableau<float>("deep_z", n);
+
+			tampon_R->valeur(index) = aR[i][j];
+			tampon_G->valeur(index) = aG[i][j];
+			tampon_B->valeur(index) = aB[i][j];
+			tampon_A->valeur(index) = aA[i][j];
+			tampon_Z->valeur(index) = aZ[i][j];
 		}
 	}
 
@@ -222,47 +263,41 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	/* ---------------------------------------------------------------------- */
 
 	type_image img = type_image(
-				dls::math::Largeur(static_cast<int>(largeur)),
-				dls::math::Hauteur(static_cast<int>(hauteur)));
+				dls::math::Largeur(largeur),
+				dls::math::Hauteur(hauteur));
 
 	long idx(0);
 	for (auto i(0); i < hauteur; ++i) {
 		for (auto j(0l); j < largeur; ++j, ++idx) {
-			auto n = compte_echantillons[j + i * largeur];
+			auto index = j + i * largeur;
+			auto n = tampon_S->valeur(index);
+
+			if (n == 0) {
+				continue;
+			}
 
 			/* À FAIRE : tidy image */
 
 			/* compose les échantillons */
+			auto sR = aR[i][j];
+			auto sG = aG[i][j];
+			auto sB = aB[i][j];
+			auto sA = aA[i][j];
+
 			auto pixel = dls::image::PixelFloat();
-			pixel.r = R[i][j][0];
-			pixel.g = G[i][j][0];
-			pixel.b = B[i][j][0];
-			pixel.a = A[i][j][0];
+			pixel.r = sR[0];
+			pixel.g = sG[0];
+			pixel.b = sB[0];
+			pixel.a = sA[0];
 
 			for (auto s = 1u; s < n; ++s) {
-				pixel.r = pixel.r + R[i][j][s] * (1.0f - A[i][j][s]);
-				pixel.g = pixel.g + G[i][j][s] * (1.0f - A[i][j][s]);
-				pixel.b = pixel.b + B[i][j][s] * (1.0f - A[i][j][s]);
-				pixel.a = pixel.a + A[i][j][s] * (1.0f - A[i][j][s]);
+				pixel.r = pixel.r + sR[s] * (1.0f - sA[s]);
+				pixel.g = pixel.g + sG[s] * (1.0f - sA[s]);
+				pixel.b = pixel.b + sB[s] * (1.0f - sA[s]);
+				pixel.a = pixel.a + sA[s] * (1.0f - sA[s]);
 			}
 
 			img[i][j] = pixel;
-		}
-	}
-
-	auto ptr = std::any_cast<type_image *>(donnees);
-	*ptr = img;
-
-	/* ---------------------------------------------------------------------- */
-
-	for (auto i = 0; i < hauteur; ++i) {
-		for (auto j = 0; j < largeur; ++j) {
-			auto const n = compte_echantillons[j + i * largeur];
-			memoire::deloge_tableau("deep_r", R[i][j], n);
-			memoire::deloge_tableau("deep_g", G[i][j], n);
-			memoire::deloge_tableau("deep_b", B[i][j], n);
-			memoire::deloge_tableau("deep_a", A[i][j], n);
-			memoire::deloge_tableau("deep_z", Z[i][j], n);
 		}
 	}
 }
@@ -503,7 +538,7 @@ public:
 
 		if (m_dernier_chemin != chemin) {
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
-			auto donnees = std::any(&m_image_chargee);
+			auto donnees = std::any(&m_image);
 
 			if (chemin.trouve(".exr") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(charge_exr_profonde, donnees);

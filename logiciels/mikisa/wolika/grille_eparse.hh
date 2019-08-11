@@ -118,6 +118,9 @@ public:
 		m_index_tuiles.redimensionne(nombre_tuiles, -1l);
 	}
 
+	grille_eparse(grille_eparse const &) = default;
+	grille_eparse &operator=(grille_eparse const &) = default;
+
 	~grille_eparse()
 	{
 		for (auto t : m_tuiles) {
