@@ -225,7 +225,6 @@ void Executrice::execute_plan(Mikisa &mikisa,
 /* ************************************************************************** */
 
 class TacheEvaluationComposite : public TacheMikisa {
-	Planifieuse::PtrPlan m_plan;
 	Composite *m_composite;
 
 public:
