@@ -34,8 +34,14 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <OpenEXR/ImfArray.h>
 #include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImathBox.h>
+#include <OpenEXR/ImfChannelList.h>
+#include <OpenEXR/ImfInputFile.h>
+#include <OpenEXR/ImfDeepTiledInputFile.h>
+#include <OpenEXR/ImfDeepScanLineInputFile.h>
+#include <OpenEXR/ImfDeepScanLineInputPart.h>
 #pragma GCC diagnostic pop
 
 #include "biblinternes/graphe/graphe.h"
@@ -99,6 +105,184 @@ static auto charge_exr(const char *chemin, std::any const &donnees)
 
 	auto ptr = std::any_cast<type_image *>(donnees);
 	*ptr = img;
+}
+
+static auto charge_exr_tile(const char *chemin, std::any const &donnees)
+{
+	std::cerr << __func__ << '\n';
+}
+
+static auto imprime_entete(OPENEXR_IMF_NAMESPACE::Header const &entete)
+{
+	auto debut_entete = entete.begin();
+	auto fin_entete   = entete.end();
+
+	for (; debut_entete != fin_entete; ++debut_entete) {
+		std::cerr << "Entete : " << debut_entete.name() << '\n';
+	}
+}
+
+static auto imprime_canaux(OPENEXR_IMF_NAMESPACE::ChannelList const &entete)
+{
+	auto debut_entete = entete.begin();
+	auto fin_entete   = entete.end();
+
+	for (; debut_entete != fin_entete; ++debut_entete) {
+		std::cerr << "Canal : " << debut_entete.name() << '\n';
+	}
+}
+
+static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
+{
+	namespace openexr = OPENEXR_IMF_NAMESPACE;
+
+	openexr::setGlobalThreadCount(8);
+
+	std::cerr << __func__ << '\n';
+	auto fichier = openexr::DeepScanLineInputFile(chemin);
+	auto entete = fichier.header();
+
+	auto dw = entete.dataWindow();
+
+	auto hauteur = dw.max.y - dw.min.y + 1;
+	auto largeur = dw.max.x - dw.min.x + 1;
+
+	std::cerr << "Les dimensions sont " << largeur << 'x' << hauteur << '\n';
+
+	//auto cannaux = entete.channels();
+
+	//imprime_canaux(cannaux);
+
+	auto compte_echantillons = dls::tableau<unsigned>(largeur * hauteur);
+
+	auto tampon_frame = openexr::DeepFrameBuffer();
+	tampon_frame.insertSampleCountSlice(openexr::DeepSlice(
+											openexr::UINT,
+											reinterpret_cast<char *>(compte_echantillons.donnees() - dw.min.x - dw.min.y * largeur),
+											sizeof(unsigned),
+											sizeof(unsigned) * static_cast<unsigned>(largeur)));
+
+	auto R = openexr::Array2D<float *>(hauteur, largeur);
+	auto G = openexr::Array2D<float *>(hauteur, largeur);
+	auto B = openexr::Array2D<float *>(hauteur, largeur);
+	auto A = openexr::Array2D<float *>(hauteur, largeur);
+	auto Z = openexr::Array2D<float *>(hauteur, largeur);
+
+	tampon_frame.insert("R", openexr::DeepSlice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&R[0][0] - dw.min.x - dw.min.y * largeur),
+			sizeof(float *),
+			sizeof(float *) * static_cast<unsigned>(largeur),
+			sizeof(float)));
+
+	tampon_frame.insert("G", openexr::DeepSlice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&G[0][0] - dw.min.x - dw.min.y * largeur),
+			sizeof(float *),
+			sizeof(float *) * static_cast<unsigned>(largeur),
+			sizeof(float)));
+
+	tampon_frame.insert("B", openexr::DeepSlice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&B[0][0] - dw.min.x - dw.min.y * largeur),
+			sizeof(float *),
+			sizeof(float *) * static_cast<unsigned>(largeur),
+			sizeof(float)));
+
+	tampon_frame.insert("A", openexr::DeepSlice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&A[0][0] - dw.min.x - dw.min.y * largeur),
+			sizeof(float *),
+			sizeof(float *) * static_cast<unsigned>(largeur),
+			sizeof(float)));
+
+	tampon_frame.insert("Z", openexr::DeepSlice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&Z[0][0] - dw.min.x - dw.min.y * largeur),
+			sizeof(float *),
+			sizeof(float *) * static_cast<unsigned>(largeur),
+			sizeof(float)));
+
+	fichier.setFrameBuffer(tampon_frame);
+	fichier.readPixelSampleCounts(dw.min.y, dw.max.y);
+
+	for (auto i = 0; i < hauteur; ++i) {
+		for (auto j = 0; j < largeur; ++j) {
+			auto const n = compte_echantillons[j + i * largeur];
+			R[i][j] = memoire::loge_tableau<float>("deep_r", n);
+			G[i][j] = memoire::loge_tableau<float>("deep_g", n);
+			B[i][j] = memoire::loge_tableau<float>("deep_b", n);
+			A[i][j] = memoire::loge_tableau<float>("deep_a", n);
+			Z[i][j] = memoire::loge_tableau<float>("deep_z", n);
+		}
+	}
+
+	fichier.readPixels(dw.min.y, dw.max.y);
+
+	/* ---------------------------------------------------------------------- */
+
+	type_image img = type_image(
+				dls::math::Largeur(static_cast<int>(largeur)),
+				dls::math::Hauteur(static_cast<int>(hauteur)));
+
+	long idx(0);
+	for (auto i(0); i < hauteur; ++i) {
+		for (auto j(0l); j < largeur; ++j, ++idx) {
+			auto n = compte_echantillons[j + i * largeur];
+
+			/* À FAIRE : tidy image */
+
+			/* compose les échantillons */
+			auto pixel = dls::image::PixelFloat();
+			pixel.r = R[i][j][0];
+			pixel.g = G[i][j][0];
+			pixel.b = B[i][j][0];
+			pixel.a = A[i][j][0];
+
+			for (auto s = 1u; s < n; ++s) {
+				pixel.r = pixel.r + R[i][j][s] * (1.0f - A[i][j][s]);
+				pixel.g = pixel.g + G[i][j][s] * (1.0f - A[i][j][s]);
+				pixel.b = pixel.b + B[i][j][s] * (1.0f - A[i][j][s]);
+				pixel.a = pixel.a + A[i][j][s] * (1.0f - A[i][j][s]);
+			}
+
+			img[i][j] = pixel;
+		}
+	}
+
+	auto ptr = std::any_cast<type_image *>(donnees);
+	*ptr = img;
+
+	/* ---------------------------------------------------------------------- */
+
+	for (auto i = 0; i < hauteur; ++i) {
+		for (auto j = 0; j < largeur; ++j) {
+			auto const n = compte_echantillons[j + i * largeur];
+			memoire::deloge_tableau("deep_r", R[i][j], n);
+			memoire::deloge_tableau("deep_g", G[i][j], n);
+			memoire::deloge_tableau("deep_b", B[i][j], n);
+			memoire::deloge_tableau("deep_a", A[i][j], n);
+			memoire::deloge_tableau("deep_z", Z[i][j], n);
+		}
+	}
+}
+
+static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
+{
+	namespace openexr = OPENEXR_IMF_NAMESPACE;
+
+	auto fichier = openexr::InputFile(chemin);
+	auto entete = fichier.header();
+
+	std::cerr << __func__ << '\n';
+	std::cerr << "type : " << entete.type() << '\n';
+
+	if (entete.type() == "deeptile") {
+		charge_exr_tile(chemin, donnees);
+	}
+	else if (entete.type() == "deepscanline") {
+		charge_exr_scanline(chemin, donnees);
+	}
 }
 
 static auto charge_jpeg(const char *chemin, std::any const &donnees)
@@ -220,6 +404,113 @@ public:
 			}
 			else {
 				m_poignee_fichier->lecture_chemin(charge_jpeg, donnees);
+			}
+
+			m_dernier_chemin = chemin;
+		}
+
+		/* copie dans l'image de l'opérateur. */
+		auto largeur = static_cast<int>(rectangle.largeur);
+		auto hauteur = static_cast<int>(rectangle.hauteur);
+
+		/* À FAIRE : un neoud dédié pour les textures. */
+		if (evalue_bool("est_texture")) {
+			largeur = m_image_chargee.nombre_colonnes();
+			hauteur = m_image_chargee.nombre_lignes();
+
+			tampon->tampon = type_image(m_image_chargee.dimensions());
+		}
+
+		auto debut_x = std::max(0l, static_cast<long>(rectangle.x));
+		auto fin_x = static_cast<long>(std::min(m_image_chargee.nombre_colonnes(), largeur));
+		auto debut_y = std::max(0l, static_cast<long>(rectangle.y));
+		auto fin_y = static_cast<long>(std::min(m_image_chargee.nombre_lignes(), hauteur));
+
+		for (auto x = debut_x; x < fin_x; ++x) {
+			for (auto y = debut_y; y < fin_y; ++y) {
+				/* À FAIRE : alpha. */
+				auto pixel = m_image_chargee[static_cast<int>(y)][x];
+				pixel.a = 1.0f;
+
+				tampon->valeur(x, y, pixel);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpLectureImgProfonde : public OperatriceImage {
+	type_image m_image_chargee{};
+	dls::chaine m_dernier_chemin = "";
+	PoigneeFichier *m_poignee_fichier = nullptr;
+
+public:
+	static constexpr auto NOM = "Lecture Image Profonde";
+	static constexpr auto AIDE = "Charge une image depuis le disque.";
+
+	explicit OpLectureImgProfonde(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(0);
+		sorties(1);
+	}
+
+	OpLectureImgProfonde(OpLectureImgProfonde const &) = default;
+	OpLectureImgProfonde &operator=(OpLectureImgProfonde const &) = default;
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_lecture_fichier.jo";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_image.reinitialise();
+
+		auto nom_calque = evalue_chaine("nom_calque");
+
+		if (nom_calque == "") {
+			nom_calque = "image";
+		}
+
+		auto const &rectangle = contexte.resolution_rendu;
+		auto tampon = m_image.ajoute_calque(nom_calque, rectangle);
+
+		dls::chaine chemin = evalue_chaine("chemin");
+
+		if (chemin.est_vide()) {
+			ajoute_avertissement("Le chemin de fichier est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (evalue_bool("est_animation")) {
+			dls::corrige_chemin_pour_temps(chemin, contexte.temps_courant);
+		}
+
+		if (m_dernier_chemin != chemin) {
+			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
+			auto donnees = std::any(&m_image_chargee);
+
+			if (chemin.trouve(".exr") != dls::chaine::npos) {
+				m_poignee_fichier->lecture_chemin(charge_exr_profonde, donnees);
+			}
+			else {
+				ajoute_avertissement("L'extension est invalide !");
+				return EXECUTION_ECHOUEE;
 			}
 
 			m_dernier_chemin = chemin;
@@ -580,6 +871,7 @@ void enregistre_operatrices_flux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCommutationCorps>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
+	usine.enregistre_type(cree_desc<OpLectureImgProfonde>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
 	usine.enregistre_type(cree_desc<OperatriceImportObjet>());
 

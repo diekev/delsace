@@ -3,8 +3,9 @@ menu "Noeud Composite" {
 	    action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
 		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
     }
-    menu "Entrée" {
+	menu "Entrée" {
 	    action(valeur="Lecture Image"; attache=ajouter_noeud; métadonnée="Lecture Image")
+		action(valeur="Image Profonde"; attache=ajouter_noeud; métadonnée="Lecture Image Profonde")
     }
     menu "Pixel" {
 	    action(valeur="Bruitage"; attache=ajouter_noeud; métadonnée="Bruitage")
