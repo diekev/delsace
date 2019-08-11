@@ -94,6 +94,8 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 
 	if (event->key() == Qt::Key_Tab) {
 		switch (m_mikisa.contexte) {
+			case GRAPHE_RACINE_COMPOSITES:
+				break;
 			case GRAPHE_COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;

@@ -612,6 +612,16 @@ public:
 
 			mikisa->chemin_courant = "/objets/" + objet->nom + "/";
 		}
+		else if (noeud->type() == NOEUD_COMPOSITE) {
+			auto composite = extrait_composite(noeud->donnees());
+
+			assert(mikisa->contexte == GRAPHE_RACINE_COMPOSITES);
+
+			mikisa->graphe = &composite->graph();
+			mikisa->contexte = GRAPHE_COMPOSITE;
+
+			mikisa->chemin_courant = "/composites/" + composite->nom + "/";
+		}
 		else {
 			auto operatrice = extrait_opimage(noeud->donnees());
 
@@ -659,29 +669,41 @@ public:
 	{
 		auto mikisa = extrait_mikisa(pointeur);
 
-		if (mikisa->contexte == GRAPHE_COMPOSITE || mikisa->contexte == GRAPHE_SCENE) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
+		switch (mikisa->contexte) {
+			case GRAPHE_RACINE_COMPOSITES:
+			case GRAPHE_SCENE:
+			{
+				return EXECUTION_ECHOUEE;
+			}
+			case GRAPHE_OBJET:
+			{
+				mikisa->graphe = mikisa->bdd.graphe_objets();
+				mikisa->contexte = GRAPHE_SCENE;
+				mikisa->chemin_courant = "/objets/";
+				break;
+			}
+			case GRAPHE_MAILLAGE:
+			case GRAPHE_SIMULATION:
+			{
+				auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
+				auto objet = extrait_objet(noeud_actif->donnees());
 
-		if (mikisa->contexte == GRAPHE_OBJET) {
-			mikisa->graphe = mikisa->bdd.graphe_objets();
-			mikisa->contexte = GRAPHE_SCENE;
-			mikisa->chemin_courant = "/objets/";
-		}
-		else if (mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
-			auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
-			auto objet = extrait_objet(noeud_actif->donnees());
+				mikisa->graphe = &objet->graphe;
+				mikisa->contexte = GRAPHE_OBJET;
+				mikisa->chemin_courant = "/objets/" + objet->nom + "/";
+				break;
+			}
+			case GRAPHE_PIXEL:
+			case GRAPHE_COMPOSITE:
+			{
+				auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
+				auto composite = extrait_composite(noeud_actif->donnees());
 
-			mikisa->graphe = &objet->graphe;
-			mikisa->contexte = GRAPHE_OBJET;
-			mikisa->chemin_courant = "/objets/" + objet->nom + "/";
-		}
-		else {
-			auto composite = mikisa->composite;
-
-			mikisa->graphe = &composite->graph();
-			mikisa->contexte = GRAPHE_COMPOSITE;
-			mikisa->chemin_courant = "/composites/";
+				mikisa->graphe = &composite->graph();
+				mikisa->contexte = GRAPHE_RACINE_COMPOSITES;
+				mikisa->chemin_courant = "/composites/";
+				break;
+			}
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
@@ -857,9 +879,13 @@ public:
 
 		if (metadonnee == "composites") {
 			mikisa->graphe = mikisa->bdd.graphe_composites();
+			mikisa->contexte = GRAPHE_RACINE_COMPOSITES;
+			mikisa->chemin_courant = "/composites/";
 		}
 		else if (metadonnee == "scènes") {
 			mikisa->graphe = mikisa->bdd.graphe_objets();
+			mikisa->contexte = GRAPHE_SCENE;
+			mikisa->chemin_courant = "/objets/";
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
