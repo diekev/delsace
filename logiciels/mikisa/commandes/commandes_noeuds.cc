@@ -889,7 +889,7 @@ public:
 			mikisa->contexte = GRAPHE_RACINE_COMPOSITES;
 			mikisa->chemin_courant = "/composites/";
 		}
-		else if (metadonnee == "scènes") {
+		else if (metadonnee == "objets") {
 			mikisa->graphe = mikisa->bdd.graphe_objets();
 			mikisa->contexte = GRAPHE_RACINE_OBJETS;
 			mikisa->chemin_courant = "/objets/";

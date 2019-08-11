@@ -56,12 +56,12 @@ static auto detruit_noeud(Noeud *noeud)
 
 /* ************************************************************************** */
 
-/* À FAIRE : noms uniques. Les graphes des composites et objets ainsi que les
- * scènes sont pour le moment chargés de maintenir les listes des noms pour
- * éviter tout conflit. Lors de l'ouverture de fichier notamment, nous devons
- * tous détruire pour s'assurer que les listes des noms soient bel et bien
- * détruites pour ne pas colléser avec les noms des objets lus. Peut-être que
- * la gestion des noms peut être releguée à la BaseDeDonnées. */
+/* À FAIRE : noms uniques. Les graphes sont pour le moment chargés de maintenir
+ * les listes des noms pour éviter tout conflit. Lors de l'ouverture de fichier
+ * notamment, nous devons tous détruire pour s'assurer que les listes des noms
+ * soient bel et bien détruites pour ne pas colléser avec les noms des objets
+ * lus. Peut-être que la gestion des noms peut être releguée à la BaseDeDonnées.
+ */
 
 BaseDeDonnees::BaseDeDonnees()
 	: m_graphe_composites(Graphe(cree_noeud_composite, detruit_noeud))

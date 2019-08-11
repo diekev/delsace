@@ -272,7 +272,6 @@ void EditriceVue3D::ajourne_etat(int evenement)
 	ajourne |= evenement == (type_evenement::image | type_evenement::traite);
 	ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
 	ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
-	ajourne |= evenement == (type_evenement::scene | type_evenement::traite);
 	ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
 	ajourne |= evenement == (type_evenement::rafraichissement);
 

@@ -36,7 +36,6 @@ enum type_evenement : int {
 	camera_3d        = (6 << 0),
 	objet            = (7 << 0),
 	propriete        = (8 << 0),
-	scene            = (9 << 0),
 
 	/* Action, 256 entrées. */
 	ajoute      = (1 << 8),
@@ -113,9 +112,6 @@ auto &operator<<(std::basic_ostream<char_type> &os, type_evenement evenement)
 			break;
 		case type_evenement::propriete:
 			os << "propriété, ";
-			break;
-		case type_evenement::scene:
-			os << "scène, ";
 			break;
 		default:
 			os << "inconnu, ";

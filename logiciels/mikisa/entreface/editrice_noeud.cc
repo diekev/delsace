@@ -59,7 +59,7 @@ EditriceGraphe::EditriceGraphe(Mikisa &mikisa, QWidget *parent)
 	auto disposition_barre = new QHBoxLayout();
 
 	m_selecteur_graphe->addItem("Graphe Composite", QVariant("composites"));
-	m_selecteur_graphe->addItem("Graphe Scène", QVariant("scènes"));
+	m_selecteur_graphe->addItem("Graphe Scène", QVariant("objets"));
 
 	m_selecteur_graphe->setCurrentIndex(1);
 
