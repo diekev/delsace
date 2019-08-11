@@ -226,6 +226,7 @@ if(AVEC_MIKISA)
 	find_package(Bullet)
 	find_package(OpenColorIO)
 	find_package(OpenEXR)
+	add_definitions(-DAVEC_OPENEXR)
 	find_package(OpenSubDiv)
 	find_package(OpenVDB)
 endif(AVEC_MIKISA)
@@ -265,6 +266,7 @@ if(REQUIERS_TBB)
 	set(BIBLIOTHEQUES_TBB tbb)
 endif()
 
+add_definitions(-DAVEC_JPEG)
 set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
 
 # À FAIRE : find_package

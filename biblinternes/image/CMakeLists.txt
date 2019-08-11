@@ -22,6 +22,14 @@
 set(INCLUSIONS_SYSTEMES
 	${JPEG_INCLUDE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${INCLUSIONS_OPENEXR}
+)
+
+set(BIBLIOTHEQUES
+	${JPEG_LIBRARIES}
+	${BIBLIOTHEQUES_OPENEXR}
+	stdc++fs
+	bib_structures
 )
 
 set(NOM_BIBLIOTHEQUE image)
@@ -65,6 +73,6 @@ set(SOURCES
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES} ${ENTETES_OPERATIONS} ${ENTETES_LECTURE} ${ENTETES_OUTILS})
 
-target_link_libraries(${NOM_BIBLIOTHEQUE} ${JPEG_LIBRARIES} stdc++fs bib_structures)
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 
-target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${JPEG_INCLUDE_DIR})
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS_SYSTEMES})

@@ -24,6 +24,8 @@
 
 #include "lecture.h"
 
+#include "biblinternes/structures/tableau.hh"
+
 #include <cassert>
 #include <cstdio>
 #include <iostream>
@@ -34,8 +36,16 @@
 #endif
 
 #ifdef AVEC_OPENEXR
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wregister"
+#	pragma GCC diagnostic ignored "-Wold-style-cast"
+#	pragma GCC diagnostic ignored "-Wsign-conversion"
+#	pragma GCC diagnostic ignored "-Weffc++"
+#	pragma GCC diagnostic ignored "-Wconversion"
+#	pragma GCC diagnostic ignored "-Wshadow"
 #	include <OpenEXR/ImfRgbaFile.h>
 #	include <OpenEXR/ImathBox.h>
+#	pragma GCC diagnostic pop
 #endif
 
 #ifdef AVEC_TIFF
@@ -123,27 +133,28 @@ math::matrice_dyn<PixelChar> LecteurJPEG::ouvre(const filesystem::path &chemin)
 	jpeg_read_header(&info, TRUE);
 	jpeg_start_decompress(&info);
 
-	const auto width = info.output_width;
-	const auto height = info.output_height;
+	const auto width = static_cast<int>(info.output_width);
+	const auto height = static_cast<int>(info.output_height);
 	const auto channels = info.output_components;
 
-	auto image = math::matrice_dyn<PixelChar>(math::Hauteur(height), math::Largeur(width));
+	auto image = math::matrice_dyn<PixelChar>(
+				math::Hauteur(height),
+				math::Largeur(width));
 
 	const auto &stride = width * channels;
 
-	unsigned char *buffer = new unsigned char[stride];
+	auto buffer = dls::tableau<unsigned char>(stride);
+	auto ptr = buffer.donnees();
 
-	for (size_t xi = 0; xi < height; ++xi) {
-		jpeg_read_scanlines(&info, &buffer, 1);
+	for (auto xi = 0; xi < height; ++xi) {
+		jpeg_read_scanlines(&info, &ptr, 1);
 
-		for (size_t yb = 0, yi = 0; yi < width; yb += 3, ++yi) {
+		for (auto yb = 0, yi = 0; yi < width; yb += 3, ++yi) {
 			image[xi][yi].r = buffer[yb];
 			image[xi][yi].g = buffer[yb + 1];
 			image[xi][yi].b = buffer[yb + 2];
 		}
 	}
-
-	delete [] buffer;
 
 	/* cleanup */
 	jpeg_finish_decompress(&info);
@@ -250,18 +261,20 @@ math::matrice_dyn<PixelFloat> LecteurEXR::ouvre(const filesystem::path &chemin)
 
 	dls::tableau<openexr::Rgba> pixels(width * height);
 
-	file.setFrameBuffer(&pixels[0]- dw.min.x - dw.min.y * width, 1, width);
+	file.setFrameBuffer(&pixels[0]- dw.min.x - dw.min.y * width, 1, static_cast<size_t>(width));
 	file.readPixels(dw.min.y, dw.max.y);
 
-	FloatImage img(width, height, 4);
+	auto img = math::matrice_dyn<PixelFloat>(
+				math::Hauteur(height),
+				math::Largeur(width));
 
-	size_t idx(0);
-	for (size_t y(0); y < height; ++y) {
-		for (size_t x(0), xe(width * 4); x < xe; x += 4, ++idx) {
-			img(x + 0, y) = pixels[idx].r;
-			img(x + 1, y) = pixels[idx].g;
-			img(x + 2, y) = pixels[idx].b;
-			img(x + 3, y) = pixels[idx].a;
+	auto idx(0);
+	for (auto y(0); y < height; ++y) {
+		for (auto x(0), xe(width * 4); x < xe; x += 4, ++idx) {
+			img[y][x].r = pixels[idx].r;
+			img[y][x].g = pixels[idx].g;
+			img[y][x].b = pixels[idx].b;
+			img[y][x].a = pixels[idx].a;
 		}
 	}
 
