@@ -30,6 +30,9 @@ menu "Noeud Composite" {
 		action(valeur="Traduction"; attache=ajouter_noeud; métadonnée="Traduction")
 		action(valeur="Mappage Tonal"; attache=ajouter_noeud; métadonnée="Mappage Tonal")
     }
+	menu "Profonde" {
+		action(valeur="Aplanis"; attache=ajouter_noeud; métadonnée="Aplanis Image Profonde")
+	}
     menu "Région" {
 	    action(valeur="Analyse"; attache=ajouter_noeud; métadonnée="Analyse")
 		action(valeur="Champs de distance"; attache=ajouter_noeud; métadonnée="Champs distance")

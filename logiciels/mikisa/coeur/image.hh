@@ -91,12 +91,12 @@ private:
 	dls::liste<Calque *> m_calques{};
 	dls::chaine m_nom_calque{};
 
-	dls::liste<calque_image *> m_calques_profond{};
 
 public:
 	using plage_calques = dls::outils::plage_iterable<dls::liste<Calque *>::iteratrice>;
 	using plage_calques_const = dls::outils::plage_iterable<dls::liste<Calque *>::const_iteratrice>;
 
+	dls::liste<calque_image *> m_calques_profond{};
 	bool est_profonde = false;
 
 	~Image();

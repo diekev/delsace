@@ -259,47 +259,6 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	}
 
 	fichier.readPixels(dw.min.y, dw.max.y);
-
-	/* ---------------------------------------------------------------------- */
-
-	type_image img = type_image(
-				dls::math::Largeur(largeur),
-				dls::math::Hauteur(hauteur));
-
-	long idx(0);
-	for (auto i(0); i < hauteur; ++i) {
-		for (auto j(0l); j < largeur; ++j, ++idx) {
-			auto index = j + i * largeur;
-			auto n = tampon_S->valeur(index);
-
-			if (n == 0) {
-				continue;
-			}
-
-			/* À FAIRE : tidy image */
-
-			/* compose les échantillons */
-			auto sR = aR[i][j];
-			auto sG = aG[i][j];
-			auto sB = aB[i][j];
-			auto sA = aA[i][j];
-
-			auto pixel = dls::image::PixelFloat();
-			pixel.r = sR[0];
-			pixel.g = sG[0];
-			pixel.b = sB[0];
-			pixel.a = sA[0];
-
-			for (auto s = 1u; s < n; ++s) {
-				pixel.r = pixel.r + sR[s] * (1.0f - sA[s]);
-				pixel.g = pixel.g + sG[s] * (1.0f - sA[s]);
-				pixel.b = pixel.b + sB[s] * (1.0f - sA[s]);
-				pixel.a = pixel.a + sA[s] * (1.0f - sA[s]);
-			}
-
-			img[i][j] = pixel;
-		}
-	}
 }
 
 static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
@@ -514,16 +473,12 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
-		m_image.reinitialise();
 
 		auto nom_calque = evalue_chaine("nom_calque");
 
 		if (nom_calque == "") {
 			nom_calque = "image";
 		}
-
-		auto const &rectangle = contexte.resolution_rendu;
-		auto tampon = m_image.ajoute_calque(nom_calque, rectangle);
 
 		dls::chaine chemin = evalue_chaine("chemin");
 
@@ -538,6 +493,7 @@ public:
 
 		if (m_dernier_chemin != chemin) {
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
+			m_image.reinitialise();
 			auto donnees = std::any(&m_image);
 
 			if (chemin.trouve(".exr") != dls::chaine::npos) {
@@ -549,33 +505,6 @@ public:
 			}
 
 			m_dernier_chemin = chemin;
-		}
-
-		/* copie dans l'image de l'opérateur. */
-		auto largeur = static_cast<int>(rectangle.largeur);
-		auto hauteur = static_cast<int>(rectangle.hauteur);
-
-		/* À FAIRE : un neoud dédié pour les textures. */
-		if (evalue_bool("est_texture")) {
-			largeur = m_image_chargee.nombre_colonnes();
-			hauteur = m_image_chargee.nombre_lignes();
-
-			tampon->tampon = type_image(m_image_chargee.dimensions());
-		}
-
-		auto debut_x = std::max(0l, static_cast<long>(rectangle.x));
-		auto fin_x = static_cast<long>(std::min(m_image_chargee.nombre_colonnes(), largeur));
-		auto debut_y = std::max(0l, static_cast<long>(rectangle.y));
-		auto fin_y = static_cast<long>(std::min(m_image_chargee.nombre_lignes(), hauteur));
-
-		for (auto x = debut_x; x < fin_x; ++x) {
-			for (auto y = debut_y; y < fin_y; ++y) {
-				/* À FAIRE : alpha. */
-				auto pixel = m_image_chargee[static_cast<int>(y)][x];
-				pixel.a = 1.0f;
-
-				tampon->valeur(x, y, pixel);
-			}
 		}
 
 		return EXECUTION_REUSSIE;

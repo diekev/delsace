@@ -278,6 +278,7 @@ void Image::reinitialise(bool garde_memoires)
 		}
 	}
 
+	est_profonde = false;
 	m_calques.efface();
 	m_calques_profond.efface();
 }
