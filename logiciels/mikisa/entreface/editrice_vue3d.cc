@@ -55,7 +55,7 @@ static void charge_manipulatrice(Mikisa &mikisa, int type_manipulation)
 {
 	mikisa.type_manipulation_3d = type_manipulation;
 
-	if (mikisa.contexte != GRAPHE_COMPOSITE) {
+	if (mikisa.contexte != GRAPHE_OBJET) {
 		return;
 	}
 
