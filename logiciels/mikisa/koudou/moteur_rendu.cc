@@ -80,9 +80,18 @@ static dls::phys::rayond genere_rayon(vision::Camera3D *camera, vision::Echantil
 	return r;
 }
 
+/* test pour retourner différentes passes */
+struct DonneesChemin {
+	Spectre resultat{};
+	Spectre albedo{};
+	Spectre normal{};
+};
+
 Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::rayond const &rayon, uint profondeur)
 {
 	Scene const &scene = parametres.scene;
+
+	auto donnees_chemin = DonneesChemin{};
 
 	if (profondeur > 5) {
 		auto vecteur = dls::math::vec3d(rayon.origine) + rayon.direction;
@@ -114,6 +123,12 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		contexte.P = rayon_local.origine + entresection.distance * rayon_local.direction;
 		contexte.N = entresection.normal;
 		contexte.V = -rayon_local.direction;
+
+		if (i == 0) {
+			donnees_chemin.normal[0] = static_cast<float>(contexte.N.x);
+			donnees_chemin.normal[1] = static_cast<float>(contexte.N.y);
+			donnees_chemin.normal[2] = static_cast<float>(contexte.N.z);
+		}
 
 		contexte.rayon = rayon_local;
 
@@ -162,6 +177,8 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 
 		calcul_direction_inverse(rayon_local);
 	}
+
+	donnees_chemin.resultat = spectre_pixel;
 
 	return spectre_pixel;
 }
