@@ -66,6 +66,35 @@ static Image const *cherche_image_profonde(
 
 /* ************************************************************************** */
 
+static auto fusionne_echant_surposes(
+		float a1, float c1,
+		float a2, float c2,
+		float &am, float &cm)
+{
+	a1 = std::max(0.0f, std::min(a1, 1.0f));
+	a2 = std::max(0.0f, std::min(a2, 1.0f));
+	am = a1 + a2 - a1 * a2;
+	if (a1 == 1.0f && a2 == 1.0f) {
+		cm = (c1 + c2) / 2;
+	}
+	else if (a1 == 1.0f) {
+		cm = c1;
+	}
+	else if (a2 == 1.0f) {
+		cm = c2;
+	}
+	else {
+		constexpr auto MAX = std::numeric_limits<float>::max();
+		auto u1 = -std::log1p(-a1);
+		auto v1 = (u1 < a1 * MAX)? u1 / a1 : 1.0f;
+		auto u2 = -std::log1p(-a2);
+		auto v2 = (u2 < a2 * MAX)? u2 / a2 : 1.0f;
+		auto u = u1 + u2;
+		auto w = (u > 1 || am < u * MAX)? am / u: 1;
+		cm = (c1 * v1 + c2 * v2) * w;
+	}
+}
+
 class OpAplanisProfonde : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Aplanis Image Profonde";
@@ -173,6 +202,11 @@ public:
 					/* À FAIRE : Étape 2 : split */
 
 					/* À FAIRE : Étape 3 : fusionne */
+//					for (auto i = 1u; i < n; ++i) {
+//						if (sZ[i] == sZ[i - 1]) {
+//							sR[i] = fusionne_echant_surposes(sR[i], sA[i], sR[i - 1], sA[i - 1], sR[i], sA[i])
+//						}
+//					}
 
 					/* compose les échantillons */
 
@@ -183,14 +217,11 @@ public:
 					pixel.a = sA[0];
 
 					for (auto s = 1u; s < n; ++s) {
-//						pixel.r = pixel.r * sA[s - 1] + sR[s] * (1.0f - sA[s]);
-//						pixel.g = pixel.g * sA[s - 1] + sG[s] * (1.0f - sA[s]);
-//						pixel.b = pixel.b * sA[s - 1] + sB[s] * (1.0f - sA[s]);
-//						pixel.a = pixel.a * sA[s - 1] + sA[s] * (1.0f - sA[s]);
-						pixel.r = std::max(pixel.r, sR[s]);
-						pixel.g = std::max(pixel.g, sG[s]);
-						pixel.b = std::max(pixel.b, sB[s]);
-						pixel.a = std::max(pixel.a, sA[s]);
+						auto denum = 1.0f / (pixel.a + sA[s] * (1.0f - pixel.a));
+						pixel.r = (pixel.r * pixel.a + sR[s] * sA[s] * (1.0f - pixel.a)) * denum;
+						pixel.g = (pixel.g * pixel.a + sG[s] * sA[s] * (1.0f - pixel.a)) * denum;
+						pixel.b = (pixel.b * pixel.a + sB[s] * sA[s] * (1.0f - pixel.a)) * denum;
+						pixel.a = pixel.a + sA[s] * (1.0f - pixel.a);
 					}
 
 					tampon->valeur(j, i, pixel);
