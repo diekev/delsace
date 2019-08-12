@@ -132,6 +132,14 @@ static auto imprime_canaux(OPENEXR_IMF_NAMESPACE::ChannelList const &entete)
 	}
 }
 
+struct DonneesChargementImg {
+	Image *image = nullptr;
+	ChefExecution *chef = nullptr;
+
+	DonneesChargementImg(DonneesChargementImg const &) = default;
+	DonneesChargementImg &operator=(DonneesChargementImg const &) = default;
+};
+
 #define DBL_MEM
 
 static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
@@ -141,7 +149,17 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	openexr::setGlobalThreadCount(8);
 
 	auto fichier = openexr::DeepScanLineInputFile(chemin);
+
 	auto entete = fichier.header();
+
+	auto donnees_chrg = std::any_cast<DonneesChargementImg *>(donnees);
+
+	auto chef = donnees_chrg->chef;
+
+	chef->demarre_evaluation("lecture image profonde");
+
+	auto image = donnees_chrg->image;
+	image->est_profonde = true;
 
 	auto dw = entete.dataWindow();
 	auto ds = entete.displayWindow();
@@ -165,9 +183,6 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 			  << '(' << ds.max.x << ',' << ds.max.y << ')'
 			  << '\n';
 #endif
-
-	auto image = std::any_cast<Image *>(donnees);
-	image->est_profonde = true;
 
 	auto S = image->ajoute_calque_profond("S", largeur, hauteur, wlk::type_grille::N32);
 	auto R = image->ajoute_calque_profond("R", largeur, hauteur, wlk::type_grille::R32_PTR);
@@ -254,6 +269,8 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 
 	fichier.readPixelSampleCounts(dw.min.y, dw.max.y);
 
+	chef->indique_progression(10.0f);
+
 	for (auto i = 0; i < hauteur; ++i) {
 		for (auto j = 0; j < largeur; ++j) {
 			auto index = j + i * largeur;
@@ -294,7 +311,21 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 		}
 	}
 
-	fichier.readPixels(dw.min.y, dw.max.y);
+	chef->indique_progression(20.0f);
+
+	auto progression = 20.0f;
+
+	/* Utilise une boucle au lieu de fichier.readPixels(dw.min.y, dw.max.y) afin
+	 * de pouvoir rapporter la progression via le chef.
+	 */
+	for (auto y = dw.min.y; y < dw.max.y; ++y) {
+		fichier.readPixels(y);
+
+		auto delta = static_cast<float>(y) / static_cast<float>(hauteur) * (100.0f - progression);
+		chef->indique_progression(progression + delta);
+	}
+
+	chef->indique_progression(100.0f);
 }
 
 static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
@@ -527,7 +558,12 @@ public:
 		if (m_dernier_chemin != chemin) {
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
 			m_image.reinitialise();
-			auto donnees = std::any(&m_image);
+
+			auto donnees_chrg = DonneesChargementImg{};
+			donnees_chrg.chef = contexte.chef;
+			donnees_chrg.image = &m_image;
+
+			auto donnees = std::any(&donnees_chrg);
 
 			if (chemin.trouve(".exr") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(charge_exr_profonde, donnees);
