@@ -255,7 +255,7 @@ dls::math::vec3f Camera3D::pos() const
 	return m_position;
 }
 
-dls::math::point2f Camera3D::pos_ecran(dls::math::point3f const &pos)
+dls::math::point2f Camera3D::pos_ecran(dls::math::point3f const &pos) const
 {
 	auto const &point = dls::math::projette(
 							dls::math::vec3f(pos.x, pos.y, pos.z),
@@ -266,7 +266,7 @@ dls::math::point2f Camera3D::pos_ecran(dls::math::point3f const &pos)
 	return dls::math::point2f(point.x, static_cast<float>(hauteur()) - point.y);
 }
 
-dls::math::point3f Camera3D::pos_monde(dls::math::point3f const &pos)
+dls::math::point3f Camera3D::pos_monde(dls::math::point3f const &pos) const
 {
 	return dls::math::deprojette(
 				dls::math::vec3f(pos.x * static_cast<float>(largeur()), pos.y * static_cast<float>(hauteur()), pos.z),

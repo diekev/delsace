@@ -180,8 +180,8 @@ public:
 
 	int largeur() const;
 
-	dls::math::point2f pos_ecran(dls::math::point3f const &pos);
-	dls::math::point3f pos_monde(dls::math::point3f const &pos);
+	dls::math::point2f pos_ecran(dls::math::point3f const &pos) const;
+	dls::math::point3f pos_monde(dls::math::point3f const &pos) const;
 
 	void projection(TypeProjection proj);
 
