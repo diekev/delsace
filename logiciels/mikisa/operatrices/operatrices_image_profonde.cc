@@ -326,9 +326,6 @@ public:
 		auto tampon_Z2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z2->tampon);
 
 		/* alloue calques profonds */
-		auto largeur = tampon_S1->desc().resolution.x;
-		auto hauteur = tampon_S1->desc().resolution.y;
-
 		auto desc1 = S1->tampon->desc();
 		auto desc2 = S2->tampon->desc();
 
@@ -368,6 +365,8 @@ public:
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("fusion profondes");
 
+		auto largeur = tampon_S->desc().resolution.x;
+		auto hauteur = tampon_S->desc().resolution.y;
 		auto courant = 0;
 
 		for (auto j = 0; j < largeur; ++j) {
