@@ -389,6 +389,9 @@ public:
 #include "coeur/base_de_donnees.hh"
 #include "coeur/composite.h"
 #include "coeur/noeud_image.h"
+#include "coeur/objet.h"
+
+#include "evaluation/reseau.hh"
 
 static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin)
 {
@@ -420,6 +423,9 @@ static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin
 }
 
 class OpPointsDepuisProfonde : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
 public:
 	static constexpr auto NOM = "Point depuis Profonde";
 	static constexpr auto AIDE = "";
@@ -430,6 +436,9 @@ public:
 		entrees(0);
 		sorties(1);
 	}
+
+	OpPointsDepuisProfonde(OpPointsDepuisProfonde const &) = default;
+	OpPointsDepuisProfonde &operator=(OpPointsDepuisProfonde const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -444,6 +453,22 @@ public:
 	const char *texte_aide() const override
 	{
 		return AIDE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_caméra");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -478,6 +503,18 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_objet->type != type_objet::CAMERA) {
+			this->ajoute_avertissement("L'objet n'est pas une caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto S1 = image->calque_profond("S");
 		auto R1 = image->calque_profond("R");
 		auto G1 = image->calque_profond("G");
@@ -495,8 +532,14 @@ public:
 		auto largeur = tampon_S1->desc().resolution.x;
 		auto hauteur = tampon_S1->desc().resolution.y;
 
-		auto camera = vision::Camera3D(largeur, hauteur);
-		camera.ajourne_pour_operatrice();
+		auto camera = static_cast<vision::Camera3D *>(nullptr);
+
+		m_objet->donnees.accede_ecriture([&](DonneesObjet *donnees)
+		{
+			camera = &extrait_camera(donnees);
+		});
+
+		camera->ajourne_pour_operatrice();
 
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("points depuis profonde");
@@ -520,7 +563,7 @@ public:
 				auto yf = static_cast<float>(y) / static_cast<float>(hauteur);
 
 				auto point = dls::math::point3f(xf, yf, 0.0f);
-				auto pmnd = camera.pos_monde(point);
+				auto pmnd = camera->pos_monde(point);
 
 				auto eR = tampon_R1->valeur(index);
 				auto eG = tampon_G1->valeur(index);
@@ -544,15 +587,39 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		auto points = m_corps.points_pour_ecriture();
+		return EXECUTION_REUSSIE;
+	}
 
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto p = points->point(i);
-			p.z -= min_z;
-			points->point(i, p);
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
 		}
 
-		return EXECUTION_REUSSIE;
+		compilatrice.ajoute_dependance(noeud, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_caméra") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->nom);
+			}
+		}
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("nom_caméra") == nullptr) {
+			ajoute_propriete("nom_caméra", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine(""));
+		}
 	}
 };
 

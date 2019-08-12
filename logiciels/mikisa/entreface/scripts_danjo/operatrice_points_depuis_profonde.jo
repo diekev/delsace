@@ -3,4 +3,8 @@ disposition "operatrice_points_depuis_profonde" {
 		étiquette(valeur="Chemin noeud")
 		chaine(valeur=""; attache=chemin_noeud; infobulle="Le noeud composite contenant l'image profonde d'où dériver un nuage de point.")
 	}
+	ligne {
+		étiquette(valeur="Caméra")
+		liste(valeur=""; attache=nom_caméra; infobulle="La caméra utilisée pour la projection.")
+	}
 }
