@@ -192,6 +192,7 @@ void Graphe::supprime_tout()
 		supprime_noeud(noeud);
 	}
 
+	m_noms_noeuds.efface();
 	m_noeuds_selectionnes.efface();
 	m_noeuds.efface();
 }
