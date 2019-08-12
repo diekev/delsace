@@ -507,6 +507,38 @@ public:
 
 				ss << "<hr/>";
 			}
+			else if (op->type() == OPERATRICE_IMAGE) {
+				auto image = op->image();
+
+				if (image->est_profonde) {
+					ss << "<p>Image profonde</p>";
+					ss << "<hr/>";
+
+					ss << "<p>Calques : </p>";
+
+					for (auto calque : image->m_calques_profond) {
+						ss << "<p>" << calque->nom << " (";
+						ss << calque->tampon->desc().resolution.x;
+						ss << "x";
+						ss << calque->tampon->desc().resolution.y;
+						ss << ")</p>";
+					}
+				}
+				else {
+					ss << "<p>Image plate</p>";
+					ss << "<hr/>";
+
+					for (auto calque : image->calques()) {
+						ss << "<p>" << calque->nom << " (";
+						ss << calque->tampon.nombre_colonnes();
+						ss << "x";
+						ss << calque->tampon.nombre_lignes();
+						ss << ")</p>";
+					}
+				}
+
+				ss << "<hr/>";
+			}
 
 			ss << "<p>Temps d'exécution :";
 			ss << "<p>- dernière : " << noeud->temps_execution() << " secondes.</p>";
