@@ -157,7 +157,7 @@ public:
 		}
 		else if (projection == "caméra") {
 			m_texture.projection(PROJECTION_CAMERA);
-			m_camera = entree(1)->requiers_camera(contexte, donnees_aval);
+			//m_camera = entree(1)->requiers_camera(contexte, donnees_aval);
 
 			if (m_camera == nullptr) {
 				ajoute_avertissement("Aucune caméra trouvée pour la projection caméra !");

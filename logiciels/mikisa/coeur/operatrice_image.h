@@ -108,22 +108,6 @@ public:
 	 */
 	void requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
-	/**
-	 * Requiers la caméra du noeud connecté à cette prise en exécutant ledit
-	 * noeud avant de retourner un pointeur vers la caméra. Si aucune caméra
-	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
-	 * nullptr.
-	 */
-	vision::Camera3D *requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
-
-	/**
-	 * Requiers la texture du noeud connecté à cette prise en exécutant ledit
-	 * noeud avant de retourner un pointeur vers la texture. Si aucune texture
-	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
-	 * nullptr.
-	 */
-	TextureImage *requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
-
 	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);

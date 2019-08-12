@@ -69,46 +69,6 @@ void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &co
 	}
 }
 
-vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (m_ptr->liens.est_vide()) {
-		return nullptr;
-	}
-
-	auto lien = m_ptr->liens[0];
-
-	if (lien == nullptr) {
-		return nullptr;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, contexte, donnees_aval);
-
-	auto operatrice = extrait_opimage(noeud->donnees());
-	return operatrice->camera();
-}
-
-TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (m_ptr->liens.est_vide()) {
-		return nullptr;
-	}
-
-	auto lien = m_ptr->liens[0];
-
-	if (lien == nullptr) {
-		return nullptr;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, contexte, donnees_aval);
-
-	auto operatrice = extrait_opimage(noeud->donnees());
-	return operatrice->texture();
-}
-
 const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	if (m_ptr->liens.est_vide()) {
