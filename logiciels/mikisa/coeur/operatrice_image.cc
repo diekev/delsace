@@ -25,9 +25,9 @@
 #include "operatrice_image.h"
 
 #include "biblinternes/graphe/noeud.h"
-#include "biblinternes/outils/definitions.h"
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "corps/corps.h"
 
@@ -45,28 +45,60 @@ bool EntreeOperatrice::connectee() const
 	return !m_ptr->liens.est_vide();
 }
 
-void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+Image const *EntreeOperatrice::requiers_image(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	if (m_ptr->liens.est_vide()) {
-		return;
+		return nullptr;
 	}
 
 	auto lien = m_ptr->liens[0];
 
 	m_liste_noms_calques.efface();
 
-	if (lien != nullptr) {
-		auto noeud = lien->parent;
-
-		execute_noeud(noeud, contexte, donnees_aval);
-
-		auto operatrice = extrait_opimage(noeud->donnees());
-		operatrice->transfere_image(image);
-
-		for (auto const &calque : image.calques()) {
-			m_liste_noms_calques.pousse(calque->nom);
-		}
+	if (lien == nullptr) {
+		return nullptr;
 	}
+
+	auto noeud = lien->parent;
+
+	execute_noeud(noeud, contexte, donnees_aval);
+
+	auto operatrice = extrait_opimage(noeud->donnees());
+	auto image = operatrice->image();
+
+	for (auto const &calque : image->calques()) {
+		m_liste_noms_calques.pousse(calque->nom);
+	}
+
+	return image;
+}
+
+Image *EntreeOperatrice::requiers_copie_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+{
+	if (m_ptr->liens.est_vide()) {
+		return &image;
+	}
+
+	auto lien = m_ptr->liens[0];
+
+	m_liste_noms_calques.efface();
+
+	if (lien == nullptr) {
+		return &image;
+	}
+
+	auto noeud = lien->parent;
+
+	execute_noeud(noeud, contexte, donnees_aval);
+
+	auto operatrice = extrait_opimage(noeud->donnees());
+	operatrice->transfere_image(image);
+
+	for (auto const &calque : image.calques()) {
+		m_liste_noms_calques.pousse(calque->nom);
+	}
+
+	return &image;
 }
 
 const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
@@ -329,7 +361,6 @@ const char *OperatriceImage::chemin_entreface() const
 void OperatriceImage::transfere_image(Image &image)
 {
 	image = m_image;
-	m_image.reinitialise(true);
 }
 
 void OperatriceImage::ajoute_avertissement(dls::chaine const &avertissement)
@@ -355,6 +386,16 @@ vision::Camera3D *OperatriceImage::camera()
 TextureImage *OperatriceImage::texture()
 {
 	return nullptr;
+}
+
+Image *OperatriceImage::image()
+{
+	return &m_image;
+}
+
+Image const *OperatriceImage::image() const
+{
+	return &m_image;
 }
 
 Corps *OperatriceImage::corps()
@@ -413,6 +454,35 @@ void OperatriceImage::amont_change(PriseEntree *entree)
 void OperatriceImage::parametres_changes()
 {
 	return;
+}
+
+/* ************************************************************************** */
+
+Calque *cherche_calque(
+		OperatriceImage &op,
+		Image const *image,
+		dls::chaine const &nom_calque)
+{
+	if (image == nullptr) {
+		op.ajoute_avertissement("Aucune image trouvée en entrée !");
+		return nullptr;
+	}
+
+	if (nom_calque.est_vide()) {
+		op.ajoute_avertissement("Le nom du calque est vide");
+		return nullptr;
+	}
+
+	auto tampon = image->calque(nom_calque);
+
+	if (tampon == nullptr) {
+		auto flux = dls::flux_chaine();
+		flux << "Calque '" << nom_calque << "' introuvable !\n";
+		op.ajoute_avertissement(flux.chn());
+		return nullptr;
+	}
+
+	return tampon;
 }
 
 /* ************************************************************************** */

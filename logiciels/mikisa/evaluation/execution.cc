@@ -274,7 +274,6 @@ void TacheEvaluationComposite::evalue()
 	auto operatrice = extrait_opimage(visionneuse->donnees());
 	operatrice->transfere_image(image);
 	m_composite->image(image);
-	image.reinitialise(true);
 
 	notifier.signalise_proces(type_evenement::image | type_evenement::traite);
 }

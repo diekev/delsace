@@ -156,6 +156,30 @@ dls::image::Pixel<float> Calque::echantillone(float x, float y) const
 	return valeur;
 }
 
+void copie_donnees_calque(const type_image &tampon_de, type_image &tampon_vers)
+{
+	auto const res_x = tampon_de.nombre_colonnes();
+	auto const res_y = tampon_de.nombre_lignes();
+
+	for (int y = 0; y < res_y; ++y) {
+		for (int x = 0; x < res_x; ++x) {
+			tampon_vers[y][x] = tampon_de[y][x];
+		}
+	}
+}
+
+/* ************************************************************************** */
+
+static auto supprime_calque(Calque *calque)
+{
+	memoire::deloge("Calque", calque);
+}
+
+static auto supprime_calque_profond(calque_image *calque)
+{
+	memoire::deloge("calque_image", calque);
+}
+
 /* ************************************************************************** */
 
 Image::~Image()
@@ -175,7 +199,7 @@ Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
 
 	tampon->tampon.remplie(pixel);
 
-	m_calques.pousse(tampon);
+	m_calques.pousse(ptr_calque(tampon, supprime_calque));
 
 	return tampon;
 }
@@ -193,16 +217,16 @@ calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, int largeur, 
 
 	*calque = calque_image::construit_calque(desc, type);
 
-	m_calques_profond.pousse(calque);
+	m_calques_profond.pousse(ptr_calque_profond(calque, supprime_calque_profond));
 
 	return calque;
 }
 
 Calque *Image::calque(dls::chaine const &nom) const
 {
-	for (Calque *tampon : m_calques) {
+	for (auto tampon : m_calques) {
 		if (tampon->nom == nom) {
-			return tampon;
+			return tampon.get();
 		}
 	}
 
@@ -213,7 +237,7 @@ calque_image *Image::calque_profond(dls::chaine const &nom) const
 {
 	for (auto clq : m_calques_profond) {
 		if (clq->nom == nom) {
-			return clq;
+			return clq.get();
 		}
 	}
 
@@ -262,20 +286,10 @@ static void deloge_donnees_profondes(Image &image)
 	}
 }
 
-void Image::reinitialise(bool garde_memoires)
+void Image::reinitialise()
 {
-	if (!garde_memoires) {
-		for (Calque *tampon : m_calques) {
-			memoire::deloge("Calque", tampon);
-		}
-
-		if (est_profonde && !m_calques_profond.est_vide()) {
-			deloge_donnees_profondes(*this);
-		}
-
-		for (auto calque : m_calques_profond) {
-			memoire::deloge("calque_image", calque);
-		}
+	if (est_profonde && !m_calques_profond.est_vide() && m_calques_profond.front().unique()) {
+		deloge_donnees_profondes(*this);
 	}
 
 	est_profonde = false;

@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/rectangle.hh"
 #include "biblinternes/image/pixel.h"
@@ -84,19 +86,26 @@ struct Calque {
 	dls::image::Pixel<float> echantillone(float x, float y) const;
 };
 
+void copie_donnees_calque(
+		type_image const &tampon_de,
+		type_image &tampon_vers);
+
 /* ************************************************************************** */
 
 struct Image {
 private:
-	dls::liste<Calque *> m_calques{};
+	using ptr_calque = std::shared_ptr<Calque>;
+	using ptr_calque_profond = std::shared_ptr<calque_image>;
+
+	dls::liste<ptr_calque> m_calques{};
 	dls::chaine m_nom_calque{};
 
 
 public:
-	using plage_calques = dls::outils::plage_iterable<dls::liste<Calque *>::iteratrice>;
-	using plage_calques_const = dls::outils::plage_iterable<dls::liste<Calque *>::const_iteratrice>;
+	using plage_calques = dls::outils::plage_iterable<dls::liste<ptr_calque>::iteratrice>;
+	using plage_calques_const = dls::outils::plage_iterable<dls::liste<ptr_calque>::const_iteratrice>;
 
-	dls::liste<calque_image *> m_calques_profond{};
+	dls::liste<ptr_calque_profond> m_calques_profond{};
 	bool est_profonde = false;
 
 	~Image();
@@ -131,7 +140,7 @@ public:
 	 * les calques seront supprimés. Cette méthode est à utiliser pour
 	 * transférer la propriété des calques d'une image à une autre.
 	 */
-	void reinitialise(bool garde_memoires = false);
+	void reinitialise();
 
 	/**
 	 * Renseigne le nom du calque actif.

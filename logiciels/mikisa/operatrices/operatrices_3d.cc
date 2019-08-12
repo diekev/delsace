@@ -116,7 +116,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto tampon = m_image.calque("image");
 
 		if (tampon == nullptr) {

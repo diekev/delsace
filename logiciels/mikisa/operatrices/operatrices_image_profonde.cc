@@ -63,19 +63,24 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
-		auto image = Image();
-		entree(0)->requiers_image(image, contexte, donnees_aval);
 
-		if (!image.est_profonde) {
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+
+		if (image == nullptr) {
+			this->ajoute_avertissement("Aucune image trouvée en entrée !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (!image->est_profonde) {
 			this->ajoute_avertissement("L'image d'entrée n'est pas profonde !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto S = image.calque_profond("S");
-		auto R = image.calque_profond("R");
-		auto G = image.calque_profond("G");
-		auto B = image.calque_profond("B");
-		auto A = image.calque_profond("A");
+		auto S = image->calque_profond("S");
+		auto R = image->calque_profond("R");
+		auto G = image->calque_profond("G");
+		auto B = image->calque_profond("B");
+		auto A = image->calque_profond("A");
 		//auto Z = image.calque_profond("Z");
 
 		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);

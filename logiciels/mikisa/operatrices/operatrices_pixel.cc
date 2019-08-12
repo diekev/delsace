@@ -202,25 +202,21 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image1 = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto tampon = m_image.calque(nom_calque_a);
+		auto tampon = cherche_calque(*this, image1, nom_calque_a);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque A introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		Image image2;
-		entree(1)->requiers_image(image2, contexte, donnees_aval);
-
+		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto tampon2 = image2.calque(nom_calque_b);
+		auto tampon2 = cherche_calque(*this, image2, nom_calque_b);
 
 		if (tampon2 == nullptr) {
-			ajoute_avertissement("Calque B introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -253,7 +249,10 @@ public:
 			melange = dls::image::operation::MELANGE_DIFFERENCE;
 		}
 
-		dls::image::operation::melange_images(tampon->tampon, tampon2->tampon, melange, facteur);
+		auto calque = m_image.ajoute_calque(nom_calque_a, contexte.resolution_rendu);
+		copie_donnees_calque(tampon->tampon, calque->tampon);
+
+		dls::image::operation::melange_images(calque->tampon, tampon2->tampon, melange, facteur);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -312,25 +311,21 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto tampon_a = m_image.calque(nom_calque_a);
+		auto tampon_a = cherche_calque(*this, image, nom_calque_a);
 
 		if (tampon_a == nullptr) {
-			ajoute_avertissement("Calque A introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		Image image2;
-		entree(1)->requiers_image(image2, contexte, donnees_aval);
-
+		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto tampon_b = image2.calque(nom_calque_b);
+		auto tampon_b = cherche_calque(*this, image2, nom_calque_b);
 
 		if (tampon_b == nullptr) {
-			ajoute_avertissement("Calque B introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -377,6 +372,7 @@ public:
 			fusion = FUSION_XOR;
 		}
 
+		auto calque = m_image.ajoute_calque(nom_calque_a, contexte.resolution_rendu);
 		auto const &rectangle = contexte.resolution_rendu;
 
 		boucle_parallele(tbb::blocked_range<long>(0l, static_cast<long>(rectangle.hauteur)),
@@ -488,7 +484,7 @@ public:
 						}
 					}
 
-					tampon_a->valeur(c, l, resultat);
+					calque->valeur(c, l, resultat);
 				}
 			}
 		});

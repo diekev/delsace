@@ -322,7 +322,7 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
 		return EXECUTION_REUSSIE;
 	}
@@ -541,7 +541,7 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto const value = evalue_entier("prise");
-		entree(static_cast<size_t>(value))->requiers_image(m_image, contexte, donnees_aval);
+		entree(static_cast<size_t>(value))->requiers_copie_image(m_image, contexte, donnees_aval);
 		return EXECUTION_REUSSIE;
 	}
 };

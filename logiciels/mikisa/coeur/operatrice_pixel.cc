@@ -48,7 +48,7 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 		tampon = m_image.ajoute_calque("image", rectangle);
 	}
 	else if (entrees() >= 1) {
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
 		tampon = m_image.calque(nom_calque);
 	}

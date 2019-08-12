@@ -105,8 +105,10 @@ public:
 	 * Requiers l'image du noeud connecté à cette prise en exécutant ledit noeud
 	 * avant de lui prendre son image. La liste de nom de calque est mise à jour
 	 * selon l'image obtenue.
-	 */
-	void requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	 */	
+	Image const *requiers_image(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+
+	Image *requiers_copie_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
@@ -252,6 +254,10 @@ public:
 
 	virtual TextureImage *texture();
 
+	Image *image();
+
+	Image const *image() const;
+
 	virtual Corps *corps();
 
 	/**
@@ -293,6 +299,11 @@ public:
 
 	virtual void parametres_changes();
 };
+
+Calque *cherche_calque(
+		OperatriceImage &op,
+		Image const *image,
+		dls::chaine const &nom_calque);
 
 /* ************************************************************************** */
 

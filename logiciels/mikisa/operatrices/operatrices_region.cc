@@ -125,14 +125,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		/* Call node upstream; */
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -314,7 +313,8 @@ public:
 			return resultat;
 		});
 
-		tampon->tampon = image_tampon;
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		calque->tampon = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -350,14 +350,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		/* Call node upstream. */
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -398,7 +397,8 @@ public:
 			filtre = dls::image::operation::NOYAU_SOBEL_Y;
 		}
 
-		tampon->tampon = dls::image::operation::applique_convolution(tampon->tampon, filtre);
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		calque->tampon = dls::image::operation::applique_convolution(tampon->tampon, filtre);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -434,13 +434,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, &m_image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -490,20 +490,21 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto const largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
 		auto const hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
 
-		dls::math::matrice_dyn<dls::image::Pixel<float>> image_tmp(tampon->tampon.dimensions());
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto image_tmp = type_image(tampon->tampon.dimensions());
 
 		auto const rayon_flou = evalue_decimal("rayon", contexte.temps_courant);
 		auto const type_flou = evalue_enum("type");
@@ -562,7 +563,7 @@ public:
 			return valeur;
 		});
 
-		tampon->tampon.swap(image_tmp);
+		calque->tampon.swap(image_tmp);
 
 		/* flou vertical */
 		applique_fonction_position(image_tmp,
@@ -578,7 +579,7 @@ public:
 
 			for (auto iy = y - static_cast<long>(rayon), k = 0l; iy < y + static_cast<long>(rayon) + 1; iy++, ++k) {
 				auto const yy = std::min(static_cast<long>(hauteur - 1), std::max(0l, iy));
-				auto const &p = tampon->valeur(x, yy);
+				auto const &p = calque->valeur(x, yy);
 				valeur.r += p.r * kernel[k];
 				valeur.g += p.g * kernel[k];
 				valeur.b += p.b * kernel[k];
@@ -591,7 +592,7 @@ public:
 			return valeur;
 		});
 
-		tampon->tampon.swap(image_tmp);
+		calque->tampon.swap(image_tmp);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -627,13 +628,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -647,9 +648,9 @@ public:
 		auto const taille = evalue_decimal("taille", contexte.temps_courant);
 		auto const periodes = evalue_decimal("périodes", contexte.temps_courant);
 
-		auto image_tampon = type_image(tampon->tampon.dimensions());
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
 
-		applique_fonction_position(image_tampon,
+		applique_fonction_position(calque->tampon,
 								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
@@ -663,8 +664,6 @@ public:
 
 			return tampon->echantillone(nc, nl);
 		});
-
-		tampon->tampon = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -718,13 +717,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -799,7 +798,8 @@ public:
 		}
 
 		/* À FAIRE : alpha ou tampon à canaux variables */
-		tampon->tampon = dls::image::operation::converti_float_pixel(image_tampon);
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		calque->tampon = dls::image::operation::converti_float_pixel(image_tampon);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -840,33 +840,29 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image1 = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto tampon = m_image.calque(nom_calque_a);
+		auto tampon1 = cherche_calque(*this, image1, nom_calque_a);
 
-		if (tampon == nullptr) {
-			ajoute_avertissement("Calque A introuvable !");
+		if (tampon1 == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		Image image2;
-		entree(1)->requiers_image(image2, contexte, donnees_aval);
-
+		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto tampon2 = image2.calque(nom_calque_b);
+		auto tampon2 = cherche_calque(*this, image2, nom_calque_b);
 
 		if (tampon2 == nullptr) {
-			ajoute_avertissement("Calque B introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		int res_x = tampon->tampon.nombre_colonnes();
-		int res_y = tampon->tampon.nombre_lignes();
+		auto res_x = tampon1->tampon.nombre_colonnes();
+		auto res_y = tampon1->tampon.nombre_lignes();
+		auto calque = m_image.ajoute_calque(nom_calque_a, contexte.resolution_rendu);
 
-		auto image_tampon = type_image(tampon->tampon.dimensions());
-
-		applique_fonction_position(image_tampon,
+		applique_fonction_position(calque->tampon,
 								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			auto const c0 = std::min(res_x - 1, std::max(0, c - 1));
@@ -885,10 +881,8 @@ public:
 			auto const x = static_cast<float>(c) + pos_x * static_cast<float>(res_x);
 			auto const y = static_cast<float>(l) + pos_y * static_cast<float>(res_y);
 
-			return tampon->echantillone(x, y);
+			return tampon1->echantillone(x, y);
 		});
-
-		tampon->tampon = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1123,13 +1117,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const &nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1156,7 +1150,8 @@ public:
 		auto const &bruit_vert = simule_grain_image(canal_vert, graine, rayon_grain_v, sigma_rayon_v, sigma_filtre_v);
 		auto const &bruit_bleu = simule_grain_image(canal_bleu, graine, rayon_grain_b, sigma_rayon_b, sigma_filtre_b);
 
-		assemble_image(tampon->tampon, bruit_rouge, bruit_vert, bruit_bleu);
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		assemble_image(calque->tampon, bruit_rouge, bruit_vert, bruit_bleu);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1192,22 +1187,22 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
 		int res_x = tampon->tampon.nombre_colonnes();
 		auto inv_res_x = 1.0f / static_cast<float>(res_x);
 
-		auto image_tampon = type_image(tampon->tampon.dimensions());
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
 
-		applique_fonction_position(image_tampon,
+		applique_fonction_position(calque->tampon,
 								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
@@ -1218,7 +1213,6 @@ public:
 			return tampon->echantillone(x, y);
 		});
 
-		tampon->tampon = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1254,13 +1248,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1268,7 +1262,11 @@ public:
 		auto res_x = tampon->tampon.nombre_colonnes();
 		auto res_y = tampon->tampon.nombre_lignes();
 
-		auto image_tampon = type_image(tampon->tampon.dimensions());
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+
+		copie_donnees_calque(tampon->tampon, calque->tampon);
+
+		auto image_tmp = type_image(calque->tampon.dimensions());
 
 		auto const coeff = 1.0f / std::sqrt(2.0f);
 
@@ -1277,39 +1275,39 @@ public:
 			auto const taille_y = res_y / 2;
 			for (int y = 0; y < taille_y; ++y) {
 				for (int x = 0; x < res_x; ++x) {
-					auto const p0 = tampon->valeur(x, y * 2);
-					auto const p1 = tampon->valeur(x, y * 2 + 1);
+					auto const p0 = calque->valeur(x, y * 2);
+					auto const p1 = calque->valeur(x, y * 2 + 1);
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
 					somme.a = 1.0f;
 					diff.a = 1.0f;
 
-					image_tampon[y][x] = somme;
-					image_tampon[taille_y + y][x] = diff;
+					image_tmp[y][x] = somme;
+					image_tmp[taille_y + y][x] = diff;
 				}
 			}
 
-			tampon->tampon = image_tampon;
+			calque->tampon = image_tmp;
 
 			/* transformation horizontale */
 			auto const taille_x = res_x / 2;
 			for (int y = 0; y < res_y; ++y) {
 				for (int x = 0; x < taille_x; ++x) {
-					auto const p0 = tampon->valeur(x * 2, y);
-					auto const p1 = tampon->valeur(x * 2 + 1, y);
+					auto const p0 = calque->valeur(x * 2, y);
+					auto const p1 = calque->valeur(x * 2 + 1, y);
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
 					somme.a = 1.0f;
 					diff.a = 1.0f;
 
-					image_tampon[y][x] = somme;
-					image_tampon[y][taille_x + x] = diff;
+					image_tmp[y][x] = somme;
+					image_tmp[y][taille_x + x] = diff;
 				}
 			}
 
-			tampon->tampon = image_tampon;
+			calque->tampon = image_tmp;
 
 			res_x /= 2;
 			res_y /= 2;
@@ -1349,20 +1347,20 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+
 		auto const res_x = tampon->tampon.nombre_colonnes();
 		auto const res_y = tampon->tampon.nombre_lignes();
-
-		auto image_tampon = type_image(tampon->tampon.dimensions());
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_dilation = [&](
@@ -1391,9 +1389,7 @@ public:
 			return p0;
 		};
 
-		applique_fonction_position(image_tampon, performe_dilation);
-
-		tampon->tampon = image_tampon;
+		applique_fonction_position(calque->tampon, performe_dilation);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1429,20 +1425,20 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+
 		auto const res_x = tampon->tampon.nombre_colonnes();
 		auto const res_y = tampon->tampon.nombre_lignes();
-
-		auto image_tampon = type_image(tampon->tampon.dimensions());
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_erosion = [&](
@@ -1470,9 +1466,7 @@ public:
 			return p0;
 		};
 
-		applique_fonction_position(image_tampon, performe_erosion);
-
-		tampon->tampon = image_tampon;
+		applique_fonction_position(calque->tampon, performe_erosion);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1508,20 +1502,20 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+
 		auto const res_x = tampon->tampon.nombre_colonnes();
 		auto const res_y = tampon->tampon.nombre_lignes();
-
-		auto image_tampon = type_image(tampon->tampon.dimensions());
 
 		using pixel_t = dls::image::Pixel<float>;
 		using paire_pixel_t = std::pair<pixel_t, int>;
@@ -1559,11 +1553,9 @@ public:
 		for (int l = 0; l < res_y; ++l) {
 			for (int c = 0; c < res_x; ++c) {
 				auto index = static_cast<long>(l / 64) % 360;
-				image_tampon[l][c] = histogramme[index].first;
+				calque->tampon[l][c] = histogramme[index].first;
 			}
 		}
-
-		tampon->tampon = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1679,13 +1671,13 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		entree(0)->requiers_image(m_image, contexte, donnees_aval);
+		m_image.reinitialise();
 
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = m_image.calque(nom_calque);
+		auto tampon = cherche_calque(*this, image, nom_calque);
 
 		if (tampon == nullptr) {
-			ajoute_avertissement("Calque introuvable !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1697,12 +1689,16 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+
+		copie_donnees_calque(tampon->tampon, calque->tampon);
+
 		for (auto y = 0; y < res_y; ++y) {
-			recursion_prefiltre(tampon->tampon[y], res_x, 1);
+			recursion_prefiltre(calque->tampon[y], res_x, 1);
 		}
 
 		for (auto x = 0; x < res_x; ++x) {
-			recursion_prefiltre(&tampon->tampon[0][x], res_y, res_x);
+			recursion_prefiltre(&calque->tampon[0][x], res_y, res_x);
 		}
 
 		return EXECUTION_REUSSIE;
