@@ -132,6 +132,8 @@ static auto imprime_canaux(OPENEXR_IMF_NAMESPACE::ChannelList const &entete)
 	}
 }
 
+#define DBL_MEM
+
 static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 {
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
@@ -172,6 +174,7 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 
 	/* À FAIRE : ceci duplique la mémoire mais il y a un crash quand on utilise
 	 * les pointeurs des grilles. */
+#ifdef DBL_MEM
 	auto compte_echantillons = dls::tableau<unsigned>(largeur * hauteur);
 	auto aR = openexr::Array2D<float *>(hauteur, largeur);
 	auto aG = openexr::Array2D<float *>(hauteur, largeur);
@@ -185,6 +188,14 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	auto ptr_B = &aB[0][0] - dw.min.x - dw.min.y * largeur;
 	auto ptr_A = &aA[0][0] - dw.min.x - dw.min.y * largeur;
 	auto ptr_Z = &aZ[0][0] - dw.min.x - dw.min.y * largeur;
+#else
+	auto ptr_S = static_cast<unsigned *>(tampon_S->donnees()) - dw.min.x - dw.min.y * largeur;
+	auto ptr_R = static_cast<float **>(tampon_R->donnees()) - dw.min.x - dw.min.y * largeur;
+	auto ptr_G = static_cast<float **>(tampon_G->donnees()) - dw.min.x - dw.min.y * largeur;
+	auto ptr_B = static_cast<float **>(tampon_B->donnees()) - dw.min.x - dw.min.y * largeur;
+	auto ptr_A = static_cast<float **>(tampon_A->donnees()) - dw.min.x - dw.min.y * largeur;
+	auto ptr_Z = static_cast<float **>(tampon_Z->donnees()) - dw.min.x - dw.min.y * largeur;
+#endif
 
 	auto tampon_frame = openexr::DeepFrameBuffer();
 	tampon_frame.insertSampleCountSlice(openexr::DeepSlice(
@@ -196,37 +207,37 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	tampon_frame.insert("R", openexr::DeepSlice(
 							openexr::FLOAT,
 							reinterpret_cast<char *>(ptr_R),
-			sizeof(float *),
-			sizeof(float *) * static_cast<unsigned>(largeur),
-			sizeof(float)));
+							sizeof(float *),
+							sizeof(float *) * static_cast<unsigned>(largeur),
+							sizeof(float)));
 
 	tampon_frame.insert("G", openexr::DeepSlice(
 							openexr::FLOAT,
 							reinterpret_cast<char *>(ptr_G),
-			sizeof(float *),
-			sizeof(float *) * static_cast<unsigned>(largeur),
-			sizeof(float)));
+							sizeof(float *),
+							sizeof(float *) * static_cast<unsigned>(largeur),
+							sizeof(float)));
 
 	tampon_frame.insert("B", openexr::DeepSlice(
 							openexr::FLOAT,
 							reinterpret_cast<char *>(ptr_B),
-			sizeof(float *),
-			sizeof(float *) * static_cast<unsigned>(largeur),
-			sizeof(float)));
+							sizeof(float *),
+							sizeof(float *) * static_cast<unsigned>(largeur),
+							sizeof(float)));
 
 	tampon_frame.insert("A", openexr::DeepSlice(
 							openexr::FLOAT,
 							reinterpret_cast<char *>(ptr_A),
-			sizeof(float *),
-			sizeof(float *) * static_cast<unsigned>(largeur),
-			sizeof(float)));
+							sizeof(float *),
+							sizeof(float *) * static_cast<unsigned>(largeur),
+							sizeof(float)));
 
 	tampon_frame.insert("Z", openexr::DeepSlice(
 							openexr::FLOAT,
 							reinterpret_cast<char *>(ptr_Z),
-			sizeof(float *),
-			sizeof(float *) * static_cast<unsigned>(largeur),
-			sizeof(float)));
+							sizeof(float *),
+							sizeof(float *) * static_cast<unsigned>(largeur),
+							sizeof(float)));
 
 	fichier.setFrameBuffer(tampon_frame);
 
@@ -236,25 +247,39 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 		for (auto j = 0; j < largeur; ++j) {
 			auto index = j + i * largeur;
 
+#ifdef DBL_MEM
 			auto const n = compte_echantillons[index];
+#else
+			auto const n = tampon_S->valeur(index);
+#endif
 
 			if (n == 0) {
 				continue;
 			}
 
+#ifdef DBL_MEM
 			tampon_S->valeur(index) = n;
+#endif
 
-			aR[i][j] = memoire::loge_tableau<float>("deep_r", n);
-			aG[i][j] = memoire::loge_tableau<float>("deep_g", n);
-			aB[i][j] = memoire::loge_tableau<float>("deep_b", n);
-			aA[i][j] = memoire::loge_tableau<float>("deep_a", n);
-			aZ[i][j] = memoire::loge_tableau<float>("deep_z", n);
+			auto tR = memoire::loge_tableau<float>("deep_r", n);
+			auto tG = memoire::loge_tableau<float>("deep_g", n);
+			auto tB = memoire::loge_tableau<float>("deep_b", n);
+			auto tA = memoire::loge_tableau<float>("deep_a", n);
+			auto tZ = memoire::loge_tableau<float>("deep_z", n);
 
-			tampon_R->valeur(index) = aR[i][j];
-			tampon_G->valeur(index) = aG[i][j];
-			tampon_B->valeur(index) = aB[i][j];
-			tampon_A->valeur(index) = aA[i][j];
-			tampon_Z->valeur(index) = aZ[i][j];
+#ifdef DBL_MEM
+			aR[i][j] = tR;
+			aG[i][j] = tG;
+			aB[i][j] = tB;
+			aA[i][j] = tA;
+			aZ[i][j] = tZ;
+#endif
+
+			tampon_R->valeur(index) = tR;
+			tampon_G->valeur(index) = tG;
+			tampon_B->valeur(index) = tB;
+			tampon_A->valeur(index) = tA;
+			tampon_Z->valeur(index) = tZ;
 		}
 	}
 
@@ -267,9 +292,6 @@ static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
 
 	auto fichier = openexr::InputFile(chemin);
 	auto entete = fichier.header();
-
-	std::cerr << __func__ << '\n';
-	std::cerr << "type : " << entete.type() << '\n';
 
 	if (entete.type() == "deeptile") {
 		charge_exr_tile(chemin, donnees);
