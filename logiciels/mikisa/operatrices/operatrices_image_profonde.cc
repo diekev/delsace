@@ -24,12 +24,43 @@
 
 #include "operatrices_image_profonde.hh"
 
+#include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/structures/flux_chaine.hh"
+
+#include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/operatrice_image.h"
 #include "coeur/usine_operatrice.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
+
+/* ************************************************************************** */
+
+static Image const *cherche_image_profonde(
+		OperatriceImage &op,
+		int index,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
+	auto image = op.entree(index)->requiers_image(contexte, donnees_aval);
+
+	if (image == nullptr) {
+		auto flux = dls::flux_chaine();
+		flux << "Aucune image trouvée dans l'entrée à l'index " << index << " !";
+		op.ajoute_avertissement(flux.chn());
+		return nullptr;
+	}
+
+	if (!image->est_profonde) {
+		auto flux = dls::flux_chaine();
+		flux << "L'image à l'index " << index << "n'est pas profonde !";
+		op.ajoute_avertissement(flux.chn());
+		return nullptr;
+	}
+
+	return image;
+}
 
 /* ************************************************************************** */
 
@@ -64,15 +95,9 @@ public:
 	{
 		m_image.reinitialise();
 
-		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto image = cherche_image_profonde(*this, 0, contexte, donnees_aval);
 
 		if (image == nullptr) {
-			this->ajoute_avertissement("Aucune image trouvée en entrée !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		if (!image->est_profonde) {
-			this->ajoute_avertissement("L'image d'entrée n'est pas profonde !");
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -81,14 +106,14 @@ public:
 		auto G = image->calque_profond("G");
 		auto B = image->calque_profond("B");
 		auto A = image->calque_profond("A");
-		//auto Z = image.calque_profond("Z");
+		auto Z = image->calque_profond("Z");
 
 		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
 		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
 		auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
 		auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
 		auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
-		//auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+		auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
 
 		auto largeur = tampon_S->desc().resolution.x;
 		auto hauteur = tampon_S->desc().resolution.y;
@@ -101,51 +126,266 @@ public:
 		auto debut_y = std::max(0l, static_cast<long>(rectangle.y));
 		auto fin_y = static_cast<long>(std::min(hauteur, hauteur));
 
-		for (auto j = debut_x; j < fin_x; ++j) {
-			for (auto i = debut_y; i < fin_y; ++i) {
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("aplanis profonde");
 
-				auto index = j + i * largeur;
-				auto n = tampon_S->valeur(index);
-
-				if (n == 0) {
-					continue;
-				}
-
-				/* À FAIRE : tidy image */
-
-				/* compose les échantillons */
-				auto sR = tampon_R->valeur(index);
-				auto sG = tampon_G->valeur(index);
-				auto sB = tampon_B->valeur(index);
-				auto sA = tampon_A->valeur(index);
-
-				auto pixel = dls::image::PixelFloat();
-				pixel.r = sR[0];
-				pixel.g = sG[0];
-				pixel.b = sB[0];
-				pixel.a = sA[0];
-
-				for (auto s = 1u; s < n; ++s) {
-					pixel.r = pixel.r + sR[s] * (1.0f - sA[s]);
-					pixel.g = pixel.g + sG[s] * (1.0f - sA[s]);
-					pixel.b = pixel.b + sB[s] * (1.0f - sA[s]);
-					pixel.a = pixel.a + sA[s] * (1.0f - sA[s]);
-				}
-
-				tampon->valeur(j, i, pixel);
+		boucle_parallele(tbb::blocked_range<long>(debut_x, fin_x),
+						 [&](tbb::blocked_range<long> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
 			}
-		}
+
+			for (auto j = plage.begin(); j < plage.end(); ++j) {
+				for (auto i = debut_y; i < fin_y; ++i) {
+					if (chef->interrompu()) {
+						return;
+					}
+
+					auto index = j + i * largeur;
+					auto n = tampon_S->valeur(index);
+
+					if (n == 0) {
+						continue;
+					}
+
+					/* tidy image */
+
+					/* Étape 1 : tri les échantillons */
+					auto sZ = tampon_Z->valeur(index);
+					auto sR = tampon_R->valeur(index);
+					auto sG = tampon_G->valeur(index);
+					auto sB = tampon_B->valeur(index);
+					auto sA = tampon_A->valeur(index);
+
+					for (auto i = 1u; i < n; ++i) {
+						while (sZ[i] > sZ[i - 1]) {
+							std::swap(sR[i], sR[i - 1]);
+							std::swap(sG[i], sG[i - 1]);
+							std::swap(sB[i], sB[i - 1]);
+							std::swap(sA[i], sA[i - 1]);
+							std::swap(sZ[i], sZ[i - 1]);
+						}
+					}
+
+					/* À FAIRE : Étape 2 : split */
+
+					/* À FAIRE : Étape 3 : fusionne */
+
+					/* compose les échantillons */
+
+					auto pixel = dls::image::PixelFloat();
+					pixel.r = sR[0];
+					pixel.g = sG[0];
+					pixel.b = sB[0];
+					pixel.a = sA[0];
+
+					for (auto s = 1u; s < n; ++s) {
+//						pixel.r = pixel.r * sA[s - 1] + sR[s] * (1.0f - sA[s]);
+//						pixel.g = pixel.g * sA[s - 1] + sG[s] * (1.0f - sA[s]);
+//						pixel.b = pixel.b * sA[s - 1] + sB[s] * (1.0f - sA[s]);
+//						pixel.a = pixel.a * sA[s - 1] + sA[s] * (1.0f - sA[s]);
+						pixel.r = std::max(pixel.r, sR[s]);
+						pixel.g = std::max(pixel.g, sG[s]);
+						pixel.b = std::max(pixel.b, sB[s]);
+						pixel.a = std::max(pixel.a, sA[s]);
+					}
+
+					tampon->valeur(j, i, pixel);
+				}
+			}
+
+			auto taille_totale = static_cast<float>(fin_x - debut_x);
+			auto taille_plage = static_cast<float>(plage.end() - plage.begin());
+			chef->indique_progression_parallele(taille_plage / taille_totale * 100.0f);
+		});
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
 };
 
+/* ************************************************************************** */
+
+class OpFusionProfonde : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Fusion Profondes";
+	static constexpr auto AIDE = "";
+
+	OpFusionProfonde(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(2);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto image1 = cherche_image_profonde(*this, 0, contexte, donnees_aval);
+
+		if (image1 == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto image2 = cherche_image_profonde(*this, 1, contexte, donnees_aval);
+
+		if (image2 == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		m_image.est_profonde = true;
+
+		auto S1 = image1->calque_profond("S");
+		auto R1 = image1->calque_profond("R");
+		auto G1 = image1->calque_profond("G");
+		auto B1 = image1->calque_profond("B");
+		auto A1 = image1->calque_profond("A");
+		auto Z1 = image1->calque_profond("Z");
+
+		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S1->tampon);
+		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(R1->tampon);
+		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(G1->tampon);
+		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(B1->tampon);
+		auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(A1->tampon);
+		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z1->tampon);
+
+		auto S2 = image2->calque_profond("S");
+		auto R2 = image2->calque_profond("R");
+		auto G2 = image2->calque_profond("G");
+		auto B2 = image2->calque_profond("B");
+		auto A2 = image2->calque_profond("A");
+		auto Z2 = image2->calque_profond("Z");
+
+		auto tampon_S2 = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S2->tampon);
+		auto tampon_R2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(R2->tampon);
+		auto tampon_G2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(G2->tampon);
+		auto tampon_B2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(B2->tampon);
+		auto tampon_A2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(A2->tampon);
+		auto tampon_Z2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z2->tampon);
+
+		/* alloue calques profonds */
+		auto largeur = tampon_S1->desc().resolution.x;
+		auto hauteur = tampon_S1->desc().resolution.y;
+
+		auto S = m_image.ajoute_calque_profond("S", largeur, hauteur, wlk::type_grille::N32);
+		auto R = m_image.ajoute_calque_profond("R", largeur, hauteur, wlk::type_grille::R32_PTR);
+		auto G = m_image.ajoute_calque_profond("G", largeur, hauteur, wlk::type_grille::R32_PTR);
+		auto B = m_image.ajoute_calque_profond("B", largeur, hauteur, wlk::type_grille::R32_PTR);
+		auto A = m_image.ajoute_calque_profond("A", largeur, hauteur, wlk::type_grille::R32_PTR);
+		auto Z = m_image.ajoute_calque_profond("Z", largeur, hauteur, wlk::type_grille::R32_PTR);
+
+		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
+		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
+		auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
+		auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
+		auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
+		auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("fusion profondes");
+
+		auto courant = 0;
+
+		for (auto j = 0; j < largeur; ++j) {
+			if (chef->interrompu()) {
+				break;
+			}
+
+			for (auto i = 0; i < hauteur; ++i, ++courant) {
+				if (chef->interrompu()) {
+					break;
+				}
+
+				auto const index = j + i * largeur;
+
+				auto const n1 = tampon_S1->valeur(index);
+				auto const n2 = tampon_S2->valeur(index);
+				auto const n  = n1 + n2;
+
+				if (n == 0) {
+					continue;
+				}
+
+				auto eR = memoire::loge_tableau<float>("deep_r", n);
+				auto eG = memoire::loge_tableau<float>("deep_g", n);
+				auto eB = memoire::loge_tableau<float>("deep_b", n);
+				auto eA = memoire::loge_tableau<float>("deep_a", n);
+				auto eZ = memoire::loge_tableau<float>("deep_z", n);
+
+				if (n1 != 0) {
+					auto eR1 = tampon_R1->valeur(index);
+					auto eG1 = tampon_G1->valeur(index);
+					auto eB1 = tampon_B1->valeur(index);
+					auto eA1 = tampon_A1->valeur(index);
+					auto eZ1 = tampon_Z1->valeur(index);
+
+					for (auto e = 0u; e < n1; ++e) {
+						eR[e] = eR1[e];
+						eG[e] = eG1[e];
+						eB[e] = eB1[e];
+						eA[e] = eA1[e];
+						eZ[e] = eZ1[e];
+					}
+				}
+
+				if (n2 != 0) {
+					auto eR2 = tampon_R2->valeur(index);
+					auto eG2 = tampon_G2->valeur(index);
+					auto eB2 = tampon_B2->valeur(index);
+					auto eA2 = tampon_A2->valeur(index);
+					auto eZ2 = tampon_Z2->valeur(index);
+
+					for (auto e = 0u; e < n2; ++e) {
+						eR[e + n1] = eR2[e];
+						eG[e + n1] = eG2[e];
+						eB[e + n1] = eB2[e];
+						eA[e + n1] = eA2[e];
+						eZ[e + n1] = eZ2[e];
+					}
+				}
+
+				tampon_S->valeur(index) = n;
+				tampon_R->valeur(index) = eR;
+				tampon_G->valeur(index) = eG;
+				tampon_B->valeur(index) = eB;
+				tampon_A->valeur(index) = eA;
+				tampon_Z->valeur(index) = eZ;
+			}
+
+			auto total = static_cast<float>(largeur * hauteur);
+			chef->indique_progression(static_cast<float>(courant) / total * 100.0f);
+		}
+
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+};
 
 /* ************************************************************************** */
 
 void enregistre_operatrices_image_profonde(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpAplanisProfonde>());
+	usine.enregistre_type(cree_desc<OpFusionProfonde>());
 }
 
 #pragma clang diagnostic pop

@@ -32,6 +32,7 @@ menu "Noeud Composite" {
     }
 	menu "Profonde" {
 		action(valeur="Aplanis"; attache=ajouter_noeud; métadonnée="Aplanis Image Profonde")
+		action(valeur="Fusion Profondes"; attache=ajouter_noeud; métadonnée="Fusion Profondes")
 	}
     menu "Région" {
 	    action(valeur="Analyse"; attache=ajouter_noeud; métadonnée="Analyse")
