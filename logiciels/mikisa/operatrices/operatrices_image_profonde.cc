@@ -197,12 +197,16 @@ public:
 					auto sA = tampon_A->valeur(index);
 
 					for (auto e = 1u; e < n; ++e) {
-						while (sZ[e] > sZ[e - 1]) {
-							std::swap(sR[e], sR[e - 1]);
-							std::swap(sG[e], sG[e - 1]);
-							std::swap(sB[e], sB[e - 1]);
-							std::swap(sA[e], sA[e - 1]);
-							std::swap(sZ[e], sZ[e - 1]);
+						auto ej = e;
+
+						while (ej > 0 && sZ[ej - 1] > sZ[ej]) {
+							std::swap(sR[ej], sR[ej - 1]);
+							std::swap(sG[ej], sG[ej - 1]);
+							std::swap(sB[ej], sB[ej - 1]);
+							std::swap(sA[ej], sA[ej - 1]);
+							std::swap(sZ[ej], sZ[ej - 1]);
+
+							ej -= 1;
 						}
 					}
 
