@@ -204,16 +204,10 @@ Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
 	return tampon;
 }
 
-calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, int largeur, int hauteur, wlk::type_grille type)
+calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, wlk::desc_grille_2d const &desc, wlk::type_grille type)
 {
 	auto calque = memoire::loge<calque_image>("calque_image");
 	calque->nom = nom;
-
-	auto desc = wlk::desc_grille_2d{};
-	desc.etendue.min = dls::math::vec2f(0.0f);
-	desc.etendue.max = dls::math::vec2f(1.0f, static_cast<float>(hauteur) / static_cast<float>(largeur));
-	desc.fenetre_donnees = desc.etendue;
-	desc.taille_pixel = 1.0 / static_cast<double>(std::max(largeur, hauteur));
 
 	*calque = calque_image::construit_calque(desc, type);
 

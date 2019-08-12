@@ -117,7 +117,7 @@ public:
 	 */
 	Calque *ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle);
 
-	calque_image *ajoute_calque_profond(dls::chaine const &nom, int largeur, int hauteur, wlk::type_grille type);
+	calque_image *ajoute_calque_profond(dls::chaine const &nom, wlk::desc_grille_2d const &desc, wlk::type_grille type);
 
 	/**
 	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si

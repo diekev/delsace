@@ -329,12 +329,34 @@ public:
 		auto largeur = tampon_S1->desc().resolution.x;
 		auto hauteur = tampon_S1->desc().resolution.y;
 
-		auto S = m_image.ajoute_calque_profond("S", largeur, hauteur, wlk::type_grille::N32);
-		auto R = m_image.ajoute_calque_profond("R", largeur, hauteur, wlk::type_grille::R32_PTR);
-		auto G = m_image.ajoute_calque_profond("G", largeur, hauteur, wlk::type_grille::R32_PTR);
-		auto B = m_image.ajoute_calque_profond("B", largeur, hauteur, wlk::type_grille::R32_PTR);
-		auto A = m_image.ajoute_calque_profond("A", largeur, hauteur, wlk::type_grille::R32_PTR);
-		auto Z = m_image.ajoute_calque_profond("Z", largeur, hauteur, wlk::type_grille::R32_PTR);
+		auto desc1 = S1->tampon->desc();
+		auto desc2 = S2->tampon->desc();
+
+		auto desc = wlk::desc_grille_2d{};
+		desc.taille_pixel = 1.0;
+		desc.etendue.min.x = std::min(desc1.etendue.min.x, desc2.etendue.min.x);
+		desc.etendue.min.y = std::min(desc1.etendue.min.y, desc2.etendue.min.y);
+		desc.etendue.max.x = std::max(desc1.etendue.max.x, desc2.etendue.max.x);
+		desc.etendue.max.y = std::max(desc1.etendue.max.y, desc2.etendue.max.y);
+		desc.fenetre_donnees = desc.etendue;
+
+#if 0
+		auto imprime_etendue = [](const char *message, dls::math::vec2f const &min, dls::math::vec2f const &max)
+		{
+			std::cerr << message << " : " << min << " - > " << max << '\n';
+		};
+
+		imprime_etendue("étendue grille 1", desc1.etendue.min, desc1.etendue.max);
+		imprime_etendue("étendue grille 2", desc2.etendue.min, desc2.etendue.max);
+		imprime_etendue("étendue grille  ", desc.etendue.min, desc.etendue.max);
+#endif
+
+		auto S = m_image.ajoute_calque_profond("S", desc, wlk::type_grille::N32);
+		auto R = m_image.ajoute_calque_profond("R", desc, wlk::type_grille::R32_PTR);
+		auto G = m_image.ajoute_calque_profond("G", desc, wlk::type_grille::R32_PTR);
+		auto B = m_image.ajoute_calque_profond("B", desc, wlk::type_grille::R32_PTR);
+		auto A = m_image.ajoute_calque_profond("A", desc, wlk::type_grille::R32_PTR);
+		auto Z = m_image.ajoute_calque_profond("Z", desc, wlk::type_grille::R32_PTR);
 
 		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
 		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
@@ -360,8 +382,13 @@ public:
 
 				auto const index = j + i * largeur;
 
-				auto const n1 = tampon_S1->valeur(index);
-				auto const n2 = tampon_S2->valeur(index);
+				auto const pos_mnd = tampon_S->index_vers_monde(dls::math::vec2i(j, i));
+
+				auto const pos1 = tampon_S1->monde_vers_index(pos_mnd);
+				auto const pos2 = tampon_S2->monde_vers_index(pos_mnd);
+
+				auto const n1 = tampon_S1->valeur(pos1);
+				auto const n2 = tampon_S2->valeur(pos2);
 				auto const n  = n1 + n2;
 
 				if (n == 0) {
@@ -375,11 +402,12 @@ public:
 				auto eZ = memoire::loge_tableau<float>("deep_z", n);
 
 				if (n1 != 0) {
-					auto eR1 = tampon_R1->valeur(index);
-					auto eG1 = tampon_G1->valeur(index);
-					auto eB1 = tampon_B1->valeur(index);
-					auto eA1 = tampon_A1->valeur(index);
-					auto eZ1 = tampon_Z1->valeur(index);
+					auto index1 = tampon_S1->calcul_index(pos1);
+					auto eR1 = tampon_R1->valeur(index1);
+					auto eG1 = tampon_G1->valeur(index1);
+					auto eB1 = tampon_B1->valeur(index1);
+					auto eA1 = tampon_A1->valeur(index1);
+					auto eZ1 = tampon_Z1->valeur(index1);
 
 					for (auto e = 0u; e < n1; ++e) {
 						eR[e] = eR1[e];
@@ -391,11 +419,12 @@ public:
 				}
 
 				if (n2 != 0) {
-					auto eR2 = tampon_R2->valeur(index);
-					auto eG2 = tampon_G2->valeur(index);
-					auto eB2 = tampon_B2->valeur(index);
-					auto eA2 = tampon_A2->valeur(index);
-					auto eZ2 = tampon_Z2->valeur(index);
+					auto index2 = tampon_S2->calcul_index(pos2);
+					auto eR2 = tampon_R2->valeur(index2);
+					auto eG2 = tampon_G2->valeur(index2);
+					auto eB2 = tampon_B2->valeur(index2);
+					auto eA2 = tampon_A2->valeur(index2);
+					auto eZ2 = tampon_Z2->valeur(index2);
 
 					for (auto e = 0u; e < n2; ++e) {
 						eR[e + n1] = eR2[e];

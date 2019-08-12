@@ -161,6 +161,7 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	auto image = donnees_chrg->image;
 	image->est_profonde = true;
 
+	auto ds = entete.displayWindow();
 	auto dw = entete.dataWindow();
 
 	auto hauteur = dw.max.y - dw.min.y + 1;
@@ -169,8 +170,6 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	/* À FAIRE : prise en compte de la fenêtre d'affichage. */
 
 #if 0
-	auto ds = entete.displayWindow();
-
 	std::cerr << "Chargement de '" << chemin << "'\n";
 	std::cerr << "Les dimensions sont " << largeur << 'x' << hauteur << '\n';
 	std::cerr << "La fenêtre de données est de "
@@ -185,12 +184,54 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 			  << '\n';
 #endif
 
-	auto S = image->ajoute_calque_profond("S", largeur, hauteur, wlk::type_grille::N32);
-	auto R = image->ajoute_calque_profond("R", largeur, hauteur, wlk::type_grille::R32_PTR);
-	auto G = image->ajoute_calque_profond("G", largeur, hauteur, wlk::type_grille::R32_PTR);
-	auto B = image->ajoute_calque_profond("B", largeur, hauteur, wlk::type_grille::R32_PTR);
-	auto A = image->ajoute_calque_profond("A", largeur, hauteur, wlk::type_grille::R32_PTR);
-	auto Z = image->ajoute_calque_profond("Z", largeur, hauteur, wlk::type_grille::R32_PTR);
+	/**
+	 * défintion d'un système de coordonnées pour pouvoir fusionner correctement
+	 * les pixels
+	 *
+	 * la fenêtre d'affichage définie les coordonnées globales
+	 * l'image est centrée sur le point (0.0, 0.0)
+	 * la taille des pixels est originellement de 1.0
+	 */
+
+	auto const taille_ds_x = static_cast<float>(ds.max.x - ds.min.x + 1);
+	auto const taille_ds_y = static_cast<float>(ds.max.y - ds.min.y + 1);
+
+	auto const moitie_ds_x = taille_ds_x * 0.5f;
+	auto const moitie_ds_y = taille_ds_y * 0.5f;
+
+	auto const min_x = static_cast<float>(dw.min.x) - moitie_ds_x;
+	auto const min_y = static_cast<float>(dw.min.y) - moitie_ds_y;
+
+	auto const max_x = static_cast<float>(dw.max.x + 1) - moitie_ds_x;
+	auto const max_y = static_cast<float>(dw.max.y + 1) - moitie_ds_y;
+
+#if 0
+	std::cerr << "---------------------------------------------\n";
+	std::cerr << "Chargement de '" << chemin << "'\n";
+	std::cerr << "étendue grille : "
+			  << '(' << min_x << ',' << min_y << ')'
+			  << " -> "
+			  << '(' << max_x << ',' << max_y << ')'
+			  << '\n';
+	std::cerr << "résolution grille : "
+			  << '(' << max_x - min_x << ',' << max_y - min_y << ')'
+			  << " orig : "
+			  << '(' << largeur << ',' << hauteur << ')'
+			  << '\n';
+#endif
+
+	auto desc = wlk::desc_grille_2d{};
+	desc.taille_pixel = 1.0;
+	desc.etendue.min = dls::math::vec2f{ min_x, min_y };
+	desc.etendue.max = dls::math::vec2f{ max_x, max_y };
+	desc.fenetre_donnees = desc.etendue;
+
+	auto S = image->ajoute_calque_profond("S", desc, wlk::type_grille::N32);
+	auto R = image->ajoute_calque_profond("R", desc, wlk::type_grille::R32_PTR);
+	auto G = image->ajoute_calque_profond("G", desc, wlk::type_grille::R32_PTR);
+	auto B = image->ajoute_calque_profond("B", desc, wlk::type_grille::R32_PTR);
+	auto A = image->ajoute_calque_profond("A", desc, wlk::type_grille::R32_PTR);
+	auto Z = image->ajoute_calque_profond("Z", desc, wlk::type_grille::R32_PTR);
 
 	auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned int> *>(S->tampon);
 	auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
