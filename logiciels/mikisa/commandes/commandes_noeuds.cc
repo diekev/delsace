@@ -703,7 +703,7 @@ public:
 			case GRAPHE_PIXEL:
 			case GRAPHE_COMPOSITE:
 			{
-				auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
+				auto noeud_actif = mikisa->bdd.graphe_composites()->noeud_actif;
 				auto composite = extrait_composite(noeud_actif->donnees());
 
 				mikisa->graphe = &composite->graph();
