@@ -140,20 +140,31 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 
 	openexr::setGlobalThreadCount(8);
 
-	std::cerr << __func__ << '\n';
 	auto fichier = openexr::DeepScanLineInputFile(chemin);
 	auto entete = fichier.header();
 
 	auto dw = entete.dataWindow();
+	auto ds = entete.displayWindow();
 
 	auto hauteur = dw.max.y - dw.min.y + 1;
 	auto largeur = dw.max.x - dw.min.x + 1;
 
+	/* À FAIRE : prise en compte de la fenêtre d'affichage. */
+
+#if 0
+	std::cerr << "Chargement de '" << chemin << "'\n";
 	std::cerr << "Les dimensions sont " << largeur << 'x' << hauteur << '\n';
-
-	//auto cannaux = entete.channels();
-
-	//imprime_canaux(cannaux);
+	std::cerr << "La fenêtre de données est de "
+			  << '(' << dw.min.x << ',' << dw.min.y << ')'
+			  << " -> "
+			  << '(' << dw.max.x << ',' << dw.max.y << ')'
+			  << '\n';
+	std::cerr << "La fenêtre d'affichage est de "
+			  << '(' << ds.min.x << ',' << ds.min.y << ')'
+			  << " -> "
+			  << '(' << ds.max.x << ',' << ds.max.y << ')'
+			  << '\n';
+#endif
 
 	auto image = std::any_cast<Image *>(donnees);
 	image->est_profonde = true;
