@@ -701,12 +701,18 @@ public:
 				break;
 			}
 			case GRAPHE_PIXEL:
-			case GRAPHE_COMPOSITE:
 			{
 				auto noeud_actif = mikisa->bdd.graphe_composites()->noeud_actif;
 				auto composite = extrait_composite(noeud_actif->donnees());
 
 				mikisa->graphe = &composite->graph();
+				mikisa->contexte = GRAPHE_COMPOSITE;
+				mikisa->chemin_courant = "/composites/" + composite->nom + "/";
+				break;
+			}
+			case GRAPHE_COMPOSITE:
+			{
+				mikisa->graphe = mikisa->bdd.graphe_composites();
 				mikisa->contexte = GRAPHE_RACINE_COMPOSITES;
 				mikisa->chemin_courant = "/composites/";
 				break;
