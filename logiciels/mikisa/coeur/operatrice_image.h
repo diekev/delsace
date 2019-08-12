@@ -250,10 +250,6 @@ public:
 
 	dls::tableau<dls::chaine> const &avertissements() const;
 
-	virtual vision::Camera3D *camera();
-
-	virtual TextureImage *texture();
-
 	Image *image();
 
 	Image const *image() const;

@@ -378,16 +378,6 @@ dls::tableau<dls::chaine> const &OperatriceImage::avertissements() const
 	return m_avertissements;
 }
 
-vision::Camera3D *OperatriceImage::camera()
-{
-	return nullptr;
-}
-
-TextureImage *OperatriceImage::texture()
-{
-	return nullptr;
-}
-
 Image *OperatriceImage::image()
 {
 	return &m_image;

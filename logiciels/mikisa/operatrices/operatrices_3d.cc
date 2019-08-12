@@ -99,16 +99,6 @@ public:
 		return AIDE;
 	}
 
-	TextureImage *texture() override
-	{
-		return &m_texture;
-	}
-
-	vision::Camera3D *camera() override
-	{
-		return m_camera;
-	}
-
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (entree(0)->connectee() == false) {
