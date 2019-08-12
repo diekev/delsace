@@ -189,13 +189,13 @@ public:
 					auto sB = tampon_B->valeur(index);
 					auto sA = tampon_A->valeur(index);
 
-					for (auto i = 1u; i < n; ++i) {
-						while (sZ[i] > sZ[i - 1]) {
-							std::swap(sR[i], sR[i - 1]);
-							std::swap(sG[i], sG[i - 1]);
-							std::swap(sB[i], sB[i - 1]);
-							std::swap(sA[i], sA[i - 1]);
-							std::swap(sZ[i], sZ[i - 1]);
+					for (auto e = 1u; e < n; ++e) {
+						while (sZ[e] > sZ[e - 1]) {
+							std::swap(sR[e], sR[e - 1]);
+							std::swap(sG[e], sG[e - 1]);
+							std::swap(sB[e], sB[e - 1]);
+							std::swap(sA[e], sA[e - 1]);
+							std::swap(sZ[e], sZ[e - 1]);
 						}
 					}
 
@@ -216,12 +216,12 @@ public:
 					pixel.b = sB[0];
 					pixel.a = sA[0];
 
-					for (auto s = 1u; s < n; ++s) {
-						auto denum = 1.0f / (pixel.a + sA[s] * (1.0f - pixel.a));
-						pixel.r = (pixel.r * pixel.a + sR[s] * sA[s] * (1.0f - pixel.a)) * denum;
-						pixel.g = (pixel.g * pixel.a + sG[s] * sA[s] * (1.0f - pixel.a)) * denum;
-						pixel.b = (pixel.b * pixel.a + sB[s] * sA[s] * (1.0f - pixel.a)) * denum;
-						pixel.a = pixel.a + sA[s] * (1.0f - pixel.a);
+					for (auto e = 1u; e < n; ++e) {
+						auto denum = 1.0f / (pixel.a + sA[e] * (1.0f - pixel.a));
+						pixel.r = (pixel.r * pixel.a + sR[e] * sA[e] * (1.0f - pixel.a)) * denum;
+						pixel.g = (pixel.g * pixel.a + sG[e] * sA[e] * (1.0f - pixel.a)) * denum;
+						pixel.b = (pixel.b * pixel.a + sB[e] * sA[e] * (1.0f - pixel.a)) * denum;
+						pixel.a = pixel.a + sA[e] * (1.0f - pixel.a);
 					}
 
 					tampon->valeur(j, i, pixel);

@@ -162,7 +162,6 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	image->est_profonde = true;
 
 	auto dw = entete.dataWindow();
-	auto ds = entete.displayWindow();
 
 	auto hauteur = dw.max.y - dw.min.y + 1;
 	auto largeur = dw.max.x - dw.min.x + 1;
@@ -170,6 +169,8 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	/* À FAIRE : prise en compte de la fenêtre d'affichage. */
 
 #if 0
+	auto ds = entete.displayWindow();
+
 	std::cerr << "Chargement de '" << chemin << "'\n";
 	std::cerr << "Les dimensions sont " << largeur << 'x' << hauteur << '\n';
 	std::cerr << "La fenêtre de données est de "
