@@ -27,12 +27,19 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/vision/camera.h"
 
+#include "coeur/base_de_donnees.hh"
 #include "coeur/chef_execution.hh"
+#include "coeur/composite.h"
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/noeud_image.h"
+#include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/usine_operatrice.h"
+
+#include "evaluation/reseau.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -414,15 +421,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-#include "biblinternes/vision/camera.h"
-
-#include "coeur/base_de_donnees.hh"
-#include "coeur/composite.h"
-#include "coeur/noeud_image.h"
-#include "coeur/objet.h"
-
-#include "evaluation/reseau.hh"
 
 static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin)
 {
