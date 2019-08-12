@@ -25,10 +25,12 @@
 #include "operatrices_image_profonde.hh"
 
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/operatrice_corps.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/usine_operatrice.h"
 
@@ -382,10 +384,185 @@ public:
 
 /* ************************************************************************** */
 
+#include "biblinternes/vision/camera.h"
+
+#include "coeur/base_de_donnees.hh"
+#include "coeur/composite.h"
+#include "coeur/noeud_image.h"
+
+static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin)
+{
+	auto morceaux = dls::morcelle(chemin, '/');
+
+	if (morceaux[0] == "composites") {
+		if (morceaux.taille() < 2) {
+			return nullptr;
+		}
+
+		auto composite = bdd.composite(morceaux[1]);
+
+		if (composite == nullptr) {
+			return nullptr;
+		}
+
+		if (morceaux.taille() < 3) {
+			return nullptr;
+		}
+
+		for (auto noeud : composite->graph().noeuds()) {
+			if (noeud->nom() == morceaux[2]) {
+				return noeud;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+class OpPointsDepuisProfonde : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Point depuis Profonde";
+	static constexpr auto AIDE = "";
+
+	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(0);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_points_depuis_profonde.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		auto chemin_noeud = evalue_chaine("chemin_noeud");
+
+		if (chemin_noeud.est_vide()) {
+			this->ajoute_avertissement("Le chemin est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto noeud = cherche_entite(*contexte.bdd, chemin_noeud);
+
+		if (noeud == nullptr) {
+			this->ajoute_avertissement("Impossible de trouver le noeud !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (noeud->type() != NOEUD_IMAGE_DEFAUT) {
+			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto op = extrait_opimage(noeud->donnees());
+		auto image = op->image();
+
+		if (!image->est_profonde) {
+			this->ajoute_avertissement("L'image n'est pas profonde !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto S1 = image->calque_profond("S");
+		auto R1 = image->calque_profond("R");
+		auto G1 = image->calque_profond("G");
+		auto B1 = image->calque_profond("B");
+		//auto A1 = image->calque_profond("A");
+		auto Z1 = image->calque_profond("Z");
+
+		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S1->tampon);
+		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(R1->tampon);
+		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(G1->tampon);
+		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(B1->tampon);
+		//auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(A1->tampon);
+		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z1->tampon);
+
+		auto largeur = tampon_S1->desc().resolution.x;
+		auto hauteur = tampon_S1->desc().resolution.y;
+
+		auto camera = vision::Camera3D(largeur, hauteur);
+		camera.ajourne_pour_operatrice();
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("points depuis profonde");
+
+		auto const total = static_cast<float>(largeur * hauteur);
+		auto index = 0;
+
+		auto min_z = std::numeric_limits<float>::max();
+
+		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+
+		for (auto y = 0; y < hauteur; ++y) {
+			for (auto x = 0; x < largeur; ++x, ++index) {
+				auto n = tampon_S1->valeur(index);
+
+				if (n == 0) {
+					continue;
+				}
+
+				auto xf = static_cast<float>(x) / static_cast<float>(largeur);
+				auto yf = static_cast<float>(y) / static_cast<float>(hauteur);
+
+				auto point = dls::math::point3f(xf, yf, 0.0f);
+				auto pmnd = camera.pos_monde(point);
+
+				auto eR = tampon_R1->valeur(index);
+				auto eG = tampon_G1->valeur(index);
+				auto eB = tampon_B1->valeur(index);
+				auto eZ = tampon_Z1->valeur(index);
+
+				for (auto i = 0u; i < n; ++i) {
+					pmnd.z = eZ[i];
+
+					min_z = std::min(pmnd.z, min_z);
+
+					m_corps.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
+
+					auto couleur = dls::math::vec3f(eR[i], eG[i], eB[i]);
+					C->pousse(couleur);
+				}
+			}
+
+			chef->indique_progression(static_cast<float>(index) / total * 100.0f);
+		}
+
+		chef->indique_progression(100.0f);
+
+		auto points = m_corps.points_pour_ecriture();
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			auto p = points->point(i);
+			p.z -= min_z;
+			points->point(i, p);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_image_profonde(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpAplanisProfonde>());
 	usine.enregistre_type(cree_desc<OpFusionProfonde>());
+	usine.enregistre_type(cree_desc<OpPointsDepuisProfonde>());
 }
 
 #pragma clang diagnostic pop

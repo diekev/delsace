@@ -55,6 +55,7 @@ menu "Noeud Objet" {
 		action(valeur="Contraint Points"; attache=ajouter_noeud; métadonnée="Contraint Points")
 		action(valeur="Création Points"; attache=ajouter_noeud; métadonnée="Création Points")
 		action(valeur="Gigue Points"; attache=ajouter_noeud; métadonnée="Gigue Points")
+		action(valeur="Point depuis Profonde"; attache=ajouter_noeud; métadonnée="Point depuis Profonde")
 		action(valeur="Maillage Alpha"; attache=ajouter_noeud; métadonnée="Maillage Alpha")
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
 		action(valeur="Trainée"; attache=ajouter_noeud; métadonnée="Trainée")

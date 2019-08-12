@@ -167,6 +167,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_point3d_traduction.jo
 	scripts_danjo/operatrice_point3d_valeur.jo
 	scripts_danjo/operatrice_point3d_vecteur.jo
+	scripts_danjo/operatrice_points_depuis_profonde.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_saturation.jo
 	scripts_danjo/operatrice_script_detail.jo

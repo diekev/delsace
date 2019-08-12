@@ -1,0 +1,6 @@
+disposition "operatrice_points_depuis_profonde" {
+	ligne {
+		étiquette(valeur="Chemin noeud")
+		chaine(valeur=""; attache=chemin_noeud; infobulle="Le noeud composite contenant l'image profonde d'où dériver un nuage de point.")
+	}
+}
