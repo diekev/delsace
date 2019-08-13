@@ -205,7 +205,7 @@ static void marque_surannee_(Noeud *noeud)
 			auto op = extrait_opimage(noeud_enfant->donnees());
 			op->amont_change(entree);
 
-			marque_surannee(noeud_enfant);
+			marque_surannee_(noeud_enfant);
 		}
 	}
 }
