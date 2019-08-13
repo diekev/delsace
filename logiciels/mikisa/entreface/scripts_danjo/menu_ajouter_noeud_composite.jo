@@ -2,14 +2,14 @@ menu "Noeud Composite" {
 	menu "Cache" {
 		action(valeur="Cache Image"; attache=ajouter_noeud; métadonnée="Cache Image")
 	}
-    menu "Flux" {
-	    action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
-		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
-    }
 	menu "Entrée" {
 	    action(valeur="Lecture Image"; attache=ajouter_noeud; métadonnée="Lecture Image")
 		action(valeur="Image Profonde"; attache=ajouter_noeud; métadonnée="Lecture Image Profonde")
     }
+	menu "Flux" {
+		action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
+		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
+	}
     menu "Pixel" {
 	    action(valeur="Bruitage"; attache=ajouter_noeud; métadonnée="Bruitage")
 		action(valeur="Constante"; attache=ajouter_noeud; métadonnée="Constante")

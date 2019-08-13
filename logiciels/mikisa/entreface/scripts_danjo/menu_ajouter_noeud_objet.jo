@@ -1,19 +1,4 @@
 menu "Noeud Objet" {
-    menu "Entrée" {
-	    action(valeur="Création Cercle"; attache=ajouter_noeud; métadonnée="Création Cercle")
-		action(valeur="Création Cone"; attache=ajouter_noeud; métadonnée="Création Cone")
-		action(valeur="Création Cube"; attache=ajouter_noeud; métadonnée="Création Cube")
-		action(valeur="Création Cylindre"; attache=ajouter_noeud; métadonnée="Création Cylindre")
-		action(valeur="Création Grille"; attache=ajouter_noeud; métadonnée="Création Grille")
-		action(valeur="Création LatLong"; attache=ajouter_noeud; métadonnée="Création LatLong")
-		action(valeur="Création Ligne"; attache=ajouter_noeud; métadonnée="Création Ligne")
-		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
-		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
-		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
-		action(valeur="Import Alembic"; attache=ajouter_noeud; métadonnée="Import Alembic")
-		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
-		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
-	}
 	menu "Arbre" {
 	    action(valeur="Création Arbre"; attache=ajouter_noeud; métadonnée="Création Arbre")
 	}
@@ -27,13 +12,28 @@ menu "Noeud Objet" {
 	menu "Cache" {
 		action(valeur="Cache Corps"; attache=ajouter_noeud; métadonnée="Cache Corps")
 	}
-	menu "Groupe" {
-	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
-	}
 	menu "Cheveux" {
-	    action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")
+		action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")
 		action(valeur="Bruit Cheveux"; attache=ajouter_noeud; métadonnée="Bruit Cheveux")
 		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
+	}
+	menu "Entrée" {
+		action(valeur="Création Cercle"; attache=ajouter_noeud; métadonnée="Création Cercle")
+		action(valeur="Création Cone"; attache=ajouter_noeud; métadonnée="Création Cone")
+		action(valeur="Création Cube"; attache=ajouter_noeud; métadonnée="Création Cube")
+		action(valeur="Création Cylindre"; attache=ajouter_noeud; métadonnée="Création Cylindre")
+		action(valeur="Création Grille"; attache=ajouter_noeud; métadonnée="Création Grille")
+		action(valeur="Création LatLong"; attache=ajouter_noeud; métadonnée="Création LatLong")
+		action(valeur="Création Ligne"; attache=ajouter_noeud; métadonnée="Création Ligne")
+		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
+		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
+		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
+		action(valeur="Import Alembic"; attache=ajouter_noeud; métadonnée="Import Alembic")
+		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
+		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
+	}
+	menu "Groupe" {
+	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
 	}
 	menu "Maillage" {
 	    action(valeur="Aligne Covariance"; attache=ajouter_noeud; métadonnée="Aligne Covariance")
@@ -82,16 +82,6 @@ menu "Noeud Objet" {
 		action(valeur="Simulation Muscles"; attache=ajouter_noeud; métadonnée="Simulation Muscles")
 		action(valeur="Stable Neo Hookean"; attache=ajouter_noeud; métadonnée="Stable Neo Hookean")
 	}
-	menu "Volume" {
-		action(valeur="Affinage Volume"; attache=ajouter_noeud; métadonnée="Affinage Volume")
-		action(valeur="Créer Grille Éclairage"; attache=ajouter_noeud; métadonnée="Création Grille Éclairage")
-		action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
-		action(valeur="Créer Volume Temporel"; attache=ajouter_noeud; métadonnée="Création Volume Temporel")
-		action(valeur="Filtrage Volume"; attache=ajouter_noeud; métadonnée="Filtrage Volume")
-		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
-		action(valeur="Rastérisation Prim"; attache=ajouter_noeud; métadonnée="Rastérisation Prim")
-		action(valeur="Rééchantillone Volume"; attache=ajouter_noeud; métadonnée="Rééchantillone Volume")
-	}
 	menu "Script" {
 	    action(valeur="Script Détail"; attache=ajouter_noeud; métadonnée="Script Détail")
 		action(valeur="Script Topologie"; attache=ajouter_noeud; métadonnée="Script Topologie")
@@ -106,5 +96,15 @@ menu "Noeud Objet" {
 		action(valeur="Arbre BVH"; attache=ajouter_noeud; métadonnée="Visualisation Arbre BVH")
 		action(valeur="Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualisation Arbre Octernaire")
 		action(valeur="Grille Éparse"; attache=ajouter_noeud; métadonnée="Visualisation Grille Éparse")
+	}
+	menu "Volume" {
+		action(valeur="Affinage Volume"; attache=ajouter_noeud; métadonnée="Affinage Volume")
+		action(valeur="Créer Grille Éclairage"; attache=ajouter_noeud; métadonnée="Création Grille Éclairage")
+		action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
+		action(valeur="Créer Volume Temporel"; attache=ajouter_noeud; métadonnée="Création Volume Temporel")
+		action(valeur="Filtrage Volume"; attache=ajouter_noeud; métadonnée="Filtrage Volume")
+		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
+		action(valeur="Rastérisation Prim"; attache=ajouter_noeud; métadonnée="Rastérisation Prim")
+		action(valeur="Rééchantillone Volume"; attache=ajouter_noeud; métadonnée="Rééchantillone Volume")
 	}
 }
