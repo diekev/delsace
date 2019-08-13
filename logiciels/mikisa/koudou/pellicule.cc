@@ -44,7 +44,7 @@ void Pellicule::ajoute_echantillon(long i, long j, dls::math::vec3d const &coule
 {
 	auto index = i + static_cast<long>(m_matrice.nombre_colonnes()) * j;
 	auto &pixel_pellicule = m_pixels_pellicule[index];
-	pixel_pellicule.couleur += couleur;
+	pixel_pellicule.couleur += couleur * poids;
 	pixel_pellicule.poids += poids;
 }
 
