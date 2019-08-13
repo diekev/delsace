@@ -246,7 +246,19 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 					float rgb[3];
 					spectres[index].vers_rvb(rgb);
 
-					m_pellicule.ajoute_echantillon(x, y, dls::math::vec3d(rgb[0], rgb[1], rgb[2]));
+					auto const clr = dls::math::vec3d(rgb[0], rgb[1], rgb[2]);
+
+					auto const echant = echants[index];
+
+					auto const frac0_x = echant.x - static_cast<int>(echant.x);
+					auto const frac0_y = echant.y - static_cast<int>(echant.y);
+					auto const frac1_x = 1.0 - frac0_x;
+					auto const frac1_y = 1.0 - frac0_y;
+
+					m_pellicule.ajoute_echantillon(x    , y    , clr, frac1_x * frac1_y);
+					m_pellicule.ajoute_echantillon(x + 1, y    , clr, frac0_x * frac1_y);
+					m_pellicule.ajoute_echantillon(x + 1, y + 1, clr, frac0_x * frac0_y);
+					m_pellicule.ajoute_echantillon(x    , y + 1, clr, frac1_x * frac0_y);
 				}
 			}
 #else
