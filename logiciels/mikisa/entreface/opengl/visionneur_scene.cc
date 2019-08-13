@@ -216,6 +216,12 @@ void VisionneurScene::peint_opengl()
 	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
+	if (stats.temps != 0.0) {
+		ss.chn("");
+		ss << "Temps             : " << stats.temps << 's';
+		m_rendu_texte->dessine(m_contexte, ss.chn());
+	}
+
 	glDisable(GL_BLEND);
 
 	m_chrono_rendu.commence();

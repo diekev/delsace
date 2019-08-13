@@ -34,6 +34,7 @@ struct StatistiquesRendu {
 	long nombre_polylignes = 0;
 	long nombre_volumes = 0;
 	long nombre_points = 0;
+	double temps = 0.0;
 };
 
 /**

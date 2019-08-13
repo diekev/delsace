@@ -454,9 +454,9 @@ void MoteurRenduKoudou::calcule_rendu(
 		}
 	}
 
-//	auto temps_ecoule = 0.0;
+	auto temps_ecoule = 0.0;
 //	auto temps_restant = 0.0;
-//	auto temps_echantillon = 0.0;
+	auto temps_echantillon = 0.0;
 	auto e = 0u;
 
 	for (; e < nombre_echantillons; ++e) {
@@ -466,17 +466,19 @@ void MoteurRenduKoudou::calcule_rendu(
 			break;
 		}
 
-//		auto const debut_echantillon = dls::chrono::compte_seconde();
+		auto const debut_echantillon = dls::chrono::compte_seconde();
 
 		moteur_rendu->echantillone_scene(m_koudou->parametres_rendu, carreaux, e);
 
-//		temps_echantillon = debut_echantillon.temps();
-//		temps_ecoule += temps_echantillon;
+		temps_echantillon = debut_echantillon.temps();
+		temps_ecoule += temps_echantillon;
 //		temps_restant = (temps_ecoule / (e + 1.0) * nombre_echantillons) - temps_ecoule;
 
 		//m_notaire->signale_rendu_fini();
 		//m_notaire->signale_progres_avance(((static_cast<float>(e) + 1.0f) / static_cast<float>(nombre_echantillons)) * 100.0f);
 	}
+
+	stats.temps = temps_ecoule;
 
 	/* Il est possible que le temps restant ne soit pas égal à 0.0 quand
 	 * l'échantillonage est terminé à cause des imprécisions dues à l'estimation
