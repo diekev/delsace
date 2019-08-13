@@ -166,11 +166,20 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
+		auto const &noeud_composite = mikisa->bdd.graphe_composites()->noeud_actif;
+
+		if (noeud_composite == nullptr) {
+			mikisa->affiche_erreur("Aucun noeud composite sélectionné");
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto const &composite = extrait_composite(noeud_composite->donnees());
+
 		/* À FAIRE : vérifie l'éligibilité du chemin de sortie, graphe rendu */
 
 		requiers_evaluation(*mikisa, RENDU_REQUIS, "commande rendu image");
 
-		ecris_image(mikisa->composite,
+		ecris_image(composite,
 					mikisa->nom_calque_sortie,
 					mikisa->chemin_sortie,
 					mikisa->temps_courant);
@@ -201,6 +210,15 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
+		auto const &noeud_composite = mikisa->bdd.graphe_composites()->noeud_actif;
+
+		if (noeud_composite == nullptr) {
+			mikisa->affiche_erreur("Aucun noeud composite sélectionné");
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto const &composite = extrait_composite(noeud_composite->donnees());
+
 		/* À FAIRE : vérifie l'éligibilité du chemin de sortie. */
 
 		for (int i = mikisa->temps_debut; i <= mikisa->temps_fin; ++i) {
@@ -208,7 +226,7 @@ public:
 
 			mikisa->ajourne_pour_nouveau_temps("commande rendu séquence");
 
-			ecris_image(mikisa->composite,
+			ecris_image(composite,
 						mikisa->nom_calque_sortie,
 						mikisa->chemin_sortie,
 						mikisa->temps_courant);

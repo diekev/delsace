@@ -117,8 +117,6 @@ public:
 
 	RepondantCommande *repondant_commande() const;
 
-	Composite *composite;
-
 	/* entreface */
 	FenetrePrincipale *fenetre_principale;
 	BaseEditrice *editrice_active;

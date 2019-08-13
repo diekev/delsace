@@ -257,7 +257,14 @@ void EditriceVue2D::ajourne_etat(int evenement)
 	chargement |= (evenement == (type_evenement::rafraichissement));
 
 	if (chargement) {
-		auto const &image = m_mikisa.composite->image();
+		auto const &noeud_composite = m_mikisa.bdd.graphe_composites()->noeud_actif;
+
+		if (noeud_composite == nullptr) {
+			return;
+		}
+
+		auto const &composite = extrait_composite(noeud_composite->donnees());
+		auto const &image = composite->image();
 		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
 		auto tampon = image.calque(image.nom_calque_actif());
 

@@ -159,7 +159,14 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = extrait_mikisa(pointeur);
-		auto composite = mikisa->composite;
+		auto const &noeud_composite = mikisa->bdd.graphe_composites()->noeud_actif;
+
+		if (noeud_composite == nullptr) {
+			mikisa->affiche_erreur("Aucun noeud composite sélectionné");
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto const &composite = extrait_composite(noeud_composite->donnees());
 
 		ImprimeuseGraphe gd(&composite->graph());
 		gd("/tmp/graphe_composite.gv");

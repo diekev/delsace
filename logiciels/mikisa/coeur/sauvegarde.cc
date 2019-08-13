@@ -795,7 +795,6 @@ static auto lis_etat(
 
 	if (elem_etat == nullptr) {
 		/* versionnage */
-		mikisa.composite = mikisa.bdd.composites()[0];
 		mikisa.graphe = mikisa.bdd.graphe_objets();
 		mikisa.chemin_courant = "/objets/";
 		mikisa.contexte = GRAPHE_RACINE_OBJETS;
@@ -807,7 +806,6 @@ static auto lis_etat(
 
 	mikisa.contexte = std::atoi(elem_etat->attribut("contexte"));
 
-	mikisa.composite = mikisa.bdd.composites()[0];
 	mikisa.graphe = cherche_graphe_pour_contexte(mikisa);
 }
 

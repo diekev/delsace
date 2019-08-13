@@ -94,7 +94,6 @@ Mikisa::Mikisa()
 	: m_usine_commande{}
 	, m_usine_operatrices{}
 	, m_repondant_commande(memoire::loge<RepondantCommande>("RepondantCommande", m_usine_commande, this))
-	, composite(nullptr)
 	, fenetre_principale(nullptr)
 	, editrice_active(nullptr)
 	, gestionnaire_entreface(memoire::loge<danjo::GestionnaireInterface>("danjo::GestionnaireInterface"))
@@ -107,7 +106,6 @@ Mikisa::Mikisa()
 	, notifiant_thread(nullptr)
 	, chef_execution(*this)
 {
-	composite = bdd.cree_composite("composite");
 	graphe = bdd.graphe_objets();
 
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
