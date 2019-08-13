@@ -219,6 +219,10 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 				}
 			}
 
+#ifdef STATISTIQUES
+			statistiques.nombre_rayons_primaires.fetch_add(static_cast<unsigned>(rayons.taille()));
+#endif
+
 			dls::tableau<Spectre> spectres;
 			spectres.reserve(carreau.largeur * carreau.hauteur);
 
