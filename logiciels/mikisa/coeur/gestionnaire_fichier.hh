@@ -60,6 +60,7 @@ public:
 };
 
 class GestionnaireFichier {
+	std::mutex m_mutex{};
 	dls::dico_desordonne<dls::chaine, PoigneeFichier *> m_table{};
 
 public:
