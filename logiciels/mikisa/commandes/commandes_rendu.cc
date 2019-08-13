@@ -113,6 +113,7 @@ static void ecris_exr(const char *chemin, ParametresImage const &parametres)
 }
 
 static bool ecris_image(
+		Mikisa &mikisa,
 		Composite *composite,
 		dls::chaine const &nom_calque,
 		dls::chaine const &chemin,
@@ -127,7 +128,7 @@ static bool ecris_image(
 	auto tampon = image.calque(nom_calque);
 
 	if (tampon == nullptr) {
-		/* À FAIRE : erreur. */
+		mikisa.affiche_erreur("Calque introuvable dans l'image du composite.");
 		return false;
 	}
 
@@ -157,12 +158,12 @@ public:
 		auto mikisa = extrait_mikisa(pointeur);
 
 		if (mikisa->nom_calque_sortie == "") {
-			/* À FAIRE : erreur. */
+			mikisa->affiche_erreur("Le nom du calque de sortie est vide.");
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
 		if (mikisa->chemin_sortie == "") {
-			/* À FAIRE : erreur. */
+			mikisa->affiche_erreur("Le chemin de sortie est vide.");
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
@@ -179,7 +180,8 @@ public:
 
 		requiers_evaluation(*mikisa, RENDU_REQUIS, "commande rendu image");
 
-		ecris_image(composite,
+		ecris_image(*mikisa,
+					composite,
 					mikisa->nom_calque_sortie,
 					mikisa->chemin_sortie,
 					mikisa->temps_courant);
@@ -201,12 +203,12 @@ public:
 		auto const temps_originale = mikisa->temps_courant;
 
 		if (mikisa->nom_calque_sortie == "") {
-			/* À FAIRE : erreur. */
+			mikisa->affiche_erreur("Le nom du calque de sortie est vide.");
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
 		if (mikisa->chemin_sortie == "") {
-			/* À FAIRE : erreur. */
+			mikisa->affiche_erreur("Le chemin de sortie est vide.");
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
@@ -226,10 +228,16 @@ public:
 
 			mikisa->ajourne_pour_nouveau_temps("commande rendu séquence");
 
-			ecris_image(composite,
+			auto ok = ecris_image(
+						*mikisa,
+						composite,
 						mikisa->nom_calque_sortie,
 						mikisa->chemin_sortie,
 						mikisa->temps_courant);
+
+			if (!ok) {
+				break;
+			}
 
 			mikisa->notifie_observatrices(
 						type_evenement::image | type_evenement::traite);
