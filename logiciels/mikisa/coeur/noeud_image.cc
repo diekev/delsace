@@ -28,6 +28,8 @@
 
 #include "biblinternes/graphe/noeud.h"
 
+#include "chef_execution.hh"
+#include "contexte_evaluation.hh"
 #include "operatrice_image.h"
 
 void execute_noeud(
@@ -35,6 +37,12 @@ void execute_noeud(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
+	auto chef = contexte.chef;
+
+	if (chef->interrompu()) {
+		return;
+	}
+
 	auto operatrice = extrait_opimage(noeud->donnees());
 
 	if (!noeud->besoin_execution() && !operatrice->execute_toujours()) {
