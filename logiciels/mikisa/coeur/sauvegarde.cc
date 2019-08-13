@@ -34,7 +34,7 @@
 #include "biblinternes/xml/noeud.h"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
-
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -325,10 +325,23 @@ static void ecris_graphe(
 	}
 }
 
+static void sauvegarde_etat(
+		dls::xml::Document &doc,
+		Mikisa const &mikisa)
+{
+	auto racine_etat = doc.NewElement("etat");
+	doc.InsertEndChild(racine_etat);
+
+	racine_etat->SetAttribut("chemin_courant", mikisa.chemin_courant.c_str());
+	racine_etat->SetAttribut("contexte", mikisa.contexte);
+}
+
 erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &mikisa)
 {
 	dls::xml::Document doc;
 	doc.InsertFirstChild(doc.NewDeclaration());
+
+	sauvegarde_etat(doc, mikisa);
 
 	auto racine_projet = doc.NewElement("projet");
 	doc.InsertEndChild(racine_projet);
@@ -720,6 +733,96 @@ static void lis_composites(
 	}
 }
 
+static auto cherche_graphe_pour_chemin(Mikisa &mikisa)
+{
+	/* À FAIRE : un système d'entité */
+
+	auto morceaux = dls::morcelle(mikisa.chemin_courant, '/');
+
+	if (morceaux.est_vide()) {
+		return static_cast<Graphe *>(nullptr);
+	}
+
+	if (morceaux[0] == "composites") {
+		if (morceaux.taille() == 1) {
+			return mikisa.bdd.graphe_composites();
+		}
+
+		auto composite = mikisa.bdd.composite(morceaux[1]);
+
+		if (morceaux.taille() == 2) {
+			return &composite->graph();
+		}
+	}
+	else if (morceaux[0] == "objets") {
+		if (morceaux.taille() == 1) {
+			return mikisa.bdd.graphe_objets();
+		}
+
+		auto objet = mikisa.bdd.objet(morceaux[1]);
+
+		if (morceaux.taille() == 2) {
+			return &objet->graphe;
+		}
+	}
+
+	return static_cast<Graphe *>(nullptr);
+}
+
+static auto cherche_graphe_pour_contexte(Mikisa &mikisa)
+{
+	switch (mikisa.contexte) {
+		case GRAPHE_RACINE_COMPOSITES:
+		{
+			return mikisa.bdd.graphe_composites();
+		}
+		case GRAPHE_RACINE_OBJETS:
+		{
+			return mikisa.bdd.graphe_objets();
+		}
+		default:
+		{
+			return cherche_graphe_pour_chemin(mikisa);
+		}
+	}
+}
+
+static auto lis_etat(
+		dls::xml::Document &doc,
+		Mikisa &mikisa)
+{
+	auto elem_etat = doc.FirstChildElement("etat");
+
+	if (elem_etat == nullptr) {
+		/* versionnage */
+		mikisa.composite = mikisa.bdd.composites()[0];
+		mikisa.graphe = mikisa.bdd.graphe_objets();
+		mikisa.chemin_courant = "/objets/";
+		mikisa.contexte = GRAPHE_RACINE_OBJETS;
+		return;
+	}
+
+	auto chemin = elem_etat->attribut("chemin_courant");
+	mikisa.chemin_courant = chemin;
+
+	mikisa.contexte = std::atoi(elem_etat->attribut("contexte"));
+
+	mikisa.composite = mikisa.bdd.composites()[0];
+	mikisa.graphe = cherche_graphe_pour_contexte(mikisa);
+}
+
+static auto reinitialise_mikisa(Mikisa &mikisa)
+{
+	mikisa.derniere_visionneuse_selectionnee = nullptr;
+	mikisa.manipulation_2d_activee = false;
+	mikisa.type_manipulation_2d = 0;
+	mikisa.manipulatrice_2d = nullptr;
+	mikisa.manipulation_3d_activee = false;
+	mikisa.type_manipulation_3d = 0;
+	mikisa.manipulatrice_3d = nullptr;
+	mikisa.bdd.reinitialise();
+}
+
 erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 {
 	if (!std::filesystem::exists(chemin)) {
@@ -729,16 +832,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	dls::xml::Document doc;
 	doc.LoadFile(chemin.c_str());
 
-	/* À FAIRE : sauvegarde et restauration de l'état du logiciel. */
-	mikisa.derniere_visionneuse_selectionnee = nullptr;
-	mikisa.manipulation_2d_activee = false;
-	mikisa.type_manipulation_2d = 0;
-	mikisa.manipulatrice_2d = nullptr;
-	mikisa.manipulation_3d_activee = false;
-	mikisa.type_manipulation_3d = 0;
-	mikisa.manipulatrice_3d = nullptr;
-	mikisa.chemin_courant = "/composites/";
-	mikisa.bdd.reinitialise();
+	reinitialise_mikisa(mikisa);
 
 	/* Lecture du projet. */
 	auto const racine_projet = doc.FirstChildElement("projet");
@@ -765,11 +859,7 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 
 	lis_composites(racine_composites, mikisa);
 
-	/* À FAIRE : restaure état. */
-	mikisa.composite = mikisa.bdd.composites()[0];
-	mikisa.graphe = mikisa.bdd.graphe_objets();
-	mikisa.chemin_courant = "/objets/";
-	mikisa.contexte = GRAPHE_RACINE_OBJETS;
+	lis_etat(doc, mikisa);
 
 	requiers_evaluation(mikisa, FICHIER_OUVERT, "chargement d'un projet");
 

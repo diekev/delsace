@@ -36,6 +36,7 @@
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
@@ -58,8 +59,8 @@ EditriceGraphe::EditriceGraphe(Mikisa &mikisa, QWidget *parent)
 	auto disposition_vert = new QVBoxLayout();
 	auto disposition_barre = new QHBoxLayout();
 
-	m_selecteur_graphe->addItem("Graphe Composite", QVariant("composites"));
-	m_selecteur_graphe->addItem("Graphe Scène", QVariant("objets"));
+	m_selecteur_graphe->addItem("Graphe Composites", QVariant("composites"));
+	m_selecteur_graphe->addItem("Graphe Objets", QVariant("objets"));
 
 	m_selecteur_graphe->setCurrentIndex(1);
 
@@ -95,6 +96,27 @@ void EditriceGraphe::ajourne_etat(int evenement)
 
 	if (!creation) {
 		return;
+	}
+
+	/* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
+	 * fichiers */
+	{
+		auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
+
+		auto const graphe_compo = dls::outils::est_element(
+					m_mikisa.contexte,
+					GRAPHE_COMPOSITE,
+					GRAPHE_PIXEL,
+					GRAPHE_RACINE_COMPOSITES);
+
+		if (graphe_compo) {
+			m_selecteur_graphe->setCurrentIndex(0);
+		}
+		else {
+			m_selecteur_graphe->setCurrentIndex(1);
+		}
+
+		m_selecteur_graphe->blockSignals(bloque_signaux);
 	}
 
 	m_scene->clear();
