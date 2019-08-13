@@ -189,27 +189,6 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 	}
 }
 
-/* À FAIRE : déduplique. */
-static void marque_surannee_(Noeud *noeud)
-{
-	if (noeud == nullptr) {
-		return;
-	}
-
-	noeud->besoin_execution(true);
-
-	for (PriseSortie *sortie : noeud->sorties()) {
-		for (PriseEntree *entree : sortie->liens) {
-			auto noeud_enfant = entree->parent;
-
-			auto op = extrait_opimage(noeud_enfant->donnees());
-			op->amont_change(entree);
-
-			marque_surannee_(noeud_enfant);
-		}
-	}
-}
-
 void EditriceProprietes::ajourne_manipulable()
 {
 	auto graphe = m_mikisa.graphe;
@@ -237,7 +216,11 @@ void EditriceProprietes::ajourne_manipulable()
 		case GRAPHE_SIMULATION:
 		{
 			/* Marque le noeud courant et ceux en son aval surannées. */
-			marque_surannee_(noeud);
+			marque_surannee(noeud, [](Noeud *n, PriseEntree *prise)
+			{
+				auto op = extrait_opimage(n->donnees());
+				op->amont_change(prise);
+			});
 
 			auto op = extrait_opimage(noeud->donnees());
 			op->parametres_changes();

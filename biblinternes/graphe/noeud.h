@@ -279,4 +279,4 @@ public:
 	int degre = 0;
 };
 
-void marque_surannee(Noeud *noeud);
+void marque_surannee(Noeud *noeud, std::function<void(Noeud *, PriseEntree *)> const &rp);

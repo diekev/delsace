@@ -133,7 +133,7 @@ void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 	entree->liens.pousse(sortie);
 	sortie->liens.pousse(entree);
 
-	marque_surannee(entree->parent);
+	marque_surannee(entree->parent, nullptr);
 
 	besoin_ajournement = true;
 }
@@ -157,7 +157,7 @@ bool Graphe::deconnecte(PriseSortie *sortie, PriseEntree *entree)
 	sortie->liens.erase(iter_entree);
 	entree->liens.erase(iter_sortie);
 
-	marque_surannee(entree->parent);
+	marque_surannee(entree->parent, nullptr);
 
 	besoin_ajournement = true;
 

@@ -274,7 +274,7 @@ int Noeud::compte_execution() const
 
 /* ************************************************************************** */
 
-void marque_surannee(Noeud *noeud)
+void marque_surannee(Noeud *noeud, const std::function<void(Noeud *, PriseEntree *)> &rp)
 {
 	if (noeud == nullptr) {
 		return;
@@ -284,7 +284,11 @@ void marque_surannee(Noeud *noeud)
 
 	for (PriseSortie *sortie : noeud->sorties()) {
 		for (PriseEntree *entree : sortie->liens) {
-			marque_surannee(entree->parent);
+			if (rp != nullptr) {
+				rp(entree->parent, entree);
+			}
+
+			marque_surannee(entree->parent, rp);
 		}
 	}
 }
