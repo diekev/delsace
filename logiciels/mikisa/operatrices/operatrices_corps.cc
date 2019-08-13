@@ -2059,6 +2059,48 @@ public:
 
 /* ************************************************************************** */
 
+class OpCacheCorps : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Cache Corps";
+	static constexpr auto AIDE = "";
+
+	OpCacheCorps(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("cache corps");
+
+		entree(0)->signale_cache(chef);
+
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_corps(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationGrille>());
@@ -2079,6 +2121,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpCreationKelvinlet>());
 	usine.enregistre_type(cree_desc<OpDeformationKelvinlet>());
 	usine.enregistre_type(cree_desc<OperatriceCreationLatLong>());
+	usine.enregistre_type(cree_desc<OpCacheCorps>());
 }
 
 #pragma clang diagnostic pop

@@ -50,4 +50,6 @@ public:
 	Corps *corps() override;
 
 	void donnees_simulation(DonneesSimulation *donnees);
+
+	void libere_memoire() override;
 };

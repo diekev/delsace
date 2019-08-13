@@ -53,3 +53,8 @@ void OperatriceCorps::donnees_simulation(DonneesSimulation *donnees)
 {
 	m_donnees_simulation = donnees;
 }
+
+void OperatriceCorps::libere_memoire()
+{
+	m_corps.reinitialise();
+}
