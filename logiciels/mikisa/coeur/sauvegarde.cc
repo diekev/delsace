@@ -369,6 +369,11 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		sauvegarde_proprietes(doc, racine_objet, objet);
 	}
 
+	/* Écriture du graphe. */
+	auto racine_graphe_objs = doc.NewElement("graphe");
+	racine_objets->InsertEndChild(racine_graphe_objs);
+	ecris_graphe(doc, racine_graphe_objs, *mikisa.bdd.graphe_objets());
+
 	/* composites */
 
 	auto racine_composites = doc.NewElement("composites");
@@ -387,6 +392,11 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 
 		ecris_graphe(doc, racine_graphe, composite->graph());
 	}
+
+	/* Écriture du graphe. */
+	auto racine_graphe_comps = doc.NewElement("graphe");
+	racine_composites->InsertEndChild(racine_graphe_comps);
+	ecris_graphe(doc, racine_graphe_comps, *mikisa.bdd.graphe_composites());
 
 	auto const resultat = doc.SaveFile(chemin.c_str());
 
@@ -692,6 +702,26 @@ void lecture_graphe(
 	}
 }
 
+static void lecture_graphe_racine(
+		dls::xml::Element *racine_graphe,
+		Graphe *graphe)
+{
+	auto element_noeud = racine_graphe->FirstChildElement("noeud");
+
+	for (; element_noeud != nullptr; element_noeud = element_noeud->NextSiblingElement("noeud")) {
+		auto const nom_noeud = element_noeud->attribut("nom");
+		auto const posx = element_noeud->attribut("posx");
+		auto const posy = element_noeud->attribut("posy");
+
+		for (auto noeud : graphe->noeuds()) {
+			if (noeud->nom() == nom_noeud) {
+				noeud->pos_x(static_cast<float>(atoi(posx)));
+				noeud->pos_y(static_cast<float>(atoi(posy)));
+			}
+		}
+	}
+}
+
 static void lis_objets(
 		dls::xml::Element *racine_objets,
 		Mikisa &mikisa)
@@ -848,6 +878,12 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 
 	lis_objets(racine_objets, mikisa);
 
+	auto const racine_graphe_objs = racine_objets->FirstChildElement("graphe");
+
+	if (racine_graphe_objs != nullptr) {
+		lecture_graphe_racine(racine_graphe_objs, mikisa.bdd.graphe_objets());
+	}
+
 	/* composites */
 	auto const racine_composites = racine_projet->FirstChildElement("composites");
 
@@ -856,6 +892,12 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	}
 
 	lis_composites(racine_composites, mikisa);
+
+	auto const racine_graphe_comps = racine_composites->FirstChildElement("graphe");
+
+	if (racine_graphe_comps != nullptr) {
+		lecture_graphe_racine(racine_graphe_comps, mikisa.bdd.graphe_composites());
+	}
 
 	lis_etat(doc, mikisa);
 
