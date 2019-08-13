@@ -101,6 +101,11 @@ Volume::~Volume()
 			deloge_grille_impl<dls::math::vec3f>(grille);
 			break;
 		}
+		case wlk::type_grille::VEC3_R64:
+		{
+			deloge_grille_impl<dls::math::vec3d>(grille);
+			break;
+		}
 	}
 }
 

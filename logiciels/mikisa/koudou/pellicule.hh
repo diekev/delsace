@@ -26,8 +26,9 @@
 
 #include "biblinternes/math/matrice/matrice.hh"
 #include "biblinternes/math/vecteur.hh"
-
 #include "biblinternes/structures/tableau.hh"
+
+#include "wolika/grille_dense.hh"
 
 namespace kdo {
 
@@ -44,7 +45,11 @@ struct PixelPellicule {
 };
 
 class Pellicule {
-	dls::math::matrice_dyn<dls::math::vec3d> m_matrice;
+public:
+	using type_grille = wlk::grille_dense_2d<dls::math::vec3d>;
+
+private:
+	wlk::grille_dense_2d<dls::math::vec3d> m_matrice{};
 
 	dls::tableau<PixelPellicule> m_pixels_pellicule{};
 
@@ -59,7 +64,7 @@ public:
 
 	dls::math::vec3d const &couleur(int i, int j);
 
-	dls::math::matrice_dyn<dls::math::vec3d> const &donnees();
+	type_grille const &donnees() const;
 
 	void reinitialise();
 

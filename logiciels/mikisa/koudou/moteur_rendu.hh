@@ -42,7 +42,7 @@ class MoteurRendu {
 public:
 	void echantillone_scene(ParametresRendu const &parametres, dls::tableau<CarreauPellicule> const &carreaux, unsigned int echantillon);
 
-	dls::math::matrice_dyn<dls::math::vec3d> const &pellicule();
+	Pellicule const &pellicule();
 
 	void reinitialise();
 

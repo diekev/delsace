@@ -110,6 +110,11 @@ calque_image calque_image::construit_calque(
 			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec3f>>("grille_dense_2d", desc);
 			break;
 		}
+		case wlk::type_grille::VEC3_R64:
+		{
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec3d>>("grille_dense_2d", desc);
+			break;
+		}
 	}
 
 	return calque;

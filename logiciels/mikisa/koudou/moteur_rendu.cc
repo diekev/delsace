@@ -272,10 +272,10 @@ Pellicule *MoteurRendu::pointeur_pellicule()
 	return &m_pellicule;
 }
 
-dls::math::matrice_dyn<dls::math::vec3d> const &MoteurRendu::pellicule()
+Pellicule const &MoteurRendu::pellicule()
 {
 	m_pellicule.creer_image();
-	return m_pellicule.donnees();
+	return m_pellicule;
 }
 
 void MoteurRendu::arrete()

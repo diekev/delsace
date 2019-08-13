@@ -87,6 +87,12 @@ void deloge_grille(base_grille_2d *&tampon)
 			memoire::deloge("grille_dense", grille);
 			break;
 		}
+		case type_grille::VEC3_R64:
+		{
+			auto grille = dynamic_cast<grille_dense_2d<dls::math::vec3d> *>(tampon);
+			memoire::deloge("grille_dense", grille);
+			break;
+		}
 	}
 
 	tampon = nullptr;

@@ -27,25 +27,24 @@
 namespace kdo {
 
 Pellicule::Pellicule()
-	: m_matrice(dls::math::Hauteur(720), dls::math::Largeur(1280))
 {}
 
 int Pellicule::hauteur() const
 {
-	return m_matrice.dimensions().hauteur;
+	return m_matrice.desc().resolution.y;
 }
 
 int Pellicule::largeur() const
 {
-	return m_matrice.dimensions().largeur;
+	return m_matrice.desc().resolution.x;
 }
 
 void Pellicule::ajoute_echantillon(long i, long j, dls::math::vec3d const &couleur, const double poids)
 {
-	auto ii = std::min(i, static_cast<long>(m_matrice.nombre_colonnes() - 1));
-	auto jj = std::min(j, static_cast<long>(m_matrice.nombre_lignes() - 1));
+	auto ii = std::min(i, static_cast<long>(largeur() - 1));
+	auto jj = std::min(j, static_cast<long>(hauteur() - 1));
 
-	auto index = ii + static_cast<long>(m_matrice.nombre_colonnes()) * jj;
+	auto index = ii + static_cast<long>(largeur()) * jj;
 	auto &pixel_pellicule = m_pixels_pellicule[index];
 	pixel_pellicule.couleur += couleur * poids;
 	pixel_pellicule.poids += poids;
@@ -53,18 +52,17 @@ void Pellicule::ajoute_echantillon(long i, long j, dls::math::vec3d const &coule
 
 dls::math::vec3d const &Pellicule::couleur(int i, int j)
 {
-	return m_matrice[i][j];
+	return m_matrice.valeur(dls::math::vec2i(i, j));
 }
 
-dls::math::matrice_dyn<dls::math::vec3d> const &Pellicule::donnees()
+Pellicule::type_grille const &Pellicule::donnees() const
 {
 	return m_matrice;
 }
 
 void Pellicule::reinitialise()
 {
-	m_matrice.remplie(dls::math::vec3d(0.0));
-	m_pixels_pellicule.redimensionne(m_matrice.nombre_colonnes() * m_matrice.nombre_lignes());
+	m_pixels_pellicule.redimensionne(largeur() * hauteur());
 
 	for (auto &pixel_pellicule : m_pixels_pellicule) {
 		pixel_pellicule.couleur = dls::math::vec3d(0.0);
@@ -78,27 +76,38 @@ void Pellicule::creer_image()
 		return;
 	}
 
-	auto const &hauteur = m_matrice.nombre_lignes();
-	auto const &largeur = m_matrice.nombre_colonnes();
 	auto index = 0l;
 
-	for (int i = 0; i < hauteur; ++i) {
-		for (int j = 0; j < largeur; ++j, ++index) {
+	for (int i = 0; i < hauteur(); ++i) {
+		for (int j = 0; j < largeur(); ++j, ++index) {
 			auto const &pixel_pellicule = m_pixels_pellicule[index];
 
 			if (pixel_pellicule.poids == 0.0) {
-				m_matrice[i][j] = dls::math::vec3d(0.0);
+				m_matrice.valeur(index) = dls::math::vec3d(0.0);
 				return;
 			}
 
-			m_matrice[i][j] = pixel_pellicule.couleur / pixel_pellicule.poids;
+			m_matrice.valeur(index) = pixel_pellicule.couleur / pixel_pellicule.poids;
 		}
 	}
 }
 
 void Pellicule::redimensionne(dls::math::Hauteur const &hauteur, dls::math::Largeur const &largeur)
 {
-	m_matrice = dls::math::matrice_dyn<dls::math::vec3d>(hauteur, largeur);
+	auto moitie_x = static_cast<float>(largeur.valeur) * 0.5f;
+	auto moitie_y = static_cast<float>(hauteur.valeur) * 0.5f;
+
+	auto desc = wlk::desc_grille_2d();
+	desc.etendue.min.x = -moitie_x;
+	desc.etendue.min.y = -moitie_y;
+	desc.etendue.max.x =  moitie_x;
+	desc.etendue.max.y =  moitie_y;
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_pixel = 1.0;
+
+	m_matrice = type_grille(desc);
+
+	reinitialise();
 }
 
 }  /* namespace kdo */

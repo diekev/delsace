@@ -58,6 +58,7 @@ enum class type_grille : int {
 	R64,
 	VEC2,
 	VEC3,
+	VEC3_R64,
 };
 
 template <typename T>
@@ -71,6 +72,7 @@ template <> struct selectrice_type_grille<float *>          { static constexpr a
 template <> struct selectrice_type_grille<double>           { static constexpr auto type = type_grille::R64; };
 template <> struct selectrice_type_grille<dls::math::vec2f> { static constexpr auto type = type_grille::VEC2; };
 template <> struct selectrice_type_grille<dls::math::vec3f> { static constexpr auto type = type_grille::VEC3; };
+template <> struct selectrice_type_grille<dls::math::vec3d> { static constexpr auto type = type_grille::VEC3_R64; };
 
 /* ************************************************************************** */
 

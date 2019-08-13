@@ -434,8 +434,8 @@ void MoteurRenduKoudou::calcule_rendu(
 	/* Génère carreaux. */
 	auto const largeur_carreau = m_koudou->parametres_rendu.largeur_carreau;
 	auto const hauteur_carreau = m_koudou->parametres_rendu.hauteur_carreau;
-	auto const largeur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_colonnes());
-	auto const hauteur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().nombre_lignes());
+	auto const largeur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().largeur());
+	auto const hauteur_pellicule = static_cast<unsigned>(moteur_rendu->pellicule().hauteur());
 	auto const carreaux_x = static_cast<unsigned>(std::ceil(static_cast<float>(largeur_pellicule) / static_cast<float>(largeur_carreau)));
 	auto const carreaux_y = static_cast<unsigned>(std::ceil(static_cast<float>(hauteur_pellicule) / static_cast<float>(hauteur_carreau)));
 
@@ -493,12 +493,15 @@ void MoteurRenduKoudou::calcule_rendu(
 	//m_notaire->signale_progres_temps(e + 1, temps_echantillon, temps_ecoule, temps_restant);
 
 	auto const &ptr_pellicule = moteur_rendu->pellicule();
+	auto const &donnees = ptr_pellicule.donnees();
 
+	auto index = 0;
 	for (int y = 0; y < hauteur; ++y) {
-		for (int x = 0; x < largeur; ++x) {
-			*tampon++ = static_cast<float>(ptr_pellicule[y][x].x);
-			*tampon++ = static_cast<float>(ptr_pellicule[y][x].y);
-			*tampon++ = static_cast<float>(ptr_pellicule[y][x].z);
+		for (int x = 0; x < largeur; ++x, ++index) {
+			auto v = dls::math::converti_type<float>(donnees.valeur(index));
+			*tampon++ = v.x;
+			*tampon++ = v.y;
+			*tampon++ = v.z;
 			*tampon++ = 1.0f;
 
 //			std::swap(tampon[idx0 + 0], tampon[idx1 + 0]);
