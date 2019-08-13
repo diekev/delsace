@@ -320,6 +320,10 @@ static void ecris_graphe(
 		dls::xml::Element *racine_graphe,
 		Graphe const &graphe)
 {
+	racine_graphe->SetAttribut("centre_x", graphe.centre_x);
+	racine_graphe->SetAttribut("centre_y", graphe.centre_y);
+	racine_graphe->SetAttribut("zoom", graphe.zoom);
+
 	for (auto const &noeud : graphe.noeuds()) {
 		ecris_noeud(doc, racine_graphe, noeud);
 	}
@@ -680,6 +684,10 @@ void lecture_graphe(
 		Mikisa &mikisa,
 		Graphe *graphe)
 {
+	graphe->centre_x = racine_graphe->FloatAttribut("centre_x");
+	graphe->centre_y = racine_graphe->FloatAttribut("centre_y");
+	graphe->zoom = racine_graphe->FloatAttribut("zoom");
+
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
 
 	DonneesConnexions donnees_connexions;
@@ -706,6 +714,10 @@ static void lecture_graphe_racine(
 		dls::xml::Element *racine_graphe,
 		Graphe *graphe)
 {
+	graphe->centre_x = racine_graphe->FloatAttribut("centre_x");
+	graphe->centre_y = racine_graphe->FloatAttribut("centre_y");
+	graphe->zoom = racine_graphe->FloatAttribut("zoom");
+
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
 
 	for (; element_noeud != nullptr; element_noeud = element_noeud->NextSiblingElement("noeud")) {
