@@ -1,4 +1,7 @@
 menu "Noeud Composite" {
+	menu "Cache" {
+		action(valeur="Cache Image"; attache=ajouter_noeud; métadonnée="Cache Image")
+	}
     menu "Flux" {
 	    action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
 		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
@@ -49,5 +52,5 @@ menu "Noeud Composite" {
 		action(valeur="Préfiltre Cubic B-Spline"; attache=ajouter_noeud; métadonnée="Préfiltre Cubic B-Spline")
 		action(valeur="Simulation de grain"; attache=ajouter_noeud; métadonnée="Simulation de grain")
 		action(valeur="Tournoiement"; attache=ajouter_noeud; métadonnée="Tournoiement")
-    }
+	}
 }

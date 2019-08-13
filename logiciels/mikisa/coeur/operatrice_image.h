@@ -30,6 +30,7 @@
 
 #include "danjo/manipulable.h"
 
+class ChefExecution;
 class Corps;
 class Graphe;
 class Manipulatrice3D;
@@ -142,6 +143,8 @@ public:
 	{
 		return m_ptr;
 	}
+
+	void signale_cache(ChefExecution *chef) const;
 };
 
 struct PriseSortie;
@@ -294,6 +297,8 @@ public:
 	virtual void amont_change(PriseEntree *entree);
 
 	virtual void parametres_changes();
+
+	virtual void libere_memoire();
 };
 
 Calque *cherche_calque(

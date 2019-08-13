@@ -686,11 +686,54 @@ public:
 
 /* ************************************************************************** */
 
+class OpCacheImage : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Cache Image";
+	static constexpr auto AIDE = "";
+
+	OpCacheImage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_image.reinitialise();
+
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("cache image");
+
+		entree(0)->signale_cache(chef);
+
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_image_profonde(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpAplanisProfonde>());
 	usine.enregistre_type(cree_desc<OpFusionProfonde>());
 	usine.enregistre_type(cree_desc<OpPointsDepuisProfonde>());
+	usine.enregistre_type(cree_desc<OpCacheImage>());
 }
 
 #pragma clang diagnostic pop

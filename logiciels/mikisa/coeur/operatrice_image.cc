@@ -28,9 +28,11 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/structures/pile.hh"
 
 #include "corps/corps.h"
 
+#include "chef_execution.hh"
 #include "noeud_image.h"
 #include "usine_operatrice.h"
 
@@ -215,6 +217,51 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 
 	for (auto const &groupe : corps->groupes_points()) {
 		chaines.pousse(groupe.nom);
+	}
+}
+
+void EntreeOperatrice::signale_cache(ChefExecution *chef) const
+{
+	if (m_ptr->liens.est_vide()) {
+		return;
+	}
+
+	auto lien = m_ptr->liens[0];
+
+	if (lien == nullptr) {
+		return;
+	}
+
+	/* nous poussons les noeuds dans une liste pour pouvoir donner une
+	 * progression correcte */
+
+	auto liste = dls::tableau<Noeud *>();
+	auto pile = dls::pile<Noeud *>();
+	pile.empile(lien->parent);
+
+	while (!pile.est_vide()) {
+		auto noeud = pile.haut();
+		pile.depile();
+
+		liste.pousse(noeud);
+
+		for (auto entree : noeud->entrees()) {
+			for (auto sortie : entree->liens) {
+				pile.empile(sortie->parent);
+			}
+		}
+	}
+
+	auto progres = 0.0f;
+	auto delta = 100.0f / static_cast<float>(liste.taille());
+
+	for (auto noeud : liste) {
+		noeud->besoin_execution(true);
+		auto op = extrait_opimage(noeud->donnees());
+		op->libere_memoire();
+
+		chef->indique_progression(progres + delta);
+		progres += delta;
 	}
 }
 
@@ -444,6 +491,11 @@ void OperatriceImage::amont_change(PriseEntree *entree)
 void OperatriceImage::parametres_changes()
 {
 	return;
+}
+
+void OperatriceImage::libere_memoire()
+{
+	m_image.reinitialise();
 }
 
 /* ************************************************************************** */
