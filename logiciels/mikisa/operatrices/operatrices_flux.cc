@@ -313,6 +313,19 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 
 	chef->indique_progression(10.0f);
 
+	auto echantillons_totals = 0l;
+
+	for (auto i = 0; i < compte_echantillons.taille(); ++i) {
+		echantillons_totals += compte_echantillons[i];
+	}
+
+	R->echantillons.redimensionne(echantillons_totals);
+	G->echantillons.redimensionne(echantillons_totals);
+	B->echantillons.redimensionne(echantillons_totals);
+	A->echantillons.redimensionne(echantillons_totals);
+	Z->echantillons.redimensionne(echantillons_totals);
+
+	auto decalage = 0l;
 	for (auto i = 0; i < hauteur; ++i) {
 		for (auto j = 0; j < largeur; ++j) {
 			auto index = j + i * largeur;
@@ -331,11 +344,13 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 			tampon_S->valeur(index) = n;
 #endif
 
-			auto tR = memoire::loge_tableau<float>("deep_r", n);
-			auto tG = memoire::loge_tableau<float>("deep_g", n);
-			auto tB = memoire::loge_tableau<float>("deep_b", n);
-			auto tA = memoire::loge_tableau<float>("deep_a", n);
-			auto tZ = memoire::loge_tableau<float>("deep_z", n);
+			auto tR = &R->echantillons[decalage];
+			auto tG = &G->echantillons[decalage];
+			auto tB = &B->echantillons[decalage];
+			auto tA = &A->echantillons[decalage];
+			auto tZ = &Z->echantillons[decalage];
+
+			decalage += n;
 
 #ifdef DBL_MEM
 			aR[i][j] = tR;

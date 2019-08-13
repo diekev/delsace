@@ -253,44 +253,8 @@ Image::plage_calques_const Image::calques() const
 	return plage_calques_const(m_calques.debut(), m_calques.fin());
 }
 
-static void deloge_donnees_profondes(Image &image)
-{
-	auto S = image.calque_profond("S");
-	auto R = image.calque_profond("R");
-	auto G = image.calque_profond("G");
-	auto B = image.calque_profond("B");
-	auto A = image.calque_profond("A");
-	auto Z = image.calque_profond("Z");
-
-	auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
-	auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
-	auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
-	auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
-	auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
-	auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
-
-	auto largeur = tampon_S->desc().resolution.x;
-	auto hauteur = tampon_S->desc().resolution.y;
-
-	for (auto i = 0; i < hauteur; ++i) {
-		for (auto j = 0; j < largeur; ++j) {
-			auto index = j + i * largeur;
-			auto const n = tampon_S->valeur(index);
-			memoire::deloge_tableau("deep_r", tampon_R->valeur(index), n);
-			memoire::deloge_tableau("deep_g", tampon_G->valeur(index), n);
-			memoire::deloge_tableau("deep_b", tampon_B->valeur(index), n);
-			memoire::deloge_tableau("deep_a", tampon_A->valeur(index), n);
-			memoire::deloge_tableau("deep_z", tampon_Z->valeur(index), n);
-		}
-	}
-}
-
 void Image::reinitialise()
 {
-	if (est_profonde && !m_calques_profond.est_vide() && m_calques_profond.front().unique()) {
-		deloge_donnees_profondes(*this);
-	}
-
 	est_profonde = false;
 	m_calques.efface();
 	m_calques_profond.efface();

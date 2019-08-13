@@ -47,6 +47,9 @@ struct calque_image {
 	dls::chaine nom{};
 	wlk::base_grille_2d *tampon = nullptr;
 
+	/* échantillons pour les calques profonds */
+	dls::tableau<float> echantillons{};
+
 	calque_image() = default;
 
 	calque_image(calque_image const &autre);

@@ -365,9 +365,17 @@ public:
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("fusion profondes");
 
+		auto echantillons_total = R1->echantillons.taille() + R2->echantillons.taille();
+		R->echantillons.redimensionne(echantillons_total);
+		G->echantillons.redimensionne(echantillons_total);
+		B->echantillons.redimensionne(echantillons_total);
+		A->echantillons.redimensionne(echantillons_total);
+		Z->echantillons.redimensionne(echantillons_total);
+
 		auto largeur = tampon_S->desc().resolution.x;
 		auto hauteur = tampon_S->desc().resolution.y;
 		auto courant = 0;
+		auto decalage = 0l;
 
 		for (auto j = 0; j < largeur; ++j) {
 			if (chef->interrompu()) {
@@ -394,11 +402,12 @@ public:
 					continue;
 				}
 
-				auto eR = memoire::loge_tableau<float>("deep_r", n);
-				auto eG = memoire::loge_tableau<float>("deep_g", n);
-				auto eB = memoire::loge_tableau<float>("deep_b", n);
-				auto eA = memoire::loge_tableau<float>("deep_a", n);
-				auto eZ = memoire::loge_tableau<float>("deep_z", n);
+				auto eR = &R->echantillons[decalage];
+				auto eG = &G->echantillons[decalage];
+				auto eB = &B->echantillons[decalage];
+				auto eA = &A->echantillons[decalage];
+				auto eZ = &Z->echantillons[decalage];
+				decalage += n;
 
 				if (n1 != 0) {
 					auto index1 = tampon_S1->calcul_index(pos1);
