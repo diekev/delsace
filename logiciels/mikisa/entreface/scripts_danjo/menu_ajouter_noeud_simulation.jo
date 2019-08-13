@@ -38,7 +38,6 @@ menu "Noeud Simulation" {
 		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
 	}
 	menu "Physique" {
-	    action(valeur="Ariel"; attache=ajouter_noeud; métadonnée="Ariel")
 		action(valeur="Collision"; attache=ajouter_noeud; métadonnée="Collision")
 		action(valeur="Ajout Corps Rigide"; attache=ajouter_noeud; métadonnée="Ajout Corps Rigide")
 		action(valeur="Dynamiques Corps Rigides"; attache=ajouter_noeud; métadonnée="Dynamiques Corps Rigides")
