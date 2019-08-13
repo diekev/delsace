@@ -264,8 +264,8 @@ void FenetrePrincipale::tache_terminee()
 	m_barre_progres->setVisible(false);
 }
 
-void FenetrePrincipale::evaluation_debutee(const char *message)
+void FenetrePrincipale::evaluation_debutee(const char *message, int execution, int total)
 {
 	m_barre_progres->ajourne_valeur(0);
-	m_barre_progres->ajourne_message(message);
+	m_barre_progres->ajourne_message(message, execution, total);
 }

@@ -49,6 +49,8 @@ void execute_noeud(
 		return;
 	}
 
+	chef->incremente_compte_a_executer();
+
 	noeud->temps_execution(0.0f);
 
 	auto const t0 = tbb::tick_count::now();

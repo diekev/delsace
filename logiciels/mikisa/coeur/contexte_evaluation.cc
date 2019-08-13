@@ -24,6 +24,7 @@
 
 #include "contexte_evaluation.hh"
 
+#include "chef_execution.hh"
 #include "configuration.h"
 #include "mikisa.h"
 
@@ -44,6 +45,8 @@ ContexteEvaluation cree_contexte_evaluation(const Mikisa &mikisa)
 	contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&mikisa.gestionnaire_fichier);
 	contexte.chef = const_cast<ChefExecution *>(&mikisa.chef_execution);
 	contexte.resolution_rendu = rectangle;
+
+	contexte.chef->reinitialise();
 
 	return contexte;
 }
