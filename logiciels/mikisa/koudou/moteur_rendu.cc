@@ -188,16 +188,9 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tableau<CarreauPellicule> const &carreaux, unsigned int echantillon)
 {
 	auto camera = parametres.camera;
-	/* À FAIRE : redimensionne la caméra et la pellicule selon la fenêtre
-	 * entreactive. */
-//	auto vielle_hauteur = camera->hauteur();
-//	auto vielle_largeur = camera->largeur();
 
 	m_pellicule.redimensionne(dls::math::Hauteur(camera->hauteur()),
 							  dls::math::Largeur(camera->largeur()));
-
-	//camera->redimensionne(m_pellicule.largeur(), m_pellicule.hauteur());
-	//camera->ajourne();
 
 	tbb::parallel_for(tbb::blocked_range<long>(0, carreaux.taille()),
 					  [&](tbb::blocked_range<long> const &plage)
@@ -206,10 +199,9 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 
 		for (auto j = plage.begin(); j < plage.end(); ++j) {
 			auto const &carreau = carreaux[j];
-
-#if 1
-			/* reformulation du code pour permettre une considération future de
-			 * vectorisation des opérations */
+			/* utilisation de tableaux pour permettre une certaine vectorisation
+			 * future des opérations
+			 */
 
 			dls::tableau<vision::EchantillonCamera> echants;
 			echants.reserve(carreau.largeur * carreau.hauteur);
@@ -261,33 +253,8 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 					m_pellicule.ajoute_echantillon(x    , y + 1, clr, frac1_x * frac0_y);
 				}
 			}
-#else
-			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
-				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
-					auto echantillon_camera = genere_echantillon(gna, x, y);
-
-					dls::phys::rayond rayon = genere_rayon(camera, echantillon_camera);
-#ifdef STATISTIQUES
-					statistiques.nombre_rayons_primaires.fetch_add(1, std::memory_order_relaxed);
-#endif
-
-					auto spectre_actuel = calcul_spectre(gna, parametres, rayon);
-
-					/* Corrige gamma. */
-					spectre_actuel = puissance(spectre_actuel, 0.45f);
-
-					float rgb[3];
-					spectre_actuel.vers_rvb(rgb);
-
-					m_pellicule.ajoute_echantillon(x, y, dls::math::vec3d(rgb[0], rgb[1], rgb[2]));
-				}
-			}
-#endif
 		}
 	});
-
-//	camera->redimensionne(vielle_largeur, vielle_hauteur);
-//	camera->ajourne();
 }
 
 void MoteurRendu::reinitialise()
