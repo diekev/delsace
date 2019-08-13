@@ -241,9 +241,6 @@ bool Noeud::besoin_execution() const
 void Noeud::besoin_execution(bool ouinon)
 {
 	m_besoin_traitement = ouinon;
-
-	/* Réinitialise le temps d'exécution. */
-	this->temps_execution(0.0f);
 }
 
 float Noeud::temps_execution() const
