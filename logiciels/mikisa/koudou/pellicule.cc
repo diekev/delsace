@@ -42,7 +42,10 @@ int Pellicule::largeur() const
 
 void Pellicule::ajoute_echantillon(long i, long j, dls::math::vec3d const &couleur, const double poids)
 {
-	auto index = i + static_cast<long>(m_matrice.nombre_colonnes()) * j;
+	auto ii = std::min(i, static_cast<long>(m_matrice.nombre_colonnes() - 1));
+	auto jj = std::min(j, static_cast<long>(m_matrice.nombre_lignes() - 1));
+
+	auto index = ii + static_cast<long>(m_matrice.nombre_colonnes()) * jj;
 	auto &pixel_pellicule = m_pixels_pellicule[index];
 	pixel_pellicule.couleur += couleur * poids;
 	pixel_pellicule.poids += poids;
