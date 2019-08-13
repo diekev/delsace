@@ -207,6 +207,49 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 		for (auto j = plage.begin(); j < plage.end(); ++j) {
 			auto const &carreau = carreaux[j];
 
+#if 1
+			/* reformulation du code pour permettre une considération future de
+			 * vectorisation des opérations */
+
+			dls::tableau<vision::EchantillonCamera> echants;
+			echants.reserve(carreau.largeur * carreau.hauteur);
+
+			dls::tableau<dls::phys::rayond> rayons;
+			rayons.reserve(carreau.largeur * carreau.hauteur);
+
+			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
+				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
+					auto echantillon_camera = genere_echantillon(gna, x, y);
+					echants.pousse(echantillon_camera);
+
+					auto rayon = genere_rayon(camera, echantillon_camera);
+					rayons.pousse(rayon);
+				}
+			}
+
+			dls::tableau<Spectre> spectres;
+			spectres.reserve(carreau.largeur * carreau.hauteur);
+
+			for (auto &rayon : rayons) {
+				auto spectre = calcul_spectre(gna, parametres, rayon);
+				spectres.pousse(spectre);
+			}
+
+			/* Corrige gamma. */
+			for (auto &spectre : spectres) {
+				spectre = puissance(spectre, 0.45f);
+			}
+
+			auto index = 0;
+			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
+				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y, ++index) {
+					float rgb[3];
+					spectres[index].vers_rvb(rgb);
+
+					m_pellicule.ajoute_echantillon(x, y, dls::math::vec3d(rgb[0], rgb[1], rgb[2]));
+				}
+			}
+#else
 			for (auto x = carreau.x; x < carreau.x + carreau.largeur; ++x) {
 				for (auto y = carreau.y; y < carreau.y + carreau.hauteur; ++y) {
 					auto echantillon_camera = genere_echantillon(gna, x, y);
@@ -227,6 +270,7 @@ void MoteurRendu::echantillone_scene(ParametresRendu const &parametres, dls::tab
 					m_pellicule.ajoute_echantillon(x, y, dls::math::vec3d(rgb[0], rgb[1], rgb[2]));
 				}
 			}
+#endif
 		}
 	});
 
