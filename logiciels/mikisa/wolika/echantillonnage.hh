@@ -28,6 +28,156 @@
 
 namespace wlk {
 
+/* échantillonnage 2D */
+
+template <typename T>
+auto echantillonne_proche(grille_dense_2d<T> const &grille, float x, float y)
+{
+	auto const res = grille.desc().resolution;
+
+	/* enveloppe pour que 0 <= (x, y) < 1 */
+	x = std::fmod(x, 1.0f);
+	y = std::fmod(y, 1.0f);
+
+	if (x < 0.0f) {
+		x += 1.0f;
+	}
+
+	if (y < 0.0f) {
+		y += 1.0f;
+	}
+
+	auto xc = x * static_cast<float>(res.x);
+	auto yc = y * static_cast<float>(res.y);
+
+	auto const entier_x = static_cast<int>(xc);
+	auto const entier_y = static_cast<int>(yc);
+
+	auto const x1 = std::max(0, std::min(entier_x, res.x - 1));
+	auto const y1 = std::max(0, std::min(entier_y, res.y - 1));
+
+	auto const index = x1 + y1 * res.y;
+
+	return grille.valeur(index);
+}
+
+template <typename T>
+auto echantillonne_lineaire(grille_dense_2d<T> const &grille, float x, float y)
+{
+	auto const res = grille.desc().resolution;
+
+	/* enveloppe pour que 0 <= (x, y) < 1 */
+	x = std::fmod(x, 1.0f);
+	y = std::fmod(y, 1.0f);
+
+	if (x < 0.0f) {
+		x += 1.0f;
+	}
+
+	if (y < 0.0f) {
+		y += 1.0f;
+	}
+
+	auto xc = x * static_cast<float>(res.x);
+	auto yc = y * static_cast<float>(res.y);
+
+	auto i0 = static_cast<int>(xc);
+	auto j0 = static_cast<int>(yc);
+
+	auto i1 = i0 + 1;
+	auto j1 = j0 + 1;
+
+	auto const frac_x = xc - static_cast<float>(i0);
+	auto const frac_y = yc - static_cast<float>(j0);
+
+	i0 %= res.x;
+	j0 %= res.y;
+
+	i1 %= res.x;
+	j1 %= res.y;
+
+	auto const idx0 = i0 + j0 * res.x;
+	auto const idx1 = i1 + j0 * res.x;
+	auto const idx2 = i0 + j1 * res.x;
+	auto const idx3 = i1 + j1 * res.x;
+
+	auto valeur = T(0);
+	valeur += frac_x * frac_y * grille.valeur(idx0);
+	valeur += (1.0f - frac_x) * frac_y * grille.valeur(idx1);
+	valeur += frac_x * (1.0f - frac_y) * grille.valeur(idx2);
+	valeur += (1.0f - frac_x) * (1.0f - frac_y) * grille.valeur(idx3);
+
+	return valeur;
+}
+
+template <typename T>
+inline auto catrom(T p0, T p1, T p2, T p3, T f)
+{
+	auto const MOITIE = static_cast<T>(0.5);
+	auto const DEUX = static_cast<T>(2.0);
+	auto const TROIS = static_cast<T>(2.0);
+	auto const QUATRE = static_cast<T>(2.0);
+	auto const CINQ = static_cast<T>(2.0);
+
+	return MOITIE * ((DEUX * p1) +
+				  (-p0 + p2) * f +
+				  (DEUX * p0 - CINQ * p1 + QUATRE * p2 - p3) * f * f +
+				  (-p0 + TROIS * p1 - TROIS * p2 + p3) * f * f * f);
+}
+
+template <typename T>
+auto echantillonne_catrom(grille_dense_2d<T> const &grille, float x, float y)
+{
+	auto const res = grille.desc().resolution;
+
+	/* enveloppe pour que 0 <= (x, y) < 1 */
+	x = std::fmod(x, 1.0f);
+	y = std::fmod(y, 1.0f);
+
+	if (x < 0) x += 1.0f;
+	if (y < 0) y += 1.0f;
+
+	auto uu = x * static_cast<float>(res.x);
+	auto vv = y * static_cast<float>(res.y);
+
+	auto i1 = static_cast<int>(std::floor(uu));
+	auto j1 = static_cast<int>(std::floor(vv));
+
+	auto i2 = (i1 + 1);
+	auto j2 = (j1 + 1);
+
+	auto frac_x = uu - static_cast<float>(i1);
+	auto frac_y = vv - static_cast<float>(j1);
+
+	i1 = i1 % res.x;
+	j1 = j1 % res.y;
+
+	i2 = i2 % res.x;
+	j2 = j2 % res.y;
+
+	auto i0 = (i1 - 1);
+	auto i3 = (i2 + 1);
+	i0 = i0 <   0 ? i0 + res.x : i0;
+	i3 = i3 >= res.x ? i3 - res.x : i3;
+
+	auto j0 = (j1 - 1);
+	auto j3 = (j2 + 1);
+	j0 = j0 <   0 ? j0 + res.y : j0;
+	j3 = j3 >= res.y ? j3 - res.y : j3;
+
+	return catrom(catrom(grille.valeur(i0 + res.x * j0), grille.valeur(i1 + res.x * j0),
+						 grille.valeur(i2 + res.x * j0), grille.valeur(i3 + res.x * j0), T(frac_x)),
+				  catrom(grille.valeur(i0 + res.x * j1), grille.valeur(i1 + res.x * j1),
+						 grille.valeur(i2 + res.x * j1), grille.valeur(i3 + res.x * j1), T(frac_x)),
+				  catrom(grille.valeur(i0 + res.x * j2), grille.valeur(i1 + res.x * j2),
+						 grille.valeur(i2 + res.x * j2), grille.valeur(i3 + res.x * j2), T(frac_x)),
+				  catrom(grille.valeur(i0 + res.x * j3), grille.valeur(i1 + res.x * j3),
+						 grille.valeur(i2 + res.x * j3), grille.valeur(i3 + res.x * j3), T(frac_x)),
+				  T(frac_y));
+}
+
+/* échantillonnage 3D */
+
 /**
  * Le but fondamental d'un tampon de voxel est évidemment d'être écrit vers, et
  * lu depuis. Pour modéliser des tampons complexes nécessite plus que d'écrire
