@@ -540,7 +540,6 @@ public:
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
-		auto const largeur = tampon_entree->desc().resolution.x;
 
 		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
