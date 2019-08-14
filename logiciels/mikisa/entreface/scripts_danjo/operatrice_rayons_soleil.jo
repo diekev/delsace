@@ -1,0 +1,31 @@
+disposition "operatrice_rayons_soleil" {
+	ligne {
+		étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+		étiquette(valeur="Position")
+		décimal(valeur=0; attache=pos_x; infobulle="Position X du centre des rayons.")
+		décimal(valeur=0; attache=pos_y; infobulle="Position Y du centre des rayons.")
+	}
+	ligne {
+		étiquette(valeur="Échantillons")
+		entier(valeur=32; attache=échantillons; infobulle="Le nombre de point sur la ligne allant du pixel au centre à considérer.")
+	}
+	ligne {
+		étiquette(valeur="Densité")
+		décimal(valeur=1.0; attache=densité; infobulle="")
+	}
+	ligne {
+		étiquette(valeur="Poids")
+		décimal(valeur=1.0; attache=poids; infobulle="")
+	}
+	ligne {
+		étiquette(valeur="Désintégration")
+		décimal(valeur=1.0; attache=désintégration; infobulle="")
+	}
+	ligne {
+		étiquette(valeur="Exposition")
+		décimal(valeur=1.0; attache=exposition; infobulle="")
+	}
+}

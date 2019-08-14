@@ -50,6 +50,7 @@ menu "Noeud Composite" {
 		action(valeur="Normalisation Région"; attache=ajouter_noeud; métadonnée="Normalisation Région")
 		action(valeur="Ondelette de Haar"; attache=ajouter_noeud; métadonnée="Ondelette de Haar")
 		action(valeur="Préfiltre Cubic B-Spline"; attache=ajouter_noeud; métadonnée="Préfiltre Cubic B-Spline")
+		action(valeur="Rayons Soleil"; attache=ajouter_noeud; métadonnée="Rayons Soleil")
 		action(valeur="Simulation de grain"; attache=ajouter_noeud; métadonnée="Simulation de grain")
 		action(valeur="Tournoiement"; attache=ajouter_noeud; métadonnée="Tournoiement")
 	}

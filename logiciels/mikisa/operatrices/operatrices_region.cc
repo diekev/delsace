@@ -34,6 +34,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/operatrice_image.h"
 #include "coeur/usine_operatrice.h"
@@ -1803,6 +1804,127 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Tirée de « Volumetric Light Scattering as a Post-Process »
+ * https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch13.html
+ */
+class OpRayonsSoleil final : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Rayons Soleil";
+	static constexpr auto AIDE = "Créer des rayons de soleil.";
+
+	explicit OpRayonsSoleil(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_rayons_soleil.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto const nom_calque = evalue_chaine("nom_calque");
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
+
+		if (calque_entree == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("rayons soleil");
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		/* Controles à considérer :
+		 * - taille max des rayons
+		 * - échantillonnage haute qualité, sur tous les pixels de la ligne
+		 *   (peut requérir un filtrage)
+		 * - pré-floutte
+		 * - superpose effet sur l'image d'entrée
+		 * - pré-multiplie les pixels par leur alpha
+		 * - utilisation d'une version noir et blanc de l'image
+		 */
+		auto const pos_x = evalue_decimal("pos_x");
+		auto const pos_y = evalue_decimal("pos_y");
+		auto const centre = dls::math::vec2f(pos_x, pos_y);
+		auto const nombre_echantillons = evalue_entier("échantillons");
+		auto const densite = evalue_decimal("densité");
+		auto const poids = evalue_decimal("poids");
+		auto const desintegration = evalue_decimal("désintégration");
+		auto const exposition = evalue_decimal("exposition");
+
+		auto largeur = tampon->desc().resolution.x;
+		auto hauteur = tampon->desc().resolution.y;
+
+		boucle_parallele(tbb::blocked_range<int>(0, hauteur),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			for (auto y = plage.begin(); y < plage.end(); ++y) {
+				for (auto x = 0; x < largeur; ++x) {
+					auto pos_idx = dls::math::vec2i(x, y);
+					auto pos_mnd = tampon->index_vers_monde(pos_idx);
+
+					auto delta_co = (pos_mnd - centre);
+
+					delta_co *= 1.0f / static_cast<float>(nombre_echantillons) * densite;
+
+					auto couleur = tampon_entree->valeur(pos_idx);
+
+					auto poids_total = 1.0f;
+					auto illumination = 1.0f;
+
+					for (auto i = 0; i < nombre_echantillons; ++i) {
+						pos_mnd -= delta_co;
+
+						pos_idx = tampon_entree->monde_vers_index(pos_mnd);
+
+						auto echant = tampon_entree->valeur(pos_idx);
+						poids_total += illumination * poids;
+						echant *= illumination * poids;
+
+						couleur += echant;
+
+						illumination *= desintegration;
+					}
+
+					auto pixel = couleur / poids_total * exposition;
+					pixel.a = 1.0f;
+					tampon->valeur(dls::math::vec2i(x, y)) = pixel;
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			delta /= static_cast<float>(hauteur);
+			chef->indique_progression_parallele(delta * 100.0f);
+		});
+
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_region(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceAnalyse>());
@@ -1819,6 +1941,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceErosion>());
 	usine.enregistre_type(cree_desc<OperatriceExtractionPalette>());
 	usine.enregistre_type(cree_desc<OperatricePrefiltreCubic>());
+	usine.enregistre_type(cree_desc<OpRayonsSoleil>());
 }
 
 #pragma clang diagnostic pop
