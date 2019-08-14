@@ -125,7 +125,7 @@ static bool ecris_image(
 
 	/* récupère les données */
 	auto const &image = composite->image();
-	auto calque_entree = image.calque(nom_calque);
+	auto calque_entree = image.calque_pour_lecture(nom_calque);
 
 	if (calque_entree == nullptr) {
 		mikisa.affiche_erreur("Calque introuvable dans l'image du composite.");
@@ -140,7 +140,8 @@ static bool ecris_image(
 		parametres.composant = 4;
 		parametres.hauteur = static_cast<size_t>(tampon->desc().resolution.y);
 		parametres.largeur = static_cast<size_t>(tampon->desc().resolution.x);
-		parametres.pointeur = &tampon->valeur(0).r;
+		auto ptr = static_cast<void const *>(&tampon->valeur(0).r);
+		parametres.pointeur = const_cast<void *>(ptr);
 
 		ecris_exr(chemin_image.c_str(), parametres);
 	}

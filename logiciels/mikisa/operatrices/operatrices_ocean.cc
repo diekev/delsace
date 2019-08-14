@@ -762,9 +762,9 @@ public:
 		auto calque_depl = calque_image::construit_calque(desc, wlk::type_grille::VEC3);
 		auto calque_norm = calque_image::construit_calque(desc, wlk::type_grille::VEC3);
 
-		auto grille_depl = dynamic_cast<wlk::grille_dense_2d<dls::math::vec3f> *>(calque_depl.tampon);
-		auto grille_norm = dynamic_cast<wlk::grille_dense_2d<dls::math::vec3f> *>(calque_norm.tampon);
-		auto grille_ecume = dynamic_cast<wlk::grille_dense_2d<float> *>(m_ecume_precedente.tampon);
+		auto grille_depl = dynamic_cast<wlk::grille_dense_2d<dls::math::vec3f> *>(calque_depl.tampon());
+		auto grille_norm = dynamic_cast<wlk::grille_dense_2d<dls::math::vec3f> *>(calque_norm.tampon());
+		auto grille_ecume = dynamic_cast<wlk::grille_dense_2d<float> *>(m_ecume_precedente.tampon());
 
 		OceanResult ocr;
 		auto gna = GNA{graine};

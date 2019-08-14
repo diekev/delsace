@@ -301,7 +301,7 @@ public:
 	virtual void libere_memoire();
 };
 
-calque_image *cherche_calque(
+calque_image const *cherche_calque(
 		OperatriceImage &op,
 		Image const *image,
 		dls::chaine const &nom_calque);

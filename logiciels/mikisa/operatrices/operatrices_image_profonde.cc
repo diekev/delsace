@@ -139,19 +139,19 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto S = image->calque_profond("S");
-		auto R = image->calque_profond("R");
-		auto G = image->calque_profond("G");
-		auto B = image->calque_profond("B");
-		auto A = image->calque_profond("A");
-		auto Z = image->calque_profond("Z");
+		auto S = image->calque_profond_pour_lecture("S");
+		auto R = image->calque_profond_pour_lecture("R");
+		auto G = image->calque_profond_pour_lecture("G");
+		auto B = image->calque_profond_pour_lecture("B");
+		auto A = image->calque_profond_pour_lecture("A");
+		auto Z = image->calque_profond_pour_lecture("Z");
 
-		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
-		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
-		auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
-		auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
-		auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
-		auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S->tampon());
+		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R->tampon());
+		auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G->tampon());
+		auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B->tampon());
+		auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A->tampon());
+		auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z->tampon());
 
 		auto largeur = tampon_S->desc().resolution.x;
 		auto hauteur = tampon_S->desc().resolution.y;
@@ -292,37 +292,37 @@ public:
 
 		m_image.est_profonde = true;
 
-		auto S1 = image1->calque_profond("S");
-		auto R1 = image1->calque_profond("R");
-		auto G1 = image1->calque_profond("G");
-		auto B1 = image1->calque_profond("B");
-		auto A1 = image1->calque_profond("A");
-		auto Z1 = image1->calque_profond("Z");
+		auto S1 = image1->calque_profond_pour_lecture("S");
+		auto R1 = image1->calque_profond_pour_lecture("R");
+		auto G1 = image1->calque_profond_pour_lecture("G");
+		auto B1 = image1->calque_profond_pour_lecture("B");
+		auto A1 = image1->calque_profond_pour_lecture("A");
+		auto Z1 = image1->calque_profond_pour_lecture("Z");
 
-		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S1->tampon);
-		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(R1->tampon);
-		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(G1->tampon);
-		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(B1->tampon);
-		auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(A1->tampon);
-		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z1->tampon);
+		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S1->tampon());
+		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R1->tampon());
+		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G1->tampon());
+		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B1->tampon());
+		auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A1->tampon());
+		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z1->tampon());
 
-		auto S2 = image2->calque_profond("S");
-		auto R2 = image2->calque_profond("R");
-		auto G2 = image2->calque_profond("G");
-		auto B2 = image2->calque_profond("B");
-		auto A2 = image2->calque_profond("A");
-		auto Z2 = image2->calque_profond("Z");
+		auto S2 = image2->calque_profond_pour_lecture("S");
+		auto R2 = image2->calque_profond_pour_lecture("R");
+		auto G2 = image2->calque_profond_pour_lecture("G");
+		auto B2 = image2->calque_profond_pour_lecture("B");
+		auto A2 = image2->calque_profond_pour_lecture("A");
+		auto Z2 = image2->calque_profond_pour_lecture("Z");
 
-		auto tampon_S2 = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S2->tampon);
-		auto tampon_R2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(R2->tampon);
-		auto tampon_G2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(G2->tampon);
-		auto tampon_B2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(B2->tampon);
-		auto tampon_A2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(A2->tampon);
-		auto tampon_Z2 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z2->tampon);
+		auto tampon_S2 = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S2->tampon());
+		auto tampon_R2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R2->tampon());
+		auto tampon_G2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G2->tampon());
+		auto tampon_B2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B2->tampon());
+		auto tampon_A2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A2->tampon());
+		auto tampon_Z2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z2->tampon());
 
 		/* alloue calques profonds */
-		auto desc1 = S1->tampon->desc();
-		auto desc2 = S2->tampon->desc();
+		auto desc1 = S1->tampon()->desc();
+		auto desc2 = S2->tampon()->desc();
 
 		auto desc = wlk::desc_grille_2d{};
 		desc.taille_pixel = 1.0;
@@ -350,12 +350,12 @@ public:
 		auto A = m_image.ajoute_calque_profond("A", desc, wlk::type_grille::R32_PTR);
 		auto Z = m_image.ajoute_calque_profond("Z", desc, wlk::type_grille::R32_PTR);
 
-		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon);
-		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
-		auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
-		auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
-		auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
-		auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+		auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S->tampon());
+		auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon());
+		auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon());
+		auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon());
+		auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon());
+		auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon());
 
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("fusion profondes");
@@ -580,19 +580,19 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto S1 = image->calque_profond("S");
-		auto R1 = image->calque_profond("R");
-		auto G1 = image->calque_profond("G");
-		auto B1 = image->calque_profond("B");
-		//auto A1 = image->calque_profond("A");
-		auto Z1 = image->calque_profond("Z");
+		auto S1 = image->calque_profond_pour_lecture("S");
+		auto R1 = image->calque_profond_pour_lecture("R");
+		auto G1 = image->calque_profond_pour_lecture("G");
+		auto B1 = image->calque_profond_pour_lecture("B");
+		//auto A1 = image->calque_profond_pour_lecture("A");
+		auto Z1 = image->calque_profond_pour_lecture("Z");
 
-		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> *>(S1->tampon);
-		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(R1->tampon);
-		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(G1->tampon);
-		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(B1->tampon);
-		//auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(A1->tampon);
-		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z1->tampon);
+		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S1->tampon());
+		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R1->tampon());
+		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G1->tampon());
+		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B1->tampon());
+		//auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A1->tampon());
+		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z1->tampon());
 
 		auto largeur = tampon_S1->desc().resolution.x;
 		auto hauteur = tampon_S1->desc().resolution.y;

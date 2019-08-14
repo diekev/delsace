@@ -383,15 +383,15 @@ public:
 			fusion = FUSION_XOR;
 		}
 
-		auto tampon_a = dynamic_cast<grille_couleur *>(calque_a->tampon);
-		auto tampon_b = dynamic_cast<grille_couleur *>(calque_b->tampon);
+		auto tampon_a = extrait_grille_couleur(calque_a);
+		auto tampon_b = extrait_grille_couleur(calque_b);
 
 		auto calque = m_image.ajoute_calque(
 					nom_calque_a,
 					tampon_a->desc(),
 					wlk::type_grille::COULEUR);
 
-		auto tampon = dynamic_cast<grille_couleur *>(calque->tampon);
+		auto tampon = extrait_grille_couleur(calque);
 
 		auto const &rectangle = contexte.resolution_rendu;
 

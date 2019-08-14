@@ -266,7 +266,7 @@ void EditriceVue2D::ajourne_etat(int evenement)
 		auto const &composite = extrait_composite(noeud_composite->donnees());
 		auto const &image = composite->image();
 		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
-		auto calque = image.calque(image.nom_calque_actif());
+		auto calque = image.calque_pour_lecture(image.nom_calque_actif());
 
 		if (calque == nullptr) {
 			/* Charge une image vide, les dimensions sont à peu près celle d'une

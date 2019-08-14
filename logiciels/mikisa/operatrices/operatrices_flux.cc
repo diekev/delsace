@@ -236,12 +236,12 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 	auto A = image->ajoute_calque_profond("A", desc, wlk::type_grille::R32_PTR);
 	auto Z = image->ajoute_calque_profond("Z", desc, wlk::type_grille::R32_PTR);
 
-	auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned int> *>(S->tampon);
-	auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon);
-	auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon);
-	auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon);
-	auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon);
-	auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon);
+	auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned int> *>(S->tampon());
+	auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> *>(R->tampon());
+	auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> *>(G->tampon());
+	auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> *>(B->tampon());
+	auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> *>(A->tampon());
+	auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> *>(Z->tampon());
 
 	/* À FAIRE : ceci duplique la mémoire mais il y a un crash quand on utilise
 	 * les pointeurs des grilles. */

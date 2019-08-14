@@ -500,7 +500,7 @@ void OperatriceImage::libere_memoire()
 
 /* ************************************************************************** */
 
-calque_image *cherche_calque(
+calque_image const *cherche_calque(
 		OperatriceImage &op,
 		Image const *image,
 		dls::chaine const &nom_calque)
@@ -515,7 +515,7 @@ calque_image *cherche_calque(
 		return nullptr;
 	}
 
-	auto tampon = image->calque(nom_calque);
+	auto tampon = image->calque_pour_lecture(nom_calque);
 
 	if (tampon == nullptr) {
 		auto flux = dls::flux_chaine();

@@ -327,7 +327,7 @@ public:
 		});
 
 		auto calque = m_image.ajoute_calque(nom_calque, image_tampon.desc(), wlk::type_grille::COULEUR);
-		*calque->tampon = image_tampon;
+		*calque->tampon() = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -475,7 +475,7 @@ public:
 
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto calque = cherche_calque(*this, &m_image, nom_calque);
+		auto calque = m_image.calque_pour_ecriture(nom_calque);
 
 		if (calque == nullptr) {
 			return EXECUTION_ECHOUEE;

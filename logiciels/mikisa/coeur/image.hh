@@ -39,8 +39,15 @@
 using grille_couleur = wlk::grille_dense_2d<dls::phys::couleur32>;
 
 struct calque_image {
+private:
+	wlk::base_grille_2d *m_tampon = nullptr;
+
+public:
 	dls::chaine nom{};
-	wlk::base_grille_2d *tampon = nullptr;
+
+	wlk::base_grille_2d *&tampon();
+
+	wlk::base_grille_2d const *tampon() const;
 
 	/* échantillons pour les calques profonds */
 	dls::tableau<float> echantillons{};
@@ -74,9 +81,14 @@ void copie_donnees_calque(
 
 wlk::desc_grille_2d desc_depuis_rectangle(Rectangle const &rectangle);
 
+inline auto extrait_grille_couleur(calque_image const *calque)
+{
+	return dynamic_cast<grille_couleur const *>(calque->tampon());
+}
+
 inline auto extrait_grille_couleur(calque_image *calque)
 {
-	return dynamic_cast<grille_couleur *>(calque->tampon);
+	return dynamic_cast<grille_couleur *>(calque->tampon());
 }
 
 /* ************************************************************************** */
@@ -112,7 +124,13 @@ public:
 	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si
 	 * aucun calque ne portant ce nom est trouvé, retourne nullptr.
 	 */
-	calque_image *calque(dls::chaine const &nom) const;
+	calque_image const *calque_pour_lecture(dls::chaine const &nom) const;
+
+	calque_image *calque_pour_ecriture(dls::chaine const &nom);
+
+	calque_image const *calque_profond_pour_lecture(const dls::chaine &nom) const;
+
+	calque_image *calque_profond_pour_ecriture(const dls::chaine &nom);
 
 	/**
 	 * Retourne une plage itérable sur la liste de calques de cette Image.
@@ -140,6 +158,4 @@ public:
 	 * Retourne le nom du calque actif.
 	 */
 	dls::chaine const &nom_calque_actif() const;
-
-	calque_image *calque_profond(const dls::chaine &nom) const;
 };

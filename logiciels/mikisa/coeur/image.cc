@@ -26,41 +26,51 @@
 
 /* ************************************************************************** */
 
+wlk::base_grille_2d *&calque_image::tampon()
+{
+	return m_tampon;
+}
+
+const wlk::base_grille_2d *calque_image::tampon() const
+{
+	return m_tampon;
+}
+
 calque_image::calque_image(const calque_image &autre)
 {
-	if (autre.tampon == nullptr) {
+	if (autre.m_tampon == nullptr) {
 		return;
 	}
 
-	this->tampon = autre.tampon->copie();
+	this->m_tampon = autre.m_tampon->copie();
 }
 
 calque_image::calque_image(calque_image &&autre)
 {
-	std::swap(tampon, autre.tampon);
+	std::swap(m_tampon, autre.m_tampon);
 }
 
 calque_image &calque_image::operator=(const calque_image &autre)
 {
-	deloge_grille(tampon);
+	deloge_grille(m_tampon);
 
-	if (autre.tampon == nullptr) {
+	if (autre.m_tampon == nullptr) {
 		return *this;
 	}
 
-	tampon = autre.tampon->copie();
+	m_tampon = autre.m_tampon->copie();
 	return *this;
 }
 
 calque_image &calque_image::operator=(calque_image &&autre)
 {
-	std::swap(tampon, autre.tampon);
+	std::swap(m_tampon, autre.m_tampon);
 	return *this;
 }
 
 calque_image::~calque_image()
 {
-	deloge_grille(tampon);
+	deloge_grille(m_tampon);
 }
 
 calque_image calque_image::construit_calque(
@@ -72,52 +82,52 @@ calque_image calque_image::construit_calque(
 	switch (type_donnees) {
 		case wlk::type_grille::N32:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<unsigned int>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<unsigned int>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::Z8:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<char>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<char>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::Z32:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<int>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<int>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::R32:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<float>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<float>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::R32_PTR:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<float *>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<float *>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::R64:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<double>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<double>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::VEC2:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec2f>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<dls::math::vec2f>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::VEC3:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec3f>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<dls::math::vec3f>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::VEC3_R64:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec3d>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<dls::math::vec3d>>("grille_dense_2d", desc);
 			break;
 		}
 		case wlk::type_grille::COULEUR:
 		{
-			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::phys::couleur32>>("grille_dense_2d", desc);
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<dls::phys::couleur32>>("grille_dense_2d", desc);
 			break;
 		}
 	}
@@ -179,7 +189,7 @@ calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, wlk::desc_gri
 	return calque;
 }
 
-calque_image *Image::calque(dls::chaine const &nom) const
+calque_image const *Image::calque_pour_lecture(dls::chaine const &nom) const
 {
 	for (auto tampon : m_calques) {
 		if (tampon->nom == nom) {
@@ -190,12 +200,56 @@ calque_image *Image::calque(dls::chaine const &nom) const
 	return nullptr;
 }
 
-calque_image *Image::calque_profond(dls::chaine const &nom) const
+calque_image *Image::calque_pour_ecriture(dls::chaine const &nom)
+{
+	for (auto &clq : m_calques) {
+		if (clq->nom != nom) {
+			continue;
+		}
+
+		if (!clq.unique()) {
+			auto ncalque = memoire::loge<calque_image>("calque_image");
+			ncalque->nom = clq->nom;
+			ncalque->tampon() = clq->tampon()->copie();
+
+			clq = ptr_calque_profond(ncalque, supprime_calque_image);
+		}
+
+		return clq.get();
+	}
+
+	return nullptr;
+}
+
+calque_image const *Image::calque_profond_pour_lecture(dls::chaine const &nom) const
 {
 	for (auto clq : m_calques_profond) {
 		if (clq->nom == nom) {
 			return clq.get();
 		}
+	}
+
+	return nullptr;
+}
+
+calque_image *Image::calque_profond_pour_ecriture(const dls::chaine &nom)
+{
+	for (auto &clq : m_calques_profond) {
+		if (clq->nom != nom) {
+			continue;
+		}
+
+		if (!clq.unique()) {
+			auto ncalque = memoire::loge<calque_image>("calque_image");
+			ncalque->nom = clq->nom;
+			/* À FAIRE : ajourne pointeurs. */
+			ncalque->tampon() = clq->tampon()->copie();
+			ncalque->echantillons = clq->echantillons;
+
+			clq = ptr_calque_profond(ncalque, supprime_calque_image);
+		}
+
+		return clq.get();
 	}
 
 	return nullptr;

@@ -525,9 +525,9 @@ public:
 
 					for (auto calque : image->m_calques_profond) {
 						ss << "<p>" << calque->nom << " (";
-						ss << calque->tampon->desc().resolution.x;
+						ss << calque->tampon()->desc().resolution.x;
 						ss << "x";
-						ss << calque->tampon->desc().resolution.y;
+						ss << calque->tampon()->desc().resolution.y;
 						ss << ")</p>";
 					}
 				}
@@ -537,9 +537,9 @@ public:
 
 					for (auto calque : image->calques()) {
 						ss << "<p>" << calque->nom << " (";
-						ss << calque->tampon->desc().resolution.x;
+						ss << calque->tampon()->desc().resolution.x;
 						ss << "x";
-						ss << calque->tampon->desc().resolution.y;
+						ss << calque->tampon()->desc().resolution.y;
 						ss << ")</p>";
 					}
 				}

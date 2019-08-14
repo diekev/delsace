@@ -314,7 +314,7 @@ int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte, DonneesAv
 	else {
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		calque = m_image.calque(nom_calque);
+		calque = m_image.calque_pour_ecriture(nom_calque);
 	}
 
 	if (calque == nullptr) {
@@ -322,7 +322,7 @@ int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte, DonneesAv
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto tampon = dynamic_cast<wlk::grille_dense_2d<dls::phys::couleur32> *>(calque->tampon);
+	auto tampon = extrait_grille_couleur(calque);
 
 	compile_graphe(contexte.temps_courant);
 

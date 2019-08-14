@@ -107,7 +107,7 @@ public:
 		}
 
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
-		auto tampon = m_image.calque("image");
+		auto tampon = m_image.calque_pour_lecture("image");
 
 		if (tampon == nullptr) {
 			ajoute_avertissement("Impossible de trouver un calque nommé 'image'");
