@@ -55,7 +55,7 @@ public:
 
 	T &valeur(long index)
 	{
-		if (index >= this->m_nombre_elements) {
+		if (index < 0 || index >= this->m_nombre_elements) {
 			return m_arriere_plan;
 		}
 
@@ -64,7 +64,7 @@ public:
 
 	T const &valeur(long index) const
 	{
-		if (index >= this->m_nombre_elements) {
+		if (index < 0 || index >= this->m_nombre_elements) {
 			return m_arriere_plan;
 		}
 
