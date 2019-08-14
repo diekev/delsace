@@ -35,6 +35,10 @@
 #include <QMessageBox>
 #pragma GCC diagnostic pop
 
+#ifdef AVEC_OPENEXR
+#	include <OpenEXR/ImfThreading.h>
+#endif
+
 #include "danjo/danjo.h"
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
@@ -109,6 +113,11 @@ Mikisa::Mikisa()
 	graphe = bdd.graphe_objets();
 
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
+
+#ifdef AVEC_OPENEXR
+	auto fils = static_cast<int>(std::thread::hardware_concurrency());
+	OPENEXR_IMF_NAMESPACE::setGlobalThreadCount(fils);
+#endif
 }
 
 Mikisa::~Mikisa()
@@ -119,6 +128,11 @@ Mikisa::~Mikisa()
 	memoire::deloge("ProjectSettings", project_settings);
 	memoire::deloge("RepondantCommande", m_repondant_commande);
 	memoire::deloge("danjo::GestionnaireInterface", gestionnaire_entreface);
+
+#ifdef AVEC_OPENEXR
+	/* Détruit la mémoire allouée par openexr pour gérer les fils. */
+	OPENEXR_IMF_NAMESPACE::setGlobalThreadCount(0);
+#endif
 }
 
 void Mikisa::initialise()

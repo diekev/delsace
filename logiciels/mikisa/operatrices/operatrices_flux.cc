@@ -191,8 +191,6 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 {
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
 
-	openexr::setGlobalThreadCount(8);
-
 	auto fichier = openexr::DeepScanLineInputFile(chemin);
 
 	auto entete = fichier.header();
