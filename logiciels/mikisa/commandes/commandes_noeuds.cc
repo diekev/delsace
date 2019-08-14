@@ -189,7 +189,8 @@ public:
 		auto mikisa = extrait_mikisa(pointeur);
 
 		auto nom = donnees.metadonnee;
-		auto noeud = mikisa->graphe->cree_noeud(nom);
+		auto graphe = mikisa->graphe;
+		auto noeud = graphe->cree_noeud(nom);
 
 		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, noeud);
 		synchronise_donnees_operatrice(noeud);
@@ -202,6 +203,17 @@ public:
 		}
 		else if (op->type() == OPERATRICE_SORTIE_CORPS) {
 			noeud->type(NOEUD_OBJET_SORTIE);
+		}
+
+		if (graphe->connexion_active != nullptr) {
+			if (graphe->connexion_active->prise_entree != nullptr) {
+				graphe->connecte(noeud->sortie(0), graphe->connexion_active->prise_entree);
+			}
+			else if (graphe->connexion_active->prise_sortie != nullptr) {
+				graphe->connecte(graphe->connexion_active->prise_sortie, noeud->entree(0));
+			}
+
+			memoire::deloge("Connexion", graphe->connexion_active);
 		}
 
 		selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
