@@ -26,6 +26,7 @@
 
 #include "biblinternes/moultfilage/boucle.hh"
 
+#include "chef_execution.hh"
 #include "contexte_evaluation.hh"
 
 OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud *node)
@@ -59,6 +60,9 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 		return EXECUTION_ECHOUEE;
 	}
 
+	auto chef = contexte.chef;
+	chef->demarre_evaluation(this->nom_classe());
+
 	auto tampon = extrait_grille_couleur(calque);
 	auto largeur_inverse = 1.0f / rectangle.largeur;
 	auto hauteur_inverse = 1.0f / rectangle.hauteur;
@@ -78,7 +82,14 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 				tampon->valeur(index, this->evalue_pixel(tampon->valeur(index), x, y));
 			}
 		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta /= rectangle.hauteur;
+
+		chef->indique_progression_parallele(delta * 100.0f);
 	});
+
+	chef->indique_progression(100.0f);
 
 	return EXECUTION_REUSSIE;
 }
