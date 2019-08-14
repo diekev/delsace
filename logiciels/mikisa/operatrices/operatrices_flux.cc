@@ -112,51 +112,6 @@ static auto desc_depuis_exr(Imath::Box2i const &ds, Imath::Box2i const &dw)
 	return desc;
 }
 
-static auto charge_exr(const char *chemin, std::any const &donnees)
-{
-	namespace openexr = OPENEXR_IMF_NAMESPACE;
-
-	openexr::RgbaInputFile file(chemin);
-
-	Imath::Box2i dw = file.dataWindow();
-
-	auto width = static_cast<long>(dw.max.x - dw.min.x + 1);
-	auto height = static_cast<long>(dw.max.y - dw.min.y + 1);
-
-	dls::tableau<openexr::Rgba> pixels(width * height);
-
-	file.setFrameBuffer(
-				&pixels.front() - static_cast<size_t>(dw.min.x - dw.min.y) * static_cast<size_t>(width),
-				1,
-				static_cast<size_t>(width));
-
-	file.readPixels(dw.min.y, dw.max.y);
-
-	auto desc = desc_depuis_exr(file.displayWindow(), dw);
-
-	auto ptr_image = std::any_cast<Image *>(donnees);
-	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
-	auto tampon = extrait_grille_couleur(calque);
-
-	long idx(0);
-	for (auto y(0); y < height; ++y) {
-		for (auto x(0l), xe(width); x < xe; ++x, ++idx) {
-			auto pixel = dls::phys::couleur32();
-			pixel.r = pixels[idx].r;
-			pixel.v = pixels[idx].g;
-			pixel.b = pixels[idx].b;
-			pixel.a = pixels[idx].a;
-
-			tampon->valeur(idx) = pixel;
-		}
-	}
-}
-
-static auto charge_exr_tile(const char *chemin, std::any const &donnees)
-{
-	std::cerr << __func__ << '\n';
-}
-
 static auto imprime_entete(OPENEXR_IMF_NAMESPACE::Header const &entete)
 {
 	auto debut_entete = entete.begin();
@@ -175,6 +130,96 @@ static auto imprime_canaux(OPENEXR_IMF_NAMESPACE::ChannelList const &entete)
 	for (; debut_entete != fin_entete; ++debut_entete) {
 		std::cerr << "Canal : " << debut_entete.name() << '\n';
 	}
+}
+
+static auto charge_exr(const char *chemin, std::any const &donnees)
+{
+	namespace openexr = OPENEXR_IMF_NAMESPACE;
+
+	auto fichier = openexr::InputFile(chemin);
+
+	auto const &entete = fichier.header();
+	auto const &dw = entete.dataWindow();
+	auto const &ds = entete.displayWindow();
+
+	auto const largeur = static_cast<long>(dw.max.x - dw.min.x + 1);
+	auto const hauteur = static_cast<long>(dw.max.y - dw.min.y + 1);
+
+	auto R = dls::tableau<float>();
+	auto V = dls::tableau<float>();
+	auto B = dls::tableau<float>();
+	auto A = dls::tableau<float>();
+	auto Z = dls::tableau<float>();
+
+	auto possede_z = entete.channels().find("Z") != entete.channels().end();
+
+	auto tampon_frame = openexr::FrameBuffer();
+
+	R.redimensionne(largeur * hauteur);
+	V.redimensionne(largeur * hauteur);
+	B.redimensionne(largeur * hauteur);
+	A.redimensionne(largeur * hauteur);
+
+	tampon_frame.insert("R", openexr::Slice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&R[0] - dw.min.x - dw.min.y * largeur),
+							sizeof(float),
+							sizeof(float) * static_cast<size_t>(largeur)));
+
+	tampon_frame.insert("G", openexr::Slice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&V[0] - dw.min.x - dw.min.y * largeur),
+							sizeof(float),
+							sizeof(float) * static_cast<size_t>(largeur)));
+
+	tampon_frame.insert("B", openexr::Slice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&B[0] - dw.min.x - dw.min.y * largeur),
+							sizeof(float),
+							sizeof(float) * static_cast<size_t>(largeur)));
+
+	tampon_frame.insert("A", openexr::Slice(
+							openexr::FLOAT,
+							reinterpret_cast<char *>(&A[0] - dw.min.x - dw.min.y * largeur),
+							sizeof(float),
+							sizeof(float) * static_cast<size_t>(largeur)));
+
+	if (possede_z) {
+		Z.redimensionne(largeur * hauteur);
+
+		tampon_frame.insert("Z", openexr::Slice(
+								openexr::FLOAT,
+								reinterpret_cast<char *>(&Z[0] - dw.min.x - dw.min.y * largeur),
+								sizeof(float),
+								sizeof(float) * static_cast<size_t>(largeur)));
+	}
+
+	fichier.setFrameBuffer(tampon_frame);
+	fichier.readPixels(dw.min.y, dw.max.y);
+
+	auto desc = desc_depuis_exr(ds, dw);
+
+	auto ptr_image = std::any_cast<Image *>(donnees);
+	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	auto tampon = extrait_grille_couleur(calque);
+
+	auto idx = 0l;
+	for (auto y = 0; y < hauteur; ++y) {
+		for (auto x = 0; x < largeur; ++x, ++idx) {
+			auto pixel = dls::phys::couleur32();
+			pixel.r = R[idx];
+			pixel.v = V[idx];
+			pixel.b = B[idx];
+			pixel.a = A[idx];
+
+			tampon->valeur(idx) = pixel;
+		}
+	}
+}
+
+static auto charge_exr_tile(const char *chemin, std::any const &donnees)
+{
+	std::cerr << __func__ << '\n';
 }
 
 struct DonneesChargementImg {
