@@ -106,6 +106,11 @@ Volume::~Volume()
 			deloge_grille_impl<dls::math::vec3d>(grille);
 			break;
 		}
+		case wlk::type_grille::COULEUR:
+		{
+			deloge_grille_impl<dls::phys::couleur32>(grille);
+			break;
+		}
 	}
 }
 

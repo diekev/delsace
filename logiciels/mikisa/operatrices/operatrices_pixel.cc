@@ -120,7 +120,7 @@ public:
 		m_saturation = evalue_decimal("saturation", temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -132,35 +132,35 @@ public:
 		auto sat = 0.0f;
 
 		if (m_operation == SATURATION_REC709) {
-			sat = dls::image::outils::luminance_709(pixel.r, pixel.g, pixel.b);
+			sat = dls::image::outils::luminance_709(pixel.r, pixel.v, pixel.b);
 		}
 		else if (m_operation == SATURATION_CCIR601) {
-			sat = dls::image::outils::luminance_601(pixel.r, pixel.g, pixel.b);
+			sat = dls::image::outils::luminance_601(pixel.r, pixel.v, pixel.b);
 		}
 		else if (m_operation == SATURATION_MOYENNE) {
-			sat = dls::image::outils::moyenne(pixel.r, pixel.g, pixel.b);
+			sat = dls::image::outils::moyenne(pixel.r, pixel.v, pixel.b);
 		}
 		else if (m_operation == SATURATION_MINIMUM) {
-			sat = std::min(pixel.r, std::min(pixel.g, pixel.b));
+			sat = std::min(pixel.r, std::min(pixel.v, pixel.b));
 		}
 		else if (m_operation == SATURATION_MAXIMUM) {
-			sat = std::max(pixel.r, std::max(pixel.g, pixel.b));
+			sat = std::max(pixel.r, std::max(pixel.v, pixel.b));
 		}
 		else if (m_operation == SATURATION_MAGNITUDE) {
-			sat = std::sqrt(pixel.r * pixel.r + pixel.g * pixel.g + pixel.b * pixel.b);
+			sat = std::sqrt(pixel.r * pixel.r + pixel.v * pixel.v + pixel.b * pixel.b);
 		}
 
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.a = pixel.a;
 
 		if (m_saturation != 0.0f) {
 			resultat.r = dls::math::entrepolation_lineaire(sat, pixel.r, m_saturation);
-			resultat.g = dls::math::entrepolation_lineaire(sat, pixel.g, m_saturation);
+			resultat.v = dls::math::entrepolation_lineaire(sat, pixel.v, m_saturation);
 			resultat.b = dls::math::entrepolation_lineaire(sat, pixel.b, m_saturation);
 		}
 		else {
 			resultat.r = sat;
-			resultat.g = sat;
+			resultat.v = sat;
 			resultat.b = sat;
 		}
 
@@ -204,19 +204,22 @@ public:
 	{
 		m_image.reinitialise();
 
+#if 1
+		this->ajoute_avertissement("à réimplémenter");
+#else
 		auto image1 = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto tampon = cherche_calque(*this, image1, nom_calque_a);
+		auto calque_a = cherche_calque(*this, image1, nom_calque_a);
 
-		if (tampon == nullptr) {
+		if (calque_a == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto tampon2 = cherche_calque(*this, image2, nom_calque_b);
+		auto calque_b = cherche_calque(*this, image2, nom_calque_b);
 
-		if (tampon2 == nullptr) {
+		if (calque_b == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -249,11 +252,19 @@ public:
 			melange = dls::image::operation::MELANGE_DIFFERENCE;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque_a, contexte.resolution_rendu);
-		copie_donnees_calque(tampon->tampon, calque->tampon);
+		auto calque = m_image.ajoute_calque(
+					nom_calque_a,
+					desc_depuis_rectangle(contexte.resolution_rendu),
+					wlk::type_grille::COULEUR);
 
-		dls::image::operation::melange_images(calque->tampon, tampon2->tampon, melange, facteur);
+		auto tampon = dynamic_cast<grille_couleur *>(calque->tampon);
+		auto tampon_a = dynamic_cast<grille_couleur *>(calque_a->tampon);
+		auto tampon_b = dynamic_cast<grille_couleur *>(calque_b->tampon);
 
+		copie_donnees_calque(*tampon_a, *tampon);
+
+		dls::image::operation::melange_images(tampon, tampon_b, melange, facteur);
+#endif
 		return EXECUTION_REUSSIE;
 	}
 };
@@ -315,17 +326,17 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto tampon_a = cherche_calque(*this, image, nom_calque_a);
+		auto calque_a = cherche_calque(*this, image, nom_calque_a);
 
-		if (tampon_a == nullptr) {
+		if (calque_a == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto tampon_b = cherche_calque(*this, image2, nom_calque_b);
+		auto calque_b = cherche_calque(*this, image2, nom_calque_b);
 
-		if (tampon_b == nullptr) {
+		if (calque_b == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -372,15 +383,25 @@ public:
 			fusion = FUSION_XOR;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque_a, contexte.resolution_rendu);
+		auto tampon_a = dynamic_cast<grille_couleur *>(calque_a->tampon);
+		auto tampon_b = dynamic_cast<grille_couleur *>(calque_b->tampon);
+
+		auto calque = m_image.ajoute_calque(
+					nom_calque_a,
+					tampon_a->desc(),
+					wlk::type_grille::COULEUR);
+
+		auto tampon = dynamic_cast<grille_couleur *>(calque->tampon);
+
 		auto const &rectangle = contexte.resolution_rendu;
 
-		boucle_parallele(tbb::blocked_range<long>(0l, static_cast<long>(rectangle.hauteur)),
-					 [&](tbb::blocked_range<long> const &plage)
+		boucle_parallele(tbb::blocked_range<int>(0l, static_cast<int>(rectangle.hauteur)),
+					 [&](tbb::blocked_range<int> const &plage)
 		{
 			for (auto l = plage.begin(); l < plage.end(); ++l) {
-				for (auto c = 0; c < static_cast<long>(rectangle.largeur); ++c) {
-					auto resultat = dls::image::PixelFloat(0.0f);
+				for (auto c = 0; c < static_cast<int>(rectangle.largeur); ++c) {
+					auto index = tampon->calcul_index(dls::math::vec2i(c, l));
+					auto resultat = dls::phys::couleur32(0.0f);
 
 					switch (fusion) {
 						case FUSION_CLARIFICATION:
@@ -390,18 +411,18 @@ public:
 						}
 						case FUSION_A:
 						{
-							resultat = tampon_a->valeur(c, l);
+							resultat = tampon_a->valeur(index);
 							break;
 						}
 						case FUSION_B:
 						{
-							resultat = tampon_b->valeur(c, l);
+							resultat = tampon_b->valeur(index);
 							break;
 						}
 						case FUSION_A_SUR_B:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = 1.0f;
 							auto fac_b = 1.0f - a.a;
 							resultat = a * fac_a + b * fac_b;
@@ -409,8 +430,8 @@ public:
 						}
 						case FUSION_B_SUR_A:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = 1.0f - b.a;
 							auto fac_b = 1.0f;
 							resultat = a * fac_a + b * fac_b;
@@ -418,40 +439,40 @@ public:
 						}
 						case FUSION_A_DANS_B:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = b.a;
 							resultat = a * fac_a;
 							break;
 						}
 						case FUSION_B_DANS_A:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_b = a.a;
 							resultat = b * fac_b;
 							break;
 						}
 						case FUSION_A_HORS_B:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = 1.0f - b.a;
 							resultat = a * fac_a;
 							break;
 						}
 						case FUSION_B_HORS_A:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_b = 1.0f - a.a;
 							resultat = b * fac_b;
 							break;
 						}
 						case FUSION_A_DESSUS_B:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = b.a;
 							auto fac_b = 1.0f - a.a;
 							resultat = a * fac_a + b * fac_b;
@@ -459,8 +480,8 @@ public:
 						}
 						case FUSION_B_DESSUS_A:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = 1.0f - b.a;
 							auto fac_b = a.a;
 							resultat = a * fac_a + b * fac_b;
@@ -468,15 +489,15 @@ public:
 						}
 						case FUSION_PLUS:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							resultat = a + b;
 							break;
 						}
 						case FUSION_XOR:
 						{
-							auto a = tampon_a->valeur(c, l);
-							auto b = tampon_b->valeur(c, l);
+							auto a = tampon_a->valeur(index);
+							auto b = tampon_b->valeur(index);
 							auto fac_a = 1.0f - b.a;
 							auto fac_b = 1.0f - a.a;
 							resultat = a * fac_a + b * fac_b;
@@ -484,7 +505,7 @@ public:
 						}
 					}
 
-					calque->valeur(c, l, resultat);
+					tampon->valeur(index, resultat);
 				}
 			}
 		});
@@ -528,14 +549,14 @@ public:
 		m_rng.seed(19937);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = m_dist(m_rng);
-		resultat.g = m_dist(m_rng);
+		resultat.v = m_dist(m_rng);
 		resultat.b = m_dist(m_rng);
 		resultat.a = pixel.a;
 
@@ -579,14 +600,14 @@ public:
 		m_couleur = evalue_couleur("couleur_constante");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(pixel);
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = m_couleur[0];
-		resultat.g = m_couleur[1];
+		resultat.v = m_couleur[1];
 		resultat.b = m_couleur[2];
 		resultat.a = m_couleur[3];
 
@@ -671,9 +692,9 @@ public:
 		m_rampe = evalue_rampe_couleur("degrade");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
-		dls::image::Pixel<float> resultat = pixel;
+		dls::phys::couleur32 resultat = pixel;
 		float valeur = m_decalage;
 
 		/* centre le dégradé au milieu de l'image */
@@ -687,7 +708,7 @@ public:
 		auto couleur = ::evalue_rampe_couleur(*m_rampe, valeur);
 
 		resultat.r = ((m_canaux & MASK_R) == 0) ? 0.0f : couleur.r;
-		resultat.g = ((m_canaux & MASK_G) == 0) ? 0.0f : couleur.v;
+		resultat.v = ((m_canaux & MASK_G) == 0) ? 0.0f : couleur.v;
 		resultat.b = ((m_canaux & MASK_B) == 0) ? 0.0f : couleur.b;
 		resultat.a = ((m_canaux & MASK_A) == 0) ? 1.0f : couleur.a;
 
@@ -758,7 +779,7 @@ public:
 		m_dimensions = (dimensions == "3D") ? 3 : 1;
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(pixel);
 		auto somme_x = 0.0f;
@@ -817,10 +838,10 @@ public:
 		auto bruit_y = somme_y * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
 		auto bruit_z = somme_z * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
 
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = bruit_x;
 		resultat.b = bruit_y;
-		resultat.g = bruit_z;
+		resultat.v = bruit_z;
 		resultat.a = 1.0f;
 
 		return resultat;
@@ -829,18 +850,18 @@ public:
 
 /* ************************************************************************** */
 
-dls::image::Pixel<float> converti_en_pixel(dls::phys::couleur32 const &v)
+dls::phys::couleur32 converti_en_pixel(dls::phys::couleur32 const &v)
 {
-	dls::image::Pixel<float> pixel;
+	dls::phys::couleur32 pixel;
 	pixel.r = v[0];
-	pixel.g = v[1];
+	pixel.v = v[1];
 	pixel.b = v[2];
 	pixel.a = v[3];
 
 	return pixel;
 }
 
-void restreint(dls::image::Pixel<float> &pixel, float min, float max)
+void restreint(dls::phys::couleur32 &pixel, float min, float max)
 {
 	if (pixel.r < min) {
 		pixel.r = min;
@@ -849,11 +870,11 @@ void restreint(dls::image::Pixel<float> &pixel, float min, float max)
 		pixel.r = max;
 	}
 
-	if (pixel.g < min) {
-		pixel.g = min;
+	if (pixel.v < min) {
+		pixel.v = min;
 	}
-	else if (pixel.g > max) {
-		pixel.g = max;
+	else if (pixel.v > max) {
+		pixel.v = max;
 	}
 
 	if (pixel.b < min) {
@@ -871,17 +892,17 @@ class OperatriceEtalonnage final  : public OperatricePixel {
 	bool m_entrepolation_lineaire = false;
 	int pad{};
 
-	dls::image::Pixel<float> m_point_noir{};
-	dls::image::Pixel<float> m_point_blanc{};
-	dls::image::Pixel<float> m_blanc{};
-	dls::image::Pixel<float> m_noir{};
-	dls::image::Pixel<float> m_multiple{};
-	dls::image::Pixel<float> m_ajoute{};
+	dls::phys::couleur32 m_point_noir{};
+	dls::phys::couleur32 m_point_blanc{};
+	dls::phys::couleur32 m_blanc{};
+	dls::phys::couleur32 m_noir{};
+	dls::phys::couleur32 m_multiple{};
+	dls::phys::couleur32 m_ajoute{};
 
-	dls::image::Pixel<float> m_delta_BN = m_point_blanc - m_point_noir;
-	dls::image::Pixel<float> A1 = m_blanc - m_noir;
-	dls::image::Pixel<float> B{};
-	dls::image::Pixel<float> m_gamma{};
+	dls::phys::couleur32 m_delta_BN = m_point_blanc - m_point_noir;
+	dls::phys::couleur32 A1 = m_blanc - m_noir;
+	dls::phys::couleur32 B{};
+	dls::phys::couleur32 m_gamma{};
 
 public:
 	static constexpr auto NOM = "Étalonnage";
@@ -935,7 +956,7 @@ public:
 		A1 = m_blanc - m_noir;
 
 		m_delta_BN.r = (m_delta_BN.r > 0.0f) ? (A1.r / m_delta_BN.r) : 10000.0f;
-		m_delta_BN.g = (m_delta_BN.g > 0.0f) ? (A1.g / m_delta_BN.g) : 10000.0f;
+		m_delta_BN.v = (m_delta_BN.v > 0.0f) ? (A1.v / m_delta_BN.v) : 10000.0f;
 		m_delta_BN.b = (m_delta_BN.b > 0.0f) ? (A1.b / m_delta_BN.b) : 10000.0f;
 
 		m_delta_BN *= m_multiple;
@@ -952,16 +973,16 @@ public:
 			}
 		}
 
-		m_entrepolation_lineaire = (m_delta_BN != dls::image::Pixel<float>(1.0f));
-		m_entrepolation_lineaire |= (B != dls::image::Pixel<float>(0.0f));
+		m_entrepolation_lineaire = (m_delta_BN != dls::phys::couleur32(1.0f));
+		m_entrepolation_lineaire |= (B != dls::phys::couleur32(0.0f));
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 
-		dls::image::Pixel<float> resultat = pixel;
+		dls::phys::couleur32 resultat = pixel;
 
 		if (!m_inverse) {
 			/* entrepolation linéaire */
@@ -1033,15 +1054,15 @@ public:
 
 			/* inverse la partie linéaire */
 			if (m_entrepolation_lineaire) {
-				dls::image::Pixel<float> A_local;
-				dls::image::Pixel<float> B_local;
+				dls::phys::couleur32 A_local;
+				dls::phys::couleur32 B_local;
 				A_local.r = (m_delta_BN.r != 0.0f) ? 1.0f / m_delta_BN.r : 1.0f;
-				A_local.g = (m_delta_BN.g != 0.0f) ? 1.0f / m_delta_BN.g : 1.0f;
+				A_local.v = (m_delta_BN.v != 0.0f) ? 1.0f / m_delta_BN.v : 1.0f;
 				A_local.b = (m_delta_BN.b != 0.0f) ? 1.0f / m_delta_BN.b : 1.0f;
 				A_local.a = 1.0f;
 
 				B_local.r = -B.r * m_delta_BN.r;
-				B_local.g = -B.g * m_delta_BN.g;
+				B_local.v = -B.v * m_delta_BN.v;
 				B_local.b = -B.b * m_delta_BN.b;
 				B_local.a = 0.0f;
 
@@ -1102,13 +1123,13 @@ public:
 		m_gamma = evalue_decimal("gamma", temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = std::pow(pixel.r, m_gamma);
-		resultat.g = std::pow(pixel.g, m_gamma);
+		resultat.v = std::pow(pixel.v, m_gamma);
 		resultat.b = std::pow(pixel.b, m_gamma);
 		resultat.a = pixel.a;
 
@@ -1200,7 +1221,7 @@ public:
 		m_exposition = std::pow(2.0f, evalue_decimal("exposition", temps));
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		auto resultat = pixel;
 		auto besoin_correction_gamma = true;
@@ -1208,25 +1229,25 @@ public:
 		if (m_type == MAPPAGE_TONAL_LINEAR) {
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
-			resultat.g *= m_exposition;
+			resultat.v *= m_exposition;
 			resultat.b *= m_exposition;
 		}
 		else if (m_type == MAPPAGE_TONAL_REINHARD) {
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
-			resultat.g *= m_exposition;
+			resultat.v *= m_exposition;
 			resultat.b *= m_exposition;
 
 			/* Simple Reinhard: 1/(1+x). */
 			resultat.r = resultat.r / (1.0f + resultat.r);
-			resultat.g = resultat.g / (1.0f + resultat.g);
+			resultat.v = resultat.v / (1.0f + resultat.v);
 			resultat.b = resultat.b / (1.0f + resultat.b);
 		}
 		else if (m_type == MAPPAGE_TONAL_HPDCURVE) {
 			besoin_correction_gamma = false;
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
-			resultat.g *= m_exposition;
+			resultat.v *= m_exposition;
 			resultat.b *= m_exposition;
 
 			auto const ld = 0.002f;
@@ -1235,7 +1256,7 @@ public:
 			auto const logGamma = 0.455f;
 
 			resultat.r = (std::log(0.4f * resultat.r / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
-			resultat.g = (std::log(0.4f * resultat.g / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
+			resultat.v = (std::log(0.4f * resultat.v / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
 			resultat.b = (std::log(0.4f * resultat.b / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
 
 			restreint(resultat, 0.0f, 1.0f);
@@ -1244,14 +1265,14 @@ public:
 			besoin_correction_gamma = false;
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
-			resultat.g *= m_exposition;
+			resultat.v *= m_exposition;
 			resultat.b *= m_exposition;
 
 			auto const r = std::max(0.0f, resultat.r - 0.004f);
 			resultat.r = (r * (6.2f * r + 0.5f)) / (r * (6.2f * r + 1.7f) + 0.06f);
 
-			auto const g = std::max(0.0f, resultat.g - 0.004f);
-			resultat.g = (g * (6.2f * g + 0.5f)) / (g * (6.2f * g + 1.7f) + 0.06f);
+			auto const g = std::max(0.0f, resultat.v - 0.004f);
+			resultat.v = (g * (6.2f * g + 0.5f)) / (g * (6.2f * g + 1.7f) + 0.06f);
 
 			auto const b = std::max(0.0f, resultat.b - 0.004f);
 			resultat.b = (b * (6.2f * b + 0.5f)) / (b * (6.2f * b + 1.7f) + 0.06f);
@@ -1262,14 +1283,14 @@ public:
 
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
-			resultat.g *= m_exposition;
+			resultat.v *= m_exposition;
 			resultat.b *= m_exposition;
 
 			auto const r = uncharted_tone_map(exposure_bias * resultat.r);
 			resultat.r = r * white_scale;
 
-			auto const g = uncharted_tone_map(exposure_bias * resultat.g);
-			resultat.g = g * white_scale;
+			auto const g = uncharted_tone_map(exposure_bias * resultat.v);
+			resultat.v = g * white_scale;
 
 			auto const b = uncharted_tone_map(exposure_bias * resultat.b);
 			resultat.b = b * white_scale;
@@ -1279,14 +1300,14 @@ public:
 
 			/* Exposure adjustment. */
 			resultat.r *= m_exposition;
-			resultat.g *= m_exposition;
+			resultat.v *= m_exposition;
 			resultat.b *= m_exposition;
 		}
 
 		/* Adjust for the monitor's gamma. */
 		if (besoin_correction_gamma) {
 			resultat.r = std::pow(resultat.r, 1.0f / 2.2f);
-			resultat.g = std::pow(resultat.g, 1.0f / 2.2f);
+			resultat.v = std::pow(resultat.v, 1.0f / 2.2f);
 			resultat.b = std::pow(resultat.b, 1.0f / 2.2f);
 		}
 
@@ -1333,18 +1354,18 @@ public:
 		m_puissance = evalue_couleur("puissance");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 		auto resultat = pixel;
 
 		resultat.r = resultat.r * m_pente[0] + m_decalage[0];
-		resultat.g = resultat.g * m_pente[1] + m_decalage[1];
+		resultat.v = resultat.v * m_pente[1] + m_decalage[1];
 		resultat.b = resultat.b * m_pente[2] + m_decalage[2];
 
 		resultat.r = std::pow(resultat.r, m_puissance[0]);
-		resultat.g = std::pow(resultat.g, m_puissance[1]);
+		resultat.v = std::pow(resultat.v, m_puissance[1]);
 		resultat.b = std::pow(resultat.b, m_puissance[2]);
 
 		return resultat;
@@ -1384,13 +1405,13 @@ public:
 		INUTILISE(temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = 1.0f - pixel.r;
-		resultat.g = 1.0f - pixel.g;
+		resultat.v = 1.0f - pixel.v;
 		resultat.b = 1.0f - pixel.b;
 		resultat.a = pixel.a;
 
@@ -1441,13 +1462,13 @@ public:
 		m_b = evalue_decimal("b");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 #if 0
 		auto const cos_angle = pixel.r * m_couleur.r
-							   + pixel.g * m_couleur.g
+							   + pixel.v * m_couleur.v
 							   + pixel.b * m_couleur.b;
 
 		if (cos_angle > m_angle) {
@@ -1456,15 +1477,15 @@ public:
 
 		dls::math::vec4f T;
 		T.r = pixel.r - m_couleur.r;
-		T.g = pixel.g - m_couleur.g;
+		T.v = pixel.v - m_couleur.v;
 		T.b = pixel.b - m_couleur.b;
 		T.a = pixel.a;
 
-		auto const facteur = std::sqrt(T.r * T.r + T.g * T.g + T.b * T.b);
+		auto const facteur = std::sqrt(T.r * T.r + T.v * T.v + T.b * T.b);
 
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = (1.0f - facteur) * T.r + facteur * pixel.r;
-		resultat.g = (1.0f - facteur) * T.g + facteur * pixel.g;
+		resultat.v = (1.0f - facteur) * T.v + facteur * pixel.v;
 		resultat.b = (1.0f - facteur) * T.b + facteur * pixel.b;
 		resultat.a = pixel.a;
 
@@ -1473,10 +1494,10 @@ public:
 		auto resultat = pixel;
 
 		/* simple suppression du débordement de vert sur l'avant-plan */
-		resultat.b = std::min(pixel.b, pixel.g);
+		resultat.b = std::min(pixel.b, pixel.v);
 
 		/* simple suppression de l'écran vert */
-		resultat.a = m_a * (resultat.r + resultat.b) - m_b * resultat.g;
+		resultat.a = m_a * (resultat.r + resultat.b) - m_b * resultat.v;
 		resultat.a = std::max(0.0f, std::min(1.0f, resultat.a));
 
 		return resultat;
@@ -1521,7 +1542,7 @@ public:
 		m_inverse = evalue_bool("inverse");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -1533,7 +1554,7 @@ public:
 
 		auto resultat = pixel;
 		resultat.r *= facteur;
-		resultat.g *= facteur;
+		resultat.v *= facteur;
 		resultat.b *= facteur;
 
 		return resultat;
@@ -1573,22 +1594,22 @@ public:
 		INUTILISE(temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 
-		auto facteur = pixel.r * 0.2126f + pixel.g * 0.7152f + pixel.b * 0.0722f;
+		auto facteur = pixel.r * 0.2126f + pixel.v * 0.7152f + pixel.b * 0.0722f;
 
 		if (facteur == 0.0f) {
 			resultat.r = 0.0f;
-			resultat.g = 0.0f;
+			resultat.v = 0.0f;
 			resultat.b = 0.0f;
 		}
 		else {
 			resultat.r = pixel.r / facteur;
-			resultat.g = pixel.g / facteur;
+			resultat.v = pixel.v / facteur;
 			resultat.b = pixel.b / facteur;
 		}
 
@@ -1635,20 +1656,20 @@ public:
 		m_contraste = evalue_decimal("contraste", temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 
 		if (m_pivot > 0.0f) {
 			resultat.r = std::pow(pixel.r / m_pivot, m_contraste) * m_pivot;
-			resultat.g = std::pow(pixel.g / m_pivot, m_contraste) * m_pivot;
+			resultat.v = std::pow(pixel.v / m_pivot, m_contraste) * m_pivot;
 			resultat.b = std::pow(pixel.b / m_pivot, m_contraste) * m_pivot;
 		}
 		else {
 			resultat.r = 0.0f;
-			resultat.g = 0.0f;
+			resultat.v = 0.0f;
 			resultat.b = 0.0f;
 		}
 
@@ -1696,21 +1717,21 @@ public:
 		m_courbe = evalue_courbe_couleur("courbe");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
 		dls::phys::couleur32 temp;
 		temp.r = pixel.r;
-		temp.v = pixel.g;
+		temp.v = pixel.v;
 		temp.b = pixel.b;
 		temp.a = pixel.a;
 
 		temp = ::evalue_courbe_couleur(*m_courbe, temp);
 
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = temp.r;
-		resultat.g = temp.v;
+		resultat.v = temp.v;
 		resultat.b = temp.b;
 		resultat.a = temp.a;
 
@@ -1760,11 +1781,11 @@ public:
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 
 		for (int i = 0; i < 3; ++i) {
 			resultat[i] = dls::math::traduit(pixel[i], m_vieux_min[i], m_vieux_max[i], m_neuf_min[i], m_neuf_max[i]);
@@ -1814,13 +1835,13 @@ public:
 		m_neuf_max = evalue_couleur("neuf_max");
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
-		dls::image::Pixel<float> resultat;
+		dls::phys::couleur32 resultat;
 		resultat.r = (pixel.r - m_neuf_min.r) / (m_neuf_max.r - m_neuf_min.r);
-		resultat.g = (pixel.g - m_neuf_min.v) / (m_neuf_max.v - m_neuf_min.v);
+		resultat.v = (pixel.v - m_neuf_min.v) / (m_neuf_max.v - m_neuf_min.v);
 		resultat.b = (pixel.b - m_neuf_min.b) / (m_neuf_max.b - m_neuf_min.b);
 		resultat.a = pixel.a;
 
@@ -1903,13 +1924,13 @@ static dls::math::mat4x4f matrices_daltonisme[] = {
 	},
 };
 
-auto operator*(dls::image::Pixel<float> const &p, dls::math::mat4x4f const &m)
+auto operator*(dls::phys::couleur32 const &p, dls::math::mat4x4f const &m)
 {
-	dls::image::Pixel<float> r;
-	r.r = p.r * m[0][0] + p.g * m[0][1] + p.b * m[0][2] + p.a * m[0][3];
-	r.g = p.r * m[1][0] + p.g * m[1][1] + p.b * m[1][2] + p.a * m[1][3];
-	r.b = p.r * m[2][0] + p.g * m[2][1] + p.b * m[2][2] + p.a * m[2][3];
-	r.a = p.r * m[3][0] + p.g * m[3][1] + p.b * m[3][2] + p.a * m[3][3];
+	dls::phys::couleur32 r;
+	r.r = p.r * m[0][0] + p.v * m[0][1] + p.b * m[0][2] + p.a * m[0][3];
+	r.v = p.r * m[1][0] + p.v * m[1][1] + p.b * m[1][2] + p.a * m[1][3];
+	r.b = p.r * m[2][0] + p.v * m[2][1] + p.b * m[2][2] + p.a * m[2][3];
+	r.a = p.r * m[3][0] + p.v * m[3][1] + p.b * m[3][2] + p.a * m[3][3];
 
 	return r;
 }
@@ -1976,7 +1997,7 @@ public:
 		}
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);

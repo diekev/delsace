@@ -39,39 +39,43 @@ int OperatricePixel::type() const
 
 int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	Calque *tampon = nullptr;
+	calque_image *calque = nullptr;
 
 	auto const &rectangle = contexte.resolution_rendu;
 
 	if (entrees() == 0) {
 		m_image.reinitialise();
-		tampon = m_image.ajoute_calque("image", rectangle);
+		auto desc = desc_depuis_rectangle(rectangle);
+		calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
 	}
 	else if (entrees() >= 1) {
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		tampon = m_image.calque(nom_calque);
+		calque = m_image.calque(nom_calque);
 	}
 
-	if (tampon == nullptr) {
+	if (calque == nullptr) {
 		ajoute_avertissement("Calque introuvable !");
 		return EXECUTION_ECHOUEE;
 	}
 
+	auto tampon = dynamic_cast<wlk::grille_dense_2d<dls::phys::couleur32> *>(calque->tampon);
 	auto largeur_inverse = 1.0f / rectangle.largeur;
 	auto hauteur_inverse = 1.0f / rectangle.hauteur;
 
 	this->evalue_entrees(contexte.temps_courant);
 
-	boucle_parallele(tbb::blocked_range<long>(0, static_cast<long>(rectangle.hauteur)),
-					 [&](tbb::blocked_range<long> const &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, static_cast<int>(rectangle.hauteur)),
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
-			for (auto c = 0; c < static_cast<long>(rectangle.largeur); ++c) {
+			for (auto c = 0; c < static_cast<int>(rectangle.largeur); ++c) {
 				auto const x = static_cast<float>(c) * largeur_inverse;
 				auto const y = static_cast<float>(l) * hauteur_inverse;
 
-				tampon->valeur(c, l, this->evalue_pixel(tampon->valeur(c, l), x, y));
+				auto index = tampon->calcul_index(dls::math::vec2i(c, l));
+
+				tampon->valeur(index, this->evalue_pixel(tampon->valeur(index), x, y));
 			}
 		}
 	});

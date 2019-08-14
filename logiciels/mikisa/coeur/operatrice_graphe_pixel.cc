@@ -70,7 +70,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -117,7 +117,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -164,7 +164,7 @@ public:
 		INUTILISE(temps);
 	}
 
-	dls::image::Pixel<float> evalue_pixel(dls::image::Pixel<float> const &pixel, const float x, const float y) override
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
 		INUTILISE(x);
 		INUTILISE(y);
@@ -303,55 +303,46 @@ int OperatriceGraphePixel::type() const
 
 int OperatriceGraphePixel::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	Calque *tampon = nullptr;
+	calque_image *calque = nullptr;
 
 	auto const &rectangle = contexte.resolution_rendu;
 
 	if (!entree(0)->connectee()) {
-		tampon = m_image.ajoute_calque("image", rectangle);
+		auto desc = desc_depuis_rectangle(rectangle);
+		calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
 	}
 	else {
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		tampon = m_image.calque(nom_calque);
+		calque = m_image.calque(nom_calque);
 	}
 
-	if (tampon == nullptr) {
+	if (calque == nullptr) {
 		ajoute_avertissement("Calque introuvable !");
 		return EXECUTION_ECHOUEE;
 	}
 
+	auto tampon = dynamic_cast<wlk::grille_dense_2d<dls::phys::couleur32> *>(calque->tampon);
+
 	compile_graphe(contexte.temps_courant);
 
-	boucle_parallele(tbb::blocked_range<long>(0, static_cast<long>(rectangle.hauteur)),
-					 [&](tbb::blocked_range<long> const &plage)
+	boucle_parallele(tbb::blocked_range<int>(0, static_cast<int>(rectangle.hauteur)),
+					 [&](tbb::blocked_range<int> const &plage)
 	{
 		/* fais une copie locale pour éviter les problèmes de concurrence
 		 * critique */
 		auto pile = m_compileuse.pile();
 
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
-			for (auto c = 0; c < static_cast<long>(rectangle.largeur); ++c) {
-//				auto const x = c * largeur_inverse;
-//				auto const y = l * hauteur_inverse;
+			for (auto c = 0; c < static_cast<int>(rectangle.largeur); ++c) {
+				auto index = tampon->calcul_index(dls::math::vec2i(c, l));
 
-				auto courante = tampon->valeur(c, l);
-
-				dls::phys::couleur32 entree;
-				entree.r = courante.r;
-				entree.v = courante.g;
-				entree.b = courante.b;
-				entree.a = courante.a;
+				auto entree = tampon->valeur(index);
 
 				dls::phys::couleur32 sortie;
 				execute_graphe(pile.debut(), pile.fin(), entree, sortie);
 
-				courante.r = sortie.r;
-				courante.g = sortie.v;
-				courante.b = sortie.b;
-				courante.a = sortie.a;
-
-				tampon->valeur(c, l, courante);
+				tampon->valeur(index, sortie);
 			}
 		}
 	});

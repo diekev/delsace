@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/limites.hh"
+#include "biblinternes/phys/couleur.hh"
 
 /* ************************************************************************** */
 
@@ -59,20 +60,22 @@ enum class type_grille : int {
 	VEC2,
 	VEC3,
 	VEC3_R64,
+	COULEUR,
 };
 
 template <typename T>
 struct selectrice_type_grille;
 
-template <> struct selectrice_type_grille<unsigned int>     { static constexpr auto type = type_grille::N32; };
-template <> struct selectrice_type_grille<char>             { static constexpr auto type = type_grille::Z8; };
-template <> struct selectrice_type_grille<int>              { static constexpr auto type = type_grille::Z32; };
-template <> struct selectrice_type_grille<float>            { static constexpr auto type = type_grille::R32; };
-template <> struct selectrice_type_grille<float *>          { static constexpr auto type = type_grille::R32_PTR; };
-template <> struct selectrice_type_grille<double>           { static constexpr auto type = type_grille::R64; };
-template <> struct selectrice_type_grille<dls::math::vec2f> { static constexpr auto type = type_grille::VEC2; };
-template <> struct selectrice_type_grille<dls::math::vec3f> { static constexpr auto type = type_grille::VEC3; };
-template <> struct selectrice_type_grille<dls::math::vec3d> { static constexpr auto type = type_grille::VEC3_R64; };
+template <> struct selectrice_type_grille<unsigned int>         { static constexpr auto type = type_grille::N32; };
+template <> struct selectrice_type_grille<char>                 { static constexpr auto type = type_grille::Z8; };
+template <> struct selectrice_type_grille<int>                  { static constexpr auto type = type_grille::Z32; };
+template <> struct selectrice_type_grille<float>                { static constexpr auto type = type_grille::R32; };
+template <> struct selectrice_type_grille<float *>              { static constexpr auto type = type_grille::R32_PTR; };
+template <> struct selectrice_type_grille<double>               { static constexpr auto type = type_grille::R64; };
+template <> struct selectrice_type_grille<dls::math::vec2f>     { static constexpr auto type = type_grille::VEC2; };
+template <> struct selectrice_type_grille<dls::math::vec3f>     { static constexpr auto type = type_grille::VEC3; };
+template <> struct selectrice_type_grille<dls::math::vec3d>     { static constexpr auto type = type_grille::VEC3_R64; };
+template <> struct selectrice_type_grille<dls::phys::couleur32> { static constexpr auto type = type_grille::COULEUR; };
 
 /* ************************************************************************** */
 

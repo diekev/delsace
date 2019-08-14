@@ -114,7 +114,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		m_texture.charge_donnees(tampon->tampon);
+		//m_texture.charge_donnees(tampon->tampon);
 
 		auto entrepolation = evalue_enum("entrepolation");
 

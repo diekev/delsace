@@ -156,9 +156,9 @@ void Visionneuse2D::resizeGL(int w, int h)
 	m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 }
 
-void Visionneuse2D::charge_image(dls::math::matrice_dyn<dls::image::Pixel<float>> const &image)
+void Visionneuse2D::charge_image(grille_couleur const &image)
 {
-	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
+	if ((image.desc().resolution.x == 0) || (image.desc().resolution.y == 0)) {
 		m_matrice_image = dls::math::mat4x4f(1.0);
 		m_matrice_image[0][0] = 1.0;
 		m_matrice_image[1][1] = static_cast<float>(720) / 1280;
@@ -166,8 +166,8 @@ void Visionneuse2D::charge_image(dls::math::matrice_dyn<dls::image::Pixel<float>
 	}
 
 	GLint size[2] = {
-		image.nombre_colonnes(),
-		image.nombre_lignes()
+		image.desc().resolution.x,
+		image.desc().resolution.y
 	};
 
 	m_matrice_image = dls::math::mat4x4f(1.0f);
@@ -266,23 +266,27 @@ void EditriceVue2D::ajourne_etat(int evenement)
 		auto const &composite = extrait_composite(noeud_composite->donnees());
 		auto const &image = composite->image();
 		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
-		auto tampon = image.calque(image.nom_calque_actif());
+		auto calque = image.calque(image.nom_calque_actif());
 
-		if (tampon == nullptr) {
+		if (calque == nullptr) {
 			/* Charge une image vide, les dimensions sont à peu près celle d'une
 			 * image de 1280x720. */
-			auto image_vide = type_image(dls::math::Hauteur(10),
-										 dls::math::Largeur(17));
+			auto desc = wlk::desc_grille_2d();
+			desc.etendue.min = dls::math::vec2f(-1.7f);
+			desc.etendue.max = dls::math::vec2f( 1.0f);
+			desc.fenetre_donnees = desc.etendue;
+			desc.taille_pixel = 1.0;
 
-			auto pixel = dls::image::Pixel<float>(0.0f);
+			auto pixel = dls::phys::couleur32(0.0f);
 			pixel.a = 1.0f;
 
-			image_vide.remplie(pixel);
+			auto image_vide = grille_couleur(desc, pixel);
 
 			m_vue->charge_image(image_vide);
 		}
 		else {
-			m_vue->charge_image(tampon->tampon);
+			auto tampon = extrait_grille_couleur(calque);
+			m_vue->charge_image(*tampon);
 		}
 	}
 

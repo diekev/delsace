@@ -34,15 +34,10 @@
 
 #include "wolika/grille_dense.hh"
 
-using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
-
 /* ************************************************************************** */
 
-namespace wlk {
-enum class type_grille : int;
-}
+using grille_couleur = wlk::grille_dense_2d<dls::phys::couleur32>;
 
-/* À FAIRE : déduplique la structure calque */
 struct calque_image {
 	dls::chaine nom{};
 	wlk::base_grille_2d *tampon = nullptr;
@@ -65,39 +60,30 @@ struct calque_image {
 	static calque_image construit_calque(wlk::base_grille_2d::type_desc const &desc, wlk::type_grille type_donnees);
 };
 
-/* ************************************************************************** */
-
-struct Calque {
-	dls::chaine nom{};
-	type_image tampon{};
-
-	/**
-	 * Retourne la valeur du tampon de ce calque à la position <x, y>.
-	 */
-	dls::image::Pixel<float> valeur(long x, long y) const;
-
-	/**
-	 * Ajourne la valeur du tampon de ce calque à la position <x, y>.
-	 */
-	void valeur(long x, long y, dls::image::Pixel<float> const &pixel);
-
-	/**
-	 * Échantillonne le tampon de ce calque à la position <x, y> en utilisant
-	 * une entrepolation linéaire entre les pixels se trouvant entre les quatre
-	 * coins de la position spécifiée.
-	 */
-	dls::image::Pixel<float> echantillone(float x, float y) const;
-};
-
+template <typename T>
 void copie_donnees_calque(
-		type_image const &tampon_de,
-		type_image &tampon_vers);
+		wlk::grille_dense_2d<T> const &tampon_de,
+		wlk::grille_dense_2d<T> &tampon_vers)
+{
+	auto nombre_elements = tampon_de.nombre_elements();
+
+	for (auto i = 0; i < nombre_elements; ++i) {
+		tampon_vers.valeur(i) = tampon_de.valeur(i);
+	}
+}
+
+wlk::desc_grille_2d desc_depuis_rectangle(Rectangle const &rectangle);
+
+inline auto extrait_grille_couleur(calque_image *calque)
+{
+	return dynamic_cast<grille_couleur *>(calque->tampon);
+}
 
 /* ************************************************************************** */
 
 struct Image {
 private:
-	using ptr_calque = std::shared_ptr<Calque>;
+	using ptr_calque = std::shared_ptr<calque_image>;
 	using ptr_calque_profond = std::shared_ptr<calque_image>;
 
 	dls::liste<ptr_calque> m_calques{};
@@ -118,7 +104,7 @@ public:
 	 * est définie par le rectangle passé en paramètre. Retourne un pointeur
 	 * vers le calque ajouté.
 	 */
-	Calque *ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle);
+	calque_image *ajoute_calque(dls::chaine const &nom, wlk::desc_grille_2d const &desc, wlk::type_grille type);
 
 	calque_image *ajoute_calque_profond(dls::chaine const &nom, wlk::desc_grille_2d const &desc, wlk::type_grille type);
 
@@ -126,7 +112,7 @@ public:
 	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si
 	 * aucun calque ne portant ce nom est trouvé, retourne nullptr.
 	 */
-	Calque *calque(dls::chaine const &nom) const;
+	calque_image *calque(dls::chaine const &nom) const;
 
 	/**
 	 * Retourne une plage itérable sur la liste de calques de cette Image.

@@ -24,9 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/image/pixel.h"
-#include "biblinternes/math/matrice/matrice.hh"
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -38,6 +35,8 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/vision/camera_2d.h"
+
+#include "coeur/image.hh"
 
 #include "base_editrice.h"
 
@@ -69,7 +68,7 @@ public:
 	void initializeGL() override;
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
-	void charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image);
+	void charge_image(const grille_couleur &image);
 	void wheelEvent(QWheelEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;

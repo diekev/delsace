@@ -192,14 +192,14 @@ RenduImage::~RenduImage()
 	memoire::deloge("TamponRendu", m_tampon_bordure);
 }
 
-void RenduImage::charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image)
+void RenduImage::charge_image(const grille_couleur &image)
 {
 	GLint size[2] = {
-		image.nombre_colonnes(),
-		image.nombre_lignes()
+		image.desc().resolution.x,
+		image.desc().resolution.y
 	};
 
-	genere_texture_image(m_tampon_image, &image[0][0].r, size);
+	genere_texture_image(m_tampon_image, &image.valeur(0).r, size);
 
 	dls::ego::util::GPU_check_errors("Unable to create image texture");
 }

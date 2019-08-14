@@ -115,72 +115,35 @@ calque_image calque_image::construit_calque(
 			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::math::vec3d>>("grille_dense_2d", desc);
 			break;
 		}
+		case wlk::type_grille::COULEUR:
+		{
+			calque.tampon = memoire::loge<wlk::grille_dense_2d<dls::phys::couleur32>>("grille_dense_2d", desc);
+			break;
+		}
 	}
 
 	return calque;
 }
 
-/* ************************************************************************** */
-
-dls::image::Pixel<float> Calque::valeur(long x, long y) const
+wlk::desc_grille_2d desc_depuis_rectangle(const Rectangle &rectangle)
 {
-	x = std::max(0l, std::min(x, static_cast<long>(tampon.nombre_colonnes()) - 1));
-	y = std::max(0l, std::min(y, static_cast<long>(tampon.nombre_lignes()) - 1));
-	return tampon[static_cast<int>(y)][static_cast<int>(x)];
-}
+	auto moitie_x = static_cast<float>(rectangle.largeur) * 0.5f;
+	auto moitie_y = static_cast<float>(rectangle.hauteur) * 0.5f;
 
-void Calque::valeur(long x, long y, dls::image::Pixel<float> const &pixel)
-{
-	x = std::max(0l, std::min(x, static_cast<long>(tampon.nombre_colonnes()) - 1));
-	y = std::max(0l, std::min(y, static_cast<long>(tampon.nombre_lignes()) - 1));
-	tampon[static_cast<int>(y)][static_cast<int>(x)] = pixel;
-}
+	auto desc = wlk::desc_grille_2d();
+	desc.etendue.min.x = -moitie_x;
+	desc.etendue.min.y = -moitie_y;
+	desc.etendue.max.x =  moitie_x;
+	desc.etendue.max.y =  moitie_y;
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_pixel = 1.0;
 
-dls::image::Pixel<float> Calque::echantillone(float x, float y) const
-{
-	auto const res_x = tampon.nombre_colonnes();
-	auto const res_y = tampon.nombre_lignes();
-
-	auto const entier_x = static_cast<int>(x);
-	auto const entier_y = static_cast<int>(y);
-
-	auto const fract_x = x - static_cast<float>(entier_x);
-	auto const fract_y = y - static_cast<float>(entier_y);
-
-	auto const x1 = std::max(0, std::min(entier_x, res_x - 1));
-	auto const y1 = std::max(0, std::min(entier_y, res_y - 1));
-	auto const x2 = std::max(0, std::min(entier_x + 1, res_x - 1));
-	auto const y2 = std::max(0, std::min(entier_y + 1, res_y - 1));
-
-	auto valeur = dls::image::Pixel<float>(0.0f);
-	valeur += fract_x * fract_y * tampon[y1][x1];
-	valeur += (1.0f - fract_x) * fract_y * tampon[y1][x2];
-	valeur += fract_x * (1.0f - fract_y) * tampon[y2][x1];
-	valeur += (1.0f - fract_x) * (1.0f - fract_y) * tampon[y2][x2];
-
-	return valeur;
-}
-
-void copie_donnees_calque(const type_image &tampon_de, type_image &tampon_vers)
-{
-	auto const res_x = tampon_de.nombre_colonnes();
-	auto const res_y = tampon_de.nombre_lignes();
-
-	for (int y = 0; y < res_y; ++y) {
-		for (int x = 0; x < res_x; ++x) {
-			tampon_vers[y][x] = tampon_de[y][x];
-		}
-	}
+	return desc;
 }
 
 /* ************************************************************************** */
 
-static auto supprime_calque(Calque *calque)
-{
-	memoire::deloge("Calque", calque);
-}
-
-static auto supprime_calque_profond(calque_image *calque)
+static auto supprime_calque_image(calque_image *calque)
 {
 	memoire::deloge("calque_image", calque);
 }
@@ -192,21 +155,16 @@ Image::~Image()
 	reinitialise();
 }
 
-Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
+calque_image *Image::ajoute_calque(dls::chaine const &nom, wlk::desc_grille_2d const &desc, wlk::type_grille type)
 {
-	auto tampon = memoire::loge<Calque>("Calque");
-	tampon->nom = nom;
-	tampon->tampon = type_image(dls::math::Hauteur(static_cast<int>(rectangle.hauteur)),
-								dls::math::Largeur(static_cast<int>(rectangle.largeur)));
+	auto calque = memoire::loge<calque_image>("calque_image");
+	calque->nom = nom;
 
-	auto pixel = dls::image::Pixel<float>(0.0f);
-	pixel.a = 1.0f;
+	*calque = calque_image::construit_calque(desc, type);
 
-	tampon->tampon.remplie(pixel);
+	m_calques.pousse(ptr_calque_profond(calque, supprime_calque_image));
 
-	m_calques.pousse(ptr_calque(tampon, supprime_calque));
-
-	return tampon;
+	return calque;
 }
 
 calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, wlk::desc_grille_2d const &desc, wlk::type_grille type)
@@ -216,12 +174,12 @@ calque_image *Image::ajoute_calque_profond(const dls::chaine &nom, wlk::desc_gri
 
 	*calque = calque_image::construit_calque(desc, type);
 
-	m_calques_profond.pousse(ptr_calque_profond(calque, supprime_calque_profond));
+	m_calques_profond.pousse(ptr_calque_profond(calque, supprime_calque_image));
 
 	return calque;
 }
 
-Calque *Image::calque(dls::chaine const &nom) const
+calque_image *Image::calque(dls::chaine const &nom) const
 {
 	for (auto tampon : m_calques) {
 		if (tampon->nom == nom) {

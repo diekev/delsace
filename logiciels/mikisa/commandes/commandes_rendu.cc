@@ -125,25 +125,29 @@ static bool ecris_image(
 
 	/* récupère les données */
 	auto const &image = composite->image();
-	auto tampon = image.calque(nom_calque);
+	auto calque_entree = image.calque(nom_calque);
 
-	if (tampon == nullptr) {
+	if (calque_entree == nullptr) {
 		mikisa.affiche_erreur("Calque introuvable dans l'image du composite.");
 		return false;
 	}
+
+	auto tampon = extrait_grille_couleur(calque_entree);
 
 	/* écris l'image */
 	if (chemin_image.trouve(".exr") != dls::chaine::npos) {
 		ParametresImage parametres;
 		parametres.composant = 4;
-		parametres.hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
-		parametres.largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
-		parametres.pointeur = &tampon->tampon[0][0].r;
+		parametres.hauteur = static_cast<size_t>(tampon->desc().resolution.y);
+		parametres.largeur = static_cast<size_t>(tampon->desc().resolution.x);
+		parametres.pointeur = &tampon->valeur(0).r;
 
 		ecris_exr(chemin_image.c_str(), parametres);
 	}
 	else {
-		dls::image::flux::ecris(chemin_image.c_str(), tampon->tampon);
+		mikisa.affiche_erreur("L'écriture de fichier autre que EXR n'est pas disponible.");
+		return false;
+		//dls::image::flux::ecris(chemin_image.c_str(), tampon->tampon);
 	}
 
 	return true;

@@ -156,18 +156,13 @@ public:
 		auto largeur = tampon_S->desc().resolution.x;
 		auto hauteur = tampon_S->desc().resolution.y;
 
-		auto rectangle = contexte.resolution_rendu;
-		auto tampon = m_image.ajoute_calque("image", contexte.resolution_rendu);
-
-		auto debut_x = std::max(0l, static_cast<long>(rectangle.x));
-		auto fin_x = static_cast<long>(std::min(largeur, largeur));
-		auto debut_y = std::max(0l, static_cast<long>(rectangle.y));
-		auto fin_y = static_cast<long>(std::min(hauteur, hauteur));
+		auto calque = m_image.ajoute_calque("image", tampon_S->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("aplanis profonde");
 
-		boucle_parallele(tbb::blocked_range<long>(debut_x, fin_x),
+		boucle_parallele(tbb::blocked_range<long>(0, largeur),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			if (chef->interrompu()) {
@@ -175,7 +170,7 @@ public:
 			}
 
 			for (auto j = plage.begin(); j < plage.end(); ++j) {
-				for (auto i = debut_y; i < fin_y; ++i) {
+				for (auto i = 0; i < hauteur; ++i) {
 					if (chef->interrompu()) {
 						return;
 					}
@@ -221,25 +216,25 @@ public:
 
 					/* compose les échantillons */
 
-					auto pixel = dls::image::PixelFloat();
+					auto pixel = dls::phys::couleur32();
 					pixel.r = sR[0];
-					pixel.g = sG[0];
+					pixel.v = sG[0];
 					pixel.b = sB[0];
 					pixel.a = sA[0];
 
 					for (auto e = 1u; e < n; ++e) {
 						auto denum = 1.0f / (pixel.a + sA[e] * (1.0f - pixel.a));
 						pixel.r = (pixel.r * pixel.a + sR[e] * sA[e] * (1.0f - pixel.a)) * denum;
-						pixel.g = (pixel.g * pixel.a + sG[e] * sA[e] * (1.0f - pixel.a)) * denum;
+						pixel.v = (pixel.v * pixel.a + sG[e] * sA[e] * (1.0f - pixel.a)) * denum;
 						pixel.b = (pixel.b * pixel.a + sB[e] * sA[e] * (1.0f - pixel.a)) * denum;
 						pixel.a = pixel.a + sA[e] * (1.0f - pixel.a);
 					}
 
-					tampon->valeur(j, i, pixel);
+					tampon->valeur(index) = pixel;
 				}
 			}
 
-			auto taille_totale = static_cast<float>(fin_x - debut_x);
+			auto taille_totale = static_cast<float>(largeur);
 			auto taille_plage = static_cast<float>(plage.end() - plage.begin());
 			chef->indique_progression_parallele(taille_plage / taille_totale * 100.0f);
 		});

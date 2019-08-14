@@ -24,8 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/image/pixel.h"
-#include "biblinternes/math/matrice/matrice.hh"
+#include "coeur/image.hh"
 
 class ContexteRendu;
 class TamponRendu;
@@ -51,7 +50,7 @@ public:
 	 */
 	~RenduImage();
 
-	void charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image);
+	void charge_image(const grille_couleur &image);
 
 	/**
 	 * Dessine l'image dans le contexte spécifié.

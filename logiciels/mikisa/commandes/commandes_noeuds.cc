@@ -537,9 +537,9 @@ public:
 
 					for (auto calque : image->calques()) {
 						ss << "<p>" << calque->nom << " (";
-						ss << calque->tampon.nombre_colonnes();
+						ss << calque->tampon->desc().resolution.x;
 						ss << "x";
-						ss << calque->tampon.nombre_lignes();
+						ss << calque->tampon->desc().resolution.y;
 						ss << ")</p>";
 					}
 				}

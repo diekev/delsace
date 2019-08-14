@@ -66,6 +66,52 @@
 
 /* ************************************************************************** */
 
+static auto desc_depuis_exr(Imath::Box2i const &ds, Imath::Box2i const &dw)
+{
+	/**
+	 * défintion d'un système de coordonnées pour pouvoir fusionner correctement
+	 * les pixels
+	 *
+	 * la fenêtre d'affichage définie les coordonnées globales
+	 * l'image est centrée sur le point (0.0, 0.0)
+	 * la taille des pixels est originellement de 1.0
+	 */
+
+	auto const taille_ds_x = static_cast<float>(ds.max.x - ds.min.x + 1);
+	auto const taille_ds_y = static_cast<float>(ds.max.y - ds.min.y + 1);
+
+	auto const moitie_ds_x = taille_ds_x * 0.5f;
+	auto const moitie_ds_y = taille_ds_y * 0.5f;
+
+	auto const min_x = static_cast<float>(dw.min.x) - moitie_ds_x;
+	auto const min_y = static_cast<float>(dw.min.y) - moitie_ds_y;
+
+	auto const max_x = static_cast<float>(dw.max.x + 1) - moitie_ds_x;
+	auto const max_y = static_cast<float>(dw.max.y + 1) - moitie_ds_y;
+
+#if 0
+	std::cerr << "---------------------------------------------\n";
+	std::cerr << "étendue grille : "
+			  << '(' << min_x << ',' << min_y << ')'
+			  << " -> "
+			  << '(' << max_x << ',' << max_y << ')'
+			  << '\n';
+	std::cerr << "résolution grille : "
+			  << '(' << max_x - min_x << ',' << max_y - min_y << ')'
+			  << " orig : "
+			  << '(' << largeur << ',' << hauteur << ')'
+			  << '\n';
+#endif
+
+	auto desc = wlk::desc_grille_2d{};
+	desc.taille_pixel = 1.0;
+	desc.etendue.min = dls::math::vec2f{ min_x, min_y };
+	desc.etendue.max = dls::math::vec2f{ max_x, max_y };
+	desc.fenetre_donnees = desc.etendue;
+
+	return desc;
+}
+
 static auto charge_exr(const char *chemin, std::any const &donnees)
 {
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
@@ -86,25 +132,24 @@ static auto charge_exr(const char *chemin, std::any const &donnees)
 
 	file.readPixels(dw.min.y, dw.max.y);
 
-	type_image img = type_image(
-						 dls::math::Largeur(static_cast<int>(width)),
-						 dls::math::Hauteur(static_cast<int>(height)));
+	auto desc = desc_depuis_exr(file.displayWindow(), dw);
+
+	auto ptr_image = std::any_cast<Image *>(donnees);
+	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	auto tampon = extrait_grille_couleur(calque);
 
 	long idx(0);
 	for (auto y(0); y < height; ++y) {
 		for (auto x(0l), xe(width); x < xe; ++x, ++idx) {
-			auto pixel = dls::image::PixelFloat();
+			auto pixel = dls::phys::couleur32();
 			pixel.r = pixels[idx].r;
-			pixel.g = pixels[idx].g;
+			pixel.v = pixels[idx].g;
 			pixel.b = pixels[idx].b;
 			pixel.a = pixels[idx].a;
 
-			img[y][x] = pixel;
+			tampon->valeur(idx) = pixel;
 		}
 	}
-
-	auto ptr = std::any_cast<type_image *>(donnees);
-	*ptr = img;
 }
 
 static auto charge_exr_tile(const char *chemin, std::any const &donnees)
@@ -184,47 +229,7 @@ static auto charge_exr_scanline(const char *chemin, std::any const &donnees)
 			  << '\n';
 #endif
 
-	/**
-	 * défintion d'un système de coordonnées pour pouvoir fusionner correctement
-	 * les pixels
-	 *
-	 * la fenêtre d'affichage définie les coordonnées globales
-	 * l'image est centrée sur le point (0.0, 0.0)
-	 * la taille des pixels est originellement de 1.0
-	 */
-
-	auto const taille_ds_x = static_cast<float>(ds.max.x - ds.min.x + 1);
-	auto const taille_ds_y = static_cast<float>(ds.max.y - ds.min.y + 1);
-
-	auto const moitie_ds_x = taille_ds_x * 0.5f;
-	auto const moitie_ds_y = taille_ds_y * 0.5f;
-
-	auto const min_x = static_cast<float>(dw.min.x) - moitie_ds_x;
-	auto const min_y = static_cast<float>(dw.min.y) - moitie_ds_y;
-
-	auto const max_x = static_cast<float>(dw.max.x + 1) - moitie_ds_x;
-	auto const max_y = static_cast<float>(dw.max.y + 1) - moitie_ds_y;
-
-#if 0
-	std::cerr << "---------------------------------------------\n";
-	std::cerr << "Chargement de '" << chemin << "'\n";
-	std::cerr << "étendue grille : "
-			  << '(' << min_x << ',' << min_y << ')'
-			  << " -> "
-			  << '(' << max_x << ',' << max_y << ')'
-			  << '\n';
-	std::cerr << "résolution grille : "
-			  << '(' << max_x - min_x << ',' << max_y - min_y << ')'
-			  << " orig : "
-			  << '(' << largeur << ',' << hauteur << ')'
-			  << '\n';
-#endif
-
-	auto desc = wlk::desc_grille_2d{};
-	desc.taille_pixel = 1.0;
-	desc.etendue.min = dls::math::vec2f{ min_x, min_y };
-	desc.etendue.max = dls::math::vec2f{ max_x, max_y };
-	desc.fenetre_donnees = desc.etendue;
+	auto desc = desc_depuis_exr(ds, dw);
 
 	auto S = image->ajoute_calque_profond("S", desc, wlk::type_grille::N32);
 	auto R = image->ajoute_calque_profond("R", desc, wlk::type_grille::R32_PTR);
@@ -403,8 +408,38 @@ static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
 static auto charge_jpeg(const char *chemin, std::any const &donnees)
 {
 	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
-	auto ptr = std::any_cast<type_image *>(donnees);
-	*ptr = dls::image::operation::converti_en_float(image_char);
+	auto tmp = dls::image::operation::converti_en_float(image_char);
+
+	auto largeur = tmp.nombre_colonnes();
+	auto hauteur = tmp.nombre_lignes();
+
+	auto moitie_x = static_cast<float>(largeur) * 0.5f;
+	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
+
+	auto desc = wlk::desc_grille_2d();
+	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
+	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_voxel = 1.0;
+
+	auto ptr_image = std::any_cast<Image *>(donnees);
+	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	auto tampon = extrait_grille_couleur(calque);
+
+	auto index = 0l;
+	for (auto y = 0; y < hauteur; ++y) {
+		for (auto x = 0; x < largeur; ++x, ++index) {
+			auto const &v = tmp[y][x];
+
+			auto pixel = dls::phys::couleur32();
+			pixel.r = v.r;
+			pixel.v = v.g;
+			pixel.b = v.b;
+			pixel.a = 1.0f;
+
+			tampon->valeur(index) = pixel;
+		}
+	}
 }
 
 /* ************************************************************************** */
@@ -452,7 +487,7 @@ public:
 /* ************************************************************************** */
 
 class OperatriceLectureJPEG : public OperatriceImage {
-	type_image m_image_chargee{};
+	grille_couleur m_image_chargee{};
 	dls::chaine m_dernier_chemin = "";
 	PoigneeFichier *m_poignee_fichier = nullptr;
 
@@ -488,16 +523,12 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
-		m_image.reinitialise();
 
 		auto nom_calque = evalue_chaine("nom_calque");
 
 		if (nom_calque == "") {
 			nom_calque = "image";
 		}
-
-		auto const &rectangle = contexte.resolution_rendu;
-		auto tampon = m_image.ajoute_calque(nom_calque, rectangle);
 
 		dls::chaine chemin = evalue_chaine("chemin");
 
@@ -511,8 +542,10 @@ public:
 		}
 
 		if (m_dernier_chemin != chemin) {
+			m_image.reinitialise();
+
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
-			auto donnees = std::any(&m_image_chargee);
+			auto donnees = std::any(&m_image);
 
 			if (chemin.trouve(".exr") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(charge_exr, donnees);
@@ -524,32 +557,13 @@ public:
 			m_dernier_chemin = chemin;
 		}
 
-		/* copie dans l'image de l'opérateur. */
-		auto largeur = static_cast<int>(rectangle.largeur);
-		auto hauteur = static_cast<int>(rectangle.hauteur);
-
 		/* À FAIRE : un neoud dédié pour les textures. */
-		if (evalue_bool("est_texture")) {
-			largeur = m_image_chargee.nombre_colonnes();
-			hauteur = m_image_chargee.nombre_lignes();
+//		if (evalue_bool("est_texture")) {
+//			largeur = m_image_chargee.nombre_colonnes();
+//			hauteur = m_image_chargee.nombre_lignes();
 
-			tampon->tampon = type_image(m_image_chargee.dimensions());
-		}
-
-		auto debut_x = std::max(0l, static_cast<long>(rectangle.x));
-		auto fin_x = static_cast<long>(std::min(m_image_chargee.nombre_colonnes(), largeur));
-		auto debut_y = std::max(0l, static_cast<long>(rectangle.y));
-		auto fin_y = static_cast<long>(std::min(m_image_chargee.nombre_lignes(), hauteur));
-
-		for (auto x = debut_x; x < fin_x; ++x) {
-			for (auto y = debut_y; y < fin_y; ++y) {
-				/* À FAIRE : alpha. */
-				auto pixel = m_image_chargee[static_cast<int>(y)][x];
-				pixel.a = 1.0f;
-
-				tampon->valeur(x, y, pixel);
-			}
-		}
+//			tampon->tampon = type_image(m_image_chargee.dimensions());
+//		}
 
 		return EXECUTION_REUSSIE;
 	}
@@ -558,7 +572,7 @@ public:
 /* ************************************************************************** */
 
 class OpLectureImgProfonde : public OperatriceImage {
-	type_image m_image_chargee{};
+	grille_couleur m_image_chargee{};
 	dls::chaine m_dernier_chemin = "";
 	PoigneeFichier *m_poignee_fichier = nullptr;
 

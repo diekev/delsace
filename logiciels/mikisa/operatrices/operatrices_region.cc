@@ -38,40 +38,44 @@
 #include "coeur/operatrice_image.h"
 #include "coeur/usine_operatrice.h"
 
+#include "wolika/echantillonnage.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
-template <typename TypeOperation>
-void applique_fonction(type_image &image, TypeOperation &&op)
+template <typename T, typename TypeOperation>
+void applique_fonction(wlk::grille_dense_2d<T> &image, TypeOperation &&op)
 {
-	auto const res_x = image.nombre_colonnes();
-	auto const res_y = image.nombre_lignes();
+	auto const res_x = image.desc().resolution.x;
+	auto const res_y = image.desc().resolution.y;
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (int l = plage.begin(); l < plage.end(); ++l) {
 			for (int c = 0; c < res_x; ++c) {
-				image[l][c] = op(image[l][c]);
+				auto index = image.calcul_index(dls::math::vec2i(c, l));
+				image.valeur(index) = op(image.valeur(index));
 			}
 		}
 	});
 }
 
-template <typename TypeOperation>
-void applique_fonction_position(type_image &image, TypeOperation &&op)
+template <typename T, typename TypeOperation>
+void applique_fonction_position(wlk::grille_dense_2d<T> &image, TypeOperation &&op)
 {
-	auto const res_x = image.nombre_colonnes();
-	auto const res_y = image.nombre_lignes();
+	auto const res_x = image.desc().resolution.x;
+	auto const res_y = image.desc().resolution.y;
 
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (int l = plage.begin(); l < plage.end(); ++l) {
 			for (int c = 0; c < res_x; ++c) {
-				image[l][c] = op(image[l][c], l, c);
+				auto index = image.calcul_index(dls::math::vec2i(c, l));
+				image.valeur(index) = op(image.valeur(index), l, c);
 			}
 		}
 	});
@@ -129,9 +133,9 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -178,39 +182,47 @@ public:
 			dy1 = -dy1;
 		}
 
-		auto image_tampon = type_image(tampon->tampon.dimensions());
+		auto tampon = extrait_grille_couleur(calque_entree);
+		auto res_x = tampon->desc().resolution.x;
+
+		dy0 *= res_x;
+		dy1 *= res_x;
+
+		auto image_tampon = grille_couleur(tampon->desc());
 
 		applique_fonction_position(image_tampon,
-								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
+								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
-			auto resultat = dls::image::PixelFloat();
+			auto index = tampon->calcul_index(dls::math::vec2i(c, l));
+
+			auto resultat = dls::phys::couleur32();
 			resultat.a = 1.0f;
 
 			if (filtre == ANALYSE_GRADIENT) {
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
 
 					resultat.r = (px1.r - px0.r);
-					resultat.g = (px1.g - px0.g);
+					resultat.v = (px1.v - px0.v);
 					resultat.b = (px1.b - px0.b);
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					resultat.r = (py1.r - py0.r);
-					resultat.g = (py1.g - py0.g);
+					resultat.v = (py1.v - py0.v);
 					resultat.b = (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					resultat.r = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f;
-					resultat.g = ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f;
+					resultat.v = ((px1.v - px0.v) + (py1.v - py0.v)) * 0.5f;
 					resultat.b = ((px1.b - px0.b) + (py1.b - py0.b)) * 0.5f;
 				}
 			}
@@ -218,103 +230,103 @@ public:
 				auto valeur = 0.0f;
 
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
 
-					valeur = (px1.r - px0.r) + (px1.g - px0.g) + (px1.b - px0.b);
+					valeur = (px1.r - px0.r) + (px1.v - px0.v) + (px1.b - px0.b);
 
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
-					valeur = (py1.r - py0.r) + (py1.g - py0.g) + (py1.b - py0.b);
+					valeur = (py1.r - py0.r) + (py1.v - py0.v) + (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					valeur = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f
-							 + ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f
+							 + ((px1.v - px0.v) + (py1.v - py0.v)) * 0.5f
 							 + ((px1.b - px0.b) + (py1.b - py0.b)) * 0.5f;
 				}
 
 				resultat.r = valeur;
-				resultat.g = valeur;
+				resultat.v = valeur;
 				resultat.b = valeur;
 			}
 			else if (filtre == ANALYSE_LAPLACIEN) {
-				auto px  = tampon->valeur(c, l);
+				auto px  = tampon->valeur(index);
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
 
 					resultat.r = px1.r + px0.r - px.r * 2.0f;
-					resultat.g = px1.g + px0.g - px.g * 2.0f;
+					resultat.v = px1.v + px0.v - px.v * 2.0f;
 					resultat.b = px1.b + px0.b - px.b * 2.0f;
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					resultat.r = py1.r + py0.r - px.r * 2.0f;
-					resultat.g = py1.g + py0.g - px.g * 2.0f;
+					resultat.v = py1.v + py0.v - px.v * 2.0f;
 					resultat.b = py1.b + py0.b - px.b * 2.0f;
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					resultat.r = px1.r + px0.r + py1.r + py0.r - px.r * 4.0f;
-					resultat.g = px1.g + px0.g + py1.g + py0.g - px.g * 4.0f;
+					resultat.v = px1.v + px0.v + py1.v + py0.v - px.v * 4.0f;
 					resultat.b = px1.b + px0.b + py1.b + py0.b - px.b * 4.0f;
 				}
 			}
 			else if (filtre == ANALYSE_COURBE) {
-				auto px  = tampon->valeur(c, l);
-				auto gradient = dls::image::PixelFloat();
+				auto px  = tampon->valeur(index);
+				auto gradient = dls::phys::couleur32();
 
 				if (dir == DIRECTION_X) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
 
 					gradient.r = (px1.r - px0.r);
-					gradient.g = (px1.g - px0.g);
+					gradient.v = (px1.v - px0.v);
 					gradient.b = (px1.b - px0.b);
 				}
 				else if (dir == DIRECTION_Y) {
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					gradient.r = (py1.r - py0.r);
-					gradient.g = (py1.g - py0.g);
+					gradient.v = (py1.v - py0.v);
 					gradient.b = (py1.b - py0.b);
 				}
 				else if (dir == DIRECTION_XY) {
-					auto px0 = tampon->valeur(c - dx0, l);
-					auto px1 = tampon->valeur(c + dx1, l);
-					auto py0 = tampon->valeur(c, l - dy0);
-					auto py1 = tampon->valeur(c, l + dy1);
+					auto px0 = tampon->valeur(index - dx0);
+					auto px1 = tampon->valeur(index + dx1);
+					auto py0 = tampon->valeur(index - dy0);
+					auto py1 = tampon->valeur(index + dy1);
 
 					gradient.r = ((px1.r - px0.r) + (py1.r - py0.r)) * 0.5f;
-					gradient.g = ((px1.g - px0.g) + (py1.g - py0.g)) * 0.5f;
+					gradient.v = ((px1.v - px0.v) + (py1.v - py0.v)) * 0.5f;
 					gradient.b = ((px1.b - px0.b) + (py1.b - py0.b)) * 0.5f;
 				}
 
-				resultat.r = gradient.g * px.b - gradient.b * px.g;
-				resultat.g = gradient.b * px.r - gradient.r * px.b;
-				resultat.b = gradient.r * px.g - gradient.g * px.r;
+				resultat.r = gradient.v * px.b - gradient.b * px.v;
+				resultat.v = gradient.b * px.r - gradient.r * px.b;
+				resultat.b = gradient.r * px.v - gradient.v * px.r;
 			}
 
 			return resultat;
 		});
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
-		calque->tampon = image_tampon;
+		auto calque = m_image.ajoute_calque(nom_calque, image_tampon.desc(), wlk::type_grille::COULEUR);
+		*calque->tampon = image_tampon;
 
 		return EXECUTION_REUSSIE;
 	}
@@ -352,13 +364,18 @@ public:
 	{
 		m_image.reinitialise();
 
+#if 1
+		this->ajoute_avertissement("à réimplémenter");
+#else
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
 
 		auto operation = evalue_enum("operation");
 		auto filtre = 0;
@@ -397,14 +414,33 @@ public:
 			filtre = dls::image::operation::NOYAU_SOBEL_Y;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
-		calque->tampon = dls::image::operation::applique_convolution(tampon->tampon, filtre);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+		//calque->tampon = dls::image::operation::applique_convolution(tampon->tampon, filtre);
+#endif
 
 		return EXECUTION_REUSSIE;
 	}
 };
 
 /* ************************************************************************** */
+
+auto valeur_maximale(grille_couleur const &grille)
+{
+	auto max = dls::phys::couleur32(-constantes<float>::INFINITE);
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		for (auto j = 0; j < 4; ++j) {
+			if (v[j] > max[j]) {
+				max[j] = v[j];
+			}
+		}
+	}
+
+	return max;
+}
 
 class OperatriceNormalisationRegion : public OperatriceImage {
 public:
@@ -438,20 +474,22 @@ public:
 
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, &m_image, nom_calque);
+		auto calque = cherche_calque(*this, &m_image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto maximum = dls::image::operation::valeur_maximale(tampon->tampon);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto maximum = valeur_maximale(*tampon);
 		maximum.r = (maximum.r > 0.0f) ? (1.0f / maximum.r) : 0.0f;
-		maximum.g = (maximum.g > 0.0f) ? (1.0f / maximum.g) : 0.0f;
+		maximum.v = (maximum.v > 0.0f) ? (1.0f / maximum.v) : 0.0f;
 		maximum.b = (maximum.b > 0.0f) ? (1.0f / maximum.b) : 0.0f;
 		maximum.a = (maximum.a > 0.0f) ? (1.0f / maximum.a) : 0.0f;
 
-		applique_fonction(tampon->tampon,
-						  [&](dls::image::Pixel<float> const &pixel)
+		applique_fonction(*tampon,
+						  [&](dls::phys::couleur32 const &pixel)
 		{
 			return maximum * pixel;
 		});
@@ -494,17 +532,18 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto const largeur = static_cast<size_t>(tampon->tampon.nombre_colonnes());
-		auto const hauteur = static_cast<size_t>(tampon->tampon.nombre_lignes());
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+		auto const largeur = tampon_entree->desc().resolution.x;
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
-		auto image_tmp = type_image(tampon->tampon.dimensions());
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+		auto image_tmp = grille_couleur(tampon_entree->desc());
 
 		auto const rayon_flou = evalue_decimal("rayon", contexte.temps_courant);
 		auto const type_flou = evalue_enum("type");
@@ -538,61 +577,57 @@ public:
 
 		/* flou horizontal */
 		applique_fonction_position(image_tmp,
-								   [&](dls::image::Pixel<float> const &/*pixel*/, int ye, int xe)
+								   [&](dls::phys::couleur32 const &/*pixel*/, int y, int x)
 		{
-			auto x = static_cast<long>(xe);
-			auto y = static_cast<long>(ye);
-			dls::image::Pixel<float> valeur;
+			auto index = tampon_entree->calcul_index(dls::math::vec2i(x, y));
+			dls::phys::couleur32 valeur;
 			valeur.r = 0.0f;
-			valeur.g = 0.0f;
+			valeur.v = 0.0f;
 			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(x, y).a;
+			valeur.a = tampon_entree->valeur(index).a;
 
-			for (auto ix = x - static_cast<long>(rayon), k = 0l; ix < x + static_cast<long>(rayon) + 1; ix++, ++k) {
-				auto const xx = std::min(static_cast<long>(largeur - 1), std::max(0l, ix));
-				auto const &p = tampon->valeur(xx, y);
+			for (auto ix = x - static_cast<int>(rayon), k = 0; ix < x + static_cast<int>(rayon) + 1; ix++, ++k) {
+				auto const &p = tampon_entree->valeur(dls::math::vec2i(ix, y));
 				valeur.r += p.r * kernel[k];
-				valeur.g += p.g * kernel[k];
+				valeur.v += p.v * kernel[k];
 				valeur.b += p.b * kernel[k];
 			}
 
 			valeur.r *= poids;
-			valeur.g *= poids;
+			valeur.v *= poids;
 			valeur.b *= poids;
 
 			return valeur;
 		});
 
-		calque->tampon.swap(image_tmp);
+		copie_donnees_calque(image_tmp, *tampon);
 
 		/* flou vertical */
 		applique_fonction_position(image_tmp,
-								   [&](dls::image::Pixel<float> const &/*pixel*/, int ye, int xe)
+								   [&](dls::phys::couleur32 const &/*pixel*/, int y, int x)
 		{
-			auto x = static_cast<long>(xe);
-			auto y = static_cast<long>(ye);
-			dls::image::Pixel<float> valeur;
+			auto index = tampon->calcul_index(dls::math::vec2i(x, y));
+			dls::phys::couleur32 valeur;
 			valeur.r = 0.0f;
-			valeur.g = 0.0f;
+			valeur.v = 0.0f;
 			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(x, y).a;
+			valeur.a = tampon->valeur(index).a;
 
-			for (auto iy = y - static_cast<long>(rayon), k = 0l; iy < y + static_cast<long>(rayon) + 1; iy++, ++k) {
-				auto const yy = std::min(static_cast<long>(hauteur - 1), std::max(0l, iy));
-				auto const &p = calque->valeur(x, yy);
+			for (auto iy = y - static_cast<int>(rayon), k = 0; iy < y + static_cast<int>(rayon) + 1; iy++, ++k) {
+				auto const &p = tampon->valeur(dls::math::vec2i(x, iy));
 				valeur.r += p.r * kernel[k];
-				valeur.g += p.g * kernel[k];
+				valeur.v += p.v * kernel[k];
 				valeur.b += p.b * kernel[k];
 			}
 
 			valeur.r *= poids;
-			valeur.g *= poids;
+			valeur.v *= poids;
 			valeur.b *= poids;
 
 			return valeur;
 		});
 
-		calque->tampon.swap(image_tmp);
+		copie_donnees_calque(image_tmp, *tampon);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -632,14 +667,15 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto const &hauteur = tampon->tampon.nombre_lignes();
-		auto const &largeur = tampon->tampon.nombre_colonnes();
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+		auto const &hauteur = tampon_entree->desc().resolution.y;
+		auto const &largeur = tampon_entree->desc().resolution.x;
 		auto const &hauteur_inverse = 1.0f / static_cast<float>(hauteur);
 		auto const &largeur_inverse = 1.0f / static_cast<float>(largeur);
 
@@ -648,10 +684,11 @@ public:
 		auto const taille = evalue_decimal("taille", contexte.temps_courant);
 		auto const periodes = evalue_decimal("périodes", contexte.temps_courant);
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
-		applique_fonction_position(calque->tampon,
-								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
+		applique_fonction_position(*tampon,
+								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
 			auto const fl = static_cast<float>(l) * hauteur_inverse + decalage_y;
@@ -662,7 +699,7 @@ public:
 			auto nc = rayon * std::cos(angle) * static_cast<float>(largeur) + 0.5f;
 			auto nl = rayon * std::sin(angle) * static_cast<float>(hauteur) + 0.5f;
 
-			return tampon->echantillone(nc, nl);
+			return wlk::echantillonne_lineaire(*tampon, nc, nl);
 		});
 
 		return EXECUTION_REUSSIE;
@@ -672,11 +709,11 @@ public:
 /* ************************************************************************** */
 
 static void calcule_distance(
-		dls::math::matrice_dyn<float> &phi,
+		wlk::grille_dense_2d<float> &phi,
 		int x, int y, float h)
 {
-	auto a = std::min(phi[y][x - 1], phi[y][x + 1]);
-	auto b = std::min(phi[y - 1][x], phi[y + 1][x]);
+	auto a = std::min(phi.valeur(dls::math::vec2i(x - 1, y)), phi.valeur(dls::math::vec2i(x + 1, y)));
+	auto b = std::min(phi.valeur(dls::math::vec2i(x, y - 1)), phi.valeur(dls::math::vec2i(x, y + 1)));
 	auto xi = 0.0f;
 
 	if (std::abs(a - b) >= h) {
@@ -686,7 +723,33 @@ static void calcule_distance(
 		xi =  0.5f * (a + b + std::sqrt(2.0f * h * h - (a - b) * (a - b)));
 	}
 
-	phi[y][x] = std::min(phi[y][x], xi);
+	phi.valeur(dls::math::vec2i(x, y)) = std::min(phi.valeur(dls::math::vec2i(x, y)), xi);
+}
+
+static auto luminance(grille_couleur const &grille)
+{
+	auto res = wlk::grille_dense_2d<float>(grille.desc());
+
+	for (auto i = 0; i < res.nombre_elements(); ++i) {
+		auto clr = grille.valeur(i);
+		res.valeur(i) = dls::image::outils::luminance_709(clr.r, clr.v, clr.b);
+	}
+
+	return res;
+}
+
+static auto converti_float_pixel(wlk::grille_dense_2d<float> const &grille)
+{
+	auto res = grille_couleur(grille.desc());
+
+	for (auto i = 0; i < res.nombre_elements(); ++i) {
+		auto pixel = dls::phys::couleur32(grille.valeur(i));
+		pixel.a = 1.0f;
+
+		res.valeur(i) = pixel;
+	}
+
+	return res;
 }
 
 class OperatriceChampsDistance : public OperatriceImage {
@@ -721,15 +784,17 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
 		auto const methode = evalue_enum("méthode");
-		auto image_grise = dls::image::operation::luminance(tampon->tampon);
-		auto image_tampon = dls::math::matrice_dyn<float>(tampon->tampon.dimensions());
+		auto image_grise = luminance(*tampon_entree);
+		auto image_tampon = wlk::grille_dense_2d<float>(tampon_entree->desc());
 		auto valeur_iso = evalue_decimal("valeur_iso", contexte.temps_courant);
 
 		/* À FAIRE :  deux versions de chaque algorithme : signée et non-signée.
@@ -738,18 +803,18 @@ public:
 		 */
 
 		if (methode == "balayage_rapide") {
-			int res_x = tampon->tampon.nombre_colonnes();
-			int res_y = tampon->tampon.nombre_lignes();
+			int res_x = tampon_entree->desc().resolution.x;
+			int res_y = tampon_entree->desc().resolution.y;
 
 			auto h = std::min(1.0f / static_cast<float>(res_x), 1.0f / static_cast<float>(res_y));
 
 			for (int y = 0; y < res_y; ++y) {
 				for (int x = 0; x < res_x; ++x) {
-					if (image_grise[y][x] > valeur_iso) {
-						image_tampon[y][x] = 1.0f;
+					if (image_grise.valeur(dls::math::vec2i(x, y)) > valeur_iso) {
+						image_tampon.valeur(dls::math::vec2i(x, y)) = 1.0f;
 					}
 					else {
-						image_tampon[y][x] = 0.0f;
+						image_tampon.valeur(dls::math::vec2i(x, y)) = 0.0f;
 					}
 				}
 			}
@@ -757,7 +822,7 @@ public:
 			/* bas-droite */
 			for (int x = 1; x < res_x - 1; ++x) {
 				for (int y = 1; y < res_y - 1; ++y) {
-					if (image_tampon[y][x] != 0.0f) {
+					if (image_tampon.valeur(dls::math::vec2i(x, y)) != 0.0f) {
 						calcule_distance(image_tampon, x, y, h);
 					}
 				}
@@ -766,7 +831,7 @@ public:
 			/* bas-gauche */
 			for (int x = res_x - 2; x >= 1; --x) {
 				for (int y = 1; y < res_y - 1; ++y) {
-					if (image_tampon[y][x] != 0.0f) {
+					if (image_tampon.valeur(dls::math::vec2i(x, y)) != 0.0f) {
 						calcule_distance(image_tampon, x, y, h);
 					}
 				}
@@ -775,7 +840,7 @@ public:
 			/* haut-gauche */
 			for (int x = res_x - 2; x >= 1; --x) {
 				for (int y = res_y - 2; y >= 1; --y) {
-					if (image_tampon[y][x] != 0.0f) {
+					if (image_tampon.valeur(dls::math::vec2i(x, y)) != 0.0f) {
 						calcule_distance(image_tampon, x, y, h);
 					}
 				}
@@ -784,22 +849,23 @@ public:
 			/* haut-droite */
 			for (int x = 1; x < res_x - 1; ++x) {
 				for (int y = res_y - 2; y >= 1; --y) {
-					if (image_tampon[y][x] != 0.0f) {
+					if (image_tampon.valeur(dls::math::vec2i(x, y)) != 0.0f) {
 						calcule_distance(image_tampon, x, y, h);
 					}
 				}
 			}
 		}
 		else if (methode == "estime") {
-			dls::image::operation::navigation_estime::genere_champs_distance(image_grise, image_tampon, valeur_iso);
+			//dls::image::operation::navigation_estime::genere_champs_distance(image_grise, image_tampon, valeur_iso);
 		}
 		else if (methode == "8SSEDT") {
-			dls::image::operation::ssedt::genere_champs_distance(image_grise, image_tampon, valeur_iso);
+			//dls::image::operation::ssedt::genere_champs_distance(image_grise, image_tampon, valeur_iso);
 		}
 
 		/* À FAIRE : alpha ou tampon à canaux variables */
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
-		calque->tampon = dls::image::operation::converti_float_pixel(image_tampon);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+		*tampon = converti_float_pixel(image_tampon);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -807,9 +873,9 @@ public:
 
 /* ************************************************************************** */
 
-static auto moyenne(dls::image::Pixel<float> const &pixel)
+static auto moyenne(dls::phys::couleur32 const &pixel)
 {
-	return (pixel.r + pixel.g + pixel.b) * 0.3333f;
+	return (pixel.r + pixel.v + pixel.b) * 0.3333f;
 }
 
 class OperatriceDeformation final : public OperatriceImage {
@@ -844,36 +910,40 @@ public:
 
 		auto image1 = entree(0)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto tampon1 = cherche_calque(*this, image1, nom_calque_a);
+		auto calque_a = cherche_calque(*this, image1, nom_calque_a);
 
-		if (tampon1 == nullptr) {
+		if (calque_a == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
 		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto tampon2 = cherche_calque(*this, image2, nom_calque_b);
+		auto calque_b = cherche_calque(*this, image2, nom_calque_b);
 
-		if (tampon2 == nullptr) {
+		if (calque_b == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto res_x = tampon1->tampon.nombre_colonnes();
-		auto res_y = tampon1->tampon.nombre_lignes();
-		auto calque = m_image.ajoute_calque(nom_calque_a, contexte.resolution_rendu);
+		auto tampon_a = extrait_grille_couleur(calque_a);
+		auto tampon_b = extrait_grille_couleur(calque_b);
+		auto res_x = tampon_a->desc().resolution.x;
+		auto res_y = tampon_a->desc().resolution.y;
 
-		applique_fonction_position(calque->tampon,
-								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
+		auto calque = m_image.ajoute_calque(nom_calque_a, tampon_a->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		applique_fonction_position(*tampon,
+								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			auto const c0 = std::min(res_x - 1, std::max(0, c - 1));
 			auto const c1 = std::min(res_x - 1, std::max(0, c + 1));
 			auto const l0 = std::min(res_y - 1, std::max(0, l - 1));
 			auto const l1 = std::min(res_y - 1, std::max(0, l + 1));
 
-			auto const x0 = moyenne(tampon2->tampon[l][c0]);
-			auto const x1 = moyenne(tampon2->tampon[l][c1]);
-			auto const y0 = moyenne(tampon2->tampon[l0][c]);
-			auto const y1 = moyenne(tampon2->tampon[l1][c]);
+			auto const x0 = moyenne(tampon_b->valeur(dls::math::vec2i(c0, l)));
+			auto const x1 = moyenne(tampon_b->valeur(dls::math::vec2i(c1, l)));
+			auto const y0 = moyenne(tampon_b->valeur(dls::math::vec2i(c, l0)));
+			auto const y1 = moyenne(tampon_b->valeur(dls::math::vec2i(c, l1)));
 
 			auto const pos_x = x1 - x0;
 			auto const pos_y = y1 - y0;
@@ -881,7 +951,7 @@ public:
 			auto const x = static_cast<float>(c) + pos_x * static_cast<float>(res_x);
 			auto const y = static_cast<float>(l) + pos_y * static_cast<float>(res_y);
 
-			return tampon1->echantillone(x, y);
+			return echantillonne_lineaire(*tampon_a, x, y);
 		});
 
 		return EXECUTION_REUSSIE;
@@ -921,18 +991,19 @@ unsigned int poisson(const float u, const float lambda)
 	return x;
 }
 
-using type_image_grise = dls::math::matrice_dyn<float>;
+using type_image_grise = wlk::grille_dense_2d<float>;
 
-static type_image_grise extrait_canal(type_image const &image, const int chaine)
+static type_image_grise extrait_canal(grille_couleur const &image, const int canal)
 {
-	type_image_grise resultat(image.dimensions());
+	type_image_grise resultat(image.desc());
 
-	boucle_parallele(tbb::blocked_range<int>(0, image.nombre_lignes()),
+	boucle_parallele(tbb::blocked_range<int>(0, image.desc().resolution.y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
-			for (auto c = 0; c < image.nombre_colonnes(); ++c) {
-				resultat[l][c] = image[l][c][chaine];
+			for (auto c = 0; c < image.desc().resolution.x; ++c) {
+				auto index = image.calcul_index(dls::math::vec2i(c, l));
+				resultat.valeur(index) = image.valeur(index)[canal];
 			}
 		}
 	});
@@ -941,20 +1012,24 @@ static type_image_grise extrait_canal(type_image const &image, const int chaine)
 }
 
 static void assemble_image(
-		type_image &image,
+		grille_couleur &image,
 		type_image_grise const &canal_rouge,
 		type_image_grise const &canal_vert,
 		type_image_grise const &canal_bleu)
 {
 
-	boucle_parallele(tbb::blocked_range<int>(0, image.nombre_lignes()),
+	boucle_parallele(tbb::blocked_range<int>(0, image.desc().resolution.y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
-			for (auto c = 0; c < image.nombre_colonnes(); ++c) {
-				image[l][c].r = canal_rouge[l][c];
-				image[l][c].g = canal_vert[l][c];
-				image[l][c].b = canal_bleu[l][c];
+			for (auto c = 0; c < image.desc().resolution.x; ++c) {
+				auto index = image.calcul_index(dls::math::vec2i(c, l));
+				auto pixel = dls::phys::couleur32(1.0f);
+				pixel.r = canal_rouge.valeur(index);
+				pixel.v = canal_vert.valeur(index);
+				pixel.b = canal_bleu.valeur(index);
+
+				image.valeur(index) = pixel;
 			}
 		}
 	});
@@ -967,10 +1042,10 @@ static type_image_grise simule_grain_image(
 		const float sigma_rayon,
 		const float sigma_filtre)
 {
-	auto const res_x = image.nombre_colonnes();
-	auto const res_y = image.nombre_lignes();
+	auto const res_x = image.desc().resolution.x;
+	auto const res_y = image.desc().resolution.y;
 
-	type_image_grise resultat(image.dimensions());
+	type_image_grise resultat(image.desc());
 
 	auto normal_quantile = 3.0902f;	//standard normal quantile for alpha=0.999
 	auto rayon_grain2 = rayon_grain * rayon_grain;
@@ -1022,7 +1097,8 @@ static type_image_grise simule_grain_image(
 
 		for (int j = plage.begin(); j < plage.end(); ++j) {
 			for (int i = 0; i < res_x; ++i) {
-				resultat[j][i] = 0.0f;
+				auto index = resultat.calcul_index(dls::math::vec2i(i, j));
+				resultat.valeur(index) = 0.0f;
 
 				for (auto k = 0; k < iter; ++k) {
 					bool va_suivant = false;
@@ -1043,7 +1119,7 @@ static type_image_grise simule_grain_image(
 							auto coin_y = delta*static_cast<float>(jd);
 
 							// échantillone image
-							auto const u = std::max(0.0f, std::min(1.0f, image[int(coin_y)][int(coin_x)]));
+							auto const u = std::max(0.0f, std::min(1.0f, image.valeur(dls::math::vec2i(int(coin_x), int(coin_y)))));
 							auto const index_u = static_cast<long>(u * MAX_NIVEAU_GRIS);
 							auto const lambda = lambdas[index_u];
 							auto const Q = poisson(gna_local.uniforme(0.0f, 1.0f), lambda);
@@ -1064,7 +1140,7 @@ static type_image_grise simule_grain_image(
 								}
 
 								if ((dy*dy + dx*dx) < rayon_courant2) {
-									resultat[j][i] += 1.0f;
+									resultat.valeur(index) += 1.0f;
 									va_suivant = true;
 									break; // va vers la prochaine itération MC
 								}
@@ -1081,7 +1157,7 @@ static type_image_grise simule_grain_image(
 					}
 				}
 
-				resultat[j][i] /= iter;
+				resultat.valeur(index) /= iter;
 			}
 		}
 	});
@@ -1121,11 +1197,13 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const &nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
 
 		/* parametres utilisateurs */
 		auto const &graine = evalue_entier("graine", contexte.temps_courant) + contexte.temps_courant;
@@ -1142,16 +1220,17 @@ public:
 		auto const &sigma_rayon_b = evalue_decimal("sigma_rayon_b", contexte.temps_courant);
 		auto const &sigma_filtre_b = evalue_decimal("sigma_filtre_b", contexte.temps_courant);
 
-		auto const &canal_rouge = extrait_canal(tampon->tampon, 0);
-		auto const &canal_vert = extrait_canal(tampon->tampon, 1);
-		auto const &canal_bleu = extrait_canal(tampon->tampon, 2);
+		auto const &canal_rouge = extrait_canal(*tampon_entree, 0);
+		auto const &canal_vert = extrait_canal(*tampon_entree, 1);
+		auto const &canal_bleu = extrait_canal(*tampon_entree, 2);
 
 		auto const &bruit_rouge = simule_grain_image(canal_rouge, graine, rayon_grain_r, sigma_rayon_r, sigma_filtre_r);
 		auto const &bruit_vert = simule_grain_image(canal_vert, graine, rayon_grain_v, sigma_rayon_v, sigma_filtre_v);
 		auto const &bruit_bleu = simule_grain_image(canal_bleu, graine, rayon_grain_b, sigma_rayon_b, sigma_filtre_b);
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
-		assemble_image(calque->tampon, bruit_rouge, bruit_vert, bruit_bleu);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+		assemble_image(*tampon, bruit_rouge, bruit_vert, bruit_bleu);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1191,26 +1270,29 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		int res_x = tampon->tampon.nombre_colonnes();
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		int res_x = tampon_entree->desc().resolution.x;
 		auto inv_res_x = 1.0f / static_cast<float>(res_x);
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
-		applique_fonction_position(calque->tampon,
-								   [&](dls::image::PixelFloat const &/*pixel*/, int l, int c)
+		applique_fonction_position(*tampon,
+								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
 			auto const r = static_cast<float>(l);
 			auto const theta = constantes<float>::TAU * static_cast<float>(c) * inv_res_x;
 			auto const x = r * std::cos(theta);
 			auto const y = r * std::sin(theta);
-			return tampon->echantillone(x, y);
+			return echantillonne_lineaire(*tampon, x, y);
 		});
 
 
@@ -1252,21 +1334,24 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
 		auto const iterations = evalue_entier("itérations");
-		auto res_x = tampon->tampon.nombre_colonnes();
-		auto res_y = tampon->tampon.nombre_lignes();
+		auto res_x = tampon_entree->desc().resolution.x;
+		auto res_y = tampon_entree->desc().resolution.y;
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
-		copie_donnees_calque(tampon->tampon, calque->tampon);
+		copie_donnees_calque(*tampon_entree, *tampon);
 
-		auto image_tmp = type_image(calque->tampon.dimensions());
+		auto image_tmp = grille_couleur(tampon->desc());
 
 		auto const coeff = 1.0f / std::sqrt(2.0f);
 
@@ -1275,39 +1360,39 @@ public:
 			auto const taille_y = res_y / 2;
 			for (int y = 0; y < taille_y; ++y) {
 				for (int x = 0; x < res_x; ++x) {
-					auto const p0 = calque->valeur(x, y * 2);
-					auto const p1 = calque->valeur(x, y * 2 + 1);
+					auto const p0 = tampon->valeur(dls::math::vec2i(x, y * 2));
+					auto const p1 = tampon->valeur(dls::math::vec2i(x, y * 2 + 1));
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
 					somme.a = 1.0f;
 					diff.a = 1.0f;
 
-					image_tmp[y][x] = somme;
-					image_tmp[taille_y + y][x] = diff;
+					image_tmp.valeur(dls::math::vec2i(x, y)) = somme;
+					image_tmp.valeur(dls::math::vec2i(x, y + taille_y)) = diff;
 				}
 			}
 
-			calque->tampon = image_tmp;
+			*tampon = image_tmp;
 
 			/* transformation horizontale */
 			auto const taille_x = res_x / 2;
 			for (int y = 0; y < res_y; ++y) {
 				for (int x = 0; x < taille_x; ++x) {
-					auto const p0 = calque->valeur(x * 2, y);
-					auto const p1 = calque->valeur(x * 2 + 1, y);
+					auto const p0 = tampon->valeur(dls::math::vec2i(x * 2, y));
+					auto const p1 = tampon->valeur(dls::math::vec2i(x * 2 + 1, y));
 					auto somme = (p0 + p1) * coeff;
 					auto diff = (p0 - p1) * coeff;
 
 					somme.a = 1.0f;
 					diff.a = 1.0f;
 
-					image_tmp[y][x] = somme;
-					image_tmp[y][taille_x + x] = diff;
+					image_tmp.valeur(dls::math::vec2i(x, y)) = somme;
+					image_tmp.valeur(dls::math::vec2i(x + taille_x, y)) = diff;
 				}
 			}
 
-			calque->tampon = image_tmp;
+			*tampon = image_tmp;
 
 			res_x /= 2;
 			res_y /= 2;
@@ -1351,24 +1436,27 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
 
-		auto const res_x = tampon->tampon.nombre_colonnes();
-		auto const res_y = tampon->tampon.nombre_lignes();
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto const res_x = tampon_entree->desc().resolution.x;
+		auto const res_y = tampon_entree->desc().resolution.y;
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_dilation = [&](
-								 dls::image::Pixel<float> const &/*pixel*/,
+								 dls::phys::couleur32 const &/*pixel*/,
 								 int y,
 								 int x)
 		{
-			dls::image::Pixel<float> p0(0.0f);
+			dls::phys::couleur32 p0(0.0f);
 			p0.a = 1.0f;
 
 			auto const debut_x = std::max(0, x - rayon);
@@ -1378,10 +1466,10 @@ public:
 
 			for (int sy = debut_y; sy < fin_y; ++sy) {
 				for (int sx = debut_x; sx < fin_x; ++sx) {
-					auto const p1 = tampon->valeur(sx, sy);
+					auto const p1 = tampon_entree->valeur(dls::math::vec2i(sx, sy));
 
 					p0.r = std::max(p0.r, p1.r);
-					p0.g = std::max(p0.g, p1.g);
+					p0.v = std::max(p0.v, p1.v);
 					p0.b = std::max(p0.b, p1.b);
 				}
 			}
@@ -1389,7 +1477,7 @@ public:
 			return p0;
 		};
 
-		applique_fonction_position(calque->tampon, performe_dilation);
+		applique_fonction_position(*tampon, performe_dilation);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1429,24 +1517,27 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
 
-		auto const res_x = tampon->tampon.nombre_colonnes();
-		auto const res_y = tampon->tampon.nombre_lignes();
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto const res_x = tampon_entree->desc().resolution.x;
+		auto const res_y = tampon_entree->desc().resolution.y;
 		auto const rayon = evalue_entier("rayon");
 
 		auto performe_erosion = [&](
-								dls::image::Pixel<float> const &/*pixel*/,
+								dls::phys::couleur32 const &/*pixel*/,
 								int y,
 								int x)
 		{
-			dls::image::Pixel<float> p0(1.0f);
+			dls::phys::couleur32 p0(1.0f);
 
 			auto const debut_x = std::max(0, x - rayon);
 			auto const debut_y = std::max(0, y - rayon);
@@ -1455,10 +1546,10 @@ public:
 
 			for (int sy = debut_y; sy < fin_y; ++sy) {
 				for (int sx = debut_x; sx < fin_x; ++sx) {
-					auto const p1 = tampon->valeur(sx, sy);
+					auto const p1 = tampon_entree->valeur(dls::math::vec2i(sx, sy));
 
 					p0.r = std::min(p0.r, p1.r);
-					p0.g = std::min(p0.g, p1.g);
+					p0.v = std::min(p0.v, p1.v);
 					p0.b = std::min(p0.b, p1.b);
 				}
 			}
@@ -1466,7 +1557,7 @@ public:
 			return p0;
 		};
 
-		applique_fonction_position(calque->tampon, performe_erosion);
+		applique_fonction_position(*tampon, performe_erosion);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1506,18 +1597,21 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
 
-		auto const res_x = tampon->tampon.nombre_colonnes();
-		auto const res_y = tampon->tampon.nombre_lignes();
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
-		using pixel_t = dls::image::Pixel<float>;
+		auto const res_x = tampon_entree->desc().resolution.x;
+		auto const res_y = tampon_entree->desc().resolution.y;
+
+		using pixel_t = dls::phys::couleur32;
 		using paire_pixel_t = std::pair<pixel_t, int>;
 
 		dls::tableau<paire_pixel_t> histogramme(360ul);
@@ -1529,10 +1623,10 @@ public:
 
 		for (int y = 0; y < res_y; ++y) {
 			for (int x = 0; x < res_x; ++x) {
-				auto const &pixel = tampon->tampon[y][x];
+				auto const &pixel = tampon_entree->valeur(dls::math::vec2i(x, y));
 				auto res = pixel_t();
 				res.a = 1;
-				dls::phys::rvb_vers_hsv(pixel.r, pixel.g, pixel.b, &res.r, &res.g, &res.b);
+				dls::phys::rvb_vers_hsv(pixel.r, pixel.v, pixel.b, &res.r, &res.v, &res.b);
 
 				auto index = static_cast<long>(res.r * 360.0f);
 
@@ -1553,7 +1647,7 @@ public:
 		for (int l = 0; l < res_y; ++l) {
 			for (int c = 0; c < res_x; ++c) {
 				auto index = static_cast<long>(l / 64) % 360;
-				calque->tampon[l][c] = histogramme[index].first;
+				tampon->valeur(dls::math::vec2i(c, l)) = histogramme[index].first;
 			}
 		}
 
@@ -1570,8 +1664,8 @@ public:
  */
 
 static void initialise_causal_prefiltre(
-		dls::image::Pixel<float> *pixel,
-		dls::image::Pixel<float> &somme,
+		dls::phys::couleur32 *pixel,
+		dls::phys::couleur32 &somme,
 		int longueur)
 {
 	auto const Zp = std::sqrt(3.0f) - 2.0f;
@@ -1580,13 +1674,13 @@ static void initialise_causal_prefiltre(
 	auto Zn = Zp;
 
 	somme.r = pixel[0].r;
-	somme.g = pixel[0].g;
+	somme.v = pixel[0].v;
 	somme.b = pixel[0].b;
 	somme.a = pixel[0].a;
 
 	for (auto compte = 0; compte < horizon; ++compte) {
 		somme.r += Zn * pixel[compte].r;
-		somme.g += Zn * pixel[compte].g;
+		somme.v += Zn * pixel[compte].v;
 		somme.b += Zn * pixel[compte].b;
 		somme.a += Zn * pixel[compte].a;
 
@@ -1594,28 +1688,28 @@ static void initialise_causal_prefiltre(
 	}
 
 	pixel[0].r = lambda * somme.r;
-	pixel[0].g = lambda * somme.g;
+	pixel[0].v = lambda * somme.v;
 	pixel[0].b = lambda * somme.b;
 	pixel[0].a = lambda * somme.a;
 }
 
 static void initialise_anticausal_prefiltre(
-		dls::image::Pixel<float> *pixel)
+		dls::phys::couleur32 *pixel)
 {
 	auto const Zp  = std::sqrt(3.0f) - 2.0f;
 	auto const iZp = (Zp / (Zp - 1.0f));
 
 	pixel[0].r = iZp * pixel[0].r;
-	pixel[0].g = iZp * pixel[0].g;
+	pixel[0].v = iZp * pixel[0].v;
 	pixel[0].b = iZp * pixel[0].b;
 	pixel[0].a = iZp * pixel[0].a;
 }
 
-static void recursion_prefiltre(dls::image::Pixel<float> *pixel, int longueur, int stride)
+static void recursion_prefiltre(dls::phys::couleur32 *pixel, int longueur, int stride)
 {
 	auto const Zp = std::sqrt(3.0f) - 2.0f;
 	auto const lambda = (1.0f - Zp) * (1.0f - 1.0f / Zp);
-	auto somme = dls::image::Pixel<float>{};
+	auto somme = dls::phys::couleur32{};
 	auto compte = 0;
 
 	initialise_causal_prefiltre(pixel, somme, longueur);
@@ -1624,7 +1718,7 @@ static void recursion_prefiltre(dls::image::Pixel<float> *pixel, int longueur, i
 
 	for (compte = stride; compte < longueur; ++compte) {
 		pixel[compte].r = prev_coeff.r = (lambda * pixel[compte].r) + (Zp * prev_coeff.r);
-		pixel[compte].g = prev_coeff.g = (lambda * pixel[compte].g) + (Zp * prev_coeff.g);
+		pixel[compte].v = prev_coeff.v = (lambda * pixel[compte].v) + (Zp * prev_coeff.v);
 		pixel[compte].b = prev_coeff.b = (lambda * pixel[compte].b) + (Zp * prev_coeff.b);
 		pixel[compte].a = prev_coeff.a = (lambda * pixel[compte].a) + (Zp * prev_coeff.a);
 	}
@@ -1637,7 +1731,7 @@ static void recursion_prefiltre(dls::image::Pixel<float> *pixel, int longueur, i
 
 	for (compte -= stride; compte >= 0; compte -= stride) {
 		pixel[compte].r = prev_coeff.r = Zp * (prev_coeff.r - pixel[compte].r);
-		pixel[compte].g = prev_coeff.g = Zp * (prev_coeff.g - pixel[compte].g);
+		pixel[compte].v = prev_coeff.v = Zp * (prev_coeff.v - pixel[compte].v);
 		pixel[compte].b = prev_coeff.b = Zp * (prev_coeff.b - pixel[compte].b);
 		pixel[compte].a = prev_coeff.a = Zp * (prev_coeff.a - pixel[compte].a);
 	}
@@ -1675,30 +1769,32 @@ public:
 
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
-		auto tampon = cherche_calque(*this, image, nom_calque);
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
-		if (tampon == nullptr) {
+		if (calque_entree == nullptr) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto const res_x = tampon->tampon.nombre_colonnes();
-		auto const res_y = tampon->tampon.nombre_lignes();
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+		auto const res_x = tampon_entree->desc().resolution.x;
+		auto const res_y = tampon_entree->desc().resolution.y;
 
 		if (res_x <= 2 || res_y <= 2) {
 			this->ajoute_avertissement("L'image d'entrée est trop petite");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto calque = m_image.ajoute_calque(nom_calque, contexte.resolution_rendu);
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
-		copie_donnees_calque(tampon->tampon, calque->tampon);
+		copie_donnees_calque(*tampon_entree, *tampon);
 
 		for (auto y = 0; y < res_y; ++y) {
-			recursion_prefiltre(calque->tampon[y], res_x, 1);
+			recursion_prefiltre(&tampon->valeur(y * res_x), res_x, 1);
 		}
 
 		for (auto x = 0; x < res_x; ++x) {
-			recursion_prefiltre(&calque->tampon[0][x], res_y, res_x);
+			recursion_prefiltre(&tampon->valeur(x), res_y, res_x);
 		}
 
 		return EXECUTION_REUSSIE;
