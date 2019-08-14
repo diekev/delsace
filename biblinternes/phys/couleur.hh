@@ -63,6 +63,15 @@ struct couleur {
 		return *this;
 	}
 
+	couleur &operator-=(const couleur &autre)
+	{
+		for (int i = 0; i < 4; ++i) {
+			*(&r + i) -= *(&autre.r + i);
+		}
+
+		return *this;
+	}
+
 	couleur &operator*=(const couleur &autre)
 	{
 		for (int i = 0; i < 4; ++i) {
@@ -112,6 +121,22 @@ auto operator+(const couleur<T> &c, const couleur<T> &c2)
 }
 
 template <typename T>
+auto operator-(const couleur<T> &c, const couleur<T> &c2)
+{
+	auto tmp = c;
+	tmp -= c2;
+	return tmp;
+}
+
+template <typename T>
+auto operator*(const couleur<T> &c1, const couleur<T> &c2)
+{
+	auto tmp = c1;
+	tmp *= c2;
+	return tmp;
+}
+
+template <typename T>
 auto operator*(const couleur<T> &c, const T valeur)
 {
 	auto tmp = c;
@@ -141,6 +166,24 @@ auto operator/(const T valeur, const couleur<T> &c)
 	auto tmp = couleur<T>(valeur);
 	tmp /= c;
 	return tmp;
+}
+
+template <typename T>
+auto operator==(const couleur<T> &c1, const couleur<T> &c2)
+{
+	for (auto i = 0; i < 4; ++i) {
+		if (c1[i] != c2[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+template <typename T>
+auto operator!=(const couleur<T> &c1, const couleur<T> &c2)
+{
+	return !(c1 == c2);
 }
 
 template <typename T>
