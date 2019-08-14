@@ -555,14 +555,6 @@ public:
 			m_dernier_chemin = chemin;
 		}
 
-		/* À FAIRE : un neoud dédié pour les textures. */
-//		if (evalue_bool("est_texture")) {
-//			largeur = m_image_chargee.nombre_colonnes();
-//			hauteur = m_image_chargee.nombre_lignes();
-
-//			tampon->tampon = type_image(m_image_chargee.dimensions());
-//		}
-
 		return EXECUTION_REUSSIE;
 	}
 };

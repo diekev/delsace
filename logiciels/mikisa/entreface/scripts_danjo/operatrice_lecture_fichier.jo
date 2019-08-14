@@ -9,10 +9,6 @@ disposition "operatrice_lecture_fichier" {
 			    étiquette(valeur="Chemin")
 				fichier_entrée(valeur=""; attache=chemin; filtres="Images (*.jpg *.jpeg *.exr)")
 			}
-			ligne {
-			    étiquette(valeur="Texture")
-				case(valeur=faux; attache=est_texture)
-			}
 		}
 		onglet "Séquence" {
 		    ligne {
