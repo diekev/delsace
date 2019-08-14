@@ -42,17 +42,23 @@ chaine chemin_relatif(chaine const &chemin)
 
 /* ************************************************************************** */
 
+#undef LOG_CORRECTION
+
 void corrige_chemin_pour_temps(chaine &chemin, const int image)
 {
 	/* Trouve le dernier point. */
 	auto pos_dernier_point = chemin.trouve_dernier_de('.');
 
 	if (pos_dernier_point == chaine::npos || pos_dernier_point == 0) {
-		//std::cerr << "Ne peut pas trouver le dernier point !\n";
+#ifdef LOG_CORRECTION
+		std::cerr << "Ne peut pas trouver le dernier point !\n";
+#endif
 		return;
 	}
 
-	//std::cerr << "Trouver le dernier point à la position : " << pos_dernier_point << '\n';
+#ifdef LOG_CORRECTION
+	std::cerr << "Trouver le dernier point à la position : " << pos_dernier_point << '\n';
+#endif
 
 	/* Trouve le point précédent. */
 	auto pos_point_precedent = pos_dernier_point - 1;
@@ -62,27 +68,44 @@ void corrige_chemin_pour_temps(chaine &chemin, const int image)
 	}
 
 	if (pos_point_precedent == chaine::npos || pos_point_precedent == 0) {
-		//std::cerr << "Ne peut pas trouver le point précédent !\n";
+#ifdef LOG_CORRECTION
+		std::cerr << "Ne peut pas trouver le point précédent !\n";
+#endif
 		return;
 	}
 
 	if (chemin[pos_point_precedent] == '/') {
-		//std::cerr << "Le chemin n'a pas de nom !\n";
+#ifdef LOG_CORRECTION
+		std::cerr << "Le chemin n'a pas de nom !\n";
+#endif
 		return;
 	}
 
-	//std::cerr << "Trouver l'avant dernier point à la position : " << pos_point_precedent << '\n';
+#ifdef LOG_CORRECTION
+	std::cerr << "Trouver l'avant dernier point à la position : " << pos_point_precedent << '\n';
+#endif
 
 	auto taille_nombre_image = pos_dernier_point - (pos_point_precedent + 1);
 
-	//std::cerr << "Nombre de caractères pour l'image : " << taille_nombre_image << '\n';
+	if (taille_nombre_image == 0) {
+#ifdef LOG_CORRECTION
+		std::cerr << "Il n'y a pas de nombre dans le chemin...\n";
+#endif
+		return;
+	}
+
+#ifdef LOG_CORRECTION
+	std::cerr << "Nombre de caractères pour l'image : " << taille_nombre_image << '\n';
+#endif
 
 	auto chaine_image = chaine(std::to_string(image));
 
 	chaine_image.insere(0, taille_nombre_image - chaine_image.taille(), '0');
 
 	chemin.remplace(pos_point_precedent + 1, chaine_image.taille(), chaine_image);
-	//std::cerr << "Nouveau nom " << chemin << '\n';
+#ifdef LOG_CORRECTION
+	std::cerr << "Nouveau nom " << chemin << '\n';
+#endif
 }
 
 void corrige_chemin_pour_ecriture(chaine &chemin, int const temps)
