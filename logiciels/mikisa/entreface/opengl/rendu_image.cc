@@ -207,5 +207,9 @@ void RenduImage::charge_image(const grille_couleur &image)
 void RenduImage::dessine(ContexteRendu const &contexte)
 {
 	m_tampon_image->dessine(contexte);
+}
+
+void RenduImage::dessine_bordure(ContexteRendu const &contexte)
+{
 	m_tampon_bordure->dessine(contexte);
 }

@@ -99,6 +99,14 @@ void Visionneuse2D::paintGL()
 	m_contexte.matrice_objet(m_matrice_image);
 
 	m_rendu_image->dessine(m_contexte);
+	m_rendu_image->dessine_bordure(m_contexte);
+
+	auto matrice_passe_partout = dls::math::mat4x4f(1.0f);
+	matrice_passe_partout[0][0] = 1.0f;
+	matrice_passe_partout[1][1] = 1080.0f / 1920.0f;
+
+	m_contexte.matrice_objet(matrice_passe_partout);
+	m_rendu_image->dessine_bordure(m_contexte);
 
 	m_contexte.matrice_objet(dls::math::mat4x4f(1.0));
 
@@ -171,8 +179,8 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 	};
 
 	m_matrice_image = dls::math::mat4x4f(1.0f);
-	m_matrice_image[0][0] = 1.0f;
-	m_matrice_image[1][1] = static_cast<float>(size[1]) / static_cast<float>(size[0]);
+	m_matrice_image[0][0] = static_cast<float>(size[0]) / 1920.0f;
+	m_matrice_image[1][1] = static_cast<float>(size[1]) / 1920.0f;
 
 	/* À FAIRE : il y a des crashs lors du démarrage, il faudrait réviser la
 	 * manière d'initialiser les éditeurs quand ils sont ajoutés */

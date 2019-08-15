@@ -56,6 +56,8 @@ public:
 	 * Dessine l'image dans le contexte spécifié.
 	 */
 	void dessine(ContexteRendu const &contexte);
+
+	void dessine_bordure(const ContexteRendu &contexte);
 };
 
 TamponRendu *cree_tampon_image();
