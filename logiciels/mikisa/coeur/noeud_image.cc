@@ -76,6 +76,12 @@ void execute_noeud(
 			temps_parent += entree->liens[0]->parent->temps_execution();
 		}
 
+		/* Quand les parents n'ont pas eu besoin d'une exécution (car mis en
+		 * cache), leur temps ne doit pas être soustrait à celui-ci. */
+		if (static_cast<float>(delta) < temps_parent) {
+			temps_parent = 0.0f;
+		}
+
 		noeud->incremente_compte_execution();
 		noeud->temps_execution(static_cast<float>(delta) - temps_parent);
 		noeud->besoin_execution(false);
