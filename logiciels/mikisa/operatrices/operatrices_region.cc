@@ -47,7 +47,7 @@
 /* ************************************************************************** */
 
 template <typename T, typename TypeOperation>
-void applique_fonction(wlk::grille_dense_2d<T> &image, TypeOperation &&op)
+void applique_fonction(ChefExecution *chef, wlk::grille_dense_2d<T> &image, TypeOperation &&op)
 {
 	auto const res_x = image.desc().resolution.x;
 	auto const res_y = image.desc().resolution.y;
@@ -55,17 +55,29 @@ void applique_fonction(wlk::grille_dense_2d<T> &image, TypeOperation &&op)
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
+		if (chef->interrompu()) {
+			return;
+		}
+
 		for (int l = plage.begin(); l < plage.end(); ++l) {
+			if (chef->interrompu()) {
+				return;
+			}
+
 			for (int c = 0; c < res_x; ++c) {
 				auto index = image.calcul_index(dls::math::vec2i(c, l));
 				image.valeur(index) = op(image.valeur(index));
 			}
 		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta /= static_cast<float>(res_y);
+		chef->indique_progression_parallele(delta * 100.0f);
 	});
 }
 
 template <typename T, typename TypeOperation>
-void applique_fonction_position(wlk::grille_dense_2d<T> &image, TypeOperation &&op)
+void applique_fonction_position(ChefExecution *chef, wlk::grille_dense_2d<T> &image, TypeOperation &&op)
 {
 	auto const res_x = image.desc().resolution.x;
 	auto const res_y = image.desc().resolution.y;
@@ -73,12 +85,24 @@ void applique_fonction_position(wlk::grille_dense_2d<T> &image, TypeOperation &&
 	boucle_parallele(tbb::blocked_range<int>(0, res_y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
+		if (chef->interrompu()) {
+			return;
+		}
+
 		for (int l = plage.begin(); l < plage.end(); ++l) {
+			if (chef->interrompu()) {
+				return;
+			}
+
 			for (int c = 0; c < res_x; ++c) {
 				auto index = image.calcul_index(dls::math::vec2i(c, l));
 				image.valeur(index) = op(image.valeur(index), l, c);
 			}
 		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta /= static_cast<float>(res_y);
+		chef->indique_progression_parallele(delta * 100.0f);
 	});
 }
 
@@ -191,7 +215,10 @@ public:
 
 		auto image_tampon = grille_couleur(tampon->desc());
 
-		applique_fonction_position(image_tampon,
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("analyse image");
+
+		applique_fonction_position(chef, image_tampon,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			auto index = tampon->calcul_index(dls::math::vec2i(c, l));
@@ -325,6 +352,8 @@ public:
 
 			return resultat;
 		});
+
+		chef->indique_progression(100.0f);
 
 		auto calque = m_image.ajoute_calque(nom_calque, image_tampon.desc(), wlk::type_grille::COULEUR);
 		*calque->tampon() = image_tampon;
@@ -489,11 +518,16 @@ public:
 		maximum.b = (maximum.b > 0.0f) ? (1.0f / maximum.b) : 0.0f;
 		maximum.a = (maximum.a > 0.0f) ? (1.0f / maximum.a) : 0.0f;
 
-		applique_fonction(*tampon,
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("normalisation image");
+
+		applique_fonction(chef, *tampon,
 						  [&](dls::phys::couleur32 const &pixel)
 		{
 			return maximum * pixel;
 		});
+
+		chef->indique_progression(1000.f);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -573,10 +607,13 @@ public:
 			}
 		}
 
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("flou 1/2");
+
 		poids = (poids != 0.0f) ? 1.0f / poids : 1.0f;
 
 		/* flou horizontal */
-		applique_fonction_position(image_tmp,
+		applique_fonction_position(chef, image_tmp,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int y, int x)
 		{
 			auto index = tampon_entree->calcul_index(dls::math::vec2i(x, y));
@@ -602,8 +639,10 @@ public:
 
 		copie_donnees_calque(image_tmp, *tampon);
 
+		chef->demarre_evaluation("flou 2/2");
+
 		/* flou vertical */
-		applique_fonction_position(image_tmp,
+		applique_fonction_position(chef, image_tmp,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int y, int x)
 		{
 			auto index = tampon->calcul_index(dls::math::vec2i(x, y));
@@ -628,6 +667,8 @@ public:
 		});
 
 		copie_donnees_calque(image_tmp, *tampon);
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -687,7 +728,10 @@ public:
 		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
 
-		applique_fonction_position(*tampon,
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("tournoiement");
+
+		applique_fonction_position(chef, *tampon,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			auto const fc = static_cast<float>(c) * largeur_inverse + decalage_x;
@@ -701,6 +745,8 @@ public:
 
 			return wlk::echantillonne_lineaire(*tampon, nc, nl);
 		});
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -932,7 +978,10 @@ public:
 		auto calque = m_image.ajoute_calque(nom_calque_a, tampon_a->desc(), wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
 
-		applique_fonction_position(*tampon,
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("déformation");
+
+		applique_fonction_position(chef, *tampon,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			auto const c0 = std::min(res_x - 1, std::max(0, c - 1));
@@ -953,6 +1002,8 @@ public:
 
 			return echantillonne_lineaire(*tampon_a, x, y);
 		});
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1284,7 +1335,10 @@ public:
 		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
 
-		applique_fonction_position(*tampon,
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("coordonnées polaire");
+
+		applique_fonction_position(chef, *tampon,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
 			/* À FAIRE : image carrée ? */
@@ -1295,6 +1349,7 @@ public:
 			return echantillonne_lineaire(*tampon, x, y);
 		});
 
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1477,7 +1532,12 @@ public:
 			return p0;
 		};
 
-		applique_fonction_position(*tampon, performe_dilation);
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("normalisation image");
+
+		applique_fonction_position(chef, *tampon, performe_dilation);
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1557,7 +1617,12 @@ public:
 			return p0;
 		};
 
-		applique_fonction_position(*tampon, performe_erosion);
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("normalisation image");
+
+		applique_fonction_position(chef, *tampon, performe_erosion);
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
