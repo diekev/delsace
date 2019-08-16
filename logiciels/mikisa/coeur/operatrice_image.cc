@@ -228,6 +228,11 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 	}
 }
 
+PriseEntree *EntreeOperatrice::pointeur()
+{
+	return m_ptr;
+}
+
 void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 {
 	if (m_ptr->liens.est_vide()) {
@@ -271,6 +276,17 @@ void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 		chef->indique_progression(progres + delta);
 		progres += delta;
 	}
+}
+
+/* ************************************************************************** */
+
+SortieOperatrice::SortieOperatrice(PriseSortie *prise)
+	: m_ptr(prise)
+{}
+
+PriseSortie *SortieOperatrice::pointeur()
+{
+	return m_ptr;
 }
 
 /* ************************************************************************** */

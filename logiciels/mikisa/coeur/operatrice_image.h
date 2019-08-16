@@ -144,10 +144,7 @@ public:
 	 */
 	void obtiens_liste_groupes_points(dls::tableau<dls::chaine> &chaines) const;
 
-	PriseEntree *pointeur()
-	{
-		return m_ptr;
-	}
+	PriseEntree *pointeur();
 
 	void signale_cache(ChefExecution *chef) const;
 };
@@ -160,16 +157,11 @@ class SortieOperatrice {
 public:
 	SortieOperatrice() = default;
 
-	explicit SortieOperatrice(PriseSortie *prise)
-		: m_ptr(prise)
-	{}
+	explicit SortieOperatrice(PriseSortie *prise);
 
 	SortieOperatrice(SortieOperatrice const &autre) = default;
 
-	PriseSortie *pointeur()
-	{
-		return m_ptr;
-	}
+	PriseSortie *pointeur();
 };
 
 /* ************************************************************************** */
@@ -210,7 +202,7 @@ public:
 
 	virtual int type() const;
 
-	/* Input handling. */
+	/* gestion des entrées */
 
 	void entrees(long number);
 
@@ -228,11 +220,7 @@ public:
 
 	void donnees_entree(long index, PriseEntree *socket);
 
-	SortieOperatrice *sortie(long index);
-
-	void donnees_sortie(long index, PriseSortie *prise);
-
-	/* Output handling. */
+	/* gestion des sorties */
 
 	void sorties(long number);
 
@@ -242,13 +230,17 @@ public:
 
 	virtual int type_sortie(int n) const;
 
-	/* Information about this operator. */
+	SortieOperatrice *sortie(long index);
+
+	void donnees_sortie(long index, PriseSortie *prise);
+
+	/* informations sur cette opératrice */
 
 	virtual const char *nom_classe() const = 0;
 	virtual const char *texte_aide() const = 0;
 	virtual const char *chemin_entreface() const;
 
-	/* The main processing logic of this operator. */
+	/* la logique principale d'exécution de cette opératrice */
 
 	virtual int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) = 0;
 
