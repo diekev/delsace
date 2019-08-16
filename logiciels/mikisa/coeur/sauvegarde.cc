@@ -241,8 +241,9 @@ static auto ecris_noeud(
 		element_prise->SetAttribut("nom", prise->nom.c_str());
 		element_prise->SetAttribut("id", id_depuis_pointeur(prise).c_str());
 
-		if (!prise->liens.est_vide()) {
-			element_prise->SetAttribut("connexion", id_depuis_pointeur(prise->liens[0]).c_str());
+		auto i = 0;
+		for (auto lien : prise->liens) {
+			element_prise->SetAttribut(("connexion" + dls::vers_chaine(i++)).c_str(), id_depuis_pointeur(lien).c_str());
 		}
 
 		racine_prise_entree->InsertEndChild(element_prise);
@@ -573,7 +574,7 @@ struct DonneesConnexions {
 	/* Tableau faisant correspondre les ids des prises connectées entre elles.
 	 * La clé du tableau est l'id de la prise d'entrée, la valeur, celle de la
 	 * prise de sortie. */
-	dls::dico_desordonne<dls::chaine, dls::chaine> tableau_connexion_id{};
+	dls::tableau<std::pair<dls::chaine, dls::chaine>> tableau_connexion_id{};
 
 	dls::dico_desordonne<dls::chaine, PriseEntree *> tableau_id_prise_entree{};
 	dls::dico_desordonne<dls::chaine, PriseSortie *> tableau_id_prise_sortie{};
@@ -658,13 +659,19 @@ static void lecture_noeud(
 	for (; element_prise_entree != nullptr; element_prise_entree = element_prise_entree->NextSiblingElement("entree")) {
 		auto const nom_prise = element_prise_entree->attribut("nom");
 		auto const id_prise = element_prise_entree->attribut("id");
-		auto const connexion = element_prise_entree->attribut("connexion");
 
-		if (connexion == nullptr) {
-			continue;
+		int i = 0;
+		while (true) {
+			auto nom_connexion = "connexion" + dls::vers_chaine(i++);
+			auto const connexion = element_prise_entree->attribut(nom_connexion.c_str());
+
+			if (connexion == nullptr) {
+				break;
+			}
+
+			donnees_connexion.tableau_connexion_id.pousse({ id_prise, connexion });
 		}
 
-		donnees_connexion.tableau_connexion_id[id_prise] = connexion;
 		donnees_connexion.tableau_id_prise_entree[id_prise] = noeud->entree(nom_prise);
 	}
 
