@@ -216,11 +216,11 @@ public:
 			memoire::deloge("Connexion", graphe->connexion_active);
 		}
 
-		selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
+		auto besoin_evaluation = selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
 
-		if (mikisa->contexte == GRAPHE_RACINE_OBJETS) {
+		if (besoin_evaluation || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
 		}
 
