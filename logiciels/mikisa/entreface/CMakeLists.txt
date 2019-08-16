@@ -101,6 +101,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_3d_suppression_attribut.jo
 	scripts_danjo/operatrice_3d_torus.jo
 	scripts_danjo/operatrice_advection_gaz.jo
+	scripts_danjo/operatrice_affinage_image.jo
 	scripts_danjo/operatrice_ajout_corps_rigide.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
@@ -149,6 +150,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_lecture_fichier.jo
 	scripts_danjo/operatrice_lecture_objet.jo
 	scripts_danjo/operatrice_maillage_vers_volume.jo
+	scripts_danjo/operatrice_mediane_image.jo
 	scripts_danjo/operatrice_melange.jo
 	scripts_danjo/operatrice_melange_cheveux.jo
 	scripts_danjo/operatrice_min_max.jo

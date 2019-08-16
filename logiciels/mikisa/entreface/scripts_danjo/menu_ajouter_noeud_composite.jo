@@ -38,6 +38,7 @@ menu "Noeud Composite" {
 		action(valeur="Fusion Profondes"; attache=ajouter_noeud; métadonnée="Fusion Profondes")
 	}
     menu "Région" {
+		action(valeur="Affinage Image"; attache=ajouter_noeud; métadonnée="Affinage Image")
 	    action(valeur="Analyse"; attache=ajouter_noeud; métadonnée="Analyse")
 		action(valeur="Champs de distance"; attache=ajouter_noeud; métadonnée="Champs distance")
 		action(valeur="Coordonnées Polaires"; attache=ajouter_noeud; métadonnée="Coordonnées Polaires")
@@ -47,6 +48,7 @@ menu "Noeud Composite" {
 		action(valeur="Extraction Palette"; attache=ajouter_noeud; métadonnée="Extraction Palette")
 		action(valeur="Filtre"; attache=ajouter_noeud; métadonnée="Filtre")
 		action(valeur="Flou"; attache=ajouter_noeud; métadonnée="Flou")
+		action(valeur="Médiane Image"; attache=ajouter_noeud; métadonnée="Médiane Image")
 		action(valeur="Normalisation Région"; attache=ajouter_noeud; métadonnée="Normalisation Région")
 		action(valeur="Ondelette de Haar"; attache=ajouter_noeud; métadonnée="Ondelette de Haar")
 		action(valeur="Préfiltre Cubic B-Spline"; attache=ajouter_noeud; métadonnée="Préfiltre Cubic B-Spline")

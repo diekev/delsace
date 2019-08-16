@@ -646,6 +646,280 @@ public:
 
 /* ************************************************************************** */
 
+class OpAffinageImage : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Affinage Image";
+	static constexpr auto AIDE = "Affine les pixels de l'image.";
+
+	explicit OpAffinageImage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_affinage_image.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto nom_calque = evalue_chaine("nom_calque");
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
+
+		if (calque_entree == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto const rayon_flou = evalue_decimal("rayon", contexte.temps_courant);
+		auto const chaine_flou = evalue_enum("type");
+
+		static auto dico_type = dls::cree_dico(
+					dls::paire{ dls::chaine("boîte"), wlk::type_filtre::BOITE },
+					dls::paire{ dls::chaine("triangulaire"), wlk::type_filtre::TRIANGULAIRE },
+					dls::paire{ dls::chaine("quadratic"), wlk::type_filtre::QUADRATIC },
+					dls::paire{ dls::chaine("cubic"), wlk::type_filtre::CUBIC },
+					dls::paire{ dls::chaine("gaussien"), wlk::type_filtre::GAUSSIEN },
+					dls::paire{ dls::chaine("mitchell"), wlk::type_filtre::MITCHELL },
+					dls::paire{ dls::chaine("catrom"), wlk::type_filtre::CATROM });
+
+		auto plg_type = dico_type.trouve(chaine_flou);
+
+		if (plg_type.est_finie()) {
+			auto flux = dls::flux_chaine();
+			flux << "Type de filter '" << chaine_flou << "' inconnu";
+			this->ajoute_avertissement(flux.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* construit le kernel du flou */
+		auto rayon = rayon_flou;
+		auto type = plg_type.front().second;
+		auto poids = evalue_decimal("poids", contexte.temps_courant);
+
+		if (type == wlk::type_filtre::GAUSSIEN) {
+			rayon = rayon * 2.57f;
+		}
+
+		auto chef = contexte.chef;
+		auto chef_wolika = ChefWolika(chef, "filtre");
+
+		auto tampon_tmp = grille_couleur(tampon->desc());
+		copie_donnees_calque(*tampon_entree, tampon_tmp);
+		wlk::filtre_grille(tampon_tmp, type, rayon, &chef_wolika);
+
+		/* performe affinage */
+		auto const res_x = tampon_tmp.desc().resolution.x;
+		auto const res_y = tampon_tmp.desc().resolution.y;
+
+		boucle_parallele(tbb::blocked_range<int>(0, res_y),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
+
+			for (int y = plage.begin(); y < plage.end(); ++y) {
+				if (chef && chef->interrompu()) {
+					return;
+				}
+
+				for (int x = 0; x < res_x; ++x) {
+					auto index = tampon->calcul_index(dls::math::vec2i(x, y));
+
+					auto valeur_orig = tampon_entree->valeur(index);
+					auto valeur_grossiere = tampon_tmp.valeur(index);
+					auto valeur_fine = valeur_orig - valeur_grossiere;
+
+					tampon->valeur(index) = valeur_orig + valeur_fine * poids;
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			delta /= static_cast<float>(res_y);
+			chef->indique_progression_parallele(delta * 50.0f);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpMedianeImage : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Médiane Image";
+	static constexpr auto AIDE = "Affine les pixels de l'image.";
+
+	explicit OpMedianeImage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_mediane_image.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto nom_calque = evalue_chaine("nom_calque");
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
+
+		if (calque_entree == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto rayon = evalue_decimal("rayon", contexte.temps_courant);
+		auto taille = static_cast<int>(rayon);
+
+		auto chef = contexte.chef;
+
+		auto const res_x = tampon->desc().resolution.x;
+		auto const res_y = tampon->desc().resolution.y;
+
+		/* axe X */
+		boucle_parallele(tbb::blocked_range<int>(0, res_y),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
+
+			auto valeurs_R = dls::tableau<float>(2 * taille + 1);
+			auto valeurs_V = dls::tableau<float>(2 * taille + 1);
+			auto valeurs_B = dls::tableau<float>(2 * taille + 1);
+			auto valeurs_A = dls::tableau<float>(2 * taille + 1);
+
+			for (int y = plage.begin(); y < plage.end(); ++y) {
+				if (chef && chef->interrompu()) {
+					return;
+				}
+
+				for (int x = 0; x < res_x; ++x) {
+					auto index = tampon->calcul_index(dls::math::vec2i(x, y));
+
+					for (auto i = -taille; i <= taille; ++i) {
+						auto v = tampon_entree->valeur(dls::math::vec2i(x + i, y));
+						valeurs_R[i + taille] = v.r;
+						valeurs_V[i + taille] = v.v;
+						valeurs_B[i + taille] = v.b;
+						valeurs_A[i + taille] = v.a;
+					}
+
+					std::sort(begin(valeurs_R), end(valeurs_R));
+					std::sort(begin(valeurs_V), end(valeurs_V));
+					std::sort(begin(valeurs_B), end(valeurs_B));
+					std::sort(begin(valeurs_A), end(valeurs_A));
+
+					auto res = dls::phys::couleur32();
+					res.r = valeurs_R[taille];
+					res.v = valeurs_V[taille];
+					res.b = valeurs_B[taille];
+					res.a = valeurs_A[taille];
+
+					tampon->valeur(index) = res;
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			delta /= static_cast<float>(res_y);
+			chef->indique_progression_parallele(delta * 50.0f);
+		});
+
+		/* axe Y */
+		boucle_parallele(tbb::blocked_range<int>(0, res_y),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
+
+			auto valeurs_R = dls::tableau<float>(2 * taille + 1);
+			auto valeurs_V = dls::tableau<float>(2 * taille + 1);
+			auto valeurs_B = dls::tableau<float>(2 * taille + 1);
+			auto valeurs_A = dls::tableau<float>(2 * taille + 1);
+
+			for (int y = plage.begin(); y < plage.end(); ++y) {
+				if (chef && chef->interrompu()) {
+					return;
+				}
+
+				for (int x = 0; x < res_x; ++x) {
+					auto index = tampon->calcul_index(dls::math::vec2i(x, y));
+
+					for (auto i = -taille; i <= taille; ++i) {
+						auto v = tampon_entree->valeur(dls::math::vec2i(x, y + i));
+						valeurs_R[i + taille] = v.r;
+						valeurs_V[i + taille] = v.v;
+						valeurs_B[i + taille] = v.b;
+						valeurs_A[i + taille] = v.a;
+					}
+
+					std::sort(begin(valeurs_R), end(valeurs_R));
+					std::sort(begin(valeurs_V), end(valeurs_V));
+					std::sort(begin(valeurs_B), end(valeurs_B));
+					std::sort(begin(valeurs_A), end(valeurs_A));
+
+					auto res = dls::phys::couleur32();
+					res.r = valeurs_R[taille];
+					res.v = valeurs_V[taille];
+					res.b = valeurs_B[taille];
+					res.a = valeurs_A[taille];
+
+					tampon->valeur(index) += res;
+					tampon->valeur(index) *= 0.5f;
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			delta /= static_cast<float>(res_y);
+			chef->indique_progression_parallele(delta * 50.0f);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class OperatriceTournoiement : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Tournoiement";
@@ -1976,6 +2250,8 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceExtractionPalette>());
 	usine.enregistre_type(cree_desc<OperatricePrefiltreCubic>());
 	usine.enregistre_type(cree_desc<OpRayonsSoleil>());
+	usine.enregistre_type(cree_desc<OpAffinageImage>());
+	usine.enregistre_type(cree_desc<OpMedianeImage>());
 }
 
 #pragma clang diagnostic pop
