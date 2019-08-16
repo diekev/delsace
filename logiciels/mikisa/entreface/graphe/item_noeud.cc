@@ -133,15 +133,21 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 
 		for (PriseEntree *prise : noeud->entrees()) {
 			auto entree = new QGraphicsRectItem(this);
+			auto largeur_lien = largeur_prise;
 
-			entree->setRect(pos_entree, pos_y, largeur_prise, hauteur_prise);
+			if (prise->multiple_connexions) {
+				pos_entree -= largeur_prise * 0.5;
+				largeur_lien *= 2.0;
+			}
+
+			entree->setRect(pos_entree, pos_y, largeur_lien, hauteur_prise);
 			entree->setBrush(brosse_pour_type(prise->type));
 			entree->setPen(QPen(Qt::white, 0.5));
 
 			prise->rectangle.x = static_cast<float>(pos_entree);
 			prise->rectangle.y = static_cast<float>(pos_y);
 			prise->rectangle.hauteur = hauteur_prise;
-			prise->rectangle.largeur = largeur_prise;
+			prise->rectangle.largeur = static_cast<float>(largeur_lien);
 
 			pos_entree += etendue_entree;
 		}

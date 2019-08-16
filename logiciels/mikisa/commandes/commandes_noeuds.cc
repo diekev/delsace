@@ -266,9 +266,10 @@ public:
 
 			if (prise_entree && !prise_entree->liens.est_vide()) {
 				connexion->prise_entree = nullptr;
-				connexion->prise_sortie = prise_entree->liens[0];
+				/* déconnecte le dernier lien, À FAIRE : meilleure interface */
+				connexion->prise_sortie = prise_entree->liens.back();
 
-				if (graphe->deconnecte(prise_entree->liens[0], prise_entree)) {
+				if (graphe->deconnecte(prise_entree->liens.back(), prise_entree)) {
 					m_prise_entree_deconnectee = noeud_connecte_sortie(
 													 prise_entree->parent,
 													 graphe->dernier_noeud_sortie);
@@ -338,7 +339,7 @@ public:
 			}
 
 			if (peut_connecter(entree, sortie)) {
-				if (!entree->liens.est_vide()) {
+				if (!entree->liens.est_vide() && !entree->multiple_connexions) {
 					graphe->deconnecte(entree->liens[0], entree);
 				}
 

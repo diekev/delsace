@@ -47,13 +47,21 @@ bool EntreeOperatrice::connectee() const
 	return !m_ptr->liens.est_vide();
 }
 
-Image const *EntreeOperatrice::requiers_image(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+long EntreeOperatrice::nombre_connexions() const
 {
-	if (m_ptr->liens.est_vide()) {
+	return m_ptr->liens.taille();
+}
+
+Image const *EntreeOperatrice::requiers_image(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
+{
+	if (m_ptr->liens.est_vide() || index < 0 || index > m_ptr->liens.taille()) {
 		return nullptr;
 	}
 
-	auto lien = m_ptr->liens[0];
+	auto lien = m_ptr->liens[index];
 
 	m_liste_noms_calques.efface();
 
@@ -75,26 +83,19 @@ Image const *EntreeOperatrice::requiers_image(ContexteEvaluation const &contexte
 	return image;
 }
 
-Image *EntreeOperatrice::requiers_copie_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+Image *EntreeOperatrice::requiers_copie_image(
+		Image &image,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
 {
-	if (m_ptr->liens.est_vide()) {
-		return &image;
+	auto image_op = this->requiers_image(contexte, donnees_aval, index);
+
+	if (image_op == nullptr) {
+		return nullptr;
 	}
 
-	auto lien = m_ptr->liens[0];
-
-	m_liste_noms_calques.efface();
-
-	if (lien == nullptr) {
-		return &image;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, contexte, donnees_aval);
-
-	auto operatrice = extrait_opimage(noeud->donnees());
-	operatrice->transfere_image(image);
+	image = *image_op;
 
 	for (auto const &calque : image.calques()) {
 		m_liste_noms_calques.pousse(calque->nom);
@@ -103,13 +104,16 @@ Image *EntreeOperatrice::requiers_copie_image(Image &image, ContexteEvaluation c
 	return &image;
 }
 
-const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+const Corps *EntreeOperatrice::requiers_corps(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
 {
-	if (m_ptr->liens.est_vide()) {
+	if (m_ptr->liens.est_vide() || index < 0 || index > m_ptr->liens.taille()) {
 		return nullptr;
 	}
 
-	auto lien = m_ptr->liens[0];
+	auto lien = m_ptr->liens[index];
 
 	if (lien == nullptr) {
 		return nullptr;
@@ -124,9 +128,13 @@ const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte
 	return operatrice->corps();
 }
 
-Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+Corps *EntreeOperatrice::requiers_copie_corps(
+		Corps *corps,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
 {
-	auto corps_lien = this->requiers_corps(contexte, donnees_aval);
+	auto corps_lien = this->requiers_corps(contexte, donnees_aval, index);
 
 	if (corps_lien == nullptr) {
 		return nullptr;
@@ -322,6 +330,12 @@ int OperatriceImage::type_entree(int n) const
 		case 0: return OPERATRICE_IMAGE;
 		case 1: return OPERATRICE_IMAGE;
 	}
+}
+
+bool OperatriceImage::connexions_multiples(int n) const
+{
+	INUTILISE(n);
+	return false;
 }
 
 EntreeOperatrice *OperatriceImage::entree(long index)

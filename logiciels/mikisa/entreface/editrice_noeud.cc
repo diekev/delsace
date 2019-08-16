@@ -155,18 +155,18 @@ void EditriceGraphe::ajourne_etat(int evenement)
 				continue;
 			}
 
-			auto lien = prise->liens[0];
+			for (auto lien : prise->liens) {
+				auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
+				auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
+				auto const x2 = lien->rectangle.x + lien->rectangle.largeur / 2.0f;
+				auto const y2 = lien->rectangle.y + lien->rectangle.hauteur / 2.0f;
 
-			auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
-			auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
-			auto const x2 = lien->rectangle.x + lien->rectangle.largeur / 2.0f;
-			auto const y2 = lien->rectangle.y + lien->rectangle.hauteur / 2.0f;
+				auto ligne = new QGraphicsLineItem();
+				ligne->setPen(QPen(Qt::white, 2.0));
+				ligne->setLine(x1, y1, x2, y2);
 
-			auto ligne = new QGraphicsLineItem();
-			ligne->setPen(QPen(Qt::white, 2.0));
-			ligne->setLine(x1, y1, x2, y2);
-
-			m_scene->addItem(ligne);
+				m_scene->addItem(ligne);
+			}
 		}
 	}
 

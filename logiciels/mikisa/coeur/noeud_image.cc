@@ -93,7 +93,7 @@ void synchronise_donnees_operatrice(Noeud *noeud)
 	auto op = extrait_opimage(noeud->donnees());
 
 	for (auto i = 0; i < op->entrees(); ++i) {
-		noeud->ajoute_entree(op->nom_entree(i), op->type_entree(i));
+		noeud->ajoute_entree(op->nom_entree(i), op->type_entree(i), op->connexions_multiples(i));
 	}
 
 	for (auto i = 0; i < op->sorties(); ++i) {

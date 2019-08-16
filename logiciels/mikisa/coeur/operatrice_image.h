@@ -103,17 +103,22 @@ public:
 	bool connectee() const;
 
 	/**
+	 * Retourne le nombre de connexions du lien pointé.
+	 */
+	long nombre_connexions() const;
+
+	/**
 	 * Requiers l'image du noeud connecté à cette prise en exécutant ledit noeud
 	 * avant de lui prendre son image. La liste de nom de calque est mise à jour
 	 * selon l'image obtenue.
 	 */	
-	Image const *requiers_image(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	Image const *requiers_image(ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
-	Image *requiers_copie_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	Image *requiers_copie_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
-	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
-	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
 	/**
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
@@ -214,6 +219,8 @@ public:
 	virtual const char *nom_entree(int n);
 
 	virtual int type_entree(int n) const;
+
+	virtual bool connexions_multiples(int n) const;
 
 	EntreeOperatrice *entree(long index);
 

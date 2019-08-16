@@ -130,6 +130,13 @@ void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 		return;
 	}
 
+	/* Évite d'avoir plusieurs fois le même lien. */
+	for (auto lien : entree->liens) {
+		if (lien == sortie) {
+			return;
+		}
+	}
+
 	entree->liens.pousse(sortie);
 	sortie->liens.pousse(entree);
 

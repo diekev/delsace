@@ -179,7 +179,7 @@ public:
 	/**
 	 * Ajoute une prise d'entrée au noeud.
 	 */
-	void ajoute_entree(dls::chaine const &nom, const int type);
+	void ajoute_entree(dls::chaine const &nom, const int type, bool connexions_multiples);
 
 	/**
 	 * Ajoute une prise de sortie au noeud.
