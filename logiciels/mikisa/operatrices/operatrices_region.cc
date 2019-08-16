@@ -547,6 +547,9 @@ struct ChefWolika : public wlk::interruptrice {
 		chef->demarre_evaluation(message);
 	}
 
+	ChefWolika(ChefWolika const &) = default;
+	ChefWolika &operator=(ChefWolika const &) = default;
+
 	bool interrompue() const override
 	{
 		return chef->interrompu();
