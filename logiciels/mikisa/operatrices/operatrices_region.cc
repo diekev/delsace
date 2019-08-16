@@ -32,6 +32,8 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/dico_fixe.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/chef_execution.hh"
@@ -40,6 +42,7 @@
 #include "coeur/usine_operatrice.h"
 
 #include "wolika/echantillonnage.hh"
+#include "wolika/filtre_2d.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -535,6 +538,31 @@ public:
 
 /* ************************************************************************** */
 
+struct ChefWolika : public wlk::interruptrice {
+	ChefExecution *chef;
+
+	ChefWolika(ChefExecution *chef_ex, const char *message)
+		: chef(chef_ex)
+	{
+		chef->demarre_evaluation(message);
+	}
+
+	bool interrompue() const override
+	{
+		return chef->interrompu();
+	}
+
+	void indique_progression(float progression) override
+	{
+		chef->indique_progression(progression);
+	}
+
+	void indique_progression_parallele(float delta) override
+	{
+		chef->indique_progression(delta);
+	}
+};
+
 class OperatriceFloutage : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Flou";
@@ -577,98 +605,40 @@ public:
 
 		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
-		auto image_tmp = grille_couleur(tampon_entree->desc());
+		copie_donnees_calque(*tampon_entree, *tampon);
 
 		auto const rayon_flou = evalue_decimal("rayon", contexte.temps_courant);
-		auto const type_flou = evalue_enum("type");
+		auto const chaine_flou = evalue_enum("type");
+
+		static auto dico_type = dls::cree_dico(
+					dls::paire{ dls::chaine("boîte"), wlk::type_filtre::BOITE },
+					dls::paire{ dls::chaine("triangulaire"), wlk::type_filtre::TRIANGULAIRE },
+					dls::paire{ dls::chaine("quadratic"), wlk::type_filtre::QUADRATIC },
+					dls::paire{ dls::chaine("cubic"), wlk::type_filtre::CUBIC },
+					dls::paire{ dls::chaine("gaussien"), wlk::type_filtre::GAUSSIEN },
+					dls::paire{ dls::chaine("mitchell"), wlk::type_filtre::MITCHELL },
+					dls::paire{ dls::chaine("catrom"), wlk::type_filtre::CATROM });
+
+		auto plg_type = dico_type.trouve(chaine_flou);
+
+		if (plg_type.est_finie()) {
+			auto flux = dls::flux_chaine();
+			flux << "Type de filter '" << chaine_flou << "' inconnu";
+			this->ajoute_avertissement(flux.chn());
+			return EXECUTION_ECHOUEE;
+		}
 
 		/* construit le kernel du flou */
 		auto rayon = rayon_flou;
+		auto type = plg_type.front().second;
 
-		if (type_flou == "gaussien") {
+		if (type == wlk::type_filtre::GAUSSIEN) {
 			rayon = rayon * 2.57f;
 		}
 
-		rayon = std::ceil(rayon);
+		auto chef_wolika = ChefWolika(contexte.chef, "filtre");
 
-		auto poids = 0.0f;
-		dls::tableau<float> kernel(static_cast<long>(2.0f * rayon + 1.0f));
-
-		if (type_flou == "boîte") {
-			for (auto i = static_cast<long>(-rayon), k = 0l; i < static_cast<long>(rayon) + 1; ++i, ++k) {
-				kernel[k] = 1.0f;
-				poids += kernel[k];
-			}
-		}
-		else if (type_flou == "gaussien") {
-			for (auto i = static_cast<long>(-rayon), k = 0l; i < static_cast<long>(rayon) + 1; ++i, ++k) {
-				kernel[k] = std::exp(-static_cast<float>(i * i) / (2.0f * rayon_flou * rayon_flou)) / (constantes<float>::TAU * rayon_flou * rayon_flou);
-				poids += kernel[k];
-			}
-		}
-
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("flou 1/2");
-
-		poids = (poids != 0.0f) ? 1.0f / poids : 1.0f;
-
-		/* flou horizontal */
-		applique_fonction_position(chef, image_tmp,
-								   [&](dls::phys::couleur32 const &/*pixel*/, int y, int x)
-		{
-			auto index = tampon_entree->calcul_index(dls::math::vec2i(x, y));
-			dls::phys::couleur32 valeur;
-			valeur.r = 0.0f;
-			valeur.v = 0.0f;
-			valeur.b = 0.0f;
-			valeur.a = tampon_entree->valeur(index).a;
-
-			for (auto ix = x - static_cast<int>(rayon), k = 0; ix < x + static_cast<int>(rayon) + 1; ix++, ++k) {
-				auto const &p = tampon_entree->valeur(dls::math::vec2i(ix, y));
-				valeur.r += p.r * kernel[k];
-				valeur.v += p.v * kernel[k];
-				valeur.b += p.b * kernel[k];
-			}
-
-			valeur.r *= poids;
-			valeur.v *= poids;
-			valeur.b *= poids;
-
-			return valeur;
-		});
-
-		copie_donnees_calque(image_tmp, *tampon);
-
-		chef->demarre_evaluation("flou 2/2");
-
-		/* flou vertical */
-		applique_fonction_position(chef, image_tmp,
-								   [&](dls::phys::couleur32 const &/*pixel*/, int y, int x)
-		{
-			auto index = tampon->calcul_index(dls::math::vec2i(x, y));
-			dls::phys::couleur32 valeur;
-			valeur.r = 0.0f;
-			valeur.v = 0.0f;
-			valeur.b = 0.0f;
-			valeur.a = tampon->valeur(index).a;
-
-			for (auto iy = y - static_cast<int>(rayon), k = 0; iy < y + static_cast<int>(rayon) + 1; iy++, ++k) {
-				auto const &p = tampon->valeur(dls::math::vec2i(x, iy));
-				valeur.r += p.r * kernel[k];
-				valeur.v += p.v * kernel[k];
-				valeur.b += p.b * kernel[k];
-			}
-
-			valeur.r *= poids;
-			valeur.v *= poids;
-			valeur.b *= poids;
-
-			return valeur;
-		});
-
-		copie_donnees_calque(image_tmp, *tampon);
-
-		chef->indique_progression(100.0f);
+		wlk::filtre_grille(*tampon, type, rayon, &chef_wolika);
 
 		return EXECUTION_REUSSIE;
 	}

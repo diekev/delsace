@@ -6,8 +6,13 @@ disposition "operatrice_flou" {
     ligne {
         étiquette(valeur="Type")
 		énum(valeur="boîte"; attache=type;
-            items=[{nom="Boîte", valeur="boîte"},
-                   {nom="Gaussien", valeur="gaussien"}
+			items=[{nom="Boîte", valeur="boîte"},
+				   {nom="Catrom", valeur="catrom"},
+				   {nom="Cubic", valeur="cubic"},
+				   {nom="Gaussien", valeur="gaussien"},
+				   {nom="Mitchell", valeur="mitchell"},
+				   {nom="Triangulaire", valeur="triangulaire"},
+				   {nom="Quadratic", valeur="quadratic"}
             ])
     }
     ligne {
