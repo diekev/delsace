@@ -26,6 +26,7 @@
 
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
@@ -51,13 +52,14 @@ static Image const *cherche_image_profonde(
 		OperatriceImage &op,
 		int index,
 		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval)
+		DonneesAval *donnees_aval,
+		int index_lien = 0)
 {
-	auto image = op.entree(index)->requiers_image(contexte, donnees_aval);
+	auto image = op.entree(index)->requiers_image(contexte, donnees_aval, index_lien);
 
 	if (image == nullptr) {
 		auto flux = dls::flux_chaine();
-		flux << "Aucune image trouvée dans l'entrée à l'index " << index << " !";
+		flux << "Aucune image trouvée dans l'entrée à l'index " << index << ", lien " << index_lien << " !";
 		op.ajoute_avertissement(flux.chn());
 		return nullptr;
 	}
@@ -256,7 +258,7 @@ public:
 	OpFusionProfonde(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
-		entrees(2);
+		entrees(1);
 		sorties(1);
 	}
 
@@ -275,62 +277,76 @@ public:
 		return AIDE;
 	}
 
+	bool connexions_multiples(int n) const override
+	{
+		return n == 0;
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
-		auto image1 = cherche_image_profonde(*this, 0, contexte, donnees_aval);
+		auto images = dls::tableau<Image const *>();
 
-		if (image1 == nullptr) {
-			return EXECUTION_ECHOUEE;
+		for (auto i = 0; i < entree(0)->nombre_connexions(); ++i) {
+			auto img = cherche_image_profonde(*this, 0, contexte, donnees_aval, i);
+
+			if (img != nullptr) {
+				images.pousse(img);
+			}
 		}
 
-		auto image2 = cherche_image_profonde(*this, 1, contexte, donnees_aval);
-
-		if (image2 == nullptr) {
+		if (images.est_vide()) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		m_image.est_profonde = true;
 
-		auto S1 = image1->calque_profond_pour_lecture("S");
-		auto R1 = image1->calque_profond_pour_lecture("R");
-		auto G1 = image1->calque_profond_pour_lecture("G");
-		auto B1 = image1->calque_profond_pour_lecture("B");
-		auto A1 = image1->calque_profond_pour_lecture("A");
-		auto Z1 = image1->calque_profond_pour_lecture("Z");
-
-		auto tampon_S1 = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S1->tampon());
-		auto tampon_R1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R1->tampon());
-		auto tampon_G1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G1->tampon());
-		auto tampon_B1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B1->tampon());
-		auto tampon_A1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A1->tampon());
-		auto tampon_Z1 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z1->tampon());
-
-		auto S2 = image2->calque_profond_pour_lecture("S");
-		auto R2 = image2->calque_profond_pour_lecture("R");
-		auto G2 = image2->calque_profond_pour_lecture("G");
-		auto B2 = image2->calque_profond_pour_lecture("B");
-		auto A2 = image2->calque_profond_pour_lecture("A");
-		auto Z2 = image2->calque_profond_pour_lecture("Z");
-
-		auto tampon_S2 = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S2->tampon());
-		auto tampon_R2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R2->tampon());
-		auto tampon_G2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G2->tampon());
-		auto tampon_B2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B2->tampon());
-		auto tampon_A2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A2->tampon());
-		auto tampon_Z2 = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z2->tampon());
-
-		/* alloue calques profonds */
-		auto desc1 = S1->tampon()->desc();
-		auto desc2 = S2->tampon()->desc();
+		auto tampons_S = dls::tableau<wlk::grille_dense_2d<unsigned> const *>();
+		auto tampons_R = dls::tableau<wlk::grille_dense_2d<float *> const *>();
+		auto tampons_G = dls::tableau<wlk::grille_dense_2d<float *> const *>();
+		auto tampons_B = dls::tableau<wlk::grille_dense_2d<float *> const *>();
+		auto tampons_A = dls::tableau<wlk::grille_dense_2d<float *> const *>();
+		auto tampons_Z = dls::tableau<wlk::grille_dense_2d<float *> const *>();
 
 		auto desc = wlk::desc_grille_2d{};
 		desc.taille_pixel = 1.0;
-		desc.etendue.min.x = std::min(desc1.etendue.min.x, desc2.etendue.min.x);
-		desc.etendue.min.y = std::min(desc1.etendue.min.y, desc2.etendue.min.y);
-		desc.etendue.max.x = std::max(desc1.etendue.max.x, desc2.etendue.max.x);
-		desc.etendue.max.y = std::max(desc1.etendue.max.y, desc2.etendue.max.y);
+		desc.etendue.min = dls::math::vec2f( constantes<float>::INFINITE);
+		desc.etendue.max = dls::math::vec2f(-constantes<float>::INFINITE);
+
+		auto echantillons_total = 0l;
+
+		for (auto img : images) {
+			auto S = img->calque_profond_pour_lecture("S");
+			auto R = img->calque_profond_pour_lecture("R");
+			auto G = img->calque_profond_pour_lecture("G");
+			auto B = img->calque_profond_pour_lecture("B");
+			auto A = img->calque_profond_pour_lecture("A");
+			auto Z = img->calque_profond_pour_lecture("Z");
+
+			auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S->tampon());
+			auto tampon_R = dynamic_cast<wlk::grille_dense_2d<float *> const *>(R->tampon());
+			auto tampon_G = dynamic_cast<wlk::grille_dense_2d<float *> const *>(G->tampon());
+			auto tampon_B = dynamic_cast<wlk::grille_dense_2d<float *> const *>(B->tampon());
+			auto tampon_A = dynamic_cast<wlk::grille_dense_2d<float *> const *>(A->tampon());
+			auto tampon_Z = dynamic_cast<wlk::grille_dense_2d<float *> const *>(Z->tampon());
+
+			tampons_S.pousse(tampon_S);
+			tampons_R.pousse(tampon_R);
+			tampons_G.pousse(tampon_G);
+			tampons_B.pousse(tampon_B);
+			tampons_A.pousse(tampon_A);
+			tampons_Z.pousse(tampon_Z);
+
+			auto desc1 = tampon_S->desc();
+			desc.etendue.min.x = std::min(desc.etendue.min.x, desc1.etendue.min.x);
+			desc.etendue.min.y = std::min(desc.etendue.min.y, desc1.etendue.min.y);
+			desc.etendue.max.x = std::max(desc.etendue.max.x, desc1.etendue.max.x);
+			desc.etendue.max.y = std::max(desc.etendue.max.y, desc1.etendue.max.y);
+
+			echantillons_total += R->echantillons.taille();
+		}
+
 		desc.fenetre_donnees = desc.etendue;
 
 #if 0
@@ -339,8 +355,6 @@ public:
 			std::cerr << message << " : " << min << " - > " << max << '\n';
 		};
 
-		imprime_etendue("étendue grille 1", desc1.etendue.min, desc1.etendue.max);
-		imprime_etendue("étendue grille 2", desc2.etendue.min, desc2.etendue.max);
 		imprime_etendue("étendue grille  ", desc.etendue.min, desc.etendue.max);
 #endif
 
@@ -361,7 +375,6 @@ public:
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("fusion profondes");
 
-		auto echantillons_total = R1->echantillons.taille() + R2->echantillons.taille();
 		R->echantillons.redimensionne(echantillons_total);
 		G->echantillons.redimensionne(echantillons_total);
 		B->echantillons.redimensionne(echantillons_total);
@@ -387,59 +400,42 @@ public:
 
 				auto const pos_mnd = tampon_S->index_vers_monde(dls::math::vec2i(j, i));
 
-				auto const pos1 = tampon_S1->monde_vers_index(pos_mnd);
-				auto const pos2 = tampon_S2->monde_vers_index(pos_mnd);
-
-				auto const n1 = tampon_S1->valeur(pos1);
-				auto const n2 = tampon_S2->valeur(pos2);
-				auto const n  = n1 + n2;
-
-				if (n == 0) {
-					continue;
-				}
-
 				auto eR = &R->echantillons[decalage];
 				auto eG = &G->echantillons[decalage];
 				auto eB = &B->echantillons[decalage];
 				auto eA = &A->echantillons[decalage];
 				auto eZ = &Z->echantillons[decalage];
-				decalage += n;
 
-				if (n1 != 0) {
-					auto index1 = tampon_S1->calcul_index(pos1);
-					auto eR1 = tampon_R1->valeur(index1);
-					auto eG1 = tampon_G1->valeur(index1);
-					auto eB1 = tampon_B1->valeur(index1);
-					auto eA1 = tampon_A1->valeur(index1);
-					auto eZ1 = tampon_Z1->valeur(index1);
+				auto decalage_n = 0u;
+				for (auto t = 0; t < tampons_S.taille(); ++t) {
+					auto const pos1 = tampons_S[t]->monde_vers_index(pos_mnd);
+					auto const index1 = tampons_S[t]->calcul_index(pos1);
+					auto const n1 = tampons_S[t]->valeur(pos1);
+
+					if (n1 == 0) {
+						continue;
+					}
+
+					auto eR1 = tampons_R[t]->valeur(index1);
+					auto eG1 = tampons_G[t]->valeur(index1);
+					auto eB1 = tampons_B[t]->valeur(index1);
+					auto eA1 = tampons_A[t]->valeur(index1);
+					auto eZ1 = tampons_Z[t]->valeur(index1);
 
 					for (auto e = 0u; e < n1; ++e) {
-						eR[e] = eR1[e];
-						eG[e] = eG1[e];
-						eB[e] = eB1[e];
-						eA[e] = eA1[e];
-						eZ[e] = eZ1[e];
+						eR[e + decalage_n] = eR1[e];
+						eG[e + decalage_n] = eG1[e];
+						eB[e + decalage_n] = eB1[e];
+						eA[e + decalage_n] = eA1[e];
+						eZ[e + decalage_n] = eZ1[e];
 					}
+
+					decalage_n += n1;
 				}
 
-				if (n2 != 0) {
-					auto index2 = tampon_S2->calcul_index(pos2);
-					auto eR2 = tampon_R2->valeur(index2);
-					auto eG2 = tampon_G2->valeur(index2);
-					auto eB2 = tampon_B2->valeur(index2);
-					auto eA2 = tampon_A2->valeur(index2);
-					auto eZ2 = tampon_Z2->valeur(index2);
+				decalage += decalage_n;
 
-					for (auto e = 0u; e < n2; ++e) {
-						eR[e + n1] = eR2[e];
-						eG[e + n1] = eG2[e];
-						eB[e + n1] = eB2[e];
-						eA[e + n1] = eA2[e];
-						eZ[e + n1] = eZ2[e];
-					}
-				}
-
-				tampon_S->valeur(index) = n;
+				tampon_S->valeur(index) = decalage_n;
 				tampon_R->valeur(index) = eR;
 				tampon_G->valeur(index) = eG;
 				tampon_B->valeur(index) = eB;
