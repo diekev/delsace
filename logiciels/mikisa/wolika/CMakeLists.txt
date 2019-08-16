@@ -32,16 +32,20 @@ set(BIBLIOTHEQUES
 add_library(${NOM_CIBLE} STATIC
     base_grille.cc
 	echantillonnage.cc
+	filtre_2d.cc
     grille_dense.cc
     grille_eparse.cc
     grille_temporelle.cc
+	interruptrice.cc
 	iteration.cc
 
     base_grille.hh
 	echantillonnage.hh
+	filtre_2d.hh
     grille_dense.hh
     grille_eparse.hh
     grille_temporelle.hh
+	interruptrice.hh
 	iteration.hh
 )
 
