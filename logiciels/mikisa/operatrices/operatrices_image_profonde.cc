@@ -26,6 +26,7 @@
 
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
@@ -613,6 +614,8 @@ public:
 		auto index = 0;
 
 		auto min_z = std::numeric_limits<float>::max();
+		auto gna = GNA{};
+		auto const probabilite = evalue_decimal("probabilité");
 
 		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 
@@ -627,7 +630,8 @@ public:
 				auto xf = static_cast<float>(x) / static_cast<float>(largeur);
 				auto yf = static_cast<float>(y) / static_cast<float>(hauteur);
 
-				auto point = dls::math::point3f(xf, yf, 0.0f);
+				/* 1 - xf car la caméra est inversée sur l'axe Y */
+				auto point = dls::math::point3f(xf, 1.0f - yf, 0.0f);
 				auto pmnd = camera->pos_monde(point);
 
 				auto eR = tampon_R1->valeur(index);
@@ -636,7 +640,13 @@ public:
 				auto eZ = tampon_Z1->valeur(index);
 
 				for (auto i = 0u; i < n; ++i) {
-					pmnd.z = eZ[i];
+					/* -eZ nous donne la bonne orientation mais ne devrait-ce
+					 * pas être eZ ? */
+					pmnd.z = -eZ[i];
+
+					if (gna.uniforme(0.0f, 1.0f) >= probabilite) {
+						continue;
+					}
 
 					min_z = std::min(pmnd.z, min_z);
 
@@ -684,6 +694,10 @@ public:
 	{
 		if (propriete("nom_caméra") == nullptr) {
 			ajoute_propriete("nom_caméra", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine(""));
+		}
+
+		if (propriete("probabilité") == nullptr) {
+			ajoute_propriete("probabilité", danjo::TypePropriete::DECIMAL, 0.25f);
 		}
 	}
 };
