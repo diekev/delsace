@@ -40,6 +40,7 @@ menu "Noeud Composite" {
     menu "Région" {
 		action(valeur="Affinage Image"; attache=ajouter_noeud; métadonnée="Affinage Image")
 	    action(valeur="Analyse"; attache=ajouter_noeud; métadonnée="Analyse")
+		action(valeur="Bilatéral Image"; attache=ajouter_noeud; métadonnée="Bilatéral Image")
 		action(valeur="Champs de distance"; attache=ajouter_noeud; métadonnée="Champs distance")
 		action(valeur="Coordonnées Polaires"; attache=ajouter_noeud; métadonnée="Coordonnées Polaires")
 		action(valeur="Déformation"; attache=ajouter_noeud; métadonnée="Déformation")

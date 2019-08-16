@@ -1,0 +1,18 @@
+disposition "operatrice_bilateral_image" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Rayon")
+		décimal(valeur=3.0; attache=rayon; min=0; animable)
+    }
+	ligne {
+		étiquette(valeur="Sigma Position")
+		décimal(valeur=0.4; attache=sigma_s; min=0; infobulle="Controle la quantité de flou provenant des pixels avoisinants."; animable)
+	}
+	ligne {
+		étiquette(valeur="Sigma Couleur")
+		décimal(valeur=0.4; attache=sigma_i; min=0; infobulle="Controle la quantité de flou qui dépasse les côtés de l'image, les valeurs basses préservent mieux les côtés."; animable)
+	}
+}

@@ -918,6 +918,139 @@ public:
 	}
 };
 
+
+/* ************************************************************************** */
+
+class OpFiltreBilateral : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Bilatéral Image";
+	static constexpr auto AIDE = "Affine les pixels de l'image.";
+
+	explicit OpFiltreBilateral(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_bilateral_image.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto nom_calque = evalue_chaine("nom_calque");
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
+
+		if (calque_entree == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto rayon = evalue_decimal("rayon", contexte.temps_courant);
+		auto taille = static_cast<int>(rayon);
+
+		auto chef = contexte.chef;
+
+		auto const res_x = tampon->desc().resolution.x;
+		auto const res_y = tampon->desc().resolution.y;
+
+		auto sigma_i = evalue_decimal("sigma_i", contexte.temps_courant);
+		auto sigma_s = evalue_decimal("sigma_s", contexte.temps_courant);
+
+		auto gaussien = [](float x, float sigma)
+		{
+			auto sigma2 = sigma * sigma;
+			return std::exp(-(x * x) / (2.0f * sigma2)) / (constantes<float>::PI * sigma2);
+		};
+
+		chef->demarre_evaluation("filtre bilatéral");
+
+		boucle_parallele(tbb::blocked_range<int>(0, res_y),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
+
+			for (int y = plage.begin(); y < plage.end(); ++y) {
+				if (chef->interrompu()) {
+					return;
+				}
+
+				for (int x = 0; x < res_x; ++x) {
+					auto index = tampon->calcul_index(dls::math::vec2i(x, y));
+					auto source = tampon_entree->valeur(index);
+
+					auto filtre = dls::phys::couleur32();
+					auto poids_r = 0.0f;
+					auto poids_v = 0.0f;
+					auto poids_b = 0.0f;
+					auto poids_a = 0.0f;
+
+					for (auto j = -taille; j <= taille; ++j) {
+						for (auto i = -taille; i <= taille; ++i) {
+							auto v = tampon_entree->valeur(dls::math::vec2i(x + i, y + j));
+
+							auto gir = gaussien(v.r - source.r, sigma_i);
+							auto giv = gaussien(v.v - source.v, sigma_i);
+							auto gib = gaussien(v.b - source.b, sigma_i);
+							auto gia = gaussien(v.a - source.a, sigma_i);
+
+							auto gs = gaussien(std::sqrt(static_cast<float>(i * i + j * j)), sigma_s);
+
+							auto pr = gir * gs;
+							auto pv = giv * gs;
+							auto pb = gib * gs;
+							auto pa = gia * gs;
+
+							filtre.r += v.r * pr;
+							filtre.v += v.v * pv;
+							filtre.b += v.b * pb;
+							filtre.a += v.a * pa;
+
+							poids_r += pr;
+							poids_v += pv;
+							poids_b += pb;
+							poids_a += pa;
+						}
+					}
+
+					filtre.r /= poids_r;
+					filtre.v /= poids_v;
+					filtre.b /= poids_b;
+					filtre.a /= poids_a;
+
+					tampon->valeur(index) = filtre;
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			delta /= static_cast<float>(res_y);
+			chef->indique_progression_parallele(delta * 100.0f);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
 /* ************************************************************************** */
 
 class OperatriceTournoiement : public OperatriceImage {
@@ -2252,6 +2385,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpRayonsSoleil>());
 	usine.enregistre_type(cree_desc<OpAffinageImage>());
 	usine.enregistre_type(cree_desc<OpMedianeImage>());
+	usine.enregistre_type(cree_desc<OpFiltreBilateral>());
 }
 
 #pragma clang diagnostic pop
