@@ -193,6 +193,8 @@ public:
 
 	virtual ~OperatriceImage() = default;
 
+	bool cache_est_invalide = true;
+
 	/* L'usine est utilisé pour pouvoir supprimer correctement l'opératrice.
 	 * Voir supprime_operatrice_image. */
 	void usine(UsineOperatrice *usine_op);

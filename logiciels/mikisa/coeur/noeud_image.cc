@@ -58,6 +58,7 @@ void execute_noeud(
 	operatrice->reinitialise_avertisements();
 
 	auto const resultat = operatrice->execute(contexte, donnees_aval);
+	operatrice->cache_est_invalide = false;
 
 	/* Ne prend en compte que le temps des exécutions réussies pour éviter de se
 	 * retrouver avec un temps d'exécution minimum trop bas, proche de zéro, en

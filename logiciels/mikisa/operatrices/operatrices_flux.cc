@@ -584,7 +584,7 @@ public:
 			dls::corrige_chemin_pour_temps(chemin, contexte.temps_courant);
 		}
 
-		if (m_dernier_chemin != chemin) {
+		if (m_dernier_chemin != chemin || this->cache_est_invalide) {
 			m_image.reinitialise();
 
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
@@ -661,7 +661,7 @@ public:
 			dls::corrige_chemin_pour_temps(chemin, contexte.temps_courant);
 		}
 
-		if (m_dernier_chemin != chemin) {
+		if (m_dernier_chemin != chemin || this->cache_est_invalide) {
 			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
 			m_image.reinitialise();
 

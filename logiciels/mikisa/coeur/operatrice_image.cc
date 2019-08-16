@@ -526,6 +526,7 @@ void OperatriceImage::parametres_changes()
 void OperatriceImage::libere_memoire()
 {
 	m_image.reinitialise();
+	cache_est_invalide = true;
 }
 
 /* ************************************************************************** */

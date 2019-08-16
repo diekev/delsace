@@ -57,4 +57,5 @@ void OperatriceCorps::donnees_simulation(DonneesSimulation *donnees)
 void OperatriceCorps::libere_memoire()
 {
 	m_corps.reinitialise();
+	cache_est_invalide = true;
 }
