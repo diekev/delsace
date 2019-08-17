@@ -218,8 +218,6 @@ void ajoute_calque_projection_triplanaire(Maillage *maillage)
 
 void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 {
-	texels_par_cm = texels_par_cm * 10;
-
 	/* calcule la resolution UV de chaque polygone en fonction de la densité */
 	dls::dico<std::pair<unsigned int, unsigned int>, unsigned int> tableau_compte_faces;
 
@@ -232,10 +230,11 @@ void assigne_texels_resolution(Maillage *maillage, unsigned int texels_par_cm)
 		p->res_v = 16;
 #else
 		auto const cote0 = longueur(p->s[1]->pos - p->s[0]->pos);
-		auto const cote1 = longueur(p->s[2]->pos - p->s[1]->pos);
+		auto const p2 = (p->s[3] != nullptr) ? p->s[3] : p->s[2];
+		auto const cote1 = longueur(p2->pos - p->s[1]->pos);
 
-		auto const res_u = static_cast<unsigned int>(cote0) * texels_par_cm;
-		auto const res_v = static_cast<unsigned int>(cote1) * texels_par_cm;
+		auto const res_u = static_cast<unsigned int>(cote0 * 100.0f * static_cast<float>(texels_par_cm));
+		auto const res_v = static_cast<unsigned int>(cote1 * 100.0f * static_cast<float>(texels_par_cm));
 
 		p->res_u = std::max(1u, prochain_multiple_de_2(res_u));
 		p->res_v = std::max(1u, prochain_multiple_de_2(res_v));
