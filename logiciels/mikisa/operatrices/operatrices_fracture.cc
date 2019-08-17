@@ -33,6 +33,8 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#include "corps/limites_corps.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -118,24 +120,9 @@ public:
 		}
 
 		/* création du conteneur */
-		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
-		auto max = dls::math::vec3d(-std::numeric_limits<double>::max());
-
-		auto points_maillage = corps_maillage->points_pour_lecture();
-
-		for (auto i = 0; i < points_maillage->taille(); ++i) {
-			auto point = points_maillage->point(i);
-			auto point_monde = corps_maillage->transformation(dls::math::point3d(point.x, point.y, point.z));
-
-			for (size_t j = 0; j < 3; ++j) {
-				if (point_monde[j] < min[j]) {
-					min[j] = point_monde[j];
-				}
-				else if (point_monde[j] > max[j]) {
-					max[j] = point_monde[j];
-				}
-			}
-		}
+		auto limites = calcule_limites_mondiales_corps(*corps_maillage);
+		auto min = dls::math::converti_type<double>(limites.min);
+		auto max = dls::math::converti_type<double>(limites.max);
 
 		/* Divise le domaine de calcul. */
 		auto nombre_block = dls::math::vec3i(8);
