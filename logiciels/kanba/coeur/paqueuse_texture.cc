@@ -28,6 +28,16 @@
 
 #include "maillage.h"
 
+/**
+ * Considération des deux papiers suivant pour continuer l'implémentation :
+ *
+ * « A Space-efficient and Hardware-friendly Implementation of Ptex »
+ * http://wwwx.cs.unc.edu/~sujeong/Ptex/PTEX-sa011-small.pdf
+ *
+ * « Per-Face Texture Mapping for Realtime Rendering »
+ * http://developer.download.nvidia.com/assets/gamedev/docs/RealtimePtex-siggraph2011.pdf
+ */
+
 #undef LOGUE_EMPATQUETTAGE
 
 #undef QUEUE_PRIORITE
