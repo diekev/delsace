@@ -15,6 +15,7 @@ menu "Noeud Objet" {
 	menu "Cheveux" {
 		action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")
 		action(valeur="Bruit Cheveux"; attache=ajouter_noeud; métadonnée="Bruit Cheveux")
+		action(valeur="Collision Cheveux"; attache=ajouter_noeud; métadonnée="Collision Cheveux")
 		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
 	}
 	menu "Entrée" {

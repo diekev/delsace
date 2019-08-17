@@ -27,9 +27,11 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/phys/collision.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/delegue_hbe.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
@@ -37,68 +39,17 @@
 #include "corps/corps.h"
 #include "corps/iteration_corps.hh"
 
+#include "arbre_octernaire.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
 
-static void init_min_max(dls::math::vec3f &min, dls::math::vec3f &max)
-{
-	for (size_t i = 0; i < 3; ++i) {
-		min[i] = -std::numeric_limits<float>::max();
-		max[i] =  std::numeric_limits<float>::max();
-	}
-}
-
-struct Triangle {
-	dls::math::vec3f p0{};
-	dls::math::vec3f p1{};
-	dls::math::vec3f p2{};
-	dls::math::vec3f min{};
-	dls::math::vec3f max{};
-};
-
 struct DonneesCollesion {
 	dls::math::vec3f normal{};
-	Arrete *segment{};
-};
-
-class ArbreOcternaire {
-	dls::tableau<Triangle *> m_triangles{};
-
-public:
-	struct Octant {
-		Octant *enfants[8] = {
-			nullptr, nullptr, nullptr, nullptr,
-			nullptr, nullptr, nullptr, nullptr
-		};
-
-		dls::math::vec3f min{}, max{};
-
-		~Octant()
-		{
-			for (auto enfant : enfants) {
-				memoire::deloge("ArbreOcternaire::Octant", enfant);
-			}
-		}
-	};
-
-	~ArbreOcternaire()
-	{
-		for (auto tri : m_triangles) {
-			memoire::deloge("Triangle", tri);
-		}
-
-		m_triangles.efface();
-	}
-
-	void ajoute_triangle(Triangle *tri)
-	{
-		m_triangles.pousse(tri);
-	}
-
-private:
-	Octant m_racine{};
+	long idx_courbe = 0;
+	long idx_segment = 0;
 };
 
 /* ************************************************************************** */
@@ -270,106 +221,233 @@ public:
 
 /* ************************************************************************** */
 
+static auto contient(limites3f const &limites, dls::math::vec3f const &p)
+{
+	return limites.min <= p && p <= limites.max;
+}
+
+static void traverse_arbre(
+		arbre_octernaire::noeud const *racine,
+		dls::phys::rayond const &rayon,
+		dls::tableau<arbre_octernaire::noeud const *> &noeuds)
+{
+	if (racine->est_feuille) {
+		noeuds.pousse(racine);
+		return;
+	}
+
+	for (auto i = 0; i < 8; ++i) {
+		auto enfant = racine->enfants[i];
+
+		if (enfant == nullptr) {
+			continue;
+		}
+
+		auto mind = dls::math::converti_type_point<double>(enfant->limites.min);
+		auto maxd = dls::math::converti_type_point<double>(enfant->limites.max);
+
+		if (dls::phys::entresection_rapide_min_max(rayon, mind, maxd) > -0.5) {
+			traverse_arbre(enfant, rayon, noeuds);
+		}
+	}
+}
+
+static auto entresecte_prim(Corps const &corps, Primitive *prim, const dls::phys::rayond &r)
+{
+	auto entresection = dls::phys::esectd{};
+
+	if (prim->type_prim() != type_primitive::POLYGONE) {
+		return entresection;
+	}
+
+	auto poly = dynamic_cast<Polygone *>(prim);
+	auto attr_N = corps.attribut("N");
+
+	if (poly->type != type_polygone::FERME) {
+		return entresection;
+	}
+
+	for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+		auto i0 = poly->index_point(0);
+		auto i1 = poly->index_point(j - 1);
+		auto i2 = poly->index_point(j);
+
+		auto const &v0 = corps.point_transforme(i0);
+		auto const &v1 = corps.point_transforme(i1);
+		auto const &v2 = corps.point_transforme(i2);
+
+		auto const &v0_d = dls::math::converti_type_point<double>(v0);
+		auto const &v1_d = dls::math::converti_type_point<double>(v1);
+		auto const &v2_d = dls::math::converti_type_point<double>(v2);
+
+		auto dist = 1000.0;
+		auto ud = 0.0;
+		auto vd = 0.0;
+
+		if (entresecte_triangle(v0_d, v1_d, v2_d, r, dist, &ud, &vd)) {
+			entresection.touche = true;
+			entresection.point = r.origine + dist * r.direction;
+			entresection.distance = dist;
+
+			auto n0 = dls::math::vec3f();
+			auto n1 = dls::math::vec3f();
+			auto n2 = dls::math::vec3f();
+
+			if (attr_N->portee == portee_attr::POINT) {
+				n0 = attr_N->vec3(i0);
+				n1 = attr_N->vec3(i1);
+				n2 = attr_N->vec3(i2);
+			}
+			else if (attr_N->portee == portee_attr::PRIMITIVE) {
+				n0 = attr_N->vec3(prim->index);
+				n1 = n0;
+				n2 = n0;
+			}
+
+			auto u = static_cast<float>(ud);
+			auto v = static_cast<float>(vd);
+			auto w = 1.0f - u - v;
+			auto N = w * n0 + u * n1 + v * n2;
+			entresection.normal = dls::math::converti_type<double>(N);
+
+			break;
+		}
+	}
+
+	return entresection;
+}
+
+/**
+ * Tentative d'implémentation de
+ * « FurCollide: Fast, Robust, and Controllable Fur Collisions with Meshes »
+ * https://research.dreamworks.com/wp-content/uploads/2018/07/55-0210-somasundaram-Edited.pdf
+ */
 class OperatriceCollisionCheveux : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
+	explicit OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		auto const courbes = charge_courbes(contexte, donnees_aval);
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, courbes, true, true, 1)) {
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		/* obtiens le maillage de collision */
-		auto const maillage_collision = charge_maillage_collesion(contexte, donnees_aval);
+		auto const maillage_collision = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, maillage_collision, true, true)) {
+		if (!valide_corps_entree(*this, maillage_collision, true, true, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 
-		/* le maillage de collision est triangulé et chaque triangle est stocké
-		 * dans un arbre octernaire */
-		ArbreOcternaire *arbre = construit_arbre(maillage_collision);
+		/* le papier utilise une version triangulée du maillage dont chaque
+		 * triangle est stocké dans un arbre octernaire, cette triangulation est
+		 * ignorée ici */
+		auto delegue = delegue_arbre_octernaire(*maillage_collision);
+		auto arbre = arbre_octernaire::construit(delegue);
 
-		/* identifie les courbes dont la boite englobante se trouve dans la
-		 * boite englobante du maillage de collision */
-		auto liste_courbes = trouve_courbes_pres_maillage(maillage_collision, courbes);
-
-		INUTILISE(liste_courbes);
-
-
-		/* chaque segment de ces courbes sont testés pour une collision avec les
-		 * triangles, jusqu'à ce qu'on trouve une collision :
-		 * 1. d'abord les octants de l'arbre dans lequel se trouve les segments
-		 * de la courbe sont identifiés en utilisant une entresection segment/
-		 * boite englobante
-		 */
-		//ArbreOcternaire::Octant *octants = trouve_octants(courbes);
-
-		/* 2. pour les triangles se trouvant dans les octants, une entresection
-		 * boite englobante segment/triangle est performée
+		/* identifie les courbes dont la boite englobante chevauche celle du
+		 * maillage de collision
+		 * NOTE : pour l'instant toutes les courbes sont considérées
 		 */
 
-		/* 3. si le test précité passe, une entresection triangle/segment est
-		 * performée
-		 *
-		 * le normal au point de collésion, et le segment collésé sont stocké
-		 */
+		auto donnees_collesions = dls::tableau<DonneesCollesion>();
 
-		memoire::deloge("ArbreOcternaire", arbre);
-
-		return EXECUTION_REUSSIE;
-	}
-
-	Corps const *charge_maillage_collesion(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-	{
-		return entree(0)->requiers_corps(contexte, donnees_aval);
-	}
-
-	Corps const *charge_courbes(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-	{
-		return entree(1)->requiers_corps(contexte, donnees_aval);
-	}
-
-	ArbreOcternaire *construit_arbre(Corps const *maillage)
-	{
-		auto arbre = memoire::loge<ArbreOcternaire>("ArbreOcternaire");
-
-		pour_chaque_polygone_ferme(*maillage,
-								   [&](Corps const &corps, Polygone *poly)
+		pour_chaque_polygone_ouvert(m_corps, [&](Corps const &corps_courbe, Polygone *poly)
 		{
-			for (long i = 2; i < poly->nombre_sommets(); ++i) {
-				auto triangle = memoire::loge<Triangle>("Triangle");
-				triangle->p0 = corps.point_transforme(poly->index_point(0));
-				triangle->p1 = corps.point_transforme(poly->index_point(i - 1));
-				triangle->p2 = corps.point_transforme(poly->index_point(i));
+			/* chaque segment de ces courbes sont testés pour une collision avec
+			 * les primitives, jusqu'à ce qu'on trouve une collision :
+			 * 1. d'abord les octants de l'arbre dans lesquels se trouvent les
+			 * segments de la courbe sont identifiés en utilisant un test de
+			 * chevauchement segment/boite englobante
+			 */
+			dls::tableau<arbre_octernaire::noeud const *> noeuds;
 
-				init_min_max(triangle->min, triangle->max);
-				dls::math::extrait_min_max(triangle->p0, triangle->min, triangle->max);
-				dls::math::extrait_min_max(triangle->p1, triangle->min, triangle->max);
-				dls::math::extrait_min_max(triangle->p2, triangle->min, triangle->max);
+			for (auto i = 0; i < poly->nombre_segments(); ++i) {
+				noeuds.efface();
 
-				arbre->ajoute_triangle(triangle);
+				auto p0 = corps_courbe.point_transforme(poly->index_point(i));
+				auto p1 = corps_courbe.point_transforme(poly->index_point(i + 1));
+
+				auto rayon = dls::phys::rayond();
+				rayon.origine = dls::math::converti_type_point<double>(p0);
+				auto direction = normalise(p1 - p0);
+				rayon.direction = dls::math::converti_type<double>(direction);
+				dls::phys::calcul_direction_inverse(rayon);
+
+				traverse_arbre(arbre.racine(), rayon, noeuds);
+
+				//std::cerr << "Courbe " << poly->index << ", chevauche " << noeuds.taille() << " noeuds\n";
+
+				/* 2. ensuite pour les primitives se trouvant dans les octants,
+				 * un autre test de chevauchement est performé entre le segment
+				 * et la boite englobante de la primitive
+				 */
+				for (auto noeud : noeuds) {
+					for (auto idx : noeud->refs) {
+						auto lmt = delegue.calcule_limites(idx);
+						auto mind = dls::math::converti_type_point<double>(lmt.min);
+						auto maxd = dls::math::converti_type_point<double>(lmt.max);
+
+						if (dls::phys::entresection_rapide_min_max(rayon, mind, maxd) < 0.0) {
+							continue;
+						}
+
+						/* 3. si le test précité passe, une entresection
+						 * triangle/segment est performée
+						 *
+						 * le normal au point de collésion, et le segment
+						 * collésé sont stocké
+						 */
+						auto prim = maillage_collision->prims()->prim(idx);
+
+						auto esect = entresecte_prim(*maillage_collision, prim, rayon);
+
+						if (!esect.touche) {
+							continue;
+						}
+
+						auto dist = dls::math::longueur(p1 - p0);
+
+						if (esect.distance > static_cast<double>(dist)) {
+							continue;
+						}
+
+						auto donnees_collesion = DonneesCollesion();
+						donnees_collesion.normal = dls::math::converti_type<float>(esect.normal);
+						donnees_collesion.idx_courbe = idx;
+						donnees_collesion.idx_segment = i;
+
+						donnees_collesions.pousse(donnees_collesion);
+
+						return;
+					}
+				}
 			}
 		});
 
-		return arbre;
-	}
+		//std::cerr << "Il y a " << donnees_collesions.taille() << " collisions détectées\n";
 
-	Corps const *trouve_courbes_pres_maillage(Corps const *maillage, Corps const *courbes)
-	{
-		INUTILISE(courbes);
-		INUTILISE(maillage);
-//		for (size_t i = 0; i < courbes->nombre_courbes; ++i) {
-//			for (size_t j = 0; j < courbes->segments_par_courbe; ++j) {
+		/* À FAIRE : réponse collision */
 
-//			}
-//		}
-
-		return nullptr;
+		return EXECUTION_REUSSIE;
 	}
 };
 
@@ -866,6 +944,7 @@ void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationCourbes>());
 	usine.enregistre_type(cree_desc<OperatriceMasseRessort>());
+	usine.enregistre_type(cree_desc<OperatriceCollisionCheveux>());
 	usine.enregistre_type(cree_desc<OpTouffeCheveux>());
 	usine.enregistre_type(cree_desc<OpBruitCheveux>());
 	usine.enregistre_type(cree_desc<OpMelangeCheveux>());
