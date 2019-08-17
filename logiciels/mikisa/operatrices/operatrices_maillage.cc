@@ -1658,6 +1658,131 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Test pour comprendre les Couleurs de Maillage ("Mesh Colors").
+ * Voir http://www.cemyuksel.com/research/meshcolors/meshcolors_tog.pdf
+ */
+class OpCouleurMaillage : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Couleur Maillage";
+	static constexpr auto AIDE = "Crée des couleurs sur un maillage";
+
+	OpCouleurMaillage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		if (corps_entree == nullptr) {
+			this->ajoute_avertissement("Le corps d'entrée est nul, rien n'est connecté");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto points = corps_entree->points_pour_lecture();
+
+		if (points->taille() == 0) {
+			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto prims = corps_entree->prims();
+
+		if (prims->taille() == 0) {
+			this->ajoute_avertissement("Le Corps d'entrée n'a pas de primitives !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		// l'algorithme n'est réelemnt que défini pour des triangles, pour les
+		// polygones il faudra considérer d'autres manières de placer les
+		// échantillons
+
+		// les données doivent être stockées dans un tableau, avec les index
+		// stockés sur les éléments (point, coté, polygone)
+
+		auto R = 6;
+		//auto const couleurs_par_point = 1;
+		//auto const couleurs_par_cote = R - 1;
+		//auto const couleurs_par_polygone = (R - 1) * (R - 2) / 2;
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("couleur maillage");
+
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+
+		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &corps_, Polygone const *poly)
+		{
+			auto Rd = static_cast<float>(R);
+
+			auto v0 = corps_.point_transforme(poly->index_point(0));
+			auto v1 = corps_.point_transforme(poly->index_point(1));
+			auto v2 = corps_.point_transforme(poly->index_point(3));
+
+			dls::math::vec3f couleurs[3] = {
+				dls::math::vec3f(0.0f, 0.0f, 1.0f),
+				dls::math::vec3f(0.0f, 1.0f, 0.0f),
+				dls::math::vec3f(1.0f, 0.0f, 0.0f)
+			};
+
+			// les couleurs sont parfaitements alignés dans l'espace barycentrique
+			for (auto i = 0; i <= R; ++i) {
+				/* NOTE: pour les triangles il faut aller jusque R - i
+				 * si on utilise des quadrilatères, il faudra considérer les
+				 * quadrilatères n'ayant pas des cotés uniformes
+				 */
+				for (auto j = 0; j <= R; ++j) {
+					auto const id = static_cast<float>(i);
+					auto const jd = static_cast<float>(j);
+					auto const u = id / Rd;
+					auto const v = jd / Rd;
+					auto const w = 1.0f - (id + jd) / Rd;
+
+					auto point = w * v0 + u * v1 + v * v2;
+
+					m_corps.ajoute_point(point);
+
+					if ((i == 0 || i == R) && (j == 0 || j == R)) {
+						// nous sommes sur un point
+						attr_C->pousse(couleurs[0]);
+					}
+					else if (((i == 0 || i == R) && j < R) || ((j == 0 || j == R) && i < R)) {
+						// nous sommes sur un coté
+						attr_C->pousse(couleurs[1]);
+					}
+					else {
+						// nous sommes dans le polygone
+						attr_C->pousse(couleurs[2]);
+					}
+				}
+			}
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_maillage(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceLissageLaplacien>());
@@ -1668,6 +1793,7 @@ void enregistre_operatrices_maillage(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceErosionMaillage>());
 	usine.enregistre_type(cree_desc<OpGeometrieMaillage>());
 	usine.enregistre_type(cree_desc<OpFonteMaillage>());
+	usine.enregistre_type(cree_desc<OpCouleurMaillage>());
 }
 
 #pragma clang diagnostic pop
