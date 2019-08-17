@@ -71,6 +71,13 @@ struct MTreeNode {
 		, creator(c)
 	{}
 
+	~MTreeNode()
+	{
+		for (auto enfant : children) {
+			memoire::deloge("MTreeNode", enfant);
+		}
+	}
+
 	std::pair<float, float> get_grow_candidates(dls::tableau<MTreeNode *> &candidats, int creator_)
 	{
 		auto max_height = -std::numeric_limits<float>::max();
@@ -145,7 +152,7 @@ struct MTreeNode {
 			}
 
 			// XXX
-			//candidates.pousse(new MTreeNode(this->position, direction, length, this->radius, extremity))
+			//candidates.pousse(memoire::loge<MTreeNode>("MTreeNode", this->position, direction, length, this->radius, extremity))
 		}
 
 		for (auto &child : this->children) {
@@ -182,7 +189,7 @@ struct MTreeNode {
 
 		if (this->radius > min_radius && !this->children.est_vide()) { // if radius is greater than max radius, add data to armature data
 		   // auto child = this->children[0];
-		   // armature_data.back().pousse(new MTreeNode(this->position, child.position, this->radius, child->radius, parent_index));
+		   // armature_data.back().pousse(memoire::loge<MTreeNode>("MTreeNode", this->position, child.position, this->radius, child->radius, parent_index));
 			this->bone_name = "bone_" + std::to_string(bone_index[0]);
 			index = bone_index[0];
 			bone_index[0] += 1;
@@ -291,6 +298,11 @@ struct MTree {
 	dls::tableau<dls::math::vec3f> verts{};
 	dls::tableau<dls::math::vec4i> faces{};
 
+	~MTree()
+	{
+		memoire::deloge("MTreeNode", stem);
+	}
+
 	void build_mesh_data()
 	{
 
@@ -298,7 +310,7 @@ struct MTree {
 
 	void add_trunk(float length, float radius, float end_radius, float shape, float resolution, float randomness, float axis_attraction, int creator)
 	{
-		this->stem = new MTreeNode(
+		this->stem = memoire::loge<MTreeNode>("MTreeNode",
 					dls::math::vec3f(0.0f),
 					dls::math::vec3f(0.0f, 0.0f, 1.0f),
 					radius,
@@ -321,7 +333,7 @@ struct MTree {
 			direction = normalise(direction);
 			auto position = extremity->position + extremity->direction / resolution; // position of new TreeNode
 			auto rad = radius * std::pow(remaining_length/length, shape) + (1.0f - remaining_length/length) * end_radius; // radius of new TreeNode
-			auto new_node = new MTreeNode(position, direction, rad, creator); // new TreeNode
+			auto new_node = memoire::loge<MTreeNode>("MTreeNode", position, direction, rad, creator); // new TreeNode
 			extremity->children.pousse(new_node); // Add new TreeNode to extremity's children
 			extremity = new_node; // replace extremity by new TreeNode
 			remaining_length -= 1.0f / resolution;
@@ -412,7 +424,7 @@ struct MTree {
 					radius *= split_radius;// # forked branches have smaller radii
 				}
 
-				auto child = new MTreeNode(position, direction, radius, creator);
+				auto child = memoire::loge<MTreeNode>("MTreeNode", position, direction, radius, creator);
 				child->growth_goal = node->growth_goal;
 				child->growth = growth;
 				child->growth_radius = (i == 0) ? node->growth_radius : node->growth_radius * split_radius;
@@ -466,7 +478,7 @@ struct MTree {
 				auto position = (node->position + node->children[0]->position) / 2.0f;
 				position += normalise(tangent - projette(tangent, node->direction)) * node->radius;
 				auto rad = node->radius * radius;
-				auto child = new MTreeNode(position, direction, rad, creator);
+				auto child = memoire::loge<MTreeNode>("MTreeNode", position, direction, rad, creator);
 				child->position_in_branch = node->position_in_branch;
 				child->is_branch_origin = true;
 				child->can_spawn_leaf = false;
@@ -518,7 +530,7 @@ struct MTree {
 			return;
 		}
 
-		auto roots_origin = new MTreeNode(this->stem->position, -this->stem->direction, this->stem->radius, -1);
+		auto roots_origin = memoire::loge<MTreeNode>("MTreeNode", this->stem->position, -this->stem->direction, this->stem->radius, -1);
 		roots_origin->is_branch_origin = true;
 		this->stem->children.pousse(roots_origin); // stem is set as branch origin, so it cannot be splitted by split function. second children of stem will then always be root origin
 
@@ -582,7 +594,8 @@ struct MTree {
 			float gravity_strength,
 			float flatten)
 	{
-		this->stem = new MTreeNode(
+		this->stem = memoire::loge<MTreeNode>(
+					"MTreeNode",
 					dls::math::vec3f(0.0f),
 					dls::math::vec3f(1.0f, 0.0f, 0.0f),
 					radius*0.1f, 0);
@@ -764,6 +777,8 @@ public:
 	OperatriceCreationArbre(OperatriceCreationArbre const &) = default;
 	OperatriceCreationArbre &operator=(OperatriceCreationArbre const &) = default;
 
+	~OperatriceCreationArbre() override;
+
 	int type_sortie(int) const override;
 
 	const char *chemin_entreface() const override;
@@ -781,6 +796,11 @@ OperatriceCreationArbre::OperatriceCreationArbre(Graphe &graphe_parent, Noeud *n
 {
 	entrees(1);
 	sorties(1);
+}
+
+OperatriceCreationArbre::~OperatriceCreationArbre()
+{
+	memoire::deloge("MTree", m_arbre);
 }
 
 int OperatriceCreationArbre::type_sortie(int) const
@@ -803,20 +823,43 @@ const char *OperatriceCreationArbre::texte_aide() const
 	return AIDE;
 }
 
+static void construit_geometrie(Corps &corps, MTreeNode *noeud)
+{
+	for (auto enfant : noeud->children) {
+		corps.ajoute_point(enfant->position);
+
+		construit_geometrie(corps, enfant);
+	}
+}
+
 int OperatriceCreationArbre::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
+	m_corps.reinitialise();
 	INUTILISE(donnees_aval);
 
 	if (m_arbre != nullptr) {
 		delete m_arbre;
 	}
 
-	m_arbre = new MTree();
+	m_arbre = memoire::loge<MTree>("Mtree");
+
+	//auto seed = 1;
+	auto length = 25.0f;
+	auto radius = 0.5f;
+	auto end_radius = 0.0f;
+	auto resolution = 1.0f;
+	auto shape = 1.0f;
+	auto randomness = 0.1f;
+	auto axis_attraction = 0.25f;
+
+	m_arbre->add_trunk(length, radius, end_radius, shape, resolution, randomness, axis_attraction, 0);
 
 	auto mes_donnees = DonneesAval{};
 	mes_donnees.table.insere({"arbre", m_arbre});
 
 	entree(0)->requiers_corps(contexte, &mes_donnees);
+
+	construit_geometrie(m_corps, m_arbre->stem);
 
 	return EXECUTION_REUSSIE;
 }
