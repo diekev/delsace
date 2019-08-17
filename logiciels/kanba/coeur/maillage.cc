@@ -62,7 +62,7 @@ void ajoute_calque_procedurale(Maillage *maillage)
 
 		auto const &s0 = poly->s[0]->pos;
 		auto const &s1 = poly->s[1]->pos;
-		auto const &s3 = poly->s[3]->pos;
+		auto const &s3 = (poly->s[3] != nullptr) ? poly->s[3]->pos : poly->s[2]->pos;
 
 		auto const &cote0 = s1 - s0;
 		auto const &cote1 = s3 - s0;
