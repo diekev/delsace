@@ -181,22 +181,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps n'est connecté !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto points_entree = corps_entree->points_pour_lecture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims_entree = corps_entree->prims();
-
-		if (prims_entree->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -364,22 +349,7 @@ public:
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps n'est connecté !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto points_entree = corps_entree->points_pour_lecture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims_entree = corps_entree->prims();
-
-		if (prims_entree->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -497,8 +467,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps n'est connecté !");
+		if (!valide_corps_entree(*this, corps_entree, false, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 

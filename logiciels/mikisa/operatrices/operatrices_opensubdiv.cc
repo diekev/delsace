@@ -111,8 +111,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps connecté !");
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 

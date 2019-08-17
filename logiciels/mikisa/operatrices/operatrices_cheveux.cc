@@ -146,17 +146,11 @@ public:
 
 		auto corps_particules = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_particules == nullptr) {
-			ajoute_avertissement("Aucun corps trouvé en entrée !");
+		if (!valide_corps_entree(*this, corps_particules, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto const liste_points = corps_particules->points_pour_lecture();
-
-		if (liste_points->taille() == 0l) {
-			ajoute_avertissement("Aucune particule trouvée dans le nuage de points !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto const segments = evalue_entier("segments");
 		auto const inv_segments = 1.0f / static_cast<float>(segments);
@@ -285,16 +279,14 @@ public:
 	{
 		auto const courbes = charge_courbes(contexte, donnees_aval);
 
-		if (courbes == nullptr) {
-			ajoute_avertissement("Aucune courbe n'a été trouvée !");
+		if (!valide_corps_entree(*this, courbes, true, true, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		/* obtiens le maillage de collision */
 		auto const maillage_collision = charge_maillage_collesion(contexte, donnees_aval);
 
-		if (maillage_collision == nullptr) {
-			ajoute_avertissement("Aucun maillage de collision n'a été trouvé !");
+		if (!valide_corps_entree(*this, maillage_collision, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -558,15 +550,13 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.prims()->taille() == 0l) {
-			this->ajoute_avertissement("Aucune primitive en entrée");
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto corps_guide = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_guide == nullptr) {
-			this->ajoute_avertissement("Aucun guide connecté");
+		if (!valide_corps_entree(*this, corps_guide, true, true, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -698,9 +688,8 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.prims()->taille() == 0l) {
-			this->ajoute_avertissement("Aucune primitive en entrée");
-			return EXECUTION_REUSSIE;
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
 		}
 
 		auto prims = m_corps.prims();
@@ -803,15 +792,13 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.prims()->taille() == 0l) {
-			this->ajoute_avertissement("Aucune primitive en entrée");
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto corps2 = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (corps2 == nullptr) {
-			this->ajoute_avertissement("Aucun corps connecté à la seconde entrée");
+		if (!valide_corps_entree(*this, corps2, true, true, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 

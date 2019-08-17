@@ -328,18 +328,12 @@ public:
 	{
 		auto corps_collision = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_collision == nullptr) {
-			ajoute_avertissement("Aucun Corps pour la collision trouvé !");
+		if (!valide_corps_entree(*this, corps_collision, true, true, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto const prims_collision = corps_collision->prims();
 		auto const points_collision = corps_collision->points_pour_lecture();
-
-		if (prims_collision->taille() == 0l) {
-			ajoute_avertissement("Aucune primitive trouvé dans le Corps collision !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);

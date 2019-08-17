@@ -119,10 +119,7 @@ static int maillage_vers_volume(
 
 	op.corps()->reinitialise();
 
-	auto prims = corps_entree.prims();
-
-	if (prims->taille() == 0) {
-		op.ajoute_avertissement("Aucune primitive dans le corps !");
+	if (!valide_corps_entree(op, &corps_entree, true, true)) {
 		return EXECUTION_ECHOUEE;
 	}
 
@@ -530,8 +527,7 @@ static int reechantillonne_volume(
 
 	auto prims = corps_entree.prims();
 
-	if (prims->taille() == 0) {
-		op.ajoute_avertissement("Aucune primitive en entrée !");
+	if (!valide_corps_entree(op, &corps_entree, true, true)) {
 		return EXECUTION_ECHOUEE;
 	}
 
@@ -1142,8 +1138,7 @@ public:
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+		if (!valide_corps_entree(*this, corps_entree, false, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1222,8 +1217,7 @@ public:
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+		if (!valide_corps_entree(*this, corps_entree, false, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -2196,8 +2190,7 @@ public:
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("L'entrée n'est pas connectée !");
+		if (!valide_corps_entree(*this, corps_entree, false, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 

@@ -620,21 +620,13 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		/* À FAIRE : la copie est peut-être inutile, à vérifier si le script les
 		 * modifie. */
 		auto points = m_corps.points_pour_ecriture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = m_corps.prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée n'a pas de primitives !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto texte = evalue_chaine("script");
 

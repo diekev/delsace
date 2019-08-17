@@ -107,15 +107,13 @@ public:
 
 		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_maillage == nullptr) {
-			this->ajoute_avertissement("Aucun maillage connecté !");
+		if (!valide_corps_entree(*this, corps_maillage, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto corps_points = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_points == nullptr) {
-			this->ajoute_avertissement("Aucun points connecté !");
+		if (!valide_corps_entree(*this, corps_points, true, false, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 

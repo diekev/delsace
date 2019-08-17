@@ -1497,8 +1497,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points_pour_lecture()->taille() == 0) {
-			this->ajoute_avertissement("Le corps d'entrée est vide !");
+		if (!valide_corps_entree(*this, &m_corps, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1616,8 +1615,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points_pour_lecture()->taille() == 0) {
-			this->ajoute_avertissement("Le corps d'entrée est vide !");
+		if (!valide_corps_entree(*this, &m_corps, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 

@@ -24,6 +24,8 @@
 
 #include "operatrice_corps.h"
 
+#include "biblinternes/structures/flux_chaine.hh"
+
 OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud *noeud)
 	: OperatriceImage(graphe_parent, noeud)
 {
@@ -58,4 +60,31 @@ void OperatriceCorps::libere_memoire()
 {
 	m_corps.reinitialise();
 	cache_est_invalide = true;
+}
+
+/* ************************************************************************** */
+
+bool valide_corps_entree(OperatriceCorps &op,
+		Corps const *corps,
+		bool besoin_points,
+		bool besoin_prims, int index)
+{
+	if (corps == nullptr) {
+		auto flux = dls::flux_chaine();
+		flux << "Le corps d'entrée de la prise à l'index" << index << " est nul";
+		op.ajoute_avertissement(flux.chn());
+		return false;
+	}
+
+	if (besoin_points && corps->points_pour_lecture()->taille() == 0) {
+		op.ajoute_avertissement("Le corps d'entrée n'a pas de point");
+		return false;
+	}
+
+	if (besoin_prims && corps->prims()->taille() == 0) {
+		op.ajoute_avertissement("Le corps d'entrée n'a pas de primitive");
+		return false;
+	}
+
+	return true;
 }

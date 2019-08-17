@@ -298,19 +298,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto points_entree = m_corps.points_pour_ecriture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims_entree = m_corps.prims();
-
-		if (prims_entree->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto const voisins = cherche_index_voisins(m_corps);
 		auto const adjacents = cherche_index_adjacents(m_corps);
@@ -387,15 +379,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps trouvé en entrée !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = corps_entree->prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Aucune primitves en entrée !");
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -610,19 +594,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto points = m_corps.points_pour_ecriture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = m_corps.prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto poids = evalue_decimal("poids");
 
@@ -680,19 +656,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto points = m_corps.points_pour_ecriture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = m_corps.prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		/* IDÉES :
 		 * - définition des axes d'alignement par l'utilisateur, avec des poids
@@ -809,19 +777,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto points = m_corps.points_pour_ecriture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = m_corps.prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto attr_N = m_corps.attribut("N");
 
@@ -907,25 +867,12 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps connecté !");
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto points = corps_entree->points_pour_lecture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
 		auto prims = corps_entree->prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
 		auto points_elimines = dls::tableau<char>(points->taille(), 0);
 		auto index_voisins = cherche_index_voisins(*corps_entree);
 		auto index_adjacents = cherche_index_adjacents(*corps_entree);
@@ -1349,19 +1296,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto points = m_corps.points_pour_lecture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = m_corps.prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée est vide !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto valeur_max = evalue_decimal("valeur_max");
 		auto type_metrie = evalue_enum("type_metrie");
@@ -1552,19 +1491,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+			return EXECUTION_ECHOUEE;
+		}
+
 		auto points = m_corps.points_pour_ecriture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = m_corps.prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée n'a pas de primitives !");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto quantite = evalue_decimal("quantité", contexte.temps_courant);
 		auto etalement = evalue_decimal("étalement", contexte.temps_courant);
@@ -1694,22 +1625,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Le corps d'entrée est nul, rien n'est connecté");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto points = corps_entree->points_pour_lecture();
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée n'a pas de points !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims = corps_entree->prims();
-
-		if (prims->taille() == 0) {
-			this->ajoute_avertissement("Le Corps d'entrée n'a pas de primitives !");
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 

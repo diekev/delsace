@@ -739,11 +739,7 @@ public:
 		auto chaine_pesee = evalue_enum("pesée");
 		auto inverse_normaux = evalue_bool("inverse_direction");
 
-		auto liste_prims = m_corps.prims();
-		auto nombre_prims = liste_prims->taille();
-
-		if (nombre_prims == 0l) {
-			ajoute_avertissement("Aucun polygone trouvé pour calculer les vecteurs normaux");
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -825,23 +821,12 @@ public:
 
 		auto corps_orig = entree(1)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_orig == nullptr) {
-			this->ajoute_avertissement("Aucun corps d'origine trouvé");
+		if (!valide_corps_entree(*this, corps_orig, true, true, 1)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto points = m_corps.points_pour_lecture();
 		auto points_orig = corps_orig->points_pour_lecture();
-
-		if (points_orig->taille() == 0) {
-			this->ajoute_avertissement("Aucun point dans le corps d'origine");
-			return EXECUTION_ECHOUEE;
-		}
-
-		if (points->taille() == 0) {
-			this->ajoute_avertissement("Aucun point dans le corps de destination");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const distance = evalue_decimal("distance", contexte.temps_courant);

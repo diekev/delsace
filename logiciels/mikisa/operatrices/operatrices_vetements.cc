@@ -483,17 +483,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points_pour_lecture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Il n'y a aucun point en entrée !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto prims_entree = m_corps.prims();
-
-		if (prims_entree->taille() == 0) {
-			this->ajoute_avertissement("Il n'y a auncune primitive en entrée !");
+		if (!valide_corps_entree(*this, &m_corps, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 

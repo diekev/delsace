@@ -53,3 +53,12 @@ public:
 
 	void libere_memoire() override;
 };
+
+/* ************************************************************************** */
+
+bool valide_corps_entree(
+		OperatriceCorps &op,
+		Corps const *corps,
+		bool besoin_points,
+		bool besoin_prims,
+		int index = 0);

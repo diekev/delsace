@@ -95,8 +95,7 @@ public:
 		m_corps.reinitialise();
 		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps == nullptr) {
-			ajoute_avertissement("Aucun corps connecté !");
+		if (!valide_corps_entree(*this, corps, false, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -247,8 +246,7 @@ public:
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Il n'y a pas de corps connecté !");
+		if (!valide_corps_entree(*this, corps_entree, false, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -799,15 +797,7 @@ public:
 
 		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_maillage == nullptr) {
-			this->ajoute_avertissement("Il n'y pas de corps en entrée !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto const prims_maillage = corps_maillage->prims();
-
-		if (prims_maillage->taille() == 0) {
-			this->ajoute_avertissement("Il n'y pas de primitives dans le corps d'entrée !");
+		if (!valide_corps_entree(*this, corps_maillage, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1206,15 +1196,7 @@ public:
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("L'entrée n'est pas connectée !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto points_entree = corps_entree->points_pour_lecture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Il n'y pas de points dans le corps d'entrée !");
+		if (!valide_corps_entree(*this, corps_entree, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1258,8 +1240,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps connecté !");
+		if (!valide_corps_entree(*this, corps_entree, false, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -1437,12 +1418,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points_pour_ecriture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Il n'y a pas de points en entrée");
+		if (!valide_corps_entree(*this, &m_corps, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
+
+		auto points_entree = m_corps.points_pour_ecriture();
 
 		auto const graine = evalue_entier("graine");
 		auto const taille = evalue_decimal("taille");
@@ -1502,17 +1482,11 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			this->ajoute_avertissement("Aucun corps connecté !");
+		if (!valide_corps_entree(*this, corps_entree, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Il n'y a pas de points en entrée");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto nom_attribut = evalue_chaine("nom_attribut");
 
@@ -1717,12 +1691,11 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		auto points_entree = m_corps.points_pour_lecture();
-
-		if (points_entree->taille() == 0) {
-			this->ajoute_avertissement("Il n'y a pas de points en entrée");
+		if (!valide_corps_entree(*this, &m_corps, true, false)) {
 			return EXECUTION_ECHOUEE;
 		}
+
+		auto points_entree = m_corps.points_pour_lecture();
 
 		/* À FAIRE :
 		 * - calcul selon les particules se trouvant dans un rayon de la
@@ -1996,19 +1969,11 @@ public:
 	{
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (corps_entree == nullptr) {
-			m_corps.reinitialise();
-			this->ajoute_avertissement("Il n'y a pas de corps en entrée");
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
 		auto prims_entree = corps_entree->prims();
-
-		if (prims_entree->taille() == 0) {
-			m_corps.reinitialise();
-			this->ajoute_avertissement("Il n'y a pas de points en entrée");
-			return EXECUTION_ECHOUEE;
-		}
 
 		auto gna = GNA{};
 
