@@ -27,6 +27,7 @@
 #include "biblinternes/phys/collision.hh"
 
 #include "corps/corps.h"
+#include "corps/limites_corps.hh"
 
 DeleguePrim::DeleguePrim(const Corps &corps)
 	: m_corps(corps)
@@ -156,4 +157,37 @@ DonneesPointPlusProche DeleguePrim::calcule_point_plus_proche(long idx, const dl
 	}
 
 	return donnees;
+}
+
+/* ************************************************************************** */
+
+delegue_arbre_octernaire::delegue_arbre_octernaire(const Corps &c)
+	: corps(c)
+{}
+
+long delegue_arbre_octernaire::nombre_elements() const
+{
+	return corps.prims()->taille();
+}
+
+limites3f delegue_arbre_octernaire::limites_globales() const
+{
+	return calcule_limites_mondiales_corps(corps);
+}
+
+limites3f delegue_arbre_octernaire::calcule_limites(long idx) const
+{
+	auto prim = corps.prims()->prim(idx);
+	auto poly = dynamic_cast<Polygone *>(prim);
+
+	auto limites = limites3f(
+				dls::math::vec3f( constantes<float>::INFINITE),
+				dls::math::vec3f(-constantes<float>::INFINITE));
+
+	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+		auto const &p = corps.point_transforme(poly->index_point(i));
+		extrait_min_max(p, limites.min, limites.max);
+	}
+
+	return limites;
 }

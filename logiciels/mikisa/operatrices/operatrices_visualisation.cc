@@ -114,41 +114,6 @@ static void colore_prims(
 	}
 }
 
-struct delegue_arbre_octernaire {
-	Corps const &corps;
-
-	explicit delegue_arbre_octernaire(Corps const &c)
-		: corps(c)
-	{}
-
-	long nombre_elements() const
-	{
-		return corps.prims()->taille();
-	}
-
-	limites3f limites_globales() const
-	{
-		return calcule_limites_mondiales_corps(corps);
-	}
-
-	limites3f calcule_limites(long idx) const
-	{
-		auto prim = corps.prims()->prim(idx);
-		auto poly = dynamic_cast<Polygone *>(prim);
-
-		auto limites = limites3f(
-					dls::math::vec3f( constantes<float>::INFINITE),
-					dls::math::vec3f(-constantes<float>::INFINITE));
-
-		for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-			auto const &p = corps.point_transforme(poly->index_point(i));
-			extrait_min_max(p, limites.min, limites.max);
-		}
-
-		return limites;
-	}
-};
-
 class OperatriceVisualisationArbreOcternaire : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Visualisation Arbre Octernaire";

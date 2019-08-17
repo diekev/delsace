@@ -25,6 +25,7 @@
 #pragma once
 
 #include "arbre_hbe.hh"
+#include "biblinternes/math/limites.hh"
 
 struct Corps;
 
@@ -42,4 +43,16 @@ struct DeleguePrim {
 	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &r) const;
 
 	DonneesPointPlusProche calcule_point_plus_proche(long idx, dls::math::point3d const &p) const;
+};
+
+struct delegue_arbre_octernaire {
+	Corps const &corps;
+
+	explicit delegue_arbre_octernaire(Corps const &c);
+
+	long nombre_elements() const;
+
+	limites3f limites_globales() const;
+
+	limites3f calcule_limites(long idx) const;
 };
