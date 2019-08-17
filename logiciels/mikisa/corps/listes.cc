@@ -68,7 +68,7 @@ long Polygone::nombre_segments() const
 	return this->nombre_sommets() - 1;
 }
 
-long Polygone::index_point(long i)
+long Polygone::index_point(long i) const
 {
 	assert(i >= 0);
 	return static_cast<long>(m_sommets[i]);

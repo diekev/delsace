@@ -110,7 +110,7 @@ public:
 
 	long nombre_segments() const;
 
-	long index_point(long i);
+	long index_point(long i) const;
 
 	type_primitive type_prim() const override
 	{
