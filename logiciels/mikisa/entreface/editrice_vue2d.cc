@@ -182,6 +182,20 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 	m_matrice_image[0][0] = static_cast<float>(size[0]) / 1920.0f;
 	m_matrice_image[1][1] = static_cast<float>(size[1]) / 1920.0f;
 
+	/* calcul de la translation puisque l'image n'est pas forcément centrée
+	 * À FAIRE : pour les images EXR il faut préserver la fenêtre d'affichage */
+	auto moitie_x = -1920.0f * 0.5f;
+	auto moitie_y = -1080.0f * 0.5f;
+
+	auto min_x = image.desc().etendue.min.x;
+	auto min_y = image.desc().etendue.min.y;
+
+	auto trans_x = (moitie_x - min_x) / 1920.0f;
+	auto trans_y = (moitie_y - min_y) / 1920.0f;
+
+	m_matrice_image[3][0] = trans_x;
+	m_matrice_image[3][1] = trans_y;
+
 	/* À FAIRE : il y a des crashs lors du démarrage, il faudrait réviser la
 	 * manière d'initialiser les éditeurs quand ils sont ajoutés */
 	if (m_rendu_image != nullptr) {
