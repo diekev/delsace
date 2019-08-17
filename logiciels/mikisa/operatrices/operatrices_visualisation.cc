@@ -220,11 +220,6 @@ public:
 
 /* ************************************************************************** */
 
-
-// epsilon = 0.0
-// tree_type = 4
-// axis = 6
-
 struct delegue_arbre_bvh {
 	Corps const &corps;
 
