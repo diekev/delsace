@@ -819,7 +819,6 @@ public:
 		auto const res_x = tampon->desc().resolution.x;
 		auto const res_y = tampon->desc().resolution.y;
 
-		/* axe X */
 		boucle_parallele(tbb::blocked_range<int>(0, res_y),
 						 [&](tbb::blocked_range<int> const &plage)
 		{
@@ -827,10 +826,13 @@ public:
 				return;
 			}
 
-			auto valeurs_R = dls::tableau<float>(2 * taille + 1);
-			auto valeurs_V = dls::tableau<float>(2 * taille + 1);
-			auto valeurs_B = dls::tableau<float>(2 * taille + 1);
-			auto valeurs_A = dls::tableau<float>(2 * taille + 1);
+			auto taille_fenetre = (2 * taille + 1) * (2 * taille + 1);
+			auto moitie_taille = taille_fenetre / 2;
+			auto est_paire = taille_fenetre % 2 == 0;
+			auto valeurs_R = dls::tableau<float>(taille_fenetre);
+			auto valeurs_V = dls::tableau<float>(taille_fenetre);
+			auto valeurs_B = dls::tableau<float>(taille_fenetre);
+			auto valeurs_A = dls::tableau<float>(taille_fenetre);
 
 			for (int y = plage.begin(); y < plage.end(); ++y) {
 				if (chef && chef->interrompu()) {
@@ -840,12 +842,15 @@ public:
 				for (int x = 0; x < res_x; ++x) {
 					auto index = tampon->calcul_index(dls::math::vec2i(x, y));
 
-					for (auto i = -taille; i <= taille; ++i) {
-						auto v = tampon_entree->valeur(dls::math::vec2i(x + i, y));
-						valeurs_R[i + taille] = v.r;
-						valeurs_V[i + taille] = v.v;
-						valeurs_B[i + taille] = v.b;
-						valeurs_A[i + taille] = v.a;
+					auto index_v = 0;
+					for (auto j = -taille; j <= taille; ++j) {
+						for (auto i = -taille; i <= taille; ++i, ++index_v) {
+							auto v = tampon_entree->valeur(dls::math::vec2i(x + i, y + j));
+							valeurs_R[index_v] = v.r;
+							valeurs_V[index_v] = v.v;
+							valeurs_B[index_v] = v.b;
+							valeurs_A[index_v] = v.a;
+						}
 					}
 
 					std::sort(begin(valeurs_R), end(valeurs_R));
@@ -854,10 +859,19 @@ public:
 					std::sort(begin(valeurs_A), end(valeurs_A));
 
 					auto res = dls::phys::couleur32();
-					res.r = valeurs_R[taille];
-					res.v = valeurs_V[taille];
-					res.b = valeurs_B[taille];
-					res.a = valeurs_A[taille];
+
+					if (est_paire) {
+						res.r = (valeurs_R[moitie_taille] + valeurs_R[moitie_taille + 1]) * 0.5f;
+						res.v = (valeurs_V[moitie_taille] + valeurs_R[moitie_taille + 1]) * 0.5f;
+						res.b = (valeurs_B[moitie_taille] + valeurs_R[moitie_taille + 1]) * 0.5f;
+						res.a = (valeurs_A[moitie_taille] + valeurs_R[moitie_taille + 1]) * 0.5f;
+					}
+					else {
+						res.r = valeurs_R[moitie_taille];
+						res.v = valeurs_V[moitie_taille];
+						res.b = valeurs_B[moitie_taille];
+						res.a = valeurs_A[moitie_taille];
+					}
 
 					tampon->valeur(index) = res;
 				}
@@ -865,57 +879,7 @@ public:
 
 			auto delta = static_cast<float>(plage.end() - plage.begin());
 			delta /= static_cast<float>(res_y);
-			chef->indique_progression_parallele(delta * 50.0f);
-		});
-
-		/* axe Y */
-		boucle_parallele(tbb::blocked_range<int>(0, res_y),
-						 [&](tbb::blocked_range<int> const &plage)
-		{
-			if (chef->interrompu()) {
-				return;
-			}
-
-			auto valeurs_R = dls::tableau<float>(2 * taille + 1);
-			auto valeurs_V = dls::tableau<float>(2 * taille + 1);
-			auto valeurs_B = dls::tableau<float>(2 * taille + 1);
-			auto valeurs_A = dls::tableau<float>(2 * taille + 1);
-
-			for (int y = plage.begin(); y < plage.end(); ++y) {
-				if (chef && chef->interrompu()) {
-					return;
-				}
-
-				for (int x = 0; x < res_x; ++x) {
-					auto index = tampon->calcul_index(dls::math::vec2i(x, y));
-
-					for (auto i = -taille; i <= taille; ++i) {
-						auto v = tampon_entree->valeur(dls::math::vec2i(x, y + i));
-						valeurs_R[i + taille] = v.r;
-						valeurs_V[i + taille] = v.v;
-						valeurs_B[i + taille] = v.b;
-						valeurs_A[i + taille] = v.a;
-					}
-
-					std::sort(begin(valeurs_R), end(valeurs_R));
-					std::sort(begin(valeurs_V), end(valeurs_V));
-					std::sort(begin(valeurs_B), end(valeurs_B));
-					std::sort(begin(valeurs_A), end(valeurs_A));
-
-					auto res = dls::phys::couleur32();
-					res.r = valeurs_R[taille];
-					res.v = valeurs_V[taille];
-					res.b = valeurs_B[taille];
-					res.a = valeurs_A[taille];
-
-					tampon->valeur(index) += res;
-					tampon->valeur(index) *= 0.5f;
-				}
-			}
-
-			auto delta = static_cast<float>(plage.end() - plage.begin());
-			delta /= static_cast<float>(res_y);
-			chef->indique_progression_parallele(delta * 50.0f);
+			chef->indique_progression_parallele(delta * 100.0f);
 		});
 
 		return EXECUTION_REUSSIE;
