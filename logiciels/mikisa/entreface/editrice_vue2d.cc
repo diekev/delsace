@@ -184,8 +184,8 @@ void Visionneuse2D::charge_image(grille_couleur const &image)
 
 	/* calcul de la translation puisque l'image n'est pas forcément centrée
 	 * À FAIRE : pour les images EXR il faut préserver la fenêtre d'affichage */
-	auto moitie_x = -1920.0f * 0.5f;
-	auto moitie_y = -1080.0f * 0.5f;
+	auto moitie_x = -static_cast<float>(size[0]) * 0.5f;
+	auto moitie_y = -static_cast<float>(size[1]) * 0.5f;
 
 	auto min_x = image.desc().etendue.min.x;
 	auto min_y = image.desc().etendue.min.y;
