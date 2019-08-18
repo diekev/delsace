@@ -13,6 +13,7 @@ menu "Noeud Composite" {
 		action(valeur="Érosion"; attache=ajouter_noeud; métadonnée="Érosion")
 		action(valeur="Filtre"; attache=ajouter_noeud; métadonnée="Filtre")
 		action(valeur="Flou"; attache=ajouter_noeud; métadonnée="Flou")
+		action(valeur="Lueur Image"; attache=ajouter_noeud; métadonnée="Lueur Image")
 		action(valeur="Médiane Image"; attache=ajouter_noeud; métadonnée="Médiane Image")
 		action(valeur="Préfiltre Cubic B-Spline"; attache=ajouter_noeud; métadonnée="Préfiltre Cubic B-Spline")
 		action(valeur="Rayons Soleil"; attache=ajouter_noeud; métadonnée="Rayons Soleil")

@@ -28,6 +28,7 @@
 #include "biblinternes/image/operations/conversion.h"
 #include "biblinternes/image/operations/convolution.h"
 #include "biblinternes/image/operations/operations.h"
+#include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/matrice/operations.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
@@ -1049,6 +1050,133 @@ public:
 			delta /= static_cast<float>(res_y);
 			chef->indique_progression_parallele(delta * 100.0f);
 		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpLueurImage : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Lueur Image";
+	static constexpr auto AIDE = "Ajoute une lueur autour des parties les plus brillantes de l'image.";
+
+	explicit OpLueurImage(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_lueur_image.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto nom_calque = evalue_chaine("nom_calque");
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
+
+		if (calque_entree == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+		auto chaine_type = evalue_enum("type");
+
+		static auto dico_type = dls::cree_dico(
+					dls::paire{ dls::chaine("boîte"), wlk::type_filtre::BOITE },
+					dls::paire{ dls::chaine("triangulaire"), wlk::type_filtre::TRIANGULAIRE },
+					dls::paire{ dls::chaine("quadratic"), wlk::type_filtre::QUADRATIC },
+					dls::paire{ dls::chaine("cubic"), wlk::type_filtre::CUBIC },
+					dls::paire{ dls::chaine("gaussien"), wlk::type_filtre::GAUSSIEN },
+					dls::paire{ dls::chaine("mitchell"), wlk::type_filtre::MITCHELL },
+					dls::paire{ dls::chaine("catrom"), wlk::type_filtre::CATROM });
+
+		auto plg_type = dico_type.trouve(chaine_type);
+
+		if (plg_type.est_finie()) {
+			auto flux = dls::flux_chaine();
+			flux << "Type de filter '" << chaine_type << "' inconnu";
+			this->ajoute_avertissement(flux.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto type = plg_type.front().second;
+		auto rayon = evalue_decimal("rayon", contexte.temps_courant);
+		auto tolerance = evalue_decimal("tolérance", contexte.temps_courant);
+		auto brillance = evalue_decimal("brillance", contexte.temps_courant);
+		auto saturation = evalue_decimal("saturation", contexte.temps_courant);
+
+		auto chef = contexte.chef;
+		auto chef_wolika = ChefWolika(chef, "lueur_image");
+
+		/* commence par extraire les parties les plus brillantes de l'image */
+		for (auto i = 0; i < tampon_entree->nombre_elements(); ++i) {
+			auto const &clr = tampon_entree->valeur(i);
+			auto lum = dls::image::outils::luminance_709(clr.r, clr.v, clr.b);
+
+			if (lum < tolerance) {
+				continue;
+			}
+
+			tampon->valeur(i) = clr;
+		}
+
+		wlk::filtre_grille(*tampon, type, rayon, &chef_wolika);
+
+		auto effet_seul = evalue_bool("effet_seul");
+
+		for (auto i = 0; i < tampon_entree->nombre_elements(); ++i) {
+			auto const &clr0 = tampon_entree->valeur(i);
+			auto const &clr1 = tampon->valeur(i);
+
+			auto res = clr1;
+
+			/* calcule saturation */
+			if (saturation != 1.0f) {
+				auto lum = dls::image::outils::luminance_709(res.r, res.v, res.b);
+
+				if (saturation != 0.0f) {
+					res.r = dls::math::entrepolation_lineaire(lum, res.r, saturation);
+					res.v = dls::math::entrepolation_lineaire(lum, res.v, saturation);
+					res.b = dls::math::entrepolation_lineaire(lum, res.b, saturation);
+				}
+				else {
+					res.r = lum;
+					res.v = lum;
+					res.b = lum;
+				}
+			}
+
+			/* calcule brillance */
+			res *= brillance;
+
+			if (!effet_seul) {
+				res += clr0;
+			}
+
+			res.a = std::min(res.a, 1.0f);
+
+			tampon->valeur(i) = res;
+		}
 
 		return EXECUTION_REUSSIE;
 	}
@@ -2389,6 +2517,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpAffinageImage>());
 	usine.enregistre_type(cree_desc<OpMedianeImage>());
 	usine.enregistre_type(cree_desc<OpFiltreBilateral>());
+	usine.enregistre_type(cree_desc<OpLueurImage>());
 }
 
 #pragma clang diagnostic pop
