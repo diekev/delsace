@@ -1559,6 +1559,7 @@ static void assemble_image(
 }
 
 static type_image_grise simule_grain_image(
+		ChefExecution *chef,
 		type_image_grise const &image,
 		const int graine,
 		const float rayon_grain,
@@ -1683,6 +1684,10 @@ static type_image_grise simule_grain_image(
 				resultat.valeur(index) /= iter;
 			}
 		}
+
+		auto delta_prog = static_cast<float>(plage.end() - plage.begin());
+		delta_prog /= static_cast<float>(res_y);
+		chef->indique_progression_parallele(delta_prog * 100.0f / 3.0f);
 	});
 
 	return resultat;
@@ -1747,9 +1752,12 @@ public:
 		auto const &canal_vert = extrait_canal(*tampon_entree, 1);
 		auto const &canal_bleu = extrait_canal(*tampon_entree, 2);
 
-		auto const &bruit_rouge = simule_grain_image(canal_rouge, graine, rayon_grain_r, sigma_rayon_r, sigma_filtre_r);
-		auto const &bruit_vert = simule_grain_image(canal_vert, graine, rayon_grain_v, sigma_rayon_v, sigma_filtre_v);
-		auto const &bruit_bleu = simule_grain_image(canal_bleu, graine, rayon_grain_b, sigma_rayon_b, sigma_filtre_b);
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("simulation grain");
+
+		auto const &bruit_rouge = simule_grain_image(chef, canal_rouge, graine, rayon_grain_r, sigma_rayon_r, sigma_filtre_r);
+		auto const &bruit_vert = simule_grain_image(chef, canal_vert, graine, rayon_grain_v, sigma_rayon_v, sigma_filtre_v);
+		auto const &bruit_bleu = simule_grain_image(chef, canal_bleu, graine, rayon_grain_b, sigma_rayon_b, sigma_filtre_b);
 
 		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
