@@ -612,6 +612,8 @@ public:
 		auto min_z = std::numeric_limits<float>::max();
 		auto gna = GNA{};
 		auto const probabilite = evalue_decimal("probabilité");
+		auto echelle = evalue_decimal("échelle");
+		echelle = (echelle == 0.0f) ? 0.0f : 1.0f / echelle;
 
 		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
 
@@ -638,7 +640,7 @@ public:
 				for (auto i = 0u; i < n; ++i) {
 					/* -eZ nous donne la bonne orientation mais ne devrait-ce
 					 * pas être eZ ? */
-					pmnd.z = -eZ[i];
+					pmnd.z = -eZ[i] * echelle;
 
 					if (gna.uniforme(0.0f, 1.0f) >= probabilite) {
 						continue;
@@ -694,6 +696,10 @@ public:
 
 		if (propriete("probabilité") == nullptr) {
 			ajoute_propriete("probabilité", danjo::TypePropriete::DECIMAL, 0.25f);
+		}
+
+		if (propriete("échelle") == nullptr) {
+			ajoute_propriete("échelle", danjo::TypePropriete::DECIMAL, 100.0f);
 		}
 	}
 };
