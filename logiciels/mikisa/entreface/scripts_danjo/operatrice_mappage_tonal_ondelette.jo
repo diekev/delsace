@@ -1,0 +1,30 @@
+disposition "operatrice_mappage_tonal_ondelette" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+		étiquette(valeur="Gamma")
+		décimal(valeur=0.45; attache=gamma; min=0; max=1)
+	}
+	ligne {
+		étiquette(valeur="Delta")
+		décimal(valeur=1; attache=delta; min=0)
+	}
+	ligne {
+		étiquette(valeur="Rayon flou")
+		décimal(valeur=1; attache=rayon_flou; min=0)
+	}
+	ligne {
+		étiquette(valeur="Type Visualisation")
+		énum(valeur="résultat"; attache=type_vis;
+			items=[{nom="Résultat", valeur="résultat"},
+				   {nom="Gain", valeur="gain"},
+				   {nom="Pyramide", valeur="pyramide"}
+			])
+	}
+    ligne {
+		étiquette(valeur="Visualise niveau")
+		entier(valeur=0; attache=visualise_niveau; min=0; max=8)
+    }
+}

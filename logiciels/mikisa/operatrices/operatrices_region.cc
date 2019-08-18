@@ -2469,6 +2469,363 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Tentative d'implémentation de
+ * « Tone Mapping High Dynamic Range Videos using Wavelets »
+ * http://graphics.pixar.com/library/ToneMappingVideoUsingWavelets/paper.pdf
+ *
+ * Voir aussi
+ * « Compressing and Companding High Dynamic Range Images with Subband Architectures »
+ * http://read.pudn.com/downloads86/sourcecode/others/329679/hdr05.pdf
+ * dont une implémentation matlab se trouve ici
+ * https://github.com/shesay-noway/imageProcessing-matlab-libraries/tree/master/HDR/hdr_code
+ */
+
+static void calcule_ondelette(
+		grille_couleur const &source,
+		grille_couleur &grille_basse,
+		grille_couleur &grille_haute)
+{
+	auto res_x = source.desc().resolution.x;
+	auto res_y = source.desc().resolution.y;
+
+#if 1
+	auto poids_passe_haute = dls::tableau<float>(
+	{  1.0f, -6.0f, 10.0f, -6.0f, 1.0f,
+	  -6.0f, 36.0f, -60.0f, 36.0f, -6.0f,
+	  10.0f, -60.0f, 100.0f, -60.0f, 10.0f,
+	  -6.0f, 36.0f, -60.0f, 36.0f, -6.0f,
+	   1.0f, -6.0f, 10.0f, -6.0f, 1.0f
+	});
+
+	auto poids_passe_basse = dls::tableau<float>(
+	{ 0.0f, 0.00f, 0.0f, 0.00f, 0.0f,
+	  0.0f, 0.25f, 0.5f, 0.25f, 0.0f,
+	  0.0f, 0.50f, 1.0f, 0.50f, 0.0f,
+	  0.0f, 0.25f, 0.5f, 0.25f, 0.0f,
+	  0.0f, 0.00f, 0.0f, 0.00f, 0.0f
+	});
+
+	boucle_parallele(tbb::blocked_range<int>(0, res_y),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		for (auto y = plage.begin(); y < plage.end(); ++y) {
+			for (auto x = 0; x < res_x; ++x) {
+				auto passe_basse = dls::phys::couleur32();
+				auto passe_haute = dls::phys::couleur32();
+
+				auto idx = 0;
+				for (auto yy = y - 2; yy <= y + 2; ++yy) {
+					for (auto xx = x - 2; xx <= x + 2; ++xx, ++idx) {
+						passe_basse += source.valeur(dls::math::vec2i(xx, yy)) * poids_passe_basse[idx];
+						passe_haute += source.valeur(dls::math::vec2i(xx, yy)) * poids_passe_haute[idx];
+					}
+				}
+
+				passe_basse *= 0.25f; // préserve énérgie
+				passe_basse.a = 1.0f;
+
+				passe_haute /= 9.0f;
+				passe_haute.a = 1.0f;
+
+				grille_basse.valeur(dls::math::vec2i(x, y)) = passe_basse;
+				grille_haute.valeur(dls::math::vec2i(x, y)) = passe_haute;
+			}
+		}
+	});
+#else
+	auto temp_basse = grille_couleur(grille_basse.desc());
+	auto temp_haute = grille_couleur(grille_haute.desc());
+
+	boucle_parallele(tbb::blocked_range<int>(0, res_y),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		for (auto y = plage.begin(); y < plage.end(); ++y) {
+			for (auto x = 0; x < res_x; ++x) {
+				auto clr0h = source.valeur(dls::math::vec2i(x - 2, y));
+				auto clr1h = source.valeur(dls::math::vec2i(x - 1, y));
+				auto clr2h = source.valeur(dls::math::vec2i(x    , y));
+				auto clr3h = source.valeur(dls::math::vec2i(x + 1, y));
+				auto clr4h = source.valeur(dls::math::vec2i(x + 2, y));
+
+				auto passe_basse = dls::phys::couleur32();
+				passe_basse += clr1h * 0.5f;
+				passe_basse += clr2h;
+				passe_basse += clr3h * 0.5f;
+				passe_basse *= 0.5f; // préserve énérgie
+
+				auto passe_haute = dls::phys::couleur32();
+				passe_haute += clr0h;
+				passe_haute += clr1h * -6.0f;
+				passe_haute += clr2h * 10.0f;
+				passe_haute += clr3h * -6.0f;
+				passe_haute += clr4h;
+				passe_haute /= 3.0f;
+
+				passe_basse.a = 1.0f;
+				passe_haute.a = 1.0f;
+
+
+				temp_basse.valeur(dls::math::vec2i(x, y)) = passe_basse;
+				temp_haute.valeur(dls::math::vec2i(x, y)) = passe_haute;
+			}
+		}
+	});
+
+	boucle_parallele(tbb::blocked_range<int>(0, res_y),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		for (auto y = plage.begin(); y < plage.end(); ++y) {
+			for (auto x = 0; x < res_x; ++x) {
+				auto clr0b = temp_basse.valeur(dls::math::vec2i(x, y - 1));
+				auto clr1b = temp_basse.valeur(dls::math::vec2i(x, y    ));
+				auto clr2b = temp_basse.valeur(dls::math::vec2i(x, y + 1));
+
+				auto passe_basse = (0.5f * clr0b + clr1b + 0.5f * clr2b) * 0.5f;
+
+				auto clr0h = temp_haute.valeur(dls::math::vec2i(x, y - 2)) *  1.0f;
+				auto clr1h = temp_haute.valeur(dls::math::vec2i(x, y - 1)) * -6.0f;
+				auto clr2h = temp_haute.valeur(dls::math::vec2i(x, y    )) * 10.0f;
+				auto clr3h = temp_haute.valeur(dls::math::vec2i(x, y + 1)) * -6.0f;
+				auto clr4h = temp_haute.valeur(dls::math::vec2i(x, y + 2)) *  1.0f;
+
+				auto passe_haute = (clr0h + clr1h + clr2h + clr3h + clr4h) / 3.0f;
+				passe_haute.a = 1.0f;
+
+				auto res = passe_basse + passe_haute;
+				res.a = 1.0f;
+
+				grille_basse.valeur(dls::math::vec2i(x, y)) = passe_basse;
+				grille_haute.valeur(dls::math::vec2i(x, y)) = passe_haute;
+			}
+		}
+	});
+#endif
+}
+
+class OpMappageTonalOndelette final : public OperatriceImage {
+	grille_couleur pyramide[9];
+	grille_couleur gains[9];
+	grille_couleur synthese{};
+
+	float m_gamma = 0.0f;
+	float m_delta = 0.0f;
+	float m_rayon_flou = 0.0f;
+	bool m_ajourne = true;
+
+public:
+	static constexpr auto NOM = "Mappage Tonal Ondelette";
+	static constexpr auto AIDE = "Créer des rayons de soleil.";
+
+	explicit OpMappageTonalOndelette(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_mappage_tonal_ondelette.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		auto image = entree(0)->requiers_image(contexte, donnees_aval);
+		auto const nom_calque = evalue_chaine("nom_calque");
+		auto calque_entree = cherche_calque(*this, image, nom_calque);
+
+		if (calque_entree == nullptr) {
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("mappage tonal ondelette");
+
+		auto tampon_entree = extrait_grille_couleur(calque_entree);
+
+		if  (m_ajourne) {
+			m_image.reinitialise();
+			auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
+			auto tampon = extrait_grille_couleur(calque);
+
+			calcule_mappage(tampon_entree, tampon);
+		}
+
+		auto calque = m_image.calque_pour_ecriture(nom_calque);
+		auto tampon = extrait_grille_couleur(calque);
+
+		auto type_vis = evalue_enum("type_vis");
+		auto visualise_niveau = evalue_entier("visualise_niveau");
+
+		if (type_vis == "résultat") {
+			tbb::parallel_for(0l, tampon->nombre_elements(), [&](long i)
+			{
+				for (auto j = 0; j < 9; ++j) {
+					tampon->valeur(i) = synthese.valeur(i);
+				}
+			});
+		}
+		else if (type_vis == "gain") {
+			tbb::parallel_for(0l, tampon->nombre_elements(), [&](long i)
+			{
+				for (auto j = 0; j < 9; ++j) {
+					tampon->valeur(i) = gains[visualise_niveau].valeur(i);
+				}
+			});
+		}
+		else {
+			tbb::parallel_for(0l, tampon->nombre_elements(), [&](long i)
+			{
+				for (auto j = 0; j < 9; ++j) {
+					tampon->valeur(i) = pyramide[visualise_niveau].valeur(i);
+				}
+			});
+		}
+
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void calcule_mappage(
+			grille_couleur const *tampon_entree,
+			grille_couleur *tampon)
+	{
+
+		auto temp = grille_couleur(tampon->desc());
+
+		for (auto i = 0; i < 9; ++i) {
+			pyramide[i] = grille_couleur(tampon->desc());
+		}
+
+		/* étape 1 : analyse */
+		copie_donnees_calque(*tampon_entree, temp);
+
+		for (auto i = 0; i < 8; ++i) {
+			calcule_ondelette(temp, pyramide[i + 1], pyramide[i]);
+			copie_donnees_calque(pyramide[i + 1], temp);
+		}
+
+		std::reverse(std::begin(pyramide), std::end(pyramide));
+
+		/* étape 2 : controle de gain */
+
+		auto const gamma = evalue_decimal("gamma");
+		auto const delta = evalue_decimal("delta");
+		auto const rayon_flou = evalue_decimal("rayon_flou");
+		auto const eps = 10e-6f;
+
+		m_gamma = gamma;
+		m_delta = delta;
+		m_rayon_flou = rayon_flou;
+
+		float const m[9] = { 1.0f, 0.7f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f };
+
+		for (auto i = 0; i < 9; ++i) {
+			auto gi = std::min(gamma + 0.05f * static_cast<float>(9 - i), 0.9f);
+
+			gains[i] = grille_couleur(tampon->desc());
+			//copie_donnees_calque(pyramide[i], gains[i]);
+
+			tbb::parallel_for(0l, tampon->nombre_elements(), [&](long j)
+			{
+				auto clr = pyramide[i].valeur(j);
+				clr.r = std::abs(clr.r);
+				clr.v = std::abs(clr.v);
+				clr.b = std::abs(clr.b);
+				gains[i].valeur(j) = clr;
+			});
+
+			/* construit Aag via des flous */
+			wlk::filtre_grille(gains[i], wlk::type_filtre::GAUSSIEN, rayon_flou);
+
+			/* calcul delta_i */
+			auto num = dls::phys::couleur32(0.0f);
+			auto denum = dls::phys::couleur32(0.0f);
+			for (auto j = 0; j < tampon->nombre_elements(); ++j) {
+				auto const &Axy = gains[i].valeur(j);
+
+				num.r += (Axy.r * std::pow((Axy.r + eps) / delta, gamma - 1.0f));
+				num.v += (Axy.v * std::pow((Axy.v + eps) / delta, gamma - 1.0f));
+				num.b += (Axy.b * std::pow((Axy.b + eps) / delta, gamma - 1.0f));
+
+				denum.r += (Axy.r * std::pow((Axy.r + eps), gi - 1.0f));
+				denum.v += (Axy.v * std::pow((Axy.v + eps), gi - 1.0f));
+				denum.b += (Axy.b * std::pow((Axy.b + eps), gi - 1.0f));
+			}
+
+			auto deltai = dls::phys::couleur32(0.0f);
+			deltai.r = num.r / denum.r;
+			deltai.v = num.v / denum.v;
+			deltai.b = num.b / denum.b;
+
+			tbb::parallel_for(0l, tampon->nombre_elements(), [&](long j)
+			{
+				auto clr = gains[i].valeur(j);
+
+				clr.r = m[i] * std::pow((clr.r + eps) / deltai.r, gi - 1.0f);
+				clr.v = m[i] * std::pow((clr.v + eps) / deltai.v, gi - 1.0f);
+				clr.b = m[i] * std::pow((clr.b + eps) / deltai.b, gi - 1.0f);
+				clr.a = 1.0f;
+
+				gains[i].valeur(j) = clr;
+			});
+		}
+
+		/* étape 3 : synthèse */
+		synthese = grille_couleur(tampon->desc());
+
+		tbb::parallel_for(0l, tampon->nombre_elements(), [&](long i)
+		{
+			for (auto j = 0; j < 9; ++j) {
+				synthese.valeur(i) += pyramide[j].valeur(i) * gains[j].valeur(i);
+			}
+		});
+
+		m_ajourne = false;
+	}
+
+	void parametres_changes() override
+	{
+		m_ajourne |= !dls::math::sont_environ_egaux(m_gamma, evalue_decimal("gamma"));
+		m_ajourne |= !dls::math::sont_environ_egaux(m_delta, evalue_decimal("delta"));
+		m_ajourne |= !dls::math::sont_environ_egaux(m_rayon_flou, evalue_decimal("rayon_flou"));
+	}
+
+	void amont_change(PriseEntree *) override
+	{
+		m_ajourne = true;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("visualise_niveau") == nullptr) {
+			ajoute_propriete("visualise_niveau", danjo::TypePropriete::ENTIER, 0);
+		}
+
+		if (propriete("type_vis") == nullptr) {
+			ajoute_propriete("type_vis", danjo::TypePropriete::ENUM, dls::chaine("résultat"));
+		}
+
+		if (propriete("gamma") == nullptr) {
+			ajoute_propriete("gamma", danjo::TypePropriete::DECIMAL, 0.0f);
+			ajoute_propriete("delta", danjo::TypePropriete::DECIMAL, 1.0f);
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_region(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceAnalyse>());
@@ -2490,6 +2847,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpMedianeImage>());
 	usine.enregistre_type(cree_desc<OpFiltreBilateral>());
 	usine.enregistre_type(cree_desc<OpLueurImage>());
+	usine.enregistre_type(cree_desc<OpMappageTonalOndelette>());
 }
 
 #pragma clang diagnostic pop
