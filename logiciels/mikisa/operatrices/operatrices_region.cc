@@ -1590,9 +1590,9 @@ static type_image_grise simule_grain_image(
 	auto gna = GNA(graine);
 
 	/* précalcul des lambdas */
-	dls::tableau<float> lambdas(MAX_NIVEAU_GRIS);
+	dls::tableau<float> lambdas(MAX_NIVEAU_GRIS + 1);
 
-	for (auto i = 0; i < MAX_NIVEAU_GRIS; ++i) {
+	for (auto i = 0; i <= MAX_NIVEAU_GRIS; ++i) {
 		auto const u = static_cast<float>(i) / static_cast<float>(MAX_NIVEAU_GRIS);
 		auto const ag = 1.0f / std::ceil(1.0f / rayon_max);
 		auto const lambda_tmp = -((ag * ag) / (constantes<float>::PI * (rayon_max*rayon_max + sigma*sigma))) * std::log(1.0f - u);
