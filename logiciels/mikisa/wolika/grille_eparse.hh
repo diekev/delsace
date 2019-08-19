@@ -227,7 +227,7 @@ public:
 			return m_arriere_plan;
 		}
 
-		auto t = m_tuiles[idx_tuile];
+		auto t = m_tuiles[m_index_tuiles[idx_tuile]];
 
 		/* calcul l'index dans la tuile */
 		auto xt = i - it * TAILLE_TUILE;
