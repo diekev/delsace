@@ -101,7 +101,7 @@ static int cree_volume(
 
 					auto pos_monde = grille_scalaire->index_vers_monde(pos_tuile);
 
-					tuile->donnees[index_tuile] = bruit.evalue(pos_monde);
+					tuile->donnees[index_tuile] = (bruit.evalue(pos_monde) + 1.0f) * 0.5f;
 				}
 			}
 		}
