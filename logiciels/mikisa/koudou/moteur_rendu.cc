@@ -136,8 +136,9 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		auto maillage = scene.maillages[entresection.idx_objet];
 		auto nuanceur = maillage->nuanceur();
 
-		if (nuanceur->a_volume()) {
-			auto volume = nuanceur->cree_volume(contexte);
+		if (nuanceur->a_volume() && maillage->volume != -1) {
+			auto grille = scene.volumes[maillage->volume];
+			auto volume = nuanceur->cree_volume(contexte, grille);
 			Spectre Lv;
 			Spectre transmittance;
 			Spectre poids;

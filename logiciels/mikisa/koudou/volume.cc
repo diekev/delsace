@@ -90,8 +90,9 @@ Spectre VolumeLoiBeers::transmittance(GNA &gna, ParametresRendu const &/*paramet
 
 /* ************************************************************************** */
 
-VolumeHeterogeneLoiBeers::VolumeHeterogeneLoiBeers(ContexteNuancage &ctx)
+VolumeHeterogeneLoiBeers::VolumeHeterogeneLoiBeers(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille_)
 	: Volume(ctx)
+	, grille(grille_)
 {}
 
 bool VolumeHeterogeneLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo)
@@ -107,7 +108,7 @@ bool VolumeHeterogeneLoiBeers::integre(GNA &gna, ParametresRendu const &parametr
 
 	auto P = rayon_local.origine + isect.distance * rayon_local.direction;
 	L = Spectre(1.0);
-	tr = transmittance(gna, parametres, P, contexte.P);
+	tr = transmittance(gna, parametres, contexte.P, P);
 	poids = Spectre(1.0);
 	wo.origine = P;
 	wo.direction = contexte.rayon.direction;
@@ -123,9 +124,6 @@ Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, ParametresRendu const 
 	auto termine = false;
 	auto t = 0.0;
 
-	/* À FAIRE. */
-	auto bruit = dls::math::BruitPerlin3D();
-
 	do {
 		auto zeta = gna.uniforme(0.0, 1.0);
 		t = t - std::log(1.0 - zeta) / absorption_max;
@@ -139,7 +137,8 @@ Spectre VolumeHeterogeneLoiBeers::transmittance(GNA &gna, ParametresRendu const 
 		auto P = P0 + t * dir;
 
 		/* Calcul l'absorption locale en évaluant le graphe de nuançage. À FAIRE. */
-		auto absorp = bruit(static_cast<float>(P.x), static_cast<float>(P.y), static_cast<float>(P.z));
+		auto pos_idx = grille->monde_vers_index(dls::math::converti_type_vecteur<float>(P));
+		auto absorp = grille->valeur(pos_idx.x, pos_idx.y, pos_idx.z);
 
 		auto xi = gna.uniforme(0.0, 1.0);
 
@@ -243,8 +242,11 @@ Spectre VolumeDiffusionSimple::transmittance(
 
 /* ************************************************************************** */
 
-VolumeHeterogeneDiffusionSimple::VolumeHeterogeneDiffusionSimple(ContexteNuancage &ctx)
+VolumeHeterogeneDiffusionSimple::VolumeHeterogeneDiffusionSimple(
+		ContexteNuancage &ctx,
+		wlk::grille_eparse<float> const *grille_)
 	: Volume(ctx)
+	, grille(grille_)
 {
 }
 
@@ -268,11 +270,30 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 	auto P = rayon_local.origine + isect.distance * rayon_local.direction;
 
 	auto distance = longueur(P - contexte.P);
-	auto termine = false;
+
+#if 1
+	auto dt = 0.1;
+	auto nombre_etapes = static_cast<int>(distance / dt);
+	auto accum = Spectre(0.0);
 	auto t = 0.0;
 
-	/* À FAIRE. */
-	auto bruit = dls::math::BruitPerlin3D();
+	for (auto i = 0; i < nombre_etapes; ++i) {
+		auto nP = contexte.P + t * contexte.rayon.direction;
+		contexte.P = nP;
+
+		auto pos_idx = grille->monde_vers_index(dls::math::converti_type_vecteur<float>(nP));
+		auto absorp = grille->valeur(pos_idx.x, pos_idx.y, pos_idx.z);
+
+		accum += Spectre(static_cast<double>(absorp) * dt);
+
+		t += dt;
+	}
+
+	tr = accum;
+	poids = Spectre(1.0);
+#else
+	auto termine = false;
+	auto t = 0.0;
 
 	do {
 		auto zeta = gna.uniforme(0.0, 1.0);
@@ -288,7 +309,9 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 		contexte.P = nP;
 
 		/* Calcul l'absorption locale en évaluant le graphe de nuançage. À FAIRE. */
-		auto extinct = Spectre(bruit(static_cast<float>(nP.x), static_cast<float>(nP.y), static_cast<float>(nP.z)));
+		auto pos_idx = grille->monde_vers_index(dls::math::converti_type_vecteur<float>(nP));
+		auto absorp = grille->valeur(pos_idx.x, pos_idx.y, pos_idx.z);
+		auto extinct = Spectre(absorp);
 
 		auto xi = gna.uniforme(0.0, 1.0);
 
@@ -332,6 +355,7 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 		tr = Spectre(1.0);
 		poids = Spectre(1.0);
 	}
+#endif
 
 	wo.origine = P;
 	wo.direction = contexte.rayon.direction;

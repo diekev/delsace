@@ -27,6 +27,8 @@
 #include "biblinternes/phys/rayon.hh"
 #include "biblinternes/phys/spectre.hh"
 
+#include "wolika/grille_eparse.hh"
+
 class GNA;
 
 namespace kdo {
@@ -60,8 +62,12 @@ struct VolumeLoiBeers : public Volume {
 struct VolumeHeterogeneLoiBeers : public Volume {
 	Spectre absorption = Spectre(1.0);
 	double absorption_max = 1.0;
+	wlk::grille_eparse<float> const *grille = nullptr;
 
-	explicit VolumeHeterogeneLoiBeers(ContexteNuancage &ctx);
+	VolumeHeterogeneLoiBeers(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille_);
+
+	VolumeHeterogeneLoiBeers(VolumeHeterogeneLoiBeers const &) = default;
+	VolumeHeterogeneLoiBeers &operator=(VolumeHeterogeneLoiBeers const &) = default;
 
 	bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) override;
 
@@ -81,8 +87,12 @@ struct VolumeDiffusionSimple : public Volume {
 
 struct VolumeHeterogeneDiffusionSimple : public Volume {
 	double extinction_max = 1.0;
+	wlk::grille_eparse<float> const *grille = nullptr;
 
-	explicit VolumeHeterogeneDiffusionSimple(ContexteNuancage &ctx);
+	VolumeHeterogeneDiffusionSimple(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille_);
+
+	VolumeHeterogeneDiffusionSimple(VolumeHeterogeneDiffusionSimple const &) = default;
+	VolumeHeterogeneDiffusionSimple &operator=(VolumeHeterogeneDiffusionSimple const &) = default;
 
 	bool integre(GNA &gna, ParametresRendu const &parametres, Spectre &L, Spectre &tr, Spectre &poids, dls::phys::rayond &wo) override;
 

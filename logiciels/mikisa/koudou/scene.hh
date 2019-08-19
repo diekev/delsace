@@ -29,6 +29,8 @@
 #include "biblinternes/phys/spectre.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "wolika/grille_eparse.hh"
+
 #include "types.hh"
 
 class GNA;
@@ -65,6 +67,8 @@ struct Scene {
 
 	dls::tableau<Lumiere *> lumieres{};
 	dls::tableau<Maillage *> maillages{};
+
+	dls::tableau<wlk::grille_eparse<float> *> volumes{};
 
 	dls::tableau<Objet *> objets{};
 	Objet *objet_actif = nullptr;

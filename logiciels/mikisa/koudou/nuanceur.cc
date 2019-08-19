@@ -41,7 +41,7 @@ bool Nuanceur::a_volume() const
 	return false;
 }
 
-Volume *Nuanceur::cree_volume(ContexteNuancage &/*ctx*/)
+Volume *Nuanceur::cree_volume(ContexteNuancage &/*ctx*/, wlk::grille_eparse<float> const */*grille*/)
 {
 	return nullptr;
 }
@@ -108,9 +108,10 @@ BSDF *NuanceurVolume::cree_BSDF(ContexteNuancage &ctx)
 	return new BSDFVolume(ctx);
 }
 
-Volume *NuanceurVolume::cree_volume(ContexteNuancage &ctx)
+Volume *NuanceurVolume::cree_volume(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille)
 {
-	return new VolumeLoiBeers(ctx);
+	//return new VolumeLoiBeers(ctx);
+	return new VolumeHeterogeneDiffusionSimple(ctx, grille);
 }
 
 bool NuanceurVolume::a_volume() const

@@ -110,6 +110,7 @@ void Scene::reinitialise()
 	objets.efface();
 	maillages.efface();
 	lumieres.efface();
+	volumes.efface();
 }
 
 /* ************************************************************************** */

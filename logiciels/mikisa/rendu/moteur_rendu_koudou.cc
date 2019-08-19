@@ -163,7 +163,10 @@ static auto volume_prim(Corps const &corps)
 	return static_cast<Volume *>(nullptr);
 }
 
-static void ajoute_volume(kdo::Maillage *maillage, Corps const &corps)
+static void ajoute_volume(
+		kdo::Scene &scene,
+		kdo::Maillage *maillage,
+		Corps const &corps)
 {
 	//maillage->nuanceur(kdo::NuanceurDiffus::defaut());
 	maillage->nuanceur(kdo::NuanceurVolume::defaut());
@@ -178,6 +181,9 @@ static void ajoute_volume(kdo::Maillage *maillage, Corps const &corps)
 
 	if (grille->est_eparse()) {
 		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
+
+		scene.volumes.pousse(grille_eprs);
+		maillage->volume = static_cast<int>(scene.volumes.taille() - 1);
 
 		/* ajoute un cube pour chaque tuile de la grille */
 		auto const &topologie = grille_eprs->topologie();
@@ -360,7 +366,7 @@ void MoteurRenduKoudou::calcule_rendu(
 				auto maillage = memoire::loge<kdo::Maillage>("Maillage");
 
 				if (possede_volume(corps)) {
-					ajoute_volume(maillage, corps);
+					ajoute_volume(scene_koudou, maillage, corps);
 				}
 				else {
 					ajoute_maillage(maillage, corps);

@@ -70,6 +70,8 @@ public:
 	dls::tableau<dls::math::vec3d> points{};
 	dls::tableau<dls::math::vec3d> normaux{};
 
+	int volume = -1;
+
 	Maillage();
 
 	Maillage(Maillage const &autre) = default;

@@ -27,6 +27,8 @@
 #include "biblinternes/phys/rayon.hh"
 #include "biblinternes/phys/spectre.hh"
 
+#include "wolika/grille_eparse.hh"
+
 namespace kdo {
 
 struct BSDF;
@@ -57,7 +59,8 @@ struct Nuanceur {
 
 	virtual bool a_volume() const;
 
-	virtual Volume *cree_volume(ContexteNuancage &ctx);
+	virtual Volume *cree_volume(ContexteNuancage &ctx,
+								wlk::grille_eparse<float> const *grille);
 };
 
 struct NuanceurAngleVue : public Nuanceur {
@@ -124,7 +127,7 @@ struct NuanceurVolume : public Nuanceur {
 
 	BSDF *cree_BSDF(ContexteNuancage &ctx) override;
 
-	Volume *cree_volume(ContexteNuancage &ctx) override;
+	Volume *cree_volume(ContexteNuancage &ctx, wlk::grille_eparse<float> const *grille) override;
 
 	bool a_volume() const override;
 };
