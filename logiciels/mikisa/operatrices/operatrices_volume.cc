@@ -84,22 +84,27 @@ static int cree_volume(
 	bruit.restraint_pos = op.evalue_decimal("restreint_pos");
 	bruit.temps_anim = op.evalue_decimal("temps_anim");
 
-	auto grille_scalaire = memoire::loge<wlk::grille_dense_3d<float>>("grille", desc);
+	auto grille_scalaire = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
+	grille_scalaire->assure_tuiles(desc.etendue);
 
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = grille_scalaire->desc().resolution;
+	wlk::pour_chaque_tuile_parallele(*grille_scalaire, [&](wlk::tuile_scalaire<float> *tuile)
+	{
+		auto index_tuile = 0;
+		for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+			for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+				for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+					auto pos_tuile = tuile->min;
+					pos_tuile.x += i;
+					pos_tuile.y += j;
+					pos_tuile.z += k;
 
-	auto iter = wlk::IteratricePosition(limites);
+					auto pos_monde = grille_scalaire->index_vers_monde(pos_tuile);
 
-	std::cerr << "Nombre de voxels : " << grille_scalaire->nombre_elements() << '\n';
-
-	while (!iter.fini()) {
-		auto pos = iter.suivante();
-		auto idx = grille_scalaire->calcul_index(pos);
-		auto pos_mnd = dls::math::discret_vers_continu<float>(pos);
-		grille_scalaire->valeur(idx, bruit.evalue(pos_mnd));
-	}
+					tuile->donnees[index_tuile] = bruit.evalue(pos_monde);
+				}
+			}
+		}
+	});
 
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
