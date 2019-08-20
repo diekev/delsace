@@ -1141,33 +1141,177 @@ public:
 
 /**
  * Opérateurs de mappage tonal de
- * http://filmicworlds.com/blog/filmic-tonemapping-operators/.
+ * http://filmicworlds.com/blog/filmic-tonemapping-operators/
+ * https://bruop.github.io/tonemapping/
  */
-class OperatriceMappageTonal : public OperatricePixel {
-	enum {
-		MAPPAGE_TONAL_LINEAR = 0,
-		MAPPAGE_TONAL_REINHARD = 1,
-		MAPPAGE_TONAL_HPDCURVE = 2,
-		MAPPAGE_TONAL_HBD = 3,
-		MAPPAGE_TONAL_UNCHARTED = 4,
-		MAPPAGE_TONAL_CUSTOM = 5,
-	};
 
-	/* For the Uncharted 2 tone map. */
+/* version locale */
+static auto mappage_ton_reinhard(float x)
+{
+	return x / (1.0f + x);
+}
+
+/* version globale, il nous faut la luminance moyenne de l'image */
+static auto mappage_ton_reinhard(float x, float lum_moyenne)
+{
+	x = (x / (9.6f * lum_moyenne + 0.00001f));
+	return mappage_ton_reinhard(x);
+}
+
+/* modification du mappage de ton reinhard pour rendre possible une luminosité
+ * de 1.0
+ * version locale */
+static auto mappage_ton_reinhard2(float x, float point_blanc)
+{
+	return (x * (1.0f + x / (point_blanc * point_blanc))) / (1.0f + x);
+}
+
+/* version globale, il nous faut la luminance moyenne de l'image */
+static auto mappage_ton_reinhard2(float x, float lum_moyenne, float point_blanc)
+{
+	x = (x / (9.6f * lum_moyenne + 0.00001f));
+	return mappage_ton_reinhard2(x, point_blanc);
+}
+
+static auto mappage_ton_ACES(float x) {
+	// Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+	auto const a = 2.51f;
+	auto const b = 0.03f;
+	auto const c = 2.43f;
+	auto const d = 0.59f;
+	auto const e = 0.14f;
+	return (x * (a * x + b)) / (x * (c * x + d) + e);
+}
+
+static auto mappage_ton_unreal(float x)
+{
+	// Unreal 3, Documentation: "Color Grading"
+	// Adapted to be close to Tonemap_ACES, with similar range
+	// Gamma 2.2 correction is baked in, don't use with sRGB conversion!
+	return x / (x + 0.155f) * 1.019f;
+}
+
+template <typename T>
+auto marche(T y, T x)
+{
+	return (y >= x) ? T(1) : T(0);
+}
+
+static auto mappage_ton_uchimura(float x, float P, float a, float m, float l, float c, float b)
+{
+	// Uchimura 2017, "HDR theory and practice"
+	// Math: https://www.desmos.com/calculator/gslcdxvipg
+	// Source: https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
+	auto const l0 = ((P - m) * l) / a;
+//	auto const L0 = m - m / a;
+//	auto const L1 = m + (1.0f - m) / a;
+	auto const S0 = m + l0;
+	auto const S1 = m + a * l0;
+	auto const C2 = (a * P) / (P - S1);
+	auto const CP = -C2 / P;
+
+	auto const w0 = 1.0f - dls::math::entrepolation_fluide<1>(x, 0.0f, m);
+	auto const w2 = marche(m + l0, x);
+	auto const w1 = 1.0f - w0 - w2;
+
+	auto const T = m * std::pow(x / m, c) + b;
+	auto const S = P - (P - S1) * std::exp(CP * (x - S0));
+	auto const L = m + a * (x - m);
+
+	return T * w0 + L * w1 + S * w2;
+}
+
+static auto mappage_ton_uchimura(float x)
+{
+	auto const P = 1.0f;  // max display brightness
+	auto const a = 1.0f;  // contrast
+	auto const m = 0.22f; // linear section start
+	auto const l = 0.4f;  // linear section length
+	auto const c = 1.33f; // black
+	auto const b = 0.0f;  // pedestal
+	return mappage_ton_uchimura(x, P, a, m, l, c, b);
+}
+
+static auto mappage_ton_lottes(float x)
+{
+	// Lottes 2016, "Advanced Techniques and Optimization of HDR Color Pipelines"
+	auto const a = 1.6f;
+	auto const d = 0.977f;
+	auto const hdrMax = 8.0f;
+	auto const midIn = 0.18f;
+	auto const midOut = 0.267f;
+
+	// Can be precomputed
+	const float b =
+		(-std::pow(midIn, a) + std::pow(hdrMax, a) * midOut) /
+		((std::pow(hdrMax, a * d) - std::pow(midIn, a * d)) * midOut);
+	const float c =
+		(std::pow(hdrMax, a * d) * std::pow(midIn, a) - std::pow(hdrMax, a) * std::pow(midIn, a * d) * midOut) /
+		((std::pow(hdrMax, a * d) - std::pow(midIn, a * d)) * midOut);
+
+	return std::pow(x, a) / (std::pow(x, a * d) * b + c);
+}
+
+static auto mappage_ton_hbd(float x)
+{
+	x = std::max(0.0f, x - 0.004f);
+	return (x * (6.2f * x + 0.5f)) / (x * (6.2f * x + 1.7f) + 0.06f);
+}
+
+static auto mappage_ton_courbe_hpd(float x)
+{
+	auto const ld = 0.002f;
+	auto const lin_reference = 0.18f;
+	auto const log_reference = 444.0f;
+	auto const logGamma = 0.455f;
+
+	return (std::log(0.4f * x / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
+}
+
+static float mappage_ton_uncharted_impl(float x)
+{
 	static constexpr auto A = 0.15f;
 	static constexpr auto B = 0.50f;
 	static constexpr auto C = 0.10f;
 	static constexpr auto D = 0.20f;
 	static constexpr auto E = 0.02f;
 	static constexpr auto F = 0.30f;
+
+	return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
+}
+
+static float mappage_ton_uncharted(float x)
+{
 	static constexpr auto W = 11.2f;
 
-	int m_type = MAPPAGE_TONAL_LINEAR;
+	auto const exposure_bias = 2.0f;
+	auto const white_scale = 1.0f / mappage_ton_uncharted_impl(W);
+
+	return mappage_ton_uncharted_impl(exposure_bias * x) * white_scale;
+}
+
+class OperatriceMappageTonal : public OperatricePixel {
+	enum {
+		MAPPAGE_TON_LINEAIRE,
+		MAPPAGE_TON_ACES,
+		MAPPAGE_TON_HBD,
+		MAPPAGE_TON_HPDCURVE,
+		MAPPAGE_TON_LOTTES,
+		MAPPAGE_TON_REINHARD,
+		MAPPAGE_TON_REINHARD2,
+		MAPPAGE_TON_UNCHARTED,
+		MAPPAGE_TON_UCHIMURA,
+		MAPPAGE_TON_UNREAL,
+	};
+
+	int m_type = MAPPAGE_TON_LINEAIRE;
 	float m_exposition = 0.0f;
+	float m_gamma = 0.45f;
+	dls::phys::couleur32 m_point_blanc{};
 
 public:
 	static constexpr auto NOM = "Mappage Tonal";
-	static constexpr auto AIDE = "Applique un mappage tonal à l'image.";
+	static constexpr auto AIDE = "Applique un mappage de ton local à l'image.";
 
 	explicit OperatriceMappageTonal(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
@@ -1190,35 +1334,44 @@ public:
 		return AIDE;
 	}
 
-	float uncharted_tone_map(float x)
-	{
-		return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
-	}
-
 	void evalue_entrees(int temps) override
 	{
 		auto type = evalue_enum("type");
 
 		if (type == "linéaire") {
-			m_type = MAPPAGE_TONAL_LINEAR;
+			m_type = MAPPAGE_TON_LINEAIRE;
+		}
+		else if (type == "aces") {
+			m_type = MAPPAGE_TON_ACES;
+		}
+		else if (type == "lottes") {
+			m_type = MAPPAGE_TON_LOTTES;
 		}
 		else if (type == "reinhard") {
-			m_type = MAPPAGE_TONAL_REINHARD;
+			m_type = MAPPAGE_TON_REINHARD;
+		}
+		else if (type == "reinhard2") {
+			m_type = MAPPAGE_TON_REINHARD2;
 		}
 		else if (type == "courbe_hpd") {
-			m_type = MAPPAGE_TONAL_HPDCURVE;
+			m_type = MAPPAGE_TON_HPDCURVE;
 		}
 		else if (type == "HBD") {
-			m_type = MAPPAGE_TONAL_HBD;
+			m_type = MAPPAGE_TON_HBD;
 		}
 		else if (type == "uncharted_2") {
-			m_type = MAPPAGE_TONAL_UNCHARTED;
+			m_type = MAPPAGE_TON_UNCHARTED;
 		}
-		else if (type == "personnalisé") {
-			m_type = MAPPAGE_TONAL_CUSTOM;
+		else if (type == "unreal") {
+			m_type = MAPPAGE_TON_UNREAL;
+		}
+		else if (type == "uchimura") {
+			m_type = MAPPAGE_TON_UCHIMURA;
 		}
 
 		m_exposition = std::pow(2.0f, evalue_decimal("exposition", temps));
+		m_gamma = evalue_decimal("gamma", temps);
+		m_point_blanc = evalue_couleur("point_blanc");
 	}
 
 	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
@@ -1226,89 +1379,88 @@ public:
 		auto resultat = pixel;
 		auto besoin_correction_gamma = true;
 
-		if (m_type == MAPPAGE_TONAL_LINEAR) {
-			/* Exposure adjustment. */
-			resultat.r *= m_exposition;
-			resultat.v *= m_exposition;
-			resultat.b *= m_exposition;
-		}
-		else if (m_type == MAPPAGE_TONAL_REINHARD) {
-			/* Exposure adjustment. */
-			resultat.r *= m_exposition;
-			resultat.v *= m_exposition;
-			resultat.b *= m_exposition;
+		resultat.r *= m_exposition;
+		resultat.v *= m_exposition;
+		resultat.b *= m_exposition;
 
-			/* Simple Reinhard: 1/(1+x). */
-			resultat.r = resultat.r / (1.0f + resultat.r);
-			resultat.v = resultat.v / (1.0f + resultat.v);
-			resultat.b = resultat.b / (1.0f + resultat.b);
-		}
-		else if (m_type == MAPPAGE_TONAL_HPDCURVE) {
-			besoin_correction_gamma = false;
-			/* Exposure adjustment. */
-			resultat.r *= m_exposition;
-			resultat.v *= m_exposition;
-			resultat.b *= m_exposition;
-
-			auto const ld = 0.002f;
-			auto const lin_reference = 0.18f;
-			auto const log_reference = 444.0f;
-			auto const logGamma = 0.455f;
-
-			resultat.r = (std::log(0.4f * resultat.r / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
-			resultat.v = (std::log(0.4f * resultat.v / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
-			resultat.b = (std::log(0.4f * resultat.b / lin_reference) / ld * logGamma + log_reference) / 1023.0f;
-
-			restreint(resultat, 0.0f, 1.0f);
-		}
-		else if (m_type == MAPPAGE_TONAL_HBD) {
-			besoin_correction_gamma = false;
-			/* Exposure adjustment. */
-			resultat.r *= m_exposition;
-			resultat.v *= m_exposition;
-			resultat.b *= m_exposition;
-
-			auto const r = std::max(0.0f, resultat.r - 0.004f);
-			resultat.r = (r * (6.2f * r + 0.5f)) / (r * (6.2f * r + 1.7f) + 0.06f);
-
-			auto const g = std::max(0.0f, resultat.v - 0.004f);
-			resultat.v = (g * (6.2f * g + 0.5f)) / (g * (6.2f * g + 1.7f) + 0.06f);
-
-			auto const b = std::max(0.0f, resultat.b - 0.004f);
-			resultat.b = (b * (6.2f * b + 0.5f)) / (b * (6.2f * b + 1.7f) + 0.06f);
-		}
-		else if (m_type == MAPPAGE_TONAL_UNCHARTED) {
-			auto const exposure_bias = 2.0f;
-			auto const white_scale = 1.0f / uncharted_tone_map(W);
-
-			/* Exposure adjustment. */
-			resultat.r *= m_exposition;
-			resultat.v *= m_exposition;
-			resultat.b *= m_exposition;
-
-			auto const r = uncharted_tone_map(exposure_bias * resultat.r);
-			resultat.r = r * white_scale;
-
-			auto const g = uncharted_tone_map(exposure_bias * resultat.v);
-			resultat.v = g * white_scale;
-
-			auto const b = uncharted_tone_map(exposure_bias * resultat.b);
-			resultat.b = b * white_scale;
-		}
-		else if (m_type == MAPPAGE_TONAL_CUSTOM) {
-			/* À FAIRE */
-
-			/* Exposure adjustment. */
-			resultat.r *= m_exposition;
-			resultat.v *= m_exposition;
-			resultat.b *= m_exposition;
+		switch (m_type) {
+			case MAPPAGE_TON_LINEAIRE:
+			{
+				break;
+			}
+			case MAPPAGE_TON_ACES:
+			{
+				resultat.r = mappage_ton_ACES(resultat.r);
+				resultat.v = mappage_ton_ACES(resultat.v);
+				resultat.b = mappage_ton_ACES(resultat.b);
+				break;
+			}
+			case MAPPAGE_TON_HBD:
+			{
+				resultat.r = mappage_ton_hbd(resultat.r);
+				resultat.v = mappage_ton_hbd(resultat.v);
+				resultat.b = mappage_ton_hbd(resultat.b);
+				besoin_correction_gamma = false;
+				break;
+			}
+			case MAPPAGE_TON_HPDCURVE:
+			{
+				resultat.r = mappage_ton_courbe_hpd(resultat.r);
+				resultat.v = mappage_ton_courbe_hpd(resultat.v);
+				resultat.b = mappage_ton_courbe_hpd(resultat.b);
+				besoin_correction_gamma = false;
+				break;
+			}
+			case MAPPAGE_TON_LOTTES:
+			{
+				resultat.r = mappage_ton_lottes(resultat.r);
+				resultat.v = mappage_ton_lottes(resultat.v);
+				resultat.b = mappage_ton_lottes(resultat.b);
+				break;
+			}
+			case MAPPAGE_TON_REINHARD:
+			{
+				resultat.r = mappage_ton_reinhard(resultat.r);
+				resultat.v = mappage_ton_reinhard(resultat.v);
+				resultat.b = mappage_ton_reinhard(resultat.b);
+				break;
+			}
+			case MAPPAGE_TON_REINHARD2:
+			{
+				resultat.r = mappage_ton_reinhard2(resultat.r, m_point_blanc.r);
+				resultat.v = mappage_ton_reinhard2(resultat.v, m_point_blanc.v);
+				resultat.b = mappage_ton_reinhard2(resultat.b, m_point_blanc.b);
+				break;
+			}
+			case MAPPAGE_TON_UNCHARTED:
+			{
+				resultat.r = mappage_ton_uncharted(resultat.r);
+				resultat.v = mappage_ton_uncharted(resultat.v);
+				resultat.b = mappage_ton_uncharted(resultat.b);
+				break;
+			}
+			case MAPPAGE_TON_UCHIMURA:
+			{
+				resultat.r = mappage_ton_uchimura(resultat.r);
+				resultat.v = mappage_ton_uchimura(resultat.v);
+				resultat.b = mappage_ton_uchimura(resultat.b);
+				break;
+			}
+			case MAPPAGE_TON_UNREAL:
+			{
+				resultat.r = mappage_ton_unreal(resultat.r);
+				resultat.v = mappage_ton_unreal(resultat.v);
+				resultat.b = mappage_ton_unreal(resultat.b);
+				besoin_correction_gamma = false;
+				break;
+			}
 		}
 
 		/* Adjust for the monitor's gamma. */
 		if (besoin_correction_gamma) {
-			resultat.r = std::pow(resultat.r, 1.0f / 2.2f);
-			resultat.v = std::pow(resultat.v, 1.0f / 2.2f);
-			resultat.b = std::pow(resultat.b, 1.0f / 2.2f);
+			resultat.r = std::pow(resultat.r, m_gamma);
+			resultat.v = std::pow(resultat.v, m_gamma);
+			resultat.b = std::pow(resultat.b, m_gamma);
 		}
 
 		return resultat;

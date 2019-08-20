@@ -8,15 +8,27 @@ disposition "operatrice_tonemap" {
 		énum(valeur="linéaire"; attache=type;
 		      items=[
               {nom="Linéaire", valeur="linéaire"},
+			  {nom="ACES", valeur="aces"},
+			  {nom="Courbe de Haarm-Peter Duiker", valeur="courbe_hpd"},
+			  {nom="Hejl et Burgess-Dawson", valeur="HBD"},
+			  {nom="Lottes", valeur="lottes"},
               {nom="Reinhard", valeur="reinhard"},
-              {nom="Courbe de Haarm-Peter Duiker", valeur="courbe_hpd"},
-              {nom="Hejl et Burgess-Dawson", valeur="HBD"},
-              {nom="Uncharted 2", valeur="uncharted_2"},
-              {nom="Personnalisé", valeur="personnalisé"}
+			  {nom="Reinhard 2", valeur="reinhard2"},
+			  {nom="Uncharted 2", valeur="uncharted_2"},
+			  {nom="Uchimura", valeur="uchimura"},
+			  {nom="Unreal", valeur="unreal"}
               ])
     }
     ligne {
         étiquette(valeur="Exposition")
-		décimal(valeur=0.0; attache=exposition; min=-10; max=10; infobulle="Multiplie les couleurs par un facteur de 2^exposition"; animable)
+		décimal(valeur=0.0; attache=exposition; infobulle="Multiplie les couleurs par un facteur de 2^exposition"; animable)
     }
+	ligne {
+		étiquette(valeur="Gamma")
+		décimal(valeur=0.45; attache=gamma; infobulle="Correction gamma de l'image"; animable)
+	}
+	ligne {
+		étiquette(valeur="Point Blanc")
+		couleur(valeur="1,1,1,1"; attache=point_blanc; infobulle="Point blanc pour le mappage Reinhard 2.")
+	}
 }
