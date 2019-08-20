@@ -27,6 +27,8 @@
 #include "biblinternes/image/flux/lecture.h"
 #include "biblinternes/image/operations/conversion.h"
 
+#include <png.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wregister"
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -448,14 +450,8 @@ static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
 	}
 }
 
-static auto charge_jpeg(const char *chemin, std::any const &donnees)
+static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
 {
-	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
-	auto tmp = dls::image::operation::converti_en_float(image_char);
-
-	auto largeur = tmp.nombre_colonnes();
-	auto hauteur = tmp.nombre_lignes();
-
 	auto moitie_x = static_cast<float>(largeur) * 0.5f;
 	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
 
@@ -464,6 +460,19 @@ static auto charge_jpeg(const char *chemin, std::any const &donnees)
 	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
 	desc.fenetre_donnees = desc.etendue;
 	desc.taille_voxel = 1.0;
+
+	return desc;
+}
+
+static auto charge_jpeg(const char *chemin, std::any const &donnees)
+{
+	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
+	auto tmp = dls::image::operation::converti_en_float(image_char);
+
+	auto largeur = tmp.nombre_colonnes();
+	auto hauteur = tmp.nombre_lignes();
+
+	auto desc = desc_depuis_hauteur_largeur(hauteur, largeur);
 
 	auto ptr_image = std::any_cast<Image *>(donnees);
 	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
@@ -483,6 +492,112 @@ static auto charge_jpeg(const char *chemin, std::any const &donnees)
 			tampon->valeur(index) = pixel;
 		}
 	}
+}
+
+static auto charge_png(const char *chemin, std::any const &donnees)
+{
+	auto ptr_image = std::any_cast<Image *>(donnees);
+
+	png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+
+	if (!png) {
+		return;
+	}
+
+	png_infop info = png_create_info_struct(png);
+
+	if (!info) {
+		return;
+	}
+
+	if (setjmp(png_jmpbuf(png))) {
+		return;
+	}
+
+	FILE *file = std::fopen(chemin, "rb");
+
+	if (file == nullptr) {
+		return;
+	}
+
+	png_init_io(png, file);
+
+	png_read_info(png, info);
+
+	auto const hauteur    = png_get_image_height(png, info);
+	auto const largeur    = png_get_image_width(png, info);
+	auto const color_type = png_get_color_type(png, info);
+	auto const bit_depth  = png_get_bit_depth(png, info);
+
+	if (bit_depth == 16) {
+		png_set_strip_16(png);
+	}
+
+	if (color_type == PNG_COLOR_TYPE_PALETTE){
+		png_set_palette_to_rgb(png);
+	}
+
+	// PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
+	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8){
+		png_set_expand_gray_1_2_4_to_8(png);
+	}
+
+	if (png_get_valid(png, info, PNG_INFO_tRNS)){
+		png_set_tRNS_to_alpha(png);
+	}
+
+	// These color_type don't have an alpha channel then fill it with 0xff.
+	if (color_type == PNG_COLOR_TYPE_RGB ||
+			color_type == PNG_COLOR_TYPE_GRAY ||
+			color_type == PNG_COLOR_TYPE_PALETTE)
+	{
+		png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
+	}
+
+	if (color_type == PNG_COLOR_TYPE_GRAY ||
+			color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+	{
+		png_set_gray_to_rgb(png);
+	}
+
+
+	png_read_update_info(png, info);
+
+	auto row_pointers = dls::tableau<png_bytep>(hauteur);
+
+	for (auto y = 0; y < static_cast<int>(hauteur); y++) {
+		row_pointers[y] = static_cast<png_byte *>(malloc(png_get_rowbytes(png,info)));
+	}
+
+	png_read_image(png, &row_pointers[0]);
+
+	auto desc = desc_depuis_hauteur_largeur(static_cast<int>(hauteur), static_cast<int>(largeur));
+	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	auto tampon = extrait_grille_couleur(calque);
+
+	for (auto y = 0; y < static_cast<int>(hauteur); y++) {
+		auto row = row_pointers[y];
+
+		for (auto x = 0; x < static_cast<int>(largeur); x++) {
+			auto px = &(row[x * 4]);
+
+			auto clr = dls::phys::couleur32();
+			clr.r = px[0] / 255.0f;
+			clr.v = px[1] / 255.0f;
+			clr.b = px[2] / 255.0f;
+			clr.a = px[3] / 255.0f;
+
+			tampon->valeur(dls::math::vec2i(x, y)) = clr;
+		}
+	}
+
+	for (auto y = 0; y < static_cast<int>(hauteur); y++) {
+		free(row_pointers[y]);
+	}
+
+	png_destroy_read_struct(&png, &info, nullptr);
+
+	std::fclose(file);
 }
 
 /* ************************************************************************** */
@@ -592,6 +707,9 @@ public:
 
 			if (chemin.trouve(".exr") != dls::chaine::npos) {
 				m_poignee_fichier->lecture_chemin(charge_exr, donnees);
+			}
+			else if (chemin.trouve(".png") != dls::chaine::npos) {
+				m_poignee_fichier->lecture_chemin(charge_png, donnees);
 			}
 			else {
 				m_poignee_fichier->lecture_chemin(charge_jpeg, donnees);

@@ -7,7 +7,7 @@ disposition "operatrice_lecture_fichier" {
 			}
 			ligne {
 			    étiquette(valeur="Chemin")
-				fichier_entrée(valeur=""; attache=chemin; filtres="Images (*.jpg *.jpeg *.exr)")
+				fichier_entrée(valeur=""; attache=chemin; filtres="Images (*.jpg *.jpeg *.exr *.png)")
 			}
 		}
 		onglet "Séquence" {
