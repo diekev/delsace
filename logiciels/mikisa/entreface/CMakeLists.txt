@@ -150,6 +150,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_incrustation.jo
 	scripts_danjo/operatrice_lecture_fichier.jo
 	scripts_danjo/operatrice_lecture_objet.jo
+	scripts_danjo/operatrice_lecture_video.jo
 	scripts_danjo/operatrice_lueur_image.jo
 	scripts_danjo/operatrice_maillage_vers_volume.jo
 	scripts_danjo/operatrice_mappage_tonal_ondelette.jo

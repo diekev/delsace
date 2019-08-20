@@ -52,6 +52,8 @@ set(BIBLIOTHEQUES
 	mikisa_evaluation
 	mikisa_lcc
 	mikisa_poseidon
+	opencv_core
+	opencv_videoio
 	png
 	wolika
 	${BIBLIOTHEQUES_ALEMBIC}

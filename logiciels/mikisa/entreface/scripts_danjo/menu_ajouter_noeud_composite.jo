@@ -4,6 +4,7 @@ menu "Noeud Composite" {
 	}
 	menu "Entrée" {
 	    action(valeur="Lecture Image"; attache=ajouter_noeud; métadonnée="Lecture Image")
+		action(valeur="Lecture Vidéo"; attache=ajouter_noeud; métadonnée="Lecture Vidéo")
 		action(valeur="Image Profonde"; attache=ajouter_noeud; métadonnée="Lecture Image Profonde")
     }
 	menu "Filtre" {

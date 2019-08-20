@@ -36,6 +36,8 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#	include <opencv/cv.hpp>
+
 #include <OpenEXR/ImfArray.h>
 #include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImathBox.h>
@@ -724,6 +726,127 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceLectureVideo : public OperatriceImage {
+	dls::chaine m_dernier_chemin = "";
+	PoigneeFichier *m_poignee_fichier = nullptr;
+	cv::VideoCapture m_video{};
+	int m_derniere_image = -1;
+
+public:
+	static constexpr auto NOM = "Lecture Vidéo";
+	static constexpr auto AIDE = "Charge une vidéo depuis le disque.";
+
+	explicit OperatriceLectureVideo(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(0);
+		sorties(1);
+	}
+
+	OperatriceLectureVideo(OperatriceLectureVideo const &) = default;
+	OperatriceLectureVideo &operator=(OperatriceLectureVideo const &) = default;
+
+	~OperatriceLectureVideo() override
+	{
+		m_video.release();
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_lecture_video.jo";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		auto nom_calque = evalue_chaine("nom_calque");
+
+		if (nom_calque == "") {
+			nom_calque = "image";
+		}
+
+		dls::chaine chemin = evalue_chaine("chemin");
+
+		if (chemin.est_vide()) {
+			ajoute_avertissement("Le chemin de fichier est vide !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_dernier_chemin != chemin || m_poignee_fichier == nullptr) {
+			if (m_video.isOpened()) {
+				m_video.release();
+			}
+
+			m_poignee_fichier = contexte.gestionnaire_fichier->poignee_fichier(chemin);
+			m_dernier_chemin = chemin;
+
+			if (!m_video.open(chemin.c_str())) {
+				this->ajoute_avertissement("Impossible d'ouvrir la vidéo");
+				return EXECUTION_ECHOUEE;
+			}
+		}
+
+		if (m_poignee_fichier == nullptr) {
+			this->ajoute_avertissement("Impossible d'obtenir une poignée sur le fichier");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_derniere_image != -1 && contexte.temps_courant != m_derniere_image + 1) {
+			return EXECUTION_REUSSIE;
+		}
+
+		m_image.reinitialise();
+
+		auto mat = cv::Mat();
+		if (!m_video.read(mat)) {
+			this->ajoute_avertissement("Impossible de lire une image depuis la vidéo");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto largeur = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_WIDTH));
+		auto hauteur = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_HEIGHT));
+
+		auto desc = desc_depuis_hauteur_largeur(hauteur, largeur);
+		auto calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		for (auto y = 0; y < hauteur; ++y) {
+			for (auto x = 0; x < largeur; ++x) {
+				auto pixel = mat.at<cv::Vec3b>(y, x);
+
+				auto res = dls::phys::couleur32();
+				res.r = static_cast<float>(pixel[2]) / 255.0f;
+				res.v = static_cast<float>(pixel[1]) / 255.0f;
+				res.b = static_cast<float>(pixel[0]) / 255.0f;
+				res.a = 1.0f;
+
+				tampon->valeur(dls::math::vec2i(x, y)) = res;
+			}
+		}
+
+		m_derniere_image = contexte.temps_courant;
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 class OpLectureImgProfonde : public OperatriceImage {
 	grille_couleur m_image_chargee{};
 	dls::chaine m_dernier_chemin = "";
@@ -1128,6 +1251,7 @@ void enregistre_operatrices_flux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCommutationCorps>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
+	usine.enregistre_type(cree_desc<OperatriceLectureVideo>());
 	usine.enregistre_type(cree_desc<OpLectureImgProfonde>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
 	usine.enregistre_type(cree_desc<OperatriceImportObjet>());
