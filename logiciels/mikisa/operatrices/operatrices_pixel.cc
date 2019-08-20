@@ -173,6 +173,14 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Mélange d'images
+ *
+ * Référence pour les mélanges utilisant le canal alpha :
+ * « Compositing Digital Images », Porter & Duff
+ * http://graphics.pixar.com/library/Compositing/paper.pdf
+ */
+
 static float enhaut(float A, float a, float B, float b)
 {
 	return A * b + B * (1.0f - a);
@@ -775,251 +783,6 @@ public:
 		});
 
 		chef->indique_progression(100.0f);
-
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
-/**
- * Implémentation basée sur https://keithp.com/~keithp/porterduff/p253-porter.pdf
- */
-class OperatriceFusionnage final : public OperatriceImage {
-	enum {
-		FUSION_CLARIFICATION,
-		FUSION_A,
-		FUSION_B,
-		FUSION_A_SUR_B,
-		FUSION_B_SUR_A,
-		FUSION_A_DANS_B,
-		FUSION_B_DANS_A,
-		FUSION_A_HORS_B,
-		FUSION_B_HORS_A,
-		FUSION_A_DESSUS_B,
-		FUSION_B_DESSUS_A,
-		FUSION_PLUS,
-		FUSION_XOR,
-	};
-
-public:
-	static constexpr auto NOM = "Fusionnage";
-	static constexpr auto AIDE = "Fusionne deux images selon les algorithmes de Porter & Duff.";
-
-	explicit OperatriceFusionnage(Graphe &graphe_parent, Noeud *noeud)
-		: OperatriceImage(graphe_parent, noeud)
-	{
-	}
-
-	virtual int type() const override
-	{
-		return OPERATRICE_PIXEL;
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_fusion.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_image.reinitialise();
-
-		auto image = entree(0)->requiers_image(contexte, donnees_aval);
-		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto calque_a = cherche_calque(*this, image, nom_calque_a);
-
-		if (calque_a == nullptr) {
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
-		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto calque_b = cherche_calque(*this, image2, nom_calque_b);
-
-		if (calque_b == nullptr) {
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto operation = evalue_enum("operation");
-		auto fusion = -1;
-
-		if (operation == "clarification") {
-			fusion = FUSION_CLARIFICATION;
-		}
-		else if (operation == "A") {
-			fusion = FUSION_A;
-		}
-		else if (operation == "B") {
-			fusion = FUSION_B;
-		}
-		else if (operation == "A_sur_B") {
-			fusion = FUSION_A_SUR_B;
-		}
-		else if (operation == "B_sur_A") {
-			fusion = FUSION_B_SUR_A;
-		}
-		else if (operation == "A_dans_B") {
-			fusion = FUSION_A_DANS_B;
-		}
-		else if (operation == "B_dans_A") {
-			fusion = FUSION_B_DANS_A;
-		}
-		else if (operation == "A_hors_B") {
-			fusion = FUSION_A_HORS_B;
-		}
-		else if (operation == "B_hors_A") {
-			fusion = FUSION_B_HORS_A;
-		}
-		else if (operation == "A_au_dessus_de_B") {
-			fusion = FUSION_A_DESSUS_B;
-		}
-		else if (operation == "B_au_dessus_de_A") {
-			fusion = FUSION_B_DESSUS_A;
-		}
-		else if (operation == "plus") {
-			fusion = FUSION_PLUS;
-		}
-		else if (operation == "xor") {
-			fusion = FUSION_XOR;
-		}
-
-		auto tampon_a = extrait_grille_couleur(calque_a);
-		auto tampon_b = extrait_grille_couleur(calque_b);
-
-		auto calque = m_image.ajoute_calque(
-					nom_calque_a,
-					tampon_a->desc(),
-					wlk::type_grille::COULEUR);
-
-		auto tampon = extrait_grille_couleur(calque);
-
-		auto const &rectangle = contexte.resolution_rendu;
-
-		boucle_parallele(tbb::blocked_range<int>(0l, static_cast<int>(rectangle.hauteur)),
-					 [&](tbb::blocked_range<int> const &plage)
-		{
-			for (auto l = plage.begin(); l < plage.end(); ++l) {
-				for (auto c = 0; c < static_cast<int>(rectangle.largeur); ++c) {
-					auto index = tampon->calcul_index(dls::math::vec2i(c, l));
-					auto resultat = dls::phys::couleur32(0.0f);
-
-					switch (fusion) {
-						case FUSION_CLARIFICATION:
-						{
-							/* aucune opération, le resultat est déjà 0 */
-							break;
-						}
-						case FUSION_A:
-						{
-							resultat = tampon_a->valeur(index);
-							break;
-						}
-						case FUSION_B:
-						{
-							resultat = tampon_b->valeur(index);
-							break;
-						}
-						case FUSION_A_SUR_B:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = 1.0f;
-							auto fac_b = 1.0f - a.a;
-							resultat = a * fac_a + b * fac_b;
-							break;
-						}
-						case FUSION_B_SUR_A:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = 1.0f - b.a;
-							auto fac_b = 1.0f;
-							resultat = a * fac_a + b * fac_b;
-							break;
-						}
-						case FUSION_A_DANS_B:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = b.a;
-							resultat = a * fac_a;
-							break;
-						}
-						case FUSION_B_DANS_A:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_b = a.a;
-							resultat = b * fac_b;
-							break;
-						}
-						case FUSION_A_HORS_B:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = 1.0f - b.a;
-							resultat = a * fac_a;
-							break;
-						}
-						case FUSION_B_HORS_A:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_b = 1.0f - a.a;
-							resultat = b * fac_b;
-							break;
-						}
-						case FUSION_A_DESSUS_B:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = b.a;
-							auto fac_b = 1.0f - a.a;
-							resultat = a * fac_a + b * fac_b;
-							break;
-						}
-						case FUSION_B_DESSUS_A:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = 1.0f - b.a;
-							auto fac_b = a.a;
-							resultat = a * fac_a + b * fac_b;
-							break;
-						}
-						case FUSION_PLUS:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							resultat = a + b;
-							break;
-						}
-						case FUSION_XOR:
-						{
-							auto a = tampon_a->valeur(index);
-							auto b = tampon_b->valeur(index);
-							auto fac_a = 1.0f - b.a;
-							auto fac_b = 1.0f - a.a;
-							resultat = a * fac_a + b * fac_b;
-							break;
-						}
-					}
-
-					tampon->valeur(index, resultat);
-				}
-			}
-		});
 
 		return EXECUTION_REUSSIE;
 	}
@@ -2686,7 +2449,6 @@ void enregistre_operatrices_pixel(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCorrectionCouleur>());
 	usine.enregistre_type(cree_desc<OperatriceInversement>());
 	usine.enregistre_type(cree_desc<OperatriceIncrustation>());
-	usine.enregistre_type(cree_desc<OperatriceFusionnage>());
 	usine.enregistre_type(cree_desc<OperatricePremultiplication>());
 	usine.enregistre_type(cree_desc<OperatriceNormalisationPixel>());
 	usine.enregistre_type(cree_desc<OperatriceContraste>());

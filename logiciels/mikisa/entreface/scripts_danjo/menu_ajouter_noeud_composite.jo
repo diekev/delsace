@@ -32,7 +32,6 @@ menu "Noeud Composite" {
 		action(valeur="Daltonisme"; attache=ajouter_noeud; métadonnée="Daltonisme")
 		action(valeur="Dégradé"; attache=ajouter_noeud; métadonnée="Dégradé")
 		action(valeur="Étalonnage"; attache=ajouter_noeud; métadonnée="Étalonnage")
-		action(valeur="Fusionnage"; attache=ajouter_noeud; métadonnée="Fusionnage")
 		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe")
 		action(valeur="Incrustation"; attache=ajouter_noeud; métadonnée="Incrustation")
 		action(valeur="Inversement"; attache=ajouter_noeud; métadonnée="Inversement")
