@@ -35,10 +35,13 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/structures/dico_fixe.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "danjo/types/courbe_bezier.h"
 #include "danjo/types/rampe_couleur.h"
 
+#include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/operatrice_graphe_pixel.h"
 #include "coeur/operatrice_image.h"
@@ -170,7 +173,232 @@ public:
 
 /* ************************************************************************** */
 
+static float enhaut(float A, float a, float B, float b)
+{
+	return A * b + B * (1.0f - a);
+}
+
+static float moyenne(float A, float B)
+{
+	return (A + B) * 0.5f;
+}
+
+static float densite_couleur_pos(float A, float B)
+{
+	return (B < A) ? A : B;
+}
+
+static float densite_couleur_neg(float A, float B)
+{
+	return (B > A) ? A : B;
+}
+
+static float dessus_conjoint(float A, float a, float B, float b)
+{
+	if (a > b || b == 0.0f) {
+		return A;
+	}
+
+	return A + B * (1.0f - a) / b;
+}
+
+//static float copie(float A, float B)
+//{
+//	return A;
+//}
+
+static float difference(float A, float B)
+{
+	return std::abs(A - B);
+}
+
+static float dessus_disjoint(float A, float a, float B, float b)
+{
+	if (a + b < 1.0f) {
+		return A + B;
+	}
+
+	return A + B * (1.0f - a) / b;
+}
+
+static float divise(float A, float B)
+{
+	if (A < 0.0f || B <= 0.0f) {
+		return 0.0f;
+	}
+
+	return A / B;
+}
+
+static float exclus(float A, float B)
+{
+	return A + B - 2.0f * A * B;
+}
+
+static float depuis(float A, float B)
+{
+	return B - A;
+}
+
+static float geometrique(float A, float B)
+{
+	return (2.0f * A * B) / (A + B);
+}
+
+static float hypot(float A, float B)
+{
+	return std::sqrt(A * A + B * B);
+}
+
+static float dedans(float A, float b)
+{
+	return A * b;
+}
+static float masque(float B, float a)
+{
+	return B * a;
+}
+static float matte(float A, float a, float B)
+{
+	return A * a + B * (1.0f - a);
+}
+static float max(float A, float B)
+{
+	return std::max(A, B);
+}
+static float min(float A, float B)
+{
+	return std::min(A, B);
+}
+static float moins(float A, float B)
+{
+	return A - B;
+}
+static float multiplie(float A, float B)
+{
+	if (A < 0 && B < 0) {
+		return A;
+	}
+
+	return A * B;
+}
+static float dehors(float A, float b)
+{
+	return A * (1.0f - b);
+}
+static float dessus(float A, float a, float B)
+{
+	return A + B * (1.0f - a);
+}
+static float plus(float A, float B)
+{
+	return A + B;
+}
+static float ecran(float A, float B)
+{
+	if (0.0f <= A && A <= 1.0f && 0.0f <= B && B <= 1.0f) {
+		return A + B - A * B;
+	}
+
+	if (A > B) {
+		return A;
+	}
+
+	return B;
+}
+static float lumiere_douce(float A, float B)
+{
+	auto const AB = A * B;
+
+	if (AB < 1.0f) {
+		return B * (2.0f * A + (B * (1.0f - AB)));
+	}
+
+	return 2.0f * AB;
+}
+static float pochoir(float a, float B)
+{
+	return B * (1.0f - a);
+}
+static float dessous(float A, float B, float b)
+{
+	return A * (1.0f - b) + B;
+}
+static float ou_exclusif(float A, float a, float B, float b)
+{
+	return A * (1.0f - b) + B * (1.0f - a);
+}
+
+static float lumiere_dure(float A, float B)
+{
+	if (A < 0.5f) {
+		return multiplie(A, B);
+	}
+
+	return ecran(A, B);
+}
+static float superpose(float A, float B)
+{
+	if (B < 0.5f) {
+		return multiplie(A, B);
+	}
+
+	return ecran(A, B);
+}
+
+static Image const *cherche_image(
+		OperatriceImage &op,
+		int index,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index_lien = 0)
+{
+	auto image = op.entree(index)->requiers_image(contexte, donnees_aval, index_lien);
+
+	if (image == nullptr) {
+		auto flux = dls::flux_chaine();
+		flux << "Aucune image trouvée dans l'entrée à l'index " << index << ", lien " << index_lien << " !";
+		op.ajoute_avertissement(flux.chn());
+		return nullptr;
+	}
+
+	return image;
+}
+
 class OperatriceMelange final : public OperatriceImage {
+	enum class type_melange {
+		copie,
+		dedans,
+		densite_couleur_pos,
+		densite_couleur_neg,
+		dehors,
+		dessous,
+		dessus,
+		dessus_conjoint,
+		dessus_disjoint,
+		difference,
+		divise,
+		ecran,
+		enhaut,
+		exclus,
+		depuis,
+		geometrique,
+		lumiere_douce,
+		lumiere_dure,
+		hypot,
+		masque,
+		matte,
+		max,
+		min,
+		moins,
+		moyenne,
+		multiplie,
+		ou_exclusif,
+		plus,
+		pochoir,
+		superpose,
+	};
+
 public:
 	static constexpr auto NOM = "Mélanger";
 	static constexpr auto AIDE = "Mélange deux images.";
@@ -178,6 +406,7 @@ public:
 	explicit OperatriceMelange(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
+		entrees(1);
 	}
 
 	virtual int type() const override
@@ -200,71 +429,353 @@ public:
 		return AIDE;
 	}
 
+	bool connexions_multiples(int n) const override
+	{
+		return n == 0;
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
-#if 1
-		this->ajoute_avertissement("à réimplémenter");
-#else
-		auto image1 = entree(0)->requiers_image(contexte, donnees_aval);
-		auto nom_calque_a = evalue_chaine("nom_calque_a");
-		auto calque_a = cherche_calque(*this, image1, nom_calque_a);
+		auto nom_calque = evalue_chaine("nom_calque");
+		auto tampons = dls::tableau<grille_couleur const *>();
 
-		if (calque_a == nullptr) {
+		auto desc = wlk::desc_grille_2d{};
+		desc.taille_pixel = 1.0;
+		desc.etendue.min = dls::math::vec2f( constantes<float>::INFINITE);
+		desc.etendue.max = dls::math::vec2f(-constantes<float>::INFINITE);
+
+		for (auto i = 0; i < entree(0)->nombre_connexions(); ++i) {
+			auto img = cherche_image(*this, 0, contexte, donnees_aval, i);
+
+			if (img == nullptr) {
+				continue;
+			}
+
+			auto clq = img->calque_pour_lecture(nom_calque);
+
+			if (clq == nullptr) {
+				continue;
+			}
+
+			auto tpn = extrait_grille_couleur(clq);
+
+			tampons.pousse(tpn);
+
+			auto desc1 = tpn->desc();
+			desc.etendue.min.x = std::min(desc.etendue.min.x, desc1.etendue.min.x);
+			desc.etendue.min.y = std::min(desc.etendue.min.y, desc1.etendue.min.y);
+			desc.etendue.max.x = std::max(desc.etendue.max.x, desc1.etendue.max.x);
+			desc.etendue.max.y = std::max(desc.etendue.max.y, desc1.etendue.max.y);
+		}
+
+		desc.fenetre_donnees = desc.etendue;
+
+		if (tampons.est_vide()) {
+			this->ajoute_avertissement("Aucun tampon trouvé");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
-		auto nom_calque_b = evalue_chaine("nom_calque_b");
-		auto calque_b = cherche_calque(*this, image2, nom_calque_b);
+		auto dico_types = dls::cree_dico(
+					dls::paire(dls::chaine("enhaut"), type_melange::enhaut),
+					dls::paire(dls::chaine("moyenne"), type_melange::moyenne),
+					dls::paire(dls::chaine("densite_couleur_pos"), type_melange::densite_couleur_pos),
+					dls::paire(dls::chaine("densite_couleur_neg"), type_melange::densite_couleur_neg),
+					dls::paire(dls::chaine("dessus_disjoint"), type_melange::dessus_disjoint),
+					dls::paire(dls::chaine("copie"), type_melange::copie),
+					dls::paire(dls::chaine("difference"), type_melange::difference),
+					dls::paire(dls::chaine("dessus_conjoint"), type_melange::dessus_conjoint),
+					dls::paire(dls::chaine("divise"), type_melange::divise),
+					dls::paire(dls::chaine("exclus"), type_melange::exclus),
+					dls::paire(dls::chaine("depuis"), type_melange::depuis),
+					dls::paire(dls::chaine("geometrique"), type_melange::geometrique),
+					dls::paire(dls::chaine("lumiere_dure"), type_melange::lumiere_dure),
+					dls::paire(dls::chaine("hypot"), type_melange::hypot),
+					dls::paire(dls::chaine("dedans"), type_melange::dedans),
+					dls::paire(dls::chaine("masque"), type_melange::masque),
+					dls::paire(dls::chaine("matte"), type_melange::matte),
+					dls::paire(dls::chaine("max"), type_melange::max),
+					dls::paire(dls::chaine("min"), type_melange::min),
+					dls::paire(dls::chaine("moins"), type_melange::moins),
+					dls::paire(dls::chaine("multiplie"), type_melange::multiplie),
+					dls::paire(dls::chaine("dehors"), type_melange::dehors),
+					dls::paire(dls::chaine("dessus"), type_melange::dessus),
+					dls::paire(dls::chaine("superpose"), type_melange::superpose),
+					dls::paire(dls::chaine("plus"), type_melange::plus),
+					dls::paire(dls::chaine("ecran"), type_melange::ecran),
+					dls::paire(dls::chaine("lumiere_douce"), type_melange::lumiere_douce),
+					dls::paire(dls::chaine("pochoir"), type_melange::pochoir),
+					dls::paire(dls::chaine("dessous"), type_melange::dessous),
+					dls::paire(dls::chaine("ou_exclusif"), type_melange::ou_exclusif));
 
-		if (calque_b == nullptr) {
+		auto chn_type = evalue_enum("operation");
+		auto plg_type = dico_types.trouve(chn_type);
+
+		if (plg_type.est_finie()) {
+			this->ajoute_avertissement("l'opération est inconnue");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto operation = evalue_enum("operation");
-		auto facteur = evalue_decimal("facteur", contexte.temps_courant);
-		auto melange = 0;
+		auto type_mel = plg_type.front().second;
 
-		if (operation == "mélanger") {
-			melange = dls::image::operation::MELANGE_NORMAL;
-		}
-		else if (operation == "ajouter") {
-			melange = dls::image::operation::MELANGE_ADDITION;
-		}
-		else if (operation == "soustraire") {
-			melange = dls::image::operation::MELANGE_SOUSTRACTION;
-		}
-		else if (operation == "diviser") {
-			melange = dls::image::operation::MELANGE_DIVISION;
-		}
-		else if (operation == "multiplier") {
-			melange = dls::image::operation::MELANGE_MULTIPLICATION;
-		}
-		else if (operation == "écran") {
-			melange = dls::image::operation::MELANGE_ECRAN;
-		}
-		else if (operation == "superposer") {
-			melange = dls::image::operation::MELANGE_SUPERPOSITION;
-		}
-		else if (operation == "différence") {
-			melange = dls::image::operation::MELANGE_DIFFERENCE;
-		}
+		auto calque = m_image.ajoute_calque(nom_calque, desc, wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
 
-		auto calque = m_image.ajoute_calque(
-					nom_calque_a,
-					desc_depuis_rectangle(contexte.resolution_rendu),
-					wlk::type_grille::COULEUR);
+		auto largeur = tampon->desc().resolution.x;
+		auto hauteur = tampon->desc().resolution.y;
+		auto courant = 0;
 
-		auto tampon = dynamic_cast<grille_couleur *>(calque->tampon);
-		auto tampon_a = dynamic_cast<grille_couleur *>(calque_a->tampon);
-		auto tampon_b = dynamic_cast<grille_couleur *>(calque_b->tampon);
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("fusion images");
 
-		copie_donnees_calque(*tampon_a, *tampon);
+		boucle_parallele(tbb::blocked_range<int>(0, hauteur),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			for (auto j = plage.begin(); j < plage.end(); ++j) {
+				if (chef->interrompu()) {
+					break;
+				}
 
-		dls::image::operation::melange_images(tampon, tampon_b, melange, facteur);
-#endif
+				for (auto i = 0; i < largeur; ++i, ++courant) {
+					if (chef->interrompu()) {
+						break;
+					}
+
+					auto const index = i + j * largeur;
+
+					auto const pos_mnd = tampon->index_vers_monde(dls::math::vec2i(i, j));
+
+					auto pos_a = tampons[0]->monde_vers_index(pos_mnd);
+					auto A = tampons[0]->valeur(pos_a);
+
+					for (auto t = 1; t < tampons.taille(); ++t) {
+						auto pos_b = tampons[t]->monde_vers_index(pos_mnd);
+						auto B = tampons[t]->valeur(pos_b);
+
+						switch (type_mel) {
+							case type_melange::enhaut:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = enhaut(A[c], A.a, B[c], B.a);
+								}
+								break;
+							}
+							case type_melange::moyenne:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = moyenne(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::densite_couleur_pos:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = densite_couleur_pos(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::densite_couleur_neg:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = densite_couleur_neg(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::dessus_disjoint:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = dessus_disjoint(A[c], A.a, B[c], B.a);
+								}
+								break;
+							}
+							case type_melange::copie:
+							{
+								/* return A */
+								break;
+							}
+							case type_melange::difference:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = difference(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::dessus_conjoint:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = dessus_conjoint(A[c], A.a, B[c], B.a);
+								}
+								break;
+							}
+							case type_melange::divise:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = divise(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::exclus:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = exclus(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::depuis:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = depuis(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::geometrique:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = geometrique(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::lumiere_dure:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = lumiere_dure(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::hypot:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = hypot(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::dedans:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = dedans(A[c], B.a);
+								}
+								break;
+							}
+							case type_melange::masque:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = masque(B[c], A.a);
+								}
+								break;
+							}
+							case type_melange::matte:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = matte(A[c], A.a, B[c]);
+								}
+								break;
+							}
+							case type_melange::max:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = max(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::min:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = min(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::moins:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = moins(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::multiplie:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = multiplie(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::dehors:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = dehors(A[c], B.a);
+								}
+								break;
+							}
+							case type_melange::dessus:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = dessus(A[c], A.a, B[c]);
+								}
+								break;
+							}
+							case type_melange::superpose:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = superpose(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::plus:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = plus(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::ecran:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = ecran(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::lumiere_douce:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = lumiere_douce(A[c], B[c]);
+								}
+								break;
+							}
+							case type_melange::pochoir:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = pochoir(A.a, B[c]);
+								}
+								break;
+							}
+							case type_melange::dessous:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = dessous(A[c], B[c], B.a);
+								}
+								break;
+							}
+							case type_melange::ou_exclusif:
+							{
+								for (auto c = 0; c < 4; ++c) {
+									A[c] = ou_exclusif(A[c], A.a, B[c], B.a);
+								}
+								break;
+							}
+						}
+					}
+
+					tampon->valeur(index) = A;
+				}
+
+				auto delta = static_cast<float>(plage.end() - plage.begin());
+				delta /= static_cast<float>(largeur);
+				chef->indique_progression_parallele(delta * 100.0f);
+			}
+		});
+
+		chef->indique_progression(100.0f);
+
 		return EXECUTION_REUSSIE;
 	}
 };
