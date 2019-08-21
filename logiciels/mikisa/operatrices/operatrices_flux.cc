@@ -722,6 +722,11 @@ public:
 
 		return EXECUTION_REUSSIE;
 	}
+
+	bool depend_sur_temps() const override
+	{
+		return evalue_bool("est_animation");
+	}
 };
 
 /* ************************************************************************** */
