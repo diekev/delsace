@@ -1,6 +1,13 @@
 disposition "operatrice_normalisation" {
     ligne {
 	    étiquette(valeur="Nom Calque")
-		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à visionner.")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+	ligne {
+		étiquette(valeur="Opération")
+		énum(valeur="max"; attache=opération; items=
+			 [{ nom="max", valeur="max" },
+			  { nom="minmax", valeur="minmax" }];
+		infobulle="Normalise la valeur des pixels selon l'opération choisie: max = divise par la valeur maximale des pixels, minmax = transforme les pixels selon leurs positions dans l'interval défini entre la valeur minimale et maximale des pixels (v - min) / (max - min)")
 	}
 }

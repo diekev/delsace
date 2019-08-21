@@ -459,6 +459,23 @@ public:
 
 /* ************************************************************************** */
 
+auto valeur_minimale(grille_couleur const &grille)
+{
+	auto min = dls::phys::couleur32(constantes<float>::INFINITE);
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		for (auto j = 0; j < 4; ++j) {
+			if (v[j] < min[j]) {
+				min[j] = v[j];
+			}
+		}
+	}
+
+	return min;
+}
+
 auto valeur_maximale(grille_couleur const &grille)
 {
 	auto max = dls::phys::couleur32(-constantes<float>::INFINITE);
@@ -474,6 +491,28 @@ auto valeur_maximale(grille_couleur const &grille)
 	}
 
 	return max;
+}
+
+auto extrait_min_max(
+		grille_couleur const &grille,
+		dls::phys::couleur32 &min,
+		dls::phys::couleur32 &max)
+{
+	min = dls::phys::couleur32( constantes<float>::INFINITE);
+	max = dls::phys::couleur32(-constantes<float>::INFINITE);
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		for (auto j = 0; j < 4; ++j) {
+			if (v[j] < min[j]) {
+				min[j] = v[j];
+			}
+			if (v[j] > max[j]) {
+				max[j] = v[j];
+			}
+		}
+	}
 }
 
 class OperatriceNormalisationRegion : public OperatriceImage {
@@ -516,20 +555,43 @@ public:
 
 		auto tampon = extrait_grille_couleur(calque);
 
-		auto maximum = valeur_maximale(*tampon);
-		maximum.r = (maximum.r > 0.0f) ? (1.0f / maximum.r) : 0.0f;
-		maximum.v = (maximum.v > 0.0f) ? (1.0f / maximum.v) : 0.0f;
-		maximum.b = (maximum.b > 0.0f) ? (1.0f / maximum.b) : 0.0f;
-		maximum.a = (maximum.a > 0.0f) ? (1.0f / maximum.a) : 0.0f;
+		auto operation = evalue_enum("opération");
 
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("normalisation image");
 
-		applique_fonction(chef, *tampon,
-						  [&](dls::phys::couleur32 const &pixel)
-		{
-			return maximum * pixel;
-		});
+		if (operation == "max") {
+			auto maximum = valeur_maximale(*tampon);
+			maximum.r = (maximum.r > 0.0f) ? (1.0f / maximum.r) : 0.0f;
+			maximum.v = (maximum.v > 0.0f) ? (1.0f / maximum.v) : 0.0f;
+			maximum.b = (maximum.b > 0.0f) ? (1.0f / maximum.b) : 0.0f;
+			maximum.a = (maximum.a > 0.0f) ? (1.0f / maximum.a) : 0.0f;
+
+			applique_fonction(chef, *tampon,
+							  [&](dls::phys::couleur32 const &pixel)
+			{
+				return maximum * pixel;
+			});
+		}
+		else {
+			auto max = dls::phys::couleur32();
+			auto min = dls::phys::couleur32();
+			extrait_min_max(*tampon, min, max);
+
+			auto delta = max - min;
+			delta.r = (delta.r > 0.0f) ? (1.0f / delta.r) : 0.0f;
+			delta.v = (delta.v > 0.0f) ? (1.0f / delta.v) : 0.0f;
+			delta.b = (delta.b > 0.0f) ? (1.0f / delta.b) : 0.0f;
+			delta.a = (delta.a > 0.0f) ? (1.0f / delta.a) : 0.0f;
+
+			applique_fonction(chef, *tampon,
+							  [&](dls::phys::couleur32 const &pixel)
+			{
+				auto res = (pixel - min) * delta;
+				res.a = pixel.a;
+				return res;
+			});
+		}
 
 		chef->indique_progression(1000.f);
 
