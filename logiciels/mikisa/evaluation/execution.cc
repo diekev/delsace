@@ -224,6 +224,39 @@ void Executrice::execute_plan(Mikisa &mikisa,
 
 /* ************************************************************************** */
 
+static void evalue_composite(Mikisa &mikisa, Composite *composite)
+{
+	auto &graphe = composite->graph();
+
+	/* Essaie de trouver une visionneuse. */
+
+	Noeud *visionneuse = mikisa.derniere_visionneuse_selectionnee;
+
+	if (visionneuse == nullptr) {
+		for (auto noeud : graphe.noeuds()) {
+			if (noeud->type() == NOEUD_IMAGE_SORTIE) {
+				visionneuse = noeud;
+				break;
+			}
+		}
+	}
+
+	/* Quitte si aucune visionneuse. */
+	if (visionneuse == nullptr) {
+		return;
+	}
+
+	auto contexte = cree_contexte_evaluation(mikisa);
+	execute_noeud(visionneuse, contexte, nullptr);
+
+	Image image;
+	auto operatrice = extrait_opimage(visionneuse->donnees());
+	operatrice->transfere_image(image);
+	composite->image(image);
+}
+
+/* ************************************************************************** */
+
 class TacheEvaluationComposite : public TacheMikisa {
 	Composite *m_composite;
 
@@ -247,39 +280,19 @@ TacheEvaluationComposite::TacheEvaluationComposite(
 
 void TacheEvaluationComposite::evalue()
 {
-	auto &graphe = m_composite->graph();
-
-	/* Essaie de trouver une visionneuse. */
-
-	Noeud *visionneuse = m_mikisa.derniere_visionneuse_selectionnee;
-
-	if (visionneuse == nullptr) {
-		for (auto noeud : graphe.noeuds()) {
-			if (noeud->type() == NOEUD_IMAGE_SORTIE) {
-				visionneuse = noeud;
-				break;
-			}
-		}
-	}
-
-	/* Quitte si aucune visionneuse. */
-	if (visionneuse == nullptr) {
-		return;
-	}
-
-	auto contexte = cree_contexte_evaluation(m_mikisa);
-	execute_noeud(visionneuse, contexte, nullptr);
-
-	Image image;
-	auto operatrice = extrait_opimage(visionneuse->donnees());
-	operatrice->transfere_image(image);
-	m_composite->image(image);
+	evalue_composite(m_mikisa, m_composite);
 
 	notifier.signalise_proces(type_evenement::image | type_evenement::traite);
 }
 
 void execute_graphe_composite(Mikisa &mikisa, Composite *composite, const char *message)
 {
+	if (mikisa.animation) {
+		evalue_composite(mikisa, composite);
+		mikisa.tache_en_cours = false;
+		return;
+	}
+
 	/* nous avons un objet simple, lance un thread */
 	DEBUT_LOG_EVALUATION << "Évaluation asynchrone composite pour '"
 						 << message

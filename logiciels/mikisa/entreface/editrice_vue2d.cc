@@ -276,6 +276,7 @@ EditriceVue2D::EditriceVue2D(Mikisa &mikisa, QWidget *parent)
 void EditriceVue2D::ajourne_etat(int evenement)
 {
 	auto chargement = evenement == (type_evenement::image | type_evenement::traite);
+	chargement |= (evenement == (type_evenement::temps | type_evenement::modifie));
 	chargement |= (evenement == (type_evenement::rafraichissement));
 
 	if (chargement) {

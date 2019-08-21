@@ -26,6 +26,8 @@
 
 #include <iostream>
 
+#include "biblinternes/structures/pile.hh"
+
 #include "coeur/composite.h"
 #include "coeur/configuration.h"
 #include "coeur/contexte_evaluation.hh"
@@ -36,6 +38,32 @@
 #include "reseau.hh"
 
 /* ************************************************************************** */
+
+static void notifie_noeuds_chronodependants(Graphe &graphe)
+{
+	auto pile = dls::pile<Noeud *>();
+
+	for (auto &noeud : graphe.noeuds()) {
+		auto op = extrait_opimage(noeud->donnees());
+
+		if (op->depend_sur_temps()) {
+			pile.empile(noeud);
+		}
+	}
+
+	while (!pile.est_vide()) {
+		auto noeud = pile.haut();
+		pile.depile();
+
+		noeud->besoin_execution(true);
+
+		for (auto prise : noeud->sorties()) {
+			for (auto lien : prise->liens) {
+				pile.empile(lien->parent);
+			}
+		}
+	}
+}
 
 void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 {
@@ -48,6 +76,11 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	if (mikisa.contexte == GRAPHE_COMPOSITE) {
 		auto noeud_actif = mikisa.bdd.graphe_composites()->noeud_actif;
 		auto composite = extrait_composite(noeud_actif->donnees());
+
+		if (raison == TEMPS_CHANGE) {
+			notifie_noeuds_chronodependants(composite->graph());
+		}
+
 		execute_graphe_composite(mikisa, composite, message);
 		return;
 	}
