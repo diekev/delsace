@@ -731,6 +731,7 @@ class OperatriceLectureVideo : public OperatriceImage {
 	PoigneeFichier *m_poignee_fichier = nullptr;
 	cv::VideoCapture m_video{};
 	int m_derniere_image = -1;
+	int m_nombre_images = 0;
 
 public:
 	static constexpr auto NOM = "Lecture Vidéo";
@@ -794,6 +795,8 @@ public:
 				this->ajoute_avertissement("Impossible d'ouvrir la vidéo");
 				return EXECUTION_ECHOUEE;
 			}
+
+			m_nombre_images = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_COUNT));
 		}
 
 		if (m_poignee_fichier == nullptr) {
@@ -801,7 +804,10 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		if (m_derniere_image != -1 && contexte.temps_courant != m_derniere_image + 1) {
+		if (contexte.temps_courant == contexte.temps_debut) {
+			m_video.set(CV_CAP_PROP_POS_FRAMES, 0);
+		}
+		else if (m_derniere_image != -1 && contexte.temps_courant != m_derniere_image + 1) {
 			return EXECUTION_REUSSIE;
 		}
 
