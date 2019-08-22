@@ -25,7 +25,7 @@
 #include "composite.h"
 
 Composite::Composite()
-	: m_graph(Graphe(cree_noeud_image, supprime_noeud_image))
+	: Entite(cree_noeud_image, supprime_noeud_image)
 {}
 
 Image const &Composite::image() const
@@ -36,14 +36,4 @@ Image const &Composite::image() const
 void Composite::image(Image const &img)
 {
 	m_image = img;
-}
-
-Graphe &Composite::graph()
-{
-	return m_graph;
-}
-
-Graphe const &Composite::graph() const
-{
-	return m_graph;
 }

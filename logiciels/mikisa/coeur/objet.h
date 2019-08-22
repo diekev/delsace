@@ -24,15 +24,14 @@
 
 #pragma once
 
-#include "biblinternes/graphe/graphe.h"
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "danjo/manipulable.h"
-
 #include "corps/corps.h"
+
+#include "entite.hh"
 
 /* ************************************************************************** */
 
@@ -114,7 +113,7 @@ inline Lumiere const &extrait_lumiere(DonneesObjet const *donnees)
 
 /* ************************************************************************** */
 
-struct Objet : public danjo::Manipulable {
+struct Objet : public Entite {
 	type_objet type = type_objet::NUL;
 
 	bool rendu_scene = true;
@@ -128,11 +127,7 @@ struct Objet : public danjo::Manipulable {
 	float echelle_uniforme              = 1.0f;
 
 	/* autres propriétés */
-	dls::chaine nom = "objet";
-
 	dls::synchronise<DonneesObjet *> donnees{};
-
-	Graphe graphe;
 
 	Objet();
 	~Objet() override;

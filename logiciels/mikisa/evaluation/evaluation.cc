@@ -78,7 +78,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 		auto composite = extrait_composite(noeud_actif->donnees());
 
 		if (raison == TEMPS_CHANGE) {
-			notifie_noeuds_chronodependants(composite->graph());
+			notifie_noeuds_chronodependants(composite->graphe);
 		}
 
 		execute_graphe_composite(mikisa, composite, message);

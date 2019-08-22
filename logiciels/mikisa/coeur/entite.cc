@@ -15,34 +15,15 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#pragma once
-
-#include "biblinternes/structures/chaine.hh"
-
 #include "entite.hh"
-#include "operatrice_image.h"
 
-class Composite : public Entite {
-	Image m_image{};
-
-public:
-	Composite();
-
-	~Composite() = default;
-
-	Image const &image() const;
-
-	void image(Image const &img);
-};
-
-inline Composite *extrait_composite(std::any const &any)
-{
-	return std::any_cast<Composite *>(any);
-}
+Entite::Entite(type_function_creation_noeud fcn, type_function_destruction_noeud fdn)
+	: graphe(fcn, fdn)
+{}

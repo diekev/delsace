@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,25 +24,18 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/graphe/graphe.h"
 
-#include "entite.hh"
-#include "operatrice_image.h"
+#include "danjo/manipulable.h"
 
-class Composite : public Entite {
-	Image m_image{};
+struct Entite : public danjo::Manipulable {
+	Entite *parente = nullptr;
+	dls::tableau<Entite *> enfants{};
 
-public:
-	Composite();
+	dls::chaine nom{};
+	Graphe graphe;
 
-	~Composite() = default;
+	Entite(type_function_creation_noeud fcn, type_function_destruction_noeud fdn);
 
-	Image const &image() const;
-
-	void image(Image const &img);
+	virtual ~Entite() = default;
 };
-
-inline Composite *extrait_composite(std::any const &any)
-{
-	return std::any_cast<Composite *>(any);
-}

@@ -168,7 +168,7 @@ public:
 
 		auto const &composite = extrait_composite(noeud_composite->donnees());
 
-		ImprimeuseGraphe gd(&composite->graph());
+		ImprimeuseGraphe gd(&composite->graphe);
 		gd("/tmp/graphe_composite.gv");
 
 		if (system("dot /tmp/graphe_composite.gv -Tpng -o /tmp/graphe_composite.png") == -1) {
@@ -676,7 +676,7 @@ public:
 
 			assert(mikisa->contexte == GRAPHE_RACINE_COMPOSITES);
 
-			mikisa->graphe = &composite->graph();
+			mikisa->graphe = &composite->graphe;
 			mikisa->contexte = GRAPHE_COMPOSITE;
 
 			mikisa->chemin_courant = "/composites/" + composite->nom + "/";
@@ -757,7 +757,7 @@ public:
 				auto noeud_actif = mikisa->bdd.graphe_composites()->noeud_actif;
 				auto composite = extrait_composite(noeud_actif->donnees());
 
-				mikisa->graphe = &composite->graph();
+				mikisa->graphe = &composite->graphe;
 				mikisa->contexte = GRAPHE_COMPOSITE;
 				mikisa->chemin_courant = "/composites/" + composite->nom + "/";
 				break;

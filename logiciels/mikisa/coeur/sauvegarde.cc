@@ -395,7 +395,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		auto racine_graphe = doc.NewElement("graphe");
 		racine_composite->InsertEndChild(racine_graphe);
 
-		ecris_graphe(doc, racine_graphe, composite->graph());
+		ecris_graphe(doc, racine_graphe, composite->graphe);
 	}
 
 	/* Écriture du graphe. */
@@ -778,7 +778,7 @@ static void lis_composites(
 		auto composite = mikisa.bdd.cree_composite(nom);
 		auto racine_graphe = element_compo->FirstChildElement("graphe");
 
-		lecture_graphe(racine_graphe, mikisa, &composite->graph());
+		lecture_graphe(racine_graphe, mikisa, &composite->graphe);
 	}
 }
 
@@ -792,30 +792,28 @@ static auto cherche_graphe_pour_chemin(Mikisa &mikisa)
 		return static_cast<Graphe *>(nullptr);
 	}
 
+	auto entite_racine = static_cast<Entite *>(nullptr);
+
 	if (morceaux[0] == "composites") {
 		if (morceaux.taille() == 1) {
 			return mikisa.bdd.graphe_composites();
 		}
 
-		auto composite = mikisa.bdd.composite(morceaux[1]);
-
-		if (morceaux.taille() == 2) {
-			return &composite->graph();
-		}
+		entite_racine = mikisa.bdd.composite(morceaux[1]);
 	}
 	else if (morceaux[0] == "objets") {
 		if (morceaux.taille() == 1) {
 			return mikisa.bdd.graphe_objets();
 		}
 
-		auto objet = mikisa.bdd.objet(morceaux[1]);
-
-		if (morceaux.taille() == 2) {
-			return &objet->graphe;
-		}
+		entite_racine = mikisa.bdd.objet(morceaux[1]);
 	}
 
-	return static_cast<Graphe *>(nullptr);
+	if (entite_racine == nullptr) {
+		return static_cast<Graphe *>(nullptr);
+	}
+
+	return &entite_racine->graphe;
 }
 
 static auto cherche_graphe_pour_contexte(Mikisa &mikisa)

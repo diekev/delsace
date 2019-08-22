@@ -459,25 +459,23 @@ static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin
 {
 	auto morceaux = dls::morcelle(chemin, '/');
 
+	auto entite_racine = static_cast<Entite *>(nullptr);
+
 	if (morceaux[0] == "composites") {
 		if (morceaux.taille() < 2) {
 			return nullptr;
 		}
 
-		auto composite = bdd.composite(morceaux[1]);
+		entite_racine = bdd.composite(morceaux[1]);
+	}	
 
-		if (composite == nullptr) {
-			return nullptr;
-		}
+	if (entite_racine == nullptr || morceaux.taille() < 3) {
+		return nullptr;
+	}
 
-		if (morceaux.taille() < 3) {
-			return nullptr;
-		}
-
-		for (auto noeud : composite->graph().noeuds()) {
-			if (noeud->nom() == morceaux[2]) {
-				return noeud;
-			}
+	for (auto noeud : entite_racine->graphe.noeuds()) {
+		if (noeud->nom() == morceaux[2]) {
+			return noeud;
 		}
 	}
 

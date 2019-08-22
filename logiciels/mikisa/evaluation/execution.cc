@@ -226,7 +226,7 @@ void Executrice::execute_plan(Mikisa &mikisa,
 
 static void evalue_composite(Mikisa &mikisa, Composite *composite)
 {
-	auto &graphe = composite->graph();
+	auto &graphe = composite->graphe;
 
 	/* Essaie de trouver une visionneuse. */
 
