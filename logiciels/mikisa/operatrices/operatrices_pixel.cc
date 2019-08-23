@@ -571,21 +571,21 @@ public:
 							}
 							case type_melange::moyenne:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = moyenne(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::densite_couleur_pos:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = densite_couleur_pos(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::densite_couleur_neg:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = densite_couleur_neg(A[c], B[c]);
 								}
 								break;
@@ -604,7 +604,7 @@ public:
 							}
 							case type_melange::difference:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = difference(A[c], B[c]);
 								}
 								break;
@@ -618,21 +618,21 @@ public:
 							}
 							case type_melange::divise:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = divise(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::exclus:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = exclus(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::depuis:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = depuis(A[c], B[c]);
 								}
 								break;
@@ -646,14 +646,14 @@ public:
 							}
 							case type_melange::lumiere_dure:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = lumiere_dure(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::hypot:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = hypot(A[c], B[c]);
 								}
 								break;
@@ -695,14 +695,14 @@ public:
 							}
 							case type_melange::moins:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = moins(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::multiplie:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = multiplie(A[c], B[c]);
 								}
 								break;
@@ -723,28 +723,28 @@ public:
 							}
 							case type_melange::superpose:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = superpose(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::plus:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = plus(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::ecran:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = ecran(A[c], B[c]);
 								}
 								break;
 							}
 							case type_melange::lumiere_douce:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = lumiere_douce(A[c], B[c]);
 								}
 								break;
@@ -758,7 +758,7 @@ public:
 							}
 							case type_melange::dessous:
 							{
-								for (auto c = 0; c < 4; ++c) {
+								for (auto c = 0; c < 3; ++c) {
 									A[c] = dessous(A[c], B[c], B.a);
 								}
 								break;
