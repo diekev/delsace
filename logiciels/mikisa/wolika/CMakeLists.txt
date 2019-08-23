@@ -33,6 +33,8 @@ add_library(${NOM_CIBLE} STATIC
     base_grille.cc
 	echantillonnage.cc
 	filtre_2d.cc
+	filtre_3d.cc
+	fusion_3d.cc
     grille_dense.cc
     grille_eparse.cc
     grille_temporelle.cc
@@ -42,6 +44,8 @@ add_library(${NOM_CIBLE} STATIC
     base_grille.hh
 	echantillonnage.hh
 	filtre_2d.hh
+	filtre_3d.hh
+	fusion_3d.hh
     grille_dense.hh
     grille_eparse.hh
     grille_temporelle.hh
