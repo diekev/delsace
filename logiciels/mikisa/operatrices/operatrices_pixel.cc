@@ -790,20 +790,189 @@ public:
 
 /* ************************************************************************** */
 
-/* À FAIRE : problème de concurrence critique, RNG. */
+static inline auto entier_depuis_bits(float x)
+{
+	union U {
+		int i;
+		float f;
+	};
+
+	U u;
+	u.f = x;
+	return u.i;
+}
+
+
+/* Source: http://burtleburtle.net/bob/c/lookup3.c */
+
+#define rot(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
+
+#define mix(a, b, c) \
+  { \
+	a -= c; \
+	a ^= rot(c, 4); \
+	c += b; \
+	b -= a; \
+	b ^= rot(a, 6); \
+	a += c; \
+	c -= b; \
+	c ^= rot(b, 8); \
+	b += a; \
+	a -= c; \
+	a ^= rot(c, 16); \
+	c += b; \
+	b -= a; \
+	b ^= rot(a, 19); \
+	a += c; \
+	c -= b; \
+	c ^= rot(b, 4); \
+	b += a; \
+  }
+
+#define finalise(a, b, c) \
+  { \
+	c ^= b; \
+	c -= rot(b, 14); \
+	a ^= c; \
+	a -= rot(c, 11); \
+	b ^= a; \
+	b -= rot(a, 25); \
+	c ^= b; \
+	c -= rot(b, 16); \
+	a ^= c; \
+	a -= rot(c, 4); \
+	b ^= a; \
+	b -= rot(a, 14); \
+	c ^= b; \
+	c -= rot(b, 24); \
+  }
+
+static inline auto empreinte_n32(unsigned kx)
+{
+	unsigned a = 0xdeadbeef + (1 << 2) + 13;
+	auto b = a;
+	auto c = a;
+
+	a += kx;
+
+	finalise(a, b, c);
+
+	return c;
+}
+
+static inline auto empreinte_n32(unsigned kx, unsigned ky)
+{
+	unsigned a = 0xdeadbeef + (1 << 2) + 13;
+	auto b = a;
+	auto c = a;
+
+	a += kx;
+	b += ky;
+
+	finalise(a, b, c);
+
+	return c;
+}
+
+static inline auto empreinte_n32(unsigned kx, unsigned ky, unsigned kz)
+{
+	unsigned a = 0xdeadbeef + (1 << 2) + 13;
+	auto b = a;
+	auto c = a;
+
+	a += kx;
+	b += ky;
+	c += kz;
+
+	finalise(a, b, c);
+
+	return c;
+}
+
+static inline auto empreinte_n32(unsigned kx, unsigned ky, unsigned kz, unsigned kw)
+{
+	unsigned a = 0xdeadbeef + (1 << 2) + 13;
+	auto b = a;
+	auto c = a;
+
+	a += kx;
+	b += ky;
+	c += kz;
+	mix(a, b, c);
+
+	a+= kw;
+	finalise(a, b, c);
+
+	return c;
+}
+
+static inline auto empreinte_n32_vers_r32(unsigned kx)
+{
+	return static_cast<float>(empreinte_n32(kx)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_n32_vers_r32(unsigned kx, unsigned ky)
+{
+	return static_cast<float>(empreinte_n32(kx, ky)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_n32_vers_r32(unsigned kx, unsigned ky, unsigned kz)
+{
+	return static_cast<float>(empreinte_n32(kx, ky, kz)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_n32_vers_r32(unsigned kx, unsigned ky, unsigned kz, unsigned kw)
+{
+	return static_cast<float>(empreinte_n32(kx, ky, kz, kw)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_r32_vers_r32(float kx)
+{
+	auto a = static_cast<unsigned>(entier_depuis_bits(kx));
+	return static_cast<float>(empreinte_n32(a)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_r32_vers_r32(float kx, float ky)
+{
+	auto a = static_cast<unsigned>(entier_depuis_bits(kx));
+	auto b = static_cast<unsigned>(entier_depuis_bits(ky));
+	return static_cast<float>(empreinte_n32(a, b)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_r32_vers_r32(float kx, float ky, float kz)
+{
+	auto a = static_cast<unsigned>(entier_depuis_bits(kx));
+	auto b = static_cast<unsigned>(entier_depuis_bits(ky));
+	auto c = static_cast<unsigned>(entier_depuis_bits(kz));
+	return static_cast<float>(empreinte_n32(a, b, c)) / static_cast<float>(0xFFFFFFFFu);
+}
+
+static inline auto empreinte_r32_vers_r32(float kx, float ky, float kz, float kw)
+{
+	auto a = static_cast<unsigned>(entier_depuis_bits(kx));
+	auto b = static_cast<unsigned>(entier_depuis_bits(ky));
+	auto c = static_cast<unsigned>(entier_depuis_bits(kz));
+	auto d = static_cast<unsigned>(entier_depuis_bits(kw));
+	return static_cast<float>(empreinte_n32(a, b, c, d)) / static_cast<float>(0xFFFFFFFFu);
+}
+
 class OperatriceBruitage final : public OperatricePixel {
-	std::mt19937 m_rng{};
-	std::uniform_real_distribution<float> m_dist{};
+	bool m_noir_blanc = false;
+	int m_graine = 0;
 
 public:
 	static constexpr auto NOM = "Bruitage";
-	static constexpr auto AIDE = "Applique un bruit à l'image.";
+	static constexpr auto AIDE = "Crée un bruit blanc.";
 
 	explicit OperatriceBruitage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatricePixel(graphe_parent, noeud)
 	{
 		entrees(0);
-		m_dist = std::uniform_real_distribution<float>(0.0f, 1.0f);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_bruit_blanc.jo";
 	}
 
 	const char *nom_classe() const override
@@ -818,21 +987,36 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
-		INUTILISE(temps);
+		m_noir_blanc = evalue_enum("type_bruit") == "nb";
+		m_graine = evalue_entier("graine", temps);
 
-		m_rng.seed(19937);
+		if (evalue_bool("anime_graine")) {
+			m_graine += temps;
+		}
 	}
 
 	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
-		INUTILISE(x);
-		INUTILISE(y);
+		INUTILISE(pixel);
 
 		dls::phys::couleur32 resultat;
-		resultat.r = m_dist(m_rng);
-		resultat.v = m_dist(m_rng);
-		resultat.b = m_dist(m_rng);
-		resultat.a = pixel.a;
+		resultat.a = 1.0f;
+
+		auto hash0 = empreinte_r32_vers_r32(x, y, static_cast<float>(m_graine));
+
+		if (m_noir_blanc) {
+			resultat.r = hash0;
+			resultat.v = hash0;
+			resultat.b = hash0;
+		}
+		else {
+			auto hash1 = empreinte_r32_vers_r32(x, y, static_cast<float>(m_graine) + 1.0f);
+			auto hash2 = empreinte_r32_vers_r32(x, y, static_cast<float>(m_graine) + 2.0f);
+
+			resultat.r = hash0;
+			resultat.v = hash1;
+			resultat.b = hash2;
+		}
 
 		return resultat;
 	}
