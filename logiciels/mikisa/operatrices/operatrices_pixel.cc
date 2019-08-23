@@ -193,12 +193,12 @@ static float moyenne(float A, float B)
 
 static float densite_couleur_pos(float A, float B)
 {
-	return (B < A) ? A : B;
+	return (B == 0.0f) ? 0.0f : std::max(1.0f - ((1.0f - A) / B), 0.0f);
 }
 
 static float densite_couleur_neg(float A, float B)
 {
-	return (B > A) ? A : B;
+	return (B >= 1.0f) ? 1.0f : std::min(A / (1.0f - B), 1.0f);
 }
 
 static float dessus_conjoint(float A, float a, float B, float b)
