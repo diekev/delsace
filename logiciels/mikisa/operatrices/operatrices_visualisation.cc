@@ -39,6 +39,9 @@
 #include "arbre_octernaire.hh"
 #include "outils_visualisation.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static void rassemble_topologie(
@@ -470,3 +473,5 @@ void enregistre_operatrices_visualisation(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceVisualisationArbreBVH>());
 	usine.enregistre_type(cree_desc<OpVisualiseGrilleEparse>());
 }
+
+#pragma clang diagnostic pop

@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 #include <any>
 
 #include "image.hh"
@@ -181,6 +183,8 @@ protected:
 	Graphe &m_graphe_parent;
 	Image m_image{};
 	bool m_execute_toujours = false;
+
+	REMBOURRE(6);
 
 public:
 	/* Prevent creating an operator without an accompanying node. */

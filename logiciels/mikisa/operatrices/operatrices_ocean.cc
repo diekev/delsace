@@ -647,6 +647,7 @@ class OperatriceSimulationOcean : public OperatriceCorps {
 	Ocean m_ocean{};
 	bool m_reinit = false;
 
+	REMBOURRE(7);
 	calque_image m_ecume_precedente{};
 
 public:

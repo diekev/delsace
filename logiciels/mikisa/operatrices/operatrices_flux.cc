@@ -64,7 +64,6 @@
 
 #include "evaluation/reseau.hh"
 
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -223,6 +222,8 @@ static auto charge_exr(const char *chemin, std::any const &donnees)
 
 static auto charge_exr_tile(const char *chemin, std::any const &donnees)
 {
+	INUTILISE(chemin);
+	INUTILISE(donnees);
 	std::cerr << __func__ << '\n';
 }
 
@@ -968,7 +969,7 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto const value = evalue_entier("prise");
-		entree(static_cast<size_t>(value))->requiers_copie_image(m_image, contexte, donnees_aval);
+		entree(value)->requiers_copie_image(m_image, contexte, donnees_aval);
 		return EXECUTION_REUSSIE;
 	}
 };

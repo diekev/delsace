@@ -399,6 +399,8 @@ public:
 		m_image.reinitialise();
 
 #if 1
+		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
 		this->ajoute_avertissement("à réimplémenter");
 #else
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
@@ -2674,6 +2676,7 @@ class OpMappageTonalOndelette final : public OperatriceImage {
 	float m_delta = 0.0f;
 	float m_rayon_flou = 0.0f;
 	bool m_ajourne = true;
+	REMBOURRE(3);
 
 public:
 	static constexpr auto NOM = "Mappage Tonal Ondelette";

@@ -49,6 +49,9 @@
 
 #include "outils_visualisation.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static int cree_volume(
@@ -149,7 +152,7 @@ static int maillage_vers_volume(
 	auto desc_volume = wlk::desc_grille_3d{};
 	desc_volume.etendue = limites_grille;
 	desc_volume.fenetre_donnees = limites_grille;
-	desc_volume.taille_voxel = taille_voxel;
+	desc_volume.taille_voxel = static_cast<double>(taille_voxel);
 	desc_volume.type_donnees = wlk::type_grille::R32;
 
 	auto grille = memoire::loge<wlk::grille_eparse<float>>("wlk::grille_eparse", desc_volume);
@@ -2295,3 +2298,5 @@ void enregistre_operatrices_volume(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpAffinageVolume>());
 	usine.enregistre_type(cree_desc<OpGrilleEclairage>());
 }
+
+#pragma clang diagnostic pop

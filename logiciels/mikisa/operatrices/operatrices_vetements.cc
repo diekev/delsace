@@ -39,6 +39,9 @@
 
 #include "corps/iteration_corps.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 /* Un simple solveur de dynamique de vêtement utilisant des dynamiques basées
@@ -673,13 +676,6 @@ public:
 
 namespace bridson {
 
-constexpr static auto infinity = std::numeric_limits<float>::infinity();
-
-struct point {
-	float x = infinity;
-	float y = infinity;
-};
-
 // A configuration structure to customise the poisson_disc_distribution
 // algorithm below.
 //
@@ -706,7 +702,7 @@ struct config {
 	float height = 1.0f;
 	float min_distance = 0.05f;
 	int max_attempts = 30;
-	point start{};
+	dls::math::point2f start{constantes<float>::INFINITE};
 };
 
 // This implements the algorithm described in 'Fast Poisson Disk Sampling in
@@ -745,17 +741,17 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	auto grid_width = static_cast<int>(std::ceil(conf.width / cell_size));
 	auto grid_height = static_cast<int>(std::ceil(conf.height / cell_size));
 
-	dls::tableau<point> grid(grid_width * grid_height);
-	dls::pile<point> process;
+	dls::tableau<dls::math::point2f> grid(grid_width * grid_height, dls::math::point2f(constantes<float>::INFINITE));
+	dls::pile<dls::math::point2f> process;
 
-	auto squared_distance = [](const point& a, const point& b) {
+	auto squared_distance = [](const dls::math::point2f& a, const dls::math::point2f& b) {
 		auto delta_x = a.x - b.x;
 		auto delta_y = a.y - b.y;
 
 		return delta_x * delta_x + delta_y * delta_y;
 	};
 
-	auto point_around = [&conf, &random](point p) {
+	auto point_around = [&conf, &random](dls::math::point2f p) {
 		auto radius = random(conf.min_distance) + conf.min_distance;
 		auto angle = random(constantes<float>::TAU);
 
@@ -765,23 +761,23 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 		return p;
 	};
 
-	auto set = [cell_size, grid_width, &grid](const point& p) {
+	auto set = [cell_size, grid_width, &grid](const dls::math::point2f& p) {
 		auto x = static_cast<int>(p.x / cell_size);
 		auto y = static_cast<int>(p.y / cell_size);
 		grid[y * grid_width + x] = p;
 	};
 
-	auto add = [&process, &output, &set](const point& p) {
+	auto add = [&process, &output, &set](const dls::math::point2f& p) {
 		process.empile(p);
 		output(p);
 		set(p);
 	};
 
-	auto point_too_close = [&](const point& p) {
+	auto point_too_close = [&](const dls::math::point2f& p) {
 		auto x_index = static_cast<int>(std::floor(p.x / cell_size));
 		auto y_index = static_cast<int>(std::floor(p.y / cell_size));
 
-		if (grid[y_index * grid_width + x_index].x != infinity) {
+		if (!dls::math::sont_environ_egaux(grid[y_index * grid_width + x_index].x, constantes<float>::INFINITE)) {
 			return true;
 		}
 
@@ -794,7 +790,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 		for (auto y = min_y; y <= max_y; ++y) {
 			for (auto x = min_x; x <= max_x; ++x) {
 				auto point = grid[y * grid_width + x];
-				auto exists = point.x != infinity;
+				auto exists = !dls::math::sont_environ_egaux(point.x, constantes<float>::INFINITE);
 
 				if (exists && squared_distance(p, point) < min_dist_squared) {
 					return true;
@@ -805,7 +801,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 		return false;
 	};
 
-	if (conf.start.x == infinity) {
+	if (dls::math::sont_environ_egaux(conf.start.x, constantes<float>::INFINITE)) {
 		do {
 			conf.start.x = random(conf.width);
 			conf.start.y = random(conf.height);
@@ -1090,12 +1086,12 @@ public:
 			return gna.uniforme(0.0f, range);
 		},
 		// in_area
-		[&](bridson::point const &p)
+		[&](dls::math::point2f const &p)
 		{
 			return p.x > 0 && p.x < taille_x && p.y > 0 && p.y < taille_y;
 		},
 		// output
-		[&vertices](bridson::point const &p)
+		[&vertices](dls::math::point2f const &p)
 		{
 			//m_corps.ajoute_point(p.x, 0.0f, p.y);
 			vertices.pousse(dls::math::vec2f(p.x, p.y));
@@ -1141,3 +1137,5 @@ void enregistre_operatrices_vetement(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSimVetement>());
 	usine.enregistre_type(cree_desc<OpPatchTriangle>());
 }
+
+#pragma clang diagnostic pop

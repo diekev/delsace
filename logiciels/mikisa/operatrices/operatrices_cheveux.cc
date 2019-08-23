@@ -48,6 +48,7 @@
 
 struct DonneesCollesion {
 	dls::math::vec3f normal{};
+	REMBOURRE(4);
 	long idx_courbe = 0;
 	long idx_segment = 0;
 };
@@ -220,11 +221,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-static auto contient(limites3f const &limites, dls::math::vec3f const &p)
-{
-	return limites.min <= p && p <= limites.max;
-}
 
 static void traverse_arbre(
 		arbre_octernaire::noeud const *racine,

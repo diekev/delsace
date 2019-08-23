@@ -48,6 +48,9 @@
 
 #include "outils_visualisation.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /**
  * Publications utilisées pour élaborer le système :
  *
@@ -1235,3 +1238,5 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpIncompressibiliteGaz>());
 	usine.enregistre_type(cree_desc<OpVorticiteGaz>());
 }
+
+#pragma clang diagnostic pop

@@ -27,7 +27,7 @@
 #define CONCATENE_IMPL(s1, s2) s1##s2
 #define CONCATENE(s1, s2) CONCATENE_IMPL(s1, s2)
 
-#ifdef __COUNTER__
+#ifndef __COUNTER__
 #	define VARIABLE_ANONYME(str) CONCATENE(str, __COUNTER__)
 #else
 #	define VARIABLE_ANONYME(str) CONCATENE(str, __LINE__)
@@ -45,3 +45,9 @@
 
 #define PRAGMA_IMPL(x) _Pragma(#x)
 #define A_FAIRE(x) PRAGMA_IMPL(message("À FAIRE : " CHAINE(x)))
+
+#define REMBOURRE(x) \
+	_Pragma("clang diagnostic push") \
+	_Pragma("clang diagnostic ignored \"-Wunused-private-field\"")  \
+	char VARIABLE_ANONYME(_pad)[x] \
+	_Pragma("clang diagnostic pop")

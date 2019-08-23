@@ -41,6 +41,9 @@
 
 #include "corps/attribut.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static auto converti_type_lcc(lcc::type_var type)
@@ -465,6 +468,7 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 	//	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
 
@@ -783,3 +787,5 @@ void enregistre_operatrices_script(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpScriptDetail>());
 	usine.enregistre_type(cree_desc<OpScriptTopologie>());
 }
+
+#pragma clang diagnostic pop

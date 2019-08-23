@@ -56,6 +56,9 @@
 
 #include "evaluation/reseau.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 static btCollisionShape *cree_forme_pour_corps(Corps &corps)
@@ -551,3 +554,5 @@ void enregistre_operatrices_bullet(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<AjoutCorpsRigide>());
 	usine.enregistre_type(cree_desc<OperatriceDynCorpsRigide>());
 }
+
+#pragma clang diagnostic pop

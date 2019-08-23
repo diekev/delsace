@@ -36,6 +36,9 @@
 
 #include "corps/groupes.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 class OperatriceEntreeSimulation : public OperatriceCorps {

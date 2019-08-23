@@ -34,6 +34,9 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 #if 1
@@ -2290,3 +2293,5 @@ void enregistre_operatrices_arbre(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationArbre>());
 	usine.enregistre_type(cree_desc<OpAjouteBranch>());
 }
+
+#pragma clang diagnostic pop

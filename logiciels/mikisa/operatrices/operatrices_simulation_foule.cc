@@ -32,6 +32,9 @@
 
 #include "outils_visualisation.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 /**
@@ -69,6 +72,7 @@ struct Personne {
 	float vitesse = 0.0f;
 	bool en_mouvement = false;
 	bool a_fini = false;
+	REMBOURRE(2);
 	int id = 0;
 
 	/* depuis l'add-on */
@@ -293,6 +297,8 @@ static void verifie_collision(
 		dls::tableau<Personne> const &personnes,
 		dls::math::vec3f const &cible_globale)
 {
+	INUTILISE(cible_globale);
+
 	for (auto &autre : personnes) {
 		if (autre.id == personne.id) {
 			continue;
@@ -343,6 +349,7 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
 		//auto melee = evalue_bool("méléee");
@@ -425,3 +432,5 @@ void enregistre_operatrices_sim_foule(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceSimFoule>());
 }
+
+#pragma clang diagnostic pop

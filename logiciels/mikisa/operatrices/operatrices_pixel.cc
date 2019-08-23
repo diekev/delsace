@@ -958,6 +958,7 @@ static inline auto empreinte_r32_vers_r32(float kx, float ky, float kz, float kw
 
 class OperatriceBruitage final : public OperatricePixel {
 	bool m_noir_blanc = false;
+	REMBOURRE(3);
 	int m_graine = 0;
 
 public:
@@ -1090,7 +1091,7 @@ class OperatriceDegrade final : public OperatricePixel {
 	float m_cos_angle = 1.0f;
 	float m_sin_angle = 0.0f;
 
-	int pad = 0;
+	REMBOURRE(4);
 
 	RampeCouleur const *m_rampe{};
 
@@ -1187,7 +1188,8 @@ class OperatriceNuage final : public OperatricePixel {
 	float m_durete = 1.0f;
 	int m_dimensions = 1;
 	bool m_dur = false;
-	char pad[7];
+
+	REMBOURRE(3);
 
 	std::mt19937 m_rng;
 	std::normal_distribution<float> m_dist;
@@ -1348,7 +1350,8 @@ class OperatriceEtalonnage final  : public OperatricePixel {
 	bool m_restreint_noir = false;
 	bool m_restreint_blanc = false;
 	bool m_entrepolation_lineaire = false;
-	int pad{};
+
+	REMBOURRE(4);
 
 	dls::phys::couleur32 m_point_noir{};
 	dls::phys::couleur32 m_point_blanc{};
@@ -1549,7 +1552,8 @@ public:
 
 class OperatriceCorrectionGamma : public OperatricePixel {
 	float m_gamma = 1.0f;
-	int pad{};
+
+	REMBOURRE(4);
 
 public:
 	static constexpr auto NOM = "Correction Gamma";
@@ -1767,6 +1771,8 @@ class OperatriceMappageTonal : public OperatricePixel {
 	float m_gamma = 0.45f;
 	dls::phys::couleur32 m_point_blanc{};
 
+	REMBOURRE(4);
+
 public:
 	static constexpr auto NOM = "Mappage Tonal";
 	static constexpr auto AIDE = "Applique un mappage de ton local à l'image.";
@@ -1834,6 +1840,9 @@ public:
 
 	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
 	{
+		INUTILISE(x);
+		INUTILISE(y);
+
 		auto resultat = pixel;
 		auto besoin_correction_gamma = true;
 
@@ -1959,6 +1968,7 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
+		INUTILISE(temps);
 		m_decalage = evalue_couleur("décalage");
 		m_pente = evalue_couleur("pente");
 		m_puissance = evalue_couleur("puissance");
@@ -2036,7 +2046,8 @@ class OperatriceIncrustation final : public OperatricePixel {
 	float m_angle = 0.0f;
 	float m_a = 0.0f;
 	float m_b = 0.0f;
-	int pad = 0;
+
+	REMBOURRE(4);
 
 public:
 	static constexpr auto NOM = "Incrustation";
@@ -2119,7 +2130,8 @@ public:
 
 class OperatricePremultiplication final : public OperatricePixel {
 	bool m_inverse = false;
-	bool pad[7];
+
+	REMBOURRE(7);
 
 public:
 	static constexpr auto NOM = "Pré-multiplication";

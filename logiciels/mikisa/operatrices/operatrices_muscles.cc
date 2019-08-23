@@ -50,6 +50,9 @@
 
 #include "normaux.hh"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /**
  * Simulation de muscle
  * Code pris de https://github.com/harshavardhankode/MuscleSimulation
@@ -1102,3 +1105,5 @@ void enregistre_operatrices_muscles(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpSimMuscles>());
 }
+
+#pragma clang diagnostic pop

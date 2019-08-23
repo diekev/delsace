@@ -35,25 +35,30 @@ struct limites {
 
 	limites() = default;
 
-	limites(T const &init_min, T const &init_max)
+	limites(T const &init_min, T const &init_max) noexcept
 		: min(init_min)
 		, max(init_max)
 	{}
 
-	T taille() const
+	T taille() const noexcept
 	{
 		return max - min;
 	}
 
-	void etends(T const &delta)
+	void etends(T const &delta) noexcept
 	{
 		this->min -= delta;
 		this->max += delta;
 	}
 
-	bool chevauchent(limites const &autres) const
+	bool chevauchent(limites const &autres) const noexcept
 	{
 		return (this->max >= autres.min) && (this->min <= autres.max);
+	}
+
+	bool contient(T const &p) const noexcept
+	{
+		return min <= p && p <= max;
 	}
 };
 
