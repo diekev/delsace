@@ -213,8 +213,8 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 		auto arbre = construit_arbre_hbe(delegue, 12);
 
 		auto limites = limites3i{};
-		limites.min = dls::math::vec3i(0);
-		limites.max = densite->desc().resolution;
+		limites.min = dls::math::vec3i(1);
+		limites.max = densite->desc().resolution - dls::math::vec3i(1);
 		auto iter = wlk::IteratricePosition(limites);
 
 		auto gna_part = GNA{};
