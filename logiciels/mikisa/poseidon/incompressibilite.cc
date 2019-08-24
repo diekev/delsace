@@ -1178,59 +1178,69 @@ static auto resoud_pression(
 	auto h         = wlk::grille_dense_3d<float>(pression.desc());
 	auto precond   = wlk::grille_dense_3d<float>(pression.desc());
 
+	const int dalles[6] = {
+		1, -1, res.x, -res.x, taille_dalle, -taille_dalle
+	};
+
+	auto calcul_delta_precond = [&](tbb::blocked_range<int> const &plage, float init)
+	{
+		auto delta = init;
+
+		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			for (auto y = 1; y < res.y - 1; ++y) {
+				for (auto x = 1; x < res.x - 1; ++x) {
+					auto const index = x + (y + z * res.y) * res.x;
+
+					if (est_obstacle(drapeaux, index)) {
+						continue;
+					}
+
+					/* si la cellule est une variable */
+					auto A_centre = 0.0f;
+
+					/* renseigne la matrice pour le pochoir de Poisson dans l'ordre */
+					for (auto d = 0; d < 6; ++d) {
+						if (!est_obstacle(drapeaux, index + dalles[d])) {
+							A_centre += 1.0f;
+						}
+					}
+
+					if (A_centre < 1.0f) {
+						continue;
+					}
+
+					auto r = divergence.valeur(index);
+					r -= A_centre * pression.valeur(index);
+
+					for (auto d = 0; d < 6; ++d) {
+						if (!est_obstacle(drapeaux, index + dalles[d])) {
+							r += pression.valeur(index + dalles[d]);
+						}
+					}
+
+					/* P^-1 */
+					auto const p = 1.0f / A_centre;
+
+					/* p = P^-1 * r */
+					auto const d = r * p;
+
+					delta += r * d;
+
+					direction.valeur(index) = d;
+					precond.valeur(index) = p;
+					residue.valeur(index) = r;
+				}
+			}
+		}
+
+		return delta;
+	};
+
 	auto nouveau_delta = tbb::parallel_reduce(
 				tbb::blocked_range<int>(1, res.z - 1),
 				0.0f,
-				[&](tbb::blocked_range<int> const &plage, float init)
-	{
-			auto delta = init;
-
-			for (auto z = plage.begin(); z < plage.end(); ++z) {
-				for (auto y = 1; y < res.y - 1; ++y) {
-					for (auto x = 1; x < res.x - 1; ++x) {
-						auto index = x + (y + z * res.y) * res.x;
-						// if the cell is a variable
-						float Acenter = 0.0f;
-
-						if (!est_obstacle(drapeaux, index)) {
-							// set the matrix to the Poisson stencil in order
-							if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
-							if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
-							if (!est_obstacle(drapeaux, index + res.x)) Acenter += 1.0f;
-							if (!est_obstacle(drapeaux, index - res.x)) Acenter += 1.0f;
-							if (!est_obstacle(drapeaux, index + taille_dalle)) Acenter += 1.0f;
-							if (!est_obstacle(drapeaux, index - taille_dalle)) Acenter += 1.0f;
-
-							residue.valeur(index) = divergence.valeur(index) - (Acenter * pression.valeur(index) +
-																		 pression.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
-																		 pression.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
-																		 pression.valeur(index - res.x) * (est_obstacle(drapeaux, index - res.x) ? 0.0f : -1.0f)+
-																		 pression.valeur(index + res.x) * (est_obstacle(drapeaux, index + res.x) ? 0.0f : -1.0f)+
-																		 pression.valeur(index - taille_dalle) * (est_obstacle(drapeaux, index - taille_dalle) ? 0.0f : -1.0f)+
-																		 pression.valeur(index + taille_dalle) * (est_obstacle(drapeaux, index + taille_dalle) ? 0.0f : -1.0f) );
-						}
-						else
-						{
-							residue.valeur(index) = 0.0f;
-						}
-
-						// P^-1
-						if(Acenter < 1.0f)
-							precond.valeur(index) = 0.0;
-						else
-							precond.valeur(index) = 1.0f / Acenter;
-
-						// p = P^-1 * r
-						direction.valeur(index) = residue.valeur(index) * precond.valeur(index);
-
-						delta += residue.valeur(index) * direction.valeur(index);
-					}
-				}
-			}
-
-		return delta;
-	},
-	std::plus<float>());
+				calcul_delta_precond,
+				std::plus<float>());
 
 	/* résoud r = b - Ax */
 
@@ -1239,49 +1249,54 @@ static auto resoud_pression(
 	auto i = 0;
 
 	while ((i < iterations) && (residue_max > 0.001f * eps)) {
+		auto calcul_alpha_loc = [&](tbb::blocked_range<int> const &plage, float init)
+		{
+			auto alpha_loc = init;
+
+			for (auto z = plage.begin(); z < plage.end(); ++z) {
+				for (auto y = 1; y < res.y - 1; ++y) {
+					for (auto x = 1; x < res.x - 1; ++x) {
+						auto const index = x + (y + z * res.y) * res.x;
+
+						if (est_obstacle(drapeaux, index)) {
+							q.valeur(index) = 0.0f;
+							continue;
+						}
+
+						/* si la cellule est une variable */
+						auto A_centre = 0.0f;
+
+						/* renseigne la matrice pour le pochoir de Poisson dans l'ordre */
+						for (auto d = 0; d < 6; ++d) {
+							if (!est_obstacle(drapeaux, index + dalles[d])) {
+								A_centre += 1.0f;
+							}
+						}
+
+						auto valeur_d = direction.valeur(index);
+						auto valeur_q = A_centre * valeur_d;
+
+						for (auto d = 0; d < 6; ++d) {
+							if (!est_obstacle(drapeaux, index + dalles[d])) {
+								valeur_q -= direction.valeur(index + dalles[d]);
+							}
+						}
+
+						alpha_loc += valeur_d * valeur_q;
+
+						q.valeur(index) = valeur_q;
+					}
+				}
+			}
+
+			return alpha_loc;
+		};
+
 		auto alpha = tbb::parallel_reduce(
 					tbb::blocked_range<int>(1, res.z - 1),
 					0.0f,
-					[&](tbb::blocked_range<int> const &plage, float init)
-		{
-				auto alpha_loc = init;
-
-				for (auto z = plage.begin(); z < plage.end(); ++z) {
-					for (auto y = 1; y < res.y - 1; ++y) {
-						for (auto x = 1; x < res.x - 1; ++x) {
-							auto index = x + (y + z * res.y) * res.x;
-							// if the cell is a variable
-							auto Acenter = 0.0f;
-
-							if (!est_obstacle(drapeaux, index)) {
-								// set the matrix to the Poisson stencil in order
-								if (!est_obstacle(drapeaux, index + 1)) Acenter += 1.0f;
-								if (!est_obstacle(drapeaux, index - 1)) Acenter += 1.0f;
-								if (!est_obstacle(drapeaux, index + res.x)) Acenter += 1.0f;
-								if (!est_obstacle(drapeaux, index - res.x)) Acenter += 1.0f;
-								if (!est_obstacle(drapeaux, index + taille_dalle)) Acenter += 1.0f;
-								if (!est_obstacle(drapeaux, index - taille_dalle)) Acenter += 1.0f;
-
-								q.valeur(index) = Acenter * direction.valeur(index) +
-										direction.valeur(index - 1) * (est_obstacle(drapeaux, index - 1) ? 0.0f : -1.0f) +
-										direction.valeur(index + 1) * (est_obstacle(drapeaux, index + 1) ? 0.0f : -1.0f) +
-										direction.valeur(index - res.x) * (est_obstacle(drapeaux, index - res.x) ? 0.0f : -1.0f) +
-										direction.valeur(index + res.x) * (est_obstacle(drapeaux, index + res.x) ? 0.0f : -1.0f)+
-										direction.valeur(index - taille_dalle) * (est_obstacle(drapeaux, index - taille_dalle) ? 0.0f : -1.0f) +
-										direction.valeur(index + taille_dalle) * (est_obstacle(drapeaux, index + taille_dalle) ? 0.0f : -1.0f);
-							}
-							else {
-								q.valeur(index) = 0.0f;
-							}
-
-							alpha_loc += direction.valeur(index) * q.valeur(index);
-						}
-					}
-				}
-
-			return alpha_loc;
-		},
-		std::plus<float>());
+					calcul_alpha_loc,
+					std::plus<float>());
 
 		if (std::abs(alpha) > 0.0f) {
 			alpha = nouveau_delta / alpha;
@@ -1290,45 +1305,49 @@ static auto resoud_pression(
 		auto const ancien_delta = nouveau_delta;
 
 		/* x = x + alpha * d */
+		auto calcul_delta_max_r = [&](tbb::blocked_range<int> const &plage, std::pair<float, float> init)
+		{
+			auto delta = init.first;
+			auto max_r = init.second;
+
+			for (auto z = plage.begin(); z < plage.end(); ++z) {
+				for (auto y = 1; y < res.y - 1; ++y) {
+					for (auto x = 1; x < res.x - 1; ++x) {
+						auto index = x + (y + z * res.y) * res.x;
+
+						pression.valeur(index) += alpha * direction.valeur(index);
+
+						residue.valeur(index) -= alpha * q.valeur(index);
+
+						h.valeur(index) = precond.valeur(index) * residue.valeur(index);
+
+						auto tmp = residue.valeur(index) * h.valeur(index);
+						delta += tmp;
+						max_r = (tmp > max_r) ? tmp : max_r;
+					}
+				}
+			}
+
+			return std::pair<float, float>(delta, max_r);
+		};
+
+		auto reduction_delta_max_r = [](std::pair<float, float> p1, std::pair<float, float> p2)
+		{
+			return std::pair(p1.first + p2.first, std::max(p1.second, p2.second));
+		};
+
 		auto p_dm = tbb::parallel_reduce(
 					tbb::blocked_range<int>(1, res.z - 1),
 					std::pair(0.0f, 0.0f),
-					[&](tbb::blocked_range<int> const &plage, std::pair<float, float> init)
-		{
-				auto delta = init.first;
-				auto max_r = init.second;
-
-				for (auto z = plage.begin(); z < plage.end(); ++z) {
-					for (auto y = 1; y < res.y - 1; ++y) {
-						for (auto x = 1; x < res.x - 1; ++x) {
-							auto index = x + (y + z * res.y) * res.x;
-
-							pression.valeur(index) += alpha * direction.valeur(index);
-
-							residue.valeur(index) -= alpha * q.valeur(index);
-
-							h.valeur(index) = precond.valeur(index) * residue.valeur(index);
-
-							auto tmp = residue.valeur(index) * h.valeur(index);
-							delta += tmp;
-							max_r = (tmp > max_r) ? tmp : max_r;
-						}
-					}
-				}
-
-			return std::pair<float, float>(delta, max_r);
-		},
-		[](std::pair<float, float> p1, std::pair<float, float> p2)
-{
-	return std::pair(p1.first + p2.first, std::max(p1.second, p2.second));
-});
+					calcul_delta_max_r,
+					reduction_delta_max_r);
 
 		nouveau_delta = p_dm.first;
 		residue_max = p_dm.second;
 
 		auto const beta = nouveau_delta / ancien_delta;
 
-		// d = h + beta * d
+		/* d = h + beta * d */
 		boucle_parallele(tbb::blocked_range<int>(1, res.z - 1),
 						 [&](tbb::blocked_range<int> const &plage)
 		{
