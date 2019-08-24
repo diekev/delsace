@@ -1227,14 +1227,62 @@ public:
 
 /* ************************************************************************** */
 
+namespace wlk {
+
+template <typename T>
+auto affine_grille(grille_dense_3d<T> &grille, float rayon, float quantite)
+{
+	auto taille = static_cast<int>(rayon);
+	auto grille_aux = wlk::grille_dense_3d<T>(grille.desc());
+	grille_aux.copie_donnees(grille);
+
+	wlk::pour_chaque_voxel_parallele(grille,
+									 [&](T const &v, long idx, int x, int y, int z)
+	{
+		INUTILISE(idx);
+
+		if (v == T(0)) {
+			return v;
+		}
+
+		auto res = T();
+		auto poids = 0.0f;
+
+		for (auto zz = z - taille; zz <= z + taille; ++zz) {
+			for (auto yy = y - taille; yy <= y + taille; ++yy) {
+				for (auto xx = x - taille; xx <= x + taille; ++xx) {
+					res += grille_aux.valeur(dls::math::vec3i(xx, yy, zz));
+					poids += 1.0f;
+				}
+			}
+		}
+
+		if (poids != 0.0f) {
+			res /= poids;
+		}
+
+		auto valeur_fine = v - res;
+		auto valeur_affinee = v + valeur_fine * quantite;
+
+		/* les valeurs négatives rendent la simulation instable */
+		if (valeur_affinee < T(0)) {
+			return v;
+		}
+
+		return valeur_affinee;
+	});
+}
+
+}
+
 /* Idée tirée de FumeFX, à voir à quelle étape il faut faire cet affinage
  * XXX - instable? */
-class OpAffinageVelociteGaz : public OperatriceCorps {
+class OpAffinageGaz : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Affinage Vélocité";
+	static constexpr auto NOM = "Affinage Gaz";
 	static constexpr auto AIDE = "";
 
-	explicit OpAffinageVelociteGaz(Graphe &graphe_parent, Noeud *noeud)
+	explicit OpAffinageGaz(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -1243,7 +1291,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_affinage_velocite.jo";
+		return "entreface/operatrice_affinage_gaz.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1271,45 +1319,31 @@ public:
 		/* passe à notre exécution */
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 
-		auto const quantite = evalue_decimal("quantité", contexte.temps_courant);
-		auto const rayon = evalue_decimal("rayon", contexte.temps_courant);
+		auto const quantite_vel = evalue_decimal("quantité_vel", contexte.temps_courant);
+		auto const rayon_vel = evalue_decimal("rayon_vel", contexte.temps_courant);
 
-		if (quantite == 0.0f) {
-			return EXECUTION_REUSSIE;
+		if (quantite_vel != 0.0f) {
+			auto velocite = poseidon_gaz->velocite;
+			wlk::affine_grille(*velocite, rayon_vel, quantite_vel);
 		}
 
-		auto const taille = static_cast<int>(rayon);
-		auto velocite = poseidon_gaz->velocite;
+		auto const quantite_fum = evalue_decimal("quantité_fum", contexte.temps_courant);
+		auto const rayon_fum = evalue_decimal("rayon_fum", contexte.temps_courant);
 
-		auto grille_aux = wlk::grille_dense_3d<dls::math::vec3f>(velocite->desc());
-		grille_aux.copie_donnees(*velocite);
+		if (quantite_fum != 0.0f) {
+			auto densite = poseidon_gaz->densite;
+			wlk::affine_grille(*densite, rayon_fum, quantite_fum);
+		}
 
-		wlk::pour_chaque_voxel_parallele(*velocite,
-										 [&](dls::math::vec3f const &v, long idx, int x, int y, int z)
-		{
-			INUTILISE(idx);
+#if 0   /* À FAIRE : grille température */
+		auto const quantite_tmp = evalue_decimal("quantité_tmp", contexte.temps_courant);
+		auto const rayon_tmp = evalue_decimal("rayon_tmp", contexte.temps_courant);
 
-			auto res = dls::math::vec3f();
-			auto poids = 0.0f;
-
-			for (auto zz = z - taille; zz <= z + taille; ++zz) {
-				for (auto yy = y - taille; yy <= y + taille; ++yy) {
-					for (auto xx = x - taille; xx <= x + taille; ++xx) {
-						res += grille_aux.valeur(dls::math::vec3i(xx, yy, zz));
-						poids += 1.0f;
-					}
-				}
-			}
-
-			if (poids != 0.0f) {
-				res /= poids;
-			}
-
-			auto valeur_fine = v - res;
-			auto valeur_affinee = v + valeur_fine * quantite;
-
-			return valeur_affinee;
-		});
+		if (quantite_tmp != 0.0f) {
+			auto temperature = poseidon_gaz->temperature;
+			wlk::affine_grille(*temperature, rayon_tmp, quantite_tmp);
+		}
+#endif
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1326,7 +1360,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpFlottanceGaz>());
 	usine.enregistre_type(cree_desc<OpIncompressibiliteGaz>());
 	usine.enregistre_type(cree_desc<OpVorticiteGaz>());
-	usine.enregistre_type(cree_desc<OpAffinageVelociteGaz>());
+	usine.enregistre_type(cree_desc<OpAffinageGaz>());
 }
 
 #pragma clang diagnostic pop

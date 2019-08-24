@@ -101,8 +101,8 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_3d_suppression_attribut.jo
 	scripts_danjo/operatrice_3d_torus.jo
 	scripts_danjo/operatrice_advection_gaz.jo
+	scripts_danjo/operatrice_affinage_gaz.jo
 	scripts_danjo/operatrice_affinage_image.jo
-	scripts_danjo/operatrice_affinage_velocite.jo
 	scripts_danjo/operatrice_ajout_corps_rigide.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo

@@ -67,7 +67,7 @@ menu "Noeud Objet" {
 	}
 	menu "Poseidon" {
 		action(valeur="Advection Gaz"; attache=ajouter_noeud; métadonnée="Advection Gaz")
-		action(valeur="Affinage Vélocité"; attache=ajouter_noeud; métadonnée="Affinage Vélocité")
+		action(valeur="Affinage Gaz"; attache=ajouter_noeud; métadonnée="Affinage Gaz")
 		action(valeur="Entrée Gaz"; attache=ajouter_noeud; métadonnée="Entrée Gaz")
 		action(valeur="Obstacle Gaz"; attache=ajouter_noeud; métadonnée="Obstacle Gaz")
 		action(valeur="Flottance Gaz"; attache=ajouter_noeud; métadonnée="Flottance Gaz")
