@@ -25,9 +25,9 @@
 #pragma once
 
 #include "biblinternes/math/limites.hh"
+#include "biblinternes/moultfilage/boucle.hh"
 
-#include <tbb/parallel_for.h>
-
+#include "grille_dense.hh"
 #include "grille_eparse.hh"
 
 namespace wlk {
@@ -105,6 +105,30 @@ public:
 		return m_etat.z < m_lim.min.z;
 	}
 };
+
+template <typename T, typename Op>
+auto pour_chaque_voxel_parallele(
+		grille_dense_3d<T> &grille,
+		Op &&op)
+{
+	auto res_x = grille.desc().resolution.x;
+	auto res_y = grille.desc().resolution.y;
+	auto res_z = grille.desc().resolution.z;
+
+	boucle_parallele(tbb::blocked_range<int>(0, res_z),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			for (auto y = 0; y < res_y; ++y) {
+				for (auto x = 0; x < res_x; ++x) {
+					auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
+
+					grille.valeur(idx) = op(grille.valeur(idx), idx, x, y, z);
+				}
+			}
+		}
+	});
+}
 
 template <typename T, typename type_tuile, typename Op>
 auto pour_chaque_tuile(
