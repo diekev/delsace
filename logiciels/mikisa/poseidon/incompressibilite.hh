@@ -31,6 +31,8 @@ namespace psn {
 void projette_velocite(
 		wlk::GrilleMAC &velocite,
 		wlk::grille_dense_3d<float> &pression,
-		wlk::grille_dense_3d<int> const &drapeaux);
+		wlk::grille_dense_3d<int> const &drapeaux,
+		int iterations,
+		float precision);
 
 }  /* namespace psn */

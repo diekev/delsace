@@ -1,0 +1,10 @@
+disposition "projection_gaz" {
+	ligne {
+		étiquette(valeur="Itérations")
+		entier(valeur=100; min=0; attache=itérations; infobulle="Nombre maximum de boucles performées pour résoudre la pression.")
+	}
+	ligne {
+		étiquette(valeur="Précision")
+		entier(valeur=6; min=0; attache=précision_; infobulle="")
+	}
+}

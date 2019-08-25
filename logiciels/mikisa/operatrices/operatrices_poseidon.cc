@@ -1157,7 +1157,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_projection_gaz.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1182,6 +1182,9 @@ public:
 		/* accumule les entrées */
 		entree(0)->requiers_corps(contexte, donnees_aval);
 
+		auto const iterations = evalue_entier("itérations");
+		auto const precision = 1.0f / std::pow(10.0f, static_cast<float>(evalue_entier("précision_")));
+
 		std::cerr << "------------------------------------------------\n";
 		std::cerr << "Incompressibilité, image " << contexte.temps_courant << '\n';
 
@@ -1191,9 +1194,17 @@ public:
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
 
-		psn::projette_velocite(*velocite, *pression, *drapeaux);
+		psn::projette_velocite(*velocite, *pression, *drapeaux, iterations, precision);
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("itérations") == nullptr) {
+			ajoute_propriete("itérations", danjo::TypePropriete::ENTIER, 100);
+			ajoute_propriete("précision_", danjo::TypePropriete::ENTIER, 6);
+		}
 	}
 };
 

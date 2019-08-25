@@ -171,6 +171,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_opensubdiv.jo
 	scripts_danjo/operatrice_patch_triangle.jo
 	scripts_danjo/operatrice_premultiplication.jo
+	scripts_danjo/operatrice_projection_gaz.jo
 	scripts_danjo/operatrice_p3d_ep_fluide.jo
 	scripts_danjo/operatrice_point3d_math.jo
 	scripts_danjo/operatrice_point3d_nuage.jo

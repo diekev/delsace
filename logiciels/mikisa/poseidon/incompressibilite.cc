@@ -1166,9 +1166,10 @@ static auto calcul_divergence(
 static auto resoud_pression(
 		wlk::grille_dense_3d<float> &pression,
 		wlk::grille_dense_3d<float> const &divergence,
-		wlk::grille_dense_3d<int> const &drapeaux)
+		wlk::grille_dense_3d<int> const &drapeaux,
+		int iterations,
+		float precision)
 {
-	auto const iterations = 100;
 	auto const res = pression.desc().resolution;
 	auto const taille_dalle = res.x * res.y;
 
@@ -1244,7 +1245,7 @@ static auto resoud_pression(
 
 	/* résoud r = b - Ax */
 
-	auto const eps  = 1e-06f;
+	auto const eps = precision;
 	auto residue_max = 2.0f * eps;
 	auto i = 0;
 
@@ -1454,7 +1455,9 @@ static auto projette_solution(
 void projette_velocite(
 		wlk::GrilleMAC &velocite,
 		wlk::grille_dense_3d<float> &pression,
-		wlk::grille_dense_3d<int> const &drapeaux)
+		wlk::grille_dense_3d<int> const &drapeaux,
+		int iterations,
+		float precision)
 {
 #ifdef SOLVEUR_MANTAFLOW
 	solvePressure(velocite, pression, drapeaux);
@@ -1487,7 +1490,7 @@ void projette_velocite(
 #ifdef SOLVEUR_BLENDER
 	auto divergence = calcul_divergence(velocite, drapeaux);
 
-	resoud_pression(pression, divergence, drapeaux);
+	resoud_pression(pression, divergence, drapeaux, iterations, precision);
 
 	projette_solution(velocite, pression, drapeaux);
 #endif
