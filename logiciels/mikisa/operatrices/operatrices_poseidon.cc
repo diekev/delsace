@@ -1549,6 +1549,72 @@ public:
 
 /* ************************************************************************** */
 
+class OpDissipationGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Dissipation Gaz";
+	static constexpr auto AIDE = "Supprime des quantités du fluide.";
+
+	explicit OpDissipationGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		m_execute_toujours = true;
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_dissipation_gaz.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		auto const vit_fumee = 1.0f - evalue_decimal("vit_fumée") / 100.0f;
+		auto const min_fumee = evalue_decimal("min_fumée");
+
+		auto const vit_theta = 1.0f - evalue_decimal("vit_theta") / 100.0f;
+		auto const min_theta = evalue_decimal("min_theta");
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto fumee = poseidon_gaz->densite;
+		auto theta = poseidon_gaz->temperature;
+
+		for (auto i = 0; i < fumee->nombre_elements(); ++i) {
+			if (fumee->valeur(i) < min_fumee) {
+				fumee->valeur(i) *= vit_fumee;
+			}
+
+			if (theta && theta->valeur(i) < min_theta) {
+				theta->valeur(i) *= vit_theta;
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
@@ -1561,6 +1627,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpAffinageGaz>());
 	usine.enregistre_type(cree_desc<OpDiffusionGaz>());
 	usine.enregistre_type(cree_desc<OpBruitCollisionGaz>());
+	usine.enregistre_type(cree_desc<OpDissipationGaz>());
 }
 
 #pragma clang diagnostic pop

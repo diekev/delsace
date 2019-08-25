@@ -133,6 +133,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_diffusion_gaz.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
 	scripts_danjo/operatrice_dispersion_points.jo
+	scripts_danjo/operatrice_dissipation_gaz.jo
 	scripts_danjo/operatrice_enleve_doublons.jo
 	scripts_danjo/operatrice_entree_gaz.jo
 	scripts_danjo/operatrice_entree_simulation.jo

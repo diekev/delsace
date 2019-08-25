@@ -1,0 +1,18 @@
+disposition "operatrice_dissipation_gaz" {
+	ligne {
+		étiquette(valeur="Min Fumée")
+		décimal(valeur=0.1; min=0.0; max=1.0; attache=min_fumée; infobulle="Quantité sous laquelle la fumée se dissipe selon la vitesse définie ci-après.")
+	}
+	ligne {
+		étiquette(valeur="Vitesse Fumée")
+		décimal(valeur=3.0; min=0.0; max=100.0; attache=vit_fumée; infobulle="Pourcentage de la quantité de fumée se dissipant à chaque étape.")
+	}
+	ligne {
+		étiquette(valeur="Min Température")
+		décimal(valeur=0.1; min=0.0; max=1.0; attache=min_theta; infobulle="Quantité sous laquelle la température se dissipe selon la vitesse définie ci-après.")
+	}
+	ligne {
+		étiquette(valeur="Vitesse Température")
+		décimal(valeur=3.0; min=0.0; max=100.0; attache=vit_theta; infobulle="Pourcentage de la température se dissipant à chaque étape.")
+	}
+}
