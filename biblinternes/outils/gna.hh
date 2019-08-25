@@ -26,7 +26,9 @@
 
 #include <random>
 
+#include "biblinternes/math/outils.hh"
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/outils/empreintes.hh"
 
 class GNA {
 	std::mt19937 m_gna;
@@ -54,3 +56,90 @@ public:
 
 	dls::math::vec3f normale_vec3(float moyenne, float ecart);
 };
+
+struct GNASimple {
+private:
+	unsigned m_graine = 0;
+
+public:
+	explicit GNASimple(unsigned graine)
+		: m_graine(graine)
+	{}
+
+	/* distribution uniforme */
+
+	inline float uniforme(float min, float max)
+	{
+		return (max - min) * empreinte_n32_vers_r32(m_graine++) + min;
+	}
+
+	inline double uniforme(double min, double max)
+	{
+		return (max - min) * static_cast<double>(empreinte_n32_vers_r32(m_graine++)) + min;
+	}
+};
+
+template <typename TypeGNA>
+[[nodiscard]] auto echantillone_disque_uniforme(TypeGNA &gna)
+{
+	auto x = 0.0f;
+	auto y = 0.0f;
+	auto l = 0.0f;
+
+	do {
+		x = gna.uniforme(-1.0f, 1.0f);
+		y = gna.uniforme(-1.0f, 1.0f);
+		l = std::sqrt(x * x + y * y);
+	} while (l >= 1.0f || l == 0.0f);
+
+	return dls::math::vec2f(x, y);
+}
+
+/* Retourne un nombre aléatoire avec une distribution normale (Gaussienne),
+ * avec le sigma spécifié. Ceci utilise la forme polaire de Marsaglia de la
+ * méthode de Box-Muller */
+template <typename TypeGNA, typename T>
+[[nodiscard]] auto echantillone_disque_normale(TypeGNA &gna, T moyenne = 0,  T sigma = 1)
+{
+	static constexpr auto _1 = static_cast<T>(1);
+	static constexpr auto _2 = static_cast<T>(2);
+
+	/* NOTE : pour éviter les problèmes numériques avec des nombres très petit,
+	 * on pourrait utiliser des floats pour le calcul de u et v et des doubles
+	 * pour le calcul de s.
+	 */
+	T u;
+	T v;
+	T s;
+
+	do {
+		u = gna.uniforme(-_1, _1);
+		v = gna.uniforme(-_1, _1);
+		s = u * u + v * v;
+	} while (s >= _1 || dls::math::est_environ_zero(s));
+
+	s = std::sqrt(-_2 * std::log(s) / s);
+	auto tmp = s * sigma;
+
+	return dls::math::vec2<T>(u * tmp + moyenne, v * tmp + moyenne);
+}
+
+template <typename type_vecteur, typename TypeGNA>
+[[nodiscard]] auto echantillone_sphere(TypeGNA &gna) noexcept
+{
+	using type_scalaire = typename type_vecteur::type_scalaire;
+
+	type_vecteur v;
+	type_scalaire m2;
+
+	do {
+		m2 = static_cast<type_scalaire>(0);
+
+		for (unsigned int i = 0; i < type_vecteur::nombre_composants; ++i) {
+			v[i] = gna.uniforme(-static_cast<type_scalaire>(1), static_cast<type_scalaire>(1));
+			m2 += dls::math::carre(v[i]);
+		}
+	} while (m2 > static_cast<type_scalaire>(1) || m2 == static_cast<type_scalaire>(0));
+
+	return v / std::sqrt(m2);
+}

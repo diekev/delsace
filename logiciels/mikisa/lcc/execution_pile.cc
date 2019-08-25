@@ -25,8 +25,7 @@
 #include "execution_pile.hh"
 
 #include "biblinternes/math/entrepolation.hh"
-
-#include <random>
+#include "biblinternes/outils/gna.hh"
 
 #include "corps/corps.h"
 
@@ -910,7 +909,8 @@ void execute_pile(
 			case code_inst::FN_ECHANTILLONE_SPHERE:
 			{
 				auto g = static_cast<unsigned>(graine);
-				auto res = dls::math::echantillone_sphere<dls::math::vec3f>(g);
+				auto gna = GNASimple(g);
+				auto res = echantillone_sphere<dls::math::vec3f>(gna);
 				graine = static_cast<int>(g);
 				pile_donnees.stocke(compteur, insts, res);
 				break;

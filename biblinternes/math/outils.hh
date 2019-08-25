@@ -132,51 +132,6 @@ template <typename T>
 	return x * x;
 }
 
-// transforms even the sequence 0,1,2,3,... into reasonably good random numbers
-// challenge: improve on this in speed and "randomness"!
-[[nodiscard]] inline auto hash_aleatoire(unsigned int seed) noexcept
-{
-   unsigned int i = (seed ^ 12345391u) * 2654435769u;
-
-   i ^= (i << 6) ^ (i >> 26);
-   i *= 2654435769u;
-   i += (i << 5) ^ (i >> 12);
-
-   return i;
-}
-
-template <typename T>
-[[nodiscard]] inline auto hash_aleatoiref(unsigned int seed) noexcept
-{
-	return static_cast<T>(hash_aleatoire(seed)) / static_cast<T>(std::numeric_limits<unsigned int>::max());
-}
-
-template <typename T>
-[[nodiscard]] inline auto hash_aleatoiref(unsigned int seed, T a, T b) noexcept
-{
-	return ((b - a) * hash_aleatoiref<T>(seed) + a);
-}
-
-template <typename type_vecteur>
-[[nodiscard]] auto echantillone_sphere(unsigned int &seed) noexcept
-{
-	using type_scalaire = typename type_vecteur::type_scalaire;
-
-	type_vecteur v;
-	type_scalaire m2;
-
-	do {
-		m2 = static_cast<type_scalaire>(0);
-
-		for (unsigned int i = 0; i < type_vecteur::nombre_composants; ++i) {
-			v[i] = hash_aleatoiref(seed++, -static_cast<type_scalaire>(1), static_cast<type_scalaire>(1));
-			m2 += carre(v[i]);
-		}
-	} while (m2 > static_cast<type_scalaire>(1) || m2 == static_cast<type_scalaire>(0));
-
-	return v / std::sqrt(m2);
-}
-
 template <typename T>
 [[nodiscard]] auto produit_scalaire(T g[3], T x, T y, T z) noexcept
 {

@@ -25,6 +25,7 @@
 #include "bruit.hh"
 
 #include <cmath>
+#include "biblinternes/outils/gna.hh"
 
 #include "entrepolation.hh"
 #include "matrice.hh"
@@ -52,7 +53,7 @@ BruitPerlin2D::BruitPerlin2D(unsigned int seed)
 void BruitPerlin2D::reinitialize(unsigned int seed)
 {
 	for (unsigned int i = 1; i < N; ++i){
-		const auto j = hash_aleatoire(seed++) % (i + 1);
+		const auto j = empreinte_n32(seed++) % (i + 1);
 		std::swap(m_perm[i], m_perm[j]);
 	}
 }
@@ -177,8 +178,9 @@ unsigned int BruitPerlinLong2D::hash(unsigned int x, unsigned int y) const
 
 BruitPerlin3D::BruitPerlin3D(unsigned int seed)
 {
+	auto gna = GNASimple(seed);
 	for (unsigned int i = 0; i < N; ++i){
-		m_basis[i] = echantillone_sphere<vec3f>(seed);
+		m_basis[i] = echantillone_sphere<vec3f>(gna);
 		m_perm[i] = i;
 	}
 
@@ -188,7 +190,7 @@ BruitPerlin3D::BruitPerlin3D(unsigned int seed)
 void BruitPerlin3D::reinitialise(unsigned int seed)
 {
 	for (unsigned int i = 1; i < N; ++i){
-		auto j = hash_aleatoire(seed++) % (i + 1);
+		auto j = empreinte_n32(seed++) % (i + 1);
 		std::swap(m_perm[i], m_perm[j]);
 	}
 }
@@ -253,12 +255,14 @@ BruitFlux2D::BruitFlux2D(unsigned int graine, float variation_tournoiement)
 	 * l'initialisation de la classe supérieure BruitPerlin2D. */
 	graine += N;
 
+	auto gna = GNASimple(graine);
+
 	const auto a = 1.0f - 0.5f * variation_tournoiement;
 	const auto b = 1.0f + 0.5f * variation_tournoiement;
 
 	for(unsigned int i = 0; i < N; ++i) {
 		m_base_originelle[i] = m_basis[i];
-		m_taux_tournoiement[i]= TAU * hash_aleatoiref(graine++, a, b);
+		m_taux_tournoiement[i]= TAU * gna.uniforme(a, b);
 	}
 }
 
@@ -283,13 +287,15 @@ BruitFlux3D::BruitFlux3D(unsigned int graine, float variation_tournoiement)
 	 * l'initialisation de la classe supérieure BruitPerlin3D. */
 	graine += 8 * N;
 
+	auto gna = GNASimple(graine);
+
 	const auto a = 1.0f - 0.5f * variation_tournoiement;
 	const auto b = 1.0f + 0.5f * variation_tournoiement;
 
 	for (unsigned int i = 0; i < N; ++i) {
 		original_basis[i] = m_basis[i];
-		axe_tournoiement[i] = echantillone_sphere<vec3f>(graine);
-		taux_tournoiement[i] = TAU * hash_aleatoiref(graine++, a, b);
+		axe_tournoiement[i] = echantillone_sphere<vec3f>(gna);
+		taux_tournoiement[i] = TAU * gna.uniforme(a, b);
 	}
 }
 

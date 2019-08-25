@@ -24,41 +24,39 @@
 
 #include "tests_math.hh"
 
-#include "biblinternes/math/aleatoire.hh"
 #include "biblinternes/math/concepts.hh"
 #include "biblinternes/math/statistique.hh"
-
-#include <tuple>
+#include "biblinternes/outils/gna.hh"
 
 template <ConceptDecimal T>
 void test_marsaglia(dls::test_unitaire::Controleuse &controleur)
 {
 	using namespace dls::math;
 
-	std::mt19937 rng(137);
-	T x, y;
-	std::pair<T, T> seq[100];
+	auto rng = GNA(137);
+	auto v = dls::math::vec2<T>();
+	dls::math::vec2<T> seq[100];
 	const auto sigma = static_cast<T>(0.5);
 	const auto mean  = static_cast<T>(0.2);
 
 	/* Generate a sequence of random number and verify that they all fall in the
 	 * [-1, 1] interval, taking the standard deviation into account */
 	for (int i(0); i < 100; ++i) {
-		std::tie(x, y) = seq[i] = marsaglia(rng, mean, sigma);
-		CU_VERIFIE_CONDITION(controleur, (x >= T(-1 - sigma)) && (x <= T(1 + sigma)));
-		CU_VERIFIE_CONDITION(controleur, (y >= T(-1 - sigma)) && (y <= T(1 + sigma)));
+		v = seq[i] = echantillone_disque_normale(rng, mean, sigma);
+		CU_VERIFIE_CONDITION(controleur, (v.x >= T(-1 - sigma)) && (v.x <= T(1 + sigma)));
+		CU_VERIFIE_CONDITION(controleur, (v.y >= T(-1 - sigma)) && (v.y <= T(1 + sigma)));
 	}
 
 	/* Verify that generators with the same seed produce the same sequence. */
-	rng = std::mt19937(137);
+	rng = GNA(137);
 	for (int i(0); i < 100; ++i) {
-		CU_VERIFIE_CONDITION(controleur, seq[i] == marsaglia(rng, mean, sigma));
+		CU_VERIFIE_CONDITION(controleur, seq[i] == echantillone_disque_normale(rng, mean, sigma));
 	}
 
 	/* Verify that generators with different seeds produce different sequences. */
-	rng = std::mt19937(207);
+	rng = GNA(137);
 	for (int i(0); i < 100; ++i) {
-		CU_VERIFIE_CONDITION(controleur, seq[i] != marsaglia(rng, mean, sigma));
+		CU_VERIFIE_CONDITION(controleur, seq[i] != echantillone_disque_normale(rng, mean, sigma));
 	}
 }
 

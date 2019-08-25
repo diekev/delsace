@@ -213,32 +213,6 @@ struct OceanResult {
 
 /* ************************************************************************** */
 
-/* Retourne un nombre aléatoire avec une distribution normale (Gaussienne),
- * avec le sigma spécifié. Ceci utilise la forme polaire de Marsaglia de la
- * méthode de Box-Muller */
-/* À FAIRE : fonction similaire dans dls::math pour la 3D */
-template <typename T>
-static auto gaussRand(GNA &gna, T moyenne = 0,  T sigma = 1)
-{
-	/* NOTE : pour éviter les problèmes numériques avec des nombres très petit,
-	 * on pourrait utiliser des floats pour le calcul de x et y et des doubles
-	 * pour le calcul de g.
-	 */
-	T x;
-	T y;
-	T longueur_carree;
-
-	do {
-		x = gna.uniforme(static_cast<T>(-1), static_cast<T>(1));
-		y = gna.uniforme(static_cast<T>(-1), static_cast<T>(1));
-		longueur_carree = x * x + y * y;
-	} while (longueur_carree >= static_cast<T>(1) || dls::math::est_environ_zero(longueur_carree));
-
-	auto g = std::sqrt(static_cast<T>(-2) * std::log(longueur_carree) / longueur_carree);
-
-	return dls::math::vec2<T>(sigma * x * g + moyenne, sigma * y * g + moyenne);
-}
-
 /**
  * Some useful functions
  */
@@ -356,7 +330,7 @@ static void simule_ocean(
 			for (int j = 0; j <= o.res_y / 2; ++j) {
 				auto index = i * (1 + o.res_y / 2) + j;
 
-				auto r1 = gaussRand(gna, 0.0, 1.0);
+				auto r1 = echantillone_disque_normale(gna, 0.0, 1.0);
 				auto k = std::sqrt(o.kx[i] * o.kx[i] + o.kz[j] * o.kz[j]);
 
 				auto r1r2 = dls::math::complexe(r1.x, r1.y);

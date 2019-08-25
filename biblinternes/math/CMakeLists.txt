@@ -36,7 +36,6 @@ set(ENTETES_MATRICE
 )
 
 set(ENTETES
-	aleatoire.hh
 	base_vecteur.hh
 	boite_englobante.hh
 	bruit.hh

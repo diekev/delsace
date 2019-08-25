@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 	stdc++fs
 	systeme_fichier
 	memoire
+	bib_outils
 )
 
 set(SOURCES

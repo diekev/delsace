@@ -383,21 +383,6 @@ static void rasterise_polygone(
 	}
 }
 
-static auto echantillone_disque(GNA &gna)
-{
-	auto x = 0.0f;
-	auto y = 0.0f;
-	auto l = 0.0f;
-
-	do {
-		x = gna.uniforme(-1.0f, 1.0f);
-		y = gna.uniforme(-1.0f, 1.0f);
-		l = std::sqrt(x * x + y * y);
-	} while (l >= 1.0f || l == 0.0f);
-
-	return dls::math::vec2f(x, y);
-}
-
 static void rasterise_ligne(
 		Corps const &corps,
 		Polygone &poly,
@@ -428,7 +413,7 @@ static void rasterise_ligne(
 			// trouve le troisième axe
 			auto NxT = produit_croix(N, T);
 
-			auto st = echantillone_disque(gna);
+			auto st = echantillone_disque_uniforme(gna);
 
 			// tire l'échantillon
 			auto wsP = (1.0f - u) * p0 + u * p1;
