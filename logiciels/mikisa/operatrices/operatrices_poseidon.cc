@@ -67,17 +67,18 @@
  * Champs à considérer :
  * - divergence
  * - oxygène (pour controler là ou le feu se forme)
- * - couleur
+ * - couleur (https://research.dreamworks.com/wp-content/uploads/2018/07/a38-yoon-Edited.pdf)
  *
  * Opératrices à considérer :
  * - (FumeFX) turbulence vélocité
  * - réanimation cache (volume temporel, réadvection)
- * - visualisation (vecteur vélocité, tranche des champs, etc.)
+ * - visualisation (tranche des champs, etc.)
  * - (FumeFX, Blender) haute-résolution/turbulence ondelette, via cache
  *
  * Options simulation :
- * - (FumeFX) qualité et itérations des gradients conjugués, flottance, etc.
- * - (FumeFX, Blender) dissipation des champs de simulations
+ * - (FumeFX, Blender) fioul.
+ * - amortissement vélocité
+ * - (Blender) dissipation des champs de simulations (linéaire/log)
  */
 
 /* ************************************************************************** */
