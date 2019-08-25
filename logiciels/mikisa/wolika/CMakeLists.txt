@@ -40,6 +40,7 @@ add_library(${NOM_CIBLE} STATIC
     grille_temporelle.cc
 	interruptrice.cc
 	iteration.cc
+	outils.cc
 
     base_grille.hh
 	echantillonnage.hh
@@ -51,6 +52,7 @@ add_library(${NOM_CIBLE} STATIC
     grille_temporelle.hh
 	interruptrice.hh
 	iteration.hh
+	outils.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")

@@ -316,4 +316,8 @@ public:
 	}
 };
 
+struct Poseidon;
+
+void transfere_particules_grille(Poseidon &poseidon);
+
 }  /* namespace psn */

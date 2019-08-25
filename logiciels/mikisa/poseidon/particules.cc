@@ -24,6 +24,10 @@
 
 #include "particules.hh"
 
+#include "wolika/iteration.hh"
+
+#include "monde.hh"
+
 namespace psn {
 
 #if 0
@@ -152,5 +156,93 @@ void ParticleGrid::MarkCellTypes(
 	});
 }
 #endif
+
+/* Low order B-Spline. */
+struct KernelBSP2 {
+	static const int rayon = 1;
+
+	static inline float poids(dls::math::vec3f const &v, float dx_inv)
+	{
+		auto r = longueur(v) * dx_inv;
+
+		if (r > 1.0f) {
+			return 0.0f;
+		}
+
+		return (1.0f - r);
+	}
+};
+
+/* Fonction M'4 */
+struct KernelMP4 {
+	static const int rayon = 2;
+
+	static inline float poids(dls::math::vec3f const &v, float dx_inv)
+	{
+		auto r = longueur(v) * dx_inv;
+
+		if (r > 2.0f) {
+			return 0.0f;
+		}
+
+		if (r >= 1.0f) {
+			return 0.5f * (2.0f * r * r) * (1.0f - r);
+		}
+
+		return 1.0f - (2.5f * r * r) + (1.5f * r * r * r);
+	}
+};
+
+void transfere_particules_grille(Poseidon &poseidon)
+{
+	auto densite = poseidon.densite;
+	auto &grille_particules = poseidon.grille_particule;
+
+	for (auto i = 0; i < densite->nombre_elements(); ++i) {
+		densite->valeur(i) = 0.0f;
+	}
+
+	auto dx_inv = static_cast<float>(1.0 / densite->desc().taille_voxel);
+	auto res = densite->desc().resolution;
+
+	using type_kernel = KernelBSP2;
+
+	auto dens_parts = poseidon.parts.champs_scalaire("densité");
+	auto pos_parts  = poseidon.parts.champs_vectoriel("position");
+
+	boucle_parallele(tbb::blocked_range<int>(0, res.z - 1),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		auto lims = limites3i{};
+		lims.min = dls::math::vec3i(0, 0, plage.begin());
+		lims.max = dls::math::vec3i(res.x - 1, res.y - 1, plage.end());
+
+		auto iter = wlk::IteratricePosition(lims);
+
+		while (!iter.fini()) {
+			auto pos_index = iter.suivante();
+
+			auto pos_monde = densite->index_vers_monde(pos_index);
+
+			auto voisines = grille_particules.voisines_cellules(pos_index, dls::math::vec3i(type_kernel::rayon));
+
+			/* utilise le filtre BSP2 */
+			auto valeur = 0.0f;
+			auto poids = 0.0f;
+
+			for (auto pv : voisines) {
+				auto r = type_kernel::poids(pos_monde - pos_parts[pv], dx_inv);
+				valeur += r * dens_parts[pv];
+				poids += r;
+			}
+
+			if (poids != 0.0f) {
+				valeur /= poids;
+			}
+
+			densite->valeur(pos_index) = valeur;
+		}
+	});
+}
 
 }  /* namespace psn */

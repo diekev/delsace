@@ -126,4 +126,48 @@ auto affine_volume(
 	return grille;
 }
 
+template <typename T>
+auto affine_grille(grille_dense_3d<T> &grille, float rayon, float quantite)
+{
+	auto taille = static_cast<int>(rayon);
+	auto grille_aux = wlk::grille_dense_3d<T>(grille.desc());
+	grille_aux.copie_donnees(grille);
+
+	wlk::pour_chaque_voxel_parallele(grille,
+									 [&](T const &v, long idx, int x, int y, int z)
+	{
+		INUTILISE(idx);
+
+		if (v == T(0)) {
+			return v;
+		}
+
+		auto res = T();
+		auto poids = 0.0f;
+
+		for (auto zz = z - taille; zz <= z + taille; ++zz) {
+			for (auto yy = y - taille; yy <= y + taille; ++yy) {
+				for (auto xx = x - taille; xx <= x + taille; ++xx) {
+					res += grille_aux.valeur(dls::math::vec3i(xx, yy, zz));
+					poids += 1.0f;
+				}
+			}
+		}
+
+		if (poids != 0.0f) {
+			res /= poids;
+		}
+
+		auto valeur_fine = v - res;
+		auto valeur_affinee = v + valeur_fine * quantite;
+
+		/* les valeurs négatives rendent la simulation instable */
+		if (valeur_affinee < T(0)) {
+			return v;
+		}
+
+		return valeur_affinee;
+	});
+}
+
 }  /* namespace wlk */

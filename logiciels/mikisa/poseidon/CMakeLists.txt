@@ -43,6 +43,7 @@ add_library(${NOM_CIBLE} STATIC
 	monde.cc
 	particules.cc
 	simulation.cc
+	vorticite.cc
 
 	bruit_vaguelette.hh
 	diffusion.hh
@@ -52,6 +53,7 @@ add_library(${NOM_CIBLE} STATIC
 	monde.hh
 	particules.hh
 	simulation.hh
+	vorticite.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")

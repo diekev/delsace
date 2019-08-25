@@ -38,25 +38,6 @@
 
 namespace psn {
 
-template <typename T>
-static auto fill_grid(wlk::grille_dense_3d<T> *flags, T valeur)
-{
-	std::cerr << __func__ << '\n';
-
-	auto res = flags->resolution();
-	auto limites = limites3i{};
-	limites.min = dls::math::vec3i(0);
-	limites.max = res;
-	auto iter = wlk::IteratricePosition(limites);
-
-	while (!iter.fini()) {
-		auto pos = iter.suivante();
-		auto idx = static_cast<long>(pos.x + (pos.y + pos.z * res.y) * res.x);
-
-		flags->valeur(idx) = valeur;
-	}
-}
-
 void fill_grid(wlk::grille_dense_3d<int> &flags, int type)
 {
 	auto res = flags.desc().resolution;
@@ -376,6 +357,64 @@ Poseidon::~Poseidon()
 void Poseidon::supprime_particules()
 {
 	parts.efface();
+}
+
+float calcul_vel_max(wlk::GrilleMAC const &vel)
+{
+	auto vel_max = 0.0f;
+
+	for (auto i = 0; i < vel.nombre_elements(); ++i) {
+		vel_max = std::max(vel_max, longueur(vel.valeur(i)));
+	}
+
+	return vel_max;
+}
+
+void calcul_dt(Poseidon &poseidon, float vel_max)
+{
+	/* Méthode de Mantaflow, limitant Dt selon le temps de l'image, où Dt se
+	 * rapproche de 30 image/seconde (d'où les epsilon de 10^-4). */
+	auto dt = poseidon.dt;
+	auto cfl = poseidon.cfl;
+	auto dt_min = poseidon.dt_min;
+	auto dt_max = poseidon.dt_max;
+	auto temps_par_frame = poseidon.temps_par_frame;
+	auto duree_frame = poseidon.duree_frame;
+	auto vel_max_dt = vel_max * poseidon.dt;
+
+	if (!poseidon.verrouille_dt) {
+		dt = std::max(std::min(dt * (cfl / (vel_max_dt + 1e-05f)), dt_max), dt_min);
+
+		if ((temps_par_frame + dt * 1.05f) > duree_frame) {
+			/* à 5% d'une durée d'image ? ajoute epsilon pour prévenir les
+			 * erreurs d'arrondissement... */
+			dt = (duree_frame - temps_par_frame) + 1e-04f;
+		}
+		else if ((temps_par_frame + dt + dt_min) > duree_frame || (temps_par_frame + (dt * 1.25f)) > duree_frame) {
+			/* évite les petits pas ainsi que ceux avec beaucoup de variance,
+			 * donc divisons par 2 pour en faire des moyens au besoin */
+			dt = (duree_frame - temps_par_frame + 1e-04f) * 0.5f;
+			poseidon.verrouille_dt = true;
+		}
+	}
+
+	poseidon.dt = dt;
+
+#if 0
+	/* Méthode de Bridson, limitant Dt selon la vélocité max pour éviter qu'il
+	 * n'y ait un déplacement de plus de 5 cellules lors des advections.
+	 * "Fluid Simulation Course Notes", SIGGRAPH 2007.
+	 * https://www.cs.ubc.ca/~rbridson/fluidsimulation/fluids_notes.pdf
+	 *
+	 * Ancien code gardé pour référence.
+	 */
+	auto const factor = poseidon.cfl;
+	auto const dh = 5.0f / static_cast<float>(poseidon.resolution);
+	auto const vel_max_ = std::max(1e-16f, std::max(dh, vel_max));
+
+	/* dt <= (5dh / max_u) */
+	poseidon.dt = std::min(poseidon.dt, factor * dh / std::sqrt(vel_max_));
+#endif
 }
 
 }  /* namespace psn */

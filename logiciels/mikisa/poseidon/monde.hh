@@ -108,4 +108,8 @@ void ajourne_obstables(Poseidon &poseidon);
 
 void fill_grid(wlk::grille_dense_3d<int> &flags, int type);
 
+float calcul_vel_max(wlk::GrilleMAC const &vel);
+
+void calcul_dt(Poseidon &poseidon, float vel_max);
+
 }  /* namespace psn */
