@@ -75,6 +75,7 @@ struct Poseidon {
 	/* pour la diffusion */
 	wlk::grille_dense_3d<float> *densite_prev = nullptr;
 	wlk::grille_dense_3d<float> *temperature_prev = nullptr;
+	wlk::grille_dense_3d<float> *oxygene_prev = nullptr;
 	wlk::GrilleMAC *velocite_prev = nullptr;
 
 	bruit_vaguelette bruit{};

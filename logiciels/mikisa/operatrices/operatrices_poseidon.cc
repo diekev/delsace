@@ -1465,6 +1465,21 @@ public:
 			psn::diffuse(*temperature, *temperature_prev, *drapeaux, iterations, precision, diff_tmp, dt);
 		}
 
+		auto const diff_oxy = evalue_decimal("diff_oxy", contexte.temps_courant);
+
+		if (diff_oxy != 0.0f) {
+			if (poseidon_gaz->oxygene_prev == nullptr) {
+				poseidon_gaz->oxygene_prev = memoire::loge<wlk::grille_dense_3d<float>>("grilles", poseidon_gaz->oxygene->desc());
+			}
+
+			std::swap(poseidon_gaz->oxygene, poseidon_gaz->oxygene_prev);
+
+			auto oxygene = poseidon_gaz->oxygene;
+			auto oxygene_prev = poseidon_gaz->oxygene_prev;
+
+			psn::diffuse(*oxygene, *oxygene_prev, *drapeaux, iterations, precision, diff_oxy, dt);
+		}
+
 #if 0  /* À FAIRE : sépare vélocité */
 		auto const diff_vel = evalue_decimal("diff_vel", contexte.temps_courant);
 
