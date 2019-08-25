@@ -703,6 +703,8 @@ void ajoute_vorticite(
 
 class OpSimulationGaz : public OperatriceCorps {
 	psn::Poseidon m_poseidon{};
+	int m_derniere_temps = -1;
+	REMBOURRE(4);
 
 public:
 	static constexpr auto NOM = "Simulation Gaz";
@@ -748,14 +750,25 @@ public:
 			return EXECUTION_REUSSIE;
 		}
 
-		m_poseidon.decouple = evalue_bool("découple");
+		auto da = DonneesAval{};
+		da.table.insere({ "poseidon", &m_poseidon });
+
+		/* passe poseidon aux opératrices en aval par exemple pour les
+		 * visualisations */
+		if (donnees_aval) {
+			donnees_aval->table.insere({ "poseidon", &m_poseidon });
+		}
 
 		if (contexte.temps_courant == temps_debut) {
 			reinitialise();
+		}		
+		else if (contexte.temps_courant != m_derniere_temps + 1) {
+			return EXECUTION_REUSSIE;
 		}
 
 		auto dt_adaptif = evalue_bool("dt_adaptif");
 
+		m_poseidon.decouple = evalue_bool("découple");
 		m_poseidon.dt_min = evalue_decimal("dt_min");
 		m_poseidon.dt_max = evalue_decimal("dt_max");
 		m_poseidon.cfl = evalue_decimal("cfl");
@@ -766,15 +779,6 @@ public:
 		psn::fill_grid(*m_poseidon.drapeaux, TypeFluid);
 
 		/* init simulation */
-
-		auto da = DonneesAval{};
-		da.table.insere({ "poseidon", &m_poseidon });
-
-		/* passe poseidon aux opératrices en aval par exemple pour les
-		 * visualisations */
-		if (donnees_aval) {
-			donnees_aval->table.insere({ "poseidon", &m_poseidon });
-		}
 
 		entree(0)->requiers_corps(contexte, &da);
 
@@ -818,6 +822,8 @@ public:
 				break;
 			}
 		}
+
+		m_derniere_temps = contexte.temps_courant;
 
 		/* sauve données */
 
