@@ -26,6 +26,7 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/outils/empreintes.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "coeur/base_de_donnees.hh"
@@ -1476,6 +1477,67 @@ public:
 
 /* ************************************************************************** */
 
+class OpBruitCollisionGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Bruit Collision Gaz";
+	static constexpr auto AIDE = "Supprime des quantités du fluide en simulant un bruit blanc dans le champs de collision.";
+
+	explicit OpBruitCollisionGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		m_execute_toujours = true;
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_bruit_collision_gaz.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		auto const quantite = evalue_decimal("quantité");
+		auto graine = evalue_entier("graine");
+		auto const anime_graine = evalue_bool("anime_graine");
+
+		if (anime_graine) {
+			graine += contexte.temps_courant;
+		}
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto fumee = poseidon_gaz->densite;
+
+		for (auto i = 0; i < fumee->nombre_elements(); ++i) {
+			fumee->valeur(i) *= (1.0f - quantite * empreinte_n32_vers_r32(static_cast<unsigned>(graine + i)));
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
@@ -1487,6 +1549,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpVorticiteGaz>());
 	usine.enregistre_type(cree_desc<OpAffinageGaz>());
 	usine.enregistre_type(cree_desc<OpDiffusionGaz>());
+	usine.enregistre_type(cree_desc<OpBruitCollisionGaz>());
 }
 
 #pragma clang diagnostic pop

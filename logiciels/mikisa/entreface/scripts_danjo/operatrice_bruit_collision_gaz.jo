@@ -1,0 +1,14 @@
+disposition "bruit_collision_gaz" {
+	ligne {
+		étiquette(valeur="Quantité")
+		décimal(valeur=1.0; min=0.0; max=1.0; attache=quantité)
+	}
+	ligne {
+		étiquette(valeur="Graine")
+		entier(valeur=1; min=0; attache=graine)
+	}
+	ligne {
+		étiquette(valeur="Anime Graine")
+		case(valeur=vrai; attache=anime_graine)
+	}
+}
