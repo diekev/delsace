@@ -770,6 +770,12 @@ public:
 		auto da = DonneesAval{};
 		da.table.insere({ "poseidon", &m_poseidon });
 
+		/* passe poseidon aux opératrices en aval par exemple pour les
+		 * visualisations */
+		if (donnees_aval) {
+			donnees_aval->table.insere({ "poseidon", &m_poseidon });
+		}
+
 		entree(0)->requiers_corps(contexte, &da);
 
 		if (m_poseidon.solveur_flip) {
@@ -1630,6 +1636,192 @@ public:
 
 /* ************************************************************************** */
 
+static auto poids_vers_rvb(float poids)
+{
+	auto rvb = dls::math::vec3f();
+	const float blend = ((poids / 2.0f) + 0.5f);
+
+	if (poids <= 0.25f) { /* blue->cyan */
+		rvb[0] = 0.0f;
+		rvb[1] = blend * poids * 4.0f;
+		rvb[2] = blend;
+	}
+	else if (poids <= 0.50f) { /* cyan->green */
+		rvb[0] = 0.0f;
+		rvb[1] = blend;
+		rvb[2] = blend * (1.0f - ((poids - 0.25f) * 4.0f));
+	}
+	else if (poids <= 0.75f) { /* green->yellow */
+		rvb[0] = blend * ((poids - 0.50f) * 4.0f);
+		rvb[1] = blend;
+		rvb[2] = 0.0f;
+	}
+	else if (poids <= 1.0f) { /* yellow->red */
+		rvb[0] = blend;
+		rvb[1] = blend * (1.0f - ((poids - 0.75f) * 4.0f));
+		rvb[2] = 0.0f;
+	}
+	else {
+		/* exceptional value, unclamped or nan,
+		 *  avoid uninitialized memory use */
+		rvb[0] = 1.0f;
+		rvb[1] = 0.0f;
+		rvb[2] = 1.0f;
+	}
+
+	return rvb;
+}
+
+class OpVisualisationGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Visualisation Gaz";
+	static constexpr auto AIDE = "Visualise un champs donné de la simulation.";
+
+	explicit OpVisualisationGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		m_execute_toujours = true;
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_visualisation_gaz.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		/* cherche la simulation. */
+		auto da = DonneesAval{};
+		entree(0)->requiers_corps(contexte, &da);
+
+		if (!da.possede("poseidon")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en amont.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto const champs = evalue_enum("champs");
+		auto const taille_vel = evalue_decimal("taille_vel");
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(&da);
+
+		auto volume = static_cast<Volume *>(nullptr);
+
+		if (champs == "divergence") {
+			if (poseidon_gaz->divergence == nullptr) {
+				this->ajoute_avertissement("Le champs 'divergence' n'est pas actif");
+				return EXECUTION_ECHOUEE;
+			}
+
+			volume = memoire::loge<Volume>("Volume", poseidon_gaz->divergence->copie());
+		}
+		else if (champs == "fumée") {
+			volume = memoire::loge<Volume>("Volume", poseidon_gaz->densite->copie());
+		}
+		else if (champs == "fioul") {
+			if (poseidon_gaz->fioul == nullptr) {
+				this->ajoute_avertissement("Le champs 'fioul' n'est pas actif");
+				return EXECUTION_ECHOUEE;
+			}
+
+			volume = memoire::loge<Volume>("Volume", poseidon_gaz->fioul->copie());
+		}
+		else if (champs == "oxygène") {
+			if (poseidon_gaz->oxygene == nullptr) {
+				this->ajoute_avertissement("Le champs 'oxygène' n'est pas actif");
+				return EXECUTION_ECHOUEE;
+			}
+
+			volume = memoire::loge<Volume>("Volume", poseidon_gaz->oxygene->copie());
+		}
+		else if (champs == "pression") {
+			volume = memoire::loge<Volume>("Volume", poseidon_gaz->pression->copie());
+		}
+		else if (champs == "température") {
+			if (poseidon_gaz->temperature == nullptr) {
+				this->ajoute_avertissement("Le champs 'température' n'est pas actif");
+				return EXECUTION_ECHOUEE;
+			}
+
+			volume = memoire::loge<Volume>("Volume", poseidon_gaz->temperature->copie());
+		}
+		else if (champs == "vélocité") {
+			auto velocite = poseidon_gaz->velocite;
+			auto res = velocite->desc().resolution;
+
+			auto max_lng = 0.0f;
+
+			for (auto z = 0; z < res.z; ++z) {
+				for (auto y = 0; y < res.y; ++y) {
+					for (auto x = 0; x < res.x; ++x) {
+						auto vel = velocite->valeur_centree(x, y, z);
+						max_lng = std::max(max_lng, longueur(vel));
+					}
+				}
+			}
+
+			auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+
+			for (auto z = 0; z < res.z; ++z) {
+				for (auto y = 0; y < res.y; ++y) {
+					for (auto x = 0; x < res.x; ++x) {
+						auto co = dls::math::vec3i(x, y, z);
+
+						auto vel = velocite->valeur_centree(x, y, z);
+						auto lng = longueur(vel);
+						auto rvb = poids_vers_rvb(lng / max_lng);
+
+						if (lng != 0.0f) {
+							vel /= lng;
+							lng *= taille_vel;
+						}
+
+						lng *= static_cast<float>(velocite->desc().taille_voxel);
+						lng *= poseidon_gaz->dt;
+
+						auto pos_monde = velocite->index_vers_monde(co);
+
+						auto p0 = pos_monde;
+						auto p1 = p0 + vel * lng;
+
+						auto decalage = m_corps.points_pour_lecture()->taille();
+						m_corps.ajoute_point(p0);
+						m_corps.ajoute_point(p1);
+
+						auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
+						poly->ajoute_sommet(decalage);
+						poly->ajoute_sommet(decalage + 1);
+
+						C->pousse(rvb);
+					}
+				}
+			}
+		}
+
+		if (volume) {
+			m_corps.ajoute_primitive(volume);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
@@ -1643,6 +1835,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpDiffusionGaz>());
 	usine.enregistre_type(cree_desc<OpBruitCollisionGaz>());
 	usine.enregistre_type(cree_desc<OpDissipationGaz>());
+	usine.enregistre_type(cree_desc<OpVisualisationGaz>());
 }
 
 #pragma clang diagnostic pop

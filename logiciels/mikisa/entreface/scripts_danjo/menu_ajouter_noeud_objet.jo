@@ -76,6 +76,7 @@ menu "Noeud Objet" {
 		action(valeur="Flottance Gaz"; attache=ajouter_noeud; métadonnée="Flottance Gaz")
 		action(valeur="Incompressibilité Gaz"; attache=ajouter_noeud; métadonnée="Incompressibilité Gaz")
 		action(valeur="Simulation Gaz"; attache=ajouter_noeud; métadonnée="Simulation Gaz")
+		action(valeur="Visualisation Gaz"; attache=ajouter_noeud; métadonnée="Visualisation Gaz")
 		action(valeur="Vorticité Gaz"; attache=ajouter_noeud; métadonnée="Vorticité Gaz")
 	}
 	menu "Simulation" {

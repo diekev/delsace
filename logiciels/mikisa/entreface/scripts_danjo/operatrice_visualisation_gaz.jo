@@ -1,0 +1,18 @@
+disposition "operatrice_visualisation_gaz" {
+	ligne {
+		étiquette(valeur="Champs")
+		énum(valeur="fumée"; attache=champs; items=[
+			{ nom="divergence", valeur="divergence" },
+			{ nom="fumée", valeur="fumée" },
+			{ nom="fioul", valeur="fioul" },
+			{ nom="oxygène", valeur="oxygène" },
+			{ nom="pression", valeur="pression" },
+			{ nom="température", valeur="température" },
+			{ nom="vélocité", valeur="vélocité" }
+		])
+	}
+	ligne {
+		étiquette(valeur="Taille Vélocité")
+		décimal(valeur=1.0; attache=taille_vel; min=0.0; infobulle="La taille des vecteurs de vélocité.")
+	}
+}
