@@ -24,6 +24,8 @@
 
 #include "operatrices_region.h"
 
+#include <tbb/parallel_reduce.h>
+
 #include "biblinternes/image/operations/champs_distance.h"
 #include "biblinternes/image/operations/conversion.h"
 #include "biblinternes/image/operations/convolution.h"
@@ -2891,6 +2893,284 @@ public:
 
 /* ************************************************************************** */
 
+#include <pmmintrin.h>
+#include "biblinternes/moultfilage/sse_mathfun.hh"
+
+#define SSE
+
+/**
+ * Génération de bruit bleu basé sur
+ * « Blue-noise Dithered Sampling »
+ * https://www.arnoldrenderer.com/research/dither_abstract.pdf
+ */
+static auto calcul_energie(dls::tableau<float> const &bruit, int taille, int dimensions)
+{
+	auto calcul_energie_ex = [&](tbb::blocked_range<int> const &plage, float init)
+	{
+		auto const taille_carree = taille * taille;
+		auto const sigma_i_inv = 1.0f / (2.1f * 2.1f);
+		//auto const sigma_s = 1.0f;
+		auto energie = init;
+
+		auto moitie_dim = static_cast<float>(dimensions) * 0.5f;
+		auto sizeOverTwo = static_cast<float>(taille) * 0.5f;
+
+#ifdef SSE
+		static __m128 signmask = _mm_castsi128_ps(_mm_set1_epi32(1 << 31));
+		static __m128 offsetf  = _mm_setr_ps(0.0f, 1.0f, 2.0f, 3.0f);
+		static __m128i offseti = _mm_setr_epi32(0, 1, 2, 3);
+
+		for (auto i = plage.begin(); i < plage.end(); ++i) {
+			__m128i iv = _mm_set1_epi32(i);
+			__m128 ix = _mm_set1_ps(static_cast<float>(i % taille));
+			__m128 iy = _mm_set1_ps(static_cast<float>(i / taille));
+
+			for (auto j = 0; j < taille_carree; j += 4) {
+				__m128i jv = _mm_add_epi32(_mm_set1_epi32(j), offseti);
+				__m128 jx = _mm_add_ps(_mm_set1_ps(static_cast<float>(j % taille)), offsetf);
+				__m128 jy = _mm_set1_ps(static_cast<float>(j / taille));
+
+				__m128 imageDistX = _mm_andnot_ps(signmask, _mm_sub_ps(ix, jx));
+				__m128 imageDistY = _mm_andnot_ps(signmask, _mm_sub_ps(iy, jy));
+
+				__m128 imageWrapX = _mm_sub_ps(_mm_set1_ps(static_cast<float>(taille)), imageDistX);
+				__m128 imageWrapY = _mm_sub_ps(_mm_set1_ps(static_cast<float>(taille)), imageDistY);
+
+				__m128 maskX = _mm_cmplt_ps(imageDistX, _mm_set1_ps(sizeOverTwo));
+				__m128 maskY = _mm_cmplt_ps(imageDistY, _mm_set1_ps(sizeOverTwo));
+
+				imageDistX = _mm_or_ps(_mm_and_ps(maskX, imageDistX), _mm_andnot_ps(maskX, imageWrapX));
+				imageDistY = _mm_or_ps(_mm_and_ps(maskY, imageDistY), _mm_andnot_ps(maskY, imageWrapY));
+
+				__m128 imageDistSqrX = _mm_mul_ps(imageDistX, imageDistX);
+				__m128 imageDistSqrY = _mm_mul_ps(imageDistY, imageDistY);
+
+				__m128 imageSqr = _mm_add_ps(imageDistSqrX, imageDistSqrY);
+				__m128 imageEnergy = _mm_mul_ps(imageSqr, _mm_set1_ps(sigma_i_inv));
+
+				__m128 sampleSqr = _mm_setzero_ps();
+
+				for (auto d = 0; d < dimensions; ++d) {
+					__m128 pBuffer = _mm_set1_ps(bruit[d * taille_carree + i]);
+					__m128 qBuffer = _mm_load_ps(&bruit[d * taille_carree + j]);
+					__m128 sampleDistance = _mm_andnot_ps(signmask, _mm_sub_ps(pBuffer, qBuffer));
+					__m128 sampleDistanceSqr = _mm_mul_ps(sampleDistance, sampleDistance);
+
+					sampleSqr = _mm_add_ps(sampleSqr, sampleDistanceSqr);
+				}
+
+				__m128 samplePow = exp_ps(_mm_mul_ps(log_ps(_mm_sqrt_ps(sampleSqr)), _mm_set1_ps(moitie_dim)));
+				__m128 sampleEnergy = samplePow;
+
+				__m128 output = exp_ps(_mm_sub_ps(_mm_sub_ps(_mm_setzero_ps(), imageEnergy), sampleEnergy));
+				__m128 mask = _mm_castsi128_ps(_mm_cmpeq_epi32(iv, jv));
+
+				__m128 masked = _mm_andnot_ps(mask, output);
+				masked = _mm_hadd_ps(masked, masked);
+				masked = _mm_hadd_ps(masked, masked);
+
+				energie += _mm_cvtss_f32(masked);
+			}
+		}
+#else
+		for (auto i = plage.begin(); i < plage.end(); ++i) {
+			auto ix = i % taille;
+			auto iy = i / taille;
+
+			for (auto j = 0; j < taille_carree; ++j) {
+				if (i == j) {
+					continue;
+				}
+
+				auto jx = j % taille;
+				auto jy = j / taille;
+
+				auto dist_x = ix - jx;
+				auto dist_y = iy - jy;
+
+				auto dist_carree = dist_x * dist_x + dist_y * dist_y;
+
+				auto energie_image = dist_carree * sigma_i_inv;
+
+				auto echant_carre = 0.0f;
+
+				for (auto d = 0; d < dimensions; ++d) {
+					auto p = bruit[d * taille_carree + i];
+					auto q = bruit[d * taille_carree + j];
+
+					auto dist_echant = p - q;
+					auto dist_echant_carree = dist_echant * dist_echant;
+
+					echant_carre += dist_echant_carree;
+				}
+
+				auto energie_echant = std::pow(echant_carre, moitie_dim);
+
+				auto sortie = std::exp(-energie_image - energie_echant);
+
+				energie += sortie;
+			}
+		}
+#endif
+
+		return energie;
+	};
+
+	auto energie = tbb::parallel_reduce(
+				tbb::blocked_range<int>(0, taille * taille),
+				0.0f,
+				calcul_energie_ex,
+				std::plus<float>());
+
+	return energie;
+}
+
+static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
+{
+	auto moitie_x = static_cast<float>(largeur) * 0.5f;
+	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
+
+	auto desc = wlk::desc_grille_2d();
+	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
+	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_voxel = 1.0;
+
+	return desc;
+}
+
+class OpGenerationBruitBleu final : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Génération Bruit Bleu";
+	static constexpr auto AIDE = "Génère un bruit bleu utile pour ajouter une dispersion à un échantillonnage de Monte Carlo";
+
+	explicit OpGenerationBruitBleu(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceImage(graphe_parent, noeud)
+	{
+		entrees(0);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_generation_bruit_bleu.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_image.reinitialise();
+
+		auto chef = contexte.chef;
+		chef->demarre_evaluation("bruit bleu");
+
+		auto const dimensions = evalue_entier("dimensions");
+		auto const iterations = evalue_entier("itérations");
+		auto const taille = evalue_entier("taille");
+		auto const graine = evalue_entier("graine");
+		auto const taille_carree = taille * taille;
+
+		/* commence par générer le bruit blanc */
+		auto bruit_blanc = dls::tableau<float>(taille_carree * dimensions);
+		auto bruit_propose = dls::tableau<float>(taille_carree * dimensions);
+		auto bruit_bleu = dls::tableau<float>(taille_carree * dimensions);
+
+		for (auto i = 0; i < taille_carree * dimensions; ++i) {
+			auto alea = empreinte_n32_vers_r32(static_cast<unsigned>(graine + i));
+			bruit_blanc[i] = alea;
+			bruit_bleu[i] = alea;
+			bruit_propose[i] = alea;
+		}
+
+		auto distribution_orig = calcul_energie(bruit_blanc, taille, dimensions);
+		auto distribution_bleu = distribution_orig;
+
+		std::cerr << "énergie originale : " << distribution_bleu << '\n';
+
+		/* génère le bruit bleu */
+
+		for (int i = 0; i < iterations; ++i) {
+			auto u1 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 0)) * static_cast<float>(taille));
+			auto u2 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 1)) * static_cast<float>(taille));
+			auto u3 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 2)) * static_cast<float>(taille));
+			auto u4 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 3)) * static_cast<float>(taille));
+
+			auto p1 = u1 * taille + u2;
+			auto p2 = u3 * taille + u4;
+
+			for (int j = 0; j < dimensions; ++j) {
+				std::swap(bruit_propose[j * taille_carree + p1], bruit_propose[j * taille_carree + p2]);
+			}
+
+			auto distribution_prop = calcul_energie(bruit_propose, taille, dimensions);
+
+			chef->indique_progression(static_cast<float>(i + 1) / static_cast<float>(iterations) * 100.0f);
+
+			if (distribution_prop > distribution_bleu) {
+				for (int j = 0; j < dimensions; ++j) {
+					bruit_propose[j * taille_carree + p1] = bruit_bleu[j * taille_carree + p1];
+					bruit_propose[j * taille_carree + p2] = bruit_bleu[j * taille_carree + p2];
+				}
+
+				continue;
+			}
+
+			distribution_bleu = distribution_prop;
+
+			for (int j = 0; j < dimensions; ++j) {
+				bruit_bleu[j * taille_carree + p1] = bruit_propose[j * taille_carree + p1];
+				bruit_bleu[j * taille_carree + p2] = bruit_propose[j * taille_carree + p2];
+			}
+		}
+
+		std::cerr << "énergie restante  : " << distribution_bleu << '\n';
+
+		chef->indique_progression(100.0f);
+
+		auto desc = desc_depuis_hauteur_largeur(taille, taille);
+
+		auto calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+		auto tampon = extrait_grille_couleur(calque);
+
+		for (auto i = 0; i < taille_carree; ++i) {
+			auto clr = dls::phys::couleur32();
+
+			if (dimensions == 1) {
+				clr.r = bruit_bleu[i];
+				clr.v = bruit_bleu[i];
+				clr.b = bruit_bleu[i];
+			}
+			else if (dimensions == 2) {
+				clr.r = bruit_bleu[i];
+				clr.v = bruit_bleu[i + taille_carree];
+				clr.b = 1.0f;
+			}
+			else  {
+				clr.r = bruit_bleu[i];
+				clr.v = bruit_bleu[i + taille_carree];
+				clr.b = bruit_bleu[i + taille_carree + taille_carree];
+			}
+
+			clr.a = 1.0f;
+
+			tampon->valeur(i) = clr;
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_region(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceAnalyse>());
@@ -2913,6 +3193,7 @@ void enregistre_operatrices_region(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpFiltreBilateral>());
 	usine.enregistre_type(cree_desc<OpLueurImage>());
 	usine.enregistre_type(cree_desc<OpMappageTonalOndelette>());
+	usine.enregistre_type(cree_desc<OpGenerationBruitBleu>());
 }
 
 #pragma clang diagnostic pop

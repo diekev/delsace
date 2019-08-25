@@ -147,6 +147,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_fusion.jo
 	scripts_danjo/operatrice_gamma.jo
 	scripts_danjo/operatrice_geometrie_maillage.jo
+	scripts_danjo/operatrice_generation_bruit_bleu.jo
 	scripts_danjo/operatrice_gigue_points.jo
 	scripts_danjo/operatrice_grade.jo
 	scripts_danjo/operatrice_gravite.jo

@@ -35,6 +35,7 @@ set(SOURCES
 	synchronise.cc
 
 	boucle.hh
+	sse_mathfun.hh
 	synchronise.hh
 	synchrone.hh
 )

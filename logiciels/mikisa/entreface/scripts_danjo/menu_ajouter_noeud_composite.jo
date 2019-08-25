@@ -55,6 +55,7 @@ menu "Noeud Composite" {
 		action(valeur="Coordonnées Polaires"; attache=ajouter_noeud; métadonnée="Coordonnées Polaires")
 		action(valeur="Déformation"; attache=ajouter_noeud; métadonnée="Déformation")
 		action(valeur="Extraction Palette"; attache=ajouter_noeud; métadonnée="Extraction Palette")
+		action(valeur="Génération Bruit Bleu"; attache=ajouter_noeud; métadonnée="Génération Bruit Bleu")
 		action(valeur="Mappage Tonal Ondelette"; attache=ajouter_noeud; métadonnée="Mappage Tonal Ondelette")
 		action(valeur="Normalisation Région"; attache=ajouter_noeud; métadonnée="Normalisation Région")
 		action(valeur="Ondelette de Haar"; attache=ajouter_noeud; métadonnée="Ondelette de Haar")
