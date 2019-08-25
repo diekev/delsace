@@ -35,6 +35,9 @@ struct Entite : public danjo::Manipulable {
 	dls::chaine nom{};
 	Graphe graphe;
 
+	Entite(Entite const &) = default;
+	Entite &operator=(Entite const &) = default;
+
 	Entite(type_function_creation_noeud fcn, type_function_destruction_noeud fdn);
 
 	virtual ~Entite() = default;

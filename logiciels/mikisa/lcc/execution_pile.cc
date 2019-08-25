@@ -909,8 +909,8 @@ void execute_pile(
 			case code_inst::FN_ECHANTILLONE_SPHERE:
 			{
 				auto g = static_cast<unsigned>(graine);
-				auto gna = GNASimple(g);
-				auto res = echantillone_sphere<dls::math::vec3f>(gna);
+				auto gna_loc = GNASimple(g);
+				auto res = echantillone_sphere<dls::math::vec3f>(gna_loc);
 				graine = static_cast<int>(g);
 				pile_donnees.stocke(compteur, insts, res);
 				break;
