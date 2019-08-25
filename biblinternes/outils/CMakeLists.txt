@@ -36,6 +36,7 @@ set(ENTETES
 	constantes.h
 	conditions.h
 	definitions.h
+	empreintes.hh
 	fichier.hh
 	format.hh
 	gna.hh
@@ -48,6 +49,7 @@ set(ENTETES
 set(SOURCES
 	chaine.cc
 	chemin.cc
+	empreintes.cc
 	fichier.cc
 	format.cc
 	gna.cc
