@@ -3095,6 +3095,10 @@ public:
 		/* génère le bruit bleu */
 
 		for (int i = 0; i < iterations; ++i) {
+			if (chef->interrompu()) {
+				break;
+			}
+
 			auto u1 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 0)) * static_cast<float>(taille));
 			auto u2 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 1)) * static_cast<float>(taille));
 			auto u3 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 2)) * static_cast<float>(taille));
