@@ -36,6 +36,7 @@ set(BIBLIOTHEQUES
 
 add_library(${NOM_CIBLE} STATIC
 	bruit_vaguelette.cc
+	diffusion.cc
 	fluide.cc
 	gradient_conjugue.cc
 	incompressibilite.cc
@@ -44,6 +45,7 @@ add_library(${NOM_CIBLE} STATIC
 	simulation.cc
 
 	bruit_vaguelette.hh
+	diffusion.hh
 	fluide.hh
 	gradient_conjugue.hh
 	incompressibilite.hh

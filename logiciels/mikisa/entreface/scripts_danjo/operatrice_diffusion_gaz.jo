@@ -1,0 +1,22 @@
+disposition "operatrice_diffusion_gaz" {
+	ligne {
+		étiquette(valeur="Itérations")
+		entier(valeur=100; min=0; attache=itérations; infobulle="Nombre maximum de boucles performées pour résoudre la diffusion.")
+	}
+	ligne {
+		étiquette(valeur="Précision")
+		entier(valeur=6; min=0; attache=précision_; infobulle="")
+	}
+	ligne {
+		étiquette(valeur="Diffusion Fumée")
+		décimal(valeur=0.0; min=0.0; attache=diff_fum; infobulle="")
+	}
+	ligne {
+		étiquette(valeur="Diffusion Température")
+		décimal(valeur=0.0; min=0.0; attache=diff_tmp; infobulle="")
+	}
+	ligne {
+		étiquette(valeur="Diffusion Vélocité")
+		décimal(valeur=0.0; min=0.0; attache=diff_vel; infobulle="")
+	}
+}

@@ -24,6 +24,14 @@ disposition "operatrice_entree_gaz" {
 		décimal(valeur=1.0; attache=densité; min=0.0; max=1.0; animable)
 	}
 	ligne {
+		étiquette(valeur="Température")
+		décimal(valeur=1.0; attache=température; min=0.0; animable)
+	}
+	ligne {
+		étiquette(valeur="Fioul")
+		décimal(valeur=1.0; attache=fioul; min=0.0; max=1.0; animable)
+	}
+	ligne {
 		étiquette(valeur="Début")
 		entier(valeur=1; attache=début; animable)
 	}

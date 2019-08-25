@@ -39,6 +39,7 @@
 
 #include "evaluation/reseau.hh"
 
+#include "poseidon/diffusion.hh"
 #include "poseidon/fluide.hh"
 #include "poseidon/incompressibilite.hh"
 #include "poseidon/monde.hh"
@@ -221,6 +222,8 @@ public:
 		auto params = psn::ParametresSource{};
 		params.objet = m_objet;
 		params.densite = evalue_decimal("densité");
+		params.temperature = evalue_decimal("température");
+		params.fioul = evalue_decimal("fioul");
 		params.facteur = evalue_decimal("facteur");
 		params.debut = evalue_entier("début");
 		params.fin = evalue_entier("fin");
@@ -251,6 +254,11 @@ public:
 		if (propriete("début") == nullptr) {
 			ajoute_propriete("début", danjo::TypePropriete::ENTIER, 1);
 			ajoute_propriete("fin", danjo::TypePropriete::ENTIER, 100);
+		}
+
+		if (propriete("température") == nullptr) {
+			ajoute_propriete("température", danjo::TypePropriete::DECIMAL, 1.0f);
+			ajoute_propriete("fioul", danjo::TypePropriete::DECIMAL, 1.0f);
 		}
 	}
 };
@@ -873,6 +881,7 @@ public:
 		desc.taille_voxel = 10.0 / static_cast<double>(res);
 
 		m_poseidon.densite = memoire::loge<wlk::grille_dense_3d<float>>("grilles", desc);
+		m_poseidon.temperature = memoire::loge<wlk::grille_dense_3d<float>>("grilles", desc);
 
 		if (m_poseidon.solveur_flip) {
 			m_poseidon.grille_particule = psn::GrilleParticule(desc);
@@ -895,7 +904,13 @@ public:
 		memoire::deloge("grilles", m_poseidon.densite);
 		memoire::deloge("grilles", m_poseidon.pression);
 		memoire::deloge("grilles", m_poseidon.drapeaux);
+		memoire::deloge("grilles", m_poseidon.oxygene);
+		memoire::deloge("grilles", m_poseidon.temperature);
+		memoire::deloge("grilles", m_poseidon.fioul);
 		memoire::deloge("grilles", m_poseidon.velocite);
+		memoire::deloge("grilles", m_poseidon.densite_prev);
+		memoire::deloge("grilles", m_poseidon.temperature_prev);
+		memoire::deloge("grilles", m_poseidon.velocite_prev);
 
 		m_poseidon.supprime_particules();
 	}
@@ -996,6 +1011,18 @@ public:
 		}
 		else {
 			psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *densite, poseidon_gaz->dt, ordre);
+
+			if (poseidon_gaz->temperature) {
+				psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *poseidon_gaz->temperature, poseidon_gaz->dt, ordre);
+			}
+
+			if (poseidon_gaz->fioul) {
+				psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *poseidon_gaz->fioul, poseidon_gaz->dt, ordre);
+			}
+
+			if (poseidon_gaz->oxygene) {
+				psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *poseidon_gaz->oxygene, poseidon_gaz->dt, ordre);
+			}
 		}
 
 		psn::advecte_semi_lagrange(*drapeaux, *vieille_vel, *velocite, poseidon_gaz->dt, ordre);
@@ -1068,6 +1095,7 @@ public:
 		auto densite = poseidon_gaz->densite;
 		auto velocite = poseidon_gaz->velocite;
 		auto drapeaux = poseidon_gaz->drapeaux;
+		auto temperature = poseidon_gaz->temperature;
 		auto densite_basse = wlk::grille_dense_3d<float>();
 
 		/* converti la gravité à l'espace domaine */
@@ -1086,7 +1114,7 @@ public:
 					*densite,
 					*velocite,
 					*drapeaux,
-					nullptr,
+					temperature,
 					gravite,
 					alpha,
 					beta,
@@ -1335,13 +1363,110 @@ public:
 			wlk::affine_grille(*densite, rayon_fum, quantite_fum);
 		}
 
-#if 0   /* À FAIRE : grille température */
 		auto const quantite_tmp = evalue_decimal("quantité_tmp", contexte.temps_courant);
 		auto const rayon_tmp = evalue_decimal("rayon_tmp", contexte.temps_courant);
 
 		if (quantite_tmp != 0.0f) {
 			auto temperature = poseidon_gaz->temperature;
 			wlk::affine_grille(*temperature, rayon_tmp, quantite_tmp);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpDiffusionGaz : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Diffusion Gaz";
+	static constexpr auto AIDE = "";
+
+	explicit OpDiffusionGaz(Graphe &graphe_parent, Noeud *noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		m_execute_toujours = true;
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_diffusion_gaz.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto drapeaux = poseidon_gaz->drapeaux;
+		auto const dt = poseidon_gaz->dt;
+		auto const iterations = evalue_entier("itérations");
+		auto const precision = 1.0f / std::pow(10.0f, static_cast<float>(evalue_entier("précision_")));
+
+		auto const diff_fum = evalue_decimal("diff_fum", contexte.temps_courant);
+
+		if (diff_fum != 0.0f) {
+			if (poseidon_gaz->densite_prev == nullptr) {
+				poseidon_gaz->densite_prev = memoire::loge<wlk::grille_dense_3d<float>>("grilles", poseidon_gaz->densite->desc());
+			}
+
+			std::swap(poseidon_gaz->densite, poseidon_gaz->densite_prev);
+
+			auto fumee = poseidon_gaz->densite;
+			auto fumee_prev = poseidon_gaz->densite_prev;
+
+			psn::diffuse(*fumee, *fumee_prev, *drapeaux, iterations, precision, diff_fum, dt);
+		}
+
+		auto const diff_tmp = evalue_decimal("diff_tmp", contexte.temps_courant);
+
+		if (diff_tmp != 0.0f) {
+			if (poseidon_gaz->temperature_prev == nullptr) {
+				poseidon_gaz->temperature_prev = memoire::loge<wlk::grille_dense_3d<float>>("grilles", poseidon_gaz->temperature->desc());
+			}
+
+			std::swap(poseidon_gaz->temperature, poseidon_gaz->temperature_prev);
+
+			auto temperature = poseidon_gaz->temperature;
+			auto temperature_prev = poseidon_gaz->temperature_prev;
+
+			psn::diffuse(*temperature, *temperature_prev, *drapeaux, iterations, precision, diff_tmp, dt);
+		}
+
+#if 0  /* À FAIRE : sépare vélocité */
+		auto const diff_vel = evalue_decimal("diff_vel", contexte.temps_courant);
+
+		if (diff_tmp != 0.0f) {
+			if (poseidon_gaz->velocite_prev == nullptr) {
+				poseidon_gaz->velocite_prev = memoire::loge<wlk::GrilleMAC>("grilles", poseidon_gaz->velocite->desc());
+			}
+
+			std::swap(poseidon_gaz->velocite, poseidon_gaz->velocite_prev);
+
+			auto temperature = poseidon_gaz->velocite;
+			auto temperature_prev = poseidon_gaz->velocite_prev;
+
+			psn::diffuse(*temperature, *temperature_prev, *drapeaux, iterations, precision, diff_tmp, dt);
 		}
 #endif
 
@@ -1361,6 +1486,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpIncompressibiliteGaz>());
 	usine.enregistre_type(cree_desc<OpVorticiteGaz>());
 	usine.enregistre_type(cree_desc<OpAffinageGaz>());
+	usine.enregistre_type(cree_desc<OpDiffusionGaz>());
 }
 
 #pragma clang diagnostic pop

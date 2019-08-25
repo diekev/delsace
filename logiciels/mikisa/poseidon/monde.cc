@@ -176,6 +176,8 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto corps = Corps();
 
 	auto densite = poseidon.densite;
+	auto temperature = poseidon.temperature;
+	auto fioul = poseidon.fioul;
 	auto &grille_particule = poseidon.grille_particule;
 	auto res = densite->desc().resolution;
 
@@ -252,6 +254,15 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 
 			if (!poseidon.solveur_flip) {
 				densite->valeur(idx) = compose_valeur(params, densite->valeur(idx), densite_cible);
+
+				if (temperature != nullptr) {
+					temperature->valeur(idx) = params.temperature;
+				}
+
+				if (fioul != nullptr) {
+					fioul->valeur(idx) = std::max(params.fioul, fioul->valeur(idx));
+				}
+
 				continue;
 			}
 

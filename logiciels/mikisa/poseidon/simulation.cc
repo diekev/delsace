@@ -67,36 +67,36 @@ void ajoute_flottance(
 			auto &v = vel.valeur(idx);
 
 			if (flags.valeur(idx - dalle_x) == TypeFluid) {
-				auto s = 0.5f * density.valeur(idx) + density.valeur(idx - dalle_x);
+				auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_x));
 				auto T = 0.0f;
 
 				if (temperature) {
-					T =  0.5f * temperature->valeur(idx) + temperature->valeur(idx - dalle_x);
+					T =  0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_x));
 				}
 
-				v.x -= f.x * -alpha * s + beta * (T - temperature_ambiante);
+				v.x += f.x * (-alpha * s + beta * (T - temperature_ambiante));
 			}
 
 			if (flags.valeur(idx - dalle_y) == TypeFluid) {
-				auto s = 0.5f * density.valeur(idx) + density.valeur(idx - dalle_y);
+				auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_y));
 				auto T = 0.0f;
 
 				if (temperature) {
-					T =  0.5f * temperature->valeur(idx) + temperature->valeur(idx - dalle_y);
+					T =  0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_y));
 				}
 
-				v.y -= f.y * -alpha * s + beta * (T - temperature_ambiante);
+				v.y += f.y * (-alpha * s + beta * (T - temperature_ambiante));
 			}
 
 			if (flags.valeur(idx - dalle_z) == TypeFluid) {
-				auto s = 0.5f * density.valeur(idx) + density.valeur(idx - dalle_z);
+				auto s = 0.5f * (density.valeur(idx) + density.valeur(idx - dalle_z));
 				auto T = 0.0f;
 
 				if (temperature) {
-					T =  0.5f * temperature->valeur(idx) + temperature->valeur(idx - dalle_z);
+					T =  0.5f * (temperature->valeur(idx) + temperature->valeur(idx - dalle_z));
 				}
 
-				v.z -= f.z * -alpha * s + beta * (T - temperature_ambiante);
+				v.z += f.z * (-alpha * s + beta * (T - temperature_ambiante));
 			}
 		}
 	});

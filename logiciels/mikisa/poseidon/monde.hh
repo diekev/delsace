@@ -47,6 +47,8 @@ enum mode_fusion {
 struct ParametresSource {
 	mode_fusion fusion{};
 	float densite = 1.0f;
+	float temperature = 1.0f;
+	float fioul = 1.0f;
 	float facteur = 1.0f;
 	Objet *objet = nullptr;
 	int debut = 0;
@@ -63,8 +65,17 @@ struct Poseidon {
 
 	wlk::grille_dense_3d<int> *drapeaux = nullptr;
 	wlk::grille_dense_3d<float> *densite = nullptr;
+	wlk::grille_dense_3d<float> *temperature = nullptr;
+	wlk::grille_dense_3d<float> *oxygene = nullptr;
+	wlk::grille_dense_3d<float> *divergence = nullptr;
+	wlk::grille_dense_3d<float> *fioul = nullptr;
 	wlk::grille_dense_3d<float> *pression = nullptr;
 	wlk::GrilleMAC *velocite = nullptr;
+
+	/* pour la diffusion */
+	wlk::grille_dense_3d<float> *densite_prev = nullptr;
+	wlk::grille_dense_3d<float> *temperature_prev = nullptr;
+	wlk::GrilleMAC *velocite_prev = nullptr;
 
 	bruit_vaguelette bruit{};
 
