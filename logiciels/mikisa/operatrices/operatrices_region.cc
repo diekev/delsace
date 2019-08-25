@@ -33,6 +33,7 @@
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/matrice/operations.hh"
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/moultfilage/sse_r32.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
@@ -2893,9 +2894,6 @@ public:
 
 /* ************************************************************************** */
 
-#include <pmmintrin.h>
-#include "biblinternes/moultfilage/sse_mathfun.hh"
-
 #define SSE
 
 /**
@@ -2917,59 +2915,57 @@ static auto calcul_energie(dls::tableau<float> const &bruit, int taille, int dim
 
 #ifdef SSE
 		static __m128 signmask = _mm_castsi128_ps(_mm_set1_epi32(1 << 31));
-		static __m128 offsetf  = _mm_setr_ps(0.0f, 1.0f, 2.0f, 3.0f);
+		static auto offsetf  = sse_r32(0.0f, 1.0f, 2.0f, 3.0f);
 		static __m128i offseti = _mm_setr_epi32(0, 1, 2, 3);
 
 		for (auto i = plage.begin(); i < plage.end(); ++i) {
-			__m128i iv = _mm_set1_epi32(i);
-			__m128 ix = _mm_set1_ps(static_cast<float>(i % taille));
-			__m128 iy = _mm_set1_ps(static_cast<float>(i / taille));
+			auto iv = _mm_set1_epi32(i);
+			auto ix = sse_r32(static_cast<float>(i % taille));
+			auto iy = sse_r32(static_cast<float>(i / taille));
 
 			for (auto j = 0; j < taille_carree; j += 4) {
 				__m128i jv = _mm_add_epi32(_mm_set1_epi32(j), offseti);
-				__m128 jx = _mm_add_ps(_mm_set1_ps(static_cast<float>(j % taille)), offsetf);
-				__m128 jy = _mm_set1_ps(static_cast<float>(j / taille));
+				auto jx = sse_r32(static_cast<float>(j % taille)) + offsetf;
+				auto jy = sse_r32(static_cast<float>(j / taille));
 
-				__m128 imageDistX = _mm_andnot_ps(signmask, _mm_sub_ps(ix, jx));
-				__m128 imageDistY = _mm_andnot_ps(signmask, _mm_sub_ps(iy, jy));
+				auto imageDistX = sse_r32(etnon_binaire(signmask, ix - jx));
+				auto imageDistY = sse_r32(etnon_binaire(signmask, iy - jy));
 
-				__m128 imageWrapX = _mm_sub_ps(_mm_set1_ps(static_cast<float>(taille)), imageDistX);
-				__m128 imageWrapY = _mm_sub_ps(_mm_set1_ps(static_cast<float>(taille)), imageDistY);
+				auto imageWrapX = sse_r32(static_cast<float>(taille)) - imageDistX;
+				auto imageWrapY = sse_r32(static_cast<float>(taille)) - imageDistY;
 
-				__m128 maskX = _mm_cmplt_ps(imageDistX, _mm_set1_ps(sizeOverTwo));
-				__m128 maskY = _mm_cmplt_ps(imageDistY, _mm_set1_ps(sizeOverTwo));
+				auto maskX = imageDistX < sse_r32(sizeOverTwo);
+				auto maskY = imageDistY < sse_r32(sizeOverTwo);
 
-				imageDistX = _mm_or_ps(_mm_and_ps(maskX, imageDistX), _mm_andnot_ps(maskX, imageWrapX));
-				imageDistY = _mm_or_ps(_mm_and_ps(maskY, imageDistY), _mm_andnot_ps(maskY, imageWrapY));
+				imageDistX = ou_binaire(et_binaire(maskX, imageDistX), etnon_binaire(maskX, imageWrapX));
+				imageDistY = ou_binaire(et_binaire(maskY, imageDistY), etnon_binaire(maskY, imageWrapY));
 
-				__m128 imageDistSqrX = _mm_mul_ps(imageDistX, imageDistX);
-				__m128 imageDistSqrY = _mm_mul_ps(imageDistY, imageDistY);
+				auto imageDistSqrX = imageDistX * imageDistX;
+				auto imageDistSqrY = imageDistY * imageDistY;
 
-				__m128 imageSqr = _mm_add_ps(imageDistSqrX, imageDistSqrY);
-				__m128 imageEnergy = _mm_mul_ps(imageSqr, _mm_set1_ps(sigma_i_inv));
+				auto imageSqr = imageDistSqrX + imageDistSqrY;
+				auto imageEnergy = imageSqr * sse_r32(sigma_i_inv);
 
-				__m128 sampleSqr = _mm_setzero_ps();
+				auto sampleSqr = sse_r32();
 
 				for (auto d = 0; d < dimensions; ++d) {
-					__m128 pBuffer = _mm_set1_ps(bruit[d * taille_carree + i]);
-					__m128 qBuffer = _mm_load_ps(&bruit[d * taille_carree + j]);
-					__m128 sampleDistance = _mm_andnot_ps(signmask, _mm_sub_ps(pBuffer, qBuffer));
-					__m128 sampleDistanceSqr = _mm_mul_ps(sampleDistance, sampleDistance);
+					auto pBuffer = sse_r32(bruit[d * taille_carree + i]);
+					auto qBuffer = sse_r32(&bruit[d * taille_carree + j]);
+					auto sampleDistance = sse_r32(etnon_binaire(signmask, pBuffer - qBuffer));
+					auto sampleDistanceSqr = sampleDistance * sampleDistance;
 
-					sampleSqr = _mm_add_ps(sampleSqr, sampleDistanceSqr);
+					sampleSqr += sampleDistanceSqr;
 				}
 
-				__m128 samplePow = exp_ps(_mm_mul_ps(log_ps(_mm_sqrt_ps(sampleSqr)), _mm_set1_ps(moitie_dim)));
-				__m128 sampleEnergy = samplePow;
+				auto samplePow = exp(log(sqrt(sampleSqr)) * sse_r32(moitie_dim));
+				auto sampleEnergy = samplePow;
 
-				__m128 output = exp_ps(_mm_sub_ps(_mm_sub_ps(_mm_setzero_ps(), imageEnergy), sampleEnergy));
-				__m128 mask = _mm_castsi128_ps(_mm_cmpeq_epi32(iv, jv));
+				auto output = exp(sse_r32() - imageEnergy - sampleEnergy);
+				auto mask = _mm_castsi128_ps(_mm_cmpeq_epi32(iv, jv));
 
-				__m128 masked = _mm_andnot_ps(mask, output);
-				masked = _mm_hadd_ps(masked, masked);
-				masked = _mm_hadd_ps(masked, masked);
+				auto masked = etnon_binaire(mask, output);
 
-				energie += _mm_cvtss_f32(masked);
+				energie += aplani_ajoute(masked);
 			}
 		}
 #else

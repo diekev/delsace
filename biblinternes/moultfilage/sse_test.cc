@@ -22,7 +22,7 @@
  *
  */
 
-#include "sse_float.hh"
+#include "sse_r32.hh"
 #include "sse_test.hh"
 
 #include <algorithm>
@@ -52,8 +52,8 @@ public:
 
 	inline void block(float *y, float *x) const
 	{
-		sse_float X0 = x;
-		sse_float X4 = x + 4;
+		sse_r32 X0 = x;
+		sse_r32 X4 = x + 4;
 		X0 *= m_a;
 		X4 *= m_a;
 		_mm_storeu_ps(y, X0);
@@ -91,21 +91,18 @@ float accumulate(dls::tableau<float> &v)
 
 	return _mm_cvtss_f32(mmSum);
 #else
-	sse_float mmSum;
+	sse_r32 mmSum;
 
 	// unrolled loop that adds up 4 elements at a time
 	for (; i < e; i += 4l) {
-		mmSum += sse_float(p + i);
+		mmSum += sse_r32(p + i);
 	}
 
 	for (; i < n; ++i) {
 		mmSum = _mm_add_ss(mmSum, _mm_load_ss(p + i));
 	}
 
-	mmSum = _mm_hadd_ps(mmSum, mmSum);
-	mmSum = _mm_hadd_ps(mmSum, mmSum);
-
-	return _mm_cvtss_f32(mmSum);
+	return aplani_ajoute(mmSum);
 #endif
 }
 
