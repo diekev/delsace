@@ -782,8 +782,6 @@ public:
 
 	~OperatriceCreationArbre() override;
 
-	int type_sortie(int) const override;
-
 	const char *chemin_entreface() const override;
 
 	const char *nom_classe() const override;
@@ -804,11 +802,6 @@ OperatriceCreationArbre::OperatriceCreationArbre(Graphe &graphe_parent, Noeud *n
 OperatriceCreationArbre::~OperatriceCreationArbre()
 {
 	memoire::deloge("MTree", m_arbre);
-}
-
-int OperatriceCreationArbre::type_sortie(int) const
-{
-	return OPERATRICE_CORPS;
 }
 
 const char *OperatriceCreationArbre::chemin_entreface() const

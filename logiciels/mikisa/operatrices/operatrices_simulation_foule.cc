@@ -322,16 +322,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_simulation_foule.jo";

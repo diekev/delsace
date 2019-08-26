@@ -43,9 +43,9 @@ public:
 
 	int type() const override;
 
-	int type_entree(int) const override;
+	type_prise type_entree(int) const override;
 
-	int type_sortie(int) const override;
+	type_prise type_sortie(int) const override;
 
 	Corps *corps() override;
 

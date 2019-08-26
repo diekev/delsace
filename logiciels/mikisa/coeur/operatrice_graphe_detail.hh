@@ -52,10 +52,6 @@ public:
 
 	const char *chemin_entreface() const override;
 
-	int type_entree(int) const override;
-
-	int type_sortie(int) const override;
-
 	Graphe *graphe();
 
 	virtual int type() const override;
@@ -82,9 +78,9 @@ public:
 
 	const char *chemin_entreface() const override;
 
-	int type_entree(int i) const override;
+	type_prise type_entree(int i) const override;
 
-	int type_sortie(int i) const override;
+	type_prise type_sortie(int i) const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };

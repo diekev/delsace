@@ -115,16 +115,6 @@ public:
 		return "entreface/operatrice_entree_gaz.jo";
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *nom_classe() const override
 	{
 		return NOM;
@@ -290,16 +280,6 @@ public:
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_obstacle_gaz.jo";
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *nom_classe() const override

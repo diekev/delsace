@@ -54,16 +54,6 @@ const char *OperatriceGrapheDetail::chemin_entreface() const
 	return "";
 }
 
-int OperatriceGrapheDetail::type_entree(int) const
-{
-	return OPERATRICE_CORPS;
-}
-
-int OperatriceGrapheDetail::type_sortie(int) const
-{
-	return OPERATRICE_CORPS;
-}
-
 Graphe *OperatriceGrapheDetail::graphe()
 {
 	return &m_graphe;
@@ -130,6 +120,38 @@ void OperatriceGrapheDetail::compile_graphe(int temps)
 
 /* ************************************************************************** */
 
+static auto converti_type_prise(lcc::type_var type)
+{
+	switch (type) {
+		case lcc::type_var::DEC:
+			return type_prise::DECIMAL;
+		case lcc::type_var::ENT32:
+			return type_prise::ENTIER;
+		case lcc::type_var::VEC2:
+			return type_prise::VEC2;
+		case lcc::type_var::VEC3:
+			return type_prise::VEC3;
+		case lcc::type_var::VEC4:
+			return type_prise::VEC4;
+		case lcc::type_var::COULEUR:
+			return type_prise::COULEUR;
+		case lcc::type_var::MAT3:
+			return type_prise::MAT3;
+		case lcc::type_var::MAT4:
+			return type_prise::MAT4;
+		case lcc::type_var::CHAINE:
+			return type_prise::CHAINE;
+		case lcc::type_var::INVALIDE:
+			return type_prise::INVALIDE;
+		case lcc::type_var::TABLEAU:
+			return type_prise::TABLEAU;
+		case lcc::type_var::POLYMORPHIQUE:
+			return type_prise::POLYMORPHIQUE;
+	}
+
+	return type_prise::INVALIDE;
+}
+
 OperatriceFonctionDetail::OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, const lcc::donnees_fonction *df)
 	: OperatriceImage(graphe_parent, noeud)
 	, m_df(df)
@@ -159,18 +181,14 @@ const char *OperatriceFonctionDetail::chemin_entreface() const
 	return "";
 }
 
-int OperatriceFonctionDetail::type_entree(int i) const
+type_prise OperatriceFonctionDetail::type_entree(int i) const
 {
-	/* À FAIRE */
-	INUTILISE(i);
-	return OPERATRICE_CORPS;
+	return converti_type_prise(m_df->seing.entrees.types[i]);
 }
 
-int OperatriceFonctionDetail::type_sortie(int i) const
+type_prise OperatriceFonctionDetail::type_sortie(int i) const
 {
-	/* À FAIRE */
-	INUTILISE(i);
-	return OPERATRICE_CORPS;
+	return converti_type_prise(m_df->seing.sorties.types[i]);
 }
 
 int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)

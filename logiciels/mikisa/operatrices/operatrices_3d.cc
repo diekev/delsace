@@ -24,6 +24,7 @@
 
 #include "operatrices_3d.h"
 
+#include "biblinternes/graphe/noeud.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/texture/texture.h"
 #include "biblinternes/vision/camera.h"
@@ -61,13 +62,13 @@ public:
 		return OPERATRICE_IMAGE;
 	}
 
-	int type_entree(int n) const override
+	type_prise type_entree(int n) const override
 	{
 		if (n == 0) {
-			return OPERATRICE_IMAGE;
+			return type_prise::IMAGE;
 		}
 
-		return OPERATRICE_CAMERA;
+		return type_prise::INVALIDE;
 	}
 
 	const char *nom_entree(int n) override
@@ -79,9 +80,9 @@ public:
 		return "caméra";
 	}
 
-	int type_sortie(int) const override
+	type_prise type_sortie(int) const override
 	{
-		return OPERATRICE_IMAGE;
+		return type_prise::IMAGE;
 	}
 
 	const char *chemin_entreface() const override

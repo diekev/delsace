@@ -49,10 +49,6 @@ public:
 
 	virtual const char *texte_aide() const override;
 
-	int type_entree(int n) const override;
-
-	int type_sortie(int) const override;
-
 	const char *chemin_entreface() const override;
 
 	Graphe *graphe();

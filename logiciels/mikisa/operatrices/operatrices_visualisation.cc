@@ -281,16 +281,6 @@ public:
 		sorties(1);
 	}
 
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_vis_arbre_hbe.jo";
@@ -398,16 +388,6 @@ public:
 	{
 		entrees(1);
 		sorties(1);
-	}
-
-	int type_entree(int) const override
-	{
-		return OPERATRICE_CORPS;
-	}
-
-	int type_sortie(int) const override
-	{
-		return OPERATRICE_CORPS;
 	}
 
 	const char *chemin_entreface() const override

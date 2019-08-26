@@ -38,31 +38,88 @@
 #include "coeur/noeud_image.h"
 #include "coeur/operatrice_image.h"
 
-static auto const COULEUR_OBJET  = QColor::fromHsl(static_cast<int>( 90.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_IMAGE  = QColor::fromHsl(static_cast<int>(156.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_PIXEL  = QColor::fromHsl(static_cast<int>(176.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_CAMERA = QColor::fromHsl(static_cast<int>(211.0 / 255.0 * 359.0), 190, 79);
-static auto const COULEUR_SCENE  = QColor::fromHsl(static_cast<int>(249.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_DECIMAL       = QColor::fromRgb(128, 128, 128);
+static auto const COULEUR_ENTIER        = QColor::fromRgb(255, 255, 255);
+static auto const COULEUR_VEC2          = QColor::fromHsl(static_cast<int>(143.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_VEC3          = QColor::fromHsl(static_cast<int>(154.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_VEC4          = QColor::fromHsl(static_cast<int>(165.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_MAT3          = QColor::fromHsl(static_cast<int>(189.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_MAT4          = QColor::fromHsl(static_cast<int>(200.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_COULEUR       = QColor::fromHsl(static_cast<int>(176.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_CORPS         = QColor::fromHsl(static_cast<int>( 90.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_IMAGE         = QColor::fromHsl(static_cast<int>(156.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_OBJET         = QColor::fromHsl(static_cast<int>( 90.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_TABLEAU       = QColor::fromHsl(static_cast<int>(211.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_POLYMORPHIQUE = QColor::fromHsl(static_cast<int>(249.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_CHAINE        = QColor::fromHsl(static_cast<int>(132.0 / 255.0 * 359.0), 190, 79);
+static auto const COULEUR_INVALIDE      = QColor::fromHsl(0, 0, 0);
 
-static QBrush brosse_pour_type(int type)
+static QBrush brosse_pour_type(type_prise type)
 {
 	switch (type) {
-		default:
-		case OPERATRICE_SORTIE_IMAGE:
-		case OPERATRICE_IMAGE:
+		case type_prise::DECIMAL:
+		{
+			return QBrush(COULEUR_DECIMAL);
+		}
+		case type_prise::ENTIER:
+		{
+			return QBrush(COULEUR_ENTIER);
+		}
+		case type_prise::VEC2:
+		{
+			return QBrush(COULEUR_VEC2);
+		}
+		case type_prise::VEC3:
+		{
+			return QBrush(COULEUR_VEC3);
+		}
+		case type_prise::VEC4:
+		{
+			return QBrush(COULEUR_VEC4);
+		}
+		case type_prise::MAT3:
+		{
+			return QBrush(COULEUR_MAT3);
+		}
+		case type_prise::MAT4:
+		{
+			return QBrush(COULEUR_MAT4);
+		}
+		case type_prise::COULEUR:
+		{
+			return QBrush(COULEUR_COULEUR);
+		}
+		case type_prise::CORPS:
+		{
+			return QBrush(COULEUR_CORPS);
+		}
+		case type_prise::IMAGE:
+		{
 			return QBrush(COULEUR_IMAGE);
-		case OPERATRICE_PIXEL:
-			return QBrush(COULEUR_PIXEL);
-		case OPERATRICE_SCENE:
-			return QBrush(COULEUR_SCENE);
-		case OPERATRICE_SIMULATION:
-		case OPERATRICE_CORPS:
-		case OPERATRICE_SORTIE_CORPS:
-		case OPERATRICE_OBJET:
+		}
+		case type_prise::OBJET:
+		{
 			return QBrush(COULEUR_OBJET);
-		case OPERATRICE_CAMERA:
-			return QBrush(COULEUR_CAMERA);
+		}
+		case type_prise::TABLEAU:
+		{
+			return QBrush(COULEUR_TABLEAU);
+		}
+		case type_prise::POLYMORPHIQUE:
+		{
+			return QBrush(COULEUR_POLYMORPHIQUE);
+		}
+		case type_prise::CHAINE:
+		{
+			return QBrush(COULEUR_CHAINE);
+		}
+		case type_prise::INVALIDE:
+		{
+			return QBrush(COULEUR_INVALIDE);
+		}
 	}
+
+	return QBrush(COULEUR_INVALIDE);
 }
 
 ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
@@ -71,12 +128,32 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	auto operatrice = static_cast<OperatriceImage *>(nullptr);
 	auto brosse_couleur = QBrush();
 
-	if (noeud->type() == NOEUD_OBJET || noeud->type() == NOEUD_COMPOSITE) {
-		brosse_couleur = brosse_pour_type(OPERATRICE_OBJET);
+	if (noeud->type() == NOEUD_OBJET) {
+		brosse_couleur = brosse_pour_type(type_prise::OBJET);
+	}
+	else if (noeud->type() == NOEUD_COMPOSITE) {
+		brosse_couleur = brosse_pour_type(type_prise::IMAGE);
 	}
 	else {
 		operatrice = extrait_opimage(noeud->donnees());
-		brosse_couleur = brosse_pour_type(operatrice->type());
+
+		switch (operatrice->type()) {
+			default:
+			case OPERATRICE_SORTIE_IMAGE:
+			case OPERATRICE_IMAGE:
+			case OPERATRICE_PIXEL:
+				brosse_couleur = brosse_pour_type(type_prise::IMAGE);
+				break;
+			case OPERATRICE_GRAPHE_DETAIL:
+			case OPERATRICE_SIMULATION:
+			case OPERATRICE_CORPS:
+			case OPERATRICE_SORTIE_CORPS:
+				brosse_couleur = brosse_pour_type(type_prise::CORPS);
+				break;
+			case OPERATRICE_OBJET:
+				brosse_couleur = brosse_pour_type(type_prise::OBJET);
+				break;
+		}
 	}
 
 	auto const pos_x = noeud->pos_x();

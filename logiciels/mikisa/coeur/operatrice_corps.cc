@@ -24,6 +24,7 @@
 
 #include "operatrice_corps.h"
 
+#include "biblinternes/graphe/noeud.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud *noeud)
@@ -36,14 +37,14 @@ int OperatriceCorps::type() const
 	return OPERATRICE_CORPS;
 }
 
-int OperatriceCorps::type_entree(int) const
+type_prise OperatriceCorps::type_entree(int) const
 {
-	return OPERATRICE_CORPS;
+	return type_prise::CORPS;
 }
 
-int OperatriceCorps::type_sortie(int) const
+type_prise OperatriceCorps::type_sortie(int) const
 {
-	return OPERATRICE_CORPS;
+	return type_prise::CORPS;
 }
 
 Corps *OperatriceCorps::corps()

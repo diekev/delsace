@@ -44,16 +44,6 @@ const char *OperatriceSimulation::texte_aide() const
 	return AIDE;
 }
 
-int OperatriceSimulation::type_entree(int) const
-{
-	return OPERATRICE_CORPS;
-}
-
-int OperatriceSimulation::type_sortie(int) const
-{
-	return OPERATRICE_CORPS;
-}
-
 const char *OperatriceSimulation::chemin_entreface() const
 {
 	return "entreface/operatrice_simulation.jo";

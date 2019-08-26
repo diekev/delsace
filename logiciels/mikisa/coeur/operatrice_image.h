@@ -32,6 +32,8 @@
 
 #include "danjo/manipulable.h"
 
+enum class type_prise : int;
+
 class ChefExecution;
 class Corps;
 class Graphe;
@@ -215,7 +217,7 @@ public:
 
 	virtual const char *nom_entree(int n);
 
-	virtual int type_entree(int n) const;
+	virtual type_prise type_entree(int n) const;
 
 	virtual bool connexions_multiples(int n) const;
 
@@ -233,7 +235,7 @@ public:
 
 	virtual const char *nom_sortie(int n);
 
-	virtual int type_sortie(int n) const;
+	virtual type_prise type_sortie(int n) const;
 
 	SortieOperatrice *sortie(long index);
 

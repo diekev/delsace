@@ -340,12 +340,11 @@ const char *OperatriceImage::nom_entree(int n)
 	}
 }
 
-int OperatriceImage::type_entree(int n) const
+type_prise OperatriceImage::type_entree(int n) const
 {
 	switch (n) {
 		default:
-		case 0: return OPERATRICE_IMAGE;
-		case 1: return OPERATRICE_IMAGE;
+		case 0: return type_prise::IMAGE;
 	}
 }
 
@@ -423,11 +422,11 @@ const char *OperatriceImage::nom_sortie(int n)
 	}
 }
 
-int OperatriceImage::type_sortie(int n) const
+type_prise OperatriceImage::type_sortie(int n) const
 {
 	switch (n) {
 		default:
-		case 0: return OPERATRICE_IMAGE;
+		case 0: return type_prise::IMAGE;
 	}
 }
 

@@ -126,7 +126,7 @@ Rectangle const &Noeud::rectangle() const
 	return m_rectangle;
 }
 
-void Noeud::ajoute_entree(dls::chaine const &name, const int type, bool connexions_multiples)
+void Noeud::ajoute_entree(dls::chaine const &name, const type_prise type, bool connexions_multiples)
 {
 	auto prise = new PriseEntree(name);
 	prise->parent = this;
@@ -136,7 +136,7 @@ void Noeud::ajoute_entree(dls::chaine const &name, const int type, bool connexio
 	this->m_entrees.pousse(prise);
 }
 
-void Noeud::ajoute_sortie(dls::chaine const &name, const int type)
+void Noeud::ajoute_sortie(dls::chaine const &name, const type_prise type)
 {
 	auto prise = new PriseSortie(name);
 	prise->parent = this;

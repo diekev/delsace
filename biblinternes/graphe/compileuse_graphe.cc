@@ -60,26 +60,7 @@ long CompileuseGraphe::decalage_pile(PriseSortie *prise)
 	}
 
 	if (prise->decalage_pile == 0) {
-		prise->decalage_pile = m_decalage;
-
-		switch (prise->type) {
-			default:
-			case type_prise::DECIMAL:
-			case type_prise::ENTIER:
-				m_pile[m_decalage++] = 0;
-				break;
-			case type_prise::VECTEUR:
-				m_pile[m_decalage++] = 0;
-				m_pile[m_decalage++] = 0;
-				m_pile[m_decalage++] = 0;
-				break;
-			case type_prise::COULEUR:
-				m_pile[m_decalage++] = 0;
-				m_pile[m_decalage++] = 0;
-				m_pile[m_decalage++] = 0;
-				m_pile[m_decalage++] = 0;
-				break;
-		}
+		prise->decalage_pile = decalage_pile(prise->type);
 	}
 
 	return prise->decalage_pile;
@@ -90,22 +71,57 @@ long CompileuseGraphe::decalage_pile(type_prise tprise)
 	auto d = m_decalage;
 
 	switch (tprise) {
-		default:
+		case type_prise::IMAGE:
+		case type_prise::CORPS:
+		case type_prise::OBJET:
+		case type_prise::TABLEAU:
+		case type_prise::POLYMORPHIQUE:
+		case type_prise::CHAINE:
+		case type_prise::INVALIDE:
 		case type_prise::DECIMAL:
 		case type_prise::ENTIER:
+		{
 			m_pile[m_decalage++] = 0;
 			break;
-		case type_prise::VECTEUR:
+		}
+		case type_prise::VEC2:
+		{
+			m_pile[m_decalage++] = 0;
+			m_pile[m_decalage++] = 0;
+			break;
+		}
+		case type_prise::VEC3:
+		{
 			m_pile[m_decalage++] = 0;
 			m_pile[m_decalage++] = 0;
 			m_pile[m_decalage++] = 0;
 			break;
+		}
+		case type_prise::VEC4:
 		case type_prise::COULEUR:
+		{
 			m_pile[m_decalage++] = 0;
 			m_pile[m_decalage++] = 0;
 			m_pile[m_decalage++] = 0;
 			m_pile[m_decalage++] = 0;
 			break;
+		}
+		case type_prise::MAT3:
+		{
+			for (auto i = 0; i < 9; ++i) {
+				m_pile[m_decalage++] = 0;
+			}
+
+			break;
+		}
+		case type_prise::MAT4:
+		{
+			for (auto i = 0; i < 16; ++i) {
+				m_pile[m_decalage++] = 0;
+			}
+
+			break;
+		}
 	}
 
 	return d;
