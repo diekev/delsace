@@ -49,8 +49,6 @@
 #include "coeur/noeud_image.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_graphe_detail.hh"
-#include "coeur/operatrice_graphe_maillage.h"
-#include "coeur/operatrice_graphe_pixel.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/operatrice_simulation.hh"
 #include "coeur/usine_operatrice.h"
@@ -404,7 +402,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
-		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
+		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_SIMULATION) {
 			requiers_evaluation(*mikisa, GRAPHE_MODIFIE, "graphe modifié");
 		}
 	}
@@ -461,7 +459,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
-		if (besoin_execution || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
+		if (besoin_execution || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_SIMULATION) {
 			requiers_evaluation(*mikisa, NOEUD_ENLEVE, "noeud supprimé");
 		}
 
@@ -525,9 +523,6 @@ public:
 
 		auto sans_info = dls::outils::est_element(
 					mikisa->contexte,
-					GRAPHE_PIXEL,
-					GRAPHE_DETAIL,
-					GRAPHE_MAILLAGE,
 					GRAPHE_RACINE_OBJETS,
 					GRAPHE_RACINE_COMPOSITES);
 
@@ -734,25 +729,7 @@ public:
 		else {
 			auto operatrice = extrait_opimage(noeud->donnees());
 
-			if (operatrice->type() == OPERATRICE_GRAPHE_PIXEL) {
-				auto operatrice_graphe = dynamic_cast<OperatriceGraphePixel *>(operatrice);
-
-				mikisa->graphe = operatrice_graphe->graphe();
-				mikisa->contexte = GRAPHE_PIXEL;
-
-				mikisa->chemin_courant = "/composite/" + noeud->nom() + "/";
-			}
-			else if (operatrice->type() == OPERATRICE_GRAPHE_MAILLAGE) {
-				assert(mikisa->contexte == GRAPHE_OBJET);
-
-				auto operatrice_graphe = dynamic_cast<OperatriceGrapheMaillage *>(operatrice);
-
-				mikisa->graphe = operatrice_graphe->graphe();
-				mikisa->contexte = GRAPHE_MAILLAGE;
-
-				mikisa->chemin_courant += noeud->nom() + "/";
-			}
-			else if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
+			if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
 				assert(mikisa->contexte == GRAPHE_OBJET);
 
 				auto operatrice_graphe = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
@@ -802,7 +779,6 @@ public:
 				break;
 			}
 			case GRAPHE_DETAIL:
-			case GRAPHE_MAILLAGE:
 			case GRAPHE_SIMULATION:
 			{
 				auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
@@ -811,16 +787,6 @@ public:
 				mikisa->graphe = &objet->graphe;
 				mikisa->contexte = GRAPHE_OBJET;
 				mikisa->chemin_courant = "/objets/" + objet->nom + "/";
-				break;
-			}
-			case GRAPHE_PIXEL:
-			{
-				auto noeud_actif = mikisa->bdd.graphe_composites()->noeud_actif;
-				auto composite = extrait_composite(noeud_actif->donnees());
-
-				mikisa->graphe = &composite->graphe;
-				mikisa->contexte = GRAPHE_COMPOSITE;
-				mikisa->chemin_courant = "/composites/" + composite->nom + "/";
 				break;
 			}
 			case GRAPHE_COMPOSITE:

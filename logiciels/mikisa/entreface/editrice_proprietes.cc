@@ -210,9 +210,7 @@ void EditriceProprietes::ajourne_manipulable()
 			break;
 		}
 		case GRAPHE_OBJET:
-		case GRAPHE_PIXEL:
 		case GRAPHE_COMPOSITE:
-		case GRAPHE_MAILLAGE:
 		case GRAPHE_DETAIL:
 		case GRAPHE_SIMULATION:
 		{

@@ -72,9 +72,6 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_detail.jo");
 	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_point3d.jo");
-	m_menu_ajout_noeud_point3d = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
-
 	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_scene.jo");
 	m_menu_ajout_noeud_scene = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
@@ -87,7 +84,6 @@ VueEditeurNoeud::~VueEditeurNoeud()
 	delete m_menu_ajout_noeud_composite;
 	delete m_menu_ajout_noeud_objet;
 	delete m_menu_ajout_noeud_detail;
-	delete m_menu_ajout_noeud_point3d;
 	delete m_menu_ajout_noeud_scene;
 	delete m_menu_ajout_noeud_simulation;
 }
@@ -111,9 +107,6 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 				break;
 			case GRAPHE_DETAIL:
 				m_menu_ajout_noeud_detail->popup(QCursor::pos());
-				break;
-			case GRAPHE_MAILLAGE:
-				m_menu_ajout_noeud_point3d->popup(QCursor::pos());
 				break;
 			case GRAPHE_SIMULATION:
 				m_menu_ajout_noeud_simulation->popup(QCursor::pos());

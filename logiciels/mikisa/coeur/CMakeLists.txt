@@ -84,8 +84,6 @@ add_library(${NOM_CIBLE} STATIC
 	objet.cc
 	operatrice_corps.cc
 	operatrice_graphe_detail.cc
-	operatrice_graphe_maillage.cc
-	operatrice_graphe_pixel.cc
 	operatrice_image.cc
 	operatrice_pixel.cc
 	operatrice_simulation.cc
@@ -113,8 +111,6 @@ add_library(${NOM_CIBLE} STATIC
 	objet.h
 	operatrice_corps.h
 	operatrice_graphe_detail.hh
-	operatrice_graphe_maillage.h
-	operatrice_graphe_pixel.h
 	operatrice_image.h
 	operatrice_pixel.h
 	operatrice_simulation.hh

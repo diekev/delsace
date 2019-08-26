@@ -43,7 +43,6 @@
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
-#include "coeur/operatrice_graphe_pixel.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/operatrice_pixel.h"
 #include "coeur/usine_operatrice.h"
@@ -2465,8 +2464,6 @@ public:
 
 void enregistre_operatrices_pixel(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceGraphePixel>());
-
 	usine.enregistre_type(cree_desc<OperatriceNuage>());
 	usine.enregistre_type(cree_desc<OperatriceConstante>());
 	usine.enregistre_type(cree_desc<OperatriceCorrectionGamma>());

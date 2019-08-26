@@ -84,7 +84,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_opensubdiv.cc
 	operatrices_particules.cc
 	operatrices_pixel.cc
-	operatrices_point3d.cc
 	operatrices_poseidon.cc
 	operatrices_region.cc
 	operatrices_script.cc
@@ -116,7 +115,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_opensubdiv.hh
 	operatrices_particules.h
 	operatrices_pixel.h
-	operatrices_point3d.h
 	operatrices_poseidon.hh
 	operatrices_region.h
 	operatrices_script.hh

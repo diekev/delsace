@@ -76,7 +76,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/menu_ajouter_noeud_composite.jo
 	scripts_danjo/menu_ajouter_noeud_detail.jo
 	scripts_danjo/menu_ajouter_noeud_objet.jo
-	scripts_danjo/menu_ajouter_noeud_point3d.jo
 	scripts_danjo/menu_ajouter_noeud_scene.jo
 	scripts_danjo/menu_ajouter_noeud_simulation.jo
 	scripts_danjo/menu_debogage.jo
@@ -175,12 +174,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_patch_triangle.jo
 	scripts_danjo/operatrice_premultiplication.jo
 	scripts_danjo/operatrice_projection_gaz.jo
-	scripts_danjo/operatrice_p3d_ep_fluide.jo
-	scripts_danjo/operatrice_point3d_math.jo
-	scripts_danjo/operatrice_point3d_nuage.jo
-	scripts_danjo/operatrice_point3d_traduction.jo
-	scripts_danjo/operatrice_point3d_valeur.jo
-	scripts_danjo/operatrice_point3d_vecteur.jo
 	scripts_danjo/operatrice_points_depuis_profonde.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_rayons_soleil.jo

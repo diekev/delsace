@@ -84,7 +84,6 @@
 #include "operatrices/operatrices_opensubdiv.hh"
 #include "operatrices/operatrices_particules.h"
 #include "operatrices/operatrices_pixel.h"
-#include "operatrices/operatrices_point3d.h"
 #include "operatrices/operatrices_poseidon.hh"
 #include "operatrices/operatrices_region.h"
 #include "operatrices/operatrices_script.hh"
@@ -160,7 +159,6 @@ void Mikisa::initialise()
 	enregistre_operatrices_opensubdiv(m_usine_operatrices);
 	enregistre_operatrices_particules(m_usine_operatrices);
 	enregistre_operatrices_pixel(m_usine_operatrices);
-	enregistre_operatrices_point3d(m_usine_operatrices);
 	enregistre_operatrices_poseidon(m_usine_operatrices);
 	enregistre_operatrices_region(m_usine_operatrices);
 	enregistre_operatrices_script(m_usine_operatrices);

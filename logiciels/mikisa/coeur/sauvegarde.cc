@@ -48,8 +48,6 @@
 #include "mikisa.h"
 #include "noeud_image.h"
 #include "operatrice_graphe_detail.hh"
-#include "operatrice_graphe_maillage.h"
-#include "operatrice_graphe_pixel.h"
 #include "operatrice_image.h"
 #include "operatrice_simulation.hh"
 #include "usine_operatrice.h"
@@ -69,16 +67,6 @@ static Graphe *graphe_operatrice(OperatriceImage *operatrice)
 		{
 			auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
 			return op_detail->graphe();
-		}
-		case OPERATRICE_GRAPHE_MAILLAGE:
-		{
-			auto op_maillage = dynamic_cast<OperatriceGrapheMaillage *>(operatrice);
-			return op_maillage->graphe();
-		}
-		case OPERATRICE_GRAPHE_PIXEL:
-		{
-			auto op_pixel = dynamic_cast<OperatriceGraphePixel *>(operatrice);
-			return op_pixel->graphe();
 		}
 		case OPERATRICE_SIMULATION:
 		{

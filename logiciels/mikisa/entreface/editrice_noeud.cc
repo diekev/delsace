@@ -106,7 +106,6 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		auto const graphe_compo = dls::outils::est_element(
 					m_mikisa.contexte,
 					GRAPHE_COMPOSITE,
-					GRAPHE_PIXEL,
 					GRAPHE_RACINE_COMPOSITES);
 
 		if (graphe_compo) {
