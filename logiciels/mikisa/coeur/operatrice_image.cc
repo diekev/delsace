@@ -34,6 +34,7 @@
 
 #include "chef_execution.hh"
 #include "noeud_image.h"
+#include "operatrice_graphe_detail.hh"
 #include "usine_operatrice.h"
 
 /* ************************************************************************** */
@@ -563,6 +564,13 @@ calque_image const *cherche_calque(
 static void supprime_operatrice_image(std::any pointeur)
 {
 	auto ptr = extrait_opimage(pointeur);
+
+	auto ptr_detail = dynamic_cast<OperatriceFonctionDetail *>(ptr);
+
+	if (ptr_detail != nullptr) {
+		memoire::deloge("Fonction Détail", ptr_detail);
+		return;
+	}
 
 	/* Lorsque nous logeons un pointeur nous utilisons la taille de la classe
 	 * dérivée pour estimer la quantité de mémoire allouée. Donc pour déloger

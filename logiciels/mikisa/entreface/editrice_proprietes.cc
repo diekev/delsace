@@ -213,6 +213,7 @@ void EditriceProprietes::ajourne_manipulable()
 		case GRAPHE_PIXEL:
 		case GRAPHE_COMPOSITE:
 		case GRAPHE_MAILLAGE:
+		case GRAPHE_DETAIL:
 		case GRAPHE_SIMULATION:
 		{
 			/* Marque le noeud courant et ceux en son aval surannées. */

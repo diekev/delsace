@@ -54,6 +54,7 @@
 #include "manipulatrice.h"
 #include "noeud_image.h"
 #include "tache.h"
+#include "operatrice_graphe_detail.hh"
 
 #include "commandes/commandes_edition.h"
 #include "commandes/commandes_noeuds.h"
@@ -148,6 +149,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_bullet(m_usine_operatrices);
 	enregistre_operatrices_cheveux(m_usine_operatrices);
 	enregistre_operatrices_corps(m_usine_operatrices);
+	enregistre_operatrices_detail(m_usine_operatrices);
 	enregistre_operatrices_flux(m_usine_operatrices);
 	enregistre_operatrices_fracture(m_usine_operatrices);
 	enregistre_operatrices_image_profonde(m_usine_operatrices);

@@ -76,7 +76,6 @@ struct magasin_fonctions {
 			dls::chaine const &nom,
 			types_entrees const &type_params);
 
-private:
 	dls::dico_desordonne<dls::chaine, dls::tableau<donnees_fonction>> table{};
 };
 

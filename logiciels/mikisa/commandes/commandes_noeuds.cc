@@ -48,11 +48,14 @@
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
 #include "coeur/objet.h"
+#include "coeur/operatrice_graphe_detail.hh"
 #include "coeur/operatrice_graphe_maillage.h"
 #include "coeur/operatrice_graphe_pixel.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/operatrice_simulation.hh"
 #include "coeur/usine_operatrice.h"
+
+#include "lcc/lcc.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -230,6 +233,52 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeAjoutNoeudDetail final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+
+		auto nom = donnees.metadonnee;
+		auto graphe = mikisa->graphe;
+		auto noeud = graphe->cree_noeud(nom);
+
+		/* À FAIRE : gestion des fonctions avec surcharges. */
+		auto const &table_df = mikisa->lcc->fonctions.table[nom];
+		auto df = &table_df.front();
+
+		auto op = memoire::loge<OperatriceFonctionDetail>("Fonction Détail", *graphe, noeud, df);
+		INUTILISE(op);
+		synchronise_donnees_operatrice(noeud);
+
+		noeud->pos_x(mikisa->graphe->centre_x);
+		noeud->pos_y(mikisa->graphe->centre_y);
+
+		if (graphe->connexion_active != nullptr) {
+			if (graphe->connexion_active->prise_entree != nullptr) {
+				graphe->connecte(noeud->sortie(0), graphe->connexion_active->prise_entree);
+			}
+			else if (graphe->connexion_active->prise_sortie != nullptr) {
+				graphe->connecte(graphe->connexion_active->prise_sortie, noeud->entree(0));
+			}
+
+			memoire::deloge("Connexion", graphe->connexion_active);
+		}
+
+		auto besoin_evaluation = selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+		if (besoin_evaluation || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
+			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
+		}
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class CommandeSelectionGraphe final : public Commande {
 	float delta_x = 0.0f;
 	float delta_y = 0.0f;
@@ -355,7 +404,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
-		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
+		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
 			requiers_evaluation(*mikisa, GRAPHE_MODIFIE, "graphe modifié");
 		}
 	}
@@ -412,7 +461,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
-		if (besoin_execution || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
+		if (besoin_execution || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_MAILLAGE || mikisa->contexte == GRAPHE_SIMULATION) {
 			requiers_evaluation(*mikisa, NOEUD_ENLEVE, "noeud supprimé");
 		}
 
@@ -477,6 +526,7 @@ public:
 		auto sans_info = dls::outils::est_element(
 					mikisa->contexte,
 					GRAPHE_PIXEL,
+					GRAPHE_DETAIL,
 					GRAPHE_MAILLAGE,
 					GRAPHE_RACINE_OBJETS,
 					GRAPHE_RACINE_COMPOSITES);
@@ -702,6 +752,16 @@ public:
 
 				mikisa->chemin_courant += noeud->nom() + "/";
 			}
+			else if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
+				assert(mikisa->contexte == GRAPHE_OBJET);
+
+				auto operatrice_graphe = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
+
+				mikisa->graphe = operatrice_graphe->graphe();
+				mikisa->contexte = GRAPHE_DETAIL;
+
+				mikisa->chemin_courant += noeud->nom() + "/";
+			}
 			else if (operatrice->type() == OPERATRICE_SIMULATION) {
 				assert(mikisa->contexte == GRAPHE_OBJET);
 
@@ -741,6 +801,7 @@ public:
 				mikisa->chemin_courant = "/objets/";
 				break;
 			}
+			case GRAPHE_DETAIL:
 			case GRAPHE_MAILLAGE:
 			case GRAPHE_SIMULATION:
 			{
@@ -978,6 +1039,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 	usine.enregistre_type("ajouter_noeud_image",
 						   description_commande<CommandeAjoutNoeud>(
 							   "graphe", 0, 0, Qt::Key_I, false, "Lecture Image"));
+
+	usine.enregistre_type("ajouter_noeud_detail",
+						   description_commande<CommandeAjoutNoeudDetail>(
+							   "graphe", 0, 0, 0, false));
 
 	usine.enregistre_type("selection_graphe",
 						   description_commande<CommandeSelectionGraphe>(

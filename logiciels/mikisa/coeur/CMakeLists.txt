@@ -83,6 +83,7 @@ add_library(${NOM_CIBLE} STATIC
 	noeud_image.cc
 	objet.cc
 	operatrice_corps.cc
+	operatrice_graphe_detail.cc
 	operatrice_graphe_maillage.cc
 	operatrice_graphe_pixel.cc
 	operatrice_image.cc
@@ -111,6 +112,7 @@ add_library(${NOM_CIBLE} STATIC
 	noeud_image.h
 	objet.h
 	operatrice_corps.h
+	operatrice_graphe_detail.hh
 	operatrice_graphe_maillage.h
 	operatrice_graphe_pixel.h
 	operatrice_image.h

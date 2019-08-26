@@ -1,0 +1,7 @@
+menu "Noeud Détail" {
+	action(valeur="produit_scalaire"; attache=ajouter_noeud_detail; métadonnée="produit_scalaire")
+	action(valeur="longueur_onde"; attache=ajouter_noeud_detail; métadonnée="longueur_onde")
+	action(valeur="corps_noir"; attache=ajouter_noeud_detail; métadonnée="corps_noir")
+	action(valeur="luminance"; attache=ajouter_noeud_detail; métadonnée="luminance")
+	action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
+}

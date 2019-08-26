@@ -48,6 +48,7 @@ class VueEditeurNoeud : public QGraphicsView {
 
 	QMenu *m_menu_ajout_noeud_composite = nullptr;
 	QMenu *m_menu_ajout_noeud_point3d = nullptr;
+	QMenu *m_menu_ajout_noeud_detail = nullptr;
 	QMenu *m_menu_ajout_noeud_objet = nullptr;
 	QMenu *m_menu_ajout_noeud_scene = nullptr;
 	QMenu *m_menu_ajout_noeud_simulation = nullptr;

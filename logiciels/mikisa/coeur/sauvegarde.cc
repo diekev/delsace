@@ -47,6 +47,7 @@
 #include "objet.h"
 #include "mikisa.h"
 #include "noeud_image.h"
+#include "operatrice_graphe_detail.hh"
 #include "operatrice_graphe_maillage.h"
 #include "operatrice_graphe_pixel.h"
 #include "operatrice_image.h"
@@ -55,12 +56,19 @@
 
 namespace coeur {
 
+/* À FAIRE : sauvegarde et lecture des opératrices fonction détail */
+
 static Graphe *graphe_operatrice(OperatriceImage *operatrice)
 {
 	switch (operatrice->type()) {
 		default:
 		{
 			return nullptr;
+		}
+		case OPERATRICE_GRAPHE_DETAIL:
+		{
+			auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
+			return op_detail->graphe();
 		}
 		case OPERATRICE_GRAPHE_MAILLAGE:
 		{

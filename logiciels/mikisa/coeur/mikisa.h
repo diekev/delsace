@@ -79,6 +79,7 @@ enum {
 	GRAPHE_OBJET,
 	GRAPHE_MAILLAGE,
 	GRAPHE_SIMULATION,
+	GRAPHE_DETAIL,
 };
 
 class Mikisa : public Sujette {

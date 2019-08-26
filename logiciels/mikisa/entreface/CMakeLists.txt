@@ -74,6 +74,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/disposition_ligne_temps.jo
 	scripts_danjo/disposition_rendu.jo
 	scripts_danjo/menu_ajouter_noeud_composite.jo
+	scripts_danjo/menu_ajouter_noeud_detail.jo
 	scripts_danjo/menu_ajouter_noeud_objet.jo
 	scripts_danjo/menu_ajouter_noeud_point3d.jo
 	scripts_danjo/menu_ajouter_noeud_scene.jo

@@ -18,6 +18,9 @@ menu "Noeud Objet" {
 		action(valeur="Collision Cheveux"; attache=ajouter_noeud; métadonnée="Collision Cheveux")
 		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
 	}
+	menu "Détail" {
+		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Détail")
+	}
 	menu "Entrée" {
 		action(valeur="Création Cercle"; attache=ajouter_noeud; métadonnée="Création Cercle")
 		action(valeur="Création Cone"; attache=ajouter_noeud; métadonnée="Création Cone")
@@ -47,7 +50,6 @@ menu "Noeud Objet" {
 		action(valeur="Fracture Voronoi"; attache=ajouter_noeud; métadonnée="Fracture Voronoi")
 		action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
 		action(valeur="Géométrie Maillage"; attache=ajouter_noeud; métadonnée="Géométrie Maillage")
-		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Maillage")
 		action(valeur="Lissage Laplacien"; attache=ajouter_noeud; métadonnée="Lissage Laplacien")
 		action(valeur="Normalise Covariance"; attache=ajouter_noeud; métadonnée="Normalise Covariance")
 		action(valeur="OpenSubDiv"; attache=ajouter_noeud; métadonnée="OpenSubDiv")
