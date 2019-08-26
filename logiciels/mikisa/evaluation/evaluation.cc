@@ -33,6 +33,7 @@
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
+#include "coeur/operatrice_image.h"
 
 #include "execution.hh"
 #include "reseau.hh"

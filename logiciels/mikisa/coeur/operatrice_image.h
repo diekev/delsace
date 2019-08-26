@@ -40,18 +40,12 @@ class Graphe;
 class Manipulatrice3D;
 class Noeud;
 class PriseEntree;
-class TextureImage;
 class CompilatriceReseau;
 class NoeudReseau;
 class UsineOperatrice;
 
-namespace vision {
-class Camera3D;
-}  /* namespace vision */
-
 struct ContexteEvaluation;
 struct DonneesAval;
-struct Objet;
 
 enum {
 	EXECUTION_REUSSIE = 0,

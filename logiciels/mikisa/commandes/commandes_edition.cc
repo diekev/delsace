@@ -34,6 +34,7 @@
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
+#include "coeur/operatrice_image.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"

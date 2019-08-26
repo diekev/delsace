@@ -40,8 +40,6 @@
 #include "evaluation/reseau.hh"
 
 class BaseEditrice;
-class Composite;
-class Configuration;
 class FenetrePrincipale;
 class Graphe;
 class Manipulatrice3D;

@@ -27,7 +27,7 @@
 #include "biblinternes/structures/chaine.hh"
 
 #include "entite.hh"
-#include "operatrice_image.h"
+#include "image.hh"
 
 class Composite : public Entite {
 	Image m_image{};
