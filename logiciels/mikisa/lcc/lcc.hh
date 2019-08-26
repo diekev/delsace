@@ -24,41 +24,17 @@
 
 #pragma once
 
-#include "biblinternes/math/rectangle.hh"
-
-class BaseDeDonnees;
-class ChefExecution;
-struct GestionnaireFichier;
-struct Mikisa;
+#include "contexte_generation_code.h"
+#include "fonctions.hh"
 
 namespace lcc {
-struct LCC;
-}
 
-struct ContexteEvaluation {
-	/* Le rectangle définissant l'aire de rendu. */
-	Rectangle resolution_rendu{};
-
-	GestionnaireFichier *gestionnaire_fichier = nullptr;
-
-	/* Enveloppe la logique de notification de progression et d'arrêt
-	 * des tâches. */
-	ChefExecution *chef = nullptr;
-
-	/* Base de données du logiciel */
-	BaseDeDonnees const *bdd = nullptr;
-
-	/* Pour la compilation des scripts LCC */
-	lcc::LCC const *lcc = nullptr;
-
-	/* données sur le temps */
-	int temps_debut = 0;
-	int temps_fin = 250;
-	int temps_courant = 0;
-	double cadence = 0.0;
-
-	ContexteEvaluation(ContexteEvaluation const &) = default;
-	ContexteEvaluation &operator=(ContexteEvaluation const &) = default;
+struct LCC {
+	magasin_fonctions fonctions{};
 };
 
-ContexteEvaluation cree_contexte_evaluation(Mikisa const &mikisa);
+void initialise(LCC &lcc);
+
+ContexteGenerationCode cree_contexte(LCC const &lcc);
+
+}  /* namespace lcc */

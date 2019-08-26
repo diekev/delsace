@@ -64,6 +64,8 @@
 #include "commandes/commandes_vue2d.h"
 #include "commandes/commandes_vue3d.h"
 
+#include "lcc/lcc.hh"
+
 #include "operatrices/operatrices_3d.h"
 #include "operatrices/operatrices_alembic.hh"
 #include "operatrices/operatrices_arbre.hh"
@@ -109,6 +111,7 @@ Mikisa::Mikisa()
 	, chemin_courant("/objets/")
 	, notifiant_thread(nullptr)
 	, chef_execution(*this)
+	, lcc(memoire::loge<lcc::LCC>("LCC"))
 {
 	graphe = bdd.graphe_objets();
 
@@ -122,6 +125,7 @@ Mikisa::Mikisa()
 
 Mikisa::~Mikisa()
 {
+	memoire::deloge("LCC", lcc);
 	memoire::deloge("TaskNotifier", notifiant_thread);
 	memoire::deloge("vision::Camera2D", camera_2d);
 	memoire::deloge("vision::Camera3D", camera_3d);
@@ -173,6 +177,8 @@ void Mikisa::initialise()
 	enregistre_commandes_temps(m_usine_commande);
 	enregistre_commandes_vue2d(m_usine_commande);
 	enregistre_commandes_vue3d(m_usine_commande);
+
+	lcc::initialise(*lcc);
 }
 
 UsineCommande &Mikisa::usine_commandes()

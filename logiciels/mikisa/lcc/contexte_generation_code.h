@@ -169,10 +169,11 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	/* Désactive la copie, car il ne peut y avoir qu'un seul contexte par
-	 * compilation. */
-	ContexteGenerationCode(const ContexteGenerationCode &) = delete;
-	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = delete;
+	/* La copie devrait être désactivée, car il ne peut y avoir qu'un seul
+	 * contexte par compilation, mais nous l'avons besoin pour retourner des
+	 * contextes par valeur. */
+	ContexteGenerationCode(const ContexteGenerationCode &) = default;
+	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = default;
 
 	/* ********************************************************************** */
 

@@ -60,6 +60,10 @@ namespace danjo {
 class GestionnaireInterface;
 }  /* namespace danjo */
 
+namespace lcc {
+struct LCC;
+}
+
 enum {
 	FICHIER_OUVERTURE,
 	FICHIER_SAUVEGARDE,
@@ -175,6 +179,9 @@ public:
 	ChefExecution chef_execution;
 
 	BaseDeDonnees bdd{};
+
+	/* Pour la compilation des scripts LCC */
+	lcc::LCC *lcc = nullptr;
 
 	/* pour l'évaluation du graphe d'objets */
 	Reseau reseau{};

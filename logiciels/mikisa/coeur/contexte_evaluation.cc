@@ -45,6 +45,7 @@ ContexteEvaluation cree_contexte_evaluation(const Mikisa &mikisa)
 	contexte.gestionnaire_fichier = const_cast<GestionnaireFichier *>(&mikisa.gestionnaire_fichier);
 	contexte.chef = const_cast<ChefExecution *>(&mikisa.chef_execution);
 	contexte.resolution_rendu = rectangle;
+	contexte.lcc = mikisa.lcc;
 
 	contexte.chef->reinitialise();
 

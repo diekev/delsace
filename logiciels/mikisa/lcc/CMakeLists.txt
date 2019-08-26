@@ -48,6 +48,7 @@ set(SOURCES
 	execution_pile.hh
 	expression.h
 	fonctions.hh
+	lcc.hh
 	modules.hh
 	morceaux.hh
 	code_inst.hh
@@ -63,6 +64,7 @@ set(SOURCES
 	execution_pile.cc
 	expression.cc
 	fonctions.cc
+	lcc.cc
 	modules.cc
 	morceaux.cc
 	code_inst.cc

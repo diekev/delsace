@@ -229,8 +229,6 @@ int genere_code(
 	switch (b->type) {
 		case type_noeud::RACINE:
 		{
-			enregistre_fonctions_base(contexte_generation.fonctions);
-
 			for (auto enfant : b->enfants) {
 				genere_code(enfant, contexte_generation, compileuse, expr_gauche);
 			}

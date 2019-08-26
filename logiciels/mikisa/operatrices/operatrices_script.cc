@@ -32,6 +32,7 @@
 #include "lcc/contexte_generation_code.h"
 #include "lcc/decoupeuse.h"
 #include "lcc/execution_pile.hh"
+#include "lcc/lcc.hh"
 #include "lcc/modules.hh"
 
 #include "coeur/chef_execution.hh"
@@ -483,7 +484,7 @@ public:
 
 		/* ****************************************************************** */
 
-		auto ctx_gen = ContexteGenerationCode{};
+		auto ctx_gen = lcc::cree_contexte(*contexte.lcc);
 
 		auto donnees_module = ctx_gen.cree_module("racine");
 		donnees_module->tampon = lng::tampon_source(texte);
@@ -643,7 +644,7 @@ public:
 
 		/* ****************** */
 
-		auto ctx_gen = ContexteGenerationCode{};
+		auto ctx_gen = lcc::cree_contexte(*contexte.lcc);
 
 		auto donnees_module = ctx_gen.cree_module("racine");
 		donnees_module->tampon = lng::tampon_source(texte);
