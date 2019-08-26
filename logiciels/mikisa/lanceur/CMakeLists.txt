@@ -43,3 +43,15 @@ target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
 
 install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
+
+################################################################################
+
+set(NOM_CIBLE genere_menu_lcc)
+
+add_executable(${NOM_CIBLE} genere_menu_lcc.cc)
+
+target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(${NOM_CIBLE} mikisa_lcc)
+
+install(TARGETS ${NOM_CIBLE} RUNTIME DESTINATION ${NOM_PROJET})
