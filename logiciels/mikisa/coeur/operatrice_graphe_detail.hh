@@ -72,6 +72,9 @@ public:
 
 	explicit OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, lcc::donnees_fonction const *df);
 
+	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
+	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
+
 	virtual const char *nom_classe() const override;
 
 	virtual const char *texte_aide() const override;

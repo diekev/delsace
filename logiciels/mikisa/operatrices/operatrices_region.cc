@@ -2928,8 +2928,8 @@ static auto calcul_energie(dls::tableau<float> const &bruit, int taille, int dim
 				auto jx = sse_r32(static_cast<float>(j % taille)) + offsetf;
 				auto jy = sse_r32(static_cast<float>(j / taille));
 
-				auto imageDistX = sse_r32(etnon_binaire(signmask, ix - jx));
-				auto imageDistY = sse_r32(etnon_binaire(signmask, iy - jy));
+				auto imageDistX = etnon_binaire(signmask, ix - jx);
+				auto imageDistY = etnon_binaire(signmask, iy - jy);
 
 				auto imageWrapX = sse_r32(static_cast<float>(taille)) - imageDistX;
 				auto imageWrapY = sse_r32(static_cast<float>(taille)) - imageDistY;
@@ -2951,7 +2951,7 @@ static auto calcul_energie(dls::tableau<float> const &bruit, int taille, int dim
 				for (auto d = 0; d < dimensions; ++d) {
 					auto pBuffer = sse_r32(bruit[d * taille_carree + i]);
 					auto qBuffer = sse_r32(&bruit[d * taille_carree + j]);
-					auto sampleDistance = sse_r32(etnon_binaire(signmask, pBuffer - qBuffer));
+					auto sampleDistance = etnon_binaire(signmask, pBuffer - qBuffer);
 					auto sampleDistanceSqr = sampleDistance * sampleDistance;
 
 					sampleSqr += sampleDistanceSqr;
