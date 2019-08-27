@@ -127,7 +127,7 @@ static void genere_tuile_bruit(float *&bruit, int res)
 	}
 
 	// create padded field
-	auto taille_complex = sizeof(fftw_complex) * static_cast<size_t>(totalCells);
+	auto taille_complex = sizeof(fftw_complex) * static_cast<unsigned>(totalCells);
 	auto forward = static_cast<fftw_complex *>(fftw_malloc(taille_complex));
 
 	// init padded field

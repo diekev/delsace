@@ -255,9 +255,9 @@ void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtyp
 		for (yy = yi - 1; yy <= yi + 1; yy++) {
 			for (zz = zi - 1; zz <= zi + 1; zz++) {
 				const float *p = HASHPNT(xx, yy, zz);
-				xd = x - (p[0] + xx);
-				yd = y - (p[1] + yy);
-				zd = z - (p[2] + zz);
+				xd = x - (p[0] + static_cast<float>(xx));
+				yd = y - (p[1] + static_cast<float>(yy));
+				zd = z - (p[2] + static_cast<float>(zz));
 				d = distfunc(xd, yd, zd, me);
 				if (d < da[0]) {
 					da[3] = da[2];
@@ -273,9 +273,9 @@ void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtyp
 					pa[3] = pa[0];
 					pa[4] = pa[1];
 					pa[5] = pa[2];
-					pa[0] = p[0] + xx;
-					pa[1] = p[1] + yy;
-					pa[2] = p[2] + zz;
+					pa[0] = p[0] + static_cast<float>(xx);
+					pa[1] = p[1] + static_cast<float>(yy);
+					pa[2] = p[2] + static_cast<float>(zz);
 				}
 				else if (d < da[1]) {
 					da[3] = da[2];
@@ -287,9 +287,9 @@ void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtyp
 					pa[6] = pa[3];
 					pa[7] = pa[4];
 					pa[8] = pa[5];
-					pa[3] = p[0] + xx;
-					pa[4] = p[1] + yy;
-					pa[5] = p[2] + zz;
+					pa[3] = p[0] + static_cast<float>(xx);
+					pa[4] = p[1] + static_cast<float>(yy);
+					pa[5] = p[2] + static_cast<float>(zz);
 				}
 				else if (d < da[2]) {
 					da[3] = da[2];
@@ -297,15 +297,15 @@ void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtyp
 					pa[9] = pa[6];
 					pa[10] = pa[7];
 					pa[11] = pa[8];
-					pa[6] = p[0] + xx;
-					pa[7] = p[1] + yy;
-					pa[8] = p[2] + zz;
+					pa[6] = p[0] + static_cast<float>(xx);
+					pa[7] = p[1] + static_cast<float>(yy);
+					pa[8] = p[2] + static_cast<float>(zz);
 				}
 				else if (d < da[3]) {
 					da[3] = d;
-					pa[9] = p[0] + xx;
-					pa[10] = p[1] + yy;
-					pa[11] = p[2] + zz;
+					pa[9] = p[0] + static_cast<float>(xx);
+					pa[10] = p[1] + static_cast<float>(yy);
+					pa[11] = p[2] + static_cast<float>(zz);
 				}
 			}
 		}
