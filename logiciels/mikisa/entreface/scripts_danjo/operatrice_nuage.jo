@@ -3,6 +3,7 @@ disposition "operatrice_bruit" {
 		étiquette(valeur="Type Bruit")
 		énum(valeur="ondelette"; attache=type; items=[
 			 {nom="Cellule", valeur="cellule"},
+			 {nom="Fourier", valeur="fourier"},
 			 {nom="Ondelette", valeur="ondelette"},
 			 {nom="Simplex", valeur="simplex"},
 			 {nom="Voronoi F1", valeur="voronoi_f1"},

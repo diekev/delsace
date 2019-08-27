@@ -29,6 +29,7 @@ set(SOURCES
 	blanc.cc
 	cellule.cc
 	evaluation.cc
+	fourier.cc
 	ondelette.cc
 	parametres.cc
 	perlin.cc
@@ -39,6 +40,7 @@ set(SOURCES
 	blanc.hh
 	cellule.hh
 	evaluation.hh
+	fourier.hh
 	ondelette.hh
 	parametres.hh
 	perlin.hh

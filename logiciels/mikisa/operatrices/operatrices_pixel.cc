@@ -2517,6 +2517,7 @@ public:
 
 		auto dico_type = dls::cree_dico(
 					dls::paire(dls::chaine("cellule"), bruit::type::CELLULE),
+					dls::paire(dls::chaine("fourier"), bruit::type::FOURIER),
 					dls::paire(dls::chaine("ondelette"), bruit::type::ONDELETTE),
 					dls::paire(dls::chaine("simplex"), bruit::type::SIMPLEX),
 					dls::paire(dls::chaine("voronoi_f1"), bruit::type::VORONOI_F1),

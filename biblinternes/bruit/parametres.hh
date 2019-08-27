@@ -30,6 +30,7 @@ namespace bruit {
 
 enum class type : char {
 	CELLULE,
+	FOURIER,
 	ONDELETTE,
 	SIMPLEX,
 	VORONOI_F1,
