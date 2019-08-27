@@ -40,8 +40,6 @@ struct param_turbulence {
 
 template <typename bruit_base>
 struct turbulent {
-private:
-public:
 	static void construit(int graine, parametres &params, param_turbulence const &/*params_turb*/)
 	{
 		bruit_base::construit(params, graine);

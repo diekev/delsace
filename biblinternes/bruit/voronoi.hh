@@ -29,10 +29,6 @@
 namespace bruit {
 
 struct voronoi_f1 {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);
@@ -44,10 +40,6 @@ public:
 };
 
 struct voronoi_f2 {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);
@@ -59,10 +51,6 @@ public:
 };
 
 struct voronoi_f3 {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);
@@ -74,10 +62,6 @@ public:
 };
 
 struct voronoi_f4 {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);
@@ -89,10 +73,6 @@ public:
 };
 
 struct voronoi_f1f2 {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);
@@ -104,10 +84,6 @@ public:
 };
 
 struct voronoi_cr {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);

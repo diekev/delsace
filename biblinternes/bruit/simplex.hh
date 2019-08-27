@@ -29,10 +29,6 @@
 namespace bruit {
 
 struct simplex {
-private:
-	int m_graine = 0;
-
-public:
 	static void construit(parametres &params, int graine);
 
 	static float evalue(parametres const &params, dls::math::vec3f pos);
