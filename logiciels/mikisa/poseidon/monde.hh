@@ -24,13 +24,13 @@
 
 #pragma once
 
+#include "biblinternes/bruit/ondelette.hh"
 #include "biblinternes/structures/ensemble.hh"
 
 #include "coeur/objet.h"
 
 #include "wolika/grille_dense.hh"
 
-#include "bruit_vaguelette.hh"
 #include "particules.hh"
 
 namespace psn {
@@ -78,7 +78,7 @@ struct Poseidon {
 	wlk::grille_dense_3d<float> *oxygene_prev = nullptr;
 	wlk::GrilleMAC *velocite_prev = nullptr;
 
-	bruit_vaguelette bruit{};
+	bruit::ondelette bruit{};
 
 	particules parts{};
 	GrilleParticule grille_particule{};

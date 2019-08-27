@@ -163,7 +163,7 @@ void ajourne_sources(Poseidon &poseidon, int temps)
 	auto res = densite->desc().resolution;
 
 #ifdef UTILISE_BRUIT
-	poseidon.bruit = bruit_vaguelette::construit(5);
+	poseidon.bruit = bruit::ondelette::construit(5);
 	poseidon.bruit.temps_anim = poseidon.temps_total * poseidon.dt;
 	poseidon.bruit.echelle_pos = dls::math::vec3f(45.0f);
 	poseidon.bruit.dx = static_cast<float>(densite->desc().taille_voxel);

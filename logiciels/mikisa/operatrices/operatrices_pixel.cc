@@ -821,7 +821,7 @@ public:
 
 	void evalue_entrees(int temps) override
 	{
-		m_noir_blanc = evalue_enum("type_bruit") == "nb";
+		m_noir_blanc = evalue_enum("bruit::type") == "nb";
 		m_graine = evalue_entier("graine", temps);
 
 		if (evalue_bool("anime_graine")) {
@@ -2462,6 +2462,121 @@ public:
 
 /* ************************************************************************** */
 
+#include "biblinternes/bruit/evaluation.hh"
+
+class OperatriceBruit final : public OperatricePixel {
+	dls::math::vec3f m_frequence = dls::math::vec3f(1.0f);
+	dls::math::vec3f m_decalage = dls::math::vec3f(0.0f);
+	float m_amplitude = 1.0f;
+	int m_octaves = 1.0f;
+	float m_lacunarite = 1.0f;
+	float m_durete = 1.0f;
+	int m_dimensions = 1;
+	bool m_dur = false;
+	bool m_turb = true;
+
+	REMBOURRE(2);
+
+	bruit::parametres m_params_bruit{};
+	bruit::param_turbulence m_params_turb{};
+
+public:
+	static constexpr auto NOM = "Bruit Image";
+	static constexpr auto AIDE = "";
+
+	explicit OperatriceBruit(Graphe &graphe_parent, Noeud *noeud)
+		: OperatricePixel(graphe_parent, noeud)
+	{
+		entrees(0);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_nuage.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	void evalue_entrees(int temps) override
+	{
+		m_frequence = evalue_vecteur("fréquence", temps);
+		m_decalage = evalue_vecteur("décalage", temps);
+		m_amplitude = evalue_decimal("amplitude", temps);
+		m_octaves = evalue_entier("octaves", temps);
+		m_lacunarite = evalue_decimal("lacunarité", temps);
+		m_durete = evalue_decimal("persistence", temps);
+		m_dur = evalue_bool("dur");
+
+		auto dico_type = dls::cree_dico(
+					dls::paire(dls::chaine("cellule"), bruit::type::CELLULE),
+					dls::paire(dls::chaine("ondelette"), bruit::type::ONDELETTE),
+					dls::paire(dls::chaine("simplex"), bruit::type::SIMPLEX),
+					dls::paire(dls::chaine("voronoi_f1"), bruit::type::VORONOI_F1),
+					dls::paire(dls::chaine("voronoi_f2"), bruit::type::VORONOI_F2),
+					dls::paire(dls::chaine("voronoi_f3"), bruit::type::VORONOI_F3),
+					dls::paire(dls::chaine("voronoi_f4"), bruit::type::VORONOI_F4),
+					dls::paire(dls::chaine("voronoi_f1f2"), bruit::type::VORONOI_F1F2),
+					dls::paire(dls::chaine("voronoi_cr"), bruit::type::VORONOI_CR));
+
+		auto chn_type = evalue_enum("type");
+		auto plg_type = dico_type.trouve(chn_type);
+		auto type = bruit::type{};
+
+		if (plg_type.est_finie()) {
+			ajoute_avertissement("type inconnu");
+			type = bruit::type::ONDELETTE;
+		}
+		else {
+			type = plg_type.front().second;
+		}
+
+		m_params_turb.octaves = static_cast<float>(m_octaves) * 1.618f;
+		m_params_turb.lacunarite = m_lacunarite;
+		m_params_turb.gain = m_durete;
+		m_params_turb.echelle = 10.0f;
+		m_params_turb.amplitude = m_amplitude;
+		m_params_turb.dur = m_dur;
+
+		if (m_turb) {
+			bruit::construit_turb(type, 0, m_params_bruit, m_params_turb);
+		}
+		else {
+			bruit::construit(type, m_params_bruit, 0);
+		}
+	}
+
+	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
+	{
+		INUTILISE(pixel);
+
+		auto res = 0.0f;
+
+		if (m_turb) {
+			res = bruit::evalue_turb(m_params_bruit, m_params_turb, dls::math::vec3f(x, y, 0.0f));
+		}
+		else {
+			res = bruit::evalue(m_params_bruit, dls::math::vec3f(x, y, 0.0f));
+		}
+
+		auto rp = dls::phys::couleur32();
+		rp.r = res;
+		rp.v = res;
+		rp.b = res;
+		rp.a = 1.0f;
+		return rp;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_pixel(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceNuage>());
@@ -2483,6 +2598,7 @@ void enregistre_operatrices_pixel(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceTraduction>());
 	usine.enregistre_type(cree_desc<OperatriceMinMax>());
 	usine.enregistre_type(cree_desc<OperatriceDaltonisme>());
+	usine.enregistre_type(cree_desc<OperatriceBruit>());
 }
 
 #pragma clang diagnostic pop

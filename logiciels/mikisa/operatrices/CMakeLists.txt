@@ -33,6 +33,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	bib_bruit
 	bib_graphe
 	bib_kelvinlet
 	bib_objets

@@ -25,6 +25,7 @@ menu "Noeud Composite" {
 	}
     menu "Pixel" {
 	    action(valeur="Bruitage"; attache=ajouter_noeud; métadonnée="Bruitage")
+		action(valeur="Bruit Image"; attache=ajouter_noeud; métadonnée="Bruit Image")
 		action(valeur="Constante"; attache=ajouter_noeud; métadonnée="Constante")
 		action(valeur="Contraste"; attache=ajouter_noeud; métadonnée="Contraste")
 		action(valeur="Correction Couleur"; attache=ajouter_noeud; métadonnée="Correction Couleur")

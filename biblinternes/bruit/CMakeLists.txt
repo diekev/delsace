@@ -19,43 +19,34 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE mikisa_poseidon)
+set(NOM_BIBLIOTHEQUE bib_bruit)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../../
-	${CMAKE_CURRENT_SOURCE_DIR}/../../danjo/coeur/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
-set(BIBLIOTHEQUES
-	bib_bruit
-	mikisa_coeur
-	mikisa_corps
-	wolika
-	${BIBLIOTHEQUES_TBB}
+set(SOURCES
+	blanc.cc
+	cellule.cc
+	evaluation.cc
+	ondelette.cc
+	parametres.cc
+	perlin.cc
+	simplex.cc
+	turbulent.cc
+	voronoi.cc
+
+	blanc.hh
+	cellule.hh
+	evaluation.hh
+	ondelette.hh
+	parametres.hh
+	perlin.hh
+	simplex.hh
+	turbulent.hh
+	voronoi.hh
 )
 
-add_library(${NOM_CIBLE} STATIC
-	diffusion.cc
-	fluide.cc
-	gradient_conjugue.cc
-	incompressibilite.cc
-	monde.cc
-	particules.cc
-	simulation.cc
-	vorticite.cc
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES})
 
-	diffusion.hh
-	fluide.hh
-	gradient_conjugue.hh
-	incompressibilite.hh
-	monde.hh
-	particules.hh
-	simulation.hh
-	vorticite.hh
-)
-
-target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
-
-target_link_libraries(${NOM_CIBLE} ${BIBLIOTHEQUES})
-
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})

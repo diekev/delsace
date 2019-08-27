@@ -22,15 +22,19 @@
  *
  */
 
-#include "bruit_vaguelette.hh"
+#include "ondelette.hh"
+
+#include <mutex>
 
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 
+namespace bruit {
+
 /**
- * Implémentation de la génération de tuiles pour les bruits de vaguelettes.
+ * Implémentation de la génération de tuiles pour les bruits d'ondelettes.
  * L'implémentation dérive principalement de la publication « Wavelet Noise » de
  * Pixar : http://graphics.pixar.com/library/WaveletNoise/paper.pdf.
  *
@@ -112,7 +116,7 @@ static void genere_tuile_bruit(float *&bruit, int n)
 	 * ou après logeuse_memoire, donc nous allouons via new. */
 	bruit = new float[static_cast<size_t>(sz)];
 
-	/* NOTE : toutes les implémentation du bruit vaguelette semblent être les
+	/* NOTE : toutes les implémentation du bruit ondelette semblent être les
 	 * mêmes, venant d'une même source, mais personne ne calcul le bruit en
 	 * parallèle, ce qui n'est pas impossible. La raison semblerait que le bruit
 	 * est mis en cache dans un fichier temporaire. La génération en série peut
@@ -262,7 +266,7 @@ static float evalue_bruit(float *tuile, int n, float p[3])
 }
 
 /* Bruit 3D projetté en 2D. */
-static float evalue_bruit_projette(float *tuile, int n, float p[3], float normal[3])
+static float evalue_projette(float *tuile, int n, float p[3], float normal[3])
 {
 	int c[3], min[3], max[3]; /* c = noise coeff location */
 	auto resultat = 0.0f;
@@ -313,7 +317,7 @@ static float evalue_bruit_projette(float *tuile, int n, float p[3], float normal
 	return resultat;
 }
 
-static float evalue_bruit_multi_bande(
+static float evalue_multi_bande(
 		float *tuile,
 		int n,
 		float p[3],
@@ -330,7 +334,7 @@ static float evalue_bruit_multi_bande(
 			q[i] = 2.0f * p[i] * std::pow(2.0f, static_cast<float>(firstBand + b));
 		}
 
-		resultat += (normal) ? w[b] * evalue_bruit_projette(tuile, n, q, normal)
+		resultat += (normal) ? w[b] * evalue_projette(tuile, n, q, normal)
 							 : w[b] * evalue_bruit(tuile, n, q);
 	}
 
@@ -348,17 +352,17 @@ static float evalue_bruit_multi_bande(
 
 /* ************************************************************************** */
 
-/* Le bruit de vaguelette est coûteux à produire donc assurons qu'une seule
+/* Le bruit d'ondelette est coûteux à produire donc assurons qu'une seule
  * version existe via cette variable globale.
  *
- * À FAIRE : génération unique en cas d'accès en parallèle.
  * À FAIRE : stockage dans un fichier.
  */
 
 struct constructrice_bruit {
 private:
 	static constructrice_bruit m_instance;
-	float *m_donnees = nullptr;
+	std::atomic<float *> m_donnees = nullptr;
+	std::mutex m_mutex{};
 
 public:
 	static constructrice_bruit &instance()
@@ -373,11 +377,24 @@ public:
 
 	float *genere_donnees()
 	{
-		if (m_donnees != nullptr) {
-			return m_donnees;
-		}
+		/* Met une barrière sur l'opération de chargement pour que toute
+		 * écriture survenant auparavant sur les données nous soit visible.
+		 * Ainsi nous évitons toute concurrence critique, verrou mort, ou autre
+		 * famine. */
+		if (m_donnees.load(std::memory_order_acquire) == nullptr) {
+			std::unique_lock<std::mutex> lock(m_mutex);
 
-		genere_tuile_bruit(m_donnees, 128);
+			/* performe un chargement non-atomic */
+			if (m_donnees.load() == nullptr) {
+				float *ptr;
+				genere_tuile_bruit(ptr, 128);
+
+				/* Relâche la barrière pour garantir que toutes les opérations
+				 * de mémoire planifiée avant elle dans l'ordre du programme
+				 * deviennent visible avant la prochaine barrière. */
+				m_donnees.store(ptr, std::memory_order_release);
+			}
+		}
 
 		return m_donnees;
 	}
@@ -387,45 +404,22 @@ constructrice_bruit constructrice_bruit::m_instance = constructrice_bruit{};
 
 /* ************************************************************************** */
 
-bruit_vaguelette bruit_vaguelette::construit(int graine)
+void ondelette::construit(parametres &params, int graine)
 {
 	auto &inst_const = constructrice_bruit::instance();
-
-	auto bruit = bruit_vaguelette();
-	bruit.m_donnees = inst_const.genere_donnees();
+	params.tuile = inst_const.genere_donnees();
 
 	auto gna = GNA{graine};
 	auto rand_x = gna.uniforme(0.0f, 1.0f);
 	auto rand_y = gna.uniforme(0.0f, 1.0f);
 	auto rand_z = gna.uniforme(0.0f, 1.0f);
 
-	bruit.m_decalage_graine = normalise(dls::math::vec3f(rand_x, rand_y, rand_z));
-
-	return bruit;
+	params.decalage_graine = normalise(dls::math::vec3f(rand_x, rand_y, rand_z));
 }
 
-float bruit_vaguelette::evalue(dls::math::vec3f pos) const
+float ondelette::evalue(parametres const &params, dls::math::vec3f pos)
 {
-	pos[0] *= taille_grille_inv;
-	pos[1] *= taille_grille_inv;
-	pos[2] *= taille_grille_inv;
-	pos += m_decalage_graine;
-
-	pos += dls::math::vec3f(temps_anim * dx);
-
-	pos[0] *= echelle_pos[0];
-	pos[1] *= echelle_pos[1];
-	pos[2] *= echelle_pos[2];
-	pos += decalage_pos;
-
-	auto v = evalue_bruit(m_donnees, 128, &pos[0]);
-
-	v += decalage_valeur;
-	v *= echelle_valeur;
-
-	if (restreint) {
-		v = dls::math::restreint(v, restreint_neg, restraint_pos);
-	}
-
-	return v;
+	return evalue_bruit(params.tuile, 128, &pos[0]);
 }
+
+}  /* namespace bruit */

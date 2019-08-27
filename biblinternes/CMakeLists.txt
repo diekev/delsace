@@ -22,6 +22,7 @@
 add_subdirectory(audio)
 add_subdirectory(base64)
 add_subdirectory(bcrypt)
+add_subdirectory(bruit)
 add_subdirectory(chisei)
 add_subdirectory(chrono)
 add_subdirectory(compiler)

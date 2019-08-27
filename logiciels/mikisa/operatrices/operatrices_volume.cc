@@ -24,6 +24,7 @@
 
 #include "operatrices_volume.hh"
 
+#include "biblinternes/bruit/ondelette.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/definitions.h"
@@ -45,8 +46,6 @@
 #include "wolika/grille_eparse.hh"
 #include "wolika/grille_temporelle.hh"
 #include "wolika/iteration.hh"
-
-#include "poseidon/bruit_vaguelette.hh"
 
 #include "outils_visualisation.hh"
 
@@ -77,17 +76,17 @@ static int cree_volume(
 
 	auto graine = op.evalue_entier("graine");
 
-	auto bruit = bruit_vaguelette::construit(graine);
-	bruit.dx = static_cast<float>(desc.taille_voxel);
-	bruit.taille_grille_inv = 1.0f / static_cast<float>(desc.taille_voxel);
-	bruit.decalage_pos = op.evalue_vecteur("décalage_pos");
-	bruit.echelle_pos = op.evalue_vecteur("échelle_pos");
-	bruit.decalage_valeur = op.evalue_decimal("décalage_valeur");
-	bruit.echelle_valeur = op.evalue_decimal("échelle_valeur");
-	bruit.restreint = op.evalue_bool("restreint");
-	bruit.restreint_neg = op.evalue_decimal("restreint_neg");
-	bruit.restraint_pos = op.evalue_decimal("restreint_pos");
-	bruit.temps_anim = op.evalue_decimal("temps_anim");
+	auto params_bruit = bruit::parametres();
+	params_bruit.decalage_pos = op.evalue_vecteur("décalage_pos");
+	params_bruit.echelle_pos = op.evalue_vecteur("échelle_pos");
+	params_bruit.decalage_valeur = op.evalue_decimal("décalage_valeur");
+	params_bruit.echelle_valeur = op.evalue_decimal("échelle_valeur");
+	params_bruit.restreint = op.evalue_bool("restreint");
+	params_bruit.restreint_neg = op.evalue_decimal("restreint_neg");
+	params_bruit.restraint_pos = op.evalue_decimal("restreint_pos");
+	params_bruit.temps_anim = op.evalue_decimal("temps_anim");
+
+	bruit::ondelette::construit(params_bruit, graine);
 
 	auto grille_scalaire = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille_scalaire->assure_tuiles(desc.etendue);
@@ -105,7 +104,7 @@ static int cree_volume(
 
 					auto pos_monde = grille_scalaire->index_vers_monde(pos_tuile);
 
-					tuile->donnees[index_tuile] = (bruit.evalue(pos_monde) + 1.0f) * 0.5f;
+					tuile->donnees[index_tuile] = bruit::ondelette::evalue(params_bruit, pos_monde);
 				}
 			}
 		}
@@ -770,17 +769,17 @@ static auto obtiens_grille(float temps)
 
 	auto graine = 1;
 
-	auto bruit = bruit_vaguelette::construit(graine);
-	bruit.dx = static_cast<float>(desc.taille_voxel);
-	bruit.taille_grille_inv = 1.0f / static_cast<float>(desc.taille_voxel);
-	bruit.decalage_pos = dls::math::vec3f(45.0f);
-	bruit.echelle_pos = dls::math::vec3f(1.0f);
-	bruit.decalage_valeur = 0.0f;
-	bruit.echelle_valeur = 1.0f;
-	bruit.restreint = false;
-	bruit.restreint_neg = 0.0f;
-	bruit.restraint_pos = 1.0f;
-	bruit.temps_anim = temps;
+	auto params_bruit = bruit::parametres();
+	params_bruit.decalage_pos = dls::math::vec3f(45.0f);
+	params_bruit.echelle_pos = dls::math::vec3f(1.0f);
+	params_bruit.decalage_valeur = 0.0f;
+	params_bruit.echelle_valeur = 1.0f;
+	params_bruit.restreint = false;
+	params_bruit.restreint_neg = 0.0f;
+	params_bruit.restraint_pos = 1.0f;
+	params_bruit.temps_anim = temps;
+
+	bruit::ondelette::construit(params_bruit, graine);
 
 	auto grille = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(desc.etendue);
@@ -798,7 +797,7 @@ static auto obtiens_grille(float temps)
 
 					auto mnd = grille->index_vers_monde(pos_tuile);
 
-					tuile->donnees[index_tuile] = bruit.evalue(mnd);
+					tuile->donnees[index_tuile] = bruit::ondelette::evalue(params_bruit, mnd);
 				}
 			}
 		}

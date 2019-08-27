@@ -1,4 +1,18 @@
 disposition "operatrice_bruit" {
+	ligne {
+		étiquette(valeur="Type Bruit")
+		énum(valeur="ondelette"; attache=type; items=[
+			 {nom="Cellule", valeur="cellule"},
+			 {nom="Ondelette", valeur="ondelette"},
+			 {nom="Simplex", valeur="simplex"},
+			 {nom="Voronoi F1", valeur="voronoi_f1"},
+			 {nom="Voronoi F2", valeur="voronoi_f2"},
+			 {nom="Voronoi F3", valeur="voronoi_f3"},
+			 {nom="Voronoi F4", valeur="voronoi_f4"},
+			 {nom="Voronoi F1F2", valeur="voronoi_f1f2"},
+			 {nom="Voronoi Craqué", valeur="voronoi_cr"}
+			 ])
+	}
     ligne {
 	    étiquette(valeur="Dimension")
 		énum(valeur="1D"; attache=dimension;
