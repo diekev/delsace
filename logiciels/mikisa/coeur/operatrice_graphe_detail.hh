@@ -29,15 +29,19 @@
 #include "biblinternes/graphe/compileuse_graphe.h"
 #include "biblinternes/graphe/graphe.h"
 
+#include "lcc/contexte_generation_code.h"
+
 namespace lcc {
 struct donnees_fonction;
 }
 
+struct Mikisa;
+
 /* ************************************************************************** */
 
 class OperatriceGrapheDetail : public OperatriceCorps {
-	//GestionnaireDonneesGraphe m_gestionnaire{}; // ancien gestionnaire pour stocker des bruits et autres
-	CompileuseGraphe m_compileuse{};
+	compileuse_lng m_compileuse{};
+	gestionnaire_propriete m_gest_props{};
 	Graphe m_graphe;
 
 public:
@@ -58,7 +62,7 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
-	void compile_graphe(int temps);
+	void compile_graphe(ContexteEvaluation const &contexte);
 };
 
 /* ************************************************************************** */
@@ -89,5 +93,7 @@ public:
 };
 
 /* ************************************************************************** */
+
+void graphe_detail_notifie_parent_suranne(Mikisa &mikisa);
 
 void enregistre_operatrices_detail(UsineOperatrice &usine);

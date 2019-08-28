@@ -267,7 +267,11 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
 
-		if (besoin_evaluation || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
+		if (besoin_evaluation || mikisa->contexte == GRAPHE_DETAIL) {
+			if (mikisa->contexte == GRAPHE_DETAIL) {
+				graphe_detail_notifie_parent_suranne(*mikisa);
+			}
+
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
 		}
 
@@ -281,7 +285,8 @@ class CommandeSelectionGraphe final : public Commande {
 	float delta_x = 0.0f;
 	float delta_y = 0.0f;
 	bool m_prise_entree_deconnectee = false;
-	char m_pad[7];
+	bool m_deconnexion = false; // pour les graphes détails
+	char m_pad[6];
 
 public:
 	CommandeSelectionGraphe()
@@ -320,6 +325,8 @@ public:
 					m_prise_entree_deconnectee = noeud_connecte_sortie(
 													 prise_entree->parent,
 													 graphe->dernier_noeud_sortie);
+
+					m_deconnexion = true;
 				}
 			}
 			else {
@@ -370,6 +377,7 @@ public:
 		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
 
+		bool connexion_sortie = false;
 		bool connexion = false;
 
 		if (graphe->connexion_active) {
@@ -390,9 +398,11 @@ public:
 					graphe->deconnecte(entree->liens[0], entree);
 				}
 
+				connexion = true;
+
 				graphe->connecte(sortie, entree);
 
-				connexion = noeud_connecte_sortie(
+				connexion_sortie = noeud_connecte_sortie(
 								entree->parent,
 								graphe->dernier_noeud_sortie);
 			}
@@ -402,7 +412,11 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
-		if (connexion || m_prise_entree_deconnectee || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_SIMULATION) {
+		if (connexion_sortie || m_prise_entree_deconnectee || ((connexion || m_deconnexion) && mikisa->contexte == GRAPHE_DETAIL)) {
+			if (mikisa->contexte == GRAPHE_DETAIL) {
+				graphe_detail_notifie_parent_suranne(*mikisa);
+			}
+
 			requiers_evaluation(*mikisa, GRAPHE_MODIFIE, "graphe modifié");
 		}
 	}
@@ -460,6 +474,10 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_SIMULATION) {
+			if (mikisa->contexte == GRAPHE_DETAIL) {
+				graphe_detail_notifie_parent_suranne(*mikisa);
+			}
+
 			requiers_evaluation(*mikisa, NOEUD_ENLEVE, "noeud supprimé");
 		}
 

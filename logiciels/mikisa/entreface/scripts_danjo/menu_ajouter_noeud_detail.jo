@@ -1,4 +1,6 @@
 menu "Noeud Détail" {
+	action(valeur="Entrée Détail"; attache=ajouter_noeud; métadonnée="Entrée Détail")
+	action(valeur="Sortie Détail"; attache=ajouter_noeud; métadonnée="Sortie Détail")
 	action(valeur="abs"; attache=ajouter_noeud_detail; métadonnée="abs")
 	action(valeur="acos"; attache=ajouter_noeud_detail; métadonnée="acos")
 	action(valeur="ajoute_ligne"; attache=ajouter_noeud_detail; métadonnée="ajoute_ligne")
