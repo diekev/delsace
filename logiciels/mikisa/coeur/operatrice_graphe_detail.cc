@@ -199,6 +199,32 @@ static auto converti_type_prise(lcc::type_var type)
 	return type_prise::INVALIDE;
 }
 
+static auto converti_type_danjo(lcc::type_var type)
+{
+	switch (type) {
+		case lcc::type_var::DEC:
+			return danjo::TypePropriete::DECIMAL;
+		case lcc::type_var::ENT32:
+			return danjo::TypePropriete::ENTIER;
+		case lcc::type_var::VEC2:
+		case lcc::type_var::VEC3:
+		case lcc::type_var::VEC4:
+		case lcc::type_var::POLYMORPHIQUE:
+			return danjo::TypePropriete::VECTEUR;
+		case lcc::type_var::COULEUR:
+			return danjo::TypePropriete::COULEUR;
+		case lcc::type_var::CHAINE:
+			return danjo::TypePropriete::CHAINE_CARACTERE;
+		case lcc::type_var::MAT3:
+		case lcc::type_var::MAT4:
+		case lcc::type_var::INVALIDE:
+		case lcc::type_var::TABLEAU:
+			return danjo::TypePropriete::ENTIER;
+	}
+
+	return danjo::TypePropriete::ENTIER;
+}
+
 static auto converti_type_prise(type_prise type)
 {
 	switch (type) {
@@ -247,6 +273,60 @@ OperatriceFonctionDetail::OperatriceFonctionDetail(Graphe &graphe_parent, Noeud 
 
 	entrees(m_df->seing.entrees.types.taille());
 	sorties(m_df->seing.sorties.types.taille());
+
+	for (auto i = 0; i < entrees(); ++i) {
+		auto nom_propriete = "entrée" + dls::vers_chaine(i);
+
+		auto prop = danjo::Propriete();
+
+		switch (m_df->seing.entrees.types[i]) {
+			case lcc::type_var::DEC:
+			{
+				prop.type = danjo::TypePropriete::DECIMAL;
+				prop.valeur = 0.0f;
+				ajoute_propriete(nom_propriete, danjo::TypePropriete::DECIMAL, 0.0f);
+				break;
+			}
+			case lcc::type_var::ENT32:
+			{
+				prop.type = danjo::TypePropriete::ENTIER;
+				prop.valeur = 0;
+				break;
+			}
+			case lcc::type_var::VEC2:
+			case lcc::type_var::VEC3:
+			case lcc::type_var::VEC4:
+			case lcc::type_var::POLYMORPHIQUE:
+			{
+				prop.type = danjo::TypePropriete::VECTEUR;
+				prop.valeur = dls::math::vec3f(0.0f);
+				break;
+			}
+			case lcc::type_var::COULEUR:
+			{
+				prop.type = danjo::TypePropriete::COULEUR;
+				prop.valeur = dls::phys::couleur32(1.0f);
+				break;
+			}
+			case lcc::type_var::CHAINE:
+			{
+				prop.type = danjo::TypePropriete::CHAINE_CARACTERE;
+				prop.valeur = dls::chaine();
+				break;
+			}
+			case lcc::type_var::MAT3:
+			case lcc::type_var::MAT4:
+			case lcc::type_var::INVALIDE:
+			case lcc::type_var::TABLEAU:
+			{
+				prop.type = danjo::TypePropriete::ENTIER;
+				prop.valeur = 0;
+				break;
+			}
+		}
+
+		ajoute_propriete_extra(nom_propriete, prop);
+	}
 }
 
 const char *OperatriceFonctionDetail::nom_classe() const
@@ -357,13 +437,84 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 		}
 		else {
 			/* alloue une valeur par défaut et prend le pointeurs */
-			/* À FAIRE : params interface */
+			auto ptr = 0;
 
 			if (type == lcc::type_var::POLYMORPHIQUE) {
-				type = type_specialise;
+				ptr = compileuse->donnees().loge_donnees(lcc::taille_type(type_specialise));
+				auto ptr_loc = ptr;
+
+				auto valeur = evalue_vecteur("entrée" + dls::vers_chaine(i), contexte.temps_courant);
+
+				switch (type_specialise) {
+					case lcc::type_var::ENT32:
+					{
+						compileuse->donnees().stocke(ptr_loc, static_cast<int>(valeur[0]));
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						compileuse->donnees().stocke(ptr_loc, valeur[0]);
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						compileuse->donnees().stocke(ptr_loc, valeur[0]);
+						compileuse->donnees().stocke(ptr_loc, valeur[1]);
+						break;
+					}
+					default:
+					{
+						compileuse->donnees().stocke(ptr_loc, valeur);
+						break;
+					}
+				}
+			}
+			else {
+				ptr = compileuse->donnees().loge_donnees(lcc::taille_type(type));
+				auto ptr_loc = ptr;
+
+				auto nom_prop = "entrée" + dls::vers_chaine(i);
+
+				switch (type) {
+					case lcc::type_var::ENT32:
+					{
+						auto valeur = evalue_entier(nom_prop, contexte.temps_courant);
+						compileuse->donnees().stocke(ptr_loc, valeur);
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						auto valeur = evalue_decimal(nom_prop, contexte.temps_courant);
+						compileuse->donnees().stocke(ptr_loc, valeur);
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						auto valeur = evalue_vecteur(nom_prop, contexte.temps_courant);
+						compileuse->donnees().stocke(ptr_loc, valeur[0]);
+						compileuse->donnees().stocke(ptr_loc, valeur[1]);
+						break;
+					}
+					case lcc::type_var::VEC3:
+					case lcc::type_var::VEC4:
+					{
+						auto valeur = evalue_vecteur(nom_prop, contexte.temps_courant);
+						compileuse->donnees().stocke(ptr_loc, valeur);
+						break;
+					}
+					case lcc::type_var::COULEUR:
+					{
+						auto valeur = evalue_couleur(nom_prop, contexte.temps_courant);
+						compileuse->donnees().stocke(ptr_loc, valeur);
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
 			}
 
-			auto ptr = compileuse->donnees().loge_donnees(lcc::taille_type(type));
 			pointeurs.pousse(ptr);
 		}
 	}
