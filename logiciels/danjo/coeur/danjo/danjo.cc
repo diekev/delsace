@@ -236,6 +236,16 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 	}
 
 	auto disposition = assembleuse.disposition();
+
+	/* dans le cas où un script est vide, mais nous aurions tout de même des
+	 * propriétés à dessiner, ajout une disposition pour ne pas crasher */
+	if (disposition == nullptr) {
+		assembleuse.ajoute_disposition(id_morceau::COLONNE);
+		disposition = assembleuse.disposition();
+	}
+
+	assembleuse.cree_controles_proprietes_extra();
+
 	disposition->addStretch();
 
 	auto nom = assembleuse.nom_disposition();

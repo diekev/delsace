@@ -200,8 +200,6 @@ void AnalyseuseDisposition::analyse_script_disposition()
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
 
-	m_assembleur->cree_controles_proprietes_extra();
-
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << " fin\n";
 #endif
