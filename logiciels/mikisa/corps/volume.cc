@@ -111,6 +111,11 @@ Volume::~Volume()
 			deloge_grille_impl<dls::phys::couleur32>(grille);
 			break;
 		}
+		case wlk::type_grille::COURBE_PAIRE_TEMPS:
+		{
+			deloge_grille_impl<wlk::type_courbe>(grille);
+			break;
+		}
 	}
 }
 

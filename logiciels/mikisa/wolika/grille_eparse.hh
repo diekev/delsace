@@ -109,6 +109,8 @@ public:
 	grille_eparse(desc_grille_3d const &descr)
 		: base_grille_3d(descr)
 	{
+		this->m_desc.type_donnees = selectrice_type_grille<T>::type;
+
 		m_tuiles_x = converti_nombre_tuile(m_desc.resolution.x);
 		m_tuiles_y = converti_nombre_tuile(m_desc.resolution.y);
 		m_tuiles_z = converti_nombre_tuile(m_desc.resolution.z);

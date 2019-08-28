@@ -40,13 +40,6 @@ namespace wlk {
  * réanimer les simumlations de fluide.
  */
 
-struct paire_valeur_temps {
-	float valeur{};
-	float temps{};
-};
-
-using type_courbe = dls::tableau<paire_valeur_temps>;
-
 using grille_auxilliaire = wlk::grille_eparse<type_courbe>;
 
 struct tuile_temporelle {

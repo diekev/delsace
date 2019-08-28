@@ -26,6 +26,7 @@
 
 #include "biblinternes/math/limites.hh"
 #include "biblinternes/phys/couleur.hh"
+#include "biblinternes/structures/tableau.hh"
 
 /* ************************************************************************** */
 
@@ -61,7 +62,15 @@ enum class type_grille : int {
 	VEC3,
 	VEC3_R64,
 	COULEUR,
+	COURBE_PAIRE_TEMPS,
 };
+
+struct paire_valeur_temps {
+	float valeur{};
+	float temps{};
+};
+
+using type_courbe = dls::tableau<paire_valeur_temps>;
 
 template <typename T>
 struct selectrice_type_grille;
@@ -76,6 +85,7 @@ template <> struct selectrice_type_grille<dls::math::vec2f>     { static constex
 template <> struct selectrice_type_grille<dls::math::vec3f>     { static constexpr auto type = type_grille::VEC3; };
 template <> struct selectrice_type_grille<dls::math::vec3d>     { static constexpr auto type = type_grille::VEC3_R64; };
 template <> struct selectrice_type_grille<dls::phys::couleur32> { static constexpr auto type = type_grille::COULEUR; };
+template <> struct selectrice_type_grille<type_courbe>          { static constexpr auto type = type_grille::COURBE_PAIRE_TEMPS; };
 
 /* ************************************************************************** */
 

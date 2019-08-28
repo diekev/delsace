@@ -130,6 +130,11 @@ calque_image calque_image::construit_calque(
 			calque.tampon() = memoire::loge<wlk::grille_dense_2d<dls::phys::couleur32>>("grille_dense_2d", desc);
 			break;
 		}
+		case wlk::type_grille::COURBE_PAIRE_TEMPS:
+		{
+			calque.tampon() = memoire::loge<wlk::grille_dense_2d<wlk::type_courbe>>("grille_dense_2d", desc);
+			break;
+		}
 	}
 
 	return calque;

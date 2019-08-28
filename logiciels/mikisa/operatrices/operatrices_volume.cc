@@ -72,7 +72,6 @@ static int cree_volume(
 	desc.etendue.max = max;
 	desc.fenetre_donnees = desc.etendue;
 	desc.taille_voxel = static_cast<double>(op.evalue_decimal("taille_voxel"));
-	desc.type_donnees = wlk::type_grille::R32;
 
 	auto graine = op.evalue_entier("graine");
 
@@ -840,7 +839,6 @@ static auto echantillonne_grille_temp(
 		float temps)
 {
 	auto desc = grille_temp.desc();
-	desc.type_donnees = wlk::type_grille::R32; // XXX - À FAIRE
 	auto grille = memoire::loge<wlk::grille_eparse<float>>("grille", desc);
 	grille->assure_tuiles(grille_temp.desc().etendue);
 

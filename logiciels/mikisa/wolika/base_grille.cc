@@ -99,6 +99,12 @@ void deloge_grille(base_grille_2d *&tampon)
 			memoire::deloge("grille_dense", grille);
 			break;
 		}
+		case type_grille::COURBE_PAIRE_TEMPS:
+		{
+			auto grille = dynamic_cast<grille_dense_2d<wlk::type_courbe> *>(tampon);
+			memoire::deloge("grille_dense", grille);
+			break;
+		}
 	}
 
 	tampon = nullptr;
