@@ -69,23 +69,6 @@ int OperatriceGrapheDetail::type() const
 	return OPERATRICE_GRAPHE_DETAIL;
 }
 
-template <typename T>
-static auto remplis_donnees(
-		lcc::pile &donnees,
-		gestionnaire_propriete &gest_props,
-		dls::chaine const &nom,
-		T const &v)
-{
-	auto idx = gest_props.pointeur_donnees(nom);
-
-	if (idx == -1) {
-		/* À FAIRE : erreur */
-		return;
-	}
-
-	donnees.stocke(idx, v);
-}
-
 int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	if (!this->entree(0)->connectee()) {

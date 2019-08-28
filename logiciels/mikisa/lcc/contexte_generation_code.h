@@ -144,6 +144,23 @@ struct gestionnaire_propriete {
 	}
 };
 
+template <typename T>
+auto remplis_donnees(
+		lcc::pile &donnees,
+		gestionnaire_propriete &gest_props,
+		dls::chaine const &nom,
+		T const &v)
+{
+	auto idx = gest_props.pointeur_donnees(nom);
+
+	if (idx == -1) {
+		/* À FAIRE : erreur */
+		return;
+	}
+
+	donnees.stocke(idx, v);
+}
+
 /* ************************************************************************** */
 
 struct donnees_variables {

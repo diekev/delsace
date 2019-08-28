@@ -421,23 +421,6 @@ static auto ajoute_proprietes_contexte(
 	}
 }
 
-template <typename T>
-static auto remplis_donnees(
-		lcc::pile &donnees,
-		gestionnaire_propriete &gest_props,
-		dls::chaine const &nom,
-		T const &v)
-{
-	auto idx = gest_props.pointeur_donnees(nom);
-
-	if (idx == -1) {
-		/* À FAIRE : erreur */
-		return;
-	}
-
-	donnees.stocke(idx, v);
-}
-
 class OpScriptTopologie : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Script Topologie";
