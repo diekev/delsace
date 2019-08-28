@@ -66,6 +66,11 @@ public:
 		return static_cast<long>(m_dico.size());
 	}
 
+	long compte(_Key const &cle) const
+	{
+		return static_cast<long>(m_dico.count(cle));
+	}
+
 	void efface()
 	{
 		m_dico.clear();
@@ -79,6 +84,11 @@ public:
 	void efface(_Key const &cle)
 	{
 		m_dico.erase(cle);
+	}
+
+	bool est_vide() const
+	{
+		return m_dico.empty();
 	}
 
 	_Tp &operator[](_Key const &cle)

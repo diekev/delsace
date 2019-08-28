@@ -66,6 +66,11 @@ public:
 		m_ensemble.clear();
 	}
 
+	void efface(Cle const &valeur)
+	{
+		m_ensemble.erase(valeur);
+	}
+
 	void insere(Cle const &valeur)
 	{
 		m_ensemble.insert(valeur);
@@ -74,6 +79,11 @@ public:
 	long taille() const
 	{
 		return static_cast<long>(m_ensemble.size());
+	}
+
+	long compte(Cle const &valeur) const
+	{
+		return static_cast<long>(m_ensemble.count(valeur));
 	}
 
 	iteratrice trouve(Cle const &valeur)
