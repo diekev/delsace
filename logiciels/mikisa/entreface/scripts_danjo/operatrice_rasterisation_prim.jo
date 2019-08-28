@@ -4,6 +4,10 @@ disposition "operatrice_rasterisation_prim" {
 		décimal(valeur=0.1; min=0.0001; attache=taille_voxel; animable)
 	}
 	ligne {
+		étiquette(valeur="Marge")
+		vecteur(valeur="0,0,0"; min=0.0001; attache=marge; infobulle="Ajout d'une marge (en mètre) au volume pour s'assurer qu'il y a suffisament de place pour le déplacement des voxels dû au bruit."; animable)
+	}
+	ligne {
 	    étiquette(valeur="Rayon")
 		décimal(valeur=0.1; min=0.0001; attache=rayon; animable)
 	}

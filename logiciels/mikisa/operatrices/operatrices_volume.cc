@@ -458,12 +458,12 @@ static int ratisse_primitives(
 	auto const graine = op.evalue_entier("graine");
 	auto const densite = op.evalue_decimal("densité");
 	auto const nombre_echantillons = op.evalue_entier("nombre_échantillons");
+	auto const marge = op.evalue_vecteur("marge", contexte.temps_courant);
 
 	/* calcul les limites des primitives d'entrées */
 	auto limites = calcule_limites_mondiales_corps(corps_entree);
 
-	/* À FAIRE : prendre en compte le déplacement pour le bruit */
-	limites.etends(dls::math::vec3f(rayon));
+	limites.etends(marge * rayon);
 
 	auto gna = GNA(graine);
 
