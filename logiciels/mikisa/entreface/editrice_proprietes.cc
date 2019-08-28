@@ -159,10 +159,6 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 	auto const &texte = dls::contenu_fichier(chemin_entreface);
 
-	if (texte.est_vide()) {
-		return;
-	}
-
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
