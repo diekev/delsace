@@ -58,10 +58,10 @@
  */
 
 struct cell {
-	float (*verts)[3] = nullptr;
-	int *poly_totvert = nullptr;
-	int **poly_indices = nullptr;
-	int *neighbors = nullptr;
+	dls::tableau<double> verts{};
+	dls::tableau<int> poly_totvert{};
+	dls::tableau<int> poly_indices{};
+	dls::tableau<int> voisines{};
 
 	float centroid[3] = { 0.0f, 0.0f, 0.0f };
 	float volume = 0.0f;
@@ -152,11 +152,12 @@ public:
 		}
 
 		/* création des cellules */
-		auto cellules = dls::tableau<cell>(points_entree->taille());
+		auto cellules = dls::tableau<cell>();
+		cellules.reserve(points_entree->taille());
 
 		/* calcul des cellules */
 
-		container_compute_cells(cont_voro, ordre_parts, cellules.donnees());
+		container_compute_cells(cont_voro, ordre_parts, cellules);
 
 		/* conversion des données */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
@@ -165,52 +166,30 @@ public:
 		auto poly_index_offset = 0;
 
 		for (auto &c : cellules) {
-			if (c.verts == nullptr) {
-				continue;
-			}
-
-			for (size_t i = 0; i < static_cast<size_t>(c.totvert); ++i) {
-				m_corps.ajoute_point(c.verts[i][0], c.verts[i][1], c.verts[i][2]);
+			for (auto i = 0; i < c.totvert; ++i) {
+				auto px = static_cast<float>(c.verts[i * 3]);
+				auto py = static_cast<float>(c.verts[i * 3 + 1]);
+				auto pz = static_cast<float>(c.verts[i * 3 + 2]);
+				m_corps.ajoute_point(px, py, pz);
 			}
 
 			auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
+			auto skip = 0;
 
-			for (size_t i = 0; i < static_cast<size_t>(c.totpoly); ++i) {
+			for (auto i = 0; i < c.totpoly; ++i) {
 				auto nombre_verts = c.poly_totvert[i];
 
 				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, nombre_verts);
 
 				attr_C->pousse(couleur);
 				for (auto j = 0; j < nombre_verts; ++j) {
-					poly->ajoute_sommet(poly_index_offset + c.poly_indices[i][j]);
+					poly->ajoute_sommet(poly_index_offset + c.poly_indices[skip + 1 + j]);
 				}
+
+				skip += (nombre_verts + 1);
 			}
 
 			poly_index_offset += c.totvert;
-		}
-
-		/* libération de la mémoire */
-
-		for (auto &c : cellules) {
-			if (c.verts) {
-				memoire::deloge_tableau("c.verts", c.verts, c.totvert);
-			}
-
-			if (c.neighbors) {
-				memoire::deloge_tableau("c.neighbors", c.neighbors, c.totpoly);
-			}
-
-			if (c.poly_indices) {
-				for (size_t j = 0; j < static_cast<size_t>(c.totpoly); j++) {
-					memoire::deloge_tableau("c.poly_indices", c.poly_indices[j], c.poly_totvert[j]);
-				}
-
-				memoire::deloge_tableau("c.poly_indices", c.poly_indices, c.totpoly);
-			}
-
-			if (c.poly_totvert) {
-				memoire::deloge_tableau("c.poly_totvert", c.poly_totvert, c.totpoly);
-			}
 		}
 
 		memoire::deloge("voro::container", cont_voro);
@@ -219,7 +198,7 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	void container_compute_cells(voro::container* cn, voro::particle_order* po, cell* cells)
+	void container_compute_cells(voro::container* cn, voro::particle_order* po, dls::tableau<cell> &cells)
 	{
 		voro::voronoicell_neighbor vc;
 		voro::c_loop_order vl(*cn, *po);
@@ -227,93 +206,43 @@ public:
 		if (!vl.start()) {
 			return;
 		}
-
-		int i = 0;
 		cell c;
 
 		do {
-			if (cn->compute_cell(vc,vl)) {
-				// adapted from voro++
-				dls::tableau<double> verts;
-				dls::tableau<int> face_orders;
-				dls::tableau<int> face_verts;
-				dls::tableau<int> neighbors;
-				double *pp, centroid[3];
-				pp = vl.p[vl.ijk]+vl.ps*vl.q;
-
-				// cell particle index
-				c.index = cn->id[vl.ijk][vl.q];
-
-				// verts
-				vc.vertices(*pp, pp[1], pp[2], verts);
-				c.totvert = vc.p;
-				c.verts = memoire::loge_tableau<float[3]>("c.verts", c.totvert);
-
-				for (auto v = 0; v < c.totvert; v++) {
-					c.verts[v][0] = static_cast<float>(verts[v * 3]);
-					c.verts[v][1] = static_cast<float>(verts[v * 3 + 1]);
-					c.verts[v][2] = static_cast<float>(verts[v * 3 + 2]);
-				}
-
-				// faces
-				c.totpoly = vc.number_of_faces();
-				vc.face_orders(face_orders);
-				c.poly_totvert = memoire::loge_tableau<int>("c.poly_totvert", c.totpoly);
-
-				for (auto fo = 0; fo < c.totpoly; fo++) {
-					c.poly_totvert[fo] = face_orders[fo];
-				}
-
-				vc.face_vertices(face_verts);
-				c.poly_indices = memoire::loge_tableau<int *>("c.poly_indices", c.totpoly);
-
-				int skip = 0;
-				for (auto fo = 0; fo < c.totpoly; fo++) {
-					int num_verts = c.poly_totvert[fo];
-					c.poly_indices[fo] = memoire::loge_tableau<int>("c.poly_indices", num_verts);
-
-					for (auto fv = 0; fv < num_verts; fv++) {
-						c.poly_indices[fo][fv] = face_verts[skip + 1 + fv];
-					}
-
-					skip += (num_verts+1);
-				}
-
-				// neighbors
-				vc.neighbors(neighbors);
-				c.neighbors = memoire::loge_tableau<int>("c.neighbors", c.totpoly);
-
-				for (auto n = 0; n < c.totpoly; n++) {
-					c.neighbors[n] = neighbors[n];
-				}
-
-				// centroid
-				vc.centroid(centroid[0], centroid[1], centroid[2]);
-				c.centroid[0] = static_cast<float>(centroid[0] + pp[0]);
-				c.centroid[1] = static_cast<float>(centroid[1] + pp[1]);
-				c.centroid[2] = static_cast<float>(centroid[2] + pp[2]);
-
-				// volume
-				c.volume = static_cast<float>(vc.volume());
-
-				// valid cell, store
-				cells[i] = c;
-			}
-			else { // invalid cell, set NULL XXX À FAIRE (Somehow !!!)
-				c.centroid[0] = 0.0f;
-				c.centroid[1] = 0.0f;
-				c.centroid[2] = 0.0f;
-				c.index = 0;
-				c.neighbors = nullptr;
-				c.totpoly = 0;
-				c.totvert = 0;
-				c.poly_totvert = nullptr;
-				c.poly_indices = nullptr;
-				c.verts = nullptr;
-				cells[i] = c;
+			if (!cn->compute_cell(vc, vl)) {
+				/* cellule invalide */
+				continue;
 			}
 
-			i++;
+			/* adapté de voro++ */
+			double *pp = vl.p[vl.ijk] + vl.ps * vl.q;
+
+			/* index de la particule de la cellule */
+			c.index = cn->id[vl.ijk][vl.q];
+
+			/* sommets */
+			vc.vertices(pp[0], pp[1], pp[2], c.verts);
+			c.totvert = vc.p;
+
+			/* polygones */
+			c.totpoly = vc.number_of_faces();
+			vc.face_orders(c.poly_totvert);
+			vc.face_vertices(c.poly_indices);
+
+			/* voisines */
+			vc.neighbors(c.voisines);
+
+			/* centroid */
+			double centroid[3];
+			vc.centroid(centroid[0], centroid[1], centroid[2]);
+			c.centroid[0] = static_cast<float>(centroid[0] + pp[0]);
+			c.centroid[1] = static_cast<float>(centroid[1] + pp[1]);
+			c.centroid[2] = static_cast<float>(centroid[2] + pp[2]);
+
+			/* volume */
+			c.volume = static_cast<float>(vc.volume());
+
+			cells.pousse(c);
 		}
 		while(vl.inc());
 	}
