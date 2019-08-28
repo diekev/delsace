@@ -88,8 +88,8 @@ struct donnees_propriete {
 };
 
 struct gestionnaire_propriete {
-	dls::tableau<donnees_propriete *> donnees;
-	dls::tableau<donnees_propriete *> requetes;
+	dls::tableau<donnees_propriete *> donnees{};
+	dls::tableau<donnees_propriete *> requetes{};
 
 	~gestionnaire_propriete()
 	{
