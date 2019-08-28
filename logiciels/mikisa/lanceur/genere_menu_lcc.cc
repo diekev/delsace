@@ -41,6 +41,8 @@ int main()
 	std::sort(begin(nom_fonctions), end(nom_fonctions));
 
 	os << "menu \"Noeud Détail\" {\n";
+	os << "\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud; métadonnée=\"Entrée Détail\")\n";
+	os << "\taction(valeur=\"Sortie Détail\"; attache=ajouter_noeud; métadonnée=\"Sortie Détail\")\n";
 	for (auto const &nom : nom_fonctions) {
 		os << "\taction(valeur=\"";
 		os << nom;
