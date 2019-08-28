@@ -199,32 +199,6 @@ static auto converti_type_prise(lcc::type_var type)
 	return type_prise::INVALIDE;
 }
 
-static auto converti_type_danjo(lcc::type_var type)
-{
-	switch (type) {
-		case lcc::type_var::DEC:
-			return danjo::TypePropriete::DECIMAL;
-		case lcc::type_var::ENT32:
-			return danjo::TypePropriete::ENTIER;
-		case lcc::type_var::VEC2:
-		case lcc::type_var::VEC3:
-		case lcc::type_var::VEC4:
-		case lcc::type_var::POLYMORPHIQUE:
-			return danjo::TypePropriete::VECTEUR;
-		case lcc::type_var::COULEUR:
-			return danjo::TypePropriete::COULEUR;
-		case lcc::type_var::CHAINE:
-			return danjo::TypePropriete::CHAINE_CARACTERE;
-		case lcc::type_var::MAT3:
-		case lcc::type_var::MAT4:
-		case lcc::type_var::INVALIDE:
-		case lcc::type_var::TABLEAU:
-			return danjo::TypePropriete::ENTIER;
-	}
-
-	return danjo::TypePropriete::ENTIER;
-}
-
 static auto converti_type_prise(type_prise type)
 {
 	switch (type) {
