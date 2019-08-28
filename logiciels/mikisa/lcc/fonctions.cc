@@ -206,6 +206,49 @@ donnees_fonction_generation magasin_fonctions::meilleure_candidate(
 
 /* ************************************************************************** */
 
+static void enregistre_fonctions_operations_binaires(magasin_fonctions &magasin)
+{
+	magasin.ajoute_fonction(
+				"ajoute",
+				code_inst::FN_AJOUTE,
+				signature(
+					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
+					types_sorties(type_var::POLYMORPHIQUE)),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"soustrait",
+				code_inst::FN_SOUSTRAIT,
+				signature(
+					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
+					types_sorties(type_var::POLYMORPHIQUE)),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"multiplie",
+				code_inst::FN_MULTIPLIE,
+				signature(
+					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
+					types_sorties(type_var::POLYMORPHIQUE)),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"divise",
+				code_inst::FN_DIVISE,
+				signature(
+					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
+					types_sorties(type_var::POLYMORPHIQUE)),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"modulo",
+				code_inst::FN_MODULO,
+				signature(
+					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
+					types_sorties(type_var::POLYMORPHIQUE)),
+				ctx_script::tous);
+}
+
 static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 {
 	magasin.ajoute_fonction(
@@ -672,6 +715,7 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 
 void enregistre_fonctions_base(magasin_fonctions &magasin)
 {
+	enregistre_fonctions_operations_binaires(magasin);
 	enregistre_fonctions_mathematiques(magasin);
 	enregistre_fonctions_vectorielles(magasin);
 	enregistre_fonctions_corps(magasin);
