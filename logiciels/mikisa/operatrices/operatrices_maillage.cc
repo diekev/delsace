@@ -24,15 +24,14 @@
 
 #include "operatrices_maillage.hh"
 
-#include "biblinternes/math/bruit.hh"
 #include <eigen3/Eigen/Eigenvalues>
 
+#include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/moultfilage/boucle.hh"
-
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -1453,12 +1452,6 @@ public:
 
 /* ************************************************************************** */
 
-/* À FAIRE : bibliothèque de bruit. */
-static auto bruit(dls::math::vec3f const &p)
-{
-	return dls::math::bruit_simplex_3d(p.x, p.y, p.z);
-}
-
 class OpFonteMaillage : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Fonte Maillage";
@@ -1530,6 +1523,8 @@ public:
 		}
 
 		auto distance = (max.y - min.y);
+		auto param_bruit = bruit::parametres();
+		bruit::construit(bruit::type::SIMPLEX, param_bruit, 0);
 
 		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
 						 [&](tbb::blocked_range<long> const &plage)
@@ -1562,7 +1557,7 @@ public:
 					float n = 0.0f;
 
 					if (amplitude_bruit != 0.0f) {
-						n = amplitude_bruit * bruit(p * frequence_bruit + decalage_bruit);
+						n = amplitude_bruit * bruit::evalue(param_bruit, p * frequence_bruit + decalage_bruit);
 					}
 
 					p += ((quantite * etalement) + n) * fraction_depassement * poussee;

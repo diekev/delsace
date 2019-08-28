@@ -24,7 +24,8 @@
 
 #include "operatrices_volume.hh"
 
-#include "biblinternes/bruit/ondelette.hh"
+#include "biblinternes/bruit/evaluation.hh"
+#include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/definitions.h"
@@ -292,42 +293,6 @@ static int maillage_vers_volume(
 
 /* ************************************************************************** */
 
-/* À FAIRE : bibliothèque de bruit */
-#include "biblinternes/math/bruit.hh"
-
-struct FBM {
-	float echelle = 1.0f;
-	float inv_echelle = 1.0f / echelle;
-	float octaves = 8.0f * 1.618f;
-	float gain = 1.0f;
-	float lacunarite = 1.0f;
-
-	dls::math::BruitPerlin3D bruit{};
-
-	float eval(dls::math::vec3f const &P) const
-	{
-		/* mise à l'échelle du point d'échantillonage */
-		auto p = P * this->inv_echelle;
-
-		/* initialisation des variables */
-		auto resultat = 0.0f;
-		auto contribuation_octave = 1.0f;
-		auto octave = this->octaves;
-
-		for (; octave > 1.0f; octave -= 1.0f) {
-			resultat += bruit(p) * contribuation_octave;
-			contribuation_octave *= this->gain;
-			p *= this->lacunarite;
-		}
-
-		if (octave > 0.0f) {
-			resultat += bruit(p) * contribuation_octave * octave;
-		}
-
-		return resultat;
-	}
-};
-
 static void rasterise_polygone(
 		Corps const &corps,
 		Polygone &poly,
@@ -336,7 +301,8 @@ static void rasterise_polygone(
 		float densite,
 		GNA &gna,
 		int nombre_echantillons,
-		FBM *fbm)
+		bruit::parametres *params_bruit,
+		bruit::param_turbulence *params_turb)
 {
 	// le système de coordonnées pour un polygone est (dP/du, dP/dv, N)
 
@@ -369,9 +335,9 @@ static void rasterise_polygone(
 		auto wsP = p0 + e1 * st.x + e2 * st.y;
 		wsP += N * u * rayon;
 
-		if (fbm != nullptr) {
+		if (params_bruit != nullptr) {
 			auto nsP = dls::math::vec3f(st[0], st[1], u);
-			auto disp = rayon * fbm->eval(nsP)/* * amplitude*/;
+			auto disp = rayon * bruit::evalue_turb(*params_bruit, *params_turb, nsP)/* * amplitude*/;
 			wsP += N * disp;
 		}
 
@@ -389,7 +355,8 @@ static void rasterise_ligne(
 		float densite,
 		GNA &gna,
 		int nombre_echantillons,
-		FBM *fbm)
+		bruit::parametres *params_bruit,
+		bruit::param_turbulence *params_turb)
 {
 	// le système de coordonnées pour une ligne est (NxT, N, T)
 
@@ -418,10 +385,10 @@ static void rasterise_ligne(
 			wsP += st.x * NxT * rayon;
 			wsP += st.y * N * rayon;
 
-			if (fbm != nullptr) {
+			if (params_bruit != nullptr) {
 				auto nsP = dls::math::vec3f(st[0], st[1], u);
 				auto wsRadial = normalise(st.x * NxT + st.y * N);
-				auto disp = rayon * fbm->eval(nsP)/* * amplitude*/;
+				auto disp = rayon * bruit::evalue_turb(*params_bruit, *params_turb, nsP)/* * amplitude*/;
 				wsP += wsRadial * disp;
 			}
 
@@ -474,8 +441,6 @@ static int ratisse_primitives(
 
 	auto grille_scalaire = memoire::loge<wlk::grille_dense_3d<float>>("grille", desc);
 
-	auto fbm = FBM{};
-
 	auto rast = wlk::Rasteriseur(*grille_scalaire);
 
 	for (auto i = 0; i < prims_entree->taille(); ++i) {
@@ -485,10 +450,10 @@ static int ratisse_primitives(
 			auto poly = dynamic_cast<Polygone *>(prim);
 
 			if (poly->type == type_polygone::FERME) {
-				rasterise_polygone(corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, &fbm);
+				rasterise_polygone(corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, nullptr, nullptr);
 			}
 			else {
-				rasterise_ligne(corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, &fbm);
+				rasterise_ligne(corps_entree, *poly, rast, rayon, densite, gna, nombre_echantillons, nullptr, nullptr);
 			}
 		}
 
