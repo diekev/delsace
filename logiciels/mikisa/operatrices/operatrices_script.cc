@@ -278,9 +278,7 @@ static auto ajoute_proprietes_extra(
 			case danjo::TypePropriete::COULEUR:
 			{
 				auto var = manipulable->evalue_couleur(iter->first, temps);
-				// À FAIRE
-				auto clr = dls::phys::couleur32(var.r, var.v, var.b, var.a);
-				compileuse.donnees().stocke(idx, clr);
+				compileuse.donnees().stocke(idx, var);
 				break;
 			}
 			case danjo::TypePropriete::BOOL:
