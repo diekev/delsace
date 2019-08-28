@@ -62,7 +62,7 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
-	void compile_graphe(ContexteEvaluation const &contexte);
+	bool compile_graphe(ContexteEvaluation const &contexte);
 };
 
 /* ************************************************************************** */

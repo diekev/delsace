@@ -61,6 +61,9 @@ struct PriseSortie {
 	dls::chaine nom = "";
 	type_prise type{};
 
+	/* inférence de type pour les noeuds dont les entrées sont polymorphiques */
+	type_prise type_infere{};
+
 	/* décalage dans la pile d'une CompileuseGraphe */
 	long decalage_pile = 0;
 

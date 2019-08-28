@@ -29,7 +29,24 @@
 #include "contexte_generation_code.h"
 #include "code_inst.hh"
 
-namespace lcc::noeud {
+namespace lcc {
+
+int ajoute_conversion(
+		compileuse_lng &compileuse,
+		type_var type1,
+		type_var type2,
+		int decalage_pile)
+{
+	compileuse.ajoute_instructions(code_inst_conversion(type1, type2));
+	compileuse.ajoute_instructions(decalage_pile);
+	auto ptr = compileuse.donnees().loge_donnees(taille_type(type2));
+	compileuse.ajoute_instructions(ptr);
+	return ptr;
+}
+
+/* ************************************************************************** */
+
+namespace noeud {
 
 static auto chaine_type_noeud(type_noeud type)
 {
@@ -65,21 +82,6 @@ static auto chaine_type_noeud(type_noeud type)
 	}
 
 	return "invalide";
-}
-
-/* ************************************************************************** */
-
-static auto ajoute_conversion(
-		compileuse_lng &compileuse,
-		type_var type1,
-		type_var type2,
-		int decalage_pile)
-{
-	compileuse.ajoute_instructions(code_inst_conversion(type1, type2));
-	compileuse.ajoute_instructions(decalage_pile);
-	auto ptr = compileuse.donnees().loge_donnees(taille_type(type2));
-	compileuse.ajoute_instructions(ptr);
-	return ptr;
 }
 
 /* ************************************************************************** */
@@ -1014,4 +1016,5 @@ int genere_code(
 	return b->pointeur_donnees;
 }
 
-}
+} /* namespace noeud */
+} /* namespace lcc */

@@ -147,6 +147,10 @@ static bool peut_connecter(PriseEntree *entree, PriseSortie *sortie)
 	}
 
 	if (entree->type != sortie->type) {
+		if (entree->type == type_prise::POLYMORPHIQUE || sortie->type == type_prise::POLYMORPHIQUE) {
+			return true;
+		}
+
 		return false;
 	}
 

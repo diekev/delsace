@@ -24,6 +24,7 @@
 
 #include "operatrice_graphe_detail.hh"
 
+#include "lcc/arbre_syntactic.h"
 #include "lcc/code_inst.hh"
 #include "lcc/lcc.hh"
 
@@ -95,7 +96,10 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 	m_corps.reinitialise();
 	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-	compile_graphe(contexte);
+	if (!compile_graphe(contexte)) {
+		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+		return EXECUTION_ECHOUEE;
+	}
 
 	auto points = m_corps.points_pour_ecriture();
 
@@ -115,7 +119,7 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 					ctx_local,
 					donnees,
 					m_compileuse.instructions(),
-					static_cast<int>(i));
+					i);
 
 		auto idx_sortie = m_gest_props.pointeur_donnees("P");
 		pos = donnees.charge_vec3(idx_sortie);
@@ -126,7 +130,7 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 	return EXECUTION_REUSSIE;
 }
 
-void OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
+bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 {
 	m_compileuse = compileuse_lng();
 	m_gest_props = gestionnaire_propriete();
@@ -149,8 +153,16 @@ void OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 		}
 
 		auto operatrice = extrait_opimage(noeud->donnees());
-		operatrice->execute(contexte, &donnees_aval);
+		operatrice->reinitialise_avertisements();
+
+		auto resultat = operatrice->execute(contexte, &donnees_aval);
+
+		if (resultat == EXECUTION_ECHOUEE) {
+			return false;
+		}
 	}
+
+	return true;
 }
 
 /* ************************************************************************** */
@@ -185,6 +197,42 @@ static auto converti_type_prise(lcc::type_var type)
 	}
 
 	return type_prise::INVALIDE;
+}
+
+static auto converti_type_prise(type_prise type)
+{
+	switch (type) {
+		case type_prise::DECIMAL:
+			return lcc::type_var::DEC;
+		case type_prise::ENTIER:
+			return lcc::type_var::ENT32;
+		case type_prise::VEC2:
+			return lcc::type_var::VEC2;
+		case type_prise::VEC3:
+			return lcc::type_var::VEC3;
+		case type_prise::VEC4:
+			return lcc::type_var::VEC4;
+		case type_prise::COULEUR:
+			return lcc::type_var::COULEUR;
+		case type_prise::MAT3:
+			return lcc::type_var::MAT3;
+		case type_prise::MAT4:
+			return lcc::type_var::MAT4;
+		case type_prise::CHAINE:
+			return lcc::type_var::CHAINE;
+		case type_prise::INVALIDE:
+			return lcc::type_var::INVALIDE;
+		case type_prise::TABLEAU:
+			return lcc::type_var::TABLEAU;
+		case type_prise::POLYMORPHIQUE:
+			return lcc::type_var::POLYMORPHIQUE;
+		case type_prise::CORPS:
+		case type_prise::IMAGE:
+		case type_prise::OBJET:
+			return lcc::type_var::INVALIDE;
+	}
+
+	return lcc::type_var::INVALIDE;
 }
 
 OperatriceFonctionDetail::OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, const lcc::donnees_fonction *df)
@@ -226,6 +274,19 @@ type_prise OperatriceFonctionDetail::type_sortie(int i) const
 	return converti_type_prise(m_df->seing.sorties.types[i]);
 }
 
+inline auto corrige_type_specialise(lcc::type_var type_specialise, lcc::type_var type)
+{
+	if (type_specialise == lcc::type_var::INVALIDE) {
+		return type;
+	}
+
+	if (taille_type(type) > taille_type(type_specialise)) {
+		return type;
+	}
+
+	return type_specialise;
+}
+
 int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	INUTILISE(contexte);
@@ -236,20 +297,72 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 
 	auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 
-	/* cherche les pointeurs des entrées */
+	/* défini le type spécialisé pour les connexions d'entrées */
+
+	auto type_params = lcc::types_entrees();
+	auto type_specialise = lcc::type_var::INVALIDE;
+	auto est_polymorphique = false;
+
+	/* première boucle : défini le type spécialisé pour les connexions d'entrées */
+	for (auto i = 0; i < entrees(); ++i) {
+		auto type = m_df->seing.entrees.types[i];
+		est_polymorphique = (type == lcc::type_var::POLYMORPHIQUE);
+
+		if (entree(i)->connectee()) {
+			auto ptr = entree(i)->pointeur();
+			auto prise_sortie = ptr->liens[0];
+
+			if (type == lcc::type_var::POLYMORPHIQUE) {
+				type = converti_type_prise(prise_sortie->type_infere);
+				type_specialise = corrige_type_specialise(type_specialise, type);
+			}
+		}
+
+		type_params.ajoute(type);
+	}
+
+	/* deuxième boucle : cherche les pointeurs des entrées et converti les
+	 * valeurs selon le type spécialisé */
+
+	if (est_polymorphique && type_specialise == lcc::type_var::INVALIDE) {
+		this->ajoute_avertissement("Ne peut pas instancier la fonction car les entrées polymorphiques n'ont pas de connexion.");
+		return EXECUTION_ECHOUEE;
+	}
+
+	if (type_specialise != lcc::type_var::INVALIDE) {
+		std::cerr << "Spécialisation pour type : " << lcc::chaine_type_var(type_specialise) << '\n';
+	}
 
 	auto pointeurs = dls::tableau<int>();
 
 	for (auto i = 0; i < entrees(); ++i) {
+		auto type = m_df->seing.entrees.types[i];
+
 		if (entree(i)->connectee()) {
 			auto ptr = entree(i)->pointeur();
-			auto sortie = ptr->liens[0];
-			pointeurs.pousse(static_cast<int>(sortie->decalage_pile));
+			auto prise_sortie = ptr->liens[0];
+			auto decalage = static_cast<int>(prise_sortie->decalage_pile);
+
+			/* converti au besoin */
+			if (type == lcc::type_var::POLYMORPHIQUE) {
+				auto type_prise = converti_type_prise(prise_sortie->type_infere);
+
+				if (type_prise != type_specialise) {
+					std::cerr << "Conversion de " << lcc::chaine_type_var(type_prise) << " vers "  << lcc::chaine_type_var(type_specialise) << '\n';
+					decalage = lcc::ajoute_conversion(*compileuse, type_prise, type_specialise, decalage);
+				}
+			}
+
+			pointeurs.pousse(decalage);
 		}
 		else {
 			/* alloue une valeur par défaut et prend le pointeurs */
 			/* À FAIRE : params interface */
-			auto type = m_df->seing.entrees.types[i];
+
+			if (type == lcc::type_var::POLYMORPHIQUE) {
+				type = type_specialise;
+			}
+
 			auto ptr = compileuse->donnees().loge_donnees(lcc::taille_type(type));
 			pointeurs.pousse(ptr);
 		}
@@ -261,9 +374,9 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	compileuse->ajoute_instructions(m_df->type);
 
 	/* ajoute le type de la fonction pour choisir la bonne surcharge */
-//	if (type_instance != type_var::INVALIDE) {
-//		compileuse->ajoute_instructions(type_instance);
-//	}
+	if (type_specialise != lcc::type_var::INVALIDE) {
+		compileuse->ajoute_instructions(type_specialise);
+	}
 
 	/* ajoute le pointeur de chaque paramètre */
 	for (auto ptr : pointeurs) {
@@ -274,10 +387,16 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	auto pointeur_donnees = 0;
 	for (auto i = 0; i < sorties(); ++i) {
 		auto type = m_df->seing.sorties.types[i];
-		auto pointeur = compileuse->donnees().loge_donnees(lcc::taille_type(type));
-		auto ptr_sortie = sortie(i)->pointeur();
 
-		ptr_sortie->decalage_pile = pointeur;
+		if (type == lcc::type_var::POLYMORPHIQUE) {
+			type = type_specialise;
+		}
+
+		auto pointeur = compileuse->donnees().loge_donnees(lcc::taille_type(type));
+		auto prise_sortie = sortie(i)->pointeur();
+
+		prise_sortie->decalage_pile = pointeur;
+		prise_sortie->type_infere = converti_type_prise(type);
 
 		if (i == 0) {
 			pointeur_donnees = pointeur;
@@ -326,7 +445,10 @@ public:
 		INUTILISE(contexte);
 
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
-		sortie(0)->pointeur()->decalage_pile = gest_props->pointeur_donnees("P");
+
+		auto prise_sortie = sortie(0)->pointeur();
+		prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
+		prise_sortie->type_infere = type_prise::VEC3;
 
 		return EXECUTION_REUSSIE;
 	}

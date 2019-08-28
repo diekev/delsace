@@ -37,7 +37,8 @@ namespace lcc {
 enum class type_var : unsigned short;
 }
 
-namespace lcc::noeud {
+namespace lcc {
+namespace noeud {
 
 enum class type_noeud : char {
 	RACINE,
@@ -90,4 +91,12 @@ int genere_code(
 		compileuse_lng &compileuse,
 		bool expr_gauche);
 
-}
+} /* namespace noeud */
+
+int ajoute_conversion(
+		compileuse_lng &compileuse,
+		type_var type1,
+		type_var type2,
+		int decalage_pile);
+
+} /* namespace lcc */
