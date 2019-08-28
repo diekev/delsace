@@ -127,8 +127,9 @@ public:
 		/* Divise le domaine de calcul. */
 		auto nombre_block = dls::math::vec3i(8);
 
-		/* À FAIRE : 0 ou 1 sur chaque axe. */
-		auto periode = dls::math::vec3i(0);
+		auto const periodic_x = evalue_bool("périodic_x");
+		auto const periodic_y = evalue_bool("périodic_y");
+		auto const periodic_z = evalue_bool("périodic_z");
 
 		auto points_entree = corps_points->points_pour_lecture();
 
@@ -137,7 +138,7 @@ public:
 					"voro::container",
 					min.x, max.x, min.y, max.y, min.z, max.z,
 					nombre_block.x, nombre_block.y, nombre_block.z,
-					periode.x, periode.y, periode.z,
+					periodic_x, periodic_y, periodic_z,
 					static_cast<int>(points_entree->taille()));
 
 		auto ordre_parts = memoire::loge<voro::particle_order>("voro::particle_order");

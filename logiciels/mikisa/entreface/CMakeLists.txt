@@ -144,6 +144,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_fonte_maillage.jo
 	scripts_danjo/operatrice_force_interaction.jo
 	scripts_danjo/operatrice_flou.jo
+	scripts_danjo/operatrice_fracture_voronoi.jo
 	scripts_danjo/operatrice_fusion.jo
 	scripts_danjo/operatrice_gamma.jo
 	scripts_danjo/operatrice_geometrie_maillage.jo
