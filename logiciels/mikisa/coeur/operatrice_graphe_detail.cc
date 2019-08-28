@@ -367,13 +367,13 @@ inline auto corrige_type_specialise(lcc::type_var type_specialise, lcc::type_var
 	return type_specialise;
 }
 
+#undef DEBOGUE_SPECIALISATION
+
 int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	INUTILISE(contexte);
 	/* réimplémentation du code de génération d'instruction pour les appels de
 	 * fonctions de LCC */
-
-	/* À FAIRE : surcharge pour les types polymorphiques */
 
 	auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 
@@ -409,9 +409,11 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 		return EXECUTION_ECHOUEE;
 	}
 
+#ifdef DEBOGUE_SPECIALISATION
 	if (type_specialise != lcc::type_var::INVALIDE) {
 		std::cerr << "Spécialisation pour type : " << lcc::chaine_type_var(type_specialise) << '\n';
 	}
+#endif
 
 	auto pointeurs = dls::tableau<int>();
 
@@ -428,7 +430,12 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 				auto type_prise = converti_type_prise(prise_sortie->type_infere);
 
 				if (type_prise != type_specialise) {
-					std::cerr << "Conversion de " << lcc::chaine_type_var(type_prise) << " vers "  << lcc::chaine_type_var(type_specialise) << '\n';
+#ifdef DEBOGUE_SPECIALISATION
+					std::cerr << "Conversion de "
+							  << lcc::chaine_type_var(type_prise)
+							  << " vers "
+							  << lcc::chaine_type_var(type_specialise) << '\n';
+#endif
 					decalage = lcc::ajoute_conversion(*compileuse, type_prise, type_specialise, decalage);
 				}
 			}
