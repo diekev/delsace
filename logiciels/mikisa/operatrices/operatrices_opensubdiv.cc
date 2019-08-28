@@ -111,7 +111,7 @@ public:
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, &m_corps, true, true)) {
+		if (!valide_corps_entree(*this, corps_entree, true, true)) {
 			return EXECUTION_ECHOUEE;
 		}
 
