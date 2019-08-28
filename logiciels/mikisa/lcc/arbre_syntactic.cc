@@ -241,17 +241,8 @@ int genere_code(
 		case type_noeud::PROPRIETE:
 		{
 			auto &gest_props = contexte_generation.gest_props;
-
-			if (expr_gauche) {
-				/* ajourne la valeur pointée */
-				//gest_props.pointeur_donnees(b->chaine(), b->pointeur_donnees);
-				b->donnees_type = gest_props.type_propriete(b->chaine());
-				b->pointeur_donnees = gest_props.pointeur_donnees(b->chaine());
-			}
-			else {
-				b->donnees_type = gest_props.type_propriete(b->chaine());
-				b->pointeur_donnees = gest_props.pointeur_donnees(b->chaine());
-			}
+			b->donnees_type = gest_props.type_propriete(b->chaine());
+			b->pointeur_donnees = gest_props.pointeur_donnees(b->chaine());
 
 			break;
 		}
@@ -259,23 +250,17 @@ int genere_code(
 		{
 			auto &gest_attrs = contexte_generation.gest_attrs;
 
-			if (expr_gauche) {
-				if (!gest_attrs.propriete_existe(b->chaine())) {
+			if (!gest_attrs.propriete_existe(b->chaine())) {
+				if (expr_gauche) {
 					gest_attrs.requiers_attr(dls::chaine(b->chaine()), b->donnees_type, b->pointeur_donnees);
 				}
 				else {
-					b->donnees_type = gest_attrs.type_propriete(b->chaine());
-					b->pointeur_donnees = gest_attrs.pointeur_donnees(b->chaine());
+					// À FAIRE : erreur
 				}
 			}
 			else {
-				if (!gest_attrs.propriete_existe(b->chaine())) {
-					// À FAIRE : erreur
-				}
-				else {
-					b->donnees_type = gest_attrs.type_propriete(b->chaine());
-					b->pointeur_donnees = gest_attrs.pointeur_donnees(b->chaine());
-				}
+				b->donnees_type = gest_attrs.type_propriete(b->chaine());
+				b->pointeur_donnees = gest_attrs.pointeur_donnees(b->chaine());
 			}
 
 			break;
