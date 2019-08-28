@@ -44,6 +44,7 @@
 #include "coeur/composite.h"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/evenement.h"
+#include "coeur/operatrice_graphe_detail.hh"
 #include "coeur/objet.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
@@ -205,9 +206,13 @@ void EditriceProprietes::ajourne_manipulable()
 			objet->ajourne_parametres();
 			break;
 		}
+		case GRAPHE_DETAIL:
+		{
+			graphe_detail_notifie_parent_suranne(m_mikisa);
+			break;
+		}
 		case GRAPHE_OBJET:
 		case GRAPHE_COMPOSITE:
-		case GRAPHE_DETAIL:
 		case GRAPHE_SIMULATION:
 		{
 			/* Marque le noeud courant et ceux en son aval surannées. */
