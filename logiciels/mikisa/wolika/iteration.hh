@@ -29,6 +29,7 @@
 
 #include "grille_dense.hh"
 #include "grille_eparse.hh"
+#include "interruptrice.hh"
 
 namespace wlk {
 
@@ -109,7 +110,8 @@ public:
 template <typename T, typename Op>
 auto pour_chaque_voxel_parallele(
 		grille_dense_3d<T> &grille,
-		Op &&op)
+		Op &&op,
+		interruptrice *chef = nullptr)
 {
 	auto res_x = grille.desc().resolution.x;
 	auto res_y = grille.desc().resolution.y;
@@ -118,13 +120,31 @@ auto pour_chaque_voxel_parallele(
 	boucle_parallele(tbb::blocked_range<int>(0, res_z),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
+		if (chef && chef->interrompue()) {
+			return;
+		}
+
 		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			if (chef && chef->interrompue()) {
+				return;
+			}
+
 			for (auto y = 0; y < res_y; ++y) {
+				if (chef && chef->interrompue()) {
+					return;
+				}
+
 				for (auto x = 0; x < res_x; ++x) {
 					auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
 
 					grille.valeur(idx) = op(grille.valeur(idx), idx, x, y, z);
 				}
+			}
+
+			if (chef) {
+				auto delta = static_cast<float>(plage.end() - plage.begin());
+				delta /= static_cast<float>(res_z);
+				chef->indique_progression_parallele(delta * 100.0f);
 			}
 		}
 	});
@@ -133,56 +153,102 @@ auto pour_chaque_voxel_parallele(
 template <typename T, typename type_tuile, typename Op>
 auto pour_chaque_tuile(
 		grille_eparse<T, type_tuile> const &grille,
-		Op &&op)
+		Op &&op,
+		interruptrice *chef = nullptr)
 {
 	auto plg = grille.plage();
+	auto idx = 0;
+	auto nombre_tuiles = grille.nombre_tuile();
 
 	while (!plg.est_finie()) {
 		auto tuile = plg.front();
 		plg.effronte();
 
+		if (chef && chef->interrompue()) {
+			return;
+		}
+
 		op(tuile);
+
+		if (chef) {
+			auto delta = static_cast<float>(idx++);
+			delta /= static_cast<float>(nombre_tuiles);
+			chef->indique_progression_parallele(delta * 100.0f);
+		}
 	}
 }
 
 template <typename T, typename type_tuile, typename Op>
 auto pour_chaque_tuile(
 		grille_eparse<T, type_tuile> &grille,
-		Op &&op)
+		Op &&op,
+		interruptrice *chef = nullptr)
 {
 	auto plg = grille.plage();
+	auto idx = 0;
+	auto nombre_tuiles = grille.nombre_tuile();
 
 	while (!plg.est_finie()) {
 		auto tuile = plg.front();
 		plg.effronte();
 
+		if (chef && chef->interrompue()) {
+			return;
+		}
+
 		op(tuile);
+
+		if (chef) {
+			auto delta = static_cast<float>(idx++);
+			delta /= static_cast<float>(nombre_tuiles);
+			chef->indique_progression_parallele(delta * 100.0f);
+		}
 	}
 }
 
 template <typename T, typename type_tuile, typename Op>
 auto pour_chaque_tuile_parallele(
 		grille_eparse<T, type_tuile> const &grille,
-		Op &&op)
+		Op &&op,
+		interruptrice *chef = nullptr)
 {
 	auto nombre_tuiles = grille.nombre_tuile();
 
 	tbb::parallel_for(0l, nombre_tuiles, [&](long i)
 	{
+		if (chef && chef->interrompue()) {
+			return;
+		}
+
 		op(grille.tuile(i));
+
+		if (chef) {
+			auto delta = static_cast<float>(i) / static_cast<float>(nombre_tuiles);
+			chef->indique_progression_parallele(delta * 100.0f);
+		}
 	});
 }
 
 template <typename T, typename type_tuile, typename Op>
 auto pour_chaque_tuile_parallele(
 		grille_eparse<T, type_tuile> &grille,
-		Op &&op)
+		Op &&op,
+		interruptrice *chef = nullptr)
 {
 	auto nombre_tuiles = grille.nombre_tuile();
 
 	tbb::parallel_for(0l, nombre_tuiles, [&](long i)
 	{
+		if (chef && chef->interrompue()) {
+			return;
+		}
+
 		op(grille.tuile(i));
+
+		if (chef) {
+			auto delta = static_cast<float>(i) / static_cast<float>(nombre_tuiles);
+			chef->indique_progression_parallele(delta * 100.0f);
+		}
 	});
 }
 
