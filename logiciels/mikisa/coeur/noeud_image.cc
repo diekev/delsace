@@ -33,7 +33,7 @@
 #include "operatrice_image.h"
 
 void execute_noeud(
-		Noeud *noeud,
+		Noeud &noeud,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
@@ -43,15 +43,15 @@ void execute_noeud(
 		return;
 	}
 
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud.donnees());
 
-	if (!noeud->besoin_execution() && !operatrice->execute_toujours()) {
+	if (!noeud.besoin_execution() && !operatrice->execute_toujours()) {
 		return;
 	}
 
 	chef->incremente_compte_a_executer();
 
-	noeud->temps_execution(0.0f);
+	noeud.temps_execution(0.0f);
 
 	auto const t0 = tbb::tick_count::now();
 
@@ -69,7 +69,7 @@ void execute_noeud(
 
 		auto temps_parent = 0.0f;
 
-		for (auto entree : noeud->entrees()) {
+		for (auto entree : noeud.entrees()) {
 			if (entree->liens.est_vide()) {
 				continue;
 			}
@@ -83,33 +83,33 @@ void execute_noeud(
 			temps_parent = 0.0f;
 		}
 
-		noeud->incremente_compte_execution();
-		noeud->temps_execution(static_cast<float>(delta) - temps_parent);
-		noeud->besoin_execution(false);
+		noeud.incremente_compte_execution();
+		noeud.temps_execution(static_cast<float>(delta) - temps_parent);
+		noeud.besoin_execution(false);
 	}
 }
 
-void synchronise_donnees_operatrice(Noeud *noeud)
+void synchronise_donnees_operatrice(Noeud &noeud)
 {
-	auto op = extrait_opimage(noeud->donnees());
+	auto op = extrait_opimage(noeud.donnees());
 
 	for (auto i = 0; i < op->entrees(); ++i) {
-		noeud->ajoute_entree(op->nom_entree(i), op->type_entree(i), op->connexions_multiples(i));
+		noeud.ajoute_entree(op->nom_entree(i), op->type_entree(i), op->connexions_multiples(i));
 	}
 
 	for (auto i = 0; i < op->sorties(); ++i) {
-		noeud->ajoute_sortie(op->nom_sortie(i), op->type_sortie(i));
+		noeud.ajoute_sortie(op->nom_sortie(i), op->type_sortie(i));
 	}
 
 	auto index = 0l;
 
-	for (auto entree : noeud->entrees()) {
+	for (auto entree : noeud.entrees()) {
 		op->donnees_entree(index++, entree);
 	}
 
 	index = 0ul;
 
-	for (auto sortie : noeud->sorties()) {
+	for (auto sortie : noeud.sorties()) {
 		op->donnees_sortie(index++, sortie);
 	}
 }

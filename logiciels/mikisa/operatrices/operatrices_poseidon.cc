@@ -100,7 +100,7 @@ public:
 	static constexpr auto NOM = "Entrée Gaz";
 	static constexpr auto AIDE = "";
 
-	OpEntreeGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpEntreeGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -267,7 +267,7 @@ public:
 	static constexpr auto NOM = "Obstacle Gaz";
 	static constexpr auto AIDE = "";
 
-	OpObstacleGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpObstacleGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -382,7 +382,7 @@ public:
 	static constexpr auto NOM = "Simulation Gaz";
 	static constexpr auto AIDE = "";
 
-	OpSimulationGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpSimulationGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -634,7 +634,7 @@ public:
 	static constexpr auto NOM = "Advection Gaz";
 	static constexpr auto AIDE = "";
 
-	OpAdvectionGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpAdvectionGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -735,7 +735,7 @@ public:
 	static constexpr auto NOM = "Flottance Gaz";
 	static constexpr auto AIDE = "";
 
-	OpFlottanceGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpFlottanceGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -832,7 +832,7 @@ public:
 	static constexpr auto NOM = "Incompressibilité Gaz";
 	static constexpr auto AIDE = "";
 
-	OpIncompressibiliteGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpIncompressibiliteGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -899,7 +899,7 @@ public:
 	static constexpr auto NOM = "Vorticité Gaz";
 	static constexpr auto AIDE = "";
 
-	OpVorticiteGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpVorticiteGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -958,7 +958,7 @@ public:
 	static constexpr auto NOM = "Affinage Gaz";
 	static constexpr auto AIDE = "";
 
-	OpAffinageGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpAffinageGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -1030,7 +1030,7 @@ public:
 	static constexpr auto NOM = "Diffusion Gaz";
 	static constexpr auto AIDE = "";
 
-	OpDiffusionGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpDiffusionGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -1144,7 +1144,7 @@ public:
 	static constexpr auto NOM = "Bruit Collision Gaz";
 	static constexpr auto AIDE = "Supprime des quantités du fluide en simulant un bruit blanc dans le champs de collision.";
 
-	OpBruitCollisionGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpBruitCollisionGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -1205,7 +1205,7 @@ public:
 	static constexpr auto NOM = "Dissipation Gaz";
 	static constexpr auto AIDE = "Supprime des quantités du fluide.";
 
-	OpDissipationGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpDissipationGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
@@ -1307,7 +1307,7 @@ public:
 	static constexpr auto NOM = "Visualisation Gaz";
 	static constexpr auto AIDE = "Visualise un champs donné de la simulation.";
 
-	OpVisualisationGaz(Graphe &graphe_parent, Noeud *noeud)
+	OpVisualisationGaz(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;

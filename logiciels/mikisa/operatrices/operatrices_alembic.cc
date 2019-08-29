@@ -360,7 +360,7 @@ public:
 	static constexpr auto NOM = "Import Alembic";
 	static constexpr auto AIDE = "Importe le contenu d'un fichier Alembic.";
 
-	OpImportAlembic(Graphe &graphe_parent, Noeud *noeud);
+	OpImportAlembic(Graphe &graphe_parent, Noeud &noeud);
 
 	OpImportAlembic(OpImportAlembic const &) = default;
 	OpImportAlembic &operator=(OpImportAlembic const &) = default;
@@ -381,7 +381,7 @@ public:
 	bool depend_sur_temps() const override;
 };
 
-OpImportAlembic::OpImportAlembic(Graphe &graphe_parent, Noeud *noeud)
+OpImportAlembic::OpImportAlembic(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 {
 	entrees(1);

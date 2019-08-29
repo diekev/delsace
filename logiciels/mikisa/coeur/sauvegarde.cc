@@ -630,9 +630,9 @@ static void lecture_noeud(
 			auto const type_detail = element_operatrice->attribut("type_detail");
 
 			if (nom_detail == nullptr) {
-				auto operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, noeud);
+				auto operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, *noeud);
 				lecture_proprietes(element_operatrice, operatrice);
-				synchronise_donnees_operatrice(noeud);
+				synchronise_donnees_operatrice(*noeud);
 				operatrice->performe_versionnage();
 
 				if (type_detail != nullptr && operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
@@ -662,8 +662,8 @@ static void lecture_noeud(
 				}
 			}
 			else {
-				auto op = cree_op_detail(mikisa, *graphe, noeud, nom_detail);
-				synchronise_donnees_operatrice(noeud);
+				auto op = cree_op_detail(mikisa, *graphe, *noeud, nom_detail);
+				synchronise_donnees_operatrice(*noeud);
 				lecture_proprietes(element_operatrice, op);
 			}
 

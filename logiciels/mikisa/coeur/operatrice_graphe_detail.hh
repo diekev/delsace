@@ -55,7 +55,7 @@ public:
 	static constexpr auto NOM = "Graphe Détail";
 	static constexpr auto AIDE = "Graphe Détail";
 
-	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud);
 
 	const char *nom_classe() const override;
 
@@ -82,7 +82,7 @@ public:
 	static constexpr auto NOM = "Fonction Détail";
 	static constexpr auto AIDE = "Fonction Détail";
 
-	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
+	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud &noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
 
 	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
 	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
@@ -109,7 +109,7 @@ public:
 OperatriceFonctionDetail *cree_op_detail(
 		Mikisa &mikisa,
 		Graphe &graphe,
-		Noeud *noeud,
+		Noeud &noeud,
 		dls::chaine const &nom_fonction);
 
 void graphe_detail_notifie_parent_suranne(Mikisa &mikisa);

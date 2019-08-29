@@ -72,7 +72,7 @@ Image const *EntreeOperatrice::requiers_image(
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte, donnees_aval);
+	execute_noeud(*noeud, contexte, donnees_aval);
 
 	auto operatrice = extrait_opimage(noeud->donnees());
 	auto image = operatrice->image();
@@ -122,7 +122,7 @@ const Corps *EntreeOperatrice::requiers_corps(
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte, donnees_aval);
+	execute_noeud(*noeud, contexte, donnees_aval);
 
 	auto operatrice = extrait_opimage(noeud->donnees());
 
@@ -291,10 +291,10 @@ PriseSortie *SortieOperatrice::pointeur()
 
 /* ************************************************************************** */
 
-OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
+OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud &noeud)
 	: m_graphe_parent(graphe_parent)
 {
-	node->donnees(this);
+	noeud.donnees(this);
 	m_input_data.redimensionne(m_num_inputs);
 	m_sorties.redimensionne(m_num_outputs);
 }

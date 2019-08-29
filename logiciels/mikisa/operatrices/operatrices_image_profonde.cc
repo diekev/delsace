@@ -110,7 +110,7 @@ public:
 	static constexpr auto NOM = "Aplanis Image Profonde";
 	static constexpr auto AIDE = "";
 
-	OpAplanisProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpAplanisProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -255,7 +255,7 @@ public:
 	static constexpr auto NOM = "Fusion Profondes";
 	static constexpr auto AIDE = "";
 
-	OpFusionProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpFusionProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -490,7 +490,7 @@ public:
 	static constexpr auto NOM = "Point depuis Profonde";
 	static constexpr auto AIDE = "";
 
-	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -709,7 +709,7 @@ public:
 	static constexpr auto NOM = "Cache Image";
 	static constexpr auto AIDE = "";
 
-	OpCacheImage(Graphe &graphe_parent, Noeud *noeud)
+	OpCacheImage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);

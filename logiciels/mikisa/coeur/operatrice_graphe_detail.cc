@@ -40,7 +40,7 @@
 
 /* ************************************************************************** */
 
-OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud *noeud)
+OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
@@ -347,7 +347,7 @@ static auto converti_type_prise(type_prise type)
 
 OperatriceFonctionDetail::OperatriceFonctionDetail(
 		Graphe &graphe_parent,
-		Noeud *noeud,
+		Noeud &noeud,
 		const dls::chaine &nom_fonc,
 		const lcc::donnees_fonction *df)
 	: OperatriceImage(graphe_parent, noeud)
@@ -667,7 +667,7 @@ public:
 	static constexpr auto NOM = "Entrée Détail";
 	static constexpr auto AIDE = "Entrée Détail";
 
-	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -770,7 +770,7 @@ public:
 	static constexpr auto NOM = "Sortie Détail";
 	static constexpr auto AIDE = "Sortie Détail";
 
-	OperatriceSortieDetail(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSortieDetail(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -892,7 +892,7 @@ void enregistre_operatrices_detail(UsineOperatrice &usine)
 OperatriceFonctionDetail *cree_op_detail(
 		Mikisa &mikisa,
 		Graphe &graphe,
-		Noeud *noeud,
+		Noeud &noeud,
 		const dls::chaine &nom_fonction)
 {
 	/* À FAIRE : gestion des fonctions avec surcharges. */

@@ -70,7 +70,7 @@ public:
 	static constexpr auto NOM = "Création Courbes";
 	static constexpr auto AIDE = "Crée des courbes.";
 
-	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -323,7 +323,7 @@ public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{}
 
@@ -471,7 +471,7 @@ public:
 	static constexpr auto NOM = "Masse Ressort";
 	static constexpr auto AIDE = "";
 
-	OperatriceMasseRessort(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceMasseRessort(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -603,7 +603,7 @@ public:
 	static constexpr auto NOM = "Touffe Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpTouffeCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OpTouffeCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -736,7 +736,7 @@ public:
 	static constexpr auto NOM = "Bruit Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpBruitCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OpBruitCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -842,7 +842,7 @@ public:
 	static constexpr auto NOM = "Mélange Cheveux";
 	static constexpr auto AIDE = "Fusionne les points de deux ensemble de cheveux.";
 
-	OpMelangeCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OpMelangeCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{}
 

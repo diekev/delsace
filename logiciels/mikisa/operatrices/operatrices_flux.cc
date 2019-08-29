@@ -610,7 +610,7 @@ public:
 	static constexpr auto NOM = "Visionneur";
 	static constexpr auto AIDE = "Visionner le résultat du graphe.";
 
-	OperatriceVisionnage(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVisionnage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -656,7 +656,7 @@ public:
 	static constexpr auto NOM = "Lecture Image";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	OperatriceLectureJPEG(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceLectureJPEG(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -743,7 +743,7 @@ public:
 	static constexpr auto NOM = "Lecture Vidéo";
 	static constexpr auto AIDE = "Charge une vidéo depuis le disque.";
 
-	OperatriceLectureVideo(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceLectureVideo(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -868,7 +868,7 @@ public:
 	static constexpr auto NOM = "Lecture Image Profonde";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	OpLectureImgProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpLectureImgProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -946,7 +946,7 @@ public:
 	static constexpr auto NOM = "Commutateur";
 	static constexpr auto AIDE = "";
 
-	OperatriceCommutation(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 	}
@@ -981,7 +981,7 @@ public:
 	static constexpr auto NOM = "Commutation Corps";
 	static constexpr auto AIDE = "";
 
-	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 	}
@@ -1041,7 +1041,7 @@ public:
 	static constexpr auto NOM = "Entrée Graphe";
 	static constexpr auto AIDE = "";
 
-	OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -1098,7 +1098,7 @@ public:
 	static constexpr auto NOM = "Import Objet";
 	static constexpr auto AIDE = "";
 
-	OperatriceImportObjet(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceImportObjet(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -1203,7 +1203,7 @@ public:
 	static constexpr auto NOM = "Infinie";
 	static constexpr auto AIDE = "";
 
-	OperatriceInfinie(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceInfinie(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

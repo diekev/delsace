@@ -47,7 +47,7 @@ public:
 	static constexpr auto NOM = "Texture";
 	static constexpr auto AIDE = "Crée une texture.";
 
-	OperatriceTexture(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceTexture(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(2);

@@ -835,7 +835,7 @@ public:
 	static constexpr auto NOM = "Création Volume Temporel";
 	static constexpr auto AIDE = "";
 
-	OpCreationVolumeTemp(Graphe &graphe_parent, Noeud *noeud)
+	OpCreationVolumeTemp(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -911,7 +911,7 @@ public:
 	static constexpr auto NOM = "Filtrage Volume";
 	static constexpr auto AIDE = "";
 
-	OpFiltrageVolume(Graphe &graphe_parent, Noeud *noeud)
+	OpFiltrageVolume(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -990,7 +990,7 @@ public:
 	static constexpr auto NOM = "Affinage Volume";
 	static constexpr auto AIDE = "";
 
-	OpAffinageVolume(Graphe &graphe_parent, Noeud *noeud)
+	OpAffinageVolume(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1963,7 +1963,7 @@ public:
 	static constexpr auto NOM = "Création Grille Éclairage";
 	static constexpr auto AIDE = "";
 
-	OpGrilleEclairage(Graphe &graphe_parent, Noeud *noeud)
+	OpGrilleEclairage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

@@ -28,7 +28,7 @@
 #include "donnees_simulation.hh"
 #include "noeud_image.h"
 
-OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud)
+OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
@@ -125,7 +125,7 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	}
 
 	/* exécute graphe */
-	execute_noeud(sortie_graphe, contexte, donnees_aval);
+	execute_noeud(*sortie_graphe, contexte, donnees_aval);
 
 	auto op_sortie = extrait_opimage(sortie_graphe->donnees());
 

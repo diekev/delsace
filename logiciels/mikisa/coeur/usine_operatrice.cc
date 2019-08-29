@@ -40,7 +40,7 @@ public:
 	bool m_depend_sur_temps = false;
 	char pad[7];
 
-	OperatriceCorpsSE(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceCorpsSE(Graphe &graphe_parent, Noeud &noeud);
 
 	OperatriceCorpsSE(OperatriceCorpsSE const &) = default;
 	OperatriceCorpsSE &operator=(OperatriceCorpsSE const &) = default;
@@ -56,7 +56,7 @@ public:
 	bool depend_sur_temps() const override;
 };
 
-OperatriceCorpsSE::OperatriceCorpsSE(Graphe &graphe_parent, Noeud *noeud)
+OperatriceCorpsSE::OperatriceCorpsSE(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 {
 	entrees(0);
@@ -104,7 +104,7 @@ public:
 	bool m_depend_sur_temps = false;
 	char pad[7];
 
-	OperatriceCorpsE0(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceCorpsE0(Graphe &graphe_parent, Noeud &noeud);
 
 	OperatriceCorpsE0(OperatriceCorpsE0 const &) = default;
 	OperatriceCorpsE0 &operator=(OperatriceCorpsE0 const &) = default;
@@ -120,7 +120,7 @@ public:
 	bool depend_sur_temps() const override;
 };
 
-OperatriceCorpsE0::OperatriceCorpsE0(Graphe &graphe_parent, Noeud *noeud)
+OperatriceCorpsE0::OperatriceCorpsE0(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 {
 	entrees(1);
@@ -176,7 +176,7 @@ DescOperatrice cree_desc(
 	return DescOperatrice(
 				nom,
 				aide,
-				[=](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
+				[=](Graphe &graphe_parent, Noeud &noeud) -> OperatriceImage*
 	{
 		auto ptr = memoire::loge<OperatriceCorpsSE>(nom, graphe_parent, noeud);
 		ptr->m_nom_classe = nom;
@@ -204,7 +204,7 @@ DescOperatrice cree_desc(
 	return DescOperatrice(
 				nom,
 				aide,
-				[=](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
+				[=](Graphe &graphe_parent, Noeud &noeud) -> OperatriceImage*
 	{
 		auto ptr = memoire::loge<OperatriceCorpsE0>(nom, graphe_parent, noeud);
 		ptr->m_nom_classe = nom;
@@ -233,7 +233,7 @@ long UsineOperatrice::enregistre_type(DescOperatrice const &desc)
 	return num_entries();
 }
 
-OperatriceImage *UsineOperatrice::operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud *noeud)
+OperatriceImage *UsineOperatrice::operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud)
 {
 	auto const iter = m_map.trouve(name);
 	assert(iter != m_map.fin());

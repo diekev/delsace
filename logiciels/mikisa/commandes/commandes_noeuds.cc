@@ -225,8 +225,8 @@ public:
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->cree_noeud(nom);
 
-		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, noeud);
-		synchronise_donnees_operatrice(noeud);
+		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
+		synchronise_donnees_operatrice(*noeud);
 
 		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
 			noeud->type(NOEUD_IMAGE_SORTIE);
@@ -257,9 +257,9 @@ public:
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->cree_noeud(nom);
 
-		auto op = cree_op_detail(*mikisa, *graphe, noeud, nom);
+		auto op = cree_op_detail(*mikisa, *graphe, *noeud, nom);
 		op->cree_proprietes();
-		synchronise_donnees_operatrice(noeud);
+		synchronise_donnees_operatrice(*noeud);
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -300,8 +300,8 @@ public:
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->cree_noeud(nom);
 
-		auto op = (mikisa->usine_operatrices())("Graphe Détail", *graphe, noeud);
-		synchronise_donnees_operatrice(noeud);
+		auto op = (mikisa->usine_operatrices())("Graphe Détail", *graphe, *noeud);
+		synchronise_donnees_operatrice(*noeud);
 
 		auto op_graphe = dynamic_cast<OperatriceGrapheDetail *>(op);
 		op_graphe->type_detail = type_detail;

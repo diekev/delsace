@@ -247,7 +247,7 @@ static void evalue_composite(Mikisa &mikisa, Composite *composite)
 	}
 
 	auto contexte = cree_contexte_evaluation(mikisa);
-	execute_noeud(visionneuse, contexte, nullptr);
+	execute_noeud(*visionneuse, contexte, nullptr);
 
 	Image image;
 	auto operatrice = extrait_opimage(visionneuse->donnees());

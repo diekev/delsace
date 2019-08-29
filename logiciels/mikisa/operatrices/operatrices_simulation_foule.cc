@@ -315,7 +315,7 @@ public:
 	static constexpr auto NOM = "Simulation Foule";
 	static constexpr auto AIDE = "Simule une foule.";
 
-	OperatriceSimFoule(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSimFoule(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

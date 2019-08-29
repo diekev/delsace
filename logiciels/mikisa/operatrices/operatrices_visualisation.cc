@@ -122,7 +122,7 @@ public:
 	static constexpr auto NOM = "Visualisation Arbre Octernaire";
 	static constexpr auto AIDE = "";
 
-	OperatriceVisualisationArbreOcternaire(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVisualisationArbreOcternaire(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -274,7 +274,7 @@ public:
 	static constexpr auto NOM = "Visualisation Arbre BVH";
 	static constexpr auto AIDE = "";
 
-	OperatriceVisualisationArbreBVH(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVisualisationArbreBVH(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -383,7 +383,7 @@ public:
 	static constexpr auto NOM = "Visualisation Grille Éparse";
 	static constexpr auto AIDE = "";
 
-	OpVisualiseGrilleEparse(Graphe &graphe_parent, Noeud *noeud)
+	OpVisualiseGrilleEparse(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

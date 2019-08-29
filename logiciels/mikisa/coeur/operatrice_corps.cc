@@ -27,7 +27,7 @@
 #include "biblinternes/graphe/noeud.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
-OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud *noeud)
+OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceImage(graphe_parent, noeud)
 {
 }
