@@ -48,6 +48,8 @@
  * [1] https://www.cs.ubc.ca/~rbridson/fluidsimulation/fluids_notes.pdf, page 34
  */
 
+namespace psn {
+
 static auto calcul_divergence(
 		wlk::GrilleMAC const &velocite,
 		wlk::grille_dense_3d<int> const &drapeaux)
