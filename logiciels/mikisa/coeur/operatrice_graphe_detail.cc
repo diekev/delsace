@@ -218,72 +218,23 @@ static auto converti_type_prise(type_prise type)
 	return lcc::type_var::INVALIDE;
 }
 
-OperatriceFonctionDetail::OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, const lcc::donnees_fonction *df)
+OperatriceFonctionDetail::OperatriceFonctionDetail(
+		Graphe &graphe_parent,
+		Noeud *noeud,
+		const dls::chaine &nom_fonc,
+		const lcc::donnees_fonction *df)
 	: OperatriceImage(graphe_parent, noeud)
-	, m_df(df)
+	, donnees_fonction(df)
+	, nom_fonction(nom_fonc)
 {
-	if (m_df == nullptr) {
+	if (donnees_fonction == nullptr) {
 		entrees(0);
 		sorties(0);
 		return;
 	}
 
-	entrees(m_df->seing.entrees.types.taille());
-	sorties(m_df->seing.sorties.types.taille());
-
-	for (auto i = 0; i < entrees(); ++i) {
-		auto nom_propriete = "entrée" + dls::vers_chaine(i);
-
-		auto prop = danjo::Propriete();
-
-		switch (m_df->seing.entrees.types[i]) {
-			case lcc::type_var::DEC:
-			{
-				prop.type = danjo::TypePropriete::DECIMAL;
-				prop.valeur = 0.0f;
-				ajoute_propriete(nom_propriete, danjo::TypePropriete::DECIMAL, 0.0f);
-				break;
-			}
-			case lcc::type_var::ENT32:
-			{
-				prop.type = danjo::TypePropriete::ENTIER;
-				prop.valeur = 0;
-				break;
-			}
-			case lcc::type_var::VEC2:
-			case lcc::type_var::VEC3:
-			case lcc::type_var::VEC4:
-			case lcc::type_var::POLYMORPHIQUE:
-			{
-				prop.type = danjo::TypePropriete::VECTEUR;
-				prop.valeur = dls::math::vec3f(0.0f);
-				break;
-			}
-			case lcc::type_var::COULEUR:
-			{
-				prop.type = danjo::TypePropriete::COULEUR;
-				prop.valeur = dls::phys::couleur32(1.0f);
-				break;
-			}
-			case lcc::type_var::CHAINE:
-			{
-				prop.type = danjo::TypePropriete::CHAINE_CARACTERE;
-				prop.valeur = dls::chaine();
-				break;
-			}
-			case lcc::type_var::MAT3:
-			case lcc::type_var::MAT4:
-			case lcc::type_var::INVALIDE:
-			case lcc::type_var::TABLEAU:
-			{
-				prop.type = danjo::TypePropriete::ENTIER;
-				prop.valeur = 0;
-				break;
-			}
-		}
-
-		ajoute_propriete_extra(nom_propriete, prop);
-	}
+	entrees(donnees_fonction->seing.entrees.types.taille());
+	sorties(donnees_fonction->seing.sorties.types.taille());
 }
 
 const char *OperatriceFonctionDetail::nom_classe() const
@@ -296,6 +247,11 @@ const char *OperatriceFonctionDetail::texte_aide() const
 	return AIDE;
 }
 
+int OperatriceFonctionDetail::type() const
+{
+	return OPERATRICE_DETAIL;
+}
+
 const char *OperatriceFonctionDetail::chemin_entreface() const
 {
 	return "";
@@ -303,12 +259,12 @@ const char *OperatriceFonctionDetail::chemin_entreface() const
 
 type_prise OperatriceFonctionDetail::type_entree(int i) const
 {
-	return converti_type_prise(m_df->seing.entrees.types[i]);
+	return converti_type_prise(donnees_fonction->seing.entrees.types[i]);
 }
 
 type_prise OperatriceFonctionDetail::type_sortie(int i) const
 {
-	return converti_type_prise(m_df->seing.sorties.types[i]);
+	return converti_type_prise(donnees_fonction->seing.sorties.types[i]);
 }
 
 inline auto corrige_type_specialise(lcc::type_var type_specialise, lcc::type_var type)
@@ -342,7 +298,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 
 	/* première boucle : défini le type spécialisé pour les connexions d'entrées */
 	for (auto i = 0; i < entrees(); ++i) {
-		auto type = m_df->seing.entrees.types[i];
+		auto type = donnees_fonction->seing.entrees.types[i];
 		est_polymorphique = (type == lcc::type_var::POLYMORPHIQUE);
 
 		if (entree(i)->connectee()) {
@@ -375,7 +331,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	auto pointeurs = dls::tableau<int>();
 
 	for (auto i = 0; i < entrees(); ++i) {
-		auto type = m_df->seing.entrees.types[i];
+		auto type = donnees_fonction->seing.entrees.types[i];
 
 		if (entree(i)->connectee()) {
 			auto ptr = entree(i)->pointeur();
@@ -486,7 +442,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	/* ****************** crée les données pour les appels ****************** */
 
 	/* ajoute le code_inst de la fonction */
-	compileuse->ajoute_instructions(m_df->type);
+	compileuse->ajoute_instructions(donnees_fonction->type);
 
 	/* ajoute le type de la fonction pour choisir la bonne surcharge */
 	if (type_specialise != lcc::type_var::INVALIDE) {
@@ -501,7 +457,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	/* pour chaque sortie, nous réservons de la place sur la pile de données */
 	auto pointeur_donnees = 0;
 	for (auto i = 0; i < sorties(); ++i) {
-		auto type = m_df->seing.sorties.types[i];
+		auto type = donnees_fonction->seing.sorties.types[i];
 
 		if (type == lcc::type_var::POLYMORPHIQUE) {
 			type = type_specialise;
@@ -523,6 +479,63 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	compileuse->ajoute_instructions(pointeur_donnees);
 
 	return EXECUTION_REUSSIE;
+}
+
+void OperatriceFonctionDetail::cree_proprietes()
+{
+	for (auto i = 0; i < entrees(); ++i) {
+		auto nom_propriete = "entrée" + dls::vers_chaine(i);
+
+		auto prop = danjo::Propriete();
+
+		switch (donnees_fonction->seing.entrees.types[i]) {
+			case lcc::type_var::DEC:
+			{
+				prop.type = danjo::TypePropriete::DECIMAL;
+				prop.valeur = 0.0f;
+				ajoute_propriete(nom_propriete, danjo::TypePropriete::DECIMAL, 0.0f);
+				break;
+			}
+			case lcc::type_var::ENT32:
+			{
+				prop.type = danjo::TypePropriete::ENTIER;
+				prop.valeur = 0;
+				break;
+			}
+			case lcc::type_var::VEC2:
+			case lcc::type_var::VEC3:
+			case lcc::type_var::VEC4:
+			case lcc::type_var::POLYMORPHIQUE:
+			{
+				prop.type = danjo::TypePropriete::VECTEUR;
+				prop.valeur = dls::math::vec3f(0.0f);
+				break;
+			}
+			case lcc::type_var::COULEUR:
+			{
+				prop.type = danjo::TypePropriete::COULEUR;
+				prop.valeur = dls::phys::couleur32(1.0f);
+				break;
+			}
+			case lcc::type_var::CHAINE:
+			{
+				prop.type = danjo::TypePropriete::CHAINE_CARACTERE;
+				prop.valeur = dls::chaine();
+				break;
+			}
+			case lcc::type_var::MAT3:
+			case lcc::type_var::MAT4:
+			case lcc::type_var::INVALIDE:
+			case lcc::type_var::TABLEAU:
+			{
+				prop.type = danjo::TypePropriete::ENTIER;
+				prop.valeur = 0;
+				break;
+			}
+		}
+
+		ajoute_propriete_extra(nom_propriete, prop);
+	}
 }
 
 /* ************************************************************************** */
@@ -651,4 +664,17 @@ void enregistre_operatrices_detail(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceGrapheDetail>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeDetail>());
 	usine.enregistre_type(cree_desc<OperatriceSortieDetail>());
+}
+
+OperatriceFonctionDetail *cree_op_detail(
+		Mikisa &mikisa,
+		Graphe &graphe,
+		Noeud *noeud,
+		const dls::chaine &nom_fonction)
+{
+	/* À FAIRE : gestion des fonctions avec surcharges. */
+	auto const &table_df = mikisa.lcc->fonctions.table[nom_fonction];
+	auto df = &table_df.front();
+
+	return memoire::loge<OperatriceFonctionDetail>("Fonction Détail", graphe, noeud, nom_fonction, df);
 }

@@ -68,13 +68,14 @@ public:
 /* ************************************************************************** */
 
 class OperatriceFonctionDetail : public OperatriceImage {
-	lcc::donnees_fonction const *m_df = nullptr;
-
 public:
+	lcc::donnees_fonction const *donnees_fonction = nullptr;
+	dls::chaine nom_fonction = "";
+
 	static constexpr auto NOM = "Fonction Détail";
 	static constexpr auto AIDE = "Fonction Détail";
 
-	explicit OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, lcc::donnees_fonction const *df);
+	explicit OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
 
 	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
 	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
@@ -83,6 +84,8 @@ public:
 
 	virtual const char *texte_aide() const override;
 
+	int type() const override;
+
 	const char *chemin_entreface() const override;
 
 	type_prise type_entree(int i) const override;
@@ -90,9 +93,19 @@ public:
 	type_prise type_sortie(int i) const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+
+	/* ceci n'est appelé que lors des créations par l'utilisateur car les
+	 * opératrices venant de sauvegardes ont déjà les propriétés créées */
+	void cree_proprietes();
 };
 
 /* ************************************************************************** */
+
+OperatriceFonctionDetail *cree_op_detail(
+		Mikisa &mikisa,
+		Graphe &graphe,
+		Noeud *noeud,
+		dls::chaine const &nom_fonction);
 
 void graphe_detail_notifie_parent_suranne(Mikisa &mikisa);
 

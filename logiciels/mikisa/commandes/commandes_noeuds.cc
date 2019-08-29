@@ -245,12 +245,8 @@ public:
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->cree_noeud(nom);
 
-		/* À FAIRE : gestion des fonctions avec surcharges. */
-		auto const &table_df = mikisa->lcc->fonctions.table[nom];
-		auto df = &table_df.front();
-
-		auto op = memoire::loge<OperatriceFonctionDetail>("Fonction Détail", *graphe, noeud, df);
-		INUTILISE(op);
+		auto op = cree_op_detail(*mikisa, *graphe, noeud, nom);
+		op->cree_proprietes();
 		synchronise_donnees_operatrice(noeud);
 
 		noeud->pos_x(mikisa->graphe->centre_x);
