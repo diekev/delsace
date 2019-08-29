@@ -773,16 +773,16 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 	};
 
 	const std::pair<const char *, code_inst> paires_turb[] = {
-		{ "bruit_turb_cellule", code_inst::FN_BRUIT_CELLULE },
-		{ "bruit_turb_fourier", code_inst::FN_BRUIT_FOURIER },
-		{ "bruit_turb_ondelette", code_inst::FN_BRUIT_ONDELETTE },
-		{ "bruit_turb_simplex", code_inst::FN_BRUIT_SIMPLEX },
-		{ "bruit_turb_voronoi_f1", code_inst::FN_BRUIT_VORONOI_F1 },
-		{ "bruit_turb_voronoi_f2", code_inst::FN_BRUIT_VORONOI_F2 },
-		{ "bruit_turb_voronoi_f3", code_inst::FN_BRUIT_VORONOI_F3 },
-		{ "bruit_turb_voronoi_f4", code_inst::FN_BRUIT_VORONOI_F4 },
-		{ "bruit_turb_voronoi_f1f2", code_inst::FN_BRUIT_VORONOI_F1F2 },
-		{ "bruit_turb_voronoi_cr", code_inst::FN_BRUIT_VORONOI_CR }
+		{ "bruit_turb_cellule", code_inst::FN_BRUIT_TURBULENT_CELLULE },
+		{ "bruit_turb_fourier", code_inst::FN_BRUIT_TURBULENT_FOURIER },
+		{ "bruit_turb_ondelette", code_inst::FN_BRUIT_TURBULENT_ONDELETTE },
+		{ "bruit_turb_simplex", code_inst::FN_BRUIT_TURBULENT_SIMPLEX },
+		{ "bruit_turb_voronoi_f1", code_inst::FN_BRUIT_TURBULENT_VORONOI_F1 },
+		{ "bruit_turb_voronoi_f2", code_inst::FN_BRUIT_TURBULENT_VORONOI_F2 },
+		{ "bruit_turb_voronoi_f3", code_inst::FN_BRUIT_TURBULENT_VORONOI_F3 },
+		{ "bruit_turb_voronoi_f4", code_inst::FN_BRUIT_TURBULENT_VORONOI_F4 },
+		{ "bruit_turb_voronoi_f1f2", code_inst::FN_BRUIT_TURBULENT_VORONOI_F1F2 },
+		{ "bruit_turb_voronoi_cr", code_inst::FN_BRUIT_TURBULENT_VORONOI_CR }
 	};
 
 	for (auto paire : paires) {
