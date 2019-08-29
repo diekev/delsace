@@ -157,6 +157,17 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 				}
 			}
 		}
+
+		/* vide les tampons mémoires des noeuds déconnectés */
+		for (auto n : objet_noeud->graphe.noeuds()) {
+			if (noeuds_visites.trouve(n) != noeuds_visites.fin()) {
+				continue;
+			}
+
+			auto operatrice = extrait_opimage(n->donnees());
+			operatrice->libere_memoire();
+			n->besoin_execution(true);
+		}
 	}
 
 	/* Marque les graphes des objets en aval comm ayant besoin d'une exécution.
