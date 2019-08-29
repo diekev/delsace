@@ -33,15 +33,22 @@
 
 namespace dls {
 
-/* pour l'instant enrobe un dls::tableau, notre tableau a des bogues et crash
+/* pour l'instant enrobe un std::vector, notre tableau a des bogues et crash
  * trop lors des réallocations, en plus d'être lent lors des réallocations */
 template <typename T>
 struct tableau {
+	using type_valeur = T;
+	using type_pointeur = T*;
+	using type_pointeur_const = T const*;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
 	using type_vecteur = std::vector<T, memoire::logeuse_guardee<T>>;
-	using value_type = typename type_vecteur::value_type;
-	using reference = T&;
-	using const_reference = const T&;
-	using size_type = long;
+
+	using iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::iterator;
+	using const_iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::const_iterator;
+	using iteratrice_inverse = typename std::vector<T, memoire::logeuse_guardee<T>>::reverse_iterator;
+	using const_iteratrice_inverse = typename std::vector<T, memoire::logeuse_guardee<T>>::const_reverse_iterator;
 
 private:
 	type_vecteur m_vecteur{};
@@ -53,7 +60,7 @@ public:
 		: m_vecteur(static_cast<size_t>(taille_))
 	{}
 
-	tableau(long taille_, T valeur)
+	tableau(long taille_, type_valeur valeur)
 		: m_vecteur(static_cast<size_t>(taille_), valeur)
 	{}
 
@@ -71,11 +78,11 @@ public:
 		: m_vecteur(__deb, __fin)
 	{}
 
-	tableau(std::initializer_list<T> init_list)
+	tableau(std::initializer_list<type_valeur> init_list)
 		: m_vecteur(init_list)
 	{}
 
-	tableau &operator=(std::initializer_list<T> init_list)
+	tableau &operator=(std::initializer_list<type_valeur> init_list)
 	{
 		m_vecteur = init_list;
 		return *this;
@@ -100,26 +107,26 @@ public:
 		m_vecteur.swap(autre.m_vecteur);
 	}
 
-	T &operator[](long idx)
+	type_reference operator[](long idx)
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		return m_vecteur.at(static_cast<size_t>(idx));
 	}
 
-	T const &operator[](long idx) const
+	type_reference_const operator[](long idx) const
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		return m_vecteur.at(static_cast<size_t>(idx));
 	}
 
-	T &a(long idx)
+	type_reference a(long idx)
 	{
 		return this->operator[](idx);
 	}
 
-	T const &a(long idx) const
+	type_reference_const a(long idx) const
 	{
 		return this->operator[](idx);
 	}
@@ -144,12 +151,12 @@ public:
 		m_vecteur.pop_back();
 	}
 
-	void pousse(T const &valeur)
+	void pousse(type_reference_const valeur)
 	{
 		m_vecteur.push_back(valeur);
 	}
 
-	void pousse(T &&valeur)
+	void pousse(type_valeur &&valeur)
 	{
 		m_vecteur.push_back(std::move(valeur));
 	}
@@ -164,7 +171,7 @@ public:
 		m_vecteur.resize(static_cast<size_t>(nouvelle_taille));
 	}
 
-	void redimensionne(long nouvelle_taille, T const &valeur)
+	void redimensionne(long nouvelle_taille, type_reference_const valeur)
 	{
 		m_vecteur.resize(static_cast<size_t>(nouvelle_taille), valeur);
 	}
@@ -184,40 +191,35 @@ public:
 		return static_cast<long>(m_vecteur.capacity());
 	}
 
-	T *donnees()
+	type_pointeur donnees()
 	{
 		return m_vecteur.data();
 	}
 
-	T const *donnees() const
+	type_pointeur_const donnees() const
 	{
 		return m_vecteur.data();
 	}
 
-	T &front()
+	type_reference front()
 	{
 		return m_vecteur.front();
 	}
 
-	T const &front() const
+	type_reference_const front() const
 	{
 		return m_vecteur.front();
 	}
 
-	T &back()
+	type_reference back()
 	{
 		return m_vecteur.back();
 	}
 
-	T const &back() const
+	type_reference_const back() const
 	{
 		return m_vecteur.back();
 	}
-
-	using iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::iterator;
-	using const_iteratrice = typename std::vector<T, memoire::logeuse_guardee<T>>::const_iterator;
-	using iteratrice_inverse = typename std::vector<T, memoire::logeuse_guardee<T>>::reverse_iterator;
-	using const_iteratrice_inverse = typename std::vector<T, memoire::logeuse_guardee<T>>::const_reverse_iterator;
 
 	iteratrice debut()
 	{
@@ -269,17 +271,17 @@ public:
 		m_vecteur.erase(debut_, fin_);
 	}
 
-	void insere(iteratrice ou, T const &quoi)
+	void insere(iteratrice ou, type_reference_const quoi)
 	{
 		m_vecteur.insert(ou, quoi);
 	}
 
-	void insere(iteratrice ou, long nombre, T const &quoi)
+	void insere(iteratrice ou, long nombre, type_reference_const quoi)
 	{
 		m_vecteur.insert(ou, static_cast<size_t>(nombre), quoi);
 	}
 
-	void insere(iteratrice ou, std::initializer_list<T> init)
+	void insere(iteratrice ou, std::initializer_list<type_valeur> init)
 	{
 		m_vecteur.insert(ou, init);
 	}
@@ -379,26 +381,26 @@ public:
 		std::swap(autre.m_donnees, m_donnees);
 	}
 
-	T &operator[](long idx)
+	type_reference operator[](long idx)
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		return m_donnees[idx];
 	}
 
-	T const &operator[](long idx) const
+	type_reference_const operator[](long idx) const
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		return m_donnees[idx];
 	}
 
-	T &a(long idx)
+	type_reference a(long idx)
 	{
 		return this->operator[](idx);
 	}
 
-	T const &a(long idx) const
+	type_reference_const a(long idx) const
 	{
 		return this->operator[](idx);
 	}
@@ -413,7 +415,7 @@ public:
 		m_taille = 0;
 	}
 
-	void pousse(T const &valeur)
+	void pousse(type_reference_const valeur)
 	{
 		if (m_taille == m_capacite) {
 			reloge_donnees(m_taille + 1);
@@ -446,7 +448,7 @@ public:
 		m_taille = nouvelle_taille;
 	}
 
-	void redimensionne(long nouvelle_taille, T const &valeur)
+	void redimensionne(long nouvelle_taille, type_reference_const valeur)
 	{
 		this->redimensionne(nouvelle_taille);
 
@@ -470,22 +472,22 @@ public:
 		return m_donnees;
 	}
 
-	T &front()
+	type_reference front()
 	{
 		return m_donnees[0];
 	}
 
-	T const &front() const
+	type_reference_const front() const
 	{
 		return m_donnees[0];
 	}
 
-	T &back()
+	type_reference back()
 	{
 		return m_donnees[m_taille - 1];
 	}
 
-	T const &back() const
+	type_reference_const back() const
 	{
 		return m_donnees[m_taille - 1];
 	}
@@ -503,12 +505,12 @@ public:
 			: ptr(p)
 		{}
 
-		T &operator*()
+		type_reference operator*()
 		{
 			return *ptr;
 		}
 
-		T const &operator*() const
+		type_reference_const operator*() const
 		{
 			return *ptr;
 		}
@@ -608,7 +610,7 @@ public:
 		m_taille -= 1;
 	}
 
-	void insere(iteratrice ou, T const &quoi)
+	void insere(iteratrice ou, type_reference_const quoi)
 	{
 		// À FAIRE
 	}
