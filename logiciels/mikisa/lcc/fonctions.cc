@@ -161,6 +161,18 @@ void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, 
 	else {
 		iter->second.pousse({seing, type, ctx});
 	}
+
+	auto iter_cat = table_categories.trouve(categorie);
+
+	if (iter_cat == table_categories.fin()) {
+		auto ensemble = dls::ensemble<dls::chaine>{};
+		ensemble.insere(nom);
+
+		table_categories.insere({categorie, ensemble});
+	}
+	else {
+		iter_cat->second.insere(nom);
+	}
 }
 
 donnees_fonction_generation magasin_fonctions::meilleure_candidate(
@@ -208,6 +220,8 @@ donnees_fonction_generation magasin_fonctions::meilleure_candidate(
 
 static void enregistre_fonctions_operations_binaires(magasin_fonctions &magasin)
 {
+	magasin.categorie = "maths";
+
 	magasin.ajoute_fonction(
 				"ajoute",
 				code_inst::FN_AJOUTE,
@@ -251,6 +265,8 @@ static void enregistre_fonctions_operations_binaires(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 {
+	magasin.categorie = "maths";
+
 	magasin.ajoute_fonction(
 				"traduit",
 				code_inst::FN_TRADUIT,
@@ -520,6 +536,8 @@ static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 {
+	magasin.categorie = "vecteur";
+
 	magasin.ajoute_fonction(
 				"sépare_vec3",
 				code_inst::FN_SEPARE_VEC3,
@@ -611,6 +629,8 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 {
+	magasin.categorie = "corps";
+
 	magasin.ajoute_fonction(
 				"ajoute_point",
 				code_inst::FN_AJOUTE_POINT,
@@ -658,6 +678,8 @@ static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 {
+	magasin.categorie = "couleur";
+
 	magasin.ajoute_fonction(
 				"sature",
 				code_inst::FN_SATURE,
@@ -696,6 +718,8 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_types(magasin_fonctions &magasin)
 {
+	magasin.categorie = "tableau";
+
 	magasin.ajoute_fonction(
 				"taille",
 				code_inst::FN_TAILLE_TABLEAU,
@@ -707,6 +731,8 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 {
+	magasin.categorie = "bruit";
+
 	auto types_entrees_bruit = types_entrees(
 				type_var::VEC3,  // position
 				type_var::ENT32, // graine
