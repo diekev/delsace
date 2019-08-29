@@ -35,6 +35,11 @@ namespace lcc {
 struct donnees_fonction;
 }
 
+enum {
+	DETAIL_POINTS,
+	DETAIL_VOXELS,
+};
+
 struct Mikisa;
 
 /* ************************************************************************** */
@@ -45,6 +50,8 @@ class OperatriceGrapheDetail final : public OperatriceCorps {
 	Graphe m_graphe;
 
 public:
+	int type_detail = DETAIL_POINTS;
+
 	static constexpr auto NOM = "Graphe Détail";
 	static constexpr auto AIDE = "Graphe Détail";
 

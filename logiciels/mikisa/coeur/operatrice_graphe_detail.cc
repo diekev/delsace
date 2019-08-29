@@ -24,9 +24,13 @@
 
 #include "operatrice_graphe_detail.hh"
 
+#include "corps/volume.hh"
+
 #include "lcc/arbre_syntactic.h"
 #include "lcc/code_inst.hh"
 #include "lcc/lcc.hh"
+
+#include "wolika/iteration.hh"
 
 #include "contexte_evaluation.hh"
 #include "donnees_aval.hh"
@@ -40,6 +44,9 @@ OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud *noe
 	: OperatriceCorps(graphe_parent, noeud)
 	, m_graphe(cree_noeud_image, supprime_noeud_image)
 {
+	m_graphe.donnees.efface();
+	m_graphe.donnees.pousse(type_detail);
+
 	entrees(1);
 	sorties(1);
 }
@@ -76,38 +83,140 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 		return EXECUTION_ECHOUEE;
 	}
 
+	m_graphe.donnees.efface();
+	m_graphe.donnees.pousse(type_detail);
+
 	m_corps.reinitialise();
 	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+	auto volume = static_cast<Volume *>(nullptr);
+
+	switch (type_detail) {
+		case DETAIL_POINTS:
+		{
+			if (!valide_corps_entree(*this, &m_corps, true, false)) {
+				return EXECUTION_ECHOUEE;
+			}
+
+			break;
+		}
+		case DETAIL_VOXELS:
+		{
+			auto idx_volume = -1;
+
+			for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
+				auto prim = m_corps.prims()->prim(i);
+
+				if (prim->type_prim() != type_primitive::VOLUME) {
+					continue;
+				}
+
+				auto prim_vol = dynamic_cast<Volume *>(prim);
+
+				if (prim_vol->grille->desc().type_donnees == wlk::type_grille::R32) {
+					idx_volume = i;
+					break;
+				}
+			}
+
+			if (idx_volume == -1) {
+				ajoute_avertissement("Aucun volume scalaire en entrée.");
+				return EXECUTION_ECHOUEE;
+			}
+
+			m_corps.prims()->detache();
+
+			volume = dynamic_cast<Volume *>(m_corps.prims()->prim(idx_volume));
+
+			break;
+		}
+	}
 
 	if (!compile_graphe(contexte)) {
 		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto points = m_corps.points_pour_ecriture();
-
-	/* fais une copie locale pour éviter les problèmes de concurrence critique */
-	auto donnees = m_compileuse.donnees();
-
 	auto ctx_exec = lcc::ctx_exec{};
-	auto ctx_local = lcc::ctx_local{};
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto pos = points->point(i);
+	switch (type_detail) {
+		case DETAIL_POINTS:
+		{
+			auto points = m_corps.points_pour_ecriture();
 
-		remplis_donnees(donnees, m_gest_props, "P", pos);
+			/* fais une copie locale pour éviter les problèmes de concurrence critique */
+			auto donnees = m_compileuse.donnees();
+			auto ctx_local = lcc::ctx_local{};
 
-		lcc::execute_pile(
-					ctx_exec,
-					ctx_local,
-					donnees,
-					m_compileuse.instructions(),
-					i);
+			for (auto i = 0; i < points->taille(); ++i) {
+				auto pos = points->point(i);
 
-		auto idx_sortie = m_gest_props.pointeur_donnees("P");
-		pos = donnees.charge_vec3(idx_sortie);
+				remplis_donnees(donnees, m_gest_props, "P", pos);
 
-		points->point(i, pos);
+				lcc::execute_pile(
+							ctx_exec,
+							ctx_local,
+							donnees,
+							m_compileuse.instructions(),
+							i);
+
+				auto idx_sortie = m_gest_props.pointeur_donnees("P");
+				pos = donnees.charge_vec3(idx_sortie);
+
+				points->point(i, pos);
+			}
+
+			break;
+		}
+		case DETAIL_VOXELS:
+		{
+			auto grille = volume->grille;
+
+			if (grille->est_eparse()) {
+				auto grille_eparse = dynamic_cast<wlk::grille_eparse<float> *>(grille);
+
+				wlk::pour_chaque_tuile_parallele(*grille_eparse, [&](wlk::tuile_scalaire<float> *tuile)
+				{
+					auto donnees = m_compileuse.donnees();
+					auto ctx_local = lcc::ctx_local{};
+
+					auto index_tuile = 0;
+					for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+						for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+							for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+								auto pos_tuile = tuile->min;
+								pos_tuile.x += i;
+								pos_tuile.y += j;
+								pos_tuile.z += k;
+
+								auto pos_monde = grille_eparse->index_vers_monde(pos_tuile);
+								auto pos_unit = grille_eparse->index_vers_unit(pos_tuile);
+
+								auto v = tuile->donnees[index_tuile];
+
+								remplis_donnees(donnees, m_gest_props, "densité", v);
+								remplis_donnees(donnees, m_gest_props, "pos_monde", pos_monde);
+								remplis_donnees(donnees, m_gest_props, "pos_unit", pos_unit);
+
+								lcc::execute_pile(
+											ctx_exec,
+											ctx_local,
+											donnees,
+											m_compileuse.instructions(),
+											i);
+
+								auto idx_sortie = m_gest_props.pointeur_donnees("densité");
+								v = donnees.charge_decimal(idx_sortie);
+
+								tuile->donnees[index_tuile] = v;
+							}
+						}
+					}
+				});
+			}
+
+			break;
+		}
 	}
 
 	return EXECUTION_REUSSIE;
@@ -127,8 +236,26 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 	donnees_aval.table.insere({"compileuse", &m_compileuse});
 	donnees_aval.table.insere({"gest_props", &m_gest_props});
 
-	auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-	m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
+	switch (type_detail) {
+		case DETAIL_POINTS:
+		{
+			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
+			m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
+			break;
+		}
+		case DETAIL_VOXELS:
+		{
+			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::DEC));
+			m_gest_props.ajoute_propriete("densité", lcc::type_var::DEC, idx);
+
+			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
+			m_gest_props.ajoute_propriete("pos_monde", lcc::type_var::VEC3, idx);
+
+			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
+			m_gest_props.ajoute_propriete("pos_unit", lcc::type_var::VEC3, idx);
+			break;
+		}
+	}
 
 	for (auto &noeud : m_graphe.noeuds()) {
 		for (auto &sortie : noeud->sorties()) {
@@ -544,7 +671,21 @@ public:
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
-		sorties(1);
+
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		switch (type_detail) {
+			case DETAIL_POINTS:
+			{
+				sorties(1);
+				break;
+			}
+			case DETAIL_VOXELS:
+			{
+				sorties(3);
+				break;
+			}
+		}
 	}
 
 	const char *nom_classe() const override
@@ -559,8 +700,29 @@ public:
 
 	type_prise type_sortie(int i) const override
 	{
-		INUTILISE(i);
-		return type_prise::VEC3;
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		switch (type_detail) {
+			case DETAIL_POINTS:
+			{
+				return type_prise::VEC3;
+			}
+			case DETAIL_VOXELS:
+			{
+				switch (i) {
+					case 0:
+					{
+						return type_prise::DECIMAL;
+					}
+					default:
+					{
+						return type_prise::VEC3;
+					}
+				}
+			}
+		}
+
+		return type_prise::INVALIDE;
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -568,10 +730,34 @@ public:
 		INUTILISE(contexte);
 
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		auto prise_sortie = sortie(0)->pointeur();
-		prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
-		prise_sortie->type_infere = type_prise::VEC3;
+		switch (type_detail) {
+			case DETAIL_POINTS:
+			{
+				auto prise_sortie = sortie(0)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
+				prise_sortie->type_infere = type_prise::VEC3;
+
+				break;
+			}
+			case DETAIL_VOXELS:
+			{
+				auto prise_sortie = sortie(0)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees("densité");
+				prise_sortie->type_infere = type_prise::DECIMAL;
+
+				prise_sortie = sortie(1)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_monde");
+				prise_sortie->type_infere = type_prise::VEC3;
+
+				prise_sortie = sortie(2)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_unit");
+				prise_sortie->type_infere = type_prise::VEC3;
+
+				break;
+			}
+		}
 
 		return EXECUTION_REUSSIE;
 	}
@@ -604,7 +790,20 @@ public:
 	type_prise type_entree(int i) const override
 	{
 		INUTILISE(i);
-		return type_prise::VEC3;
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		switch (type_detail) {
+			case DETAIL_POINTS:
+			{
+				return type_prise::VEC3;
+			}
+			case DETAIL_VOXELS:
+			{
+				return type_prise::DECIMAL;
+			}
+		}
+
+		return type_prise::INVALIDE;
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -613,23 +812,52 @@ public:
 
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		auto ptr_entree = 0;
+		switch (type_detail) {
+			case DETAIL_POINTS:
+			{
+				auto ptr_entree = 0;
 
-		if (entree(0)->connectee()) {
-			auto ptr = entree(0)->pointeur();
-			ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
+				if (entree(0)->connectee()) {
+					auto ptr = entree(0)->pointeur();
+					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
+				}
+				else {
+					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
+				}
+
+				auto ptr = gest_props->pointeur_donnees("P");
+
+				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
+				compileuse->ajoute_instructions(lcc::type_var::VEC3);
+				compileuse->ajoute_instructions(ptr_entree);
+				compileuse->ajoute_instructions(ptr);
+
+				break;
+			}
+			case DETAIL_VOXELS:
+			{
+				auto ptr_entree = 0;
+
+				if (entree(0)->connectee()) {
+					auto ptr = entree(0)->pointeur();
+					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
+				}
+				else {
+					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
+				}
+
+				auto ptr = gest_props->pointeur_donnees("densité");
+
+				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
+				compileuse->ajoute_instructions(lcc::type_var::DEC);
+				compileuse->ajoute_instructions(ptr_entree);
+				compileuse->ajoute_instructions(ptr);
+
+				break;
+			}
 		}
-		else {
-			ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-		}
-
-		auto ptr = gest_props->pointeur_donnees("P");
-
-		compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-		compileuse->ajoute_instructions(lcc::type_var::VEC3);
-		compileuse->ajoute_instructions(ptr_entree);
-		compileuse->ajoute_instructions(ptr);
 
 		return EXECUTION_REUSSIE;
 	}

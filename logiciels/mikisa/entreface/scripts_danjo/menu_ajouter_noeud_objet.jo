@@ -19,7 +19,8 @@ menu "Noeud Objet" {
 		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
 	}
 	menu "Détail" {
-		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe Détail")
+		action(valeur="Graphe Points"; attache=ajouter_graphe_detail; métadonnée="détail_point")
+		action(valeur="Graphe Voxels"; attache=ajouter_graphe_detail; métadonnée="détail_voxel")
 	}
 	menu "Entrée" {
 		action(valeur="Création Cercle"; attache=ajouter_noeud; métadonnée="Création Cercle")

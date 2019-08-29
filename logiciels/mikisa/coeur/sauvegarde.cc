@@ -294,6 +294,10 @@ static auto ecris_noeud(
 				auto op_detail = dynamic_cast<OperatriceFonctionDetail *>(operatrice);
 				element_operatrice->SetAttribut("detail", op_detail->nom_fonction.c_str());
 			}
+			else if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
+				auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
+				element_operatrice->SetAttribut("type_detail", op_detail->type_detail);
+			}
 
 			sauvegarde_proprietes(doc, element_operatrice, operatrice);
 
@@ -623,12 +627,23 @@ static void lecture_noeud(
 			auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
 			auto const nom_operatrice = element_operatrice->attribut("nom");
 			auto const nom_detail = element_operatrice->attribut("detail");
+			auto const type_detail = element_operatrice->attribut("type_detail");
 
 			if (nom_detail == nullptr) {
 				auto operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, noeud);
 				lecture_proprietes(element_operatrice, operatrice);
 				synchronise_donnees_operatrice(noeud);
 				operatrice->performe_versionnage();
+
+				if (type_detail != nullptr && operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
+					auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
+					op_detail->type_detail = std::atoi(type_detail);
+					/* il faut que le type de détail soit correct car
+					 * l'opératrice n'est pas exécutée quand les noeuds sont
+					 * ajoutés dans son graphe */
+					op_detail->graphe()->donnees.efface();
+					op_detail->graphe()->donnees.pousse(op_detail->type_detail);
+				}
 
 				if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
 					noeud->type(NOEUD_IMAGE_SORTIE);
