@@ -97,6 +97,22 @@ struct tuile_temporelle {
 
 		return valeur;
 	}
+
+	static void copie_donnees(tuile_temporelle const *de, tuile_temporelle *vers)
+	{
+		auto nombre_valeurs = de->decalage[VOXELS_TUILE];
+		vers->valeurs = memoire::loge_tableau<float>("tuile_temp::valeurs", nombre_valeurs);
+		vers->temps = memoire::loge_tableau<float>("tuile_temp::temps", nombre_valeurs);
+
+		for (auto j = 0; j < VOXELS_TUILE + 1; ++j) {
+			vers->decalage[j] = de->decalage[j];
+		}
+
+		for (auto j = 0; j < nombre_valeurs; ++j) {
+			vers->valeurs[j] = de->valeurs[j];
+			vers->temps[j] = de->temps[j];
+		}
+	}
 };
 
 using grille_temporelle = grille_eparse<float, tuile_temporelle>;

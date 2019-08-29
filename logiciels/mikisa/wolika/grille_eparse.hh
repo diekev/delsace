@@ -57,6 +57,13 @@ struct tuile_scalaire {
 		INUTILISE(temps);
 		return t->donnees[static_cast<size_t>(index)];
 	}
+
+	static void copie_donnees(tuile_scalaire const *de, tuile_scalaire *vers)
+	{
+		for (auto j = 0; j < VOXELS_TUILE; ++j) {
+			vers->donnees[j] = de->donnees[j];
+		}
+	}
 };
 
 template <typename T, typename TypeTuile = tuile_scalaire<T>>
@@ -313,7 +320,18 @@ public:
 		auto grille = memoire::loge<grille_eparse<T, type_tuile>>("grille", desc());
 		grille->m_arriere_plan = this->m_arriere_plan;
 		grille->m_index_tuiles = this->m_index_tuiles;
-		grille->m_tuiles = this->m_tuiles;
+		grille->m_tuiles.redimensionne(this->m_tuiles.taille());
+
+		for (auto i = 0; i < this->m_tuiles.taille(); ++i) {
+			auto atuile = this->m_tuiles[i];
+			auto ntuile = memoire::loge<type_tuile>("tuile");
+			ntuile->min = atuile->min;
+			ntuile->max = atuile->max;
+
+			type_tuile::copie_donnees(atuile, ntuile);
+
+			grille->m_tuiles[i] = ntuile;
+		}
 
 		return grille;
 	}
