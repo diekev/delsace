@@ -260,14 +260,6 @@ static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
-				"bruit_turbulent",
-				code_inst::FN_BRUIT_TURBULENT,
-				signature(
-					types_entrees(type_var::ENT32, type_var::DEC, type_var::VEC3),
-					types_sorties(type_var::DEC)),
-				ctx_script::tous);
-
-	magasin.ajoute_fonction(
 				"complément",
 				code_inst::FN_COMPLEMENT,
 				signature(
@@ -713,6 +705,81 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 				ctx_script::tous);
 }
 
+static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
+{
+	auto types_entrees_bruit = types_entrees(
+				type_var::VEC3,  // position
+				type_var::ENT32, // graine
+				type_var::VEC3,  // decalage position
+				type_var::VEC3,  // echelle position
+				type_var::DEC,   // decalage valeur
+				type_var::DEC,   // echelle valeur
+				type_var::DEC    // temps
+				);
+
+	auto types_entrees_bruit_turb = types_entrees(
+				type_var::VEC3,  // position
+				type_var::ENT32, // graine
+				/* base */
+				type_var::VEC3,  // decalage position
+				type_var::VEC3,  // echelle position
+				type_var::DEC,   // decalage valeur
+				type_var::DEC,   // echelle valeur
+				type_var::DEC,   // temps
+				/* turbulence */
+				type_var::ENT32, // octaves
+				type_var::DEC,   // gain
+				type_var::DEC,   // lacunarité
+				type_var::DEC    // amplitude
+				);
+
+	const std::pair<const char *, code_inst> paires[] = {
+		{ "bruit_cellule", code_inst::FN_BRUIT_CELLULE },
+		{ "bruit_fourier", code_inst::FN_BRUIT_FOURIER },
+		{ "bruit_ondelette", code_inst::FN_BRUIT_ONDELETTE },
+		{ "bruit_simplex", code_inst::FN_BRUIT_SIMPLEX },
+		{ "bruit_voronoi_f1", code_inst::FN_BRUIT_VORONOI_F1 },
+		{ "bruit_voronoi_f2", code_inst::FN_BRUIT_VORONOI_F2 },
+		{ "bruit_voronoi_f3", code_inst::FN_BRUIT_VORONOI_F3 },
+		{ "bruit_voronoi_f4", code_inst::FN_BRUIT_VORONOI_F4 },
+		{ "bruit_voronoi_f1f2", code_inst::FN_BRUIT_VORONOI_F1F2 },
+		{ "bruit_voronoi_cr", code_inst::FN_BRUIT_VORONOI_CR }
+	};
+
+	const std::pair<const char *, code_inst> paires_turb[] = {
+		{ "bruit_turb_cellule", code_inst::FN_BRUIT_CELLULE },
+		{ "bruit_turb_fourier", code_inst::FN_BRUIT_FOURIER },
+		{ "bruit_turb_ondelette", code_inst::FN_BRUIT_ONDELETTE },
+		{ "bruit_turb_simplex", code_inst::FN_BRUIT_SIMPLEX },
+		{ "bruit_turb_voronoi_f1", code_inst::FN_BRUIT_VORONOI_F1 },
+		{ "bruit_turb_voronoi_f2", code_inst::FN_BRUIT_VORONOI_F2 },
+		{ "bruit_turb_voronoi_f3", code_inst::FN_BRUIT_VORONOI_F3 },
+		{ "bruit_turb_voronoi_f4", code_inst::FN_BRUIT_VORONOI_F4 },
+		{ "bruit_turb_voronoi_f1f2", code_inst::FN_BRUIT_VORONOI_F1F2 },
+		{ "bruit_turb_voronoi_cr", code_inst::FN_BRUIT_VORONOI_CR }
+	};
+
+	for (auto paire : paires) {
+		magasin.ajoute_fonction(
+					paire.first,
+					paire.second,
+					signature(
+						types_entrees_bruit,
+						types_sorties(type_var::DEC)),
+					ctx_script::tous);
+	}
+
+	for (auto paire : paires_turb) {
+		magasin.ajoute_fonction(
+					paire.first,
+					paire.second,
+					signature(
+						types_entrees_bruit_turb,
+						types_sorties(type_var::DEC)),
+					ctx_script::tous);
+	}
+}
+
 void enregistre_fonctions_base(magasin_fonctions &magasin)
 {
 	enregistre_fonctions_operations_binaires(magasin);
@@ -721,6 +788,7 @@ void enregistre_fonctions_base(magasin_fonctions &magasin)
 	enregistre_fonctions_corps(magasin);
 	enregistre_fonctions_colorimetriques(magasin);
 	enregistre_fonctions_types(magasin);
+	enregistre_fonctions_bruits(magasin);
 }
 
 }  /* namespace lcc */
