@@ -154,8 +154,7 @@ auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>
 				   && is_operator(stack.haut())
 				   && (has_lower_precedence(token, stack.haut())))
 			{
-				output.enfile(stack.haut());
-				stack.depile();
+				output.enfile(stack.depile());
 			}
 
 			stack.empile(token);
@@ -174,8 +173,7 @@ auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>
 			}
 
 			while (stack.haut() != "(") {
-				output.enfile(stack.haut());
-				stack.depile();
+				output.enfile(stack.depile());
 			}
 
 			// pop the left parenthesis from the stack
@@ -193,8 +191,7 @@ auto postfix(const dls::chaine &expression) -> dls::file<dls::chaine>
 			break;
 		}
 
-		output.enfile(stack.haut());
-		stack.depile();
+		output.enfile(stack.depile());
 	}
 
 	return output;
@@ -257,15 +254,11 @@ auto evaluate_postfix(dls::file<dls::chaine> &expression) -> double
 	stack.empile(0);
 
 	while (!expression.est_vide()) {
-		auto token = expression.front();
-		expression.defile();
+		auto token = expression.defile();
 
 		if (is_operator(token)) {
-			auto op1 = stack.haut();
-			stack.depile();
-
-			auto op2 = stack.haut();
-			stack.depile();
+			auto op1 = stack.depile();
+			auto op2 = stack.depile();
 
 			auto result = evaluate(op2, op1, token.c_str());
 			stack.empile(result);
@@ -273,8 +266,7 @@ auto evaluate_postfix(dls::file<dls::chaine> &expression) -> double
 			continue;
 		}
 		else if (is_function(token)) {
-			auto op1 = stack.haut();
-			stack.depile();
+			auto op1 = stack.depile();
 
 			auto result = evaluate(op1, token);
 			stack.empile(result);

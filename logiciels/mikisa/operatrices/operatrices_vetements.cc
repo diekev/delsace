@@ -811,8 +811,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	add(conf.start);
 
 	while (!process.est_vide()) {
-		auto point = process.haut();
-		process.depile();
+		auto point = process.depile();
 
 		for (int i = 0; i != conf.max_attempts; ++i) {
 			auto p = point_around(point);

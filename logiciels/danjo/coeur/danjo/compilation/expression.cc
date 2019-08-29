@@ -224,18 +224,14 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 
 	for (const Symbole &symbole : expression) {
 		if (est_operateur(symbole.identifiant)) {
-			auto s2 = pile.haut();
-			pile.depile();
-
-			auto s1 = pile.haut();
-			pile.depile();
+			auto s2 = pile.depile();
+			auto s1 = pile.depile();
 
 			auto resultat = evalue_operation(s1, s2, symbole.identifiant);
 			pile.empile(resultat);
 		}
 		else if (est_operateur_logique(symbole.identifiant)) {
-			auto s1 = pile.haut();
-			pile.depile();
+			auto s1 = pile.depile();
 
 			auto resultat = evalue_operation_logique(s1, symbole.identifiant);
 			pile.empile(resultat);

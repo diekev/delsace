@@ -70,9 +70,11 @@ public:
 		}
 	}
 
-	void defile()
+	T defile()
 	{
+		auto t = front();
 		m_file.pop_front();
+		return t;
 	}
 
 	dls::tableau<T> defile(long compte)
@@ -130,13 +132,17 @@ public:
 		}
 	}
 
-	void defile() noexcept
+	T defile() noexcept
 	{
+		auto t = front();
+
 		for (auto i = 1l; i < m_taille; ++i) {
 			m_file[i - 1] = m_file[i];
 		}
 
 		m_taille -= 1;
+
+		return t;
 	}
 };
 
@@ -169,9 +175,11 @@ public:
 		return m_file.top();
 	}
 
-	void defile()
+	type_valeur defile()
 	{
+		auto t = haut();
 		m_file.pop();
+		return t;
 	}
 
 	void enfile(type_valeur const &valeur)

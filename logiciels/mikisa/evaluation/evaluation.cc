@@ -53,8 +53,7 @@ static void notifie_noeuds_chronodependants(Graphe &graphe)
 	}
 
 	while (!pile.est_vide()) {
-		auto noeud = pile.haut();
-		pile.depile();
+		auto noeud = pile.depile();
 
 		noeud->besoin_execution(true);
 

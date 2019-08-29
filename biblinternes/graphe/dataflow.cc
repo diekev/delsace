@@ -161,9 +161,8 @@ public:
 			}
 
 			while(!m_plans.est_vide() && m_plans.haut().temps() <= now) {
-				Plan plan = m_plans.haut();
+				Plan plan = m_plans.defile();
 				m_executeur.execute(plan.reseau());
-				m_plans.defile();
 			}
 
 			if (m_plans.est_vide()) {

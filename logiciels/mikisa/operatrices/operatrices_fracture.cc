@@ -457,8 +457,7 @@ auto cherche_chevauchement(
 	}
 
 	while (!noeuds.est_vide()) {
-		auto noeud = noeuds.haut();
-		noeuds.depile();
+		auto noeud = noeuds.depile();
 
 		if (noeud->totnode == 0) {
 			delegue.element_chevauche(noeud->index, triangle);

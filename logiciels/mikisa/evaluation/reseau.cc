@@ -131,8 +131,7 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 		auto noeuds_visites = dls::ensemble<Noeud *>();
 
 		while (!noeuds.est_vide()) {
-			noeud = noeuds.haut();
-			noeuds.depile();
+			noeud = noeuds.depile();
 
 			if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
 				continue;

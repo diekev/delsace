@@ -723,12 +723,10 @@ void MagasinDonneesType::converti_type_C(
 				converti_type_simple_C(
 							contexte,
 							os,
-							pile_type.haut(),
+							pile_type.depile(),
 							echappe,
 							echappe_struct,
 							echappe_tableau_fixe);
-
-				pile_type.depile();
 			}
 		}
 		else {
@@ -753,12 +751,10 @@ void MagasinDonneesType::converti_type_C(
 					converti_type_simple_C(
 								contexte,
 								os,
-								pile_type.haut(),
+								pile_type.depile(),
 								echappe,
 								echappe_struct,
 								echappe_tableau_fixe);
-
-					pile_type.depile();
 				}
 
 				virgule = ',';
@@ -775,12 +771,10 @@ void MagasinDonneesType::converti_type_C(
 					converti_type_simple_C(
 								contexte,
 								os,
-								pile_type.haut(),
+								pile_type.depile(),
 								echappe,
 								echappe_struct,
 								echappe_tableau_fixe);
-
-					pile_type.depile();
 				}
 
 				os << '*';

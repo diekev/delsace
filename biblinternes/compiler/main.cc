@@ -231,8 +231,7 @@ static function<int(void)> evaluate_postfix(dls::file<dls::chaine> &expression)
 	int stack_ptr = 0;
 
 	while (!expression.est_vide()) {
-		auto token = expression.front();
-		expression.defile();
+		auto token = expression.defile();
 
 		if (is_operator(token)) {
 			if (token == "+") {

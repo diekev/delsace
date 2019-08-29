@@ -433,8 +433,7 @@ auto traverse(
 	file.enfile({ &racine, 0.0 });
 
 	while (!file.est_vide()) {
-		auto const noeud = file.haut().noeud;
-		file.defile();
+		auto const noeud = file.defile().noeud;
 
 		if (noeud->est_feuille()) {
 			for (auto i = 0; i < noeud->nombre_references; ++i) {
@@ -563,8 +562,7 @@ auto cherche_point_plus_proche(
 	cherche_point_plus_proche_ex(arbre, delegue, donnees, file, racine);
 
 	while (!file.est_vide() && file.haut().distance < donnees.dn_plus_proche.distance_carree) {
-		auto node = file.haut().noeud;
-		file.defile();
+		auto node = file.defile().noeud;
 		cherche_point_plus_proche_ex(arbre, delegue, donnees, file, *node);
 	}
 
@@ -708,8 +706,7 @@ auto traverse(BVHTree *tree, TypeDelegue const &delegue, dls::phys::rayond const
 	file.enfile({ racine, 0.0 });
 
 	while (!file.est_vide()) {
-		auto const noeud = file.haut().noeud;
-		file.defile();
+		auto const noeud = file.defile().noeud;
 
 		if (noeud->totnode == 0) {
 			auto intersection = delegue.intersecte_element(noeud->index, rayon);

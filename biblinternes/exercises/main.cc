@@ -49,8 +49,7 @@ template <typename T>
 static auto debug_queue(dls::file<T> queue)
 {
 	while (!queue.est_vide()) {
-		std::cerr << queue.front() << '\n';
-		queue.defile();
+		std::cerr << queue.defile() << '\n';
 	}
 }
 

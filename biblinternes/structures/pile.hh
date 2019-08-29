@@ -41,9 +41,11 @@ public:
 		m_pile.pousse(valeur);
 	}
 
-	void depile()
+	T depile()
 	{
+		auto t = this->haut();
 		m_pile.pop_back();
+		return t;
 	}
 
 	T &haut()
@@ -83,9 +85,11 @@ public:
 		}
 	}
 
-	void depile()
+	T depile()
 	{
+		auto t = haut();
 		--m_index;
+		return t;
 	}
 
 	T &haut()

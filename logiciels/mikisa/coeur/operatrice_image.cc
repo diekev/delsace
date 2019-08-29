@@ -254,8 +254,7 @@ void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 	pile.empile(lien->parent);
 
 	while (!pile.est_vide()) {
-		auto noeud = pile.haut();
-		pile.depile();
+		auto noeud = pile.depile();
 
 		liste.pousse(noeud);
 
