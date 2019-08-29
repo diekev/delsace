@@ -850,6 +850,7 @@ auto evalue_bruit_turbulence(
 		int &inst_courante)
 {
 	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+	auto graine = pile_donnees.charge_entier(inst_courante, insts);
 
 	auto params = bruit::parametres();
 	charge_param_bruit(params, pile_donnees, insts, inst_courante);
@@ -857,7 +858,7 @@ auto evalue_bruit_turbulence(
 	auto params_turb = bruit::param_turbulence();
 	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
 
-	type_bruit::construit(params, 0);
+	type_bruit::construit(params, graine);
 	auto res = bruit::turbulent<type_bruit>::evalue(params, params_turb, pos);
 
 	pile_donnees.stocke(inst_courante, insts, res);
