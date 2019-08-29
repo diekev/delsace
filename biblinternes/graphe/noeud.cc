@@ -24,7 +24,8 @@
 
 #include "noeud.h"
 
-#include <tbb/tick_count.h>
+#include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/pile.hh"
 
 /* ************************************************************************** */
 
@@ -277,19 +278,31 @@ int Noeud::compte_execution() const
 
 void marque_surannee(Noeud *noeud, const std::function<void(Noeud *, PriseEntree *)> &rp)
 {
-	if (noeud == nullptr) {
-		return;
-	}
+	auto noeuds = dls::pile<Noeud *>();
+	noeuds.empile(noeud);
 
-	noeud->besoin_execution(true);
+	auto noeuds_visites = dls::ensemble<Noeud *>();
 
-	for (PriseSortie *sortie : noeud->sorties()) {
-		for (PriseEntree *entree : sortie->liens) {
-			if (rp != nullptr) {
-				rp(entree->parent, entree);
+	while (!noeuds.est_vide()) {
+		noeud = noeuds.haut();
+		noeuds.depile();
+
+		if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
+			continue;
+		}
+
+		noeuds_visites.insere(noeud);
+
+		noeud->besoin_execution(true);
+
+		for (auto sortie : noeud->sorties()) {
+			for (auto entree : sortie->liens) {
+				if (rp != nullptr) {
+					rp(entree->parent, entree);
+				}
+
+				noeuds.empile(entree->parent);
 			}
-
-			marque_surannee(entree->parent, rp);
 		}
 	}
 }
