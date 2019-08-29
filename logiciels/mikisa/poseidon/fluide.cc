@@ -942,8 +942,8 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 	auto id = 0u;
 	auto lminf = dls::math::vec3f(std::floor(-1.0f), std::floor(-1.0f), std::floor(-1.0f));
 	auto lmaxf = dls::math::vec3f(std::ceil(1.0f), std::ceil(1.0f), std::ceil(1.0f));
-	lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* À FAIRE : extrait_min_max */
-	lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* À FAIRE : extrait_min_max */
+	lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* extrait_min_max */
+	lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* extrait_min_max */
 
 	auto lmin = dls::math::vec3<unsigned int>(
 				static_cast<unsigned int>(lminf.x),
@@ -987,8 +987,8 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 			//clip AABB to sim boundaries, account for density
 			auto lminf = dls::math::vec3f(std::floor(liquidaabb.m_min.x), std::floor(liquidaabb.m_min.y), std::floor(liquidaabb.m_min.z));
 			auto lmaxf = dls::math::vec3f(std::ceil(liquidaabb.m_max.x), std::ceil(liquidaabb.m_max.y), std::ceil(liquidaabb.m_max.z));
-			lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* À FAIRE : extrait_min_max */
-			lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* À FAIRE : extrait_min_max */
+			lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* extrait_min_max */
+			lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* extrait_min_max */
 
 			auto lmin = dls::math::vec3<unsigned int>(
 						static_cast<unsigned int>(lminf.x),
@@ -1030,8 +1030,8 @@ void Scene::GenerateParticles(dls::tableau<fluidCore::Particle*>& particles,
 			//clip AABB to sim boundaries, account for density
 			lminf = dls::math::vec3f(std::floor(solidaabb.m_min.x), std::floor(solidaabb.m_min.y), std::floor(solidaabb.m_min.z));
 			lmaxf = dls::math::vec3f(std::ceil(solidaabb.m_max.x), std::ceil(solidaabb.m_max.y), std::ceil(solidaabb.m_max.z));
-			lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* À FAIRE : extrait_min_max */
-			lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* À FAIRE : extrait_min_max */
+			lminf = std::max(lminf, dls::math::vec3f(0.0f))/density; /* extrait_min_max */
+			lmaxf = std::min(lmaxf, dims+dls::math::vec3f(1.0f))/density; /* extrait_min_max */
 
 			lmin = dls::math::vec3<unsigned int>(
 						static_cast<unsigned int>(lminf.x),
@@ -1604,7 +1604,7 @@ static void SolveConjugateGradient(MacGrid& mgrid, Grid<float>* PC, int subcell,
 	// z = f(r), aka preconditioner step
 	ApplyPreconditioner(Z, R, PC, mgrid.m_L, mgrid.m_A, mgrid.m_dimensions);
 
-	//s = z. À FAIRE: replace with VDB deep copy?
+	//s = z.  replace with VDB deep copy?
 
 	for (auto j=0; j<y; ++j ) {
 		for (auto k=0; k<z; ++k ) {
@@ -2471,7 +2471,7 @@ void FlipSim::Project()
 	Solve(m_mgrid, m_subcell, m_verbose);
 
 	if (m_verbose) {
-		std::cout << " " << std::endl;//À FAIRE: no more stupid formatting hacks like this to std::out
+		std::cout << " " << std::endl;// no more stupid formatting hacks like this to std::out
 	}
 
 	//subtract pressure gradient
@@ -2785,7 +2785,7 @@ void FlipSim::ComputeDensity()
 			for (auto &voisin : neighbors) {
 				// if (voisin->m_type!=SOLID) {
 				auto sqd = Sqrlength(voisin->m_p, m_particles[i]->m_p);
-				//À FAIRE: figure out a better density smooth approx than density/maxd
+				// figure out a better density smooth approx than density/maxd
 				auto weight = voisin->m_mass * Smooth(sqd, 4.0f * m_density / maxd);
 				weightsum = weightsum + weight;
 				// }
