@@ -66,3 +66,26 @@ void ChefExecution::incremente_compte_a_executer()
 {
 	m_nombre_a_executer += 1;
 }
+
+/* ************************************************************************** */
+
+ChefWolika::ChefWolika(ChefExecution *chef_ex, const char *message)
+	: chef(chef_ex)
+{
+	chef->demarre_evaluation(message);
+}
+
+bool ChefWolika::interrompue() const
+{
+	return chef->interrompu();
+}
+
+void ChefWolika::indique_progression(float progression)
+{
+	chef->indique_progression(progression);
+}
+
+void ChefWolika::indique_progression_parallele(float delta)
+{
+	chef->indique_progression(delta);
+}

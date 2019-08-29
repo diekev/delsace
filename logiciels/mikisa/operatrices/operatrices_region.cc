@@ -606,34 +606,6 @@ public:
 
 /* ************************************************************************** */
 
-struct ChefWolika : public wlk::interruptrice {
-	ChefExecution *chef;
-
-	ChefWolika(ChefExecution *chef_ex, const char *message)
-		: chef(chef_ex)
-	{
-		chef->demarre_evaluation(message);
-	}
-
-	ChefWolika(ChefWolika const &) = default;
-	ChefWolika &operator=(ChefWolika const &) = default;
-
-	bool interrompue() const override
-	{
-		return chef->interrompu();
-	}
-
-	void indique_progression(float progression) override
-	{
-		chef->indique_progression(progression);
-	}
-
-	void indique_progression_parallele(float delta) override
-	{
-		chef->indique_progression(delta);
-	}
-};
-
 class OperatriceFloutage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Flou";
