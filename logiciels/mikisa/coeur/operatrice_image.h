@@ -184,7 +184,7 @@ public:
 	/* Prevent creating an operator without an accompanying node. */
 	OperatriceImage() = delete;
 
-	explicit OperatriceImage(Graphe &graphe_parent, Noeud *node);
+	OperatriceImage(Graphe &graphe_parent, Noeud *node);
 
 	OperatriceImage(OperatriceImage const &) = default;
 	OperatriceImage &operator=(OperatriceImage const &) = default;

@@ -252,11 +252,6 @@ int OperatriceFonctionDetail::type() const
 	return OPERATRICE_DETAIL;
 }
 
-const char *OperatriceFonctionDetail::chemin_entreface() const
-{
-	return "";
-}
-
 type_prise OperatriceFonctionDetail::type_entree(int i) const
 {
 	return converti_type_prise(donnees_fonction->seing.entrees.types[i]);
@@ -545,7 +540,7 @@ public:
 	static constexpr auto NOM = "Entrée Détail";
 	static constexpr auto AIDE = "Entrée Détail";
 
-	explicit OperatriceEntreeDetail(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -589,7 +584,7 @@ public:
 	static constexpr auto NOM = "Sortie Détail";
 	static constexpr auto AIDE = "Sortie Détail";
 
-	explicit OperatriceSortieDetail(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSortieDetail(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);

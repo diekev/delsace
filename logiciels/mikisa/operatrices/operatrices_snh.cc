@@ -293,7 +293,7 @@ static std::vector<std::array<int,3>> ExtractSurfaceTriangles(const int nvx, con
 
 /* ************************************************************************** */
 
-class OperatriceSNH : public OperatriceCorps {
+class OperatriceSNH final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Stable Neo Hookean";
 	static constexpr auto AIDE = "";

@@ -37,7 +37,7 @@
 
 /* ************************************************************************** */
 
-class OperatriceCreationGroupe : public OperatriceCorps {
+class OperatriceCreationGroupe final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Création Groupe";
 	static constexpr auto AIDE = "";

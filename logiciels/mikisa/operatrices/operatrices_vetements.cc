@@ -459,7 +459,7 @@ public:
 	static constexpr auto NOM = "Simulation Vêtement";
 	static constexpr auto AIDE = "Simule un vêtement selon l'algorithme de Dynamiques Basées Point.";
 
-	explicit OperatriceSimVetement(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSimVetement(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1024,7 +1024,7 @@ private:
 	dls::tableau<VertexType> _vertices{};
 };
 
-class OpPatchTriangle : public OperatriceCorps {
+class OpPatchTriangle final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Patch Triangle";
 	static constexpr auto AIDE = "";

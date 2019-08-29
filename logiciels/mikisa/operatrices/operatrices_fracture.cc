@@ -497,7 +497,7 @@ struct Info_Inter {
 	unsigned Id;
 };
 
-class OpBooleensMaillage : public OperatriceCorps {
+class OpBooleensMaillage final : public OperatriceCorps {
 	enum {
 		UNION,
 		INTER,
@@ -1743,7 +1743,7 @@ struct cell {
 	cell() = default;
 };
 
-class OperatriceFractureVoronoi : public OperatriceCorps {
+class OperatriceFractureVoronoi final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Fracture Voronoi";
 	static constexpr auto AIDE = "";

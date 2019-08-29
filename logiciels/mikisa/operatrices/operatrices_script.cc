@@ -421,7 +421,7 @@ static auto ajoute_proprietes_contexte(
 	}
 }
 
-class OpScriptTopologie : public OperatriceCorps {
+class OpScriptTopologie final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Script Topologie";
 	static constexpr auto AIDE = "";
@@ -574,7 +574,7 @@ public:
 
 /* ************************************************************************** */
 
-class OpScriptDetail : public OperatriceCorps {
+class OpScriptDetail final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Script Détail";
 	static constexpr auto AIDE = "";

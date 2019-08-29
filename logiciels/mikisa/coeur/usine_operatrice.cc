@@ -31,7 +31,7 @@
 
 /* ************************************************************************** */
 
-class OperatriceCorpsSE : public OperatriceCorps {
+class OperatriceCorpsSE final : public OperatriceCorps {
 public:
 	type_operatrice_sans_entree m_fonction{};
 	const char *m_nom_classe = "";
@@ -40,7 +40,7 @@ public:
 	bool m_depend_sur_temps = false;
 	char pad[7];
 
-	explicit OperatriceCorpsSE(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceCorpsSE(Graphe &graphe_parent, Noeud *noeud);
 
 	OperatriceCorpsSE(OperatriceCorpsSE const &) = default;
 	OperatriceCorpsSE &operator=(OperatriceCorpsSE const &) = default;
@@ -95,7 +95,7 @@ bool OperatriceCorpsSE::depend_sur_temps() const
 
 /* ************************************************************************** */
 
-class OperatriceCorpsE0 : public OperatriceCorps {
+class OperatriceCorpsE0 final : public OperatriceCorps {
 public:
 	type_operatrice_entree0 m_fonction{};
 	const char *m_nom_classe = "";
@@ -104,7 +104,7 @@ public:
 	bool m_depend_sur_temps = false;
 	char pad[7];
 
-	explicit OperatriceCorpsE0(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceCorpsE0(Graphe &graphe_parent, Noeud *noeud);
 
 	OperatriceCorpsE0(OperatriceCorpsE0 const &) = default;
 	OperatriceCorpsE0 &operator=(OperatriceCorpsE0 const &) = default;

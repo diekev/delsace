@@ -117,7 +117,7 @@ static void colore_prims(
 	}
 }
 
-class OperatriceVisualisationArbreOcternaire : public OperatriceCorps {
+class OperatriceVisualisationArbreOcternaire final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Visualisation Arbre Octernaire";
 	static constexpr auto AIDE = "";
@@ -269,7 +269,7 @@ static auto rassemble_topologie(
 	}
 }
 
-class OperatriceVisualisationArbreBVH : public OperatriceCorps {
+class OperatriceVisualisationArbreBVH final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Visualisation Arbre BVH";
 	static constexpr auto AIDE = "";
@@ -378,7 +378,7 @@ static auto visualise_topologie(Corps &corps, wlk::grille_eparse<T> const &grill
 	dessine_boite(corps, attr_C, limites.min, limites.max, dls::math::vec3f(0.1f, 0.8f, 0.1f));
 }
 
-class OpVisualiseGrilleEparse : public OperatriceCorps {
+class OpVisualiseGrilleEparse final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Visualisation Grille Éparse";
 	static constexpr auto AIDE = "";

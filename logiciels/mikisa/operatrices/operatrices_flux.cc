@@ -605,12 +605,12 @@ static auto charge_png(const char *chemin, std::any const &donnees)
 
 /* ************************************************************************** */
 
-class OperatriceVisionnage : public OperatriceImage {
+class OperatriceVisionnage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Visionneur";
 	static constexpr auto AIDE = "Visionner le résultat du graphe.";
 
-	explicit OperatriceVisionnage(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVisionnage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -647,7 +647,7 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceLectureJPEG : public OperatriceImage {
+class OperatriceLectureJPEG final : public OperatriceImage {
 	grille_couleur m_image_chargee{};
 	dls::chaine m_dernier_chemin = "";
 	PoigneeFichier *m_poignee_fichier = nullptr;
@@ -656,7 +656,7 @@ public:
 	static constexpr auto NOM = "Lecture Image";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	explicit OperatriceLectureJPEG(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceLectureJPEG(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -732,7 +732,7 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceLectureVideo : public OperatriceImage {
+class OperatriceLectureVideo final : public OperatriceImage {
 	dls::chaine m_dernier_chemin = "";
 	PoigneeFichier *m_poignee_fichier = nullptr;
 	cv::VideoCapture m_video{};
@@ -743,7 +743,7 @@ public:
 	static constexpr auto NOM = "Lecture Vidéo";
 	static constexpr auto AIDE = "Charge une vidéo depuis le disque.";
 
-	explicit OperatriceLectureVideo(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceLectureVideo(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -859,7 +859,7 @@ public:
 
 /* ************************************************************************** */
 
-class OpLectureImgProfonde : public OperatriceImage {
+class OpLectureImgProfonde final : public OperatriceImage {
 	grille_couleur m_image_chargee{};
 	dls::chaine m_dernier_chemin = "";
 	PoigneeFichier *m_poignee_fichier = nullptr;
@@ -868,7 +868,7 @@ public:
 	static constexpr auto NOM = "Lecture Image Profonde";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	explicit OpLectureImgProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpLectureImgProfonde(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -941,12 +941,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceCommutation : public OperatriceImage {
+class OperatriceCommutation final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Commutateur";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceCommutation(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCommutation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 	}
@@ -976,12 +976,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceCommutationCorps : public OperatriceCorps {
+class OperatriceCommutationCorps final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Commutation Corps";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceCommutationCorps(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 	}
@@ -1036,12 +1036,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceEntreeGraphe : public OperatriceCorps {
+class OperatriceEntreeGraphe final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Entrée Graphe";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -1090,7 +1090,7 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceImportObjet : public OperatriceCorps {
+class OperatriceImportObjet final : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
 
@@ -1098,7 +1098,7 @@ public:
 	static constexpr auto NOM = "Import Objet";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceImportObjet(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceImportObjet(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -1198,12 +1198,12 @@ public:
 
 #ifdef OP_INFINIE
 /* utilisée pour tester le chef d'exécution */
-class OperatriceInfinie : public OperatriceCorps {
+class OperatriceInfinie final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Infinie";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceInfinie(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceInfinie(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

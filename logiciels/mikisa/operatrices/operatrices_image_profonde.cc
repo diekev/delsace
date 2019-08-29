@@ -105,7 +105,7 @@ static auto fusionne_echant_surposes(
 	}
 }
 
-class OpAplanisProfonde : public OperatriceImage {
+class OpAplanisProfonde final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Aplanis Image Profonde";
 	static constexpr auto AIDE = "";
@@ -250,7 +250,7 @@ public:
 
 /* ************************************************************************** */
 
-class OpFusionProfonde : public OperatriceImage {
+class OpFusionProfonde final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Fusion Profondes";
 	static constexpr auto AIDE = "";
@@ -482,7 +482,7 @@ static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin
 	return nullptr;
 }
 
-class OpPointsDepuisProfonde : public OperatriceCorps {
+class OpPointsDepuisProfonde final : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
 
@@ -704,7 +704,7 @@ public:
 
 /* ************************************************************************** */
 
-class OpCacheImage : public OperatriceImage {
+class OpCacheImage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Cache Image";
 	static constexpr auto AIDE = "";

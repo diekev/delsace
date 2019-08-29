@@ -453,7 +453,7 @@ public:
 	static constexpr auto NOM = "Dynamiques Corps Rigides";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceDynCorpsRigide(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceDynCorpsRigide(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

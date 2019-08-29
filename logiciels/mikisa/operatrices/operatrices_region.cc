@@ -115,7 +115,7 @@ void applique_fonction_position(ChefExecution *chef, wlk::grille_dense_2d<T> &im
 
 /* ************************************************************************** */
 
-class OperatriceAnalyse : public OperatriceImage {
+class OperatriceAnalyse final : public OperatriceImage {
 	enum {
 		ANALYSE_GRADIENT   = 0,
 		ANALYSE_DIVERGENCE = 1,
@@ -138,7 +138,7 @@ public:
 	static constexpr auto NOM = "Analyse";
 	static constexpr auto AIDE = "Analyse l'image.";
 
-	explicit OperatriceAnalyse(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceAnalyse(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -371,12 +371,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceFiltrage : public OperatriceImage {
+class OperatriceFiltrage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Filtre";
 	static constexpr auto AIDE = "Appliquer un filtre à une image.";
 
-	explicit OperatriceFiltrage(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceFiltrage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -520,12 +520,12 @@ auto extrait_min_max(
 	}
 }
 
-class OperatriceNormalisationRegion : public OperatriceImage {
+class OperatriceNormalisationRegion final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Normalisation Région";
 	static constexpr auto AIDE = "Normalise the image.";
 
-	explicit OperatriceNormalisationRegion(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceNormalisationRegion(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -634,12 +634,12 @@ struct ChefWolika : public wlk::interruptrice {
 	}
 };
 
-class OperatriceFloutage : public OperatriceImage {
+class OperatriceFloutage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Flou";
 	static constexpr auto AIDE = "Applique un flou à l'image.";
 
-	explicit OperatriceFloutage(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceFloutage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -717,12 +717,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpAffinageImage : public OperatriceImage {
+class OpAffinageImage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Affinage Image";
 	static constexpr auto AIDE = "Affine les pixels de l'image.";
 
-	explicit OpAffinageImage(Graphe &graphe_parent, Noeud *noeud)
+	OpAffinageImage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -835,12 +835,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpMedianeImage : public OperatriceImage {
+class OpMedianeImage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Médiane Image";
 	static constexpr auto AIDE = "Affine les pixels de l'image.";
 
-	explicit OpMedianeImage(Graphe &graphe_parent, Noeud *noeud)
+	OpMedianeImage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -956,12 +956,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpFiltreBilateral : public OperatriceImage {
+class OpFiltreBilateral final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Bilatéral Image";
 	static constexpr auto AIDE = "Affine les pixels de l'image.";
 
-	explicit OpFiltreBilateral(Graphe &graphe_parent, Noeud *noeud)
+	OpFiltreBilateral(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1088,12 +1088,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpLueurImage : public OperatriceImage {
+class OpLueurImage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Lueur Image";
 	static constexpr auto AIDE = "Ajoute une lueur autour des parties les plus brillantes de l'image.";
 
-	explicit OpLueurImage(Graphe &graphe_parent, Noeud *noeud)
+	OpLueurImage(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1215,12 +1215,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceTournoiement : public OperatriceImage {
+class OperatriceTournoiement final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Tournoiement";
 	static constexpr auto AIDE = "Applique un tournoiement aux pixels de l'image.";
 
-	explicit OperatriceTournoiement(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceTournoiement(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1337,12 +1337,12 @@ static auto converti_float_pixel(wlk::grille_dense_2d<float> const &grille)
 	return res;
 }
 
-class OperatriceChampsDistance : public OperatriceImage {
+class OperatriceChampsDistance final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Champs distance";
 	static constexpr auto AIDE = "Calcule le champs de distance de l'image d'entrée.";
 
-	explicit OperatriceChampsDistance(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceChampsDistance(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1468,7 +1468,7 @@ public:
 	static constexpr auto NOM = "Déformation";
 	static constexpr auto AIDE = "Déforme une image de manière aléatoire.";
 
-	explicit OperatriceDeformation(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceDeformation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -1765,7 +1765,7 @@ public:
 	static constexpr auto NOM = "Simulation de grain";
 	static constexpr auto AIDE = "Calcul du grain selon l'image d'entrée.";
 
-	explicit OperatriceSimulationGrain(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSimulationGrain(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1841,7 +1841,7 @@ public:
 	static constexpr auto NOM = "Coordonnées Polaires";
 	static constexpr auto AIDE = "Transforme une image entre les coordonnées cartésiennes et les coordonnées polaires.";
 
-	explicit OperatriceCoordonneesPolaires(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCoordonneesPolaires(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1909,7 +1909,7 @@ public:
 	static constexpr auto NOM = "Ondelette de Haar";
 	static constexpr auto AIDE = "Calcul l'ondelette de Haar d'une image.";
 
-	explicit OperatriceOndeletteHaar(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceOndeletteHaar(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -2011,7 +2011,7 @@ public:
 	static constexpr auto NOM = "Dilation";
 	static constexpr auto AIDE = "Dilate les pixels de l'image. Les parties les plus sombres de l'image rapetissent tandis que les plus claires grossissent.";
 
-	explicit OperatriceDilation(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceDilation(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -2097,7 +2097,7 @@ public:
 	static constexpr auto NOM = "Érosion";
 	static constexpr auto AIDE = "Érode les pixels de l'image. Les parties les plus claires de l'image rapetissent tandis que les plus sombres grossissent.";
 
-	explicit OperatriceErosion(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceErosion(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -2182,7 +2182,7 @@ public:
 	static constexpr auto NOM = "Extraction Palette";
 	static constexpr auto AIDE = "Extrait la palette d'une image.";
 
-	explicit OperatriceExtractionPalette(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceExtractionPalette(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -2354,7 +2354,7 @@ public:
 	static constexpr auto NOM = "Préfiltre Cubic B-Spline";
 	static constexpr auto AIDE = "Créer un préfiltre cubic B-spline.";
 
-	explicit OperatricePrefiltreCubic(Graphe &graphe_parent, Noeud *noeud)
+	OperatricePrefiltreCubic(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -2424,7 +2424,7 @@ public:
 	static constexpr auto NOM = "Rayons Soleil";
 	static constexpr auto AIDE = "Créer des rayons de soleil.";
 
-	explicit OpRayonsSoleil(Graphe &graphe_parent, Noeud *noeud)
+	OpRayonsSoleil(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -2685,7 +2685,7 @@ public:
 	static constexpr auto NOM = "Mappage Tonal Ondelette";
 	static constexpr auto AIDE = "Créer des rayons de soleil.";
 
-	explicit OpMappageTonalOndelette(Graphe &graphe_parent, Noeud *noeud)
+	OpMappageTonalOndelette(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -3040,7 +3040,7 @@ public:
 	static constexpr auto NOM = "Génération Bruit Bleu";
 	static constexpr auto AIDE = "Génère un bruit bleu utile pour ajouter une dispersion à un échantillonnage de Monte Carlo";
 
-	explicit OpGenerationBruitBleu(Graphe &graphe_parent, Noeud *noeud)
+	OpGenerationBruitBleu(Graphe &graphe_parent, Noeud *noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(0);

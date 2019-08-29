@@ -39,7 +39,7 @@ struct Mikisa;
 
 /* ************************************************************************** */
 
-class OperatriceGrapheDetail : public OperatriceCorps {
+class OperatriceGrapheDetail final : public OperatriceCorps {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
 	Graphe m_graphe;
@@ -48,17 +48,17 @@ public:
 	static constexpr auto NOM = "Graphe Détail";
 	static constexpr auto AIDE = "Graphe Détail";
 
-	explicit OperatriceGrapheDetail(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud *noeud);
 
-	virtual const char *nom_classe() const override;
+	const char *nom_classe() const override;
 
-	virtual const char *texte_aide() const override;
+	const char *texte_aide() const override;
 
 	const char *chemin_entreface() const override;
 
 	Graphe *graphe();
 
-	virtual int type() const override;
+	int type() const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
@@ -67,7 +67,7 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceFonctionDetail : public OperatriceImage {
+class OperatriceFonctionDetail final : public OperatriceImage {
 public:
 	lcc::donnees_fonction const *donnees_fonction = nullptr;
 	dls::chaine nom_fonction = "";
@@ -75,18 +75,16 @@ public:
 	static constexpr auto NOM = "Fonction Détail";
 	static constexpr auto AIDE = "Fonction Détail";
 
-	explicit OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
+	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
 
 	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
 	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
 
-	virtual const char *nom_classe() const override;
+	const char *nom_classe() const override;
 
-	virtual const char *texte_aide() const override;
+	const char *texte_aide() const override;
 
 	int type() const override;
-
-	const char *chemin_entreface() const override;
 
 	type_prise type_entree(int i) const override;
 

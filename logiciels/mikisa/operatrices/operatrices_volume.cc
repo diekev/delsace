@@ -826,7 +826,7 @@ static auto echantillonne_grille_temp(
 	return grille;
 }
 
-class OpCreationVolumeTemp : public OperatriceCorps {
+class OpCreationVolumeTemp final : public OperatriceCorps {
 	wlk::grille_temporelle *m_grille_temps = nullptr;
 	int m_dernier_temps = 0;
 	float m_dernier_seuil = 1.0f;
@@ -906,7 +906,7 @@ public:
 
 /* ************************************************************************** */
 
-class OpFiltrageVolume : public OperatriceCorps {
+class OpFiltrageVolume final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Filtrage Volume";
 	static constexpr auto AIDE = "";
@@ -985,7 +985,7 @@ public:
 
 /* ************************************************************************** */
 
-class OpAffinageVolume : public OperatriceCorps {
+class OpAffinageVolume final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Affinage Volume";
 	static constexpr auto AIDE = "";
@@ -1958,7 +1958,7 @@ private:
 };
 
 
-class OpGrilleEclairage : public OperatriceCorps {
+class OpGrilleEclairage final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Création Grille Éclairage";
 	static constexpr auto AIDE = "";
