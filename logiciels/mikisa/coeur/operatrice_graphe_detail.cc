@@ -132,6 +132,8 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 		}
 	}
 
+	auto chef = contexte.chef;
+
 	if (!compile_graphe(contexte)) {
 		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
 		return EXECUTION_ECHOUEE;
@@ -142,40 +144,58 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 	switch (type_detail) {
 		case DETAIL_POINTS:
 		{
+			chef->demarre_evaluation("graphe détail points");
+
 			auto points = m_corps.points_pour_ecriture();
 
-			/* fais une copie locale pour éviter les problèmes de concurrence critique */
-			auto donnees = m_compileuse.donnees();
-			auto ctx_local = lcc::ctx_local{};
+			boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+							 [&](tbb::blocked_range<long> const &plage)
+			{
+				if (chef->interrompu()) {
+					return;
+				}
 
-			for (auto i = 0; i < points->taille(); ++i) {
-				auto pos = points->point(i);
+				/* fais une copie locale pour éviter les problèmes de concurrence critique */
+				auto donnees = m_compileuse.donnees();
+				auto ctx_local = lcc::ctx_local{};
 
-				remplis_donnees(donnees, m_gest_props, "P", pos);
+				for (auto i = plage.begin(); i < plage.end(); ++i) {
+					auto pos = points->point(i);
 
-				lcc::execute_pile(
-							ctx_exec,
-							ctx_local,
-							donnees,
-							m_compileuse.instructions(),
-							i);
+					remplis_donnees(donnees, m_gest_props, "P", pos);
 
-				auto idx_sortie = m_gest_props.pointeur_donnees("P");
-				pos = donnees.charge_vec3(idx_sortie);
+					lcc::execute_pile(
+								ctx_exec,
+								ctx_local,
+								donnees,
+								m_compileuse.instructions(),
+								static_cast<int>(i));
 
-				points->point(i, pos);
-			}
+					auto idx_sortie = m_gest_props.pointeur_donnees("P");
+					pos = donnees.charge_vec3(idx_sortie);
+
+					points->point(i, pos);
+				}
+
+				auto delta = static_cast<float>(plage.end() - plage.begin());
+				delta /= static_cast<float>(points->taille());
+				chef->indique_progression_parallele(delta * 100.0f);
+			});
 
 			break;
 		}
 		case DETAIL_VOXELS:
 		{
+			auto chef_wolika = ChefWolika(chef, "graphe détail voxels");
+
 			auto grille = volume->grille;
 
 			if (grille->est_eparse()) {
 				auto grille_eparse = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 
-				wlk::pour_chaque_tuile_parallele(*grille_eparse, [&](wlk::tuile_scalaire<float> *tuile)
+				wlk::pour_chaque_tuile_parallele(
+							*grille_eparse,
+							[&](wlk::tuile_scalaire<float> *tuile)
 				{
 					auto donnees = m_compileuse.donnees();
 					auto ctx_local = lcc::ctx_local{};
@@ -212,7 +232,8 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 							}
 						}
 					}
-				});
+				},
+				&chef_wolika);
 			}
 
 			break;
