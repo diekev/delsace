@@ -125,10 +125,10 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 		/* n'ajoute les dépendances que pour les noeuds connectés à la sortie */
 		auto noeud = objet_noeud->graphe.dernier_noeud_sortie;
 
-		dls::pile<Noeud *> noeuds;
+		auto noeuds = dls::pile<Noeud *>();
 		noeuds.empile(noeud);
 
-		dls::ensemble<Noeud *> noeuds_visites;
+		auto noeuds_visites = dls::ensemble<Noeud *>();
 
 		while (!noeuds.est_vide()) {
 			noeud = noeuds.haut();
