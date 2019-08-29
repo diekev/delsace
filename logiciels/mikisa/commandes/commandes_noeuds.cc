@@ -187,6 +187,29 @@ public:
 
 /* ************************************************************************** */
 
+static bool finalise_ajout_noeud(
+		Mikisa &mikisa,
+		Graphe &graphe,
+		Noeud &noeud)
+{
+	if (graphe.connexion_active != nullptr) {
+		if (graphe.connexion_active->prise_entree != nullptr) {
+			graphe.connecte(noeud.sortie(0), graphe.connexion_active->prise_entree);
+		}
+		else if (graphe.connexion_active->prise_sortie != nullptr) {
+			graphe.connecte(graphe.connexion_active->prise_sortie, noeud.entree(0));
+		}
+
+		memoire::deloge("Connexion", graphe.connexion_active);
+	}
+
+	auto besoin_evaluation = selectionne_noeud(mikisa, &noeud, graphe);
+
+	mikisa.notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+	return besoin_evaluation;
+}
+
 class CommandeAjoutNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
@@ -210,20 +233,7 @@ public:
 			noeud->type(NOEUD_OBJET_SORTIE);
 		}
 
-		if (graphe->connexion_active != nullptr) {
-			if (graphe->connexion_active->prise_entree != nullptr) {
-				graphe->connecte(noeud->sortie(0), graphe->connexion_active->prise_entree);
-			}
-			else if (graphe->connexion_active->prise_sortie != nullptr) {
-				graphe->connecte(graphe->connexion_active->prise_sortie, noeud->entree(0));
-			}
-
-			memoire::deloge("Connexion", graphe->connexion_active);
-		}
-
-		auto besoin_evaluation = selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
-
-		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
 		if (besoin_evaluation || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
@@ -252,20 +262,7 @@ public:
 		noeud->pos_x(mikisa->graphe->centre_x);
 		noeud->pos_y(mikisa->graphe->centre_y);
 
-		if (graphe->connexion_active != nullptr) {
-			if (graphe->connexion_active->prise_entree != nullptr) {
-				graphe->connecte(noeud->sortie(0), graphe->connexion_active->prise_entree);
-			}
-			else if (graphe->connexion_active->prise_sortie != nullptr) {
-				graphe->connecte(graphe->connexion_active->prise_sortie, noeud->entree(0));
-			}
-
-			memoire::deloge("Connexion", graphe->connexion_active);
-		}
-
-		auto besoin_evaluation = selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
-
-		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
 		if (besoin_evaluation || mikisa->contexte == GRAPHE_DETAIL) {
 			if (mikisa->contexte == GRAPHE_DETAIL) {
