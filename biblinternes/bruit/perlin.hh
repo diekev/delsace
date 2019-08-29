@@ -24,6 +24,19 @@
 
 #pragma once
 
+#include "parametres.hh"
+
 namespace bruit {
+
+struct perlin {
+	static void construit(parametres &params, int graine);
+
+	static float evalue(parametres const &params, dls::math::vec3f pos);
+
+	static inline dls::math::vec2f limites()
+	{
+		return dls::math::vec2f(-1.0f, 1.0f);
+	}
+};
 
 }  /* namespace bruit */

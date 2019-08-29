@@ -27,6 +27,7 @@
 #include "cellule.hh"
 #include "fourier.hh"
 #include "ondelette.hh"
+#include "perlin.hh"
 #include "simplex.hh"
 #include "turbulent.hh"
 #include "voronoi.hh"

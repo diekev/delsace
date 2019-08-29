@@ -41,6 +41,11 @@ void construit(type type, parametres &params, int graine)
 			bruit::fourrier::construit(params, graine);
 			break;
 		}
+		case type::PERLIN_LONG:
+		{
+			bruit::perlin::construit(params, graine);
+			break;
+		}
 		case type::SIMPLEX:
 		{
 			bruit::simplex::construit(params, graine);
@@ -95,6 +100,10 @@ float evalue(const parametres &params, dls::math::vec3f pos)
 		{
 			return bruit::fourrier::evalue(params, pos);
 		}
+		case type::PERLIN_LONG:
+		{
+			return bruit::perlin::evalue(params, pos);
+		}
 		case type::SIMPLEX:
 		{
 			return bruit::simplex::evalue(params, pos);
@@ -145,6 +154,11 @@ void construit_turb(type type, int graine, parametres &params, const param_turbu
 		case type::FOURIER:
 		{
 			bruit::turbulent<bruit::fourrier>::construit(graine, params, params_turb);
+			break;
+		}
+		case type::PERLIN_LONG:
+		{
+			bruit::turbulent<bruit::perlin>::construit(graine, params, params_turb);
 			break;
 		}
 		case type::SIMPLEX:
@@ -200,6 +214,10 @@ float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::
 		case type::FOURIER:
 		{
 			return bruit::turbulent<bruit::fourrier>::evalue(params, params_turb, pos);
+		}
+		case type::PERLIN_LONG:
+		{
+			return bruit::turbulent<bruit::perlin>::evalue(params, params_turb, pos);
 		}
 		case type::SIMPLEX:
 		{
