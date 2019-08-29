@@ -35,12 +35,12 @@ namespace lcc {
 /* ************************************************************************** */
 
 struct signature {
-	types_entrees entrees{};
-	types_sorties sorties{};
+	param_entrees entrees{};
+	param_sorties sorties{};
 
 	signature() = default;
 
-	signature(types_entrees _entrees_, types_sorties _sorties_);
+	signature(param_entrees _entrees_, param_sorties _sorties_);
 };
 
 /* ************************************************************************** */

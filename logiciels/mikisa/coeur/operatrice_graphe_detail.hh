@@ -91,6 +91,10 @@ public:
 
 	const char *texte_aide() const override;
 
+	const char *nom_entree(int i) override;
+
+	const char *nom_sortie(int i) override;
+
 	int type() const override;
 
 	type_prise type_entree(int i) const override;
