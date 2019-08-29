@@ -24,6 +24,8 @@
 
 #include "reseau.hh"
 
+#include "biblinternes/structures/pile.hh"
+
 #include "coeur/base_de_donnees.hh"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
@@ -120,10 +122,24 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 			ajoute_dependance(&reseau->noeud_temps, noeud_dep);
 		}
 
-		/* À FAIRE : n'ajoute les dépendances que pour les noeuds connectés au
-		 * noeud de sortie. */
+		/* n'ajoute les dépendances que pour les noeuds connectés à la sortie */
+		auto noeud = objet_noeud->graphe.dernier_noeud_sortie;
 
-		for (auto noeud : objet_noeud->graphe.noeuds()) {
+		dls::pile<Noeud *> noeuds;
+		noeuds.empile(noeud);
+
+		dls::ensemble<Noeud *> noeuds_visites;
+
+		while (!noeuds.est_vide()) {
+			noeud = noeuds.haut();
+			noeuds.depile();
+
+			if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
+				continue;
+			}
+
+			noeuds_visites.insere(noeud);
+
 			auto operatrice = extrait_opimage(noeud->donnees());
 
 			if (operatrice->possede_animation()) {
@@ -134,6 +150,12 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 			}
 
 			operatrice->renseigne_dependance(contexte, *this, noeud_dep);
+
+			for (auto prise_entree : noeud->entrees()) {
+				for (auto prise_sortie : prise_entree->liens) {
+					noeuds.empile(prise_sortie->parent);
+				}
+			}
 		}
 	}
 
