@@ -93,6 +93,3 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 
 	return EXECUTION_REUSSIE;
 }
-
-void OperatricePixel::compile(CompileuseGraphe &compileuse, int temps)
-{}
