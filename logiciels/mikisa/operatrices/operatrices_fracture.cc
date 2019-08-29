@@ -44,6 +44,8 @@
 
 /* ************************************************************************** */
 
+#define OPBOOLEEN
+
 #ifdef OPBOOLEEN
 
 /**
@@ -195,6 +197,19 @@ struct Polyedre {
 		return t;
 	}
 };
+
+/**
+ *           °
+ *         // \
+ *        //   \
+ *       //     \
+ *        ¯¯¯¯¯¯¯
+ */
+mi_arete *suivante_autour_point(mi_arete *arete)
+{
+	auto paire = arete->paire;
+	return paire->suivante->suivante;
+}
 
 static inline auto index_arete(long i0, long i1)
 {
@@ -475,6 +490,333 @@ auto cherche_chevauchement(
 	}
 }
 
+template <class K>
+class Triangulation
+{
+	/*!
+	 * \typedef typename Point_3
+	 * \brief 3d point using exact number type
+	 */
+	typedef typename K::Point_3														Point_3;
+
+	/*!
+	 * \typedef typename Tri_vb
+	 * \brief Vertex base
+	 */
+		typedef /*typename*/ Enriched_vertex_base<K>										Tri_vb;
+
+	/*!
+	 * \typedef typename Tri_fb
+	 * \brief Face base
+	 */
+		typedef /*typename*/ Enriched_face_base<K>											Tri_fb;
+
+	/*!
+	 * \typedef typename Tri_DS
+	 * \brief Data structure of the triangulation
+	 */
+	typedef typename CGAL::Triangulation_data_structure_2<Tri_vb,Tri_fb>			Tri_DS;
+
+	/*!
+	 * \typedef typename Itag
+	 * \brief No intersection tag
+	 */
+	typedef typename CGAL::No_intersection_tag										Itag;
+
+	/*!
+	 * \typedef typename Constrained_Delaunay_tri
+	 * \brief 2d constrained Delaunay triangulation
+	 */
+	typedef typename CGAL::Constrained_Delaunay_triangulation_2<K, Tri_DS, Itag>	Constrained_Delaunay_tri;
+
+	/*!
+	 * \typedef typename Vertex_handle_tri
+	 * \brief Vertex handle for the triangulation
+	 */
+	typedef typename Constrained_Delaunay_tri::Vertex_handle						Vertex_handle_tri;
+
+	/*!
+	 * \typedef typename Face_handle_tri
+	 * \brief Face handle for the triangulation
+	 */
+	typedef typename Constrained_Delaunay_tri::Face_handle							Face_handle_tri;
+
+	/*!
+	 * \typedef typename Point_tri
+	 * \brief 2d point for the triangulation
+	 */
+	typedef typename Constrained_Delaunay_tri::Point								Point_tri;
+
+	/*!
+	 * \typedef typename Face_iterator_tri
+	 * \brief Iterator for the faces of the triangulation
+	 */
+	typedef typename Constrained_Delaunay_tri::Face_iterator						Face_iterator_tri;
+
+public:
+	/*!
+	 * \brief Constructor
+	 * \param he : A halfedge incident to the facet
+	 * \param norm_dir : The vector directing the normal of the facet
+	 */
+	Triangulation(mi_arete *he, dls::math::vec3f &norm_dir)
+	{
+		//find the longest coordinate of the normal vector, and its sign
+		double x = static_cast<double>(norm_dir.x);
+		double y = static_cast<double>(norm_dir.y);
+		double z = static_cast<double>(norm_dir.z);
+		double absx = std::abs(x);
+		double absy = std::abs(y);
+		double absz = std::abs(z);
+
+		//this information is stored using a code :
+		//0 : The coordinate X is the longest, and positive
+		//1 : The coordinate Y is the longest, and positive
+		//2 : The coordinate Z is the longest, and positive
+		//3 : The coordinate X is the longest, and negative
+		//4 : The coordinate Y is the longest, and negative
+		//5 : The coordinate Z is the longest, and negative
+		if (absx >= absy && absx >= absz) max_coordinate = (x>0)?0:3;
+		else if (absy >= absx && absy >= absz) max_coordinate = (y>0)?1:4;
+		else if (absz >= absx && absz >= absy) max_coordinate = (z>0)?2:5;
+
+		//we add the three vertices of the facet to the triangulation
+		//The label of these vertices is set for the corresponding point in the triangulation
+		v1 = add_new_pt(he->sommet->p, he->sommet->label);
+		v2 = add_new_pt(he->suivante->sommet->p, he->suivante->sommet->label);
+		v3 = add_new_pt(he->suivante->suivante->sommet->p, he->suivante->suivante->sommet->label);
+
+		//if the vertices does not have an Id (label = OxFFFFFFFF), the labels
+		//of the points in the triangulation is set as follows :
+		//0xFFFFFFFF for the first point
+		//0xFFFFFFFE for the second point
+		//0xFFFFFFFD for the third point
+		if(v2->get_label() == 0xFFFFFFFF) v2->set_label(0xFFFFFFFE);
+		if(v3->get_label() == 0xFFFFFFFF) v3->set_label(0xFFFFFFFD);
+	}
+
+	/*!
+	 * \brief Compute the orthogonal projection of a point to the plane defined by the longest coordinate of the normal vector
+	 * \param p : the point (in 3d)
+	 * \return The projection as a 2d point
+	 */
+	Point_tri get_minvar_point_2(Point_3 &p)
+	{
+		switch(max_coordinate)
+		{
+		case 0:
+			return Point_tri(p.y(),p.z());
+			break;
+		case 1:
+			return Point_tri(p.z(),p.x());
+			break;
+		case 2:
+			return Point_tri(p.x(),p.y());
+			break;
+		case 3:
+			return Point_tri(p.z(),p.y());
+			break;
+		case 4:
+			return Point_tri(p.x(),p.z());
+			break;
+		case 5:
+			return Point_tri(p.y(),p.x());
+			break;
+		default:
+			return Point_tri(p.y(),p.z());
+		}
+	}
+
+	/*!
+	 * \brief Adds a point in the triangulation
+	 * \param p : The point (in 3d : the projection in 2d is done automatically)
+	 * \param label : The label of the point
+	 * \return The Vertex_handle of the point added
+	 */
+		Vertex_handle_tri add_new_pt(dls::math::vec3f p, unsigned long &label)   // MT: suppression référence
+	{
+		//if the point is not a new one, we verify that the point has not already been added
+		if(label != 0xFFFFFFFF)
+			for(unsigned int i = 0;i != pts_point.size();++i)
+				if(label == pts_point[i])
+					//if the point is already in the triangulation, we return its handle
+					return pts_vertex[i];
+		Vertex_handle_tri v;
+		v = ct.insert(get_minvar_point_2(p));
+		v->set_label(label);
+		pts_point.pousse(label);
+		pts_vertex.push_back(v);
+		return v;
+	}
+
+	/*!
+	 * \brief Adds a constrained segment in the triangulation
+	 * \param p1 : The first point (in 3d)
+	 * \param p2 : The second point (in 3d)
+	 * \param label1 : The label of the first point
+	 * \param label2 : The label of the second point
+	 */
+	void add_segment(Point_3 &p1, Point_3 &p2, unsigned long &label1, unsigned long &label2)
+	{
+		// we add the two points in the triangulation and store their handles in c1 and c2
+		c1 = add_new_pt(p1, label1);
+		c2 = add_new_pt(p2, label2);
+		// we set a constrained segment between these two points
+		ct.insert_constraint(c1, c2);
+		// if an other segment is added, we will overwrite c1 and c2
+		// what is important is to memorize the handles of the last segment added
+	}
+
+	/*!
+	 * \brief Gets the triangles of the triangulation that belongs to the result
+	 * and deduce for the three neighboring facets if they belong to the result or not
+	 * \param inv_triangles : must be true if the orientation of the triangles must be inverted
+	 * \param IsExt : Pointer on a three-case boolean table.
+	 * \return The list of the triangles belonging to the result.
+	 * each triangle is defined by a list of three labels
+	 */
+	dls::tableau<dls::tableau<unsigned long> > get_triangles(bool inv_triangles, bool *IsExt)
+	{
+		//init
+		IsExt[0] = false;
+		IsExt[1] = false;
+		IsExt[2] = false;
+				dls::tableau<dls::tableau<unsigned long> > tris;
+		for(Face_iterator_tri fi = ct.faces_begin();fi != ct.faces_end();fi++)
+			fi->set_OK(false);
+
+		//the constrained segments are oriented, we search the triangle (c1, c2, X), (X, c1, c2) or (c2, X, c1)
+		//where c1 and c2 are the two points related to the last constrained segment added, and X another point
+		//this triangle belongs to the result (thanks to the orientation of the segments)
+		Face_handle_tri f, f2 = c1->face();
+				int i=0; // MT
+		do {
+			f = f2;
+			f->has_vertex(c1,i);
+			f2 = f->neighbor(f->ccw(i));
+		} while( ! ( f->has_vertex(c2) && f2->has_vertex(c2) ) );
+
+		//dans le cas particulier ou la frontiere se trouve exactement sur un bord de la triangulation,
+		//et que ce triangle n'appartient pas a la triangulation, on d�marrera avec l'autre triangle
+		//incluant le segment c1, c2 (et donc, n'appartenant pas au r�sultat
+
+		//if the segment is exactly on the border of the triangulation, the triangle could be outside the triangulation
+		//in that case, we will search the other triangle including the points c1 and c2
+		//this triangle does not belong to the result
+		if(f->has_vertex(ct.infinite_sommet))
+		{
+			f = f2;
+			f->set_Ext(false);
+		}
+		else
+		{
+			f->set_Ext(true);
+		}
+
+		dls::pile<Face_handle_tri> sfh;
+		f->set_OK(true);
+		sfh.push(f);
+
+		//we decide for all the triangles, if they belongs to the result, starting from the first triangle f,
+		//by moving on the triangulation using the connectivity between the triangles.
+		//If a constrained segment is crossed, the value of the tag "isext" is inverted
+		while(!sfh.empty())
+		{
+			f = sfh.top();
+			sfh.pop();
+
+			if(f->get_Ext())
+			{
+				dls::tableau<unsigned long> tri;
+				int i;
+				tri.pousse(f->vertex(0)->get_label());
+
+				//verify if the neighboring facets belongs to the result or not
+				if(f->has_vertex(v1,i) && f->neighbor(f->ccw(i))->has_vertex(ct.infinite_sommet)) IsExt[0] = true;
+				if(f->has_vertex(v2,i) && f->neighbor(f->ccw(i))->has_vertex(ct.infinite_sommet)) IsExt[1] = true;
+				if(f->has_vertex(v3,i) && f->neighbor(f->ccw(i))->has_vertex(ct.infinite_sommet)) IsExt[2] = true;
+
+				if(inv_triangles)
+				{
+					tri.pousse(f->vertex(2)->get_label());
+					tri.pousse(f->vertex(1)->get_label());
+				}
+				else
+				{
+					tri.pousse(f->vertex(1)->get_label());
+					tri.pousse(f->vertex(2)->get_label());
+				}
+				tris.pousse(tri);
+			}
+			for(i = 0;i!=3;i++)
+			{
+				if(!(f->neighbor(i)->get_OK() || f->neighbor(i)->has_vertex(ct.infinite_sommet)))
+				{
+					f->neighbor(i)->set_OK(true);
+					f->neighbor(i)->set_Ext((f->is_constrained(i))?!f->get_Ext():f->get_Ext());
+					sfh.push(f->neighbor(i));
+				}
+			}
+		}
+		return tris;
+	}
+
+	/*!
+	 * \brief Gets all the triangles of the triangulation
+	 * \param inv_triangles : must be true if the orientation of the triangles must be inverted
+	 * \return The list of the triangles belonging to the result.
+	 * each triangle is defined by a list of three labels
+	 */
+		dls::tableau<dls::tableau<unsigned long> > get_all_triangles(bool inv_triangles)
+	{
+				dls::tableau<dls::tableau<unsigned long> > tris;
+		for(Face_iterator_tri f = ct.faces_begin();f != ct.faces_end();f++)
+		{
+			dls::tableau<unsigned long> tri;
+			tri.pousse(f->vertex(0)->get_label());
+			if(inv_triangles)
+			{
+				tri.pousse(f->vertex(2)->get_label());
+				tri.pousse(f->vertex(1)->get_label());
+			}
+			else
+			{
+				tri.pousse(f->vertex(1)->get_label());
+				tri.pousse(f->vertex(2)->get_label());
+			}
+			tris.pousse(tri);
+		}
+		return tris;
+	}
+
+private:
+	/*! \brief The triangulation*/
+	Constrained_Delaunay_tri ct;
+	/*! \brief List of the id of the points added in the triangulation*/
+	dls::tableau<unsigned int> pts_point;
+	/*! \brief List of the handles of the points added in the triangulation*/
+	dls::tableau<Vertex_handle_tri> pts_vertex;
+	/*! \brief Handle of the point corresponding to the first vertex of the facet*/
+	Vertex_handle_tri v1;
+	/*! \brief Handle of the point corresponding to the second vertex of the facet*/
+	Vertex_handle_tri v2;
+	/*! \brief Handle of the point corresponding to the third vertex of the facet*/
+	Vertex_handle_tri v3;
+	/*! \brief Handle of the point corresponding to the first vertex of the last segment added*/
+	Vertex_handle_tri c1;
+	/*! \brief Handle of the point corresponding to the second vertex of the last segment added*/
+	Vertex_handle_tri c2;
+	/*! \brief Code identifying the plane where the triangulation is done \n
+	 * 0 : Plane (y, z) \n
+	 * 1 : Plane (z, x) \n
+	 * 2 : Plane (x, y) \n
+	 * 3 : Plane (z, y) \n
+	 * 4 : Plane (x, z) \n
+	 * 5 : Plane (y, x)
+	 */
+	int max_coordinate;
+};
+
 struct Info_Inter {
 	/*! \brief The facet*/
 	mi_triangle		*f;
@@ -707,13 +1049,13 @@ public:
 
 		//if the intersection is not a segment, the intersection is not computed
 		//the triangles intersects on a point (one vertex on the plane and the two others under or above
-		if(posAbin == 5 || posAbin == 10 || posAbin == 17 || posAbin == 34 || posAbin == 20 || posAbin == 40
+		if (posAbin == 5 || posAbin == 10 || posAbin == 17 || posAbin == 34 || posAbin == 20 || posAbin == 40
 				|| posBbin == 5 || posBbin == 10 || posBbin == 17 || posBbin == 34 || posBbin == 20 || posBbin == 40) return;
 		//no possible intersection (one of the triangle is completely under or above the other
-		if(posAbin == 42 || posAbin == 21
+		if (posAbin == 42 || posAbin == 21
 				|| posBbin == 42 || posBbin == 21) return;
 		//the triangles are coplanar
-		if(posAbin == 0) return;
+		if (posAbin == 0) return;
 
 		//if an edge of a triangle is on the plane of the other triangle, it is necessary to verify if the
 		//two polyhedra are intersecting on these edges, or if it only is a contact to know if the intersection
@@ -724,12 +1066,12 @@ public:
 		//2 : the third edge is on the plane
 		//3 : there is no edge on the plane
 		unsigned short edgeA = 3, edgeB = 3;
-		if(     posAbin == 1  || posAbin == 2 ) edgeA = 1; //points 0 and 1 on the plane
-		else if(posAbin == 16 || posAbin == 32) edgeA = 2; //points 1 and 2 on the plane
-		else if(posAbin == 4  || posAbin == 8 ) edgeA = 0; //points 2 and 0 on the plane
-		if(     posBbin == 1  || posBbin == 2 ) edgeB = 1; //points 0 and 1 on the plane
-		else if(posBbin == 16 || posBbin == 32) edgeB = 2; //points 1 and 2 on the plane
-		else if(posBbin == 4  || posBbin == 8 ) edgeB = 0; //points 2 and 0 on the plane
+		if (     posAbin == 1  || posAbin == 2 ) edgeA = 1; //points 0 and 1 on the plane
+		else if (posAbin == 16 || posAbin == 32) edgeA = 2; //points 1 and 2 on the plane
+		else if (posAbin == 4  || posAbin == 8 ) edgeA = 0; //points 2 and 0 on the plane
+		if (     posBbin == 1  || posBbin == 2 ) edgeB = 1; //points 0 and 1 on the plane
+		else if (posBbin == 16 || posBbin == 32) edgeB = 2; //points 1 and 2 on the plane
+		else if (posBbin == 4  || posBbin == 8 ) edgeB = 0; //points 2 and 0 on the plane
 
 		dls::math::vec3f nA2, nB2;
 		float p;
@@ -737,31 +1079,31 @@ public:
 		bool stop = false;
 
 		//if an edge of the first triangle is on the plane
-		if(edgeA != 3 && edgeB == 3)
+		if (edgeA != 3 && edgeB == 3)
 		{
 			fA2 = heA[edgeA]->paire->face;
 			nA2 = donnees_booleens.triangles_esect[fA2->label].norm_dir;
 			p = produit_scalaire(produit_croix(nA, nB), produit_croix(nA2, nB));
 			//if p is negative, the two triangles of the first polyhedron (including edgeA) are on the same side
 			//so there is no intersection
-			if(p < 0) stop = true;
+			if (p < 0) stop = true;
 			//if p == 0, fA2 is coplanar with the plane of fB
 			//in that case, it is necessary to consider the boolean
 			//operator used to determine if there is a contact or not
-			else if(p == 0.0f)
+			else if (p == 0.0f)
 			{
 				switch(m_BOOP)
 				{
 					case UNION:
-						if(posA[(edgeA+1)%3] * produit_scalaire(nA2, nB) > 0)
+						if (posA[(edgeA+1)%3] * produit_scalaire(nA2, nB) > 0)
 							stop = true;
 						break;
 					case INTER:
-						if(posA[(edgeA+1)%3] > 0)
+						if (posA[(edgeA+1)%3] > 0)
 							stop = true;
 						break;
 					case MINUS:
-						if(posA[(edgeA+1)%3] * produit_scalaire(nA2, nB) < 0)
+						if (posA[(edgeA+1)%3] * produit_scalaire(nA2, nB) < 0)
 							stop = true;
 						break;
 				}
@@ -770,31 +1112,31 @@ public:
 			rmCouple(donnees_booleens, fA2->label, fB->label);
 		}
 		//if an edge of the second triangle is on the plane
-		else if(edgeA == 3 && edgeB != 3)
+		else if (edgeA == 3 && edgeB != 3)
 		{
 			fB2 = heB[edgeB]->paire->face;
 			nB2 = donnees_booleens.triangles_esect[fB2->label].norm_dir;
 			p = produit_scalaire(produit_croix(nA, nB), produit_croix(nA, nB2));
 			//if p is negative, the two triangles of the second polyhedron (including edgeB) are on the same side
 			//so there is no intersection
-			if(p < 0) stop = true;
+			if (p < 0) stop = true;
 			//if p == 0, fB2 is coplanar with the plane of fA
 			//in that case, it is necessary to consider the boolean
 			//operator used to determine if there is a contact or not
-			else if(p == 0.0f)
+			else if (p == 0.0f)
 			{
 				switch(m_BOOP)
 				{
 					case UNION:
-						if(posB[(edgeB+1)%3] < 0)
+						if (posB[(edgeB+1)%3] < 0)
 							stop = true;
 						break;
 					case INTER:
-						if(posB[(edgeB+1)%3] * produit_scalaire(nB2, nA) < 0)
+						if (posB[(edgeB+1)%3] * produit_scalaire(nB2, nA) < 0)
 							stop = true;
 						break;
 					case MINUS:
-						if(posB[(edgeB+1)%3] > 0)
+						if (posB[(edgeB+1)%3] > 0)
 							stop = true;
 						break;
 				}
@@ -803,7 +1145,7 @@ public:
 			rmCouple(donnees_booleens, fA->label, fB2->label);
 		}
 		//if an edge of each triangle is on the plane of the other
-		else if(edgeA != 3 && edgeB != 3)
+		else if (edgeA != 3 && edgeB != 3)
 		{
 			//in this case, four triangles are concerned by the intersection
 			//fA2 and fB2 are the two other concerned facets
@@ -840,83 +1182,83 @@ public:
 			posB2_A2 = produit_scalaire(nA2, (ptB2 - ptA[edgeA]));
 			posB2_B = produit_scalaire(nB, (ptB2 - ptA[edgeA]));
 
-			if(nAcnB2 == dls::math::vec3f(0.0f) && nA2cnB == dls::math::vec3f(0.0f) && nAnB2 * nA2nB > 0)
+			if (nAcnB2 == dls::math::vec3f(0.0f) && nA2cnB == dls::math::vec3f(0.0f) && nAnB2 * nA2nB > 0)
 				stop = true;
 
 			//firstly, we search the position of fA
 			//if fA is inside the poyhedron, Intersection = true
-			if(posB_A * posB2_A > 0) //fB and fB2 on the same side
+			if (posB_A * posB2_A > 0) //fB and fB2 on the same side
 			{
-				if(posB_B2 > 0) Intersection = true;
+				if (posB_B2 > 0) Intersection = true;
 			}
-			else if(posB_A * posB2_A < 0) //fB and fB2 on opposite side
+			else if (posB_A * posB2_A < 0) //fB and fB2 on opposite side
 			{
-				if(posA_B < 0) Intersection = true;
+				if (posA_B < 0) Intersection = true;
 			}
 			else  //fA and fB2 coplanar
 			{
-				if(posA_B * posB2_B < 0)
+				if (posA_B * posB2_B < 0)
 				{
-					if(posB_B2 > 0) Intersection = true;
+					if (posB_B2 > 0) Intersection = true;
 				}
 				else
 				{
-					if(nAnB2 < 0)
+					if (nAnB2 < 0)
 					{
-						if(m_BOOP == UNION) Intersection = true;
+						if (m_BOOP == UNION) Intersection = true;
 					}
 					else
 					{
-						if(m_BOOP == MINUS) Intersection = true;
+						if (m_BOOP == MINUS) Intersection = true;
 					}
 				}
 			}
 
 			//secondly, we search the position of fA2
 			//if fA2 is inside the poyhedron, "Intersection" is inverted
-			if(posB_A2 * posB2_A2 > 0) //fB and fB2 on the same side
+			if (posB_A2 * posB2_A2 > 0) //fB and fB2 on the same side
 			{
-				if(posB_B2 > 0) Intersection = !Intersection;
+				if (posB_B2 > 0) Intersection = !Intersection;
 			}
-			else if(posB_A2 * posB2_A2 < 0) //fB and fB2 on opposite side
+			else if (posB_A2 * posB2_A2 < 0) //fB and fB2 on opposite side
 			{
-				if(posA2_B < 0) Intersection = !Intersection;
+				if (posA2_B < 0) Intersection = !Intersection;
 			}
-			else if(posB2_A2 == 0.0f) //fA2 and fB2 coplanar
+			else if (posB2_A2 == 0.0f) //fA2 and fB2 coplanar
 			{
-				if(posA2_B * posB2_B < 0)
+				if (posA2_B * posB2_B < 0)
 				{
-					if(posB_B2 > 0) Intersection = !Intersection;
+					if (posB_B2 > 0) Intersection = !Intersection;
 				}
 				else
 				{
-					if(nA2nB2 < 0)
+					if (nA2nB2 < 0)
 					{
-						if(m_BOOP == UNION) Intersection = !Intersection;
+						if (m_BOOP == UNION) Intersection = !Intersection;
 					}
 					else
 					{
-						if(m_BOOP == MINUS) Intersection = !Intersection;
+						if (m_BOOP == MINUS) Intersection = !Intersection;
 					}
 				}
 			}
 			else //fA2 and fB coplanar
 			{
-				if(posA2_B2 * posB_B2 < 0) {
-					if(posB_B2 > 0) Intersection = !Intersection;
+				if (posA2_B2 * posB_B2 < 0) {
+					if (posB_B2 > 0) Intersection = !Intersection;
 				}
 				else {
-					if(nA2nB < 0) {
-						if(m_BOOP == UNION) Intersection = !Intersection;
+					if (nA2nB < 0) {
+						if (m_BOOP == UNION) Intersection = !Intersection;
 					}
 					else {
-						if(m_BOOP == MINUS) Intersection = !Intersection;
+						if (m_BOOP == MINUS) Intersection = !Intersection;
 					}
 				}
 			}
 
 			//if Intersection == false, fA and fA2 are both inside or outside the second polyhedron.
-			if(!Intersection) {
+			if (!Intersection) {
 				stop = true;
 			}
 
@@ -1088,7 +1430,7 @@ public:
 		}
 
 		//if two distincts points belongs to the two triangles
-		if(IsSegment(inter))
+		if (IsSegment(inter))
 		{
 			//we get this segment in ptInter
 			dls::tableau<unsigned> ptInter;
@@ -1099,31 +1441,31 @@ public:
 			ptInterInv.pousse(ptInter[0]);
 
 			//the segments are stored in the concerned triangles, and oriented
-			if(produit_scalaire(produit_croix(nA, nB), (InterPts[ptInter[1]] - InterPts[ptInter[0]])) * ((invert_direction == true)?-1:1) > 0)
+			if (produit_scalaire(produit_croix(nA, nB), (InterPts[ptInter[1]] - InterPts[ptInter[0]])) * ((invert_direction == true)?-1:1) > 0)
 			{
 				switch(m_BOOP)
 				{
 					case UNION:
 						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInter);
-						if(edgeA != 3)
+						if (edgeA != 3)
 							donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
 
 						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInterInv);
 
-						if(edgeB != 3)
+						if (edgeB != 3)
 							donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
 						break;
 					case INTER:
 						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInterInv);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
+						if (edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
 						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInter);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
+						if (edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
 						break;
 					case MINUS:
 						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInter);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
+						if (edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
 						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInter);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
+						if (edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
 						break;
 				}
 			}
@@ -1133,21 +1475,21 @@ public:
 				{
 					case UNION:
 						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInterInv);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
+						if (edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
 						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInter);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
+						if (edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInter);
 						break;
 					case INTER:
 						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInter);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
+						if (edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInter);
 						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInterInv);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
+						if (edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
 						break;
 					case MINUS:
 						donnees_booleens.triangles_esect[fA->label].CutList.pousse(ptInterInv);
-						if(edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
+						if (edgeA != 3) donnees_booleens.triangles_esect[fA2->label].CutList.pousse(ptInterInv);
 						donnees_booleens.triangles_esect[fB->label].CutList.pousse(ptInterInv);
-						if(edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
+						if (edgeB != 3) donnees_booleens.triangles_esect[fB2->label].CutList.pousse(ptInterInv);
 						break;
 				}
 			}
@@ -1156,7 +1498,7 @@ public:
 
 	void rmCouple(DonneesBooleen &donnees_booleens, unsigned &A, unsigned &B)
 	{
-		if(donnees_booleens.couples[A].compte(B) != 0) {
+		if (donnees_booleens.couples[A].compte(B) != 0) {
 			donnees_booleens.couples[A].efface(B);
 		}
 
@@ -1170,7 +1512,7 @@ public:
 		mi_triangle *f = inter->f;
 		mi_arete *he = inter->he;
 		//if the intersection has been computed, the function returns directly the Id of the intersection
-		if(donnees_booleens.triangles_esect[f->label].RefInter.compte(he->label) != 0)
+		if (donnees_booleens.triangles_esect[f->label].RefInter.compte(he->label) != 0)
 		{
 			inter->Id = donnees_booleens.triangles_esect[f->label].RefInter[he->label];
 			return;
@@ -1199,7 +1541,7 @@ public:
 		tmp = 1.0f / produit_scalaire(p, e1);
 		s = s1 - v0;
 		u = tmp * produit_scalaire(s, p);
-		if(u < 0 || u > 1)
+		if (u < 0 || u > 1)
 		{
 			//the intersection is not in the triangle
 			inter->res = 7;
@@ -1207,13 +1549,13 @@ public:
 		}
 		q = produit_croix(s, e1);
 		v = tmp * produit_scalaire(dir, q);
-		if(v < 0 || v > 1)
+		if (v < 0 || v > 1)
 		{
 			//the intersection is not in the triangle
 			inter->res = 7;
 			return;
 		}
-		if(u + v > 1)
+		if (u + v > 1)
 		{
 			//the intersection is not in the triangle
 			inter->res = 7;
@@ -1225,9 +1567,9 @@ public:
 
 		//creation of the code for the location of the intersection
 		inter->res = 0;
-		if(u == 0.0f) inter->res += 1;	//intersection on he(0)
-		if(v == 0.0f) inter->res += 2;	//intersection on he(1)
-		if(u+v == 1.0f) inter->res += 4;	//intersection on he(2)
+		if (u == 0.0f) inter->res += 1;	//intersection on he(0)
+		if (v == 0.0f) inter->res += 2;	//intersection on he(1)
+		if (u+v == 1.0f) inter->res += 4;	//intersection on he(2)
 	}
 
 
@@ -1238,7 +1580,7 @@ public:
 		mi_triangle *f = inter->f;
 		mi_arete *he = inter->he;
 		//if the intersection has been computed, the function returns directly the Id of the intersection
-		if(donnees_booleens.triangles_esect[f->label].RefInter.compte(he->label) != 0)
+		if (donnees_booleens.triangles_esect[f->label].RefInter.compte(he->label) != 0)
 		{
 			inter->Id = donnees_booleens.triangles_esect[f->label].RefInter[he->label];
 			return;
@@ -1259,21 +1601,21 @@ public:
 		float u, v, w;
 
 		u = produit_scalaire(N, produit_croix(v0 - v2, p - v2));
-		if(u < 0)
+		if (u < 0)
 		{
 			//the intersection is not in the triangle
 			inter->res = 7;
 			return;
 		}
 		v = produit_scalaire(N, produit_croix(v1 - v0, p - v0));
-		if(v < 0)
+		if (v < 0)
 		{
 			//the intersection is not in the triangle
 			inter->res = 7;
 			return;
 		}
 		w = produit_scalaire(N, produit_croix(v2 - v1, p - v1));
-		if(w < 0)
+		if (w < 0)
 		{
 			//the intersection is not in the triangle
 			inter->res = 7;
@@ -1285,9 +1627,9 @@ public:
 
 		//creation of the code for the location of the intersection
 		inter->res = 0;
-		if(u == 0.0f) inter->res += 1;	//intersection on he(0)
-		if(v == 0.0f) inter->res += 2;	//intersection on he(1)
-		if(w == 0.0f) inter->res += 4;	//intersection on he(2)
+		if (u == 0.0f) inter->res += 1;	//intersection on he(0)
+		if (v == 0.0f) inter->res += 2;	//intersection on he(1)
+		if (w == 0.0f) inter->res += 4;	//intersection on he(2)
 	}
 
 	/*! \brief Verify that the intersection is a segment
@@ -1302,14 +1644,14 @@ public:
 
 		//each intersection is checked separately.
 		//first intersection
-		if(inter[0].Id != 0xFFFFFFFF)
+		if (inter[0].Id != 0xFFFFFFFF)
 		{
 			//an Id different than 0xFFFFFFFF is founded
 			//this intersection has already been computed and is valid
 			id = true;
 			Id = inter[0].Id;
 		}
-		else if(inter[0].res != 7)
+		else if (inter[0].res != 7)
 		{
 			//the intersection have no Id (0xFFFFFFFF)
 			//but the intersection is in the triangle
@@ -1317,69 +1659,69 @@ public:
 			pt = inter[0].pt;
 		}
 		//second intersection
-		if(inter[1].Id != 0xFFFFFFFF)
+		if (inter[1].Id != 0xFFFFFFFF)
 		{
 			//an Id different than 0xFFFFFFFF is founded
 			//this intersection has already been computed and is valid
 
 			//if a point or an Id has already be founded, we founded the two distinct valid points (the intersection is a segment)
 			//(it is not possible that the two first points are the same)
-			if(point || id) return true;
+			if (point || id) return true;
 			id = true;
 			Id = inter[1].Id;
 		}
-		else if(inter[1].res != 7)
+		else if (inter[1].res != 7)
 		{
 			//the intersection have no Id (0xFFFFFFFF)
 			//but the intersection is in the triangle
 
 			//if a point or an Id has already be founded, we founded the two distinct valid points (the intersection is a segment)
 			//(it is not possible that the two first points are the same)
-			if(point || id) return true;
+			if (point || id) return true;
 			point = true;
 			pt = inter[1].pt;
 		}
 		//third intersection
-		if(inter[2].Id != 0xFFFFFFFF)
+		if (inter[2].Id != 0xFFFFFFFF)
 		{
 			//an Id different than 0xFFFFFFFF is founded
 			//this intersection has already been computed and is valid
 
 			//if a point or a different Id has already be founded, we founded the two distinct valid points (the intersection is a segment)
 			//(it is not possible that the two first points are the same)
-			if(point || (id && Id != inter[2].Id)) return true;
+			if (point || (id && Id != inter[2].Id)) return true;
 			id = true;
 			Id = inter[2].Id;
 		}
-		else if(inter[2].res != 7)
+		else if (inter[2].res != 7)
 		{
 			//the intersection have no Id (0xFFFFFFFF)
 			//but the intersection is in the triangle
 
 			//if an Id or a different point has already be founded, we founded the two distinct valid points (the intersection is a segment)
 			//(it is not possible that the two first points are the same)
-			if((point && pt != inter[2].pt) || id) return true;
+			if ((point && pt != inter[2].pt) || id) return true;
 			point = true;
 			pt = inter[2].pt;
 		}
 		//fourth intersection
-		if(inter[3].Id != 0xFFFFFFFF)
+		if (inter[3].Id != 0xFFFFFFFF)
 		{
 			//an Id different than 0xFFFFFFFF is founded
 			//this intersection has already been computed and is valid
 
 			//if a point or a different Id has already be founded, we founded the two distinct valid points (the intersection is a segment)
 			//(it is not possible that the two first points are the same)
-			if(point || (id && Id != inter[3].Id)) return true;
+			if (point || (id && Id != inter[3].Id)) return true;
 		}
-		else if(inter[3].res != 7)
+		else if (inter[3].res != 7)
 		{
 			//the intersection have no Id (0xFFFFFFFF)
 			//but the intersection is in the triangle
 
 			//if an Id or a different point has already be founded, we founded the two distinct valid points (the intersection is a segment)
 			//(it is not possible that the two first points are the same)
-			if((point && pt != inter[3].pt) || id) return true;
+			if ((point && pt != inter[3].pt) || id) return true;
 		}
 		return false;
 	}
@@ -1389,24 +1731,24 @@ public:
 		for(unsigned int i = 0;i != 4;++i)
 		{
 			//if the point have an Id
-			if(inter[i].Id != 0xFFFFFFFF)
+			if (inter[i].Id != 0xFFFFFFFF)
 			{
 				//the Id is stored if it is not already done
-				if(I.taille() == 0 || I[0] != inter[i].Id) I.pousse(inter[i].Id);
+				if (I.taille() == 0 || I[0] != inter[i].Id) I.pousse(inter[i].Id);
 			}
 			//else if the point is valid
-			else if(inter[i].res != 7)
+			else if (inter[i].res != 7)
 			{
 				//the intersection point is stored in the list of the intersection points
 				//and its new Id is stored in the output segment
-				if(I.taille() == 0 || InterPts[I[0]] != inter[i].pt)
+				if (I.taille() == 0 || InterPts[I[0]] != inter[i].pt)
 				{
 					Store_Intersection(donnees_booleens, &inter[i]);
 					I.pousse(inter[i].Id);
 				}
 			}
 			//return if the two points are founded
-			if(I.taille() == 2) return;
+			if (I.taille() == 2) return;
 		}
 	}
 
@@ -1424,39 +1766,40 @@ public:
 		InterPts.pousse(inter->pt);
 
 		//add this point as a vertex of the result
-		ppbuilder.add_vertex(inter->pt, inter->Id);
+//		ppbuilder.add_vertex(inter->pt, inter->Id);
 
 		//if the intersection is on the vertex pointed by the halfedge (he), we update the Id (label) of this vertex
-		if(inter->IsOnVertex) he->sommet->label = I;
+		if (inter->IsOnVertex)
+			he->sommet->label = I;
 
 		//the intersection is memorized for each possible couple of (facet, halfedge) concerned by the intersection
 		//if the intersection is exactly on the vertex pointed by the halfedge (he), it is necessary to take account
 		//of every halfedge pointing to this vertex
-		switch(inter->res)
-		{
+		switch(inter->res) {
 			case 0: //intersection on the facet
 			{
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[f->label].RefInter[he->label] = I;
 					donnees_booleens.triangles_esect[f->label].RefInter[he->paire->label] = I;
 				}
 				else
 				{
-					auto H_circ = he->vertex_begin(), H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
+
 				break;
+			}
 			case 1: //Intersection on the first halfedge of the facet
 			{
 				donnees_booleens.triangles_esect[f->label].PtList.insere(I);
 				donnees_booleens.triangles_esect[f->arete->paire->face->label].PtList.insere(I);
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[he->face->label].PtList.insere(I);
 					donnees_booleens.triangles_esect[he->paire->face->label].PtList.insere(I);
@@ -1471,7 +1814,7 @@ public:
 				}
 				else
 				{
-					Halfedge_around_vertex_circulator H_circ = he->vertex_begin(), H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->paire->label] = I;
@@ -1479,16 +1822,17 @@ public:
 						donnees_booleens.triangles_esect[f->arete->paire->face->label].RefInter[H_circ->paire->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[f->arete->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[f->arete->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
+
 				break;
+			}
 			case 2: //Intersection on the second halfedge of the facet
 			{
 				donnees_booleens.triangles_esect[f->label].PtList.insere(I);
 				donnees_booleens.triangles_esect[f->arete->suivante->paire->face->label].PtList.insere(I);
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[he->face->label].PtList.insere(I);
 					donnees_booleens.triangles_esect[he->paire->face->label].PtList.insere(I);
@@ -1503,7 +1847,7 @@ public:
 				}
 				else
 				{
-					Halfedge_around_vertex_circulator H_circ = he->vertex_begin(), H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->paire->label] = I;
@@ -1511,22 +1855,22 @@ public:
 						donnees_booleens.triangles_esect[f->arete->suivante->paire->face->label].RefInter[H_circ->paire->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[f->arete->suivante->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[f->arete->suivante->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
+
 				break;
+			}
 			case 3: //Intersection on the first and second halfedge of the facet (vertex pointed by the first halfedge)
 			{
 				//update the Id (label) of the first vertex of the facet
 				f->arete->sommet->label = I;
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[he->face->label].PtList.insere(I);
 					donnees_booleens.triangles_esect[he->paire->face->label].PtList.insere(I);
 
-					Halfedge_around_vertex_circulator	H_circ = f->arete->vertex_begin(),
-							H_end = f->arete->vertex_begin();
+					auto H_circ = f->arete, H_end = f->arete;
 					do {
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[he->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[he->paire->label] = I;
@@ -1534,33 +1878,32 @@ public:
 						donnees_booleens.triangles_esect[he->face->label].RefInter[H_circ->paire->label] = I;
 						donnees_booleens.triangles_esect[he->paire->face->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[he->paire->face->label].RefInter[H_circ->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
 				else
 				{
-					Halfedge_around_vertex_circulator	H_circ = he->vertex_begin(),
-							H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
-						Halfedge_around_vertex_circulator	F_circ = f->arete->vertex_begin(),
-								F_end = f->arete->vertex_begin();
+						auto F_circ = f->arete, F_end = f->arete;
 						do {
 							donnees_booleens.triangles_esect[F_circ->face->label].RefInter[H_circ->label] = I;
 							donnees_booleens.triangles_esect[F_circ->face->label].RefInter[H_circ->paire->label] = I;
 							donnees_booleens.triangles_esect[H_circ->face->label].RefInter[F_circ->label] = I;
 							donnees_booleens.triangles_esect[H_circ->face->label].RefInter[F_circ->paire->label] = I;
-							F_circ++;
+							F_circ = suivante_autour_point(F_circ);
 						} while(F_circ != F_end);
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
+
 				break;
+			}
 			case 4: //Intersection on the third halfedge of the facet
 			{
 				donnees_booleens.triangles_esect[f->label].PtList.insere(I);
 				donnees_booleens.triangles_esect[f->arete->suivante->suivante->paire->face->label].PtList.insere(I);
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[he->face->label].PtList.insere(I);
 					donnees_booleens.triangles_esect[he->paire->face->label].PtList.insere(I);
@@ -1575,7 +1918,7 @@ public:
 				}
 				else
 				{
-					Halfedge_around_vertex_circulator H_circ = he->vertex_begin(), H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[f->label].RefInter[H_circ->paire->label] = I;
@@ -1583,22 +1926,23 @@ public:
 						donnees_booleens.triangles_esect[f->arete->suivante->suivante->paire->face->label].RefInter[H_circ->paire->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[f->arete->suivante->suivante->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[f->arete->suivante->suivante->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
+
 				break;
+			}
 			case 5: //Intersection on the first and third halfedge of the facet (vertex pointed by the third halfedge)
 			{
 				//update the Id (label) of the third vertex of the facet
 				f->arete->suivante->suivante->sommet->label = I;
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[he->face->label].PtList.insere(I);
 					donnees_booleens.triangles_esect[he->paire->face->label].PtList.insere(I);
 
-					Halfedge_around_vertex_circulator	H_circ = f->arete->suivante->suivante->vertex_begin(),
-							H_end = f->arete->suivante->suivante->vertex_begin();
+					auto H_circ = f->arete->suivante->suivante,
+							H_end = f->arete->suivante->suivante;
 					do {
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[he->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[he->paire->label] = I;
@@ -1606,39 +1950,38 @@ public:
 						donnees_booleens.triangles_esect[he->face->label].RefInter[H_circ->paire->label] = I;
 						donnees_booleens.triangles_esect[he->paire->face->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[he->paire->face->label].RefInter[H_circ->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
 				else
 				{
-					Halfedge_around_vertex_circulator 	H_circ = he->vertex_begin(),
-							H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
-						Halfedge_around_vertex_circulator 	F_circ = f->arete->suivante->suivante->vertex_begin(),
-								F_end = f->arete->suivante->suivante->vertex_begin();
+						auto F_circ = f->arete->suivante->suivante,
+								F_end = f->arete->suivante->suivante;
 						do {
 							donnees_booleens.triangles_esect[F_circ->face->label].RefInter[H_circ->label] = I;
 							donnees_booleens.triangles_esect[F_circ->face->label].RefInter[H_circ->paire->label] = I;
 							donnees_booleens.triangles_esect[H_circ->face->label].RefInter[F_circ->label] = I;
 							donnees_booleens.triangles_esect[H_circ->face->label].RefInter[F_circ->paire->label] = I;
-							F_circ++;
+							F_circ = suivante_autour_point(F_circ);
 						} while(F_circ != F_end);
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
+
 				break;
+			}
 			case 6: //Intersection on the second and third halfedge of the facet (vertex pointed by the second halfedge)
 			{
 				//update the Id (label) of the second vertex of the facet
 				f->arete->suivante->sommet->label = I;
-				if(!inter->IsOnVertex)
+				if (!inter->IsOnVertex)
 				{
 					donnees_booleens.triangles_esect[he->face->label].PtList.insere(I);
 					donnees_booleens.triangles_esect[he->paire->face->label].PtList.insere(I);
 
-					Halfedge_around_vertex_circulator	H_circ = f->arete->suivante->vertex_begin(),
-							H_end = f->arete->suivante->vertex_begin();
+					auto H_circ = f->arete->suivante, H_end = f->arete->suivante;
 					do {
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[he->label] = I;
 						donnees_booleens.triangles_esect[H_circ->face->label].RefInter[he->paire->label] = I;
@@ -1646,66 +1989,61 @@ public:
 						donnees_booleens.triangles_esect[he->face->label].RefInter[H_circ->paire->label] = I;
 						donnees_booleens.triangles_esect[he->paire->face->label].RefInter[H_circ->label] = I;
 						donnees_booleens.triangles_esect[he->paire->face->label].RefInter[H_circ->paire->label] = I;
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
 				else
 				{
-					Halfedge_around_vertex_circulator	H_circ = he->vertex_begin(),
-							H_end = he->vertex_begin();
+					auto H_circ = he, H_end = he;
 					do {
-						Halfedge_around_vertex_circulator	F_circ = f->arete->suivante->vertex_begin(),
-								F_end = f->arete->suivante->vertex_begin();
+						auto F_circ = f->arete->suivante, F_end = f->arete->suivante;
 						do {
 							donnees_booleens.triangles_esect[F_circ->face->label].RefInter[H_circ->label] = I;
 							donnees_booleens.triangles_esect[F_circ->face->label].RefInter[H_circ->paire->label] = I;
 							donnees_booleens.triangles_esect[H_circ->face->label].RefInter[F_circ->label] = I;
 							donnees_booleens.triangles_esect[H_circ->face->label].RefInter[F_circ->paire->label] = I;
-							F_circ++;
+							F_circ = suivante_autour_point(F_circ);
 						} while(F_circ != F_end);
-						H_circ++;
+						H_circ = suivante_autour_point(H_circ);
 					} while(H_circ != H_end);
 				}
-			}
-				break;
-		}
 
+				break;
+			}
+		}
 	}
 
 	/*! \brief Add a facet to the result
 		 * \param pFacet : A handle to the facet to add
 		 * \param facet_from_A : must be true if the facet belongs to the first polyhedron*/
-	void add_facet_to_solution(DonneesBooleen &donnees_booleens, mi_triangle *&pFacet, bool facet_from_A)
-	{
-		//if the facet contains an intersection point but no intersection segment, the facet must be triangulate before
-		if(pFacet->label < donnees_booleens.triangles_esect.taille())
-		{
-			auto TriCut = donnees_booleens.triangles_esect[pFacet->label];
-			mi_arete *he = pFacet->arete;
-			//creation of the triangulation
-			Triangulation<Exact_Kernel> T(he, TriCut.norm_dir);
-			//add the intersection points to the triangulation
-			for(std::set<unsigned>::iterator i = TriCut.PtList.begin();i != TriCut.PtList.end();++i)
-			{
-				T.add_new_pt(InterPts[*i], (unsigned long &)*i);    // MT: ajout cast
-			}
-			//get all the triangles of the triangulation
-			dls::tableau<dls::tableau<unsigned long> > Tri_set = T.get_all_triangles((m_BOOP == MINUS && !TriCut.Facet_from_A)?true:false);
-			//add these triangles to the result
-			ppbuilder.add_triangle(Tri_set, he);
-		}
-		else
-		{
-			//the facet is added to the result. If the facet belongs to the second polyhedron, and if the
-			//Boolean operation is a Subtraction, it is necessary to invert the orientation of the facet.
-			if(m_BOOP == MINUS && !facet_from_A) ppbuilder.add_triangle(pFacet, true);
-			else ppbuilder.add_triangle(pFacet, false);
-		}
-		//the tag of the three neighboring facets is updated
-		pFacet->arete->paire->face->est_ext = true;
-		pFacet->arete->suivante->paire->face->est_ext = true;
-		pFacet->arete->suivante->suivante->paire->face->est_ext = true;
-	}
+//	void add_facet_to_solution(DonneesBooleen &donnees_booleens, mi_triangle *&pFacet, bool facet_from_A)
+//	{
+//		//if the facet contains an intersection point but no intersection segment, the facet must be triangulate before
+//		if (pFacet->label < donnees_booleens.triangles_esect.taille()) {
+//			auto TriCut = donnees_booleens.triangles_esect[pFacet->label];
+//			mi_arete *he = pFacet->arete;
+//			//creation of the triangulation
+//			Triangulation<Exact_Kernel> T(he, TriCut.norm_dir);
+//			//add the intersection points to the triangulation
+//			for(std::set<unsigned>::iterator i = TriCut.PtList.begin();i != TriCut.PtList.end();++i)
+//			{
+//				T.add_new_pt(InterPts[*i], (unsigned long &)*i);    // MT: ajout cast
+//			}
+//			//get all the triangles of the triangulation
+//			dls::tableau<dls::tableau<unsigned long> > Tri_set = T.get_all_triangles((m_BOOP == MINUS && !TriCut.Facet_from_A));
+//			//add these triangles to the result
+//			ppbuilder.add_triangle(Tri_set, he);
+//		}
+//		else {
+//			//the facet is added to the result. If the facet belongs to the second polyhedron, and if the
+//			//Boolean operation is a Subtraction, it is necessary to invert the orientation of the facet.
+//			ppbuilder.add_triangle(pFacet, (m_BOOP == MINUS && !facet_from_A));
+//		}
+//		//the tag of the three neighboring facets is updated
+//		pFacet->arete->paire->face->est_ext = true;
+//		pFacet->arete->suivante->paire->face->est_ext = true;
+//		pFacet->arete->suivante->suivante->paire->face->est_ext = true;
+//	}
 };
 #endif // OPBOOLEEN
 

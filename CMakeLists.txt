@@ -160,6 +160,7 @@ set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
 set(REQUIERS_SNH OFF)
 set(REQUIERS_VORO OFF)
+set(REQUIERS_CGAL OFF)
 
 if(SEULEMENT_KURI)
 	set(AVEC_KURI ON)
@@ -208,6 +209,7 @@ active_dependances(AVEC_MIKISA REQUIERS_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
 active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
 
+active_dependances(AVEC_MIKISA REQUIERS_CGAL)
 active_dependances(AVEC_MIKISA REQUIERS_KELVINLET)
 active_dependances(AVEC_MIKISA REQUIERS_PATATE)
 active_dependances(AVEC_MIKISA REQUIERS_SNH)
@@ -272,6 +274,11 @@ set(BIBLIOTHEQUES_IMAGE ${BIBLIOTHEQUES_IMAGE} jpeg png)
 # À FAIRE : find_package
 if(REQUIERS_BOOST)
 	set(INCLUSIONS_BOOST /opt/lib/boost/include)
+endif()
+
+# À FAIRE : find_package
+if(REQUIERS_CGAL)
+	set(INCLUSIONS_CGAL /opt/lib/cgal/include)
 endif()
 
 # ------------------------------------------------------------------------------
