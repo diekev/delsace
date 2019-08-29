@@ -753,7 +753,7 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 				type_var::DEC,   // echelle valeur
 				type_var::DEC,   // temps
 				/* turbulence */
-				type_var::ENT32, // octaves
+				type_var::DEC,   // octaves
 				type_var::DEC,   // gain
 				type_var::DEC,   // lacunarité
 				type_var::DEC    // amplitude

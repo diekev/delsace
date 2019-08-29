@@ -819,7 +819,7 @@ static auto charge_param_bruit_turb(
 		pile const &insts,
 		int &inst_courante)
 {
-	params.octaves = pile_donnees.charge_entier(inst_courante, insts);
+	params.octaves = pile_donnees.charge_decimal(inst_courante, insts);
 	params.gain = pile_donnees.charge_decimal(inst_courante, insts);
 	params.lacunarite = pile_donnees.charge_decimal(inst_courante, insts);
 	params.amplitude = pile_donnees.charge_decimal(inst_courante, insts);
