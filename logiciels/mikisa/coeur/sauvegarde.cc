@@ -405,7 +405,6 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		return erreur_fichier::NON_OUVERT;
 	}
 
-	/* À FAIRE : trouver quelles sont les autres erreurs possibles. */
 	if (resultat != dls::xml::XML_SUCCESS) {
 		return erreur_fichier::INCONNU;
 	}
