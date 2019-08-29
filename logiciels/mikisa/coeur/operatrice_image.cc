@@ -332,11 +332,12 @@ long OperatriceImage::entrees() const
 
 const char *OperatriceImage::nom_entree(int n)
 {
-	switch (n) {
-		default:
-		case 0: return "A";
-		case 1: return "B";
-	}
+	static const char *noms[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	};
+
+	return noms[n];
 }
 
 type_prise OperatriceImage::type_entree(int n) const
@@ -415,10 +416,12 @@ long OperatriceImage::sorties() const
 
 const char *OperatriceImage::nom_sortie(int n)
 {
-	switch (n) {
-		default:
-		case 0: return "R";
-	}
+	static const char *noms[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	};
+
+	return noms[n];
 }
 
 type_prise OperatriceImage::type_sortie(int n) const
