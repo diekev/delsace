@@ -86,38 +86,6 @@ static int table[512] = {
 };
 #endif
 
-static auto grad(const int hash, const float xu, const float yu, const float zu)
-{
-	switch (hash & 0xF) {
-		/* Produit scalaire avec les 12 vecteurs définis par les directions
-		 * entre le centre d'un cube et ses sommets.
-		 */
-		case 0x0: return  xu + yu; /* ( 1,  1,  0) */
-		case 0x1: return -xu + yu; /* (-1,  1,  0) */
-		case 0x2: return  xu - yu; /* ( 1, -1,  0) */
-		case 0x3: return -xu - yu; /* (-1, -1,  0) */
-		case 0x4: return  xu + zu; /* ( 1,  0,  1) */
-		case 0x5: return -xu + zu; /* (-1,  0,  1) */
-		case 0x6: return  xu - zu; /* ( 1,  0, -1) */
-		case 0x7: return -xu - zu; /* (-1,  0, -1) */
-		case 0x8: return  yu + zu; /* ( 0,  1,  1) */
-		case 0x9: return -yu + zu; /* ( 0, -1,  1) */
-		case 0xA: return  yu - zu; /* ( 0,  1, -1) */
-		case 0xB: return -yu - zu; /* ( 0, -1, -1) */
-
-		/* Pour éviter le coût d'une division par 12, nous rembourrons jusqu'à
-		 * 16 directions de gradient. Elles forment un tétraèdre régulier donc
-		 * n'introduisent pas de biais visuel dans la texture.
-		 */
-		case 0xC: return  xu + yu; /* ( 1,  1,  0) */
-		case 0xD: return -yu + zu; /* ( 0, -1,  1) */
-		case 0xE: return -xu + yu; /* (-1 , 1,  0) */
-		case 0xF: return -yu - zu; /* ( 0, -1, -1) */
-
-		default: return 0.0f; // never happens
-	}
-}
-
 static auto index_hash(int x, int y, int z)
 {
 #ifdef BRUIT_LONG
@@ -148,61 +116,11 @@ static dls::math::vec3f grad3[12] = {
 	dls::math::vec3f{  0.0f, -1.0f, -1.0f }
 };
 
-static auto perlin_3d(float x, float y, float z)
-{
-	auto const floorx = std::floor(x);
-	auto const floory = std::floor(y);
-	auto const floorz = std::floor(z);
-
-	/* trouve le cube qui contient le point */
-	auto const i = static_cast<int>(floorx);
-	auto const j = static_cast<int>(floory);
-	auto const k = static_cast<int>(floorz);
-
-	/* trouve les coordonnées relative des points dans le cube */
-	auto const fx = x - floorx;
-	auto const fy = y - floory;
-	auto const fz = z - floorz;
-
-	auto const sx = dls::math::entrepolation_fluide<2>(fx);
-	auto const sy = dls::math::entrepolation_fluide<2>(fy);
-	auto const sz = dls::math::entrepolation_fluide<2>(fz);
-
-	auto const g000 = index_hash(i,j,k);
-	auto const g100 = index_hash(i+1,j,k);
-	auto const g010 = index_hash(i,j+1,k);
-	auto const g110 = index_hash(i+1,j+1,k);
-	auto const g001 = index_hash(i,j,k+1);
-	auto const g101 = index_hash(i+1,j,k+1);
-	auto const g011 = index_hash(i,j+1,k+1);
-	auto const g111 = index_hash(i+1,j+1,k+1);
-
-	auto const &n000 = grad(g000, fx       , fy       , fz);
-	auto const &n100 = grad(g100, fx - 1.0f, fy       , fz);
-	auto const &n010 = grad(g010, fx       , fy - 1.0f, fz);
-	auto const &n110 = grad(g110, fx - 1.0f, fy - 1.0f, fz);
-	auto const &n001 = grad(g001, fx       , fy       , fz - 1.0f);
-	auto const &n101 = grad(g101, fx - 1.0f, fy       , fz - 1.0f);
-	auto const &n011 = grad(g011, fx       , fy - 1.0f, fz - 1.0f);
-	auto const &n111 = grad(g111, fx - 1.0f, fy - 1.0f, fz - 1.0f);
-
-	return dls::math::entrepolation_trilineaire(
-				n000,
-				n100,
-				n010,
-				n110,
-				n001,
-				n101,
-				n011,
-				n111,
-				sx, sy, sz);
-}
-
 /**
  * Basé sur « gradient noise derivatives » de Inigo Quilez
  * http://www.iquilezles.org/www/articles/gradientnoise/gradientnoise.htm
  */
-static auto perlin_3d_derivee(float x, float y, float z, dls::math::vec3f &derivee)
+static auto perlin_3d_derivee(float x, float y, float z, dls::math::vec3f *derivee = nullptr)
 {
 	auto const floorx = std::floor(x);
 	auto const floory = std::floor(y);
@@ -222,9 +140,6 @@ static auto perlin_3d_derivee(float x, float y, float z, dls::math::vec3f &deriv
 	auto const uy = dls::math::entrepolation_fluide<2>(fy);
 	auto const uz = dls::math::entrepolation_fluide<2>(fz);
 
-	auto const dux = dls::math::derivee_fluide<2>(fx);
-	auto const duy = dls::math::derivee_fluide<2>(fy);
-	auto const duz = dls::math::derivee_fluide<2>(fz);
 
 	/* cherche les gradients */
 	auto const g000 = grad3[index_hash(i,j,k) % 12];
@@ -246,16 +161,22 @@ static auto perlin_3d_derivee(float x, float y, float z, dls::math::vec3f &deriv
 	auto const &n011 = dls::math::produit_scalaire(g011, dls::math::vec3f(fx       , fy - 1.0f, fz - 1.0f));
 	auto const &n111 = dls::math::produit_scalaire(g111, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz - 1.0f));
 
-	derivee = dls::math::entrepolation_trilineaire(
-				g000,
-				g100,
-				g010,
-				g110,
-				g001,
-				g101,
-				g011,
-				g111,
-				dux, duy, duz);
+	if (derivee != nullptr) {
+		auto const dux = dls::math::derivee_fluide<2>(fx);
+		auto const duy = dls::math::derivee_fluide<2>(fy);
+		auto const duz = dls::math::derivee_fluide<2>(fz);
+
+		*derivee = dls::math::entrepolation_trilineaire(
+					g000,
+					g100,
+					g010,
+					g110,
+					g001,
+					g101,
+					g011,
+					g111,
+					dux, duy, duz);
+	}
 
 	return dls::math::entrepolation_trilineaire(
 				n000,
@@ -277,13 +198,13 @@ void perlin::construit(parametres &params, int graine)
 float perlin::evalue(const parametres &params, dls::math::vec3f pos)
 {
 	INUTILISE(params);
-	return perlin_3d(pos.x, pos.y, pos.z);
+	return perlin_3d_derivee(pos.x, pos.y, pos.z);
 }
 
 float perlin::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
 {
 	INUTILISE(params);
-	return perlin_3d_derivee(pos.x, pos.y, pos.z, derivee);
+	return perlin_3d_derivee(pos.x, pos.y, pos.z, &derivee);
 }
 
 }  /* namespace bruit */

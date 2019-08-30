@@ -373,6 +373,13 @@ float voronoi_f1::evalue(parametres const &params, dls::math::vec3f pos)
 	return detail::voronoi_F1(pos.x, pos.y, pos.z);
 }
 
+float voronoi_f1::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	INUTILISE(derivee);
+	return detail::voronoi_F1(pos.x, pos.y, pos.z);
+}
+
 void voronoi_f2::construit(parametres &params, int graine)
 {
 	construit_defaut(params, graine);
@@ -381,6 +388,13 @@ void voronoi_f2::construit(parametres &params, int graine)
 float voronoi_f2::evalue(parametres const &params, dls::math::vec3f pos)
 {
 	INUTILISE(params);
+	return detail::voronoi_F2(pos.x, pos.y, pos.z);
+}
+
+float voronoi_f2::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	INUTILISE(derivee);
 	return detail::voronoi_F2(pos.x, pos.y, pos.z);
 }
 
@@ -395,6 +409,13 @@ float voronoi_f3::evalue(parametres const &params, dls::math::vec3f pos)
 	return detail::voronoi_F3(pos.x, pos.y, pos.z);
 }
 
+float voronoi_f3::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	INUTILISE(derivee);
+	return detail::voronoi_F3(pos.x, pos.y, pos.z);
+}
+
 void voronoi_f4::construit(parametres &params, int graine)
 {
 	construit_defaut(params, graine);
@@ -403,6 +424,13 @@ void voronoi_f4::construit(parametres &params, int graine)
 float voronoi_f4::evalue(parametres const &params, dls::math::vec3f pos)
 {
 	INUTILISE(params);
+	return detail::voronoi_F4(pos.x, pos.y, pos.z);
+}
+
+float voronoi_f4::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	INUTILISE(derivee);
 	return detail::voronoi_F4(pos.x, pos.y, pos.z);
 }
 
@@ -417,6 +445,13 @@ float voronoi_f1f2::evalue(parametres const &params, dls::math::vec3f pos)
 	return detail::voronoi_F1F2(pos.x, pos.y, pos.z);
 }
 
+float voronoi_f1f2::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	INUTILISE(derivee);
+	return detail::voronoi_F1F2(pos.x, pos.y, pos.z);
+}
+
 void voronoi_cr::construit(parametres &params, int graine)
 {
 	construit_defaut(params, graine);
@@ -425,6 +460,13 @@ void voronoi_cr::construit(parametres &params, int graine)
 float voronoi_cr::evalue(parametres const &params, dls::math::vec3f pos)
 {
 	INUTILISE(params);
+	return detail::voronoi_Cr(pos.x, pos.y, pos.z);
+}
+
+float voronoi_cr::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	INUTILISE(derivee);
 	return detail::voronoi_Cr(pos.x, pos.y, pos.z);
 }
 

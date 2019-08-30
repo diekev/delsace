@@ -74,10 +74,137 @@ float evalue_multi_bande(
 		float *tuile,
 		int n,
 		float p[3],
-		float s,
-		float *normal,
-		int firstBand,
-		int nbands,
-		float *w);
+float s,
+float *normal,
+int firstBand,
+int nbands,
+float *w);
+
+/* dérivées bruits tuiles */
+
+inline float evalue_derivee_tuile_x(float *tuile, int n, float p[3])
+{
+	int c[3], mid[3];
+	float w[3][3], t, result = 0;
+
+	mid[0] = static_cast<int>(std::ceil(p[0] - 0.5f));
+	t = mid[0] - (p[0] - 0.5f);
+	w[0][0] = -t;
+	w[0][2] = (1.f - t);
+	w[0][1] = 2.0f * t - 1.0f;
+
+	mid[1] = static_cast<int>(std::ceil(p[1] - 0.5f));
+	t = mid[1] - (p[1] - 0.5f);
+	w[1][0] = t * t / 2;
+	w[1][2] = (1 - t) * (1 - t) / 2;
+	w[1][1] = 1 - w[1][0] - w[1][2];
+
+	mid[2] = static_cast<int>(std::ceil(p[2] - 0.5f));
+	t = mid[2] - (p[2] - 0.5f);
+	w[2][0] = t * t / 2;
+	w[2][2] = (1 - t) * (1 - t)/2;
+	w[2][1] = 1 - w[2][0] - w[2][2];
+
+	// to optimize, explicitly unroll this loop
+	for (int z = -1; z <=1; z++) {
+		for (int y = -1; y <=1; y++) {
+			for (int x = -1; x <=1; x++) {
+				float weight = 1.0f;
+				c[0] = mod_rapide_128(mid[0] + x);
+				weight *= w[0][x+1];
+				c[1] = mod_rapide_128(mid[1] + y);
+				weight *= w[1][y+1];
+				c[2] = mod_rapide_128(mid[2] + z);
+				weight *= w[2][z+1];
+				result += weight * tuile[c[2]*n*n+c[1]*n+c[0]];
+			}
+		}
+	}
+	return result;
+}
+
+inline float evalue_derivee_tuile_y(float *tuile, int n, float p[3])
+{
+	int c[3], mid[3];
+	float w[3][3], t, result =0;
+
+	mid[0] = static_cast<int>(std::ceil(p[0] - 0.5f));
+	t = mid[0]-(p[0] - 0.5f);
+	w[0][0] = t * t / 2;
+	w[0][2] = (1 - t) * (1 - t) / 2;
+	w[0][1] = 1 - w[0][0] - w[0][2];
+
+	mid[1] = static_cast<int>(std::ceil(p[1] - 0.5f));
+	t = mid[1]-(p[1] - 0.5f);
+	w[1][0] = -t;
+	w[1][2] = (1.f - t);
+	w[1][1] = 2.0f * t - 1.0f;
+
+	mid[2] = static_cast<int>(std::ceil(p[2] - 0.5f));
+	t = mid[2] - (p[2] - 0.5f);
+	w[2][0] = t * t / 2;
+	w[2][2] = (1 - t) * (1 - t)/2;
+	w[2][1] = 1 - w[2][0] - w[2][2];
+
+	// to optimize, explicitly unroll this loop
+	for (int z = -1; z <=1; z++) {
+		for (int y = -1; y <=1; y++) {
+			for (int x = -1; x <=1; x++) {
+				float weight = 1.0f;
+				c[0] = mod_rapide_128(mid[0] + x);
+				weight *= w[0][x+1];
+				c[1] = mod_rapide_128(mid[1] + y);
+				weight *= w[1][y+1];
+				c[2] = mod_rapide_128(mid[2] + z);
+				weight *= w[2][z+1];
+				result += weight * tuile[c[2]*n*n+c[1]*n+c[0]];
+			}
+		}
+	}
+
+	return result;
+}
+
+inline float evalue_derivee_tuile_z(float *tuile, int n, float p[3])
+{
+	int c[3], mid[3];
+	float w[3][3], t, result =0;
+
+	mid[0] = static_cast<int>(std::ceil(p[0] - 0.5f));
+	t = mid[0]-(p[0] - 0.5f);
+	w[0][0] = t * t / 2;
+	w[0][2] = (1 - t) * (1 - t) / 2;
+	w[0][1] = 1 - w[0][0] - w[0][2];
+
+	mid[1] = static_cast<int>(std::ceil(p[1] - 0.5f));
+	t = mid[1]-(p[1] - 0.5f);
+	w[1][0] = t * t / 2;
+	w[1][2] = (1 - t) * (1 - t) / 2;
+	w[1][1] = 1 - w[1][0] - w[1][2];
+
+	mid[2] = static_cast<int>(std::ceil(p[2] - 0.5f));
+	t = mid[2] - (p[2] - 0.5f);
+	w[2][0] = -t;
+	w[2][2] = (1.f - t);
+	w[2][1] = 2.0f * t - 1.0f;
+
+	// to optimize, explicitly unroll this loop
+	for (int z = -1; z <=1; z++) {
+		for (int y = -1; y <=1; y++) {
+			for (int x = -1; x <=1; x++) {
+				float weight = 1.0f;
+				c[0] = mod_rapide_128(mid[0] + x);
+				weight *= w[0][x+1];
+				c[1] = mod_rapide_128(mid[1] + y);
+				weight *= w[1][y+1];
+				c[2] = mod_rapide_128(mid[2] + z);
+				weight *= w[2][z+1];
+				result += weight * tuile[c[2]*n*n+c[1]*n+c[0]];
+			}
+		}
+	}
+
+	return result;
+}
 
 }  /* namespace bruit */

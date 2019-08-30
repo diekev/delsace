@@ -286,4 +286,14 @@ float ondelette::evalue(parametres const &params, dls::math::vec3f pos)
 	return evalue_tuile(params.tuile, 128, &pos[0]);
 }
 
+float ondelette::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	derivee.x = evalue_derivee_tuile_x(params.tuile, 128, &pos[0]);
+	derivee.y = evalue_derivee_tuile_y(params.tuile, 128, &pos[0]);
+	derivee.z = evalue_derivee_tuile_z(params.tuile, 128, &pos[0]);
+
+	return evalue_tuile(params.tuile, 128, &pos[0]);
+}
+
 }  /* namespace bruit */

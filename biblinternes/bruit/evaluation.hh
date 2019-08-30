@@ -41,4 +41,8 @@ float evalue(bruit::parametres const &params, dls::math::vec3f pos);
 
 float evalue_turb(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos);
 
+float evalue_derivee(bruit::parametres const &params, dls::math::vec3f pos, dls::math::vec3f &derivee);
+
+float evalue_turb_derivee(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos, dls::math::vec3f &derivee);
+
 }  /* namespace bruit */

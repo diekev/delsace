@@ -84,7 +84,7 @@ static float grad3[12][3] = {
 
 }   /* namespace detail */
 
-float simplex_3d(float xin, float yin, float zin)
+float simplex_3d(float xin, float yin, float zin, dls::math::vec3f *derivee = nullptr)
 {
 	using namespace detail;
 
@@ -179,43 +179,141 @@ float simplex_3d(float xin, float yin, float zin)
 	auto const gi3 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]] % 12;
 
 	/* Calculate the contribution from the four corners */
-	float t0 = 0.6f - x0 * x0 - y0 * y0 - z0 * z0;
+	auto t0 = 0.6f - x0 * x0 - y0 * y0 - z0 * z0;
+	auto t20 = 0.0f;
+	auto t40 = 0.0f;
+
+	auto gx0 = 0.0f;
+	auto gx1 = 0.0f;
+	auto gx2 = 0.0f;
+	auto gx3 = 0.0f;
+	auto gy0 = 0.0f;
+	auto gy1 = 0.0f;
+	auto gy2 = 0.0f;
+	auto gy3 = 0.0f;
+	auto gz0 = 0.0f;
+	auto gz1 = 0.0f;
+	auto gz2 = 0.0f;
+	auto gz3 = 0.0f;
 
 	if (t0 < 0.0f) {
 		n0 = 0.0f;
 	}
 	else {
-		t0 *= t0;
-		n0 = t0 * t0 * dls::math::produit_scalaire(grad3[gi0], x0, y0, z0);
+		t20 = t0 * t0;
+		t40 = t20 * t20;
+
+		auto g = grad3[gi0];
+		gx0 = g[0];
+		gy0 = g[1];
+		gz0 = g[2];
+
+		n0 = t40 * dls::math::produit_scalaire(g, x0, y0, z0);
 	}
 
-	float t1 = 0.6f - x1 * x1 - y1 * y1 - z1 * z1;
+	auto t1 = 0.6f - x1 * x1 - y1 * y1 - z1 * z1;
+	auto t21 = 0.0f;
+	auto t41 = 0.0f;
 
 	if (t1 < 0.0f) {
 		n1 = 0.0f;
 	}
 	else {
-		t1 *= t1;
-		n1 = t1 * t1 * dls::math::produit_scalaire(grad3[gi1], x1, y1, z1);
+		t21 = t1 * t1;
+		t41 = t21 * t21;
+
+		auto g = grad3[gi1];
+		gx1 = g[0];
+		gy1 = g[1];
+		gz1 = g[2];
+
+		n1 = t41 * dls::math::produit_scalaire(g, x1, y1, z1);
 	}
 
-	float t2 = 0.6f - x2 * x2 - y2 * y2 - z2 * z2;
+	auto t2 = 0.6f - x2 * x2 - y2 * y2 - z2 * z2;
+	auto t22 = 0.0f;
+	auto t42 = 0.0f;
 
 	if (t2 < 0.0f) {
 		n2 = 0.0f;
 	}
 	else {
-		t2 *= t2;
-		n2 = t2 * t2 * dls::math::produit_scalaire(grad3[gi2], x2, y2, z2);
+		t22 = t2 * t2;
+		t42 = t22 * t22;
+
+		auto g = grad3[gi2];
+		gx2 = g[0];
+		gy2 = g[1];
+		gz2 = g[2];
+
+		n2 = t42 * dls::math::produit_scalaire(g, x2, y2, z2);
 	}
 
-	float t3 = 0.6f - x3 * x3 - y3 * y3 - z3 * z3;
+	auto t3 = 0.6f - x3 * x3 - y3 * y3 - z3 * z3;
+	auto t23 = 0.0f;
+	auto t43 = 0.0f;
+
 	if (t3 < 0.0f) {
 		n3 = 0.0f;
 	}
 	else {
-		t3 *= t3;
-		n3 = t3 * t3 * dls::math::produit_scalaire(grad3[gi3], x3, y3, z3);
+		t23 = t3 * t3;
+		t43 = t23 * t23;
+
+		auto g = grad3[gi3];
+		gx3 = g[0];
+		gy3 = g[1];
+		gz3 = g[2];
+
+		n3 = t43 * dls::math::produit_scalaire(g, x3, y3, z3);
+	}
+
+	/* Source pour la dérivée :
+	 * https://github.com/simongeilfus/SimplexNoise/blob/master/include/Simplex.h
+	 *   A straight, unoptimised calculation would be like:
+	 *    *dnoise_dx = -8.0f * t20 * t0 * x0 * dot(gx0, gy0, gz0, x0, y0, z0) + t40 * gx0;
+	 *    *dnoise_dy = -8.0f * t20 * t0 * y0 * dot(gx0, gy0, gz0, x0, y0, z0) + t40 * gy0;
+	 *    *dnoise_dz = -8.0f * t20 * t0 * z0 * dot(gx0, gy0, gz0, x0, y0, z0) + t40 * gz0;
+	 *    *dnoise_dx += -8.0f * t21 * t1 * x1 * dot(gx1, gy1, gz1, x1, y1, z1) + t41 * gx1;
+	 *    *dnoise_dy += -8.0f * t21 * t1 * y1 * dot(gx1, gy1, gz1, x1, y1, z1) + t41 * gy1;
+	 *    *dnoise_dz += -8.0f * t21 * t1 * z1 * dot(gx1, gy1, gz1, x1, y1, z1) + t41 * gz1;
+	 *    *dnoise_dx += -8.0f * t22 * t2 * x2 * dot(gx2, gy2, gz2, x2, y2, z2) + t42 * gx2;
+	 *    *dnoise_dy += -8.0f * t22 * t2 * y2 * dot(gx2, gy2, gz2, x2, y2, z2) + t42 * gy2;
+	 *    *dnoise_dz += -8.0f * t22 * t2 * z2 * dot(gx2, gy2, gz2, x2, y2, z2) + t42 * gz2;
+	 *    *dnoise_dx += -8.0f * t23 * t3 * x3 * dot(gx3, gy3, gz3, x3, y3, z3) + t43 * gx3;
+	 *    *dnoise_dy += -8.0f * t23 * t3 * y3 * dot(gx3, gy3, gz3, x3, y3, z3) + t43 * gy3;
+	 *    *dnoise_dz += -8.0f * t23 * t3 * z3 * dot(gx3, gy3, gz3, x3, y3, z3) + t43 * gz3;
+	 */
+	if (derivee) {
+		auto temp0 = t20 * t0 * ( gx0 * x0 + gy0 * y0 + gz0 * z0 );
+		auto dnoise_dx = temp0 * x0;
+		auto dnoise_dy = temp0 * y0;
+		auto dnoise_dz = temp0 * z0;
+		auto temp1 = t21 * t1 * ( gx1 * x1 + gy1 * y1 + gz1 * z1 );
+		dnoise_dx += temp1 * x1;
+		dnoise_dy += temp1 * y1;
+		dnoise_dz += temp1 * z1;
+		auto temp2 = t22 * t2 * ( gx2 * x2 + gy2 * y2 + gz2 * z2 );
+		dnoise_dx += temp2 * x2;
+		dnoise_dy += temp2 * y2;
+		dnoise_dz += temp2 * z2;
+		auto temp3 = t23 * t3 * ( gx3 * x3 + gy3 * y3 + gz3 * z3 );
+		dnoise_dx += temp3 * x3;
+		dnoise_dy += temp3 * y3;
+		dnoise_dz += temp3 * z3;
+		dnoise_dx *= -8.0f;
+		dnoise_dy *= -8.0f;
+		dnoise_dz *= -8.0f;
+		dnoise_dx += t40 * gx0 + t41 * gx1 + t42 * gx2 + t43 * gx3;
+		dnoise_dy += t40 * gy0 + t41 * gy1 + t42 * gy2 + t43 * gy3;
+		dnoise_dz += t40 * gz0 + t41 * gz1 + t42 * gz2 + t43 * gz3;
+		dnoise_dx *= 32.0f; /* Scale derivative to match the noise scaling */
+		dnoise_dy *= 32.0f;
+		dnoise_dz *= 32.0f;
+
+		derivee->x = dnoise_dx;
+		derivee->y = dnoise_dy;
+		derivee->z = dnoise_dz;
 	}
 
 	/* Add contributions from each corner to get the final noise value.
@@ -232,6 +330,12 @@ float simplex::evalue(parametres const &params, dls::math::vec3f pos)
 {
 	INUTILISE(params);
 	return simplex_3d(pos.x, pos.y, pos.z);
+}
+
+float simplex::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	return simplex_3d(pos.x, pos.y, pos.z, &derivee);
 }
 
 }  /* namespace bruit */
