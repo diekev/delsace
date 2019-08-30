@@ -32,7 +32,7 @@ enum class type : char {
 	CELLULE,
 	FOURIER,
 	ONDELETTE,
-	PERLIN_LONG,
+	PERLIN,
 	SIMPLEX,
 	VORONOI_F1,
 	VORONOI_F2,

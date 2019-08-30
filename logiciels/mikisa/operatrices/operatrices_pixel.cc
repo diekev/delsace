@@ -2519,7 +2519,7 @@ public:
 					dls::paire(dls::chaine("cellule"), bruit::type::CELLULE),
 					dls::paire(dls::chaine("fourier"), bruit::type::FOURIER),
 					dls::paire(dls::chaine("ondelette"), bruit::type::ONDELETTE),
-					dls::paire(dls::chaine("perlin_long"), bruit::type::PERLIN_LONG),
+					dls::paire(dls::chaine("perlin_long"), bruit::type::PERLIN),
 					dls::paire(dls::chaine("simplex"), bruit::type::SIMPLEX),
 					dls::paire(dls::chaine("voronoi_f1"), bruit::type::VORONOI_F1),
 					dls::paire(dls::chaine("voronoi_f2"), bruit::type::VORONOI_F2),
