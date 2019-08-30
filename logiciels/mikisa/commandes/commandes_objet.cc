@@ -53,12 +53,12 @@ static auto cree_noeud_op(
 		noeud->type(NOEUD_OBJET_SORTIE);
 	}
 
-	auto op = usine(nom_op, graphe, noeud);
+	auto op = usine(nom_op, graphe, *noeud);
 
 	auto texte = dls::contenu_fichier(op->chemin_entreface());
 	danjo::initialise_entreface(op, texte.c_str());
 
-	synchronise_donnees_operatrice(noeud);
+	synchronise_donnees_operatrice(*noeud);
 
 	return noeud;
 }

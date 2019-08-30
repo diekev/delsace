@@ -72,7 +72,7 @@ Image const *EntreeOperatrice::requiers_image(
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte, donnees_aval);
+	execute_noeud(*noeud, contexte, donnees_aval);
 
 	auto operatrice = extrait_opimage(noeud->donnees());
 	auto image = operatrice->image();
@@ -122,7 +122,7 @@ const Corps *EntreeOperatrice::requiers_corps(
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte, donnees_aval);
+	execute_noeud(*noeud, contexte, donnees_aval);
 
 	auto operatrice = extrait_opimage(noeud->donnees());
 
@@ -254,8 +254,7 @@ void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 	pile.empile(lien->parent);
 
 	while (!pile.est_vide()) {
-		auto noeud = pile.haut();
-		pile.depile();
+		auto noeud = pile.depile();
 
 		liste.pousse(noeud);
 
@@ -292,10 +291,10 @@ PriseSortie *SortieOperatrice::pointeur()
 
 /* ************************************************************************** */
 
-OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
+OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud &noeud)
 	: m_graphe_parent(graphe_parent)
 {
-	node->donnees(this);
+	noeud.donnees(this);
 	m_input_data.redimensionne(m_num_inputs);
 	m_sorties.redimensionne(m_num_outputs);
 }
@@ -333,11 +332,12 @@ long OperatriceImage::entrees() const
 
 const char *OperatriceImage::nom_entree(int n)
 {
-	switch (n) {
-		default:
-		case 0: return "A";
-		case 1: return "B";
-	}
+	static const char *noms[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	};
+
+	return noms[n];
 }
 
 type_prise OperatriceImage::type_entree(int n) const
@@ -416,10 +416,12 @@ long OperatriceImage::sorties() const
 
 const char *OperatriceImage::nom_sortie(int n)
 {
-	switch (n) {
-		default:
-		case 0: return "R";
-	}
+	static const char *noms[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	};
+
+	return noms[n];
 }
 
 type_prise OperatriceImage::type_sortie(int n) const

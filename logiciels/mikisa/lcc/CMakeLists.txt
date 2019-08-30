@@ -34,6 +34,7 @@ set(BIBLIOTHEQUES
 	memoire
 	bib_structures
 	langage
+	bib_bruit
 )
 
 set(SOURCES

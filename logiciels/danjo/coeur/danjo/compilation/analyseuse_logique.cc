@@ -244,8 +244,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 				   && est_operateur(pile.haut().identifiant)
 				   && (precedence_faible(symbole.identifiant, pile.haut().identifiant)))
 			{
-				expression.pousse(pile.haut());
-				pile.depile();
+				expression.pousse(pile.depile());
 			}
 
 			symbole.valeur = std::any(valeur);
@@ -260,8 +259,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			}
 
 			while (pile.haut().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
-				expression.pousse(pile.haut());
-				pile.depile();
+				expression.pousse(pile.depile());
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
@@ -278,8 +276,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.pousse(pile.haut());
-		pile.depile();
+		expression.pousse(pile.depile());
 	}
 
 #ifdef DEBOGUE_EXPRESSION

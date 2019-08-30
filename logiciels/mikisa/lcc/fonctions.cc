@@ -40,7 +40,9 @@ static bool peut_convertir(type_var de, type_var vers)
 	return code_inst_conversion(de, vers) != code_inst::TERMINE;
 }
 
-static double poids_compatibilite(types_entrees const &types_fonctions, types_entrees const &types_params)
+static double poids_compatibilite(
+		types_entrees const &types_fonctions,
+		types_entrees const &types_params)
 {
 	if (types_fonctions.types.taille() != types_params.types.taille()) {
 		return 0.0;
@@ -80,12 +82,12 @@ struct triade_types {
 };
 
 static triade_types types_fonctions_finaux(
-		types_entrees const &entrees,
-		types_sorties const &sorties,
+		param_entrees const &entrees,
+		param_sorties const &sorties,
 		types_entrees const &types_params)
 {
-	if (entrees.types.taille() != types_params.types.taille()) {
-		return { entrees, sorties, type_var::INVALIDE };
+	if (entrees.taille() != types_params.types.taille()) {
+		return { extrait_types(entrees), extrait_types(sorties), type_var::INVALIDE };
 	}
 
 	auto taille = types_params.types.taille();
@@ -94,7 +96,7 @@ static triade_types types_fonctions_finaux(
 
 	/* cherche le plus gros type pour la spécialisation */
 	for (auto i = 0; i < taille; ++i) {
-		if (entrees.types[i] == type_var::POLYMORPHIQUE) {
+		if (entrees.type(i) == type_var::POLYMORPHIQUE) {
 			if (type_specialise == type_var::INVALIDE) {
 				type_specialise = types_params.types[i];
 			}
@@ -108,31 +110,31 @@ static triade_types types_fonctions_finaux(
 
 	/* crée la spécialisation au besoin */
 	if (type_specialise == type_var::INVALIDE) {
-		return { entrees, sorties, type_var::INVALIDE };
+		return { extrait_types(entrees), extrait_types(sorties), type_var::INVALIDE };
 	}
 
 	auto types_finaux_entrees = types_entrees{};
 	types_finaux_entrees.types.reserve(taille);
 
 	for (auto i = 0; i < taille; ++i) {
-		if (entrees.types[i] == type_var::POLYMORPHIQUE) {
+		if (entrees.type(i) == type_var::POLYMORPHIQUE) {
 			types_finaux_entrees.types.pousse(type_specialise);
 		}
 		else {
-			types_finaux_entrees.types.pousse(entrees.types[i]);
+			types_finaux_entrees.types.pousse(entrees.type(i));
 		}
 	}
 
-	taille = sorties.types.taille();
+	taille = sorties.taille();
 	auto types_finaux_sorties = types_sorties{};
 	types_finaux_sorties.types.reserve(taille);
 
 	for (auto i = 0; i < taille; ++i) {
-		if (sorties.types[i] == type_var::POLYMORPHIQUE) {
+		if (sorties.type(i) == type_var::POLYMORPHIQUE) {
 			types_finaux_sorties.types.pousse(type_specialise);
 		}
 		else {
-			types_finaux_sorties.types.pousse(sorties.types[i]);
+			types_finaux_sorties.types.pousse(sorties.type(i));
 		}
 	}
 
@@ -141,7 +143,7 @@ static triade_types types_fonctions_finaux(
 
 /* ************************************************************************** */
 
-signature::signature(types_entrees _entrees_, types_sorties _sorties_)
+signature::signature(param_entrees _entrees_, param_sorties _sorties_)
 	: entrees(std::move(_entrees_))
 	, sorties(std::move(_sorties_))
 {}
@@ -160,6 +162,18 @@ void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, 
 	}
 	else {
 		iter->second.pousse({seing, type, ctx});
+	}
+
+	auto iter_cat = table_categories.trouve(categorie);
+
+	if (iter_cat == table_categories.fin()) {
+		auto ensemble = dls::ensemble<dls::chaine>{};
+		ensemble.insere(nom);
+
+		table_categories.insere({categorie, ensemble});
+	}
+	else {
+		iter_cat->second.insere(nom);
 	}
 }
 
@@ -185,18 +199,18 @@ donnees_fonction_generation magasin_fonctions::meilleure_candidate(
 
 	for (auto &donnee : tableau) {
 		/* si la fonction est a des paramètres polymorphiques, il faut spécialiser */
-		auto [types_entrees_, types_sorties_, type] = types_fonctions_finaux(
+		auto [param_entrees_, param_sorties_, type] = types_fonctions_finaux(
 				donnee.seing.entrees,
 				donnee.seing.sorties,
 				types_params);
 
-		auto poids_fonction = poids_compatibilite(types_entrees_, types_params);
+		auto poids_fonction = poids_compatibilite(param_entrees_, types_params);
 
 		if (poids_fonction > poids) {
 			poids = poids_fonction;
 			res.donnees = &donnee;
-			res.entrees = types_entrees_;
-			res.sorties = types_sorties_;
+			res.entrees = param_entrees_;
+			res.sorties = param_sorties_;
 			res.type = type;
 		}
 	}
@@ -208,143 +222,192 @@ donnees_fonction_generation magasin_fonctions::meilleure_candidate(
 
 static void enregistre_fonctions_operations_binaires(magasin_fonctions &magasin)
 {
+	magasin.categorie = "maths";
+
 	magasin.ajoute_fonction(
 				"ajoute",
 				code_inst::FN_AJOUTE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"soustrait",
 				code_inst::FN_SOUSTRAIT,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"multiplie",
 				code_inst::FN_MULTIPLIE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"divise",
 				code_inst::FN_DIVISE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"modulo",
 				code_inst::FN_MODULO,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 }
 
 static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 {
+	magasin.categorie = "maths";
+
 	magasin.ajoute_fonction(
 				"traduit",
 				code_inst::FN_TRADUIT,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
-				ctx_script::tous);
-
-	magasin.ajoute_fonction(
-				"bruit_turbulent",
-				code_inst::FN_BRUIT_TURBULENT,
-				signature(
-					types_entrees(type_var::ENT32, type_var::DEC, type_var::VEC3),
-					types_sorties(type_var::DEC)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"complément",
 				code_inst::FN_COMPLEMENT,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"aléa",
 				code_inst::FN_ALEA,
 				signature(
-					types_entrees(type_var::DEC, type_var::DEC),
-					types_sorties(type_var::DEC)),
+					param_entrees(
+						donnees_parametre("min", type_var::DEC),
+						donnees_parametre("max", type_var::DEC, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"restreint",
 				code_inst::FN_RESTREINT,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"enligne",
 				code_inst::FN_ENLIGNE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE),
+						donnees_parametre("facteur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"hermite1",
 				code_inst::FN_HERMITE1,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"hermite2",
 				code_inst::FN_HERMITE2,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"hermite3",
 				code_inst::FN_HERMITE3,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"hermite4",
 				code_inst::FN_HERMITE4,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"hermite5",
 				code_inst::FN_HERMITE5,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"hermite6",
 				code_inst::FN_HERMITE6,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("min", type_var::POLYMORPHIQUE),
+						donnees_parametre("max", type_var::POLYMORPHIQUE, 1.0f),
+						donnees_parametre("neuf_min", type_var::POLYMORPHIQUE),
+						donnees_parametre("neuf_max", type_var::POLYMORPHIQUE, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	/* fonctions mathématiques */
@@ -353,305 +416,349 @@ static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 				"cos",
 				code_inst::FN_COSINUS,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"sin",
 				code_inst::FN_SINUS,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"tan",
 				code_inst::FN_TANGEANTE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"acos",
 				code_inst::FN_ARCCOSINUS,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"asin",
 				code_inst::FN_ARCSINUS,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"atan",
 				code_inst::FN_ARCTANGEANTE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"abs",
 				code_inst::FN_ABSOLU,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"racine_carrée",
 				code_inst::FN_RACINE_CARREE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"exp",
 				code_inst::FN_EXPONENTIEL,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"log",
 				code_inst::FN_LOGARITHME,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"frac",
 				code_inst::FN_FRACTION,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"plafond",
 				code_inst::FN_PLAFOND,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"sol",
 				code_inst::FN_SOL,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"arrondis",
 				code_inst::FN_ARRONDIS,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"nie",
 				code_inst::NIE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"inverse",
 				code_inst::FN_INVERSE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(donnees_parametre("valeur", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"atan2",
 				code_inst::FN_ARCTAN2,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"max",
 				code_inst::FN_MAX,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"min",
 				code_inst::FN_MIN,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"plus_grand_que",
 				code_inst::FN_PLUS_GRAND_QUE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"plus_petit_que",
 				code_inst::FN_PLUS_PETIT_QUE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur1", type_var::POLYMORPHIQUE),
+						donnees_parametre("valeur2", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"puissance",
 				code_inst::FN_PUISSANCE,
 				signature(
-					types_entrees(type_var::POLYMORPHIQUE, type_var::POLYMORPHIQUE),
-					types_sorties(type_var::POLYMORPHIQUE)),
+					param_entrees(
+						donnees_parametre("valeur", type_var::POLYMORPHIQUE),
+						donnees_parametre("exposant", type_var::POLYMORPHIQUE)),
+					param_sorties(donnees_parametre("valeur", type_var::POLYMORPHIQUE))),
 				ctx_script::tous);
 }
 
 static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 {
+	magasin.categorie = "vecteur";
+
 	magasin.ajoute_fonction(
 				"sépare_vec3",
 				code_inst::FN_SEPARE_VEC3,
 				signature(
-					types_entrees(type_var::VEC3),
-					types_sorties(type_var::DEC, type_var::DEC, type_var::DEC)),
+					param_entrees(donnees_parametre("valeur", type_var::VEC3)),
+					param_sorties(
+						donnees_parametre("x", type_var::DEC),
+						donnees_parametre("y", type_var::DEC),
+						donnees_parametre("z", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"combine_vec3",
 				code_inst::FN_COMBINE_VEC3,
 				signature(
-					types_entrees(type_var::DEC, type_var::DEC, type_var::DEC),
-					types_sorties(type_var::VEC3)),
+					param_entrees(
+						donnees_parametre("x", type_var::DEC),
+						donnees_parametre("y", type_var::DEC),
+						donnees_parametre("z", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"base_orthonormale",
 				code_inst::FN_BASE_ORTHONORMALE,
 				signature(
-					types_entrees(type_var::VEC3),
-					types_sorties(type_var::VEC3, type_var::VEC3)),
+					param_entrees(donnees_parametre("valeur", type_var::VEC3)),
+					param_sorties(
+						donnees_parametre("base_a", type_var::VEC3),
+						donnees_parametre("base_b", type_var::VEC3))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"produit_scalaire",
 				code_inst::FN_PRODUIT_SCALAIRE_VEC3,
 				signature(
-					types_entrees(type_var::VEC3, type_var::VEC3),
-					types_sorties(type_var::DEC)),
+					param_entrees(
+						donnees_parametre("vecteur1", type_var::VEC3),
+						donnees_parametre("vecteur2", type_var::VEC3)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"produit_croix",
 				code_inst::FN_PRODUIT_CROIX_VEC3,
 				signature(
-					types_entrees(type_var::VEC3, type_var::VEC3),
-					types_sorties(type_var::VEC3)),
+					param_entrees(
+						donnees_parametre("vecteur1", type_var::VEC3),
+						donnees_parametre("vecteur2", type_var::VEC3)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"longueur",
 				code_inst::FN_LONGUEUR_VEC3,
 				signature(
-					types_entrees(type_var::VEC3),
-					types_sorties(type_var::DEC)),
+					param_entrees(donnees_parametre("vecteur", type_var::VEC3)),
+					param_sorties(donnees_parametre("longeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"normalise",
 				code_inst::FN_NORMALISE_VEC3,
 				signature(
-					types_entrees(type_var::VEC3),
-					types_sorties(type_var::VEC3, type_var::DEC)),
+					param_entrees(donnees_parametre("vecteur", type_var::VEC3)),
+					param_sorties(
+						donnees_parametre("normal", type_var::VEC3),
+						donnees_parametre("longeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"fresnel",
 				code_inst::FN_FRESNEL,
 				signature(
-					types_entrees(type_var::VEC3, type_var::VEC3, type_var::DEC),
-					types_sorties(type_var::DEC)),
+					param_entrees(
+						donnees_parametre("entrée", type_var::VEC3),
+						donnees_parametre("normal", type_var::VEC3),
+						donnees_parametre("index_réfraction", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"réfracte",
 				code_inst::FN_REFRACTE,
 				signature(
-					types_entrees(type_var::VEC3, type_var::VEC3, type_var::DEC),
-					types_sorties(type_var::VEC3)),
+					param_entrees(
+						donnees_parametre("entrée", type_var::VEC3),
+						donnees_parametre("normal", type_var::VEC3),
+						donnees_parametre("index_réfraction", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"réfléchi",
 				code_inst::FN_REFLECHI,
 				signature(
-					types_entrees(type_var::VEC3, type_var::VEC3),
-					types_sorties(type_var::VEC3)),
+					param_entrees(
+						donnees_parametre("entrée", type_var::VEC3),
+						donnees_parametre("normal", type_var::VEC3)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"échantillone_sphère",
 				code_inst::FN_ECHANTILLONE_SPHERE,
 				signature(
-					types_entrees(),
-					types_sorties(type_var::VEC3)),
+					param_entrees(),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
 }
 
 static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 {
+	magasin.categorie = "corps";
+
 	magasin.ajoute_fonction(
 				"ajoute_point",
 				code_inst::FN_AJOUTE_POINT,
-				signature(types_entrees(type_var::VEC3),
-						  types_sorties(type_var::ENT32)),
+				signature(param_entrees(donnees_parametre("position", type_var::VEC3)),
+						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
 
 	magasin.ajoute_fonction(
 				"ajoute_primitive",
 				code_inst::FN_AJOUTE_PRIMITIVE,
-				signature(types_entrees(type_var::ENT32),
-						  types_sorties(type_var::ENT32)),
+				signature(param_entrees(donnees_parametre("type", type_var::ENT32)),
+						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
 
 	magasin.ajoute_fonction(
 				"ajoute_primitive",
 				code_inst::FN_AJOUTE_PRIMITIVE_SOMMETS,
-				signature(types_entrees(type_var::ENT32, type_var::TABLEAU),
-						  types_sorties(type_var::ENT32)),
+				signature(param_entrees(
+							  donnees_parametre("type", type_var::ENT32),
+							  donnees_parametre("sommets", type_var::TABLEAU)),
+						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
 
 	magasin.ajoute_fonction(
 				"ajoute_sommet",
 				code_inst::FN_AJOUTE_SOMMET,
-				signature(types_entrees(type_var::ENT32, type_var::ENT32),
-						  types_sorties(type_var::ENT32)),
+				signature(param_entrees(
+							  donnees_parametre("index_prim", type_var::ENT32),
+							  donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
 
 	magasin.ajoute_fonction(
 				"ajoute_sommets",
 				code_inst::FN_AJOUTE_SOMMETS,
-				signature(types_entrees(type_var::ENT32, type_var::TABLEAU),
-						  types_sorties(type_var::ENT32)),
+				signature(param_entrees(
+							  donnees_parametre("index_prim", type_var::ENT32),
+							  donnees_parametre("sommets", type_var::TABLEAU)),
+						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
 
 	/* ajoute une ligne selon une position et une direction, retourne l'index
@@ -659,57 +766,134 @@ static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 	magasin.ajoute_fonction(
 				"ajoute_ligne",
 				code_inst::FN_AJOUTE_LIGNE,
-				signature(types_entrees(type_var::VEC3, type_var::VEC3),
-						  types_sorties(type_var::ENT32)),
+				signature(param_entrees(
+							  donnees_parametre("point0", type_var::VEC3),
+							  donnees_parametre("point1", type_var::VEC3)),
+						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
 }
 
 static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 {
+	magasin.categorie = "couleur";
+
 	magasin.ajoute_fonction(
 				"sature",
 				code_inst::FN_SATURE,
-				signature(types_entrees(type_var::COULEUR, type_var::DEC),
-						  types_sorties(type_var::COULEUR)),
+				signature(param_entrees(
+							  donnees_parametre("couleur", type_var::COULEUR),
+							  donnees_parametre("luminance", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"luminance",
 				code_inst::FN_LUMINANCE,
-				signature(types_entrees(type_var::COULEUR),
-						  types_sorties(type_var::DEC)),
+				signature(param_entrees(donnees_parametre("couleur", type_var::COULEUR)),
+						  param_sorties(donnees_parametre("valeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"contraste",
 				code_inst::FN_CONTRASTE,
-				signature(types_entrees(type_var::COULEUR, type_var::COULEUR),
-						  types_sorties(type_var::DEC)),
+				signature(param_entrees(
+							  donnees_parametre("avant_plan", type_var::COULEUR),
+							  donnees_parametre("arrière_plan", type_var::COULEUR)),
+						  param_sorties(donnees_parametre("valeur", type_var::DEC))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"corps_noir",
 				code_inst::FN_CORPS_NOIR,
-				signature(types_entrees(type_var::DEC),
-						  types_sorties(type_var::COULEUR)),
+				signature(param_entrees(donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
 				"longueur_onde",
 				code_inst::FN_LONGUEUR_ONDE,
-				signature(types_entrees(type_var::DEC),
-						  types_sorties(type_var::COULEUR)),
+				signature(param_entrees(donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
 }
 
 static void enregistre_fonctions_types(magasin_fonctions &magasin)
 {
+	magasin.categorie = "tableau";
+
 	magasin.ajoute_fonction(
 				"taille",
 				code_inst::FN_TAILLE_TABLEAU,
 				signature(
-					types_entrees(type_var::TABLEAU),
-					types_sorties(type_var::ENT32)),
+					param_entrees(donnees_parametre("tableau", type_var::TABLEAU)),
+					param_sorties(donnees_parametre("index", type_var::ENT32))),
+				ctx_script::tous);
+}
+
+static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
+{
+	magasin.categorie = "bruit";
+
+	auto param_entrees_bruit = param_entrees(
+				donnees_parametre("graine", type_var::ENT32),
+				donnees_parametre("décalage_position", type_var::VEC3),
+				donnees_parametre("échelle_position", type_var::VEC3, 1.0f),
+				donnees_parametre("décalage_valeur", type_var::DEC),
+				donnees_parametre("échelle_valeur", type_var::DEC, 1.0f),
+				donnees_parametre("temps", type_var::DEC)
+				);
+
+	auto param_sortie_bruit = param_sorties(
+				donnees_parametre("valeur", type_var::DEC),
+				donnees_parametre("dérivée", type_var::VEC3));
+
+	const std::pair<const char *, code_inst> paires[] = {
+		{ "bruit_cellule", code_inst::FN_BRUIT_CELLULE },
+		{ "bruit_fourier", code_inst::FN_BRUIT_FOURIER },
+		{ "bruit_ondelette", code_inst::FN_BRUIT_ONDELETTE },
+		{ "bruit_perlin", code_inst::FN_BRUIT_PERLIN },
+		{ "bruit_simplex", code_inst::FN_BRUIT_SIMPLEX },
+		{ "bruit_valeur", code_inst::FN_BRUIT_VALEUR },
+		{ "bruit_voronoi_f1", code_inst::FN_BRUIT_VORONOI_F1 },
+		{ "bruit_voronoi_f2", code_inst::FN_BRUIT_VORONOI_F2 },
+		{ "bruit_voronoi_f3", code_inst::FN_BRUIT_VORONOI_F3 },
+		{ "bruit_voronoi_f4", code_inst::FN_BRUIT_VORONOI_F4 },
+		{ "bruit_voronoi_f1f2", code_inst::FN_BRUIT_VORONOI_F1F2 },
+		{ "bruit_voronoi_cr", code_inst::FN_BRUIT_VORONOI_CR }
+	};
+
+	for (auto paire : paires) {
+		magasin.ajoute_fonction(
+					paire.first,
+					paire.second,
+					signature(
+						param_entrees_bruit,
+						param_sorties(donnees_parametre("bruit", type_var::ENT32))),
+					ctx_script::tous);
+	}
+
+	magasin.ajoute_fonction(
+				"évalue_bruit",
+				code_inst::FN_EVALUE_BRUIT,
+				signature(
+					param_entrees(
+						donnees_parametre("bruit", type_var::ENT32),
+						donnees_parametre("position", type_var::VEC3)),
+					param_sortie_bruit),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_bruit_turbulence",
+				code_inst::FN_EVALUE_BRUIT_TURBULENCE,
+				signature(
+					param_entrees(
+						donnees_parametre("bruit", type_var::ENT32),
+						donnees_parametre("position", type_var::VEC3),
+						donnees_parametre("octaves", type_var::DEC, 8.0f),
+						donnees_parametre("gain", type_var::DEC, 1.0f),
+						donnees_parametre("lacunarité", type_var::DEC, 2.0f),
+						donnees_parametre("amplitude", type_var::DEC, 1.0f)),
+					param_sortie_bruit),
 				ctx_script::tous);
 }
 
@@ -721,6 +905,7 @@ void enregistre_fonctions_base(magasin_fonctions &magasin)
 	enregistre_fonctions_corps(magasin);
 	enregistre_fonctions_colorimetriques(magasin);
 	enregistre_fonctions_types(magasin);
+	enregistre_fonctions_bruits(magasin);
 }
 
 }  /* namespace lcc */

@@ -35,24 +35,29 @@ namespace dls {
  */
 template <typename T>
 struct tableau_boucle {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
+
 private:
-	tableau<T> m_tabl{};
+	tableau<type_valeur> m_tabl{};
 	long m_index = 0;
 
 public:
 	tableau_boucle() = default;
 
-	void pousse(T &&valeur)
+	void pousse(type_valeur &&valeur)
 	{
 		m_tabl.pousse(valeur);
 	}
 
-	void pousse(T const &valeur)
+	void pousse(type_reference_const valeur)
 	{
 		m_tabl.pousse(valeur);
 	}
 
-	T const &element()
+	type_reference_const element()
 	{
 		if (m_index == m_tabl.taille()) {
 			m_index = 0;

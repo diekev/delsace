@@ -5,6 +5,7 @@ disposition "operatrice_bruit" {
 			 {nom="Cellule", valeur="cellule"},
 			 {nom="Fourier", valeur="fourier"},
 			 {nom="Ondelette", valeur="ondelette"},
+			 {nom="Perlin Long", valeur="perlin_long"},
 			 {nom="Simplex", valeur="simplex"},
 			 {nom="Voronoi F1", valeur="voronoi_f1"},
 			 {nom="Voronoi F2", valeur="voronoi_f2"},

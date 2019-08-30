@@ -32,24 +32,35 @@ int main()
 	auto lcc = lcc::LCC();
 	lcc::initialise(lcc);
 
-	auto nom_fonctions = dls::tableau<dls::chaine>();
+	auto nom_categories = dls::tableau<dls::chaine>();
 
-	for (auto const &paire_df : lcc.fonctions.table) {
-		nom_fonctions.pousse(paire_df.first);
+	for (auto const &paire_df : lcc.fonctions.table_categories) {
+		nom_categories.pousse(paire_df.first);
 	}
 
-	std::sort(begin(nom_fonctions), end(nom_fonctions));
+	std::sort(begin(nom_categories), end(nom_categories));
 
 	os << "menu \"Noeud Détail\" {\n";
 	os << "\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud; métadonnée=\"Entrée Détail\")\n";
 	os << "\taction(valeur=\"Sortie Détail\"; attache=ajouter_noeud; métadonnée=\"Sortie Détail\")\n";
-	for (auto const &nom : nom_fonctions) {
-		os << "\taction(valeur=\"";
-		os << nom;
-		os << "\"; attache=ajouter_noeud_detail; métadonnée=\"";
-		os << nom;
-		os << "\")\n";
+	os << "\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud; métadonnée=\"Entrée Attribut\")\n";
+	os << "\taction(valeur=\"Sortie Attribut\"; attache=ajouter_noeud; métadonnée=\"Sortie Attribut\")\n";
+
+	for (auto const &categorie : nom_categories) {
+		auto const &fonctions = lcc.fonctions.table_categories[categorie];
+
+		os << "\tmenu \"" << categorie << "\" {\n";
+
+		for (auto const &fonction : fonctions) {
+			os << "\t\taction(valeur=\"";
+			os << fonction;
+			os << "\"; attache=ajouter_noeud_detail; métadonnée=\"";
+			os << fonction;
+			os << "\")\n";
+		}
+		os << "\t}\n";
 	}
+
 	os << "}\n";
 
 	return 0;

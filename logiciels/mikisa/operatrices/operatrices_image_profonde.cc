@@ -105,12 +105,12 @@ static auto fusionne_echant_surposes(
 	}
 }
 
-class OpAplanisProfonde : public OperatriceImage {
+class OpAplanisProfonde final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Aplanis Image Profonde";
 	static constexpr auto AIDE = "";
 
-	OpAplanisProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpAplanisProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -250,12 +250,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpFusionProfonde : public OperatriceImage {
+class OpFusionProfonde final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Fusion Profondes";
 	static constexpr auto AIDE = "";
 
-	OpFusionProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpFusionProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -482,7 +482,7 @@ static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin
 	return nullptr;
 }
 
-class OpPointsDepuisProfonde : public OperatriceCorps {
+class OpPointsDepuisProfonde final : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
 
@@ -490,7 +490,7 @@ public:
 	static constexpr auto NOM = "Point depuis Profonde";
 	static constexpr auto AIDE = "";
 
-	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud *noeud)
+	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -704,12 +704,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpCacheImage : public OperatriceImage {
+class OpCacheImage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Cache Image";
 	static constexpr auto AIDE = "";
 
-	OpCacheImage(Graphe &graphe_parent, Noeud *noeud)
+	OpCacheImage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceImage(graphe_parent, noeud)
 	{
 		entrees(1);

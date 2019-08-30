@@ -291,11 +291,9 @@ void ContexteGenerationCode::empile_nombre_locales()
 
 void ContexteGenerationCode::depile_nombre_locales()
 {
-	auto nombre_locales = m_pile_nombre_locales.haut();
 	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
-	assert(nombre_locales <= m_nombre_locales);
-	m_nombre_locales = nombre_locales;
-	m_pile_nombre_locales.depile();
+	assert(m_pile_nombre_locales.haut() <= m_nombre_locales);
+	m_nombre_locales = m_pile_nombre_locales.depile();
 }
 
 void ContexteGenerationCode::imprime_locales(std::ostream &os)

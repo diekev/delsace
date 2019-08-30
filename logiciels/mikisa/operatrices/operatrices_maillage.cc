@@ -265,12 +265,12 @@ static auto applique_lissage(
 	});
 }
 
-class OperatriceLissageLaplacien : public OperatriceCorps {
+class OperatriceLissageLaplacien final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Lissage Laplacien";
 	static constexpr auto AIDE = "Performe un lissage laplacien des points du corps d'entrée.";
 
-	OperatriceLissageLaplacien(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceLissageLaplacien(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -346,12 +346,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceTriangulation : public OperatriceCorps {
+class OperatriceTriangulation final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Triangulation";
 	static constexpr auto AIDE = "Performe une triangulation des polygones du corps d'entrée.";
 
-	OperatriceTriangulation(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceTriangulation(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -561,12 +561,12 @@ static auto covariance_maillage(Corps const &corps)
 	return MC;
 }
 
-class OperatriceNormaliseCovariance : public OperatriceCorps {
+class OperatriceNormaliseCovariance final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Normalise Covariance";
 	static constexpr auto AIDE = "Modifie les points pour que la covariance moyenne soit égale à 1.";
 
-	OperatriceNormaliseCovariance(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceNormaliseCovariance(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -621,14 +621,14 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceAligneCovariance : public OperatriceCorps {
+class OperatriceAligneCovariance final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Aligne Covariance";
 	static constexpr auto AIDE = "Tourne l'objet de sorte que l'axe locale de "
 								 "covariance le plus grand soit aligné avec "
 								 "l'axe des X, et le second avec l'axe des Y.";
 
-	OperatriceAligneCovariance(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceAligneCovariance(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -744,12 +744,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceBruitTopologique : public OperatriceCorps {
+class OperatriceBruitTopologique final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Bruit Topologique";
 	static constexpr auto AIDE = "";
 
-	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -834,12 +834,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceErosionMaillage : public OperatriceCorps {
+class OperatriceErosionMaillage final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Érosion Maillage";
 	static constexpr auto AIDE = "";
 
-	OperatriceErosionMaillage(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceErosionMaillage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1263,12 +1263,12 @@ static auto restreint_attribut_max(Attribut *attr, float const valeur_max)
  * +---------------+----------+---------+---------------------------------------+
  */
 
-class OpGeometrieMaillage : public OperatriceCorps {
+class OpGeometrieMaillage final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Géométrie Maillage";
 	static constexpr auto AIDE = "";
 
-	OpGeometrieMaillage(Graphe &graphe_parent, Noeud *noeud)
+	OpGeometrieMaillage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1452,12 +1452,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpFonteMaillage : public OperatriceCorps {
+class OpFonteMaillage final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Fonte Maillage";
 	static constexpr auto AIDE = "Simule un effet de fonte du maillage d'entrée";
 
-	OpFonteMaillage(Graphe &graphe_parent, Noeud *noeud)
+	OpFonteMaillage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1588,12 +1588,12 @@ public:
  * Test pour comprendre les Couleurs de Maillage ("Mesh Colors").
  * Voir http://www.cemyuksel.com/research/meshcolors/meshcolors_tog.pdf
  */
-class OpCouleurMaillage : public OperatriceCorps {
+class OpCouleurMaillage final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Couleur Maillage";
 	static constexpr auto AIDE = "Crée des couleurs sur un maillage";
 
-	OpCouleurMaillage(Graphe &graphe_parent, Noeud *noeud)
+	OpCouleurMaillage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

@@ -293,12 +293,12 @@ static std::vector<std::array<int,3>> ExtractSurfaceTriangles(const int nvx, con
 
 /* ************************************************************************** */
 
-class OperatriceSNH : public OperatriceCorps {
+class OperatriceSNH final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Stable Neo Hookean";
 	static constexpr auto AIDE = "";
 
-	OperatriceSNH(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceSNH(Graphe &graphe_parent, Noeud &noeud);
 
 	const char *chemin_entreface() const override;
 
@@ -311,7 +311,7 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };
 
-OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud *noeud)
+OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud)
 	: OperatriceCorps(graphe_parent, noeud)
 {
 	entrees(1);

@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 #include "donnees_type.h"
 
@@ -34,12 +35,12 @@ namespace lcc {
 /* ************************************************************************** */
 
 struct signature {
-	types_entrees entrees{};
-	types_sorties sorties{};
+	param_entrees entrees{};
+	param_sorties sorties{};
 
 	signature() = default;
 
-	signature(types_entrees _entrees_, types_sorties _sorties_);
+	signature(param_entrees _entrees_, param_sorties _sorties_);
 };
 
 /* ************************************************************************** */
@@ -76,7 +77,10 @@ struct magasin_fonctions {
 			dls::chaine const &nom,
 			types_entrees const &type_params);
 
+	dls::chaine categorie = "";
+
 	dls::dico_desordonne<dls::chaine, dls::tableau<donnees_fonction>> table{};
+	dls::dico_desordonne<dls::chaine, dls::ensemble<dls::chaine>> table_categories{};
 };
 
 /* ************************************************************************** */

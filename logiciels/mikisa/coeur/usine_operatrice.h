@@ -36,7 +36,7 @@ class Noeud;
 class OperatriceImage;
 
 struct DescOperatrice {
-	using fonction_construction = std::function<OperatriceImage *(Graphe &, Noeud *)>;
+	using fonction_construction = std::function<OperatriceImage *(Graphe &, Noeud &)>;
 	using fonction_destruction = std::function<void(OperatriceImage *)>;
 
 	DescOperatrice() = default;
@@ -64,7 +64,7 @@ inline DescOperatrice cree_desc()
 	return DescOperatrice(
 				T::NOM,
 				T::AIDE,
-				[](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
+				[](Graphe &graphe_parent, Noeud &noeud) -> OperatriceImage*
 	{
 		return memoire::loge<T>(T::NOM, graphe_parent, noeud);
 	},
@@ -118,7 +118,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
-	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud *noeud);
+	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud);
 
 	void deloge(OperatriceImage *operatrice);
 

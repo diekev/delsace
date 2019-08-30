@@ -459,7 +459,7 @@ public:
 	static constexpr auto NOM = "Simulation Vêtement";
 	static constexpr auto AIDE = "Simule un vêtement selon l'algorithme de Dynamiques Basées Point.";
 
-	explicit OperatriceSimVetement(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSimVetement(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -811,8 +811,7 @@ poisson_disc_distribution(config conf, T&& random, T2&& in_area, T3&& output)
 	add(conf.start);
 
 	while (!process.est_vide()) {
-		auto point = process.haut();
-		process.depile();
+		auto point = process.depile();
 
 		for (int i = 0; i != conf.max_attempts; ++i) {
 			auto p = point_around(point);
@@ -1025,12 +1024,12 @@ private:
 	dls::tableau<VertexType> _vertices{};
 };
 
-class OpPatchTriangle : public OperatriceCorps {
+class OpPatchTriangle final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Patch Triangle";
 	static constexpr auto AIDE = "";
 
-	OpPatchTriangle(Graphe &graphe_parent, Noeud *noeud)
+	OpPatchTriangle(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);

@@ -54,8 +54,6 @@
 
 namespace coeur {
 
-/* À FAIRE : sauvegarde et lecture des opératrices fonction détail */
-
 static Graphe *graphe_operatrice(OperatriceImage *operatrice)
 {
 	switch (operatrice->type()) {
@@ -102,6 +100,7 @@ static void sauvegarde_proprietes(
 		element_prop->SetAttribut("visible", prop.visible);
 		element_prop->SetAttribut("type", static_cast<int>(prop.type));
 		element_prop->SetAttribut("anime", prop.est_animee());
+		element_prop->SetAttribut("est_extra", prop.est_extra);
 
 		auto element_donnees = doc.NewElement("donnees");
 
@@ -292,6 +291,15 @@ static auto ecris_noeud(
 			auto element_operatrice = doc.NewElement("operatrice");
 			element_operatrice->SetAttribut("nom", operatrice->nom_classe());
 
+			if (operatrice->type() == OPERATRICE_DETAIL) {
+				auto op_detail = dynamic_cast<OperatriceFonctionDetail *>(operatrice);
+				element_operatrice->SetAttribut("detail", op_detail->nom_fonction.c_str());
+			}
+			else if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
+				auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
+				element_operatrice->SetAttribut("type_detail", op_detail->type_detail);
+			}
+
 			sauvegarde_proprietes(doc, element_operatrice, operatrice);
 
 			/* Graphe */
@@ -405,7 +413,6 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		return erreur_fichier::NON_OUVERT;
 	}
 
-	/* À FAIRE : trouver quelles sont les autres erreurs possibles. */
 	if (resultat != dls::xml::XML_SUCCESS) {
 		return erreur_fichier::INCONNU;
 	}
@@ -421,6 +428,7 @@ static void lecture_propriete(
 {
 	auto const type_prop = element->attribut("type");
 	auto const nom_prop = element->attribut("nom");
+	auto const est_extra = element->attribut("est_extra");
 
 	auto const element_donnees = element->FirstChildElement("donnees");
 
@@ -547,6 +555,11 @@ static void lecture_propriete(
 			/* À FAIRE */
 			break;
 	}
+
+	if (est_extra && static_cast<bool>(atoi(est_extra))) {
+		auto prop = manipulable->propriete(nom_prop);
+		prop->est_extra = true;
+	}
 }
 
 static void lecture_proprietes(
@@ -620,26 +633,45 @@ static void lecture_noeud(
 		{
 			auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
 			auto const nom_operatrice = element_operatrice->attribut("nom");
+			auto const nom_detail = element_operatrice->attribut("detail");
+			auto const type_detail = element_operatrice->attribut("type_detail");
 
-			OperatriceImage *operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, noeud);
-			lecture_proprietes(element_operatrice, operatrice);
-			synchronise_donnees_operatrice(noeud);
-			operatrice->performe_versionnage();
+			if (nom_detail == nullptr) {
+				auto operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, *noeud);
+				lecture_proprietes(element_operatrice, operatrice);
+				synchronise_donnees_operatrice(*noeud);
+				operatrice->performe_versionnage();
 
-			if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
-				noeud->type(NOEUD_IMAGE_SORTIE);
-				graphe->dernier_noeud_sortie = noeud;
+				if (type_detail != nullptr && operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
+					auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
+					op_detail->type_detail = std::atoi(type_detail);
+					/* il faut que le type de détail soit correct car
+					 * l'opératrice n'est pas exécutée quand les noeuds sont
+					 * ajoutés dans son graphe */
+					op_detail->graphe()->donnees.efface();
+					op_detail->graphe()->donnees.pousse(op_detail->type_detail);
+				}
+
+				if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
+					noeud->type(NOEUD_IMAGE_SORTIE);
+					graphe->dernier_noeud_sortie = noeud;
+				}
+				else if (std::strcmp(nom_operatrice, "Sortie Corps") == 0) {
+					noeud->type(NOEUD_OBJET_SORTIE);
+					graphe->dernier_noeud_sortie = noeud;
+				}
+
+				auto element_graphe = element_operatrice->FirstChildElement("graphe");
+
+				if (element_graphe != nullptr) {
+					auto graphe_op = graphe_operatrice(operatrice);
+					lecture_graphe(element_graphe, mikisa, graphe_op);
+				}
 			}
-			else if (std::strcmp(nom_operatrice, "Sortie Corps") == 0) {
-				noeud->type(NOEUD_OBJET_SORTIE);
-				graphe->dernier_noeud_sortie = noeud;
-			}
-
-			auto element_graphe = element_operatrice->FirstChildElement("graphe");
-
-			if (element_graphe != nullptr) {
-				auto graphe_op = graphe_operatrice(operatrice);
-				lecture_graphe(element_graphe, mikisa, graphe_op);
+			else {
+				auto op = cree_op_detail(mikisa, *graphe, *noeud, nom_detail);
+				synchronise_donnees_operatrice(*noeud);
+				lecture_proprietes(element_operatrice, op);
 			}
 
 			break;
@@ -809,7 +841,31 @@ static auto cherche_graphe_pour_chemin(Mikisa &mikisa)
 		return static_cast<Graphe *>(nullptr);
 	}
 
-	return &entite_racine->graphe;
+	if (morceaux.taille() == 2) {
+		return &entite_racine->graphe;
+	}
+
+	for (auto noeud : entite_racine->graphe.noeuds()) {
+		if (noeud->nom() != morceaux[2]) {
+			continue;
+		}
+
+		auto op = extrait_opimage(noeud->donnees());
+
+		if (op->type() == OPERATRICE_SIMULATION) {
+			auto op_sim = dynamic_cast<OperatriceSimulation *>(op);
+			return op_sim->graphe();
+		}
+
+		if (op->type() == OPERATRICE_GRAPHE_DETAIL) {
+			auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(op);
+			return op_detail->graphe();
+		}
+
+		break;
+	}
+
+	return static_cast<Graphe *>(nullptr);
 }
 
 static auto cherche_graphe_pour_contexte(Mikisa &mikisa)

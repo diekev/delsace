@@ -41,12 +41,12 @@
 
 /* ************************************************************************** */
 
-class OperatriceEntreeSimulation : public OperatriceCorps {
+class OperatriceEntreeSimulation final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Entrée Simulation";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceEntreeSimulation(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceEntreeSimulation(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(0);
@@ -83,12 +83,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceGravite : public OperatriceCorps {
+class OperatriceGravite final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Gravité";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceGravite(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceGravite(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -137,12 +137,12 @@ public:
 /* ************************************************************************** */
 
 /* À FAIRE : manipulatrice dédiée pour la position/orientation. */
-class OperatriceVent : public OperatriceCorps {
+class OperatriceVent final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Vent";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceVent(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVent(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -203,12 +203,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceSolveurParticules : public OperatriceCorps {
+class OperatriceSolveurParticules final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Solveur Particules";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceSolveurParticules(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSolveurParticules(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -302,12 +302,12 @@ enum rep_collision {
 	COLLE,
 };
 
-class OperatriceCollision : public OperatriceCorps {
+class OperatriceCollision final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Collision";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceCollision(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCollision(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 	}
@@ -773,12 +773,12 @@ public:
 	}
 };
 
-class OperatriceSolveurNCorps : public OperatriceCorps {
+class OperatriceSolveurNCorps final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Solveur N-Corps";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceSolveurNCorps(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSolveurNCorps(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

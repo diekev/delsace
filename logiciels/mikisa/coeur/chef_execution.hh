@@ -26,6 +26,8 @@
 
 #include <mutex>
 
+#include "wolika/interruptrice.hh"
+
 class Mikisa;
 
 class ChefExecution {
@@ -60,4 +62,21 @@ public:
 	void reinitialise();
 
 	void incremente_compte_a_executer();
+};
+
+/* ************************************************************************** */
+
+struct ChefWolika : public wlk::interruptrice {
+	ChefExecution *chef;
+
+	ChefWolika(ChefExecution *chef_ex, const char *message);
+
+	ChefWolika(ChefWolika const &) = default;
+	ChefWolika &operator=(ChefWolika const &) = default;
+
+	bool interrompue() const override;
+
+	void indique_progression(float progression) override;
+
+	void indique_progression_parallele(float delta) override;
 };

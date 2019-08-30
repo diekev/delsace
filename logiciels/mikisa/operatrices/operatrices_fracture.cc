@@ -472,8 +472,7 @@ auto cherche_chevauchement(
 	}
 
 	while (!noeuds.est_vide()) {
-		auto noeud = noeuds.haut();
-		noeuds.depile();
+		auto noeud = noeuds.depile();
 
 		if (noeud->totnode == 0) {
 			delegue.element_chevauche(noeud->index, triangle);
@@ -840,7 +839,7 @@ struct Info_Inter {
 	unsigned Id;
 };
 
-class OpBooleensMaillage : public OperatriceCorps {
+class OpBooleensMaillage final : public OperatriceCorps {
 	enum {
 		UNION,
 		INTER,
@@ -855,7 +854,7 @@ public:
 	static constexpr auto NOM = "Booléens maillages";
 	static constexpr auto AIDE = "";
 
-	OpBooleensMaillage(Graphe &graphe_parent, Noeud *noeud)
+	OpBooleensMaillage(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -2082,12 +2081,12 @@ struct cell {
 	cell() = default;
 };
 
-class OperatriceFractureVoronoi : public OperatriceCorps {
+class OperatriceFractureVoronoi final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Fracture Voronoi";
 	static constexpr auto AIDE = "";
 
-	OperatriceFractureVoronoi(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceFractureVoronoi(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);

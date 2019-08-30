@@ -106,6 +106,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_ajout_corps_rigide.jo
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
+	scripts_danjo/operatrice_attribut_detail.jo
 	scripts_danjo/operatrice_bilateral_image.jo
 	scripts_danjo/operatrice_bruit_blanc.jo
 	scripts_danjo/operatrice_bruit_cheveux.jo

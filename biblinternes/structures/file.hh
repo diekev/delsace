@@ -32,8 +32,13 @@ namespace dls {
 
 template <typename T>
 struct file {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
+
 private:
-	dls::tableau<T> m_file{};
+	tableau<type_valeur> m_file{};
 
 public:
 	file() = default;
@@ -43,41 +48,43 @@ public:
 		return m_file.est_vide();
 	}
 
-	long taille() const
+	type_taille taille() const
 	{
 		return m_file.taille();
 	}
 
-	T &front()
+	type_reference front()
 	{
 		return m_file.front();
 	}
 
-	T const &front() const
+	type_reference_const front() const
 	{
 		return m_file.front();
 	}
 
-	void enfile(T const &valeur)
+	void enfile(type_reference_const valeur)
 	{
 		m_file.pousse(valeur);
 	}
 
-	void enfile(dls::tableau<T> const &valeurs)
+	void enfile(tableau<type_valeur> const &valeurs)
 	{
 		for (auto const &valeur : valeurs) {
 			m_file.pousse(valeur);
 		}
 	}
 
-	void defile()
+	type_valeur defile()
 	{
+		auto t = front();
 		m_file.pop_front();
+		return t;
 	}
 
-	dls::tableau<T> defile(long compte)
+	tableau<type_valeur> defile(long compte)
 	{
-		auto ret = dls::tableau<T>(compte);
+		auto ret = tableau<type_valeur>(compte);
 
 		for (auto i = 0; i < compte; ++i) {
 			ret.pousse(m_file.front());
@@ -90,8 +97,13 @@ public:
 
 template <typename T, unsigned long N>
 struct file_fixe {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
+
 private:
-	T m_file[N];
+	type_valeur m_file[N];
 	long m_taille = 0;
 
 public:
@@ -107,22 +119,22 @@ public:
 		return m_taille == N;
 	}
 
-	long taille() const noexcept
+	type_taille taille() const noexcept
 	{
 		return m_taille;
 	}
 
-	T &front() noexcept
+	type_reference front() noexcept
 	{
 		return m_file[0];
 	}
 
-	T const &front() const noexcept
+	type_reference_const front() const noexcept
 	{
 		return m_file[0];
 	}
 
-	void enfile(T const &valeur)
+	void enfile(type_reference_const valeur)
 	{
 		if (m_taille + 1 < N) {
 			m_file[m_taille] = valeur;
@@ -130,13 +142,17 @@ public:
 		}
 	}
 
-	void defile() noexcept
+	type_valeur defile() noexcept
 	{
+		auto t = front();
+
 		for (auto i = 1l; i < m_taille; ++i) {
 			m_file[i - 1] = m_file[i];
 		}
 
 		m_taille -= 1;
+
+		return t;
 	}
 };
 
@@ -148,7 +164,11 @@ struct file_priorite {
 	using type_taille = long;
 
 private:
-	std::priority_queue<T, std::vector<T, memoire::logeuse_guardee<T>>, Compare> m_file{};
+	using type_logeuse = memoire::logeuse_guardee<type_valeur>;
+	using type_conteneur = std::vector<type_valeur, type_logeuse>;
+	using type_queue = std::priority_queue<type_valeur, type_conteneur, Compare>;
+
+	type_queue m_file{};
 
 public:
 	file_priorite() = default;
@@ -169,9 +189,11 @@ public:
 		return m_file.top();
 	}
 
-	void defile()
+	type_valeur defile()
 	{
+		auto t = haut();
 		m_file.pop();
+		return t;
 	}
 
 	void enfile(type_valeur const &valeur)

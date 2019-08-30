@@ -24,9 +24,11 @@
 
 #pragma once
 
+#include "blanc.hh"
 #include "cellule.hh"
 #include "fourier.hh"
 #include "ondelette.hh"
+#include "perlin.hh"
 #include "simplex.hh"
 #include "turbulent.hh"
 #include "voronoi.hh"
@@ -37,8 +39,10 @@ void construit(type type, bruit::parametres &params, int graine);
 
 float evalue(bruit::parametres const &params, dls::math::vec3f pos);
 
-void construit_turb(type type, int graine, bruit::parametres &params, bruit::param_turbulence const &params_turb);
+float evalue_turb(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos);
 
-float evalue_turb(bruit::parametres &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos);
+float evalue_derivee(bruit::parametres const &params, dls::math::vec3f pos, dls::math::vec3f &derivee);
+
+float evalue_turb_derivee(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos, dls::math::vec3f &derivee);
 
 }  /* namespace bruit */

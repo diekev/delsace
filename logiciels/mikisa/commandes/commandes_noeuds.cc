@@ -187,6 +187,34 @@ public:
 
 /* ************************************************************************** */
 
+static bool finalise_ajout_noeud(
+		Mikisa &mikisa,
+		Graphe &graphe,
+		Noeud &noeud)
+{
+	noeud.pos_x(graphe.centre_x);
+	noeud.pos_y(graphe.centre_y);
+
+	if (graphe.connexion_active != nullptr) {
+		if (graphe.connexion_active->prise_entree != nullptr) {
+			graphe.connecte(noeud.sortie(0), graphe.connexion_active->prise_entree);
+		}
+		else if (graphe.connexion_active->prise_sortie != nullptr) {
+			graphe.connecte(graphe.connexion_active->prise_sortie, noeud.entree(0));
+		}
+
+		memoire::deloge("Connexion", graphe.connexion_active);
+	}
+
+	auto besoin_evaluation = selectionne_noeud(mikisa, &noeud, graphe);
+
+	mikisa.notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+	return besoin_evaluation;
+}
+
+/* ************************************************************************** */
+
 class CommandeAjoutNoeud final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
@@ -197,11 +225,8 @@ public:
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->cree_noeud(nom);
 
-		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, noeud);
-		synchronise_donnees_operatrice(noeud);
-
-		noeud->pos_x(mikisa->graphe->centre_x);
-		noeud->pos_y(mikisa->graphe->centre_y);
+		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
+		synchronise_donnees_operatrice(*noeud);
 
 		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
 			noeud->type(NOEUD_IMAGE_SORTIE);
@@ -210,20 +235,7 @@ public:
 			noeud->type(NOEUD_OBJET_SORTIE);
 		}
 
-		if (graphe->connexion_active != nullptr) {
-			if (graphe->connexion_active->prise_entree != nullptr) {
-				graphe->connecte(noeud->sortie(0), graphe->connexion_active->prise_entree);
-			}
-			else if (graphe->connexion_active->prise_sortie != nullptr) {
-				graphe->connecte(graphe->connexion_active->prise_sortie, noeud->entree(0));
-			}
-
-			memoire::deloge("Connexion", graphe->connexion_active);
-		}
-
-		auto besoin_evaluation = selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
-
-		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
 		if (besoin_evaluation || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
@@ -245,37 +257,63 @@ public:
 		auto graphe = mikisa->graphe;
 		auto noeud = graphe->cree_noeud(nom);
 
-		/* À FAIRE : gestion des fonctions avec surcharges. */
-		auto const &table_df = mikisa->lcc->fonctions.table[nom];
-		auto df = &table_df.front();
+		auto op = cree_op_detail(*mikisa, *graphe, *noeud, nom);
+		op->cree_proprietes();
+		synchronise_donnees_operatrice(*noeud);
 
-		auto op = memoire::loge<OperatriceFonctionDetail>("Fonction Détail", *graphe, noeud, df);
-		INUTILISE(op);
-		synchronise_donnees_operatrice(noeud);
-
-		noeud->pos_x(mikisa->graphe->centre_x);
-		noeud->pos_y(mikisa->graphe->centre_y);
-
-		if (graphe->connexion_active != nullptr) {
-			if (graphe->connexion_active->prise_entree != nullptr) {
-				graphe->connecte(noeud->sortie(0), graphe->connexion_active->prise_entree);
-			}
-			else if (graphe->connexion_active->prise_sortie != nullptr) {
-				graphe->connecte(graphe->connexion_active->prise_sortie, noeud->entree(0));
-			}
-
-			memoire::deloge("Connexion", graphe->connexion_active);
-		}
-
-		auto besoin_evaluation = selectionne_noeud(*mikisa, noeud, *mikisa->graphe);
-
-		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
 		if (besoin_evaluation || mikisa->contexte == GRAPHE_DETAIL) {
 			if (mikisa->contexte == GRAPHE_DETAIL) {
 				graphe_detail_notifie_parent_suranne(*mikisa);
 			}
 
+			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
+		}
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class CommandeAjoutGrapheDetail final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+
+		auto nom = donnees.metadonnee;
+		auto type_detail = 0;
+
+		if (nom == "détail_point") {
+			type_detail = DETAIL_POINTS;
+		}
+		else if (nom == "détail_voxel") {
+			type_detail = DETAIL_VOXELS;
+		}
+		else {
+			mikisa->affiche_erreur("Type de graphe détail inconnu");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto graphe = mikisa->graphe;
+		auto noeud = graphe->cree_noeud(nom);
+
+		auto op = (mikisa->usine_operatrices())("Graphe Détail", *graphe, *noeud);
+		synchronise_donnees_operatrice(*noeud);
+
+		auto op_graphe = dynamic_cast<OperatriceGrapheDetail *>(op);
+		op_graphe->type_detail = type_detail;
+		/* il faut que le type de détail soit correct car il est possible que
+		 * l'opératrice ne fut pas exécutée avant que des noeuds soient ajoutés
+		 * dans son graphe */
+		op_graphe->graphe()->donnees.efface();
+		op_graphe->graphe()->donnees.pousse(type_detail);
+
+		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
+
+		if (besoin_evaluation) {
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
 		}
 
@@ -1030,6 +1068,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 
 	usine.enregistre_type("ajouter_noeud_detail",
 						   description_commande<CommandeAjoutNoeudDetail>(
+							   "graphe", 0, 0, 0, false));
+
+	usine.enregistre_type("ajouter_graphe_detail",
+						   description_commande<CommandeAjoutGrapheDetail>(
 							   "graphe", 0, 0, 0, false));
 
 	usine.enregistre_type("selection_graphe",

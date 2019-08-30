@@ -44,7 +44,7 @@ public:
 	static constexpr auto NOM = "Création Attribut";
 	static constexpr auto AIDE = "Crée un attribut.";
 
-	explicit OperatriceCreationAttribut(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationAttribut(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -153,7 +153,7 @@ public:
 	static constexpr auto NOM = "Suppression Attribut";
 	static constexpr auto AIDE = "Supprime un attribut.";
 
-	explicit OperatriceSuppressionAttribut(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSuppressionAttribut(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -250,7 +250,7 @@ public:
 	static constexpr auto NOM = "Randomisation Attribut";
 	static constexpr auto AIDE = "Randomise un attribut.";
 
-	explicit OperatriceRandomisationAttribut(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceRandomisationAttribut(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -559,7 +559,7 @@ public:
 	static constexpr auto NOM = "Couleur";
 	static constexpr auto AIDE = "Ajoute un attribut de couleur à la géométrie entrante.";
 
-	explicit OperatriceAjoutCouleur(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceAjoutCouleur(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -708,7 +708,7 @@ public:
 	static constexpr auto NOM = "Création Normaux";
 	static constexpr auto AIDE = "Crée des normaux pour les maillages d'entrée.";
 
-	explicit OperatriceCreationNormaux(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationNormaux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -792,7 +792,7 @@ public:
 	static constexpr auto NOM = "Transfère Attributs";
 	static constexpr auto AIDE = "";
 
-	explicit OpTransfereAttributs(Graphe &graphe_parent, Noeud *noeud)
+	OpTransfereAttributs(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -1039,7 +1039,7 @@ public:
 	static constexpr auto NOM = "Promeut Attributs";
 	static constexpr auto AIDE = "";
 
-	explicit OpPromeutAttribut(Graphe &graphe_parent, Noeud *noeud)
+	OpPromeutAttribut(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

@@ -43,7 +43,7 @@ public:
 	static constexpr auto NOM = "Simulation";
 	static constexpr auto AIDE = "Ajoute un noeud de simulation physique";
 
-	explicit OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud);
 
 	virtual const char *nom_classe() const override;
 

@@ -60,6 +60,7 @@ enum {
 	OPERATRICE_CORPS,
 	OPERATRICE_SORTIE_CORPS,
 	OPERATRICE_GRAPHE_DETAIL,
+	OPERATRICE_DETAIL,
 	OPERATRICE_SIMULATION,
 };
 
@@ -183,7 +184,7 @@ public:
 	/* Prevent creating an operator without an accompanying node. */
 	OperatriceImage() = delete;
 
-	explicit OperatriceImage(Graphe &graphe_parent, Noeud *node);
+	OperatriceImage(Graphe &graphe_parent, Noeud &noeud);
 
 	OperatriceImage(OperatriceImage const &) = default;
 	OperatriceImage &operator=(OperatriceImage const &) = default;

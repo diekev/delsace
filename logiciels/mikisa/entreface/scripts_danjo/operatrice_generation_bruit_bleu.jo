@@ -15,4 +15,8 @@ disposition "operatrice_generation_bruit_bleu" {
 		étiquette(valeur="Graine")
 		entier(valeur=1; attache=graine; min=1; infobulle="Rend le bruit unique avec un valeur différente.")
 	}
+	ligne {
+		étiquette(valeur="Algorithme Génétique")
+		case(valeur=faux; attache=génétique; infobulle="Utilise un algorithme génétique pour résoudre le problème.")
+	}
 }

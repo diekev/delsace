@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301) USA.
  *
  * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
@@ -42,7 +42,6 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_BASE_ORTHONORMALE)
 		CHAINE_CAS(code_inst::FN_COMBINE_VEC3)
 		CHAINE_CAS(code_inst::FN_SEPARE_VEC3)
-		CHAINE_CAS(code_inst::FN_BRUIT_TURBULENT)
 		CHAINE_CAS(code_inst::FN_NORMALISE_VEC3)
 		CHAINE_CAS(code_inst::FN_COMPLEMENT)
 		CHAINE_CAS(code_inst::FN_PRODUIT_SCALAIRE_VEC3)
@@ -123,6 +122,20 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_LONGUEUR_VEC3)
 		CHAINE_CAS(code_inst::FN_AJOUTE_LIGNE)
 		CHAINE_CAS(code_inst::FN_ECHANTILLONE_SPHERE)
+		CHAINE_CAS(code_inst::FN_BRUIT_CELLULE)
+		CHAINE_CAS(code_inst::FN_BRUIT_FOURIER)
+		CHAINE_CAS(code_inst::FN_BRUIT_ONDELETTE)
+		CHAINE_CAS(code_inst::FN_BRUIT_PERLIN)
+		CHAINE_CAS(code_inst::FN_BRUIT_SIMPLEX)
+		CHAINE_CAS(code_inst::FN_BRUIT_VALEUR)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F1)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F2)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F3)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F4)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F1F2)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_CR)
+		CHAINE_CAS(code_inst::FN_EVALUE_BRUIT)
+		CHAINE_CAS(code_inst::FN_EVALUE_BRUIT_TURBULENCE)
 	}
 
 	return "erreur : code_inst inconnu";

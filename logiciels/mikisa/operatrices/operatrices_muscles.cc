@@ -942,7 +942,7 @@ void SimMesh::SetTmax(float a_Tmax)
 
 /* ************************************************************************** */
 
-class OpSimMuscles : public OperatriceCorps {
+class OpSimMuscles final : public OperatriceCorps {
 	SimMesh *mesh1 = nullptr;
 	SimMesh *mesh2 = nullptr;
 	Joint *joint1 = nullptr;
@@ -951,7 +951,7 @@ public:
 	static constexpr auto NOM = "Simulation Muscles";
 	static constexpr auto AIDE = "";
 
-	explicit OpSimMuscles(Graphe &graphe_parent, Noeud *noeud)
+	OpSimMuscles(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

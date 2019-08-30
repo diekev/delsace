@@ -24,6 +24,8 @@
 
 #include "evaluation.hh"
 
+#include "outils.hh"
+
 namespace bruit {
 
 void construit(type type, parametres &params, int graine)
@@ -41,6 +43,11 @@ void construit(type type, parametres &params, int graine)
 			bruit::fourrier::construit(params, graine);
 			break;
 		}
+		case type::PERLIN:
+		{
+			bruit::perlin::construit(params, graine);
+			break;
+		}
 		case type::SIMPLEX:
 		{
 			bruit::simplex::construit(params, graine);
@@ -49,6 +56,11 @@ void construit(type type, parametres &params, int graine)
 		case type::ONDELETTE:
 		{
 			bruit::ondelette::construit(params, graine);
+			break;
+		}
+		case type::VALEUR:
+		{
+			bruit::valeur::construit(params, graine);
 			break;
 		}
 		case type::VORONOI_F1:
@@ -86,6 +98,8 @@ void construit(type type, parametres &params, int graine)
 
 float evalue(const parametres &params, dls::math::vec3f pos)
 {
+	transforme_point(params, pos);
+
 	switch (params.type_bruit) {
 		case type::CELLULE:
 		{
@@ -95,6 +109,10 @@ float evalue(const parametres &params, dls::math::vec3f pos)
 		{
 			return bruit::fourrier::evalue(params, pos);
 		}
+		case type::PERLIN:
+		{
+			return bruit::perlin::evalue(params, pos);
+		}
 		case type::SIMPLEX:
 		{
 			return bruit::simplex::evalue(params, pos);
@@ -102,6 +120,10 @@ float evalue(const parametres &params, dls::math::vec3f pos)
 		case type::ONDELETTE:
 		{
 			return bruit::ondelette::evalue(params, pos);
+		}
+		case type::VALEUR:
+		{
+			return bruit::valeur::evalue(params, pos);
 		}
 		case type::VORONOI_F1:
 		{
@@ -132,66 +154,68 @@ float evalue(const parametres &params, dls::math::vec3f pos)
 	return 0.0f;
 }
 
-void construit_turb(type type, int graine, parametres &params, const param_turbulence &params_turb)
+float evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
 {
-	params.type_bruit = type;
+	transforme_point(params, pos);
 
-	switch (type) {
+	switch (params.type_bruit) {
 		case type::CELLULE:
 		{
-			bruit::turbulent<bruit::cellule>::construit(graine, params, params_turb);
-			break;
+			return bruit::cellule::evalue_derivee(params, pos, derivee);
 		}
 		case type::FOURIER:
 		{
-			bruit::turbulent<bruit::fourrier>::construit(graine, params, params_turb);
-			break;
+			return bruit::fourrier::evalue_derivee(params, pos, derivee);
+		}
+		case type::PERLIN:
+		{
+			return bruit::perlin::evalue_derivee(params, pos, derivee);
 		}
 		case type::SIMPLEX:
 		{
-			bruit::turbulent<bruit::simplex>::construit(graine, params, params_turb);
-			break;
+			return bruit::simplex::evalue_derivee(params, pos, derivee);
 		}
 		case type::ONDELETTE:
 		{
-			bruit::turbulent<bruit::ondelette>::construit(graine, params, params_turb);
-			break;
+			return bruit::ondelette::evalue_derivee(params, pos, derivee);
+		}
+		case type::VALEUR:
+		{
+			return bruit::valeur::evalue_derivee(params, pos, derivee);
 		}
 		case type::VORONOI_F1:
 		{
-			bruit::turbulent<bruit::voronoi_f1>::construit(graine, params, params_turb);
-			break;
+			return bruit::voronoi_f1::evalue_derivee(params, pos, derivee);
 		}
 		case type::VORONOI_F2:
 		{
-			bruit::turbulent<bruit::voronoi_f2>::construit(graine, params, params_turb);
-			break;
+			return bruit::voronoi_f2::evalue_derivee(params, pos, derivee);
 		}
 		case type::VORONOI_F3:
 		{
-			bruit::turbulent<bruit::voronoi_f3>::construit(graine, params, params_turb);
-			break;
+			return bruit::voronoi_f3::evalue_derivee(params, pos, derivee);
 		}
 		case type::VORONOI_F4:
 		{
-			bruit::turbulent<bruit::voronoi_f4>::construit(graine, params, params_turb);
-			break;
+			return bruit::voronoi_f4::evalue_derivee(params, pos, derivee);
 		}
 		case type::VORONOI_F1F2:
 		{
-			bruit::turbulent<bruit::voronoi_f1f2>::construit(graine, params, params_turb);
-			break;
+			return bruit::voronoi_f1f2::evalue_derivee(params, pos, derivee);
 		}
 		case type::VORONOI_CR:
 		{
-			bruit::turbulent<bruit::voronoi_cr>::construit(graine, params, params_turb);
-			break;
+			return bruit::voronoi_cr::evalue_derivee(params, pos, derivee);
 		}
 	}
+
+	return 0.0f;
 }
 
-float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::math::vec3f pos)
+float evalue_turb(parametres const &params, const param_turbulence &params_turb, dls::math::vec3f pos)
 {
+	transforme_point(params, pos);
+
 	switch (params.type_bruit) {
 		case type::CELLULE:
 		{
@@ -201,6 +225,10 @@ float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::
 		{
 			return bruit::turbulent<bruit::fourrier>::evalue(params, params_turb, pos);
 		}
+		case type::PERLIN:
+		{
+			return bruit::turbulent<bruit::perlin>::evalue(params, params_turb, pos);
+		}
 		case type::SIMPLEX:
 		{
 			return bruit::turbulent<bruit::simplex>::evalue(params, params_turb, pos);
@@ -208,6 +236,10 @@ float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::
 		case type::ONDELETTE:
 		{
 			return bruit::turbulent<bruit::ondelette>::evalue(params, params_turb, pos);
+		}
+		case type::VALEUR:
+		{
+			return bruit::turbulent<bruit::valeur>::evalue(params, params_turb, pos);
 		}
 		case type::VORONOI_F1:
 		{
@@ -232,6 +264,64 @@ float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::
 		case type::VORONOI_CR:
 		{
 			return bruit::turbulent<bruit::voronoi_cr>::evalue(params, params_turb, pos);
+		}
+	}
+
+	return 0.0f;
+}
+
+float evalue_turb_derivee(parametres const &params, const param_turbulence &params_turb, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	transforme_point(params, pos);
+
+	switch (params.type_bruit) {
+		case type::CELLULE:
+		{
+			return bruit::turbulent<bruit::cellule>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::FOURIER:
+		{
+			return bruit::turbulent<bruit::fourrier>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::PERLIN:
+		{
+			return bruit::turbulent<bruit::perlin>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::SIMPLEX:
+		{
+			return bruit::turbulent<bruit::simplex>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::ONDELETTE:
+		{
+			return bruit::turbulent<bruit::ondelette>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VALEUR:
+		{
+			return bruit::turbulent<bruit::valeur>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VORONOI_F1:
+		{
+			return bruit::turbulent<bruit::voronoi_f1>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VORONOI_F2:
+		{
+			return bruit::turbulent<bruit::voronoi_f2>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VORONOI_F3:
+		{
+			return bruit::turbulent<bruit::voronoi_f3>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VORONOI_F4:
+		{
+			return bruit::turbulent<bruit::voronoi_f4>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VORONOI_F1F2:
+		{
+			return bruit::turbulent<bruit::voronoi_f1f2>::evalue_derivee(params, params_turb, pos, derivee);
+		}
+		case type::VORONOI_CR:
+		{
+			return bruit::turbulent<bruit::voronoi_cr>::evalue_derivee(params, params_turb, pos, derivee);
 		}
 	}
 

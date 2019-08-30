@@ -25,12 +25,19 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
+set(BIBLIOTHEQUES
+	bib_outils
+	tbb
+	fftw3
+)
+
 set(SOURCES
 	blanc.cc
 	cellule.cc
 	evaluation.cc
 	fourier.cc
 	ondelette.cc
+	outils.cc
 	parametres.cc
 	perlin.cc
 	simplex.cc
@@ -42,6 +49,7 @@ set(SOURCES
 	evaluation.hh
 	fourier.hh
 	ondelette.hh
+	outils.hh
 	parametres.hh
 	perlin.hh
 	simplex.hh
@@ -52,3 +60,5 @@ set(SOURCES
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")

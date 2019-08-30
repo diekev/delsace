@@ -210,7 +210,7 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 				return taille_type_octet(contexte, dt_enum);
 			}
 
-			/* À FAIRE */
+			/* À FAIRE : taille octets des structures */
 			return 0;
 		}
 		case id_morceau::POINTEUR:
@@ -969,7 +969,6 @@ static void declare_structures_C(
 {
 	contexte.magasin_types.declare_structures_C(contexte, os);
 
-	/* À FAIRE : optimise. */
 	for (auto is = 0l; is < contexte.structures.taille(); ++is) {
 		auto const &donnees = contexte.donnees_structure(is);
 
@@ -1981,7 +1980,7 @@ void genere_code_C(
 			auto expression_modifiee = false;
 			auto nouvelle_expr = dls::chaine();
 
-			/* À FAIRE */
+			/* À FAIRE : conversion tableau */
 			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
 				expression->drapeaux |= CONVERTI_TABLEAU;
 			}

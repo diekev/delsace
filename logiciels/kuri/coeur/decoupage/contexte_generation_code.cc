@@ -427,19 +427,15 @@ void ContexteGenerationCode::empile_nombre_locales()
 
 void ContexteGenerationCode::depile_nombre_locales()
 {
-	auto nombre_locales = m_pile_nombre_locales.haut();
 	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
-	assert(nombre_locales <= m_nombre_locales);
-	m_nombre_locales = nombre_locales;
-	m_pile_nombre_locales.depile();
+	assert(m_pile_nombre_locales.haut() <= m_nombre_locales);
+	m_nombre_locales = m_pile_nombre_locales.depile();
 
-	auto nombre_differes = m_pile_nombre_differes.haut();
 	/* nous ne pouvons pas avoir moins de noeuds différés en sortant du bloc */
-	assert(nombre_differes <= m_nombre_differes);
-	m_nombre_differes = nombre_differes;
-	m_pile_nombre_differes.depile();
+	assert(m_pile_nombre_differes.haut() <= m_nombre_differes);
+	m_nombre_differes = m_pile_nombre_differes.depile();
 
-	while (m_noeuds_differes.taille() > nombre_differes) {
+	while (m_noeuds_differes.taille() > m_nombre_differes) {
 		m_noeuds_differes.pop_back();
 	}
 }

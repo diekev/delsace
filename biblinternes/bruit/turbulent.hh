@@ -29,8 +29,6 @@
 namespace bruit {
 
 struct param_turbulence {
-	float echelle = 1.0f;
-	float inv_echelle = 1.0f / echelle;
 	float octaves = 8.0f * 1.618f;
 	float gain = 1.0f;
 	float lacunarite = 1.0f;
@@ -45,14 +43,8 @@ struct turbulent {
 		bruit_base::construit(params, graine);
 	}
 
-	static float evalue(parametres const &params, param_turbulence const &params_turb, dls::math::vec3f pos)
+	static float evalue(parametres const &params, param_turbulence const &params_turb, dls::math::vec3f p)
 	{
-		/* mise à l'échelle du point d'échantillonage */
-		auto p = pos;
-		p += params.decalage_graine;
-		p *= params.echelle_pos;
-		p += params.decalage_pos;
-
 		/* initialisation des variables */
 		auto resultat = 0.0f;
 		auto contribution_octave = params_turb.amplitude;
@@ -78,6 +70,59 @@ struct turbulent {
 			}
 
 			resultat += b * contribution_octave * octave;
+		}
+
+		auto nom = 1 << static_cast<int>(params_turb.octaves);
+		auto denom = (1 << (static_cast<int>(params_turb.octaves) + 1)) - 1;
+
+		resultat *= static_cast<float>(nom) / static_cast<float>(denom);
+
+		return resultat;
+	}
+
+	/**
+	 * Pour la dérivée d'un bruit turbulent voir :
+	 * http://www.iquilezles.org/www/articles/morenoise/morenoise.htm
+	 */
+	static float evalue_derivee(
+			parametres const &params,
+			param_turbulence const &params_turb,
+			dls::math::vec3f p,
+			dls::math::vec3f &derivee)
+	{
+		/* initialisation des variables */
+		auto resultat = 0.0f;
+		auto contribution_octave = params_turb.amplitude;
+		auto octave = params_turb.octaves;
+
+		for (; octave > 1.0f; octave -= 1.0f) {
+			auto d = dls::math::vec3f();
+			auto b = (bruit_base::evalue_derivee(params, p, d) * 0.5f + 0.5f);
+			d *= 0.5f;
+			d += 0.5f;
+
+			if (params_turb.dur) {
+				b = std::abs(2.0f * b - 1.0f);
+			}
+
+			resultat += b * contribution_octave;
+			derivee += d * contribution_octave;
+			contribution_octave *= params_turb.gain;
+			p *= params_turb.lacunarite;
+		}
+
+		if (octave > 0.0f) {
+			auto d = dls::math::vec3f();
+			auto b = (bruit_base::evalue_derivee(params, p, d) * 0.5f + 0.5f);
+			d *= 0.5f;
+			d += 0.5f;
+
+			if (params_turb.dur) {
+				b = std::abs(2.0f * b - 1.0f);
+			}
+
+			resultat += b * contribution_octave * octave;
+			derivee += d * contribution_octave;
 		}
 
 		auto nom = 1 << static_cast<int>(params_turb.octaves);

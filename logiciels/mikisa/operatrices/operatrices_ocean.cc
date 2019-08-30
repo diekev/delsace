@@ -617,7 +617,7 @@ Ocean::~Ocean()
 
 /* ************************************************************************** */
 
-class OperatriceSimulationOcean : public OperatriceCorps {
+class OperatriceSimulationOcean final : public OperatriceCorps {
 	Ocean m_ocean{};
 	bool m_reinit = false;
 
@@ -628,7 +628,7 @@ public:
 	static constexpr auto NOM = "Océan";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceSimulationOcean(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSimulationOcean(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1938,7 +1938,7 @@ float WaveGrid::dx(int dim) const { return m_dx[dim]; }
 } // namespace WaterWavelets
 #endif
 
-class OperatriceVagueletteOcean : public OperatriceCorps {
+class OperatriceVagueletteOcean final : public OperatriceCorps {
 #ifdef VAGUELETTE_OCEAN
 	WaterWavelets::WaveGrid *m_grille = nullptr;
 #endif
@@ -1947,7 +1947,7 @@ public:
 	static constexpr auto NOM = "Vaguelette Océan";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceVagueletteOcean(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceVagueletteOcean(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

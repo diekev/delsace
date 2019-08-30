@@ -35,30 +35,38 @@ namespace lcc {
 struct donnees_fonction;
 }
 
+enum {
+	DETAIL_POINTS,
+	DETAIL_VOXELS,
+};
+
 struct Mikisa;
 
 /* ************************************************************************** */
 
-class OperatriceGrapheDetail : public OperatriceCorps {
+class OperatriceGrapheDetail final : public OperatriceCorps {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
+	gestionnaire_propriete m_gest_attrs{};
 	Graphe m_graphe;
 
 public:
+	int type_detail = DETAIL_POINTS;
+
 	static constexpr auto NOM = "Graphe Détail";
 	static constexpr auto AIDE = "Graphe Détail";
 
-	explicit OperatriceGrapheDetail(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud);
 
-	virtual const char *nom_classe() const override;
+	const char *nom_classe() const override;
 
-	virtual const char *texte_aide() const override;
+	const char *texte_aide() const override;
 
 	const char *chemin_entreface() const override;
 
 	Graphe *graphe();
 
-	virtual int type() const override;
+	int type() const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
@@ -67,32 +75,47 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceFonctionDetail : public OperatriceImage {
-	lcc::donnees_fonction const *m_df = nullptr;
-
+class OperatriceFonctionDetail final : public OperatriceImage {
 public:
+	lcc::donnees_fonction const *donnees_fonction = nullptr;
+	dls::chaine nom_fonction = "";
+
 	static constexpr auto NOM = "Fonction Détail";
 	static constexpr auto AIDE = "Fonction Détail";
 
-	explicit OperatriceFonctionDetail(Graphe &graphe_parent, Noeud *noeud, lcc::donnees_fonction const *df);
+	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud &noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
 
 	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
 	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
 
-	virtual const char *nom_classe() const override;
+	const char *nom_classe() const override;
 
-	virtual const char *texte_aide() const override;
+	const char *texte_aide() const override;
 
-	const char *chemin_entreface() const override;
+	const char *nom_entree(int i) override;
+
+	const char *nom_sortie(int i) override;
+
+	int type() const override;
 
 	type_prise type_entree(int i) const override;
 
 	type_prise type_sortie(int i) const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+
+	/* ceci n'est appelé que lors des créations par l'utilisateur car les
+	 * opératrices venant de sauvegardes ont déjà les propriétés créées */
+	void cree_proprietes();
 };
 
 /* ************************************************************************** */
+
+OperatriceFonctionDetail *cree_op_detail(
+		Mikisa &mikisa,
+		Graphe &graphe,
+		Noeud &noeud,
+		dls::chaine const &nom_fonction);
 
 void graphe_detail_notifie_parent_suranne(Mikisa &mikisa);
 

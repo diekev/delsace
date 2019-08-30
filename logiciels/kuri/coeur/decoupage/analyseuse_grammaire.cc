@@ -1932,7 +1932,7 @@ long analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_type
 				auto taille = 0;
 
 				if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
-					/* À FAIRE */
+					/* À FAIRE : expression taille tableau */
 #if 0
 					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT, true);
 #else
@@ -1949,7 +1949,6 @@ long analyseuse_grammaire::analyse_declaration_type_ex(DonneesType *donnees_type
 					lance_erreur("Attendu ']'");
 				}
 
-				/* À FAIRE ? : meilleure manière de stocker la taille. */
 				donnees_type.pousse(id_morceau::TABLEAU | (taille << 8));
 
 				break;

@@ -55,9 +55,7 @@ public:
 			return m_valeur_nulle;
 		}
 
-		auto idx = m_miettes.front();
-		m_miettes.defile();
-		return idx;
+		return m_miettes.defile();
 	}
 
 	long nombre_miettes() const

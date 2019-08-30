@@ -270,7 +270,7 @@ public:
 	AjoutCorpsRigide(AjoutCorpsRigide const &) = default;
 	AjoutCorpsRigide &operator=(AjoutCorpsRigide const &) = default;
 
-	AjoutCorpsRigide(Graphe &graphe_parent, Noeud *noeud)
+	AjoutCorpsRigide(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -453,7 +453,7 @@ public:
 	static constexpr auto NOM = "Dynamiques Corps Rigides";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceDynCorpsRigide(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceDynCorpsRigide(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

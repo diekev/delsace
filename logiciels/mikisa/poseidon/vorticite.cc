@@ -38,8 +38,7 @@ void ajoute_vorticite(
 {
 	auto &drapeaux = *poseidon.drapeaux;
 	auto &velocite = poseidon.velocite;
-	/* À FAIRE */
-	auto fioul = static_cast<wlk::grille_dense_3d<float> *>(nullptr);
+	auto fioul = poseidon.fioul;
 	auto desc = velocite->desc();
 	auto res = desc.resolution;
 	auto dalle_x = 1;

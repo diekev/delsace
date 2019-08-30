@@ -68,7 +68,7 @@ public:
 	static constexpr auto NOM = "Suppression Points";
 	static constexpr auto AIDE = "Supprime des points.";
 
-	explicit OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -213,12 +213,12 @@ public:
 /* ************************************************************************** */
 
 /* À FAIRE : transfère attribut. */
-class OperatriceCreationPoints : public OperatriceCorps {
+class OperatriceCreationPoints final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Création Points";
 	static constexpr auto AIDE = "Crée des points à partir des points ou des primitives d'un autre corps.";
 
-	OperatriceCreationPoints(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationPoints(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -763,13 +763,13 @@ static Triangle *choisis_triangle(BoiteTriangle *boite, GNA &gna)
 #endif
 }
 
-class OperatriceTirageFleche : public OperatriceCorps {
+class OperatriceTirageFleche final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Tirage de flèche";
 	static constexpr auto AIDE =
 			"Crée des points sur une surface en l'échantillonnant par tirage de flèche.";
 
-	OperatriceTirageFleche(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceTirageFleche(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1167,13 +1167,13 @@ static void construit_maillage_alpha(
 	}
 }
 
-class OperatriceMaillageAlpha : public OperatriceCorps {
+class OperatriceMaillageAlpha final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Maillage Alpha";
 	static constexpr auto AIDE =
 			"Crée une surface à partir de points.";
 
-	OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1208,12 +1208,12 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceEnleveDoublons : public OperatriceCorps {
+class OperatriceEnleveDoublons final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Enlève Doublons";
 	static constexpr auto AIDE = "";
 
-	OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1392,7 +1392,7 @@ public:
 	static constexpr auto NOM = "Gigue Points";
 	static constexpr auto AIDE = "Gigue les points d'entrée.";
 
-	explicit OperatriceGiguePoints(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceGiguePoints(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1456,7 +1456,7 @@ public:
 	static constexpr auto NOM = "Trainée";
 	static constexpr auto AIDE = "Crée une trainée derrière des particules selon leurs vélocités.";
 
-	explicit OperatriceCreationTrainee(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationTrainee(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1665,7 +1665,7 @@ public:
 	static constexpr auto NOM = "Force d'Interaction";
 	static constexpr auto AIDE = "Influence les particules selon une distribution locale de particules voisines.";
 
-	explicit OpForceInteraction(Graphe &graphe_parent, Noeud *noeud)
+	OpForceInteraction(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -1944,7 +1944,7 @@ public:
 	static constexpr auto NOM = "Contraint Points";
 	static constexpr auto AIDE = "Contraint des particules sur la surface d'un maillage.";
 
-	explicit OpContraintPoints(Graphe &graphe_parent, Noeud *noeud)
+	OpContraintPoints(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

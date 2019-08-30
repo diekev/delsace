@@ -36,7 +36,7 @@ protected:
 	DonneesSimulation *m_donnees_simulation = nullptr;
 
 public:
-	OperatriceCorps(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceCorps(Graphe &graphe_parent, Noeud &noeud);
 
 	OperatriceCorps(OperatriceCorps const &) = default;
 	OperatriceCorps &operator=(OperatriceCorps const &) = default;

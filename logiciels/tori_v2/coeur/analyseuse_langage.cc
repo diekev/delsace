@@ -287,8 +287,7 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 				   && est_operateur(stack.haut().identifiant)
 				   && (precedence_faible(variable.identifiant, stack.haut().identifiant)))
 			{
-				output.pousse(stack.haut());
-				stack.depile();
+				output.pousse(stack.depile());
 			}
 
 			stack.empile(variable);
@@ -302,8 +301,7 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 			}
 
 			while (stack.haut().identifiant != IDENTIFIANT_PARENTHESE_OUVERTE) {
-				output.pousse(stack.haut());
-				stack.depile();
+				output.pousse(stack.depile());
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
@@ -320,8 +318,7 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		output.pousse(stack.haut());
-		stack.depile();
+		output.pousse(stack.depile());
 	}
 
 	donnees_fonction.expressions.pousse(output);

@@ -421,12 +421,12 @@ static auto ajoute_proprietes_contexte(
 	}
 }
 
-class OpScriptTopologie : public OperatriceCorps {
+class OpScriptTopologie final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Script Topologie";
 	static constexpr auto AIDE = "";
 
-	OpScriptTopologie(Graphe &graphe_parent, Noeud *noeud)
+	OpScriptTopologie(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -574,12 +574,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpScriptDetail : public OperatriceCorps {
+class OpScriptDetail final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Script Détail";
 	static constexpr auto AIDE = "";
 
-	OpScriptDetail(Graphe &graphe_parent, Noeud *noeud)
+	OpScriptDetail(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);

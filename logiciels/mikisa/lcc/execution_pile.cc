@@ -24,6 +24,9 @@
 
 #include "execution_pile.hh"
 
+#include "biblinternes/bruit/outils.hh"
+#include "biblinternes/bruit/evaluation.hh"
+#include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/gna.hh"
 
@@ -798,6 +801,100 @@ static void appel_fonction_5_args(
 	}
 }
 
+static auto charge_param_bruit(
+		bruit::parametres &params,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	params.decalage_pos = pile_donnees.charge_vec3(inst_courante, insts);
+	params.echelle_pos = pile_donnees.charge_vec3(inst_courante, insts);
+	params.decalage_valeur = pile_donnees.charge_decimal(inst_courante, insts);
+	params.echelle_valeur = pile_donnees.charge_decimal(inst_courante, insts);
+	params.temps_anim = pile_donnees.charge_decimal(inst_courante, insts);
+}
+
+static auto charge_param_bruit_turb(
+		bruit::param_turbulence &params,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	params.octaves = pile_donnees.charge_decimal(inst_courante, insts);
+	params.gain = pile_donnees.charge_decimal(inst_courante, insts);
+	params.lacunarite = pile_donnees.charge_decimal(inst_courante, insts);
+	params.amplitude = pile_donnees.charge_decimal(inst_courante, insts);
+}
+
+auto cree_bruit(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante,
+		bruit::type type_bruit)
+{
+	auto graine = pile_donnees.charge_entier(inst_courante, insts);
+
+	auto params = bruit::parametres();
+	charge_param_bruit(params, pile_donnees, insts, inst_courante);
+
+	bruit::construit(type_bruit, params, graine);
+
+	ctx.params_bruits.pousse(params);
+	auto idx = ctx.params_bruits.taille() - 1;
+
+	pile_donnees.stocke(inst_courante, insts, static_cast<int>(idx));
+}
+
+static auto evalue_bruit(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	auto idx = pile_donnees.charge_entier(inst_courante, insts);
+	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+
+	auto res = 0.0f;
+	auto deriv = dls::math::vec3f();
+
+	if (idx <= ctx.params_bruits.taille()) {
+		auto const &params = ctx.params_bruits[idx];
+
+		res = bruit::evalue_derivee(params, pos, deriv);
+	}
+
+	auto ptr_sortie = insts.charge_entier(inst_courante);
+	pile_donnees.stocke(ptr_sortie, res);
+	pile_donnees.stocke(ptr_sortie, deriv);
+}
+
+static auto evalue_bruit_turbulence(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	auto idx = pile_donnees.charge_entier(inst_courante, insts);
+	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+
+	auto params_turb = bruit::param_turbulence();
+	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
+
+	auto res = 0.0f;
+	auto deriv = dls::math::vec3f();
+
+	if (idx <= ctx.params_bruits.taille()) {
+		auto const &params = ctx.params_bruits[idx];
+
+		res = bruit::evalue_turb_derivee(params, params_turb, pos, deriv);
+	}
+
+	auto ptr_sortie = insts.charge_entier(inst_courante);
+	pile_donnees.stocke(ptr_sortie, res);
+	pile_donnees.stocke(ptr_sortie, deriv);
+}
+
 void execute_pile(
 		ctx_exec &contexte,
 		ctx_local &contexte_local,
@@ -1080,10 +1177,6 @@ void execute_pile(
 				/* les trois sorties sont l'une après l'autre donc on peut
 				 * simplement stocker le vecteur directement */
 				pile_donnees.stocke(compteur, insts, vec);
-				break;
-			}
-			case code_inst::FN_BRUIT_TURBULENT:
-			{
 				break;
 			}
 			case code_inst::FN_NORMALISE_VEC3:
@@ -1572,6 +1665,35 @@ void execute_pile(
 				auto res = calcul_contraste_local(clr0, clr1);
 
 				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}				
+#define EVALUE_BRUIT(code_, type_) \
+			case code_inst::code_: \
+			{ \
+				cree_bruit(contexte_local, pile_donnees, insts, compteur, type_); \
+				break; \
+			}
+			EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::type::CELLULE)
+			EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::type::FOURIER)
+			EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::type::ONDELETTE)
+			EVALUE_BRUIT(FN_BRUIT_PERLIN, bruit::type::PERLIN)
+			EVALUE_BRUIT(FN_BRUIT_SIMPLEX, bruit::type::SIMPLEX)
+			EVALUE_BRUIT(FN_BRUIT_VALEUR, bruit::type::VALEUR)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1, bruit::type::VORONOI_F1)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F2, bruit::type::VORONOI_F2)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F3, bruit::type::VORONOI_F3)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F4, bruit::type::VORONOI_F4)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1F2, bruit::type::VORONOI_F1F2)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_CR, bruit::type::VORONOI_CR)
+#undef EVALUE_BRUIT
+			case code_inst::FN_EVALUE_BRUIT:
+			{
+				evalue_bruit(contexte_local, pile_donnees, insts, compteur);
+				break;
+			}
+			case code_inst::FN_EVALUE_BRUIT_TURBULENCE:
+			{
+				evalue_bruit_turbulence(contexte_local, pile_donnees, insts, compteur);
 				break;
 			}
 			case code_inst::CONSTRUIT_TABLEAU:

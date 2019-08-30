@@ -70,7 +70,7 @@ public:
 	static constexpr auto NOM = "Création Courbes";
 	static constexpr auto AIDE = "Crée des courbes.";
 
-	explicit OperatriceCreationCourbes(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -318,12 +318,12 @@ static auto entresecte_prim(Corps const &corps, Primitive *prim, const dls::phys
  * « FurCollide: Fast, Robust, and Controllable Fur Collisions with Meshes »
  * https://research.dreamworks.com/wp-content/uploads/2018/07/55-0210-somasundaram-Edited.pdf
  */
-class OperatriceCollisionCheveux : public OperatriceCorps {
+class OperatriceCollisionCheveux final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	explicit OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{}
 
@@ -466,12 +466,12 @@ struct DonneesSysteme {
  * - http://roxlu.com/2013/006/hair-simulation
  * - http://matthias-mueller-fischer.ch/publications/FTLHairFur.pdf
  */
-class OperatriceMasseRessort : public OperatriceCorps {
+class OperatriceMasseRessort final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Masse Ressort";
 	static constexpr auto AIDE = "";
 
-	explicit OperatriceMasseRessort(Graphe &graphe_parent, Noeud *noeud)
+	OperatriceMasseRessort(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -598,12 +598,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpTouffeCheveux : public OperatriceCorps {
+class OpTouffeCheveux final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Touffe Cheveux";
 	static constexpr auto AIDE = "";
 
-	explicit OpTouffeCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OpTouffeCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(2);
@@ -731,12 +731,12 @@ public:
 
 /* ************************************************************************** */
 
-class OpBruitCheveux : public OperatriceCorps {
+class OpBruitCheveux final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Bruit Cheveux";
 	static constexpr auto AIDE = "";
 
-	explicit OpBruitCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OpBruitCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		entrees(1);
@@ -837,12 +837,12 @@ public:
  * a Production Environment"
  * http://library.imageworks.com/pdfs/imageworks-library-the-hair-motion-compositor-compositing-dynamic-hair-animations-production-environment.pdf
  */
-class OpMelangeCheveux : public OperatriceCorps {
+class OpMelangeCheveux final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Mélange Cheveux";
 	static constexpr auto AIDE = "Fusionne les points de deux ensemble de cheveux.";
 
-	explicit OpMelangeCheveux(Graphe &graphe_parent, Noeud *noeud)
+	OpMelangeCheveux(Graphe &graphe_parent, Noeud &noeud)
 		: OperatriceCorps(graphe_parent, noeud)
 	{}
 
