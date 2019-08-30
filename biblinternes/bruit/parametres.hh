@@ -34,6 +34,7 @@ enum class type : char {
 	ONDELETTE,
 	PERLIN,
 	SIMPLEX,
+	VALEUR,
 	VORONOI_F1,
 	VORONOI_F2,
 	VORONOI_F3,

@@ -2462,6 +2462,7 @@ public:
 
 /* ************************************************************************** */
 
+#include "biblinternes/bruit/blanc.hh"
 #include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/bruit/outils.hh"
 
@@ -2548,7 +2549,7 @@ public:
 		m_params_turb.amplitude = m_amplitude;
 		m_params_turb.dur = m_dur;
 
-		bruit::perlin::construit(m_params_bruit, 0);
+		bruit::valeur::construit(m_params_bruit, 0);
 
 //		if (m_turb) {
 //			bruit::construit_turb(type, 0, m_params_bruit, m_params_turb);
@@ -2567,7 +2568,7 @@ public:
 		auto derivee = dls::math::vec3f();
 
 		bruit::transforme_point(m_params_bruit, pos);
-		res = bruit::turbulent<bruit::perlin>::evalue_derivee(m_params_bruit, m_params_turb, pos, derivee);
+		res = bruit::turbulent<bruit::valeur>::evalue_derivee(m_params_bruit, m_params_turb, pos, derivee);
 
 //		if (m_turb) {
 //			res = bruit::evalue_turb(m_params_bruit, m_params_turb, dls::math::vec3f(x, y, 0.0f));

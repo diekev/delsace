@@ -58,6 +58,11 @@ void construit(type type, parametres &params, int graine)
 			bruit::ondelette::construit(params, graine);
 			break;
 		}
+		case type::VALEUR:
+		{
+			bruit::valeur::construit(params, graine);
+			break;
+		}
 		case type::VORONOI_F1:
 		{
 			bruit::voronoi_f1::construit(params, graine);
@@ -115,6 +120,10 @@ float evalue(const parametres &params, dls::math::vec3f pos)
 		case type::ONDELETTE:
 		{
 			return bruit::ondelette::evalue(params, pos);
+		}
+		case type::VALEUR:
+		{
+			return bruit::valeur::evalue(params, pos);
 		}
 		case type::VORONOI_F1:
 		{
@@ -175,6 +184,11 @@ void construit_turb(type type, int graine, parametres &params, const param_turbu
 			bruit::turbulent<bruit::ondelette>::construit(graine, params, params_turb);
 			break;
 		}
+		case type::VALEUR:
+		{
+			bruit::turbulent<bruit::valeur>::construit(graine, params, params_turb);
+			break;
+		}
 		case type::VORONOI_F1:
 		{
 			bruit::turbulent<bruit::voronoi_f1>::construit(graine, params, params_turb);
@@ -232,6 +246,10 @@ float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::
 		case type::ONDELETTE:
 		{
 			return bruit::turbulent<bruit::ondelette>::evalue(params, params_turb, pos);
+		}
+		case type::VALEUR:
+		{
+			return bruit::turbulent<bruit::valeur>::evalue(params, params_turb, pos);
 		}
 		case type::VORONOI_F1:
 		{

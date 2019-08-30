@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "blanc.hh"
 #include "cellule.hh"
 #include "fourier.hh"
 #include "ondelette.hh"

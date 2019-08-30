@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/math/vecteur.hh"
+#include "parametres.hh"
 
 namespace bruit {
 
@@ -40,6 +40,20 @@ public:
 	static inline dls::math::vec2f limites()
 	{
 		return dls::math::vec2f(0.0f, 1.0f);
+	}
+};
+
+struct valeur {
+public:
+	static void construit(parametres &params, int graine);
+
+	static float evalue(parametres const &params, dls::math::vec3f pos);
+
+	static float evalue_derivee(parametres const &params, dls::math::vec3f pos, dls::math::vec3f &derivee);
+
+	static inline dls::math::vec2f limites()
+	{
+		return dls::math::vec2f(-1.0f, 1.0f);
 	}
 };
 
