@@ -75,6 +75,77 @@ template <int N, ConceptDecimal T>
 	}
 }
 
+/**
+ * Dérivées des entrepolations ci-dessus, utiles pour évaluer les gradients des
+ * bruits fractaux.
+ */
+template <int N, ConceptDecimal T>
+[[nodiscard]] constexpr auto derivee_fluide(T x) noexcept
+{
+	constexpr auto _0 = static_cast<T>(1);
+	constexpr auto _1 = static_cast<T>(1);
+
+	if (x <= _0) {
+		return _0;
+	}
+
+	if (x > _1) {
+		return _1;
+	}
+
+	/* 1er-ordre : x
+	 * dérivée : 1
+	 */
+	if constexpr (N == 0) {
+		return _1;
+	}
+	/* 3e-ordre : -2x^3 + 3x^2
+	 * dérivée : -6x^2 + 6x
+	 * simplifiée : 6 * (-x^2 + x)
+	 */
+	else if constexpr (N == 1) {
+		return 6 * (x * (-x + 1));
+	}
+	/* 5e-ordre : 6x^5 - 15x^4 + 10x^3
+	 * dérivée : 30x^4 - 60x^3 + 30x^2
+	 * simplifiée : 30 * (x^4 - 2^3 + x^2)
+	 */
+	else if constexpr (N == 2) {
+		return 30 * (x * x * (x * (x - 2) + 1));
+	}
+	/* 7e-ordre : -20x^7 + 70x^6 - 84x^5 + 35x^4
+	 * dérivée : -140x^6 + 420x^5 - 420x^4 + 140x^3
+	 * simplifiée : 140 * (-x^6 + 3x^5 - 3x^4 + x^3)
+	 */
+	else if constexpr (N == 3) {
+		return 140 * (x * x * x * (x * (x * (-x + 3) - 3) + 1));
+	}
+	/* 9e-ordre : 70x^9 - 315x^8 + 540x^7 - 420x^6 + 126x^5
+	 * dérivée : 630x^8 - 2520x^7 + 3780x^6 - 2520x^5 + 630x^4
+	 * simplifiée : 630 * (x^8 - 4x^7 + 6x^6 - 4x^5 + x^4)
+	 */
+	else if constexpr (N == 4) {
+		return 630 * (x * x * x * x * (x * (x * (x * (x - 4) + 6) - 4) + 1));
+	}
+	/* 11e-ordre : -252x^11 + 1386x^10 - 3080x^9 + 3465x^8 - 1980x^7 + 462x^6
+	 * dérivée : -2772x^10 + 13860x^9 - 27720x^8 + 27720x^7 - 13860x^6 + 2772x^5
+	 * simplifiée : 2772 * (-x^10 + 5x^9 - 10x^8 + 10x^7 - 5x^6 + x^5)
+	 */
+	else if constexpr (N == 5) {
+		return 2772 * (x * x * x * x * x * (x * (x * (x * (x * (-x + 5) - 10) + 10) - 5) + 1));
+	}
+	/* 13e-ordre : 924x^13 - 6006x^12 + 16380x^11 - 24024x^10 + 20020x^9 - 9009x^8 + 1716x^7
+	 * dérivée : 12012x^12 - 72072x^11 + 180180x^10 - 240240x^9 + 180180x^8 - 72072x^7 + 12012x^7
+	 * simplifiée : 12012 * (x^12 - 6x^11 + 15x^10 - 20x^9 + 15x^8 - 6x^7 + x^6)
+	 */
+	else if constexpr (N == 6) {
+		return 12012 * (x * x * x * x * x * x * (x * (x * (x * (x * (x * (x - 6) + 15) - 20) + 15) - 6) + 1));
+	}
+	else {
+		static_assert(N < 7, "interp_fluide : l'ordre de la polynomiale est trop grand");
+	}
+}
+
 /* Retourne une interpolation fluide Hermite entre 0 et 1, si le _X se situe dans la plage [_Min, _Max] */
 template <int N, ConceptDecimal T>
 [[nodiscard]] constexpr auto entrepolation_fluide(T x, T min, T max) noexcept
