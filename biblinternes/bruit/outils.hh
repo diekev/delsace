@@ -88,19 +88,19 @@ inline float evalue_derivee_tuile_x(float *tuile, int n, float p[3])
 	float w[3][3], t, result = 0;
 
 	mid[0] = static_cast<int>(std::ceil(p[0] - 0.5f));
-	t = mid[0] - (p[0] - 0.5f);
+	t = static_cast<float>(mid[0]) - (p[0] - 0.5f);
 	w[0][0] = -t;
 	w[0][2] = (1.f - t);
 	w[0][1] = 2.0f * t - 1.0f;
 
 	mid[1] = static_cast<int>(std::ceil(p[1] - 0.5f));
-	t = mid[1] - (p[1] - 0.5f);
+	t = static_cast<float>(mid[1]) - (p[1] - 0.5f);
 	w[1][0] = t * t / 2;
 	w[1][2] = (1 - t) * (1 - t) / 2;
 	w[1][1] = 1 - w[1][0] - w[1][2];
 
 	mid[2] = static_cast<int>(std::ceil(p[2] - 0.5f));
-	t = mid[2] - (p[2] - 0.5f);
+	t = static_cast<float>(mid[2]) - (p[2] - 0.5f);
 	w[2][0] = t * t / 2;
 	w[2][2] = (1 - t) * (1 - t)/2;
 	w[2][1] = 1 - w[2][0] - w[2][2];
@@ -129,19 +129,19 @@ inline float evalue_derivee_tuile_y(float *tuile, int n, float p[3])
 	float w[3][3], t, result =0;
 
 	mid[0] = static_cast<int>(std::ceil(p[0] - 0.5f));
-	t = mid[0]-(p[0] - 0.5f);
+	t = static_cast<float>(mid[0])-(p[0] - 0.5f);
 	w[0][0] = t * t / 2;
 	w[0][2] = (1 - t) * (1 - t) / 2;
 	w[0][1] = 1 - w[0][0] - w[0][2];
 
 	mid[1] = static_cast<int>(std::ceil(p[1] - 0.5f));
-	t = mid[1]-(p[1] - 0.5f);
+	t = static_cast<float>(mid[1])-(p[1] - 0.5f);
 	w[1][0] = -t;
 	w[1][2] = (1.f - t);
 	w[1][1] = 2.0f * t - 1.0f;
 
 	mid[2] = static_cast<int>(std::ceil(p[2] - 0.5f));
-	t = mid[2] - (p[2] - 0.5f);
+	t = static_cast<float>(mid[2]) - (p[2] - 0.5f);
 	w[2][0] = t * t / 2;
 	w[2][2] = (1 - t) * (1 - t)/2;
 	w[2][1] = 1 - w[2][0] - w[2][2];
@@ -171,19 +171,19 @@ inline float evalue_derivee_tuile_z(float *tuile, int n, float p[3])
 	float w[3][3], t, result =0;
 
 	mid[0] = static_cast<int>(std::ceil(p[0] - 0.5f));
-	t = mid[0]-(p[0] - 0.5f);
+	t = static_cast<float>(mid[0])-(p[0] - 0.5f);
 	w[0][0] = t * t / 2;
 	w[0][2] = (1 - t) * (1 - t) / 2;
 	w[0][1] = 1 - w[0][0] - w[0][2];
 
 	mid[1] = static_cast<int>(std::ceil(p[1] - 0.5f));
-	t = mid[1]-(p[1] - 0.5f);
+	t = static_cast<float>(mid[1])-(p[1] - 0.5f);
 	w[1][0] = t * t / 2;
 	w[1][2] = (1 - t) * (1 - t) / 2;
 	w[1][1] = 1 - w[1][0] - w[1][2];
 
 	mid[2] = static_cast<int>(std::ceil(p[2] - 0.5f));
-	t = mid[2] - (p[2] - 0.5f);
+	t = static_cast<float>(mid[2]) - (p[2] - 0.5f);
 	w[2][0] = -t;
 	w[2][2] = (1.f - t);
 	w[2][1] = 2.0f * t - 1.0f;

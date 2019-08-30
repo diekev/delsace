@@ -2556,7 +2556,6 @@ public:
 		INUTILISE(pixel);
 
 		auto res = 0.0f;
-		auto pos = dls::math::vec3f(x, y, 0.0f);
 
 		if (m_turb) {
 			res = bruit::evalue_turb(m_params_bruit, m_params_turb, dls::math::vec3f(x, y, 0.0f));
