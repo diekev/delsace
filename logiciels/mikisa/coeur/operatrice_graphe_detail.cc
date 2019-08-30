@@ -38,6 +38,9 @@
 #include "mikisa.h"
 #include "usine_operatrice.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
+
 /* ************************************************************************** */
 
 OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud)
@@ -936,3 +939,5 @@ OperatriceFonctionDetail *cree_op_detail(
 
 	return memoire::loge<OperatriceFonctionDetail>("Fonction Détail", graphe, noeud, nom_fonction, df);
 }
+
+#pragma clang diagnostic pop
