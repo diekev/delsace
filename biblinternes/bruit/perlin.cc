@@ -25,6 +25,7 @@
 #include "perlin.hh"
 
 #include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/math/outils.hh"
 #include "biblinternes/outils/definitions.h"
 
 #include "outils.hh"
@@ -132,6 +133,21 @@ static auto index_hash(int x, int y, int z)
 #endif
 }
 
+static dls::math::vec3f grad3[12] = {
+	dls::math::vec3f{  1.0f,  1.0f,  0.0f },
+	dls::math::vec3f{ -1.0f,  1.0f,  0.0f },
+	dls::math::vec3f{  1.0f, -1.0f,  0.0f },
+	dls::math::vec3f{ -1.0f, -1.0f,  0.0f },
+	dls::math::vec3f{  1.0f,  0.0f,  1.0f },
+	dls::math::vec3f{ -1.0f,  0.0f,  1.0f },
+	dls::math::vec3f{  1.0f,  0.0f, -1.0f },
+	dls::math::vec3f{ -1.0f,  0.0f, -1.0f },
+	dls::math::vec3f{  0.0f,  1.0f,  1.0f },
+	dls::math::vec3f{  0.0f, -1.0f,  1.0f },
+	dls::math::vec3f{  0.0f,  1.0f, -1.0f },
+	dls::math::vec3f{  0.0f, -1.0f, -1.0f }
+};
+
 static auto perlin_3d(float x, float y, float z)
 {
 	auto const floorx = std::floor(x);
@@ -182,6 +198,77 @@ static auto perlin_3d(float x, float y, float z)
 				sx, sy, sz);
 }
 
+/**
+ * Basé sur « gradient noise derivatives » de Inigo Quilez
+ * http://www.iquilezles.org/www/articles/gradientnoise/gradientnoise.htm
+ */
+static auto perlin_3d_derivee(float x, float y, float z, dls::math::vec3f &derivee)
+{
+	auto const floorx = std::floor(x);
+	auto const floory = std::floor(y);
+	auto const floorz = std::floor(z);
+
+	/* trouve le cube qui contient le point */
+	auto const i = static_cast<int>(floorx);
+	auto const j = static_cast<int>(floory);
+	auto const k = static_cast<int>(floorz);
+
+	/* trouve les coordonnées relative des points dans le cube */
+	auto const fx = x - floorx;
+	auto const fy = y - floory;
+	auto const fz = z - floorz;
+
+	auto const ux = dls::math::entrepolation_fluide<2>(fx);
+	auto const uy = dls::math::entrepolation_fluide<2>(fy);
+	auto const uz = dls::math::entrepolation_fluide<2>(fz);
+
+	auto const dux = dls::math::derivee_fluide<2>(fx);
+	auto const duy = dls::math::derivee_fluide<2>(fy);
+	auto const duz = dls::math::derivee_fluide<2>(fz);
+
+	/* cherche les gradients */
+	auto const g000 = grad3[index_hash(i,j,k) % 12];
+	auto const g100 = grad3[index_hash(i+1,j,k) % 12];
+	auto const g010 = grad3[index_hash(i,j+1,k) % 12];
+	auto const g110 = grad3[index_hash(i+1,j+1,k) % 12];
+	auto const g001 = grad3[index_hash(i,j,k+1) % 12];
+	auto const g101 = grad3[index_hash(i+1,j,k+1) % 12];
+	auto const g011 = grad3[index_hash(i,j+1,k+1) % 12];
+	auto const g111 = grad3[index_hash(i+1,j+1,k+1) % 12];
+
+	/* projette les gradients */
+	auto const &n000 = dls::math::produit_scalaire(g000, dls::math::vec3f(fx       , fy       , fz));
+	auto const &n100 = dls::math::produit_scalaire(g100, dls::math::vec3f(fx - 1.0f, fy       , fz));
+	auto const &n010 = dls::math::produit_scalaire(g010, dls::math::vec3f(fx       , fy - 1.0f, fz));
+	auto const &n110 = dls::math::produit_scalaire(g110, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz));
+	auto const &n001 = dls::math::produit_scalaire(g001, dls::math::vec3f(fx       , fy       , fz - 1.0f));
+	auto const &n101 = dls::math::produit_scalaire(g101, dls::math::vec3f(fx - 1.0f, fy       , fz - 1.0f));
+	auto const &n011 = dls::math::produit_scalaire(g011, dls::math::vec3f(fx       , fy - 1.0f, fz - 1.0f));
+	auto const &n111 = dls::math::produit_scalaire(g111, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz - 1.0f));
+
+	derivee = dls::math::entrepolation_trilineaire(
+				g000,
+				g100,
+				g010,
+				g110,
+				g001,
+				g101,
+				g011,
+				g111,
+				dux, duy, duz);
+
+	return dls::math::entrepolation_trilineaire(
+				n000,
+				n100,
+				n010,
+				n110,
+				n001,
+				n101,
+				n011,
+				n111,
+				ux, uy, uz);
+}
+
 void perlin::construit(parametres &params, int graine)
 {
 	construit_defaut(params, graine);
@@ -191,6 +278,12 @@ float perlin::evalue(const parametres &params, dls::math::vec3f pos)
 {
 	INUTILISE(params);
 	return perlin_3d(pos.x, pos.y, pos.z);
+}
+
+float perlin::evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::vec3f &derivee)
+{
+	INUTILISE(params);
+	return perlin_3d_derivee(pos.x, pos.y, pos.z, derivee);
 }
 
 }  /* namespace bruit */
