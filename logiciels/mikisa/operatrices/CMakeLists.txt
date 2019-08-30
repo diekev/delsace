@@ -96,6 +96,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_vetements.cc
 	operatrices_visualisation.cc
 	operatrices_volume.cc
+	triangulation_delaunay_contrainte.cc
 
 	arbre_octernaire.hh
 	courbure.hh
@@ -127,6 +128,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_vetements.hh
 	operatrices_visualisation.hh
 	operatrices_volume.hh
+	triangulation_delaunay_contrainte.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
