@@ -2866,6 +2866,8 @@ public:
 
 /* ************************************************************************** */
 
+#include "biblinternes/chisei/genetique.h"
+
 #define SSE
 
 /**
@@ -3007,6 +3009,156 @@ static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
 	return desc;
 }
 
+struct donnees_algorithme {
+	int taille = 0;
+	int graine = 0;
+	int dimensions = 0;
+	float aptitude_debut = 0.0f;
+	ChefExecution *chef = nullptr;
+};
+
+struct chromosome_bruit_bleu {
+	dls::tableau<float> donnees{};
+	float aptitude = 0.0f;
+	int dimensions = 0;
+	int taille = 0;
+	int taille_carree = 0;
+};
+
+struct bruit_bleu_genetique {
+	static constexpr auto GENERATIONS_MAX = 100;
+	static constexpr auto ITERATIONS_ETAPE = 10;
+	static constexpr auto TAILLE_POPULATION = 10;
+	static constexpr auto TAILLE_ELITE = 3;
+	static constexpr auto PROB_CROISEMENT = 0.5;
+
+	using type_chromosome = chromosome_bruit_bleu;
+	using type_donnees = donnees_algorithme;
+	using type_population = dls::tableau<type_chromosome>;
+
+	static type_population cree_population(type_donnees const &donnees, std::mt19937 &)
+	{
+		auto population = type_population(TAILLE_POPULATION);
+
+		auto graine = donnees.graine;
+		auto taille = donnees.taille;
+		auto taille_carree = taille * taille;
+		auto dimensions = donnees.dimensions;
+
+		for (auto p = 0; p < TAILLE_POPULATION; ++p) {
+			auto bruit_blanc = dls::tableau<float>(taille_carree * dimensions);
+
+			for (auto i = 0; i < taille_carree * dimensions; ++i) {
+				auto alea = empreinte_n32_vers_r32(static_cast<unsigned>(graine + i));
+				bruit_blanc[i] = alea;
+			}
+
+			population[p].donnees = bruit_blanc;
+			population[p].dimensions = dimensions;
+			population[p].taille = taille;
+			population[p].taille_carree = taille_carree;
+		}
+
+		return population;
+	}
+
+	static type_chromosome cree_chromosome(type_donnees const &, std::mt19937 &)
+	{
+		return {};
+	}
+
+	static void mute(type_chromosome &chromosome, std::mt19937 &rng)
+	{
+		auto taille_carree = chromosome.taille_carree;
+		auto dimensions = chromosome.dimensions;
+		auto &donnees = chromosome.donnees;
+		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+		for (auto i = 0; i < taille_carree; ++i) {
+			for (auto j = 0; j < dimensions; ++j) {
+				if (dist(rng) > 0.05f) {
+					continue;
+				}
+
+				auto idx = j * taille_carree + i;
+
+				donnees[idx] = empreinte_r32_vers_r32(donnees[idx]);
+			}
+		}
+	}
+
+	static type_chromosome croise(type_donnees const &, type_chromosome &chr1, type_chromosome &chr2, std::mt19937 &rng)
+	{
+		auto taille_carree = chr1.taille_carree;
+		auto dimensions = chr1.dimensions;
+		auto bruit_blanc = dls::tableau<float>(taille_carree * dimensions);
+
+		std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+		for (auto i = 0; i < taille_carree * dimensions; ++i) {
+
+			if (dist(rng) > 0.5f) {
+				bruit_blanc[i] = chr1.donnees[i];
+			}
+			else {
+				bruit_blanc[i] = chr2.donnees[i];
+			}
+		}
+
+		auto chromosome = type_chromosome();
+		chromosome.donnees = bruit_blanc;
+		chromosome.taille = chr1.taille;
+		chromosome.taille_carree = chr1.taille_carree;
+		chromosome.dimensions = chr1.dimensions;
+
+		return chromosome;
+	}
+
+	static void calcule_aptitude(type_donnees const &donnees, type_chromosome &chromosome)
+	{
+		chromosome.aptitude = calcul_energie(
+					chromosome.donnees,
+					donnees.taille,
+					donnees.dimensions);
+	}
+
+	static bool compare_aptitude(type_chromosome &chr1, type_chromosome &chr2)
+	{
+		return chr1.aptitude < chr2.aptitude;
+	}
+
+	static double aptitude(type_chromosome &chromosome)
+	{
+		return static_cast<double>(chromosome.aptitude);
+	}
+
+	static bool meilleur_trouve(type_chromosome &)
+	{
+		return false;
+	}
+
+	static void rappel_pour_meilleur(type_donnees const &, type_chromosome const &chromosome)
+	{
+		std::cerr << "meilleure énergie : " << chromosome.aptitude << '\n';
+	}
+
+	static void rappel_pour_progression(type_donnees const &donnees, float progression)
+	{
+		if (donnees.chef) {
+			donnees.chef->indique_progression(progression);
+		}
+	}
+
+	static bool rappel_pour_arret(type_donnees const &donnees)
+	{
+		if (donnees.chef) {
+			return donnees.chef->interrompu();
+		}
+
+		return false;
+	}
+};
+
 class OpGenerationBruitBleu final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Génération Bruit Bleu";
@@ -3048,63 +3200,82 @@ public:
 		auto const taille_carree = taille * taille;
 
 		/* commence par générer le bruit blanc */
-		auto bruit_blanc = dls::tableau<float>(taille_carree * dimensions);
-		auto bruit_propose = dls::tableau<float>(taille_carree * dimensions);
-		auto bruit_bleu = dls::tableau<float>(taille_carree * dimensions);
+		auto bruit_bleu = dls::tableau<float>();
+		auto genetique = evalue_bool("génétique");
 
-		for (auto i = 0; i < taille_carree * dimensions; ++i) {
-			auto alea = empreinte_n32_vers_r32(static_cast<unsigned>(graine + i));
-			bruit_blanc[i] = alea;
-			bruit_bleu[i] = alea;
-			bruit_propose[i] = alea;
+		if (genetique) {
+			auto donnees_alg = donnees_algorithme();
+			donnees_alg.graine = graine;
+			donnees_alg.taille = taille;
+			donnees_alg.dimensions = dimensions;
+			donnees_alg.aptitude_debut = 0.0f;
+			donnees_alg.chef = chef;
+
+			auto res = dls::chisei::lance_algorithme_genetique<bruit_bleu_genetique>(
+						std::cerr, donnees_alg);
+			bruit_bleu = res.first.donnees;
+
+			std::cerr << "énergie restante  : " << res.first.aptitude << '\n';
 		}
+		else {
+			bruit_bleu.redimensionne(taille_carree * dimensions);
+			auto bruit_blanc = dls::tableau<float>(taille_carree * dimensions);
+			auto bruit_propose = dls::tableau<float>(taille_carree * dimensions);
 
-		auto distribution_orig = calcul_energie(bruit_blanc, taille, dimensions);
-		auto distribution_bleu = distribution_orig;
-
-		std::cerr << "énergie originale : " << distribution_bleu << '\n';
-
-		/* génère le bruit bleu */
-
-		for (int i = 0; i < iterations; ++i) {
-			if (chef->interrompu()) {
-				break;
+			for (auto i = 0; i < taille_carree * dimensions; ++i) {
+				auto alea = empreinte_n32_vers_r32(static_cast<unsigned>(graine + i));
+				bruit_blanc[i] = alea;
+				bruit_bleu[i] = alea;
+				bruit_propose[i] = alea;
 			}
 
-			auto u1 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 0)) * static_cast<float>(taille));
-			auto u2 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 1)) * static_cast<float>(taille));
-			auto u3 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 2)) * static_cast<float>(taille));
-			auto u4 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 3)) * static_cast<float>(taille));
+			auto distribution_orig = calcul_energie(bruit_blanc, taille, dimensions);
+			auto distribution_bleu = distribution_orig;
 
-			auto p1 = u1 * taille + u2;
-			auto p2 = u3 * taille + u4;
+			std::cerr << "énergie originale : " << distribution_bleu << '\n';
 
-			for (int j = 0; j < dimensions; ++j) {
-				std::swap(bruit_propose[j * taille_carree + p1], bruit_propose[j * taille_carree + p2]);
-			}
+			/* génère le bruit bleu */
 
-			auto distribution_prop = calcul_energie(bruit_propose, taille, dimensions);
-
-			chef->indique_progression(static_cast<float>(i + 1) / static_cast<float>(iterations) * 100.0f);
-
-			if (distribution_prop > distribution_bleu) {
-				for (int j = 0; j < dimensions; ++j) {
-					bruit_propose[j * taille_carree + p1] = bruit_bleu[j * taille_carree + p1];
-					bruit_propose[j * taille_carree + p2] = bruit_bleu[j * taille_carree + p2];
+			for (int i = 0; i < iterations; ++i) {
+				if (chef->interrompu()) {
+					break;
 				}
 
-				continue;
+				auto u1 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 0)) * static_cast<float>(taille));
+				auto u2 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 1)) * static_cast<float>(taille));
+				auto u3 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 2)) * static_cast<float>(taille));
+				auto u4 = static_cast<int>(empreinte_n32_vers_r32(static_cast<unsigned>(i * 4 + 3)) * static_cast<float>(taille));
+
+				auto p1 = u1 * taille + u2;
+				auto p2 = u3 * taille + u4;
+
+				for (int j = 0; j < dimensions; ++j) {
+					std::swap(bruit_propose[j * taille_carree + p1], bruit_propose[j * taille_carree + p2]);
+				}
+
+				auto distribution_prop = calcul_energie(bruit_propose, taille, dimensions);
+
+				chef->indique_progression(static_cast<float>(i + 1) / static_cast<float>(iterations) * 100.0f);
+
+				if (distribution_prop > distribution_bleu) {
+					for (int j = 0; j < dimensions; ++j) {
+						bruit_propose[j * taille_carree + p1] = bruit_bleu[j * taille_carree + p1];
+						bruit_propose[j * taille_carree + p2] = bruit_bleu[j * taille_carree + p2];
+					}
+
+					continue;
+				}
+
+				distribution_bleu = distribution_prop;
+
+				for (int j = 0; j < dimensions; ++j) {
+					bruit_bleu[j * taille_carree + p1] = bruit_propose[j * taille_carree + p1];
+					bruit_bleu[j * taille_carree + p2] = bruit_propose[j * taille_carree + p2];
+				}
 			}
 
-			distribution_bleu = distribution_prop;
-
-			for (int j = 0; j < dimensions; ++j) {
-				bruit_bleu[j * taille_carree + p1] = bruit_propose[j * taille_carree + p1];
-				bruit_bleu[j * taille_carree + p2] = bruit_propose[j * taille_carree + p2];
-			}
+			std::cerr << "énergie restante  : " << distribution_bleu << '\n';
 		}
-
-		std::cerr << "énergie restante  : " << distribution_bleu << '\n';
 
 		chef->indique_progression(100.0f);
 
