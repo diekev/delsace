@@ -160,7 +160,7 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 				auto ctx_local = lcc::ctx_local{};
 
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
-					auto pos = points->point(i);
+					auto pos = m_corps.point_transforme(i);
 
 					remplis_donnees(donnees, m_gest_props, "P", pos);
 
@@ -181,6 +181,10 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 				delta /= static_cast<float>(points->taille());
 				chef->indique_progression_parallele(delta * 100.0f);
 			});
+
+			/* réinitialise la transformation puisque nous l'appliquons aux
+			 * points dans la boucle au dessus */
+			m_corps.transformation = math::transformation();
 
 			break;
 		}
