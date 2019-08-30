@@ -222,7 +222,7 @@ void construit_turb(type type, int graine, parametres &params, const param_turbu
 	}
 }
 
-float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::math::vec3f pos)
+float evalue_turb(parametres const &params, const param_turbulence &params_turb, dls::math::vec3f pos)
 {
 	transforme_point(params, pos);
 
