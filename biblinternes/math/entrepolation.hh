@@ -166,17 +166,17 @@ template <int N, ConceptDecimal T>
 	return entrepolation_fluide<N>((n + static_cast<T>(1)) * static_cast<T>(0.5)) * static_cast<T>(2) - static_cast<T>(1);
 }
 
-template <ConceptNombre T>
-[[nodiscard]] inline auto entrepolation_lineaire(const T &min, const T &max, const T &f)
+template <ConceptNombre S, ConceptNombre T>
+[[nodiscard]] inline auto entrepolation_lineaire(T const &min, T const &max, S const &f)
 {
-	return (static_cast<T>(1) - f) * min + f * max;
+	return (static_cast<S>(1) - f) * min + f * max;
 }
 
-template <ConceptNombre T>
+template <ConceptNombre S, ConceptNombre T>
 [[nodiscard]] inline auto entrepolation_bilineaire(
-		const T &v00, const T &v10,
-		const T &v01, const T &v11,
-		T fx, T fy) noexcept
+		T const &v00, T const &v10,
+		T const &v01, T const &v11,
+		S const &fx, S const &fy) noexcept
 {
 	return entrepolation_lineaire(
 				entrepolation_lineaire(v00, v10, fx),
@@ -184,13 +184,13 @@ template <ConceptNombre T>
 				fy);
 }
 
-template <ConceptNombre T>
+template <ConceptNombre S, ConceptNombre T>
 [[nodiscard]] inline auto entrepolation_trilineaire(
-		const T &v000, const T &v100,
-		const T &v010, const T &v110,
-		const T &v001, const T &v101,
-		const T &v011, const T &v111,
-		T fx, T fy, T fz) noexcept
+		T const &v000, T const &v100,
+		T const &v010, T const &v110,
+		T const &v001, T const &v101,
+		T const &v011, T const &v111,
+		S const &fx, S const &fy, S const &fz) noexcept
 {
 	return entrepolation_lineaire(
 				entrepolation_bilineaire(v000, v100, v010, v110, fx, fy),
@@ -200,15 +200,15 @@ template <ConceptNombre T>
 
 template <class S, class T>
 [[nodiscard]] inline auto entrepolation_quadrilineaire(
-		const T &v0000, const T &v1000,
-		const T &v0100, const T &v1100,
-		const T &v0010, const T &v1010,
-		const T &v0110, const T &v1110,
-		const T &v0001, const T &v1001,
-		const T &v0101, const T &v1101,
-		const T &v0011, const T &v1011,
-		const T &v0111, const T &v1111,
-		T fx, T fy, T fz, T ft) noexcept
+		T const &v0000, T const &v1000,
+		T const &v0100, T const &v1100,
+		T const &v0010, T const &v1010,
+		T const &v0110, T const &v1110,
+		T const &v0001, T const &v1001,
+		T const &v0101, T const &v1101,
+		T const &v0011, T const &v1011,
+		T const &v0111, T const &v1111,
+		S const &fx, S const &fy, S const &fz, S const &ft) noexcept
 {
 	return entrepolation_lineaire(
 				entrepolation_trilineaire(v0000, v1000, v0100, v1100, v0010, v1010, v0110, v1110, fx, fy, fz),
