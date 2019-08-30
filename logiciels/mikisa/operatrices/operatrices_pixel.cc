@@ -2548,14 +2548,7 @@ public:
 		m_params_turb.amplitude = m_amplitude;
 		m_params_turb.dur = m_dur;
 
-		bruit::valeur::construit(m_params_bruit, 0);
-
-//		if (m_turb) {
-//			bruit::construit_turb(type, 0, m_params_bruit, m_params_turb);
-//		}
-//		else {
-//			bruit::construit(type, m_params_bruit, 0);
-//		}
+		bruit::construit(type, m_params_bruit, 0);
 	}
 
 	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
@@ -2564,22 +2557,18 @@ public:
 
 		auto res = 0.0f;
 		auto pos = dls::math::vec3f(x, y, 0.0f);
-		auto derivee = dls::math::vec3f();
 
-		bruit::transforme_point(m_params_bruit, pos);
-		res = bruit::turbulent<bruit::valeur>::evalue_derivee(m_params_bruit, m_params_turb, pos, derivee);
-
-//		if (m_turb) {
-//			res = bruit::evalue_turb(m_params_bruit, m_params_turb, dls::math::vec3f(x, y, 0.0f));
-//		}
-//		else {
-//			res = bruit::evalue(m_params_bruit, dls::math::vec3f(x, y, 0.0f));
-//		}
+		if (m_turb) {
+			res = bruit::evalue_turb(m_params_bruit, m_params_turb, dls::math::vec3f(x, y, 0.0f));
+		}
+		else {
+			res = bruit::evalue(m_params_bruit, dls::math::vec3f(x, y, 0.0f));
+		}
 
 		auto rp = dls::phys::couleur32();
-		rp.r = derivee.x;
-		rp.v = derivee.y;
-		rp.b = derivee.z;
+		rp.r = res;
+		rp.v = res;
+		rp.b = res;
 		rp.a = 1.0f;
 		return rp;
 	}
