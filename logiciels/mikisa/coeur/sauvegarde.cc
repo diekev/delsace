@@ -100,6 +100,7 @@ static void sauvegarde_proprietes(
 		element_prop->SetAttribut("visible", prop.visible);
 		element_prop->SetAttribut("type", static_cast<int>(prop.type));
 		element_prop->SetAttribut("anime", prop.est_animee());
+		element_prop->SetAttribut("est_extra", prop.est_extra);
 
 		auto element_donnees = doc.NewElement("donnees");
 
@@ -427,6 +428,7 @@ static void lecture_propriete(
 {
 	auto const type_prop = element->attribut("type");
 	auto const nom_prop = element->attribut("nom");
+	auto const est_extra = element->attribut("est_extra");
 
 	auto const element_donnees = element->FirstChildElement("donnees");
 
@@ -552,6 +554,11 @@ static void lecture_propriete(
 		case danjo::TypePropriete::LISTE_MANIP:
 			/* À FAIRE */
 			break;
+	}
+
+	if (est_extra && static_cast<bool>(atoi(est_extra))) {
+		auto prop = manipulable->propriete(nom_prop);
+		prop->est_extra = true;
 	}
 }
 
