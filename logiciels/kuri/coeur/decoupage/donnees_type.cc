@@ -687,7 +687,7 @@ void MagasinDonneesType::converti_type_C(
 			donnees.effronte();
 
 			if (donnee == id_morceau::PARENTHESE_OUVRANTE) {
-				/* rien à faire */
+				/* RAF */
 			}
 			else if (donnee == id_morceau::PARENTHESE_FERMANTE) {
 				/* évite d'empiler s'il n'y a pas de paramètre, càd 'foo()' */
