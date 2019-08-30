@@ -47,6 +47,7 @@ struct Mikisa;
 class OperatriceGrapheDetail final : public OperatriceCorps {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
+	gestionnaire_propriete m_gest_attrs{};
 	Graphe m_graphe;
 
 public:
