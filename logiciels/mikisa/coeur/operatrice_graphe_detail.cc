@@ -646,8 +646,7 @@ void OperatriceFonctionDetail::cree_proprietes()
 			case lcc::type_var::DEC:
 			{
 				prop.type = danjo::TypePropriete::DECIMAL;
-				prop.valeur = 0.0f;
-				ajoute_propriete(nom_propriete, danjo::TypePropriete::DECIMAL, valeur_default);
+				prop.valeur = valeur_default;
 				break;
 			}
 			case lcc::type_var::ENT32:
