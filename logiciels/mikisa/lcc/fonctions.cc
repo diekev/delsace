@@ -844,7 +844,8 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 				);
 
 	auto param_sortie_bruit = param_sorties(
-				donnees_parametre("valeur", type_var::DEC));
+				donnees_parametre("valeur", type_var::DEC),
+				donnees_parametre("dérivée", type_var::VEC3));
 
 	const std::pair<const char *, code_inst> paires[] = {
 		{ "bruit_cellule", code_inst::FN_BRUIT_CELLULE },

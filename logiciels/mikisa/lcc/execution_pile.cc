@@ -856,14 +856,17 @@ static auto evalue_bruit(
 	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
 
 	auto res = 0.0f;
+	auto deriv = dls::math::vec3f();
 
 	if (idx <= ctx.params_bruits.taille()) {
 		auto const &params = ctx.params_bruits[idx];
 
-		res = bruit::evalue(params, pos);
+		res = bruit::evalue_derivee(params, pos, deriv);
 	}
 
-	pile_donnees.stocke(inst_courante, insts, res);
+	auto ptr_sortie = insts.charge_entier(inst_courante);
+	pile_donnees.stocke(ptr_sortie, res);
+	pile_donnees.stocke(ptr_sortie, deriv);
 }
 
 static auto evalue_bruit_turbulence(
@@ -879,14 +882,17 @@ static auto evalue_bruit_turbulence(
 	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
 
 	auto res = 0.0f;
+	auto deriv = dls::math::vec3f();
 
 	if (idx <= ctx.params_bruits.taille()) {
 		auto const &params = ctx.params_bruits[idx];
 
-		res = bruit::evalue_turb(params, params_turb, pos);
+		res = bruit::evalue_turb_derivee(params, params_turb, pos, deriv);
 	}
 
-	pile_donnees.stocke(inst_courante, insts, res);
+	auto ptr_sortie = insts.charge_entier(inst_courante);
+	pile_donnees.stocke(ptr_sortie, res);
+	pile_donnees.stocke(ptr_sortie, deriv);
 }
 
 void execute_pile(
