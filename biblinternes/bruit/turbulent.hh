@@ -29,8 +29,6 @@
 namespace bruit {
 
 struct param_turbulence {
-	float echelle = 1.0f;
-	float inv_echelle = 1.0f / echelle;
 	float octaves = 8.0f * 1.618f;
 	float gain = 1.0f;
 	float lacunarite = 1.0f;

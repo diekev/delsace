@@ -2545,7 +2545,6 @@ public:
 		m_params_turb.octaves = static_cast<float>(m_octaves) * 1.618f;
 		m_params_turb.lacunarite = m_lacunarite;
 		m_params_turb.gain = m_durete;
-		m_params_turb.echelle = 10.0f;
 		m_params_turb.amplitude = m_amplitude;
 		m_params_turb.dur = m_dur;
 

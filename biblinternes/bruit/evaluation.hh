@@ -39,8 +39,6 @@ void construit(type type, bruit::parametres &params, int graine);
 
 float evalue(bruit::parametres const &params, dls::math::vec3f pos);
 
-void construit_turb(type type, int graine, bruit::parametres &params, bruit::param_turbulence const &params_turb);
-
 float evalue_turb(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos);
 
 }  /* namespace bruit */
