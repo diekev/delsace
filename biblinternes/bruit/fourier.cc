@@ -30,6 +30,8 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 
+#include "outils.hh"
+
 namespace bruit {
 
 // shift spectrum to the format that FFTW expects
@@ -223,59 +225,17 @@ constructrice_bruit_fourier constructrice_bruit_fourier::m_instance = constructr
 
 /* ************************************************************************** */
 
-static inline auto mod_lent(int x, int n)
-{
-	int m = x % n;
-	return (m < 0) ? m + n : m;
-}
-
-static float evalue_bruit(float *tuile, int n, float p[3])
-{
-	int f[3], c[3], mid[3]; /* f, c = filter, noise coeff indices */
-	float w[3][3];
-
-	/* Evaluate quadratic B-spline basis functions */
-	for (int i = 0; i < 3; i++) {
-		mid[i] = static_cast<int>(std::ceil(p[i] - 0.5f));
-		auto const t = static_cast<float>(mid[i]) - (p[i] - 0.5f);
-
-		w[i][0] = t * t / 2.0f;
-		w[i][2] = (1 - t) * (1 - t) / 2.0f;
-		w[i][1]= 1.0f - w[i][0] - w[i][2];
-	}
-
-	/* Evaluate noise by weighting noise coefficients by basis function values */
-	auto result = 0.0f;
-
-	for (f[2] = -1; f[2] <= 1; f[2]++) {
-		for (f[1] = -1; f[1] <= 1; f[1]++) {
-			for (f[0] = -1; f[0] <= 1; f[0]++) {
-				float weight = 1.0f;
-
-				for (int i=0; i<3; i++) {
-					c[i] = mod_lent(mid[i] + f[i], n);
-					weight *= w[i][f[i] + 1];
-				}
-
-				result += weight * tuile[c[2]*n*n+c[1]*n+c[0]];
-			}
-		}
-	}
-
-	return result;
-}
-
 void fourrier::construit(parametres &params, int graine)
 {
-	INUTILISE(graine);
-
 	auto &inst_const = constructrice_bruit_fourier::instance();
 	params.tuile = inst_const.genere_donnees();
+
+	construit_defaut(params, graine);
 }
 
 float fourrier::evalue(const parametres &params, dls::math::vec3f pos)
 {
-	return evalue_bruit(params.tuile, 128, &pos[0]);
+	return evalue_tuile(params.tuile, 128, &pos[0]);
 }
 
 }  /* namespace bruit */

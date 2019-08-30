@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "outils.hh"
+
 namespace bruit {
 
 static float cellNoiseU(float x, float y, float z)
@@ -45,9 +47,7 @@ static float cellNoiseU(float x, float y, float z)
 
 void cellule::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float cellule::evalue(parametres const &params, dls::math::vec3f pos)

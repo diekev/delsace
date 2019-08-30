@@ -26,6 +26,8 @@
 
 #include "biblinternes/outils/definitions.h"
 
+#include "outils.hh"
+
 namespace bruit {
 
 namespace detail {
@@ -362,9 +364,7 @@ static float voronoi_Cr(float x, float y, float z)
 
 void voronoi_f1::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float voronoi_f1::evalue(parametres const &params, dls::math::vec3f pos)
@@ -375,9 +375,7 @@ float voronoi_f1::evalue(parametres const &params, dls::math::vec3f pos)
 
 void voronoi_f2::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float voronoi_f2::evalue(parametres const &params, dls::math::vec3f pos)
@@ -388,9 +386,7 @@ float voronoi_f2::evalue(parametres const &params, dls::math::vec3f pos)
 
 void voronoi_f3::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float voronoi_f3::evalue(parametres const &params, dls::math::vec3f pos)
@@ -401,9 +397,7 @@ float voronoi_f3::evalue(parametres const &params, dls::math::vec3f pos)
 
 void voronoi_f4::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float voronoi_f4::evalue(parametres const &params, dls::math::vec3f pos)
@@ -414,9 +408,7 @@ float voronoi_f4::evalue(parametres const &params, dls::math::vec3f pos)
 
 void voronoi_f1f2::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float voronoi_f1f2::evalue(parametres const &params, dls::math::vec3f pos)
@@ -427,9 +419,7 @@ float voronoi_f1f2::evalue(parametres const &params, dls::math::vec3f pos)
 
 void voronoi_cr::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float voronoi_cr::evalue(parametres const &params, dls::math::vec3f pos)

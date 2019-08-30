@@ -27,6 +27,8 @@
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/definitions.h"
 
+#include "outils.hh"
+
 namespace bruit {
 
 /**
@@ -182,9 +184,7 @@ static auto perlin_3d(float x, float y, float z)
 
 void perlin::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float perlin::evalue(const parametres &params, dls::math::vec3f pos)

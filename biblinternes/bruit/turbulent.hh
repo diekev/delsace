@@ -45,14 +45,8 @@ struct turbulent {
 		bruit_base::construit(params, graine);
 	}
 
-	static float evalue(parametres const &params, param_turbulence const &params_turb, dls::math::vec3f pos)
+	static float evalue(parametres const &params, param_turbulence const &params_turb, dls::math::vec3f p)
 	{
-		/* mise à l'échelle du point d'échantillonage */
-		auto p = pos;
-		p += params.decalage_graine;
-		p *= params.echelle_pos;
-		p += params.decalage_pos;
-
 		/* initialisation des variables */
 		auto resultat = 0.0f;
 		auto contribution_octave = params_turb.amplitude;

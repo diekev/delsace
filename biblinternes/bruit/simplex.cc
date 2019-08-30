@@ -26,6 +26,8 @@
 
 #include "biblinternes/math/outils.hh"
 
+#include "outils.hh"
+
 namespace bruit {
 
 namespace detail {
@@ -223,9 +225,7 @@ float simplex_3d(float xin, float yin, float zin)
 
 void simplex::construit(parametres &params, int graine)
 {
-	/* RAF */
-	INUTILISE(params);
-	INUTILISE(graine);
+	construit_defaut(params, graine);
 }
 
 float simplex::evalue(parametres const &params, dls::math::vec3f pos)

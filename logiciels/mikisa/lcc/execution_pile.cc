@@ -24,6 +24,7 @@
 
 #include "execution_pile.hh"
 
+#include "biblinternes/bruit/outils.hh"
 #include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/math/entrepolation.hh"
@@ -837,6 +838,8 @@ auto evalue_bruit(
 	auto params = bruit::parametres();
 	charge_param_bruit(params, pile_donnees, insts, inst_courante);
 
+	bruit::transforme_point(params, pos);
+
 	type_bruit::construit(params, graine);
 	auto res = type_bruit::evalue(params, pos);
 
@@ -857,6 +860,8 @@ auto evalue_bruit_turbulence(
 
 	auto params_turb = bruit::param_turbulence();
 	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
+
+	bruit::transforme_point(params, pos);
 
 	type_bruit::construit(params, graine);
 	auto res = bruit::turbulent<type_bruit>::evalue(params, params_turb, pos);

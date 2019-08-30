@@ -24,6 +24,8 @@
 
 #include "evaluation.hh"
 
+#include "outils.hh"
+
 namespace bruit {
 
 void construit(type type, parametres &params, int graine)
@@ -91,6 +93,8 @@ void construit(type type, parametres &params, int graine)
 
 float evalue(const parametres &params, dls::math::vec3f pos)
 {
+	transforme_point(params, pos);
+
 	switch (params.type_bruit) {
 		case type::CELLULE:
 		{
@@ -206,6 +210,8 @@ void construit_turb(type type, int graine, parametres &params, const param_turbu
 
 float evalue_turb(parametres &params, const param_turbulence &params_turb, dls::math::vec3f pos)
 {
+	transforme_point(params, pos);
+
 	switch (params.type_bruit) {
 		case type::CELLULE:
 		{
