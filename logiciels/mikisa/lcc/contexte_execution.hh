@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/bruit/parametres.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -92,10 +93,12 @@ struct magasin_tableau {
  * itération. */
 struct ctx_local {
 	magasin_tableau tableaux;
+	dls::tableau<bruit::parametres> params_bruits{};
 
 	void reinitialise()
 	{
 		tableaux.reinitialise();
+		params_bruits.efface();
 	}
 };
 

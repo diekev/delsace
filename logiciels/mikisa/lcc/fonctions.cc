@@ -835,7 +835,6 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 	magasin.categorie = "bruit";
 
 	auto param_entrees_bruit = param_entrees(
-				donnees_parametre("position", type_var::VEC3),
 				donnees_parametre("graine", type_var::ENT32),
 				donnees_parametre("décalage_position", type_var::VEC3),
 				donnees_parametre("échelle_position", type_var::VEC3, 1.0f),
@@ -844,23 +843,8 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 				donnees_parametre("temps", type_var::DEC)
 				);
 
-	auto param_entrees_bruit_turb = param_entrees(
-				donnees_parametre("position", type_var::VEC3),
-				donnees_parametre("graine", type_var::ENT32),
-				/* base */
-				donnees_parametre("décalage_position", type_var::VEC3),
-				donnees_parametre("échelle_position", type_var::VEC3, 1.0f),
-				donnees_parametre("décalage_valeur", type_var::DEC),
-				donnees_parametre("échelle_valeur", type_var::DEC, 1.0f),
-				donnees_parametre("temps", type_var::DEC),
-				/* turbulence */
-				donnees_parametre("octaves", type_var::DEC, 8.0f),
-				donnees_parametre("gain", type_var::DEC, 1.0f),
-				donnees_parametre("lacunarité", type_var::DEC, 2.0f),
-				donnees_parametre("amplitude", type_var::DEC, 1.0f)
-				);
-
-	auto param_sortie_bruit = param_sorties(donnees_parametre("valeur", type_var::DEC));
+	auto param_sortie_bruit = param_sorties(
+				donnees_parametre("valeur", type_var::DEC));
 
 	const std::pair<const char *, code_inst> paires[] = {
 		{ "bruit_cellule", code_inst::FN_BRUIT_CELLULE },
@@ -875,38 +859,39 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 		{ "bruit_voronoi_cr", code_inst::FN_BRUIT_VORONOI_CR }
 	};
 
-	const std::pair<const char *, code_inst> paires_turb[] = {
-		{ "bruit_turb_cellule", code_inst::FN_BRUIT_TURBULENT_CELLULE },
-		{ "bruit_turb_fourier", code_inst::FN_BRUIT_TURBULENT_FOURIER },
-		{ "bruit_turb_ondelette", code_inst::FN_BRUIT_TURBULENT_ONDELETTE },
-		{ "bruit_turb_simplex", code_inst::FN_BRUIT_TURBULENT_SIMPLEX },
-		{ "bruit_turb_voronoi_f1", code_inst::FN_BRUIT_TURBULENT_VORONOI_F1 },
-		{ "bruit_turb_voronoi_f2", code_inst::FN_BRUIT_TURBULENT_VORONOI_F2 },
-		{ "bruit_turb_voronoi_f3", code_inst::FN_BRUIT_TURBULENT_VORONOI_F3 },
-		{ "bruit_turb_voronoi_f4", code_inst::FN_BRUIT_TURBULENT_VORONOI_F4 },
-		{ "bruit_turb_voronoi_f1f2", code_inst::FN_BRUIT_TURBULENT_VORONOI_F1F2 },
-		{ "bruit_turb_voronoi_cr", code_inst::FN_BRUIT_TURBULENT_VORONOI_CR }
-	};
-
 	for (auto paire : paires) {
 		magasin.ajoute_fonction(
 					paire.first,
 					paire.second,
 					signature(
 						param_entrees_bruit,
-						param_sortie_bruit),
+						param_sorties(donnees_parametre("bruit", type_var::ENT32))),
 					ctx_script::tous);
 	}
 
-	for (auto paire : paires_turb) {
-		magasin.ajoute_fonction(
-					paire.first,
-					paire.second,
-					signature(
-						param_entrees_bruit_turb,
-						param_sortie_bruit),
-					ctx_script::tous);
-	}
+	magasin.ajoute_fonction(
+				"évalue_bruit",
+				code_inst::FN_EVALUE_BRUIT,
+				signature(
+					param_entrees(
+						donnees_parametre("bruit", type_var::ENT32),
+						donnees_parametre("position", type_var::VEC3)),
+					param_sortie_bruit),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_bruit_turbulence",
+				code_inst::FN_EVALUE_BRUIT_TURBULENCE,
+				signature(
+					param_entrees(
+						donnees_parametre("bruit", type_var::ENT32),
+						donnees_parametre("position", type_var::VEC3),
+						donnees_parametre("octaves", type_var::DEC, 8.0f),
+						donnees_parametre("gain", type_var::DEC, 1.0f),
+						donnees_parametre("lacunarité", type_var::DEC, 2.0f),
+						donnees_parametre("amplitude", type_var::DEC, 1.0f)),
+					param_sortie_bruit),
+				ctx_script::tous);
 }
 
 void enregistre_fonctions_base(magasin_fonctions &magasin)

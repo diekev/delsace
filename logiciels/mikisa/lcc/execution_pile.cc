@@ -826,45 +826,65 @@ static auto charge_param_bruit_turb(
 	params.amplitude = pile_donnees.charge_decimal(inst_courante, insts);
 }
 
-template <typename type_bruit>
-auto evalue_bruit(
+auto cree_bruit(
+		ctx_local &ctx,
 		pile &pile_donnees,
 		pile const &insts,
-		int &inst_courante)
+		int &inst_courante,
+		bruit::type type_bruit)
 {
-	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
 	auto graine = pile_donnees.charge_entier(inst_courante, insts);
 
 	auto params = bruit::parametres();
 	charge_param_bruit(params, pile_donnees, insts, inst_courante);
 
-	bruit::transforme_point(params, pos);
+	bruit::construit(type_bruit, params, graine);
 
-	type_bruit::construit(params, graine);
-	auto res = type_bruit::evalue(params, pos);
+	ctx.params_bruits.pousse(params);
+	auto idx = ctx.params_bruits.taille() - 1;
+
+	pile_donnees.stocke(inst_courante, insts, static_cast<int>(idx));
+}
+
+static auto evalue_bruit(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	auto idx = pile_donnees.charge_entier(inst_courante, insts);
+	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+
+	auto res = 0.0f;
+
+	if (idx <= ctx.params_bruits.taille()) {
+		auto const &params = ctx.params_bruits[idx];
+
+		res = bruit::evalue(params, pos);
+	}
 
 	pile_donnees.stocke(inst_courante, insts, res);
 }
 
-template <typename type_bruit>
-auto evalue_bruit_turbulence(
+static auto evalue_bruit_turbulence(
+		ctx_local &ctx,
 		pile &pile_donnees,
 		pile const &insts,
 		int &inst_courante)
 {
+	auto idx = pile_donnees.charge_entier(inst_courante, insts);
 	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
-	auto graine = pile_donnees.charge_entier(inst_courante, insts);
-
-	auto params = bruit::parametres();
-	charge_param_bruit(params, pile_donnees, insts, inst_courante);
 
 	auto params_turb = bruit::param_turbulence();
 	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
 
-	bruit::transforme_point(params, pos);
+	auto res = 0.0f;
 
-	type_bruit::construit(params, graine);
-	auto res = bruit::turbulent<type_bruit>::evalue(params, params_turb, pos);
+	if (idx <= ctx.params_bruits.taille()) {
+		auto const &params = ctx.params_bruits[idx];
+
+		res = bruit::evalue_turb(params, params_turb, pos);
+	}
 
 	pile_donnees.stocke(inst_courante, insts, res);
 }
@@ -1641,40 +1661,33 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}				
-#define EVALUE_BRUIT(code_, str_) \
+#define EVALUE_BRUIT(code_, type_) \
 			case code_inst::code_: \
 			{ \
-				evalue_bruit<str_>(pile_donnees, insts, compteur); \
+				cree_bruit(contexte_local, pile_donnees, insts, compteur, type_); \
 				break; \
 			}
-			EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::cellule)
-			EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::fourrier)
-			EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::ondelette)
-			EVALUE_BRUIT(FN_BRUIT_SIMPLEX, bruit::simplex)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1, bruit::voronoi_f1)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F2, bruit::voronoi_f2)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F3, bruit::voronoi_f3)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F4, bruit::voronoi_f4)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1F2, bruit::voronoi_f1f2)
-			EVALUE_BRUIT(FN_BRUIT_VORONOI_CR, bruit::voronoi_cr)
+			EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::type::CELLULE)
+			EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::type::FOURIER)
+			EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::type::ONDELETTE)
+			EVALUE_BRUIT(FN_BRUIT_SIMPLEX, bruit::type::SIMPLEX)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1, bruit::type::VORONOI_F1)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F2, bruit::type::VORONOI_F2)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F3, bruit::type::VORONOI_F3)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F4, bruit::type::VORONOI_F4)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1F2, bruit::type::VORONOI_F1F2)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_CR, bruit::type::VORONOI_CR)
 #undef EVALUE_BRUIT
-#define EVALUE_BRUIT_TURB(code_, str_) \
-			case code_inst::code_: \
-			{ \
-				evalue_bruit_turbulence<str_>(pile_donnees, insts, compteur); \
-				break; \
+			case code_inst::FN_EVALUE_BRUIT:
+			{
+				evalue_bruit(contexte_local, pile_donnees, insts, compteur);
+				break;
 			}
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_CELLULE, bruit::cellule)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_FOURIER, bruit::fourrier)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_ONDELETTE, bruit::ondelette)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_SIMPLEX, bruit::simplex)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_VORONOI_F1, bruit::voronoi_f1)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_VORONOI_F2, bruit::voronoi_f2)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_VORONOI_F3, bruit::voronoi_f3)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_VORONOI_F4, bruit::voronoi_f4)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_VORONOI_F1F2, bruit::voronoi_f1f2)
-			EVALUE_BRUIT_TURB(FN_BRUIT_TURBULENT_VORONOI_CR, bruit::voronoi_cr)
-#undef EVALUE_BRUIT_TURB
+			case code_inst::FN_EVALUE_BRUIT_TURBULENCE:
+			{
+				evalue_bruit_turbulence(contexte_local, pile_donnees, insts, compteur);
+				break;
+			}
 			case code_inst::CONSTRUIT_TABLEAU:
 			{
 				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
