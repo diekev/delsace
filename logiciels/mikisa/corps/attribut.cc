@@ -26,6 +26,8 @@
 
 #include <cstring>
 
+#include "corps.h"
+
 /* ************************************************************************** */
 
 static void supprime_liste(dls::tableau<char> *liste)
@@ -177,5 +179,100 @@ void copie_attribut(Attribut const *attr_orig, long idx_orig, Attribut *attr_des
 		{
 			break;
 		}
+	}
+}
+
+/* ************************************************************************** */
+
+TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps_dest, int drapeaux)
+{
+	for (auto const &attr : corps_orig.attributs()) {
+		switch (attr.portee) {
+			case portee_attr::POINT:
+			{
+				if ((drapeaux & TRANSFERE_ATTR_POINTS) != 0) {
+					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+					m_attr_points.pousse({ &attr, nattr });
+				}
+
+				break;
+			}
+			case portee_attr::PRIMITIVE:
+			{
+				if ((drapeaux & TRANSFERE_ATTR_PRIMS) != 0) {
+					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+					m_attr_prims.pousse({ &attr, nattr });
+				}
+
+				break;
+			}
+			case portee_attr::VERTEX:
+			{
+				if ((drapeaux & TRANSFERE_ATTR_SOMMETS) != 0) {
+					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+					m_attr_sommets.pousse({ &attr, nattr });
+				}
+
+				break;
+			}
+			case portee_attr::CORPS:
+			{
+				if ((drapeaux & TRANSFERE_ATTR_CORPS) != 0) {
+					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+					m_attr_corps.pousse({ &attr, nattr });
+				}
+
+				break;
+			}
+			case portee_attr::GROUPE:
+			{
+				if ((drapeaux & TRANSFERE_ATTR_GROUPES) != 0) {
+					auto nattr = corps_dest.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+					m_attr_groupes.pousse({ &attr, nattr });
+				}
+
+				break;
+			}
+		}
+	}
+}
+
+void TransferanteAttribut::transfere_attributs_points(long idx_orig, long idx_dest)
+{
+	for (auto &paire : m_attr_points) {
+		paire.second->redimensionne(paire.second->taille() + 1);
+		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
+	}
+}
+
+void TransferanteAttribut::transfere_attributs_prims(long idx_orig, long idx_dest)
+{
+	for (auto &paire : m_attr_prims) {
+		paire.second->redimensionne(paire.second->taille() + 1);
+		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
+	}
+}
+
+void TransferanteAttribut::transfere_attributs_sommets(long idx_orig, long idx_dest)
+{
+	for (auto &paire : m_attr_sommets) {
+		paire.second->redimensionne(paire.second->taille() + 1);
+		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
+	}
+}
+
+void TransferanteAttribut::transfere_attributs_corps(long idx_orig, long idx_dest)
+{
+	for (auto &paire : m_attr_corps) {
+		paire.second->redimensionne(paire.second->taille() + 1);
+		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
+	}
+}
+
+void TransferanteAttribut::transfere_attributs_groupes(long idx_orig, long idx_dest)
+{
+	for (auto &paire : m_attr_groupes) {
+		paire.second->redimensionne(paire.second->taille() + 1);
+		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
 	}
 }

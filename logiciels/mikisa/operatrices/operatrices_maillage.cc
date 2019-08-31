@@ -944,19 +944,7 @@ public:
 
 		/* copie les polygones et points restants */
 
-		auto attr_points = dls::tableau<std::pair<Attribut const *, Attribut *>>();
-		auto attr_polys = dls::tableau<std::pair<Attribut const *, Attribut *>>();
-
-		for (auto const &attr : corps_entree->attributs()) {
-			if (attr.portee == portee_attr::POINT) {
-				auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
-				attr_points.pousse({ &attr, nattr });
-			}
-			else if (attr.portee == portee_attr::PRIMITIVE) {
-				auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
-				attr_polys.pousse({ &attr, nattr });
-			}
-		}
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS);
 
 		/* transfère tous les points */
 		for (auto s : polyedre.sommets) {
@@ -967,10 +955,7 @@ public:
 			auto idx = m_corps.ajoute_point(s->p);
 			s->index = idx;
 
-			for (auto &paire : attr_points) {
-				paire.second->redimensionne(paire.second->taille() + 1);
-				copie_attribut(paire.first, s->label, paire.second, s->index);
-			}
+			transferante.transfere_attributs_points(s->label, s->index);
 		}
 
 		/* transfère les polygones */
@@ -989,10 +974,7 @@ public:
 				debut = debut->suivante;
 			} while (debut != fin);
 
-			for (auto &paire : attr_polys) {
-				paire.second->redimensionne(paire.second->taille() + 1);
-				copie_attribut(paire.first, f->label, paire.second, poly->index);
-			}
+			transferante.transfere_attributs_prims(f->label, poly->index);
 		}
 
 		return EXECUTION_REUSSIE;

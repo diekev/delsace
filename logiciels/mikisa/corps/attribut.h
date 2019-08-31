@@ -31,6 +31,8 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+struct Corps;
+
 /* ************************************************************************** */
 
 enum class type_attribut : char {
@@ -251,3 +253,38 @@ auto accumule_attr<char>(Attribut const &attr)
 	return depart;
 }
 #endif
+
+/* ************************************************************************** */
+
+enum {
+	TRANSFERE_ATTR_POINTS  = (1 << 0),
+	TRANSFERE_ATTR_PRIMS   = (1 << 1),
+	TRANSFERE_ATTR_CORPS   = (1 << 2),
+	TRANSFERE_ATTR_GROUPES = (1 << 3),
+	TRANSFERE_ATTR_SOMMETS = (1 << 4),
+
+	TRANSFERE_TOUT = (TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_CORPS | TRANSFERE_ATTR_GROUPES | TRANSFERE_ATTR_SOMMETS)
+};
+
+struct TransferanteAttribut {
+private:
+	using type_paire = dls::tableau<std::pair<Attribut const *, Attribut *>>;
+	type_paire m_attr_points{};
+	type_paire m_attr_prims{};
+	type_paire m_attr_sommets{};
+	type_paire m_attr_corps{};
+	type_paire m_attr_groupes{};
+
+public:
+	TransferanteAttribut(Corps const &corps_orig, Corps &corps_dest, int drapeaux = TRANSFERE_TOUT);
+
+	void transfere_attributs_points(long idx_orig, long idx_dest);
+
+	void transfere_attributs_prims(long idx_orig, long idx_dest);
+
+	void transfere_attributs_sommets(long idx_orig, long idx_dest);
+
+	void transfere_attributs_corps(long idx_orig, long idx_dest);
+
+	void transfere_attributs_groupes(long idx_orig, long idx_dest);
+};
