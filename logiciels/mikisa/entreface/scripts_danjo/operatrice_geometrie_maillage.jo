@@ -15,7 +15,11 @@ disposition "operatrice_geometrie_maillage" {
 			{nom="Variation géométrique", valeur="var_géom"},
 			{nom="Gaussien", valeur="gaussien"},
 			{nom="Moyenne", valeur="moyenne"},
-			{nom="Tangeante", valeur="tangeante"}
+			{nom="Tangeante", valeur="tangeante"},
+			{nom="Valence", valeur="valence"},
+			{nom="Angle Sommets", valeur="angle_sommets"},
+			{nom="Angle Dièdre", valeur="angle_dièdre"},
+			{nom="Longueur Arêtes", valeur="longueur_arêtes"}
 		])
 	}
 	ligne {
