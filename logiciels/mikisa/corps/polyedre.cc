@@ -124,75 +124,150 @@ inline auto index_arete(long i0, long i1)
 	return static_cast<size_t>(i0 | (i1 << 32));
 }
 
+static auto trouve_sommet(
+		Polyedre &polyedre,
+		Corps const &corps,
+		dls::dico_desordonne<long, mi_sommet *> &dico_sommets,
+		long idx0)
+{
+	auto iter0 = dico_sommets.trouve(idx0);
+
+	if (iter0 == dico_sommets.fin()) {
+		auto s0 = polyedre.cree_sommet(corps.point_transforme(idx0));
+		dico_sommets.insere({ idx0, s0 });
+		return s0;
+	}
+
+	return iter0->second;
+}
+
+static auto ajoute_triangle(
+		Polyedre &polyedre,
+		Corps const &corps,
+		dls::dico_desordonne<size_t, mi_arete *> &dico_aretes,
+		dls::dico_desordonne<long, mi_sommet *> &dico_sommets,
+		long i0,
+		long i1,
+		long i2)
+{
+	auto s0 = trouve_sommet(polyedre, corps, dico_sommets, i0);
+	s0->label = static_cast<unsigned>(i0);
+	auto s1 = trouve_sommet(polyedre, corps, dico_sommets, i1);
+	s1->label = static_cast<unsigned>(i1);
+	auto s2 = trouve_sommet(polyedre, corps, dico_sommets, i2);
+	s2->label = static_cast<unsigned>(i2);
+
+	auto t = polyedre.cree_face();
+
+	auto a0 = polyedre.cree_arete(s0, t);
+	auto a1 = polyedre.cree_arete(s1, t);
+	auto a2 = polyedre.cree_arete(s2, t);
+
+	a0->suivante = a1;
+	a1->suivante = a2;
+	a2->suivante = a0;
+
+	t->arete = a0;
+
+	/* insere les mi_aretes dans le dictionnaire */
+	auto idxi0i1 = index_arete(i0, i1);
+	auto idxi1i2 = index_arete(i1, i2);
+	auto idxi2i0 = index_arete(i2, i0);
+
+	dico_aretes.insere({idxi0i1, a0});
+	dico_aretes.insere({idxi1i2, a1});
+	dico_aretes.insere({idxi2i0, a2});
+
+	/* cherches les mi_aretes opposées */
+	auto idxi1i0 = index_arete(i1, i0);
+	auto idxi2i1 = index_arete(i2, i1);
+	auto idxi0i2 = index_arete(i0, i2);
+
+	auto iter = dico_aretes.trouve(idxi1i0);
+
+	if (iter != dico_aretes.fin()) {
+		auto a = iter->second;
+		a0->paire = a;
+		a->paire = a0;
+	}
+
+	iter = dico_aretes.trouve(idxi2i1);
+
+	if (iter != dico_aretes.fin()) {
+		auto a = iter->second;
+		a1->paire = a;
+		a->paire = a1;
+	}
+
+	iter = dico_aretes.trouve(idxi0i2);
+
+	if (iter != dico_aretes.fin()) {
+		auto a = iter->second;
+		a2->paire = a;
+		a->paire = a2;
+	}
+
+	return t;
+}
+
 Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 {
 	auto polyedre = Polyedre();
 
 	auto dico_aretes = dls::dico_desordonne<size_t, mi_arete *>();
+	auto dico_sommets = dls::dico_desordonne<long, mi_sommet *>();
+	auto points = corps.points_pour_lecture();
 
 	pour_chaque_polygone_ferme(corps, [&](Corps const &c, Polygone const *poly)
 	{
-		for (auto i = 2; i < poly->nombre_sommets(); ++i) {
+		auto nombre_sommets = poly->nombre_sommets();
+
+		if (nombre_sommets == 3) {
 			auto i0 = poly->index_point(0);
-			auto i1 = poly->index_point(i - 1);
-			auto i2 = poly->index_point(i);
+			auto i1 = poly->index_point(1);
+			auto i2 = poly->index_point(2);
 
-			auto p0 = c.point_transforme(i0);
-			auto p1 = c.point_transforme(i1);
-			auto p2 = c.point_transforme(i2);
+			auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
+			t->label = static_cast<unsigned>(poly->index);
+		}
+		else if (nombre_sommets == 4) {
+			/* divise le polygone sur la diagonale la plus courte */
+			auto i0 = poly->index_point(0);
+			auto i1 = poly->index_point(1);
+			auto i2 = poly->index_point(2);
+			auto i3 = poly->index_point(3);
 
-			auto s0 = polyedre.cree_sommet(p0);
-			auto s1 = polyedre.cree_sommet(p1);
-			auto s2 = polyedre.cree_sommet(p2);
+			auto p0 = points->point(i0);
+			auto p1 = points->point(i1);
+			auto p2 = points->point(i2);
+			auto p3 = points->point(i3);
 
-			auto t = polyedre.cree_face();
+			auto l0 = longueur_carree(p2 - p0);
+			auto l1 = longueur_carree(p3 - p1);
 
-			auto a0 = polyedre.cree_arete(s0, t);
-			auto a1 = polyedre.cree_arete(s1, t);
-			auto a2 = polyedre.cree_arete(s2, t);
+			if (l0 <= l1) {
+				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
+				t->label = static_cast<unsigned>(poly->index);
 
-			a0->suivante = a1;
-			a1->suivante = a2;
-			a2->suivante = a0;
-
-			t->arete = a0;
-
-			/* insere les mi_aretes dans le dictionnaire */
-			auto idxi0i1 = index_arete(i0, i1);
-			auto idxi1i2 = index_arete(i1, i2);
-			auto idxi2i0 = index_arete(i2, i0);
-
-			dico_aretes.insere({idxi0i1, a0});
-			dico_aretes.insere({idxi1i2, a1});
-			dico_aretes.insere({idxi2i0, a2});
-
-			/* cherches les mi_aretes opposées */
-			auto idxi1i0 = index_arete(i1, i0);
-			auto idxi2i1 = index_arete(i2, i1);
-			auto idxi0i2 = index_arete(i0, i2);
-
-			auto iter = dico_aretes.trouve(idxi1i0);
-
-			if (iter != dico_aretes.fin()) {
-				auto a = iter->second;
-				a0->paire = a;
-				a->paire = a0;
+				t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i2, i3);
+				t->label = static_cast<unsigned>(poly->index);
 			}
+			else {
+				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i3);
+				t->label = static_cast<unsigned>(poly->index);
 
-			iter = dico_aretes.trouve(idxi2i1);
-
-			if (iter != dico_aretes.fin()) {
-				auto a = iter->second;
-				a1->paire = a;
-				a->paire = a1;
+				t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i1, i2, i3);
+				t->label = static_cast<unsigned>(poly->index);
 			}
+		}
+		else {
+			for (auto i = 2; i < poly->nombre_sommets(); ++i) {
+				auto i0 = poly->index_point(0);
+				auto i1 = poly->index_point(i - 1);
+				auto i2 = poly->index_point(i);
 
-			iter = dico_aretes.trouve(idxi0i2);
-
-			if (iter != dico_aretes.fin()) {
-				auto a = iter->second;
-				a2->paire = a;
-				a->paire = a2;
+				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
+				t->label = static_cast<unsigned>(poly->index);
 			}
 		}
 	});
@@ -207,19 +282,6 @@ Polyedre converti_corps_polyedre(const Corps &corps)
 	auto dico_aretes = dls::dico_desordonne<size_t, mi_arete *>();
 	auto dico_sommets = dls::dico_desordonne<long, mi_sommet *>();
 
-	auto trouve_sommet = [&](long idx0)
-	{
-		auto iter0 = dico_sommets.trouve(idx0);
-
-		if (iter0 == dico_sommets.fin()) {
-			auto s0 = polyedre.cree_sommet(corps.point_transforme(idx0));
-			dico_sommets.insere({ idx0, s0 });
-			return s0;
-		}
-
-		return iter0->second;
-	};
-
 	pour_chaque_polygone_ferme(corps, [&](Corps const &corps_entree, Polygone const *poly)
 	{
 		INUTILISE(corps_entree);
@@ -233,9 +295,9 @@ Polyedre converti_corps_polyedre(const Corps &corps)
 			auto idx0 = poly->index_point(i);
 			auto idx1 = poly->index_point((i + 1) % poly->nombre_sommets());
 
-			auto s0 = trouve_sommet(idx0);
+			auto s0 = trouve_sommet(polyedre, corps_entree, dico_sommets, idx0);
 			s0->label = static_cast<unsigned>(idx0);
-			auto s1 = trouve_sommet(idx1);
+			auto s1 = trouve_sommet(polyedre, corps_entree, dico_sommets, idx1);
 			s1->label = static_cast<unsigned>(idx1);
 
 			auto a0 = polyedre.cree_arete(s0, f);
