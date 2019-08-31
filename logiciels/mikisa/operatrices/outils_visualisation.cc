@@ -65,7 +65,7 @@ void dessine_boite(
 		auto idx_p = corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
 
 		if (attr_C) {
-			attr_C->vec3(idx_p) = couleur;
+			assigne(attr_C->r32(idx_p), couleur);
 		}
 	}
 

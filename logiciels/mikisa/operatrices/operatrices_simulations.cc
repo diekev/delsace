@@ -116,7 +116,7 @@ public:
 
 		auto liste_points = m_corps.points_pour_lecture();
 		auto const nombre_points = liste_points->taille();
-		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attrf = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto gravite = evalue_vecteur("gravité", contexte.temps_courant);
 
@@ -126,7 +126,7 @@ public:
 					[&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				attrf->valeur(i, gravite);
+				assigne(attrf->r32(i), gravite);
 			}
 		});
 
@@ -170,7 +170,7 @@ public:
 
 		auto liste_points = m_corps.points_pour_lecture();
 		auto const nombre_points = liste_points->taille();
-		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attrf = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto direction = evalue_vecteur("direction", contexte.temps_courant);
 		auto amplitude = evalue_decimal("amplitude", contexte.temps_courant);
@@ -187,13 +187,11 @@ public:
 					[&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto force = attrf->vec3(i);
+				auto force = attrf->r32(i);
 
 				for (size_t j = 0; j < 3; ++j) {
 					force[j] = std::min(force_max[j], force[j] + force_max[j]);
 				}
-
-				attrf->valeur(i, force);
 			}
 		});
 
@@ -236,8 +234,8 @@ public:
 
 		auto liste_points = m_corps.points_pour_ecriture();
 		auto const nombre_points = liste_points->taille();
-		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
-		auto attrf = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::R32, 3, portee_attr::POINT);
+		auto attrf = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* À FAIRE : passe le temps par image en paramètre. */
 		auto const temps_par_image = 1.0f / 24.0f;
@@ -246,7 +244,7 @@ public:
 		auto const masse_inverse = 1.0f / masse;
 
 		/* ajoute attribut vélocité */
-		auto attr_V = m_corps.ajoute_attribut("V", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_V = m_corps.ajoute_attribut("V", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* Ajourne la position des particules selon les équations :
 		 * v(t) = F(t)dt
@@ -257,16 +255,18 @@ public:
 		 * https://www.cs.cmu.edu/~baraff/sigcourse/
 		 */
 
-		auto attr_desactiv = m_corps.ajoute_attribut("part_desactiv",
-												  type_attribut::ENT8,
-												  portee_attr::POINT);
+		auto attr_desactiv = m_corps.ajoute_attribut(
+					"part_desactiv",
+					type_attribut::Z8,
+					1,
+					portee_attr::POINT);
 
 		boucle_parallele(
 					tbb::blocked_range<long>(0, nombre_points),
 					[&](tbb::blocked_range<long> const &plage)
 		{
 			for (long i = plage.begin(); i < plage.end(); ++i) {
-				auto desactivee = attr_desactiv->ent8(i);
+				auto desactivee = attr_desactiv->z8(i)[0];
 
 				if (desactivee == 1) {
 					continue;
@@ -275,18 +275,21 @@ public:
 				auto pos = liste_points->point(i);
 
 				/* a = f / m */
-				auto const acceleration = attrf->vec3(i) * masse_inverse;
+				auto f = dls::math::vec3f();
+				extrait(attrf->r32(i), f);
+				auto const acceleration = f * masse_inverse;
 
 				/* velocite = acceleration * temp_par_image + velocite */
-				auto velocite = attr_V->vec3(i) + acceleration * temps_par_image;
+				extrait(attr_V->r32(i), f);
+				auto velocite = f + acceleration * temps_par_image;
 
 				/* position = velocite * temps_par_image + position */
 				auto npos = pos + velocite * temps_par_image;
 
 				liste_points->point(i, npos);
-				attr_V->valeur(i, velocite);
-				attr_P->valeur(i, pos);
-				attrf->valeur(i, dls::math::vec3f(0.0f));
+				assigne(attr_V->r32(i), velocite);
+				assigne(attr_P->r32(i), pos);
+				assigne(attrf->r32(i), dls::math::vec3f(0.0f));
 			}
 		});
 
@@ -391,9 +394,11 @@ public:
 		auto groupe_sync = dls::synchronise<GroupePoint *>();
 		groupe_sync = groupe;
 
-		auto attr_desactiv = m_corps.ajoute_attribut("part_desactiv",
-												  type_attribut::ENT8,
-												  portee_attr::POINT);
+		auto attr_desactiv = m_corps.ajoute_attribut(
+					"part_desactiv",
+					type_attribut::Z8,
+					1,
+					portee_attr::POINT);
 
 		auto delegue_prims = DeleguePrim(*corps_collision);
 		auto arbre_hbe = construit_arbre_hbe(delegue_prims, 24);
@@ -403,9 +408,11 @@ public:
 		{
 			for (long i = plage.begin(); i < plage.end(); ++i) {
 				auto pos_cou = liste_points->point(i);
-				auto vel = attr_V->vec3(i);
-				auto pos_pre = attr_P->vec3(i);
-				auto desactivee = attr_desactiv->ent8(i);
+				auto vel = dls::math::vec3f();
+				extrait(attr_V->r32(i), vel);
+				auto pos_pre = dls::math::vec3f();
+				extrait(attr_P->r32(i), pos_pre);
+				auto desactivee = attr_desactiv->z8(i)[0];
 
 				if (desactivee == 1) {
 					continue;
@@ -469,7 +476,7 @@ public:
 						/* Le normal de la vélocité est multiplité par le coefficient
 						 * d'élasticité. */
 						vel = -elasticite * nv + tv;
-						attr_V->valeur(i, vel);
+						assigne(attr_V->r32(i), vel);
 						break;
 					}
 					case rep_collision::COLLE:
@@ -477,8 +484,8 @@ public:
 						pos_cou = dls::math::converti_type_vecteur<float>(esect.point);
 
 						liste_points->point(i, pos_cou);
-						attr_V->valeur(i, dls::math::vec3f(0.0f));
-						attr_desactiv->valeur(i, char(1));
+						assigne(attr_V->r32(i), dls::math::vec3f(0.0f));
+						assigne(attr_desactiv->z8(i), char(1));
 						break;
 					}
 				}
@@ -808,15 +815,15 @@ public:
 		auto mult_vel = evalue_decimal("mult_vel");
 
 		if (attr_V == nullptr) {
-			attr_V = m_corps.ajoute_attribut("V", type_attribut::VEC3, portee_attr::POINT);
+			attr_V = m_corps.ajoute_attribut("V", type_attribut::R32, 3, portee_attr::POINT);
 
 			for (auto i = 0; i < nombre_points; ++i) {
 				auto pos = liste_points->point(i);
-				attr_V->valeur(i, (pos - dls::math::vec3f(0.5f)) * mult_vel);
+				assigne(attr_V->r32(i), (pos - dls::math::vec3f(0.5f)) * mult_vel);
 			}
 		}
 
-		m_corps.ajoute_attribut("pos_pre", type_attribut::VEC3, portee_attr::POINT);
+		m_corps.ajoute_attribut("pos_pre", type_attribut::R32, 3, portee_attr::POINT);
 	}
 
 	void sous_etape(float gravitation, float dt)
@@ -856,7 +863,10 @@ public:
 					auto pos = liste_points->point(i);
 					dls::math::vec3f totalf_bhs = bhs.summation(1, BHP(pos, 1.0f), f);
 
-					attr_V->valeur(i, attr_V->vec3(i) + totalf_bhs * gravitation * dt);
+					auto v = dls::math::vec3f();
+					extrait(attr_V->r32(i), v);
+
+					assigne(attr_V->r32(i), v + totalf_bhs * gravitation * dt);
 				}
 			});
 		}
@@ -864,8 +874,10 @@ public:
 		for (auto i = 0; i < nombre_points; ++i) {
 			auto pos = liste_points->point(i);
 
-			liste_points->point(i, pos + dt * attr_V->vec3(i));
-			attr_P->valeur(i, pos);
+			auto v = dls::math::vec3f();
+			extrait(attr_V->r32(i), v);
+			liste_points->point(i, pos + dt * v);
+			assigne(attr_P->r32(i), pos);
 		}
 	}
 

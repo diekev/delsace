@@ -532,22 +532,28 @@ public:
 static const char *chaine_attribut(type_attribut type)
 {
 	switch (type) {
-		case type_attribut::ENT8:
-			return "ent8";
-		case type_attribut::ENT32:
-			return "ent32";
-		case type_attribut::DECIMAL:
-			return "décimal";
-		case type_attribut::VEC2:
-			return "vec2";
-		case type_attribut::VEC3:
-			return "vec3";
-		case type_attribut::VEC4:
-			return "vec4";
-		case type_attribut::MAT3:
-			return "mat3";
-		case type_attribut::MAT4:
-			return "mat4";
+		case type_attribut::Z8:
+			return "z8";
+		case type_attribut::Z16:
+			return "z16";
+		case type_attribut::Z32:
+			return "z32";
+		case type_attribut::Z64:
+			return "z64";
+		case type_attribut::N8:
+			return "n8";
+		case type_attribut::N16:
+			return "n16";
+		case type_attribut::N32:
+			return "n32";
+		case type_attribut::N64:
+			return "n64";
+		case type_attribut::R16:
+			return "r16";
+		case type_attribut::R32:
+			return "r32";
+		case type_attribut::R64:
+			return "r64";
 		case type_attribut::INVALIDE:
 			return "invalide";
 		case type_attribut::CHAINE:

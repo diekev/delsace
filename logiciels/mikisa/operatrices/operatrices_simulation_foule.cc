@@ -392,7 +392,7 @@ public:
 			}
 		}
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		dessine_boite(
 					m_corps,

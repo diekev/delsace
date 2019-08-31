@@ -37,15 +37,18 @@ struct Corps;
 
 enum class type_attribut : char {
 	INVALIDE = -1,
-	ENT8 = 0,
-	ENT32,
-	DECIMAL,
+	Z8,
+	Z16,
+	Z32,
+	Z64,
+	N8,
+	N16,
+	N32,
+	N64,
+	R16,
+	R32,
+	R64,
 	CHAINE,
-	VEC2,
-	VEC3,
-	VEC4,
-	MAT3,
-	MAT4,
 };
 
 long taille_octet_type_attribut(type_attribut type);
@@ -72,42 +75,54 @@ struct type_attribut_depuis_type;
 
 template <>
 struct type_attribut_depuis_type<char> {
-	static constexpr auto type = type_attribut::ENT8;
+	static constexpr auto type = type_attribut::Z8;
+};
+
+template <>
+struct type_attribut_depuis_type<short> {
+	static constexpr auto type = type_attribut::Z16;
 };
 
 template <>
 struct type_attribut_depuis_type<int> {
-	static constexpr auto type = type_attribut::ENT32;
+	static constexpr auto type = type_attribut::Z32;
 };
+
+template <>
+struct type_attribut_depuis_type<long> {
+	static constexpr auto type = type_attribut::Z64;
+};
+
+template <>
+struct type_attribut_depuis_type<unsigned char> {
+	static constexpr auto type = type_attribut::N8;
+};
+
+template <>
+struct type_attribut_depuis_type<unsigned short> {
+	static constexpr auto type = type_attribut::N16;
+};
+
+template <>
+struct type_attribut_depuis_type<unsigned int> {
+	static constexpr auto type = type_attribut::N32;
+};
+
+template <>
+struct type_attribut_depuis_type<unsigned long> {
+	static constexpr auto type = type_attribut::N64;
+};
+
+// À FAIRE : type R16
 
 template <>
 struct type_attribut_depuis_type<float> {
-	static constexpr auto type = type_attribut::DECIMAL;
+	static constexpr auto type = type_attribut::R32;
 };
 
 template <>
-struct type_attribut_depuis_type<dls::math::vec2f> {
-	static constexpr auto type = type_attribut::VEC2;
-};
-
-template <>
-struct type_attribut_depuis_type<dls::math::vec3f> {
-	static constexpr auto type = type_attribut::VEC3;
-};
-
-template <>
-struct type_attribut_depuis_type<dls::math::vec4f> {
-	static constexpr auto type = type_attribut::VEC4;
-};
-
-template <>
-struct type_attribut_depuis_type<dls::math::mat3x3f> {
-	static constexpr auto type = type_attribut::MAT3;
-};
-
-template <>
-struct type_attribut_depuis_type<dls::math::mat4x4f> {
-	static constexpr auto type = type_attribut::MAT4;
+struct type_attribut_depuis_type<double> {
+	static constexpr auto type = type_attribut::R64;
 };
 
 template <>
@@ -118,11 +133,11 @@ struct type_attribut_depuis_type<dls::chaine> {
 /* ************************************************************************** */
 
 #define ACCEDE_VALEUR_TYPE(__nom, __type) \
-	__type &__nom(long idx) \
+	__type *__nom(long idx) \
 	{ \
 		return this->valeur<__type>(idx); \
 	} \
-	__type const &__nom(long idx) const \
+	__type const *__nom(long idx) const \
 	{ \
 		return this->valeur<__type>(idx); \
 	}
@@ -137,10 +152,11 @@ class Attribut {
 
 public:
 	portee_attr portee;
+	int dimensions = 0;
 
 	Attribut(Attribut const &rhs);
 
-	Attribut(dls::chaine const &nom, type_attribut type, portee_attr portee = portee_attr::POINT, long taille = 0);
+	Attribut(dls::chaine const &nom, type_attribut type, int dims = 1, portee_attr portee = portee_attr::POINT, long taille = 0);
 
 	Attribut &operator=(Attribut const &rhs) = default;
 
@@ -161,51 +177,60 @@ public:
 	long taille() const;
 
 	template <typename T>
-	auto &valeur(long idx)
+	auto *valeur(long idx)
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		assert(this->type() == type_attribut_depuis_type<T>::type);
 		detache();
-		return *reinterpret_cast<T *>(&(*m_tampon)[idx * static_cast<long>(sizeof(T))]);
+		return reinterpret_cast<T *>(&(*m_tampon)[idx * dimensions * static_cast<long>(sizeof(T))]);
 	}
 
 	template <typename T>
-	auto const &valeur(long idx) const
+	auto const *valeur(long idx) const
 	{
 		assert(idx >= 0);
 		assert(idx < taille());
 		assert(this->type() == type_attribut_depuis_type<T>::type);
-		return *reinterpret_cast<T const *>(&(*m_tampon)[idx * static_cast<long>(sizeof(T))]);
+		return reinterpret_cast<T const *>(&(*m_tampon)[idx * dimensions * static_cast<long>(sizeof(T))]);
 	}
 
-	template <typename T>
-	auto valeur(long idx, T const &v)
-	{
-		detache();
-		this->valeur<T>(idx) = v;
-	}
-
-	ACCEDE_VALEUR_TYPE(ent8, char)
-	ACCEDE_VALEUR_TYPE(ent32, int)
-	ACCEDE_VALEUR_TYPE(decimal, float)
-	ACCEDE_VALEUR_TYPE(vec2, dls::math::vec2f)
-	ACCEDE_VALEUR_TYPE(vec3, dls::math::vec3f)
-	ACCEDE_VALEUR_TYPE(vec4, dls::math::vec4f)
-	ACCEDE_VALEUR_TYPE(mat3, dls::math::mat3x3f)
-	ACCEDE_VALEUR_TYPE(mat4, dls::math::mat4x4f)
+	ACCEDE_VALEUR_TYPE(z8, char)
+	ACCEDE_VALEUR_TYPE(z16, short)
+	ACCEDE_VALEUR_TYPE(z32, int)
+	ACCEDE_VALEUR_TYPE(z64, long)
+	ACCEDE_VALEUR_TYPE(n8, unsigned char)
+	ACCEDE_VALEUR_TYPE(n16, unsigned short)
+	ACCEDE_VALEUR_TYPE(n32, unsigned int)
+	ACCEDE_VALEUR_TYPE(n64, unsigned long)
+	ACCEDE_VALEUR_TYPE(r32, float)
+	ACCEDE_VALEUR_TYPE(r64, double)
 	ACCEDE_VALEUR_TYPE(chaine, dls::chaine)
-
-	template <typename T>
-	auto pousse(T const &v)
-	{
-		detache();
-		redimensionne(taille() + 1);
-		this->valeur<T>(taille() - 1) = v;
-	}
 
 	void detache();
 };
+
+template <typename T>
+inline auto assigne(T *ptr, T valeur)
+{
+	*ptr = valeur;
+}
+
+template <typename T, int O, int... Ns>
+inline auto assigne(T *ptr, dls::math::vecteur<O, T, Ns...> const &valeur)
+{
+	for (auto i = 0ul; i < sizeof...(Ns); ++i) {
+		ptr[i] = valeur[i];
+	}
+}
+
+template <typename T, int O, int... Ns>
+inline auto extrait(T const *ptr, dls::math::vecteur<O, T, Ns...> &valeur)
+{
+	for (auto i = 0ul; i < sizeof...(Ns); ++i) {
+		valeur[i] = ptr[i];
+	}
+}
 
 /* ************************************************************************** */
 
@@ -216,23 +241,21 @@ void copie_attribut(
 		long idx_dest);
 
 template <typename T>
-auto transforme_attr(Attribut &attr, std::function<T(T const&)> fonction_rappel)
+auto transforme_attr(Attribut &attr, std::function<void(T *)> fonction_rappel)
 {
 	for (auto i = 0; i < attr.taille(); ++i) {
-		attr.valeur<T>(i) = fonction_rappel(attr.valeur<T>(i));
+		fonction_rappel(attr.valeur<T>(i));
 	}
 }
 
 template <typename T>
-auto accumule_attr(Attribut const &attr)
+auto accumule_attr(Attribut const &attr, T *r_ptr)
 {
-	auto depart = T{};
-
 	for (auto i = 0; i < attr.taille(); ++i) {
-		depart += attr.valeur<T>(i);
+		for (auto j = 0; j < attr.dimensions; ++j) {
+			r_ptr[j] += attr.valeur<T>(i)[j];
+		}
 	}
-
-	return depart;
 }
 
 #if 0

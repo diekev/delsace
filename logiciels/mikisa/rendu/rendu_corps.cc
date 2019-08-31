@@ -287,57 +287,44 @@ void ajoute_polygone_surface(
 		points.pousse(liste_points->point(polygone->index_point(i)));
 
 		if (attr_normaux) {
+			auto idx = normaux.taille();
+			normaux.redimensionne(idx + 3);
+
 			if (attr_normaux->portee == portee_attr::POINT) {
-				normaux.pousse(attr_normaux->vec3(polygone->index_point(0)));
-				normaux.pousse(attr_normaux->vec3(polygone->index_point(i - 1)));
-				normaux.pousse(attr_normaux->vec3(polygone->index_point(i)));
+				extrait(attr_normaux->r32(polygone->index_point(0)), normaux[idx]);
+				extrait(attr_normaux->r32(polygone->index_point(i - 1)), normaux[idx + 1]);
+				extrait(attr_normaux->r32(polygone->index_point(i)), normaux[idx + 2]);
 			}
 			else if (attr_normaux->portee == portee_attr::PRIMITIVE) {
-				normaux.pousse(attr_normaux->vec3(polygone->index));
-				normaux.pousse(attr_normaux->vec3(polygone->index));
-				normaux.pousse(attr_normaux->vec3(polygone->index));
+				extrait(attr_normaux->r32(polygone->index), normaux[idx]);
+				extrait(attr_normaux->r32(polygone->index), normaux[idx + 1]);
+				extrait(attr_normaux->r32(polygone->index), normaux[idx + 2]);
 			}
 			else if (attr_normaux->portee == portee_attr::CORPS) {
-				normaux.pousse(attr_normaux->vec3(0));
-				normaux.pousse(attr_normaux->vec3(0));
-				normaux.pousse(attr_normaux->vec3(0));
+				extrait(attr_normaux->r32(0), normaux[idx]);
+				extrait(attr_normaux->r32(0), normaux[idx + 1]);
+				extrait(attr_normaux->r32(0), normaux[idx + 2]);
 			}
 		}
 
 		if (attr_couleurs) {
-			if (attr_couleurs->type() == type_attribut::VEC3) {
-				if (attr_couleurs->portee == portee_attr::POINT) {
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i - 1)));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i)));
-				}
-				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-				}
-				else if (attr_couleurs->portee == portee_attr::VERTEX) {
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_sommet(0)));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_sommet(i - 1)));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_sommet(i)));
-				}
+			auto idx = couleurs.taille();
+			couleurs.redimensionne(idx + 3);
+
+			if (attr_couleurs->portee == portee_attr::POINT) {
+				extrait(attr_couleurs->r32(polygone->index_point(0)), couleurs[idx]);
+				extrait(attr_couleurs->r32(polygone->index_point(i - 1)), couleurs[idx + 1]);
+				extrait(attr_couleurs->r32(polygone->index_point(i)), couleurs[idx + 2]);
 			}
-			else {
-				if (attr_couleurs->portee == portee_attr::POINT) {
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(0)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i - 1)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i)).xyz);
-				}
-				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-				}
-				else if (attr_couleurs->portee == portee_attr::VERTEX) {
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_sommet(0)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_sommet(i - 1)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_sommet(i)).xyz);
-				}
+			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+				extrait(attr_couleurs->r32(polygone->index), couleurs[idx]);
+				extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 1]);
+				extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 2]);
+			}
+			else if (attr_couleurs->portee == portee_attr::VERTEX) {
+				extrait(attr_couleurs->r32(polygone->index_sommet(0)), couleurs[idx]);
+				extrait(attr_couleurs->r32(polygone->index_sommet(i - 1)), couleurs[idx + 1]);
+				extrait(attr_couleurs->r32(polygone->index_sommet(i)), couleurs[idx + 2]);
 			}
 		}
 		else {
@@ -360,25 +347,16 @@ void ajoute_polygone_segment(
 		points.pousse(liste_points->point(polygone->index_point(i + 1)));
 
 		if (attr_couleurs) {
-			if (attr_couleurs->type() == type_attribut::VEC3) {
-				if (attr_couleurs->portee == portee_attr::POINT) {
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(0)));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index_point(i + 1)));
-				}
-				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-				}
+			auto idx = couleurs.taille();
+			couleurs.redimensionne(idx + 2);
+
+			if (attr_couleurs->portee == portee_attr::POINT) {
+				extrait(attr_couleurs->r32(polygone->index_point(0)), couleurs[idx]);
+				extrait(attr_couleurs->r32(polygone->index_point(i + 1)), couleurs[idx + 1]);
 			}
-			else {
-				if (attr_couleurs->portee == portee_attr::POINT) {
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(0)).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index_point(i + 1)).xyz);
-				}
-				else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-				}
+			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+				extrait(attr_couleurs->r32(polygone->index), couleurs[idx]);
+				extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 1]);
 			}
 		}
 		else {
@@ -807,12 +785,9 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		points.pousse(liste_points->point(i));
 
 		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
-			if (attr_C->type() == type_attribut::VEC3) {
-				couleurs.pousse(attr_C->vec3(i));
-			}
-			else {
-				couleurs.pousse(attr_C->vec4(i).xyz);
-			}
+			auto idx = couleurs.taille();
+			couleurs.redimensionne(idx + 1);
+			extrait(attr_C->r32(i), couleurs[idx]);
 		}
 	}
 

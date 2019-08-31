@@ -255,12 +255,12 @@ public:
 		dls::tableau<SommetOSD *> ptr_attrs_prims;
 
 		for (auto const &attr : corps_entree->attributs()) {
-			if (attr.portee == portee_attr::POINT && attr.type() == type_attribut::VEC3) {
+			if (attr.portee == portee_attr::POINT && attr.type() == type_attribut::R32 && attr.dimensions == 3) {
 				tampon_attr_points.pousse(dls::tableau<SommetOSD>(rafineur->GetNumVerticesTotal()));
 				attrs_points.pousse(&attr);
 			}
 
-			if (attr.portee == portee_attr::PRIMITIVE && attr.type() == type_attribut::VEC3) {
+			if (attr.portee == portee_attr::PRIMITIVE && attr.type() == type_attribut::R32 && attr.dimensions == 3) {
 				if (attr.nom() == "N") {
 					/* l'attribut normal ne peut-être copié */
 					continue;
@@ -284,13 +284,13 @@ public:
 			sommets[i].valeur = corps_entree->point_transforme(i);
 
 			for (auto j = 0; j < attrs_points.taille(); ++j) {
-				ptr_attrs_pnt[j][i].valeur = attrs_points[j]->vec3(i);
+				extrait(attrs_points[j]->r32(i), ptr_attrs_pnt[j][i].valeur);
 			}
 		}
 
 		for (auto i = 0; i < prims_entree->taille(); ++i) {
 			for (auto j = 0; j < attrs_prims.taille(); ++j) {
-				ptr_attrs_prims[j][i].valeur = attrs_prims[j]->vec3(i);
+				extrait(attrs_prims[j]->r32(i), ptr_attrs_prims[j][i].valeur);
 			}
 		}
 
@@ -348,10 +348,10 @@ public:
 			for (auto j = 0; j < attrs_points.taille(); ++j) {
 				auto attr = attrs_points[j];
 				auto ptr = ptr_attrs_pnt[j];
-				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->dimensions, attr->portee);
 
 				for (auto i = 0; i < nattr->taille(); ++i) {
-					nattr->vec3(i) = ptr[premier_sommet + i].valeur;
+					assigne(nattr->r32(i), ptr[premier_sommet + i].valeur);
 				}
 			}
 
@@ -369,10 +369,10 @@ public:
 			for (auto j = 0; j < attrs_prims.taille(); ++j) {
 				auto attr = attrs_prims[j];
 				auto ptr = ptr_attrs_prims[j];
-				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->portee);
+				auto nattr = m_corps.ajoute_attribut(attr->nom(), attr->type(), attr->dimensions, attr->portee);
 
 				for (auto i = 0; i < nattr->taille(); ++i) {
-					nattr->vec3(i) = ptr[premier_poly + i].valeur;
+					assigne(nattr->r32(i), ptr[premier_poly + i].valeur);
 				}
 			}
 

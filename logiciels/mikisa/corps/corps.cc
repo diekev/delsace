@@ -51,6 +51,7 @@ void Corps::ajoute_attribut(Attribut *attr)
 Attribut *Corps::ajoute_attribut(
 		dls::chaine const &nom_attribut,
 		type_attribut type_,
+		int dimensions,
 		portee_attr portee,
 		bool force_vide)
 {
@@ -82,7 +83,7 @@ Attribut *Corps::ajoute_attribut(
 			}
 		}
 
-		auto nattr = Attribut(nom_attribut, type_, portee, taille_attrib);
+		auto nattr = Attribut(nom_attribut, type_, dimensions, portee, taille_attrib);
 		m_attributs.pousse(nattr);
 		attr = &m_attributs.back();
 	}

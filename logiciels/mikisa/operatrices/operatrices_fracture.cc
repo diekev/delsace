@@ -1830,7 +1830,7 @@ public:
 		container_compute_cells(cont_voro, ordre_parts, cellules);
 
 		/* conversion des données */
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 		auto gna = GNA();
 
 		auto poly_index_offset = 0;
@@ -1851,7 +1851,7 @@ public:
 
 				auto poly = m_corps.ajoute_polygone(type_polygone::FERME, nombre_verts);
 
-				attr_C->vec3(poly->index) = couleur;
+				assigne(attr_C->r32(poly->index), couleur);
 				for (auto j = 0; j < nombre_verts; ++j) {
 					m_corps.ajoute_sommet(poly, poly_index_offset + c.poly_indices[skip + 1 + j]);
 				}

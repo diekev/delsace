@@ -505,7 +505,7 @@ public:
 		auto etendu = m_poseidon.densite->desc().etendue;
 		auto taille_voxel = static_cast<float>(m_poseidon.densite->desc().taille_voxel);
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
 
@@ -513,7 +513,7 @@ public:
 
 		for (auto i = 0; i < m_poseidon.parts.taille(); ++i) {
 			auto idx_p = m_corps.ajoute_point(pos_parts[i]);
-			attr_C->vec3(idx_p) = dls::math::vec3f(0.435f, 0.284f, 0.743f);
+			assigne(attr_C->r32(idx_p), dls::math::vec3f(0.435f, 0.284f, 0.743f));
 		}
 
 		m_corps.ajoute_primitive(volume);
@@ -1404,7 +1404,7 @@ public:
 				}
 			}
 
-			auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 			for (auto z = 0; z < res.z; ++z) {
 				for (auto y = 0; y < res.y; ++y) {
@@ -1436,7 +1436,7 @@ public:
 						m_corps.ajoute_sommet(poly, decalage);
 						m_corps.ajoute_sommet(poly, decalage + 1);
 
-						C->pousse(rvb);
+						assigne(C->r32(poly->index), rvb);
 					}
 				}
 			}

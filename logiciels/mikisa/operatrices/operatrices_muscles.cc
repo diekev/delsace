@@ -1014,7 +1014,7 @@ public:
 
 	void convertie_geometrie()
 	{
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* pour le joint */
 		auto idx_p0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
@@ -1026,10 +1026,10 @@ public:
 		auto p = rotation * dls::math::vec4f(0.0f, joint1->l2, 0.0f, 1.0f);
 		auto idx_p3 = m_corps.ajoute_point(p.x, p.y, p.z);
 
-		attr_C->vec3(idx_p0) = dls::math::vec3f(1.0f);
-		attr_C->vec3(idx_p1) = dls::math::vec3f(1.0f);
-		attr_C->vec3(idx_p2) = dls::math::vec3f(1.0f);
-		attr_C->vec3(idx_p3) = dls::math::vec3f(1.0f);
+		assigne(attr_C->r32(idx_p0), dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p1), dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p2), dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p3), dls::math::vec3f(1.0f));
 
 		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
 		m_corps.ajoute_sommet(poly, 0);
@@ -1077,14 +1077,14 @@ public:
 			auto idx_p2 = m_corps.ajoute_point(v2.x, v2.y, v2.z);
 
 			if (show_stresses == false) {
-				attr_C->vec3(idx_p0) = red_blue(mesh->forces[static_cast<long>(f.x)].norm(), 500.0f, 2000.0f);
-				attr_C->vec3(idx_p1) = red_blue(mesh->forces[static_cast<long>(f.y)].norm(), 500.0f, 2000.0f);
-				attr_C->vec3(idx_p2) = red_blue(mesh->forces[static_cast<long>(f.z)].norm(), 500.0f, 2000.0f);
+				assigne(attr_C->r32(idx_p0), red_blue(mesh->forces[static_cast<long>(f.x)].norm(), 500.0f, 2000.0f));
+				assigne(attr_C->r32(idx_p1), red_blue(mesh->forces[static_cast<long>(f.y)].norm(), 500.0f, 2000.0f));
+				assigne(attr_C->r32(idx_p2), red_blue(mesh->forces[static_cast<long>(f.z)].norm(), 500.0f, 2000.0f));
 			}
 			else {
-				attr_C->vec3(idx_p0) = red_blue(mesh->vertex_stress[static_cast<long>(f.x)], 100000.0f, 500000.0f);
-				attr_C->vec3(idx_p1) = red_blue(mesh->vertex_stress[static_cast<long>(f.y)], 100000.0f, 500000.0f);
-				attr_C->vec3(idx_p2) = red_blue(mesh->vertex_stress[static_cast<long>(f.z)], 100000.0f, 500000.0f);
+				assigne(attr_C->r32(idx_p0), red_blue(mesh->vertex_stress[static_cast<long>(f.x)], 100000.0f, 500000.0f));
+				assigne(attr_C->r32(idx_p1), red_blue(mesh->vertex_stress[static_cast<long>(f.y)], 100000.0f, 500000.0f));
+				assigne(attr_C->r32(idx_p2), red_blue(mesh->vertex_stress[static_cast<long>(f.z)], 100000.0f, 500000.0f));
 			}
 
 			auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);

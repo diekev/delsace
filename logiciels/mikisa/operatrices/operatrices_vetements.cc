@@ -117,7 +117,7 @@ static auto ajoute_contrainte_courbure(
 	c.p2 = pb;
 	c.p3 = pc;
 
-	c.w = W->decimal(pa) + W->decimal(pb) + 2.0f * W->decimal(pc);
+	c.w = W->r32(pa)[0] + W->r32(pb)[0] + 2.0f * W->r32(pc)[0];
 	auto const centre = 0.3333f * (X->point(pa) + X->point(pb) + X->point(pc));
 	c.longueur_repos = longueur(X->point(pc) - centre);
 	c.k = k;
@@ -136,10 +136,10 @@ static void calcul_forces(
 		dls::math::vec3f const &gravity)
 {
 	for (auto i = 0; i < F->taille(); i++) {
-		F->valeur(i, dls::math::vec3f(0.0f));
+		assigne(F->r32(i), dls::math::vec3f(0.0f));
 
-		if (W->decimal(i) > 0.0f) {
-			F->valeur(i, gravity);
+		if (W->r32(i)[0] > 0.0f) {
+			assigne(F->r32(i), gravity);
 		}
 	}
 }
@@ -156,13 +156,18 @@ static void integre_explicitement_avec_attenuation(
 		float kDamp,
 		float global_dampening)
 {
+	auto v = dls::math::vec3f();
+	auto f = dls::math::vec3f();
+	auto ri = dls::math::vec3f();
 	auto Xcm = dls::math::vec3f(0.0f);
 	auto Vcm = dls::math::vec3f(0.0f);
 	auto sumM = 0.0f;
 
 	for (auto i = 0; i < X->taille(); ++i) {
-		auto Vi = (V->vec3(i) * global_dampening) + (F->vec3(i) * deltaTime) * W->decimal(i);
-		V->valeur(i, Vi);
+		extrait(V->r32(i), v);
+		extrait(F->r32(i), f);
+		auto Vi = (v * global_dampening) + (f * deltaTime) * W->r32(i)[0];
+		assigne(V->r32(i), Vi);
 
 		/* calcul la position et la vélocité du centre de masse pour l'atténuation */
 		Xcm += (X->point(i) * mass);
@@ -181,9 +186,10 @@ static void integre_explicitement_avec_attenuation(
 
 	for (auto i = 0; i < X->taille(); ++i) {
 		auto Ri_i = (X->point(i) - Xcm);
-		Ri->valeur(i, Ri_i);
+		assigne(Ri->r32(i), Ri_i);
 
-		L += produit_croix(Ri_i, mass*V->vec3(i));
+		extrait(V->r32(i), v);
+		L += produit_croix(Ri_i, mass * v);
 
 		/* voir http://www.sccg.sk/~onderik/phd/ca2010/ca10_lesson11.pdf */
 		auto tmp = dls::math::mat3x3f(
@@ -206,17 +212,20 @@ static void integre_explicitement_avec_attenuation(
 
 	/* applique l'atténuation du centre de masse */
 	for (auto i = 0; i < X->taille(); ++i) {
-		auto delVi = Vcm + produit_croix(w, Ri->vec3(i)) - V->vec3(i);
-		V->valeur(i, V->vec3(i) + kDamp * delVi);
+		extrait(V->r32(i), v);
+		extrait(Ri->r32(i), ri);
+		auto delVi = Vcm + produit_croix(w, ri) - v;
+		assigne(V->r32(i), v + kDamp * delVi);
 	}
 
 	/* calcul position prédite */
 	for (auto i = 0; i < X->taille(); ++i) {
-		if (W->decimal(i) <= 0.0f) {
-			tmp_X->valeur(i, X->point(i)); //fixed points
+		if (W->r32(i)[0] <= 0.0f) {
+			assigne(tmp_X->r32(i), X->point(i)); //fixed points
 		}
 		else {
-			tmp_X->valeur(i, X->point(i) + V->vec3(i) * deltaTime);
+			extrait(V->r32(i), v);
+			assigne(tmp_X->r32(i), X->point(i) + v * deltaTime);
 		}
 	}
 }
@@ -228,10 +237,12 @@ static void integre(
 		Attribut *tmp_X)
 {
 	auto const inv_dt = 1.0f / deltaTime;
+	auto tmp_x = dls::math::vec3f();
 
 	for (auto i = 0; i < X->taille(); i++) {
-		V->valeur(i, (tmp_X->vec3(i) - X->point(i)) * inv_dt);
-		X->point(i, tmp_X->vec3(i));
+		extrait(tmp_X->r32(i), tmp_x);
+		assigne(V->r32(i), (tmp_x - X->point(i)) * inv_dt);
+		X->point(i, tmp_x);
 	}
 }
 
@@ -241,16 +252,22 @@ static void ajourne_contraintes_distance(
 		Attribut *tmp_X,
 		Attribut *W)
 {
+	auto xp1 = dls::math::vec3f();
+	auto xp2 = dls::math::vec3f();
+
 	auto const &c = d_constraints[i];
-	auto const dir = tmp_X->vec3(c.p1) - tmp_X->vec3(c.p2);
+	extrait(tmp_X->r32(c.p1), xp1);
+	extrait(tmp_X->r32(c.p2), xp2);
+
+	auto const dir = xp1 - xp2;
 	auto const len = longueur(dir);
 
 	if (len <= EPSILON) {
 		return;
 	}
 
-	auto const w1 = W->decimal(c.p1);
-	auto const w2 = W->decimal(c.p2);
+	auto const w1 = W->r32(c.p1)[0];
+	auto const w2 = W->r32(c.p2)[0];
 	auto const invMass = w1 + w2;
 
 	if (invMass <= EPSILON) {
@@ -260,11 +277,11 @@ static void ajourne_contraintes_distance(
 	auto const dP = (1.0f / invMass) * (len-c.longueur_repos ) * (dir / len) * c.k_prime;
 
 	if (w1 > 0.0f) {
-		tmp_X->valeur(c.p1, tmp_X->vec3(c.p1) - dP * w1);
+		assigne(tmp_X->r32(c.p1), xp1 - dP * w1);
 	}
 
 	if (w2 > 0.0f) {
-		tmp_X->valeur(c.p2, tmp_X->vec3(c.p2) + dP * w2);
+		assigne(tmp_X->r32(c.p2), xp2 + dP * w2);
 	}
 }
 
@@ -282,27 +299,34 @@ static void ajourne_contraintes_courbures(
 	 * http://image.diku.dk/kenny/download/kelager.niebe.ea10.pdf
 	 */
 
+	auto xp1 = dls::math::vec3f();
+	auto xp2 = dls::math::vec3f();
+	auto xp3 = dls::math::vec3f();
+	extrait(tmp_X->r32(c.p1), xp1);
+	extrait(tmp_X->r32(c.p2), xp2);
+	extrait(tmp_X->r32(c.p3), xp3);
+
 	auto const global_k = global_dampening * 0.01f;
-	auto const centre = 0.3333f * (tmp_X->vec3(c.p1) + tmp_X->vec3(c.p2) + tmp_X->vec3(c.p3));
-	auto const dir_centre = tmp_X->vec3(c.p3) - centre;
+	auto const centre = 0.3333f * (xp1 + xp2 + xp3);
+	auto const dir_centre = xp3 - centre;
 	auto const dist_centre = longueur(dir_centre);
 
 	auto const diff = 1.0f - ((global_k + c.longueur_repos) / dist_centre);
 	auto const dir_force = dir_centre * diff;
-	auto const fa =  c.k_prime * ((2.0f * W->decimal(c.p1)) / c.w) * dir_force;
-	auto const fb =  c.k_prime * ((2.0f * W->decimal(c.p2)) / c.w) * dir_force;
-	auto const fc = -c.k_prime * ((4.0f * W->decimal(c.p3)) / c.w) * dir_force;
+	auto const fa =  c.k_prime * ((2.0f * W->r32(c.p1)[0]) / c.w) * dir_force;
+	auto const fb =  c.k_prime * ((2.0f * W->r32(c.p2)[0]) / c.w) * dir_force;
+	auto const fc = -c.k_prime * ((4.0f * W->r32(c.p3)[0]) / c.w) * dir_force;
 
-	if (W->decimal(c.p1) > 0.0f)  {
-		tmp_X->valeur(c.p1, tmp_X->vec3(c.p1) + fa);
+	if (W->r32(c.p1)[0] > 0.0f)  {
+		assigne(tmp_X->r32(c.p1), xp1 + fa);
 	}
 
-	if (W->decimal(c.p2) > 0.0f) {
-		tmp_X->valeur(c.p2, tmp_X->vec3(c.p2) + fb);
+	if (W->r32(c.p2)[0] > 0.0f) {
+		assigne(tmp_X->r32(c.p2), xp2 + fb);
 	}
 
-	if (W->decimal(c.p3) > 0.0f) {
-		tmp_X->valeur(c.p3, tmp_X->vec3(c.p3) + fc);
+	if (W->r32(c.p3)[0] > 0.0f) {
+		assigne(tmp_X->r32(c.p3), xp3 + fc);
 	}
 }
 
@@ -353,8 +377,10 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 	{
 		for (auto i = plage.begin(); i < plage.end(); ++i) {
 			auto pos_cour = points->point(i);
-			auto pos_prev = attr_P->vec3(i);
-			auto force = attr_F->vec3(i);
+			auto pos_prev = dls::math::vec3f();
+			extrait(attr_P->r32(i), pos_prev);
+			auto force = dls::math::vec3f();
+			extrait(attr_F->r32(i),force);
 			auto drag = 1.0f - donnees_sim.drag;
 
 			/* integration */
@@ -362,7 +388,7 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 			auto pos_nouv = (pos_cour + vel * donnees_sim.dt * drag);
 
 			/* ajourne données solveur */
-			attr_P->valeur(i, pos_cour);
+			assigne(attr_P->r32(i), pos_cour);
 			points->point(i, pos_nouv);
 		}
 	});
@@ -399,8 +425,10 @@ static void contraintes_position_verlet(Corps &corps, DonneesSimVerlet const &/*
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); ++i) {
-			if (attr_W->decimal(i) <= 0.0f) {
-				points->point(i, attr_P->vec3(i));
+			if (attr_W->r32(i)[0] <= 0.0f) {
+				auto p = dls::math::vec3f();
+				extrait(attr_P->r32(i), p);
+				points->point(i, p);
 			}
 		}
 	});
@@ -509,24 +537,24 @@ public:
 		auto const gravity = evalue_vecteur("gravité", temps);
 		auto const mass = evalue_decimal("masse") / static_cast<float>(points_entree->taille());
 
-		auto W = m_corps.ajoute_attribut("W", type_attribut::DECIMAL, portee_attr::POINT);
-		auto F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
-		auto P = m_corps.ajoute_attribut("P_prev", type_attribut::VEC3, portee_attr::POINT);
+		auto W = m_corps.ajoute_attribut("W", type_attribut::R32, 1, portee_attr::POINT);
+		auto F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
+		auto P = m_corps.ajoute_attribut("P_prev", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* À FAIRE : réinitialisation */
 		if (temps == 1) {
 			for (auto i = 0; i < points_entree->taille(); ++i) {
-				P->valeur(i, points_entree->point(i));
+				assigne(P->r32(i), points_entree->point(i));
 			}
 		}
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
-			W->valeur(i, 1.0f / mass);
+			assigne(W->r32(i), 1.0f / mass);
 		}
 
 		/* points fixes, À FAIRE : groupe ou attribut. */
 		for (auto i = 0; i < 20; ++i) {
-			W->valeur(i, 0.0f);
+			assigne(W->r32(i), 0.0f);
 		}
 
 		m_donnees_verlet.drag = evalue_decimal("atténuation", temps);
@@ -571,11 +599,11 @@ public:
 		dls::tableau<float> phi0; //initial dihedral angle between adjacent triangles
 
 		auto X = points_entree;
-		auto tmp_X = m_corps.ajoute_attribut("tmp_X", type_attribut::VEC3, portee_attr::POINT);
-		auto V = m_corps.ajoute_attribut("V", type_attribut::VEC3, portee_attr::POINT);
-		auto F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
-		auto W = m_corps.ajoute_attribut("W", type_attribut::DECIMAL, portee_attr::POINT);
-		auto Ri = m_corps.ajoute_attribut("Ri", type_attribut::VEC3, portee_attr::POINT);
+		auto tmp_X = m_corps.ajoute_attribut("tmp_X", type_attribut::R32, 3, portee_attr::POINT);
+		auto V = m_corps.ajoute_attribut("V", type_attribut::R32, 3, portee_attr::POINT);
+		auto F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
+		auto W = m_corps.ajoute_attribut("W", type_attribut::R32, 1, portee_attr::POINT);
+		auto Ri = m_corps.ajoute_attribut("Ri", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* paramètres */
 		auto const attenuation_globale = evalue_decimal("atténuation_globale", temps);
@@ -590,12 +618,12 @@ public:
 		/* prépare données */
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
-			W->valeur(i, 1.0f / mass);
+			assigne(W->r32(i), 1.0f / mass);
 		}
 
 		/* points fixes, À FAIRE : groupe ou attribut. */
 		for (auto i = 0; i < 20; ++i) {
-			W->valeur(i, 0.0f);
+			assigne(W->r32(i), 0.0f);
 		}
 
 		if (d_constraints.est_vide()) {

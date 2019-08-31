@@ -125,7 +125,7 @@ public:
 		//paires_attrs.reserve(corps->attributs().taille());
 
 		for (auto const &attr : corps->attributs()) {
-			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
 
 			if (attr.portee == portee_attr::POINT) {
 				paires_attrs.pousse({ &attr, attr2 });
@@ -157,43 +157,13 @@ public:
 			}
 
 			auto const point = points_corps->point(i);
-			m_corps.ajoute_point(point.x, point.y, point.z);
+			auto index_point = m_corps.ajoute_point(point.x, point.y, point.z);
 
 			for (auto &paire : paires_attrs) {
 				auto attr_Vorig = paire.first;
 				auto attr_Vdest = paire.second;
 
-				switch (attr_Vorig->type()) {
-					case type_attribut::ENT8:
-						attr_Vdest->pousse(attr_Vorig->ent8(i));
-						break;
-					case type_attribut::ENT32:
-						attr_Vdest->pousse(attr_Vorig->ent32(i));
-						break;
-					case type_attribut::DECIMAL:
-						attr_Vdest->pousse(attr_Vorig->decimal(i));
-						break;
-					case type_attribut::CHAINE:
-						attr_Vdest->pousse(attr_Vorig->chaine(i));
-						break;
-					case type_attribut::VEC2:
-						attr_Vdest->pousse(attr_Vorig->vec2(i));
-						break;
-					case type_attribut::VEC3:
-						attr_Vdest->pousse(attr_Vorig->vec3(i));
-						break;
-					case type_attribut::VEC4:
-						attr_Vdest->pousse(attr_Vorig->vec4(i));
-						break;
-					case type_attribut::MAT3:
-						attr_Vdest->pousse(attr_Vorig->mat3(i));
-						break;
-					case type_attribut::MAT4:
-						attr_Vdest->pousse(attr_Vorig->mat4(i));
-						break;
-					default:
-						break;
-				}
+				copie_attribut(attr_Vorig, i, attr_Vdest, index_point);
 			}
 		}
 
@@ -234,7 +204,8 @@ static auto echantillonne_normal(
 	}
 
 	if (attr_N->portee == portee_attr::PRIMITIVE) {
-		return attr_N->vec3(poly->index);
+		extrait(attr_N->r32(poly->index), nor);
+		return nor;
 	}
 
 	if (attr_N->portee == portee_attr::POINT) {
@@ -252,7 +223,10 @@ static auto echantillonne_normal(
 			auto l = longueur(pos - p);
 
 			poids += l;
-			nor += attr_N->vec3(idx) * l;
+			auto ptr = attr_N->r32(poly->index);
+			nor[0] += ptr[0] * l;
+			nor[1] += ptr[1] * l;
+			nor[2] += ptr[2] * l;
 		}
 
 		if (poids != 0.0f) {
@@ -490,7 +464,7 @@ public:
 		auto points_sorties = m_corps.points_pour_ecriture();
 		points_sorties->reserve(nombre_points);
 
-		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* À FAIRE : il faudrait un meilleur algorithme pour mieux distribuer
 		 *  les points sur les maillages, avec nombre_points = max nombre
@@ -526,7 +500,7 @@ public:
 				auto posf = dls::math::converti_type_vecteur<float>(pos);
 				auto index = m_corps.ajoute_point(posf);
 
-				attr_N->vec3(index) = echantillonne_normal(*corps_entree, triangle.index_orig, posf);
+				assigne(attr_N->r32(index), echantillonne_normal(*corps_entree, triangle.index_orig, posf));
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -555,7 +529,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		if (attr_source->type() != type_attribut::VEC3) {
+		if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
 			dls::flux_chaine ss;
 			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
 			this->ajoute_avertissement(ss.chn());
@@ -577,8 +551,8 @@ public:
 		}
 
 		for (auto i = 0; i < attr_source->taille(); ++i) {
-			auto p = attr_source->vec3(i);
-			auto index = m_corps.ajoute_point(p.x, p.y, p.z);
+			auto p = attr_source->r32(i);
+			auto index = m_corps.ajoute_point(p[0], p[1], p[2]);
 
 			if (groupe_sortie) {
 				groupe_sortie->ajoute_point(index);
@@ -951,7 +925,7 @@ public:
 
 		auto debut = compte_tick_ms();
 
-		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* Tant qu'il reste des triangles à remplir... */
 		while (true) {
@@ -993,7 +967,7 @@ public:
 				//chage_spatial.ajoute(point);
 				grille_particule.ajoute(point);
 				auto idx_p = m_corps.ajoute_point(point.x, point.y, point.z);
-				attr_N->vec3(idx_p) = echantillonne_normal(*corps_maillage, triangle->index_orig, point);
+				assigne(attr_N->r32(idx_p), echantillonne_normal(*corps_maillage, triangle->index_orig, point));
 				debut = compte_tick_ms();
 			}
 
@@ -1551,7 +1525,7 @@ public:
 
 		auto attr_V = corps_entree->attribut(nom_attribut);
 
-		if (attr_V == nullptr || attr_V->type() != type_attribut::VEC3 || attr_V->portee != portee_attr::POINT) {
+		if (attr_V == nullptr || attr_V->type() != type_attribut::R32 || attr_V->dimensions != 3 || attr_V->portee != portee_attr::POINT) {
 			this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -1571,7 +1545,9 @@ public:
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
 			auto p = points_entree->point(i);
-			auto v = attr_V->vec3(i) * taille;
+			auto v = dls::math::vec3f();
+			extrait(attr_V->r32(i), v);
+			v *= taille;
 
 			/* Par défaut nous utilisons la vélocité, donc la direction normale
 			 * est celle d'où nous venons. */
@@ -1767,7 +1743,7 @@ public:
 		auto rayon = evalue_decimal("rayon");
 		auto poids = evalue_decimal("poids");
 
-		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* À FAIRE : il y a un effet yo-yo. */
 
@@ -1852,7 +1828,8 @@ public:
 				auto vpz = dls::math::vec3f(vpz_e[0], vpz_e[1], vpz_e[2]);
 
 				/* calcul la force pour la particule */
-				auto force = attr_F->vec3(i);
+				auto force = dls::math::vec3f();
+				extrait(attr_F->r32(i), force);
 
 				/* pousse ou tire la particule le long des axes locaux */
 				force += force_dir.x * vpx;
@@ -1889,7 +1866,7 @@ public:
 				force += (centre_masse - p) * force_centre;
 #endif
 
-				attr_F->valeur(i, force * poids);
+				assigne(attr_F->r32(i), force * poids);
 			}
 		});
 
@@ -2032,8 +2009,8 @@ public:
 			/* ajoute des points qui devraient vraiment venir d'un autre noeud */
 			m_corps.reinitialise();
 
-			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::ENT32, portee_attr::POINT);
-			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::VEC3, portee_attr::POINT);
+			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::Z32, 1, portee_attr::POINT);
+			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::R32, 3, portee_attr::POINT);
 
 			for (auto i = 0; i < 100; ++i) {
 				auto idx_prim = gna.uniforme(0l, prims_entree->taille() - 1);
@@ -2060,9 +2037,9 @@ public:
 				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
 
 				auto idx_p = m_corps.ajoute_point(pos);
-				attr_P->vec3(idx_p) = pos;
+				assigne(attr_P->r32(idx_p), pos);
 
-				attr_Prim->ent32(idx_p) = static_cast<int>(idx_prim);
+				attr_Prim->z32(idx_p)[0] = static_cast<int>(idx_prim);
 			}
 		}
 		else {
@@ -2072,7 +2049,7 @@ public:
 
 			for (auto i = 0; i < points->taille(); ++i) {
 				auto p = points->point(i);
-				attr_P->vec3(i) = p;
+				assigne(attr_P->r32(i), p);
 				p.x += gna.uniforme(-0.2f, 0.2f);
 				p.y += gna.uniforme(-0.2f, 0.2f);
 				p.z += gna.uniforme(-0.2f, 0.2f);
@@ -2104,12 +2081,12 @@ public:
 			auto attr_Prim = m_corps.attribut("prim_idx");
 
 			for (auto i = 0; i < points->taille(); ++i) {
-				auto idx_prim = attr_Prim->ent32(i);
+				auto idx_prim = attr_Prim->z32(i);
 				auto prim = prims_entree->prim(idx_prim);
 
 				auto poly = dynamic_cast<Polygone *>(prim);
 
-				auto a0 = attr_P->vec3(i);
+				auto a0 = attr_P->r32(i);
 				//auto as = points->point(i);
 				//auto const d = as - a0;
 

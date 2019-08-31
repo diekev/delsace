@@ -869,6 +869,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 							attr1->nom(),
 							attr1->type(),
+							attr1->dimensions,
 							attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
@@ -881,6 +882,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 							attr1->nom(),
 							attr1->type(),
+							attr1->dimensions,
 							attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
@@ -891,6 +893,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 							attr2->nom(),
 							attr2->type(),
+							attr2->dimensions,
 							attr2->portee);
 
 				auto decalage = attr->taille_octets() - attr2->taille_octets();

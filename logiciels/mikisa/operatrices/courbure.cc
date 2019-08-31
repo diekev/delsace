@@ -80,8 +80,11 @@ public:
 
 	MULTIARCH inline GLSPoint(DonneesMaillage const &mesh, long vx)
 		: m_pos(converti_eigen(mesh.points->point(vx)))
-		, m_norm(converti_eigen(mesh.normaux->vec3(vx)))
-	{}
+	{
+		auto n = dls::math::vec3f();
+		extrait(mesh.normaux->r32(vx), n);
+		m_norm = converti_eigen(n);
+	}
 
 	MULTIARCH inline const VectorType &pos()    const
 	{
@@ -272,20 +275,20 @@ static auto calcul_courbure(
 					++donnees_ret.nombre_instable;
 				}
 
-				donnees_maillage.direction_max->valeur(i, converti_depuis_eigen(fit.GLSk1Direction()));
-				donnees_maillage.direction_min->valeur(i, converti_depuis_eigen(fit.GLSk2Direction()));
-				donnees_maillage.courbure_max->valeur(i, static_cast<float>(fit.GLSk1()));
-				donnees_maillage.courbure_min->valeur(i, static_cast<float>(fit.GLSk2()));
-				donnees_maillage.var_geom->valeur(i, static_cast<float>(fit.geomVar()));
+				assigne(donnees_maillage.direction_max->r32(i), converti_depuis_eigen(fit.GLSk1Direction()));
+				assigne(donnees_maillage.direction_min->r32(i), converti_depuis_eigen(fit.GLSk2Direction()));
+				assigne(donnees_maillage.courbure_max->r32(i), static_cast<float>(fit.GLSk1()));
+				assigne(donnees_maillage.courbure_min->r32(i), static_cast<float>(fit.GLSk2()));
+				assigne(donnees_maillage.var_geom->r32(i), static_cast<float>(fit.geomVar()));
 			}
 			else {
 				++donnees_ret.nombre_impossible;
 
-				donnees_maillage.direction_max->valeur(i, dls::math::vec3f(0.0f));
-				donnees_maillage.direction_min->valeur(i, dls::math::vec3f(0.0f));
-				donnees_maillage.courbure_max->valeur(i, std::numeric_limits<float>::quiet_NaN());
-				donnees_maillage.courbure_min->valeur(i, std::numeric_limits<float>::quiet_NaN());
-				donnees_maillage.var_geom->valeur(i, std::numeric_limits<float>::quiet_NaN());
+				assigne(donnees_maillage.direction_max->r32(i), dls::math::vec3f(0.0f));
+				assigne(donnees_maillage.direction_min->r32(i), dls::math::vec3f(0.0f));
+				assigne(donnees_maillage.courbure_max->r32(i), std::numeric_limits<float>::quiet_NaN());
+				assigne(donnees_maillage.courbure_min->r32(i), std::numeric_limits<float>::quiet_NaN());
+				assigne(donnees_maillage.var_geom->r32(i), std::numeric_limits<float>::quiet_NaN());
 			}
 		}
 
@@ -308,11 +311,11 @@ DonneesCalculCourbure calcule_courbure(
 	auto donnees_maillage = DonneesMaillage{};
 	donnees_maillage.points = points_entree;
 	donnees_maillage.normaux = corps.attribut("N");
-	donnees_maillage.courbure_min = corps.ajoute_attribut("courbure_min", type_attribut::DECIMAL, portee_attr::POINT);
-	donnees_maillage.courbure_max = corps.ajoute_attribut("courbure_max", type_attribut::DECIMAL, portee_attr::POINT);
-	donnees_maillage.direction_min = corps.ajoute_attribut("direction_min", type_attribut::VEC3, portee_attr::POINT);
-	donnees_maillage.direction_max = corps.ajoute_attribut("direction_max", type_attribut::VEC3, portee_attr::POINT);
-	donnees_maillage.var_geom = corps.ajoute_attribut("var_geom", type_attribut::DECIMAL, portee_attr::POINT);
+	donnees_maillage.courbure_min = corps.ajoute_attribut("courbure_min", type_attribut::R32, 1, portee_attr::POINT);
+	donnees_maillage.courbure_max = corps.ajoute_attribut("courbure_max", type_attribut::R32, 1, portee_attr::POINT);
+	donnees_maillage.direction_min = corps.ajoute_attribut("direction_min", type_attribut::R32, 3, portee_attr::POINT);
+	donnees_maillage.direction_max = corps.ajoute_attribut("direction_max", type_attribut::R32, 3, portee_attr::POINT);
+	donnees_maillage.var_geom = corps.ajoute_attribut("var_geom", type_attribut::R32, 1, portee_attr::POINT);
 
 	chef->indique_progression(100.0f);
 

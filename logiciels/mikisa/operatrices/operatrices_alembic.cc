@@ -202,7 +202,7 @@ static auto charge_attributs(
 
 			auto attr = corps.ajoute_attribut(
 						prop_header.getName(),
-						type_attribut::DECIMAL);
+						type_attribut::R32);
 
 			attr->redimensionne(static_cast<long>(valeurs->size()));
 			attr->portee = converti_portee(param_sample.getScope());
@@ -210,7 +210,7 @@ static auto charge_attributs(
 			for (auto j = 0ul; j < valeurs->size(); ++j) {
 				auto &v = (*valeurs)[j];
 
-				attr->decimal(static_cast<long>(j)) = v;
+				attr->r32(static_cast<long>(j))[0] = v;
 			}
 
 			continue;
@@ -226,7 +226,8 @@ static auto charge_attributs(
 
 			auto attr = corps.ajoute_attribut(
 						prop_header.getName(),
-						type_attribut::VEC2);
+						type_attribut::R32,
+						2);
 
 			attr->redimensionne(static_cast<long>(valeurs->size()));
 			attr->portee = converti_portee(param_sample.getScope());
@@ -234,7 +235,7 @@ static auto charge_attributs(
 			for (auto j = 0ul; j < valeurs->size(); ++j) {
 				auto &v = (*valeurs)[j];
 
-				attr->vec2(static_cast<long>(j)) = dls::math::vec2f(v.x, v.y);
+				assigne(attr->r32(static_cast<long>(j)), dls::math::vec3f(v.x, v.y));
 			}
 
 			continue;
@@ -250,7 +251,8 @@ static auto charge_attributs(
 
 			auto attr = corps.ajoute_attribut(
 						prop_header.getName(),
-						type_attribut::VEC3);
+						type_attribut::R32,
+						3);
 
 			attr->redimensionne(static_cast<long>(valeurs->size()));
 			attr->portee = converti_portee(param_sample.getScope());
@@ -258,7 +260,7 @@ static auto charge_attributs(
 			for (auto j = 0ul; j < valeurs->size(); ++j) {
 				auto &v = (*valeurs)[j];
 
-				attr->vec3(static_cast<long>(j)) = dls::math::vec3f(v.x, v.y, v.z);
+				assigne(attr->r32(static_cast<long>(j)), dls::math::vec3f(v.x, v.y, v.z));
 			}
 
 			continue;
@@ -274,7 +276,8 @@ static auto charge_attributs(
 
 			auto attr = corps.ajoute_attribut(
 						prop_header.getName(),
-						type_attribut::VEC3);
+						type_attribut::R32,
+						3);
 
 			attr->redimensionne(static_cast<long>(valeurs->size()));
 			attr->portee = converti_portee(param_sample.getScope());
@@ -292,11 +295,11 @@ static auto charge_attributs(
 					auto idx = (*indices)[j];
 					auto &v = (*valeurs)[idx];
 
-					attr->vec3(static_cast<long>(idx)) = dls::math::vec3f(v.x, v.y, v.z);
+					assigne(attr->r32(static_cast<long>(idx)), dls::math::vec3f(v.x, v.y, v.z));
 				}
 				else {
 					auto &v = (*valeurs)[j];
-					attr->vec3(static_cast<long>(j)) = dls::math::vec3f(v.x, v.y, v.z);
+					assigne(attr->r32(static_cast<long>(j)), dls::math::vec3f(v.x, v.y, v.z));
 				}
 			}
 
@@ -313,7 +316,8 @@ static auto charge_attributs(
 
 			auto attr = corps.ajoute_attribut(
 						prop_header.getName(),
-						type_attribut::VEC4);
+						type_attribut::Z32,
+						4);
 
 			/* XXX */
 			if (attr->nom() == "Col" || attr->nom() == "Cd") {
@@ -326,7 +330,7 @@ static auto charge_attributs(
 			for (auto j = 0ul; j < valeurs->size(); ++j) {
 				auto &v = (*valeurs)[j];
 
-				attr->vec4(static_cast<long>(j)) = dls::math::vec4f(v.r, v.g, v.b, v.a);
+				assigne(attr->r32(static_cast<long>(j)), dls::math::vec4f(v.r, v.g, v.b, v.a));
 			}
 
 			continue;

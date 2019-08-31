@@ -82,6 +82,7 @@ struct Corps {
 	Attribut *ajoute_attribut(
 			dls::chaine const &nom_attribut,
 			type_attribut type_,
+			int dimensions = 1,
 			portee_attr portee = portee_attr::POINT,
 			bool force_vide = false);
 

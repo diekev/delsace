@@ -167,7 +167,7 @@ public:
 
 		auto gna = GNA();
 
-		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::DECIMAL, portee_attr::PRIMITIVE, true);
+		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::R32, 1, portee_attr::PRIMITIVE, true);
 		attr_L->reserve(liste_points->taille());
 
 		for (auto i = 0; i < liste_points->taille(); ++i) {
@@ -189,7 +189,7 @@ public:
 			}
 
 			if (direction == DIRECTION_NORMAL) {
-				normal = attr_N->vec3(i);
+				extrait(attr_N->r32(i), normal);
 			}
 
 			auto pos = liste_points->point(i);
@@ -206,7 +206,7 @@ public:
 				m_corps.ajoute_sommet(polygone, index_npoint);
 			}
 
-			attr_L->decimal(polygone->index) = taille_segment;
+			attr_L->r32(polygone->index)[0] = taille_segment;
 		}
 
 		return EXECUTION_REUSSIE;
@@ -290,12 +290,12 @@ static auto entresecte_prim(Corps const &corps, Primitive *prim, const dls::phys
 			auto n2 = dls::math::vec3f();
 
 			if (attr_N->portee == portee_attr::POINT) {
-				n0 = attr_N->vec3(i0);
-				n1 = attr_N->vec3(i1);
-				n2 = attr_N->vec3(i2);
+				extrait(attr_N->r32(i0), n0);
+				extrait(attr_N->r32(i1), n1);
+				extrait(attr_N->r32(i2), n2);
 			}
 			else if (attr_N->portee == portee_attr::PRIMITIVE) {
-				n0 = attr_N->vec3(prim->index);
+				extrait(attr_N->r32(prim->index), n0);
 				n1 = n0;
 				n2 = n0;
 			}
@@ -503,9 +503,9 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT);
-		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::VEC3, portee_attr::POINT);
-		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::R32, 3, portee_attr::POINT);
+		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::R32, 3, portee_attr::POINT);
+		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto donnees = DonneesSysteme{};
 		donnees.gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
@@ -524,12 +524,13 @@ public:
 									[&](Corps const &, Polygone *polygone)
 		{
 			/* le premier point est la racine */
-			attr_P->valeur(polygone->index_point(0), liste_points->point(polygone->index_point(0)));
+			assigne(attr_P->r32(polygone->index_point(0)), liste_points->point(polygone->index_point(0)));
 
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
 				auto pos = liste_points->point(polygone->index_point(i));
-				auto vel = attr_V->vec3(polygone->index_point(i));
+				auto vel = dls::math::vec3f();
+				extrait(attr_V->r32(polygone->index_point(i)), vel);
 
 				/* force = masse * acceleration */
 				auto force = donnees.masse * donnees.gravite;
@@ -550,8 +551,8 @@ public:
 				vel = vel + acceleration * donnees.temps_par_image;
 				pos = pos + vel * donnees.temps_par_image;
 
-				attr_P->valeur(polygone->index_point(i), pos);
-				attr_V->valeur(polygone->index_point(i), vel);
+				assigne(attr_P->r32(polygone->index_point(i)), pos);
+				assigne(attr_V->r32(polygone->index_point(i)), vel);
 			}
 		});
 
@@ -563,12 +564,14 @@ public:
 				auto pa = polygone->index_point(i - 1);
 				auto pb = polygone->index_point(i);
 
-				auto const pos_precedent = attr_P->vec3(pa);
-				auto cur_pos = attr_P->vec3(pb);
+				auto pos_precedent = dls::math::vec3f();
+				extrait(attr_P->r32(pa), pos_precedent);
+				auto cur_pos = dls::math::vec3f();
+				extrait(attr_P->r32(pb), cur_pos);
 				auto dir = normalise(cur_pos - pos_precedent);
-				auto tmp_pos = pos_precedent + dir * attr_L->decimal(polygone->index);
-				attr_P->valeur(pb, tmp_pos);
-				attr_D->valeur(pb, cur_pos - tmp_pos);
+				auto tmp_pos = pos_precedent + dir * attr_L->r32(polygone->index)[0];
+				assigne(attr_P->r32(pb), tmp_pos);
+				assigne(attr_D->r32(pb), cur_pos - tmp_pos);
 			}
 		});
 
@@ -580,16 +583,23 @@ public:
 				auto pa = polygone->index_point(i - 1);
 				auto pb = polygone->index_point(i);
 
-				auto pos_pa = attr_P->vec3(pa);
-				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (attr_D->vec3(pb) / dt);
+				auto pos_pa = dls::math::vec3f();
+				extrait(attr_P->r32(pa), pos_pa);
+
+				auto d_pa = dls::math::vec3f();
+				extrait(attr_D->r32(pb), pos_pa);
+
+				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (d_pa / dt);
 
 				liste_points->point(pa, pos_pa);
-				attr_V->valeur(pa, vel_pa);
+				assigne(attr_V->r32(pa), vel_pa);
 			}
 
 			/* ajourne le dernier point */
 			auto pa = polygone->index_point(polygone->nombre_sommets() - 1);
-			liste_points->point(pa, attr_P->vec3(pa));
+			auto pos_pa = dls::math::vec3f();
+			extrait(attr_P->r32(pa), pos_pa);
+			liste_points->point(pa, pos_pa);
 		});
 
 		return EXECUTION_REUSSIE;

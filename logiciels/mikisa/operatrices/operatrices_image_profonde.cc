@@ -613,7 +613,7 @@ public:
 		auto echelle = evalue_decimal("échelle");
 		echelle = (echelle == 0.0f) ? 0.0f : 1.0f / echelle;
 
-		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		for (auto y = 0; y < hauteur; ++y) {
 			for (auto x = 0; x < largeur; ++x, ++index) {
@@ -646,10 +646,10 @@ public:
 
 					min_z = std::min(pmnd.z, min_z);
 
-					m_corps.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
+					auto idx_point = m_corps.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
 
 					auto couleur = dls::math::vec3f(eR[i], eG[i], eB[i]);
-					C->pousse(couleur);
+					assigne(C->r32(idx_point), couleur);
 				}
 			}
 

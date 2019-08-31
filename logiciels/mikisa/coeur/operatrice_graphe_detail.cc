@@ -60,24 +60,9 @@ static auto stocke_attributs(
 		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
 
 		switch (attr->type()) {
-			case type_attribut::ENT8:
+			default:
 			{
-				donnees.stocke(idx_pile, static_cast<float>(attr->ent8(idx_attr)));
-				break;
-			}
-			case type_attribut::ENT32:
-			{
-				donnees.stocke(idx_pile, attr->ent32(idx_attr));
-				break;
-			}
-			case type_attribut::DECIMAL:
-			case type_attribut::VEC2:
-			case type_attribut::VEC3:
-			case type_attribut::VEC4:
-			case type_attribut::MAT3:
-			case type_attribut::MAT4:
-			{
-				auto taille = taille_octet_type_attribut(attr->type());
+				auto taille = taille_octet_type_attribut(attr->type()) * attr->dimensions;
 
 				auto ptr_attr = static_cast<char *>(attr->donnees()) + idx_attr * taille;
 				auto ptr_pile = reinterpret_cast<char *>(donnees.donnees() + idx_pile);
@@ -104,26 +89,9 @@ static auto charge_attributs(
 		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
 
 		switch (attr->type()) {
-			case type_attribut::ENT8:
+			default:
 			{
-				auto v = donnees.charge_decimal(idx_pile);
-				attr->valeur(idx_attr, static_cast<char>(v));
-				break;
-			}
-			case type_attribut::ENT32:
-			{
-				auto v = donnees.charge_entier(idx_pile);
-				attr->valeur(idx_attr, v);
-				break;
-			}
-			case type_attribut::DECIMAL:
-			case type_attribut::VEC2:
-			case type_attribut::VEC3:
-			case type_attribut::VEC4:
-			case type_attribut::MAT3:
-			case type_attribut::MAT4:
-			{
-				auto taille = taille_octet_type_attribut(attr->type());
+				auto taille = taille_octet_type_attribut(attr->type()) * attr->dimensions;
 
 				auto ptr_attr = static_cast<char *>(attr->donnees()) + idx_attr * taille;
 				auto ptr_pile = reinterpret_cast<char *>(donnees.donnees() + idx_pile);
@@ -354,26 +322,50 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 }
 
 /* À FAIRE : déduplique. */
-static auto converti_type_lcc(lcc::type_var type)
+static auto converti_type_lcc(lcc::type_var type, int &dimensions)
 {
 	switch (type) {
 		case lcc::type_var::DEC:
-			return type_attribut::DECIMAL;
+		{
+			dimensions = 1;
+			return type_attribut::R32;
+		}
 		case lcc::type_var::ENT32:
-			return type_attribut::ENT32;
+		{
+			dimensions = 1;
+			return type_attribut::Z32;
+		}
 		case lcc::type_var::VEC2:
-			return type_attribut::VEC2;
+		{
+			dimensions = 2;
+			return type_attribut::R32;
+		}
 		case lcc::type_var::VEC3:
-			return type_attribut::VEC3;
+		{
+			dimensions = 3;
+			return type_attribut::R32;
+		}
 		case lcc::type_var::COULEUR:
 		case lcc::type_var::VEC4:
-			return type_attribut::VEC4;
+		{
+			dimensions = 4;
+			return type_attribut::R32;
+		}
 		case lcc::type_var::MAT3:
-			return type_attribut::MAT3;
+		{
+			dimensions = 9;
+			return type_attribut::R32;
+		}
 		case lcc::type_var::MAT4:
-			return type_attribut::MAT4;
+		{
+			dimensions = 16;
+			return type_attribut::R32;
+		}
 		case lcc::type_var::CHAINE:
+		{
+			dimensions = 1;
 			return type_attribut::CHAINE;
+		}
 		case lcc::type_var::INVALIDE:
 		case lcc::type_var::TABLEAU:
 		case lcc::type_var::POLYMORPHIQUE:
@@ -383,91 +375,57 @@ static auto converti_type_lcc(lcc::type_var type)
 	return type_attribut::INVALIDE;
 }
 
-static auto converti_type_attr(type_attribut type)
+static auto converti_type_attr(type_attribut type, int dimensions)
 {
 	switch (type) {
-		case type_attribut::DECIMAL:
+		case type_attribut::R32:
 		{
-			return lcc::type_var::DEC;
+			if (dimensions == 1) {
+				return lcc::type_var::DEC;
+			}
+
+			if (dimensions == 2) {
+				return lcc::type_var::VEC2;
+			}
+
+			if (dimensions == 3) {
+				return lcc::type_var::VEC3;
+			}
+
+			if (dimensions == 4) {
+				return lcc::type_var::VEC4;
+			}
+
+			if (dimensions == 9) {
+				return lcc::type_var::MAT3;
+			}
+
+			if (dimensions == 16) {
+				return lcc::type_var::MAT4;
+			}
+
+			break;
 		}
-		case type_attribut::ENT32:
+		case type_attribut::Z8:
+		case type_attribut::Z32:
 		{
-			return lcc::type_var::ENT32;
-		}
-		case type_attribut::ENT8:
-		{
-			return lcc::type_var::ENT32;
-		}
-		case type_attribut::VEC2:
-		{
-			return lcc::type_var::VEC2;
-		}
-		case type_attribut::VEC3:
-		{
-			return lcc::type_var::VEC3;
-		}
-		case type_attribut::VEC4:
-		{
-			return lcc::type_var::VEC4;
-		}
-		case type_attribut::MAT3:
-		{
-			return lcc::type_var::MAT3;
-		}
-		case type_attribut::MAT4:
-		{
-			return lcc::type_var::MAT4;
-		}
-		case type_attribut::INVALIDE:
-		{
-			return lcc::type_var::INVALIDE;
+			if (dimensions == 1) {
+				return lcc::type_var::ENT32;
+			}
+
+			break;
 		}
 		case type_attribut::CHAINE:
 		{
 			return lcc::type_var::CHAINE;
 		}
+		default:
+		{
+			return lcc::type_var::INVALIDE;
+		}
 	}
 
 	return lcc::type_var::INVALIDE;
-}
-
-static auto taille_attr(type_attribut type)
-{
-	switch (type) {
-		case type_attribut::DECIMAL:
-		case type_attribut::ENT32:
-		case type_attribut::ENT8:
-		{
-			return 1;
-		}
-		case type_attribut::VEC2:
-		{
-			return 2;
-		}
-		case type_attribut::VEC3:
-		{
-			return 3;
-		}
-		case type_attribut::VEC4:
-		{
-			return 4;
-		}
-		case type_attribut::MAT3:
-		{
-			return 9;
-		}
-		case type_attribut::MAT4:
-		{
-			return 16;
-		}
-		case type_attribut::INVALIDE:
-		case type_attribut::CHAINE:
-		{
-			return 0;
-		}
-	}
-
-	return 0;
 }
 
 bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
@@ -497,8 +455,9 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 					continue;
 				}
 
-				idx = m_compileuse.donnees().loge_donnees(taille_attr(attr.type()));
-				m_gest_attrs.ajoute_propriete(attr.nom(), converti_type_attr(attr.type()), idx);
+				idx = m_compileuse.donnees().loge_donnees(attr.dimensions);
+				auto type_attr = converti_type_attr(attr.type(), attr.dimensions);
+				m_gest_attrs.ajoute_propriete(attr.nom(), type_attr, idx);
 			}
 
 			break;
@@ -550,9 +509,13 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 					m_corps.supprime_attribut(requete->nom);
 				}
 
+				auto dimensions = 0;
+				auto type_attr = converti_type_lcc(requete->type, dimensions);
+
 				attr = m_corps.ajoute_attribut(
 							requete->nom,
-							converti_type_lcc(requete->type),
+							type_attr,
+							dimensions,
 							portee_attr::POINT);
 
 				requete->ptr_donnees = attr;

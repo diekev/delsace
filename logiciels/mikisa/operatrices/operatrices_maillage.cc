@@ -253,7 +253,8 @@ static auto applique_lissage(
 			auto p = points_entree->point(i);
 
 			if (tangeante) {
-				auto const &n = attr_N->vec3(i);
+				auto n = dls::math::vec3f();
+				extrait(attr_N->r32(i), n);
 				auto const &d = deplacement[i];
 				p += poids_lissage * (d - n * produit_scalaire(d, n));
 			}
@@ -392,7 +393,7 @@ public:
 				continue;
 			}
 
-			auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee, true);
+			auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee, true);
 			*nattr = attr;
 		}
 
@@ -802,7 +803,9 @@ public:
 			}
 
 			/* normal */
-			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * attr_N->vec3(i);
+			auto n = dls::math::vec3f();
+			extrait(attr_N->r32(i), n);
+			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * n;
 		}
 
 		for (auto i = 0; i < points->taille(); ++i) {
@@ -1031,7 +1034,7 @@ static auto calcul_donnees_aire(Corps &corps)
 {
 	auto points = corps.points_pour_lecture();
 
-	auto aires = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
+	auto aires = corps.ajoute_attribut("aire", type_attribut::R32, 1, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1050,7 +1053,7 @@ static auto calcul_donnees_aire(Corps &corps)
 			aire_poly += aire_tri;
 		}
 
-		aires->valeur(poly->index, aire_poly);
+		assigne(aires->r32(poly->index), aire_poly);
 	});
 
 	return aires;
@@ -1060,7 +1063,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 {
 	auto points = corps.points_pour_lecture();
 
-	auto perimetres = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
+	auto perimetres = corps.ajoute_attribut("aire", type_attribut::R32, 1, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1079,7 +1082,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 			k = idx;
 		}
 
-		perimetres->valeur(poly->index, peri_poly);
+		assigne(perimetres->r32(poly->index), peri_poly);
 	});
 
 	return perimetres;
@@ -1089,7 +1092,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 {
 	auto points = corps.points_pour_lecture();
 
-	auto barycentres = corps.ajoute_attribut("barycentre", type_attribut::VEC3, portee_attr::PRIMITIVE);
+	auto barycentres = corps.ajoute_attribut("barycentre", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1104,7 +1107,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
 
-		barycentres->valeur(poly->index, barycentre);
+		assigne(barycentres->r32(poly->index), barycentre);
 	});
 
 	return barycentres;
@@ -1125,13 +1128,13 @@ static auto calcul_centroide_poly(Corps &corps)
 		auto aire = 0.0f;
 
 		for (auto const &voisin : idx_voisins[i]) {
-			aire += aires_poly->decimal(voisin);
+			aire += aires_poly->r32(voisin)[0];
 		}
 
 		aires_sommets[i] = aire;
 	}
 
-	auto centroides = corps.ajoute_attribut("centroide", type_attribut::VEC3, portee_attr::PRIMITIVE);
+	auto centroides = corps.ajoute_attribut("centroide", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1153,7 +1156,7 @@ static auto calcul_centroide_poly(Corps &corps)
 			centroide /= poids;
 		}
 
-		centroides->valeur(poly->index, centroide);
+		assigne(centroides->r32(poly->index), centroide);
 	});
 
 	return centroides;
@@ -1186,7 +1189,7 @@ static auto calcul_arrete_plus_longues(Corps &corps)
 
 static auto calcul_tangeantes(Corps &corps)
 {
-	auto tangeantes = corps.ajoute_attribut("tangeantes", type_attribut::VEC3, portee_attr::POINT);
+	auto tangeantes = corps.ajoute_attribut("tangeantes", type_attribut::R32, 3, portee_attr::POINT);
 	auto points = corps.points_pour_lecture();
 
 	auto index_voisins = cherche_index_voisins(corps);
@@ -1210,7 +1213,7 @@ static auto calcul_tangeantes(Corps &corps)
 			tangeante /= poids_total;
 		}
 
-		tangeantes->valeur(i, tangeante);
+		assigne(tangeantes->r32(i), tangeante);
 	}
 
 	return tangeantes;
@@ -1220,12 +1223,12 @@ static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &cent
 {
 	auto points = corps.points_pour_lecture();
 
-	auto dist = corps.ajoute_attribut("distance", type_attribut::DECIMAL, portee_attr::POINT);
+	auto dist = corps.ajoute_attribut("distance", type_attribut::R32, 1, portee_attr::POINT);
 
 	for (auto i = 0; i < points->taille(); ++i) {
 		auto d = longueur(points->point(i) - centre);
 
-		dist->valeur(i, d);
+		assigne(dist->r32(i), d);
 	}
 
 	return dist;
@@ -1247,7 +1250,7 @@ static auto calcul_donnees_dist_centroide(Corps &corps)
 static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_max)
 {
 	for (auto i = 0; i < attr->taille(); ++i) {
-		auto v = attr->decimal(i);
+		auto v = attr->r32(i)[0];
 
 		if (v < valeur_min) {
 			valeur_min = v;
@@ -1261,15 +1264,15 @@ static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_ma
 
 static auto restreint_attribut_max(Attribut *attr, float const valeur_max)
 {
-	if (attr->type() != type_attribut::DECIMAL) {
+	if (attr->type() != type_attribut::R32) {
 		return;
 	}
 
 	for (auto i = 0; i < attr->taille(); ++i) {
-		auto v = attr->decimal(i);
+		auto v = attr->r32(i)[0];
 
 		if (v > valeur_max) {
-			attr->valeur(i, valeur_max);
+			assigne(attr->r32(i), valeur_max);
 		}
 	}
 }
@@ -1278,7 +1281,7 @@ static auto calcul_valence(Corps &corps)
 {
 	auto polyedre = converti_corps_polyedre(corps);
 
-	auto attr = corps.ajoute_attribut("valence", type_attribut::ENT32, portee_attr::POINT);
+	auto attr = corps.ajoute_attribut("valence", type_attribut::Z32, 1, portee_attr::POINT);
 
 	for (auto sommet : polyedre.sommets) {
 		auto valence = 0;
@@ -1291,7 +1294,7 @@ static auto calcul_valence(Corps &corps)
 			debut = suivante_autour_point(debut);
 		} while (debut != fin && debut != nullptr);
 
-		attr->ent32(sommet->label) = valence;
+		attr->z32(sommet->label)[0] = valence;
 	}
 
 	return attr;
@@ -1299,7 +1302,7 @@ static auto calcul_valence(Corps &corps)
 
 static auto calcul_angle_sommets(Corps &corps)
 {
-	auto attr = corps.ajoute_attribut("angle_sommet", type_attribut::DECIMAL, portee_attr::VERTEX);
+	auto attr = corps.ajoute_attribut("angle_sommet", type_attribut::R32, 1, portee_attr::VERTEX);
 
 	pour_chaque_polygone_ferme(corps, [&](Corps &corps_entree, Polygone *polygone)
 	{
@@ -1324,7 +1327,7 @@ static auto calcul_angle_sommets(Corps &corps)
 
 			auto angle = produit_scalaire(e0, e1);
 
-			attr->decimal(polygone->index_sommet(i1)) = angle;
+			attr->r32(polygone->index_sommet(i1))[0] = angle;
 
 			i0 = i1;
 			i1 = i2;
@@ -1355,7 +1358,10 @@ static auto calcul_angle_diedre(Corps &corps)
 		attr_N = corps.attribut("N");
 	}
 
-	auto attr = corps.ajoute_attribut("angle_dièdre", type_attribut::DECIMAL, portee_attr::VERTEX);
+	auto attr = corps.ajoute_attribut("angle_dièdre", type_attribut::R32, 1, portee_attr::VERTEX);
+
+	auto n0 = dls::math::vec3f();
+	auto n1 = dls::math::vec3f();
 
 	for (auto face : polyedre.faces) {
 		auto debut = face->arete;
@@ -1363,13 +1369,13 @@ static auto calcul_angle_diedre(Corps &corps)
 
 		do {
 			if (debut->paire != nullptr && !dls::outils::possede_drapeau(debut->drapeaux, mi_drapeau::VALIDE)) {
-				auto const &n0 = attr_N->vec3(face->label);
-				auto const &n1 = attr_N->vec3(debut->paire->face->label);
+				extrait(attr_N->r32(face->label), n0);
+				extrait(attr_N->r32(debut->paire->face->label), n1);
 
 				auto angle = produit_scalaire(n0, n1);
 
-				attr->decimal(debut->label) = angle;
-				attr->decimal(debut->paire->label) = angle;
+				attr->r32(debut->label)[0] = angle;
+				attr->r32(debut->paire->label)[0] = angle;
 
 				debut->drapeaux |= mi_drapeau::VALIDE;
 				debut->paire->drapeaux |= mi_drapeau::VALIDE;
@@ -1391,7 +1397,7 @@ static auto calcul_longueur_aretes(Corps &corps)
 {
 	auto polyedre = converti_corps_polyedre(corps);
 
-	auto attr = corps.ajoute_attribut("longueur_arête", type_attribut::DECIMAL, portee_attr::VERTEX);
+	auto attr = corps.ajoute_attribut("longueur_arête", type_attribut::R32, 1, portee_attr::VERTEX);
 
 	for (auto face : polyedre.faces) {
 		auto a0 = face->arete;
@@ -1405,11 +1411,11 @@ static auto calcul_longueur_aretes(Corps &corps)
 
 				auto l = longueur(p0 - p1);
 
-				attr->decimal(a1->label) = l;
+				attr->r32(a1->label)[0] = l;
 				a1->drapeaux |= mi_drapeau::VALIDE;
 
 				if (a1->paire != nullptr) {
-					attr->decimal(a1->paire->label) = l;
+					attr->r32(a1->paire->label)[0] = l;
 					a1->paire->drapeaux |= mi_drapeau::VALIDE;
 				}
 			}
@@ -1563,19 +1569,19 @@ public:
 				auto attr_courbure_min = m_corps.attribut("courbure_min");
 				auto attr_courbure_max = m_corps.attribut("courbure_max");
 
-				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::DECIMAL, portee_attr::POINT);
+				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::R32, 1, portee_attr::POINT);
 
 				for (auto i = 0; i < points->taille(); ++i) {
-					attr_sortie->valeur(i, attr_courbure_min->decimal(i) * attr_courbure_max->decimal(i));
+					attr_sortie->r32(i)[0] = attr_courbure_min->r32(i)[0] * attr_courbure_max->r32(i)[0];
 				}
 			}
 			else if (type_metrie == "moyenne") {
 				auto attr_courbure_min = m_corps.attribut("courbure_min");
 				auto attr_courbure_max = m_corps.attribut("courbure_max");
-				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::DECIMAL, portee_attr::POINT);
+				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::R32, 1, portee_attr::POINT);
 
 				for (auto i = 0; i < points->taille(); ++i) {
-					attr_sortie->valeur(i, (attr_courbure_min->decimal(i) + attr_courbure_max->decimal(i)) * 0.5f);
+					attr_sortie->r32(i)[0] = (attr_courbure_min->r32(i)[0] + attr_courbure_max->r32(i)[0]) * 0.5f;
 				}
 			}
 			else if (type_metrie == "courbure_min") {
@@ -1616,21 +1622,23 @@ public:
 
 	void visualise_attribut(Attribut *attr)
 	{
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, attr->portee);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
 
-		if (attr->type() == type_attribut::DECIMAL) {
-			auto min_donnees = std::numeric_limits<float>::max();
-			auto max_donnees = -min_donnees;
+		if (attr->type() == type_attribut::Z32) {
+			if (attr->dimensions == 1) {
+				auto min_donnees = std::numeric_limits<float>::max();
+				auto max_donnees = -min_donnees;
 
-			min_max_attribut(attr, min_donnees, max_donnees);
+				min_max_attribut(attr, min_donnees, max_donnees);
 
-			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->vec3(i) = couleur_min_max(attr->decimal(i), min_donnees, max_donnees);
+				for (auto i = 0; i < attr->taille(); ++i) {
+					assigne(attr_C->r32(i), couleur_min_max(attr->r32(i)[0], min_donnees, max_donnees));
+				}
 			}
-		}
-		else if (attr->type() == type_attribut::VEC3) {
-			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->vec3(i) = attr->vec3(i);
+			else if (attr->dimensions == 3) {
+				for (auto i = 0; i < attr->taille(); ++i) {
+					copie_attribut(attr_C, i, attr, i);
+				}
 			}
 		}
 	}
@@ -1730,9 +1738,8 @@ public:
 					auto poussee = dls::math::vec3f(0.0f);
 
 					if (direction == "normal") {
-						auto Nn = attr_N->vec3(i);
-						poussee.x = Nn.x;
-						poussee.z = Nn.z;
+						extrait(attr_N->r32(i), poussee);
+						poussee.y = 0.0f;
 					}
 					else if (direction == "radial") {
 						poussee = p - centroide;
@@ -1825,7 +1832,7 @@ public:
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("couleur maillage");
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &corps_, Polygone const *poly)
 		{
@@ -1860,15 +1867,15 @@ public:
 
 					if ((i == 0 || i == R) && (j == 0 || j == R)) {
 						// nous sommes sur un point
-						attr_C->vec3(idx_point) = couleurs[0];
+						assigne(attr_C->r32(idx_point), couleurs[0]);
 					}
 					else if (((i == 0 || i == R) && j < R) || ((j == 0 || j == R) && i < R)) {
 						// nous sommes sur un coté
-						attr_C->vec3(idx_point) = couleurs[1];
+						assigne(attr_C->r32(idx_point),  couleurs[1]);
 					}
 					else {
 						// nous sommes dans le polygone
-						attr_C->vec3(idx_point) = couleurs[2];
+						assigne(attr_C->r32(idx_point),  couleurs[2]);
 					}
 				}
 			}
