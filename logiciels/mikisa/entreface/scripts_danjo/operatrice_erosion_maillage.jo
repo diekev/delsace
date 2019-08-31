@@ -1,0 +1,10 @@
+disposition "operatrice_erosion_maillage" {
+	ligne {
+		étiquette(valeur="Itérations")
+		entier(valeur=1; min=0; attache=itérations; animable; infobulle="Nombre de fois à exécuter l'algorithme.")
+	}
+	ligne {
+		étiquette(valeur="Inverse")
+		case(valeur=faux; attache=inverse; infobulle="Inverse le résultat de l'algorithme, les polygones n'étant pas sur des bordures sont supprimées.")
+	}
+}

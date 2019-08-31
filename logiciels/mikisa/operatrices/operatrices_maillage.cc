@@ -38,6 +38,7 @@
 
 #include "corps/iteration_corps.hh"
 #include "corps/limites_corps.hh"
+#include "corps/polyedre.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -848,7 +849,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_erosion_maillage.jo";
 	}
 
 	const char *nom_classe() const override
@@ -870,81 +871,142 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points = corps_entree->points_pour_lecture();
-		auto prims = corps_entree->prims();
-		auto points_elimines = dls::tableau<char>(points->taille(), 0);
-		auto index_voisins = cherche_index_voisins(*corps_entree);
-		auto index_adjacents = cherche_index_adjacents(*corps_entree);
+		auto iterations = evalue_entier("itérations", contexte.temps_courant);
+		auto inverse = evalue_bool("inverse");
 
-		/* Un point est sur une bordure si le nombre de points voisins est
-		 * différents du nombre des primitives voisins. */
-		auto nombre_elimines = 0;
-		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (index_voisins[i].taille() != index_adjacents[i].taille()) {
-				points_elimines[i] = 1;
-				++nombre_elimines;
+		auto polyedre = converti_corps_polyedre(*corps_entree);
+
+		for (auto i = 0; i < iterations; ++i) {
+			/* marque les faces ayant une arête dont l'opposée est nulle comme
+			 * ayant besoin d'être éliminées */
+			for (auto f : polyedre.faces) {
+				auto debut = f->arete;
+				auto fin = f->arete;
+
+				do {
+					auto paire = debut->paire;
+
+					if (paire == nullptr || dls::outils::possede_drapeau(paire->drapeaux, mi_drapeau::SUPPRIME)) {
+						f->drapeaux |= mi_drapeau::SUPPRIME;
+						break;
+					}
+
+					debut = debut->suivante;
+				} while (debut != fin);
+			}
+
+			/* marque les arêtes des faces supprimées comme ayant besoin d'être
+			 * éliminiées */
+			for (auto f : polyedre.faces) {
+				if (!dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
+					continue;
+				}
+
+				auto debut = f->arete;
+				auto fin = f->arete;
+
+				do {
+					debut->drapeaux |= mi_drapeau::SUPPRIME;
+					debut = debut->suivante;
+				} while (debut != fin);
 			}
 		}
 
-		if (nombre_elimines == 0) {
-			return EXECUTION_REUSSIE;
+		/* marque les points comme ayant besoin d'être éliminées */
+		for (auto s : polyedre.sommets) {
+			s->drapeaux |= mi_drapeau::SUPPRIME;
 		}
 
-		/* trouve les primitives à supprimer */
-		auto prims_eliminees = dls::tableau<char>(prims->taille(), 0);
+		if (inverse) {
+			for (auto f : polyedre.faces) {
+				if (dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
+					f->drapeaux &= ~mi_drapeau::SUPPRIME;
+				}
+				else {
+					f->drapeaux |= mi_drapeau::SUPPRIME;
+				}
+			}
+		}
 
-		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (points_elimines[i] == 0) {
+		for (auto f : polyedre.faces) {
+			if (dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
 				continue;
 			}
 
-			for (auto j : index_adjacents[i]) {
-				prims_eliminees[j] = 1;
+			auto debut = f->arete;
+			auto fin = f->arete;
+
+			do {
+				debut->sommet->drapeaux &= ~mi_drapeau::SUPPRIME;
+				debut = debut->suivante;
+			} while (debut != fin);
+		}
+
+		/* copie les polygones et points restants */
+
+		auto attr_points = dls::tableau<std::pair<Attribut const *, Attribut *>>();
+		auto attr_polys = dls::tableau<std::pair<Attribut const *, Attribut *>>();
+
+		for (auto const &attr : corps_entree->attributs()) {
+			if (attr.portee == portee_attr::POINT) {
+				auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+				attr_points.pousse({ &attr, nattr });
+			}
+			else if (attr.portee == portee_attr::PRIMITIVE) {
+				auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+				attr_polys.pousse({ &attr, nattr });
 			}
 		}
 
-		/* À FAIRE : transfère attributs, paramètres (iters, inverse) */
-
-		/* ne copie que ce qui n'a pas été supprimé */
-
-		/* les nouveaux index des points, puisque certains sont supprimés, il
-		 * faut réindexer */
-		auto nouveaux_index = dls::tableau<long>(points->taille(), -1);
-		auto index = 0;
-
-		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (points_elimines[i]) {
+		/* transfère tous les points */
+		for (auto s : polyedre.sommets) {
+			if (dls::outils::possede_drapeau(s->drapeaux, mi_drapeau::SUPPRIME)) {
 				continue;
 			}
 
-			nouveaux_index[i] = index++;
+			auto idx = m_corps.ajoute_point(s->p);
+			s->index = idx;
 
-			auto point = points->point(i);
-			m_corps.ajoute_point(point.x, point.y, point.z);
+			for (auto &paire : attr_points) {
+				paire.second->redimensionne(paire.second->taille() + 1);
+				copie_attribut(paire.first, s->label, paire.second, s->index);
+			}
 		}
 
-		for (auto i = 0; i < prims_eliminees.taille(); ++i) {
-			if (prims_eliminees[i]) {
+		/* transfère les polygones */
+		for (auto f : polyedre.faces) {
+			if (dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
 				continue;
 			}
 
-			auto prim = prims->prim(i);
-			auto poly = dynamic_cast<Polygone *>(prim);
+			auto debut = f->arete;
+			auto fin = f->arete;
 
-			auto nprim = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto poly = Polygone::construit(&m_corps, type_polygone::FERME);
 
-			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				nprim->ajoute_sommet(nouveaux_index[poly->index_point(j)]);
+			do {
+				poly->ajoute_sommet(debut->sommet->index);
+				debut = debut->suivante;
+			} while (debut != fin);
+
+			for (auto &paire : attr_polys) {
+				paire.second->redimensionne(paire.second->taille() + 1);
+				copie_attribut(paire.first, f->label, paire.second, poly->index);
 			}
-		}
-
-		auto attr_N = corps_entree->attribut("N");
-
-		if (attr_N != nullptr) {
-			calcul_normaux(m_corps, attr_N->portee == portee_attr::PRIMITIVE, true);
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("itérations") == nullptr) {
+			ajoute_propriete("itérations", danjo::TypePropriete::ENTIER, 1);
+		}
+
+		if (propriete("inverse") == nullptr) {
+			ajoute_propriete("inverse", danjo::TypePropriete::BOOL, false);
+		}
 	}
 };
 
