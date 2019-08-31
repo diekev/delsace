@@ -383,25 +383,26 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		corps_entree->copie_vers(&m_corps);
-
-		/* À FAIRE : attributs vertex */
-		auto paires_attrs = dls::tableau<std::pair<Attribut const *, Attribut *>>();
+		/* copie les points et les attributs et groupes n'étant pas sur les
+		 * primitives */
+		*m_corps.points_pour_ecriture() = *corps_entree->points_pour_lecture();
 
 		for (auto const &attr : corps_entree->attributs()) {
-			if (attr.portee == portee_attr::PRIMITIVE) {
-				auto nattr = m_corps.attribut(attr.nom());
-				nattr->reinitialise();
+			/* À FAIRE : attributs vertex */
+			if (attr.portee == portee_attr::PRIMITIVE || attr.portee == portee_attr::VERTEX) {
+				continue;
+			}
 
-				paires_attrs.pousse({ &attr, nattr });
-			}
-			else if (attr.portee == portee_attr::VERTEX) {
-				m_corps.supprime_attribut(attr.nom());
-			}
+			auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee, true);
+			*nattr = attr;
 		}
 
-		m_corps.supprime_primitives();
+		for (auto const &grp : corps_entree->groupes_points()) {
+			auto ngrp = m_corps.ajoute_groupe_point(grp.nom);
+			*ngrp = grp;
+		}
 
+		/* prépare transfère groupe primitive */
 		auto paires_grps = dls::tableau<std::pair<GroupePrimitive const *, GroupePrimitive *>>();
 
 		for (auto const &grp : corps_entree->groupes_prims()) {
@@ -410,53 +411,33 @@ public:
 			paires_grps.pousse({ &grp, ngrp });
 		}
 
-		pour_chaque_polygone(*corps_entree,
-							 [&](Corps const &corps_entree_, Polygone *poly)
-		{
-			INUTILISE(corps_entree_);
+		/* triangule */
+		auto polyedre = construit_corps_polyedre_triangle(*corps_entree);
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_PRIMS);
 
-			if (poly->type == type_polygone::OUVERT) {
-				auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+		for (auto face : polyedre.faces) {
+			auto poly = Polygone::construit(&m_corps, type_polygone::FERME, 3);
 
-				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-					npoly->ajoute_sommet(poly->index_point(j));
+			auto debut = face->arete;
+			auto fin = debut;
+
+			do {
+				poly->ajoute_sommet(debut->sommet->label);
+				debut = debut->suivante;
+			} while (debut != fin);
+
+			transferante.transfere_attributs_prims(face->label, poly->index);
+
+			for (auto paire : paires_grps) {
+				if (!paire.first->contient(face->label)) {
+					continue;
 				}
 
-				copie_donnees(poly, npoly, paires_attrs, paires_grps);
+				paire.second->ajoute_primitive(poly->index);
 			}
-			else {
-				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-					auto npoly = Polygone::construit(&m_corps, poly->type, 3);
-					npoly->ajoute_sommet(poly->index_point(0));
-					npoly->ajoute_sommet(poly->index_point(j - 1));
-					npoly->ajoute_sommet(poly->index_point(j));
-
-					copie_donnees(poly, npoly, paires_attrs, paires_grps);
-				}
-			}
-		});
+		}
 
 		return EXECUTION_REUSSIE;
-	}
-
-	void copie_donnees(
-			Polygone *poly,
-			Polygone *npoly,
-			dls::tableau<std::pair<Attribut const *, Attribut *>> const &paires_attrs,
-			dls::tableau<std::pair<GroupePrimitive const *, GroupePrimitive *>> const &paires_grps)
-	{
-		for (auto paire : paires_attrs) {
-			paire.second->redimensionne(paire.second->taille() + 1);
-			copie_attribut(paire.first, poly->index, paire.second, npoly->index);
-		}
-
-		for (auto paire : paires_grps) {
-			if (!paire.first->contient(poly->index)) {
-				continue;
-			}
-
-			paire.second->ajoute_primitive(npoly->index);
-		}
 	}
 };
 
