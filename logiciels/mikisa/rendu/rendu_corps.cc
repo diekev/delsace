@@ -317,10 +317,9 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec3(polygone->index));
 				}
 				else if (attr_couleurs->portee == portee_attr::VERTEX) {
-					/* À FAIRE : indexage des vertex. */
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
-					couleurs.pousse(attr_couleurs->vec3(polygone->index));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_sommet(0)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_sommet(i - 1)));
+					couleurs.pousse(attr_couleurs->vec3(polygone->index_sommet(i)));
 				}
 			}
 			else {
@@ -335,10 +334,9 @@ void ajoute_polygone_surface(
 					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
 				}
 				else if (attr_couleurs->portee == portee_attr::VERTEX) {
-					/* À FAIRE : indexage des vertex. */
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
-					couleurs.pousse(attr_couleurs->vec4(polygone->index).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_sommet(0)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_sommet(i - 1)).xyz);
+					couleurs.pousse(attr_couleurs->vec4(polygone->index_sommet(i)).xyz);
 				}
 			}
 		}
