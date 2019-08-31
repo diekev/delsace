@@ -39,6 +39,7 @@ add_library(${NOM_CIBLE} STATIC
     iteration_corps.cc
 	limites_corps.cc
     listes.cc
+	polyedre.cc
     primitive.cc
     triangulation.cc
     volume.cc
@@ -50,6 +51,7 @@ add_library(${NOM_CIBLE} STATIC
     iteration_corps.hh
 	limites_corps.hh
     listes.h
+	polyedre.hh
     primitive.hh
     triangulation.hh
     volume.hh
