@@ -1215,29 +1215,35 @@ public:
 
 		auto points_entree = corps_entree->points_pour_lecture();
 
+		/* À FAIRE : transfère attributs groupes */
+		auto transfere = TRANSFERE_ATTR_CORPS
+				| TRANSFERE_ATTR_PRIMS
+				| TRANSFERE_ATTR_POINTS
+				| TRANSFERE_ATTR_SOMMETS;
+
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
+		transferante.transfere_attributs_corps(0, 0);
+
 		pour_chaque_polygone(*corps_entree,
 							 [&](Corps const &, Polygone *poly)
 		{
 			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
+			transferante.transfere_attributs_prims(poly->index, npoly->index);
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				/* À FAIRE : transforme pos monde ? */
+				auto idx_pnt_orig = poly->index_point(j);
+				auto idx_smt_orig = poly->index_sommet(j);
 				auto point = points_entree->point(poly->index_point(j));
 
 				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
+				transferante.transfere_attributs_points(idx_pnt_orig, index);
 
-				m_corps.ajoute_sommet(npoly, index);
+				auto idx_sommet = m_corps.ajoute_sommet(npoly, index);
+				transferante.transfere_attributs_sommets(idx_smt_orig, idx_sommet);
 			}
 		});
 
 		m_corps.transformation = corps_entree->transformation;
-
-		/* À FAIRE : transfère attribut */
-		if (corps_entree->attribut("N") != nullptr) {
-			/* Les normaux sont forcément plats, car les primitives ont été
-			 *  séparées. */
-			calcul_normaux(m_corps, true, false);
-		}
 
 		return EXECUTION_REUSSIE;
 	}
