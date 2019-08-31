@@ -46,6 +46,8 @@
 #include "corps/iteration_corps.hh"
 #include "corps/triangulation.hh"
 
+#include "normaux.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -211,6 +213,55 @@ public:
 };
 
 /* ************************************************************************** */
+
+static auto echantillonne_normal(
+		Corps const &corps,
+		long index,
+		dls::math::vec3f const &pos)
+{
+	auto nor = dls::math::vec3f();
+	auto prim = corps.prims()->prim(index);
+	auto poly = dynamic_cast<Polygone *>(prim);
+
+	if (poly == nullptr) {
+		return nor;
+	}
+
+	auto attr_N = corps.attribut("N");
+
+	if (attr_N == nullptr) {
+		return normalise(calcul_normal_poly(corps, *poly));
+	}
+
+	if (attr_N->portee == portee_attr::PRIMITIVE) {
+		return attr_N->vec3(poly->index);
+	}
+
+	if (attr_N->portee == portee_attr::POINT) {
+		// À FAIRE - il nous faut calculer les coordonnées barycentriques selon
+		// la position dans le triangle, mais il nous faut le triangle et non le
+		// polygone
+
+		auto poids = 0.0f;
+		auto nombre_sommets = poly->nombre_sommets();
+		auto points = corps.points_pour_lecture();
+
+		for (auto i = 0; i < nombre_sommets; ++i) {
+			auto idx = poly->index_point(i);
+			auto const &p = points->point(idx);
+			auto l = longueur(pos - p);
+
+			poids += l;
+			nor += attr_N->vec3(idx) * l;
+		}
+
+		if (poids != 0.0f) {
+			nor /= poids;
+		}
+	}
+
+	return nor;
+}
 
 /* À FAIRE : transfère attribut. */
 class OperatriceCreationPoints final : public OperatriceCorps {
@@ -460,9 +511,6 @@ public:
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
 
-			auto const nor_triangle_d = normalise(produit_croix(e0, e1));
-			auto const nor_triangle = dls::math::converti_type<float>(nor_triangle_d);
-
 			for (long j = 0; j < nombre_points_triangle; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */
 				auto r = gna.uniforme(0.0, 1.0);
@@ -475,10 +523,10 @@ public:
 
 				auto pos = v0 + r * e0 + s * e1;
 
-				auto index = m_corps.ajoute_point(dls::math::converti_type_vecteur<float>(pos));
+				auto posf = dls::math::converti_type_vecteur<float>(pos);
+				auto index = m_corps.ajoute_point(posf);
 
-				/* À FAIRE : échantillone proprement selon le type de normaux */
-				attr_N->vec3(index) = nor_triangle;
+				attr_N->vec3(index) = echantillonne_normal(*corps_entree, triangle.index_orig, posf);
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -672,9 +720,15 @@ struct BoiteTriangle {
 	ListeTriangle triangles{};
 };
 
-static void ajoute_triangle_boite(BoiteTriangle *boite, dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
+static void ajoute_triangle_boite(
+		BoiteTriangle *boite,
+		dls::math::vec3f const &v0,
+		dls::math::vec3f const &v1,
+		dls::math::vec3f const &v2,
+		long index)
 {
 	auto triangle = boite->triangles.ajoute(v0, v1, v2);
+	triangle->index_orig = index;
 	boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
 	boite->aire_maximum = 2 * boite->aire_minimum;
 	boite->aire_totale += triangle->aire;
@@ -873,7 +927,8 @@ public:
 			ajoute_triangle_boite(&boites[index_boite],
 								  dls::math::converti_type_vecteur<float>(v0_m),
 								  dls::math::converti_type_vecteur<float>(v1_m),
-								  dls::math::converti_type_vecteur<float>(v2_m));
+								  dls::math::converti_type_vecteur<float>(v2_m),
+								  triangle.index_orig);
 		}
 
 		/* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
@@ -938,9 +993,7 @@ public:
 				//chage_spatial.ajoute(point);
 				grille_particule.ajoute(point);
 				auto idx_p = m_corps.ajoute_point(point.x, point.y, point.z);
-				/* À FAIRE : échantillone proprement selon le type de normaux */
-				auto nor = normalise(produit_croix(e0, e1));
-				attr_N->vec3(idx_p) = nor;
+				attr_N->vec3(idx_p) = echantillonne_normal(*corps_maillage, triangle->index_orig, point);
 				debut = compte_tick_ms();
 			}
 
@@ -998,7 +1051,8 @@ public:
 					if (index_boite0 >= 0 && index_boite0 < 64) {
 						auto &b = boites[index_boite0];
 
-						b.triangles.ajoute(triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
+						auto t = b.triangles.ajoute(triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
+						t->index_orig = triangle->index_orig;
 						b.aire_totale += aire;
 					}
 				}
