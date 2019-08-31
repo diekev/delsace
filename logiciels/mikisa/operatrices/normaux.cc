@@ -44,57 +44,50 @@ static auto acos(T fac)
 }
 
 /* calcul les normaux pour chaque polygone, ne les normalise pas */
-static auto rappel_calcul_normal_poly(Corps &corps, Polygone *poly)
+dls::math::vec3f calcul_normal_poly(Corps const &corps, Polygone const &poly)
 {
-	auto attr_N = corps.attribut("N_poly");
 	auto points = corps.points_pour_lecture();
 
-	switch (poly->nombre_sommets()) {
+	switch (poly.nombre_sommets()) {
 		case 3:
 		{
 			/* Calcul du normal en croisant deux cotés. */
 
-			auto const &p0 = points->point(poly->index_point(0));
-			auto const &p1 = points->point(poly->index_point(1));
-			auto const &p2 = points->point(poly->index_point(2));
+			auto const &p0 = points->point(poly.index_point(0));
+			auto const &p1 = points->point(poly.index_point(1));
+			auto const &p2 = points->point(poly.index_point(2));
 
 			auto const c0 = p1 - p0;
 			auto const c1 = p2 - p0;
 
-			auto nor = produit_croix(c0, c1);
-			attr_N->valeur(poly->index, nor);
-
-			break;
+			return produit_croix(c0, c1);
 		}
 		case 4:
 		{
 			/* Calcul du normal en croisant les sommets 0-2 x 1-3. */
 
-			auto const &p0 = points->point(poly->index_point(0));
-			auto const &p1 = points->point(poly->index_point(1));
-			auto const &p2 = points->point(poly->index_point(2));
-			auto const &p3 = points->point(poly->index_point(3));
+			auto const &p0 = points->point(poly.index_point(0));
+			auto const &p1 = points->point(poly.index_point(1));
+			auto const &p2 = points->point(poly.index_point(2));
+			auto const &p3 = points->point(poly.index_point(3));
 
 			auto const c0 = p0 - p2;
 			auto const c1 = p1 - p3;
 
-			auto nor = produit_croix(c0, c1);
-			attr_N->valeur(poly->index, nor);
-
-			break;
+			return produit_croix(c0, c1);
 		}
 		default:
 		{
 			/* Calcul du normal selon la méthode de Newell, voir Graphics Gems. */
 
-			auto i0 = poly->nombre_sommets() - 1;
+			auto i0 = poly.nombre_sommets() - 1;
 			auto i1 = 0l;
 
 			auto nor = dls::math::vec3f(0.0f);
 
-			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-				auto idx_prev = poly->index_point(i0);
-				auto idx_cour = poly->index_point(i1);
+			for (auto i = 0; i < poly.nombre_sommets(); ++i) {
+				auto idx_prev = poly.index_point(i0);
+				auto idx_cour = poly.index_point(i1);
 
 				auto const &p_prev = points->point(idx_prev);
 				auto const &p_cour = points->point(idx_cour);
@@ -104,14 +97,18 @@ static auto rappel_calcul_normal_poly(Corps &corps, Polygone *poly)
 				nor[2] += (p_prev[0] - p_cour[0]) * (p_prev[1] + p_cour[1]);
 
 				i0 = i1;
-				i1 = (i1 + 1) % poly->nombre_sommets();
+				i1 = (i1 + 1) % poly.nombre_sommets();
 			}
 
-			attr_N->valeur(poly->index, nor);
-
-			break;
+			return nor;
 		}
 	}
+}
+
+static auto rappel_calcul_normal_poly(Corps &corps, Polygone *poly)
+{
+	auto attr_N = corps.attribut("N_poly");
+	attr_N->valeur(poly->index, calcul_normal_poly(corps, *poly));
 }
 
 /* accumule les normaux non "normalisés" des faces adjacentes */
