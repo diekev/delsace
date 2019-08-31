@@ -1571,10 +1571,7 @@ static auto calcul_centre_masse(
 		auto masse_totale = 0.0f;
 
 		if (attr_M != nullptr) {
-			/* À FAIRE : fonction pour accumuler les valeurs des attributs */
-			for (auto i = 0; i < points_entree->taille(); ++i) {
-				masse_totale += attr_M->valeur(i);
-			}
+			masse_totale = accumule_attr<float>(*attr_M);
 		}
 		else {
 			masse_totale = static_cast<float>(points_entree->taille());
