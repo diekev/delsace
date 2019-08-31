@@ -388,7 +388,6 @@ public:
 		*m_corps.points_pour_ecriture() = *corps_entree->points_pour_lecture();
 
 		for (auto const &attr : corps_entree->attributs()) {
-			/* À FAIRE : attributs vertex */
 			if (attr.portee == portee_attr::PRIMITIVE || attr.portee == portee_attr::VERTEX) {
 				continue;
 			}
@@ -413,7 +412,7 @@ public:
 
 		/* triangule */
 		auto polyedre = construit_corps_polyedre_triangle(*corps_entree);
-		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_PRIMS);
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_SOMMETS);
 
 		for (auto face : polyedre.faces) {
 			auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);
@@ -422,7 +421,9 @@ public:
 			auto fin = debut;
 
 			do {
-				m_corps.ajoute_sommet(poly, debut->sommet->label);
+				auto idx_sommet = m_corps.ajoute_sommet(poly, debut->sommet->label);
+				transferante.transfere_attributs_sommets(debut->label, idx_sommet);
+
 				debut = debut->suivante;
 			} while (debut != fin);
 
@@ -925,7 +926,7 @@ public:
 
 		/* copie les polygones et points restants */
 
-		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS);
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_SOMMETS);
 
 		/* transfère tous les points */
 		for (auto s : polyedre.sommets) {
@@ -951,7 +952,9 @@ public:
 			auto poly = m_corps.ajoute_polygone(type_polygone::FERME);
 
 			do {
-				m_corps.ajoute_sommet(poly, debut->sommet->index);
+				auto idx_sommet = m_corps.ajoute_sommet(poly, debut->sommet->index);
+				transferante.transfere_attributs_sommets(debut->label, idx_sommet);
+
 				debut = debut->suivante;
 			} while (debut != fin);
 

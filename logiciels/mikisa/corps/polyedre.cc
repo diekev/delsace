@@ -141,6 +141,13 @@ static auto trouve_sommet(
 	return iter0->second;
 }
 
+enum {
+	T012,
+	T013,
+	T023,
+	T123,
+};
+
 static auto ajoute_triangle(
 		Polyedre &polyedre,
 		Corps const &corps,
@@ -210,6 +217,13 @@ static auto ajoute_triangle(
 	return t;
 }
 
+static auto ajourne_label_arete_triangle(mi_face *t, long i0, long i1, long i2)
+{
+	t->arete->label = static_cast<unsigned>(i0);
+	t->arete->suivante->label = static_cast<unsigned>(i1);
+	t->arete->suivante->suivante->label = static_cast<unsigned>(i2);
+}
+
 Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 {
 	auto polyedre = Polyedre();
@@ -229,6 +243,12 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 
 			auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
 			t->label = static_cast<unsigned>(poly->index);
+
+			ajourne_label_arete_triangle(
+						t,
+						poly->index_sommet(0),
+						poly->index_sommet(1),
+						poly->index_sommet(2));
 		}
 		else if (nombre_sommets == 4) {
 			/* divise le polygone sur la diagonale la plus courte */
@@ -236,6 +256,11 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 			auto i1 = poly->index_point(1);
 			auto i2 = poly->index_point(2);
 			auto i3 = poly->index_point(3);
+
+			auto s0 = poly->index_sommet(0);
+			auto s1 = poly->index_sommet(1);
+			auto s2 = poly->index_sommet(2);
+			auto s3 = poly->index_sommet(3);
 
 			auto p0 = points->point(i0);
 			auto p1 = points->point(i1);
@@ -248,16 +273,20 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 			if (l0 <= l1) {
 				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
 				t->label = static_cast<unsigned>(poly->index);
+				ajourne_label_arete_triangle(t, s0, s1, s2);
 
 				t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i2, i3);
 				t->label = static_cast<unsigned>(poly->index);
+				ajourne_label_arete_triangle(t, s0, s2, s3);
 			}
 			else {
 				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i3);
 				t->label = static_cast<unsigned>(poly->index);
+				ajourne_label_arete_triangle(t, s0, s1, s3);
 
 				t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i1, i2, i3);
 				t->label = static_cast<unsigned>(poly->index);
+				ajourne_label_arete_triangle(t, s1, s2, s3);
 			}
 		}
 		else {
@@ -268,6 +297,12 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 
 				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
 				t->label = static_cast<unsigned>(poly->index);
+
+				ajourne_label_arete_triangle(
+							t,
+							poly->index_sommet(0),
+							poly->index_sommet(i - 1),
+							poly->index_sommet(i));
 			}
 		}
 	});
@@ -301,6 +336,7 @@ Polyedre converti_corps_polyedre(const Corps &corps)
 			s1->label = static_cast<unsigned>(idx1);
 
 			auto a0 = polyedre.cree_arete(s0, f);
+			a0->label = static_cast<unsigned>(poly->index_sommet(i));
 
 			if (f->arete == nullptr) {
 				f->arete = a0;
