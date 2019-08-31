@@ -343,11 +343,11 @@ static auto converti_polyedre_corps(Polyedre const &polyedre, Corps &corps)
 	for (auto triangle : polyedre.triangles) {
 		auto arete = triangle->arete;
 
-		auto poly = Polygone::construit(&corps, type_polygone::FERME, 3);
+		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
 
 		do {
 			auto idx = corps.ajoute_point(arete->sommet->p);
-			poly->ajoute_sommet(idx);
+			corps.ajoute_sommet(poly, idx);
 
 			arete = arete->suivante;
 		} while (arete != triangle->arete);
@@ -1849,11 +1849,11 @@ public:
 			for (auto i = 0; i < c.totpoly; ++i) {
 				auto nombre_verts = c.poly_totvert[i];
 
-				auto poly = Polygone::construit(&m_corps, type_polygone::FERME, nombre_verts);
+				auto poly = m_corps.ajoute_polygone(type_polygone::FERME, nombre_verts);
 
-				attr_C->pousse(couleur);
+				attr_C->vec3(poly->index) = couleur;
 				for (auto j = 0; j < nombre_verts; ++j) {
-					poly->ajoute_sommet(poly_index_offset + c.poly_indices[skip + 1 + j]);
+					m_corps.ajoute_sommet(poly, poly_index_offset + c.poly_indices[skip + 1 + j]);
 				}
 
 				skip += (nombre_verts + 1);

@@ -340,11 +340,11 @@ void converti_polyedre_corps(const Polyedre &polyedre, Corps &corps)
 	for (auto triangle : polyedre.faces) {
 		auto arete = triangle->arete;
 
-		auto poly = Polygone::construit(&corps, type_polygone::FERME, 3);
+		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
 
 		do {
 			auto idx = corps.ajoute_point(arete->sommet->p);
-			poly->ajoute_sommet(idx);
+			corps.ajoute_sommet(poly, idx);
 
 			arete = arete->suivante;
 		} while (arete != triangle->arete);

@@ -476,10 +476,10 @@ int OpImportAlembic::execute(
 		for (auto i = 0ul; i < compte_faces->size(); ++i) {
 			auto compte = (*compte_faces)[i];
 
-			auto poly = Polygone::construit(&m_corps, type_polygone::FERME, compte);
+			auto poly = m_corps.ajoute_polygone(type_polygone::FERME, compte);
 
 			for (auto j = 0; j < compte; ++j) {
-				poly->ajoute_sommet((*index_faces)[poly_index++]);
+				m_corps.ajoute_sommet(poly, (*index_faces)[poly_index++]);
 			}
 		}
 

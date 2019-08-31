@@ -71,15 +71,7 @@ Attribut *Corps::ajoute_attribut(
 					taille_attrib = liste_prims->taille();
 					break;
 				case portee_attr::VERTEX:
-					for (auto i = 0; i < liste_prims->taille(); ++i) {
-						auto prim = liste_prims->prim(i);
-						if (prim->type_prim() != type_primitive::POLYGONE) {
-							continue;
-						}
-
-						auto poly = dynamic_cast<Polygone *>(prim);
-						taille_attrib += poly->nombre_sommets();
-					}
+					taille_attrib = this->nombre_sommets();
 					break;
 				case portee_attr::GROUPE:
 					taille_attrib = this->m_groupes_prims.taille();
@@ -155,6 +147,8 @@ long Corps::ajoute_point(float x, float y, float z)
 	auto point = dls::math::vec3f(x, y, z);
 	m_points.pousse(point);
 
+	redimensionne_attributs(portee_attr::POINT);
+
 	return m_points.taille() - 1;
 }
 
@@ -210,21 +204,45 @@ const ListePrimitives *Corps::prims() const
 	return &m_prims;
 }
 
-void Corps::supprime_primitives()
+Polygone *Corps::ajoute_polygone(type_polygone type_poly, long nombre_sommets)
 {
-	m_prims.reinitialise();
-	m_groupes_prims.efface();
+	auto p = memoire::loge<Polygone>("Polygone");
+	p->type = type_poly;
+	p->reserve_sommets(nombre_sommets);
+
+	ajoute_primitive(p);
+
+	redimensionne_attributs(portee_attr::PRIMITIVE);
+
+	return p;
+}
+
+long Corps::ajoute_sommet(Polygone *p, long idx_point)
+{
+	auto idx_sommet = m_nombre_sommets++;
+
+	p->ajoute_point(idx_point, idx_sommet);
+
+	redimensionne_attributs(portee_attr::VERTEX);
+
+	return idx_sommet;
+}
+
+long Corps::nombre_sommets() const
+{
+	return m_nombre_sommets;
 }
 
 void Corps::reinitialise()
 {
 	m_points.reinitialise();
 	m_prims.reinitialise();
+	m_nombre_sommets = 0;
 
 	m_attributs.efface();
 
-	m_groupes_prims.efface();
 	m_groupes_points.efface();
+	m_groupes_prims.efface();
 }
 
 Corps *Corps::copie() const
@@ -248,6 +266,7 @@ void Corps::copie_vers(Corps *corps) const
 
 	/* copie les primitives */
 	corps->m_prims = this->m_prims;
+	corps->m_nombre_sommets = this->nombre_sommets();
 
 	/* copie les attributs */
 	for (auto attr : this->m_attributs) {
@@ -293,6 +312,8 @@ GroupePoint *Corps::ajoute_groupe_point(const dls::chaine &nom_groupe)
 
 	m_groupes_points.pousse(groupe);
 
+	redimensionne_attributs(portee_attr::GROUPE);
+
 	return &m_groupes_points.back();
 }
 
@@ -337,6 +358,8 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(dls::chaine const &nom_groupe)
 
 	m_groupes_prims.pousse(groupe);
 
+	redimensionne_attributs(portee_attr::GROUPE);
+
 	return &m_groupes_prims.back();
 }
 
@@ -364,6 +387,15 @@ Corps::plage_grp_prims Corps::groupes_prims()
 Corps::plage_const_grp_prims Corps::groupes_prims() const
 {
 	return plage_const_grp_prims(m_groupes_prims.debut(), m_groupes_prims.fin());
+}
+
+void Corps::redimensionne_attributs(portee_attr portee)
+{
+	for (auto &attr : m_attributs) {
+		if (attr.portee == portee) {
+			attr.redimensionne(attr.taille() + 1);
+		}
+	}
 }
 
 /* ************************************************************************** */

@@ -56,11 +56,7 @@ void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v
 {
 	INUTILISE(w);
 
-	if (attribut_uvs == nullptr) {
-		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX, true);
-	}
-
-	attribut_uvs->pousse(dls::math::vec2f(u, v));
+	uvs.pousse(dls::math::vec2f(u, v));
 }
 
 void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float y, const float z)
@@ -74,10 +70,15 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 {
 	INUTILISE(index_uvs);
 
-	auto poly = Polygone::construit(corps, type_polygone::FERME, nombre);
+	auto poly = corps->ajoute_polygone(type_polygone::FERME, nombre);
+
+	if (index_uvs != nullptr && attribut_uvs == nullptr) {
+		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX);
+	}
 
 	for (long i = 0; i < nombre; ++i) {
-		poly->ajoute_sommet(index_sommet[i]);
+		auto idx = corps->ajoute_sommet(poly, index_sommet[i]);
+		attribut_uvs->vec2(idx) = uvs[index_uvs[i]];
 	}
 
 	if (index_normaux != nullptr) {
@@ -91,10 +92,10 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 
 		if (normaux_polys) {
 			if (attribut_normal_polys == nullptr) {
-				attribut_normal_polys = corps->ajoute_attribut("N_polys", type_attribut::VEC3, portee_attr::PRIMITIVE, true);
+				attribut_normal_polys = corps->ajoute_attribut("N_polys", type_attribut::VEC3, portee_attr::PRIMITIVE);
 			}
 
-			attribut_normal_polys->pousse(attribut_normal->vec3(index_normaux[0]));
+			attribut_normal_polys->vec3(poly->index) = attribut_normal->vec3(index_normaux[0]);
 		}
 	}
 
@@ -134,10 +135,7 @@ void AdaptriceCreationCorps::reserve_normaux(long const nombre)
 
 void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 {
-	if (attribut_uvs == nullptr) {
-		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX, true);
-		attribut_uvs->reserve(nombre);
-	}
+	uvs.reserve(nombre);
 }
 
 void AdaptriceCreationCorps::groupes(dls::tableau<dls::chaine> const &noms)

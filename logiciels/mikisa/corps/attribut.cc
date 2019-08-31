@@ -240,7 +240,6 @@ TransferanteAttribut::TransferanteAttribut(const Corps &corps_orig, Corps &corps
 void TransferanteAttribut::transfere_attributs_points(long idx_orig, long idx_dest)
 {
 	for (auto &paire : m_attr_points) {
-		paire.second->redimensionne(paire.second->taille() + 1);
 		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
 	}
 }
@@ -248,7 +247,6 @@ void TransferanteAttribut::transfere_attributs_points(long idx_orig, long idx_de
 void TransferanteAttribut::transfere_attributs_prims(long idx_orig, long idx_dest)
 {
 	for (auto &paire : m_attr_prims) {
-		paire.second->redimensionne(paire.second->taille() + 1);
 		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
 	}
 }
@@ -256,7 +254,6 @@ void TransferanteAttribut::transfere_attributs_prims(long idx_orig, long idx_des
 void TransferanteAttribut::transfere_attributs_sommets(long idx_orig, long idx_dest)
 {
 	for (auto &paire : m_attr_sommets) {
-		paire.second->redimensionne(paire.second->taille() + 1);
 		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
 	}
 }
@@ -264,7 +261,6 @@ void TransferanteAttribut::transfere_attributs_sommets(long idx_orig, long idx_d
 void TransferanteAttribut::transfere_attributs_corps(long idx_orig, long idx_dest)
 {
 	for (auto &paire : m_attr_corps) {
-		paire.second->redimensionne(paire.second->taille() + 1);
 		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
 	}
 }
@@ -272,7 +268,6 @@ void TransferanteAttribut::transfere_attributs_corps(long idx_orig, long idx_des
 void TransferanteAttribut::transfere_attributs_groupes(long idx_orig, long idx_dest)
 {
 	for (auto &paire : m_attr_groupes) {
-		paire.second->redimensionne(paire.second->taille() + 1);
 		copie_attribut(paire.first, idx_orig, paire.second, idx_dest);
 	}
 }

@@ -1527,7 +1527,7 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([type, &index](Corps *corps)
 				{
-					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
+					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
 					index = poly->index;
 				});
 
@@ -1545,11 +1545,11 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([type, &index, &tableau](Corps *corps)
 				{
-					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
+					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
 					index = poly->index;
 
 					for (auto const &v : tableau) {
-						poly->ajoute_sommet(v);
+						corps->ajoute_sommet(poly, v);
 					}
 				});
 
@@ -1562,16 +1562,16 @@ void execute_pile(
 				auto idx_prim = pile_donnees.charge_entier(compteur, insts);
 				auto idx_point = pile_donnees.charge_entier(compteur, insts);
 				auto &ptr_corps = contexte.ptr_corps;
+				auto idx_sommet = -1l;
 
-				ptr_corps.accede_ecriture([idx_prim, idx_point](Corps *corps)
+				ptr_corps.accede_ecriture([idx_prim, idx_point, &idx_sommet](Corps *corps)
 				{
 					auto prim = corps->prims()->prim(idx_prim);
 					auto poly = dynamic_cast<Polygone *>(prim);
-					poly->ajoute_sommet(idx_point);
+					idx_sommet = corps->ajoute_sommet(poly, idx_point);
 				});
 
-				// À FAIRE : retourne un index pour le sommet
-				pile_donnees.stocke(compteur, insts, 0);
+				pile_donnees.stocke(compteur, insts, static_cast<int>(idx_sommet));
 
 				break;
 			}
@@ -1584,10 +1584,11 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([idx_prim, &tableau](Corps *corps)
 				{
+					auto prim = corps->prims()->prim(idx_prim);
+					auto poly = dynamic_cast<Polygone *>(prim);
+
 					for (auto const &v : tableau) {
-						auto prim = corps->prims()->prim(idx_prim);
-						auto poly = dynamic_cast<Polygone *>(prim);
-						poly->ajoute_sommet(v);
+						corps->ajoute_sommet(poly, v);
 					}
 				});
 
@@ -1608,9 +1609,9 @@ void execute_pile(
 					auto p0 = corps->ajoute_point(pos);
 					auto p1 = corps->ajoute_point(pos + dir);
 
-					auto prim = Polygone::construit(corps, type_polygone::OUVERT, 2);
-					prim->ajoute_sommet(p0);
-					prim->ajoute_sommet(p1);
+					auto prim = corps->ajoute_polygone(type_polygone::OUVERT, 2);
+					corps->ajoute_sommet(prim, p0);
+					corps->ajoute_sommet(prim, p1);
 
 					index = static_cast<int>(prim->index);
 				});

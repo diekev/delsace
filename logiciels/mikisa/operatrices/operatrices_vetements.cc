@@ -1117,10 +1117,10 @@ public:
 		auto const &cotes = delaunay.getTriangles();
 
 		for (auto const &cote : cotes) {
-			auto prim = Polygone::construit(&m_corps, type_polygone::FERME, 3);
-			prim->ajoute_sommet(static_cast<long>(cote.p1));
-			prim->ajoute_sommet(static_cast<long>(cote.p2));
-			prim->ajoute_sommet(static_cast<long>(cote.p3));
+			auto prim = m_corps.ajoute_polygone(type_polygone::FERME, 3);
+			m_corps.ajoute_sommet(prim, static_cast<long>(cote.p1));
+			m_corps.ajoute_sommet(prim, static_cast<long>(cote.p2));
+			m_corps.ajoute_sommet(prim, static_cast<long>(cote.p3));
 		}
 
 		chef->indique_progression(100.0f);

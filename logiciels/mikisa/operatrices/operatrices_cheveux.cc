@@ -196,17 +196,17 @@ public:
 
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
-			auto polygone = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_segment + 1);
-			polygone->ajoute_sommet(index_npoint);
+			auto polygone = m_corps.ajoute_polygone(type_polygone::OUVERT, nombre_segment + 1);
+			m_corps.ajoute_sommet(polygone, index_npoint);
 
 			for (long j = 0; j < nombre_segment; ++j) {
 				pos += (taille_segment * normal);
 
 				index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
-				polygone->ajoute_sommet(index_npoint);
+				m_corps.ajoute_sommet(polygone, index_npoint);
 			}
 
-			attr_L->pousse(taille_segment);
+			attr_L->decimal(polygone->index) = taille_segment;
 		}
 
 		return EXECUTION_REUSSIE;

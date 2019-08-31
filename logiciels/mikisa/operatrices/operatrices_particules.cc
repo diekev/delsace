@@ -478,7 +478,7 @@ public:
 				auto index = m_corps.ajoute_point(dls::math::converti_type_vecteur<float>(pos));
 
 				/* À FAIRE : échantillone proprement selon le type de normaux */
-				attr_N->pousse(nor_triangle);
+				attr_N->vec3(index) = nor_triangle;
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -937,10 +937,10 @@ public:
 			if (ok) {
 				//chage_spatial.ajoute(point);
 				grille_particule.ajoute(point);
-				m_corps.ajoute_point(point.x, point.y, point.z);
+				auto idx_p = m_corps.ajoute_point(point.x, point.y, point.z);
 				/* À FAIRE : échantillone proprement selon le type de normaux */
 				auto nor = normalise(produit_croix(e0, e1));
-				attr_N->pousse(nor);
+				attr_N->vec3(idx_p) = nor;
 				debut = compte_tick_ms();
 			}
 
@@ -1141,10 +1141,10 @@ static void construit_triangle(
 		corps.ajoute_point(pj.x, pj.y, pj.z);
 		corps.ajoute_point(pk.x, pk.y, pk.z);
 
-		auto poly = Polygone::construit(&corps, type_polygone::FERME, 3);
-		poly->ajoute_sommet(tri_offset + 0);
-		poly->ajoute_sommet(tri_offset + 1);
-		poly->ajoute_sommet(tri_offset + 2);
+		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
+		corps.ajoute_sommet(poly, tri_offset + 0);
+		corps.ajoute_sommet(poly, tri_offset + 1);
+		corps.ajoute_sommet(poly, tri_offset + 2);
 
 		tri_offset += 3;
 	}
@@ -1345,7 +1345,7 @@ public:
 		pour_chaque_polygone(*corps_entree,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 				auto index = static_cast<size_t>(poly->index_point(j));
@@ -1354,7 +1354,7 @@ public:
 					//std::cerr << "Ajout d'un index invalide !!!\n";
 				}
 
-				npoly->ajoute_sommet(reindexage[index]);
+				nm_corps.ajoute_sommet(poly, reindexage[index]);
 			}
 		});
 
@@ -1531,9 +1531,9 @@ public:
 				p += v;
 				m_corps.ajoute_point(p.x, p.y, p.z);
 
-				auto seg = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-				seg->ajoute_sommet(i * 2);
-				seg->ajoute_sommet(i * 2 + 1);
+				auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+				m_corps.ajoute_sommet(seg, i * 2);
+				m_corps.ajoute_sommet(seg, i * 2 + 1);
 			}
 			else {
 				v /= static_cast<float>(nombre_points);
@@ -2008,10 +2008,10 @@ public:
 
 				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
 
-				m_corps.ajoute_point(pos);
-				attr_P->pousse(pos);
+				auto idx_p = m_corps.ajoute_point(pos);
+				attr_P->vec3(idx_p) = pos;
 
-				attr_Prim->pousse(static_cast<int>(idx_prim));
+				attr_Prim->ent32(idx_p) = static_cast<int>(idx_prim);
 			}
 		}
 		else {

@@ -2182,10 +2182,10 @@ public {
 			origine.y += taille_segment;
 		}
 
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, static_cast<int>(params._0CurveRes));
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, static_cast<int>(params._0CurveRes));
 
 		for (int i = 0; i < static_cast<int>(params._0CurveRes); ++i) {
-			poly->ajoute_sommet(i);
+			 m_corps.ajoute_sommet(poly, i);
 		}
 #else
 		auto closeTip = true;

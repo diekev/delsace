@@ -128,7 +128,15 @@ struct Corps {
 
 	const ListePrimitives *prims() const;
 
-	void supprime_primitives();
+	/* polygones */
+
+	Polygone *ajoute_polygone(type_polygone type_poly, long nombre_sommets = 0);
+
+	long ajoute_sommet(Polygone *p, long idx_point);
+
+	long nombre_sommets() const;
+
+	/* autres */
 
 	void reinitialise();
 
@@ -166,16 +174,19 @@ struct Corps {
 
 	plage_const_grp_prims groupes_prims() const;
 
-
 protected:
 	dls::liste<Attribut> m_attributs{};
 
 private:
+	void redimensionne_attributs(portee_attr portee);
+
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
 
 	dls::tableau<GroupePoint> m_groupes_points{};
 	dls::tableau<GroupePrimitive> m_groupes_prims{};
+
+	long m_nombre_sommets = 0;
 };
 
 bool possede_volume(Corps const &corps);

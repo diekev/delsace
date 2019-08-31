@@ -344,10 +344,10 @@ void OperatriceSNH::converti_corps()
 	}
 
 	for (const std::array<int,3>& f : g_surfaceTriangles) {
-		auto poly = Polygone::construit(&m_corps, type_polygone::FERME, 3);
-		poly->ajoute_sommet(f[0]);
-		poly->ajoute_sommet(f[1]);
-		poly->ajoute_sommet(f[2]);
+		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);
+		m_corps.ajoute_sommet(poly, f[0]);
+		m_corps.ajoute_sommet(poly, f[1]);
+		m_corps.ajoute_sommet(poly, f[2]);
 	}
 }
 

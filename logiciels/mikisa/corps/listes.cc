@@ -31,32 +31,24 @@
 
 /* ************************************************************************** */
 
-Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, long nombre_sommets)
+void Polygone::ajoute_point(long idx_point, long idx_sommet)
 {
-	auto p = memoire::loge<Polygone>("Polygone");
-	p->type = type_poly;
-	p->reserve_sommets(nombre_sommets);
-
-	corps->ajoute_primitive(p);
-
-	return p;
-}
-
-void Polygone::ajoute_sommet(long sommet)
-{
-	assert(sommet >= 0);
-	m_sommets.pousse(static_cast<size_t>(sommet));
+	assert(idx_point >= 0);
+	assert(idx_sommet >= 0);
+	m_idx_points.pousse(idx_point);
+	m_idx_sommets.pousse(idx_sommet);
 }
 
 void Polygone::reserve_sommets(long nombre)
 {
 	assert(nombre >= 0);
-	m_sommets.reserve(nombre);
+	m_idx_points.reserve(nombre);
+	m_idx_sommets.reserve(nombre);
 }
 
 long Polygone::nombre_sommets() const
 {
-	return m_sommets.taille();
+	return m_idx_points.taille();
 }
 
 long Polygone::nombre_segments() const
@@ -70,15 +62,21 @@ long Polygone::nombre_segments() const
 
 long Polygone::index_point(long i) const
 {
-	assert(i >= 0);
-	return static_cast<long>(m_sommets[i]);
+	assert(i >= 0 && i < m_idx_points.taille());
+	return m_idx_points[i];
+}
+
+long Polygone::index_sommet(long i) const
+{
+	assert(i >= 0 && i < m_idx_sommets.taille());
+	return m_idx_sommets[i];
 }
 
 void Polygone::ajourne_index(long i, long j)
 {
 	assert(i >= 0);
 	assert(j >= 0);
-	m_sommets[i] = static_cast<size_t>(j);
+	m_idx_points[i] = j;
 }
 
 /* ************************************************************************** */
@@ -261,7 +259,7 @@ void ListePrimitives::detache()
 				p->index = polygone->index;
 
 				for (long i = 0; i < polygone->nombre_sommets(); ++i) {
-					p->ajoute_sommet(polygone->index_point(i));
+					p->ajoute_point(polygone->index_point(i), polygone->index_sommet(i));
 				}
 
 				m_primitives->pousse(p);

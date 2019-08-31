@@ -416,13 +416,13 @@ public:
 		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_PRIMS);
 
 		for (auto face : polyedre.faces) {
-			auto poly = Polygone::construit(&m_corps, type_polygone::FERME, 3);
+			auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);
 
 			auto debut = face->arete;
 			auto fin = debut;
 
 			do {
-				poly->ajoute_sommet(debut->sommet->label);
+				m_corps.ajoute_sommet(poly, debut->sommet->label);
 				debut = debut->suivante;
 			} while (debut != fin);
 
@@ -948,10 +948,10 @@ public:
 			auto debut = f->arete;
 			auto fin = f->arete;
 
-			auto poly = Polygone::construit(&m_corps, type_polygone::FERME);
+			auto poly = m_corps.ajoute_polygone(type_polygone::FERME);
 
 			do {
-				poly->ajoute_sommet(debut->sommet->index);
+				m_corps.ajoute_sommet(poly, debut->sommet->index);
 				debut = debut->suivante;
 			} while (debut != fin);
 
@@ -1464,12 +1464,12 @@ public:
 			min_max_attribut(attr, min_donnees, max_donnees);
 
 			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->pousse(couleur_min_max(attr->decimal(i), min_donnees, max_donnees));
+				attr_C->vec3(i) = couleur_min_max(attr->decimal(i), min_donnees, max_donnees);
 			}
 		}
 		else if (attr->type() == type_attribut::VEC3) {
 			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->pousse(attr->vec3(i));
+				attr_C->vec3(i) = attr->vec3(i);
 			}
 		}
 	}
@@ -1695,19 +1695,19 @@ public:
 
 					auto point = w * v0 + u * v1 + v * v2;
 
-					m_corps.ajoute_point(point);
+					auto idx_point = m_corps.ajoute_point(point);
 
 					if ((i == 0 || i == R) && (j == 0 || j == R)) {
 						// nous sommes sur un point
-						attr_C->pousse(couleurs[0]);
+						attr_C->vec3(idx_point) = couleurs[0];
 					}
 					else if (((i == 0 || i == R) && j < R) || ((j == 0 || j == R) && i < R)) {
 						// nous sommes sur un coté
-						attr_C->pousse(couleurs[1]);
+						attr_C->vec3(idx_point) = couleurs[1];
 					}
 					else {
 						// nous sommes dans le polygone
-						attr_C->pousse(couleurs[2]);
+						attr_C->vec3(idx_point) = couleurs[2];
 					}
 				}
 			}

@@ -567,10 +567,10 @@ public:
 			t += taille_segment;
 		}
 
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, segments + 1);
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, segments + 1);
 
 		for (auto i = 0; i <= segments; ++i) {
-			poly->ajoute_sommet(i);
+			 m_corps.ajoute_sommet(poly, i);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -803,10 +803,10 @@ public:
 		pour_chaque_polygone(*corps1,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto polygone = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				polygone->ajoute_sommet(poly->index_point(i));
+				m_corps.ajoute_sommet(polygone, poly->index_point(i));
 			}
 		});
 
@@ -815,10 +815,10 @@ public:
 		pour_chaque_polygone(*corps2,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto polygone = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				polygone->ajoute_sommet(decalage_point + poly->index_point(i));
+				m_corps.ajoute_sommet(polygone, decalage_point + poly->index_point(i));
 			}
 		});
 	}
@@ -1218,7 +1218,7 @@ public:
 		pour_chaque_polygone(*corps_entree,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 				/* À FAIRE : transforme pos monde ? */
@@ -1226,7 +1226,7 @@ public:
 
 				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
 
-				npoly->ajoute_sommet(index);
+				m_corps.ajoute_sommet(npoly, index);
 			}
 		});
 
@@ -2043,10 +2043,10 @@ public:
 		}
 
 		auto nombre_points = m_corps.points_pour_lecture()->taille();
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_points);
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, nombre_points);
 
 		for (auto i = 0; i < nombre_points; ++i) {
-			poly->ajoute_sommet(i);
+			m_corps.ajoute_sommet(poly, i);
 		}
 
 		calcul_normaux(m_corps, true, false);

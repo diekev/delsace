@@ -512,8 +512,8 @@ public:
 		auto pos_parts = m_poseidon.parts.champs_vectoriel("position");
 
 		for (auto i = 0; i < m_poseidon.parts.taille(); ++i) {
-			m_corps.ajoute_point(pos_parts[i]);
-			attr_C->pousse(dls::math::vec3f(0.435f, 0.284f, 0.743f));
+			auto idx_p = m_corps.ajoute_point(pos_parts[i]);
+			attr_C->vec3(idx_p) = dls::math::vec3f(0.435f, 0.284f, 0.743f);
 		}
 
 		m_corps.ajoute_primitive(volume);
@@ -1432,9 +1432,9 @@ public:
 						m_corps.ajoute_point(p0);
 						m_corps.ajoute_point(p1);
 
-						auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-						poly->ajoute_sommet(decalage);
-						poly->ajoute_sommet(decalage + 1);
+						auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+						m_corps.ajoute_sommet(poly, decalage);
+						m_corps.ajoute_sommet(poly, decalage + 1);
 
 						C->pousse(rvb);
 					}

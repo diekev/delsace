@@ -24,8 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/math/vecteur.hh"
 #include "biblinternes/objets/adaptrice_creation.h"
-
 #include "biblinternes/structures/tableau.hh"
 
 class Corps;
@@ -67,4 +67,5 @@ public:
 	Attribut *attribut_normal = nullptr;
 	Attribut *attribut_normal_polys = nullptr;
 	Attribut *attribut_uvs = nullptr;
+	dls::tableau<dls::math::vec2f> uvs{};
 };
