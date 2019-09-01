@@ -363,6 +363,7 @@ static auto appel_fonction_math_double(
 			res.r = fonc(v0.r, v1.r);
 			res.v = fonc(v0.v, v1.v);
 			res.b = fonc(v0.b, v1.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -469,6 +470,7 @@ static auto appel_fonction_math_simple(
 			res.r = fonc(v0.r);
 			res.v = fonc(v0.v);
 			res.b = fonc(v0.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -611,6 +613,7 @@ static void appel_fonction_3_args(
 			res.r = fonc(v0.r, v1.r, v2.r);
 			res.v = fonc(v0.v, v1.v, v2.v);
 			res.b = fonc(v0.b, v1.b, v2.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -794,6 +797,7 @@ static void appel_fonction_5_args(
 			res.r = fonc(v0.r, v1.r, v2.r, v3.r, v4.r);
 			res.v = fonc(v0.v, v1.v, v2.v, v3.v, v4.v);
 			res.b = fonc(v0.b, v1.b, v2.b, v3.b, v4.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
