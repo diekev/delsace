@@ -185,8 +185,7 @@ static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesT
 		}
 		case id_morceau::R16:
 		{
-			/* À FAIRE : type r16 */
-			return 4;
+			return 2;
 		}
 		case id_morceau::N32:
 		case id_morceau::Z32:
@@ -500,8 +499,7 @@ static dls::chaine cree_info_type_C(
 		}
 		case id_morceau::R16:
 		{
-			/* À FAIRE : type r16 */
-			valeur = cree_info_type_reel_C(os_decl, os_init, 32);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 16);
 			break;
 		}
 		case id_morceau::R32:

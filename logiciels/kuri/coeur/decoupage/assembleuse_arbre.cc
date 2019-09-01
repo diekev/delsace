@@ -134,6 +134,8 @@ void assembleuse_arbre::genere_code_C(
 
 	contexte_generation.pousse_globale("errno", donnees_var);
 
+	/* À FAIRE : type R16 */
+
 	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
 	os << "#include <stdlib.h>\n";
 

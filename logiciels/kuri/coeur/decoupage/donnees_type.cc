@@ -285,8 +285,8 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_PTR_Z16, DonneesType(id_morceau::POINTEUR, id_morceau::Z16) },
 	{ TYPE_PTR_Z32, DonneesType(id_morceau::POINTEUR, id_morceau::Z32) },
 	{ TYPE_PTR_Z64, DonneesType(id_morceau::POINTEUR, id_morceau::Z64) },
-	/* À FAIRE : type R16 */
-	{ TYPE_PTR_R16, DonneesType(id_morceau::POINTEUR, id_morceau::R32) },
+
+	{ TYPE_PTR_R16, DonneesType(id_morceau::POINTEUR, id_morceau::R16) },
 	{ TYPE_PTR_R32, DonneesType(id_morceau::POINTEUR, id_morceau::R32) },
 	{ TYPE_PTR_R64, DonneesType(id_morceau::POINTEUR, id_morceau::R64) },
 	{ TYPE_PTR_EINI, DonneesType(id_morceau::POINTEUR, id_morceau::EINI) },
@@ -303,8 +303,8 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_REF_Z16, DonneesType(id_morceau::REFERENCE, id_morceau::Z16) },
 	{ TYPE_REF_Z32, DonneesType(id_morceau::REFERENCE, id_morceau::Z32) },
 	{ TYPE_REF_Z64, DonneesType(id_morceau::REFERENCE, id_morceau::Z64) },
-	/* À FAIRE : type R16 */
-	{ TYPE_REF_R16, DonneesType(id_morceau::REFERENCE, id_morceau::R32) },
+
+	{ TYPE_REF_R16, DonneesType(id_morceau::REFERENCE, id_morceau::R16) },
 	{ TYPE_REF_R32, DonneesType(id_morceau::REFERENCE, id_morceau::R32) },
 	{ TYPE_REF_R64, DonneesType(id_morceau::REFERENCE, id_morceau::R64) },
 	{ TYPE_REF_EINI, DonneesType(id_morceau::REFERENCE, id_morceau::EINI) },
@@ -321,8 +321,8 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_TABL_Z16, DonneesType(id_morceau::TABLEAU, id_morceau::Z16) },
 	{ TYPE_TABL_Z32, DonneesType(id_morceau::TABLEAU, id_morceau::Z32) },
 	{ TYPE_TABL_Z64, DonneesType(id_morceau::TABLEAU, id_morceau::Z64) },
-	/* À FAIRE : type R16 */
-	{ TYPE_TABL_R16, DonneesType(id_morceau::TABLEAU, id_morceau::R32) },
+
+	{ TYPE_TABL_R16, DonneesType(id_morceau::TABLEAU, id_morceau::R16) },
 	{ TYPE_TABL_R32, DonneesType(id_morceau::TABLEAU, id_morceau::R32) },
 	{ TYPE_TABL_R64, DonneesType(id_morceau::TABLEAU, id_morceau::R64) },
 	{ TYPE_TABL_EINI, DonneesType(id_morceau::TABLEAU, id_morceau::EINI) },
@@ -856,7 +856,6 @@ llvm::Type *converti_type_simple(
 			type = llvm::Type::getInt64Ty(contexte.contexte);
 			break;
 		case id_morceau::R16:
-			/* À FAIRE : type R16 */
 			//type = llvm::Type::getHalfTy(contexte.contexte);
 			type = llvm::Type::getFloatTy(contexte.contexte);
 			break;

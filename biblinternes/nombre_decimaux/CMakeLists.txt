@@ -31,6 +31,9 @@ set(ENTETES
 	quatification.h
 	tableau_precision.h
 	traits.h
+	r16_c.h
+	r16_cpp.hh
+	r16_tables.h
 )
 
 set(SOURCES

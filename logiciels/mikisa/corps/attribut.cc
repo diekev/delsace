@@ -50,15 +50,19 @@ long taille_octet_type_attribut(type_attribut type)
 		case type_attribut::N64:
 		case type_attribut::Z64:
 			return static_cast<long>(sizeof(long));
+		case type_attribut::R16:
+			return static_cast<long>(sizeof(r16));
 		case type_attribut::R32:
 			return static_cast<long>(sizeof(float));
 		case type_attribut::R64:
 			return static_cast<long>(sizeof(double));
 		case type_attribut::CHAINE:
 			return static_cast<long>(sizeof(dls::chaine));
-		default:
+		case type_attribut::INVALIDE:
 			return 0l;
 	}
+
+	return 0l;
 }
 
 /* ************************************************************************** */

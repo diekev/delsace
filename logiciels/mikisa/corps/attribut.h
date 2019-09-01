@@ -27,6 +27,7 @@
 #include <memory>
 
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/nombre_decimaux/r16_cpp.hh"
 #include "biblinternes/outils/iterateurs.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -113,7 +114,10 @@ struct type_attribut_depuis_type<unsigned long> {
 	static constexpr auto type = type_attribut::N64;
 };
 
-// À FAIRE : type R16
+template <>
+struct type_attribut_depuis_type<r16> {
+	static constexpr auto type = type_attribut::R16;
+};
 
 template <>
 struct type_attribut_depuis_type<float> {

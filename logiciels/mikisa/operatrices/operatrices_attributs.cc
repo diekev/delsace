@@ -481,7 +481,7 @@ public:
 			}
 			case type_attribut::R16:
 			{
-				//applique_randomisation<short>(*attrib, params);
+				applique_randomisation<r16>(*attrib, params);
 				break;
 			}
 			case type_attribut::R32:
