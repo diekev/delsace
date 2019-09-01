@@ -107,6 +107,17 @@ public:
 	/* ceci n'est appelé que lors des créations par l'utilisateur car les
 	 * opératrices venant de sauvegardes ont déjà les propriétés créées */
 	void cree_proprietes();
+
+private:
+	void cree_code_coulisse_processeur(
+			compileuse_lng *compileuse,
+			lcc::type_var type_specialise,
+			dls::tableau<int> const &pointeurs);
+
+	void cree_code_coulisse_opengl(
+			lcc::type_var type_specialise,
+			dls::tableau<int> const &pointeurs,
+			int temps_courant);
 };
 
 /* ************************************************************************** */

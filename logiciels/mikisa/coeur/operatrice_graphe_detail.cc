@@ -830,6 +830,18 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 
 	/* ****************** crée les données pour les appels ****************** */
 
+	cree_code_coulisse_processeur(compileuse, type_specialise, pointeurs);
+
+	//cree_code_coulisse_opengl(type_specialise, pointeurs, contexte.temps_courant);
+
+	return EXECUTION_REUSSIE;
+}
+
+void OperatriceFonctionDetail::cree_code_coulisse_processeur(
+		compileuse_lng *compileuse,
+		lcc::type_var type_specialise,
+		dls::tableau<int> const &pointeurs)
+{
 	/* ajoute le code_inst de la fonction */
 	compileuse->ajoute_instructions(donnees_fonction->type);
 
@@ -866,8 +878,156 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	/* ajoute le pointeur du premier paramètre aux instructions pour savoir
 	 * où écrire */
 	compileuse->ajoute_instructions(pointeur_donnees);
+}
 
-	return EXECUTION_REUSSIE;
+void OperatriceFonctionDetail::cree_code_coulisse_opengl(
+		lcc::type_var type_specialise,
+		dls::tableau<int> const &pointeurs,
+		int temps_courant)
+{
+
+	auto &os = std::cerr;
+
+	for (auto i = 0; i < entrees(); ++i) {
+		auto type = donnees_fonction->seing.entrees.type(i);
+		auto ptr = pointeurs[i];
+
+		if (!entree(i)->connectee()) {
+			if (type == lcc::type_var::POLYMORPHIQUE) {
+				auto valeur = evalue_vecteur(donnees_fonction->seing.entrees.nom(i), temps_courant);
+
+				switch (type_specialise) {
+					case lcc::type_var::ENT32:
+					{
+						os << "int __var" << ptr << " = " << static_cast<int>(valeur[0]) << ";\n";
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						os << "float __var" << ptr << " = " << valeur[0] << ";\n";
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						os << "vec2 __var" << ptr << " = vec2(" << valeur[0] << ',' << valeur[1] << ");\n";
+						break;
+					}
+					default:
+					{
+						os << "vec3 __var" << ptr << " = vec2(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ");\n";
+						break;
+					}
+				}
+			}
+			else {
+				auto nom_prop = donnees_fonction->seing.entrees.nom(i);
+
+				switch (type) {
+					case lcc::type_var::ENT32:
+					{
+						auto valeur = evalue_entier(nom_prop, temps_courant);
+						os << "int __var" << ptr << " = " << valeur << ";\n";
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						auto valeur = evalue_decimal(nom_prop, temps_courant);
+						os << "float __var" << ptr << " = " << valeur << ";\n";
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						auto valeur = evalue_vecteur(nom_prop, temps_courant);
+						os << "vec2 __var" << ptr << " = vec2(" << valeur[0] << ',' << valeur[1] << ");\n";
+						break;
+					}
+					case lcc::type_var::VEC3:
+					{
+						auto valeur = evalue_vecteur(nom_prop, temps_courant);
+						os << "vec3 __var" << ptr << " = vec3(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ");\n";
+						break;
+					}
+					case lcc::type_var::VEC4:
+					{
+						auto valeur = evalue_vecteur(nom_prop, temps_courant);
+						os << "vec4 __var" << ptr << " = vec4(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ", 0.0);\n";
+						break;
+					}
+					case lcc::type_var::COULEUR:
+					{
+						auto valeur = evalue_couleur(nom_prop, temps_courant);
+						os << "vec4 __var" << ptr << " = vec4(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ',' << valeur[2] << ");\n";
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	for (auto i = 0; i < sorties(); ++i) {
+		auto prise_sortie = sortie(i)->pointeur();
+		auto type = converti_type_prise(prise_sortie->type_infere);
+
+		switch (type) {
+			case lcc::type_var::ENT32:
+			{
+				os << "int __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::DEC:
+			{
+				os << "float __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::VEC2:
+			{
+				os << "vec2 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::VEC3:
+			{
+				os << "vec3 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::VEC4:
+			{
+				os << "vec4 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::COULEUR:
+			{
+				os << "vec4 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+
+	/* crée l'appel */
+
+	os << nom_fonction;
+
+	auto virgule = '(';
+
+	for (auto ptr : pointeurs) {
+		os << virgule << "__var" << ptr;
+		virgule = ',';
+	}
+
+	for (auto i = 0; i < sorties(); ++i) {
+		auto prise_sortie = sortie(i)->pointeur();
+		os << virgule << "__var" << prise_sortie->decalage_pile;
+		virgule = ',';
+	}
+
+	os << ");\n";
 }
 
 void OperatriceFonctionDetail::cree_proprietes()
