@@ -782,7 +782,8 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 				code_inst::FN_SATURE,
 				signature(param_entrees(
 							  donnees_parametre("couleur", type_var::COULEUR),
-							  donnees_parametre("luminance", type_var::DEC)),
+							  donnees_parametre("luminance", type_var::DEC),
+							  donnees_parametre("facteur", type_var::DEC, 1.0f)),
 						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
 

@@ -1623,13 +1623,13 @@ void execute_pile(
 			case code_inst::FN_SATURE:
 			{
 				auto clr = pile_donnees.charge_couleur(compteur, insts);
-				auto sat = pile_donnees.charge_decimal(compteur, insts);
+				auto l   = pile_donnees.charge_decimal(compteur, insts);
+				auto fac = pile_donnees.charge_decimal(compteur, insts);
 
-				auto l = luminance(clr);
 				auto lum = dls::phys::couleur32(l, l, l, clr.a);
 
-				if (sat != 0.0f) {
-					lum = (1.0f - sat) * lum + clr * sat;
+				if (fac != 0.0f) {
+					lum = (1.0f - fac) * lum + clr * fac;
 				}
 
 				pile_donnees.stocke(compteur, insts, lum);
