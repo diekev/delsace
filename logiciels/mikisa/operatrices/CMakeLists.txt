@@ -91,6 +91,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_simulation_foule.cc
 	operatrices_simulations.cc
 	operatrices_snh.cc
+	operatrices_terrain.cc
 	operatrices_vetements.cc
 	operatrices_visualisation.cc
 	operatrices_volume.cc
@@ -122,6 +123,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_simulation_foule.hh
 	operatrices_simulations.hh
 	operatrices_snh.hh
+	operatrices_terrain.hh
 	operatrices_vetements.hh
 	operatrices_visualisation.hh
 	operatrices_volume.hh

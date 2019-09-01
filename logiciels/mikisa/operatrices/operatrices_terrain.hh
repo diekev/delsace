@@ -24,16 +24,6 @@
 
 #pragma once
 
-#include <any>
+class UsineOperatrice;
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
-
-struct DonneesAval {
-	dls::dico_desordonne<dls::chaine, std::any> table{};
-
-	bool possede(dls::chaine const &cle)
-	{
-		return this->table.trouve(cle) != table.fin();
-	}
-};
+void enregistre_operatrices_terrain(UsineOperatrice &usine);

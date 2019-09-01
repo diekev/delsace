@@ -101,6 +101,12 @@ menu "Noeud Objet" {
 	menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
 	}
+	menu "Terrain" {
+		action(valeur="Crée Terrain"; attache=ajouter_noeud; métadonnée="Crée Terrain")
+		action(valeur="Érosion Terrain"; attache=ajouter_noeud; métadonnée="Érosion Terrain")
+		action(valeur="Incline Terrain"; attache=ajouter_noeud; métadonnée="Incline Terrain")
+		action(valeur="Vent Terrain"; attache=ajouter_noeud; métadonnée="Vent Terrain")
+	}
 	menu "Transformation" {
 	    action(valeur="Transformation"; attache=ajouter_noeud; métadonnée="Transformation")
 	}
