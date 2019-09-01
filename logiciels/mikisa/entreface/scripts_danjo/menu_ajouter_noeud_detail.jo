@@ -29,6 +29,8 @@ menu "Noeud Détail" {
 	menu "couleur" {
 		action(valeur="contraste"; attache=ajouter_noeud_detail; métadonnée="contraste")
 		action(valeur="corps_noir"; attache=ajouter_noeud_detail; métadonnée="corps_noir")
+		action(valeur="couleur_depuis_decimal"; attache=ajouter_noeud_detail; métadonnée="couleur_depuis_decimal")
+		action(valeur="couleur_depuis_vec3"; attache=ajouter_noeud_detail; métadonnée="couleur_depuis_vec3")
 		action(valeur="longueur_onde"; attache=ajouter_noeud_detail; métadonnée="longueur_onde")
 		action(valeur="luminance"; attache=ajouter_noeud_detail; métadonnée="luminance")
 		action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
@@ -87,6 +89,7 @@ menu "Noeud Détail" {
 		action(valeur="réfléchi"; attache=ajouter_noeud_detail; métadonnée="réfléchi")
 		action(valeur="réfracte"; attache=ajouter_noeud_detail; métadonnée="réfracte")
 		action(valeur="sépare_vec3"; attache=ajouter_noeud_detail; métadonnée="sépare_vec3")
+		action(valeur="vec3_depuis_couleur"; attache=ajouter_noeud_detail; métadonnée="vec3_depuis_couleur")
 		action(valeur="échantillone_sphère"; attache=ajouter_noeud_detail; métadonnée="échantillone_sphère")
 	}
 }

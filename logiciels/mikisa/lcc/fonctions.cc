@@ -628,6 +628,13 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
+				"vec3_depuis_couleur",
+				code_inst::COULEUR_VERS_VEC3,
+				signature(param_entrees(donnees_parametre("valeur", type_var::COULEUR)),
+						  param_sorties(donnees_parametre("valeur", type_var::VEC3))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
 				"base_orthonormale",
 				code_inst::FN_BASE_ORTHONORMALE,
 				signature(
@@ -814,6 +821,20 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 				"longueur_onde",
 				code_inst::FN_LONGUEUR_ONDE,
 				signature(param_entrees(donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"couleur_depuis_decimal",
+				code_inst::DEC_VERS_COULEUR,
+				signature(param_entrees(donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"couleur_depuis_vec3",
+				code_inst::VEC3_VERS_COULEUR,
+				signature(param_entrees(donnees_parametre("valeur", type_var::VEC3)),
 						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
 }

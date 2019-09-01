@@ -1486,6 +1486,30 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
+			case code_inst::DEC_VERS_COULEUR:
+			{
+				auto dec = pile_donnees.charge_decimal(compteur, insts);
+				auto res = dls::phys::couleur32(dec, dec, dec, 1.0f);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::VEC3_VERS_COULEUR:
+			{
+				auto vec = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::phys::couleur32(vec.x, vec.y, vec.z, 1.0f);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::COULEUR_VERS_VEC3:
+			{
+				auto clr = pile_donnees.charge_couleur(compteur, insts);
+				auto res = dls::math::vec3f(clr.r, clr.v, clr.b);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_MULTIPLIE_MAT:
 			{
 				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));

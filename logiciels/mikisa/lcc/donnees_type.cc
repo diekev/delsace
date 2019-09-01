@@ -106,6 +106,9 @@ static donnees_conversions table_conversions[] = {
 	{ code_inst::DEC_VERS_VEC3, type_var::DEC, type_var::VEC3 },
 	{ code_inst::ENT_VERS_VEC4, type_var::ENT32, type_var::VEC4 },
 	{ code_inst::DEC_VERS_VEC4, type_var::DEC, type_var::VEC4 },
+	{ code_inst::DEC_VERS_COULEUR, type_var::DEC, type_var::COULEUR },
+	{ code_inst::VEC3_VERS_COULEUR, type_var::VEC3, type_var::COULEUR },
+	{ code_inst::COULEUR_VERS_VEC3, type_var::COULEUR, type_var::VEC3 },
 };
 
 code_inst code_inst_conversion(type_var type1, type_var type2)
