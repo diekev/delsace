@@ -38,6 +38,7 @@
 
 #include "corps/iteration_corps.hh"
 #include "corps/limites_corps.hh"
+#include "corps/polyedre.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -55,70 +56,6 @@
  * Voir aussi :
  * https://github.com/openscad/openscad/wiki/Project:-Survey-of-CSG-algorithms
  */
-
-#define COPIE_CONSTRUCT(x) \
-	x(x const &) = default; \
-	x &operator=(x const &) = default
-
-/**
- * Structure en mi-arête inspirée de
- * http://www.flipcode.com/archives/The_Half-Edge_Data_Structure.shtml
- */
-
-struct mi_arete;
-struct mi_sommet;
-struct mi_triangle;
-
-struct mi_sommet {
-	/* la position dans l'espace du sommet */
-	dls::math::vec3f p{};
-
-	/* la mi-arête de ce sommet */
-	mi_arete *arete = nullptr;
-
-	unsigned int label = 0;
-	bool est_nouveau = false;
-
-	mi_sommet() = default;
-
-	COPIE_CONSTRUCT(mi_sommet);
-};
-
-struct mi_arete {
-	/* sommet à la fin de la mi-arête */
-	mi_sommet *sommet = nullptr;
-
-	/* mi-arête adjacente opposément orientée */
-	mi_arete *paire = nullptr;
-
-	/* mi-triangle que la mi-arête borde */
-	mi_triangle *face = nullptr;
-
-	/* mi-arête suivante */
-	mi_arete *suivante = nullptr;
-
-	unsigned int label = 0;
-	bool est_nouveau = false;
-
-	mi_arete() = default;
-
-	COPIE_CONSTRUCT(mi_arete);
-};
-
-struct mi_triangle {
-	/* l'une des arête du triangle */
-	mi_arete *arete = nullptr;
-
-	unsigned int label = 0;
-	bool est_sub = false;
-	bool est_nouveau = false;
-	bool est_ext = false;
-	bool est_ok = false;
-
-	mi_triangle() = default;
-
-	COPIE_CONSTRUCT(mi_triangle);
-};
 
 struct mi_triangle_coupe {
 	/*! \brief true if the facet belongs to the first polyhedron*/
@@ -143,226 +80,8 @@ struct mi_triangle_coupe {
 	} // MT
 };
 
-struct Polyedre {
-	dls::tableau<mi_sommet *> sommets{};
-	dls::tableau<mi_arete *> aretes{};
-	dls::tableau<mi_triangle *> triangles{};
-
-	Polyedre() = default;
-
-	~Polyedre()
-	{
-		for (auto s : sommets) {
-			memoire::deloge("mi_sommet", s);
-		}
-
-		for (auto a : aretes) {
-			memoire::deloge("mi_arete", a);
-		}
-
-		for (auto t : triangles) {
-			memoire::deloge("mi_triangle", t);
-		}
-	}
-
-	mi_sommet *cree_sommet(dls::math::vec3f const &p)
-	{
-		auto s = memoire::loge<mi_sommet>("mi_sommet");
-		s->p = p;
-
-		sommets.pousse(s);
-
-		return s;
-	}
-
-	mi_arete *cree_arete(mi_sommet *s, mi_triangle *t)
-	{
-		auto a = memoire::loge<mi_arete>("mi_arete");
-		a->sommet = s;
-		a->face = t;
-
-		s->arete = a;
-
-		aretes.pousse(a);
-
-		return a;
-	}
-
-	mi_triangle *cree_triangle()
-	{
-		auto t = memoire::loge<mi_triangle>("mi_triangle");
-		triangles.pousse(t);
-		return t;
-	}
-};
-
-static inline auto index_arete(long i0, long i1)
-{
-	return static_cast<size_t>(i0 | (i1 << 32));
-}
-
-static auto valide_polyedre(Polyedre const &polyedre)
-{
-	std::cerr << "polyedre :\n"
-			  << "\tsommets   : " << polyedre.sommets.taille() << '\n'
-			  << "\tarrètes   : " << polyedre.aretes.taille() << '\n'
-			  << "\ttriangles : " << polyedre.triangles.taille() << '\n'
-			  << '\n';
-
-	for (auto s : polyedre.sommets) {
-		if (s->arete == nullptr) {
-			return false;
-		}
-	}
-
-	for (auto a : polyedre.aretes) {
-		if (a->sommet == nullptr) {
-			return false;
-		}
-
-		if (a->face == nullptr) {
-			return false;
-		}
-
-		if (a->paire == nullptr) {
-			return false;
-		}
-
-		if (a->suivante == nullptr) {
-			return false;
-		}
-	}
-
-	for (auto t : polyedre.triangles) {
-		if (t->arete == nullptr) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-static auto construit_polyedre(Corps const &corps)
-{
-	auto polyedre = Polyedre();
-
-	auto dico_aretes = dls::dico_desordonne<size_t, mi_arete *>();
-
-	pour_chaque_polygone_ferme(corps, [&](Corps const &c, Polygone const *poly)
-	{
-		for (auto i = 2; i < poly->nombre_sommets(); ++i) {
-			auto i0 = poly->index_point(0);
-			auto i1 = poly->index_point(i - 1);
-			auto i2 = poly->index_point(i);
-
-			auto p0 = c.point_transforme(i0);
-			auto p1 = c.point_transforme(i1);
-			auto p2 = c.point_transforme(i2);
-
-			auto s0 = polyedre.cree_sommet(p0);
-			auto s1 = polyedre.cree_sommet(p1);
-			auto s2 = polyedre.cree_sommet(p2);
-
-			auto t = polyedre.cree_triangle();
-
-			auto a0 = polyedre.cree_arete(s0, t);
-			auto a1 = polyedre.cree_arete(s1, t);
-			auto a2 = polyedre.cree_arete(s2, t);
-
-			a0->suivante = a1;
-			a1->suivante = a2;
-			a2->suivante = a0;
-
-			t->arete = a0;
-
-			/* insere les mi_aretes dans le dictionnaire */
-			auto idxi0i1 = index_arete(i0, i1);
-			auto idxi1i2 = index_arete(i1, i2);
-			auto idxi2i0 = index_arete(i2, i0);
-
-			dico_aretes.insere({idxi0i1, a0});
-			dico_aretes.insere({idxi1i2, a1});
-			dico_aretes.insere({idxi2i0, a2});
-
-			/* cherches les mi_aretes opposées */
-			auto idxi1i0 = index_arete(i1, i0);
-			auto idxi2i1 = index_arete(i2, i1);
-			auto idxi0i2 = index_arete(i0, i2);
-
-			auto iter = dico_aretes.trouve(idxi1i0);
-
-			if (iter != dico_aretes.fin()) {
-				auto a = iter->second;
-				a0->paire = a;
-				a->paire = a0;
-			}
-
-			iter = dico_aretes.trouve(idxi2i1);
-
-			if (iter != dico_aretes.fin()) {
-				auto a = iter->second;
-				a1->paire = a;
-				a->paire = a1;
-			}
-
-			iter = dico_aretes.trouve(idxi0i2);
-
-			if (iter != dico_aretes.fin()) {
-				auto a = iter->second;
-				a2->paire = a;
-				a->paire = a2;
-			}
-		}
-	});
-
-	return polyedre;
-}
-
-static auto initialise_donnees(Polyedre &polyedre)
-{
-	for (auto s : polyedre.sommets) {
-		s->label = 0xFFFFFFFF;
-		s->est_nouveau = false;
-	}
-
-	for (auto a : polyedre.aretes) {
-		a->est_nouveau = false;
-	}
-
-	for (auto t : polyedre.triangles) {
-		t->label = 0xFFFFFFFF;
-		t->est_nouveau = false;
-		t->est_sub = false;
-		t->est_ext = false;
-		t->est_ok = false;
-	}
-}
-
-static auto converti_polyedre_corps(Polyedre const &polyedre, Corps &corps)
-{
-	for (auto triangle : polyedre.triangles) {
-		auto arete = triangle->arete;
-
-		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
-
-		do {
-			auto idx = corps.ajoute_point(arete->sommet->p);
-			corps.ajoute_sommet(poly, idx);
-
-			arete = arete->suivante;
-		} while (arete != triangle->arete);
-	}
-}
-
-static auto calcul_direction_normal(mi_arete *a)
-{
-	return produit_croix(
-				a->suivante->sommet->p - a->sommet->p,
-				a->suivante->suivante->sommet->p - a->sommet->p);
-}
-
 struct DonneesBooleen {
-	dls::tableau<mi_triangle *> triangles{};
+	dls::tableau<mi_face *> triangles{};
 	dls::tableau<mi_triangle_coupe> triangles_esect{};
 	dls::dico<unsigned int, dls::ensemble<unsigned int>> couples{};
 };
@@ -381,12 +100,12 @@ struct delegue_polyedre_hbe {
 
 	int nombre_elements() const
 	{
-		return static_cast<int>(polyedre.triangles.taille());
+		return static_cast<int>(polyedre.faces.taille());
 	}
 
 	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
 	{
-		auto tri = polyedre.triangles[idx];
+		auto tri = polyedre.faces[idx];
 
 		cos.efface();
 		cos.reserve(3);
@@ -401,7 +120,7 @@ struct delegue_polyedre_hbe {
 		cos.pousse(arete->sommet->p);
 	}
 
-	void element_chevauche(int idx, mi_triangle *triangle)
+	void element_chevauche(int idx, mi_face *triangle)
 	{
 		if (triangle->label == 0xFFFFFFFF) {
 			this->donnees.triangles.pousse(triangle);
@@ -415,7 +134,7 @@ struct delegue_polyedre_hbe {
 						mi_triangle_coupe(calcul_direction_normal(triangle->arete), !est_A));
 		}
 
-		auto prim = polyedre.triangles[idx];
+		auto prim = polyedre.faces[idx];
 
 		if (prim->label == 0xFFFFFFFF) {
 			this->donnees.triangles.pousse(prim);
@@ -445,7 +164,7 @@ template <typename TypeDelegue>
 auto cherche_chevauchement(
 		bli::BVHTree *arbre,
 		TypeDelegue &delegue,
-		mi_triangle *triangle,
+		mi_face *triangle,
 		limites3f const &limites)
 {
 	auto const &racine = arbre->nodes[arbre->totleaf];
@@ -476,7 +195,7 @@ auto cherche_chevauchement(
 
 struct Info_Inter {
 	/*! \brief The facet*/
-	mi_triangle		*f;
+	mi_face		*f;
 	/*! \brief The halfedge*/
 	mi_arete	*he;
 	/*! \brief true if the intersection is exactly on the vertex pointed by he*/
@@ -552,14 +271,14 @@ public:
 
 		/* converti les deux maillages en polyèdres triangulés */
 
-		auto poly_a = construit_polyedre(*corps_a);
+		auto poly_a = construit_corps_polyedre_triangle(*corps_a);
 
 		if (!valide_polyedre(poly_a)) {
 			this->ajoute_avertissement("Le polyèdre A n'est pas valide");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto poly_b = construit_polyedre(*corps_b);
+		auto poly_b = construit_corps_polyedre_triangle(*corps_b);
 
 		if (!valide_polyedre(poly_b)) {
 			this->ajoute_avertissement("Le polyèdre B n'est pas valide");
@@ -575,13 +294,13 @@ public:
 
 		auto donnees_booleen = DonneesBooleen{};
 
-		if (poly_a.triangles.taille() < poly_b.triangles.taille()) {
+		if (poly_a.faces.taille() < poly_b.faces.taille()) {
 			auto delegue = delegue_polyedre_hbe(poly_a, donnees_booleen);
 			delegue.est_A = true;
 
 			auto arbre = bli::cree_arbre_bvh(delegue);
 
-			for (auto tri : poly_b.triangles) {
+			for (auto tri : poly_b.faces) {
 				auto limites_tri = limites3f();
 
 				auto arete = tri->arete;
@@ -604,7 +323,7 @@ public:
 
 			auto arbre = bli::cree_arbre_bvh(delegue);
 
-			for (auto tri : poly_a.triangles) {
+			for (auto tri : poly_a.faces) {
 				auto limites_tri = limites3f();
 
 				auto arete = tri->arete;
@@ -655,7 +374,7 @@ public:
 		auto nA = donnees_booleens.triangles_esect[A].norm_dir;
 		auto nB = donnees_booleens.triangles_esect[B].norm_dir;
 
-		mi_triangle *fA2, *fB2;
+		mi_face *fA2, *fB2;
 		auto fA = donnees_booleens.triangles[A];
 		auto fB = donnees_booleens.triangles[B];
 
@@ -1166,7 +885,7 @@ public:
 
 	void InterTriangleSegment(DonneesBooleen &donnees_booleens, Info_Inter* inter)
 	{
-		mi_triangle *f = inter->f;
+		mi_face *f = inter->f;
 		mi_arete *he = inter->he;
 		//if the intersection has been computed, the function returns directly the Id of the intersection
 		if(donnees_booleens.triangles_esect[f->label].RefInter.compte(he->label) != 0)
@@ -1234,7 +953,7 @@ public:
 		 * \param inter : A pointer to an Info_Inter structure*/
 	void IsInTriangle(DonneesBooleen &donnees_booleens, Info_Inter* inter)
 	{
-		mi_triangle *f = inter->f;
+		mi_face *f = inter->f;
 		mi_arete *he = inter->he;
 		//if the intersection has been computed, the function returns directly the Id of the intersection
 		if(donnees_booleens.triangles_esect[f->label].RefInter.compte(he->label) != 0)
@@ -1411,7 +1130,7 @@ public:
 
 	void Store_Intersection(DonneesBooleen &donnees_booleens, Info_Inter *inter)
 	{
-		mi_triangle *f;
+		mi_face *f;
 		mi_arete *he;
 		f = inter->f;
 		he = inter->he;
