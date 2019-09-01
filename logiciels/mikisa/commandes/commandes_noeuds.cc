@@ -114,8 +114,14 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
  */
 static bool noeud_connecte_sortie(Noeud *noeud, Noeud *sortie)
 {
-	if (noeud == nullptr || sortie == nullptr) {
+	if (noeud == nullptr) {
 		return false;
+	}
+
+	auto op_image = extrait_opimage(noeud->donnees());
+
+	if (strcmp(op_image->nom_classe(), "Sortie Détail") == 0 || strcmp(op_image->nom_classe(), "Sortie Attribut") == 0) {
+		return true;
 	}
 
 	if ((noeud->type() == NOEUD_IMAGE_SORTIE || noeud->type() == NOEUD_OBJET_SORTIE) && noeud == sortie) {
@@ -325,7 +331,6 @@ class CommandeSelectionGraphe final : public Commande {
 	float delta_x = 0.0f;
 	float delta_y = 0.0f;
 	bool m_prise_entree_deconnectee = false;
-	bool m_deconnexion = false; // pour les graphes détails
 	char m_pad[6];
 
 public:
@@ -365,8 +370,6 @@ public:
 					m_prise_entree_deconnectee = noeud_connecte_sortie(
 													 prise_entree->parent,
 													 graphe->dernier_noeud_sortie);
-
-					m_deconnexion = true;
 				}
 			}
 			else {
@@ -418,7 +421,6 @@ public:
 		auto graphe = mikisa->graphe;
 
 		bool connexion_sortie = false;
-		bool connexion = false;
 
 		if (graphe->connexion_active) {
 			PriseEntree *entree = nullptr;
@@ -438,8 +440,6 @@ public:
 					graphe->deconnecte(entree->liens[0], entree);
 				}
 
-				connexion = true;
-
 				graphe->connecte(sortie, entree);
 
 				connexion_sortie = noeud_connecte_sortie(
@@ -452,7 +452,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
-		if (connexion_sortie || m_prise_entree_deconnectee || ((connexion || m_deconnexion) && mikisa->contexte == GRAPHE_DETAIL)) {
+		if (connexion_sortie || m_prise_entree_deconnectee) {
 			if (mikisa->contexte == GRAPHE_DETAIL) {
 				graphe_detail_notifie_parent_suranne(*mikisa);
 			}
@@ -513,7 +513,7 @@ public:
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
-		if (besoin_execution || mikisa->contexte == GRAPHE_DETAIL || mikisa->contexte == GRAPHE_SIMULATION) {
+		if (besoin_execution) {
 			if (mikisa->contexte == GRAPHE_DETAIL) {
 				graphe_detail_notifie_parent_suranne(*mikisa);
 			}
