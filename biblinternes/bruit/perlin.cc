@@ -142,52 +142,56 @@ static auto perlin_3d_derivee(float x, float y, float z, dls::math::vec3f *deriv
 
 
 	/* cherche les gradients */
-	auto const g000 = grad3[index_hash(i,j,k) % 12];
-	auto const g100 = grad3[index_hash(i+1,j,k) % 12];
-	auto const g010 = grad3[index_hash(i,j+1,k) % 12];
-	auto const g110 = grad3[index_hash(i+1,j+1,k) % 12];
-	auto const g001 = grad3[index_hash(i,j,k+1) % 12];
-	auto const g101 = grad3[index_hash(i+1,j,k+1) % 12];
-	auto const g011 = grad3[index_hash(i,j+1,k+1) % 12];
-	auto const g111 = grad3[index_hash(i+1,j+1,k+1) % 12];
+	auto const &ga = grad3[index_hash(i,j,k) % 12];
+	auto const &gb = grad3[index_hash(i+1,j,k) % 12];
+	auto const &gc = grad3[index_hash(i,j+1,k) % 12];
+	auto const &gd = grad3[index_hash(i+1,j+1,k) % 12];
+	auto const &ge = grad3[index_hash(i,j,k+1) % 12];
+	auto const &gf = grad3[index_hash(i+1,j,k+1) % 12];
+	auto const &gg = grad3[index_hash(i,j+1,k+1) % 12];
+	auto const &gh = grad3[index_hash(i+1,j+1,k+1) % 12];
 
 	/* projette les gradients */
-	auto const &n000 = dls::math::produit_scalaire(g000, dls::math::vec3f(fx       , fy       , fz));
-	auto const &n100 = dls::math::produit_scalaire(g100, dls::math::vec3f(fx - 1.0f, fy       , fz));
-	auto const &n010 = dls::math::produit_scalaire(g010, dls::math::vec3f(fx       , fy - 1.0f, fz));
-	auto const &n110 = dls::math::produit_scalaire(g110, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz));
-	auto const &n001 = dls::math::produit_scalaire(g001, dls::math::vec3f(fx       , fy       , fz - 1.0f));
-	auto const &n101 = dls::math::produit_scalaire(g101, dls::math::vec3f(fx - 1.0f, fy       , fz - 1.0f));
-	auto const &n011 = dls::math::produit_scalaire(g011, dls::math::vec3f(fx       , fy - 1.0f, fz - 1.0f));
-	auto const &n111 = dls::math::produit_scalaire(g111, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz - 1.0f));
+	auto const va = produit_scalaire(ga, dls::math::vec3f(fx       , fy       , fz));
+	auto const vb = produit_scalaire(gb, dls::math::vec3f(fx - 1.0f, fy       , fz));
+	auto const vc = produit_scalaire(gc, dls::math::vec3f(fx       , fy - 1.0f, fz));
+	auto const vd = produit_scalaire(gd, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz));
+	auto const ve = produit_scalaire(ge, dls::math::vec3f(fx       , fy       , fz - 1.0f));
+	auto const vf = produit_scalaire(gf, dls::math::vec3f(fx - 1.0f, fy       , fz - 1.0f));
+	auto const vg = produit_scalaire(gg, dls::math::vec3f(fx       , fy - 1.0f, fz - 1.0f));
+	auto const vh = produit_scalaire(gh, dls::math::vec3f(fx - 1.0f, fy - 1.0f, fz - 1.0f));
+
+	float v = va +
+			ux*(vb-va) +
+			uy*(vc-va) +
+			uz*(ve-va) +
+			ux*uy*(va-vb-vc+vd) +
+			uy*uz*(va-vc-ve+vg) +
+			uz*ux*(va-vb-ve+vf) +
+			ux*uy*uz*(-va+vb+vc-vd+ve-vf-vg+vh);
 
 	if (derivee != nullptr) {
 		auto const dux = dls::math::derivee_fluide<2>(fx);
 		auto const duy = dls::math::derivee_fluide<2>(fy);
 		auto const duz = dls::math::derivee_fluide<2>(fz);
+		auto u  = dls::math::vec3f(ux, uy, uz);
+		auto du = dls::math::vec3f(dux, duy, duz);
 
-		*derivee = dls::math::entrepolation_trilineaire(
-					g000,
-					g100,
-					g010,
-					g110,
-					g001,
-					g101,
-					g011,
-					g111,
-					dux, duy, duz);
+		*derivee = ga +
+				ux*(gb-ga) +
+				uy*(gc-ga) +
+				uz*(ge-ga) +
+				ux*uy*(ga-gb-gc+gd) +
+				uy*uz*(ga-gc-ge+gg) +
+				uz*ux*(ga-gb-ge+gf) +
+				ux*uy*uz*(-ga+gb+gc-gd+ge-gf-gg+gh) +
+				du * (dls::math::vec3f(vb-va, vc-va, ve-va) +
+					  dls::math::vec3f(u.yzx)*dls::math::vec3f(va-vb-vc+vd,va-vc-ve+vg,va-vb-ve+vf) +
+					  dls::math::vec3f(u.zxy)*dls::math::vec3f(va-vb-ve+vf,va-vb-vc+vd,va-vc-ve+vg) +
+					  dls::math::vec3f(u.yzx)*dls::math::vec3f(u.zxy)*(-va+vb+vc-vd+ve-vf-vg+vh) );
 	}
 
-	return dls::math::entrepolation_trilineaire(
-				n000,
-				n100,
-				n010,
-				n110,
-				n001,
-				n101,
-				n011,
-				n111,
-				ux, uy, uz);
+	return v;
 }
 
 void perlin::construit(parametres &params, int graine)
