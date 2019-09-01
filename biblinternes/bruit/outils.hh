@@ -38,6 +38,13 @@ inline auto transforme_point(parametres const &params, dls::math::vec3f &p)
 	p += params.decalage_pos;
 }
 
+inline auto transforme_valeur(parametres const &params, float &v)
+{
+	/* mise à l'échelle de la valeur échantillonée */
+	v *= params.echelle_valeur;
+	v += params.decalage_valeur;
+}
+
 inline auto construit_defaut(parametres &params, int graine)
 {
 	/* nous pourrions avoir une table de permutation par bruit par graine, mais
