@@ -261,15 +261,7 @@ public:
 		op->cree_proprietes();
 		synchronise_donnees_operatrice(*noeud);
 
-		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
-
-		if (besoin_evaluation || mikisa->contexte == GRAPHE_DETAIL) {
-			if (mikisa->contexte == GRAPHE_DETAIL) {
-				graphe_detail_notifie_parent_suranne(*mikisa);
-			}
-
-			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
-		}
+		finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
