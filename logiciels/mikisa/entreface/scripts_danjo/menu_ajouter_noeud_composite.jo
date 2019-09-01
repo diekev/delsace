@@ -28,7 +28,6 @@ menu "Noeud Composite" {
 	}
     menu "Pixel" {
 	    action(valeur="Bruitage"; attache=ajouter_noeud; métadonnée="Bruitage")
-		action(valeur="Bruit Image"; attache=ajouter_noeud; métadonnée="Bruit Image")
 		action(valeur="Constante"; attache=ajouter_noeud; métadonnée="Constante")
 		action(valeur="Contraste"; attache=ajouter_noeud; métadonnée="Contraste")
 		action(valeur="Correction Couleur"; attache=ajouter_noeud; métadonnée="Correction Couleur")
@@ -38,14 +37,9 @@ menu "Noeud Composite" {
 		action(valeur="Dégradé"; attache=ajouter_noeud; métadonnée="Dégradé")
 		action(valeur="Étalonnage"; attache=ajouter_noeud; métadonnée="Étalonnage")
 		action(valeur="Incrustation"; attache=ajouter_noeud; métadonnée="Incrustation")
-		action(valeur="Inversement"; attache=ajouter_noeud; métadonnée="Inversement")
 		action(valeur="Mélanger"; attache=ajouter_noeud; métadonnée="Mélanger")
 		action(valeur="MinMax"; attache=ajouter_noeud; métadonnée="MinMax")
-		action(valeur="Normalisation Pixel"; attache=ajouter_noeud; métadonnée="Normalisation Pixel")
-		action(valeur="Nuage"; attache=ajouter_noeud; métadonnée="Nuage")
 		action(valeur="Pré-multiplication"; attache=ajouter_noeud; métadonnée="Pré-multiplication")
-		action(valeur="Saturation"; attache=ajouter_noeud; métadonnée="Saturation")
-		action(valeur="Traduction"; attache=ajouter_noeud; métadonnée="Traduction")
 		action(valeur="Mappage Tonal"; attache=ajouter_noeud; métadonnée="Mappage Tonal")
     }
 	menu "Profonde" {

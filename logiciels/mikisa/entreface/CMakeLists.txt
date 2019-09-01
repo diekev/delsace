@@ -169,7 +169,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_normalise_covariance.jo
-	scripts_danjo/operatrice_nuage.jo
 	scripts_danjo/operatrice_obstacle_gaz.jo
 	scripts_danjo/operatrice_ocean.jo
 	scripts_danjo/operatrice_ondelette_haar.jo
@@ -180,7 +179,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_points_depuis_profonde.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_rayons_soleil.jo
-	scripts_danjo/operatrice_saturation.jo
 	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_foule.jo
@@ -193,7 +191,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_tirage_fleche.jo
 	scripts_danjo/operatrice_tonemap.jo
 	scripts_danjo/operatrice_tournoiement.jo
-	scripts_danjo/operatrice_traduction.jo
 	scripts_danjo/operatrice_trainee_points.jo
 	scripts_danjo/operatrice_transfere_attribut.jo
 	scripts_danjo/operatrice_transformation.jo
