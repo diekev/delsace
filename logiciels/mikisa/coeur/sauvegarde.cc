@@ -639,7 +639,6 @@ static void lecture_noeud(
 			if (nom_detail == nullptr) {
 				auto operatrice = (mikisa.usine_operatrices())(nom_operatrice, *graphe, *noeud);
 				lecture_proprietes(element_operatrice, operatrice);
-				synchronise_donnees_operatrice(*noeud);
 				operatrice->performe_versionnage();
 
 				if (type_detail != nullptr && operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
@@ -651,6 +650,9 @@ static void lecture_noeud(
 					op_detail->graphe()->donnees.efface();
 					op_detail->graphe()->donnees.pousse(op_detail->type_detail);
 				}
+
+				/* il nous faut savoir le type de détail avant de pouvoir synchroniser */
+				synchronise_donnees_operatrice(*noeud);
 
 				if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
 					noeud->type(NOEUD_IMAGE_SORTIE);
