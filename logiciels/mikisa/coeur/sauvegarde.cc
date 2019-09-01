@@ -723,6 +723,12 @@ void lecture_graphe(
 	graphe->centre_y = racine_graphe->FloatAttribut("centre_y");
 	graphe->zoom = racine_graphe->FloatAttribut("zoom");
 
+	/* dans les exécutables en mode debug il arrive que les zoom inférieurs à 1
+	 * soient mis à zéro, peut-être que scanf a du mal ? */
+	if (graphe->zoom == 0.0f) {
+		graphe->zoom = 1.0f;
+	}
+
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
 
 	DonneesConnexions donnees_connexions;
@@ -752,6 +758,12 @@ static void lecture_graphe_racine(
 	graphe->centre_x = racine_graphe->FloatAttribut("centre_x");
 	graphe->centre_y = racine_graphe->FloatAttribut("centre_y");
 	graphe->zoom = racine_graphe->FloatAttribut("zoom");
+
+	/* dans les exécutables en mode debug il arrive que les zoom inférieurs à 1
+	 * soient mis à zéro, peut-être que scanf a du mal ? */
+	if (graphe->zoom == 0.0f) {
+		graphe->zoom = 1.0f;
+	}
 
 	auto element_noeud = racine_graphe->FirstChildElement("noeud");
 
