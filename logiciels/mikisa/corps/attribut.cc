@@ -156,10 +156,10 @@ void copie_attribut(Attribut const *attr_orig, long idx_orig, Attribut *attr_des
 			auto donnees_orig = static_cast<char const *>(attr_orig->donnees());
 			auto donnees_dest = static_cast<char *>(attr_dest->donnees());
 
-			auto octets_type = taille_octet_type_attribut(attr_orig->type());
+			auto octets_type = taille_octet_type_attribut(attr_orig->type()) * attr_orig->dimensions;
 
-			auto ptr_orig = donnees_orig + (idx_orig * octets_type * attr_orig->dimensions);
-			auto ptr_dest = donnees_dest + (idx_dest * octets_type * attr_dest->dimensions);
+			auto ptr_orig = donnees_orig + (idx_orig * octets_type);
+			auto ptr_dest = donnees_dest + (idx_dest * octets_type);
 
 			std::memcpy(ptr_dest, ptr_orig, static_cast<size_t>(octets_type));
 			break;
