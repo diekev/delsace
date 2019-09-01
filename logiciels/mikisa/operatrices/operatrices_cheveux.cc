@@ -946,6 +946,251 @@ public:
 
 /* ************************************************************************** */
 
+class OpSimCheveux final : public OperatriceCorps {
+	struct Spring {
+		unsigned p1;
+		unsigned p2;
+		float rest_length;
+		float stiffness;  // could be named spring_constant
+
+		// Contructors
+		Spring(unsigned point_1,
+			   unsigned point_2,
+			   float rest_length_ = 1.f,
+			   float spring_constant = 25.f)
+			: p1(point_1),
+			  p2(point_2),
+			  rest_length(rest_length_),
+			  stiffness(spring_constant) {}
+	};
+
+	float hair_length = 2.0f;
+	int num_hairs = 400;
+	int num_hair_points = 16;
+	float curviness = 1.5f;
+	float curliness = 1.5f;
+	float delta_time = 0.01f;
+	int current_frame = 1;
+
+	dls::math::vec3f position_sphere = dls::math::vec3f(0.0f);
+
+	using tableau_vec3 = dls::tableau<dls::math::vec3f>;
+	dls::tableau<tableau_vec3> velocities{};
+	dls::tableau<tableau_vec3> forces{};
+
+	using tableau_spring = dls::tableau<Spring *>;
+	dls::tableau<tableau_spring> springs{};
+
+public:
+	static constexpr auto NOM = "Simulation Cheveux";
+	static constexpr auto AIDE = "";
+
+	OpSimCheveux(Graphe &graphe_parent, Noeud &noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{}
+
+	~OpSimCheveux()
+	{
+		for (auto tablb_spring : springs) {
+			for (auto spring : tablb_spring) {
+				delete spring;
+			}
+		}
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_melange_cheveux.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+
+		auto const rayon_sphere = 1.0f;
+
+		if (contexte.temps_courant == contexte.temps_debut) {
+			position_sphere = dls::math::vec3f(0.0f);
+			m_corps.reinitialise();
+
+			for (auto tablb_spring : springs) {
+				for (auto spring : tablb_spring) {
+					delete spring;
+				}
+			}
+
+			springs.efface();
+			velocities.efface();
+			forces.efface();
+
+			auto gna = GNA();
+
+			float segment_length = (hair_length / (static_cast<float>(num_hair_points) - 1.f));
+
+			for (int h = 0; h < num_hairs; h++) {
+				auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, num_hair_points);
+
+				auto point_base = normalise(echantillone_sphere<dls::math::vec3f>(gna));
+				auto normal = point_base;
+
+				tableau_vec3 point_velocities;
+				tableau_vec3 point_forces;
+
+				for (int p = 0; p < (num_hair_points); p++) {
+					point_velocities.pousse(dls::math::vec3f(0.0f));
+					point_forces.pousse(dls::math::vec3f(0.0f));
+
+					auto idx_point = m_corps.ajoute_point(point_base);
+					m_corps.ajoute_sommet(poly, idx_point);
+
+					point_base += normal * segment_length;
+				}
+
+				velocities.pousse(point_velocities);
+				forces.pousse(point_forces);
+			}
+
+			for (auto i = 1u ; i < static_cast<unsigned>(num_hair_points); i++) {
+				dls::tableau<Spring*> springs_attached_to_point;
+
+				springs_attached_to_point.pousse(
+							new Spring(i - 1, i, segment_length, 20 * static_cast<float>(static_cast<unsigned>(num_hair_points) - i)));
+				if (i > 1) {
+					springs_attached_to_point.pousse(
+								new Spring(i - 2, i, segment_length * curviness , 35 * static_cast<float>((static_cast<unsigned>(num_hair_points) - i))));
+					// if (i > 2) {
+					//   springs_attached_to_point.push_back(
+					//       new Spring(i - 3, i, segment_length * curliness , 60 * (num_hair_points - i)));
+					// }
+				}
+
+				springs.pousse(springs_attached_to_point);
+			}
+		}
+		else {
+			auto prims = m_corps.prims();
+			auto points = m_corps.points_pour_ecriture();
+
+//			if (contexte.temps_courant < 100) {
+//				position_sphere += dls::math::vec3f(0.0f, 0.1f, 0.0f);
+//			}
+
+			for (auto i = 0; i < num_hairs; ++i) {
+				auto cvs = dynamic_cast<Polygone *>(prims->prim(i));
+
+//				if (contexte.temps_courant < 100) {
+//					auto point = points->point(cvs->index_point(0));
+//					point += dls::math::vec3f(0.0f, 0.1f, 0.0f);
+//					points->point(cvs->index_point(0), point);
+//				}
+
+				for (int p = 1; p < num_hair_points; p++) {
+					// cout << " and point " << p << "\n";
+					// cvs[p] += MPoint(p, 0, 0);
+
+					forces[i][p] = dls::math::vec3f(0.0f); //reset forces
+					auto current_position = points->point(cvs->index_point(p));
+
+					// For every spring s whos endpoint is p
+					for (int s = 0; s < springs[p - 1].taille(); s++) {
+						// cout << "\tspring " << s << "\n";
+						// INTERNAL FORCES
+						dls::math::vec3f prev_position; //will be related to the spring point closer to the root
+						int prev_point_id   = static_cast<int>(springs[p-1][s]->p1);
+						float stiffness     = springs[p-1][s]->stiffness;
+						float rest_length   = springs[p-1][s]->rest_length;
+						prev_position = points->point(cvs->index_point(prev_point_id));
+
+						auto spring_vector = prev_position - current_position;
+						float current_length = longueur(spring_vector);
+						// Hooke's law
+						auto spring_force = stiffness * ( current_length / rest_length - 1.0f ) * (spring_vector / current_length);
+
+						if (prev_point_id > 0) {
+							forces[i][prev_point_id] += -spring_force;
+						}
+
+						forces[i][p] += spring_force;
+					}
+
+					// EXTERNAL FORCES
+					forces[i][p] += dls::math::vec3f(0.0f, -9.82f, 0.0f); // assuming mass=1
+					// Damping force
+					forces[i][p] -= 0.9f * velocities[i][p];
+				}
+			}
+
+			// Velocities and positions
+			   // For every strand i
+			for (int i = 0 ; i < num_hairs; i++ ) {
+				auto cvs = dynamic_cast<Polygone *>(prims->prim(i));
+
+				// for every point in each hair (excluding root point)
+				for (int p = 1; p < num_hair_points; p++) {
+					// cout << "\t\t\tVel_prev: " << velocities[p];
+					velocities[i][p] += delta_time * forces[i][p] / 1.0f; // assumes mass = 1
+					// cout << "\n\t\t\t\tVel_post: " << velocities[p] << "\n";
+					auto prev_position = points->point(cvs->index_point(p)); // TODO: this is the error! Reason that it doesn't update
+					// cout << "\t\t\tPos_prev: " << prev_position;
+					auto current_velocity = velocities[i][p];
+					auto new_position = prev_position + delta_time * current_velocity;
+
+					{ // FOR COLLISION!!!!
+
+						auto offset = new_position - position_sphere;
+						auto normal = normalise(offset);
+						auto magnitude = longueur(offset);
+
+						{ // SIGNED DISTANCE METHOD - taken from
+							// www.cs.ubc.ca/~rbridson/docs/cloth2003.pdf
+							// Anticipates collision and tries to adjust velocities correctly
+							float signed_distance = magnitude - rayon_sphere;
+							float anticipated_signed_distance =
+									signed_distance +
+									delta_time * produit_scalaire(current_velocity /*- sphere_velocity*/,
+									normal); // the sphere velocity should really be there if it is animated!
+
+							// this all assumes that the sphere doesn't move!
+							// Otherwise sphere_velocity is needed
+							if (anticipated_signed_distance < 0) {
+								float normal_vel = produit_scalaire(current_velocity, normal);
+								auto tangential_vel = current_velocity - normal_vel * normal;
+								float new_normal_vel =
+										normal_vel - anticipated_signed_distance / delta_time;
+								velocities[i][p] = new_normal_vel * normal + tangential_vel;
+
+								// TODO: add the friction
+							}
+						}
+					}
+
+					points->point(cvs->index_point(p), new_position);
+					// cout << "\n\t\t\t\tPos_post: " << new_position << "\n";
+				}
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationCourbes>());
@@ -954,6 +1199,7 @@ void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpTouffeCheveux>());
 	usine.enregistre_type(cree_desc<OpBruitCheveux>());
 	usine.enregistre_type(cree_desc<OpMelangeCheveux>());
+	usine.enregistre_type(cree_desc<OpSimCheveux>());
 }
 
 #pragma clang diagnostic pop

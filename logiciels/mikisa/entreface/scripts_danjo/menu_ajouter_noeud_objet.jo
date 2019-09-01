@@ -17,6 +17,7 @@ menu "Noeud Objet" {
 		action(valeur="Bruit Cheveux"; attache=ajouter_noeud; métadonnée="Bruit Cheveux")
 		action(valeur="Collision Cheveux"; attache=ajouter_noeud; métadonnée="Collision Cheveux")
 		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
+		action(valeur="Simulation Cheveux"; attache=ajouter_noeud; métadonnée="Simulation Cheveux")
 	}
 	menu "Détail" {
 		action(valeur="Graphe Points"; attache=ajouter_graphe_detail; métadonnée="détail_point")
