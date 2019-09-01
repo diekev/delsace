@@ -77,8 +77,8 @@ static int cree_volume(
 	auto graine = op.evalue_entier("graine");
 
 	auto params_bruit = bruit::parametres();
-	params_bruit.decalage_pos = op.evalue_vecteur("décalage_pos");
-	params_bruit.echelle_pos = op.evalue_vecteur("échelle_pos");
+	params_bruit.origine_bruit = op.evalue_vecteur("décalage_pos");
+	params_bruit.taille_bruit = op.evalue_vecteur("échelle_pos");
 	params_bruit.decalage_valeur = op.evalue_decimal("décalage_valeur");
 	params_bruit.echelle_valeur = op.evalue_decimal("échelle_valeur");
 	params_bruit.restreint = op.evalue_bool("restreint");
@@ -734,8 +734,8 @@ static auto obtiens_grille(float temps)
 	auto graine = 1;
 
 	auto params_bruit = bruit::parametres();
-	params_bruit.decalage_pos = dls::math::vec3f(45.0f);
-	params_bruit.echelle_pos = dls::math::vec3f(1.0f);
+	params_bruit.origine_bruit = dls::math::vec3f(45.0f);
+	params_bruit.taille_bruit = dls::math::vec3f(1.0f);
 	params_bruit.decalage_valeur = 0.0f;
 	params_bruit.echelle_valeur = 1.0f;
 	params_bruit.restreint = false;

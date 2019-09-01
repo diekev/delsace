@@ -811,8 +811,8 @@ static auto charge_param_bruit(
 		pile const &insts,
 		int &inst_courante)
 {
-	params.decalage_pos = pile_donnees.charge_vec3(inst_courante, insts);
-	params.echelle_pos = pile_donnees.charge_vec3(inst_courante, insts);
+	params.origine_bruit = pile_donnees.charge_vec3(inst_courante, insts);
+	params.taille_bruit = pile_donnees.charge_vec3(inst_courante, insts);
 	params.decalage_valeur = pile_donnees.charge_decimal(inst_courante, insts);
 	params.echelle_valeur = pile_donnees.charge_decimal(inst_courante, insts);
 	params.temps_anim = pile_donnees.charge_decimal(inst_courante, insts);

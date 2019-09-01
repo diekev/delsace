@@ -32,10 +32,10 @@ namespace bruit {
 
 inline auto transforme_point(parametres const &params, dls::math::vec3f &p)
 {
-	/* mise à l'échelle du point d'échantillonage */
+	/* transforme le point d'échantillonage pour être dans l'espace bruit */
 	p += params.decalage_graine;
-	p *= params.echelle_pos;
-	p += params.decalage_pos;
+	p /= params.taille_bruit;
+	p -= params.origine_bruit;
 }
 
 inline auto transforme_valeur(parametres const &params, float &v)

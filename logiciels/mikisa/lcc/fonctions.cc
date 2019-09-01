@@ -858,8 +858,8 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 
 	auto param_entrees_bruit = param_entrees(
 				donnees_parametre("graine", type_var::ENT32),
-				donnees_parametre("décalage_position", type_var::VEC3),
-				donnees_parametre("échelle_position", type_var::VEC3, 1.0f),
+				donnees_parametre("origine_bruit", type_var::VEC3),
+				donnees_parametre("taille_bruit", type_var::VEC3, 1.0f),
 				donnees_parametre("décalage_valeur", type_var::DEC),
 				donnees_parametre("échelle_valeur", type_var::DEC, 1.0f),
 				donnees_parametre("temps", type_var::DEC)
