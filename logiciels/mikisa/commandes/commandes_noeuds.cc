@@ -292,6 +292,9 @@ public:
 		else if (nom == "détail_voxel") {
 			type_detail = DETAIL_VOXELS;
 		}
+		else if (nom == "détail_pixel") {
+			type_detail = DETAIL_PIXELS;
+		}
 		else {
 			mikisa->affiche_erreur("Type de graphe détail inconnu");
 			return EXECUTION_ECHOUEE;
@@ -301,7 +304,6 @@ public:
 		auto noeud = graphe->cree_noeud(nom);
 
 		auto op = (mikisa->usine_operatrices())("Graphe Détail", *graphe, *noeud);
-		synchronise_donnees_operatrice(*noeud);
 
 		auto op_graphe = dynamic_cast<OperatriceGrapheDetail *>(op);
 		op_graphe->type_detail = type_detail;
@@ -310,6 +312,10 @@ public:
 		 * dans son graphe */
 		op_graphe->graphe()->donnees.efface();
 		op_graphe->graphe()->donnees.pousse(type_detail);
+
+		/* la synchronisation doit se faire après puisque nous avons besoin du
+		 * type de détail pour déterminer les types de sorties */
+		synchronise_donnees_operatrice(*noeud);
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -796,8 +802,6 @@ public:
 			auto operatrice = extrait_opimage(noeud->donnees());
 
 			if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
-				assert(mikisa->contexte == GRAPHE_OBJET);
-
 				auto operatrice_graphe = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
 
 				mikisa->graphe = operatrice_graphe->graphe();
@@ -847,12 +851,24 @@ public:
 			case GRAPHE_DETAIL:
 			case GRAPHE_SIMULATION:
 			{
-				auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
-				auto objet = extrait_objet(noeud_actif->donnees());
+				/* À FAIRE - système d'entité où on remonte au parent */
+				if (mikisa->chemin_courant[1] == 'c') {
+					auto noeud_actif = mikisa->bdd.graphe_composites()->noeud_actif;
+					auto composite = extrait_composite(noeud_actif->donnees());
 
-				mikisa->graphe = &objet->graphe;
-				mikisa->contexte = GRAPHE_OBJET;
-				mikisa->chemin_courant = "/objets/" + objet->nom + "/";
+					mikisa->graphe = &composite->graphe;
+					mikisa->contexte = GRAPHE_COMPOSITE;
+					mikisa->chemin_courant = "/composites/" + composite->nom + "/";
+				}
+				else {
+					auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
+					auto objet = extrait_objet(noeud_actif->donnees());
+
+					mikisa->graphe = &objet->graphe;
+					mikisa->contexte = GRAPHE_OBJET;
+					mikisa->chemin_courant = "/objets/" + objet->nom + "/";
+				}
+
 				break;
 			}
 			case GRAPHE_COMPOSITE:

@@ -32,6 +32,7 @@
 
 #include "wolika/iteration.hh"
 
+#include "composite.h"
 #include "contexte_evaluation.hh"
 #include "donnees_aval.hh"
 #include "objet.h"
@@ -131,7 +132,29 @@ const char *OperatriceGrapheDetail::texte_aide() const
 
 const char *OperatriceGrapheDetail::chemin_entreface() const
 {
+	if (type_detail == DETAIL_PIXELS) {
+		return "";
+	}
+
 	return "";
+}
+
+type_prise OperatriceGrapheDetail::type_entree(int) const
+{
+	if (type_detail == DETAIL_PIXELS) {
+		return type_prise::IMAGE;
+	}
+
+	return type_prise::CORPS;
+}
+
+type_prise OperatriceGrapheDetail::type_sortie(int) const
+{
+	if (type_detail == DETAIL_PIXELS) {
+		return type_prise::IMAGE;
+	}
+
+	return type_prise::CORPS;
 }
 
 Graphe *OperatriceGrapheDetail::graphe()
@@ -153,6 +176,109 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 
 	m_graphe.donnees.efface();
 	m_graphe.donnees.pousse(type_detail);
+
+	if (type_detail == DETAIL_PIXELS) {
+		return execute_detail_pixel(contexte, donnees_aval);
+	}
+
+	return execute_detail_corps(contexte, donnees_aval);
+}
+
+int OperatriceGrapheDetail::execute_detail_pixel(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
+	m_image.reinitialise();
+
+	auto chef = contexte.chef;
+
+	if (!compile_graphe(contexte)) {
+		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+		return EXECUTION_ECHOUEE;
+	}
+
+	calque_image *calque = nullptr;
+	auto const &rectangle = contexte.resolution_rendu;
+
+	if (entrees() == 0) {
+		m_image.reinitialise();
+		auto desc = desc_depuis_rectangle(rectangle);
+		calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	}
+	else if (entrees() >= 1) {
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+		auto nom_calque = "image";// evalue_chaine("nom_calque");
+		calque = m_image.calque_pour_ecriture(nom_calque);
+	}
+
+	if (calque == nullptr) {
+		ajoute_avertissement("Calque introuvable !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	chef->demarre_evaluation("graphe détail pixel");
+
+	auto desc = calque->tampon()->desc();
+
+	auto tampon = extrait_grille_couleur(calque);
+	auto largeur_inverse = 1.0f / static_cast<float>(desc.resolution.x);
+	auto hauteur_inverse = 1.0f / static_cast<float>(desc.resolution.y);
+
+	auto ctx_exec = lcc::ctx_exec{};
+
+	boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		if (chef->interrompu()) {
+			return;
+		}
+
+		/* fais une copie locale pour éviter les problèmes de concurrence critique */
+		auto donnees = m_compileuse.donnees();
+		auto ctx_local = lcc::ctx_local{};
+
+		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			for (auto c = 0; c < desc.resolution.x; ++c) {
+				auto const x = static_cast<float>(c) * largeur_inverse;
+				auto const y = static_cast<float>(l) * hauteur_inverse;
+
+				auto index = tampon->calcul_index(dls::math::vec2i(c, l));
+
+				auto pos = dls::math::vec3f(x, y, 0.0f);
+				remplis_donnees(donnees, m_gest_props, "P", pos);
+
+				auto clr = tampon->valeur(index);
+				remplis_donnees(donnees, m_gest_props, "couleur", clr);
+
+				lcc::execute_pile(
+							ctx_exec,
+							ctx_local,
+							donnees,
+							m_compileuse.instructions(),
+							static_cast<int>(index));
+
+				auto idx_sortie = m_gest_props.pointeur_donnees("couleur");
+				clr = donnees.charge_couleur(idx_sortie);
+
+				tampon->valeur(index, clr);
+			}
+		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta *= hauteur_inverse;
+
+		chef->indique_progression_parallele(delta * 100.0f);
+	});
+
+	chef->indique_progression(100.0f);
+
+	return EXECUTION_REUSSIE;
+}
+
+int OperatriceGrapheDetail::execute_detail_corps(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
 
 	m_corps.reinitialise();
 	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -472,6 +598,16 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 
 			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
 			m_gest_props.ajoute_propriete("pos_unit", lcc::type_var::VEC3, idx);
+			break;
+		}
+		case DETAIL_PIXELS:
+		{
+			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::COULEUR));
+			m_gest_props.ajoute_propriete("couleur", lcc::type_var::COULEUR, idx);
+
+			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
+			m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
+
 			break;
 		}
 	}
@@ -1112,6 +1248,11 @@ public:
 				sorties(3);
 				break;
 			}
+			case DETAIL_PIXELS:
+			{
+				sorties(2);
+				break;
+			}
 		}
 	}
 
@@ -1142,6 +1283,19 @@ public:
 						return type_prise::DECIMAL;
 					}
 					default:
+					{
+						return type_prise::VEC3;
+					}
+				}
+			}
+			case DETAIL_PIXELS:
+			{
+				switch (i) {
+					case 0:
+					{
+						return type_prise::COULEUR;
+					}
+					case 1:
 					{
 						return type_prise::VEC3;
 					}
@@ -1180,6 +1334,18 @@ public:
 
 				prise_sortie = sortie(2)->pointeur();
 				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_unit");
+				prise_sortie->type_infere = type_prise::VEC3;
+
+				break;
+			}
+			case DETAIL_PIXELS:
+			{
+				auto prise_sortie = sortie(0)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees("couleur");
+				prise_sortie->type_infere = type_prise::COULEUR;
+
+				prise_sortie = sortie(1)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
 				prise_sortie->type_infere = type_prise::VEC3;
 
 				break;
@@ -1228,6 +1394,10 @@ public:
 			{
 				return type_prise::DECIMAL;
 			}
+			case DETAIL_PIXELS:
+			{
+				return type_prise::COULEUR;
+			}
 		}
 
 		return type_prise::INVALIDE;
@@ -1258,6 +1428,27 @@ public:
 
 				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
 				compileuse->ajoute_instructions(lcc::type_var::VEC3);
+				compileuse->ajoute_instructions(ptr_entree);
+				compileuse->ajoute_instructions(ptr);
+
+				break;
+			}
+			case DETAIL_PIXELS:
+			{
+				auto ptr_entree = 0;
+
+				if (entree(0)->connectee()) {
+					auto ptr = entree(0)->pointeur();
+					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
+				}
+				else {
+					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
+				}
+
+				auto ptr = gest_props->pointeur_donnees("couleur");
+
+				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
+				compileuse->ajoute_instructions(lcc::type_var::COULEUR);
 				compileuse->ajoute_instructions(ptr_entree);
 				compileuse->ajoute_instructions(ptr);
 
@@ -1516,9 +1707,21 @@ public:
 
 void graphe_detail_notifie_parent_suranne(Mikisa &mikisa)
 {
-	auto noeud_objet = mikisa.bdd.graphe_objets()->noeud_actif;
-	auto objet = extrait_objet(noeud_objet->donnees());
-	auto graphe = &objet->graphe;
+	auto graphe_detail = mikisa.graphe;
+	auto type_detail = std::any_cast<int>(graphe_detail->donnees[0]);
+	auto graphe = static_cast<Graphe *>(nullptr);
+
+	if (type_detail == DETAIL_PIXELS) {
+		auto noeud_composite = mikisa.bdd.graphe_composites()->noeud_actif;
+		auto composite = extrait_composite(noeud_composite->donnees());
+		graphe = &composite->graphe;
+	}
+	else {
+		auto noeud_objet = mikisa.bdd.graphe_objets()->noeud_actif;
+		auto objet = extrait_objet(noeud_objet->donnees());
+		graphe = &objet->graphe;
+	}
+
 	auto noeud_actif = graphe->noeud_actif;
 
 	/* Marque le noeud courant et ceux en son aval surannées. */

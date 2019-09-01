@@ -34,6 +34,7 @@
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
+#include "coeur/operatrice_graphe_detail.hh"
 
 #include "execution.hh"
 #include "reseau.hh"
@@ -73,7 +74,15 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 
 	mikisa.tache_en_cours = true;
 
-	if (mikisa.contexte == GRAPHE_COMPOSITE) {
+	auto evalue_composite = (mikisa.contexte == GRAPHE_COMPOSITE);
+
+	if (mikisa.contexte == GRAPHE_DETAIL) {
+		auto graphe_detail = mikisa.graphe;
+		auto type_detail = std::any_cast<int>(graphe_detail->donnees[0]);
+		evalue_composite = (type_detail == DETAIL_PIXELS);
+	}
+
+	if (evalue_composite) {
 		auto noeud_actif = mikisa.bdd.graphe_composites()->noeud_actif;
 		auto composite = extrait_composite(noeud_actif->donnees());
 

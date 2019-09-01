@@ -38,6 +38,7 @@ struct donnees_fonction;
 enum {
 	DETAIL_POINTS,
 	DETAIL_VOXELS,
+	DETAIL_PIXELS,
 };
 
 struct Mikisa;
@@ -64,6 +65,10 @@ public:
 
 	const char *chemin_entreface() const override;
 
+	type_prise type_entree(int) const override;
+
+	type_prise type_sortie(int) const override;
+
 	Graphe *graphe();
 
 	int type() const override;
@@ -71,6 +76,11 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	bool compile_graphe(ContexteEvaluation const &contexte);
+
+private:
+	int execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+
+	int execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 };
 
 /* ************************************************************************** */

@@ -2,6 +2,9 @@ menu "Noeud Composite" {
 	menu "Cache" {
 		action(valeur="Cache Image"; attache=ajouter_noeud; métadonnée="Cache Image")
 	}
+	menu "Détail" {
+		action(valeur="Graphe Pixel"; attache=ajouter_graphe_detail; métadonnée="détail_pixel")
+	}
 	menu "Entrée" {
 	    action(valeur="Lecture Image"; attache=ajouter_noeud; métadonnée="Lecture Image")
 		action(valeur="Lecture Vidéo"; attache=ajouter_noeud; métadonnée="Lecture Vidéo")
