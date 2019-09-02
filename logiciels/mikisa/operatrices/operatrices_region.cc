@@ -2995,20 +2995,6 @@ static auto calcul_energie(dls::tableau<float> const &bruit, int taille, int dim
 	return energie;
 }
 
-static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
-{
-	auto moitie_x = static_cast<float>(largeur) * 0.5f;
-	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
-
-	auto desc = wlk::desc_grille_2d();
-	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
-	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
-	desc.fenetre_donnees = desc.etendue;
-	desc.taille_voxel = 1.0;
-
-	return desc;
-}
-
 struct donnees_algorithme {
 	int taille = 0;
 	int graine = 0;
@@ -3279,7 +3265,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		auto desc = desc_depuis_hauteur_largeur(taille, taille);
+		auto desc = wlk::desc_depuis_hauteur_largeur(taille, taille);
 
 		auto calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
