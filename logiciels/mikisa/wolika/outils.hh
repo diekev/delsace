@@ -48,4 +48,55 @@ auto remplis_grille(wlk::grille_dense_3d<T> &grille, T valeur)
 	}
 }
 
+template <typename T>
+auto extrait_min(grille_dense_2d<T> const &grille)
+{
+	auto min = std::numeric_limits<T>::max();
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		if (v < min) {
+			min = v;
+		}
+	}
+
+	return min;
+}
+
+template <typename T>
+auto extrait_max(grille_dense_2d<T> const &grille)
+{
+	auto max = -std::numeric_limits<T>::max();
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		if (v > max) {
+			max = v;
+		}
+	}
+
+	return max;
+}
+
+template <typename T>
+auto extrait_min_max(grille_dense_2d<T> const &grille, T &min, T &max)
+{
+	min = std::numeric_limits<T>::max();
+	max = -std::numeric_limits<T>::max();
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		if (v < min) {
+			min = v;
+		}
+
+		if (v > max) {
+			max = v;
+		}
+	}
+}
+
 }  /* namespace wlk */
