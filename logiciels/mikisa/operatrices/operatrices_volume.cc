@@ -2080,6 +2080,122 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Implémentation des descripteurs de
+ * « Deep Scattering: Rendering Atmospheric Clouds with Radiance-Predicting
+ * Neural Networks »
+ *
+ * http://simon-kallweit.me/deepscattering/
+ * http://simon-kallweit.me/deepscattering/deepscattering.pdf
+ * https://tom94.net/data/publications/kallweit17deep/interactive-viewer/
+ */
+class OpDeepScattering final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Deep Scattering";
+	static constexpr auto AIDE = "";
+
+	OpDeepScattering(Graphe &graphe_parent, Noeud &noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_deep_scattering.jo";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(contexte);
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		/* il y a 10 descripteurs de 5x5x9 */
+		auto desc = wlk::desc_grille_3d();
+		desc.resolution.x = 5;
+		desc.resolution.y = 5;
+		desc.resolution.z = 9;
+		desc.taille_voxel = 1.0; // par grille
+		/* les descripteurs vont de (-1, -1, -1) à (1, 1, 3) */
+		desc.etendue.min = dls::math::vec3f(-1.0f);
+		desc.etendue.max = dls::math::vec3f(1.0f, 1.0f, 3.0f);
+		desc.fenetre_donnees = desc.etendue;
+
+		wlk::desc_grille_3d descripteurs[10];
+
+		/* les supports des descripteurs sont agrandis avec un facteur de 2^(k-1) */
+		for (auto k = 1; k <= 10; ++k) {
+			descripteurs[k - 1] = desc;
+			descripteurs[k - 1].taille_voxel = desc.taille_voxel * std::pow(2.0, static_cast<double>(k) - 1.0);
+		}
+
+		//auto omega = dls::math::vec3f(0.0f, 0.0f, -1.0f); // la direction du rayon entrant
+
+		/* l'axe Z des descripteurs pointent vers la lumière */
+		auto position = dls::math::vec3f(0.0f, 0.0f, 0.0f);
+		auto axe_z = dls::math::vec3f(0.0f, 0.0f, 1.0f);
+		auto position_lumiere = evalue_vecteur("position_lumière");
+		auto direction = normalise(position_lumiere - position);
+		auto matrice_z = dls::math::aligne_rotation(axe_z, direction);
+
+		/* l'axe X doit être perpendiculaire au plan défini par l'axe Z et omega */
+//		auto axe_x = dls::math::vec3f(1.0f, 0.0f, 0.0f);
+//		auto axe_zp = axe_z * matrice_z;
+//		auto perp = produit_croix(axe_zp, omega);
+//		auto matrice_x = dls::math::aligne_rotation(axe_x, normalise(perp));
+
+		/* angle ajouté aux couches du réseau */
+		//auto gamma = std::acos(produit_scalaire(omega, direction));
+
+		/* dessine les descripteurs */
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3);
+		auto couleur = dls::math::vec3f(0.2f, 0.1f, 0.8f);
+		for (auto k = 0; k < 10; ++k) {
+			auto min = descripteurs[k].etendue.min * static_cast<float>(descripteurs[k].taille_voxel);
+			auto max = descripteurs[k].etendue.max * static_cast<float>(descripteurs[k].taille_voxel);
+
+			// ça n'a pas l'air de marcher ?
+			min = min * matrice_z;
+			max = max * matrice_z;
+
+			dessine_boite(m_corps,
+						  attr_C,
+						  min,
+						  max,
+						  couleur);
+		}
+
+		dessine_boite(m_corps,
+					  attr_C,
+					  position_lumiere - dls::math::vec3f(0.1f),
+					  position_lumiere + dls::math::vec3f(0.1f),
+					  dls::math::vec3f(0.2f, 0.9f, 0.3f));
+
+		auto i0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto i1 = m_corps.ajoute_point(axe_z * matrice_z);
+
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, i0);
+		m_corps.ajoute_sommet(poly, i1);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_volume(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc("Créer volume", "", "entreface/operatrice_creation_volume.jo", cree_volume, false));
@@ -2090,6 +2206,7 @@ void enregistre_operatrices_volume(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpFiltrageVolume>());
 	usine.enregistre_type(cree_desc<OpAffinageVolume>());
 	usine.enregistre_type(cree_desc<OpGrilleEclairage>());
+	usine.enregistre_type(cree_desc<OpDeepScattering>());
 }
 
 #pragma clang diagnostic pop

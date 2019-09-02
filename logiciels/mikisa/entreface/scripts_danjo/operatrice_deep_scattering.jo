@@ -1,0 +1,6 @@
+disposition "operatrice_deep_scattering" {
+	ligne {
+		étiquette(valeur="Position Lumière")
+		vecteur(valeur="1,1,1"; attache=position_lumière)
+	}
+}
