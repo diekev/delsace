@@ -27,6 +27,7 @@
 #include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "coeur/contexte_evaluation.hh"
@@ -38,6 +39,61 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
+
+namespace wlk {
+
+template <typename T>
+auto extrait_min(grille_dense_2d<T> const &grille)
+{
+	auto min = std::numeric_limits<T>::max();
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		if (v < min) {
+			min = v;
+		}
+	}
+
+	return min;
+}
+
+template <typename T>
+auto extrait_max(grille_dense_2d<T> const &grille)
+{
+	auto max = -std::numeric_limits<T>::max();
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		if (v > max) {
+			max = v;
+		}
+	}
+
+	return max;
+}
+
+template <typename T>
+auto extrait_min_max(grille_dense_2d<T> const &grille, T &min, T &max)
+{
+	min = std::numeric_limits<T>::max();
+	max = -std::numeric_limits<T>::max();
+
+	for (auto i = 0; i < grille.nombre_elements(); ++i) {
+		auto v = grille.valeur(i);
+
+		if (v < min) {
+			min = v;
+		}
+
+		if (v > max) {
+			max = v;
+		}
+	}
+}
+
+}  /* */
 
 /* ************************************************************************** */
 
@@ -326,6 +382,451 @@ public:
 
 /* ************************************************************************** */
 
+static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
+{
+	auto moitie_x = static_cast<float>(largeur) * 0.5f;
+	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
+
+	auto desc = wlk::desc_grille_2d();
+	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
+	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_voxel = 1.0;
+
+	return desc;
+}
+
+/**
+ * Structure et algorithme issus du greffon A.N.T. Landscape de Blender. Le
+ * model sous-jacent est expliqué ici :
+ * https://blog.michelanders.nl/search/label/erosion
+ */
+struct erodeuse {
+	using type_grille = wlk::grille_dense_2d<float>;
+	wlk::desc_grille_2d desc{};
+	type_grille roche{};
+	type_grille *eau = nullptr;
+	type_grille *sediment = nullptr;
+	type_grille *scour = nullptr;
+	type_grille *flowrate = nullptr;
+	type_grille *sedimentpct = nullptr;
+	type_grille *capacity = nullptr;
+	type_grille *avalanced = nullptr;
+	type_grille *rainmap = nullptr;
+	float maxrss = 0.0f;
+
+	/* pour normaliser les données lors des exports (par exemple via des
+	 * attributs sur les points) */
+	float max_eau = 1.0f;
+	float max_flowrate = 1.0f;
+	float max_scour = 1.0f;
+	float max_sediment = 1.0f;
+	float min_scour = 1.0f;
+
+	erodeuse(int taille = 10)
+		: desc(desc_depuis_hauteur_largeur(taille, taille))
+	{
+		roche = type_grille(desc);
+		desc = roche.desc();
+	}
+
+	COPIE_CONSTRUCT(erodeuse);
+
+	~erodeuse()
+	{
+		memoire::deloge("grille_erodeuse", eau);
+		memoire::deloge("grille_erodeuse", sediment);
+		memoire::deloge("grille_erodeuse", scour);
+		memoire::deloge("grille_erodeuse", flowrate);
+		memoire::deloge("grille_erodeuse", sedimentpct);
+		memoire::deloge("grille_erodeuse", avalanced);
+		memoire::deloge("grille_erodeuse", capacity);
+	}
+
+	void initialise_eau_et_sediment()
+	{
+		if (eau == nullptr) {
+			eau = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+
+		if (sediment == nullptr) {
+			sediment = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+
+		if (scour == nullptr) {
+			scour = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+
+		if (flowrate == nullptr) {
+			flowrate = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+
+		if (sedimentpct == nullptr) {
+			sedimentpct = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+
+		if (avalanced == nullptr) {
+			avalanced = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+
+		if (capacity == nullptr) {
+			capacity = memoire::loge<type_grille>("grille_erodeuse", desc);
+		}
+	}
+
+	void peak(float valeur = 1.0f)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+
+		//self.center[int(nx/2),int(ny/2)] += value
+		this->roche.valeur(dls::math::vec2i(nx/2, ny/2)) += valeur;
+	}
+
+	void shelf(float valeur = 1.0f)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+		//self.center[:nx/2] += value
+
+		for (auto y = 0; y < ny; ++y) {
+			for (auto x = nx / 2; x < nx; ++x) {
+				this->roche.valeur(dls::math::vec2i(x, y)) += valeur;
+			}
+		}
+	}
+
+	void mesa(float valeur = 1.0f)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+		//self.center[nx/4:3*nx/4,ny/4:3*ny/4] += value
+
+		for (auto y = ny / 4; y < 3 * ny / 4; ++y) {
+			for (auto x = nx / 4; x < 3 * nx / 4; ++x) {
+				this->roche.valeur(dls::math::vec2i(x, y)) += valeur;
+			}
+		}
+	}
+
+	void random(float valeur = 1.0f)
+	{
+		auto gna = GNA();
+
+		for (auto i = 0; i < this->roche.nombre_elements(); ++i) {
+			this->roche.valeur(i) += gna.uniforme(0.0f, 1.0f) * valeur;
+		}
+	}
+
+	void zeroedge(type_grille *quantity = nullptr)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+		auto grille = (quantity == nullptr) ? &this->roche : quantity;
+
+		for (auto y = 0; y < ny; ++y) {
+			grille->valeur(dls::math::vec2i(0, y)) = 0.0f;
+			grille->valeur(dls::math::vec2i(nx - 1, y)) = 0.0f;
+		}
+
+		for (auto x = 0; x < nx; ++x) {
+			grille->valeur(dls::math::vec2i(x, 0)) = 0.0f;
+			grille->valeur(dls::math::vec2i(x, ny - 1)) = 0.0f;
+		}
+	}
+
+	void pluie(float amount = 1.0f, float variance = 0.0f)
+	{
+		auto gna = GNA();
+
+		for (auto i = 0; i < this->eau->nombre_elements(); ++i) {
+			auto valeur = (1.0f - gna.uniforme(0.0f, 1.0f) * variance);
+
+			if (this->rainmap != nullptr) {
+				valeur *= rainmap->valeur(i);
+			}
+			else {
+				valeur *= amount;
+			}
+
+			this->eau->valeur(i) += valeur;
+		}
+	}
+
+	void diffuse(float Kd, int IterDiffuse)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+
+		auto temp = type_grille(desc);
+
+		Kd /= static_cast<float>(IterDiffuse);
+
+		for (auto y = 1; y < ny - 1; ++y) {
+			for (auto x = 1; x < nx - 1; ++x) {
+				auto index = this->roche.calcul_index(dls::math::vec2i(x, y));
+
+				auto c = this->roche.valeur(index);
+				auto up = this->roche.valeur(index - nx);
+				auto down = this->roche.valeur(index + nx);
+				auto left = this->roche.valeur(index - 1);
+				auto right = this->roche.valeur(index + 1);
+
+				temp.valeur(index) = c + Kd * (up + down + left + right - 4.0f * c);
+			}
+		}
+
+		//self.maxrss = max(getmemsize(), self.maxrss);
+
+		this->roche = temp;
+	}
+
+	void avalanche(float delta, int iterava, float prob)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+
+		auto temp = type_grille(desc);
+
+		auto gna = GNA();
+
+		for (auto y = 1; y < ny - 1; ++y) {
+			for (auto x = 1; x < nx - 1; ++x) {
+				auto index = this->roche.calcul_index(dls::math::vec2i(x, y));
+
+				auto c = this->roche.valeur(index);
+				auto up = this->roche.valeur(index - nx);
+				auto down = this->roche.valeur(index + nx);
+				auto left = this->roche.valeur(index - 1);
+				auto right = this->roche.valeur(index + 1);
+
+				auto sa = 0.0f;
+				// incoming
+				if (up - c > delta) {
+					sa += (up - c - delta) * 0.5f;
+				}
+				if (down - c > delta) {
+					sa += (down - c - delta) * 0.5f;
+				}
+				if (left - c > delta) {
+					sa += (left - c - delta) * 0.5f;
+				}
+				if (right - c > delta) {
+					sa += (right - c - delta) * 0.5f;
+				}
+
+				// outgoing
+				if (up - c < -delta) {
+					sa += (up - c + delta) * 0.5f;
+				}
+				if (down - c < -delta) {
+					sa += (down - c + delta) * 0.5f;
+				}
+				if (left - c < -delta) {
+					sa += (left - c + delta) * 0.5f;
+				}
+				if (right - c < -delta) {
+					sa += (right - c + delta) * 0.5f;
+				}
+
+				if (gna.uniforme(0.0f, 1.0f) >= prob) {
+					sa = 0.0f;
+				}
+
+				this->avalanced->valeur(index) += sa / static_cast<float>(iterava);
+				temp.valeur(index) = c + sa / static_cast<float>(iterava);
+			}
+		}
+
+		//self.maxrss = max(getmemsize(), self.maxrss);
+
+		this->roche = temp;
+	}
+
+   // px, py and radius are all fractions
+	void spring(float amount, float px, float py, float radius)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+		auto rx = std::max(static_cast<int>(static_cast<float>(nx) * radius), 1);
+		auto ry = std::max(static_cast<int>(static_cast<float>(ny) * radius), 1);
+
+		auto sx = static_cast<int>(static_cast<float>(nx) * px);
+		auto sy = static_cast<int>(static_cast<float>(ny) * py);
+
+		for (auto y = sy - ry; y <= sy + ry; ++y) {
+			for (auto x = sx - rx; x <= sx + rx; ++x) {
+				auto index = this->eau->calcul_index(dls::math::vec2i(x, y));
+				auto e = this->eau->valeur(index);
+				e += amount;
+				this->eau->valeur(index, e);
+			}
+		}
+	}
+
+	void riviere(float Kc, float Ks, float Kdep, float Ka, float Kev)
+	{
+		auto &rock = this->roche;
+		auto sc = type_grille(desc);
+		auto height = type_grille(desc);
+
+		for (auto i = 0; i < this->roche.nombre_elements(); ++i) {
+			auto e = this->eau->valeur(i);
+
+			height.valeur(i) = this->roche.valeur(i) + e;
+
+			if (e > 0.0f) {
+				sc.valeur(i) = this->sediment->valeur(i) / e;
+			}
+		}
+
+		// !! this gives a runtime warning for division by zero
+
+		auto sdw = type_grille(desc);
+		auto svdw = type_grille(desc);
+		auto sds = type_grille(desc);
+		auto angle = type_grille(desc);
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+
+		// peut-être faut-il faire 4 boucles, pour chaque voisin ?
+		for (auto y = 1; y < ny - 1; ++y) {
+			for (auto x = 1; x < nx - 1; ++x) {
+				auto index = rock.calcul_index(dls::math::vec2i(x, y));
+
+				long voisins[4] = {
+					index - 1, index + 1, index - nx, index + nx
+				};
+
+				for (auto i = 0; i < 4; ++i) {
+					auto dw = height.valeur(voisins[i]) - height.valeur(index);
+					auto influx = dw > 0.0f;
+
+					if (influx) {
+						dw = std::min(this->eau->valeur(voisins[i]), dw);
+					}
+					else {
+						dw = std::max(-this->eau->valeur(index), dw) / 4.0f;
+					}
+
+					sdw.valeur(index) += dw;
+
+					if (influx) {
+						sds.valeur(index) += dw * sc.valeur(voisins[i]);
+					}
+					else {
+						sds.valeur(index) += dw * sc.valeur(index);
+					}
+
+					svdw.valeur(index) += std::abs(dw);
+
+					angle.valeur(index) += std::atan(std::abs(rock.valeur(voisins[i]) - rock.valeur(index)));
+				}
+			}
+		}
+
+		for (auto y = 1; y < ny - 1; ++y) {
+			for (auto x = 1; x < nx - 1; ++x) {
+				auto index = rock.calcul_index(dls::math::vec2i(x, y));
+
+				auto wcc = this->eau->valeur(index);
+				auto scc = this->sediment->valeur(index);
+				//auto rcc = rock.valeur(index);
+
+				this->eau->valeur(index) = wcc * (1.0f - Kev) + sdw.valeur(index);
+				this->sediment->valeur(index) = scc + sds.valeur(index);
+
+				if (wcc > 0.0f) {
+					sc.valeur(index) = scc / wcc;
+				}
+				else {
+					sc.valeur(index) = 2.0f * Kc;
+				}
+
+				auto fKc = Kc * svdw.valeur(index);
+				auto ds = ((fKc > sc.valeur(index)) ? (fKc - sc.valeur(index)) * Ks : (fKc - sc.valeur(index)) * Kdep) * wcc;
+
+				this->flowrate->valeur(index) = svdw.valeur(index);
+				this->scour->valeur(index) = ds;
+				this->sedimentpct->valeur(index) = sc.valeur(index);
+				this->capacity->valeur(index) = fKc;
+				this->sediment->valeur(index) = scc + ds + sds.valeur(index);
+			}
+		}
+	}
+
+	void flow(float Kc, float Ks, float Kz, float Ka)
+	{
+		auto nx = desc.resolution.x;
+		auto ny = desc.resolution.y;
+
+		for (auto y = 1; y < ny - 1; ++y) {
+			for (auto x = 1; x < nx - 1; ++x) {
+				auto index = this->roche.calcul_index(dls::math::vec2i(x, y));
+				auto rcc = this->roche.valeur(index);
+				auto ds = this->scour->valeur(index);
+
+				auto valeur = rcc + ds * Kz;
+
+				// there isn't really a bottom to the rock but negative values look ugly
+				if (valeur < 0.0f) {
+					valeur = rcc;
+				}
+
+				this->roche.valeur(index, rcc + ds * Kz);
+			}
+		}
+	}
+
+	void generation_riviere(
+	  float quantite_pluie,
+		float variance_pluie,
+			  float Kc,
+			  float Ks,
+			  float Kdep,
+			  float Ka,
+			  float Kev)
+	{
+		this->initialise_eau_et_sediment();
+		this->pluie(quantite_pluie, variance_pluie);
+		this->zeroedge(this->eau);
+		this->zeroedge(this->sediment);
+		this->riviere(Kc, Ks, Kdep, Ka, Kev);
+		this->max_eau = wlk::extrait_max(*this->eau);
+	}
+
+	void erosion_fluviale(
+					float Kc,
+					float Ks,
+					float Kdep,
+					float Ka)
+	{
+		this->flow(Kc, Ks, Kdep, Ka);
+		this->max_flowrate = wlk::extrait_max(*this->flowrate);
+		this->max_sediment = wlk::extrait_max(*this->sediment);
+		wlk::extrait_min_max(*this->scour, this->min_scour, this->max_scour);
+	}
+
+//	def analyze(self):
+//		self.neighborgrid()
+//		# just looking at up and left to avoid needless double calculations
+//		slopes=np.concatenate((np.abs(self.left - self.center),np.abs(self.up - self.center)))
+//		return '\n'.join(["%-15s: %.3f"%t for t in [
+//				('height average', np.average(self.center)),
+//				('height median', np.median(self.center)),
+//				('height max', np.max(self.center)),
+//				('height min', np.min(self.center)),
+//				('height std', np.std(self.center)),
+//				('slope average', np.average(slopes)),
+//				('slope median', np.median(slopes)),
+//				('slope max', np.max(slopes)),
+//				('slope min', np.min(slopes)),
+//				('slope std', np.std(slopes))
+//				]]
+//			)
+
+};
+
 class OpErosionTerrain final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Érosion Terrain";
@@ -571,20 +1072,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
-{
-	auto moitie_x = static_cast<float>(largeur) * 0.5f;
-	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
-
-	auto desc = wlk::desc_grille_2d();
-	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
-	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
-	desc.fenetre_donnees = desc.etendue;
-	desc.taille_voxel = 1.0;
-
-	return desc;
-}
 
 class OpCreeTerrain final : public OperatriceCorps {
 public:
