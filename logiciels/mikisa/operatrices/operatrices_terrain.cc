@@ -27,7 +27,9 @@
 #include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/structures/dico_fixe.hh"
 
+#include "coeur/contexte_evaluation.hh"
 #include "coeur/donnees_aval.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
@@ -49,8 +51,9 @@
  *
  * Voir aussi :
  * A.N.T. de Blender
- * WorldMachine
+ * Terragen
  * Vue
+ * WorldMachine
  */
 
 struct Terrain {
@@ -63,56 +66,147 @@ static inline auto extrait_terrain(DonneesAval *da)
 	return std::any_cast<Terrain *>(da->table["terrain"]);
 }
 
-// OpRecréeNormaux ou option à la fin de chaque opératrice
-//vec3 compute_normal(vec3 pos, vec3 neighbor_pos) {
-//    vec3 neighbor_vec = neighbor_pos-pos;
-//    vec3 perp = cross(neighbor_vec, vec3(0.0, 1.0, 0.0));
-//    return normalize(cross(neighbor_vec, perp));
-//}
-//vec3 get_normal(vec3 p) {
-//    float x = offsets.x;
-//    float z = offsets.y;
-//    // TODO maybe make this options, all models for normal calculation are interesting
-//    /*
-//    return normalize((
-//        compute_normal(p, get(vec2(p.x+x, p.z+z))) +
-//        compute_normal(p, get(vec2(p.x-x, p.z-z))) +
-//        compute_normal(p, get(vec2(p.x+x, p.z-z))) +
-//        compute_normal(p, get(vec2(p.x-x, p.z+z))) +
-//        compute_normal(p, get(vec2(p.x, p.z+z))) +
-//        compute_normal(p, get(vec2(p.x, p.z-z))) +
-//        compute_normal(p, get(vec2(p.x+x, p.z))) +
-//        compute_normal(p, get(vec2(p.x-x, p.z)))
-//    )/8.0);
-//    return normalize((
-//        compute_normal(p, get(vec2(p.x, p.z+z))) +
-//        compute_normal(p, get(vec2(p.x, p.z-z))) +
-//        compute_normal(p, get(vec2(p.x+x, p.z))) +
-//        compute_normal(p, get(vec2(p.x-x, p.z)))
-//    )/4.0);
-//    */
-//    return normalize(vec3(
-//        get(vec2(p.x-x, p.z)).y - get(vec2(p.x+x, p.z)).y,
-//        x+z,
-//        get(vec2(p.x, p.z-z)).y - get(vec2(p.x, p.z+z)).y
-//    ));
-//}
+static auto calcul_normal(
+		dls::math::vec3f const &pos,
+		dls::math::vec3f const &pos_voisin)
+{
+	auto vec = pos_voisin - pos;
+	auto perp = produit_croix(vec, dls::math::vec3f(0.0f, 1.0f, 0.0f));
+	return normalise(produit_croix(vec, perp));
+}
+
+static auto echantillonne_position(
+		wlk::grille_dense_2d<float> const &grille,
+		dls::math::vec2f const &p)
+{
+	auto h = wlk::echantillonne_lineaire(grille, p.x, p.y);
+	return dls::math::vec3f(p.x, h, p.y);
+}
+
+static auto calcul_normal4(
+		wlk::grille_dense_2d<float> const &grille,
+		dls::math::vec2f const &p)
+{
+	auto desc = grille.desc();
+	auto const res_x = desc.resolution.x;
+	auto const res_y = desc.resolution.y;
+
+	auto const x = 1.0f / static_cast<float>(res_x);
+	auto const y = 1.0f / static_cast<float>(res_y);
+
+	auto pos = echantillonne_position(grille, p);
+
+	dls::math::vec2f decalages[4] = {
+		dls::math::vec2f(p.x, p.y + y),
+		dls::math::vec2f(p.x, p.y - y),
+		dls::math::vec2f(p.x + x, p.y),
+		dls::math::vec2f(p.x - x, p.y),
+	};
+
+	auto normal = dls::math::vec3f();
+
+	for (auto i = 0; i < 4; ++i) {
+		normal += calcul_normal(pos, echantillonne_position(grille, decalages[i]));
+	}
+
+	return normalise(-normal);
+}
+
+static auto calcul_normal8(
+		wlk::grille_dense_2d<float> const &grille,
+		dls::math::vec2f const &p)
+{
+	auto desc = grille.desc();
+	auto const res_x = desc.resolution.x;
+	auto const res_y = desc.resolution.y;
+
+	auto const x = 1.0f / static_cast<float>(res_x);
+	auto const y = 1.0f / static_cast<float>(res_y);
+
+	auto pos = echantillonne_position(grille, p);
+
+	dls::math::vec2f decalages[8] = {
+		dls::math::vec2f(p.x + x, p.y + y),
+		dls::math::vec2f(p.x - x, p.y - y),
+		dls::math::vec2f(p.x + x, p.y - y),
+		dls::math::vec2f(p.x - x, p.y + y),
+		dls::math::vec2f(p.x, p.y + y),
+		dls::math::vec2f(p.x, p.y - y),
+		dls::math::vec2f(p.x + x, p.y),
+		dls::math::vec2f(p.x - x, p.y),
+	};
+
+	auto normal = dls::math::vec3f();
+
+	for (auto i = 0; i < 8; ++i) {
+		normal += calcul_normal(pos, echantillonne_position(grille, decalages[i]));
+	}
+
+	return normalise(-normal);
+}
 
 static auto calcul_normal(
 		wlk::grille_dense_2d<float> const &grille,
 		dls::math::vec2f const &p)
 {
-	auto offsets = dls::math::vec2f(1.0f) / dls::math::vec2f(200.0f);
-	float x = offsets.x;
-	float y = offsets.y;
+	auto desc = grille.desc();
+	auto const res_x = desc.resolution.x;
+	auto const res_y = desc.resolution.y;
+
+	auto const x = 1.0f / static_cast<float>(res_x);
+	auto const y = 1.0f / static_cast<float>(res_y);
 
 	auto hx0 = wlk::echantillonne_lineaire(grille, p.x - x, p.y);
 	auto hx1 = wlk::echantillonne_lineaire(grille, p.x + x, p.y);
 
 	auto hy0 = wlk::echantillonne_lineaire(grille, p.x, p.y - y);
-	auto hy1 = wlk::echantillonne_lineaire(grille, p.x, p.y - y);
+	auto hy1 = wlk::echantillonne_lineaire(grille, p.x, p.y + y);
 
-	return normalise(dls::math::vec3f(hx0 - hx1, x+y, hy0 - hy1));
+	return normalise(dls::math::vec3f(hx0 - hx1, x + y, hy0 - hy1));
+}
+
+enum {
+	NORMAUX_DIFF_CENTRE,
+	NORMAUX_VOISINS_4,
+	NORMAUX_VOISINS_8,
+};
+
+static void calcul_normaux(Terrain &terrain, int const ordre)
+{
+	auto desc = terrain.hauteur.desc();
+	auto const &grille = terrain.hauteur;
+	auto &normaux = terrain.normal;
+
+	auto const res_x = desc.resolution.x;
+	auto const res_y = desc.resolution.y;
+
+	auto index = 0;
+	for (auto y = 0; y < res_y; ++y) {
+		for (auto x = 0; x < res_x; ++x, ++index) {
+			auto pos = grille.index_vers_unit(dls::math::vec2i(x, y));
+
+			switch (ordre) {
+				case NORMAUX_DIFF_CENTRE:
+				{
+					auto normal = calcul_normal(grille, pos);
+					normaux.valeur(index, normal);
+					break;
+				}
+				case NORMAUX_VOISINS_4:
+				{
+					auto normal = calcul_normal4(grille, pos);
+					normaux.valeur(index, normal);
+					break;
+				}
+				case NORMAUX_VOISINS_8:
+				{
+					auto normal = calcul_normal8(grille, pos);
+					normaux.valeur(index, normal);
+					break;
+				}
+			}
+		}
+	}
 }
 
 /* ************************************************************************** */
@@ -126,12 +220,12 @@ public:
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
-		entrees(1);
+		entrees(2);
 	}
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_terrain_vent.jo";
 	}
 
 	const char *nom_classe() const override
@@ -143,6 +237,7 @@ public:
 	{
 		return AIDE;
 	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
@@ -153,17 +248,32 @@ public:
 		}
 
 		/* accumule les entrées */
+
+		/* entrée 0 est celle pour la grille, nous la copions pour sauvegarder
+		 * son état, car le terrain sera modifié peut-être modifié par la
+		 * deuxième entrée */
 		entree(0)->requiers_corps(contexte, donnees_aval);
 
 		auto terrain = extrait_terrain(donnees_aval);
 		auto desc = terrain->hauteur.desc();
 
+		auto grille_entree = wlk::grille_dense_2d<float>(desc);
+		copie_donnees_calque(terrain->hauteur, grille_entree);
+
+		auto grille_poids = static_cast<wlk::grille_dense_2d<float> *>(nullptr);
+
+		if (entree(1)->connectee()) {
+			entree(1)->requiers_corps(contexte, donnees_aval);
+
+			grille_poids = &terrain->hauteur;
+		}
+
 		auto temp = wlk::grille_dense_2d<float>(desc);
 
-		auto direction = 0.0f; // evalue_decimal("direction", contexte.temps_courant);
-		auto force = 0.5f;  // evalue_decimal("force", contexte.temps_courant);
-		auto force2 = 0.5f;  // evalue_decimal("force2", contexte.temps_courant);
-		auto repetitions = 1; // evalue_decimal("repetitions", contexte.temps_courant);
+		auto direction = evalue_decimal("direction", contexte.temps_courant);
+		auto force = evalue_decimal("force1", contexte.temps_courant);
+		auto force2 = evalue_decimal("force2", contexte.temps_courant);
+		auto repetitions = evalue_entier("répétitions", contexte.temps_courant);
 
 		force *= 1.35f;
 		force2 *= 2.0f;
@@ -171,16 +281,14 @@ public:
 		auto dir = direction * constantes<float>::TAU;
 
 		for (auto r = 0; r < repetitions; ++r) {
-			copie_donnees_calque(terrain->hauteur, temp);
+			copie_donnees_calque(grille_entree, temp);
 
 			auto index = 0;
 			for (auto y = 0; y < desc.resolution.y; ++y) {
 				for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-					auto pos_monde = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
+					auto pos_monde = grille_entree.index_vers_unit(dls::math::vec2i(x, y));
 
-					auto h = terrain->hauteur.valeur(index);
-
-					auto poids = 0.5f; // poids_filtre.valeur(index);
+					auto h = grille_entree.valeur(index);
 
 					auto s = std::cos(dir);
 					auto t = std::cos(dir + constantes<float>::PI / 2.0f);
@@ -199,12 +307,18 @@ public:
 					hauteur += dls::math::entrepolation_lineaire(h, high, std::acos(facteur) * force);
 					hauteur *= 0.5f;
 
-					hauteur = dls::math::entrepolation_lineaire(hauteur, h, dls::math::restreint(poids, 0.0f, 1.0f));
+					if (grille_poids != nullptr) {
+						auto poids = grille_poids->valeur(index);
+						hauteur = dls::math::entrepolation_lineaire(hauteur, h, dls::math::restreint(poids, 0.0f, 1.0f));
+					}
 
-					terrain->hauteur.valeur(index, hauteur);
+					grille_entree.valeur(index, hauteur);
 				}
 			}
 		}
+
+		/* copie les données */
+		copie_donnees_calque(grille_entree, terrain->hauteur);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -221,12 +335,12 @@ public:
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
-		entrees(1);
+		entrees(2);
 	}
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_terrain_erosion.jo";
 	}
 
 	const char *nom_classe() const override
@@ -238,6 +352,7 @@ public:
 	{
 		return AIDE;
 	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
@@ -247,63 +362,77 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		/* accumule les entrées */
+		/* entrée 0 est celle pour la grille, nous la copions pour sauvegarder
+		 * son état, car le terrain sera modifié peut-être modifié par la
+		 * deuxième entrée */
 		entree(0)->requiers_corps(contexte, donnees_aval);
 
 		auto terrain = extrait_terrain(donnees_aval);
 		auto desc = terrain->hauteur.desc();
 
+		auto grille_entree = wlk::grille_dense_2d<float>(desc);
+		copie_donnees_calque(terrain->hauteur, grille_entree);
+
+		auto grille_poids = static_cast<wlk::grille_dense_2d<float> *>(nullptr);
+
+		if (entree(1)->connectee()) {
+			entree(1)->requiers_corps(contexte, donnees_aval);
+
+			grille_poids = &terrain->hauteur;
+		}
+
 		auto temp = wlk::grille_dense_2d<float>(desc);
 
-		auto repetitions = 1; // evalue_decimal("repetitions", contexte.temps_courant);
-		auto invert = false;
-		auto shallow = false;
-		auto rough = false;
-		auto slope = true;
+		auto repetitions = evalue_entier("répétitions", contexte.temps_courant);
+		auto inverse = evalue_bool("inverse");
+		auto superficielle = evalue_bool("superficielle");
+		auto rugueux = evalue_bool("rugueux");
+		auto pente = evalue_bool("pente");
 
-		auto offsets = dls::math::vec2f(1.0f) / dls::math::vec2f(200.0f);
+		auto const res_x = desc.resolution.x;
+		auto const res_y = desc.resolution.y;
+
+		auto const s = 1.0f / static_cast<float>(res_x);
+		auto const t = 1.0f / static_cast<float>(res_y);
 
 		for (auto r = 0; r < repetitions; ++r) {
-			copie_donnees_calque(terrain->hauteur, temp);
+			copie_donnees_calque(grille_entree, temp);
 
 			auto index = 0;
 			for (auto y = 0; y < desc.resolution.y; ++y) {
 				for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-					auto pos_monde = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
+					auto pos_monde = grille_entree.index_vers_unit(dls::math::vec2i(x, y));
 
 					auto uv = pos_monde;
-					auto s = offsets.x;
-					auto t = offsets.y;
 
-					float weight = 0.5f; // texture2D(filter_weight, uv).r;
-					auto pos = wlk::echantillonne_lineaire(temp, uv.x, uv.y);
-					auto left = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y);
-					auto right = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y);
-					auto top = wlk::echantillonne_lineaire(temp, uv.x, uv.y + t);
-					auto bottom = wlk::echantillonne_lineaire(temp, uv.x, uv.y - t);
-					auto left_top = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y + t);
-					auto right_top = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y + t);
-					auto left_bottom = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y - t);
-					auto right_bottom = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y - t);
+					auto centre      = wlk::echantillonne_lineaire(temp, uv.x, uv.y);
+					auto gauche      = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y);
+					auto droit       = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y);
+					auto haut        = wlk::echantillonne_lineaire(temp, uv.x, uv.y + t);
+					auto bas         = wlk::echantillonne_lineaire(temp, uv.x, uv.y - t);
+					auto haut_gauche = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y + t);
+					auto haut_droit  = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y + t);
+					auto bas_gauche  = wlk::echantillonne_lineaire(temp, uv.x - s, uv.y - t);
+					auto bas_droit   = wlk::echantillonne_lineaire(temp, uv.x + s, uv.y - t);
 
-					auto a = dls::math::vec4f(left, right, top, bottom);
-					auto b = dls::math::vec4f(left_top, right_top, left_bottom, right_bottom);
+					auto a = dls::math::vec4f(gauche, droit, haut, bas);
+					auto b = dls::math::vec4f(haut_gauche, haut_droit, bas_gauche, bas_droit);
 
 					float count = 1.0f;
-					float sum = pos;
+					float sum = centre;
 					float result;
 
-					if (invert) {
+					if (inverse) {
 						for (auto i = 0u; i < 4; ++i) {
-							if (a[i] > pos) {
+							if (a[i] > centre) {
 								count += 1.0f;
 								sum += a[i];
 							}
 						}
 
-						if (!rough) {
+						if (!rugueux) {
 							for (auto i = 0u; i < 4; ++i) {
-								if (b[i] > pos) {
+								if (b[i] > centre) {
 									count += 1.0f;
 									sum += b[i];
 								}
@@ -312,15 +441,15 @@ public:
 					}
 					else {
 						for (auto i = 0u; i < 4; ++i) {
-							if (a[i] < pos) {
+							if (a[i] < centre) {
 								count += 1.0f;
 								sum += a[i];
 							}
 						}
 
-						if (!rough) {
+						if (!rugueux) {
 							for (auto i = 0u; i < 4; ++i) {
-								if (b[i] < pos) {
+								if (b[i] < centre) {
 									count += 1.0f;
 									sum += b[i];
 								}
@@ -328,33 +457,39 @@ public:
 						}
 					}
 
-					if (slope) {
+					if (pente) {
 						auto normal = normalise(dls::math::vec3f(
-													left - right,
+													gauche - droit,
 													s+t,
-													bottom - top));
+													bas - haut));
 
 						float factor = normal.y; // normal . up
 
-						if (shallow) {
+						if (superficielle) {
 							factor = 1.0f - factor;
 						}
 						else {
 							factor = factor - 0.05f * count;
 						}
 
-						result = dls::math::entrepolation_lineaire(sum/count, pos, factor);
+						result = dls::math::entrepolation_lineaire(sum/count, centre, factor);
 					}
 					else {
 						result = sum/count;
 					}
 
-					result = dls::math::entrepolation_lineaire(result, pos, dls::math::restreint(weight, 0.0f, 1.0f));
+					if (grille_poids != nullptr) {
+						auto poids = grille_poids->valeur(index);
+						result = dls::math::entrepolation_lineaire(result, centre, dls::math::restreint(poids, 0.0f, 1.0f));
+					}
 
-					terrain->hauteur.valeur(index, result);
+					grille_entree.valeur(index, result);
 				}
 			}
 		}
+
+		/* copie les données */
+		copie_donnees_calque(grille_entree, terrain->hauteur);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -376,7 +511,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_terrain_inclinaison.jo";
 	}
 
 	const char *nom_classe() const override
@@ -388,6 +523,7 @@ public:
 	{
 		return AIDE;
 	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
@@ -406,14 +542,12 @@ public:
 		auto temp = wlk::grille_dense_2d<float>(desc);
 		copie_donnees_calque(terrain->hauteur, temp);
 
-		auto facteur = 0.5f; // evalue_decimal("facteur", contexte.temps_courant);
-		auto decalage = 0.5f;  // evalue_decimal("decalage", contexte.temps_courant);
-		auto inverse = false;  // evalue_bool("inverse", contexte.temps_courant);
+		auto facteur = evalue_decimal("facteur", contexte.temps_courant);
+		auto decalage = evalue_decimal("décalage", contexte.temps_courant);
+		auto inverse = evalue_bool("inverse");
 
 //		facteur = std::pow(facteur * 2.0f, 10.0f);
 //		decalage = (decalage - 0.5f) * 10.0f;
-
-		//auto repetition = 1;
 
 		auto index = 0;
 		for (auto y = 0; y < desc.resolution.y; ++y) {
@@ -461,12 +595,12 @@ public:
 		: OperatriceCorps(graphe_parent, noeud)
 	{
 		m_execute_toujours = true;
-		entrees(1);
+		entrees(0);
 	}
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_terrain_creation.jo";
 	}
 
 	const char *nom_classe() const override
@@ -478,6 +612,105 @@ public:
 	{
 		return AIDE;
 	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(contexte);
+		m_corps.reinitialise();
+
+		if (!donnees_aval || !donnees_aval->possede("terrain")) {
+			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto terrain = extrait_terrain(donnees_aval);
+		auto desc = terrain->hauteur.desc();
+
+		auto dico_type = dls::cree_dico(
+					dls::paire(dls::chaine("cellule"), bruit::type::CELLULE),
+					dls::paire(dls::chaine("fourier"), bruit::type::FOURIER),
+					dls::paire(dls::chaine("ondelette"), bruit::type::ONDELETTE),
+					dls::paire(dls::chaine("perlin"), bruit::type::PERLIN),
+					dls::paire(dls::chaine("simplex"), bruit::type::SIMPLEX),
+					dls::paire(dls::chaine("voronoi_f1"), bruit::type::VORONOI_F1),
+					dls::paire(dls::chaine("voronoi_f2"), bruit::type::VORONOI_F2),
+					dls::paire(dls::chaine("voronoi_f3"), bruit::type::VORONOI_F3),
+					dls::paire(dls::chaine("voronoi_f4"), bruit::type::VORONOI_F4),
+					dls::paire(dls::chaine("voronoi_f1f2"), bruit::type::VORONOI_F1F2),
+					dls::paire(dls::chaine("voronoi_cr"), bruit::type::VORONOI_CR));
+
+		auto chn_type = evalue_enum("type");
+		auto plg_type = dico_type.trouve(chn_type);
+		auto type = bruit::type{};
+
+		if (plg_type.est_finie()) {
+			ajoute_avertissement("type inconnu");
+			type = bruit::type::SIMPLEX;
+		}
+		else {
+			type = plg_type.front().second;
+		}
+
+		auto graine = 0;
+		auto params = bruit::parametres();
+		params.taille_bruit = evalue_vecteur("fréquence", contexte.temps_courant);
+		params.origine_bruit = evalue_vecteur("décalage");
+		params.echelle_valeur = evalue_decimal("échelle_valeur", contexte.temps_courant);
+		params.decalage_valeur = evalue_decimal("décalage_valeur", contexte.temps_courant);
+		params.type_bruit = type;
+		params.temps_anim = evalue_decimal("temps", contexte.temps_courant);
+
+		bruit::construit(type, params, graine);
+
+		auto params_turb = bruit::param_turbulence();
+		params_turb.dur = evalue_bool("dur");
+		params_turb.octaves = evalue_decimal("octaves", contexte.temps_courant);
+		params_turb.amplitude = evalue_decimal("amplitude", contexte.temps_courant);
+		params_turb.gain = evalue_decimal("persistence", contexte.temps_courant);
+		params_turb.lacunarite = evalue_decimal("lacunarité", contexte.temps_courant);
+
+		auto index = 0;
+		for (auto y = 0; y < desc.resolution.y; ++y) {
+			for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
+				auto p = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
+				auto valeur = bruit::evalue_turb(params, params_turb, dls::math::vec3f(p, 0.0f));
+
+				terrain->hauteur.valeur(index, valeur);
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpEvalueTerrain final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Évalue Terrain";
+	static constexpr auto AIDE = "";
+
+	OpEvalueTerrain(Graphe &graphe_parent, Noeud &noeud)
+		: OperatriceCorps(graphe_parent, noeud)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_terrain_evaluation.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
@@ -488,40 +721,44 @@ public:
 		auto da = DonneesAval();
 		da.table.insere({ "terrain", &terrain });
 
-		auto desc = desc_depuis_hauteur_largeur(200, 200);
+		auto res_x = evalue_entier("résolution_x");
+		auto res_y = evalue_entier("résolution_y");
+		auto taille_x = evalue_decimal("taille_x");
+		auto taille_y = evalue_decimal("taille_y");
+
+		auto desc = desc_depuis_hauteur_largeur(res_x, res_y);
 
 		terrain.hauteur = wlk::grille_dense_2d<float>(desc);
+		terrain.normal  = wlk::grille_dense_2d<dls::math::vec3f>(desc);
 
 		desc = terrain.hauteur.desc();
 
-		auto graine = 0;
-		auto params = bruit::parametres();
-		params.taille_bruit = dls::math::vec3f(0.1f, 0.1f, 1.0f);
-		params.type_bruit = bruit::type::SIMPLEX;
+		entree(0)->requiers_corps(contexte, &da);
 
-		bruit::simplex::construit(params, graine);
+		auto type_normaux = NORMAUX_DIFF_CENTRE;
+		auto chn_normaux = evalue_enum("type_normaux");
+
+		if (chn_normaux == "voisins4") {
+			type_normaux = NORMAUX_VOISINS_4;
+		}
+		else if (chn_normaux == "voisins8") {
+			type_normaux = NORMAUX_VOISINS_8;
+		}
+
+		calcul_normaux(terrain, type_normaux);
+
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto index = 0;
 		for (auto y = 0; y < desc.resolution.y; ++y) {
 			for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-				auto xf = static_cast<float>(x) / 200.0f;
-				auto yf = static_cast<float>(y) / 200.0f;
-				auto valeur = bruit::evalue(params, dls::math::vec3f(xf, yf, 0.0f));
-
-				terrain.hauteur.valeur(index, valeur * 100.0f);
-			}
-		}
-
-		entree(0)->requiers_corps(contexte, &da);
-
-		index = 0;
-		for (auto y = 0; y < desc.resolution.y; ++y) {
-			for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-				auto pos_monde = terrain.hauteur.index_vers_monde(dls::math::vec2i(x, y));
+				auto pos = terrain.hauteur.index_vers_unit(dls::math::vec2i(x, y));
 
 				auto h = terrain.hauteur.valeur(index);
+				auto const &normal = terrain.normal.valeur(index);
 
-				m_corps.ajoute_point(pos_monde.x, h, pos_monde.y);
+				auto idx_pnt = m_corps.ajoute_point((pos.x - 0.5f) * taille_x, h, (pos.y - 0.5f) * taille_y);
+				assigne(attr_N->r32(idx_pnt), normal);
 
 				if (x < desc.resolution.x - 1 && y < desc.resolution.y - 1) {
 					auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
@@ -544,6 +781,7 @@ void enregistre_operatrices_terrain(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpCreeTerrain>());
 	usine.enregistre_type(cree_desc<OpErosionTerrain>());
+	usine.enregistre_type(cree_desc<OpEvalueTerrain>());
 	usine.enregistre_type(cree_desc<OpInclineTerrain>());
 	usine.enregistre_type(cree_desc<OpVentTerrain>());
 }

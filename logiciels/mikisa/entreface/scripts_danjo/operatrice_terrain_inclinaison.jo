@@ -1,0 +1,14 @@
+disposition "operatrice_terrain_inclinaison" {
+	ligne {
+		étiquette(valeur="Facteur")
+		décimal(valeur=0.5; attache=facteur; animable)
+	}
+	ligne {
+		étiquette(valeur="Décalage")
+		décimal(valeur=0.5; attache=décalage; animable)
+	}
+	ligne {
+		étiquette(valeur="Inverse")
+		case(valeur=faux; attache=inverse)
+	}
+}

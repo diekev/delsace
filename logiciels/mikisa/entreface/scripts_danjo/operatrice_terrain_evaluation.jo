@@ -1,0 +1,26 @@
+disposition "operatrice_terrain_evaluation" {
+	ligne {
+		étiquette(valeur="Résolution X")
+		entier(valeur=200; attache=résolution_x)
+	}
+	ligne {
+		étiquette(valeur="Résolution Y")
+		entier(valeur=200; attache=résolution_y)
+	}
+	ligne {
+		étiquette(valeur="Taille X")
+		décimal(valeur=10.0; attache=taille_x)
+	}
+	ligne {
+		étiquette(valeur="Taille Y")
+		décimal(valeur=10.0; attache=taille_y)
+	}
+	ligne {
+		étiquette(valeur="Type Normaux")
+		énum(valeur="centre"; attache=type_normaux; items=[
+			 {nom="Différence Centrale", valeur="centre"},
+			 {nom="Perpendiculaire Voisins 4", valeur="voisins4"},
+			 {nom="Perpendiculaire Voisins 8", valeur="voisins8"}
+			 ])
+	}
+}

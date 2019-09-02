@@ -1,0 +1,58 @@
+disposition "operatrice_terrain_creation" {
+	ligne {
+		étiquette(valeur="Type Bruit")
+		énum(valeur="simplex"; attache=type; items=[
+			 {nom="Cellule", valeur="cellule"},
+			 {nom="Fourier", valeur="fourier"},
+			 {nom="Ondelette", valeur="ondelette"},
+			 {nom="Perlin", valeur="perlin"},
+			 {nom="Simplex", valeur="simplex"},
+			 {nom="Voronoi F1", valeur="voronoi_f1"},
+			 {nom="Voronoi F2", valeur="voronoi_f2"},
+			 {nom="Voronoi F3", valeur="voronoi_f3"},
+			 {nom="Voronoi F4", valeur="voronoi_f4"},
+			 {nom="Voronoi F1F2", valeur="voronoi_f1f2"},
+			 {nom="Voronoi Craqué", valeur="voronoi_cr"}
+			 ])
+	}
+	ligne {
+		étiquette(valeur="Échelle valeur")
+		décimal(valeur=1.0; attache=échelle_valeur; min=0; animable)
+	}
+	ligne {
+		étiquette(valeur="Décalage valeur")
+		décimal(valeur=0.0; attache=décalage_valeur; min=0; animable)
+	}
+	ligne {
+		étiquette(valeur="Dur")
+		case(valeur=faux; attache=dur)
+	}
+	ligne {
+		étiquette(valeur="Fréquence")
+		vecteur(valeur="1,1,1"; attache=fréquence; min=0; animable)
+	}
+	ligne {
+		étiquette(valeur="Décalage")
+		vecteur(valeur="0,0,0"; attache=décalage; animable)
+	}
+	ligne {
+		étiquette(valeur="Octaves")
+		décimal(valeur=1; attache=octaves; min=0; animable)
+	}
+	ligne {
+		étiquette(valeur="Amplitude")
+		décimal(valeur=1.0; attache=amplitude; min=0; max=10; animable)
+	}
+	ligne {
+		étiquette(valeur="Persistence")
+		décimal(valeur=0.5; attache=persistence; min=0; max=10; animable)
+	}
+	ligne {
+		étiquette(valeur="Lacunarité")
+		décimal(valeur=2.0; attache=lacunarité; min=0; max=10; animable)
+	}
+	ligne {
+		étiquette(valeur="Temps")
+		décimal(valeur=1.0; attache=temps; min=0; max=10; animable)
+	}
+}

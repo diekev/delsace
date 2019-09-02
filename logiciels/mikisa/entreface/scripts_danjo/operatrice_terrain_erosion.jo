@@ -1,0 +1,22 @@
+disposition "operatrice_terrain_erosion" {
+	ligne {
+		étiquette(valeur="Répétitions")
+		entier(valeur=1; attache=répétitions)
+	}
+	ligne {
+		étiquette(valeur="Inverse")
+		case(valeur=faux; attache=inverse)
+	}
+	ligne {
+		étiquette(valeur="Pente")
+		case(valeur=vrai; attache=pente)
+	}
+	ligne {
+		étiquette(valeur="Rugueux")
+		case(valeur=faux; attache=rugueux)
+	}
+	ligne {
+		étiquette(valeur="Superficielle")
+		case(valeur=faux; attache=superficielle)
+	}
+}

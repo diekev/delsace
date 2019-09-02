@@ -187,6 +187,11 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_simulation_vetement.jo
 	scripts_danjo/operatrice_solveur_n_corps.jo
 	scripts_danjo/operatrice_suppression_point.jo
+	scripts_danjo/operatrice_terrain_creation.jo
+	scripts_danjo/operatrice_terrain_erosion.jo
+	scripts_danjo/operatrice_terrain_evaluation.jo
+	scripts_danjo/operatrice_terrain_inclinaison.jo
+	scripts_danjo/operatrice_terrain_vent.jo
 	scripts_danjo/operatrice_texture.jo
 	scripts_danjo/operatrice_tirage_fleche.jo
 	scripts_danjo/operatrice_tonemap.jo
