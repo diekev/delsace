@@ -312,6 +312,8 @@ float evalue_turb(parametres const &params, const param_turbulence &params_turb,
 		}
 	}
 
+	transforme_valeur(params, v);
+
 	return v;
 }
 
@@ -383,6 +385,8 @@ float evalue_turb_derivee(parametres const &params, const param_turbulence &para
 			break;
 		}
 	}
+
+	transforme_valeur(params, v);
 
 	return v;
 }
