@@ -105,11 +105,19 @@ auto extrait_min_max(grille_dense_2d<T> const &grille, T &min, T &max)
  * La plupart d'entre elles ne sont que des opérations sur un seul point, donc
  * peut-être qu'un graphe détail suffira?
  *
- * Voir aussi :
- * A.N.T. de Blender
- * Terragen
- * Vue
- * WorldMachine
+ * VOIR AUSSI
+ *
+ * Logiciels :
+ * - A.N.T. de Blender
+ * - Terragen
+ * - Vue
+ * - WorldMachine
+ *
+ * Publications :
+ * - Interactive Example-Based Terrain Authoring with Conditional Generative Adversarial Networks
+ *   (https://hal.archives-ouvertes.fr/hal-01583706/file/tog.pdf)
+ * - Terrain Generation Using Procedural Models Based on Hydrology
+ *   (https://arches.liris.cnrs.fr/publications/articles/SIGGRAPH2013_PCG_Terrain.pdf)
  */
 
 struct Terrain {
