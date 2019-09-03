@@ -50,12 +50,10 @@
 /* ************************************************************************** */
 
 /**
- * Opératrices à considérer : min, max, ajuste (valeur * facteur + decalage | option inverse),
- * step (hermite2), gaussien, ajoute, multiplie, divise, soustrait,
- * random (bruit blanc), égale (blanc si vrai, noir sinon), puissance
- *
- * La plupart d'entre elles ne sont que des opérations sur un seul point, donc
- * peut-être qu'un graphe détail suffira?
+ * Opératrices à considérer :
+ * - graphe détail terrain
+ * - mélange terrain
+ * - terrain depuis image satellite
  *
  * VOIR AUSSI
  *
@@ -1072,6 +1070,8 @@ public:
 
 		auto terrain = extrait_terrain(donnees_aval);
 		auto desc = terrain->hauteur.desc();
+
+		chef->demarre_evaluation("création terrain");
 
 		auto ctx_exec = lcc::ctx_exec{};
 
