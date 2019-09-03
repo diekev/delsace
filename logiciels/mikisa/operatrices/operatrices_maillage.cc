@@ -272,8 +272,8 @@ public:
 	static constexpr auto NOM = "Lissage Laplacien";
 	static constexpr auto AIDE = "Performe un lissage laplacien des points du corps d'entrée.";
 
-	OperatriceLissageLaplacien(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceLissageLaplacien(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -353,8 +353,8 @@ public:
 	static constexpr auto NOM = "Triangulation";
 	static constexpr auto AIDE = "Performe une triangulation des polygones du corps d'entrée.";
 
-	OperatriceTriangulation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceTriangulation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -550,8 +550,8 @@ public:
 	static constexpr auto NOM = "Normalise Covariance";
 	static constexpr auto AIDE = "Modifie les points pour que la covariance moyenne soit égale à 1.";
 
-	OperatriceNormaliseCovariance(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceNormaliseCovariance(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -612,8 +612,8 @@ public:
 								 "covariance le plus grand soit aligné avec "
 								 "l'axe des X, et le second avec l'axe des Y.";
 
-	OperatriceAligneCovariance(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceAligneCovariance(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -733,8 +733,8 @@ public:
 	static constexpr auto NOM = "Bruit Topologique";
 	static constexpr auto AIDE = "";
 
-	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -825,8 +825,8 @@ public:
 	static constexpr auto NOM = "Érosion Maillage";
 	static constexpr auto AIDE = "";
 
-	OperatriceErosionMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceErosionMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1450,8 +1450,8 @@ public:
 	static constexpr auto NOM = "Géométrie Maillage";
 	static constexpr auto AIDE = "";
 
-	OpGeometrieMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpGeometrieMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1651,8 +1651,8 @@ public:
 	static constexpr auto NOM = "Fonte Maillage";
 	static constexpr auto AIDE = "Simule un effet de fonte du maillage d'entrée";
 
-	OpFonteMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpFonteMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1786,8 +1786,8 @@ public:
 	static constexpr auto NOM = "Couleur Maillage";
 	static constexpr auto AIDE = "Crée des couleurs sur un maillage";
 
-	OpCouleurMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCouleurMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);

@@ -26,9 +26,6 @@
 
 #include "operatrice_corps.h"
 
-#include "biblinternes/graphe/compileuse_graphe.h"
-#include "biblinternes/graphe/graphe.h"
-
 #include "lcc/contexte_generation_code.h"
 
 namespace lcc {
@@ -49,7 +46,6 @@ class OperatriceGrapheDetail final : public OperatriceCorps {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
 	gestionnaire_propriete m_gest_attrs{};
-	Graphe m_graphe;
 
 public:
 	int type_detail = DETAIL_POINTS;
@@ -57,7 +53,7 @@ public:
 	static constexpr auto NOM = "Graphe Détail";
 	static constexpr auto AIDE = "Graphe Détail";
 
-	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud_);
 
 	const char *nom_classe() const override;
 
@@ -68,8 +64,6 @@ public:
 	type_prise type_entree(int) const override;
 
 	type_prise type_sortie(int) const override;
-
-	Graphe *graphe();
 
 	int type() const override;
 
@@ -93,7 +87,7 @@ public:
 	static constexpr auto NOM = "Fonction Détail";
 	static constexpr auto AIDE = "Fonction Détail";
 
-	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud &noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
+	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud &noeud_, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
 
 	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
 	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
@@ -137,7 +131,5 @@ OperatriceFonctionDetail *cree_op_detail(
 		Graphe &graphe,
 		Noeud &noeud,
 		dls::chaine const &nom_fonction);
-
-void graphe_detail_notifie_parent_suranne(Mikisa &mikisa);
 
 void enregistre_operatrices_detail(UsineOperatrice &usine);

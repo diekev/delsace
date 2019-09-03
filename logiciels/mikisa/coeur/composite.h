@@ -24,18 +24,25 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
+#include <any>
 
-#include "entite.hh"
+#include "biblinternes/outils/definitions.h"
+
 #include "image.hh"
 
-class Composite : public Entite {
+struct Noeud;
+
+class Composite {
 	Image m_image{};
 
 public:
-	Composite();
+	Composite() = default;
+
+	COPIE_CONSTRUCT(Composite);
 
 	~Composite() = default;
+
+	Noeud *noeud = nullptr;
 
 	Image const &image() const;
 

@@ -24,8 +24,6 @@
 
 #include <iostream>
 
-#include "biblinternes/graphe/compileuse_graphe.h"
-
 #include "analyseuse_grammaire.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"

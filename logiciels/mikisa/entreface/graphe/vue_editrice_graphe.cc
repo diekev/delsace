@@ -93,23 +93,22 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 	m_base->rend_actif();
 
 	if (event->key() == Qt::Key_Tab) {
-		switch (m_mikisa.contexte) {
-			case GRAPHE_RACINE_COMPOSITES:
+		switch (m_mikisa.graphe->type) {
+			case type_graphe::RACINE_COMPOSITE:
 				break;
-			case GRAPHE_COMPOSITE:
+			case type_graphe::COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;
-			case GRAPHE_RACINE_OBJETS:
+			case type_graphe::RACINE_OBJET:
 				m_menu_ajout_noeud_scene->popup(QCursor::pos());
 				break;
-			case GRAPHE_OBJET:
+			case type_graphe::OBJET:
 				m_menu_ajout_noeud_objet->popup(QCursor::pos());
 				break;
-			case GRAPHE_DETAIL:
+			case type_graphe::DETAIL:
 				m_menu_ajout_noeud_detail->popup(QCursor::pos());
 				break;
-			case GRAPHE_SIMULATION:
-				m_menu_ajout_noeud_simulation->popup(QCursor::pos());
+			case type_graphe::INVALIDE:
 				break;
 		}
 	}

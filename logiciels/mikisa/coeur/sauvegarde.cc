@@ -54,26 +54,6 @@
 
 namespace coeur {
 
-static Graphe *graphe_operatrice(OperatriceImage *operatrice)
-{
-	switch (operatrice->type()) {
-		default:
-		{
-			return nullptr;
-		}
-		case OPERATRICE_GRAPHE_DETAIL:
-		{
-			auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
-			return op_detail->graphe();
-		}
-		case OPERATRICE_SIMULATION:
-		{
-			auto op_simulation = dynamic_cast<OperatriceSimulation *>(operatrice);
-			return op_simulation->graphe();
-		}
-	}
-}
-
 static dls::chaine id_depuis_pointeur(void *pointeur)
 {
 	dls::flux_chaine ss;
@@ -223,7 +203,7 @@ static auto ecris_noeud(
 {
 	/* Noeud */
 	auto element_noeud = doc.NewElement("noeud");
-	element_noeud->SetAttribut("nom", noeud->nom().c_str());
+	element_noeud->SetAttribut("nom", noeud->nom.c_str());
 //		element_noeud->SetAttribut("drapeaux", noeud->flags());
 	element_noeud->SetAttribut("posx", noeud->pos_x());
 	element_noeud->SetAttribut("posy", noeud->pos_y());
@@ -231,7 +211,7 @@ static auto ecris_noeud(
 	/* Prises d'entrée. */
 	auto racine_prise_entree = doc.NewElement("prises_entree");
 
-	for (auto const &prise : noeud->entrees()) {
+	for (auto const &prise : noeud->entrees) {
 		auto element_prise = doc.NewElement("entree");
 		element_prise->SetAttribut("nom", prise->nom.c_str());
 		element_prise->SetAttribut("id", id_depuis_pointeur(prise).c_str());
@@ -249,7 +229,7 @@ static auto ecris_noeud(
 	/* Prises de sortie */
 	auto racine_prise_sortie = doc.NewElement("prises_sortie");
 
-	for (auto const &prise : noeud->sorties()) {
+	for (auto const &prise : noeud->sorties) {
 		/* REMARQUE : par optimisation on ne sauvegarde que les
 			 * connexions depuis les prises d'entrées. */
 		auto element_prise = doc.NewElement("sortie");
@@ -262,32 +242,32 @@ static auto ecris_noeud(
 	element_noeud->InsertEndChild(racine_prise_sortie);
 
 	/* Opératrice */
-	switch (noeud->type()) {
-		case NOEUD_OBJET:
+	switch (noeud->type) {
+		case type_noeud::OBJET:
 		{
-			auto objet = extrait_objet(noeud->donnees());
+			auto objet = extrait_objet(noeud->donnees);
 
 			auto element_objet = doc.NewElement("objet");
-			element_objet->SetAttribut("nom", objet->nom.c_str());
+			element_objet->SetAttribut("nom", objet->noeud->nom.c_str());
 
 			element_noeud->InsertEndChild(element_objet);
 
 			break;
 		}
-		case NOEUD_COMPOSITE:
+		case type_noeud::COMPOSITE:
 		{
-			auto composite = extrait_composite(noeud->donnees());
+			auto composite = extrait_composite(noeud->donnees);
 
 			auto element_composite = doc.NewElement("composite");
-			element_composite->SetAttribut("nom", composite->nom.c_str());
+			element_composite->SetAttribut("nom", composite->noeud->nom.c_str());
 
 			element_noeud->InsertEndChild(element_composite);
 
 			break;
 		}
-		default:
+		case type_noeud::OPERATRICE:
 		{
-			auto operatrice = extrait_opimage(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees);
 			auto element_operatrice = doc.NewElement("operatrice");
 			element_operatrice->SetAttribut("nom", operatrice->nom_classe());
 
@@ -303,16 +283,18 @@ static auto ecris_noeud(
 			sauvegarde_proprietes(doc, element_operatrice, operatrice);
 
 			/* Graphe */
-			auto graphe_op = graphe_operatrice(operatrice);
-
-			if (graphe_op != nullptr) {
+			if (noeud->peut_avoir_graphe) {
 				auto racine_graphe_op = doc.NewElement("graphe");
 				element_operatrice->InsertEndChild(racine_graphe_op);
-				ecris_graphe(doc, racine_graphe_op, *graphe_op);
+				ecris_graphe(doc, racine_graphe_op, noeud->graphe);
 			}
 
 			element_noeud->InsertEndChild(element_operatrice);
 
+			break;
+		}
+		case type_noeud::INVALIDE:
+		{
 			break;
 		}
 	}
@@ -342,7 +324,6 @@ static void sauvegarde_etat(
 	doc.InsertEndChild(racine_etat);
 
 	racine_etat->SetAttribut("chemin_courant", mikisa.chemin_courant.c_str());
-	racine_etat->SetAttribut("contexte", mikisa.contexte);
 }
 
 erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &mikisa)
@@ -365,7 +346,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 	for (auto const objet : bdd.objets()) {
 		/* Écriture de l'objet. */
 		auto racine_objet = doc.NewElement("objet");
-		racine_objet->SetAttribut("nom", objet->nom.c_str());
+		racine_objet->SetAttribut("nom", objet->noeud->nom.c_str());
 		racine_objet->SetAttribut("type", static_cast<int>(objet->type));
 
 		racine_objets->InsertEndChild(racine_objet);
@@ -374,8 +355,8 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		auto racine_graphe = doc.NewElement("graphe");
 		racine_objet->InsertEndChild(racine_graphe);
 
-		ecris_graphe(doc, racine_graphe, objet->graphe);
-		sauvegarde_proprietes(doc, racine_objet, objet);
+		ecris_graphe(doc, racine_graphe, objet->noeud->graphe);
+		sauvegarde_proprietes(doc, racine_objet, objet->noeud);
 	}
 
 	/* Écriture du graphe. */
@@ -391,7 +372,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 	for (auto const composite : bdd.composites()) {
 		/* Écriture du composite. */
 		auto racine_composite = doc.NewElement("composite");
-		racine_composite->SetAttribut("nom", composite->nom.c_str());
+		racine_composite->SetAttribut("nom", composite->noeud->nom.c_str());
 
 		racine_composites->InsertEndChild(racine_composite);
 
@@ -399,7 +380,7 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 		auto racine_graphe = doc.NewElement("graphe");
 		racine_composite->InsertEndChild(racine_graphe);
 
-		ecris_graphe(doc, racine_graphe, composite->graphe);
+		ecris_graphe(doc, racine_graphe, composite->noeud->graphe);
 	}
 
 	/* Écriture du graphe. */
@@ -592,44 +573,38 @@ struct DonneesConnexions {
 static void lecture_graphe(
 		dls::xml::Element *element_objet,
 		Mikisa &mikisa,
-		Graphe *graphe);
+		Graphe *graphe,
+		type_noeud type);
 
 static void lecture_noeud(
 		dls::xml::Element *element_noeud,
 		Mikisa &mikisa,
 		Graphe *graphe,
-		DonneesConnexions &donnees_connexion)
+		DonneesConnexions &donnees_connexion,
+		type_noeud type)
 {
 	auto const nom_noeud = element_noeud->attribut("nom");
 	auto const posx = element_noeud->attribut("posx");
 	auto const posy = element_noeud->attribut("posy");
 
-	auto noeud = graphe->cree_noeud(nom_noeud);
+	auto noeud = graphe->cree_noeud(nom_noeud, type);
 
-	switch (noeud->type()) {
-		case NOEUD_OBJET:
+	switch (type) {
+		case type_noeud::INVALIDE:
 		{
-			auto const element_objet = element_noeud->FirstChildElement("objet");
-			auto const nom_objet = element_objet->attribut("nom");
-
-			auto objet = mikisa.bdd.objet(nom_objet);
-
-			noeud->donnees(objet);
-
 			break;
 		}
-		case NOEUD_COMPOSITE:
+		case type_noeud::OBJET:
 		{
-			auto const element_compo = element_noeud->FirstChildElement("composite");
-			auto const nom_objet = element_compo->attribut("nom");
-
-			auto composite = mikisa.bdd.composite(nom_objet);
-
-			noeud->donnees(composite);
-
+			/* fait via lecture_objets */
 			break;
 		}
-		default:
+		case type_noeud::COMPOSITE:
+		{
+			/* fait via lecture_composites */
+			break;
+		}
+		case type_noeud::OPERATRICE:
 		{
 			auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
 			auto const nom_operatrice = element_operatrice->attribut("nom");
@@ -647,27 +622,21 @@ static void lecture_noeud(
 					/* il faut que le type de détail soit correct car
 					 * l'opératrice n'est pas exécutée quand les noeuds sont
 					 * ajoutés dans son graphe */
-					op_detail->graphe()->donnees.efface();
-					op_detail->graphe()->donnees.pousse(op_detail->type_detail);
+					noeud->graphe.donnees.efface();
+					noeud->graphe.donnees.pousse(op_detail->type_detail);
 				}
 
 				/* il nous faut savoir le type de détail avant de pouvoir synchroniser */
 				synchronise_donnees_operatrice(*noeud);
 
-				if (std::strcmp(nom_operatrice, "Visionneur") == 0) {
-					noeud->type(NOEUD_IMAGE_SORTIE);
-					graphe->dernier_noeud_sortie = noeud;
-				}
-				else if (std::strcmp(nom_operatrice, "Sortie Corps") == 0) {
-					noeud->type(NOEUD_OBJET_SORTIE);
+				if (noeud->est_sortie) {
 					graphe->dernier_noeud_sortie = noeud;
 				}
 
 				auto element_graphe = element_operatrice->FirstChildElement("graphe");
 
 				if (element_graphe != nullptr) {
-					auto graphe_op = graphe_operatrice(operatrice);
-					lecture_graphe(element_graphe, mikisa, graphe_op);
+					lecture_graphe(element_graphe, mikisa, &noeud->graphe, type_noeud::OPERATRICE);
 				}
 			}
 			else {
@@ -719,7 +688,8 @@ static void lecture_noeud(
 void lecture_graphe(
 		dls::xml::Element *racine_graphe,
 		Mikisa &mikisa,
-		Graphe *graphe)
+		Graphe *graphe,
+		type_noeud type)
 {
 	graphe->centre_x = racine_graphe->FloatAttribut("centre_x");
 	graphe->centre_y = racine_graphe->FloatAttribut("centre_y");
@@ -736,7 +706,7 @@ void lecture_graphe(
 	DonneesConnexions donnees_connexions;
 
 	for (; element_noeud != nullptr; element_noeud = element_noeud->NextSiblingElement("noeud")) {
-		lecture_noeud(element_noeud, mikisa, graphe, donnees_connexions);
+		lecture_noeud(element_noeud, mikisa, graphe, donnees_connexions, type);
 	}
 
 	/* Création des connexions. */
@@ -775,7 +745,7 @@ static void lecture_graphe_racine(
 		auto const posy = element_noeud->attribut("posy");
 
 		for (auto noeud : graphe->noeuds()) {
-			if (noeud->nom() == nom_noeud) {
+			if (noeud->nom == nom_noeud) {
 				noeud->pos_x(static_cast<float>(atoi(posx)));
 				noeud->pos_y(static_cast<float>(atoi(posy)));
 			}
@@ -802,8 +772,8 @@ static void lis_objets(
 		auto objet = mikisa.bdd.cree_objet(nom, type);
 		auto racine_graphe = element_objet->FirstChildElement("graphe");
 
-		lecture_graphe(racine_graphe, mikisa, &objet->graphe);
-		lecture_proprietes(element_objet, objet);
+		lecture_graphe(racine_graphe, mikisa, &objet->noeud->graphe, type_noeud::OPERATRICE);
+		lecture_proprietes(element_objet, objet->noeud);
 
 		objet->performe_versionnage();
 	}
@@ -820,83 +790,7 @@ static void lis_composites(
 		auto composite = mikisa.bdd.cree_composite(nom);
 		auto racine_graphe = element_compo->FirstChildElement("graphe");
 
-		lecture_graphe(racine_graphe, mikisa, &composite->graphe);
-	}
-}
-
-static auto cherche_graphe_pour_chemin(Mikisa &mikisa)
-{
-	/* À FAIRE : un système d'entité */
-
-	auto morceaux = dls::morcelle(mikisa.chemin_courant, '/');
-
-	if (morceaux.est_vide()) {
-		return static_cast<Graphe *>(nullptr);
-	}
-
-	auto entite_racine = static_cast<Entite *>(nullptr);
-
-	if (morceaux[0] == "composites") {
-		if (morceaux.taille() == 1) {
-			return mikisa.bdd.graphe_composites();
-		}
-
-		entite_racine = mikisa.bdd.composite(morceaux[1]);
-	}
-	else if (morceaux[0] == "objets") {
-		if (morceaux.taille() == 1) {
-			return mikisa.bdd.graphe_objets();
-		}
-
-		entite_racine = mikisa.bdd.objet(morceaux[1]);
-	}
-
-	if (entite_racine == nullptr) {
-		return static_cast<Graphe *>(nullptr);
-	}
-
-	if (morceaux.taille() == 2) {
-		return &entite_racine->graphe;
-	}
-
-	for (auto noeud : entite_racine->graphe.noeuds()) {
-		if (noeud->nom() != morceaux[2]) {
-			continue;
-		}
-
-		auto op = extrait_opimage(noeud->donnees());
-
-		if (op->type() == OPERATRICE_SIMULATION) {
-			auto op_sim = dynamic_cast<OperatriceSimulation *>(op);
-			return op_sim->graphe();
-		}
-
-		if (op->type() == OPERATRICE_GRAPHE_DETAIL) {
-			auto op_detail = dynamic_cast<OperatriceGrapheDetail *>(op);
-			return op_detail->graphe();
-		}
-
-		break;
-	}
-
-	return static_cast<Graphe *>(nullptr);
-}
-
-static auto cherche_graphe_pour_contexte(Mikisa &mikisa)
-{
-	switch (mikisa.contexte) {
-		case GRAPHE_RACINE_COMPOSITES:
-		{
-			return mikisa.bdd.graphe_composites();
-		}
-		case GRAPHE_RACINE_OBJETS:
-		{
-			return mikisa.bdd.graphe_objets();
-		}
-		default:
-		{
-			return cherche_graphe_pour_chemin(mikisa);
-		}
+		lecture_graphe(racine_graphe, mikisa, &composite->noeud->graphe, type_noeud::OPERATRICE);
 	}
 }
 
@@ -910,27 +804,29 @@ static auto lis_etat(
 		/* versionnage */
 		mikisa.graphe = mikisa.bdd.graphe_objets();
 		mikisa.chemin_courant = "/objets/";
-		mikisa.contexte = GRAPHE_RACINE_OBJETS;
 		return;
 	}
 
 	auto chemin = elem_etat->attribut("chemin_courant");
 	mikisa.chemin_courant = chemin;
 
-	mikisa.contexte = std::atoi(elem_etat->attribut("contexte"));
+	mikisa.noeud = cherche_noeud_pour_chemin(mikisa.bdd, mikisa.chemin_courant);
 
-	mikisa.graphe = cherche_graphe_pour_contexte(mikisa);
+	if (mikisa.noeud != nullptr) {
+		mikisa.graphe = &mikisa.noeud->graphe;
+	}
 }
 
 static auto reinitialise_mikisa(Mikisa &mikisa)
 {
-	mikisa.derniere_visionneuse_selectionnee = nullptr;
 	mikisa.manipulation_2d_activee = false;
 	mikisa.type_manipulation_2d = 0;
 	mikisa.manipulatrice_2d = nullptr;
 	mikisa.manipulation_3d_activee = false;
 	mikisa.type_manipulation_3d = 0;
 	mikisa.manipulatrice_3d = nullptr;
+	mikisa.noeud = nullptr;
+	mikisa.graphe = nullptr;
 	mikisa.bdd.reinitialise();
 }
 

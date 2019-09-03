@@ -33,8 +33,7 @@
 #include <QPen>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/graphe/noeud.h"
-
+#include "coeur/noeud.hh"
 #include "coeur/noeud_image.h"
 #include "coeur/operatrice_image.h"
 
@@ -128,14 +127,14 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	auto operatrice = static_cast<OperatriceImage *>(nullptr);
 	auto brosse_couleur = QBrush();
 
-	if (noeud->type() == NOEUD_OBJET) {
+	if (noeud->type == type_noeud::OBJET) {
 		brosse_couleur = brosse_pour_type(type_prise::OBJET);
 	}
-	else if (noeud->type() == NOEUD_COMPOSITE) {
+	else if (noeud->type == type_noeud::COMPOSITE) {
 		brosse_couleur = brosse_pour_type(type_prise::IMAGE);
 	}
 	else {
-		operatrice = extrait_opimage(noeud->donnees());
+		operatrice = extrait_opimage(noeud->donnees);
 
 		switch (operatrice->type()) {
 			default:
@@ -156,12 +155,12 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		}
 	}
 
-	auto const pos_x = noeud->pos_x();
-	auto const pos_y = noeud->pos_y();
+	auto const pos_x = static_cast<double>(noeud->pos_x());
+	auto const pos_y = static_cast<double>(noeud->pos_y());
 
 	/* crée le texte en premier pour calculer sa taille */
 	auto const decalage_texte = 8;
-	auto texte = new QGraphicsTextItem(noeud->nom().c_str(), this);
+	auto texte = new QGraphicsTextItem(noeud->nom.c_str(), this);
 	auto police = QFont();
 	police.setPointSize(16);
 	texte->setFont(police);
@@ -178,8 +177,8 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	auto const hauteur_prise = 32.0;
 	auto const largeur_prise = 32.0;
 
-	auto const nombre_entrees = noeud->entrees().taille();
-	auto const nombre_sorties = noeud->sorties().taille();
+	auto const nombre_entrees = noeud->entrees.taille();
+	auto const nombre_sorties = noeud->sorties.taille();
 
 	auto decalage_icone_y = pos_y;
 	auto decalage_texte_y = pos_y;
@@ -207,7 +206,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		auto const pos_debut_entrees = etendue_entree * 0.5 - largeur_prise * 0.5;
 		auto pos_entree = pos_x + pos_debut_entrees;
 
-		for (PriseEntree *prise : noeud->entrees()) {
+		for (PriseEntree *prise : noeud->entrees) {
 			auto entree = new QGraphicsRectItem(this);
 			auto largeur_lien = largeur_prise;
 
@@ -253,7 +252,7 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		auto const pos_debut_sorties = etendue_sortie * 0.5 - largeur_prise * 0.5;
 		auto pos_sortie = pos_x + pos_debut_sorties;
 
-		for (PriseSortie *prise : noeud->sorties()) {
+		for (PriseSortie *prise : noeud->sorties) {
 			auto sortie = new QGraphicsRectItem(this);
 
 			sortie->setRect(pos_sortie, decalage_sorties_y, largeur_prise, hauteur_prise);

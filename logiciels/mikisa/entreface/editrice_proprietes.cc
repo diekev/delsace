@@ -109,16 +109,16 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
 	auto chemin_entreface = "";
 
-	if (noeud->type() == NOEUD_OBJET) {
-		auto objet = extrait_objet(noeud->donnees());
+	if (noeud->type == type_noeud::OBJET) {
+		auto objet = extrait_objet(noeud->donnees);
 		chemin_entreface = objet->chemin_entreface();
-		manipulable = objet;
+		manipulable = objet->noeud;
 	}
-	else if (noeud->type() == NOEUD_COMPOSITE) {
+	else if (noeud->type == type_noeud::COMPOSITE) {
 		/* RÀF */
 	}
 	else {
-		auto operatrice = extrait_opimage(noeud->donnees());
+		auto operatrice = extrait_opimage(noeud->donnees);
 		chemin_entreface = operatrice->chemin_entreface();
 		manipulable = operatrice;
 
@@ -195,36 +195,43 @@ void EditriceProprietes::ajourne_manipulable()
 		return;
 	}
 
-	switch (m_mikisa.contexte) {
-		case GRAPHE_RACINE_COMPOSITES:
+	switch (noeud->type) {
+		case type_noeud::INVALIDE:
 		{
 			break;
 		}
-		case GRAPHE_RACINE_OBJETS:
+		case type_noeud::OBJET:
 		{
-			auto objet = extrait_objet(noeud->donnees());
+			auto objet = extrait_objet(noeud->donnees);
 			objet->ajourne_parametres();
 			break;
 		}
-		case GRAPHE_DETAIL:
+		case type_noeud::COMPOSITE:
 		{
-			graphe_detail_notifie_parent_suranne(m_mikisa);
 			break;
 		}
-		case GRAPHE_OBJET:
-		case GRAPHE_COMPOSITE:
-		case GRAPHE_SIMULATION:
+		case type_noeud::OPERATRICE:
 		{
 			/* Marque le noeud courant et ceux en son aval surannées. */
 			marque_surannee(noeud, [](Noeud *n, PriseEntree *prise)
 			{
-				auto op = extrait_opimage(n->donnees());
+				auto op = extrait_opimage(n->donnees);
 				op->amont_change(prise);
 			});
 
-			auto op = extrait_opimage(noeud->donnees());
-			op->parametres_changes();
+			/* Notifie les graphes des noeuds parents comme étant surrannés */
+			marque_parent_surannee(noeud->parent, [](Noeud *n, PriseEntree *prise)
+			{
+				if (n->type != type_noeud::OPERATRICE) {
+					return;
+				}
 
+				auto op = extrait_opimage(n->donnees);
+				op->amont_change(prise);
+			});
+
+			auto op = extrait_opimage(noeud->donnees);
+			op->parametres_changes();
 			break;
 		}
 	}
@@ -239,11 +246,11 @@ void EditriceProprietes::obtiens_liste(
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
-	if (noeud == nullptr || noeud->type() == NOEUD_OBJET) {
+	if (noeud == nullptr || noeud->type == type_noeud::OBJET) {
 		return;
 	}
 
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto contexte = cree_contexte_evaluation(m_mikisa);
 
 	operatrice->obtiens_liste(contexte, attache, chaines);
@@ -258,15 +265,15 @@ void EditriceProprietes::onglet_dossier_change(int index)
 		return;
 	}
 
-	if (noeud->type() == NOEUD_OBJET) {
-		auto objet = extrait_objet(noeud->donnees());
-		objet->onglet_courant = index;
+	if (noeud->type == type_noeud::OBJET) {
+		auto objet = extrait_objet(noeud->donnees);
+		objet->noeud->onglet_courant = index;
 	}
-	else if (noeud->type() == NOEUD_COMPOSITE) {
+	else if (noeud->type == type_noeud::COMPOSITE) {
 		/* RÀF */
 	}
 	else {
-		auto op = extrait_opimage(noeud->donnees());
+		auto op = extrait_opimage(noeud->donnees);
 		op->onglet_courant = index;
 	}
 }

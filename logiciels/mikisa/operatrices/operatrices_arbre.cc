@@ -620,8 +620,8 @@ public:
 	static constexpr auto NOM = "Ajoute Branche";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OpAjouteBranch(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpAjouteBranch(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *nom_classe() const override
@@ -699,8 +699,8 @@ public:
 	static constexpr auto NOM = "Grow";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OpGrow(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpGrow(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *nom_classe() const override
@@ -775,7 +775,7 @@ public:
 	static constexpr auto NOM = "Création Arbre";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud_);
 
 	OperatriceCreationArbre(OperatriceCreationArbre const &) = default;
 	OperatriceCreationArbre &operator=(OperatriceCreationArbre const &) = default;
@@ -792,8 +792,8 @@ public:
 };
 
 
-OperatriceCreationArbre::OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
+OperatriceCreationArbre::OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
 	entrees(1);
 	sorties(1);
@@ -2148,8 +2148,8 @@ public {
 	static constexpr auto NOM = "Création Arbre";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud)
-		 { OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud_)
+		 { OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);

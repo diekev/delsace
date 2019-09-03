@@ -951,8 +951,8 @@ public:
 	static constexpr auto NOM = "Simulation Muscles";
 	static constexpr auto AIDE = "";
 
-	OpSimMuscles(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpSimMuscles(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

@@ -40,7 +40,7 @@ public:
 	bool m_depend_sur_temps = false;
 	char pad[7];
 
-	OperatriceCorpsSE(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceCorpsSE(Graphe &graphe_parent, Noeud &noeud_);
 
 	OperatriceCorpsSE(OperatriceCorpsSE const &) = default;
 	OperatriceCorpsSE &operator=(OperatriceCorpsSE const &) = default;
@@ -56,8 +56,8 @@ public:
 	bool depend_sur_temps() const override;
 };
 
-OperatriceCorpsSE::OperatriceCorpsSE(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
+OperatriceCorpsSE::OperatriceCorpsSE(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
 	entrees(0);
 	sorties(1);
@@ -104,7 +104,7 @@ public:
 	bool m_depend_sur_temps = false;
 	char pad[7];
 
-	OperatriceCorpsE0(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceCorpsE0(Graphe &graphe_parent, Noeud &noeud_);
 
 	OperatriceCorpsE0(OperatriceCorpsE0 const &) = default;
 	OperatriceCorpsE0 &operator=(OperatriceCorpsE0 const &) = default;
@@ -120,8 +120,8 @@ public:
 	bool depend_sur_temps() const override;
 };
 
-OperatriceCorpsE0::OperatriceCorpsE0(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
+OperatriceCorpsE0::OperatriceCorpsE0(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
 	entrees(1);
 	sorties(1);
@@ -233,14 +233,14 @@ long UsineOperatrice::enregistre_type(DescOperatrice const &desc)
 	return num_entries();
 }
 
-OperatriceImage *UsineOperatrice::operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud)
+OperatriceImage *UsineOperatrice::operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud_)
 {
 	auto const iter = m_map.trouve(name);
 	assert(iter != m_map.fin());
 
 	DescOperatrice const &desc = iter->second;
 
-	auto operatrice = desc.build_operator(graphe_parent, noeud);
+	auto operatrice = desc.build_operator(graphe_parent, noeud_);
 	operatrice->usine(this);
 
 	return operatrice;

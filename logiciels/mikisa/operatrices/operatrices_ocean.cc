@@ -628,8 +628,8 @@ public:
 	static constexpr auto NOM = "Océan";
 	static constexpr auto AIDE = "";
 
-	OperatriceSimulationOcean(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSimulationOcean(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1947,8 +1947,8 @@ public:
 	static constexpr auto NOM = "Vaguelette Océan";
 	static constexpr auto AIDE = "";
 
-	OperatriceVagueletteOcean(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceVagueletteOcean(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

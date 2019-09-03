@@ -36,11 +36,11 @@ static void marque_execution_graphe(NoeudReseau *racine)
 {
 	for (auto noeud_res : racine->sorties) {
 		auto objet = noeud_res->objet;
-		auto &graphe = objet->graphe;
+		auto &graphe = objet->noeud->graphe;
 
 		for (auto &noeud : graphe.noeuds()) {
-			noeud->besoin_execution(true);
-			auto op = extrait_opimage(noeud->donnees());
+			noeud->besoin_execution = true;
+			auto op = extrait_opimage(noeud->donnees);
 			op->amont_change(nullptr);
 		}
 
@@ -67,7 +67,7 @@ void Reseau::reinitialise()
 
 /* ************************************************************************** */
 
-void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
+void CompilatriceReseau::cree_noeud(Objet *objet)
 {
 	auto iter_noeud = m_table_objet_noeud.trouve(objet);
 
@@ -77,7 +77,6 @@ void CompilatriceReseau::cree_noeud(Objet *objet, Noeud *noeud_objet)
 
 	auto noeud = memoire::loge<NoeudReseau>("NoeudReseau");
 	noeud->objet = objet;
-	noeud->noeud_objet = noeud_objet;
 	reseau->noeuds.pousse(noeud);
 
 	m_table_objet_noeud.insere({objet, noeud});
@@ -110,20 +109,24 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 	reseau->reinitialise();
 
 	/* crée les noeuds */
-	for (auto paire : bdd->table_objets()) {
-		cree_noeud(paire.first, paire.second);
+	for (auto objet_ : bdd->objets()) {
+		cree_noeud(objet_);
 	}
 
 	/* crée les dépendances */
 	for (auto noeud_dep : reseau->noeuds) {
 		auto objet_noeud = noeud_dep->objet;
 
-		if (objet_noeud->possede_animation()) {
+		if (objet_noeud->noeud->possede_animation()) {
 			ajoute_dependance(&reseau->noeud_temps, noeud_dep);
 		}
 
 		/* n'ajoute les dépendances que pour les noeuds connectés à la sortie */
-		auto noeud = objet_noeud->graphe.dernier_noeud_sortie;
+		auto noeud = objet_noeud->noeud->graphe.dernier_noeud_sortie;
+
+		if (noeud == nullptr) {
+			continue;
+		}
 
 		auto noeuds = dls::pile<Noeud *>();
 		noeuds.empile(noeud);
@@ -139,7 +142,7 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 
 			noeuds_visites.insere(noeud);
 
-			auto operatrice = extrait_opimage(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees);
 
 			if (operatrice->possede_animation()) {
 				ajoute_dependance(&reseau->noeud_temps, noeud_dep);
@@ -150,7 +153,7 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 
 			operatrice->renseigne_dependance(contexte, *this, noeud_dep);
 
-			for (auto prise_entree : noeud->entrees()) {
+			for (auto prise_entree : noeud->entrees) {
 				for (auto prise_sortie : prise_entree->liens) {
 					noeuds.empile(prise_sortie->parent);
 				}
@@ -158,14 +161,14 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 		}
 
 		/* vide les tampons mémoires des noeuds déconnectés */
-		for (auto n : objet_noeud->graphe.noeuds()) {
+		for (auto n : objet_noeud->noeud->graphe.noeuds()) {
 			if (noeuds_visites.trouve(n) != noeuds_visites.fin()) {
 				continue;
 			}
 
-			auto operatrice = extrait_opimage(n->donnees());
+			auto operatrice = extrait_opimage(n->donnees);
 			operatrice->libere_memoire();
-			n->besoin_execution(true);
+			n->besoin_execution = true;
 		}
 	}
 

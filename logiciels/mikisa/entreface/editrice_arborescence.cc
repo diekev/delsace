@@ -75,7 +75,7 @@ ObjectTreeWidgetItem::ObjectTreeWidgetItem(Objet *scene_node, QTreeWidgetItem *p
     , m_visited(false)
 {
 	setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
-	setText(0, m_scene_node->nom.c_str());
+	setText(0, m_scene_node->noeud->nom.c_str());
 
 #ifdef DRAG_DROP_PARENTING
 	setFlags(flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
@@ -103,7 +103,7 @@ ObjectNodeTreeWidgetItem::ObjectNodeTreeWidgetItem(Noeud *noeud, QTreeWidgetItem
     : QTreeWidgetItem(parent)
 	, m_noeud(noeud)
 {
-	setText(0, m_noeud->nom().c_str());
+	setText(0, m_noeud->nom.c_str());
 }
 
 Noeud *ObjectNodeTreeWidgetItem::pointeur_noeud() const

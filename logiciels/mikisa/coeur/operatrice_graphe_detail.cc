@@ -109,12 +109,13 @@ static auto charge_attributs(
 	}
 }
 
-OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
-	, m_graphe(cree_noeud_image, supprime_noeud_image)
+OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
-	m_graphe.donnees.efface();
-	m_graphe.donnees.pousse(type_detail);
+	noeud.peut_avoir_graphe = true;
+	noeud.graphe.type = type_graphe::DETAIL;
+	noeud.graphe.donnees.efface();
+	noeud.graphe.donnees.pousse(type_detail);
 
 	entrees(1);
 	sorties(1);
@@ -157,11 +158,6 @@ type_prise OperatriceGrapheDetail::type_sortie(int) const
 	return type_prise::CORPS;
 }
 
-Graphe *OperatriceGrapheDetail::graphe()
-{
-	return &m_graphe;
-}
-
 int OperatriceGrapheDetail::type() const
 {
 	return OPERATRICE_GRAPHE_DETAIL;
@@ -174,8 +170,8 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 		return EXECUTION_ECHOUEE;
 	}
 
-	m_graphe.donnees.efface();
-	m_graphe.donnees.pousse(type_detail);
+	noeud.graphe.donnees.efface();
+	noeud.graphe.donnees.pousse(type_detail);
 
 	if (type_detail == DETAIL_PIXELS) {
 		return execute_detail_pixel(contexte, donnees_aval);
@@ -560,9 +556,9 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 	m_gest_props = gestionnaire_propriete();
 	m_gest_attrs = gestionnaire_propriete();
 
-	if (m_graphe.besoin_ajournement) {
-		tri_topologique(m_graphe);
-		m_graphe.besoin_ajournement = false;
+	if (noeud.graphe.besoin_ajournement) {
+		tri_topologique(noeud.graphe);
+		noeud.graphe.besoin_ajournement = false;
 	}
 
 	auto donnees_aval = DonneesAval{};
@@ -612,12 +608,12 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 		}
 	}
 
-	for (auto &noeud : m_graphe.noeuds()) {
-		for (auto &sortie : noeud->sorties()) {
+	for (auto &noeud_graphe : noeud.graphe.noeuds()) {
+		for (auto &sortie : noeud_graphe->sorties) {
 			sortie->decalage_pile = 0;
 		}
 
-		auto operatrice = extrait_opimage(noeud->donnees());
+		auto operatrice = extrait_opimage(noeud_graphe->donnees);
 		operatrice->reinitialise_avertisements();
 
 		auto resultat = operatrice->execute(contexte, &donnees_aval);
@@ -740,10 +736,10 @@ static auto converti_type_prise(type_prise type)
 
 OperatriceFonctionDetail::OperatriceFonctionDetail(
 		Graphe &graphe_parent,
-		Noeud &noeud,
+		Noeud &noeud_,
 		const dls::chaine &nom_fonc,
 		const lcc::donnees_fonction *df)
-	: OperatriceImage(graphe_parent, noeud)
+	: OperatriceImage(graphe_parent, noeud_)
 	, donnees_fonction(df)
 	, nom_fonction(nom_fonc)
 {
@@ -1230,8 +1226,8 @@ public:
 	static constexpr auto NOM = "Entrée Détail";
 	static constexpr auto AIDE = "Entrée Détail";
 
-	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 
@@ -1363,11 +1359,13 @@ public:
 	static constexpr auto NOM = "Sortie Détail";
 	static constexpr auto AIDE = "Sortie Détail";
 
-	OperatriceSortieDetail(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceSortieDetail(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override
@@ -1488,8 +1486,8 @@ public:
 	static constexpr auto NOM = "Entrée Attribut";
 	static constexpr auto AIDE = "Entrée Attribut";
 
-	OperatriceEntreeAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceEntreeAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(5);
@@ -1587,11 +1585,13 @@ public:
 	static constexpr auto NOM = "Sortie Attribut";
 	static constexpr auto AIDE = "Sortie Attribut";
 
-	OperatriceSortieAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceSortieAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(5);
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override
@@ -1702,35 +1702,6 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 };
-
-/* ************************************************************************** */
-
-void graphe_detail_notifie_parent_suranne(Mikisa &mikisa)
-{
-	auto graphe_detail = mikisa.graphe;
-	auto type_detail = std::any_cast<int>(graphe_detail->donnees[0]);
-	auto graphe = static_cast<Graphe *>(nullptr);
-
-	if (type_detail == DETAIL_PIXELS) {
-		auto noeud_composite = mikisa.bdd.graphe_composites()->noeud_actif;
-		auto composite = extrait_composite(noeud_composite->donnees());
-		graphe = &composite->graphe;
-	}
-	else {
-		auto noeud_objet = mikisa.bdd.graphe_objets()->noeud_actif;
-		auto objet = extrait_objet(noeud_objet->donnees());
-		graphe = &objet->graphe;
-	}
-
-	auto noeud_actif = graphe->noeud_actif;
-
-	/* Marque le noeud courant et ceux en son aval surannées. */
-	marque_surannee(noeud_actif, [](Noeud *n, PriseEntree *prise)
-	{
-		auto op = extrait_opimage(n->donnees());
-		op->amont_change(prise);
-	});
-}
 
 /* ************************************************************************** */
 

@@ -296,8 +296,8 @@ public:
 	static constexpr auto NOM = "Mélanger";
 	static constexpr auto AIDE = "Mélange deux images.";
 
-	OperatriceMelange(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceMelange(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -684,8 +684,8 @@ public:
 	static constexpr auto NOM = "Bruitage";
 	static constexpr auto AIDE = "Crée un bruit blanc.";
 
-	OperatriceBruitage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceBruitage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -751,8 +751,8 @@ public:
 	static constexpr auto NOM = "Constante";
 	static constexpr auto AIDE = "Applique une couleur constante à toute l'image.";
 
-	OperatriceConstante(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceConstante(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -818,8 +818,8 @@ public:
 	static constexpr auto NOM = "Dégradé";
 	static constexpr auto AIDE = "Génère un dégradé sur l'image.";
 
-	OperatriceDegrade(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceDegrade(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -955,8 +955,8 @@ public:
 	static constexpr auto NOM = "Étalonnage";
 	static constexpr auto AIDE = "Étalonne l'image au moyen d'une rampe linéaire et d'une fonction gamma.";
 
-	OperatriceEtalonnage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceEtalonnage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1145,8 +1145,8 @@ public:
 	static constexpr auto NOM = "Correction Gamma";
 	static constexpr auto AIDE = "Applique une correction gamma à l'image.";
 
-	OperatriceCorrectionGamma(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceCorrectionGamma(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1363,8 +1363,8 @@ public:
 	static constexpr auto NOM = "Mappage Tonal";
 	static constexpr auto AIDE = "Applique un mappage de ton local à l'image.";
 
-	OperatriceMappageTonal(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceMappageTonal(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1531,8 +1531,8 @@ public:
 	static constexpr auto NOM = "Correction Couleur";
 	static constexpr auto AIDE = "Corrige les couleur de l'image selon la formule de l'ASC CDL.";
 
-	OperatriceCorrectionCouleur(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceCorrectionCouleur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1592,8 +1592,8 @@ public:
 	static constexpr auto NOM = "Incrustation";
 	static constexpr auto AIDE = "Supprime les couleurs vertes d'une image.";
 
-	OperatriceIncrustation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceIncrustation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1676,8 +1676,8 @@ public:
 	static constexpr auto NOM = "Pré-multiplication";
 	static constexpr auto AIDE = "Prémultiplie les couleurs des pixels par leurs valeurs alpha respectives.";
 
-	OperatricePremultiplication(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatricePremultiplication(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1732,8 +1732,8 @@ public:
 	static constexpr auto NOM = "Contraste";
 	static constexpr auto AIDE = "Ajuste le contraste de l'image.";
 
-	OperatriceContraste(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceContraste(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1791,8 +1791,8 @@ public:
 	static constexpr auto NOM = "Courbe Couleur";
 	static constexpr auto AIDE = "Modifie l'image selon une courbe de couleur.";
 
-	OperatriceCourbeCouleur(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceCourbeCouleur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1852,8 +1852,8 @@ public:
 	static constexpr auto NOM = "MinMax";
 	static constexpr auto AIDE = "Change le point blanc et la point noir de l'image.";
 
-	OperatriceMinMax(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceMinMax(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1987,8 +1987,8 @@ public:
 	static constexpr auto NOM = "Daltonisme";
 	static constexpr auto AIDE = "Simule l'effet du daltonisme.";
 
-	OperatriceDaltonisme(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceDaltonisme(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

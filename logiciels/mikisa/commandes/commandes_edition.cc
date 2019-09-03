@@ -67,7 +67,7 @@ public:
 		}
 
 		auto noeud = graphe->noeud_actif;
-		auto operatrice = extrait_opimage(noeud->donnees());
+		auto operatrice = extrait_opimage(noeud->donnees);
 
 		auto attache = resultat.evalue_chaine("attache_propriete");
 		auto type = resultat.evalue_enum("type_propriete");

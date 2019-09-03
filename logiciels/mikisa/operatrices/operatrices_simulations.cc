@@ -31,6 +31,7 @@
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/delegue_hbe.hh"
+#include "coeur/graphe.hh"
 #include "coeur/operatrice_simulation.hh"
 #include "coeur/usine_operatrice.h"
 
@@ -46,8 +47,8 @@ public:
 	static constexpr auto NOM = "Entrée Simulation";
 	static constexpr auto AIDE = "";
 
-	OperatriceEntreeSimulation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceEntreeSimulation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -88,8 +89,8 @@ public:
 	static constexpr auto NOM = "Gravité";
 	static constexpr auto AIDE = "";
 
-	OperatriceGravite(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceGravite(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -142,8 +143,8 @@ public:
 	static constexpr auto NOM = "Vent";
 	static constexpr auto AIDE = "";
 
-	OperatriceVent(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceVent(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -206,8 +207,8 @@ public:
 	static constexpr auto NOM = "Solveur Particules";
 	static constexpr auto AIDE = "";
 
-	OperatriceSolveurParticules(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSolveurParticules(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -310,8 +311,8 @@ public:
 	static constexpr auto NOM = "Collision";
 	static constexpr auto AIDE = "";
 
-	OperatriceCollision(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCollision(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 	}
 
@@ -785,8 +786,8 @@ public:
 	static constexpr auto NOM = "Solveur N-Corps";
 	static constexpr auto AIDE = "";
 
-	OperatriceSolveurNCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSolveurNCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

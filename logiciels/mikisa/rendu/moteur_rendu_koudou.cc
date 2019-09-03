@@ -25,6 +25,7 @@
 #include "moteur_rendu_koudou.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/objet.h"

@@ -175,6 +175,7 @@ class OperatriceImage : public danjo::Manipulable {
 
 protected:
 	Graphe &m_graphe_parent;
+	Noeud &noeud;
 	Image m_image{};
 	bool m_execute_toujours = false;
 
@@ -184,7 +185,7 @@ public:
 	/* Prevent creating an operator without an accompanying node. */
 	OperatriceImage() = delete;
 
-	OperatriceImage(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceImage(Graphe &graphe_parent, Noeud &n);
 
 	OperatriceImage(OperatriceImage const &) = default;
 	OperatriceImage &operator=(OperatriceImage const &) = default;
@@ -289,7 +290,7 @@ public:
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines);
 
-	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud);
+	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau);
 
 	virtual bool depend_sur_temps() const;
 
@@ -306,10 +307,6 @@ calque_image const *cherche_calque(
 		dls::chaine const &nom_calque);
 
 /* ************************************************************************** */
-
-Noeud *cree_noeud_image();
-
-void supprime_noeud_image(Noeud *noeud);
 
 inline OperatriceImage *extrait_opimage(std::any const &any)
 {

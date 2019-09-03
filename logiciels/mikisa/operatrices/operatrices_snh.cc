@@ -298,7 +298,7 @@ public:
 	static constexpr auto NOM = "Stable Neo Hookean";
 	static constexpr auto AIDE = "";
 
-	OperatriceSNH(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceSNH(Graphe &graphe_parent, Noeud &noeud_);
 
 	const char *chemin_entreface() const override;
 
@@ -311,8 +311,8 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };
 
-OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
+OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
 	entrees(1);
 	sorties(1);

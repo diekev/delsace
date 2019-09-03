@@ -29,8 +29,8 @@
 #include "chef_execution.hh"
 #include "contexte_evaluation.hh"
 
-OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceImage(graphe_parent, noeud)
+OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceImage(graphe_parent, noeud_)
 {}
 
 int OperatricePixel::type() const

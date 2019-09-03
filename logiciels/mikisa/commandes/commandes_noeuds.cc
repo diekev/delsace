@@ -75,29 +75,20 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 		return false;
 	}
 
-	if (noeud->type() == NOEUD_OBJET || noeud->type() == NOEUD_COMPOSITE) {
+	if (noeud->type == type_noeud::OBJET || noeud->type == type_noeud::COMPOSITE) {
 		/* À FAIRE : considère avoir et mettre en place un objet actif. */
 		return false;
 	}
 
-	if (noeud->type() == NOEUD_IMAGE_SORTIE) {
-		auto const besoin_ajournement = (graphe.noeud_actif != mikisa.derniere_visionneuse_selectionnee);
-
-		mikisa.derniere_visionneuse_selectionnee = graphe.noeud_actif;
-		graphe.dernier_noeud_sortie = graphe.noeud_actif;
-
-		return besoin_ajournement;
-	}
-
-	if (noeud->type() == NOEUD_OBJET_SORTIE) {
+	if (noeud->est_sortie) {
 		auto const besoin_ajournement = (graphe.noeud_actif != graphe.dernier_noeud_sortie);
 
-		graphe.dernier_noeud_sortie = graphe.noeud_actif;
+		graphe.dernier_noeud_sortie = noeud;
 
 		return besoin_ajournement;
 	}
 
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 
 	if (operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
 		mikisa.manipulatrice_3d = operatrice->manipulatrice_3d(mikisa.type_manipulation_3d);
@@ -118,17 +109,11 @@ static bool noeud_connecte_sortie(Noeud *noeud, Noeud *sortie)
 		return false;
 	}
 
-	auto op_image = extrait_opimage(noeud->donnees());
-
-	if (strcmp(op_image->nom_classe(), "Sortie Détail") == 0 || strcmp(op_image->nom_classe(), "Sortie Attribut") == 0) {
+	if (noeud->est_sortie) {
 		return true;
 	}
 
-	if ((noeud->type() == NOEUD_IMAGE_SORTIE || noeud->type() == NOEUD_OBJET_SORTIE) && noeud == sortie) {
-		return true;
-	}
-
-	for (auto prise_sortie : noeud->sorties()) {
+	for (auto prise_sortie : noeud->sorties) {
 		for (auto prise_entree : prise_sortie->liens) {
 			if (noeud_connecte_sortie(prise_entree->parent, sortie)) {
 				return true;
@@ -177,9 +162,9 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto const &composite = extrait_composite(noeud_composite->donnees());
+		auto const &composite = extrait_composite(noeud_composite->donnees);
 
-		ImprimeuseGraphe gd(&composite->graphe);
+		ImprimeuseGraphe gd(&composite->noeud->graphe);
 		gd("/tmp/graphe_composite.gv");
 
 		if (system("dot /tmp/graphe_composite.gv -Tpng -o /tmp/graphe_composite.png") == -1) {
@@ -229,21 +214,15 @@ public:
 
 		auto nom = donnees.metadonnee;
 		auto graphe = mikisa->graphe;
-		auto noeud = graphe->cree_noeud(nom);
+		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
+		noeud->graphe.type = type_graphe::OBJET;
 
-		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
+		(mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
-
-		if (op->type() == OPERATRICE_SORTIE_IMAGE) {
-			noeud->type(NOEUD_IMAGE_SORTIE);
-		}
-		else if (op->type() == OPERATRICE_SORTIE_CORPS) {
-			noeud->type(NOEUD_OBJET_SORTIE);
-		}
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
-		if (besoin_evaluation || mikisa->contexte == GRAPHE_RACINE_OBJETS) {
+		if (besoin_evaluation) {
 			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
 		}
 
@@ -261,7 +240,8 @@ public:
 
 		auto nom = donnees.metadonnee;
 		auto graphe = mikisa->graphe;
-		auto noeud = graphe->cree_noeud(nom);
+		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
+		noeud->graphe.type = type_graphe::DETAIL;
 
 		auto op = cree_op_detail(*mikisa, *graphe, *noeud, nom);
 		op->cree_proprietes();
@@ -299,7 +279,7 @@ public:
 		}
 
 		auto graphe = mikisa->graphe;
-		auto noeud = graphe->cree_noeud(nom);
+		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
 
 		auto op = (mikisa->usine_operatrices())("Graphe Détail", *graphe, *noeud);
 
@@ -308,8 +288,9 @@ public:
 		/* il faut que le type de détail soit correct car il est possible que
 		 * l'opératrice ne fut pas exécutée avant que des noeuds soient ajoutés
 		 * dans son graphe */
-		op_graphe->graphe()->donnees.efface();
-		op_graphe->graphe()->donnees.pousse(type_detail);
+		noeud->graphe.donnees.efface();
+		noeud->graphe.donnees.pousse(type_detail);
+		noeud->graphe.type = type_graphe::DETAIL;
 
 		/* la synchronisation doit se faire après puisque nous avons besoin du
 		 * type de détail pour déterminer les types de sorties */
@@ -352,8 +333,8 @@ public:
 		trouve_noeud_prise(graphe->noeuds(), donnees.x, donnees.y, noeud_selection, prise_entree, prise_sortie);
 
 		if (noeud_selection != nullptr) {
-			delta_x = donnees.x - static_cast<float>(noeud_selection->pos_x());
-			delta_y = donnees.y - static_cast<float>(noeud_selection->pos_y());
+			delta_x = donnees.x - noeud_selection->pos_x();
+			delta_y = donnees.y - noeud_selection->pos_y();
 		}
 
 		if (prise_entree || prise_sortie) {
@@ -453,9 +434,15 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		if (connexion_sortie || m_prise_entree_deconnectee) {
-			if (mikisa->contexte == GRAPHE_DETAIL) {
-				graphe_detail_notifie_parent_suranne(*mikisa);
-			}
+			marque_parent_surannee(&graphe->noeud_parent, [](Noeud *n, PriseEntree *prise)
+			{
+				if (n->type != type_noeud::OPERATRICE) {
+					return;
+				}
+
+				auto op = extrait_opimage(n->donnees);
+				op->amont_change(prise);
+			});
 
 			requiers_evaluation(*mikisa, GRAPHE_MODIFIE, "graphe modifié");
 		}
@@ -476,29 +463,26 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		if (noeud == mikisa->derniere_visionneuse_selectionnee) {
-			mikisa->derniere_visionneuse_selectionnee = nullptr;
-		}
 		if (noeud == graphe->dernier_noeud_sortie) {
 			graphe->dernier_noeud_sortie = nullptr;
 		}
 
 		auto besoin_execution = false;
 
-		if (noeud->type() == NOEUD_OBJET) {
+		if (noeud->type == type_noeud::OBJET) {
 			besoin_execution = true;
 
-			auto objet = extrait_objet(noeud->donnees());
+			auto objet = extrait_objet(noeud->donnees);
 			mikisa->bdd.enleve_objet(objet);
 		}
-		else if (noeud->type() == NOEUD_COMPOSITE) {
+		else if (noeud->type == type_noeud::COMPOSITE) {
 			besoin_execution = true;
 
-			auto compo = extrait_composite(noeud->donnees());
+			auto compo = extrait_composite(noeud->donnees);
 			mikisa->bdd.enleve_composite(compo);
 		}
 		else {
-			auto operatrice = extrait_opimage(noeud->donnees());
+			auto operatrice = extrait_opimage(noeud->donnees);
 
 			if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
 				mikisa->manipulatrice_3d = nullptr;
@@ -514,9 +498,15 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution) {
-			if (mikisa->contexte == GRAPHE_DETAIL) {
-				graphe_detail_notifie_parent_suranne(*mikisa);
-			}
+			marque_parent_surannee(&graphe->noeud_parent, [](Noeud *n, PriseEntree *prise)
+			{
+				if (n->type != type_noeud::OPERATRICE) {
+					return;
+				}
+
+				auto op = extrait_opimage(n->donnees);
+				op->amont_change(prise);
+			});
 
 			requiers_evaluation(*mikisa, NOEUD_ENLEVE, "noeud supprimé");
 		}
@@ -584,19 +574,21 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
+		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
+
+		if (noeud == nullptr) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
 
 		auto sans_info = dls::outils::est_element(
-					mikisa->contexte,
-					GRAPHE_RACINE_OBJETS,
-					GRAPHE_RACINE_COMPOSITES);
+					noeud->type,
+					type_noeud::OBJET,
+					type_noeud::COMPOSITE);
 
 		if (sans_info) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
-
-		auto graphe = mikisa->graphe;
-
-		auto noeud = trouve_noeud(graphe->noeuds(), donnees.x, donnees.y);
 
 		if (noeud != nullptr) {
 			auto info_noeud = memoire::loge<InfoNoeud>("InfoNoeud");
@@ -604,10 +596,10 @@ public:
 			info_noeud->y = donnees.y;
 
 			dls::flux_chaine ss;
-			ss << "<p>Opératrice : " << noeud->nom() << "</p>";
+			ss << "<p>Opératrice : " << noeud->nom << "</p>";
 			ss << "<hr/>";
 
-			auto op = extrait_opimage(noeud->donnees());
+			auto op = extrait_opimage(noeud->donnees);
 
 			if (op->type() == OPERATRICE_CORPS || op->type() == OPERATRICE_SORTIE_CORPS) {
 				auto op_objet = dynamic_cast<OperatriceCorps *>(op);
@@ -670,10 +662,9 @@ public:
 			}
 
 			ss << "<p>Temps d'exécution :";
-			ss << "<p>- dernière : " << noeud->temps_execution() << " secondes.</p>";
-			ss << "<p>- minimum : " << noeud->temps_execution_minimum() << " secondes.</p>";
+			ss << "<p>- dernière : " << noeud->temps_execution << " secondes.</p>";
 			ss << "<hr/>";
-			ss << "<p>Nombre d'exécution : " << noeud->compte_execution() << "</p>";
+			ss << "<p>Nombre d'exécution : " << noeud->executions << "</p>";
 			ss << "<hr/>";
 
 			info_noeud->informations = ss.chn();
@@ -766,52 +757,13 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		if (noeud->type() == NOEUD_OBJET) {
-			auto objet = extrait_objet(noeud->donnees());
-
-			assert(mikisa->contexte == GRAPHE_RACINE_OBJETS);
-
-			if (objet->type != type_objet::CORPS) {
-				return EXECUTION_COMMANDE_ECHOUEE;
-			}
-
-			mikisa->graphe = &objet->graphe;
-			mikisa->contexte = GRAPHE_OBJET;
-
-			mikisa->chemin_courant = "/objets/" + objet->nom + "/";
+		if (!noeud->peut_avoir_graphe) {
+			return EXECUTION_COMMANDE_REUSSIE;
 		}
-		else if (noeud->type() == NOEUD_COMPOSITE) {
-			auto composite = extrait_composite(noeud->donnees());
 
-			assert(mikisa->contexte == GRAPHE_RACINE_COMPOSITES);
-
-			mikisa->graphe = &composite->graphe;
-			mikisa->contexte = GRAPHE_COMPOSITE;
-
-			mikisa->chemin_courant = "/composites/" + composite->nom + "/";
-		}
-		else {
-			auto operatrice = extrait_opimage(noeud->donnees());
-
-			if (operatrice->type() == OPERATRICE_GRAPHE_DETAIL) {
-				auto operatrice_graphe = dynamic_cast<OperatriceGrapheDetail *>(operatrice);
-
-				mikisa->graphe = operatrice_graphe->graphe();
-				mikisa->contexte = GRAPHE_DETAIL;
-
-				mikisa->chemin_courant += noeud->nom() + "/";
-			}
-			else if (operatrice->type() == OPERATRICE_SIMULATION) {
-				assert(mikisa->contexte == GRAPHE_OBJET);
-
-				auto operatrice_graphe = dynamic_cast<OperatriceSimulation *>(operatrice);
-
-				mikisa->graphe = operatrice_graphe->graphe();
-				mikisa->contexte = GRAPHE_SIMULATION;
-
-				mikisa->chemin_courant += noeud->nom() + "/";
-			}
-		}
+		mikisa->noeud = noeud;
+		mikisa->graphe = &noeud->graphe;
+		mikisa->chemin_courant = noeud->chemin();
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
@@ -827,50 +779,15 @@ public:
 	{
 		auto mikisa = extrait_mikisa(pointeur);
 
-		switch (mikisa->contexte) {
-			case GRAPHE_RACINE_COMPOSITES:
-			case GRAPHE_RACINE_OBJETS:
-			{
-				return EXECUTION_ECHOUEE;
-			}
-			case GRAPHE_OBJET:
-			{
-				mikisa->graphe = mikisa->bdd.graphe_objets();
-				mikisa->contexte = GRAPHE_RACINE_OBJETS;
-				mikisa->chemin_courant = "/objets/";
-				break;
-			}
-			case GRAPHE_DETAIL:
-			case GRAPHE_SIMULATION:
-			{
-				/* À FAIRE - système d'entité où on remonte au parent */
-				if (mikisa->chemin_courant[1] == 'c') {
-					auto noeud_actif = mikisa->bdd.graphe_composites()->noeud_actif;
-					auto composite = extrait_composite(noeud_actif->donnees());
+		auto noeud_parent = mikisa->noeud->parent;
 
-					mikisa->graphe = &composite->graphe;
-					mikisa->contexte = GRAPHE_COMPOSITE;
-					mikisa->chemin_courant = "/composites/" + composite->nom + "/";
-				}
-				else {
-					auto noeud_actif = mikisa->bdd.graphe_objets()->noeud_actif;
-					auto objet = extrait_objet(noeud_actif->donnees());
-
-					mikisa->graphe = &objet->graphe;
-					mikisa->contexte = GRAPHE_OBJET;
-					mikisa->chemin_courant = "/objets/" + objet->nom + "/";
-				}
-
-				break;
-			}
-			case GRAPHE_COMPOSITE:
-			{
-				mikisa->graphe = mikisa->bdd.graphe_composites();
-				mikisa->contexte = GRAPHE_RACINE_COMPOSITES;
-				mikisa->chemin_courant = "/composites/";
-				break;
-			}
+		if (!noeud_parent) {
+			return EXECUTION_ECHOUEE;
 		}
+
+		mikisa->noeud = noeud_parent;
+		mikisa->graphe = &noeud_parent->graphe;
+		mikisa->chemin_courant = noeud_parent->chemin();
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
@@ -1045,13 +962,13 @@ public:
 
 		if (metadonnee == "composites") {
 			mikisa->graphe = mikisa->bdd.graphe_composites();
-			mikisa->contexte = GRAPHE_RACINE_COMPOSITES;
 			mikisa->chemin_courant = "/composites/";
+			mikisa->noeud = nullptr;
 		}
 		else if (metadonnee == "objets") {
 			mikisa->graphe = mikisa->bdd.graphe_objets();
-			mikisa->contexte = GRAPHE_RACINE_OBJETS;
 			mikisa->chemin_courant = "/objets/";
+			mikisa->noeud = nullptr;
 		}
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);

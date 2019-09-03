@@ -24,13 +24,13 @@
 
 #include "operatrices_3d.h"
 
-#include "biblinternes/graphe/noeud.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/texture/texture.h"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/manipulatrice.h"
+#include "coeur/noeud.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
@@ -47,8 +47,8 @@ public:
 	static constexpr auto NOM = "Texture";
 	static constexpr auto AIDE = "Crée une texture.";
 
-	OperatriceTexture(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceTexture(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);

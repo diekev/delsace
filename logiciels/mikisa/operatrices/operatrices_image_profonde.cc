@@ -25,7 +25,6 @@
 #include "operatrices_image_profonde.hh"
 
 #include "biblinternes/moultfilage/boucle.hh"
-#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -110,8 +109,8 @@ public:
 	static constexpr auto NOM = "Aplanis Image Profonde";
 	static constexpr auto AIDE = "";
 
-	OpAplanisProfonde(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OpAplanisProfonde(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -255,8 +254,8 @@ public:
 	static constexpr auto NOM = "Fusion Profondes";
 	static constexpr auto AIDE = "";
 
-	OpFusionProfonde(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OpFusionProfonde(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -455,33 +454,6 @@ public:
 
 /* ************************************************************************** */
 
-static Noeud *cherche_entite(BaseDeDonnees const &bdd, dls::chaine const &chemin)
-{
-	auto morceaux = dls::morcelle(chemin, '/');
-
-	auto entite_racine = static_cast<Entite *>(nullptr);
-
-	if (morceaux[0] == "composites") {
-		if (morceaux.taille() < 2) {
-			return nullptr;
-		}
-
-		entite_racine = bdd.composite(morceaux[1]);
-	}	
-
-	if (entite_racine == nullptr || morceaux.taille() < 3) {
-		return nullptr;
-	}
-
-	for (auto noeud : entite_racine->graphe.noeuds()) {
-		if (noeud->nom() == morceaux[2]) {
-			return noeud;
-		}
-	}
-
-	return nullptr;
-}
-
 class OpPointsDepuisProfonde final : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
@@ -490,8 +462,8 @@ public:
 	static constexpr auto NOM = "Point depuis Profonde";
 	static constexpr auto AIDE = "";
 
-	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpPointsDepuisProfonde(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -543,19 +515,19 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto noeud = cherche_entite(*contexte.bdd, chemin_noeud);
+		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
 
-		if (noeud == nullptr) {
+		if (noeud_image == nullptr) {
 			this->ajoute_avertissement("Impossible de trouver le noeud !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		if (noeud->type() != NOEUD_IMAGE_DEFAUT) {
+		if (noeud_image->type != type_noeud::OPERATRICE) {
 			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto op = extrait_opimage(noeud->donnees());
+		auto op = extrait_opimage(noeud_image->donnees);
 		auto image = op->image();
 
 		if (!image->est_profonde) {
@@ -661,7 +633,7 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
 	{
 		if (m_objet == nullptr) {
 			m_objet = trouve_objet(contexte);
@@ -671,7 +643,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
 	}
 
 	void obtiens_liste(
@@ -681,7 +653,7 @@ public:
 	{
 		if (raison == "nom_caméra") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->nom);
+				liste.pousse(objet->noeud->nom);
 			}
 		}
 	}
@@ -709,8 +681,8 @@ public:
 	static constexpr auto NOM = "Cache Image";
 	static constexpr auto AIDE = "";
 
-	OpCacheImage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OpCacheImage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);

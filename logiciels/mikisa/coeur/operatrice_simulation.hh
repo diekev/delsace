@@ -24,15 +24,11 @@
 
 #pragma once
 
-#include "biblinternes/graphe/graphe.h"
-
 #include "corps/corps.h"
 
 #include "operatrice_corps.h"
 
 class OperatriceSimulation final : public OperatriceCorps {
-	Graphe m_graphe;
-
 	int m_dernier_temps = 0;
 	int pad = 0;
 
@@ -43,15 +39,13 @@ public:
 	static constexpr auto NOM = "Simulation";
 	static constexpr auto AIDE = "Ajoute un noeud de simulation physique";
 
-	OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud_);
 
 	virtual const char *nom_classe() const override;
 
 	virtual const char *texte_aide() const override;
 
 	const char *chemin_entreface() const override;
-
-	Graphe *graphe();
 
 	int type() const override;
 

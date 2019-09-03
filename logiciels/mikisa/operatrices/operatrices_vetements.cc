@@ -487,8 +487,8 @@ public:
 	static constexpr auto NOM = "Simulation Vêtement";
 	static constexpr auto AIDE = "Simule un vêtement selon l'algorithme de Dynamiques Basées Point.";
 
-	OperatriceSimVetement(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSimVetement(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1057,8 +1057,8 @@ public:
 	static constexpr auto NOM = "Patch Triangle";
 	static constexpr auto AIDE = "";
 
-	OpPatchTriangle(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpPatchTriangle(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);

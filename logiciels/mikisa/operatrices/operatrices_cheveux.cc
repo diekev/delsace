@@ -70,8 +70,8 @@ public:
 	static constexpr auto NOM = "Création Courbes";
 	static constexpr auto AIDE = "Crée des courbes.";
 
-	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -323,8 +323,8 @@ public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *nom_classe() const override
@@ -396,8 +396,8 @@ public:
 				 * un autre test de chevauchement est performé entre le segment
 				 * et la boite englobante de la primitive
 				 */
-				for (auto noeud : noeuds) {
-					for (auto idx : noeud->refs) {
+				for (auto noeud_hbe : noeuds) {
+					for (auto idx : noeud_hbe->refs) {
 						auto lmt = delegue.calcule_limites(idx);
 						auto mind = dls::math::converti_type_point<double>(lmt.min);
 						auto maxd = dls::math::converti_type_point<double>(lmt.max);
@@ -471,8 +471,8 @@ public:
 	static constexpr auto NOM = "Masse Ressort";
 	static constexpr auto AIDE = "";
 
-	OperatriceMasseRessort(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceMasseRessort(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -613,8 +613,8 @@ public:
 	static constexpr auto NOM = "Touffe Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpTouffeCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpTouffeCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 	}
@@ -746,8 +746,8 @@ public:
 	static constexpr auto NOM = "Bruit Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpBruitCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpBruitCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -852,8 +852,8 @@ public:
 	static constexpr auto NOM = "Mélange Cheveux";
 	static constexpr auto AIDE = "Fusionne les points de deux ensemble de cheveux.";
 
-	OpMelangeCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpMelangeCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -985,8 +985,8 @@ public:
 	static constexpr auto NOM = "Simulation Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpSimCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpSimCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	~OpSimCheveux()

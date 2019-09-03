@@ -226,8 +226,8 @@ public:
 	static constexpr auto NOM = "Vent Terrain";
 	static constexpr auto AIDE = "";
 
-	OpVentTerrain(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpVentTerrain(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(2);
@@ -772,8 +772,8 @@ public:
 	static constexpr auto NOM = "Érosion Terrain";
 	static constexpr auto AIDE = "";
 
-	OpErosionTerrain(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpErosionTerrain(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(2);
@@ -943,8 +943,8 @@ public:
 	static constexpr auto NOM = "Incline Terrain";
 	static constexpr auto AIDE = "";
 
-	OpInclineTerrain(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpInclineTerrain(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -1018,8 +1018,8 @@ public:
 	static constexpr auto NOM = "Crée Terrain";
 	static constexpr auto AIDE = "";
 
-	OpCreeTerrain(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCreeTerrain(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(0);
@@ -1117,8 +1117,8 @@ public:
 	static constexpr auto NOM = "Évalue Terrain";
 	static constexpr auto AIDE = "";
 
-	OpEvalueTerrain(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpEvalueTerrain(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

@@ -44,6 +44,7 @@
 #include "coeur/donnees_aval.hh"
 #include "coeur/gestionnaire_fichier.hh"
 #include "coeur/manipulatrice.h"
+#include "coeur/noeud.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
@@ -86,8 +87,8 @@ class OperatriceCreationCorps : public OperatriceCorps {
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
 public:
-	OperatriceCreationCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -155,8 +156,8 @@ public:
 	static constexpr auto NOM = "Création Cube";
 	static constexpr auto AIDE = "Crée un cube.";
 
-	OperatriceCreationCube(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCube(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -199,8 +200,8 @@ public:
 	static constexpr auto NOM = "Création Sphère UV";
 	static constexpr auto AIDE = "Crée une sphère UV.";
 
-	OperatriceCreationSphereUV(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationSphereUV(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -245,8 +246,8 @@ public:
 	static constexpr auto NOM = "Création Cylindre";
 	static constexpr auto AIDE = "Crée un cylindre.";
 
-	OperatriceCreationCylindre(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCylindre(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -292,8 +293,8 @@ public:
 	static constexpr auto NOM = "Création Cone";
 	static constexpr auto AIDE = "Crée un cone.";
 
-	OperatriceCreationCone(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCone(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -338,8 +339,8 @@ public:
 	static constexpr auto NOM = "Création Grille";
 	static constexpr auto AIDE = "Crée une grille.";
 
-	OperatriceCreationGrille(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationGrille(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -385,8 +386,8 @@ public:
 	static constexpr auto NOM = "Création Sphère Ico";
 	static constexpr auto AIDE = "Crée une sphère ico.";
 
-	OperatriceCreationSphereIco(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationSphereIco(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -429,8 +430,8 @@ public:
 	static constexpr auto NOM = "Création Torus";
 	static constexpr auto AIDE = "Crée un torus.";
 
-	OperatriceCreationTorus(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationTorus(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -476,8 +477,8 @@ public:
 	static constexpr auto NOM = "Création Cercle";
 	static constexpr auto AIDE = "Crée un cercle.";
 
-	OperatriceCreationCercle(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCercle(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -523,8 +524,8 @@ public:
 	static constexpr auto NOM = "Création Ligne";
 	static constexpr auto AIDE = "Crée une ligne.";
 
-	OperatriceCreationLigne(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationLigne(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -594,8 +595,8 @@ public:
 	static constexpr auto NOM = "Lecture Objet";
 	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
 
-	OperatriceLectureObjet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceLectureObjet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -729,8 +730,8 @@ public:
 	static constexpr auto NOM = "Fusionnage Corps";
 	static constexpr auto AIDE = "Fusionnage Corps.";
 
-	OperatriceFusionnageCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceFusionnageCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -1039,8 +1040,8 @@ public:
 	static constexpr auto NOM = "Transformation";
 	static constexpr auto AIDE = "Transformer les matrices des primitives d'entrées.";
 
-	OperatriceTransformation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceTransformation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1152,11 +1153,13 @@ public:
 	static constexpr auto NOM = "Sortie Corps";
 	static constexpr auto AIDE = "Crée une sortie d'un graphe de corps.";
 
-	OperatriceSortieCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSortieCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	int type() const override
@@ -1190,8 +1193,8 @@ public:
 	static constexpr auto NOM = "Séparation Primitives";
 	static constexpr auto AIDE = "Sépare les primitives du corps d'entrée de sorte que chaque primitive du corps de sortie n'ait que des points uniques.";
 
-	OperatriceSeparationPrims(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSeparationPrims(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1375,8 +1378,8 @@ public:
 	static constexpr auto NOM = "Création Kelvinlet";
 	static constexpr auto AIDE = "Ajout un ou plusieurs déformeurs pour calculer les dynamiques de Kelvinlets.";
 
-	OpCreationKelvinlet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCreationKelvinlet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1); // À FAIRE : une seule connexion de sortie
@@ -1479,8 +1482,8 @@ public:
 	static constexpr auto NOM = "Évaluation Kelvinlet";
 	static constexpr auto AIDE = "";
 
-	OpEvaluationKelvinlet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpEvaluationKelvinlet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -1597,8 +1600,8 @@ public:
 	static constexpr auto NOM = "Déformation Kelvinlet";
 	static constexpr auto AIDE = "";
 
-	OpDeformationKelvinlet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpDeformationKelvinlet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1893,8 +1896,8 @@ public:
 	static constexpr auto NOM = "Création LatLong";
 	static constexpr auto AIDE = "Crée un contour de données de latitude et longitude sur une sphère.";
 
-	OperatriceCreationLatLong(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationLatLong(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -2071,8 +2074,8 @@ public:
 	static constexpr auto NOM = "Cache Corps";
 	static constexpr auto AIDE = "";
 
-	OpCacheCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCacheCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);

@@ -99,14 +99,14 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 		return;
 	}
 
-	auto &graphe = objet->graphe;
+	auto &graphe = objet->noeud->graphe;
 	auto noeud_sortie = graphe.dernier_noeud_sortie;
 
 	if (noeud_sortie == nullptr) {
 		return;
 	}
 
-	auto operatrice = extrait_opimage(noeud_sortie->donnees());
+	auto operatrice = extrait_opimage(noeud_sortie->donnees);
 
 	auto const t0 = tbb::tick_count::now();
 
@@ -115,7 +115,7 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 
 	auto const t1 = tbb::tick_count::now();
 	auto const delta = (t1 - t0).seconds();
-	noeud_sortie->temps_execution(static_cast<float>(delta));
+	noeud_sortie->temps_execution = static_cast<float>(delta);
 
 	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
 	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
@@ -173,7 +173,7 @@ void TacheEvaluationPlan::evalue()
 
 	for (auto &noeud : m_plan->noeuds) {
 		if (noeud->objet != nullptr) {
-			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->noeud->nom << FIN_LOG_EVALUATION;
 		}
 
 		evalue_objet(m_contexte, noeud->objet);
@@ -202,7 +202,7 @@ void Executrice::execute_plan(Mikisa &mikisa,
 		/* tag les noeuds des graphes pour l'exécution temporelle */
 		for (auto &noeud : plan->noeuds) {
 			if (noeud->objet != nullptr) {
-				DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->nom << FIN_LOG_EVALUATION;
+				DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->noeud->nom << FIN_LOG_EVALUATION;
 			}
 
 			evalue_objet(contexte, noeud->objet);
@@ -226,15 +226,15 @@ void Executrice::execute_plan(Mikisa &mikisa,
 
 static void evalue_composite(Mikisa &mikisa, Composite *composite)
 {
-	auto &graphe = composite->graphe;
+	auto &graphe = composite->noeud->graphe;
 
 	/* Essaie de trouver une visionneuse. */
 
-	Noeud *visionneuse = mikisa.derniere_visionneuse_selectionnee;
+	Noeud *visionneuse = graphe.dernier_noeud_sortie;
 
 	if (visionneuse == nullptr) {
 		for (auto noeud : graphe.noeuds()) {
-			if (noeud->type() == NOEUD_IMAGE_SORTIE) {
+			if (noeud->est_sortie) {
 				visionneuse = noeud;
 				break;
 			}
@@ -250,7 +250,7 @@ static void evalue_composite(Mikisa &mikisa, Composite *composite)
 	execute_noeud(*visionneuse, contexte, nullptr);
 
 	Image image;
-	auto operatrice = extrait_opimage(visionneuse->donnees());
+	auto operatrice = extrait_opimage(visionneuse->donnees);
 	operatrice->transfere_image(image);
 	composite->image(image);
 }

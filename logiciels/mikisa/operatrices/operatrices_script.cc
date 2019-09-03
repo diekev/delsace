@@ -384,8 +384,8 @@ public:
 	static constexpr auto NOM = "Script Topologie";
 	static constexpr auto AIDE = "";
 
-	OpScriptTopologie(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpScriptTopologie(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -540,8 +540,8 @@ public:
 	static constexpr auto NOM = "Script Détail";
 	static constexpr auto AIDE = "";
 
-	OpScriptDetail(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpScriptDetail(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);

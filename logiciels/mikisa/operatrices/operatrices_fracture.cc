@@ -231,8 +231,8 @@ public:
 	static constexpr auto NOM = "Booléens maillages";
 	static constexpr auto AIDE = "";
 
-	OpBooleensMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpBooleensMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -1467,8 +1467,8 @@ public:
 	static constexpr auto NOM = "Fracture Voronoi";
 	static constexpr auto AIDE = "";
 
-	OperatriceFractureVoronoi(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceFractureVoronoi(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);

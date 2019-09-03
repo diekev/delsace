@@ -81,4 +81,4 @@ add_executable(test_lcc test_lcc.cc)
 
 target_include_directories(test_lcc PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(test_lcc ${NOM_PROJET} bib_graphe memoire)
+target_link_libraries(test_lcc ${NOM_PROJET} memoire)

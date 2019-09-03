@@ -24,7 +24,6 @@
 
 #include "operatrice_image.h"
 
-#include "biblinternes/graphe/noeud.h"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -33,6 +32,7 @@
 #include "corps/corps.h"
 
 #include "chef_execution.hh"
+#include "noeud.hh"
 #include "noeud_image.h"
 #include "operatrice_graphe_detail.hh"
 #include "usine_operatrice.h"
@@ -74,7 +74,7 @@ Image const *EntreeOperatrice::requiers_image(
 
 	execute_noeud(*noeud, contexte, donnees_aval);
 
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto image = operatrice->image();
 
 	for (auto const &calque : image->calques()) {
@@ -124,7 +124,7 @@ const Corps *EntreeOperatrice::requiers_corps(
 
 	execute_noeud(*noeud, contexte, donnees_aval);
 
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 
 	return operatrice->corps();
 }
@@ -167,7 +167,7 @@ void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaine
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -192,7 +192,7 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &ch
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -217,7 +217,7 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = extrait_opimage(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -258,7 +258,7 @@ void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 
 		liste.pousse(noeud);
 
-		for (auto entree : noeud->entrees()) {
+		for (auto entree : noeud->entrees) {
 			for (auto sortie : entree->liens) {
 				pile.empile(sortie->parent);
 			}
@@ -269,8 +269,8 @@ void EntreeOperatrice::signale_cache(ChefExecution *chef) const
 	auto delta = 100.0f / static_cast<float>(liste.taille());
 
 	for (auto noeud : liste) {
-		noeud->besoin_execution(true);
-		auto op = extrait_opimage(noeud->donnees());
+		noeud->besoin_execution = true;
+		auto op = extrait_opimage(noeud->donnees);
 		op->libere_memoire();
 
 		chef->indique_progression(progres + delta);
@@ -291,10 +291,11 @@ PriseSortie *SortieOperatrice::pointeur()
 
 /* ************************************************************************** */
 
-OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud &noeud)
+OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud &n)
 	: m_graphe_parent(graphe_parent)
+	, noeud(n)
 {
-	noeud.donnees(this);
+	noeud.donnees = this;
 	m_input_data.redimensionne(m_num_inputs);
 	m_sorties.redimensionne(m_num_outputs);
 }
@@ -502,11 +503,11 @@ void OperatriceImage::obtiens_liste(
 	entree(0)->obtiens_liste_calque(chaines);
 }
 
-void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud)
+void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau)
 {
 	INUTILISE(contexte);
 	INUTILISE(compilatrice);
-	INUTILISE(noeud);
+	INUTILISE(noeud_reseau);
 }
 
 bool OperatriceImage::depend_sur_temps() const
@@ -558,37 +559,4 @@ calque_image const *cherche_calque(
 	}
 
 	return tampon;
-}
-
-/* ************************************************************************** */
-
-static void supprime_operatrice_image(std::any pointeur)
-{
-	auto ptr = extrait_opimage(pointeur);
-
-	auto ptr_detail = dynamic_cast<OperatriceFonctionDetail *>(ptr);
-
-	if (ptr_detail != nullptr) {
-		memoire::deloge("Fonction Détail", ptr_detail);
-		return;
-	}
-
-	/* Lorsque nous logeons un pointeur nous utilisons la taille de la classe
-	 * dérivée pour estimer la quantité de mémoire allouée. Donc pour déloger
-	 * proprement l'opératrice, en prenant en compte la taille de la classe
-	 * dériviée, il faut transtyper le pointeur vers le bon type dérivée. Pour
-	 * ce faire, nous devons utiliser l'usine pour avoir accès aux descriptions
-	 * des opératrices. */
-	auto usine = ptr->usine();
-	usine->deloge(ptr);
-}
-
-Noeud *cree_noeud_image()
-{
-	return memoire::loge<Noeud>("Noeud", supprime_operatrice_image);
-}
-
-void supprime_noeud_image(Noeud *noeud)
-{
-	memoire::deloge("Noeud", noeud);
 }
