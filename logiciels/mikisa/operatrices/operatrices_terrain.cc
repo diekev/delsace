@@ -1020,9 +1020,7 @@ public:
 /* ************************************************************************** */
 
 class OpCreeTerrain final : public OperatriceCorps {
-	compileuse_lng m_compileuse{};
-	gestionnaire_propriete m_gest_props{};
-	gestionnaire_propriete m_gest_attrs{};
+	CompileuseGrapheLCC m_compileuse;
 
 public:
 	static constexpr auto NOM = "Crée Terrain";
@@ -1030,6 +1028,7 @@ public:
 
 	OpCreeTerrain(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
+		, m_compileuse(noeud_.graphe)
 	{
 		m_execute_toujours = true;
 		entrees(0);
@@ -1062,7 +1061,7 @@ public:
 
 		auto chef = contexte.chef;
 
-		if (!compile_graphe(contexte)) {
+		if (!m_compileuse.compile_graphe(contexte, nullptr)) {
 			ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
 			return EXECUTION_ECHOUEE;
 		}
@@ -1093,16 +1092,14 @@ public:
 					auto p = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
 
 					auto pos = dls::math::vec3f(p, 0.0f);
-					remplis_donnees(donnees, m_gest_props, "P", pos);
+					m_compileuse.remplis_donnees(donnees, "P", pos);
 
-					lcc::execute_pile(
+					m_compileuse.execute_pile(
 								ctx_exec,
 								ctx_local,
-								donnees,
-								m_compileuse.instructions(),
-								static_cast<int>(index));
+								donnees);
 
-					auto idx_sortie = m_gest_props.pointeur_donnees("hauteur");
+					auto idx_sortie = m_compileuse.pointeur_donnees("hauteur");
 
 					if (idx_sortie != -1) {
 						auto h = donnees.charge_decimal(idx_sortie);
@@ -1118,43 +1115,6 @@ public:
 		});
 
 		return EXECUTION_REUSSIE;
-	}
-
-	bool compile_graphe(const ContexteEvaluation &contexte)
-	{
-		m_compileuse = compileuse_lng();
-		m_gest_props = gestionnaire_propriete();
-		m_gest_attrs = gestionnaire_propriete();
-
-		if (noeud.graphe.besoin_ajournement) {
-			tri_topologique(noeud.graphe);
-			noeud.graphe.besoin_ajournement = false;
-		}
-
-		auto donnees_aval = DonneesAval{};
-		donnees_aval.table.insere({"compileuse", &m_compileuse});
-		donnees_aval.table.insere({"gest_props", &m_gest_props});
-		donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
-
-		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-		m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
-
-		for (auto &noeud_graphe : noeud.graphe.noeuds()) {
-			for (auto &sortie : noeud_graphe->sorties) {
-				sortie->decalage_pile = 0;
-			}
-
-			auto operatrice = extrait_opimage(noeud_graphe->donnees);
-			operatrice->reinitialise_avertisements();
-
-			auto resultat = operatrice->execute(contexte, &donnees_aval);
-
-			if (resultat == EXECUTION_ECHOUEE) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 };
 

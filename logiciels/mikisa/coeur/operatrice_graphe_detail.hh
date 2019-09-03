@@ -45,10 +45,44 @@ struct Mikisa;
 
 /* ************************************************************************** */
 
-class OperatriceGrapheDetail final : public OperatriceCorps {
+struct CompileuseGrapheLCC {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
 	gestionnaire_propriete m_gest_attrs{};
+
+	Graphe &graphe;
+
+	CompileuseGrapheLCC(Graphe &ptr_graphe);
+
+	lcc::pile &donnees();
+
+	template <typename T>
+	void remplis_donnees(
+			lcc::pile &donnees_pile,
+			dls::chaine const &nom,
+			T const &valeur)
+	{
+		::remplis_donnees(donnees_pile, m_gest_props, nom, valeur);
+	}
+
+	void stocke_attributs(lcc::pile &donnees, long idx_attr);
+
+	void charge_attributs(lcc::pile &donnees, long idx_attr);
+
+	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
+
+	void execute_pile(
+			lcc::ctx_exec &ctx_exec,
+			lcc::ctx_local &ctx_local,
+			lcc::pile &donnees_pile);
+
+	int pointeur_donnees(dls::chaine const &nom);
+};
+
+/* ************************************************************************** */
+
+class OperatriceGrapheDetail final : public OperatriceCorps {
+	CompileuseGrapheLCC m_compileuse;
 
 public:
 	int type_detail = DETAIL_POINTS;
@@ -71,8 +105,6 @@ public:
 	int type() const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
-
-	bool compile_graphe(ContexteEvaluation const &contexte);
 
 private:
 	int execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);

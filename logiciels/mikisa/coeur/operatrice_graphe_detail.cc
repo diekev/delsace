@@ -44,6 +44,43 @@
 
 /* ************************************************************************** */
 
+/* les sorties des noeuds d'entrées */
+static lcc::param_sorties params_noeuds_entree[] = {
+	/* entrée détail point */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail voxel */
+	lcc::param_sorties(
+		lcc::donnees_parametre("densité", lcc::type_var::DEC),
+		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
+		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
+	/* entrée détail pixel */
+	lcc::param_sorties(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR),
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail terrain */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+};
+
+/* les entrées des noeuds de sorties */
+static lcc::param_entrees params_noeuds_sortie[] = {
+	/* sortie détail point */
+	lcc::param_entrees(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* sortie détail voxel */
+	lcc::param_entrees(
+		lcc::donnees_parametre("densité", lcc::type_var::DEC)),
+	/* sortie détail pixel */
+	lcc::param_entrees(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
+	/* entrée détail terrain */
+	lcc::param_entrees(
+		lcc::donnees_parametre("hauteur", lcc::type_var::DEC)),
+};
+
+/* ************************************************************************** */
+
 static auto stocke_attributs(
 		gestionnaire_propriete const &gest_attrs,
 		lcc::pile &donnees,
@@ -107,340 +144,6 @@ static auto charge_attributs(
 			}
 		}
 	}
-}
-
-OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud_)
-	: OperatriceCorps(graphe_parent, noeud_)
-{
-	noeud.peut_avoir_graphe = true;
-	noeud.graphe.type = type_graphe::DETAIL;
-	noeud.graphe.donnees.efface();
-	noeud.graphe.donnees.pousse(type_detail);
-
-	entrees(1);
-	sorties(1);
-}
-
-const char *OperatriceGrapheDetail::nom_classe() const
-{
-	return NOM;
-}
-
-const char *OperatriceGrapheDetail::texte_aide() const
-{
-	return AIDE;
-}
-
-const char *OperatriceGrapheDetail::chemin_entreface() const
-{
-	if (type_detail == DETAIL_PIXELS) {
-		return "";
-	}
-
-	return "";
-}
-
-type_prise OperatriceGrapheDetail::type_entree(int) const
-{
-	if (type_detail == DETAIL_PIXELS) {
-		return type_prise::IMAGE;
-	}
-
-	return type_prise::CORPS;
-}
-
-type_prise OperatriceGrapheDetail::type_sortie(int) const
-{
-	if (type_detail == DETAIL_PIXELS) {
-		return type_prise::IMAGE;
-	}
-
-	return type_prise::CORPS;
-}
-
-int OperatriceGrapheDetail::type() const
-{
-	return OPERATRICE_GRAPHE_DETAIL;
-}
-
-int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (!this->entree(0)->connectee()) {
-		ajoute_avertissement("L'entrée n'est pas connectée !");
-		return EXECUTION_ECHOUEE;
-	}
-
-	noeud.graphe.donnees.efface();
-	noeud.graphe.donnees.pousse(type_detail);
-
-	if (type_detail == DETAIL_PIXELS) {
-		return execute_detail_pixel(contexte, donnees_aval);
-	}
-
-	return execute_detail_corps(contexte, donnees_aval);
-}
-
-int OperatriceGrapheDetail::execute_detail_pixel(
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval)
-{
-	m_image.reinitialise();
-
-	auto chef = contexte.chef;
-
-	if (!compile_graphe(contexte)) {
-		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-		return EXECUTION_ECHOUEE;
-	}
-
-	calque_image *calque = nullptr;
-	auto const &rectangle = contexte.resolution_rendu;
-
-	if (entrees() == 0) {
-		m_image.reinitialise();
-		auto desc = desc_depuis_rectangle(rectangle);
-		calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
-	}
-	else if (entrees() >= 1) {
-		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
-		auto nom_calque = "image";// evalue_chaine("nom_calque");
-		calque = m_image.calque_pour_ecriture(nom_calque);
-	}
-
-	if (calque == nullptr) {
-		ajoute_avertissement("Calque introuvable !");
-		return EXECUTION_ECHOUEE;
-	}
-
-	chef->demarre_evaluation("graphe détail pixel");
-
-	auto desc = calque->tampon()->desc();
-
-	auto tampon = extrait_grille_couleur(calque);
-	auto largeur_inverse = 1.0f / static_cast<float>(desc.resolution.x);
-	auto hauteur_inverse = 1.0f / static_cast<float>(desc.resolution.y);
-
-	auto ctx_exec = lcc::ctx_exec{};
-
-	boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
-					 [&](tbb::blocked_range<int> const &plage)
-	{
-		if (chef->interrompu()) {
-			return;
-		}
-
-		/* fais une copie locale pour éviter les problèmes de concurrence critique */
-		auto donnees = m_compileuse.donnees();
-		auto ctx_local = lcc::ctx_local{};
-
-		for (auto l = plage.begin(); l < plage.end(); ++l) {
-			for (auto c = 0; c < desc.resolution.x; ++c) {
-				auto const x = static_cast<float>(c) * largeur_inverse;
-				auto const y = static_cast<float>(l) * hauteur_inverse;
-
-				auto index = tampon->calcul_index(dls::math::vec2i(c, l));
-
-				auto pos = dls::math::vec3f(x, y, 0.0f);
-				remplis_donnees(donnees, m_gest_props, "P", pos);
-
-				auto clr = tampon->valeur(index);
-				remplis_donnees(donnees, m_gest_props, "couleur", clr);
-
-				lcc::execute_pile(
-							ctx_exec,
-							ctx_local,
-							donnees,
-							m_compileuse.instructions(),
-							static_cast<int>(index));
-
-				auto idx_sortie = m_gest_props.pointeur_donnees("couleur");
-				clr = donnees.charge_couleur(idx_sortie);
-
-				tampon->valeur(index, clr);
-			}
-		}
-
-		auto delta = static_cast<float>(plage.end() - plage.begin());
-		delta *= hauteur_inverse;
-
-		chef->indique_progression_parallele(delta * 100.0f);
-	});
-
-	chef->indique_progression(100.0f);
-
-	return EXECUTION_REUSSIE;
-}
-
-int OperatriceGrapheDetail::execute_detail_corps(
-		ContexteEvaluation const &contexte,
-		DonneesAval *donnees_aval)
-{
-
-	m_corps.reinitialise();
-	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-
-	auto volume = static_cast<Volume *>(nullptr);
-
-	switch (type_detail) {
-		case DETAIL_POINTS:
-		{
-			if (!valide_corps_entree(*this, &m_corps, true, false)) {
-				return EXECUTION_ECHOUEE;
-			}
-
-			break;
-		}
-		case DETAIL_VOXELS:
-		{
-			auto idx_volume = -1;
-
-			for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
-				auto prim = m_corps.prims()->prim(i);
-
-				if (prim->type_prim() != type_primitive::VOLUME) {
-					continue;
-				}
-
-				auto prim_vol = dynamic_cast<Volume *>(prim);
-
-				if (prim_vol->grille->desc().type_donnees == wlk::type_grille::R32) {
-					idx_volume = i;
-					break;
-				}
-			}
-
-			if (idx_volume == -1) {
-				ajoute_avertissement("Aucun volume scalaire en entrée.");
-				return EXECUTION_ECHOUEE;
-			}
-
-			m_corps.prims()->detache();
-
-			volume = dynamic_cast<Volume *>(m_corps.prims()->prim(idx_volume));
-
-			break;
-		}
-	}
-
-	auto chef = contexte.chef;
-
-	if (!compile_graphe(contexte)) {
-		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-		return EXECUTION_ECHOUEE;
-	}
-
-	auto ctx_exec = lcc::ctx_exec{};
-
-	switch (type_detail) {
-		case DETAIL_POINTS:
-		{
-			chef->demarre_evaluation("graphe détail points");
-
-			auto points = m_corps.points_pour_ecriture();
-
-			boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
-							 [&](tbb::blocked_range<long> const &plage)
-			{
-				if (chef->interrompu()) {
-					return;
-				}
-
-				/* fais une copie locale pour éviter les problèmes de concurrence critique */
-				auto donnees = m_compileuse.donnees();
-				auto ctx_local = lcc::ctx_local{};
-
-				for (auto i = plage.begin(); i < plage.end(); ++i) {
-					auto pos = m_corps.point_transforme(i);
-
-					remplis_donnees(donnees, m_gest_props, "P", pos);
-
-					/* stocke les attributs */
-					stocke_attributs(m_gest_attrs, donnees, i);
-
-					lcc::execute_pile(
-								ctx_exec,
-								ctx_local,
-								donnees,
-								m_compileuse.instructions(),
-								static_cast<int>(i));
-
-					auto idx_sortie = m_gest_props.pointeur_donnees("P");
-					pos = donnees.charge_vec3(idx_sortie);
-
-					/* charge les attributs */
-					charge_attributs(m_gest_attrs, donnees, i);
-
-					points->point(i, pos);
-				}
-
-				auto delta = static_cast<float>(plage.end() - plage.begin());
-				delta /= static_cast<float>(points->taille());
-				chef->indique_progression_parallele(delta * 100.0f);
-			});
-
-			/* réinitialise la transformation puisque nous l'appliquons aux
-			 * points dans la boucle au dessus */
-			m_corps.transformation = math::transformation();
-
-			break;
-		}
-		case DETAIL_VOXELS:
-		{
-			auto chef_wolika = ChefWolika(chef, "graphe détail voxels");
-
-			auto grille = volume->grille;
-
-			if (grille->est_eparse()) {
-				auto grille_eparse = dynamic_cast<wlk::grille_eparse<float> *>(grille);
-
-				wlk::pour_chaque_tuile_parallele(
-							*grille_eparse,
-							[&](wlk::tuile_scalaire<float> *tuile)
-				{
-					auto donnees = m_compileuse.donnees();
-					auto ctx_local = lcc::ctx_local{};
-
-					auto index_tuile = 0;
-					for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
-						for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
-							for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
-								auto pos_tuile = tuile->min;
-								pos_tuile.x += i;
-								pos_tuile.y += j;
-								pos_tuile.z += k;
-
-								auto pos_monde = grille_eparse->index_vers_monde(pos_tuile);
-								auto pos_unit = grille_eparse->index_vers_unit(pos_tuile);
-
-								auto v = tuile->donnees[index_tuile];
-
-								remplis_donnees(donnees, m_gest_props, "densité", v);
-								remplis_donnees(donnees, m_gest_props, "pos_monde", pos_monde);
-								remplis_donnees(donnees, m_gest_props, "pos_unit", pos_unit);
-
-								lcc::execute_pile(
-											ctx_exec,
-											ctx_local,
-											donnees,
-											m_compileuse.instructions(),
-											i);
-
-								auto idx_sortie = m_gest_props.pointeur_donnees("densité");
-								v = donnees.charge_decimal(idx_sortie);
-
-								tuile->donnees[index_tuile] = v;
-							}
-						}
-					}
-				},
-				&chef_wolika);
-			}
-
-			break;
-		}
-	}
-
-	return EXECUTION_REUSSIE;
 }
 
 /* À FAIRE : déduplique. */
@@ -550,15 +253,36 @@ static auto converti_type_attr(type_attribut type, int dimensions)
 	return lcc::type_var::INVALIDE;
 }
 
-bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
+/* ************************************************************************** */
+
+CompileuseGrapheLCC::CompileuseGrapheLCC(Graphe &ptr_graphe)
+	: graphe(ptr_graphe)
+{}
+
+lcc::pile &CompileuseGrapheLCC::donnees()
+{
+	return m_compileuse.donnees();
+}
+
+void CompileuseGrapheLCC::stocke_attributs(lcc::pile &donnees, long idx_attr)
+{
+	::stocke_attributs(m_gest_attrs, donnees, idx_attr);
+}
+
+void CompileuseGrapheLCC::charge_attributs(lcc::pile &donnees, long idx_attr)
+{
+	::charge_attributs(m_gest_attrs, donnees, idx_attr);
+}
+
+bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Corps *corps)
 {
 	m_compileuse = compileuse_lng();
 	m_gest_props = gestionnaire_propriete();
 	m_gest_attrs = gestionnaire_propriete();
 
-	if (noeud.graphe.besoin_ajournement) {
-		tri_topologique(noeud.graphe);
-		noeud.graphe.besoin_ajournement = false;
+	if (graphe.besoin_ajournement) {
+		tri_topologique(graphe);
+		graphe.besoin_ajournement = false;
 	}
 
 	auto donnees_aval = DonneesAval{};
@@ -566,49 +290,38 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 	donnees_aval.table.insere({"gest_props", &m_gest_props});
 	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
 
-	switch (type_detail) {
-		case DETAIL_POINTS:
-		{
-			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
+	auto type_detail = std::any_cast<int>(graphe.donnees[0]);
 
-			for (auto &attr : m_corps.attributs()) {
-				if (attr.portee != portee_attr::POINT) {
-					continue;
-				}
+	/* fais de la place pour les entrées et sorties */
+	auto &params_entree = params_noeuds_entree[type_detail];
 
-				idx = m_compileuse.donnees().loge_donnees(attr.dimensions);
-				auto type_attr = converti_type_attr(attr.type(), attr.dimensions);
-				m_gest_attrs.ajoute_propriete(attr.nom(), type_attr, idx);
+	for (auto i = 0; i < params_entree.taille(); ++i) {
+		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_entree.type(i)));
+		m_gest_props.ajoute_propriete(params_entree.nom(i), params_entree.type(i), idx);
+	}
+
+	auto &params_sortie = params_noeuds_sortie[type_detail];
+
+	for (auto i = 0; i < params_sortie.taille(); ++i) {
+		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_sortie.type(i)));
+		m_gest_props.ajoute_propriete(params_sortie.nom(i), params_sortie.type(i), idx);
+	}
+
+	/* fais de la place pour les attributs */
+	if (type_detail == DETAIL_POINTS && corps != nullptr) {
+		for (auto &attr : corps->attributs()) {
+			if (attr.portee != portee_attr::POINT) {
+				continue;
 			}
 
-			break;
-		}
-		case DETAIL_VOXELS:
-		{
-			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::DEC));
-			m_gest_props.ajoute_propriete("densité", lcc::type_var::DEC, idx);
-
-			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("pos_monde", lcc::type_var::VEC3, idx);
-
-			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("pos_unit", lcc::type_var::VEC3, idx);
-			break;
-		}
-		case DETAIL_PIXELS:
-		{
-			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::COULEUR));
-			m_gest_props.ajoute_propriete("couleur", lcc::type_var::COULEUR, idx);
-
-			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
-
-			break;
+			auto idx = m_compileuse.donnees().loge_donnees(attr.dimensions);
+			auto type_attr = converti_type_attr(attr.type(), attr.dimensions);
+			m_gest_attrs.ajoute_propriete(attr.nom(), type_attr, idx);
 		}
 	}
 
-	for (auto &noeud_graphe : noeud.graphe.noeuds()) {
+	/* performe la compilation */
+	for (auto &noeud_graphe : graphe.noeuds()) {
 		for (auto &sortie : noeud_graphe->sorties) {
 			sortie->decalage_pile = 0;
 		}
@@ -624,44 +337,380 @@ bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
 	}
 
 	/* prise en charge des requêtes */
+	if (type_detail == DETAIL_POINTS && corps != nullptr) {
+		for (auto &requete : m_gest_attrs.donnees) {
+			requete->ptr_donnees = corps->attribut(requete->nom);
+		}
+
+		for (auto &requete : m_gest_attrs.requetes) {
+			auto attr = corps->attribut(requete->nom);
+
+			if (attr != nullptr) {
+				/* L'attribut n'a pas la portée point */
+				assert(attr->portee != portee_attr::POINT);
+
+				corps->supprime_attribut(requete->nom);
+			}
+
+			auto dimensions = 0;
+			auto type_attr = converti_type_lcc(requete->type, dimensions);
+
+			attr = corps->ajoute_attribut(
+						requete->nom,
+						type_attr,
+						dimensions,
+						portee_attr::POINT);
+
+			requete->ptr_donnees = attr;
+		}
+	}
+
+	return true;
+}
+
+void CompileuseGrapheLCC::execute_pile(lcc::ctx_exec &ctx_exec, lcc::ctx_local &ctx_local, lcc::pile &donnees_pile)
+{
+	lcc::execute_pile(
+				ctx_exec,
+				ctx_local,
+				donnees_pile,
+				m_compileuse.instructions(),
+				0);
+}
+
+int CompileuseGrapheLCC::pointeur_donnees(const dls::chaine &nom)
+{
+	return m_gest_props.pointeur_donnees(nom);
+}
+
+/* ************************************************************************** */
+
+OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
+	, m_compileuse(noeud_.graphe)
+{
+	noeud.peut_avoir_graphe = true;
+	noeud.graphe.type = type_graphe::DETAIL;
+	noeud.graphe.donnees.efface();
+	noeud.graphe.donnees.pousse(type_detail);
+
+	entrees(1);
+	sorties(1);
+}
+
+const char *OperatriceGrapheDetail::nom_classe() const
+{
+	return NOM;
+}
+
+const char *OperatriceGrapheDetail::texte_aide() const
+{
+	return AIDE;
+}
+
+const char *OperatriceGrapheDetail::chemin_entreface() const
+{
+	if (type_detail == DETAIL_PIXELS) {
+		return "";
+	}
+
+	return "";
+}
+
+type_prise OperatriceGrapheDetail::type_entree(int) const
+{
+	if (type_detail == DETAIL_PIXELS) {
+		return type_prise::IMAGE;
+	}
+
+	return type_prise::CORPS;
+}
+
+type_prise OperatriceGrapheDetail::type_sortie(int) const
+{
+	if (type_detail == DETAIL_PIXELS) {
+		return type_prise::IMAGE;
+	}
+
+	return type_prise::CORPS;
+}
+
+int OperatriceGrapheDetail::type() const
+{
+	return OPERATRICE_GRAPHE_DETAIL;
+}
+
+int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+{
+	if (!this->entree(0)->connectee()) {
+		ajoute_avertissement("L'entrée n'est pas connectée !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	noeud.graphe.donnees.efface();
+	noeud.graphe.donnees.pousse(type_detail);
+
+	if (type_detail == DETAIL_PIXELS) {
+		return execute_detail_pixel(contexte, donnees_aval);
+	}
+
+	return execute_detail_corps(contexte, donnees_aval);
+}
+
+int OperatriceGrapheDetail::execute_detail_pixel(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
+	m_image.reinitialise();
+
+	auto chef = contexte.chef;
+
+	if (!m_compileuse.compile_graphe(contexte, nullptr)) {
+		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+		return EXECUTION_ECHOUEE;
+	}
+
+	calque_image *calque = nullptr;
+	auto const &rectangle = contexte.resolution_rendu;
+
+	if (entrees() == 0) {
+		m_image.reinitialise();
+		auto desc = desc_depuis_rectangle(rectangle);
+		calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	}
+	else if (entrees() >= 1) {
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+		auto nom_calque = "image";// evalue_chaine("nom_calque");
+		calque = m_image.calque_pour_ecriture(nom_calque);
+	}
+
+	if (calque == nullptr) {
+		ajoute_avertissement("Calque introuvable !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	chef->demarre_evaluation("graphe détail pixel");
+
+	auto desc = calque->tampon()->desc();
+
+	auto tampon = extrait_grille_couleur(calque);
+	auto largeur_inverse = 1.0f / static_cast<float>(desc.resolution.x);
+	auto hauteur_inverse = 1.0f / static_cast<float>(desc.resolution.y);
+
+	auto ctx_exec = lcc::ctx_exec{};
+
+	boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		if (chef->interrompu()) {
+			return;
+		}
+
+		/* fais une copie locale pour éviter les problèmes de concurrence critique */
+		auto donnees = m_compileuse.donnees();
+		auto ctx_local = lcc::ctx_local{};
+
+		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			for (auto c = 0; c < desc.resolution.x; ++c) {
+				auto const x = static_cast<float>(c) * largeur_inverse;
+				auto const y = static_cast<float>(l) * hauteur_inverse;
+
+				auto index = tampon->calcul_index(dls::math::vec2i(c, l));
+
+				auto pos = dls::math::vec3f(x, y, 0.0f);
+				m_compileuse.remplis_donnees(donnees, "P", pos);
+
+				auto clr = tampon->valeur(index);
+				m_compileuse.remplis_donnees(donnees, "couleur", clr);
+
+				m_compileuse.execute_pile(
+							ctx_exec,
+							ctx_local,
+							donnees);
+
+				auto idx_sortie = m_compileuse.pointeur_donnees("couleur");
+				clr = donnees.charge_couleur(idx_sortie);
+
+				tampon->valeur(index, clr);
+			}
+		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta *= hauteur_inverse;
+
+		chef->indique_progression_parallele(delta * 100.0f);
+	});
+
+	chef->indique_progression(100.0f);
+
+	return EXECUTION_REUSSIE;
+}
+
+int OperatriceGrapheDetail::execute_detail_corps(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
+
+	m_corps.reinitialise();
+	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+	auto volume = static_cast<Volume *>(nullptr);
+
 	switch (type_detail) {
 		case DETAIL_POINTS:
 		{
-			for (auto &requete : m_gest_attrs.donnees) {
-				requete->ptr_donnees = m_corps.attribut(requete->nom);
-			}
-
-			for (auto &requete : m_gest_attrs.requetes) {
-				auto attr = m_corps.attribut(requete->nom);
-
-				if (attr != nullptr) {
-					/* L'attribut n'a pas la portée point */
-					assert(attr->portee != portee_attr::POINT);
-
-					m_corps.supprime_attribut(requete->nom);
-				}
-
-				auto dimensions = 0;
-				auto type_attr = converti_type_lcc(requete->type, dimensions);
-
-				attr = m_corps.ajoute_attribut(
-							requete->nom,
-							type_attr,
-							dimensions,
-							portee_attr::POINT);
-
-				requete->ptr_donnees = attr;
+			if (!valide_corps_entree(*this, &m_corps, true, false)) {
+				return EXECUTION_ECHOUEE;
 			}
 
 			break;
 		}
 		case DETAIL_VOXELS:
 		{
+			auto idx_volume = -1;
+
+			for (auto i = 0; i < m_corps.prims()->taille(); ++i) {
+				auto prim = m_corps.prims()->prim(i);
+
+				if (prim->type_prim() != type_primitive::VOLUME) {
+					continue;
+				}
+
+				auto prim_vol = dynamic_cast<Volume *>(prim);
+
+				if (prim_vol->grille->desc().type_donnees == wlk::type_grille::R32) {
+					idx_volume = i;
+					break;
+				}
+			}
+
+			if (idx_volume == -1) {
+				ajoute_avertissement("Aucun volume scalaire en entrée.");
+				return EXECUTION_ECHOUEE;
+			}
+
+			m_corps.prims()->detache();
+
+			volume = dynamic_cast<Volume *>(m_corps.prims()->prim(idx_volume));
+
 			break;
 		}
 	}
 
-	return true;
+	auto chef = contexte.chef;
+
+	if (!m_compileuse.compile_graphe(contexte, &m_corps)) {
+		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+		return EXECUTION_ECHOUEE;
+	}
+
+	auto ctx_exec = lcc::ctx_exec{};
+
+	switch (type_detail) {
+		case DETAIL_POINTS:
+		{
+			chef->demarre_evaluation("graphe détail points");
+
+			auto points = m_corps.points_pour_ecriture();
+
+			boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+							 [&](tbb::blocked_range<long> const &plage)
+			{
+				if (chef->interrompu()) {
+					return;
+				}
+
+				/* fais une copie locale pour éviter les problèmes de concurrence critique */
+				auto donnees = m_compileuse.donnees();
+				auto ctx_local = lcc::ctx_local{};
+
+				for (auto i = plage.begin(); i < plage.end(); ++i) {
+					auto pos = m_corps.point_transforme(i);
+					m_compileuse.remplis_donnees(donnees, "P", pos);
+
+					/* stocke les attributs */
+					m_compileuse.stocke_attributs(donnees, i);
+
+					m_compileuse.execute_pile(
+								ctx_exec,
+								ctx_local,
+								donnees);
+
+					auto idx_sortie = m_compileuse.pointeur_donnees("P");
+					pos = donnees.charge_vec3(idx_sortie);
+
+					/* charge les attributs */
+					m_compileuse.charge_attributs(donnees, i);
+
+					points->point(i, pos);
+				}
+
+				auto delta = static_cast<float>(plage.end() - plage.begin());
+				delta /= static_cast<float>(points->taille());
+				chef->indique_progression_parallele(delta * 100.0f);
+			});
+
+			/* réinitialise la transformation puisque nous l'appliquons aux
+			 * points dans la boucle au dessus */
+			m_corps.transformation = math::transformation();
+
+			break;
+		}
+		case DETAIL_VOXELS:
+		{
+			auto chef_wolika = ChefWolika(chef, "graphe détail voxels");
+
+			auto grille = volume->grille;
+
+			if (grille->est_eparse()) {
+				auto grille_eparse = dynamic_cast<wlk::grille_eparse<float> *>(grille);
+
+				wlk::pour_chaque_tuile_parallele(
+							*grille_eparse,
+							[&](wlk::tuile_scalaire<float> *tuile)
+				{
+					auto donnees = m_compileuse.donnees();
+					auto ctx_local = lcc::ctx_local{};
+
+					auto index_tuile = 0;
+					for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
+						for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
+							for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+								auto pos_tuile = tuile->min;
+								pos_tuile.x += i;
+								pos_tuile.y += j;
+								pos_tuile.z += k;
+
+								auto pos_monde = grille_eparse->index_vers_monde(pos_tuile);
+								auto pos_unit = grille_eparse->index_vers_unit(pos_tuile);
+
+								auto v = tuile->donnees[index_tuile];
+
+								m_compileuse.remplis_donnees(donnees, "densité", v);
+								m_compileuse.remplis_donnees(donnees, "pos_monde", pos_monde);
+								m_compileuse.remplis_donnees(donnees, "pos_unit", pos_unit);
+
+								m_compileuse.execute_pile(
+											ctx_exec,
+											ctx_local,
+											donnees);
+
+								auto idx_sortie = m_compileuse.m_gest_props.pointeur_donnees("densité");
+								v = donnees.charge_decimal(idx_sortie);
+
+								tuile->donnees[index_tuile] = v;
+							}
+						}
+					}
+				},
+				&chef_wolika);
+			}
+
+			break;
+		}
+	}
+
+	return EXECUTION_REUSSIE;
 }
 
 /* ************************************************************************** */
@@ -1220,41 +1269,6 @@ void OperatriceFonctionDetail::cree_proprietes()
 }
 
 /* ************************************************************************** */
-
-/* les sorties des noeuds d'entrées */
-static lcc::param_sorties params_noeuds_entree[] = {
-	/* entrée détail point */
-	lcc::param_sorties(
-		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
-	/* entrée détail voxel */
-	lcc::param_sorties(
-		lcc::donnees_parametre("densité", lcc::type_var::DEC),
-		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
-		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
-	/* entrée détail pixel */
-	lcc::param_sorties(
-		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR),
-		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
-	/* entrée détail terrain */
-	lcc::param_sorties(
-		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
-};
-
-/* les entrées des noeuds de sorties */
-static lcc::param_entrees params_noeuds_sortie[] = {
-	/* sortie détail point */
-	lcc::param_entrees(
-		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
-	/* sortie détail voxel */
-	lcc::param_entrees(
-		lcc::donnees_parametre("densité", lcc::type_var::DEC)),
-	/* sortie détail pixel */
-	lcc::param_entrees(
-		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
-	/* entrée détail terrain */
-	lcc::param_entrees(
-		lcc::donnees_parametre("hauteur", lcc::type_var::DEC)),
-};
 
 class OperatriceEntreeDetail final : public OperatriceImage {
 public:
