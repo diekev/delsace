@@ -255,6 +255,67 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeAjoutNoeudDetailSpecial final : public Commande {
+public:
+	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
+
+		if (graphe->type != type_graphe::DETAIL) {
+			return false;
+		}
+
+		auto op = extrait_opimage(graphe->noeud_parent.donnees);
+		auto op_graphe = dynamic_cast<OperatriceGrapheDetail *>(op);
+
+		using dls::outils::est_element;
+
+		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail")) {
+			return est_element(op_graphe->type_detail, DETAIL_PIXELS, DETAIL_VOXELS, DETAIL_POINTS);
+		}
+
+		if (est_element(metadonnee, "Entrée Attribut", "Sortie Attribut")) {
+			return est_element(op_graphe->type_detail, DETAIL_POINTS);
+		}
+
+		return false;
+	}
+
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+
+		auto nom = donnees.metadonnee;
+		auto graphe = mikisa->graphe;
+
+		if (graphe->type != type_graphe::DETAIL) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		/* À FAIRE : les prédicats ne sont appelés qu'à travers un répondant
+		 * bouton... */
+		if (!evalue_predicat(pointeur, nom)) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
+
+		(mikisa->usine_operatrices())(nom, *graphe, *noeud);
+		synchronise_donnees_operatrice(*noeud);
+
+		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
+
+		if (besoin_evaluation) {
+			requiers_evaluation(*mikisa, NOEUD_AJOUTE, "noeud ajouté");
+		}
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class CommandeAjoutGrapheDetail final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
@@ -999,6 +1060,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 
 	usine.enregistre_type("ajouter_noeud_detail",
 						   description_commande<CommandeAjoutNoeudDetail>(
+							   "graphe", 0, 0, 0, false));
+
+	usine.enregistre_type("ajouter_noeud_spécial_détail",
+						   description_commande<CommandeAjoutNoeudDetailSpecial>(
 							   "graphe", 0, 0, 0, false));
 
 	usine.enregistre_type("ajouter_graphe_detail",
