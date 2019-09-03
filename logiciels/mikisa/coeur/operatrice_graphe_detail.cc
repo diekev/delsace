@@ -550,7 +550,6 @@ int OperatriceGrapheDetail::execute_detail_corps(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
-
 	m_corps.reinitialise();
 	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
