@@ -1235,6 +1235,9 @@ static lcc::param_sorties params_noeuds_entree[] = {
 	lcc::param_sorties(
 		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR),
 		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail terrain */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
 };
 
 /* les entrées des noeuds de sorties */
@@ -1248,6 +1251,9 @@ static lcc::param_entrees params_noeuds_sortie[] = {
 	/* sortie détail pixel */
 	lcc::param_entrees(
 		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
+	/* entrée détail terrain */
+	lcc::param_entrees(
+		lcc::donnees_parametre("hauteur", lcc::type_var::DEC)),
 };
 
 class OperatriceEntreeDetail final : public OperatriceImage {

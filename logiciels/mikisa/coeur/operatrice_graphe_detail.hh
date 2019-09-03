@@ -38,6 +38,7 @@ enum {
 	DETAIL_POINTS,
 	DETAIL_VOXELS,
 	DETAIL_PIXELS,
+	DETAIL_TERRAIN,
 };
 
 struct Mikisa;

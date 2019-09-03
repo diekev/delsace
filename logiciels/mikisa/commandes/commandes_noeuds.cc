@@ -266,17 +266,24 @@ public:
 			return false;
 		}
 
-		auto op = extrait_opimage(graphe->noeud_parent.donnees);
-		auto op_graphe = dynamic_cast<OperatriceGrapheDetail *>(op);
+		if (graphe->donnees.est_vide()) {
+			return false;
+		}
+
+		auto type_detail = std::any_cast<int>(graphe->donnees[0]);
 
 		using dls::outils::est_element;
 
 		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail")) {
-			return est_element(op_graphe->type_detail, DETAIL_PIXELS, DETAIL_VOXELS, DETAIL_POINTS);
+			return est_element(type_detail,
+							   DETAIL_PIXELS,
+							   DETAIL_VOXELS,
+							   DETAIL_POINTS,
+							   DETAIL_TERRAIN);
 		}
 
 		if (est_element(metadonnee, "Entrée Attribut", "Sortie Attribut")) {
-			return est_element(op_graphe->type_detail, DETAIL_POINTS);
+			return est_element(type_detail, DETAIL_POINTS);
 		}
 
 		return false;

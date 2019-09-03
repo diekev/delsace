@@ -26,14 +26,20 @@
 
 #include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
+#include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/donnees_aval.hh"
+#include "coeur/noeud.hh"
 #include "coeur/operatrice_corps.h"
+#include "coeur/operatrice_graphe_detail.hh"
 #include "coeur/usine_operatrice.h"
+
+#include "lcc/lcc.hh"
 
 #include "wolika/echantillonnage.hh"
 #include "wolika/outils.hh"
@@ -1014,6 +1020,10 @@ public:
 /* ************************************************************************** */
 
 class OpCreeTerrain final : public OperatriceCorps {
+	compileuse_lng m_compileuse{};
+	gestionnaire_propriete m_gest_props{};
+	gestionnaire_propriete m_gest_attrs{};
+
 public:
 	static constexpr auto NOM = "Crée Terrain";
 	static constexpr auto AIDE = "";
@@ -1023,11 +1033,11 @@ public:
 	{
 		m_execute_toujours = true;
 		entrees(0);
-	}
 
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_terrain_creation.jo";
+		noeud.peut_avoir_graphe = true;
+		noeud.graphe.type = type_graphe::DETAIL;
+		noeud.graphe.donnees.efface();
+		noeud.graphe.donnees.pousse(static_cast<int>(DETAIL_TERRAIN));
 	}
 
 	const char *nom_classe() const override
@@ -1050,63 +1060,101 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto chef = contexte.chef;
+
+		if (!compile_graphe(contexte)) {
+			ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (noeud.graphe.noeuds().taille() == 0) {
+			return EXECUTION_REUSSIE;
+		}
+
 		auto terrain = extrait_terrain(donnees_aval);
 		auto desc = terrain->hauteur.desc();
 
-		auto dico_type = dls::cree_dico(
-					dls::paire(dls::chaine("cellule"), bruit::type::CELLULE),
-					dls::paire(dls::chaine("fourier"), bruit::type::FOURIER),
-					dls::paire(dls::chaine("ondelette"), bruit::type::ONDELETTE),
-					dls::paire(dls::chaine("perlin"), bruit::type::PERLIN),
-					dls::paire(dls::chaine("simplex"), bruit::type::SIMPLEX),
-					dls::paire(dls::chaine("voronoi_f1"), bruit::type::VORONOI_F1),
-					dls::paire(dls::chaine("voronoi_f2"), bruit::type::VORONOI_F2),
-					dls::paire(dls::chaine("voronoi_f3"), bruit::type::VORONOI_F3),
-					dls::paire(dls::chaine("voronoi_f4"), bruit::type::VORONOI_F4),
-					dls::paire(dls::chaine("voronoi_f1f2"), bruit::type::VORONOI_F1F2),
-					dls::paire(dls::chaine("voronoi_cr"), bruit::type::VORONOI_CR));
+		auto ctx_exec = lcc::ctx_exec{};
 
-		auto chn_type = evalue_enum("type");
-		auto plg_type = dico_type.trouve(chn_type);
-		auto type = bruit::type{};
+		boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
 
-		if (plg_type.est_finie()) {
-			ajoute_avertissement("type inconnu");
-			type = bruit::type::SIMPLEX;
+			/* fais une copie locale pour éviter les problèmes de concurrence critique */
+			auto donnees = m_compileuse.donnees();
+			auto ctx_local = lcc::ctx_local{};
+
+			for (auto y = plage.begin(); y < plage.end(); ++y) {
+				for (auto x = 0; x < desc.resolution.x; ++x) {
+					auto index = terrain->hauteur.calcul_index(dls::math::vec2i(x, y));
+					auto p = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
+
+					auto pos = dls::math::vec3f(p, 0.0f);
+					remplis_donnees(donnees, m_gest_props, "P", pos);
+
+					lcc::execute_pile(
+								ctx_exec,
+								ctx_local,
+								donnees,
+								m_compileuse.instructions(),
+								static_cast<int>(index));
+
+					auto idx_sortie = m_gest_props.pointeur_donnees("hauteur");
+
+					if (idx_sortie != -1) {
+						auto h = donnees.charge_decimal(idx_sortie);
+						terrain->hauteur.valeur(index, h);
+					}
+				}
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			delta *= 1.0f / static_cast<float>(desc.resolution.y);
+
+			chef->indique_progression_parallele(delta * 100.0f);
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool compile_graphe(const ContexteEvaluation &contexte)
+	{
+		m_compileuse = compileuse_lng();
+		m_gest_props = gestionnaire_propriete();
+		m_gest_attrs = gestionnaire_propriete();
+
+		if (noeud.graphe.besoin_ajournement) {
+			tri_topologique(noeud.graphe);
+			noeud.graphe.besoin_ajournement = false;
 		}
-		else {
-			type = plg_type.front().second;
-		}
 
-		auto graine = 0;
-		auto params = bruit::parametres();
-		params.taille_bruit = evalue_vecteur("fréquence", contexte.temps_courant);
-		params.origine_bruit = evalue_vecteur("décalage");
-		params.echelle_valeur = evalue_decimal("échelle_valeur", contexte.temps_courant);
-		params.decalage_valeur = evalue_decimal("décalage_valeur", contexte.temps_courant);
-		params.type_bruit = type;
-		params.temps_anim = evalue_decimal("temps", contexte.temps_courant);
+		auto donnees_aval = DonneesAval{};
+		donnees_aval.table.insere({"compileuse", &m_compileuse});
+		donnees_aval.table.insere({"gest_props", &m_gest_props});
+		donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
 
-		bruit::construit(type, params, graine);
+		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
+		m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
 
-		auto params_turb = bruit::param_turbulence();
-		params_turb.dur = evalue_bool("dur");
-		params_turb.octaves = evalue_decimal("octaves", contexte.temps_courant);
-		params_turb.amplitude = evalue_decimal("amplitude", contexte.temps_courant);
-		params_turb.gain = evalue_decimal("persistence", contexte.temps_courant);
-		params_turb.lacunarite = evalue_decimal("lacunarité", contexte.temps_courant);
+		for (auto &noeud_graphe : noeud.graphe.noeuds()) {
+			for (auto &sortie : noeud_graphe->sorties) {
+				sortie->decalage_pile = 0;
+			}
 
-		auto index = 0;
-		for (auto y = 0; y < desc.resolution.y; ++y) {
-			for (auto x = 0; x < desc.resolution.x; ++x, ++index) {
-				auto p = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
-				auto valeur = bruit::evalue_turb(params, params_turb, dls::math::vec3f(p, 0.0f));
+			auto operatrice = extrait_opimage(noeud_graphe->donnees);
+			operatrice->reinitialise_avertisements();
 
-				terrain->hauteur.valeur(index, valeur);
+			auto resultat = operatrice->execute(contexte, &donnees_aval);
+
+			if (resultat == EXECUTION_ECHOUEE) {
+				return false;
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return true;
 	}
 };
 
