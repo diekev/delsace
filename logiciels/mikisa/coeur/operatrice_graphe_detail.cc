@@ -1221,6 +1221,35 @@ void OperatriceFonctionDetail::cree_proprietes()
 
 /* ************************************************************************** */
 
+/* les sorties des noeuds d'entrées */
+static lcc::param_sorties params_noeuds_entree[] = {
+	/* entrée détail point */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail voxel */
+	lcc::param_sorties(
+		lcc::donnees_parametre("densité", lcc::type_var::DEC),
+		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
+		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
+	/* entrée détail pixel */
+	lcc::param_sorties(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR),
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+};
+
+/* les entrées des noeuds de sorties */
+static lcc::param_entrees params_noeuds_sortie[] = {
+	/* sortie détail point */
+	lcc::param_entrees(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* sortie détail voxel */
+	lcc::param_entrees(
+		lcc::donnees_parametre("densité", lcc::type_var::DEC)),
+	/* sortie détail pixel */
+	lcc::param_entrees(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
+};
+
 class OperatriceEntreeDetail final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Entrée Détail";
@@ -1233,23 +1262,8 @@ public:
 
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				sorties(1);
-				break;
-			}
-			case DETAIL_VOXELS:
-			{
-				sorties(3);
-				break;
-			}
-			case DETAIL_PIXELS:
-			{
-				sorties(2);
-				break;
-			}
-		}
+		auto const &params_noeud = params_noeuds_entree[type_detail];
+		sorties(params_noeud.taille());
 	}
 
 	const char *nom_classe() const override
@@ -1266,40 +1280,13 @@ public:
 	{
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				return type_prise::VEC3;
-			}
-			case DETAIL_VOXELS:
-			{
-				switch (i) {
-					case 0:
-					{
-						return type_prise::DECIMAL;
-					}
-					default:
-					{
-						return type_prise::VEC3;
-					}
-				}
-			}
-			case DETAIL_PIXELS:
-			{
-				switch (i) {
-					case 0:
-					{
-						return type_prise::COULEUR;
-					}
-					case 1:
-					{
-						return type_prise::VEC3;
-					}
-				}
-			}
+		auto const &params_noeud = params_noeuds_entree[type_detail];
+
+		if (i >= params_noeud.taille()) {
+			return type_prise::INVALIDE;
 		}
 
-		return type_prise::INVALIDE;
+		return converti_type_prise(params_noeud.type(i));
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1309,43 +1296,12 @@ public:
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				auto prise_sortie = sortie(0)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
-				prise_sortie->type_infere = type_prise::VEC3;
+		auto const &params_noeud = params_noeuds_entree[type_detail];
 
-				break;
-			}
-			case DETAIL_VOXELS:
-			{
-				auto prise_sortie = sortie(0)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("densité");
-				prise_sortie->type_infere = type_prise::DECIMAL;
-
-				prise_sortie = sortie(1)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_monde");
-				prise_sortie->type_infere = type_prise::VEC3;
-
-				prise_sortie = sortie(2)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_unit");
-				prise_sortie->type_infere = type_prise::VEC3;
-
-				break;
-			}
-			case DETAIL_PIXELS:
-			{
-				auto prise_sortie = sortie(0)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("couleur");
-				prise_sortie->type_infere = type_prise::COULEUR;
-
-				prise_sortie = sortie(1)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
-				prise_sortie->type_infere = type_prise::VEC3;
-
-				break;
-			}
+		for (auto i = 0; i < params_noeud.taille(); ++i) {
+			auto prise_sortie = sortie(i)->pointeur();
+			prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
+			prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
 		}
 
 		return EXECUTION_REUSSIE;
@@ -1362,7 +1318,10 @@ public:
 	OperatriceSortieDetail(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceImage(graphe_parent, noeud_)
 	{
-		entrees(1);
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
+		entrees(params_noeud.taille());
 		sorties(0);
 
 		noeud.est_sortie = true;
@@ -1383,22 +1342,13 @@ public:
 		INUTILISE(i);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				return type_prise::VEC3;
-			}
-			case DETAIL_VOXELS:
-			{
-				return type_prise::DECIMAL;
-			}
-			case DETAIL_PIXELS:
-			{
-				return type_prise::COULEUR;
-			}
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
+
+		if (i >= params_noeud.taille()) {
+			return type_prise::INVALIDE;
 		}
 
-		return type_prise::INVALIDE;
+		return converti_type_prise(params_noeud.type(i));
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1409,70 +1359,25 @@ public:
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				auto ptr_entree = 0;
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
 
-				if (entree(0)->connectee()) {
-					auto ptr = entree(0)->pointeur();
-					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-				}
-				else {
-					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-				}
+		for (auto i = 0; i < params_noeud.taille(); ++i) {
+			auto ptr_entree = 0;
 
-				auto ptr = gest_props->pointeur_donnees("P");
-
-				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-				compileuse->ajoute_instructions(lcc::type_var::VEC3);
-				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr);
-
-				break;
+			if (entree(i)->connectee()) {
+				auto ptr = entree(i)->pointeur();
+				ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
 			}
-			case DETAIL_PIXELS:
-			{
-				auto ptr_entree = 0;
-
-				if (entree(0)->connectee()) {
-					auto ptr = entree(0)->pointeur();
-					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-				}
-				else {
-					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
-				}
-
-				auto ptr = gest_props->pointeur_donnees("couleur");
-
-				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-				compileuse->ajoute_instructions(lcc::type_var::COULEUR);
-				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr);
-
-				break;
+			else {
+				ptr_entree = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
 			}
-			case DETAIL_VOXELS:
-			{
-				auto ptr_entree = 0;
 
-				if (entree(0)->connectee()) {
-					auto ptr = entree(0)->pointeur();
-					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-				}
-				else {
-					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-				}
+			auto ptr = gest_props->pointeur_donnees("P");
 
-				auto ptr = gest_props->pointeur_donnees("densité");
-
-				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-				compileuse->ajoute_instructions(lcc::type_var::DEC);
-				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr);
-
-				break;
-			}
+			compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
+			compileuse->ajoute_instructions(params_noeud.type(i));
+			compileuse->ajoute_instructions(ptr_entree);
+			compileuse->ajoute_instructions(ptr);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -1566,6 +1471,11 @@ public:
 				}
 
 				break;
+			}
+			case DETAIL_PIXELS:
+			{
+				this->ajoute_avertissement("Opératrice non-implémentée pour les pixels");
+				return EXECUTION_ECHOUEE;
 			}
 			case DETAIL_VOXELS:
 			{
@@ -1691,6 +1601,11 @@ public:
 				compileuse->ajoute_instructions(ptr);
 
 				break;
+			}
+			case DETAIL_PIXELS:
+			{
+				this->ajoute_avertissement("Opératrice non-implémentée pour les pixels");
+				return EXECUTION_ECHOUEE;
 			}
 			case DETAIL_VOXELS:
 			{

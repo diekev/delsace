@@ -32,6 +32,8 @@ namespace lcc {
 struct donnees_fonction;
 }
 
+/* ajouter des nouvelles à la fin et ajourner les tableaux de paramètres
+ * d'entrées et sorties */
 enum {
 	DETAIL_POINTS,
 	DETAIL_VOXELS,
