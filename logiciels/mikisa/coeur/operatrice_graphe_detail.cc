@@ -1362,22 +1362,21 @@ public:
 		auto const &params_noeud = params_noeuds_sortie[type_detail];
 
 		for (auto i = 0; i < params_noeud.taille(); ++i) {
-			auto ptr_entree = 0;
+			if (!gest_props->propriete_existe(params_noeud.nom(i))) {
+				auto idx = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
+				gest_props->ajoute_propriete(params_noeud.nom(i), params_noeud.type(i), idx);
+			}
 
 			if (entree(i)->connectee()) {
-				auto ptr = entree(i)->pointeur();
-				ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-			}
-			else {
-				ptr_entree = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
-			}
+				auto ptr_prise = entree(i)->pointeur();
+				auto ptr_entree = static_cast<int>(ptr_prise->liens[0]->decalage_pile);
+				auto ptr_sortie = gest_props->pointeur_donnees(params_noeud.nom(i));
 
-			auto ptr = gest_props->pointeur_donnees("P");
-
-			compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-			compileuse->ajoute_instructions(params_noeud.type(i));
-			compileuse->ajoute_instructions(ptr_entree);
-			compileuse->ajoute_instructions(ptr);
+				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
+				compileuse->ajoute_instructions(params_noeud.type(i));
+				compileuse->ajoute_instructions(ptr_entree);
+				compileuse->ajoute_instructions(ptr_sortie);
+			}
 		}
 
 		return EXECUTION_REUSSIE;
