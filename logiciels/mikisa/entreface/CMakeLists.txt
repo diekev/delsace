@@ -201,6 +201,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_transformation.jo
 	scripts_danjo/operatrice_vent.jo
 	scripts_danjo/operatrice_vis_arbre_hbe.jo
+	scripts_danjo/operatrice_visibilite_camera.jo
 	scripts_danjo/operatrice_visionnage.jo
 	scripts_danjo/operatrice_visualisation_gaz.jo
 	scripts_danjo/operatrice_vorticite_gaz.jo

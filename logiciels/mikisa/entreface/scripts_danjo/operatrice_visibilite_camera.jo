@@ -1,0 +1,6 @@
+disposition "operatrice_visibilite_camera" {
+	ligne {
+		étiquette(valeur="Caméra")
+		liste(valeur=""; attache=nom_caméra; infobulle="La caméra utilisée pour la projection.")
+	}
+}

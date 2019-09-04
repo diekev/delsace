@@ -8,6 +8,7 @@ menu "Noeud Objet" {
 		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
 		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
 		action(valeur="Transfère Attributs"; attache=ajouter_noeud; métadonnée="Transfère Attributs")
+		action(valeur="Visibilité Caméra"; attache=ajouter_noeud; métadonnée="Visibilité Caméra")
 	}
 	menu "Cache" {
 		action(valeur="Cache Corps"; attache=ajouter_noeud; métadonnée="Cache Corps")

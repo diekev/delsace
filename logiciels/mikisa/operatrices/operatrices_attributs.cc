@@ -24,14 +24,19 @@
 
 #include "operatrices_attributs.hh"
 
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include "coeur/base_de_donnees.hh"
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
+
+#include "evaluation/reseau.hh"
 
 #include "normaux.hh"
 
@@ -1080,6 +1085,160 @@ public:
 
 /* ************************************************************************** */
 
+class OpVisibiliteCamera final : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Visibilité Caméra";
+	static constexpr auto AIDE = "Ajoute un attribut selon la distance des points depuis une caméra.";
+
+	OpVisibiliteCamera(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	COPIE_CONSTRUCT(OpVisibiliteCamera);
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_visibilite_camera.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_caméra");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_objet->type != type_objet::CAMERA) {
+			this->ajoute_avertissement("L'objet n'est pas une caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto camera = static_cast<vision::Camera3D *>(nullptr);
+
+		m_objet->donnees.accede_ecriture([&](DonneesObjet *donnees)
+		{
+			camera = &extrait_camera(donnees);
+		});
+
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_lecture();
+
+		auto couleur_non = dls::math::vec3f(0.0f);
+
+		auto l_min =  constantes<float>::INFINITE;
+		auto l_max = -constantes<float>::INFINITE;
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			auto p = m_corps.point_transforme(i);
+
+			auto pos_ecran = camera->pos_ecran(dls::math::point3f(p));
+
+			if (pos_ecran.x < 0.0f || pos_ecran.x > camera->largeur()) {
+				assigne(attr_C->r32(i), couleur_non);
+				continue;
+			}
+
+			if (pos_ecran.y < 0.0f || pos_ecran.y > camera->hauteur()) {
+				assigne(attr_C->r32(i), couleur_non);
+				continue;
+			}
+
+			auto vec = p - camera->pos();
+
+			if (produit_scalaire(vec, camera->dir()) <= 0.0f) {
+				assigne(attr_C->r32(i), couleur_non);
+				continue;
+			}
+
+			auto l = longueur(vec);
+
+			if (l < l_min) {
+				l_min = l;
+			}
+
+			if (l > l_max) {
+				l_max = l;
+			}
+
+			assigne(attr_C->r32(i), dls::math::vec3f(l));
+		}
+
+		auto poids = 1.0f / (l_max - l_min);
+
+		transforme_attr<float>(*attr_C, [&](float *ptr)
+		{
+			for (int i = 0; i < 3; ++i) {
+				ptr[i] = 1.0f - (l_max - ptr[i]) * poids;
+			}
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_caméra") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->noeud->nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_attributs(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
@@ -1089,6 +1248,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
 	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
 	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
+	usine.enregistre_type(cree_desc<OpVisibiliteCamera>());
 }
 
 #pragma clang diagnostic pop
