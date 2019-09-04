@@ -128,8 +128,8 @@ double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::p
 
 Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, GNA &gna, dls::math::point3d const &pos, dls::math::vec3d const &nor)
 {
-	/* Biais pour les rayons d'ombrage. À FAIRE : mettre dans les paramètres. */
-	auto const biais = 1e-4;
+	/* Biais pour les rayons d'ombrage. */
+	auto const biais = parametres.biais_ombre;
 	auto spectre = Spectre(0.0);
 
 	dls::phys::rayond rayon;

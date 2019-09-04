@@ -41,6 +41,7 @@ struct ParametresRendu {
 	unsigned int resolution = 0;
 	unsigned int hauteur_carreau = 32;
 	unsigned int largeur_carreau = 32;
+	double biais_ombre = 1e-4;
 
 	Scene scene{};
 
@@ -55,7 +56,6 @@ struct ParametresRendu {
 	ParametresRendu();
 	~ParametresRendu();
 
-	/* À FAIRE */
 	ParametresRendu(ParametresRendu const &) = delete;
 	ParametresRendu &operator=(ParametresRendu const &) = delete;
 };
