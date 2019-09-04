@@ -117,9 +117,9 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 	auto const delta = (t1 - t0).seconds();
 	noeud_sortie->temps_execution = static_cast<float>(delta);
 
-	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
-	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
-	 * le rendu prend plus de temps que l'évaluation asynchrone. */
+	/* on garde une copie pour l'évaluation dans des threads séparés, copie
+	 * nécessaire pour pouvoir rendre l'objet dans la vue quand le rendu prend
+	 * plus de temps que l'évaluation asynchrone. */
 	objet->donnees.accede_ecriture([operatrice](DonneesObjet *donnees_objet)
 	{
 		auto &_corps_ = extrait_corps(donnees_objet);
