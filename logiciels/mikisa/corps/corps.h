@@ -32,16 +32,6 @@
 #include "groupes.h"
 #include "listes.h"
 
-enum {
-	CORPS_NUL,
-	CORPS_MAILLAGE,
-	CORPS_NUAGE_POINTS,  /* À FAIRE : nuage de points, particules */
-	CORPS_COURBE,        /* À FAIRE : bézier3d, poil */
-	CORPS_SURFACE,       /* À FAIRE : NURBS */
-	CORPS_VOLUME,        /* À FAIRE : OpenVDB */
-	CORPS_PANCARTE,      /* À FAIRE : pancarte alignée à la vue/caméra */
-};
-
 class Attribut;
 
 /**
@@ -66,8 +56,6 @@ struct Corps {
 
 	/* autres propriétés */
 	dls::chaine nom = "corps";
-
-	int type = CORPS_NUL;
 
 	using plage_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::iteratrice>;
 	using plage_const_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::const_iteratrice>;
