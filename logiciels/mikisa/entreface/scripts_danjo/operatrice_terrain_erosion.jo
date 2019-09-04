@@ -1,22 +1,105 @@
 disposition "operatrice_terrain_erosion" {
-	ligne {
-		étiquette(valeur="Répétitions")
-		entier(valeur=1; attache=répétitions)
-	}
-	ligne {
-		étiquette(valeur="Inverse")
-		case(valeur=faux; attache=inverse)
-	}
-	ligne {
-		étiquette(valeur="Pente")
-		case(valeur=vrai; attache=pente)
-	}
-	ligne {
-		étiquette(valeur="Rugueux")
-		case(valeur=faux; attache=rugueux)
-	}
-	ligne {
-		étiquette(valeur="Superficielle")
-		case(valeur=faux; attache=superficielle)
+	dossier {
+		onglet "Général" {
+			ligne {
+				étiquette(valeur="Répétitions")
+				entier(valeur=1; attache=répétitions)
+			}
+			ligne {
+				étiquette(valeur="Modèle")
+				énum(valeur="simple"; attache=modèle; items=[
+					{ nom="Simple", valeur="simple" },
+					{ nom="Complexe", valeur="complexe" }
+				])
+			}
+		}
+		onglet "Simple" {
+			ligne {
+				étiquette(valeur="Inverse")
+				case(valeur=faux; attache=inverse)
+			}
+			ligne {
+				étiquette(valeur="Pente")
+				case(valeur=vrai; attache=pente)
+			}
+			ligne {
+				étiquette(valeur="Rugueux")
+				case(valeur=faux; attache=rugueux)
+			}
+			ligne {
+				étiquette(valeur="Superficielle")
+				case(valeur=faux; attache=superficielle)
+			}
+		}
+		onglet "Complexe" {
+			ligne {
+				étiquette(valeur="Itérations Rivière")
+				entier(valeur=30; attache=iter_rivière; infobulle="Nombre de fois où l'agorithme d'érosion par rivière est performé.")
+			}
+			ligne {
+				étiquette(valeur="Itérations Avalance")
+				entier(valeur=5; attache=iter_avalanche; infobulle="Nombre de fois où l'agorithme d'érosion par avalanche est performé.")
+			}
+			ligne {
+				étiquette(valeur="Itérations Diffusion")
+				entier(valeur=5; attache=iter_diffusion; infobulle="Nombre de fois où l'agorithme d'érosion par diffusion est performé.")
+			}
+			ligne {
+				étiquette(valeur="Pluie Plaines")
+				décimal(valeur=0.0; min=0; max=1; attache=pluie_plaines; infobulle="Une valeur de 1 fait pleuvoir également sur tout le terrain, 0 donne plus d'importance aux sommets.")
+			}
+			ligne {
+				étiquette(valeur="Diffusion Thermale")
+				décimal(valeur=0.1; min=0; attache=diffusion_thermale; infobulle="Taux de diffusion thermale (1 est une valeur très élévée).")
+			}
+			ligne {
+				étiquette(valeur="Angle de Talus Stable Maximum")
+				décimal(valeur=60; min=0; max=90; attache=angle_talus)
+			}
+			ligne {
+				étiquette(valeur="Quantité Pluie")
+				décimal(valeur=0.01; min=0; max=1; attache=quantité_pluie)
+			}
+			ligne {
+				étiquette(valeur="Variance Pluie")
+				décimal(valeur=0.0; min=0; max=1; attache=variance_pluie; infobulle="0 est constante, 1 est uniforme.")
+			}
+			ligne {
+				étiquette(valeur="Perméabilité Sol")
+				décimal(valeur=0.5; min=0; max=1; attache=perméa_sol; infobulle="Vitesse à laquelle l'eau sature les sols.")
+			}
+			ligne {
+				étiquette(valeur="Taux Sédimenation")
+				décimal(valeur=0.1; min=0; max=1; attache=taux_séd; infobulle="Vitesse à laquelle du limon est déposé une fois que l'eau ralenti.")
+			}
+			ligne {
+				étiquette(valeur="Taux Érosion Fluviale")
+				décimal(valeur=0.3; min=0; max=20; attache=taux_fluv; infobulle="Amount of sediment moved each main iteration - if 0, then rivers are formed but the mesh is not changed.")
+			}
+			ligne {
+				étiquette(valeur="Capacité Transport")
+				décimal(valeur=0.9; min=0; max=1; attache=cap_trans; infobulle="Base sediment carrying capacity.")
+			}
+			ligne {
+				étiquette(valeur="Dépendance Pente")
+				décimal(valeur=1; min=0; max=2; attache=dép_pente; infobulle="Slope dependence of carrying capacity (not used).")
+			}
+			ligne {
+				étiquette(valeur="Évaporation")
+				décimal(valeur=0.5; min=0; max=2; attache=évaporation; infobulle="Evaporation Rate per grid square in % - causes sediment to be dropped closer to the hills.")
+			}
+			ligne {
+				étiquette(valeur="Quantité Diffusion")
+				décimal(valeur=0.2; min=0; max=1; attache=quant_diff; infobulle="Probabilité de diffusion.")
+			}
+			ligne {
+				étiquette(valeur="Quantité Avalanche")
+				décimal(valeur=0.5; min=0; max=1; attache=quant_aval; infobulle="Probabilité d'avalanche.")
+			}
+			ligne {
+				étiquette(valeur="Quantité Rivière")
+				décimal(valeur=0.5; min=0; max=1; attache=quant_riv; infobulle="Probabilité d'érosion aquatique.")
+			}
+		}
 	}
 }

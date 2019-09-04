@@ -347,8 +347,8 @@ public:
  */
 struct erodeuse {
 	using type_grille = wlk::grille_dense_2d<float>;
+	type_grille &roche;
 	wlk::desc_grille_2d desc{};
-	type_grille roche{};
 	type_grille *eau = nullptr;
 	type_grille *sediment = nullptr;
 	type_grille *scour = nullptr;
@@ -367,12 +367,10 @@ struct erodeuse {
 	float max_sediment = 1.0f;
 	float min_scour = 1.0f;
 
-	erodeuse(int taille = 10)
-		: desc(wlk::desc_depuis_hauteur_largeur(taille, taille))
-	{
-		roche = type_grille(desc);
-		desc = roche.desc();
-	}
+	erodeuse(type_grille &grille_entree)
+		: roche(grille_entree)
+		, desc(roche.desc())
+	{}
 
 	COPIE_CONSTRUCT(erodeuse);
 
@@ -624,8 +622,6 @@ struct erodeuse {
 			}
 		}
 
-		// !! this gives a runtime warning for division by zero
-
 		auto sdw = type_grille(desc);
 		auto svdw = type_grille(desc);
 		auto sds = type_grille(desc);
@@ -826,9 +822,29 @@ public:
 			grille_poids = &terrain->hauteur;
 		}
 
-		auto temp = wlk::grille_dense_2d<float>(desc);
-
 		auto repetitions = evalue_entier("répétitions", contexte.temps_courant);
+		auto modele = evalue_enum("modèle");
+
+		if (modele == "simple") {
+			erode_simple(grille_entree, grille_poids, repetitions);
+		}
+		else {
+			erode_complexe(grille_entree, repetitions);
+		}
+
+		/* copie les données */
+		copie_donnees_calque(grille_entree, terrain->hauteur);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void erode_simple(
+			wlk::grille_dense_2d<float> &grille_entree,
+			wlk::grille_dense_2d<float> *grille_poids,
+			int iterations)
+	{
+		auto desc = grille_entree.desc();
+		auto temp = wlk::grille_dense_2d<float>(desc);
 		auto inverse = evalue_bool("inverse");
 		auto superficielle = evalue_bool("superficielle");
 		auto rugueux = evalue_bool("rugueux");
@@ -840,7 +856,7 @@ public:
 		auto const s = 1.0f / static_cast<float>(res_x);
 		auto const t = 1.0f / static_cast<float>(res_y);
 
-		for (auto r = 0; r < repetitions; ++r) {
+		for (auto r = 0; r < iterations; ++r) {
 			copie_donnees_calque(grille_entree, temp);
 
 			auto index = 0;
@@ -932,11 +948,60 @@ public:
 				}
 			}
 		}
+	}
 
-		/* copie les données */
-		copie_donnees_calque(grille_entree, terrain->hauteur);
+	void erode_complexe(
+			wlk::grille_dense_2d<float> &grille_entree,
+			int iterations)
+	{
+		auto IterRiver = evalue_entier("iter_rivière");
+		auto IterAvalanche = evalue_entier("iter_avalanche");
+		auto IterDiffuse = evalue_entier("iter_diffusion");
+		//auto Ef = evalue_decimal("pluie_plaines");
+		auto Kd = evalue_decimal("diffusion_thermale");
+		auto Kt = evalue_decimal("angle_talus");
+		auto Kr = evalue_decimal("quantité_pluie");
+		auto Kv = evalue_decimal("variance_pluie");
+		auto Ks = evalue_decimal("perméa_sol");
+		auto Kdep = evalue_decimal("taux_séd");
+		auto Kz = evalue_decimal("taux_fluv");
+		auto Kc = evalue_decimal("cap_trans");
+		auto Ka = evalue_decimal("dép_pente");
+		auto Kev = evalue_decimal("évaporation");
+		//auto Pd = evalue_decimal("quant_diff");
+		auto Pa = evalue_decimal("quant_aval");
+		//auto Pw = evalue_decimal("quant_riv");
 
-		return EXECUTION_REUSSIE;
+		// À FAIRE : mappe de pluie, soit par image, soit par peinture sur le terrain
+		// À FAIRE : termine ceci
+		// NOTE : le greffon de Blender avait également des options pour montrer des stats sur les itérations et les maillages
+
+		auto modele = erodeuse(grille_entree);
+
+		for (auto i = 0; i < iterations; ++i) {
+			for (auto j = 0; j < IterRiver; ++j) {
+				modele.generation_riviere(Kr, Kv, Kc, Ks, Kdep, Ka, Kev);
+			}
+
+			if (Kd > 0.0f) {
+				for (auto j = 0; j < IterDiffuse; ++j) {
+					modele.diffuse(Kd / 5.0f, IterDiffuse);
+				}
+			}
+
+			if (Kt < 90.0f && Pa > 0.0f) {
+				for (auto j = 0; j < IterAvalanche; ++j) {
+					auto Kt_grad = dls::math::degre_vers_radian(Kt);
+					// si dx et dy sont = 1, tan(Kt) est la hauteur pour un
+					// angle donné, sinon ce sera tan(Kt)/dx
+					modele.avalanche(std::tan(Kt_grad), IterAvalanche, Pa);
+				}
+			}
+
+			if (Kz > 0.0f) {
+				modele.erosion_fluviale(Kc, Ks, Kz * 50, Ka);
+			}
+		}
 	}
 };
 
