@@ -1860,7 +1860,6 @@ public:
 		applique_fonction_position(chef, *tampon,
 								   [&](dls::phys::couleur32 const &/*pixel*/, int l, int c)
 		{
-			/* À FAIRE : image carrée ? */
 			auto const r = static_cast<float>(l);
 			auto const theta = constantes<float>::TAU * static_cast<float>(c) * inv_res_x;
 			auto const x = r * std::cos(theta);

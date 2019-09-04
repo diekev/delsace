@@ -896,17 +896,6 @@ public:
 
 /* ************************************************************************** */
 
-dls::phys::couleur32 converti_en_pixel(dls::phys::couleur32 const &v)
-{
-	dls::phys::couleur32 pixel;
-	pixel.r = v[0];
-	pixel.v = v[1];
-	pixel.b = v[2];
-	pixel.a = v[3];
-
-	return pixel;
-}
-
 void restreint(dls::phys::couleur32 &pixel, float min, float max)
 {
 	if (pixel.r < min) {
@@ -979,25 +968,18 @@ public:
 	void evalue_entrees(int temps) override
 	{
 		INUTILISE(temps);
-		auto ajoute = evalue_couleur("ajout");
-		auto multiplie = evalue_couleur("multiple");
-		auto gamma = evalue_couleur("gamma");
-		auto blanc = evalue_couleur("blanc");
-		auto noir = evalue_couleur("noir");
-		auto point_blanc = evalue_couleur("point_blanc");
-		auto point_noir = evalue_couleur("point_noir");
 
 		m_inverse = evalue_bool("inverse");
 		m_restreint_noir = evalue_bool("limite_noir");
 		m_restreint_blanc = evalue_bool("limite_blanc");
 
 		/* Prépare les données. */
-		m_point_noir = converti_en_pixel(point_noir);
-		m_point_blanc = converti_en_pixel(point_blanc);
-		m_blanc = converti_en_pixel(blanc);
-		m_noir = converti_en_pixel(noir);
-		m_multiple = converti_en_pixel(multiplie);
-		m_ajoute = converti_en_pixel(ajoute);
+		m_point_noir = evalue_couleur("point_noir");
+		m_point_blanc = evalue_couleur("point_blanc");
+		m_blanc = evalue_couleur("blanc");
+		m_noir = evalue_couleur("noir");
+		m_multiple = evalue_couleur("multiple");
+		m_ajoute = evalue_couleur("ajout");
 
 		m_delta_BN = m_point_blanc - m_point_noir;
 		A1 = m_blanc - m_noir;
@@ -1009,7 +991,7 @@ public:
 		m_delta_BN *= m_multiple;
 
 		B = m_ajoute + m_noir - m_point_noir * m_delta_BN;
-		m_gamma = converti_en_pixel(gamma);
+		m_gamma = evalue_couleur("gamma");
 
 		for (int i = 0; i < 3; ++i) {
 			if (m_gamma[i] < 0.008f) {
