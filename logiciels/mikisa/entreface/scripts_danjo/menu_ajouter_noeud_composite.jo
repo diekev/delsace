@@ -57,6 +57,7 @@ menu "Noeud Composite" {
 		action(valeur="Normalisation Région"; attache=ajouter_noeud; métadonnée="Normalisation Région")
 		action(valeur="Ondelette de Haar"; attache=ajouter_noeud; métadonnée="Ondelette de Haar")
 		action(valeur="Simulation de grain"; attache=ajouter_noeud; métadonnée="Simulation de grain")
+		action(valeur="SRIRP"; attache=ajouter_noeud; métadonnée="SRIRP")
 		action(valeur="Tournoiement"; attache=ajouter_noeud; métadonnée="Tournoiement")
 	}
 }
