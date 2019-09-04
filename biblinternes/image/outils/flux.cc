@@ -24,46 +24,25 @@
 
 #include "flux.h"
 
+#include "biblinternes/outils/conditions.h"
+
 namespace dls {
 namespace image {
 namespace outils {
 
-namespace detail {
-
-/**
- * Retourne vrai si les éléments spécifiés sont égaux.
- */
-template<typename T1, typename T2>
-auto fait_parti(T1 &&a, T2 &&b) -> bool
-{
-	return a == b;
-}
-
-/**
- * Retourne vrai si le premier élément est égal à l'un des éléments spécifiés
- * dans la liste variable de paramètre.
- */
-template<typename T1, typename T2, typename... Ts>
-auto fait_parti(T1 &&a, T2 &&b, Ts &&... t) -> bool
-{
-	return a == b || fait_parti(a, t...);
-}
-
-}  /* namespace detail */
-
 bool est_extension_exr(const dls::chaine &extension)
 {
-	return detail::fait_parti(extension, ".exr");
+	return dls::outils::est_element(extension, ".exr");
 }
 
 bool est_extension_jpeg(const dls::chaine &extension)
 {
-	return detail::fait_parti(extension, ".jpg", ".jpeg");
+	return dls::outils::est_element(extension, ".jpg", ".jpeg");
 }
 
 bool est_extension_pnm(const dls::chaine &extension)
 {
-	return detail::fait_parti(extension, ".ppm", ".pgm", ".pbm", ".pnm");
+	return dls::outils::est_element(extension, ".ppm", ".pgm", ".pbm", ".pnm");
 }
 
 }  /* namespace outils */
