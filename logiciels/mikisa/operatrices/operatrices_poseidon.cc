@@ -100,8 +100,8 @@ public:
 	static constexpr auto NOM = "Entrée Gaz";
 	static constexpr auto AIDE = "";
 
-	OpEntreeGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpEntreeGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -141,7 +141,7 @@ public:
 		return m_objet;
 	}
 
-	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
 	{
 		if (m_objet == nullptr) {
 			m_objet = trouve_objet(contexte);
@@ -151,7 +151,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
 	}
 
 	void obtiens_liste(
@@ -161,7 +161,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->nom);
+				liste.pousse(objet->noeud->nom);
 			}
 		}
 	}
@@ -267,8 +267,8 @@ public:
 	static constexpr auto NOM = "Obstacle Gaz";
 	static constexpr auto AIDE = "";
 
-	OpObstacleGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpObstacleGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -308,7 +308,7 @@ public:
 		return m_objet;
 	}
 
-	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
 	{
 		if (m_objet == nullptr) {
 			m_objet = trouve_objet(contexte);
@@ -318,7 +318,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
 	}
 
 	void obtiens_liste(
@@ -328,7 +328,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->nom);
+				liste.pousse(objet->noeud->nom);
 			}
 		}
 	}
@@ -382,8 +382,8 @@ public:
 	static constexpr auto NOM = "Simulation Gaz";
 	static constexpr auto AIDE = "";
 
-	OpSimulationGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpSimulationGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 	}
@@ -505,15 +505,15 @@ public:
 		auto etendu = m_poseidon.densite->desc().etendue;
 		auto taille_voxel = static_cast<float>(m_poseidon.densite->desc().taille_voxel);
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.max, dls::math::vec3f(0.0f, 1.0f, 0.0f));
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
 
 		auto pos_parts = m_poseidon.parts.champs_vectoriel("position");
 
 		for (auto i = 0; i < m_poseidon.parts.taille(); ++i) {
-			m_corps.ajoute_point(pos_parts[i]);
-			attr_C->pousse(dls::math::vec3f(0.435f, 0.284f, 0.743f));
+			auto idx_p = m_corps.ajoute_point(pos_parts[i]);
+			assigne(attr_C->r32(idx_p), dls::math::vec3f(0.435f, 0.284f, 0.743f));
 		}
 
 		m_corps.ajoute_primitive(volume);
@@ -634,8 +634,8 @@ public:
 	static constexpr auto NOM = "Advection Gaz";
 	static constexpr auto AIDE = "";
 
-	OpAdvectionGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpAdvectionGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -735,8 +735,8 @@ public:
 	static constexpr auto NOM = "Flottance Gaz";
 	static constexpr auto AIDE = "";
 
-	OpFlottanceGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpFlottanceGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -832,8 +832,8 @@ public:
 	static constexpr auto NOM = "Incompressibilité Gaz";
 	static constexpr auto AIDE = "";
 
-	OpIncompressibiliteGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpIncompressibiliteGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -899,8 +899,8 @@ public:
 	static constexpr auto NOM = "Vorticité Gaz";
 	static constexpr auto AIDE = "";
 
-	OpVorticiteGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpVorticiteGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -958,8 +958,8 @@ public:
 	static constexpr auto NOM = "Affinage Gaz";
 	static constexpr auto AIDE = "";
 
-	OpAffinageGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpAffinageGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -1030,8 +1030,8 @@ public:
 	static constexpr auto NOM = "Diffusion Gaz";
 	static constexpr auto AIDE = "";
 
-	OpDiffusionGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpDiffusionGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -1144,8 +1144,8 @@ public:
 	static constexpr auto NOM = "Bruit Collision Gaz";
 	static constexpr auto AIDE = "Supprime des quantités du fluide en simulant un bruit blanc dans le champs de collision.";
 
-	OpBruitCollisionGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpBruitCollisionGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -1205,8 +1205,8 @@ public:
 	static constexpr auto NOM = "Dissipation Gaz";
 	static constexpr auto AIDE = "Supprime des quantités du fluide.";
 
-	OpDissipationGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpDissipationGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -1307,8 +1307,8 @@ public:
 	static constexpr auto NOM = "Visualisation Gaz";
 	static constexpr auto AIDE = "Visualise un champs donné de la simulation.";
 
-	OpVisualisationGaz(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpVisualisationGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		m_execute_toujours = true;
 		entrees(1);
@@ -1404,7 +1404,7 @@ public:
 				}
 			}
 
-			auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+			auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 			for (auto z = 0; z < res.z; ++z) {
 				for (auto y = 0; y < res.y; ++y) {
@@ -1432,11 +1432,11 @@ public:
 						m_corps.ajoute_point(p0);
 						m_corps.ajoute_point(p1);
 
-						auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-						poly->ajoute_sommet(decalage);
-						poly->ajoute_sommet(decalage + 1);
+						auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+						m_corps.ajoute_sommet(poly, decalage);
+						m_corps.ajoute_sommet(poly, decalage + 1);
 
-						C->pousse(rvb);
+						assigne(C->r32(poly->index), rvb);
 					}
 				}
 			}

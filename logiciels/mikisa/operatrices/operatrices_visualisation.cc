@@ -84,7 +84,7 @@ static void rassemble_topologie(
 		bool dessine_branches,
 		bool dessine_feuilles)
 {
-	corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 	rassemble_topologie(arbre.racine(), corps, dessine_branches, dessine_feuilles);
 }
 
@@ -102,7 +102,7 @@ static void colore_prims(
 
 		for (auto ref : noeud->refs) {
 			/* Une même primitive peut être dans plusieurs noeuds... */
-			attr->vec3(ref) = couleur;
+			assigne(attr->r32(ref), couleur);
 		}
 
 		return;
@@ -122,8 +122,8 @@ public:
 	static constexpr auto NOM = "Visualisation Arbre Octernaire";
 	static constexpr auto AIDE = "";
 
-	OperatriceVisualisationArbreOcternaire(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceVisualisationArbreOcternaire(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -170,11 +170,11 @@ public:
 			auto attr = m_corps.attribut("C");
 
 			if (attr == nullptr) {
-				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+				attr = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 			}
 			else if (attr->portee != portee_attr::PRIMITIVE) {
 				m_corps.supprime_attribut("C");
-				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+				attr = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 			}
 
 			auto gna = GNA{};
@@ -224,7 +224,7 @@ static auto rassemble_topologie(
 		dls::math::vec3f(0.0f, 0.0f, 1.0f),
 	};
 
-	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 	for (auto const &noeud : arbre.nodearray) {
 		auto bv = noeud.bv;
@@ -254,7 +254,7 @@ static auto rassemble_topologie(
 		dls::math::vec3f(0.0f, 0.0f, 1.0f),
 	};
 
-	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 	for (auto const &noeud : arbre.noeuds) {
 		auto const &min = dls::math::converti_type_vecteur<float>(noeud.limites.min);
@@ -274,8 +274,8 @@ public:
 	static constexpr auto NOM = "Visualisation Arbre BVH";
 	static constexpr auto AIDE = "";
 
-	OperatriceVisualisationArbreBVH(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceVisualisationArbreBVH(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -324,11 +324,11 @@ public:
 //			auto attr = m_corps.attribut("C");
 
 //			if (attr == nullptr) {
-//				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+//				attr = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 //			}
 //			else if (attr->portee != portee_attr::PRIMITIVE) {
 //				m_corps.supprime_attribut("C");
-//				attr = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::PRIMITIVE);
+//				attr = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 //			}
 
 //			auto gna = GNA{};
@@ -345,7 +345,7 @@ public:
 
 //				for (auto i = 0; i < noeud.nombre_references; ++i) {
 //					auto id_prim = arbre_hbe.index_refs[noeud.decalage_reference + i];
-//					attr->vec3(id_prim) = couleur;
+//					attr->r32(id_prim) = couleur;
 //				}
 //			}
 		}
@@ -362,7 +362,7 @@ template <typename T>
 static auto visualise_topologie(Corps &corps, wlk::grille_eparse<T> const &grille)
 {
 	auto limites = grille.desc().etendue;
-	auto attr_C = corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+	auto attr_C = corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 	auto plg = grille.plage();
 
 	while (!plg.est_finie()) {
@@ -383,8 +383,8 @@ public:
 	static constexpr auto NOM = "Visualisation Grille Éparse";
 	static constexpr auto AIDE = "";
 
-	OpVisualiseGrilleEparse(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpVisualiseGrilleEparse(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);

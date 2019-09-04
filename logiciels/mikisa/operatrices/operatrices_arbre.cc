@@ -620,8 +620,8 @@ public:
 	static constexpr auto NOM = "Ajoute Branche";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OpAjouteBranch(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpAjouteBranch(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *nom_classe() const override
@@ -699,8 +699,8 @@ public:
 	static constexpr auto NOM = "Grow";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OpGrow(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpGrow(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *nom_classe() const override
@@ -775,7 +775,7 @@ public:
 	static constexpr auto NOM = "Création Arbre";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud_);
 
 	OperatriceCreationArbre(OperatriceCreationArbre const &) = default;
 	OperatriceCreationArbre &operator=(OperatriceCreationArbre const &) = default;
@@ -792,8 +792,8 @@ public:
 };
 
 
-OperatriceCreationArbre::OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
+OperatriceCreationArbre::OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
 	entrees(1);
 	sorties(1);
@@ -1113,6 +1113,109 @@ static dls::math::mat3x3f quat_to_mat3(const dls::math::quaternion<float> q)
 	return m;
 }
 
+auto rotate(dls::math::vec3f const &vec, dls::math::quaternion<float> const &quat)
+{
+	auto mat = quat_to_mat3(quat);
+
+	return vec * mat;
+}
+
+inline float saasin(float fac)
+{
+	if      ((fac <= -1.0f)) return -constantes<float>::PI / 2.0f;
+	else if ((fac >=  1.0f)) return  constantes<float>::PI / 2.0f;
+	else                             return asinf(fac);
+}
+float angle_normalized_v3v3(const dls::math::vec3f &v1, const dls::math::vec3f &v2)
+{
+	/* double check they are normalized */
+//	BLI_ASSERT_UNIT_V3(v1);
+//	BLI_ASSERT_UNIT_V3(v2);
+
+	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
+	if (produit_scalaire(v1, v2) >= 0.0f) {
+		return 2.0f * saasin(longueur(v1 - v2) / 2.0f);
+	}
+	else {
+		return constantes<float>::PI - 2.0f * saasin(longueur(v1 - (-v2)) / 2.0f);
+	}
+}
+
+void axis_angle_to_quat(dls::math::quaternion<float> &q, const  dls::math::vec3f &axis, const float angle)
+{
+	dls::math::vec3f nor;
+	nor = normalise(axis);
+	auto l = longueur(axis);
+
+	if (l != 0.0f) {
+		axis_angle_normalized_to_quat(q, nor, angle);
+	}
+	else {
+		q.vecteur[0] = 1.0f;
+		q.vecteur[1] = 0.0f;
+		q.vecteur[2] = 0.0f;
+		q.poids      = 0.0f;
+	}
+}
+
+void ortho_v3_v3(dls::math::vec3f &out, const dls::math::vec3f &v)
+{
+	const int axis = dls::math::axe_dominant_abs(v);
+
+	//BLI_assert(out != v);
+
+	switch (axis) {
+		case 0:
+			out[0] = -v[1] - v[2];
+			out[1] =  v[0];
+			out[2] =  v[0];
+			break;
+		case 1:
+			out[0] =  v[1];
+			out[1] = -v[0] - v[2];
+			out[2] =  v[1];
+			break;
+		case 2:
+			out[0] =  v[2];
+			out[1] =  v[2];
+			out[2] = -v[0] - v[1];
+			break;
+	}
+}
+/* note: expects vectors to be normalized */
+void rotation_between_vecs_to_quat(dls::math::quaternion<float> &q, const dls::math::vec3f &v1, const dls::math::vec3f &v2)
+{
+	auto axe = dls::math::vec3f();
+
+	axe = produit_croix(v1, v2);
+
+	auto l = longueur(axe);
+	axe = normalise(axe);
+
+	if (l > 1e-6f) {
+		float angle;
+
+		angle = angle_normalized_v3v3(v1, v2);
+
+		axis_angle_normalized_to_quat(q, axe, angle);
+	}
+	else {
+		/* degenerate case */
+
+		if (produit_scalaire(v1, v2) > 0.0f) {
+			/* Same vectors, zero rotation... */
+			q.vecteur[0] = 1.0f;
+			q.vecteur[1] = 0.0f;
+			q.vecteur[2] = 0.0f;
+			q.poids      = 0.0f;
+		}
+		else {
+			/* Colinear but opposed vectors, 180 rotation... */
+			ortho_v3_v3(axe, v1);
+			axis_angle_to_quat(q, axe, constantes<float>::PI);
+		}
+	}
+}
 auto vec_to_quat(dls::math::vec3f const &vec, int axis, int upflag)
 {
 	/* first set the quat to unit */
@@ -2045,8 +2148,8 @@ public {
 	static constexpr auto NOM = "Création Arbre";
 	static constexpr auto AIDE = "Crée un arbre.";
 
-	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud)
-		 { OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationArbre(Graphe &graphe_parent, Noeud &noeud_)
+		 { OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -2182,10 +2285,10 @@ public {
 			origine.y += taille_segment;
 		}
 
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, static_cast<int>(params._0CurveRes));
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, static_cast<int>(params._0CurveRes));
 
 		for (int i = 0; i < static_cast<int>(params._0CurveRes); ++i) {
-			poly->ajoute_sommet(i);
+			 m_corps.ajoute_sommet(poly, i);
 		}
 #else
 		auto closeTip = true;

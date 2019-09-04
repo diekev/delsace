@@ -29,8 +29,8 @@
 #include "chef_execution.hh"
 #include "contexte_evaluation.hh"
 
-OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceImage(graphe_parent, noeud)
+OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceImage(graphe_parent, noeud_)
 {}
 
 int OperatricePixel::type() const
@@ -63,17 +63,19 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 	auto chef = contexte.chef;
 	chef->demarre_evaluation(this->nom_classe());
 
+	auto desc = calque->tampon()->desc();
+
 	auto tampon = extrait_grille_couleur(calque);
-	auto largeur_inverse = 1.0f / rectangle.largeur;
-	auto hauteur_inverse = 1.0f / rectangle.hauteur;
+	auto largeur_inverse = 1.0f / static_cast<float>(desc.resolution.x);
+	auto hauteur_inverse = 1.0f / static_cast<float>(desc.resolution.y);
 
 	this->evalue_entrees(contexte.temps_courant);
 
-	boucle_parallele(tbb::blocked_range<int>(0, static_cast<int>(rectangle.hauteur)),
+	boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
-			for (auto c = 0; c < static_cast<int>(rectangle.largeur); ++c) {
+			for (auto c = 0; c < desc.resolution.x; ++c) {
 				auto const x = static_cast<float>(c) * largeur_inverse;
 				auto const y = static_cast<float>(l) * hauteur_inverse;
 

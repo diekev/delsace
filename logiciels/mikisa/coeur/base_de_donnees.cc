@@ -25,34 +25,12 @@
 #include "base_de_donnees.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/chaine.hh"
 
 #include "base_de_donnees.hh"
 #include "composite.h"
 #include "noeud_image.h"
 #include "objet.h"
-
-/* ************************************************************************** */
-
-static auto cree_noeud_objet()
-{
-	auto noeud = memoire::loge<Noeud>("Noeud");
-	noeud->type(NOEUD_OBJET);
-
-	return noeud;
-}
-
-static auto cree_noeud_composite()
-{
-	auto noeud = memoire::loge<Noeud>("Noeud");
-	noeud->type(NOEUD_COMPOSITE);
-
-	return noeud;
-}
-
-static auto detruit_noeud(Noeud *noeud)
-{
-	memoire::deloge("Noeud", noeud);
-}
 
 /* ************************************************************************** */
 
@@ -64,9 +42,17 @@ static auto detruit_noeud(Noeud *noeud)
  */
 
 BaseDeDonnees::BaseDeDonnees()
-	: m_graphe_composites(Graphe(cree_noeud_composite, detruit_noeud))
-	, m_graphe_objets(Graphe(cree_noeud_objet, detruit_noeud))
-{}
+{
+	m_racine.nom = "";
+	m_racine_objets.nom = "objets";
+	m_racine_composites.nom = "composites";
+
+	m_racine_objets.graphe.type = type_graphe::RACINE_OBJET;
+	m_racine_composites.graphe.type = type_graphe::RACINE_COMPOSITE;
+
+	m_racine.enfants.pousse(&m_racine_objets);
+	m_racine.enfants.pousse(&m_racine_composites);
+}
 
 BaseDeDonnees::~BaseDeDonnees()
 {
@@ -80,16 +66,26 @@ void BaseDeDonnees::reinitialise()
 	}
 
 	m_objets.efface();
-	m_graphe_objets.supprime_tout();
-	m_table_objet_noeud.efface();
+	m_racine_objets.graphe.noeud_actif = nullptr;
+	m_racine_objets.graphe.supprime_tout();
 
 	for (auto compo : m_composites) {
 		memoire::deloge("compo", compo);
 	}
 
 	m_composites.efface();
-	m_graphe_composites.supprime_tout();
-	m_table_composites_noeud.efface();
+	m_racine_composites.graphe.noeud_actif = nullptr;
+	m_racine_composites.graphe.supprime_tout();
+}
+
+Noeud *BaseDeDonnees::racine()
+{
+	return &m_racine;
+}
+
+Noeud const *BaseDeDonnees::racine() const
+{
+	return &m_racine;
 }
 
 /* ************************************************************************** */
@@ -97,7 +93,6 @@ void BaseDeDonnees::reinitialise()
 Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 {
 	auto objet = memoire::loge<Objet>("objet");
-	objet->nom = nom;
 	objet->type = type;
 
 	switch (objet->type) {
@@ -122,15 +117,14 @@ Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 		}
 	}
 
-	auto noeud = m_graphe_objets.cree_noeud(objet->nom);
+	auto noeud = m_racine_objets.graphe.cree_noeud(nom, type_noeud::OBJET);
 
-	if (objet->nom != noeud->nom()) {
-		objet->nom = noeud->nom();
-	}
+	objet->noeud = noeud;
 
-	noeud->donnees(objet);
+	noeud->donnees = objet;
+	noeud->peut_avoir_graphe = true;
+	noeud->graphe.type = type_graphe::OBJET;
 
-	m_table_objet_noeud.insere({objet, noeud});
 	m_objets.pousse(objet);
 
 	return objet;
@@ -139,7 +133,7 @@ Objet *BaseDeDonnees::cree_objet(dls::chaine const &nom, type_objet type)
 Objet *BaseDeDonnees::objet(dls::chaine const &nom) const
 {
 	for (auto objet : m_objets) {
-		if (objet->nom == nom) {
+		if (objet->noeud->nom == nom) {
 			return objet;
 		}
 	}
@@ -152,13 +146,7 @@ void BaseDeDonnees::enleve_objet(Objet *objet)
 	auto iter = std::find(m_objets.debut(), m_objets.fin(), objet);
 	m_objets.erase(iter);
 
-	auto iter_noeud = m_table_objet_noeud.trouve(objet);
-
-	if (iter_noeud == m_table_objet_noeud.fin()) {
-		throw std::runtime_error("L'objet n'est pas la table objets/noeuds de la base de données !");
-	}
-
-	m_graphe_objets.supprime(iter_noeud->second);
+	m_racine_objets.graphe.supprime(objet->noeud);
 
 	memoire::deloge("objet", objet);
 }
@@ -170,17 +158,12 @@ const dls::tableau<Objet *> &BaseDeDonnees::objets() const
 
 Graphe *BaseDeDonnees::graphe_objets()
 {
-	return &m_graphe_objets;
+	return &m_racine_objets.graphe;
 }
 
 const Graphe *BaseDeDonnees::graphe_objets() const
 {
-	return &m_graphe_objets;
-}
-
-const dls::dico_desordonne<Objet *, Noeud *> &BaseDeDonnees::table_objets() const
-{
-	return m_table_objet_noeud;
+	return &m_racine_objets.graphe;
 }
 
 /* ************************************************************************** */
@@ -188,17 +171,13 @@ const dls::dico_desordonne<Objet *, Noeud *> &BaseDeDonnees::table_objets() cons
 Composite *BaseDeDonnees::cree_composite(dls::chaine const &nom)
 {
 	auto compo = memoire::loge<Composite>("compo");
-	compo->nom = nom;
 
-	auto noeud = m_graphe_composites.cree_noeud(compo->nom);
+	auto noeud = m_racine_composites.graphe.cree_noeud(nom, type_noeud::COMPOSITE);
 
-	if (compo->nom != noeud->nom()) {
-		compo->nom = noeud->nom();
-	}
-
-	noeud->donnees(compo);
-
-	m_table_composites_noeud.insere({compo, noeud});
+	compo->noeud = noeud;
+	noeud->donnees = compo;
+	noeud->peut_avoir_graphe = true;
+	noeud->graphe.type = type_graphe::COMPOSITE;
 
 	m_composites.pousse(compo);
 
@@ -208,7 +187,7 @@ Composite *BaseDeDonnees::cree_composite(dls::chaine const &nom)
 Composite *BaseDeDonnees::composite(dls::chaine const &nom) const
 {
 	for (auto compo : m_composites) {
-		if (compo->nom == nom) {
+		if (compo->noeud->nom == nom) {
 			return compo;
 		}
 	}
@@ -221,13 +200,7 @@ void BaseDeDonnees::enleve_composite(Composite *compo)
 	auto iter = std::find(m_composites.debut(), m_composites.fin(), compo);
 	m_composites.erase(iter);
 
-	auto iter_noeud = m_table_composites_noeud.trouve(compo);
-
-	if (iter_noeud == m_table_composites_noeud.fin()) {
-		throw std::runtime_error("Le composite n'est pas la table objets/composites de la base de données !");
-	}
-
-	m_graphe_composites.supprime(iter_noeud->second);
+	m_racine_composites.graphe.supprime(compo->noeud);
 
 	memoire::deloge("compo", compo);
 }
@@ -239,10 +212,67 @@ const dls::tableau<Composite *> &BaseDeDonnees::composites() const
 
 Graphe *BaseDeDonnees::graphe_composites()
 {
-	return &m_graphe_composites;
+	return &m_racine_composites.graphe;
 }
 
 const Graphe *BaseDeDonnees::graphe_composites() const
 {
-	return &m_graphe_composites;
+	return &m_racine_composites.graphe;
+}
+
+static auto trouve_enfant(Noeud const *noeud, dls::chaine const &nom)
+{
+	for (auto enfant : noeud->enfants) {
+		if (enfant->nom == nom) {
+			return enfant;
+		}
+	}
+
+	return static_cast<Noeud *>(nullptr);
+}
+
+Noeud *cherche_noeud_pour_chemin(BaseDeDonnees &base, const dls::chaine &chemin)
+{
+	auto morceaux = dls::morcelle(chemin, '/');
+
+	auto noeud_racine = base.racine();
+
+	if (morceaux.est_vide()) {
+		return nullptr;
+	}
+
+	for (auto morceau : morceaux) {
+		auto enfant = trouve_enfant(noeud_racine, morceau);
+
+		if (enfant == nullptr) {
+			return nullptr;
+		}
+
+		noeud_racine = enfant;
+	}
+
+	return noeud_racine;
+}
+
+Noeud const *cherche_noeud_pour_chemin(BaseDeDonnees const &base, dls::chaine const &chemin)
+{
+	auto morceaux = dls::morcelle(chemin, '/');
+
+	auto noeud_racine = base.racine();
+
+	if (morceaux.est_vide()) {
+		return nullptr;
+	}
+
+	for (auto morceau : morceaux) {
+		auto enfant = trouve_enfant(noeud_racine, morceau);
+
+		if (enfant == nullptr) {
+			return nullptr;
+		}
+
+		noeud_racine = enfant;
+	}
+
+	return noeud_racine;
 }

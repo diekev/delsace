@@ -24,7 +24,7 @@
 
 #include "plan.hh"
 
-#include "biblinternes/graphe/graphe.h"
+#include "coeur/graphe.hh"
 
 #include "reseau.hh"
 

@@ -58,120 +58,6 @@
 
 /* ************************************************************************** */
 
-class OperatriceSaturation final : public OperatricePixel {
-	enum {
-		SATURATION_REC709,
-		SATURATION_CCIR601,
-		SATURATION_MOYENNE,
-		SATURATION_MINIMUM,
-		SATURATION_MAXIMUM,
-		SATURATION_MAGNITUDE,
-	};
-
-	int m_operation = SATURATION_REC709;
-	float m_saturation = 1.0f;
-
-public:
-	static constexpr auto NOM = "Saturation";
-	static constexpr auto AIDE = "Applique une saturation à l'image.";
-
-	OperatriceSaturation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
-	{
-		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_saturation.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	void evalue_entrees(int temps) override
-	{
-		auto operation = evalue_enum("operation");
-
-		if (operation == "rec_709") {
-			m_operation = SATURATION_REC709;
-		}
-		else if (operation == "ccir_601") {
-			m_operation = SATURATION_CCIR601;
-		}
-		else if (operation == "moyenne") {
-			m_operation = SATURATION_MOYENNE;
-		}
-		else if (operation == "minimum") {
-			m_operation = SATURATION_MINIMUM;
-		}
-		else if (operation == "maximum") {
-			m_operation = SATURATION_MAXIMUM;
-		}
-		else if (operation == "magnitude") {
-			m_operation = SATURATION_MAGNITUDE;
-		}
-
-		m_saturation = evalue_decimal("saturation", temps);
-	}
-
-	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
-	{
-		INUTILISE(x);
-		INUTILISE(y);
-
-		if (m_saturation == 1.0f) {
-			return pixel;
-		}
-
-		auto sat = 0.0f;
-
-		if (m_operation == SATURATION_REC709) {
-			sat = dls::image::outils::luminance_709(pixel.r, pixel.v, pixel.b);
-		}
-		else if (m_operation == SATURATION_CCIR601) {
-			sat = dls::image::outils::luminance_601(pixel.r, pixel.v, pixel.b);
-		}
-		else if (m_operation == SATURATION_MOYENNE) {
-			sat = dls::image::outils::moyenne(pixel.r, pixel.v, pixel.b);
-		}
-		else if (m_operation == SATURATION_MINIMUM) {
-			sat = std::min(pixel.r, std::min(pixel.v, pixel.b));
-		}
-		else if (m_operation == SATURATION_MAXIMUM) {
-			sat = std::max(pixel.r, std::max(pixel.v, pixel.b));
-		}
-		else if (m_operation == SATURATION_MAGNITUDE) {
-			sat = std::sqrt(pixel.r * pixel.r + pixel.v * pixel.v + pixel.b * pixel.b);
-		}
-
-		dls::phys::couleur32 resultat;
-		resultat.a = pixel.a;
-
-		if (m_saturation != 0.0f) {
-			resultat.r = dls::math::entrepolation_lineaire(sat, pixel.r, m_saturation);
-			resultat.v = dls::math::entrepolation_lineaire(sat, pixel.v, m_saturation);
-			resultat.b = dls::math::entrepolation_lineaire(sat, pixel.b, m_saturation);
-		}
-		else {
-			resultat.r = sat;
-			resultat.v = sat;
-			resultat.b = sat;
-		}
-
-		return resultat;
-	}
-};
-
-/* ************************************************************************** */
-
 /**
  * Mélange d'images
  *
@@ -410,8 +296,8 @@ public:
 	static constexpr auto NOM = "Mélanger";
 	static constexpr auto AIDE = "Mélange deux images.";
 
-	OperatriceMelange(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceMelange(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -798,8 +684,8 @@ public:
 	static constexpr auto NOM = "Bruitage";
 	static constexpr auto AIDE = "Crée un bruit blanc.";
 
-	OperatriceBruitage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceBruitage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -865,8 +751,8 @@ public:
 	static constexpr auto NOM = "Constante";
 	static constexpr auto AIDE = "Applique une couleur constante à toute l'image.";
 
-	OperatriceConstante(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceConstante(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -932,8 +818,8 @@ public:
 	static constexpr auto NOM = "Dégradé";
 	static constexpr auto AIDE = "Génère un dégradé sur l'image.";
 
-	OperatriceDegrade(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceDegrade(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -1010,150 +896,6 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceNuage final : public OperatricePixel {
-	dls::math::BruitFlux2D m_bruit_flux{};
-
-	dls::math::vec3f m_frequence = dls::math::vec3f(1.0f);
-	dls::math::vec3f m_decalage = dls::math::vec3f(0.0f);
-	float m_amplitude = 1.0f;
-	int m_octaves = 1.0f;
-	float m_lacunarite = 1.0f;
-	float m_durete = 1.0f;
-	int m_dimensions = 1;
-	bool m_dur = false;
-
-	REMBOURRE(3);
-
-	std::mt19937 m_rng;
-	std::normal_distribution<float> m_dist;
-
-public:
-	static constexpr auto NOM = "Nuage";
-	static constexpr auto AIDE = "Crée un bruit de nuage";
-
-	OperatriceNuage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
-		, m_rng(1)
-		, m_dist(0.0f, 1.0f)
-	{
-		entrees(0);
-		//GenerateNoiseTile(noiseTileSize, 0);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_nuage.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	void evalue_entrees(int temps) override
-	{
-		auto const time = evalue_decimal("temps", temps);
-		m_bruit_flux.change_temps(time);
-
-		m_frequence = evalue_vecteur("fréquence", temps);
-		m_decalage = evalue_vecteur("décalage", temps);
-		m_amplitude = evalue_decimal("amplitude", temps);
-		m_octaves = evalue_entier("octaves", temps);
-		m_lacunarite = evalue_decimal("lacunarité", temps);
-		m_durete = evalue_decimal("persistence", temps);
-		m_dur = evalue_bool("dur");
-
-		auto const dimensions = evalue_enum("dimension");
-		m_dimensions = (dimensions == "3D") ? 3 : 1;
-	}
-
-	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
-	{
-		INUTILISE(pixel);
-		auto somme_x = 0.0f;
-		auto somme_y = 0.0f;
-		auto somme_z = 0.0f;
-		float p[3] = { 0.0f, 0.0f, 0.0f };
-
-		if (m_dimensions == 1) {
-			auto frequence = m_frequence.x;
-			auto amplitude = m_amplitude;
-
-			for (int i = 0; i <= m_octaves; i++, amplitude *= m_durete) {
-				p[0] = frequence * x + m_decalage.x;
-				p[1] = frequence * y + m_decalage.y;
-
-				//auto t = 0.5f + 0.5f * WNoise(p);
-				auto t = 0.5f + 0.5f * m_bruit_flux(p[0], p[1]);
-
-				if (m_dur) {
-					t = std::fabs(2.0f * t - 1.0f);
-				}
-
-				somme_x += t * amplitude;
-				somme_y += t * amplitude;
-				somme_z += t * amplitude;
-				frequence *= m_lacunarite;
-			}
-		}
-		else {
-			auto frequence_x = m_frequence.x;
-			auto frequence_y = m_frequence.y;
-			auto frequence_z = m_frequence.z;
-			auto amplitude = m_amplitude;
-
-			for (int i = 0; i <= m_octaves; i++, amplitude *= m_durete) {
-				auto tx = 0.5f + 0.5f * m_bruit_flux(frequence_x * x + m_decalage.x, frequence_x * y + m_decalage.y);
-				auto ty = 0.5f + 0.5f * m_bruit_flux(frequence_y * x + m_decalage.x + 1.0f, frequence_y * y + m_decalage.y);
-				auto tz = 0.5f + 0.5f * m_bruit_flux(frequence_z * x + m_decalage.x, frequence_z * y + 1.0f + m_decalage.y);
-
-				if (m_dur) {
-					tx = std::fabs(2.0f * tx - 1.0f);
-					ty = std::fabs(2.0f * ty - 1.0f);
-					tz = std::fabs(2.0f * tz - 1.0f);
-				}
-
-				somme_x += tx * amplitude;
-				somme_y += ty * amplitude;
-				somme_z += tz * amplitude;
-				frequence_x *= m_lacunarite;
-				frequence_y *= m_lacunarite;
-				frequence_z *= m_lacunarite;
-			}
-		}
-
-		auto bruit_x = somme_x * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
-		auto bruit_y = somme_y * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
-		auto bruit_z = somme_z * (static_cast<float>(1 << m_octaves) / static_cast<float>((1 << (m_octaves + 1)) - 1));
-
-		dls::phys::couleur32 resultat;
-		resultat.r = bruit_x;
-		resultat.b = bruit_y;
-		resultat.v = bruit_z;
-		resultat.a = 1.0f;
-
-		return resultat;
-	}
-};
-
-/* ************************************************************************** */
-
-dls::phys::couleur32 converti_en_pixel(dls::phys::couleur32 const &v)
-{
-	dls::phys::couleur32 pixel;
-	pixel.r = v[0];
-	pixel.v = v[1];
-	pixel.b = v[2];
-	pixel.a = v[3];
-
-	return pixel;
-}
-
 void restreint(dls::phys::couleur32 &pixel, float min, float max)
 {
 	if (pixel.r < min) {
@@ -1202,8 +944,8 @@ public:
 	static constexpr auto NOM = "Étalonnage";
 	static constexpr auto AIDE = "Étalonne l'image au moyen d'une rampe linéaire et d'une fonction gamma.";
 
-	OperatriceEtalonnage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceEtalonnage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1226,25 +968,18 @@ public:
 	void evalue_entrees(int temps) override
 	{
 		INUTILISE(temps);
-		auto ajoute = evalue_couleur("ajout");
-		auto multiplie = evalue_couleur("multiple");
-		auto gamma = evalue_couleur("gamma");
-		auto blanc = evalue_couleur("blanc");
-		auto noir = evalue_couleur("noir");
-		auto point_blanc = evalue_couleur("point_blanc");
-		auto point_noir = evalue_couleur("point_noir");
 
 		m_inverse = evalue_bool("inverse");
 		m_restreint_noir = evalue_bool("limite_noir");
 		m_restreint_blanc = evalue_bool("limite_blanc");
 
 		/* Prépare les données. */
-		m_point_noir = converti_en_pixel(point_noir);
-		m_point_blanc = converti_en_pixel(point_blanc);
-		m_blanc = converti_en_pixel(blanc);
-		m_noir = converti_en_pixel(noir);
-		m_multiple = converti_en_pixel(multiplie);
-		m_ajoute = converti_en_pixel(ajoute);
+		m_point_noir = evalue_couleur("point_noir");
+		m_point_blanc = evalue_couleur("point_blanc");
+		m_blanc = evalue_couleur("blanc");
+		m_noir = evalue_couleur("noir");
+		m_multiple = evalue_couleur("multiple");
+		m_ajoute = evalue_couleur("ajout");
 
 		m_delta_BN = m_point_blanc - m_point_noir;
 		A1 = m_blanc - m_noir;
@@ -1256,7 +991,7 @@ public:
 		m_delta_BN *= m_multiple;
 
 		B = m_ajoute + m_noir - m_point_noir * m_delta_BN;
-		m_gamma = converti_en_pixel(gamma);
+		m_gamma = evalue_couleur("gamma");
 
 		for (int i = 0; i < 3; ++i) {
 			if (m_gamma[i] < 0.008f) {
@@ -1392,8 +1127,8 @@ public:
 	static constexpr auto NOM = "Correction Gamma";
 	static constexpr auto AIDE = "Applique une correction gamma à l'image.";
 
-	OperatriceCorrectionGamma(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceCorrectionGamma(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1610,8 +1345,8 @@ public:
 	static constexpr auto NOM = "Mappage Tonal";
 	static constexpr auto AIDE = "Applique un mappage de ton local à l'image.";
 
-	OperatriceMappageTonal(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceMappageTonal(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1778,8 +1513,8 @@ public:
 	static constexpr auto NOM = "Correction Couleur";
 	static constexpr auto AIDE = "Corrige les couleur de l'image selon la formule de l'ASC CDL.";
 
-	OperatriceCorrectionCouleur(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceCorrectionCouleur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1827,53 +1562,6 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceInversement final : public OperatricePixel {
-public:
-	static constexpr auto NOM = "Inversement";
-	static constexpr auto AIDE = "Inverse les couleurs de l'image.";
-
-	OperatriceInversement(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
-	{
-		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_visionnage.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	void evalue_entrees(int temps) override
-	{
-		INUTILISE(temps);
-	}
-
-	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
-	{
-		INUTILISE(x);
-		INUTILISE(y);
-		dls::phys::couleur32 resultat;
-		resultat.r = 1.0f - pixel.r;
-		resultat.v = 1.0f - pixel.v;
-		resultat.b = 1.0f - pixel.b;
-		resultat.a = pixel.a;
-
-		return resultat;
-	}
-};
-
-/* ************************************************************************** */
-
 class OperatriceIncrustation final : public OperatricePixel {
 	dls::phys::couleur32 m_couleur = dls::phys::couleur32(0.0f);
 	float m_angle = 0.0f;
@@ -1886,8 +1574,8 @@ public:
 	static constexpr auto NOM = "Incrustation";
 	static constexpr auto AIDE = "Supprime les couleurs vertes d'une image.";
 
-	OperatriceIncrustation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceIncrustation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1970,8 +1658,8 @@ public:
 	static constexpr auto NOM = "Pré-multiplication";
 	static constexpr auto AIDE = "Prémultiplie les couleurs des pixels par leurs valeurs alpha respectives.";
 
-	OperatricePremultiplication(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatricePremultiplication(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -2018,64 +1706,6 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceNormalisationPixel final : public OperatricePixel {
-public:
-	static constexpr auto NOM = "Normalisation Pixel";
-	static constexpr auto AIDE = "Normalise les couleurs des pixels.";
-
-	OperatriceNormalisationPixel(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
-	{
-		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_visionnage.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	void evalue_entrees(int temps) override
-	{
-		INUTILISE(temps);
-	}
-
-	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
-	{
-		INUTILISE(x);
-		INUTILISE(y);
-		dls::phys::couleur32 resultat;
-
-		auto facteur = pixel.r * 0.2126f + pixel.v * 0.7152f + pixel.b * 0.0722f;
-
-		if (facteur == 0.0f) {
-			resultat.r = 0.0f;
-			resultat.v = 0.0f;
-			resultat.b = 0.0f;
-		}
-		else {
-			resultat.r = pixel.r / facteur;
-			resultat.v = pixel.v / facteur;
-			resultat.b = pixel.b / facteur;
-		}
-
-		resultat.a = pixel.a;
-
-		return resultat;
-	}
-};
-
-/* ************************************************************************** */
-
 class OperatriceContraste final : public OperatricePixel {
 	float m_pivot{};
 	float m_contraste{};
@@ -2084,8 +1714,8 @@ public:
 	static constexpr auto NOM = "Contraste";
 	static constexpr auto AIDE = "Ajuste le contraste de l'image.";
 
-	OperatriceContraste(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceContraste(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -2143,8 +1773,8 @@ public:
 	static constexpr auto NOM = "Courbe Couleur";
 	static constexpr auto AIDE = "Modifie l'image selon une courbe de couleur.";
 
-	OperatriceCourbeCouleur(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceCourbeCouleur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -2196,64 +1826,6 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceTraduction final : public OperatricePixel {
-	dls::phys::couleur32 m_vieux_min{};
-	dls::phys::couleur32 m_vieux_max{};
-	dls::phys::couleur32 m_neuf_min{};
-	dls::phys::couleur32 m_neuf_max{};
-
-public:
-	static constexpr auto NOM = "Traduction";
-	static constexpr auto AIDE = "Traduit les composants de l'image d'une plage à une autre.";
-
-	OperatriceTraduction(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
-	{
-		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_traduction.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	void evalue_entrees(int temps) override
-	{
-		INUTILISE(temps);
-		m_vieux_min = evalue_couleur("vieux_min");
-		m_vieux_max = evalue_couleur("vieux_max");
-		m_neuf_min = evalue_couleur("neuf_min");
-		m_neuf_max = evalue_couleur("neuf_max");
-	}
-
-	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
-	{
-		INUTILISE(x);
-		INUTILISE(y);
-		dls::phys::couleur32 resultat;
-
-		for (int i = 0; i < 3; ++i) {
-			resultat[i] = dls::math::traduit(pixel[i], m_vieux_min[i], m_vieux_max[i], m_neuf_min[i], m_neuf_max[i]);
-		}
-
-		resultat.a = pixel.a;
-
-		return resultat;
-	}
-};
-
-/* ************************************************************************** */
-
 class OperatriceMinMax final : public OperatricePixel {
 	dls::phys::couleur32 m_neuf_min{};
 	dls::phys::couleur32 m_neuf_max{};
@@ -2262,8 +1834,8 @@ public:
 	static constexpr auto NOM = "MinMax";
 	static constexpr auto AIDE = "Change le point blanc et la point noir de l'image.";
 
-	OperatriceMinMax(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceMinMax(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -2397,8 +1969,8 @@ public:
 	static constexpr auto NOM = "Daltonisme";
 	static constexpr auto AIDE = "Simule l'effet du daltonisme.";
 
-	OperatriceDaltonisme(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
+	OperatriceDaltonisme(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatricePixel(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -2462,141 +2034,22 @@ public:
 
 /* ************************************************************************** */
 
-#include "biblinternes/bruit/blanc.hh"
-#include "biblinternes/bruit/evaluation.hh"
-#include "biblinternes/bruit/outils.hh"
-
-class OperatriceBruit final : public OperatricePixel {
-	dls::math::vec3f m_frequence = dls::math::vec3f(1.0f);
-	dls::math::vec3f m_decalage = dls::math::vec3f(0.0f);
-	float m_amplitude = 1.0f;
-	int m_octaves = 1.0f;
-	float m_lacunarite = 1.0f;
-	float m_durete = 1.0f;
-	int m_dimensions = 1;
-	bool m_dur = false;
-	bool m_turb = true;
-
-	REMBOURRE(2);
-
-	bruit::parametres m_params_bruit{};
-	bruit::param_turbulence m_params_turb{};
-
-public:
-	static constexpr auto NOM = "Bruit Image";
-	static constexpr auto AIDE = "";
-
-	OperatriceBruit(Graphe &graphe_parent, Noeud &noeud)
-		: OperatricePixel(graphe_parent, noeud)
-	{
-		entrees(0);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_nuage.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	void evalue_entrees(int temps) override
-	{
-		m_frequence = evalue_vecteur("fréquence", temps);
-		m_decalage = evalue_vecteur("décalage", temps);
-		m_amplitude = evalue_decimal("amplitude", temps);
-		m_octaves = evalue_entier("octaves", temps);
-		m_lacunarite = evalue_decimal("lacunarité", temps);
-		m_durete = evalue_decimal("persistence", temps);
-		m_dur = evalue_bool("dur");
-
-		auto dico_type = dls::cree_dico(
-					dls::paire(dls::chaine("cellule"), bruit::type::CELLULE),
-					dls::paire(dls::chaine("fourier"), bruit::type::FOURIER),
-					dls::paire(dls::chaine("ondelette"), bruit::type::ONDELETTE),
-					dls::paire(dls::chaine("perlin_long"), bruit::type::PERLIN),
-					dls::paire(dls::chaine("simplex"), bruit::type::SIMPLEX),
-					dls::paire(dls::chaine("voronoi_f1"), bruit::type::VORONOI_F1),
-					dls::paire(dls::chaine("voronoi_f2"), bruit::type::VORONOI_F2),
-					dls::paire(dls::chaine("voronoi_f3"), bruit::type::VORONOI_F3),
-					dls::paire(dls::chaine("voronoi_f4"), bruit::type::VORONOI_F4),
-					dls::paire(dls::chaine("voronoi_f1f2"), bruit::type::VORONOI_F1F2),
-					dls::paire(dls::chaine("voronoi_cr"), bruit::type::VORONOI_CR));
-
-		auto chn_type = evalue_enum("type");
-		auto plg_type = dico_type.trouve(chn_type);
-		auto type = bruit::type{};
-
-		if (plg_type.est_finie()) {
-			ajoute_avertissement("type inconnu");
-			type = bruit::type::ONDELETTE;
-		}
-		else {
-			type = plg_type.front().second;
-		}
-
-		m_params_turb.octaves = static_cast<float>(m_octaves) * 1.618f;
-		m_params_turb.lacunarite = m_lacunarite;
-		m_params_turb.gain = m_durete;
-		m_params_turb.amplitude = m_amplitude;
-		m_params_turb.dur = m_dur;
-
-		bruit::construit(type, m_params_bruit, 0);
-	}
-
-	dls::phys::couleur32 evalue_pixel(dls::phys::couleur32 const &pixel, const float x, const float y) override
-	{
-		INUTILISE(pixel);
-
-		auto res = 0.0f;
-
-		if (m_turb) {
-			res = bruit::evalue_turb(m_params_bruit, m_params_turb, dls::math::vec3f(x, y, 0.0f));
-		}
-		else {
-			res = bruit::evalue(m_params_bruit, dls::math::vec3f(x, y, 0.0f));
-		}
-
-		auto rp = dls::phys::couleur32();
-		rp.r = res;
-		rp.v = res;
-		rp.b = res;
-		rp.a = 1.0f;
-		return rp;
-	}
-};
-
-/* ************************************************************************** */
-
 void enregistre_operatrices_pixel(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceNuage>());
 	usine.enregistre_type(cree_desc<OperatriceConstante>());
 	usine.enregistre_type(cree_desc<OperatriceCorrectionGamma>());
 	usine.enregistre_type(cree_desc<OperatriceEtalonnage>());
 	usine.enregistre_type(cree_desc<OperatriceDegrade>());
 	usine.enregistre_type(cree_desc<OperatriceMelange>());
 	usine.enregistre_type(cree_desc<OperatriceBruitage>());
-	usine.enregistre_type(cree_desc<OperatriceSaturation>());
 	usine.enregistre_type(cree_desc<OperatriceMappageTonal>());
 	usine.enregistre_type(cree_desc<OperatriceCorrectionCouleur>());
-	usine.enregistre_type(cree_desc<OperatriceInversement>());
 	usine.enregistre_type(cree_desc<OperatriceIncrustation>());
 	usine.enregistre_type(cree_desc<OperatricePremultiplication>());
-	usine.enregistre_type(cree_desc<OperatriceNormalisationPixel>());
 	usine.enregistre_type(cree_desc<OperatriceContraste>());
 	usine.enregistre_type(cree_desc<OperatriceCourbeCouleur>());
-	usine.enregistre_type(cree_desc<OperatriceTraduction>());
 	usine.enregistre_type(cree_desc<OperatriceMinMax>());
 	usine.enregistre_type(cree_desc<OperatriceDaltonisme>());
-	usine.enregistre_type(cree_desc<OperatriceBruit>());
 }
 
 #pragma clang diagnostic pop

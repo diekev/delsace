@@ -49,8 +49,8 @@ struct parametres {
 
 	/* décalage et échelle de la position d'entrée, définies réélement la
 	 * matrice du bruit, sans rotation */
-	dls::math::vec3f decalage_pos{0.0f};
-	dls::math::vec3f echelle_pos{1.0f};
+	dls::math::vec3f origine_bruit{0.0f};
+	dls::math::vec3f taille_bruit{1.0f};
 
 	/* décalage et échelle de la valeur */
 	float decalage_valeur = 0.0f;

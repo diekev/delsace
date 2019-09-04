@@ -131,6 +131,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_deformation.jo
 	scripts_danjo/operatrice_deformation_kelvinlet.jo
 	scripts_danjo/operatrice_degrade.jo
+	scripts_danjo/operatrice_deep_scattering.jo
 	scripts_danjo/operatrice_diffusion_gaz.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
 	scripts_danjo/operatrice_dispersion_points.jo
@@ -138,6 +139,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_enleve_doublons.jo
 	scripts_danjo/operatrice_entree_gaz.jo
 	scripts_danjo/operatrice_entree_simulation.jo
+	scripts_danjo/operatrice_erosion_maillage.jo
 	scripts_danjo/operatrice_evaluation_kelvinlet.jo
 	scripts_danjo/operatrice_extraction_palette.jo
 	scripts_danjo/operatrice_filtre.jo
@@ -168,7 +170,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_min_max.jo
 	scripts_danjo/operatrice_normalisation.jo
 	scripts_danjo/operatrice_normalise_covariance.jo
-	scripts_danjo/operatrice_nuage.jo
 	scripts_danjo/operatrice_obstacle_gaz.jo
 	scripts_danjo/operatrice_ocean.jo
 	scripts_danjo/operatrice_ondelette_haar.jo
@@ -179,7 +180,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_points_depuis_profonde.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_rayons_soleil.jo
-	scripts_danjo/operatrice_saturation.jo
 	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_foule.jo
@@ -188,16 +188,20 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_simulation_vetement.jo
 	scripts_danjo/operatrice_solveur_n_corps.jo
 	scripts_danjo/operatrice_suppression_point.jo
+	scripts_danjo/operatrice_terrain_erosion.jo
+	scripts_danjo/operatrice_terrain_evaluation.jo
+	scripts_danjo/operatrice_terrain_inclinaison.jo
+	scripts_danjo/operatrice_terrain_vent.jo
 	scripts_danjo/operatrice_texture.jo
 	scripts_danjo/operatrice_tirage_fleche.jo
 	scripts_danjo/operatrice_tonemap.jo
 	scripts_danjo/operatrice_tournoiement.jo
-	scripts_danjo/operatrice_traduction.jo
 	scripts_danjo/operatrice_trainee_points.jo
 	scripts_danjo/operatrice_transfere_attribut.jo
 	scripts_danjo/operatrice_transformation.jo
 	scripts_danjo/operatrice_vent.jo
 	scripts_danjo/operatrice_vis_arbre_hbe.jo
+	scripts_danjo/operatrice_visibilite_camera.jo
 	scripts_danjo/operatrice_visionnage.jo
 	scripts_danjo/operatrice_visualisation_gaz.jo
 	scripts_danjo/operatrice_vorticite_gaz.jo

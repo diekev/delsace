@@ -25,6 +25,7 @@
 #include "moteur_rendu_koudou.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/objet.h"
@@ -271,7 +272,9 @@ static void ajoute_maillage(kdo::Maillage *maillage, Corps const &corps)
 		maillage->normaux.reserve(attr_N->taille());
 
 		for (auto j = 0; j < attr_N->taille(); ++j) {
-			auto p = dls::math::converti_type<double>(attr_N->vec3(j));
+			auto n = dls::math::vec3f();
+			extrait(attr_N->r32(j), n);
+			auto p = dls::math::converti_type<double>(n);
 			maillage->normaux.pousse(p);
 		}
 	}

@@ -26,29 +26,63 @@
 
 #include "operatrice_corps.h"
 
-#include "biblinternes/graphe/compileuse_graphe.h"
-#include "biblinternes/graphe/graphe.h"
-
 #include "lcc/contexte_generation_code.h"
 
 namespace lcc {
 struct donnees_fonction;
 }
 
+/* ajouter des nouvelles à la fin et ajourner les tableaux de paramètres
+ * d'entrées et sorties */
 enum {
 	DETAIL_POINTS,
 	DETAIL_VOXELS,
+	DETAIL_PIXELS,
+	DETAIL_TERRAIN,
 };
 
 struct Mikisa;
 
 /* ************************************************************************** */
 
-class OperatriceGrapheDetail final : public OperatriceCorps {
+struct CompileuseGrapheLCC {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
 	gestionnaire_propriete m_gest_attrs{};
-	Graphe m_graphe;
+
+	Graphe &graphe;
+
+	CompileuseGrapheLCC(Graphe &ptr_graphe);
+
+	lcc::pile &donnees();
+
+	template <typename T>
+	void remplis_donnees(
+			lcc::pile &donnees_pile,
+			dls::chaine const &nom,
+			T const &valeur)
+	{
+		::remplis_donnees(donnees_pile, m_gest_props, nom, valeur);
+	}
+
+	void stocke_attributs(lcc::pile &donnees, long idx_attr);
+
+	void charge_attributs(lcc::pile &donnees, long idx_attr);
+
+	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
+
+	void execute_pile(
+			lcc::ctx_exec &ctx_exec,
+			lcc::ctx_local &ctx_local,
+			lcc::pile &donnees_pile);
+
+	int pointeur_donnees(dls::chaine const &nom);
+};
+
+/* ************************************************************************** */
+
+class OperatriceGrapheDetail final : public OperatriceCorps {
+	CompileuseGrapheLCC m_compileuse;
 
 public:
 	int type_detail = DETAIL_POINTS;
@@ -56,7 +90,7 @@ public:
 	static constexpr auto NOM = "Graphe Détail";
 	static constexpr auto AIDE = "Graphe Détail";
 
-	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud_);
 
 	const char *nom_classe() const override;
 
@@ -64,13 +98,18 @@ public:
 
 	const char *chemin_entreface() const override;
 
-	Graphe *graphe();
+	type_prise type_entree(int) const override;
+
+	type_prise type_sortie(int) const override;
 
 	int type() const override;
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
-	bool compile_graphe(ContexteEvaluation const &contexte);
+private:
+	int execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+
+	int execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 };
 
 /* ************************************************************************** */
@@ -83,7 +122,7 @@ public:
 	static constexpr auto NOM = "Fonction Détail";
 	static constexpr auto AIDE = "Fonction Détail";
 
-	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud &noeud, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
+	OperatriceFonctionDetail(Graphe &graphe_parent, Noeud &noeud_, dls::chaine const &nom_fonc, lcc::donnees_fonction const *df);
 
 	OperatriceFonctionDetail(OperatriceFonctionDetail const &) = default;
 	OperatriceFonctionDetail &operator=(OperatriceFonctionDetail const &) = default;
@@ -107,6 +146,17 @@ public:
 	/* ceci n'est appelé que lors des créations par l'utilisateur car les
 	 * opératrices venant de sauvegardes ont déjà les propriétés créées */
 	void cree_proprietes();
+
+private:
+	void cree_code_coulisse_processeur(
+			compileuse_lng *compileuse,
+			lcc::type_var type_specialise,
+			dls::tableau<int> const &pointeurs);
+
+	void cree_code_coulisse_opengl(
+			lcc::type_var type_specialise,
+			dls::tableau<int> const &pointeurs,
+			int temps_courant);
 };
 
 /* ************************************************************************** */
@@ -116,7 +166,5 @@ OperatriceFonctionDetail *cree_op_detail(
 		Graphe &graphe,
 		Noeud &noeud,
 		dls::chaine const &nom_fonction);
-
-void graphe_detail_notifie_parent_suranne(Mikisa &mikisa);
 
 void enregistre_operatrices_detail(UsineOperatrice &usine);

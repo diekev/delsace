@@ -34,6 +34,7 @@
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
+#include "coeur/operatrice_graphe_detail.hh"
 
 #include "execution.hh"
 #include "reseau.hh"
@@ -45,7 +46,7 @@ static void notifie_noeuds_chronodependants(Graphe &graphe)
 	auto pile = dls::pile<Noeud *>();
 
 	for (auto &noeud : graphe.noeuds()) {
-		auto op = extrait_opimage(noeud->donnees());
+		auto op = extrait_opimage(noeud->donnees);
 
 		if (op->depend_sur_temps()) {
 			pile.empile(noeud);
@@ -55,9 +56,9 @@ static void notifie_noeuds_chronodependants(Graphe &graphe)
 	while (!pile.est_vide()) {
 		auto noeud = pile.depile();
 
-		noeud->besoin_execution(true);
+		noeud->besoin_execution = true;
 
-		for (auto prise : noeud->sorties()) {
+		for (auto prise : noeud->sorties) {
 			for (auto lien : prise->liens) {
 				pile.empile(lien->parent);
 			}
@@ -73,12 +74,20 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 
 	mikisa.tache_en_cours = true;
 
-	if (mikisa.contexte == GRAPHE_COMPOSITE) {
+	auto evalue_composite = (mikisa.graphe->type == type_graphe::COMPOSITE);
+
+	if (mikisa.graphe->type == type_graphe::DETAIL) {
+		auto graphe_detail = mikisa.graphe;
+		auto type_detail = std::any_cast<int>(graphe_detail->donnees[0]);
+		evalue_composite = (type_detail == DETAIL_PIXELS);
+	}
+
+	if (evalue_composite) {
 		auto noeud_actif = mikisa.bdd.graphe_composites()->noeud_actif;
-		auto composite = extrait_composite(noeud_actif->donnees());
+		auto composite = extrait_composite(noeud_actif->donnees);
 
 		if (raison == TEMPS_CHANGE) {
-			notifie_noeuds_chronodependants(composite->graphe);
+			notifie_noeuds_chronodependants(composite->noeud->graphe);
 		}
 
 		execute_graphe_composite(mikisa, composite, message);
@@ -96,7 +105,7 @@ void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 	auto noeud_actif = mikisa.bdd.graphe_objets()->noeud_actif;
 
 	if (noeud_actif != nullptr) {
-		objet = extrait_objet(noeud_actif->donnees());
+		objet = extrait_objet(noeud_actif->donnees);
 	}
 
 	auto contexte = cree_contexte_evaluation(mikisa);

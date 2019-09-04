@@ -42,8 +42,8 @@ public:
 	static constexpr auto NOM = "Création Groupe";
 	static constexpr auto AIDE = "";
 
-	OperatriceCreationGroupe(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationGroupe(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);

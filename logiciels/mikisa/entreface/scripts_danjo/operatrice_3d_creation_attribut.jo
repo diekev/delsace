@@ -5,16 +5,31 @@ disposition "operatrice_3d_creation_attribut" {
 	}
 	ligne {
 	    étiquette(valeur="Type")
-		énum(valeur="décimal"; attache=type_attribut; items=[
-		     {nom="Entier8", valeur="ent8"},
-			 {nom="Entier32", valeur="ent32"},
-			 {nom="Décimal", valeur="décimal"},
+		énum(valeur="réél"; attache=type_attribut; items=[
 			 {nom="Chaine", valeur="chaine"},
-			 {nom="Vec2", valeur="vec2"},
-			 {nom="Vec3", valeur="vec3"},
-			 {nom="Vec4", valeur="vec4"},
-			 {nom="Mat3", valeur="mat3"},
-			 {nom="Mat4", valeur="mat4"}
+			 {nom="Naturel", valeur="naturel"},
+			 {nom="Réel", valeur="réél"},
+			 {nom="Relatif", valeur="relatif"}
+			 ])
+	}
+	ligne {
+		étiquette(valeur="Précision")
+		énum(valeur="32"; attache=précision_attr; items=[
+			 {nom="8 bits", valeur="8"},
+			 {nom="16 bits", valeur="16"},
+			 {nom="32 bits", valeur="32"},
+			 {nom=64 bits", valeur="64"}
+			 ])
+	}
+	ligne {
+		étiquette(valeur="Dimensions")
+		énum(valeur="1"; attache=dimensions_attr; items=[
+			 {nom="1D", valeur="1"},
+			 {nom="2D", valeur="2"},
+			 {nom="3D", valeur="3"},
+			 {nom="4D", valeur="4"},
+			 {nom="9D (mat3x3)", valeur="9"},
+			 {nom="16D (mat4x4)", valeur="16"}
 			 ])
 	}
 	ligne {
@@ -22,7 +37,7 @@ disposition "operatrice_3d_creation_attribut" {
 		énum(valeur="points"; attache=portee_attribut; items=[
 		     {nom="Points", valeur="points"},
 			 {nom="Primitives", valeur="primitives"},
-			 {nom="Vertex", valeur="vertex"},
+			 {nom="Sommets", valeur="sommets"},
 			 {nom="Groupe", valeur="groupe"},
 			 {nom="Corps", valeur="corps"}
 			 ])

@@ -187,7 +187,7 @@ public:
 				auto objet = paire.second.objet;
 				auto const &transforme = paire.second.transformation_orig;
 
-				std::cerr << "- objet : " << objet->nom << '\n';
+				std::cerr << "- objet : " << objet->noeud->nom << '\n';
 				std::cerr << transforme.matrice() << '\n';
 
 				objet->donnees.accede_ecriture([&transforme](DonneesObjet *donnees)
@@ -270,8 +270,8 @@ public:
 	AjoutCorpsRigide(AjoutCorpsRigide const &) = default;
 	AjoutCorpsRigide &operator=(AjoutCorpsRigide const &) = default;
 
-	AjoutCorpsRigide(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	AjoutCorpsRigide(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -353,7 +353,7 @@ public:
 
 		auto tranformation = converti_transformation(m_corps);
 
-		std::cerr << "Crée corps rigide pour : '" << m_objet->nom << "'\n";
+		std::cerr << "Crée corps rigide pour : '" << m_objet->noeud->nom << "'\n";
 		std::cerr << "Transformation :\n";
 		std::cerr << m_corps.transformation.matrice() << '\n';
 
@@ -364,7 +364,7 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
 	{
 		if (m_objet == nullptr) {
 			m_objet = trouve_objet(contexte);
@@ -374,7 +374,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
 	}
 
 	btRigidBody *cree_corps_rigide(btTransform const &transforme_initiale, btCollisionShape *forme_collision)
@@ -437,7 +437,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->nom);
+				liste.pousse(objet->noeud->nom);
 			}
 		}
 	}
@@ -453,8 +453,8 @@ public:
 	static constexpr auto NOM = "Dynamiques Corps Rigides";
 	static constexpr auto AIDE = "";
 
-	OperatriceDynCorpsRigide(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceDynCorpsRigide(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -533,7 +533,7 @@ public:
 				trans.getOpenGLMatrix(reinterpret_cast<double *>(mat));
 				auto transformation = math::transformation(mat);
 
-				std::cerr << "Ajourne matrice pour objet '" << objet->nom << "'\n";
+				std::cerr << "Ajourne matrice pour objet '" << objet->noeud->nom << "'\n";
 				std::cerr << transformation.matrice() << '\n';
 
 				objet->donnees.accede_ecriture([&transformation](DonneesObjet *donnees)

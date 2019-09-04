@@ -315,8 +315,8 @@ public:
 	static constexpr auto NOM = "Simulation Foule";
 	static constexpr auto AIDE = "Simule une foule.";
 
-	OperatriceSimFoule(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSimFoule(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -392,7 +392,7 @@ public:
 			}
 		}
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		dessine_boite(
 					m_corps,

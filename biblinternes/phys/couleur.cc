@@ -151,6 +151,8 @@ couleur32 couleur_depuis_corps_noir(float temperature)
 		rvb[2] = ((b[0] * temperature + b[1]) * temperature + b[2]) * temperature + b[3];
 	}
 
+	rvb.a = 1.0f;
+
 	return rvb;
 }
 
@@ -220,6 +222,7 @@ couleur32 couleur_depuis_longueur_onde(float lambda)
 	clr.r = std::max(clr.r, 0.0f);
 	clr.v = std::max(clr.v, 0.0f);
 	clr.b = std::max(clr.b, 0.0f);
+	clr.a = 1.0f;
 
 	return clr;
 }

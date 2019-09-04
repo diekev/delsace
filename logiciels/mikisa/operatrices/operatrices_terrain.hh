@@ -24,21 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/graphe/graphe.h"
+class UsineOperatrice;
 
-#include "danjo/manipulable.h"
-
-struct Entite : public danjo::Manipulable {
-	Entite *parente = nullptr;
-	dls::tableau<Entite *> enfants{};
-
-	dls::chaine nom{};
-	Graphe graphe;
-
-	Entite(Entite const &) = default;
-	Entite &operator=(Entite const &) = default;
-
-	Entite(type_function_creation_noeud fcn, type_function_destruction_noeud fdn);
-
-	virtual ~Entite() = default;
-};
+void enregistre_operatrices_terrain(UsineOperatrice &usine);

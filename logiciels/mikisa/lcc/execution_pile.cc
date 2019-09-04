@@ -363,6 +363,7 @@ static auto appel_fonction_math_double(
 			res.r = fonc(v0.r, v1.r);
 			res.v = fonc(v0.v, v1.v);
 			res.b = fonc(v0.b, v1.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -469,6 +470,7 @@ static auto appel_fonction_math_simple(
 			res.r = fonc(v0.r);
 			res.v = fonc(v0.v);
 			res.b = fonc(v0.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -611,6 +613,7 @@ static void appel_fonction_3_args(
 			res.r = fonc(v0.r, v1.r, v2.r);
 			res.v = fonc(v0.v, v1.v, v2.v);
 			res.b = fonc(v0.b, v1.b, v2.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -794,6 +797,7 @@ static void appel_fonction_5_args(
 			res.r = fonc(v0.r, v1.r, v2.r, v3.r, v4.r);
 			res.v = fonc(v0.v, v1.v, v2.v, v3.v, v4.v);
 			res.b = fonc(v0.b, v1.b, v2.b, v3.b, v4.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -807,8 +811,8 @@ static auto charge_param_bruit(
 		pile const &insts,
 		int &inst_courante)
 {
-	params.decalage_pos = pile_donnees.charge_vec3(inst_courante, insts);
-	params.echelle_pos = pile_donnees.charge_vec3(inst_courante, insts);
+	params.origine_bruit = pile_donnees.charge_vec3(inst_courante, insts);
+	params.taille_bruit = pile_donnees.charge_vec3(inst_courante, insts);
 	params.decalage_valeur = pile_donnees.charge_decimal(inst_courante, insts);
 	params.echelle_valeur = pile_donnees.charge_decimal(inst_courante, insts);
 	params.temps_anim = pile_donnees.charge_decimal(inst_courante, insts);
@@ -1486,6 +1490,30 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
+			case code_inst::DEC_VERS_COULEUR:
+			{
+				auto dec = pile_donnees.charge_decimal(compteur, insts);
+				auto res = dls::phys::couleur32(dec, dec, dec, 1.0f);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::VEC3_VERS_COULEUR:
+			{
+				auto vec = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::phys::couleur32(vec.x, vec.y, vec.z, 1.0f);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::COULEUR_VERS_VEC3:
+			{
+				auto clr = pile_donnees.charge_couleur(compteur, insts);
+				auto res = dls::math::vec3f(clr.r, clr.v, clr.b);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_MULTIPLIE_MAT:
 			{
 				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
@@ -1527,7 +1555,7 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([type, &index](Corps *corps)
 				{
-					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
+					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
 					index = poly->index;
 				});
 
@@ -1545,11 +1573,11 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([type, &index, &tableau](Corps *corps)
 				{
-					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
+					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
 					index = poly->index;
 
 					for (auto const &v : tableau) {
-						poly->ajoute_sommet(v);
+						corps->ajoute_sommet(poly, v);
 					}
 				});
 
@@ -1562,16 +1590,16 @@ void execute_pile(
 				auto idx_prim = pile_donnees.charge_entier(compteur, insts);
 				auto idx_point = pile_donnees.charge_entier(compteur, insts);
 				auto &ptr_corps = contexte.ptr_corps;
+				auto idx_sommet = -1l;
 
-				ptr_corps.accede_ecriture([idx_prim, idx_point](Corps *corps)
+				ptr_corps.accede_ecriture([idx_prim, idx_point, &idx_sommet](Corps *corps)
 				{
 					auto prim = corps->prims()->prim(idx_prim);
 					auto poly = dynamic_cast<Polygone *>(prim);
-					poly->ajoute_sommet(idx_point);
+					idx_sommet = corps->ajoute_sommet(poly, idx_point);
 				});
 
-				// À FAIRE : retourne un index pour le sommet
-				pile_donnees.stocke(compteur, insts, 0);
+				pile_donnees.stocke(compteur, insts, static_cast<int>(idx_sommet));
 
 				break;
 			}
@@ -1584,10 +1612,11 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([idx_prim, &tableau](Corps *corps)
 				{
+					auto prim = corps->prims()->prim(idx_prim);
+					auto poly = dynamic_cast<Polygone *>(prim);
+
 					for (auto const &v : tableau) {
-						auto prim = corps->prims()->prim(idx_prim);
-						auto poly = dynamic_cast<Polygone *>(prim);
-						poly->ajoute_sommet(v);
+						corps->ajoute_sommet(poly, v);
 					}
 				});
 
@@ -1608,9 +1637,9 @@ void execute_pile(
 					auto p0 = corps->ajoute_point(pos);
 					auto p1 = corps->ajoute_point(pos + dir);
 
-					auto prim = Polygone::construit(corps, type_polygone::OUVERT, 2);
-					prim->ajoute_sommet(p0);
-					prim->ajoute_sommet(p1);
+					auto prim = corps->ajoute_polygone(type_polygone::OUVERT, 2);
+					corps->ajoute_sommet(prim, p0);
+					corps->ajoute_sommet(prim, p1);
 
 					index = static_cast<int>(prim->index);
 				});
@@ -1622,13 +1651,13 @@ void execute_pile(
 			case code_inst::FN_SATURE:
 			{
 				auto clr = pile_donnees.charge_couleur(compteur, insts);
-				auto sat = pile_donnees.charge_decimal(compteur, insts);
+				auto l   = pile_donnees.charge_decimal(compteur, insts);
+				auto fac = pile_donnees.charge_decimal(compteur, insts);
 
-				auto l = luminance(clr);
 				auto lum = dls::phys::couleur32(l, l, l, clr.a);
 
-				if (sat != 0.0f) {
-					lum = (1.0f - sat) * lum + clr * sat;
+				if (fac != 0.0f) {
+					lum = (1.0f - fac) * lum + clr * fac;
 				}
 
 				pile_donnees.stocke(compteur, insts, lum);

@@ -1258,6 +1258,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
+			/* À FAIRE : type R16, conversion automatique, etc. */
+
 #if 0
 			/* Désactivation du code de correction d'arbre syntactic pour
 			 * l'opérateur 'de', il cause trop de problème, pour une logique
@@ -1399,6 +1401,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::OPERATION_UNAIRE:
 		{
+			/* À FAIRE : type R16 */
+
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte);
 			auto index_type = enfant->index_type;

@@ -22,8 +22,8 @@
  *
  */
 
-#include "entite.hh"
+#pragma once
 
-Entite::Entite(type_function_creation_noeud fcn, type_function_destruction_noeud fdn)
-	: graphe(fcn, fdn)
-{}
+struct UsineOperatrice;
+
+void enregistre_operatrices_srirp(UsineOperatrice &usine);

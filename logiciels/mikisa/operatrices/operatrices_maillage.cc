@@ -38,6 +38,7 @@
 
 #include "corps/iteration_corps.hh"
 #include "corps/limites_corps.hh"
+#include "corps/polyedre.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -252,7 +253,8 @@ static auto applique_lissage(
 			auto p = points_entree->point(i);
 
 			if (tangeante) {
-				auto const &n = attr_N->vec3(i);
+				auto n = dls::math::vec3f();
+				extrait(attr_N->r32(i), n);
 				auto const &d = deplacement[i];
 				p += poids_lissage * (d - n * produit_scalaire(d, n));
 			}
@@ -270,8 +272,8 @@ public:
 	static constexpr auto NOM = "Lissage Laplacien";
 	static constexpr auto AIDE = "Performe un lissage laplacien des points du corps d'entrée.";
 
-	OperatriceLissageLaplacien(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceLissageLaplacien(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -351,8 +353,8 @@ public:
 	static constexpr auto NOM = "Triangulation";
 	static constexpr auto AIDE = "Performe une triangulation des polygones du corps d'entrée.";
 
-	OperatriceTriangulation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceTriangulation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -382,25 +384,25 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		corps_entree->copie_vers(&m_corps);
-
-		/* À FAIRE : attributs vertex */
-		auto paires_attrs = dls::tableau<std::pair<Attribut const *, Attribut *>>();
+		/* copie les points et les attributs et groupes n'étant pas sur les
+		 * primitives */
+		*m_corps.points_pour_ecriture() = *corps_entree->points_pour_lecture();
 
 		for (auto const &attr : corps_entree->attributs()) {
-			if (attr.portee == portee_attr::PRIMITIVE) {
-				auto nattr = m_corps.attribut(attr.nom());
-				nattr->reinitialise();
+			if (attr.portee == portee_attr::PRIMITIVE || attr.portee == portee_attr::VERTEX) {
+				continue;
+			}
 
-				paires_attrs.pousse({ &attr, nattr });
-			}
-			else if (attr.portee == portee_attr::VERTEX) {
-				m_corps.supprime_attribut(attr.nom());
-			}
+			auto nattr = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee, true);
+			*nattr = attr;
 		}
 
-		m_corps.supprime_primitives();
+		for (auto const &grp : corps_entree->groupes_points()) {
+			auto ngrp = m_corps.ajoute_groupe_point(grp.nom);
+			*ngrp = grp;
+		}
 
+		/* prépare transfère groupe primitive */
 		auto paires_grps = dls::tableau<std::pair<GroupePrimitive const *, GroupePrimitive *>>();
 
 		for (auto const &grp : corps_entree->groupes_prims()) {
@@ -409,53 +411,35 @@ public:
 			paires_grps.pousse({ &grp, ngrp });
 		}
 
-		pour_chaque_polygone(*corps_entree,
-							 [&](Corps const &corps_entree_, Polygone *poly)
-		{
-			INUTILISE(corps_entree_);
+		/* triangule */
+		auto polyedre = construit_corps_polyedre_triangle(*corps_entree);
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_SOMMETS);
 
-			if (poly->type == type_polygone::OUVERT) {
-				auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+		for (auto face : polyedre.faces) {
+			auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);
 
-				for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-					npoly->ajoute_sommet(poly->index_point(j));
+			auto debut = face->arete;
+			auto fin = debut;
+
+			do {
+				auto idx_sommet = m_corps.ajoute_sommet(poly, debut->sommet->label);
+				transferante.transfere_attributs_sommets(debut->label, idx_sommet);
+
+				debut = debut->suivante;
+			} while (debut != fin);
+
+			transferante.transfere_attributs_prims(face->label, poly->index);
+
+			for (auto paire : paires_grps) {
+				if (!paire.first->contient(face->label)) {
+					continue;
 				}
 
-				copie_donnees(poly, npoly, paires_attrs, paires_grps);
+				paire.second->ajoute_primitive(poly->index);
 			}
-			else {
-				for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-					auto npoly = Polygone::construit(&m_corps, poly->type, 3);
-					npoly->ajoute_sommet(poly->index_point(0));
-					npoly->ajoute_sommet(poly->index_point(j - 1));
-					npoly->ajoute_sommet(poly->index_point(j));
-
-					copie_donnees(poly, npoly, paires_attrs, paires_grps);
-				}
-			}
-		});
+		}
 
 		return EXECUTION_REUSSIE;
-	}
-
-	void copie_donnees(
-			Polygone *poly,
-			Polygone *npoly,
-			dls::tableau<std::pair<Attribut const *, Attribut *>> const &paires_attrs,
-			dls::tableau<std::pair<GroupePrimitive const *, GroupePrimitive *>> const &paires_grps)
-	{
-		for (auto paire : paires_attrs) {
-			paire.second->redimensionne(paire.second->taille() + 1);
-			copie_attribut(paire.first, poly->index, paire.second, npoly->index);
-		}
-
-		for (auto paire : paires_grps) {
-			if (!paire.first->contient(poly->index)) {
-				continue;
-			}
-
-			paire.second->ajoute_primitive(npoly->index);
-		}
 	}
 };
 
@@ -566,8 +550,8 @@ public:
 	static constexpr auto NOM = "Normalise Covariance";
 	static constexpr auto AIDE = "Modifie les points pour que la covariance moyenne soit égale à 1.";
 
-	OperatriceNormaliseCovariance(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceNormaliseCovariance(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -628,8 +612,8 @@ public:
 								 "covariance le plus grand soit aligné avec "
 								 "l'axe des X, et le second avec l'axe des Y.";
 
-	OperatriceAligneCovariance(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceAligneCovariance(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -749,8 +733,8 @@ public:
 	static constexpr auto NOM = "Bruit Topologique";
 	static constexpr auto AIDE = "";
 
-	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -819,7 +803,9 @@ public:
 			}
 
 			/* normal */
-			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * attr_N->vec3(i);
+			auto n = dls::math::vec3f();
+			extrait(attr_N->r32(i), n);
+			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * n;
 		}
 
 		for (auto i = 0; i < points->taille(); ++i) {
@@ -839,8 +825,8 @@ public:
 	static constexpr auto NOM = "Érosion Maillage";
 	static constexpr auto AIDE = "";
 
-	OperatriceErosionMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceErosionMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -848,7 +834,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "";
+		return "entreface/operatrice_erosion_maillage.jo";
 	}
 
 	const char *nom_classe() const override
@@ -870,81 +856,126 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points = corps_entree->points_pour_lecture();
-		auto prims = corps_entree->prims();
-		auto points_elimines = dls::tableau<char>(points->taille(), 0);
-		auto index_voisins = cherche_index_voisins(*corps_entree);
-		auto index_adjacents = cherche_index_adjacents(*corps_entree);
+		auto iterations = evalue_entier("itérations", contexte.temps_courant);
+		auto inverse = evalue_bool("inverse");
 
-		/* Un point est sur une bordure si le nombre de points voisins est
-		 * différents du nombre des primitives voisins. */
-		auto nombre_elimines = 0;
-		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (index_voisins[i].taille() != index_adjacents[i].taille()) {
-				points_elimines[i] = 1;
-				++nombre_elimines;
+		auto polyedre = converti_corps_polyedre(*corps_entree);
+
+		for (auto i = 0; i < iterations; ++i) {
+			/* marque les faces ayant une arête dont l'opposée est nulle comme
+			 * ayant besoin d'être éliminées */
+			for (auto f : polyedre.faces) {
+				auto debut = f->arete;
+				auto fin = f->arete;
+
+				do {
+					auto paire = debut->paire;
+
+					if (paire == nullptr || dls::outils::possede_drapeau(paire->drapeaux, mi_drapeau::SUPPRIME)) {
+						f->drapeaux |= mi_drapeau::SUPPRIME;
+						break;
+					}
+
+					debut = debut->suivante;
+				} while (debut != fin);
+			}
+
+			/* marque les arêtes des faces supprimées comme ayant besoin d'être
+			 * éliminiées */
+			for (auto f : polyedre.faces) {
+				if (!dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
+					continue;
+				}
+
+				auto debut = f->arete;
+				auto fin = f->arete;
+
+				do {
+					debut->drapeaux |= mi_drapeau::SUPPRIME;
+					debut = debut->suivante;
+				} while (debut != fin);
 			}
 		}
 
-		if (nombre_elimines == 0) {
-			return EXECUTION_REUSSIE;
+		/* marque les points comme ayant besoin d'être éliminées */
+		for (auto s : polyedre.sommets) {
+			s->drapeaux |= mi_drapeau::SUPPRIME;
 		}
 
-		/* trouve les primitives à supprimer */
-		auto prims_eliminees = dls::tableau<char>(prims->taille(), 0);
+		if (inverse) {
+			for (auto f : polyedre.faces) {
+				if (dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
+					f->drapeaux &= ~mi_drapeau::SUPPRIME;
+				}
+				else {
+					f->drapeaux |= mi_drapeau::SUPPRIME;
+				}
+			}
+		}
 
-		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (points_elimines[i] == 0) {
+		for (auto f : polyedre.faces) {
+			if (dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
 				continue;
 			}
 
-			for (auto j : index_adjacents[i]) {
-				prims_eliminees[j] = 1;
-			}
+			auto debut = f->arete;
+			auto fin = f->arete;
+
+			do {
+				debut->sommet->drapeaux &= ~mi_drapeau::SUPPRIME;
+				debut = debut->suivante;
+			} while (debut != fin);
 		}
 
-		/* À FAIRE : transfère attributs, paramètres (iters, inverse) */
+		/* copie les polygones et points restants */
 
-		/* ne copie que ce qui n'a pas été supprimé */
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_SOMMETS);
 
-		/* les nouveaux index des points, puisque certains sont supprimés, il
-		 * faut réindexer */
-		auto nouveaux_index = dls::tableau<long>(points->taille(), -1);
-		auto index = 0;
-
-		for (auto i = 0; i < points_elimines.taille(); ++i) {
-			if (points_elimines[i]) {
+		/* transfère tous les points */
+		for (auto s : polyedre.sommets) {
+			if (dls::outils::possede_drapeau(s->drapeaux, mi_drapeau::SUPPRIME)) {
 				continue;
 			}
 
-			nouveaux_index[i] = index++;
+			auto idx = m_corps.ajoute_point(s->p);
+			s->index = idx;
 
-			auto point = points->point(i);
-			m_corps.ajoute_point(point.x, point.y, point.z);
+			transferante.transfere_attributs_points(s->label, s->index);
 		}
 
-		for (auto i = 0; i < prims_eliminees.taille(); ++i) {
-			if (prims_eliminees[i]) {
+		/* transfère les polygones */
+		for (auto f : polyedre.faces) {
+			if (dls::outils::possede_drapeau(f->drapeaux, mi_drapeau::SUPPRIME)) {
 				continue;
 			}
 
-			auto prim = prims->prim(i);
-			auto poly = dynamic_cast<Polygone *>(prim);
+			auto debut = f->arete;
+			auto fin = f->arete;
 
-			auto nprim = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto poly = m_corps.ajoute_polygone(type_polygone::FERME);
 
-			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				nprim->ajoute_sommet(nouveaux_index[poly->index_point(j)]);
-			}
-		}
+			do {
+				auto idx_sommet = m_corps.ajoute_sommet(poly, debut->sommet->index);
+				transferante.transfere_attributs_sommets(debut->label, idx_sommet);
 
-		auto attr_N = corps_entree->attribut("N");
+				debut = debut->suivante;
+			} while (debut != fin);
 
-		if (attr_N != nullptr) {
-			calcul_normaux(m_corps, attr_N->portee == portee_attr::PRIMITIVE, true);
+			transferante.transfere_attributs_prims(f->label, poly->index);
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("itérations") == nullptr) {
+			ajoute_propriete("itérations", danjo::TypePropriete::ENTIER, 1);
+		}
+
+		if (propriete("inverse") == nullptr) {
+			ajoute_propriete("inverse", danjo::TypePropriete::BOOL, false);
+		}
 	}
 };
 
@@ -1003,7 +1034,7 @@ static auto calcul_donnees_aire(Corps &corps)
 {
 	auto points = corps.points_pour_lecture();
 
-	auto aires = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
+	auto aires = corps.ajoute_attribut("aire", type_attribut::R32, 1, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1022,7 +1053,7 @@ static auto calcul_donnees_aire(Corps &corps)
 			aire_poly += aire_tri;
 		}
 
-		aires->valeur(poly->index, aire_poly);
+		assigne(aires->r32(poly->index), aire_poly);
 	});
 
 	return aires;
@@ -1032,7 +1063,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 {
 	auto points = corps.points_pour_lecture();
 
-	auto perimetres = corps.ajoute_attribut("aire", type_attribut::DECIMAL, portee_attr::PRIMITIVE);
+	auto perimetres = corps.ajoute_attribut("aire", type_attribut::R32, 1, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1051,7 +1082,7 @@ static auto calcul_donnees_perimetres(Corps &corps)
 			k = idx;
 		}
 
-		perimetres->valeur(poly->index, peri_poly);
+		assigne(perimetres->r32(poly->index), peri_poly);
 	});
 
 	return perimetres;
@@ -1061,7 +1092,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 {
 	auto points = corps.points_pour_lecture();
 
-	auto barycentres = corps.ajoute_attribut("barycentre", type_attribut::VEC3, portee_attr::PRIMITIVE);
+	auto barycentres = corps.ajoute_attribut("barycentre", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1076,7 +1107,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
 
-		barycentres->valeur(poly->index, barycentre);
+		assigne(barycentres->r32(poly->index), barycentre);
 	});
 
 	return barycentres;
@@ -1097,13 +1128,13 @@ static auto calcul_centroide_poly(Corps &corps)
 		auto aire = 0.0f;
 
 		for (auto const &voisin : idx_voisins[i]) {
-			aire += aires_poly->decimal(voisin);
+			aire += aires_poly->r32(voisin)[0];
 		}
 
 		aires_sommets[i] = aire;
 	}
 
-	auto centroides = corps.ajoute_attribut("centroide", type_attribut::VEC3, portee_attr::PRIMITIVE);
+	auto centroides = corps.ajoute_attribut("centroide", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -1125,7 +1156,7 @@ static auto calcul_centroide_poly(Corps &corps)
 			centroide /= poids;
 		}
 
-		centroides->valeur(poly->index, centroide);
+		assigne(centroides->r32(poly->index), centroide);
 	});
 
 	return centroides;
@@ -1158,7 +1189,7 @@ static auto calcul_arrete_plus_longues(Corps &corps)
 
 static auto calcul_tangeantes(Corps &corps)
 {
-	auto tangeantes = corps.ajoute_attribut("tangeantes", type_attribut::VEC3, portee_attr::POINT);
+	auto tangeantes = corps.ajoute_attribut("tangeantes", type_attribut::R32, 3, portee_attr::POINT);
 	auto points = corps.points_pour_lecture();
 
 	auto index_voisins = cherche_index_voisins(corps);
@@ -1182,7 +1213,7 @@ static auto calcul_tangeantes(Corps &corps)
 			tangeante /= poids_total;
 		}
 
-		tangeantes->valeur(i, tangeante);
+		assigne(tangeantes->r32(i), tangeante);
 	}
 
 	return tangeantes;
@@ -1192,12 +1223,12 @@ static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &cent
 {
 	auto points = corps.points_pour_lecture();
 
-	auto dist = corps.ajoute_attribut("distance", type_attribut::DECIMAL, portee_attr::POINT);
+	auto dist = corps.ajoute_attribut("distance", type_attribut::R32, 1, portee_attr::POINT);
 
 	for (auto i = 0; i < points->taille(); ++i) {
 		auto d = longueur(points->point(i) - centre);
 
-		dist->valeur(i, d);
+		assigne(dist->r32(i), d);
 	}
 
 	return dist;
@@ -1219,7 +1250,7 @@ static auto calcul_donnees_dist_centroide(Corps &corps)
 static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_max)
 {
 	for (auto i = 0; i < attr->taille(); ++i) {
-		auto v = attr->decimal(i);
+		auto v = attr->r32(i)[0];
 
 		if (v < valeur_min) {
 			valeur_min = v;
@@ -1233,26 +1264,177 @@ static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_ma
 
 static auto restreint_attribut_max(Attribut *attr, float const valeur_max)
 {
-	if (attr->type() != type_attribut::DECIMAL) {
+	if (attr->type() != type_attribut::R32) {
 		return;
 	}
 
 	for (auto i = 0; i < attr->taille(); ++i) {
-		auto v = attr->decimal(i);
+		auto v = attr->r32(i)[0];
 
 		if (v > valeur_max) {
-			attr->valeur(i, valeur_max);
+			assigne(attr->r32(i), valeur_max);
 		}
 	}
+}
+
+static auto calcul_valence(Corps &corps)
+{
+	auto polyedre = converti_corps_polyedre(corps);
+
+	auto attr = corps.ajoute_attribut("valence", type_attribut::Z32, 1, portee_attr::POINT);
+
+	for (auto sommet : polyedre.sommets) {
+		auto valence = 0;
+
+		auto debut = sommet->arete;
+		auto fin = debut;
+
+		do {
+			++valence;
+			debut = suivante_autour_point(debut);
+		} while (debut != fin && debut != nullptr);
+
+		attr->z32(sommet->label)[0] = valence;
+	}
+
+	return attr;
+}
+
+static auto calcul_angle_sommets(Corps &corps)
+{
+	auto attr = corps.ajoute_attribut("angle_sommet", type_attribut::R32, 1, portee_attr::VERTEX);
+
+	pour_chaque_polygone_ferme(corps, [&](Corps &corps_entree, Polygone *polygone)
+	{
+		auto points = corps_entree.points_pour_lecture();
+		auto nombre_sommets = polygone->nombre_sommets();
+
+		auto i0 = nombre_sommets - 2;
+		auto i1 = nombre_sommets - 1;
+		auto i2 = 0;
+
+		for (auto i = 0; i < polygone->nombre_sommets(); ++i) {
+			auto idx_p0 = polygone->index_point(i0);
+			auto idx_p1 = polygone->index_point(i1);
+			auto idx_p2 = polygone->index_point(i2);
+
+			auto p0 = points->point(idx_p0);
+			auto p1 = points->point(idx_p1);
+			auto p2 = points->point(idx_p2);
+
+			auto e0 = p0 - p1;
+			auto e1 = p2 - p1;
+
+			auto angle = produit_scalaire(e0, e1);
+
+			attr->r32(polygone->index_sommet(i1))[0] = angle;
+
+			i0 = i1;
+			i1 = i2;
+			i2 = i + 1;
+		}
+	});
+
+	return attr;
+}
+
+static auto calcul_angle_diedre(Corps &corps)
+{
+	auto polyedre = converti_corps_polyedre(corps);
+
+	auto attr_N = corps.attribut("N");
+	auto ancien_attr_N = static_cast<Attribut *>(nullptr);
+
+	if (attr_N == nullptr) {
+		calcul_normaux(corps, location_normal::PRIMITIVE, pesee_normal::AIRE, false);
+
+		attr_N = corps.attribut("N");
+	}
+	else if (attr_N->portee != portee_attr::PRIMITIVE) {
+		attr_N->nom("N_sauvegarde");
+		ancien_attr_N = attr_N;
+
+		calcul_normaux(corps, location_normal::PRIMITIVE, pesee_normal::AIRE, false);
+		attr_N = corps.attribut("N");
+	}
+
+	auto attr = corps.ajoute_attribut("angle_dièdre", type_attribut::R32, 1, portee_attr::VERTEX);
+
+	auto n0 = dls::math::vec3f();
+	auto n1 = dls::math::vec3f();
+
+	for (auto face : polyedre.faces) {
+		auto debut = face->arete;
+		auto fin = debut;
+
+		do {
+			if (debut->paire != nullptr && !dls::outils::possede_drapeau(debut->drapeaux, mi_drapeau::VALIDE)) {
+				extrait(attr_N->r32(face->label), n0);
+				extrait(attr_N->r32(debut->paire->face->label), n1);
+
+				auto angle = produit_scalaire(n0, n1);
+
+				attr->r32(debut->label)[0] = angle;
+				attr->r32(debut->paire->label)[0] = angle;
+
+				debut->drapeaux |= mi_drapeau::VALIDE;
+				debut->paire->drapeaux |= mi_drapeau::VALIDE;
+			}
+
+			debut = debut->suivante;
+		} while (debut != fin);
+	}
+
+	if (ancien_attr_N != nullptr) {
+		corps.supprime_attribut("N");
+		ancien_attr_N->nom("N");
+	}
+
+	return attr;
+}
+
+static auto calcul_longueur_aretes(Corps &corps)
+{
+	auto polyedre = converti_corps_polyedre(corps);
+
+	auto attr = corps.ajoute_attribut("longueur_arête", type_attribut::R32, 1, portee_attr::VERTEX);
+
+	for (auto face : polyedre.faces) {
+		auto a0 = face->arete;
+		auto a1 = a0->suivante;
+		auto fin = a1;
+
+		do {
+			if (!dls::outils::possede_drapeau(a1->drapeaux, mi_drapeau::VALIDE)) {
+				auto const &p0 = a0->sommet->p;
+				auto const &p1 = a1->sommet->p;
+
+				auto l = longueur(p0 - p1);
+
+				attr->r32(a1->label)[0] = l;
+				a1->drapeaux |= mi_drapeau::VALIDE;
+
+				if (a1->paire != nullptr) {
+					attr->r32(a1->paire->label)[0] = l;
+					a1->paire->drapeaux |= mi_drapeau::VALIDE;
+				}
+			}
+
+			a0 = a1;
+			a1 = a0->suivante;
+		} while (a1 != fin);
+	}
+
+	return attr;
 }
 
 /* +---------------+----------+---------+---------------------------------------+
  * | AIRE          | MAILLAGE | FAIT    | aire de chaque polygone               |
  * | PÉRIMÈTRE     | MAILLAGE | FAIT    | périmètre de chaque polygone          |
- * | VALENCE       | MAILLAGE | À FAIRE | nombre de voisins pour chaque sommets |
- * | ANGLE         | MAILLAGE | À FAIRE | angle de chaque vertex                |
- * | ANGLE DIEDRE  | MAILLAGE | À FAIRE | angle dièdre de chaque arrête         |
- * | LONGUEUR COTE | MAILLAGE | À FAIRE | longueur de chaque coté               |
+ * | VALENCE       | MAILLAGE | FAIT    | nombre de voisins pour chaque sommets |
+ * | ANGLE         | MAILLAGE | FAIT    | angle de chaque vertex                |
+ * | ANGLE DIEDRE  | MAILLAGE | FAIT    | angle dièdre de chaque arête          |
+ * | LONGUEUR COTE | MAILLAGE | FAIT    | longueur de chaque coté               |
  * | CENTROIDE     | MAILLAGE | FAIT    | centre de masse de chaque polygone    |
  * | BARYCENTRE    | MAILLAGE | FAIT    | barycentre de chaque polygone         |
  * | COURBURE      | MAILLAGE | FAIT    | courbures du maillage                 |
@@ -1268,8 +1450,8 @@ public:
 	static constexpr auto NOM = "Géométrie Maillage";
 	static constexpr auto AIDE = "";
 
-	OpGeometrieMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpGeometrieMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1387,19 +1569,19 @@ public:
 				auto attr_courbure_min = m_corps.attribut("courbure_min");
 				auto attr_courbure_max = m_corps.attribut("courbure_max");
 
-				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::DECIMAL, portee_attr::POINT);
+				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::R32, 1, portee_attr::POINT);
 
 				for (auto i = 0; i < points->taille(); ++i) {
-					attr_sortie->valeur(i, attr_courbure_min->decimal(i) * attr_courbure_max->decimal(i));
+					attr_sortie->r32(i)[0] = attr_courbure_min->r32(i)[0] * attr_courbure_max->r32(i)[0];
 				}
 			}
 			else if (type_metrie == "moyenne") {
 				auto attr_courbure_min = m_corps.attribut("courbure_min");
 				auto attr_courbure_max = m_corps.attribut("courbure_max");
-				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::DECIMAL, portee_attr::POINT);
+				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::R32, 1, portee_attr::POINT);
 
 				for (auto i = 0; i < points->taille(); ++i) {
-					attr_sortie->valeur(i, (attr_courbure_min->decimal(i) + attr_courbure_max->decimal(i)) * 0.5f);
+					attr_sortie->r32(i)[0] = (attr_courbure_min->r32(i)[0] + attr_courbure_max->r32(i)[0]) * 0.5f;
 				}
 			}
 			else if (type_metrie == "courbure_min") {
@@ -1411,6 +1593,18 @@ public:
 			else if (type_metrie == "var_géom") {
 				attr_sortie = m_corps.attribut("var_geom");
 			}
+		}
+		else if (type_metrie == "valence") {
+			attr_sortie = calcul_valence(m_corps);
+		}
+		else if (type_metrie == "angle_sommets") {
+			attr_sortie = calcul_angle_sommets(m_corps);
+		}
+		else if (type_metrie == "angle_dièdre") {
+			attr_sortie = calcul_angle_diedre(m_corps);
+		}
+		else if (type_metrie == "longueur_arêtes") {
+			attr_sortie = calcul_longueur_aretes(m_corps);
 		}
 		else {
 			this->ajoute_avertissement("Type métrie inconnu");
@@ -1428,23 +1622,23 @@ public:
 
 	void visualise_attribut(Attribut *attr)
 	{
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, attr->portee);
-		attr_C->reinitialise();
-		attr_C->reserve(attr->taille());
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
 
-		if (attr->type() == type_attribut::DECIMAL) {
-			auto min_donnees = std::numeric_limits<float>::max();
-			auto max_donnees = -min_donnees;
+		if (attr->type() == type_attribut::Z32) {
+			if (attr->dimensions == 1) {
+				auto min_donnees = std::numeric_limits<float>::max();
+				auto max_donnees = -min_donnees;
 
-			min_max_attribut(attr, min_donnees, max_donnees);
+				min_max_attribut(attr, min_donnees, max_donnees);
 
-			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->pousse(couleur_min_max(attr->decimal(i), min_donnees, max_donnees));
+				for (auto i = 0; i < attr->taille(); ++i) {
+					assigne(attr_C->r32(i), couleur_min_max(attr->r32(i)[0], min_donnees, max_donnees));
+				}
 			}
-		}
-		else if (attr->type() == type_attribut::VEC3) {
-			for (auto i = 0; i < attr->taille(); ++i) {
-				attr_C->pousse(attr->vec3(i));
+			else if (attr->dimensions == 3) {
+				for (auto i = 0; i < attr->taille(); ++i) {
+					copie_attribut(attr_C, i, attr, i);
+				}
 			}
 		}
 	}
@@ -1457,8 +1651,8 @@ public:
 	static constexpr auto NOM = "Fonte Maillage";
 	static constexpr auto AIDE = "Simule un effet de fonte du maillage d'entrée";
 
-	OpFonteMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpFonteMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1544,9 +1738,8 @@ public:
 					auto poussee = dls::math::vec3f(0.0f);
 
 					if (direction == "normal") {
-						auto Nn = attr_N->vec3(i);
-						poussee.x = Nn.x;
-						poussee.z = Nn.z;
+						extrait(attr_N->r32(i), poussee);
+						poussee.y = 0.0f;
 					}
 					else if (direction == "radial") {
 						poussee = p - centroide;
@@ -1593,8 +1786,8 @@ public:
 	static constexpr auto NOM = "Couleur Maillage";
 	static constexpr auto AIDE = "Crée des couleurs sur un maillage";
 
-	OpCouleurMaillage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCouleurMaillage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1639,7 +1832,7 @@ public:
 		auto chef = contexte.chef;
 		chef->demarre_evaluation("couleur maillage");
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &corps_, Polygone const *poly)
 		{
@@ -1670,19 +1863,19 @@ public:
 
 					auto point = w * v0 + u * v1 + v * v2;
 
-					m_corps.ajoute_point(point);
+					auto idx_point = m_corps.ajoute_point(point);
 
 					if ((i == 0 || i == R) && (j == 0 || j == R)) {
 						// nous sommes sur un point
-						attr_C->pousse(couleurs[0]);
+						assigne(attr_C->r32(idx_point), couleurs[0]);
 					}
 					else if (((i == 0 || i == R) && j < R) || ((j == 0 || j == R) && i < R)) {
 						// nous sommes sur un coté
-						attr_C->pousse(couleurs[1]);
+						assigne(attr_C->r32(idx_point),  couleurs[1]);
 					}
 					else {
 						// nous sommes dans le polygone
-						attr_C->pousse(couleurs[2]);
+						assigne(attr_C->r32(idx_point),  couleurs[2]);
 					}
 				}
 			}

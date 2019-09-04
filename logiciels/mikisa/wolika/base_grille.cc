@@ -110,4 +110,20 @@ void deloge_grille(base_grille_2d *&tampon)
 	tampon = nullptr;
 }
 
+desc_grille_2d desc_depuis_hauteur_largeur(int hauteur, int largeur)
+{
+	auto moitie_x = static_cast<float>(largeur) * 0.5f;
+	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
+
+	auto desc = wlk::desc_grille_2d();
+	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
+	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
+	desc.fenetre_donnees = desc.etendue;
+	desc.taille_voxel = 1.0;
+	desc.resolution.x = hauteur;
+	desc.resolution.y = largeur;
+
+	return desc;
+}
+
 }  /* namespace wlk */

@@ -951,8 +951,8 @@ public:
 	static constexpr auto NOM = "Simulation Muscles";
 	static constexpr auto AIDE = "";
 
-	OpSimMuscles(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpSimMuscles(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1014,30 +1014,30 @@ public:
 
 	void convertie_geometrie()
 	{
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* pour le joint */
-		m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
-		m_corps.ajoute_point(0.0f, joint1->l1, 0.0f);
+		auto idx_p0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto idx_p1 = m_corps.ajoute_point(0.0f, joint1->l1, 0.0f);
 
-		m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto idx_p2 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
 
 		auto rotation = dls::math::rotation(dls::math::mat4x4f(1.0f), joint1->angle, dls::math::vec3f(0.0f,0.0f,-1.0f));
 		auto p = rotation * dls::math::vec4f(0.0f, joint1->l2, 0.0f, 1.0f);
-		m_corps.ajoute_point(p.x, p.y, p.z);
+		auto idx_p3 = m_corps.ajoute_point(p.x, p.y, p.z);
 
-		attr_C->pousse(dls::math::vec3f(1.0f));
-		attr_C->pousse(dls::math::vec3f(1.0f));
-		attr_C->pousse(dls::math::vec3f(1.0f));
-		attr_C->pousse(dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p0), dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p1), dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p2), dls::math::vec3f(1.0f));
+		assigne(attr_C->r32(idx_p3), dls::math::vec3f(1.0f));
 
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(0);
-		poly->ajoute_sommet(1);
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, 0);
+		m_corps.ajoute_sommet(poly, 1);
 
-		poly = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(2);
-		poly->ajoute_sommet(3);
+		poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, 2);
+		m_corps.ajoute_sommet(poly, 3);
 
 		/* pour les muscles */
 		convertie_geometrie_muscle(mesh1, 0, true, attr_C);
@@ -1072,30 +1072,27 @@ public:
 			auto const &v1 = mat * mesh->curr_vertices[static_cast<long>(f.y)];// + mat[3];
 			auto const &v2 = mat * mesh->curr_vertices[static_cast<long>(f.z)];// + mat[3];
 
-			m_corps.ajoute_point(v0.x, v0.y, v0.z);
-			m_corps.ajoute_point(v1.x, v1.y, v1.z);
-			m_corps.ajoute_point(v2.x, v2.y, v2.z);
+			auto idx_p0 = m_corps.ajoute_point(v0.x, v0.y, v0.z);
+			auto idx_p1 = m_corps.ajoute_point(v1.x, v1.y, v1.z);
+			auto idx_p2 = m_corps.ajoute_point(v2.x, v2.y, v2.z);
 
-			auto poly = Polygone::construit(&m_corps, type_polygone::FERME, 3);
-			poly->ajoute_sommet(decalage++);
-			poly->ajoute_sommet(decalage++);
-			poly->ajoute_sommet(decalage++);
+			if (show_stresses == false) {
+				assigne(attr_C->r32(idx_p0), red_blue(mesh->forces[static_cast<long>(f.x)].norm(), 500.0f, 2000.0f));
+				assigne(attr_C->r32(idx_p1), red_blue(mesh->forces[static_cast<long>(f.y)].norm(), 500.0f, 2000.0f));
+				assigne(attr_C->r32(idx_p2), red_blue(mesh->forces[static_cast<long>(f.z)].norm(), 500.0f, 2000.0f));
+			}
+			else {
+				assigne(attr_C->r32(idx_p0), red_blue(mesh->vertex_stress[static_cast<long>(f.x)], 100000.0f, 500000.0f));
+				assigne(attr_C->r32(idx_p1), red_blue(mesh->vertex_stress[static_cast<long>(f.y)], 100000.0f, 500000.0f));
+				assigne(attr_C->r32(idx_p2), red_blue(mesh->vertex_stress[static_cast<long>(f.z)], 100000.0f, 500000.0f));
+			}
+
+			auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);
+			m_corps.ajoute_sommet(poly, decalage++);
+			m_corps.ajoute_sommet(poly, decalage++);
+			m_corps.ajoute_sommet(poly, decalage++);
 		}
 
-		if (show_stresses == false) {
-			for (auto f : mesh->faces) {
-				attr_C->pousse(red_blue(mesh->forces[static_cast<long>(f.x)].norm(), 500.0f, 2000.0f));
-				attr_C->pousse(red_blue(mesh->forces[static_cast<long>(f.y)].norm(), 500.0f, 2000.0f));
-				attr_C->pousse(red_blue(mesh->forces[static_cast<long>(f.z)].norm(), 500.0f, 2000.0f));
-			}
-		}
-		else {
-			for (auto f : mesh->faces) {
-				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<long>(f.x)], 100000.0f, 500000.0f));
-				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<long>(f.y)], 100000.0f, 500000.0f));
-				attr_C->pousse(red_blue(mesh->vertex_stress[static_cast<long>(f.z)], 100000.0f, 500000.0f));
-			}
-		}
 	}
 };
 

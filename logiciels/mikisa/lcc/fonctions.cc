@@ -628,6 +628,13 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
+				"vec3_depuis_couleur",
+				code_inst::COULEUR_VERS_VEC3,
+				signature(param_entrees(donnees_parametre("valeur", type_var::COULEUR)),
+						  param_sorties(donnees_parametre("valeur", type_var::VEC3))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
 				"base_orthonormale",
 				code_inst::FN_BASE_ORTHONORMALE,
 				signature(
@@ -782,7 +789,8 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 				code_inst::FN_SATURE,
 				signature(param_entrees(
 							  donnees_parametre("couleur", type_var::COULEUR),
-							  donnees_parametre("luminance", type_var::DEC)),
+							  donnees_parametre("luminance", type_var::DEC),
+							  donnees_parametre("facteur", type_var::DEC, 1.0f)),
 						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
 
@@ -815,6 +823,20 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 				signature(param_entrees(donnees_parametre("valeur", type_var::DEC)),
 						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"couleur_depuis_decimal",
+				code_inst::DEC_VERS_COULEUR,
+				signature(param_entrees(donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"couleur_depuis_vec3",
+				code_inst::VEC3_VERS_COULEUR,
+				signature(param_entrees(donnees_parametre("valeur", type_var::VEC3)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_types(magasin_fonctions &magasin)
@@ -836,8 +858,8 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 
 	auto param_entrees_bruit = param_entrees(
 				donnees_parametre("graine", type_var::ENT32),
-				donnees_parametre("décalage_position", type_var::VEC3),
-				donnees_parametre("échelle_position", type_var::VEC3, 1.0f),
+				donnees_parametre("origine_bruit", type_var::VEC3),
+				donnees_parametre("taille_bruit", type_var::VEC3, 1.0f),
 				donnees_parametre("décalage_valeur", type_var::DEC),
 				donnees_parametre("échelle_valeur", type_var::DEC, 1.0f),
 				donnees_parametre("temps", type_var::DEC)

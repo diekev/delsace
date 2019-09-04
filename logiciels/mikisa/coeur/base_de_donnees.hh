@@ -24,10 +24,11 @@
 
 #pragma once
 
-#include "biblinternes/graphe/graphe.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
+
+#include "noeud.hh"
 
 enum class type_objet : char;
 
@@ -38,11 +39,9 @@ class BaseDeDonnees final {
 	dls::tableau<Composite *> m_composites{};
 	dls::tableau<Objet *> m_objets{};
 
-	Graphe m_graphe_composites;
-	Graphe m_graphe_objets;
-
-	dls::dico_desordonne<Composite *, Noeud *> m_table_composites_noeud{};
-	dls::dico_desordonne<Objet *, Noeud *> m_table_objet_noeud{};
+	Noeud m_racine{};
+	Noeud m_racine_composites{};
+	Noeud m_racine_objets{};
 
 public:
 	BaseDeDonnees();
@@ -50,6 +49,12 @@ public:
 	~BaseDeDonnees();
 
 	void reinitialise();
+
+	/* ********************************************************************** */
+
+	Noeud *racine();
+
+	Noeud const *racine() const;
 
 	/* ********************************************************************** */
 
@@ -65,8 +70,6 @@ public:
 
 	Graphe const *graphe_objets() const;
 
-	dls::dico_desordonne<Objet *, Noeud *> const &table_objets() const;
-
 	/* ********************************************************************** */
 
 	Composite *cree_composite(dls::chaine const &nom);
@@ -81,3 +84,7 @@ public:
 
 	Graphe const *graphe_composites() const;
 };
+
+Noeud *cherche_noeud_pour_chemin(BaseDeDonnees &base, dls::chaine const &chemin);
+
+Noeud const *cherche_noeud_pour_chemin(BaseDeDonnees const &base, dls::chaine const &chemin);

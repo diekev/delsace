@@ -62,16 +62,16 @@ void dessine_boite(
 	auto decalage = corps.points_pour_lecture()->taille();
 
 	for (int i = 0; i < 8; ++i) {
-		corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
+		auto idx_p = corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
 
 		if (attr_C) {
-			attr_C->pousse(couleur);
+			assigne(attr_C->r32(idx_p), couleur);
 		}
 	}
 
 	for (int i = 0; i < 12; ++i) {
-		auto poly = Polygone::construit(&corps, type_polygone::OUVERT, 2);
-		poly->ajoute_sommet(decalage + cotes[i][0]);
-		poly->ajoute_sommet(decalage + cotes[i][1]);
+		auto poly = corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		corps.ajoute_sommet(poly, decalage + cotes[i][0]);
+		corps.ajoute_sommet(poly, decalage + cotes[i][1]);
 	}
 }

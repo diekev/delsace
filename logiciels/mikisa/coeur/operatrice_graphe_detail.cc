@@ -32,6 +32,7 @@
 
 #include "wolika/iteration.hh"
 
+#include "composite.h"
 #include "contexte_evaluation.hh"
 #include "donnees_aval.hh"
 #include "objet.h"
@@ -40,6 +41,43 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
+
+/* ************************************************************************** */
+
+/* les sorties des noeuds d'entrées */
+static lcc::param_sorties params_noeuds_entree[] = {
+	/* entrée détail point */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail voxel */
+	lcc::param_sorties(
+		lcc::donnees_parametre("densité", lcc::type_var::DEC),
+		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
+		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
+	/* entrée détail pixel */
+	lcc::param_sorties(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR),
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail terrain */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+};
+
+/* les entrées des noeuds de sorties */
+static lcc::param_entrees params_noeuds_sortie[] = {
+	/* sortie détail point */
+	lcc::param_entrees(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* sortie détail voxel */
+	lcc::param_entrees(
+		lcc::donnees_parametre("densité", lcc::type_var::DEC)),
+	/* sortie détail pixel */
+	lcc::param_entrees(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
+	/* entrée détail terrain */
+	lcc::param_entrees(
+		lcc::donnees_parametre("hauteur", lcc::type_var::DEC)),
+};
 
 /* ************************************************************************** */
 
@@ -60,24 +98,9 @@ static auto stocke_attributs(
 		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
 
 		switch (attr->type()) {
-			case type_attribut::ENT8:
+			default:
 			{
-				donnees.stocke(idx_pile, static_cast<float>(attr->ent8(idx_attr)));
-				break;
-			}
-			case type_attribut::ENT32:
-			{
-				donnees.stocke(idx_pile, attr->ent32(idx_attr));
-				break;
-			}
-			case type_attribut::DECIMAL:
-			case type_attribut::VEC2:
-			case type_attribut::VEC3:
-			case type_attribut::VEC4:
-			case type_attribut::MAT3:
-			case type_attribut::MAT4:
-			{
-				auto taille = taille_octet_type_attribut(attr->type());
+				auto taille = taille_octet_type_attribut(attr->type()) * attr->dimensions;
 
 				auto ptr_attr = static_cast<char *>(attr->donnees()) + idx_attr * taille;
 				auto ptr_pile = reinterpret_cast<char *>(donnees.donnees() + idx_pile);
@@ -104,26 +127,9 @@ static auto charge_attributs(
 		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
 
 		switch (attr->type()) {
-			case type_attribut::ENT8:
+			default:
 			{
-				auto v = donnees.charge_decimal(idx_pile);
-				attr->valeur(idx_attr, static_cast<char>(v));
-				break;
-			}
-			case type_attribut::ENT32:
-			{
-				auto v = donnees.charge_entier(idx_pile);
-				attr->valeur(idx_attr, v);
-				break;
-			}
-			case type_attribut::DECIMAL:
-			case type_attribut::VEC2:
-			case type_attribut::VEC3:
-			case type_attribut::VEC4:
-			case type_attribut::MAT3:
-			case type_attribut::MAT4:
-			{
-				auto taille = taille_octet_type_attribut(attr->type());
+				auto taille = taille_octet_type_attribut(attr->type()) * attr->dimensions;
 
 				auto ptr_attr = static_cast<char *>(attr->donnees()) + idx_attr * taille;
 				auto ptr_pile = reinterpret_cast<char *>(donnees.donnees() + idx_pile);
@@ -140,12 +146,253 @@ static auto charge_attributs(
 	}
 }
 
-OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
-	, m_graphe(cree_noeud_image, supprime_noeud_image)
+/* À FAIRE : déduplique. */
+static auto converti_type_lcc(lcc::type_var type, int &dimensions)
 {
-	m_graphe.donnees.efface();
-	m_graphe.donnees.pousse(type_detail);
+	switch (type) {
+		case lcc::type_var::DEC:
+		{
+			dimensions = 1;
+			return type_attribut::R32;
+		}
+		case lcc::type_var::ENT32:
+		{
+			dimensions = 1;
+			return type_attribut::Z32;
+		}
+		case lcc::type_var::VEC2:
+		{
+			dimensions = 2;
+			return type_attribut::R32;
+		}
+		case lcc::type_var::VEC3:
+		{
+			dimensions = 3;
+			return type_attribut::R32;
+		}
+		case lcc::type_var::COULEUR:
+		case lcc::type_var::VEC4:
+		{
+			dimensions = 4;
+			return type_attribut::R32;
+		}
+		case lcc::type_var::MAT3:
+		{
+			dimensions = 9;
+			return type_attribut::R32;
+		}
+		case lcc::type_var::MAT4:
+		{
+			dimensions = 16;
+			return type_attribut::R32;
+		}
+		case lcc::type_var::CHAINE:
+		{
+			dimensions = 1;
+			return type_attribut::CHAINE;
+		}
+		case lcc::type_var::INVALIDE:
+		case lcc::type_var::TABLEAU:
+		case lcc::type_var::POLYMORPHIQUE:
+			return type_attribut::INVALIDE;
+	}
+
+	return type_attribut::INVALIDE;
+}
+
+static auto converti_type_attr(type_attribut type, int dimensions)
+{
+	switch (type) {
+		case type_attribut::R32:
+		{
+			if (dimensions == 1) {
+				return lcc::type_var::DEC;
+			}
+
+			if (dimensions == 2) {
+				return lcc::type_var::VEC2;
+			}
+
+			if (dimensions == 3) {
+				return lcc::type_var::VEC3;
+			}
+
+			if (dimensions == 4) {
+				return lcc::type_var::VEC4;
+			}
+
+			if (dimensions == 9) {
+				return lcc::type_var::MAT3;
+			}
+
+			if (dimensions == 16) {
+				return lcc::type_var::MAT4;
+			}
+
+			break;
+		}
+		case type_attribut::Z8:
+		case type_attribut::Z32:
+		{
+			if (dimensions == 1) {
+				return lcc::type_var::ENT32;
+			}
+
+			break;
+		}
+		case type_attribut::CHAINE:
+		{
+			return lcc::type_var::CHAINE;
+		}
+		default:
+		{
+			return lcc::type_var::INVALIDE;
+		}
+	}
+
+	return lcc::type_var::INVALIDE;
+}
+
+/* ************************************************************************** */
+
+CompileuseGrapheLCC::CompileuseGrapheLCC(Graphe &ptr_graphe)
+	: graphe(ptr_graphe)
+{}
+
+lcc::pile &CompileuseGrapheLCC::donnees()
+{
+	return m_compileuse.donnees();
+}
+
+void CompileuseGrapheLCC::stocke_attributs(lcc::pile &donnees, long idx_attr)
+{
+	::stocke_attributs(m_gest_attrs, donnees, idx_attr);
+}
+
+void CompileuseGrapheLCC::charge_attributs(lcc::pile &donnees, long idx_attr)
+{
+	::charge_attributs(m_gest_attrs, donnees, idx_attr);
+}
+
+bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Corps *corps)
+{
+	m_compileuse = compileuse_lng();
+	m_gest_props = gestionnaire_propriete();
+	m_gest_attrs = gestionnaire_propriete();
+
+	if (graphe.besoin_ajournement) {
+		tri_topologique(graphe);
+		graphe.besoin_ajournement = false;
+	}
+
+	auto donnees_aval = DonneesAval{};
+	donnees_aval.table.insere({"compileuse", &m_compileuse});
+	donnees_aval.table.insere({"gest_props", &m_gest_props});
+	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
+
+	auto type_detail = std::any_cast<int>(graphe.donnees[0]);
+
+	/* fais de la place pour les entrées et sorties */
+	auto &params_entree = params_noeuds_entree[type_detail];
+
+	for (auto i = 0; i < params_entree.taille(); ++i) {
+		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_entree.type(i)));
+		m_gest_props.ajoute_propriete(params_entree.nom(i), params_entree.type(i), idx);
+	}
+
+	auto &params_sortie = params_noeuds_sortie[type_detail];
+
+	for (auto i = 0; i < params_sortie.taille(); ++i) {
+		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_sortie.type(i)));
+		m_gest_props.ajoute_propriete(params_sortie.nom(i), params_sortie.type(i), idx);
+	}
+
+	/* fais de la place pour les attributs */
+	if (type_detail == DETAIL_POINTS && corps != nullptr) {
+		for (auto &attr : corps->attributs()) {
+			if (attr.portee != portee_attr::POINT) {
+				continue;
+			}
+
+			auto idx = m_compileuse.donnees().loge_donnees(attr.dimensions);
+			auto type_attr = converti_type_attr(attr.type(), attr.dimensions);
+			m_gest_attrs.ajoute_propriete(attr.nom(), type_attr, idx);
+		}
+	}
+
+	/* performe la compilation */
+	for (auto &noeud_graphe : graphe.noeuds()) {
+		for (auto &sortie : noeud_graphe->sorties) {
+			sortie->decalage_pile = 0;
+		}
+
+		auto operatrice = extrait_opimage(noeud_graphe->donnees);
+		operatrice->reinitialise_avertisements();
+
+		auto resultat = operatrice->execute(contexte, &donnees_aval);
+
+		if (resultat == EXECUTION_ECHOUEE) {
+			return false;
+		}
+	}
+
+	/* prise en charge des requêtes */
+	if (type_detail == DETAIL_POINTS && corps != nullptr) {
+		for (auto &requete : m_gest_attrs.donnees) {
+			requete->ptr_donnees = corps->attribut(requete->nom);
+		}
+
+		for (auto &requete : m_gest_attrs.requetes) {
+			auto attr = corps->attribut(requete->nom);
+
+			if (attr != nullptr) {
+				/* L'attribut n'a pas la portée point */
+				assert(attr->portee != portee_attr::POINT);
+
+				corps->supprime_attribut(requete->nom);
+			}
+
+			auto dimensions = 0;
+			auto type_attr = converti_type_lcc(requete->type, dimensions);
+
+			attr = corps->ajoute_attribut(
+						requete->nom,
+						type_attr,
+						dimensions,
+						portee_attr::POINT);
+
+			requete->ptr_donnees = attr;
+		}
+	}
+
+	return true;
+}
+
+void CompileuseGrapheLCC::execute_pile(lcc::ctx_exec &ctx_exec, lcc::ctx_local &ctx_local, lcc::pile &donnees_pile)
+{
+	lcc::execute_pile(
+				ctx_exec,
+				ctx_local,
+				donnees_pile,
+				m_compileuse.instructions(),
+				0);
+}
+
+int CompileuseGrapheLCC::pointeur_donnees(const dls::chaine &nom)
+{
+	return m_gest_props.pointeur_donnees(nom);
+}
+
+/* ************************************************************************** */
+
+OperatriceGrapheDetail::OperatriceGrapheDetail(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
+	, m_compileuse(noeud_.graphe)
+{
+	noeud.peut_avoir_graphe = true;
+	noeud.graphe.type = type_graphe::DETAIL;
+	noeud.graphe.donnees.efface();
+	noeud.graphe.donnees.pousse(type_detail);
 
 	entrees(1);
 	sorties(1);
@@ -163,12 +410,29 @@ const char *OperatriceGrapheDetail::texte_aide() const
 
 const char *OperatriceGrapheDetail::chemin_entreface() const
 {
+	if (type_detail == DETAIL_PIXELS) {
+		return "";
+	}
+
 	return "";
 }
 
-Graphe *OperatriceGrapheDetail::graphe()
+type_prise OperatriceGrapheDetail::type_entree(int) const
 {
-	return &m_graphe;
+	if (type_detail == DETAIL_PIXELS) {
+		return type_prise::IMAGE;
+	}
+
+	return type_prise::CORPS;
+}
+
+type_prise OperatriceGrapheDetail::type_sortie(int) const
+{
+	if (type_detail == DETAIL_PIXELS) {
+		return type_prise::IMAGE;
+	}
+
+	return type_prise::CORPS;
 }
 
 int OperatriceGrapheDetail::type() const
@@ -183,9 +447,109 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 		return EXECUTION_ECHOUEE;
 	}
 
-	m_graphe.donnees.efface();
-	m_graphe.donnees.pousse(type_detail);
+	noeud.graphe.donnees.efface();
+	noeud.graphe.donnees.pousse(type_detail);
 
+	if (type_detail == DETAIL_PIXELS) {
+		return execute_detail_pixel(contexte, donnees_aval);
+	}
+
+	return execute_detail_corps(contexte, donnees_aval);
+}
+
+int OperatriceGrapheDetail::execute_detail_pixel(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
+	m_image.reinitialise();
+
+	auto chef = contexte.chef;
+
+	if (!m_compileuse.compile_graphe(contexte, nullptr)) {
+		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+		return EXECUTION_ECHOUEE;
+	}
+
+	calque_image *calque = nullptr;
+	auto const &rectangle = contexte.resolution_rendu;
+
+	if (entrees() == 0) {
+		m_image.reinitialise();
+		auto desc = desc_depuis_rectangle(rectangle);
+		calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	}
+	else if (entrees() >= 1) {
+		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+		auto nom_calque = "image";// evalue_chaine("nom_calque");
+		calque = m_image.calque_pour_ecriture(nom_calque);
+	}
+
+	if (calque == nullptr) {
+		ajoute_avertissement("Calque introuvable !");
+		return EXECUTION_ECHOUEE;
+	}
+
+	chef->demarre_evaluation("graphe détail pixel");
+
+	auto desc = calque->tampon()->desc();
+
+	auto tampon = extrait_grille_couleur(calque);
+	auto largeur_inverse = 1.0f / static_cast<float>(desc.resolution.x);
+	auto hauteur_inverse = 1.0f / static_cast<float>(desc.resolution.y);
+
+	auto ctx_exec = lcc::ctx_exec{};
+
+	boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		if (chef->interrompu()) {
+			return;
+		}
+
+		/* fais une copie locale pour éviter les problèmes de concurrence critique */
+		auto donnees = m_compileuse.donnees();
+		auto ctx_local = lcc::ctx_local{};
+
+		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			for (auto c = 0; c < desc.resolution.x; ++c) {
+				auto const x = static_cast<float>(c) * largeur_inverse;
+				auto const y = static_cast<float>(l) * hauteur_inverse;
+
+				auto index = tampon->calcul_index(dls::math::vec2i(c, l));
+
+				auto pos = dls::math::vec3f(x, y, 0.0f);
+				m_compileuse.remplis_donnees(donnees, "P", pos);
+
+				auto clr = tampon->valeur(index);
+				m_compileuse.remplis_donnees(donnees, "couleur", clr);
+
+				m_compileuse.execute_pile(
+							ctx_exec,
+							ctx_local,
+							donnees);
+
+				auto idx_sortie = m_compileuse.pointeur_donnees("couleur");
+				clr = donnees.charge_couleur(idx_sortie);
+
+				tampon->valeur(index, clr);
+			}
+		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta *= hauteur_inverse;
+
+		chef->indique_progression_parallele(delta * 100.0f);
+	});
+
+	chef->indique_progression(100.0f);
+
+	return EXECUTION_REUSSIE;
+}
+
+int OperatriceGrapheDetail::execute_detail_corps(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval)
+{
 	m_corps.reinitialise();
 	entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
@@ -234,7 +598,7 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 
 	auto chef = contexte.chef;
 
-	if (!compile_graphe(contexte)) {
+	if (!m_compileuse.compile_graphe(contexte, &m_corps)) {
 		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
 		return EXECUTION_ECHOUEE;
 	}
@@ -261,24 +625,21 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
 					auto pos = m_corps.point_transforme(i);
-
-					remplis_donnees(donnees, m_gest_props, "P", pos);
+					m_compileuse.remplis_donnees(donnees, "P", pos);
 
 					/* stocke les attributs */
-					stocke_attributs(m_gest_attrs, donnees, i);
+					m_compileuse.stocke_attributs(donnees, i);
 
-					lcc::execute_pile(
+					m_compileuse.execute_pile(
 								ctx_exec,
 								ctx_local,
-								donnees,
-								m_compileuse.instructions(),
-								static_cast<int>(i));
+								donnees);
 
-					auto idx_sortie = m_gest_props.pointeur_donnees("P");
+					auto idx_sortie = m_compileuse.pointeur_donnees("P");
 					pos = donnees.charge_vec3(idx_sortie);
 
 					/* charge les attributs */
-					charge_attributs(m_gest_attrs, donnees, i);
+					m_compileuse.charge_attributs(donnees, i);
 
 					points->point(i, pos);
 				}
@@ -324,18 +685,16 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 
 								auto v = tuile->donnees[index_tuile];
 
-								remplis_donnees(donnees, m_gest_props, "densité", v);
-								remplis_donnees(donnees, m_gest_props, "pos_monde", pos_monde);
-								remplis_donnees(donnees, m_gest_props, "pos_unit", pos_unit);
+								m_compileuse.remplis_donnees(donnees, "densité", v);
+								m_compileuse.remplis_donnees(donnees, "pos_monde", pos_monde);
+								m_compileuse.remplis_donnees(donnees, "pos_unit", pos_unit);
 
-								lcc::execute_pile(
+								m_compileuse.execute_pile(
 											ctx_exec,
 											ctx_local,
-											donnees,
-											m_compileuse.instructions(),
-											i);
+											donnees);
 
-								auto idx_sortie = m_gest_props.pointeur_donnees("densité");
+								auto idx_sortie = m_compileuse.m_gest_props.pointeur_donnees("densité");
 								v = donnees.charge_decimal(idx_sortie);
 
 								tuile->donnees[index_tuile] = v;
@@ -351,222 +710,6 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 	}
 
 	return EXECUTION_REUSSIE;
-}
-
-/* À FAIRE : déduplique. */
-static auto converti_type_lcc(lcc::type_var type)
-{
-	switch (type) {
-		case lcc::type_var::DEC:
-			return type_attribut::DECIMAL;
-		case lcc::type_var::ENT32:
-			return type_attribut::ENT32;
-		case lcc::type_var::VEC2:
-			return type_attribut::VEC2;
-		case lcc::type_var::VEC3:
-			return type_attribut::VEC3;
-		case lcc::type_var::COULEUR:
-		case lcc::type_var::VEC4:
-			return type_attribut::VEC4;
-		case lcc::type_var::MAT3:
-			return type_attribut::MAT3;
-		case lcc::type_var::MAT4:
-			return type_attribut::MAT4;
-		case lcc::type_var::CHAINE:
-			return type_attribut::CHAINE;
-		case lcc::type_var::INVALIDE:
-		case lcc::type_var::TABLEAU:
-		case lcc::type_var::POLYMORPHIQUE:
-			return type_attribut::INVALIDE;
-	}
-
-	return type_attribut::INVALIDE;
-}
-
-static auto converti_type_attr(type_attribut type)
-{
-	switch (type) {
-		case type_attribut::DECIMAL:
-		{
-			return lcc::type_var::DEC;
-		}
-		case type_attribut::ENT32:
-		{
-			return lcc::type_var::ENT32;
-		}
-		case type_attribut::ENT8:
-		{
-			return lcc::type_var::ENT32;
-		}
-		case type_attribut::VEC2:
-		{
-			return lcc::type_var::VEC2;
-		}
-		case type_attribut::VEC3:
-		{
-			return lcc::type_var::VEC3;
-		}
-		case type_attribut::VEC4:
-		{
-			return lcc::type_var::VEC4;
-		}
-		case type_attribut::MAT3:
-		{
-			return lcc::type_var::MAT3;
-		}
-		case type_attribut::MAT4:
-		{
-			return lcc::type_var::MAT4;
-		}
-		case type_attribut::INVALIDE:
-		{
-			return lcc::type_var::INVALIDE;
-		}
-		case type_attribut::CHAINE:
-		{
-			return lcc::type_var::CHAINE;
-		}
-	}
-
-	return lcc::type_var::INVALIDE;
-}
-
-static auto taille_attr(type_attribut type)
-{
-	switch (type) {
-		case type_attribut::DECIMAL:
-		case type_attribut::ENT32:
-		case type_attribut::ENT8:
-		{
-			return 1;
-		}
-		case type_attribut::VEC2:
-		{
-			return 2;
-		}
-		case type_attribut::VEC3:
-		{
-			return 3;
-		}
-		case type_attribut::VEC4:
-		{
-			return 4;
-		}
-		case type_attribut::MAT3:
-		{
-			return 9;
-		}
-		case type_attribut::MAT4:
-		{
-			return 16;
-		}
-		case type_attribut::INVALIDE:
-		case type_attribut::CHAINE:
-		{
-			return 0;
-		}
-	}
-
-	return 0;
-}
-
-bool OperatriceGrapheDetail::compile_graphe(const ContexteEvaluation &contexte)
-{
-	m_compileuse = compileuse_lng();
-	m_gest_props = gestionnaire_propriete();
-	m_gest_attrs = gestionnaire_propriete();
-
-	if (m_graphe.besoin_ajournement) {
-		tri_topologique(m_graphe);
-		m_graphe.besoin_ajournement = false;
-	}
-
-	auto donnees_aval = DonneesAval{};
-	donnees_aval.table.insere({"compileuse", &m_compileuse});
-	donnees_aval.table.insere({"gest_props", &m_gest_props});
-	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
-
-	switch (type_detail) {
-		case DETAIL_POINTS:
-		{
-			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
-
-			for (auto &attr : m_corps.attributs()) {
-				if (attr.portee != portee_attr::POINT) {
-					continue;
-				}
-
-				idx = m_compileuse.donnees().loge_donnees(taille_attr(attr.type()));
-				m_gest_attrs.ajoute_propriete(attr.nom(), converti_type_attr(attr.type()), idx);
-			}
-
-			break;
-		}
-		case DETAIL_VOXELS:
-		{
-			auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::DEC));
-			m_gest_props.ajoute_propriete("densité", lcc::type_var::DEC, idx);
-
-			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("pos_monde", lcc::type_var::VEC3, idx);
-
-			idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(lcc::type_var::VEC3));
-			m_gest_props.ajoute_propriete("pos_unit", lcc::type_var::VEC3, idx);
-			break;
-		}
-	}
-
-	for (auto &noeud : m_graphe.noeuds()) {
-		for (auto &sortie : noeud->sorties()) {
-			sortie->decalage_pile = 0;
-		}
-
-		auto operatrice = extrait_opimage(noeud->donnees());
-		operatrice->reinitialise_avertisements();
-
-		auto resultat = operatrice->execute(contexte, &donnees_aval);
-
-		if (resultat == EXECUTION_ECHOUEE) {
-			return false;
-		}
-	}
-
-	/* prise en charge des requêtes */
-	switch (type_detail) {
-		case DETAIL_POINTS:
-		{
-			for (auto &requete : m_gest_attrs.donnees) {
-				requete->ptr_donnees = m_corps.attribut(requete->nom);
-			}
-
-			for (auto &requete : m_gest_attrs.requetes) {
-				auto attr = m_corps.attribut(requete->nom);
-
-				if (attr != nullptr) {
-					/* L'attribut n'a pas la portée point */
-					assert(attr->portee != portee_attr::POINT);
-
-					m_corps.supprime_attribut(requete->nom);
-				}
-
-				attr = m_corps.ajoute_attribut(
-							requete->nom,
-							converti_type_lcc(requete->type),
-							portee_attr::POINT);
-
-				requete->ptr_donnees = attr;
-			}
-
-			break;
-		}
-		case DETAIL_VOXELS:
-		{
-			break;
-		}
-	}
-
-	return true;
 }
 
 /* ************************************************************************** */
@@ -641,10 +784,10 @@ static auto converti_type_prise(type_prise type)
 
 OperatriceFonctionDetail::OperatriceFonctionDetail(
 		Graphe &graphe_parent,
-		Noeud &noeud,
+		Noeud &noeud_,
 		const dls::chaine &nom_fonc,
 		const lcc::donnees_fonction *df)
-	: OperatriceImage(graphe_parent, noeud)
+	: OperatriceImage(graphe_parent, noeud_)
 	, donnees_fonction(df)
 	, nom_fonction(nom_fonc)
 {
@@ -867,6 +1010,18 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 
 	/* ****************** crée les données pour les appels ****************** */
 
+	cree_code_coulisse_processeur(compileuse, type_specialise, pointeurs);
+
+	//cree_code_coulisse_opengl(type_specialise, pointeurs, contexte.temps_courant);
+
+	return EXECUTION_REUSSIE;
+}
+
+void OperatriceFonctionDetail::cree_code_coulisse_processeur(
+		compileuse_lng *compileuse,
+		lcc::type_var type_specialise,
+		dls::tableau<int> const &pointeurs)
+{
 	/* ajoute le code_inst de la fonction */
 	compileuse->ajoute_instructions(donnees_fonction->type);
 
@@ -903,8 +1058,156 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	/* ajoute le pointeur du premier paramètre aux instructions pour savoir
 	 * où écrire */
 	compileuse->ajoute_instructions(pointeur_donnees);
+}
 
-	return EXECUTION_REUSSIE;
+void OperatriceFonctionDetail::cree_code_coulisse_opengl(
+		lcc::type_var type_specialise,
+		dls::tableau<int> const &pointeurs,
+		int temps_courant)
+{
+
+	auto &os = std::cerr;
+
+	for (auto i = 0; i < entrees(); ++i) {
+		auto type = donnees_fonction->seing.entrees.type(i);
+		auto ptr = pointeurs[i];
+
+		if (!entree(i)->connectee()) {
+			if (type == lcc::type_var::POLYMORPHIQUE) {
+				auto valeur = evalue_vecteur(donnees_fonction->seing.entrees.nom(i), temps_courant);
+
+				switch (type_specialise) {
+					case lcc::type_var::ENT32:
+					{
+						os << "int __var" << ptr << " = " << static_cast<int>(valeur[0]) << ";\n";
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						os << "float __var" << ptr << " = " << valeur[0] << ";\n";
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						os << "vec2 __var" << ptr << " = vec2(" << valeur[0] << ',' << valeur[1] << ");\n";
+						break;
+					}
+					default:
+					{
+						os << "vec3 __var" << ptr << " = vec2(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ");\n";
+						break;
+					}
+				}
+			}
+			else {
+				auto nom_prop = donnees_fonction->seing.entrees.nom(i);
+
+				switch (type) {
+					case lcc::type_var::ENT32:
+					{
+						auto valeur = evalue_entier(nom_prop, temps_courant);
+						os << "int __var" << ptr << " = " << valeur << ";\n";
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						auto valeur = evalue_decimal(nom_prop, temps_courant);
+						os << "float __var" << ptr << " = " << valeur << ";\n";
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						auto valeur = evalue_vecteur(nom_prop, temps_courant);
+						os << "vec2 __var" << ptr << " = vec2(" << valeur[0] << ',' << valeur[1] << ");\n";
+						break;
+					}
+					case lcc::type_var::VEC3:
+					{
+						auto valeur = evalue_vecteur(nom_prop, temps_courant);
+						os << "vec3 __var" << ptr << " = vec3(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ");\n";
+						break;
+					}
+					case lcc::type_var::VEC4:
+					{
+						auto valeur = evalue_vecteur(nom_prop, temps_courant);
+						os << "vec4 __var" << ptr << " = vec4(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ", 0.0);\n";
+						break;
+					}
+					case lcc::type_var::COULEUR:
+					{
+						auto valeur = evalue_couleur(nom_prop, temps_courant);
+						os << "vec4 __var" << ptr << " = vec4(" << valeur[0] << ',' << valeur[1] << ',' << valeur[2] << ',' << valeur[2] << ");\n";
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	for (auto i = 0; i < sorties(); ++i) {
+		auto prise_sortie = sortie(i)->pointeur();
+		auto type = converti_type_prise(prise_sortie->type_infere);
+
+		switch (type) {
+			case lcc::type_var::ENT32:
+			{
+				os << "int __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::DEC:
+			{
+				os << "float __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::VEC2:
+			{
+				os << "vec2 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::VEC3:
+			{
+				os << "vec3 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::VEC4:
+			{
+				os << "vec4 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			case lcc::type_var::COULEUR:
+			{
+				os << "vec4 __var" << prise_sortie->decalage_pile << ";\n";
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	}
+
+	/* crée l'appel */
+
+	os << nom_fonction;
+
+	auto virgule = '(';
+
+	for (auto ptr : pointeurs) {
+		os << virgule << "__var" << ptr;
+		virgule = ',';
+	}
+
+	for (auto i = 0; i < sorties(); ++i) {
+		auto prise_sortie = sortie(i)->pointeur();
+		os << virgule << "__var" << prise_sortie->decalage_pile;
+		virgule = ',';
+	}
+
+	os << ");\n";
 }
 
 void OperatriceFonctionDetail::cree_proprietes()
@@ -971,25 +1274,15 @@ public:
 	static constexpr auto NOM = "Entrée Détail";
 	static constexpr auto AIDE = "Entrée Détail";
 
-	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceEntreeDetail(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				sorties(1);
-				break;
-			}
-			case DETAIL_VOXELS:
-			{
-				sorties(3);
-				break;
-			}
-		}
+		auto const &params_noeud = params_noeuds_entree[type_detail];
+		sorties(params_noeud.taille());
 	}
 
 	const char *nom_classe() const override
@@ -1006,27 +1299,13 @@ public:
 	{
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				return type_prise::VEC3;
-			}
-			case DETAIL_VOXELS:
-			{
-				switch (i) {
-					case 0:
-					{
-						return type_prise::DECIMAL;
-					}
-					default:
-					{
-						return type_prise::VEC3;
-					}
-				}
-			}
+		auto const &params_noeud = params_noeuds_entree[type_detail];
+
+		if (i >= params_noeud.taille()) {
+			return type_prise::INVALIDE;
 		}
 
-		return type_prise::INVALIDE;
+		return converti_type_prise(params_noeud.type(i));
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1036,31 +1315,12 @@ public:
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				auto prise_sortie = sortie(0)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("P");
-				prise_sortie->type_infere = type_prise::VEC3;
+		auto const &params_noeud = params_noeuds_entree[type_detail];
 
-				break;
-			}
-			case DETAIL_VOXELS:
-			{
-				auto prise_sortie = sortie(0)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("densité");
-				prise_sortie->type_infere = type_prise::DECIMAL;
-
-				prise_sortie = sortie(1)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_monde");
-				prise_sortie->type_infere = type_prise::VEC3;
-
-				prise_sortie = sortie(2)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees("pos_unit");
-				prise_sortie->type_infere = type_prise::VEC3;
-
-				break;
-			}
+		for (auto i = 0; i < params_noeud.taille(); ++i) {
+			auto prise_sortie = sortie(i)->pointeur();
+			prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
+			prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
 		}
 
 		return EXECUTION_REUSSIE;
@@ -1074,11 +1334,16 @@ public:
 	static constexpr auto NOM = "Sortie Détail";
 	static constexpr auto AIDE = "Sortie Détail";
 
-	OperatriceSortieDetail(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceSortieDetail(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
-		entrees(1);
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
+		entrees(params_noeud.taille());
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override
@@ -1096,18 +1361,13 @@ public:
 		INUTILISE(i);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				return type_prise::VEC3;
-			}
-			case DETAIL_VOXELS:
-			{
-				return type_prise::DECIMAL;
-			}
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
+
+		if (i >= params_noeud.taille()) {
+			return type_prise::INVALIDE;
 		}
 
-		return type_prise::INVALIDE;
+		return converti_type_prise(params_noeud.type(i));
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1118,48 +1378,23 @@ public:
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		switch (type_detail) {
-			case DETAIL_POINTS:
-			{
-				auto ptr_entree = 0;
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
 
-				if (entree(0)->connectee()) {
-					auto ptr = entree(0)->pointeur();
-					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-				}
-				else {
-					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-				}
-
-				auto ptr = gest_props->pointeur_donnees("P");
-
-				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-				compileuse->ajoute_instructions(lcc::type_var::VEC3);
-				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr);
-
-				break;
+		for (auto i = 0; i < params_noeud.taille(); ++i) {
+			if (!gest_props->propriete_existe(params_noeud.nom(i))) {
+				auto idx = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
+				gest_props->ajoute_propriete(params_noeud.nom(i), params_noeud.type(i), idx);
 			}
-			case DETAIL_VOXELS:
-			{
-				auto ptr_entree = 0;
 
-				if (entree(0)->connectee()) {
-					auto ptr = entree(0)->pointeur();
-					ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-				}
-				else {
-					ptr_entree = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-				}
-
-				auto ptr = gest_props->pointeur_donnees("densité");
+			if (entree(i)->connectee()) {
+				auto ptr_prise = entree(i)->pointeur();
+				auto ptr_entree = static_cast<int>(ptr_prise->liens[0]->decalage_pile);
+				auto ptr_sortie = gest_props->pointeur_donnees(params_noeud.nom(i));
 
 				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-				compileuse->ajoute_instructions(lcc::type_var::DEC);
+				compileuse->ajoute_instructions(params_noeud.type(i));
 				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr);
-
-				break;
+				compileuse->ajoute_instructions(ptr_sortie);
 			}
 		}
 
@@ -1174,8 +1409,8 @@ public:
 	static constexpr auto NOM = "Entrée Attribut";
 	static constexpr auto AIDE = "Entrée Attribut";
 
-	OperatriceEntreeAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceEntreeAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(5);
@@ -1255,6 +1490,11 @@ public:
 
 				break;
 			}
+			case DETAIL_PIXELS:
+			{
+				this->ajoute_avertissement("Opératrice non-implémentée pour les pixels");
+				return EXECUTION_ECHOUEE;
+			}
 			case DETAIL_VOXELS:
 			{
 				this->ajoute_avertissement("Opératrice non-implémentée pour les voxels");
@@ -1273,11 +1513,13 @@ public:
 	static constexpr auto NOM = "Sortie Attribut";
 	static constexpr auto AIDE = "Sortie Attribut";
 
-	OperatriceSortieAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceSortieAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(5);
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override
@@ -1378,6 +1620,11 @@ public:
 
 				break;
 			}
+			case DETAIL_PIXELS:
+			{
+				this->ajoute_avertissement("Opératrice non-implémentée pour les pixels");
+				return EXECUTION_ECHOUEE;
+			}
 			case DETAIL_VOXELS:
 			{
 				this->ajoute_avertissement("Opératrice non-implémentée pour les voxels");
@@ -1388,23 +1635,6 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 };
-
-/* ************************************************************************** */
-
-void graphe_detail_notifie_parent_suranne(Mikisa &mikisa)
-{
-	auto noeud_objet = mikisa.bdd.graphe_objets()->noeud_actif;
-	auto objet = extrait_objet(noeud_objet->donnees());
-	auto graphe = &objet->graphe;
-	auto noeud_actif = graphe->noeud_actif;
-
-	/* Marque le noeud courant et ceux en son aval surannées. */
-	marque_surannee(noeud_actif, [](Noeud *n, PriseEntree *prise)
-	{
-		auto op = extrait_opimage(n->donnees());
-		op->amont_change(prise);
-	});
-}
 
 /* ************************************************************************** */
 

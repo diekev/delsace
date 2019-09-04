@@ -28,7 +28,7 @@
 
 class OperatricePixel : public OperatriceImage {
 public:
-	OperatricePixel(Graphe &graphe_parent, Noeud &noeud);
+	OperatricePixel(Graphe &graphe_parent, Noeud &noeud_);
 
 	virtual int type() const override;
 

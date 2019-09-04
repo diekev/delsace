@@ -70,8 +70,8 @@ public:
 	static constexpr auto NOM = "Création Courbes";
 	static constexpr auto AIDE = "Crée des courbes.";
 
-	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationCourbes(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -167,7 +167,7 @@ public:
 
 		auto gna = GNA();
 
-		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::DECIMAL, portee_attr::PRIMITIVE, true);
+		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::R32, 1, portee_attr::PRIMITIVE, true);
 		attr_L->reserve(liste_points->taille());
 
 		for (auto i = 0; i < liste_points->taille(); ++i) {
@@ -189,24 +189,24 @@ public:
 			}
 
 			if (direction == DIRECTION_NORMAL) {
-				normal = attr_N->vec3(i);
+				extrait(attr_N->r32(i), normal);
 			}
 
 			auto pos = liste_points->point(i);
 
 			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
 
-			auto polygone = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_segment + 1);
-			polygone->ajoute_sommet(index_npoint);
+			auto polygone = m_corps.ajoute_polygone(type_polygone::OUVERT, nombre_segment + 1);
+			m_corps.ajoute_sommet(polygone, index_npoint);
 
 			for (long j = 0; j < nombre_segment; ++j) {
 				pos += (taille_segment * normal);
 
 				index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
-				polygone->ajoute_sommet(index_npoint);
+				m_corps.ajoute_sommet(polygone, index_npoint);
 			}
 
-			attr_L->pousse(taille_segment);
+			attr_L->r32(polygone->index)[0] = taille_segment;
 		}
 
 		return EXECUTION_REUSSIE;
@@ -290,12 +290,12 @@ static auto entresecte_prim(Corps const &corps, Primitive *prim, const dls::phys
 			auto n2 = dls::math::vec3f();
 
 			if (attr_N->portee == portee_attr::POINT) {
-				n0 = attr_N->vec3(i0);
-				n1 = attr_N->vec3(i1);
-				n2 = attr_N->vec3(i2);
+				extrait(attr_N->r32(i0), n0);
+				extrait(attr_N->r32(i1), n1);
+				extrait(attr_N->r32(i2), n2);
 			}
 			else if (attr_N->portee == portee_attr::PRIMITIVE) {
-				n0 = attr_N->vec3(prim->index);
+				extrait(attr_N->r32(prim->index), n0);
 				n1 = n0;
 				n2 = n0;
 			}
@@ -323,8 +323,8 @@ public:
 	static constexpr auto NOM = "Collision Cheveux";
 	static constexpr auto AIDE = "Collèse des cheveux avec un maillage.";
 
-	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCollisionCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *nom_classe() const override
@@ -396,8 +396,8 @@ public:
 				 * un autre test de chevauchement est performé entre le segment
 				 * et la boite englobante de la primitive
 				 */
-				for (auto noeud : noeuds) {
-					for (auto idx : noeud->refs) {
+				for (auto noeud_hbe : noeuds) {
+					for (auto idx : noeud_hbe->refs) {
 						auto lmt = delegue.calcule_limites(idx);
 						auto mind = dls::math::converti_type_point<double>(lmt.min);
 						auto maxd = dls::math::converti_type_point<double>(lmt.max);
@@ -471,8 +471,8 @@ public:
 	static constexpr auto NOM = "Masse Ressort";
 	static constexpr auto AIDE = "";
 
-	OperatriceMasseRessort(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceMasseRessort(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -503,9 +503,9 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::VEC3, portee_attr::POINT);
-		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::VEC3, portee_attr::POINT);
-		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::R32, 3, portee_attr::POINT);
+		auto attr_P = m_corps.ajoute_attribut("mr_P", type_attribut::R32, 3, portee_attr::POINT);
+		auto attr_D = m_corps.ajoute_attribut("mr_D", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto donnees = DonneesSysteme{};
 		donnees.gravite = dls::math::vec3f{0.0f, -9.80665f, 0.0f};
@@ -524,12 +524,13 @@ public:
 									[&](Corps const &, Polygone *polygone)
 		{
 			/* le premier point est la racine */
-			attr_P->valeur(polygone->index_point(0), liste_points->point(polygone->index_point(0)));
+			assigne(attr_P->r32(polygone->index_point(0)), liste_points->point(polygone->index_point(0)));
 
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
 				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
 				auto pos = liste_points->point(polygone->index_point(i));
-				auto vel = attr_V->vec3(polygone->index_point(i));
+				auto vel = dls::math::vec3f();
+				extrait(attr_V->r32(polygone->index_point(i)), vel);
 
 				/* force = masse * acceleration */
 				auto force = donnees.masse * donnees.gravite;
@@ -550,8 +551,8 @@ public:
 				vel = vel + acceleration * donnees.temps_par_image;
 				pos = pos + vel * donnees.temps_par_image;
 
-				attr_P->valeur(polygone->index_point(i), pos);
-				attr_V->valeur(polygone->index_point(i), vel);
+				assigne(attr_P->r32(polygone->index_point(i)), pos);
+				assigne(attr_V->r32(polygone->index_point(i)), vel);
 			}
 		});
 
@@ -563,12 +564,14 @@ public:
 				auto pa = polygone->index_point(i - 1);
 				auto pb = polygone->index_point(i);
 
-				auto const pos_precedent = attr_P->vec3(pa);
-				auto cur_pos = attr_P->vec3(pb);
+				auto pos_precedent = dls::math::vec3f();
+				extrait(attr_P->r32(pa), pos_precedent);
+				auto cur_pos = dls::math::vec3f();
+				extrait(attr_P->r32(pb), cur_pos);
 				auto dir = normalise(cur_pos - pos_precedent);
-				auto tmp_pos = pos_precedent + dir * attr_L->decimal(polygone->index);
-				attr_P->valeur(pb, tmp_pos);
-				attr_D->valeur(pb, cur_pos - tmp_pos);
+				auto tmp_pos = pos_precedent + dir * attr_L->r32(polygone->index)[0];
+				assigne(attr_P->r32(pb), tmp_pos);
+				assigne(attr_D->r32(pb), cur_pos - tmp_pos);
 			}
 		});
 
@@ -580,16 +583,23 @@ public:
 				auto pa = polygone->index_point(i - 1);
 				auto pb = polygone->index_point(i);
 
-				auto pos_pa = attr_P->vec3(pa);
-				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (attr_D->vec3(pb) / dt);
+				auto pos_pa = dls::math::vec3f();
+				extrait(attr_P->r32(pa), pos_pa);
+
+				auto d_pa = dls::math::vec3f();
+				extrait(attr_D->r32(pb), pos_pa);
+
+				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (d_pa / dt);
 
 				liste_points->point(pa, pos_pa);
-				attr_V->valeur(pa, vel_pa);
+				assigne(attr_V->r32(pa), vel_pa);
 			}
 
 			/* ajourne le dernier point */
 			auto pa = polygone->index_point(polygone->nombre_sommets() - 1);
-			liste_points->point(pa, attr_P->vec3(pa));
+			auto pos_pa = dls::math::vec3f();
+			extrait(attr_P->r32(pa), pos_pa);
+			liste_points->point(pa, pos_pa);
 		});
 
 		return EXECUTION_REUSSIE;
@@ -603,8 +613,8 @@ public:
 	static constexpr auto NOM = "Touffe Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpTouffeCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpTouffeCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 	}
@@ -736,8 +746,8 @@ public:
 	static constexpr auto NOM = "Bruit Cheveux";
 	static constexpr auto AIDE = "";
 
-	OpBruitCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpBruitCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -842,8 +852,8 @@ public:
 	static constexpr auto NOM = "Mélange Cheveux";
 	static constexpr auto AIDE = "Fusionne les points de deux ensemble de cheveux.";
 
-	OpMelangeCheveux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpMelangeCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -936,6 +946,251 @@ public:
 
 /* ************************************************************************** */
 
+class OpSimCheveux final : public OperatriceCorps {
+	struct Spring {
+		unsigned p1;
+		unsigned p2;
+		float rest_length;
+		float stiffness;  // could be named spring_constant
+
+		// Contructors
+		Spring(unsigned point_1,
+			   unsigned point_2,
+			   float rest_length_ = 1.f,
+			   float spring_constant = 25.f)
+			: p1(point_1),
+			  p2(point_2),
+			  rest_length(rest_length_),
+			  stiffness(spring_constant) {}
+	};
+
+	float hair_length = 2.0f;
+	int num_hairs = 400;
+	int num_hair_points = 16;
+	float curviness = 1.5f;
+	float curliness = 1.5f;
+	float delta_time = 0.01f;
+	int current_frame = 1;
+
+	dls::math::vec3f position_sphere = dls::math::vec3f(0.0f);
+
+	using tableau_vec3 = dls::tableau<dls::math::vec3f>;
+	dls::tableau<tableau_vec3> velocities{};
+	dls::tableau<tableau_vec3> forces{};
+
+	using tableau_spring = dls::tableau<Spring *>;
+	dls::tableau<tableau_spring> springs{};
+
+public:
+	static constexpr auto NOM = "Simulation Cheveux";
+	static constexpr auto AIDE = "";
+
+	OpSimCheveux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{}
+
+	~OpSimCheveux()
+	{
+		for (auto tablb_spring : springs) {
+			for (auto spring : tablb_spring) {
+				delete spring;
+			}
+		}
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_melange_cheveux.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+
+		auto const rayon_sphere = 1.0f;
+
+		if (contexte.temps_courant == contexte.temps_debut) {
+			position_sphere = dls::math::vec3f(0.0f);
+			m_corps.reinitialise();
+
+			for (auto tablb_spring : springs) {
+				for (auto spring : tablb_spring) {
+					delete spring;
+				}
+			}
+
+			springs.efface();
+			velocities.efface();
+			forces.efface();
+
+			auto gna = GNA();
+
+			float segment_length = (hair_length / (static_cast<float>(num_hair_points) - 1.f));
+
+			for (int h = 0; h < num_hairs; h++) {
+				auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, num_hair_points);
+
+				auto point_base = normalise(echantillone_sphere<dls::math::vec3f>(gna));
+				auto normal = point_base;
+
+				tableau_vec3 point_velocities;
+				tableau_vec3 point_forces;
+
+				for (int p = 0; p < (num_hair_points); p++) {
+					point_velocities.pousse(dls::math::vec3f(0.0f));
+					point_forces.pousse(dls::math::vec3f(0.0f));
+
+					auto idx_point = m_corps.ajoute_point(point_base);
+					m_corps.ajoute_sommet(poly, idx_point);
+
+					point_base += normal * segment_length;
+				}
+
+				velocities.pousse(point_velocities);
+				forces.pousse(point_forces);
+			}
+
+			for (auto i = 1u ; i < static_cast<unsigned>(num_hair_points); i++) {
+				dls::tableau<Spring*> springs_attached_to_point;
+
+				springs_attached_to_point.pousse(
+							new Spring(i - 1, i, segment_length, 20 * static_cast<float>(static_cast<unsigned>(num_hair_points) - i)));
+				if (i > 1) {
+					springs_attached_to_point.pousse(
+								new Spring(i - 2, i, segment_length * curviness , 35 * static_cast<float>((static_cast<unsigned>(num_hair_points) - i))));
+					// if (i > 2) {
+					//   springs_attached_to_point.push_back(
+					//       new Spring(i - 3, i, segment_length * curliness , 60 * (num_hair_points - i)));
+					// }
+				}
+
+				springs.pousse(springs_attached_to_point);
+			}
+		}
+		else {
+			auto prims = m_corps.prims();
+			auto points = m_corps.points_pour_ecriture();
+
+//			if (contexte.temps_courant < 100) {
+//				position_sphere += dls::math::vec3f(0.0f, 0.1f, 0.0f);
+//			}
+
+			for (auto i = 0; i < num_hairs; ++i) {
+				auto cvs = dynamic_cast<Polygone *>(prims->prim(i));
+
+//				if (contexte.temps_courant < 100) {
+//					auto point = points->point(cvs->index_point(0));
+//					point += dls::math::vec3f(0.0f, 0.1f, 0.0f);
+//					points->point(cvs->index_point(0), point);
+//				}
+
+				for (int p = 1; p < num_hair_points; p++) {
+					// cout << " and point " << p << "\n";
+					// cvs[p] += MPoint(p, 0, 0);
+
+					forces[i][p] = dls::math::vec3f(0.0f); //reset forces
+					auto current_position = points->point(cvs->index_point(p));
+
+					// For every spring s whos endpoint is p
+					for (int s = 0; s < springs[p - 1].taille(); s++) {
+						// cout << "\tspring " << s << "\n";
+						// INTERNAL FORCES
+						dls::math::vec3f prev_position; //will be related to the spring point closer to the root
+						int prev_point_id   = static_cast<int>(springs[p-1][s]->p1);
+						float stiffness     = springs[p-1][s]->stiffness;
+						float rest_length   = springs[p-1][s]->rest_length;
+						prev_position = points->point(cvs->index_point(prev_point_id));
+
+						auto spring_vector = prev_position - current_position;
+						float current_length = longueur(spring_vector);
+						// Hooke's law
+						auto spring_force = stiffness * ( current_length / rest_length - 1.0f ) * (spring_vector / current_length);
+
+						if (prev_point_id > 0) {
+							forces[i][prev_point_id] += -spring_force;
+						}
+
+						forces[i][p] += spring_force;
+					}
+
+					// EXTERNAL FORCES
+					forces[i][p] += dls::math::vec3f(0.0f, -9.82f, 0.0f); // assuming mass=1
+					// Damping force
+					forces[i][p] -= 0.9f * velocities[i][p];
+				}
+			}
+
+			// Velocities and positions
+			   // For every strand i
+			for (int i = 0 ; i < num_hairs; i++ ) {
+				auto cvs = dynamic_cast<Polygone *>(prims->prim(i));
+
+				// for every point in each hair (excluding root point)
+				for (int p = 1; p < num_hair_points; p++) {
+					// cout << "\t\t\tVel_prev: " << velocities[p];
+					velocities[i][p] += delta_time * forces[i][p] / 1.0f; // assumes mass = 1
+					// cout << "\n\t\t\t\tVel_post: " << velocities[p] << "\n";
+					auto prev_position = points->point(cvs->index_point(p)); // TODO: this is the error! Reason that it doesn't update
+					// cout << "\t\t\tPos_prev: " << prev_position;
+					auto current_velocity = velocities[i][p];
+					auto new_position = prev_position + delta_time * current_velocity;
+
+					{ // FOR COLLISION!!!!
+
+						auto offset = new_position - position_sphere;
+						auto normal = normalise(offset);
+						auto magnitude = longueur(offset);
+
+						{ // SIGNED DISTANCE METHOD - taken from
+							// www.cs.ubc.ca/~rbridson/docs/cloth2003.pdf
+							// Anticipates collision and tries to adjust velocities correctly
+							float signed_distance = magnitude - rayon_sphere;
+							float anticipated_signed_distance =
+									signed_distance +
+									delta_time * produit_scalaire(current_velocity /*- sphere_velocity*/,
+									normal); // the sphere velocity should really be there if it is animated!
+
+							// this all assumes that the sphere doesn't move!
+							// Otherwise sphere_velocity is needed
+							if (anticipated_signed_distance < 0) {
+								float normal_vel = produit_scalaire(current_velocity, normal);
+								auto tangential_vel = current_velocity - normal_vel * normal;
+								float new_normal_vel =
+										normal_vel - anticipated_signed_distance / delta_time;
+								velocities[i][p] = new_normal_vel * normal + tangential_vel;
+
+								// TODO: add the friction
+							}
+						}
+					}
+
+					points->point(cvs->index_point(p), new_position);
+					// cout << "\n\t\t\t\tPos_post: " << new_position << "\n";
+				}
+			}
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return true;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationCourbes>());
@@ -944,6 +1199,7 @@ void enregistre_operatrices_cheveux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpTouffeCheveux>());
 	usine.enregistre_type(cree_desc<OpBruitCheveux>());
 	usine.enregistre_type(cree_desc<OpMelangeCheveux>());
+	usine.enregistre_type(cree_desc<OpSimCheveux>());
 }
 
 #pragma clang diagnostic pop

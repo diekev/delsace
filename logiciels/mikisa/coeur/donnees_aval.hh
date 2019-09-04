@@ -30,7 +30,7 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 
 struct DonneesAval {
-	dls::dico_desordonne<dls::chaine, std::any> table;
+	dls::dico_desordonne<dls::chaine, std::any> table{};
 
 	bool possede(dls::chaine const &cle)
 	{

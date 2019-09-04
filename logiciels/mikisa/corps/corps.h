@@ -32,16 +32,6 @@
 #include "groupes.h"
 #include "listes.h"
 
-enum {
-	CORPS_NUL,
-	CORPS_MAILLAGE,
-	CORPS_NUAGE_POINTS,  /* À FAIRE : nuage de points, particules */
-	CORPS_COURBE,        /* À FAIRE : bézier3d, poil */
-	CORPS_SURFACE,       /* À FAIRE : NURBS */
-	CORPS_VOLUME,        /* À FAIRE : OpenVDB */
-	CORPS_PANCARTE,      /* À FAIRE : pancarte alignée à la vue/caméra */
-};
-
 class Attribut;
 
 /**
@@ -67,8 +57,6 @@ struct Corps {
 	/* autres propriétés */
 	dls::chaine nom = "corps";
 
-	int type = CORPS_NUL;
-
 	using plage_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::iteratrice>;
 	using plage_const_attributs = dls::outils::plage_iterable_liste<dls::liste<Attribut>::const_iteratrice>;
 
@@ -82,6 +70,7 @@ struct Corps {
 	Attribut *ajoute_attribut(
 			dls::chaine const &nom_attribut,
 			type_attribut type_,
+			int dimensions = 1,
 			portee_attr portee = portee_attr::POINT,
 			bool force_vide = false);
 
@@ -128,7 +117,15 @@ struct Corps {
 
 	const ListePrimitives *prims() const;
 
-	void supprime_primitives();
+	/* polygones */
+
+	Polygone *ajoute_polygone(type_polygone type_poly, long nombre_sommets = 0);
+
+	long ajoute_sommet(Polygone *p, long idx_point);
+
+	long nombre_sommets() const;
+
+	/* autres */
 
 	void reinitialise();
 
@@ -166,16 +163,19 @@ struct Corps {
 
 	plage_const_grp_prims groupes_prims() const;
 
-
 protected:
 	dls::liste<Attribut> m_attributs{};
 
 private:
+	void redimensionne_attributs(portee_attr portee);
+
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
 
 	dls::tableau<GroupePoint> m_groupes_points{};
 	dls::tableau<GroupePrimitive> m_groupes_prims{};
+
+	long m_nombre_sommets = 0;
 };
 
 bool possede_volume(Corps const &corps);

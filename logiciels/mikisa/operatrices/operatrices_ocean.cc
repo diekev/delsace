@@ -628,8 +628,8 @@ public:
 	static constexpr auto NOM = "Océan";
 	static constexpr auto AIDE = "";
 
-	OperatriceSimulationOcean(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSimulationOcean(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -785,10 +785,10 @@ public:
 		/* applique les déplacements à la géométrie d'entrée */
 		auto points = m_corps.points_pour_ecriture();
 
-		auto N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		auto N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 		N->redimensionne(points->taille());
 
-		auto C = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee_attr::POINT);
+		auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 		C->redimensionne(points->taille());
 
 		auto const chn_entrep = evalue_enum("entrepolation");
@@ -814,11 +814,11 @@ public:
 					p += echantillonne_proche(*grille_depl, x, y);
 					points->point(i, p);
 
-					N->vec3(i) = echantillonne_proche(*grille_norm, x, y);
+					assigne(N->r32(i), echantillonne_proche(*grille_norm, x, y));
 
 					if (m_ocean.calcul_ecume) {
 						auto ecume = echantillonne_proche(*grille_ecume, x, y);
-						C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+						assigne(C->r32(i), dls::math::vec3f(ecume, ecume, 1.0f));
 					}
 
 					break;
@@ -828,11 +828,11 @@ public:
 					p += echantillonne_lineaire(*grille_depl, x, y);
 					points->point(i, p);
 
-					N->vec3(i) = echantillonne_lineaire(*grille_norm, x, y);
+					assigne(N->r32(i), echantillonne_lineaire(*grille_norm, x, y));
 
 					if (m_ocean.calcul_ecume) {
 						auto ecume = echantillonne_lineaire(*grille_ecume, x, y);
-						C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+						assigne(C->r32(i), dls::math::vec3f(ecume, ecume, 1.0f));
 					}
 
 					break;
@@ -842,11 +842,11 @@ public:
 					p += echantillonne_catrom(*grille_depl, x, y);
 					points->point(i, p);
 
-					N->vec3(i) = echantillonne_catrom(*grille_norm, x, y);
+					assigne(N->r32(i), echantillonne_catrom(*grille_norm, x, y));
 
 					if (m_ocean.calcul_ecume) {
 						auto ecume = echantillonne_catrom(*grille_ecume, x, y);
-						C->vec3(i) = dls::math::vec3f(ecume, ecume, 1.0f);
+						assigne(C->r32(i), dls::math::vec3f(ecume, ecume, 1.0f));
 					}
 
 					break;
@@ -1947,8 +1947,8 @@ public:
 	static constexpr auto NOM = "Vaguelette Océan";
 	static constexpr auto AIDE = "";
 
-	OperatriceVagueletteOcean(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceVagueletteOcean(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

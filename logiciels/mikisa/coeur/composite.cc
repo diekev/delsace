@@ -26,10 +26,6 @@
 
 #include "operatrice_image.h"
 
-Composite::Composite()
-	: Entite(cree_noeud_image, supprime_noeud_image)
-{}
-
 Image const &Composite::image() const
 {
 	return m_image;

@@ -46,6 +46,8 @@
 #include "corps/iteration_corps.hh"
 #include "corps/triangulation.hh"
 
+#include "normaux.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -68,8 +70,8 @@ public:
 	static constexpr auto NOM = "Suppression Points";
 	static constexpr auto AIDE = "Supprime des points.";
 
-	OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSuppressionPoints(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -123,7 +125,7 @@ public:
 		//paires_attrs.reserve(corps->attributs().taille());
 
 		for (auto const &attr : corps->attributs()) {
-			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.portee);
+			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
 
 			if (attr.portee == portee_attr::POINT) {
 				paires_attrs.pousse({ &attr, attr2 });
@@ -155,43 +157,13 @@ public:
 			}
 
 			auto const point = points_corps->point(i);
-			m_corps.ajoute_point(point.x, point.y, point.z);
+			auto index_point = m_corps.ajoute_point(point.x, point.y, point.z);
 
 			for (auto &paire : paires_attrs) {
 				auto attr_Vorig = paire.first;
 				auto attr_Vdest = paire.second;
 
-				switch (attr_Vorig->type()) {
-					case type_attribut::ENT8:
-						attr_Vdest->pousse(attr_Vorig->ent8(i));
-						break;
-					case type_attribut::ENT32:
-						attr_Vdest->pousse(attr_Vorig->ent32(i));
-						break;
-					case type_attribut::DECIMAL:
-						attr_Vdest->pousse(attr_Vorig->decimal(i));
-						break;
-					case type_attribut::CHAINE:
-						attr_Vdest->pousse(attr_Vorig->chaine(i));
-						break;
-					case type_attribut::VEC2:
-						attr_Vdest->pousse(attr_Vorig->vec2(i));
-						break;
-					case type_attribut::VEC3:
-						attr_Vdest->pousse(attr_Vorig->vec3(i));
-						break;
-					case type_attribut::VEC4:
-						attr_Vdest->pousse(attr_Vorig->vec4(i));
-						break;
-					case type_attribut::MAT3:
-						attr_Vdest->pousse(attr_Vorig->mat3(i));
-						break;
-					case type_attribut::MAT4:
-						attr_Vdest->pousse(attr_Vorig->mat4(i));
-						break;
-					default:
-						break;
-				}
+				copie_attribut(attr_Vorig, i, attr_Vdest, index_point);
 			}
 		}
 
@@ -212,14 +184,67 @@ public:
 
 /* ************************************************************************** */
 
+static auto echantillonne_normal(
+		Corps const &corps,
+		long index,
+		dls::math::vec3f const &pos)
+{
+	auto nor = dls::math::vec3f();
+	auto prim = corps.prims()->prim(index);
+	auto poly = dynamic_cast<Polygone *>(prim);
+
+	if (poly == nullptr) {
+		return nor;
+	}
+
+	auto attr_N = corps.attribut("N");
+
+	if (attr_N == nullptr) {
+		return normalise(calcul_normal_poly(corps, *poly));
+	}
+
+	if (attr_N->portee == portee_attr::PRIMITIVE) {
+		extrait(attr_N->r32(poly->index), nor);
+		return nor;
+	}
+
+	if (attr_N->portee == portee_attr::POINT) {
+		// À FAIRE - il nous faut calculer les coordonnées barycentriques selon
+		// la position dans le triangle, mais il nous faut le triangle et non le
+		// polygone
+
+		auto poids = 0.0f;
+		auto nombre_sommets = poly->nombre_sommets();
+		auto points = corps.points_pour_lecture();
+
+		for (auto i = 0; i < nombre_sommets; ++i) {
+			auto idx = poly->index_point(i);
+			auto const &p = points->point(idx);
+			auto l = longueur(pos - p);
+
+			poids += l;
+			auto ptr = attr_N->r32(poly->index);
+			nor[0] += ptr[0] * l;
+			nor[1] += ptr[1] * l;
+			nor[2] += ptr[2] * l;
+		}
+
+		if (poids != 0.0f) {
+			nor /= poids;
+		}
+	}
+
+	return nor;
+}
+
 /* À FAIRE : transfère attribut. */
 class OperatriceCreationPoints final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Création Points";
 	static constexpr auto AIDE = "Crée des points à partir des points ou des primitives d'un autre corps.";
 
-	OperatriceCreationPoints(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationPoints(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -439,7 +464,7 @@ public:
 		auto points_sorties = m_corps.points_pour_ecriture();
 		points_sorties->reserve(nombre_points);
 
-		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* À FAIRE : il faudrait un meilleur algorithme pour mieux distribuer
 		 *  les points sur les maillages, avec nombre_points = max nombre
@@ -460,9 +485,6 @@ public:
 			auto const e0 = v1 - v0;
 			auto const e1 = v2 - v0;
 
-			auto const nor_triangle_d = normalise(produit_croix(e0, e1));
-			auto const nor_triangle = dls::math::converti_type<float>(nor_triangle_d);
-
 			for (long j = 0; j < nombre_points_triangle; ++j) {
 				/* Génère des coordonnées barycentriques aléatoires. */
 				auto r = gna.uniforme(0.0, 1.0);
@@ -475,10 +497,10 @@ public:
 
 				auto pos = v0 + r * e0 + s * e1;
 
-				auto index = m_corps.ajoute_point(dls::math::converti_type_vecteur<float>(pos));
+				auto posf = dls::math::converti_type_vecteur<float>(pos);
+				auto index = m_corps.ajoute_point(posf);
 
-				/* À FAIRE : échantillone proprement selon le type de normaux */
-				attr_N->pousse(nor_triangle);
+				assigne(attr_N->r32(index), echantillonne_normal(*corps_entree, triangle.index_orig, posf));
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_point(index);
@@ -507,7 +529,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		if (attr_source->type() != type_attribut::VEC3) {
+		if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
 			dls::flux_chaine ss;
 			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
 			this->ajoute_avertissement(ss.chn());
@@ -529,8 +551,8 @@ public:
 		}
 
 		for (auto i = 0; i < attr_source->taille(); ++i) {
-			auto p = attr_source->vec3(i);
-			auto index = m_corps.ajoute_point(p.x, p.y, p.z);
+			auto p = attr_source->r32(i);
+			auto index = m_corps.ajoute_point(p[0], p[1], p[2]);
 
 			if (groupe_sortie) {
 				groupe_sortie->ajoute_point(index);
@@ -672,9 +694,15 @@ struct BoiteTriangle {
 	ListeTriangle triangles{};
 };
 
-static void ajoute_triangle_boite(BoiteTriangle *boite, dls::math::vec3f const &v0, dls::math::vec3f const &v1, dls::math::vec3f const &v2)
+static void ajoute_triangle_boite(
+		BoiteTriangle *boite,
+		dls::math::vec3f const &v0,
+		dls::math::vec3f const &v1,
+		dls::math::vec3f const &v2,
+		long index)
 {
 	auto triangle = boite->triangles.ajoute(v0, v1, v2);
+	triangle->index_orig = index;
 	boite->aire_minimum = std::min(boite->aire_minimum, triangle->aire);
 	boite->aire_maximum = 2 * boite->aire_minimum;
 	boite->aire_totale += triangle->aire;
@@ -769,8 +797,8 @@ public:
 	static constexpr auto AIDE =
 			"Crée des points sur une surface en l'échantillonnant par tirage de flèche.";
 
-	OperatriceTirageFleche(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceTirageFleche(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -873,7 +901,8 @@ public:
 			ajoute_triangle_boite(&boites[index_boite],
 								  dls::math::converti_type_vecteur<float>(v0_m),
 								  dls::math::converti_type_vecteur<float>(v1_m),
-								  dls::math::converti_type_vecteur<float>(v2_m));
+								  dls::math::converti_type_vecteur<float>(v2_m),
+								  triangle.index_orig);
 		}
 
 		/* Ne considère que les triangles dont l'aire est supérieure à ce seuil. */
@@ -896,7 +925,7 @@ public:
 
 		auto debut = compte_tick_ms();
 
-		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* Tant qu'il reste des triangles à remplir... */
 		while (true) {
@@ -937,10 +966,8 @@ public:
 			if (ok) {
 				//chage_spatial.ajoute(point);
 				grille_particule.ajoute(point);
-				m_corps.ajoute_point(point.x, point.y, point.z);
-				/* À FAIRE : échantillone proprement selon le type de normaux */
-				auto nor = normalise(produit_croix(e0, e1));
-				attr_N->pousse(nor);
+				auto idx_p = m_corps.ajoute_point(point.x, point.y, point.z);
+				assigne(attr_N->r32(idx_p), echantillonne_normal(*corps_maillage, triangle->index_orig, point));
 				debut = compte_tick_ms();
 			}
 
@@ -998,7 +1025,8 @@ public:
 					if (index_boite0 >= 0 && index_boite0 < 64) {
 						auto &b = boites[index_boite0];
 
-						b.triangles.ajoute(triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
+						auto t = b.triangles.ajoute(triangle_fils[i].v0, triangle_fils[i].v1, triangle_fils[i].v2);
+						t->index_orig = triangle->index_orig;
 						b.aire_totale += aire;
 					}
 				}
@@ -1141,10 +1169,10 @@ static void construit_triangle(
 		corps.ajoute_point(pj.x, pj.y, pj.z);
 		corps.ajoute_point(pk.x, pk.y, pk.z);
 
-		auto poly = Polygone::construit(&corps, type_polygone::FERME, 3);
-		poly->ajoute_sommet(tri_offset + 0);
-		poly->ajoute_sommet(tri_offset + 1);
-		poly->ajoute_sommet(tri_offset + 2);
+		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
+		corps.ajoute_sommet(poly, tri_offset + 0);
+		corps.ajoute_sommet(poly, tri_offset + 1);
+		corps.ajoute_sommet(poly, tri_offset + 2);
 
 		tri_offset += 3;
 	}
@@ -1173,8 +1201,8 @@ public:
 	static constexpr auto AIDE =
 			"Crée une surface à partir de points.";
 
-	OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceMaillageAlpha(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1213,8 +1241,8 @@ public:
 	static constexpr auto NOM = "Enlève Doublons";
 	static constexpr auto AIDE = "";
 
-	OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceEnleveDoublons(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1345,7 +1373,7 @@ public:
 		pour_chaque_polygone(*corps_entree,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 				auto index = static_cast<size_t>(poly->index_point(j));
@@ -1354,7 +1382,7 @@ public:
 					//std::cerr << "Ajout d'un index invalide !!!\n";
 				}
 
-				npoly->ajoute_sommet(reindexage[index]);
+				nm_corps.ajoute_sommet(poly, reindexage[index]);
 			}
 		});
 
@@ -1392,8 +1420,8 @@ public:
 	static constexpr auto NOM = "Gigue Points";
 	static constexpr auto AIDE = "Gigue les points d'entrée.";
 
-	OperatriceGiguePoints(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceGiguePoints(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1456,8 +1484,8 @@ public:
 	static constexpr auto NOM = "Trainée";
 	static constexpr auto AIDE = "Crée une trainée derrière des particules selon leurs vélocités.";
 
-	OperatriceCreationTrainee(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationTrainee(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1497,7 +1525,7 @@ public:
 
 		auto attr_V = corps_entree->attribut(nom_attribut);
 
-		if (attr_V == nullptr || attr_V->type() != type_attribut::VEC3 || attr_V->portee != portee_attr::POINT) {
+		if (attr_V == nullptr || attr_V->type() != type_attribut::R32 || attr_V->dimensions != 3 || attr_V->portee != portee_attr::POINT) {
 			this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
 			return EXECUTION_ECHOUEE;
 		}
@@ -1517,7 +1545,9 @@ public:
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
 			auto p = points_entree->point(i);
-			auto v = attr_V->vec3(i) * taille;
+			auto v = dls::math::vec3f();
+			extrait(attr_V->r32(i), v);
+			v *= taille;
 
 			/* Par défaut nous utilisons la vélocité, donc la direction normale
 			 * est celle d'où nous venons. */
@@ -1531,9 +1561,9 @@ public:
 				p += v;
 				m_corps.ajoute_point(p.x, p.y, p.z);
 
-				auto seg = Polygone::construit(&m_corps, type_polygone::OUVERT, 2);
-				seg->ajoute_sommet(i * 2);
-				seg->ajoute_sommet(i * 2 + 1);
+				auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+				m_corps.ajoute_sommet(seg, i * 2);
+				m_corps.ajoute_sommet(seg, i * 2 + 1);
 			}
 			else {
 				v /= static_cast<float>(nombre_points);
@@ -1571,10 +1601,7 @@ static auto calcul_centre_masse(
 		auto masse_totale = 0.0f;
 
 		if (attr_M != nullptr) {
-			/* À FAIRE : fonction pour accumuler les valeurs des attributs */
-			for (auto i = 0; i < points_entree->taille(); ++i) {
-				masse_totale += attr_M->valeur(i);
-			}
+			masse_totale = accumule_attr<float>(*attr_M);
 		}
 		else {
 			masse_totale = static_cast<float>(points_entree->taille());
@@ -1665,8 +1692,8 @@ public:
 	static constexpr auto NOM = "Force d'Interaction";
 	static constexpr auto AIDE = "Influence les particules selon une distribution locale de particules voisines.";
 
-	OpForceInteraction(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpForceInteraction(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1716,7 +1743,7 @@ public:
 		auto rayon = evalue_decimal("rayon");
 		auto poids = evalue_decimal("poids");
 
-		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::VEC3, portee_attr::POINT);
+		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		/* À FAIRE : il y a un effet yo-yo. */
 
@@ -1801,7 +1828,8 @@ public:
 				auto vpz = dls::math::vec3f(vpz_e[0], vpz_e[1], vpz_e[2]);
 
 				/* calcul la force pour la particule */
-				auto force = attr_F->vec3(i);
+				auto force = dls::math::vec3f();
+				extrait(attr_F->r32(i), force);
 
 				/* pousse ou tire la particule le long des axes locaux */
 				force += force_dir.x * vpx;
@@ -1838,7 +1866,7 @@ public:
 				force += (centre_masse - p) * force_centre;
 #endif
 
-				attr_F->valeur(i, force * poids);
+				assigne(attr_F->r32(i), force * poids);
 			}
 		});
 
@@ -1944,8 +1972,8 @@ public:
 	static constexpr auto NOM = "Contraint Points";
 	static constexpr auto AIDE = "Contraint des particules sur la surface d'un maillage.";
 
-	OpContraintPoints(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpContraintPoints(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1981,8 +2009,8 @@ public:
 			/* ajoute des points qui devraient vraiment venir d'un autre noeud */
 			m_corps.reinitialise();
 
-			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::ENT32, portee_attr::POINT);
-			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::VEC3, portee_attr::POINT);
+			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::Z32, 1, portee_attr::POINT);
+			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::R32, 3, portee_attr::POINT);
 
 			for (auto i = 0; i < 100; ++i) {
 				auto idx_prim = gna.uniforme(0l, prims_entree->taille() - 1);
@@ -2008,10 +2036,10 @@ public:
 
 				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
 
-				m_corps.ajoute_point(pos);
-				attr_P->pousse(pos);
+				auto idx_p = m_corps.ajoute_point(pos);
+				assigne(attr_P->r32(idx_p), pos);
 
-				attr_Prim->pousse(static_cast<int>(idx_prim));
+				attr_Prim->z32(idx_p)[0] = static_cast<int>(idx_prim);
 			}
 		}
 		else {
@@ -2021,7 +2049,7 @@ public:
 
 			for (auto i = 0; i < points->taille(); ++i) {
 				auto p = points->point(i);
-				attr_P->vec3(i) = p;
+				assigne(attr_P->r32(i), p);
 				p.x += gna.uniforme(-0.2f, 0.2f);
 				p.y += gna.uniforme(-0.2f, 0.2f);
 				p.z += gna.uniforme(-0.2f, 0.2f);
@@ -2053,12 +2081,12 @@ public:
 			auto attr_Prim = m_corps.attribut("prim_idx");
 
 			for (auto i = 0; i < points->taille(); ++i) {
-				auto idx_prim = attr_Prim->ent32(i);
+				auto idx_prim = attr_Prim->z32(i);
 				auto prim = prims_entree->prim(idx_prim);
 
 				auto poly = dynamic_cast<Polygone *>(prim);
 
-				auto a0 = attr_P->vec3(i);
+				auto a0 = attr_P->r32(i);
 				//auto as = points->point(i);
 				//auto const d = as - a0;
 

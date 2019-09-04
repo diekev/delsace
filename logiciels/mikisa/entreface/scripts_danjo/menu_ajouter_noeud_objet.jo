@@ -8,6 +8,7 @@ menu "Noeud Objet" {
 		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
 		action(valeur="Suppression Attribut"; attache=ajouter_noeud; métadonnée="Suppression Attribut")
 		action(valeur="Transfère Attributs"; attache=ajouter_noeud; métadonnée="Transfère Attributs")
+		action(valeur="Visibilité Caméra"; attache=ajouter_noeud; métadonnée="Visibilité Caméra")
 	}
 	menu "Cache" {
 		action(valeur="Cache Corps"; attache=ajouter_noeud; métadonnée="Cache Corps")
@@ -17,6 +18,7 @@ menu "Noeud Objet" {
 		action(valeur="Bruit Cheveux"; attache=ajouter_noeud; métadonnée="Bruit Cheveux")
 		action(valeur="Collision Cheveux"; attache=ajouter_noeud; métadonnée="Collision Cheveux")
 		action(valeur="Mélange Cheveux"; attache=ajouter_noeud; métadonnée="Mélange Cheveux")
+		action(valeur="Simulation Cheveux"; attache=ajouter_noeud; métadonnée="Simulation Cheveux")
 	}
 	menu "Détail" {
 		action(valeur="Graphe Points"; attache=ajouter_graphe_detail; métadonnée="détail_point")
@@ -30,6 +32,7 @@ menu "Noeud Objet" {
 		action(valeur="Création Grille"; attache=ajouter_noeud; métadonnée="Création Grille")
 		action(valeur="Création LatLong"; attache=ajouter_noeud; métadonnée="Création LatLong")
 		action(valeur="Création Ligne"; attache=ajouter_noeud; métadonnée="Création Ligne")
+		action(valeur="Création Pancarte"; attache=ajouter_noeud; métadonnée="Création Pancarte")
 		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
 		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
 		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
@@ -100,6 +103,13 @@ menu "Noeud Objet" {
 	menu "Sortie" {
 	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
 	}
+	menu "Terrain" {
+		action(valeur="Crée Terrain"; attache=ajouter_noeud; métadonnée="Crée Terrain")
+		action(valeur="Érosion Terrain"; attache=ajouter_noeud; métadonnée="Érosion Terrain")
+		action(valeur="Évalue Terrain"; attache=ajouter_noeud; métadonnée="Évalue Terrain")
+		action(valeur="Incline Terrain"; attache=ajouter_noeud; métadonnée="Incline Terrain")
+		action(valeur="Vent Terrain"; attache=ajouter_noeud; métadonnée="Vent Terrain")
+	}
 	menu "Transformation" {
 	    action(valeur="Transformation"; attache=ajouter_noeud; métadonnée="Transformation")
 	}
@@ -113,6 +123,7 @@ menu "Noeud Objet" {
 		action(valeur="Créer Grille Éclairage"; attache=ajouter_noeud; métadonnée="Création Grille Éclairage")
 		action(valeur="Créer volume"; attache=ajouter_noeud; métadonnée="Créer volume")
 		action(valeur="Créer Volume Temporel"; attache=ajouter_noeud; métadonnée="Création Volume Temporel")
+		action(valeur="Deep Scattering"; attache=ajouter_noeud; métadonnée="Deep Scattering")
 		action(valeur="Filtrage Volume"; attache=ajouter_noeud; métadonnée="Filtrage Volume")
 		action(valeur="Maillage vers Volume"; attache=ajouter_noeud; métadonnée="Maillage vers Volume")
 		action(valeur="Rastérisation Prim"; attache=ajouter_noeud; métadonnée="Rastérisation Prim")

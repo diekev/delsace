@@ -48,7 +48,6 @@
 #include <OpenEXR/ImfDeepScanLineInputPart.h>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/graphe/graphe.h"
 #include "biblinternes/outils/chemin.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tableau.hh"
@@ -453,20 +452,6 @@ static auto charge_exr_profonde(const char *chemin, std::any const &donnees)
 	}
 }
 
-static auto desc_depuis_hauteur_largeur(int hauteur, int largeur)
-{
-	auto moitie_x = static_cast<float>(largeur) * 0.5f;
-	auto moitie_y = static_cast<float>(hauteur) * 0.5f;
-
-	auto desc = wlk::desc_grille_2d();
-	desc.etendue.min = dls::math::vec2f(-moitie_x, -moitie_y);
-	desc.etendue.max = dls::math::vec2f( moitie_x,  moitie_y);
-	desc.fenetre_donnees = desc.etendue;
-	desc.taille_voxel = 1.0;
-
-	return desc;
-}
-
 static auto charge_jpeg(const char *chemin, std::any const &donnees)
 {
 	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
@@ -475,7 +460,7 @@ static auto charge_jpeg(const char *chemin, std::any const &donnees)
 	auto largeur = tmp.nombre_colonnes();
 	auto hauteur = tmp.nombre_lignes();
 
-	auto desc = desc_depuis_hauteur_largeur(hauteur, largeur);
+	auto desc = wlk::desc_depuis_hauteur_largeur(hauteur, largeur);
 
 	auto ptr_image = std::any_cast<Image *>(donnees);
 	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
@@ -574,7 +559,7 @@ static auto charge_png(const char *chemin, std::any const &donnees)
 
 	png_read_image(png, &row_pointers[0]);
 
-	auto desc = desc_depuis_hauteur_largeur(static_cast<int>(hauteur), static_cast<int>(largeur));
+	auto desc = wlk::desc_depuis_hauteur_largeur(static_cast<int>(hauteur), static_cast<int>(largeur));
 	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
 	auto tampon = extrait_grille_couleur(calque);
 
@@ -610,11 +595,13 @@ public:
 	static constexpr auto NOM = "Visionneur";
 	static constexpr auto AIDE = "Visionner le résultat du graphe.";
 
-	OperatriceVisionnage(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceVisionnage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	int type() const override
@@ -656,8 +643,8 @@ public:
 	static constexpr auto NOM = "Lecture Image";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	OperatriceLectureJPEG(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceLectureJPEG(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -743,8 +730,8 @@ public:
 	static constexpr auto NOM = "Lecture Vidéo";
 	static constexpr auto AIDE = "Charge une vidéo depuis le disque.";
 
-	OperatriceLectureVideo(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceLectureVideo(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -828,7 +815,7 @@ public:
 		auto largeur = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_WIDTH));
 		auto hauteur = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_HEIGHT));
 
-		auto desc = desc_depuis_hauteur_largeur(hauteur, largeur);
+		auto desc = wlk::desc_depuis_hauteur_largeur(hauteur, largeur);
 		auto calque = m_image.ajoute_calque("image", desc, wlk::type_grille::COULEUR);
 		auto tampon = extrait_grille_couleur(calque);
 
@@ -868,8 +855,8 @@ public:
 	static constexpr auto NOM = "Lecture Image Profonde";
 	static constexpr auto AIDE = "Charge une image depuis le disque.";
 
-	OpLectureImgProfonde(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OpLectureImgProfonde(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -946,8 +933,8 @@ public:
 	static constexpr auto NOM = "Commutateur";
 	static constexpr auto AIDE = "";
 
-	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceImage(graphe_parent, noeud)
+	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
 	{
 	}
 
@@ -981,8 +968,8 @@ public:
 	static constexpr auto NOM = "Commutation Corps";
 	static constexpr auto AIDE = "";
 
-	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 	}
 
@@ -1041,8 +1028,8 @@ public:
 	static constexpr auto NOM = "Entrée Graphe";
 	static constexpr auto AIDE = "";
 
-	OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceEntreeGraphe(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -1098,8 +1085,8 @@ public:
 	static constexpr auto NOM = "Import Objet";
 	static constexpr auto AIDE = "";
 
-	OperatriceImportObjet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceImportObjet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -1166,7 +1153,7 @@ public:
 		return EXECUTION_REUSSIE;
 	}
 
-	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud) override
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
 	{
 		if (m_objet == nullptr) {
 			m_objet = trouve_objet(contexte);
@@ -1176,7 +1163,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
 	}
 
 	void obtiens_liste(
@@ -1186,7 +1173,7 @@ public:
 	{
 		if (raison == "nom_objet") {
 			for (auto &objet : contexte.bdd->objets()) {
-				liste.pousse(objet->nom);
+				liste.pousse(objet->noeud->nom);
 			}
 		}
 	}
@@ -1203,8 +1190,8 @@ public:
 	static constexpr auto NOM = "Infinie";
 	static constexpr auto AIDE = "";
 
-	OperatriceInfinie(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceInfinie(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}

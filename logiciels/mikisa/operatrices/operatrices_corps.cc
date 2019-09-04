@@ -39,13 +39,18 @@
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"
 
+#include "coeur/base_de_donnees.hh"
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/donnees_aval.hh"
 #include "coeur/gestionnaire_fichier.hh"
 #include "coeur/manipulatrice.h"
+#include "coeur/noeud.hh"
+#include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
+
+#include "evaluation/reseau.hh"
 
 #include "normaux.hh"
 
@@ -86,8 +91,8 @@ class OperatriceCreationCorps : public OperatriceCorps {
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
 
 public:
-	OperatriceCreationCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -155,8 +160,8 @@ public:
 	static constexpr auto NOM = "Création Cube";
 	static constexpr auto AIDE = "Crée un cube.";
 
-	OperatriceCreationCube(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCube(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -199,8 +204,8 @@ public:
 	static constexpr auto NOM = "Création Sphère UV";
 	static constexpr auto AIDE = "Crée une sphère UV.";
 
-	OperatriceCreationSphereUV(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationSphereUV(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -245,8 +250,8 @@ public:
 	static constexpr auto NOM = "Création Cylindre";
 	static constexpr auto AIDE = "Crée un cylindre.";
 
-	OperatriceCreationCylindre(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCylindre(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -292,8 +297,8 @@ public:
 	static constexpr auto NOM = "Création Cone";
 	static constexpr auto AIDE = "Crée un cone.";
 
-	OperatriceCreationCone(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCone(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -338,8 +343,8 @@ public:
 	static constexpr auto NOM = "Création Grille";
 	static constexpr auto AIDE = "Crée une grille.";
 
-	OperatriceCreationGrille(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationGrille(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -385,8 +390,8 @@ public:
 	static constexpr auto NOM = "Création Sphère Ico";
 	static constexpr auto AIDE = "Crée une sphère ico.";
 
-	OperatriceCreationSphereIco(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationSphereIco(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -429,8 +434,8 @@ public:
 	static constexpr auto NOM = "Création Torus";
 	static constexpr auto AIDE = "Crée un torus.";
 
-	OperatriceCreationTorus(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationTorus(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -476,8 +481,8 @@ public:
 	static constexpr auto NOM = "Création Cercle";
 	static constexpr auto AIDE = "Crée un cercle.";
 
-	OperatriceCreationCercle(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCreationCorps(graphe_parent, noeud)
+	OperatriceCreationCercle(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCreationCorps(graphe_parent, noeud_)
 	{}
 
 	const char *chemin_entreface() const override
@@ -523,8 +528,8 @@ public:
 	static constexpr auto NOM = "Création Ligne";
 	static constexpr auto AIDE = "Crée une ligne.";
 
-	OperatriceCreationLigne(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationLigne(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -567,10 +572,10 @@ public:
 			t += taille_segment;
 		}
 
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, segments + 1);
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, segments + 1);
 
 		for (auto i = 0; i <= segments; ++i) {
-			poly->ajoute_sommet(i);
+			 m_corps.ajoute_sommet(poly, i);
 		}
 
 		return EXECUTION_REUSSIE;
@@ -594,8 +599,8 @@ public:
 	static constexpr auto NOM = "Lecture Objet";
 	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
 
-	OperatriceLectureObjet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceLectureObjet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
@@ -729,8 +734,8 @@ public:
 	static constexpr auto NOM = "Fusionnage Corps";
 	static constexpr auto AIDE = "Fusionnage Corps.";
 
-	OperatriceFusionnageCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceFusionnageCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -803,10 +808,10 @@ public:
 		pour_chaque_polygone(*corps1,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto polygone = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				polygone->ajoute_sommet(poly->index_point(i));
+				m_corps.ajoute_sommet(polygone, poly->index_point(i));
 			}
 		});
 
@@ -815,10 +820,10 @@ public:
 		pour_chaque_polygone(*corps2,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto polygone = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto polygone = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
 
 			for (long i = 0; i < poly->nombre_sommets(); ++i) {
-				polygone->ajoute_sommet(decalage_point + poly->index_point(i));
+				m_corps.ajoute_sommet(polygone, decalage_point + poly->index_point(i));
 			}
 		});
 	}
@@ -869,6 +874,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 							attr1->nom(),
 							attr1->type(),
+							attr1->dimensions,
 							attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
@@ -881,6 +887,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 							attr1->nom(),
 							attr1->type(),
+							attr1->dimensions,
 							attr1->portee);
 
 				std::memcpy(attr->donnees(), attr1->donnees(), static_cast<size_t>(attr1->taille_octets()));
@@ -891,6 +898,7 @@ public:
 				auto attr = m_corps.ajoute_attribut(
 							attr2->nom(),
 							attr2->type(),
+							attr2->dimensions,
 							attr2->portee);
 
 				auto decalage = attr->taille_octets() - attr2->taille_octets();
@@ -1036,8 +1044,8 @@ public:
 	static constexpr auto NOM = "Transformation";
 	static constexpr auto AIDE = "Transformer les matrices des primitives d'entrées.";
 
-	OperatriceTransformation(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceTransformation(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1149,11 +1157,13 @@ public:
 	static constexpr auto NOM = "Sortie Corps";
 	static constexpr auto AIDE = "Crée une sortie d'un graphe de corps.";
 
-	OperatriceSortieCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSortieCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(0);
+
+		noeud.est_sortie = true;
 	}
 
 	int type() const override
@@ -1187,8 +1197,8 @@ public:
 	static constexpr auto NOM = "Séparation Primitives";
 	static constexpr auto AIDE = "Sépare les primitives du corps d'entrée de sorte que chaque primitive du corps de sortie n'ait que des points uniques.";
 
-	OperatriceSeparationPrims(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSeparationPrims(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 	}
@@ -1215,29 +1225,35 @@ public:
 
 		auto points_entree = corps_entree->points_pour_lecture();
 
+		/* À FAIRE : transfère attributs groupes */
+		auto transfere = TRANSFERE_ATTR_CORPS
+				| TRANSFERE_ATTR_PRIMS
+				| TRANSFERE_ATTR_POINTS
+				| TRANSFERE_ATTR_SOMMETS;
+
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
+		transferante.transfere_attributs_corps(0, 0);
+
 		pour_chaque_polygone(*corps_entree,
 							 [&](Corps const &, Polygone *poly)
 		{
-			auto npoly = Polygone::construit(&m_corps, poly->type, poly->nombre_sommets());
+			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
+			transferante.transfere_attributs_prims(poly->index, npoly->index);
 
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-				/* À FAIRE : transforme pos monde ? */
+				auto idx_pnt_orig = poly->index_point(j);
+				auto idx_smt_orig = poly->index_sommet(j);
 				auto point = points_entree->point(poly->index_point(j));
 
 				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
+				transferante.transfere_attributs_points(idx_pnt_orig, index);
 
-				npoly->ajoute_sommet(index);
+				auto idx_sommet = m_corps.ajoute_sommet(npoly, index);
+				transferante.transfere_attributs_sommets(idx_smt_orig, idx_sommet);
 			}
 		});
 
 		m_corps.transformation = corps_entree->transformation;
-
-		/* À FAIRE : transfère attribut */
-		if (corps_entree->attribut("N") != nullptr) {
-			/* Les normaux sont forcément plats, car les primitives ont été
-			 *  séparées. */
-			calcul_normaux(m_corps, true, false);
-		}
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1366,8 +1382,8 @@ public:
 	static constexpr auto NOM = "Création Kelvinlet";
 	static constexpr auto AIDE = "Ajout un ou plusieurs déformeurs pour calculer les dynamiques de Kelvinlets.";
 
-	OpCreationKelvinlet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCreationKelvinlet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1); // À FAIRE : une seule connexion de sortie
@@ -1470,8 +1486,8 @@ public:
 	static constexpr auto NOM = "Évaluation Kelvinlet";
 	static constexpr auto AIDE = "";
 
-	OpEvaluationKelvinlet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpEvaluationKelvinlet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -1588,8 +1604,8 @@ public:
 	static constexpr auto NOM = "Déformation Kelvinlet";
 	static constexpr auto AIDE = "";
 
-	OpDeformationKelvinlet(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpDeformationKelvinlet(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1884,8 +1900,8 @@ public:
 	static constexpr auto NOM = "Création LatLong";
 	static constexpr auto AIDE = "Crée un contour de données de latitude et longitude sur une sphère.";
 
-	OperatriceCreationLatLong(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationLatLong(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
@@ -2043,10 +2059,10 @@ public:
 		}
 
 		auto nombre_points = m_corps.points_pour_lecture()->taille();
-		auto poly = Polygone::construit(&m_corps, type_polygone::OUVERT, nombre_points);
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, nombre_points);
 
 		for (auto i = 0; i < nombre_points; ++i) {
-			poly->ajoute_sommet(i);
+			m_corps.ajoute_sommet(poly, i);
 		}
 
 		calcul_normaux(m_corps, true, false);
@@ -2062,8 +2078,8 @@ public:
 	static constexpr auto NOM = "Cache Corps";
 	static constexpr auto AIDE = "";
 
-	OpCacheCorps(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpCacheCorps(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -2099,6 +2115,129 @@ public:
 
 /* ************************************************************************** */
 
+class OpCreationPancarte final : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Création Pancarte";
+	static constexpr auto AIDE = "Crée des pancartes qui font toujours face à la caméra.";
+
+	OpCreationPancarte(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	COPIE_CONSTRUCT(OpCreationPancarte);
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_visibilite_camera.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_caméra");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+
+	//	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
+
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_objet->type != type_objet::CAMERA) {
+			this->ajoute_avertissement("L'objet n'est pas une caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto camera = static_cast<vision::Camera3D *>(nullptr);
+
+		m_objet->donnees.accede_ecriture([&](DonneesObjet *donnees)
+		{
+			camera = &extrait_camera(donnees);
+		});
+
+		auto const pos = dls::math::vec3f(0.0f);
+
+		dls::math::vec3f points_pancate[4] = {
+			dls::math::vec3f(-1.0f, 0.0f, -1.0f),
+			dls::math::vec3f( 1.0f, 0.0f, -1.0f),
+			dls::math::vec3f( 1.0f, 0.0f,  1.0f),
+			dls::math::vec3f(-1.0f, 0.0f,  1.0f),
+		};
+
+		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
+
+		auto mat = dls::math::aligne_rotation(
+					dls::math::vec3f(0.0f, 1.0f, 0.0f),
+					normalise(dls::math::vec3f(camera->pos() - pos)));
+
+		for (auto i = 0; i < 4; ++i) {
+			auto idx_point = m_corps.ajoute_point(mat * points_pancate[i]);
+			m_corps.ajoute_sommet(poly, idx_point);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_caméra") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->noeud->nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_corps(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationGrille>());
@@ -2120,6 +2259,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpDeformationKelvinlet>());
 	usine.enregistre_type(cree_desc<OperatriceCreationLatLong>());
 	usine.enregistre_type(cree_desc<OpCacheCorps>());
+	usine.enregistre_type(cree_desc<OpCreationPancarte>());
 }
 
 #pragma clang diagnostic pop

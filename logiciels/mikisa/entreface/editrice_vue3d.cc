@@ -40,7 +40,6 @@
 
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/graphe/graphe.h"
 
 #include "coeur/evenement.h"
 #include "coeur/manipulatrice.h"
@@ -55,10 +54,6 @@ static void charge_manipulatrice(Mikisa &mikisa, int type_manipulation)
 {
 	mikisa.type_manipulation_3d = type_manipulation;
 
-	if (mikisa.contexte != GRAPHE_OBJET) {
-		return;
-	}
-
 	auto graphe = mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
@@ -66,7 +61,11 @@ static void charge_manipulatrice(Mikisa &mikisa, int type_manipulation)
 		return;
 	}
 
-	auto operatrice = extrait_opimage(noeud->donnees());
+	if (noeud->type != type_noeud::OPERATRICE) {
+		return;
+	}
+
+	auto operatrice = extrait_opimage(noeud->donnees);
 
 	if (!operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
 		mikisa.manipulatrice_3d = nullptr;

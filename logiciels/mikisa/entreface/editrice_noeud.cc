@@ -103,12 +103,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	{
 		auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
 
-		auto const graphe_compo = dls::outils::est_element(
-					m_mikisa.contexte,
-					GRAPHE_COMPOSITE,
-					GRAPHE_RACINE_COMPOSITES);
-
-		if (graphe_compo) {
+		if (m_mikisa.chemin_courant[1] == 'c') {
 			m_selecteur_graphe->setCurrentIndex(0);
 		}
 		else {
@@ -149,7 +144,7 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		auto item = new ItemNoeud(node_ptr, node_ptr == graphe->noeud_actif);
 		m_scene->addItem(item);
 
-		for (PriseEntree *prise : node_ptr->entrees()) {
+		for (PriseEntree *prise : node_ptr->entrees) {
 			if (prise->liens.est_vide()) {
 				continue;
 			}

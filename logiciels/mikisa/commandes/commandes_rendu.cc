@@ -179,7 +179,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto const &composite = extrait_composite(noeud_composite->donnees());
+		auto const &composite = extrait_composite(noeud_composite->donnees);
 
 		/* À FAIRE : vérifie l'éligibilité du chemin de sortie, graphe rendu */
 
@@ -224,7 +224,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto const &composite = extrait_composite(noeud_composite->donnees());
+		auto const &composite = extrait_composite(noeud_composite->donnees);
 
 		/* À FAIRE : vérifie l'éligibilité du chemin de sortie. */
 

@@ -31,7 +31,6 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_graphe
 	bib_objets
 	bib_outils
 	bib_patrons

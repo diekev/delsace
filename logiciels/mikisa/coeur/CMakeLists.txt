@@ -30,7 +30,6 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_graphe
 	bib_outils
 	bib_patrons
 	bib_vision
@@ -73,13 +72,14 @@ add_library(${NOM_CIBLE} STATIC
 	delegue_hbe.cc
 	donnees_aval.cc
 	donnees_simulation.cc
-	entite.cc
 	evenement.cc
 	gestionnaire_fichier.cc
+	graphe.cc
 	image.cc
 	imprimeuse_graphe.cc
 	manipulatrice.cc
 	mikisa.cc
+	noeud.cc
 	noeud_image.cc
 	objet.cc
 	operatrice_corps.cc
@@ -100,13 +100,14 @@ add_library(${NOM_CIBLE} STATIC
 	delegue_hbe.hh
 	donnees_aval.hh
 	donnees_simulation.hh
-	entite.hh
 	evenement.h
 	gestionnaire_fichier.hh
+	graphe.hh
 	image.hh
 	imprimeuse_graphe.h
 	manipulatrice.h
 	mikisa.h
+	noeud.hh
 	noeud_image.h
 	objet.h
 	operatrice_corps.h

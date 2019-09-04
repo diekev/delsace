@@ -51,3 +51,7 @@
 	_Pragma("clang diagnostic ignored \"-Wunused-private-field\"")  \
 	char VARIABLE_ANONYME(_pad)[x] \
 	_Pragma("clang diagnostic pop")
+
+#define COPIE_CONSTRUCT(x) \
+	x(x const &) = default; \
+	x &operator=(x const &) = default

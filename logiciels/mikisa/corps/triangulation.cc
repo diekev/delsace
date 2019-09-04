@@ -106,6 +106,7 @@ dls::tableau<Triangle> convertis_maillage_triangles(const Corps *corps_entree, G
 			triangle.v0 = points->point(poly->index_point(0));
 			triangle.v1 = points->point(poly->index_point(i - 1));
 			triangle.v2 = points->point(poly->index_point(i));
+			triangle.index_orig = poly->index;
 
 			triangles.pousse(triangle);
 		}

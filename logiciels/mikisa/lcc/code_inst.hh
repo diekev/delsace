@@ -121,6 +121,9 @@ enum class code_inst : int {
 	DEC_VERS_VEC3,
 	ENT_VERS_VEC4,
 	DEC_VERS_VEC4,
+	DEC_VERS_COULEUR,
+	VEC3_VERS_COULEUR,
+	COULEUR_VERS_VEC3,
 
 	/* fonctions topologiques */
 	FN_AJOUTE_POINT,

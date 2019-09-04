@@ -298,7 +298,7 @@ public:
 	static constexpr auto NOM = "Stable Neo Hookean";
 	static constexpr auto AIDE = "";
 
-	OperatriceSNH(Graphe &graphe_parent, Noeud &noeud);
+	OperatriceSNH(Graphe &graphe_parent, Noeud &noeud_);
 
 	const char *chemin_entreface() const override;
 
@@ -311,8 +311,8 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };
 
-OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceCorps(graphe_parent, noeud)
+OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
 	entrees(1);
 	sorties(1);
@@ -344,10 +344,10 @@ void OperatriceSNH::converti_corps()
 	}
 
 	for (const std::array<int,3>& f : g_surfaceTriangles) {
-		auto poly = Polygone::construit(&m_corps, type_polygone::FERME, 3);
-		poly->ajoute_sommet(f[0]);
-		poly->ajoute_sommet(f[1]);
-		poly->ajoute_sommet(f[2]);
+		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 3);
+		m_corps.ajoute_sommet(poly, f[0]);
+		m_corps.ajoute_sommet(poly, f[1]);
+		m_corps.ajoute_sommet(poly, f[2]);
 	}
 }
 

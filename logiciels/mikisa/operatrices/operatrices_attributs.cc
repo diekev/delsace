@@ -24,13 +24,19 @@
 
 #include "operatrices_attributs.hh"
 
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include "coeur/base_de_donnees.hh"
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
+#include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
+
+#include "evaluation/reseau.hh"
 
 #include "normaux.hh"
 
@@ -44,8 +50,8 @@ public:
 	static constexpr auto NOM = "Création Attribut";
 	static constexpr auto AIDE = "Crée un attribut.";
 
-	OperatriceCreationAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -74,40 +80,115 @@ public:
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 		auto const chaine_type = evalue_enum("type_attribut");
 		auto const chaine_portee = evalue_enum("portee_attribut");
+		auto const chaine_dims = evalue_enum("dimensions_attr");
+		auto const chaine_prec = evalue_enum("précision_attr");
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto dico_precisions = dls::cree_dico(
+					dls::paire{ dls::chaine("8"), 8 },
+					dls::paire{ dls::chaine("16"), 16 },
+					dls::paire{ dls::chaine("32"), 32 },
+					dls::paire{ dls::chaine("64"), 64 });
+
+		auto dico_dimensions = dls::cree_dico(
+					dls::paire{ dls::chaine("1"), 1 },
+					dls::paire{ dls::chaine("2"), 2 },
+					dls::paire{ dls::chaine("3"), 3 },
+					dls::paire{ dls::chaine("4"), 4 },
+					dls::paire{ dls::chaine("9"), 9 },
+					dls::paire{ dls::chaine("16"), 16 });
+
+		auto dico_portee = dls::cree_dico(
+					dls::paire{ dls::chaine("corps"), portee_attr::CORPS },
+					dls::paire{ dls::chaine("groupe"), portee_attr::GROUPE },
+					dls::paire{ dls::chaine("points"), portee_attr::POINT },
+					dls::paire{ dls::chaine("primitives"), portee_attr::PRIMITIVE },
+					dls::paire{ dls::chaine("sommets"), portee_attr::VERTEX });
+
+		auto plg_prec = dico_precisions.trouve(chaine_prec);
+
+		if (plg_prec.est_finie()) {
+			dls::flux_chaine ss;
+			ss << "Précision d'attribut '" << chaine_prec << "' invalide !";
+			ajoute_avertissement(ss.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto precision = plg_prec.front().second;
+
+		auto plg_dim = dico_dimensions.trouve(chaine_dims);
+
+		if (plg_dim.est_finie()) {
+			dls::flux_chaine ss;
+			ss << "Dimensions d'attribut '" << chaine_dims << "' invalide !";
+			ajoute_avertissement(ss.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto dimensions = plg_dim.front().second;
+
+		auto plg_portee = dico_portee.trouve(chaine_portee);
+
+		if (plg_portee.est_finie()) {
+			dls::flux_chaine ss;
+			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
+			ajoute_avertissement(ss.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto portee = plg_portee.front().second;
+
 		type_attribut type;
 
-		if (chaine_type == "ent8") {
-			type = type_attribut::ENT8;
+		if (chaine_type == "naturel") {
+			if (precision == 8) {
+				type = type_attribut::N8;
+			}
+			else if (precision == 16) {
+				type = type_attribut::N16;
+			}
+			else if (precision == 32) {
+				type = type_attribut::N32;
+			}
+			else {
+				type = type_attribut::N64;
+			}
 		}
-		else if (chaine_type == "ent32") {
-			type = type_attribut::ENT32;
+		else if (chaine_type == "relatif") {
+			if (precision == 8) {
+				type = type_attribut::Z8;
+			}
+			else if (precision == 16) {
+				type = type_attribut::Z16;
+			}
+			else if (precision == 32) {
+				type = type_attribut::Z32;
+			}
+			else {
+				type = type_attribut::Z64;
+			}
 		}
-		else if (chaine_type == "décimal") {
-			type = type_attribut::DECIMAL;
+		else if (chaine_type == "réél") {
+			if (precision == 8) {
+				ajoute_avertissement("Un nombre réel ne peut avoir une précision de 8-bit !");
+				return EXECUTION_ECHOUEE;
+			}
+			else if (precision == 16) {
+				type = type_attribut::Z16;
+			}
+			else if (precision == 32) {
+				type = type_attribut::Z32;
+			}
+			else {
+				type = type_attribut::Z64;
+			}
 		}
 		else if (chaine_type == "chaine") {
 			type = type_attribut::CHAINE;
-		}
-		else if (chaine_type == "vec2") {
-			type = type_attribut::VEC2;
-		}
-		else if (chaine_type == "vec3") {
-			type = type_attribut::VEC3;
-		}
-		else if (chaine_type == "vec4") {
-			type = type_attribut::VEC4;
-		}
-		else if (chaine_type == "mat3") {
-			type = type_attribut::MAT3;
-		}
-		else if (chaine_type == "mat4") {
-			type = type_attribut::MAT4;
 		}
 		else {
 			dls::flux_chaine ss;
@@ -116,31 +197,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		portee_attr portee;
-
-		if (chaine_portee == "points") {
-			portee = portee_attr::POINT;
-		}
-		else if (chaine_portee == "primitives") {
-			portee = portee_attr::PRIMITIVE;
-		}
-		else if (chaine_portee == "vertex") {
-			portee = portee_attr::VERTEX;
-		}
-		else if (chaine_portee == "groupe") {
-			portee = portee_attr::GROUPE;
-		}
-		else if (chaine_portee == "corps") {
-			portee = portee_attr::CORPS;
-		}
-		else {
-			dls::flux_chaine ss;
-			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
-		}
-
-		m_corps.ajoute_attribut(nom_attribut, type, portee);
+		m_corps.ajoute_attribut(nom_attribut, type, dimensions, portee);
 
 		return EXECUTION_REUSSIE;
 	}
@@ -153,8 +210,8 @@ public:
 	static constexpr auto NOM = "Suppression Attribut";
 	static constexpr auto AIDE = "Supprime un attribut.";
 
-	OperatriceSuppressionAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceSuppressionAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -245,13 +302,66 @@ auto applique_op(op_rand_attr op, T const &a, T const &b)
 	return b;
 }
 
+struct params_randomisation {
+	dls::chaine distribution = "";
+	int graine = 0;
+	op_rand_attr operation{};
+	float constante = 0.0f;
+	float moyenne = 0.0f;
+	float ecart_type = 0.0f;
+	float val_min = 0.0f;
+	float val_max = 0.0f;
+};
+
+template <typename T>
+auto applique_randomisation(
+		Attribut &attr,
+		params_randomisation const &params)
+{
+	auto gna = GNA(params.graine);
+
+	if (params.distribution == "constante") {
+		transforme_attr<T>(attr, [&](T *ptr)
+		{
+			for (auto i = 0; i < attr.dimensions; ++i) {
+				ptr[i] = applique_op(
+							params.operation,
+							ptr[i],
+							static_cast<T>(params.constante));
+			}
+		});
+	}
+	else if (params.distribution == "uniforme") {
+		transforme_attr<T>(attr, [&](T *ptr)
+		{
+			for (auto i = 0; i < attr.dimensions; ++i) {
+				ptr[i] = applique_op(
+							params.operation,
+							ptr[i],
+							static_cast<T>(gna.uniforme(params.val_min, params.val_max)));
+			}
+		});
+	}
+	else if (params.distribution == "gaussienne") {
+		transforme_attr<T>(attr, [&](T *ptr)
+		{
+			for (auto i = 0; i < attr.dimensions; ++i) {
+				ptr[i] = applique_op(
+							params.operation,
+							ptr[i],
+							static_cast<T>(gna.normale(params.moyenne, params.ecart_type)));
+			}
+		});
+	}
+}
+
 class OperatriceRandomisationAttribut final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Randomisation Attribut";
 	static constexpr auto AIDE = "Randomise un attribut.";
 
-	OperatriceRandomisationAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceRandomisationAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -323,197 +433,75 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
+		auto params = params_randomisation{};
+		params.distribution = distribution;
+		params.graine = graine;
+		params.moyenne = moyenne;
+		params.ecart_type = ecart_type;
+		params.constante = constante;
+		params.operation = operation;
+		params.val_min = val_min;
+		params.val_max = val_max;
+
 		switch (attrib->type()) {
-			case type_attribut::ENT8:
+			case type_attribut::N8:
 			{
-				auto gna = GNA(graine);
-
-				if (distribution == "constante") {
-					transforme_attr<char>(*attrib, [&](char const &v)
-					{
-						return applique_op(operation, v, static_cast<char>(constante));
-					});
-				}
-				else if (distribution == "uniforme") {
-					transforme_attr<char>(*attrib, [&](char const &v)
-					{
-						return applique_op(operation, v, static_cast<char>(gna.uniforme(-128, 127)));
-					});
-				}
-				else if (distribution == "gaussienne") {
-					transforme_attr<char>(*attrib, [&](char const &v)
-					{
-						return applique_op(operation, v, static_cast<char>(gna.normale(moyenne, ecart_type)));
-					});
-				}
-
+				applique_randomisation<unsigned char>(*attrib, params);
 				break;
 			}
-			case type_attribut::ENT32:
+			case type_attribut::N16:
 			{
-				auto gna = GNA(graine);
-
-				if (distribution == "constante") {
-					transforme_attr<int>(*attrib, [&](int const &v)
-					{
-						return applique_op(operation, v, static_cast<int>(constante));
-					});
-				}
-				else if (distribution == "uniforme") {
-					transforme_attr<int>(*attrib, [&](int const &v)
-					{
-						return applique_op(operation, v, gna.uniforme(static_cast<int>(val_min), static_cast<int>(val_max)));
-					});
-				}
-				else if (distribution == "gaussienne") {
-					transforme_attr<int>(*attrib, [&](int const &v)
-					{
-						return applique_op(operation, v, static_cast<int>(gna.normale(moyenne, ecart_type)));
-					});
-				}
-
+				applique_randomisation<unsigned short>(*attrib, params);
 				break;
 			}
-			case type_attribut::DECIMAL:
+			case type_attribut::N32:
 			{
-				auto gna = GNA(graine);
-
-				if (distribution == "constante") {
-					transforme_attr<float>(*attrib, [&](float const &v)
-					{
-						return applique_op(operation, v, constante);
-					});
-				}
-				else if (distribution == "uniforme") {
-					transforme_attr<float>(*attrib, [&](float const &v)
-					{
-						return applique_op(operation, v, gna.uniforme(val_min, val_max));
-					});
-				}
-				else if (distribution == "gaussienne") {
-					transforme_attr<float>(*attrib, [&](float const &v)
-					{
-						return applique_op(operation, v, gna.normale(moyenne, ecart_type));
-					});
-				}
-
+				applique_randomisation<unsigned int>(*attrib, params);
+				break;
+			}
+			case type_attribut::N64:
+			{
+				applique_randomisation<unsigned long>(*attrib, params);
+				break;
+			}
+			case type_attribut::Z8:
+			{
+				applique_randomisation<char>(*attrib, params);
+				break;
+			}
+			case type_attribut::Z16:
+			{
+				applique_randomisation<short>(*attrib, params);
+				break;
+			}
+			case type_attribut::Z32:
+			{
+				applique_randomisation<int>(*attrib, params);
+				break;
+			}
+			case type_attribut::Z64:
+			{
+				applique_randomisation<long>(*attrib, params);
+				break;
+			}
+			case type_attribut::R16:
+			{
+				applique_randomisation<r16>(*attrib, params);
+				break;
+			}
+			case type_attribut::R32:
+			{
+				applique_randomisation<float>(*attrib, params);
+				break;
+			}
+			case type_attribut::R64:
+			{
+				applique_randomisation<double>(*attrib, params);
 				break;
 			}
 			case type_attribut::CHAINE:
 			{
 				ajoute_avertissement("La randomisation d'attribut de type chaine n'est pas supportée !");
-				break;
-			}
-			case type_attribut::VEC2:
-			{
-				auto gna = GNA(graine);
-
-				if (distribution == "constante") {
-					transforme_attr<dls::math::vec2f>(*attrib, [&](dls::math::vec2f const &v)
-					{
-						return dls::math::vec2f(
-									applique_op(operation, v.x, constante),
-									applique_op(operation, v.y, constante));
-					});
-				}
-				else if (distribution == "uniforme") {
-					transforme_attr<dls::math::vec2f>(*attrib, [&](dls::math::vec2f const &v)
-					{
-						return dls::math::vec2f(
-									applique_op(operation, v.x, gna.uniforme(val_min, val_max)),
-									applique_op(operation, v.y, gna.uniforme(val_min, val_max)));
-					});
-				}
-				else if (distribution == "gaussienne") {
-					transforme_attr<dls::math::vec2f>(*attrib, [&](dls::math::vec2f const &v)
-					{
-						return dls::math::vec2f(
-									applique_op(operation, v.x, gna.normale(moyenne, ecart_type)),
-									applique_op(operation, v.y, gna.normale(moyenne, ecart_type)));
-					});
-				}
-
-				break;
-			}
-			case type_attribut::VEC3:
-			{
-				auto gna = GNA(graine);
-
-				if (distribution == "constante") {
-					transforme_attr<dls::math::vec3f>(*attrib, [&](dls::math::vec3f const &v)
-					{
-						return dls::math::vec3f(
-									applique_op(operation, v.x, constante),
-									applique_op(operation, v.y, constante),
-									applique_op(operation, v.z, constante));
-					});
-				}
-				else if (distribution == "uniforme") {
-					transforme_attr<dls::math::vec3f>(*attrib, [&](dls::math::vec3f const &v)
-					{
-						return dls::math::vec3f(
-									applique_op(operation, v.x, gna.uniforme(val_min, val_max)),
-									applique_op(operation, v.y, gna.uniforme(val_min, val_max)),
-									applique_op(operation, v.z, gna.uniforme(val_min, val_max)));
-					});
-				}
-				else if (distribution == "gaussienne") {
-					transforme_attr<dls::math::vec3f>(*attrib, [&](dls::math::vec3f const &v)
-					{
-						return dls::math::vec3f(
-									applique_op(operation, v.x, gna.normale(moyenne, ecart_type)),
-									applique_op(operation, v.y, gna.normale(moyenne, ecart_type)),
-									applique_op(operation, v.z, gna.normale(moyenne, ecart_type)));
-					});
-				}
-
-				break;
-			}
-			case type_attribut::VEC4:
-			{
-				auto gna = GNA(graine);
-
-				if (distribution == "constante") {
-					transforme_attr<dls::math::vec4f>(*attrib, [&](dls::math::vec4f const &v)
-					{
-						return dls::math::vec4f(
-									applique_op(operation, v.x, constante),
-									applique_op(operation, v.y, constante),
-									applique_op(operation, v.z, constante),
-									applique_op(operation, v.w, constante));
-					});
-				}
-				else if (distribution == "uniforme") {
-					transforme_attr<dls::math::vec4f>(*attrib, [&](dls::math::vec4f const &v)
-					{
-						return dls::math::vec4f(
-									applique_op(operation, v.x, gna.uniforme(val_min, val_max)),
-									applique_op(operation, v.y, gna.uniforme(val_min, val_max)),
-									applique_op(operation, v.z, gna.uniforme(val_min, val_max)),
-									applique_op(operation, v.w, gna.uniforme(val_min, val_max)));
-					});
-				}
-				else if (distribution == "gaussienne") {
-					transforme_attr<dls::math::vec4f>(*attrib, [&](dls::math::vec4f const &v)
-					{
-						return dls::math::vec4f(
-									applique_op(operation, v.x, gna.normale(moyenne, ecart_type)),
-									applique_op(operation, v.y, gna.normale(moyenne, ecart_type)),
-									applique_op(operation, v.z, gna.normale(moyenne, ecart_type)),
-									applique_op(operation, v.w, gna.normale(moyenne, ecart_type)));
-					});
-				}
-
-				break;
-			}
-			case type_attribut::MAT3:
-			{
-				ajoute_avertissement("La randomisation d'attribut de type mat3 n'est pas supportée !");
-				break;
-			}
-			case type_attribut::MAT4:
-			{
-				ajoute_avertissement("La randomisation d'attribut de type mat4 n'est pas supportée !");
 				break;
 			}
 			case type_attribut::INVALIDE:
@@ -559,8 +547,8 @@ public:
 	static constexpr auto NOM = "Couleur";
 	static constexpr auto AIDE = "Ajoute un attribut de couleur à la géométrie entrante.";
 
-	OperatriceAjoutCouleur(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceAjoutCouleur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -656,7 +644,7 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		attrib = m_corps.ajoute_attribut("C", type_attribut::VEC3, portee);
+		attrib = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee);
 
 		iteratrice_index iter;
 
@@ -672,14 +660,14 @@ public:
 
 		if (methode == "unique") {
 			for (auto index : iter) {
-				attrib->valeur(index, dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
+				assigne(attrib->r32(index), dls::math::vec3f(couleur_.r, couleur_.v, couleur_.b));
 			}
 		}
 		else if (methode == "aléatoire") {
 			auto gna = GNA(graine);
 
 			for (auto index : iter) {
-				attrib->valeur(index, gna.uniforme_vec3(0.0f, 1.0f));
+				assigne(attrib->r32(index), gna.uniforme_vec3(0.0f, 1.0f));
 			}
 		}
 
@@ -708,8 +696,8 @@ public:
 	static constexpr auto NOM = "Création Normaux";
 	static constexpr auto AIDE = "Crée des normaux pour les maillages d'entrée.";
 
-	OperatriceCreationNormaux(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OperatriceCreationNormaux(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -792,8 +780,8 @@ public:
 	static constexpr auto NOM = "Transfère Attributs";
 	static constexpr auto AIDE = "";
 
-	OpTransfereAttributs(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpTransfereAttributs(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(2);
 		sorties(1);
@@ -856,6 +844,7 @@ public:
 		auto attr_dest = m_corps.ajoute_attribut(
 					nom_attribut,
 					attr_orig->type(),
+					attr_orig->dimensions,
 					attr_orig->portee);
 
 		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
@@ -919,6 +908,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	auto attr_dest = corps.ajoute_attribut(
 				attr_orig.nom() + "_promotion",
 				attr_orig.type(),
+				attr_orig.dimensions,
 				portee_dest);
 
 	dls::tableau<donnees_promotion> donnees;
@@ -1039,8 +1029,8 @@ public:
 	static constexpr auto NOM = "Promeut Attributs";
 	static constexpr auto AIDE = "";
 
-	OpPromeutAttribut(Graphe &graphe_parent, Noeud &noeud)
-		: OperatriceCorps(graphe_parent, noeud)
+	OpPromeutAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(1);
 		sorties(1);
@@ -1095,6 +1085,160 @@ public:
 
 /* ************************************************************************** */
 
+class OpVisibiliteCamera final : public OperatriceCorps {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Visibilité Caméra";
+	static constexpr auto AIDE = "Ajoute un attribut selon la distance des points depuis une caméra.";
+
+	OpVisibiliteCamera(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	COPIE_CONSTRUCT(OpVisibiliteCamera);
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_visibilite_camera.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_caméra");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_objet->type != type_objet::CAMERA) {
+			this->ajoute_avertissement("L'objet n'est pas une caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto camera = static_cast<vision::Camera3D *>(nullptr);
+
+		m_objet->donnees.accede_ecriture([&](DonneesObjet *donnees)
+		{
+			camera = &extrait_camera(donnees);
+		});
+
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_lecture();
+
+		auto couleur_non = dls::math::vec3f(0.0f);
+
+		auto l_min =  constantes<float>::INFINITE;
+		auto l_max = -constantes<float>::INFINITE;
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			auto p = m_corps.point_transforme(i);
+
+			auto pos_ecran = camera->pos_ecran(dls::math::point3f(p));
+
+			if (pos_ecran.x < 0.0f || pos_ecran.x > camera->largeur()) {
+				assigne(attr_C->r32(i), couleur_non);
+				continue;
+			}
+
+			if (pos_ecran.y < 0.0f || pos_ecran.y > camera->hauteur()) {
+				assigne(attr_C->r32(i), couleur_non);
+				continue;
+			}
+
+			auto vec = p - camera->pos();
+
+			if (produit_scalaire(vec, camera->dir()) <= 0.0f) {
+				assigne(attr_C->r32(i), couleur_non);
+				continue;
+			}
+
+			auto l = longueur(vec);
+
+			if (l < l_min) {
+				l_min = l;
+			}
+
+			if (l > l_max) {
+				l_max = l;
+			}
+
+			assigne(attr_C->r32(i), dls::math::vec3f(l));
+		}
+
+		auto poids = 1.0f / (l_max - l_min);
+
+		transforme_attr<float>(*attr_C, [&](float *ptr)
+		{
+			for (int i = 0; i < 3; ++i) {
+				ptr[i] = 1.0f - (l_max - ptr[i]) * poids;
+			}
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_caméra") {
+			for (auto &objet : contexte.bdd->objets()) {
+				liste.pousse(objet->noeud->nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_attributs(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
@@ -1104,6 +1248,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationNormaux>());
 	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
 	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
+	usine.enregistre_type(cree_desc<OpVisibiliteCamera>());
 }
 
 #pragma clang diagnostic pop

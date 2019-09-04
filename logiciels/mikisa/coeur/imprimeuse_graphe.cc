@@ -26,11 +26,11 @@
 
 #include <iomanip>
 
-#include "biblinternes/graphe/graphe.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/systeme_fichier/file.h"
 
+#include "noeud.hh"
 #include "noeud_image.h"
 
 /* Adapted from Blender's BVM debug code. */
@@ -58,7 +58,7 @@ inline static dls::chaine node_id(const Noeud *node, bool quoted = true)
 inline long get_input_index(const PriseEntree *socket)
 {
 	auto i = 0l;
-	for (auto const &input : socket->parent->entrees()) {
+	for (auto const &input : socket->parent->entrees) {
 		if (input->nom == socket->nom) {
 			return i;
 		}
@@ -72,7 +72,7 @@ inline long get_input_index(const PriseEntree *socket)
 inline long get_output_index(const PriseSortie *socket)
 {
 	auto i = 0l;
-	for (auto const &output : socket->parent->sorties()) {
+	for (auto const &output : socket->parent->sorties) {
 		if (output->nom == socket->nom) {
 			return i;
 		}
@@ -129,15 +129,15 @@ inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
 	constexpr auto fillcolor = "gainsboro";
 	constexpr auto penwidth = 1.0;
 
-	file.print("// %s\n", node->nom().c_str());
+	file.print("// %s\n", node->nom.c_str());
 	file.print("%s", node_id(node).c_str());
 	file.print("[");
 
 	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
-	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom().c_str());
+	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom.c_str());
 
-	auto const numin = node->entrees().taille();
-	auto const numout = node->sorties().taille();
+	auto const numin = node->entrees.taille();
+	auto const numout = node->sorties.taille();
 
 	for (auto i = 0; (i < numin) || (i < numout); ++i) {
 		file.print("<TR>");
@@ -210,7 +210,7 @@ inline void dump_link(dls::systeme_fichier::File &file, const PriseSortie *from,
 
 inline void dump_node_links(dls::systeme_fichier::File &file, const Noeud *node)
 {
-	for (auto const &entree : node->entrees()) {
+	for (auto const &entree : node->entrees) {
 		for (auto const &sortie : entree->liens) {
 			dump_link(file, sortie, entree);
 		}

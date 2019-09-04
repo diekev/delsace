@@ -67,19 +67,6 @@ enum {
 	FICHIER_SAUVEGARDE,
 };
 
-enum {
-	/* composite */
-	GRAPHE_RACINE_COMPOSITES,
-	GRAPHE_COMPOSITE,
-	GRAPHE_PIXEL_XXX,
-	/* objet */
-	GRAPHE_RACINE_OBJETS,
-	GRAPHE_OBJET,
-	GRAPHE_MAILLAGE_XXX,
-	GRAPHE_SIMULATION,
-	GRAPHE_DETAIL,
-};
-
 class Mikisa : public Sujette {
 	UsineCommande m_usine_commande{};
 	UsineOperatrice m_usine_operatrices;
@@ -146,10 +133,8 @@ public:
 	bool animation = false;
 
 	/* contexte graphe */
-	int contexte = GRAPHE_RACINE_OBJETS;
 	Graphe *graphe = nullptr;
-
-	Noeud *derniere_visionneuse_selectionnee = nullptr;
+	Noeud *noeud = nullptr;
 
 	/* manipulation objets 2d */
 	bool manipulation_2d_activee = false;

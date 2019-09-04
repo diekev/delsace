@@ -349,7 +349,7 @@ public:
 		/* ajourne l'opératrice */
 		auto graphe = mikisa->graphe;
 		auto noeud_actif = graphe->noeud_actif;
-		auto operatrice = extrait_opimage(noeud_actif->donnees());
+		auto operatrice = extrait_opimage(noeud_actif->donnees);
 		operatrice->ajourne_selon_manipulatrice_3d(mikisa->type_manipulation_3d, mikisa->temps_courant);
 
 		/* Évalue tout le graphe pour ajourner proprement les données dépendants

@@ -24,14 +24,17 @@
 
 #pragma once
 
+#include <any>
+
 #include "biblinternes/math/transformation.hh"
+#include "biblinternes/phys/couleur.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "corps/corps.h"
 
-#include "entite.hh"
+struct Noeud;
 
 /* ************************************************************************** */
 
@@ -113,7 +116,7 @@ inline Lumiere const &extrait_lumiere(DonneesObjet const *donnees)
 
 /* ************************************************************************** */
 
-struct Objet : public Entite {
+struct Objet {
 	type_objet type = type_objet::NUL;
 
 	bool rendu_scene = true;
@@ -129,13 +132,15 @@ struct Objet : public Entite {
 	/* autres propriétés */
 	dls::synchronise<DonneesObjet *> donnees{};
 
+	Noeud *noeud = nullptr;
+
 	Objet();
-	~Objet() override;
+	~Objet();
 
 	Objet(Objet const &) = default;
 	Objet &operator=(Objet const &) = default;
 
-	void performe_versionnage() override;
+	void performe_versionnage();
 
 	const char *chemin_entreface() const;
 

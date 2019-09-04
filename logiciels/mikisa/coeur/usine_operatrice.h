@@ -118,7 +118,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
-	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud);
+	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud_);
 
 	void deloge(OperatriceImage *operatrice);
 

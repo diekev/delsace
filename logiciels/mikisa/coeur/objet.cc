@@ -26,10 +26,10 @@
 
 #include "biblinternes/outils/constantes.h"
 
+#include "noeud.hh"
 #include "operatrice_image.h"
 
 Objet::Objet()
-	: Entite(cree_noeud_image, supprime_noeud_image)
 {}
 
 Objet::~Objet()
@@ -62,14 +62,14 @@ Objet::~Objet()
 
 void Objet::performe_versionnage()
 {
-	if (this->propriete("pivot") == nullptr) {
-		this->ajoute_propriete("pivot", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
-		this->ajoute_propriete("position", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
-		this->ajoute_propriete("echelle", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0f));
-		this->ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
-		this->ajoute_propriete("echelle_uniforme", danjo::TypePropriete::DECIMAL, 1.0f);
-		this->ajoute_propriete("nom", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("objet"));
-		this->ajoute_propriete("rendu_scene", danjo::TypePropriete::BOOL, true);
+	if (this->noeud->propriete("pivot") == nullptr) {
+		this->noeud->ajoute_propriete("pivot", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
+		this->noeud->ajoute_propriete("position", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
+		this->noeud->ajoute_propriete("echelle", danjo::TypePropriete::VECTEUR, dls::math::vec3f(1.0f));
+		this->noeud->ajoute_propriete("rotation", danjo::TypePropriete::VECTEUR, dls::math::vec3f(0.0f));
+		this->noeud->ajoute_propriete("echelle_uniforme", danjo::TypePropriete::DECIMAL, 1.0f);
+		this->noeud->ajoute_propriete("nom", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("objet"));
+		this->noeud->ajoute_propriete("rendu_scene", danjo::TypePropriete::BOOL, true);
 	}
 }
 
@@ -96,18 +96,18 @@ const char *Objet::chemin_entreface() const
 
 void Objet::ajourne_parametres()
 {
-	rendu_scene = evalue_bool("rendu_scene");
+	rendu_scene = noeud->evalue_bool("rendu_scene");
 
-	auto pvt = evalue_vecteur("pivot");
-	auto pos = evalue_vecteur("position");
-	auto ech = evalue_vecteur("echelle");
-	auto rot = evalue_vecteur("rotation");
+	auto pvt = noeud->evalue_vecteur("pivot");
+	auto pos = noeud->evalue_vecteur("position");
+	auto ech = noeud->evalue_vecteur("echelle");
+	auto rot = noeud->evalue_vecteur("rotation");
 
 	pivot = dls::math::point3f(pvt);
 	position = dls::math::point3f(pos);
 	echelle = dls::math::point3f(ech);
 	rotation = dls::math::point3f(rot);
-	echelle_uniforme = evalue_decimal("echelle_uniforme");
+	echelle_uniforme = noeud->evalue_decimal("echelle_uniforme");
 
 	if (this->type == type_objet::CAMERA) {
 		/* N'applique pas de transformation car la caméra prend en charge la
@@ -119,13 +119,13 @@ void Objet::ajourne_parametres()
 		{
 			auto &camera = static_cast<DonneesCamera *>(donnees_)->camera;
 
-			auto const largeur = evalue_entier("largeur");
-			auto const hauteur = evalue_entier("hauteur");
-			auto const longueur_focale = evalue_decimal("longueur_focale");
-			auto const largeur_senseur = evalue_decimal("largeur_senseur");
-			auto const proche = evalue_decimal("proche");
-			auto const eloigne = evalue_decimal("éloigné");
-			auto const projection = evalue_enum("projection");
+			auto const largeur = noeud->evalue_entier("largeur");
+			auto const hauteur = noeud->evalue_entier("hauteur");
+			auto const longueur_focale = noeud->evalue_decimal("longueur_focale");
+			auto const largeur_senseur = noeud->evalue_decimal("largeur_senseur");
+			auto const proche = noeud->evalue_decimal("proche");
+			auto const eloigne = noeud->evalue_decimal("éloigné");
+			auto const projection = noeud->evalue_enum("projection");
 
 			if (projection == "perspective") {
 				camera.projection(vision::TypeProjection::PERSPECTIVE);
@@ -150,7 +150,7 @@ void Objet::ajourne_parametres()
 		{
 			auto &lumiere = extrait_lumiere(donnees_);
 
-			auto type_lum = evalue_enum("type");
+			auto type_lum = noeud->evalue_enum("type");
 
 			if (type_lum == "point") {
 				lumiere.type = LUMIERE_POINT;
@@ -159,8 +159,8 @@ void Objet::ajourne_parametres()
 				lumiere.type = LUMIERE_DISTANTE;
 			}
 
-			lumiere.intensite = evalue_decimal("intensité");
-			lumiere.spectre = evalue_couleur("spectre");
+			lumiere.intensite = noeud->evalue_decimal("intensité");
+			lumiere.spectre = noeud->evalue_couleur("spectre");
 		});
 	}
 	else {

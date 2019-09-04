@@ -24,11 +24,12 @@
 
 #include "operatrice_corps.h"
 
-#include "biblinternes/graphe/noeud.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
-OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud &noeud)
-	: OperatriceImage(graphe_parent, noeud)
+#include "noeud.hh"
+
+OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceImage(graphe_parent, noeud_)
 {
 }
 

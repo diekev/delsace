@@ -239,6 +239,8 @@ public:
 using desc_grille_2d = description_grille<dls::math::vec2>;
 using base_grille_2d = base_grille<dls::math::vec2>;
 
+desc_grille_2d desc_depuis_hauteur_largeur(int hauteur, int largeur);
+
 void deloge_grille(base_grille_2d *&tampon);
 
 using desc_grille_3d = description_grille<dls::math::vec3>;

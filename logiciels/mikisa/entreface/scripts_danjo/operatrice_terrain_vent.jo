@@ -1,0 +1,18 @@
+disposition "operatrice_terrain_vent" {
+	ligne {
+		étiquette(valeur="Direction")
+		décimal(valeur=0.0; attache=direction; animable)
+	}
+	ligne {
+		étiquette(valeur="Force Descendante")
+		décimal(valeur=0.5; attache=force1; animable)
+	}
+	ligne {
+		étiquette(valeur="Force Ascendante")
+		décimal(valeur=0.5; attache=force2; animable)
+	}
+	ligne {
+		étiquette(valeur="Répétitions")
+		entier(valeur=1; attache=répétitions)
+	}
+}
