@@ -26,6 +26,7 @@
 
 #include <cmath>
 
+#include "biblinternes/outils/indexeuse.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/chef_execution.hh"
@@ -264,9 +265,12 @@ public:
 		auto patchmargin = static_cast<int>(std::floor(static_cast<float>(patchsize) * 0.5f));
 		auto gradientmargin = static_cast<int>(std::floor(static_cast<float>(gradientsize) * 0.5f));
 
-		auto Q = dls::tableau<float>(Qangle * Qstrength * Qcoherence * R * R * patchsize * patchsize * patchsize * patchsize);
-		auto V = dls::tableau<float>(Qangle * Qstrength * Qcoherence * R * R * patchsize * patchsize);
-		auto h = dls::tableau<float>(Qangle * Qstrength * Qcoherence * R * R * patchsize * patchsize);
+		auto idxQ = otl::cree_indexeuse_statique(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize, patchsize * patchsize);
+		auto idxV = otl::cree_indexeuse_statique(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize);
+
+		auto Q = dls::tableau<float>(idxQ.nombre_elements);
+		auto V = dls::tableau<float>(idxV.nombre_elements);
+		auto h = dls::tableau<float>(idxV.nombre_elements);
 
 		auto poids = masque_gassien_2d(gradientsize, gradientsize, 2.0f);
 
@@ -341,8 +345,8 @@ public:
 //				ATb = np.array(ATb).ravel();
 
 //				// compute Q ant V
-//				Q[angle, strength, coherence, pixeltype] += ATA;
-//				V[angle, strength, coherence, pixeltype] += ATb;
+//				Q[idxQ(angle, strength, coherence, pixeltype)] += ATA;
+//				V[idxV(angle, strength, coherence, pixeltype)] += ATb;
 			}
 		}
 
