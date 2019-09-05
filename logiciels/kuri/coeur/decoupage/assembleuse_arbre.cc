@@ -151,7 +151,7 @@ void assembleuse_arbre::genere_code_C(
 	os << df.nom_broye;
 	os << "() { return __VG_memoire_utilisee__; }";
 
-	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute
+	/* NOTE : les initialiseurs des infos types doivent être valides pour toute
 	 * la durée du programme, donc nous les mettons dans la fonction principale.
 	 */
 	dls::flux_chaine ss_infos_types;

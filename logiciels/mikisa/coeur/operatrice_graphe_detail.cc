@@ -84,7 +84,7 @@ static lcc::param_entrees params_noeuds_sortie[] = {
 	/* sortie détail pixel */
 	lcc::param_entrees(
 		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
-	/* entrée détail terrain */
+	/* sortie détail terrain */
 	lcc::param_entrees(
 		lcc::donnees_parametre("hauteur", lcc::type_var::DEC)),
 	/* sortie détail poséidon */

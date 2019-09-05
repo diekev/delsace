@@ -222,7 +222,7 @@ static void initialise_llvm()
 			|| llvm::InitializeNativeTargetAsmParser()
 			|| llvm::InitializeNativeTargetAsmPrinter())
 	{
-		std::cerr << "Ne peut pas initiliser LLVM !\n";
+		std::cerr << "Ne peut pas initialiser LLVM !\n";
 		exit(EXIT_FAILURE);
 	}
 
