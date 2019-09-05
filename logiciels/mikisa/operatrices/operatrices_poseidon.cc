@@ -30,6 +30,7 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "coeur/base_de_donnees.hh"
+#include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/donnees_aval.hh"
 #include "coeur/objet.h"
@@ -63,6 +64,9 @@
  *
  * « Capturing Thin Features in Smoke Simulations »
  * http://library.imageworks.com/pdfs/imageworks-library-capturing-thin-features-in-smoke-simulation.pdf
+ *
+ * « "Megamind" : Fire, Smoke and Data »
+ * https://research.dreamworks.com/wp-content/uploads/2018/07/57-rost-Edited.pdf
  */
 
 /**
@@ -1452,6 +1456,87 @@ public:
 
 /* ************************************************************************** */
 
+class OpErosionGaz final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Érosion Gaz";
+	static constexpr auto AIDE = "Érode les champs donnés de la simulation.";
+
+	OpErosionGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		m_execute_toujours = true;
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_poseidon_erosion.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+
+		auto rayon = evalue_entier("rayon");
+		auto erode_densite = evalue_bool("érode_densité");
+		auto erode_temperature = evalue_bool("érode_température");
+		auto erode_fioul = evalue_bool("érode_fioul");
+		auto erode_divergence = evalue_bool("érode_divergence");
+		auto erode_oxygene = evalue_bool("érode_oxygène");
+		auto erode_velocite = evalue_bool("érode_vélocité");
+
+		auto chef = contexte.chef;
+		auto chef_wolika = ChefWolika(chef, "érosion poséidon");
+
+		if (erode_densite) {
+			wlk::erode_grille(*poseidon_gaz->densite, rayon, &chef_wolika);
+		}
+
+		if (erode_temperature && poseidon_gaz->temperature != nullptr) {
+			wlk::erode_grille(*poseidon_gaz->temperature, rayon, &chef_wolika);
+		}
+
+		if (erode_fioul && poseidon_gaz->fioul != nullptr) {
+			wlk::erode_grille(*poseidon_gaz->fioul, rayon, &chef_wolika);
+		}
+
+		if (erode_divergence && poseidon_gaz->divergence != nullptr) {
+			wlk::erode_grille(*poseidon_gaz->divergence, rayon, &chef_wolika);
+		}
+
+		if (erode_oxygene && poseidon_gaz->oxygene != nullptr) {
+			wlk::erode_grille(*poseidon_gaz->oxygene, rayon, &chef_wolika);
+		}
+
+		if (erode_velocite) {
+			wlk::erode_grille(*poseidon_gaz->velocite, rayon, &chef_wolika);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
@@ -1466,6 +1551,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpBruitCollisionGaz>());
 	usine.enregistre_type(cree_desc<OpDissipationGaz>());
 	usine.enregistre_type(cree_desc<OpVisualisationGaz>());
+	usine.enregistre_type(cree_desc<OpErosionGaz>());
 }
 
 #pragma clang diagnostic pop

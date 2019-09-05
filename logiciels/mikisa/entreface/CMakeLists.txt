@@ -178,6 +178,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_premultiplication.jo
 	scripts_danjo/operatrice_projection_gaz.jo
 	scripts_danjo/operatrice_points_depuis_profonde.jo
+	scripts_danjo/operatrice_poseidon_erosion.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_rayons_soleil.jo
 	scripts_danjo/operatrice_script_detail.jo
