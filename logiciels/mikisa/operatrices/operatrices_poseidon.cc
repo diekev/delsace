@@ -1144,67 +1144,6 @@ public:
 
 /* ************************************************************************** */
 
-class OpBruitCollisionGaz final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Bruit Collision Gaz";
-	static constexpr auto AIDE = "Supprime des quantités du fluide en simulant un bruit blanc dans le champs de collision.";
-
-	OpBruitCollisionGaz(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		m_execute_toujours = true;
-		entrees(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_bruit_collision_gaz.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-
-		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
-			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
-		}
-
-		/* accumule les entrées */
-		entree(0)->requiers_corps(contexte, donnees_aval);
-
-		auto const quantite = evalue_decimal("quantité");
-		auto graine = evalue_entier("graine");
-		auto const anime_graine = evalue_bool("anime_graine");
-
-		if (anime_graine) {
-			graine += contexte.temps_courant;
-		}
-
-		/* passe à notre exécution */
-		auto poseidon_gaz = extrait_poseidon(donnees_aval);
-		auto fumee = poseidon_gaz->densite;
-
-		for (auto i = 0; i < fumee->nombre_elements(); ++i) {
-			fumee->valeur(i) *= (1.0f - quantite * empreinte_n32_vers_r32(static_cast<unsigned>(graine + i)));
-		}
-
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
 class OpDissipationGaz final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Dissipation Gaz";
@@ -1680,7 +1619,6 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpVorticiteGaz>());
 	usine.enregistre_type(cree_desc<OpAffinageGaz>());
 	usine.enregistre_type(cree_desc<OpDiffusionGaz>());
-	usine.enregistre_type(cree_desc<OpBruitCollisionGaz>());
 	usine.enregistre_type(cree_desc<OpDissipationGaz>());
 	usine.enregistre_type(cree_desc<OpVisualisationGaz>());
 	usine.enregistre_type(cree_desc<OpErosionGaz>());
