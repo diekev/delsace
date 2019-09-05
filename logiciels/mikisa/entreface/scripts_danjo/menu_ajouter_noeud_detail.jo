@@ -3,6 +3,7 @@ menu "Noeud Détail" {
 	action(valeur="Sortie Détail"; attache=ajouter_noeud; métadonnée="Sortie Détail")
 	action(valeur="Entrée Attribut"; attache=ajouter_noeud; métadonnée="Entrée Attribut")
 	action(valeur="Sortie Attribut"; attache=ajouter_noeud; métadonnée="Sortie Attribut")
+	action(valeur="Info Exécution"; attache=ajouter_noeud; métadonnée="Info Exécution")
 	menu "bruit" {
 		action(valeur="bruit_cellule"; attache=ajouter_noeud_detail; métadonnée="bruit_cellule")
 		action(valeur="bruit_flux"; attache=ajouter_noeud_detail; métadonnée="bruit_flux")

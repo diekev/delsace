@@ -1638,6 +1638,87 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceInfoExecution final : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Info Exécution";
+	static constexpr auto AIDE = "Donne des infos sur le contexte d'exécution du graphe.";
+
+	OperatriceInfoExecution(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
+	{
+		entrees(0);
+		sorties(2);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	type_prise type_sortie(int i) const override
+	{
+		switch (i) {
+			case 0:
+			{
+				return type_prise::ENTIER;
+			}
+			case 1:
+			{
+				return type_prise::DECIMAL;
+			}
+		}
+
+		return type_prise::INVALIDE;
+	}
+
+	const char *nom_sortie(int i) override
+	{
+		if (i == 0) {
+			return "temps_image";
+		}
+
+		return "temps_fractionnel";
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(contexte);
+
+		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
+		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
+
+		auto idx = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
+		gest_props->ajoute_propriete("temps_image", lcc::type_var::ENT32, idx);
+		compileuse->donnees().stocke(idx, contexte.temps_courant);
+
+		auto temps_frac = static_cast<float>(contexte.temps_courant);
+		temps_frac /= static_cast<float>(contexte.temps_fin - contexte.temps_debut);
+
+		idx = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::DEC));
+		gest_props->ajoute_propriete("temps_fractionnel", lcc::type_var::DEC, idx);
+		compileuse->donnees().stocke(idx, temps_frac);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	bool depend_sur_temps() const override
+	{
+		return noeud.a_des_sorties_liees();
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_detail(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceGrapheDetail>());
@@ -1645,6 +1726,7 @@ void enregistre_operatrices_detail(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSortieDetail>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceSortieAttribut>());
+	usine.enregistre_type(cree_desc<OperatriceInfoExecution>());
 }
 
 OperatriceFonctionDetail *cree_op_detail(
