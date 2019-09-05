@@ -2200,7 +2200,7 @@ public:
 
 		auto mat = dls::math::aligne_rotation(
 					dls::math::vec3f(0.0f, 1.0f, 0.0f),
-					normalise(dls::math::vec3f(camera->pos() - pos)));
+					normalise(camera->pos() - pos));
 
 		for (auto i = 0; i < 4; ++i) {
 			auto idx_point = m_corps.ajoute_point(mat * points_pancate[i]);

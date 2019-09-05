@@ -1169,12 +1169,12 @@ public:
 
 			auto pos_ecran = camera->pos_ecran(dls::math::point3f(p));
 
-			if (pos_ecran.x < 0.0f || pos_ecran.x > camera->largeur()) {
+			if (pos_ecran.x < 0.0f || pos_ecran.x > static_cast<float>(camera->largeur())) {
 				assigne(attr_C->r32(i), couleur_non);
 				continue;
 			}
 
-			if (pos_ecran.y < 0.0f || pos_ecran.y > camera->hauteur()) {
+			if (pos_ecran.y < 0.0f || pos_ecran.y > static_cast<float>(camera->hauteur())) {
 				assigne(attr_C->r32(i), couleur_non);
 				continue;
 			}
