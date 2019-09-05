@@ -1379,6 +1379,13 @@ unsigned int taille_type_octet(
 		}
 		case id_morceau::N64:
 		case id_morceau::Z64:
+		{
+			if (contexte.bit32) {
+				return 4;
+			}
+
+			return 8;
+		}
 		case id_morceau::R64:
 		{
 			return 8;
@@ -1398,13 +1405,20 @@ unsigned int taille_type_octet(
 		case id_morceau::POINTEUR:
 		case id_morceau::FONC:
 		{
-			/* À FAIRE : pointeur 32-bit/64-bit */
+			if (contexte.bit32) {
+				return 4;
+			}
+
 			return 8;
 		}
 		case id_morceau::TABLEAU:
 		case id_morceau::EINI:
 		case id_morceau::CHAINE:
 		{
+			if (contexte.bit32) {
+				return 8;
+			}
+
 			return 16;
 		}
 		case id_morceau::RIEN:

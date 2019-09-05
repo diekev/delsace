@@ -127,9 +127,10 @@ struct OptionsCompilation {
 	bool imprime_version = false;
 	bool imprime_aide = false;
 	bool erreur = false;
+	bool bit32 = false;
 
 	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
-	char pad[7];
+	char pad[6];
 };
 
 static OptionsCompilation genere_options_compilation(int argc, char **argv)
@@ -196,6 +197,9 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 				opts.chemin_sortie = argv[i + 1];
 				++i;
 			}
+		}
+		else if (std::strcmp(argv[i], "--bit32") == 0) {
+			opts.bit32 = true;
 		}
 		else {
 			if (argv[i][0] == '-') {
@@ -451,6 +455,7 @@ int main(int argc, char *argv[])
 		auto nom_module = chemin.stem();
 
 		auto contexte_generation = ContexteGenerationCode{};
+		contexte_generation.bit32 = ops.bit32;
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
@@ -571,6 +576,10 @@ int main(int argc, char *argv[])
 					commande += "-O3 ";
 					break;
 				}
+			}
+
+			if (ops.bit32) {
+				commande += "-m32 ";
 			}
 
 			for (auto const &bib : assembleuse.bibliotheques) {

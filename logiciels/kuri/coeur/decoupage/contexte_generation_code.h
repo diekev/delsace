@@ -147,6 +147,8 @@ struct ContexteGenerationCode {
 	 * référence à une chaine qui sera libéré */
 	dls::liste<dls::chaine> magasin_chaines{};
 
+	bool bit32 = false;
+
 	ContexteGenerationCode() = default;
 
 	~ContexteGenerationCode();
