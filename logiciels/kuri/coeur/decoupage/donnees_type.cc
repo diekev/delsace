@@ -513,7 +513,7 @@ static auto converti_type_simple_C(
 		}
 		case id_morceau::R16:
 		{
-			os << "float";
+			os << "r16";
 			break;
 		}
 		case id_morceau::R32:

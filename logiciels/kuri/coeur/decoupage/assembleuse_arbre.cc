@@ -145,6 +145,7 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "\n";
 
+	os << "typedef short r16;\n";
 	os << "static long __VG_memoire_utilisee__ = 0;";
 	os << "static long ";
 	auto &df = contexte_generation.module(0)->donnees_fonction("mémoire_utilisée").front();
