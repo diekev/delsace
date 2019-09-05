@@ -178,9 +178,9 @@ auto dilate_grille(
 {
 	auto performe_erosion = [&](
 			grille_dense_3d<T> const &temp,
-			long x,
-			long y,
-			long z)
+			int x,
+			int y,
+			int z)
 	{
 		auto v0 = temp.valeur(dls::math::vec3i(x, y, z));
 
@@ -208,9 +208,9 @@ auto erode_grille(
 {
 	auto performe_erosion = [&](
 			grille_dense_3d<T> const &temp,
-			long x,
-			long y,
-			long z)
+			int x,
+			int y,
+			int z)
 	{
 		auto v0 = temp.valeur(dls::math::vec3i(x, y, z));
 
