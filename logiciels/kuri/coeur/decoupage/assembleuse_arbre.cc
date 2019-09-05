@@ -120,7 +120,8 @@ void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_genera
 
 void assembleuse_arbre::genere_code_C(
 		ContexteGenerationCode &contexte_generation,
-		std::ostream &os)
+		std::ostream &os,
+		dls::chaine const &racine_kuri)
 {
 	if (m_pile.est_vide()) {
 		return;
@@ -134,8 +135,6 @@ void assembleuse_arbre::genere_code_C(
 
 	contexte_generation.pousse_globale("errno", donnees_var);
 
-	/* À FAIRE : type R16 */
-
 	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
 	os << "#include <stdlib.h>\n";
 
@@ -145,7 +144,7 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "\n";
 
-	os << "typedef short r16;\n";
+	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 	os << "static long __VG_memoire_utilisee__ = 0;";
 	os << "static long ";
 	auto &df = contexte_generation.module(0)->donnees_fonction("mémoire_utilisée").front();

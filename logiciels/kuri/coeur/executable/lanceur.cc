@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
-			assembleuse.genere_code_C(contexte_generation, of);
+			assembleuse.genere_code_C(contexte_generation, of, chemin_racine_kuri);
 			mem_arbre = assembleuse.memoire_utilisee();
 			nombre_noeuds = assembleuse.nombre_noeuds();
 

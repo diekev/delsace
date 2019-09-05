@@ -90,7 +90,10 @@ public:
 	/**
 	 * Traverse l'arbre et génère le code C.
 	 */
-	void genere_code_C(ContexteGenerationCode &contexte_generation, std::ostream &os);
+	void genere_code_C(
+			ContexteGenerationCode &contexte_generation,
+			std::ostream &os,
+			dls::chaine const &racine_kuri);
 
 	/**
 	 * Indique que le noeud passé en paramètre est supprimé. En fait, le noeud
