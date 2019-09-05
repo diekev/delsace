@@ -40,7 +40,7 @@
 /**
  * Implémentation de l'algorithme RAISR, via une référence.
  */
-static auto masque_gassien_2d(int m, int n, float sigma = 0.5f)
+static auto masque_gaussien_2d(int m, int n, float sigma = 0.5f)
 {
 	auto h = dls::tableau<float>(m * n);
 	auto mm = m / 2;
@@ -272,7 +272,7 @@ public:
 		auto V = dls::tableau<float>(idxV.nombre_elements);
 		auto h = dls::tableau<float>(idxV.nombre_elements);
 
-		auto poids = masque_gassien_2d(gradientsize, gradientsize, 2.0f);
+		auto poids = masque_gaussien_2d(gradientsize, gradientsize, 2.0f);
 
 //		for (auto i = 0; i < gradientsize; ++i) {
 //			for (auto j = 0; j < gradientsize; ++j) {
