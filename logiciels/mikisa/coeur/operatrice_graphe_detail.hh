@@ -39,6 +39,7 @@ enum {
 	DETAIL_VOXELS,
 	DETAIL_PIXELS,
 	DETAIL_TERRAIN,
+	DETAIL_POSEIDON_GAZ,
 };
 
 struct Mikisa;

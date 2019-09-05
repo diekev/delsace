@@ -61,6 +61,16 @@ static lcc::param_sorties params_noeuds_entree[] = {
 	/* entrée détail terrain */
 	lcc::param_sorties(
 		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
+	/* entrée détail poséidon */
+	lcc::param_sorties(
+		lcc::donnees_parametre("divergence", lcc::type_var::DEC),
+		lcc::donnees_parametre("fioul", lcc::type_var::DEC),
+		lcc::donnees_parametre("fumée", lcc::type_var::DEC),
+		lcc::donnees_parametre("oxygène", lcc::type_var::DEC),
+		lcc::donnees_parametre("température", lcc::type_var::DEC),
+		lcc::donnees_parametre("vélocité", lcc::type_var::VEC3),
+		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
+		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
 };
 
 /* les entrées des noeuds de sorties */
@@ -77,6 +87,14 @@ static lcc::param_entrees params_noeuds_sortie[] = {
 	/* entrée détail terrain */
 	lcc::param_entrees(
 		lcc::donnees_parametre("hauteur", lcc::type_var::DEC)),
+	/* sortie détail poséidon */
+	lcc::param_entrees(
+		lcc::donnees_parametre("divergence", lcc::type_var::DEC),
+		lcc::donnees_parametre("fioul", lcc::type_var::DEC),
+		lcc::donnees_parametre("fumée", lcc::type_var::DEC),
+		lcc::donnees_parametre("oxygène", lcc::type_var::DEC),
+		lcc::donnees_parametre("température", lcc::type_var::DEC),
+		lcc::donnees_parametre("vélocité", lcc::type_var::VEC3)),
 };
 
 /* ************************************************************************** */

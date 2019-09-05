@@ -279,7 +279,8 @@ public:
 							   DETAIL_PIXELS,
 							   DETAIL_VOXELS,
 							   DETAIL_POINTS,
-							   DETAIL_TERRAIN);
+							   DETAIL_TERRAIN,
+							   DETAIL_POSEIDON_GAZ);
 		}
 
 		if (est_element(metadonnee, "Entrée Attribut", "Sortie Attribut")) {

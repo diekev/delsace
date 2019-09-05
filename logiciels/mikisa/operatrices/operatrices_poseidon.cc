@@ -35,6 +35,7 @@
 #include "coeur/donnees_aval.hh"
 #include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
+#include "coeur/operatrice_graphe_detail.hh"
 #include "coeur/usine_operatrice.h"
 
 #include "corps/volume.hh"
@@ -1500,6 +1501,174 @@ public:
 
 /* ************************************************************************** */
 
+class OpGrapheGaz final : public OperatriceCorps {
+	CompileuseGrapheLCC m_compileuse;
+
+public:
+	static constexpr auto NOM = "Graphe Gaz";
+	static constexpr auto AIDE = "Modifie les champs de la simulation via un graphe détail.";
+
+	OpGrapheGaz(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+		, m_compileuse(noeud.graphe)
+	{
+		m_execute_toujours = true;
+		entrees(1);
+
+		noeud.peut_avoir_graphe = true;
+		noeud.graphe.type = type_graphe::DETAIL;
+		noeud.graphe.donnees.efface();
+		noeud.graphe.donnees.pousse(static_cast<int>(DETAIL_POSEIDON_GAZ));
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		/* accumule les entrées */
+		entree(0)->requiers_corps(contexte, donnees_aval);
+
+		auto chef = contexte.chef;
+
+		if (!m_compileuse.compile_graphe(contexte, nullptr)) {
+			ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (noeud.graphe.noeuds().taille() == 0) {
+			return EXECUTION_REUSSIE;
+		}
+
+		/* passe à notre exécution */
+		auto poseidon_gaz = extrait_poseidon(donnees_aval);
+		auto densite = poseidon_gaz->densite;
+		auto divergence = poseidon_gaz->divergence;
+		auto oxygene = poseidon_gaz->oxygene;
+		auto fioul = poseidon_gaz->fioul;
+		auto temperature = poseidon_gaz->temperature;
+		auto velocite = poseidon_gaz->velocite;
+
+		chef->demarre_evaluation("graphe poséidon gaz");
+
+		auto ctx_exec = lcc::ctx_exec{};
+
+		auto res_x = densite->desc().resolution.x;
+		auto res_y = densite->desc().resolution.y;
+		auto res_z = densite->desc().resolution.z;
+
+		boucle_parallele(tbb::blocked_range<int>(0, res_z),
+						 [&](tbb::blocked_range<int> const &plage)
+		{
+			if (chef && chef->interrompu()) {
+				return;
+			}
+
+			/* fais une copie locale pour éviter les problèmes de concurrence critique */
+			auto donnees = m_compileuse.donnees();
+			auto ctx_local = lcc::ctx_local{};
+
+			for (auto z = plage.begin(); z < plage.end(); ++z) {
+				if (chef && chef->interrompu()) {
+					return;
+				}
+
+				for (auto y = 0; y < res_y; ++y) {
+					if (chef && chef->interrompu()) {
+						return;
+					}
+
+					for (auto x = 0; x < res_x; ++x) {
+						auto co = dls::math::vec3i(x, y, z);
+						auto index = densite->calcul_index(co);
+						auto pos_monde = densite->index_vers_monde(co);
+						auto pos_unit  = densite->index_vers_unit(co);
+
+						m_compileuse.remplis_donnees(donnees, "pos_monde", pos_monde);
+						m_compileuse.remplis_donnees(donnees, "pos_unit", pos_unit);
+						m_compileuse.remplis_donnees(donnees, "fumée", densite->valeur(index));
+						m_compileuse.remplis_donnees(donnees, "vélocité", velocite->valeur(index));
+
+						if (divergence != nullptr) {
+							m_compileuse.remplis_donnees(donnees, "divergence", divergence->valeur(index));
+						}
+
+						if (oxygene != nullptr) {
+							m_compileuse.remplis_donnees(donnees, "oxygène", divergence->valeur(index));
+						}
+
+						if (temperature != nullptr) {
+							m_compileuse.remplis_donnees(donnees, "température", divergence->valeur(index));
+						}
+
+						if (fioul != nullptr) {
+							m_compileuse.remplis_donnees(donnees, "fioul", divergence->valeur(index));
+						}
+
+						m_compileuse.execute_pile(
+									ctx_exec,
+									ctx_local,
+									donnees);
+
+						auto idx_sortie = m_compileuse.pointeur_donnees("densité");
+						densite->valeur(index) = donnees.charge_decimal(idx_sortie);
+
+						idx_sortie = m_compileuse.pointeur_donnees("vélocité");
+						velocite->valeur(index) = donnees.charge_vec3(idx_sortie);
+
+						if (divergence != nullptr) {
+							idx_sortie = m_compileuse.pointeur_donnees("divergence");
+							divergence->valeur(index) = donnees.charge_decimal(idx_sortie);
+						}
+
+						if (oxygene != nullptr) {
+							idx_sortie = m_compileuse.pointeur_donnees("oxygène");
+							oxygene->valeur(index) = donnees.charge_decimal(idx_sortie);
+						}
+
+						if (temperature != nullptr) {
+							idx_sortie = m_compileuse.pointeur_donnees("température");
+							temperature->valeur(index) = donnees.charge_decimal(idx_sortie);
+						}
+
+						if (fioul != nullptr) {
+							idx_sortie = m_compileuse.pointeur_donnees("fioul");
+							fioul->valeur(index) = donnees.charge_decimal(idx_sortie);
+						}
+					}
+				}
+
+				if (chef) {
+					auto delta = static_cast<float>(plage.end() - plage.begin());
+					delta /= static_cast<float>(res_z);
+					chef->indique_progression_parallele(delta * 100.0f);
+				}
+			}
+		});
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpEntreeGaz>());
@@ -1515,6 +1684,7 @@ void enregistre_operatrices_poseidon(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpDissipationGaz>());
 	usine.enregistre_type(cree_desc<OpVisualisationGaz>());
 	usine.enregistre_type(cree_desc<OpErosionGaz>());
+	usine.enregistre_type(cree_desc<OpGrapheGaz>());
 }
 
 #pragma clang diagnostic pop
