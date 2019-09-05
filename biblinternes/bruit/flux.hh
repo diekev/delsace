@@ -24,26 +24,21 @@
 
 #pragma once
 
-#include "blanc.hh"
-#include "cellule.hh"
-#include "flux.hh"
-#include "fourier.hh"
-#include "ondelette.hh"
-#include "perlin.hh"
-#include "simplex.hh"
-#include "turbulent.hh"
-#include "voronoi.hh"
+#include "parametres.hh"
 
 namespace bruit {
 
-void construit(type type, bruit::parametres &params, int graine);
+struct flux {
+	static void construit(parametres &params, int graine);
 
-float evalue(bruit::parametres const &params, dls::math::vec3f pos);
+	static float evalue(parametres const &params, dls::math::vec3f pos);
 
-float evalue_turb(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos);
+	static float evalue_derivee(parametres const &params, dls::math::vec3f pos, dls::math::vec3f &derivee);
 
-float evalue_derivee(bruit::parametres const &params, dls::math::vec3f pos, dls::math::vec3f &derivee);
-
-float evalue_turb_derivee(bruit::parametres const &params, bruit::param_turbulence const &params_turb, dls::math::vec3f pos, dls::math::vec3f &derivee);
+	static inline dls::math::vec2f limites()
+	{
+		return dls::math::vec2f(-1.0f, 1.0f);
+	}
+};
 
 }  /* namespace bruit */

@@ -38,6 +38,11 @@ void construit(type type, parametres &params, int graine)
 			bruit::cellule::construit(params, graine);
 			break;
 		}
+		case type::FLUX:
+		{
+			bruit::flux::construit(params, graine);
+			break;
+		}
 		case type::FOURIER:
 		{
 			bruit::fourrier::construit(params, graine);
@@ -106,6 +111,11 @@ float evalue(const parametres &params, dls::math::vec3f pos)
 		case type::CELLULE:
 		{
 			v = bruit::cellule::evalue(params, pos);
+			break;
+		}
+		case type::FLUX:
+		{
+			v = bruit::flux::evalue(params, pos);
 			break;
 		}
 		case type::FOURIER:
@@ -179,6 +189,11 @@ float evalue_derivee(const parametres &params, dls::math::vec3f pos, dls::math::
 		case type::CELLULE:
 		{
 			v = bruit::cellule::evalue_derivee(params, pos, derivee);
+			break;
+		}
+		case type::FLUX:
+		{
+			v = bruit::flux::evalue_derivee(params, pos, derivee);
 			break;
 		}
 		case type::FOURIER:
@@ -255,6 +270,11 @@ float evalue_turb(parametres const &params, const param_turbulence &params_turb,
 			v = bruit::turbulent<bruit::cellule>::evalue(params, params_turb, pos);
 			break;
 		}
+		case type::FLUX:
+		{
+			v = bruit::turbulent<bruit::flux>::evalue(params, params_turb, pos);
+			break;
+		}
 		case type::FOURIER:
 		{
 			v = bruit::turbulent<bruit::fourrier>::evalue(params, params_turb, pos);
@@ -327,6 +347,11 @@ float evalue_turb_derivee(parametres const &params, const param_turbulence &para
 		case type::CELLULE:
 		{
 			v = bruit::turbulent<bruit::cellule>::evalue_derivee(params, params_turb, pos, derivee);
+			break;
+		}
+		case type::FLUX:
+		{
+			v = bruit::turbulent<bruit::flux>::evalue_derivee(params, params_turb, pos, derivee);
 			break;
 		}
 		case type::FOURIER:
