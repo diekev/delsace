@@ -1703,6 +1703,7 @@ void execute_pile(
 				break; \
 			}
 			EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::type::CELLULE)
+			EVALUE_BRUIT(FN_BRUIT_FLUX, bruit::type::FLUX)
 			EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::type::FOURIER)
 			EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::type::ONDELETTE)
 			EVALUE_BRUIT(FN_BRUIT_PERLIN, bruit::type::PERLIN)

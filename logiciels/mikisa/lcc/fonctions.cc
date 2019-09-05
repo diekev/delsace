@@ -871,6 +871,7 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 
 	const std::pair<const char *, code_inst> paires[] = {
 		{ "bruit_cellule", code_inst::FN_BRUIT_CELLULE },
+		{ "bruit_flux", code_inst::FN_BRUIT_FLUX },
 		{ "bruit_fourier", code_inst::FN_BRUIT_FOURIER },
 		{ "bruit_ondelette", code_inst::FN_BRUIT_ONDELETTE },
 		{ "bruit_perlin", code_inst::FN_BRUIT_PERLIN },

@@ -135,6 +135,7 @@ enum class code_inst : int {
 
 	/* fonctions bruit */
 	FN_BRUIT_CELLULE,
+	FN_BRUIT_FLUX,
 	FN_BRUIT_FOURIER,
 	FN_BRUIT_ONDELETTE,
 	FN_BRUIT_PERLIN,
