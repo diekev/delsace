@@ -1159,7 +1159,7 @@ public:
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
 		auto points = m_corps.points_pour_lecture();
 
-		auto couleur_non = dls::math::vec3f(0.0f);
+		auto couleur_non = dls::math::vec3f(-1.0f);
 
 		auto l_min =  constantes<float>::INFINITE;
 		auto l_max = -constantes<float>::INFINITE;
@@ -1203,8 +1203,16 @@ public:
 
 		transforme_attr<float>(*attr_C, [&](float *ptr)
 		{
+			auto fac = 0.0f;
+
+			if (ptr[0] >= 0.0f) {
+				fac = (l_max - ptr[0]) * poids;
+			}
+
+			auto clr = dls::phys::couleur_depuis_poids(fac);
+
 			for (int i = 0; i < 3; ++i) {
-				ptr[i] = 1.0f - (l_max - ptr[i]) * poids;
+				ptr[i] = clr[i];
 			}
 		});
 
