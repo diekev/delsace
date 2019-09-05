@@ -97,6 +97,9 @@ struct DonneesVariable {
 struct DonneesMembre {
 	long index_membre{};
 	noeud::base *noeud_decl = nullptr;
+
+	/* le décalage en octets dans la struct */
+	unsigned int decalage = 0;
 };
 
 struct DonneesStructure {
@@ -112,7 +115,8 @@ struct DonneesStructure {
 	noeud::base *noeud_decl = nullptr;
 	bool est_enum = false;
 	bool est_externe = false;
-	char pad[6] = {};
+	char pad[2] = {};
+	unsigned int taille_octet = 0;
 };
 
 struct DonneesFonction;

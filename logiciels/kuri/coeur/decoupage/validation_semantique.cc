@@ -2309,6 +2309,23 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			};
 
+			auto decalage = 0u;
+			auto max_alignement = 0u;
+
+			auto ajoute_donnees_membre = [&contexte, &decalage, &ds, &max_alignement](base *enfant, base *expression)
+			{
+				auto &dt_membre = contexte.magasin_types.donnees_types[enfant->index_type];
+				auto align_type = alignement(contexte, dt_membre);
+				max_alignement = std::max(align_type, max_alignement);
+				auto padding = (align_type - (decalage % align_type)) % align_type;
+				decalage += padding;
+
+				ds.donnees_membres.insere({enfant->chaine(), { ds.donnees_types.taille(), expression, decalage }});
+				ds.donnees_types.pousse(enfant->index_type);
+
+				decalage += taille_type_octet(contexte, dt_membre);
+			};
+
 			for (auto enfant : b->enfants) {
 				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
 					if (enfant->morceau.identifiant != id_morceau::EGAL) {
@@ -2321,7 +2338,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					auto decl_membre = enfant->enfants.front();
 					auto decl_expr = enfant->enfants.back();
-					auto nom_membre = decl_membre->chaine();
 
 					verifie_redefinition_membre(decl_membre);
 
@@ -2353,17 +2369,19 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					verifie_inclusion_valeur(decl_membre);
 
-					ds.donnees_membres.insere({nom_membre, { ds.donnees_types.taille(), decl_expr }});
-					ds.donnees_types.pousse(decl_membre->index_type);
+					ajoute_donnees_membre(decl_membre, decl_expr);
 				}
 				else if (enfant->type == type_noeud::VARIABLE) {
 					verifie_redefinition_membre(enfant);
 					verifie_inclusion_valeur(enfant);
 
-					ds.donnees_membres.insere({enfant->chaine(), { ds.donnees_types.taille(), nullptr }});
-					ds.donnees_types.pousse(enfant->index_type);
+					ajoute_donnees_membre(enfant, nullptr);
 				}
 			}
+
+			auto padding = (max_alignement - (decalage % max_alignement)) % max_alignement;
+			decalage += padding;
+			ds.taille_octet = decalage;
 
 			break;
 		}

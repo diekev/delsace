@@ -1343,3 +1343,75 @@ niveau_compat sont_compatibles(
 
 	return niveau_compat::aucune;
 }
+
+unsigned int taille_type_octet(
+		ContexteGenerationCode &contexte,
+		const DonneesType &donnees_type)
+{
+	auto type_base = donnees_type.type_base();
+
+	switch (type_base & 0xff) {
+		default:
+		{
+			assert(false);
+			break;
+		}
+		case id_morceau::BOOL:
+		case id_morceau::N8:
+		case id_morceau::Z8:
+		{
+			return 1;
+		}
+		case id_morceau::N16:
+		case id_morceau::Z16:
+		{
+			return 2;
+		}
+		case id_morceau::R16:
+		{
+			return 2;
+		}
+		case id_morceau::N32:
+		case id_morceau::Z32:
+		case id_morceau::R32:
+		{
+			return 4;
+		}
+		case id_morceau::N64:
+		case id_morceau::Z64:
+		case id_morceau::R64:
+		{
+			return 8;
+		}
+		case id_morceau::CHAINE_CARACTERE:
+		{
+			auto index_struct = static_cast<long>(type_base >> 8);
+			auto &ds = contexte.donnees_structure(index_struct);
+
+			if (ds.est_enum) {
+				auto dt_enum = contexte.magasin_types.donnees_types[ds.noeud_decl->index_type];
+				return taille_type_octet(contexte, dt_enum);
+			}
+
+			return ds.taille_octet;
+		}
+		case id_morceau::POINTEUR:
+		case id_morceau::FONC:
+		{
+			/* À FAIRE : pointeur 32-bit/64-bit */
+			return 8;
+		}
+		case id_morceau::TABLEAU:
+		case id_morceau::EINI:
+		case id_morceau::CHAINE:
+		{
+			return 16;
+		}
+		case id_morceau::RIEN:
+		{
+			return 0;
+		}
+	}
+
+	return 0;
+}

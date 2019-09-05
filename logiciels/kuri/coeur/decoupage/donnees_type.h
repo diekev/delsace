@@ -452,3 +452,5 @@ bool est_type_entier_naturel(id_morceau type);
 bool est_type_entier_relatif(id_morceau type);
 
 bool est_type_reel(id_morceau type);
+
+unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesType const &donnees_type);

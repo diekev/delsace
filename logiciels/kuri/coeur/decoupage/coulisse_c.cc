@@ -162,77 +162,6 @@ static dls::chaine cree_info_type_C(
 		dls::flux_chaine &os_init,
 		DonneesType &donnees_type);
 
-static unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesType const &donnees_type)
-{
-	auto type_base = donnees_type.type_base();
-
-	switch (type_base & 0xff) {
-		default:
-		{
-			assert(false);
-			break;
-		}
-		case id_morceau::BOOL:
-		case id_morceau::N8:
-		case id_morceau::Z8:
-		{
-			return 1;
-		}
-		case id_morceau::N16:
-		case id_morceau::Z16:
-		{
-			return 2;
-		}
-		case id_morceau::R16:
-		{
-			return 2;
-		}
-		case id_morceau::N32:
-		case id_morceau::Z32:
-		case id_morceau::R32:
-		{
-			return 4;
-		}
-		case id_morceau::N64:
-		case id_morceau::Z64:
-		case id_morceau::R64:
-		{
-			return 8;
-		}
-		case id_morceau::CHAINE_CARACTERE:
-		{
-			auto index_struct = static_cast<long>(type_base >> 8);
-			auto &ds = contexte.donnees_structure(index_struct);
-
-			if (ds.est_enum) {
-				auto dt_enum = contexte.magasin_types.donnees_types[ds.noeud_decl->index_type];
-				return taille_type_octet(contexte, dt_enum);
-			}
-
-			/* À FAIRE : taille octets des structures */
-			return 0;
-		}
-		case id_morceau::POINTEUR:
-		case id_morceau::FONC:
-		{
-			/* À FAIRE : pointeur 32-bit/64-bit */
-			return 8;
-		}
-		case id_morceau::TABLEAU:
-		case id_morceau::EINI:
-		case id_morceau::CHAINE:
-		{
-			return 16;
-		}
-		case id_morceau::RIEN:
-		{
-			return 0;
-		}
-	}
-
-	return 0;
-}
-
 static auto cree_info_type_structure_C(
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
@@ -273,8 +202,6 @@ static auto cree_info_type_structure_C(
 	dls::tableau<dls::chaine> pointeurs;
 	pointeurs.reserve(nombre_membres);
 
-	auto decalage = 0u;
-
 	for (auto i = 0l; i < donnees_structure.donnees_types.taille(); ++i) {
 		auto index_dt = donnees_structure.donnees_types[i];
 		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
@@ -296,17 +223,11 @@ static auto cree_info_type_structure_C(
 							contexte, os_decl, os_init, dt_membre);
 			}
 
-			auto align_type = alignement(contexte, dt_membre);
-			auto padding = (align_type - (decalage % align_type)) % align_type;
-			decalage += padding;
-
 			os_decl << "static InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
 			os_init << nom_info_type_membre << ".nom.pointeur = \"" << paire_idx_mb.first << "\";\n";
 			os_init << nom_info_type_membre << ".nom.taille = " << paire_idx_mb.first.taille()  << ";\n";
-			os_init << nom_info_type_membre << broye_nom_simple(".décalage = ") << decalage << ";\n";
+			os_init << nom_info_type_membre << broye_nom_simple(".décalage = ") << paire_idx_mb.second.decalage << ";\n";
 			os_init << nom_info_type_membre << ".id = (InfoType *)(&" << rderef.ptr_info_type  << ");\n";
-
-			decalage += taille_type_octet(contexte, dt_membre);
 
 			pointeurs.pousse(nom_info_type_membre);
 			break;
@@ -1384,11 +1305,6 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::TAILLE_DE:
 		{
-			auto index_dt = std::any_cast<long>(b->valeur_calculee);
-			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
-			os << "sizeof(";
-			contexte.magasin_types.converti_type_C(contexte, "", donnees.plage(), os);
-			os << ")";
 			break;
 		}
 		case type_noeud::PLAGE:
@@ -2783,9 +2699,7 @@ void genere_code_C(
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
-			os << "sizeof(";
-			contexte.magasin_types.converti_type_C(contexte, "", donnees.plage(), os);
-			os << ")";
+			os << taille_type_octet(contexte, donnees);
 			break;
 		}
 		case type_noeud::PLAGE:
