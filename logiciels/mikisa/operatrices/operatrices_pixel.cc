@@ -46,12 +46,6 @@
 #include "coeur/operatrice_pixel.h"
 #include "coeur/usine_operatrice.h"
 
-/**
- * OpératriceImage
- * |_ OpératricePixel
- * |_ OpératriceGraphePixel
- */
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
