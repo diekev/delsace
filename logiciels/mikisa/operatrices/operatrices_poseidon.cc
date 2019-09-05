@@ -1270,42 +1270,6 @@ public:
 
 /* ************************************************************************** */
 
-static auto poids_vers_rvb(float poids)
-{
-	auto rvb = dls::math::vec3f();
-	const float blend = ((poids / 2.0f) + 0.5f);
-
-	if (poids <= 0.25f) { /* blue->cyan */
-		rvb[0] = 0.0f;
-		rvb[1] = blend * poids * 4.0f;
-		rvb[2] = blend;
-	}
-	else if (poids <= 0.50f) { /* cyan->green */
-		rvb[0] = 0.0f;
-		rvb[1] = blend;
-		rvb[2] = blend * (1.0f - ((poids - 0.25f) * 4.0f));
-	}
-	else if (poids <= 0.75f) { /* green->yellow */
-		rvb[0] = blend * ((poids - 0.50f) * 4.0f);
-		rvb[1] = blend;
-		rvb[2] = 0.0f;
-	}
-	else if (poids <= 1.0f) { /* yellow->red */
-		rvb[0] = blend;
-		rvb[1] = blend * (1.0f - ((poids - 0.75f) * 4.0f));
-		rvb[2] = 0.0f;
-	}
-	else {
-		/* exceptional value, unclamped or nan,
-		 *  avoid uninitialized memory use */
-		rvb[0] = 1.0f;
-		rvb[1] = 0.0f;
-		rvb[2] = 1.0f;
-	}
-
-	return rvb;
-}
-
 class OpVisualisationGaz final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Visualisation Gaz";
@@ -1417,7 +1381,7 @@ public:
 
 						auto vel = velocite->valeur_centree(x, y, z);
 						auto lng = longueur(vel);
-						auto rvb = poids_vers_rvb(lng / max_lng);
+						auto clr = dls::phys::couleur_depuis_poids(lng / max_lng);
 
 						if (lng != 0.0f) {
 							vel /= lng;
@@ -1440,7 +1404,7 @@ public:
 						m_corps.ajoute_sommet(poly, decalage);
 						m_corps.ajoute_sommet(poly, decalage + 1);
 
-						assigne(C->r32(poly->index), rvb);
+						assigne(C->r32(poly->index), dls::math::vec3f(clr.r, clr.v, clr.b));
 					}
 				}
 			}

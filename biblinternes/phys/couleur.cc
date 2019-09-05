@@ -227,4 +227,46 @@ couleur32 couleur_depuis_longueur_onde(float lambda)
 	return clr;
 }
 
+couleur32 couleur_depuis_poids(float poids)
+{
+	auto clr = dls::phys::couleur32();
+	auto const blend = ((poids / 2.0f) + 0.5f);
+
+	/* bleu -> cyan */
+	if (poids <= 0.25f) {
+		clr[0] = 0.0f;
+		clr[1] = blend * poids * 4.0f;
+		clr[2] = blend;
+	}
+	/* cyan -> vert */
+	else if (poids <= 0.50f) {
+		clr[0] = 0.0f;
+		clr[1] = blend;
+		clr[2] = blend * (1.0f - ((poids - 0.25f) * 4.0f));
+	}
+	/* vert -> jaune */
+	else if (poids <= 0.75f) {
+		clr[0] = blend * ((poids - 0.50f) * 4.0f);
+		clr[1] = blend;
+		clr[2] = 0.0f;
+	}
+	/* jaune -> rouge */
+	else if (poids <= 1.0f) {
+		clr[0] = blend;
+		clr[1] = blend * (1.0f - ((poids - 0.75f) * 4.0f));
+		clr[2] = 0.0f;
+	}
+	else {
+		/* valeur exceptionnelle, nonrestreinte ou innombrable, assigne une
+		 * couleur pour évite la mémoire non-initialisé  */
+		clr[0] = 1.0f;
+		clr[1] = 0.0f;
+		clr[2] = 1.0f;
+	}
+
+	clr.a = 1.0f;
+
+	return clr;
+}
+
 }  /* dls::phys */
