@@ -1566,7 +1566,7 @@ public:
 									ctx_local,
 									donnees);
 
-						auto idx_sortie = m_compileuse.pointeur_donnees("densité");
+						auto idx_sortie = m_compileuse.pointeur_donnees("fumée");
 						densite->valeur(index) = donnees.charge_decimal(idx_sortie);
 
 						idx_sortie = m_compileuse.pointeur_donnees("vélocité");
