@@ -43,6 +43,7 @@ set(ENTETES
 	garde_portee.h
 	iterateurs.h
 	masque_binaire.h
+	parametres.hh
 	temps.hh
 )
 
@@ -55,6 +56,7 @@ set(SOURCES
 	gna.cc
 	garde_portee.cc
 	iterateurs.cc
+	parametres.cc
 	temps.cc
 	main.cc
 )
