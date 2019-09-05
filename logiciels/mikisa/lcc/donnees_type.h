@@ -83,9 +83,7 @@ public:
 	parametres_fonction(donnees_parametre type0, Ts... reste)
 	{
 		m_donnees.redimensionne(1 + static_cast<long>(sizeof...(reste)));
-		m_donnees[0] = type0;
-
-		otl::accumule(1, &m_donnees[1], reste...);
+		otl::accumule(0, &m_donnees[0], type0, reste...);
 	}
 
 	type_var type(int idx) const
@@ -134,9 +132,7 @@ struct donnees_type {
 	donnees_type(type_var type0, Ts... reste)
 	{
 		types.redimensionne(1 + static_cast<long>(sizeof...(reste)));
-		types[0] = type0;
-
-		otl::accumule(1, &types[1], reste...);
+		otl::accumule(1, &types[0], type0, reste...);
 	}
 
 	void ajoute(type_var type)
