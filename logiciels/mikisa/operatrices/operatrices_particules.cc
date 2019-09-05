@@ -1555,15 +1555,15 @@ public:
 				v = -v;
 			}
 
-			m_corps.ajoute_point(p.x, p.y, p.z);
+			auto idx0 = m_corps.ajoute_point(p.x, p.y, p.z);
 
 			if (mode == 0) {
 				p += v;
-				m_corps.ajoute_point(p.x, p.y, p.z);
+				auto idx1 = m_corps.ajoute_point(p.x, p.y, p.z);
 
 				auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
-				m_corps.ajoute_sommet(seg, i * 2);
-				m_corps.ajoute_sommet(seg, i * 2 + 1);
+				m_corps.ajoute_sommet(seg, idx0);
+				m_corps.ajoute_sommet(seg, idx1);
 			}
 			else {
 				v /= static_cast<float>(nombre_points);

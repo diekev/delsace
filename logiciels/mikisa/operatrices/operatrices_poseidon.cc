@@ -1396,13 +1396,12 @@ public:
 						auto p0 = pos_monde;
 						auto p1 = p0 + vel * lng;
 
-						auto decalage = m_corps.points_pour_lecture()->taille();
-						m_corps.ajoute_point(p0);
-						m_corps.ajoute_point(p1);
+						auto idx0 = m_corps.ajoute_point(p0);
+						auto idx1 = m_corps.ajoute_point(p1);
 
 						auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
-						m_corps.ajoute_sommet(poly, decalage);
-						m_corps.ajoute_sommet(poly, decalage + 1);
+						m_corps.ajoute_sommet(poly, idx0);
+						m_corps.ajoute_sommet(poly, idx1);
 
 						assigne(C->r32(poly->index), dls::math::vec3f(clr.r, clr.v, clr.b));
 					}

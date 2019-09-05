@@ -564,18 +564,15 @@ public:
 
 		auto t = 0.0f;
 
-		for (auto i = 0; i <= segments; ++i) {
-			auto p = origine + t * direction;
-
-			m_corps.ajoute_point(p.x, p.y, p.z);
-
-			t += taille_segment;
-		}
-
 		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, segments + 1);
 
 		for (auto i = 0; i <= segments; ++i) {
-			 m_corps.ajoute_sommet(poly, i);
+			auto p = origine + t * direction;
+
+			auto idx = m_corps.ajoute_point(p.x, p.y, p.z);
+			m_corps.ajoute_sommet(poly, idx);
+
+			t += taille_segment;
 		}
 
 		return EXECUTION_REUSSIE;
