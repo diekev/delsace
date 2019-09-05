@@ -28,7 +28,6 @@
 
 #include "biblinternes/image/operations/melange.h"
 #include "biblinternes/image/outils/couleurs.h"
-#include "biblinternes/math/bruit.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/outils/constantes.h"

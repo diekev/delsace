@@ -24,7 +24,6 @@
 
 #include "volume.hh"
 
-#include "biblinternes/math/bruit.hh"
 #include "biblinternes/outils/gna.hh"
 
 #include "bsdf.hh"

@@ -31,6 +31,7 @@ set(INC_SYS
 set(BIBLIOTHEQUES
 	math
 	image
+	bib_bruit
 	bib_patrons
 	bib_objets
 	bib_vision
