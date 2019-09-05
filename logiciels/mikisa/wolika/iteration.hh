@@ -178,6 +178,54 @@ auto pour_chaque_tuile(
 	}
 }
 
+/**
+ * Transforme une grille en utilisant une grille temporaire pour ne pas polluer
+ * les données. L'opérateur doit être de la forme T(grille_temp, x, y, z).
+ */
+template <typename T, typename Op>
+auto transforme_grille(
+		grille_dense_3d<T> &grille,
+		Op &&op,
+		interruptrice *chef = nullptr)
+{
+	auto temp = grille;
+
+	auto res_x = grille.desc().resolution.x;
+	auto res_y = grille.desc().resolution.y;
+	auto res_z = grille.desc().resolution.z;
+
+	boucle_parallele(tbb::blocked_range<int>(0, res_z),
+					 [&](tbb::blocked_range<int> const &plage)
+	{
+		if (chef && chef->interrompue()) {
+			return;
+		}
+
+		for (auto z = plage.begin(); z < plage.end(); ++z) {
+			if (chef && chef->interrompue()) {
+				return;
+			}
+
+			for (auto y = 0; y < res_y; ++y) {
+				if (chef && chef->interrompue()) {
+					return;
+				}
+
+				for (auto x = 0; x < res_x; ++x) {
+					auto idx = grille.calcul_index(dls::math::vec3i(x, y, z));
+					grille.valeur(idx) = op(temp, x, y, z);
+				}
+			}
+
+			if (chef) {
+				auto delta = static_cast<float>(plage.end() - plage.begin());
+				delta /= static_cast<float>(res_z);
+				chef->indique_progression_parallele(delta * 100.0f);
+			}
+		}
+	});
+}
+
 template <typename T, typename type_tuile, typename Op>
 auto pour_chaque_tuile(
 		grille_eparse<T, type_tuile> &grille,
