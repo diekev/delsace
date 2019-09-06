@@ -74,7 +74,6 @@ struct CompileuseGrapheLCC {
 
 	void execute_pile(
 			lcc::ctx_exec &ctx_exec,
-			lcc::ctx_local &ctx_local,
 			lcc::pile &donnees_pile);
 
 	int pointeur_donnees(dls::chaine const &nom);

@@ -485,8 +485,6 @@ public:
 			auto ctx_exec = lcc::ctx_exec{};
 			ctx_exec.ptr_corps = &m_corps;
 
-			auto ctx_local = lcc::ctx_local{};
-
 			/* données générales */
 			remplis_donnees(compileuse.donnees(), gest_props, "temps", contexte.temps_courant);
 			remplis_donnees(compileuse.donnees(), gest_props, "temps_début", contexte.temps_debut);
@@ -505,7 +503,6 @@ public:
 
 				lcc::execute_pile(
 							ctx_exec,
-							ctx_local,
 							compileuse.donnees(),
 							compileuse.instructions(),
 							i);
@@ -672,8 +669,6 @@ public:
 				/* fait une copie locale */
 				auto donnees = compileuse.donnees();
 
-				auto ctx_local = lcc::ctx_local{};
-
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
 					if (chef->interrompu()) {
 						break;
@@ -689,7 +684,6 @@ public:
 
 					lcc::execute_pile(
 								ctx_exec,
-								ctx_local,
 								donnees,
 								compileuse.instructions(),
 								static_cast<int>(i));

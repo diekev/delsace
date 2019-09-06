@@ -899,13 +899,12 @@ static auto evalue_bruit_turbulence(
 	pile_donnees.stocke(ptr_sortie, deriv);
 }
 
-void execute_pile(
-		ctx_exec &contexte,
-		ctx_local &contexte_local,
+void execute_pile(ctx_exec &contexte,
 		pile &pile_donnees,
 		pile const &insts,
 		int graine)
 {
+	auto contexte_local = ctx_local{};
 	auto compteur = 0;
 	std::mt19937 gna(graine);
 

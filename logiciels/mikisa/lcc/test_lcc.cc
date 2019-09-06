@@ -112,11 +112,8 @@ int main()
 		};
 
 		auto ctx_exec = lcc::ctx_exec{};
-		auto ctx_local = lcc::ctx_local{};
 
 		for (auto entree : entrees) {
-			ctx_local.reinitialise();
-
 			idx = gest_props.pointeur_donnees("P");
 			compileuse.donnees().stocke(idx, entree);
 
@@ -125,7 +122,6 @@ int main()
 
 			lcc::execute_pile(
 						ctx_exec,
-						ctx_local,
 						compileuse.donnees(),
 						compileuse.instructions(),
 						0);

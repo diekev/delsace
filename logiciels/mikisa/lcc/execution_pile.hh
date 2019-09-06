@@ -296,7 +296,6 @@ public:
 
 void execute_pile(
 		ctx_exec &contexte,
-		ctx_local &contexte_local,
 		pile &pile_donnees,
 		pile const &insts,
 		int graine);

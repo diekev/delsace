@@ -386,11 +386,10 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	return true;
 }
 
-void CompileuseGrapheLCC::execute_pile(lcc::ctx_exec &ctx_exec, lcc::ctx_local &ctx_local, lcc::pile &donnees_pile)
+void CompileuseGrapheLCC::execute_pile(lcc::ctx_exec &ctx_exec, lcc::pile &donnees_pile)
 {
 	lcc::execute_pile(
 				ctx_exec,
-				ctx_local,
 				donnees_pile,
 				m_compileuse.instructions(),
 				0);
@@ -526,7 +525,6 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 
 		/* fais une copie locale pour éviter les problèmes de concurrence critique */
 		auto donnees = m_compileuse.donnees();
-		auto ctx_local = lcc::ctx_local{};
 
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
 			for (auto c = 0; c < desc.resolution.x; ++c) {
@@ -543,7 +541,6 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 
 				m_compileuse.execute_pile(
 							ctx_exec,
-							ctx_local,
 							donnees);
 
 				auto idx_sortie = m_compileuse.pointeur_donnees("couleur");
@@ -639,7 +636,6 @@ int OperatriceGrapheDetail::execute_detail_corps(
 
 				/* fais une copie locale pour éviter les problèmes de concurrence critique */
 				auto donnees = m_compileuse.donnees();
-				auto ctx_local = lcc::ctx_local{};
 
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
 					auto pos = m_corps.point_transforme(i);
@@ -650,7 +646,6 @@ int OperatriceGrapheDetail::execute_detail_corps(
 
 					m_compileuse.execute_pile(
 								ctx_exec,
-								ctx_local,
 								donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("P");
@@ -687,7 +682,6 @@ int OperatriceGrapheDetail::execute_detail_corps(
 							[&](wlk::tuile_scalaire<float> *tuile)
 				{
 					auto donnees = m_compileuse.donnees();
-					auto ctx_local = lcc::ctx_local{};
 
 					auto index_tuile = 0;
 					for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
@@ -709,7 +703,6 @@ int OperatriceGrapheDetail::execute_detail_corps(
 
 								m_compileuse.execute_pile(
 											ctx_exec,
-											ctx_local,
 											donnees);
 
 								auto idx_sortie = m_compileuse.m_gest_props.pointeur_donnees("densité");

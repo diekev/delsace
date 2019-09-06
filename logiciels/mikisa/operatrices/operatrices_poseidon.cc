@@ -1522,7 +1522,6 @@ public:
 
 			/* fais une copie locale pour éviter les problèmes de concurrence critique */
 			auto donnees = m_compileuse.donnees();
-			auto ctx_local = lcc::ctx_local{};
 
 			for (auto z = plage.begin(); z < plage.end(); ++z) {
 				if (chef && chef->interrompu()) {
@@ -1563,7 +1562,6 @@ public:
 
 						m_compileuse.execute_pile(
 									ctx_exec,
-									ctx_local,
 									donnees);
 
 						auto idx_sortie = m_compileuse.pointeur_donnees("fumée");

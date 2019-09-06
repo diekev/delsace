@@ -1149,7 +1149,6 @@ public:
 
 			/* fais une copie locale pour éviter les problèmes de concurrence critique */
 			auto donnees = m_compileuse.donnees();
-			auto ctx_local = lcc::ctx_local{};
 
 			for (auto y = plage.begin(); y < plage.end(); ++y) {
 				for (auto x = 0; x < desc.resolution.x; ++x) {
@@ -1161,7 +1160,6 @@ public:
 
 					m_compileuse.execute_pile(
 								ctx_exec,
-								ctx_local,
 								donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("hauteur");
