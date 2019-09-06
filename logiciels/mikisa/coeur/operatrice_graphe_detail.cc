@@ -1715,6 +1715,11 @@ public:
 
 		auto idx = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
 		gest_props->ajoute_propriete("temps_image", lcc::type_var::ENT32, idx);
+
+		auto prise_sortie = sortie(0)->pointeur();
+		prise_sortie->decalage_pile = idx;
+		prise_sortie->type_infere = type_sortie(0);
+
 		compileuse->donnees().stocke(idx, contexte.temps_courant);
 
 		auto temps_frac = static_cast<float>(contexte.temps_courant);
@@ -1722,6 +1727,11 @@ public:
 
 		idx = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::DEC));
 		gest_props->ajoute_propriete("temps_fractionnel", lcc::type_var::DEC, idx);
+
+		prise_sortie = sortie(1)->pointeur();
+		prise_sortie->decalage_pile = idx;
+		prise_sortie->type_infere = type_sortie(1);
+
 		compileuse->donnees().stocke(idx, temps_frac);
 
 		return EXECUTION_REUSSIE;
