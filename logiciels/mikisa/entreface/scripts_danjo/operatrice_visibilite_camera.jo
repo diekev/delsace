@@ -3,4 +3,44 @@ disposition "operatrice_visibilite_camera" {
 		étiquette(valeur="Caméra")
 		liste(valeur=""; attache=nom_caméra; infobulle="La caméra utilisée pour la projection.")
 	}
+	ligne {
+		étiquette(valeur="Nom Attribut")
+		chaine(valeur="distance"; attache=nom_attribut; infobulle="Nomme l'attribut ajouté.")
+	}
+	ligne {
+		étiquette(valeur="Inverse")
+		case(valeur=vrai; attache=inverse; infobulle="Décroit les valeurs de distance selon leur distance de la caméra, c'est-à-dire distance = distance_max - distance.")
+	}
+	ligne {
+		étiquette(valeur="Visualise")
+		case(valeur=vrai; attache=visualise; infobulle="Ajoute un attribut de couleur pour voir le résultat de l'algorithme.")
+	}
+	ligne {
+		étiquette(valeur="Normalise")
+		case(valeur=vrai; attache=normalise; infobulle="Exprime la distance entre 0.0 et 1.0.")
+	}
+	ligne {
+		étiquette(valeur="Marge X")
+		décimal(valeur=0; attache=marge_x; min=0; max=1; infobulle="Élargit la caméra, en pourcentage de sa largeur, afin d'inclure plus de géométrie dans le résultat.")
+	}
+	ligne {
+		étiquette(valeur="Marge Y")
+		décimal(valeur=0; attache=marge_y; min=0; max=1; infobulle="Agrandit la caméra, en pourcentage de sa hauteur, afin d'inclure plus de géométrie dans le résultat.")
+	}
+	ligne {
+		étiquette(valeur="Ajoute Groupe Visible")
+		case(valeur=faux; attache=ajoute_groupe_visible; infobulle="Permet l'addition des points visible dans un groupe.")
+	}
+	ligne {
+		étiquette(valeur="Nom Groupe Visible")
+		chaine(valeur="visible"; attache=nom_groupe_visible; infobulle="Nomme le groupe visible si ajouté.")
+	}
+	ligne {
+		étiquette(valeur="Ajoute Groupe Invisible")
+		case(valeur=vrai; attache=ajoute_groupe_invisible; infobulle="Permet l'addition des points invisible dans un groupe.")
+	}
+	ligne {
+		étiquette(valeur="Nom Groupe Invisible")
+		chaine(valeur="invisible"; attache=nom_groupe_invisible; infobulle="Nomme le groupe invisible si ajouté.")
+	}
 }

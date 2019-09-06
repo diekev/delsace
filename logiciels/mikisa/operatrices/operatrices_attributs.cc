@@ -1156,10 +1156,46 @@ public:
 			camera = &extrait_camera(donnees);
 		});
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto nom_attribut = evalue_chaine("nom_attribut");
+
+		if (nom_attribut == "") {
+			nom_attribut = "distance";
+		}
+
+		auto attr_D = m_corps.ajoute_attribut(nom_attribut, type_attribut::R32, 1, portee_attr::POINT);
 		auto points = m_corps.points_pour_lecture();
 
-		auto couleur_non = dls::math::vec3f(-1.0f);
+		auto marge_x = evalue_decimal("marge_x");
+		auto marge_y = evalue_decimal("marge_y");
+
+		marge_x *= static_cast<float>(camera->largeur());
+		marge_y *= static_cast<float>(camera->hauteur());
+
+		auto ajoute_groupe_visible = evalue_bool("ajoute_groupe_visible");
+		auto ajoute_groupe_invisible = evalue_bool("ajoute_groupe_invisible");
+
+		auto groupe_visible = static_cast<GroupePoint *>(nullptr);
+		auto groupe_invisible = static_cast<GroupePoint *>(nullptr);
+
+		if (ajoute_groupe_visible) {
+			auto nom_groupe_visible = evalue_chaine("nom_groupe_visible");
+
+			if (nom_groupe_visible == "") {
+				nom_groupe_visible = "visible";
+			}
+
+			groupe_visible = m_corps.ajoute_groupe_point(nom_groupe_visible);
+		}
+
+		if (ajoute_groupe_invisible) {
+			auto nom_groupe_invisible = evalue_chaine("nom_groupe_invisible");
+
+			if (nom_groupe_invisible == "") {
+				nom_groupe_invisible = "invisible";
+			}
+
+			groupe_invisible = m_corps.ajoute_groupe_point(nom_groupe_invisible);
+		}
 
 		auto l_min =  constantes<float>::INFINITE;
 		auto l_max = -constantes<float>::INFINITE;
@@ -1169,20 +1205,35 @@ public:
 
 			auto pos_ecran = camera->pos_ecran(dls::math::point3f(p));
 
-			if (pos_ecran.x < 0.0f || pos_ecran.x > static_cast<float>(camera->largeur())) {
-				assigne(attr_C->r32(i), couleur_non);
+			if (pos_ecran.x < -marge_x || pos_ecran.x > marge_x + static_cast<float>(camera->largeur())) {
+				assigne(attr_D->r32(i), -1.0f);
+
+				if (groupe_invisible) {
+					groupe_invisible->ajoute_point(i);
+				}
+
 				continue;
 			}
 
-			if (pos_ecran.y < 0.0f || pos_ecran.y > static_cast<float>(camera->hauteur())) {
-				assigne(attr_C->r32(i), couleur_non);
+			if (pos_ecran.y < -marge_y || pos_ecran.y > marge_y + static_cast<float>(camera->hauteur())) {
+				assigne(attr_D->r32(i), -1.0f);
+
+				if (groupe_invisible) {
+					groupe_invisible->ajoute_point(i);
+				}
+
 				continue;
 			}
 
 			auto vec = p - camera->pos();
 
 			if (produit_scalaire(vec, camera->dir()) <= 0.0f) {
-				assigne(attr_C->r32(i), couleur_non);
+				assigne(attr_D->r32(i), -1.0f);
+
+				if (groupe_invisible) {
+					groupe_invisible->ajoute_point(i);
+				}
+
 				continue;
 			}
 
@@ -1196,25 +1247,63 @@ public:
 				l_max = l;
 			}
 
-			assigne(attr_C->r32(i), dls::math::vec3f(l));
+			if (groupe_visible) {
+				groupe_visible->ajoute_point(i);
+			}
+
+			assigne(attr_D->r32(i), l);
 		}
 
-		auto poids = 1.0f / (l_max - l_min);
+		auto normalise = evalue_bool("normalise");
+		auto visualise = evalue_bool("visualise");
+		auto inverse = evalue_bool("inverse");
 
-		transforme_attr<float>(*attr_C, [&](float *ptr)
-		{
-			auto fac = 0.0f;
+		if (!visualise && !normalise && !inverse) {
+			return EXECUTION_REUSSIE;
+		}
 
-			if (ptr[0] >= 0.0f) {
-				fac = (l_max - ptr[0]) * poids;
+		auto attr_C = static_cast<Attribut *>(nullptr);
+
+		if (visualise) {
+			attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		}
+
+		auto poids_normalise = 1.0f / (l_max - l_min);
+
+		for (auto i = 0; i < points->taille(); ++i) {
+			auto ptr_D = attr_D->r32(i);
+
+			if (ptr_D[0] >= 0.0f) {
+				if (normalise) {
+					ptr_D[0] = 1.0f - (l_max - ptr_D[0]) * poids_normalise;
+
+					if (inverse) {
+						ptr_D[0] = 1.0f - ptr_D[0];
+					}
+				}
+				else if (inverse) {
+					ptr_D[0] = l_max - ptr_D[0];
+				}
+			}
+			else {
+				ptr_D[0] = 0.0f;
 			}
 
-			auto clr = dls::phys::couleur_depuis_poids(fac);
+			if (visualise) {
+				auto fac = ptr_D[0];
 
-			for (int i = 0; i < 3; ++i) {
-				ptr[i] = clr[i];
+				if (!normalise) {
+					fac = 1.0f - (l_max - fac) * poids_normalise;
+				}
+
+				auto clr = dls::phys::couleur_depuis_poids(fac);
+				auto ptr_C = attr_C->r32(i);
+
+				for (int i = 0; i < 3; ++i) {
+					ptr_C[i] = clr[i];
+				}
 			}
-		});
+		}
 
 		return EXECUTION_REUSSIE;
 	}
@@ -1241,6 +1330,22 @@ public:
 			for (auto &objet : contexte.bdd->objets()) {
 				liste.pousse(objet->noeud->nom);
 			}
+		}
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("nom_groupe_invisible") == nullptr) {
+			ajoute_propriete("nom_attribut", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("distance"));
+			ajoute_propriete("inverse", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("visualise", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("normalise", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("nom_groupe_visible", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("visible"));
+			ajoute_propriete("nom_groupe_invisible", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("invisible"));
+			ajoute_propriete("ajoute_groupe_visible", danjo::TypePropriete::BOOL, false);
+			ajoute_propriete("ajoute_groupe_invisible", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("marge_x", danjo::TypePropriete::DECIMAL, 0.0f);
+			ajoute_propriete("marge_y", danjo::TypePropriete::DECIMAL, 0.0f);
 		}
 	}
 };
