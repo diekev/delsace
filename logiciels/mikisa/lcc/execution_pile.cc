@@ -862,9 +862,8 @@ static auto evalue_bruit(
 	auto res = 0.0f;
 	auto deriv = dls::math::vec3f();
 
-	if (idx <= ctx.params_bruits.taille()) {
+	if (idx < ctx.params_bruits.taille()) {
 		auto const &params = ctx.params_bruits[idx];
-
 		res = bruit::evalue_derivee(params, pos, deriv);
 	}
 
@@ -888,9 +887,8 @@ static auto evalue_bruit_turbulence(
 	auto res = 0.0f;
 	auto deriv = dls::math::vec3f();
 
-	if (idx <= ctx.params_bruits.taille()) {
+	if (idx < ctx.params_bruits.taille()) {
 		auto const &params = ctx.params_bruits[idx];
-
 		res = bruit::evalue_turb_derivee(params, params_turb, pos, deriv);
 	}
 
