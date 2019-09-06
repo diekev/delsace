@@ -2141,20 +2141,23 @@ public:
 			descripteurs[k - 1].taille_voxel = desc.taille_voxel * std::pow(2.0, static_cast<double>(k) - 1.0);
 		}
 
-		//auto omega = dls::math::vec3f(0.0f, 0.0f, -1.0f); // la direction du rayon entrant
+		auto omega = dls::math::vec3f(0.0f, 0.0f, -1.0f); // la direction du rayon entrant
 
 		/* l'axe Z des descripteurs pointent vers la lumière */
 		auto position = dls::math::vec3f(0.0f, 0.0f, 0.0f);
-		auto axe_z = dls::math::vec3f(0.0f, 0.0f, 1.0f);
 		auto position_lumiere = evalue_vecteur("position_lumière");
-		auto direction = normalise(position_lumiere - position);
-		auto matrice_z = dls::math::aligne_rotation(axe_z, direction);
+		auto axe_z = normalise(position_lumiere - position);
 
 		/* l'axe X doit être perpendiculaire au plan défini par l'axe Z et omega */
-//		auto axe_x = dls::math::vec3f(1.0f, 0.0f, 0.0f);
-//		auto axe_zp = axe_z * matrice_z;
-//		auto perp = produit_croix(axe_zp, omega);
-//		auto matrice_x = dls::math::aligne_rotation(axe_x, normalise(perp));
+		auto axe_x = normalise(produit_croix(axe_z, omega));
+
+		/* l'axe Y est orthogonal aux deux autres */
+		auto axe_y = normalise(produit_croix(axe_x, axe_z));
+
+		auto mat = dls::math::mat3x3f(
+					axe_x.x, axe_x.y, axe_x.z,
+					axe_y.x, axe_y.y, axe_y.z,
+					axe_z.x, axe_z.y, axe_z.z);
 
 		/* angle ajouté aux couches du réseau */
 		//auto gamma = std::acos(produit_scalaire(omega, direction));
@@ -2166,15 +2169,55 @@ public:
 			auto min = descripteurs[k].etendue.min * static_cast<float>(descripteurs[k].taille_voxel);
 			auto max = descripteurs[k].etendue.max * static_cast<float>(descripteurs[k].taille_voxel);
 
-			// ça n'a pas l'air de marcher ?
-			min = min * matrice_z;
-			max = max * matrice_z;
+			/* nous devons appliquer la matrice à tous les points et non
+			 * seulement aux points min et max -> il faudra sans doute garder
+			 * trace de chaque matrice pour échantillonner proprement le volume
+			 * afin de remplir les descripteurs */
+			dls::math::vec3f sommets[8] = {
+				dls::math::vec3f(min.x, min.y, min.z),
+				dls::math::vec3f(min.x, min.y, max.z),
+				dls::math::vec3f(max.x, min.y, max.z),
+				dls::math::vec3f(max.x, min.y, min.z),
+				dls::math::vec3f(min.x, max.y, min.z),
+				dls::math::vec3f(min.x, max.y, max.z),
+				dls::math::vec3f(max.x, max.y, max.z),
+				dls::math::vec3f(max.x, max.y, min.z),
+			};
 
-			dessine_boite(m_corps,
-						  attr_C,
-						  min,
-						  max,
-						  couleur);
+			for (auto i = 0; i < 8; ++i) {
+				sommets[i] = mat * sommets[i];
+			}
+
+			long cotes[12][2] = {
+				{ 0, 1 },
+				{ 1, 2 },
+				{ 2, 3 },
+				{ 3, 0 },
+				{ 0, 4 },
+				{ 1, 5 },
+				{ 2, 6 },
+				{ 3, 7 },
+				{ 4, 5 },
+				{ 5, 6 },
+				{ 6, 7 },
+				{ 7, 4 },
+			};
+
+			auto decalage = m_corps.points_pour_lecture()->taille();
+
+			for (int i = 0; i < 8; ++i) {
+				auto idx_p = m_corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
+
+				if (attr_C) {
+					assigne(attr_C->r32(idx_p), couleur);
+				}
+			}
+
+			for (int i = 0; i < 12; ++i) {
+				auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+				m_corps.ajoute_sommet(poly, decalage + cotes[i][0]);
+				m_corps.ajoute_sommet(poly, decalage + cotes[i][1]);
+			}
 		}
 
 		dessine_boite(m_corps,
@@ -2183,10 +2226,33 @@ public:
 					  position_lumiere + dls::math::vec3f(0.1f),
 					  dls::math::vec3f(0.2f, 0.9f, 0.3f));
 
+		/* dessine les axes */
+		auto axe_x_ = dls::math::vec3f(1.0f, 0.0f, 0.0f);
+		auto axe_y_ = dls::math::vec3f(0.0f, 1.0f, 0.0f);
+		auto axe_z_ = dls::math::vec3f(0.0f, 0.0f, 1.0f);
+
 		auto i0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
-		auto i1 = m_corps.ajoute_point(axe_z * matrice_z);
+		auto i1 = m_corps.ajoute_point(mat * axe_x_);
+
+		assigne(attr_C->r32(i1), axe_x_);
 
 		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, i0);
+		m_corps.ajoute_sommet(poly, i1);
+
+		i1 = m_corps.ajoute_point(mat * axe_y_);
+
+		assigne(attr_C->r32(i1), axe_y_);
+
+		poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, i0);
+		m_corps.ajoute_sommet(poly, i1);
+
+		i1 = m_corps.ajoute_point(mat * axe_z_);
+
+		assigne(attr_C->r32(i1), axe_z_);
+
+		poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
 		m_corps.ajoute_sommet(poly, i0);
 		m_corps.ajoute_sommet(poly, i1);
 
