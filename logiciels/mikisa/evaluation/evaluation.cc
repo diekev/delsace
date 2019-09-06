@@ -37,65 +37,10 @@
 #include "coeur/operatrice_graphe_detail.hh"
 
 #include "execution.hh"
+#include "outils.hh"
 #include "reseau.hh"
 
 /* ************************************************************************** */
-
-static void insere_noeud(
-		dls::pile<Noeud *> &noeuds,
-		dls::ensemble<Noeud *> &noeuds_visites,
-		Noeud *noeud)
-{
-	if (noeuds_visites.trouve(noeud) == noeuds_visites.fin()) {
-		noeuds.empile(noeud);
-		noeuds_visites.insere(noeud);
-	}
-}
-
-static void rassemble_noeuds_chronodependants(
-		Graphe &graphe,
-		dls::pile<Noeud *> &noeuds,
-		dls::ensemble<Noeud *> &noeuds_visites)
-{
-	for (auto &noeud : graphe.noeuds()) {
-		auto op = extrait_opimage(noeud->donnees);
-
-		if (noeud->peut_avoir_graphe) {
-			rassemble_noeuds_chronodependants(noeud->graphe, noeuds, noeuds_visites);
-		}
-
-		if (op->depend_sur_temps()) {
-			insere_noeud(noeuds, noeuds_visites, noeud);
-
-			auto p = noeud->parent;
-
-			while (p != nullptr) {
-				insere_noeud(noeuds, noeuds_visites, p);
-				p = p->parent;
-			}
-		}
-	}
-}
-
-static void notifie_noeuds_chronodependants(Graphe &graphe)
-{
-	auto pile = dls::pile<Noeud *>();
-	auto visites = dls::ensemble<Noeud *>();
-
-	rassemble_noeuds_chronodependants(graphe, pile, visites);
-
-	while (!pile.est_vide()) {
-		auto noeud = pile.depile();
-
-		noeud->besoin_execution = true;
-
-		for (auto prise : noeud->sorties) {
-			for (auto lien : prise->liens) {
-				pile.empile(lien->parent);
-			}
-		}
-	}
-}
 
 void requiers_evaluation(Mikisa &mikisa, int raison, const char *message)
 {

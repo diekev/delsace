@@ -30,6 +30,8 @@
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
 
+#include "outils.hh"
+
 /* ************************************************************************** */
 
 static void marque_execution_graphe(NoeudReseau *racine)
@@ -45,6 +47,79 @@ static void marque_execution_graphe(NoeudReseau *racine)
 		}
 
 		marque_execution_graphe(noeud_res);
+	}
+}
+
+static void marque_execution_graphe_temps_change(NoeudReseau *racine)
+{
+	for (auto noeud_res : racine->sorties) {
+		auto objet = noeud_res->objet;
+		auto &graphe = objet->noeud->graphe;
+
+		notifie_noeuds_chronodependants(graphe);
+
+		marque_execution_graphe_temps_change(noeud_res);
+	}
+}
+
+static void cree_dependances(
+		Graphe &graphe,
+		NoeudReseau *noeud_temps,
+		NoeudReseau *noeud_dep,
+		CompilatriceReseau &compilatrice,
+		ContexteEvaluation &contexte)
+{
+	auto noeuds = dls::pile<Noeud *>();
+
+	/* n'ajoute les dépendances que pour les noeuds connectés aux sorties */
+	for (auto noeud : graphe.noeuds()) {
+		if (noeud->est_sortie) {
+			noeuds.empile(noeud);
+		}
+	}
+
+	auto noeuds_visites = dls::ensemble<Noeud *>();
+
+	while (!noeuds.est_vide()) {
+		auto noeud = noeuds.depile();
+
+		if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
+			continue;
+		}
+
+		noeuds_visites.insere(noeud);
+
+		auto operatrice = extrait_opimage(noeud->donnees);
+
+		if (operatrice->possede_animation()) {
+			compilatrice.ajoute_dependance(noeud_temps, noeud_dep);
+		}
+		else if (operatrice->depend_sur_temps()) {
+			compilatrice.ajoute_dependance(noeud_temps, noeud_dep);
+		}
+
+		operatrice->renseigne_dependance(contexte, compilatrice, noeud_dep);
+
+		if (noeud->peut_avoir_graphe) {
+			cree_dependances(noeud->graphe, noeud_temps, noeud_dep, compilatrice, contexte);
+		}
+
+		for (auto prise_entree : noeud->entrees) {
+			for (auto prise_sortie : prise_entree->liens) {
+				noeuds.empile(prise_sortie->parent);
+			}
+		}
+	}
+
+	/* vide les tampons mémoires des noeuds déconnectés */
+	for (auto noeud : graphe.noeuds()) {
+		if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
+			continue;
+		}
+
+		auto operatrice = extrait_opimage(noeud->donnees);
+		operatrice->libere_memoire();
+		noeud->besoin_execution = true;
 	}
 }
 
@@ -121,55 +196,7 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 			ajoute_dependance(&reseau->noeud_temps, noeud_dep);
 		}
 
-		/* n'ajoute les dépendances que pour les noeuds connectés à la sortie */
-		auto noeud = objet_noeud->noeud->graphe.dernier_noeud_sortie;
-
-		if (noeud == nullptr) {
-			continue;
-		}
-
-		auto noeuds = dls::pile<Noeud *>();
-		noeuds.empile(noeud);
-
-		auto noeuds_visites = dls::ensemble<Noeud *>();
-
-		while (!noeuds.est_vide()) {
-			noeud = noeuds.depile();
-
-			if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
-				continue;
-			}
-
-			noeuds_visites.insere(noeud);
-
-			auto operatrice = extrait_opimage(noeud->donnees);
-
-			if (operatrice->possede_animation()) {
-				ajoute_dependance(&reseau->noeud_temps, noeud_dep);
-			}
-			else if (operatrice->depend_sur_temps()) {
-				ajoute_dependance(&reseau->noeud_temps, noeud_dep);
-			}
-
-			operatrice->renseigne_dependance(contexte, *this, noeud_dep);
-
-			for (auto prise_entree : noeud->entrees) {
-				for (auto prise_sortie : prise_entree->liens) {
-					noeuds.empile(prise_sortie->parent);
-				}
-			}
-		}
-
-		/* vide les tampons mémoires des noeuds déconnectés */
-		for (auto n : objet_noeud->noeud->graphe.noeuds()) {
-			if (noeuds_visites.trouve(n) != noeuds_visites.fin()) {
-				continue;
-			}
-
-			auto operatrice = extrait_opimage(n->donnees);
-			operatrice->libere_memoire();
-			n->besoin_execution = true;
-		}
+		cree_dependances(objet_noeud->noeud->graphe, &reseau->noeud_temps, noeud_dep, *this, contexte);
 	}
 
 	/* Marque les graphes des objets en aval comm ayant besoin d'une exécution.
@@ -182,5 +209,5 @@ void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonn
 
 void CompilatriceReseau::marque_execution_temps_change()
 {
-	marque_execution_graphe(&reseau->noeud_temps);
+	marque_execution_graphe_temps_change(&reseau->noeud_temps);
 }

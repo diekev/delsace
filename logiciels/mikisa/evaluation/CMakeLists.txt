@@ -35,11 +35,13 @@ set(BIBLIOTHEQUES
 add_library(${NOM_CIBLE} STATIC
 	evaluation.cc
 	execution.cc
+	outils.cc
 	plan.cc
 	reseau.cc
 
 	evaluation.hh
 	execution.hh
+	outils.hh
 	plan.hh
 	reseau.hh
 )
