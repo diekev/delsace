@@ -29,21 +29,9 @@
 void dessine_boite(
 		Corps &corps,
 		Attribut *attr_C,
-		dls::math::vec3f const &min,
-		dls::math::vec3f const &max,
+		dls::math::vec3f const sommets[8],
 		dls::math::vec3f const &couleur)
 {
-	dls::math::vec3f sommets[8] = {
-		dls::math::vec3f(min.x, min.y, min.z),
-		dls::math::vec3f(min.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, min.z),
-		dls::math::vec3f(min.x, max.y, min.z),
-		dls::math::vec3f(min.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, min.z),
-	};
-
 	long cotes[12][2] = {
 		{ 0, 1 },
 		{ 1, 2 },
@@ -74,4 +62,25 @@ void dessine_boite(
 		corps.ajoute_sommet(poly, decalage + cotes[i][0]);
 		corps.ajoute_sommet(poly, decalage + cotes[i][1]);
 	}
+}
+
+void dessine_boite(
+		Corps &corps,
+		Attribut *attr_C,
+		dls::math::vec3f const &min,
+		dls::math::vec3f const &max,
+		dls::math::vec3f const &couleur)
+{
+	dls::math::vec3f sommets[8] = {
+		dls::math::vec3f(min.x, min.y, min.z),
+		dls::math::vec3f(min.x, min.y, max.z),
+		dls::math::vec3f(max.x, min.y, max.z),
+		dls::math::vec3f(max.x, min.y, min.z),
+		dls::math::vec3f(min.x, max.y, min.z),
+		dls::math::vec3f(min.x, max.y, max.z),
+		dls::math::vec3f(max.x, max.y, max.z),
+		dls::math::vec3f(max.x, max.y, min.z),
+	};
+
+	dessine_boite(corps, attr_C, sommets, couleur);
 }

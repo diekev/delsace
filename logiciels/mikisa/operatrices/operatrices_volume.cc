@@ -2188,36 +2188,7 @@ public:
 				sommets[i] = mat * sommets[i];
 			}
 
-			long cotes[12][2] = {
-				{ 0, 1 },
-				{ 1, 2 },
-				{ 2, 3 },
-				{ 3, 0 },
-				{ 0, 4 },
-				{ 1, 5 },
-				{ 2, 6 },
-				{ 3, 7 },
-				{ 4, 5 },
-				{ 5, 6 },
-				{ 6, 7 },
-				{ 7, 4 },
-			};
-
-			auto decalage = m_corps.points_pour_lecture()->taille();
-
-			for (int i = 0; i < 8; ++i) {
-				auto idx_p = m_corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
-
-				if (attr_C) {
-					assigne(attr_C->r32(idx_p), couleur);
-				}
-			}
-
-			for (int i = 0; i < 12; ++i) {
-				auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
-				m_corps.ajoute_sommet(poly, decalage + cotes[i][0]);
-				m_corps.ajoute_sommet(poly, decalage + cotes[i][1]);
-			}
+			dessine_boite(m_corps, attr_C, sommets, couleur);
 		}
 
 		dessine_boite(m_corps,
