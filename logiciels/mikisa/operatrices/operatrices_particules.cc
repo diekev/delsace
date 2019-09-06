@@ -173,6 +173,9 @@ public:
 			transferante.transfere_attributs_prims(poly->index, npoly->index);
 		});
 
+		/* la transformation n'est pas appliquée, donc il faut la copier */
+		m_corps.transformation = corps_entree->transformation;
+
 		return EXECUTION_REUSSIE;
 	}
 
