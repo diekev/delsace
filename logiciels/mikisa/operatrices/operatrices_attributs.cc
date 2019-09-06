@@ -1299,8 +1299,8 @@ public:
 				auto clr = dls::phys::couleur_depuis_poids(fac);
 				auto ptr_C = attr_C->r32(i);
 
-				for (int i = 0; i < 3; ++i) {
-					ptr_C[i] = clr[i];
+				for (int j = 0; j < 3; ++j) {
+					ptr_C[j] = clr[j];
 				}
 			}
 		}
