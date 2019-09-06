@@ -96,6 +96,12 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 		switch (m_mikisa.graphe->type) {
 			case type_graphe::RACINE_COMPOSITE:
 				break;
+			case type_graphe::RACINE_NUANCEUR:
+				break;
+			case type_graphe::RACINE_RENDU:
+				break;
+			case type_graphe::RENDU:
+				break;
 			case type_graphe::COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;

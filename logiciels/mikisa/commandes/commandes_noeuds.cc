@@ -280,11 +280,12 @@ public:
 							   DETAIL_VOXELS,
 							   DETAIL_POINTS,
 							   DETAIL_TERRAIN,
-							   DETAIL_POSEIDON_GAZ);
+							   DETAIL_POSEIDON_GAZ,
+							   DETAIL_NUANCAGE);
 		}
 
 		if (est_element(metadonnee, "Entrée Attribut", "Sortie Attribut")) {
-			return est_element(type_detail, DETAIL_POINTS);
+			return est_element(type_detail, DETAIL_POINTS, DETAIL_NUANCAGE);
 		}
 
 		return false;
@@ -1034,9 +1035,19 @@ public:
 			mikisa->chemin_courant = "/composites/";
 			mikisa->noeud = nullptr;
 		}
+		else if (metadonnee == "nuanceurs") {
+			mikisa->graphe = mikisa->bdd.graphe_nuanceurs();
+			mikisa->chemin_courant = "/nuanceurs/";
+			mikisa->noeud = nullptr;
+		}
 		else if (metadonnee == "objets") {
 			mikisa->graphe = mikisa->bdd.graphe_objets();
 			mikisa->chemin_courant = "/objets/";
+			mikisa->noeud = nullptr;
+		}
+		else if (metadonnee == "rendus") {
+			mikisa->graphe = mikisa->bdd.graphe_rendus();
+			mikisa->chemin_courant = "/rendus/";
 			mikisa->noeud = nullptr;
 		}
 

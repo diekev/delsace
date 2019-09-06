@@ -34,14 +34,20 @@ enum class type_objet : char;
 
 class Composite;
 class Objet;
+struct Nuanceur;
+struct Rendu;
 
 class BaseDeDonnees final {
 	dls::tableau<Composite *> m_composites{};
 	dls::tableau<Objet *> m_objets{};
+	dls::tableau<Nuanceur *> m_nuanceurs{};
+	dls::tableau<Rendu *> m_rendus{};
 
 	Noeud m_racine{};
 	Noeud m_racine_composites{};
 	Noeud m_racine_objets{};
+	Noeud m_racine_nuanceurs{};
+	Noeud m_racine_rendus{};
 
 public:
 	BaseDeDonnees();
@@ -83,6 +89,34 @@ public:
 	Graphe *graphe_composites();
 
 	Graphe const *graphe_composites() const;
+
+	/* ********************************************************************** */
+
+	Nuanceur *cree_nuanceur(dls::chaine const &nom);
+
+	Nuanceur *nuanceur(dls::chaine const &nom) const;
+
+	void enleve_nuanceur(Nuanceur *nuanceur);
+
+	dls::tableau<Nuanceur *> const &nuanceurs() const;
+
+	Graphe *graphe_nuanceurs();
+
+	Graphe const *graphe_nuanceurs() const;
+
+	/* ********************************************************************** */
+
+	Rendu *cree_rendu(dls::chaine const &nom);
+
+	Rendu *rendu(dls::chaine const &nom) const;
+
+	void enleve_rendu(Rendu *rendu);
+
+	dls::tableau<Rendu *> const &rendus() const;
+
+	Graphe *graphe_rendus();
+
+	Graphe const *graphe_rendus() const;
 };
 
 Noeud *cherche_noeud_pour_chemin(BaseDeDonnees &base, dls::chaine const &chemin);

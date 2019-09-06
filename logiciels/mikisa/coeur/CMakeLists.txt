@@ -81,12 +81,14 @@ add_library(${NOM_CIBLE} STATIC
 	mikisa.cc
 	noeud.cc
 	noeud_image.cc
+	nuanceur.cc
 	objet.cc
 	operatrice_corps.cc
 	operatrice_graphe_detail.cc
 	operatrice_image.cc
 	operatrice_pixel.cc
 	operatrice_simulation.cc
+	rendu.cc
 	sauvegarde.cc
 	tache.cc
 	usine_operatrice.cc
@@ -109,12 +111,14 @@ add_library(${NOM_CIBLE} STATIC
 	mikisa.h
 	noeud.hh
 	noeud_image.h
+	nuanceur.hh
 	objet.h
 	operatrice_corps.h
 	operatrice_graphe_detail.hh
 	operatrice_image.h
 	operatrice_pixel.h
 	operatrice_simulation.hh
+	rendu.hh
 	sauvegarde.h
 	tache.h
 	usine_operatrice.h

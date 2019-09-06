@@ -104,6 +104,8 @@ enum class type_noeud : int {
 	COMPOSITE,
 	OBJET,
 	OPERATRICE,
+	NUANCEUR,
+	RENDU,
 	INVALIDE,
 };
 

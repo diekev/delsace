@@ -60,9 +60,11 @@ EditriceGraphe::EditriceGraphe(Mikisa &mikisa, QWidget *parent)
 	auto disposition_barre = new QHBoxLayout();
 
 	m_selecteur_graphe->addItem("Graphe Composites", QVariant("composites"));
+	m_selecteur_graphe->addItem("Graphe Nuanceurs", QVariant("nuanceurs"));
 	m_selecteur_graphe->addItem("Graphe Objets", QVariant("objets"));
+	m_selecteur_graphe->addItem("Graphe Rendus", QVariant("rendus"));
 
-	m_selecteur_graphe->setCurrentIndex(1);
+	m_selecteur_graphe->setCurrentIndex(2);
 
 	connect(m_selecteur_graphe, SIGNAL(currentIndexChanged(int)),
 			this, SLOT(change_contexte(int)));
@@ -103,11 +105,27 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	{
 		auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
 
-		if (m_mikisa.chemin_courant[1] == 'c') {
-			m_selecteur_graphe->setCurrentIndex(0);
-		}
-		else {
-			m_selecteur_graphe->setCurrentIndex(1);
+		switch (m_mikisa.chemin_courant[1]) {
+			case 'c':
+			{
+				m_selecteur_graphe->setCurrentIndex(0);
+				break;
+			}
+			case 'n':
+			{
+				m_selecteur_graphe->setCurrentIndex(1);
+				break;
+			}
+			case 'o':
+			{
+				m_selecteur_graphe->setCurrentIndex(2);
+				break;
+			}
+			case 'r':
+			{
+				m_selecteur_graphe->setCurrentIndex(3);
+				break;
+			}
 		}
 
 		m_selecteur_graphe->blockSignals(bloque_signaux);

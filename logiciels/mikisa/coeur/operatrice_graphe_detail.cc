@@ -71,6 +71,9 @@ static lcc::param_sorties params_noeuds_entree[] = {
 		lcc::donnees_parametre("vélocité", lcc::type_var::VEC3),
 		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
 		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
+	/* entrée détail nuançage */
+	lcc::param_sorties(
+		lcc::donnees_parametre("P", lcc::type_var::VEC3)),
 };
 
 /* les entrées des noeuds de sorties */
@@ -95,6 +98,9 @@ static lcc::param_entrees params_noeuds_sortie[] = {
 		lcc::donnees_parametre("oxygène", lcc::type_var::DEC),
 		lcc::donnees_parametre("température", lcc::type_var::DEC),
 		lcc::donnees_parametre("vélocité", lcc::type_var::VEC3)),
+	/* sortie détail nuançage */
+	lcc::param_entrees(
+		lcc::donnees_parametre("couleur", lcc::type_var::COULEUR)),
 };
 
 /* ************************************************************************** */

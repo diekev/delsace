@@ -44,12 +44,14 @@
 #include "evenement.h"
 #include "composite.h"
 #include "contexte_evaluation.hh"
+#include "nuanceur.hh"
 #include "objet.h"
 #include "mikisa.h"
 #include "noeud_image.h"
 #include "operatrice_graphe_detail.hh"
 #include "operatrice_image.h"
 #include "operatrice_simulation.hh"
+#include "rendu.hh"
 #include "usine_operatrice.h"
 
 namespace coeur {
@@ -254,6 +256,28 @@ static auto ecris_noeud(
 
 			break;
 		}
+		case type_noeud::NUANCEUR:
+		{
+			auto nuanceur = extrait_nuanceur(noeud->donnees);
+
+			auto element_nuanceur = doc.NewElement("nuanceur");
+			element_nuanceur->SetAttribut("nom", nuanceur->noeud.nom.c_str());
+
+			element_noeud->InsertEndChild(element_nuanceur);
+
+			break;
+		}
+		case type_noeud::RENDU:
+		{
+			auto rendu = extrait_rendu(noeud->donnees);
+
+			auto element_rendu = doc.NewElement("objet");
+			element_rendu->SetAttribut("nom", rendu->noeud.nom.c_str());
+
+			element_noeud->InsertEndChild(element_rendu);
+
+			break;
+		}
 		case type_noeud::COMPOSITE:
 		{
 			auto composite = extrait_composite(noeud->donnees);
@@ -387,6 +411,54 @@ erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &m
 	auto racine_graphe_comps = doc.NewElement("graphe");
 	racine_composites->InsertEndChild(racine_graphe_comps);
 	ecris_graphe(doc, racine_graphe_comps, *mikisa.bdd.graphe_composites());
+
+	/* nuanceurs */
+
+	auto racine_nuanceurs = doc.NewElement("nuanceurs");
+	racine_projet->InsertEndChild(racine_nuanceurs);
+
+	for (auto const nuanceur : bdd.nuanceurs()) {
+		/* Écriture du nuanceur. */
+		auto racine_nuanceur = doc.NewElement("nuanceur");
+		racine_nuanceur->SetAttribut("nom", nuanceur->noeud.nom.c_str());
+
+		racine_nuanceurs->InsertEndChild(racine_nuanceur);
+
+		/* Écriture du graphe. */
+		auto racine_graphe = doc.NewElement("graphe");
+		racine_nuanceur->InsertEndChild(racine_graphe);
+
+		ecris_graphe(doc, racine_graphe, nuanceur->noeud.graphe);
+	}
+
+	/* Écriture du graphe. */
+	auto racine_graphe_nuanceurs = doc.NewElement("graphe");
+	racine_nuanceurs->InsertEndChild(racine_graphe_nuanceurs);
+	ecris_graphe(doc, racine_graphe_nuanceurs, *mikisa.bdd.graphe_nuanceurs());
+
+	/* rendus */
+
+	auto racine_rendus = doc.NewElement("rendus");
+	racine_projet->InsertEndChild(racine_rendus);
+
+	for (auto const rendu : bdd.rendus()) {
+		/* Écriture du rendu. */
+		auto racine_rendu = doc.NewElement("rendu");
+		racine_rendu->SetAttribut("nom", rendu->noeud.nom.c_str());
+
+		racine_rendus->InsertEndChild(racine_rendu);
+
+		/* Écriture du graphe. */
+		auto racine_graphe = doc.NewElement("graphe");
+		racine_rendu->InsertEndChild(racine_graphe);
+
+		ecris_graphe(doc, racine_graphe, rendu->noeud.graphe);
+	}
+
+	/* Écriture du graphe. */
+	auto racine_graphe_rendus = doc.NewElement("graphe");
+	racine_rendus->InsertEndChild(racine_graphe_rendus);
+	ecris_graphe(doc, racine_graphe_rendus, *mikisa.bdd.graphe_rendus());
 
 	auto const resultat = doc.SaveFile(chemin.c_str());
 
@@ -604,6 +676,16 @@ static void lecture_noeud(
 			/* fait via lecture_composites */
 			break;
 		}
+		case type_noeud::NUANCEUR:
+		{
+			/* fait via lecture_nuanceurs */
+			break;
+		}
+		case type_noeud::RENDU:
+		{
+			/* fait via lecture_rendus */
+			break;
+		}
 		case type_noeud::OPERATRICE:
 		{
 			auto const element_operatrice = element_noeud->FirstChildElement("operatrice");
@@ -794,6 +876,36 @@ static void lis_composites(
 	}
 }
 
+static void lis_nuanceurs(
+		dls::xml::Element *racine_objets,
+		Mikisa &mikisa)
+{
+	auto element_nuanceur = racine_objets->FirstChildElement("nuanceur");
+
+	for (; element_nuanceur != nullptr; element_nuanceur = element_nuanceur->NextSiblingElement("nuanceur")) {
+		auto const nom = element_nuanceur->attribut("nom");
+		auto nuanceur = mikisa.bdd.cree_nuanceur(nom);
+		auto racine_graphe = element_nuanceur->FirstChildElement("graphe");
+
+		lecture_graphe(racine_graphe, mikisa, &nuanceur->noeud.graphe, type_noeud::OPERATRICE);
+	}
+}
+
+static void lis_rendus(
+		dls::xml::Element *racine_objets,
+		Mikisa &mikisa)
+{
+	auto element_rendu = racine_objets->FirstChildElement("rendu");
+
+	for (; element_rendu != nullptr; element_rendu = element_rendu->NextSiblingElement("rendu")) {
+		auto const nom = element_rendu->attribut("nom");
+		auto rendu = mikisa.bdd.cree_rendu(nom);
+		auto racine_graphe = element_rendu->FirstChildElement("graphe");
+
+		lecture_graphe(racine_graphe, mikisa, &rendu->noeud.graphe, type_noeud::OPERATRICE);
+	}
+}
+
 static auto lis_etat(
 		dls::xml::Document &doc,
 		Mikisa &mikisa)
@@ -876,6 +988,32 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 
 	if (racine_graphe_comps != nullptr) {
 		lecture_graphe_racine(racine_graphe_comps, mikisa.bdd.graphe_composites());
+	}
+
+	/* nuanceurs */
+	auto const racine_nuanceurs = racine_projet->FirstChildElement("nuanceurs");
+
+	if (racine_nuanceurs != nullptr) {
+		lis_nuanceurs(racine_nuanceurs, mikisa);
+
+		auto const racine_graphe_nuanceurs = racine_nuanceurs->FirstChildElement("graphe");
+
+		if (racine_graphe_nuanceurs != nullptr) {
+			lecture_graphe_racine(racine_graphe_nuanceurs, mikisa.bdd.graphe_nuanceurs());
+		}
+	}
+
+	/* rendus */
+	auto const racine_rendus = racine_projet->FirstChildElement("rendus");
+
+	if (racine_rendus != nullptr) {
+		lis_rendus(racine_rendus, mikisa);
+
+		auto const racine_graphe_rendus = racine_rendus->FirstChildElement("graphe");
+
+		if (racine_graphe_rendus != nullptr) {
+			lecture_graphe_racine(racine_graphe_rendus, mikisa.bdd.graphe_rendus());
+		}
 	}
 
 	lis_etat(doc, mikisa);

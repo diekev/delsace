@@ -210,6 +210,14 @@ void EditriceProprietes::ajourne_manipulable()
 		{
 			break;
 		}
+		case type_noeud::NUANCEUR:
+		{
+			break;
+		}
+		case type_noeud::RENDU:
+		{
+			break;
+		}
 		case type_noeud::OPERATRICE:
 		{
 			/* Marque le noeud courant et ceux en son aval surannées. */

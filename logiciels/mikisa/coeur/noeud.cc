@@ -56,6 +56,8 @@ Noeud::~Noeud()
 	switch (type) {
 		case type_noeud::OBJET:
 		case type_noeud::COMPOSITE:
+		case type_noeud::NUANCEUR:
+		case type_noeud::RENDU:
 		case type_noeud::INVALIDE:
 		{
 			break;
