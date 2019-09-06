@@ -95,9 +95,9 @@ public:
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps, false, false)) {
+		if (!valide_corps_entree(*this, corps_entree, false, false)) {
 			return EXECUTION_ECHOUEE;
 		}
 
@@ -108,8 +108,8 @@ public:
 			return EXECUTION_ECHOUEE;
 		}
 
-		auto points_corps = corps->points_pour_lecture();
-		auto groupe = corps->groupe_point(nom_groupe);
+		auto points_corps = corps_entree->points_pour_lecture();
+		auto groupe = corps_entree->groupe_point(nom_groupe);
 
 		if (groupe == nullptr) {
 			ajoute_avertissement("Aucun groupe trouvé !");
@@ -117,39 +117,26 @@ public:
 		}
 
 		if (groupe->taille() == 0) {
-			corps->copie_vers(&m_corps);
+			corps_entree->copie_vers(&m_corps);
 			return EXECUTION_REUSSIE;
 		}
 
-		dls::tableau<std::pair<Attribut const *, Attribut *>> paires_attrs;
-		//paires_attrs.reserve(corps->attributs().taille());
-
-		for (auto const &attr : corps->attributs()) {
-			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-
-			if (attr.portee == portee_attr::POINT) {
-				paires_attrs.pousse({ &attr, attr2 });
-			}
-
-			/* À FAIRE : copie attributs restants. */
-		}
+		auto transfere = TRANSFERE_ATTR_CORPS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_SOMMETS;
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
+		transferante.transfere_attributs_corps(0, 0);
 
 		m_corps.points_pour_ecriture()->reserve(points_corps->taille() - groupe->taille());
 
 		/* Utilisation d'un tableau pour définir plus rapidement si un point est
 		 * à garder ou non. Ceci donne une accélération de 10x avec des
-		 * centaines de miliers de points à traverser. Peut-être pourrions nous
-		 * également trier les groupes et utiliser une recherche binaire pour
-		 * chercher plus rapidement les points, mais si dans le futur nous
-		 * supporterons également la suppression des primitives, alors les
-		 * points des primitives ne seront pas dans un groupe, et il faudra une
-		 * structure de données séparée pour étiquetter les points à retirer.
-		 * D'où l'utilisation d'un vecteur booléen. */
-		dls::tableau<char> dans_le_groupe(points_corps->taille(), 0);
+		 * centaines de miliers de points à traverser. */
+		auto dans_le_groupe = dls::tableau<char>(points_corps->taille(), 0);
 
 		for (auto i = 0; i < groupe->taille(); ++i) {
 			dans_le_groupe[groupe->index(i)] = 1;
 		}
+
+		auto reindexage = dls::tableau<long>(corps_entree->points_pour_lecture()->taille());
 
 		for (auto i = 0l; i < points_corps->taille(); ++i) {
 			if (dans_le_groupe[i]) {
@@ -159,13 +146,32 @@ public:
 			auto const point = points_corps->point(i);
 			auto index_point = m_corps.ajoute_point(point.x, point.y, point.z);
 
-			for (auto &paire : paires_attrs) {
-				auto attr_Vorig = paire.first;
-				auto attr_Vdest = paire.second;
+			reindexage[i] = index_point;
 
-				copie_attribut(attr_Vorig, i, attr_Vdest, index_point);
-			}
+			transferante.transfere_attributs_points(i, index_point);
 		}
+
+		pour_chaque_polygone(*corps_entree, [&](Corps const &corps_poly, Polygone const *poly)
+		{
+			INUTILISE(corps_poly);
+
+			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+				if (dans_le_groupe[poly->index_point(i)]) {
+					return;
+				}
+			}
+
+			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
+
+			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+				auto idx0 = poly->index_sommet(i);
+				auto idx1 = m_corps.ajoute_sommet(npoly, reindexage[poly->index_point(i)]);
+
+				transferante.transfere_attributs_sommets(idx0, idx1);
+			}
+
+			transferante.transfere_attributs_prims(poly->index, npoly->index);
+		});
 
 		return EXECUTION_REUSSIE;
 	}
