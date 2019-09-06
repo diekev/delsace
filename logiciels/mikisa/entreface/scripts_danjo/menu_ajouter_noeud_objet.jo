@@ -72,6 +72,9 @@ menu "Noeud Objet" {
 		action(valeur="Tirage de flèche"; attache=ajouter_noeud; métadonnée="Tirage de flèche")
 		action(valeur="Trainée"; attache=ajouter_noeud; métadonnée="Trainée")
 	}
+	menu "Points" {
+		action(valeur="Suppression Points"; attache=ajouter_noeud; métadonnée="Suppression Points")
+	}
 	menu "Poseidon" {
 		action(valeur="Advection Gaz"; attache=ajouter_noeud; métadonnée="Advection Gaz")
 		action(valeur="Affinage Gaz"; attache=ajouter_noeud; métadonnée="Affinage Gaz")
