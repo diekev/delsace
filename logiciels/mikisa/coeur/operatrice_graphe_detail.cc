@@ -1649,6 +1649,11 @@ public:
 
 /* ************************************************************************** */
 
+static auto params_info = lcc::param_sorties(
+			lcc::donnees_parametre("temps_image", lcc::type_var::ENT32),
+			lcc::donnees_parametre("temps_fractionnel", lcc::type_var::DEC),
+			lcc::donnees_parametre("temps_seconde", lcc::type_var::DEC));
+
 class OperatriceInfoExecution final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Info Exécution";
@@ -1658,7 +1663,7 @@ public:
 		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
-		sorties(2);
+		sorties(params_info.taille());
 	}
 
 	const char *nom_classe() const override
@@ -1678,27 +1683,12 @@ public:
 
 	type_prise type_sortie(int i) const override
 	{
-		switch (i) {
-			case 0:
-			{
-				return type_prise::ENTIER;
-			}
-			case 1:
-			{
-				return type_prise::DECIMAL;
-			}
-		}
-
-		return type_prise::INVALIDE;
+		return converti_type_prise(params_info.type(i));
 	}
 
 	const char *nom_sortie(int i) override
 	{
-		if (i == 0) {
-			return "temps_image";
-		}
-
-		return "temps_fractionnel";
+		return params_info.nom(i);
 	}
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1706,26 +1696,36 @@ public:
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 
-		auto idx = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
-		gest_props->ajoute_propriete("temps_image", lcc::type_var::ENT32, idx);
+		for (auto i = 0; i < sorties(); ++i) {
+			auto idx = compileuse->donnees().loge_donnees(taille_type(params_info.type(i)));
+			gest_props->ajoute_propriete(params_info.nom(i), params_info.type(i), idx);
 
-		auto prise_sortie = sortie(0)->pointeur();
-		prise_sortie->decalage_pile = idx;
-		prise_sortie->type_infere = type_sortie(0);
+			auto prise_sortie = sortie(i)->pointeur();
+			prise_sortie->decalage_pile = idx;
+			prise_sortie->type_infere = type_sortie(i);
 
-		compileuse->donnees().stocke(idx, contexte.temps_courant);
-
-		auto temps_frac = static_cast<float>(contexte.temps_courant);
-		temps_frac /= static_cast<float>(contexte.temps_fin - contexte.temps_debut);
-
-		idx = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::DEC));
-		gest_props->ajoute_propriete("temps_fractionnel", lcc::type_var::DEC, idx);
-
-		prise_sortie = sortie(1)->pointeur();
-		prise_sortie->decalage_pile = idx;
-		prise_sortie->type_infere = type_sortie(1);
-
-		compileuse->donnees().stocke(idx, temps_frac);
+			switch (i) {
+				case 0:
+				{
+					compileuse->donnees().stocke(idx, contexte.temps_courant);
+					break;
+				}
+				case 1:
+				{
+					auto temps_frac = static_cast<float>(contexte.temps_courant);
+					temps_frac /= static_cast<float>(contexte.temps_fin - contexte.temps_debut);
+					compileuse->donnees().stocke(idx, temps_frac);
+					break;
+				}
+				case 2:
+				{
+					auto temps_sec = static_cast<float>(contexte.temps_courant);
+					temps_sec /= static_cast<float>(contexte.cadence);
+					compileuse->donnees().stocke(idx, temps_sec);
+					break;
+				}
+			}
+		}
 
 		return EXECUTION_REUSSIE;
 	}
