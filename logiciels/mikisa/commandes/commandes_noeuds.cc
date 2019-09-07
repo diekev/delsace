@@ -47,10 +47,12 @@
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/objet.h"
 #include "coeur/operatrice_graphe_detail.hh"
 #include "coeur/operatrice_image.h"
 #include "coeur/operatrice_simulation.hh"
+#include "coeur/rendu.hh"
 #include "coeur/usine_operatrice.h"
 
 #include "lcc/lcc.hh"
@@ -75,7 +77,9 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 		return false;
 	}
 
-	if (noeud->type == type_noeud::OBJET || noeud->type == type_noeud::COMPOSITE) {
+	using dls::outils::est_element;
+
+	if (est_element(noeud->type, type_noeud::OBJET, type_noeud::COMPOSITE, type_noeud::RENDU, type_noeud::INVALIDE, type_noeud::NUANCEUR)) {
 		/* À FAIRE : considère avoir et mettre en place un objet actif. */
 		return false;
 	}
@@ -539,28 +543,57 @@ public:
 
 		auto besoin_execution = false;
 
-		if (noeud->type == type_noeud::OBJET) {
-			besoin_execution = true;
-
-			auto objet = extrait_objet(noeud->donnees);
-			mikisa->bdd.enleve_objet(objet);
-		}
-		else if (noeud->type == type_noeud::COMPOSITE) {
-			besoin_execution = true;
-
-			auto compo = extrait_composite(noeud->donnees);
-			mikisa->bdd.enleve_composite(compo);
-		}
-		else {
-			auto operatrice = extrait_opimage(noeud->donnees);
-
-			if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
-				mikisa->manipulatrice_3d = nullptr;
+		switch (noeud->type) {
+			case type_noeud::INVALIDE:
+			{
+				break;
 			}
+			case type_noeud::OBJET:
+			{
+				besoin_execution = true;
 
-			besoin_execution = noeud_connecte_sortie(noeud, graphe->dernier_noeud_sortie);
+				auto objet = extrait_objet(noeud->donnees);
+				mikisa->bdd.enleve_objet(objet);
+				break;
+			}
+			case type_noeud::COMPOSITE:
+			{
+				besoin_execution = true;
 
-			graphe->supprime(noeud);
+				auto compo = extrait_composite(noeud->donnees);
+				mikisa->bdd.enleve_composite(compo);
+				break;
+			}
+			case type_noeud::NUANCEUR:
+			{
+				besoin_execution = true;
+
+				auto nuanceur = extrait_nuanceur(noeud->donnees);
+				mikisa->bdd.enleve_nuanceur(nuanceur);
+				break;
+			}
+			case type_noeud::RENDU:
+			{
+				besoin_execution = true;
+
+				auto rendu = extrait_rendu(noeud->donnees);
+				mikisa->bdd.enleve_rendu(rendu);
+				break;
+			}
+			case type_noeud::OPERATRICE:
+			{
+				auto operatrice = extrait_opimage(noeud->donnees);
+
+				if (operatrice->manipulatrice_3d(mikisa->type_manipulation_3d) == mikisa->manipulatrice_3d) {
+					mikisa->manipulatrice_3d = nullptr;
+				}
+
+				besoin_execution = noeud_connecte_sortie(noeud, graphe->dernier_noeud_sortie);
+
+				graphe->supprime(noeud);
+
+				break;
+			}
 		}
 
 		graphe->noeud_actif = nullptr;

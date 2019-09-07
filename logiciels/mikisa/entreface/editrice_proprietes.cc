@@ -109,44 +109,68 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
 	auto chemin_entreface = "";
 
-	if (noeud->type == type_noeud::OBJET) {
-		auto objet = extrait_objet(noeud->donnees);
-		chemin_entreface = objet->chemin_entreface();
-		manipulable = objet->noeud;
-	}
-	else if (noeud->type == type_noeud::COMPOSITE) {
-		/* RÀF */
-	}
-	else {
-		auto operatrice = extrait_opimage(noeud->donnees);
-		chemin_entreface = operatrice->chemin_entreface();
-		manipulable = operatrice;
+	switch (noeud->type) {
+		case type_noeud::COMPOSITE:
+		{
+			/* RÀF */
+			break;
+		}
+		case type_noeud::INVALIDE:
+		{
+			/* RÀF */
+			break;
+		}
+		case type_noeud::NUANCEUR:
+		{
+			/* RÀF */
+			break;
+		}
+		case type_noeud::OBJET:
+		{
+			auto objet = extrait_objet(noeud->donnees);
+			chemin_entreface = objet->chemin_entreface();
+			manipulable = objet->noeud;
+			break;
+		}
+		case type_noeud::OPERATRICE:
+		{
+			auto operatrice = extrait_opimage(noeud->donnees);
+			chemin_entreface = operatrice->chemin_entreface();
+			manipulable = operatrice;
 
-		operatrice->ajourne_proprietes();
+			operatrice->ajourne_proprietes();
 
-		/* avertissements */
-		if (operatrice->avertissements().taille() > 0) {
-			auto disposition_avertissements = new QGridLayout();
-			auto ligne = 0;
-			auto const &pixmap = QPixmap("icones/icone_avertissement.png");
+			/* avertissements */
+			if (operatrice->avertissements().taille() > 0) {
+				auto disposition_avertissements = new QGridLayout();
+				auto ligne = 0;
+				auto const &pixmap = QPixmap("icones/icone_avertissement.png");
 
-			for (auto const &avertissement : operatrice->avertissements()) {
-				auto icone = new QLabel();
-				icone->setPixmap(pixmap);
+				for (auto const &avertissement : operatrice->avertissements()) {
+					auto icone = new QLabel();
+					icone->setPixmap(pixmap);
 
-				auto texte = new QLabel(avertissement.c_str());
+					auto texte = new QLabel(avertissement.c_str());
 
-				disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
-				disposition_avertissements->addWidget(texte, ligne, 1);
+					disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
+					disposition_avertissements->addWidget(texte, ligne, 1);
 
-				++ligne;
+					++ligne;
+				}
+
+				m_conteneur_avertissements->setLayout(disposition_avertissements);
+				m_conteneur_avertissements->show();
+			}
+			else {
+				m_conteneur_avertissements->hide();
 			}
 
-			m_conteneur_avertissements->setLayout(disposition_avertissements);
-			m_conteneur_avertissements->show();
+			break;
 		}
-		else {
-			m_conteneur_avertissements->hide();
+		case type_noeud::RENDU:
+		{
+			/* RÀF */
+			break;
 		}
 	}
 
@@ -254,7 +278,7 @@ void EditriceProprietes::obtiens_liste(
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
-	if (noeud == nullptr || noeud->type == type_noeud::OBJET) {
+	if (noeud == nullptr || noeud->type != type_noeud::OPERATRICE) {
 		return;
 	}
 
@@ -273,15 +297,22 @@ void EditriceProprietes::onglet_dossier_change(int index)
 		return;
 	}
 
-	if (noeud->type == type_noeud::OBJET) {
-		auto objet = extrait_objet(noeud->donnees);
-		objet->noeud->onglet_courant = index;
-	}
-	else if (noeud->type == type_noeud::COMPOSITE) {
-		/* RÀF */
-	}
-	else {
-		auto op = extrait_opimage(noeud->donnees);
-		op->onglet_courant = index;
+	switch (noeud->type) {
+		case type_noeud::COMPOSITE:
+		case type_noeud::INVALIDE:
+		case type_noeud::NUANCEUR:
+		case type_noeud::OBJET:
+		case type_noeud::RENDU:
+		{
+			noeud->onglet_courant = index;
+			break;
+		}
+		case type_noeud::OPERATRICE:
+		{
+			auto op = extrait_opimage(noeud->donnees);
+			op->onglet_courant = index;
+
+			break;
+		}
 	}
 }

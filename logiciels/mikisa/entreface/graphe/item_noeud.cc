@@ -127,31 +127,54 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 	auto operatrice = static_cast<OperatriceImage *>(nullptr);
 	auto brosse_couleur = QBrush();
 
-	if (noeud->type == type_noeud::OBJET) {
-		brosse_couleur = brosse_pour_type(type_prise::OBJET);
-	}
-	else if (noeud->type == type_noeud::COMPOSITE) {
-		brosse_couleur = brosse_pour_type(type_prise::IMAGE);
-	}
-	else {
-		operatrice = extrait_opimage(noeud->donnees);
+	switch (noeud->type) {
+		case type_noeud::COMPOSITE:
+		{
+			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
+			break;
+		}
+		case type_noeud::INVALIDE:
+		{
+			break;
+		}
+		case type_noeud::NUANCEUR:
+		{
+			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
+			break;
+		}
+		case type_noeud::OBJET:
+		{
+			brosse_couleur = brosse_pour_type(type_prise::OBJET);
+			break;
+		}
+		case type_noeud::OPERATRICE:
+		{
+			operatrice = extrait_opimage(noeud->donnees);
 
-		switch (operatrice->type()) {
-			default:
-			case OPERATRICE_SORTIE_IMAGE:
-			case OPERATRICE_IMAGE:
-			case OPERATRICE_PIXEL:
-				brosse_couleur = brosse_pour_type(type_prise::IMAGE);
-				break;
-			case OPERATRICE_GRAPHE_DETAIL:
-			case OPERATRICE_SIMULATION:
-			case OPERATRICE_CORPS:
-			case OPERATRICE_SORTIE_CORPS:
-				brosse_couleur = brosse_pour_type(type_prise::CORPS);
-				break;
-			case OPERATRICE_OBJET:
-				brosse_couleur = brosse_pour_type(type_prise::OBJET);
-				break;
+			switch (operatrice->type()) {
+				default:
+				case OPERATRICE_SORTIE_IMAGE:
+				case OPERATRICE_IMAGE:
+				case OPERATRICE_PIXEL:
+					brosse_couleur = brosse_pour_type(type_prise::IMAGE);
+					break;
+				case OPERATRICE_GRAPHE_DETAIL:
+				case OPERATRICE_SIMULATION:
+				case OPERATRICE_CORPS:
+				case OPERATRICE_SORTIE_CORPS:
+					brosse_couleur = brosse_pour_type(type_prise::CORPS);
+					break;
+				case OPERATRICE_OBJET:
+					brosse_couleur = brosse_pour_type(type_prise::OBJET);
+					break;
+			}
+
+			break;
+		}
+		case type_noeud::RENDU:
+		{
+			brosse_couleur = brosse_pour_type(type_prise::IMAGE);
+			break;
 		}
 	}
 
