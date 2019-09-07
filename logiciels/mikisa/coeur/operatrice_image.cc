@@ -58,7 +58,7 @@ Image const *EntreeOperatrice::requiers_image(
 		DonneesAval *donnees_aval,
 		int index)
 {
-	if (m_ptr->liens.est_vide() || index < 0 || index > m_ptr->liens.taille()) {
+	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
 		return nullptr;
 	}
 
@@ -110,7 +110,7 @@ const Corps *EntreeOperatrice::requiers_corps(
 		DonneesAval *donnees_aval,
 		int index)
 {
-	if (m_ptr->liens.est_vide() || index < 0 || index > m_ptr->liens.taille()) {
+	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
 		return nullptr;
 	}
 
