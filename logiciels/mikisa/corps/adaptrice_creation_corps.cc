@@ -80,7 +80,10 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 
 	for (long i = 0; i < nombre; ++i) {
 		auto idx = corps->ajoute_sommet(poly, index_sommet[i]);
-		assigne(attribut_uvs->r32(idx), uvs[index_uvs[i]]);
+
+		if (attribut_uvs != nullptr) {
+			assigne(attribut_uvs->r32(idx), uvs[index_uvs[i]]);
+		}
 	}
 
 	if (index_normaux != nullptr) {
