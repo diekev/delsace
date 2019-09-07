@@ -1015,6 +1015,10 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 			lecture_graphe_racine(racine_graphe_rendus, mikisa.bdd.graphe_rendus());
 		}
 	}
+	else {
+		/* versionnage */
+		cree_rendu_defaut(mikisa);
+	}
 
 	lis_etat(doc, mikisa);
 

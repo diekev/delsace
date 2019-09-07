@@ -53,6 +53,7 @@
 #include "configuration.h"
 #include "manipulatrice.h"
 #include "noeud_image.h"
+#include "rendu.hh"
 #include "tache.h"
 #include "operatrice_graphe_detail.hh"
 
@@ -183,6 +184,8 @@ void Mikisa::initialise()
 	enregistre_commandes_temps(m_usine_commande);
 	enregistre_commandes_vue2d(m_usine_commande);
 	enregistre_commandes_vue3d(m_usine_commande);
+
+	cree_rendu_defaut(*this);
 
 	lcc::initialise(*lcc);
 }

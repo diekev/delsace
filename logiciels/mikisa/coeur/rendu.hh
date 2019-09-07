@@ -26,6 +26,8 @@
 
 #include <any>
 
+struct ContexteEvaluation;
+struct Mikisa;
 struct Noeud;
 
 /* ************************************************************************** */
@@ -35,6 +37,12 @@ struct Rendu {
 
 	Rendu(Noeud &n);
 };
+
+/* ************************************************************************** */
+
+Rendu *cree_rendu_defaut(Mikisa &mikisa);
+
+void evalue_graphe_rendu(Rendu *rendu, ContexteEvaluation &contexte);
 
 /* ************************************************************************** */
 

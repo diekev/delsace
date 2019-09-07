@@ -31,9 +31,10 @@
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "coeur/composite.h"
+#include "coeur/contexte_evaluation.hh"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
+#include "coeur/rendu.hh"
 
 #include "rendu/moteur_rendu_koudou.hh"
 #include "rendu/moteur_rendu_opengl.hh"
@@ -52,7 +53,6 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
 	, m_rendu_manipulatrice_ech(nullptr)
-	, m_moteur_rendu(memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL"))
 	, m_pos_x(0)
 	, m_pos_y(0)
 {}
@@ -63,15 +63,6 @@ VisionneurScene::~VisionneurScene()
 	memoire::deloge("RenduManipulatricePosition", m_rendu_manipulatrice_pos);
 	memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
 	memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
-
-	if (m_moteur_rendu->id() == dls::chaine("opengl")) {
-		auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
-		memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
-	}
-	else if (m_moteur_rendu->id() == dls::chaine("koudou")) {
-		auto moteur_rendu = dynamic_cast<MoteurRenduKoudou *>(m_moteur_rendu);
-		memoire::deloge("MoteurRenduKoudou", moteur_rendu);
-	}
 
 	memoire::deloge("TamponRendu", m_tampon_image);
 
@@ -91,23 +82,22 @@ void VisionneurScene::initialise()
 	m_camera->ajourne();
 
 	m_chrono_rendu.commence();
-
-	m_moteur_rendu->camera(m_camera);
 }
 
 void VisionneurScene::peint_opengl()
 {
 	/* dessine la scène dans le tampon */
-	m_moteur_rendu->scene(&m_mikisa.bdd.objets());
-
 	auto stats = StatistiquesRendu{};
 
-	m_moteur_rendu->calcule_rendu(
-				stats,
-				m_tampon,
-				m_camera->hauteur(),
-				m_camera->largeur(),
-				false);
+	auto contexte_eval = cree_contexte_evaluation(m_mikisa);
+	contexte_eval.rendu_final = false;
+	contexte_eval.camera_rendu = m_camera;
+	contexte_eval.tampon_rendu = m_tampon;
+	contexte_eval.stats_rendu = &stats;
+
+	auto rendu = m_mikisa.bdd.rendu(m_nom_rendu);
+
+	evalue_graphe_rendu(rendu, contexte_eval);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -247,18 +237,5 @@ void VisionneurScene::position_souris(int x, int y)
 
 void VisionneurScene::change_moteur_rendu(const dls::chaine &id)
 {
-	if (id == "opengl") {
-		auto moteur_rendu = dynamic_cast<MoteurRenduKoudou *>(m_moteur_rendu);
-		memoire::deloge("MoteurRenduKoudou", moteur_rendu);
-
-		m_moteur_rendu = memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL");
-	}
-	else if (id == "koudou") {
-		auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
-		memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
-
-		m_moteur_rendu = memoire::loge<MoteurRenduKoudou>("MoteurRenduKoudou");
-	}
-
-	m_moteur_rendu->camera(this->m_camera);
+	m_nom_rendu = id;
 }

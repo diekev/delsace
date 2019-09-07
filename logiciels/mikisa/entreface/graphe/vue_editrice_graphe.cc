@@ -72,6 +72,9 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_detail.jo");
 	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
+	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_rendu.jo");
+	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
+
 	texte_entree = dls::contenu_fichier("entreface/menu_graphe_objet.jo");
 	m_menu_graphe_objet = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
@@ -93,6 +96,7 @@ VueEditeurNoeud::~VueEditeurNoeud()
 	delete m_menu_graphe_rendu;
 	delete m_menu_graphe_nuanceur;
 	delete m_menu_graphe_composite;
+	delete m_menu_ajout_noeud_rendu;
 	delete m_menu_ajout_noeud_composite;
 	delete m_menu_ajout_noeud_objet;
 	delete m_menu_ajout_noeud_detail;
@@ -116,6 +120,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 				m_menu_graphe_rendu->popup(QCursor::pos());
 				break;
 			case type_graphe::RENDU:
+				m_menu_ajout_noeud_rendu->popup(QCursor::pos());
 				break;
 			case type_graphe::COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());

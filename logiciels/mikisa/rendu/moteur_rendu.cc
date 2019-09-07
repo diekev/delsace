@@ -28,20 +28,12 @@
 
 long deleguee_scene::nombre_objets() const
 {
-	if (scene == nullptr) {
-		return 0;
-	}
-
-	return scene->taille();
+	return objets.taille();
 }
 
 Objet *deleguee_scene::objet(long idx) const
 {
-	if (scene == nullptr) {
-		return nullptr;
-	}
-
-	return (*scene)[idx];
+	return objets[idx];
 }
 
 /* ************************************************************************** */
@@ -60,9 +52,9 @@ void MoteurRendu::camera(vision::Camera3D *camera)
 	m_camera = camera;
 }
 
-void MoteurRendu::scene(const dls::tableau<Objet *> *scene)
+deleguee_scene *MoteurRendu::delegue()
 {
-	m_delegue->scene = scene;
+	return m_delegue;
 }
 
 void MoteurRendu::construit_scene()

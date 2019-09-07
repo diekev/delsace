@@ -47,7 +47,7 @@ struct StatistiquesRendu;
  * L'idée est similaire à celle présente dans Hydra de Pixar.
  */
 struct deleguee_scene {
-	dls::tableau<Objet *> const *scene = nullptr;
+	dls::tableau<Objet *> objets{};
 
 	long nombre_objets() const;
 
@@ -71,7 +71,7 @@ public:
 
 	void camera(vision::Camera3D *camera);
 
-	void scene(dls::tableau<Objet *> const *scene);
+	deleguee_scene *delegue();
 
 	virtual const char *id() const = 0;
 

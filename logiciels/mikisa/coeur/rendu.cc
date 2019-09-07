@@ -24,7 +24,11 @@
 
 #include "rendu.hh"
 
+#include "base_de_donnees.hh"
+#include "mikisa.h"
 #include "noeud.hh"
+#include "noeud_image.h"
+#include "operatrice_image.h"
 
 Rendu::Rendu(Noeud &n)
 	: noeud(n)
@@ -32,4 +36,48 @@ Rendu::Rendu(Noeud &n)
 	noeud.peut_avoir_graphe = true;
 	noeud.donnees = this;
 	noeud.graphe.type = type_graphe::RENDU;
+}
+
+/* ************************************************************************** */
+
+Rendu *cree_rendu_defaut(Mikisa &mikisa)
+{
+	auto rendu = mikisa.bdd.cree_rendu("rendu");
+
+	auto &graphe = rendu->noeud.graphe;
+
+	auto noeud_sortie = graphe.cree_noeud("Moteur Rendu", type_noeud::OPERATRICE);
+	mikisa.usine_operatrices()("Moteur Rendu", graphe, *noeud_sortie);
+	synchronise_donnees_operatrice(*noeud_sortie);
+
+	auto noeud_objets = graphe.cree_noeud("Cherche Objets", type_noeud::OPERATRICE);
+	mikisa.usine_operatrices()("Cherche Objets", graphe, *noeud_objets);
+	synchronise_donnees_operatrice(*noeud_objets);
+
+	graphe.connecte(noeud_objets->sortie(0), noeud_sortie->entree(0));
+
+	return rendu;
+}
+
+void evalue_graphe_rendu(Rendu *rendu, ContexteEvaluation &contexte)
+{
+	if (rendu == nullptr) {
+		return;
+	}
+
+	auto noeud_sortie = static_cast<Noeud *>(nullptr);
+
+	for (auto noeud : rendu->noeud.graphe.noeuds()) {
+		if (noeud->est_sortie) {
+			noeud_sortie = noeud;
+			break;
+		}
+	}
+
+	if (noeud_sortie == nullptr) {
+		return;
+	}
+
+	auto op = extrait_opimage(noeud_sortie->donnees);
+	op->execute(contexte, nullptr);
 }
