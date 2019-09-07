@@ -86,6 +86,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_pixel.cc
 	operatrices_poseidon.cc
 	operatrices_region.cc
+	operatrices_rendu.cc
 	operatrices_script.cc
 	operatrices_simulation_foule.cc
 	operatrices_simulations.cc
@@ -119,6 +120,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_pixel.h
 	operatrices_poseidon.hh
 	operatrices_region.h
+	operatrices_rendu.hh
 	operatrices_script.hh
 	operatrices_simulation_foule.hh
 	operatrices_simulations.hh
