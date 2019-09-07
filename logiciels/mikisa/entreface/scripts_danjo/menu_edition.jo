@@ -5,6 +5,8 @@ menu "Édition" {
 	séparateur
 	action(valeur="Ajouter Composite"; attache=ajouter_composite)
 	séparateur
+	action(valeur="Ajouter Objet Vide"; attache=ajoute_prereglage; métadonnée="vide")
+	séparateur
 	action(valeur="Ajouter Nuanceur"; attache=ajouter_nuanceur)
 	séparateur
 	action(valeur="Ajouter Rendu"; attache=ajouter_rendu)
