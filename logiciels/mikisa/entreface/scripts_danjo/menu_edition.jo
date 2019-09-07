@@ -4,4 +4,8 @@ menu "Édition" {
 	action(valeur="Ajouter Propriété"; attache=ajouter_propriete)
 	séparateur
 	action(valeur="Ajouter Composite"; attache=ajouter_composite)
+	séparateur
+	action(valeur="Ajouter Nuanceur"; attache=ajouter_nuanceur)
+	séparateur
+	action(valeur="Ajouter Rendu"; attache=ajouter_rendu)
 }

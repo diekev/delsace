@@ -78,6 +78,9 @@ set(FICHIERS_DANJO
 	scripts_danjo/menu_ajouter_noeud_objet.jo
 	scripts_danjo/menu_ajouter_noeud_scene.jo
 	scripts_danjo/menu_ajouter_noeud_simulation.jo
+	scripts_danjo/menu_graphe_composite.jo
+	scripts_danjo/menu_graphe_nuanceur.jo
+	scripts_danjo/menu_graphe_rendu.jo
 	scripts_danjo/menu_debogage.jo
 	scripts_danjo/menu_edition.jo
 	scripts_danjo/menu_fichier.jo

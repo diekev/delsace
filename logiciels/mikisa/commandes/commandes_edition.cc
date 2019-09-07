@@ -113,6 +113,38 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeAjouterNuanceur final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+
+		mikisa->bdd.cree_nuanceur("nuanceur");
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class CommandeAjouterRendu final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+
+		mikisa->bdd.cree_rendu("rendu");
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_edition(UsineCommande &usine)
 {
 	usine.enregistre_type("ajouter_propriete",
@@ -121,6 +153,14 @@ void enregistre_commandes_edition(UsineCommande &usine)
 
 	usine.enregistre_type("ajouter_composite",
 						   description_commande<CommandeAjouterComposite>(
+							   "", 0, 0, 0, false));
+
+	usine.enregistre_type("ajouter_nuanceur",
+						   description_commande<CommandeAjouterNuanceur>(
+							   "", 0, 0, 0, false));
+
+	usine.enregistre_type("ajouter_rendu",
+						   description_commande<CommandeAjouterRendu>(
 							   "", 0, 0, 0, false));
 }
 
