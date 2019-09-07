@@ -72,8 +72,8 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_detail.jo");
 	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_scene.jo");
-	m_menu_ajout_noeud_scene = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
+	texte_entree = dls::contenu_fichier("entreface/menu_graphe_objet.jo");
+	m_menu_graphe_objet = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
 
 	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_simulation.jo");
 	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
@@ -96,7 +96,7 @@ VueEditeurNoeud::~VueEditeurNoeud()
 	delete m_menu_ajout_noeud_composite;
 	delete m_menu_ajout_noeud_objet;
 	delete m_menu_ajout_noeud_detail;
-	delete m_menu_ajout_noeud_scene;
+	delete m_menu_graphe_objet;
 	delete m_menu_ajout_noeud_simulation;
 }
 
@@ -121,7 +121,7 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;
 			case type_graphe::RACINE_OBJET:
-				m_menu_ajout_noeud_scene->popup(QCursor::pos());
+				m_menu_graphe_objet->popup(QCursor::pos());
 				break;
 			case type_graphe::OBJET:
 				m_menu_ajout_noeud_objet->popup(QCursor::pos());
