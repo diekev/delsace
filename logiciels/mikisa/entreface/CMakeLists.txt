@@ -128,6 +128,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_creation_grille_eclairage.jo
 	scripts_danjo/operatrice_creation_groupe.jo
 	scripts_danjo/operatrice_creation_kelvinlet.jo
+	scripts_danjo/operatrice_creation_pancartes.jo
 	scripts_danjo/operatrice_creation_volume.jo
 	scripts_danjo/operatrice_creation_volume_temporel.jo
 	scripts_danjo/operatrice_daltonisme.jo

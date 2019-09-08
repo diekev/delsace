@@ -2117,7 +2117,7 @@ class OpCreationPancarte final : public OperatriceCorps {
 	Objet *m_objet = nullptr;
 
 public:
-	static constexpr auto NOM = "Création Pancarte";
+	static constexpr auto NOM = "Création Pancartes";
 	static constexpr auto AIDE = "Crée des pancartes qui font toujours face à la caméra.";
 
 	OpCreationPancarte(Graphe &graphe_parent, Noeud &noeud_)
@@ -2130,7 +2130,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_visibilite_camera.jo";
+		return "entreface/operatrice_creation_pancartes.jo";
 	}
 
 	const char *nom_classe() const override
@@ -2163,7 +2163,7 @@ public:
 	{
 		m_corps.reinitialise();
 
-	//	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
+		auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		m_objet = trouve_objet(contexte);
 
@@ -2184,27 +2184,68 @@ public:
 			camera = &extrait_camera(donnees);
 		});
 
-		auto const pos = dls::math::vec3f(0.0f);
+		auto attr_UV = m_corps.ajoute_attribut(
+					"UV", type_attribut::R32, 2, portee_attr::VERTEX);
+
+		auto taille_uniforme = evalue_decimal("rayon_uniforme", contexte.temps_courant);
+		auto taille_x = evalue_decimal("rayon_x", contexte.temps_courant);
+		auto taille_y = evalue_decimal("rayon_y", contexte.temps_courant);
+
+		taille_x *= taille_uniforme;
+		taille_y *= taille_uniforme;
 
 		dls::math::vec3f points_pancate[4] = {
-			dls::math::vec3f(-1.0f, 0.0f, -1.0f),
-			dls::math::vec3f( 1.0f, 0.0f, -1.0f),
-			dls::math::vec3f( 1.0f, 0.0f,  1.0f),
-			dls::math::vec3f(-1.0f, 0.0f,  1.0f),
+			dls::math::vec3f(-taille_x, 0.0f, -taille_y),
+			dls::math::vec3f( taille_x, 0.0f, -taille_y),
+			dls::math::vec3f( taille_x, 0.0f,  taille_y),
+			dls::math::vec3f(-taille_x, 0.0f,  taille_y),
 		};
 
-		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
+		if (corps_ref != nullptr) {
+			auto points_ref = corps_ref->points_pour_lecture();
 
-		auto mat = dls::math::aligne_rotation(
-					dls::math::vec3f(0.0f, 1.0f, 0.0f),
-					normalise(camera->pos() - pos));
-
-		for (auto i = 0; i < 4; ++i) {
-			auto idx_point = m_corps.ajoute_point(mat * points_pancate[i]);
-			m_corps.ajoute_sommet(poly, idx_point);
+			for (auto i = 0; i < points_ref->taille(); ++i) {
+				auto point = corps_ref->point_transforme(i);
+				cree_pancarte(camera, point, *attr_UV, points_pancate);
+			}
+		}
+		else {
+			auto const pos = evalue_vecteur("position", contexte.temps_courant);
+			cree_pancarte(camera, pos, *attr_UV, points_pancate);
 		}
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void cree_pancarte(
+			vision::Camera3D *camera,
+			dls::math::vec3f const &pos,
+			Attribut &attr_UV,
+			dls::math::vec3f *points_pancate)
+	{
+		dls::math::vec2f uvs_pancarte[4] = {
+			dls::math::vec2f(-1.0f, -1.0f),
+			dls::math::vec2f( 1.0f, -1.0f),
+			dls::math::vec2f( 1.0f,  1.0f),
+			dls::math::vec2f(-1.0f,  1.0f),
+		};
+
+		auto axe_y = normalise(camera->pos() - pos);
+		auto axe_x = normalise(vec_ortho(axe_y));
+		auto axe_z = normalise(produit_croix(axe_y, axe_x));
+
+		auto mat = dls::math::mat3x3f(
+					axe_x.x, axe_x.y, axe_x.z,
+					axe_y.x, axe_y.y, axe_y.z,
+					axe_z.x, axe_z.y, axe_z.z);
+
+		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
+
+		for (auto i = 0; i < 4; ++i) {
+			auto idx_point = m_corps.ajoute_point(mat * points_pancate[i] + pos);
+			auto idx_sommet = m_corps.ajoute_sommet(poly, idx_point);
+			assigne(attr_UV.r32(idx_sommet), uvs_pancarte[i]);
+		}
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
