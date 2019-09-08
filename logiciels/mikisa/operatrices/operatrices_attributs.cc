@@ -25,6 +25,7 @@
 #include "operatrices_attributs.hh"
 
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -35,6 +36,8 @@
 #include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
+
+#include "corps/iteration_corps.hh"
 
 #include "evaluation/reseau.hh"
 
@@ -893,13 +896,54 @@ public:
 
 /* ************************************************************************** */
 
-#include "corps/iteration_corps.hh"
-#include "biblinternes/outils/definitions.h"
-
 struct donnees_promotion {
 	long idx_dest{};
+
+	/* la promotion se fait en assignant une valeur depuis un index d'origine
+	 * avec un poids défini selon la portée, l'index est le premier élément de
+	 * la paire, et le poids le second */
 	dls::tableau<std::pair<long, float>> paires_idx_poids{};
 };
+
+template <typename T>
+static auto copie_attributs(
+		Attribut &attr_dst,
+		Attribut const &attr_src,
+		dls::tableau<donnees_promotion> const &donnees)
+{
+	auto poids = dls::tableau<float>(attr_dst.taille());
+
+	for (auto const &donnee : donnees) {
+		for (auto const &p : donnee.paires_idx_poids) {
+			auto ptr_dst = attr_dst.valeur<T>(donnee.idx_dest);
+			auto ptr_src = attr_src.valeur<T>(p.first);
+
+			for (auto i = 0; i < attr_dst.dimensions; ++i) {
+				/* la syntaxe est étrange car C++ converti les chars en ints et
+				 * il faut reconvertir les ints en chars */
+				ptr_dst[i] = T(ptr_dst[i] + ptr_src[i] * T(p.second));
+			}
+
+			poids[donnee.idx_dest] += p.second;
+		}
+	}
+
+	for (auto i = 0; i < attr_dst.taille(); ++i) {
+		auto pds = poids[i];
+
+		if (pds == 0.0f || pds == 1.0f) {
+			continue;
+		}
+
+		auto ptr_dst = attr_dst.valeur<T>(i);
+
+		for (auto j = 0; j < attr_dst.dimensions; ++j) {
+			/* la syntaxe est étrange car C++ converti les chars en ints et
+			 * il faut reconvertir les ints en chars */
+			ptr_dst[j] = T(ptr_dst[j] / T(pds));
+		}
+	}
+}
 
 static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr portee_dest)
 {
@@ -917,7 +961,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	if (portee_orig == portee_attr::POINT) {
 		if (portee_dest == portee_attr::PRIMITIVE) {
 			/* moyenne des attributs des points autour de la primitive */
-			pour_chaque_primitive(corps, [&](Corps const &corps_entree, Polygone *prim)
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
 			{
 				INUTILISE(corps_entree);
 
@@ -935,7 +979,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 		}
 		else if (portee_dest == portee_attr::VERTEX) {
 			/* attribut du point de ce vertex */
-			pour_chaque_primitive(corps, [&](Corps const &corps_entree, Polygone *prim)
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
 			{
 				INUTILISE(corps_entree);
 
@@ -943,7 +987,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
-					donnee.idx_dest = donnees.taille();
+					donnee.idx_dest = prim->index_sommet(i);
 					donnee.paires_idx_poids.pousse({prim->index_point(i), 1.0f});
 					donnees.pousse(donnee);
 				}
@@ -963,10 +1007,36 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	}
 	else if (portee_orig == portee_attr::PRIMITIVE) {
 		if (portee_dest == portee_attr::POINT) {
-			// moyenne des attributs des primitives autour du point
+			/* moyenne des attributs des primitives autour du point */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index_point(i);
+					donnee.paires_idx_poids.pousse({prim->index, 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::VERTEX) {
-			// attribut de la primitive contenant le vertex
+			/* attribut de la primitive contenant le vertex */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index_sommet(i);
+					donnee.paires_idx_poids.pousse({prim->index, 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::CORPS) {
 			/* moyenne de tous les attributs */
@@ -982,10 +1052,36 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	}
 	else if (portee_orig == portee_attr::VERTEX) {
 		if (portee_dest == portee_attr::POINT) {
-			// moyenne des attributs des vertex autour du point
+			/* moyenne des attributs des vertex autour du point */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index_point(i);
+					donnee.paires_idx_poids.pousse({prim->index_sommet(i), 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::PRIMITIVE) {
-			// moyenne des attributs des vertex autour de la primitive
+			/* moyenne des attributs des vertex autour de la primitive */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index;
+					donnee.paires_idx_poids.pousse({prim->index_sommet(i), 1.0f / static_cast<float>(nombre_points)});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::CORPS) {
 			/* moyenne de tous les attributs */
@@ -1010,23 +1106,82 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 		}
 	}
 	else if (portee_orig == portee_attr::GROUPE) {
-		/* À FAIRE */
+		/* À FAIRE : promotion attribut groupe */
 	}
 
-	for (auto const &donnee : donnees) {
-		for (auto const &p : donnee.paires_idx_poids) {
-			copie_attribut(&attr_orig, p.first, attr_dest, donnee.idx_dest);
+	switch (attr_dest->type()) {
+		case type_attribut::N8:
+		{
+			copie_attributs<unsigned char>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::N16:
+		{
+			copie_attributs<unsigned short>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::N32:
+		{
+			copie_attributs<unsigned int>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::N64:
+		{
+			copie_attributs<unsigned long>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z8:
+		{
+			copie_attributs<char>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z16:
+		{
+			copie_attributs<short>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z32:
+		{
+			copie_attributs<int>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z64:
+		{
+			copie_attributs<long>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::R16:
+		{
+			copie_attributs<r16>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::R32:
+		{
+			copie_attributs<float>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::R64:
+		{
+			copie_attributs<double>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::CHAINE:
+		case type_attribut::INVALIDE:
+		{
+			return attr_dest;
 		}
 	}
 
 	auto const &nom = attr_orig.nom();
 	corps.supprime_attribut(nom);
 	attr_dest->nom(nom);
+
+	return attr_dest;
 }
 
 class OpPromeutAttribut final : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Promeut Attributs";
+	static constexpr auto NOM = "Promotion Attribut";
 	static constexpr auto AIDE = "";
 
 	OpPromeutAttribut(Graphe &graphe_parent, Noeud &noeud_)
@@ -1038,7 +1193,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_transfere_attribut.jo";
+		return "entreface/operatrice_attribut_promotion.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1058,14 +1213,72 @@ public:
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 
-		auto attr_orig = m_corps.attribut(nom_attribut);
+		auto attr_src = m_corps.attribut(nom_attribut);
 
-		if (attr_orig == nullptr) {
+		if (attr_src == nullptr) {
 			dls::flux_chaine ss;
 			ss << "Le corps d'origine ne possède pas l'attribut '"
 			   << nom_attribut << "'";
 			this->ajoute_avertissement(ss.chn());
 			return EXECUTION_ECHOUEE;
+		}
+
+		if (attr_src->type() == type_attribut::CHAINE) {
+			this->ajoute_avertissement("Le transfère de chaine n'est pas encore supporté");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (attr_src->type() == type_attribut::INVALIDE) {
+			this->ajoute_avertissement("Le type d'attribut est invalide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto chaine_portee = evalue_enum("portée_attribut");
+
+		auto dico_portee = dls::cree_dico(
+					dls::paire{ dls::chaine("corps"), portee_attr::CORPS },
+					dls::paire{ dls::chaine("groupe"), portee_attr::GROUPE },
+					dls::paire{ dls::chaine("points"), portee_attr::POINT },
+					dls::paire{ dls::chaine("primitives"), portee_attr::PRIMITIVE },
+					dls::paire{ dls::chaine("sommets"), portee_attr::VERTEX });
+
+		auto plg_portee = dico_portee.trouve(chaine_portee);
+
+		if (plg_portee.est_finie()) {
+			dls::flux_chaine ss;
+			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
+			ajoute_avertissement(ss.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto portee_dst = plg_portee.front().second;
+
+		if (portee_dst != attr_src->portee) {
+			auto preserve_lum = evalue_bool("préserve_lum");
+
+			/* préseve la luminosité en appliquant une transformation gamma
+			 * inverse aux couleurs avant de les interpoler, puis restore le
+			 * gamma, peut-être inutile
+			 * voir http://www.iquilezles.org/www/articles/gamma/gamma.htm */
+			if (preserve_lum && attr_src->type() == type_attribut::R32) {
+				transforme_attr<float>(*attr_src, [&](float *ptr)
+				{
+					for (auto i = 0; i < attr_src->dimensions; ++i) {
+						ptr[i] = std::pow(ptr[i], 2.2f);
+					}
+				});
+			}
+
+			auto attr_dst = promeut_attribut(m_corps, *attr_src, portee_dst);
+
+			if (preserve_lum && attr_dst->type() == type_attribut::R32) {
+				transforme_attr<float>(*attr_dst, [&](float *ptr)
+				{
+					for (auto i = 0; i < attr_dst->dimensions; ++i) {
+						ptr[i] = std::pow(ptr[i], 0.45f);
+					}
+				});
+			}
 		}
 
 		return EXECUTION_REUSSIE;
@@ -1078,7 +1291,7 @@ public:
 	{
 		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
-			entree(1)->obtiens_liste_attributs(chaines);
+			entree(0)->obtiens_liste_attributs(chaines);
 		}
 	}
 };
