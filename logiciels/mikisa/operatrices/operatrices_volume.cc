@@ -373,7 +373,7 @@ static void rasterise_ligne(
 			auto T = (p1 - p0);
 
 			// trouve la normale, simplement un vecteur orthogonal à T
-			auto N = dls::math::vec3f(-T.y, T.x, 0.0f);
+			auto N = vec_ortho(T);
 
 			// trouve le troisième axe
 			auto NxT = produit_croix(N, T);
