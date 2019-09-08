@@ -183,6 +183,18 @@ struct vecteur final : public detail::selecteur_base_vecteur<O, T, Ns...>::type_
 		return *this;
 	}
 
+	inline type_vecteur &operator>>=(int dec)
+	{
+		((this->data[Ns] >>= dec), ...);
+		return *this;
+	}
+
+	inline type_vecteur &operator<<=(int dec)
+	{
+		((this->data[Ns] <<= dec), ...);
+		return *this;
+	}
+
 private:
 	auto construit_index(size_t &i, type_scalaire scalaire)
 	{

@@ -1457,19 +1457,6 @@ private:
 	/////////////////////////////////////////////////////////////////////////////////
 };
 
-namespace dls::math {
-
-inline auto operator<<=(dls::math::vec3i &v, int s)
-{
-	v.x <<= s;
-	v.y <<= s;
-	v.z <<= s;
-
-	return v;
-}
-
-}
-
 //! An implementation of the Lighting Grid Hierarchy method.
 //!
 //! Can Yuksel and Cem Yuksel. 2017. Lighting Grid Hierarchy for
