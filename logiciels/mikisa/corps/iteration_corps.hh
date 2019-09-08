@@ -41,7 +41,7 @@ void pour_chaque_polygone_ferme(Corps &corps, type_fonc_rap_poly fonction_rappel
 
 void pour_chaque_polygone_ouvert(Corps &corps, type_fonc_rap_poly fonction_rappel);
 
-void pour_chaque_primitive(Corps &corps, type_fonc_rap_poly fonction_rappel);
+void pour_chaque_primitive(Corps &corps, type_fonc_rap_prim fonction_rappel);
 
 void pour_chaque_volume(Corps &corps, type_fonc_rap_volume fonction_rappel);
 
@@ -57,6 +57,6 @@ void pour_chaque_polygone_ferme(Corps const &corps, type_fonc_rap_poly_const fon
 
 void pour_chaque_polygone_ouvert(Corps const &corps, type_fonc_rap_poly_const fonction_rappel);
 
-void pour_chaque_primitive(Corps const &corps, type_fonc_rap_poly_const fonction_rappel);
+void pour_chaque_primitive(Corps const &corps, type_fonc_rap_prim_const fonction_rappel);
 
 void pour_chaque_volume(Corps const &corps, type_fonc_rap_volume_const fonction_rappel);
