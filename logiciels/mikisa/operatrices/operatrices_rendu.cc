@@ -113,6 +113,10 @@ public:
 
 	~OpMoteurRendu() override
 	{
+		if (m_moteur_rendu == nullptr) {
+			return;
+		}
+
 		if (m_moteur_rendu->id() == dls::chaine("opengl")) {
 			auto moteur_rendu = dynamic_cast<MoteurRenduOpenGL *>(m_moteur_rendu);
 			memoire::deloge("MoteurRenduOpenGL", moteur_rendu);
