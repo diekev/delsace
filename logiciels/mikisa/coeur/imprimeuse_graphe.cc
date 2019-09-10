@@ -40,7 +40,7 @@ static constexpr auto fontsize = 20.0;
 static constexpr auto node_label_size = 14.0;
 static constexpr auto color_value = "gold1";
 
-inline static dls::chaine node_id(const Noeud *node, bool quoted = true)
+dls::chaine node_id(const Noeud *node, bool quoted)
 {
 	dls::flux_chaine ss;
 
@@ -121,7 +121,7 @@ inline static dls::chaine output_id(const PriseSortie *socket, long index, bool 
 	return ss.chn();
 }
 
-inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
+inline void dump_node(dls::flux_chaine &flux, Noeud *node)
 {
 	constexpr auto shape = "box";
 	constexpr auto style = "filled,rounded";
@@ -129,92 +129,115 @@ inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
 	constexpr auto fillcolor = "gainsboro";
 	constexpr auto penwidth = 1.0;
 
-	file.print("// %s\n", node->nom.c_str());
-	file.print("%s", node_id(node).c_str());
-	file.print("[");
+	flux << "// " << node->nom << "\n";
+	flux << node_id(node);
+	flux << "[";
 
-	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
-	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom.c_str());
+	flux << "label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">";
+	flux << "<TR><TD COLSPAN=\"2\">" << node->nom << "</TD></TR>";
 
 	auto const numin = node->entrees.taille();
 	auto const numout = node->sorties.taille();
 
 	for (auto i = 0; (i < numin) || (i < numout); ++i) {
-		file.print("<TR>");
+		flux << "<TR>";
 
 		if (i < numin) {
 			auto const &input = node->entree(i);
 			auto const &name_in = input->nom;
 
-			file.print("<TD");
-			file.print(" PORT=%s", input_id(input, i).c_str());
-			file.print(" BORDER=\"1\"");
-			file.print(" BGCOLOR=\"%s\"", color_value);
-			file.print(">");
-			file.print("%s", name_in.c_str());
-			file.print("</TD>");
+			flux << "<TD";
+			flux << " PORT=" << input_id(input, i);
+			flux << " BORDER=\"1\"";
+			flux << " BGCOLOR=\"" << color_value << "\"";
+			flux << ">";
+			flux << name_in;
+			flux << "</TD>";
 		}
 		else {
-			file.print("<TD></TD>");
+			flux << "<TD></TD>";
 		}
 
 		if (i < numout) {
 			auto const &output = node->sortie(i);
 			auto const &name_out = output->nom;
 
-			file.print("<TD");
-			file.print(" PORT=%s", output_id(output, i).c_str());
-			file.print(" BORDER=\"1\"");
-			file.print(" BGCOLOR=\"%s\"", color_value);
-			file.print(">");
-			file.print("%s", name_out.c_str());
-			file.print("</TD>");
+			flux << "<TD";
+			flux << " PORT=" << output_id(output, i);
+			flux << " BORDER=\"1\"";
+			flux << " BGCOLOR=\"" << color_value << "\"";
+			flux << ">";
+			flux << name_out;
+			flux << "</TD>";
 		}
 		else {
-			file.print("<TD></TD>");
+			flux << "<TD></TD>";
 		}
 
-		file.print("</TR>");
+		flux << "</TR>";
 	}
 
-	file.print("</TABLE>>");
+	flux << "</TABLE>>";
 
-	file.print(",fontname=\"%s\"", fontname);
-	file.print(",fontsize=\"%f\"", node_label_size);
-	file.print(",shape=\"%s\"", shape);
-	file.print(",style=\"%s\"", style);
-	file.print(",color=\"%s\"", color);
-	file.print(",fillcolor=\"%s\"", fillcolor);
-	file.print(",penwidth=\"%f\"", penwidth);
-	file.print("];\n");
-	file.print("\n");
+	flux << ",fontname=\"" << fontname << "\"";
+	flux << ",fontsize=\"" << node_label_size << "\"";
+	flux << ",shape=\"" << shape << "\"";
+	flux << ",style=\"" << style << "\"";
+	flux << ",color=\"" << color << "\"";
+	flux << ",fillcolor=\"" << fillcolor << "\"";
+	flux << ",penwidth=\"" << penwidth << "\"";
+	flux << "];\n";
+	flux << "\n";
 }
 
-inline void dump_link(dls::systeme_fichier::File &file, const PriseSortie *from, const PriseEntree *to)
+inline void dump_link(dls::flux_chaine &flux, const PriseSortie *from, const PriseEntree *to)
 {
 	auto penwidth = 2.0;
 
-	file.print("%s:%s -> %s:%s",
-			   node_id(from->parent).c_str(), output_id(from, -1l).c_str(),
-			   node_id(to->parent).c_str(), input_id(to, -1l).c_str());
-
-	file.print("[");
-
+	flux << node_id(from->parent) << ':' << output_id(from, -1l);
+	flux << " -> ";
+	flux << node_id(to->parent) << ':' << input_id(to, -1l);
+	flux << "[";
 	/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
-	file.print("id=\"VAL%s:%s\"", node_id(to->parent, false).c_str(), input_id(to, -1l, false).c_str());
-	file.print(",penwidth=\"%f\"", penwidth);
-
-	file.print("];\n");
-	file.print("\n");
+	flux << "id=\"VAL" << node_id(to->parent, false) << ':' << input_id(to, -1l, false) << '"';
+	flux << ",penwidth=\"" << penwidth << '"';
+	flux << "];\n";
+	flux << '\n';
 }
 
-inline void dump_node_links(dls::systeme_fichier::File &file, const Noeud *node)
+inline void dump_node_links(dls::flux_chaine &flux, const Noeud *node)
 {
 	for (auto const &entree : node->entrees) {
 		for (auto const &sortie : entree->liens) {
-			dump_link(file, sortie, entree);
+			dump_link(flux, sortie, entree);
 		}
 	}
+}
+
+dls::chaine chaine_graphe_dot(Graphe const &graphe)
+{
+	auto flux = dls::flux_chaine();
+
+	flux << "digraph depgraph {\n";
+	flux << "rankdir=LR\n";
+	flux << "graph [";
+	flux << "labbelloc=\"t\"";
+	flux << ",fontsize=\"" << fontsize << "\"";
+	flux << ",fontname=\"" << fontname << "\"";
+	flux << ",label=\"Image Graph\"";
+	flux << "]\n";
+
+	for (auto const &node : graphe.noeuds()) {
+		dump_node(flux, node);
+	}
+
+	for (auto const &node : graphe.noeuds()) {
+		dump_node_links(flux, node);
+	}
+
+	flux << "}\n";
+
+	return flux.chn();
 }
 
 ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
@@ -223,28 +246,13 @@ ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
 
 void ImprimeuseGraphe::operator()(filesystem::path const &path)
 {
-	dls::systeme_fichier::File file(path.c_str(), "w");
+	auto fichier = dls::systeme_fichier::File(path.c_str(), "w" );
 
-	if (!file) {
+	if (!fichier) {
 		return;
 	}
 
-	file.print("digraph depgraph {\n");
-	file.print("rankdir=LR\n");
-	file.print("graph [");
-	file.print("labbelloc=\"t\"");
-	file.print(",fontsize=\"%f\"", fontsize);
-	file.print("fontname=\"%s\"", fontname);
-	file.print("label=\"Image Graph\"");
-	file.print("]\n");
+	auto chn = chaine_graphe_dot(*m_graph);
 
-	for (auto const &node : m_graph->noeuds()) {
-		dump_node(file, node);
-	}
-
-	for (auto const &node : m_graph->noeuds()) {
-		dump_node_links(file, node);
-	}
-
-	file.print("}\n");
+	fichier.print("%s", chn.c_str());
 }

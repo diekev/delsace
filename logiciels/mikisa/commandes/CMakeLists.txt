@@ -36,6 +36,8 @@ set(BIBLIOTHEQUES
 	bib_patrons
 	bib_vision
 	danjo
+	cgraph
+	gvc
 	mikisa_coeur
 	mikisa_evaluation
 	${BIBLIOTHEQUES_OPENCOLORIO}

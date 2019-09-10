@@ -1038,16 +1038,66 @@ static void autodispose_graphe(Graphe &graphe)
 }
 #endif
 
+#include <graphviz/cgraph.h>
+#include <graphviz/gvc.h>
+#include <graphviz/geom.h>
+
 class CommandeArrangeGraphe final : public Commande {
 public:
 	CommandeArrangeGraphe() = default;
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
-		//auto mikisa = extrait_mikisa(pointeur);
-		//auto graphe = mikisa->graphe;
+		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
 
 		//autodispose_graphe(*graphe);
+
+		GVC_t *gvc = gvContext();
+
+		if (gvc == nullptr) {
+			mikisa->affiche_erreur("Ne peut pas créer le contexte GrapheViz");
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto chn_graphe = chaine_graphe_dot(*graphe);
+		//std::cerr << chn_graphe << '\n';
+		Agraph_t *g = agmemread(chn_graphe.c_str());
+
+		if (gvc == nullptr) {
+			gvFreeContext(gvc);
+			mikisa->affiche_erreur("Ne peut pas créer le graphe GrapheViz");
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		gvLayout(gvc, g, "dot");
+
+		gvRender(gvc, g, "dot", nullptr);
+
+		if (g->n_id == nullptr) {
+			mikisa->affiche_erreur("L'ensemble des noeuds est nul !");
+		}
+		else {
+			for (auto obj = dtfirst(g->n_seq); obj; obj = dtnext(g->n_seq, obj)) {
+				auto gnoeud = static_cast<node_t *>(obj);
+
+				std::cerr << gnoeud << '\n';
+
+				auto pos_noeud = reinterpret_cast<point *>(agget(gnoeud, const_cast<char *>("pos")));
+
+				if (pos_noeud == nullptr) {
+					std::cerr << "La position est nulle\n";
+					continue;
+				}
+
+				std::cerr << "Position noeud '" << "" << "' : "
+						  << pos_noeud->x << ", " << pos_noeud->y << '\n';
+			}
+		}
+
+		gvFreeLayout(gvc, g);
+		agclose(g);
+		gvFreeContext(gvc);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

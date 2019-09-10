@@ -26,9 +26,15 @@
 
 #include <filesystem>
 
+#include "biblinternes/structures/chaine.hh"
+
 namespace filesystem = std::filesystem;
 
+class Noeud;
 class Graphe;
+
+dls::chaine node_id(Noeud const *node, bool quoted = true);
+dls::chaine chaine_graphe_dot(Graphe const &graphe);
 
 class ImprimeuseGraphe {
 	Graphe *m_graph;
