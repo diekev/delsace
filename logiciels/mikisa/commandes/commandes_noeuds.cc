@@ -310,12 +310,6 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		/* À FAIRE : les prédicats ne sont appelés qu'à travers un répondant
-		 * bouton... */
-		if (!evalue_predicat(pointeur, nom)) {
-			return EXECUTION_COMMANDE_ECHOUEE;
-		}
-
 		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
 
 		(mikisa->usine_operatrices())(nom, *graphe, *noeud);
