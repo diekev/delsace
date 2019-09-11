@@ -203,22 +203,22 @@ struct Noeud : public danjo::Manipulable {
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
 	 */
-	PriseEntree *entree(long index);
+	PriseEntree *entree(long index) const;
 
 	/**
 	 * Retourne l'entrée selon le nom spécifié.
 	 */
-	PriseEntree *entree(dls::chaine const &nom_entree);
+	PriseEntree *entree(dls::chaine const &nom_entree) const;
 
 	/**
 	 * Retourne la sortie selon l'index spécifié.
 	 */
-	PriseSortie *sortie(long index);
+	PriseSortie *sortie(long index) const;
 
 	/**
 	 * Retourne la sortie selon le nom spécifié.
 	 */
-	PriseSortie *sortie(dls::chaine const &nom_sortie);
+	PriseSortie *sortie(dls::chaine const &nom_sortie) const;
 
 	/**
 	 * Retourne vrai si le noeud est lié à d'autres noeuds.

@@ -125,7 +125,7 @@ inline static dls::chaine id_dot_pour_sortie(
 	return ss.chn();
 }
 
-inline void imprime_noeud(dls::flux_chaine &flux, Noeud *noeud)
+inline void imprime_noeud(dls::flux_chaine &flux, Noeud const *noeud)
 {
 	constexpr auto forme = "box";
 	constexpr auto style = "filled,rounded";

@@ -153,12 +153,12 @@ void Noeud::ajoute_sortie(dls::chaine const &name, const type_prise type_p)
 	this->sorties.pousse(prise);
 }
 
-PriseEntree *Noeud::entree(long index)
+PriseEntree *Noeud::entree(long index) const
 {
 	return entrees[index];
 }
 
-PriseEntree *Noeud::entree(dls::chaine const &nom_entree)
+PriseEntree *Noeud::entree(dls::chaine const &nom_entree) const
 {
 	auto op = [&](PriseEntree const *prise)
 	{
@@ -174,12 +174,12 @@ PriseEntree *Noeud::entree(dls::chaine const &nom_entree)
 	return nullptr;
 }
 
-PriseSortie *Noeud::sortie(long index)
+PriseSortie *Noeud::sortie(long index) const
 {
 	return sorties[index];
 }
 
-PriseSortie *Noeud::sortie(dls::chaine const &nom_sortie)
+PriseSortie *Noeud::sortie(dls::chaine const &nom_sortie) const
 {
 	auto op = [&](PriseSortie const *prise)
 	{
