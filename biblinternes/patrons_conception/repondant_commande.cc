@@ -99,7 +99,6 @@ void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chain
 
 bool RepondantCommande::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
-	std::cerr << __func__ << '\n';
 	auto commande = m_usine_commande(identifiant);
 	return commande->evalue_predicat(m_pointeur, metadonnee);
 }
