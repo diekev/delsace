@@ -59,6 +59,7 @@
 #include "coeur/rendu.hh"
 #include "coeur/usine_operatrice.h"
 
+#include "lcc/contexte_execution.hh"
 #include "lcc/lcc.hh"
 
 #pragma clang diagnostic push
@@ -242,6 +243,43 @@ public:
 
 class CommandeAjoutNoeudDetail final : public Commande {
 public:
+	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
+
+		if (graphe->type != type_graphe::DETAIL) {
+			return false;
+		}
+
+		if (graphe->donnees.est_vide()) {
+			return false;
+		}
+
+		auto const &lcc = mikisa->lcc;
+		auto type_detail = std::any_cast<int>(graphe->donnees[0]);
+
+		using dls::outils::est_element;
+		using dls::outils::possede_drapeau;
+
+		auto const &df = lcc->fonctions.table[metadonnee][0];
+
+		auto detail_points = est_element(
+					type_detail,
+					DETAIL_PIXELS,
+					DETAIL_POINTS,
+					DETAIL_VOXELS,
+					DETAIL_TERRAIN,
+					DETAIL_NUANCAGE,
+					DETAIL_POSEIDON_GAZ);
+
+		if (detail_points) {
+			return possede_drapeau(df.ctx, lcc::ctx_script::detail);
+		}
+
+		return false;
+	}
+
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = extrait_mikisa(pointeur);
