@@ -33,7 +33,7 @@ namespace filesystem = std::filesystem;
 class Noeud;
 class Graphe;
 
-dls::chaine id_dot_pour_noeud(Noeud const *node, bool quoted = true);
+dls::chaine id_dot_pour_noeud(Noeud const *noeud, bool apostrophes = true);
 dls::chaine chaine_dot_pour_graphe(Graphe const &graphe);
 
 class ImprimeuseGraphe {
