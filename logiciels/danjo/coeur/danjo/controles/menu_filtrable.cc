@@ -22,7 +22,7 @@
  *
  */
 
-#include "menu_entrerogeable.h"
+#include "menu_filtrable.hh"
 
 #include <cassert>
 
@@ -30,6 +30,8 @@
 #include <QLineEdit>
 #include <QKeyEvent>
 #include <QWidgetAction>
+
+#include "action.h"
 
 /* ************************************************************************** */
 
@@ -113,11 +115,13 @@ protected:
 
 /* ************************************************************************** */
 
-MenuEntrerogeable::MenuEntrerogeable(const QString &titre, QWidget *parent)
+MenuFiltrable::MenuFiltrable(const QString &titre, QWidget *parent)
 	: QMenu(titre, parent)
-{}
+{
+	connect(this, &MenuFiltrable::aboutToShow, this, &MenuFiltrable::evalue_predicats_action);
+}
 
-void MenuEntrerogeable::init(QMenu *menu)
+void MenuFiltrable::init(QMenu *menu)
 {
 	const auto &acts = menu->actions();
 
@@ -137,7 +141,7 @@ void MenuEntrerogeable::init(QMenu *menu)
 	}
 }
 
-void MenuEntrerogeable::changement_texte(const QString &texte)
+void MenuFiltrable::changement_texte(const QString &texte)
 {
 	assert(m_menu_auxiliaire);
 	m_menu_auxiliaire->hide();
@@ -176,7 +180,20 @@ void MenuEntrerogeable::changement_texte(const QString &texte)
 	editeur_ligne->setFocus();
 }
 
-void MenuEntrerogeable::showEvent(QShowEvent *event)
+void MenuFiltrable::evalue_predicats_action()
+{
+	for (auto action : actions()) {
+		auto action_dnj = dynamic_cast<danjo::Action *>(action);
+
+		if (action_dnj == nullptr) {
+			continue;
+		}
+
+		action_dnj->evalue_predicat();
+	}
+}
+
+void MenuFiltrable::showEvent(QShowEvent *event)
 {
 	if (this->actions().size() > 0) {
 		/* Obtiens le QWidgetAction, en présumant qu'il n'y en a qu'un. */
@@ -198,7 +215,7 @@ void MenuEntrerogeable::showEvent(QShowEvent *event)
 		auto editeur_ligne = dynamic_cast<QLineEdit *>(wa->defaultWidget());
 		assert(editeur_ligne != nullptr);
 
-		connect(editeur_ligne, &QLineEdit::textEdited, this, &MenuEntrerogeable::changement_texte);
+		connect(editeur_ligne, &QLineEdit::textEdited, this, &MenuFiltrable::changement_texte);
 
 		/* Prépare l'éditeur de texte et capture le focus pour écouter les
 			 * frappes de clavier. */

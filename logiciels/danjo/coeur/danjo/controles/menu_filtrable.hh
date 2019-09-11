@@ -29,25 +29,25 @@
 #include "biblinternes/structures/dico.hh"
 
 /**
- * Un MenuEntrerogeable est un menu qui nous permet de chercher une de ses
- * actions en tapant un texte dans une barre de recherche. Les actions pouvant
+ * Un MenuFiltrable est un menu qui nous permet de chercher une de ses actions
+ * en tapant un texte dans une barre de recherche. Les actions pouvant
  * correspondre au texte sont ajoutées dans un menu auxiliaire affiché à côté
- * du MenuEntrerogeable actif.
+ * du MenuFiltrable actif.
  *
  * L'implémentation est tiré de
  * http://www.mprazak.info/posts/fuzzy-search-menu-in-qt/
  */
-class MenuEntrerogeable final : public QMenu {
+class MenuFiltrable final : public QMenu {
 	Q_OBJECT
 
 	dls::dico<QString, QAction *> m_actions{};
 	QMenu *m_menu_auxiliaire = nullptr;
 
 public:
-	MenuEntrerogeable(const QString &titre, QWidget *parent = nullptr);
+	MenuFiltrable(const QString &titre, QWidget *parent = nullptr);
 
-	MenuEntrerogeable(MenuEntrerogeable const &) = default;
-	MenuEntrerogeable &operator=(MenuEntrerogeable const &) = default;
+	MenuFiltrable(MenuFiltrable const &) = default;
+	MenuFiltrable &operator=(MenuFiltrable const &) = default;
 
 protected:
 	void showEvent(QShowEvent *event) override;
@@ -59,4 +59,6 @@ private:
 
 private Q_SLOTS:
 	void changement_texte(const QString &texte);
+
+	void evalue_predicats_action();
 };

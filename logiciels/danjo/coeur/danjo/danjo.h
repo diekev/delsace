@@ -62,7 +62,6 @@ struct DonneesAction {
 
 class GestionnaireInterface {
 	dls::dico_desordonne<dls::chaine, QMenu *> m_menus{};
-	dls::dico_desordonne<dls::chaine, QMenu *> m_menus_entrerogeables{};
 	dls::dico_desordonne<dls::chaine, QBoxLayout *> m_dispositions{};
 	dls::tableau<QToolBar *> m_barres_outils{};
 
@@ -83,8 +82,6 @@ public:
 
 	QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
 
-	QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree);
-
 	QBoxLayout *compile_entreface(
 			DonneesInterface &donnees,
 			const char *texte_entree,
@@ -100,8 +97,6 @@ public:
 };
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
-
-QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree);
 
 /**
  * Compile le script d'entreface contenu dans texte_entree, et retourne un

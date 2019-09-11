@@ -44,31 +44,21 @@
 #include "dialogue.h"
 #include "erreur.h"
 #include "manipulable.h"
-#include "menu_entrerogeable.h"
 
 namespace danjo {
 
 GestionnaireInterface::~GestionnaireInterface()
 {
-	for (const auto &donnees : m_menus) {
-		auto menu = donnees.second;
+	/* crash lors de la sortie des programmes */
+//	for (const auto &donnees : m_menus) {
+//		auto menu = donnees.second;
 
-		for (auto &action : menu->actions()) {
-			delete action;
-		}
+//		for (auto &action : menu->actions()) {
+//			delete action;
+//		}
 
-		delete menu;
-	}
-
-	for (const auto &donnees : m_menus_entrerogeables) {
-		auto menu = donnees.second;
-
-		for (auto &action : menu->actions()) {
-			delete action;
-		}
-
-		delete menu;
-	}
+//		delete menu;
+//	}
 
 	/* crash lors de la sortie des programmes */
 //	for (auto &barre_outils : m_barres_outils) {
@@ -159,49 +149,6 @@ QMenu *GestionnaireInterface::compile_menu(
 	}
 
 	return assembleuse.menu();
-}
-
-QMenu *GestionnaireInterface::compile_menu_entrerogeable(
-		DonneesInterface &donnees,
-		const char *texte_entree)
-{
-	AssembleurDisposition assembleuse(
-				donnees.manipulable,
-				donnees.repondant_bouton,
-				donnees.conteneur);
-
-	auto tampon = lng::tampon_source(texte_entree);
-	auto decoupeuse = Decoupeuse(tampon);
-
-	try {
-		decoupeuse.decoupe();
-
-		auto analyseuse = AnalyseuseDisposition(tampon, decoupeuse.morceaux());
-		analyseuse.installe_assembleur(&assembleuse);
-		analyseuse.lance_analyse(std::cerr);
-	}
-	catch (const ErreurFrappe &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-	catch (const ErreurSyntactique &e) {
-		std::cerr << e.quoi();
-		return nullptr;
-	}
-
-	/* À FAIRE : déplace ça dans l'assembleuse. */
-	auto menu_entrerogeable = new MenuEntrerogeable("");
-
-	for (auto &action : assembleuse.menu()->actions()) {
-		menu_entrerogeable->addAction(action);
-	}
-
-	/* À FAIRE : déduplique les menus. */
-	for (const auto &pair : assembleuse.donnees_menus()) {
-		m_menus_entrerogeables.insere(pair);
-	}
-
-	return menu_entrerogeable;
 }
 
 QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, const char *texte_entree, int temps)
@@ -371,11 +318,6 @@ QBoxLayout *compile_entreface(
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree)
 {
 	return __gestionnaire.compile_menu(donnees, texte_entree);
-}
-
-QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree)
-{
-	return __gestionnaire.compile_menu_entrerogeable(donnees, texte_entree);
 }
 
 void compile_feuille_logique(const char *texte_entree)

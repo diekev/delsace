@@ -37,6 +37,7 @@ qt5_wrap_cpp(
 	controles/controle_nombre_decimal.h
 	controles/controle_nombre_entier.h
 	controles/controle_rampe_couleur.h
+	controles/menu_filtrable.hh
 
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h
@@ -56,7 +57,6 @@ qt5_wrap_cpp(
 	dialogues/dialogue_couleur.h
 
 	conteneur_controles.h
-	menu_entrerogeable.h
 )
 
 #NOTE: pour ici et plus bas (CMAKE_BUILD_TYPE MATCHES "Release"):
@@ -97,7 +97,6 @@ set(ENTETES
 	erreur.h
 	danjo.h
 	manipulable.h
-	menu_entrerogeable.h
 	repondant_bouton.h
 )
 
@@ -115,6 +114,7 @@ set(SOURCES
 	controles/controle_roue_couleur.cc
 	controles/controle_spectre_couleur.cc
 	controles/controle_teinte_couleur.cc
+	controles/menu_filtrable.cc
 
 	controles_proprietes/controle_propriete.cc
 	controles_proprietes/controle_propriete_bool.cc
@@ -155,7 +155,6 @@ set(SOURCES
 	erreur.cc
 	danjo.cc
 	manipulable.cc
-	menu_entrerogeable.cc
 	repondant_bouton.cc
 
 	controles/action.h
@@ -171,6 +170,7 @@ set(SOURCES
 	controles/controle_roue_couleur.h
 	controles/controle_spectre_couleur.h
 	controles/controle_teinte_couleur.h
+	controles/menu_filtrable.hh
 
 	controles_proprietes/controle_propriete.h
 	controles_proprietes/controle_propriete_bool.h

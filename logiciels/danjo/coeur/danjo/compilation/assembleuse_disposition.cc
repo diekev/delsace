@@ -26,13 +26,13 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMenu>
 #include <QTabWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
 
 #include "controles/action.h"
 #include "controles/bouton.h"
+#include "controles/menu_filtrable.hh"
 
 #include "controles_proprietes/controle_propriete_bool.h"
 #include "controles_proprietes/controle_propriete_chaine.h"
@@ -429,7 +429,7 @@ void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
 		return;
 	}
 
-	auto menu = new QMenu(nom.c_str());
+	auto menu = new MenuFiltrable(nom.c_str());
 
 	if (!m_pile_menus.est_vide()) {
 		m_pile_menus.haut()->addMenu(menu);
