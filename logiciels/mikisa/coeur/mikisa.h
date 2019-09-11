@@ -28,7 +28,7 @@
 
 #include "biblinternes/patrons_conception/observation.hh"
 #include "biblinternes/patrons_conception/commande.h"
-
+#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "base_de_donnees.hh"
@@ -171,6 +171,21 @@ public:
 	Reseau reseau{};
 
 	void ajourne_pour_nouveau_temps(const char *message);
+
+	struct EtatLogiciel {
+		BaseDeDonnees bdd{};
+	};
+
+	dls::pile<EtatLogiciel> pile_defait{};
+	dls::pile<EtatLogiciel> pile_refait{};
+
+	EtatLogiciel etat_courant();
+
+	void empile_etat();
+
+	void defait();
+
+	void refait();
 };
 
 inline Mikisa *extrait_mikisa(std::any const &any)

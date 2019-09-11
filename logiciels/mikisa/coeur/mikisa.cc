@@ -275,3 +275,41 @@ void Mikisa::ajourne_pour_nouveau_temps(const char *message)
 {
 	requiers_evaluation(*this, TEMPS_CHANGE, message);
 }
+
+Mikisa::EtatLogiciel Mikisa::etat_courant()
+{
+	auto etat = EtatLogiciel();
+
+	return etat;
+}
+
+void Mikisa::empile_etat()
+{
+	if (!pile_refait.est_vide()) {
+		pile_refait.efface();
+	}
+
+	pile_defait.empile(etat_courant());
+}
+
+void Mikisa::defait()
+{
+	if (pile_defait.est_vide()) {
+		return;
+	}
+
+	pile_refait.empile(etat_courant());
+
+	auto etat = pile_defait.depile();
+}
+
+void Mikisa::refait()
+{
+	if (pile_refait.est_vide()) {
+		return;
+	}
+
+	pile_defait.empile(etat_courant());
+
+	auto etat = pile_refait.depile();
+}

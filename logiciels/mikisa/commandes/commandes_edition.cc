@@ -24,6 +24,14 @@
 
 #include "commandes_edition.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QKeyEvent>
+#pragma GCC diagnostic pop
+
 #include "danjo/danjo.h"
 #include "danjo/manipulable.h"
 
@@ -145,6 +153,50 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeDefait final : public Commande {
+public:
+	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	{
+		INUTILISE(metadonnee);
+		auto mikisa = extrait_mikisa(pointeur);
+		return !mikisa->pile_defait.est_vide();
+	}
+
+	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
+	{
+		INUTILISE(metadonnee);
+		auto mikisa = extrait_mikisa(pointeur);
+		mikisa->defait();
+		mikisa->notifie_observatrices(type_evenement::rafraichissement);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class CommandeRefait final : public Commande {
+public:
+	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	{
+		INUTILISE(metadonnee);
+		auto mikisa = extrait_mikisa(pointeur);
+		return !mikisa->pile_refait.est_vide();
+	}
+
+	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
+	{
+		INUTILISE(metadonnee);
+		auto mikisa = extrait_mikisa(pointeur);
+		mikisa->refait();
+		mikisa->notifie_observatrices(type_evenement::rafraichissement);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_edition(UsineCommande &usine)
 {
 	usine.enregistre_type("ajouter_propriete",
@@ -162,6 +214,14 @@ void enregistre_commandes_edition(UsineCommande &usine)
 	usine.enregistre_type("ajouter_rendu",
 						   description_commande<CommandeAjouterRendu>(
 							   "", 0, 0, 0, false));
+
+	usine.enregistre_type("défait",
+						   description_commande<CommandeDefait>(
+							   "", 0, Qt::Modifier::CTRL, Qt::Key_Z, false));
+
+	usine.enregistre_type("refait",
+						   description_commande<CommandeRefait>(
+							   "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false));
 }
 
 #pragma clang diagnostic pop

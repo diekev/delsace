@@ -212,6 +212,7 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 
 void EditriceProprietes::ajourne_manipulable()
 {
+	std::cerr << "Controle changé !\n";
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
@@ -269,6 +270,12 @@ void EditriceProprietes::ajourne_manipulable()
 	}
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
+}
+
+void EditriceProprietes::precontrole_change()
+{
+	std::cerr << "---- Précontrole changé !\n";
+	m_mikisa.empile_etat();
 }
 
 void EditriceProprietes::obtiens_liste(
