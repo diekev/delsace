@@ -66,6 +66,7 @@ void ControleProprieteBool::finalise(const DonneesControle &donnees)
 
 void ControleProprieteBool::ajourne_valeur_pointee(bool valeur)
 {
+	Q_EMIT(precontrole_change());
 	*m_pointeur = valeur;
 	Q_EMIT(controle_change());
 }

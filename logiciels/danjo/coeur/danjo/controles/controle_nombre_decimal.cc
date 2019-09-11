@@ -96,6 +96,7 @@ void ControleNombreDecimal::mousePressEvent(QMouseEvent *event)
 		QApplication::setOverrideCursor(Qt::SplitHCursor);
 		m_vieil_x = event->pos().x();
 		m_souris_pressee = true;
+		m_premier_changement = true;
 		event->accept();
 		update();
 	}
@@ -135,6 +136,11 @@ void ControleNombreDecimal::mouseMoveEvent(QMouseEvent *event)
 
 		if (m_anime) {
 			m_temps_exacte = true;
+		}
+
+		if (m_premier_changement) {
+			Q_EMIT(prevaleur_changee());
+			m_premier_changement = false;
 		}
 
 		Q_EMIT(valeur_changee(m_valeur));
@@ -211,6 +217,7 @@ void ControleNombreDecimal::keyPressEvent(QKeyEvent *event)
 				if (m_anime) {
 					m_temps_exacte = true;
 				}
+				Q_EMIT(prevaleur_changee());
 				Q_EMIT(valeur_changee(m_valeur));
 			}
 

@@ -61,6 +61,7 @@ void ControleProprieteChaineCaractere::finalise(const DonneesControle &donnees)
 
 void ControleProprieteChaineCaractere::ajourne_valeur_pointee()
 {
+	Q_EMIT(precontrole_change());
 	*m_pointeur = m_editeur_ligne->text().toStdString();
 	Q_EMIT(controle_change());
 }

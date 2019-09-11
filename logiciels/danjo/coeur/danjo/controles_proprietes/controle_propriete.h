@@ -64,7 +64,15 @@ Q_SIGNALS:
 	/**
 	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
 	 */
+	void precontrole_change();
+
+	/**
+	 * Signal émis quand la valeur du contrôle est changée dans l'entreface.
+	 */
 	void controle_change();
+
+public Q_SLOTS:
+	void emet_precontrole_change();
 };
 
 }  /* namespace danjo */

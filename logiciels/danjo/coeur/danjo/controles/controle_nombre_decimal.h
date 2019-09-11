@@ -42,6 +42,7 @@ class ControleNombreDecimal : public QWidget {
 	int pad = 0;
 	QString m_tampon = "";
 	QString m_suffixe = "";
+	bool m_premier_changement = false;
 
 public:
 	explicit ControleNombreDecimal(QWidget *parent = nullptr);
@@ -73,6 +74,7 @@ public:
 	float max() const;
 
 Q_SIGNALS:
+	void prevaleur_changee();
 	void valeur_changee(float);
 
 public Q_SLOTS:

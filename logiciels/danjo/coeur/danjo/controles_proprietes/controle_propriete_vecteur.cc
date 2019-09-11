@@ -89,6 +89,9 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	connect(m_x, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_x);
 	connect(m_y, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_y);
 	connect(m_z, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteVec3::ajourne_valeur_z);
+	connect(m_x, &ControleNombreDecimal::prevaleur_changee, this, &ControleProprieteVec3::emet_precontrole_change);
+	connect(m_y, &ControleNombreDecimal::prevaleur_changee, this, &ControleProprieteVec3::emet_precontrole_change);
+	connect(m_z, &ControleNombreDecimal::prevaleur_changee, this, &ControleProprieteVec3::emet_precontrole_change);
 
 	connect(m_bouton_x, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_x);
 	connect(m_bouton_y, &QPushButton::pressed, this, &ControleProprieteVec3::montre_echelle_y);
@@ -97,6 +100,9 @@ ControleProprieteVec3::ControleProprieteVec3(QWidget *parent)
 	connect(m_echelle_x, &ControleEchelleDecimale::valeur_changee, m_x, &ControleNombreDecimal::ajourne_valeur);
 	connect(m_echelle_y, &ControleEchelleDecimale::valeur_changee, m_y, &ControleNombreDecimal::ajourne_valeur);
 	connect(m_echelle_z, &ControleEchelleDecimale::valeur_changee, m_z, &ControleNombreDecimal::ajourne_valeur);
+	connect(m_echelle_x, &ControleEchelleDecimale::prevaleur_changee, this, &ControleProprieteVec3::emet_precontrole_change);
+	connect(m_echelle_y, &ControleEchelleDecimale::prevaleur_changee, this, &ControleProprieteVec3::emet_precontrole_change);
+	connect(m_echelle_z, &ControleEchelleDecimale::prevaleur_changee, this, &ControleProprieteVec3::emet_precontrole_change);
 
 	connect(m_bouton_animation, &QPushButton::pressed, this, &ControleProprieteVec3::bascule_animation);
 }

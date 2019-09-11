@@ -300,6 +300,9 @@ void AssembleurDisposition::finalise_controle()
 	}
 
 	if (m_conteneur != nullptr) {
+		QObject::connect(m_dernier_controle, &ControlePropriete::precontrole_change,
+						 m_conteneur, &ConteneurControles::precontrole_change);
+
 		QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
 						 m_conteneur, &ConteneurControles::ajourne_manipulable);
 	}

@@ -53,6 +53,7 @@ ControleProprieteEnum::ControleProprieteEnum(QWidget *parent)
 
 void ControleProprieteEnum::ajourne_valeur_pointee(int /*valeur*/)
 {
+	Q_EMIT(precontrole_change());
 	*m_pointeur = m_liste_deroulante->currentData().toString().toStdString();
 	Q_EMIT(controle_change());
 }

@@ -53,6 +53,8 @@ public Q_SLOTS:
 	 */
 	virtual void ajourne_manipulable() = 0;
 
+	virtual void precontrole_change() {}
+
 	virtual void onglet_dossier_change(int index);
 
 	/**
