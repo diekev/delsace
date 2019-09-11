@@ -32,7 +32,11 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
+#include <graphviz/cgraph.h>
+#include <graphviz/gvc.h>
+
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
@@ -1038,20 +1042,16 @@ static void autodispose_graphe(Graphe &graphe)
 }
 #endif
 
-#include <graphviz/cgraph.h>
-#include <graphviz/gvc.h>
-#include <graphviz/geom.h>
-
 class CommandeArrangeGraphe final : public Commande {
 public:
 	CommandeArrangeGraphe() = default;
 
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
+		INUTILISE(donnees);
+
 		auto mikisa = extrait_mikisa(pointeur);
 		auto graphe = mikisa->graphe;
-
-		//autodispose_graphe(*graphe);
 
 		GVC_t *gvc = gvContext();
 
@@ -1060,8 +1060,7 @@ public:
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		auto chn_graphe = chaine_graphe_dot(*graphe);
-		//std::cerr << chn_graphe << '\n';
+		auto chn_graphe = chaine_dot_pour_graphe(*graphe);
 		Agraph_t *g = agmemread(chn_graphe.c_str());
 
 		if (gvc == nullptr) {
@@ -1071,33 +1070,33 @@ public:
 		}
 
 		gvLayout(gvc, g, "dot");
-
 		gvRender(gvc, g, "dot", nullptr);
 
-		if (g->n_id == nullptr) {
-			mikisa->affiche_erreur("L'ensemble des noeuds est nul !");
-		}
-		else {
-			for (auto obj = dtfirst(g->n_seq); obj; obj = dtnext(g->n_seq, obj)) {
-				auto gnoeud = static_cast<node_t *>(obj);
+		for (auto noeud : graphe->noeuds()) {
+			auto id = id_dot_pour_noeud(noeud, false);
+			auto gnoeud = agnode(g, const_cast<char *>(id.c_str()), false);
 
-				std::cerr << gnoeud << '\n';
-
-				auto pos_noeud = reinterpret_cast<point *>(agget(gnoeud, const_cast<char *>("pos")));
-
-				if (pos_noeud == nullptr) {
-					std::cerr << "La position est nulle\n";
-					continue;
-				}
-
-				std::cerr << "Position noeud '" << "" << "' : "
-						  << pos_noeud->x << ", " << pos_noeud->y << '\n';
+			if (gnoeud == nullptr) {
+				std::cerr << "Impossible de trouver le noeud '" << id << "'\n";
+				continue;
 			}
+
+			auto pos_noeud = dls::chaine(agget(gnoeud, const_cast<char *>("pos")));
+
+			auto morceaux = dls::morcelle(pos_noeud, ',');
+
+			auto pos_x = static_cast<float>(std::atoi(morceaux[0].c_str()));
+			auto pos_y = static_cast<float>(std::atoi(morceaux[1].c_str()));
+
+			noeud->pos_x(pos_x);
+			noeud->pos_y(pos_y);
 		}
 
 		gvFreeLayout(gvc, g);
 		agclose(g);
 		gvFreeContext(gvc);
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}

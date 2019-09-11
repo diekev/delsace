@@ -40,7 +40,7 @@ static constexpr auto fontsize = 20.0;
 static constexpr auto node_label_size = 14.0;
 static constexpr auto color_value = "gold1";
 
-dls::chaine node_id(const Noeud *node, bool quoted)
+dls::chaine id_dot_pour_noeud(const Noeud *node, bool quoted)
 {
 	dls::flux_chaine ss;
 
@@ -130,7 +130,7 @@ inline void dump_node(dls::flux_chaine &flux, Noeud *node)
 	constexpr auto penwidth = 1.0;
 
 	flux << "// " << node->nom << "\n";
-	flux << node_id(node);
+	flux << id_dot_pour_noeud(node);
 	flux << "[";
 
 	flux << "label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">";
@@ -194,12 +194,12 @@ inline void dump_link(dls::flux_chaine &flux, const PriseSortie *from, const Pri
 {
 	auto penwidth = 2.0;
 
-	flux << node_id(from->parent) << ':' << output_id(from, -1l);
+	flux << id_dot_pour_noeud(from->parent) << ':' << output_id(from, -1l);
 	flux << " -> ";
-	flux << node_id(to->parent) << ':' << input_id(to, -1l);
+	flux << id_dot_pour_noeud(to->parent) << ':' << input_id(to, -1l);
 	flux << "[";
 	/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
-	flux << "id=\"VAL" << node_id(to->parent, false) << ':' << input_id(to, -1l, false) << '"';
+	flux << "id=\"VAL" << id_dot_pour_noeud(to->parent, false) << ':' << input_id(to, -1l, false) << '"';
 	flux << ",penwidth=\"" << penwidth << '"';
 	flux << "];\n";
 	flux << '\n';
@@ -214,12 +214,21 @@ inline void dump_node_links(dls::flux_chaine &flux, const Noeud *node)
 	}
 }
 
-dls::chaine chaine_graphe_dot(Graphe const &graphe)
+dls::chaine chaine_dot_pour_graphe(Graphe const &graphe)
 {
 	auto flux = dls::flux_chaine();
 
 	flux << "digraph depgraph {\n";
-	flux << "rankdir=LR\n";
+
+	if (graphe.type == type_graphe::DETAIL) {
+		flux << "rankdir=LR\n";
+	}
+	else {
+		flux << "rankdir=BT\n";
+	}
+
+	flux << "nodesep=100\n";
+	flux << "ranksep=1\n";
 	flux << "graph [";
 	flux << "labbelloc=\"t\"";
 	flux << ",fontsize=\"" << fontsize << "\"";
@@ -252,7 +261,7 @@ void ImprimeuseGraphe::operator()(filesystem::path const &path)
 		return;
 	}
 
-	auto chn = chaine_graphe_dot(*m_graph);
+	auto chn = chaine_dot_pour_graphe(*m_graph);
 
 	fichier.print("%s", chn.c_str());
 }
