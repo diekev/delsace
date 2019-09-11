@@ -61,7 +61,7 @@ static const char *chemins_scripts[] = {
 	"entreface/menu_fichier.jo",
 	"entreface/menu_edition.jo",
 	"entreface/menu_ajouter_noeud_composite.jo",
-	"entreface/menu_ajouter_noeud_point3d.jo",
+	"entreface/menu_ajouter_noeud_detail.jo",
 	"entreface/menu_ajouter_noeud_objet.jo",
 	"entreface/menu_ajouter_noeud_scene.jo",
 	"entreface/menu_ajouter_noeud_simulation.jo",
