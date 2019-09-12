@@ -606,6 +606,16 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 	magasin.categorie = "vecteur";
 
 	magasin.ajoute_fonction(
+				"sépare_vec2",
+				code_inst::FN_SEPARE_VEC3,
+				signature(
+					param_entrees(donnees_parametre("valeur", type_var::VEC2)),
+					param_sorties(
+						donnees_parametre("x", type_var::DEC),
+						donnees_parametre("y", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
 				"sépare_vec3",
 				code_inst::FN_SEPARE_VEC3,
 				signature(
@@ -614,6 +624,16 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 						donnees_parametre("x", type_var::DEC),
 						donnees_parametre("y", type_var::DEC),
 						donnees_parametre("z", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"combine_vec2",
+				code_inst::FN_COMBINE_VEC2,
+				signature(
+					param_entrees(
+						donnees_parametre("x", type_var::DEC),
+						donnees_parametre("y", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC2))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(

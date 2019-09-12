@@ -304,6 +304,9 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	m_gest_props = gestionnaire_propriete();
 	m_gest_attrs = gestionnaire_propriete();
 
+	m_ctx_global.ptr_corps = nullptr;
+	m_ctx_global.images.efface();
+
 	if (graphe.besoin_ajournement) {
 		tri_topologique(graphe);
 		graphe.besoin_ajournement = false;
@@ -311,6 +314,7 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 
 	auto donnees_aval = DonneesAval{};
 	donnees_aval.table.insere({"compileuse", &m_compileuse});
+	donnees_aval.table.insere({"ctx_global", &m_ctx_global});
 	donnees_aval.table.insere({"gest_props", &m_gest_props});
 	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
 
@@ -392,10 +396,10 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	return true;
 }
 
-void CompileuseGrapheLCC::execute_pile(lcc::ctx_exec &ctx_exec, lcc::pile &donnees_pile)
+void CompileuseGrapheLCC::execute_pile(lcc::pile &donnees_pile)
 {
 	lcc::execute_pile(
-				ctx_exec,
+				m_ctx_global,
 				donnees_pile,
 				m_compileuse.instructions(),
 				0);
@@ -520,8 +524,6 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 	auto largeur_inverse = 1.0f / static_cast<float>(desc.resolution.x);
 	auto hauteur_inverse = 1.0f / static_cast<float>(desc.resolution.y);
 
-	auto ctx_exec = lcc::ctx_exec{};
-
 	boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
 					 [&](tbb::blocked_range<int> const &plage)
 	{
@@ -545,9 +547,7 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 				auto clr = tampon->valeur(index);
 				m_compileuse.remplis_donnees(donnees, "couleur", clr);
 
-				m_compileuse.execute_pile(
-							ctx_exec,
-							donnees);
+				m_compileuse.execute_pile(donnees);
 
 				auto idx_sortie = m_compileuse.pointeur_donnees("couleur");
 				clr = donnees.charge_couleur(idx_sortie);
@@ -624,8 +624,6 @@ int OperatriceGrapheDetail::execute_detail_corps(
 		return EXECUTION_ECHOUEE;
 	}
 
-	auto ctx_exec = lcc::ctx_exec{};
-
 	switch (type_detail) {
 		case DETAIL_POINTS:
 		{
@@ -650,9 +648,7 @@ int OperatriceGrapheDetail::execute_detail_corps(
 					/* stocke les attributs */
 					m_compileuse.stocke_attributs(donnees, i);
 
-					m_compileuse.execute_pile(
-								ctx_exec,
-								donnees);
+					m_compileuse.execute_pile(donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("P");
 					pos = donnees.charge_vec3(idx_sortie);
@@ -707,9 +703,7 @@ int OperatriceGrapheDetail::execute_detail_corps(
 								m_compileuse.remplis_donnees(donnees, "pos_monde", pos_monde);
 								m_compileuse.remplis_donnees(donnees, "pos_unit", pos_unit);
 
-								m_compileuse.execute_pile(
-											ctx_exec,
-											donnees);
+								m_compileuse.execute_pile(donnees);
 
 								auto idx_sortie = m_compileuse.m_gest_props.pointeur_donnees("densité");
 								v = donnees.charge_decimal(idx_sortie);
@@ -1655,6 +1649,136 @@ public:
 
 /* ************************************************************************** */
 
+// À FAIRE : déduplique ou utilise un pointeur vers un composite
+
+#include "biblinternes/image/flux/lecture.h"
+#include "biblinternes/image/operations/conversion.h"
+static auto charge_jpeg(const char *chemin, Image *ptr_image)
+{
+	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
+	auto tmp = dls::image::operation::converti_en_float(image_char);
+
+	auto largeur = tmp.nombre_colonnes();
+	auto hauteur = tmp.nombre_lignes();
+
+	auto desc = wlk::desc_depuis_hauteur_largeur(hauteur, largeur);
+
+	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
+	auto tampon = extrait_grille_couleur(calque);
+
+	auto index = 0l;
+	for (auto y = 0; y < hauteur; ++y) {
+		for (auto x = 0; x < largeur; ++x, ++index) {
+			auto const &v = tmp[y][x];
+
+			auto pixel = dls::phys::couleur32();
+			pixel.r = v.r;
+			pixel.v = v.g;
+			pixel.b = v.b;
+			pixel.a = 1.0f;
+
+			tampon->valeur(index) = pixel;
+		}
+	}
+}
+
+class OpEchantillonneImage final : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Échantillonne Image";
+	static constexpr auto AIDE = "Échantillonne Image";
+
+	OpEchantillonneImage(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+
+		noeud.est_sortie = true;
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_detail_echantimage.jo";
+	}
+
+	type_prise type_entree(int i) const override
+	{
+		switch (i) {
+			case 0:
+			{
+				return type_prise::VEC2;
+			}
+		}
+
+		return type_prise::INVALIDE;
+	}
+
+	type_prise type_sortie(int i) const override
+	{
+		switch (i) {
+			case 0:
+			{
+				return type_prise::COULEUR;
+			}
+		}
+
+		return type_prise::INVALIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+		INUTILISE(contexte);
+
+		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
+		auto ctx_global = std::any_cast<lcc::ctx_exec *>(donnees_aval->table["ctx_global"]);
+
+		auto chemin_image = evalue_chaine("chemin_image");
+
+		if (chemin_image == "") {
+			this->ajoute_avertissement("Le nom de l'image est vide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		charge_jpeg(chemin_image.c_str(), &m_image);
+
+		compileuse->ajoute_instructions(lcc::code_inst::FN_ECHANTILLONE_IMAGE);
+		compileuse->ajoute_instructions(ctx_global->images.taille());
+
+		if (entree(0)->connectee()) {
+			auto ptr_sortie = entree(0)->pointeur()->liens[0];
+			compileuse->ajoute_instructions(ptr_sortie->decalage_pile);
+		}
+		else {
+			auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC2));
+			compileuse->ajoute_instructions(ptr);
+		}
+
+		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
+		compileuse->ajoute_instructions(ptr);
+
+		auto ptr_sortie = sortie(0)->pointeur();
+		ptr_sortie->decalage_pile = ptr;
+		ptr_sortie->type_infere = type_prise::COULEUR;
+
+		ctx_global->images.pousse(&m_image);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 static auto params_info = lcc::param_sorties(
 			lcc::donnees_parametre("temps_image", lcc::type_var::ENT32),
 			lcc::donnees_parametre("temps_fractionnel", lcc::type_var::DEC),
@@ -1752,6 +1876,7 @@ void enregistre_operatrices_detail(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceEntreeAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceSortieAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceInfoExecution>());
+	usine.enregistre_type(cree_desc<OpEchantillonneImage>());
 }
 
 OperatriceFonctionDetail *cree_op_detail(

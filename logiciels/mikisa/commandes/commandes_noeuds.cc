@@ -320,7 +320,7 @@ public:
 
 		using dls::outils::est_element;
 
-		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail", "Info Exécution")) {
+		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail", "Info Exécution", "Échantillonne Image")) {
 			return est_element(type_detail,
 							   DETAIL_PIXELS,
 							   DETAIL_VOXELS,

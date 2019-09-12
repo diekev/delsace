@@ -1,9 +1,10 @@
 menu "Noeud Détail" {
-	action(valeur="Entrée Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Détail")
-	action(valeur="Sortie Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Détail")
-	action(valeur="Entrée Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Attribut")
-	action(valeur="Sortie Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Attribut")
-	action(valeur="Info Exécution"; attache=ajouter_noeud_spécial_détail; métadonnée="Info Exécution")
+	action(valeur="Entrée Détail"; attache=ajouter_noeud; métadonnée="Entrée Détail")
+	action(valeur="Sortie Détail"; attache=ajouter_noeud; métadonnée="Sortie Détail")
+	action(valeur="Entrée Attribut"; attache=ajouter_noeud; métadonnée="Entrée Attribut")
+	action(valeur="Sortie Attribut"; attache=ajouter_noeud; métadonnée="Sortie Attribut")
+	action(valeur="Info Exécution"; attache=ajouter_noeud; métadonnée="Info Exécution")
+	action(valeur="Échantillonne Image"; attache=ajouter_noeud; métadonnée="Échantillonne Image")
 	menu "bruit" {
 		action(valeur="bruit_cellule"; attache=ajouter_noeud_detail; métadonnée="bruit_cellule")
 		action(valeur="bruit_flux"; attache=ajouter_noeud_detail; métadonnée="bruit_flux")
@@ -82,6 +83,7 @@ menu "Noeud Détail" {
 	}
 	menu "vecteur" {
 		action(valeur="base_orthonormale"; attache=ajouter_noeud_detail; métadonnée="base_orthonormale")
+		action(valeur="combine_vec2"; attache=ajouter_noeud_detail; métadonnée="combine_vec2")
 		action(valeur="combine_vec3"; attache=ajouter_noeud_detail; métadonnée="combine_vec3")
 		action(valeur="fresnel"; attache=ajouter_noeud_detail; métadonnée="fresnel")
 		action(valeur="longueur"; attache=ajouter_noeud_detail; métadonnée="longueur")
@@ -90,6 +92,7 @@ menu "Noeud Détail" {
 		action(valeur="produit_scalaire"; attache=ajouter_noeud_detail; métadonnée="produit_scalaire")
 		action(valeur="réfléchi"; attache=ajouter_noeud_detail; métadonnée="réfléchi")
 		action(valeur="réfracte"; attache=ajouter_noeud_detail; métadonnée="réfracte")
+		action(valeur="sépare_vec2"; attache=ajouter_noeud_detail; métadonnée="sépare_vec2")
 		action(valeur="sépare_vec3"; attache=ajouter_noeud_detail; métadonnée="sépare_vec3")
 		action(valeur="vec3_depuis_couleur"; attache=ajouter_noeud_detail; métadonnée="vec3_depuis_couleur")
 		action(valeur="échantillone_sphère"; attache=ajouter_noeud_detail; métadonnée="échantillone_sphère")

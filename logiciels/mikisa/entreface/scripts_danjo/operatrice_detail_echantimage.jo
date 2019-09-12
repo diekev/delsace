@@ -1,0 +1,6 @@
+disposition "operatrice_detail_echantimage" {
+	ligne {
+		étiquette(valeur="Chemin")
+		fichier_entrée(valeur=""; attache=chemin_image; filtres="Images (*.jpg *.jpeg *.exr *.png)")
+	}
+}

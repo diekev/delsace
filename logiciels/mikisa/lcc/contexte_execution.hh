@@ -29,6 +29,7 @@
 #include "biblinternes/structures/tableau.hh"
 
 struct Corps;
+struct Image;
 
 namespace lcc {
 
@@ -107,6 +108,9 @@ struct ctx_local {
 struct ctx_exec {
 	/* Le corps dans notre contexte. */
 	dls::synchronise<Corps *> ptr_corps;
+
+	/* Toutes les images. */
+	dls::tableau<Image const *> images;
 
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;

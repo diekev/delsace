@@ -51,6 +51,7 @@ struct CompileuseGrapheLCC {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_props{};
 	gestionnaire_propriete m_gest_attrs{};
+	lcc::ctx_exec m_ctx_global{};
 
 	Graphe &graphe;
 
@@ -73,9 +74,7 @@ struct CompileuseGrapheLCC {
 
 	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
 
-	void execute_pile(
-			lcc::ctx_exec &ctx_exec,
-			lcc::pile &donnees_pile);
+	void execute_pile(lcc::pile &donnees_pile);
 
 	int pointeur_donnees(dls::chaine const &nom);
 };

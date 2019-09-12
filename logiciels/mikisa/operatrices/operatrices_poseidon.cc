@@ -1507,8 +1507,6 @@ public:
 
 		chef->demarre_evaluation("graphe poséidon gaz");
 
-		auto ctx_exec = lcc::ctx_exec{};
-
 		auto res_x = densite->desc().resolution.x;
 		auto res_y = densite->desc().resolution.y;
 		auto res_z = densite->desc().resolution.z;
@@ -1560,9 +1558,7 @@ public:
 							m_compileuse.remplis_donnees(donnees, "fioul", divergence->valeur(index));
 						}
 
-						m_compileuse.execute_pile(
-									ctx_exec,
-									donnees);
+						m_compileuse.execute_pile(donnees);
 
 						auto idx_sortie = m_compileuse.pointeur_donnees("fumée");
 						densite->valeur(index) = donnees.charge_decimal(idx_sortie);

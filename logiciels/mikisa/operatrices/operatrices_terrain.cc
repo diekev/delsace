@@ -1138,8 +1138,6 @@ public:
 
 		chef->demarre_evaluation("création terrain");
 
-		auto ctx_exec = lcc::ctx_exec{};
-
 		boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
 						 [&](tbb::blocked_range<int> const &plage)
 		{
@@ -1158,9 +1156,7 @@ public:
 					auto pos = dls::math::vec3f(p, 0.0f);
 					m_compileuse.remplis_donnees(donnees, "P", pos);
 
-					m_compileuse.execute_pile(
-								ctx_exec,
-								donnees);
+					m_compileuse.execute_pile(donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("hauteur");
 

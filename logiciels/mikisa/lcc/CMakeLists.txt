@@ -28,6 +28,7 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
+	mikisa_coeur
 	mikisa_corps
 	stdc++fs
 	bib_phys

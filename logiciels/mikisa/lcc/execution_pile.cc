@@ -30,10 +30,14 @@
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/gna.hh"
 
+#include "coeur/image.hh"
+
 #include "corps/corps.h"
 
 #include "donnees_type.h"
 #include "code_inst.hh"
+
+#include "wolika/echantillonnage.hh"
 
 namespace lcc {
 
@@ -1162,6 +1166,15 @@ void execute_pile(ctx_exec &contexte,
 				pile_donnees.stocke(ptr_sortie, b1);
 				break;
 			}
+			case code_inst::FN_COMBINE_VEC2:
+			{
+				dls::math::vec2f vec;
+				vec.x = pile_donnees.charge_decimal(compteur, insts);
+				vec.y = pile_donnees.charge_decimal(compteur, insts);
+
+				pile_donnees.stocke(compteur, insts, vec);
+				break;
+			}
 			case code_inst::FN_COMBINE_VEC3:
 			{
 				dls::math::vec3f vec;
@@ -1169,6 +1182,14 @@ void execute_pile(ctx_exec &contexte,
 				vec.y = pile_donnees.charge_decimal(compteur, insts);
 				vec.z = pile_donnees.charge_decimal(compteur, insts);
 
+				pile_donnees.stocke(compteur, insts, vec);
+				break;
+			}
+			case code_inst::FN_SEPARE_VEC2:
+			{
+				auto vec = pile_donnees.charge_vec2(compteur, insts);
+				/* les trois sorties sont l'une après l'autre donc on peut
+				 * simplement stocker le vecteur directement */
 				pile_donnees.stocke(compteur, insts, vec);
 				break;
 			}
@@ -1721,6 +1742,23 @@ void execute_pile(ctx_exec &contexte,
 			case code_inst::FN_EVALUE_BRUIT_TURBULENCE:
 			{
 				evalue_bruit_turbulence(contexte_local, pile_donnees, insts, compteur);
+				break;
+			}
+			case code_inst::FN_ECHANTILLONE_IMAGE:
+			{
+				auto ptr_image = insts.charge_entier(compteur);
+				auto uv = pile_donnees.charge_vec2(compteur, insts);
+				auto res = dls::phys::couleur32();
+
+				if (ptr_image < contexte.images.taille()) {
+					auto image = contexte.images[ptr_image];
+					auto calque = image->calque_pour_lecture("image");
+					auto tampon = extrait_grille_couleur(calque);
+
+					res = wlk::echantillonne_lineaire(*tampon, uv.x, uv.y);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
 			case code_inst::CONSTRUIT_TABLEAU:
