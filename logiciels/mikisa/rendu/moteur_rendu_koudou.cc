@@ -359,7 +359,7 @@ void MoteurRenduKoudou::calcule_rendu(
 	stats.nombre_polygones = 0;
 
 	for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
-		auto objet = m_delegue->objet(i);
+		auto objet = m_delegue->objet(i).objet;
 
 		objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
 		{

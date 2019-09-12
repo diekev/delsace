@@ -125,10 +125,10 @@ void TamponObjet::detache() const noexcept
 	glBindVertexArray(0);
 }
 
-void TamponObjet::pointeur_attribut(unsigned int index, int size) const noexcept
+void TamponObjet::pointeur_attribut(unsigned int index, int size, int stride, void *pointeur) const noexcept
 {
 	glEnableVertexAttribArray(index);
-	glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointeur);
 }
 
 void TamponObjet::genere_tampon_sommet(void const *vertices, long const size) noexcept(false)

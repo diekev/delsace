@@ -230,13 +230,15 @@ void compile_sources_nuanceur(Maillage *maillage)
 
 /* ************************************************************************** */
 
-static TamponRendu *cree_tampon_surface(bool possede_uvs)
+static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 {
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
+	auto nom_fichier = (instances) ? "nuanceurs/diffus_instances.vert" : "nuanceurs/diffus.vert";
+
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/diffus.vert"));
+				dls::contenu_fichier(nom_fichier));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
@@ -249,6 +251,11 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 	parametre_programme.ajoute_attribut("normaux");
 	parametre_programme.ajoute_attribut("uvs");
 	parametre_programme.ajoute_attribut("couleurs");
+
+	if (instances) {
+		parametre_programme.ajoute_attribut("matrices_instances");
+	}
+
 	parametre_programme.ajoute_uniforme("matrice");
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("MV");
@@ -366,13 +373,15 @@ void ajoute_polygone_segment(
 	}
 }
 
-static TamponRendu *cree_tampon_segments()
+static TamponRendu *cree_tampon_segments(bool instances)
 {
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
+	auto nom_fichier = (instances) ? "nuanceurs/simple_instances.vert" : "nuanceurs/simple.vert";
+
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/simple.vert"));
+				dls::contenu_fichier(nom_fichier));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
@@ -383,6 +392,11 @@ static TamponRendu *cree_tampon_segments()
 	ParametresProgramme parametre_programme;
 	parametre_programme.ajoute_attribut("sommets");
 	parametre_programme.ajoute_attribut("couleur_sommet");
+
+	if (instances) {
+		parametre_programme.ajoute_attribut("matrices_instances");
+	}
+
 	parametre_programme.ajoute_uniforme("matrice");
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("couleur");
@@ -655,9 +669,13 @@ RenduCorps::~RenduCorps()
 	memoire::deloge("TamponRendu", m_tampon_volume);
 }
 
-void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &stats)
+void RenduCorps::initialise(
+		ContexteRendu const &contexte,
+		StatistiquesRendu &stats,
+		dls::tableau<dls::math::mat4x4f> &matrices)
 {
 	stats.nombre_objets += 1;
+	auto est_instance = matrices.taille() != 0;
 
 	auto liste_points = m_corps->points_pour_lecture();
 	auto liste_prims = m_corps->prims();
@@ -703,7 +721,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		}
 
 		if (points_polys.taille() != 0) {
-			m_tampon_polygones = cree_tampon_surface(false);
+			m_tampon_polygones = cree_tampon_surface(false, est_instance);
 
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
@@ -736,7 +754,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		}
 
 		if (points_segment.taille() != 0) {
-			m_tampon_segments = cree_tampon_segments();
+			m_tampon_segments = cree_tampon_segments(est_instance);
 
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
@@ -791,11 +809,29 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		}
 	}
 
+	auto parametres_tampon_instance = ParametresTampon{};
+
+	if (est_instance) {
+		parametres_tampon_instance.attribut = "matrices_instances";
+		parametres_tampon_instance.dimension_attribut = 4;
+		parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
+		parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(matrices.taille()) * sizeof(dls::math::mat4x4f);
+		parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
+
+		if (m_tampon_segments) {
+			m_tampon_segments->remplie_tampon_matrices_instance(parametres_tampon_instance);
+		}
+
+		if (m_tampon_polygones) {
+			m_tampon_polygones->remplie_tampon_matrices_instance(parametres_tampon_instance);
+		}
+	}
+
 	if (points.est_vide()) {
 		return;
 	}
 
-	m_tampon_points = cree_tampon_segments();
+	m_tampon_points = cree_tampon_segments(est_instance);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
@@ -823,6 +859,10 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		programme->active();
 		programme->uniforme("possede_couleur_sommet", 1);
 		programme->desactive();
+	}
+
+	if (est_instance) {
+		m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
 	}
 }
 

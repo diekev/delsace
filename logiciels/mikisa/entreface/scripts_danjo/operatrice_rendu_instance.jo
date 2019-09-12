@@ -1,0 +1,30 @@
+disposition "operatrice_rendu_instance" {
+	ligne {
+		étiquette(valeur="Objet")
+		chaine(valeur=""; attache=nom_objet)
+	}
+	ligne {
+		étiquette(valeur="Points")
+		chaine(valeur=""; attache=points)
+	}
+	ligne {
+		étiquette(valeur="Rotation")
+		vecteur(valeur="0,0,0"; attache=rotation)
+	}
+	ligne {
+		étiquette(valeur="Rotation Aléatoire")
+		vecteur(valeur="0,0,0"; attache=rotation_aléatoire; min=0; max=1)
+	}
+	ligne {
+		étiquette(valeur="Échelle")
+		vecteur(valeur="1,1,1"; attache=échelle)
+	}
+	ligne {
+		étiquette(valeur="Échelle Aléatoire")
+		vecteur(valeur="0,0,0"; attache=échelle_aléatoire; min=0; max=1)
+	}
+	ligne {
+		étiquette(valeur="Échelle Uniforme")
+		décimal(valeur=1.0; attache=échelle_uniforme)
+	}
+}

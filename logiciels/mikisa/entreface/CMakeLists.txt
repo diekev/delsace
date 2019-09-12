@@ -62,8 +62,10 @@ set(NUANCEURS
 	opengl/nuanceurs/couleur.frag
 	opengl/nuanceurs/diffus.frag
 	opengl/nuanceurs/diffus.vert
+	opengl/nuanceurs/diffus_instances.vert
 	opengl/nuanceurs/simple.frag
 	opengl/nuanceurs/simple.vert
+	opengl/nuanceurs/simple_instances.vert
 	opengl/nuanceurs/texture.frag
 	opengl/nuanceurs/volume.frag
 	opengl/nuanceurs/volume.vert
@@ -186,6 +188,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_poseidon_erosion.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_rayons_soleil.jo
+	scripts_danjo/operatrice_rendu_instance.jo
 	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_foule.jo

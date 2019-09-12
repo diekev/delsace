@@ -1,0 +1,30 @@
+#version 330 core
+  
+layout(location = 0) in vec3 sommets;
+layout(location = 1) in vec3 couleur_sommet;
+layout(location = 2) in mat4 matrices_instances;
+
+uniform mat4 MVP;
+uniform mat4 matrice;
+uniform bool possede_couleur_sommet;
+
+uniform vec4 couleur;
+
+smooth out vec4 couleur_fragment;
+smooth out vec3 sommet;
+smooth out vec4 vpos;
+
+void main()
+{
+	gl_Position = MVP * matrices_instances * vec4(sommets.xyz, 1.0);
+	vpos = gl_Position;
+
+	sommet = sommets.xyz;
+
+	if (possede_couleur_sommet) {
+		couleur_fragment = vec4(couleur_sommet, 1.0);
+	}
+	else {
+		couleur_fragment = couleur;
+	}
+}

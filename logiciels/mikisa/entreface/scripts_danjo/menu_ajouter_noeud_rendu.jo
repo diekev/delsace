@@ -1,4 +1,5 @@
 menu "Noeud Rendu" {
 	action(valeur="Cherche Objets"; attache=ajouter_noeud; métadonnée="Cherche Objets")
+	action(valeur="Instance Objet"; attache=ajouter_noeud; métadonnée="Instance Objet")
 	action(valeur="Moteur Rendu"; attache=ajouter_noeud; métadonnée="Moteur Rendu")
 }

@@ -24,12 +24,14 @@
 
 #include "operatrices_rendu.hh"
 
+#include "biblinternes/outils/gna.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/base_de_donnees.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/donnees_aval.hh"
 #include "coeur/noeud.hh"
+#include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
 #include "coeur/usine_operatrice.h"
 
@@ -85,8 +87,134 @@ public:
 		delegue->objets.efface();
 
 		for (auto objet : contexte.bdd->objets()) {
-			delegue->objets.pousse(objet);
+			delegue->objets.pousse({objet, {}});
 		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OpRenduInstance : public OperatriceImage {
+public:
+	static constexpr auto NOM = "Instance Objet";
+	static constexpr auto AIDE = "";
+
+	OpRenduInstance(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+		m_execute_toujours = true;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_rendu_instance.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		if (!donnees_aval || !donnees_aval->possede("moteur_rendu")) {
+			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
+			return EXECUTION_ECHOUEE;
+		}
+
+		entree(0)->requiers_image(contexte, donnees_aval);
+
+		auto moteur_rendu = extrait_moteur_rendu(donnees_aval);
+		auto delegue = moteur_rendu->delegue();
+
+		auto nom_objet = evalue_chaine("nom_objet");
+
+		if (nom_objet == "") {
+			this->ajoute_avertissement("Le nom de l'objet à instancier est vide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto nom_points = evalue_chaine("points");
+
+		if (nom_points == "") {
+			this->ajoute_avertissement("Le nom de l'objet de points où instancier est vide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto objet_instance = static_cast<ObjetRendu *>(nullptr);
+		auto points_instance = static_cast<ObjetRendu *>(nullptr);
+
+		for (auto &objet : delegue->objets) {
+			if (objet.objet->noeud->nom == nom_objet) {
+				objet_instance = &objet;
+			}
+			else if (objet.objet->noeud->nom == nom_points) {
+				points_instance = &objet;
+			}
+
+			if (objet_instance != nullptr && points_instance != nullptr) {
+				break;
+			}
+		}
+
+		if (objet_instance == nullptr) {
+			this->ajoute_avertissement("Impossible de trouver l'objet à instancier");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (points_instance == nullptr) {
+			this->ajoute_avertissement("Impossible de trouver l'objet de points où instancier");
+			return EXECUTION_ECHOUEE;
+		}
+
+		points_instance->objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
+		{
+			if (points_instance->objet->type != type_objet::CORPS) {
+				return;
+			}
+
+			auto gna = GNA();
+
+			auto rot = evalue_vecteur("rotation", contexte.temps_courant);
+			auto ech = evalue_vecteur("échelle", contexte.temps_courant);
+			ech *= evalue_decimal("échelle_uniforme", contexte.temps_courant);
+			auto rot_alea = evalue_vecteur("rotation_aléatoire", contexte.temps_courant);
+			auto ech_alea = evalue_vecteur("échelle_aléatoire", contexte.temps_courant);
+
+			auto const &corps = extrait_corps(donnees);
+
+			auto nombre_points = corps.points_pour_lecture()->taille();
+			objet_instance->matrices.redimensionne(nombre_points);
+
+			for (int i = 0; i < nombre_points; ++i) {
+				auto pnt = corps.point_transforme(i);
+
+				auto rot_locale = rot;
+				auto ech_locale = ech;
+
+				rot_locale.x += gna.uniforme(0.0f, 360.0f) * rot_alea.x;
+				rot_locale.y += gna.uniforme(0.0f, 360.0f) * rot_alea.y;
+				rot_locale.z += gna.uniforme(0.0f, 360.0f) * rot_alea.z;
+
+				ech_locale.x *= 1.0f + gna.uniforme(0.0f, 1.0f) * ech_alea.x;
+				ech_locale.y *= 1.0f + gna.uniforme(0.0f, 1.0f) * ech_alea.y;
+				ech_locale.z *= 1.0f + gna.uniforme(0.0f, 1.0f) * ech_alea.z;
+
+				auto transforme = math::construit_transformation(
+							pnt, rot_locale, ech_locale);
+
+				objet_instance->matrices[i] = math::matf_depuis_matd(transforme.matrice());
+			}
+		});
 
 		return EXECUTION_REUSSIE;
 	}
@@ -172,6 +300,7 @@ public:
 void enregistre_operatrices_rendu(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpRenduChercheObjets>());
+	usine.enregistre_type(cree_desc<OpRenduInstance>());
 	usine.enregistre_type(cree_desc<OpMoteurRendu>());
 }
 

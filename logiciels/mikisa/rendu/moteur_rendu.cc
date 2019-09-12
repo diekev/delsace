@@ -31,7 +31,7 @@ long deleguee_scene::nombre_objets() const
 	return objets.taille();
 }
 
-Objet *deleguee_scene::objet(long idx) const
+const ObjetRendu &deleguee_scene::objet(long idx) const
 {
 	return objets[idx];
 }
