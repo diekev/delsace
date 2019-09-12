@@ -96,6 +96,14 @@ public:
 
 /* ************************************************************************** */
 
+/**
+ * Instançage (possibilité d'avoir une seule représentation d'un objet en mémoire et de le rendre plusieurs fois)
+ * (Arnold) pouvoir redéfinir les attributs non-géométrique pour chaque instance (UV, couleurs, nuanceurs, etc.)
+ * (Arnold) pouvoir avoir une instance d'un objet, au lieu de multiples (il suffit d'un seul point)
+ * (Houdini) l'instance se fait dans les objets avec un objet instance spéciale
+ * (Blender) l'instance se fait soit via particules, soit via un parentage sur les points, arêtes, ou primitives
+ * (Général) avoir un index par instance
+ */
 class OpRenduInstance : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Instance Objet";
