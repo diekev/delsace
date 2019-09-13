@@ -63,6 +63,8 @@ set(NUANCEURS
 	opengl/nuanceurs/diffus.frag
 	opengl/nuanceurs/diffus.vert
 	opengl/nuanceurs/diffus_instances.vert
+	opengl/nuanceurs/fonctions_normales.glsl
+	opengl/nuanceurs/fonctions_polymorphiques.glsl
 	opengl/nuanceurs/simple.frag
 	opengl/nuanceurs/simple.vert
 	opengl/nuanceurs/simple_instances.vert
