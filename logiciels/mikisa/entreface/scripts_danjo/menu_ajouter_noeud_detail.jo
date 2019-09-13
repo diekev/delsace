@@ -39,7 +39,10 @@ menu "Noeud Détail" {
 		action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
 	}
 	menu "image" {
+		action(valeur="projection_cylindrique"; attache=ajouter_noeud_detail; métadonnée="projection_cylindrique")
+		action(valeur="projection_sphérique"; attache=ajouter_noeud_detail; métadonnée="projection_sphérique")
 		action(valeur="échantillonne_image"; attache=ajouter_noeud_detail; métadonnée="échantillonne_image")
+		action(valeur="échantillonne_triplan"; attache=ajouter_noeud_detail; métadonnée="échantillonne_triplan")
 	}
 	menu "maths" {
 		action(valeur="abs"; attache=ajouter_noeud_detail; métadonnée="abs")

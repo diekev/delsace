@@ -953,6 +953,35 @@ static void enregistre_fonctions_images(magasin_fonctions &magasin)
 						donnees_parametre("uv", type_var::VEC2)),
 					param_sorties(donnees_parametre("couleur", type_var::COULEUR))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"échantillonne_triplan",
+				code_inst::FN_ECHANTILLONE_TRIPLAN,
+				signature(
+					param_entrees(
+						donnees_parametre("image", type_var::ENT32),
+						donnees_parametre("pos", type_var::VEC3),
+						donnees_parametre("nor", type_var::VEC3)),
+					param_sorties(donnees_parametre("couleur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"projection_sphérique",
+				code_inst::FN_PROJECTION_SPHERIQUE,
+				signature(
+					param_entrees(
+						donnees_parametre("pos", type_var::VEC3)),
+					param_sorties(donnees_parametre("uv", type_var::VEC2))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"projection_cylindrique",
+				code_inst::FN_PROJECTION_CYLINDRIQUE,
+				signature(
+					param_entrees(
+						donnees_parametre("pos", type_var::VEC3)),
+					param_sorties(donnees_parametre("uv", type_var::VEC2))),
+				ctx_script::tous);
 }
 
 void enregistre_fonctions_base(magasin_fonctions &magasin)

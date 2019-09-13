@@ -28,6 +28,7 @@
 #include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 
 #include "coeur/image.hh"
@@ -59,6 +60,11 @@ static auto tangeante(float x)
 static auto arccosinus(float x)
 {
 	return std::acos(x);
+}
+
+static auto acos_sur(float x)
+{
+	return std::cos(dls::math::restreint(x, -1.0f, 1.0f));
 }
 
 static auto arcsinus(float x)
@@ -1756,6 +1762,64 @@ void execute_pile(ctx_exec &contexte,
 					auto tampon = extrait_grille_couleur(calque);
 
 					res = wlk::echantillonne_lineaire(*tampon, uv.x, uv.y);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_ECHANTILLONE_TRIPLAN:
+			{
+				auto ptr_image = pile_donnees.charge_entier(compteur, insts);
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto nor = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::phys::couleur32(0.0f, 0.0f, 0.0f, 1.0f);
+
+				auto angle_xy = abs(nor.z);
+				auto angle_xz = abs(nor.y);
+				auto angle_yz = abs(nor.x);
+				auto poids = angle_xy + angle_xz + angle_yz;
+
+				if (poids != 0.0f && ptr_image < contexte.images.taille()) {
+					auto image = contexte.images[ptr_image];
+					auto calque = image->calque_pour_lecture("image");
+					auto tampon = extrait_grille_couleur(calque);
+
+					auto couleur_xy = wlk::echantillonne_lineaire(*tampon, pos.x, pos.y);
+					auto couleur_xz = wlk::echantillonne_lineaire(*tampon, pos.x, pos.z);
+					auto couleur_yz = wlk::echantillonne_lineaire(*tampon, pos.y, pos.z);
+
+					res = (angle_xy * couleur_xy + angle_xz * couleur_xz + angle_yz * couleur_yz) / poids;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_PROJECTION_SPHERIQUE:
+			{
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto l = longueur(pos);
+				auto res = dls::math::vec2f(0.0f);
+
+				if (l > 0.0f) {
+					if (pos.x != 0.0f || pos.y != 0.0f) {
+						res.x = (1.0f - std::atan2(pos.x, pos.y) * constantes<float>::PI_INV) / 2.0f;
+					}
+
+					res.y = 1.0f - acos_sur(pos.z / l) * constantes<float>::PI_INV;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_PROJECTION_CYLINDRIQUE:
+			{
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::math::vec2f(0.0f);
+				auto l = std::sqrt(pos.x * pos.x + pos.y * pos.y);
+
+				if (l > 0.0f) {
+					res.x = (1.0f - (std::atan2(pos.x / l, pos.y / l) * constantes<float>::PI_INV)) * 0.5f;
+					res.y = (pos.z + 1.0f) * 0.5f;
 				}
 
 				pile_donnees.stocke(compteur, insts, res);
