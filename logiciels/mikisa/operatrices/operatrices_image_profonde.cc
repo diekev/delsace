@@ -653,6 +653,10 @@ public:
 	{
 		if (raison == "nom_caméra") {
 			for (auto &objet : contexte.bdd->objets()) {
+				if (objet->type != type_objet::CAMERA) {
+					continue;
+				}
+
 				liste.pousse(objet->noeud->nom);
 			}
 		}
