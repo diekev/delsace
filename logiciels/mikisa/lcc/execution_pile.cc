@@ -1746,7 +1746,7 @@ void execute_pile(ctx_exec &contexte,
 			}
 			case code_inst::FN_ECHANTILLONE_IMAGE:
 			{
-				auto ptr_image = insts.charge_entier(compteur);
+				auto ptr_image = pile_donnees.charge_entier(compteur, insts);
 				auto uv = pile_donnees.charge_vec2(compteur, insts);
 				auto res = dls::phys::couleur32();
 

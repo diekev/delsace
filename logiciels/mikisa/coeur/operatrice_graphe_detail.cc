@@ -1682,15 +1682,15 @@ static auto charge_jpeg(const char *chemin, Image *ptr_image)
 	}
 }
 
-class OpEchantillonneImage final : public OperatriceImage {
+class OpChargeImage final : public OperatriceImage {
 public:
-	static constexpr auto NOM = "Échantillonne Image";
-	static constexpr auto AIDE = "Échantillonne Image";
+	static constexpr auto NOM = "Charge Image";
+	static constexpr auto AIDE = "Charge Image";
 
-	OpEchantillonneImage(Graphe &graphe_parent, Noeud &noeud_)
+	OpChargeImage(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceImage(graphe_parent, noeud_)
 	{
-		entrees(1);
+		entrees(0);
 		sorties(1);
 
 		noeud.est_sortie = true;
@@ -1711,24 +1711,12 @@ public:
 		return "entreface/operatrice_detail_echantimage.jo";
 	}
 
-	type_prise type_entree(int i) const override
-	{
-		switch (i) {
-			case 0:
-			{
-				return type_prise::VEC2;
-			}
-		}
-
-		return type_prise::INVALIDE;
-	}
-
 	type_prise type_sortie(int i) const override
 	{
 		switch (i) {
 			case 0:
 			{
-				return type_prise::COULEUR;
+				return type_prise::ENTIER;
 			}
 		}
 
@@ -1752,24 +1740,13 @@ public:
 
 		charge_jpeg(chemin_image.c_str(), &m_image);
 
-		compileuse->ajoute_instructions(lcc::code_inst::FN_ECHANTILLONE_IMAGE);
-		compileuse->ajoute_instructions(ctx_global->images.taille());
-
-		if (entree(0)->connectee()) {
-			auto ptr_sortie = entree(0)->pointeur()->liens[0];
-			compileuse->ajoute_instructions(ptr_sortie->decalage_pile);
-		}
-		else {
-			auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::VEC2));
-			compileuse->ajoute_instructions(ptr);
-		}
-
-		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
-		compileuse->ajoute_instructions(ptr);
+		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
 
 		auto ptr_sortie = sortie(0)->pointeur();
 		ptr_sortie->decalage_pile = ptr;
-		ptr_sortie->type_infere = type_prise::COULEUR;
+		ptr_sortie->type_infere = type_prise::ENTIER;
+
+		compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->images.taille()));
 
 		ctx_global->images.pousse(&m_image);
 
@@ -1876,7 +1853,7 @@ void enregistre_operatrices_detail(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceEntreeAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceSortieAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceInfoExecution>());
-	usine.enregistre_type(cree_desc<OpEchantillonneImage>());
+	usine.enregistre_type(cree_desc<OpChargeImage>());
 }
 
 OperatriceFonctionDetail *cree_op_detail(

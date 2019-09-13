@@ -4,7 +4,7 @@ menu "Noeud Détail" {
 	action(valeur="Entrée Attribut"; attache=ajouter_noeud; métadonnée="Entrée Attribut")
 	action(valeur="Sortie Attribut"; attache=ajouter_noeud; métadonnée="Sortie Attribut")
 	action(valeur="Info Exécution"; attache=ajouter_noeud; métadonnée="Info Exécution")
-	action(valeur="Échantillonne Image"; attache=ajouter_noeud; métadonnée="Échantillonne Image")
+	action(valeur="Charge Image"; attache=ajouter_noeud; métadonnée="Charge Image")
 	menu "bruit" {
 		action(valeur="bruit_cellule"; attache=ajouter_noeud_detail; métadonnée="bruit_cellule")
 		action(valeur="bruit_flux"; attache=ajouter_noeud_detail; métadonnée="bruit_flux")
@@ -37,6 +37,9 @@ menu "Noeud Détail" {
 		action(valeur="longueur_onde"; attache=ajouter_noeud_detail; métadonnée="longueur_onde")
 		action(valeur="luminance"; attache=ajouter_noeud_detail; métadonnée="luminance")
 		action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
+	}
+	menu "image" {
+		action(valeur="échantillonne_image"; attache=ajouter_noeud_detail; métadonnée="échantillonne_image")
 	}
 	menu "maths" {
 		action(valeur="abs"; attache=ajouter_noeud_detail; métadonnée="abs")

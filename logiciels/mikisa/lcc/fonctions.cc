@@ -940,6 +940,21 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 				ctx_script::tous);
 }
 
+static void enregistre_fonctions_images(magasin_fonctions &magasin)
+{
+	magasin.categorie = "image";
+
+	magasin.ajoute_fonction(
+				"échantillonne_image",
+				code_inst::FN_ECHANTILLONE_IMAGE,
+				signature(
+					param_entrees(
+						donnees_parametre("image", type_var::ENT32),
+						donnees_parametre("uv", type_var::VEC2)),
+					param_sorties(donnees_parametre("couleur", type_var::COULEUR))),
+				ctx_script::tous);
+}
+
 void enregistre_fonctions_base(magasin_fonctions &magasin)
 {
 	enregistre_fonctions_operations_binaires(magasin);
@@ -949,6 +964,7 @@ void enregistre_fonctions_base(magasin_fonctions &magasin)
 	enregistre_fonctions_colorimetriques(magasin);
 	enregistre_fonctions_types(magasin);
 	enregistre_fonctions_bruits(magasin);
+	enregistre_fonctions_images(magasin);
 }
 
 }  /* namespace lcc */

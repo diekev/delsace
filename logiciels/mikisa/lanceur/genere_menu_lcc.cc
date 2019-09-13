@@ -46,7 +46,7 @@ int main()
 	os << "\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud; métadonnée=\"Entrée Attribut\")\n";
 	os << "\taction(valeur=\"Sortie Attribut\"; attache=ajouter_noeud; métadonnée=\"Sortie Attribut\")\n";
 	os << "\taction(valeur=\"Info Exécution\"; attache=ajouter_noeud; métadonnée=\"Info Exécution\")\n";
-	os << "\taction(valeur=\"Échantillonne Image\"; attache=ajouter_noeud; métadonnée=\"Échantillonne Image\")\n";
+	os << "\taction(valeur=\"Charge Image\"; attache=ajouter_noeud; métadonnée=\"Charge Image\")\n";
 
 	for (auto const &categorie : nom_categories) {
 		auto const &fonctions = lcc.fonctions.table_categories[categorie];
