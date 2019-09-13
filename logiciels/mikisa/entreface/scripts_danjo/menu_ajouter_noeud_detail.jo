@@ -1,11 +1,15 @@
 menu "Noeud Détail" {
-	action(valeur="Entrée Détail"; attache=ajouter_noeud; métadonnée="Entrée Détail")
-	action(valeur="Sortie Détail"; attache=ajouter_noeud; métadonnée="Sortie Détail")
-	action(valeur="Entrée Attribut"; attache=ajouter_noeud; métadonnée="Entrée Attribut")
-	action(valeur="Sortie Attribut"; attache=ajouter_noeud; métadonnée="Sortie Attribut")
-	action(valeur="Info Exécution"; attache=ajouter_noeud; métadonnée="Info Exécution")
-	action(valeur="Charge Image"; attache=ajouter_noeud; métadonnée="Charge Image")
-	action(valeur="Cherche Caméra"; attache=ajouter_noeud; métadonnée="Cherche Caméra")
+	menu "Entrée" {
+		action(valeur="Charge Image"; attache=ajouter_noeud_spécial_détail; métadonnée="Charge Image")
+		action(valeur="Cherche Caméra"; attache=ajouter_noeud_spécial_détail; métadonnée="Cherche Caméra")
+		action(valeur="Entrée Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Détail")
+		action(valeur="Entrée Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Attribut")
+		action(valeur="Info Exécution"; attache=ajouter_noeud_spécial_détail; métadonnée="Info Exécution")
+	}
+	menu "Sortie" {
+		action(valeur="Sortie Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Détail")
+		action(valeur="Sortie Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Attribut")
+	}
 	menu "bruit" {
 		action(valeur="bruit_cellule"; attache=ajouter_noeud_detail; métadonnée="bruit_cellule")
 		action(valeur="bruit_flux"; attache=ajouter_noeud_detail; métadonnée="bruit_flux")

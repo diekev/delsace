@@ -41,13 +41,17 @@ int main()
 	std::sort(begin(nom_categories), end(nom_categories));
 
 	os << "menu \"Noeud Détail\" {\n";
-	os << "\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud; métadonnée=\"Entrée Détail\")\n";
-	os << "\taction(valeur=\"Sortie Détail\"; attache=ajouter_noeud; métadonnée=\"Sortie Détail\")\n";
-	os << "\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud; métadonnée=\"Entrée Attribut\")\n";
-	os << "\taction(valeur=\"Sortie Attribut\"; attache=ajouter_noeud; métadonnée=\"Sortie Attribut\")\n";
-	os << "\taction(valeur=\"Info Exécution\"; attache=ajouter_noeud; métadonnée=\"Info Exécution\")\n";
-	os << "\taction(valeur=\"Charge Image\"; attache=ajouter_noeud; métadonnée=\"Charge Image\")\n";
-	os << "\taction(valeur=\"Cherche Caméra\"; attache=ajouter_noeud; métadonnée=\"Cherche Caméra\")\n";
+	os << "\tmenu \"Entrée\" {\n";
+	os << "\t\taction(valeur=\"Charge Image\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Charge Image\")\n";
+	os << "\t\taction(valeur=\"Cherche Caméra\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Cherche Caméra\")\n";
+	os << "\t\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Entrée Détail\")\n";
+	os << "\t\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Entrée Attribut\")\n";
+	os << "\t\taction(valeur=\"Info Exécution\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Info Exécution\")\n";
+	os << "\t}\n";
+	os << "\tmenu \"Sortie\" {\n";
+	os << "\t\taction(valeur=\"Sortie Détail\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Sortie Détail\")\n";
+	os << "\t\taction(valeur=\"Sortie Attribut\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Sortie Attribut\")\n";
+	os << "\t}\n";
 
 	for (auto const &categorie : nom_categories) {
 		auto const &fonctions = lcc.fonctions.table_categories[categorie];
