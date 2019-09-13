@@ -5,6 +5,7 @@ menu "Noeud Détail" {
 	action(valeur="Sortie Attribut"; attache=ajouter_noeud; métadonnée="Sortie Attribut")
 	action(valeur="Info Exécution"; attache=ajouter_noeud; métadonnée="Info Exécution")
 	action(valeur="Charge Image"; attache=ajouter_noeud; métadonnée="Charge Image")
+	action(valeur="Cherche Caméra"; attache=ajouter_noeud; métadonnée="Cherche Caméra")
 	menu "bruit" {
 		action(valeur="bruit_cellule"; attache=ajouter_noeud_detail; métadonnée="bruit_cellule")
 		action(valeur="bruit_flux"; attache=ajouter_noeud_detail; métadonnée="bruit_flux")
@@ -39,6 +40,7 @@ menu "Noeud Détail" {
 		action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
 	}
 	menu "image" {
+		action(valeur="projection_caméra"; attache=ajouter_noeud_detail; métadonnée="projection_caméra")
 		action(valeur="projection_cylindrique"; attache=ajouter_noeud_detail; métadonnée="projection_cylindrique")
 		action(valeur="projection_sphérique"; attache=ajouter_noeud_detail; métadonnée="projection_sphérique")
 		action(valeur="échantillonne_image"; attache=ajouter_noeud_detail; métadonnée="échantillonne_image")

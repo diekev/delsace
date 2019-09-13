@@ -31,6 +31,10 @@
 struct Corps;
 struct Image;
 
+namespace vision {
+class Camera3D;
+}
+
 namespace lcc {
 
 enum class ctx_script : unsigned short {
@@ -111,6 +115,9 @@ struct ctx_exec {
 
 	/* Toutes les images. */
 	dls::tableau<Image const *> images;
+
+	/* Toutes les caméras. */
+	dls::tableau<vision::Camera3D const *> cameras;
 
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;

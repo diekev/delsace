@@ -1756,6 +1756,146 @@ public:
 
 /* ************************************************************************** */
 
+class OpChercheCamera final : public OperatriceImage {
+	dls::chaine m_nom_objet = "";
+	Objet *m_objet = nullptr;
+
+public:
+	static constexpr auto NOM = "Cherche Caméra";
+	static constexpr auto AIDE = "Cherche Caméra";
+
+	OpChercheCamera(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
+	{
+		entrees(0);
+		sorties(1);
+
+		noeud.est_sortie = true;
+	}
+
+	COPIE_CONSTRUCT(OpChercheCamera);
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_detail_camera.jo";
+	}
+
+	type_prise type_sortie(int i) const override
+	{
+		switch (i) {
+			case 0:
+			{
+				return type_prise::ENTIER;
+			}
+		}
+
+		return type_prise::INVALIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_image.reinitialise();
+
+		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
+		auto ctx_global = std::any_cast<lcc::ctx_exec *>(donnees_aval->table["ctx_global"]);
+
+		auto chemin_camera = evalue_chaine("chemin_caméra");
+
+		if (chemin_camera == "") {
+			this->ajoute_avertissement("Le chemin de la caméra est vide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		m_objet = trouve_objet(contexte);
+
+		if (m_objet == nullptr) {
+			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		if (m_objet->type != type_objet::CAMERA) {
+			this->ajoute_avertissement("L'objet n'est pas une caméra !");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
+
+		auto ptr_sortie = sortie(0)->pointeur();
+		ptr_sortie->decalage_pile = ptr;
+		ptr_sortie->type_infere = type_prise::ENTIER;
+
+		compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->cameras.taille()));
+
+		auto camera = static_cast<vision::Camera3D *>(nullptr);
+
+		m_objet->donnees.accede_ecriture([&](DonneesObjet *donnees)
+		{
+			camera = &extrait_camera(donnees);
+		});
+
+		ctx_global->cameras.pousse(camera);
+
+		return EXECUTION_REUSSIE;
+	}
+
+	Objet *trouve_objet(ContexteEvaluation const &contexte)
+	{
+		auto nom_objet = evalue_chaine("nom_caméra");
+
+		if (nom_objet.est_vide()) {
+			return nullptr;
+		}
+
+		if (nom_objet != m_nom_objet || m_objet == nullptr) {
+			m_nom_objet = nom_objet;
+			m_objet = contexte.bdd->objet(nom_objet);
+		}
+
+		return m_objet;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
+	{
+		if (m_objet == nullptr) {
+			m_objet = trouve_objet(contexte);
+
+			if (m_objet == nullptr) {
+				return;
+			}
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_caméra") {
+			for (auto &objet : contexte.bdd->objets()) {
+				if (objet->type != type_objet::CAMERA) {
+					continue;
+				}
+
+				liste.pousse(objet->noeud->nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 static auto params_info = lcc::param_sorties(
 			lcc::donnees_parametre("temps_image", lcc::type_var::ENT32),
 			lcc::donnees_parametre("temps_fractionnel", lcc::type_var::DEC),

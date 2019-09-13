@@ -30,6 +30,7 @@
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/vision/camera.h"
 
 #include "coeur/image.hh"
 
@@ -1820,6 +1821,22 @@ void execute_pile(ctx_exec &contexte,
 				if (l > 0.0f) {
 					res.x = (1.0f - (std::atan2(pos.x / l, pos.y / l) * constantes<float>::PI_INV)) * 0.5f;
 					res.y = (pos.z + 1.0f) * 0.5f;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_PROJECTION_CAMERA:
+			{
+				auto ptr_camera = pile_donnees.charge_entier(compteur, insts);
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::math::vec2f(0.0f);
+
+				if (ptr_camera < contexte.cameras.taille()) {
+					auto camera = contexte.cameras[ptr_camera];
+					auto p = camera->pos_ecran(dls::math::point3f(pos));
+					res.x = p.x / static_cast<float>(camera->largeur());
+					res.y = p.y / static_cast<float>(camera->hauteur());
 				}
 
 				pile_donnees.stocke(compteur, insts, res);

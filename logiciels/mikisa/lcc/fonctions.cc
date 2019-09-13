@@ -982,6 +982,16 @@ static void enregistre_fonctions_images(magasin_fonctions &magasin)
 						donnees_parametre("pos", type_var::VEC3)),
 					param_sorties(donnees_parametre("uv", type_var::VEC2))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"projection_caméra",
+				code_inst::FN_PROJECTION_CAMERA,
+				signature(
+					param_entrees(
+						donnees_parametre("caméra", type_var::ENT32),
+						donnees_parametre("pos", type_var::VEC3)),
+					param_sorties(donnees_parametre("uv", type_var::VEC2))),
+				ctx_script::tous);
 }
 
 void enregistre_fonctions_base(magasin_fonctions &magasin)
