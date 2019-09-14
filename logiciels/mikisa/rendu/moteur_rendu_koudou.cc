@@ -432,6 +432,7 @@ void MoteurRenduKoudou::calcule_rendu(
 				stats.nombre_polygones += maillage->nombre_quads;
 				stats.nombre_polygones += maillage->nombre_triangles;
 
+				maillage->index = static_cast<int>(scene_koudou.noeuds.taille());
 				scene_koudou.noeuds.pousse(maillage);
 			}
 			else if (objet->type == type_objet::LUMIERE) {
