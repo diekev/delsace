@@ -39,6 +39,7 @@ add_library(${NOM_CIBLE} STATIC
 	lumiere.cc
 	maillage.cc
 	moteur_rendu.cc
+	noeud.cc
 	nuanceur.cc
 	objet.cc
 	pellicule.cc
@@ -52,6 +53,7 @@ add_library(${NOM_CIBLE} STATIC
 	koudou.hh
 	lumiere.hh
 	maillage.hh
+	noeud.hh
 	objet.hh
 	pellicule.hh
 	moteur_rendu.hh

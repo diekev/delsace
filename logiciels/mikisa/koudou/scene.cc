@@ -60,6 +60,7 @@ Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction)
 /* ************************************************************************** */
 
 Scene::Scene()
+	: delegue(*this)
 {
 	/* Création du monde. */
 	float rgb_monde[3] = {0.05f, 0.35f, 0.8f};
@@ -107,17 +108,38 @@ void Scene::reinitialise()
 		memoire::deloge("Objet", objet);
 	}
 
+	for (auto &n : noeuds) {
+		memoire::deloge("kdo::noeud", n);
+	}
+
+	memoire::deloge("ArbreBVH", arbre_hbe);
+
+	noeuds.efface();
 	objets.efface();
 	maillages.efface();
 	lumieres.efface();
 	volumes.efface();
 }
 
+void Scene::construit_arbre_hbe()
+{
+	arbre_hbe = bli::cree_arbre_bvh(delegue);
+
+	for (auto n : noeuds) {
+		n->construit_arbre_hbe();
+	}
+}
+
+dls::phys::esectd Scene::traverse(const dls::phys::rayond &r) const
+{
+	return bli::traverse(arbre_hbe, delegue, r);
+}
+
 /* ************************************************************************** */
 
 double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale)
 {
-	auto entresection = parametres.acceleratrice->entresecte(scene, rayon, distance_maximale);
+	auto entresection = scene.traverse(rayon);
 
 	if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 		return 1.0;
@@ -228,6 +250,32 @@ dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor)
 	}
 
 	return dr;
+}
+
+delegue_scene::delegue_scene(const Scene &scene)
+	: ptr_scene(scene)
+{}
+
+long delegue_scene::nombre_elements() const
+{
+	return ptr_scene.noeuds.taille();
+}
+
+void delegue_scene::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
+{
+	auto n = ptr_scene.noeuds[idx];
+
+	auto lims = n->calcule_limites();
+
+	cos.efface();
+	cos.pousse(dls::math::converti_type<float>(lims.min));
+	cos.pousse(dls::math::converti_type<float>(lims.max));
+}
+
+dls::phys::esectd delegue_scene::intersecte_element(long idx, const dls::phys::rayond &r) const
+{
+	auto n = ptr_scene.noeuds[idx];
+	return n->traverse_arbre(r);
 }
 
 }  /* namespace kdo */

@@ -176,10 +176,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 	ContexteNuancage contexte;
 
 	for (auto i = 0u; i < parametres.nombre_rebonds; ++i) {
-		auto const entresection = parametres.acceleratrice->entresecte(
-									  scene,
-									  rayon_local,
-									  1000.0);
+		auto const entresection = scene.traverse(rayon_local);
 
 		if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 			auto vecteur = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;

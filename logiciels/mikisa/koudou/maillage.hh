@@ -28,9 +28,54 @@
 #include "biblinternes/math/transformation.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "noeud.hh"
+
 namespace kdo {
 
-class Nuanceur;
+struct maillage;
+
+struct delegue_maillage {
+	maillage const &ptr_maillage;
+
+	delegue_maillage(maillage const &m);
+
+	long nombre_elements() const;
+
+	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
+
+	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &rayon) const;
+};
+
+struct maillage : public noeud {
+	dls::tableau<dls::math::vec3f> points{};
+	dls::tableau<dls::math::vec3f> normaux{};
+
+	/* Nous gardons et des triangles et des quads pour économiser la mémoire.
+	 * Puisqu'un quad = 2 triangles, pour chaque quad nous avons deux fois moins
+	 * de noeuds dans l'arbre_hbe, ainsi que 1.5 fois moins d'index pour les
+	 * points et normaux.
+	 */
+	dls::tableau<int> triangles{};
+	dls::tableau<int> quads{};
+
+	dls::tableau<int> normaux_triangles{};
+	dls::tableau<int> normaux_quads{};
+
+	delegue_maillage delegue;
+
+	int nombre_triangles = 0;
+	int nombre_quads = 0;
+	int index = 0;
+	int volume = -1;
+
+	maillage();
+
+	void construit_arbre_hbe() override;
+
+	dls::phys::esectd traverse_arbre(dls::phys::rayond const &rayon) override;
+
+	limites3d calcule_limites() override;
+};
 
 /**
  * Représentation d'un triangle et de son vecteur normal dans l'espace
