@@ -199,8 +199,8 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		contexte.rayon = rayon_local;
 
 		// get color from the surface
-		auto maillage = scene.maillages[entresection.idx_objet];
-		auto nuanceur = maillage->nuanceur();
+		auto maillage = dynamic_cast<kdo::maillage *>(scene.noeuds[entresection.idx_objet]);
+		auto nuanceur = maillage->nuanceur;
 
 		if (nuanceur->a_volume() && maillage->volume != -1) {
 			auto grille = scene.volumes[maillage->volume];
