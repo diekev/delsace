@@ -24,6 +24,10 @@
 
 #include "rendu.hh"
 
+#include "biblinternes/outils/fichier.hh"
+
+#include "danjo/danjo.h"
+
 #include "base_de_donnees.hh"
 #include "mikisa.h"
 #include "noeud.hh"
@@ -47,12 +51,14 @@ Rendu *cree_rendu_defaut(Mikisa &mikisa)
 	auto &graphe = rendu->noeud.graphe;
 
 	auto noeud_sortie = graphe.cree_noeud("Moteur Rendu", type_noeud::OPERATRICE);
-	mikisa.usine_operatrices()("Moteur Rendu", graphe, *noeud_sortie);
+	auto op = mikisa.usine_operatrices()("Moteur Rendu", graphe, *noeud_sortie);
 	synchronise_donnees_operatrice(*noeud_sortie);
+	danjo::initialise_entreface(op, dls::contenu_fichier(op->chemin_entreface()).c_str());
 
 	auto noeud_objets = graphe.cree_noeud("Cherche Objets", type_noeud::OPERATRICE);
-	mikisa.usine_operatrices()("Cherche Objets", graphe, *noeud_objets);
+	op = mikisa.usine_operatrices()("Cherche Objets", graphe, *noeud_objets);
 	synchronise_donnees_operatrice(*noeud_objets);
+	danjo::initialise_entreface(op, dls::contenu_fichier(op->chemin_entreface()).c_str());
 
 	graphe.connecte(noeud_objets->sortie(0), noeud_sortie->entree(0));
 

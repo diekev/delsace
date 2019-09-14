@@ -249,6 +249,11 @@ public:
 
 	~OpMoteurRendu() override
 	{
+		reinitialise();
+	}
+
+	void reinitialise()
+	{
 		if (m_moteur_rendu == nullptr) {
 			return;
 		}
@@ -261,6 +266,11 @@ public:
 			auto moteur_rendu = dynamic_cast<MoteurRenduKoudou *>(m_moteur_rendu);
 			memoire::deloge("MoteurRenduKoudou", moteur_rendu);
 		}
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_rendu_moteur.jo";
 	}
 
 	const char *nom_classe() const override
@@ -277,8 +287,17 @@ public:
 	{
 		INUTILISE(donnees_aval);
 
-		if (m_moteur_rendu == nullptr) {
-			m_moteur_rendu = memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL");
+		auto id_moteur = evalue_enum("id_moteur");
+
+		if (m_moteur_rendu == nullptr || m_moteur_rendu->id() != id_moteur) {
+			reinitialise();
+
+			if (id_moteur == "opengl") {
+				m_moteur_rendu = memoire::loge<MoteurRenduOpenGL>("MoteurRenduOpenGL");
+			}
+			else if (id_moteur == "koudou") {
+				m_moteur_rendu = memoire::loge<MoteurRenduKoudou>("MoteurRenduKoudou");
+			}
 		}
 
 		auto da = DonneesAval{};
@@ -300,6 +319,13 @@ public:
 					contexte.rendu_final);
 
 		return EXECUTION_REUSSIE;
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("id_moteur") == nullptr) {
+			ajoute_propriete("id_moteur", danjo::TypePropriete::ENUM, dls::chaine("opengl"));
+		}
 	}
 };
 

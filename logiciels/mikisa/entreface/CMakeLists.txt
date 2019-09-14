@@ -193,6 +193,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_rasterisation_prim.jo
 	scripts_danjo/operatrice_rayons_soleil.jo
 	scripts_danjo/operatrice_rendu_instance.jo
+	scripts_danjo/operatrice_rendu_moteur.jo
 	scripts_danjo/operatrice_script_detail.jo
 	scripts_danjo/operatrice_simulation.jo
 	scripts_danjo/operatrice_simulation_foule.jo

@@ -1,0 +1,9 @@
+disposition "operatrice_rendu_moteur" {
+	ligne {
+		étiquette(valeur="Moteur")
+		énum(valeur="opengl"; attache=id_moteur; items=[
+			{ nom="OpenGL", valeur="opengl" },
+			{ nom="Koudou", valeur="koudou" }
+		])
+	}
+}
