@@ -24,11 +24,14 @@
 
 #include "noeud.hh"
 
+#include "nuanceur.hh"
+
 namespace kdo {
 
 noeud::~noeud()
 {
 	memoire::deloge("ArbreHBE", arbre_hbe);
+	delete nuanceur;
 }
 
 void noeud::construit_arbre_hbe()
