@@ -51,8 +51,6 @@ struct ParametresRendu {
 	vision::Camera3D *camera = nullptr;
 #endif
 
-	StructureAcceleration *acceleratrice = nullptr;
-
 	ParametresRendu();
 	~ParametresRendu();
 

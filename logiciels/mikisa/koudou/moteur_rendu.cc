@@ -36,7 +36,6 @@
 #include "maillage.hh"
 #include "nuanceur.hh"
 #include "statistiques.hh"
-#include "structure_acceleration.hh"
 #include "types.hh"
 #include "volume.hh"
 

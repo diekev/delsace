@@ -41,21 +41,12 @@ Objet::~Objet()
 			memoire::deloge("kdo::LumiereDistante", ptr);
 		}
 	}
-	else if (type == TypeObjet::MAILLAGE) {
-		memoire::deloge("Maillage", maillage);
-	}
 }
 
 Objet::Objet(Lumiere *l)
 	: type(TypeObjet::LUMIERE)
 	, nom("lumière")
 	, lumiere(l)
-{}
-
-Objet::Objet(Maillage *m)
-	: type(TypeObjet::MAILLAGE)
-	, nom(m->nom())
-	, maillage(m)
 {}
 
 dls::chaine Objet::chemin() const

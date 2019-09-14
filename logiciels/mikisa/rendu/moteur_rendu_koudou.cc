@@ -37,7 +37,6 @@
 #include "koudou/maillage.hh"
 #include "koudou/moteur_rendu.hh"
 #include "koudou/nuanceur.hh"
-#include "koudou/structure_acceleration.hh"
 
 #include "wolika/grille_eparse.hh"
 

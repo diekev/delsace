@@ -36,7 +36,6 @@
 #include "nuanceur.hh"
 #include "objet.hh"
 #include "statistiques.hh"
-#include "structure_acceleration.hh"
 
 namespace kdo {
 
@@ -78,18 +77,6 @@ Scene::~Scene()
 	reinitialise();
 }
 
-void Scene::ajoute_maillage(Maillage *maillage)
-{
-	auto objet = memoire::loge<Objet>("Objet", maillage);
-	objet->transformation = maillage->transformation();
-	objet->nuanceur = maillage->nuanceur();
-
-	objets.pousse(objet);
-	objet_actif = objet;
-
-	maillages.pousse(maillage);
-}
-
 void Scene::ajoute_lumiere(Lumiere *lumiere)
 {
 	auto objet = memoire::loge<Objet>("Objet", lumiere);
@@ -116,7 +103,6 @@ void Scene::reinitialise()
 
 	noeuds.efface();
 	objets.efface();
-	maillages.efface();
 	lumieres.efface();
 	volumes.efface();
 }

@@ -29,7 +29,6 @@
 #include "bsdf.hh"
 #include "koudou.hh"
 #include "nuanceur.hh"
-#include "structure_acceleration.hh"
 #include "types.hh"
 
 namespace kdo {

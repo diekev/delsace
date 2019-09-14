@@ -41,7 +41,6 @@ class Texture;
 namespace kdo {
 
 class Lumiere;
-class Maillage;
 class Nuanceur;
 struct ParametresRendu;
 
@@ -84,7 +83,6 @@ struct Scene {
 	Monde monde{};
 
 	dls::tableau<Lumiere *> lumieres{};
-	dls::tableau<Maillage *> maillages{};
 
 	dls::tableau<wlk::grille_eparse<float> *> volumes{};
 
@@ -101,7 +99,6 @@ struct Scene {
 	Scene(Scene const &) = default;
 	Scene &operator=(Scene const &) = default;
 
-	void ajoute_maillage(Maillage *maillage);
 	void ajoute_lumiere(Lumiere *lumiere);
 
 	void reinitialise();

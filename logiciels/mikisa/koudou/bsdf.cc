@@ -33,7 +33,6 @@
 #include "moteur_rendu.hh"
 #include "nuanceur.hh"
 #include "scene.hh"
-#include "structure_acceleration.hh"
 #include "types.hh"
 
 namespace kdo {

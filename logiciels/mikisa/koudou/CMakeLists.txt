@@ -45,7 +45,6 @@ add_library(${NOM_CIBLE} STATIC
 	pellicule.cc
 	scene.cc
 	statistiques.cc
-	structure_acceleration.cc
 	types.cc
 	volume.cc
 
@@ -60,7 +59,6 @@ add_library(${NOM_CIBLE} STATIC
 	nuanceur.hh
 	scene.hh
 	statistiques.hh
-	structure_acceleration.hh
 	types.hh
 	volume.hh
 )

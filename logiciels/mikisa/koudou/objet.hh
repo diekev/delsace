@@ -29,7 +29,6 @@
 namespace kdo {
 
 class Lumiere;
-class Maillage;
 class Nuanceur;
 
 enum class TypeObjet {
@@ -43,10 +42,7 @@ struct Objet {
 	TypeObjet type{};
 	dls::chaine nom{};
 
-	union {
-		Lumiere *lumiere;
-		Maillage *maillage;
-	};
+	Lumiere *lumiere;
 
 	Objet() = default;
 	~Objet();
@@ -55,8 +51,6 @@ struct Objet {
 	Objet &operator=(Objet const &) = default;
 
 	explicit Objet(Lumiere *lumiere);
-
-	explicit Objet(Maillage *maillage);
 
 	dls::chaine chemin() const;
 };
