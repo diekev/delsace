@@ -157,6 +157,9 @@ static void ajoute_volume(
 	//maillage->nuanceur = kdo::NuanceurDiffus::defaut();
 	maillage->nuanceur = kdo::NuanceurVolume::defaut();
 
+	maillage->quads = kdo::tableau_index(2);
+	maillage->normaux_quads = kdo::tableau_index(2);
+
 	auto volume = volume_prim(corps);
 
 	if (!volume) {
@@ -250,6 +253,9 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 		maillage->points.pousse(corps.point_transforme(j));
 	}
 
+	auto taille_indices_points = kdo::tableau_index::octets_pour_taille(points->taille());
+	auto taille_indices_normaux = 0;
+
 	auto attr_N = corps.attribut("N");
 
 	if (attr_N) {
@@ -260,7 +266,18 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 			extrait(attr_N->r32(j), n);
 			maillage->normaux.pousse(n);
 		}
+
+		taille_indices_normaux = kdo::tableau_index::octets_pour_taille(attr_N->taille());
 	}
+	else {
+		taille_indices_normaux = kdo::tableau_index::octets_pour_taille(corps.prims()->taille());
+	}
+
+	maillage->triangles = kdo::tableau_index(taille_indices_points);
+	maillage->quads = kdo::tableau_index(taille_indices_points);
+
+	maillage->normaux_triangles = kdo::tableau_index(taille_indices_normaux);
+	maillage->normaux_quads = kdo::tableau_index(taille_indices_normaux);
 
 	pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
 	{
@@ -287,6 +304,7 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 			if (attr_N) {
 				if (attr_N->portee == portee_attr::PRIMITIVE) {
 					n0 = static_cast<int>(poly->index);
+					n1 = n0;
 					n2 = n0;
 					n3 = n0;
 				}

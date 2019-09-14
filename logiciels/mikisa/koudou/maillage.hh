@@ -27,6 +27,7 @@
 #include "biblinternes/structures/tableau.hh"
 
 #include "noeud.hh"
+#include "tableau_index.hh"
 
 namespace kdo {
 
@@ -51,13 +52,13 @@ struct maillage : public noeud {
 	/* Nous gardons et des triangles et des quads pour économiser la mémoire.
 	 * Puisqu'un quad = 2 triangles, pour chaque quad nous avons deux fois moins
 	 * de noeuds dans l'arbre_hbe, ainsi que 1.5 fois moins d'index pour les
-	 * points et normaux.
+	 * points et normaux (2x3 pour les triangles vs 1x4 pour les quads).
 	 */
-	dls::tableau<int> triangles{};
-	dls::tableau<int> quads{};
+	tableau_index triangles{};
+	tableau_index quads{};
 
-	dls::tableau<int> normaux_triangles{};
-	dls::tableau<int> normaux_quads{};
+	tableau_index normaux_triangles{};
+	tableau_index normaux_quads{};
 
 	delegue_maillage delegue;
 
