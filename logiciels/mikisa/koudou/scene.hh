@@ -44,8 +44,6 @@ class Lumiere;
 class Nuanceur;
 struct ParametresRendu;
 
-struct Objet;
-
 struct noeud;
 
 /* ************************************************************************** */
@@ -82,12 +80,7 @@ struct delegue_scene {
 struct Scene {
 	Monde monde{};
 
-	dls::tableau<Lumiere *> lumieres{};
-
 	dls::tableau<wlk::grille_eparse<float> *> volumes{};
-
-	dls::tableau<Objet *> objets{};
-	Objet *objet_actif = nullptr;
 
 	dls::tableau<noeud *> noeuds{};
 	delegue_scene delegue;
@@ -98,8 +91,6 @@ struct Scene {
 
 	Scene(Scene const &) = default;
 	Scene &operator=(Scene const &) = default;
-
-	void ajoute_lumiere(Lumiere *lumiere);
 
 	void reinitialise();
 

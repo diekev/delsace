@@ -28,6 +28,10 @@
 
 namespace kdo {
 
+noeud::noeud(type_noeud t)
+	: type(t)
+{}
+
 noeud::~noeud()
 {
 	memoire::deloge("ArbreHBE", arbre_hbe);

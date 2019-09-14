@@ -419,7 +419,7 @@ void MoteurRenduKoudou::calcule_rendu(
 			if (objet->type == type_objet::CORPS) {
 				auto const &corps = extrait_corps(donnees);
 
-				auto maillage = memoire::loge<kdo::maillage>("Maillage");
+				auto maillage = memoire::loge<kdo::maillage>("kdo::maillage");
 
 				if (possede_volume(corps)) {
 					ajoute_volume(scene_koudou, maillage, corps);
@@ -460,7 +460,7 @@ void MoteurRenduKoudou::calcule_rendu(
 								intensite);
 				}
 
-				scene_koudou.ajoute_lumiere(lumiere_koudou);
+				scene_koudou.noeuds.pousse(lumiere_koudou);
 			}
 
 			stats.nombre_objets += 1;

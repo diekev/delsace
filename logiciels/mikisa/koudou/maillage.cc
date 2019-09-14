@@ -153,7 +153,8 @@ dls::phys::esectd delegue_maillage::intersecte_element(long idx, const dls::phys
 }
 
 maillage::maillage()
-	: delegue(*this)
+	: noeud(type_noeud::MAILLAGE)
+	, delegue(*this)
 {}
 
 void maillage::construit_arbre_hbe()

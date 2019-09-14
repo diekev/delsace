@@ -33,13 +33,20 @@ namespace kdo {
 
 class Nuanceur;
 
+enum class type_noeud {
+	MAILLAGE,
+	LUMIERE,
+};
+
 struct noeud {
 	math::transformation tranformation{};
 	bli::BVHTree *arbre_hbe = nullptr;
 
 	Nuanceur *nuanceur = nullptr;
 
-	noeud() = default;
+	type_noeud type{};
+
+	noeud(type_noeud t);
 
 	COPIE_CONSTRUCT(noeud);
 

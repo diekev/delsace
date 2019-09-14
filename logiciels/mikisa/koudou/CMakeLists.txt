@@ -41,7 +41,6 @@ add_library(${NOM_CIBLE} STATIC
 	moteur_rendu.cc
 	noeud.cc
 	nuanceur.cc
-	objet.cc
 	pellicule.cc
 	scene.cc
 	statistiques.cc
@@ -53,7 +52,6 @@ add_library(${NOM_CIBLE} STATIC
 	lumiere.hh
 	maillage.hh
 	noeud.hh
-	objet.hh
 	pellicule.hh
 	moteur_rendu.hh
 	nuanceur.hh

@@ -34,7 +34,6 @@
 #include "lumiere.hh"
 #include "maillage.hh"
 #include "nuanceur.hh"
-#include "objet.hh"
 #include "statistiques.hh"
 
 namespace kdo {
@@ -77,33 +76,37 @@ Scene::~Scene()
 	reinitialise();
 }
 
-void Scene::ajoute_lumiere(Lumiere *lumiere)
-{
-	auto objet = memoire::loge<Objet>("Objet", lumiere);
-	objet->transformation = lumiere->transformation;
-	objet->nuanceur = lumiere->nuanceur;
-
-	objets.pousse(objet);
-	objet_actif = objet;
-
-	lumieres.pousse(lumiere);
-}
-
 void Scene::reinitialise()
 {
-	for (auto &objet : objets) {
-		memoire::deloge("Objet", objet);
-	}
-
 	for (auto &n : noeuds) {
-		memoire::deloge("kdo::noeud", n);
+		switch (n->type) {
+			case type_noeud::LUMIERE:
+			{
+				auto lumiere = dynamic_cast<Lumiere *>(n);
+
+				if (lumiere->type_l == type_lumiere::POINT) {
+					auto ptr = dynamic_cast<LumierePoint *>(lumiere);
+					memoire::deloge("kdo::LumierePoint", ptr);
+				}
+				else if (lumiere->type_l == type_lumiere::DISTANTE) {
+					auto ptr = dynamic_cast<LumiereDistante *>(lumiere);
+					memoire::deloge("kdo::LumiereDistante", ptr);
+				}
+
+				break;
+			}
+			case type_noeud::MAILLAGE:
+			{
+				auto maillage = dynamic_cast<kdo::maillage *>(n);
+				memoire::deloge("kdo::maillage", maillage);
+				break;
+			}
+		}
 	}
 
 	memoire::deloge("ArbreBVH", arbre_hbe);
 
 	noeuds.efface();
-	objets.efface();
-	lumieres.efface();
 	volumes.efface();
 }
 
@@ -112,6 +115,10 @@ void Scene::construit_arbre_hbe()
 	arbre_hbe = bli::cree_arbre_bvh(delegue);
 
 	for (auto n : noeuds) {
+		if (n->type == type_noeud::LUMIERE) {
+			continue;
+		}
+
 		n->construit_arbre_hbe();
 	}
 }
@@ -146,8 +153,14 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 	rayon.origine = pos + nor * biais;
 
 	/* Échantillone lumières. */
-	for (const Lumiere *lumiere : scene.lumieres) {
-		switch (lumiere->type) {
+	for (auto const *n : scene.noeuds) {
+		if (n->type != type_noeud::LUMIERE) {
+			continue;
+		}
+
+		auto lumiere = dynamic_cast<Lumiere const *>(n);
+
+		switch (lumiere->type_l) {
 			case type_lumiere::POINT:
 			{
 				auto lumiere_point = dynamic_cast<const LumierePoint *>(lumiere);
