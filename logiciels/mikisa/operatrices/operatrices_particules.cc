@@ -1289,15 +1289,29 @@ public:
 		auto doublons = dls::tableau<int>(points_entree->taille(), -1);
 
 #if 1
-		auto arbre = ArbreKD(points_entree->taille());
+		auto arbre = arbre_3df();
+		arbre.construit_avec_fonction(static_cast<int>(points_entree->taille()), [&](int i)
+		{
+			return points_entree->point(i);
+		});
+
+		auto doublons_trouves = 0;
 
 		for (auto i = 0; i < points_entree->taille(); ++i) {
-			arbre.insert(i, points_entree->point(i));
+			auto point = points_entree->point(i);
+
+			arbre.cherche_points(point, dist, [&](int idx, dls::math::vec3f const &p, float d2, float &r2)
+			{
+				INUTILISE(p);
+				INUTILISE(d2);
+				INUTILISE(r2);
+
+				if (doublons[i] != -1) {
+					doublons_trouves += 1;
+					doublons[i] = idx;
+				}
+			});
 		}
-
-		arbre.balance();
-
-		auto doublons_trouves = arbre.calc_doublons_rapide(dist, false, doublons);
 #else
 		auto doublons_trouves = 0;
 
@@ -1734,8 +1748,6 @@ public:
 		auto points_entree = m_corps.points_pour_lecture();
 
 		/* À FAIRE :
-		 * - calcul selon les particules se trouvant dans un rayon de la
-		 *   particule courante (kd-tree).
 		 * - fusion des particules se trouvant dans une fraction du rayon
 		 *   afin d'optimiser le calcul des corps de covariance
 		 */
@@ -1753,6 +1765,12 @@ public:
 		auto poids = evalue_decimal("poids");
 
 		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
+
+		auto arbre = arbre_3df();
+		arbre.construit_avec_fonction(static_cast<int>(points_entree->taille()), [&](int i)
+		{
+			return points_entree->point(i);
+		});
 
 		/* À FAIRE : il y a un effet yo-yo. */
 
@@ -1803,8 +1821,15 @@ public:
 				force += (centre_masse - p) * force_centre;
 
 #else
-				// À FAIRE : arbre k-d, simplifie points
-				auto points_voisins = points_autour(p, i, rayon);
+				auto points_voisins = dls::tableau<dls::math::vec3f>();
+
+				arbre.cherche_points(p, rayon, [&](int idx, dls::math::vec3f const &pnt, float d2, float &r2)
+				{
+					INUTILISE(idx);
+					INUTILISE(d2);
+					INUTILISE(r2);
+					points_voisins.pousse(pnt);
+				});
 
 				if (points_voisins.est_vide()) {
 					continue;
@@ -1880,29 +1905,6 @@ public:
 		});
 
 		return EXECUTION_REUSSIE;
-	}
-
-	dls::tableau<dls::math::vec3f> points_autour(
-		dls::math::vec3f const &centre,
-		long index,
-		float rayon)
-	{
-		dls::tableau<dls::math::vec3f> res;
-		auto points_entree = m_corps.points_pour_lecture();
-
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			if (i == index) {
-				continue;
-			}
-
-			auto p = points_entree->point(i);
-
-			if (longueur(p - centre) <= rayon) {
-				res.pousse(p);
-			}
-		}
-
-		return res;
 	}
 };
 
