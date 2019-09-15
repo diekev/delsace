@@ -44,6 +44,85 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
+/**
+ * Système de cheveux. Idées provenant de différentes sources (SPI, Yeti,
+ * Ornatrix, Presto, Hair Farm, DreamWorks).
+ *
+ * Opératrices/fonctions à considérer :
+ *
+ * De Yeti :
+ * Grow      | crée des cheveux selon des particules/points en entrées
+ * Instance  | instancie une géométrie par point/cheveux
+ * Scatter   | disperse des points sur une surface d'entrée
+ *
+ * Attribute | ajoute ou promeut des attributs sur les cheveux
+ * Blend     | mélange 2 ensembles de cheveux
+ * Displace  | pousse les cheveux dans une direction
+ * Group     | crée des groupes pour les cheveux
+ * Merge     | fusionne deux flux de cheveux dans un seul
+ * Shader    | ajoute des attributs qui seront passé au moteur de rendu
+ * Switch    | controle le flux du graphe
+ * Texture   | ajoute des attributs selon une texture
+ * Transform | applique une transformation aux éléments, translation sur $N est similaire à dispalice
+ *
+ * Bend      | attire ou répulse les courbes depuis la surface ou un plan
+ * Clumping  | crée des touffes, en attirant les courbes d'un système vers celles d'un autre
+ * Comb      | applique la forme d'une coupe aux cheveux
+ * Curl      | crée des boucles dans les cheveux (aussi appelé Kink, Wave)
+ * Direction | ajuste la direction des cheveux
+ * Guide     | déformes les cheveux selon des guides
+ * Motion    | ajoute des mouvements subtiles sans avoir à créer de simulations (vent)
+ * Scraggle  | ajoute du bruit controlé le long des cheveux
+ * Width     | controle le rayon des segments, pour chaque point | YETI, Ornatrix
+ *
+ * De Ornatrix :
+ * Guides from Objet
+ * Guides from Surface
+ * Guides from Mesh
+ * Hair from Guides
+ * Hair Propagation | crée des cheveux sur des cheveux
+ * Ground Strand    | crée des informations sur où les cheveux sont pour les faire suivre une surface (FurAttach)
+ * Braid Pattern
+ * Weaver Pattern
+ * Edit Guides
+ * Surface Comb     | crée des directions sur le scalp suivies par les cheveux
+ * Frizz            | crée du bruit le long des cheveux
+ * Gravity          | applique une force de gravité sur les cheveux (hors simulation)
+ * Simmetry         | fait une copie mirroir des cheveux selon un plan
+ * Strand Detail    | ajoute plus de points sur chaque segments pour mieux les approximer
+ * Rotate Strand    | oriente les cheveux autour de leur axe
+ * Strand Multiplier | crée des enfants autour des cheveux existants
+ * Normalize Strands | utilise une direction normalisée pour déméler les cheveux
+ *
+ * De DreamWorks :
+ * FurAttach
+ * FurCollide
+ * FurSampler
+ * FurColliderDistance
+ * Region of Influence
+ *
+ * De SPI :
+ * Wave (make hair wavy)
+ * Length
+ * GeoInstance
+ * Bend
+ * Orientation/Rotate (rotate around the base)
+ * Wind
+ * Push Away From Surface
+ * Clumping (bunches a group of hairs together)
+ * Clumping of wet hair (option dans clumping par groupe ou mappe)
+ * Magnet (allow for hair to be deformed by external geometry, e.g. belts or straps)
+ * Reshape (allow for hair to be deformed by external geometry, e.g. belts or straps)
+ * Python (write custom code)
+ * De SPI hair compositor :
+ * Blend (mix 2 or more hair animations, weighted along the length, all or subsets, blend "balls" used as masks optionnaly)
+ * Dynamic Hair Solver (takes a goal animation as input and produces a physically believable motion as output)
+ * Offset nodes allow the artist to modify an animation using a simplified controller which follows along with the incoming animation
+ *     controller can be a lower-resolution curve, "offset sock" (like NURBS) can be used instead for groups
+ *
+ * Possibilité de charge un cache disc.
+ */
+
 /* ************************************************************************** */
 
 struct DonneesCollesion {
