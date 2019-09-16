@@ -544,6 +544,11 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
 
 		if (connexion_sortie || m_prise_entree_deconnectee) {
+			if (graphe->noeud_parent.type == type_noeud::NUANCEUR) {
+				auto nuanceur = extrait_nuanceur(graphe->noeud_parent.donnees);
+				nuanceur->temps_modifie += 1;
+			}
+
 			marque_parent_surannee(&graphe->noeud_parent, [](Noeud *n, PriseEntree *prise)
 			{
 				if (n->type != type_noeud::OPERATRICE) {
@@ -637,6 +642,11 @@ public:
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::enleve);
 
 		if (besoin_execution) {
+			if (graphe->noeud_parent.type == type_noeud::NUANCEUR) {
+				auto nuanceur = extrait_nuanceur(graphe->noeud_parent.donnees);
+				nuanceur->temps_modifie += 1;
+			}
+
 			marque_parent_surannee(&graphe->noeud_parent, [](Noeud *n, PriseEntree *prise)
 			{
 				if (n->type != type_noeud::OPERATRICE) {

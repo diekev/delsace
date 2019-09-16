@@ -313,6 +313,7 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	}
 
 	auto donnees_aval = DonneesAval{};
+	donnees_aval.table.insere({"coulisse", dls::chaine("lcc")});
 	donnees_aval.table.insere({"compileuse", &m_compileuse});
 	donnees_aval.table.insere({"ctx_global", &m_ctx_global});
 	donnees_aval.table.insere({"gest_props", &m_gest_props});
@@ -868,6 +869,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 	/* réimplémentation du code de génération d'instruction pour les appels de
 	 * fonctions de LCC */
 
+	auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
 	auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 
 	/* défini le type spécialisé pour les connexions d'entrées */
@@ -1021,9 +1023,12 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 
 	/* ****************** crée les données pour les appels ****************** */
 
-	cree_code_coulisse_processeur(compileuse, type_specialise, pointeurs);
-
-	//cree_code_coulisse_opengl(type_specialise, pointeurs, contexte.temps_courant);
+	if (coulisse == "lcc") {
+		cree_code_coulisse_processeur(compileuse, type_specialise, pointeurs);
+	}
+	else {
+		cree_code_coulisse_opengl(type_specialise, pointeurs, contexte.temps_courant);
+	}
 
 	return EXECUTION_REUSSIE;
 }
@@ -1323,15 +1328,67 @@ public:
 	{
 		INUTILISE(contexte);
 
+		auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
 		auto const &params_noeud = params_noeuds_entree[type_detail];
 
-		for (auto i = 0; i < params_noeud.taille(); ++i) {
-			auto prise_sortie = sortie(i)->pointeur();
-			prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
-			prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
+		if (coulisse == "lcc") {
+			for (auto i = 0; i < params_noeud.taille(); ++i) {
+				auto prise_sortie = sortie(i)->pointeur();
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
+				prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
+			}
+		}
+		else {
+			auto &os = std::cerr;
+
+			for (auto i = 0; i < params_noeud.taille(); ++i) {
+				auto prise_sortie = sortie(i)->pointeur();
+
+				prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
+				prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
+
+				switch (params_noeud.type(i)) {
+					case lcc::type_var::ENT32:
+					{
+						os << "int __var" << prise_sortie->decalage_pile;
+						break;
+					}
+					case lcc::type_var::DEC:
+					{
+						os << "float __var" << prise_sortie->decalage_pile;
+						break;
+					}
+					case lcc::type_var::VEC2:
+					{
+						os << "vec2 __var" << prise_sortie->decalage_pile;
+						break;
+					}
+					case lcc::type_var::VEC3:
+					{
+						os << "vec3 __var" << prise_sortie->decalage_pile;
+						break;
+					}
+					case lcc::type_var::VEC4:
+					{
+						os << "vec4 __var" << prise_sortie->decalage_pile;
+						break;
+					}
+					case lcc::type_var::COULEUR:
+					{
+						os << "vec4 __var" << prise_sortie->decalage_pile;
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+
+				os << " = " << params_noeud.nom(i) << ";\n";
+			}
 		}
 
 		return EXECUTION_REUSSIE;
@@ -1385,6 +1442,7 @@ public:
 	{
 		INUTILISE(contexte);
 
+		//auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
@@ -1499,6 +1557,10 @@ public:
 					prise_sortie->type_infere = type_sortie(i);
 				}
 
+				break;
+			}
+			case DETAIL_NUANCAGE:
+			{
 				break;
 			}
 			case DETAIL_PIXELS:
@@ -1982,6 +2044,56 @@ public:
 		return noeud.a_des_sorties_liees();
 	}
 };
+
+/* ************************************************************************** */
+
+#include "nuanceur.hh"
+
+bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanceur)
+{
+	// résultat de la compilation nous donne des requêtes pour des attributs et
+	// une source pour le corps du nuanceur fragment
+
+	auto &graphe = nuanceur.noeud.graphe;
+
+	if (graphe.besoin_ajournement) {
+		tri_topologique(graphe);
+		graphe.besoin_ajournement = false;
+	}
+
+	auto m_compileuse = compileuse_lng();
+	auto m_ctx_global = lcc::ctx_exec{};
+	auto m_gest_props = gestionnaire_propriete{};
+	auto m_gest_attrs = gestionnaire_propriete{};
+
+	auto donnees_aval = DonneesAval{};
+	donnees_aval.table.insere({"coulisse", dls::chaine("opengl")});
+	donnees_aval.table.insere({"compileuse", &m_compileuse});
+	donnees_aval.table.insere({"ctx_global", &m_ctx_global});
+	donnees_aval.table.insere({"gest_props", &m_gest_props});
+	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
+
+	std::cerr << "++++++++++++ compilation nuanceur ++++++++++++\n";
+
+	/* performe la compilation */
+	auto decalage_prise = 0;
+	for (auto &noeud_graphe : graphe.noeuds()) {
+		for (auto &sortie : noeud_graphe->sorties) {
+			sortie->decalage_pile = ++decalage_prise;
+		}
+
+		auto operatrice = extrait_opimage(noeud_graphe->donnees);
+		operatrice->reinitialise_avertisements();
+
+		auto resultat = operatrice->execute(contexte, &donnees_aval);
+
+		if (resultat == EXECUTION_ECHOUEE) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 /* ************************************************************************** */
 

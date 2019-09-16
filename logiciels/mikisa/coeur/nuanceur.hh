@@ -26,12 +26,20 @@
 
 #include <any>
 
+#include "biblinternes/structures/chaine.hh"
+
 struct Noeud;
 
 /* ************************************************************************** */
 
 struct Nuanceur {
 	Noeud &noeud;
+
+	dls::chaine source_vert_glsl = "";
+	dls::chaine source_frag_glsl = "";
+
+	int temps_modifie = 0;
+	int temps_compilation_glsl = 0;
 
 	Nuanceur(Noeud &n);
 };

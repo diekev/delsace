@@ -32,7 +32,9 @@
 #include "coeur/donnees_aval.hh"
 #include "coeur/noeud.hh"
 #include "coeur/objet.h"
+#include "coeur/operatrice_graphe_detail.hh"
 #include "coeur/operatrice_image.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/usine_operatrice.h"
 
 #include "rendu/moteur_rendu.hh"
@@ -297,6 +299,13 @@ public:
 			}
 			else if (id_moteur == "koudou") {
 				m_moteur_rendu = memoire::loge<MoteurRenduKoudou>("MoteurRenduKoudou");
+			}
+		}
+
+		for (auto nuanceur : contexte.bdd->nuanceurs()) {
+			if (nuanceur->temps_modifie > nuanceur->temps_compilation_glsl) {
+				compile_nuanceur_opengl(contexte, *nuanceur);
+				nuanceur->temps_compilation_glsl = nuanceur->temps_modifie;
 			}
 		}
 

@@ -44,6 +44,7 @@ enum {
 };
 
 struct Mikisa;
+struct Nuanceur;
 
 /* ************************************************************************** */
 
@@ -160,6 +161,8 @@ private:
 };
 
 /* ************************************************************************** */
+
+bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanceur);
 
 OperatriceFonctionDetail *cree_op_detail(
 		Mikisa &mikisa,

@@ -48,6 +48,7 @@
 #include "coeur/objet.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/operatrice_image.h"
 
 EditriceProprietes::EditriceProprietes(Mikisa &mikisa, QWidget *parent)
@@ -237,6 +238,8 @@ void EditriceProprietes::ajourne_manipulable()
 		}
 		case type_noeud::NUANCEUR:
 		{
+			auto nuanceur = extrait_nuanceur(noeud->donnees);
+			nuanceur->temps_modifie += 1;
 			break;
 		}
 		case type_noeud::RENDU:
@@ -251,6 +254,11 @@ void EditriceProprietes::ajourne_manipulable()
 				auto op = extrait_opimage(n->donnees);
 				op->amont_change(prise);
 			});
+
+			if (noeud->parent->type == type_noeud::NUANCEUR) {
+				auto nuanceur = extrait_nuanceur(noeud->parent->donnees);
+				nuanceur->temps_modifie += 1;
+			}
 
 			/* Notifie les graphes des noeuds parents comme étant surrannés */
 			marque_parent_surannee(noeud->parent, [](Noeud *n, PriseEntree *prise)
