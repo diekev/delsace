@@ -334,6 +334,11 @@ void ajoute_polygone_surface(
 				extrait(attr_couleurs->r32(polygone->index_sommet(i - 1)), couleurs[idx + 1]);
 				extrait(attr_couleurs->r32(polygone->index_sommet(i)), couleurs[idx + 2]);
 			}
+			else if (attr_couleurs->portee == portee_attr::CORPS) {
+				extrait(attr_couleurs->r32(0), couleurs[idx]);
+				extrait(attr_couleurs->r32(0), couleurs[idx + 1]);
+				extrait(attr_couleurs->r32(0), couleurs[idx + 2]);
+			}
 		}
 		else {
 			couleurs.pousse(dls::math::vec3f(0.8f));
@@ -365,6 +370,10 @@ void ajoute_polygone_segment(
 			else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
 				extrait(attr_couleurs->r32(polygone->index), couleurs[idx]);
 				extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 1]);
+			}
+			else if (attr_couleurs->portee == portee_attr::CORPS) {
+				extrait(attr_couleurs->r32(0), couleurs[idx]);
+				extrait(attr_couleurs->r32(0), couleurs[idx + 1]);
 			}
 		}
 		else {
