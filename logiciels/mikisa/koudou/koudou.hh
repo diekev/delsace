@@ -30,6 +30,42 @@ namespace vision {
 class Camera3D;
 }  /* namespace vision */
 
+/* Notes sur le design d'Arnold qui inspire un peu notre moeteur de
+ * rendu, d'autres moteurs seront étudiés afin de mieux savoir ce qu'il
+ * se passe dans l'industrie et avoir un système plus robuste.
+ *
+ * Tout est un noeud (maillage, points, volume, surface implicite,
+ * caméra, instance, courbes, procéduraux, etc.), pour simplifier le
+ * code. Les noeuds procédureaux peuvent avoir des enfants, de manière
+ * récursive. Une procédure peut être un cache Alembic, ou une
+ * description de scène. La création récursive d'enfant peut être utile
+ * pour créer des plumes ou des poils. Les volumes requiers de définir
+ * des intervals le long des rayons pour les marcher.
+ *
+ * Chaque noeud possède son propre arbre HBE. Une traductrice de scène
+ * crée tous les noeuds, et rassemble les noeuds racines de l'arbre HBE
+ * principal dans une liste. L'arbre HBE principal (4-wide, SAH) est
+ * construit par ascendance depuis les noeuds feuilles.
+ *
+ * La géométrie d'un noeud n'est évaluée (subdivision de triangles et
+ * courbes, déplacements, ajustements des normaux) que lorsqu'un noeud
+ * de l'arbre HBE de la scène est touché par un rayon, ceci pour
+ * accélerer le temps d'affichage du premier pixel, et pour éviter de
+ * travailler sur des objets n'étant jamais touché.
+ *
+ * ATTENTION :
+ * - ceci requiers de ne pas bloquer sur les threads
+ * - les premier thread initie la construction, les autres qui touchent
+ *   également le noeud le rejoignent si nécessaire
+ *
+ * Une fois la géométrie d'un noeud évaluée, son arbre HBE est crée.
+ *
+ * Dans notre moteur, pour le moment, les arbres HBE des noeuds
+ * géométries sont créés avant le rendu.
+ *
+ * Source https://www.arnoldrenderer.com/research/Arnold_TOG2018.pdf
+ */
+
 namespace kdo {
 
 class MoteurRendu;
