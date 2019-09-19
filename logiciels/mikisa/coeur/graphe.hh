@@ -198,6 +198,8 @@ struct Graphe {
 	 */
 	void supprime_tout();
 
+	dls::chaine rend_nom_unique(const dls::chaine &nom);
+
 private:
 	/**
 	 * Ajoute un noeud au graphe. Le noeud n'est pas connecté. Le nom du noeud

@@ -75,6 +75,7 @@ set(NUANCEURS
 
 set(FICHIERS_DANJO
 	scripts_danjo/ajouter_propriete.jo
+	scripts_danjo/dialogue_renommage.jo
 	scripts_danjo/disposition_ligne_temps.jo
 	scripts_danjo/disposition_rendu.jo
 	scripts_danjo/menu_ajouter_noeud_composite.jo

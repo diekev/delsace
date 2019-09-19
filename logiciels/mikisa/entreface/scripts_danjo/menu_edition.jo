@@ -2,6 +2,8 @@ menu "Édition" {
 	action(valeur="Défait"; attache=défait)
 	action(valeur="Refait"; attache=refait)
 	séparateur
+	action(valeur="Renomme Noeud"; attache=renomme)
+	séparateur
     action(valeur="Sors noeud"; attache=sors_noeud)
 	séparateur
 	action(valeur="Ajouter Propriété"; attache=ajouter_propriete)

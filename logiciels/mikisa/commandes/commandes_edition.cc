@@ -197,6 +197,47 @@ public:
 
 /* ************************************************************************** */
 
+class CommandeRenomme final : public Commande {
+public:
+	int execute(std::any const &pointeur, DonneesCommande const &metadonnee) override
+	{
+		INUTILISE(metadonnee);
+		auto mikisa = extrait_mikisa(pointeur);
+		auto gestionnaire = mikisa->gestionnaire_entreface;
+		auto graphe = mikisa->graphe;
+
+		if (graphe->noeud_actif == nullptr) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto noeud = graphe->noeud_actif;
+
+		auto resultat = danjo::Manipulable();
+		resultat.ajoute_propriete("nouveau_nom", danjo::TypePropriete::CHAINE_CARACTERE, noeud->nom);
+
+		danjo::DonneesInterface donnees_entreface{};
+		donnees_entreface.conteneur = nullptr;
+		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
+		donnees_entreface.manipulable = &resultat;
+
+		auto const texte_entree = dls::contenu_fichier("entreface/dialogue_renommage.jo");
+		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
+
+		if (!ok) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto nom = resultat.evalue_chaine("nouveau_nom");
+		noeud->nom = graphe->rend_nom_unique(nom);
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_edition(UsineCommande &usine)
 {
 	usine.enregistre_type("ajouter_propriete",
@@ -222,6 +263,10 @@ void enregistre_commandes_edition(UsineCommande &usine)
 	usine.enregistre_type("refait",
 						   description_commande<CommandeRefait>(
 							   "", 0, Qt::Modifier::CTRL | Qt::Modifier::SHIFT, Qt::Key_Z, false));
+
+	usine.enregistre_type("renomme",
+						   description_commande<CommandeRenomme>(
+							   "graphe", 0, 0, Qt::Key_F2, false));
 }
 
 #pragma clang diagnostic pop
