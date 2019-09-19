@@ -83,4 +83,18 @@ private:
 	void pousse_impl(int v);
 };
 
+/* ****************************************************************** */
+
+struct tableau_index_comprime {
+	dls::tableau<std::pair<int, int>> donnees;
+
+	int operator[](long idx) const;
+
+	void pousse(int decalage, int valeur);
+};
+
+/* ****************************************************************** */
+
+tableau_index_comprime comprimes_tableau_index(tableau_index const &entree);
+
 }  /* namespace kdo */

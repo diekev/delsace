@@ -92,4 +92,70 @@ void tableau_index::pousse_impl(int v)
 	taille += 1;
 }
 
+/* ****************************************************************** */
+
+int tableau_index_comprime::operator[](long idx) const
+{
+	if (donnees.taille() == 1) {
+		return donnees[0].second;
+	}
+
+	for (auto i = 0; i < donnees.taille() - 1; ++i) {
+		if (donnees[i].first >= idx && donnees[i + 1] < idx) {
+			return donnees[i].second;
+		}
+	}
+
+	return donnees.back().second;
+}
+
+void tableau_index_comprime::pousse(int decalage, int valeur)
+{
+	donnees.pousse({ decalage, valeur });
+}
+
+/* ****************************************************************** */
+
+/**
+ * Comprime un tableau_index en utilisant une variation de l'algorithme
+ * de codage par plages.
+ *
+ * Avec l'algorithme normal, la séquence 0000001111224444466666777
+ * devrait donner 6:0;4:1;1:2;5:4;5:6;3:7.
+ *
+ * Or dans notre cas nous n'avons pas besoin de reconstituer la séquence
+ * originale : nous voulons simplement savoir à quel index correspond
+ * une valeur. Pour ce faire nous stockons non pas le nombre de valeur,
+ * mais les décalages depuis le début de la séquence originale où les
+ * valeurs commencent. Ainsi nous pouvons utiliser une recherche binaire
+ * ou un autre algorithme simple pour trouver ce que nous cherchons.
+ *
+ * La séquence devient alors O:O;6:1;10:2;12:4;17:6;22:7.
+ *
+ * Voir https://fr.wikipedia.org/wiki/Run-length_encoding pour la
+ * théorie du codage par plages.
+ */
+tableau_index_comprime comprimes_tableau_index(tableau_index const &entree)
+{
+	auto sortie = tableau_index_comprime(2);
+	auto decalage = 0;
+
+	for (auto i = 0; i < entree.taille; ++i) {
+		auto valeur = entree[i];
+
+		for (auto j = i + 1; j < entree.taille; ++j, ++i) {
+			if (entree[j] != valeur) {
+				break;
+			}
+		}
+
+		sortie.pousse(decalage);
+		sortie.pousse(valeur);
+
+		decalage = i;
+	}
+
+	return sortie;
+}
+
 }  /* namespace kdo */
