@@ -36,6 +36,7 @@ class Nuanceur;
 enum class type_noeud {
 	MAILLAGE,
 	LUMIERE,
+	SPHERE,
 };
 
 struct noeud {

@@ -34,6 +34,7 @@
 #include "lumiere.hh"
 #include "maillage.hh"
 #include "nuanceur.hh"
+#include "sphere.hh"
 #include "statistiques.hh"
 
 namespace kdo {
@@ -99,6 +100,12 @@ void Scene::reinitialise()
 			{
 				auto maillage = dynamic_cast<kdo::maillage *>(n);
 				memoire::deloge("kdo::maillage", maillage);
+				break;
+			}
+			case type_noeud::SPHERE:
+			{
+				auto sphere = dynamic_cast<kdo::sphere *>(n);
+				memoire::deloge("kdo::sphere", sphere);
 				break;
 			}
 		}

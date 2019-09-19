@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2017 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -24,16 +24,39 @@
 
 #pragma once
 
+#include "noeud.hh"
+
 namespace kdo {
 
-/* ************************************************************************** */
+struct sphere;
 
-/* Pour les entresections. */
-enum {
-	ESECT_OBJET_TYPE_AUCUN    = 0,
-	ESECT_OBJET_TYPE_LUMIERE  = 1,
-	ESECT_OBJET_TYPE_TRIANGLE = 2,
-	ESECT_OBJET_TYPE_SPHERE   = 3,
+struct delegue_sphere {
+	sphere const &ptr_sphere;
+
+	delegue_sphere(sphere const &m);
+
+	long nombre_elements() const;
+
+	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
+
+	dls::phys::esectd intersecte_element(long idx, dls::phys::rayond const &rayon) const;
+};
+
+struct sphere : public noeud {
+	dls::math::vec3f point{};
+	int index = 0;
+	float rayon{};
+	double rayon2{};
+
+	delegue_sphere delegue;
+
+	sphere();
+
+	void construit_arbre_hbe() override;
+
+	dls::phys::esectd traverse_arbre(dls::phys::rayond const &rayon) override;
+
+	limites3d calcule_limites() override;
 };
 
 }  /* namespace kdo */

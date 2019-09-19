@@ -43,6 +43,7 @@ add_library(${NOM_CIBLE} STATIC
 	nuanceur.cc
 	pellicule.cc
 	scene.cc
+	sphere.cc
 	statistiques.cc
 	tableau_index.cc
 	types.cc
@@ -57,6 +58,7 @@ add_library(${NOM_CIBLE} STATIC
 	moteur_rendu.hh
 	nuanceur.hh
 	scene.hh
+	sphere.hh
 	statistiques.hh
 	tableau_index.hh
 	types.hh

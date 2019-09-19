@@ -30,6 +30,7 @@
 
 #include "coeur/objet.h"
 #include "corps/iteration_corps.hh"
+#include "corps/sphere.hh"
 #include "corps/volume.hh"
 
 #include "koudou/koudou.hh"
@@ -37,6 +38,7 @@
 #include "koudou/maillage.hh"
 #include "koudou/moteur_rendu.hh"
 #include "koudou/nuanceur.hh"
+#include "koudou/sphere.hh"
 
 #include "wolika/grille_eparse.hh"
 
@@ -392,6 +394,22 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 	});
 }
 
+static void ajoute_sphere(
+		kdo::Scene &scene_koudou,
+		Corps const &corps)
+{
+	pour_chaque_sphere(corps, [&](Corps const &, Sphere *sphere)
+	{
+		auto sphere_kdo = memoire::loge<kdo::sphere>("kdo::sphere");
+		sphere_kdo->nuanceur = kdo::NuanceurDiffus::defaut();
+		sphere_kdo->point = corps.point_transforme(sphere->idx_point);
+		sphere_kdo->rayon = sphere->rayon;
+		sphere_kdo->index = static_cast<int>(scene_koudou.noeuds.taille());
+
+		scene_koudou.noeuds.pousse(sphere_kdo);
+	});
+}
+
 /* ************************************************************************** */
 
 MoteurRenduKoudou::MoteurRenduKoudou()
@@ -437,21 +455,26 @@ void MoteurRenduKoudou::calcule_rendu(
 			if (objet->type == type_objet::CORPS) {
 				auto const &corps = extrait_corps(donnees);
 
-				auto maillage = memoire::loge<kdo::maillage>("kdo::maillage");
-
-				if (possede_volume(corps)) {
-					ajoute_volume(scene_koudou, maillage, corps);
+				if (possede_sphere(corps)) {
+					ajoute_sphere(scene_koudou, corps);
 				}
 				else {
-					ajoute_maillage(maillage, corps);
+					auto maillage = memoire::loge<kdo::maillage>("kdo::maillage");
+
+					if (possede_volume(corps)) {
+						ajoute_volume(scene_koudou, maillage, corps);
+					}
+					else {
+						ajoute_maillage(maillage, corps);
+					}
+
+					stats.nombre_points += maillage->points.taille();
+					stats.nombre_polygones += maillage->nombre_quads;
+					stats.nombre_polygones += maillage->nombre_triangles;
+
+					maillage->index = static_cast<int>(scene_koudou.noeuds.taille());
+					scene_koudou.noeuds.pousse(maillage);
 				}
-
-				stats.nombre_points += maillage->points.taille();
-				stats.nombre_polygones += maillage->nombre_quads;
-				stats.nombre_polygones += maillage->nombre_triangles;
-
-				maillage->index = static_cast<int>(scene_koudou.noeuds.taille());
-				scene_koudou.noeuds.pousse(maillage);
 			}
 			else if (objet->type == type_objet::LUMIERE) {
 				auto const &lumiere = extrait_lumiere(donnees);

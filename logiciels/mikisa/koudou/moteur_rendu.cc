@@ -198,11 +198,17 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		contexte.rayon = rayon_local;
 
 		// get color from the surface
-		auto maillage = dynamic_cast<kdo::maillage *>(scene.noeuds[entresection.idx_objet]);
-		auto nuanceur = maillage->nuanceur;
+		auto noeud = scene.noeuds[entresection.idx_objet];
+		auto nuanceur = noeud->nuanceur;
+		auto idx_volume = -1;
 
-		if (nuanceur->a_volume() && maillage->volume != -1) {
-			auto grille = scene.volumes[maillage->volume];
+		if (entresection.type == ESECT_OBJET_TYPE_TRIANGLE) {
+			auto maillage = dynamic_cast<kdo::maillage *>(noeud);
+			idx_volume = maillage->volume;
+		}
+
+		if (nuanceur->a_volume() && idx_volume != -1) {
+			auto grille = scene.volumes[idx_volume];
 			auto volume = nuanceur->cree_volume(contexte, grille);
 			Spectre Lv;
 			Spectre transmittance;
