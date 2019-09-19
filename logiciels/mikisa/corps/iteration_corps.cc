@@ -25,6 +25,7 @@
 #include "iteration_corps.hh"
 
 #include "corps.h"
+#include "sphere.hh"
 #include "volume.hh"
 
 void pour_chaque_polygone(Corps &corps, type_fonc_rap_poly fonction_rappel)
@@ -112,6 +113,23 @@ void pour_chaque_volume(Corps &corps, type_fonc_rap_volume fonction_rappel)
 	}
 }
 
+void pour_chaque_sphere(Corps &corps, type_fonc_rap_sphere fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() != type_primitive::SPHERE) {
+			continue;
+		}
+
+		auto sphere = dynamic_cast<Sphere *>(prim);
+
+		fonction_rappel(corps, sphere);
+	}
+}
+
 /* versions const */
 
 void pour_chaque_polygone(const Corps &corps, type_fonc_rap_poly_const fonction_rappel)
@@ -196,5 +214,22 @@ void pour_chaque_volume(Corps const &corps, type_fonc_rap_volume_const fonction_
 		auto volume = dynamic_cast<Volume *>(prim);
 
 		fonction_rappel(corps, volume);
+	}
+}
+
+void pour_chaque_sphere(Corps const &corps, type_fonc_rap_sphere_const fonction_rappel)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() != type_primitive::SPHERE) {
+			continue;
+		}
+
+		auto sphere = dynamic_cast<Sphere *>(prim);
+
+		fonction_rappel(corps, sphere);
 	}
 }
