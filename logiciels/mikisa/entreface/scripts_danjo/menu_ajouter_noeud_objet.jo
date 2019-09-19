@@ -34,6 +34,7 @@ menu "Noeud Objet" {
 		action(valeur="Création LatLong"; attache=ajouter_noeud; métadonnée="Création LatLong")
 		action(valeur="Création Ligne"; attache=ajouter_noeud; métadonnée="Création Ligne")
 		action(valeur="Création Pancarte"; attache=ajouter_noeud; métadonnée="Création Pancarte")
+		action(valeur="Création Primitive Sphère"; attache=ajouter_noeud; métadonnée="Création Primitive Sphère")
 		action(valeur="Création Sphère Ico"; attache=ajouter_noeud; métadonnée="Création Sphère Ico")
 		action(valeur="Création Sphère UV"; attache=ajouter_noeud; métadonnée="Création Sphère UV")
 		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")

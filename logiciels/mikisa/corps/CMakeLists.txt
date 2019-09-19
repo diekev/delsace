@@ -41,6 +41,7 @@ add_library(${NOM_CIBLE} STATIC
     listes.cc
 	polyedre.cc
     primitive.cc
+	sphere.cc
     triangulation.cc
     volume.cc
 
@@ -53,6 +54,7 @@ add_library(${NOM_CIBLE} STATIC
     listes.h
 	polyedre.hh
     primitive.hh
+	sphere.hh
     triangulation.hh
     volume.hh
 )

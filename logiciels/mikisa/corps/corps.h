@@ -34,6 +34,8 @@
 
 class Attribut;
 
+struct Sphere;
+
 /**
  * La structure Corps représente une partie constituante d'un objet. Le Corps
  * peut-être un maillage, ou un volume, ou autre (voir énumération ci-dessus).
@@ -124,6 +126,10 @@ struct Corps {
 	long ajoute_sommet(Polygone *p, long idx_point);
 
 	long nombre_sommets() const;
+
+	/* sphères */
+
+	Sphere *ajoute_sphere(long idx_point, float rayon);
 
 	/* autres */
 

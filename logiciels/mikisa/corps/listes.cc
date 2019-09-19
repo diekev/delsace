@@ -27,6 +27,7 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps.h"
+#include "sphere.hh"
 #include "volume.hh"
 
 /* ************************************************************************** */
@@ -191,6 +192,10 @@ void ListePrimitives::reinitialise()
 					auto derivee = dynamic_cast<Volume *>(s);
 					memoire::deloge("Volume", derivee);
 				}
+				else if (s->type_prim() == type_primitive::SPHERE) {
+					auto derivee = dynamic_cast<Sphere *>(s);
+					memoire::deloge("Sphère", derivee);
+				}
 				else {
 					/* au cas où */
 					memoire::deloge("liste_prims", s);
@@ -275,6 +280,13 @@ void ListePrimitives::detache()
 				auto nouveau_volume = memoire::loge<Volume>("Volume", grille);
 				nouveau_volume->index = volume->index;
 				m_primitives->pousse(nouveau_volume);
+			}
+			else if (prim->type_prim() == type_primitive::SPHERE) {
+				auto sphere = dynamic_cast<Sphere *>(prim);
+
+				auto nvl_volume = memoire::loge<Sphere>("Sphère", sphere->idx_point, sphere->rayon);
+				nvl_volume->index = sphere->index;
+				m_primitives->pousse(nvl_volume);
 			}
 		}
 	}

@@ -36,6 +36,7 @@
 
 #include "corps/attribut.h"
 #include "corps/corps.h"
+#include "corps/sphere.hh"
 #include "corps/volume.hh"
 
 #include "wolika/grille_dense.hh"
@@ -370,6 +371,155 @@ void ajoute_polygone_segment(
 			couleurs.pousse(dls::math::vec3f(0.8f));
 			couleurs.pousse(dls::math::vec3f(0.8f));
 		}
+	}
+}
+
+static dls::math::vec3f points_cercle_XZ[32] = {
+	dls::math::vec3f( 0.000000f, 0.000000f,  1.000000f),
+	dls::math::vec3f(-0.195090f, 0.000000f,  0.980785f),
+	dls::math::vec3f(-0.382683f, 0.000000f,  0.92388f),
+	dls::math::vec3f(-0.555570f, 0.000000f,  0.83147f),
+	dls::math::vec3f(-0.707107f, 0.000000f,  0.707107f),
+	dls::math::vec3f(-0.831470f, 0.000000f,  0.55557f),
+	dls::math::vec3f(-0.923880f, 0.000000f,  0.382683f),
+	dls::math::vec3f(-0.980785f, 0.000000f,  0.19509f),
+	dls::math::vec3f(-1.000000f, 0.000000f,  0.000000f),
+	dls::math::vec3f(-0.980785f, 0.000000f, -0.19509f),
+	dls::math::vec3f(-0.923880f, 0.000000f, -0.382683f),
+	dls::math::vec3f(-0.831470f, 0.000000f, -0.55557f),
+	dls::math::vec3f(-0.707107f, 0.000000f, -0.707107f),
+	dls::math::vec3f(-0.555570f, 0.000000f, -0.83147f),
+	dls::math::vec3f(-0.382683f, 0.000000f, -0.92388f),
+	dls::math::vec3f(-0.195090f, 0.000000f, -0.980785f),
+	dls::math::vec3f( 0.000000f, 0.000000f, -1.000000f),
+	dls::math::vec3f( 0.195091f, 0.000000f, -0.980785f),
+	dls::math::vec3f( 0.382684f, 0.000000f, -0.923879f),
+	dls::math::vec3f( 0.555571f, 0.000000f, -0.831469f),
+	dls::math::vec3f( 0.707107f, 0.000000f, -0.707106f),
+	dls::math::vec3f( 0.831470f, 0.000000f, -0.55557f),
+	dls::math::vec3f( 0.923880f, 0.000000f, -0.382683f),
+	dls::math::vec3f( 0.980785f, 0.000000f, -0.195089f),
+	dls::math::vec3f( 1.000000f, 0.000000f,  0.000000f),
+	dls::math::vec3f( 0.980785f, 0.000000f,  0.195091f),
+	dls::math::vec3f( 0.923879f, 0.000000f,  0.382684f),
+	dls::math::vec3f( 0.831469f, 0.000000f,  0.555571f),
+	dls::math::vec3f( 0.707106f, 0.000000f,  0.707108f),
+	dls::math::vec3f( 0.555569f, 0.000000f,  0.831470f),
+	dls::math::vec3f( 0.382682f, 0.000000f,  0.923880f),
+	dls::math::vec3f( 0.195089f, 0.000000f,  0.980786f),
+};
+static dls::math::vec3f points_cercle_XY[32] = {
+	dls::math::vec3f( 0.000000f,  1.000000f, 0.000000f),
+	dls::math::vec3f(-0.195090f,  0.980785f, 0.000000f),
+	dls::math::vec3f(-0.382683f,  0.923880f, 0.000000f),
+	dls::math::vec3f(-0.555570f,  0.831470f, 0.000000f),
+	dls::math::vec3f(-0.707107f,  0.707107f, 0.000000f),
+	dls::math::vec3f(-0.831470f,  0.555570f, 0.000000f),
+	dls::math::vec3f(-0.923880f,  0.382683f, 0.000000f),
+	dls::math::vec3f(-0.980785f,  0.195090f, 0.000000f),
+	dls::math::vec3f(-1.000000f,  0.000000f, 0.000000f),
+	dls::math::vec3f(-0.980785f, -0.195090f, 0.000000f),
+	dls::math::vec3f(-0.923880f, -0.382683f, 0.000000f),
+	dls::math::vec3f(-0.831470f, -0.555570f, 0.000000f),
+	dls::math::vec3f(-0.707107f, -0.707107f, 0.000000f),
+	dls::math::vec3f(-0.555570f, -0.831470f, 0.000000f),
+	dls::math::vec3f(-0.382683f, -0.923880f, 0.000000f),
+	dls::math::vec3f(-0.195090f, -0.980785f, 0.000000f),
+	dls::math::vec3f( 0.000000f, -1.000000f, 0.000000f),
+	dls::math::vec3f( 0.195091f, -0.980785f, 0.000000f),
+	dls::math::vec3f( 0.382684f, -0.923879f, 0.000000f),
+	dls::math::vec3f( 0.555571f, -0.831469f, 0.000000f),
+	dls::math::vec3f( 0.707107f, -0.707106f, 0.000000f),
+	dls::math::vec3f( 0.831470f, -0.555570f, 0.000000f),
+	dls::math::vec3f( 0.923880f, -0.382683f, 0.000000f),
+	dls::math::vec3f( 0.980785f, -0.195089f, 0.000000f),
+	dls::math::vec3f( 1.000000f,  0.000000f, 0.000000f),
+	dls::math::vec3f( 0.980785f,  0.195091f, 0.000000f),
+	dls::math::vec3f( 0.923879f,  0.382684f, 0.000000f),
+	dls::math::vec3f( 0.831469f,  0.555571f, 0.000000f),
+	dls::math::vec3f( 0.707106f,  0.707108f, 0.000000f),
+	dls::math::vec3f( 0.555569f,  0.831470f, 0.000000f),
+	dls::math::vec3f( 0.382682f,  0.923880f, 0.000000f),
+	dls::math::vec3f( 0.195089f,  0.980786f, 0.000000f),
+};
+static dls::math::vec3f points_cercle_YZ[32] = {
+	dls::math::vec3f(0.000000f,  0.000000f,  1.000000f),
+	dls::math::vec3f(0.000000f, -0.195090f,  0.980785f),
+	dls::math::vec3f(0.000000f, -0.382683f,  0.923880f),
+	dls::math::vec3f(0.000000f, -0.555570f,  0.831470f),
+	dls::math::vec3f(0.000000f, -0.707107f,  0.707107f),
+	dls::math::vec3f(0.000000f, -0.831470f,  0.555570f),
+	dls::math::vec3f(0.000000f, -0.923880f,  0.382683f),
+	dls::math::vec3f(0.000000f, -0.980785f,  0.195090f),
+	dls::math::vec3f(0.000000f, -1.000000f,  0.000000f),
+	dls::math::vec3f(0.000000f, -0.980785f, -0.195090f),
+	dls::math::vec3f(0.000000f, -0.923880f, -0.382683f),
+	dls::math::vec3f(0.000000f, -0.831470f, -0.555570f),
+	dls::math::vec3f(0.000000f, -0.707107f, -0.707107f),
+	dls::math::vec3f(0.000000f, -0.555570f, -0.831470f),
+	dls::math::vec3f(0.000000f, -0.382683f, -0.923880f),
+	dls::math::vec3f(0.000000f, -0.195090f, -0.980785f),
+	dls::math::vec3f(0.000000f,  0.000000f, -1.000000f),
+	dls::math::vec3f(0.000000f,  0.195091f, -0.980785f),
+	dls::math::vec3f(0.000000f,  0.382684f, -0.923879f),
+	dls::math::vec3f(0.000000f,  0.555571f, -0.831469f),
+	dls::math::vec3f(0.000000f,  0.707107f, -0.707106f),
+	dls::math::vec3f(0.000000f,  0.831470f, -0.555570f),
+	dls::math::vec3f(0.000000f,  0.923880f, -0.382683f),
+	dls::math::vec3f(0.000000f,  0.980785f, -0.195089f),
+	dls::math::vec3f(0.000000f,  1.000000f,  0.000000f),
+	dls::math::vec3f(0.000000f,  0.980785f,  0.195091f),
+	dls::math::vec3f(0.000000f,  0.923879f,  0.382684f),
+	dls::math::vec3f(0.000000f,  0.831469f,  0.555571f),
+	dls::math::vec3f(0.000000f,  0.707106f,  0.707108f),
+	dls::math::vec3f(0.000000f,  0.555569f,  0.831470f),
+	dls::math::vec3f(0.000000f,  0.382682f,  0.923880f),
+	dls::math::vec3f(0.000000f,  0.195089f,  0.980786f),
+};
+
+static void ajoute_primitive_sphere(
+		Sphere *sphere,
+		ListePoints3D const *liste_points,
+		Attribut const *attr_couleurs,
+		dls::tableau<dls::math::vec3f> &points,
+		dls::tableau<dls::math::vec3f> &couleurs)
+{
+	auto pos_sphere = liste_points->point(sphere->idx_point);
+
+	for (auto i = 0; i < 32; ++i) {
+		points.pousse(points_cercle_XZ[i] * sphere->rayon + pos_sphere);
+		points.pousse(points_cercle_XZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
+	}
+
+	for (auto i = 0; i < 32; ++i) {
+		points.pousse(points_cercle_XY[i] * sphere->rayon + pos_sphere);
+		points.pousse(points_cercle_XY[(i + 1) % 32] * sphere->rayon + pos_sphere);
+	}
+
+	for (auto i = 0; i < 32; ++i) {
+		points.pousse(points_cercle_YZ[i] * sphere->rayon + pos_sphere);
+		points.pousse(points_cercle_YZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
+	}
+
+	auto couleur = dls::math::vec3f(0.8f);
+
+	if (attr_couleurs) {
+		if (attr_couleurs->portee == portee_attr::POINT) {
+			extrait(attr_couleurs->r32(sphere->idx_point), couleur);
+		}
+		else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+			extrait(attr_couleurs->r32(sphere->index), couleur);
+		}
+		else if (attr_couleurs->portee == portee_attr::CORPS) {
+			extrait(attr_couleurs->r32(0), couleur);
+		}
+	}
+
+	auto idx = couleurs.taille();
+	couleurs.redimensionne(idx + 32 * 3 * 2);
+
+	for (auto i = 0; i < 32 * 3 * 2; ++i) {
+		couleurs[idx + i] = couleur;
 	}
 }
 
@@ -711,6 +861,10 @@ void RenduCorps::initialise(
 				for (auto i = 0; i < polygone->nombre_sommets(); ++i) {
 					point_utilise[polygone->index_point(i)] = 1;
 				}
+			}
+			else if (prim->type_prim() == type_primitive::SPHERE) {
+				auto sphere = dynamic_cast<Sphere *>(prim);
+				ajoute_primitive_sphere(sphere, liste_points, attr_C, points_segment, couleurs_segment);
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				if (m_tampon_volume == nullptr) {

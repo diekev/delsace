@@ -103,6 +103,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_3d_ligne.jo
 	scripts_danjo/operatrice_3d_lissage_laplacien.jo
 	scripts_danjo/operatrice_3d_normaux.jo
+	scripts_danjo/operatrice_3d_primitive_sphere.jo
 	scripts_danjo/operatrice_3d_randomisation_attribut.jo
 	scripts_danjo/operatrice_3d_sphere_ico.jo
 	scripts_danjo/operatrice_3d_sphere_uv.jo

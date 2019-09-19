@@ -523,6 +523,52 @@ public:
 
 /* ************************************************************************** */
 
+class OperatriceCreationPrimSphere final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Création Primitive Sphère";
+	static constexpr auto AIDE = "Crée une primitive de type sphère.";
+
+	OperatriceCreationPrimSphere(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(0);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_primitive_sphere.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		AdaptriceCreationCorps adaptrice;
+		adaptrice.corps = &m_corps;
+
+		auto position = evalue_vecteur("pos_sphère", contexte.temps_courant);
+		auto rayon = evalue_decimal("rayon_sphère", contexte.temps_courant);
+
+		auto idx_point = m_corps.ajoute_point(position);
+		m_corps.ajoute_sphere(idx_point, rayon);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class OperatriceCreationLigne final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Création Ligne";
@@ -2287,6 +2333,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationCercle>());
 	usine.enregistre_type(cree_desc<OperatriceCreationTorus>());
 	usine.enregistre_type(cree_desc<OperatriceCreationLigne>());
+	usine.enregistre_type(cree_desc<OperatriceCreationPrimSphere>());
 	usine.enregistre_type(cree_desc<OperatriceLectureObjet>());
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());

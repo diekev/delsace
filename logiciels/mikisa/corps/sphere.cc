@@ -22,20 +22,14 @@
  *
  */
 
-#pragma once
+#include "sphere.hh"
 
-enum class type_primitive : char {
-	POLYGONE = 0,
-	VOLUME   = 1,
-	SPHERE   = 2,
-};
+Sphere::Sphere(long idx, float r)
+	: idx_point(idx)
+	, rayon(r)
+{}
 
-class Primitive {
-public:
-	/* L'index de cette primitive. */
-	long index = 0;
-
-	virtual ~Primitive() = default;
-
-	virtual type_primitive type_prim() const = 0;
-};
+type_primitive Sphere::type_prim() const
+{
+	return type_primitive::SPHERE;
+}

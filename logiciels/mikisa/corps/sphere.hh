@@ -24,18 +24,18 @@
 
 #pragma once
 
-enum class type_primitive : char {
-	POLYGONE = 0,
-	VOLUME   = 1,
-	SPHERE   = 2,
-};
+#include "biblinternes/outils/definitions.h"
 
-class Primitive {
-public:
-	/* L'index de cette primitive. */
-	long index = 0;
+#include "primitive.hh"
 
-	virtual ~Primitive() = default;
+struct Sphere final : public Primitive {
+	long idx_point = 0;
+	float rayon = 0.0f;
+	REMBOURRE(4);
 
-	virtual type_primitive type_prim() const = 0;
+	Sphere() = default;
+
+	Sphere(long idx, float r);
+
+	type_primitive type_prim() const override;
 };

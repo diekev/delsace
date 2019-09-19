@@ -31,6 +31,7 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "groupes.h"
+#include "sphere.hh"
 #include "volume.hh"
 
 Corps::~Corps()
@@ -232,6 +233,13 @@ long Corps::ajoute_sommet(Polygone *p, long idx_point)
 long Corps::nombre_sommets() const
 {
 	return m_nombre_sommets;
+}
+
+Sphere *Corps::ajoute_sphere(long idx_point, float rayon)
+{
+	auto sphere = memoire::loge<Sphere>("Sphère", idx_point, rayon);
+	ajoute_primitive(sphere);
+	return sphere;
 }
 
 void Corps::reinitialise()
