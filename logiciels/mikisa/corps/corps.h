@@ -185,3 +185,5 @@ private:
 };
 
 bool possede_volume(Corps const &corps);
+
+bool possede_sphere(Corps const &corps);

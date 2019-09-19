@@ -423,3 +423,18 @@ bool possede_volume(const Corps &corps)
 
 	return false;
 }
+
+bool possede_sphere(Corps const &corps)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::SPHERE) {
+			return true;
+		}
+	}
+
+	return false;
+}
