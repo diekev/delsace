@@ -1,0 +1,6 @@
+disposition "création_nuanceur" {
+	ligne {
+		étiquette(valeur="Nom")
+		chaine(valeur="nuanceur"; attache=nom_nuanceur)
+	}
+}

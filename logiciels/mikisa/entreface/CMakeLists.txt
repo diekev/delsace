@@ -75,6 +75,7 @@ set(NUANCEURS
 
 set(FICHIERS_DANJO
 	scripts_danjo/ajouter_propriete.jo
+	scripts_danjo/dialogue_creation_nuanceur.jo
 	scripts_danjo/dialogue_renommage.jo
 	scripts_danjo/disposition_ligne_temps.jo
 	scripts_danjo/disposition_rendu.jo
@@ -117,6 +118,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_analyse.jo
 	scripts_danjo/operatrice_attr_couleur.jo
 	scripts_danjo/operatrice_attribut_detail.jo
+	scripts_danjo/operatrice_attribut_nuanceur.jo
 	scripts_danjo/operatrice_attribut_promotion.jo
 	scripts_danjo/operatrice_bilateral_image.jo
 	scripts_danjo/operatrice_bruit_blanc.jo

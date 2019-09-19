@@ -35,6 +35,7 @@
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/usine_operatrice.h"
 
 #include "corps/iteration_corps.hh"
@@ -1565,6 +1566,94 @@ public:
 
 /* ************************************************************************** */
 
+struct OpAttributNuanceur final : public OperatriceCorps {
+	static constexpr auto NOM = "Attribut Nuanceur";
+	static constexpr auto AIDE = "Ajoute un attribut selon la distance des points depuis une caméra.";
+
+	OpAttributNuanceur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_attribut_nuanceur.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto nom_nuanceur = evalue_chaine("nom_nuanceur");
+
+		if (nom_nuanceur.est_vide()) {
+			this->ajoute_avertissement("Le nom du nuanceur est vide");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto nuanceur = contexte.bdd->nuanceur(nom_nuanceur);
+
+		if (nuanceur == nullptr) {
+			this->ajoute_avertissement("Le nuanceur n'existe pas");
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto chaine_portee = evalue_enum("portée_attribut");
+
+		auto dico_portee = dls::cree_dico(
+					dls::paire{ dls::chaine("corps"), portee_attr::CORPS },
+					dls::paire{ dls::chaine("groupe"), portee_attr::GROUPE },
+					dls::paire{ dls::chaine("points"), portee_attr::POINT },
+					dls::paire{ dls::chaine("primitives"), portee_attr::PRIMITIVE },
+					dls::paire{ dls::chaine("sommets"), portee_attr::VERTEX });
+
+		auto plg_portee = dico_portee.trouve(chaine_portee);
+
+		if (plg_portee.est_finie()) {
+			dls::flux_chaine ss;
+			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
+			ajoute_avertissement(ss.chn());
+			return EXECUTION_ECHOUEE;
+		}
+
+		auto portee = plg_portee.front().second;
+
+		auto attr = m_corps.ajoute_attribut("nuanceur", type_attribut::CHAINE, 1, portee);
+
+		for (auto i = 0; i < attr->taille(); ++i) {
+			assigne(attr->chaine(i), nom_nuanceur);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_nuanceur") {
+			for (auto &nuanceur : contexte.bdd->nuanceurs()) {
+				liste.pousse(nuanceur->noeud.nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_attributs(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
@@ -1575,6 +1664,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
 	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
 	usine.enregistre_type(cree_desc<OpVisibiliteCamera>());
+	usine.enregistre_type(cree_desc<OpAttributNuanceur>());
 }
 
 #pragma clang diagnostic pop

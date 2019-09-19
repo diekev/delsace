@@ -38,6 +38,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/outils/fichier.hh"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "evaluation/evaluation.hh"
 
@@ -188,6 +189,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
 	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
 	m_conteneur_disposition->setLayout(disposition);

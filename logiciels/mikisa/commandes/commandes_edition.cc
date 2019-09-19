@@ -42,7 +42,10 @@
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/operatrice_image.h"
+
+#include "evaluation/evaluation.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -130,6 +133,72 @@ public:
 		mikisa->bdd.cree_nuanceur("nuanceur");
 
 		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+struct CommandeCreeNuanceurOperatrice final : public Commande {
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
+
+		if (graphe->noeud_actif == nullptr) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto noeud = graphe->noeud_actif;
+
+		if (noeud->type != type_noeud::OPERATRICE) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto op = extrait_opimage(noeud->donnees);
+
+		if (op->propriete("nom_nuanceur") == nullptr) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto resultat = danjo::Manipulable();
+
+		auto donnees_entreface = danjo::DonneesInterface{};
+		donnees_entreface.conteneur = nullptr;
+		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
+		donnees_entreface.manipulable = &resultat;
+
+		auto gestionnaire = mikisa->gestionnaire_entreface;
+
+		auto const texte_entree = dls::contenu_fichier("entreface/dialogue_creation_nuanceur.jo");
+		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
+
+		if (!ok) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto nom_nuanceur = resultat.evalue_chaine("nom_nuanceur");
+		auto nuanceur = mikisa->bdd.cree_nuanceur(nom_nuanceur);
+
+		op->valeur_chaine("nom_nuanceur", nuanceur->noeud.nom);
+
+		/* Notifie les graphes des noeuds parents comme étant surrannés */
+		marque_parent_surannee(noeud, [](Noeud *n, PriseEntree *prise)
+		{
+			if (n->type != type_noeud::OPERATRICE) {
+				return;
+			}
+
+			auto oper = extrait_opimage(n->donnees);
+			oper->amont_change(prise);
+		});
+
+		op->parametres_changes();
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::ajoute);
+
+		requiers_evaluation(*mikisa, PARAMETRE_CHANGE, "réponse commande ajout nuanceur opératrice");
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -250,6 +319,10 @@ void enregistre_commandes_edition(UsineCommande &usine)
 
 	usine.enregistre_type("ajouter_nuanceur",
 						   description_commande<CommandeAjouterNuanceur>(
+							   "", 0, 0, 0, false));
+
+	usine.enregistre_type("crée_nuanceur_opératrice",
+						   description_commande<CommandeCreeNuanceurOperatrice>(
 							   "", 0, 0, 0, false));
 
 	usine.enregistre_type("ajouter_rendu",

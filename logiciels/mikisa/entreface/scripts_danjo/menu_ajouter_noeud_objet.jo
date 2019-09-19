@@ -3,7 +3,8 @@ menu "Noeud Objet" {
 	    action(valeur="Création Arbre"; attache=ajouter_noeud; métadonnée="Création Arbre")
 	}
 	menu "Attribut" {
-	    action(valeur="Couleur"; attache=ajouter_noeud; métadonnée="Couleur")
+		action(valeur="Attribut Nuanceur"; attache=ajouter_noeud; métadonnée="Attribut Nuanceur")
+		action(valeur="Couleur"; attache=ajouter_noeud; métadonnée="Couleur")
 		action(valeur="Création Attribut"; attache=ajouter_noeud; métadonnée="Création Attribut")
 		action(valeur="Promotion Attribut"; attache=ajouter_noeud; métadonnée="Promotion Attribut")
 		action(valeur="Randomisation Attribut"; attache=ajouter_noeud; métadonnée="Randomisation Attribut")
