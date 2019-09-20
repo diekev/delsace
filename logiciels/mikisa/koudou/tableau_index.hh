@@ -86,7 +86,7 @@ private:
 /* ****************************************************************** */
 
 struct tableau_index_comprime {
-	dls::tableau<std::pair<int, int>> donnees;
+	dls::tableau<std::pair<int, int>> donnees{};
 
 	int operator[](long idx) const;
 

@@ -101,7 +101,7 @@ int tableau_index_comprime::operator[](long idx) const
 	}
 
 	for (auto i = 0; i < donnees.taille() - 1; ++i) {
-		if (donnees[i].first >= idx && donnees[i + 1] < idx) {
+		if (donnees[i].first >= idx && donnees[i + 1].first < idx) {
 			return donnees[i].second;
 		}
 	}
@@ -137,7 +137,7 @@ void tableau_index_comprime::pousse(int decalage, int valeur)
  */
 tableau_index_comprime comprimes_tableau_index(tableau_index const &entree)
 {
-	auto sortie = tableau_index_comprime(2);
+	auto sortie = tableau_index_comprime();
 	auto decalage = 0;
 
 	for (auto i = 0; i < entree.taille; ++i) {
@@ -149,9 +149,7 @@ tableau_index_comprime comprimes_tableau_index(tableau_index const &entree)
 			}
 		}
 
-		sortie.pousse(decalage);
-		sortie.pousse(valeur);
-
+		sortie.pousse(decalage, valeur);
 		decalage = i;
 	}
 
