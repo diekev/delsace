@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "biblinternes/structures/vue_chaine.hh"
+#include "biblinternes/structures/chaine.hh"
 
 namespace lng {
 
@@ -41,5 +41,10 @@ int nombre_octets(const char *sequence);
  * saute au cas où.
  */
 long decalage_pour_caractere(dls::vue_chaine const &chaine, long i);
+
+/**
+ * Retourne une chaine correspondant à la chaine spécifiée dénuée d'accents.
+ */
+dls::chaine supprime_accents(dls::chaine const &chaine);
 
 }  /* namespace lng */

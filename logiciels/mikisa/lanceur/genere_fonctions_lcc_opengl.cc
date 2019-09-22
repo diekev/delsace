@@ -71,41 +71,6 @@ static auto type_var_opengl(lcc::type_var type_lcc)
 	return "erreur";
 }
 
-static std::pair<const char *, char> paires_caracteres_sans_accent[] = {
-	{ "à", 'a' },
-	{ "â", 'a' },
-	{ "é", 'e' },
-	{ "è", 'e' },
-	{ "ê", 'e' },
-	{ "î", 'i' },
-	{ "ô", 'o' },
-};
-
-static auto supprime_accents(dls::chaine const &chaine)
-{
-	auto res = dls::chaine();
-
-	for (auto i = 0; i < chaine.taille();) {
-		auto n = lng::nombre_octets(&chaine[i]);
-
-		if (n == 1) {
-			res += chaine[i];
-		}
-		else {
-			for (auto const &paire : paires_caracteres_sans_accent) {
-				if (strncmp(&chaine[i], paire.first, static_cast<size_t>(n)) == 0) {
-					res += paire.second;
-					break;
-				}
-			}
-		}
-
-		i += n;
-	}
-
-	return res;
-}
-
 int main()
 {
 	std::ios::sync_with_stdio(false);
@@ -147,17 +112,17 @@ int main()
 		auto const &entrees = df->seing.entrees;
 		auto const &sorties = df->seing.sorties;
 
-		os << "void " << supprime_accents(paire_df.first);
+		os << "void " << lng::supprime_accents(paire_df.first);
 
 		auto virgule = '(';
 
 		for (auto i = 0; i < entrees.taille(); ++i) {
-			os << virgule << "in " << type_var_opengl(entrees.type(i)) << ' ' << supprime_accents(entrees.nom(i));
+			os << virgule << "in " << type_var_opengl(entrees.type(i)) << ' ' << lng::supprime_accents(entrees.nom(i));
 			virgule = ',';
 		}
 
 		for (auto i = 0; i < sorties.taille(); ++i) {
-			os << virgule << "out " << type_var_opengl(sorties.type(i)) << ' ' << supprime_accents(sorties.nom(i));
+			os << virgule << "out " << type_var_opengl(sorties.type(i)) << ' ' << lng::supprime_accents(sorties.nom(i));
 		}
 
 		os << ")\n{\n}\n\n";
@@ -170,17 +135,17 @@ int main()
 		auto const &entrees = df->seing.entrees;
 		auto const &sorties = df->seing.sorties;
 
-		os << "void " << supprime_accents(paire_df.first);
+		os << "void " << lng::supprime_accents(paire_df.first);
 
 		auto virgule = '(';
 
 		for (auto i = 0; i < entrees.taille(); ++i) {
-			os << virgule << "in TYPE_POLY" << ' ' << supprime_accents(entrees.nom(i));
+			os << virgule << "in TYPE_POLY" << ' ' << lng::supprime_accents(entrees.nom(i));
 			virgule = ',';
 		}
 
 		for (auto i = 0; i < sorties.taille(); ++i) {
-			os << virgule << "out TYPE_POLY" << ' ' << supprime_accents(sorties.nom(i));
+			os << virgule << "out TYPE_POLY" << ' ' << lng::supprime_accents(sorties.nom(i));
 		}
 
 		os << ")\n{\n}\n\n";

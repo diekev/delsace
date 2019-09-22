@@ -118,4 +118,39 @@ long decalage_pour_caractere(dls::vue_chaine const &chaine, long i)
 	return decalage;
 }
 
+static std::pair<const char *, char> paires_caracteres_sans_accent[] = {
+	{ "à", 'a' },
+	{ "â", 'a' },
+	{ "é", 'e' },
+	{ "è", 'e' },
+	{ "ê", 'e' },
+	{ "î", 'i' },
+	{ "ô", 'o' },
+};
+
+dls::chaine supprime_accents(dls::chaine const &chaine)
+{
+	auto res = dls::chaine();
+
+	for (auto i = 0; i < chaine.taille();) {
+		auto n = nombre_octets(&chaine[i]);
+
+		if (n == 1) {
+			res += chaine[i];
+		}
+		else {
+			for (auto const &paire : paires_caracteres_sans_accent) {
+				if (strncmp(&chaine[i], paire.first, static_cast<size_t>(n)) == 0) {
+					res += paire.second;
+					break;
+				}
+			}
+		}
+
+		i += n;
+	}
+
+	return res;
+}
+
 }  /* namespace lng */
