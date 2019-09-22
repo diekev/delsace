@@ -24,6 +24,9 @@
 
 #include "operatrice_graphe_detail.hh"
 
+#include "biblinternes/langage/unicode.hh"
+#include "biblinternes/structures/flux_chaine.hh"
+
 #include "corps/volume.hh"
 
 #include "lcc/arbre_syntactic.h"
@@ -41,6 +44,13 @@
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
+
+/* ************************************************************************** */
+
+struct DonneesCompilationNuanceur {
+	dls::flux_chaine os{};
+	int decalage_prise = 0;
+};
 
 /* ************************************************************************** */
 
@@ -1027,7 +1037,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 		cree_code_coulisse_processeur(compileuse, type_specialise, pointeurs);
 	}
 	else {
-		cree_code_coulisse_opengl(type_specialise, pointeurs, contexte.temps_courant);
+		cree_code_coulisse_opengl(donnees_aval, type_specialise, pointeurs, contexte.temps_courant);
 	}
 
 	return EXECUTION_REUSSIE;
@@ -1077,12 +1087,13 @@ void OperatriceFonctionDetail::cree_code_coulisse_processeur(
 }
 
 void OperatriceFonctionDetail::cree_code_coulisse_opengl(
+		DonneesAval *donnees_aval,
 		lcc::type_var type_specialise,
 		dls::tableau<int> const &pointeurs,
 		int temps_courant)
 {
-
-	auto &os = std::cerr;
+	auto donnees_compil = std::any_cast<DonneesCompilationNuanceur *>(donnees_aval->table["donnees_compil"]);
+	auto &os = donnees_compil->os;
 
 	for (auto i = 0; i < entrees(); ++i) {
 		auto type = donnees_fonction->seing.entrees.type(i);
@@ -1165,50 +1176,23 @@ void OperatriceFonctionDetail::cree_code_coulisse_opengl(
 	}
 
 	for (auto i = 0; i < sorties(); ++i) {
-		auto prise_sortie = sortie(i)->pointeur();
-		auto type = converti_type_prise(prise_sortie->type_infere);
+		/* ajourne les types inférés des sorties */
+		auto type = donnees_fonction->seing.sorties.type(i);
 
-		switch (type) {
-			case lcc::type_var::ENT32:
-			{
-				os << "int __var" << prise_sortie->decalage_pile << ";\n";
-				break;
-			}
-			case lcc::type_var::DEC:
-			{
-				os << "float __var" << prise_sortie->decalage_pile << ";\n";
-				break;
-			}
-			case lcc::type_var::VEC2:
-			{
-				os << "vec2 __var" << prise_sortie->decalage_pile << ";\n";
-				break;
-			}
-			case lcc::type_var::VEC3:
-			{
-				os << "vec3 __var" << prise_sortie->decalage_pile << ";\n";
-				break;
-			}
-			case lcc::type_var::VEC4:
-			{
-				os << "vec4 __var" << prise_sortie->decalage_pile << ";\n";
-				break;
-			}
-			case lcc::type_var::COULEUR:
-			{
-				os << "vec4 __var" << prise_sortie->decalage_pile << ";\n";
-				break;
-			}
-			default:
-			{
-				break;
-			}
+		if (type == lcc::type_var::POLYMORPHIQUE) {
+			type = type_specialise;
 		}
+
+		auto prise_sortie = sortie(i)->pointeur();
+		prise_sortie->type_infere = converti_type_prise(type);
+
+		os << type_var_opengl(type);
+		os << " __var" << prise_sortie->decalage_pile << ";\n";
 	}
 
 	/* crée l'appel */
 
-	os << nom_fonction;
+	os << lng::supprime_accents(nom_fonction);
 
 	auto virgule = '(';
 
@@ -1342,51 +1326,15 @@ public:
 			}
 		}
 		else {
-			auto &os = std::cerr;
+			auto donnees_compil = std::any_cast<DonneesCompilationNuanceur *>(donnees_aval->table["donnees_compil"]);
+			auto &os = donnees_compil->os;
 
 			for (auto i = 0; i < params_noeud.taille(); ++i) {
 				auto prise_sortie = sortie(i)->pointeur();
-
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
 				prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
 
-				switch (params_noeud.type(i)) {
-					case lcc::type_var::ENT32:
-					{
-						os << "int __var" << prise_sortie->decalage_pile;
-						break;
-					}
-					case lcc::type_var::DEC:
-					{
-						os << "float __var" << prise_sortie->decalage_pile;
-						break;
-					}
-					case lcc::type_var::VEC2:
-					{
-						os << "vec2 __var" << prise_sortie->decalage_pile;
-						break;
-					}
-					case lcc::type_var::VEC3:
-					{
-						os << "vec3 __var" << prise_sortie->decalage_pile;
-						break;
-					}
-					case lcc::type_var::VEC4:
-					{
-						os << "vec4 __var" << prise_sortie->decalage_pile;
-						break;
-					}
-					case lcc::type_var::COULEUR:
-					{
-						os << "vec4 __var" << prise_sortie->decalage_pile;
-						break;
-					}
-					default:
-					{
-						break;
-					}
-				}
-
+				os << type_var_opengl(params_noeud.type(i));
+				os << " __var" << prise_sortie->decalage_pile;
 				os << " = " << params_noeud.nom(i) << ";\n";
 			}
 		}
@@ -1442,28 +1390,41 @@ public:
 	{
 		INUTILISE(contexte);
 
-		//auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
+		auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
-		auto const &params_noeud = params_noeuds_sortie[type_detail];
+		if (coulisse == "lcc") {
+			auto const &params_noeud = params_noeuds_sortie[type_detail];
 
-		for (auto i = 0; i < params_noeud.taille(); ++i) {
-			if (!gest_props->propriete_existe(params_noeud.nom(i))) {
-				auto idx = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
-				gest_props->ajoute_propriete(params_noeud.nom(i), params_noeud.type(i), idx);
+			for (auto i = 0; i < params_noeud.taille(); ++i) {
+				if (!gest_props->propriete_existe(params_noeud.nom(i))) {
+					auto idx = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
+					gest_props->ajoute_propriete(params_noeud.nom(i), params_noeud.type(i), idx);
+				}
+
+				if (entree(i)->connectee()) {
+					auto ptr_prise = entree(i)->pointeur();
+					auto ptr_entree = static_cast<int>(ptr_prise->liens[0]->decalage_pile);
+					auto ptr_sortie = gest_props->pointeur_donnees(params_noeud.nom(i));
+
+					compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
+					compileuse->ajoute_instructions(params_noeud.type(i));
+					compileuse->ajoute_instructions(ptr_entree);
+					compileuse->ajoute_instructions(ptr_sortie);
+				}
 			}
+		}
+		else if (coulisse == "opengl") {
+			auto donnees_compil = std::any_cast<DonneesCompilationNuanceur *>(donnees_aval->table["donnees_compil"]);
+			auto &os = donnees_compil->os;
 
-			if (entree(i)->connectee()) {
-				auto ptr_prise = entree(i)->pointeur();
-				auto ptr_entree = static_cast<int>(ptr_prise->liens[0]->decalage_pile);
-				auto ptr_sortie = gest_props->pointeur_donnees(params_noeud.nom(i));
+			if (entree(0)->connectee()) {
+				auto ptr_prise = entree(0)->pointeur();
+				auto ptr_sortie = ptr_prise->liens[0];
 
-				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
-				compileuse->ajoute_instructions(params_noeud.type(i));
-				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr_sortie);
+				os << "couleur_sortie = __var" << ptr_sortie->decalage_pile << ";\n";
 			}
 		}
 
@@ -2066,20 +2027,22 @@ bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanc
 	auto m_gest_props = gestionnaire_propriete{};
 	auto m_gest_attrs = gestionnaire_propriete{};
 
+	auto donnees_compil = DonneesCompilationNuanceur();
+
 	auto donnees_aval = DonneesAval{};
 	donnees_aval.table.insere({"coulisse", dls::chaine("opengl")});
 	donnees_aval.table.insere({"compileuse", &m_compileuse});
 	donnees_aval.table.insere({"ctx_global", &m_ctx_global});
 	donnees_aval.table.insere({"gest_props", &m_gest_props});
 	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
+	donnees_aval.table.insere({"donnees_compil", &donnees_compil});
 
 	std::cerr << "++++++++++++ compilation nuanceur ++++++++++++\n";
 
 	/* performe la compilation */
-	auto decalage_prise = 0;
 	for (auto &noeud_graphe : graphe.noeuds()) {
 		for (auto &sortie : noeud_graphe->sorties) {
-			sortie->decalage_pile = ++decalage_prise;
+			sortie->decalage_pile = ++donnees_compil.decalage_prise;
 		}
 
 		auto operatrice = extrait_opimage(noeud_graphe->donnees);
@@ -2091,6 +2054,42 @@ bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanc
 			return false;
 		}
 	}
+
+	/* nuanceur vertex */
+	auto flux_vert = dls::flux_chaine();
+	flux_vert << "#version 330 core\n";
+	flux_vert << "layout (location=0) in vec3 sommets;\n";
+	flux_vert << "layout (location=1) in vec3 normaux;\n";
+	flux_vert << "uniform mat4 matrice;\n";
+	flux_vert << "uniform mat4 MVP;\n";
+	flux_vert << "smooth out vec3 P;\n";
+	flux_vert << "smooth out vec3 N;\n";
+	flux_vert << "void main()\n";
+	flux_vert << "{\n";
+	flux_vert << "vec4 P_monde = matrice * vec4(P, 1.0);\n";
+	flux_vert << "gl_Position = MVP * P_monde;\n";
+	flux_vert << "P = P_monde.xyz;\n";
+	flux_vert << "N = normaux;\n";
+	flux_vert << "}\n";
+
+	nuanceur.source_vert_glsl = flux_vert.chn();
+
+	/* nuanceur fragment */
+	auto flux_frag = dls::flux_chaine();
+	flux_frag << "#version 330 core\n";
+	flux_frag << "layout (location=0) out vec4 couleur_sortie;\n";
+	flux_frag << "smooth in vec3 P;\n";
+	flux_frag << "smooth in vec3 N;\n";
+	flux_frag << "void main()\n";
+	flux_frag << "{\n";
+	flux_frag << "couleur_sortie = vec4(1.0, 0.0, 1.0, 1.0);\n";
+	flux_frag << donnees_compil.os.chn();
+	flux_frag << "}\n";
+
+	nuanceur.source_frag_glsl = flux_frag.chn();
+
+	std::cerr << nuanceur.source_vert_glsl << '\n';
+	std::cerr << nuanceur.source_frag_glsl << '\n';
 
 	return true;
 }

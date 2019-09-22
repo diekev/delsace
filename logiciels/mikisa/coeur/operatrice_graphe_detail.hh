@@ -155,6 +155,7 @@ private:
 			dls::tableau<int> const &pointeurs);
 
 	void cree_code_coulisse_opengl(
+			DonneesAval *donnees_aval,
 			lcc::type_var type_specialise,
 			dls::tableau<int> const &pointeurs,
 			int temps_courant);
