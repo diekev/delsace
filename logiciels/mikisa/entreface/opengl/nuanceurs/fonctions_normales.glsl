@@ -63,7 +63,7 @@ void bruit_voronoi_cr(in int graine,in vec3 origine_bruit,in vec3 taille_bruit,i
 /* ************* couleurs ************* */
 
 void couleur_depuis_vec3(in vec3 valeur,out vec4 valeur_sortie)
-{ // A FAIRE
+{
     valeur_sortie = vec4(valeur, 1.0);
 }
 
