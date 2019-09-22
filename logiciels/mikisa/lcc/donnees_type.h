@@ -49,6 +49,8 @@ enum class type_var : unsigned short {
 
 const char *chaine_type_var(type_var type);
 
+const char *type_var_opengl(type_var type);
+
 /* ************************************************************************** */
 
 struct donnees_parametre {

@@ -39,38 +39,6 @@
 
 #include "lcc/lcc.hh"
 
-static auto type_var_opengl(lcc::type_var type_lcc)
-{
-	switch (type_lcc) {
-		case lcc::type_var::DEC:
-			return "float";
-		case lcc::type_var::VEC2:
-			return "vec2";
-		case lcc::type_var::VEC3:
-			return "vec3";
-		case lcc::type_var::VEC4:
-			return "vec4";
-		case lcc::type_var::MAT3:
-			return "mat3";
-		case lcc::type_var::MAT4:
-			return "mat4";
-		case lcc::type_var::ENT32:
-			return "int";
-		case lcc::type_var::CHAINE:
-			return "void";
-		case lcc::type_var::INVALIDE:
-			return "void";
-		case lcc::type_var::TABLEAU:
-			return "void";
-		case lcc::type_var::POLYMORPHIQUE:
-			return "void";
-		case lcc::type_var::COULEUR:
-			return "vec4";
-	}
-
-	return "erreur";
-}
-
 int main()
 {
 	std::ios::sync_with_stdio(false);
