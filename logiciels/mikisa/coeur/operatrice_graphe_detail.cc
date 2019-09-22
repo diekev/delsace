@@ -25,6 +25,7 @@
 #include "operatrice_graphe_detail.hh"
 
 #include "biblinternes/langage/unicode.hh"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "corps/volume.hh"
@@ -2075,11 +2076,28 @@ bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanc
 	nuanceur.source_vert_glsl = flux_vert.chn();
 
 	/* nuanceur fragment */
+	auto source_fonctions_poly = dls::contenu_fichier("nuanceurs/fonctions_polymorphiques.glsl");
+	auto source_fonctions_norm = dls::contenu_fichier("nuanceurs/fonctions_normales.glsl");
+
 	auto flux_frag = dls::flux_chaine();
 	flux_frag << "#version 330 core\n";
 	flux_frag << "layout (location=0) out vec4 couleur_sortie;\n";
 	flux_frag << "smooth in vec3 P;\n";
 	flux_frag << "smooth in vec3 N;\n";
+
+	/* fonctions normales */
+	flux_frag << source_fonctions_norm << '\n';
+
+	/* fonctions polymorphiques */
+	flux_frag << "#define TYPE_POLY float\n";
+	flux_frag << source_fonctions_poly << '\n';
+	flux_frag << "#define TYPE_POLY vec2\n";
+	flux_frag << source_fonctions_poly << '\n';
+	flux_frag << "#define TYPE_POLY vec3\n";
+	flux_frag << source_fonctions_poly << '\n';
+	flux_frag << "#define TYPE_POLY vec4\n";
+	flux_frag << source_fonctions_poly << '\n';
+
 	flux_frag << "void main()\n";
 	flux_frag << "{\n";
 	flux_frag << "couleur_sortie = vec4(1.0, 0.0, 1.0, 1.0);\n";
