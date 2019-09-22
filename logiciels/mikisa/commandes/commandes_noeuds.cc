@@ -320,7 +320,7 @@ public:
 
 		using dls::outils::est_element;
 
-		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail", "Info Exécution", "Échantillonne Image")) {
+		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail", "Info Exécution", "Charge Image", "Cherche Caméra")) {
 			return est_element(type_detail,
 							   DETAIL_PIXELS,
 							   DETAIL_VOXELS,
@@ -330,8 +330,12 @@ public:
 							   DETAIL_NUANCAGE);
 		}
 
-		if (est_element(metadonnee, "Entrée Attribut", "Sortie Attribut")) {
+		if (est_element(metadonnee, "Entrée Attribut")) {
 			return est_element(type_detail, DETAIL_POINTS, DETAIL_NUANCAGE);
+		}
+
+		if (est_element(metadonnee, "Sortie Attribut")) {
+			return est_element(type_detail, DETAIL_POINTS);
 		}
 
 		return false;
