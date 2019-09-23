@@ -78,6 +78,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_fracture.cc
 	operatrices_groupes.cc
 	operatrices_image_profonde.cc
+	operatrices_images_3d.cc
 	operatrices_maillage.cc
 	operatrices_muscles.cc
 	operatrices_ocean.cc
@@ -112,6 +113,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_fracture.hh
 	operatrices_groupes.hh
 	operatrices_image_profonde.hh
+	operatrices_images_3d.hh
 	operatrices_maillage.hh
 	operatrices_muscles.hh
 	operatrices_ocean.hh

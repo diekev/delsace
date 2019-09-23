@@ -192,6 +192,7 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_patch_triangle.jo
 	scripts_danjo/operatrice_premultiplication.jo
 	scripts_danjo/operatrice_projection_gaz.jo
+	scripts_danjo/operatrice_points_depuis_image.jo
 	scripts_danjo/operatrice_points_depuis_profonde.jo
 	scripts_danjo/operatrice_poseidon_erosion.jo
 	scripts_danjo/operatrice_rasterisation_prim.jo

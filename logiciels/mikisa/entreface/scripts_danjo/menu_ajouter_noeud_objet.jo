@@ -76,6 +76,7 @@ menu "Noeud Objet" {
 		action(valeur="Trainée"; attache=ajouter_noeud; métadonnée="Trainée")
 	}
 	menu "Points" {
+		action(valeur="Points depuis Image"; attache=ajouter_noeud; métadonnée="Points depuis Image")
 		action(valeur="Suppression Points"; attache=ajouter_noeud; métadonnée="Suppression Points")
 	}
 	menu "Poseidon" {

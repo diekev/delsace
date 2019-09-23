@@ -1,0 +1,18 @@
+disposition "operatrice_points_depuis_image" {
+	ligne {
+		étiquette(valeur="Chemin noeud")
+		chaine(valeur=""; attache=chemin_noeud; infobulle="Le noeud composite contenant l'image profonde d'où dériver un nuage de point.")
+	}
+	ligne {
+		étiquette(valeur="Visualisation")
+		énum(valeur="saturation"; attache=visualisation; items=[
+			{ nom="Luminance", valeur="luminance" },
+			{ nom="Saturation", valeur="saturation" },
+			{ nom="Teinte", valeur="teinte" }
+		])
+	}
+	ligne {
+		étiquette(valeur="Pourcentage")
+		décimal(valeur=1.0; attache=probabilité; min=0; max=1; infobulle="Défini le nombre de points à générer en pourcentage du nombre total de pixels.")
+	}
+}

@@ -79,6 +79,7 @@
 #include "operatrices/operatrices_fracture.hh"
 #include "operatrices/operatrices_groupes.hh"
 #include "operatrices/operatrices_image_profonde.hh"
+#include "operatrices/operatrices_images_3d.hh"
 #include "operatrices/operatrices_maillage.hh"
 #include "operatrices/operatrices_muscles.hh"
 #include "operatrices/operatrices_ocean.hh"
@@ -156,6 +157,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_flux(m_usine_operatrices);
 	enregistre_operatrices_fracture(m_usine_operatrices);
 	enregistre_operatrices_image_profonde(m_usine_operatrices);
+	enregistre_operatrices_images_3d(m_usine_operatrices);
 	enregistre_operatrices_groupes(m_usine_operatrices);
 	enregistre_operatrices_maillage(m_usine_operatrices);
 	enregistre_operatrices_muscles(m_usine_operatrices);
