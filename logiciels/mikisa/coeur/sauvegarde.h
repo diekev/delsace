@@ -42,6 +42,6 @@ enum erreur_fichier {
 };
 
 erreur_fichier sauvegarde_projet(filesystem::path const &chemin, Mikisa const &mikisa);
-erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa);
+void ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa);
 
 }  /* namespace coeur */

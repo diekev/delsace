@@ -942,7 +942,7 @@ static auto reinitialise_mikisa(Mikisa &mikisa)
 	mikisa.bdd.reinitialise();
 }
 
-erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
+static auto lis_fichier(filesystem::path const &chemin, Mikisa &mikisa)
 {
 	if (!std::filesystem::exists(chemin)) {
 		return erreur_fichier::NON_TROUVE;
@@ -1027,6 +1027,39 @@ erreur_fichier ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
 	mikisa.notifie_observatrices(type_evenement::rafraichissement);
 
 	return erreur_fichier::AUCUNE_ERREUR;
+}
+
+void ouvre_projet(filesystem::path const &chemin, Mikisa &mikisa)
+{
+	auto erreur = lis_fichier(chemin, mikisa);
+
+	switch (erreur) {
+		case coeur::erreur_fichier::AUCUNE_ERREUR:
+			break;
+		case coeur::erreur_fichier::CORROMPU:
+			mikisa.affiche_erreur("Le fichier est corrompu !");
+			return;
+		case coeur::erreur_fichier::NON_OUVERT:
+			mikisa.affiche_erreur("Le fichier n'est pas ouvert !");
+			return;
+		case coeur::erreur_fichier::NON_TROUVE:
+			mikisa.affiche_erreur("Le fichier n'a pas été trouvé !");
+			return;
+		case coeur::erreur_fichier::INCONNU:
+			mikisa.affiche_erreur("Erreur inconnu !");
+			return;
+		case coeur::erreur_fichier::GREFFON_MANQUANT:
+			mikisa.affiche_erreur("Le fichier ne pas être ouvert car il"
+								 " y a un greffon manquant !");
+			return;
+	}
+
+	mikisa.chemin_projet(chemin.c_str());
+	mikisa.projet_ouvert(true);
+
+#if 0
+	setWindowTitle(chemin_projet.c_str());
+#endif
 }
 
 }  /* namespace coeur */
