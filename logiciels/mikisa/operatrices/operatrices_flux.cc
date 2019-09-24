@@ -992,9 +992,12 @@ public:
 
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
+		auto chef = contexte.chef;
+
 		if (O == 0) {
 			auto const value = evalue_entier("prise");
 			entree(value)->requiers_copie_image(m_image, contexte, donnees_aval);
+			chef->demarre_evaluation("commutation image");
 		}
 		else if (O == 1) {
 			m_corps.reinitialise();
@@ -1023,7 +1026,11 @@ public:
 			else {
 				entree(1)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 			}
+
+			chef->demarre_evaluation("commutation corps");
 		}
+
+		chef->indique_progression(100.0f);
 
 		return EXECUTION_REUSSIE;
 	}
