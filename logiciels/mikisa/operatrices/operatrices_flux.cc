@@ -1031,6 +1031,93 @@ public:
 
 /* ************************************************************************** */
 
+template <int O>
+struct desc_operatrice_cache_memoire;
+
+template <>
+struct desc_operatrice_cache_memoire<0> {
+	static constexpr auto NOM = "Cache Image Mémoire";
+	static constexpr auto AIDE = "";
+	static constexpr auto type_prises = type_prise::IMAGE;
+	static constexpr int type_operatrice = OPERATRICE_IMAGE;
+};
+
+template <>
+struct desc_operatrice_cache_memoire<1> {
+	static constexpr auto NOM = "Cache Corps Mémoire";
+	static constexpr auto AIDE = "";
+	static constexpr auto type_prises = type_prise::CORPS;
+	static constexpr int type_operatrice = OPERATRICE_CORPS;
+};
+
+template <int O>
+class OpCacheMemoire final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = desc_operatrice_cache_memoire<O>::NOM;
+	static constexpr auto AIDE = desc_operatrice_cache_memoire<O>::AIDE;
+
+	OpCacheMemoire(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int type() const override
+	{
+		return desc_operatrice_commutation<O>::type_operatrice;
+	}
+
+	type_prise type_entree(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
+	type_prise type_sortie(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+
+		auto chef = contexte.chef;
+
+		if (O == 0) {
+			m_image.reinitialise();
+
+			entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+
+			chef->demarre_evaluation("cache image");
+		}
+		else if (O == 1) {
+			m_corps.reinitialise();
+
+			entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+			chef->demarre_evaluation("cache corps");
+		}
+
+		entree(0)->signale_cache(chef);
+		chef->indique_progression(100.0f);
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class OperatriceEntreeGraphe final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Entrée Graphe";
@@ -1256,6 +1343,8 @@ void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCommutation<0>>());
 	usine.enregistre_type(cree_desc<OperatriceCommutation<1>>());
+	usine.enregistre_type(cree_desc<OpCacheMemoire<0>>());
+	usine.enregistre_type(cree_desc<OpCacheMemoire<1>>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 	usine.enregistre_type(cree_desc<OperatriceLectureVideo>());

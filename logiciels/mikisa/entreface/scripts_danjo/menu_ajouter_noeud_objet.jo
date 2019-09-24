@@ -13,7 +13,7 @@ menu "Noeud Objet" {
 		action(valeur="Visibilité Caméra"; attache=ajouter_noeud; métadonnée="Visibilité Caméra")
 	}
 	menu "Cache" {
-		action(valeur="Cache Corps"; attache=ajouter_noeud; métadonnée="Cache Corps")
+		action(valeur="Cache Corps Mémoire"; attache=ajouter_noeud; métadonnée="Cache Corps Mémoire")
 	}
 	menu "Cheveux" {
 		action(valeur="Création Courbes"; attache=ajouter_noeud; métadonnée="Création Courbes")

@@ -1,6 +1,6 @@
 menu "Noeud Composite" {
 	menu "Cache" {
-		action(valeur="Cache Image"; attache=ajouter_noeud; métadonnée="Cache Image")
+		action(valeur="Cache Image Mémoire"; attache=ajouter_noeud; métadonnée="Cache Image Mémoire")
 	}
 	menu "Détail" {
 		action(valeur="Graphe Pixel"; attache=ajouter_graphe_detail; métadonnée="détail_pixel")
