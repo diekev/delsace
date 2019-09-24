@@ -23,7 +23,7 @@ menu "Noeud Composite" {
 		action(valeur="Rayons Soleil"; attache=ajouter_noeud; métadonnée="Rayons Soleil")
 	}
 	menu "Flux" {
-		action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
+		action(valeur="Commutation Image"; attache=ajouter_noeud; métadonnée="Commutation Image")
 		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
 	}
     menu "Pixel" {

@@ -43,6 +43,10 @@ menu "Noeud Objet" {
 		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
 		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
 	}
+	menu "Flux" {
+		action(valeur="Commutation Corps"; attache=ajouter_noeud; métadonnée="Commutation Corps")
+		action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
+	}
 	menu "Groupe" {
 	    action(valeur="Création Groupe"; attache=ajouter_noeud; métadonnée="Création Groupe")
 	}
@@ -108,9 +112,6 @@ menu "Noeud Objet" {
 	menu "Script" {
 	    action(valeur="Script Détail"; attache=ajouter_noeud; métadonnée="Script Détail")
 		action(valeur="Script Topologie"; attache=ajouter_noeud; métadonnée="Script Topologie")
-	}
-	menu "Sortie" {
-	    action(valeur="Sortie Corps"; attache=ajouter_noeud; métadonnée="Sortie Corps")
 	}
 	menu "Terrain" {
 		action(valeur="Crée Terrain"; attache=ajouter_noeud; métadonnée="Crée Terrain")

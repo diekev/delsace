@@ -928,54 +928,41 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceCommutation final : public OperatriceImage {
-public:
-	static constexpr auto NOM = "Commutateur";
+template <int O>
+struct desc_operatrice_commutation;
+
+template <>
+struct desc_operatrice_commutation<0> {
+	static constexpr auto NOM = "Commutation Image";
 	static constexpr auto AIDE = "";
-
-	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceImage(graphe_parent, noeud_)
-	{
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_commutateur.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		auto const value = evalue_entier("prise");
-		entree(value)->requiers_copie_image(m_image, contexte, donnees_aval);
-		return EXECUTION_REUSSIE;
-	}
+	static constexpr auto chemin_entreface = "entreface/operatrice_commutateur.jo";
+	static constexpr auto type_prises = type_prise::IMAGE;
+	static constexpr int type_operatrice = OPERATRICE_IMAGE;
 };
 
-/* ************************************************************************** */
-
-class OperatriceCommutationCorps final : public OperatriceCorps {
-public:
+template <>
+struct desc_operatrice_commutation<1> {
 	static constexpr auto NOM = "Commutation Corps";
 	static constexpr auto AIDE = "";
+	static constexpr auto chemin_entreface = "entreface/operatrice_commutation_corps.jo";
+	static constexpr auto type_prises = type_prise::CORPS;
+	static constexpr int type_operatrice = OPERATRICE_CORPS;
+};
 
-	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud &noeud_)
+template <int O>
+class OperatriceCommutation final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = desc_operatrice_commutation<O>::NOM;
+	static constexpr auto AIDE = desc_operatrice_commutation<O>::AIDE;
+
+	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
 	{
 	}
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_commutation_corps.jo";
+		return desc_operatrice_commutation<O>::chemin_entreface;
 	}
 
 	const char *nom_classe() const override
@@ -988,33 +975,54 @@ public:
 		return AIDE;
 	}
 
+	int type() const override
+	{
+		return desc_operatrice_commutation<O>::type_operatrice;
+	}
+
+	type_prise type_entree(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
+	type_prise type_sortie(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
 	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		m_corps.reinitialise();
+		if (O == 0) {
+			auto const value = evalue_entier("prise");
+			entree(value)->requiers_copie_image(m_image, contexte, donnees_aval);
+		}
+		else if (O == 1) {
+			m_corps.reinitialise();
 
-		auto const condition = evalue_enum("condition");
-		auto const valeur = evalue_entier("valeur_condition");
-		auto resultat = false;
+			auto const condition = evalue_enum("condition");
+			auto const valeur = evalue_entier("valeur_condition");
+			auto resultat = false;
 
-		if (condition == "tps_scn_egl") {
-			resultat = (contexte.temps_courant == valeur);
-		}
-		else if (condition == "tps_scn_sup") {
-			resultat = (contexte.temps_courant > valeur);
-		}
-		else if (condition == "tps_scn_inf") {
-			resultat = (contexte.temps_courant < valeur);
-		}
-		else {
-			ajoute_avertissement("Condition invalide !");
-			return EXECUTION_ECHOUEE;
-		}
+			if (condition == "tps_scn_egl") {
+				resultat = (contexte.temps_courant == valeur);
+			}
+			else if (condition == "tps_scn_sup") {
+				resultat = (contexte.temps_courant > valeur);
+			}
+			else if (condition == "tps_scn_inf") {
+				resultat = (contexte.temps_courant < valeur);
+			}
+			else {
+				ajoute_avertissement("Condition invalide !");
+				return EXECUTION_ECHOUEE;
+			}
 
-		if (resultat) {
-			entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-		}
-		else {
-			entree(1)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+			if (resultat) {
+				entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+			}
+			else {
+				entree(1)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+			}
 		}
 
 		return EXECUTION_REUSSIE;
@@ -1246,8 +1254,8 @@ public:
 
 void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceCommutation>());
-	usine.enregistre_type(cree_desc<OperatriceCommutationCorps>());
+	usine.enregistre_type(cree_desc<OperatriceCommutation<0>>());
+	usine.enregistre_type(cree_desc<OperatriceCommutation<1>>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 	usine.enregistre_type(cree_desc<OperatriceLectureVideo>());
