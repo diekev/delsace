@@ -45,10 +45,11 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("mikisa");
 
 	QFile file("styles/main.qss");
-	file.open(QFile::ReadOnly);
-	QString style_sheet = QLatin1String(file.readAll());
 
-	qApp->setStyleSheet(style_sheet);
+	if (file.open(QFile::ReadOnly)) {
+		QString style_sheet = QLatin1String(file.readAll());
+		qApp->setStyleSheet(style_sheet);
+	}
 
 	Mikisa mikisa;
 	mikisa.initialise();
