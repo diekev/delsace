@@ -627,7 +627,7 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceLectureObjet final : public OperatriceCorps {
+class OpImportObjet final : public OperatriceCorps {
 	ManipulatricePosition3D m_manipulatrice_position{};
 	ManipulatriceEchelle3D m_manipulatrice_echelle{};
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
@@ -639,18 +639,18 @@ class OperatriceLectureObjet final : public OperatriceCorps {
 	PoigneeFichier *m_poignee_fichier = nullptr;
 
 public:
-	static constexpr auto NOM = "Lecture Objet";
+	static constexpr auto NOM = "Import Objet";
 	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
 
-	OperatriceLectureObjet(Graphe &graphe_parent, Noeud &noeud_)
+	OpImportObjet(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
 	}
 
-	OperatriceLectureObjet(OperatriceLectureObjet const &) = default;
-	OperatriceLectureObjet &operator=(OperatriceLectureObjet const &) = default;
+	OpImportObjet(OpImportObjet const &) = default;
+	OpImportObjet &operator=(OpImportObjet const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -2292,7 +2292,7 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationTorus>());
 	usine.enregistre_type(cree_desc<OperatriceCreationLigne>());
 	usine.enregistre_type(cree_desc<OperatriceCreationPrimSphere>());
-	usine.enregistre_type(cree_desc<OperatriceLectureObjet>());
+	usine.enregistre_type(cree_desc<OpImportObjet>());
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 	usine.enregistre_type(cree_desc<OperatriceTransformation>());

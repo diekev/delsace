@@ -41,7 +41,7 @@ menu "Noeud Objet" {
 		action(valeur="Création Torus"; attache=ajouter_noeud; métadonnée="Création Torus")
 		action(valeur="Import Alembic"; attache=ajouter_noeud; métadonnée="Import Alembic")
 		action(valeur="Import Objet"; attache=ajouter_noeud; métadonnée="Import Objet")
-		action(valeur="Lecture Objet"; attache=ajouter_noeud; métadonnée="Lecture Objet")
+		action(valeur="Référence Objet"; attache=ajouter_noeud; métadonnée="Référence Objet")
 	}
 	menu "Flux" {
 		action(valeur="Commutation Corps"; attache=ajouter_noeud; métadonnée="Commutation Corps")

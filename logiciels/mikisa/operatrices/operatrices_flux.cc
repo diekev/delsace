@@ -1179,22 +1179,22 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceImportObjet final : public OperatriceCorps {
+class OpReferenceObjet final : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
 
 public:
-	static constexpr auto NOM = "Import Objet";
+	static constexpr auto NOM = "Référence Objet";
 	static constexpr auto AIDE = "";
 
-	OperatriceImportObjet(Graphe &graphe_parent, Noeud &noeud_)
+	OpReferenceObjet(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
 
-	OperatriceImportObjet(OperatriceImportObjet const &) = default;
-	OperatriceImportObjet &operator=(OperatriceImportObjet const &) = default;
+	OpReferenceObjet(OpReferenceObjet const &) = default;
+	OpReferenceObjet &operator=(OpReferenceObjet const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -1357,7 +1357,7 @@ void enregistre_operatrices_flux(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceLectureVideo>());
 	usine.enregistre_type(cree_desc<OpLectureImgProfonde>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
-	usine.enregistre_type(cree_desc<OperatriceImportObjet>());
+	usine.enregistre_type(cree_desc<OpReferenceObjet>());
 
 #ifdef OP_INFINIE
 	usine.enregistre_type(cree_desc<OperatriceInfinie>());

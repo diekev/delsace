@@ -222,7 +222,7 @@ struct CommandeImportObjet final : public Commande {
 		auto obj = mikisa->bdd.cree_objet("objet", type_objet::CORPS);
 		auto &graphe = obj->noeud->graphe;
 
-		auto noeud_lecture = cree_noeud_op(gestionnaire, graphe, usine, "lecture", "Lecture Objet");
+		auto noeud_lecture = cree_noeud_op(gestionnaire, graphe, usine, "lecture", "Import Objet");
 		auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 
 		noeud_lecture->pos_y(-200.0f);
