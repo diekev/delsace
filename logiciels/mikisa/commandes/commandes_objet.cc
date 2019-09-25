@@ -206,6 +206,43 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 
 /* ************************************************************************** */
 
+struct CommandeImportObjet final : public Commande {
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+		auto const chemin = mikisa->requiers_dialogue(FICHIER_OUVERTURE, "*.obj *.stl");
+
+		if (chemin.est_vide()) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto &usine = mikisa->usine_operatrices();
+		auto gestionnaire = mikisa->gestionnaire_entreface;
+
+		auto obj = mikisa->bdd.cree_objet("objet", type_objet::CORPS);
+		auto &graphe = obj->noeud->graphe;
+
+		auto noeud_lecture = cree_noeud_op(gestionnaire, graphe, usine, "lecture", "Lecture Objet");
+		auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
+
+		noeud_lecture->pos_y(-200.0f);
+
+		auto op_lecture = extrait_opimage(noeud_lecture->donnees);
+		op_lecture->valeur_chaine("chemin", chemin);
+
+		graphe.connecte(noeud_lecture->sortie(0), noeud_sortie->entree(0));
+		graphe.dernier_noeud_sortie = noeud_sortie;
+
+		mikisa->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
+
+		requiers_evaluation(*mikisa, OBJET_AJOUTE, "exécution import objet");
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_objet(UsineCommande &usine)
 {
 	usine.enregistre_type("ajoute_prereglage",
@@ -214,5 +251,9 @@ void enregistre_commandes_objet(UsineCommande &usine)
 
 	usine.enregistre_type("ajoute_objet",
 						   description_commande<CommandeAjouteObjet>(
+							   "objet", 0, 0, 0, false));
+
+	usine.enregistre_type("import_objet",
+						   description_commande<CommandeImportObjet>(
 							   "objet", 0, 0, 0, false));
 }
