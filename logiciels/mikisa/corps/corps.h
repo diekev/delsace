@@ -145,8 +145,8 @@ struct Corps {
 
 	/* Groupes points. */
 
-	using plage_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::iteratrice>;
-	using plage_const_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::const_iteratrice>;
+	using plage_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::iteratrice>;
+	using plage_const_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::const_iteratrice>;
 
 	GroupePoint *ajoute_groupe_point(dls::chaine const &nom_groupe);
 
@@ -158,8 +158,8 @@ struct Corps {
 
 	/* Groupes primitives. */
 
-	using plage_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::iteratrice>;
-	using plage_const_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::const_iteratrice>;
+	using plage_grp_prims = dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::iteratrice>;
+	using plage_const_grp_prims = dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::const_iteratrice>;
 
 	GroupePrimitive *ajoute_groupe_primitive(dls::chaine const &nom_groupe);
 
@@ -178,8 +178,8 @@ private:
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
 
-	dls::tableau<GroupePoint> m_groupes_points{};
-	dls::tableau<GroupePrimitive> m_groupes_prims{};
+	dls::liste<GroupePoint> m_groupes_points{};
+	dls::liste<GroupePrimitive> m_groupes_prims{};
 
 	long m_nombre_sommets = 0;
 };

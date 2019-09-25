@@ -283,13 +283,9 @@ void Corps::copie_vers(Corps *corps) const
 	}
 
 	/* copie les groupes */
-	corps->m_groupes_points.reserve(this->m_groupes_points.taille());
-
 	for (auto groupe : this->m_groupes_points) {
 		corps->m_groupes_points.pousse(groupe);
 	}
-
-	corps->m_groupes_prims.reserve(this->m_groupes_prims.taille());
 
 	for (auto groupe : this->m_groupes_prims) {
 		corps->m_groupes_prims.pousse(groupe);
@@ -335,8 +331,7 @@ GroupePoint *Corps::groupe_point(const dls::chaine &nom_groupe) const
 	});
 
 	if (iter != m_groupes_points.fin()) {
-		auto index = std::distance(m_groupes_points.debut(), iter);
-		return const_cast<GroupePoint *>(&m_groupes_points[index]);
+		return const_cast<GroupePoint *>(&(*iter));
 	}
 
 	return nullptr;
@@ -381,8 +376,7 @@ GroupePrimitive *Corps::groupe_primitive(const dls::chaine &nom_groupe) const
 	});
 
 	if (iter != m_groupes_prims.fin()) {
-		auto index = std::distance(m_groupes_prims.debut(), iter);
-		return const_cast<GroupePrimitive *>(&m_groupes_prims[index]);
+		return const_cast<GroupePrimitive *>(&(*iter));
 	}
 
 	return nullptr;
