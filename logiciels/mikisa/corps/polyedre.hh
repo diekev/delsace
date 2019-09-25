@@ -155,6 +155,9 @@ struct mi_face {
 	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
 	unsigned int label = 0;
 
+	/* label pour les algorithmes, par exemple pour stocker un index d'origine */
+	unsigned int label1 = 0;
+
 	/* drapeaux divers */
 	mi_drapeau drapeaux = mi_drapeau::AUCUN;
 

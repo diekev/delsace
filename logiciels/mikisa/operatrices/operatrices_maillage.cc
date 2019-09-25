@@ -33,6 +33,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -1887,6 +1888,99 @@ public:
 
 /* ************************************************************************** */
 
+static void ajourne_label_groupe(mi_face *face, unsigned int groupe)
+{
+	auto file = dls::file<mi_face *>();
+	auto visites = dls::ensemble<mi_face *>();
+
+	file.enfile(face);
+
+	while (!file.est_vide()) {
+		face = file.defile();
+
+		if (visites.trouve(face) != visites.fin()) {
+			continue;
+		}
+
+		visites.insere(face);
+
+		face->label1 = groupe;
+
+		/* pour chaque face autour de la nôtre */
+		auto a0 = face->arete;
+		auto a1 = a0->suivante;
+		auto fin = a1;
+
+		do {
+			if (a0->paire != nullptr) {
+				file.enfile(a0->paire->face);
+			}
+
+			a0 = a1;
+			a1 = a0->suivante;
+		} while (a1 != fin);
+	}
+}
+
+class OpPiecesDetachees final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Pièces Détachées";
+	static constexpr auto AIDE = "Groupe les polygones du maillage d'entrée selon leur connectivité de sorte que les polygones ou ensemble de polygones séparées des autres soient dans des groupes distincts.";
+
+	OpPiecesDetachees(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto polyedre = converti_corps_polyedre(m_corps);
+
+		auto nombre_groupe = 0u;
+		for (auto face : polyedre.faces) {
+			if (face->label1 != 0) {
+				continue;
+			}
+
+			ajourne_label_groupe(face, ++nombre_groupe);
+		}
+
+		auto groupes = dls::tableau<GroupePrimitive *>(nombre_groupe);
+
+		for (auto i = 0u; i < nombre_groupe; ++i) {
+			groupes[i] = m_corps.ajoute_groupe_primitive("pièce" + dls::vers_chaine(i + 0));
+		}
+
+		for (auto face : polyedre.faces) {
+			groupes[face->label1 - 1]->ajoute_primitive(face->label);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_maillage(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceLissageLaplacien>());
@@ -1898,6 +1992,7 @@ void enregistre_operatrices_maillage(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpGeometrieMaillage>());
 	usine.enregistre_type(cree_desc<OpFonteMaillage>());
 	usine.enregistre_type(cree_desc<OpCouleurMaillage>());
+	usine.enregistre_type(cree_desc<OpPiecesDetachees>());
 }
 
 #pragma clang diagnostic pop
