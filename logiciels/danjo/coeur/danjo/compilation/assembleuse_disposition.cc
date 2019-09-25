@@ -492,6 +492,10 @@ void AssembleurDisposition::ajoute_dossier()
 
 void AssembleurDisposition::finalise_dossier()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_dernier_dossier->setCurrentIndex(m_manipulable->onglet_courant);
 
 	if (m_conteneur != nullptr) {
@@ -521,6 +525,10 @@ void AssembleurDisposition::ajoute_onglet(const dls::chaine &nom)
 
 void AssembleurDisposition::finalise_onglet()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_pile_dispositions.depile();
 }
 
