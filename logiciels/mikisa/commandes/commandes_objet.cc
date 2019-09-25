@@ -40,6 +40,7 @@
 /* ************************************************************************** */
 
 static auto cree_noeud_op(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine,
 		dls::chaine const &nom_noeud,
@@ -50,7 +51,7 @@ static auto cree_noeud_op(
 	auto op = usine(nom_op, graphe, *noeud);
 
 	auto texte = dls::contenu_fichier(op->chemin_entreface());
-	danjo::initialise_entreface(op, texte.c_str());
+	gestionnaire->initialise_entreface(op, texte.c_str());
 
 	synchronise_donnees_operatrice(*noeud);
 
@@ -58,13 +59,14 @@ static auto cree_noeud_op(
 }
 
 static auto cree_graphe_creation_objet(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine,
 		dls::chaine const &nom_noeud,
 		const char *nom_op)
 {
-	auto noeud_creation = cree_noeud_op(graphe, usine, nom_noeud, nom_op);
-	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps");
+	auto noeud_creation = cree_noeud_op(gestionnaire, graphe, usine, nom_noeud, nom_op);
+	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 
 	noeud_creation->pos_y(-200.0f);
 
@@ -73,22 +75,24 @@ static auto cree_graphe_creation_objet(
 }
 
 static auto cree_graphe_objet_vide(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine)
 {
-	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps");
+	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 	graphe.dernier_noeud_sortie = noeud_sortie;
 }
 
 static auto cree_graphe_ocean(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine,
 		int temps_debut,
 		int temps_fin)
 {
-	auto noeud_grille = cree_noeud_op(graphe, usine, "grille", "Création Grille");
-	auto noeud_ocean = cree_noeud_op(graphe, usine, "océan", "Océan");
-	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps");
+	auto noeud_grille = cree_noeud_op(gestionnaire, graphe, usine, "grille", "Création Grille");
+	auto noeud_ocean = cree_noeud_op(gestionnaire, graphe, usine, "océan", "Océan");
+	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 
 	noeud_grille->pos_y(-200.0f);
 	noeud_sortie->pos_y( 200.0f);
@@ -124,35 +128,36 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	auto mikisa = extrait_mikisa(pointeur);
 	auto &bdd = mikisa->bdd;
 	auto nom = donnees.metadonnee;
+	auto gestionnaire = mikisa->gestionnaire_entreface;
 
 	auto objet = bdd.cree_objet(nom, type_objet::CORPS);
 
 	if (nom == "boîte") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cube");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cube");
 	}
 	else if (nom == "grille") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Grille");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Grille");
 	}
 	else if (nom == "cercle") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cercle");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cercle");
 	}
 	else if (nom == "icosphère") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Sphère Ico");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Sphère Ico");
 	}
 	else if (nom == "tube") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cylindre");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cylindre");
 	}
 	else if (nom == "cone") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cone");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cone");
 	}
 	else if (nom == "torus") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Torus");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Torus");
 	}
 	else if (nom == "océan") {
-		cree_graphe_ocean(objet->noeud->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
+		cree_graphe_ocean(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
 	}
 	else if (nom == "vide") {
-		cree_graphe_objet_vide(objet->noeud->graphe, mikisa->usine_operatrices());
+		cree_graphe_objet_vide(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices());
 	}
 	else {
 		mikisa->affiche_erreur("Type de préréglage inconnu");
