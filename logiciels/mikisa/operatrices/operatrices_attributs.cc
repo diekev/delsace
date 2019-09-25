@@ -691,6 +691,18 @@ public:
 #endif
 		return true;
 	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines) override
+	{
+		INUTILISE(contexte);
+		if (attache == "nom_groupe") {
+			entree(0)->obtiens_liste_groupes_points(chaines);
+			entree(0)->obtiens_liste_groupes_prims(chaines);
+		}
+	}
 };
 
 /* ************************************************************************** */
