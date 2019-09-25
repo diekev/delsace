@@ -91,7 +91,7 @@ public:
 
 	UsineOperatrice &usine_operatrices();
 
-	dls::chaine requiers_dialogue(int type);
+	dls::chaine requiers_dialogue(int type, dls::chaine const &filtre);
 	void affiche_erreur(dls::chaine const &message);
 
 	dls::chaine chemin_projet() const;

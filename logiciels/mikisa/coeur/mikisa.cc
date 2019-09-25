@@ -202,16 +202,29 @@ UsineOperatrice &Mikisa::usine_operatrices()
 	return m_usine_operatrices;
 }
 
-dls::chaine Mikisa::requiers_dialogue(int type)
+dls::chaine Mikisa::requiers_dialogue(int type, dls::chaine const &filtre)
 {
+	auto parent = static_cast<QWidget *>(nullptr);
+	auto caption = "";
+	auto dir = "";
+
 	/* À FAIRE : sort ça de la classe. */
 	if (type == FICHIER_OUVERTURE) {
-		auto const chemin = QFileDialog::getOpenFileName();
+
+		auto const chemin = QFileDialog::getOpenFileName(
+					parent,
+					caption,
+					dir,
+					filtre.c_str());
 		return chemin.toStdString();
 	}
 
 	if (type == FICHIER_SAUVEGARDE) {
-		auto const chemin = QFileDialog::getSaveFileName();
+		auto const chemin = QFileDialog::getSaveFileName(
+					parent,
+					caption,
+					dir,
+					filtre.c_str());
 		return chemin.toStdString();
 	}
 

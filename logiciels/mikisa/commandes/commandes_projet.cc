@@ -40,7 +40,7 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = extrait_mikisa(pointeur);
-		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE, "*.mikisa");
 
 		if (chemin_projet.est_vide()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -69,7 +69,7 @@ public:
 
 static void sauve_fichier_sous(Mikisa &mikisa)
 {
-	auto const &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE);
+	auto const &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE, "*.mikisa");
 
 	mikisa.chemin_projet(chemin_projet);
 	mikisa.projet_ouvert(true);
