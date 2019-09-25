@@ -1968,7 +1968,7 @@ public:
 		auto groupes = dls::tableau<GroupePrimitive *>(nombre_groupe);
 
 		for (auto i = 0u; i < nombre_groupe; ++i) {
-			groupes[i] = m_corps.ajoute_groupe_primitive("pièce" + dls::vers_chaine(i + 0));
+			groupes[i] = m_corps.ajoute_groupe_primitive("pièce" + dls::vers_chaine(i));
 		}
 
 		for (auto face : polyedre.faces) {
