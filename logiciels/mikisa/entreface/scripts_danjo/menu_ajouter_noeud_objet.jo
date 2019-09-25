@@ -129,6 +129,10 @@ menu "Noeud Objet" {
 		action(valeur="Arbre Octernaire"; attache=ajouter_noeud; métadonnée="Visualisation Arbre Octernaire")
 		action(valeur="Grille Éparse"; attache=ajouter_noeud; métadonnée="Visualisation Grille Éparse")
 	}
+	menu "UVs" {
+		action(valeur="Groupe Prims UVs"; attache=ajouter_noeud; métadonnée="Groupe Prims UVs")
+		action(valeur="Visualise UVs"; attache=ajouter_noeud; métadonnée="Visualise UVs")
+	}
 	menu "Volume" {
 		action(valeur="Affinage Volume"; attache=ajouter_noeud; métadonnée="Affinage Volume")
 		action(valeur="Créer Grille Éclairage"; attache=ajouter_noeud; métadonnée="Création Grille Éclairage")

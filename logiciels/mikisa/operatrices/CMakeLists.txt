@@ -94,6 +94,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_snh.cc
 	operatrices_srirp.cc
 	operatrices_terrain.cc
+	operatrices_uvs.cc
 	operatrices_vetements.cc
 	operatrices_visualisation.cc
 	operatrices_volume.cc
@@ -129,6 +130,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_snh.hh
 	operatrices_srirp.hh
 	operatrices_terrain.hh
+	operatrices_uvs.hh
 	operatrices_vetements.hh
 	operatrices_visualisation.hh
 	operatrices_volume.hh

@@ -95,6 +95,7 @@
 #include "operatrices/operatrices_snh.hh"
 #include "operatrices/operatrices_srirp.hh"
 #include "operatrices/operatrices_terrain.hh"
+#include "operatrices/operatrices_uvs.hh"
 #include "operatrices/operatrices_vetements.hh"
 #include "operatrices/operatrices_visualisation.hh"
 #include "operatrices/operatrices_volume.hh"
@@ -174,6 +175,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_snh(m_usine_operatrices);
 	enregistre_operatrices_srirp(m_usine_operatrices);
 	enregistre_operatrices_terrain(m_usine_operatrices);
+	enregistre_operatrices_uvs(m_usine_operatrices);
 	enregistre_operatrices_vetement(m_usine_operatrices);
 	enregistre_operatrices_visualisation(m_usine_operatrices);
 	enregistre_operatrices_volume(m_usine_operatrices);
