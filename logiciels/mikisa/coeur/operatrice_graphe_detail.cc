@@ -290,6 +290,38 @@ static auto converti_type_attr(type_attribut type, int dimensions)
 
 /* ************************************************************************** */
 
+static auto trouve_noeuds_connectes_sortie(Graphe const &graphe)
+{
+	auto noeuds = dls::pile<Noeud *>();
+	auto ensemble = dls::ensemble<Noeud *>();
+
+	for (auto &noeud_graphe : graphe.noeuds()) {
+		if (noeud_graphe->est_sortie) {
+			noeuds.empile(noeud_graphe);
+		}
+	}
+
+	while (!noeuds.est_vide()) {
+		auto noeud = noeuds.depile();
+
+		if (ensemble.trouve(noeud) != ensemble.fin()) {
+			continue;
+		}
+
+		ensemble.insere(noeud);
+
+		for (auto const &entree : noeud->entrees) {
+			for (auto const &sortie : entree->liens) {
+				noeuds.empile(sortie->parent);
+			}
+		}
+	}
+
+	return ensemble;
+}
+
+/* ************************************************************************** */
+
 CompileuseGrapheLCC::CompileuseGrapheLCC(Graphe &ptr_graphe)
 	: graphe(ptr_graphe)
 {}
@@ -360,10 +392,17 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 		}
 	}
 
+	/* trouve les noeuds étant connectés à la sortie */
+	auto ensemble = trouve_noeuds_connectes_sortie(graphe);
+
 	/* performe la compilation */
 	for (auto &noeud_graphe : graphe.noeuds()) {
 		for (auto &sortie : noeud_graphe->sorties) {
 			sortie->decalage_pile = 0;
+		}
+
+		if (ensemble.trouve(noeud_graphe) == ensemble.fin()) {
+			continue;
 		}
 
 		auto operatrice = extrait_opimage(noeud_graphe->donnees);
