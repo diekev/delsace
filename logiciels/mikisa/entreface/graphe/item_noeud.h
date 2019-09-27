@@ -33,8 +33,34 @@
 #pragma GCC diagnostic pop
 
 class Noeud;
+class OperatriceImage;
 
 class ItemNoeud : public QGraphicsRectItem {
 public:
-	explicit ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent = nullptr);
+	explicit ItemNoeud(
+			Noeud *noeud,
+			bool selectionne,
+			bool est_noeud_detail,
+			QGraphicsItem *parent = nullptr);
+
+	void dessine_noeud_detail(
+			Noeud *noeud,
+			OperatriceImage *operatrice,
+			bool selectionne);
+
+	void dessine_noeud_generique(
+			Noeud *noeud,
+			OperatriceImage *operatrice,
+			QBrush const &brosse_couleur,
+			bool selectionne);
+
+private:
+	void finalise_dessin(
+			Noeud *noeud,
+			OperatriceImage *operatrice,
+			bool selectionne,
+			double pos_x,
+			double pos_y,
+			double largeur_noeud,
+			double hauteur_noeud);
 };

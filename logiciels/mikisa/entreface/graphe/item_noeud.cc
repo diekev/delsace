@@ -121,7 +121,11 @@ static QBrush brosse_pour_type(type_prise type)
 	return QBrush(COULEUR_INVALIDE);
 }
 
-ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
+ItemNoeud::ItemNoeud(
+		Noeud *noeud,
+		bool selectionne,
+		bool est_noeud_detail,
+		QGraphicsItem *parent)
 	: QGraphicsRectItem(parent)
 {
 	auto operatrice = static_cast<OperatriceImage *>(nullptr);
@@ -178,6 +182,154 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		}
 	}
 
+	if (est_noeud_detail) {
+		dessine_noeud_detail(noeud, operatrice, selectionne);
+	}
+	else {
+		dessine_noeud_generique(noeud, operatrice, brosse_couleur, selectionne);
+	}
+}
+
+void ItemNoeud::dessine_noeud_detail(
+		Noeud *noeud,
+		OperatriceImage *operatrice,
+		bool selectionne)
+{
+	auto const pos_x = static_cast<double>(noeud->pos_x());
+	auto const pos_y = static_cast<double>(noeud->pos_y());
+
+	/* crée le texte en premier pour calculer sa taille */
+	auto const decalage_texte = 8;
+	auto texte = new QGraphicsTextItem(noeud->nom.c_str(), this);
+	auto police = QFont();
+	police.setPointSize(16);
+	texte->setFont(police);
+
+	auto const largeur_texte = texte->boundingRect().width() + decalage_texte * 2;
+	auto const hauteur_texte = texte->boundingRect().height();
+
+	/* crée le texte pour chacune des entrées/sorties */
+
+	auto textes_entrees = dls::tableau<QGraphicsTextItem *>();
+	auto textes_sorties = dls::tableau<QGraphicsTextItem *>();
+
+	auto const hauteur_prise = 32.0;
+	auto const largeur_prise = 32.0;
+
+	auto largeur_entrees = 0.0;
+	auto hauteur_entrees = 0.0;
+
+	for (auto prise : noeud->entrees) {
+		auto texte_prise = new QGraphicsTextItem(prise->nom.c_str(), this);
+		texte_prise->setFont(police);
+		textes_entrees.pousse(texte_prise);
+
+		largeur_entrees = std::max(largeur_entrees, texte_prise->boundingRect().width());
+		hauteur_entrees += texte_prise->boundingRect().height();
+	}
+
+	if (noeud->entrees.taille() != 0) {
+		largeur_entrees += largeur_prise;
+	}
+
+	auto largeur_sorties = 0.0;
+	auto hauteur_sorties = 0.0;
+
+	for (auto prise : noeud->sorties) {
+		auto texte_prise = new QGraphicsTextItem(prise->nom.c_str(), this);
+		texte_prise->setFont(police);
+		textes_sorties.pousse(texte_prise);
+
+		largeur_sorties = std::max(largeur_sorties, texte_prise->boundingRect().width());
+		hauteur_sorties += texte_prise->boundingRect().height();
+	}
+
+	if (noeud->sorties.taille() != 0) {
+		largeur_sorties += largeur_prise;
+	}
+
+	auto hauteur_noeud = hauteur_texte + decalage_texte + std::max(hauteur_entrees, hauteur_sorties);
+	auto largeur_noeud = std::max(largeur_texte, largeur_entrees + largeur_sorties + 2 * decalage_texte);
+
+	/* positionne les textes */
+	texte->setDefaultTextColor(Qt::white);
+	texte->setPos(pos_x + decalage_texte + (largeur_noeud - largeur_texte) / 2, pos_y);
+
+	auto ligne = new QGraphicsLineItem(this);
+	ligne->setPen(QPen(Qt::white));
+	ligne->setLine(pos_x, pos_y + hauteur_texte, pos_x + largeur_noeud, pos_y + hauteur_texte);
+
+	auto pos_y_entree = hauteur_texte + decalage_texte;
+
+	for (auto i = 0; i < textes_entrees.taille(); ++i) {
+		auto prise = noeud->entree(i);
+
+		auto item_prise = new QGraphicsRectItem(this);
+		item_prise->setRect(pos_x, pos_y + pos_y_entree, largeur_prise, hauteur_prise);
+		item_prise->setBrush(brosse_pour_type(prise->type));
+		item_prise->setPen(QPen(Qt::white, 0.5));
+
+		textes_entrees[i]->setDefaultTextColor(Qt::white);
+		textes_entrees[i]->setPos(pos_x + largeur_prise + decalage_texte, pos_y + pos_y_entree);
+
+		prise->rectangle.x = static_cast<float>(pos_x);
+		prise->rectangle.y = static_cast<float>(pos_y + pos_y_entree);
+		prise->rectangle.hauteur = hauteur_prise;
+		prise->rectangle.largeur = largeur_prise;
+
+		pos_y_entree += hauteur_texte;
+	}
+
+	auto pos_y_sortie = hauteur_texte + decalage_texte;
+
+	for (auto i = 0; i < textes_sorties.taille(); ++i) {
+		auto prise = noeud->sortie(i);
+
+		auto item_prise = new QGraphicsRectItem(this);
+		item_prise->setRect(pos_x + largeur_noeud - largeur_prise, pos_y + pos_y_sortie, largeur_prise, hauteur_prise);
+		item_prise->setBrush(brosse_pour_type(prise->type));
+		item_prise->setPen(QPen(Qt::white, 0.5));
+
+		textes_sorties[i]->setDefaultTextColor(Qt::white);
+		textes_sorties[i]->setPos(pos_x + largeur_noeud - decalage_texte - (textes_sorties[i]->boundingRect().width()) - largeur_prise, pos_y + pos_y_sortie);
+
+		prise->rectangle.x = static_cast<float>(pos_x + largeur_noeud - largeur_prise);
+		prise->rectangle.y = static_cast<float>(pos_y + pos_y_sortie);
+		prise->rectangle.hauteur = hauteur_prise;
+		prise->rectangle.largeur = largeur_prise;
+
+		pos_y_sortie += hauteur_texte;
+	}
+
+	if (selectionne) {
+		/* pinceaux pour le contour du noeud */
+		auto stylo = QPen(Qt::yellow);
+		stylo.setWidthF(1.0);
+		setPen(stylo);
+	}
+	else {
+		/* pinceaux pour le contour du noeud */
+		auto stylo = QPen(Qt::white);
+		stylo.setWidthF(0.5);
+		setPen(stylo);
+	}
+
+	finalise_dessin(
+				noeud,
+				operatrice,
+				selectionne,
+				pos_x,
+				pos_y,
+				largeur_noeud,
+				hauteur_noeud);
+}
+
+void ItemNoeud::dessine_noeud_generique(
+		Noeud *noeud,
+		OperatriceImage *operatrice,
+		QBrush const &brosse_couleur,
+		bool selectionne)
+{
 	auto const pos_x = static_cast<double>(noeud->pos_x());
 	auto const pos_y = static_cast<double>(noeud->pos_y());
 
@@ -291,6 +443,25 @@ ItemNoeud::ItemNoeud(Noeud *noeud, bool selectionne, QGraphicsItem *parent)
 		}
 	}
 
+	finalise_dessin(
+				noeud,
+				operatrice,
+				selectionne,
+				pos_x,
+				pos_y,
+				largeur_noeud,
+				hauteur_noeud);
+}
+
+void ItemNoeud::finalise_dessin(
+		Noeud *noeud,
+		OperatriceImage *operatrice,
+		bool selectionne,
+		double pos_x,
+		double pos_y,
+		double largeur_noeud,
+		double hauteur_noeud)
+{
 	if (selectionne) {
 		//			auto cadre = new QGraphicsRectItem(this);
 		//			cadre->setRect(pos_x - 5, pos_y - 5, largeur_noeud + 5, hauteur_noeud + 5);

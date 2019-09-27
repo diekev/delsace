@@ -159,7 +159,10 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	m_vue->scale(graphe->zoom, graphe->zoom);
 
 	for (auto node_ptr : graphe->noeuds()) {
-		auto item = new ItemNoeud(node_ptr, node_ptr == graphe->noeud_actif);
+		auto item = new ItemNoeud(
+					node_ptr,
+					node_ptr == graphe->noeud_actif,
+					graphe->type == type_graphe::DETAIL);
 		m_scene->addItem(item);
 
 		for (PriseEntree *prise : node_ptr->entrees) {
