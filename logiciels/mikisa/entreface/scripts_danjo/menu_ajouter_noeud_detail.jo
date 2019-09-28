@@ -2,6 +2,9 @@ menu "Noeud Détail" {
 	menu "Entrée" {
 		action(valeur="Charge Image"; attache=ajouter_noeud_spécial_détail; métadonnée="Charge Image")
 		action(valeur="Cherche Caméra"; attache=ajouter_noeud_spécial_détail; métadonnée="Cherche Caméra")
+		action(valeur="Crée Courbe Couleur"; attache=ajouter_noeud_spécial_détail; métadonnée="Crée Courbe Couleur")
+		action(valeur="Crée Courbe Valeur"; attache=ajouter_noeud_spécial_détail; métadonnée="Crée Courbe Valeur")
+		action(valeur="Crée Rampe Couleur"; attache=ajouter_noeud_spécial_détail; métadonnée="Crée Rampe Couleur")
 		action(valeur="Entrée Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Détail")
 		action(valeur="Entrée Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Attribut")
 		action(valeur="Info Exécution"; attache=ajouter_noeud_spécial_détail; métadonnée="Info Exécution")
@@ -42,6 +45,9 @@ menu "Noeud Détail" {
 		action(valeur="longueur_onde"; attache=ajouter_noeud_detail; métadonnée="longueur_onde")
 		action(valeur="luminance"; attache=ajouter_noeud_detail; métadonnée="luminance")
 		action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
+		action(valeur="évalue_courbe_couleur"; attache=ajouter_noeud_detail; métadonnée="évalue_courbe_couleur")
+		action(valeur="évalue_courbe_valeur"; attache=ajouter_noeud_detail; métadonnée="évalue_courbe_valeur")
+		action(valeur="évalue_rampe_couleur"; attache=ajouter_noeud_detail; métadonnée="évalue_rampe_couleur")
 	}
 	menu "image" {
 		action(valeur="projection_caméra"; attache=ajouter_noeud_detail; métadonnée="projection_caméra")

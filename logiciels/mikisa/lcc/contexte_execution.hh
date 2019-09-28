@@ -28,6 +28,9 @@
 #include "biblinternes/moultfilage/synchronise.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "danjo/types/courbe_bezier.h"
+#include "danjo/types/rampe_couleur.h"
+
 struct Corps;
 struct Image;
 
@@ -119,8 +122,27 @@ struct ctx_exec {
 	/* Toutes les caméras. */
 	dls::tableau<vision::Camera3D const *> cameras;
 
+	/* Toutes les courbes couleur. */
+	dls::tableau<CourbeCouleur const *> courbes_couleur;
+
+	/* Toutes les courbes valeur. */
+	dls::tableau<CourbeBezier const *> courbes_valeur;
+
+	/* Toutes les rampes couleur. */
+	dls::tableau<RampeCouleur const *> rampes_couleur;
+
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;
+
+	void reinitialise()
+	{
+		ptr_corps = nullptr;
+		images.efface();
+		cameras.efface();
+		courbes_couleur.efface();
+		courbes_valeur.efface();
+		rampes_couleur.efface();
+	}
 };
 
 }  /* namespace lcc */

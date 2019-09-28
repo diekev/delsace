@@ -44,6 +44,9 @@ int main()
 	os << "\tmenu \"Entrée\" {\n";
 	os << "\t\taction(valeur=\"Charge Image\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Charge Image\")\n";
 	os << "\t\taction(valeur=\"Cherche Caméra\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Cherche Caméra\")\n";
+	os << "\t\taction(valeur=\"Crée Courbe Couleur\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Crée Courbe Couleur\")\n";
+	os << "\t\taction(valeur=\"Crée Courbe Valeur\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Crée Courbe Valeur\")\n";
+	os << "\t\taction(valeur=\"Crée Rampe Couleur\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Crée Rampe Couleur\")\n";
 	os << "\t\taction(valeur=\"Entrée Détail\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Entrée Détail\")\n";
 	os << "\t\taction(valeur=\"Entrée Attribut\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Entrée Attribut\")\n";
 	os << "\t\taction(valeur=\"Info Exécution\"; attache=ajouter_noeud_spécial_détail; métadonnée=\"Info Exécution\")\n";

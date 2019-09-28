@@ -147,6 +147,9 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_CR)
 		CHAINE_CAS(code_inst::FN_EVALUE_BRUIT)
 		CHAINE_CAS(code_inst::FN_EVALUE_BRUIT_TURBULENCE)
+		CHAINE_CAS(code_inst::FN_EVALUE_COURBE_COULEUR)
+		CHAINE_CAS(code_inst::FN_EVALUE_COURBE_VALEUR)
+		CHAINE_CAS(code_inst::FN_EVALUE_RAMPE_COULEUR)
 	}
 
 	return "erreur : code_inst inconnu";

@@ -146,7 +146,10 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_degrade.jo
 	scripts_danjo/operatrice_deep_scattering.jo
 	scripts_danjo/operatrice_detail_camera.jo
+	scripts_danjo/operatrice_detail_courbe_couleur.jo
+	scripts_danjo/operatrice_detail_courbe_valeur.jo
 	scripts_danjo/operatrice_detail_echantimage.jo
+	scripts_danjo/operatrice_detail_rampe_couleur.jo
 	scripts_danjo/operatrice_diffusion_gaz.jo
 	scripts_danjo/operatrice_dilation_erosion.jo
 	scripts_danjo/operatrice_dispersion_points.jo

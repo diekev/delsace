@@ -857,6 +857,30 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 				signature(param_entrees(donnees_parametre("valeur", type_var::VEC3)),
 						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_courbe_couleur",
+				code_inst::FN_EVALUE_COURBE_COULEUR,
+				signature(param_entrees(donnees_parametre("courbe", type_var::ENT32),
+										donnees_parametre("valeur", type_var::COULEUR)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_courbe_valeur",
+				code_inst::FN_EVALUE_COURBE_VALEUR,
+				signature(param_entrees(donnees_parametre("courbe", type_var::ENT32),
+										donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_rampe_couleur",
+				code_inst::FN_EVALUE_RAMPE_COULEUR,
+				signature(param_entrees(donnees_parametre("courbe", type_var::ENT32),
+										donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_types(magasin_fonctions &magasin)

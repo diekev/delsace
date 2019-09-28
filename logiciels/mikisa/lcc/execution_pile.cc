@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1955,6 +1955,48 @@ void execute_pile(ctx_exec &contexte,
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(tableau.taille()));
+				break;
+			}
+			case code_inst::FN_EVALUE_COURBE_COULEUR:
+			{
+				auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
+				auto clr = pile_donnees.charge_couleur(compteur, insts);
+				auto res = dls::phys::couleur32();
+
+				if (ptr_courbe < contexte.courbes_couleur.taille()) {
+					auto &courbe = contexte.courbes_couleur[ptr_courbe];
+					res = evalue_courbe_couleur(*courbe, clr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_EVALUE_COURBE_VALEUR:
+			{
+				auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
+				auto vlr = pile_donnees.charge_decimal(compteur, insts);
+				auto res = 0.0f;
+
+				if (ptr_courbe < contexte.courbes_valeur.taille()) {
+					auto &courbe = contexte.courbes_valeur[ptr_courbe];
+					res = evalue_courbe_bezier(*courbe, vlr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_EVALUE_RAMPE_COULEUR:
+			{
+				auto ptr_rampe = pile_donnees.charge_entier(compteur, insts);
+				auto vlr = pile_donnees.charge_decimal(compteur, insts);
+				auto res = dls::phys::couleur32();
+
+				if (ptr_rampe < contexte.rampes_couleur.taille()) {
+					auto &courbe = contexte.rampes_couleur[ptr_rampe];
+					res = evalue_rampe_couleur(*courbe, vlr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
 #if 0

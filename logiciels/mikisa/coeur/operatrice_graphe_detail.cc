@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -347,8 +347,7 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	m_gest_props = gestionnaire_propriete();
 	m_gest_attrs = gestionnaire_propriete();
 
-	m_ctx_global.ptr_corps = nullptr;
-	m_ctx_global.images.efface();
+	m_ctx_global.reinitialise();
 
 	if (graphe.besoin_ajournement) {
 		tri_topologique(graphe);
@@ -1819,6 +1818,105 @@ public:
 
 /* ************************************************************************** */
 
+template <int O>
+struct desc_operatrice_courbe_rampe;
+
+template <>
+struct desc_operatrice_courbe_rampe<0> {
+	static constexpr auto NOM = "Crée Courbe Couleur";
+	static constexpr auto AIDE = "Crée un ensemble de courbe bézier pour transformer une couleur.";
+	static constexpr auto chemin_entreface = "entreface/operatrice_detail_courbe_couleur.jo";
+};
+
+template <>
+struct desc_operatrice_courbe_rampe<1> {
+	static constexpr auto NOM = "Crée Courbe Valeur";
+	static constexpr auto AIDE = "Crée une courbe bézier pour transformer une valeur scalaire.";
+	static constexpr auto chemin_entreface = "entreface/operatrice_detail_courbe_valeur.jo";
+};
+
+template <>
+struct desc_operatrice_courbe_rampe<2> {
+	static constexpr auto NOM = "Crée Rampe Couleur";
+	static constexpr auto AIDE = "Crée une rampe pour interpoler des couleurs depuis une valeur scalaire.";
+	static constexpr auto chemin_entreface = "entreface/operatrice_detail_rampe_couleur.jo";
+};
+
+template <int O>
+class OpCreeCourbeRampe final : public OperatriceImage {
+public:
+	static constexpr auto NOM = desc_operatrice_courbe_rampe<O>::NOM;
+	static constexpr auto AIDE = desc_operatrice_courbe_rampe<O>::AIDE;
+
+	OpCreeCourbeRampe(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceImage(graphe_parent, noeud_)
+	{
+		entrees(0);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return desc_operatrice_courbe_rampe<O>::chemin_entreface;
+	}
+
+	type_prise type_sortie(int i) const override
+	{
+		switch (i) {
+			case 0:
+			{
+				return type_prise::ENTIER;
+			}
+		}
+
+		return type_prise::INVALIDE;
+	}
+
+	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(contexte);
+
+		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
+		auto ctx_global = std::any_cast<lcc::ctx_exec *>(donnees_aval->table["ctx_global"]);
+
+		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
+
+		auto ptr_sortie = sortie(0)->pointeur();
+		ptr_sortie->decalage_pile = ptr;
+		ptr_sortie->type_infere = type_prise::ENTIER;
+
+		if (O == 0) {
+			auto courbe_couleur = evalue_courbe_couleur("courbe");
+			compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->courbes_couleur.taille()));
+			ctx_global->courbes_couleur.pousse(courbe_couleur);
+		}
+		else if (O == 1) {
+			auto courbe_valeur = evalue_courbe_valeur("courbe");
+			compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->courbes_valeur.taille()));
+			ctx_global->courbes_valeur.pousse(courbe_valeur);
+		}
+		else if (O == 2) {
+			auto rampe_valeur = evalue_rampe_couleur("rampe");
+			compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->rampes_couleur.taille()));
+			ctx_global->rampes_couleur.pousse(rampe_valeur);
+		}
+
+		return EXECUTION_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 class OpChercheCamera final : public OperatriceImage {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
@@ -2162,6 +2260,9 @@ void enregistre_operatrices_detail(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceSortieAttribut>());
 	usine.enregistre_type(cree_desc<OperatriceInfoExecution>());
 	usine.enregistre_type(cree_desc<OpChargeImage>());
+	usine.enregistre_type(cree_desc<OpCreeCourbeRampe<0>>());
+	usine.enregistre_type(cree_desc<OpCreeCourbeRampe<1>>());
+	usine.enregistre_type(cree_desc<OpCreeCourbeRampe<2>>());
 }
 
 OperatriceFonctionDetail *cree_op_detail(

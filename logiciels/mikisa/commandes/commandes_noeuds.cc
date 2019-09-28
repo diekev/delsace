@@ -320,7 +320,16 @@ public:
 
 		using dls::outils::est_element;
 
-		if (est_element(metadonnee, "Entrée Détail", "Sortie Détail", "Info Exécution", "Charge Image", "Cherche Caméra")) {
+		if (est_element(metadonnee,
+						"Entrée Détail",
+						"Sortie Détail",
+						"Info Exécution",
+						"Charge Image",
+						"Cherche Caméra",
+						"Crée Courbe Couleur",
+						"Crée Courbe Valeur",
+						"Crée Rampe Couleur"))
+		{
 			return est_element(type_detail,
 							   DETAIL_PIXELS,
 							   DETAIL_VOXELS,

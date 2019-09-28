@@ -1,0 +1,5 @@
+disposition "operatrice_detail_courbe_couleur" {
+	ligne {
+		courbe_couleur(attache=courbe)
+	}
+}
