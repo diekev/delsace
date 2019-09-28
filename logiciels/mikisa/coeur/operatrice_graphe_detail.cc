@@ -1758,8 +1758,6 @@ public:
 	{
 		entrees(0);
 		sorties(1);
-
-		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override
@@ -1934,8 +1932,6 @@ public:
 	{
 		entrees(0);
 		sorties(1);
-
-		noeud.est_sortie = true;
 	}
 
 	COPIE_CONSTRUCT(OpChercheCamera);
