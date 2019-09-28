@@ -585,6 +585,10 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 		auto donnees = m_compileuse.donnees();
 
 		for (auto l = plage.begin(); l < plage.end(); ++l) {
+			if (chef->interrompu()) {
+				return;
+			}
+
 			for (auto c = 0; c < desc.resolution.x; ++c) {
 				auto const x = static_cast<float>(c) * largeur_inverse;
 				auto const y = static_cast<float>(l) * hauteur_inverse;
