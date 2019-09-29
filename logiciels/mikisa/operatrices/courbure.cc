@@ -24,9 +24,10 @@
 
 #include "courbure.hh"
 
-#include "biblinternes/moultfilage/boucle.hh"
 #include "biblexternes/Patate/grenaille.h"
 
+#include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/structures/grille_particules.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/corps.h"
@@ -104,117 +105,7 @@ using WeightFunc = Grenaille::DistWeightFunc<GLSPoint, Grenaille::SmoothWeightKe
 using Fit = Basket<GLSPoint, WeightFunc, OrientedSphereFit, GLSParam,
 			   OrientedSphereScaleSpaceDer, GLSDer, GLSCurvatureHelper, GLSGeomVar>;
 
-/* À FAIRE : utilisation d'un arbre KD, réutilisation de cette structure. */
-class Grid {
-public:
-	using Cell = Eigen::Array3i;
-	using CellBlock = Eigen::AlignedBox3i;
-	using IndexVecteur = dls::tableau<unsigned>;
-	using PointVecteur = dls::tableau<GLSPoint>;
-
-private:
-	Scalaire      _cellSize{};
-	Cell        _gridSize{};
-	Vecteur      _gridBase{}; // min corner
-	IndexVecteur _cellsIndex{};
-	PointVecteur _points{};
-
-public:
-	Grid(DonneesMaillage const &maillage, Scalaire taille_cellule)
-		: _cellSize(taille_cellule)
-		, _gridSize()
-		, _gridBase()
-	{
-		// Compute bounding box.
-		using BoundingBox = Eigen::AlignedBox<Scalaire, 3>;
-
-		BoundingBox bb;
-		for (auto i = 0; i < maillage.points->taille(); ++i) {
-			bb.extend(converti_eigen(maillage.points->point(i)));
-		}
-
-		_gridBase = bb.min();
-		_gridSize = gridCoord(bb.max()) + Cell::Constant(1);
-
-		//std::cout << "GridSize: " << _gridSize.transpose() << " (" << nCells() << ")\n";
-
-		// Compute cells size (number of points in each cell)
-		_cellsIndex.redimensionne(nCells() + 1, 0);
-
-		for (auto vit = 0; vit < maillage.points->taille(); ++vit) {
-			auto i = static_cast<unsigned>(cellIndex(converti_eigen(maillage.points->point(vit))));
-			++_cellsIndex[i + 1];
-		}
-
-		// Prefix sum to get indices
-		for (unsigned i = 1; i <= nCells(); ++i) {
-			_cellsIndex[i] += _cellsIndex[i - 1];
-		}
-
-		// Fill the point array
-		IndexVecteur pointCount(nCells(), 0);
-		_points.redimensionne(_cellsIndex.back());
-		for (auto vit = 0; vit < maillage.points->taille(); ++vit) {
-			auto i = static_cast<unsigned>(cellIndex(converti_eigen(maillage.points->point(vit))));
-			*(_pointsBegin(i) + pointCount[i]) = GLSPoint(maillage, vit);
-			++pointCount[i];
-		}
-
-		for (unsigned i = 0; i < nCells(); ++i) {
-			assert(pointCount[i] == _cellsIndex[i+1] - _cellsIndex[i]);
-		}
-	}
-
-	inline unsigned nCells() const
-	{
-		return static_cast<unsigned>(_gridSize.prod());
-	}
-
-	inline Cell gridCoord(const Vecteur& p) const
-	{
-		return Eigen::Array3i(((p - _gridBase) / _cellSize).cast<int>());
-	}
-
-	inline int cellIndex(const Cell& c) const
-	{
-		return c(0) + _gridSize(0) * (c(1) + _gridSize(1) * c(2));
-	}
-
-	inline int cellIndex(const Vecteur& p) const
-	{
-		Cell c = gridCoord(p);
-		assert(c(0) >= 0 && c(1) >= 0 && c(2) >= 0
-			&& c(0) < _gridSize(0) && c(1) < _gridSize(1) && c(2) < _gridSize(2));
-		return c(0) + _gridSize(0) * (c(1) + _gridSize(1) * c(2));
-	}
-
-	inline const GLSPoint* pointsBegin(unsigned ci) const
-	{
-		assert(ci < nCells());
-		return &_points[0] + _cellsIndex[ci];
-	}
-
-	inline const GLSPoint* pointsEnd(unsigned ci) const
-	{
-		assert(ci < nCells());
-		return &_points[0] + _cellsIndex[ci + 1];
-	}
-
-	CellBlock cellsAround(const Vecteur& p, Scalaire radius)
-	{
-		return CellBlock(gridCoord(p - Vecteur::Constant(radius))
-								 .max(Cell(0, 0, 0)).matrix(),
-						 (gridCoord(p + Vecteur::Constant(radius)) + Cell::Constant(1))
-								 .min(_gridSize).matrix());
-	}
-
-private:
-	inline GLSPoint* _pointsBegin(unsigned ci)
-	{
-		assert(ci < nCells());
-		return &_points[0] + _cellsIndex[ci];
-	}
-};
+/* À FAIRE : arbre KD. */
 
 /* ************************************************************************** */
 
@@ -231,7 +122,11 @@ static auto calcul_courbure(
 	auto const r2 = r * r;
 	auto const nombre_sommets = donnees_maillage.points->taille();
 
-	auto grid = Grid(donnees_maillage, r);
+	auto grille_points = GrillePoint::construit_avec_fonction(
+				[&](long idx)
+	{
+		return donnees_maillage.points->point(idx);
+	}, donnees_maillage.points->taille(), static_cast<float>(r));
 
 	boucle_parallele(tbb::blocked_range<long>(0, nombre_sommets),
 					 [&](tbb::blocked_range<long> const &plage)
@@ -247,21 +142,20 @@ static auto calcul_courbure(
 			fit.init(p0);
 			fit.setWeightFunc(WeightFunc(r));
 
-			auto nb_voisins = 0;
+			auto point = donnees_maillage.points->point(i);
+			auto cellules = grille_points.cellules_autour(point, static_cast<float>(r));
+			auto c = GrillePoint::coord();
 
-			auto cells = grid.cellsAround(p0, r);
-			Grid::Cell c = cells.min().array();
+			for (c.z = cellules.min.z; c.z < cellules.max.z; ++c.z) {
+				for (c.y = cellules.min.y; c.y < cellules.max.y; ++c.y) {
+					for (c.x = cellules.min.x; c.x < cellules.max.x; ++c.x) {
+						auto idx_c = grille_points.index_cellule(c);
+						auto debut = grille_points.debut_points(idx_c);
+						auto fin = grille_points.fin_points(idx_c);
 
-			for (c(2) = cells.min()(2); c(2) < cells.max()(2); ++c(2)) {
-				for (c(1) = cells.min()(1); c(1) < cells.max()(1); ++c(1)) {
-					for (c(0) = cells.min()(0); c(0) < cells.max()(0); ++c(0)) {
-						auto p = grid.pointsBegin(static_cast<unsigned>(grid.cellIndex(c)));
-						auto end = grid.pointsEnd(static_cast<unsigned>(grid.cellIndex(c)));
-
-						for (; p != end; ++p) {
-							if ((p->pos() - p0).squaredNorm() < r2) {
-								fit.addNeighbor(*p);
-								++nb_voisins;
+						for (; debut != fin; ++debut) {
+							if (longueur_carree(debut->pos - point) < static_cast<float>(r2)) {
+								fit.addNeighbor(GLSPoint(donnees_maillage, debut->idx));
 							}
 						}
 					}
