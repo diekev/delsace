@@ -191,7 +191,14 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	donnees.conteneur = this;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
+	auto gestionnaire = m_mikisa.gestionnaire_entreface;
+	auto disposition = gestionnaire->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
+
+	if (disposition == nullptr) {
+		return;
+	}
+
+	gestionnaire->ajourne_entreface(manipulable);
 	m_conteneur_disposition->setLayout(disposition);
 }
 
@@ -218,6 +225,7 @@ void EditriceProprietes::ajourne_manipulable()
 	std::cerr << "Controle changé !\n";
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
+	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
 
 	if (noeud == nullptr) {
 		return;
@@ -232,6 +240,7 @@ void EditriceProprietes::ajourne_manipulable()
 		{
 			auto objet = extrait_objet(noeud->donnees);
 			objet->ajourne_parametres();
+			manipulable = objet->noeud;
 			break;
 		}
 		case type_noeud::COMPOSITE:
@@ -275,8 +284,15 @@ void EditriceProprietes::ajourne_manipulable()
 
 			auto op = extrait_opimage(noeud->donnees);
 			op->parametres_changes();
+			manipulable = op;
 			break;
 		}
+	}
+
+	if (manipulable != nullptr) {
+		manipulable->ajourne_proprietes();
+		auto gestionnaire = m_mikisa.gestionnaire_entreface;
+		gestionnaire->ajourne_entreface(manipulable);
 	}
 
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
