@@ -40,8 +40,11 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/structures/flux_chaine.hh"
+
+#include "danjo/danjo.h"
 
 #include "evaluation/evaluation.hh"
 
@@ -226,8 +229,11 @@ public:
 		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
 		noeud->graphe.type = type_graphe::OBJET;
 
-		(mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
+		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
+
+		auto texte = dls::contenu_fichier(op->chemin_entreface());
+		mikisa->gestionnaire_entreface->initialise_entreface(op, texte.c_str());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -292,6 +298,7 @@ public:
 		auto op = cree_op_detail(*mikisa, *graphe, *noeud, nom);
 		op->cree_proprietes();
 		synchronise_donnees_operatrice(*noeud);
+		mikisa->gestionnaire_entreface->initialise_entreface(op, op->chemin_entreface());
 
 		finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -363,8 +370,11 @@ public:
 
 		auto noeud = graphe->cree_noeud(nom, type_noeud::OPERATRICE);
 
-		(mikisa->usine_operatrices())(nom, *graphe, *noeud);
+		auto op = (mikisa->usine_operatrices())(nom, *graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
+
+		auto texte = dls::contenu_fichier(op->chemin_entreface());
+		mikisa->gestionnaire_entreface->initialise_entreface(op, texte.c_str());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -418,6 +428,9 @@ public:
 		/* la synchronisation doit se faire après puisque nous avons besoin du
 		 * type de détail pour déterminer les types de sorties */
 		synchronise_donnees_operatrice(*noeud);
+
+		auto texte = dls::contenu_fichier(op->chemin_entreface());
+		mikisa->gestionnaire_entreface->initialise_entreface(op, texte.c_str());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
