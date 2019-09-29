@@ -35,6 +35,7 @@
 #include "biblinternes/outils/fichier.hh"
 
 #include "controles/action.h"
+#include "controles_proprietes/controle_propriete.h"
 
 #include "compilation/analyseuse_disposition.h"
 #include "compilation/analyseuse_logique.h"
@@ -154,6 +155,7 @@ QMenu *GestionnaireInterface::compile_menu(
 QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, const char *texte_entree, int temps)
 {
 	if (donnees.manipulable == nullptr) {
+		m_controles.efface();
 		return nullptr;
 	}
 
@@ -175,10 +177,12 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 	}
 	catch (const ErreurFrappe &e) {
 		std::cerr << e.quoi();
+		m_controles.efface();
 		return nullptr;
 	}
 	catch (const ErreurSyntactique &e) {
 		std::cerr << e.quoi();
+		m_controles.efface();
 		return nullptr;
 	}
 
@@ -198,8 +202,27 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 	auto nom = assembleuse.nom_disposition();
 
 	m_dispositions.insere({nom, disposition});
+	m_controles = assembleuse.controles;
 
 	return disposition;
+}
+
+void GestionnaireInterface::ajourne_entreface(Manipulable *manipulable)
+{
+	if (manipulable == nullptr) {
+		return;
+	}
+
+	for (auto paire : m_controles) {
+		auto controle = paire.second;
+		auto prop = manipulable->propriete(paire.first);
+
+		if (prop == nullptr) {
+			continue;
+		}
+
+		controle->setEnabled(prop->visible);
+	}
 }
 
 void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const char *texte_entree)

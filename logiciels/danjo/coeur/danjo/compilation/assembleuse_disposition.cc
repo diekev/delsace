@@ -298,6 +298,9 @@ void AssembleurDisposition::finalise_controle()
 		delete m_dernier_controle;
 		m_dernier_controle = nullptr;
 	}
+	else {
+		controles.insere({ m_donnees_controle.nom, m_dernier_controle });
+	}
 
 	if (m_conteneur != nullptr) {
 		QObject::connect(m_dernier_controle, &ControlePropriete::precontrole_change,

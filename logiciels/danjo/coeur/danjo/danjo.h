@@ -37,6 +37,7 @@ class QWidget;
 
 namespace danjo {
 
+class ControlePropriete;
 class ConteneurControles;
 class Manipulable;
 class RepondantBouton;
@@ -67,6 +68,9 @@ class GestionnaireInterface {
 
 	QWidget *m_parent_dialogue = nullptr;
 
+	/* cache des controles pour ajourner l'interface */
+	dls::dico_desordonne<dls::chaine, ControlePropriete *> m_controles{};
+
 public:
 	~GestionnaireInterface();
 
@@ -86,6 +90,8 @@ public:
 			DonneesInterface &donnees,
 			const char *texte_entree,
 			int temps = 0);
+
+	void ajourne_entreface(Manipulable *manipulable);
 
 	void initialise_entreface(Manipulable *manipulable, const char *texte_entree);
 
