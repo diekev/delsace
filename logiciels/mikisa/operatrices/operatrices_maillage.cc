@@ -1625,7 +1625,7 @@ public:
 	{
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
 
-		if (attr->type() == type_attribut::Z32) {
+		if (attr->type() == type_attribut::R32) {
 			if (attr->dimensions == 1) {
 				auto min_donnees = std::numeric_limits<float>::max();
 				auto max_donnees = -min_donnees;
