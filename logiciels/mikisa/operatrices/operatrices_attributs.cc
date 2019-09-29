@@ -27,6 +27,7 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
@@ -860,25 +861,22 @@ public:
 					attr_orig->dimensions,
 					attr_orig->portee);
 
+		auto arbre = arbre_3df();
+		arbre.construit_avec_fonction(
+					static_cast<int>(points_orig->taille()),
+					[&](int idx)
+		{
+			return points_orig->point(idx);
+		});
+
 		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
 				auto const point = m_corps.point_transforme(i);
-				auto dist_locale = distance;
 				auto idx_point_plus_pres = -1;
 
-				/* À FAIRE : structure accéleration. */
-				/* Trouve l'index point le plus proche, À FAIRE : n-points. */
-				for (auto j = 0; j < points_orig->taille(); ++j) {
-					auto p0 = corps_orig->point_transforme(j);
-					auto l = longueur(point - p0);
-
-					if (l < dist_locale) {
-						dist_locale = l;
-						idx_point_plus_pres = j;
-					}
-				}
+				arbre.trouve_plus_proche_index(point, distance, idx_point_plus_pres);
 
 				if (idx_point_plus_pres >= 0) {
 					copie_attribut(attr_orig, idx_point_plus_pres, attr_dest, i);
