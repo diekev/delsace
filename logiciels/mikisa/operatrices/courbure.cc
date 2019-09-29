@@ -27,6 +27,7 @@
 #include "biblexternes/Patate/grenaille.h"
 
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/grille_particules.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -105,9 +106,9 @@ using WeightFunc = Grenaille::DistWeightFunc<GLSPoint, Grenaille::SmoothWeightKe
 using Fit = Basket<GLSPoint, WeightFunc, OrientedSphereFit, GLSParam,
 			   OrientedSphereScaleSpaceDer, GLSDer, GLSCurvatureHelper, GLSGeomVar>;
 
-/* À FAIRE : arbre KD. */
-
 /* ************************************************************************** */
+
+#undef ARBRE_KD
 
 static auto calcul_courbure(
 		ChefExecution *chef,
@@ -122,11 +123,21 @@ static auto calcul_courbure(
 	auto const r2 = r * r;
 	auto const nombre_sommets = donnees_maillage.points->taille();
 
+#ifdef ARBRE_KD
+	auto arbre = arbre_3df();
+	arbre.construit_avec_fonction(
+				static_cast<int>(donnees_maillage.points->taille()),
+				[&](int idx)
+	{
+		return donnees_maillage.points->point(idx);
+	});
+#else
 	auto grille_points = GrillePoint::construit_avec_fonction(
 				[&](long idx)
 	{
 		return donnees_maillage.points->point(idx);
 	}, donnees_maillage.points->taille(), static_cast<float>(r));
+#endif
 
 	boucle_parallele(tbb::blocked_range<long>(0, nombre_sommets),
 					 [&](tbb::blocked_range<long> const &plage)
@@ -143,6 +154,15 @@ static auto calcul_courbure(
 			fit.setWeightFunc(WeightFunc(r));
 
 			auto point = donnees_maillage.points->point(i);
+
+#ifdef ARBRE_KD
+			arbre.cherche_points(point, static_cast<float>(r), [&](int idx, dls::math::vec3f const &, float dc, float &)
+			{
+				if (dc < static_cast<float>(r2)) {
+					fit.addNeighbor(GLSPoint(donnees_maillage, idx));
+				}
+			});
+#else
 			auto cellules = grille_points.cellules_autour(point, static_cast<float>(r));
 			auto c = GrillePoint::coord();
 
@@ -161,6 +181,7 @@ static auto calcul_courbure(
 					}
 				}
 			}
+#endif
 
 			fit.finalize();
 
