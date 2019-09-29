@@ -773,7 +773,7 @@ public:
 
 			auto op = extrait_opimage(noeud->donnees);
 
-			if (op->type() == OPERATRICE_CORPS || op->type() == OPERATRICE_SORTIE_CORPS) {
+			if (op->type() == OPERATRICE_CORPS) {
 				auto op_objet = dynamic_cast<OperatriceCorps *>(op);
 				auto corps = op_objet->corps();
 

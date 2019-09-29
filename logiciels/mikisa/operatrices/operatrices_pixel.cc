@@ -295,11 +295,6 @@ public:
 		entrees(1);
 	}
 
-	virtual int type() const override
-	{
-		return OPERATRICE_PIXEL;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_melange.jo";

@@ -33,11 +33,6 @@ OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud &noeud_)
 	: OperatriceImage(graphe_parent, noeud_)
 {}
 
-int OperatricePixel::type() const
-{
-	return OPERATRICE_PIXEL;
-}
-
 int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	calque_image *calque = nullptr;

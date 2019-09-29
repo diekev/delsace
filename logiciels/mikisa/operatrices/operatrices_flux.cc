@@ -604,11 +604,6 @@ public:
 		noeud.est_sortie = true;
 	}
 
-	int type() const override
-	{
-		return OPERATRICE_SORTIE_IMAGE;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_visionnage.jo";

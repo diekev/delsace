@@ -157,19 +157,13 @@ ItemNoeud::ItemNoeud(
 
 			switch (operatrice->type()) {
 				default:
-				case OPERATRICE_SORTIE_IMAGE:
 				case OPERATRICE_IMAGE:
-				case OPERATRICE_PIXEL:
 					brosse_couleur = brosse_pour_type(type_prise::IMAGE);
 					break;
 				case OPERATRICE_GRAPHE_DETAIL:
 				case OPERATRICE_SIMULATION:
 				case OPERATRICE_CORPS:
-				case OPERATRICE_SORTIE_CORPS:
 					brosse_couleur = brosse_pour_type(type_prise::CORPS);
-					break;
-				case OPERATRICE_OBJET:
-					brosse_couleur = brosse_pour_type(type_prise::OBJET);
 					break;
 			}
 

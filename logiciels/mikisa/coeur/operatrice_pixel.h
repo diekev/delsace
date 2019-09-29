@@ -30,8 +30,6 @@ class OperatricePixel : public OperatriceImage {
 public:
 	OperatricePixel(Graphe &graphe_parent, Noeud &noeud_);
 
-	virtual int type() const override;
-
 	virtual void evalue_entrees(int temps) = 0;
 
 	virtual dls::phys::couleur32 evalue_pixel(

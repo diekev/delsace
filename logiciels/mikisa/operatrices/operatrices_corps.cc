@@ -1209,11 +1209,6 @@ public:
 		noeud.est_sortie = true;
 	}
 
-	int type() const override
-	{
-		return OPERATRICE_SORTIE_CORPS;
-	}
-
 	const char *nom_classe() const override
 	{
 		return NOM;
