@@ -520,15 +520,15 @@ public:
 
 	bool ajourne_proprietes() override
 	{
-#if 0 /* À FAIRE : ajournement de l'entreface. */
 		auto const distribution = evalue_enum("distribution");
 
 		rend_propriete_visible("constante", distribution == "constante");
-		rend_propriete_visible("min_value", distribution == "uniforme");
-		rend_propriete_visible("max_value", distribution == "uniforme");
+		rend_propriete_visible("graine", distribution != "constante");
+		rend_propriete_visible("valeur_min", distribution == "uniforme");
+		rend_propriete_visible("valeur_max", distribution == "uniforme");
 		rend_propriete_visible("moyenne", distribution == "gaussienne");
-		rend_propriete_visible("ecart_type", distribution == "gaussienne");
-#endif
+		rend_propriete_visible("écart_type", distribution == "gaussienne");
+
 		return true;
 	}
 
@@ -680,15 +680,12 @@ public:
 
 	bool ajourne_proprietes() override
 	{
-#if 0 /* À FAIRE : ajournement de l'entreface. */
-		auto const distribution = evalue_enum("distribution");
+		auto const methode = evalue_enum("méthode");
+		auto const methode_aleatoire = methode == "aléatoire";
 
-		rend_propriete_visible("constante", distribution == "constante");
-		rend_propriete_visible("min_value", distribution == "uniforme");
-		rend_propriete_visible("max_value", distribution == "uniforme");
-		rend_propriete_visible("moyenne", distribution == "gaussienne");
-		rend_propriete_visible("ecart_type", distribution == "gaussienne");
-#endif
+		rend_propriete_visible("graine", methode_aleatoire);
+		rend_propriete_visible("couleur_", !methode_aleatoire);
+
 		return true;
 	}
 
