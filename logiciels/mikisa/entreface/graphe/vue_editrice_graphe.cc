@@ -63,32 +63,15 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 
 	auto gestionnaire = m_mikisa.gestionnaire_entreface;
 
-	auto texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_composite.jo");
-	m_menu_ajout_noeud_composite = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_objet.jo");
-	m_menu_ajout_noeud_objet = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_detail.jo");
-	m_menu_ajout_noeud_detail = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_rendu.jo");
-	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_graphe_objet.jo");
-	m_menu_graphe_objet = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_simulation.jo");
-	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_graphe_composite.jo");
-	m_menu_graphe_composite = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_graphe_nuanceur.jo");
-	m_menu_graphe_nuanceur = gestionnaire->compile_menu(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_graphe_rendu.jo");
-	m_menu_graphe_rendu = gestionnaire->compile_menu(donnees, texte_entree.c_str());
+	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_composite.jo");
+	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_objet.jo");
+	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_detail.jo");
+	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_rendu.jo");
+	m_menu_graphe_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_objet.jo");
+	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_simulation.jo");
+	m_menu_graphe_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_composite.jo");
+	m_menu_graphe_nuanceur = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_nuanceur.jo");
+	m_menu_graphe_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_rendu.jo");
 }
 
 VueEditeurNoeud::~VueEditeurNoeud()

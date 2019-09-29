@@ -111,8 +111,9 @@ EditriceLigneTemps::EditriceLigneTemps(Mikisa &mikisa, QWidget *parent)
 	donnees.manipulable = &dummy;
 	donnees.repondant_bouton = mikisa.repondant_commande();
 
-	auto text_entree = dls::contenu_fichier("entreface/disposition_ligne_temps.jo");
-	auto disp_controles = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, text_entree.c_str());
+	auto disp_controles = m_mikisa.gestionnaire_entreface->compile_entreface_fichier(
+				donnees,
+				"entreface/disposition_ligne_temps.jo");
 
 	m_tc_layout->addLayout(disp_controles);
 

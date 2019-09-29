@@ -184,15 +184,13 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto const &texte = dls::contenu_fichier(chemin_entreface);
-
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
 	auto gestionnaire = m_mikisa.gestionnaire_entreface;
-	auto disposition = gestionnaire->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
+	auto disposition = gestionnaire->compile_entreface_fichier(donnees, chemin_entreface, m_mikisa.temps_courant);
 
 	if (disposition == nullptr) {
 		return;

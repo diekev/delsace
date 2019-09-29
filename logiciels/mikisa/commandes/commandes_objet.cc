@@ -50,8 +50,7 @@ static auto cree_noeud_op(
 
 	auto op = usine(nom_op, graphe, *noeud);
 
-	auto texte = dls::contenu_fichier(op->chemin_entreface());
-	gestionnaire->initialise_entreface(op, texte.c_str());
+	gestionnaire->initialise_entreface_fichier(op, op->chemin_entreface());
 
 	synchronise_donnees_operatrice(*noeud);
 

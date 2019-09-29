@@ -79,7 +79,7 @@ void EditriceRendu::ajourne_etat(int evenement)
 	donnees.conteneur = this;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str());
+	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface_texte(donnees, texte);
 
 	if (m_conteneur_disposition->layout()) {
 		/* Qt ne permet d'extrait la disposition d'un widget que si celle-ci est

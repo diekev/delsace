@@ -84,22 +84,39 @@ public:
 
 	void ajourne_disposition(const dls::chaine &nom, int temps = 0);
 
-	QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
+	QMenu *compile_menu_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	QBoxLayout *compile_entreface(
+	QMenu *compile_menu_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
+
+	QBoxLayout *compile_entreface_texte(
 			DonneesInterface &donnees,
-			const char *texte_entree,
+			dls::chaine const &texte,
+			int temps = 0);
+
+	QBoxLayout *compile_entreface_fichier(
+			DonneesInterface &donnees,
+			dls::chaine const &texte,
 			int temps = 0);
 
 	void ajourne_entreface(Manipulable *manipulable);
 
-	void initialise_entreface(Manipulable *manipulable, const char *texte_entree);
+	void initialise_entreface_texte(
+			Manipulable *manipulable,
+			dls::chaine const &texte);
+
+	void initialise_entreface_fichier(
+			Manipulable *manipulable,
+			dls::chaine const &fichier);
 
 	QMenu *pointeur_menu(const dls::chaine &nom);
 
-	QToolBar *compile_barre_outils(DonneesInterface &donnees, const char *texte_entree);
+	QToolBar *compile_barre_outils_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
+	QToolBar *compile_barre_outils_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
+
+	bool montre_dialogue_texte(DonneesInterface &donnees, dls::chaine const &texte);
+
+	bool montre_dialogue_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
 };
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);

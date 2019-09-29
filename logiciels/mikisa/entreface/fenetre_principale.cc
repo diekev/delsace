@@ -169,8 +169,7 @@ void FenetrePrincipale::genere_barre_menu()
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
 	for (auto const &chemin : chemins_scripts) {
-		auto const texte_entree = dls::contenu_fichier(chemin);
-		auto menu = m_mikisa.gestionnaire_entreface->compile_menu(donnees, texte_entree.c_str());
+		auto menu = m_mikisa.gestionnaire_entreface->compile_menu_fichier(donnees, chemin);
 
 		menuBar()->addMenu(menu);
 	}
@@ -187,9 +186,7 @@ void FenetrePrincipale::genere_menu_prereglages()
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto const texte_entree = dls::contenu_fichier("entreface/menu_prereglage.jo");
-
-	m_barre_outil = m_mikisa.gestionnaire_entreface->compile_barre_outils(donnees, texte_entree.c_str());
+	m_barre_outil = m_mikisa.gestionnaire_entreface->compile_barre_outils_fichier(donnees, "entreface/menu_prereglage.jo");
 	addToolBar(Qt::TopToolBarArea, m_barre_outil);
 }
 

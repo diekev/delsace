@@ -232,8 +232,7 @@ public:
 		auto op = (mikisa->usine_operatrices())(nom, *mikisa->graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
 
-		auto texte = dls::contenu_fichier(op->chemin_entreface());
-		mikisa->gestionnaire_entreface->initialise_entreface(op, texte.c_str());
+		mikisa->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -298,7 +297,7 @@ public:
 		auto op = cree_op_detail(*mikisa, *graphe, *noeud, nom);
 		op->cree_proprietes();
 		synchronise_donnees_operatrice(*noeud);
-		mikisa->gestionnaire_entreface->initialise_entreface(op, op->chemin_entreface());
+		mikisa->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
 
 		finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -373,8 +372,7 @@ public:
 		auto op = (mikisa->usine_operatrices())(nom, *graphe, *noeud);
 		synchronise_donnees_operatrice(*noeud);
 
-		auto texte = dls::contenu_fichier(op->chemin_entreface());
-		mikisa->gestionnaire_entreface->initialise_entreface(op, texte.c_str());
+		mikisa->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 
@@ -429,8 +427,7 @@ public:
 		 * type de détail pour déterminer les types de sorties */
 		synchronise_donnees_operatrice(*noeud);
 
-		auto texte = dls::contenu_fichier(op->chemin_entreface());
-		mikisa->gestionnaire_entreface->initialise_entreface(op, texte.c_str());
+		mikisa->gestionnaire_entreface->initialise_entreface_fichier(op, op->chemin_entreface());
 
 		auto besoin_evaluation = finalise_ajout_noeud(*mikisa, *graphe, *noeud);
 

@@ -117,16 +117,16 @@ void GestionnaireInterface::recree_menu(
 	}
 }
 
-QMenu *GestionnaireInterface::compile_menu(
+QMenu *GestionnaireInterface::compile_menu_texte(
 		DonneesInterface &donnees,
-		const char *texte_entree)
+		dls::chaine const &texte)
 {
 	AssembleurDisposition assembleuse(
 				donnees.manipulable,
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = lng::tampon_source(texte_entree);
+	auto tampon = lng::tampon_source(texte);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -152,7 +152,17 @@ QMenu *GestionnaireInterface::compile_menu(
 	return assembleuse.menu();
 }
 
-QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, const char *texte_entree, int temps)
+QMenu *GestionnaireInterface::compile_menu_fichier(
+		DonneesInterface &donnees,
+		dls::chaine const &fichier)
+{
+	return compile_menu_texte(donnees, dls::contenu_fichier(fichier));
+}
+
+QBoxLayout *GestionnaireInterface::compile_entreface_texte(
+		DonneesInterface &donnees,
+		dls::chaine const &texte,
+		int temps)
 {
 	if (donnees.manipulable == nullptr) {
 		m_controles.efface();
@@ -165,7 +175,7 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 				donnees.conteneur,
 				temps);
 
-	auto tampon = lng::tampon_source(texte_entree);
+	auto tampon = lng::tampon_source(texte);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -207,6 +217,14 @@ QBoxLayout *GestionnaireInterface::compile_entreface(DonneesInterface &donnees, 
 	return disposition;
 }
 
+QBoxLayout *GestionnaireInterface::compile_entreface_fichier(
+		DonneesInterface &donnees,
+		dls::chaine const &fichier,
+		int temps)
+{
+	return compile_entreface_texte(donnees, dls::contenu_fichier(fichier), temps);
+}
+
 void GestionnaireInterface::ajourne_entreface(Manipulable *manipulable)
 {
 	if (manipulable == nullptr) {
@@ -225,7 +243,9 @@ void GestionnaireInterface::ajourne_entreface(Manipulable *manipulable)
 	}
 }
 
-void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const char *texte_entree)
+void GestionnaireInterface::initialise_entreface_texte(
+		Manipulable *manipulable,
+		dls::chaine const &texte)
 {
 	if (manipulable == nullptr) {
 		return;
@@ -238,7 +258,7 @@ void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const
 				0,
 				true);
 
-	auto tampon = lng::tampon_source(texte_entree);
+	auto tampon = lng::tampon_source(texte);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -256,6 +276,17 @@ void GestionnaireInterface::initialise_entreface(Manipulable *manipulable, const
 	}
 }
 
+void GestionnaireInterface::initialise_entreface_fichier(
+		Manipulable *manipulable,
+		dls::chaine const &chemin)
+{
+	if (manipulable == nullptr) {
+		return;
+	}
+
+	initialise_entreface_texte(manipulable, dls::contenu_fichier(chemin));
+}
+
 QMenu *GestionnaireInterface::pointeur_menu(const dls::chaine &nom)
 {
 	auto iter = m_menus.trouve(nom);
@@ -268,14 +299,16 @@ QMenu *GestionnaireInterface::pointeur_menu(const dls::chaine &nom)
 	return (*iter).second;
 }
 
-QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees, const char *texte_entree)
+QToolBar *GestionnaireInterface::compile_barre_outils_texte(
+		DonneesInterface &donnees,
+		dls::chaine const &texte)
 {
 	AssembleurDisposition assembleur(
 				donnees.manipulable,
 				donnees.repondant_bouton,
 				donnees.conteneur);
 
-	auto tampon = lng::tampon_source(texte_entree);
+	auto tampon = lng::tampon_source(texte);
 	auto decoupeuse = Decoupeuse(tampon);
 
 	try {
@@ -299,9 +332,18 @@ QToolBar *GestionnaireInterface::compile_barre_outils(DonneesInterface &donnees,
 	return assembleur.barre_outils();
 }
 
-bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const char *texte_entree)
+QToolBar *GestionnaireInterface::compile_barre_outils_fichier(
+		DonneesInterface &donnees,
+		dls::chaine const &fichier)
 {
-	auto disposition = this->compile_entreface(donnees, texte_entree);
+	return compile_barre_outils_texte(donnees, dls::contenu_fichier(fichier));
+}
+
+bool GestionnaireInterface::montre_dialogue_texte(
+		DonneesInterface &donnees,
+		dls::chaine const &texte)
+{
+	auto disposition = this->compile_entreface_texte(donnees, texte);
 
 	if (disposition == nullptr) {
 		return false;
@@ -313,6 +355,13 @@ bool GestionnaireInterface::montre_dialogue(DonneesInterface &donnees, const cha
 	return dialogue.exec() == QDialog::Accepted;
 }
 
+bool GestionnaireInterface::montre_dialogue_fichier(
+		DonneesInterface &donnees,
+		dls::chaine const &fichier)
+{
+	return montre_dialogue_texte(donnees, dls::contenu_fichier(fichier));
+}
+
 /* ************************************************************************** */
 
 static GestionnaireInterface __gestionnaire;
@@ -322,7 +371,7 @@ QBoxLayout *compile_entreface(
 		const char *texte_entree,
 		int temps)
 {
-	return __gestionnaire.compile_entreface(donnees, texte_entree, temps);
+	return __gestionnaire.compile_entreface_texte(donnees, texte_entree, temps);
 }
 
 QBoxLayout *compile_entreface(
@@ -335,12 +384,12 @@ QBoxLayout *compile_entreface(
 	}
 
 	const auto texte_entree = dls::contenu_fichier(chemin_texte.c_str());
-	return __gestionnaire.compile_entreface(donnees, texte_entree.c_str(), temps);
+	return __gestionnaire.compile_entreface_texte(donnees, texte_entree, temps);
 }
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree)
 {
-	return __gestionnaire.compile_menu(donnees, texte_entree);
+	return __gestionnaire.compile_menu_texte(donnees, texte_entree);
 }
 
 void compile_feuille_logique(const char *texte_entree)
@@ -367,12 +416,12 @@ void compile_feuille_logique(const char *texte_entree)
 
 void initialise_entreface(Manipulable *manipulable, const char *texte_entree)
 {
-	return __gestionnaire.initialise_entreface(manipulable, texte_entree);
+	return __gestionnaire.initialise_entreface_texte(manipulable, texte_entree);
 }
 
 bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree)
 {
-	return __gestionnaire.montre_dialogue(donnees, texte_entree);
+	return __gestionnaire.montre_dialogue_texte(donnees, texte_entree);
 }
 
 }  /* namespace danjo */

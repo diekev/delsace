@@ -70,8 +70,9 @@ public:
 		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
 		donnees_entreface.manipulable = &resultat;
 
-		auto const texte_entree = dls::contenu_fichier("entreface/ajouter_propriete.jo");
-		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
+		auto ok = gestionnaire->montre_dialogue_fichier(
+					donnees_entreface,
+					"entreface/ajouter_propriete.jo");
 
 		if (!ok) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -171,8 +172,9 @@ struct CommandeCreeNuanceurOperatrice final : public Commande {
 
 		auto gestionnaire = mikisa->gestionnaire_entreface;
 
-		auto const texte_entree = dls::contenu_fichier("entreface/dialogue_creation_nuanceur.jo");
-		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
+		auto ok = gestionnaire->montre_dialogue_fichier(
+					donnees_entreface,
+					"entreface/dialogue_creation_nuanceur.jo");
 
 		if (!ok) {
 			return EXECUTION_COMMANDE_ECHOUEE;
@@ -289,8 +291,9 @@ public:
 		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
 		donnees_entreface.manipulable = &resultat;
 
-		auto const texte_entree = dls::contenu_fichier("entreface/dialogue_renommage.jo");
-		auto ok = gestionnaire->montre_dialogue(donnees_entreface, texte_entree.c_str());
+		auto ok = gestionnaire->montre_dialogue_fichier(
+					donnees_entreface,
+					"entreface/dialogue_renommage.jo");
 
 		if (!ok) {
 			return EXECUTION_COMMANDE_ECHOUEE;
