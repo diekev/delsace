@@ -179,7 +179,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -195,7 +195,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -223,7 +223,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -241,7 +241,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -269,7 +269,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -288,7 +288,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -316,7 +316,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -334,7 +334,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -362,7 +362,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -381,7 +381,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -409,7 +409,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -425,7 +425,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -453,7 +453,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -472,7 +472,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -500,7 +500,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -517,7 +517,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -549,7 +549,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -563,7 +563,7 @@ public:
 		auto idx_point = m_corps.ajoute_point(position);
 		m_corps.ajoute_sphere(idx_point, rayon);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -595,7 +595,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -621,7 +621,7 @@ public:
 			t += taille_segment;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -708,14 +708,14 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		auto chemin = evalue_fichier_entree("chemin");
 
 		if (chemin == "") {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_dernier_chemin != chemin) {
@@ -766,7 +766,7 @@ public:
 		m_manipulatrice_rotation.pos(position);
 		m_manipulatrice_echelle.pos(position);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -794,7 +794,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
@@ -802,14 +802,14 @@ public:
 
 		if (corps1 == nullptr) {
 			ajoute_avertissement("1er corps manquant !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps2 = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps2 == nullptr) {
 			ajoute_avertissement("2ème corps manquant !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		fusionne_points(corps1, corps2);
@@ -818,7 +818,7 @@ public:
 		fusionne_groupe_points(corps1, corps2);
 		fusionne_groupe_prims(corps1, corps2);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void fusionne_points(Corps const *corps1, Corps const *corps2)
@@ -1109,7 +1109,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
@@ -1189,7 +1189,7 @@ public:
 
 		m_corps.transformation = math::transformation(matrice);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1219,12 +1219,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1251,14 +1251,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps en entrée.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
@@ -1293,7 +1293,7 @@ public:
 
 		m_corps.transformation = corps_entree->transformation;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1442,11 +1442,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (donnees_aval == nullptr || !donnees_aval->possede("déformeurs_kelvinlet")) {
 			this->ajoute_avertissement("Aucune opératrice d'évaluation de kelvinlets en aval");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
@@ -1470,7 +1470,7 @@ public:
 
 		if (!deformeur) {
 			this->ajoute_avertissement("Le deformeur est nul");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* À FAIRE : réinitialisation, trouver quand créer les déformeurs. */
@@ -1511,7 +1511,7 @@ public:
 						contexte.temps_courant);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1546,13 +1546,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto temps = static_cast<double>(evalue_decimal("temps", contexte.temps_courant));
@@ -1561,7 +1561,7 @@ public:
 
 		if (contexte.temps_courant <= debut) {
 			m_deformeurs.efface();
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		/* À FAIRE : définit quand les déformeurs sont ajoutés, accumule les
@@ -1595,7 +1595,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1664,13 +1664,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const repetition = evalue_entier("répétition");
@@ -1740,7 +1740,7 @@ public:
 		}
 		else {
 			this->ajoute_avertissement("Type de kelvinlet inconnu");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -1775,7 +1775,7 @@ public:
 			chef->indique_progression_parallele(delta);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1959,7 +1959,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -2105,7 +2105,7 @@ public:
 
 		calcul_normaux(m_corps, true, false);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2158,7 +2158,7 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
@@ -2168,12 +2168,12 @@ public:
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_objet->type != type_objet::CAMERA) {
 			this->ajoute_avertissement("L'objet n'est pas une caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto camera = static_cast<vision::Camera3D *>(nullptr);
@@ -2213,7 +2213,7 @@ public:
 			cree_pancarte(camera, pos, *attr_UV, points_pancate);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void cree_pancarte(

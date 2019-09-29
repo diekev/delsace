@@ -619,11 +619,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -663,7 +663,7 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -677,7 +677,7 @@ public:
 
 		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (evalue_bool("est_animation")) {
@@ -703,7 +703,7 @@ public:
 			m_dernier_chemin = chemin;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -755,7 +755,7 @@ public:
 		return "entreface/operatrice_lecture_video.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
@@ -768,7 +768,7 @@ public:
 
 		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_dernier_chemin != chemin || m_poignee_fichier == nullptr) {
@@ -781,7 +781,7 @@ public:
 
 			if (!m_video.open(chemin.c_str())) {
 				this->ajoute_avertissement("Impossible d'ouvrir la vidéo");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			m_nombre_images = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_COUNT));
@@ -789,14 +789,14 @@ public:
 
 		if (m_poignee_fichier == nullptr) {
 			this->ajoute_avertissement("Impossible d'obtenir une poignée sur le fichier");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (contexte.temps_courant == contexte.temps_debut) {
 			m_video.set(CV_CAP_PROP_POS_FRAMES, 0);
 		}
 		else if (m_derniere_image != -1 && contexte.temps_courant != m_derniere_image + 1) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		m_image.reinitialise();
@@ -804,7 +804,7 @@ public:
 		auto mat = cv::Mat();
 		if (!m_video.read(mat)) {
 			this->ajoute_avertissement("Impossible de lire une image depuis la vidéo");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto largeur = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_WIDTH));
@@ -830,7 +830,7 @@ public:
 
 		m_derniere_image = contexte.temps_courant;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -875,7 +875,7 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -889,7 +889,7 @@ public:
 
 		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (evalue_bool("est_animation")) {
@@ -911,13 +911,13 @@ public:
 			}
 			else {
 				ajoute_avertissement("L'extension est invalide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			m_dernier_chemin = chemin;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -985,7 +985,7 @@ public:
 		return desc_operatrice_commutation<O>::type_prises;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto chef = contexte.chef;
 
@@ -1012,7 +1012,7 @@ public:
 			}
 			else {
 				ajoute_avertissement("Condition invalide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			if (resultat) {
@@ -1027,7 +1027,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1090,7 +1090,7 @@ public:
 		return desc_operatrice_commutation<O>::type_prises;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1114,7 +1114,7 @@ public:
 		entree(0)->signale_cache(chef);
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1146,7 +1146,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -1155,20 +1155,20 @@ public:
 
 		if (m_graphe_parent.entrees.est_vide()) {
 			ajoute_avertissement("Le graphe n'a aucune entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto index_entree = evalue_entier("index_entrée");
 
 		if (index_entree >= m_graphe_parent.entrees.taille()) {
 			ajoute_avertissement("L'index de l'entrée est hors de portée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps = std::any_cast<Corps *>(m_graphe_parent.entrees[index_entree]);
 		corps->copie_vers(&m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1222,7 +1222,7 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1231,14 +1231,14 @@ public:
 
 		if (nom_objet.est_vide()) {
 			this->ajoute_avertissement("Aucun objet sélectionné");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Aucun objet de ce nom n'existe");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet->donnees.accede_lecture([this](DonneesObjet const *donnees)
@@ -1247,7 +1247,7 @@ public:
 			_corps_.copie_vers(&m_corps);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
@@ -1308,7 +1308,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1334,7 +1334,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 #endif

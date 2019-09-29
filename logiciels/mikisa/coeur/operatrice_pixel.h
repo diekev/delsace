@@ -37,5 +37,5 @@ public:
 			const float x,
 			const float y) = 0;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };

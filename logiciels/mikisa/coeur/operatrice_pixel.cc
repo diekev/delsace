@@ -33,7 +33,7 @@ OperatricePixel::OperatricePixel(Graphe &graphe_parent, Noeud &noeud_)
 	: OperatriceImage(graphe_parent, noeud_)
 {}
 
-int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+res_exec OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	calque_image *calque = nullptr;
 
@@ -52,7 +52,7 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 
 	if (calque == nullptr) {
 		ajoute_avertissement("Calque introuvable !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chef = contexte.chef;
@@ -88,5 +88,5 @@ int OperatricePixel::execute(ContexteEvaluation const &contexte, DonneesAval *do
 
 	chef->indique_progression(100.0f);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }

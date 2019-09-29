@@ -55,13 +55,13 @@ int OperatriceSimulation::type() const
 	return OPERATRICE_SIMULATION;
 }
 
-int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	auto sortie_graphe = noeud.graphe.dernier_noeud_sortie;
 
 	if (sortie_graphe == nullptr) {
 		ajoute_avertissement("Aucune sortie trouvée dans le graphe !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto const temps_debut = evalue_entier("temps_début");
@@ -95,10 +95,10 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	}
 	/* Ne simule que si l'on a avancé d'une image. */
 	else if (contexte.temps_courant != m_dernier_temps + 1) {
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 	else if (contexte.temps_courant > temps_fin) {
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	m_dernier_temps = contexte.temps_courant;
@@ -128,7 +128,7 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	m_corps.reinitialise();
 	op_sortie->corps()->copie_vers(&m_corps);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 bool OperatriceSimulation::depend_sur_temps() const

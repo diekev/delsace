@@ -105,12 +105,12 @@ public:
 
 	int type() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 private:
-	int execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	res_exec execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
-	int execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	res_exec execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 };
 
 /* ************************************************************************** */
@@ -142,7 +142,7 @@ public:
 
 	type_prise type_sortie(int i) const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	/* ceci n'est appelé que lors des créations par l'utilisateur car les
 	 * opératrices venant de sauvegardes ont déjà les propriétés créées */

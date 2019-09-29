@@ -76,11 +76,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (!donnees_aval || !donnees_aval->possede("moteur_rendu")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto moteur_rendu = extrait_moteur_rendu(donnees_aval);
@@ -92,7 +92,7 @@ public:
 			delegue->objets.pousse({objet, {}});
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -134,11 +134,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (!donnees_aval || !donnees_aval->possede("moteur_rendu")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		entree(0)->requiers_image(contexte, donnees_aval);
@@ -150,14 +150,14 @@ public:
 
 		if (nom_objet == "") {
 			this->ajoute_avertissement("Le nom de l'objet à instancier est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_points = evalue_chaine("points");
 
 		if (nom_points == "") {
 			this->ajoute_avertissement("Le nom de l'objet de points où instancier est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto objet_instance = static_cast<ObjetRendu *>(nullptr);
@@ -178,12 +178,12 @@ public:
 
 		if (objet_instance == nullptr) {
 			this->ajoute_avertissement("Impossible de trouver l'objet à instancier");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (points_instance == nullptr) {
 			this->ajoute_avertissement("Impossible de trouver l'objet de points où instancier");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		points_instance->objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
@@ -226,7 +226,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -285,7 +285,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -327,7 +327,7 @@ public:
 					camera->largeur(),
 					contexte.rendu_final);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override

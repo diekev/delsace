@@ -315,7 +315,7 @@ public:
 		return n == 0;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -355,7 +355,7 @@ public:
 
 		if (tampons.est_vide()) {
 			this->ajoute_avertissement("Aucun tampon trouvé");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto dico_types = dls::cree_dico(
@@ -395,7 +395,7 @@ public:
 
 		if (plg_type.est_finie()) {
 			this->ajoute_avertissement("l'opération est inconnue");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto type_mel = plg_type.front().second;
@@ -657,7 +657,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

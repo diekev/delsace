@@ -406,7 +406,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -415,7 +415,7 @@ public:
 		auto texte = evalue_chaine("script");
 
 		if (texte.est_vide()) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -514,19 +514,19 @@ public:
 		catch (erreur::frappe const &e) {
 			this->ajoute_avertissement(e.message());
 			chef->indique_progression(100.0f);
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 		catch (std::exception const &e) {
 			this->ajoute_avertissement(e.what());
 			chef->indique_progression(100.0f);
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* ******************* */
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -559,13 +559,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* À FAIRE : la copie est peut-être inutile, à vérifier si le script les
@@ -575,7 +575,7 @@ public:
 		auto texte = evalue_chaine("script");
 
 		if (texte.est_vide()) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -650,7 +650,7 @@ public:
 			/* Retourne si le script est vide, notons qu'il y a forcément une
 			 * intruction : code_inst::TERMINE. */
 			if ((taille_donnees == 0) || (taille_instructions == 1)) {
-				return EXECUTION_REUSSIE;
+				return res_exec::REUSSIE;
 			}
 
 			/* données générales */
@@ -704,19 +704,19 @@ public:
 		catch (erreur::frappe const &e) {
 			this->ajoute_avertissement(e.message());
 			chef->indique_progression(100.0f);
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 		catch (std::exception const &e) {
 			this->ajoute_avertissement(e.what());
 			chef->indique_progression(100.0f);
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* ******************* */
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

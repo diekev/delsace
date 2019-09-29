@@ -409,7 +409,7 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 
 		auto resultat = operatrice->execute(contexte, &donnees_aval);
 
-		if (resultat == EXECUTION_ECHOUEE) {
+		if (resultat == res_exec::ECHOUEE) {
 			return false;
 		}
 	}
@@ -517,11 +517,11 @@ int OperatriceGrapheDetail::type() const
 	return OPERATRICE_GRAPHE_DETAIL;
 }
 
-int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
 	if (!this->entree(0)->connectee()) {
 		ajoute_avertissement("L'entrée n'est pas connectée !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	noeud.graphe.donnees.efface();
@@ -534,7 +534,7 @@ int OperatriceGrapheDetail::execute(ContexteEvaluation const &contexte, DonneesA
 	return execute_detail_corps(contexte, donnees_aval);
 }
 
-int OperatriceGrapheDetail::execute_detail_pixel(
+res_exec OperatriceGrapheDetail::execute_detail_pixel(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
@@ -544,7 +544,7 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 
 	if (!m_compileuse.compile_graphe(contexte, nullptr)) {
 		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	calque_image *calque = nullptr;
@@ -563,7 +563,7 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 
 	if (calque == nullptr) {
 		ajoute_avertissement("Calque introuvable !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	chef->demarre_evaluation("graphe détail pixel");
@@ -618,10 +618,10 @@ int OperatriceGrapheDetail::execute_detail_pixel(
 
 	chef->indique_progression(100.0f);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
-int OperatriceGrapheDetail::execute_detail_corps(
+res_exec OperatriceGrapheDetail::execute_detail_corps(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
@@ -634,7 +634,7 @@ int OperatriceGrapheDetail::execute_detail_corps(
 		case DETAIL_POINTS:
 		{
 			if (!valide_corps_entree(*this, &m_corps, true, false)) {
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			break;
@@ -660,7 +660,7 @@ int OperatriceGrapheDetail::execute_detail_corps(
 
 			if (idx_volume == -1) {
 				ajoute_avertissement("Aucun volume scalaire en entrée.");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			m_corps.prims()->detache();
@@ -675,7 +675,7 @@ int OperatriceGrapheDetail::execute_detail_corps(
 
 	if (!m_compileuse.compile_graphe(contexte, &m_corps)) {
 		ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	switch (type_detail) {
@@ -774,7 +774,7 @@ int OperatriceGrapheDetail::execute_detail_corps(
 		}
 	}
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
@@ -916,7 +916,7 @@ inline auto corrige_type_specialise(lcc::type_var type_specialise, lcc::type_var
 
 #undef DEBOGUE_SPECIALISATION
 
-int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	INUTILISE(contexte);
 	/* réimplémentation du code de génération d'instruction pour les appels de
@@ -954,7 +954,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 
 	if (est_polymorphique && type_specialise == lcc::type_var::INVALIDE) {
 		this->ajoute_avertissement("Ne peut pas instancier la fonction car les entrées polymorphiques n'ont pas de connexion.");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 #ifdef DEBOGUE_SPECIALISATION
@@ -1083,7 +1083,7 @@ int OperatriceFonctionDetail::execute(const ContexteEvaluation &contexte, Donnee
 		cree_code_coulisse_opengl(donnees_aval, type_specialise, pointeurs, contexte.temps_courant);
 	}
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 void OperatriceFonctionDetail::cree_code_coulisse_processeur(
@@ -1351,7 +1351,7 @@ public:
 		return converti_type_prise(params_noeud.type(i));
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 
@@ -1382,7 +1382,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1429,7 +1429,7 @@ public:
 		return converti_type_prise(params_noeud.type(i));
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 
@@ -1471,7 +1471,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1532,7 +1532,7 @@ public:
 		return type_prise::INVALIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 
@@ -1542,7 +1542,7 @@ public:
 
 		if (nom_attribut == "") {
 			this->ajoute_avertissement("Le nom de l'attribut est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		switch (type_detail) {
@@ -1550,7 +1550,7 @@ public:
 			{
 				if (!gest_attrs->propriete_existe(nom_attribut)) {
 					this->ajoute_avertissement("L'attribut n'existe pas !");
-					return EXECUTION_ECHOUEE;
+					return res_exec::ECHOUEE;
 				}
 
 				auto pointeur = gest_attrs->pointeur_donnees(nom_attribut);
@@ -1570,16 +1570,16 @@ public:
 			case DETAIL_PIXELS:
 			{
 				this->ajoute_avertissement("Opératrice non-implémentée pour les pixels");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 			case DETAIL_VOXELS:
 			{
 				this->ajoute_avertissement("Opératrice non-implémentée pour les voxels");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1642,7 +1642,7 @@ public:
 		return type_prise::INVALIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 
@@ -1653,7 +1653,7 @@ public:
 
 		if (nom_attribut == "") {
 			this->ajoute_avertissement("Le nom de l'attribut est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		switch (type_detail) {
@@ -1674,7 +1674,7 @@ public:
 
 				if (ptr_entree == -1) {
 					/* aucun connexion */
-					return EXECUTION_REUSSIE;
+					return res_exec::REUSSIE;
 				}
 
 				if (!gest_attrs->propriete_existe(nom_attribut)) {
@@ -1684,7 +1684,7 @@ public:
 				else {
 					if (type != gest_attrs->type_propriete(nom_attribut)) {
 						this->ajoute_avertissement("Le type n'est pas bon");
-						return EXECUTION_ECHOUEE;
+						return res_exec::ECHOUEE;
 					}
 				}
 
@@ -1700,16 +1700,16 @@ public:
 			case DETAIL_PIXELS:
 			{
 				this->ajoute_avertissement("Opératrice non-implémentée pour les pixels");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 			case DETAIL_VOXELS:
 			{
 				this->ajoute_avertissement("Opératrice non-implémentée pour les voxels");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1787,7 +1787,7 @@ public:
 		return type_prise::INVALIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 		INUTILISE(contexte);
@@ -1799,7 +1799,7 @@ public:
 
 		if (chemin_image == "") {
 			this->ajoute_avertissement("Le nom de l'image est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		charge_jpeg(chemin_image.c_str(), &m_image);
@@ -1814,7 +1814,7 @@ public:
 
 		ctx_global->images.pousse(&m_image);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1884,7 +1884,7 @@ public:
 		return type_prise::INVALIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 
@@ -1913,7 +1913,7 @@ public:
 			ctx_global->rampes_couleur.pousse(rampe_valeur);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1963,7 +1963,7 @@ public:
 		return type_prise::INVALIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1974,19 +1974,19 @@ public:
 
 		if (chemin_camera == "") {
 			this->ajoute_avertissement("Le chemin de la caméra est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_objet->type != type_objet::CAMERA) {
 			this->ajoute_avertissement("L'objet n'est pas une caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
@@ -2006,7 +2006,7 @@ public:
 
 		ctx_global->cameras.pousse(camera);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	Objet *trouve_objet(ContexteEvaluation const &contexte)
@@ -2099,7 +2099,7 @@ public:
 		return params_info.nom(i);
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
@@ -2135,7 +2135,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -2188,7 +2188,7 @@ bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanc
 
 		auto resultat = operatrice->execute(contexte, &donnees_aval);
 
-		if (resultat == EXECUTION_ECHOUEE) {
+		if (resultat == res_exec::ECHOUEE) {
 			return false;
 		}
 	}

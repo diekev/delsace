@@ -649,13 +649,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* paramètres simulations */
@@ -681,7 +681,7 @@ public:
 
 		if (!std::isfinite(taille_inverse)) {
 			this->ajoute_avertissement("La taille inverse n'est pas finie");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_ocean.res_x = static_cast<int>(std::pow(2.0, resolution));
@@ -854,7 +854,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void parametres_changes() override
@@ -1975,14 +1975,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (m_corps.points_pour_lecture()->taille() == 0) {
 			this->ajoute_avertissement("Le corps d'entrée est vide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (contexte.temps_courant == contexte.temps_debut) {
@@ -2012,7 +2012,7 @@ public:
 		this->ajoute_avertissement("Compilé sans Vaguelette Océan");
 #endif
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void parametres_changes() override

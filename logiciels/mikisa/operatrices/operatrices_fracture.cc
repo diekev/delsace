@@ -253,20 +253,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_a = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_a, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_b = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_b, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* converti les deux maillages en polyèdres triangulés */
@@ -275,14 +275,14 @@ public:
 
 		if (!valide_polyedre(poly_a)) {
 			this->ajoute_avertissement("Le polyèdre A n'est pas valide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto poly_b = construit_corps_polyedre_triangle(*corps_b);
 
 		if (!valide_polyedre(poly_b)) {
 			this->ajoute_avertissement("Le polyèdre B n'est pas valide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* construit un arbre HBE depuis le polyèdre avec le moins de triangles */
@@ -347,14 +347,14 @@ public:
 
 		if (donnees_booleen.couples.taille() == 0) {
 			converti_polyedre_corps(poly_a, m_corps);
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		calcul_intersections(donnees_booleen);
 
 		converti_polyedre_corps(poly_a, m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void calcul_intersections(DonneesBooleen &donnees_booleens)
@@ -1489,7 +1489,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* À FAIRE : booléens, groupes. */
 		this->ajoute_avertissement("Seuls les cubes sont supportés pour le moment !");
@@ -1499,13 +1499,13 @@ public:
 		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_maillage, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_points = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_points, true, false, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* création du conteneur */
@@ -1584,7 +1584,7 @@ public:
 		memoire::deloge("voro::container", cont_voro);
 		memoire::deloge("voro::particle_order", ordre_parts);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void container_compute_cells(voro::container* cn, voro::particle_order* po, dls::tableau<cell> &cells)

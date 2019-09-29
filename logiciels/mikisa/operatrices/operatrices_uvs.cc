@@ -330,20 +330,20 @@ struct OpVisualiseUV : public OperatriceCorps {
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_UV = corps_entree->attribut("UV");
 
 		if (attr_UV == nullptr || attr_UV->portee != portee_attr::VERTEX) {
 			this->ajoute_avertissement("Aucun attribut UV sur les sommets trouvé");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto polyedre_uv = construit_polyedre_uv(*corps_entree);
@@ -363,7 +363,7 @@ struct OpVisualiseUV : public OperatriceCorps {
 			} while (arete != face->arete);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -395,7 +395,7 @@ struct OpGroupeUV : public OperatriceCorps {
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -404,7 +404,7 @@ struct OpGroupeUV : public OperatriceCorps {
 
 		if (attr_UV == nullptr || attr_UV->portee != portee_attr::VERTEX) {
 			this->ajoute_avertissement("Aucun attribut UV sur les sommets trouvé");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto polyedre_uv = construit_polyedre_uv(m_corps);
@@ -450,7 +450,7 @@ struct OpGroupeUV : public OperatriceCorps {
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

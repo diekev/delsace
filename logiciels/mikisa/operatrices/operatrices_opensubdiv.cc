@@ -106,13 +106,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* peuple un descripteur avec nos données crues */
@@ -134,7 +134,7 @@ public:
 
 		if (plg_subdiv.est_finie()) {
 			ajoute_avertissement("Type de schéma invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const type_subdiv = plg_subdiv.front().second;
@@ -152,7 +152,7 @@ public:
 
 		if (plg_entrep_bord.est_finie()) {
 			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetVtxBoundaryInterpolation(plg_entrep_bord.front().second);
@@ -171,7 +171,7 @@ public:
 
 		if (plg_entrep_fvar.est_finie()) {
 			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetFVarLinearInterpolation(plg_entrep_fvar.front().second);
@@ -186,7 +186,7 @@ public:
 
 		if (plg_pliure.est_finie()) {
 			ajoute_avertissement("Type de pliage invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetCreasingMethod(plg_pliure.front().second);
@@ -201,7 +201,7 @@ public:
 
 		if (plg_sd_tri.est_finie()) {
 			ajoute_avertissement("Type de sousdivision triangulaire invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetTriangleSubdivision(plg_sd_tri.front().second);
@@ -384,7 +384,7 @@ public:
 
 		delete rafineur;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

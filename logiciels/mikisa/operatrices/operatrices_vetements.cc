@@ -509,13 +509,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto integration = evalue_enum("intégration");
@@ -527,10 +527,10 @@ public:
 			simule_dbp(contexte.temps_courant);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int simule_verlet(int temps)
+	res_exec simule_verlet(int temps)
 	{
 		auto points_entree = m_corps.points_pour_lecture();
 
@@ -585,10 +585,10 @@ public:
 			applique_contraintes_verlet(m_corps, m_donnees_verlet);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int simule_dbp(int temps)
+	res_exec simule_dbp(int temps)
 	{
 		auto points_entree = m_corps.points_pour_ecriture();
 		auto prims_entree = m_corps.prims();
@@ -665,7 +665,7 @@ public:
 
 		if (d_constraints.est_vide() || b_constraints.est_vide()) {
 			this->ajoute_avertissement("Aucune contrainte n'a pu être ajoutée, aucun polygone trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* lance simulation */
@@ -696,7 +696,7 @@ public:
 
 		integre(dt, V, X, tmp_X);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1079,7 +1079,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1153,7 +1153,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

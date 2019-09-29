@@ -234,20 +234,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 		auto image_entree = entree(0)->requiers_image(contexte, donnees_aval);
 
 		if (image_entree == nullptr) {
 			this->ajoute_avertissement("Aucune image connecté");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto calque = cherche_calque(*this, image_entree, "image");
 
 		if (calque == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		// Define parameters
@@ -350,7 +350,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

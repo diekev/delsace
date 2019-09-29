@@ -375,7 +375,7 @@ public:
 
 	const char *texte_aide() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	void obtiens_liste(
 			ContexteEvaluation const &contexte,
@@ -407,7 +407,7 @@ const char *OpImportAlembic::texte_aide() const
 	return AIDE;
 }
 
-int OpImportAlembic::execute(
+res_exec OpImportAlembic::execute(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
@@ -424,14 +424,14 @@ int OpImportAlembic::execute(
 
 	if (poignee == nullptr) {
 		this->ajoute_avertissement("Impossible d'obtenir une poignée sur le fichier !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	m_archive = ouvre_archive(poignee, *this);
 
 	if (!m_archive.valid()) {
 		chef->indique_progression(1.0f);
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto obj_racine = m_archive.getTop();
@@ -439,14 +439,14 @@ int OpImportAlembic::execute(
 	if (!obj_racine.valid()) {
 		chef->indique_progression(1.0f);
 		this->ajoute_avertissement("L'objet racine est invalide !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chemin_objet = evalue_chaine("chemin_objet");
 
 	if (chemin_objet.est_vide()) {
 		this->ajoute_avertissement("Le chemin de l'objet est vide !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	m_iobjet = trouve_iobjet(obj_racine, chemin_objet);
@@ -454,7 +454,7 @@ int OpImportAlembic::execute(
 	if (!m_iobjet.valid()) {
 		chef->indique_progression(1.0f);
 		this->ajoute_avertissement("Impossible de trouver l'objet !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto selecteur = ABC::ISampleSelector(static_cast<double>(contexte.temps_courant) / contexte.cadence);
@@ -523,7 +523,7 @@ int OpImportAlembic::execute(
 
 	chef->indique_progression(1.0f);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 void OpImportAlembic::obtiens_liste(

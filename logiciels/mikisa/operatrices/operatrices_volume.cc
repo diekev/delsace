@@ -56,7 +56,7 @@
 
 /* ************************************************************************** */
 
-static int cree_volume(
+static res_exec cree_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
@@ -114,12 +114,12 @@ static int cree_volume(
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
 
-static int maillage_vers_volume(
+static res_exec maillage_vers_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval,
@@ -130,7 +130,7 @@ static int maillage_vers_volume(
 	op.corps()->reinitialise();
 
 	if (!valide_corps_entree(op, &corps_entree, true, true)) {
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chef = contexte.chef;
@@ -289,7 +289,7 @@ static int maillage_vers_volume(
 
 	op.corps()->prims()->pousse(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
@@ -400,7 +400,7 @@ static void rasterise_ligne(
 	}
 }
 
-static int ratisse_primitives(
+static res_exec ratisse_primitives(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval,
@@ -414,7 +414,7 @@ static int ratisse_primitives(
 
 	if (prims_entree->taille() == 0) {
 		op.ajoute_avertissement("Aucune primitive en entrée");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chef = contexte.chef;
@@ -468,12 +468,12 @@ static int ratisse_primitives(
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
 
-static int reechantillonne_volume(
+static res_exec reechantillonne_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval,
@@ -487,7 +487,7 @@ static int reechantillonne_volume(
 	auto prims = corps_entree.prims();
 
 	if (!valide_corps_entree(op, &corps_entree, true, true)) {
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto volume_entree = static_cast<Volume *>(nullptr);
@@ -503,14 +503,14 @@ static int reechantillonne_volume(
 
 	if (volume_entree == nullptr) {
 		op.ajoute_avertissement("Aucun volume en entrée !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto grille_entree = volume_entree->grille;
 
 	if (grille_entree->desc().type_donnees != wlk::type_grille::R32) {
 		op.ajoute_avertissement("La grille n'est pas scalaire !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto grille_scalaire = dynamic_cast<wlk::grille_dense_3d<float> *>(grille_entree);
@@ -523,7 +523,7 @@ static int reechantillonne_volume(
 	auto volume = memoire::loge<Volume>("Volume", grille);
 	op.corps()->ajoute_primitive(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
@@ -866,7 +866,7 @@ public:
 		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -896,7 +896,7 @@ public:
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -934,7 +934,7 @@ public:
 		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -942,7 +942,7 @@ public:
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
@@ -966,7 +966,7 @@ public:
 
 		if (grille_entree == nullptr) {
 			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto taille_fenetre = 2;
@@ -975,7 +975,7 @@ public:
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -1013,7 +1013,7 @@ public:
 		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1021,7 +1021,7 @@ public:
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
@@ -1045,7 +1045,7 @@ public:
 
 		if (grille_entree == nullptr) {
 			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto taille_fenetre = 2;
@@ -1054,7 +1054,7 @@ public:
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -1579,7 +1579,7 @@ public:
 		return "entreface/operatrice_creation_grille_eclairage.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1587,7 +1587,7 @@ public:
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
@@ -1611,7 +1611,7 @@ public:
 
 		if (grille_entree == nullptr) {
 			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto intensite_min = evalue_decimal("intensité_min");
@@ -1668,7 +1668,7 @@ public:
 			m_corps.ajoute_point(pos);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1710,7 +1710,7 @@ public:
 		return "entreface/operatrice_deep_scattering.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -1821,7 +1821,7 @@ public:
 		m_corps.ajoute_sommet(poly, i0);
 		m_corps.ajoute_sommet(poly, i1);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

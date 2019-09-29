@@ -62,7 +62,7 @@ void execute_noeud(
 	/* Ne prend en compte que le temps des exécutions réussies pour éviter de se
 	 * retrouver avec un temps d'exécution minimum trop bas, proche de zéro, en
 	 * cas d'avortement prématuré de l'exécution. */
-	if (resultat == EXECUTION_REUSSIE) {
+	if (resultat == res_exec::REUSSIE) {
 		auto const t1 = tbb::tick_count::now();
 		auto const delta = (t1 - t0).seconds();
 

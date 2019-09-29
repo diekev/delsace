@@ -634,7 +634,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* Pour générer des arbres, nous inversons la direction du flux :
 		 * d'abord nous travaillons sur nos données, ensuite nous exécutons les
@@ -643,7 +643,7 @@ public:
 
 		if (!donnees_aval->possede("arbre")) {
 			this->ajoute_avertissement("Aucun arbre en aval !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto arbre = std::any_cast<MTree *>(donnees_aval->table["arbre"]);
@@ -690,7 +690,7 @@ public:
 					selection);
 
 		entree(0)->requiers_corps(contexte, donnees_aval);
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -713,7 +713,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* Pour générer des arbres, nous inversons la direction du flux :
 		 * d'abord nous travaillons sur nos données, ensuite nous exécutons les
@@ -722,7 +722,7 @@ public:
 
 		if (!donnees_aval->possede("arbre")) {
 			this->ajoute_avertissement("Aucun arbre en aval !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto arbre = std::any_cast<MTree *>(donnees_aval->table["arbre"]);
@@ -764,7 +764,7 @@ public:
 					selection);
 
 		entree(0)->requiers_corps(contexte, donnees_aval);
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -788,7 +788,7 @@ public:
 
 	const char *texte_aide() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };
 
 
@@ -828,7 +828,7 @@ static void construit_geometrie(Corps &corps, MTreeNode *noeud)
 	}
 }
 
-int OperatriceCreationArbre::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceCreationArbre::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	m_corps.reinitialise();
 	INUTILISE(donnees_aval);
@@ -857,7 +857,7 @@ int OperatriceCreationArbre::execute(const ContexteEvaluation &contexte, Donnees
 
 	construit_geometrie(m_corps, m_arbre->stem);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 #else
 enum {
@@ -2377,7 +2377,7 @@ public {
 		}
 #endif
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 #endif

@@ -92,20 +92,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_groupe = evalue_chaine("nom_groupe");
 
 		if (nom_groupe.est_vide()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_corps = corps_entree->points_pour_lecture();
@@ -113,12 +113,12 @@ public:
 
 		if (groupe == nullptr) {
 			ajoute_avertissement("Aucun groupe trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (groupe->taille() == 0) {
 			corps_entree->copie_vers(&m_corps);
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto transfere = TRANSFERE_ATTR_CORPS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_SOMMETS;
@@ -176,7 +176,7 @@ public:
 		/* la transformation n'est pas appliquée, donc il faut la copier */
 		m_corps.transformation = corps_entree->transformation;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -274,14 +274,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto origine = evalue_enum("origine");
@@ -303,16 +303,16 @@ public:
 		}
 
 		ajoute_avertissement("Erreur : origine inconnue !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
-	int genere_points_depuis_points(Corps const *corps_entree, int temps)
+	res_exec genere_points_depuis_points(Corps const *corps_entree, int temps)
 	{
 		auto points_entree = corps_entree->points_pour_lecture();
 
 		if (points_entree->taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_groupe_origine = evalue_chaine("groupe_origine");
@@ -323,7 +323,7 @@ public:
 
 			if (groupe_entree == nullptr) {
 				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
@@ -335,7 +335,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -366,10 +366,10 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int genere_points_depuis_volume(Corps const *corps_entree, int temps)
+	res_exec genere_points_depuis_volume(Corps const *corps_entree, int temps)
 	{
 		/* création du conteneur */
 		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
@@ -399,7 +399,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -430,10 +430,10 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int genere_points_depuis_primitives(Corps const *corps_entree, int temps)
+	res_exec genere_points_depuis_primitives(Corps const *corps_entree, int temps)
 	{
 		auto nom_groupe_origine = evalue_chaine("groupe_origine");
 		auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
@@ -443,7 +443,7 @@ public:
 
 			if (groupe_entree == nullptr) {
 				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
@@ -451,7 +451,7 @@ public:
 
 		if (triangles.est_vide()) {
 			this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grouper_points = evalue_bool("grouper_points");
@@ -462,7 +462,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -517,16 +517,16 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int genere_points_depuis_attribut(Corps const *corps_entree)
+	res_exec genere_points_depuis_attribut(Corps const *corps_entree)
 	{
 		auto nom_attribut = evalue_chaine("nom_attribut");
 
 		if (nom_attribut.est_vide()) {
 			this->ajoute_avertissement("L'attribut n'est pas spécifié");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_source = corps_entree->attribut(nom_attribut);
@@ -535,14 +535,14 @@ public:
 			dls::flux_chaine ss;
 			ss << "L'attribut '" << nom_attribut << "' n'existe pas !";
 			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
 			dls::flux_chaine ss;
 			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
 			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grouper_points = evalue_bool("grouper_points");
@@ -553,7 +553,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -568,7 +568,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -828,14 +828,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_maillage, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_groupe = evalue_chaine("nom_groupe");
@@ -850,7 +850,7 @@ public:
 				   << "' trouvé sur le corps d'entrée !";
 
 				this->ajoute_avertissement(ss.chn());
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
@@ -859,7 +859,7 @@ public:
 
 		if (triangles_entree.est_vide()) {
 			this->ajoute_avertissement("Il n'y pas de polygones dans le corps d'entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto aire_minimum = std::numeric_limits<float>::max();
@@ -1051,7 +1051,7 @@ public:
 
 		std::cerr << "Nombre de points : " << points_nuage->taille() << "\n";
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -1227,19 +1227,19 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		construit_maillage_alpha(*corps_entree, 0.1f, m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1272,13 +1272,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
@@ -1336,7 +1336,7 @@ public:
 
 		if (doublons_trouves == 0) {
 			corps_entree->copie_vers(&m_corps);
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 #if 1
@@ -1432,7 +1432,7 @@ public:
 		std::cerr << "Fin de l'algorithme\n";
 #endif
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1464,13 +1464,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = m_corps.points_pour_ecriture();
@@ -1496,7 +1496,7 @@ public:
 			points_entree->point(i, p);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1528,13 +1528,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
@@ -1543,14 +1543,14 @@ public:
 
 		if (nom_attribut == "") {
 			this->ajoute_avertissement("L'attribut n'est pas nommé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_V = corps_entree->attribut(nom_attribut);
 
 		if (attr_V == nullptr || attr_V->type() != type_attribut::R32 || attr_V->dimensions != 3 || attr_V->portee != portee_attr::POINT) {
 			this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const chaine_mode = evalue_enum("mode");
@@ -1598,7 +1598,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -1736,13 +1736,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = m_corps.points_pour_lecture();
@@ -1904,7 +1904,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2004,12 +2004,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto prims_entree = corps_entree->prims();
@@ -2142,7 +2142,7 @@ public:
 #endif
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override

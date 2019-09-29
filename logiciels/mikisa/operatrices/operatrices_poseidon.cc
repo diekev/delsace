@@ -171,13 +171,13 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -189,23 +189,23 @@ public:
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Aucun objet sélectionné");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (contexte.temps_courant > 100) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto poseidon_gaz = extrait_poseidon(donnees_aval);
 
 		if (poseidon_gaz->densite == nullptr) {
 			this->ajoute_avertissement("La simulation n'est pas encore commencée");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		for (auto const &params : poseidon_gaz->monde.sources) {
 			if (params.objet == m_objet) {
-				return EXECUTION_REUSSIE;
+				return res_exec::REUSSIE;
 			}
 		}
 
@@ -239,7 +239,7 @@ public:
 
 		poseidon_gaz->monde.sources.pousse(params);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override
@@ -338,13 +338,13 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -356,23 +356,23 @@ public:
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Aucun objet sélectionné");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (contexte.temps_courant > 100) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto poseidon = extrait_poseidon(donnees_aval);
 
 		if (poseidon->densite == nullptr) {
 			this->ajoute_avertissement("La simulation n'est pas encore commencée");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		poseidon->monde.obstacles.insere(m_objet);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -413,7 +413,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -424,7 +424,7 @@ public:
 		auto temps_fin = evalue_entier("fin");
 
 		if (contexte.temps_courant < temps_debut || contexte.temps_courant > temps_fin) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto da = DonneesAval{};
@@ -440,7 +440,7 @@ public:
 			reinitialise();
 		}		
 		else if (contexte.temps_courant != m_derniere_temps + 1) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto dt_adaptif = evalue_bool("dt_adaptif");
@@ -523,7 +523,7 @@ public:
 
 		m_corps.ajoute_primitive(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -661,13 +661,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -722,7 +722,7 @@ public:
 
 		memoire::deloge("grilles", vieille_vel);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override
@@ -762,13 +762,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -812,7 +812,7 @@ public:
 					poseidon_gaz->dt,
 					coefficient);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override
@@ -859,13 +859,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -885,7 +885,7 @@ public:
 
 		psn::projette_velocite(*velocite, *pression, *drapeaux, iterations, precision);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override
@@ -926,13 +926,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -950,7 +950,7 @@ public:
 					vorticite_flamme,
 					poseidon_gaz->dt);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -985,13 +985,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1024,7 +1024,7 @@ public:
 			wlk::affine_grille(*temperature, rayon_tmp, quantite_tmp);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1057,13 +1057,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1138,7 +1138,7 @@ public:
 		}
 #endif
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1171,13 +1171,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1204,7 +1204,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1237,7 +1237,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1248,7 +1248,7 @@ public:
 
 		if (!da.possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en amont.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const champs = evalue_enum("champs");
@@ -1262,7 +1262,7 @@ public:
 		if (champs == "divergence") {
 			if (poseidon_gaz->divergence == nullptr) {
 				this->ajoute_avertissement("Le champs 'divergence' n'est pas actif");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			volume = memoire::loge<Volume>("Volume", poseidon_gaz->divergence->copie());
@@ -1273,7 +1273,7 @@ public:
 		else if (champs == "fioul") {
 			if (poseidon_gaz->fioul == nullptr) {
 				this->ajoute_avertissement("Le champs 'fioul' n'est pas actif");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			volume = memoire::loge<Volume>("Volume", poseidon_gaz->fioul->copie());
@@ -1281,7 +1281,7 @@ public:
 		else if (champs == "oxygène") {
 			if (poseidon_gaz->oxygene == nullptr) {
 				this->ajoute_avertissement("Le champs 'oxygène' n'est pas actif");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			volume = memoire::loge<Volume>("Volume", poseidon_gaz->oxygene->copie());
@@ -1292,7 +1292,7 @@ public:
 		else if (champs == "température") {
 			if (poseidon_gaz->temperature == nullptr) {
 				this->ajoute_avertissement("Le champs 'température' n'est pas actif");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			volume = memoire::loge<Volume>("Volume", poseidon_gaz->temperature->copie());
@@ -1353,7 +1353,7 @@ public:
 			m_corps.ajoute_primitive(volume);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1386,11 +1386,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1434,7 +1434,7 @@ public:
 			wlk::erode_grille(*poseidon_gaz->velocite, rayon, &chef_wolika);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1475,11 +1475,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (!donnees_aval || !donnees_aval->possede("poseidon")) {
 			this->ajoute_avertissement("Il n'y a pas de simulation de gaz en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1489,11 +1489,11 @@ public:
 
 		if (!m_compileuse.compile_graphe(contexte, nullptr)) {
 			ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (noeud.graphe.noeuds().taille() == 0) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		/* passe à notre exécution */
@@ -1596,7 +1596,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

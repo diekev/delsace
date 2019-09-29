@@ -252,13 +252,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -334,7 +334,7 @@ public:
 		/* copie les données */
 		copie_donnees_calque(grille_entree, terrain->hauteur);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -794,13 +794,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* entrée 0 est celle pour la grille, nous la copions pour sauvegarder
@@ -835,7 +835,7 @@ public:
 		/* copie les données */
 		copie_donnees_calque(grille_entree, terrain->hauteur);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void erode_simple(
@@ -1034,13 +1034,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1076,7 +1076,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1112,25 +1112,25 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
 
 		if (!m_compileuse.compile_graphe(contexte, nullptr)) {
 			ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (noeud.graphe.noeuds().taille() == 0) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto terrain = extrait_terrain(donnees_aval);
@@ -1173,7 +1173,7 @@ public:
 			chef->indique_progression_parallele(delta * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1205,7 +1205,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1265,7 +1265,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

@@ -63,7 +63,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -72,13 +72,13 @@ public:
 
 		if (m_graphe_parent.donnees.est_vide()) {
 			ajoute_avertissement("Les données du graphe sont vides !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps = std::any_cast<Corps *>(m_graphe_parent.donnees[0]);
 		corps->copie_vers(&m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -110,7 +110,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -131,7 +131,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -164,7 +164,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -196,7 +196,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -228,7 +228,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -294,7 +294,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -331,12 +331,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto corps_collision = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_collision, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const prims_collision = corps_collision->prims();
@@ -357,14 +357,14 @@ public:
 
 		if (attr_V == nullptr) {
 			ajoute_avertissement("Aucune attribut de vélocité trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_P = m_corps.attribut("pos_pre");
 
 		if (attr_P == nullptr) {
 			ajoute_avertissement("Aucune attribut de position trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const chaine_reponse = evalue_enum("réponse_collision");
@@ -383,7 +383,7 @@ public:
 			dls::flux_chaine ss;
 			ss << "Opération '" << chaine_reponse << "' inconnue\n";
 			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -498,7 +498,7 @@ public:
 			chef->indique_progression_parallele(delta / total * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -882,7 +882,7 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -891,7 +891,7 @@ public:
 		auto const nombre_points = liste_points->taille();
 
 		if (nombre_points == 0) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		initialise_attributs();
@@ -906,7 +906,7 @@ public:
 			sous_etape(gravitation, dt_simulation / nb_etape);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

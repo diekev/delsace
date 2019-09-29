@@ -64,7 +64,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -77,7 +77,7 @@ public:
 
 		if (nom_groupe.est_vide()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto depart = 0l;
@@ -100,7 +100,7 @@ public:
 			dls::flux_chaine ss;
 			ss << "La méthode '" << chaine_methode << "' est invalide !";
 			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto gna = GNA(graine);
@@ -119,7 +119,7 @@ public:
 			dls::flux_chaine ss;
 			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
 			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		dls::tableau<long> index_possibles;
@@ -136,7 +136,7 @@ public:
 				dls::flux_chaine ss;
 				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
 				ajoute_avertissement(ss.chn());
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe = m_corps.ajoute_groupe_point(nom_groupe);
@@ -176,7 +176,7 @@ public:
 				dls::flux_chaine ss;
 				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
 				ajoute_avertissement(ss.chn());
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe = m_corps.ajoute_groupe_primitive(nom_groupe);
@@ -213,10 +213,10 @@ public:
 			dls::flux_chaine ss;
 			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
 			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

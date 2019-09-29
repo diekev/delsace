@@ -82,7 +82,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -91,19 +91,19 @@ public:
 
 		if (chemin_noeud.est_vide()) {
 			this->ajoute_avertissement("Le chemin est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
 
 		if (noeud_image == nullptr) {
 			this->ajoute_avertissement("Impossible de trouver le noeud !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (noeud_image->type != type_noeud::OPERATRICE) {
 			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto op = extrait_opimage(noeud_image->donnees);
@@ -113,14 +113,14 @@ public:
 
 		if (calque == nullptr) {
 			this->ajoute_avertissement("Calque « image » introuvable !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto gna = GNA();
 		auto probabilite = evalue_decimal("probabilité");
 
 		if (probabilite == 0.0f) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto chn_visualisation = evalue_enum("visualisation");
@@ -197,7 +197,7 @@ public:
 			chef->indique_progression_parallele(delta * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

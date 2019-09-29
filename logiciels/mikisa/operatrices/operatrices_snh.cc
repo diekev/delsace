@@ -308,7 +308,7 @@ public:
 
 	void converti_corps();
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };
 
 OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud_)
@@ -351,7 +351,7 @@ void OperatriceSNH::converti_corps()
 	}
 }
 
-int OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	INUTILISE(donnees_aval);
 	m_corps.reinitialise();
@@ -393,7 +393,7 @@ int OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donn
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	auto stepNum = contexte.temps_courant;
@@ -423,7 +423,7 @@ int OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donn
 
 	chef->indique_progression(100.0f);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */

@@ -982,7 +982,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1003,13 +1003,13 @@ public:
 			joint1->AddMuscle(mesh2, 0.8f, 0.8f, 500, dls::math::vec3f(0.4f));
 
 			convertie_geometrie();
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		joint1->Equilibriate();
 		convertie_geometrie();
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void convertie_geometrie()

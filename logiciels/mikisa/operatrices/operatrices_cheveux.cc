@@ -171,14 +171,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_particules = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_particules, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const liste_points = corps_particules->points_pour_lecture();
@@ -232,12 +232,12 @@ public:
 
 			if (attr_N == nullptr) {
 				ajoute_avertissement("Aucun attribut normal (N) trouvé sur les particules !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			if (attr_N->portee != portee_attr::POINT) {
 				ajoute_avertissement("L'attribut normal (N) n'est pas sur les points !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 		else {
@@ -288,7 +288,7 @@ public:
 			attr_L->r32(polygone->index)[0] = taille_segment;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override
@@ -416,20 +416,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* obtiens le maillage de collision */
 		auto const maillage_collision = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, maillage_collision, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* le papier utilise une version triangulée du maillage dont chaque
@@ -522,7 +522,7 @@ public:
 
 		/* À FAIRE : réponse collision */
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -566,20 +566,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (m_corps.prims()->taille() == 0l) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto attr_L = m_corps.attribut("longueur");
 
 		if (attr_L == nullptr) {
 			ajoute_avertissement("Aucun attribut de longueur trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_V = m_corps.ajoute_attribut("mr_V", type_attribut::R32, 3, portee_attr::POINT);
@@ -681,7 +681,7 @@ public:
 			liste_points->point(pa, pos_pa);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -708,19 +708,19 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_guide = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_guide, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* poids de l'effet */
@@ -783,7 +783,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	Polygone *trouve_courbe_plus_proche(ListePrimitives const *prims, dls::math::vec3f const &pos) const
@@ -846,13 +846,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto prims = m_corps.prims();
@@ -914,7 +914,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -950,19 +950,19 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps2 = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps2, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto prims1 = m_corps.prims();
@@ -970,7 +970,7 @@ public:
 
 		if (prims1->taille() != prims2->taille()) {
 			this->ajoute_avertissement("Les corps possèdent des nombres de primitives différents");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points1 = m_corps.points_pour_ecriture();
@@ -993,7 +993,7 @@ public:
 
 			if (prim1->type_prim() != prim2->type_prim()) {
 				this->ajoute_avertissement("Les types des primitives sont différents !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			if (prim1->type_prim() != type_primitive::POLYGONE) {
@@ -1006,7 +1006,7 @@ public:
 
 			if (poly1->nombre_sommets() != poly2->nombre_sommets()) {
 				this->ajoute_avertissement("Le nombre de points divergent sur les courbes");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			for (auto j = 0; j < poly1->nombre_sommets(); ++j) {
@@ -1019,7 +1019,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1092,7 +1092,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1259,7 +1259,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override

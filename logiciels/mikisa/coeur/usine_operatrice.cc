@@ -51,7 +51,7 @@ public:
 
 	const char *chemin_entreface() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	bool depend_sur_temps() const override;
 };
@@ -78,11 +78,11 @@ const char *OperatriceCorpsSE::chemin_entreface() const
 	return m_chemin_entreface;
 }
 
-int OperatriceCorpsSE::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceCorpsSE::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	if (m_fonction == nullptr) {
 		this->ajoute_avertissement("La fonction est nulle !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	return m_fonction(*this, contexte, donnees_aval);
@@ -115,7 +115,7 @@ public:
 
 	const char *chemin_entreface() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	bool depend_sur_temps() const override;
 };
@@ -142,18 +142,18 @@ const char *OperatriceCorpsE0::chemin_entreface() const
 	return m_chemin_entreface;
 }
 
-int OperatriceCorpsE0::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceCorpsE0::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	if (m_fonction == nullptr) {
 		this->ajoute_avertissement("La fonction est nulle !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 	if (corps_entree == nullptr) {
 		this->ajoute_avertissement("L'entrée 1 n'est pas connectée !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	return m_fonction(*this, contexte, donnees_aval, *corps_entree);

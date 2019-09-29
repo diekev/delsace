@@ -406,7 +406,7 @@ public:
 		}
 		else {
 			mikisa->affiche_erreur("Type de graphe détail inconnu");
-			return EXECUTION_ECHOUEE;
+			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
 		auto graphe = mikisa->graphe;
@@ -954,7 +954,7 @@ public:
 		auto noeud_parent = mikisa->noeud->parent;
 
 		if (!noeud_parent) {
-			return EXECUTION_ECHOUEE;
+			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
 		mikisa->noeud = noeud_parent;

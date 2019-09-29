@@ -47,9 +47,9 @@ class UsineOperatrice;
 struct ContexteEvaluation;
 struct DonneesAval;
 
-enum {
-	EXECUTION_REUSSIE = 0,
-	EXECUTION_ECHOUEE = 1,
+enum class res_exec : int {
+	REUSSIE = 0,
+	ECHOUEE = 1,
 };
 
 enum {
@@ -239,7 +239,7 @@ public:
 
 	/* la logique principale d'exécution de cette opératrice */
 
-	virtual int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) = 0;
+	virtual res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) = 0;
 
 	void transfere_image(Image &image);
 
