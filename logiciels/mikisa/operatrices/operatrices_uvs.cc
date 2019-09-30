@@ -56,6 +56,8 @@ struct mi_sommet_uv {
 
 	bool est_sur_couture = false;
 
+	long label = 0;
+
 	mi_sommet_uv() = default;
 
 	COPIE_CONSTRUCT(mi_sommet_uv);
@@ -202,6 +204,8 @@ static auto construit_polyedre_uv(Corps const &corps)
 			auto idx1 = poly->index_point((i + 1) % poly->nombre_sommets());
 			auto idxi0i1 = index_arete(idx0, idx1);
 
+			smt->label = idx0;
+
 			dico_aretes.insere({idxi0i1, a0});
 
 			/* cherches la mi_arete opposée */
@@ -257,27 +261,29 @@ static void ajourne_label_groupe(mi_face_uv *face, unsigned int groupe)
 	}
 }
 
-/* À FAIRE : algorithme pour détacher les iles UVs. */
-static void detaches_iles_uvs(PolyedreUV &polyedre_uv)
+static void detaches_iles_uvs(
+		PolyedreUV &polyedre_uv,
+		dls::tableau<char> const &est_sur_couture)
 {
-	// une couture existe sur arête si leurs sommets n'ont pas le même point
+	for (auto smt : polyedre_uv.sommets) {
+		smt->est_sur_couture = est_sur_couture[smt->label];
+	}
 
 	for (auto face : polyedre_uv.faces) {
 		auto a0 = face->arete;
 		auto a1 = a0->suivante;
 		auto fin = a1;
 
-		// il faut chercher l'arête opposée de la suivante de pour avoir deux
-		// arêtes qui pointent vers le même sommet potentiel
-
 		do {
-			if (a1->paire != nullptr) {
-				auto ap = a1->paire;
+			if (a0->smt->est_sur_couture) {
+				if (a0->paire != nullptr) {
+					auto p = a0->paire;
+					auto s = p->smt;
 
-				if (ap->smt->p->index != a0->smt->p->index) {
-					// cette arete est sur une couture
-					a0->smt->est_sur_couture = true;
-					ap->smt->est_sur_couture = true;
+					if (s->est_sur_couture) {
+						a0->paire->paire = nullptr;
+						a0->paire = nullptr;
+					}
 				}
 			}
 
@@ -285,21 +291,33 @@ static void detaches_iles_uvs(PolyedreUV &polyedre_uv)
 			a1 = a0->suivante;
 		} while (a1 != fin);
 	}
+}
 
-	for (auto face : polyedre_uv.faces) {
-		auto a0 = face->arete;
-		auto a1 = a0->suivante;
-		auto fin = a1;
+/* ************************************************************************** */
 
-		do {
-			if (a0->smt->est_sur_couture && a1->smt->est_sur_couture) {
-				a1->paire = nullptr;
-			}
+/**
+ * Rassemble tous les index des sommets autour d'un point.
+ */
+static auto rassemble_index_sommets(Corps const &corps)
+{
+	auto points_entree = corps.points_pour_lecture();
 
-			a0 = a1;
-			a1 = a0->suivante;
-		} while (a1 != fin);
-	}
+	dls::tableau<dls::ensemble<long>> sommets(points_entree->taille());
+
+	pour_chaque_polygone_ferme(corps,
+							   [&](Corps const &corps_entree, Polygone *poly)
+	{
+		INUTILISE(corps_entree);
+
+		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
+			auto ip = poly->index_point(j);
+			auto is = poly->index_sommet(j);
+
+			sommets[ip].insere(is);
+		}
+	});
+
+	return sommets;
 }
 
 /* ************************************************************************** */
@@ -407,8 +425,41 @@ struct OpGroupeUV : public OperatriceCorps {
 			return res_exec::ECHOUEE;
 		}
 
+		/* avant de construire une polyèdre pour les UVs, trouve les sommets
+		 * autour de chaque points, et vérifie que leurs attributs UV pareils ;
+		 * sinon le point est sur une couture
+		 * À FAIRE : utilise les arêtes pour définir les coutures avec les
+		 * points une arête n'étant pas sur une couture mais dont les points le
+		 * sont via d'autres arêtes nous donne une couture en trop */
+		auto ensemble_sommets = rassemble_index_sommets(m_corps);
+		auto est_sur_couture = dls::tableau<char>(m_corps.points_pour_lecture()->taille());
+
+		for (auto i = 0; i < ensemble_sommets.taille(); ++i) {
+			auto const &sommets = ensemble_sommets[i];
+
+			if (sommets.taille() == 0) {
+				continue;
+			}
+
+			auto ds = sommets.debut();
+			auto fs = sommets.fin();
+
+			auto uv = dls::math::vec2f();
+			extrait(attr_UV->r32(*ds), uv);
+
+			while (++ds != fs) {
+				auto uv1 = dls::math::vec2f();
+				extrait(attr_UV->r32(*ds), uv1);
+
+				if (uv != uv1) {
+					est_sur_couture[i] = 1;
+					break;
+				}
+			}
+		}
+
 		auto polyedre_uv = construit_polyedre_uv(m_corps);
-		detaches_iles_uvs(polyedre_uv);
+		detaches_iles_uvs(polyedre_uv, est_sur_couture);
 
 		auto nombre_groupe = 0u;
 		for (auto face : polyedre_uv.faces) {
@@ -429,6 +480,7 @@ struct OpGroupeUV : public OperatriceCorps {
 			groupes[face->label1 - 1]->ajoute_primitive(face->label0);
 		}
 
+#if 1
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 
 		auto gna = GNA();
@@ -449,6 +501,18 @@ struct OpGroupeUV : public OperatriceCorps {
 				assigne(attr_C->r32(idx), couleur);
 			}
 		}
+#else
+		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+
+		dls::math::vec3f couleurs[2] = {
+			dls::math::vec3f(0.0f),
+			dls::math::vec3f(1.0f),
+		};
+
+		for (auto i = 0; i < est_sur_couture.taille(); ++i) {
+			assigne(attr_C->r32(i), couleurs[static_cast<long>(est_sur_couture[i])]);
+		}
+#endif
 
 		return res_exec::REUSSIE;
 	}
