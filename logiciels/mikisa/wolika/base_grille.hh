@@ -116,11 +116,6 @@ protected:
 	description_grille<type_vec> m_desc{};
 	long m_nombre_elements = 0;
 
-	bool hors_des_limites(type_vec<int> const &co) const
-	{
-		return dls::math::hors_limites(co, type_vec<int>(0), m_desc.resolution - type_vec<int>(1));
-	}
-
 public:
 	base_grille() = default;
 
@@ -162,6 +157,11 @@ public:
 	long calcul_index(type_vec<int> const &co) const
 	{
 		return dls::math::calcul_index(co, m_desc.resolution);
+	}
+
+	bool hors_des_limites(type_vec<int> const &co) const
+	{
+		return dls::math::hors_limites(co, type_vec<int>(0), m_desc.resolution - type_vec<int>(1));
 	}
 
 	/* conversion coordonnées */
