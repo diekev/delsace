@@ -361,7 +361,7 @@ public:
 				auto index = m_corps.ajoute_point(point);
 
 				if (groupe_sortie) {
-					groupe_sortie->ajoute_point(index);
+					groupe_sortie->ajoute_index(index);
 				}
 			}
 		}
@@ -426,7 +426,7 @@ public:
 						static_cast<float>(pos_z));
 
 			if (groupe_sortie) {
-				groupe_sortie->ajoute_point(index);
+				groupe_sortie->ajoute_index(index);
 			}
 		}
 
@@ -512,7 +512,7 @@ public:
 				assigne(attr_N->r32(index), echantillonne_normal(*corps_entree, triangle.index_orig, posf));
 
 				if (groupe_sortie) {
-					groupe_sortie->ajoute_point(index);
+					groupe_sortie->ajoute_index(index);
 				}
 			}
 		}
@@ -564,7 +564,7 @@ public:
 			auto index = m_corps.ajoute_point(p[0], p[1], p[2]);
 
 			if (groupe_sortie) {
-				groupe_sortie->ajoute_point(index);
+				groupe_sortie->ajoute_index(index);
 			}
 		}
 

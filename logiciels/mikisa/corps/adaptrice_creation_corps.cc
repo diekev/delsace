@@ -105,7 +105,7 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 	}
 
 	for (GroupePrimitive *groupe : groupes_courant) {
-		groupe->ajoute_primitive(poly->index);
+		groupe->ajoute_index(poly->index);
 	}
 }
 

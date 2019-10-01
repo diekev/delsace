@@ -147,7 +147,7 @@ public:
 			if (echantillonage_reservoir) {
 				// Rempli le réservoir
 				for (auto i = 0; i < k; ++i) {
-					groupe->ajoute_point(index_possibles[i]);
+					groupe->ajoute_index(index_possibles[i]);
 				}
 
 				// Remplace les éléments avec une probabilité descendante
@@ -165,7 +165,7 @@ public:
 						continue;
 					}
 
-					groupe->ajoute_point(i);
+					groupe->ajoute_index(i);
 				}
 			}
 		}
@@ -187,7 +187,7 @@ public:
 			if (echantillonage_reservoir) {
 				// Rempli le réservoir
 				for (auto i = 0; i < k; ++i) {
-					groupe->ajoute_primitive(index_possibles[i]);
+					groupe->ajoute_index(index_possibles[i]);
 				}
 
 				// Remplace les éléments avec une probabilité descendante
@@ -205,7 +205,7 @@ public:
 						continue;
 					}
 
-					groupe->ajoute_primitive(i);
+					groupe->ajoute_index(i);
 				}
 			}
 		}

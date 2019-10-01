@@ -436,7 +436,7 @@ public:
 					continue;
 				}
 
-				paire.second->ajoute_primitive(poly->index);
+				paire.second->ajoute_index(poly->index);
 			}
 		}
 
@@ -1972,7 +1972,7 @@ public:
 		}
 
 		for (auto face : polyedre.faces) {
-			groupes[face->label1 - 1]->ajoute_primitive(face->label);
+			groupes[face->label1 - 1]->ajoute_index(face->label);
 		}
 
 		return res_exec::REUSSIE;

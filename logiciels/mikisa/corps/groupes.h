@@ -42,7 +42,7 @@ class GroupePoint {
 public:
 	dls::chaine nom{};
 
-	void ajoute_point(long index_point);
+	void ajoute_index(long index_point);
 
 	void reserve(long const nombre);
 
@@ -71,7 +71,7 @@ class GroupePrimitive {
 public:
 	dls::chaine nom{};
 
-	void ajoute_primitive(long index_poly);
+	void ajoute_index(long index_poly);
 
 	void remplace_index(long i, long j);
 

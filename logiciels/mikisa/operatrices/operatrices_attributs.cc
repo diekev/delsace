@@ -1430,7 +1430,7 @@ public:
 				assigne(attr_D->r32(i), -1.0f);
 
 				if (groupe_invisible) {
-					groupe_invisible->ajoute_point(i);
+					groupe_invisible->ajoute_index(i);
 				}
 
 				continue;
@@ -1440,7 +1440,7 @@ public:
 				assigne(attr_D->r32(i), -1.0f);
 
 				if (groupe_invisible) {
-					groupe_invisible->ajoute_point(i);
+					groupe_invisible->ajoute_index(i);
 				}
 
 				continue;
@@ -1452,7 +1452,7 @@ public:
 				assigne(attr_D->r32(i), -1.0f);
 
 				if (groupe_invisible) {
-					groupe_invisible->ajoute_point(i);
+					groupe_invisible->ajoute_index(i);
 				}
 
 				continue;
@@ -1469,7 +1469,7 @@ public:
 			}
 
 			if (groupe_visible) {
-				groupe_visible->ajoute_point(i);
+				groupe_visible->ajoute_index(i);
 			}
 
 			assigne(attr_D->r32(i), l);

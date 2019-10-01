@@ -477,7 +477,7 @@ struct OpGroupeUV : public OperatriceCorps {
 		}
 
 		for (auto face : polyedre_uv.faces) {
-			groupes[face->label1 - 1]->ajoute_primitive(face->label0);
+			groupes[face->label1 - 1]->ajoute_index(face->label0);
 		}
 
 #if 1

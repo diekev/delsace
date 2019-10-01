@@ -448,7 +448,7 @@ public:
 
 				groupe_sync.accede_ecriture([&](GroupePoint *groupe_point)
 				{
-					groupe_point->ajoute_point(i);
+					groupe_point->ajoute_index(i);
 				});
 
 				switch (reponse) {

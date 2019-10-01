@@ -987,11 +987,11 @@ public:
 				groupe->reserve(groupe1->taille() + groupe2->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_point(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_point(decalage_points + groupe2->index(i));
+					groupe->ajoute_index(decalage_points + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -1000,7 +1000,7 @@ public:
 				groupe->reserve(groupe1->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_point(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
@@ -1009,7 +1009,7 @@ public:
 				groupe->reserve(groupe2->taille());
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_point(decalage_points + groupe2->index(i));
+					groupe->ajoute_index(decalage_points + groupe2->index(i));
 				}
 			}
 		}
@@ -1051,11 +1051,11 @@ public:
 				groupe->reserve(groupe1->taille() + groupe2->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_primitive(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_primitive(decalage_prims + groupe2->index(i));
+					groupe->ajoute_index(decalage_prims + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -1064,7 +1064,7 @@ public:
 				groupe->reserve(groupe1->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_primitive(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
@@ -1073,7 +1073,7 @@ public:
 				groupe->reserve(groupe2->taille());
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_primitive(decalage_prims + groupe2->index(i));
+					groupe->ajoute_index(decalage_prims + groupe2->index(i));
 				}
 			}
 		}
