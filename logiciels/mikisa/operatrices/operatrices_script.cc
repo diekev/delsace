@@ -25,6 +25,8 @@
 #include "operatrices_script.hh"
 
 #include "biblinternes/moultfilage/boucle.hh"
+#include "biblinternes/outils/fichier.hh"
+#include "biblinternes/langage/tampon_source.hh"
 
 #include "lcc/analyseuse_grammaire.h"
 #include "lcc/assembleuse_arbre.h"
@@ -378,6 +380,11 @@ static auto ajoute_proprietes_contexte(
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
 		gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
 	}
+
+	if (contexte == (lcc::ctx_script::topologie | lcc::ctx_script::fichier)) {
+		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::CHAINE));
+		gest_props.ajoute_propriete("ligne", lcc::type_var::CHAINE, idx);
+	}
 }
 
 class OpScriptTopologie final : public OperatriceCorps {
@@ -413,9 +420,33 @@ public:
 		m_corps.reinitialise();
 	//	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
 
+		auto portee_script = evalue_enum("portée_script");
+
+		auto ctx_script = lcc::ctx_script::topologie;
+
+		if (portee_script == "points") {
+			ctx_script |= lcc::ctx_script::point;
+		}
+		else if (portee_script == "primitives") {
+			ctx_script |= lcc::ctx_script::primitive;
+		}
+		else if (portee_script == "fichier") {
+			ctx_script |= lcc::ctx_script::fichier;
+		}
+		else {
+			this->ajoute_avertissement("La portée du script est invalide");
+			return res_exec::ECHOUEE;
+		}
+
 		auto texte = evalue_chaine("script");
 
 		if (texte.est_vide()) {
+			return res_exec::ECHOUEE;
+		}
+
+		auto contenu_fichier = dls::contenu_fichier(evalue_fichier_entree("source_entrée"));
+
+		if (contenu_fichier.est_vide()) {
 			return res_exec::ECHOUEE;
 		}
 
@@ -444,8 +475,6 @@ public:
 			auto compileuse = compileuse_lng{};
 
 			/* ajout des propriétés selon le contexte */
-			auto ctx_script = (lcc::ctx_script::topologie | lcc::ctx_script::point);
-
 			ajoute_proprietes_contexte(ctx_script, compileuse, gest_props);
 
 			/* ajout des attributs selon le contexte */
@@ -484,7 +513,8 @@ public:
 			}
 
 			auto ctx_exec = lcc::ctx_exec{};
-			ctx_exec.ptr_corps = &m_corps;
+			ctx_exec.ptr_corps = &m_corps;			
+			ctx_exec.chaines = ctx_gen.chaines;
 
 			/* données générales */
 			remplis_donnees(compileuse.donnees(), gest_props, "temps", contexte.temps_courant);
@@ -492,24 +522,12 @@ public:
 			remplis_donnees(compileuse.donnees(), gest_props, "temps_fin", contexte.temps_fin);
 			remplis_donnees(compileuse.donnees(), gest_props, "cadence", static_cast<float>(contexte.cadence));
 
-			for (auto i = 0; i < 1; ++i) {
-				if (chef->interrompu()) {
-					break;
-				}
-
-				remplis_donnees(compileuse.donnees(), gest_props, "index", i);
-
-				/* stocke les attributs */
-				stocke_attributs(gest_attrs, compileuse.donnees(), i);
-
-				lcc::execute_pile(
-							ctx_exec,
-							compileuse.donnees(),
-							compileuse.instructions(),
-							i);
-
-				/* charge les attributs */
-				charge_attributs(gest_attrs, compileuse.donnees(), i);
+			if (portee_script == "fichier") {
+				execute_script_pour_fichier(
+							chef, compileuse, gest_props, gest_attrs, ctx_exec, contenu_fichier);
+			}
+			else {
+				execute_script(chef, compileuse, gest_props, gest_attrs, ctx_exec);
 			}
 		}
 		catch (erreur::frappe const &e) {
@@ -528,6 +546,71 @@ public:
 		chef->indique_progression(100.0f);
 
 		return res_exec::REUSSIE;
+	}
+
+	void execute_script_pour_fichier(
+			ChefExecution *chef,
+			compileuse_lng &compileuse,
+			gestionnaire_propriete &gest_props,
+			gestionnaire_propriete &gest_attrs,
+			lcc::ctx_exec &ctx_exec,
+			dls::chaine const &contenu_fichier)
+	{
+		auto tampon_source = lng::tampon_source(contenu_fichier);
+
+		auto decalage_chn = ctx_exec.chaines.taille();
+		ctx_exec.chaines.pousse("");
+
+		for (auto i = 0ul; i < tampon_source.nombre_lignes(); ++i) {
+			if (chef->interrompu()) {
+				break;
+			}
+
+			ctx_exec.chaines[decalage_chn] = tampon_source[static_cast<int>(i)];
+
+			remplis_donnees(compileuse.donnees(), gest_props, "index", static_cast<int>(i));
+			remplis_donnees(compileuse.donnees(), gest_props, "ligne", static_cast<int>(decalage_chn) - 1);
+
+			/* stocke les attributs */
+			stocke_attributs(gest_attrs, compileuse.donnees(), static_cast<int>(i));
+
+			lcc::execute_pile(
+						ctx_exec,
+						compileuse.donnees(),
+						compileuse.instructions(),
+						static_cast<int>(i));
+
+			/* charge les attributs */
+			charge_attributs(gest_attrs, compileuse.donnees(), static_cast<int>(i));
+		}
+	}
+
+	void execute_script(
+			ChefExecution *chef,
+			compileuse_lng &compileuse,
+			gestionnaire_propriete &gest_props,
+			gestionnaire_propriete &gest_attrs,
+			lcc::ctx_exec &ctx_exec)
+	{
+		for (auto i = 0; i < 1; ++i) {
+			if (chef->interrompu()) {
+				break;
+			}
+
+			remplis_donnees(compileuse.donnees(), gest_props, "index", i);
+
+			/* stocke les attributs */
+			stocke_attributs(gest_attrs, compileuse.donnees(), i);
+
+			lcc::execute_pile(
+						ctx_exec,
+						compileuse.donnees(),
+						compileuse.instructions(),
+						i);
+
+			/* charge les attributs */
+			charge_attributs(gest_attrs, compileuse.donnees(), i);
+		}
 	}
 };
 
@@ -569,9 +652,23 @@ public:
 			return res_exec::ECHOUEE;
 		}
 
-		/* À FAIRE : la copie est peut-être inutile, à vérifier si le script les
-		 * modifie. */
-		auto points = m_corps.points_pour_ecriture();
+		auto portee_script = evalue_enum("portée_script");
+
+		auto ctx_script = lcc::ctx_script::detail;
+
+		if (portee_script == "points") {
+			ctx_script |= lcc::ctx_script::point;
+		}
+		else if (portee_script == "primitives") {
+			ctx_script |= lcc::ctx_script::primitive;
+		}
+		else if (portee_script == "fichier") {
+			ctx_script |= lcc::ctx_script::fichier;
+		}
+		else {
+			this->ajoute_avertissement("La portée du script est invalide");
+			return res_exec::ECHOUEE;
+		}
 
 		auto texte = evalue_chaine("script");
 
@@ -604,7 +701,6 @@ public:
 			auto compileuse = compileuse_lng{};
 
 			/* ajout des propriétés selon le contexte */
-			auto ctx_script = (lcc::ctx_script::detail | lcc::ctx_script::point);
 
 			ajoute_proprietes_contexte(ctx_script, compileuse, gest_props);
 
@@ -666,47 +762,12 @@ public:
 			remplis_donnees(compileuse.donnees(), gest_props, "temps_fin", contexte.temps_fin);
 			remplis_donnees(compileuse.donnees(), gest_props, "cadence", static_cast<float>(contexte.cadence));
 
-			boucle_serie(tbb::blocked_range<long>(0, points->taille()),
-							 [&](tbb::blocked_range<long> const &plage)
-			{
-				if (chef->interrompu()) {
-					return;
-				}
-
-				/* fait une copie locale */
-				auto donnees = compileuse.donnees();
-
-				for (auto i = plage.begin(); i < plage.end(); ++i) {
-					if (chef->interrompu()) {
-						break;
-					}
-
-					auto point = points->point(i);
-
-					remplis_donnees(donnees, gest_props, "P", point);
-					remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
-
-					/* stocke les attributs */
-					stocke_attributs(gest_attrs, donnees, i);
-
-					lcc::execute_pile(
-								ctx_exec,
-								donnees,
-								compileuse.instructions(),
-								static_cast<int>(i));
-
-					auto idx_sortie = gest_props.pointeur_donnees("P");
-					point = donnees.charge_vec3(idx_sortie);
-
-					/* charge les attributs */
-					charge_attributs(gest_attrs, donnees, i);
-
-					points->point(i, point);
-				}
-
-				auto delta = static_cast<float>(plage.end() - plage.begin());
-				chef->indique_progression_parallele(delta / static_cast<float>(points->taille()) * 100.0f);
-			});
+			if (portee_script == "points") {
+				execute_script_sur_points(chef, compileuse, gest_props, gest_attrs, ctx_exec);
+			}
+			else if (portee_script == "primitives") {
+				execute_script_sur_primitives(chef, compileuse, gest_props, gest_attrs, ctx_exec);
+			}
 		}
 		catch (erreur::frappe const &e) {
 			this->ajoute_avertissement(e.message());
@@ -724,6 +785,104 @@ public:
 		chef->indique_progression(100.0f);
 
 		return res_exec::REUSSIE;
+	}
+
+	void execute_script_sur_points(
+			ChefExecution *chef,
+			compileuse_lng &compileuse,
+			gestionnaire_propriete &gest_props,
+			gestionnaire_propriete &gest_attrs,
+			lcc::ctx_exec &ctx_exec)
+	{
+		/* À FAIRE : la copie est peut-être inutile, à vérifier si le script les
+		 * modifie. */
+		auto points = m_corps.points_pour_ecriture();
+
+		boucle_serie(tbb::blocked_range<long>(0, points->taille()),
+					 [&](tbb::blocked_range<long> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
+
+			/* fait une copie locale */
+			auto donnees = compileuse.donnees();
+
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				if (chef->interrompu()) {
+					break;
+				}
+
+				auto point = points->point(i);
+
+				remplis_donnees(donnees, gest_props, "P", point);
+				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
+
+				/* stocke les attributs */
+				stocke_attributs(gest_attrs, donnees, i);
+
+				lcc::execute_pile(
+							ctx_exec,
+							donnees,
+							compileuse.instructions(),
+							static_cast<int>(i));
+
+				auto idx_sortie = gest_props.pointeur_donnees("P");
+				point = donnees.charge_vec3(idx_sortie);
+
+				/* charge les attributs */
+				charge_attributs(gest_attrs, donnees, i);
+
+				points->point(i, point);
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()) * 100.0f);
+		});
+	}
+
+	void execute_script_sur_primitives(
+			ChefExecution *chef,
+			compileuse_lng &compileuse,
+			gestionnaire_propriete &gest_props,
+			gestionnaire_propriete &gest_attrs,
+			lcc::ctx_exec &ctx_exec)
+	{
+		auto prims = m_corps.prims();
+
+		boucle_serie(tbb::blocked_range<long>(0, prims->taille()),
+					 [&](tbb::blocked_range<long> const &plage)
+		{
+			if (chef->interrompu()) {
+				return;
+			}
+
+			/* fait une copie locale */
+			auto donnees = compileuse.donnees();
+
+			for (auto i = plage.begin(); i < plage.end(); ++i) {
+				if (chef->interrompu()) {
+					break;
+				}
+
+				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
+
+				/* stocke les attributs */
+				stocke_attributs(gest_attrs, donnees, i);
+
+				lcc::execute_pile(
+							ctx_exec,
+							donnees,
+							compileuse.instructions(),
+							static_cast<int>(i));
+
+				/* charge les attributs */
+				charge_attributs(gest_attrs, donnees, i);
+			}
+
+			auto delta = static_cast<float>(plage.end() - plage.begin());
+			chef->indique_progression_parallele(delta / static_cast<float>(prims->taille()) * 100.0f);
+		});
 	}
 };
 
