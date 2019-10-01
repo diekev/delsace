@@ -173,6 +173,10 @@ struct Polyedre {
 
 	Polyedre() = default;
 
+	Polyedre(Polyedre &&autre);
+
+	Polyedre &operator=(Polyedre &&autre);
+
 	~Polyedre();
 
 	mi_sommet *cree_sommet(dls::math::vec3f const &p);

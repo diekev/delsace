@@ -30,6 +30,22 @@
 #include "iteration_corps.hh"
 #include "listes.h"
 
+Polyedre::Polyedre(Polyedre &&autre)
+{
+	sommets.echange(autre.sommets);
+	aretes.echange(autre.aretes);
+	faces.echange(autre.faces);
+}
+
+Polyedre &Polyedre::operator=(Polyedre &&autre)
+{
+	sommets.echange(autre.sommets);
+	aretes.echange(autre.aretes);
+	faces.echange(autre.faces);
+
+	return *this;
+}
+
 Polyedre::~Polyedre()
 {
 	for (auto s : sommets) {
