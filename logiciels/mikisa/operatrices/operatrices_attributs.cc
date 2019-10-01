@@ -24,6 +24,9 @@
 
 #include "operatrices_attributs.hh"
 
+#include <mutex>
+
+#include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
@@ -785,9 +788,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-#include <mutex>
-#include "biblinternes/moultfilage/boucle.hh"
 
 class OpTransfereAttributs final : public OperatriceCorps {
 public:

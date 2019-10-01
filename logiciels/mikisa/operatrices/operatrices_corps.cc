@@ -24,6 +24,8 @@
 
 #include "operatrices_corps.hh"
 
+#include <numeric>
+
 #include "biblexternes/kelvinlet/kelvinlet.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
@@ -1338,8 +1340,6 @@ static auto ajoute_deformeur(
 
 	deformeurs.pousse(ptr);
 }
-
-#include <numeric>
 
 static auto deforme_kelvinlet(
 		const Vector3& p,
