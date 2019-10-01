@@ -135,6 +135,8 @@ enum class code_inst : int {
 	FN_AJOUTE_SOMMET,
 	FN_AJOUTE_SOMMETS,
 	FN_AJOUTE_LIGNE,
+	FN_POINTS_VOISINS,
+	FN_POINT,
 
 	/* fonctions bruit */
 	FN_BRUIT_CELLULE,

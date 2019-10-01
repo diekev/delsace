@@ -1683,6 +1683,40 @@ void execute_pile(ctx_exec &contexte,
 
 				break;
 			}
+			case code_inst::FN_POINTS_VOISINS:
+			{
+				auto idx_point = pile_donnees.charge_entier(compteur, insts);
+				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tableau = pair_tabl_idx.first;
+
+				if (idx_point < contexte.polyedre.sommets.taille()) {
+					auto sommet = contexte.polyedre.sommets[idx_point];
+					auto debut = sommet->arete;
+					auto fin = debut;
+
+					do {
+						auto voisin = debut->paire->sommet->label;
+						tableau.pousse(static_cast<int>(voisin));
+						debut = suivante_autour_point(debut);
+					} while (debut != fin && debut != nullptr);
+				}
+
+				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+				break;
+			}
+			case code_inst::FN_POINT:
+			{
+				auto idx_point = pile_donnees.charge_entier(compteur, insts);
+				auto res = dls::math::vec3f();
+
+				if (idx_point < contexte.polyedre.sommets.taille()) {
+					auto sommet = contexte.polyedre.sommets[idx_point];
+					res = sommet->p;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_SATURE:
 			{
 				auto clr = pile_donnees.charge_couleur(compteur, insts);

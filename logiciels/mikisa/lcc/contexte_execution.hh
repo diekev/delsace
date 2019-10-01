@@ -31,6 +31,8 @@
 #include "danjo/types/courbe_bezier.h"
 #include "danjo/types/rampe_couleur.h"
 
+#include "corps/polyedre.hh"
+
 struct Corps;
 struct Image;
 
@@ -115,6 +117,9 @@ struct ctx_local {
 struct ctx_exec {
 	/* Le corps dans notre contexte. */
 	dls::synchronise<Corps *> ptr_corps;
+
+	/* Le polyedre de notre corps */
+	Polyedre polyedre{};
 
 	/* Toutes les images. */
 	dls::tableau<Image const *> images;

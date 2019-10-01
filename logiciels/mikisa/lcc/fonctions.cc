@@ -150,8 +150,9 @@ signature::signature(param_entrees _entrees_, param_sorties _sorties_)
 
 /* ************************************************************************** */
 
-void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, const signature &seing, ctx_script ctx)
+donnees_fonction *magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, const signature &seing, ctx_script ctx)
 {
+	auto df = static_cast<donnees_fonction *>(nullptr);
 	auto iter = table.trouve(nom);
 
 	if (iter == table.fin()) {
@@ -159,9 +160,12 @@ void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, 
 		tableau.pousse({seing, type, ctx});
 
 		table.insere({nom, tableau});
+
+		df = &table.trouve(nom)->second.back();
 	}
 	else {
 		iter->second.pousse({seing, type, ctx});
+		df = &iter->second.back();
 	}
 
 	auto iter_cat = table_categories.trouve(categorie);
@@ -175,6 +179,8 @@ void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, 
 	else {
 		iter_cat->second.insere(nom);
 	}
+
+	return df;
 }
 
 donnees_fonction_generation magasin_fonctions::meilleure_candidate(
@@ -755,6 +761,8 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 
 static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 {
+	auto df = static_cast<donnees_fonction *>(nullptr);
+
 	magasin.categorie = "corps";
 
 	magasin.ajoute_fonction(
@@ -808,6 +816,22 @@ static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 							  donnees_parametre("point1", type_var::VEC3)),
 						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
+
+	df = magasin.ajoute_fonction(
+				"points_voisins",
+				code_inst::FN_POINTS_VOISINS,
+				signature(param_entrees(donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("voisins", type_var::TABLEAU))),
+				ctx_script::tous);
+	df->requete = req_fonc::polyedre;
+
+	df = magasin.ajoute_fonction(
+				"point",
+				code_inst::FN_POINT,
+				signature(param_entrees(donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("point", type_var::VEC3))),
+				ctx_script::tous);
+	df->requete = req_fonc::polyedre;
 }
 
 static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)

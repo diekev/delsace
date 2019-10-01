@@ -175,6 +175,8 @@ struct ContexteGenerationCode {
 
 	dls::tableau<DonneesModule *> modules{};
 
+	dls::ensemble<lcc::req_fonc> requetes{};
+
 	lcc::magasin_fonctions fonctions{};
 
 	gestionnaire_propriete gest_props{};

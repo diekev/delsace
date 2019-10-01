@@ -407,6 +407,8 @@ int genere_code(
 
 			auto type_instance = donnees_fonc.type;
 
+			contexte_generation.requetes.insere(donnees_fonc.donnees->requete);
+
 			/* rassemble les pointeurs et crée les conversions au besoin */
 			dls::tableau<int> pointeurs;
 			auto taille = donnees_fonc.entrees.types.taille();

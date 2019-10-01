@@ -41,6 +41,7 @@
 #include "coeur/usine_operatrice.h"
 
 #include "corps/attribut.h"
+#include "corps/polyedre.hh"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -651,6 +652,12 @@ public:
 			 * intruction : code_inst::TERMINE. */
 			if ((taille_donnees == 0) || (taille_instructions == 1)) {
 				return res_exec::REUSSIE;
+			}
+
+			for (auto req : ctx_gen.requetes) {
+				if (req == lcc::req_fonc::polyedre) {
+					ctx_exec.polyedre = converti_corps_polyedre(m_corps);
+				}
 			}
 
 			/* données générales */
