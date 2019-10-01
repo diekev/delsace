@@ -26,6 +26,7 @@
 
 #include "biblinternes/bruit/parametres.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "danjo/types/courbe_bezier.h"
@@ -69,10 +70,20 @@ inline auto operator&(ctx_script ctx0, ctx_script ctx1)
 				static_cast<unsigned short>(ctx0) & static_cast<unsigned short>(ctx1));
 }
 
+inline auto operator&=(ctx_script &ctx0, ctx_script ctx1)
+{
+	return ctx0 = ctx0 & ctx1;
+}
+
 inline auto operator|(ctx_script ctx0, ctx_script ctx1)
 {
 	return static_cast<ctx_script>(
 				static_cast<unsigned short>(ctx0) | static_cast<unsigned short>(ctx1));
+}
+
+inline auto operator|=(ctx_script &ctx0, ctx_script ctx1)
+{
+	return ctx0 = ctx0 | ctx1;
 }
 
 /* ************************************************************************** */
@@ -104,11 +115,13 @@ struct magasin_tableau {
 struct ctx_local {
 	magasin_tableau tableaux;
 	dls::tableau<bruit::parametres> params_bruits{};
+	dls::tableau<dls::chaine> chaines{};
 
 	void reinitialise()
 	{
 		tableaux.reinitialise();
 		params_bruits.efface();
+		chaines.efface();
 	}
 };
 
@@ -135,6 +148,9 @@ struct ctx_exec {
 
 	/* Toutes les rampes couleur. */
 	dls::tableau<RampeCouleur const *> rampes_couleur;
+
+	/* Toutes les chaines. */
+	dls::tableau<dls::chaine> chaines;
 
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;

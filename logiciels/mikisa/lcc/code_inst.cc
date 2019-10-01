@@ -153,6 +153,8 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_EVALUE_COURBE_COULEUR)
 		CHAINE_CAS(code_inst::FN_EVALUE_COURBE_VALEUR)
 		CHAINE_CAS(code_inst::FN_EVALUE_RAMPE_COULEUR)
+		CHAINE_CAS(code_inst::FN_TAILLE_CHAINE)
+		CHAINE_CAS(code_inst::FN_MORCELLE_CHAINE)
 	}
 
 	return "erreur : code_inst inconnu";

@@ -169,6 +169,8 @@ static auto type_var_depuis_id(id_morceau id)
 	switch (id) {
 		default:
 			return type_var::INVALIDE;
+		case id_morceau::CHAINE_LITTERALE:
+			return type_var::CHAINE;
 		case id_morceau::TABLEAU:
 			return type_var::TABLEAU;
 		case id_morceau::NOMBRE_ENTIER:
@@ -373,6 +375,11 @@ int genere_code(
 				}
 				case type_var::CHAINE:
 				{
+					/* là où se trouve l'index de la chaine */
+					b->pointeur_donnees = compileuse.donnees().loge_donnees(1);
+					auto ptr = b->pointeur_donnees;
+					compileuse.donnees().stocke(ptr, static_cast<int>(contexte_generation.chaines.taille()));
+					contexte_generation.chaines.pousse(b->chaine());
 					break;
 				}
 				case type_var::COULEUR:

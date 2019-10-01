@@ -29,6 +29,7 @@
 #include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/vision/camera.h"
 
@@ -908,7 +909,22 @@ static auto evalue_bruit_turbulence(
 	pile_donnees.stocke(ptr_sortie, deriv);
 }
 
-void execute_pile(ctx_exec &contexte,
+static dls::chaine const &cherche_chaine(
+		ctx_exec const &contexte,
+		ctx_local const &contexte_local,
+		int ptr_chaine)
+{
+	auto decalage_chaine = contexte.chaines.taille();
+
+	if (ptr_chaine >= decalage_chaine) {
+		return contexte_local.chaines[ptr_chaine - decalage_chaine];
+	}
+
+	return contexte.chaines[ptr_chaine];
+}
+
+void execute_pile(
+		ctx_exec &contexte,
 		pile &pile_donnees,
 		pile const &insts,
 		int graine)
@@ -920,7 +936,7 @@ void execute_pile(ctx_exec &contexte,
 	while (compteur != insts.taille()) {
 		auto inst = static_cast<code_inst>(insts.charge_entier(compteur));
 
-		//std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
+		std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
 
 		switch (inst) {
 			case code_inst::TERMINE:
@@ -936,7 +952,8 @@ void execute_pile(ctx_exec &contexte,
 					{
 						break;
 					}
-						/* copie le pointeur du tableau */
+					/* copie le pointeur du tableau ou de la chaine */
+					case type_var::CHAINE:
 					case type_var::TABLEAU:
 					case type_var::ENT32:
 					{
@@ -2043,16 +2060,49 @@ void execute_pile(ctx_exec &contexte,
 				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
-#if 0
 			case code_inst::FN_TAILLE_CHAINE:
 			{
-				auto ptr_chaine = donnees.charge_entier(insts, courant);
-				auto chaine = gest_chn.get(ptr_chaine);
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
 
-				donnees.stocke(insts, courant, chaine->taille());
+				std::cerr << "Taille ptr : " << ptr_chn << '\n';
+				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto taille_chaine = chn.taille();
+				pile_donnees.stocke(compteur, insts, static_cast<int>(taille_chaine));
 
 				break;
 			}
+			case code_inst::FN_MORCELLE_CHAINE:
+			{
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto ptr_sep = pile_donnees.charge_entier(compteur, insts);
+
+				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto &sep = cherche_chaine(contexte, contexte_local, ptr_sep);
+
+				auto morceaux = dls::morcelle(chn, sep);
+
+				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tableau = pair_tabl_idx.first;
+
+				std::cerr << "Morcelle ptr_chn  : " << ptr_chn << '\n';
+				std::cerr << "Morcelle ptr_sep  : " << ptr_sep << '\n';
+				std::cerr << "Morcelle   : " << chn << '\n';
+				std::cerr << "Séparateur : " << sep << '\n';
+				std::cerr << "Morceaux :\n";
+
+				for (auto i = 0; i < morceaux.taille(); ++i) {
+					auto idx_chn = contexte_local.chaines.taille();
+					contexte_local.chaines.pousse(morceaux[i]);
+					tableau.pousse(static_cast<int>(idx_chn));
+
+					std::cerr << "\t" << morceaux[i] << '\n';
+				}
+
+				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+
+				break;
+			}
+#if 0
 			case code_inst::FN_CONCAT_CHAINE:
 			{
 				auto ptr_chaine1 = donnees.charge_entier(insts, courant);
@@ -2064,27 +2114,6 @@ void execute_pile(ctx_exec &contexte,
 				auto idx_chn = gest_chn.cree(morceaux[i]);
 
 				donnees.stocke(insts, courant, idx_chn);
-
-				break;
-			}
-			case code_inst::FN_DECOUPE_CHAINE:
-			{
-				auto ptr_chaine = donnees.charge_entier(insts, courant);
-				auto ptr_seprtr = donnees.charge_entier(insts, courant);
-
-				auto chaine = gest_chn.get(ptr_chaine);
-				auto sepa = gest_chn.get(ptr_separa);
-
-				auto morceaux = dls::morcelle(chaine, sepa);
-
-				auto tabl = gest_tabl.cree(morceaux.taille());
-
-				for (auto i = 0; i < morceaux.taille(); ++i) {
-					auto idx_chn = gest_chn.cree(morceaux[i]);
-					tabl->pousse(idx_chn);
-				}
-
-				donnees.stocke(insts, tabl->index());
 
 				break;
 			}

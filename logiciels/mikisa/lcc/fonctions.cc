@@ -928,6 +928,26 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 					param_entrees(donnees_parametre("tableau", type_var::TABLEAU)),
 					param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous);
+
+	magasin.categorie = "chaines";
+
+	magasin.ajoute_fonction(
+				"taille",
+				code_inst::FN_TAILLE_CHAINE,
+				signature(
+					param_entrees(donnees_parametre("chaine", type_var::CHAINE)),
+					param_sorties(donnees_parametre("taille", type_var::ENT32))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"morcelle",
+				code_inst::FN_MORCELLE_CHAINE,
+				signature(
+					param_entrees(
+						donnees_parametre("chaine", type_var::CHAINE),
+						donnees_parametre("séparateur", type_var::CHAINE)),
+					param_sorties(donnees_parametre("tableau", type_var::TABLEAU))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_bruits(magasin_fonctions &magasin)

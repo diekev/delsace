@@ -37,6 +37,7 @@ int taille_type(type_var type)
 		{
 			return 0;
 		}
+		case type_var::CHAINE:
 		case type_var::TABLEAU:
 		case type_var::ENT32:
 		case type_var::DEC:

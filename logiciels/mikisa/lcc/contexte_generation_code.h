@@ -182,6 +182,9 @@ struct ContexteGenerationCode {
 	gestionnaire_propriete gest_props{};
 	gestionnaire_propriete gest_attrs{};
 
+	/* les chaines qui seront transférées au contexte globale */
+	dls::tableau<dls::chaine> chaines{};
+
 	ContexteGenerationCode() = default;
 
 	~ContexteGenerationCode();

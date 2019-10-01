@@ -37,6 +37,10 @@ enum class code_inst : int {
 	IN_BRANCHE_CONDITION,
 	IN_INCREMENTE,
 
+	/* chaines */
+	FN_TAILLE_CHAINE,
+	FN_MORCELLE_CHAINE,
+
 	/* opérateurs */
 	ASSIGNATION,
 	NIE,
