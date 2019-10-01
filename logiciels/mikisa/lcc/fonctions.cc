@@ -301,8 +301,18 @@ static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
-				"aléa",
-				code_inst::FN_ALEA,
+				"aléa_uni",
+				code_inst::FN_ALEA_UNI,
+				signature(
+					param_entrees(
+						donnees_parametre("min", type_var::DEC),
+						donnees_parametre("max", type_var::DEC, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"aléa_nrm",
+				code_inst::FN_ALEA_NRM,
 				signature(
 					param_entrees(
 						donnees_parametre("min", type_var::DEC),

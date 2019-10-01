@@ -1005,12 +1005,22 @@ void execute_pile(ctx_exec &contexte,
 
 				break;
 			}
-			case code_inst::FN_ALEA:
+			case code_inst::FN_ALEA_UNI:
 			{
 				auto v0 = pile_donnees.charge_decimal(compteur, insts);
 				auto v1 = pile_donnees.charge_decimal(compteur, insts);
 
 				std::uniform_real_distribution<float> dist(v0, v1);
+				pile_donnees.stocke(compteur, insts, dist(gna));
+
+				break;
+			}
+			case code_inst::FN_ALEA_NRM:
+			{
+				auto v0 = pile_donnees.charge_decimal(compteur, insts);
+				auto v1 = pile_donnees.charge_decimal(compteur, insts);
+
+				std::normal_distribution<float> dist(v0, v1);
 				pile_donnees.stocke(compteur, insts, dist(gna));
 
 				break;
