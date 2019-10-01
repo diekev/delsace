@@ -26,4 +26,8 @@ disposition "operatrice_creation_groupe" {
         étiquette(valeur="Graine")
 		entier(valeur=1; attache=graine; min=1; animable)
     }
+	ligne {
+		étiquette(valeur="Échantillonage Réservoir")
+		case(valeur=faux; attache=échantillonage_réservoir)
+	}
 }

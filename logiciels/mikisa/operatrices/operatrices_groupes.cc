@@ -37,6 +37,62 @@
 
 /* ************************************************************************** */
 
+struct ParamEchantGroupe {
+	long depart = 0;
+	long decalage = 0;
+	long n = 0;
+	float probabilite = 0.0f;
+	int graine = 0;
+	bool echantillonage_reservoir = false;
+	REMBOURRE(7);
+};
+
+template <typename TypeGroupe>
+void echantillonne_groupe(
+		TypeGroupe &groupe,
+		ParamEchantGroupe const &params)
+{
+	dls::tableau<long> index_possibles;
+	index_possibles.reserve(params.n);
+
+	for (auto i = params.depart; i < params.n; i += params.decalage) {
+		index_possibles.pousse(i);
+	}
+
+	/* à partir de là, 'n' doit être le nombre d'index possibles, qui peut être
+	 * inférieur à params.n en cas de choix sur la moitié paire ou impaire */
+	auto const n = index_possibles.taille();
+
+	auto gna = GNA(params.graine);
+	auto const k = static_cast<long>(static_cast<float>(n) * params.probabilite);
+	groupe.reserve(k);
+
+	if (params.echantillonage_reservoir) {
+		/* utilise d'un algorithme d'échantillonage réservoir
+		 * voir https://en.wikipedia.org/wiki/Reservoir_sampling */
+		for (auto i = 0; i < k; ++i) {
+			groupe.ajoute_index(index_possibles[i]);
+		}
+
+		for (auto i = k; i < n; ++i) {
+			auto j = gna.uniforme(0l, i);
+
+			if (j < k) {
+				groupe.remplace_index(j, index_possibles[i]);
+			}
+		}
+	}
+	else {
+		for (auto i : index_possibles) {
+			if (gna.uniforme(0.0f, 1.0f) > params.probabilite) {
+				continue;
+			}
+
+			groupe.ajoute_index(i);
+		}
+	}
+}
+
 class OperatriceCreationGroupe final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Création Groupe";
@@ -72,29 +128,28 @@ public:
 		auto const nom_groupe = evalue_chaine("nom_groupe");
 		auto const contenu = evalue_enum("contenu");
 		auto const chaine_methode = evalue_enum("méthode");
-		auto const probabilite = evalue_decimal("probabilité", contexte.temps_courant);
-		auto const graine = evalue_entier("graine", contexte.temps_courant);
 
 		if (nom_groupe.est_vide()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
 			return res_exec::ECHOUEE;
 		}
 
-		auto depart = 0l;
-		auto decalage = 1l;
-		auto mult = probabilite;
+		auto params = ParamEchantGroupe{};
+		params.graine = evalue_entier("graine", contexte.temps_courant);
+		params.probabilite = evalue_decimal("probabilité", contexte.temps_courant);
+		params.echantillonage_reservoir = evalue_bool("échantillonage_réservoir");
 
 		if (chaine_methode == "tout") {
-			depart = 0l;
-			decalage = 1l;
+			params.depart = 0l;
+			params.decalage = 1l;
 		}
 		else if (chaine_methode == "pair") {
-			depart = 0l;
-			decalage = 2l;
+			params.depart = 0l;
+			params.decalage = 2l;
 		}
 		else if (chaine_methode == "impair") {
-			depart = 1l;
-			decalage = 2l;
+			params.depart = 1l;
+			params.decalage = 2l;
 		}
 		else {
 			dls::flux_chaine ss;
@@ -103,30 +158,18 @@ public:
 			return res_exec::ECHOUEE;
 		}
 
-		auto gna = GNA(graine);
-
-		auto const echantillonage_reservoir = false; // À FAIRE : CRASH
-		auto n = 0l;
-
 		/* création de tous les index possibles */
 		if (contenu == "points") {
-			n = m_corps.points_pour_lecture()->taille();
+			params.n = m_corps.points_pour_lecture()->taille();
 		}
 		else if (contenu == "primitives") {
-			n = m_corps.prims()->taille();
+			params.n = m_corps.prims()->taille();
 		}
 		else {
 			dls::flux_chaine ss;
 			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
 			ajoute_avertissement(ss.chn());
 			return res_exec::ECHOUEE;
-		}
-
-		dls::tableau<long> index_possibles;
-		index_possibles.reserve(n);
-
-		for (auto i = depart; i < n; i += decalage) {
-			index_possibles.pousse(i);
 		}
 
 		if (contenu == "points") {
@@ -141,33 +184,7 @@ public:
 
 			groupe = m_corps.ajoute_groupe_point(nom_groupe);
 
-			auto const k = static_cast<long>(static_cast<float>(n) * mult);
-			groupe->reserve(k);
-
-			if (echantillonage_reservoir) {
-				// Rempli le réservoir
-				for (auto i = 0; i < k; ++i) {
-					groupe->ajoute_index(index_possibles[i]);
-				}
-
-				// Remplace les éléments avec une probabilité descendante
-				for (auto i = k; i < n; ++i) {
-					auto j = gna.uniforme(0l, i);
-
-					if (j < k) {
-						groupe->remplace_index(j, index_possibles[i]);
-					}
-				}
-			}
-			else {
-				for (auto i = depart; i < n; i += decalage) {
-					if (gna.uniforme(0.0f, 1.0f) > probabilite) {
-						continue;
-					}
-
-					groupe->ajoute_index(i);
-				}
-			}
+			echantillonne_groupe(*groupe, params);
 		}
 		else if (contenu == "primitives") {
 			auto groupe = m_corps.groupe_primitive(nom_groupe);
@@ -181,33 +198,7 @@ public:
 
 			groupe = m_corps.ajoute_groupe_primitive(nom_groupe);
 
-			auto const k = static_cast<long>(static_cast<float>(n) * mult);
-			groupe->reserve(k);
-
-			if (echantillonage_reservoir) {
-				// Rempli le réservoir
-				for (auto i = 0; i < k; ++i) {
-					groupe->ajoute_index(index_possibles[i]);
-				}
-
-				// Remplace les éléments avec une probabilité descendante
-				for (auto i = k; i < n; ++i) {
-					auto j = gna.uniforme(0l, i);
-
-					if (j < k) {
-						groupe->remplace_index(j, index_possibles[i]);
-					}
-				}
-			}
-			else {
-				for (auto i = depart; i < n; i += decalage) {
-					if (gna.uniforme(0.0f, 1.0f) > probabilite) {
-						continue;
-					}
-
-					groupe->ajoute_index(i);
-				}
-			}
+			echantillonne_groupe(*groupe, params);
 		}
 		else {
 			dls::flux_chaine ss;
