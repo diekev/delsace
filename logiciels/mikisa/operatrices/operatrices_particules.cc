@@ -32,7 +32,6 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/temps.hh"
 #include "biblinternes/structures/arbre_kd.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/grille_particules.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -532,16 +531,12 @@ public:
 		auto attr_source = corps_entree->attribut(nom_attribut);
 
 		if (attr_source == nullptr) {
-			dls::flux_chaine ss;
-			ss << "L'attribut '" << nom_attribut << "' n'existe pas !";
-			this->ajoute_avertissement(ss.chn());
+			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'existe pas !");
 			return res_exec::ECHOUEE;
 		}
 
 		if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
-			dls::flux_chaine ss;
-			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
-			this->ajoute_avertissement(ss.chn());
+			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'est pas de type vecteur !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -845,11 +840,11 @@ public:
 			groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
 
 			if (groupe_prim == nullptr) {
-				dls::flux_chaine ss;
-				ss << "Aucun groupe de primitives nommé '" << nom_groupe
-				   << "' trouvé sur le corps d'entrée !";
+				this->ajoute_avertissement(
+							"Aucun groupe de primitives nommé '",
+							nom_groupe,
+							"' trouvé sur le corps d'entrée !");
 
-				this->ajoute_avertissement(ss.chn());
 				return res_exec::ECHOUEE;
 			}
 		}
@@ -898,12 +893,11 @@ public:
 			auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
 
 			if (index_boite < 0 || index_boite >= 64) {
-				dls::flux_chaine ss;
-				ss << "Erreur lors de la génération de l'index d'une boîte !";
-				ss << "\n   Index : " << index_boite;
-				ss << "\n   Aire triangle : " << aire;
-				ss << "\n   Aire totale : " << aire_maximum;
-				this->ajoute_avertissement(ss.chn());
+				this->ajoute_avertissement(
+							"Erreur lors de la génération de l'index d'une boîte !",
+							"\n   Index : ", index_boite,
+							"\n   Aire triangle : ", aire,
+							"\n   Aire totale : ", aire_maximum);
 				continue;
 			}
 

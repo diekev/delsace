@@ -36,7 +36,6 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"
@@ -903,16 +902,12 @@ public:
 				auto attr2 = paire_attr.second;
 
 				if (attr1->type() != attr2->type()) {
-					dls::flux_chaine ss;
-					ss << "Les types des attributs '" << attr1->nom() << "' sont différents !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Les types des attributs '", attr1->nom(), "' sont différents !");
 					continue;
 				}
 
 				if (attr1->portee != attr2->portee) {
-					dls::flux_chaine ss;
-					ss << "Les portées des attributs '" << attr1->nom() << "' sont différentes !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Les portées des attributs '", attr1->nom(), "' sont différentes !");
 					continue;
 				}
 

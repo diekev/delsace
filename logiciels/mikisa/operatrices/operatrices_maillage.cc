@@ -34,7 +34,6 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/file.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
@@ -1545,18 +1544,12 @@ public:
 						static_cast<double>(rayon));
 
 			if (donnees_ret.nombre_instable > 0) {
-				dls::flux_chaine ss;
-				ss << "Il y a " << donnees_ret.nombre_instable
-				   << " points instables. Veuillez modifier le rayon pour stabiliser l'algorithme.";
-				this->ajoute_avertissement(ss.chn());
+				this->ajoute_avertissement("Il y a ", donnees_ret.nombre_instable, " points instables. Veuillez modifier le rayon pour stabiliser l'algorithme.");
 				return res_exec::ECHOUEE;
 			}
 
 			if (donnees_ret.nombre_impossible > 0) {
-				dls::flux_chaine ss;
-				ss << "Il y a " << donnees_ret.nombre_impossible
-				   << " points impossibles à calculer. Veuillez modifier le rayon pour stabiliser l'algorithme.";
-				this->ajoute_avertissement(ss.chn());
+				this->ajoute_avertissement("Il y a ", donnees_ret.nombre_impossible, " points impossibles à calculer. Veuillez modifier le rayon pour stabiliser l'algorithme.");
 				return res_exec::ECHOUEE;
 			}
 

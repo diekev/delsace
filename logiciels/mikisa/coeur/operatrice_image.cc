@@ -26,7 +26,6 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/pile.hh"
 
 #include "corps/corps.h"
@@ -552,9 +551,7 @@ calque_image const *cherche_calque(
 	auto tampon = image->calque_pour_lecture(nom_calque);
 
 	if (tampon == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Calque '" << nom_calque << "' introuvable !\n";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("Calque '", nom_calque, "' introuvable !\n");
 		return nullptr;
 	}
 

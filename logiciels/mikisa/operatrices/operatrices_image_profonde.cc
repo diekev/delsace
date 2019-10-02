@@ -27,7 +27,6 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/base_de_donnees.hh"
@@ -57,16 +56,12 @@ static Image const *cherche_image_profonde(
 	auto image = op.entree(index)->requiers_image(contexte, donnees_aval, index_lien);
 
 	if (image == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Aucune image trouvée dans l'entrée à l'index " << index << ", lien " << index_lien << " !";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("Aucune image trouvée dans l'entrée à l'index ", index, ", lien ", index_lien, " !");
 		return nullptr;
 	}
 
 	if (!image->est_profonde) {
-		auto flux = dls::flux_chaine();
-		flux << "L'image à l'index " << index << "n'est pas profonde !";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("L'image à l'index ", index, "n'est pas profonde !");
 		return nullptr;
 	}
 

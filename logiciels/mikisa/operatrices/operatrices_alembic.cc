@@ -51,7 +51,6 @@
 
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -87,26 +86,22 @@ static auto ouvre_archive(
 			char header[4]; /* char(0x89) + "HDF" */
 			std::ifstream le_fichier(chemin, std::ios::in | std::ios::binary);
 
-			dls::flux_chaine fc;
-
 			if (!le_fichier) {
-				fc << "Impossible d'ouvrir le fichier " << chemin;
+				operatrice.ajoute_avertissement("Impossible d'ouvrir le fichier ", chemin);
 			}
 			else if (!le_fichier.read(header, sizeof(header))) {
-				fc << "Impossible de lire le fichier " << chemin;
+				operatrice.ajoute_avertissement("Impossible de lire le fichier ", chemin);
 			}
 			else if (strncmp(header + 1, "HDF", 3)) {
-				fc << chemin << " a un format de fichier inconnu, impossible à lire.";
+				operatrice.ajoute_avertissement(chemin, " a un format de fichier inconnu, impossible à lire.");
 			}
 			else {
-				fc << chemin << " utilise le format obsolète HDF5, impossible à lire.";
+				operatrice.ajoute_avertissement(chemin, " utilise le format obsolète HDF5, impossible à lire.");
 			}
 
 			if (le_fichier.is_open()) {
 				le_fichier.close();
 			}
-
-			operatrice.ajoute_avertissement(fc.chn());
 		}
 	}, nullptr);
 

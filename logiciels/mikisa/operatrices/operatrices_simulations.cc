@@ -380,9 +380,7 @@ public:
 			reponse = rep_collision::COLLE;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Opération '" << chaine_reponse << "' inconnue\n";
-			this->ajoute_avertissement(ss.chn());
+			this->ajoute_avertissement("Opération '", chaine_reponse, "' inconnue");
 			return res_exec::ECHOUEE;
 		}
 

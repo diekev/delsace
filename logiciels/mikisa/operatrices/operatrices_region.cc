@@ -37,7 +37,6 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/chef_execution.hh"
@@ -665,9 +664,7 @@ public:
 		auto plg_type = dico_type.trouve(chaine_flou);
 
 		if (plg_type.est_finie()) {
-			auto flux = dls::flux_chaine();
-			flux << "Type de filter '" << chaine_flou << "' inconnu";
-			this->ajoute_avertissement(flux.chn());
+			this->ajoute_avertissement("Type de filtre '", chaine_flou, "' inconnu");
 			return res_exec::ECHOUEE;
 		}
 
@@ -747,9 +744,7 @@ public:
 		auto plg_type = dico_type.trouve(chaine_flou);
 
 		if (plg_type.est_finie()) {
-			auto flux = dls::flux_chaine();
-			flux << "Type de filter '" << chaine_flou << "' inconnu";
-			this->ajoute_avertissement(flux.chn());
+			this->ajoute_avertissement("Type de filtre '", chaine_flou, "' inconnu");
 			return res_exec::ECHOUEE;
 		}
 
@@ -1116,9 +1111,7 @@ public:
 		auto plg_type = dico_type.trouve(chaine_type);
 
 		if (plg_type.est_finie()) {
-			auto flux = dls::flux_chaine();
-			flux << "Type de filter '" << chaine_type << "' inconnu";
-			this->ajoute_avertissement(flux.chn());
+			this->ajoute_avertissement("Type de filtre '", chaine_type, "' inconnu");
 			return res_exec::ECHOUEE;
 		}
 

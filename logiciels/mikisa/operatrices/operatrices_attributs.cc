@@ -32,7 +32,6 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/base_de_donnees.hh"
 #include "coeur/chef_execution.hh"
@@ -120,9 +119,7 @@ public:
 		auto plg_prec = dico_precisions.trouve(chaine_prec);
 
 		if (plg_prec.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Précision d'attribut '" << chaine_prec << "' invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Précision d'attribut '", chaine_prec, "' invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -131,9 +128,7 @@ public:
 		auto plg_dim = dico_dimensions.trouve(chaine_dims);
 
 		if (plg_dim.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Dimensions d'attribut '" << chaine_dims << "' invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Dimensions d'attribut '", chaine_dims, "' invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -142,9 +137,7 @@ public:
 		auto plg_portee = dico_portee.trouve(chaine_portee);
 
 		if (plg_portee.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Portée d'attribut '", chaine_portee, "' invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -199,9 +192,7 @@ public:
 			type = type_attribut::CHAINE;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Type d'attribut '" << chaine_type << "' invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Type d'attribut '", chaine_type, "' invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -435,9 +426,7 @@ public:
 			operation = op_rand_attr::MAXIMUM;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Opération '" << enum_operation << "' inconnue !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Opération '", enum_operation, "' inconnue !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -600,9 +589,7 @@ public:
 				groupe_points = m_corps.groupe_point(nom_groupe);
 
 				if (groupe_points == nullptr) {
-					dls::flux_chaine ss;
-					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Groupe '", nom_groupe, "' inconnu !");
 					return res_exec::ECHOUEE;
 				}
 			}
@@ -614,9 +601,7 @@ public:
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
 
 				if (groupe_prims == nullptr) {
-					dls::flux_chaine ss;
-					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Groupe '", nom_groupe, "' inconnu !");
 					return res_exec::ECHOUEE;
 				}
 			}
@@ -633,9 +618,7 @@ public:
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
 
 				if (groupe_prims == nullptr) {
-					dls::flux_chaine ss;
-					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Groupe '", nom_groupe, "' inconnu !");
 					return res_exec::ECHOUEE;
 				}
 
@@ -646,9 +629,7 @@ public:
 			}
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Portée '" << chaine_portee << "' non-supportée !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Portée '", chaine_portee, "' non-supportée !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -757,9 +738,7 @@ public:
 			location = location_normal::CORPS;
 		}
 		else if (chaine_location != "point") {
-			dls::flux_chaine ss;
-			ss << "Méthode de location '" << chaine_location << "' inconnue";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Méthode de location '", chaine_location, "' inconnue");
 			return res_exec::ECHOUEE;
 		}
 
@@ -775,9 +754,7 @@ public:
 			pesee = pesee_normal::MOYENNE;
 		}
 		else if (chaine_pesee != "aire") {
-			dls::flux_chaine ss;
-			ss << "Méthode de pesée '" << chaine_location << "' inconnue";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Méthode de pesée '", chaine_location, "' inconnue");
 			return res_exec::ECHOUEE;
 		}
 
@@ -836,18 +813,12 @@ public:
 		auto attr_orig = corps_orig->attribut(nom_attribut);
 
 		if (attr_orig == nullptr) {
-			dls::flux_chaine ss;
-			ss << "Le corps d'origine ne possède pas l'attribut '"
-			   << nom_attribut << "'";
-			this->ajoute_avertissement(ss.chn());
+			this->ajoute_avertissement("Le corps d'origine ne possède pas l'attribut '", nom_attribut, "'");
 			return res_exec::ECHOUEE;
 		}
 
 		if (attr_orig->portee != portee_attr::POINT) {
-			dls::flux_chaine ss;
-			ss << "L'attribut '"
-			   << nom_attribut << "' n'est pas sur les points\n";
-			this->ajoute_avertissement(ss.chn());
+			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'est pas sur les points");
 			return res_exec::ECHOUEE;
 		}
 
@@ -1224,10 +1195,7 @@ public:
 		auto attr_src = m_corps.attribut(nom_attribut);
 
 		if (attr_src == nullptr) {
-			dls::flux_chaine ss;
-			ss << "Le corps d'origine ne possède pas l'attribut '"
-			   << nom_attribut << "'";
-			this->ajoute_avertissement(ss.chn());
+			this->ajoute_avertissement("Le corps d'origine ne possède pas l'attribut '", nom_attribut, "'");
 			return res_exec::ECHOUEE;
 		}
 
@@ -1253,9 +1221,7 @@ public:
 		auto plg_portee = dico_portee.trouve(chaine_portee);
 
 		if (plg_portee.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Portée d'attribut '", chaine_portee, "' invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -1629,9 +1595,7 @@ struct OpAttributNuanceur final : public OperatriceCorps {
 		auto plg_portee = dico_portee.trouve(chaine_portee);
 
 		if (plg_portee.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Portée d'attribut '", chaine_portee, "' invalide !");
 			return res_exec::ECHOUEE;
 		}
 

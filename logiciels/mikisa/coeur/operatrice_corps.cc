@@ -24,8 +24,6 @@
 
 #include "operatrice_corps.h"
 
-#include "biblinternes/structures/flux_chaine.hh"
-
 #include "noeud.hh"
 
 OperatriceCorps::OperatriceCorps(Graphe &graphe_parent, Noeud &noeud_)
@@ -72,9 +70,7 @@ bool valide_corps_entree(OperatriceCorps &op,
 		bool besoin_prims, int index)
 {
 	if (corps == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Le corps d'entrée de la prise à l'index" << index << " est nul";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("Le corps d'entrée de la prise à l'index ", index, " est nul");
 		return false;
 	}
 

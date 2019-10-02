@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include <any>
 
@@ -245,6 +246,14 @@ public:
 
 	void ajoute_avertissement(dls::chaine const &avertissement);
 
+	template <typename T, typename... Ts>
+	void ajoute_avertissement(T &&t, Ts &&... ts)
+	{
+		auto flux = dls::flux_chaine();
+		ajoute_avertissement_flux(flux, t, ts...);
+		m_avertissements.pousse(flux.chn());
+	}
+
 	void reinitialise_avertisements();
 
 	dls::tableau<dls::chaine> const &avertissements() const;
@@ -295,6 +304,20 @@ public:
 	virtual void parametres_changes();
 
 	virtual void libere_memoire();
+
+private:
+	template <typename T>
+	void ajoute_avertissement_flux(dls::flux_chaine &flux, T &&t)
+	{
+		flux << t;
+	}
+
+	template <typename T, typename... Ts>
+	void ajoute_avertissement_flux(dls::flux_chaine &flux, T &&t, Ts &&... ts)
+	{
+		flux << t;
+		ajoute_avertissement_flux(flux, ts...);
+	}
 };
 
 calque_image const *cherche_calque(

@@ -35,7 +35,6 @@
 #include "biblinternes/outils/empreintes.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "danjo/types/courbe_bezier.h"
 #include "danjo/types/rampe_couleur.h"
@@ -242,9 +241,10 @@ static Image const *cherche_image(
 	auto image = op.entree(index)->requiers_image(contexte, donnees_aval, index_lien);
 
 	if (image == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Aucune image trouvée dans l'entrée à l'index " << index << ", lien " << index_lien << " !";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement(
+					"Aucune image trouvée dans l'entrée à l'index ", index,
+					", lien ", index_lien, " !");
+
 		return nullptr;
 	}
 

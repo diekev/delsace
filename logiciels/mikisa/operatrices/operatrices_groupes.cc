@@ -25,7 +25,6 @@
 #include "operatrices_groupes.hh"
 
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/contexte_evaluation.hh"
@@ -152,9 +151,7 @@ public:
 			params.decalage = 2l;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "La méthode '" << chaine_methode << "' est invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("La méthode '", chaine_methode, "' est invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -166,9 +163,7 @@ public:
 			params.n = m_corps.prims()->taille();
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Le contenu du groupe '", contenu, "' est invalide !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -176,9 +171,7 @@ public:
 			auto groupe = m_corps.groupe_point(nom_groupe);
 
 			if (groupe != nullptr) {
-				dls::flux_chaine ss;
-				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
-				ajoute_avertissement(ss.chn());
+				ajoute_avertissement("Le groupe '", nom_groupe, "' existe déjà !");
 				return res_exec::ECHOUEE;
 			}
 
@@ -190,9 +183,7 @@ public:
 			auto groupe = m_corps.groupe_primitive(nom_groupe);
 
 			if (groupe != nullptr) {
-				dls::flux_chaine ss;
-				ss << "Le groupe '" << nom_groupe << "' existe déjà !";
-				ajoute_avertissement(ss.chn());
+				ajoute_avertissement("Le groupe '", nom_groupe, "' existe déjà !");
 				return res_exec::ECHOUEE;
 			}
 
@@ -201,9 +192,7 @@ public:
 			echantillonne_groupe(*groupe, params);
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Le contenu du groupe '" << contenu << "' est invalide !";
-			ajoute_avertissement(ss.chn());
+			ajoute_avertissement("Le contenu du groupe '", contenu, "' est invalide !");
 			return res_exec::ECHOUEE;
 		}
 
