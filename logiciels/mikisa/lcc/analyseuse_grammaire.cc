@@ -171,7 +171,6 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::BARRE_BARRE:
 		case id_morceau::BARRE:
 		case id_morceau::CHAPEAU:
-		case id_morceau::DE:
 		case id_morceau::POINT:
 		case id_morceau::EGAL:
 		case id_morceau::TROIS_POINTS:

@@ -30,24 +30,18 @@
 
 static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine("arrête"), id_morceau::ARRETE },
-	dls::paire{ dls::vue_chaine("associe"), id_morceau::ASSOCIE },
 	dls::paire{ dls::vue_chaine("bool"), id_morceau::BOOL },
 	dls::paire{ dls::vue_chaine("boucle"), id_morceau::BOUCLE },
 	dls::paire{ dls::vue_chaine("continue"), id_morceau::CONTINUE },
 	dls::paire{ dls::vue_chaine("dans"), id_morceau::DANS },
-	dls::paire{ dls::vue_chaine("de"), id_morceau::DE },
-	dls::paire{ dls::vue_chaine("diffère"), id_morceau::DIFFERE },
 	dls::paire{ dls::vue_chaine("déc"), id_morceau::DEC },
 	dls::paire{ dls::vue_chaine("ent"), id_morceau::ENT },
 	dls::paire{ dls::vue_chaine("faux"), id_morceau::FAUX },
-	dls::paire{ dls::vue_chaine("hors"), id_morceau::HORS },
 	dls::paire{ dls::vue_chaine("mat3"), id_morceau::MAT3 },
 	dls::paire{ dls::vue_chaine("mat4"), id_morceau::MAT4 },
 	dls::paire{ dls::vue_chaine("nul"), id_morceau::NUL },
 	dls::paire{ dls::vue_chaine("pour"), id_morceau::POUR },
-	dls::paire{ dls::vue_chaine("renvoie"), id_morceau::RENVOIE },
-	dls::paire{ dls::vue_chaine("retiens"), id_morceau::RETIENS },
-	dls::paire{ dls::vue_chaine("sansarrêt"), id_morceau::SANSARRET },
+	dls::paire{ dls::vue_chaine("retourne"), id_morceau::RETOURNE },
 	dls::paire{ dls::vue_chaine("si"), id_morceau::SI },
 	dls::paire{ dls::vue_chaine("sinon"), id_morceau::SINON },
 	dls::paire{ dls::vue_chaine("vec2"), id_morceau::VEC2 },
@@ -58,6 +52,7 @@ static auto paires_mots_cles = dls::cree_dico(
 
 static auto paires_caracteres_double = dls::cree_dico(
 	dls::paire{ dls::vue_chaine("!="), id_morceau::DIFFERENCE },
+	dls::paire{ dls::vue_chaine("#!"), id_morceau::DIRECTIVE },
 	dls::paire{ dls::vue_chaine("&&"), id_morceau::ESP_ESP },
 	dls::paire{ dls::vue_chaine("*="), id_morceau::FOIS_EGAL },
 	dls::paire{ dls::vue_chaine("+="), id_morceau::PLUS_EGAL },
@@ -163,6 +158,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TILDE";
 		case id_morceau::DIFFERENCE:
 			return "id_morceau::DIFFERENCE";
+		case id_morceau::DIRECTIVE:
+			return "id_morceau::DIRECTIVE";
 		case id_morceau::ESP_ESP:
 			return "id_morceau::ESP_ESP";
 		case id_morceau::FOIS_EGAL:
@@ -187,8 +184,6 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::BARRE_BARRE";
 		case id_morceau::ARRETE:
 			return "id_morceau::ARRETE";
-		case id_morceau::ASSOCIE:
-			return "id_morceau::ASSOCIE";
 		case id_morceau::BOOL:
 			return "id_morceau::BOOL";
 		case id_morceau::BOUCLE:
@@ -197,18 +192,12 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::CONTINUE";
 		case id_morceau::DANS:
 			return "id_morceau::DANS";
-		case id_morceau::DE:
-			return "id_morceau::DE";
-		case id_morceau::DIFFERE:
-			return "id_morceau::DIFFERE";
 		case id_morceau::DEC:
 			return "id_morceau::DEC";
 		case id_morceau::ENT:
 			return "id_morceau::ENT";
 		case id_morceau::FAUX:
 			return "id_morceau::FAUX";
-		case id_morceau::HORS:
-			return "id_morceau::HORS";
 		case id_morceau::MAT3:
 			return "id_morceau::MAT3";
 		case id_morceau::MAT4:
@@ -217,12 +206,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::NUL";
 		case id_morceau::POUR:
 			return "id_morceau::POUR";
-		case id_morceau::RENVOIE:
-			return "id_morceau::RENVOIE";
-		case id_morceau::RETIENS:
-			return "id_morceau::RETIENS";
-		case id_morceau::SANSARRET:
-			return "id_morceau::SANSARRET";
+		case id_morceau::RETOURNE:
+			return "id_morceau::RETOURNE";
 		case id_morceau::SI:
 			return "id_morceau::SI";
 		case id_morceau::SINON:
@@ -266,7 +251,7 @@ const char *chaine_identifiant(id_morceau id)
 	return "ERREUR";
 }
 
-static constexpr auto TAILLE_MAX_MOT_CLE = 10;
+static constexpr auto TAILLE_MAX_MOT_CLE = 8;
 
 static bool tables_caracteres[256] = {};
 static id_morceau tables_identifiants[256] = {};
