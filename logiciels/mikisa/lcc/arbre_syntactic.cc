@@ -79,6 +79,12 @@ static auto chaine_type_noeud(type_noeud type)
 			return "pour";
 		case type_noeud::PLAGE:
 			return "plage";
+		case type_noeud::RETOURNE:
+			return "retourne";
+		case type_noeud::ARRETE:
+			return "arrête";
+		case type_noeud::CONTINUE:
+			return "continue";
 	}
 
 	return "invalide";
@@ -981,8 +987,16 @@ int genere_code(
 			 * cette instruction n'est pas nécessaire */
 			instructions.stocke(decalage_branche_si_vrai, static_cast<int>(instructions.taille()));
 
+			/* données pour cette boucle */
+			auto db = donnees_boucles{};
+			contexte_generation.boucles.empile(&db);
+
 			/* génère le code du bloc */
 			genere_code(enfant3, contexte_generation, compileuse, expr_gauche);
+
+			/* on « continue » après le bloc, mais avant d'incrémenter la
+			 * variable bouclée */
+			auto ptr_inst_continue = static_cast<int>(instructions.taille());
 
 			/* incrémente la variable */
 			compileuse.ajoute_instructions(code_inst::IN_INCREMENTE);
@@ -993,7 +1007,19 @@ int genere_code(
 			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
 			compileuse.ajoute_instructions(ptr_debut_boucle);
 
-			instructions.stocke(decalage_branche_si_faux, static_cast<int>(instructions.taille()));
+			auto ptr_fin_boucle = static_cast<int>(instructions.taille());
+
+			instructions.stocke(decalage_branche_si_faux, ptr_fin_boucle);
+
+			contexte_generation.boucles.depile();
+
+			for (auto ptr_arrete : db.arretes) {
+				instructions.stocke(ptr_arrete, ptr_fin_boucle);
+			}
+
+			for (auto ptr_continue : db.continues) {
+				instructions.stocke(ptr_continue, ptr_inst_continue);
+			}
 
 			break;
 		}
@@ -1003,6 +1029,34 @@ int genere_code(
 				genere_code(enfant, contexte_generation, compileuse, expr_gauche);
 			}
 
+			break;
+		}
+		case type_noeud::ARRETE:
+		{
+			auto &instructions = compileuse.instructions();
+
+			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
+			auto decalage_inst = static_cast<int>(instructions.taille());
+			compileuse.ajoute_instructions(0);
+
+			auto donnees_boucle = contexte_generation.boucles.haut();
+			donnees_boucle->arretes.pousse(decalage_inst);
+			break;
+		}
+		case type_noeud::CONTINUE:
+		{
+			auto &instructions = compileuse.instructions();
+			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
+			auto decalage_inst = static_cast<int>(instructions.taille());
+			compileuse.ajoute_instructions(0);
+
+			auto donnees_boucle = contexte_generation.boucles.haut();
+			donnees_boucle->continues.pousse(decalage_inst);
+			break;
+		}
+		case type_noeud::RETOURNE:
+		{
+			compileuse.ajoute_instructions(code_inst::TERMINE);
 			break;
 		}
 	}

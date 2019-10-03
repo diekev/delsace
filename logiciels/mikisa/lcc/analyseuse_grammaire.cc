@@ -295,6 +295,36 @@ void analyseuse_grammaire::analyse_bloc()
 		else if (est_identifiant(id_morceau::POUR)) {
 			analyse_controle_pour();
 		}
+		else if (est_identifiant(id_morceau::ARRETE)) {
+			avance();
+			m_assembleuse->empile_noeud(lcc::noeud::type_noeud::ARRETE, m_contexte, m_identifiants[position()]);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point-virgule ';' après « arrête »");
+			}
+
+			m_assembleuse->depile_noeud(lcc::noeud::type_noeud::ARRETE);
+		}
+		else if (est_identifiant(id_morceau::CONTINUE)) {
+			avance();
+			m_assembleuse->empile_noeud(lcc::noeud::type_noeud::CONTINUE, m_contexte, m_identifiants[position()]);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point-virgule ';' après « continue »");
+			}
+
+			m_assembleuse->depile_noeud(lcc::noeud::type_noeud::CONTINUE);
+		}
+		else if (est_identifiant(id_morceau::RETOURNE)) {
+			avance();
+			m_assembleuse->empile_noeud(lcc::noeud::type_noeud::RETOURNE, m_contexte, m_identifiants[position()]);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point-virgule ';' après « retourne »");
+			}
+
+			m_assembleuse->depile_noeud(lcc::noeud::type_noeud::RETOURNE);
+		}
 		else {
 			analyse_expression(id_morceau::POINT_VIRGULE, false);
 		}

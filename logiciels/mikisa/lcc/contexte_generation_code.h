@@ -26,6 +26,8 @@
 
 #include <any>
 
+#include "biblinternes/structures/pile.hh"
+
 #include "execution_pile.hh"
 #include "fonctions.hh"
 
@@ -168,6 +170,11 @@ struct donnees_variables {
 	lcc::type_var donnees_type{};
 };
 
+struct donnees_boucles {
+	dls::tableau<int> arretes{};
+	dls::tableau<int> continues{};
+};
+
 using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, donnees_variables>>;
 
 struct ContexteGenerationCode {
@@ -176,6 +183,8 @@ struct ContexteGenerationCode {
 	dls::tableau<DonneesModule *> modules{};
 
 	dls::ensemble<lcc::req_fonc> requetes{};
+
+	dls::pile<donnees_boucles *> boucles{};
 
 	lcc::magasin_fonctions fonctions{};
 
