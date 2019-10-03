@@ -140,8 +140,14 @@ void base::imprime_code(std::ostream &os, int profondeur)
 		os << ' ' << ' ';
 	}
 
-	os << chaine_type_noeud(this->type) << " : " << donnees.chaine
-	   << " (" << chaine_type_var(this->donnees_type) << ')' << '\n';
+	os << chaine_type_noeud(this->type);
+
+	if (this->type != type_noeud::RACINE) {
+		os << " : " << donnees.chaine
+		   << " (" << chaine_type_var(this->donnees_type) << ')';
+	}
+
+	os << '\n';
 
 	for (auto const &enfant : this->enfants) {
 		enfant->imprime_code(os, profondeur + 1);
