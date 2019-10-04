@@ -69,7 +69,7 @@ int main()
 	//donnees_module->tampon = TamponSource("@C.r = 1.0;\n");
 	//donnees_module->tampon = TamponSource("$P *= 2.0;\n");
 	//donnees_module->tampon = lng::tampon_source("x = 0; y = 0; pour i dans 0...32 { continue; $P.x = 2.0 * i; x += 5; } retourne; pour i dans 0...32 { arrête; $P.x = 2.0 * i; } \n");
-	donnees_module->tampon = lng::tampon_source(R"(l = $ligne; tabl = morcelle(l, ","); $P.x = tabl.taille();)");
+	donnees_module->tampon = lng::tampon_source(R"(l = $ligne; tabl = morcelle(l, ","); $P.x = tabl[3];)");
 
 	try {
 		auto decoupeuse = decoupeuse_texte(donnees_module);

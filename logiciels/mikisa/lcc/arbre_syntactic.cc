@@ -542,28 +542,49 @@ int genere_code(
 
 			/* À FAIRE : multiplication mat/vec, etc. */
 
-			auto conversion = calcul_conversion(enfant1->donnees_type, enfant2->donnees_type);
+			if (b->identifiant() == id_morceau::CROCHET_OUVRANT) {
+				if (enfant2->donnees_type != lcc::type_var::TABLEAU) {
+					erreur::lance_erreur(
+								"Un tableau est requis pour l'opérateur []",
+								contexte_generation,
+								enfant2->donnees_morceau());
+				}
 
-			if (conversion == conv_op::aucune) {
-				b->donnees_type = enfant1->donnees_type;
-			}
-			else if (conversion == conv_op::converti_type1) {
-				b->donnees_type = enfant2->donnees_type;
+				if (enfant1->donnees_type != lcc::type_var::ENT32) {
+					erreur::lance_erreur(
+								"Un nombre entier est requis dans l'opérateur []",
+								contexte_generation,
+								enfant1->donnees_morceau());
+				}
 
-				decalage1 = ajoute_conversion(
-							compileuse,
-							enfant1->donnees_type,
-							enfant2->donnees_type,
-							enfant1->pointeur_donnees);
+				b->donnees_type = lcc::type_var::ENT32;
+				decalage1 = enfant2->pointeur_donnees;
+				decalage2 = enfant1->pointeur_donnees;
 			}
 			else {
-				b->donnees_type = enfant1->donnees_type;
+				auto conversion = calcul_conversion(enfant1->donnees_type, enfant2->donnees_type);
 
-				decalage2 = ajoute_conversion(
-							compileuse,
-							enfant2->donnees_type,
-							enfant1->donnees_type,
-							enfant2->pointeur_donnees);
+				if (conversion == conv_op::aucune) {
+					b->donnees_type = enfant1->donnees_type;
+				}
+				else if (conversion == conv_op::converti_type1) {
+					b->donnees_type = enfant2->donnees_type;
+
+					decalage1 = ajoute_conversion(
+								compileuse,
+								enfant1->donnees_type,
+								enfant2->donnees_type,
+								enfant1->pointeur_donnees);
+				}
+				else {
+					b->donnees_type = enfant1->donnees_type;
+
+					decalage2 = ajoute_conversion(
+								compileuse,
+								enfant2->donnees_type,
+								enfant1->donnees_type,
+								enfant2->pointeur_donnees);
+				}
 			}
 
 			auto ajoute_insts_op_assign = [&](code_inst inst)
@@ -585,6 +606,8 @@ int genere_code(
 
 				return b->pointeur_donnees;
 			};
+
+			auto requiers_inst_type = true;
 
 			switch (b->identifiant()) {
 				case id_morceau::PLUS:
@@ -687,6 +710,12 @@ int genere_code(
 					compileuse.ajoute_instructions(code_inst::FN_COMP_OUX);
 					break;
 				}
+				case id_morceau::CROCHET_OUVRANT:
+				{
+					compileuse.ajoute_instructions(code_inst::IN_EXTRAIT_TABLEAU);
+					requiers_inst_type = false;
+					break;
+				}
 				default:
 				{
 					/* À FAIRE : erreur */
@@ -694,7 +723,10 @@ int genere_code(
 				}
 			}
 
-			compileuse.ajoute_instructions(b->donnees_type);
+			if (requiers_inst_type) {
+				compileuse.ajoute_instructions(b->donnees_type);
+			}
+
 			compileuse.ajoute_instructions(decalage1);
 			compileuse.ajoute_instructions(decalage2);
 

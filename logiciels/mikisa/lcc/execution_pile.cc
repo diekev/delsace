@@ -1987,26 +1987,17 @@ void execute_pile(
 			}
 			case code_inst::IN_EXTRAIT_TABLEAU:
 			{
-				// ptr où se trouve le tableau
-				// type des données du tableau
-				// index où extraire
-				// ptr où écrire
-
-				auto ptr_tabl = insts.charge_entier(compteur);
-				auto type = static_cast<type_var>(insts.charge_entier(compteur));
-				auto index = insts.charge_entier(compteur);
+				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
+				auto index = pile_donnees.charge_entier(compteur, insts);
+				auto res = 0;
 
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
-				/* À FAIRE */
-				switch (type) {
-					default:
-					{
-						break;
-					}
+				if (index < tableau.taille()) {
+					res = tableau[index];
 				}
 
-				pile_donnees.stocke(compteur, insts, tableau[index]);
+				pile_donnees.stocke(compteur, insts, res);
 
 				break;
 			}
