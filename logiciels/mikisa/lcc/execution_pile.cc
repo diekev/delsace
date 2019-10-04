@@ -2090,7 +2090,7 @@ void execute_pile(
 				for (auto i = 0; i < morceaux.taille(); ++i) {
 					auto idx_chn = contexte_local.chaines.taille();
 					contexte_local.chaines.pousse(morceaux[i]);
-					tableau.pousse(static_cast<int>(idx_chn));
+					tableau.pousse(static_cast<int>(contexte.chaines.taille() + idx_chn));
 				}
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
