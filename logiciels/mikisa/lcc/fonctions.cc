@@ -929,6 +929,16 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 					param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous);
 
+	magasin.ajoute_fonction(
+				"extrait_chaine",
+				code_inst::FN_EXTRAIT_CHAINE_TABL,
+				signature(
+					param_entrees(
+						donnees_parametre("tableau", type_var::TABLEAU),
+						donnees_parametre("index", type_var::ENT32)),
+					param_sorties(donnees_parametre("valeur", type_var::CHAINE))),
+				ctx_script::tous);
+
 	magasin.categorie = "chaines";
 
 	magasin.ajoute_fonction(

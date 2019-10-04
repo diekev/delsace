@@ -155,6 +155,7 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_EVALUE_RAMPE_COULEUR)
 		CHAINE_CAS(code_inst::FN_TAILLE_CHAINE)
 		CHAINE_CAS(code_inst::FN_MORCELLE_CHAINE)
+		CHAINE_CAS(code_inst::FN_EXTRAIT_CHAINE_TABL)
 	}
 
 	return "erreur : code_inst inconnu";

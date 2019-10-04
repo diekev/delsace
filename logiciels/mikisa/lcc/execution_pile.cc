@@ -1986,6 +1986,7 @@ void execute_pile(
 				break;
 			}
 			case code_inst::IN_EXTRAIT_TABLEAU:
+			case code_inst::FN_EXTRAIT_CHAINE_TABL:
 			{
 				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
 				auto index = pile_donnees.charge_entier(compteur, insts);
