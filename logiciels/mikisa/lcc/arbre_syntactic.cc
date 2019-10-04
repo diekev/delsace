@@ -28,6 +28,7 @@
 
 #include "contexte_generation_code.h"
 #include "code_inst.hh"
+#include "erreur.h"
 
 namespace lcc {
 
@@ -269,7 +270,11 @@ int genere_code(
 					gest_attrs.requiers_attr(dls::chaine(b->chaine()), b->donnees_type, b->pointeur_donnees);
 				}
 				else {
-					// À FAIRE : erreur
+					erreur::lance_erreur(
+								"Attibut inconnu.",
+								contexte_generation,
+								b->donnees,
+								erreur::type_erreur::NORMAL);
 				}
 			}
 			else {
