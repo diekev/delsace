@@ -2084,18 +2084,10 @@ void execute_pile(
 				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
 				auto &tableau = pair_tabl_idx.first;
 
-				std::cerr << "Morcelle ptr_chn  : " << ptr_chn << '\n';
-				std::cerr << "Morcelle ptr_sep  : " << ptr_sep << '\n';
-				std::cerr << "Morcelle   : " << chn << '\n';
-				std::cerr << "Séparateur : " << sep << '\n';
-				std::cerr << "Morceaux :\n";
-
 				for (auto i = 0; i < morceaux.taille(); ++i) {
 					auto idx_chn = contexte_local.chaines.taille();
 					contexte_local.chaines.pousse(morceaux[i]);
 					tableau.pousse(static_cast<int>(idx_chn));
-
-					std::cerr << "\t" << morceaux[i] << '\n';
 				}
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
