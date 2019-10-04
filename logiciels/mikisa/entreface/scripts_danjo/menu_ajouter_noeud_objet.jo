@@ -32,7 +32,6 @@ menu "Noeud Objet" {
 		action(valeur="Création Cube"; attache=ajouter_noeud; métadonnée="Création Cube")
 		action(valeur="Création Cylindre"; attache=ajouter_noeud; métadonnée="Création Cylindre")
 		action(valeur="Création Grille"; attache=ajouter_noeud; métadonnée="Création Grille")
-		action(valeur="Création LatLong"; attache=ajouter_noeud; métadonnée="Création LatLong")
 		action(valeur="Création Ligne"; attache=ajouter_noeud; métadonnée="Création Ligne")
 		action(valeur="Création Pancarte"; attache=ajouter_noeud; métadonnée="Création Pancarte")
 		action(valeur="Création Primitive Sphère"; attache=ajouter_noeud; métadonnée="Création Primitive Sphère")
