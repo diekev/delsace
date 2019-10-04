@@ -30,6 +30,7 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	collision.hh
+	coordonnees_geographiques.hh
 	couleur.hh
 	rayon.hh
 	spectre.hh
@@ -37,6 +38,7 @@ set(ENTETES
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
 	collision.cc
+	coordonnees_geographiques.cc
 	couleur.cc
 	rayon.cc
 	spectre.cc
