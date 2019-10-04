@@ -229,6 +229,67 @@ static auto ajoute_attributs_contexte(
 	}
 }
 
+static auto cree_proprietes_parametres_declares(
+		danjo::Manipulable *manipulable,
+		ContexteGenerationCode &ctx_gen)
+{
+	for (auto &param_decl : ctx_gen.params_declare) {
+		if (manipulable->propriete(param_decl.nom) != nullptr) {
+			continue;
+		}
+
+		std::cerr << "Crée propriété pour " << param_decl.nom << "\n";
+
+		auto prop = danjo::Propriete{};
+		prop.est_extra = true;
+
+		switch (param_decl.type) {
+			case lcc::type_var::DEC:
+			{
+				prop.type = danjo::TypePropriete::DECIMAL;
+				prop.valeur = param_decl.valeur[0];
+				break;
+			}
+			case lcc::type_var::ENT32:
+			{
+				prop.type = danjo::TypePropriete::ENTIER;
+				prop.valeur = static_cast<int>(param_decl.valeur[0]);
+				break;
+			}
+			case lcc::type_var::VEC3:
+			{
+				prop.type = danjo::TypePropriete::VECTEUR;
+				prop.valeur = param_decl.valeur;
+				break;
+			}
+			case lcc::type_var::COULEUR:
+			{
+				prop.type = danjo::TypePropriete::COULEUR;
+				prop.valeur = dls::phys::couleur32();
+				break;
+			}
+			case lcc::type_var::CHAINE:
+			{
+				prop.type = danjo::TypePropriete::CHAINE_CARACTERE;
+				prop.valeur = dls::chaine("");
+				break;
+			}
+			case lcc::type_var::VEC2:
+			case lcc::type_var::VEC4:
+			case lcc::type_var::MAT3:
+			case lcc::type_var::MAT4:
+			case lcc::type_var::INVALIDE:
+			case lcc::type_var::TABLEAU:
+			case lcc::type_var::POLYMORPHIQUE:
+			{
+				continue;
+			}
+		}
+
+		manipulable->ajoute_propriete_extra(param_decl.nom, prop);
+	}
+}
+
 static auto ajoute_proprietes_extra(
 		danjo::Manipulable *manipulable,
 		ContexteGenerationCode &ctx_gen,
@@ -483,6 +544,7 @@ public:
 			ajoute_attributs_contexte(m_corps, ctx_gen, compileuse, ctx_script);
 
 			/* ajout des variables extras */
+			cree_proprietes_parametres_declares(this, ctx_gen);
 			ajoute_proprietes_extra(this, ctx_gen, compileuse, contexte.temps_courant);
 
 			assembleuse.genere_code(ctx_gen, compileuse);
@@ -710,6 +772,7 @@ public:
 			ajoute_attributs_contexte(m_corps, ctx_gen, compileuse, ctx_script);
 
 			/* ajout des variables extras */
+			cree_proprietes_parametres_declares(this, ctx_gen);
 			ajoute_proprietes_extra(this, ctx_gen, compileuse, contexte.temps_courant);
 
 			assembleuse.genere_code(ctx_gen, compileuse);

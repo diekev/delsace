@@ -69,6 +69,8 @@ private:
 	void analyse_bloc();
 	void analyse_controle_si();
 	void analyse_controle_pour();
+	void analyse_directive();
+	void analyse_parametre(lcc::type_var type_param);
 
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaîne passée

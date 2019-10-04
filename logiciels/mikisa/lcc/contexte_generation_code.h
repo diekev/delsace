@@ -175,6 +175,15 @@ struct donnees_boucles {
 	dls::tableau<int> continues{};
 };
 
+/* pour les paramètres déclarés dans les scripts via #!param */
+struct DonneesDeclarationParam {
+	dls::chaine nom{};
+	lcc::type_var type{};
+	dls::math::vec3f min{};
+	dls::math::vec3f max{};
+	dls::math::vec3f valeur{};
+};
+
 using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, donnees_variables>>;
 
 struct ContexteGenerationCode {
@@ -185,6 +194,8 @@ struct ContexteGenerationCode {
 	dls::ensemble<lcc::req_fonc> requetes{};
 
 	dls::pile<donnees_boucles *> boucles{};
+
+	dls::tableau<DonneesDeclarationParam> params_declare{};
 
 	lcc::magasin_fonctions fonctions{};
 
