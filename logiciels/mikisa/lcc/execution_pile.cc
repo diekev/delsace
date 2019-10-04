@@ -2012,7 +2012,7 @@ void execute_pile(
 			}
 			case code_inst::FN_TAILLE_TABLEAU:
 			{
-				auto ptr_tabl = insts.charge_entier(compteur);
+				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(tableau.taille()));
