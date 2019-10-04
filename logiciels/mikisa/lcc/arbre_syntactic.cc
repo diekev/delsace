@@ -718,8 +718,10 @@ int genere_code(
 				}
 				default:
 				{
-					/* À FAIRE : erreur */
-					break;
+					erreur::lance_erreur(
+								"Opération inconnue",
+								contexte_generation,
+								b->donnees_morceau());
 				}
 			}
 
