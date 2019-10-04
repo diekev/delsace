@@ -936,7 +936,7 @@ void execute_pile(
 	while (compteur != insts.taille()) {
 		auto inst = static_cast<code_inst>(insts.charge_entier(compteur));
 
-		std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
+		//std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
 
 		switch (inst) {
 			case code_inst::TERMINE:
