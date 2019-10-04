@@ -958,6 +958,14 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 						donnees_parametre("séparateur", type_var::CHAINE)),
 					param_sorties(donnees_parametre("tableau", type_var::TABLEAU))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"chaine_vers_décimal",
+				code_inst::FN_CHAINE_VERS_DECIMAL,
+				signature(
+					param_entrees(donnees_parametre("chaine", type_var::CHAINE)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_bruits(magasin_fonctions &magasin)

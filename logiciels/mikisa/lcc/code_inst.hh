@@ -41,6 +41,7 @@ enum class code_inst : int {
 	/* chaines */
 	FN_TAILLE_CHAINE,
 	FN_MORCELLE_CHAINE,
+	FN_CHAINE_VERS_DECIMAL,
 
 	/* opérateurs */
 	ASSIGNATION,

@@ -69,7 +69,7 @@ int main()
 	//donnees_module->tampon = TamponSource("@C.r = 1.0;\n");
 	//donnees_module->tampon = TamponSource("$P *= 2.0;\n");
 	//donnees_module->tampon = lng::tampon_source("x = 0; y = 0; pour i dans 0...32 { continue; $P.x = 2.0 * i; x += 5; } retourne; pour i dans 0...32 { arrête; $P.x = 2.0 * i; } \n");
-	donnees_module->tampon = lng::tampon_source(R"(l = $ligne; tabl = morcelle(l, ","); $P.x = tabl[3];)");
+	donnees_module->tampon = lng::tampon_source(R"(l = $ligne; tabl = morcelle(l, ","); m3 = extrait_chaine(tabl, 4); $P.x = chaine_vers_décimal(m3);)");
 
 	try {
 		auto decoupeuse = decoupeuse_texte(donnees_module);
@@ -121,7 +121,7 @@ int main()
 		auto ctx_exec = lcc::ctx_exec{};
 		ctx_exec.chaines = contexte.chaines;
 		auto ptr_ligne = static_cast<int>(ctx_exec.chaines.taille());
-		ctx_exec.chaines.pousse("texte,test,ok,non");
+		ctx_exec.chaines.pousse("texte,test,ok,non,57.69");
 
 		for (auto entree : entrees) {
 			idx = gest_props.pointeur_donnees("P");

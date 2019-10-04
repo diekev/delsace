@@ -31,6 +31,7 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/image.hh"
@@ -43,6 +44,16 @@
 #include "wolika/echantillonnage.hh"
 
 namespace lcc {
+
+static auto extrait_decimal(dls::vue_chaine const &vue_chaine)
+{
+	dls::flux_chaine ss;
+	ss << vue_chaine;
+
+	float r;
+	ss >> r;
+	return r;
+}
 
 static auto cosinus(float x)
 {
@@ -2086,6 +2097,14 @@ void execute_pile(
 
 				break;
 			}
+			case code_inst::FN_CHAINE_VERS_DECIMAL:
+			{
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto valeur = extrait_decimal(chn);
+				pile_donnees.stocke(compteur, insts, valeur);
+				break;
+			}
 #if 0
 			case code_inst::FN_CONCAT_CHAINE:
 			{
@@ -2099,10 +2118,6 @@ void execute_pile(
 
 				donnees.stocke(insts, courant, idx_chn);
 
-				break;
-			}
-			case code_inst::FN_CHAINE_VERS_DECIMAL:
-			{
 				break;
 			}
 			case code_inst::FN_SHERE_UV:
