@@ -631,7 +631,7 @@ public:
 			ctx_exec.chaines[decalage_chn] = tampon_source[static_cast<int>(i)];
 
 			remplis_donnees(compileuse.donnees(), gest_props, "index", static_cast<int>(i));
-			remplis_donnees(compileuse.donnees(), gest_props, "ligne", static_cast<int>(decalage_chn) - 1);
+			remplis_donnees(compileuse.donnees(), gest_props, "ligne", static_cast<int>(decalage_chn));
 
 			/* stocke les attributs */
 			stocke_attributs(gest_attrs, compileuse.donnees(), static_cast<int>(i));
