@@ -757,6 +757,16 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 					param_entrees(),
 					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"proj_uv_sphère",
+				code_inst::FN_PROJ_UV_SPHERE,
+				signature(
+					param_entrees(
+						donnees_parametre("u", type_var::DEC),
+						donnees_parametre("v", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_corps(magasin_fonctions &magasin)

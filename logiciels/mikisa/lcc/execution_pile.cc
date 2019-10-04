@@ -2105,6 +2105,19 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, valeur);
 				break;
 			}
+			case code_inst::FN_PROJ_UV_SPHERE:
+			{
+				auto u = pile_donnees.charge_decimal(compteur, insts);
+				auto v = pile_donnees.charge_decimal(compteur, insts);
+
+				auto res = dls::math::vec3f();
+				res.x = std::cos(u) + std::sin(v);
+				res.y = std::cos(v);
+				res.z = std::sin(u) * std::sin(v);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 #if 0
 			case code_inst::FN_CONCAT_CHAINE:
 			{
@@ -2118,10 +2131,6 @@ void execute_pile(
 
 				donnees.stocke(insts, courant, idx_chn);
 
-				break;
-			}
-			case code_inst::FN_SHERE_UV:
-			{
 				break;
 			}
 #endif
