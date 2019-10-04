@@ -29,6 +29,7 @@
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
 #include "execution_pile.hh"
+#include "lcc.hh"
 #include "modules.hh"
 
 /* Tests à écrire :
@@ -54,7 +55,9 @@ int main()
 {
 	auto &os = std::cerr;
 
-	auto contexte = ContexteGenerationCode{};
+	auto lcc = lcc::LCC{};
+	lcc::initialise(lcc);
+	auto contexte = lcc::cree_contexte(lcc);
 
 	auto donnees_module = contexte.cree_module("racine");
 	//donnees_module->tampon = TamponSource("offset = traduit($P, 0, 1, -1, 1); $P = bruit_turbulent(7, offset, $P);");
@@ -65,7 +68,8 @@ int main()
 	//donnees_module->tampon = TamponSource("pour i dans 0...10 { $P.x = 2.0 * i; } $P.z = 5.0;\n");
 	//donnees_module->tampon = TamponSource("@C.r = 1.0;\n");
 	//donnees_module->tampon = TamponSource("$P *= 2.0;\n");
-	donnees_module->tampon = lng::tampon_source("x = 0; y = 0; pour i dans 0...32 { continue; $P.x = 2.0 * i; x += 5; } retourne; pour i dans 0...32 { arrête; $P.x = 2.0 * i; } \n");
+	//donnees_module->tampon = lng::tampon_source("x = 0; y = 0; pour i dans 0...32 { continue; $P.x = 2.0 * i; x += 5; } retourne; pour i dans 0...32 { arrête; $P.x = 2.0 * i; } \n");
+	donnees_module->tampon = lng::tampon_source(R"(l = $ligne; tabl = morcelle(l, ","); $P.x = tabl.taille();)");
 
 	try {
 		auto decoupeuse = decoupeuse_texte(donnees_module);
@@ -94,6 +98,9 @@ int main()
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
 		gest_attrs.ajoute_propriete("C", lcc::type_var::COULEUR, idx);
 
+		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::CHAINE));
+		gest_props.ajoute_propriete("ligne", lcc::type_var::CHAINE, idx);
+
 		assembleuse.genere_code(contexte, compileuse);
 
 		os << "------------------------------------------------------------------\n";
@@ -112,6 +119,9 @@ int main()
 		};
 
 		auto ctx_exec = lcc::ctx_exec{};
+		ctx_exec.chaines = contexte.chaines;
+		auto ptr_ligne = static_cast<int>(ctx_exec.chaines.taille());
+		ctx_exec.chaines.pousse("texte,test,ok,non");
 
 		for (auto entree : entrees) {
 			idx = gest_props.pointeur_donnees("P");
@@ -119,6 +129,9 @@ int main()
 
 			idx = gest_props.pointeur_donnees("index");
 			compileuse.donnees().stocke(idx, 1024);
+
+			idx = gest_props.pointeur_donnees("ligne");
+			compileuse.donnees().stocke(idx, ptr_ligne);
 
 			lcc::execute_pile(
 						ctx_exec,
