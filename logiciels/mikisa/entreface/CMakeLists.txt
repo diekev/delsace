@@ -123,7 +123,6 @@ set(FICHIERS_DANJO
 	scripts_danjo/operatrice_bilateral_image.jo
 	scripts_danjo/operatrice_bruit_blanc.jo
 	scripts_danjo/operatrice_bruit_cheveux.jo
-	scripts_danjo/operatrice_bruit_topologique.jo
 	scripts_danjo/operatrice_champs_distance.jo
 	scripts_danjo/operatrice_collision.jo
 	scripts_danjo/operatrice_commutateur.jo

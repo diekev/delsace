@@ -728,98 +728,6 @@ public:
 
 /* ************************************************************************** */
 
-class OperatriceBruitTopologique final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Bruit Topologique";
-	static constexpr auto AIDE = "";
-
-	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_bruit_topologique.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-
-		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return res_exec::ECHOUEE;
-		}
-
-		auto points = m_corps.points_pour_ecriture();
-
-		auto attr_N = m_corps.attribut("N");
-
-		if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
-			calcul_normaux(m_corps, false, false);
-			attr_N = m_corps.attribut("N");
-		}
-
-		auto graine = evalue_entier("graine");
-		auto poids = evalue_decimal("poids");
-		auto poids_normaux = evalue_decimal("poids_normaux");
-		auto poids_tangeantes = evalue_decimal("poids_tangeantes");
-
-		auto index_voisins = cherche_index_voisins(m_corps);
-
-		auto gna = GNA(graine);
-
-		auto deplacement = dls::tableau<dls::math::vec3f>(
-					points->taille(),
-					dls::math::vec3f(0.0f));
-
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
-
-			/* tangeante */
-			auto const &voisins = index_voisins[i];
-
-			for (auto voisin : voisins) {
-				auto const pv = points->point(voisin);
-				auto echelle = poids_tangeantes / (poids_tangeantes + longueur(pv - point));
-				deplacement[i] += gna.uniforme(0.0f, echelle) * (pv - point);
-			}
-
-			if (voisins.taille() != 0) {
-				deplacement[i] /= static_cast<float>(voisins.taille());
-			}
-
-			/* normal */
-			auto n = dls::math::vec3f();
-			extrait(attr_N->r32(i), n);
-			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * n;
-		}
-
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
-			point += poids * deplacement[i];
-			points->point(i, point);
-		}
-
-		return res_exec::REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
 class OperatriceErosionMaillage final : public OperatriceCorps {
 public:
 	static constexpr auto NOM = "Érosion Maillage";
@@ -1980,7 +1888,6 @@ void enregistre_operatrices_maillage(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceTriangulation>());
 	usine.enregistre_type(cree_desc<OperatriceNormaliseCovariance>());
 	usine.enregistre_type(cree_desc<OperatriceAligneCovariance>());
-	usine.enregistre_type(cree_desc<OperatriceBruitTopologique>());
 	usine.enregistre_type(cree_desc<OperatriceErosionMaillage>());
 	usine.enregistre_type(cree_desc<OpGeometrieMaillage>());
 	usine.enregistre_type(cree_desc<OpFonteMaillage>());
