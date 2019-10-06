@@ -1625,6 +1625,140 @@ struct OpAttributNuanceur final : public OperatriceCorps {
 
 /* ************************************************************************** */
 
+struct OpImprimeAttribut final : public OperatriceCorps {
+	static constexpr auto NOM = "Imprime Attribut";
+	static constexpr auto AIDE = "Imprime les valeurs d'un attribut dans la sortie standard.";
+
+	OpImprimeAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_attribut_detail.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto nom_attribut = evalue_chaine("nom_attribut");
+
+		if (nom_attribut.est_vide()) {
+			this->ajoute_avertissement("Le nom du nuanceur est vide");
+			return res_exec::ECHOUEE;
+		}
+
+		auto attribut = m_corps.attribut(nom_attribut);
+
+		if (attribut == nullptr) {
+			this->ajoute_avertissement("L'attribut '", nom_attribut,"' n'existe pas");
+			return res_exec::ECHOUEE;
+		}
+
+		for (auto i = 0; i < attribut->taille(); ++i) {
+			std::cerr << "valeur " << i << " : ";
+
+			switch (attribut->type()) {
+				case type_attribut::N8:
+				{
+					std::cerr << *attribut->n8(i);
+					break;
+				}
+				case type_attribut::Z8:
+				{
+					std::cerr << *attribut->z8(i);
+					break;
+				}
+				case type_attribut::N16:
+				{
+					std::cerr << *attribut->n16(i);
+					break;
+				}
+				case type_attribut::Z16:
+				{
+					std::cerr << *attribut->z16(i);
+					break;
+				}
+				case type_attribut::N32:
+				{
+					std::cerr << *attribut->n32(i);
+					break;
+				}
+				case type_attribut::Z32:
+				{
+					std::cerr << *attribut->z32(i);
+					break;
+				}
+				case type_attribut::N64:
+				{
+					std::cerr << *attribut->n64(i);
+					break;
+				}
+				case type_attribut::Z64:
+				{
+					std::cerr << *attribut->z64(i);
+					break;
+				}
+				case type_attribut::R16:
+				{
+					break;
+				}
+				case type_attribut::R32:
+				{
+					std::cerr << *attribut->r32(i);
+					break;
+				}
+				case type_attribut::R64:
+				{
+					std::cerr << *attribut->r64(i);
+					break;
+				}
+				case type_attribut::CHAINE:
+				{
+					std::cerr << *attribut->chaine(i);
+					break;
+				}
+				case type_attribut::INVALIDE:
+				{
+					break;
+				}
+			}
+
+			std::cerr << '\n';
+		}
+
+		return res_exec::REUSSIE;
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_nuanceur") {
+			for (auto &nuanceur : contexte.bdd->nuanceurs()) {
+				liste.pousse(nuanceur->noeud.nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_operatrices_attributs(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OperatriceCreationAttribut>());
@@ -1636,6 +1770,7 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
 	usine.enregistre_type(cree_desc<OpVisibiliteCamera>());
 	usine.enregistre_type(cree_desc<OpAttributNuanceur>());
+	usine.enregistre_type(cree_desc<OpImprimeAttribut>());
 }
 
 #pragma clang diagnostic pop
