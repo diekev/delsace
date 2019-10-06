@@ -220,6 +220,10 @@ BUGS
 -- l'inversion de l'étalonnage ne fonctionne pas correctement
 -- crash lors de l'évaluation d'une courbe ou d'une rampe lue depuis un fichier de sauvegarde, car les données de ces types ne sont pas écrits dans les fichiers.
 -- les graphes racines ne sont ni lus ni écris
+-- les graphes de simulation ne sont pas ajournés quand un noeud en amont est modifié
+-- les graphes de simulation n'ont pas de menu après avoir ouvert un fichier de sauvegarde
+-- fuite de mémoire dans l'exécution de LCC
+-- LCC : les nombres entiers ont des valeurs étranges après avoir été transférés de la pile de données aux attributs
 
 ################################################################################
 danjo
