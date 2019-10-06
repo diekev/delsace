@@ -1150,13 +1150,14 @@ public:
 
 			for (auto y = plage.begin(); y < plage.end(); ++y) {
 				for (auto x = 0; x < desc.resolution.x; ++x) {
+					auto ctx_local = lcc::ctx_local{};
 					auto index = terrain->hauteur.calcul_index(dls::math::vec2i(x, y));
 					auto p = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
 
 					auto pos = dls::math::vec3f(p, 0.0f);
 					m_compileuse.remplis_donnees(donnees, "P", pos);
 
-					m_compileuse.execute_pile(donnees);
+					m_compileuse.execute_pile(ctx_local, donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("hauteur");
 

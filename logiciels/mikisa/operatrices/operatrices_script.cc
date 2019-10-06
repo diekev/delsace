@@ -644,6 +644,8 @@ public:
 				break;
 			}
 
+			auto ctx_local = lcc::ctx_local{};
+
 			ctx_exec.chaines[decalage_chn] = tampon_source[static_cast<int>(i)];
 
 			remplis_donnees(compileuse.donnees(), gest_props, "index", static_cast<int>(i));
@@ -654,12 +656,13 @@ public:
 
 			lcc::execute_pile(
 						ctx_exec,
+						ctx_local,
 						compileuse.donnees(),
 						compileuse.instructions(),
 						static_cast<int>(i));
 
 			/* charge les attributs */
-			charge_attributs(gest_attrs, compileuse.donnees(), ctx_exec, lcc::ctx_local{}, static_cast<int>(i));
+			charge_attributs(gest_attrs, compileuse.donnees(), ctx_exec, ctx_local, static_cast<int>(i));
 		}
 	}
 
@@ -675,6 +678,8 @@ public:
 				break;
 			}
 
+			auto ctx_local = lcc::ctx_local{};
+
 			remplis_donnees(compileuse.donnees(), gest_props, "index", i);
 
 			/* stocke les attributs */
@@ -682,12 +687,13 @@ public:
 
 			lcc::execute_pile(
 						ctx_exec,
+						ctx_local,
 						compileuse.donnees(),
 						compileuse.instructions(),
 						i);
 
 			/* charge les attributs */
-			charge_attributs(gest_attrs, compileuse.donnees(), ctx_exec, lcc::ctx_local{}, i);
+			charge_attributs(gest_attrs, compileuse.donnees(), ctx_exec, ctx_local, i);
 		}
 	}
 };
@@ -904,6 +910,8 @@ public:
 					break;
 				}
 
+				auto ctx_local = lcc::ctx_local{};
+
 				auto point = points->point(i);
 
 				remplis_donnees(donnees, gest_props, "P", point);
@@ -914,6 +922,7 @@ public:
 
 				lcc::execute_pile(
 							ctx_exec,
+							ctx_local,
 							donnees,
 							compileuse.instructions(),
 							static_cast<int>(i));
@@ -922,7 +931,7 @@ public:
 				point = donnees.charge_vec3(idx_sortie);
 
 				/* charge les attributs */
-				charge_attributs(gest_attrs, donnees, ctx_exec, lcc::ctx_local{}, i);
+				charge_attributs(gest_attrs, donnees, ctx_exec, ctx_local, i);
 
 				points->point(i, point);
 			}
@@ -956,6 +965,8 @@ public:
 					break;
 				}
 
+				auto ctx_local = lcc::ctx_local{};
+
 				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
 
 				/* stocke les attributs */
@@ -963,12 +974,13 @@ public:
 
 				lcc::execute_pile(
 							ctx_exec,
+							ctx_local,
 							donnees,
 							compileuse.instructions(),
 							static_cast<int>(i));
 
 				/* charge les attributs */
-				charge_attributs(gest_attrs, donnees, ctx_exec, lcc::ctx_local{}, i);
+				charge_attributs(gest_attrs, donnees, ctx_exec, ctx_local, i);
 			}
 
 			auto delta = static_cast<float>(plage.end() - plage.begin());

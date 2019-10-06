@@ -446,10 +446,11 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	return true;
 }
 
-void CompileuseGrapheLCC::execute_pile(lcc::pile &donnees_pile)
+void CompileuseGrapheLCC::execute_pile(lcc::ctx_local &ctx_local, lcc::pile &donnees_pile)
 {
 	lcc::execute_pile(
 				m_ctx_global,
+				ctx_local,
 				donnees_pile,
 				m_compileuse.instructions(),
 				0);
@@ -590,6 +591,8 @@ res_exec OperatriceGrapheDetail::execute_detail_pixel(
 			}
 
 			for (auto c = 0; c < desc.resolution.x; ++c) {
+				auto ctx_local = lcc::ctx_local{};
+
 				auto const x = static_cast<float>(c) * largeur_inverse;
 				auto const y = static_cast<float>(l) * hauteur_inverse;
 
@@ -601,7 +604,7 @@ res_exec OperatriceGrapheDetail::execute_detail_pixel(
 				auto clr = tampon->valeur(index);
 				m_compileuse.remplis_donnees(donnees, "couleur", clr);
 
-				m_compileuse.execute_pile(donnees);
+				m_compileuse.execute_pile(ctx_local, donnees);
 
 				auto idx_sortie = m_compileuse.pointeur_donnees("couleur");
 				clr = donnees.charge_couleur(idx_sortie);
@@ -696,13 +699,15 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 				auto donnees = m_compileuse.donnees();
 
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
+					auto ctx_local = lcc::ctx_local{};
+
 					auto pos = m_corps.point_transforme(i);
 					m_compileuse.remplis_donnees(donnees, "P", pos);
 
 					/* stocke les attributs */
 					m_compileuse.stocke_attributs(donnees, i);
 
-					m_compileuse.execute_pile(donnees);
+					m_compileuse.execute_pile(ctx_local, donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("P");
 					pos = donnees.charge_vec3(idx_sortie);
@@ -743,6 +748,7 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 					for (auto k = 0; k < wlk::TAILLE_TUILE; ++k) {
 						for (auto j = 0; j < wlk::TAILLE_TUILE; ++j) {
 							for (auto i = 0; i < wlk::TAILLE_TUILE; ++i, ++index_tuile) {
+								auto ctx_local = lcc::ctx_local{};
 								auto pos_tuile = tuile->min;
 								pos_tuile.x += i;
 								pos_tuile.y += j;
@@ -757,7 +763,7 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 								m_compileuse.remplis_donnees(donnees, "pos_monde", pos_monde);
 								m_compileuse.remplis_donnees(donnees, "pos_unit", pos_unit);
 
-								m_compileuse.execute_pile(donnees);
+								m_compileuse.execute_pile(ctx_local, donnees);
 
 								auto idx_sortie = m_compileuse.m_gest_props.pointeur_donnees("densité");
 								v = donnees.charge_decimal(idx_sortie);

@@ -123,7 +123,9 @@ int main()
 		auto ptr_ligne = static_cast<int>(ctx_exec.chaines.taille());
 		ctx_exec.chaines.pousse("texte,test,ok,non,57.69");
 
-		for (auto entree : entrees) {
+		for (auto entree : entrees) {			
+			auto ctx_local = lcc::ctx_local{};
+
 			idx = gest_props.pointeur_donnees("P");
 			compileuse.donnees().stocke(idx, entree);
 
@@ -135,6 +137,7 @@ int main()
 
 			lcc::execute_pile(
 						ctx_exec,
+						ctx_local,
 						compileuse.donnees(),
 						compileuse.instructions(),
 						0);

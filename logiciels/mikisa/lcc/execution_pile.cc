@@ -936,11 +936,11 @@ static dls::chaine const &cherche_chaine(
 
 void execute_pile(
 		ctx_exec &contexte,
+		ctx_local &contexte_local,
 		pile &pile_donnees,
 		pile const &insts,
 		int graine)
 {
-	auto contexte_local = ctx_local{};
 	auto compteur = 0;
 	std::mt19937 gna(graine);
 

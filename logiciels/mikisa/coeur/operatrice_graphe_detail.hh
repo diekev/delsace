@@ -75,7 +75,7 @@ struct CompileuseGrapheLCC {
 
 	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
 
-	void execute_pile(lcc::pile &donnees_pile);
+	void execute_pile(lcc::ctx_local &ctx_local, lcc::pile &donnees_pile);
 
 	int pointeur_donnees(dls::chaine const &nom);
 };

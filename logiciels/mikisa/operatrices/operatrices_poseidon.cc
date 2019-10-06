@@ -1532,6 +1532,7 @@ public:
 					}
 
 					for (auto x = 0; x < res_x; ++x) {
+						auto ctx_local = lcc::ctx_local{};
 						auto co = dls::math::vec3i(x, y, z);
 						auto index = densite->calcul_index(co);
 						auto pos_monde = densite->index_vers_monde(co);
@@ -1558,7 +1559,7 @@ public:
 							m_compileuse.remplis_donnees(donnees, "fioul", divergence->valeur(index));
 						}
 
-						m_compileuse.execute_pile(donnees);
+						m_compileuse.execute_pile(ctx_local, donnees);
 
 						auto idx_sortie = m_compileuse.pointeur_donnees("fumée");
 						densite->valeur(index) = donnees.charge_decimal(idx_sortie);
