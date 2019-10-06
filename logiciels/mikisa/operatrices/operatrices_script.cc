@@ -803,6 +803,8 @@ public:
 			}
 
 			auto ctx_exec = lcc::ctx_exec{};
+			ctx_exec.chaines = ctx_gen.chaines;
+			ctx_exec.corps = &m_corps;
 
 			auto taille_donnees = compileuse.donnees().taille();
 			auto taille_instructions = compileuse.instructions().taille();

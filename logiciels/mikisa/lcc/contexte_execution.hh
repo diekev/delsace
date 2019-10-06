@@ -132,6 +132,9 @@ struct ctx_exec {
 	/* Le corps dans notre contexte. */
 	dls::synchronise<Corps *> ptr_corps;
 
+	/* Le corps d'entrée */
+	Corps const *corps = nullptr;
+
 	/* Le polyedre de notre corps */
 	Polyedre polyedre{};
 
@@ -158,6 +161,8 @@ struct ctx_exec {
 
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;
+
+	COPIE_CONSTRUCT(ctx_exec);
 
 	void reinitialise()
 	{

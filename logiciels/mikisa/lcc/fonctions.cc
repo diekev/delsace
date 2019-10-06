@@ -854,6 +854,18 @@ static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 	df->requete = req_fonc::polyedre;
 }
 
+static void enregistre_fonctions_attributs(magasin_fonctions &magasin)
+{
+	magasin.ajoute_fonction(
+				"attribut_décimal",
+				code_inst::FN_ATTRIBUT_DECIMAL,
+				signature(param_entrees(
+							  donnees_parametre("nom", type_var::CHAINE),
+							  donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
+}
+
 static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 {
 	magasin.categorie = "couleur";
@@ -1120,6 +1132,7 @@ void enregistre_fonctions_base(magasin_fonctions &magasin)
 	enregistre_fonctions_types(magasin);
 	enregistre_fonctions_bruits(magasin);
 	enregistre_fonctions_images(magasin);
+	enregistre_fonctions_attributs(magasin);
 }
 
 }  /* namespace lcc */

@@ -146,6 +146,9 @@ enum class code_inst : int {
 	FN_POINTS_VOISINS_RAYON,
 	FN_POINT,
 
+	/* fonctions attributs */
+	FN_ATTRIBUT_DECIMAL,
+
 	/* fonctions bruit */
 	FN_BRUIT_CELLULE,
 	FN_BRUIT_FLUX,

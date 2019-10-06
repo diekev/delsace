@@ -1767,6 +1767,22 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
+			case code_inst::FN_ATTRIBUT_DECIMAL:
+			{
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto idx_attr = pile_donnees.charge_entier(compteur, insts);
+				auto res = 0.0f;
+
+				auto chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto attr = contexte.corps->attribut(chn);
+
+				if (attr != nullptr) {
+					res = *attr->r32(idx_attr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_SATURE:
 			{
 				auto clr = pile_donnees.charge_couleur(compteur, insts);
