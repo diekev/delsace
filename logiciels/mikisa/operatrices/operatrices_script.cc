@@ -391,6 +391,8 @@ static auto stocke_attributs(
 static auto charge_attributs(
 		gestionnaire_propriete const &gest_attrs,
 		lcc::pile &donnees,
+		lcc::ctx_exec const &ctx_exec,
+		lcc::ctx_local const &ctx_local,
 		long idx_attr)
 {
 	for (auto const &requete : gest_attrs.donnees) {
@@ -408,8 +410,22 @@ static auto charge_attributs(
 				std::memcpy(ptr_attr, ptr_pile, static_cast<size_t>(taille));
 				break;
 			}
-			case type_attribut::INVALIDE:
 			case type_attribut::CHAINE:
+			{
+				auto ptr_chn = donnees.charge_entier(idx_pile);
+
+				auto decalage_chn = ctx_exec.chaines.taille();
+
+				if (ptr_chn >= decalage_chn) {
+					*attr->chaine(idx_attr) = ctx_local.chaines[ptr_chn - decalage_chn];
+				}
+				else {
+					*attr->chaine(idx_attr) = ctx_exec.chaines[ptr_chn];
+				}
+
+				break;
+			}
+			case type_attribut::INVALIDE:
 			{
 				break;
 			}
@@ -643,7 +659,7 @@ public:
 						static_cast<int>(i));
 
 			/* charge les attributs */
-			charge_attributs(gest_attrs, compileuse.donnees(), static_cast<int>(i));
+			charge_attributs(gest_attrs, compileuse.donnees(), ctx_exec, lcc::ctx_local{}, static_cast<int>(i));
 		}
 	}
 
@@ -671,7 +687,7 @@ public:
 						i);
 
 			/* charge les attributs */
-			charge_attributs(gest_attrs, compileuse.donnees(), i);
+			charge_attributs(gest_attrs, compileuse.donnees(), ctx_exec, lcc::ctx_local{}, i);
 		}
 	}
 };
@@ -906,7 +922,7 @@ public:
 				point = donnees.charge_vec3(idx_sortie);
 
 				/* charge les attributs */
-				charge_attributs(gest_attrs, donnees, i);
+				charge_attributs(gest_attrs, donnees, ctx_exec, lcc::ctx_local{}, i);
 
 				points->point(i, point);
 			}
@@ -952,7 +968,7 @@ public:
 							static_cast<int>(i));
 
 				/* charge les attributs */
-				charge_attributs(gest_attrs, donnees, i);
+				charge_attributs(gest_attrs, donnees, ctx_exec, lcc::ctx_local{}, i);
 			}
 
 			auto delta = static_cast<float>(plage.end() - plage.begin());
