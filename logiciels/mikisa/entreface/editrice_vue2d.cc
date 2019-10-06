@@ -53,6 +53,8 @@
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 
+#include "lcc/lcc.hh"
+
 #include "opengl/rendu_image.h"
 #include "opengl/rendu_manipulatrice_2d.h"
 
@@ -142,6 +144,10 @@ void Visionneuse2D::paintGL()
 
 	ss.chn("");
 	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre fonctions  : " << m_mikisa.lcc->fonctions.table.taille();
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 	glDisable(GL_BLEND);

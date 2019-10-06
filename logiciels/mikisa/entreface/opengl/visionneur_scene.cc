@@ -36,6 +36,8 @@
 #include "coeur/mikisa.h"
 #include "coeur/rendu.hh"
 
+#include "lcc/lcc.hh"
+
 #include "rendu/moteur_rendu_koudou.hh"
 #include "rendu/moteur_rendu_opengl.hh"
 #include "rendu/rendu_corps.h"
@@ -204,6 +206,10 @@ void VisionneurScene::peint_opengl()
 
 	ss.chn("");
 	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre fonctions  : " << m_mikisa.lcc->fonctions.table.taille();
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
 	if (stats.temps != 0.0) {
