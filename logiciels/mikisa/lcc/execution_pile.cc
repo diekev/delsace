@@ -2104,8 +2104,6 @@ void execute_pile(
 			case code_inst::FN_TAILLE_CHAINE:
 			{
 				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
-
-				std::cerr << "Taille ptr : " << ptr_chn << '\n';
 				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
 				auto taille_chaine = chn.taille();
 				pile_donnees.stocke(compteur, insts, static_cast<int>(taille_chaine));
