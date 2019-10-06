@@ -1732,6 +1732,28 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
 				break;
 			}
+			case code_inst::FN_POINTS_VOISINS_RAYON:
+			{
+				auto idx_point = pile_donnees.charge_entier(compteur, insts);
+				auto rayon = pile_donnees.charge_decimal(compteur, insts);
+
+				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tableau = pair_tabl_idx.first;
+				auto const &arbre_kd = contexte.arbre_kd;
+
+				if (idx_point < arbre_kd.compte_points()) {
+					auto pos = arbre_kd.pos_point(idx_point);
+
+					arbre_kd.cherche_points(pos, rayon, [&](
+											int idx, dls::math::vec3f const &, float, float &)
+					{
+						tableau.pousse(idx);
+					});
+				}
+
+				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+				break;
+			}
 			case code_inst::FN_POINT:
 			{
 				auto idx_point = pile_donnees.charge_entier(compteur, insts);

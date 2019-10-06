@@ -836,6 +836,16 @@ static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 	df->requete = req_fonc::polyedre;
 
 	df = magasin.ajoute_fonction(
+				"points_voisins",
+				code_inst::FN_POINTS_VOISINS_RAYON,
+				signature(param_entrees(
+							  donnees_parametre("index_point", type_var::ENT32),
+							  donnees_parametre("rayon", type_var::DEC, 0.1f)),
+						  param_sorties(donnees_parametre("voisins", type_var::TABLEAU))),
+				ctx_script::tous);
+	df->requete = req_fonc::arbre_kd;
+
+	df = magasin.ajoute_fonction(
 				"point",
 				code_inst::FN_POINT,
 				signature(param_entrees(donnees_parametre("index_point", type_var::ENT32)),

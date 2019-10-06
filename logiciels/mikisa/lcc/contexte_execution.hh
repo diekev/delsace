@@ -26,6 +26,7 @@
 
 #include "biblinternes/bruit/parametres.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
+#include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -133,6 +134,9 @@ struct ctx_exec {
 
 	/* Le polyedre de notre corps */
 	Polyedre polyedre{};
+
+	/* Le polyedre de notre corps */
+	arbre_3df arbre_kd{};
 
 	/* Toutes les images. */
 	dls::tableau<Image const *> images;

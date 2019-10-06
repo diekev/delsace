@@ -816,6 +816,16 @@ public:
 			for (auto req : ctx_gen.requetes) {
 				if (req == lcc::req_fonc::polyedre) {
 					ctx_exec.polyedre = converti_corps_polyedre(m_corps);
+				}				
+				else if (req == lcc::req_fonc::arbre_kd) {
+					auto points_entree = m_corps.points_pour_lecture();
+
+					ctx_exec.arbre_kd.construit_avec_fonction(
+								static_cast<int>(points_entree->taille()),
+								[&](int i)
+					{
+						return points_entree->point(i);
+					});
 				}
 			}
 

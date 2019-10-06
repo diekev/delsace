@@ -50,6 +50,7 @@ enum class ctx_script : unsigned short;
 
 enum class req_fonc : char {
 	polyedre,
+	arbre_kd,
 };
 
 struct donnees_fonction {
