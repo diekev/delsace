@@ -31,6 +31,9 @@
 
 namespace lcc {
 
+enum class code_inst : int;
+enum class type_var : unsigned short;
+
 struct pile {
 private:
 	dls::tableau<float> m_donnees{};
@@ -51,7 +54,19 @@ public:
 	template <typename T>
 	void pousse(T const &v)
 	{
-		m_donnees.pousse(static_cast<float>(v));
+		union { T t; float f; } u;
+		u.t = v;
+		m_donnees.pousse(u.f);
+	}
+
+	void pousse(code_inst inst)
+	{
+		m_donnees.pousse(static_cast<float>(inst));
+	}
+
+	void pousse(type_var var)
+	{
+		m_donnees.pousse(static_cast<float>(var));
 	}
 
 	long taille() const
@@ -63,7 +78,19 @@ public:
 
 	inline int charge_entier(int &idx) const
 	{
-		return static_cast<int>(m_donnees[idx++]);
+		union { int i; float f; } u;
+		u.f = m_donnees[idx++];
+		return u.i;
+	}
+
+	inline code_inst charge_inst(int &idx) const
+	{
+		return static_cast<code_inst>(m_donnees[idx++]);
+	}
+
+	inline type_var charge_type(int &idx) const
+	{
+		return static_cast<type_var>(m_donnees[idx++]);
 	}
 
 	inline float charge_decimal(int &idx) const
@@ -188,7 +215,9 @@ public:
 
 	inline void stocke(int &idx, int const &v)
 	{
-		m_donnees[idx++] = static_cast<float>(v);
+		union { int i; float f; } u;
+		u.i = v;
+		m_donnees[idx++] = u.f;
 	}
 
 	inline void stocke(int &idx, float const &v)

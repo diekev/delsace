@@ -285,7 +285,7 @@ static auto appel_fonction_math_double(
 		int &inst_courante,
 		std::function<float(float, float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -400,7 +400,7 @@ static auto appel_fonction_math_simple(
 		int &inst_courante,
 		std::function<float(float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -517,7 +517,7 @@ static void appel_fonction_3_args(
 		int &inst_courante,
 		std::function<float(float, float, float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -685,7 +685,7 @@ static void appel_fonction_5_args(
 		int &inst_courante,
 		std::function<float(float, float, float, float, float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -945,7 +945,7 @@ void execute_pile(
 	std::mt19937 gna(graine);
 
 	while (compteur != insts.taille()) {
-		auto inst = static_cast<code_inst>(insts.charge_entier(compteur));
+		auto inst = insts.charge_inst(compteur);
 
 		//std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
 
@@ -956,7 +956,7 @@ void execute_pile(
 			}
 			case code_inst::ASSIGNATION:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 
 				switch (donnees_type) {
 					default:
@@ -1069,7 +1069,7 @@ void execute_pile(
 			}
 			case code_inst::FN_INVERSE:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 
 				switch (donnees_type) {
 					default:
@@ -1579,7 +1579,7 @@ void execute_pile(
 			}
 			case code_inst::FN_MULTIPLIE_MAT:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 
 				if (donnees_type == type_var::MAT3) {
 					auto mat0 = pile_donnees.charge_mat3(compteur, insts);
@@ -1954,7 +1954,7 @@ void execute_pile(
 			}
 			case code_inst::CONSTRUIT_TABLEAU:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 				auto nombre_donnees = insts.charge_entier(compteur);
 
 				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
@@ -2017,7 +2017,7 @@ void execute_pile(
 				// ptr de la valeur à insérer
 
 				auto ptr_tabl = insts.charge_entier(compteur);
-				auto type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto type = insts.charge_type(compteur);
 				auto index = insts.charge_entier(compteur);
 
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);

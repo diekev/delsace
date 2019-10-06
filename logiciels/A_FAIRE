@@ -223,7 +223,6 @@ BUGS
 -- les graphes de simulation ne sont pas ajournés quand un noeud en amont est modifié
 -- les graphes de simulation n'ont pas de menu après avoir ouvert un fichier de sauvegarde
 -- fuite de mémoire dans l'exécution de LCC
--- LCC : les nombres entiers ont des valeurs étranges après avoir été transférés de la pile de données aux attributs
 
 ################################################################################
 danjo
