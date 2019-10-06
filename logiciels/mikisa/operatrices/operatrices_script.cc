@@ -355,6 +355,7 @@ static auto ajoute_proprietes_extra(
 static auto stocke_attributs(
 		gestionnaire_propriete const &gest_attrs,
 		lcc::pile &donnees,
+		lcc::ctx_local &ctx_local,
 		long idx_attr)
 {
 	for (auto const &requete : gest_attrs.donnees) {
@@ -379,8 +380,14 @@ static auto stocke_attributs(
 				std::memcpy(ptr_pile, ptr_attr, static_cast<size_t>(taille));
 				break;
 			}
-			case type_attribut::INVALIDE:
 			case type_attribut::CHAINE:
+			{
+				auto decalage_chn = ctx_local.chaines.taille();
+				ctx_local.chaines.pousse(*attr->chaine(idx_attr));
+				donnees.stocke(idx_pile, static_cast<int>(decalage_chn));
+				break;
+			}
+			case type_attribut::INVALIDE:
 			{
 				break;
 			}
@@ -652,7 +659,7 @@ public:
 			remplis_donnees(compileuse.donnees(), gest_props, "ligne", static_cast<int>(decalage_chn));
 
 			/* stocke les attributs */
-			stocke_attributs(gest_attrs, compileuse.donnees(), static_cast<int>(i));
+			stocke_attributs(gest_attrs, compileuse.donnees(), ctx_local, static_cast<int>(i));
 
 			lcc::execute_pile(
 						ctx_exec,
@@ -683,7 +690,7 @@ public:
 			remplis_donnees(compileuse.donnees(), gest_props, "index", i);
 
 			/* stocke les attributs */
-			stocke_attributs(gest_attrs, compileuse.donnees(), i);
+			stocke_attributs(gest_attrs, compileuse.donnees(), ctx_local, i);
 
 			lcc::execute_pile(
 						ctx_exec,
@@ -918,7 +925,7 @@ public:
 				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
 
 				/* stocke les attributs */
-				stocke_attributs(gest_attrs, donnees, i);
+				stocke_attributs(gest_attrs, donnees, ctx_local, i);
 
 				lcc::execute_pile(
 							ctx_exec,
@@ -970,7 +977,7 @@ public:
 				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
 
 				/* stocke les attributs */
-				stocke_attributs(gest_attrs, donnees, i);
+				stocke_attributs(gest_attrs, donnees, ctx_local, i);
 
 				lcc::execute_pile(
 							ctx_exec,
