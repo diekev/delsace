@@ -1747,39 +1747,6 @@ public:
 
 /* ************************************************************************** */
 
-// À FAIRE : déduplique ou utilise un pointeur vers un composite
-
-#include "biblinternes/image/flux/lecture.h"
-#include "biblinternes/image/operations/conversion.h"
-static auto charge_jpeg(const char *chemin, Image *ptr_image)
-{
-	auto const image_char = dls::image::flux::LecteurJPEG::ouvre(chemin);
-	auto tmp = dls::image::operation::converti_en_float(image_char);
-
-	auto largeur = tmp.nombre_colonnes();
-	auto hauteur = tmp.nombre_lignes();
-
-	auto desc = wlk::desc_depuis_hauteur_largeur(hauteur, largeur);
-
-	auto calque = ptr_image->ajoute_calque("image", desc, wlk::type_grille::COULEUR);
-	auto tampon = extrait_grille_couleur(calque);
-
-	auto index = 0l;
-	for (auto y = 0; y < hauteur; ++y) {
-		for (auto x = 0; x < largeur; ++x, ++index) {
-			auto const &v = tmp[y][x];
-
-			auto pixel = dls::phys::couleur32();
-			pixel.r = v.r;
-			pixel.v = v.g;
-			pixel.b = v.b;
-			pixel.a = 1.0f;
-
-			tampon->valeur(index) = pixel;
-		}
-	}
-}
-
 class OpChargeImage final : public OperatriceImage {
 public:
 	static constexpr auto NOM = "Charge Image";
@@ -1821,20 +1788,37 @@ public:
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		m_image.reinitialise();
-		INUTILISE(contexte);
-
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 		auto ctx_global = std::any_cast<lcc::ctx_exec *>(donnees_aval->table["ctx_global"]);
 
-		auto chemin_image = evalue_chaine("chemin_image");
+		auto chemin_noeud = evalue_chaine("chemin_noeud");
 
-		if (chemin_image == "") {
-			this->ajoute_avertissement("Le nom de l'image est vide");
+		if (chemin_noeud == "") {
+			this->ajoute_avertissement("Le chemin du noeud pour l'image est vide");
 			return res_exec::ECHOUEE;
 		}
 
-		charge_jpeg(chemin_image.c_str(), &m_image);
+		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
+
+		if (noeud_image == nullptr) {
+			this->ajoute_avertissement("Impossible de trouver le noeud spécifié");
+			return res_exec::ECHOUEE;
+		}
+
+		if (noeud_image->type != type_noeud::OPERATRICE) {
+			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
+			return res_exec::ECHOUEE;
+		}
+
+		auto op = extrait_opimage(noeud_image->donnees);
+		auto image = op->image();
+
+		auto calque = image->calque_pour_lecture("image");
+
+		if (calque == nullptr) {
+			this->ajoute_avertissement("Calque « image » introuvable !");
+			return res_exec::ECHOUEE;
+		}
 
 		auto ptr = compileuse->donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
 
@@ -1844,9 +1828,23 @@ public:
 
 		compileuse->donnees().stocke(ptr, static_cast<int>(ctx_global->images.taille()));
 
-		ctx_global->images.pousse(&m_image);
+		ctx_global->images.pousse(image);
 
 		return res_exec::REUSSIE;
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "chemin_noeud") {
+			for (auto composite : contexte.bdd->composites()) {
+				for (auto enfant : composite->noeud->enfants) {
+					liste.pousse(enfant->chemin());
+				}
+			}
+		}
 	}
 };
 
