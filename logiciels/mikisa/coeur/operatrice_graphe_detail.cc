@@ -1344,6 +1344,19 @@ public:
 		return AIDE;
 	}
 
+	const char *nom_sortie(int i) override
+	{
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		auto const &params_noeud = params_noeuds_entree[type_detail];
+
+		if (i >= params_noeud.taille()) {
+			return "INVALIDE !";
+		}
+
+		return params_noeud.nom(i);
+	}
+
 	type_prise type_sortie(int i) const override
 	{
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
@@ -1419,6 +1432,19 @@ public:
 	const char *texte_aide() const override
 	{
 		return AIDE;
+	}
+
+	const char *nom_entree(int i) override
+	{
+		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
+
+		auto const &params_noeud = params_noeuds_sortie[type_detail];
+
+		if (i >= params_noeud.taille()) {
+			return "INVALIDE !";
+		}
+
+		return params_noeud.nom(i);
 	}
 
 	type_prise type_entree(int i) const override
