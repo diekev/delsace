@@ -498,6 +498,18 @@ res_exec OpImportAlembic::execute(
 
 		auto prop = schema.getArbGeomParams();
 		charge_attributs(m_corps, prop, selecteur);
+
+		auto velocities = sample.getVelocities();
+
+		if (velocities) {
+			auto attr_V = m_corps.ajoute_attribut("V", type_attribut::R32, 3);
+
+			for (auto i = 0ul; i < velocities->size(); ++i) {
+				auto vel_in = (*velocities)[i];
+				auto vel = dls::math::vec3f(vel_in.x, vel_in.y, vel_in.z);
+				assigne(attr_V->r32(static_cast<long>(i)), vel);
+			}
+		}
 	}
 	else if (ABG::IPoints::matches(m_iobjet.getHeader())) {
 		auto poly_mesh = ABG::IPoints(m_iobjet);
