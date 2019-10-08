@@ -1529,7 +1529,7 @@ public:
 		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(0);
-		sorties(5);
+		sorties(1);
 	}
 
 	const char *nom_classe() const override
@@ -1547,32 +1547,9 @@ public:
 		return "entreface/operatrice_attribut_detail.jo";
 	}
 
-	type_prise type_sortie(int i) const override
+	type_prise type_sortie(int) const override
 	{
-		switch (i) {
-			case 0:
-			{
-				return type_prise::ENTIER;
-			}
-			case 1:
-			{
-				return type_prise::DECIMAL;
-			}
-			case 2:
-			{
-				return type_prise::VEC2;
-			}
-			case 3:
-			{
-				return type_prise::VEC3;
-			}
-			case 4:
-			{
-				return type_prise::VEC4;
-			}
-		}
-
-		return type_prise::INVALIDE;
+		return type_prise::POLYMORPHIQUE;
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1591,18 +1568,16 @@ public:
 		switch (type_detail) {
 			case DETAIL_POINTS:
 			{
-				if (!gest_attrs->propriete_existe(nom_attribut)) {
+				auto donnees = gest_attrs->donnees_pour_propriete(nom_attribut);
+
+				if (donnees == nullptr) {
 					this->ajoute_avertissement("L'attribut n'existe pas !");
 					return res_exec::ECHOUEE;
 				}
 
-				auto pointeur = gest_attrs->pointeur_donnees(nom_attribut);
-
-				for (auto i = 0; i < sorties(); ++i) {
-					auto prise_sortie = sortie(i)->pointeur();
-					prise_sortie->decalage_pile = pointeur;
-					prise_sortie->type_infere = type_sortie(i);
-				}
+				auto prise_sortie = sortie(0)->pointeur();
+				prise_sortie->decalage_pile = donnees->ptr;
+				prise_sortie->type_infere = converti_type_prise(donnees->type);
 
 				break;
 			}
@@ -1636,7 +1611,7 @@ public:
 	OperatriceSortieAttribut(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceImage(graphe_parent, noeud_)
 	{
-		entrees(5);
+		entrees(1);
 		sorties(0);
 
 		noeud.est_sortie = true;
@@ -1657,32 +1632,9 @@ public:
 		return "entreface/operatrice_attribut_detail.jo";
 	}
 
-	type_prise type_entree(int i) const override
+	type_prise type_entree(int) const override
 	{
-		switch (i) {
-			case 0:
-			{
-				return type_prise::ENTIER;
-			}
-			case 1:
-			{
-				return type_prise::DECIMAL;
-			}
-			case 2:
-			{
-				return type_prise::VEC2;
-			}
-			case 3:
-			{
-				return type_prise::VEC3;
-			}
-			case 4:
-			{
-				return type_prise::VEC4;
-			}
-		}
-
-		return type_prise::INVALIDE;
+		return type_prise::POLYMORPHIQUE;
 	}
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
@@ -1702,41 +1654,39 @@ public:
 		switch (type_detail) {
 			case DETAIL_POINTS:
 			{
-				auto type = lcc::type_var{};
-				auto ptr_entree = -1;
-
-				for (auto i = 0; i < entrees(); ++i) {
-					if (entree(i)->connectee()) {
-						auto ptr = entree(i)->pointeur();
-						ptr_entree = static_cast<int>(ptr->liens[0]->decalage_pile);
-						type = converti_type_prise(type_entree(i));
-
-						break;
-					}
-				}
-
-				if (ptr_entree == -1) {
-					/* aucun connexion */
+				if (!entree(0)->connectee()) {
+					/* aucune connexion */
 					return res_exec::REUSSIE;
 				}
 
-				if (!gest_attrs->propriete_existe(nom_attribut)) {
+				auto ptr_prise_entree = entree(0)->pointeur();
+				auto prise_sortie = ptr_prise_entree->liens[0];
+				auto ptr_entree = static_cast<int>(prise_sortie->decalage_pile);
+				auto type = converti_type_prise(prise_sortie->type_infere);
+
+				if (type == lcc::type_var::POLYMORPHIQUE) {
+					this->ajoute_avertissement("Le type de sortie est toujours polymorphique");
+					return res_exec::ECHOUEE;
+				}
+
+				auto donnees = gest_attrs->donnees_pour_propriete(nom_attribut);
+
+				if (donnees == nullptr) {
 					auto ptr = compileuse->donnees().loge_donnees(taille_type(type));
 					gest_attrs->requiers_attr(nom_attribut, type, ptr);
+					donnees = gest_attrs->donnees_pour_propriete(nom_attribut);
 				}
 				else {
-					if (type != gest_attrs->type_propriete(nom_attribut)) {
+					if (type != donnees->type) {
 						this->ajoute_avertissement("Le type n'est pas bon");
 						return res_exec::ECHOUEE;
 					}
 				}
 
-				auto ptr = gest_attrs->pointeur_donnees(nom_attribut);
-
 				compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
 				compileuse->ajoute_instructions(type);
 				compileuse->ajoute_instructions(ptr_entree);
-				compileuse->ajoute_instructions(ptr);
+				compileuse->ajoute_instructions(donnees->ptr);
 
 				break;
 			}
