@@ -167,6 +167,17 @@ mikisa
 ---- commande pour réinitialiser le projet
 ---- opératrice vide pour les opératrices n'étant pas dans l'usine + possibilité de changer l'opératrice via un menu contextuel
 
+- LCC
+-- erreur si fonction non-compatible avec le contexte
+-- graphe vers script, script vers graphe
+-- couleur_depuis_rvb, couleur_depuis_hsv, etc.
+-- type attribut (pour les scripts topologiques)
+-- converti opératrices
+---- kelvinlets dynamics (en utilisant des attributs)
+---- couleur maillage ? (requiers 2 systèmes différents pour les attributs)
+---- modification attributs ? -> couleurs aléatoire RGB, HSV
+---- création corps ?
+
 BUGS
 -- le texte sur la visionneuse 3D ne s'affiche pas correctement quand on a la scène 2D et la scène 3D actives en même temps
 -- les connexions entre les noeuds sont parfois dessinées derrière les noeuds
