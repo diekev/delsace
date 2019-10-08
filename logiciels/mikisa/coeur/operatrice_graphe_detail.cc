@@ -1763,6 +1763,11 @@ public:
 			return nullptr;
 		}
 
+		if (noeud_image->type != type_noeud::OPERATRICE) {
+			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
+			return nullptr;
+		}
+
 		return noeud_image;
 	}
 
@@ -1774,11 +1779,6 @@ public:
 		auto noeud_image = cherche_noeud_image(contexte);
 
 		if (noeud_image == nullptr) {
-			return res_exec::ECHOUEE;
-		}
-
-		if (noeud_image->type != type_noeud::OPERATRICE) {
-			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
 			return res_exec::ECHOUEE;
 		}
 

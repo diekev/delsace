@@ -33,6 +33,8 @@
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
 
+#include "evaluation/reseau.hh"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
@@ -87,22 +89,9 @@ public:
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
-		auto chemin_noeud = evalue_chaine("chemin_noeud");
-
-		if (chemin_noeud.est_vide()) {
-			this->ajoute_avertissement("Le chemin est vide !");
-			return res_exec::ECHOUEE;
-		}
-
-		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
+		auto noeud_image = cherche_noeud_image(contexte);
 
 		if (noeud_image == nullptr) {
-			this->ajoute_avertissement("Impossible de trouver le noeud !");
-			return res_exec::ECHOUEE;
-		}
-
-		if (noeud_image->type != type_noeud::OPERATRICE) {
-			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
 			return res_exec::ECHOUEE;
 		}
 
@@ -198,6 +187,41 @@ public:
 		});
 
 		return res_exec::REUSSIE;
+	}
+
+	Noeud const *cherche_noeud_image(ContexteEvaluation const &contexte)
+	{
+		auto chemin_noeud = evalue_chaine("chemin_noeud");
+
+		if (chemin_noeud == "") {
+			this->ajoute_avertissement("Le chemin du noeud pour l'image est vide");
+			return nullptr;
+		}
+
+		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
+
+		if (noeud_image == nullptr) {
+			this->ajoute_avertissement("Impossible de trouver le noeud spécifié");
+			return nullptr;
+		}
+
+		if (noeud_image->type != type_noeud::OPERATRICE) {
+			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
+			return nullptr;
+		}
+
+		return noeud_image;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
+	{
+		auto noeud_image = cherche_noeud_image(contexte);
+
+		if (noeud_image == nullptr) {
+			return;
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, noeud_base_hierarchie(const_cast<Noeud *>(noeud_image)));
 	}
 };
 
