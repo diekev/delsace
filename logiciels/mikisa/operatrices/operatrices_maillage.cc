@@ -1155,6 +1155,24 @@ static auto calcul_donnees_dist_centroide(Corps &corps)
 	return calcul_donnees_dist_point(corps, centre_masse);
 }
 
+static auto calcul_centroide_corps(Corps &corps)
+{
+	auto centre_masse = centre_masse_maillage(corps);
+	auto attr = corps.ajoute_attribut("centroïde", type_attribut::R32, 3, portee_attr::CORPS);
+	assigne(attr->r32(0), centre_masse);
+	return attr;
+}
+
+static auto calcul_limites_corps(Corps &corps)
+{
+	auto limites = calcule_limites_mondiales_corps(corps);
+	auto attr = corps.ajoute_attribut("min", type_attribut::R32, 3, portee_attr::CORPS);
+	assigne(attr->r32(0), limites.min);
+	attr = corps.ajoute_attribut("max", type_attribut::R32, 3, portee_attr::CORPS);
+	assigne(attr->r32(0), limites.max);
+	return attr;
+}
+
 static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_max)
 {
 	for (auto i = 0; i < attr->taille(); ++i) {
@@ -1405,6 +1423,9 @@ public:
 		else if (type_metrie == "barycentre_poly") {
 			attr_sortie = calcul_barycentre_poly(m_corps);
 		}
+		else if (type_metrie == "centroïde_corps") {
+			attr_sortie = calcul_centroide_corps(m_corps);
+		}
 		else if (type_metrie == "centroïde_poly") {
 			attr_sortie = calcul_centroide_poly(m_corps);
 		}
@@ -1413,6 +1434,9 @@ public:
 		}
 		else if (type_metrie == "dist_centroïde") {
 			attr_sortie = calcul_donnees_dist_centroide(m_corps);
+		}
+		else if (type_metrie == "limites_corps") {
+			attr_sortie = calcul_limites_corps(m_corps);
 		}
 		else if (type_metrie == "tangeante") {
 			attr_sortie = calcul_tangeantes(m_corps);
