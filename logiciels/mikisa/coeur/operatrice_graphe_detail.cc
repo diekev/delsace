@@ -158,7 +158,7 @@ static auto charge_attributs(
 		long idx_attr)
 {
 	for (auto const &donnee : gest_attrs.donnees) {
-		if (donnee->est_propriete) {
+		if (donnee->est_propriete || !donnee->est_modifiee) {
 			continue;
 		}
 
@@ -688,9 +688,15 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 		{
 			chef->demarre_evaluation("graphe détail points");
 
-			auto points = m_corps.points_pour_ecriture();
+			auto points_entree = m_corps.points_pour_lecture();
+			auto points_sortie = static_cast<ListePoints3D *>(nullptr);
 
-			boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+			auto donnees_prop = m_compileuse.m_gest_attrs.donnees_pour_propriete("P");
+			if (donnees_prop->est_modifiee) {
+				points_sortie = m_corps.points_pour_ecriture();
+			}
+
+			boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
 							 [&](tbb::blocked_range<long> const &plage)
 			{
 				if (chef->interrompu()) {
@@ -703,7 +709,7 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
 					auto ctx_local = lcc::ctx_local{};
 
-					auto pos = m_corps.point_transforme(i);
+					auto pos = points_entree->point(i);
 					m_compileuse.remplis_donnees(donnees, "P", pos);
 
 					/* stocke les attributs */
@@ -717,17 +723,20 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 					/* charge les attributs */
 					m_compileuse.charge_attributs(donnees, i);
 
-					points->point(i, pos);
+					if (points_sortie) {
+						points_sortie->point(i, pos);
+					}
 				}
 
 				auto delta = static_cast<float>(plage.end() - plage.begin());
-				delta /= static_cast<float>(points->taille());
+				delta /= static_cast<float>(points_entree->taille());
 				chef->indique_progression_parallele(delta * 100.0f);
 			});
 
 			/* réinitialise la transformation puisque nous l'appliquons aux
 			 * points dans la boucle au dessus */
-			m_corps.transformation = math::transformation();
+			/* À FAIRE : retramsforme les points, via une accesseuse_points */
+			//m_corps.transformation = math::transformation();
 
 			break;
 		}

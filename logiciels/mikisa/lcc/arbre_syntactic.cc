@@ -257,8 +257,9 @@ int genere_code(
 		case type_noeud::ATTRIBUT:
 		{
 			auto &gest_attrs = contexte_generation.gest_attrs;
+			auto donnees = gest_attrs.donnees_pour_propriete(b->chaine());
 
-			if (!gest_attrs.propriete_existe(b->chaine())) {
+			if (donnees == nullptr) {
 				if (expr_gauche) {
 					gest_attrs.requiers_attr(dls::chaine(b->chaine()), b->donnees_type, b->pointeur_donnees);
 				}
@@ -271,8 +272,12 @@ int genere_code(
 				}
 			}
 			else {
-				b->donnees_type = gest_attrs.type_propriete(b->chaine());
-				b->pointeur_donnees = gest_attrs.pointeur_donnees(b->chaine());
+				if (expr_gauche) {
+					donnees->est_modifiee = true;
+				}
+
+				b->donnees_type = donnees->type;
+				b->pointeur_donnees = donnees->ptr;
 			}
 
 			break;

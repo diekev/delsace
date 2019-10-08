@@ -74,6 +74,7 @@ struct donnees_propriete {
 	lcc::type_var type{};
 	bool est_requis = false;
 	bool est_propriete = false;
+	bool est_modifiee = false;
 	int ptr = 0;
 	std::any ptr_donnees = nullptr;
 
@@ -102,6 +103,17 @@ struct gestionnaire_propriete {
 		}
 	}
 
+	donnees_propriete *donnees_pour_propriete(dls::vue_chaine const &nom)
+	{
+		for (auto const &donnee : donnees) {
+			if (donnee->nom == nom) {
+				return donnee;
+			}
+		}
+
+		return nullptr;
+	}
+
 	void ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
 		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx));
@@ -115,6 +127,7 @@ struct gestionnaire_propriete {
 	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
 		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, false, idx);
+		prop->est_modifiee = true;
 		donnees.pousse(prop);
 		requetes.pousse(prop);
 	}

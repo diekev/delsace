@@ -403,7 +403,7 @@ static auto charge_attributs(
 		long idx_attr)
 {
 	for (auto const &donnee : gest_attrs.donnees) {
-		if (donnee->est_propriete) {
+		if (donnee->est_propriete || !donnee->est_modifiee) {
 			continue;
 		}
 
@@ -859,7 +859,15 @@ public:
 			remplis_donnees(compileuse.donnees(), gest_attrs, "cadence", static_cast<float>(contexte.cadence));
 
 			if (portee_script == "points") {
-				execute_script_sur_points(chef, compileuse, gest_attrs, ctx_exec);
+				auto points_entree = m_corps.points_pour_lecture();
+				auto points_sortie = static_cast<ListePoints3D *>(nullptr);
+
+				auto donnees_prop = gest_attrs.donnees_pour_propriete("P");
+				if (donnees_prop->est_modifiee) {
+					points_sortie = m_corps.points_pour_ecriture();
+				}
+
+				execute_script_sur_points(chef, compileuse, gest_attrs, ctx_exec, points_entree, points_sortie);
 			}
 			else if (portee_script == "primitives") {
 				execute_script_sur_primitives(chef, compileuse, gest_attrs, ctx_exec);
@@ -887,13 +895,11 @@ public:
 			ChefExecution *chef,
 			compileuse_lng &compileuse,
 			gestionnaire_propriete &gest_attrs,
-			lcc::ctx_exec &ctx_exec)
+			lcc::ctx_exec &ctx_exec,
+			ListePoints3D const *points_entree,
+			ListePoints3D *points_sortie)
 	{
-		/* À FAIRE : la copie est peut-être inutile, à vérifier si le script les
-		 * modifie. */
-		auto points = m_corps.points_pour_ecriture();
-
-		boucle_serie(tbb::blocked_range<long>(0, points->taille()),
+		boucle_serie(tbb::blocked_range<long>(0, points_entree->taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 		{
 			if (chef->interrompu()) {
@@ -910,7 +916,7 @@ public:
 
 				auto ctx_local = lcc::ctx_local{};
 
-				auto point = points->point(i);
+				auto point = points_entree->point(i);
 
 				remplis_donnees(donnees, gest_attrs, "P", point);
 				remplis_donnees(donnees, gest_attrs, "index", static_cast<int>(i));
@@ -931,11 +937,13 @@ public:
 				/* charge les attributs */
 				charge_attributs(gest_attrs, donnees, ctx_exec, ctx_local, i);
 
-				points->point(i, point);
+				if (points_sortie) {
+					points_sortie->point(i, point);
+				}
 			}
 
 			auto delta = static_cast<float>(plage.end() - plage.begin());
-			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()) * 100.0f);
+			chef->indique_progression_parallele(delta / static_cast<float>(points_entree->taille()) * 100.0f);
 		});
 	}
 
