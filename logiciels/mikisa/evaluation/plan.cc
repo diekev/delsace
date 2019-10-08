@@ -90,15 +90,15 @@ Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_scene(Reseau &reseau) const
 	return plan;
 }
 
-Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_objet(Reseau &reseau, Objet *objet) const
+Planifieuse::PtrPlan Planifieuse::requiers_plan_pour_noeud(Reseau &reseau, Noeud *noeud) const
 {
 	auto plan = std::make_shared<Plan>();
 
 	dls::ensemble<NoeudReseau *> noeuds_visites;
 
-	for (auto noeud : reseau.noeuds) {
-		if (noeud->objet == objet) {
-			rassemble_noeuds(plan->noeuds, noeuds_visites, noeud);
+	for (auto noeud_reseau : reseau.noeuds) {
+		if (noeud_reseau->noeud == noeud) {
+			rassemble_noeuds(plan->noeuds, noeuds_visites, noeud_reseau);
 			break;
 		}
 	}

@@ -243,3 +243,5 @@ struct Noeud : public danjo::Manipulable {
 void marque_surannee(Noeud *noeud, std::function<void(Noeud *, PriseEntree *)> const &rp);
 
 void marque_parent_surannee(Noeud *noeud, std::function<void(Noeud *, PriseEntree *)> const &rp);
+
+Noeud *noeud_base_hierarchie(Noeud *noeud);

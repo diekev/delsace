@@ -283,3 +283,22 @@ void marque_parent_surannee(Noeud *noeud, const std::function<void(Noeud *, Pris
 	marque_surannee(noeud, rp);
 	marque_parent_surannee(noeud->parent, rp);
 }
+
+Noeud *noeud_base_hierarchie(Noeud *noeud)
+{
+	while (noeud->parent != nullptr) {
+		auto parent = noeud->parent;
+
+		if (parent->graphe.type == type_graphe::RACINE_OBJET) {
+			break;
+		}
+
+		if (parent->graphe.type == type_graphe::RACINE_COMPOSITE) {
+			break;
+		}
+
+		noeud = parent;
+	}
+
+	return noeud;
+}

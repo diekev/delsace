@@ -27,6 +27,7 @@
 #include "biblinternes/structures/pile.hh"
 
 #include "coeur/base_de_donnees.hh"
+#include "coeur/composite.h"
 #include "coeur/objet.h"
 #include "coeur/operatrice_image.h"
 
@@ -37,10 +38,7 @@
 static void marque_execution_graphe(NoeudReseau *racine)
 {
 	for (auto noeud_res : racine->sorties) {
-		auto objet = noeud_res->objet;
-		auto &graphe = objet->noeud->graphe;
-
-		for (auto &noeud : graphe.noeuds()) {
+		for (auto &noeud : noeud_res->noeud->graphe.noeuds()) {
 			noeud->besoin_execution = true;
 			auto op = extrait_opimage(noeud->donnees);
 			op->amont_change(nullptr);
@@ -53,11 +51,7 @@ static void marque_execution_graphe(NoeudReseau *racine)
 static void marque_execution_graphe_temps_change(NoeudReseau *racine)
 {
 	for (auto noeud_res : racine->sorties) {
-		auto objet = noeud_res->objet;
-		auto &graphe = objet->noeud->graphe;
-
-		notifie_noeuds_chronodependants(graphe);
-
+		notifie_noeuds_chronodependants(noeud_res->noeud->graphe);
 		marque_execution_graphe_temps_change(noeud_res);
 	}
 }
@@ -142,35 +136,35 @@ void Reseau::reinitialise()
 
 /* ************************************************************************** */
 
-void CompilatriceReseau::cree_noeud(Objet *objet)
+void CompilatriceReseau::cree_noeud(Noeud *noeud)
 {
-	auto iter_noeud = m_table_objet_noeud.trouve(objet);
+	auto iter_noeud = m_table_noeud_noeud.trouve(noeud);
 
-	if (iter_noeud != m_table_objet_noeud.fin()) {
+	if (iter_noeud != m_table_noeud_noeud.fin()) {
 		throw std::runtime_error("Un noeud existe déjà pour l'objet !");
 	}
 
-	auto noeud = memoire::loge<NoeudReseau>("NoeudReseau");
-	noeud->objet = objet;
-	reseau->noeuds.pousse(noeud);
+	auto noeud_reseau = memoire::loge<NoeudReseau>("NoeudReseau");
+	noeud_reseau->noeud = noeud;
+	reseau->noeuds.pousse(noeud_reseau);
 
-	m_table_objet_noeud.insere({objet, noeud});
+	m_table_noeud_noeud.insere({noeud, noeud_reseau});
 }
 
-NoeudReseau *CompilatriceReseau::trouve_noeud_pour_objet(Objet *objet)
+NoeudReseau *CompilatriceReseau::trouve_noeud_reseau_pour_noeud(Noeud *noeud)
 {
-	auto iter_noeud = m_table_objet_noeud.trouve(objet);
+	auto iter_noeud = m_table_noeud_noeud.trouve(noeud);
 
-	if (iter_noeud == m_table_objet_noeud.fin()) {
+	if (iter_noeud == m_table_noeud_noeud.fin()) {
 		throw std::runtime_error("Aucun noeud n'existe pour l'objet !");
 	}
 
 	return iter_noeud->second;
 }
 
-void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud, Objet *objet)
+void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_reseau, Noeud *noeud)
 {
-	ajoute_dependance(trouve_noeud_pour_objet(objet), noeud);
+	ajoute_dependance(trouve_noeud_reseau_pour_noeud(noeud), noeud_reseau);
 }
 
 void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers)
@@ -179,31 +173,38 @@ void CompilatriceReseau::ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *n
 	noeud_vers->entrees.insere(noeud_de);
 }
 
-void CompilatriceReseau::compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Objet *objet)
+void CompilatriceReseau::compile_reseau(
+		ContexteEvaluation &contexte,
+		BaseDeDonnees *bdd,
+		Noeud *noeud_racine)
 {
 	reseau->reinitialise();
 
 	/* crée les noeuds */
-	for (auto objet_ : bdd->objets()) {
-		cree_noeud(objet_);
+	for (auto objet : bdd->objets()) {
+		cree_noeud(objet->noeud);
+	}
+
+	for (auto composite : bdd->composites()) {
+		cree_noeud(composite->noeud);
 	}
 
 	/* crée les dépendances */
-	for (auto noeud_dep : reseau->noeuds) {
-		auto objet_noeud = noeud_dep->objet;
+	for (auto noeud_reseau : reseau->noeuds) {
+		auto noeud = noeud_reseau->noeud;
 
-		if (objet_noeud->noeud->possede_animation()) {
-			ajoute_dependance(&reseau->noeud_temps, noeud_dep);
+		if (noeud->possede_animation()) {
+			ajoute_dependance(&reseau->noeud_temps, noeud_reseau);
 		}
 
-		cree_dependances(objet_noeud->noeud->graphe, &reseau->noeud_temps, noeud_dep, *this, contexte);
+		cree_dependances(noeud->graphe, &reseau->noeud_temps, noeud_reseau, *this, contexte);
 	}
 
 	/* Marque les graphes des objets en aval comm ayant besoin d'une exécution.
 	 * À FAIRE : trouve les noeuds exacts à exécuter. */
-	if (objet != nullptr) {
-		auto noeud_objet = trouve_noeud_pour_objet(objet);
-		marque_execution_graphe(noeud_objet);
+	if (noeud_racine != nullptr) {
+		auto noeud = trouve_noeud_reseau_pour_noeud(noeud_racine);
+		marque_execution_graphe(noeud);
 	}
 }
 

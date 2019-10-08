@@ -138,92 +138,6 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 
 /* ************************************************************************** */
 
-class TacheEvaluationPlan : public TacheMikisa {
-	Planifieuse::PtrPlan m_plan;
-	ContexteEvaluation m_contexte;
-
-public:
-	explicit TacheEvaluationPlan(
-			Mikisa &mikisa,
-			Planifieuse::PtrPlan plan,
-			ContexteEvaluation const &contexte);
-
-	TacheEvaluationPlan(TacheEvaluationPlan const &) = default;
-	TacheEvaluationPlan &operator=(TacheEvaluationPlan const &) = default;
-
-	void evalue() override;
-};
-
-TacheEvaluationPlan::TacheEvaluationPlan(
-		Mikisa &mikisa,
-		Planifieuse::PtrPlan plan,
-		ContexteEvaluation const &contexte)
-	: TacheMikisa(mikisa)
-	, m_plan(plan)
-	, m_contexte(contexte)
-{}
-
-void TacheEvaluationPlan::evalue()
-{
-	DEBUT_LOG_EVALUATION << "------------------------------------" << FIN_LOG_EVALUATION;
-	DEBUT_LOG_EVALUATION << "Le plan a "
-						 << m_plan->noeuds.taille()
-						 << " noeuds"
-						 << FIN_LOG_EVALUATION;
-
-	for (auto &noeud : m_plan->noeuds) {
-		if (noeud->objet != nullptr) {
-			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->noeud->nom << FIN_LOG_EVALUATION;
-		}
-
-		evalue_objet(m_contexte, noeud->objet);
-	}
-
-	notifier.signalise_proces(type_evenement::objet | type_evenement::traite);
-}
-
-/* ************************************************************************** */
-
-void Executrice::execute_plan(Mikisa &mikisa,
-		const Planifieuse::PtrPlan &plan,
-		ContexteEvaluation const &contexte)
-{
-	/* si le plan peut-être lancé dans son thread (e.g. ce n'est pas pour
-	 * une animation), lance-y le.
-	 */
-
-	/* nous sommes déjà dans un thread */
-	if (plan->est_animation) {
-		DEBUT_LOG_EVALUATION << "Évaluation animation pour '"
-							 << plan->message
-							 << "' ..."
-							 << FIN_LOG_EVALUATION;
-
-		/* tag les noeuds des graphes pour l'exécution temporelle */
-		for (auto &noeud : plan->noeuds) {
-			if (noeud->objet != nullptr) {
-				DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->noeud->nom << FIN_LOG_EVALUATION;
-			}
-
-			evalue_objet(contexte, noeud->objet);
-		}
-
-		mikisa.tache_en_cours = false;
-		return;
-	}
-
-	/* nous avons un objet simple, lance un thread */
-	DEBUT_LOG_EVALUATION << "Évaluation objet asynchrone pour '"
-						 << plan->message
-						 << "' ..."
-						 << FIN_LOG_EVALUATION;
-
-	auto t = new(tbb::task::allocate_root()) TacheEvaluationPlan(mikisa, plan, contexte);
-	tbb::task::enqueue(*t);
-}
-
-/* ************************************************************************** */
-
 static void evalue_composite(Mikisa &mikisa, Composite *composite)
 {
 	auto &graphe = composite->noeud->graphe;
@@ -257,48 +171,96 @@ static void evalue_composite(Mikisa &mikisa, Composite *composite)
 
 /* ************************************************************************** */
 
-class TacheEvaluationComposite : public TacheMikisa {
-	Composite *m_composite;
+static void execute_plan_ex(
+		Mikisa &mikisa,
+		ContexteEvaluation const &contexte,
+		Planifieuse::PtrPlan const &plan)
+{
+	for (auto &noeud_res : plan->noeuds) {
+		auto noeud = noeud_res->noeud;
+
+		if (noeud != nullptr) {
+			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->nom << FIN_LOG_EVALUATION;
+		}
+
+		if (noeud->type == type_noeud::OBJET) {
+			evalue_objet(contexte, extrait_objet(noeud->donnees));
+		}
+		else if (noeud->type == type_noeud::COMPOSITE) {
+			evalue_composite(mikisa, extrait_composite(noeud->donnees));
+		}
+	}
+}
+
+/* ************************************************************************** */
+
+class TacheEvaluationPlan : public TacheMikisa {
+	Planifieuse::PtrPlan m_plan;
+	ContexteEvaluation m_contexte;
 
 public:
-	explicit TacheEvaluationComposite(
+	explicit TacheEvaluationPlan(
 			Mikisa &mikisa,
-			Composite *composite);
+			Planifieuse::PtrPlan plan,
+			ContexteEvaluation const &contexte);
 
-	TacheEvaluationComposite(TacheEvaluationComposite const &) = default;
-	TacheEvaluationComposite &operator=(TacheEvaluationComposite const &) = default;
+	TacheEvaluationPlan(TacheEvaluationPlan const &) = default;
+	TacheEvaluationPlan &operator=(TacheEvaluationPlan const &) = default;
 
 	void evalue() override;
 };
 
-TacheEvaluationComposite::TacheEvaluationComposite(
+TacheEvaluationPlan::TacheEvaluationPlan(
 		Mikisa &mikisa,
-		Composite *composite)
+		Planifieuse::PtrPlan plan,
+		ContexteEvaluation const &contexte)
 	: TacheMikisa(mikisa)
-	, m_composite(composite)
+	, m_plan(plan)
+	, m_contexte(contexte)
 {}
 
-void TacheEvaluationComposite::evalue()
+void TacheEvaluationPlan::evalue()
 {
-	evalue_composite(m_mikisa, m_composite);
+	DEBUT_LOG_EVALUATION << "------------------------------------" << FIN_LOG_EVALUATION;
+	DEBUT_LOG_EVALUATION << "Le plan a "
+						 << m_plan->noeuds.taille()
+						 << " noeuds"
+						 << FIN_LOG_EVALUATION;
 
+	execute_plan_ex(m_mikisa, m_contexte, m_plan);
+
+	notifier.signalise_proces(type_evenement::objet | type_evenement::traite);
 	notifier.signalise_proces(type_evenement::image | type_evenement::traite);
 }
 
-void execute_graphe_composite(Mikisa &mikisa, Composite *composite, const char *message)
+/* ************************************************************************** */
+
+void Executrice::execute_plan(Mikisa &mikisa,
+		const Planifieuse::PtrPlan &plan,
+		ContexteEvaluation const &contexte)
 {
-	if (mikisa.animation) {
-		evalue_composite(mikisa, composite);
+	/* si le plan peut-être lancé dans son thread (e.g. ce n'est pas pour
+	 * une animation), lance-y le.
+	 */
+
+	/* nous sommes déjà dans un thread */
+	if (plan->est_animation) {
+		DEBUT_LOG_EVALUATION << "Évaluation animation pour '"
+							 << plan->message
+							 << "' ..."
+							 << FIN_LOG_EVALUATION;
+
+		execute_plan_ex(mikisa, contexte, plan);
 		mikisa.tache_en_cours = false;
 		return;
 	}
 
 	/* nous avons un objet simple, lance un thread */
-	DEBUT_LOG_EVALUATION << "Évaluation asynchrone composite pour '"
-						 << message
+	DEBUT_LOG_EVALUATION << "Évaluation objet asynchrone pour '"
+						 << plan->message
 						 << "' ..."
 						 << FIN_LOG_EVALUATION;
 
-	auto t = new(tbb::task::allocate_root()) TacheEvaluationComposite(mikisa, composite);
+	auto t = new(tbb::task::allocate_root()) TacheEvaluationPlan(mikisa, plan, contexte);
 	tbb::task::enqueue(*t);
 }

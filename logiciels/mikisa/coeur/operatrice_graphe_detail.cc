@@ -1747,22 +1747,33 @@ public:
 		return type_prise::INVALIDE;
 	}
 
-	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	Noeud const *cherche_noeud_image(ContexteEvaluation const &contexte)
 	{
-		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
-		auto ctx_global = std::any_cast<lcc::ctx_exec *>(donnees_aval->table["ctx_global"]);
-
 		auto chemin_noeud = evalue_chaine("chemin_noeud");
 
 		if (chemin_noeud == "") {
 			this->ajoute_avertissement("Le chemin du noeud pour l'image est vide");
-			return res_exec::ECHOUEE;
+			return nullptr;
 		}
 
 		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
 
 		if (noeud_image == nullptr) {
 			this->ajoute_avertissement("Impossible de trouver le noeud spécifié");
+			return nullptr;
+		}
+
+		return noeud_image;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
+		auto ctx_global = std::any_cast<lcc::ctx_exec *>(donnees_aval->table["ctx_global"]);
+
+		auto noeud_image = cherche_noeud_image(contexte);
+
+		if (noeud_image == nullptr) {
 			return res_exec::ECHOUEE;
 		}
 
@@ -1792,6 +1803,17 @@ public:
 		ctx_global->images.pousse(image);
 
 		return res_exec::REUSSIE;
+	}
+
+	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
+	{
+		auto noeud_image = cherche_noeud_image(contexte);
+
+		if (noeud_image == nullptr) {
+			return;
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, noeud_base_hierarchie(const_cast<Noeud *>(noeud_image)));
 	}
 
 	void obtiens_liste(
@@ -2026,7 +2048,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet->noeud);
 	}
 
 	void obtiens_liste(
