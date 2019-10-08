@@ -59,7 +59,6 @@ menu "Noeud Objet" {
 		action(valeur="Création Normaux"; attache=ajouter_noeud; métadonnée="Création Normaux")
 		action(valeur="Enlève Doublons"; attache=ajouter_noeud; métadonnée="Enlève Doublons")
 		action(valeur="Érosion Maillage"; attache=ajouter_noeud; métadonnée="Érosion Maillage")
-		action(valeur="Fonte Maillage"; attache=ajouter_noeud; métadonnée="Fonte Maillage")
 		action(valeur="Fracture Voronoi"; attache=ajouter_noeud; métadonnée="Fracture Voronoi")
 		action(valeur="Fusionnage Corps"; attache=ajouter_noeud; métadonnée="Fusionnage Corps")
 		action(valeur="Géométrie Maillage"; attache=ajouter_noeud; métadonnée="Géométrie Maillage")
