@@ -75,6 +75,7 @@ struct donnees_propriete {
 	bool est_requis = false;
 	bool est_propriete = false;
 	bool est_modifiee = false;
+	bool est_non_modifiable = false;
 	int ptr = 0;
 	std::any ptr_donnees = nullptr;
 
@@ -114,9 +115,17 @@ struct gestionnaire_propriete {
 		return nullptr;
 	}
 
-	void ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
+	donnees_propriete *ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
-		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx));
+		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx);
+		donnees.pousse(prop);
+		return prop;
+	}
+
+	void ajoute_propriete_non_modifiable(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		auto prop = ajoute_propriete(nom, type, idx);
+		prop->est_non_modifiable = true;
 	}
 
 	void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)

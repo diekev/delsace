@@ -92,13 +92,13 @@ int main()
 		gest_attrs.ajoute_propriete("P", lcc::type_var::VEC3, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::DEC));
-		gest_attrs.ajoute_propriete("index", lcc::type_var::DEC, idx);
+		gest_attrs.ajoute_propriete_non_modifiable("index", lcc::type_var::DEC, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
 		gest_attrs.ajoute_attribut("C", lcc::type_var::COULEUR, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::CHAINE));
-		gest_attrs.ajoute_propriete("ligne", lcc::type_var::CHAINE, idx);
+		gest_attrs.ajoute_propriete_non_modifiable("ligne", lcc::type_var::CHAINE, idx);
 
 		assembleuse.genere_code(contexte, compileuse);
 

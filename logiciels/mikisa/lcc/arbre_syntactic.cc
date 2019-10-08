@@ -273,6 +273,14 @@ int genere_code(
 			}
 			else {
 				if (expr_gauche) {
+					if (donnees->est_non_modifiable) {
+						erreur::lance_erreur(
+									"La propriété n'est pas modifiable.",
+									contexte_generation,
+									b->donnees,
+									erreur::type_erreur::NORMAL);
+					}
+
 					donnees->est_modifiee = true;
 				}
 

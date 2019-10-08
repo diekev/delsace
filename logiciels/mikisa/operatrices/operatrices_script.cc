@@ -450,19 +450,19 @@ static auto ajoute_proprietes_contexte(
 		gestionnaire_propriete &gest_props)
 {
 	auto idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::DEC));
-	gest_props.ajoute_propriete("index", lcc::type_var::DEC, idx);
+	gest_props.ajoute_propriete_non_modifiable("index", lcc::type_var::DEC, idx);
 
 	idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
-	gest_props.ajoute_propriete("temps", lcc::type_var::ENT32, idx);
+	gest_props.ajoute_propriete_non_modifiable("temps", lcc::type_var::ENT32, idx);
 
 	idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
-	gest_props.ajoute_propriete("temps_début", lcc::type_var::ENT32, idx);
+	gest_props.ajoute_propriete_non_modifiable("temps_début", lcc::type_var::ENT32, idx);
 
 	idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::ENT32));
-	gest_props.ajoute_propriete("temps_fin", lcc::type_var::ENT32, idx);
+	gest_props.ajoute_propriete_non_modifiable("temps_fin", lcc::type_var::ENT32, idx);
 
 	idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::DEC));
-	gest_props.ajoute_propriete("cadence", lcc::type_var::DEC, idx);
+	gest_props.ajoute_propriete_non_modifiable("cadence", lcc::type_var::DEC, idx);
 
 	if (contexte == (lcc::ctx_script::detail | lcc::ctx_script::point)) {
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
@@ -471,7 +471,7 @@ static auto ajoute_proprietes_contexte(
 
 	if (contexte == (lcc::ctx_script::topologie | lcc::ctx_script::fichier)) {
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::CHAINE));
-		gest_props.ajoute_propriete("ligne", lcc::type_var::CHAINE, idx);
+		gest_props.ajoute_propriete_non_modifiable("ligne", lcc::type_var::CHAINE, idx);
 	}
 }
 
