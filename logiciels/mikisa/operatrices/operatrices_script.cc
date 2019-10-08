@@ -224,7 +224,7 @@ static auto ajoute_attributs_contexte(
 	for (auto &attr : corps.attributs()) {
 		if (attr.portee == portee) {
 			auto idx = compileuse.donnees().loge_donnees(attr.dimensions);
-			gest_attrs.ajoute_propriete(attr.nom(), converti_type_attr(attr.type(), attr.dimensions), idx);
+			gest_attrs.ajoute_attribut(attr.nom(), converti_type_attr(attr.type(), attr.dimensions), idx);
 		}
 	}
 }
@@ -358,16 +358,16 @@ static auto stocke_attributs(
 		lcc::ctx_local &ctx_local,
 		long idx_attr)
 {
-	for (auto const &requete : gest_attrs.donnees) {
+	for (auto const &donnee : gest_attrs.donnees) {
 		/* ne stocke pas les attributs créés pour ne pas effacer les
 		 * données d'assignation de constante à la position du
 		 * pointeur */
-		if (requete->est_requis) {
+		if (donnee->est_requis || donnee->est_propriete) {
 			continue;
 		}
 
-		auto idx_pile = requete->ptr;
-		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
+		auto idx_pile = donnee->ptr;
+		auto attr = std::any_cast<Attribut *>(donnee->ptr_donnees);
 
 		switch (attr->type()) {
 			default:
@@ -402,9 +402,13 @@ static auto charge_attributs(
 		lcc::ctx_local const &ctx_local,
 		long idx_attr)
 {
-	for (auto const &requete : gest_attrs.donnees) {
-		auto idx_pile = requete->ptr;
-		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
+	for (auto const &donnee : gest_attrs.donnees) {
+		if (donnee->est_propriete) {
+			continue;
+		}
+
+		auto idx_pile = donnee->ptr;
+		auto attr = std::any_cast<Attribut *>(donnee->ptr_donnees);
 
 		switch (attr->type()) {
 			default:
@@ -554,16 +558,11 @@ public:
 
 			analyseuse.lance_analyse(std::cerr);
 
-			auto &gest_props = ctx_gen.gest_props;
-
 			auto compileuse = compileuse_lng{};
 
-			/* ajout des propriétés selon le contexte */
-			ajoute_proprietes_contexte(ctx_script, compileuse, gest_props);
-
-			/* ajout des attributs selon le contexte */
+			/* ajout des propriétés et attributs selon le contexte */
 			auto &gest_attrs = ctx_gen.gest_attrs;
-
+			ajoute_proprietes_contexte(ctx_script, compileuse, gest_attrs);
 			ajoute_attributs_contexte(m_corps, ctx_gen, compileuse, ctx_script);
 
 			/* ajout des variables extras */
@@ -602,17 +601,17 @@ public:
 			ctx_exec.chaines = ctx_gen.chaines;
 
 			/* données générales */
-			remplis_donnees(compileuse.donnees(), gest_props, "temps", contexte.temps_courant);
-			remplis_donnees(compileuse.donnees(), gest_props, "temps_début", contexte.temps_debut);
-			remplis_donnees(compileuse.donnees(), gest_props, "temps_fin", contexte.temps_fin);
-			remplis_donnees(compileuse.donnees(), gest_props, "cadence", static_cast<float>(contexte.cadence));
+			remplis_donnees(compileuse.donnees(), gest_attrs, "temps", contexte.temps_courant);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "temps_début", contexte.temps_debut);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "temps_fin", contexte.temps_fin);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "cadence", static_cast<float>(contexte.cadence));
 
 			if (portee_script == "fichier") {
 				execute_script_pour_fichier(
-							chef, compileuse, gest_props, gest_attrs, ctx_exec, contenu_fichier);
+							chef, compileuse, gest_attrs, ctx_exec, contenu_fichier);
 			}
 			else {
-				execute_script(chef, compileuse, gest_props, gest_attrs, ctx_exec);
+				execute_script(chef, compileuse, gest_attrs, ctx_exec);
 			}
 		}
 		catch (erreur::frappe const &e) {
@@ -636,7 +635,6 @@ public:
 	void execute_script_pour_fichier(
 			ChefExecution *chef,
 			compileuse_lng &compileuse,
-			gestionnaire_propriete &gest_props,
 			gestionnaire_propriete &gest_attrs,
 			lcc::ctx_exec &ctx_exec,
 			dls::chaine const &contenu_fichier)
@@ -655,8 +653,8 @@ public:
 
 			ctx_exec.chaines[decalage_chn] = tampon_source[static_cast<int>(i)];
 
-			remplis_donnees(compileuse.donnees(), gest_props, "index", static_cast<int>(i));
-			remplis_donnees(compileuse.donnees(), gest_props, "ligne", static_cast<int>(decalage_chn));
+			remplis_donnees(compileuse.donnees(), gest_attrs, "index", static_cast<int>(i));
+			remplis_donnees(compileuse.donnees(), gest_attrs, "ligne", static_cast<int>(decalage_chn));
 
 			/* stocke les attributs */
 			stocke_attributs(gest_attrs, compileuse.donnees(), ctx_local, static_cast<int>(i));
@@ -676,7 +674,6 @@ public:
 	void execute_script(
 			ChefExecution *chef,
 			compileuse_lng &compileuse,
-			gestionnaire_propriete &gest_props,
 			gestionnaire_propriete &gest_attrs,
 			lcc::ctx_exec &ctx_exec)
 	{
@@ -687,7 +684,7 @@ public:
 
 			auto ctx_local = lcc::ctx_local{};
 
-			remplis_donnees(compileuse.donnees(), gest_props, "index", i);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "index", i);
 
 			/* stocke les attributs */
 			stocke_attributs(gest_attrs, compileuse.donnees(), ctx_local, i);
@@ -787,17 +784,12 @@ public:
 
 			analyseuse.lance_analyse(std::cerr);
 
-			auto &gest_props = ctx_gen.gest_props;
-
 			auto compileuse = compileuse_lng{};
 
-			/* ajout des propriétés selon le contexte */
-
-			ajoute_proprietes_contexte(ctx_script, compileuse, gest_props);
-
-			/* ajout des attributs selon le contexte */
+			/* ajout des propriétés et attributs selon le contexte */
 			auto &gest_attrs = ctx_gen.gest_attrs;
 
+			ajoute_proprietes_contexte(ctx_script, compileuse, gest_attrs);
 			ajoute_attributs_contexte(m_corps, ctx_gen, compileuse, ctx_script);
 
 			/* ajout des variables extras */
@@ -861,16 +853,16 @@ public:
 			}
 
 			/* données générales */
-			remplis_donnees(compileuse.donnees(), gest_props, "temps", contexte.temps_courant);
-			remplis_donnees(compileuse.donnees(), gest_props, "temps_début", contexte.temps_debut);
-			remplis_donnees(compileuse.donnees(), gest_props, "temps_fin", contexte.temps_fin);
-			remplis_donnees(compileuse.donnees(), gest_props, "cadence", static_cast<float>(contexte.cadence));
+			remplis_donnees(compileuse.donnees(), gest_attrs, "temps", contexte.temps_courant);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "temps_début", contexte.temps_debut);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "temps_fin", contexte.temps_fin);
+			remplis_donnees(compileuse.donnees(), gest_attrs, "cadence", static_cast<float>(contexte.cadence));
 
 			if (portee_script == "points") {
-				execute_script_sur_points(chef, compileuse, gest_props, gest_attrs, ctx_exec);
+				execute_script_sur_points(chef, compileuse, gest_attrs, ctx_exec);
 			}
 			else if (portee_script == "primitives") {
-				execute_script_sur_primitives(chef, compileuse, gest_props, gest_attrs, ctx_exec);
+				execute_script_sur_primitives(chef, compileuse, gest_attrs, ctx_exec);
 			}
 		}
 		catch (erreur::frappe const &e) {
@@ -894,7 +886,6 @@ public:
 	void execute_script_sur_points(
 			ChefExecution *chef,
 			compileuse_lng &compileuse,
-			gestionnaire_propriete &gest_props,
 			gestionnaire_propriete &gest_attrs,
 			lcc::ctx_exec &ctx_exec)
 	{
@@ -921,8 +912,8 @@ public:
 
 				auto point = points->point(i);
 
-				remplis_donnees(donnees, gest_props, "P", point);
-				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
+				remplis_donnees(donnees, gest_attrs, "P", point);
+				remplis_donnees(donnees, gest_attrs, "index", static_cast<int>(i));
 
 				/* stocke les attributs */
 				stocke_attributs(gest_attrs, donnees, ctx_local, i);
@@ -934,7 +925,7 @@ public:
 							compileuse.instructions(),
 							static_cast<int>(i));
 
-				auto idx_sortie = gest_props.pointeur_donnees("P");
+				auto idx_sortie = gest_attrs.pointeur_donnees("P");
 				point = donnees.charge_vec3(idx_sortie);
 
 				/* charge les attributs */
@@ -951,7 +942,6 @@ public:
 	void execute_script_sur_primitives(
 			ChefExecution *chef,
 			compileuse_lng &compileuse,
-			gestionnaire_propriete &gest_props,
 			gestionnaire_propriete &gest_attrs,
 			lcc::ctx_exec &ctx_exec)
 	{
@@ -974,7 +964,7 @@ public:
 
 				auto ctx_local = lcc::ctx_local{};
 
-				remplis_donnees(donnees, gest_props, "index", static_cast<int>(i));
+				remplis_donnees(donnees, gest_attrs, "index", static_cast<int>(i));
 
 				/* stocke les attributs */
 				stocke_attributs(gest_attrs, donnees, ctx_local, i);

@@ -121,16 +121,16 @@ static auto stocke_attributs(
 		lcc::pile &donnees,
 		long idx_attr)
 {
-	for (auto const &requete : gest_attrs.donnees) {
+	for (auto const &donnee : gest_attrs.donnees) {
 		/* ne stocke pas les attributs créés pour ne pas effacer les
 		 * données d'assignation de constante à la position du
 		 * pointeur */
-		if (requete->est_requis) {
+		if (donnee->est_requis || donnee->est_propriete) {
 			continue;
 		}
 
-		auto idx_pile = requete->ptr;
-		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
+		auto idx_pile = donnee->ptr;
+		auto attr = std::any_cast<Attribut *>(donnee->ptr_donnees);
 
 		switch (attr->type()) {
 			default:
@@ -157,9 +157,13 @@ static auto charge_attributs(
 		lcc::pile &donnees,
 		long idx_attr)
 {
-	for (auto const &requete : gest_attrs.donnees) {
-		auto idx_pile = requete->ptr;
-		auto attr = std::any_cast<Attribut *>(requete->ptr_donnees);
+	for (auto const &donnee : gest_attrs.donnees) {
+		if (donnee->est_propriete) {
+			continue;
+		}
+
+		auto idx_pile = donnee->ptr;
+		auto attr = std::any_cast<Attribut *>(donnee->ptr_donnees);
 
 		switch (attr->type()) {
 			default:
@@ -344,7 +348,6 @@ void CompileuseGrapheLCC::charge_attributs(lcc::pile &donnees, long idx_attr)
 bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Corps *corps)
 {
 	m_compileuse = compileuse_lng();
-	m_gest_props = gestionnaire_propriete();
 	m_gest_attrs = gestionnaire_propriete();
 
 	m_ctx_global.reinitialise();
@@ -358,7 +361,6 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 	donnees_aval.table.insere({"coulisse", dls::chaine("lcc")});
 	donnees_aval.table.insere({"compileuse", &m_compileuse});
 	donnees_aval.table.insere({"ctx_global", &m_ctx_global});
-	donnees_aval.table.insere({"gest_props", &m_gest_props});
 	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
 
 	auto type_detail = std::any_cast<int>(graphe.donnees[0]);
@@ -368,14 +370,14 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 
 	for (auto i = 0; i < params_entree.taille(); ++i) {
 		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_entree.type(i)));
-		m_gest_props.ajoute_propriete(params_entree.nom(i), params_entree.type(i), idx);
+		m_gest_attrs.ajoute_propriete(params_entree.nom(i), params_entree.type(i), idx);
 	}
 
 	auto &params_sortie = params_noeuds_sortie[type_detail];
 
 	for (auto i = 0; i < params_sortie.taille(); ++i) {
 		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_sortie.type(i)));
-		m_gest_props.ajoute_propriete(params_sortie.nom(i), params_sortie.type(i), idx);
+		m_gest_attrs.ajoute_propriete(params_sortie.nom(i), params_sortie.type(i), idx);
 	}
 
 	/* fais de la place pour les attributs */
@@ -387,7 +389,7 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 
 			auto idx = m_compileuse.donnees().loge_donnees(attr.dimensions);
 			auto type_attr = converti_type_attr(attr.type(), attr.dimensions);
-			m_gest_attrs.ajoute_propriete(attr.nom(), type_attr, idx);
+			m_gest_attrs.ajoute_attribut(attr.nom(), type_attr, idx);
 		}
 	}
 
@@ -458,7 +460,7 @@ void CompileuseGrapheLCC::execute_pile(lcc::ctx_local &ctx_local, lcc::pile &don
 
 int CompileuseGrapheLCC::pointeur_donnees(const dls::chaine &nom)
 {
-	return m_gest_props.pointeur_donnees(nom);
+	return m_gest_attrs.pointeur_donnees(nom);
 }
 
 /* ************************************************************************** */
@@ -765,7 +767,7 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 
 								m_compileuse.execute_pile(ctx_local, donnees);
 
-								auto idx_sortie = m_compileuse.m_gest_props.pointeur_donnees("densité");
+								auto idx_sortie = m_compileuse.m_gest_attrs.pointeur_donnees("densité");
 								v = donnees.charge_decimal(idx_sortie);
 
 								tuile->donnees[index_tuile] = v;
@@ -1375,7 +1377,7 @@ public:
 		INUTILISE(contexte);
 
 		auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
-		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
+		auto gest_attrs = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_attrs"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
 		auto const &params_noeud = params_noeuds_entree[type_detail];
@@ -1383,7 +1385,7 @@ public:
 		if (coulisse == "lcc") {
 			for (auto i = 0; i < params_noeud.taille(); ++i) {
 				auto prise_sortie = sortie(i)->pointeur();
-				prise_sortie->decalage_pile = gest_props->pointeur_donnees(params_noeud.nom(i));
+				prise_sortie->decalage_pile = gest_attrs->pointeur_donnees(params_noeud.nom(i));
 				prise_sortie->type_infere = converti_type_prise(params_noeud.type(i));
 			}
 		}
@@ -1467,22 +1469,22 @@ public:
 
 		auto coulisse = std::any_cast<dls::chaine>(donnees_aval->table["coulisse"]);
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
-		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
+		auto gest_attrs = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_attrs"]);
 		auto type_detail = std::any_cast<int>(m_graphe_parent.donnees[0]);
 
 		if (coulisse == "lcc") {
 			auto const &params_noeud = params_noeuds_sortie[type_detail];
 
 			for (auto i = 0; i < params_noeud.taille(); ++i) {
-				if (!gest_props->propriete_existe(params_noeud.nom(i))) {
+				if (!gest_attrs->propriete_existe(params_noeud.nom(i))) {
 					auto idx = compileuse->donnees().loge_donnees(taille_type(params_noeud.type(i)));
-					gest_props->ajoute_propriete(params_noeud.nom(i), params_noeud.type(i), idx);
+					gest_attrs->ajoute_propriete(params_noeud.nom(i), params_noeud.type(i), idx);
 				}
 
 				if (entree(i)->connectee()) {
 					auto ptr_prise = entree(i)->pointeur();
 					auto ptr_entree = static_cast<int>(ptr_prise->liens[0]->decalage_pile);
-					auto ptr_sortie = gest_props->pointeur_donnees(params_noeud.nom(i));
+					auto ptr_sortie = gest_attrs->pointeur_donnees(params_noeud.nom(i));
 
 					compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
 					compileuse->ajoute_instructions(params_noeud.type(i));
@@ -2131,12 +2133,12 @@ public:
 
 	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
-		auto gest_props = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_props"]);
+		auto gest_attrs = std::any_cast<gestionnaire_propriete *>(donnees_aval->table["gest_attrs"]);
 		auto compileuse = std::any_cast<compileuse_lng *>(donnees_aval->table["compileuse"]);
 
 		for (auto i = 0; i < sorties(); ++i) {
 			auto idx = compileuse->donnees().loge_donnees(taille_type(params_info.type(i)));
-			gest_props->ajoute_propriete(params_info.nom(i), params_info.type(i), idx);
+			gest_attrs->ajoute_propriete(params_info.nom(i), params_info.type(i), idx);
 
 			auto prise_sortie = sortie(i)->pointeur();
 			prise_sortie->decalage_pile = idx;
@@ -2192,7 +2194,6 @@ bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanc
 
 	auto m_compileuse = compileuse_lng();
 	auto m_ctx_global = lcc::ctx_exec{};
-	auto m_gest_props = gestionnaire_propriete{};
 	auto m_gest_attrs = gestionnaire_propriete{};
 
 	auto donnees_compil = DonneesCompilationNuanceur();
@@ -2201,7 +2202,6 @@ bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanc
 	donnees_aval.table.insere({"coulisse", dls::chaine("opengl")});
 	donnees_aval.table.insere({"compileuse", &m_compileuse});
 	donnees_aval.table.insere({"ctx_global", &m_ctx_global});
-	donnees_aval.table.insere({"gest_props", &m_gest_props});
 	donnees_aval.table.insere({"gest_attrs", &m_gest_attrs});
 	donnees_aval.table.insere({"donnees_compil", &donnees_compil});
 

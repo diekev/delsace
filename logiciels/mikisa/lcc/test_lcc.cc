@@ -84,22 +84,21 @@ int main()
 
 		assembleuse.imprime_code(os);
 
-		auto &gest_props = contexte.gest_props;
 		auto &gest_attrs = contexte.gest_attrs;
 
 		auto compileuse = compileuse_lng{};
 
 		auto idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-		gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
+		gest_attrs.ajoute_propriete("P", lcc::type_var::VEC3, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::DEC));
-		gest_props.ajoute_propriete("index", lcc::type_var::DEC, idx);
+		gest_attrs.ajoute_propriete("index", lcc::type_var::DEC, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
-		gest_attrs.ajoute_propriete("C", lcc::type_var::COULEUR, idx);
+		gest_attrs.ajoute_attribut("C", lcc::type_var::COULEUR, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::CHAINE));
-		gest_props.ajoute_propriete("ligne", lcc::type_var::CHAINE, idx);
+		gest_attrs.ajoute_propriete("ligne", lcc::type_var::CHAINE, idx);
 
 		assembleuse.genere_code(contexte, compileuse);
 
@@ -126,13 +125,13 @@ int main()
 		for (auto entree : entrees) {			
 			auto ctx_local = lcc::ctx_local{};
 
-			idx = gest_props.pointeur_donnees("P");
+			idx = gest_attrs.pointeur_donnees("P");
 			compileuse.donnees().stocke(idx, entree);
 
-			idx = gest_props.pointeur_donnees("index");
+			idx = gest_attrs.pointeur_donnees("index");
 			compileuse.donnees().stocke(idx, 1024);
 
-			idx = gest_props.pointeur_donnees("ligne");
+			idx = gest_attrs.pointeur_donnees("ligne");
 			compileuse.donnees().stocke(idx, ptr_ligne);
 
 			lcc::execute_pile(
@@ -142,7 +141,7 @@ int main()
 						compileuse.instructions(),
 						0);
 
-			auto idx_sortie = gest_props.pointeur_donnees("P");
+			auto idx_sortie = gest_attrs.pointeur_donnees("P");
 
 			auto sortie = compileuse.donnees().charge_vec3(idx_sortie);
 

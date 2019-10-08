@@ -254,13 +254,6 @@ int genere_code(
 			break;
 		}
 		case type_noeud::PROPRIETE:
-		{
-			auto &gest_props = contexte_generation.gest_props;
-			b->donnees_type = gest_props.type_propriete(b->chaine());
-			b->pointeur_donnees = gest_props.pointeur_donnees(b->chaine());
-
-			break;
-		}
 		case type_noeud::ATTRIBUT:
 		{
 			auto &gest_attrs = contexte_generation.gest_attrs;

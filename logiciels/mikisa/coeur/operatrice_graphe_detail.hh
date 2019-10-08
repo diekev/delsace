@@ -50,7 +50,6 @@ struct Nuanceur;
 
 struct CompileuseGrapheLCC {
 	compileuse_lng m_compileuse{};
-	gestionnaire_propriete m_gest_props{};
 	gestionnaire_propriete m_gest_attrs{};
 	lcc::ctx_exec m_ctx_global{};
 
@@ -66,7 +65,7 @@ struct CompileuseGrapheLCC {
 			dls::chaine const &nom,
 			T const &valeur)
 	{
-		::remplis_donnees(donnees_pile, m_gest_props, nom, valeur);
+		::remplis_donnees(donnees_pile, m_gest_attrs, nom, valeur);
 	}
 
 	void stocke_attributs(lcc::pile &donnees, long idx_attr);

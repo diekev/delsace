@@ -73,7 +73,7 @@ struct donnees_propriete {
 	dls::chaine nom = "";
 	lcc::type_var type{};
 	bool est_requis = false;
-	bool pad = false;
+	bool est_propriete = false;
 	int ptr = 0;
 	std::any ptr_donnees = nullptr;
 
@@ -81,10 +81,12 @@ struct donnees_propriete {
 			dls::chaine const &_nom_,
 			lcc::type_var _type_,
 			bool _est_requis_,
+			bool _est_propriete_,
 			int _ptr_)
 		: nom(_nom_)
 		, type(_type_)
 		, est_requis(_est_requis_)
+		, est_propriete(_est_propriete_)
 	    , ptr(_ptr_)
 	{}
 };
@@ -102,12 +104,17 @@ struct gestionnaire_propriete {
 
 	void ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
-		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, idx));
+		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx));
+	}
+
+	void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
 	}
 
 	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
-		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, idx);
+		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, false, idx);
 		donnees.pousse(prop);
 		requetes.pousse(prop);
 	}
@@ -199,7 +206,6 @@ struct ContexteGenerationCode {
 
 	lcc::magasin_fonctions fonctions{};
 
-	gestionnaire_propriete gest_props{};
 	gestionnaire_propriete gest_attrs{};
 
 	/* les chaines qui seront transférées au contexte globale */
