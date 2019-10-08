@@ -1548,7 +1548,13 @@ public:
 
 	void visualise_attribut(Attribut *attr)
 	{
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
+		auto attr_C = m_corps.attribut("C");
+
+		if (attr_C != nullptr) {
+			m_corps.supprime_attribut("C");
+		}
+
+		attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
 
 		if (attr->type() == type_attribut::R32) {
 			if (attr->dimensions == 1) {
