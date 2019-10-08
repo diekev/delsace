@@ -265,7 +265,7 @@ int genere_code(
 				}
 				else {
 					erreur::lance_erreur(
-								"Attibut inconnu.",
+								"Attribut inconnu.",
 								contexte_generation,
 								b->donnees,
 								erreur::type_erreur::NORMAL);
