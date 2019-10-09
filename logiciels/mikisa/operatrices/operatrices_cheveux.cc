@@ -100,6 +100,12 @@
  * FurSampler
  * FurColliderDistance
  * Region of Influence
+ * FollicleSampler (quickly get a spatially uniformly sampled set of follicles/curves)
+ * CurveWind (procedural wind with gusts and wind shielding)
+ * CurveJiggle (fast controllable jiggle/secondary motion)
+ *
+ * « Skunk: DreamWorks Fur Simulation System »
+ * https://research.dreamworks.com/wp-content/uploads/2019/10/xtalk_skunk_abstract.pdf
  *
  * De SPI :
  * Wave (make hair wavy)
