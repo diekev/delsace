@@ -43,7 +43,7 @@ using Vecteur = Eigen::Matrix<Scalaire, 3, 1>;
 /* ************************************************************************** */
 
 struct DonneesMaillage {
-	ListePoints3D const *points{};
+	AccesseusePointLecture const &points;
 	Attribut *normaux{};
 	Attribut *courbure_min{};
 	Attribut *courbure_max{};
@@ -81,7 +81,7 @@ public:
 	MULTIARCH inline GLSPoint() = default;
 
 	MULTIARCH inline GLSPoint(DonneesMaillage const &mesh, long vx)
-		: m_pos(converti_eigen(mesh.points->point(vx)))
+		: m_pos(converti_eigen(mesh.points.point_local(vx)))
 	{
 		auto n = dls::math::vec3f();
 		extrait(mesh.normaux->r32(vx), n);
@@ -121,22 +121,22 @@ static auto calcul_courbure(
 
 	auto const r = Scalaire(2) * radius;
 	auto const r2 = r * r;
-	auto const nombre_sommets = donnees_maillage.points->taille();
+	auto const nombre_sommets = donnees_maillage.points.taille();
 
 #ifdef ARBRE_KD
 	auto arbre = arbre_3df();
 	arbre.construit_avec_fonction(
-				static_cast<int>(donnees_maillage.points->taille()),
+				static_cast<int>(donnees_maillage.points.taille()),
 				[&](int idx)
 	{
-		return donnees_maillage.points->point(idx);
+		return donnees_maillage.points.point_local(idx);
 	});
 #else
 	auto grille_points = GrillePoint::construit_avec_fonction(
 				[&](long idx)
 	{
-		return donnees_maillage.points->point(idx);
-	}, donnees_maillage.points->taille(), static_cast<float>(r));
+		return donnees_maillage.points.point_local(idx);
+	}, donnees_maillage.points.taille(), static_cast<float>(r));
 #endif
 
 	boucle_parallele(tbb::blocked_range<long>(0, nombre_sommets),
@@ -147,13 +147,13 @@ static auto calcul_courbure(
 				break;
 			}
 
-			auto p0 = converti_eigen(donnees_maillage.points->point(i));
+			auto p0 = converti_eigen(donnees_maillage.points.point_local(i));
 
 			Fit fit;
 			fit.init(p0);
 			fit.setWeightFunc(WeightFunc(r));
 
-			auto point = donnees_maillage.points->point(i);
+			auto point = donnees_maillage.points.point_local(i);
 
 #ifdef ARBRE_KD
 			arbre.cherche_points(point, static_cast<float>(r), [&](int idx, dls::math::vec3f const &, float dc, float &)
@@ -223,8 +223,7 @@ DonneesCalculCourbure calcule_courbure(
 
 	chef->demarre_evaluation("courbure, préparation attributs");
 
-	auto donnees_maillage = DonneesMaillage{};
-	donnees_maillage.points = points_entree;
+	auto donnees_maillage = DonneesMaillage{points_entree};
 	donnees_maillage.normaux = corps.attribut("N");
 	donnees_maillage.courbure_min = corps.ajoute_attribut("courbure_min", type_attribut::R32, 1, portee_attr::POINT);
 	donnees_maillage.courbure_max = corps.ajoute_attribut("courbure_max", type_attribut::R32, 1, portee_attr::POINT);

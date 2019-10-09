@@ -689,54 +689,20 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 			chef->demarre_evaluation("graphe détail points");
 
 			auto points_entree = m_corps.points_pour_lecture();
-			auto points_sortie = static_cast<ListePoints3D *>(nullptr);
 
 			auto donnees_prop = m_compileuse.m_gest_attrs.donnees_pour_propriete("P");
+
 			if (donnees_prop->est_modifiee) {
-				points_sortie = m_corps.points_pour_ecriture();
+				auto points_sortie = m_corps.points_pour_ecriture();
+				execute_script_sur_points(chef, points_entree, &points_sortie);
 			}
-
-			boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
-							 [&](tbb::blocked_range<long> const &plage)
-			{
-				if (chef->interrompu()) {
-					return;
-				}
-
-				/* fais une copie locale pour éviter les problèmes de concurrence critique */
-				auto donnees = m_compileuse.donnees();
-
-				for (auto i = plage.begin(); i < plage.end(); ++i) {
-					auto ctx_local = lcc::ctx_local{};
-
-					auto pos = points_entree->point(i);
-					m_compileuse.remplis_donnees(donnees, "P", pos);
-
-					/* stocke les attributs */
-					m_compileuse.stocke_attributs(donnees, i);
-
-					m_compileuse.execute_pile(ctx_local, donnees);
-
-					auto idx_sortie = m_compileuse.pointeur_donnees("P");
-					pos = donnees.charge_vec3(idx_sortie);
-
-					/* charge les attributs */
-					m_compileuse.charge_attributs(donnees, i);
-
-					if (points_sortie) {
-						points_sortie->point(i, pos);
-					}
-				}
-
-				auto delta = static_cast<float>(plage.end() - plage.begin());
-				delta /= static_cast<float>(points_entree->taille());
-				chef->indique_progression_parallele(delta * 100.0f);
-			});
+			else {
+				execute_script_sur_points(chef, points_entree, nullptr);
+			}
 
 			/* réinitialise la transformation puisque nous l'appliquons aux
 			 * points dans la boucle au dessus */
-			/* À FAIRE : retramsforme les points, via une accesseuse_points */
-			//m_corps.transformation = math::transformation();
+			m_corps.transformation = math::transformation();
 
 			break;
 		}
@@ -792,6 +758,49 @@ res_exec OperatriceGrapheDetail::execute_detail_corps(
 	}
 
 	return res_exec::REUSSIE;
+}
+
+void OperatriceGrapheDetail::execute_script_sur_points(
+		ChefExecution *chef,
+		AccesseusePointLecture const &points_entree,
+		AccesseusePointEcriture *points_sortie)
+{
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
+					 [&](tbb::blocked_range<long> const &plage)
+	{
+		if (chef->interrompu()) {
+			return;
+		}
+
+		/* fais une copie locale pour éviter les problèmes de concurrence critique */
+		auto donnees = m_compileuse.donnees();
+
+		for (auto i = plage.begin(); i < plage.end(); ++i) {
+			auto ctx_local = lcc::ctx_local{};
+
+			auto pos = points_entree.point_monde(i);
+			m_compileuse.remplis_donnees(donnees, "P", pos);
+
+			/* stocke les attributs */
+			m_compileuse.stocke_attributs(donnees, i);
+
+			m_compileuse.execute_pile(ctx_local, donnees);
+
+			auto idx_sortie = m_compileuse.pointeur_donnees("P");
+			pos = donnees.charge_vec3(idx_sortie);
+
+			/* charge les attributs */
+			m_compileuse.charge_attributs(donnees, i);
+
+			if (points_sortie) {
+				points_sortie->point(i, pos);
+			}
+		}
+
+		auto delta = static_cast<float>(plage.end() - plage.begin());
+		delta /= static_cast<float>(points_entree.taille());
+		chef->indique_progression_parallele(delta * 100.0f);
+	});
 }
 
 /* ************************************************************************** */

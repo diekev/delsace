@@ -131,7 +131,7 @@ public:
 		chef->demarre_evaluation("points depuis image");
 
 		auto points = m_corps.points_pour_ecriture();
-		points->redimensionne(nombre_de_pixels);
+		points.redimensionne(nombre_de_pixels);
 
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3);
 
@@ -175,7 +175,7 @@ public:
 						py = dls::phys::luminance(rvb);
 					}
 
-					points->point(index, dls::math::vec3f(px, py, pz));
+					points.point(index, dls::math::vec3f(px, py, pz));
 
 					assigne(attr_C->r32(index), dls::math::vec3f(rvb.r, rvb.v, rvb.b));
 				}

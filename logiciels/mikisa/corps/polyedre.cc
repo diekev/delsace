@@ -142,14 +142,14 @@ inline auto index_arete(long i0, long i1)
 
 static auto trouve_sommet(
 		Polyedre &polyedre,
-		Corps const &corps,
+		AccesseusePointLecture const &points,
 		dls::dico_desordonne<long, mi_sommet *> &dico_sommets,
 		long idx0)
 {
 	auto iter0 = dico_sommets.trouve(idx0);
 
 	if (iter0 == dico_sommets.fin()) {
-		auto s0 = polyedre.cree_sommet(corps.point_transforme(idx0));
+		auto s0 = polyedre.cree_sommet(points.point_monde(idx0));
 		dico_sommets.insere({ idx0, s0 });
 		return s0;
 	}
@@ -166,18 +166,18 @@ enum {
 
 static auto ajoute_triangle(
 		Polyedre &polyedre,
-		Corps const &corps,
+		AccesseusePointLecture const &points,
 		dls::dico_desordonne<size_t, mi_arete *> &dico_aretes,
 		dls::dico_desordonne<long, mi_sommet *> &dico_sommets,
 		long i0,
 		long i1,
 		long i2)
 {
-	auto s0 = trouve_sommet(polyedre, corps, dico_sommets, i0);
+	auto s0 = trouve_sommet(polyedre, points, dico_sommets, i0);
 	s0->label = static_cast<unsigned>(i0);
-	auto s1 = trouve_sommet(polyedre, corps, dico_sommets, i1);
+	auto s1 = trouve_sommet(polyedre, points, dico_sommets, i1);
 	s1->label = static_cast<unsigned>(i1);
-	auto s2 = trouve_sommet(polyedre, corps, dico_sommets, i2);
+	auto s2 = trouve_sommet(polyedre, points, dico_sommets, i2);
 	s2->label = static_cast<unsigned>(i2);
 
 	auto t = polyedre.cree_face();
@@ -248,7 +248,7 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 	auto dico_sommets = dls::dico_desordonne<long, mi_sommet *>();
 	auto points = corps.points_pour_lecture();
 
-	pour_chaque_polygone_ferme(corps, [&](Corps const &c, Polygone const *poly)
+	pour_chaque_polygone_ferme(corps, [&](Corps const &, Polygone const *poly)
 	{
 		auto nombre_sommets = poly->nombre_sommets();
 
@@ -257,7 +257,7 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 			auto i1 = poly->index_point(1);
 			auto i2 = poly->index_point(2);
 
-			auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
+			auto t = ajoute_triangle(polyedre, points, dico_aretes, dico_sommets, i0, i1, i2);
 			t->label = static_cast<unsigned>(poly->index);
 
 			ajourne_label_arete_triangle(
@@ -278,29 +278,29 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 			auto s2 = poly->index_sommet(2);
 			auto s3 = poly->index_sommet(3);
 
-			auto p0 = points->point(i0);
-			auto p1 = points->point(i1);
-			auto p2 = points->point(i2);
-			auto p3 = points->point(i3);
+			auto p0 = points.point_local(i0);
+			auto p1 = points.point_local(i1);
+			auto p2 = points.point_local(i2);
+			auto p3 = points.point_local(i3);
 
 			auto l0 = longueur_carree(p2 - p0);
 			auto l1 = longueur_carree(p3 - p1);
 
 			if (l0 <= l1) {
-				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
+				auto t = ajoute_triangle(polyedre, points, dico_aretes, dico_sommets, i0, i1, i2);
 				t->label = static_cast<unsigned>(poly->index);
 				ajourne_label_arete_triangle(t, s0, s1, s2);
 
-				t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i2, i3);
+				t = ajoute_triangle(polyedre, points, dico_aretes, dico_sommets, i0, i2, i3);
 				t->label = static_cast<unsigned>(poly->index);
 				ajourne_label_arete_triangle(t, s0, s2, s3);
 			}
 			else {
-				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i3);
+				auto t = ajoute_triangle(polyedre, points, dico_aretes, dico_sommets, i0, i1, i3);
 				t->label = static_cast<unsigned>(poly->index);
 				ajourne_label_arete_triangle(t, s0, s1, s3);
 
-				t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i1, i2, i3);
+				t = ajoute_triangle(polyedre, points, dico_aretes, dico_sommets, i1, i2, i3);
 				t->label = static_cast<unsigned>(poly->index);
 				ajourne_label_arete_triangle(t, s1, s2, s3);
 			}
@@ -311,7 +311,7 @@ Polyedre construit_corps_polyedre_triangle(const Corps &corps)
 				auto i1 = poly->index_point(i - 1);
 				auto i2 = poly->index_point(i);
 
-				auto t = ajoute_triangle(polyedre, c, dico_aretes, dico_sommets, i0, i1, i2);
+				auto t = ajoute_triangle(polyedre, points, dico_aretes, dico_sommets, i0, i1, i2);
 				t->label = static_cast<unsigned>(poly->index);
 
 				ajourne_label_arete_triangle(
@@ -333,6 +333,8 @@ Polyedre converti_corps_polyedre(const Corps &corps)
 	auto dico_aretes = dls::dico_desordonne<size_t, mi_arete *>();
 	auto dico_sommets = dls::dico_desordonne<long, mi_sommet *>();
 
+	auto points = corps.points_pour_lecture();
+
 	pour_chaque_polygone_ferme(corps, [&](Corps const &corps_entree, Polygone const *poly)
 	{
 		INUTILISE(corps_entree);
@@ -346,9 +348,9 @@ Polyedre converti_corps_polyedre(const Corps &corps)
 			auto idx0 = poly->index_point(i);
 			auto idx1 = poly->index_point((i + 1) % poly->nombre_sommets());
 
-			auto s0 = trouve_sommet(polyedre, corps_entree, dico_sommets, idx0);
+			auto s0 = trouve_sommet(polyedre, points, dico_sommets, idx0);
 			s0->label = static_cast<unsigned>(idx0);
-			auto s1 = trouve_sommet(polyedre, corps_entree, dico_sommets, idx1);
+			auto s1 = trouve_sommet(polyedre, points, dico_sommets, idx1);
 			s1->label = static_cast<unsigned>(idx1);
 
 			auto a0 = polyedre.cree_arete(s0, f);
@@ -389,13 +391,15 @@ Polyedre converti_corps_polyedre(const Corps &corps)
 
 void converti_polyedre_corps(const Polyedre &polyedre, Corps &corps)
 {
+	auto points = corps.points_pour_ecriture();
+
 	for (auto triangle : polyedre.faces) {
 		auto arete = triangle->arete;
 
 		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
 
 		do {
-			auto idx = corps.ajoute_point(arete->sommet->p);
+			auto idx = points.ajoute_point(arete->sommet->p);
 			corps.ajoute_sommet(poly, idx);
 
 			arete = arete->suivante;

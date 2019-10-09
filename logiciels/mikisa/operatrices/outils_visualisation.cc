@@ -47,10 +47,11 @@ void dessine_boite(
 		{ 7, 4 },
 	};
 
-	auto decalage = corps.points_pour_lecture()->taille();
+	auto points = corps.points_pour_ecriture();
+	auto decalage = points.taille();
 
 	for (int i = 0; i < 8; ++i) {
-		auto idx_p = corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
+		auto idx_p = points.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
 
 		if (attr_C) {
 			assigne(attr_C->r32(idx_p), couleur);

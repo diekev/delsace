@@ -515,9 +515,10 @@ public:
 		dessine_boite(m_corps, attr_C, etendu.min, etendu.min + dls::math::vec3f(taille_voxel), dls::math::vec3f(0.0f, 1.0f, 0.0f));
 
 		auto pos_parts = m_poseidon.parts.champs_vectoriel("position");
+		auto points = m_corps.points_pour_ecriture();
 
 		for (auto i = 0; i < m_poseidon.parts.taille(); ++i) {
-			auto idx_p = m_corps.ajoute_point(pos_parts[i]);
+			auto idx_p = points.ajoute_point(pos_parts[i]);
 			assigne(attr_C->r32(idx_p), dls::math::vec3f(0.435f, 0.284f, 0.743f));
 		}
 
@@ -1313,6 +1314,7 @@ public:
 			}
 
 			auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
+			auto points = m_corps.points_pour_ecriture();
 
 			for (auto z = 0; z < res.z; ++z) {
 				for (auto y = 0; y < res.y; ++y) {
@@ -1336,8 +1338,8 @@ public:
 						auto p0 = pos_monde;
 						auto p1 = p0 + vel * lng;
 
-						auto idx0 = m_corps.ajoute_point(p0);
-						auto idx1 = m_corps.ajoute_point(p1);
+						auto idx0 = points.ajoute_point(p0);
+						auto idx1 = points.ajoute_point(p1);
 
 						auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
 						m_corps.ajoute_sommet(poly, idx0);

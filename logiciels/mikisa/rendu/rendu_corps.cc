@@ -96,7 +96,7 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 
 void ajoute_polygone_surface(
 		Polygone *polygone,
-		ListePoints3D const *liste_points,
+		AccesseusePointLecture const &liste_points,
 		Attribut const *attr_normaux,
 		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
@@ -104,9 +104,9 @@ void ajoute_polygone_surface(
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-		points.pousse(liste_points->point(polygone->index_point(0)));
-		points.pousse(liste_points->point(polygone->index_point(i - 1)));
-		points.pousse(liste_points->point(polygone->index_point(i)));
+		points.pousse(liste_points.point_local(polygone->index_point(0)));
+		points.pousse(liste_points.point_local(polygone->index_point(i - 1)));
+		points.pousse(liste_points.point_local(polygone->index_point(i)));
 
 		if (attr_normaux) {
 			auto idx = normaux.taille();
@@ -164,14 +164,14 @@ void ajoute_polygone_surface(
 
 void ajoute_polygone_segment(
 		Polygone *polygone,
-		ListePoints3D const *liste_points,
+		AccesseusePointLecture const &liste_points,
 		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 0; i < polygone->nombre_segments(); ++i) {
-		points.pousse(liste_points->point(polygone->index_point(i)));
-		points.pousse(liste_points->point(polygone->index_point(i + 1)));
+		points.pousse(liste_points.point_local(polygone->index_point(i)));
+		points.pousse(liste_points.point_local(polygone->index_point(i + 1)));
 
 		if (attr_couleurs) {
 			auto idx = couleurs.taille();
@@ -302,12 +302,12 @@ static dls::math::vec3f points_cercle_YZ[32] = {
 
 static void ajoute_primitive_sphere(
 		Sphere *sphere,
-		ListePoints3D const *liste_points,
+		AccesseusePointLecture const &liste_points,
 		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
-	auto pos_sphere = liste_points->point(sphere->idx_point);
+	auto pos_sphere = liste_points.point_local(sphere->idx_point);
 
 	for (auto i = 0; i < 32; ++i) {
 		points.pousse(points_cercle_XZ[i] * sphere->rayon + pos_sphere);
@@ -653,11 +653,11 @@ void RenduCorps::initialise(
 	auto liste_points = m_corps->points_pour_lecture();
 	auto liste_prims = m_corps->prims();
 
-	if (liste_points->taille() == 0l && liste_prims->taille() == 0l) {
+	if (liste_points.taille() == 0l && liste_prims->taille() == 0l) {
 		return;
 	}
 
-	dls::tableau<char> point_utilise(liste_points->taille(), 0);
+	dls::tableau<char> point_utilise(liste_points.taille(), 0);
 
 	if (liste_prims->taille() != 0l) {
 		auto attr_N = m_corps->attribut("N");
@@ -765,19 +765,19 @@ void RenduCorps::initialise(
 
 	dls::tableau<dls::math::vec3f> points;
 	dls::tableau<dls::math::vec3f> couleurs;
-	points.reserve(liste_points->taille());
-	couleurs.reserve(liste_points->taille());
+	points.reserve(liste_points.taille());
+	couleurs.reserve(liste_points.taille());
 
 	auto attr_C = m_corps->attribut("C");
 
-	stats.nombre_points += liste_points->taille();
+	stats.nombre_points += liste_points.taille();
 
-	for (auto i = 0; i < liste_points->taille(); ++i) {
+	for (auto i = 0; i < liste_points.taille(); ++i) {
 		if (point_utilise[i]) {
 			continue;
 		}
 
-		points.pousse(liste_points->point(i));
+		points.pousse(liste_points.point_local(i));
 
 		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
 			auto idx = couleurs.taille();

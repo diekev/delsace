@@ -834,17 +834,17 @@ public:
 
 		auto arbre = arbre_3df();
 		arbre.construit_avec_fonction(
-					static_cast<int>(points_orig->taille()),
+					static_cast<int>(points_orig.taille()),
 					[&](int idx)
 		{
-			return points_orig->point(idx);
+			return points_orig.point_local(idx);
 		});
 
-		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto const point = m_corps.point_transforme(i);
+				auto const point = points.point_monde(i);
 				auto idx_point_plus_pres = -1;
 
 				arbre.trouve_plus_proche_index(point, distance, idx_point_plus_pres);
@@ -855,7 +855,7 @@ public:
 			}
 
 			auto delta = static_cast<float>(plage.end() - plage.begin()) * 100.0f;
-			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()));
+			chef->indique_progression_parallele(delta / static_cast<float>(points.taille()));
 		});
 
 		return res_exec::REUSSIE;
@@ -1387,8 +1387,8 @@ public:
 		auto l_min =  constantes<float>::INFINITE;
 		auto l_max = -constantes<float>::INFINITE;
 
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto p = m_corps.point_transforme(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto p = points.point_monde(i);
 
 			auto pos_ecran = camera->pos_ecran(dls::math::point3f(p));
 
@@ -1457,7 +1457,7 @@ public:
 
 		auto poids_normalise = 1.0f / (l_max - l_min);
 
-		for (auto i = 0; i < points->taille(); ++i) {
+		for (auto i = 0; i < points.taille(); ++i) {
 			auto ptr_D = attr_D->r32(i);
 
 			if (ptr_D[0] >= 0.0f) {

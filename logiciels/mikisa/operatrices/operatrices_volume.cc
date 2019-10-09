@@ -312,9 +312,11 @@ static void rasterise_polygone(
 		return;
 	}
 
-	auto p0 = corps.point_transforme(poly.index_point(0));
-	auto p1 = corps.point_transforme(poly.index_point(1));
-	auto p3 = corps.point_transforme(poly.index_point(3));
+	auto points = corps.points_pour_lecture();
+
+	auto p0 = points.point_monde(poly.index_point(0));
+	auto p1 = points.point_monde(poly.index_point(1));
+	auto p3 = points.point_monde(poly.index_point(3));
 
 	auto e1 = p1 - p0;
 	auto e2 = p3 - p0;
@@ -359,11 +361,13 @@ static void rasterise_ligne(
 		bruit::parametres *params_bruit,
 		bruit::param_turbulence *params_turb)
 {
+	auto points = corps.points_pour_lecture();
+
 	// le système de coordonnées pour une ligne est (NxT, N, T)
 
 	for (auto i = 0; i < poly.nombre_segments(); ++i) {
-		auto p0 = corps.point_transforme(poly.index_point(i));
-		auto p1 = corps.point_transforme(poly.index_point(i + 1));
+		auto p0 = points.point_monde(poly.index_point(i));
+		auto p1 = points.point_monde(poly.index_point(i + 1));
 
 		for (auto j = 0; j < nombre_echantillons; ++j) {
 			// trouve une position aléatoire le long du segment
@@ -1663,9 +1667,12 @@ public:
 
 		auto nombre_points = hierarchie.nombre_points(vis_niveau);
 
+		auto points_sortie = m_corps.points_pour_ecriture();
+		points_sortie.reserve(nombre_points);
+
 		for (auto i = 0; i < nombre_points; ++i) {
 			auto pos = hierarchie.GetLightPos(vis_niveau, i);
-			m_corps.ajoute_point(pos);
+			points_sortie.ajoute_point(pos);
 		}
 
 		return res_exec::REUSSIE;
@@ -1791,13 +1798,15 @@ public:
 					  position_lumiere + dls::math::vec3f(0.1f),
 					  dls::math::vec3f(0.2f, 0.9f, 0.3f));
 
+		auto points_sortie = m_corps.points_pour_ecriture();
+
 		/* dessine les axes */
 		auto axe_x_ = dls::math::vec3f(1.0f, 0.0f, 0.0f);
 		auto axe_y_ = dls::math::vec3f(0.0f, 1.0f, 0.0f);
 		auto axe_z_ = dls::math::vec3f(0.0f, 0.0f, 1.0f);
 
-		auto i0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
-		auto i1 = m_corps.ajoute_point(mat * axe_x_);
+		auto i0 = points_sortie.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto i1 = points_sortie.ajoute_point(mat * axe_x_);
 
 		assigne(attr_C->r32(i1), axe_x_);
 
@@ -1805,7 +1814,7 @@ public:
 		m_corps.ajoute_sommet(poly, i0);
 		m_corps.ajoute_sommet(poly, i1);
 
-		i1 = m_corps.ajoute_point(mat * axe_y_);
+		i1 = points_sortie.ajoute_point(mat * axe_y_);
 
 		assigne(attr_C->r32(i1), axe_y_);
 
@@ -1813,7 +1822,7 @@ public:
 		m_corps.ajoute_sommet(poly, i0);
 		m_corps.ajoute_sommet(poly, i1);
 
-		i1 = m_corps.ajoute_point(mat * axe_z_);
+		i1 = points_sortie.ajoute_point(mat * axe_z_);
 
 		assigne(attr_C->r32(i1), axe_z_);
 

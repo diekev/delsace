@@ -821,8 +821,9 @@ const char *OperatriceCreationArbre::texte_aide() const
 
 static void construit_geometrie(Corps &corps, MTreeNode *noeud)
 {
+	auto points = corps.points_pour_ecriture();
 	for (auto enfant : noeud->children) {
-		corps.ajoute_point(enfant->position);
+		points.ajoute_point(enfant->position);
 
 		construit_geometrie(corps, enfant);
 	}

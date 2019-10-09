@@ -157,7 +157,7 @@ public:
 
 		/* création de tous les index possibles */
 		if (contenu == "points") {
-			params.n = m_corps.points_pour_lecture()->taille();
+			params.n = m_corps.points_pour_lecture().taille();
 		}
 		else if (contenu == "primitives") {
 			params.n = m_corps.prims()->taille();

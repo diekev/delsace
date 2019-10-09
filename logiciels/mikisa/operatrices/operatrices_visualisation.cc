@@ -207,8 +207,10 @@ struct delegue_arbre_bvh {
 		cos.efface();
 		cos.reserve(poly->nombre_sommets());
 
+		auto points = corps.points_pour_lecture();
+
 		for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-			cos.pousse(corps.point_transforme(poly->index_point(i)));
+			cos.pousse(points.point_monde(poly->index_point(i)));
 		}
 	}
 };

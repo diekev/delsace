@@ -165,12 +165,12 @@ static auto charge_points(
 		Corps &corps,
 		ABC::P3fArraySamplePtr positions)
 {
-	corps.points_pour_ecriture()->reserve(static_cast<long>(positions->size()));
+	auto points = corps.points_pour_ecriture();
+	points.reserve(static_cast<long>(positions->size()));
 
 	for (auto i = 0ul; i < positions->size(); ++i) {
 		auto &p = (*positions)[i];
-
-		corps.ajoute_point(p.x, p.y, p.z);
+		points.ajoute_point(p.x, p.y, p.z);
 	}
 }
 

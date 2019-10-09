@@ -844,10 +844,10 @@ public:
 					auto points_entree = m_corps.points_pour_lecture();
 
 					ctx_exec.arbre_kd.construit_avec_fonction(
-								static_cast<int>(points_entree->taille()),
+								static_cast<int>(points_entree.taille()),
 								[&](int i)
 					{
-						return points_entree->point(i);
+						return points_entree.point_local(i);
 					});
 				}
 			}
@@ -860,14 +860,16 @@ public:
 
 			if (portee_script == "points") {
 				auto points_entree = m_corps.points_pour_lecture();
-				auto points_sortie = static_cast<ListePoints3D *>(nullptr);
 
 				auto donnees_prop = gest_attrs.donnees_pour_propriete("P");
 				if (donnees_prop->est_modifiee) {
-					points_sortie = m_corps.points_pour_ecriture();
+					auto points_sortie = m_corps.points_pour_ecriture();
+					execute_script_sur_points(chef, compileuse, gest_attrs, ctx_exec, points_entree, &points_sortie);
+				}
+				else {
+					execute_script_sur_points(chef, compileuse, gest_attrs, ctx_exec, points_entree, nullptr);
 				}
 
-				execute_script_sur_points(chef, compileuse, gest_attrs, ctx_exec, points_entree, points_sortie);
 			}
 			else if (portee_script == "primitives") {
 				execute_script_sur_primitives(chef, compileuse, gest_attrs, ctx_exec);
@@ -896,10 +898,10 @@ public:
 			compileuse_lng &compileuse,
 			gestionnaire_propriete &gest_attrs,
 			lcc::ctx_exec &ctx_exec,
-			ListePoints3D const *points_entree,
-			ListePoints3D *points_sortie)
+			AccesseusePointLecture const &points_entree,
+			AccesseusePointEcriture *points_sortie)
 	{
-		boucle_serie(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_serie(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 		{
 			if (chef->interrompu()) {
@@ -916,7 +918,7 @@ public:
 
 				auto ctx_local = lcc::ctx_local{};
 
-				auto point = points_entree->point(i);
+				auto point = points_entree.point_local(i);
 
 				remplis_donnees(donnees, gest_attrs, "P", point);
 				remplis_donnees(donnees, gest_attrs, "index", static_cast<int>(i));
@@ -943,7 +945,7 @@ public:
 			}
 
 			auto delta = static_cast<float>(plage.end() - plage.begin());
-			chef->indique_progression_parallele(delta / static_cast<float>(points_entree->taille()) * 100.0f);
+			chef->indique_progression_parallele(delta / static_cast<float>(points_entree.taille()) * 100.0f);
 		});
 	}
 

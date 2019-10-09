@@ -38,9 +38,7 @@
 void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
 	INUTILISE(w);
-
-	auto point = dls::math::vec3f(x, y, z);
-	corps->points_pour_ecriture()->pousse(point);
+	corps->points_pour_ecriture().ajoute_point(x, y, z);
 }
 
 void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const float z)
@@ -127,7 +125,7 @@ void AdaptriceCreationCorps::reserve_polygones(long const nombre)
 
 void AdaptriceCreationCorps::reserve_sommets(long const nombre)
 {
-	corps->points_pour_ecriture()->reserve(nombre);
+	corps->points_pour_ecriture().reserve(nombre);
 }
 
 void AdaptriceCreationCorps::reserve_normaux(long const nombre)

@@ -786,10 +786,10 @@ public:
 		auto points = m_corps.points_pour_ecriture();
 
 		auto N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
-		N->redimensionne(points->taille());
+		N->redimensionne(points.taille());
 
 		auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
-		C->redimensionne(points->taille());
+		C->redimensionne(points.taille());
 
 		auto const chn_entrep = evalue_enum("entrepolation");
 		auto entrepolation = 0;
@@ -801,8 +801,8 @@ public:
 			entrepolation = 2;
 		}
 
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto p = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto p = points.point_local(i);
 
 			/* converti la position du point en espace grille */
 			auto x = p.x * taille_inverse + 0.5f;
@@ -812,7 +812,7 @@ public:
 				case 0:
 				{
 					p += echantillonne_proche(*grille_depl, x, y);
-					points->point(i, p);
+					points.point(i, p);
 
 					assigne(N->r32(i), echantillonne_proche(*grille_norm, x, y));
 
@@ -826,7 +826,7 @@ public:
 				case 1:
 				{
 					p += echantillonne_lineaire(*grille_depl, x, y);
-					points->point(i, p);
+					points.point(i, p);
 
 					assigne(N->r32(i), echantillonne_lineaire(*grille_norm, x, y));
 
@@ -840,7 +840,7 @@ public:
 				case 2:
 				{
 					p += echantillonne_catrom(*grille_depl, x, y);
-					points->point(i, p);
+					points.point(i, p);
 
 					assigne(N->r32(i), echantillonne_catrom(*grille_norm, x, y));
 
@@ -1980,7 +1980,7 @@ public:
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		if (m_corps.points_pour_lecture()->taille() == 0) {
+		if (m_corps.points_pour_lecture().taille() == 0) {
 			this->ajoute_avertissement("Le corps d'entrée est vide");
 			return res_exec::ECHOUEE;
 		}

@@ -1528,21 +1528,21 @@ public:
 					min.x, max.x, min.y, max.y, min.z, max.z,
 					nombre_block.x, nombre_block.y, nombre_block.z,
 					periodic_x, periodic_y, periodic_z,
-					static_cast<int>(points_entree->taille()));
+					static_cast<int>(points_entree.taille()));
 
 		auto ordre_parts = memoire::loge<voro::particle_order>("voro::particle_order");
 
 		/* ajout des particules */
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto point = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto point = points_entree.point_local(i);
 			auto point_monde = corps_points->transformation(dls::math::point3d(point.x, point.y, point.z));
 			cont_voro->put(*ordre_parts, i, point_monde.x, point_monde.y, point_monde.z);
 		}
 
 		/* création des cellules */
 		auto cellules = dls::tableau<cell>();
-		cellules.reserve(points_entree->taille());
+		cellules.reserve(points_entree.taille());
 
 		/* calcul des cellules */
 
@@ -1550,6 +1550,7 @@ public:
 
 		/* conversion des données */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
+		auto points = m_corps.points_pour_ecriture();
 		auto gna = GNA();
 
 		auto poly_index_offset = 0;
@@ -1559,7 +1560,7 @@ public:
 				auto px = static_cast<float>(c.verts[i * 3]);
 				auto py = static_cast<float>(c.verts[i * 3 + 1]);
 				auto pz = static_cast<float>(c.verts[i * 3 + 2]);
-				m_corps.ajoute_point(px, py, pz);
+				points.ajoute_point(px, py, pz);
 			}
 
 			auto couleur = gna.uniforme_vec3(0.0f, 1.0f);

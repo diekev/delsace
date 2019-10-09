@@ -1243,6 +1243,7 @@ public:
 		calcul_normaux(terrain, type_normaux);
 
 		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_ecriture();
 
 		auto index = 0;
 		for (auto y = 0; y < desc.resolution.y; ++y) {
@@ -1252,7 +1253,7 @@ public:
 				auto h = terrain.hauteur.valeur(index);
 				auto const &normal = terrain.normal.valeur(index);
 
-				auto idx_pnt = m_corps.ajoute_point((pos.x - 0.5f) * taille_x, h, (pos.y - 0.5f) * taille_y);
+				auto idx_pnt = points.ajoute_point((pos.x - 0.5f) * taille_x, h, (pos.y - 0.5f) * taille_y);
 				assigne(attr_N->r32(idx_pnt), normal);
 
 				if (x < desc.resolution.x - 1 && y < desc.resolution.y - 1) {

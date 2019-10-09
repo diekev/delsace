@@ -249,13 +249,13 @@ static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 	maillage->nuanceur = kdo::NuanceurDiffus::defaut();
 
 	auto points = corps.points_pour_lecture();
-	maillage->points.reserve(points->taille());
+	maillage->points.reserve(points.taille());
 
-	for (auto j = 0; j < points->taille(); ++j) {
-		maillage->points.pousse(corps.point_transforme(j));
+	for (auto j = 0; j < points.taille(); ++j) {
+		maillage->points.pousse(points.point_monde(j));
 	}
 
-	auto taille_indices_points = kdo::tableau_index::octets_pour_taille(points->taille());
+	auto taille_indices_points = kdo::tableau_index::octets_pour_taille(points.taille());
 	auto taille_indices_normaux = 0;
 
 	auto attr_N = corps.attribut("N");
@@ -398,11 +398,12 @@ static void ajoute_sphere(
 		kdo::Scene &scene_koudou,
 		Corps const &corps)
 {
+	auto points = corps.points_pour_lecture();
 	pour_chaque_sphere(corps, [&](Corps const &, Sphere *sphere)
 	{
 		auto sphere_kdo = memoire::loge<kdo::sphere>("kdo::sphere");
 		sphere_kdo->nuanceur = kdo::NuanceurDiffus::defaut();
-		sphere_kdo->point = corps.point_transforme(sphere->idx_point);
+		sphere_kdo->point = points.point_monde(sphere->idx_point);
 		sphere_kdo->rayon = sphere->rayon;
 		sphere_kdo->index = static_cast<int>(scene_koudou.noeuds.taille());
 

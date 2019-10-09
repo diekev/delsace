@@ -42,11 +42,12 @@ void DeleguePrim::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) c
 {
 	auto prim = m_corps.prims()->prim(idx);
 	auto poly = dynamic_cast<Polygone *>(prim);
+	auto points = m_corps.points_pour_lecture();
 
 	cos.efface();
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-		auto p = m_corps.point_transforme(poly->index_point(i));
+		auto p = points.point_monde(poly->index_point(i));
 		cos.pousse(p);
 	}
 }
@@ -55,11 +56,12 @@ BoiteEnglobante DeleguePrim::boite_englobante(long idx) const
 {
 	auto prim = m_corps.prims()->prim(idx);
 	auto poly = dynamic_cast<Polygone *>(prim);
+	auto points = m_corps.points_pour_lecture();
 
 	auto boite = BoiteEnglobante{};
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-		auto p = m_corps.point_transforme(poly->index_point(i));
+		auto p = points.point_monde(poly->index_point(i));
 
 		for (auto j = 0ul; j < 3; ++j) {
 			boite.min[j] = std::min(boite.min[j], static_cast<double>(p[j]));
@@ -90,9 +92,9 @@ dls::phys::esectd DeleguePrim::intersecte_element(long idx, const dls::phys::ray
 	}
 
 	for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-		auto const &v0 = points->point(poly->index_point(0));
-		auto const &v1 = points->point(poly->index_point(j - 1));
-		auto const &v2 = points->point(poly->index_point(j));
+		auto const &v0 = points.point_local(poly->index_point(0));
+		auto const &v1 = points.point_local(poly->index_point(j - 1));
+		auto const &v2 = points.point_local(poly->index_point(j));
 
 		auto const &v0_d = m_corps.transformation(dls::math::point3d(v0));
 		auto const &v1_d = m_corps.transformation(dls::math::point3d(v1));
@@ -132,9 +134,9 @@ DonneesPointPlusProche DeleguePrim::calcule_point_plus_proche(long idx, const dl
 	auto distance_min = std::numeric_limits<double>::max();
 
 	for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-		auto const &v0 = points->point(poly->index_point(0));
-		auto const &v1 = points->point(poly->index_point(j - 1));
-		auto const &v2 = points->point(poly->index_point(j));
+		auto const &v0 = points.point_local(poly->index_point(0));
+		auto const &v1 = points.point_local(poly->index_point(j - 1));
+		auto const &v2 = points.point_local(poly->index_point(j));
 
 		auto const &v0_d = m_corps.transformation(dls::math::point3d(v0));
 		auto const &v1_d = m_corps.transformation(dls::math::point3d(v1));
@@ -179,13 +181,14 @@ limites3f delegue_arbre_octernaire::calcule_limites(long idx) const
 {
 	auto prim = corps.prims()->prim(idx);
 	auto poly = dynamic_cast<Polygone *>(prim);
+	auto points = corps.points_pour_lecture();
 
 	auto limites = limites3f(
 				dls::math::vec3f( constantes<float>::INFINITE),
 				dls::math::vec3f(-constantes<float>::INFINITE));
 
 	for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-		auto const &p = corps.point_transforme(poly->index_point(i));
+		auto const &p = points.point_monde(poly->index_point(i));
 		extrait_min_max(p, limites.min, limites.max);
 	}
 

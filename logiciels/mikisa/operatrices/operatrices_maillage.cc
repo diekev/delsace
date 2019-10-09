@@ -57,7 +57,7 @@ static auto cherche_index_voisins(Corps const &corps)
 {
 	auto points_entree = corps.points_pour_lecture();
 
-	dls::tableau<dls::ensemble<long>> voisins(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> voisins(points_entree.taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -86,7 +86,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 {
 	auto points_entree = corps.points_pour_lecture();
 
-	dls::tableau<dls::ensemble<long>> adjacents(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> adjacents(points_entree.taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *polygone)
@@ -119,13 +119,13 @@ static auto cherche_index_bordures(
 /* ************************************************************************** */
 
 static auto calcule_lissage_normal(
-		ListePoints3D const *points_entree,
+		AccesseusePointEcriture const &points_entree,
 		dls::tableau<char> const &bordures,
 		dls::tableau<dls::ensemble<long>> const &voisins,
 		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
-	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
@@ -146,12 +146,12 @@ static auto calcule_lissage_normal(
 							continue;
 						}
 
-						deplacement[i] += points_entree->point(j);
+						deplacement[i] += points_entree.point_local(j);
 						nnused++;
 					}
 
 					deplacement[i] /= static_cast<float>(nnused);
-					deplacement[i] -= points_entree->point(i);
+					deplacement[i] -= points_entree.point_local(i);
 				}
 			}
 			else {
@@ -162,24 +162,24 @@ static auto calcule_lissage_normal(
 				}
 
 				for (auto j : voisins[i]) {
-					deplacement[i] += points_entree->point(j);
+					deplacement[i] += points_entree.point_local(j);
 				}
 
 				deplacement[i] /= static_cast<float>(nn);
-				deplacement[i] -= points_entree->point(i);
+				deplacement[i] -= points_entree.point_local(i);
 			}
 		}
 	});
 }
 
 static auto calcule_lissage_pondere(
-		ListePoints3D const *points_entree,
+		AccesseusePointEcriture const &points_entree,
 		dls::tableau<char> const &bordures,
 		dls::tableau<dls::ensemble<long>> const &voisins,
 		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
-	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
@@ -194,7 +194,7 @@ static auto calcule_lissage_pondere(
 					}
 
 					auto p = dls::math::vec3f(0.0f);
-					auto const &xi = points_entree->point(i);
+					auto const &xi = points_entree.point_local(i);
 					auto poids = 1.0f;
 
 					for (auto j : voisins[i]) {
@@ -202,7 +202,7 @@ static auto calcule_lissage_pondere(
 							continue;
 						}
 
-						auto xj = points_entree->point(j);
+						auto xj = points_entree.point_local(j);
 						auto ai = 1.0f / longueur(xi - xj);
 
 						p += ai * xj;
@@ -221,11 +221,11 @@ static auto calcule_lissage_pondere(
 				}
 
 				auto p = dls::math::vec3f(0.0f);
-				auto const &xi = points_entree->point(i);
+				auto const &xi = points_entree.point_local(i);
 				auto poids = 1.0f;
 
 				for (auto j : voisins[i]) {
-					auto xj = points_entree->point(j);
+					auto xj = points_entree.point_local(j);
 					auto ai = 1.0f / longueur(xi - xj);
 
 					p += ai * xj;
@@ -240,17 +240,17 @@ static auto calcule_lissage_pondere(
 }
 
 static auto applique_lissage(
-		ListePoints3D *points_entree,
+		AccesseusePointEcriture &points_entree,
 		Attribut *attr_N,
 		dls::tableau<dls::math::vec3f> const &deplacement,
 		float poids_lissage,
 		bool tangeante)
 {
-	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
-			auto p = points_entree->point(i);
+			auto p = points_entree.point_local(i);
 
 			if (tangeante) {
 				auto n = dls::math::vec3f();
@@ -262,7 +262,7 @@ static auto applique_lissage(
 				p += poids_lissage * deplacement[i];
 			}
 
-			points_entree->point(i, p);
+			points_entree.point(i, p);
 		}
 	});
 }
@@ -324,7 +324,7 @@ public:
 			}
 		}
 
-		dls::tableau<dls::math::vec3f> deplacement(points_entree->taille());
+		dls::tableau<dls::math::vec3f> deplacement(points_entree.taille());
 
 		/* IDÉES :
 		 * - application de l'algorithme sur les normaux des points.
@@ -386,7 +386,7 @@ public:
 
 		/* copie les points et les attributs et groupes n'étant pas sur les
 		 * primitives */
-		*m_corps.points_pour_ecriture() = *corps_entree->points_pour_lecture();
+		m_corps.copie_points(*corps_entree);
 
 		for (auto const &attr : corps_entree->attributs()) {
 			if (attr.portee == portee_attr::PRIMITIVE || attr.portee == portee_attr::VERTEX) {
@@ -459,9 +459,9 @@ static auto centre_masse_maillage(Corps const &corps)
 		auto aire_poly = 0.0f;
 
 		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(0));
-			auto v1 = points->point(poly->index_point(j - 1));
-			auto v2 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(0));
+			auto v1 = points.point_local(poly->index_point(j - 1));
+			auto v2 = points.point_local(poly->index_point(j));
 
 			auto centre_tri = (v0 + v1 + v2) / 3.0f;
 			auto aire_tri = calcule_aire(v0, v1, v2);
@@ -494,9 +494,9 @@ static auto covariance_maillage(Corps const &corps)
 		auto aire_poly = 0.0f;
 
 		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(0));
-			auto v1 = points->point(poly->index_point(j - 1));
-			auto v2 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(0));
+			auto v1 = points.point_local(poly->index_point(j - 1));
+			auto v2 = points.point_local(poly->index_point(j));
 
 			auto aire_tri = calcule_aire(v0, v1, v2);
 			aire_totale += aire_tri;
@@ -507,7 +507,7 @@ static auto covariance_maillage(Corps const &corps)
 		auto centroid = dls::math::vec3f(0.0f);
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			centroid += points->point(poly->index_point(j));
+			centroid += points.point_local(poly->index_point(j));
 		}
 
 		centroid /= static_cast<float>(poly->nombre_sommets());
@@ -515,7 +515,7 @@ static auto covariance_maillage(Corps const &corps)
 		/* covariance avec le centroide */
 		auto const poids_point = aire_poly / (static_cast<float>(poly->nombre_sommets()) * 3.0f);
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			auto pc = points->point(poly->index_point(j)) - centroid;
+			auto pc = points.point_local(poly->index_point(j)) - centroid;
 
 			for (auto ii = 0ul; ii < 3; ++ii) {
 				for (auto jj = 0ul; jj < 3; ++jj) {
@@ -590,13 +590,13 @@ public:
 
 		auto echelle = poids / std::sqrt(MC[0][0] + MC[1][1] + MC[2][2]);
 
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto point = points.point_local(i);
 			/* peut-être une matrice de transformation */
 			point -= centre_masse;
 			point *= echelle;
 			point += centre_masse;
-			points->point(i, point);
+			points.point(i, point);
 		}
 
 		return res_exec::REUSSIE;
@@ -654,10 +654,10 @@ public:
 		auto centre_masse = centre_masse_maillage(m_corps);
 
 		/* centre le maillage */
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto point = points.point_local(i);
 			point -= centre_masse;
-			points->point(i, point);
+			points.point(i, point);
 		}
 
 		auto C = covariance_maillage(m_corps);
@@ -682,10 +682,10 @@ public:
 		auto second = dls::math::vec3f(vpy_e[0], vpy_e[1], vpy_e[2]);
 
 		auto npos = 0;
-		auto nombre_points = points->taille();
+		auto nombre_points = points.taille();
 
 		for (auto i = 0; i < nombre_points; i++) {
-			if (produit_scalaire(points->point(i), premier) > 0.0f) {
+			if (produit_scalaire(points.point_local(i), premier) > 0.0f) {
 				npos++;
 			}
 		}
@@ -696,7 +696,7 @@ public:
 
 		npos = 0;
 		for (int i = 0; i < nombre_points; i++) {
-			if (produit_scalaire(points->point(i), second) > 0.0f) {
+			if (produit_scalaire(points.point_local(i), second) > 0.0f) {
 				npos++;
 			}
 		}
@@ -715,11 +715,11 @@ public:
 		mat = inverse(mat);
 
 		/* applique la matrice et repositione le maillage */
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto point = points.point_local(i);
 			point = mat * point;
 			point -= centre_masse;
-			points->point(i, point);
+			points.point(i, point);
 		}
 
 		return res_exec::REUSSIE;
@@ -838,6 +838,7 @@ public:
 		/* copie les polygones et points restants */
 
 		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_SOMMETS);
+		auto points_sortie = m_corps.points_pour_ecriture();
 
 		/* transfère tous les points */
 		for (auto s : polyedre.sommets) {
@@ -845,7 +846,7 @@ public:
 				continue;
 			}
 
-			auto idx = m_corps.ajoute_point(s->p);
+			auto idx = points_sortie.ajoute_point(s->p);
 			s->index = idx;
 
 			transferante.transfere_attributs_points(s->label, s->index);
@@ -889,15 +890,15 @@ public:
 
 /* ************************************************************************** */
 
-static auto calcul_barycentre(ListePoints3D const *points)
+static auto calcul_barycentre(AccesseusePointLecture const &points)
 {
 	auto barycentre = dls::math::vec3f(0.0f);
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		barycentre += points->point(i);
+	for (auto i = 0; i < points.taille(); ++i) {
+		barycentre += points.point_local(i);
 	}
 
-	barycentre /= (static_cast<float>(points->taille()));
+	barycentre /= (static_cast<float>(points.taille()));
 
 	return barycentre;
 }
@@ -952,9 +953,9 @@ static auto calcul_donnees_aire(Corps &corps)
 		auto aire_poly = 0.0f;
 
 		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(0));
-			auto v1 = points->point(poly->index_point(j - 1));
-			auto v2 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(0));
+			auto v1 = points.point_local(poly->index_point(j - 1));
+			auto v2 = points.point_local(poly->index_point(j));
 
 			auto aire_tri = calcule_aire(v0, v1, v2);
 
@@ -983,8 +984,8 @@ static auto calcul_donnees_perimetres(Corps &corps)
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 			auto idx = poly->index_point(j);
-			auto v0 = points->point(k);
-			auto v1 = points->point(idx);
+			auto v0 = points.point_local(k);
+			auto v1 = points.point_local(idx);
 
 			peri_poly += longueur(v1 - v0);
 			k = idx;
@@ -1010,7 +1011,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 		auto barycentre = dls::math::vec3f(0.0f);
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			barycentre += points->point(poly->index_point(j));
+			barycentre += points.point_local(poly->index_point(j));
 		}
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
@@ -1030,9 +1031,9 @@ static auto calcul_centroide_poly(Corps &corps)
 	auto idx_voisins = cherche_index_adjacents(corps);
 	auto aires_poly = calcul_donnees_aire(corps);
 
-	auto aires_sommets = dls::tableau<float>(points->taille());
+	auto aires_sommets = dls::tableau<float>(points.taille());
 
-	for (auto i = 0; i < points->taille(); ++i) {
+	for (auto i = 0; i < points.taille(); ++i) {
 		auto aire = 0.0f;
 
 		for (auto const &voisin : idx_voisins[i]) {
@@ -1054,7 +1055,7 @@ static auto calcul_centroide_poly(Corps &corps)
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 			auto idx = poly->index_point(j);
-			auto v1 = points->point(idx);
+			auto v1 = points.point_local(idx);
 
 			centroide += v1 * aires_sommets[idx];
 			poids += aires_sommets[idx];
@@ -1081,8 +1082,8 @@ static auto calcul_arrete_plus_longues(Corps &corps)
 		INUTILISE(corps_entree);
 
 		for (auto j = 1; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(j - 1));
-			auto v1 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(j - 1));
+			auto v1 = points.point_local(poly->index_point(j));
 
 			auto l = longueur(v0 - v1);
 
@@ -1102,15 +1103,15 @@ static auto calcul_tangeantes(Corps &corps)
 
 	auto index_voisins = cherche_index_voisins(corps);
 
-	for (auto i = 0; i < points->taille(); ++i) {
+	for (auto i = 0; i < points.taille(); ++i) {
 		auto const &voisins = index_voisins[i];
 
 		auto tangeante = dls::math::vec3f(0.0f);
-		auto p0 = points->point(i);
+		auto p0 = points.point_local(i);
 		auto poids_total = 0.0f;
 
 		for (auto v : voisins) {
-			auto p1 = points->point(v);
+			auto p1 = points.point_local(v);
 			auto dir = (p1 - p0);
 			auto poids = longueur(dir);
 			tangeante += poids * dir;
@@ -1133,8 +1134,8 @@ static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &cent
 
 	auto dist = corps.ajoute_attribut("distance", type_attribut::R32, 1, portee_attr::POINT);
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto d = longueur(points->point(i) - centre);
+	for (auto i = 0; i < points.taille(); ++i) {
+		auto d = longueur(points.point_local(i) - centre);
 
 		assigne(dist->r32(i), d);
 	}
@@ -1244,9 +1245,9 @@ static auto calcul_angle_sommets(Corps &corps)
 			auto idx_p1 = polygone->index_point(i1);
 			auto idx_p2 = polygone->index_point(i2);
 
-			auto p0 = points->point(idx_p0);
-			auto p1 = points->point(idx_p1);
-			auto p2 = points->point(idx_p2);
+			auto p0 = points.point_local(idx_p0);
+			auto p1 = points.point_local(idx_p1);
+			auto p2 = points.point_local(idx_p2);
 
 			auto e0 = p0 - p1;
 			auto e1 = p2 - p1;
@@ -1459,8 +1460,8 @@ public:
 				auto barycentre = calcul_barycentre(points);
 				auto dist_max = -std::numeric_limits<float>::max();
 
-				for (auto i = 0; i < points->taille(); ++i) {
-					auto d = longueur(barycentre - points->point(i));
+				for (auto i = 0; i < points.taille(); ++i) {
+					auto d = longueur(barycentre - points.point_local(i));
 
 					if (d > dist_max) {
 						dist_max = d;
@@ -1497,7 +1498,7 @@ public:
 
 				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::R32, 1, portee_attr::POINT);
 
-				for (auto i = 0; i < points->taille(); ++i) {
+				for (auto i = 0; i < points.taille(); ++i) {
 					attr_sortie->r32(i)[0] = attr_courbure_min->r32(i)[0] * attr_courbure_max->r32(i)[0];
 				}
 			}
@@ -1506,7 +1507,7 @@ public:
 				auto attr_courbure_max = m_corps.attribut("courbure_max");
 				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::R32, 1, portee_attr::POINT);
 
-				for (auto i = 0; i < points->taille(); ++i) {
+				for (auto i = 0; i < points.taille(); ++i) {
 					attr_sortie->r32(i)[0] = (attr_courbure_min->r32(i)[0] + attr_courbure_max->r32(i)[0]) * 0.5f;
 				}
 			}
@@ -1634,14 +1635,16 @@ public:
 		chef->demarre_evaluation("couleur maillage");
 
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points_entree = corps_entree->points_pour_lecture();
+		auto points_sortie = m_corps.points_pour_ecriture();
 
-		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &corps_, Polygone const *poly)
+		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &, Polygone const *poly)
 		{
 			auto Rd = static_cast<float>(R);
 
-			auto v0 = corps_.point_transforme(poly->index_point(0));
-			auto v1 = corps_.point_transforme(poly->index_point(1));
-			auto v2 = corps_.point_transforme(poly->index_point(3));
+			auto v0 = points_entree.point_monde(poly->index_point(0));
+			auto v1 = points_entree.point_monde(poly->index_point(1));
+			auto v2 = points_entree.point_monde(poly->index_point(3));
 
 			dls::math::vec3f couleurs[3] = {
 				dls::math::vec3f(0.0f, 0.0f, 1.0f),
@@ -1664,7 +1667,7 @@ public:
 
 					auto point = w * v0 + u * v1 + v * v2;
 
-					auto idx_point = m_corps.ajoute_point(point);
+					auto idx_point = points_sortie.ajoute_point(point);
 
 					if ((i == 0 || i == R) && (j == 0 || j == R)) {
 						// nous sommes sur un point

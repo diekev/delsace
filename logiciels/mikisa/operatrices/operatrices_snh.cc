@@ -337,10 +337,10 @@ void OperatriceSNH::converti_corps()
 {
 	m_corps.reinitialise();
 	auto points = m_corps.points_pour_ecriture();
-	points->reserve(static_cast<long>(g_tetMesh.GetVertices().size()));
+	points.reserve(static_cast<long>(g_tetMesh.GetVertices().size()));
 
 	for (const CubeSim::Vector3& p : g_tetMesh.GetVertices()) {
-		m_corps.ajoute_point(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+		points.ajoute_point(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
 	}
 
 	for (const std::array<int,3>& f : g_surfaceTriangles) {

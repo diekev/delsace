@@ -302,7 +302,7 @@ static auto rassemble_index_sommets(Corps const &corps)
 {
 	auto points_entree = corps.points_pour_lecture();
 
-	dls::tableau<dls::ensemble<long>> sommets(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> sommets(points_entree.taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -365,9 +365,10 @@ struct OpVisualiseUV : public OperatriceCorps {
 		}
 
 		auto polyedre_uv = construit_polyedre_uv(*corps_entree);
+		auto points = m_corps.points_pour_ecriture();
 
 		for (auto point : polyedre_uv.points) {
-			m_corps.ajoute_point(point->pos.x, 0.0f, point->pos.y);
+			points.ajoute_point(point->pos.x, 0.0f, point->pos.y);
 		}
 
 		for (auto face : polyedre_uv.faces) {
@@ -432,7 +433,7 @@ struct OpGroupeUV : public OperatriceCorps {
 		 * points une arête n'étant pas sur une couture mais dont les points le
 		 * sont via d'autres arêtes nous donne une couture en trop */
 		auto ensemble_sommets = rassemble_index_sommets(m_corps);
-		auto est_sur_couture = dls::tableau<char>(m_corps.points_pour_lecture()->taille());
+		auto est_sur_couture = dls::tableau<char>(m_corps.points_pour_lecture().taille());
 
 		for (auto i = 0; i < ensemble_sommets.taille(); ++i) {
 			auto const &sommets = ensemble_sommets[i];

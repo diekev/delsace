@@ -1015,16 +1015,17 @@ public:
 	void convertie_geometrie()
 	{
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_ecriture();
 
 		/* pour le joint */
-		auto idx_p0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
-		auto idx_p1 = m_corps.ajoute_point(0.0f, joint1->l1, 0.0f);
+		auto idx_p0 = points.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto idx_p1 = points.ajoute_point(0.0f, joint1->l1, 0.0f);
 
-		auto idx_p2 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto idx_p2 = points.ajoute_point(0.0f, 0.0f, 0.0f);
 
 		auto rotation = dls::math::rotation(dls::math::mat4x4f(1.0f), joint1->angle, dls::math::vec3f(0.0f,0.0f,-1.0f));
 		auto p = rotation * dls::math::vec4f(0.0f, joint1->l2, 0.0f, 1.0f);
-		auto idx_p3 = m_corps.ajoute_point(p.x, p.y, p.z);
+		auto idx_p3 = points.ajoute_point(p.x, p.y, p.z);
 
 		assigne(attr_C->r32(idx_p0), dls::math::vec3f(1.0f));
 		assigne(attr_C->r32(idx_p1), dls::math::vec3f(1.0f));
@@ -1048,7 +1049,8 @@ public:
 
 	void convertie_geometrie_muscle(SimMesh *mesh, long i, bool show_stresses, Attribut *attr_C)
 	{
-		auto decalage = m_corps.points_pour_lecture()->taille();
+		auto decalage = m_corps.points_pour_lecture().taille();
+		auto points = m_corps.points_pour_ecriture();
 
 		auto pi = constantes<float>::PI;
 
@@ -1072,9 +1074,9 @@ public:
 			auto const &v1 = mat * mesh->curr_vertices[static_cast<long>(f.y)];// + mat[3];
 			auto const &v2 = mat * mesh->curr_vertices[static_cast<long>(f.z)];// + mat[3];
 
-			auto idx_p0 = m_corps.ajoute_point(v0.x, v0.y, v0.z);
-			auto idx_p1 = m_corps.ajoute_point(v1.x, v1.y, v1.z);
-			auto idx_p2 = m_corps.ajoute_point(v2.x, v2.y, v2.z);
+			auto idx_p0 = points.ajoute_point(v0.x, v0.y, v0.z);
+			auto idx_p1 = points.ajoute_point(v1.x, v1.y, v1.z);
+			auto idx_p2 = points.ajoute_point(v2.x, v2.y, v2.z);
 
 			if (show_stresses == false) {
 				assigne(attr_C->r32(idx_p0), red_blue(mesh->forces[static_cast<long>(f.x)].norm(), 500.0f, 2000.0f));

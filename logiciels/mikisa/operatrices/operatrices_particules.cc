@@ -124,26 +124,27 @@ public:
 		auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
 		transferante.transfere_attributs_corps(0, 0);
 
-		m_corps.points_pour_ecriture()->reserve(points_corps->taille() - groupe->taille());
+		auto points_sortie = m_corps.points_pour_ecriture();
+		points_sortie.reserve(points_corps.taille() - groupe->taille());
 
 		/* Utilisation d'un tableau pour définir plus rapidement si un point est
 		 * à garder ou non. Ceci donne une accélération de 10x avec des
 		 * centaines de miliers de points à traverser. */
-		auto dans_le_groupe = dls::tableau<char>(points_corps->taille(), 0);
+		auto dans_le_groupe = dls::tableau<char>(points_corps.taille(), 0);
 
 		for (auto i = 0; i < groupe->taille(); ++i) {
 			dans_le_groupe[groupe->index(i)] = 1;
 		}
 
-		auto reindexage = dls::tableau<long>(corps_entree->points_pour_lecture()->taille());
+		auto reindexage = dls::tableau<long>(corps_entree->points_pour_lecture().taille());
 
-		for (auto i = 0l; i < points_corps->taille(); ++i) {
+		for (auto i = 0l; i < points_corps.taille(); ++i) {
 			if (dans_le_groupe[i]) {
 				continue;
 			}
 
-			auto const point = points_corps->point(i);
-			auto index_point = m_corps.ajoute_point(point.x, point.y, point.z);
+			auto const point = points_corps.point_local(i);
+			auto index_point = points_sortie.ajoute_point(point.x, point.y, point.z);
 
 			reindexage[i] = index_point;
 
@@ -227,7 +228,7 @@ static auto echantillonne_normal(
 
 		for (auto i = 0; i < nombre_sommets; ++i) {
 			auto idx = poly->index_point(i);
-			auto const &p = points->point(idx);
+			auto const &p = points.point_local(idx);
 			auto l = longueur(pos - p);
 
 			poids += l;
@@ -309,7 +310,7 @@ public:
 	{
 		auto points_entree = corps_entree->points_pour_lecture();
 
-		if (points_entree->taille() == 0) {
+		if (points_entree.taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
 			return res_exec::ECHOUEE;
 		}
@@ -343,21 +344,21 @@ public:
 		auto points_sorties = m_corps.points_pour_ecriture();
 
 		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
-		points_sorties->reserve(nombre_points_emis);
+		points_sorties.reserve(nombre_points_emis);
 
 		auto iter = (groupe_entree != nullptr)
 				? iteratrice_index(groupe_entree)
-				: iteratrice_index(points_entree->taille());
+				: iteratrice_index(points_entree.taille());
 
 		auto const nombre_points_par_points = (groupe_entree != nullptr)
 				? nombre_points_emis / groupe_entree->taille()
-				: nombre_points_emis / points_entree->taille();
+				: nombre_points_emis / points_entree.taille();
 
 		for (auto i : iter) {
-			auto point = corps_entree->point_transforme(i);
+			auto point = points_entree.point_monde(i);
 
 			for (long j = 0; j < nombre_points_par_points; ++j) {
-				auto index = m_corps.ajoute_point(point);
+				auto index = points_sorties.ajoute_point(point);
 
 				if (groupe_sortie) {
 					groupe_sortie->ajoute_index(index);
@@ -376,8 +377,8 @@ public:
 
 		auto points_maillage = corps_entree->points_pour_lecture();
 
-		for (auto i = 0; i < points_maillage->taille(); ++i) {
-			auto point = points_maillage->point(i);
+		for (auto i = 0; i < points_maillage.taille(); ++i) {
+			auto point = points_maillage.point_local(i);
 			auto point_monde = corps_entree->transformation(dls::math::point3d(point.x, point.y, point.z));
 
 			for (size_t j = 0; j < 3; ++j) {
@@ -407,7 +408,7 @@ public:
 		auto const nombre_points = evalue_entier("nombre_points", temps);
 
 		auto points_sorties = m_corps.points_pour_ecriture();
-		points_sorties->reserve(nombre_points);
+		points_sorties.reserve(nombre_points);
 
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
@@ -419,7 +420,7 @@ public:
 			auto pos_y = gna.uniforme(min.y, max.y);
 			auto pos_z = gna.uniforme(min.z, max.z);
 
-			auto index = m_corps.ajoute_point(
+			auto index = points_sorties.ajoute_point(
 						static_cast<float>(pos_x),
 						static_cast<float>(pos_y),
 						static_cast<float>(pos_z));
@@ -470,7 +471,7 @@ public:
 		auto const nombre_points = evalue_entier("nombre_points", temps);
 
 		auto points_sorties = m_corps.points_pour_ecriture();
-		points_sorties->reserve(nombre_points);
+		points_sorties.reserve(nombre_points);
 
 		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
@@ -506,7 +507,7 @@ public:
 				auto pos = v0 + r * e0 + s * e1;
 
 				auto posf = dls::math::converti_type_vecteur<float>(pos);
-				auto index = m_corps.ajoute_point(posf);
+				auto index = points_sorties.ajoute_point(posf);
 
 				assigne(attr_N->r32(index), echantillonne_normal(*corps_entree, triangle.index_orig, posf));
 
@@ -554,9 +555,11 @@ public:
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
 		}
 
+		auto points_sortie = m_corps.points_pour_ecriture();
+
 		for (auto i = 0; i < attr_source->taille(); ++i) {
 			auto p = attr_source->r32(i);
-			auto index = m_corps.ajoute_point(p[0], p[1], p[2]);
+			auto index = points_sortie.ajoute_point(p[0], p[1], p[2]);
 
 			if (groupe_sortie) {
 				groupe_sortie->ajoute_index(index);
@@ -918,7 +921,7 @@ public:
 		std::cerr << "Nombre points prédits : " << nombre_points << '\n';
 
 		auto points_nuage = m_corps.points_pour_ecriture();
-		points_nuage->reserve(nombre_points);
+		points_nuage.reserve(nombre_points);
 
 		auto const graine = evalue_entier("graine");
 
@@ -969,7 +972,7 @@ public:
 			if (ok) {
 				//chage_spatial.ajoute(point);
 				grille_particule.ajoute(point);
-				auto idx_p = m_corps.ajoute_point(point.x, point.y, point.z);
+				auto idx_p = points_nuage.ajoute_point(point.x, point.y, point.z);
 				assigne(attr_N->r32(idx_p), echantillonne_normal(*corps_maillage, triangle->index_orig, point));
 				debut = compte_tick_ms();
 			}
@@ -1043,7 +1046,7 @@ public:
 			}
 		}
 
-		std::cerr << "Nombre de points : " << points_nuage->taille() << "\n";
+		std::cerr << "Nombre de points : " << points_nuage.taille() << "\n";
 
 		return res_exec::REUSSIE;
 	}
@@ -1118,13 +1121,13 @@ static bool construit_sphere(
 }
 
 static void trouve_points_voisins(
-		ListePoints3D const &points,
+		AccesseusePointLecture const &points,
 		ListePoints3D &rpoints,
 		dls::math::vec3f const &point,
 		const float radius)
 {
 	for (auto i = 0; i < points.taille(); ++i) {
-		const auto &pi = points.point(i);
+		const auto &pi = points.point_local(i);
 
 		if (pi == point) {
 			continue;
@@ -1143,6 +1146,7 @@ static void construit_triangle(
 		ListePoints3D const &N1,
 		dls::math::vec3f const &pi)
 {
+	auto points = corps.points_pour_ecriture();
 	for (auto j = 0; j < N1.taille() - 1; ++j) {
 		auto pj = N1.point(j), pk = N1.point(j + 1);
 		dls::math::vec3f center;
@@ -1168,9 +1172,9 @@ static void construit_triangle(
 			continue;
 		}
 
-		corps.ajoute_point(pi.x, pi.y, pi.z);
-		corps.ajoute_point(pj.x, pj.y, pj.z);
-		corps.ajoute_point(pk.x, pk.y, pk.z);
+		points.ajoute_point(pi.x, pi.y, pi.z);
+		points.ajoute_point(pj.x, pj.y, pj.z);
+		points.ajoute_point(pk.x, pk.y, pk.z);
 
 		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
 		corps.ajoute_sommet(poly, tri_offset + 0);
@@ -1189,11 +1193,11 @@ static void construit_maillage_alpha(
 	auto points_entree = corps_entree.points_pour_lecture();
 	auto tri_offset = 0;
 
-	for (auto i = 0; i < points_entree->taille(); ++i) {
-		auto point = points_entree->point(i);
+	for (auto i = 0; i < points_entree.taille(); ++i) {
+		auto point = points_entree.point_local(i);
 
 		ListePoints3D N1;
-		trouve_points_voisins(*points_entree, N1, point, 2.0f * radius);
+		trouve_points_voisins(points_entree, N1, point, 2.0f * radius);
 		construit_triangle(sortie, tri_offset, radius, N1, point);
 	}
 }
@@ -1280,19 +1284,19 @@ public:
 		auto dist = evalue_decimal("distance", contexte.temps_courant);
 
 		/* À FAIRE : liste de points à garder : doublons[i] = i. */
-		auto doublons = dls::tableau<int>(points_entree->taille(), -1);
+		auto doublons = dls::tableau<int>(points_entree.taille(), -1);
 
 #if 1
 		auto arbre = arbre_3df();
-		arbre.construit_avec_fonction(static_cast<int>(points_entree->taille()), [&](int i)
+		arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()), [&](int i)
 		{
-			return points_entree->point(i);
+			return points_entree.point_local(i);
 		});
 
 		auto doublons_trouves = 0;
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto point = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto point = points_entree.point_local(i);
 
 			arbre.cherche_points(point, dist, [&](int idx, dls::math::vec3f const &p, float d2, float &r2)
 			{
@@ -1325,7 +1329,7 @@ public:
 		}
 #endif
 
-		std::cerr << "Il y a " << points_entree->taille() << " points.\n";
+		std::cerr << "Il y a " << points_entree.taille() << " points.\n";
 		std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
 
 		if (doublons_trouves == 0) {
@@ -1377,7 +1381,7 @@ public:
 				continue;
 			}
 
-			auto p = corps_entree->point_transforme(i);
+			auto p = corps_entree->point_monde(i);
 
 			m_corps.ajoute_point(p.x, p.y, p.z);
 		}
@@ -1480,14 +1484,14 @@ public:
 		auto min = -0.5f * taille;
 		auto max =  0.5f * taille;
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto p = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto p = points_entree.point_local(i);
 
 			p.x += gna.uniforme(min, max) * taille_par_axe.x;
 			p.y += gna.uniforme(min, max) * taille_par_axe.y;
 			p.z += gna.uniforme(min, max) * taille_par_axe.z;
 
-			points_entree->point(i, p);
+			points_entree.point(i, p);
 		}
 
 		return res_exec::REUSSIE;
@@ -1554,14 +1558,15 @@ public:
 
 		/* À FAIRE : transfère d'attributs */
 
-		m_corps.points_pour_ecriture()->reserve(points_entree->taille() * 2);
+		auto points_sortie = m_corps.points_pour_ecriture();
+		points_sortie.reserve(points_entree.taille() * 2);
 
 		auto const dt = evalue_decimal("dt", contexte.temps_courant);
 		auto const taille = evalue_decimal("taille", contexte.temps_courant) * dt;
 		auto const inverse_direction = evalue_bool("inverse_direction");
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto p = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto p = points_entree.point_local(i);
 			auto v = dls::math::vec3f();
 			extrait(attr_V->r32(i), v);
 			v *= taille;
@@ -1572,11 +1577,11 @@ public:
 				v = -v;
 			}
 
-			auto idx0 = m_corps.ajoute_point(p.x, p.y, p.z);
+			auto idx0 = points_sortie.ajoute_point(p.x, p.y, p.z);
 
 			if (mode == 0) {
 				p += v;
-				auto idx1 = m_corps.ajoute_point(p.x, p.y, p.z);
+				auto idx1 = points_sortie.ajoute_point(p.x, p.y, p.z);
 
 				auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
 				m_corps.ajoute_sommet(seg, idx0);
@@ -1587,7 +1592,7 @@ public:
 
 				for (auto j = 0; j < nombre_points; ++j) {
 					p += v;
-					m_corps.ajoute_point(p.x, p.y, p.z);
+					points_sortie.ajoute_point(p.x, p.y, p.z);
 				}
 			}
 		}
@@ -1761,18 +1766,18 @@ public:
 		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto arbre = arbre_3df();
-		arbre.construit_avec_fonction(static_cast<int>(points_entree->taille()), [&](int i)
+		arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()), [&](int i)
 		{
-			return points_entree->point(i);
+			return points_entree.point_local(i);
 		});
 
 		/* À FAIRE : il y a un effet yo-yo. */
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = points_entree->point(i);
+				auto p = points_entree.point_local(i);
 
 #if 0
 				auto force = attr_F->valeur(i);
@@ -2014,6 +2019,9 @@ public:
 			/* ajoute des points qui devraient vraiment venir d'un autre noeud */
 			m_corps.reinitialise();
 
+			auto points_entree = corps_entree->points_pour_lecture();
+			auto points_sortie = m_corps.points_pour_ecriture();
+
 			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::Z32, 1, portee_attr::POINT);
 			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::R32, 3, portee_attr::POINT);
 
@@ -2023,9 +2031,9 @@ public:
 
 				auto poly = dynamic_cast<Polygone *>(prim);
 
-				auto const v0 = corps_entree->point_transforme(poly->index_point(0));
-				auto const v1 = corps_entree->point_transforme(poly->index_point(1));
-				auto const v2 = corps_entree->point_transforme(poly->index_point(2));
+				auto const v0 = points_entree.point_monde(poly->index_point(0));
+				auto const v1 = points_entree.point_monde(poly->index_point(1));
+				auto const v2 = points_entree.point_monde(poly->index_point(2));
 
 				auto const e0 = v1 - v0;
 				auto const e1 = v2 - v0;
@@ -2041,7 +2049,7 @@ public:
 
 				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
 
-				auto idx_p = m_corps.ajoute_point(pos);
+				auto idx_p = points_sortie.ajoute_point(pos);
 				assigne(attr_P->r32(idx_p), pos);
 
 				attr_Prim->z32(idx_p)[0] = static_cast<int>(idx_prim);
@@ -2052,13 +2060,13 @@ public:
 			auto points = m_corps.points_pour_ecriture();
 			auto attr_P = m_corps.attribut("P");
 
-			for (auto i = 0; i < points->taille(); ++i) {
-				auto p = points->point(i);
+			for (auto i = 0; i < points.taille(); ++i) {
+				auto p = points.point_local(i);
 				assigne(attr_P->r32(i), p);
 				p.x += gna.uniforme(-0.2f, 0.2f);
 				p.y += gna.uniforme(-0.2f, 0.2f);
 				p.z += gna.uniforme(-0.2f, 0.2f);
-				points->point(i, p);
+				points.point(i, p);
 			}
 
 #if 1
@@ -2067,9 +2075,9 @@ public:
 			auto delegue = DeleguePrim(*corps_entree);
 			auto arbre_hbe = construit_arbre_hbe(delegue, 12);
 
-			for (auto i = 0; i < points->taille(); ++i) {
+			for (auto i = 0; i < points.taille(); ++i) {
 				auto dist_max = 0.4;
-				auto pointf = points->point(i);
+				auto pointf = points.point_local(i);
 				auto point = dls::math::point3d(
 							static_cast<double>(pointf.x),
 							static_cast<double>(pointf.y),
@@ -2079,7 +2087,7 @@ public:
 
 				pointf = dls::math::converti_type_vecteur<float>(dpp.point);
 
-				points->point(i, pointf);
+				points.point(i, pointf);
 			}
 #else
 			/* essaye de contraindre les points via l'algorithme du papier */
@@ -2095,9 +2103,9 @@ public:
 				//auto as = points->point(i);
 				//auto const d = as - a0;
 
-				auto const v0 = corps_entree->point_transforme(poly->index_point(0));
-				auto const v1 = corps_entree->point_transforme(poly->index_point(1));
-				auto const v2 = corps_entree->point_transforme(poly->index_point(2));
+				auto const v0 = corps_entree->point_monde(poly->index_point(0));
+				auto const v1 = corps_entree->point_monde(poly->index_point(1));
+				auto const v2 = corps_entree->point_monde(poly->index_point(2));
 
 				/* construit la matrice de l'espace canonique */
 				auto e0 = v1 - v0;

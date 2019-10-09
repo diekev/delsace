@@ -1603,7 +1603,8 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([pos, &index](Corps *corps)
 				{
-					index = corps->ajoute_point(pos);
+					auto points = corps->points_pour_ecriture();
+					index = points.ajoute_point(pos);
 				});
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
@@ -1697,8 +1698,9 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([&pos, &dir, &index](Corps *corps)
 				{
-					auto p0 = corps->ajoute_point(pos);
-					auto p1 = corps->ajoute_point(pos + dir);
+					auto points = corps->points_pour_ecriture();
+					auto p0 = points.ajoute_point(pos);
+					auto p1 = points.ajoute_point(pos + dir);
 
 					auto prim = corps->ajoute_polygone(type_polygone::OUVERT, 2);
 					corps->ajoute_sommet(prim, p0);

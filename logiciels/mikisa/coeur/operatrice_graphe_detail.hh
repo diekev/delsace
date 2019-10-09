@@ -110,6 +110,8 @@ private:
 	res_exec execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
 	res_exec execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+
+	void execute_script_sur_points(ChefExecution *chef, const AccesseusePointLecture &points_entree, AccesseusePointEcriture *points_sortie);
 };
 
 /* ************************************************************************** */

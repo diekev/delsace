@@ -74,7 +74,7 @@ bool valide_corps_entree(OperatriceCorps &op,
 		return false;
 	}
 
-	if (besoin_points && corps->points_pour_lecture()->taille() == 0) {
+	if (besoin_points && corps->points_pour_lecture().taille() == 0) {
 		op.ajoute_avertissement("Le corps d'entrée n'a pas de point");
 		return false;
 	}

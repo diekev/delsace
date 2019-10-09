@@ -202,11 +202,12 @@ public:
 
 			auto const &corps = extrait_corps(donnees);
 
-			auto nombre_points = corps.points_pour_lecture()->taille();
+			auto points = corps.points_pour_lecture();
+			auto nombre_points = points.taille();
 			objet_instance->matrices.redimensionne(nombre_points);
 
 			for (int i = 0; i < nombre_points; ++i) {
-				auto pnt = corps.point_transforme(i);
+				auto pnt = points.point_monde(i);
 
 				auto rot_locale = rot;
 				auto ech_locale = ech;

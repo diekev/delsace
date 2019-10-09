@@ -247,9 +247,11 @@ public:
 		auto gna = GNA();
 
 		auto attr_L = m_corps.ajoute_attribut("longueur", type_attribut::R32, 1, portee_attr::PRIMITIVE, true);
-		attr_L->reserve(liste_points->taille());
+		attr_L->reserve(liste_points.taille());
 
-		for (auto i = 0; i < liste_points->taille(); ++i) {
+		auto points_sortie = m_corps.points_pour_ecriture();
+
+		for (auto i = 0; i < liste_points.taille(); ++i) {
 //			auto const ta = gna.uniforme(taille_min, taille_max);
 //			auto const tb = gna.uniforme(inf_min, inf_max);
 //			auto const taille_courbe = (tb * (1.0f - biais) + ta * biais) * multiplication_taille;
@@ -271,9 +273,9 @@ public:
 				extrait(attr_N->r32(i), normal);
 			}
 
-			auto pos = liste_points->point(i);
+			auto pos = liste_points.point_local(i);
 
-			auto index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
+			auto index_npoint = points_sortie.ajoute_point(pos.x, pos.y, pos.z);
 
 			auto polygone = m_corps.ajoute_polygone(type_polygone::OUVERT, nombre_segment + 1);
 			m_corps.ajoute_sommet(polygone, index_npoint);
@@ -281,7 +283,7 @@ public:
 			for (long j = 0; j < nombre_segment; ++j) {
 				pos += (taille_segment * normal);
 
-				index_npoint = m_corps.ajoute_point(pos.x, pos.y, pos.z);
+				index_npoint = points_sortie.ajoute_point(pos.x, pos.y, pos.z);
 				m_corps.ajoute_sommet(polygone, index_npoint);
 			}
 
@@ -342,14 +344,16 @@ static auto entresecte_prim(Corps const &corps, Primitive *prim, const dls::phys
 		return entresection;
 	}
 
+	auto points = corps.points_pour_lecture();
+
 	for (auto j = 2; j < poly->nombre_sommets(); ++j) {
 		auto i0 = poly->index_point(0);
 		auto i1 = poly->index_point(j - 1);
 		auto i2 = poly->index_point(j);
 
-		auto const &v0 = corps.point_transforme(i0);
-		auto const &v1 = corps.point_transforme(i1);
-		auto const &v2 = corps.point_transforme(i2);
+		auto const &v0 = points.point_monde(i0);
+		auto const &v1 = points.point_monde(i1);
+		auto const &v2 = points.point_monde(i2);
 
 		auto const &v0_d = dls::math::converti_type_point<double>(v0);
 		auto const &v1_d = dls::math::converti_type_point<double>(v1);
@@ -455,11 +459,13 @@ public:
 			 */
 			dls::tableau<arbre_octernaire::noeud const *> noeuds;
 
+			auto points_courbes = corps_courbe.points_pour_lecture();
+
 			for (auto i = 0; i < poly->nombre_segments(); ++i) {
 				noeuds.efface();
 
-				auto p0 = corps_courbe.point_transforme(poly->index_point(i));
-				auto p1 = corps_courbe.point_transforme(poly->index_point(i + 1));
+				auto p0 = points_courbes.point_monde(poly->index_point(i));
+				auto p1 = points_courbes.point_monde(poly->index_point(i + 1));
 
 				auto rayon = dls::phys::rayond();
 				rayon.origine = dls::math::converti_type_point<double>(p0);
@@ -603,11 +609,11 @@ public:
 									[&](Corps const &, Polygone *polygone)
 		{
 			/* le premier point est la racine */
-			assigne(attr_P->r32(polygone->index_point(0)), liste_points->point(polygone->index_point(0)));
+			assigne(attr_P->r32(polygone->index_point(0)), liste_points.point_local(polygone->index_point(0)));
 
 			for (long i = 1; i < polygone->nombre_sommets(); ++i) {
-				auto const pos_precedent = liste_points->point(polygone->index_point(i - 1));
-				auto pos = liste_points->point(polygone->index_point(i));
+				auto const pos_precedent = liste_points.point_local(polygone->index_point(i - 1));
+				auto pos = liste_points.point_local(polygone->index_point(i));
 				auto vel = dls::math::vec3f();
 				extrait(attr_V->r32(polygone->index_point(i)), vel);
 
@@ -668,9 +674,9 @@ public:
 				auto d_pa = dls::math::vec3f();
 				extrait(attr_D->r32(pb), pos_pa);
 
-				auto vel_pa = ((pos_pa - liste_points->point(pa)) / dt) + 0.9f * (d_pa / dt);
+				auto vel_pa = ((pos_pa - liste_points.point_local(pa)) / dt) + 0.9f * (d_pa / dt);
 
-				liste_points->point(pa, pos_pa);
+				liste_points.point(pa, pos_pa);
 				assigne(attr_V->r32(pa), vel_pa);
 			}
 
@@ -678,7 +684,7 @@ public:
 			auto pa = polygone->index_point(polygone->nombre_sommets() - 1);
 			auto pos_pa = dls::math::vec3f();
 			extrait(attr_P->r32(pa), pos_pa);
-			liste_points->point(pa, pos_pa);
+			liste_points.point(pa, pos_pa);
 		});
 
 		return res_exec::REUSSIE;
@@ -773,13 +779,13 @@ public:
 			 * - calcul un vecteur d'attraction entre les points
 			 * - applique le poids selon les paramètres */
 			for (auto j = 0; j < polygone->nombre_sommets(); ++j) {
-				auto point_orig = points_entree->point(polygone->index_point(j));
+				auto point_orig = points_entree.point_local(polygone->index_point(j));
 				auto pt_guide = point_orig;//echantillone(guide, dist);
 
 				auto dir = pt_guide - point_orig;
 
 				auto point_final = point_orig + dir * poids * alea_poids/* * dist(rng)*/;
-				points_entree->point(polygone->index_point(j), point_final);
+				points_entree.point(polygone->index_point(j), point_final);
 			}
 		}
 
@@ -805,7 +811,7 @@ public:
 				continue;
 			}
 
-			auto point = points_entree->point(polygone->index_point(0));
+			auto point = points_entree.point_local(polygone->index_point(0));
 			auto dist = longueur(point - pos);
 
 			if (dist_min < dist) {
@@ -899,7 +905,7 @@ public:
 
 			for (auto j = 1; j < poly->nombre_sommets(); ++j) {
 				auto idx = poly->index_point(j);
-				auto p = points->point(idx);
+				auto p = points.point_local(idx);
 
 				auto bruit = quantite * mult * gna.uniforme(-alea, alea);
 				auto bruit_x = (gna.uniforme(-0.5f, 0.5f) + decalage) * bruit;
@@ -910,7 +916,7 @@ public:
 				p.y += bruit_y;
 				p.z += bruit_z;
 
-				points->point(idx, p);
+				points.point(idx, p);
 			}
 		}
 
@@ -1010,12 +1016,12 @@ public:
 			}
 
 			for (auto j = 0; j < poly1->nombre_sommets(); ++j) {
-				auto p1 = points1->point(poly1->index_point(j));
-				auto p2 = points2->point(poly2->index_point(j));
+				auto p1 = points1.point_local(poly1->index_point(j));
+				auto p2 = points2.point_local(poly2->index_point(j));
 
 				auto p = p1 * fac + p2 * (1.0f - fac);
 
-				points1->point(poly1->index_point(j), p);
+				points1.point(poly1->index_point(j), p);
 			}
 		}
 
@@ -1116,6 +1122,8 @@ public:
 
 			float segment_length = (hair_length / (static_cast<float>(num_hair_points) - 1.f));
 
+			auto points = m_corps.points_pour_ecriture();
+
 			for (int h = 0; h < num_hairs; h++) {
 				auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, num_hair_points);
 
@@ -1129,7 +1137,7 @@ public:
 					point_velocities.pousse(dls::math::vec3f(0.0f));
 					point_forces.pousse(dls::math::vec3f(0.0f));
 
-					auto idx_point = m_corps.ajoute_point(point_base);
+					auto idx_point = points.ajoute_point(point_base);
 					m_corps.ajoute_sommet(poly, idx_point);
 
 					point_base += normal * segment_length;
@@ -1178,7 +1186,7 @@ public:
 					// cvs[p] += MPoint(p, 0, 0);
 
 					forces[i][p] = dls::math::vec3f(0.0f); //reset forces
-					auto current_position = points->point(cvs->index_point(p));
+					auto current_position = points.point_local(cvs->index_point(p));
 
 					// For every spring s whos endpoint is p
 					for (int s = 0; s < springs[p - 1].taille(); s++) {
@@ -1188,7 +1196,7 @@ public:
 						int prev_point_id   = static_cast<int>(springs[p-1][s]->p1);
 						float stiffness     = springs[p-1][s]->stiffness;
 						float rest_length   = springs[p-1][s]->rest_length;
-						prev_position = points->point(cvs->index_point(prev_point_id));
+						prev_position = points.point_local(cvs->index_point(prev_point_id));
 
 						auto spring_vector = prev_position - current_position;
 						float current_length = longueur(spring_vector);
@@ -1219,7 +1227,7 @@ public:
 					// cout << "\t\t\tVel_prev: " << velocities[p];
 					velocities[i][p] += delta_time * forces[i][p] / 1.0f; // assumes mass = 1
 					// cout << "\n\t\t\t\tVel_post: " << velocities[p] << "\n";
-					auto prev_position = points->point(cvs->index_point(p)); // TODO: this is the error! Reason that it doesn't update
+					auto prev_position = points.point_local(cvs->index_point(p)); // TODO: this is the error! Reason that it doesn't update
 					// cout << "\t\t\tPos_prev: " << prev_position;
 					auto current_velocity = velocities[i][p];
 					auto new_position = prev_position + delta_time * current_velocity;
@@ -1253,7 +1261,7 @@ public:
 						}
 					}
 
-					points->point(cvs->index_point(p), new_position);
+					points.point(cvs->index_point(p), new_position);
 					// cout << "\n\t\t\t\tPos_post: " << new_position << "\n";
 				}
 			}

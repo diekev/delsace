@@ -568,6 +568,7 @@ public:
 		echelle = (echelle == 0.0f) ? 0.0f : 1.0f / echelle;
 
 		auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_ecriture();
 
 		for (auto y = 0; y < hauteur; ++y) {
 			for (auto x = 0; x < largeur; ++x, ++index) {
@@ -600,7 +601,7 @@ public:
 
 					min_z = std::min(pmnd.z, min_z);
 
-					auto idx_point = m_corps.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
+					auto idx_point = points.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
 
 					auto couleur = dls::math::vec3f(eR[i], eG[i], eB[i]);
 					assigne(C->r32(idx_point), couleur);

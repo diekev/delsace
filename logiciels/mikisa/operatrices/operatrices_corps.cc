@@ -78,7 +78,7 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 		if (attr_normaux->taille() == corps->prims()->taille()) {
 			attr_normaux->portee = portee_attr::PRIMITIVE;
 		}
-		else  if (attr_normaux->taille() == corps->points_pour_lecture()->taille()) {
+		else  if (attr_normaux->taille() == corps->points_pour_lecture().taille()) {
 			attr_normaux->portee = portee_attr::POINT;
 		}
 	}
@@ -561,7 +561,8 @@ public:
 		auto position = evalue_vecteur("pos_sphère", contexte.temps_courant);
 		auto rayon = evalue_decimal("rayon_sphère", contexte.temps_courant);
 
-		auto idx_point = m_corps.ajoute_point(position);
+		auto points = m_corps.points_pour_ecriture();
+		auto idx_point = points.ajoute_point(position);
 		m_corps.ajoute_sphere(idx_point, rayon);
 
 		return res_exec::REUSSIE;
@@ -611,12 +612,13 @@ public:
 
 		auto t = 0.0f;
 
+		auto points = m_corps.points_pour_ecriture();
 		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, segments + 1);
 
 		for (auto i = 0; i <= segments; ++i) {
 			auto p = origine + t * direction;
 
-			auto idx = m_corps.ajoute_point(p.x, p.y, p.z);
+			auto idx = points.ajoute_point(p.x, p.y, p.z);
 			m_corps.ajoute_sommet(poly, idx);
 
 			t += taille_segment;
@@ -828,16 +830,16 @@ public:
 		auto liste_point1 = corps1->points_pour_lecture();
 		auto liste_point2 = corps2->points_pour_lecture();
 
-		liste_point->reserve(liste_point1->taille() + liste_point2->taille());
+		liste_point.reserve(liste_point1.taille() + liste_point2.taille());
 
-		for (auto i = 0; i < liste_point1->taille(); ++i) {
-			auto p = corps1->point_transforme(i);
-			liste_point->pousse(p);
+		for (auto i = 0; i < liste_point1.taille(); ++i) {
+			auto p = liste_point1.point_monde(i);
+			liste_point.ajoute_point(p);
 		}
 
-		for (auto i = 0; i < liste_point2->taille(); ++i) {
-			auto p = corps2->point_transforme(i);
-			liste_point->pousse(p);
+		for (auto i = 0; i < liste_point2.taille(); ++i) {
+			auto p = liste_point2.point_monde(i);
+			liste_point.ajoute_point(p);
 		}
 	}
 
@@ -859,7 +861,7 @@ public:
 			}
 		});
 
-		auto const decalage_point = corps1->points_pour_lecture()->taille();
+		auto const decalage_point = corps1->points_pour_lecture().taille();
 
 		pour_chaque_polygone(*corps2,
 							 [&](Corps const &, Polygone *poly)
@@ -970,7 +972,7 @@ public:
 			}
 		}
 
-		auto const decalage_points = corps1->points_pour_lecture()->taille();
+		auto const decalage_points = corps1->points_pour_lecture().taille();
 
 		for (auto const &alveole : tableau) {
 			auto const &paire_attr = alveole.second;
@@ -1259,6 +1261,7 @@ public:
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
+		auto points_sortie = m_corps.points_pour_ecriture();
 
 		/* À FAIRE : transfère attributs groupes */
 		auto transfere = TRANSFERE_ATTR_CORPS
@@ -1278,9 +1281,9 @@ public:
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 				auto idx_pnt_orig = poly->index_point(j);
 				auto idx_smt_orig = poly->index_sommet(j);
-				auto point = points_entree->point(poly->index_point(j));
+				auto point = points_entree.point_local(poly->index_point(j));
 
-				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
+				auto index = points_sortie.ajoute_point(point.x, point.y, point.z);
 				transferante.transfere_attributs_points(idx_pnt_orig, index);
 
 				auto idx_sommet = m_corps.ajoute_sommet(npoly, index);
@@ -1480,8 +1483,8 @@ public:
 			// ajoute un déformeur pour chaque points de l'entrée
 			auto points = corps_entree->points_pour_lecture();
 
-			for (auto i = 0; i < points->taille(); ++i) {
-				auto point = corps_entree->point_transforme(i);
+			for (auto i = 0; i < points.taille(); ++i) {
+				auto point = points.point_monde(i);
 
 				ajoute_deformeur(
 							*deformeur,
@@ -1571,11 +1574,11 @@ public:
 
 		auto const rk4 = integration == "rk4";
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = m_corps.point_transforme(i);
+				auto p = points_entree.point_monde(i);
 
 				auto point_eigen = Vector3();
 				point_eigen << static_cast<double>(p.x), static_cast<double>(p.y), static_cast<double>(p.z);
@@ -1586,7 +1589,7 @@ public:
 				p.y += static_cast<float>(dist[1]);
 				p.z += static_cast<float>(dist[2]);
 
-				points_entree->point(i, p);
+				points_entree.point(i, p);
 			}
 		});
 
@@ -1745,11 +1748,11 @@ public:
 		/* calcule la déformation */
 		auto points_entree = m_corps.points_pour_ecriture();
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = m_corps.point_transforme(i);
+				auto p = points_entree.point_monde(i);
 
 				auto point_eigen = Vector3();
 
@@ -1763,10 +1766,10 @@ public:
 					p.z += static_cast<float>(dist[2]);
 				}
 
-				points_entree->point(i, p);
+				points_entree.point(i, p);
 			}
 
-			auto delta = static_cast<float>(plage.end() - plage.begin()) / static_cast<float>(points_entree->taille());
+			auto delta = static_cast<float>(plage.end() - plage.begin()) / static_cast<float>(points_entree.taille());
 			chef->indique_progression_parallele(delta);
 		});
 
@@ -1868,8 +1871,8 @@ public:
 		if (corps_ref != nullptr) {
 			auto points_ref = corps_ref->points_pour_lecture();
 
-			for (auto i = 0; i < points_ref->taille(); ++i) {
-				auto point = corps_ref->point_transforme(i);
+			for (auto i = 0; i < points_ref.taille(); ++i) {
+				auto point = points_ref.point_monde(i);
 				cree_pancarte(camera, point, *attr_UV, points_pancate);
 			}
 		}
@@ -1903,10 +1906,11 @@ public:
 					axe_y.x, axe_y.y, axe_y.z,
 					axe_z.x, axe_z.y, axe_z.z);
 
+		auto points = m_corps.points_pour_ecriture();
 		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
 
 		for (auto i = 0; i < 4; ++i) {
-			auto idx_point = m_corps.ajoute_point(mat * points_pancate[i] + pos);
+			auto idx_point = points.ajoute_point(mat * points_pancate[i] + pos);
 			auto idx_sommet = m_corps.ajoute_sommet(poly, idx_point);
 			assigne(attr_UV.r32(idx_sommet), uvs_pancarte[i]);
 		}
