@@ -1500,9 +1500,12 @@ public:
 				}
 
 				if (entree(i)->connectee()) {
+					auto donnees = gest_attrs->donnees_pour_propriete(params_noeud.nom(i));
+					donnees->est_modifiee = true;
+
 					auto ptr_prise = entree(i)->pointeur();
 					auto ptr_entree = static_cast<int>(ptr_prise->liens[0]->decalage_pile);
-					auto ptr_sortie = gest_attrs->pointeur_donnees(params_noeud.nom(i));
+					auto ptr_sortie = donnees->ptr;
 
 					compileuse->ajoute_instructions(lcc::code_inst::ASSIGNATION);
 					compileuse->ajoute_instructions(params_noeud.type(i));
