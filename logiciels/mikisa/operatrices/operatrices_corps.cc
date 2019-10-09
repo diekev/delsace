@@ -555,9 +555,6 @@ public:
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
-		AdaptriceCreationCorps adaptrice;
-		adaptrice.corps = &m_corps;
-
 		auto position = evalue_vecteur("pos_sphère", contexte.temps_courant);
 		auto rayon = evalue_decimal("rayon_sphère", contexte.temps_courant);
 
