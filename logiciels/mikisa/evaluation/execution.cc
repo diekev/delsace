@@ -148,7 +148,7 @@ static void evalue_composite(Mikisa &mikisa, Composite *composite)
 
 	if (visionneuse == nullptr) {
 		for (auto noeud : graphe.noeuds()) {
-			if (noeud->est_sortie) {
+			if (noeud->sorties.est_vide()) {
 				visionneuse = noeud;
 				break;
 			}

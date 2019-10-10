@@ -92,7 +92,7 @@ static bool selectionne_noeud(Mikisa &mikisa, Noeud *noeud, Graphe &graphe)
 		return false;
 	}
 
-	if (noeud->est_sortie) {
+	if (noeud->sorties.est_vide()) {
 		auto const besoin_ajournement = (graphe.noeud_actif != graphe.dernier_noeud_sortie);
 
 		graphe.dernier_noeud_sortie = noeud;
@@ -121,7 +121,7 @@ static bool noeud_connecte_sortie(Noeud *noeud, Noeud *sortie)
 		return false;
 	}
 
-	if (noeud->est_sortie) {
+	if (noeud->sorties.est_vide()) {
 		return true;
 	}
 

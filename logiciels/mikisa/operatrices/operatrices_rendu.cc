@@ -244,8 +244,7 @@ public:
 		: OperatriceImage(graphe_parent, noeud_)
 	{
 		entrees(1);
-		sorties(0);		
-		noeud.est_sortie = true;
+		sorties(0);
 	}
 
 	COPIE_CONSTRUCT(OpMoteurRendu);

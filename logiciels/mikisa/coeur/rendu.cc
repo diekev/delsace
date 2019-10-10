@@ -74,7 +74,7 @@ void evalue_graphe_rendu(Rendu *rendu, ContexteEvaluation &contexte)
 	auto noeud_sortie = static_cast<Noeud *>(nullptr);
 
 	for (auto noeud : rendu->noeud.graphe.noeuds()) {
-		if (noeud->est_sortie) {
+		if (noeud->sorties.est_vide()) {
 			noeud_sortie = noeud;
 			break;
 		}

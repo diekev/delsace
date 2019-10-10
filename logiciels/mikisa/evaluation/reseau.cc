@@ -67,7 +67,7 @@ static void cree_dependances(
 
 	/* n'ajoute les dépendances que pour les noeuds connectés aux sorties */
 	for (auto noeud : graphe.noeuds()) {
-		if (noeud->est_sortie) {
+		if (noeud->sorties.est_vide()) {
 			noeuds.empile(noeud);
 		}
 	}

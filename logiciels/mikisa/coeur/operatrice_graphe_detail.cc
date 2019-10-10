@@ -300,7 +300,7 @@ static auto trouve_noeuds_connectes_sortie(Graphe const &graphe)
 	auto ensemble = dls::ensemble<Noeud *>();
 
 	for (auto &noeud_graphe : graphe.noeuds()) {
-		if (noeud_graphe->est_sortie) {
+		if (noeud_graphe->sorties.est_vide()) {
 			noeuds.empile(noeud_graphe);
 		}
 	}
@@ -1440,8 +1440,6 @@ public:
 		auto const &params_noeud = params_noeuds_sortie[type_detail];
 		entrees(params_noeud.taille());
 		sorties(0);
-
-		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override
@@ -1625,8 +1623,6 @@ public:
 	{
 		entrees(1);
 		sorties(0);
-
-		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override

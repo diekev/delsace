@@ -1201,8 +1201,6 @@ public:
 	{
 		entrees(1);
 		sorties(0);
-
-		noeud.est_sortie = true;
 	}
 
 	const char *nom_classe() const override

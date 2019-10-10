@@ -129,7 +129,6 @@ struct Noeud : public danjo::Manipulable {
 	/* autres */
 	int degree = 0; /* pour les algorithmes de tri topologique entre autre */
 
-	bool est_sortie = false;
 	bool peut_avoir_graphe = false;
 
 	Noeud *parent = nullptr;

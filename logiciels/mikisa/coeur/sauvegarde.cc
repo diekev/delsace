@@ -711,7 +711,7 @@ static void lecture_noeud(
 				/* il nous faut savoir le type de détail avant de pouvoir synchroniser */
 				synchronise_donnees_operatrice(*noeud);
 
-				if (noeud->est_sortie) {
+				if (noeud->sorties.est_vide()) {
 					graphe->dernier_noeud_sortie = noeud;
 				}
 
