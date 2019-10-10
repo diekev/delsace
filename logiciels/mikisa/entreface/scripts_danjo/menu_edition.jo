@@ -2,6 +2,7 @@ menu "Édition" {
 	action(valeur="Défait"; attache=défait)
 	action(valeur="Refait"; attache=refait)
 	séparateur
+	action(valeur="Ajouter Prise Noeud"; attache=ajout_prise_noeud)
 	action(valeur="Renomme Noeud"; attache=renomme)
 	séparateur
     action(valeur="Sors noeud"; attache=sors_noeud)

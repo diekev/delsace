@@ -42,6 +42,8 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/commande.h"
+#include "biblinternes/patrons_conception/repondant_commande.h"
+#include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "danjo/danjo.h"
@@ -1068,6 +1070,104 @@ public:
 
 /* ************************************************************************** */
 
+struct CommandeAjoutPriseNoeud final : public Commande {
+	bool evalue_predicat(std::any const &pointeur, dls::chaine const &metadonnee) override
+	{
+		INUTILISE(metadonnee);
+		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
+		auto noeud_actif = graphe->noeud_actif;
+
+		if (noeud_actif == nullptr) {
+			return false;
+		}
+
+		return noeud_actif->type == type_noeud::OPERATRICE && noeud_actif->prises_dynamiques;
+	}
+
+	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
+	{
+		INUTILISE(donnees);
+		auto mikisa = extrait_mikisa(pointeur);
+		auto graphe = mikisa->graphe;
+
+		auto noeud_actif = graphe->noeud_actif;
+
+		if (noeud_actif == nullptr) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		if (noeud_actif->type != type_noeud::OPERATRICE || !noeud_actif->prises_dynamiques) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto gestionnaire = mikisa->gestionnaire_entreface;
+		auto resultat = danjo::Manipulable{};
+		auto donnees_entreface = danjo::DonneesInterface{};
+		donnees_entreface.conteneur = nullptr;
+		donnees_entreface.repondant_bouton = mikisa->repondant_commande();
+		donnees_entreface.manipulable = &resultat;
+
+		auto ok = gestionnaire->montre_dialogue_fichier(
+					donnees_entreface,
+					"entreface/ajout_prise_noeud.jo");
+
+		if (!ok) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto nom_prise = resultat.evalue_chaine("nom_prise");
+		auto chn_type_prise = resultat.evalue_enum("type_prise");
+		auto chn_type_donnees = resultat.evalue_enum("type_donnée");
+
+		auto dico_type_donnees = dls::cree_dico(
+					dls::paire(dls::vue_chaine("chaine"), type_prise::CHAINE),
+					dls::paire(dls::vue_chaine("corps"), type_prise::CORPS),
+					dls::paire(dls::vue_chaine("couleur"), type_prise::COULEUR),
+					dls::paire(dls::vue_chaine("décimal"), type_prise::DECIMAL),
+					dls::paire(dls::vue_chaine("entier"), type_prise::ENTIER),
+					dls::paire(dls::vue_chaine("image"), type_prise::IMAGE),
+					dls::paire(dls::vue_chaine("mat3"), type_prise::MAT3),
+					dls::paire(dls::vue_chaine("mat4"), type_prise::MAT4),
+					dls::paire(dls::vue_chaine("objet"), type_prise::OBJET),
+					dls::paire(dls::vue_chaine("tableau"), type_prise::TABLEAU),
+					dls::paire(dls::vue_chaine("vec2"), type_prise::VEC2),
+					dls::paire(dls::vue_chaine("vec3"), type_prise::VEC3),
+					dls::paire(dls::vue_chaine("vec4"), type_prise::VEC4));
+
+		auto plg_type = dico_type_donnees.trouve(chn_type_prise);
+
+		if (plg_type.est_finie()) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto op = extrait_opimage(noeud_actif->donnees);
+
+		auto type = plg_type.front().second;
+
+		if (chn_type_prise == "entrée") {
+			noeud_actif->ajoute_entree(nom_prise, type, false);
+
+			auto index = op->entrees();
+			op->entrees(op->entrees() + 1);
+			op->donnees_entree(index, noeud_actif->entrees.back());
+		}
+		else if (chn_type_prise == "sortie") {
+			noeud_actif->ajoute_sortie(nom_prise, type);
+
+			auto index = op->sorties();
+			op->sorties(op->sorties() + 1);
+			op->donnees_sortie(index, noeud_actif->sorties.back());
+		}
+
+		mikisa->notifie_observatrices(type_evenement::noeud | type_evenement::modifie);
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_graphes(UsineCommande &usine)
 {
 	usine.enregistre_type("dessine_graphe_composite",
@@ -1132,6 +1232,10 @@ void enregistre_commandes_graphes(UsineCommande &usine)
 
 	usine.enregistre_type("change_contexte",
 						   description_commande<CommandeChangeContexte>(
+							   "graphe", 0, 0, 0, false));
+
+	usine.enregistre_type("ajout_prise_noeud",
+						   description_commande<CommandeAjoutPriseNoeud>(
 							   "graphe", 0, 0, 0, false));
 }
 

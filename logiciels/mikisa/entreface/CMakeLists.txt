@@ -74,6 +74,7 @@ set(NUANCEURS
 )
 
 set(FICHIERS_DANJO
+	scripts_danjo/ajout_prise_noeud.jo
 	scripts_danjo/ajouter_propriete.jo
 	scripts_danjo/dialogue_creation_nuanceur.jo
 	scripts_danjo/dialogue_renommage.jo
