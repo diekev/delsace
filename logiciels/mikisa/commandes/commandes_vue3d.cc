@@ -34,9 +34,9 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/objets/creation.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/evenement.h"

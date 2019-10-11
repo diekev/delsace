@@ -32,9 +32,9 @@
 #include <QKeyEvent>
 #pragma GCC diagnostic pop
 
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
+#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/vision/camera_2d.h"
 
 #include "coeur/composite.h"

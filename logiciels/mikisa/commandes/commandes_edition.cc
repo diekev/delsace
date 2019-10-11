@@ -35,9 +35,9 @@
 #include "danjo/danjo.h"
 #include "danjo/manipulable.h"
 
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/outils/fichier.hh"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"

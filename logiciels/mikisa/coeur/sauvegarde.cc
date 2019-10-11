@@ -28,15 +28,14 @@
 
 #include "danjo/manipulable.h"
 
-#include "biblinternes/xml/declaration.h"
-#include "biblinternes/xml/document.h"
-#include "biblinternes/xml/element.h"
-#include "biblinternes/xml/noeud.h"
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/xml/declaration.h"
+#include "biblinternes/xml/document.h"
+#include "biblinternes/xml/element.h"
+#include "biblinternes/xml/noeud.h"
 
 #include "evaluation/evaluation.hh"
 #include "evaluation/plan.hh"

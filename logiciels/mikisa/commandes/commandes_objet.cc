@@ -24,8 +24,8 @@
 
 #include "commandes_objet.hh"
 
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/fichier.hh"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "danjo/danjo.h"
 

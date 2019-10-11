@@ -35,10 +35,10 @@
 #include <graphviz/cgraph.h>
 #include <graphviz/gvc.h>
 
-#include "biblinternes/outils/constantes.h"
-#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/conditions.h"
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/patrons_conception/commande.h"
