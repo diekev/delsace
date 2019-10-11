@@ -131,6 +131,17 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		{
 			auto objet = extrait_objet(noeud->donnees);
 			chemin_entreface = objet->chemin_entreface();
+
+			if (!std::filesystem::exists(chemin_entreface)) {
+				dls::tableau<dls::chaine> avertissements;
+				auto chn = dls::chaine();
+				chn = "Le fichier « ";
+				chn += chemin_entreface;
+				chn += " » n'existe pas !";
+				avertissements.pousse(chn);
+				ajoute_avertissements(avertissements);
+			}
+
 			manipulable = objet->noeud;
 			break;
 		}
@@ -142,26 +153,16 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 			operatrice->ajourne_proprietes();
 
+			if (!std::filesystem::exists(chemin_entreface)) {
+				operatrice->ajoute_avertissement(
+							"Le fichier « ",
+							chemin_entreface,
+							" » n'existe pas !");
+			}
+
 			/* avertissements */
 			if (operatrice->avertissements().taille() > 0) {
-				auto disposition_avertissements = new QGridLayout();
-				auto ligne = 0;
-				auto const &pixmap = QPixmap("icones/icone_avertissement.png");
-
-				for (auto const &avertissement : operatrice->avertissements()) {
-					auto icone = new QLabel();
-					icone->setPixmap(pixmap);
-
-					auto texte = new QLabel(avertissement.c_str());
-
-					disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
-					disposition_avertissements->addWidget(texte, ligne, 1);
-
-					++ligne;
-				}
-
-				m_conteneur_avertissements->setLayout(disposition_avertissements);
-				m_conteneur_avertissements->show();
+				ajoute_avertissements(operatrice->avertissements());
 			}
 			else {
 				m_conteneur_avertissements->hide();
@@ -216,6 +217,29 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 		QWidget temp;
 		temp.setLayout(m_conteneur_disposition->layout());
 	}
+}
+
+void EditriceProprietes::ajoute_avertissements(
+		dls::tableau<dls::chaine> const &avertissements)
+{
+	auto disposition_avertissements = new QGridLayout();
+	auto ligne = 0;
+	auto const &pixmap = QPixmap("icones/icone_avertissement.png");
+
+	for (auto const &avertissement : avertissements) {
+		auto icone = new QLabel();
+		icone->setPixmap(pixmap);
+
+		auto texte = new QLabel(avertissement.c_str());
+
+		disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
+		disposition_avertissements->addWidget(texte, ligne, 1);
+
+		++ligne;
+	}
+
+	m_conteneur_avertissements->setLayout(disposition_avertissements);
+	m_conteneur_avertissements->show();
 }
 
 void EditriceProprietes::ajourne_manipulable()
