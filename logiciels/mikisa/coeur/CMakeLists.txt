@@ -72,6 +72,7 @@ add_library(${NOM_CIBLE} STATIC
 	delegue_hbe.cc
 	donnees_aval.cc
 	donnees_simulation.cc
+	editrice.cc
 	evenement.cc
 	gestionnaire_fichier.cc
 	graphe.cc
@@ -102,6 +103,7 @@ add_library(${NOM_CIBLE} STATIC
 	delegue_hbe.hh
 	donnees_aval.hh
 	donnees_simulation.hh
+	editrice.hh
 	evenement.h
 	gestionnaire_fichier.hh
 	graphe.hh
