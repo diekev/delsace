@@ -717,7 +717,7 @@ bool CompileuseScriptLCC::compile_script(
 	auto taille_instructions = m_compileuse.instructions().taille();
 
 	/* Retourne si le script est vide, notons qu'il y a forcément une
-		 * intruction : code_inst::TERMINE. */
+	 * intruction : code_inst::TERMINE. */
 	if ((taille_donnees == 0) || (taille_instructions == 1)) {
 		return true;
 	}
