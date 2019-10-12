@@ -81,7 +81,8 @@ static lcc::param_sorties params_noeuds_entree[] = {
 		lcc::donnees_parametre("température", lcc::type_var::DEC),
 		lcc::donnees_parametre("vélocité", lcc::type_var::VEC3),
 		lcc::donnees_parametre("pos_monde", lcc::type_var::VEC3),
-		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3)),
+		lcc::donnees_parametre("pos_unit", lcc::type_var::VEC3),
+		lcc::donnees_parametre("temps", lcc::type_var::DEC)),
 	/* entrée détail nuançage */
 	lcc::param_sorties(
 		lcc::donnees_parametre("P", lcc::type_var::VEC3)),

@@ -1542,6 +1542,7 @@ public:
 
 						m_compileuse.remplis_donnees(donnees, "pos_monde", pos_monde);
 						m_compileuse.remplis_donnees(donnees, "pos_unit", pos_unit);
+						m_compileuse.remplis_donnees(donnees, "temps", static_cast<float>(contexte.temps_courant) / static_cast<float>(contexte.cadence));
 						m_compileuse.remplis_donnees(donnees, "fumée", densite->valeur(index));
 						m_compileuse.remplis_donnees(donnees, "vélocité", velocite->valeur(index));
 
