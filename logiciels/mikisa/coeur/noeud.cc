@@ -286,6 +286,10 @@ void marque_parent_surannee(Noeud *noeud, const std::function<void(Noeud *, Pris
 
 Noeud *noeud_base_hierarchie(Noeud *noeud)
 {
+	if (noeud == nullptr) {
+		return nullptr;
+	}
+
 	while (noeud->parent != nullptr) {
 		auto parent = noeud->parent;
 
