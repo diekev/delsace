@@ -132,7 +132,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 			auto objet = extrait_objet(noeud->donnees);
 			chemin_entreface = objet->chemin_entreface();
 
-			if (!std::filesystem::exists(chemin_entreface)) {
+			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
 				dls::tableau<dls::chaine> avertissements;
 				auto chn = dls::chaine();
 				chn = "Le fichier « ";
@@ -153,7 +153,7 @@ void EditriceProprietes::ajourne_etat(int evenement)
 
 			operatrice->ajourne_proprietes();
 
-			if (!std::filesystem::exists(chemin_entreface)) {
+			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
 				operatrice->ajoute_avertissement(
 							"Le fichier « ",
 							chemin_entreface,
