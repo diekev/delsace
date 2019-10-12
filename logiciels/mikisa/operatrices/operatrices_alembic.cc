@@ -528,7 +528,7 @@ res_exec OpImportAlembic::execute(
 		ajoute_avertissement("Type d'objet non-supporté !");
 	}
 
-	chef->indique_progression(1.0f);
+	chef->indique_progression(100.0f);
 
 	return res_exec::REUSSIE;
 }
