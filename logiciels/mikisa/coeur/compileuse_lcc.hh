@@ -29,27 +29,7 @@
 struct ContexteEvaluation;
 struct Corps;
 struct Graphe;
-
-/* ************************************************************************** */
-
-enum class type_attribut : char;
-
-void stocke_attributs(
-		gestionnaire_propriete const &gest_attrs,
-		lcc::pile &donnees,
-		lcc::ctx_local &ctx_local,
-		long idx_attr);
-
-void charge_attributs(
-		gestionnaire_propriete const &gest_attrs,
-		lcc::pile &donnees,
-		lcc::ctx_exec const &ctx_exec,
-		lcc::ctx_local const &ctx_local,
-		long idx_attr);
-
-type_attribut converti_type_lcc(lcc::type_var type, int &dimensions);
-
-lcc::type_var converti_type_attr(type_attribut type, int dimensions);
+class OperatriceImage;
 
 /* ************************************************************************** */
 
@@ -86,4 +66,17 @@ struct CompileuseGrapheLCC : public CompileuseLCC {
 	CompileuseGrapheLCC(Graphe &ptr_graphe);
 
 	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
+};
+
+/* ************************************************************************** */
+
+struct CompileuseScriptLCC : public CompileuseLCC {
+	ContexteGenerationCode ctx_gen{};
+
+	bool compile_script(
+			OperatriceImage &op,
+			Corps &corps,
+			ContexteEvaluation const &contexte,
+			dls::chaine const &texte,
+			lcc::ctx_script ctx_script);
 };
