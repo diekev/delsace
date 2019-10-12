@@ -66,6 +66,7 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_hbe.cc
 	base_de_donnees.cc
 	chef_execution.cc
+	compileuse_lcc.cc
 	composite.cc
 	configuration.cc
 	contexte_evaluation.cc
@@ -97,6 +98,7 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_hbe.hh
 	base_de_donnees.hh
 	chef_execution.hh
+	compileuse_lcc.hh
 	composite.h
 	configuration.h
 	contexte_evaluation.hh

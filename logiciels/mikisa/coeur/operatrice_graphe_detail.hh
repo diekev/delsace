@@ -24,9 +24,8 @@
 
 #pragma once
 
+#include "compileuse_lcc.hh"
 #include "operatrice_corps.h"
-
-#include "lcc/contexte_generation_code.h"
 
 namespace lcc {
 struct donnees_fonction;
@@ -43,41 +42,11 @@ enum {
 	DETAIL_NUANCAGE,
 };
 
+extern lcc::param_sorties params_noeuds_entree[];
+extern lcc::param_entrees params_noeuds_sortie[];
+
 struct Mikisa;
 struct Nuanceur;
-
-/* ************************************************************************** */
-
-struct CompileuseGrapheLCC {
-	compileuse_lng m_compileuse{};
-	gestionnaire_propriete m_gest_attrs{};
-	lcc::ctx_exec m_ctx_global{};
-
-	Graphe &graphe;
-
-	CompileuseGrapheLCC(Graphe &ptr_graphe);
-
-	lcc::pile &donnees();
-
-	template <typename T>
-	void remplis_donnees(
-			lcc::pile &donnees_pile,
-			dls::chaine const &nom,
-			T const &valeur)
-	{
-		::remplis_donnees(donnees_pile, m_gest_attrs, nom, valeur);
-	}
-
-	void stocke_attributs(lcc::pile &donnees, long idx_attr);
-
-	void charge_attributs(lcc::pile &donnees, long idx_attr);
-
-	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
-
-	void execute_pile(lcc::ctx_local &ctx_local, lcc::pile &donnees_pile);
-
-	int pointeur_donnees(dls::chaine const &nom);
-};
 
 /* ************************************************************************** */
 
