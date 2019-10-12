@@ -99,9 +99,16 @@ struct gestionnaire_propriete {
 
 	~gestionnaire_propriete()
 	{
+		reinitialise();
+	}
+
+	void reinitialise()
+	{
 		for (auto &d : donnees) {
 			memoire::deloge("donnees_propriete", d);
 		}
+
+		donnees.efface();
 	}
 
 	donnees_propriete *donnees_pour_propriete(dls::vue_chaine const &nom)

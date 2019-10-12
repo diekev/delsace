@@ -349,8 +349,7 @@ void CompileuseGrapheLCC::charge_attributs(lcc::pile &donnees, long idx_attr)
 bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Corps *corps)
 {
 	m_compileuse = compileuse_lng();
-	m_gest_attrs = gestionnaire_propriete();
-
+	m_gest_attrs.reinitialise();
 	m_ctx_global.reinitialise();
 
 	if (graphe.besoin_ajournement) {
