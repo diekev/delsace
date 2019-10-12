@@ -1673,19 +1673,21 @@ void execute_pile(
 				auto idx_tabl = pile_donnees.charge_entier(compteur, insts);
 				auto &ptr_corps = contexte.ptr_corps;
 				auto &tableau = contexte_local.tableaux.tableau(idx_tabl);
+				auto paire_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tabl_smt = paire_tabl_idx.first;
 
-				ptr_corps.accede_ecriture([idx_prim, &tableau](Corps *corps)
+				ptr_corps.accede_ecriture([idx_prim, &tableau, &tabl_smt](Corps *corps)
 				{
 					auto prim = corps->prims()->prim(idx_prim);
 					auto poly = dynamic_cast<Polygone *>(prim);
 
 					for (auto const &v : tableau) {
-						corps->ajoute_sommet(poly, v);
+						auto idx = corps->ajoute_sommet(poly, v);
+						tabl_smt.pousse(static_cast<int>(idx));
 					}
 				});
 
-				// À FAIRE : retourne un tableau d'index des sommets ajoutés
-				pile_donnees.stocke(compteur, insts, 0);
+				pile_donnees.stocke(compteur, insts, static_cast<int>(paire_tabl_idx.second));
 
 				break;
 			}
