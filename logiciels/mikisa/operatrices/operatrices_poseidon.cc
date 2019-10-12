@@ -1550,15 +1550,15 @@ public:
 						}
 
 						if (oxygene != nullptr) {
-							m_compileuse.remplis_donnees(donnees, "oxygène", divergence->valeur(index));
+							m_compileuse.remplis_donnees(donnees, "oxygène", oxygene->valeur(index));
 						}
 
 						if (temperature != nullptr) {
-							m_compileuse.remplis_donnees(donnees, "température", divergence->valeur(index));
+							m_compileuse.remplis_donnees(donnees, "température", temperature->valeur(index));
 						}
 
 						if (fioul != nullptr) {
-							m_compileuse.remplis_donnees(donnees, "fioul", divergence->valeur(index));
+							m_compileuse.remplis_donnees(donnees, "fioul", fioul->valeur(index));
 						}
 
 						m_compileuse.execute_pile(ctx_local, donnees);
