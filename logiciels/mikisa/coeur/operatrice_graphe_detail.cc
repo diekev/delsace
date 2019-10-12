@@ -378,6 +378,11 @@ bool CompileuseGrapheLCC::compile_graphe(ContexteEvaluation const &contexte, Cor
 
 	for (auto i = 0; i < params_sortie.taille(); ++i) {
 		auto idx = m_compileuse.donnees().loge_donnees(lcc::taille_type(params_sortie.type(i)));
+
+		if (m_gest_attrs.propriete_existe(params_sortie.nom(i))) {
+			continue;
+		}
+
 		m_gest_attrs.ajoute_propriete(params_sortie.nom(i), params_sortie.type(i), idx);
 	}
 
