@@ -34,9 +34,10 @@
 
 /* ************************************************************************** */
 
-static auto stocke_attributs(
+void stocke_attributs(
 		gestionnaire_propriete const &gest_attrs,
 		lcc::pile &donnees,
+		lcc::ctx_local &ctx_local,
 		long idx_attr)
 {
 	for (auto const &donnee : gest_attrs.donnees) {
@@ -61,8 +62,14 @@ static auto stocke_attributs(
 				std::memcpy(ptr_pile, ptr_attr, static_cast<size_t>(taille));
 				break;
 			}
-			case type_attribut::INVALIDE:
 			case type_attribut::CHAINE:
+			{
+				auto decalage_chn = ctx_local.chaines.taille();
+				ctx_local.chaines.pousse(*attr->chaine(idx_attr));
+				donnees.stocke(idx_pile, static_cast<int>(decalage_chn));
+				break;
+			}
+			case type_attribut::INVALIDE:
 			{
 				break;
 			}
@@ -70,9 +77,11 @@ static auto stocke_attributs(
 	}
 }
 
-static auto charge_attributs(
+void charge_attributs(
 		gestionnaire_propriete const &gest_attrs,
 		lcc::pile &donnees,
+		lcc::ctx_exec const &ctx_exec,
+		lcc::ctx_local const &ctx_local,
 		long idx_attr)
 {
 	for (auto const &donnee : gest_attrs.donnees) {
@@ -94,8 +103,22 @@ static auto charge_attributs(
 				std::memcpy(ptr_attr, ptr_pile, static_cast<size_t>(taille));
 				break;
 			}
-			case type_attribut::INVALIDE:
 			case type_attribut::CHAINE:
+			{
+				auto ptr_chn = donnees.charge_entier(idx_pile);
+
+				auto decalage_chn = ctx_exec.chaines.taille();
+
+				if (ptr_chn >= decalage_chn) {
+					*attr->chaine(idx_attr) = ctx_local.chaines[ptr_chn - decalage_chn];
+				}
+				else {
+					*attr->chaine(idx_attr) = ctx_exec.chaines[ptr_chn];
+				}
+
+				break;
+			}
+			case type_attribut::INVALIDE:
 			{
 				break;
 			}
@@ -103,8 +126,7 @@ static auto charge_attributs(
 	}
 }
 
-/* À FAIRE : déduplique. */
-static auto converti_type_lcc(lcc::type_var type, int &dimensions)
+type_attribut converti_type_lcc(lcc::type_var type, int &dimensions)
 {
 	switch (type) {
 		case lcc::type_var::DEC:
@@ -157,7 +179,7 @@ static auto converti_type_lcc(lcc::type_var type, int &dimensions)
 	return type_attribut::INVALIDE;
 }
 
-static auto converti_type_attr(type_attribut type, int dimensions)
+lcc::type_var converti_type_attr(type_attribut type, int dimensions)
 {
 	switch (type) {
 		case type_attribut::R32:
@@ -249,14 +271,14 @@ lcc::pile &CompileuseLCC::donnees()
 	return m_compileuse.donnees();
 }
 
-void CompileuseLCC::stocke_attributs(lcc::pile &donnees, long idx_attr)
+void CompileuseLCC::stocke_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr)
 {
-	::stocke_attributs(m_gest_attrs, donnees, idx_attr);
+	::stocke_attributs(m_gest_attrs, donnees, ctx_local, idx_attr);
 }
 
-void CompileuseLCC::charge_attributs(lcc::pile &donnees, long idx_attr)
+void CompileuseLCC::charge_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr)
 {
-	::charge_attributs(m_gest_attrs, donnees, idx_attr);
+	::charge_attributs(m_gest_attrs, donnees, m_ctx_global, ctx_local, idx_attr);
 }
 
 void CompileuseLCC::execute_pile(lcc::ctx_local &ctx_local, lcc::pile &donnees_pile)

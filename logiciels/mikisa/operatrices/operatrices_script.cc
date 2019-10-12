@@ -38,6 +38,7 @@
 #include "lcc/modules.hh"
 
 #include "coeur/chef_execution.hh"
+#include "coeur/compileuse_lcc.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/operatrice_corps.h"
 #include "coeur/usine_operatrice.h"
@@ -49,112 +50,6 @@
 #pragma clang diagnostic ignored "-Wweak-vtables"
 
 /* ************************************************************************** */
-
-static auto converti_type_lcc(lcc::type_var type, int &dimensions)
-{
-	switch (type) {
-		case lcc::type_var::DEC:
-		{
-			dimensions = 1;
-			return type_attribut::R32;
-		}
-		case lcc::type_var::ENT32:
-		{
-			dimensions = 1;
-			return type_attribut::Z32;
-		}
-		case lcc::type_var::VEC2:
-		{
-			dimensions = 2;
-			return type_attribut::R32;
-		}
-		case lcc::type_var::VEC3:
-		{
-			dimensions = 3;
-			return type_attribut::R32;
-		}
-		case lcc::type_var::COULEUR:
-		case lcc::type_var::VEC4:
-		{
-			dimensions = 4;
-			return type_attribut::R32;
-		}
-		case lcc::type_var::MAT3:
-		{
-			dimensions = 9;
-			return type_attribut::R32;
-		}
-		case lcc::type_var::MAT4:
-		{
-			dimensions = 16;
-			return type_attribut::R32;
-		}
-		case lcc::type_var::CHAINE:
-		{
-			dimensions = 1;
-			return type_attribut::CHAINE;
-		}
-		case lcc::type_var::INVALIDE:
-		case lcc::type_var::TABLEAU:
-		case lcc::type_var::POLYMORPHIQUE:
-			return type_attribut::INVALIDE;
-	}
-
-	return type_attribut::INVALIDE;
-}
-
-static auto converti_type_attr(type_attribut type, int dimensions)
-{
-	switch (type) {
-		case type_attribut::R32:
-		{
-			if (dimensions == 1) {
-				return lcc::type_var::DEC;
-			}
-
-			if (dimensions == 2) {
-				return lcc::type_var::VEC2;
-			}
-
-			if (dimensions == 3) {
-				return lcc::type_var::VEC3;
-			}
-
-			if (dimensions == 4) {
-				return lcc::type_var::VEC4;
-			}
-
-			if (dimensions == 9) {
-				return lcc::type_var::MAT3;
-			}
-
-			if (dimensions == 16) {
-				return lcc::type_var::MAT4;
-			}
-
-			break;
-		}
-		case type_attribut::Z8:
-		case type_attribut::Z32:
-		{
-			if (dimensions == 1) {
-				return lcc::type_var::ENT32;
-			}
-
-			break;
-		}
-		case type_attribut::CHAINE:
-		{
-			return lcc::type_var::CHAINE;
-		}
-		default:
-		{
-			return lcc::type_var::INVALIDE;
-		}
-	}
-
-	return lcc::type_var::INVALIDE;
-}
 
 static auto converti_type_prop(danjo::TypePropriete type)
 {
@@ -347,98 +242,6 @@ static auto ajoute_proprietes_extra(
 			case danjo::TypePropriete::LISTE_MANIP:
 			{
 				/* À FAIRE */
-			}
-		}
-	}
-}
-
-static auto stocke_attributs(
-		gestionnaire_propriete const &gest_attrs,
-		lcc::pile &donnees,
-		lcc::ctx_local &ctx_local,
-		long idx_attr)
-{
-	for (auto const &donnee : gest_attrs.donnees) {
-		/* ne stocke pas les attributs créés pour ne pas effacer les
-		 * données d'assignation de constante à la position du
-		 * pointeur */
-		if (donnee->est_requis || donnee->est_propriete) {
-			continue;
-		}
-
-		auto idx_pile = donnee->ptr;
-		auto attr = std::any_cast<Attribut *>(donnee->ptr_donnees);
-
-		switch (attr->type()) {
-			default:
-			{
-				auto taille = taille_octet_type_attribut(attr->type()) * attr->dimensions;
-
-				auto ptr_attr = static_cast<char *>(attr->donnees()) + idx_attr * taille;
-				auto ptr_pile = reinterpret_cast<char *>(donnees.donnees() + idx_pile);
-
-				std::memcpy(ptr_pile, ptr_attr, static_cast<size_t>(taille));
-				break;
-			}
-			case type_attribut::CHAINE:
-			{
-				auto decalage_chn = ctx_local.chaines.taille();
-				ctx_local.chaines.pousse(*attr->chaine(idx_attr));
-				donnees.stocke(idx_pile, static_cast<int>(decalage_chn));
-				break;
-			}
-			case type_attribut::INVALIDE:
-			{
-				break;
-			}
-		}
-	}
-}
-
-static auto charge_attributs(
-		gestionnaire_propriete const &gest_attrs,
-		lcc::pile &donnees,
-		lcc::ctx_exec const &ctx_exec,
-		lcc::ctx_local const &ctx_local,
-		long idx_attr)
-{
-	for (auto const &donnee : gest_attrs.donnees) {
-		if (donnee->est_propriete || !donnee->est_modifiee) {
-			continue;
-		}
-
-		auto idx_pile = donnee->ptr;
-		auto attr = std::any_cast<Attribut *>(donnee->ptr_donnees);
-
-		switch (attr->type()) {
-			default:
-			{
-				auto taille = taille_octet_type_attribut(attr->type()) * attr->dimensions;
-
-				auto ptr_attr = static_cast<char *>(attr->donnees()) + idx_attr * taille;
-				auto ptr_pile = reinterpret_cast<char *>(donnees.donnees() + idx_pile);
-
-				std::memcpy(ptr_attr, ptr_pile, static_cast<size_t>(taille));
-				break;
-			}
-			case type_attribut::CHAINE:
-			{
-				auto ptr_chn = donnees.charge_entier(idx_pile);
-
-				auto decalage_chn = ctx_exec.chaines.taille();
-
-				if (ptr_chn >= decalage_chn) {
-					*attr->chaine(idx_attr) = ctx_local.chaines[ptr_chn - decalage_chn];
-				}
-				else {
-					*attr->chaine(idx_attr) = ctx_exec.chaines[ptr_chn];
-				}
-
-				break;
-			}
-			case type_attribut::INVALIDE:
-			{
-				break;
 			}
 		}
 	}

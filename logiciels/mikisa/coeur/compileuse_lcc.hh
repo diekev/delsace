@@ -32,6 +32,27 @@ struct Graphe;
 
 /* ************************************************************************** */
 
+enum class type_attribut : char;
+
+void stocke_attributs(
+		gestionnaire_propriete const &gest_attrs,
+		lcc::pile &donnees,
+		lcc::ctx_local &ctx_local,
+		long idx_attr);
+
+void charge_attributs(
+		gestionnaire_propriete const &gest_attrs,
+		lcc::pile &donnees,
+		lcc::ctx_exec const &ctx_exec,
+		lcc::ctx_local const &ctx_local,
+		long idx_attr);
+
+type_attribut converti_type_lcc(lcc::type_var type, int &dimensions);
+
+lcc::type_var converti_type_attr(type_attribut type, int dimensions);
+
+/* ************************************************************************** */
+
 struct CompileuseLCC {
 	compileuse_lng m_compileuse{};
 	gestionnaire_propriete m_gest_attrs{};
@@ -48,9 +69,9 @@ struct CompileuseLCC {
 		::remplis_donnees(donnees_pile, m_gest_attrs, nom, valeur);
 	}
 
-	void stocke_attributs(lcc::pile &donnees, long idx_attr);
+	void stocke_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr);
 
-	void charge_attributs(lcc::pile &donnees, long idx_attr);
+	void charge_attributs(lcc::ctx_local &ctx_local, lcc::pile &donnees, long idx_attr);
 
 	int pointeur_donnees(dls::chaine const &nom);
 

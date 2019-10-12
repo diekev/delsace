@@ -434,7 +434,7 @@ void OperatriceGrapheDetail::execute_script_sur_points(
 			m_compileuse.remplis_donnees(donnees, "P", pos);
 
 			/* stocke les attributs */
-			m_compileuse.stocke_attributs(donnees, i);
+			m_compileuse.stocke_attributs(ctx_local, donnees, i);
 
 			m_compileuse.execute_pile(ctx_local, donnees);
 
@@ -442,7 +442,7 @@ void OperatriceGrapheDetail::execute_script_sur_points(
 			pos = donnees.charge_vec3(idx_sortie);
 
 			/* charge les attributs */
-			m_compileuse.charge_attributs(donnees, i);
+			m_compileuse.charge_attributs(ctx_local, donnees, i);
 
 			if (points_sortie) {
 				points_sortie->point(i, pos);
