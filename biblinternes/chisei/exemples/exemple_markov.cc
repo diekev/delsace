@@ -33,6 +33,12 @@
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
 
+/**
+ * PROBLÈMES :
+ * - les guillemets ne sont pas ouverts ou fermés
+ * - il arrive que des phrases ne contiennent que « m ».
+ */
+
 using type_matrice = dls::tableau<dls::tableau<double>>;
 
 template <typename T>
