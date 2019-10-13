@@ -28,6 +28,7 @@
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -269,19 +270,8 @@ static auto en_minuscule(dls::chaine const &texte)
 	return res;
 }
 
-int main(int argc, char **argv)
+void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 {
-	if (argc != 2) {
-		std::cerr << "Utilisation : exemple_markov FICHIER\n";
-		return 1;
-	}
-
-	//auto texte = dls::chaine("Le roi est mort. La reine est morte.");
-	auto texte = dls::contenu_fichier(argv[1]);
-	texte = en_minuscule(texte);
-
-	auto morceaux = morcelle(texte);
-
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
 	/* construction de l'index */
@@ -364,6 +354,141 @@ int main(int argc, char **argv)
 
 		std::cerr << ' ';
 	}
+}
+
+void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
+{
+	/* construction de l'index */
+	auto mots = dls::ensemble<dls::vue_chaine>();
+	auto paire_mots = dls::ensemble<std::pair<dls::vue_chaine, dls::vue_chaine>>();
+
+	for (auto i = 0; i < morceaux.taille() - 1; ++i) {
+		mots.insere(morceaux[i]);
+		paire_mots.insere({ morceaux[i], morceaux[i + 1] });
+	}
+
+	mots.insere(morceaux.back());
+
+	std::cerr << "Il y a " << mots.taille() << " mots dans le texte.\n";
+	std::cerr << "Il y a " << paire_mots.taille() << " paires de mots dans le texte.\n";
+
+	paire_mots.insere({ MOT_VIDE, MOT_VIDE });
+	paire_mots.insere({ MOT_VIDE, morceaux[0] });
+	mots.insere(MOT_VIDE);
+
+	dls::dico_desordonne<dls::vue_chaine, long> index_avant;
+	dls::dico_desordonne<long, dls::vue_chaine> index_arriere;
+	long courante = 0;
+
+	for (auto mot : mots) {
+		index_avant.insere({mot, courante});
+		index_arriere.insere({courante, mot});
+		courante += 1;
+	}
+
+	dls::dico<std::pair<dls::vue_chaine, dls::vue_chaine>, long> index_avant_paires;
+	dls::dico<long, std::pair<dls::vue_chaine, dls::vue_chaine>> index_arriere_paires;
+	courante = 0;
+
+	for (auto paire : paire_mots) {
+		index_avant_paires.insere({paire, courante});
+		index_arriere_paires.insere({courante, paire});
+		courante += 1;
+	}
+
+	/* construction de la matrice */
+	dls::tableau<dls::tableau<double>> matrice;
+	matrice.redimensionne(paire_mots.taille());
+
+	for (auto &vec : matrice) {
+		vec = dls::tableau<double>(mots.taille());
+	}
+
+	for (auto i = 0; i < morceaux.taille() - 2; ++i) {
+		auto idx0 = index_avant_paires[{ morceaux[i], morceaux[i + 1] }];
+		auto idx1 = index_avant[morceaux[i + 2]];
+
+		matrice[idx0][idx1] += 1.0;
+	}
+
+	/* conditions de bordures : il y a un mot vide avant et après le texte */
+	auto idx0 = index_avant_paires[{ MOT_VIDE, MOT_VIDE }];
+	auto idx1 = index_avant[morceaux[0]];
+
+	matrice[idx0][idx1] += 1.0;
+
+	idx0 = index_avant_paires[{ MOT_VIDE, morceaux[0] }];
+	idx1 = index_avant[morceaux[1]];
+
+	matrice[idx0][idx1] += 1.0;
+
+//	idx0 = index_avant[morceaux[morceaux.taille() - 1]];
+//	idx1 = index_avant[MOT_VIDE];
+
+//	matrice[idx0][idx1] += 1.0;
+
+	converti_fonction_repartition(matrice);
+
+	//imprime_matrice("Matrice = \n", matrice, index_arriere);
+
+	std::cerr << "Génère texte :\n";
+	auto gna = GNA();
+
+	auto mot_courant = MOT_VIDE;
+	auto mot1 = MOT_VIDE;
+	auto mot2 = MOT_VIDE;
+
+	auto nombre_phrases = 5;
+
+	while (nombre_phrases > 0) {
+		auto paire_courante = std::pair{ mot1, mot2 };
+		/* prend le vecteur du mot_courant */
+		auto const &vec = matrice[index_avant_paires[paire_courante]];
+
+		/* génère un mot */
+		auto prob = gna.uniforme(0.0, 1.0);
+
+		for (auto j = 0; j < mots.taille(); ++j) {
+			if (prob <= vec[j]) {
+				mot_courant = index_arriere[j];
+				break;
+			}
+		}
+
+		std::cerr << mot_courant;
+
+		if (mot_courant == dls::vue_chaine(".")) {
+			std::cerr << '\n';
+			nombre_phrases--;
+			//break;
+//			mot1 = MOT_VIDE;
+//			mot2 = MOT_VIDE;
+		}
+		else {
+			std::cerr << ' ';
+		}
+
+		mot1 = mot2;
+		mot2 = mot_courant;
+	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc != 2) {
+		std::cerr << "Utilisation : exemple_markov FICHIER\n";
+		return 1;
+	}
+
+	//auto texte = dls::chaine("Le roi est mort. La reine est morte.");
+	auto texte = dls::contenu_fichier(argv[1]);
+	texte = en_minuscule(texte);
+
+	auto morceaux = morcelle(texte);
+
+	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
+
+	test_markov_mots_paire(morceaux);
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
 
