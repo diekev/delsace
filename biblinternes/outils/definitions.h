@@ -33,12 +33,10 @@
 #	define VARIABLE_ANONYME(str) CONCATENE(str, __LINE__)
 #endif
 
-#define TOUJOURS_INLINE [[ gnu::always_inline ]]
-#define JAMAIS_INLINE  [[ gnu::noinline ]]
+#define ENLIGNE_TOUJOURS [[ gnu::always_inline ]]
+#define ENLIGNE_JAMAIS   [[ gnu::noinline ]]
 
-#ifndef INUTILISE
-#	define INUTILISE(x) static_cast<void>(x)
-#endif
+#define INUTILISE(x) static_cast<void>(x)
 
 #define CHAINE_IMPL(x) #x
 #define CHAINE(x) CHAINE_IMPL(x)
