@@ -40,6 +40,7 @@ class Type;
 }
 #endif
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/plage.hh"
@@ -425,15 +426,7 @@ enum class niveau_compat : char {
 	prend_reference        = (1 << 6),
 };
 
-inline niveau_compat operator&(niveau_compat id1, niveau_compat id2)
-{
-	return static_cast<niveau_compat>(static_cast<int>(id1) & static_cast<int>(id2));
-}
-
-inline niveau_compat operator|(niveau_compat id1, niveau_compat id2)
-{
-	return static_cast<niveau_compat>(static_cast<int>(id1) | static_cast<int>(id2));
-}
+DEFINIE_OPERATEURS_DRAPEAU(niveau_compat, int)
 
 /**
  * Retourne le niveau de compatibilité entre les deux types spécifiés.

@@ -26,6 +26,7 @@
 
 #include "biblinternes/bruit/parametres.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -60,32 +61,7 @@ enum class ctx_script : unsigned short {
 	tous = (pixel | voxel | fichier | nuanceur | primitive | detail | topologie),
 };
 
-inline auto operator~(ctx_script ctx)
-{
-	return static_cast<ctx_script>(~static_cast<unsigned short>(ctx));
-}
-
-inline auto operator&(ctx_script ctx0, ctx_script ctx1)
-{
-	return static_cast<ctx_script>(
-				static_cast<unsigned short>(ctx0) & static_cast<unsigned short>(ctx1));
-}
-
-inline auto operator&=(ctx_script &ctx0, ctx_script ctx1)
-{
-	return ctx0 = ctx0 & ctx1;
-}
-
-inline auto operator|(ctx_script ctx0, ctx_script ctx1)
-{
-	return static_cast<ctx_script>(
-				static_cast<unsigned short>(ctx0) | static_cast<unsigned short>(ctx1));
-}
-
-inline auto operator|=(ctx_script &ctx0, ctx_script ctx1)
-{
-	return ctx0 = ctx0 | ctx1;
-}
+DEFINIE_OPERATEURS_DRAPEAU(ctx_script, unsigned short)
 
 /* ************************************************************************** */
 

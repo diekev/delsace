@@ -51,45 +51,7 @@ enum class mi_drapeau : int {
 	VALIDE     = (1 << 4),
 };
 
-inline auto operator&(mi_drapeau lhs, mi_drapeau rhs)
-{
-	return static_cast<mi_drapeau>(static_cast<int>(lhs) & static_cast<int>(rhs));
-}
-
-inline auto operator&(mi_drapeau lhs, int rhs)
-{
-	return static_cast<mi_drapeau>(static_cast<int>(lhs) & rhs);
-}
-
-inline auto operator|(mi_drapeau lhs, mi_drapeau rhs)
-{
-	return static_cast<mi_drapeau>(static_cast<int>(lhs) | static_cast<int>(rhs));
-}
-
-inline auto operator^(mi_drapeau lhs, mi_drapeau rhs)
-{
-	return static_cast<mi_drapeau>(static_cast<int>(lhs) ^ static_cast<int>(rhs));
-}
-
-inline auto operator~(mi_drapeau lhs)
-{
-	return static_cast<mi_drapeau>(~static_cast<int>(lhs));
-}
-
-inline auto &operator&=(mi_drapeau &lhs, mi_drapeau rhs)
-{
-	return (lhs = lhs & rhs);
-}
-
-inline auto &operator|=(mi_drapeau &lhs, mi_drapeau rhs)
-{
-	return (lhs = lhs | rhs);
-}
-
-inline auto &operator^=(mi_drapeau &lhs, mi_drapeau rhs)
-{
-	return (lhs = lhs ^ rhs);
-}
+DEFINIE_OPERATEURS_DRAPEAU(mi_drapeau, int)
 
 /* ************************************************************************** */
 

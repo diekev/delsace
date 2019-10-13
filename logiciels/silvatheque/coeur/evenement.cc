@@ -23,18 +23,3 @@
  */
 
 #include "evenement.h"
-
-type_evenement &operator&=(type_evenement &cote_gauche, type_evenement cote_droit)
-{
-	return (cote_gauche = cote_gauche & cote_droit);
-}
-
-type_evenement &operator|=(type_evenement &cote_gauche, type_evenement cote_droit)
-{
-	return (cote_gauche = cote_gauche | cote_droit);
-}
-
-type_evenement &operator^=(type_evenement &cote_gauche, type_evenement cote_droit)
-{
-	return (cote_gauche = cote_gauche ^ cote_droit);
-}

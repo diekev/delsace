@@ -26,6 +26,8 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/definitions.h"
+
 enum type_evenement : int {
 	/* Categorie, 256 entrées. */
 	image            = (1 << 0),
@@ -46,34 +48,7 @@ enum type_evenement : int {
 	manipule    = (6 << 8),
 };
 
-constexpr type_evenement operator&(type_evenement lhs, type_evenement rhs)
-{
-	return static_cast<type_evenement>(static_cast<int>(lhs) & static_cast<int>(rhs));
-}
-
-constexpr type_evenement operator&(type_evenement lhs, int rhs)
-{
-	return static_cast<type_evenement>(static_cast<int>(lhs) & rhs);
-}
-
-constexpr type_evenement operator|(type_evenement lhs, type_evenement rhs)
-{
-	return static_cast<type_evenement>(static_cast<int>(lhs) | static_cast<int>(rhs));
-}
-
-constexpr type_evenement operator^(type_evenement lhs, type_evenement rhs)
-{
-	return static_cast<type_evenement>(static_cast<int>(lhs) ^ static_cast<int>(rhs));
-}
-
-constexpr type_evenement operator~(type_evenement lhs)
-{
-	return static_cast<type_evenement>(~static_cast<int>(lhs));
-}
-
-type_evenement &operator|=(type_evenement &lhs, type_evenement rhs);
-type_evenement &operator&=(type_evenement &lhs, type_evenement rhs);
-type_evenement &operator^=(type_evenement &lhs, type_evenement rhs);
+DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
 
 constexpr auto action_evenement(type_evenement evenement) -> type_evenement
 {

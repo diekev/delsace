@@ -25,6 +25,8 @@
 #pragma once
 
 #include <any>
+
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
@@ -173,30 +175,7 @@ enum drapeaux_noeud : unsigned short {
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };
 
-inline auto operator&(drapeaux_noeud gauche, drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(static_cast<unsigned short>(gauche) & static_cast<unsigned short>(droite));
-}
-
-inline auto operator|(drapeaux_noeud gauche, drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(static_cast<unsigned short>(gauche) | static_cast<unsigned short>(droite));
-}
-
-inline auto operator~(drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(~static_cast<unsigned short>(droite));
-}
-
-inline auto operator&=(drapeaux_noeud &gauche, drapeaux_noeud droite)
-{
-	return (gauche = gauche & droite);
-}
-
-inline auto operator|=(drapeaux_noeud &gauche, drapeaux_noeud droite)
-{
-	return (gauche = gauche | droite);
-}
+DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
 
 enum {
 	/* instruction 'pour' */
