@@ -219,7 +219,7 @@ static auto morcelle(dls::chaine const &texte)
 			continue;
 		}
 
-		if (dls::outils::est_element(texte[i], '.', '\'', ',')) {
+		if (dls::outils::est_element(texte[i], '.', '\'', ',', '-')) {
 			if (taille_mot != 0) {
 				morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
 			}
