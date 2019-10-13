@@ -22,6 +22,7 @@
  *
  */
 
+#include "biblinternes/chrono/chronometre_de_portee.hh"
 #include "biblinternes/langage/unicode.hh"
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/conditions.h"
@@ -68,6 +69,8 @@ void imprime_matrice(
 // converti les lignes de la matrice en fonction de distribution cumulative
 static void converti_fonction_repartition(type_matrice &matrice)
 {
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+
 	for (auto &vec : matrice) {
 		auto total = 0.0;
 
@@ -195,6 +198,8 @@ static auto MOT_VIDE = dls::vue_chaine("");
 
 static auto morcelle(dls::chaine const &texte)
 {
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+
 	dls::tableau<dls::vue_chaine> morceaux;
 
 	if (texte.est_vide()) {
@@ -254,6 +259,8 @@ static auto morcelle(dls::chaine const &texte)
 
 static auto en_minuscule(dls::chaine const &texte)
 {
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+
 	auto res = dls::chaine();
 	res.reserve(texte.taille());
 
@@ -278,6 +285,8 @@ static auto en_minuscule(dls::chaine const &texte)
 
 void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 {
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
 	/* construction de l'index */
@@ -443,6 +452,8 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	auto mot_courant = MOT_VIDE;
 	auto mot1 = MOT_VIDE;
 	auto mot2 = MOT_VIDE;
+
+	CHRONOMETRE_PORTEE("génération du texte", std::cerr);
 
 	auto nombre_phrases = 5;
 
