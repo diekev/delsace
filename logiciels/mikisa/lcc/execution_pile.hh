@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/outils/transbit.hh"
 #include "biblinternes/phys/couleur.hh"
 
 #include "contexte_execution.hh"
@@ -54,9 +55,7 @@ public:
 	template <typename T>
 	void pousse(T const &v)
 	{
-		union { T t; float f; } u;
-		u.t = v;
-		m_donnees.pousse(u.f);
+		m_donnees.pousse(transbit<float>(v));
 	}
 
 	void pousse(code_inst inst)
@@ -78,9 +77,7 @@ public:
 
 	inline int charge_entier(int &idx) const
 	{
-		union { int i; float f; } u;
-		u.f = m_donnees[idx++];
-		return u.i;
+		return transbit<int>(m_donnees[idx++]);
 	}
 
 	inline code_inst charge_inst(int &idx) const
@@ -215,9 +212,7 @@ public:
 
 	inline void stocke(int &idx, int const &v)
 	{
-		union { int i; float f; } u;
-		u.i = v;
-		m_donnees[idx++] = u.f;
+		m_donnees[idx++] = transbit<float>(v);
 	}
 
 	inline void stocke(int &idx, float const &v)

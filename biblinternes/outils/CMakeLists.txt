@@ -46,6 +46,7 @@ set(ENTETES
 	masque_binaire.h
 	parametres.hh
 	temps.hh
+	transbit.hh
 )
 
 set(SOURCES
