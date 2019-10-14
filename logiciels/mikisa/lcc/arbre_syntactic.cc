@@ -383,7 +383,7 @@ int genere_code(
 
 					compileuse.ajoute_instructions(code_inst::CONSTRUIT_TABLEAU);
 					compileuse.ajoute_instructions(type_feuille);
-					compileuse.ajoute_instructions(feuilles.taille());
+					compileuse.ajoute_instructions(static_cast<int>(feuilles.taille()));
 
 					for (auto feuille : feuilles) {
 						compileuse.ajoute_instructions(feuille->pointeur_donnees);
@@ -1056,7 +1056,7 @@ int genere_code(
 
 			/* branche vers l'entrée de la boucle */
 			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
-			compileuse.ajoute_instructions(ptr_debut_boucle);
+			compileuse.ajoute_instructions(static_cast<int>(ptr_debut_boucle));
 
 			auto ptr_fin_boucle = static_cast<int>(instructions.taille());
 
