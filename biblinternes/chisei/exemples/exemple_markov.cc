@@ -42,6 +42,8 @@
 
 using type_matrice = dls::tableau<dls::tableau<double>>;
 
+static auto MOT_VIDE = dls::vue_chaine("");
+
 template <typename T>
 void imprime_matrice(
 		dls::chaine const &texte,
@@ -96,40 +98,44 @@ static void converti_fonction_repartition(type_matrice &matrice)
 	}
 }
 
-void test_markov_lettres()
+static auto filtres_mots(dls::tableau<dls::vue_chaine> const &morceaux)
 {
-	// que faire pour les accents ?
-	dls::chaine mots[] = {
-		dls::chaine("apopathodiaphulatophobe"),
-		dls::chaine("anticonstitutionnellement"),
-		dls::chaine("rencontre"),
-		dls::chaine("plantes"),
-		dls::chaine("interdites"),
-		dls::chaine("presidence"),
-		dls::chaine("cannabis"),
-		dls::chaine("roi"),
-		dls::chaine("coissant"),
-		dls::chaine("pain"),
-		dls::chaine("au"),
-		dls::chaine("chocolat"),
-		dls::chaine("raisin"),
-		dls::chaine("chocolatine"),
-		dls::chaine("tresse"),
-		dls::chaine("tante"),
-		dls::chaine("dithyrambique"),
-	};
+	dls::ensemble<dls::vue_chaine> mots_filtres;
+
+	for (auto const &mot : morceaux) {
+		if (dls::outils::est_element(mot, ".", ",", "-", "?", "!", ";", ":", "'", "(", ")", "«", "»", "’", "{", "}", "…", "[", "]", "/", "–")) {
+			continue;
+		}
+
+		mots_filtres.insere(mot);
+	}
+
+	return mots_filtres;
+}
+
+void test_markov_lettres(dls::tableau<dls::vue_chaine> const &morceaux)
+{
+	auto mots = filtres_mots(morceaux);
+
+	std::cerr << "Il y a " << mots.taille() << " mots dans le texte.\n";
 
 	// construction de l'index
-	dls::ensemble<char> lettres;
+	dls::ensemble<dls::vue_chaine> lettres;
 
 	for (auto const &mot : mots) {
-		for (auto l : mot) {
-			lettres.insere(l);
+		for (auto i = 0; i < mot.taille();) {
+			auto n = lng::nombre_octets(&mot[i]);
+
+			lettres.insere(dls::vue_chaine(&mot[i], n));
+
+			i += n;
 		}
 	}
 
-	dls::dico_desordonne<char, long> index_avant;
-	dls::dico_desordonne<long, char> index_arriere;
+	lettres.insere(MOT_VIDE);
+
+	dls::dico_desordonne<dls::vue_chaine, long> index_avant;
+	dls::dico_desordonne<long, dls::vue_chaine> index_arriere;
 	long courante = 0;
 
 	for (auto l : lettres) {
@@ -147,12 +153,25 @@ void test_markov_lettres()
 	}
 
 	for (auto const &mot : mots) {
-		for (auto i = 0; i < mot.taille() - 1; ++i) {
-			auto idx0 = index_avant[mot[i]];
-			auto idx1 = index_avant[mot[i + 1]];
+		auto n0 = 0;
+		auto idx0 = index_avant[MOT_VIDE];
+		auto n1 = lng::nombre_octets(&mot[0]);
+		auto idx1 = index_avant[dls::vue_chaine(&mot[0], n1)];
+
+		matrice[idx0][idx1] += 1.0;
+
+		for (auto i = n1; i < mot.taille() - 1;) {
+			n0 = lng::nombre_octets(&mot[i]);
+			idx0 = index_avant[dls::vue_chaine(&mot[i], n0)];
+			n1 = lng::nombre_octets(&mot[i + n0]);
+			idx1 = index_avant[dls::vue_chaine(&mot[i + n0], n1)];
 
 			matrice[idx0][idx1] += 1.0;
+			i += n0 + n1;
 		}
+
+		idx0 = index_avant[MOT_VIDE];
+		matrice[idx1][idx0] += 1.0;
 	}
 
 //	imprime_matrice("Matrice = \n", matrice, index_arriere);
@@ -164,16 +183,10 @@ void test_markov_lettres()
 	std::cerr << "Génère mots :\n";
 	auto gna = GNA();
 
-	for (auto r = 0; r < 5; ++r) {
-		auto lettre_depart = index_arriere[gna.uniforme(0l, lettres.taille() - 1)];
-		auto lettre_courante = lettre_depart;
+	for (auto r = 0; r < 10; ++r) {
+		auto lettre_courante = MOT_VIDE;
 
-		auto res = dls::chaine();
-		res += lettre_depart;
-
-		auto nombre_lettres = 11; //gna.uniforme(0l, 19l);
-
-		for (auto i = 0; i < nombre_lettres; ++i) {
+		while (true) {
 			// prend le vecteur de la lettre_courante
 			auto const &vec = matrice[index_avant[lettre_courante]];
 
@@ -187,14 +200,138 @@ void test_markov_lettres()
 				}
 			}
 
-			res += lettre_courante;
+			if (lettre_courante == MOT_VIDE) {
+				break;
+			}
+
+			std::cerr << lettre_courante;
 		}
 
-		std::cerr << res << '\n';
+		std::cerr << '\n';
 	}
 }
 
-static auto MOT_VIDE = dls::vue_chaine("");
+static auto epelle_mot(dls::vue_chaine const &mot)
+{
+	dls::tableau<dls::vue_chaine> lettres_mot;
+	lettres_mot.pousse(MOT_VIDE);
+	lettres_mot.pousse(MOT_VIDE);
+
+	for (auto i = 0; i < mot.taille();) {
+		auto n = lng::nombre_octets(&mot[i]);
+		lettres_mot.pousse(dls::vue_chaine(&mot[i], n));
+
+		i += n;
+	}
+
+	lettres_mot.pousse(MOT_VIDE);
+
+	return lettres_mot;
+}
+
+void test_markov_lettres_double(dls::tableau<dls::vue_chaine> const &morceaux)
+{
+	auto mots = filtres_mots(morceaux);
+
+	std::cerr << "Il y a " << mots.taille() << " mots dans le texte.\n";
+
+	// construction de l'index
+	using type_paire_lettres = std::pair<dls::vue_chaine, dls::vue_chaine>;
+	dls::ensemble<dls::vue_chaine> lettres;
+	dls::ensemble<type_paire_lettres> paires_lettres;
+
+	for (auto const &mot : mots) {
+		auto lettres_mot = epelle_mot(mot);
+
+		for (auto i = 0; i < lettres_mot.taille() - 1; ++i) {
+			lettres.insere(lettres_mot[i]);
+			paires_lettres.insere({ lettres_mot[i], lettres_mot[i + 1] });
+		}
+	}
+
+	dls::dico_desordonne<dls::vue_chaine, long> index_avant;
+	dls::dico_desordonne<long, dls::vue_chaine> index_arriere;
+	long courante = 0;
+
+	for (auto l : lettres) {
+		index_avant.insere({l, courante});
+		index_arriere.insere({courante, l});
+		courante += 1;
+	}
+
+	dls::dico<type_paire_lettres, long> index_avant_paires;
+	dls::dico<long, type_paire_lettres> index_arriere_paires;
+	courante = 0;
+
+	for (auto l : paires_lettres) {
+		index_avant_paires.insere({l, courante});
+		index_arriere_paires.insere({courante, l});
+		courante += 1;
+	}
+
+	// construction de la matrice
+	dls::tableau<dls::tableau<double>> matrice;
+	matrice.redimensionne(paires_lettres.taille());
+
+	for (auto &vec : matrice) {
+		vec = dls::tableau<double>(lettres.taille());
+	}
+
+	for (auto const &mot : mots) {
+		auto lettres_mot = epelle_mot(mot);
+
+		for (auto i = 0; i < lettres_mot.taille() - 2; ++i) {
+			auto paire = type_paire_lettres(lettres_mot[i], lettres_mot[i + 1]);
+			auto lettre = lettres_mot[i + 2];
+
+			auto idx0 = index_avant_paires[paire];
+			auto idx1 = index_avant[lettre];
+
+			matrice[idx0][idx1] += 1.0;
+		}
+	}
+
+//	imprime_matrice("Matrice = \n", matrice, index_arriere);
+
+	converti_fonction_repartition(matrice);
+
+//	imprime_matrice("Distribution cumulée = \n", matrice, index_arriere);
+
+	std::cerr << "Génère mots :\n";
+	auto gna = GNA(static_cast<int>(mots.taille()));
+
+	for (auto r = 0; r < 20; ++r) {
+		auto l0 = MOT_VIDE;
+		auto l1 = MOT_VIDE;
+
+		while (true) {
+			// prend le vecteur de la lettre_courante
+			auto const &vec = matrice[index_avant_paires[{l0, l1}]];
+			auto lettre_courante = dls::vue_chaine();
+
+			// génère une lettre
+			auto prob = gna.uniforme(0.0, 1.0);
+
+			for (auto j = 0; j < lettres.taille(); ++j) {
+				if (prob <= vec[j]) {
+					lettre_courante = index_arriere[j];
+					break;
+				}
+			}
+
+			if (lettre_courante == MOT_VIDE) {
+				break;
+			}
+
+			std::cerr << lettre_courante;
+
+			l0 = l1;
+			l1 = lettre_courante;
+		}
+
+		std::cerr << '\n';
+	}
+}
 
 static auto morcelle(dls::chaine const &texte)
 {
@@ -209,45 +346,76 @@ static auto morcelle(dls::chaine const &texte)
 	auto ptr = &texte[0];
 	auto taille_mot = 0;
 
-	for (auto i = 0; i < texte.taille(); ++i) {
-		if (texte[i] == ' ') {
-			if (taille_mot != 0) {
-				morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+	for (auto i = 0; i < texte.taille();) {
+		auto n = lng::nombre_octets(&texte[i]);
+
+		if (n > 1) {
+			auto lettre = dls::vue_chaine(&texte[i], n);
+			if (dls::outils::est_element(lettre, "«", "»", "’", "…", "–")) {
+				if (taille_mot != 0) {
+					morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+				}
+
+				morceaux.pousse(lettre);
+
+				taille_mot = 0;
+				ptr = &texte[i + n];
 			}
-
-			taille_mot = 0;
-			ptr = &texte[i];
-			continue;
-		}
-
-		if (texte[i] == '\n') {
-			if (taille_mot != 0) {
-				morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+			else {
+				taille_mot += n;
 			}
-
-			taille_mot = 0;
-			ptr = &texte[i];
-			continue;
 		}
+		else {
+			switch (texte[i]) {
+				case ' ':
+				case '\n':
+				{
+					if (taille_mot != 0) {
+						morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+					}
 
-		if (dls::outils::est_element(texte[i], '.', '\'', ',', '-')) {
-			if (taille_mot != 0) {
-				morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+					taille_mot = 0;
+					ptr = &texte[i];
+					break;
+				}
+				case '.':
+				case '\'':
+				case ',':
+				case '-':
+				case '(':
+				case ')':
+				case '{':
+				case '}':
+				case '?':
+				case '!':
+				case ':':
+				case '[':
+				case ']':
+				case '/':
+				{
+					if (taille_mot != 0) {
+						morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+					}
+
+					taille_mot = 0;
+					ptr = &texte[i];
+
+					morceaux.pousse(dls::vue_chaine(ptr, 1));
+					break;
+				}
+				default:
+				{
+					if (taille_mot == 0) {
+						ptr = &texte[i];
+					}
+
+					++taille_mot;
+					break;
+				}
 			}
-
-			taille_mot = 0;
-			ptr = &texte[i];
-
-			morceaux.pousse(dls::vue_chaine(ptr, 1));
-
-			continue;
 		}
 
-		if (taille_mot == 0) {
-			ptr = &texte[i];
-		}
-
-		++taille_mot;
+		i += n;
 	}
 
 	if (taille_mot != 0) {
@@ -505,7 +673,7 @@ int main(int argc, char **argv)
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
-	test_markov_mots_paire(morceaux);
+	test_markov_lettres_double(morceaux);
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
 
