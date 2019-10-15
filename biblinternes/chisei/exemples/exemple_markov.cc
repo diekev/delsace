@@ -686,6 +686,11 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	while (nombre_phrases > 0) {
 		auto paire_courante = std::pair{ mot1, mot2 };
 		/* prend le vecteur du mot_courant */
+		if (index_avant_paires.trouve(paire_courante) == index_avant_paires.fin()) {
+			std::cerr << "Ne peut pas trouver l'index de la paire <" << mot1 << "," << mot2 << "> !\n";
+			break;
+		}
+
 		auto const &vec = matrice[index_avant_paires[paire_courante]];
 
 		/* génère un mot */
@@ -740,6 +745,14 @@ int main(int argc, char **argv)
 	texte = en_minuscule(texte);
 
 	auto morceaux = morcelle(texte);
+
+//	std::cerr << "Les cents premier morceaux : \n";
+
+//	for (auto i = 0; i < 100; ++i) {
+//		std::cerr << morceaux[i] << ' ';
+//	}
+
+//	std::cerr << '\n';
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
