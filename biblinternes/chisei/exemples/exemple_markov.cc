@@ -355,14 +355,16 @@ static auto morcelle(dls::chaine const &texte)
 			if (dls::outils::est_element(lettre, "«", "»", "’", "…", "–")) {
 				if (taille_mot != 0) {
 					morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+					taille_mot = 0;
 				}
 
 				morceaux.pousse(lettre);
-
-				taille_mot = 0;
-				ptr = &texte[i + n];
 			}
 			else {
+				if (taille_mot == 0) {
+					ptr = &texte[i];
+				}
+
 				taille_mot += n;
 			}
 		}
@@ -373,10 +375,9 @@ static auto morcelle(dls::chaine const &texte)
 				{
 					if (taille_mot != 0) {
 						morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+						taille_mot = 0;
 					}
 
-					taille_mot = 0;
-					ptr = &texte[i];
 					break;
 				}
 				case '.':
@@ -396,12 +397,10 @@ static auto morcelle(dls::chaine const &texte)
 				{
 					if (taille_mot != 0) {
 						morceaux.pousse(dls::vue_chaine(ptr, taille_mot));
+						taille_mot = 0;
 					}
 
-					taille_mot = 0;
-					ptr = &texte[i];
-
-					morceaux.pousse(dls::vue_chaine(ptr, 1));
+					morceaux.pousse(dls::vue_chaine(&texte[i], 1));
 					break;
 				}
 				default:
