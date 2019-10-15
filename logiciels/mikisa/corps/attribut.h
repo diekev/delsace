@@ -207,6 +207,7 @@ public:
 	ACCEDE_VALEUR_TYPE(n16, unsigned short)
 	ACCEDE_VALEUR_TYPE(n32, unsigned int)
 	ACCEDE_VALEUR_TYPE(n64, unsigned long)
+	ACCEDE_VALEUR_TYPE(r16_, r16)
 	ACCEDE_VALEUR_TYPE(r32, float)
 	ACCEDE_VALEUR_TYPE(r64, double)
 	ACCEDE_VALEUR_TYPE(chaine, dls::chaine)
