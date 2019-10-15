@@ -31,6 +31,7 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -425,6 +426,17 @@ static auto morcelle(dls::chaine const &texte)
 	return morceaux;
 }
 
+static auto dico_minuscule = dls::cree_dico(
+			dls::paire(dls::vue_chaine("É"), dls::vue_chaine("é")),
+			dls::paire(dls::vue_chaine("È"), dls::vue_chaine("è")),
+			dls::paire(dls::vue_chaine("Ê"), dls::vue_chaine("ê")),
+			dls::paire(dls::vue_chaine("À"), dls::vue_chaine("à")),
+			dls::paire(dls::vue_chaine("Ô"), dls::vue_chaine("ô")),
+			dls::paire(dls::vue_chaine("Û"), dls::vue_chaine("î")),
+			dls::paire(dls::vue_chaine("Ç"), dls::vue_chaine("ç"))
+			);
+
+
 static auto en_minuscule(dls::chaine const &texte)
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
@@ -436,8 +448,16 @@ static auto en_minuscule(dls::chaine const &texte)
 		auto n = lng::nombre_octets(&texte[i]);
 
 		if (n > 1) {
-			for (auto j = 0; j < n; ++j) {
-				res += texte[i + j];
+			auto lettre = dls::vue_chaine(&texte[i], n);
+
+			auto plg_lettre = dico_minuscule.trouve(lettre);
+
+			if (!plg_lettre.est_finie()) {
+				lettre = plg_lettre.front().second;
+			}
+
+			for (auto j = 0; j < lettre.taille(); ++j) {
+				res += lettre[j];
 			}
 
 			i += n;
