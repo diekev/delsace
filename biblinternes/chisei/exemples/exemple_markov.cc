@@ -432,8 +432,18 @@ static auto dico_minuscule = dls::cree_dico(
 			dls::paire(dls::vue_chaine("Ê"), dls::vue_chaine("ê")),
 			dls::paire(dls::vue_chaine("À"), dls::vue_chaine("à")),
 			dls::paire(dls::vue_chaine("Ô"), dls::vue_chaine("ô")),
-			dls::paire(dls::vue_chaine("Û"), dls::vue_chaine("î")),
+			dls::paire(dls::vue_chaine("Î"), dls::vue_chaine("î")),
 			dls::paire(dls::vue_chaine("Ç"), dls::vue_chaine("ç"))
+			);
+
+static auto dico_majuscule = dls::cree_dico(
+			dls::paire(dls::vue_chaine("é"), dls::vue_chaine("É")),
+			dls::paire(dls::vue_chaine("è"), dls::vue_chaine("È")),
+			dls::paire(dls::vue_chaine("ê"), dls::vue_chaine("Ê")),
+			dls::paire(dls::vue_chaine("à"), dls::vue_chaine("À")),
+			dls::paire(dls::vue_chaine("ô"), dls::vue_chaine("Ô")),
+			dls::paire(dls::vue_chaine("î"), dls::vue_chaine("Î")),
+			dls::paire(dls::vue_chaine("ç"), dls::vue_chaine("Ç"))
 			);
 
 
@@ -469,6 +479,33 @@ static auto en_minuscule(dls::chaine const &texte)
 	}
 
 	return res;
+}
+
+static auto capitalise(dls::vue_chaine const &chaine)
+{
+	dls::chaine resultat;
+
+	auto n = lng::nombre_octets(&chaine[0]);
+
+	if (n > 1) {
+		auto lettre = dls::vue_chaine(&chaine[0], n);
+		auto plg_lettre = dico_majuscule.trouve(lettre);
+
+		if (!plg_lettre.est_finie()) {
+			lettre = plg_lettre.front().second;
+		}
+
+		resultat += lettre;
+	}
+	else {
+		resultat += static_cast<char>(toupper(chaine[0]));
+	}
+
+	for (auto i = n; i < chaine.taille(); ++i) {
+		resultat += chaine[i];
+	}
+
+	return resultat;
 }
 
 void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
@@ -644,6 +681,8 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	CHRONOMETRE_PORTEE("génération du texte", std::cerr);
 
 	auto nombre_phrases = 5;
+	auto premier_mot = true;
+	auto dernier_mot = dls::vue_chaine();
 
 	while (nombre_phrases > 0) {
 		auto paire_courante = std::pair{ mot1, mot2 };
@@ -660,19 +699,31 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 			}
 		}
 
-		std::cerr << mot_courant;
+		if (premier_mot) {
+			std::cerr << capitalise(mot_courant);
+		}
+		else {
+			auto espace_avant = !dls::outils::est_element(mot_courant, ",", ".", "’", "'");
+			auto espace_apres = !dls::outils::est_element(dernier_mot, "’", "'");
+
+			if (espace_avant && espace_apres) {
+				std::cerr << ' ';
+			}
+
+			std::cerr << mot_courant;
+		}
+
+		dernier_mot = mot_courant;
+		premier_mot = false;
 
 		if (mot_courant == dls::vue_chaine(".")) {
 			std::cerr << '\n';
+			premier_mot = true;
 			nombre_phrases--;
 			//break;
 //			mot1 = MOT_VIDE;
 //			mot2 = MOT_VIDE;
 		}
-		else {
-			std::cerr << ' ';
-		}
-
 		mot1 = mot2;
 		mot2 = mot_courant;
 	}
@@ -693,7 +744,7 @@ int main(int argc, char **argv)
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
-	test_markov_lettres_double(morceaux);
+	test_markov_mots_paire(morceaux);
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
 
