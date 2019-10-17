@@ -879,7 +879,16 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 
 		std::cerr << "Synonymes pour '" << mot << "' :\n";
 
+		if (adjacences[0].second == 0.0) {
+			std::cerr << "\taucun synonyme\n";
+			return;
+		}
+
 		for (auto i = 0; i < std::min(10l, adjacences.taille()); ++i) {
+			if (adjacences[i].second == 0.0) {
+				break;
+			}
+
 			std::cerr << '\t' << index_arriere[adjacences[i].premier] << " (" << adjacences[i].second << ")\n";
 		}
 	};
