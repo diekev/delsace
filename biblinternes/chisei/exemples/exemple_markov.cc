@@ -41,18 +41,32 @@
  * - il arrive que des phrases ne contiennent que « m ».
  */
 
-using type_matrice = dls::tableau<dls::tableau<double>>;
+struct type_matrice {
+	long res_x = 0;
+	long res_y = 0;
+	dls::tableau<double> donnees{};
+
+	type_matrice(long rx, long ry)
+		: res_x(rx)
+		, res_y(ry)
+		, donnees(rx * ry)
+	{}
+
+	double *operator[](long idx)
+	{
+		return &donnees[idx * res_x];
+	}
+
+	double const *operator[](long idx) const
+	{
+		return &donnees[idx * res_x];
+	}
+};
 
 static auto loge_matrice(long lignes, long colonnes)
 {
-	type_matrice matrice;
-	matrice.redimensionne(lignes);
-
-	for (auto &l : matrice) {
-		l = dls::tableau<double>(colonnes);
-	}
-
-	return matrice;
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+	return type_matrice(colonnes, lignes);
 }
 
 static auto MOT_VIDE = dls::vue_chaine("");
@@ -67,12 +81,14 @@ void imprime_matrice(
 
 	std::cerr << texte << " :\n";
 
-	for (auto const &vec : matrice) {
+	for (auto y = 0; y < matrice.res_y; ++y) {
+		auto vec = matrice[y];
+
 		std::cerr << index_arriere[courante] << " :";
 		auto virgule = ' ';
 
-		for (auto const &v : vec) {
-			std::cerr << virgule << v;
+		for (auto x = 0; x < matrice.res_x; ++x) {
+			std::cerr << virgule << vec[x];
 			virgule = ',';
 		}
 
@@ -86,11 +102,12 @@ static void converti_fonction_repartition(type_matrice &matrice)
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 
-	for (auto &vec : matrice) {
+	for (auto y = 0; y < matrice.res_y; ++y) {
+		auto vec = matrice[y];
 		auto total = 0.0;
 
-		for (auto const &v : vec) {
-			total += v;
+		for (auto x = 0; x < matrice.res_x; ++x) {
+			total += vec[x];
 		}
 
 		// que faire si une lettre n'est suivit par aucune ? on s'arrête ?
@@ -98,15 +115,15 @@ static void converti_fonction_repartition(type_matrice &matrice)
 			continue;
 		}
 
-		for (auto &v : vec) {
-			v /= total;
+		for (auto x = 0; x < matrice.res_x; ++x) {
+			vec[x] /= total;
 		}
 
 		auto accum = 0.0;
 
-		for (auto &v : vec) {
-			accum += v;
-			v = accum;
+		for (auto x = 0; x < matrice.res_x; ++x) {
+			accum += vec[x];
+			vec[x] = accum;
 		}
 	}
 }
@@ -832,8 +849,10 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 	/* prend un mot aléatoire */
 	auto gna = GNA();
 
-	auto calcule_adjancences = [&](dls::chaine const &mot, long idx_mot, dls::tableau<double> const &vec_mot)
+	auto calcule_adjancences = [&](dls::chaine const &mot, long idx_mot, double *vec_mot)
 	{
+		CHRONOMETRE_PORTEE("calcule_adjancences", std::cerr);
+
 		dls::tableau<dls::paire<long, double>> adjacences;
 		adjacences.reserve(mots.taille() - 1);
 
