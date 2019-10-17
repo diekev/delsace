@@ -43,6 +43,18 @@
 
 using type_matrice = dls::tableau<dls::tableau<double>>;
 
+static auto loge_matrice(long lignes, long colonnes)
+{
+	type_matrice matrice;
+	matrice.redimensionne(lignes);
+
+	for (auto &l : matrice) {
+		l = dls::tableau<double>(colonnes);
+	}
+
+	return matrice;
+}
+
 static auto MOT_VIDE = dls::vue_chaine("");
 
 template <typename T>
@@ -53,7 +65,7 @@ void imprime_matrice(
 {
 	auto courante = 0;
 
-	std::cerr << texte;
+	std::cerr << texte << " :\n";
 
 	for (auto const &vec : matrice) {
 		std::cerr << index_arriere[courante] << " :";
@@ -146,12 +158,7 @@ void test_markov_lettres(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 
 	// construction de la matrice
-	dls::tableau<dls::tableau<double>> matrice;
-	matrice.redimensionne(lettres.taille());
-
-	for (auto &vec : matrice) {
-		vec = dls::tableau<double>(lettres.taille());
-	}
+	auto matrice = loge_matrice(lettres.taille(), lettres.taille());
 
 	for (auto const &mot : mots) {
 		auto n0 = 0;
@@ -271,12 +278,7 @@ void test_markov_lettres_double(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 
 	// construction de la matrice
-	dls::tableau<dls::tableau<double>> matrice;
-	matrice.redimensionne(paires_lettres.taille());
-
-	for (auto &vec : matrice) {
-		vec = dls::tableau<double>(lettres.taille());
-	}
+	auto matrice = loge_matrice(paires_lettres.taille(), lettres.taille());
 
 	for (auto const &mot : mots) {
 		auto lettres_mot = epelle_mot(mot);
@@ -371,6 +373,7 @@ static auto morcelle(dls::chaine const &texte)
 		else {
 			switch (texte[i]) {
 				case ' ':
+				case '\t':
 				case '\n':
 				{
 					if (taille_mot != 0) {
@@ -535,12 +538,7 @@ void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 
 	/* construction de la matrice */
-	dls::tableau<dls::tableau<double>> matrice;
-	matrice.redimensionne(mots.taille());
-
-	for (auto &vec : matrice) {
-		vec = dls::tableau<double>(mots.taille());
-	}
+	auto matrice = loge_matrice(mots.taille(), mots.taille());
 
 	for (auto i = 0; i < morceaux.taille() - 1; ++i) {
 		auto idx0 = index_avant[morceaux[i]];
@@ -636,12 +634,7 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 
 	/* construction de la matrice */
-	dls::tableau<dls::tableau<double>> matrice;
-	matrice.redimensionne(paire_mots.taille());
-
-	for (auto &vec : matrice) {
-		vec = dls::tableau<double>(mots.taille());
-	}
+	auto matrice = loge_matrice(paire_mots.taille(), mots.taille());
 
 	for (auto i = 0; i < morceaux.taille() - 2; ++i) {
 		auto idx0 = index_avant_paires[{ morceaux[i], morceaux[i + 1] }];
@@ -733,6 +726,155 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 }
 
+static inline auto est_mot_vide(dls::vue_chaine const &mot)
+{
+	return dls::outils::est_element(
+				mot,
+				"’",
+				"'",
+				".",
+				",",
+				"(",
+				")",
+				"{",
+				"}",
+				"[",
+				"]",
+				"?",
+				";",
+				"!",
+				":",
+				"*",
+				"«",
+				"»",
+				"-",
+				"l",
+				"la",
+				"le",
+				"les",
+				"ne",
+				"qu",
+				"que",
+				"qui",
+				"quoi",
+				"c",
+				"ce",
+				"ces",
+				"cet",
+				"cette",
+				"d",
+				"de",
+				"des",
+				"à",
+				"et",
+				"ou",
+				"en",
+				"m");
+}
+
+static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
+{
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+
+	/* construction de l'index */
+	auto mots = dls::ensemble<dls::vue_chaine>();
+
+	for (auto morceau : morceaux) {
+		if (est_mot_vide(morceau)) {
+			continue;
+		}
+
+		mots.insere(morceau);
+	}
+
+	std::cerr << "Il y a " << mots.taille() << " mots dans le texte.\n";
+
+	mots.insere(MOT_VIDE);
+
+	dls::dico_desordonne<dls::vue_chaine, long> index_avant;
+	dls::dico_desordonne<long, dls::vue_chaine> index_arriere;
+	long courante = 0;
+
+	for (auto mot : mots) {
+		index_avant.insere({mot, courante});
+		index_arriere.insere({courante, mot});
+		courante += 1;
+	}
+
+	/* construction de la matrice d'adjacence */
+	auto matrice = loge_matrice(mots.taille(), mots.taille());
+	auto taille_fenetre = 2l;
+
+	for (auto i = 0l; i < morceaux.taille(); ++i) {
+		if (est_mot_vide(morceaux[i])) {
+			continue;
+		}
+
+		auto idx0 = index_avant[morceaux[i]];
+
+		for (auto j = std::max(0l, i - taille_fenetre); j <= std::min(i + taille_fenetre, morceaux.taille() - 1); ++j) {
+			if (j == i) {
+				continue;
+			}
+
+			if (est_mot_vide(morceaux[j])) {
+				continue;
+			}
+
+			auto idx1 = index_avant[morceaux[j]];
+
+			matrice[idx0][idx1] += 1.0 + static_cast<double>(taille_fenetre - std::abs(j - i));
+		}
+	}
+
+	//imprime_matrice("matrice", matrice, index_arriere);
+
+	/* prend un mot aléatoire */
+	auto gna = GNA();
+
+	auto calcule_adjancences = [&](dls::chaine const &mot, long idx_mot, dls::tableau<double> const &vec_mot)
+	{
+		dls::tableau<dls::paire<long, double>> adjacences;
+		adjacences.reserve(mots.taille() - 1);
+
+		for (auto i = 0; i < mots.taille(); ++i) {
+			if (i == idx_mot) {
+				continue;
+			}
+
+			auto const &vec = matrice[i];
+
+			auto adj = 0.0;
+
+			for (auto j = 0; j < mots.taille(); ++j) {
+				adj += vec_mot[j] * vec[j];
+			}
+
+			adjacences.pousse({ i, adj });
+		}
+
+		std::sort(adjacences.debut(), adjacences.fin(), [](dls::paire<long, double> const &a, dls::paire<long, double> const &b)
+		{
+			return a.second > b.second;
+		});
+
+		std::cerr << "Synonymes pour '" << mot << "' :\n";
+
+		for (auto i = 0; i < std::min(10l, adjacences.taille()); ++i) {
+			std::cerr << '\t' << index_arriere[adjacences[i].premier] << " (" << adjacences[i].second << ")\n";
+		}
+	};
+
+	for (auto k = 0; k < 5; ++k) {
+		auto idx_mot = gna.uniforme(1l, mots.taille() - 1);
+		auto const &vec_mot = matrice[idx_mot];
+
+		auto mot = index_arriere[idx_mot];
+
+		calcule_adjancences(mot, idx_mot, vec_mot);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	if (argc != 2) {
@@ -740,7 +882,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	//auto texte = dls::chaine("Le roi est mort. La reine est morte.");
+	//auto texte = dls::chaine("Le roi est mort. Vive le roi. La reine est morte. La reine est vivante.");
 	auto texte = dls::contenu_fichier(argv[1]);
 	texte = en_minuscule(texte);
 
@@ -756,7 +898,7 @@ int main(int argc, char **argv)
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
-	test_markov_mots_paire(morceaux);
+	trouve_synonymes(morceaux);
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
 
