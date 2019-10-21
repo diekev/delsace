@@ -41,10 +41,12 @@
  * - il arrive que des phrases ne contiennent que « m ».
  */
 
+using type_scalaire = double;
+
 struct type_matrice {
 	long res_x = 0;
 	long res_y = 0;
-	dls::tableau<double> donnees{};
+	dls::tableau<type_scalaire> donnees{};
 
 	type_matrice(long rx, long ry)
 		: res_x(rx)
@@ -52,12 +54,12 @@ struct type_matrice {
 		, donnees(rx * ry)
 	{}
 
-	double *operator[](long idx)
+	type_scalaire *operator[](long idx)
 	{
 		return &donnees[idx * res_x];
 	}
 
-	double const *operator[](long idx) const
+	type_scalaire const *operator[](long idx) const
 	{
 		return &donnees[idx * res_x];
 	}
@@ -101,17 +103,18 @@ void imprime_matrice(
 static void converti_fonction_repartition(type_matrice &matrice)
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
 
 	for (auto y = 0; y < matrice.res_y; ++y) {
 		auto vec = matrice[y];
-		auto total = 0.0;
+		auto total = _0;
 
 		for (auto x = 0; x < matrice.res_x; ++x) {
 			total += vec[x];
 		}
 
 		// que faire si une lettre n'est suivit par aucune ? on s'arrête ?
-		if (total == 0.0) {
+		if (total == _0) {
 			continue;
 		}
 
@@ -119,7 +122,7 @@ static void converti_fonction_repartition(type_matrice &matrice)
 			vec[x] /= total;
 		}
 
-		auto accum = 0.0;
+		auto accum = _0;
 
 		for (auto x = 0; x < matrice.res_x; ++x) {
 			accum += vec[x];
@@ -145,6 +148,8 @@ static auto filtres_mots(dls::tableau<dls::vue_chaine> const &morceaux)
 
 void test_markov_lettres(dls::tableau<dls::vue_chaine> const &morceaux)
 {
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
+	static constexpr auto _1 = static_cast<type_scalaire>(1);
 	auto mots = filtres_mots(morceaux);
 
 	std::cerr << "Il y a " << mots.taille() << " mots dans le texte.\n";
@@ -183,7 +188,7 @@ void test_markov_lettres(dls::tableau<dls::vue_chaine> const &morceaux)
 		auto n1 = lng::nombre_octets(&mot[0]);
 		auto idx1 = index_avant[dls::vue_chaine(&mot[0], n1)];
 
-		matrice[idx0][idx1] += 1.0;
+		matrice[idx0][idx1] += _1;
 
 		for (auto i = n1; i < mot.taille() - 1;) {
 			n0 = lng::nombre_octets(&mot[i]);
@@ -191,12 +196,12 @@ void test_markov_lettres(dls::tableau<dls::vue_chaine> const &morceaux)
 			n1 = lng::nombre_octets(&mot[i + n0]);
 			idx1 = index_avant[dls::vue_chaine(&mot[i + n0], n1)];
 
-			matrice[idx0][idx1] += 1.0;
+			matrice[idx0][idx1] += _1;
 			i += n0 + n1;
 		}
 
 		idx0 = index_avant[MOT_VIDE];
-		matrice[idx1][idx0] += 1.0;
+		matrice[idx1][idx0] += _1;
 	}
 
 //	imprime_matrice("Matrice = \n", matrice, index_arriere);
@@ -216,7 +221,7 @@ void test_markov_lettres(dls::tableau<dls::vue_chaine> const &morceaux)
 			auto const &vec = matrice[index_avant[lettre_courante]];
 
 			// génère une lettre
-			auto prob = gna.uniforme(0.0, 1.0);
+			auto prob = gna.uniforme(_0, _1);
 
 			for (auto j = 0; j < lettres.taille(); ++j) {
 				if (prob <= vec[j]) {
@@ -256,6 +261,8 @@ static auto epelle_mot(dls::vue_chaine const &mot)
 
 void test_markov_lettres_double(dls::tableau<dls::vue_chaine> const &morceaux)
 {
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
+	static constexpr auto _1 = static_cast<type_scalaire>(1);
 	auto mots = filtres_mots(morceaux);
 
 	std::cerr << "Il y a " << mots.taille() << " mots dans le texte.\n";
@@ -307,7 +314,7 @@ void test_markov_lettres_double(dls::tableau<dls::vue_chaine> const &morceaux)
 			auto idx0 = index_avant_paires[paire];
 			auto idx1 = index_avant[lettre];
 
-			matrice[idx0][idx1] += 1.0;
+			matrice[idx0][idx1] += _1;
 		}
 	}
 
@@ -330,7 +337,7 @@ void test_markov_lettres_double(dls::tableau<dls::vue_chaine> const &morceaux)
 			auto lettre_courante = dls::vue_chaine();
 
 			// génère une lettre
-			auto prob = gna.uniforme(0.0, 1.0);
+			auto prob = gna.uniforme(_0, _1);
 
 			for (auto j = 0; j < lettres.taille(); ++j) {
 				if (prob <= vec[j]) {
@@ -530,6 +537,8 @@ static auto capitalise(dls::vue_chaine const &chaine)
 void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 {
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
+	static constexpr auto _1 = static_cast<type_scalaire>(1);
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
@@ -561,19 +570,19 @@ void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 		auto idx0 = index_avant[morceaux[i]];
 		auto idx1 = index_avant[morceaux[i + 1]];
 
-		matrice[idx0][idx1] += 1.0;
+		matrice[idx0][idx1] += _1;
 	}
 
 	/* conditions de bordures : il y a un mot vide avant et après le texte */
 	auto idx0 = index_avant[MOT_VIDE];
 	auto idx1 = index_avant[morceaux[0]];
 
-	matrice[idx0][idx1] += 1.0;
+	matrice[idx0][idx1] += _1;
 
 	idx0 = index_avant[morceaux[morceaux.taille() - 1]];
 	idx1 = index_avant[MOT_VIDE];
 
-	matrice[idx0][idx1] += 1.0;
+	matrice[idx0][idx1] += _1;
 
 	converti_fonction_repartition(matrice);
 
@@ -590,7 +599,7 @@ void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 		auto const &vec = matrice[index_avant[mot_courant]];
 
 		/* génère un mot */
-		auto prob = gna.uniforme(0.0, 1.0);
+		auto prob = gna.uniforme(_0, _1);
 
 		for (auto j = 0; j < mots.taille(); ++j) {
 			if (prob <= vec[j]) {
@@ -643,6 +652,9 @@ struct magasin_paires {
 
 void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 {
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
+	static constexpr auto _1 = static_cast<type_scalaire>(1);
+
 	/* construction de l'index */
 	auto mots = dls::ensemble<dls::vue_chaine>();
 	auto paire_mots = dls::ensemble<std::pair<dls::vue_chaine, dls::vue_chaine>>();
@@ -690,24 +702,24 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 		auto idx0 = index_avant_paires(morceaux[i], morceaux[i + 1]);
 		auto idx1 = index_avant[morceaux[i + 2]];
 
-		matrice[idx0][idx1] += 1.0;
+		matrice[idx0][idx1] += _1;
 	}
 
 	/* conditions de bordures : il y a un mot vide avant et après le texte */
 	auto idx0 = index_avant_paires(MOT_VIDE, MOT_VIDE);
 	auto idx1 = index_avant[morceaux[0]];
 
-	matrice[idx0][idx1] += 1.0;
+	matrice[idx0][idx1] += _1;
 
 	idx0 = index_avant_paires(MOT_VIDE, morceaux[0]);
 	idx1 = index_avant[morceaux[1]];
 
-	matrice[idx0][idx1] += 1.0;
+	matrice[idx0][idx1] += _1;
 
 //	idx0 = index_avant[morceaux[morceaux.taille() - 1]];
 //	idx1 = index_avant[MOT_VIDE];
 
-//	matrice[idx0][idx1] += 1.0;
+//	matrice[idx0][idx1] += _1;
 
 	converti_fonction_repartition(matrice);
 
@@ -737,7 +749,7 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 		auto const &vec = matrice[index_avant_paires(mot1, mot2)];
 
 		/* génère un mot */
-		auto prob = gna.uniforme(0.0, 1.0);
+		auto prob = gna.uniforme(_0, _1);
 
 		for (auto j = 0; j < mots.taille(); ++j) {
 			if (prob <= vec[j]) {
@@ -855,6 +867,8 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 	auto matrice = loge_matrice(mots.taille(), mots.taille());
 	auto taille_fenetre = 2l;
 
+	static constexpr auto _1 = static_cast<type_scalaire>(1);
+
 	for (auto i = 0l; i < morceaux.taille(); ++i) {
 		if (est_mot_vide(morceaux[i])) {
 			continue;
@@ -873,7 +887,7 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 
 			auto idx1 = index_avant[morceaux[j]];
 
-			matrice[idx0][idx1] += 1.0 + static_cast<double>(taille_fenetre - std::abs(j - i));
+			matrice[idx0][idx1] += _1 + static_cast<type_scalaire>(taille_fenetre - std::abs(j - i));
 		}
 	}
 
@@ -882,11 +896,13 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 	/* prend un mot aléatoire */
 	auto gna = GNA();
 
-	auto calcule_adjancences = [&](dls::chaine const &mot, long idx_mot, double *vec_mot)
+	auto calcule_adjancences = [&](dls::chaine const &mot, long idx_mot, type_scalaire *vec_mot)
 	{
+		static constexpr auto _0 = static_cast<type_scalaire>(0);
+
 		CHRONOMETRE_PORTEE("calcule_adjancences", std::cerr);
 
-		dls::tableau<dls::paire<long, double>> adjacences;
+		dls::tableau<dls::paire<long, type_scalaire>> adjacences;
 		adjacences.reserve(mots.taille() - 1);
 
 		for (auto i = 0; i < mots.taille(); ++i) {
@@ -896,7 +912,7 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 
 			auto const &vec = matrice[i];
 
-			auto adj = 0.0;
+			auto adj = _0;
 
 			for (auto j = 0; j < mots.taille(); ++j) {
 				adj += vec_mot[j] * vec[j];
@@ -905,20 +921,20 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 			adjacences.pousse({ i, adj });
 		}
 
-		std::sort(adjacences.debut(), adjacences.fin(), [](dls::paire<long, double> const &a, dls::paire<long, double> const &b)
+		std::sort(adjacences.debut(), adjacences.fin(), [](dls::paire<long, type_scalaire> const &a, dls::paire<long, type_scalaire> const &b)
 		{
 			return a.second > b.second;
 		});
 
 		std::cerr << "Synonymes pour '" << mot << "' :\n";
 
-		if (adjacences[0].second == 0.0) {
+		if (adjacences[0].second == _0) {
 			std::cerr << "\taucun synonyme\n";
 			return;
 		}
 
 		for (auto i = 0; i < std::min(10l, adjacences.taille()); ++i) {
-			if (adjacences[i].second == 0.0) {
+			if (adjacences[i].second == _0) {
 				break;
 			}
 
