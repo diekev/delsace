@@ -739,7 +739,6 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	auto dernier_mot = dls::vue_chaine();
 
 	while (nombre_phrases > 0) {
-		auto paire_courante = std::pair{ mot1, mot2 };
 		/* prend le vecteur du mot_courant */
 		if (!index_avant_paires.trouve(mot1, mot2)) {
 			std::cerr << "Ne peut pas trouver l'index de la paire <" << mot1 << "," << mot2 << "> !\n";
