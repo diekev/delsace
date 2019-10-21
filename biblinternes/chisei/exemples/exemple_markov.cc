@@ -610,6 +610,37 @@ void test_markov_mot_simple(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 }
 
+struct magasin_paires {
+	dls::dico_desordonne<dls::vue_chaine, dls::dico_desordonne<dls::vue_chaine, long>> donnees{};
+
+	void insere(dls::vue_chaine const &a, dls::vue_chaine const &b, long idx)
+	{
+		donnees[a].insere({b, idx});
+	}
+
+	bool trouve(dls::vue_chaine const &a, dls::vue_chaine const &b)
+	{
+		auto itera = donnees.trouve(a);
+
+		if (itera == donnees.fin()) {
+			return false;
+		}
+
+		auto iterb = itera->second.trouve(b);
+
+		if (iterb == itera->second.fin()) {
+			return false;
+		}
+
+		return true;
+	}
+
+	long operator()(dls::vue_chaine const &a, dls::vue_chaine const &b)
+	{
+		return donnees[a][b];
+	}
+};
+
 void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 {
 	/* construction de l'index */
@@ -640,33 +671,35 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 		courante += 1;
 	}
 
-	dls::dico<std::pair<dls::vue_chaine, dls::vue_chaine>, long> index_avant_paires;
+	magasin_paires index_avant_paires;
 	dls::dico<long, std::pair<dls::vue_chaine, dls::vue_chaine>> index_arriere_paires;
 	courante = 0;
 
 	for (auto paire : paire_mots) {
-		index_avant_paires.insere({paire, courante});
+		index_avant_paires.insere(paire.first, paire.second, courante);
 		index_arriere_paires.insere({courante, paire});
 		courante += 1;
 	}
+
+	std::cerr << "Le magasin possède " << index_avant_paires.donnees.taille() << " paires\n";
 
 	/* construction de la matrice */
 	auto matrice = loge_matrice(paire_mots.taille(), mots.taille());
 
 	for (auto i = 0; i < morceaux.taille() - 2; ++i) {
-		auto idx0 = index_avant_paires[{ morceaux[i], morceaux[i + 1] }];
+		auto idx0 = index_avant_paires(morceaux[i], morceaux[i + 1]);
 		auto idx1 = index_avant[morceaux[i + 2]];
 
 		matrice[idx0][idx1] += 1.0;
 	}
 
 	/* conditions de bordures : il y a un mot vide avant et après le texte */
-	auto idx0 = index_avant_paires[{ MOT_VIDE, MOT_VIDE }];
+	auto idx0 = index_avant_paires(MOT_VIDE, MOT_VIDE);
 	auto idx1 = index_avant[morceaux[0]];
 
 	matrice[idx0][idx1] += 1.0;
 
-	idx0 = index_avant_paires[{ MOT_VIDE, morceaux[0] }];
+	idx0 = index_avant_paires(MOT_VIDE, morceaux[0]);
 	idx1 = index_avant[morceaux[1]];
 
 	matrice[idx0][idx1] += 1.0;
@@ -696,12 +729,12 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	while (nombre_phrases > 0) {
 		auto paire_courante = std::pair{ mot1, mot2 };
 		/* prend le vecteur du mot_courant */
-		if (index_avant_paires.trouve(paire_courante) == index_avant_paires.fin()) {
+		if (!index_avant_paires.trouve(mot1, mot2)) {
 			std::cerr << "Ne peut pas trouver l'index de la paire <" << mot1 << "," << mot2 << "> !\n";
 			break;
 		}
 
-		auto const &vec = matrice[index_avant_paires[paire_courante]];
+		auto const &vec = matrice[index_avant_paires(mot1, mot2)];
 
 		/* génère un mot */
 		auto prob = gna.uniforme(0.0, 1.0);
@@ -926,7 +959,7 @@ int main(int argc, char **argv)
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
-	trouve_synonymes(morceaux);
+	test_markov_mots_paire(morceaux);
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
 
