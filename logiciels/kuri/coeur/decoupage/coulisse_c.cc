@@ -816,6 +816,12 @@ static void cree_appel(
 		virgule = ' ';
 	}
 
+	if ((b->df != nullptr) && !b->df->est_externe) {
+		os << virgule;
+		os << "ctx";
+		virgule = ',';
+	}
+
 	if ((b->df != nullptr) && b->df->est_coroutine) {
 		os << virgule << "&__etat" << b->morceau.ligne_pos;
 		virgule = ',';
@@ -1627,6 +1633,20 @@ void genere_code_C(
 			if (donnees_fonction->nom_args.taille() == 0 && !moult_retour) {
 				os << '(';
 				virgule = ' ';
+			}
+
+			if (!donnees_fonction->est_externe) {
+				os << virgule;
+				os << "__contexte_global *ctx";
+				virgule = ',';
+
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = true;
+				donnees_var.est_variadic = false;
+				donnees_var.donnees_type = contexte.index_type_ctx;
+				donnees_var.est_argument = true;
+
+				contexte.pousse_locale("ctx", donnees_var);
 			}
 
 			if (donnees_fonction->est_coroutine) {

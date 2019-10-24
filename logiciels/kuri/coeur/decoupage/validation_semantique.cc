@@ -687,6 +687,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			contexte.commence_fonction(donnees_fonction);
 
+			auto donnees_var = DonneesVariable{};
+			donnees_var.est_dynamique = true;
+			donnees_var.est_variadic = false;
+			donnees_var.donnees_type = contexte.index_type_ctx;
+			donnees_var.est_argument = true;
+
+			contexte.pousse_locale("ctx", donnees_var);
+
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction->nom_args) {
 				auto const &argument = donnees_fonction->args[nom];
@@ -707,7 +715,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				index_dt = contexte.magasin_types.ajoute_type(dt);
 
-				auto donnees_var = DonneesVariable{};
+				donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.donnees_type = index_dt;
