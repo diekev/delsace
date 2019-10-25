@@ -54,6 +54,18 @@ struct base;
 
 struct ContexteGenerationCode;
 
+struct DonneesTypeDeclare {
+	dls::tableau<id_morceau> donnees{};
+
+	dls::tableau<noeud::base *> expressions{};
+
+	dls::vue_chaine nom_gabarit = "";
+
+	long index_type_final = -1;
+
+	bool est_gabarit = false;
+};
+
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
  * l'espèce, la classe contient un vecteur qui peut contenir un nombre variable
