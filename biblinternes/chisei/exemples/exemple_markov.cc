@@ -155,8 +155,6 @@ static void converti_fonction_repartition(type_matrice_ep &matrice)
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
 
-	auto nombre_cellules = 0l;
-
 	for (auto y = 0; y < matrice.lignes.taille(); ++y) {
 		auto ligne = matrice.lignes[y];
 		auto total = _0;
