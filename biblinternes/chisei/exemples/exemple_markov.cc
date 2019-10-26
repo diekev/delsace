@@ -708,6 +708,250 @@ struct magasin_paires {
 	}
 };
 
+#ifdef ARBRE_MOT
+struct FileMot {
+	dls::tableau<dls::vue_chaine> mots{};
+
+	void pousse(dls::vue_chaine const &mot)
+	{
+		mots.pousse(mot);
+
+		if (mots.taille() > 2) {
+			mots.pop_front();
+		}
+	}
+
+	bool est_valide() const
+	{
+		return mots.taille() == 2;
+	}
+};
+
+struct Indexeuse {
+	dls::ensemble<dls::vue_chaine> mots{};
+	FileMot file_courante{};
+
+	dls::dico_desordonne<dls::vue_chaine, long> index_avant{};
+	dls::dico_desordonne<long, dls::vue_chaine> index_arriere{};
+
+	struct noeud {
+		dls::vue_chaine mot{};
+		long index = -1;
+
+		dls::tableau<noeud> enfants{};
+
+		noeud() = default;
+	};
+
+	long m_nombre_chaines = 0;
+	long m_nombre_branches = 0;
+
+	noeud racine{};
+
+	/* ajoute un mot dans l'indexeuse, en construisant l'arbre d'adjacence */
+	void insere(dls::vue_chaine const &mot)
+	{
+		mots.insere(mot);
+
+		/* pousse le mot dans la file courante, et construit une nouvelle branche dans l'arbre au besoin */
+		file_courante.pousse(mot);
+
+		if (file_courante.est_valide()) {
+			construit_branche(file_courante);
+		}
+	}
+
+	void construit_branche(FileMot const &file_mot)
+	{
+		auto noeud_courant = &racine;
+
+		for (auto i = 0; i < file_mot.mots.taille(); ++i) {
+			auto noeud_enfant = static_cast<noeud *>(nullptr);
+
+			for (auto &enfant : noeud_courant->enfants) {
+				if (enfant.mot == file_mot.mots[i]) {
+					noeud_enfant = &enfant;
+					break;
+				}
+			}
+
+			if (noeud_enfant == nullptr) {
+				++m_nombre_branches;
+				auto nouveau_noeud = noeud();
+				nouveau_noeud.mot = file_mot.mots[i];
+				noeud_courant->enfants.pousse(nouveau_noeud);
+
+				noeud_courant = &noeud_courant->enfants.back();
+			}
+		}
+	}
+
+	dls::chaine mot_index(long idx)
+	{
+		return index_arriere[idx];
+	}
+
+	long index_chaine(FileMot const &file_mot)
+	{
+		auto noeud_courant = &racine;
+
+		for (auto i = 0; i < file_mot.mots.taille(); ++i) {
+			for (auto &enfant : noeud_courant->enfants) {
+				if (enfant.mot == file_mot.mots[i]) {
+					noeud_courant = &enfant;
+					break;
+				}
+			}
+		}
+
+		return noeud_courant->index;
+	}
+
+	long index_mot(dls::vue_chaine const &mot)
+	{
+		return index_avant[mot];
+	}
+
+	void construit_index()
+	{
+		/* construit l'index pour les mots seuls */
+		long courante = 0;
+
+		for (auto mot : mots) {
+			index_avant.insere({mot, courante});
+			index_arriere.insere({courante, mot});
+			courante += 1;
+		}
+
+		/* construit l'index pour les chaines de mots */
+		CHRONOMETRE_PORTEE("construction index chaines de mots", std::cerr);
+		traverse_arbre(&racine);
+	}
+
+	void traverse_arbre(noeud *n)
+	{
+		if (n->enfants.est_vide()) {
+			n->index = m_nombre_chaines++;
+			return;
+		}
+
+		for (auto &enfant : n->enfants) {
+			traverse_arbre(&enfant);
+		}
+	}
+
+	long nombre_chaines()
+	{
+		return m_nombre_chaines;
+	}
+
+	long nombre_mots()
+	{
+		return mots.taille();
+	}
+};
+
+void test_markov_mots_paire2(dls::tableau<dls::vue_chaine> const &morceaux)
+{
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
+	static constexpr auto _1 = static_cast<type_scalaire>(1);
+
+	auto ordre = 2;
+
+	/* construction de l'index */
+	auto indexeuse = Indexeuse();
+
+	for (auto i = 0; i < morceaux.taille(); ++i) {
+		indexeuse.insere(morceaux[i]);
+	}
+
+	indexeuse.construit_index();
+
+	std::cerr << "Il y a " << indexeuse.nombre_mots() << " mots dans le texte.\n";
+	std::cerr << "Il y a " << indexeuse.m_nombre_branches << " branches dans l'arbre.\n";
+	std::cerr << "Il y a " << indexeuse.nombre_chaines() << " paires de mots dans le texte.\n";
+
+	/* construction de la matrice */
+	auto matrice = type_matrice_ep(
+				type_ligne(indexeuse.nombre_chaines()),
+				type_colonne(indexeuse.nombre_mots()));
+
+	auto file_mot = FileMot();
+
+	/* conditions de bordures : il y a des mots vide avant le texte */
+	for (auto i = 0; i < ordre; ++i) {
+		file_mot.pousse(MOT_VIDE);
+	}
+
+	for (auto i = 0; i < morceaux.taille(); ++i) {
+		auto idx0 = indexeuse.index_chaine(file_mot);
+		auto idx1 = indexeuse.index_mot(morceaux[i]);
+
+		matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
+	}
+
+	matrice_valide(matrice);
+	converti_fonction_repartition(matrice);
+
+	//imprime_matrice("Matrice = \n", matrice, index_arriere);
+
+	std::cerr << "Génère texte :\n";
+	auto gna = GNA();
+	file_mot = FileMot();
+
+	auto mot_courant = MOT_VIDE;
+
+	CHRONOMETRE_PORTEE("génération du texte", std::cerr);
+
+	auto nombre_phrases = 5;
+	auto premier_mot = true;
+	auto dernier_mot = dls::vue_chaine();
+
+	while (nombre_phrases > 0) {
+		/* prend le vecteur du mot_courant */
+		auto ligne = matrice.lignes[indexeuse.index_chaine(file_mot)];
+		auto n = ligne;
+
+		/* génère un mot */
+		auto prob = gna.uniforme(_0, _1);
+
+		while (n != nullptr) {
+			if (prob <= n->valeur) {
+				mot_courant = indexeuse.mot_index(n->colonne);
+				break;
+			}
+
+			n = n->suivant;
+		}
+
+		if (premier_mot) {
+			std::cerr << capitalise(mot_courant);
+		}
+		else {
+			auto espace_avant = !dls::outils::est_element(mot_courant, ",", ".", "’", "'");
+			auto espace_apres = !dls::outils::est_element(dernier_mot, "’", "'");
+
+			if (espace_avant && espace_apres) {
+				std::cerr << ' ';
+			}
+
+			std::cerr << mot_courant;
+		}
+
+		dernier_mot = mot_courant;
+		premier_mot = false;
+
+		if (mot_courant == dls::vue_chaine(".")) {
+			std::cerr << '\n';
+			premier_mot = true;
+			nombre_phrases--;
+		}
+
+		file_mot.pousse(mot_courant);
+	}
+}
+#endif
+
 void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 {
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
@@ -1034,7 +1278,11 @@ int main(int argc, char **argv)
 
 	std::cerr << "Il y a " << morceaux.taille() << " morceaux dans le texte.\n";
 
+#ifdef ARBRE_MOT
+	test_markov_mots_paire2(morceaux);
+#else
 	test_markov_mots_paire(morceaux);
+#endif
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
 
