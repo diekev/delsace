@@ -352,12 +352,10 @@ void test_markov_lettres_double(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 
 	dls::dico<type_paire_lettres, long> index_avant_paires;
-	dls::dico<long, type_paire_lettres> index_arriere_paires;
 	courante = 0;
 
 	for (auto l : paires_lettres) {
 		index_avant_paires.insere({l, courante});
-		index_arriere_paires.insere({courante, l});
 		courante += 1;
 	}
 
@@ -744,12 +742,10 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 
 	magasin_paires index_avant_paires;
-	dls::dico<long, std::pair<dls::vue_chaine, dls::vue_chaine>> index_arriere_paires;
 	courante = 0;
 
 	for (auto paire : paire_mots) {
 		index_avant_paires.insere(paire.first, paire.second, courante);
-		index_arriere_paires.insere({courante, paire});
 		courante += 1;
 	}
 
