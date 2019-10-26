@@ -66,6 +66,7 @@ add_library(${NOM_CIBLE} STATIC
 	hachage_spatiale.hh
 	liste.hh
 	magasin.hh
+	matrice_eparse.hh
 	pile.hh
 	plage.hh
 	ramasse_miettes.hh

@@ -33,7 +33,10 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/matrice_eparse.hh"
 #include "biblinternes/structures/tableau.hh"
+
+using type_matrice_ep = matrice_colonne_eparse<double>;
 
 /**
  * PROBLÈMES :
@@ -105,6 +108,22 @@ static void converti_fonction_repartition(type_matrice &matrice)
 	CHRONOMETRE_PORTEE(__func__, std::cerr);
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
 
+	auto nombre_cellules = 0l;
+
+	for (auto y = 0; y < matrice.res_y; ++y) {
+		auto vec = matrice[y];
+		for (auto x = 0; x < matrice.res_x; ++x) {
+			if (vec[x] != 0.0) {
+				nombre_cellules++;
+			}
+		}
+	}
+
+	auto ratio = static_cast<double>(nombre_cellules);
+	ratio /= static_cast<double>(matrice.res_x * matrice.res_y);
+
+	std::cerr << "La matrice est pleine à " << ratio * 100.0 << " %\n";
+
 	for (auto y = 0; y < matrice.res_y; ++y) {
 		auto vec = matrice[y];
 		auto total = _0;
@@ -127,6 +146,47 @@ static void converti_fonction_repartition(type_matrice &matrice)
 		for (auto x = 0; x < matrice.res_x; ++x) {
 			accum += vec[x];
 			vec[x] = accum;
+		}
+	}
+}
+
+static void converti_fonction_repartition(type_matrice_ep &matrice)
+{
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+	static constexpr auto _0 = static_cast<type_scalaire>(0);
+
+	auto nombre_cellules = 0l;
+
+	for (auto y = 0; y < matrice.lignes.taille(); ++y) {
+		auto ligne = matrice.lignes[y];
+		auto total = _0;
+
+		auto n = ligne;
+
+		while (n != nullptr) {
+			total += n->valeur;
+			n = n->suivant;
+		}
+
+		// que faire si une lettre n'est suivit par aucune ? on s'arrête ?
+		if (total == _0) {
+			continue;
+		}
+
+		n = ligne;
+
+		while (n != nullptr) {
+			n->valeur /= total;
+			n = n->suivant;
+		}
+
+		auto accum = _0;
+		n = ligne;
+
+		while (n != nullptr) {
+			accum += n->valeur;
+			n->valeur = accum;
+			n = n->suivant;
 		}
 	}
 }
@@ -696,31 +756,32 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 	std::cerr << "Le magasin possède " << index_avant_paires.donnees.taille() << " paires\n";
 
 	/* construction de la matrice */
-	auto matrice = loge_matrice(paire_mots.taille(), mots.taille());
+	auto matrice = type_matrice_ep(type_ligne(paire_mots.taille()), type_colonne(mots.taille()));
 
 	for (auto i = 0; i < morceaux.taille() - 2; ++i) {
 		auto idx0 = index_avant_paires(morceaux[i], morceaux[i + 1]);
 		auto idx1 = index_avant[morceaux[i + 2]];
 
-		matrice[idx0][idx1] += _1;
+		matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 	}
 
 	/* conditions de bordures : il y a un mot vide avant et après le texte */
 	auto idx0 = index_avant_paires(MOT_VIDE, MOT_VIDE);
 	auto idx1 = index_avant[morceaux[0]];
 
-	matrice[idx0][idx1] += _1;
+	matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 
 	idx0 = index_avant_paires(MOT_VIDE, morceaux[0]);
 	idx1 = index_avant[morceaux[1]];
 
-	matrice[idx0][idx1] += _1;
+	matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 
 //	idx0 = index_avant[morceaux[morceaux.taille() - 1]];
 //	idx1 = index_avant[MOT_VIDE];
 
-//	matrice[idx0][idx1] += _1;
+//	matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 
+	matrice_valide(matrice);
 	converti_fonction_repartition(matrice);
 
 	//imprime_matrice("Matrice = \n", matrice, index_arriere);
@@ -745,16 +806,19 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 			break;
 		}
 
-		auto const &vec = matrice[index_avant_paires(mot1, mot2)];
-
 		/* génère un mot */
 		auto prob = gna.uniforme(_0, _1);
 
-		for (auto j = 0; j < mots.taille(); ++j) {
-			if (prob <= vec[j]) {
-				mot_courant = index_arriere[j];
+		auto ligne = matrice.lignes[index_avant_paires(mot1, mot2)];
+		auto n = ligne;
+
+		while (n != nullptr) {
+			if (prob <= n->valeur) {
+				mot_courant = index_arriere[n->colonne];
 				break;
 			}
+
+			n = n->suivant;
 		}
 
 		if (premier_mot) {

@@ -24,7 +24,10 @@
 
 #pragma once
 
-#include "biblinternes/outils/definitions.hh"
+#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/definitions.h"
+
+#include "tableau.hh"
 
 /**
  * Implémentations de matrices éparses, où les zéros ne sont pas stockés,
@@ -154,11 +157,15 @@ struct matrice_colonne_eparse {
 		long colonne = 0;
 		type_valeur valeur{};
 
+		noeud() = default;
+
 		COPIE_CONSTRUCT(noeud);
 	};
 
 	long nombre_lignes = 0;
 	long nombre_colonnes = 0;
+
+	dls::tableau<noeud *> noeuds{};
 	dls::tableau<noeud *> lignes{};
 
 	matrice_colonne_eparse(type_ligne nl, type_colonne nc)
@@ -171,14 +178,17 @@ struct matrice_colonne_eparse {
 		: matrice_colonne_eparse(nl, nc)
 	{}
 
-	~matrice_eparse()
+	~matrice_colonne_eparse()
 	{
-		for (auto n : lignes) {
-			while (n != nullptr) {
-				auto tmp = n->suivant;
-				memoire::deloge("matrice_eparse::noeud", n);
-				n = tmp;
-			}
+//		for (auto n : lignes) {
+//			while (n != nullptr) {
+//				auto tmp = n->suivant;
+//				memoire::deloge("matrice_colonne_eparse::noeud", n);
+//				n = tmp;
+//			}
+//		}
+		for (auto n : noeuds) {
+			memoire::deloge("matrice_colonne_eparse::noeud", n);
 		}
 	}
 
@@ -232,11 +242,12 @@ private:
 		return n;
 	}
 
-	noeud *insere_noeud(noeud &*l, long colonne)
+	noeud *insere_noeud(noeud *&l, long colonne)
 	{
-		auto n = memoire::loge<noeud>("matrice_eparse::noeud");
-		n->ligne = ligne;
+		auto n = memoire::loge<noeud>("matrice_colonne_eparse::noeud");
 		n->colonne = colonne;
+
+		noeuds.pousse(n);
 
 		if (l == nullptr) {
 			l = n;
@@ -278,3 +289,25 @@ private:
 		return n;
 	}
 };
+
+template <typename T>
+bool matrice_valide(matrice_colonne_eparse<T> const &mat)
+{
+	for (auto i = 0; i < mat.lignes.taille(); ++i) {
+		auto n = mat.lignes[i];
+
+		while (n != nullptr) {
+			auto s = n->suivant;
+
+			if (s) {
+				if (n->colonne > s->colonne) {
+					return false;
+				}
+			}
+
+			n = s;
+		}
+	}
+
+	return true;
+}
