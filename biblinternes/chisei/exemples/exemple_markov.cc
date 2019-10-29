@@ -1243,6 +1243,68 @@ static auto trouve_synonymes(dls::tableau<dls::vue_chaine> const &morceaux)
 	}
 }
 
+void tlpl(dls::tableau<dls::vue_chaine> const &morceaux)
+{
+	using type_phrase = dls::tableau<dls::vue_chaine>;
+	/* construit le vocabulaire */
+	auto phrases = dls::tableau<type_phrase>();
+	auto phrase_courante = type_phrase();
+	auto frequence = dls::dico_desordonne<dls::vue_chaine, double>();
+
+	for (auto morceau : morceaux) {
+		phrase_courante.pousse(morceau);
+
+		if (morceau == ".") {
+			phrases.pousse(phrase_courante);
+			phrase_courante = dls::tableau<dls::vue_chaine>();
+		}
+
+		if (est_mot_vide(morceau)) {
+			continue;
+		}
+
+		frequence[morceau] += 1.0;
+	}
+
+	std::cerr << "Il y a " << phrases.taille() << " phrases dans le texte.\n";
+
+	/* trouve les fréquences des phrases */
+	using type_paire = dls::paire<type_phrase, double>;
+	auto frequences_phrases = dls::tableau<type_paire>(phrases.taille());
+	auto idx = 0;
+
+	for (auto const &phrase : phrases) {
+		frequences_phrases[idx].premier = phrase;
+
+		for (auto const &mot : phrase) {
+			if (est_mot_vide(mot)) {
+				continue;
+			}
+
+			frequences_phrases[idx].second += frequence[mot];
+		}
+
+		idx += 1;
+	}
+
+	std::sort(frequences_phrases.debut(), frequences_phrases.fin(),
+			  [](type_paire const &a, type_paire const &b)
+	{
+		return a.second > b.second;
+	});
+
+	auto nombre = std::min(3l, frequences_phrases.taille());
+
+	std::cerr << "Les 3 phrases les plus fréquentes sont :\n";
+
+	for (auto i = 0; i < nombre; ++i) {
+		for (auto &mot : frequences_phrases[i].premier) {
+			std::cerr << mot << ' ';
+		}
+		std::cerr << '\n';
+	}
+}
+
 int main(int argc, char **argv)
 {
 	if (argc != 2) {
@@ -1271,7 +1333,7 @@ int main(int argc, char **argv)
 #ifdef ARBRE_MOT
 	test_markov_mots_paire2(morceaux);
 #else
-	test_markov_mots_paire(morceaux);
+	tlpl(morceaux);
 #endif
 
 	std::cerr << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee()) << '\n';
