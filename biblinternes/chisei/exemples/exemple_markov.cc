@@ -1250,6 +1250,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	CHRONOMETRE_PORTEE(__func__, std::cerr);
+
 	//auto texte = dls::chaine("Le roi est mort. Vive le roi. La reine est morte. La reine est vivante.");
 	auto texte = dls::contenu_fichier(argv[1]);
 	texte = en_minuscule(texte);
