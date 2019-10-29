@@ -151,9 +151,6 @@ struct matrice_colonne_eparse {
 	using type_valeur = T;
 
 	struct noeud {
-		noeud *precedent = nullptr;
-		noeud *suivant = nullptr;
-
 		long colonne = 0;
 		type_valeur valeur{};
 
@@ -166,12 +163,12 @@ struct matrice_colonne_eparse {
 	long nombre_colonnes = 0;
 
 	dls::tableau<noeud *> noeuds{};
-	dls::tableau<noeud *> lignes{};
+	dls::tableau<dls::tableau<noeud *>> lignes{};
 
 	matrice_colonne_eparse(type_ligne nl, type_colonne nc)
 		: nombre_lignes(nl)
 		, nombre_colonnes(nc)
-		, lignes(nl, nullptr)
+		, lignes(nl)
 	{}
 
 	matrice_colonne_eparse(type_colonne nc, type_ligne nl)
@@ -180,22 +177,16 @@ struct matrice_colonne_eparse {
 
 	~matrice_colonne_eparse()
 	{
-//		for (auto n : lignes) {
-//			while (n != nullptr) {
-//				auto tmp = n->suivant;
-//				memoire::deloge("matrice_colonne_eparse::noeud", n);
-//				n = tmp;
-//			}
-//		}
-		for (auto n : noeuds) {
-			memoire::deloge("matrice_colonne_eparse::noeud", n);
+		for (auto &l : lignes) {
+			for (auto n : l) {
+				memoire::deloge("matrice_colonne_eparse::noeud", n);
+			}
 		}
 	}
 
 	type_valeur operator()(type_ligne ligne, type_colonne colonne) const
 	{
-		auto const &l = lignes[ligne];
-		auto n = trouve_noeud(l, colonne);
+		auto n = trouve_noeud(ligne, colonne);
 
 		if (n == nullptr) {
 			return type_valeur();
@@ -211,11 +202,10 @@ struct matrice_colonne_eparse {
 
 	type_valeur &operator()(type_ligne ligne, type_colonne colonne)
 	{
-		auto &l = lignes[ligne];
-		auto n = trouve_noeud(l, colonne);
+		auto n = trouve_noeud(ligne, colonne);
 
 		if (n == nullptr) {
-			n = insere_noeud(l, colonne);
+			n = insere_noeud(ligne, colonne);
 		}
 
 		return n->valeur;
@@ -227,85 +217,52 @@ struct matrice_colonne_eparse {
 	}
 
 private:
-	noeud *trouve_noeud(noeud *l, long colonne)
+	noeud *trouve_noeud(long ligne, long colonne)
 	{
-		auto n = l;
+		auto &l = lignes[ligne];
 
-		while (n != nullptr) {
+		for (auto n : l) {
 			if (n->colonne == colonne) {
-				break;
+				return n;
 			}
-
-			n = n->suivant;
 		}
 
-		return n;
+		return nullptr;
 	}
 
-	noeud *insere_noeud(noeud *&l, long colonne)
+	noeud *insere_noeud(long ligne, long colonne)
 	{
 		auto n = memoire::loge<noeud>("matrice_colonne_eparse::noeud");
 		n->colonne = colonne;
 
 		noeuds.pousse(n);
-
-		if (l == nullptr) {
-			l = n;
-		}
-		else {
-			auto nn = l;
-			auto dernier = nn;
-			auto insere = false;
-
-			while (nn != nullptr) {
-				dernier = nn;
-
-				if (nn->colonne > colonne) {
-					n->precedent = nn->precedent;
-
-					if (n->precedent) {
-						n->precedent->suivant = n;
-					}
-
-					n->suivant = nn;
-					nn->precedent = n;
-					insere = true;
-
-					break;
-				}
-
-				nn = nn->suivant;
-			}
-
-			if (insere == false) {
-				if (dernier != nullptr) {
-					dernier->suivant = n;
-				}
-
-				n->precedent = dernier;
-			}
-		}
+		lignes[ligne].pousse(n);
 
 		return n;
 	}
 };
 
 template <typename T>
+void tri_lignes_matrice(matrice_colonne_eparse<T> &mat)
+{
+	using type_noeud = typename matrice_colonne_eparse<T>::noeud;
+
+	for (auto &ligne : mat.lignes) {
+		std::sort(ligne.debut(), ligne.fin(), [](type_noeud const *n1, type_noeud const *n2)
+		{
+			return n1->colonne < n2->colonne;
+		});
+	}
+}
+
+template <typename T>
 bool matrice_valide(matrice_colonne_eparse<T> const &mat)
 {
-	for (auto i = 0; i < mat.lignes.taille(); ++i) {
-		auto n = mat.lignes[i];
-
-		while (n != nullptr) {
-			auto s = n->suivant;
-
-			if (s) {
-				if (n->colonne > s->colonne) {
-					return false;
-				}
+	for (auto &ligne : mat.lignes) {
+		for (auto i = 0; i < ligne.taille() - 1; ++i) {
+			if (ligne[i]->colonne > ligne[i + 1]->colonne) {
+				return false;
 			}
-
-			n = s;
 		}
 	}
 

@@ -156,14 +156,11 @@ static void converti_fonction_repartition(type_matrice_ep &matrice)
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
 
 	for (auto y = 0; y < matrice.lignes.taille(); ++y) {
-		auto ligne = matrice.lignes[y];
+		auto &ligne = matrice.lignes[y];
 		auto total = _0;
 
-		auto n = ligne;
-
-		while (n != nullptr) {
+		for (auto n : ligne) {
 			total += n->valeur;
-			n = n->suivant;
 		}
 
 		// que faire si une lettre n'est suivit par aucune ? on s'arrête ?
@@ -171,20 +168,15 @@ static void converti_fonction_repartition(type_matrice_ep &matrice)
 			continue;
 		}
 
-		n = ligne;
-
-		while (n != nullptr) {
+		for (auto n : ligne) {
 			n->valeur /= total;
-			n = n->suivant;
 		}
 
 		auto accum = _0;
-		n = ligne;
 
-		while (n != nullptr) {
+		for (auto n : ligne) {
 			accum += n->valeur;
 			n->valeur = accum;
-			n = n->suivant;
 		}
 	}
 }
@@ -1019,7 +1011,8 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 
 //	matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 
-	matrice_valide(matrice);
+//	matrice_valide(matrice);
+	tri_lignes_matrice(matrice);
 	converti_fonction_repartition(matrice);
 
 	//imprime_matrice("Matrice = \n", matrice, index_arriere);
@@ -1047,16 +1040,13 @@ void test_markov_mots_paire(dls::tableau<dls::vue_chaine> const &morceaux)
 		/* génère un mot */
 		auto prob = gna.uniforme(_0, _1);
 
-		auto ligne = matrice.lignes[index_avant_paires(mot1, mot2)];
-		auto n = ligne;
+		auto &ligne = matrice.lignes[index_avant_paires(mot1, mot2)];
 
-		while (n != nullptr) {
+		for (auto n : ligne) {
 			if (prob <= n->valeur) {
 				mot_courant = index_arriere[n->colonne];
 				break;
 			}
-
-			n = n->suivant;
 		}
 
 		if (premier_mot) {
