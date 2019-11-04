@@ -50,6 +50,7 @@ add_library(${NOM_CIBLE} STATIC
 	tableau.cc
 	tableau_boucle.cc
 	tableau_fixe.cc
+	tableau_simple_compact.cc
 	vue_chaine.cc
 
 	arbre_kd.hh
@@ -73,6 +74,7 @@ add_library(${NOM_CIBLE} STATIC
 	tableau.hh
 	tableau_boucle.hh
 	tableau_fixe.hh
+	tableau_simple_compact.hh
 	vue_chaine.hh
 )
 
