@@ -95,7 +95,7 @@ struct logeuse_memoire {
 		assert(nouvelle_taille >= 0);
 
 		if constexpr (std::is_trivially_copyable_v<T>) {
-			ptr = static_cast<T *>(realloc(ptr, static_cast<size_t>(nouvelle_taille)));
+			ptr = static_cast<T *>(realloc(ptr, sizeof(T) * static_cast<size_t>(nouvelle_taille)));
 		}
 		else {
 			auto res = static_cast<T *>(malloc(sizeof(T) * static_cast<size_t>(nouvelle_taille)));
