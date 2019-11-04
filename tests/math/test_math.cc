@@ -54,7 +54,7 @@ void test_marsaglia(dls::test_unitaire::Controleuse &controleur)
 	}
 
 	/* Verify that generators with different seeds produce different sequences. */
-	rng = GNA(137);
+	rng = GNA(157);
 	for (int i(0); i < 100; ++i) {
 		CU_VERIFIE_CONDITION(controleur, seq[i] != echantillone_disque_normale(rng, mean, sigma));
 	}
