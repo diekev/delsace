@@ -35,7 +35,7 @@ Jour::Jour(int jour)
 	}
 }
 
-Mois::Mois(unsigned int mois)
+Mois::Mois(int mois)
 	: valeur(mois)
 {
 	if (mois < 1) {
@@ -98,18 +98,18 @@ bool Date::est_annee_bissextile() const
 
 size_t Date::jours() const
 {
-	auto jours_ecoules_annee_courante = 0ul;
+	auto jours_ecoules_annee_courante = 0l;
 
 	/* don't take into account the current month */
-	for (unsigned int i(0); i < this->m_mois - 1; ++i) {
-		jours_ecoules_annee_courante += static_cast<size_t>(this->m_jours_par_mois[i]);
+	for (int i(0); i < this->m_mois - 1; ++i) {
+		jours_ecoules_annee_courante += this->m_jours_par_mois[i];
 	}
 
-	jours_ecoules_annee_courante += static_cast<size_t>(static_cast<unsigned>(this->m_jour));
+	jours_ecoules_annee_courante += this->m_jour;
 
 	const auto annees = std::max(0, this->m_annee - 1);
 
-	return static_cast<size_t>(static_cast<float>(annees) * 365.25f) + jours_ecoules_annee_courante;
+	return static_cast<size_t>(static_cast<long>(static_cast<float>(annees) * 365.25f) + jours_ecoules_annee_courante);
 }
 
 size_t Date::jours_jusque(const Date &autre) const
@@ -124,7 +124,7 @@ size_t Date::jours_depuis(const Date &autre) const
 
 size_t Date::mois() const
 {
-	return this->m_mois + static_cast<size_t>(static_cast<unsigned>(this->m_annee) * this->MOIS_PAR_ANNEE);
+	return static_cast<size_t>(this->m_mois + (this->m_annee * this->MOIS_PAR_ANNEE));
 }
 
 size_t Date::annees() const
@@ -224,7 +224,7 @@ void Date::ajoute_jour(int dd)
 	this->m_jour += dd;
 
 	while (this->m_jour > m_jours_par_mois[this->m_mois - 1]) {
-		this->m_jour -= static_cast<int>(m_jours_par_mois[this->m_mois - 1]);
+		this->m_jour -= m_jours_par_mois[this->m_mois - 1];
 		ajoute_mois(1);
 	}
 }
@@ -235,11 +235,11 @@ void Date::soustrait_jour(int dd)
 
 	while (this->m_jour < 1) {
 		soustrait_mois(1);
-		this->m_jour += static_cast<int>(m_jours_par_mois[this->m_mois - 1]);
+		this->m_jour += m_jours_par_mois[this->m_mois - 1];
 	}
 }
 
-void Date::ajoute_mois(unsigned int mm)
+void Date::ajoute_mois(int mm)
 {
 	this->m_mois += mm;
 
@@ -249,7 +249,7 @@ void Date::ajoute_mois(unsigned int mm)
 	}
 }
 
-void Date::soustrait_mois(unsigned int mm)
+void Date::soustrait_mois(int mm)
 {
 	this->m_mois -= mm;
 
@@ -277,17 +277,17 @@ void Date::verifie_annee_bissextile()
 
 size_t Date::jours_entre(const Date &d1, const Date &d2) const
 {
-	auto jours_entre_mois = 0u;
+	auto jours_entre_mois = 0;
 
-	for (unsigned i(d1.m_mois); i < d2.m_mois - 1; ++i) {
+	for (int i(d1.m_mois); i < d2.m_mois - 1; ++i) {
 		jours_entre_mois += m_jours_par_mois[i];
 	}
 
-	const auto jours_restant_mois = m_jours_par_mois[d1.m_mois - 1] - static_cast<unsigned>(d1.m_jour);
-	const auto jours_dans_annee = static_cast<size_t>(
+	const auto jours_restant_mois = m_jours_par_mois[d1.m_mois - 1] - d1.m_jour;
+	const auto jours_dans_annee = static_cast<int>(
 									  static_cast<float>(d2.m_annee - d1.m_annee) * 365.25f);
 
-	return jours_restant_mois + jours_entre_mois + jours_dans_annee + static_cast<unsigned>(d2.m_jour);
+	return static_cast<size_t>(jours_restant_mois + jours_entre_mois + jours_dans_annee + d2.m_jour);
 }
 
 }  /* namespace types */
