@@ -228,8 +228,8 @@ struct base {
 	long index_type_fonc = -1l;
 
 	char aide_generation_code = 0;
-	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	type_noeud type{};
+	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	int module_appel{}; // module pour les appels de fonctions importées
 
 	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
