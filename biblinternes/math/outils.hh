@@ -46,6 +46,28 @@ inline auto extrait_min_max(T const v, T &min, T &max)
 }
 
 /**
+ * Calcul la différence de produits (a * b - c * d) de manière à éviter les
+ * annulations catastophiques. Ceci exploite les implémentations matérielles de
+ * certaines opérations sur point flottant en minimisant les accumulations
+ * d'erreurs de précisions.
+ *
+ * Pour le détail et des exemples, voir :
+ * https://pharr.org/matt/blog/2019/11/03/difference-of-floats.html
+ */
+template <typename T>
+[[nodiscard]] inline auto difference_de_produits(T a, T b, T c, T d)
+{
+	static_assert(std::is_floating_point<T>::value,
+				  "produits_de_differences ne prend que des nombres décimaux");
+
+	auto const cd = c * d;
+	/* quantité d'erreur due à l'arrondi du nombre décimal */
+	auto const err = std::fma(-c, d, cd);
+	auto const ddp = std::fma(a, b, cd);
+	return ddp + err;
+}
+
+/**
  * Converti un nombre de l'espace continu vers l'espace discret.
  */
 template <typename Ent, typename Dec>

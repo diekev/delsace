@@ -31,7 +31,7 @@ namespace kdo {
 template <typename T>
 bool resoud_quadratique(const T &a, const T &b, const T &c, T &x0, T &x1)
 {
-	auto discr = b * b - 4.0 * a * c;
+	auto discr = dls::math::difference_de_produits(b, b, 4.0 * a, c);
 
 	if (discr < 0) {
 		return false;
