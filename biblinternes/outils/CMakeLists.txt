@@ -31,6 +31,7 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
+	attendu.hh
 	chaine.hh
 	chemin.hh
 	constantes.h
