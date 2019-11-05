@@ -25,6 +25,7 @@
 #include "tests.hh"
 
 #include "biblinternes/structures/pointeur_marque.hh"
+#include "biblinternes/structures/tableau_simple_compact.hh"
 
 void test_pointeur_marque(dls::test_unitaire::Controleuse &controleuse)
 {
@@ -57,6 +58,29 @@ void test_pointeur_marque(dls::test_unitaire::Controleuse &controleuse)
 		CU_VERIFIE_EGALITE(controleuse, ptr_mix.pointeur(), &a);
 		CU_VERIFIE_EGALITE(controleuse, ptr_mix.marque_haut(), b);
 		CU_VERIFIE_EGALITE(controleuse, ptr_mix.marque_bas(), c);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+}
+
+void test_tableau_compact(dls::test_unitaire::Controleuse &controleuse)
+{
+	auto tabl = dls::tableau_simple_compact<int>();
+
+	CU_DEBUTE_PROPOSITION(controleuse, "Un tableau compact est initialisé à zéro");
+	{
+		CU_VERIFIE_EGALITE(controleuse, tabl.donnees(), static_cast<int *>(nullptr));
+		CU_VERIFIE_EGALITE(controleuse, tabl.taille(), 0);
+	}
+	CU_TERMINE_PROPOSITION(controleuse);
+
+	CU_DEBUTE_PROPOSITION(controleuse, "Un tableau compact tient trace de sa taille et de ses valeurs");
+	{
+		for (auto i = 0; i < 256; ++i) {
+			tabl.pousse(i * 2);
+
+			CU_VERIFIE_EGALITE(controleuse, tabl[i], i * 2);
+			CU_VERIFIE_EGALITE(controleuse, tabl.taille(), i + 1);
+		}
 	}
 	CU_TERMINE_PROPOSITION(controleuse);
 }
