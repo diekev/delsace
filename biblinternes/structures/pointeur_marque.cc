@@ -15,19 +15,15 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2018 Kévin Dietrich.
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-#pragma once
+#include "pointeur_marque.hh"
 
-#include "biblinternes/tests/test_unitaire.hh"
+namespace dls {
 
-void test_nombre_decimaux(dls::test_unitaire::Controleuse &controleur);
-void test_pointeur_marque(dls::test_unitaire::Controleuse &controleur);
-void test_pystring(dls::test_unitaire::Controleuse &controleur);
-void test_date(dls::test_unitaire::Controleuse &controleur);
-void test_temperature(dls::test_unitaire::Controleuse &controleur);
+}  /* namespace dls */

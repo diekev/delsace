@@ -26,6 +26,8 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include "pointeur_marque.hh"
+
 namespace dls {
 
 /**
@@ -39,42 +41,7 @@ namespace dls {
 template <typename T>
 struct tableau_simple_compact {
 private:
-	/**
-	 * Structure auxilliaire engloblant la logique de compression et de
-	 * décompression du pointeur et de l'entier.
-	 *
-	 * Voir d'autres cas de figures :
-	 * https://en.wikipedia.org/wiki/Tagged_pointer
-	 * https://nikic.github.io/2012/02/02/Pointer-magic-for-efficient-dynamic-value-representations.html
-	 */
-	struct pointeur_et_entier {
-		T *m_donnees = nullptr;
-
-		static constexpr auto masque_pointeur = 0xffff000000000000;
-
-		inline pointeur_et_entier(T *pointeur_ = nullptr, int entier_ = 0)
-		{
-			ajourne(pointeur_, entier_);
-		}
-
-		inline void ajourne(T *pointeur_, long entier_ = 0)
-		{
-			m_donnees = reinterpret_cast<T *>(
-						reinterpret_cast<uint64_t>(pointeur_) | static_cast<uint64_t>(entier_) << 48l);
-		}
-
-		inline T *pointeur() const
-		{
-			return reinterpret_cast<T *>(reinterpret_cast<uint64_t>(m_donnees) & ~masque_pointeur);
-		}
-
-		inline int entier() const
-		{
-			return static_cast<int>((reinterpret_cast<uint64_t>(m_donnees) & masque_pointeur) >> 48l);
-		}
-	};
-
-	pointeur_et_entier x{};
+	pointeur_marque_haut<T> x{};
 
 public:
 	tableau_simple_compact() = default;
@@ -111,7 +78,7 @@ public:
 
 	int taille() const
 	{
-		return x.entier();
+		return x.marque();
 	}
 
 	void pousse(T const &valeur)

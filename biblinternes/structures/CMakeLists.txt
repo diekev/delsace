@@ -46,6 +46,7 @@ add_library(${NOM_CIBLE} STATIC
 	magasin.cc
 	pile.cc
 	plage.cc
+	pointeur_marque.cc
 	ramasse_miettes.cc
 	tableau.cc
 	tableau_boucle.cc
@@ -70,6 +71,7 @@ add_library(${NOM_CIBLE} STATIC
 	matrice_eparse.hh
 	pile.hh
 	plage.hh
+	pointeur_marque.hh
 	ramasse_miettes.hh
 	tableau.hh
 	tableau_boucle.hh
