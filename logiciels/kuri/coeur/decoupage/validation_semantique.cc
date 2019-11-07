@@ -219,7 +219,7 @@ bool peut_operer(
 
 	if (type1.type_base() == id_morceau::FONC) {
 		/* x : fonc()rien = nul; */
-		if (type2.type_base() == id_morceau::POINTEUR && type2.derefence().front() == id_morceau::NUL) {
+		if (type2.type_base() == id_morceau::POINTEUR && type2.dereference().front() == id_morceau::NUL) {
 			return true;
 		}
 	}
@@ -464,7 +464,7 @@ static auto valide_appel_pointeur_fonction(
 		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
 
 		if (type_prm.type_base() == id_morceau::TROIS_POINTS) {
-			verifie_compatibilite(b, contexte, type_prm.derefence(), type_enf, *enfant);
+			verifie_compatibilite(b, contexte, type_prm.dereference(), type_enf, *enfant);
 		}
 		else {
 			verifie_compatibilite(b, contexte, type_prm, type_enf, *enfant);
@@ -492,7 +492,7 @@ static void valide_acces_membre(
 	auto type_structure = contexte.magasin_types.donnees_types[index_type];
 
 	if (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
-		type_structure = type_structure.derefence();
+		type_structure = type_structure.dereference();
 	}
 
 	if (type_structure.type_base() == id_morceau::CHAINE) {
@@ -550,7 +550,7 @@ static void valide_acces_membre(
 		if (membre->chaine() == "pointeur") {
 			auto dt = DonneesType{};
 			dt.pousse(id_morceau::POINTEUR);
-			dt.pousse(type_structure.derefence());
+			dt.pousse(type_structure.dereference());
 
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
 			return;
@@ -707,7 +707,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
 
 					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(dt_var.derefence());
+					dt.pousse(dt_var.dereference());
 				}
 				else {
 					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
@@ -723,7 +723,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
-					dt = dt.derefence();
+					dt = dt.dereference();
 					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt);
 				}
 
@@ -734,7 +734,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					auto id_structure = 0l;
 
 					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
-						id_structure = static_cast<long>(dt_var.derefence().front() >> 8);
+						id_structure = static_cast<long>(dt_var.dereference().front() >> 8);
 					}
 					else {
 						id_structure = static_cast<long>(dt_var.type_base() >> 8);
@@ -1367,7 +1367,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						case id_morceau::TABLEAU:
 						case id_morceau::POINTEUR:
 						{
-							b->index_type = contexte.magasin_types.ajoute_type(type1.derefence());
+							b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
 							break;
 						}
 						case id_morceau::CHAINE:
@@ -1718,7 +1718,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 			else {
 				if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
-					index_type = contexte.magasin_types.ajoute_type(type.derefence());
+					index_type = contexte.magasin_types.ajoute_type(type.dereference());
 
 					if (requiers_index) {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
@@ -2168,7 +2168,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(enfant, contexte);
 
 			auto &dt_enfant = contexte.magasin_types.donnees_types[enfant->index_type];
-			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.derefence());
+			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.dereference());
 
 			if (dt_enfant.type_base() != id_morceau::POINTEUR) {
 				erreur::lance_erreur(
@@ -2194,7 +2194,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				auto ndt = DonneesType{};
 				ndt.pousse(id_morceau::TABLEAU);
-				ndt.pousse(dt.derefence());
+				ndt.pousse(dt.dereference());
 
 				b->index_type = contexte.magasin_types.ajoute_type(ndt);
 			}
@@ -2235,7 +2235,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				auto ndt = DonneesType{};
 				ndt.pousse(id_morceau::TABLEAU);
-				ndt.pousse(dt.derefence());
+				ndt.pousse(dt.dereference());
 
 				b->index_type = contexte.magasin_types.ajoute_type(ndt);
 			}
@@ -2293,7 +2293,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					auto type_base = dt.type_base();
 
 					if ((type_base & 0xff) == id_morceau::TABLEAU && type_base != id_morceau::TABLEAU) {
-						auto dt_deref = dt.derefence();
+						auto dt_deref = dt.dereference();
 
 						if (dt_deref == contexte.magasin_types.donnees_types[ds.index_type]) {
 							erreur::lance_erreur(

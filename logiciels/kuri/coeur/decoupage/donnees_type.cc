@@ -119,7 +119,7 @@ DonneesType::type_plage DonneesType::plage() const
 	return type_plage(d, f);
 }
 
-DonneesType::type_plage DonneesType::derefence() const
+DonneesType::type_plage DonneesType::dereference() const
 {
 	auto p = plage();
 	p.effronte();
@@ -375,7 +375,7 @@ long MagasinDonneesType::ajoute_type(const DonneesType &donnees)
 	/* Ajoute récursivement les types afin d'être sûr que tous les types
 	 * possibles du programme existent lors de la création des infos types. */
 	if (peut_etre_dereference(donnees.type_base())) {
-		ajoute_type(donnees.derefence());
+		ajoute_type(donnees.dereference());
 	}
 
 	return index;
@@ -394,15 +394,15 @@ void MagasinDonneesType::declare_structures_C(
 		if (donnees.type_base() == id_morceau::TABLEAU) {
 			os << "typedef struct Tableau_";
 
-			converti_type_C(contexte, "", donnees.derefence(), os, true);
+			converti_type_C(contexte, "", donnees.dereference(), os, true);
 
 			os << "{\n\t";
 
-			converti_type_C(contexte, "", donnees.derefence(), os, false, true);
+			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
 
 			os << " *pointeur;\n\tint taille;\n} Tableau_";
 
-			converti_type_C(contexte, "", donnees.derefence(), os, true);
+			converti_type_C(contexte, "", donnees.dereference(), os, true);
 
 			os << ";\n\n";
 		}
@@ -1157,7 +1157,7 @@ unsigned alignement(
 				return 8;
 			}
 
-			return alignement(contexte, donnees_type.derefence());
+			return alignement(contexte, donnees_type.dereference());
 		}
 		case id_morceau::FONC:
 		case id_morceau::POINTEUR:
@@ -1285,7 +1285,7 @@ niveau_compat sont_compatibles(
 
 	if (type1.type_base() == id_morceau::FONC) {
 		/* x : fonc()rien = nul; */
-		if (type2.type_base() == id_morceau::POINTEUR && type2.derefence().front() == id_morceau::NUL) {
+		if (type2.type_base() == id_morceau::POINTEUR && type2.dereference().front() == id_morceau::NUL) {
 			return niveau_compat::ok;
 		}
 
@@ -1295,7 +1295,7 @@ niveau_compat sont_compatibles(
 	}
 
 	if (type1.type_base() == id_morceau::TABLEAU) {
-		if (type1.derefence().front() == id_morceau::OCTET) {
+		if (type1.dereference().front() == id_morceau::OCTET) {
 			return niveau_compat::converti_tableau_octet;
 		}
 
@@ -1303,7 +1303,7 @@ niveau_compat sont_compatibles(
 			return niveau_compat::aucune;
 		}
 
-		if (type1.derefence() == type2.derefence()) {
+		if (type1.dereference() == type2.dereference()) {
 			return niveau_compat::converti_tableau;
 		}
 
@@ -1313,22 +1313,22 @@ niveau_compat sont_compatibles(
 	if (type1.type_base() == id_morceau::POINTEUR) {
 		if (type2.type_base() == id_morceau::POINTEUR) {
 			/* x = nul; */
-			if (type2.derefence().front() == id_morceau::NUL) {
+			if (type2.dereference().front() == id_morceau::NUL) {
 				return niveau_compat::ok;
 			}
 
 			/* x : *rien = y; */
-			if (type1.derefence().front() == id_morceau::RIEN) {
+			if (type1.dereference().front() == id_morceau::RIEN) {
 				return niveau_compat::ok;
 			}
 
 			/* x : *octet = y; */
-			if (type1.derefence().front() == id_morceau::OCTET) {
+			if (type1.dereference().front() == id_morceau::OCTET) {
 				return niveau_compat::ok;
 			}
 		}
 
-		if (type1.derefence().front() == id_morceau::Z8) {
+		if (type1.dereference().front() == id_morceau::Z8) {
 			if (type2.type_base() == id_morceau::CHAINE) {
 				return niveau_compat::extrait_chaine_c;
 			}
@@ -1336,7 +1336,7 @@ niveau_compat sont_compatibles(
 	}
 
 	if (type1.type_base() == id_morceau::REFERENCE) {
-		if (type1.derefence() == type2) {
+		if (type1.dereference() == type2) {
 			return niveau_compat::prend_reference;
 		}
 	}

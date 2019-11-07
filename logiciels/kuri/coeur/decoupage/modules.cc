@@ -373,7 +373,7 @@ static DonneesCandidate verifie_donnees_fonction(
 
 		auto index_dt_var = donnees_fonction.args[nom_arg].donnees_type;
 		auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
-		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.derefence());
+		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.dereference());
 
 		enfants[index_premier_var_arg] = noeud_tableau;
 	}
@@ -399,14 +399,14 @@ static DonneesCandidate verifie_donnees_fonction(
 		/* À FAIRE : arguments variadics : comment les passer d'une
 		 * fonction à une autre. */
 		if (iter->second.est_variadic) {
-			if (!est_invalide(type_arg.derefence())) {
+			if (!est_invalide(type_arg.dereference())) {
 				auto drapeau = niveau_compat::ok;
-				poids_args *= verifie_compatibilite(type_arg.derefence(), type_enf, *enfant, drapeau);
+				poids_args *= verifie_compatibilite(type_arg.dereference(), type_enf, *enfant, drapeau);
 
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					res.type1 = type_arg.derefence();
+					res.type1 = type_arg.dereference();
 					res.type2 = type_enf;
 					res.noeud_decl = *enfant;
 					break;

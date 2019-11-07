@@ -167,7 +167,7 @@ public:
 	 * type. Si le type n'est ni un pointeur, ni un tableau, retourne des
 	 * données invalides.
 	 */
-	type_plage derefence() const;
+	type_plage dereference() const;
 
 	long taille() const;
 

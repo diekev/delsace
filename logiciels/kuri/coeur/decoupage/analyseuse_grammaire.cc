@@ -529,7 +529,7 @@ void analyseuse_grammaire::analyse_parametres_fonction(
 		if (dt.type_base() == type_id::TROIS_POINTS) {
 			noeud->drapeaux |= VARIADIC;
 
-			if (!dls::outils::possede_drapeau(noeud->drapeaux, EST_EXTERNE) && est_invalide(dt.derefence())) {
+			if (!dls::outils::possede_drapeau(noeud->drapeaux, EST_EXTERNE) && est_invalide(dt.dereference())) {
 				lance_erreur("La déclaration de fonction variadique sans type n'est"
 							 " implémentée que pour les fonctions externes");
 			}
