@@ -51,12 +51,12 @@ public:
 
 	tableau_simple_compact(tableau_simple_compact &&autre)
 	{
-		std::swap(x.m_donnees, autre.x.m_donnees);
+		x.echange(autre.x);
 	}
 
 	tableau_simple_compact &operator=(tableau_simple_compact &&autre)
 	{
-		std::swap(x.m_donnees, autre.x.m_donnees);
+		x.echange(autre.x);
 		return *this;
 	}
 
