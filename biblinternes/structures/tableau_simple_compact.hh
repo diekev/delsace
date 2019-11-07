@@ -81,6 +81,11 @@ public:
 		return x.marque();
 	}
 
+	bool est_vide() const
+	{
+		return taille() == 0;
+	}
+
 	void pousse(T const &valeur)
 	{
 		assert(taille() < 65536);
