@@ -46,8 +46,29 @@ private:
 public:
 	tableau_simple_compact() = default;
 
-	tableau_simple_compact(tableau_simple_compact const &autre) = default;
-	tableau_simple_compact &operator=(tableau_simple_compact const &autre) = default;
+	tableau_simple_compact(tableau_simple_compact const &autre)
+	{
+		*this = autre;
+	}
+
+	tableau_simple_compact &operator=(tableau_simple_compact const &autre)
+	{
+		auto ptr = donnees();
+
+		if (ptr != nullptr) {
+			memoire::deloge_tableau("tableau_simple_compact", ptr, taille());
+		}
+
+		auto t = autre.taille();
+		ptr = memoire::loge_tableau<T>("tableau_simple_compact", t);
+
+		for (auto i = 0; i < t; ++i) {
+			ptr[i] = autre[i];
+		}
+
+		x.ajourne(ptr, t);
+		return *this;
+	}
 
 	tableau_simple_compact(tableau_simple_compact &&autre)
 	{
