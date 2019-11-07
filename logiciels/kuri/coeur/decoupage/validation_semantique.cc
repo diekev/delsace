@@ -2279,6 +2279,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto &ds = contexte.donnees_structure(b->chaine());
 
+			if (ds.est_externe && b->enfants.est_vide()) {
+				return;
+			}
+
 			auto verifie_inclusion_valeur = [&ds, &contexte](base *enf)
 			{
 				if (enf->index_type == ds.index_type) {
