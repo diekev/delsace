@@ -11,15 +11,16 @@ importe "chrono"
 
 ################################################################################
 
+# À FAIRE : on ne pas passer de contexte aux méthodes de file via les fonctions de rappel
 dyn VG_file_évènements : *file = nul;
 
-fonc rappel_erreur(erreur : z32, desc : *z8) : rien
+#!nulctx fonc rappel_erreur(erreur : z32, desc : *z8) : rien
 {
     soit chn = converti_chaine_c(desc);
     imprime("Erreur ", erreur, " : ", chn, '\n');
 }
 
-fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) : rien
+#!nulctx fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) : rien
 {
     #glfwSetWindowShouldClose(fenetre, 1);
     dyn évènement : Évènement;
@@ -40,7 +41,7 @@ fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, actio
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) : rien
+#!nulctx fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) : rien
 {
     dyn évènement : Évènement;
 
@@ -57,7 +58,7 @@ fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action 
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : rien
+#!nulctx fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : rien
 {
     dyn évènement : Évènement;
     type de évènement = SOURIS_BOUGEE de type_évènement;
@@ -67,7 +68,7 @@ fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : r
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
+#!nulctx fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
 {
     dyn évènement : Évènement;
     type de évènement = SOURIS_ROULETTE de type_évènement;
@@ -77,7 +78,7 @@ fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) : rien
+#!nulctx fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) : rien
 {
 	glViewport(0, 0, x, y);
 
