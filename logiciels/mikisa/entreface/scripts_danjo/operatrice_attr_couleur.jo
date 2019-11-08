@@ -1,7 +1,7 @@
 disposition "operatrice_attr_couleur" {
     ligne {
 	    étiquette(valeur="Groupe")
-		chaine(valeur=""; attache=nom_groupe)
+		liste(valeur=""; attache=nom_groupe)
 	}
     ligne {
         étiquette(valeur="Portée")

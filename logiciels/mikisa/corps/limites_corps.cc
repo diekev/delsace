@@ -42,8 +42,8 @@ limites3f calcule_limites_mondiales_corps(Corps const &corps)
 
 	auto const &points = corps.points_pour_lecture();
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto point = corps.point_transforme(i);
+	for (auto i = 0; i < points.taille(); ++i) {
+		auto point = points.point_monde(i);
 		dls::math::extrait_min_max(point, limites.min, limites.max);
 	}
 
@@ -56,8 +56,8 @@ limites3f calcule_limites_locales_corps(const Corps &corps)
 
 	auto const &points = corps.points_pour_lecture();
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto point = points->point(i);
+	for (auto i = 0; i < points.taille(); ++i) {
+		auto point = points.point_local(i);
 		dls::math::extrait_min_max(point, limites.min, limites.max);
 	}
 

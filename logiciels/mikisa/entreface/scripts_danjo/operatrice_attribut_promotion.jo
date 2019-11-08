@@ -1,0 +1,20 @@
+disposition "operatrice_attribut_promotion" {
+	ligne {
+		étiquette(valeur="Attribut")
+		liste(valeur="C"; attache=nom_attribut)
+	}
+	ligne {
+		étiquette(valeur="Portée finale")
+		énum(valeur="points"; attache=portée_attribut; items=[
+			 {nom="Points", valeur="points"},
+			 {nom="Primitives", valeur="primitives"},
+			 {nom="Sommets", valeur="sommets"},
+			 {nom="Groupe", valeur="groupe"},
+			 {nom="Corps", valeur="corps"}
+			 ])
+	}
+	ligne {
+		étiquette(valeur="Préserve Luminosité")
+		case(valeur=faux; attache=préserve_lum; infobulle="Pour les attributs de couleurs, performe la promotion de manière à ne pas perdre la luminosité des couleurs.")
+	}
+}

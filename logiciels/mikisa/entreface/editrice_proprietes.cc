@@ -38,6 +38,7 @@
 #pragma GCC diagnostic pop
 
 #include "biblinternes/outils/fichier.hh"
+#include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "evaluation/evaluation.hh"
 
@@ -48,6 +49,7 @@
 #include "coeur/objet.h"
 #include "coeur/mikisa.h"
 #include "coeur/noeud_image.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/operatrice_image.h"
 
 EditriceProprietes::EditriceProprietes(Mikisa &mikisa, QWidget *parent)
@@ -109,44 +111,69 @@ void EditriceProprietes::ajourne_etat(int evenement)
 	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
 	auto chemin_entreface = "";
 
-	if (noeud->type == type_noeud::OBJET) {
-		auto objet = extrait_objet(noeud->donnees);
-		chemin_entreface = objet->chemin_entreface();
-		manipulable = objet->noeud;
-	}
-	else if (noeud->type == type_noeud::COMPOSITE) {
-		/* RÀF */
-	}
-	else {
-		auto operatrice = extrait_opimage(noeud->donnees);
-		chemin_entreface = operatrice->chemin_entreface();
-		manipulable = operatrice;
+	switch (noeud->type) {
+		case type_noeud::COMPOSITE:
+		{
+			/* RÀF */
+			break;
+		}
+		case type_noeud::INVALIDE:
+		{
+			/* RÀF */
+			break;
+		}
+		case type_noeud::NUANCEUR:
+		{
+			/* RÀF */
+			break;
+		}
+		case type_noeud::OBJET:
+		{
+			auto objet = extrait_objet(noeud->donnees);
+			chemin_entreface = objet->chemin_entreface();
 
-		operatrice->ajourne_proprietes();
-
-		/* avertissements */
-		if (operatrice->avertissements().taille() > 0) {
-			auto disposition_avertissements = new QGridLayout();
-			auto ligne = 0;
-			auto const &pixmap = QPixmap("icones/icone_avertissement.png");
-
-			for (auto const &avertissement : operatrice->avertissements()) {
-				auto icone = new QLabel();
-				icone->setPixmap(pixmap);
-
-				auto texte = new QLabel(avertissement.c_str());
-
-				disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
-				disposition_avertissements->addWidget(texte, ligne, 1);
-
-				++ligne;
+			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
+				dls::tableau<dls::chaine> avertissements;
+				auto chn = dls::chaine();
+				chn = "Le fichier « ";
+				chn += chemin_entreface;
+				chn += " » n'existe pas !";
+				avertissements.pousse(chn);
+				ajoute_avertissements(avertissements);
 			}
 
-			m_conteneur_avertissements->setLayout(disposition_avertissements);
-			m_conteneur_avertissements->show();
+			manipulable = objet->noeud;
+			break;
 		}
-		else {
-			m_conteneur_avertissements->hide();
+		case type_noeud::OPERATRICE:
+		{
+			auto operatrice = extrait_opimage(noeud->donnees);
+			chemin_entreface = operatrice->chemin_entreface();
+			manipulable = operatrice;
+
+			operatrice->ajourne_proprietes();
+
+			if (chemin_entreface[0] != '\0' && !std::filesystem::exists(chemin_entreface)) {
+				operatrice->ajoute_avertissement(
+							"Le fichier « ",
+							chemin_entreface,
+							" » n'existe pas !");
+			}
+
+			/* avertissements */
+			if (operatrice->avertissements().taille() > 0) {
+				ajoute_avertissements(operatrice->avertissements());
+			}
+			else {
+				m_conteneur_avertissements->hide();
+			}
+
+			break;
+		}
+		case type_noeud::RENDU:
+		{
+			/* RÀF */
+			break;
 		}
 	}
 
@@ -158,13 +185,19 @@ void EditriceProprietes::ajourne_etat(int evenement)
 		return;
 	}
 
-	auto const &texte = dls::contenu_fichier(chemin_entreface);
-
 	danjo::DonneesInterface donnees{};
 	donnees.manipulable = manipulable;
 	donnees.conteneur = this;
+	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto disposition = m_mikisa.gestionnaire_entreface->compile_entreface(donnees, texte.c_str(), m_mikisa.temps_courant);
+	auto gestionnaire = m_mikisa.gestionnaire_entreface;
+	auto disposition = gestionnaire->compile_entreface_fichier(donnees, chemin_entreface, m_mikisa.temps_courant);
+
+	if (disposition == nullptr) {
+		return;
+	}
+
+	gestionnaire->ajourne_entreface(manipulable);
 	m_conteneur_disposition->setLayout(disposition);
 }
 
@@ -186,10 +219,35 @@ void EditriceProprietes::reinitialise_entreface(bool creation_avert)
 	}
 }
 
+void EditriceProprietes::ajoute_avertissements(
+		dls::tableau<dls::chaine> const &avertissements)
+{
+	auto disposition_avertissements = new QGridLayout();
+	auto ligne = 0;
+	auto const &pixmap = QPixmap("icones/icone_avertissement.png");
+
+	for (auto const &avertissement : avertissements) {
+		auto icone = new QLabel();
+		icone->setPixmap(pixmap);
+
+		auto texte = new QLabel(avertissement.c_str());
+
+		disposition_avertissements->addWidget(icone, ligne, 0, Qt::AlignRight);
+		disposition_avertissements->addWidget(texte, ligne, 1);
+
+		++ligne;
+	}
+
+	m_conteneur_avertissements->setLayout(disposition_avertissements);
+	m_conteneur_avertissements->show();
+}
+
 void EditriceProprietes::ajourne_manipulable()
 {
+	std::cerr << "Controle changé !\n";
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
+	auto manipulable = static_cast<danjo::Manipulable *>(nullptr);
 
 	if (noeud == nullptr) {
 		return;
@@ -204,9 +262,20 @@ void EditriceProprietes::ajourne_manipulable()
 		{
 			auto objet = extrait_objet(noeud->donnees);
 			objet->ajourne_parametres();
+			manipulable = objet->noeud;
 			break;
 		}
 		case type_noeud::COMPOSITE:
+		{
+			break;
+		}
+		case type_noeud::NUANCEUR:
+		{
+			auto nuanceur = extrait_nuanceur(noeud->donnees);
+			nuanceur->temps_modifie += 1;
+			break;
+		}
+		case type_noeud::RENDU:
 		{
 			break;
 		}
@@ -218,6 +287,11 @@ void EditriceProprietes::ajourne_manipulable()
 				auto op = extrait_opimage(n->donnees);
 				op->amont_change(prise);
 			});
+
+			if (noeud->parent->type == type_noeud::NUANCEUR) {
+				auto nuanceur = extrait_nuanceur(noeud->parent->donnees);
+				nuanceur->temps_modifie += 1;
+			}
 
 			/* Notifie les graphes des noeuds parents comme étant surrannés */
 			marque_parent_surannee(noeud->parent, [](Noeud *n, PriseEntree *prise)
@@ -232,11 +306,24 @@ void EditriceProprietes::ajourne_manipulable()
 
 			auto op = extrait_opimage(noeud->donnees);
 			op->parametres_changes();
+			manipulable = op;
 			break;
 		}
 	}
 
+	if (manipulable != nullptr) {
+		manipulable->ajourne_proprietes();
+		auto gestionnaire = m_mikisa.gestionnaire_entreface;
+		gestionnaire->ajourne_entreface(manipulable);
+	}
+
 	requiers_evaluation(m_mikisa, PARAMETRE_CHANGE, "réponse modification propriété manipulable");
+}
+
+void EditriceProprietes::precontrole_change()
+{
+	std::cerr << "---- Précontrole changé !\n";
+	m_mikisa.empile_etat();
 }
 
 void EditriceProprietes::obtiens_liste(
@@ -246,7 +333,7 @@ void EditriceProprietes::obtiens_liste(
 	auto graphe = m_mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
-	if (noeud == nullptr || noeud->type == type_noeud::OBJET) {
+	if (noeud == nullptr || noeud->type != type_noeud::OPERATRICE) {
 		return;
 	}
 
@@ -265,15 +352,22 @@ void EditriceProprietes::onglet_dossier_change(int index)
 		return;
 	}
 
-	if (noeud->type == type_noeud::OBJET) {
-		auto objet = extrait_objet(noeud->donnees);
-		objet->noeud->onglet_courant = index;
-	}
-	else if (noeud->type == type_noeud::COMPOSITE) {
-		/* RÀF */
-	}
-	else {
-		auto op = extrait_opimage(noeud->donnees);
-		op->onglet_courant = index;
+	switch (noeud->type) {
+		case type_noeud::COMPOSITE:
+		case type_noeud::INVALIDE:
+		case type_noeud::NUANCEUR:
+		case type_noeud::OBJET:
+		case type_noeud::RENDU:
+		{
+			noeud->onglet_courant = index;
+			break;
+		}
+		case type_noeud::OPERATRICE:
+		{
+			auto op = extrait_opimage(noeud->donnees);
+			op->onglet_courant = index;
+
+			break;
+		}
 	}
 }

@@ -53,9 +53,9 @@ dls::math::vec3f calcul_normal_poly(Corps const &corps, Polygone const &poly)
 		{
 			/* Calcul du normal en croisant deux cotés. */
 
-			auto const &p0 = points->point(poly.index_point(0));
-			auto const &p1 = points->point(poly.index_point(1));
-			auto const &p2 = points->point(poly.index_point(2));
+			auto const &p0 = points.point_local(poly.index_point(0));
+			auto const &p1 = points.point_local(poly.index_point(1));
+			auto const &p2 = points.point_local(poly.index_point(2));
 
 			auto const c0 = p1 - p0;
 			auto const c1 = p2 - p0;
@@ -66,10 +66,10 @@ dls::math::vec3f calcul_normal_poly(Corps const &corps, Polygone const &poly)
 		{
 			/* Calcul du normal en croisant les sommets 0-2 x 1-3. */
 
-			auto const &p0 = points->point(poly.index_point(0));
-			auto const &p1 = points->point(poly.index_point(1));
-			auto const &p2 = points->point(poly.index_point(2));
-			auto const &p3 = points->point(poly.index_point(3));
+			auto const &p0 = points.point_local(poly.index_point(0));
+			auto const &p1 = points.point_local(poly.index_point(1));
+			auto const &p2 = points.point_local(poly.index_point(2));
+			auto const &p3 = points.point_local(poly.index_point(3));
 
 			auto const c0 = p0 - p2;
 			auto const c1 = p1 - p3;
@@ -89,8 +89,8 @@ dls::math::vec3f calcul_normal_poly(Corps const &corps, Polygone const &poly)
 				auto idx_prev = poly.index_point(i0);
 				auto idx_cour = poly.index_point(i1);
 
-				auto const &p_prev = points->point(idx_prev);
-				auto const &p_cour = points->point(idx_cour);
+				auto const &p_prev = points.point_local(idx_prev);
+				auto const &p_cour = points.point_local(idx_cour);
 
 				nor[0] += (p_prev[1] - p_cour[1]) * (p_prev[2] + p_cour[2]);
 				nor[1] += (p_prev[2] - p_cour[2]) * (p_prev[0] + p_cour[0]);
@@ -149,9 +149,9 @@ static auto rappel_pesee_normal_angle(Corps &corps, Polygone *poly)
 		auto idx_cour = poly->index_point(i1);
 		auto idx_suiv = poly->index_point(i2);
 
-		auto const &p_prev = points->point(idx_prev);
-		auto const &p_cour = points->point(idx_cour);
-		auto const &p_suiv = points->point(idx_suiv);
+		auto const &p_prev = points.point_local(idx_prev);
+		auto const &p_cour = points.point_local(idx_cour);
+		auto const &p_suiv = points.point_local(idx_suiv);
 
 		auto c0 = normalise(p_cour - p_prev);
 		auto c1 = normalise(p_suiv - p_cour);
@@ -209,9 +209,9 @@ static auto rappel_pesee_normal_max(Corps &corps, Polygone *poly)
 		auto idx_cour = poly->index_point(i1);
 		auto idx_suiv = poly->index_point(i2);
 
-		auto const &p_prev = points->point(idx_prev);
-		auto const &p_cour = points->point(idx_cour);
-		auto const &p_suiv = points->point(idx_suiv);
+		auto const &p_prev = points.point_local(idx_prev);
+		auto const &p_cour = points.point_local(idx_cour);
+		auto const &p_suiv = points.point_local(idx_suiv);
 
 		auto l0 = longueur(p_prev - p_cour);
 		auto l1 = longueur(p_suiv - p_cour);

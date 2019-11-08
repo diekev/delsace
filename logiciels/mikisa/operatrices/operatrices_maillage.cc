@@ -33,7 +33,7 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/structures/ensemble.hh"
-#include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/structures/file.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "corps/iteration_corps.hh"
@@ -57,7 +57,7 @@ static auto cherche_index_voisins(Corps const &corps)
 {
 	auto points_entree = corps.points_pour_lecture();
 
-	dls::tableau<dls::ensemble<long>> voisins(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> voisins(points_entree.taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *poly)
@@ -86,7 +86,7 @@ static auto cherche_index_adjacents(Corps const &corps)
 {
 	auto points_entree = corps.points_pour_lecture();
 
-	dls::tableau<dls::ensemble<long>> adjacents(points_entree->taille());
+	dls::tableau<dls::ensemble<long>> adjacents(points_entree.taille());
 
 	pour_chaque_polygone_ferme(corps,
 							   [&](Corps const &corps_entree, Polygone *polygone)
@@ -119,13 +119,13 @@ static auto cherche_index_bordures(
 /* ************************************************************************** */
 
 static auto calcule_lissage_normal(
-		ListePoints3D const *points_entree,
+		AccesseusePointEcriture const &points_entree,
 		dls::tableau<char> const &bordures,
 		dls::tableau<dls::ensemble<long>> const &voisins,
 		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
-	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
@@ -146,12 +146,12 @@ static auto calcule_lissage_normal(
 							continue;
 						}
 
-						deplacement[i] += points_entree->point(j);
+						deplacement[i] += points_entree.point_local(j);
 						nnused++;
 					}
 
 					deplacement[i] /= static_cast<float>(nnused);
-					deplacement[i] -= points_entree->point(i);
+					deplacement[i] -= points_entree.point_local(i);
 				}
 			}
 			else {
@@ -162,24 +162,24 @@ static auto calcule_lissage_normal(
 				}
 
 				for (auto j : voisins[i]) {
-					deplacement[i] += points_entree->point(j);
+					deplacement[i] += points_entree.point_local(j);
 				}
 
 				deplacement[i] /= static_cast<float>(nn);
-				deplacement[i] -= points_entree->point(i);
+				deplacement[i] -= points_entree.point_local(i);
 			}
 		}
 	});
 }
 
 static auto calcule_lissage_pondere(
-		ListePoints3D const *points_entree,
+		AccesseusePointEcriture const &points_entree,
 		dls::tableau<char> const &bordures,
 		dls::tableau<dls::ensemble<long>> const &voisins,
 		dls::tableau<dls::math::vec3f> &deplacement,
 		bool preserve_bordures)
 {
-	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
@@ -194,7 +194,7 @@ static auto calcule_lissage_pondere(
 					}
 
 					auto p = dls::math::vec3f(0.0f);
-					auto const &xi = points_entree->point(i);
+					auto const &xi = points_entree.point_local(i);
 					auto poids = 1.0f;
 
 					for (auto j : voisins[i]) {
@@ -202,7 +202,7 @@ static auto calcule_lissage_pondere(
 							continue;
 						}
 
-						auto xj = points_entree->point(j);
+						auto xj = points_entree.point_local(j);
 						auto ai = 1.0f / longueur(xi - xj);
 
 						p += ai * xj;
@@ -221,11 +221,11 @@ static auto calcule_lissage_pondere(
 				}
 
 				auto p = dls::math::vec3f(0.0f);
-				auto const &xi = points_entree->point(i);
+				auto const &xi = points_entree.point_local(i);
 				auto poids = 1.0f;
 
 				for (auto j : voisins[i]) {
-					auto xj = points_entree->point(j);
+					auto xj = points_entree.point_local(j);
 					auto ai = 1.0f / longueur(xi - xj);
 
 					p += ai * xj;
@@ -240,17 +240,17 @@ static auto calcule_lissage_pondere(
 }
 
 static auto applique_lissage(
-		ListePoints3D *points_entree,
+		AccesseusePointEcriture &points_entree,
 		Attribut *attr_N,
 		dls::tableau<dls::math::vec3f> const &deplacement,
 		float poids_lissage,
 		bool tangeante)
 {
-	boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); i++) {
-			auto p = points_entree->point(i);
+			auto p = points_entree.point_local(i);
 
 			if (tangeante) {
 				auto n = dls::math::vec3f();
@@ -262,7 +262,7 @@ static auto applique_lissage(
 				p += poids_lissage * deplacement[i];
 			}
 
-			points_entree->point(i, p);
+			points_entree.point(i, p);
 		}
 	});
 }
@@ -294,13 +294,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = m_corps.points_pour_ecriture();
@@ -324,7 +324,7 @@ public:
 			}
 		}
 
-		dls::tableau<dls::math::vec3f> deplacement(points_entree->taille());
+		dls::tableau<dls::math::vec3f> deplacement(points_entree.taille());
 
 		/* IDÉES :
 		 * - application de l'algorithme sur les normaux des points.
@@ -342,7 +342,7 @@ public:
 			applique_lissage(points_entree, attr_N, deplacement, poids_lissage, tangeante);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -375,18 +375,18 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* copie les points et les attributs et groupes n'étant pas sur les
 		 * primitives */
-		*m_corps.points_pour_ecriture() = *corps_entree->points_pour_lecture();
+		m_corps.copie_points(*corps_entree);
 
 		for (auto const &attr : corps_entree->attributs()) {
 			if (attr.portee == portee_attr::PRIMITIVE || attr.portee == portee_attr::VERTEX) {
@@ -435,11 +435,11 @@ public:
 					continue;
 				}
 
-				paire.second->ajoute_primitive(poly->index);
+				paire.second->ajoute_index(poly->index);
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -459,9 +459,9 @@ static auto centre_masse_maillage(Corps const &corps)
 		auto aire_poly = 0.0f;
 
 		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(0));
-			auto v1 = points->point(poly->index_point(j - 1));
-			auto v2 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(0));
+			auto v1 = points.point_local(poly->index_point(j - 1));
+			auto v2 = points.point_local(poly->index_point(j));
 
 			auto centre_tri = (v0 + v1 + v2) / 3.0f;
 			auto aire_tri = calcule_aire(v0, v1, v2);
@@ -494,9 +494,9 @@ static auto covariance_maillage(Corps const &corps)
 		auto aire_poly = 0.0f;
 
 		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(0));
-			auto v1 = points->point(poly->index_point(j - 1));
-			auto v2 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(0));
+			auto v1 = points.point_local(poly->index_point(j - 1));
+			auto v2 = points.point_local(poly->index_point(j));
 
 			auto aire_tri = calcule_aire(v0, v1, v2);
 			aire_totale += aire_tri;
@@ -507,7 +507,7 @@ static auto covariance_maillage(Corps const &corps)
 		auto centroid = dls::math::vec3f(0.0f);
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			centroid += points->point(poly->index_point(j));
+			centroid += points.point_local(poly->index_point(j));
 		}
 
 		centroid /= static_cast<float>(poly->nombre_sommets());
@@ -515,7 +515,7 @@ static auto covariance_maillage(Corps const &corps)
 		/* covariance avec le centroide */
 		auto const poids_point = aire_poly / (static_cast<float>(poly->nombre_sommets()) * 3.0f);
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			auto pc = points->point(poly->index_point(j)) - centroid;
+			auto pc = points.point_local(poly->index_point(j)) - centroid;
 
 			for (auto ii = 0ul; ii < 3; ++ii) {
 				for (auto jj = 0ul; jj < 3; ++jj) {
@@ -572,13 +572,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points = m_corps.points_pour_ecriture();
@@ -590,16 +590,16 @@ public:
 
 		auto echelle = poids / std::sqrt(MC[0][0] + MC[1][1] + MC[2][2]);
 
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto point = points.point_local(i);
 			/* peut-être une matrice de transformation */
 			point -= centre_masse;
 			point *= echelle;
 			point += centre_masse;
-			points->point(i, point);
+			points.point(i, point);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -634,13 +634,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points = m_corps.points_pour_ecriture();
@@ -654,10 +654,10 @@ public:
 		auto centre_masse = centre_masse_maillage(m_corps);
 
 		/* centre le maillage */
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto point = points.point_local(i);
 			point -= centre_masse;
-			points->point(i, point);
+			points.point(i, point);
 		}
 
 		auto C = covariance_maillage(m_corps);
@@ -682,10 +682,10 @@ public:
 		auto second = dls::math::vec3f(vpy_e[0], vpy_e[1], vpy_e[2]);
 
 		auto npos = 0;
-		auto nombre_points = points->taille();
+		auto nombre_points = points.taille();
 
 		for (auto i = 0; i < nombre_points; i++) {
-			if (produit_scalaire(points->point(i), premier) > 0.0f) {
+			if (produit_scalaire(points.point_local(i), premier) > 0.0f) {
 				npos++;
 			}
 		}
@@ -696,7 +696,7 @@ public:
 
 		npos = 0;
 		for (int i = 0; i < nombre_points; i++) {
-			if (produit_scalaire(points->point(i), second) > 0.0f) {
+			if (produit_scalaire(points.point_local(i), second) > 0.0f) {
 				npos++;
 			}
 		}
@@ -715,106 +715,14 @@ public:
 		mat = inverse(mat);
 
 		/* applique la matrice et repositione le maillage */
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto point = points.point_local(i);
 			point = mat * point;
 			point -= centre_masse;
-			points->point(i, point);
+			points.point(i, point);
 		}
 
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
-class OperatriceBruitTopologique final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Bruit Topologique";
-	static constexpr auto AIDE = "";
-
-	OperatriceBruitTopologique(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_bruit_topologique.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-
-		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto points = m_corps.points_pour_ecriture();
-
-		auto attr_N = m_corps.attribut("N");
-
-		if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
-			calcul_normaux(m_corps, false, false);
-			attr_N = m_corps.attribut("N");
-		}
-
-		auto graine = evalue_entier("graine");
-		auto poids = evalue_decimal("poids");
-		auto poids_normaux = evalue_decimal("poids_normaux");
-		auto poids_tangeantes = evalue_decimal("poids_tangeantes");
-
-		auto index_voisins = cherche_index_voisins(m_corps);
-
-		auto gna = GNA(graine);
-
-		auto deplacement = dls::tableau<dls::math::vec3f>(
-					points->taille(),
-					dls::math::vec3f(0.0f));
-
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
-
-			/* tangeante */
-			auto const &voisins = index_voisins[i];
-
-			for (auto voisin : voisins) {
-				auto const pv = points->point(voisin);
-				auto echelle = poids_tangeantes / (poids_tangeantes + longueur(pv - point));
-				deplacement[i] += gna.uniforme(0.0f, echelle) * (pv - point);
-			}
-
-			if (voisins.taille() != 0) {
-				deplacement[i] /= static_cast<float>(voisins.taille());
-			}
-
-			/* normal */
-			auto n = dls::math::vec3f();
-			extrait(attr_N->r32(i), n);
-			deplacement[i] += gna.uniforme(0.0f, poids_normaux) * n;
-		}
-
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto point = points->point(i);
-			point += poids * deplacement[i];
-			points->point(i, point);
-		}
-
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -847,13 +755,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto iterations = evalue_entier("itérations", contexte.temps_courant);
@@ -930,6 +838,7 @@ public:
 		/* copie les polygones et points restants */
 
 		auto transferante = TransferanteAttribut(*corps_entree, m_corps, TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_SOMMETS);
+		auto points_sortie = m_corps.points_pour_ecriture();
 
 		/* transfère tous les points */
 		for (auto s : polyedre.sommets) {
@@ -937,7 +846,7 @@ public:
 				continue;
 			}
 
-			auto idx = m_corps.ajoute_point(s->p);
+			auto idx = points_sortie.ajoute_point(s->p);
 			s->index = idx;
 
 			transferante.transfere_attributs_points(s->label, s->index);
@@ -964,7 +873,7 @@ public:
 			transferante.transfere_attributs_prims(f->label, poly->index);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void performe_versionnage() override
@@ -981,15 +890,15 @@ public:
 
 /* ************************************************************************** */
 
-static auto calcul_barycentre(ListePoints3D const *points)
+static auto calcul_barycentre(AccesseusePointLecture const &points)
 {
 	auto barycentre = dls::math::vec3f(0.0f);
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		barycentre += points->point(i);
+	for (auto i = 0; i < points.taille(); ++i) {
+		barycentre += points.point_local(i);
 	}
 
-	barycentre /= (static_cast<float>(points->taille()));
+	barycentre /= (static_cast<float>(points.taille()));
 
 	return barycentre;
 }
@@ -1044,9 +953,9 @@ static auto calcul_donnees_aire(Corps &corps)
 		auto aire_poly = 0.0f;
 
 		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(0));
-			auto v1 = points->point(poly->index_point(j - 1));
-			auto v2 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(0));
+			auto v1 = points.point_local(poly->index_point(j - 1));
+			auto v2 = points.point_local(poly->index_point(j));
 
 			auto aire_tri = calcule_aire(v0, v1, v2);
 
@@ -1075,8 +984,8 @@ static auto calcul_donnees_perimetres(Corps &corps)
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 			auto idx = poly->index_point(j);
-			auto v0 = points->point(k);
-			auto v1 = points->point(idx);
+			auto v0 = points.point_local(k);
+			auto v1 = points.point_local(idx);
 
 			peri_poly += longueur(v1 - v0);
 			k = idx;
@@ -1102,7 +1011,7 @@ static auto calcul_barycentre_poly(Corps &corps)
 		auto barycentre = dls::math::vec3f(0.0f);
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
-			barycentre += points->point(poly->index_point(j));
+			barycentre += points.point_local(poly->index_point(j));
 		}
 
 		barycentre /= static_cast<float>(poly->nombre_sommets());
@@ -1122,9 +1031,9 @@ static auto calcul_centroide_poly(Corps &corps)
 	auto idx_voisins = cherche_index_adjacents(corps);
 	auto aires_poly = calcul_donnees_aire(corps);
 
-	auto aires_sommets = dls::tableau<float>(points->taille());
+	auto aires_sommets = dls::tableau<float>(points.taille());
 
-	for (auto i = 0; i < points->taille(); ++i) {
+	for (auto i = 0; i < points.taille(); ++i) {
 		auto aire = 0.0f;
 
 		for (auto const &voisin : idx_voisins[i]) {
@@ -1146,7 +1055,7 @@ static auto calcul_centroide_poly(Corps &corps)
 
 		for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 			auto idx = poly->index_point(j);
-			auto v1 = points->point(idx);
+			auto v1 = points.point_local(idx);
 
 			centroide += v1 * aires_sommets[idx];
 			poids += aires_sommets[idx];
@@ -1173,8 +1082,8 @@ static auto calcul_arrete_plus_longues(Corps &corps)
 		INUTILISE(corps_entree);
 
 		for (auto j = 1; j < poly->nombre_sommets(); ++j) {
-			auto v0 = points->point(poly->index_point(j - 1));
-			auto v1 = points->point(poly->index_point(j));
+			auto v0 = points.point_local(poly->index_point(j - 1));
+			auto v1 = points.point_local(poly->index_point(j));
 
 			auto l = longueur(v0 - v1);
 
@@ -1194,15 +1103,15 @@ static auto calcul_tangeantes(Corps &corps)
 
 	auto index_voisins = cherche_index_voisins(corps);
 
-	for (auto i = 0; i < points->taille(); ++i) {
+	for (auto i = 0; i < points.taille(); ++i) {
 		auto const &voisins = index_voisins[i];
 
 		auto tangeante = dls::math::vec3f(0.0f);
-		auto p0 = points->point(i);
+		auto p0 = points.point_local(i);
 		auto poids_total = 0.0f;
 
 		for (auto v : voisins) {
-			auto p1 = points->point(v);
+			auto p1 = points.point_local(v);
 			auto dir = (p1 - p0);
 			auto poids = longueur(dir);
 			tangeante += poids * dir;
@@ -1225,8 +1134,8 @@ static auto calcul_donnees_dist_point(Corps &corps, dls::math::vec3f const &cent
 
 	auto dist = corps.ajoute_attribut("distance", type_attribut::R32, 1, portee_attr::POINT);
 
-	for (auto i = 0; i < points->taille(); ++i) {
-		auto d = longueur(points->point(i) - centre);
+	for (auto i = 0; i < points.taille(); ++i) {
+		auto d = longueur(points.point_local(i) - centre);
 
 		assigne(dist->r32(i), d);
 	}
@@ -1245,6 +1154,24 @@ static auto calcul_donnees_dist_centroide(Corps &corps)
 {
 	auto centre_masse = centre_masse_maillage(corps);
 	return calcul_donnees_dist_point(corps, centre_masse);
+}
+
+static auto calcul_centroide_corps(Corps &corps)
+{
+	auto centre_masse = centre_masse_maillage(corps);
+	auto attr = corps.ajoute_attribut("centroïde", type_attribut::R32, 3, portee_attr::CORPS);
+	assigne(attr->r32(0), centre_masse);
+	return attr;
+}
+
+static auto calcul_limites_corps(Corps &corps)
+{
+	auto limites = calcule_limites_mondiales_corps(corps);
+	auto attr = corps.ajoute_attribut("min", type_attribut::R32, 3, portee_attr::CORPS);
+	assigne(attr->r32(0), limites.min);
+	attr = corps.ajoute_attribut("max", type_attribut::R32, 3, portee_attr::CORPS);
+	assigne(attr->r32(0), limites.max);
+	return attr;
 }
 
 static auto min_max_attribut(Attribut *attr, float &valeur_min, float &valeur_max)
@@ -1318,9 +1245,9 @@ static auto calcul_angle_sommets(Corps &corps)
 			auto idx_p1 = polygone->index_point(i1);
 			auto idx_p2 = polygone->index_point(i2);
 
-			auto p0 = points->point(idx_p0);
-			auto p1 = points->point(idx_p1);
-			auto p2 = points->point(idx_p2);
+			auto p0 = points.point_local(idx_p0);
+			auto p1 = points.point_local(idx_p1);
+			auto p2 = points.point_local(idx_p2);
 
 			auto e0 = p0 - p1;
 			auto e1 = p2 - p1;
@@ -1472,13 +1399,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points = m_corps.points_pour_lecture();
@@ -1497,6 +1424,9 @@ public:
 		else if (type_metrie == "barycentre_poly") {
 			attr_sortie = calcul_barycentre_poly(m_corps);
 		}
+		else if (type_metrie == "centroïde_corps") {
+			attr_sortie = calcul_centroide_corps(m_corps);
+		}
 		else if (type_metrie == "centroïde_poly") {
 			attr_sortie = calcul_centroide_poly(m_corps);
 		}
@@ -1505,6 +1435,9 @@ public:
 		}
 		else if (type_metrie == "dist_centroïde") {
 			attr_sortie = calcul_donnees_dist_centroide(m_corps);
+		}
+		else if (type_metrie == "limites_corps") {
+			attr_sortie = calcul_limites_corps(m_corps);
 		}
 		else if (type_metrie == "tangeante") {
 			attr_sortie = calcul_tangeantes(m_corps);
@@ -1527,8 +1460,8 @@ public:
 				auto barycentre = calcul_barycentre(points);
 				auto dist_max = -std::numeric_limits<float>::max();
 
-				for (auto i = 0; i < points->taille(); ++i) {
-					auto d = longueur(barycentre - points->point(i));
+				for (auto i = 0; i < points.taille(); ++i) {
+					auto d = longueur(barycentre - points.point_local(i));
 
 					if (d > dist_max) {
 						dist_max = d;
@@ -1544,19 +1477,13 @@ public:
 						static_cast<double>(rayon));
 
 			if (donnees_ret.nombre_instable > 0) {
-				dls::flux_chaine ss;
-				ss << "Il y a " << donnees_ret.nombre_instable
-				   << " points instables. Veuillez modifier le rayon pour stabiliser l'algorithme.";
-				this->ajoute_avertissement(ss.chn());
-				return EXECUTION_ECHOUEE;
+				this->ajoute_avertissement("Il y a ", donnees_ret.nombre_instable, " points instables. Veuillez modifier le rayon pour stabiliser l'algorithme.");
+				return res_exec::ECHOUEE;
 			}
 
 			if (donnees_ret.nombre_impossible > 0) {
-				dls::flux_chaine ss;
-				ss << "Il y a " << donnees_ret.nombre_impossible
-				   << " points impossibles à calculer. Veuillez modifier le rayon pour stabiliser l'algorithme.";
-				this->ajoute_avertissement(ss.chn());
-				return EXECUTION_ECHOUEE;
+				this->ajoute_avertissement("Il y a ", donnees_ret.nombre_impossible, " points impossibles à calculer. Veuillez modifier le rayon pour stabiliser l'algorithme.");
+				return res_exec::ECHOUEE;
 			}
 
 			if (type_metrie == "direction_min") {
@@ -1571,7 +1498,7 @@ public:
 
 				attr_sortie = m_corps.ajoute_attribut("gaussien", type_attribut::R32, 1, portee_attr::POINT);
 
-				for (auto i = 0; i < points->taille(); ++i) {
+				for (auto i = 0; i < points.taille(); ++i) {
 					attr_sortie->r32(i)[0] = attr_courbure_min->r32(i)[0] * attr_courbure_max->r32(i)[0];
 				}
 			}
@@ -1580,7 +1507,7 @@ public:
 				auto attr_courbure_max = m_corps.attribut("courbure_max");
 				attr_sortie = m_corps.ajoute_attribut("moyenne", type_attribut::R32, 1, portee_attr::POINT);
 
-				for (auto i = 0; i < points->taille(); ++i) {
+				for (auto i = 0; i < points.taille(); ++i) {
 					attr_sortie->r32(i)[0] = (attr_courbure_min->r32(i)[0] + attr_courbure_max->r32(i)[0]) * 0.5f;
 				}
 			}
@@ -1608,7 +1535,7 @@ public:
 		}
 		else {
 			this->ajoute_avertissement("Type métrie inconnu");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (valeur_max != 0.0f) {
@@ -1617,14 +1544,20 @@ public:
 
 		visualise_attribut(attr_sortie);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void visualise_attribut(Attribut *attr)
 	{
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
+		auto attr_C = m_corps.attribut("C");
 
-		if (attr->type() == type_attribut::Z32) {
+		if (attr_C != nullptr) {
+			m_corps.supprime_attribut("C");
+		}
+
+		attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, attr->portee);
+
+		if (attr->type() == type_attribut::R32) {
 			if (attr->dimensions == 1) {
 				auto min_donnees = std::numeric_limits<float>::max();
 				auto max_donnees = -min_donnees;
@@ -1641,137 +1574,6 @@ public:
 				}
 			}
 		}
-	}
-};
-
-/* ************************************************************************** */
-
-class OpFonteMaillage final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Fonte Maillage";
-	static constexpr auto AIDE = "Simule un effet de fonte du maillage d'entrée";
-
-	OpFonteMaillage(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_fonte_maillage.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		m_corps.reinitialise();
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-
-		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto points = m_corps.points_pour_ecriture();
-
-		auto quantite = evalue_decimal("quantité", contexte.temps_courant);
-		auto etalement = evalue_decimal("étalement", contexte.temps_courant);
-		auto epaisseur = evalue_decimal("épaisseur", contexte.temps_courant);
-		auto direction = evalue_enum("direction");
-		auto amplitude_bruit = evalue_decimal("amplitude", contexte.temps_courant);
-		auto frequence_bruit = evalue_vecteur("fréquence", contexte.temps_courant);
-		auto decalage_bruit = evalue_vecteur("décalage", contexte.temps_courant);
-
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("fonte maillage");
-
-		/* calcul la boîte englobante */
-		auto limites = calcule_limites_locales_corps(m_corps);
-		auto const &min = limites.min;
-		auto const &max = limites.max;
-
-		auto attr_N = static_cast<Attribut *>(nullptr);
-
-		auto centroide = dls::math::vec3f(0.0f);
-
-		if (direction == "normal") {
-			attr_N = m_corps.attribut("N");
-
-			if (attr_N == nullptr || attr_N->portee != portee_attr::POINT) {
-				calcul_normaux(m_corps, false, false);
-				attr_N = m_corps.attribut("N");
-			}
-		}
-		else {
-			centroide = centre_masse_maillage(m_corps);
-		}
-
-		auto distance = (max.y - min.y);
-		auto param_bruit = bruit::parametres();
-		bruit::construit(bruit::type::SIMPLEX, param_bruit, 0);
-
-		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
-						 [&](tbb::blocked_range<long> const &plage)
-		{
-			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				if (chef->interrompu()) {
-					break;
-				}
-
-				auto p = points->point(i);
-
-				p.y -= distance * quantite;
-
-				if (p.y < min.y) {
-					auto fraction_depassement = (min.y - p.y) / (max.y - min.y);
-
-					auto poussee = dls::math::vec3f(0.0f);
-
-					if (direction == "normal") {
-						extrait(attr_N->r32(i), poussee);
-						poussee.y = 0.0f;
-					}
-					else if (direction == "radial") {
-						poussee = p - centroide;
-						poussee.y = 0.0f;
-					}
-
-					/* Éjecte le point avec un peu de bruit si besoin est. */
-					float n = 0.0f;
-
-					if (amplitude_bruit != 0.0f) {
-						n = amplitude_bruit * bruit::evalue(param_bruit, p * frequence_bruit + decalage_bruit);
-					}
-
-					p += ((quantite * etalement) + n) * fraction_depassement * poussee;
-
-					p.y = min.y;
-
-					/* Donne une épaisseur au point. */
-					p.y -= fraction_depassement * epaisseur;
-				}
-
-				/* Pousse le point pour compenser le décalage descendant du pool */
-				p.y += quantite * epaisseur;
-
-				points->point(i, p);
-			}
-
-			auto delta = static_cast<float>(plage.end() - plage.begin());
-			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()) * 100.0f);
-		});
-
-		return EXECUTION_REUSSIE;
 	}
 };
 
@@ -1808,13 +1610,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		// l'algorithme n'est réelemnt que défini pour des triangles, pour les
@@ -1833,14 +1635,16 @@ public:
 		chef->demarre_evaluation("couleur maillage");
 
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points_entree = corps_entree->points_pour_lecture();
+		auto points_sortie = m_corps.points_pour_ecriture();
 
-		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &corps_, Polygone const *poly)
+		pour_chaque_polygone_ferme(*corps_entree, [&](Corps const &, Polygone const *poly)
 		{
 			auto Rd = static_cast<float>(R);
 
-			auto v0 = corps_.point_transforme(poly->index_point(0));
-			auto v1 = corps_.point_transforme(poly->index_point(1));
-			auto v2 = corps_.point_transforme(poly->index_point(3));
+			auto v0 = points_entree.point_monde(poly->index_point(0));
+			auto v1 = points_entree.point_monde(poly->index_point(1));
+			auto v2 = points_entree.point_monde(poly->index_point(3));
 
 			dls::math::vec3f couleurs[3] = {
 				dls::math::vec3f(0.0f, 0.0f, 1.0f),
@@ -1863,7 +1667,7 @@ public:
 
 					auto point = w * v0 + u * v1 + v * v2;
 
-					auto idx_point = m_corps.ajoute_point(point);
+					auto idx_point = points_sortie.ajoute_point(point);
 
 					if ((i == 0 || i == R) && (j == 0 || j == R)) {
 						// nous sommes sur un point
@@ -1881,7 +1685,100 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+static void ajourne_label_groupe(mi_face *face, unsigned int groupe)
+{
+	auto file = dls::file<mi_face *>();
+	auto visites = dls::ensemble<mi_face *>();
+
+	file.enfile(face);
+
+	while (!file.est_vide()) {
+		face = file.defile();
+
+		if (visites.trouve(face) != visites.fin()) {
+			continue;
+		}
+
+		visites.insere(face);
+
+		face->label1 = groupe;
+
+		/* pour chaque face autour de la nôtre */
+		auto a0 = face->arete;
+		auto a1 = a0->suivante;
+		auto fin = a1;
+
+		do {
+			if (a0->paire != nullptr) {
+				file.enfile(a0->paire->face);
+			}
+
+			a0 = a1;
+			a1 = a0->suivante;
+		} while (a1 != fin);
+	}
+}
+
+class OpPiecesDetachees final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Pièces Détachées";
+	static constexpr auto AIDE = "Groupe les polygones du maillage d'entrée selon leur connectivité de sorte que les polygones ou ensemble de polygones séparées des autres soient dans des groupes distincts.";
+
+	OpPiecesDetachees(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto polyedre = converti_corps_polyedre(m_corps);
+
+		auto nombre_groupe = 0u;
+		for (auto face : polyedre.faces) {
+			if (face->label1 != 0) {
+				continue;
+			}
+
+			ajourne_label_groupe(face, ++nombre_groupe);
+		}
+
+		auto groupes = dls::tableau<GroupePrimitive *>(nombre_groupe);
+
+		for (auto i = 0u; i < nombre_groupe; ++i) {
+			groupes[i] = m_corps.ajoute_groupe_primitive("pièce" + dls::vers_chaine(i));
+		}
+
+		for (auto face : polyedre.faces) {
+			groupes[face->label1 - 1]->ajoute_index(face->label);
+		}
+
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1893,11 +1790,10 @@ void enregistre_operatrices_maillage(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceTriangulation>());
 	usine.enregistre_type(cree_desc<OperatriceNormaliseCovariance>());
 	usine.enregistre_type(cree_desc<OperatriceAligneCovariance>());
-	usine.enregistre_type(cree_desc<OperatriceBruitTopologique>());
 	usine.enregistre_type(cree_desc<OperatriceErosionMaillage>());
 	usine.enregistre_type(cree_desc<OpGeometrieMaillage>());
-	usine.enregistre_type(cree_desc<OpFonteMaillage>());
 	usine.enregistre_type(cree_desc<OpCouleurMaillage>());
+	usine.enregistre_type(cree_desc<OpPiecesDetachees>());
 }
 
 #pragma clang diagnostic pop

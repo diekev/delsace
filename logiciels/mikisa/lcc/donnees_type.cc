@@ -37,6 +37,7 @@ int taille_type(type_var type)
 		{
 			return 0;
 		}
+		case type_var::CHAINE:
 		case type_var::TABLEAU:
 		case type_var::ENT32:
 		case type_var::DEC:
@@ -84,6 +85,38 @@ const char *chaine_type_var(type_var type)
 			return "type_var::POLYMORPHIQUE";
 		case type_var::COULEUR:
 			return "type_var::COULEUR";
+	}
+
+	return "erreur";
+}
+
+const char *type_var_opengl(type_var type)
+{
+	switch (type) {
+		case type_var::DEC:
+			return "float";
+		case type_var::VEC2:
+			return "vec2";
+		case type_var::VEC3:
+			return "vec3";
+		case type_var::VEC4:
+			return "vec4";
+		case type_var::MAT3:
+			return "mat3";
+		case type_var::MAT4:
+			return "mat4";
+		case type_var::ENT32:
+			return "int";
+		case type_var::CHAINE:
+			return "void";
+		case type_var::INVALIDE:
+			return "void";
+		case type_var::TABLEAU:
+			return "void";
+		case type_var::POLYMORPHIQUE:
+			return "void";
+		case type_var::COULEUR:
+			return "vec4";
 	}
 
 	return "erreur";

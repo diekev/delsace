@@ -308,7 +308,7 @@ public:
 
 	void converti_corps();
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 };
 
 OperatriceSNH::OperatriceSNH(Graphe &graphe_parent, Noeud &noeud_)
@@ -337,10 +337,10 @@ void OperatriceSNH::converti_corps()
 {
 	m_corps.reinitialise();
 	auto points = m_corps.points_pour_ecriture();
-	points->reserve(static_cast<long>(g_tetMesh.GetVertices().size()));
+	points.reserve(static_cast<long>(g_tetMesh.GetVertices().size()));
 
 	for (const CubeSim::Vector3& p : g_tetMesh.GetVertices()) {
-		m_corps.ajoute_point(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
+		points.ajoute_point(static_cast<float>(p.x()), static_cast<float>(p.y()), static_cast<float>(p.z()));
 	}
 
 	for (const std::array<int,3>& f : g_surfaceTriangles) {
@@ -351,7 +351,7 @@ void OperatriceSNH::converti_corps()
 	}
 }
 
-int OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donnees_aval)
 {
 	INUTILISE(donnees_aval);
 	m_corps.reinitialise();
@@ -393,7 +393,7 @@ int OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donn
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	auto stepNum = contexte.temps_courant;
@@ -423,7 +423,7 @@ int OperatriceSNH::execute(const ContexteEvaluation &contexte, DonneesAval *donn
 
 	chef->indique_progression(100.0f);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */

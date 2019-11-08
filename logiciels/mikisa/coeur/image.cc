@@ -247,9 +247,38 @@ calque_image *Image::calque_profond_pour_ecriture(const dls::chaine &nom)
 		if (!clq.unique()) {
 			auto ncalque = memoire::loge<calque_image>("calque_image");
 			ncalque->nom = clq->nom;
-			/* À FAIRE : ajourne pointeurs. */
 			ncalque->tampon() = clq->tampon()->copie();
 			ncalque->echantillons = clq->echantillons;
+
+			/* Ajourne pointeurs. */
+			auto tamp = ncalque->tampon();
+
+			if (tamp->desc().type_donnees == wlk::type_grille::R32_PTR) {
+				auto S = calque_profond_pour_lecture("S");
+				auto tampon_S = dynamic_cast<wlk::grille_dense_2d<unsigned> const *>(S->tampon());
+
+				auto decalage = 0l;
+				auto hauteur = tamp->desc().resolution.y;
+				auto largeur = tamp->desc().resolution.x;
+
+				auto grille = dynamic_cast<wlk::grille_dense_2d<float *> *>(tamp);
+
+				for (auto i = 0; i < hauteur; ++i) {
+					for (auto j = 0; j < largeur; ++j) {
+						auto index = grille->calcul_index(dls::math::vec2i(j, i));
+
+						auto n = tampon_S->valeur(index);
+
+						if (n == 0) {
+							continue;
+						}
+
+						grille->valeur(index) = &ncalque->echantillons[decalage];
+
+						decalage += n;
+					}
+				}
+			}
 
 			clq = ptr_calque_profond(ncalque, supprime_calque_image);
 		}

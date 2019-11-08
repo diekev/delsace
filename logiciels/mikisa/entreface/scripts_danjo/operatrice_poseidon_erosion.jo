@@ -1,0 +1,30 @@
+disposition "operatrice_poseidon_erosion" {
+	ligne {
+		étiquette(valeur="Rayon")
+		entier(valeur=1; attache=rayon; min=0)
+	}
+	ligne {
+		étiquette(valeur="Érode Densité");
+		case(valeur=faux; attache=érode_densité)
+	}
+	ligne {
+		étiquette(valeur="Érode Température");
+		case(valeur=faux; attache=érode_température)
+	}
+	ligne {
+		étiquette(valeur="Érode Fioul");
+		case(valeur=faux; attache=érode_fioul)
+	}
+	ligne {
+		étiquette(valeur="Érode Divergence");
+		case(valeur=faux; attache=érode_divergence)
+	}
+	ligne {
+		étiquette(valeur="Érode Oxygène");
+		case(valeur=faux; attache=érode_oxygène)
+	}
+	ligne {
+		étiquette(valeur="Érode Vélocité");
+		case(valeur=faux; attache=érode_vélocité)
+	}
+}

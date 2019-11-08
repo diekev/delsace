@@ -26,9 +26,22 @@
 
 #include "biblinternes/bruit/parametres.hh"
 #include "biblinternes/moultfilage/synchronise.hh"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/arbre_kd.hh"
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "danjo/types/courbe_bezier.h"
+#include "danjo/types/rampe_couleur.h"
+
+#include "corps/polyedre.hh"
+
 struct Corps;
+struct Image;
+
+namespace vision {
+class Camera3D;
+}
 
 namespace lcc {
 
@@ -48,22 +61,7 @@ enum class ctx_script : unsigned short {
 	tous = (pixel | voxel | fichier | nuanceur | primitive | detail | topologie),
 };
 
-inline auto operator~(ctx_script ctx)
-{
-	return static_cast<ctx_script>(~static_cast<unsigned short>(ctx));
-}
-
-inline auto operator&(ctx_script ctx0, ctx_script ctx1)
-{
-	return static_cast<ctx_script>(
-				static_cast<unsigned short>(ctx0) & static_cast<unsigned short>(ctx1));
-}
-
-inline auto operator|(ctx_script ctx0, ctx_script ctx1)
-{
-	return static_cast<ctx_script>(
-				static_cast<unsigned short>(ctx0) | static_cast<unsigned short>(ctx1));
-}
+DEFINIE_OPERATEURS_DRAPEAU(ctx_script, unsigned short)
 
 /* ************************************************************************** */
 
@@ -94,11 +92,13 @@ struct magasin_tableau {
 struct ctx_local {
 	magasin_tableau tableaux;
 	dls::tableau<bruit::parametres> params_bruits{};
+	dls::tableau<dls::chaine> chaines{};
 
 	void reinitialise()
 	{
 		tableaux.reinitialise();
 		params_bruits.efface();
+		chaines.efface();
 	}
 };
 
@@ -108,8 +108,47 @@ struct ctx_exec {
 	/* Le corps dans notre contexte. */
 	dls::synchronise<Corps *> ptr_corps;
 
+	/* Le corps d'entrée */
+	Corps const *corps = nullptr;
+
+	/* Le polyedre de notre corps */
+	Polyedre polyedre{};
+
+	/* Le polyedre de notre corps */
+	arbre_3df arbre_kd{};
+
+	/* Toutes les images. */
+	dls::tableau<Image const *> images;
+
+	/* Toutes les caméras. */
+	dls::tableau<vision::Camera3D const *> cameras;
+
+	/* Toutes les courbes couleur. */
+	dls::tableau<CourbeCouleur const *> courbes_couleur;
+
+	/* Toutes les courbes valeur. */
+	dls::tableau<CourbeBezier const *> courbes_valeur;
+
+	/* Toutes les rampes couleur. */
+	dls::tableau<RampeCouleur const *> rampes_couleur;
+
+	/* Toutes les chaines. */
+	dls::tableau<dls::chaine> chaines;
+
 	/* Si contexte topologie primitive. */
 	//dls::tableau<Corps const *> corps_entrees;
+
+	COPIE_CONSTRUCT(ctx_exec);
+
+	void reinitialise()
+	{
+		ptr_corps = nullptr;
+		images.efface();
+		cameras.efface();
+		courbes_couleur.efface();
+		courbes_valeur.efface();
+		rampes_couleur.efface();
+	}
 };
 
 }  /* namespace lcc */

@@ -27,6 +27,7 @@
 enum class type_primitive : char {
 	POLYGONE = 0,
 	VOLUME   = 1,
+	SPHERE   = 2,
 };
 
 class Primitive {

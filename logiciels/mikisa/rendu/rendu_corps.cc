@@ -36,6 +36,7 @@
 
 #include "corps/attribut.h"
 #include "corps/corps.h"
+#include "corps/sphere.hh"
 #include "corps/volume.hh"
 
 #include "wolika/grille_dense.hh"
@@ -44,199 +45,15 @@
 
 /* ************************************************************************** */
 
-#if 0
-enum {
-	VARIABLE_TYPE_VEC2,
-	VARIABLE_TYPE_VEC3,
-	VARIABLE_TYPE_MAT4,
-	VARIABLE_TYPE_TEXTURE_2D,
-	VARIABLE_TYPE_TEXTURE_3D,
-};
-
-struct VariableAttribut {
-	int location;
-	int type;
-	dls::chaine nom;
-};
-
-struct VariableGenerique {
-	int type;
-	dls::chaine nom;
-};
-
-struct DonneesScripts {
-	dls::tableau<VariableAttribut> variables_attribut;
-	dls::tableau<VariableGenerique> variables_uniforme;
-	dls::tableau<VariableGenerique> variables_entree;
-	dls::tableau<VariableGenerique> variables_sortie;
-};
-
-static void ajoute_variable_attribut(dls::chaine &tampon, dls::chaine const &nom, const int type)
-{
-	switch (type) {
-		case VARIABLE_TYPE_VEC2:
-			tampon += "layout (location = 0) in vec2 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_VEC3:
-			tampon += "layout (location = 0) in vec3 " + nom + ";\n";
-			break;
-		default:
-			return;
-	}
-}
-
-static void ajoute_variable_uniforme(dls::chaine &tampon, dls::chaine const &nom, const int type)
-{
-	switch (type) {
-		case VARIABLE_TYPE_VEC2:
-			tampon += "uniform vec2 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_VEC3:
-			tampon += "uniform vec3 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_MAT4:
-			tampon += "uniform vec3 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_TEXTURE_2D:
-			tampon += "uniform sampler2D " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_TEXTURE_3D:
-			tampon += "uniform sampler3D " + nom + ";\n";
-			break;
-		default:
-			return;
-	}
-}
-
-static void ajoute_variable_sortie(dls::chaine &tampon, dls::chaine const &nom, const int type)
-{
-	switch (type) {
-		case VARIABLE_TYPE_VEC2:
-			tampon += "smooth out vec2 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_VEC3:
-			tampon += "smooth out vec3 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_MAT4:
-			tampon += "smooth out vec3 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_TEXTURE_2D:
-			tampon += "smooth out sampler2D " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_TEXTURE_3D:
-			tampon += "smooth out sampler3D " + nom + ";\n";
-			break;
-		default:
-			return;
-	}
-}
-
-static void ajoute_variable_entree(dls::chaine &tampon, dls::chaine const &nom, const int type)
-{
-	switch (type) {
-		case VARIABLE_TYPE_VEC2:
-			tampon += "smooth in vec2 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_VEC3:
-			tampon += "smooth in vec3 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_MAT4:
-			tampon += "smooth in vec3 " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_TEXTURE_2D:
-			tampon += "smooth in sampler2D " + nom + ";\n";
-			break;
-		case VARIABLE_TYPE_TEXTURE_3D:
-			tampon += "smooth in sampler3D " + nom + ";\n";
-			break;
-		default:
-			return;
-	}
-}
-
-void compile_sources_nuanceur(Maillage *maillage)
-{
-	dls::chaine source_vertex;
-	dls::chaine source_fragment;
-
-	// ajoute_variable_attribut(nom, type);
-	source_vertex += "layout (location = 0) in vec3 sommets;";
-	source_vertex += "layout (location = 1) in vec3 normaux;";
-
-	// ajoute_variable_sortie(nom, type);
-	source_vertex += "smooth out vec3 sommet;";
-	source_vertex += "smooth out vec3 normal;";
-
-	// ajoute_variable_entree(nom, type);
-	source_fragment += "smooth in vec3 sommet;";
-	source_fragment += "smooth in vec3 normal;";
-
-	// ajoute_variable_uniforme(nom, type);
-	source_vertex += "uniform mat4 MVP;";
-
-	// intérieur fonction principale
-	source_vertex += "sommet = sommets;";
-	source_vertex += "normal = normaux;";
-	source_vertex += "gl_Position = normaux;";
-
-	if (maillage->texture()) {
-		source_fragment += "uniform sampler2D image;";
-
-		auto texture = maillage->texture();
-
-		switch (texture->projection()) {
-			case PROJECTION_CAMERA:
-				source_fragment += "uniform mat4 camera_mat;";
-				source_fragment += "uniform mat4 camera_proj;";
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_camera(camera_mat, camera_proj, sommet, image);";
-				break;
-			case PROJECTION_CUBIQUE:
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_cubique(sommet, image);";
-				break;
-			case PROJECTION_CYLINDRIQUE:
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_cylindrique(camera_mat, camera_proj, sommet, image);";
-				break;
-			case PROJECTION_SPHERIQUE:
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_sherique(camera_mat, camera_proj, sommet, image);";
-				break;
-			case PROJECTION_UV:
-				source_vertex += "layout(location = 2) in vec2 uvs;";
-				source_vertex += "smooth out vec2 UV;";
-
-				// intérieur fonction principale
-				source_vertex += "UV = uvs;";
-
-				source_fragment += "smooth in vec2 UV;";
-
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_uv(sommet, image, UV);";
-				break;
-			case PROJECTION_TRIPLANAIRE:
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_triplanaire(sommet, image);";
-				break;
-			case PROJECTION_PLANAIRE:
-				// intérieur fonction principale
-				source_fragment += "couleur_fragment = projection_planaire(sommet, image, 0);";
-				break;
-		}
-	}
-}
-#endif
-
-/* ************************************************************************** */
-
-static TamponRendu *cree_tampon_surface(bool possede_uvs)
+static TamponRendu *cree_tampon_surface(bool possede_uvs, bool instances)
 {
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
+	auto nom_fichier = (instances) ? "nuanceurs/diffus_instances.vert" : "nuanceurs/diffus.vert";
+
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/diffus.vert"));
+				dls::contenu_fichier(nom_fichier));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
@@ -249,6 +66,11 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 	parametre_programme.ajoute_attribut("normaux");
 	parametre_programme.ajoute_attribut("uvs");
 	parametre_programme.ajoute_attribut("couleurs");
+
+	if (instances) {
+		parametre_programme.ajoute_attribut("matrices_instances");
+	}
+
 	parametre_programme.ajoute_uniforme("matrice");
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("MV");
@@ -274,7 +96,7 @@ static TamponRendu *cree_tampon_surface(bool possede_uvs)
 
 void ajoute_polygone_surface(
 		Polygone *polygone,
-		ListePoints3D const *liste_points,
+		AccesseusePointLecture const &liste_points,
 		Attribut const *attr_normaux,
 		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
@@ -282,9 +104,9 @@ void ajoute_polygone_surface(
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 2; i < polygone->nombre_sommets(); ++i) {
-		points.pousse(liste_points->point(polygone->index_point(0)));
-		points.pousse(liste_points->point(polygone->index_point(i - 1)));
-		points.pousse(liste_points->point(polygone->index_point(i)));
+		points.pousse(liste_points.point_local(polygone->index_point(0)));
+		points.pousse(liste_points.point_local(polygone->index_point(i - 1)));
+		points.pousse(liste_points.point_local(polygone->index_point(i)));
 
 		if (attr_normaux) {
 			auto idx = normaux.taille();
@@ -326,6 +148,11 @@ void ajoute_polygone_surface(
 				extrait(attr_couleurs->r32(polygone->index_sommet(i - 1)), couleurs[idx + 1]);
 				extrait(attr_couleurs->r32(polygone->index_sommet(i)), couleurs[idx + 2]);
 			}
+			else if (attr_couleurs->portee == portee_attr::CORPS) {
+				extrait(attr_couleurs->r32(0), couleurs[idx]);
+				extrait(attr_couleurs->r32(0), couleurs[idx + 1]);
+				extrait(attr_couleurs->r32(0), couleurs[idx + 2]);
+			}
 		}
 		else {
 			couleurs.pousse(dls::math::vec3f(0.8f));
@@ -337,14 +164,14 @@ void ajoute_polygone_surface(
 
 void ajoute_polygone_segment(
 		Polygone *polygone,
-		ListePoints3D const *liste_points,
+		AccesseusePointLecture const &liste_points,
 		Attribut const *attr_couleurs,
 		dls::tableau<dls::math::vec3f> &points,
 		dls::tableau<dls::math::vec3f> &couleurs)
 {
 	for (long i = 0; i < polygone->nombre_segments(); ++i) {
-		points.pousse(liste_points->point(polygone->index_point(i)));
-		points.pousse(liste_points->point(polygone->index_point(i + 1)));
+		points.pousse(liste_points.point_local(polygone->index_point(i)));
+		points.pousse(liste_points.point_local(polygone->index_point(i + 1)));
 
 		if (attr_couleurs) {
 			auto idx = couleurs.taille();
@@ -358,6 +185,10 @@ void ajoute_polygone_segment(
 				extrait(attr_couleurs->r32(polygone->index), couleurs[idx]);
 				extrait(attr_couleurs->r32(polygone->index), couleurs[idx + 1]);
 			}
+			else if (attr_couleurs->portee == portee_attr::CORPS) {
+				extrait(attr_couleurs->r32(0), couleurs[idx]);
+				extrait(attr_couleurs->r32(0), couleurs[idx + 1]);
+			}
 		}
 		else {
 			couleurs.pousse(dls::math::vec3f(0.8f));
@@ -366,13 +197,164 @@ void ajoute_polygone_segment(
 	}
 }
 
-static TamponRendu *cree_tampon_segments()
+static dls::math::vec3f points_cercle_XZ[32] = {
+	dls::math::vec3f( 0.000000f, 0.000000f,  1.000000f),
+	dls::math::vec3f(-0.195090f, 0.000000f,  0.980785f),
+	dls::math::vec3f(-0.382683f, 0.000000f,  0.92388f),
+	dls::math::vec3f(-0.555570f, 0.000000f,  0.83147f),
+	dls::math::vec3f(-0.707107f, 0.000000f,  0.707107f),
+	dls::math::vec3f(-0.831470f, 0.000000f,  0.55557f),
+	dls::math::vec3f(-0.923880f, 0.000000f,  0.382683f),
+	dls::math::vec3f(-0.980785f, 0.000000f,  0.19509f),
+	dls::math::vec3f(-1.000000f, 0.000000f,  0.000000f),
+	dls::math::vec3f(-0.980785f, 0.000000f, -0.19509f),
+	dls::math::vec3f(-0.923880f, 0.000000f, -0.382683f),
+	dls::math::vec3f(-0.831470f, 0.000000f, -0.55557f),
+	dls::math::vec3f(-0.707107f, 0.000000f, -0.707107f),
+	dls::math::vec3f(-0.555570f, 0.000000f, -0.83147f),
+	dls::math::vec3f(-0.382683f, 0.000000f, -0.92388f),
+	dls::math::vec3f(-0.195090f, 0.000000f, -0.980785f),
+	dls::math::vec3f( 0.000000f, 0.000000f, -1.000000f),
+	dls::math::vec3f( 0.195091f, 0.000000f, -0.980785f),
+	dls::math::vec3f( 0.382684f, 0.000000f, -0.923879f),
+	dls::math::vec3f( 0.555571f, 0.000000f, -0.831469f),
+	dls::math::vec3f( 0.707107f, 0.000000f, -0.707106f),
+	dls::math::vec3f( 0.831470f, 0.000000f, -0.55557f),
+	dls::math::vec3f( 0.923880f, 0.000000f, -0.382683f),
+	dls::math::vec3f( 0.980785f, 0.000000f, -0.195089f),
+	dls::math::vec3f( 1.000000f, 0.000000f,  0.000000f),
+	dls::math::vec3f( 0.980785f, 0.000000f,  0.195091f),
+	dls::math::vec3f( 0.923879f, 0.000000f,  0.382684f),
+	dls::math::vec3f( 0.831469f, 0.000000f,  0.555571f),
+	dls::math::vec3f( 0.707106f, 0.000000f,  0.707108f),
+	dls::math::vec3f( 0.555569f, 0.000000f,  0.831470f),
+	dls::math::vec3f( 0.382682f, 0.000000f,  0.923880f),
+	dls::math::vec3f( 0.195089f, 0.000000f,  0.980786f),
+};
+static dls::math::vec3f points_cercle_XY[32] = {
+	dls::math::vec3f( 0.000000f,  1.000000f, 0.000000f),
+	dls::math::vec3f(-0.195090f,  0.980785f, 0.000000f),
+	dls::math::vec3f(-0.382683f,  0.923880f, 0.000000f),
+	dls::math::vec3f(-0.555570f,  0.831470f, 0.000000f),
+	dls::math::vec3f(-0.707107f,  0.707107f, 0.000000f),
+	dls::math::vec3f(-0.831470f,  0.555570f, 0.000000f),
+	dls::math::vec3f(-0.923880f,  0.382683f, 0.000000f),
+	dls::math::vec3f(-0.980785f,  0.195090f, 0.000000f),
+	dls::math::vec3f(-1.000000f,  0.000000f, 0.000000f),
+	dls::math::vec3f(-0.980785f, -0.195090f, 0.000000f),
+	dls::math::vec3f(-0.923880f, -0.382683f, 0.000000f),
+	dls::math::vec3f(-0.831470f, -0.555570f, 0.000000f),
+	dls::math::vec3f(-0.707107f, -0.707107f, 0.000000f),
+	dls::math::vec3f(-0.555570f, -0.831470f, 0.000000f),
+	dls::math::vec3f(-0.382683f, -0.923880f, 0.000000f),
+	dls::math::vec3f(-0.195090f, -0.980785f, 0.000000f),
+	dls::math::vec3f( 0.000000f, -1.000000f, 0.000000f),
+	dls::math::vec3f( 0.195091f, -0.980785f, 0.000000f),
+	dls::math::vec3f( 0.382684f, -0.923879f, 0.000000f),
+	dls::math::vec3f( 0.555571f, -0.831469f, 0.000000f),
+	dls::math::vec3f( 0.707107f, -0.707106f, 0.000000f),
+	dls::math::vec3f( 0.831470f, -0.555570f, 0.000000f),
+	dls::math::vec3f( 0.923880f, -0.382683f, 0.000000f),
+	dls::math::vec3f( 0.980785f, -0.195089f, 0.000000f),
+	dls::math::vec3f( 1.000000f,  0.000000f, 0.000000f),
+	dls::math::vec3f( 0.980785f,  0.195091f, 0.000000f),
+	dls::math::vec3f( 0.923879f,  0.382684f, 0.000000f),
+	dls::math::vec3f( 0.831469f,  0.555571f, 0.000000f),
+	dls::math::vec3f( 0.707106f,  0.707108f, 0.000000f),
+	dls::math::vec3f( 0.555569f,  0.831470f, 0.000000f),
+	dls::math::vec3f( 0.382682f,  0.923880f, 0.000000f),
+	dls::math::vec3f( 0.195089f,  0.980786f, 0.000000f),
+};
+static dls::math::vec3f points_cercle_YZ[32] = {
+	dls::math::vec3f(0.000000f,  0.000000f,  1.000000f),
+	dls::math::vec3f(0.000000f, -0.195090f,  0.980785f),
+	dls::math::vec3f(0.000000f, -0.382683f,  0.923880f),
+	dls::math::vec3f(0.000000f, -0.555570f,  0.831470f),
+	dls::math::vec3f(0.000000f, -0.707107f,  0.707107f),
+	dls::math::vec3f(0.000000f, -0.831470f,  0.555570f),
+	dls::math::vec3f(0.000000f, -0.923880f,  0.382683f),
+	dls::math::vec3f(0.000000f, -0.980785f,  0.195090f),
+	dls::math::vec3f(0.000000f, -1.000000f,  0.000000f),
+	dls::math::vec3f(0.000000f, -0.980785f, -0.195090f),
+	dls::math::vec3f(0.000000f, -0.923880f, -0.382683f),
+	dls::math::vec3f(0.000000f, -0.831470f, -0.555570f),
+	dls::math::vec3f(0.000000f, -0.707107f, -0.707107f),
+	dls::math::vec3f(0.000000f, -0.555570f, -0.831470f),
+	dls::math::vec3f(0.000000f, -0.382683f, -0.923880f),
+	dls::math::vec3f(0.000000f, -0.195090f, -0.980785f),
+	dls::math::vec3f(0.000000f,  0.000000f, -1.000000f),
+	dls::math::vec3f(0.000000f,  0.195091f, -0.980785f),
+	dls::math::vec3f(0.000000f,  0.382684f, -0.923879f),
+	dls::math::vec3f(0.000000f,  0.555571f, -0.831469f),
+	dls::math::vec3f(0.000000f,  0.707107f, -0.707106f),
+	dls::math::vec3f(0.000000f,  0.831470f, -0.555570f),
+	dls::math::vec3f(0.000000f,  0.923880f, -0.382683f),
+	dls::math::vec3f(0.000000f,  0.980785f, -0.195089f),
+	dls::math::vec3f(0.000000f,  1.000000f,  0.000000f),
+	dls::math::vec3f(0.000000f,  0.980785f,  0.195091f),
+	dls::math::vec3f(0.000000f,  0.923879f,  0.382684f),
+	dls::math::vec3f(0.000000f,  0.831469f,  0.555571f),
+	dls::math::vec3f(0.000000f,  0.707106f,  0.707108f),
+	dls::math::vec3f(0.000000f,  0.555569f,  0.831470f),
+	dls::math::vec3f(0.000000f,  0.382682f,  0.923880f),
+	dls::math::vec3f(0.000000f,  0.195089f,  0.980786f),
+};
+
+static void ajoute_primitive_sphere(
+		Sphere *sphere,
+		AccesseusePointLecture const &liste_points,
+		Attribut const *attr_couleurs,
+		dls::tableau<dls::math::vec3f> &points,
+		dls::tableau<dls::math::vec3f> &couleurs)
+{
+	auto pos_sphere = liste_points.point_local(sphere->idx_point);
+
+	for (auto i = 0; i < 32; ++i) {
+		points.pousse(points_cercle_XZ[i] * sphere->rayon + pos_sphere);
+		points.pousse(points_cercle_XZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
+	}
+
+	for (auto i = 0; i < 32; ++i) {
+		points.pousse(points_cercle_XY[i] * sphere->rayon + pos_sphere);
+		points.pousse(points_cercle_XY[(i + 1) % 32] * sphere->rayon + pos_sphere);
+	}
+
+	for (auto i = 0; i < 32; ++i) {
+		points.pousse(points_cercle_YZ[i] * sphere->rayon + pos_sphere);
+		points.pousse(points_cercle_YZ[(i + 1) % 32] * sphere->rayon + pos_sphere);
+	}
+
+	auto couleur = dls::math::vec3f(0.8f);
+
+	if (attr_couleurs) {
+		if (attr_couleurs->portee == portee_attr::POINT) {
+			extrait(attr_couleurs->r32(sphere->idx_point), couleur);
+		}
+		else if (attr_couleurs->portee == portee_attr::PRIMITIVE) {
+			extrait(attr_couleurs->r32(sphere->index), couleur);
+		}
+		else if (attr_couleurs->portee == portee_attr::CORPS) {
+			extrait(attr_couleurs->r32(0), couleur);
+		}
+	}
+
+	auto idx = couleurs.taille();
+	couleurs.redimensionne(idx + 32 * 3 * 2);
+
+	for (auto i = 0; i < 32 * 3 * 2; ++i) {
+		couleurs[idx + i] = couleur;
+	}
+}
+
+static TamponRendu *cree_tampon_segments(bool instances)
 {
 	auto tampon = memoire::loge<TamponRendu>("TamponRendu");
 
+	auto nom_fichier = (instances) ? "nuanceurs/simple_instances.vert" : "nuanceurs/simple.vert";
+
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				dls::contenu_fichier("nuanceurs/simple.vert"));
+				dls::contenu_fichier(nom_fichier));
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
@@ -383,6 +365,11 @@ static TamponRendu *cree_tampon_segments()
 	ParametresProgramme parametre_programme;
 	parametre_programme.ajoute_attribut("sommets");
 	parametre_programme.ajoute_attribut("couleur_sommet");
+
+	if (instances) {
+		parametre_programme.ajoute_attribut("matrices_instances");
+	}
+
 	parametre_programme.ajoute_uniforme("matrice");
 	parametre_programme.ajoute_uniforme("MVP");
 	parametre_programme.ajoute_uniforme("couleur");
@@ -655,18 +642,22 @@ RenduCorps::~RenduCorps()
 	memoire::deloge("TamponRendu", m_tampon_volume);
 }
 
-void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &stats)
+void RenduCorps::initialise(
+		ContexteRendu const &contexte,
+		StatistiquesRendu &stats,
+		dls::tableau<dls::math::mat4x4f> &matrices)
 {
 	stats.nombre_objets += 1;
+	auto est_instance = matrices.taille() != 0;
 
 	auto liste_points = m_corps->points_pour_lecture();
 	auto liste_prims = m_corps->prims();
 
-	if (liste_points->taille() == 0l && liste_prims->taille() == 0l) {
+	if (liste_points.taille() == 0l && liste_prims->taille() == 0l) {
 		return;
 	}
 
-	dls::tableau<char> point_utilise(liste_points->taille(), 0);
+	dls::tableau<char> point_utilise(liste_points.taille(), 0);
 
 	if (liste_prims->taille() != 0l) {
 		auto attr_N = m_corps->attribut("N");
@@ -694,6 +685,10 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 					point_utilise[polygone->index_point(i)] = 1;
 				}
 			}
+			else if (prim->type_prim() == type_primitive::SPHERE) {
+				auto sphere = dynamic_cast<Sphere *>(prim);
+				ajoute_primitive_sphere(sphere, liste_points, attr_C, points_segment, couleurs_segment);
+			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				if (m_tampon_volume == nullptr) {
 					stats.nombre_volumes += 1;
@@ -703,7 +698,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		}
 
 		if (points_polys.taille() != 0) {
-			m_tampon_polygones = cree_tampon_surface(false);
+			m_tampon_polygones = cree_tampon_surface(false, est_instance);
 
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
@@ -736,7 +731,7 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		}
 
 		if (points_segment.taille() != 0) {
-			m_tampon_segments = cree_tampon_segments();
+			m_tampon_segments = cree_tampon_segments(est_instance);
 
 			ParametresTampon parametres_tampon;
 			parametres_tampon.attribut = "sommets";
@@ -770,19 +765,19 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 
 	dls::tableau<dls::math::vec3f> points;
 	dls::tableau<dls::math::vec3f> couleurs;
-	points.reserve(liste_points->taille());
-	couleurs.reserve(liste_points->taille());
+	points.reserve(liste_points.taille());
+	couleurs.reserve(liste_points.taille());
 
 	auto attr_C = m_corps->attribut("C");
 
-	stats.nombre_points += liste_points->taille();
+	stats.nombre_points += liste_points.taille();
 
-	for (auto i = 0; i < liste_points->taille(); ++i) {
+	for (auto i = 0; i < liste_points.taille(); ++i) {
 		if (point_utilise[i]) {
 			continue;
 		}
 
-		points.pousse(liste_points->point(i));
+		points.pousse(liste_points.point_local(i));
 
 		if ((attr_C != nullptr) && (attr_C->portee == portee_attr::POINT)) {
 			auto idx = couleurs.taille();
@@ -791,11 +786,29 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		}
 	}
 
+	auto parametres_tampon_instance = ParametresTampon{};
+
+	if (est_instance) {
+		parametres_tampon_instance.attribut = "matrices_instances";
+		parametres_tampon_instance.dimension_attribut = 4;
+		parametres_tampon_instance.pointeur_donnees_extra = matrices.donnees();
+		parametres_tampon_instance.taille_octet_donnees_extra = static_cast<size_t>(matrices.taille()) * sizeof(dls::math::mat4x4f);
+		parametres_tampon_instance.nombre_instances = static_cast<size_t>(matrices.taille());
+
+		if (m_tampon_segments) {
+			m_tampon_segments->remplie_tampon_matrices_instance(parametres_tampon_instance);
+		}
+
+		if (m_tampon_polygones) {
+			m_tampon_polygones->remplie_tampon_matrices_instance(parametres_tampon_instance);
+		}
+	}
+
 	if (points.est_vide()) {
 		return;
 	}
 
-	m_tampon_points = cree_tampon_segments();
+	m_tampon_points = cree_tampon_segments(est_instance);
 
 	ParametresTampon parametres_tampon;
 	parametres_tampon.attribut = "sommets";
@@ -823,6 +836,10 @@ void RenduCorps::initialise(ContexteRendu const &contexte, StatistiquesRendu &st
 		programme->active();
 		programme->uniforme("possede_couleur_sommet", 1);
 		programme->desactive();
+	}
+
+	if (est_instance) {
+		m_tampon_points->remplie_tampon_matrices_instance(parametres_tampon_instance);
 	}
 }
 

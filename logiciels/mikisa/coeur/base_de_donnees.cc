@@ -30,7 +30,9 @@
 #include "base_de_donnees.hh"
 #include "composite.h"
 #include "noeud_image.h"
+#include "nuanceur.hh"
 #include "objet.h"
+#include "rendu.hh"
 
 /* ************************************************************************** */
 
@@ -46,12 +48,18 @@ BaseDeDonnees::BaseDeDonnees()
 	m_racine.nom = "";
 	m_racine_objets.nom = "objets";
 	m_racine_composites.nom = "composites";
+	m_racine_nuanceurs.nom = "nuanceurs";
+	m_racine_rendus.nom = "rendus";
 
 	m_racine_objets.graphe.type = type_graphe::RACINE_OBJET;
 	m_racine_composites.graphe.type = type_graphe::RACINE_COMPOSITE;
+	m_racine_nuanceurs.graphe.type = type_graphe::RACINE_NUANCEUR;
+	m_racine_rendus.graphe.type = type_graphe::RACINE_RENDU;
 
 	m_racine.enfants.pousse(&m_racine_objets);
 	m_racine.enfants.pousse(&m_racine_composites);
+	m_racine.enfants.pousse(&m_racine_nuanceurs);
+	m_racine.enfants.pousse(&m_racine_rendus);
 }
 
 BaseDeDonnees::~BaseDeDonnees()
@@ -76,6 +84,22 @@ void BaseDeDonnees::reinitialise()
 	m_composites.efface();
 	m_racine_composites.graphe.noeud_actif = nullptr;
 	m_racine_composites.graphe.supprime_tout();
+
+	for (auto nuance : m_nuanceurs) {
+		memoire::deloge("nuanceur", nuance);
+	}
+
+	m_nuanceurs.efface();
+	m_racine_nuanceurs.graphe.noeud_actif = nullptr;
+	m_racine_nuanceurs.graphe.supprime_tout();
+
+	for (auto rend : m_rendus) {
+		memoire::deloge("rendu", rend);
+	}
+
+	m_rendus.efface();
+	m_racine_rendus.graphe.noeud_actif = nullptr;
+	m_racine_rendus.graphe.supprime_tout();
 }
 
 Noeud *BaseDeDonnees::racine()
@@ -218,6 +242,102 @@ Graphe *BaseDeDonnees::graphe_composites()
 const Graphe *BaseDeDonnees::graphe_composites() const
 {
 	return &m_racine_composites.graphe;
+}
+
+/* ************************************************************************** */
+
+Nuanceur *BaseDeDonnees::cree_nuanceur(const dls::chaine &nom)
+{
+	auto noeud = m_racine_nuanceurs.graphe.cree_noeud(nom, type_noeud::NUANCEUR);
+	auto nuance = memoire::loge<Nuanceur>("nuanceur", *noeud);
+
+	m_nuanceurs.pousse(nuance);
+
+	return nuance;
+}
+
+Nuanceur *BaseDeDonnees::nuanceur(const dls::chaine &nom) const
+{
+	for (auto nuance : m_nuanceurs) {
+		if (nuance->noeud.nom == nom) {
+			return nuance;
+		}
+	}
+
+	return nullptr;
+}
+
+void BaseDeDonnees::enleve_nuanceur(Nuanceur *nuanceur)
+{
+	auto iter = std::find(m_nuanceurs.debut(), m_nuanceurs.fin(), nuanceur);
+	m_nuanceurs.erase(iter);
+
+	m_racine_nuanceurs.graphe.supprime(&nuanceur->noeud);
+
+	memoire::deloge("nuanceur", nuanceur);
+}
+
+const dls::tableau<Nuanceur *> &BaseDeDonnees::nuanceurs() const
+{
+	return m_nuanceurs;
+}
+
+Graphe *BaseDeDonnees::graphe_nuanceurs()
+{
+	return &m_racine_nuanceurs.graphe;
+}
+
+const Graphe *BaseDeDonnees::graphe_nuanceurs() const
+{
+	return &m_racine_nuanceurs.graphe;
+}
+
+/* ************************************************************************** */
+
+Rendu *BaseDeDonnees::cree_rendu(const dls::chaine &nom)
+{
+	auto noeud = m_racine_rendus.graphe.cree_noeud(nom, type_noeud::RENDU);
+	auto rend = memoire::loge<Rendu>("rendu", *noeud);
+
+	m_rendus.pousse(rend);
+
+	return rend;
+}
+
+Rendu *BaseDeDonnees::rendu(const dls::chaine &nom) const
+{
+	for (auto rend : m_rendus) {
+		if (rend->noeud.nom == nom) {
+			return rend;
+		}
+	}
+
+	return nullptr;
+}
+
+void BaseDeDonnees::enleve_rendu(Rendu *rendu)
+{
+	auto iter = std::find(m_rendus.debut(), m_rendus.fin(), rendu);
+	m_rendus.erase(iter);
+
+	m_racine_rendus.graphe.supprime(&rendu->noeud);
+
+	memoire::deloge("rendu", rendu);
+}
+
+const dls::tableau<Rendu *> &BaseDeDonnees::rendus() const
+{
+	return m_rendus;
+}
+
+Graphe *BaseDeDonnees::graphe_rendus()
+{
+	return &m_racine_rendus.graphe;
+}
+
+const Graphe *BaseDeDonnees::graphe_rendus() const
+{
+	return &m_racine_rendus.graphe;
 }
 
 static auto trouve_enfant(Noeud const *noeud, dls::chaine const &nom)

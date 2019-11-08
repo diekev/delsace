@@ -29,21 +29,9 @@
 void dessine_boite(
 		Corps &corps,
 		Attribut *attr_C,
-		dls::math::vec3f const &min,
-		dls::math::vec3f const &max,
+		dls::math::vec3f const sommets[8],
 		dls::math::vec3f const &couleur)
 {
-	dls::math::vec3f sommets[8] = {
-		dls::math::vec3f(min.x, min.y, min.z),
-		dls::math::vec3f(min.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, max.z),
-		dls::math::vec3f(max.x, min.y, min.z),
-		dls::math::vec3f(min.x, max.y, min.z),
-		dls::math::vec3f(min.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, max.z),
-		dls::math::vec3f(max.x, max.y, min.z),
-	};
-
 	long cotes[12][2] = {
 		{ 0, 1 },
 		{ 1, 2 },
@@ -59,10 +47,11 @@ void dessine_boite(
 		{ 7, 4 },
 	};
 
-	auto decalage = corps.points_pour_lecture()->taille();
+	auto points = corps.points_pour_ecriture();
+	auto decalage = points.taille();
 
 	for (int i = 0; i < 8; ++i) {
-		auto idx_p = corps.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
+		auto idx_p = points.ajoute_point(sommets[i].x, sommets[i].y, sommets[i].z);
 
 		if (attr_C) {
 			assigne(attr_C->r32(idx_p), couleur);
@@ -74,4 +63,25 @@ void dessine_boite(
 		corps.ajoute_sommet(poly, decalage + cotes[i][0]);
 		corps.ajoute_sommet(poly, decalage + cotes[i][1]);
 	}
+}
+
+void dessine_boite(
+		Corps &corps,
+		Attribut *attr_C,
+		dls::math::vec3f const &min,
+		dls::math::vec3f const &max,
+		dls::math::vec3f const &couleur)
+{
+	dls::math::vec3f sommets[8] = {
+		dls::math::vec3f(min.x, min.y, min.z),
+		dls::math::vec3f(min.x, min.y, max.z),
+		dls::math::vec3f(max.x, min.y, max.z),
+		dls::math::vec3f(max.x, min.y, min.z),
+		dls::math::vec3f(min.x, max.y, min.z),
+		dls::math::vec3f(min.x, max.y, max.z),
+		dls::math::vec3f(max.x, max.y, max.z),
+		dls::math::vec3f(max.x, max.y, min.z),
+	};
+
+	dessine_boite(corps, attr_C, sommets, couleur);
 }

@@ -104,6 +104,8 @@ enum class type_noeud : int {
 	COMPOSITE,
 	OBJET,
 	OPERATRICE,
+	NUANCEUR,
+	RENDU,
 	INVALIDE,
 };
 
@@ -127,7 +129,7 @@ struct Noeud : public danjo::Manipulable {
 	/* autres */
 	int degree = 0; /* pour les algorithmes de tri topologique entre autre */
 
-	bool est_sortie = false;
+	bool prises_dynamiques = false;
 	bool peut_avoir_graphe = false;
 
 	Noeud *parent = nullptr;
@@ -201,22 +203,22 @@ struct Noeud : public danjo::Manipulable {
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
 	 */
-	PriseEntree *entree(long index);
+	PriseEntree *entree(long index) const;
 
 	/**
 	 * Retourne l'entrée selon le nom spécifié.
 	 */
-	PriseEntree *entree(dls::chaine const &nom_entree);
+	PriseEntree *entree(dls::chaine const &nom_entree) const;
 
 	/**
 	 * Retourne la sortie selon l'index spécifié.
 	 */
-	PriseSortie *sortie(long index);
+	PriseSortie *sortie(long index) const;
 
 	/**
 	 * Retourne la sortie selon le nom spécifié.
 	 */
-	PriseSortie *sortie(dls::chaine const &nom_sortie);
+	PriseSortie *sortie(dls::chaine const &nom_sortie) const;
 
 	/**
 	 * Retourne vrai si le noeud est lié à d'autres noeuds.
@@ -241,3 +243,5 @@ struct Noeud : public danjo::Manipulable {
 void marque_surannee(Noeud *noeud, std::function<void(Noeud *, PriseEntree *)> const &rp);
 
 void marque_parent_surannee(Noeud *noeud, std::function<void(Noeud *, PriseEntree *)> const &rp);
+
+Noeud *noeud_base_hierarchie(Noeud *noeud);

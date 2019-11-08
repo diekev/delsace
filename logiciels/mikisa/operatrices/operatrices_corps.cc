@@ -24,6 +24,8 @@
 
 #include "operatrices_corps.hh"
 
+#include <numeric>
+
 #include "biblexternes/kelvinlet/kelvinlet.hh"
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
@@ -34,7 +36,6 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "corps/adaptrice_creation_corps.h"
 #include "corps/iteration_corps.hh"
@@ -77,7 +78,7 @@ static void ajourne_portee_attr_normaux(Corps *corps)
 		if (attr_normaux->taille() == corps->prims()->taille()) {
 			attr_normaux->portee = portee_attr::PRIMITIVE;
 		}
-		else  if (attr_normaux->taille() == corps->points_pour_lecture()->taille()) {
+		else  if (attr_normaux->taille() == corps->points_pour_lecture().taille()) {
 			attr_normaux->portee = portee_attr::POINT;
 		}
 	}
@@ -179,7 +180,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -195,7 +196,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -223,7 +224,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -241,7 +242,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -269,7 +270,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -288,7 +289,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -316,7 +317,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -334,7 +335,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -362,7 +363,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -381,7 +382,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -409,7 +410,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -425,7 +426,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -453,7 +454,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -472,7 +473,7 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -500,7 +501,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -517,7 +518,51 @@ public:
 
 		ajourne_transforme(contexte.temps_courant);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+class OperatriceCreationPrimSphere final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = "Création Primitive Sphère";
+	static constexpr auto AIDE = "Crée une primitive de type sphère.";
+
+	OperatriceCreationPrimSphere(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(0);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_3d_primitive_sphere.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+		m_corps.reinitialise();
+
+		auto position = evalue_vecteur("pos_sphère", contexte.temps_courant);
+		auto rayon = evalue_decimal("rayon_sphère", contexte.temps_courant);
+
+		auto points = m_corps.points_pour_ecriture();
+		auto idx_point = points.ajoute_point(position);
+		m_corps.ajoute_sphere(idx_point, rayon);
+
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -549,7 +594,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -564,27 +609,25 @@ public:
 
 		auto t = 0.0f;
 
+		auto points = m_corps.points_pour_ecriture();
+		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, segments + 1);
+
 		for (auto i = 0; i <= segments; ++i) {
 			auto p = origine + t * direction;
 
-			m_corps.ajoute_point(p.x, p.y, p.z);
+			auto idx = points.ajoute_point(p.x, p.y, p.z);
+			m_corps.ajoute_sommet(poly, idx);
 
 			t += taille_segment;
 		}
 
-		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, segments + 1);
-
-		for (auto i = 0; i <= segments; ++i) {
-			 m_corps.ajoute_sommet(poly, i);
-		}
-
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
 /* ************************************************************************** */
 
-class OperatriceLectureObjet final : public OperatriceCorps {
+class OpImportObjet final : public OperatriceCorps {
 	ManipulatricePosition3D m_manipulatrice_position{};
 	ManipulatriceEchelle3D m_manipulatrice_echelle{};
 	ManipulatriceRotation3D m_manipulatrice_rotation{};
@@ -596,18 +639,18 @@ class OperatriceLectureObjet final : public OperatriceCorps {
 	PoigneeFichier *m_poignee_fichier = nullptr;
 
 public:
-	static constexpr auto NOM = "Lecture Objet";
+	static constexpr auto NOM = "Import Objet";
 	static constexpr auto AIDE = "Charge un objet depuis un fichier externe.";
 
-	OperatriceLectureObjet(Graphe &graphe_parent, Noeud &noeud_)
+	OpImportObjet(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 		sorties(1);
 	}
 
-	OperatriceLectureObjet(OperatriceLectureObjet const &) = default;
-	OperatriceLectureObjet &operator=(OperatriceLectureObjet const &) = default;
+	OpImportObjet(OpImportObjet const &) = default;
+	OpImportObjet &operator=(OpImportObjet const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -665,14 +708,14 @@ public:
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		auto chemin = evalue_fichier_entree("chemin");
 
 		if (chemin == "") {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_dernier_chemin != chemin) {
@@ -723,7 +766,7 @@ public:
 		m_manipulatrice_rotation.pos(position);
 		m_manipulatrice_echelle.pos(position);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -751,7 +794,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
@@ -759,14 +802,14 @@ public:
 
 		if (corps1 == nullptr) {
 			ajoute_avertissement("1er corps manquant !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps2 = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (corps2 == nullptr) {
 			ajoute_avertissement("2ème corps manquant !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		fusionne_points(corps1, corps2);
@@ -775,7 +818,7 @@ public:
 		fusionne_groupe_points(corps1, corps2);
 		fusionne_groupe_prims(corps1, corps2);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void fusionne_points(Corps const *corps1, Corps const *corps2)
@@ -784,16 +827,16 @@ public:
 		auto liste_point1 = corps1->points_pour_lecture();
 		auto liste_point2 = corps2->points_pour_lecture();
 
-		liste_point->reserve(liste_point1->taille() + liste_point2->taille());
+		liste_point.reserve(liste_point1.taille() + liste_point2.taille());
 
-		for (auto i = 0; i < liste_point1->taille(); ++i) {
-			auto p = corps1->point_transforme(i);
-			liste_point->pousse(p);
+		for (auto i = 0; i < liste_point1.taille(); ++i) {
+			auto p = liste_point1.point_monde(i);
+			liste_point.ajoute_point(p);
 		}
 
-		for (auto i = 0; i < liste_point2->taille(); ++i) {
-			auto p = corps2->point_transforme(i);
-			liste_point->pousse(p);
+		for (auto i = 0; i < liste_point2.taille(); ++i) {
+			auto p = liste_point2.point_monde(i);
+			liste_point.ajoute_point(p);
 		}
 	}
 
@@ -815,7 +858,7 @@ public:
 			}
 		});
 
-		auto const decalage_point = corps1->points_pour_lecture()->taille();
+		auto const decalage_point = corps1->points_pour_lecture().taille();
 
 		pour_chaque_polygone(*corps2,
 							 [&](Corps const &, Polygone *poly)
@@ -858,16 +901,12 @@ public:
 				auto attr2 = paire_attr.second;
 
 				if (attr1->type() != attr2->type()) {
-					dls::flux_chaine ss;
-					ss << "Les types des attributs '" << attr1->nom() << "' sont différents !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Les types des attributs '", attr1->nom(), "' sont différents !");
 					continue;
 				}
 
 				if (attr1->portee != attr2->portee) {
-					dls::flux_chaine ss;
-					ss << "Les portées des attributs '" << attr1->nom() << "' sont différentes !";
-					ajoute_avertissement(ss.chn());
+					ajoute_avertissement("Les portées des attributs '", attr1->nom(), "' sont différentes !");
 					continue;
 				}
 
@@ -930,7 +969,7 @@ public:
 			}
 		}
 
-		auto const decalage_points = corps1->points_pour_lecture()->taille();
+		auto const decalage_points = corps1->points_pour_lecture().taille();
 
 		for (auto const &alveole : tableau) {
 			auto const &paire_attr = alveole.second;
@@ -944,11 +983,11 @@ public:
 				groupe->reserve(groupe1->taille() + groupe2->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_point(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_point(decalage_points + groupe2->index(i));
+					groupe->ajoute_index(decalage_points + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -957,7 +996,7 @@ public:
 				groupe->reserve(groupe1->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_point(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
@@ -966,7 +1005,7 @@ public:
 				groupe->reserve(groupe2->taille());
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_point(decalage_points + groupe2->index(i));
+					groupe->ajoute_index(decalage_points + groupe2->index(i));
 				}
 			}
 		}
@@ -1008,11 +1047,11 @@ public:
 				groupe->reserve(groupe1->taille() + groupe2->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_primitive(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_primitive(decalage_prims + groupe2->index(i));
+					groupe->ajoute_index(decalage_prims + groupe2->index(i));
 				}
 			}
 			else if (paire_attr.first != nullptr && paire_attr.second == nullptr) {
@@ -1021,7 +1060,7 @@ public:
 				groupe->reserve(groupe1->taille());
 
 				for (auto i = 0; i < groupe1->taille(); ++i) {
-					groupe->ajoute_primitive(groupe1->index(i));
+					groupe->ajoute_index(groupe1->index(i));
 				}
 			}
 			else if (paire_attr.first == nullptr && paire_attr.second != nullptr) {
@@ -1030,7 +1069,7 @@ public:
 				groupe->reserve(groupe2->taille());
 
 				for (auto i = 0; i < groupe2->taille(); ++i) {
-					groupe->ajoute_primitive(decalage_prims + groupe2->index(i));
+					groupe->ajoute_index(decalage_prims + groupe2->index(i));
 				}
 			}
 		}
@@ -1066,7 +1105,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
@@ -1146,7 +1185,7 @@ public:
 
 		m_corps.transformation = math::transformation(matrice);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1162,13 +1201,6 @@ public:
 	{
 		entrees(1);
 		sorties(0);
-
-		noeud.est_sortie = true;
-	}
-
-	int type() const override
-	{
-		return OPERATRICE_SORTIE_CORPS;
 	}
 
 	const char *nom_classe() const override
@@ -1181,12 +1213,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1213,17 +1245,18 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (corps_entree == nullptr) {
 			this->ajoute_avertissement("Aucun corps en entrée.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
+		auto points_sortie = m_corps.points_pour_ecriture();
 
 		/* À FAIRE : transfère attributs groupes */
 		auto transfere = TRANSFERE_ATTR_CORPS
@@ -1243,9 +1276,9 @@ public:
 			for (auto j = 0; j < poly->nombre_sommets(); ++j) {
 				auto idx_pnt_orig = poly->index_point(j);
 				auto idx_smt_orig = poly->index_sommet(j);
-				auto point = points_entree->point(poly->index_point(j));
+				auto point = points_entree.point_local(poly->index_point(j));
 
-				auto index = m_corps.ajoute_point(point.x, point.y, point.z);
+				auto index = points_sortie.ajoute_point(point.x, point.y, point.z);
 				transferante.transfere_attributs_points(idx_pnt_orig, index);
 
 				auto idx_sommet = m_corps.ajoute_sommet(npoly, index);
@@ -1255,7 +1288,7 @@ public:
 
 		m_corps.transformation = corps_entree->transformation;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1300,8 +1333,6 @@ static auto ajoute_deformeur(
 
 	deformeurs.pousse(ptr);
 }
-
-#include <numeric>
 
 static auto deforme_kelvinlet(
 		const Vector3& p,
@@ -1404,11 +1435,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (donnees_aval == nullptr || !donnees_aval->possede("déformeurs_kelvinlet")) {
 			this->ajoute_avertissement("Aucune opératrice d'évaluation de kelvinlets en aval");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
@@ -1432,7 +1463,7 @@ public:
 
 		if (!deformeur) {
 			this->ajoute_avertissement("Le deformeur est nul");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* À FAIRE : réinitialisation, trouver quand créer les déformeurs. */
@@ -1447,8 +1478,8 @@ public:
 			// ajoute un déformeur pour chaque points de l'entrée
 			auto points = corps_entree->points_pour_lecture();
 
-			for (auto i = 0; i < points->taille(); ++i) {
-				auto point = corps_entree->point_transforme(i);
+			for (auto i = 0; i < points.taille(); ++i) {
+				auto point = points.point_monde(i);
 
 				ajoute_deformeur(
 							*deformeur,
@@ -1473,7 +1504,7 @@ public:
 						contexte.temps_courant);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1508,13 +1539,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto temps = static_cast<double>(evalue_decimal("temps", contexte.temps_courant));
@@ -1523,7 +1554,7 @@ public:
 
 		if (contexte.temps_courant <= debut) {
 			m_deformeurs.efface();
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		/* À FAIRE : définit quand les déformeurs sont ajoutés, accumule les
@@ -1538,11 +1569,11 @@ public:
 
 		auto const rk4 = integration == "rk4";
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = m_corps.point_transforme(i);
+				auto p = points_entree.point_monde(i);
 
 				auto point_eigen = Vector3();
 				point_eigen << static_cast<double>(p.x), static_cast<double>(p.y), static_cast<double>(p.z);
@@ -1553,11 +1584,11 @@ public:
 				p.y += static_cast<float>(dist[1]);
 				p.z += static_cast<float>(dist[2]);
 
-				points_entree->point(i, p);
+				points_entree.point(i, p);
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1626,13 +1657,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const repetition = evalue_entier("répétition");
@@ -1702,7 +1733,7 @@ public:
 		}
 		else {
 			this->ajoute_avertissement("Type de kelvinlet inconnu");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -1712,11 +1743,11 @@ public:
 		/* calcule la déformation */
 		auto points_entree = m_corps.points_pour_ecriture();
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = m_corps.point_transforme(i);
+				auto p = points_entree.point_monde(i);
 
 				auto point_eigen = Vector3();
 
@@ -1730,386 +1761,14 @@ public:
 					p.z += static_cast<float>(dist[2]);
 				}
 
-				points_entree->point(i, p);
+				points_entree.point(i, p);
 			}
 
-			auto delta = static_cast<float>(plage.end() - plage.begin()) / static_cast<float>(points_entree->taille());
+			auto delta = static_cast<float>(plage.end() - plage.begin()) / static_cast<float>(points_entree.taille());
 			chef->indique_progression_parallele(delta);
 		});
 
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
-template <typename T>
-auto sphere(T u, T v, T r)
-{
-	return dls::math::vec3<T>(
-				std::cos(u) + std::sin(v) * r,
-				std::cos(v) * r,
-				std::sin(u) * std::sin(v) * r);
-}
-
-// converti latitude / longitude en angle u / v
-
-// longitude 0-180 -> 0 PI
-// latitude 0 90 -> 0 PI/2
-
-enum class dir_longitude {
-	EST,
-	OUEST,
-};
-
-enum class dir_latitude {
-	NORD,
-	SUD,
-};
-
-template <typename T, typename type_dir>
-struct arc_geo {
-	using type_valeur = T;
-
-	T degrees{};
-	T minutes{};
-	T secondes{};
-	type_dir dir;
-
-	T angle() const
-	{
-		return degrees + minutes / static_cast<T>(60) + secondes / static_cast<T>(3600);
-	}
-};
-
-using latitude  = arc_geo<double, dir_latitude>;
-using longitude = arc_geo<double, dir_longitude>;
-
-static auto operator+(longitude const &lng1, longitude const &lng2)
-{
-	auto degrees = lng1.degrees + lng2.degrees;
-	auto minutes = lng1.minutes + lng2.minutes;
-	auto secondes = lng1.secondes + lng2.secondes;
-	auto dir = lng1.dir;
-
-	if (secondes >= 60.0) {
-		secondes -= 60.0;
-		minutes += 1.0;
-	}
-
-	if (minutes >= 60.0) {
-		minutes -= 60.0;
-		degrees += 1.0;
-	}
-
-	if (degrees > 180.0) {
-		degrees = 360.0 - degrees;
-
-		if (dir == dir_longitude::EST) {
-			dir = dir_longitude::OUEST;
-		}
-		else {
-			dir = dir_longitude::EST;
-		}
-	}
-
-	return longitude{degrees, minutes, secondes, dir};
-}
-
-static auto operator-(longitude const &lng1, longitude const &lng2)
-{
-	auto degrees = lng1.degrees + lng2.degrees;
-	auto minutes = lng1.minutes + lng2.minutes;
-	auto secondes = lng1.secondes + lng2.secondes;
-	auto dir = lng1.dir;
-
-	if (secondes >= 60.0) {
-		secondes -= 60.0;
-		minutes += 1.0;
-	}
-
-	if (minutes >= 60.0) {
-		minutes -= 60.0;
-		degrees += 1.0;
-	}
-
-	if (degrees > 180.0) {
-		degrees = 360.0 - degrees;
-
-		if (dir == dir_longitude::EST) {
-			dir = dir_longitude::OUEST;
-		}
-		else {
-			dir = dir_longitude::EST;
-		}
-	}
-
-	return longitude{degrees, minutes, secondes, dir};
-}
-
-auto converti_vers_radians(longitude const &lng)
-{
-	if (lng.dir == dir_longitude::OUEST) {
-		return dls::math::degrees_vers_radians(lng.angle());
-	}
-
-	return dls::math::degrees_vers_radians(static_cast<longitude::type_valeur>(360) - lng.angle());
-}
-
-auto converti_vers_radians(latitude const &lat)
-{
-	// 90 degrée nord = 0
-	// 0 degrée = 90
-	// 90 degrée sud = 180
-	auto angle = lat.angle();
-
-	if (lat.dir == dir_latitude::NORD) {
-		angle = -angle;
-	}
-
-	return dls::math::degrees_vers_radians(angle + static_cast<latitude::type_valeur>(90));
-}
-
-auto greenwitch_vers_paris(longitude const &lng)
-{
-	// par convention, utilisation de la valeur de l'IGN, sinon 2°20'13,82"
-	return lng + longitude{2.0, 20.0, 14.025, dir_longitude::EST};
-}
-
-auto paris_vers_greenwitch(longitude const &lng)
-{
-	// par convention, utilisation de la valeur de l'IGN, sinon 2°20'13,82"
-	return lng - longitude{2.0, 20.0, 14.025, dir_longitude::EST};
-}
-
-struct coord_geo {
-	latitude lat;
-	longitude lng;
-};
-
-auto converti_vers_vec3(coord_geo const &geo)
-{
-	auto u = converti_vers_radians(geo.lng);
-	auto v = converti_vers_radians(geo.lat);
-
-	return dls::math::vec3d(std::sin(u), 0.0, std::cos(v)); //normalise(sphere(u, v, 1.0)) * 2.0;
-}
-
-class OperatriceCreationLatLong final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Création LatLong";
-	static constexpr auto AIDE = "Crée un contour de données de latitude et longitude sur une sphère.";
-
-	OperatriceCreationLatLong(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(0);
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_3d_france.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		INUTILISE(contexte);
-		INUTILISE(donnees_aval);
-		m_corps.reinitialise();
-
-//		auto const rayon = evalue_entier("rayon");
-
-//		auto paris       = coord_geo{{48.0, 51.0, 24.0, dir_latitude::NORD}, {2.0, 21.0,  7.0, dir_longitude::EST}};
-//		auto londres     = coord_geo{{51.0, 30.0, 26.0, dir_latitude::NORD}, {0.0 , 7.0, 38.0, dir_longitude::OUEST}};
-//		auto toulouse    = coord_geo{{43.0, 36.0, 16.0, dir_latitude::NORD}, {1.0, 26.0, 38.0, dir_longitude::EST}};
-
-		//		calais
-		//		 -> strasbourg -> lyon -> nice -> marseille
-		//		 -> montpellier
-		//		 -> perpignan -> biarritz -> bordeaux -> nantes
-		//		 -> mont_saint_michel
-#if 0
-		const coord_geo coordonnees[] = {
-			/* calais */
-			coord_geo{{50.0, 56.0, 53.0, dir_latitude::NORD}, {1.0, 51.0, 23.0, dir_longitude::EST}},
-			/* strasbourg */
-			coord_geo{{48.0, 34.0, 24.0, dir_latitude::NORD}, {7.0, 45.0,  8.0, dir_longitude::EST}},
-			/* lyon */
-			coord_geo{{45.0, 45.0, 35.0, dir_latitude::NORD}, {4.0, 50.0, 32.0, dir_longitude::EST}},
-			/* nice */
-			coord_geo{{43.0, 41.0, 45.0, dir_latitude::NORD}, {7.0, 16.0, 17.0, dir_longitude::EST}},
-			/* marseille */
-			coord_geo{{43.0, 17.0, 47.0, dir_latitude::NORD}, {5.0, 22.0, 12.0, dir_longitude::EST}},
-			/* montpellier */
-			coord_geo{{43.0, 36.0, 43.0, dir_latitude::NORD}, {3.0, 52.0, 38.0, dir_longitude::EST}},
-			/* perpignan */
-			coord_geo{{42.0, 41.0, 55.0, dir_latitude::NORD}, {2.0, 53.0, 44.0, dir_longitude::EST}},
-			/* biarritz */
-			coord_geo{{43.0, 28.0, 54.0, dir_latitude::NORD}, {1.0, 33.0, 22.0, dir_longitude::OUEST}},
-			/* bordeaux */
-			coord_geo{{44.0, 50.0, 16.0, dir_latitude::NORD}, {0.0, 34.0, 46.0, dir_longitude::OUEST}},
-			/* nantes */
-			coord_geo{{47.0, 13.0,  5.0, dir_latitude::NORD}, {1.0, 33.0, 10.0, dir_longitude::OUEST}},
-			/* brest */
-			coord_geo{{48.0, 23.0, 27.0, dir_latitude::NORD}, {4.0, 29.0,  8.0, dir_longitude::OUEST}},
-			/* mt_stmichel */
-			coord_geo{{48.0, 38.0, 10.0, dir_latitude::NORD}, {1.0, 30.0, 40.0, dir_longitude::OUEST}},
-		};
-#else
-		double contours_afrique[][2] = {
-			{ 35.884690, -5.377871 },
-			{ 35.035737, -2.154383 },
-			{ 37.089866, 9.821689 },
-			{ 33.770512, 10.143529 },
-			{ 30.185341, 19.345090 },
-			{ 32.804587, 21.830455 },
-			{ 30.664525, 29.263903 },
-			{ 31.074847, 32.228180 },
-			{ 23.987402, 35.529263 },
-			{ 18.913127, 37.375282 },
-			{ 15.229599, 39.600991 },
-			{ 12.155623, 43.371837 },
-			{ 10.364928, 44.187308 },
-			{ 11.732458, 51.086895 },
-			{ 9.481966, 50.884575 },
-			{ 2.336722, 45.887110 },
-			{ -1.850502, 41.375480 },
-			{ -6.122056, 38.648449 },
-			{ -10.795585, 40.408475 },
-			{ -15.244449, 40.482613 },
-			{ -20.063967, 34.739739 },
-			{ -24.286005, 35.094668 },
-			{ -25.704585, 32.464602 },
-			{ -28.563764, 32.084475 },
-			{ -33.598180, 26.996827 },
-			{ -34.631840, 19.922943 },
-			{ -28.653801, 16.473179 },
-			{ -22.925482, 14.704439 },
-			{ -17.898171, 12.026826 },
-			{ -12.964455, 13.255200 },
-			{ -10.906065, 14.033495 },
-			{ -4.888612, 12.057310 },
-			{ -1.272471, 9.270384 },
-			{ 3.473871, 10.088214 },
-			{ 4.533086, 8.623522 },
-			{ 4.337239, 5.903150 },
-			{ 6.175602, 4.740397 },
-			{ 6.289704, 1.618000 },
-			{ 4.734480, -2.062012 },
-			{ 5.245542, -4.094530 },
-			{ 4.377359, -7.523426 },
-			{ 7.508361, -12.574004 },
-			{ 9.579641, -13.466798 },
-			{ 12.341727, -16.732042 },
-			{ 14.655875, -17.265708 },
-			{ 17.255404, -16.124328 },
-			{ 21.289876, -16.954074 },
-			{ 22.320141, -16.479385 },
-			{ 24.614810, -14.843507 },
-			{ 26.243193, -14.368798 },
-			{ 26.809782, -13.532830 },
-			{ 27.893241, -12.860595 },
-			{ 28.392288, -11.384718 },
-			{ 29.636743, -9.905798 },
-			{ 31.421185, -9.785544 },
-			{ 33.338799, -8.338442 },
-			{ 33.999273, -6.749020 },
-			{ 35.687438, -5.886515 },
-		};
-
-		dls::tableau<coord_geo> coordonnees;
-
-		for (auto paire : contours_afrique) {
-			auto lat = paire[0];
-			auto lng = paire[1];
-
-			auto co_geo = coord_geo{};
-
-			if (lat < 0.0) {
-				co_geo.lat = latitude{-lat, 0.0, 0.0, dir_latitude::SUD};
-			}
-			else {
-				co_geo.lat = latitude{lat, 0.0, 0.0, dir_latitude::NORD};
-			}
-
-			if (lng < 0.0) {
-				co_geo.lng = longitude{-lng, 0.0, 0.0, dir_longitude::OUEST};
-			}
-			else {
-				co_geo.lng = longitude{lng, 0.0, 0.0, dir_longitude::EST};
-			}
-
-			coordonnees.pousse(co_geo);
-		}
-#endif
-
-		for (auto &co_geo : coordonnees) {
-			auto point = converti_vers_vec3(co_geo);
-			m_corps.ajoute_point(dls::math::converti_type<float>(point));
-		}
-
-		auto nombre_points = m_corps.points_pour_lecture()->taille();
-		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, nombre_points);
-
-		for (auto i = 0; i < nombre_points; ++i) {
-			m_corps.ajoute_sommet(poly, i);
-		}
-
-		calcul_normaux(m_corps, true, false);
-
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
-class OpCacheCorps final : public OperatriceCorps {
-public:
-	static constexpr auto NOM = "Cache Corps";
-	static constexpr auto AIDE = "";
-
-	OpCacheCorps(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceCorps(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		INUTILISE(donnees_aval);
-		m_corps.reinitialise();
-
-		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("cache corps");
-
-		entree(0)->signale_cache(chef);
-
-		chef->indique_progression(100.0f);
-
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2120,7 +1779,7 @@ class OpCreationPancarte final : public OperatriceCorps {
 	Objet *m_objet = nullptr;
 
 public:
-	static constexpr auto NOM = "Création Pancarte";
+	static constexpr auto NOM = "Création Pancartes";
 	static constexpr auto AIDE = "Crée des pancartes qui font toujours face à la caméra.";
 
 	OpCreationPancarte(Graphe &graphe_parent, Noeud &noeud_)
@@ -2133,7 +1792,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_visibilite_camera.jo";
+		return "entreface/operatrice_creation_pancartes.jo";
 	}
 
 	const char *nom_classe() const override
@@ -2162,22 +1821,22 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
-	//	auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
+		auto corps_ref = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_objet->type != type_objet::CAMERA) {
 			this->ajoute_avertissement("L'objet n'est pas une caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto camera = static_cast<vision::Camera3D *>(nullptr);
@@ -2187,27 +1846,69 @@ public:
 			camera = &extrait_camera(donnees);
 		});
 
-		auto const pos = dls::math::vec3f(0.0f);
+		auto attr_UV = m_corps.ajoute_attribut(
+					"UV", type_attribut::R32, 2, portee_attr::VERTEX);
+
+		auto taille_uniforme = evalue_decimal("rayon_uniforme", contexte.temps_courant);
+		auto taille_x = evalue_decimal("rayon_x", contexte.temps_courant);
+		auto taille_y = evalue_decimal("rayon_y", contexte.temps_courant);
+
+		taille_x *= taille_uniforme;
+		taille_y *= taille_uniforme;
 
 		dls::math::vec3f points_pancate[4] = {
-			dls::math::vec3f(-1.0f, 0.0f, -1.0f),
-			dls::math::vec3f( 1.0f, 0.0f, -1.0f),
-			dls::math::vec3f( 1.0f, 0.0f,  1.0f),
-			dls::math::vec3f(-1.0f, 0.0f,  1.0f),
+			dls::math::vec3f(-taille_x, 0.0f, -taille_y),
+			dls::math::vec3f( taille_x, 0.0f, -taille_y),
+			dls::math::vec3f( taille_x, 0.0f,  taille_y),
+			dls::math::vec3f(-taille_x, 0.0f,  taille_y),
 		};
 
-		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
+		if (corps_ref != nullptr) {
+			auto points_ref = corps_ref->points_pour_lecture();
 
-		auto mat = dls::math::aligne_rotation(
-					dls::math::vec3f(0.0f, 1.0f, 0.0f),
-					normalise(dls::math::vec3f(camera->pos() - pos)));
-
-		for (auto i = 0; i < 4; ++i) {
-			auto idx_point = m_corps.ajoute_point(mat * points_pancate[i]);
-			m_corps.ajoute_sommet(poly, idx_point);
+			for (auto i = 0; i < points_ref.taille(); ++i) {
+				auto point = points_ref.point_monde(i);
+				cree_pancarte(camera, point, *attr_UV, points_pancate);
+			}
+		}
+		else {
+			auto const pos = evalue_vecteur("position", contexte.temps_courant);
+			cree_pancarte(camera, pos, *attr_UV, points_pancate);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
+	}
+
+	void cree_pancarte(
+			vision::Camera3D *camera,
+			dls::math::vec3f const &pos,
+			Attribut &attr_UV,
+			dls::math::vec3f *points_pancate)
+	{
+		dls::math::vec2f uvs_pancarte[4] = {
+			dls::math::vec2f(-1.0f, -1.0f),
+			dls::math::vec2f( 1.0f, -1.0f),
+			dls::math::vec2f( 1.0f,  1.0f),
+			dls::math::vec2f(-1.0f,  1.0f),
+		};
+
+		auto axe_y = normalise(camera->pos() - pos);
+		auto axe_x = normalise(vec_ortho(axe_y));
+		auto axe_z = normalise(produit_croix(axe_y, axe_x));
+
+		auto mat = dls::math::mat3x3f(
+					axe_x.x, axe_x.y, axe_x.z,
+					axe_y.x, axe_y.y, axe_y.z,
+					axe_z.x, axe_z.y, axe_z.z);
+
+		auto points = m_corps.points_pour_ecriture();
+		auto poly = m_corps.ajoute_polygone(type_polygone::FERME, 4);
+
+		for (auto i = 0; i < 4; ++i) {
+			auto idx_point = points.ajoute_point(mat * points_pancate[i] + pos);
+			auto idx_sommet = m_corps.ajoute_sommet(poly, idx_point);
+			assigne(attr_UV.r32(idx_sommet), uvs_pancarte[i]);
+		}
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
@@ -2220,7 +1921,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet->noeud);
 	}
 
 	void obtiens_liste(
@@ -2249,7 +1950,8 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OperatriceCreationCercle>());
 	usine.enregistre_type(cree_desc<OperatriceCreationTorus>());
 	usine.enregistre_type(cree_desc<OperatriceCreationLigne>());
-	usine.enregistre_type(cree_desc<OperatriceLectureObjet>());
+	usine.enregistre_type(cree_desc<OperatriceCreationPrimSphere>());
+	usine.enregistre_type(cree_desc<OpImportObjet>());
 	usine.enregistre_type(cree_desc<OperatriceSortieCorps>());
 	usine.enregistre_type(cree_desc<OperatriceFusionnageCorps>());
 	usine.enregistre_type(cree_desc<OperatriceTransformation>());
@@ -2257,8 +1959,6 @@ void enregistre_operatrices_corps(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpEvaluationKelvinlet>());
 	usine.enregistre_type(cree_desc<OpCreationKelvinlet>());
 	usine.enregistre_type(cree_desc<OpDeformationKelvinlet>());
-	usine.enregistre_type(cree_desc<OperatriceCreationLatLong>());
-	usine.enregistre_type(cree_desc<OpCacheCorps>());
 	usine.enregistre_type(cree_desc<OpCreationPancarte>());
 }
 

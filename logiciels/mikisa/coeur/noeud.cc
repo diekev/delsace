@@ -56,6 +56,8 @@ Noeud::~Noeud()
 	switch (type) {
 		case type_noeud::OBJET:
 		case type_noeud::COMPOSITE:
+		case type_noeud::NUANCEUR:
+		case type_noeud::RENDU:
 		case type_noeud::INVALIDE:
 		{
 			break;
@@ -151,12 +153,12 @@ void Noeud::ajoute_sortie(dls::chaine const &name, const type_prise type_p)
 	this->sorties.pousse(prise);
 }
 
-PriseEntree *Noeud::entree(long index)
+PriseEntree *Noeud::entree(long index) const
 {
 	return entrees[index];
 }
 
-PriseEntree *Noeud::entree(dls::chaine const &nom_entree)
+PriseEntree *Noeud::entree(dls::chaine const &nom_entree) const
 {
 	auto op = [&](PriseEntree const *prise)
 	{
@@ -172,12 +174,12 @@ PriseEntree *Noeud::entree(dls::chaine const &nom_entree)
 	return nullptr;
 }
 
-PriseSortie *Noeud::sortie(long index)
+PriseSortie *Noeud::sortie(long index) const
 {
 	return sorties[index];
 }
 
-PriseSortie *Noeud::sortie(dls::chaine const &nom_sortie)
+PriseSortie *Noeud::sortie(dls::chaine const &nom_sortie) const
 {
 	auto op = [&](PriseSortie const *prise)
 	{
@@ -280,4 +282,27 @@ void marque_parent_surannee(Noeud *noeud, const std::function<void(Noeud *, Pris
 
 	marque_surannee(noeud, rp);
 	marque_parent_surannee(noeud->parent, rp);
+}
+
+Noeud *noeud_base_hierarchie(Noeud *noeud)
+{
+	if (noeud == nullptr) {
+		return nullptr;
+	}
+
+	while (noeud->parent != nullptr) {
+		auto parent = noeud->parent;
+
+		if (parent->graphe.type == type_graphe::RACINE_OBJET) {
+			break;
+		}
+
+		if (parent->graphe.type == type_graphe::RACINE_COMPOSITE) {
+			break;
+		}
+
+		noeud = parent;
+	}
+
+	return noeud;
 }

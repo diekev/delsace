@@ -37,7 +37,7 @@ static void supprime_liste(dls::tableau<long> *liste)
 
 /* ************************************************************************** */
 
-void GroupePoint::ajoute_point(long index_point)
+void GroupePoint::ajoute_index(long index_point)
 {
 	detache();
 	this->m_points->pousse(index_point);
@@ -105,7 +105,7 @@ void GroupePoint::detache()
 
 /* ************************************************************************** */
 
-void GroupePrimitive::ajoute_primitive(long index_poly)
+void GroupePrimitive::ajoute_index(long index_poly)
 {
 	detache();
 	this->m_primitives->pousse(index_poly);

@@ -37,7 +37,6 @@
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "coeur/chef_execution.hh"
@@ -159,7 +158,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -168,7 +167,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const operation = evalue_enum("operation");
@@ -365,7 +364,7 @@ public:
 		auto calque = m_image.ajoute_calque(nom_calque, image_tampon.desc(), wlk::type_grille::COULEUR);
 		*calque->tampon() = image_tampon;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -397,7 +396,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -411,7 +410,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -458,7 +457,7 @@ public:
 		//calque->tampon = dls::image::operation::applique_convolution(tampon->tampon, filtre);
 #endif
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -546,7 +545,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -555,7 +554,7 @@ public:
 		auto calque = m_image.calque_pour_ecriture(nom_calque);
 
 		if (calque == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon = extrait_grille_couleur(calque);
@@ -600,7 +599,7 @@ public:
 
 		chef->indique_progression(1000.f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -632,7 +631,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -641,7 +640,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -665,10 +664,8 @@ public:
 		auto plg_type = dico_type.trouve(chaine_flou);
 
 		if (plg_type.est_finie()) {
-			auto flux = dls::flux_chaine();
-			flux << "Type de filter '" << chaine_flou << "' inconnu";
-			this->ajoute_avertissement(flux.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("Type de filtre '", chaine_flou, "' inconnu");
+			return res_exec::ECHOUEE;
 		}
 
 		/* construit le kernel du flou */
@@ -683,7 +680,7 @@ public:
 
 		wlk::filtre_grille(*tampon, type, rayon, &chef_wolika);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -715,7 +712,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -724,7 +721,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -747,10 +744,8 @@ public:
 		auto plg_type = dico_type.trouve(chaine_flou);
 
 		if (plg_type.est_finie()) {
-			auto flux = dls::flux_chaine();
-			flux << "Type de filter '" << chaine_flou << "' inconnu";
-			this->ajoute_avertissement(flux.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("Type de filtre '", chaine_flou, "' inconnu");
+			return res_exec::ECHOUEE;
 		}
 
 		/* construit le kernel du flou */
@@ -801,7 +796,7 @@ public:
 			chef->indique_progression_parallele(delta * 50.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -833,7 +828,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -842,7 +837,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -921,7 +916,7 @@ public:
 			chef->indique_progression_parallele(delta * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -954,7 +949,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -963,7 +958,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1054,7 +1049,7 @@ public:
 			chef->indique_progression_parallele(delta * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1086,7 +1081,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1095,7 +1090,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1116,10 +1111,8 @@ public:
 		auto plg_type = dico_type.trouve(chaine_type);
 
 		if (plg_type.est_finie()) {
-			auto flux = dls::flux_chaine();
-			flux << "Type de filter '" << chaine_type << "' inconnu";
-			this->ajoute_avertissement(flux.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("Type de filtre '", chaine_type, "' inconnu");
+			return res_exec::ECHOUEE;
 		}
 
 		auto type = plg_type.front().second;
@@ -1181,7 +1174,7 @@ public:
 			tampon->valeur(i) = res;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1213,7 +1206,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1222,7 +1215,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1259,7 +1252,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1335,7 +1328,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1344,7 +1337,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1424,7 +1417,7 @@ public:
 		auto tampon = extrait_grille_couleur(calque);
 		*tampon = converti_float_pixel(image_tampon);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1461,7 +1454,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1470,7 +1463,7 @@ public:
 		auto calque_a = cherche_calque(*this, image1, nom_calque_a);
 
 		if (calque_a == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto image2 = entree(1)->requiers_image(contexte, donnees_aval);
@@ -1478,7 +1471,7 @@ public:
 		auto calque_b = cherche_calque(*this, image2, nom_calque_b);
 
 		if (calque_b == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_a = extrait_grille_couleur(calque_a);
@@ -1516,7 +1509,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1758,7 +1751,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1767,7 +1760,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1802,7 +1795,7 @@ public:
 		auto tampon = extrait_grille_couleur(calque);
 		assemble_image(*tampon, bruit_rouge, bruit_vert, bruit_bleu);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1834,7 +1827,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1843,7 +1836,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1869,7 +1862,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1901,7 +1894,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -1910,7 +1903,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -1971,7 +1964,7 @@ public:
 			res_y /= 2;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2003,7 +1996,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -2012,7 +2005,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -2057,7 +2050,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2089,7 +2082,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -2098,7 +2091,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -2142,7 +2135,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2174,7 +2167,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -2183,7 +2176,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -2234,7 +2227,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2346,7 +2339,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -2355,7 +2348,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto tampon_entree = extrait_grille_couleur(calque_entree);
@@ -2364,7 +2357,7 @@ public:
 
 		if (res_x <= 2 || res_y <= 2) {
 			this->ajoute_avertissement("L'image d'entrée est trop petite");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto calque = m_image.ajoute_calque(nom_calque, tampon_entree->desc(), wlk::type_grille::COULEUR);
@@ -2380,7 +2373,7 @@ public:
 			recursion_prefiltre(&tampon->valeur(x), res_y, res_x);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2416,7 +2409,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -2425,7 +2418,7 @@ public:
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -2501,7 +2494,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2677,14 +2670,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto image = entree(0)->requiers_image(contexte, donnees_aval);
 		auto const nom_calque = evalue_chaine("nom_calque");
 		auto calque_entree = cherche_calque(*this, image, nom_calque);
 
 		if (calque_entree == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -2733,7 +2726,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void calcule_mappage(
@@ -3170,7 +3163,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_image.reinitialise();
@@ -3293,7 +3286,7 @@ public:
 			tampon->valeur(i) = clr;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

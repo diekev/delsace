@@ -27,12 +27,10 @@
 #include "biblinternes/vision/camera.h"
 
 #include "moteur_rendu.hh"
-#include "structure_acceleration.hh"
 
 namespace kdo {
 
 ParametresRendu::ParametresRendu()
-	: acceleratrice(nullptr)
 {}
 
 ParametresRendu::~ParametresRendu()
@@ -40,8 +38,6 @@ ParametresRendu::~ParametresRendu()
 #ifdef NOUVELLE_CAMERA
 	delete camera;
 #endif
-
-	delete acceleratrice;
 }
 
 Koudou::Koudou()

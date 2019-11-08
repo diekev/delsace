@@ -27,8 +27,7 @@
 #include <algorithm>
 #include <random>
 
-#include "biblinternes/math/bruit.hh"
-
+#include "biblinternes/bruit/evaluation.hh"
 #include "biblinternes/texture/texture.h"
 
 #include "outils_couleur.h"
@@ -51,7 +50,8 @@ static unsigned int prochain_multiple_de_2(unsigned int v)
 
 void ajoute_calque_procedurale(Maillage *maillage)
 {
-	dls::math::BruitPerlin3D bruit;
+	auto params = bruit::parametres();
+	bruit::construit(bruit::type::PERLIN, params, 0);
 
 	auto const nombre_polygones = maillage->nombre_polygones();
 	auto const largeur = maillage->largeur_texture();
@@ -79,7 +79,7 @@ void ajoute_calque_procedurale(Maillage *maillage)
 
 				auto coord = s0 + dU * static_cast<float>(j) + dV * static_cast<float>(k);
 
-				auto couleur = bruit(coord * 10.f);
+				auto couleur = bruit::evalue(params, coord * 10.f);
 
 				tampon_poly[index] = dls::math::vec4f(couleur, couleur, couleur, 1.0f);
 			}

@@ -30,6 +30,7 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/plage.hh"
 
 #include "coeur/chef_execution.hh"
@@ -55,7 +56,7 @@
 
 /* ************************************************************************** */
 
-static int cree_volume(
+static res_exec cree_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
@@ -113,12 +114,12 @@ static int cree_volume(
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
 
-static int maillage_vers_volume(
+static res_exec maillage_vers_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval,
@@ -129,7 +130,7 @@ static int maillage_vers_volume(
 	op.corps()->reinitialise();
 
 	if (!valide_corps_entree(op, &corps_entree, true, true)) {
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chef = contexte.chef;
@@ -288,7 +289,7 @@ static int maillage_vers_volume(
 
 	op.corps()->prims()->pousse(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
@@ -311,9 +312,11 @@ static void rasterise_polygone(
 		return;
 	}
 
-	auto p0 = corps.point_transforme(poly.index_point(0));
-	auto p1 = corps.point_transforme(poly.index_point(1));
-	auto p3 = corps.point_transforme(poly.index_point(3));
+	auto points = corps.points_pour_lecture();
+
+	auto p0 = points.point_monde(poly.index_point(0));
+	auto p1 = points.point_monde(poly.index_point(1));
+	auto p3 = points.point_monde(poly.index_point(3));
 
 	auto e1 = p1 - p0;
 	auto e2 = p3 - p0;
@@ -358,11 +361,13 @@ static void rasterise_ligne(
 		bruit::parametres *params_bruit,
 		bruit::param_turbulence *params_turb)
 {
+	auto points = corps.points_pour_lecture();
+
 	// le système de coordonnées pour une ligne est (NxT, N, T)
 
 	for (auto i = 0; i < poly.nombre_segments(); ++i) {
-		auto p0 = corps.point_transforme(poly.index_point(i));
-		auto p1 = corps.point_transforme(poly.index_point(i + 1));
+		auto p0 = points.point_monde(poly.index_point(i));
+		auto p1 = points.point_monde(poly.index_point(i + 1));
 
 		for (auto j = 0; j < nombre_echantillons; ++j) {
 			// trouve une position aléatoire le long du segment
@@ -373,7 +378,7 @@ static void rasterise_ligne(
 			auto T = (p1 - p0);
 
 			// trouve la normale, simplement un vecteur orthogonal à T
-			auto N = dls::math::vec3f(-T.y, T.x, 0.0f);
+			auto N = vec_ortho(T);
 
 			// trouve le troisième axe
 			auto NxT = produit_croix(N, T);
@@ -399,7 +404,7 @@ static void rasterise_ligne(
 	}
 }
 
-static int ratisse_primitives(
+static res_exec ratisse_primitives(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval,
@@ -413,7 +418,7 @@ static int ratisse_primitives(
 
 	if (prims_entree->taille() == 0) {
 		op.ajoute_avertissement("Aucune primitive en entrée");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chef = contexte.chef;
@@ -467,12 +472,12 @@ static int ratisse_primitives(
 	auto volume = memoire::loge<Volume>("Volume", grille_scalaire);
 	op.corps()->prims()->pousse(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
 
-static int reechantillonne_volume(
+static res_exec reechantillonne_volume(
 		OperatriceCorps &op,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval,
@@ -486,7 +491,7 @@ static int reechantillonne_volume(
 	auto prims = corps_entree.prims();
 
 	if (!valide_corps_entree(op, &corps_entree, true, true)) {
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto volume_entree = static_cast<Volume *>(nullptr);
@@ -502,14 +507,14 @@ static int reechantillonne_volume(
 
 	if (volume_entree == nullptr) {
 		op.ajoute_avertissement("Aucun volume en entrée !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto grille_entree = volume_entree->grille;
 
 	if (grille_entree->desc().type_donnees != wlk::type_grille::R32) {
 		op.ajoute_avertissement("La grille n'est pas scalaire !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto grille_scalaire = dynamic_cast<wlk::grille_dense_3d<float> *>(grille_entree);
@@ -522,7 +527,7 @@ static int reechantillonne_volume(
 	auto volume = memoire::loge<Volume>("Volume", grille);
 	op.corps()->ajoute_primitive(volume);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 /* ************************************************************************** */
@@ -865,7 +870,7 @@ public:
 		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -895,7 +900,7 @@ public:
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -933,7 +938,7 @@ public:
 		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -941,7 +946,7 @@ public:
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
@@ -965,7 +970,7 @@ public:
 
 		if (grille_entree == nullptr) {
 			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto taille_fenetre = 2;
@@ -974,7 +979,7 @@ public:
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -1012,7 +1017,7 @@ public:
 		return "entreface/operatrice_creation_volume_temporel.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1020,7 +1025,7 @@ public:
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
@@ -1044,7 +1049,7 @@ public:
 
 		if (grille_entree == nullptr) {
 			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto taille_fenetre = 2;
@@ -1053,7 +1058,7 @@ public:
 		auto volume = memoire::loge<Volume>("Volume", grille);
 		m_corps.prims()->pousse(volume);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -1063,412 +1068,6 @@ public:
 };
 
 /* ************************************************************************** */
-
-//! A point cloud class that uses a k-d tree for storing points.
-//!
-//! The GetPoints and GetClosest methods return the neighboring points to a given location.
-
-template <typename PointType, typename FType, uint32_t DIMENSIONS, typename SIZE_TYPE=uint32_t>
-class PointCloud {
-public:
-	/////////////////////////////////////////////////////////////////////////////////
-	//!@name Constructors and Destructor
-
-	PointCloud() = default;
-	PointCloud(SIZE_TYPE numPts, const PointType *pts, const SIZE_TYPE *customIndices=nullptr) : points(nullptr), pointCount(0) { Build(numPts,pts,customIndices); }
-	~PointCloud() { delete [] points; }
-
-	PointCloud(PointCloud const &) = default;
-	PointCloud &operator=(PointCloud const &) = default;
-
-	/////////////////////////////////////////////////////////////////////////////////
-	//!@ Access to internal data
-
-	SIZE_TYPE GetPointCount() const { return pointCount-1; }					//!< Returns the point count
-	const PointType& GetPoint(SIZE_TYPE i) const { return points[i+1].Pos(); }	//!< Returns the point at position i
-	SIZE_TYPE GetPointIndex(SIZE_TYPE i) const { return points[i+1].Index(); }	//!< Returns the index of the point at position i
-
-	/////////////////////////////////////////////////////////////////////////////////
-	//!@ Initialization
-
-	//! Builds a k-d tree for the given points.
-	//! The positions are stored internally.
-	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
-	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
-	void Build(SIZE_TYPE numPts, const PointType *pts) { BuildWithFunc(numPts, [&pts](SIZE_TYPE i){ return pts[i]; }); }
-
-	//! Builds a k-d tree for the given points.
-	//! The positions are stored internally, along with the indices to the given array.
-	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
-	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
-	void Build(SIZE_TYPE numPts, const PointType *pts, const SIZE_TYPE *customIndices) { BuildWithFunc(numPts, [&pts](SIZE_TYPE i){ return pts[i]; }, [&customIndices](SIZE_TYPE i){ return customIndices[i]; }); }
-
-	//! Builds a k-d tree for the given points.
-	//! The positions are stored internally, retrieved from the given function.
-	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
-	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
-	template <typename PointPosFunc>
-	void BuildWithFunc(SIZE_TYPE numPts, PointPosFunc ptPosFunc) { BuildWithFunc(numPts, ptPosFunc, [](SIZE_TYPE i){ return i; }); }
-
-	//! Builds a k-d tree for the given points.
-	//! The positions are stored internally, along with the indices to the given array.
-	//! The positions and custom indices are retrieved from the given functions.
-	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
-	//! if ttb.h or ppl.h is included prior to including cyPointCloud.h.
-	template <typename PointPosFunc, typename CustomIndexFunc>
-	void BuildWithFunc(SIZE_TYPE numPts, PointPosFunc ptPosFunc, CustomIndexFunc custIndexFunc)
-	{
-		if (points) delete [] points;
-		pointCount = numPts;
-		if (pointCount == 0) { points = nullptr; return; }
-		points = new PointData[static_cast<size_t>((pointCount|1)+1)];
-		PointData *orig = new PointData[static_cast<size_t>(pointCount)];
-		PointType boundMin((std::numeric_limits<FType>::max)()), boundMax((std::numeric_limits<FType>::min)());
-		for (SIZE_TYPE i=0; i<pointCount; i++) {
-			PointType p = ptPosFunc(i);
-			orig[i].Set(p, custIndexFunc(i));
-			for (auto j=0ul; j<DIMENSIONS; j++) {
-				if (boundMin[j] > p[j]) boundMin[j] = p[j];
-				if (boundMax[j] < p[j]) boundMax[j] = p[j];
-			}
-		}
-		BuildKDTree(orig, boundMin, boundMax, 1, 0, pointCount);
-		delete [] orig;
-		if ((pointCount & 1) == 0) {
-			// if the point count is even, we should add a bogus point
-			points[pointCount+1].Set(PointType(std::numeric_limits<FType>::infinity()), 0, 0);
-		}
-		numInternal = pointCount / 2;
-	}
-
-	//! Returns true if the Build or BuildWithFunc methods would perform the build in parallel using multi-threading.
-	//! The build is parallelized using Intel's Thread Building Library (TBB) or Microsoft's Parallel Patterns Library (PPL),
-	//! if ttb.h or ppl.h are included prior to including cyPointCloud.h.
-	static bool IsBuildParallel()
-	{
-#ifdef _CY_PARALLEL_LIB
-		return true;
-#else
-		return false;
-#endif
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////
-	//!@ General search methods
-
-	//! Returns all points to the given position within the given radius.
-	//! Calls the given pointFound function for each point found.
-	//!
-	//! The given pointFound function can reduce the radiusSquared value.
-	//! However, increasing the radiusSquared value can have unpredictable results.
-	//! The callback function must be in the following form:
-	//!
-	//! void _CALLBACK(SIZE_TYPE index, const PointType &p, FType distanceSquared, FType &radiusSquared)
-	template <typename _CALLBACK>
-	void GetPoints(const PointType &position, FType radius, _CALLBACK pointFound) const
-	{
-		FType r2 = radius*radius;
-		GetPoints(position, r2, pointFound, 1);
-	}
-
-	//! Used by one of the PointCloud::GetPoints() methods.
-	//!
-	//! Keeps the point index, position, and distance squared to a given search position.
-	//! Used by one of the GetPoints methods.
-	struct PointInfo {
-		SIZE_TYPE index;			//!< The index of the point
-		PointType pos;				//!< The position of the point
-		FType     distanceSquared;	//!< Squared distance from the search position
-		bool operator < (const PointInfo &b) const { return distanceSquared < b.distanceSquared; }	//!< Comparison operator
-	};
-
-	//! Returns the closest points to the given position within the given radius.
-	//! It returns the number of points found.
-	int GetPoints(const PointType &position, FType radius, SIZE_TYPE maxCount, PointInfo *closestPoints) const
-	{
-		int pointsFound = 0;
-		GetPoints(position, radius, [&](SIZE_TYPE i, const PointType &p, FType d2, FType &r2) {
-			if (pointsFound == maxCount) {
-				std::pop_heap(closestPoints, closestPoints+maxCount);
-				closestPoints[maxCount-1].index = i;
-				closestPoints[maxCount-1].pos = p;
-				closestPoints[maxCount-1].distanceSquared = d2;
-				std::push_heap(closestPoints, closestPoints+maxCount);
-				r2 = closestPoints[0].distanceSquared;
-			} else {
-				closestPoints[pointsFound].index = i;
-				closestPoints[pointsFound].pos = p;
-				closestPoints[pointsFound].distanceSquared = d2;
-				pointsFound++;
-				if (pointsFound == maxCount) {
-					std::make_heap(closestPoints, closestPoints+maxCount);
-					r2 = closestPoints[0].distanceSquared;
-				}
-			}
-		});
-		return pointsFound;
-	}
-
-	//! Returns the closest points to the given position.
-	//! It returns the number of points found.
-	int GetPoints(const PointType &position, SIZE_TYPE maxCount, PointInfo *closestPoints) const
-	{
-		return GetPoints(position, (std::numeric_limits<FType>::max)(), maxCount, closestPoints);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////
-	//!@name Closest point methods
-
-	//! Returns the closest point to the given position within the given radius.
-	//! It returns true, if a point is found.
-	bool GetClosest(const PointType &position, FType radius, SIZE_TYPE &closestIndex, PointType &closestPosition, FType &closestDistanceSquared) const
-	{
-		bool found = false;
-		FType dist2 = radius * radius;
-		GetPoints(position, dist2, [&](SIZE_TYPE i, const PointType &p, FType d2, FType &r2){ found=true; closestIndex=i; closestPosition=p; closestDistanceSquared=d2; r2=d2; }, 1);
-		return found;
-	}
-
-	//! Returns the closest point to the given position.
-	//! It returns true, if a point is found.
-	bool GetClosest(const PointType &position, SIZE_TYPE &closestIndex, PointType &closestPosition, FType &closestDistanceSquared) const
-	{
-		return GetClosest(position, (std::numeric_limits<FType>::max)(), closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point index and position to the given position within the given index.
-	//! It returns true, if a point is found.
-	bool GetClosest(const PointType &position, FType radius, SIZE_TYPE &closestIndex, PointType &closestPosition) const
-	{
-		FType closestDistanceSquared;
-		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point index and position to the given position.
-	//! It returns true, if a point is found.
-	bool GetClosest(const PointType &position, SIZE_TYPE &closestIndex, PointType &closestPosition) const
-	{
-		FType closestDistanceSquared;
-		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point index to the given position within the given radius.
-	//! It returns true, if a point is found.
-	bool GetClosestIndex(const PointType &position, FType radius, SIZE_TYPE &closestIndex) const
-	{
-		FType closestDistanceSquared;
-		PointType closestPosition;
-		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point index to the given position.
-	//! It returns true, if a point is found.
-	bool GetClosestIndex(const PointType &position, SIZE_TYPE &closestIndex) const
-	{
-		FType closestDistanceSquared;
-		PointType closestPosition;
-		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point position to the given position within the given radius.
-	//! It returns true, if a point is found.
-	bool GetClosestPosition(const PointType &position, FType radius, PointType &closestPosition) const
-	{
-		SIZE_TYPE closestIndex;
-		FType closestDistanceSquared;
-		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point position to the given position.
-	//! It returns true, if a point is found.
-	bool GetClosestPosition(const PointType &position, PointType &closestPosition) const
-	{
-		SIZE_TYPE closestIndex;
-		FType closestDistanceSquared;
-		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point distance squared to the given position within the given radius.
-	//! It returns true, if a point is found.
-	bool GetClosestDistanceSquared(const PointType &position, FType radius, FType &closestDistanceSquared) const
-	{
-		SIZE_TYPE closestIndex;
-		PointType closestPosition;
-		return GetClosest(position, radius, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	//! Returns the closest point distance squared to the given position.
-	//! It returns true, if a point is found.
-	bool GetClosestDistanceSquared(const PointType &position, FType &closestDistanceSquared) const
-	{
-		SIZE_TYPE closestIndex;
-		PointType closestPosition;
-		return GetClosest(position, closestIndex, closestPosition, closestDistanceSquared);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////
-
-private:
-
-	/////////////////////////////////////////////////////////////////////////////////
-	//!@name Internal Structures and Methods
-
-	class PointData {
-	private:
-		SIZE_TYPE indexAndSplitPlane{};	// first NBits bits indicates the splitting plane, the rest of the bits store the point index.
-		PointType p{};					// point position
-
-	public:
-		void Set(const PointType &pt, SIZE_TYPE index, uint32_t plane=0)
-		{
-			p = pt;
-			indexAndSplitPlane = static_cast<int>((static_cast<uint32_t>(index) << NBits()) | (plane & ((1u << NBits()) - 1u)));
-		}
-
-		void SetPlane(uint32_t plane)
-		{
-			indexAndSplitPlane = static_cast<int>((static_cast<uint32_t>(indexAndSplitPlane) & (~((1u << NBits()) - 1u))) | plane);
-		}
-
-		int       Plane() const { return indexAndSplitPlane & ((1<<NBits())-1); }
-		SIZE_TYPE Index() const { return indexAndSplitPlane >> NBits(); }
-		const PointType& Pos() const { return p; }
-	private:
-#if defined(__cpp_constexpr) || (defined(_MSC_VER) && _MSC_VER >= 1900)
-		constexpr uint32_t NBits(uint32_t v = DIMENSIONS) const
-		{
-			return v < 2 ? v : 1 + NBits(v >> 1);
-		}
-#else
-		int NBits() const { int v = DIMENSIONS-1, r, s; r=(v>0xF)<<2; v>>=r; s=(v>0x3)<<1; v>>=s; r|=s|(v>>1); return r+1; }	// Supports up to 256 dimensions
-#endif
-	};
-
-	PointData *points = nullptr;		// Keeps the points as a k-d tree.
-	SIZE_TYPE  pointCount = 0;	// Keeps the point count.
-	SIZE_TYPE  numInternal = 0;	// Keeps the number of internal k-d tree nodes.
-
-	// The main method for recursively building the k-d tree.
-	void BuildKDTree(PointData *orig, PointType boundMin, PointType boundMax, SIZE_TYPE kdIndex, SIZE_TYPE ixStart, SIZE_TYPE ixEnd)
-	{
-		SIZE_TYPE n = ixEnd - ixStart;
-		if (n > 1) {
-			auto axis = static_cast<unsigned>(SplitAxis(boundMin, boundMax));
-			SIZE_TYPE leftSize = LeftSize(n);
-			SIZE_TYPE ixMid = ixStart+leftSize;
-			std::nth_element(orig+ixStart, orig+ixMid, orig+ixEnd, [axis](const PointData &a, const PointData &b){ return a.Pos()[axis] < b.Pos()[axis]; });
-			points[kdIndex] = orig[ixMid];
-			points[kdIndex].SetPlane(axis);
-			PointType bMax = boundMax;
-			bMax[axis] = orig[ixMid].Pos()[axis];
-			PointType bMin = boundMin;
-			bMin[axis] = orig[ixMid].Pos()[axis];
-#ifdef _CY_PARALLEL_LIB
-			const SIZE_TYPE parallel_invoke_threshold = 256;
-			if (ixMid-ixStart > parallel_invoke_threshold && ixEnd - ixMid+1 > parallel_invoke_threshold) {
-				_CY_PARALLEL_LIB::parallel_invoke(
-					[&]{ BuildKDTree(orig, boundMin, bMax, kdIndex*2,   ixStart, ixMid); },
-					[&]{ BuildKDTree(orig, bMin, boundMax, kdIndex*2+1, ixMid+1, ixEnd); }
-				);
-			} else
-#endif
-			{
-				BuildKDTree(orig, boundMin, bMax, kdIndex*2,   ixStart, ixMid);
-				BuildKDTree(orig, bMin, boundMax, kdIndex*2+1, ixMid+1, ixEnd);
-			}
-		} else if (n > 0) {
-			points[kdIndex] = orig[ixStart];
-		}
-	}
-
-	// Returns the total number of nodes on the left sub-tree of a complete k-d tree of size n.
-	static SIZE_TYPE LeftSize(SIZE_TYPE n)
-	{
-		SIZE_TYPE f = n; // Size of the full tree
-		for (SIZE_TYPE s=1; s<static_cast<int>(8*sizeof(SIZE_TYPE)); s*=2) f |= f >> s;
-		SIZE_TYPE l = f >> 1; // Size of the full left child
-		SIZE_TYPE r = l >> 1; // Size of the full right child without leaf nodes
-		return (l+r+1 <= n) ? l : n-r-1;
-	}
-
-	// Returns axis with the largest span, used as the splitting axis for building the k-d tree
-	static int SplitAxis(const PointType &boundMin, const PointType &boundMax)
-	{
-		PointType d = boundMax - boundMin;
-		int axis = 0;
-		FType dmax = d[0];
-		for (auto j=1ul; j<DIMENSIONS; j++) {
-			if (dmax < d[j]) {
-				axis = static_cast<int>(j);
-				dmax = d[j];
-			}
-		}
-		return axis;
-	}
-
-	template <typename _CALLBACK>
-	void GetPoints(const PointType &position, FType &dist2, _CALLBACK pointFound, SIZE_TYPE nodeID) const
-	{
-		SIZE_TYPE stack[sizeof(SIZE_TYPE)*8];
-		SIZE_TYPE stackPos = 0;
-
-		TraverseCloser(position, dist2, pointFound, nodeID, stack, stackPos);
-
-		// empty the stack
-		while (stackPos > 0) {
-			SIZE_TYPE nodeID_loc = stack[--stackPos];
-			// check the internal node point
-			const PointData &p = points[nodeID_loc];
-			const PointType pos = p.Pos();
-			int axis = p.Plane();
-			float dist1 = position[axis] - pos[axis];
-			if (dist1*dist1 < dist2) {
-				// check its point
-				FType d2 = (position - pos).LengthSquared();
-				if (d2 < dist2) pointFound(p.Index(), pos, d2, dist2);
-				// traverse down the other child node
-				SIZE_TYPE child = 2*nodeID_loc;
-				nodeID_loc = dist1 < 0 ? child+1 : child;
-				TraverseCloser(position, dist2, pointFound, nodeID_loc, stack, stackPos);
-			}
-		}
-	}
-
-	template <typename _CALLBACK>
-	void TraverseCloser(const PointType &position, FType &dist2, _CALLBACK pointFound, SIZE_TYPE nodeID, SIZE_TYPE *stack, SIZE_TYPE &stackPos) const
-	{
-		// Traverse down to a leaf node along the closer branch
-		while (nodeID <= numInternal) {
-			stack[stackPos++] = nodeID;
-			const PointData &p = points[nodeID];
-			const PointType pos = p.Pos();
-			int axis = p.Plane();
-			float dist1 = position[axis] - pos[axis];
-			uint32_t child = 2*nodeID;
-			nodeID = dist1 < 0 ? child : child + 1;
-		}
-		// Now we are at a leaf node, do the test
-		const PointData &p = points[nodeID];
-		const PointType pos = p.Pos();
-		FType d2 = (position - pos).LengthSquared();
-		if (d2 < dist2) pointFound(p.Index(), pos, d2, dist2);
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////
-};
-
-namespace dls::math {
-
-inline auto operator<<=(dls::math::vec3i &v, int s)
-{
-	v.x <<= s;
-	v.y <<= s;
-	v.z <<= s;
-
-	return v;
-}
-
-}
 
 //! An implementation of the Lighting Grid Hierarchy method.
 //!
@@ -1481,7 +1080,7 @@ inline auto operator<<=(dls::math::vec3i &v, int s)
 
 class LightingGridHierarchy {
 	struct Level {
-		PointCloud<dls::math::vec3f, float, 3, int> pc{};
+		arbre_3df pc{};
 		dls::tableau<dls::math::vec3f> colors{};
 		 // position deviation for random shadow sampling
 		dls::tableau<dls::math::vec3f> pDev{};
@@ -1509,13 +1108,13 @@ public:
 			return 0;
 		}
 
-		return m_niveaux[niveau].pc.GetPointCount();
+		return m_niveaux[niveau].pc.compte_points();
 	}
 
 	int   GetNumLevels() const { return m_nombre_niveaux; }	//!< Returns the number of levels in the hierarchy.
 	float GetCellSize () const { return m_taille_cellule; }		//!< Returns the size of a cell in the lowest (finest) level of the hierarchy.
-	const dls::math::vec3f& GetLightPos   (int level, int i) const { return m_niveaux[level].pc.GetPoint(i); }							//!< Returns the i^th light position at the given level. Note that this is not the position of the light with index i.
-	int      GetLightIndex (int level, int i) const { return m_niveaux[level].pc.GetPointIndex(i); }						//!< Returns the i^th light index at the given level.
+	const dls::math::vec3f& GetLightPos   (int level, int i) const { return m_niveaux[level].pc.pos_point(i); }							//!< Returns the i^th light position at the given level. Note that this is not the position of the light with index i.
+	int      GetLightIndex (int level, int i) const { return m_niveaux[level].pc.index_point(i); }						//!< Returns the i^th light index at the given level.
 	const dls::math::vec3f&   GetLightIntens(int level, int ix) const { return m_niveaux[level].colors[ix]; }								//!< Returns the intensity of the light with index ix at the given level.
 	const dls::math::vec3f& GetLightPosDev(int level, int ix) const { return level > 0 ? m_niveaux[level].pDev[ix] : m_dev_pos_n0; }	//!< Returns the position variation of the light with index ix at the given level.
 
@@ -1571,7 +1170,7 @@ public:
 			auto r = alpha * m_taille_cellule;
 			auto rr = r * r;
 
-			m_niveaux[0].pc.GetPoints(pos, r*2, [&](int i, const dls::math::vec3f &p, float dist2, float &radius2)
+			m_niveaux[0].pc.cherche_points(pos, r*2, [&](int i, const dls::math::vec3f &p, float dist2, float &radius2)
 			{
 				INUTILISE(radius2);
 				auto c = m_niveaux[0].colors[i];
@@ -1604,7 +1203,7 @@ public:
 				float rr_min = r * r;
 				r *= 2;
 
-				m_niveaux[level].pc.GetPoints(pos, r*2, [&](int i, const dls::math::vec3f &p, float dist2, float &radius2)
+				m_niveaux[level].pc.cherche_points(pos, r*2, [&](int i, const dls::math::vec3f &p, float dist2, float &radius2)
 				{
 					INUTILISE(radius2);
 
@@ -1631,17 +1230,17 @@ public:
 			auto rr_min = r * r;
 			r *= 2;
 			rr = r * r;
-			auto n = m_niveaux[m_nombre_niveaux - 1].pc.GetPointCount();
+			auto n = m_niveaux[m_nombre_niveaux - 1].pc.compte_points();
 
 			for (auto i = 0; i < n; i++) {
-				auto const &p = m_niveaux[m_nombre_niveaux-1].pc.GetPoint(i);
+				auto const &p = m_niveaux[m_nombre_niveaux-1].pc.pos_point(i);
 				auto dist2 = longueur_carree(pos - p);
 
 				if (dist2 <= rr_min) {
 					continue;
 				}
 
-				auto id = m_niveaux[m_nombre_niveaux-1].pc.GetPointIndex(i);
+				auto id = m_niveaux[m_nombre_niveaux-1].pc.index_point(i);
 				auto c = m_niveaux[m_nombre_niveaux-1].colors[id];
 
 				if (dist2 < rr) {
@@ -1653,10 +1252,10 @@ public:
 		}
 		else {
 			// Single-level (a.k.a. brute-force)
-			auto n = m_niveaux[0].pc.GetPointCount();
+			auto n = m_niveaux[0].pc.compte_points();
 			for (auto i=0; i<n; i++) {
-				auto const &p = m_niveaux[0].pc.GetPoint(i);
-				auto id = m_niveaux[0].pc.GetPointIndex(i);
+				auto const &p = m_niveaux[0].pc.pos_point(i);
+				auto id = m_niveaux[0].pc.index_point(i);
 				auto const &c = m_niveaux[0].colors[id];
 				lightingFunction(0, i, p, c);
 			}
@@ -1923,7 +1522,7 @@ private:
 				}
 			}
 
-			thisLevel.pc.Build(lightCount, pos.donnees());
+			thisLevel.pc.construit(lightCount, pos.donnees());
 			thisLevel.colors = dls::tableau<dls::math::vec3f>(lightCount);
 			thisLevel.pDev = dls::tableau<dls::math::vec3f>(lightCount);
 
@@ -1950,13 +1549,12 @@ private:
 			m_niveaux[0].colors[i] = lightColor[i];
 		}
 
-		m_niveaux[0].pc.Build(numLights, pos.donnees());
+		m_niveaux[0].pc.construit(numLights, pos.donnees());
 		this->m_taille_cellule = nodeCellSize;
 
 		return true;
 	}
 };
-
 
 class OpGrilleEclairage final : public OperatriceCorps {
 public:
@@ -1985,7 +1583,7 @@ public:
 		return "entreface/operatrice_creation_grille_eclairage.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1993,7 +1591,7 @@ public:
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_entree = static_cast<wlk::grille_eparse<float> *>(nullptr);
@@ -2017,7 +1615,7 @@ public:
 
 		if (grille_entree == nullptr) {
 			this->ajoute_avertissement("Aucun volume (grille éparse R32) en entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto intensite_min = evalue_decimal("intensité_min");
@@ -2069,12 +1667,15 @@ public:
 
 		auto nombre_points = hierarchie.nombre_points(vis_niveau);
 
+		auto points_sortie = m_corps.points_pour_ecriture();
+		points_sortie.reserve(nombre_points);
+
 		for (auto i = 0; i < nombre_points; ++i) {
 			auto pos = hierarchie.GetLightPos(vis_niveau, i);
-			m_corps.ajoute_point(pos);
+			points_sortie.ajoute_point(pos);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -2116,7 +1717,7 @@ public:
 		return "entreface/operatrice_deep_scattering.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -2141,20 +1742,23 @@ public:
 			descripteurs[k - 1].taille_voxel = desc.taille_voxel * std::pow(2.0, static_cast<double>(k) - 1.0);
 		}
 
-		//auto omega = dls::math::vec3f(0.0f, 0.0f, -1.0f); // la direction du rayon entrant
+		auto omega = dls::math::vec3f(0.0f, 0.0f, -1.0f); // la direction du rayon entrant
 
 		/* l'axe Z des descripteurs pointent vers la lumière */
 		auto position = dls::math::vec3f(0.0f, 0.0f, 0.0f);
-		auto axe_z = dls::math::vec3f(0.0f, 0.0f, 1.0f);
 		auto position_lumiere = evalue_vecteur("position_lumière");
-		auto direction = normalise(position_lumiere - position);
-		auto matrice_z = dls::math::aligne_rotation(axe_z, direction);
+		auto axe_z = normalise(position_lumiere - position);
 
 		/* l'axe X doit être perpendiculaire au plan défini par l'axe Z et omega */
-//		auto axe_x = dls::math::vec3f(1.0f, 0.0f, 0.0f);
-//		auto axe_zp = axe_z * matrice_z;
-//		auto perp = produit_croix(axe_zp, omega);
-//		auto matrice_x = dls::math::aligne_rotation(axe_x, normalise(perp));
+		auto axe_x = normalise(produit_croix(axe_z, omega));
+
+		/* l'axe Y est orthogonal aux deux autres */
+		auto axe_y = normalise(produit_croix(axe_x, axe_z));
+
+		auto mat = dls::math::mat3x3f(
+					axe_x.x, axe_x.y, axe_x.z,
+					axe_y.x, axe_y.y, axe_y.z,
+					axe_z.x, axe_z.y, axe_z.z);
 
 		/* angle ajouté aux couches du réseau */
 		//auto gamma = std::acos(produit_scalaire(omega, direction));
@@ -2166,15 +1770,26 @@ public:
 			auto min = descripteurs[k].etendue.min * static_cast<float>(descripteurs[k].taille_voxel);
 			auto max = descripteurs[k].etendue.max * static_cast<float>(descripteurs[k].taille_voxel);
 
-			// ça n'a pas l'air de marcher ?
-			min = min * matrice_z;
-			max = max * matrice_z;
+			/* nous devons appliquer la matrice à tous les points et non
+			 * seulement aux points min et max -> il faudra sans doute garder
+			 * trace de chaque matrice pour échantillonner proprement le volume
+			 * afin de remplir les descripteurs */
+			dls::math::vec3f sommets[8] = {
+				dls::math::vec3f(min.x, min.y, min.z),
+				dls::math::vec3f(min.x, min.y, max.z),
+				dls::math::vec3f(max.x, min.y, max.z),
+				dls::math::vec3f(max.x, min.y, min.z),
+				dls::math::vec3f(min.x, max.y, min.z),
+				dls::math::vec3f(min.x, max.y, max.z),
+				dls::math::vec3f(max.x, max.y, max.z),
+				dls::math::vec3f(max.x, max.y, min.z),
+			};
 
-			dessine_boite(m_corps,
-						  attr_C,
-						  min,
-						  max,
-						  couleur);
+			for (auto i = 0; i < 8; ++i) {
+				sommets[i] = mat * sommets[i];
+			}
+
+			dessine_boite(m_corps, attr_C, sommets, couleur);
 		}
 
 		dessine_boite(m_corps,
@@ -2183,14 +1798,39 @@ public:
 					  position_lumiere + dls::math::vec3f(0.1f),
 					  dls::math::vec3f(0.2f, 0.9f, 0.3f));
 
-		auto i0 = m_corps.ajoute_point(0.0f, 0.0f, 0.0f);
-		auto i1 = m_corps.ajoute_point(axe_z * matrice_z);
+		auto points_sortie = m_corps.points_pour_ecriture();
+
+		/* dessine les axes */
+		auto axe_x_ = dls::math::vec3f(1.0f, 0.0f, 0.0f);
+		auto axe_y_ = dls::math::vec3f(0.0f, 1.0f, 0.0f);
+		auto axe_z_ = dls::math::vec3f(0.0f, 0.0f, 1.0f);
+
+		auto i0 = points_sortie.ajoute_point(0.0f, 0.0f, 0.0f);
+		auto i1 = points_sortie.ajoute_point(mat * axe_x_);
+
+		assigne(attr_C->r32(i1), axe_x_);
 
 		auto poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
 		m_corps.ajoute_sommet(poly, i0);
 		m_corps.ajoute_sommet(poly, i1);
 
-		return EXECUTION_REUSSIE;
+		i1 = points_sortie.ajoute_point(mat * axe_y_);
+
+		assigne(attr_C->r32(i1), axe_y_);
+
+		poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, i0);
+		m_corps.ajoute_sommet(poly, i1);
+
+		i1 = points_sortie.ajoute_point(mat * axe_z_);
+
+		assigne(attr_C->r32(i1), axe_z_);
+
+		poly = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
+		m_corps.ajoute_sommet(poly, i0);
+		m_corps.ajoute_sommet(poly, i1);
+
+		return res_exec::REUSSIE;
 	}
 };
 

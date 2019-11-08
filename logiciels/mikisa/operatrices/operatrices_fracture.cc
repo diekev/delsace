@@ -582,20 +582,20 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_a = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_a, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_b = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_b, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* converti les deux maillages en polyèdres triangulés */
@@ -604,14 +604,14 @@ public:
 
 		if (!valide_polyedre(poly_a)) {
 			this->ajoute_avertissement("Le polyèdre A n'est pas valide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto poly_b = construit_corps_polyedre_triangle(*corps_b);
 
 		if (!valide_polyedre(poly_b)) {
 			this->ajoute_avertissement("Le polyèdre B n'est pas valide");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* construit un arbre HBE depuis le polyèdre avec le moins de triangles */
@@ -676,14 +676,14 @@ public:
 
 		if (donnees_booleen.couples.taille() == 0) {
 			converti_polyedre_corps(poly_a, m_corps);
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		calcul_intersections(donnees_booleen);
 
 		converti_polyedre_corps(poly_a, m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void calcul_intersections(DonneesBooleen &donnees_booleens)
@@ -1814,7 +1814,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		/* À FAIRE : booléens, groupes. */
 		this->ajoute_avertissement("Seuls les cubes sont supportés pour le moment !");
@@ -1824,13 +1824,13 @@ public:
 		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_maillage, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps_points = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_points, true, false, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* création du conteneur */
@@ -1853,21 +1853,21 @@ public:
 					min.x, max.x, min.y, max.y, min.z, max.z,
 					nombre_block.x, nombre_block.y, nombre_block.z,
 					periodic_x, periodic_y, periodic_z,
-					static_cast<int>(points_entree->taille()));
+					static_cast<int>(points_entree.taille()));
 
 		auto ordre_parts = memoire::loge<voro::particle_order>("voro::particle_order");
 
 		/* ajout des particules */
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto point = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto point = points_entree.point_local(i);
 			auto point_monde = corps_points->transformation(dls::math::point3d(point.x, point.y, point.z));
 			cont_voro->put(*ordre_parts, i, point_monde.x, point_monde.y, point_monde.z);
 		}
 
 		/* création des cellules */
 		auto cellules = dls::tableau<cell>();
-		cellules.reserve(points_entree->taille());
+		cellules.reserve(points_entree.taille());
 
 		/* calcul des cellules */
 
@@ -1875,6 +1875,7 @@ public:
 
 		/* conversion des données */
 		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::PRIMITIVE);
+		auto points = m_corps.points_pour_ecriture();
 		auto gna = GNA();
 
 		auto poly_index_offset = 0;
@@ -1884,7 +1885,7 @@ public:
 				auto px = static_cast<float>(c.verts[i * 3]);
 				auto py = static_cast<float>(c.verts[i * 3 + 1]);
 				auto pz = static_cast<float>(c.verts[i * 3 + 2]);
-				m_corps.ajoute_point(px, py, pz);
+				points.ajoute_point(px, py, pz);
 			}
 
 			auto couleur = gna.uniforme_vec3(0.0f, 1.0f);
@@ -1909,7 +1910,7 @@ public:
 		memoire::deloge("voro::container", cont_voro);
 		memoire::deloge("voro::particle_order", ordre_parts);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void container_compute_cells(voro::container* cn, voro::particle_order* po, dls::tableau<cell> &cells)

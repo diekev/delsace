@@ -8,4 +8,8 @@ menu "Fichier" {
 
     action(valeur="Sauvegarder"; attache=sauvegarder)
 	action(valeur="Sauvegarder sous..."; attache=sauvegarder_sous)
+
+	séparateur
+
+	action(valeur="Import Objet"; attache=import_objet)
 }

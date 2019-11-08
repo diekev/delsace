@@ -25,6 +25,7 @@
 #pragma once
 
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/math/matrice.hh"
 
 namespace vision {
 class Camera3D;
@@ -38,6 +39,15 @@ struct StatistiquesRendu;
 
 /* ************************************************************************** */
 
+struct ObjetRendu {
+	Objet *objet{};
+
+	/* matrices pour définir où instancier l'objet */
+	dls::tableau<dls::math::mat4x4f> matrices{};
+
+	COPIE_CONSTRUCT(ObjetRendu);
+};
+
 /* Concernant ce déléguée_scène :
  * La finalité du MoteurRendu est d'abstraire différents moteurs de rendus
  * (traçage de rayon, ratissage, OpenGL, etc.) dans un système où il y a
@@ -47,11 +57,11 @@ struct StatistiquesRendu;
  * L'idée est similaire à celle présente dans Hydra de Pixar.
  */
 struct deleguee_scene {
-	dls::tableau<Objet *> const *scene = nullptr;
+	dls::tableau<ObjetRendu> objets{};
 
 	long nombre_objets() const;
 
-	Objet *objet(long idx) const;
+	ObjetRendu const &objet(long idx) const;
 };
 
 /* ************************************************************************** */
@@ -71,7 +81,7 @@ public:
 
 	void camera(vision::Camera3D *camera);
 
-	void scene(dls::tableau<Objet *> const *scene);
+	deleguee_scene *delegue();
 
 	virtual const char *id() const = 0;
 

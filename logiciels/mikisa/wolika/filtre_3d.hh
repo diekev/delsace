@@ -170,4 +170,64 @@ auto affine_grille(grille_dense_3d<T> &grille, float rayon, float quantite)
 	});
 }
 
+template <typename T>
+auto dilate_grille(
+		grille_dense_3d<T> &grille,
+		int rayon,
+		interruptrice *chef = nullptr)
+{
+	auto performe_erosion = [&](
+			grille_dense_3d<T> const &temp,
+			int x,
+			int y,
+			int z)
+	{
+		auto v0 = temp.valeur(dls::math::vec3i(x, y, z));
+
+		for (auto zz = z - rayon; zz <= z + rayon; ++zz) {
+			for (auto yy = y - rayon; yy <= y + rayon; ++yy) {
+				for (auto xx = x - rayon; xx <= x + rayon; ++xx) {
+					auto const &v1 = temp.valeur(dls::math::vec3i(xx, yy, zz));
+
+					v0 = std::max(v0, v1);
+				}
+			}
+		}
+
+		return v0;
+	};
+
+	transforme_grille(grille, performe_erosion, chef);
+}
+
+template <typename T>
+auto erode_grille(
+		grille_dense_3d<T> &grille,
+		int rayon,
+		interruptrice *chef = nullptr)
+{
+	auto performe_erosion = [&](
+			grille_dense_3d<T> const &temp,
+			int x,
+			int y,
+			int z)
+	{
+		auto v0 = temp.valeur(dls::math::vec3i(x, y, z));
+
+		for (auto zz = z - rayon; zz <= z + rayon; ++zz) {
+			for (auto yy = y - rayon; yy <= y + rayon; ++yy) {
+				for (auto xx = x - rayon; xx <= x + rayon; ++xx) {
+					auto const &v1 = temp.valeur(dls::math::vec3i(xx, yy, zz));
+
+					v0 = std::min(v0, v1);
+				}
+			}
+		}
+
+		return v0;
+	};
+
+	transforme_grille(grille, performe_erosion, chef);
+}
+
 }  /* namespace wlk */

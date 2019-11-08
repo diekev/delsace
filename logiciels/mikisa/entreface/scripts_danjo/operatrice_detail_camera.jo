@@ -1,0 +1,6 @@
+disposition "operatrice_detail_camera" {
+	ligne {
+		étiquette(valeur="Nom Caméra")
+		liste(valeur=""; attache=nom_caméra)
+	}
+}

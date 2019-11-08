@@ -252,13 +252,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -334,7 +334,7 @@ public:
 		/* copie les données */
 		copie_donnees_calque(grille_entree, terrain->hauteur);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -794,13 +794,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* entrée 0 est celle pour la grille, nous la copions pour sauvegarder
@@ -835,7 +835,7 @@ public:
 		/* copie les données */
 		copie_donnees_calque(grille_entree, terrain->hauteur);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void erode_simple(
@@ -1034,13 +1034,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* accumule les entrées */
@@ -1076,7 +1076,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1112,33 +1112,31 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		m_corps.reinitialise();
 
 		if (!donnees_aval || !donnees_aval->possede("terrain")) {
 			this->ajoute_avertissement("Il n'y a pas de terrain en aval.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
 
 		if (!m_compileuse.compile_graphe(contexte, nullptr)) {
 			ajoute_avertissement("Ne peut pas compiler le graphe, voir si les noeuds n'ont pas d'erreurs.");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (noeud.graphe.noeuds().taille() == 0) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		auto terrain = extrait_terrain(donnees_aval);
 		auto desc = terrain->hauteur.desc();
 
 		chef->demarre_evaluation("création terrain");
-
-		auto ctx_exec = lcc::ctx_exec{};
 
 		boucle_parallele(tbb::blocked_range<int>(0, desc.resolution.y),
 						 [&](tbb::blocked_range<int> const &plage)
@@ -1149,20 +1147,17 @@ public:
 
 			/* fais une copie locale pour éviter les problèmes de concurrence critique */
 			auto donnees = m_compileuse.donnees();
-			auto ctx_local = lcc::ctx_local{};
 
 			for (auto y = plage.begin(); y < plage.end(); ++y) {
 				for (auto x = 0; x < desc.resolution.x; ++x) {
+					auto ctx_local = lcc::ctx_local{};
 					auto index = terrain->hauteur.calcul_index(dls::math::vec2i(x, y));
 					auto p = terrain->hauteur.index_vers_unit(dls::math::vec2i(x, y));
 
 					auto pos = dls::math::vec3f(p, 0.0f);
 					m_compileuse.remplis_donnees(donnees, "P", pos);
 
-					m_compileuse.execute_pile(
-								ctx_exec,
-								ctx_local,
-								donnees);
+					m_compileuse.execute_pile(ctx_local, donnees);
 
 					auto idx_sortie = m_compileuse.pointeur_donnees("hauteur");
 
@@ -1179,7 +1174,7 @@ public:
 			chef->indique_progression_parallele(delta * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1211,7 +1206,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1248,6 +1243,7 @@ public:
 		calcul_normaux(terrain, type_normaux);
 
 		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_ecriture();
 
 		auto index = 0;
 		for (auto y = 0; y < desc.resolution.y; ++y) {
@@ -1257,7 +1253,7 @@ public:
 				auto h = terrain.hauteur.valeur(index);
 				auto const &normal = terrain.normal.valeur(index);
 
-				auto idx_pnt = m_corps.ajoute_point((pos.x - 0.5f) * taille_x, h, (pos.y - 0.5f) * taille_y);
+				auto idx_pnt = points.ajoute_point((pos.x - 0.5f) * taille_x, h, (pos.y - 0.5f) * taille_y);
 				assigne(attr_N->r32(idx_pnt), normal);
 
 				if (x < desc.resolution.x - 1 && y < desc.resolution.y - 1) {
@@ -1271,7 +1267,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

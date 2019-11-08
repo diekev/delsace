@@ -24,17 +24,24 @@
 
 #include "operatrices_attributs.hh"
 
+#include <mutex>
+
+#include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/arbre_kd.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/base_de_donnees.hh"
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
 #include "coeur/objet.h"
 #include "coeur/operatrice_corps.h"
+#include "coeur/nuanceur.hh"
 #include "coeur/usine_operatrice.h"
+
+#include "corps/iteration_corps.hh"
 
 #include "evaluation/reseau.hh"
 
@@ -72,7 +79,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -85,7 +92,7 @@ public:
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto dico_precisions = dls::cree_dico(
@@ -112,10 +119,8 @@ public:
 		auto plg_prec = dico_precisions.trouve(chaine_prec);
 
 		if (plg_prec.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Précision d'attribut '" << chaine_prec << "' invalide !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Précision d'attribut '", chaine_prec, "' invalide !");
+			return res_exec::ECHOUEE;
 		}
 
 		auto precision = plg_prec.front().second;
@@ -123,10 +128,8 @@ public:
 		auto plg_dim = dico_dimensions.trouve(chaine_dims);
 
 		if (plg_dim.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Dimensions d'attribut '" << chaine_dims << "' invalide !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Dimensions d'attribut '", chaine_dims, "' invalide !");
+			return res_exec::ECHOUEE;
 		}
 
 		auto dimensions = plg_dim.front().second;
@@ -134,10 +137,8 @@ public:
 		auto plg_portee = dico_portee.trouve(chaine_portee);
 
 		if (plg_portee.est_finie()) {
-			dls::flux_chaine ss;
-			ss << "Portée d'attribut '" << chaine_portee << "' invalide !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Portée d'attribut '", chaine_portee, "' invalide !");
+			return res_exec::ECHOUEE;
 		}
 
 		auto portee = plg_portee.front().second;
@@ -175,7 +176,7 @@ public:
 		else if (chaine_type == "réél") {
 			if (precision == 8) {
 				ajoute_avertissement("Un nombre réel ne peut avoir une précision de 8-bit !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 			else if (precision == 16) {
 				type = type_attribut::Z16;
@@ -191,15 +192,13 @@ public:
 			type = type_attribut::CHAINE;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Type d'attribut '" << chaine_type << "' invalide !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Type d'attribut '", chaine_type, "' invalide !");
+			return res_exec::ECHOUEE;
 		}
 
 		m_corps.ajoute_attribut(nom_attribut, type, dimensions, portee);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -232,7 +231,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -241,12 +240,12 @@ public:
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_corps.supprime_attribut(nom_attribut);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -382,7 +381,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -399,14 +398,14 @@ public:
 
 		if (nom_attribut == "") {
 			ajoute_avertissement("Le nom de l'attribut est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attrib = m_corps.attribut(nom_attribut);
 
 		if (attrib == nullptr) {
 			ajoute_avertissement("Aucun attribut ne correspond au nom spécifié !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		op_rand_attr operation;
@@ -427,10 +426,8 @@ public:
 			operation = op_rand_attr::MAXIMUM;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Opération '" << enum_operation << "' inconnue !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Opération '", enum_operation, "' inconnue !");
+			return res_exec::ECHOUEE;
 		}
 
 		auto params = params_randomisation{};
@@ -511,20 +508,20 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool ajourne_proprietes() override
 	{
-#if 0 /* À FAIRE : ajournement de l'entreface. */
 		auto const distribution = evalue_enum("distribution");
 
 		rend_propriete_visible("constante", distribution == "constante");
-		rend_propriete_visible("min_value", distribution == "uniforme");
-		rend_propriete_visible("max_value", distribution == "uniforme");
+		rend_propriete_visible("graine", distribution != "constante");
+		rend_propriete_visible("valeur_min", distribution == "uniforme");
+		rend_propriete_visible("valeur_max", distribution == "uniforme");
 		rend_propriete_visible("moyenne", distribution == "gaussienne");
-		rend_propriete_visible("ecart_type", distribution == "gaussienne");
-#endif
+		rend_propriete_visible("écart_type", distribution == "gaussienne");
+
 		return true;
 	}
 
@@ -569,7 +566,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -592,10 +589,8 @@ public:
 				groupe_points = m_corps.groupe_point(nom_groupe);
 
 				if (groupe_points == nullptr) {
-					dls::flux_chaine ss;
-					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.chn());
-					return EXECUTION_ECHOUEE;
+					ajoute_avertissement("Groupe '", nom_groupe, "' inconnu !");
+					return res_exec::ECHOUEE;
 				}
 			}
 		}
@@ -606,17 +601,15 @@ public:
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
 
 				if (groupe_prims == nullptr) {
-					dls::flux_chaine ss;
-					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.chn());
-					return EXECUTION_ECHOUEE;
+					ajoute_avertissement("Groupe '", nom_groupe, "' inconnu !");
+					return res_exec::ECHOUEE;
 				}
 			}
 		}
 		else if (chaine_portee == "devine_groupe") {
 			if (nom_groupe == "") {
 				ajoute_avertissement("Le nom du groupe est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_points = m_corps.groupe_point(nom_groupe);
@@ -625,10 +618,8 @@ public:
 				groupe_prims = m_corps.groupe_primitive(nom_groupe);
 
 				if (groupe_prims == nullptr) {
-					dls::flux_chaine ss;
-					ss << "Groupe '" << nom_groupe << "' inconnu !";
-					ajoute_avertissement(ss.chn());
-					return EXECUTION_ECHOUEE;
+					ajoute_avertissement("Groupe '", nom_groupe, "' inconnu !");
+					return res_exec::ECHOUEE;
 				}
 
 				portee = portee_attr::PRIMITIVE;
@@ -638,10 +629,8 @@ public:
 			}
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Portée '" << chaine_portee << "' non-supportée !";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Portée '", chaine_portee, "' non-supportée !");
+			return res_exec::ECHOUEE;
 		}
 
 		attrib = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee);
@@ -671,21 +660,30 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool ajourne_proprietes() override
 	{
-#if 0 /* À FAIRE : ajournement de l'entreface. */
-		auto const distribution = evalue_enum("distribution");
+		auto const methode = evalue_enum("méthode");
+		auto const methode_aleatoire = methode == "aléatoire";
 
-		rend_propriete_visible("constante", distribution == "constante");
-		rend_propriete_visible("min_value", distribution == "uniforme");
-		rend_propriete_visible("max_value", distribution == "uniforme");
-		rend_propriete_visible("moyenne", distribution == "gaussienne");
-		rend_propriete_visible("ecart_type", distribution == "gaussienne");
-#endif
+		rend_propriete_visible("graine", methode_aleatoire);
+		rend_propriete_visible("couleur_", !methode_aleatoire);
+
 		return true;
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &attache,
+			dls::tableau<dls::chaine> &chaines) override
+	{
+		INUTILISE(contexte);
+		if (attache == "nom_groupe") {
+			entree(0)->obtiens_liste_groupes_points(chaines);
+			entree(0)->obtiens_liste_groupes_prims(chaines);
+		}
 	}
 };
 
@@ -718,7 +716,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -728,7 +726,7 @@ public:
 		auto inverse_normaux = evalue_bool("inverse_direction");
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto location = location_normal::POINT;
@@ -740,10 +738,8 @@ public:
 			location = location_normal::CORPS;
 		}
 		else if (chaine_location != "point") {
-			dls::flux_chaine ss;
-			ss << "Méthode de location '" << chaine_location << "' inconnue";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Méthode de location '", chaine_location, "' inconnue");
+			return res_exec::ECHOUEE;
 		}
 
 		auto pesee = pesee_normal::AIRE;
@@ -758,22 +754,17 @@ public:
 			pesee = pesee_normal::MOYENNE;
 		}
 		else if (chaine_pesee != "aire") {
-			dls::flux_chaine ss;
-			ss << "Méthode de pesée '" << chaine_location << "' inconnue";
-			ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			ajoute_avertissement("Méthode de pesée '", chaine_location, "' inconnue");
+			return res_exec::ECHOUEE;
 		}
 
 		calcul_normaux(m_corps, location, pesee, inverse_normaux);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
 /* ************************************************************************** */
-
-#include <mutex>
-#include "biblinternes/moultfilage/boucle.hh"
 
 class OpTransfereAttributs final : public OperatriceCorps {
 public:
@@ -802,7 +793,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -810,7 +801,7 @@ public:
 		auto corps_orig = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_orig, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points = m_corps.points_pour_lecture();
@@ -822,19 +813,13 @@ public:
 		auto attr_orig = corps_orig->attribut(nom_attribut);
 
 		if (attr_orig == nullptr) {
-			dls::flux_chaine ss;
-			ss << "Le corps d'origine ne possède pas l'attribut '"
-			   << nom_attribut << "'";
-			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("Le corps d'origine ne possède pas l'attribut '", nom_attribut, "'");
+			return res_exec::ECHOUEE;
 		}
 
 		if (attr_orig->portee != portee_attr::POINT) {
-			dls::flux_chaine ss;
-			ss << "L'attribut '"
-			   << nom_attribut << "' n'est pas sur les points\n";
-			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'est pas sur les points");
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -847,25 +832,22 @@ public:
 					attr_orig->dimensions,
 					attr_orig->portee);
 
-		boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+		auto arbre = arbre_3df();
+		arbre.construit_avec_fonction(
+					static_cast<int>(points_orig.taille()),
+					[&](int idx)
+		{
+			return points_orig.point_local(idx);
+		});
+
+		boucle_parallele(tbb::blocked_range<long>(0, points.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto const point = m_corps.point_transforme(i);
-				auto dist_locale = distance;
+				auto const point = points.point_monde(i);
 				auto idx_point_plus_pres = -1;
 
-				/* À FAIRE : structure accéleration. */
-				/* Trouve l'index point le plus proche, À FAIRE : n-points. */
-				for (auto j = 0; j < points_orig->taille(); ++j) {
-					auto p0 = corps_orig->point_transforme(j);
-					auto l = longueur(point - p0);
-
-					if (l < dist_locale) {
-						dist_locale = l;
-						idx_point_plus_pres = j;
-					}
-				}
+				arbre.trouve_plus_proche_index(point, distance, idx_point_plus_pres);
 
 				if (idx_point_plus_pres >= 0) {
 					copie_attribut(attr_orig, idx_point_plus_pres, attr_dest, i);
@@ -873,10 +855,10 @@ public:
 			}
 
 			auto delta = static_cast<float>(plage.end() - plage.begin()) * 100.0f;
-			chef->indique_progression_parallele(delta / static_cast<float>(points->taille()));
+			chef->indique_progression_parallele(delta / static_cast<float>(points.taille()));
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -893,13 +875,54 @@ public:
 
 /* ************************************************************************** */
 
-#include "corps/iteration_corps.hh"
-#include "biblinternes/outils/definitions.h"
-
 struct donnees_promotion {
 	long idx_dest{};
+
+	/* la promotion se fait en assignant une valeur depuis un index d'origine
+	 * avec un poids défini selon la portée, l'index est le premier élément de
+	 * la paire, et le poids le second */
 	dls::tableau<std::pair<long, float>> paires_idx_poids{};
 };
+
+template <typename T>
+static auto copie_attributs(
+		Attribut &attr_dst,
+		Attribut const &attr_src,
+		dls::tableau<donnees_promotion> const &donnees)
+{
+	auto poids = dls::tableau<float>(attr_dst.taille());
+
+	for (auto const &donnee : donnees) {
+		for (auto const &p : donnee.paires_idx_poids) {
+			auto ptr_dst = attr_dst.valeur<T>(donnee.idx_dest);
+			auto ptr_src = attr_src.valeur<T>(p.first);
+
+			for (auto i = 0; i < attr_dst.dimensions; ++i) {
+				/* la syntaxe est étrange car C++ converti les chars en ints et
+				 * il faut reconvertir les ints en chars */
+				ptr_dst[i] = T(ptr_dst[i] + ptr_src[i] * T(p.second));
+			}
+
+			poids[donnee.idx_dest] += p.second;
+		}
+	}
+
+	for (auto i = 0; i < attr_dst.taille(); ++i) {
+		auto pds = poids[i];
+
+		if (pds == 0.0f || pds == 1.0f) {
+			continue;
+		}
+
+		auto ptr_dst = attr_dst.valeur<T>(i);
+
+		for (auto j = 0; j < attr_dst.dimensions; ++j) {
+			/* la syntaxe est étrange car C++ converti les chars en ints et
+			 * il faut reconvertir les ints en chars */
+			ptr_dst[j] = T(ptr_dst[j] / T(pds));
+		}
+	}
+}
 
 static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr portee_dest)
 {
@@ -917,7 +940,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	if (portee_orig == portee_attr::POINT) {
 		if (portee_dest == portee_attr::PRIMITIVE) {
 			/* moyenne des attributs des points autour de la primitive */
-			pour_chaque_primitive(corps, [&](Corps const &corps_entree, Polygone *prim)
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
 			{
 				INUTILISE(corps_entree);
 
@@ -935,7 +958,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 		}
 		else if (portee_dest == portee_attr::VERTEX) {
 			/* attribut du point de ce vertex */
-			pour_chaque_primitive(corps, [&](Corps const &corps_entree, Polygone *prim)
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
 			{
 				INUTILISE(corps_entree);
 
@@ -943,7 +966,7 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 
 				for (auto i = 0l; i < nombre_points; ++i) {
 					auto donnee = donnees_promotion{};
-					donnee.idx_dest = donnees.taille();
+					donnee.idx_dest = prim->index_sommet(i);
 					donnee.paires_idx_poids.pousse({prim->index_point(i), 1.0f});
 					donnees.pousse(donnee);
 				}
@@ -963,10 +986,36 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	}
 	else if (portee_orig == portee_attr::PRIMITIVE) {
 		if (portee_dest == portee_attr::POINT) {
-			// moyenne des attributs des primitives autour du point
+			/* moyenne des attributs des primitives autour du point */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index_point(i);
+					donnee.paires_idx_poids.pousse({prim->index, 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::VERTEX) {
-			// attribut de la primitive contenant le vertex
+			/* attribut de la primitive contenant le vertex */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index_sommet(i);
+					donnee.paires_idx_poids.pousse({prim->index, 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::CORPS) {
 			/* moyenne de tous les attributs */
@@ -982,10 +1031,36 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 	}
 	else if (portee_orig == portee_attr::VERTEX) {
 		if (portee_dest == portee_attr::POINT) {
-			// moyenne des attributs des vertex autour du point
+			/* moyenne des attributs des vertex autour du point */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index_point(i);
+					donnee.paires_idx_poids.pousse({prim->index_sommet(i), 1.0f});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::PRIMITIVE) {
-			// moyenne des attributs des vertex autour de la primitive
+			/* moyenne des attributs des vertex autour de la primitive */
+			pour_chaque_polygone(corps, [&](Corps const &corps_entree, Polygone *prim)
+			{
+				INUTILISE(corps_entree);
+
+				auto nombre_points = prim->nombre_sommets();
+
+				for (auto i = 0l; i < nombre_points; ++i) {
+					auto donnee = donnees_promotion{};
+					donnee.idx_dest = prim->index;
+					donnee.paires_idx_poids.pousse({prim->index_sommet(i), 1.0f / static_cast<float>(nombre_points)});
+					donnees.pousse(donnee);
+				}
+			});
 		}
 		else if (portee_dest == portee_attr::CORPS) {
 			/* moyenne de tous les attributs */
@@ -1010,23 +1085,82 @@ static auto promeut_attribut(Corps &corps, Attribut &attr_orig, portee_attr port
 		}
 	}
 	else if (portee_orig == portee_attr::GROUPE) {
-		/* À FAIRE */
+		/* À FAIRE : promotion attribut groupe */
 	}
 
-	for (auto const &donnee : donnees) {
-		for (auto const &p : donnee.paires_idx_poids) {
-			copie_attribut(&attr_orig, p.first, attr_dest, donnee.idx_dest);
+	switch (attr_dest->type()) {
+		case type_attribut::N8:
+		{
+			copie_attributs<unsigned char>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::N16:
+		{
+			copie_attributs<unsigned short>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::N32:
+		{
+			copie_attributs<unsigned int>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::N64:
+		{
+			copie_attributs<unsigned long>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z8:
+		{
+			copie_attributs<char>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z16:
+		{
+			copie_attributs<short>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z32:
+		{
+			copie_attributs<int>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::Z64:
+		{
+			copie_attributs<long>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::R16:
+		{
+			copie_attributs<r16>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::R32:
+		{
+			copie_attributs<float>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::R64:
+		{
+			copie_attributs<double>(*attr_dest, attr_orig, donnees);
+			break;
+		}
+		case type_attribut::CHAINE:
+		case type_attribut::INVALIDE:
+		{
+			return attr_dest;
 		}
 	}
 
 	auto const &nom = attr_orig.nom();
 	corps.supprime_attribut(nom);
 	attr_dest->nom(nom);
+
+	return attr_dest;
 }
 
 class OpPromeutAttribut final : public OperatriceCorps {
 public:
-	static constexpr auto NOM = "Promeut Attributs";
+	static constexpr auto NOM = "Promotion Attribut";
 	static constexpr auto AIDE = "";
 
 	OpPromeutAttribut(Graphe &graphe_parent, Noeud &noeud_)
@@ -1038,7 +1172,7 @@ public:
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_transfere_attribut.jo";
+		return "entreface/operatrice_attribut_promotion.jo";
 	}
 
 	const char *nom_classe() const override
@@ -1051,24 +1185,77 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto const nom_attribut = evalue_chaine("nom_attribut");
 
-		auto attr_orig = m_corps.attribut(nom_attribut);
+		auto attr_src = m_corps.attribut(nom_attribut);
 
-		if (attr_orig == nullptr) {
-			dls::flux_chaine ss;
-			ss << "Le corps d'origine ne possède pas l'attribut '"
-			   << nom_attribut << "'";
-			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+		if (attr_src == nullptr) {
+			this->ajoute_avertissement("Le corps d'origine ne possède pas l'attribut '", nom_attribut, "'");
+			return res_exec::ECHOUEE;
 		}
 
-		return EXECUTION_REUSSIE;
+		if (attr_src->type() == type_attribut::CHAINE) {
+			this->ajoute_avertissement("Le transfère de chaine n'est pas encore supporté");
+			return res_exec::ECHOUEE;
+		}
+
+		if (attr_src->type() == type_attribut::INVALIDE) {
+			this->ajoute_avertissement("Le type d'attribut est invalide");
+			return res_exec::ECHOUEE;
+		}
+
+		auto chaine_portee = evalue_enum("portée_attribut");
+
+		auto dico_portee = dls::cree_dico(
+					dls::paire{ dls::chaine("corps"), portee_attr::CORPS },
+					dls::paire{ dls::chaine("groupe"), portee_attr::GROUPE },
+					dls::paire{ dls::chaine("points"), portee_attr::POINT },
+					dls::paire{ dls::chaine("primitives"), portee_attr::PRIMITIVE },
+					dls::paire{ dls::chaine("sommets"), portee_attr::VERTEX });
+
+		auto plg_portee = dico_portee.trouve(chaine_portee);
+
+		if (plg_portee.est_finie()) {
+			ajoute_avertissement("Portée d'attribut '", chaine_portee, "' invalide !");
+			return res_exec::ECHOUEE;
+		}
+
+		auto portee_dst = plg_portee.front().second;
+
+		if (portee_dst != attr_src->portee) {
+			auto preserve_lum = evalue_bool("préserve_lum");
+
+			/* préseve la luminosité en appliquant une transformation gamma
+			 * inverse aux couleurs avant de les interpoler, puis restore le
+			 * gamma, peut-être inutile
+			 * voir http://www.iquilezles.org/www/articles/gamma/gamma.htm */
+			if (preserve_lum && attr_src->type() == type_attribut::R32) {
+				transforme_attr<float>(*attr_src, [&](float *ptr)
+				{
+					for (auto i = 0; i < attr_src->dimensions; ++i) {
+						ptr[i] = std::pow(ptr[i], 2.2f);
+					}
+				});
+			}
+
+			auto attr_dst = promeut_attribut(m_corps, *attr_src, portee_dst);
+
+			if (preserve_lum && attr_dst->type() == type_attribut::R32) {
+				transforme_attr<float>(*attr_dst, [&](float *ptr)
+				{
+					for (auto i = 0; i < attr_dst->dimensions; ++i) {
+						ptr[i] = std::pow(ptr[i], 0.45f);
+					}
+				});
+			}
+		}
+
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -1078,7 +1265,7 @@ public:
 	{
 		INUTILISE(contexte);
 		if (attache == "nom_attribut") {
-			entree(1)->obtiens_liste_attributs(chaines);
+			entree(0)->obtiens_liste_attributs(chaines);
 		}
 	}
 };
@@ -1132,7 +1319,7 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
@@ -1141,12 +1328,12 @@ public:
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_objet->type != type_objet::CAMERA) {
 			this->ajoute_avertissement("L'objet n'est pas une caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto camera = static_cast<vision::Camera3D *>(nullptr);
@@ -1156,33 +1343,84 @@ public:
 			camera = &extrait_camera(donnees);
 		});
 
-		auto attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto nom_attribut = evalue_chaine("nom_attribut");
+
+		if (nom_attribut == "") {
+			nom_attribut = "distance";
+		}
+
+		auto attr_D = m_corps.ajoute_attribut(nom_attribut, type_attribut::R32, 1, portee_attr::POINT);
 		auto points = m_corps.points_pour_lecture();
 
-		auto couleur_non = dls::math::vec3f(0.0f);
+		auto marge_x = evalue_decimal("marge_x");
+		auto marge_y = evalue_decimal("marge_y");
+
+		marge_x *= static_cast<float>(camera->largeur());
+		marge_y *= static_cast<float>(camera->hauteur());
+
+		auto ajoute_groupe_visible = evalue_bool("ajoute_groupe_visible");
+		auto ajoute_groupe_invisible = evalue_bool("ajoute_groupe_invisible");
+
+		auto groupe_visible = static_cast<GroupePoint *>(nullptr);
+		auto groupe_invisible = static_cast<GroupePoint *>(nullptr);
+
+		if (ajoute_groupe_visible) {
+			auto nom_groupe_visible = evalue_chaine("nom_groupe_visible");
+
+			if (nom_groupe_visible == "") {
+				nom_groupe_visible = "visible";
+			}
+
+			groupe_visible = m_corps.ajoute_groupe_point(nom_groupe_visible);
+		}
+
+		if (ajoute_groupe_invisible) {
+			auto nom_groupe_invisible = evalue_chaine("nom_groupe_invisible");
+
+			if (nom_groupe_invisible == "") {
+				nom_groupe_invisible = "invisible";
+			}
+
+			groupe_invisible = m_corps.ajoute_groupe_point(nom_groupe_invisible);
+		}
 
 		auto l_min =  constantes<float>::INFINITE;
 		auto l_max = -constantes<float>::INFINITE;
 
-		for (auto i = 0; i < points->taille(); ++i) {
-			auto p = m_corps.point_transforme(i);
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto p = points.point_monde(i);
 
 			auto pos_ecran = camera->pos_ecran(dls::math::point3f(p));
 
-			if (pos_ecran.x < 0.0f || pos_ecran.x > camera->largeur()) {
-				assigne(attr_C->r32(i), couleur_non);
+			if (pos_ecran.x < -marge_x || pos_ecran.x > marge_x + static_cast<float>(camera->largeur())) {
+				assigne(attr_D->r32(i), -1.0f);
+
+				if (groupe_invisible) {
+					groupe_invisible->ajoute_index(i);
+				}
+
 				continue;
 			}
 
-			if (pos_ecran.y < 0.0f || pos_ecran.y > camera->hauteur()) {
-				assigne(attr_C->r32(i), couleur_non);
+			if (pos_ecran.y < -marge_y || pos_ecran.y > marge_y + static_cast<float>(camera->hauteur())) {
+				assigne(attr_D->r32(i), -1.0f);
+
+				if (groupe_invisible) {
+					groupe_invisible->ajoute_index(i);
+				}
+
 				continue;
 			}
 
 			auto vec = p - camera->pos();
 
 			if (produit_scalaire(vec, camera->dir()) <= 0.0f) {
-				assigne(attr_C->r32(i), couleur_non);
+				assigne(attr_D->r32(i), -1.0f);
+
+				if (groupe_invisible) {
+					groupe_invisible->ajoute_index(i);
+				}
+
 				continue;
 			}
 
@@ -1196,19 +1434,65 @@ public:
 				l_max = l;
 			}
 
-			assigne(attr_C->r32(i), dls::math::vec3f(l));
+			if (groupe_visible) {
+				groupe_visible->ajoute_index(i);
+			}
+
+			assigne(attr_D->r32(i), l);
 		}
 
-		auto poids = 1.0f / (l_max - l_min);
+		auto normalise = evalue_bool("normalise");
+		auto visualise = evalue_bool("visualise");
+		auto inverse = evalue_bool("inverse");
 
-		transforme_attr<float>(*attr_C, [&](float *ptr)
-		{
-			for (int i = 0; i < 3; ++i) {
-				ptr[i] = 1.0f - (l_max - ptr[i]) * poids;
+		if (!visualise && !normalise && !inverse) {
+			return res_exec::REUSSIE;
+		}
+
+		auto attr_C = static_cast<Attribut *>(nullptr);
+
+		if (visualise) {
+			attr_C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		}
+
+		auto poids_normalise = 1.0f / (l_max - l_min);
+
+		for (auto i = 0; i < points.taille(); ++i) {
+			auto ptr_D = attr_D->r32(i);
+
+			if (ptr_D[0] >= 0.0f) {
+				if (normalise) {
+					ptr_D[0] = 1.0f - (l_max - ptr_D[0]) * poids_normalise;
+
+					if (inverse) {
+						ptr_D[0] = 1.0f - ptr_D[0];
+					}
+				}
+				else if (inverse) {
+					ptr_D[0] = l_max - ptr_D[0];
+				}
 			}
-		});
+			else {
+				ptr_D[0] = 0.0f;
+			}
 
-		return EXECUTION_REUSSIE;
+			if (visualise) {
+				auto fac = ptr_D[0];
+
+				if (!normalise) {
+					fac = 1.0f - (l_max - fac) * poids_normalise;
+				}
+
+				auto clr = dls::phys::couleur_depuis_poids(fac);
+				auto ptr_C = attr_C->r32(i);
+
+				for (int j = 0; j < 3; ++j) {
+					ptr_C[j] = clr[j];
+				}
+			}
+		}
+
+		return res_exec::REUSSIE;
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
@@ -1221,7 +1505,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet->noeud);
 	}
 
 	void obtiens_liste(
@@ -1232,6 +1516,242 @@ public:
 		if (raison == "nom_caméra") {
 			for (auto &objet : contexte.bdd->objets()) {
 				liste.pousse(objet->noeud->nom);
+			}
+		}
+	}
+
+	void performe_versionnage() override
+	{
+		if (propriete("nom_groupe_invisible") == nullptr) {
+			ajoute_propriete("nom_attribut", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("distance"));
+			ajoute_propriete("inverse", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("visualise", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("normalise", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("nom_groupe_visible", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("visible"));
+			ajoute_propriete("nom_groupe_invisible", danjo::TypePropriete::CHAINE_CARACTERE, dls::chaine("invisible"));
+			ajoute_propriete("ajoute_groupe_visible", danjo::TypePropriete::BOOL, false);
+			ajoute_propriete("ajoute_groupe_invisible", danjo::TypePropriete::BOOL, true);
+			ajoute_propriete("marge_x", danjo::TypePropriete::DECIMAL, 0.0f);
+			ajoute_propriete("marge_y", danjo::TypePropriete::DECIMAL, 0.0f);
+		}
+	}
+};
+
+/* ************************************************************************** */
+
+struct OpAttributNuanceur final : public OperatriceCorps {
+	static constexpr auto NOM = "Attribut Nuanceur";
+	static constexpr auto AIDE = "Ajoute un attribut selon la distance des points depuis une caméra.";
+
+	OpAttributNuanceur(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_attribut_nuanceur.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto nom_nuanceur = evalue_chaine("nom_nuanceur");
+
+		if (nom_nuanceur.est_vide()) {
+			this->ajoute_avertissement("Le nom du nuanceur est vide");
+			return res_exec::ECHOUEE;
+		}
+
+		auto nuanceur = contexte.bdd->nuanceur(nom_nuanceur);
+
+		if (nuanceur == nullptr) {
+			this->ajoute_avertissement("Le nuanceur n'existe pas");
+			return res_exec::ECHOUEE;
+		}
+
+		auto chaine_portee = evalue_enum("portée_attribut");
+
+		auto dico_portee = dls::cree_dico(
+					dls::paire{ dls::chaine("corps"), portee_attr::CORPS },
+					dls::paire{ dls::chaine("groupe"), portee_attr::GROUPE },
+					dls::paire{ dls::chaine("points"), portee_attr::POINT },
+					dls::paire{ dls::chaine("primitives"), portee_attr::PRIMITIVE },
+					dls::paire{ dls::chaine("sommets"), portee_attr::VERTEX });
+
+		auto plg_portee = dico_portee.trouve(chaine_portee);
+
+		if (plg_portee.est_finie()) {
+			ajoute_avertissement("Portée d'attribut '", chaine_portee, "' invalide !");
+			return res_exec::ECHOUEE;
+		}
+
+		auto portee = plg_portee.front().second;
+
+		auto attr = m_corps.ajoute_attribut("nuanceur", type_attribut::CHAINE, 1, portee);
+
+		for (auto i = 0; i < attr->taille(); ++i) {
+			assigne(attr->chaine(i), nom_nuanceur);
+		}
+
+		return res_exec::REUSSIE;
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_nuanceur") {
+			for (auto &nuanceur : contexte.bdd->nuanceurs()) {
+				liste.pousse(nuanceur->noeud.nom);
+			}
+		}
+	}
+};
+
+/* ************************************************************************** */
+
+struct OpImprimeAttribut final : public OperatriceCorps {
+	static constexpr auto NOM = "Imprime Attribut";
+	static constexpr auto AIDE = "Imprime les valeurs d'un attribut dans la sortie standard.";
+
+	OpImprimeAttribut(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+	}
+
+	const char *chemin_entreface() const override
+	{
+		return "entreface/operatrice_attribut_detail.jo";
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		m_corps.reinitialise();
+		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+		auto nom_attribut = evalue_chaine("nom_attribut");
+
+		if (nom_attribut.est_vide()) {
+			this->ajoute_avertissement("Le nom du nuanceur est vide");
+			return res_exec::ECHOUEE;
+		}
+
+		auto attribut = m_corps.attribut(nom_attribut);
+
+		if (attribut == nullptr) {
+			this->ajoute_avertissement("L'attribut '", nom_attribut,"' n'existe pas");
+			return res_exec::ECHOUEE;
+		}
+
+		for (auto i = 0; i < attribut->taille(); ++i) {
+			std::cerr << "valeur " << i << " : ";
+
+			switch (attribut->type()) {
+				case type_attribut::N8:
+				{
+					std::cerr << *attribut->n8(i);
+					break;
+				}
+				case type_attribut::Z8:
+				{
+					std::cerr << *attribut->z8(i);
+					break;
+				}
+				case type_attribut::N16:
+				{
+					std::cerr << *attribut->n16(i);
+					break;
+				}
+				case type_attribut::Z16:
+				{
+					std::cerr << *attribut->z16(i);
+					break;
+				}
+				case type_attribut::N32:
+				{
+					std::cerr << *attribut->n32(i);
+					break;
+				}
+				case type_attribut::Z32:
+				{
+					std::cerr << *attribut->z32(i);
+					break;
+				}
+				case type_attribut::N64:
+				{
+					std::cerr << *attribut->n64(i);
+					break;
+				}
+				case type_attribut::Z64:
+				{
+					std::cerr << *attribut->z64(i);
+					break;
+				}
+				case type_attribut::R16:
+				{
+					break;
+				}
+				case type_attribut::R32:
+				{
+					std::cerr << *attribut->r32(i);
+					break;
+				}
+				case type_attribut::R64:
+				{
+					std::cerr << *attribut->r64(i);
+					break;
+				}
+				case type_attribut::CHAINE:
+				{
+					std::cerr << *attribut->chaine(i);
+					break;
+				}
+				case type_attribut::INVALIDE:
+				{
+					break;
+				}
+			}
+
+			std::cerr << '\n';
+		}
+
+		return res_exec::REUSSIE;
+	}
+
+	void obtiens_liste(
+			ContexteEvaluation const &contexte,
+			dls::chaine const &raison,
+			dls::tableau<dls::chaine> &liste) override
+	{
+		if (raison == "nom_nuanceur") {
+			for (auto &nuanceur : contexte.bdd->nuanceurs()) {
+				liste.pousse(nuanceur->noeud.nom);
 			}
 		}
 	}
@@ -1249,6 +1769,8 @@ void enregistre_operatrices_attributs(UsineOperatrice &usine)
 	usine.enregistre_type(cree_desc<OpTransfereAttributs>());
 	usine.enregistre_type(cree_desc<OpPromeutAttribut>());
 	usine.enregistre_type(cree_desc<OpVisibiliteCamera>());
+	usine.enregistre_type(cree_desc<OpAttributNuanceur>());
+	usine.enregistre_type(cree_desc<OpImprimeAttribut>());
 }
 
 #pragma clang diagnostic pop

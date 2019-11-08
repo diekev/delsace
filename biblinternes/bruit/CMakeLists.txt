@@ -35,6 +35,7 @@ set(SOURCES
 	blanc.cc
 	cellule.cc
 	evaluation.cc
+	flux.cc
 	fourier.cc
 	ondelette.cc
 	outils.cc
@@ -47,6 +48,7 @@ set(SOURCES
 	blanc.hh
 	cellule.hh
 	evaluation.hh
+	flux.hh
 	fourier.hh
 	ondelette.hh
 	outils.hh

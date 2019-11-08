@@ -33,12 +33,10 @@
 #	define VARIABLE_ANONYME(str) CONCATENE(str, __LINE__)
 #endif
 
-#define TOUJOURS_INLINE [[ gnu::always_inline ]]
-#define JAMAIS_INLINE  [[ gnu::noinline ]]
+#define ENLIGNE_TOUJOURS [[ gnu::always_inline ]]
+#define ENLIGNE_JAMAIS   [[ gnu::noinline ]]
 
-#ifndef INUTILISE
-#	define INUTILISE(x) static_cast<void>(x)
-#endif
+#define INUTILISE(x) static_cast<void>(x)
 
 #define CHAINE_IMPL(x) #x
 #define CHAINE(x) CHAINE_IMPL(x)
@@ -55,3 +53,37 @@
 #define COPIE_CONSTRUCT(x) \
 	x(x const &) = default; \
 	x &operator=(x const &) = default
+
+#define DEFINIE_OPERATEURS_DRAPEAU(_type_drapeau_, _type_) \
+	inline constexpr auto operator&(_type_drapeau_ lhs, _type_drapeau_ rhs) \
+	{ \
+		return static_cast<_type_drapeau_>(static_cast<_type_>(lhs) & static_cast<_type_>(rhs)); \
+	} \
+	inline constexpr auto operator&(_type_drapeau_ lhs, _type_ rhs) \
+	{ \
+		return static_cast<_type_drapeau_>(static_cast<_type_>(lhs) & rhs); \
+	} \
+	inline constexpr auto operator|(_type_drapeau_ lhs, _type_drapeau_ rhs) \
+	{ \
+		return static_cast<_type_drapeau_>(static_cast<_type_>(lhs) | static_cast<_type_>(rhs)); \
+	} \
+	inline constexpr auto operator^(_type_drapeau_ lhs, _type_drapeau_ rhs) \
+	{ \
+		return static_cast<_type_drapeau_>(static_cast<_type_>(lhs) ^ static_cast<_type_>(rhs)); \
+	} \
+	inline constexpr auto operator~(_type_drapeau_ lhs) \
+	{ \
+		return static_cast<_type_drapeau_>(~static_cast<_type_>(lhs)); \
+	} \
+	inline constexpr auto &operator&=(_type_drapeau_ &lhs, _type_drapeau_ rhs) \
+	{ \
+		return (lhs = lhs & rhs); \
+	} \
+	inline constexpr auto &operator|=(_type_drapeau_ &lhs, _type_drapeau_ rhs) \
+	{ \
+		return (lhs = lhs | rhs); \
+	} \
+	inline constexpr auto &operator^=(_type_drapeau_ &lhs, _type_drapeau_ rhs) \
+	{ \
+		return (lhs = lhs ^ rhs); \
+	}

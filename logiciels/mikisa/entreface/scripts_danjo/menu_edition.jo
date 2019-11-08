@@ -1,7 +1,19 @@
 menu "Édition" {
+	action(valeur="Défait"; attache=défait)
+	action(valeur="Refait"; attache=refait)
+	séparateur
+	action(valeur="Ajouter Prise Noeud"; attache=ajout_prise_noeud)
+	action(valeur="Renomme Noeud"; attache=renomme)
+	séparateur
     action(valeur="Sors noeud"; attache=sors_noeud)
 	séparateur
 	action(valeur="Ajouter Propriété"; attache=ajouter_propriete)
 	séparateur
 	action(valeur="Ajouter Composite"; attache=ajouter_composite)
+	séparateur
+	action(valeur="Ajouter Objet Vide"; attache=ajoute_prereglage; métadonnée="vide")
+	séparateur
+	action(valeur="Ajouter Nuanceur"; attache=ajouter_nuanceur)
+	séparateur
+	action(valeur="Ajouter Rendu"; attache=ajouter_rendu)
 }

@@ -26,6 +26,8 @@
 
 #include <any>
 
+#include "biblinternes/structures/pile.hh"
+
 #include "execution_pile.hh"
 #include "fonctions.hh"
 
@@ -71,7 +73,9 @@ struct donnees_propriete {
 	dls::chaine nom = "";
 	lcc::type_var type{};
 	bool est_requis = false;
-	bool pad = false;
+	bool est_propriete = false;
+	bool est_modifiee = false;
+	bool est_non_modifiable = false;
 	int ptr = 0;
 	std::any ptr_donnees = nullptr;
 
@@ -79,10 +83,12 @@ struct donnees_propriete {
 			dls::chaine const &_nom_,
 			lcc::type_var _type_,
 			bool _est_requis_,
+			bool _est_propriete_,
 			int _ptr_)
 		: nom(_nom_)
 		, type(_type_)
 		, est_requis(_est_requis_)
+		, est_propriete(_est_propriete_)
 	    , ptr(_ptr_)
 	{}
 };
@@ -93,19 +99,51 @@ struct gestionnaire_propriete {
 
 	~gestionnaire_propriete()
 	{
+		reinitialise();
+	}
+
+	void reinitialise()
+	{
 		for (auto &d : donnees) {
 			memoire::deloge("donnees_propriete", d);
 		}
+
+		donnees.efface();
 	}
 
-	void ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
+	donnees_propriete *donnees_pour_propriete(dls::vue_chaine const &nom)
 	{
-		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, idx));
+		for (auto const &donnee : donnees) {
+			if (donnee->nom == nom) {
+				return donnee;
+			}
+		}
+
+		return nullptr;
+	}
+
+	donnees_propriete *ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx);
+		donnees.pousse(prop);
+		return prop;
+	}
+
+	void ajoute_propriete_non_modifiable(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		auto prop = ajoute_propriete(nom, type, idx);
+		prop->est_non_modifiable = true;
+	}
+
+	void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
 	}
 
 	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
-		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, idx);
+		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, false, idx);
+		prop->est_modifiee = true;
 		donnees.pousse(prop);
 		requetes.pousse(prop);
 	}
@@ -168,6 +206,20 @@ struct donnees_variables {
 	lcc::type_var donnees_type{};
 };
 
+struct donnees_boucles {
+	dls::tableau<int> arretes{};
+	dls::tableau<int> continues{};
+};
+
+/* pour les paramètres déclarés dans les scripts via #!param */
+struct DonneesDeclarationParam {
+	dls::chaine nom{};
+	lcc::type_var type{};
+	dls::math::vec3f min{};
+	dls::math::vec3f max{};
+	dls::math::vec3f valeur{};
+};
+
 using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, donnees_variables>>;
 
 struct ContexteGenerationCode {
@@ -175,10 +227,18 @@ struct ContexteGenerationCode {
 
 	dls::tableau<DonneesModule *> modules{};
 
+	dls::ensemble<lcc::req_fonc> requetes{};
+
+	dls::pile<donnees_boucles *> boucles{};
+
+	dls::tableau<DonneesDeclarationParam> params_declare{};
+
 	lcc::magasin_fonctions fonctions{};
 
-	gestionnaire_propriete gest_props{};
 	gestionnaire_propriete gest_attrs{};
+
+	/* les chaines qui seront transférées au contexte globale */
+	dls::tableau<dls::chaine> chaines{};
 
 	ContexteGenerationCode() = default;
 

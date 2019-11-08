@@ -272,4 +272,6 @@ couleur32 couleur_depuis_corps_noir(float temperature);
 
 couleur32 couleur_depuis_longueur_onde(float lambda);
 
+couleur32 couleur_depuis_poids(float poids);
+
 }  /* dls::phys */

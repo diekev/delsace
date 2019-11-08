@@ -106,13 +106,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* peuple un descripteur avec nos données crues */
@@ -134,7 +134,7 @@ public:
 
 		if (plg_subdiv.est_finie()) {
 			ajoute_avertissement("Type de schéma invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const type_subdiv = plg_subdiv.front().second;
@@ -152,7 +152,7 @@ public:
 
 		if (plg_entrep_bord.est_finie()) {
 			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetVtxBoundaryInterpolation(plg_entrep_bord.front().second);
@@ -171,7 +171,7 @@ public:
 
 		if (plg_entrep_fvar.est_finie()) {
 			ajoute_avertissement("Type d'entrepolation bordure sommet invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetFVarLinearInterpolation(plg_entrep_fvar.front().second);
@@ -186,7 +186,7 @@ public:
 
 		if (plg_pliure.est_finie()) {
 			ajoute_avertissement("Type de pliage invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetCreasingMethod(plg_pliure.front().second);
@@ -201,13 +201,13 @@ public:
 
 		if (plg_sd_tri.est_finie()) {
 			ajoute_avertissement("Type de sousdivision triangulaire invalide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		options.SetTriangleSubdivision(plg_sd_tri.front().second);
 
 		auto points_entree = corps_entree->points_pour_lecture();
-		auto nombre_sommets = points_entree->taille();
+		auto nombre_sommets = points_entree.taille();
 		auto prims_entree = corps_entree->prims();
 		auto nombre_polygones = prims_entree->taille();
 
@@ -280,8 +280,8 @@ public:
 		}
 
 		/* Initialise les positions du maillage grossier. */
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			sommets[i].valeur = corps_entree->point_transforme(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			sommets[i].valeur = points_entree.point_monde(i);
 
 			for (auto j = 0; j < attrs_points.taille(); ++j) {
 				extrait(attrs_points[j]->r32(i), ptr_attrs_pnt[j][i].valeur);
@@ -338,11 +338,11 @@ public:
 			auto attr_N = corps_entree->attribut("N");
 
 			auto points_sortie = m_corps.points_pour_ecriture();
-			points_sortie->reserve(nombre_sommets);
+			points_sortie.reserve(nombre_sommets);
 			m_corps.prims()->reserve(nombre_polygones);
 
 			for (long vert = 0; vert < nombre_sommets; ++vert) {
-				points_sortie->pousse(sommets[premier_sommet + vert].valeur);
+				points_sortie.ajoute_point(sommets[premier_sommet + vert].valeur);
 			}
 
 			for (auto j = 0; j < attrs_points.taille(); ++j) {
@@ -384,7 +384,7 @@ public:
 
 		delete rafineur;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

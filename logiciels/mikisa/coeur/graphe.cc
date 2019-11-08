@@ -53,17 +53,7 @@ Noeud *Graphe::cree_noeud(const dls::chaine &nom_noeud, type_noeud type_n)
 void Graphe::ajoute(Noeud *noeud)
 {
 	/* vérifie que le nom du noeud est unique */
-	auto i = 1;
-	auto nom = noeud->nom;
-	auto nom_temp = nom;
-
-	while (m_noms_noeuds.trouve(nom_temp) != m_noms_noeuds.fin()) {
-		nom_temp = nom + std::to_string(i++);
-	}
-
-	noeud->nom = nom_temp;
-
-	m_noms_noeuds.insere(nom_temp);
+	noeud->nom = rend_nom_unique(noeud->nom);
 
 	m_noeuds.pousse(noeud);
 
@@ -71,6 +61,20 @@ void Graphe::ajoute(Noeud *noeud)
 	this->ajoute_selection(noeud);
 
 	besoin_ajournement = true;
+}
+
+dls::chaine Graphe::rend_nom_unique(dls::chaine const &nom)
+{
+	auto i = 1;
+	auto nom_temp = nom;
+
+	while (m_noms_noeuds.trouve(nom_temp) != m_noms_noeuds.fin()) {
+		nom_temp = nom + std::to_string(i++);
+	}
+
+	m_noms_noeuds.insere(nom_temp);
+
+	return nom_temp;
 }
 
 void Graphe::supprime_noeud(Noeud *noeud)

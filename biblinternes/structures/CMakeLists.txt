@@ -46,10 +46,12 @@ add_library(${NOM_CIBLE} STATIC
 	magasin.cc
 	pile.cc
 	plage.cc
+	pointeur_marque.cc
 	ramasse_miettes.cc
 	tableau.cc
 	tableau_boucle.cc
 	tableau_fixe.cc
+	tableau_simple_compact.cc
 	vue_chaine.cc
 
 	arbre_kd.hh
@@ -66,12 +68,15 @@ add_library(${NOM_CIBLE} STATIC
 	hachage_spatiale.hh
 	liste.hh
 	magasin.hh
+	matrice_eparse.hh
 	pile.hh
 	plage.hh
+	pointeur_marque.hh
 	ramasse_miettes.hh
 	tableau.hh
 	tableau_boucle.hh
 	tableau_fixe.hh
+	tableau_simple_compact.hh
 	vue_chaine.hh
 )
 

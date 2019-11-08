@@ -83,6 +83,8 @@ class AssembleurDisposition {
 	DonneesControle m_donnees_controle{};
 
 public:
+	dls::dico_desordonne<dls::chaine, ControlePropriete *> controles{};
+
 	/**
 	 * Construit une instance d'un assembleur avec les paramètres spécifiés.
 	 *

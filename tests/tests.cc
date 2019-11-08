@@ -45,6 +45,8 @@ int main()
 	controleuse.ajoute_fonction(test_pystring);
 	controleuse.ajoute_fonction(test_date);
 	controleuse.ajoute_fonction(test_temperature);
+	controleuse.ajoute_fonction(test_pointeur_marque);
+	controleuse.ajoute_fonction(test_tableau_compact);
 
 	controleuse.performe_controles();
 

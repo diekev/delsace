@@ -9,6 +9,11 @@ QWidget
 	color: rgb(240, 240, 240);
 }
 
+QWidget:disabled
+{
+	color: rgb(164, 164, 164);
+}
+
 QFrame[state="on"]
 {
 	border: 1px solid #52b1ee;

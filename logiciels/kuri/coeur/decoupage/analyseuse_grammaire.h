@@ -29,8 +29,6 @@
 
 #include "erreur.h"
 
-class DonneesType;
-
 struct assembleuse_arbre;
 struct ContexteGenerationCode;
 struct DonneesFonction;
@@ -59,6 +57,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	bool m_etiquette_enligne = false;
 	bool m_etiquette_horsligne = false;
+	bool m_etiquette_nulctx = false;
 
 public:
 	analyseuse_grammaire(
@@ -85,14 +84,14 @@ private:
 
 	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction(id_morceau id);
-	void analyse_parametres_fonction(noeud::base *noeud, DonneesFonction &donnees_fonction, DonneesType *donnees_type_fonction);
+	void analyse_parametres_fonction(noeud::base *noeud, DonneesFonction &donnees_fonction, DonneesTypeDeclare *donnees_type_fonction);
 	void analyse_corps_fonction();
-	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool const calcul_expression = false, bool ajoute_noeud = true);
+	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_enum();
-	long analyse_declaration_type(DonneesType *donnees_type_fonction = nullptr, bool double_point = true);
-	long analyse_declaration_type_ex(DonneesType *donnees_type_fonction = nullptr);
+	DonneesTypeDeclare analyse_declaration_type(DonneesTypeDeclare *donnees_type_fonction = nullptr, bool double_point = true);
+	DonneesTypeDeclare analyse_declaration_type_ex(DonneesTypeDeclare *donnees_type_fonction = nullptr);
 	void analyse_controle_si(type_noeud tn);
 	void analyse_controle_pour();
 	void analyse_construction_structure(noeud::base *noeud);

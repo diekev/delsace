@@ -72,6 +72,19 @@ public:
 	{
 		return m_fin;
 	}
+
+	long taille() const
+	{
+		auto t = 0;
+		auto d = m_debut;
+
+		while (d != m_fin) {
+			++t;
+			++d;
+		}
+
+		return t;
+	}
 };
 
 /**

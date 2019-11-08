@@ -600,13 +600,6 @@ public:
 	{
 		entrees(1);
 		sorties(0);
-
-		noeud.est_sortie = true;
-	}
-
-	int type() const override
-	{
-		return OPERATRICE_SORTIE_IMAGE;
 	}
 
 	const char *chemin_entreface() const override
@@ -624,11 +617,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
 		m_image.nom_calque_actif(evalue_chaine("nom_calque"));
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -668,7 +661,7 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -682,7 +675,7 @@ public:
 
 		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (evalue_bool("est_animation")) {
@@ -708,7 +701,7 @@ public:
 			m_dernier_chemin = chemin;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -760,7 +753,7 @@ public:
 		return "entreface/operatrice_lecture_video.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		auto nom_calque = evalue_chaine("nom_calque");
@@ -773,7 +766,7 @@ public:
 
 		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_dernier_chemin != chemin || m_poignee_fichier == nullptr) {
@@ -786,7 +779,7 @@ public:
 
 			if (!m_video.open(chemin.c_str())) {
 				this->ajoute_avertissement("Impossible d'ouvrir la vidéo");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			m_nombre_images = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_COUNT));
@@ -794,14 +787,14 @@ public:
 
 		if (m_poignee_fichier == nullptr) {
 			this->ajoute_avertissement("Impossible d'obtenir une poignée sur le fichier");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (contexte.temps_courant == contexte.temps_debut) {
 			m_video.set(CV_CAP_PROP_POS_FRAMES, 0);
 		}
 		else if (m_derniere_image != -1 && contexte.temps_courant != m_derniere_image + 1) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		m_image.reinitialise();
@@ -809,7 +802,7 @@ public:
 		auto mat = cv::Mat();
 		if (!m_video.read(mat)) {
 			this->ajoute_avertissement("Impossible de lire une image depuis la vidéo");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto largeur = static_cast<int>(m_video.get(CV_CAP_PROP_FRAME_WIDTH));
@@ -835,7 +828,7 @@ public:
 
 		m_derniere_image = contexte.temps_courant;
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override
@@ -880,7 +873,7 @@ public:
 		return "entreface/operatrice_lecture_fichier.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -894,7 +887,7 @@ public:
 
 		if (chemin.est_vide()) {
 			ajoute_avertissement("Le chemin de fichier est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (evalue_bool("est_animation")) {
@@ -916,66 +909,53 @@ public:
 			}
 			else {
 				ajoute_avertissement("L'extension est invalide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			m_dernier_chemin = chemin;
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
 /* ************************************************************************** */
 
-class OperatriceCommutation final : public OperatriceImage {
-public:
-	static constexpr auto NOM = "Commutateur";
+template <int O>
+struct desc_operatrice_commutation;
+
+template <>
+struct desc_operatrice_commutation<0> {
+	static constexpr auto NOM = "Commutation Image";
 	static constexpr auto AIDE = "";
-
-	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceImage(graphe_parent, noeud_)
-	{
-	}
-
-	const char *chemin_entreface() const override
-	{
-		return "entreface/operatrice_commutateur.jo";
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		auto const value = evalue_entier("prise");
-		entree(value)->requiers_copie_image(m_image, contexte, donnees_aval);
-		return EXECUTION_REUSSIE;
-	}
+	static constexpr auto chemin_entreface = "entreface/operatrice_commutateur.jo";
+	static constexpr auto type_prises = type_prise::IMAGE;
+	static constexpr int type_operatrice = OPERATRICE_IMAGE;
 };
 
-/* ************************************************************************** */
-
-class OperatriceCommutationCorps final : public OperatriceCorps {
-public:
+template <>
+struct desc_operatrice_commutation<1> {
 	static constexpr auto NOM = "Commutation Corps";
 	static constexpr auto AIDE = "";
+	static constexpr auto chemin_entreface = "entreface/operatrice_commutation_corps.jo";
+	static constexpr auto type_prises = type_prise::CORPS;
+	static constexpr int type_operatrice = OPERATRICE_CORPS;
+};
 
-	OperatriceCommutationCorps(Graphe &graphe_parent, Noeud &noeud_)
+template <int O>
+class OperatriceCommutation final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = desc_operatrice_commutation<O>::NOM;
+	static constexpr auto AIDE = desc_operatrice_commutation<O>::AIDE;
+
+	OperatriceCommutation(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
 	{
 	}
 
 	const char *chemin_entreface() const override
 	{
-		return "entreface/operatrice_commutation_corps.jo";
+		return desc_operatrice_commutation<O>::chemin_entreface;
 	}
 
 	const char *nom_classe() const override
@@ -988,36 +968,151 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	int type() const override
 	{
-		m_corps.reinitialise();
+		return desc_operatrice_commutation<O>::type_operatrice;
+	}
 
-		auto const condition = evalue_enum("condition");
-		auto const valeur = evalue_entier("valeur_condition");
-		auto resultat = false;
+	type_prise type_entree(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
 
-		if (condition == "tps_scn_egl") {
-			resultat = (contexte.temps_courant == valeur);
+	type_prise type_sortie(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		auto chef = contexte.chef;
+
+		if (O == 0) {
+			auto const value = evalue_entier("prise");
+			entree(value)->requiers_copie_image(m_image, contexte, donnees_aval);
+			chef->demarre_evaluation("commutation image");
 		}
-		else if (condition == "tps_scn_sup") {
-			resultat = (contexte.temps_courant > valeur);
-		}
-		else if (condition == "tps_scn_inf") {
-			resultat = (contexte.temps_courant < valeur);
-		}
-		else {
-			ajoute_avertissement("Condition invalide !");
-			return EXECUTION_ECHOUEE;
+		else if (O == 1) {
+			m_corps.reinitialise();
+
+			auto const condition = evalue_enum("condition");
+			auto const valeur = evalue_entier("valeur_condition");
+			auto resultat = false;
+
+			if (condition == "tps_scn_egl") {
+				resultat = (contexte.temps_courant == valeur);
+			}
+			else if (condition == "tps_scn_sup") {
+				resultat = (contexte.temps_courant > valeur);
+			}
+			else if (condition == "tps_scn_inf") {
+				resultat = (contexte.temps_courant < valeur);
+			}
+			else {
+				ajoute_avertissement("Condition invalide !");
+				return res_exec::ECHOUEE;
+			}
+
+			if (resultat) {
+				entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+			}
+			else {
+				entree(1)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+			}
+
+			chef->demarre_evaluation("commutation corps");
 		}
 
-		if (resultat) {
+		chef->indique_progression(100.0f);
+
+		return res_exec::REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
+template <int O>
+struct desc_operatrice_cache_memoire;
+
+template <>
+struct desc_operatrice_cache_memoire<0> {
+	static constexpr auto NOM = "Cache Image Mémoire";
+	static constexpr auto AIDE = "";
+	static constexpr auto type_prises = type_prise::IMAGE;
+	static constexpr int type_operatrice = OPERATRICE_IMAGE;
+};
+
+template <>
+struct desc_operatrice_cache_memoire<1> {
+	static constexpr auto NOM = "Cache Corps Mémoire";
+	static constexpr auto AIDE = "";
+	static constexpr auto type_prises = type_prise::CORPS;
+	static constexpr int type_operatrice = OPERATRICE_CORPS;
+};
+
+template <int O>
+class OpCacheMemoire final : public OperatriceCorps {
+public:
+	static constexpr auto NOM = desc_operatrice_cache_memoire<O>::NOM;
+	static constexpr auto AIDE = desc_operatrice_cache_memoire<O>::AIDE;
+
+	OpCacheMemoire(Graphe &graphe_parent, Noeud &noeud_)
+		: OperatriceCorps(graphe_parent, noeud_)
+	{
+		entrees(1);
+		sorties(1);
+	}
+
+	const char *nom_classe() const override
+	{
+		return NOM;
+	}
+
+	const char *texte_aide() const override
+	{
+		return AIDE;
+	}
+
+	int type() const override
+	{
+		return desc_operatrice_commutation<O>::type_operatrice;
+	}
+
+	type_prise type_entree(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
+	type_prise type_sortie(int) const override
+	{
+		return desc_operatrice_commutation<O>::type_prises;
+	}
+
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	{
+		INUTILISE(donnees_aval);
+
+		auto chef = contexte.chef;
+
+		if (O == 0) {
+			m_image.reinitialise();
+
+			entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
+
+			chef->demarre_evaluation("cache image");
+		}
+		else if (O == 1) {
+			m_corps.reinitialise();
+
 			entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
-		}
-		else {
-			entree(1)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
+
+			chef->demarre_evaluation("cache corps");
 		}
 
-		return EXECUTION_REUSSIE;
+		entree(0)->signale_cache(chef);
+		chef->indique_progression(100.0f);
+
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1049,7 +1144,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -1058,41 +1153,41 @@ public:
 
 		if (m_graphe_parent.entrees.est_vide()) {
 			ajoute_avertissement("Le graphe n'a aucune entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto index_entree = evalue_entier("index_entrée");
 
 		if (index_entree >= m_graphe_parent.entrees.taille()) {
 			ajoute_avertissement("L'index de l'entrée est hors de portée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps = std::any_cast<Corps *>(m_graphe_parent.entrees[index_entree]);
 		corps->copie_vers(&m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
 /* ************************************************************************** */
 
-class OperatriceImportObjet final : public OperatriceCorps {
+class OpReferenceObjet final : public OperatriceCorps {
 	dls::chaine m_nom_objet = "";
 	Objet *m_objet = nullptr;
 
 public:
-	static constexpr auto NOM = "Import Objet";
+	static constexpr auto NOM = "Référence Objet";
 	static constexpr auto AIDE = "";
 
-	OperatriceImportObjet(Graphe &graphe_parent, Noeud &noeud_)
+	OpReferenceObjet(Graphe &graphe_parent, Noeud &noeud_)
 		: OperatriceCorps(graphe_parent, noeud_)
 	{
 		entrees(0);
 	}
 
-	OperatriceImportObjet(OperatriceImportObjet const &) = default;
-	OperatriceImportObjet &operator=(OperatriceImportObjet const &) = default;
+	OpReferenceObjet(OpReferenceObjet const &) = default;
+	OpReferenceObjet &operator=(OpReferenceObjet const &) = default;
 
 	const char *chemin_entreface() const override
 	{
@@ -1125,7 +1220,7 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
@@ -1134,14 +1229,14 @@ public:
 
 		if (nom_objet.est_vide()) {
 			this->ajoute_avertissement("Aucun objet sélectionné");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Aucun objet de ce nom n'existe");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet->donnees.accede_lecture([this](DonneesObjet const *donnees)
@@ -1150,7 +1245,7 @@ public:
 			_corps_.copie_vers(&m_corps);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
@@ -1163,7 +1258,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet->noeud);
 	}
 
 	void obtiens_liste(
@@ -1211,7 +1306,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1237,7 +1332,7 @@ public:
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 #endif
@@ -1246,14 +1341,16 @@ public:
 
 void enregistre_operatrices_flux(UsineOperatrice &usine)
 {
-	usine.enregistre_type(cree_desc<OperatriceCommutation>());
-	usine.enregistre_type(cree_desc<OperatriceCommutationCorps>());
+	usine.enregistre_type(cree_desc<OperatriceCommutation<0>>());
+	usine.enregistre_type(cree_desc<OperatriceCommutation<1>>());
+	usine.enregistre_type(cree_desc<OpCacheMemoire<0>>());
+	usine.enregistre_type(cree_desc<OpCacheMemoire<1>>());
 	usine.enregistre_type(cree_desc<OperatriceVisionnage>());
 	usine.enregistre_type(cree_desc<OperatriceLectureJPEG>());
 	usine.enregistre_type(cree_desc<OperatriceLectureVideo>());
 	usine.enregistre_type(cree_desc<OpLectureImgProfonde>());
 	usine.enregistre_type(cree_desc<OperatriceEntreeGraphe>());
-	usine.enregistre_type(cree_desc<OperatriceImportObjet>());
+	usine.enregistre_type(cree_desc<OpReferenceObjet>());
 
 #ifdef OP_INFINIE
 	usine.enregistre_type(cree_desc<OperatriceInfinie>());

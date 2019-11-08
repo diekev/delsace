@@ -30,6 +30,12 @@ set(INCLUSIONS
 	${INCLUSIONS_QT5_CORE}
 )
 
+# À FAIRE : module
+set(BIBLIOTHEQUES_GRAPHVIZ
+	cgraph
+	gvc
+)
+
 set(BIBLIOTHEQUES
 	bib_objets
 	bib_outils
@@ -38,6 +44,7 @@ set(BIBLIOTHEQUES
 	danjo
 	mikisa_coeur
 	mikisa_evaluation
+	${BIBLIOTHEQUES_GRAPHVIZ}
 	${BIBLIOTHEQUES_OPENCOLORIO}
 	${BIBLIOTHEQUES_OPENEXR}
 )

@@ -1,10 +1,21 @@
 menu "Noeud Détail" {
-	action(valeur="Entrée Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Détail")
-	action(valeur="Sortie Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Détail")
-	action(valeur="Entrée Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Attribut")
-	action(valeur="Sortie Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Attribut")
+	menu "Entrée" {
+		action(valeur="Charge Image"; attache=ajouter_noeud_spécial_détail; métadonnée="Charge Image")
+		action(valeur="Cherche Caméra"; attache=ajouter_noeud_spécial_détail; métadonnée="Cherche Caméra")
+		action(valeur="Crée Courbe Couleur"; attache=ajouter_noeud_spécial_détail; métadonnée="Crée Courbe Couleur")
+		action(valeur="Crée Courbe Valeur"; attache=ajouter_noeud_spécial_détail; métadonnée="Crée Courbe Valeur")
+		action(valeur="Crée Rampe Couleur"; attache=ajouter_noeud_spécial_détail; métadonnée="Crée Rampe Couleur")
+		action(valeur="Entrée Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Détail")
+		action(valeur="Entrée Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Entrée Attribut")
+		action(valeur="Info Exécution"; attache=ajouter_noeud_spécial_détail; métadonnée="Info Exécution")
+	}
+	menu "Sortie" {
+		action(valeur="Sortie Détail"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Détail")
+		action(valeur="Sortie Attribut"; attache=ajouter_noeud_spécial_détail; métadonnée="Sortie Attribut")
+	}
 	menu "bruit" {
 		action(valeur="bruit_cellule"; attache=ajouter_noeud_detail; métadonnée="bruit_cellule")
+		action(valeur="bruit_flux"; attache=ajouter_noeud_detail; métadonnée="bruit_flux")
 		action(valeur="bruit_fourier"; attache=ajouter_noeud_detail; métadonnée="bruit_fourier")
 		action(valeur="bruit_ondelette"; attache=ajouter_noeud_detail; métadonnée="bruit_ondelette")
 		action(valeur="bruit_perlin"; attache=ajouter_noeud_detail; métadonnée="bruit_perlin")
@@ -34,12 +45,23 @@ menu "Noeud Détail" {
 		action(valeur="longueur_onde"; attache=ajouter_noeud_detail; métadonnée="longueur_onde")
 		action(valeur="luminance"; attache=ajouter_noeud_detail; métadonnée="luminance")
 		action(valeur="sature"; attache=ajouter_noeud_detail; métadonnée="sature")
+		action(valeur="évalue_courbe_couleur"; attache=ajouter_noeud_detail; métadonnée="évalue_courbe_couleur")
+		action(valeur="évalue_courbe_valeur"; attache=ajouter_noeud_detail; métadonnée="évalue_courbe_valeur")
+		action(valeur="évalue_rampe_couleur"; attache=ajouter_noeud_detail; métadonnée="évalue_rampe_couleur")
+	}
+	menu "image" {
+		action(valeur="projection_caméra"; attache=ajouter_noeud_detail; métadonnée="projection_caméra")
+		action(valeur="projection_cylindrique"; attache=ajouter_noeud_detail; métadonnée="projection_cylindrique")
+		action(valeur="projection_sphérique"; attache=ajouter_noeud_detail; métadonnée="projection_sphérique")
+		action(valeur="échantillonne_image"; attache=ajouter_noeud_detail; métadonnée="échantillonne_image")
+		action(valeur="échantillonne_triplan"; attache=ajouter_noeud_detail; métadonnée="échantillonne_triplan")
 	}
 	menu "maths" {
 		action(valeur="abs"; attache=ajouter_noeud_detail; métadonnée="abs")
 		action(valeur="acos"; attache=ajouter_noeud_detail; métadonnée="acos")
 		action(valeur="ajoute"; attache=ajouter_noeud_detail; métadonnée="ajoute")
-		action(valeur="aléa"; attache=ajouter_noeud_detail; métadonnée="aléa")
+		action(valeur="aléa_nrm"; attache=ajouter_noeud_detail; métadonnée="aléa_nrm")
+		action(valeur="aléa_uni"; attache=ajouter_noeud_detail; métadonnée="aléa_uni")
 		action(valeur="arrondis"; attache=ajouter_noeud_detail; métadonnée="arrondis")
 		action(valeur="asin"; attache=ajouter_noeud_detail; métadonnée="asin")
 		action(valeur="atan"; attache=ajouter_noeud_detail; métadonnée="atan")
@@ -80,6 +102,7 @@ menu "Noeud Détail" {
 	}
 	menu "vecteur" {
 		action(valeur="base_orthonormale"; attache=ajouter_noeud_detail; métadonnée="base_orthonormale")
+		action(valeur="combine_vec2"; attache=ajouter_noeud_detail; métadonnée="combine_vec2")
 		action(valeur="combine_vec3"; attache=ajouter_noeud_detail; métadonnée="combine_vec3")
 		action(valeur="fresnel"; attache=ajouter_noeud_detail; métadonnée="fresnel")
 		action(valeur="longueur"; attache=ajouter_noeud_detail; métadonnée="longueur")
@@ -88,6 +111,7 @@ menu "Noeud Détail" {
 		action(valeur="produit_scalaire"; attache=ajouter_noeud_detail; métadonnée="produit_scalaire")
 		action(valeur="réfléchi"; attache=ajouter_noeud_detail; métadonnée="réfléchi")
 		action(valeur="réfracte"; attache=ajouter_noeud_detail; métadonnée="réfracte")
+		action(valeur="sépare_vec2"; attache=ajouter_noeud_detail; métadonnée="sépare_vec2")
 		action(valeur="sépare_vec3"; attache=ajouter_noeud_detail; métadonnée="sépare_vec3")
 		action(valeur="vec3_depuis_couleur"; attache=ajouter_noeud_detail; métadonnée="vec3_depuis_couleur")
 		action(valeur="échantillone_sphère"; attache=ajouter_noeud_detail; métadonnée="échantillone_sphère")

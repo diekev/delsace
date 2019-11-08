@@ -80,9 +80,11 @@ struct ContexteEvaluation;
 struct DonneesAval;
 struct Corps;
 
-using type_operatrice_sans_entree = std::function<int(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*)>;
+enum class res_exec : int;
 
-using type_operatrice_entree0 = std::function<int(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*, Corps const &)>;
+using type_operatrice_sans_entree = std::function<res_exec(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*)>;
+
+using type_operatrice_entree0 = std::function<res_exec(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*, Corps const &)>;
 
 DescOperatrice cree_desc(
 		const char *nom,

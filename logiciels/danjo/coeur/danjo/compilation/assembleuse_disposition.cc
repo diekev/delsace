@@ -26,13 +26,13 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMenu>
 #include <QTabWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
 
 #include "controles/action.h"
 #include "controles/bouton.h"
+#include "controles/menu_filtrable.hh"
 
 #include "controles_proprietes/controle_propriete_bool.h"
 #include "controles_proprietes/controle_propriete_chaine.h"
@@ -298,8 +298,14 @@ void AssembleurDisposition::finalise_controle()
 		delete m_dernier_controle;
 		m_dernier_controle = nullptr;
 	}
+	else {
+		controles.insere({ m_donnees_controle.nom, m_dernier_controle });
+	}
 
 	if (m_conteneur != nullptr) {
+		QObject::connect(m_dernier_controle, &ControlePropriete::precontrole_change,
+						 m_conteneur, &ConteneurControles::precontrole_change);
+
 		QObject::connect(m_dernier_controle, &ControlePropriete::controle_change,
 						 m_conteneur, &ConteneurControles::ajourne_manipulable);
 	}
@@ -426,7 +432,7 @@ void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
 		return;
 	}
 
-	auto menu = new QMenu(nom.c_str());
+	auto menu = new MenuFiltrable(nom.c_str());
 
 	if (!m_pile_menus.est_vide()) {
 		m_pile_menus.haut()->addMenu(menu);
@@ -489,6 +495,10 @@ void AssembleurDisposition::ajoute_dossier()
 
 void AssembleurDisposition::finalise_dossier()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_dernier_dossier->setCurrentIndex(m_manipulable->onglet_courant);
 
 	if (m_conteneur != nullptr) {
@@ -518,6 +528,10 @@ void AssembleurDisposition::ajoute_onglet(const dls::chaine &nom)
 
 void AssembleurDisposition::finalise_onglet()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_pile_dispositions.depile();
 }
 

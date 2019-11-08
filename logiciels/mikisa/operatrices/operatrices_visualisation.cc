@@ -144,13 +144,13 @@ public:
 		return "entreface/operatrice_vis_arbre_hbe.jo";
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto dessine_branches = evalue_bool("dessine_branches");
@@ -182,7 +182,7 @@ public:
 			colore_prims(arbre.racine(), m_corps, attr, gna);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -207,8 +207,10 @@ struct delegue_arbre_bvh {
 		cos.efface();
 		cos.reserve(poly->nombre_sommets());
 
+		auto points = corps.points_pour_lecture();
+
 		for (auto i = 0; i < poly->nombre_sommets(); ++i) {
-			cos.pousse(corps.point_transforme(poly->index_point(i)));
+			cos.pousse(points.point_monde(poly->index_point(i)));
 		}
 	}
 };
@@ -296,14 +298,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto dessine_branches = evalue_bool("dessine_branches");
@@ -352,7 +354,7 @@ public:
 
 		memoire::deloge("BVHTree", arbre_hbe);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -405,18 +407,18 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (!possede_volume(*corps_entree)) {
 			this->ajoute_avertissement("Le Corps ne possède pas de volume");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto prims = corps_entree->prims();
@@ -434,14 +436,14 @@ public:
 
 		if (!grille->est_eparse()) {
 			this->ajoute_avertissement("Le volume n'est pas épars");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grille_eprs = dynamic_cast<wlk::grille_eparse<float> *>(grille);
 
 		visualise_topologie(m_corps, *grille_eprs);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

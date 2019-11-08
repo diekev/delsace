@@ -23,18 +23,3 @@
  */
 
 #include "evenement.h"
-
-type_evenement &operator&=(type_evenement &lhs, type_evenement rhs)
-{
-	return (lhs = lhs & rhs);
-}
-
-type_evenement &operator|=(type_evenement &lhs, type_evenement rhs)
-{
-	return (lhs = lhs | rhs);
-}
-
-type_evenement &operator^=(type_evenement &lhs, type_evenement rhs)
-{
-	return (lhs = lhs ^ rhs);
-}

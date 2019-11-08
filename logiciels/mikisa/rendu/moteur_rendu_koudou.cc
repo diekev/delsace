@@ -30,6 +30,7 @@
 
 #include "coeur/objet.h"
 #include "corps/iteration_corps.hh"
+#include "corps/sphere.hh"
 #include "corps/volume.hh"
 
 #include "koudou/koudou.hh"
@@ -37,7 +38,7 @@
 #include "koudou/maillage.hh"
 #include "koudou/moteur_rendu.hh"
 #include "koudou/nuanceur.hh"
-#include "koudou/structure_acceleration.hh"
+#include "koudou/sphere.hh"
 
 #include "wolika/grille_eparse.hh"
 
@@ -105,7 +106,7 @@ static int ajoute_vertex(
 
 static void ajoute_quad(
 		int i,
-		kdo::Maillage *maillage,
+		kdo::maillage *maillage,
 		dls::tableau<dls::math::vec3i> &vertex,
 		dls::dico_desordonne<size_t, int> &utilises,
 		dls::math::vec3i const &res,
@@ -113,36 +114,22 @@ static void ajoute_quad(
 {
 	auto decalage_normal = static_cast<int>(maillage->normaux.taille());
 
-	auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
-
 	auto v0 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][0]]);
 	auto v1 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][1]]);
 	auto v2 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][2]]);
 	auto v3 = ajoute_vertex(vertex, utilises, res, coins[quads_indices[i][3]]);
 
-	tri->v0 = v0;
-	tri->v1 = v1;
-	tri->v2 = v2;
+	maillage->quads.pousse(v0);
+	maillage->quads.pousse(v1);
+	maillage->quads.pousse(v2);
+	maillage->quads.pousse(v3);
 
-	tri->n0 = decalage_normal;
-	tri->n1 = decalage_normal;
-	tri->n2 = decalage_normal;
+	maillage->normaux_quads.pousse(decalage_normal);
+	maillage->normaux_quads.pousse(decalage_normal);
+	maillage->normaux_quads.pousse(decalage_normal);
+	maillage->normaux_quads.pousse(decalage_normal);
 
-	maillage->m_triangles.pousse(tri);
-
-	tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
-
-	tri->v0 = v0;
-	tri->v1 = v2;
-	tri->v2 = v3;
-
-	tri->n0 = decalage_normal;
-	tri->n1 = decalage_normal;
-	tri->n2 = decalage_normal;
-
-	maillage->m_triangles.pousse(tri);
-
-	maillage->normaux.pousse(quads_normals[i]);
+	maillage->normaux.pousse(dls::math::converti_type<float>(quads_normals[i]));
 }
 
 /* ************************************************************************** */
@@ -166,11 +153,14 @@ static auto volume_prim(Corps const &corps)
 
 static void ajoute_volume(
 		kdo::Scene &scene,
-		kdo::Maillage *maillage,
+		kdo::maillage *maillage,
 		Corps const &corps)
 {
-	//maillage->nuanceur(kdo::NuanceurDiffus::defaut());
-	maillage->nuanceur(kdo::NuanceurVolume::defaut());
+	//maillage->nuanceur = kdo::NuanceurDiffus::defaut();
+	maillage->nuanceur = kdo::NuanceurVolume::defaut();
+
+	maillage->quads = kdo::tableau_index(2);
+	maillage->normaux_quads = kdo::tableau_index(2);
 
 	auto volume = volume_prim(corps);
 
@@ -249,22 +239,24 @@ static void ajoute_volume(
 
 		for (auto const &v : vertex) {
 			auto vmnd = grille_eprs->index_vers_monde(v);
-			maillage->points.pousse(dls::math::converti_type<double>(vmnd));
+			maillage->points.pousse(vmnd);
 		}
 	}
 }
 
-static void ajoute_maillage(kdo::Maillage *maillage, Corps const &corps)
+static void ajoute_maillage(kdo::maillage *maillage, Corps const &corps)
 {
-	maillage->nuanceur(kdo::NuanceurDiffus::defaut());
+	maillage->nuanceur = kdo::NuanceurDiffus::defaut();
 
 	auto points = corps.points_pour_lecture();
-	maillage->points.reserve(points->taille());
+	maillage->points.reserve(points.taille());
 
-	for (auto j = 0; j < points->taille(); ++j) {
-		auto p = dls::math::converti_type<double>(corps.point_transforme(j));
-		maillage->points.pousse(p);
+	for (auto j = 0; j < points.taille(); ++j) {
+		maillage->points.pousse(points.point_monde(j));
 	}
+
+	auto taille_indices_points = kdo::tableau_index::octets_pour_taille(points.taille());
+	auto taille_indices_normaux = 0;
 
 	auto attr_N = corps.attribut("N");
 
@@ -274,50 +266,148 @@ static void ajoute_maillage(kdo::Maillage *maillage, Corps const &corps)
 		for (auto j = 0; j < attr_N->taille(); ++j) {
 			auto n = dls::math::vec3f();
 			extrait(attr_N->r32(j), n);
-			auto p = dls::math::converti_type<double>(n);
-			maillage->normaux.pousse(p);
+			maillage->normaux.pousse(n);
 		}
+
+		taille_indices_normaux = kdo::tableau_index::octets_pour_taille(attr_N->taille());
 	}
+	else {
+		taille_indices_normaux = kdo::tableau_index::octets_pour_taille(corps.prims()->taille());
+	}
+
+	maillage->triangles = kdo::tableau_index(taille_indices_points);
+	maillage->quads = kdo::tableau_index(taille_indices_points);
+
+	maillage->normaux_triangles = kdo::tableau_index(taille_indices_normaux);
+	maillage->normaux_quads = kdo::tableau_index(taille_indices_normaux);
 
 	pour_chaque_polygone(corps, [&](Corps const &, Polygone *poly)
 	{
-		for (auto j = 2; j < poly->nombre_sommets(); ++j) {
-			auto tri = memoire::loge<kdo::Triangle>("kdo::Triangle");
-			tri->v0 = static_cast<int>(poly->index_point(0));
-			tri->v1 = static_cast<int>(poly->index_point(j - 1));
-			tri->v2 = static_cast<int>(poly->index_point(j));
+		auto nombre_sommets = poly->nombre_sommets();
+
+		if (nombre_sommets == 4) {
+			auto i0 = static_cast<int>(poly->index_point(0));
+			auto i1 = static_cast<int>(poly->index_point(1));
+			auto i2 = static_cast<int>(poly->index_point(2));
+			auto i3 = static_cast<int>(poly->index_point(3));
+
+			maillage->quads.pousse(i0);
+			maillage->quads.pousse(i1);
+			maillage->quads.pousse(i2);
+			maillage->quads.pousse(i3);
+
+			maillage->nombre_quads += 1;
+
+			auto n0 = 0;
+			auto n1 = 0;
+			auto n2 = 0;
+			auto n3 = 0;
 
 			if (attr_N) {
 				if (attr_N->portee == portee_attr::PRIMITIVE) {
-					tri->n0 = static_cast<int>(poly->index);
-					tri->n1 = tri->n0;
-					tri->n2 = tri->n0;
+					n0 = static_cast<int>(poly->index);
+					n1 = n0;
+					n2 = n0;
+					n3 = n0;
 				}
 				else {
-					tri->n0 = static_cast<int>(poly->index_point(0));
-					tri->n1 = static_cast<int>(poly->index_point(j - 1));
-					tri->n2 = static_cast<int>(poly->index_point(j));
+					n0 = i0;
+					n1 = i1;
+					n2 = i2;
+					n3 = i3;
 				}
 			}
 			else {
-				auto const &v0 = maillage->points[tri->v0];
-				auto const &v1 = maillage->points[tri->v1];
-				auto const &v2 = maillage->points[tri->v2];
+				auto const &v0 = maillage->points[i0];
+				auto const &v1 = maillage->points[i1];
+				auto const &v2 = maillage->points[i2];
+				auto const &v3 = maillage->points[i3];
 
-				auto e0 = v1 - v0;
-				auto e1 = v2 - v0;
+				auto e0 = v2 - v0;
+				auto e1 = v3 - v1;
 
 				auto N = normalise(produit_croix(e0, e1));
 
-				tri->n0 = static_cast<int>(maillage->normaux.taille());
-				tri->n1 = tri->n0;
-				tri->n2 = tri->n0;
+				n0 = static_cast<int>(maillage->normaux.taille());
+				n1 = n0;
+				n2 = n0;
+				n3 = n0;
 
 				maillage->normaux.pousse(N);
 			}
 
-			maillage->m_triangles.pousse(tri);
+			maillage->normaux_quads.pousse(n0);
+			maillage->normaux_quads.pousse(n1);
+			maillage->normaux_quads.pousse(n2);
+			maillage->normaux_quads.pousse(n3);
 		}
+		else {
+			for (auto j = 2; j < poly->nombre_sommets(); ++j) {
+				auto i0 = static_cast<int>(poly->index_point(0));
+				auto i1 = static_cast<int>(poly->index_point(j - 1));
+				auto i2 = static_cast<int>(poly->index_point(j));
+
+				maillage->triangles.pousse(i0);
+				maillage->triangles.pousse(i1);
+				maillage->triangles.pousse(i2);
+
+				maillage->nombre_triangles += 1;
+
+				auto n0 = 0;
+				auto n1 = 0;
+				auto n2 = 0;
+
+				if (attr_N) {
+					if (attr_N->portee == portee_attr::PRIMITIVE) {
+						n0 = static_cast<int>(poly->index);
+						n1 = n0;
+						n2 = n0;
+					}
+					else {
+						n0 = i0;
+						n1 = i1;
+						n2 = i2;
+					}
+				}
+				else {
+					auto const &v0 = maillage->points[i0];
+					auto const &v1 = maillage->points[i1];
+					auto const &v2 = maillage->points[i2];
+
+					auto e0 = v1 - v0;
+					auto e1 = v2 - v0;
+
+					auto N = normalise(produit_croix(e0, e1));
+
+					n0 = static_cast<int>(maillage->normaux.taille());
+					n1 = n0;
+					n2 = n0;
+
+					maillage->normaux.pousse(N);
+				}
+
+				maillage->normaux_triangles.pousse(n0);
+				maillage->normaux_triangles.pousse(n1);
+				maillage->normaux_triangles.pousse(n2);
+			}
+		}
+	});
+}
+
+static void ajoute_sphere(
+		kdo::Scene &scene_koudou,
+		Corps const &corps)
+{
+	auto points = corps.points_pour_lecture();
+	pour_chaque_sphere(corps, [&](Corps const &, Sphere *sphere)
+	{
+		auto sphere_kdo = memoire::loge<kdo::sphere>("kdo::sphere");
+		sphere_kdo->nuanceur = kdo::NuanceurDiffus::defaut();
+		sphere_kdo->point = points.point_monde(sphere->idx_point);
+		sphere_kdo->rayon = sphere->rayon;
+		sphere_kdo->index = static_cast<int>(scene_koudou.noeuds.taille());
+
+		scene_koudou.noeuds.pousse(sphere_kdo);
 	});
 }
 
@@ -359,26 +449,33 @@ void MoteurRenduKoudou::calcule_rendu(
 	stats.nombre_polygones = 0;
 
 	for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
-		auto objet = m_delegue->objet(i);
+		auto objet = m_delegue->objet(i).objet;
 
 		objet->donnees.accede_lecture([&](DonneesObjet const *donnees)
 		{
 			if (objet->type == type_objet::CORPS) {
 				auto const &corps = extrait_corps(donnees);
 
-				auto maillage = memoire::loge<kdo::Maillage>("Maillage");
-
-				if (possede_volume(corps)) {
-					ajoute_volume(scene_koudou, maillage, corps);
+				if (possede_sphere(corps)) {
+					ajoute_sphere(scene_koudou, corps);
 				}
 				else {
-					ajoute_maillage(maillage, corps);
+					auto maillage = memoire::loge<kdo::maillage>("kdo::maillage");
+
+					if (possede_volume(corps)) {
+						ajoute_volume(scene_koudou, maillage, corps);
+					}
+					else {
+						ajoute_maillage(maillage, corps);
+					}
+
+					stats.nombre_points += maillage->points.taille();
+					stats.nombre_polygones += maillage->nombre_quads;
+					stats.nombre_polygones += maillage->nombre_triangles;
+
+					maillage->index = static_cast<int>(scene_koudou.noeuds.taille());
+					scene_koudou.noeuds.pousse(maillage);
 				}
-
-				stats.nombre_points += maillage->points.taille();
-				stats.nombre_polygones += maillage->m_triangles.taille();
-
-				scene_koudou.ajoute_maillage(maillage);
 			}
 			else if (objet->type == type_objet::LUMIERE) {
 				auto const &lumiere = extrait_lumiere(donnees);
@@ -406,7 +503,7 @@ void MoteurRenduKoudou::calcule_rendu(
 								intensite);
 				}
 
-				scene_koudou.ajoute_lumiere(lumiere_koudou);
+				scene_koudou.noeuds.pousse(lumiere_koudou);
 			}
 
 			stats.nombre_objets += 1;
@@ -428,17 +525,7 @@ void MoteurRenduKoudou::calcule_rendu(
 				dls::math::Hauteur(m_camera->hauteur()),
 				dls::math::Largeur(m_camera->largeur()));
 
-	auto acceleratrice = static_cast<kdo::AccelArbreHBE *>(nullptr);
-
-	if (m_koudou->parametres_rendu.acceleratrice == nullptr) {
-		acceleratrice = new kdo::AccelArbreHBE(scene_koudou);
-		m_koudou->parametres_rendu.acceleratrice = acceleratrice;
-	}
-	else {
-		acceleratrice = dynamic_cast<kdo::AccelArbreHBE *>(m_koudou->parametres_rendu.acceleratrice);
-	}
-
-	acceleratrice->construit();
+	scene_koudou.construit_arbre_hbe();
 
 	/* Génère carreaux. */
 	auto const largeur_carreau = m_koudou->parametres_rendu.largeur_carreau;

@@ -1,0 +1,22 @@
+disposition "operatrice_creation_pancartes" {
+	ligne {
+		étiquette(valeur="Caméra")
+		liste(valeur=""; attache=nom_caméra; infobulle="La caméra utilisée pour la projection.")
+	}
+	ligne {
+		étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=position; infobulle="La position de la pancarte si aucun corps n'est connecté à l'entrée."; animable)
+	}
+	ligne {
+		étiquette(valeur="Rayon X")
+		décimal(valeur=1.0; attache=rayon_x; infobulle="La moitié de la taille des pancartes sur l'axe local des X."; animable)
+	}
+	ligne {
+		étiquette(valeur="Rayon Y")
+		décimal(valeur=1.0; attache=rayon_y; infobulle="La moitié de la taille des pancartes sur l'axe local des Y."; animable)
+	}
+	ligne {
+		étiquette(valeur="Rayon Uniforme")
+		décimal(valeur=1.0; attache=rayon_uniforme; infobulle="Multiplicateur uniforme de la taille des pancartes."; animable)
+	}
+}

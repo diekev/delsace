@@ -40,18 +40,74 @@ class Type;
 }
 #endif
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/plage.hh"
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/tableau_simple_compact.hh"
 
 #include "morceaux.hh"
+
+/**
+ * Système de type.
+ *
+ * Puisque qu'il est possible d'associer des expressions aux types, le système
+ * de type est basé autour de deux structures : DonneesTypeDeclare et
+ * DonneesTypeFinal. La première stocke les morceaux des types et leurs
+ * expressions tel qu'ils ont été écris dans le programme, alors que la seconde
+ * stocke ceux des types finaux. Les types finaux sont résolus selon le contexte
+ * lors de l'analyse syntactique.
+ *
+ * Par exemple, voici quelques cas où les types déclarés ont des éléments
+ * différents mais pointent vers un même type final :
+ * - [1024]z32 et [2 * 512]z32
+ * - a : z32; et b : type_de(a);
+ *
+ * Ce niveau d'indirection nous permet également d'avoir un système de gabarit
+ * où les types déclarés possèdent les informations sur les gabarits et nous
+ * aident à résoudre leus typers finaux lors des appels.
+ */
 
 namespace noeud {
 struct base;
 }
 
 struct ContexteGenerationCode;
+
+using type_plage_donnees_type = dls::plage_continue<const id_morceau>;
+
+/* ************************************************************************** */
+
+struct DonneesTypeDeclare {
+	dls::tableau_simple_compact<id_morceau> donnees{};
+	dls::tableau_simple_compact<noeud::base *> expressions{};
+
+	dls::vue_chaine nom_gabarit = "";
+
+	using type_plage = type_plage_donnees_type;
+
+	id_morceau type_base() const;
+
+	long taille() const;
+
+	id_morceau operator[](long idx) const;
+
+	void pousse(id_morceau id);
+
+	void pousse(DonneesTypeDeclare const &dtd);
+
+	type_plage plage() const;
+
+	/**
+	 * Retourne des données pour un type correspondant au déréférencement de ce
+	 * type. Si le type n'est ni un pointeur, ni un tableau, retourne des
+	 * données invalides.
+	 */
+	type_plage dereference() const;
+};
+
+/* ************************************************************************** */
 
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
@@ -60,7 +116,8 @@ struct ContexteGenerationCode;
  * vecteur devra forcément être vers un type connu (entier, réel, booléen,
  * structure, etc...).
  */
-class DonneesType {
+struct DonneesTypeFinal {
+private:
 	/* À FAIRE : type similaire à llvm::SmallVector. */
 	dls::tableau<id_morceau> m_donnees{};
 
@@ -69,24 +126,22 @@ class DonneesType {
 #endif
 
 public:
-	using type_plage = dls::plage_continue<const id_morceau>;
+	using type_plage = type_plage_donnees_type;
 
 	dls::chaine ptr_info_type{};
 
-	noeud::base *expr = nullptr;
-
 	using iterateur_const = dls::tableau<id_morceau>::const_iteratrice_inverse;
 
-	DonneesType() = default;
+	DonneesTypeFinal() = default;
 
-	DonneesType(id_morceau i0);
+	DonneesTypeFinal(id_morceau i0);
 
-	DonneesType(id_morceau i0, id_morceau i1);
+	DonneesTypeFinal(id_morceau i0, id_morceau i1);
 
-	DonneesType(type_plage autre);
+	DonneesTypeFinal(type_plage autre);
 
-	DonneesType(const DonneesType &) = default;
-	DonneesType &operator=(const DonneesType &) = default;
+	DonneesTypeFinal(const DonneesTypeFinal &) = default;
+	DonneesTypeFinal &operator=(const DonneesTypeFinal &) = default;
 
 	/**
 	 * Ajoute un identifiant à ces données. Il ne sera pas possible de supprimer
@@ -102,7 +157,7 @@ public:
 	 * supprimer les identifiants poussés, donc il vaut mieux faire en sorte de
 	 * pousser des données correctes dans un ordre correcte.
 	 */
-	void pousse(const DonneesType &autre);
+	void pousse(const DonneesTypeFinal &autre);
 
 	/**
 	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
@@ -111,7 +166,7 @@ public:
 	 * supprimer les identifiants poussés, donc il vaut mieux faire en sorte de
 	 * pousser des données correctes dans un ordre correcte.
 	 */
-	void pousse(DonneesType::type_plage autre);
+	void pousse(type_plage_donnees_type autre);
 
 	/**
 	 * Retourne le type de base, à savoir le premier élément déclaré. Par
@@ -154,7 +209,7 @@ public:
 	 * type. Si le type n'est ni un pointeur, ni un tableau, retourne des
 	 * données invalides.
 	 */
-	type_plage derefence() const;
+	type_plage dereference() const;
 
 	long taille() const;
 
@@ -174,7 +229,7 @@ public:
 /**
  * Compare deux DonneesType et retourne vrai s'ils sont égaux.
  */
-[[nodiscard]] inline bool operator==(DonneesType::type_plage type_a, DonneesType::type_plage type_b) noexcept
+[[nodiscard]] inline bool operator==(type_plage_donnees_type type_a, type_plage_donnees_type type_b) noexcept
 {
 	/* Petite optimisation. */
 	if (type_a.taille() != type_b.taille()) {
@@ -193,17 +248,22 @@ public:
 	return true;
 }
 
-[[nodiscard]] inline bool operator==(const DonneesType &type_a, const DonneesType &type_b) noexcept
+[[nodiscard]] inline bool operator==(const DonneesTypeFinal &type_a, const DonneesTypeFinal &type_b) noexcept
 {
 	return (type_a.plage() == type_b.plage());
 }
 
-[[nodiscard]] inline bool operator==(DonneesType const &type_a, DonneesType::type_plage type_b) noexcept
+[[nodiscard]] inline bool operator==(const DonneesTypeDeclare &type_a, const DonneesTypeDeclare &type_b) noexcept
+{
+	return (type_a.plage() == type_b.plage());
+}
+
+[[nodiscard]] inline bool operator==(DonneesTypeFinal const &type_a, type_plage_donnees_type type_b) noexcept
 {
 	return (type_a.plage() == type_b);
 }
 
-[[nodiscard]] inline bool operator==(DonneesType::type_plage type_a, DonneesType const &type_b) noexcept
+[[nodiscard]] inline bool operator==(type_plage_donnees_type type_a, DonneesTypeFinal const &type_b) noexcept
 {
 	return (type_a == type_b.plage());
 }
@@ -211,44 +271,44 @@ public:
 /**
  * Compare deux DonneesType et retourne vrai s'ils sont inégaux.
  */
-[[nodiscard]] inline bool operator!=(DonneesType const &type_a, DonneesType const &type_b) noexcept
+[[nodiscard]] inline bool operator!=(DonneesTypeFinal const &type_a, DonneesTypeFinal const &type_b) noexcept
 {
 	return !(type_a == type_b);
 }
 
-[[nodiscard]] inline bool operator!=(DonneesType const &type_a, DonneesType::type_plage type_b) noexcept
+[[nodiscard]] inline bool operator!=(DonneesTypeFinal const &type_a, type_plage_donnees_type type_b) noexcept
 {
 	return !(type_a == type_b);
 }
 
-[[nodiscard]] inline bool operator!=(DonneesType::type_plage type_a, DonneesType const &type_b) noexcept
+[[nodiscard]] inline bool operator!=(type_plage_donnees_type type_a, DonneesTypeFinal const &type_b) noexcept
 {
 	return !(type_a == type_b);
 }
 
-[[nodiscard]] inline bool operator!=(DonneesType::type_plage type_a, DonneesType::type_plage type_b) noexcept
+[[nodiscard]] inline bool operator!=(type_plage_donnees_type type_a, type_plage_donnees_type type_b) noexcept
 {
 	return !(type_a == type_b);
 }
 
-dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte);
+dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGenerationCode const &contexte);
 
 inline bool est_type_tableau_fixe(id_morceau id)
 {
 	return (id != id_morceau::TABLEAU) && ((id & 0xff) == id_morceau::TABLEAU);
 }
 
-inline bool est_type_tableau_fixe(DonneesType const &dt)
+inline bool est_type_tableau_fixe(DonneesTypeFinal const &dt)
 {
 	return est_type_tableau_fixe(dt.type_base());
 }
 
-inline bool est_type_tableau_fixe(DonneesType::type_plage dt)
+inline bool est_type_tableau_fixe(type_plage_donnees_type dt)
 {
 	return est_type_tableau_fixe(dt.front());
 }
 
-inline bool est_invalide(DonneesType::type_plage p)
+inline bool est_invalide(type_plage_donnees_type p)
 {
 	if (p.est_finie()) {
 		return true;
@@ -262,9 +322,9 @@ inline bool est_invalide(DonneesType::type_plage p)
 namespace std {
 
 template <>
-struct hash<DonneesType> {
+struct hash<DonneesTypeFinal> {
 	/* Utilisation de l'algorithme DJB2 pour générer une empreinte. */
-	size_t operator()(const DonneesType &donnees) const
+	size_t operator()(const DonneesTypeFinal &donnees) const
 	{
 		auto empreinte = 5381ul;
 
@@ -352,17 +412,17 @@ enum {
 };
 
 struct MagasinDonneesType {
-	dls::dico_desordonne<DonneesType, long> donnees_type_index{};
-	dls::tableau<DonneesType> donnees_types{};
+	dls::dico_desordonne<DonneesTypeFinal, long> donnees_type_index{};
+	dls::tableau<DonneesTypeFinal> donnees_types{};
 
 	MagasinDonneesType();
 
-	long ajoute_type(const DonneesType &donnees);
+	long ajoute_type(const DonneesTypeFinal &donnees);
 
 	void converti_type_C(
 			ContexteGenerationCode &contexte,
 			dls::vue_chaine const &nom_variable,
-			DonneesType::type_plage donnees,
+			type_plage_donnees_type donnees,
 			dls::flux_chaine &os,
 			bool echappe = false,
 			bool echappe_struct = false,
@@ -392,7 +452,7 @@ private:
 
 [[nodiscard]] auto donnees_types_parametres(
 		MagasinDonneesType &magasin,
-		const DonneesType &donnees_type,
+		const DonneesTypeFinal &donnees_type,
 		long &nombre_types_retour) noexcept(false) -> dls::tableau<long>;
 
 #ifdef AVEC_LLVM
@@ -408,7 +468,7 @@ private:
 
 [[nodiscard]] unsigned alignement(
 		ContexteGenerationCode &contexte,
-		const DonneesType &donnees_type);
+		const DonneesTypeFinal &donnees_type);
 
 /* ************************************************************************** */
 
@@ -425,22 +485,14 @@ enum class niveau_compat : char {
 	prend_reference        = (1 << 6),
 };
 
-inline niveau_compat operator&(niveau_compat id1, niveau_compat id2)
-{
-	return static_cast<niveau_compat>(static_cast<int>(id1) & static_cast<int>(id2));
-}
-
-inline niveau_compat operator|(niveau_compat id1, niveau_compat id2)
-{
-	return static_cast<niveau_compat>(static_cast<int>(id1) | static_cast<int>(id2));
-}
+DEFINIE_OPERATEURS_DRAPEAU(niveau_compat, int)
 
 /**
  * Retourne le niveau de compatibilité entre les deux types spécifiés.
  */
 niveau_compat sont_compatibles(
-		const DonneesType &type1,
-		const DonneesType &type2,
+		const DonneesTypeFinal &type1,
+		const DonneesTypeFinal &type2,
 		type_noeud type_droite);
 
 /* ************************************************************************** */
@@ -452,3 +504,5 @@ bool est_type_entier_naturel(id_morceau type);
 bool est_type_entier_relatif(id_morceau type);
 
 bool est_type_reel(id_morceau type);
+
+unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesTypeFinal const &donnees_type);

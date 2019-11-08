@@ -1,0 +1,31 @@
+disposistion "ajout_prise_noeud" {
+	ligne {
+		étiquette(valeur="Nom Prise")
+		chaine(valeur=""; attache=nom_prise)
+	}
+	ligne {
+		étiquette(valeur="Type Prise")
+		énum(valeur="entrée"; attache=type_prise; items=[
+			{ nom="Entrée", valeur="entrée" },
+			{ nom="Sortie", valeur="sortie" }
+		])
+	}
+	ligne {
+		étiquette(valeur="Type Donnée")
+		énum(valeur="décimal"; attache=type_donnée; items=[
+			{ nom="Chaine", valeur="chaine" },
+			{ nom="Corps", valeur="corps" },
+			{ nom="Couleur", valeur="couleur" },
+			{ nom="Décimal", valeur="décimal" },
+			{ nom="Entier", valeur="entier" },
+			{ nom="Image", valeur="image" },
+			{ nom="Mat3", valeur="mat3" },
+			{ nom="Mat4", valeur="mat4" },
+			{ nom="Objet", valeur="objet" },
+			{ nom="Tableau", valeur="tableau" },
+			{ nom="Vec2", valeur="vec2" },
+			{ nom="Vec3", valeur="vec3" },
+			{ nom="Vec4", valeur="vec4" }
+		])
+	}
+}

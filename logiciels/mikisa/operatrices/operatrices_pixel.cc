@@ -28,7 +28,6 @@
 
 #include "biblinternes/image/operations/melange.h"
 #include "biblinternes/image/outils/couleurs.h"
-#include "biblinternes/math/bruit.hh"
 #include "biblinternes/math/entrepolation.hh"
 #include "biblinternes/math/matrice.hh"
 #include "biblinternes/outils/constantes.h"
@@ -36,7 +35,6 @@
 #include "biblinternes/outils/empreintes.hh"
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/structures/dico_fixe.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "danjo/types/courbe_bezier.h"
 #include "danjo/types/rampe_couleur.h"
@@ -46,12 +44,6 @@
 #include "coeur/operatrice_image.h"
 #include "coeur/operatrice_pixel.h"
 #include "coeur/usine_operatrice.h"
-
-/**
- * OpératriceImage
- * |_ OpératricePixel
- * |_ OpératriceGraphePixel
- */
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -249,9 +241,10 @@ static Image const *cherche_image(
 	auto image = op.entree(index)->requiers_image(contexte, donnees_aval, index_lien);
 
 	if (image == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Aucune image trouvée dans l'entrée à l'index " << index << ", lien " << index_lien << " !";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement(
+					"Aucune image trouvée dans l'entrée à l'index ", index,
+					", lien ", index_lien, " !");
+
 		return nullptr;
 	}
 
@@ -302,11 +295,6 @@ public:
 		entrees(1);
 	}
 
-	virtual int type() const override
-	{
-		return OPERATRICE_PIXEL;
-	}
-
 	const char *chemin_entreface() const override
 	{
 		return "entreface/operatrice_melange.jo";
@@ -327,7 +315,7 @@ public:
 		return n == 0;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -367,7 +355,7 @@ public:
 
 		if (tampons.est_vide()) {
 			this->ajoute_avertissement("Aucun tampon trouvé");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto dico_types = dls::cree_dico(
@@ -407,7 +395,7 @@ public:
 
 		if (plg_type.est_finie()) {
 			this->ajoute_avertissement("l'opération est inconnue");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto type_mel = plg_type.front().second;
@@ -669,7 +657,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

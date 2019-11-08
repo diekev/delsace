@@ -100,11 +100,11 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		if (entree(0)->connectee() == false) {
 			ajoute_avertissement("Aucune image connectée pour la texture");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
@@ -112,7 +112,7 @@ public:
 
 		if (tampon == nullptr) {
 			ajoute_avertissement("Impossible de trouver un calque nommé 'image'");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		//m_texture.charge_donnees(tampon->tampon);
@@ -174,7 +174,7 @@ public:
 		m_texture.taille(dls::math::vec3f(taille_texture.x,
 										  taille_texture.y,
 										  taille_texture.z));
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

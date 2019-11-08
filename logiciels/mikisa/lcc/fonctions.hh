@@ -48,11 +48,17 @@ struct signature {
 enum class code_inst : int;
 enum class ctx_script : unsigned short;
 
+enum class req_fonc : char {
+	polyedre,
+	arbre_kd,
+};
+
 struct donnees_fonction {
 	signature seing{};
 	lcc::code_inst type{};
 	lcc::ctx_script ctx{};
-	short pad{};
+	req_fonc requete{};
+	char pad{};
 
 	donnees_fonction() = default;
 };
@@ -67,7 +73,7 @@ struct donnees_fonction_generation {
 };
 
 struct magasin_fonctions {
-	void ajoute_fonction(
+	donnees_fonction *ajoute_fonction(
 			dls::chaine const &nom,
 			lcc::code_inst type,
 			signature const &seing,

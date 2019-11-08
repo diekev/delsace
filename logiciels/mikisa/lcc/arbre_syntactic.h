@@ -55,6 +55,9 @@ enum class type_noeud : char {
 	BLOC,
 	POUR,
 	PLAGE,
+	RETOURNE,
+	ARRETE,
+	CONTINUE,
 };
 
 /* ************************************************************************** */

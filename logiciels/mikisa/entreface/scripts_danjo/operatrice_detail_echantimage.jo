@@ -1,0 +1,6 @@
+disposition "operatrice_detail_echantimage" {
+	ligne {
+		étiquette(valeur="Chemin")
+		liste(valeur=""; attache=chemin_noeud; infobulle="Le noeud composite contenant l'image profonde d'où dériver un nuage de point.")
+	}
+}

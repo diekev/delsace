@@ -31,7 +31,7 @@
 struct NoeudReseau;
 struct Reseau;
 
-class Objet;
+class Noeud;
 
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ struct Planifieuse {
 
 	PtrPlan requiers_plan_pour_scene(Reseau &reseau) const;
 
-	PtrPlan requiers_plan_pour_objet(Reseau &reseau, Objet *objet) const;
+	PtrPlan requiers_plan_pour_noeud(Reseau &reseau, Noeud *noeud) const;
 
 	PtrPlan requiers_plan_pour_nouveau_temps(Reseau &reseau, int temps, bool est_animation) const;
 };

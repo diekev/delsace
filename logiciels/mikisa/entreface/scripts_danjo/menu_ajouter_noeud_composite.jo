@@ -1,6 +1,6 @@
 menu "Noeud Composite" {
 	menu "Cache" {
-		action(valeur="Cache Image"; attache=ajouter_noeud; métadonnée="Cache Image")
+		action(valeur="Cache Image Mémoire"; attache=ajouter_noeud; métadonnée="Cache Image Mémoire")
 	}
 	menu "Détail" {
 		action(valeur="Graphe Pixel"; attache=ajouter_graphe_detail; métadonnée="détail_pixel")
@@ -23,7 +23,7 @@ menu "Noeud Composite" {
 		action(valeur="Rayons Soleil"; attache=ajouter_noeud; métadonnée="Rayons Soleil")
 	}
 	menu "Flux" {
-		action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
+		action(valeur="Commutation Image"; attache=ajouter_noeud; métadonnée="Commutation Image")
 		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
 	}
     menu "Pixel" {

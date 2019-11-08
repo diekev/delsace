@@ -45,6 +45,7 @@
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
 #include "coeur/operatrice_image.h"
+#include "coeur/rendu.hh"
 
 #include "opengl/visionneur_scene.h"
 
@@ -244,8 +245,6 @@ EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
 	m_bouton_echelle = bouton;
 
 	m_selecteur_rendu = new QComboBox(this);
-	m_selecteur_rendu->addItem("OpenGL", QVariant("opengl"));
-	m_selecteur_rendu->addItem("Koudou", QVariant("koudou"));
 
 	connect(m_selecteur_rendu, SIGNAL(currentIndexChanged(int)),
 			this, SLOT(change_moteur_rendu(int)));
@@ -273,6 +272,15 @@ void EditriceVue3D::ajourne_etat(int evenement)
 	ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
 	ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
 	ajourne |= evenement == (type_evenement::rafraichissement);
+
+	auto signaux_blockes = m_selecteur_rendu->blockSignals(true);
+	m_selecteur_rendu->clear();
+
+	for (auto rendu : m_mikisa.bdd.rendus()) {
+		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str()));
+	}
+
+	m_selecteur_rendu->blockSignals(signaux_blockes);
 
 	if (!ajourne) {
 		return;

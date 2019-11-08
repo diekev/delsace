@@ -26,6 +26,7 @@
 
 #include "blanc.hh"
 #include "cellule.hh"
+#include "flux.hh"
 #include "fourier.hh"
 #include "ondelette.hh"
 #include "perlin.hh"

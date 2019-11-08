@@ -30,7 +30,6 @@
 
 class BaseDeDonnees;
 class Noeud;
-class Objet;
 struct ContexteEvaluation;
 
 /* ************************************************************************** */
@@ -52,7 +51,7 @@ struct NoeudReseau {
 	dls::ensemble<NoeudReseau *> entrees{};
 	dls::ensemble<NoeudReseau *> sorties{};
 
-	Objet *objet{};
+	Noeud *noeud{};
 
 	int degree = 0;
 	int pad = 0;
@@ -81,9 +80,9 @@ struct Reseau {
 
 struct CompilatriceReseau {
 private:
-	dls::dico_desordonne<Objet *, NoeudReseau *> m_table_objet_noeud{};
+	dls::dico_desordonne<Noeud *, NoeudReseau *> m_table_noeud_noeud{};
 
-	NoeudReseau *trouve_noeud_pour_objet(Objet *objet);
+	NoeudReseau *trouve_noeud_reseau_pour_noeud(Noeud *noeud);
 
 public:
 	Reseau *reseau = nullptr;
@@ -93,13 +92,13 @@ public:
 	CompilatriceReseau(CompilatriceReseau const &) = default;
 	CompilatriceReseau &operator=(CompilatriceReseau const &) = default;
 
-	void cree_noeud(Objet *objet);
+	void cree_noeud(Noeud *noeud);
 
-	void ajoute_dependance(NoeudReseau *noeud, Objet *objet);
+	void ajoute_dependance(NoeudReseau *noeud_reseau, Noeud *noeud);
 
 	void ajoute_dependance(NoeudReseau *noeud_de, NoeudReseau *noeud_vers);
 
-	void compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Objet *objet);
+	void compile_reseau(ContexteEvaluation &contexte, BaseDeDonnees *bdd, Noeud *noeud_racine);
 
 	void marque_execution_temps_change();
 };

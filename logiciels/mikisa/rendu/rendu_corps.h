@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/structures/tableau.hh"
+
 class Corps;
 class ContexteRendu;
 class TamponRendu;
@@ -64,7 +67,9 @@ public:
 	 */
 	~RenduCorps();
 
-	void initialise(ContexteRendu const &contexte, StatistiquesRendu &stats);
+	void initialise(ContexteRendu const &contexte,
+					StatistiquesRendu &stats,
+					dls::tableau<dls::math::mat4x4f> &matrices);
 
 	/**
 	 * Dessine le maillage dans le contexte spécifié.

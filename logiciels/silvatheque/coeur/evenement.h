@@ -26,6 +26,8 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/definitions.h"
+
 enum type_evenement : int {
 	/* Category. */
 	arbre            = (1 << 0),
@@ -35,34 +37,7 @@ enum type_evenement : int {
 	modifie = (1 << 8),
 };
 
-constexpr type_evenement operator&(type_evenement cote_gauche, type_evenement cote_droit)
-{
-	return static_cast<type_evenement>(static_cast<int>(cote_gauche) & static_cast<int>(cote_droit));
-}
-
-constexpr type_evenement operator&(type_evenement cote_gauche, int cote_droit)
-{
-	return static_cast<type_evenement>(static_cast<int>(cote_gauche) & cote_droit);
-}
-
-constexpr type_evenement operator|(type_evenement cote_gauche, type_evenement cote_droit)
-{
-	return static_cast<type_evenement>(static_cast<int>(cote_gauche) | static_cast<int>(cote_droit));
-}
-
-constexpr type_evenement operator^(type_evenement cote_gauche, type_evenement cote_droit)
-{
-	return static_cast<type_evenement>(static_cast<int>(cote_gauche) ^ static_cast<int>(cote_droit));
-}
-
-constexpr type_evenement operator~(type_evenement cote_gauche)
-{
-	return static_cast<type_evenement>(~static_cast<int>(cote_gauche));
-}
-
-type_evenement &operator|=(type_evenement &cote_gauche, type_evenement cote_droit);
-type_evenement &operator&=(type_evenement &cote_gauche, type_evenement cote_droit);
-type_evenement &operator^=(type_evenement &cote_gauche, type_evenement cote_droit);
+DEFINIE_OPERATEURS_DRAPEAU(type_evenement, int)
 
 constexpr auto action_evenement(type_evenement evenement)
 {

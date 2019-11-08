@@ -32,6 +32,7 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
+	accesseuses.cc
     adaptrice_creation_corps.cc
 	attribut.cc
     corps.cc
@@ -41,9 +42,11 @@ add_library(${NOM_CIBLE} STATIC
     listes.cc
 	polyedre.cc
     primitive.cc
+	sphere.cc
     triangulation.cc
     volume.cc
 
+	accesseuses.hh
     adaptrice_creation_corps.h
 	attribut.h
     corps.h
@@ -53,6 +56,7 @@ add_library(${NOM_CIBLE} STATIC
     listes.h
 	polyedre.hh
     primitive.hh
+	sphere.hh
     triangulation.hh
     volume.hh
 )

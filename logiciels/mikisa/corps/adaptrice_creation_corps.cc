@@ -38,9 +38,7 @@
 void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
 	INUTILISE(w);
-
-	auto point = dls::math::vec3f(x, y, z);
-	corps->points_pour_ecriture()->pousse(point);
+	corps->points_pour_ecriture().ajoute_point(x, y, z);
 }
 
 void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const float z)
@@ -80,7 +78,10 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 
 	for (long i = 0; i < nombre; ++i) {
 		auto idx = corps->ajoute_sommet(poly, index_sommet[i]);
-		assigne(attribut_uvs->r32(idx), uvs[index_uvs[i]]);
+
+		if (attribut_uvs != nullptr) {
+			assigne(attribut_uvs->r32(idx), uvs[index_uvs[i]]);
+		}
 	}
 
 	if (index_normaux != nullptr) {
@@ -102,7 +103,7 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 	}
 
 	for (GroupePrimitive *groupe : groupes_courant) {
-		groupe->ajoute_primitive(poly->index);
+		groupe->ajoute_index(poly->index);
 	}
 }
 
@@ -124,7 +125,7 @@ void AdaptriceCreationCorps::reserve_polygones(long const nombre)
 
 void AdaptriceCreationCorps::reserve_sommets(long const nombre)
 {
-	corps->points_pour_ecriture()->reserve(nombre);
+	corps->points_pour_ecriture().reserve(nombre);
 }
 
 void AdaptriceCreationCorps::reserve_normaux(long const nombre)

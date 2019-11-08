@@ -39,12 +39,13 @@ add_library(${NOM_CIBLE} STATIC
 	lumiere.cc
 	maillage.cc
 	moteur_rendu.cc
+	noeud.cc
 	nuanceur.cc
-	objet.cc
 	pellicule.cc
 	scene.cc
+	sphere.cc
 	statistiques.cc
-	structure_acceleration.cc
+	tableau_index.cc
 	types.cc
 	volume.cc
 
@@ -52,13 +53,14 @@ add_library(${NOM_CIBLE} STATIC
 	koudou.hh
 	lumiere.hh
 	maillage.hh
-	objet.hh
+	noeud.hh
 	pellicule.hh
 	moteur_rendu.hh
 	nuanceur.hh
 	scene.hh
+	sphere.hh
 	statistiques.hh
-	structure_acceleration.hh
+	tableau_index.hh
 	types.hh
 	volume.hh
 )

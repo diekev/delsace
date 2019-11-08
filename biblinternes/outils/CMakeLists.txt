@@ -31,6 +31,7 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
+	attendu.hh
 	chaine.hh
 	chemin.hh
 	constantes.h
@@ -41,9 +42,12 @@ set(ENTETES
 	format.hh
 	gna.hh
 	garde_portee.h
+	indexeuse.hh
 	iterateurs.h
 	masque_binaire.h
+	parametres.hh
 	temps.hh
+	transbit.hh
 )
 
 set(SOURCES
@@ -54,7 +58,9 @@ set(SOURCES
 	format.cc
 	gna.cc
 	garde_portee.cc
+	indexeuse.cc
 	iterateurs.cc
+	parametres.cc
 	temps.cc
 	main.cc
 )

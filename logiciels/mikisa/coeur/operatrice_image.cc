@@ -26,7 +26,6 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/pile.hh"
 
 #include "corps/corps.h"
@@ -58,7 +57,7 @@ Image const *EntreeOperatrice::requiers_image(
 		DonneesAval *donnees_aval,
 		int index)
 {
-	if (m_ptr->liens.est_vide() || index < 0 || index > m_ptr->liens.taille()) {
+	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
 		return nullptr;
 	}
 
@@ -110,7 +109,7 @@ const Corps *EntreeOperatrice::requiers_corps(
 		DonneesAval *donnees_aval,
 		int index)
 {
-	if (m_ptr->liens.est_vide() || index < 0 || index > m_ptr->liens.taille()) {
+	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
 		return nullptr;
 	}
 
@@ -552,9 +551,7 @@ calque_image const *cherche_calque(
 	auto tampon = image->calque_pour_lecture(nom_calque);
 
 	if (tampon == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Calque '" << nom_calque << "' introuvable !\n";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("Calque '", nom_calque, "' introuvable !\n");
 		return nullptr;
 	}
 

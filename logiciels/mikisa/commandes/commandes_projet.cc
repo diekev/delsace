@@ -35,51 +35,18 @@
 
 /* ************************************************************************** */
 
-static void ouvre_fichier_implementation(Mikisa &mikisa, dls::chaine const &chemin_projet)
-{
-	auto const erreur = coeur::ouvre_projet(chemin_projet.c_str(), mikisa);
-
-	switch (erreur) {
-		case coeur::erreur_fichier::AUCUNE_ERREUR:
-			break;
-		case coeur::erreur_fichier::CORROMPU:
-			mikisa.affiche_erreur("Le fichier est corrompu !");
-			return;
-		case coeur::erreur_fichier::NON_OUVERT:
-			mikisa.affiche_erreur("Le fichier n'est pas ouvert !");
-			return;
-		case coeur::erreur_fichier::NON_TROUVE:
-			mikisa.affiche_erreur("Le fichier n'a pas été trouvé !");
-			return;
-		case coeur::erreur_fichier::INCONNU:
-			mikisa.affiche_erreur("Erreur inconnu !");
-			return;
-		case coeur::erreur_fichier::GREFFON_MANQUANT:
-			mikisa.affiche_erreur("Le fichier ne pas être ouvert car il"
-								 " y a un greffon manquant !");
-			return;
-	}
-
-	mikisa.chemin_projet(chemin_projet);
-	mikisa.projet_ouvert(true);
-
-#if 0
-	setWindowTitle(chemin_projet.c_str());
-#endif
-}
-
 class CommandeOuvrir final : public Commande {
 public:
 	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
 	{
 		auto mikisa = extrait_mikisa(pointeur);
-		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE);
+		auto const chemin_projet = mikisa->requiers_dialogue(FICHIER_OUVERTURE, "*.mikisa");
 
 		if (chemin_projet.est_vide()) {
 			return EXECUTION_COMMANDE_ECHOUEE;
 		}
 
-		ouvre_fichier_implementation(*mikisa, chemin_projet);
+		coeur::ouvre_projet(chemin_projet.c_str(), *mikisa);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -92,7 +59,7 @@ public:
 	int execute(std::any const &pointeur, DonneesCommande const &donnees) override
 	{
 		auto mikisa = extrait_mikisa(pointeur);
-		ouvre_fichier_implementation(*mikisa, donnees.metadonnee);
+		coeur::ouvre_projet(donnees.metadonnee.c_str(), *mikisa);
 
 		return EXECUTION_COMMANDE_REUSSIE;
 	}
@@ -102,7 +69,7 @@ public:
 
 static void sauve_fichier_sous(Mikisa &mikisa)
 {
-	auto const &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE);
+	auto const &chemin_projet = mikisa.requiers_dialogue(FICHIER_SAUVEGARDE, "*.mikisa");
 
 	mikisa.chemin_projet(chemin_projet);
 	mikisa.projet_ouvert(true);

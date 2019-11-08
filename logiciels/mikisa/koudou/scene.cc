@@ -34,9 +34,8 @@
 #include "lumiere.hh"
 #include "maillage.hh"
 #include "nuanceur.hh"
-#include "objet.hh"
+#include "sphere.hh"
 #include "statistiques.hh"
-#include "structure_acceleration.hh"
 
 namespace kdo {
 
@@ -60,6 +59,7 @@ Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction)
 /* ************************************************************************** */
 
 Scene::Scene()
+	: delegue(*this)
 {
 	/* Création du monde. */
 	float rgb_monde[3] = {0.05f, 0.35f, 0.8f};
@@ -77,47 +77,69 @@ Scene::~Scene()
 	reinitialise();
 }
 
-void Scene::ajoute_maillage(Maillage *maillage)
-{
-	auto objet = memoire::loge<Objet>("Objet", maillage);
-	objet->transformation = maillage->transformation();
-	objet->nuanceur = maillage->nuanceur();
-
-	objets.pousse(objet);
-	objet_actif = objet;
-
-	maillages.pousse(maillage);
-}
-
-void Scene::ajoute_lumiere(Lumiere *lumiere)
-{
-	auto objet = memoire::loge<Objet>("Objet", lumiere);
-	objet->transformation = lumiere->transformation;
-	objet->nuanceur = lumiere->nuanceur;
-
-	objets.pousse(objet);
-	objet_actif = objet;
-
-	lumieres.pousse(lumiere);
-}
-
 void Scene::reinitialise()
 {
-	for (auto &objet : objets) {
-		memoire::deloge("Objet", objet);
+	for (auto &n : noeuds) {
+		switch (n->type) {
+			case type_noeud::LUMIERE:
+			{
+				auto lumiere = dynamic_cast<Lumiere *>(n);
+
+				if (lumiere->type_l == type_lumiere::POINT) {
+					auto ptr = dynamic_cast<LumierePoint *>(lumiere);
+					memoire::deloge("kdo::LumierePoint", ptr);
+				}
+				else if (lumiere->type_l == type_lumiere::DISTANTE) {
+					auto ptr = dynamic_cast<LumiereDistante *>(lumiere);
+					memoire::deloge("kdo::LumiereDistante", ptr);
+				}
+
+				break;
+			}
+			case type_noeud::MAILLAGE:
+			{
+				auto maillage = dynamic_cast<kdo::maillage *>(n);
+				memoire::deloge("kdo::maillage", maillage);
+				break;
+			}
+			case type_noeud::SPHERE:
+			{
+				auto sphere = dynamic_cast<kdo::sphere *>(n);
+				memoire::deloge("kdo::sphere", sphere);
+				break;
+			}
+		}
 	}
 
-	objets.efface();
-	maillages.efface();
-	lumieres.efface();
+	memoire::deloge("ArbreBVH", arbre_hbe);
+
+	noeuds.efface();
 	volumes.efface();
+}
+
+void Scene::construit_arbre_hbe()
+{
+	arbre_hbe = bli::cree_arbre_bvh(delegue);
+
+	for (auto n : noeuds) {
+		if (n->type == type_noeud::LUMIERE) {
+			continue;
+		}
+
+		n->construit_arbre_hbe();
+	}
+}
+
+dls::phys::esectd Scene::traverse(const dls::phys::rayond &r) const
+{
+	return bli::traverse(arbre_hbe, delegue, r);
 }
 
 /* ************************************************************************** */
 
 double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::phys::rayond const &rayon, double distance_maximale)
 {
-	auto entresection = parametres.acceleratrice->entresecte(scene, rayon, distance_maximale);
+	auto entresection = scene.traverse(rayon);
 
 	if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 		return 1.0;
@@ -128,8 +150,8 @@ double ombre_scene(ParametresRendu const &parametres, Scene const &scene, dls::p
 
 Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, GNA &gna, dls::math::point3d const &pos, dls::math::vec3d const &nor)
 {
-	/* Biais pour les rayons d'ombrage. À FAIRE : mettre dans les paramètres. */
-	auto const biais = 1e-4;
+	/* Biais pour les rayons d'ombrage. */
+	auto const biais = parametres.biais_ombre;
 	auto spectre = Spectre(0.0);
 
 	dls::phys::rayond rayon;
@@ -138,8 +160,14 @@ Spectre spectre_lumiere(ParametresRendu const &parametres, Scene const &scene, G
 	rayon.origine = pos + nor * biais;
 
 	/* Échantillone lumières. */
-	for (const Lumiere *lumiere : scene.lumieres) {
-		switch (lumiere->type) {
+	for (auto const *n : scene.noeuds) {
+		if (n->type != type_noeud::LUMIERE) {
+			continue;
+		}
+
+		auto lumiere = dynamic_cast<Lumiere const *>(n);
+
+		switch (lumiere->type_l) {
 			case type_lumiere::POINT:
 			{
 				auto lumiere_point = dynamic_cast<const LumierePoint *>(lumiere);
@@ -228,6 +256,32 @@ dls::math::vec3d cosine_direction(GNA &gna, dls::math::vec3d const &nor)
 	}
 
 	return dr;
+}
+
+delegue_scene::delegue_scene(const Scene &scene)
+	: ptr_scene(scene)
+{}
+
+long delegue_scene::nombre_elements() const
+{
+	return ptr_scene.noeuds.taille();
+}
+
+void delegue_scene::coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const
+{
+	auto n = ptr_scene.noeuds[idx];
+
+	auto lims = n->calcule_limites();
+
+	cos.efface();
+	cos.pousse(dls::math::converti_type<float>(lims.min));
+	cos.pousse(dls::math::converti_type<float>(lims.max));
+}
+
+dls::phys::esectd delegue_scene::intersecte_element(long idx, const dls::phys::rayond &r) const
+{
+	auto n = ptr_scene.noeuds[idx];
+	return n->traverse_arbre(r);
 }
 
 }  /* namespace kdo */

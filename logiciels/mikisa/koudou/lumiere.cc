@@ -29,8 +29,10 @@
 namespace kdo {
 
 Lumiere::Lumiere(math::transformation const &transform)
-	: transformation(transform)
-{}
+	: noeud(type_noeud::LUMIERE)
+{
+	this->tranformation = transform;
+}
 
 Lumiere::~Lumiere()
 {
@@ -40,7 +42,7 @@ Lumiere::~Lumiere()
 LumierePoint::LumierePoint(math::transformation const &transform, Spectre spec, double intens)
 	: Lumiere(transform)
 {
-	this->type = type_lumiere::POINT;
+	this->type_l = type_lumiere::POINT;
 	this->spectre = spec;
 	this->intensite = intens;
 
@@ -50,7 +52,7 @@ LumierePoint::LumierePoint(math::transformation const &transform, Spectre spec, 
 LumiereDistante::LumiereDistante(math::transformation const &transform, Spectre spec, double intens)
 	: Lumiere(transform)
 {
-	this->type = type_lumiere::DISTANTE;
+	this->type_l = type_lumiere::DISTANTE;
 	this->spectre = spec;
 	this->intensite = intens;
 

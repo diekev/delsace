@@ -29,6 +29,7 @@
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
 #include "execution_pile.hh"
+#include "lcc.hh"
 #include "modules.hh"
 
 /* Tests à écrire :
@@ -54,7 +55,9 @@ int main()
 {
 	auto &os = std::cerr;
 
-	auto contexte = ContexteGenerationCode{};
+	auto lcc = lcc::LCC{};
+	lcc::initialise(lcc);
+	auto contexte = lcc::cree_contexte(lcc);
 
 	auto donnees_module = contexte.cree_module("racine");
 	//donnees_module->tampon = TamponSource("offset = traduit($P, 0, 1, -1, 1); $P = bruit_turbulent(7, offset, $P);");
@@ -65,7 +68,8 @@ int main()
 	//donnees_module->tampon = TamponSource("pour i dans 0...10 { $P.x = 2.0 * i; } $P.z = 5.0;\n");
 	//donnees_module->tampon = TamponSource("@C.r = 1.0;\n");
 	//donnees_module->tampon = TamponSource("$P *= 2.0;\n");
-	donnees_module->tampon = lng::tampon_source("x = 0; y = 0; pour i dans 0...32 { $P.x = 2.0 * i; x += 5; } pour i dans 0...32 { $P.x = 2.0 * i; } \n");
+	//donnees_module->tampon = lng::tampon_source("x = 0; y = 0; pour i dans 0...32 { continue; $P.x = 2.0 * i; x += 5; } retourne; pour i dans 0...32 { arrête; $P.x = 2.0 * i; } \n");
+	donnees_module->tampon = lng::tampon_source(R"(l = $ligne; tabl = morcelle(l, ","); m3 = extrait_chaine(tabl, 4); $P.x = chaine_vers_décimal(m3);)");
 
 	try {
 		auto decoupeuse = decoupeuse_texte(donnees_module);
@@ -80,19 +84,21 @@ int main()
 
 		assembleuse.imprime_code(os);
 
-		auto &gest_props = contexte.gest_props;
 		auto &gest_attrs = contexte.gest_attrs;
 
 		auto compileuse = compileuse_lng{};
 
 		auto idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::VEC3));
-		gest_props.ajoute_propriete("P", lcc::type_var::VEC3, idx);
+		gest_attrs.ajoute_propriete("P", lcc::type_var::VEC3, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::DEC));
-		gest_props.ajoute_propriete("index", lcc::type_var::DEC, idx);
+		gest_attrs.ajoute_propriete_non_modifiable("index", lcc::type_var::DEC, idx);
 
 		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::COULEUR));
-		gest_attrs.ajoute_propriete("C", lcc::type_var::COULEUR, idx);
+		gest_attrs.ajoute_attribut("C", lcc::type_var::COULEUR, idx);
+
+		idx = compileuse.donnees().loge_donnees(taille_type(lcc::type_var::CHAINE));
+		gest_attrs.ajoute_propriete_non_modifiable("ligne", lcc::type_var::CHAINE, idx);
 
 		assembleuse.genere_code(contexte, compileuse);
 
@@ -112,16 +118,21 @@ int main()
 		};
 
 		auto ctx_exec = lcc::ctx_exec{};
-		auto ctx_local = lcc::ctx_local{};
+		ctx_exec.chaines = contexte.chaines;
+		auto ptr_ligne = static_cast<int>(ctx_exec.chaines.taille());
+		ctx_exec.chaines.pousse("texte,test,ok,non,57.69");
 
-		for (auto entree : entrees) {
-			ctx_local.reinitialise();
+		for (auto entree : entrees) {			
+			auto ctx_local = lcc::ctx_local{};
 
-			idx = gest_props.pointeur_donnees("P");
+			idx = gest_attrs.pointeur_donnees("P");
 			compileuse.donnees().stocke(idx, entree);
 
-			idx = gest_props.pointeur_donnees("index");
+			idx = gest_attrs.pointeur_donnees("index");
 			compileuse.donnees().stocke(idx, 1024);
+
+			idx = gest_attrs.pointeur_donnees("ligne");
+			compileuse.donnees().stocke(idx, ptr_ligne);
 
 			lcc::execute_pile(
 						ctx_exec,
@@ -130,7 +141,7 @@ int main()
 						compileuse.instructions(),
 						0);
 
-			auto idx_sortie = gest_props.pointeur_donnees("P");
+			auto idx_sortie = gest_attrs.pointeur_donnees("P");
 
 			auto sortie = compileuse.donnees().charge_vec3(idx_sortie);
 

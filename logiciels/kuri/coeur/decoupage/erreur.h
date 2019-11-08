@@ -28,8 +28,6 @@
 
 #include "biblinternes/langage/erreur.hh"
 
-class DonneesType;
-
 struct DonneesMorceaux;
 struct ContexteGenerationCode;
 
@@ -78,28 +76,28 @@ using frappe = lng::erreur::frappe<type_erreur>;
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
+		const DonneesTypeFinal &type_gauche,
+		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
+		const DonneesTypeFinal &type_gauche,
+		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau);
 
@@ -107,5 +105,11 @@ using frappe = lng::erreur::frappe<type_erreur>;
 		ContexteGenerationCode const &contexte,
 		noeud::base *n,
 		dls::tableau<DonneesCandidate> const &candidates);
+
+[[noreturn]] void lance_erreur_fonction_nulctx(
+		ContexteGenerationCode const &contexte,
+		noeud::base *appl_fonc,
+		noeud::base *decl_fonc,
+		noeud::base *decl_appel);
 
 }

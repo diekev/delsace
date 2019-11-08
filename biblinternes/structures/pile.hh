@@ -68,6 +68,11 @@ public:
 		return m_pile.est_vide();
 	}
 
+	void efface()
+	{
+		m_pile.efface();
+	}
+
 	type_taille taille() const
 	{
 		return m_pile.taille();

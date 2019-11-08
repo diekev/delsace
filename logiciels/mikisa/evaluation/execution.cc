@@ -117,9 +117,9 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 	auto const delta = (t1 - t0).seconds();
 	noeud_sortie->temps_execution = static_cast<float>(delta);
 
-	/* À FAIRE? :- on garde une copie pour l'évaluation dans des threads
-	 * séparés, copie nécessaire pour pouvoir rendre l'objet dans la vue quand
-	 * le rendu prend plus de temps que l'évaluation asynchrone. */
+	/* on garde une copie pour l'évaluation dans des threads séparés, copie
+	 * nécessaire pour pouvoir rendre l'objet dans la vue quand le rendu prend
+	 * plus de temps que l'évaluation asynchrone. */
 	objet->donnees.accede_ecriture([operatrice](DonneesObjet *donnees_objet)
 	{
 		auto &_corps_ = extrait_corps(donnees_objet);
@@ -134,6 +134,62 @@ static void evalue_objet(ContexteEvaluation const &contexte, Objet *objet)
 
 	m_objet.transformation = math::construit_transformation(position, rotation, taille);
 #endif
+}
+
+/* ************************************************************************** */
+
+static void evalue_composite(Mikisa &mikisa, Composite *composite)
+{
+	auto &graphe = composite->noeud->graphe;
+
+	/* Essaie de trouver une visionneuse. */
+
+	Noeud *visionneuse = graphe.dernier_noeud_sortie;
+
+	if (visionneuse == nullptr) {
+		for (auto noeud : graphe.noeuds()) {
+			if (noeud->sorties.est_vide()) {
+				visionneuse = noeud;
+				break;
+			}
+		}
+	}
+
+	/* Quitte si aucune visionneuse. */
+	if (visionneuse == nullptr) {
+		return;
+	}
+
+	auto contexte = cree_contexte_evaluation(mikisa);
+	execute_noeud(*visionneuse, contexte, nullptr);
+
+	Image image;
+	auto operatrice = extrait_opimage(visionneuse->donnees);
+	operatrice->transfere_image(image);
+	composite->image(image);
+}
+
+/* ************************************************************************** */
+
+static void execute_plan_ex(
+		Mikisa &mikisa,
+		ContexteEvaluation const &contexte,
+		Planifieuse::PtrPlan const &plan)
+{
+	for (auto &noeud_res : plan->noeuds) {
+		auto noeud = noeud_res->noeud;
+
+		if (noeud != nullptr) {
+			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->nom << FIN_LOG_EVALUATION;
+		}
+
+		if (noeud->type == type_noeud::OBJET) {
+			evalue_objet(contexte, extrait_objet(noeud->donnees));
+		}
+		else if (noeud->type == type_noeud::COMPOSITE) {
+			evalue_composite(mikisa, extrait_composite(noeud->donnees));
+		}
+	}
 }
 
 /* ************************************************************************** */
@@ -171,15 +227,10 @@ void TacheEvaluationPlan::evalue()
 						 << " noeuds"
 						 << FIN_LOG_EVALUATION;
 
-	for (auto &noeud : m_plan->noeuds) {
-		if (noeud->objet != nullptr) {
-			DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->noeud->nom << FIN_LOG_EVALUATION;
-		}
-
-		evalue_objet(m_contexte, noeud->objet);
-	}
+	execute_plan_ex(m_mikisa, m_contexte, m_plan);
 
 	notifier.signalise_proces(type_evenement::objet | type_evenement::traite);
+	notifier.signalise_proces(type_evenement::image | type_evenement::traite);
 }
 
 /* ************************************************************************** */
@@ -199,15 +250,7 @@ void Executrice::execute_plan(Mikisa &mikisa,
 							 << "' ..."
 							 << FIN_LOG_EVALUATION;
 
-		/* tag les noeuds des graphes pour l'exécution temporelle */
-		for (auto &noeud : plan->noeuds) {
-			if (noeud->objet != nullptr) {
-				DEBUT_LOG_EVALUATION << "Évaluation de : " << noeud->objet->noeud->nom << FIN_LOG_EVALUATION;
-			}
-
-			evalue_objet(contexte, noeud->objet);
-		}
-
+		execute_plan_ex(mikisa, contexte, plan);
 		mikisa.tache_en_cours = false;
 		return;
 	}
@@ -219,86 +262,5 @@ void Executrice::execute_plan(Mikisa &mikisa,
 						 << FIN_LOG_EVALUATION;
 
 	auto t = new(tbb::task::allocate_root()) TacheEvaluationPlan(mikisa, plan, contexte);
-	tbb::task::enqueue(*t);
-}
-
-/* ************************************************************************** */
-
-static void evalue_composite(Mikisa &mikisa, Composite *composite)
-{
-	auto &graphe = composite->noeud->graphe;
-
-	/* Essaie de trouver une visionneuse. */
-
-	Noeud *visionneuse = graphe.dernier_noeud_sortie;
-
-	if (visionneuse == nullptr) {
-		for (auto noeud : graphe.noeuds()) {
-			if (noeud->est_sortie) {
-				visionneuse = noeud;
-				break;
-			}
-		}
-	}
-
-	/* Quitte si aucune visionneuse. */
-	if (visionneuse == nullptr) {
-		return;
-	}
-
-	auto contexte = cree_contexte_evaluation(mikisa);
-	execute_noeud(*visionneuse, contexte, nullptr);
-
-	Image image;
-	auto operatrice = extrait_opimage(visionneuse->donnees);
-	operatrice->transfere_image(image);
-	composite->image(image);
-}
-
-/* ************************************************************************** */
-
-class TacheEvaluationComposite : public TacheMikisa {
-	Composite *m_composite;
-
-public:
-	explicit TacheEvaluationComposite(
-			Mikisa &mikisa,
-			Composite *composite);
-
-	TacheEvaluationComposite(TacheEvaluationComposite const &) = default;
-	TacheEvaluationComposite &operator=(TacheEvaluationComposite const &) = default;
-
-	void evalue() override;
-};
-
-TacheEvaluationComposite::TacheEvaluationComposite(
-		Mikisa &mikisa,
-		Composite *composite)
-	: TacheMikisa(mikisa)
-	, m_composite(composite)
-{}
-
-void TacheEvaluationComposite::evalue()
-{
-	evalue_composite(m_mikisa, m_composite);
-
-	notifier.signalise_proces(type_evenement::image | type_evenement::traite);
-}
-
-void execute_graphe_composite(Mikisa &mikisa, Composite *composite, const char *message)
-{
-	if (mikisa.animation) {
-		evalue_composite(mikisa, composite);
-		mikisa.tache_en_cours = false;
-		return;
-	}
-
-	/* nous avons un objet simple, lance un thread */
-	DEBUT_LOG_EVALUATION << "Évaluation asynchrone composite pour '"
-						 << message
-						 << "' ..."
-						 << FIN_LOG_EVALUATION;
-
-	auto t = new(tbb::task::allocate_root()) TacheEvaluationComposite(mikisa, composite);
 	tbb::task::enqueue(*t);
 }

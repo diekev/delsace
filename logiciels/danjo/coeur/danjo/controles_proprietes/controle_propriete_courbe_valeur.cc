@@ -130,12 +130,14 @@ void ControleProprieteCourbeValeur::montre_echelle_y()
 
 void ControleProprieteCourbeValeur::bascule_utilise_table(bool ouinon)
 {
+	Q_EMIT(precontrole_change());
 	m_courbe->utilise_table = ouinon;
 	Q_EMIT(controle_change());
 }
 
 void ControleProprieteCourbeValeur::ajourne_position(float x, float y)
 {
+	Q_EMIT(precontrole_change());
 	m_pos_x->valeur(x);
 	m_pos_y->valeur(y);
 
@@ -144,12 +146,14 @@ void ControleProprieteCourbeValeur::ajourne_position(float x, float y)
 
 void ControleProprieteCourbeValeur::ajourne_position_x(float v)
 {
+	Q_EMIT(precontrole_change());
 	m_controle_courbe->ajourne_position_x(v);
 	Q_EMIT(controle_change());
 }
 
 void ControleProprieteCourbeValeur::ajourne_position_y(float v)
 {
+	Q_EMIT(precontrole_change());
 	m_controle_courbe->ajourne_position_y(v);
 	Q_EMIT(controle_change());
 }

@@ -94,6 +94,7 @@ void ControleNombreEntier::mousePressEvent(QMouseEvent *event)
 		QApplication::setOverrideCursor(Qt::SplitHCursor);
 		m_vieil_x = event->pos().x();
 		m_souris_pressee = true;
+		m_premier_changement = true;
 		event->accept();
 		update();
 	}
@@ -115,6 +116,11 @@ void ControleNombreEntier::mouseMoveEvent(QMouseEvent *event)
 		m_valeur += (x - m_vieil_x);
 		m_valeur = std::max(m_min, std::min(m_valeur, m_max));
 		m_vieil_x = x;
+
+		if (m_premier_changement) {
+			Q_EMIT(prevaleur_changee());
+			m_premier_changement = false;
+		}
 
 		Q_EMIT(valeur_changee(m_valeur));
 

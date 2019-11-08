@@ -66,12 +66,14 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_hbe.cc
 	base_de_donnees.cc
 	chef_execution.cc
+	compileuse_lcc.cc
 	composite.cc
 	configuration.cc
 	contexte_evaluation.cc
 	delegue_hbe.cc
 	donnees_aval.cc
 	donnees_simulation.cc
+	editrice.cc
 	evenement.cc
 	gestionnaire_fichier.cc
 	graphe.cc
@@ -81,12 +83,14 @@ add_library(${NOM_CIBLE} STATIC
 	mikisa.cc
 	noeud.cc
 	noeud_image.cc
+	nuanceur.cc
 	objet.cc
 	operatrice_corps.cc
 	operatrice_graphe_detail.cc
 	operatrice_image.cc
 	operatrice_pixel.cc
 	operatrice_simulation.cc
+	rendu.cc
 	sauvegarde.cc
 	tache.cc
 	usine_operatrice.cc
@@ -94,12 +98,14 @@ add_library(${NOM_CIBLE} STATIC
 	arbre_hbe.hh
 	base_de_donnees.hh
 	chef_execution.hh
+	compileuse_lcc.hh
 	composite.h
 	configuration.h
 	contexte_evaluation.hh
 	delegue_hbe.hh
 	donnees_aval.hh
 	donnees_simulation.hh
+	editrice.hh
 	evenement.h
 	gestionnaire_fichier.hh
 	graphe.hh
@@ -109,12 +115,14 @@ add_library(${NOM_CIBLE} STATIC
 	mikisa.h
 	noeud.hh
 	noeud_image.h
+	nuanceur.hh
 	objet.h
 	operatrice_corps.h
 	operatrice_graphe_detail.hh
 	operatrice_image.h
 	operatrice_pixel.h
 	operatrice_simulation.hh
+	rendu.hh
 	sauvegarde.h
 	tache.h
 	usine_operatrice.h

@@ -25,6 +25,8 @@
 #pragma once
 
 #include <any>
+
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
@@ -169,34 +171,12 @@ enum drapeaux_noeud : unsigned short {
 	PREND_REFERENCE        = (1 << 12),
 	FORCE_ENLIGNE          = (1 << 13),
 	FORCE_HORSLIGNE        = (1 << 14),
+	FORCE_NULCTX           = (1 << 15),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };
 
-inline auto operator&(drapeaux_noeud gauche, drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(static_cast<unsigned short>(gauche) & static_cast<unsigned short>(droite));
-}
-
-inline auto operator|(drapeaux_noeud gauche, drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(static_cast<unsigned short>(gauche) | static_cast<unsigned short>(droite));
-}
-
-inline auto operator~(drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(~static_cast<unsigned short>(droite));
-}
-
-inline auto operator&=(drapeaux_noeud &gauche, drapeaux_noeud droite)
-{
-	return (gauche = gauche & droite);
-}
-
-inline auto operator|=(drapeaux_noeud &gauche, drapeaux_noeud droite)
-{
-	return (gauche = gauche | droite);
-}
+DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
 
 enum {
 	/* instruction 'pour' */
@@ -249,11 +229,13 @@ struct base {
 	long index_type_fonc = -1l;
 
 	char aide_generation_code = 0;
-	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	type_noeud type{};
+	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	int module_appel{}; // module pour les appels de fonctions importées
 
 	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
+
+	DonneesTypeDeclare type_declare{};
 
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
@@ -304,8 +286,8 @@ bool est_constant(base *b);
 void ajoute_nom_argument(base *b, const dls::vue_chaine &nom);
 
 bool peut_operer(
-		const DonneesType &type1,
-		const DonneesType &type2,
+		const DonneesTypeFinal &type1,
+		const DonneesTypeFinal &type2,
 		type_noeud type_gauche,
 		type_noeud type_droite);
 

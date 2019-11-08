@@ -24,16 +24,11 @@
 
 #pragma once
 
+#include "transbit.hh"
+
 [[nodiscard]] inline auto entier_depuis_bits(float x)
 {
-	union U {
-		int i;
-		float f;
-	};
-
-	U u;
-	u.f = x;
-	return u.i;
+	return transbit<int>(x);
 }
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */

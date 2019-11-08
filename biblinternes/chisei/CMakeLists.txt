@@ -63,3 +63,7 @@ if(AVEC_EXEMPLES)
 	target_link_libraries(exemple_chaine chisei)
 	install(TARGETS exemple_chaine RUNTIME DESTINATION bin)
 endif()
+
+add_executable(exemple_markov exemples/exemple_markov.cc)
+target_link_libraries(exemple_markov chisei bib_outils bib_structures langage)
+install(TARGETS exemple_markov RUNTIME DESTINATION bin)

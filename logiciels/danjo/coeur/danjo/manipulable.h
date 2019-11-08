@@ -27,8 +27,8 @@
 #include <any>
 
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/phys/couleur.hh"
-
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -67,30 +67,7 @@ enum etat_propriete : char {
 	EST_VERROUILLEE   = (1 << 4),
 };
 
-inline auto operator&(etat_propriete gauche, etat_propriete droite)
-{
-	return static_cast<etat_propriete>(static_cast<unsigned short>(gauche) & static_cast<unsigned short>(droite));
-}
-
-inline auto operator|(etat_propriete gauche, etat_propriete droite)
-{
-	return static_cast<etat_propriete>(static_cast<unsigned short>(gauche) | static_cast<unsigned short>(droite));
-}
-
-inline auto operator~(etat_propriete droite)
-{
-	return static_cast<etat_propriete>(~static_cast<unsigned short>(droite));
-}
-
-inline auto operator&=(etat_propriete &gauche, etat_propriete droite)
-{
-	return (gauche = gauche & droite);
-}
-
-inline auto operator|=(etat_propriete &gauche, etat_propriete droite)
-{
-	return (gauche = gauche | droite);
-}
+DEFINIE_OPERATEURS_DRAPEAU(etat_propriete, unsigned short)
 
 struct Propriete {
 	std::any valeur{};

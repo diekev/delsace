@@ -63,7 +63,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(contexte);
 		INUTILISE(donnees_aval);
@@ -72,13 +72,13 @@ public:
 
 		if (m_graphe_parent.donnees.est_vide()) {
 			ajoute_avertissement("Les données du graphe sont vides !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto corps = std::any_cast<Corps *>(m_graphe_parent.donnees[0]);
 		corps->copie_vers(&m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -110,13 +110,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points_pour_lecture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto gravite = evalue_vecteur("gravité", contexte.temps_courant);
@@ -131,7 +131,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -164,13 +164,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points_pour_lecture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
 		auto direction = evalue_vecteur("direction", contexte.temps_courant);
@@ -196,7 +196,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -228,13 +228,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points_pour_ecriture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 		auto attr_P = m_corps.ajoute_attribut("pos_pre", type_attribut::R32, 3, portee_attr::POINT);
 		auto attrf = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
@@ -273,7 +273,7 @@ public:
 					continue;
 				}
 
-				auto pos = liste_points->point(i);
+				auto pos = liste_points.point_local(i);
 
 				/* a = f / m */
 				auto f = dls::math::vec3f();
@@ -287,14 +287,14 @@ public:
 				/* position = velocite * temps_par_image + position */
 				auto npos = pos + velocite * temps_par_image;
 
-				liste_points->point(i, npos);
+				liste_points.point(i, npos);
 				assigne(attr_V->r32(i), velocite);
 				assigne(attr_P->r32(i), pos);
 				assigne(attrf->r32(i), dls::math::vec3f(0.0f));
 			}
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -331,12 +331,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto corps_collision = entree(1)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_collision, true, true, 1)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const prims_collision = corps_collision->prims();
@@ -346,7 +346,7 @@ public:
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points_pour_ecriture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 
 		auto const elasticite = evalue_decimal("élasticité", contexte.temps_courant);
 		/* À FAIRE : rayon comme propriété des particules */
@@ -357,14 +357,14 @@ public:
 
 		if (attr_V == nullptr) {
 			ajoute_avertissement("Aucune attribut de vélocité trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_P = m_corps.attribut("pos_pre");
 
 		if (attr_P == nullptr) {
 			ajoute_avertissement("Aucune attribut de position trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const chaine_reponse = evalue_enum("réponse_collision");
@@ -380,10 +380,8 @@ public:
 			reponse = rep_collision::COLLE;
 		}
 		else {
-			dls::flux_chaine ss;
-			ss << "Opération '" << chaine_reponse << "' inconnue\n";
-			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("Opération '", chaine_reponse, "' inconnue");
+			return res_exec::ECHOUEE;
 		}
 
 		auto chef = contexte.chef;
@@ -408,7 +406,7 @@ public:
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (long i = plage.begin(); i < plage.end(); ++i) {
-				auto pos_cou = liste_points->point(i);
+				auto pos_cou = liste_points.point_local(i);
 				auto vel = dls::math::vec3f();
 				extrait(attr_V->r32(i), vel);
 				auto pos_pre = dls::math::vec3f();
@@ -448,7 +446,7 @@ public:
 
 				groupe_sync.accede_ecriture([&](GroupePoint *groupe_point)
 				{
-					groupe_point->ajoute_point(i);
+					groupe_point->ajoute_index(i);
 				});
 
 				switch (reponse) {
@@ -460,9 +458,9 @@ public:
 					{
 						auto prim = prims_collision->prim(index_prim);
 						auto poly = dynamic_cast<Polygone *>(prim);
-						auto const &v0 = points_collision->point(poly->index_point(0));
-						auto const &v1 = points_collision->point(poly->index_point(1));
-						auto const &v2 = points_collision->point(poly->index_point(2));
+						auto const &v0 = points_collision.point_local(poly->index_point(0));
+						auto const &v1 = points_collision.point_local(poly->index_point(1));
+						auto const &v2 = points_collision.point_local(poly->index_point(2));
 
 						auto const e1 = v1 - v0;
 						auto const e2 = v2 - v0;
@@ -484,7 +482,7 @@ public:
 					{
 						pos_cou = dls::math::converti_type_vecteur<float>(esect.point);
 
-						liste_points->point(i, pos_cou);
+						liste_points.point(i, pos_cou);
 						assigne(attr_V->r32(i), dls::math::vec3f(0.0f));
 						assigne(attr_desactiv->z8(i), char(1));
 						break;
@@ -498,7 +496,7 @@ public:
 			chef->indique_progression_parallele(delta / total * 100.0f);
 		});
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -810,7 +808,7 @@ public:
 	void initialise_attributs()
 	{
 		auto liste_points = m_corps.points_pour_lecture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 
 		auto attr_V = m_corps.attribut("V");
 		auto mult_vel = evalue_decimal("mult_vel");
@@ -819,7 +817,7 @@ public:
 			attr_V = m_corps.ajoute_attribut("V", type_attribut::R32, 3, portee_attr::POINT);
 
 			for (auto i = 0; i < nombre_points; ++i) {
-				auto pos = liste_points->point(i);
+				auto pos = liste_points.point_local(i);
 				assigne(attr_V->r32(i), (pos - dls::math::vec3f(0.5f)) * mult_vel);
 			}
 		}
@@ -830,7 +828,7 @@ public:
 	void sous_etape(float gravitation, float dt)
 	{
 		auto liste_points = m_corps.points_pour_ecriture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 		auto attr_V = m_corps.attribut("V");
 		auto attr_P = m_corps.attribut("pos_pre");
 
@@ -840,7 +838,7 @@ public:
 		bhps.reserve(nombre_points);
 
 		for (auto i = 0; i < nombre_points; ++i) {
-			auto pos = liste_points->point(i);
+			auto pos = liste_points.point_local(i);
 			bhps.pousse(BHP(pos, 1.0f));
 		}
 
@@ -861,7 +859,7 @@ public:
 						[&](tbb::blocked_range<long> const &plage)
 			{
 				for (auto i = plage.begin(); i < plage.end(); ++i) {
-					auto pos = liste_points->point(i);
+					auto pos = liste_points.point_local(i);
 					dls::math::vec3f totalf_bhs = bhs.summation(1, BHP(pos, 1.0f), f);
 
 					auto v = dls::math::vec3f();
@@ -873,25 +871,25 @@ public:
 		}
 
 		for (auto i = 0; i < nombre_points; ++i) {
-			auto pos = liste_points->point(i);
+			auto pos = liste_points.point_local(i);
 
 			auto v = dls::math::vec3f();
 			extrait(attr_V->r32(i), v);
-			liste_points->point(i, pos + dt * v);
+			liste_points.point(i, pos + dt * v);
 			assigne(attr_P->r32(i), pos);
 		}
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		auto liste_points = m_corps.points_pour_lecture();
-		auto const nombre_points = liste_points->taille();
+		auto const nombre_points = liste_points.taille();
 
 		if (nombre_points == 0) {
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 		initialise_attributs();
@@ -906,7 +904,7 @@ public:
 			sous_etape(gravitation, dt_simulation / nb_etape);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

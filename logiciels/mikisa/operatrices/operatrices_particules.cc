@@ -32,7 +32,6 @@
 #include "biblinternes/outils/gna.hh"
 #include "biblinternes/outils/temps.hh"
 #include "biblinternes/structures/arbre_kd.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/grille_particules.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -92,82 +91,92 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
-		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
+		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
-		if (!valide_corps_entree(*this, corps, false, false)) {
-			return EXECUTION_ECHOUEE;
+		if (!valide_corps_entree(*this, corps_entree, false, false)) {
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_groupe = evalue_chaine("nom_groupe");
 
 		if (nom_groupe.est_vide()) {
 			ajoute_avertissement("Le nom du groupe est vide !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
-		auto points_corps = corps->points_pour_lecture();
-		auto groupe = corps->groupe_point(nom_groupe);
+		auto points_corps = corps_entree->points_pour_lecture();
+		auto groupe = corps_entree->groupe_point(nom_groupe);
 
 		if (groupe == nullptr) {
 			ajoute_avertissement("Aucun groupe trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (groupe->taille() == 0) {
-			corps->copie_vers(&m_corps);
-			return EXECUTION_REUSSIE;
+			corps_entree->copie_vers(&m_corps);
+			return res_exec::REUSSIE;
 		}
 
-		dls::tableau<std::pair<Attribut const *, Attribut *>> paires_attrs;
-		//paires_attrs.reserve(corps->attributs().taille());
+		auto transfere = TRANSFERE_ATTR_CORPS | TRANSFERE_ATTR_PRIMS | TRANSFERE_ATTR_POINTS | TRANSFERE_ATTR_SOMMETS;
+		auto transferante = TransferanteAttribut(*corps_entree, m_corps, transfere);
+		transferante.transfere_attributs_corps(0, 0);
 
-		for (auto const &attr : corps->attributs()) {
-			auto attr2 = m_corps.ajoute_attribut(attr.nom(), attr.type(), attr.dimensions, attr.portee);
-
-			if (attr.portee == portee_attr::POINT) {
-				paires_attrs.pousse({ &attr, attr2 });
-			}
-
-			/* À FAIRE : copie attributs restants. */
-		}
-
-		m_corps.points_pour_ecriture()->reserve(points_corps->taille() - groupe->taille());
+		auto points_sortie = m_corps.points_pour_ecriture();
+		points_sortie.reserve(points_corps.taille() - groupe->taille());
 
 		/* Utilisation d'un tableau pour définir plus rapidement si un point est
 		 * à garder ou non. Ceci donne une accélération de 10x avec des
-		 * centaines de miliers de points à traverser. Peut-être pourrions nous
-		 * également trier les groupes et utiliser une recherche binaire pour
-		 * chercher plus rapidement les points, mais si dans le futur nous
-		 * supporterons également la suppression des primitives, alors les
-		 * points des primitives ne seront pas dans un groupe, et il faudra une
-		 * structure de données séparée pour étiquetter les points à retirer.
-		 * D'où l'utilisation d'un vecteur booléen. */
-		dls::tableau<char> dans_le_groupe(points_corps->taille(), 0);
+		 * centaines de miliers de points à traverser. */
+		auto dans_le_groupe = dls::tableau<char>(points_corps.taille(), 0);
 
 		for (auto i = 0; i < groupe->taille(); ++i) {
 			dans_le_groupe[groupe->index(i)] = 1;
 		}
 
-		for (auto i = 0l; i < points_corps->taille(); ++i) {
+		auto reindexage = dls::tableau<long>(corps_entree->points_pour_lecture().taille());
+
+		for (auto i = 0l; i < points_corps.taille(); ++i) {
 			if (dans_le_groupe[i]) {
 				continue;
 			}
 
-			auto const point = points_corps->point(i);
-			auto index_point = m_corps.ajoute_point(point.x, point.y, point.z);
+			auto const point = points_corps.point_local(i);
+			auto index_point = points_sortie.ajoute_point(point.x, point.y, point.z);
 
-			for (auto &paire : paires_attrs) {
-				auto attr_Vorig = paire.first;
-				auto attr_Vdest = paire.second;
+			reindexage[i] = index_point;
 
-				copie_attribut(attr_Vorig, i, attr_Vdest, index_point);
-			}
+			transferante.transfere_attributs_points(i, index_point);
 		}
 
-		return EXECUTION_REUSSIE;
+		pour_chaque_polygone(*corps_entree, [&](Corps const &corps_poly, Polygone const *poly)
+		{
+			INUTILISE(corps_poly);
+
+			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+				if (dans_le_groupe[poly->index_point(i)]) {
+					return;
+				}
+			}
+
+			auto npoly = m_corps.ajoute_polygone(poly->type, poly->nombre_sommets());
+
+			for (auto i = 0; i < poly->nombre_sommets(); ++i) {
+				auto idx0 = poly->index_sommet(i);
+				auto idx1 = m_corps.ajoute_sommet(npoly, reindexage[poly->index_point(i)]);
+
+				transferante.transfere_attributs_sommets(idx0, idx1);
+			}
+
+			transferante.transfere_attributs_prims(poly->index, npoly->index);
+		});
+
+		/* la transformation n'est pas appliquée, donc il faut la copier */
+		m_corps.transformation = corps_entree->transformation;
+
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -219,7 +228,7 @@ static auto echantillonne_normal(
 
 		for (auto i = 0; i < nombre_sommets; ++i) {
 			auto idx = poly->index_point(i);
-			auto const &p = points->point(idx);
+			auto const &p = points.point_local(idx);
 			auto l = longueur(pos - p);
 
 			poids += l;
@@ -265,14 +274,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto origine = evalue_enum("origine");
@@ -294,16 +303,16 @@ public:
 		}
 
 		ajoute_avertissement("Erreur : origine inconnue !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
-	int genere_points_depuis_points(Corps const *corps_entree, int temps)
+	res_exec genere_points_depuis_points(Corps const *corps_entree, int temps)
 	{
 		auto points_entree = corps_entree->points_pour_lecture();
 
-		if (points_entree->taille() == 0) {
+		if (points_entree.taille() == 0) {
 			this->ajoute_avertissement("Il n'y a pas de points dans le corps d'entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_groupe_origine = evalue_chaine("groupe_origine");
@@ -314,7 +323,7 @@ public:
 
 			if (groupe_entree == nullptr) {
 				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
@@ -326,7 +335,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -335,32 +344,32 @@ public:
 		auto points_sorties = m_corps.points_pour_ecriture();
 
 		auto const nombre_points_emis = evalue_entier("nombre_points", temps);
-		points_sorties->reserve(nombre_points_emis);
+		points_sorties.reserve(nombre_points_emis);
 
 		auto iter = (groupe_entree != nullptr)
 				? iteratrice_index(groupe_entree)
-				: iteratrice_index(points_entree->taille());
+				: iteratrice_index(points_entree.taille());
 
 		auto const nombre_points_par_points = (groupe_entree != nullptr)
 				? nombre_points_emis / groupe_entree->taille()
-				: nombre_points_emis / points_entree->taille();
+				: nombre_points_emis / points_entree.taille();
 
 		for (auto i : iter) {
-			auto point = corps_entree->point_transforme(i);
+			auto point = points_entree.point_monde(i);
 
 			for (long j = 0; j < nombre_points_par_points; ++j) {
-				auto index = m_corps.ajoute_point(point);
+				auto index = points_sorties.ajoute_point(point);
 
 				if (groupe_sortie) {
-					groupe_sortie->ajoute_point(index);
+					groupe_sortie->ajoute_index(index);
 				}
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int genere_points_depuis_volume(Corps const *corps_entree, int temps)
+	res_exec genere_points_depuis_volume(Corps const *corps_entree, int temps)
 	{
 		/* création du conteneur */
 		auto min = dls::math::vec3d( std::numeric_limits<double>::max());
@@ -368,8 +377,8 @@ public:
 
 		auto points_maillage = corps_entree->points_pour_lecture();
 
-		for (auto i = 0; i < points_maillage->taille(); ++i) {
-			auto point = points_maillage->point(i);
+		for (auto i = 0; i < points_maillage.taille(); ++i) {
+			auto point = points_maillage.point_local(i);
 			auto point_monde = corps_entree->transformation(dls::math::point3d(point.x, point.y, point.z));
 
 			for (size_t j = 0; j < 3; ++j) {
@@ -390,7 +399,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -399,7 +408,7 @@ public:
 		auto const nombre_points = evalue_entier("nombre_points", temps);
 
 		auto points_sorties = m_corps.points_pour_ecriture();
-		points_sorties->reserve(nombre_points);
+		points_sorties.reserve(nombre_points);
 
 		auto const anime_graine = evalue_bool("anime_graine");
 		auto const graine = evalue_entier("graine") + (anime_graine ? temps : 0);
@@ -411,20 +420,20 @@ public:
 			auto pos_y = gna.uniforme(min.y, max.y);
 			auto pos_z = gna.uniforme(min.z, max.z);
 
-			auto index = m_corps.ajoute_point(
+			auto index = points_sorties.ajoute_point(
 						static_cast<float>(pos_x),
 						static_cast<float>(pos_y),
 						static_cast<float>(pos_z));
 
 			if (groupe_sortie) {
-				groupe_sortie->ajoute_point(index);
+				groupe_sortie->ajoute_index(index);
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int genere_points_depuis_primitives(Corps const *corps_entree, int temps)
+	res_exec genere_points_depuis_primitives(Corps const *corps_entree, int temps)
 	{
 		auto nom_groupe_origine = evalue_chaine("groupe_origine");
 		auto groupe_entree = static_cast<GroupePrimitive *>(nullptr);
@@ -434,7 +443,7 @@ public:
 
 			if (groupe_entree == nullptr) {
 				this->ajoute_avertissement("Le groupe d'origine n'existe pas !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
@@ -442,7 +451,7 @@ public:
 
 		if (triangles.est_vide()) {
 			this->ajoute_avertissement("Il n'y a pas de primitives dans le corps d'entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto grouper_points = evalue_bool("grouper_points");
@@ -453,7 +462,7 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
@@ -462,7 +471,7 @@ public:
 		auto const nombre_points = evalue_entier("nombre_points", temps);
 
 		auto points_sorties = m_corps.points_pour_ecriture();
-		points_sorties->reserve(nombre_points);
+		points_sorties.reserve(nombre_points);
 
 		auto attr_N = m_corps.ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT);
 
@@ -498,42 +507,38 @@ public:
 				auto pos = v0 + r * e0 + s * e1;
 
 				auto posf = dls::math::converti_type_vecteur<float>(pos);
-				auto index = m_corps.ajoute_point(posf);
+				auto index = points_sorties.ajoute_point(posf);
 
 				assigne(attr_N->r32(index), echantillonne_normal(*corps_entree, triangle.index_orig, posf));
 
 				if (groupe_sortie) {
-					groupe_sortie->ajoute_point(index);
+					groupe_sortie->ajoute_index(index);
 				}
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int genere_points_depuis_attribut(Corps const *corps_entree)
+	res_exec genere_points_depuis_attribut(Corps const *corps_entree)
 	{
 		auto nom_attribut = evalue_chaine("nom_attribut");
 
 		if (nom_attribut.est_vide()) {
 			this->ajoute_avertissement("L'attribut n'est pas spécifié");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_source = corps_entree->attribut(nom_attribut);
 
 		if (attr_source == nullptr) {
-			dls::flux_chaine ss;
-			ss << "L'attribut '" << nom_attribut << "' n'existe pas !";
-			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'existe pas !");
+			return res_exec::ECHOUEE;
 		}
 
 		if (attr_source->type() != type_attribut::R32 && attr_source->dimensions != 3) {
-			dls::flux_chaine ss;
-			ss << "L'attribut '" << nom_attribut << "' n'est pas de type vecteur !";
-			this->ajoute_avertissement(ss.chn());
-			return EXECUTION_ECHOUEE;
+			this->ajoute_avertissement("L'attribut '", nom_attribut, "' n'est pas de type vecteur !");
+			return res_exec::ECHOUEE;
 		}
 
 		auto grouper_points = evalue_bool("grouper_points");
@@ -544,22 +549,24 @@ public:
 
 			if (nom_groupe.est_vide()) {
 				this->ajoute_avertissement("Le nom du groupe de sortie est vide !");
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 
 			groupe_sortie = m_corps.ajoute_groupe_point(nom_groupe);
 		}
 
+		auto points_sortie = m_corps.points_pour_ecriture();
+
 		for (auto i = 0; i < attr_source->taille(); ++i) {
 			auto p = attr_source->r32(i);
-			auto index = m_corps.ajoute_point(p[0], p[1], p[2]);
+			auto index = points_sortie.ajoute_point(p[0], p[1], p[2]);
 
 			if (groupe_sortie) {
-				groupe_sortie->ajoute_point(index);
+				groupe_sortie->ajoute_index(index);
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -819,14 +826,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_maillage = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_maillage, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto nom_groupe = evalue_chaine("nom_groupe");
@@ -836,12 +843,12 @@ public:
 			groupe_prim = corps_maillage->groupe_primitive(nom_groupe);
 
 			if (groupe_prim == nullptr) {
-				dls::flux_chaine ss;
-				ss << "Aucun groupe de primitives nommé '" << nom_groupe
-				   << "' trouvé sur le corps d'entrée !";
+				this->ajoute_avertissement(
+							"Aucun groupe de primitives nommé '",
+							nom_groupe,
+							"' trouvé sur le corps d'entrée !");
 
-				this->ajoute_avertissement(ss.chn());
-				return EXECUTION_ECHOUEE;
+				return res_exec::ECHOUEE;
 			}
 		}
 
@@ -850,7 +857,7 @@ public:
 
 		if (triangles_entree.est_vide()) {
 			this->ajoute_avertissement("Il n'y pas de polygones dans le corps d'entrée !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto aire_minimum = std::numeric_limits<float>::max();
@@ -889,12 +896,11 @@ public:
 			auto const index_boite = static_cast<int>(std::log2(aire_maximum / aire));
 
 			if (index_boite < 0 || index_boite >= 64) {
-				dls::flux_chaine ss;
-				ss << "Erreur lors de la génération de l'index d'une boîte !";
-				ss << "\n   Index : " << index_boite;
-				ss << "\n   Aire triangle : " << aire;
-				ss << "\n   Aire totale : " << aire_maximum;
-				this->ajoute_avertissement(ss.chn());
+				this->ajoute_avertissement(
+							"Erreur lors de la génération de l'index d'une boîte !",
+							"\n   Index : ", index_boite,
+							"\n   Aire triangle : ", aire,
+							"\n   Aire totale : ", aire_maximum);
 				continue;
 			}
 
@@ -915,7 +921,7 @@ public:
 		std::cerr << "Nombre points prédits : " << nombre_points << '\n';
 
 		auto points_nuage = m_corps.points_pour_ecriture();
-		points_nuage->reserve(nombre_points);
+		points_nuage.reserve(nombre_points);
 
 		auto const graine = evalue_entier("graine");
 
@@ -966,7 +972,7 @@ public:
 			if (ok) {
 				//chage_spatial.ajoute(point);
 				grille_particule.ajoute(point);
-				auto idx_p = m_corps.ajoute_point(point.x, point.y, point.z);
+				auto idx_p = points_nuage.ajoute_point(point.x, point.y, point.z);
 				assigne(attr_N->r32(idx_p), echantillonne_normal(*corps_maillage, triangle->index_orig, point));
 				debut = compte_tick_ms();
 			}
@@ -1040,9 +1046,9 @@ public:
 			}
 		}
 
-		std::cerr << "Nombre de points : " << points_nuage->taille() << "\n";
+		std::cerr << "Nombre de points : " << points_nuage.taille() << "\n";
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -1115,13 +1121,13 @@ static bool construit_sphere(
 }
 
 static void trouve_points_voisins(
-		ListePoints3D const &points,
+		AccesseusePointLecture const &points,
 		ListePoints3D &rpoints,
 		dls::math::vec3f const &point,
 		const float radius)
 {
 	for (auto i = 0; i < points.taille(); ++i) {
-		const auto &pi = points.point(i);
+		const auto &pi = points.point_local(i);
 
 		if (pi == point) {
 			continue;
@@ -1140,6 +1146,7 @@ static void construit_triangle(
 		ListePoints3D const &N1,
 		dls::math::vec3f const &pi)
 {
+	auto points = corps.points_pour_ecriture();
 	for (auto j = 0; j < N1.taille() - 1; ++j) {
 		auto pj = N1.point(j), pk = N1.point(j + 1);
 		dls::math::vec3f center;
@@ -1165,9 +1172,9 @@ static void construit_triangle(
 			continue;
 		}
 
-		corps.ajoute_point(pi.x, pi.y, pi.z);
-		corps.ajoute_point(pj.x, pj.y, pj.z);
-		corps.ajoute_point(pk.x, pk.y, pk.z);
+		points.ajoute_point(pi.x, pi.y, pi.z);
+		points.ajoute_point(pj.x, pj.y, pj.z);
+		points.ajoute_point(pk.x, pk.y, pk.z);
 
 		auto poly = corps.ajoute_polygone(type_polygone::FERME, 3);
 		corps.ajoute_sommet(poly, tri_offset + 0);
@@ -1186,11 +1193,11 @@ static void construit_maillage_alpha(
 	auto points_entree = corps_entree.points_pour_lecture();
 	auto tri_offset = 0;
 
-	for (auto i = 0; i < points_entree->taille(); ++i) {
-		auto point = points_entree->point(i);
+	for (auto i = 0; i < points_entree.taille(); ++i) {
+		auto point = points_entree.point_local(i);
 
 		ListePoints3D N1;
-		trouve_points_voisins(*points_entree, N1, point, 2.0f * radius);
+		trouve_points_voisins(points_entree, N1, point, 2.0f * radius);
 		construit_triangle(sortie, tri_offset, radius, N1, point);
 	}
 }
@@ -1218,19 +1225,19 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		construit_maillage_alpha(*corps_entree, 0.1f, m_corps);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1263,13 +1270,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, false, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
@@ -1277,18 +1284,32 @@ public:
 		auto dist = evalue_decimal("distance", contexte.temps_courant);
 
 		/* À FAIRE : liste de points à garder : doublons[i] = i. */
-		auto doublons = dls::tableau<int>(points_entree->taille(), -1);
+		auto doublons = dls::tableau<int>(points_entree.taille(), -1);
 
 #if 1
-		auto arbre = ArbreKD(points_entree->taille());
+		auto arbre = arbre_3df();
+		arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()), [&](int i)
+		{
+			return points_entree.point_local(i);
+		});
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			arbre.insert(i, points_entree->point(i));
+		auto doublons_trouves = 0;
+
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto point = points_entree.point_local(i);
+
+			arbre.cherche_points(point, dist, [&](int idx, dls::math::vec3f const &p, float d2, float &r2)
+			{
+				INUTILISE(p);
+				INUTILISE(d2);
+				INUTILISE(r2);
+
+				if (doublons[i] != -1) {
+					doublons_trouves += 1;
+					doublons[i] = idx;
+				}
+			});
 		}
-
-		arbre.balance();
-
-		auto doublons_trouves = arbre.calc_doublons_rapide(dist, false, doublons);
 #else
 		auto doublons_trouves = 0;
 
@@ -1308,12 +1329,12 @@ public:
 		}
 #endif
 
-		std::cerr << "Il y a " << points_entree->taille() << " points.\n";
+		std::cerr << "Il y a " << points_entree.taille() << " points.\n";
 		std::cerr << "Il y a " << doublons_trouves << " doublons.\n";
 
 		if (doublons_trouves == 0) {
 			corps_entree->copie_vers(&m_corps);
-			return EXECUTION_REUSSIE;
+			return res_exec::REUSSIE;
 		}
 
 #if 1
@@ -1360,7 +1381,7 @@ public:
 				continue;
 			}
 
-			auto p = corps_entree->point_transforme(i);
+			auto p = corps_entree->point_monde(i);
 
 			m_corps.ajoute_point(p.x, p.y, p.z);
 		}
@@ -1409,7 +1430,7 @@ public:
 		std::cerr << "Fin de l'algorithme\n";
 #endif
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1441,13 +1462,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = m_corps.points_pour_ecriture();
@@ -1463,17 +1484,17 @@ public:
 		auto min = -0.5f * taille;
 		auto max =  0.5f * taille;
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto p = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto p = points_entree.point_local(i);
 
 			p.x += gna.uniforme(min, max) * taille_par_axe.x;
 			p.y += gna.uniforme(min, max) * taille_par_axe.y;
 			p.z += gna.uniforme(min, max) * taille_par_axe.z;
 
-			points_entree->point(i, p);
+			points_entree.point(i, p);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1505,13 +1526,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = corps_entree->points_pour_lecture();
@@ -1520,14 +1541,14 @@ public:
 
 		if (nom_attribut == "") {
 			this->ajoute_avertissement("L'attribut n'est pas nommé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto attr_V = corps_entree->attribut(nom_attribut);
 
 		if (attr_V == nullptr || attr_V->type() != type_attribut::R32 || attr_V->dimensions != 3 || attr_V->portee != portee_attr::POINT) {
 			this->ajoute_avertissement("Aucun attribut vecteur trouvé sur les points !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto const chaine_mode = evalue_enum("mode");
@@ -1537,14 +1558,15 @@ public:
 
 		/* À FAIRE : transfère d'attributs */
 
-		m_corps.points_pour_ecriture()->reserve(points_entree->taille() * 2);
+		auto points_sortie = m_corps.points_pour_ecriture();
+		points_sortie.reserve(points_entree.taille() * 2);
 
 		auto const dt = evalue_decimal("dt", contexte.temps_courant);
 		auto const taille = evalue_decimal("taille", contexte.temps_courant) * dt;
 		auto const inverse_direction = evalue_bool("inverse_direction");
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			auto p = points_entree->point(i);
+		for (auto i = 0; i < points_entree.taille(); ++i) {
+			auto p = points_entree.point_local(i);
 			auto v = dls::math::vec3f();
 			extrait(attr_V->r32(i), v);
 			v *= taille;
@@ -1555,27 +1577,27 @@ public:
 				v = -v;
 			}
 
-			m_corps.ajoute_point(p.x, p.y, p.z);
+			auto idx0 = points_sortie.ajoute_point(p.x, p.y, p.z);
 
 			if (mode == 0) {
 				p += v;
-				m_corps.ajoute_point(p.x, p.y, p.z);
+				auto idx1 = points_sortie.ajoute_point(p.x, p.y, p.z);
 
 				auto seg = m_corps.ajoute_polygone(type_polygone::OUVERT, 2);
-				m_corps.ajoute_sommet(seg, i * 2);
-				m_corps.ajoute_sommet(seg, i * 2 + 1);
+				m_corps.ajoute_sommet(seg, idx0);
+				m_corps.ajoute_sommet(seg, idx1);
 			}
 			else {
 				v /= static_cast<float>(nombre_points);
 
 				for (auto j = 0; j < nombre_points; ++j) {
 					p += v;
-					m_corps.ajoute_point(p.x, p.y, p.z);
+					points_sortie.ajoute_point(p.x, p.y, p.z);
 				}
 			}
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void obtiens_liste(
@@ -1713,20 +1735,18 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, false)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto points_entree = m_corps.points_pour_lecture();
 
 		/* À FAIRE :
-		 * - calcul selon les particules se trouvant dans un rayon de la
-		 *   particule courante (kd-tree).
 		 * - fusion des particules se trouvant dans une fraction du rayon
 		 *   afin d'optimiser le calcul des corps de covariance
 		 */
@@ -1745,13 +1765,19 @@ public:
 
 		auto attr_F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
 
+		auto arbre = arbre_3df();
+		arbre.construit_avec_fonction(static_cast<int>(points_entree.taille()), [&](int i)
+		{
+			return points_entree.point_local(i);
+		});
+
 		/* À FAIRE : il y a un effet yo-yo. */
 
-		boucle_parallele(tbb::blocked_range<long>(0, points_entree->taille()),
+		boucle_parallele(tbb::blocked_range<long>(0, points_entree.taille()),
 						 [&](tbb::blocked_range<long> const &plage)
 		{
 			for (auto i = plage.begin(); i < plage.end(); ++i) {
-				auto p = points_entree->point(i);
+				auto p = points_entree.point_local(i);
 
 #if 0
 				auto force = attr_F->valeur(i);
@@ -1794,8 +1820,15 @@ public:
 				force += (centre_masse - p) * force_centre;
 
 #else
-				// À FAIRE : arbre k-d, simplifie points
-				auto points_voisins = points_autour(p, i, rayon);
+				auto points_voisins = dls::tableau<dls::math::vec3f>();
+
+				arbre.cherche_points(p, rayon, [&](int idx, dls::math::vec3f const &pnt, float d2, float &r2)
+				{
+					INUTILISE(idx);
+					INUTILISE(d2);
+					INUTILISE(r2);
+					points_voisins.pousse(pnt);
+				});
 
 				if (points_voisins.est_vide()) {
 					continue;
@@ -1870,30 +1903,7 @@ public:
 			}
 		});
 
-		return EXECUTION_REUSSIE;
-	}
-
-	dls::tableau<dls::math::vec3f> points_autour(
-		dls::math::vec3f const &centre,
-		long index,
-		float rayon)
-	{
-		dls::tableau<dls::math::vec3f> res;
-		auto points_entree = m_corps.points_pour_lecture();
-
-		for (auto i = 0; i < points_entree->taille(); ++i) {
-			if (i == index) {
-				continue;
-			}
-
-			auto p = points_entree->point(i);
-
-			if (longueur(p - centre) <= rayon) {
-				res.pousse(p);
-			}
-		}
-
-		return res;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1993,12 +2003,12 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		auto corps_entree = entree(0)->requiers_corps(contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, corps_entree, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto prims_entree = corps_entree->prims();
@@ -2009,6 +2019,9 @@ public:
 			/* ajoute des points qui devraient vraiment venir d'un autre noeud */
 			m_corps.reinitialise();
 
+			auto points_entree = corps_entree->points_pour_lecture();
+			auto points_sortie = m_corps.points_pour_ecriture();
+
 			auto attr_Prim = m_corps.ajoute_attribut("prim_idx", type_attribut::Z32, 1, portee_attr::POINT);
 			auto attr_P = m_corps.ajoute_attribut("P", type_attribut::R32, 3, portee_attr::POINT);
 
@@ -2018,9 +2031,9 @@ public:
 
 				auto poly = dynamic_cast<Polygone *>(prim);
 
-				auto const v0 = corps_entree->point_transforme(poly->index_point(0));
-				auto const v1 = corps_entree->point_transforme(poly->index_point(1));
-				auto const v2 = corps_entree->point_transforme(poly->index_point(2));
+				auto const v0 = points_entree.point_monde(poly->index_point(0));
+				auto const v1 = points_entree.point_monde(poly->index_point(1));
+				auto const v2 = points_entree.point_monde(poly->index_point(2));
 
 				auto const e0 = v1 - v0;
 				auto const e1 = v2 - v0;
@@ -2036,7 +2049,7 @@ public:
 
 				auto pos = v0 + static_cast<float>(r) * e0 + static_cast<float>(s) * e1;
 
-				auto idx_p = m_corps.ajoute_point(pos);
+				auto idx_p = points_sortie.ajoute_point(pos);
 				assigne(attr_P->r32(idx_p), pos);
 
 				attr_Prim->z32(idx_p)[0] = static_cast<int>(idx_prim);
@@ -2047,13 +2060,13 @@ public:
 			auto points = m_corps.points_pour_ecriture();
 			auto attr_P = m_corps.attribut("P");
 
-			for (auto i = 0; i < points->taille(); ++i) {
-				auto p = points->point(i);
+			for (auto i = 0; i < points.taille(); ++i) {
+				auto p = points.point_local(i);
 				assigne(attr_P->r32(i), p);
 				p.x += gna.uniforme(-0.2f, 0.2f);
 				p.y += gna.uniforme(-0.2f, 0.2f);
 				p.z += gna.uniforme(-0.2f, 0.2f);
-				points->point(i, p);
+				points.point(i, p);
 			}
 
 #if 1
@@ -2062,9 +2075,9 @@ public:
 			auto delegue = DeleguePrim(*corps_entree);
 			auto arbre_hbe = construit_arbre_hbe(delegue, 12);
 
-			for (auto i = 0; i < points->taille(); ++i) {
+			for (auto i = 0; i < points.taille(); ++i) {
 				auto dist_max = 0.4;
-				auto pointf = points->point(i);
+				auto pointf = points.point_local(i);
 				auto point = dls::math::point3d(
 							static_cast<double>(pointf.x),
 							static_cast<double>(pointf.y),
@@ -2074,7 +2087,7 @@ public:
 
 				pointf = dls::math::converti_type_vecteur<float>(dpp.point);
 
-				points->point(i, pointf);
+				points.point(i, pointf);
 			}
 #else
 			/* essaye de contraindre les points via l'algorithme du papier */
@@ -2090,9 +2103,9 @@ public:
 				//auto as = points->point(i);
 				//auto const d = as - a0;
 
-				auto const v0 = corps_entree->point_transforme(poly->index_point(0));
-				auto const v1 = corps_entree->point_transforme(poly->index_point(1));
-				auto const v2 = corps_entree->point_transforme(poly->index_point(2));
+				auto const v0 = corps_entree->point_monde(poly->index_point(0));
+				auto const v1 = corps_entree->point_monde(poly->index_point(1));
+				auto const v2 = corps_entree->point_monde(poly->index_point(2));
 
 				/* construit la matrice de l'espace canonique */
 				auto e0 = v1 - v0;
@@ -2131,7 +2144,7 @@ public:
 #endif
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	bool depend_sur_temps() const override

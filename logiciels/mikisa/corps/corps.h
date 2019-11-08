@@ -28,11 +28,14 @@
 
 #include "biblinternes/structures/liste.hh"
 
+#include "accesseuses.hh"
 #include "attribut.h"
 #include "groupes.h"
 #include "listes.h"
 
 class Attribut;
+
+struct Sphere;
 
 /**
  * La structure Corps représente une partie constituante d'un objet. Le Corps
@@ -80,38 +83,22 @@ struct Corps {
 
 	Attribut const *attribut(dls::chaine const &nom_attribut) const;
 
-	long ajoute_point(dls::math::vec3f const &pos);
-
-	long ajoute_point(float x, float y, float z);
-
-	void enleve_point(size_t i);
-
-	/**
-	 * Retourne l'index du point se trouvant aux coordonnées x, y, z spécifiée.
-	 * Si aucun point ne s'y trouve, retourne -1.
-	 */
-	long index_point(float x, float y, float z);
-
 	void ajoute_primitive(Primitive *p);
+
+	void copie_points(Corps const autre);
 
 	/**
 	 * Copie la liste de points de ce corps avant de la rendre unique à lui,
 	 * pour la copie sur écriture, et retourne le nouveau pointeur.
 	 */
-	ListePoints3D *points_pour_ecriture();
+	AccesseusePointEcriture points_pour_ecriture();
+	friend struct AccesseusePointEcriture;
 
 	/**
 	 * Retourne un pointeur vers la liste de point de ce corps. Les points ne
 	 * sont pas modifiables.
 	 */
-	ListePoints3D const *points_pour_lecture() const;
-
-	/**
-	 * Retourne le point à l'index précisé transformé pour être dans l'espace
-	 * mondiale. Aucune vérification de limite n'est effectuée sur l'index. Si
-	 * l'index est hors de limite, le programme crashera sans doute.
-	 */
-	dls::math::vec3f point_transforme(long i) const;
+	AccesseusePointLecture points_pour_lecture() const;
 
 	ListePrimitives *prims();
 
@@ -124,6 +111,10 @@ struct Corps {
 	long ajoute_sommet(Polygone *p, long idx_point);
 
 	long nombre_sommets() const;
+
+	/* sphères */
+
+	Sphere *ajoute_sphere(long idx_point, float rayon);
 
 	/* autres */
 
@@ -139,8 +130,8 @@ struct Corps {
 
 	/* Groupes points. */
 
-	using plage_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::iteratrice>;
-	using plage_const_grp_pnts = dls::outils::plage_iterable<dls::tableau<GroupePoint>::const_iteratrice>;
+	using plage_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::iteratrice>;
+	using plage_const_grp_pnts = dls::outils::plage_iterable_liste<dls::liste<GroupePoint>::const_iteratrice>;
 
 	GroupePoint *ajoute_groupe_point(dls::chaine const &nom_groupe);
 
@@ -152,8 +143,8 @@ struct Corps {
 
 	/* Groupes primitives. */
 
-	using plage_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::iteratrice>;
-	using plage_const_grp_prims = dls::outils::plage_iterable<dls::tableau<GroupePrimitive>::const_iteratrice>;
+	using plage_grp_prims = dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::iteratrice>;
+	using plage_const_grp_prims = dls::outils::plage_iterable_liste<dls::liste<GroupePrimitive>::const_iteratrice>;
 
 	GroupePrimitive *ajoute_groupe_primitive(dls::chaine const &nom_groupe);
 
@@ -172,10 +163,12 @@ private:
 	ListePoints3D m_points{};
 	ListePrimitives m_prims{};
 
-	dls::tableau<GroupePoint> m_groupes_points{};
-	dls::tableau<GroupePrimitive> m_groupes_prims{};
+	dls::liste<GroupePoint> m_groupes_points{};
+	dls::liste<GroupePrimitive> m_groupes_prims{};
 
 	long m_nombre_sommets = 0;
 };
 
 bool possede_volume(Corps const &corps);
+
+bool possede_sphere(Corps const &corps);

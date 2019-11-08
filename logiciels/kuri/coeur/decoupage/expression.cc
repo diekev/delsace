@@ -331,7 +331,7 @@ noeud::base *calcul_expression_double(
 
 			n1->valeur_calculee = v;
 			n1->drapeaux |= EST_CALCULE;
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.taille() << 8));
 			dt.pousse(id_morceau::Z8);
 			n1->index_type = contexte.magasin_types.ajoute_type(dt);

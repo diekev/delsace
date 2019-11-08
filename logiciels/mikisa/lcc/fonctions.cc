@@ -150,8 +150,9 @@ signature::signature(param_entrees _entrees_, param_sorties _sorties_)
 
 /* ************************************************************************** */
 
-void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, const signature &seing, ctx_script ctx)
+donnees_fonction *magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, const signature &seing, ctx_script ctx)
 {
+	auto df = static_cast<donnees_fonction *>(nullptr);
 	auto iter = table.trouve(nom);
 
 	if (iter == table.fin()) {
@@ -159,9 +160,12 @@ void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, 
 		tableau.pousse({seing, type, ctx});
 
 		table.insere({nom, tableau});
+
+		df = &table.trouve(nom)->second.back();
 	}
 	else {
 		iter->second.pousse({seing, type, ctx});
+		df = &iter->second.back();
 	}
 
 	auto iter_cat = table_categories.trouve(categorie);
@@ -175,6 +179,8 @@ void magasin_fonctions::ajoute_fonction(const dls::chaine &nom, code_inst type, 
 	else {
 		iter_cat->second.insere(nom);
 	}
+
+	return df;
 }
 
 donnees_fonction_generation magasin_fonctions::meilleure_candidate(
@@ -301,8 +307,18 @@ static void enregistre_fonctions_mathematiques(magasin_fonctions &magasin)
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
-				"aléa",
-				code_inst::FN_ALEA,
+				"aléa_uni",
+				code_inst::FN_ALEA_UNI,
+				signature(
+					param_entrees(
+						donnees_parametre("min", type_var::DEC),
+						donnees_parametre("max", type_var::DEC, 1.0f)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"aléa_nrm",
+				code_inst::FN_ALEA_NRM,
 				signature(
 					param_entrees(
 						donnees_parametre("min", type_var::DEC),
@@ -606,6 +622,16 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 	magasin.categorie = "vecteur";
 
 	magasin.ajoute_fonction(
+				"sépare_vec2",
+				code_inst::FN_SEPARE_VEC3,
+				signature(
+					param_entrees(donnees_parametre("valeur", type_var::VEC2)),
+					param_sorties(
+						donnees_parametre("x", type_var::DEC),
+						donnees_parametre("y", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
 				"sépare_vec3",
 				code_inst::FN_SEPARE_VEC3,
 				signature(
@@ -614,6 +640,16 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 						donnees_parametre("x", type_var::DEC),
 						donnees_parametre("y", type_var::DEC),
 						donnees_parametre("z", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"combine_vec2",
+				code_inst::FN_COMBINE_VEC2,
+				signature(
+					param_entrees(
+						donnees_parametre("x", type_var::DEC),
+						donnees_parametre("y", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC2))),
 				ctx_script::tous);
 
 	magasin.ajoute_fonction(
@@ -721,10 +757,22 @@ static void enregistre_fonctions_vectorielles(magasin_fonctions &magasin)
 					param_entrees(),
 					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"proj_uv_sphère",
+				code_inst::FN_PROJ_UV_SPHERE,
+				signature(
+					param_entrees(
+						donnees_parametre("u", type_var::DEC),
+						donnees_parametre("v", type_var::DEC)),
+					param_sorties(donnees_parametre("valeur", type_var::VEC3))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 {
+	auto df = static_cast<donnees_fonction *>(nullptr);
+
 	magasin.categorie = "corps";
 
 	magasin.ajoute_fonction(
@@ -778,6 +826,44 @@ static void enregistre_fonctions_corps(magasin_fonctions &magasin)
 							  donnees_parametre("point1", type_var::VEC3)),
 						  param_sorties(donnees_parametre("index", type_var::ENT32))),
 				ctx_script::tous & ~ctx_script::detail);
+
+	df = magasin.ajoute_fonction(
+				"points_voisins",
+				code_inst::FN_POINTS_VOISINS,
+				signature(param_entrees(donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("voisins", type_var::TABLEAU))),
+				ctx_script::tous);
+	df->requete = req_fonc::polyedre;
+
+	df = magasin.ajoute_fonction(
+				"points_voisins",
+				code_inst::FN_POINTS_VOISINS_RAYON,
+				signature(param_entrees(
+							  donnees_parametre("index_point", type_var::ENT32),
+							  donnees_parametre("rayon", type_var::DEC, 0.1f)),
+						  param_sorties(donnees_parametre("voisins", type_var::TABLEAU))),
+				ctx_script::tous);
+	df->requete = req_fonc::arbre_kd;
+
+	df = magasin.ajoute_fonction(
+				"point",
+				code_inst::FN_POINT,
+				signature(param_entrees(donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("point", type_var::VEC3))),
+				ctx_script::tous);
+	df->requete = req_fonc::polyedre;
+}
+
+static void enregistre_fonctions_attributs(magasin_fonctions &magasin)
+{
+	magasin.ajoute_fonction(
+				"attribut_décimal",
+				code_inst::FN_ATTRIBUT_DECIMAL,
+				signature(param_entrees(
+							  donnees_parametre("nom", type_var::CHAINE),
+							  donnees_parametre("index_point", type_var::ENT32)),
+						  param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
@@ -837,6 +923,30 @@ static void enregistre_fonctions_colorimetriques(magasin_fonctions &magasin)
 				signature(param_entrees(donnees_parametre("valeur", type_var::VEC3)),
 						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
 				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_courbe_couleur",
+				code_inst::FN_EVALUE_COURBE_COULEUR,
+				signature(param_entrees(donnees_parametre("courbe", type_var::ENT32),
+										donnees_parametre("valeur", type_var::COULEUR)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_courbe_valeur",
+				code_inst::FN_EVALUE_COURBE_VALEUR,
+				signature(param_entrees(donnees_parametre("courbe", type_var::ENT32),
+										donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::DEC))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"évalue_rampe_couleur",
+				code_inst::FN_EVALUE_RAMPE_COULEUR,
+				signature(param_entrees(donnees_parametre("courbe", type_var::ENT32),
+										donnees_parametre("valeur", type_var::DEC)),
+						  param_sorties(donnees_parametre("valeur", type_var::COULEUR))),
+				ctx_script::tous);
 }
 
 static void enregistre_fonctions_types(magasin_fonctions &magasin)
@@ -849,6 +959,44 @@ static void enregistre_fonctions_types(magasin_fonctions &magasin)
 				signature(
 					param_entrees(donnees_parametre("tableau", type_var::TABLEAU)),
 					param_sorties(donnees_parametre("index", type_var::ENT32))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"extrait_chaine",
+				code_inst::FN_EXTRAIT_CHAINE_TABL,
+				signature(
+					param_entrees(
+						donnees_parametre("tableau", type_var::TABLEAU),
+						donnees_parametre("index", type_var::ENT32)),
+					param_sorties(donnees_parametre("valeur", type_var::CHAINE))),
+				ctx_script::tous);
+
+	magasin.categorie = "chaines";
+
+	magasin.ajoute_fonction(
+				"taille",
+				code_inst::FN_TAILLE_CHAINE,
+				signature(
+					param_entrees(donnees_parametre("chaine", type_var::CHAINE)),
+					param_sorties(donnees_parametre("taille", type_var::ENT32))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"morcelle",
+				code_inst::FN_MORCELLE_CHAINE,
+				signature(
+					param_entrees(
+						donnees_parametre("chaine", type_var::CHAINE),
+						donnees_parametre("séparateur", type_var::CHAINE)),
+					param_sorties(donnees_parametre("tableau", type_var::TABLEAU))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"chaine_vers_décimal",
+				code_inst::FN_CHAINE_VERS_DECIMAL,
+				signature(
+					param_entrees(donnees_parametre("chaine", type_var::CHAINE)),
+					param_sorties(donnees_parametre("valeur", type_var::DEC))),
 				ctx_script::tous);
 }
 
@@ -871,6 +1019,7 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 
 	const std::pair<const char *, code_inst> paires[] = {
 		{ "bruit_cellule", code_inst::FN_BRUIT_CELLULE },
+		{ "bruit_flux", code_inst::FN_BRUIT_FLUX },
 		{ "bruit_fourier", code_inst::FN_BRUIT_FOURIER },
 		{ "bruit_ondelette", code_inst::FN_BRUIT_ONDELETTE },
 		{ "bruit_perlin", code_inst::FN_BRUIT_PERLIN },
@@ -919,6 +1068,60 @@ static void enregistre_fonctions_bruits(magasin_fonctions &magasin)
 				ctx_script::tous);
 }
 
+static void enregistre_fonctions_images(magasin_fonctions &magasin)
+{
+	magasin.categorie = "image";
+
+	magasin.ajoute_fonction(
+				"échantillonne_image",
+				code_inst::FN_ECHANTILLONE_IMAGE,
+				signature(
+					param_entrees(
+						donnees_parametre("image", type_var::ENT32),
+						donnees_parametre("uv", type_var::VEC2)),
+					param_sorties(donnees_parametre("couleur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"échantillonne_triplan",
+				code_inst::FN_ECHANTILLONE_TRIPLAN,
+				signature(
+					param_entrees(
+						donnees_parametre("image", type_var::ENT32),
+						donnees_parametre("pos", type_var::VEC3),
+						donnees_parametre("nor", type_var::VEC3)),
+					param_sorties(donnees_parametre("couleur", type_var::COULEUR))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"projection_sphérique",
+				code_inst::FN_PROJECTION_SPHERIQUE,
+				signature(
+					param_entrees(
+						donnees_parametre("pos", type_var::VEC3)),
+					param_sorties(donnees_parametre("uv", type_var::VEC2))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"projection_cylindrique",
+				code_inst::FN_PROJECTION_CYLINDRIQUE,
+				signature(
+					param_entrees(
+						donnees_parametre("pos", type_var::VEC3)),
+					param_sorties(donnees_parametre("uv", type_var::VEC2))),
+				ctx_script::tous);
+
+	magasin.ajoute_fonction(
+				"projection_caméra",
+				code_inst::FN_PROJECTION_CAMERA,
+				signature(
+					param_entrees(
+						donnees_parametre("caméra", type_var::ENT32),
+						donnees_parametre("pos", type_var::VEC3)),
+					param_sorties(donnees_parametre("uv", type_var::VEC2))),
+				ctx_script::tous);
+}
+
 void enregistre_fonctions_base(magasin_fonctions &magasin)
 {
 	enregistre_fonctions_operations_binaires(magasin);
@@ -928,6 +1131,8 @@ void enregistre_fonctions_base(magasin_fonctions &magasin)
 	enregistre_fonctions_colorimetriques(magasin);
 	enregistre_fonctions_types(magasin);
 	enregistre_fonctions_bruits(magasin);
+	enregistre_fonctions_images(magasin);
+	enregistre_fonctions_attributs(magasin);
 }
 
 }  /* namespace lcc */

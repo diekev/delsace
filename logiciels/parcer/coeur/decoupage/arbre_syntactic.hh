@@ -25,6 +25,8 @@
 #pragma once
 
 #include <any>
+
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.hh"
@@ -83,20 +85,7 @@ enum drapeaux_noeud : unsigned short {
 	IGNORE_OPERATEUR = (1 << 0),
 };
 
-inline auto operator&(drapeaux_noeud gauche, drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) & static_cast<int>(droite));
-}
-
-inline auto operator|(drapeaux_noeud gauche, drapeaux_noeud droite)
-{
-	return static_cast<drapeaux_noeud>(static_cast<int>(gauche) | static_cast<int>(droite));
-}
-
-inline auto operator|=(drapeaux_noeud &gauche, drapeaux_noeud droite)
-{
-	return (gauche = gauche | droite);
-}
+DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
 
 struct DonneesFonction;
 

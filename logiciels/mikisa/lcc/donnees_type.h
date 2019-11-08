@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/parametres.hh"
 #include "biblinternes/structures/tableau.hh"
 
 namespace lcc {
@@ -48,6 +49,8 @@ enum class type_var : unsigned short {
 
 const char *chaine_type_var(type_var type);
 
+const char *type_var_opengl(type_var type);
+
 /* ************************************************************************** */
 
 struct donnees_parametre {
@@ -70,18 +73,6 @@ struct parametres_fonction {
 private:
 	dls::tableau<donnees_parametre> m_donnees{};
 
-	template <typename... Ts>
-	void accumule(long idx, donnees_parametre type0, Ts... reste)
-	{
-		m_donnees[idx] = type0;
-		accumule(idx + 1, reste...);
-	}
-
-	void accumule(long idx, donnees_parametre type0)
-	{
-		m_donnees[idx] = type0;
-	}
-
 public:
 	parametres_fonction() = default;
 
@@ -94,9 +85,7 @@ public:
 	parametres_fonction(donnees_parametre type0, Ts... reste)
 	{
 		m_donnees.redimensionne(1 + static_cast<long>(sizeof...(reste)));
-		m_donnees[0] = type0;
-
-		accumule(1, reste...);
+		otl::accumule(0, &m_donnees[0], type0, reste...);
 	}
 
 	type_var type(int idx) const
@@ -145,27 +134,12 @@ struct donnees_type {
 	donnees_type(type_var type0, Ts... reste)
 	{
 		types.redimensionne(1 + static_cast<long>(sizeof...(reste)));
-		types[0] = type0;
-
-		accumule(1, reste...);
+		otl::accumule(1, &types[0], type0, reste...);
 	}
 
 	void ajoute(type_var type)
 	{
 		types.pousse(type);
-	}
-
-private:
-	template <typename... Ts>
-	void accumule(long idx, type_var type0, Ts... reste)
-	{
-		types[idx] = type0;
-		accumule(idx + 1, reste...);
-	}
-
-	void accumule(long idx, type_var type0)
-	{
-		types[idx] = type0;
 	}
 };
 

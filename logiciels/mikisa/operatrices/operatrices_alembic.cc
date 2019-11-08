@@ -51,7 +51,6 @@
 
 #include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/definitions.h"
-#include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/chef_execution.hh"
 #include "coeur/contexte_evaluation.hh"
@@ -87,26 +86,22 @@ static auto ouvre_archive(
 			char header[4]; /* char(0x89) + "HDF" */
 			std::ifstream le_fichier(chemin, std::ios::in | std::ios::binary);
 
-			dls::flux_chaine fc;
-
 			if (!le_fichier) {
-				fc << "Impossible d'ouvrir le fichier " << chemin;
+				operatrice.ajoute_avertissement("Impossible d'ouvrir le fichier ", chemin);
 			}
 			else if (!le_fichier.read(header, sizeof(header))) {
-				fc << "Impossible de lire le fichier " << chemin;
+				operatrice.ajoute_avertissement("Impossible de lire le fichier ", chemin);
 			}
 			else if (strncmp(header + 1, "HDF", 3)) {
-				fc << chemin << " a un format de fichier inconnu, impossible à lire.";
+				operatrice.ajoute_avertissement(chemin, " a un format de fichier inconnu, impossible à lire.");
 			}
 			else {
-				fc << chemin << " utilise le format obsolète HDF5, impossible à lire.";
+				operatrice.ajoute_avertissement(chemin, " utilise le format obsolète HDF5, impossible à lire.");
 			}
 
 			if (le_fichier.is_open()) {
 				le_fichier.close();
 			}
-
-			operatrice.ajoute_avertissement(fc.chn());
 		}
 	}, nullptr);
 
@@ -170,12 +165,12 @@ static auto charge_points(
 		Corps &corps,
 		ABC::P3fArraySamplePtr positions)
 {
-	corps.points_pour_ecriture()->reserve(static_cast<long>(positions->size()));
+	auto points = corps.points_pour_ecriture();
+	points.reserve(static_cast<long>(positions->size()));
 
 	for (auto i = 0ul; i < positions->size(); ++i) {
 		auto &p = (*positions)[i];
-
-		corps.ajoute_point(p.x, p.y, p.z);
+		points.ajoute_point(p.x, p.y, p.z);
 	}
 }
 
@@ -375,7 +370,7 @@ public:
 
 	const char *texte_aide() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	void obtiens_liste(
 			ContexteEvaluation const &contexte,
@@ -407,7 +402,7 @@ const char *OpImportAlembic::texte_aide() const
 	return AIDE;
 }
 
-int OpImportAlembic::execute(
+res_exec OpImportAlembic::execute(
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval)
 {
@@ -424,14 +419,14 @@ int OpImportAlembic::execute(
 
 	if (poignee == nullptr) {
 		this->ajoute_avertissement("Impossible d'obtenir une poignée sur le fichier !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	m_archive = ouvre_archive(poignee, *this);
 
 	if (!m_archive.valid()) {
 		chef->indique_progression(1.0f);
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto obj_racine = m_archive.getTop();
@@ -439,14 +434,14 @@ int OpImportAlembic::execute(
 	if (!obj_racine.valid()) {
 		chef->indique_progression(1.0f);
 		this->ajoute_avertissement("L'objet racine est invalide !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto chemin_objet = evalue_chaine("chemin_objet");
 
 	if (chemin_objet.est_vide()) {
 		this->ajoute_avertissement("Le chemin de l'objet est vide !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	m_iobjet = trouve_iobjet(obj_racine, chemin_objet);
@@ -454,7 +449,7 @@ int OpImportAlembic::execute(
 	if (!m_iobjet.valid()) {
 		chef->indique_progression(1.0f);
 		this->ajoute_avertissement("Impossible de trouver l'objet !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto selecteur = ABC::ISampleSelector(static_cast<double>(contexte.temps_courant) / contexte.cadence);
@@ -503,6 +498,18 @@ int OpImportAlembic::execute(
 
 		auto prop = schema.getArbGeomParams();
 		charge_attributs(m_corps, prop, selecteur);
+
+		auto velocities = sample.getVelocities();
+
+		if (velocities) {
+			auto attr_V = m_corps.ajoute_attribut("V", type_attribut::R32, 3);
+
+			for (auto i = 0ul; i < velocities->size(); ++i) {
+				auto vel_in = (*velocities)[i];
+				auto vel = dls::math::vec3f(vel_in.x, vel_in.y, vel_in.z);
+				assigne(attr_V->r32(static_cast<long>(i)), vel);
+			}
+		}
 	}
 	else if (ABG::IPoints::matches(m_iobjet.getHeader())) {
 		auto poly_mesh = ABG::IPoints(m_iobjet);
@@ -521,9 +528,9 @@ int OpImportAlembic::execute(
 		ajoute_avertissement("Type d'objet non-supporté !");
 	}
 
-	chef->indique_progression(1.0f);
+	chef->indique_progression(100.0f);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 void OpImportAlembic::obtiens_liste(

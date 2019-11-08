@@ -90,13 +90,13 @@ struct CourbeBezier {
 };
 
 enum {
-	COURBE_MAITRESSE = 0,
-	COURBE_ROUGE     = 1,
-	COURBE_VERTE     = 2,
-	COURBE_BLEUE     = 3,
-	COURBE_VALEUR    = 4,
+	COURBE_COULEUR_MAITRESSE = 0,
+	COURBE_COULEUR_ROUGE     = 1,
+	COURBE_COULEUR_VERTE     = 2,
+	COURBE_COULEUR_BLEUE     = 3,
+	COURBE_COULEUR_VALEUR    = 4,
 
-	NOMBRE_COURBES = 5,
+	NOMBRE_COURBES_COULEUR = 5,
 };
 
 enum {
@@ -105,9 +105,9 @@ enum {
 };
 
 struct CourbeCouleur {
-	CourbeBezier courbes[NOMBRE_COURBES];
+	CourbeBezier courbes[NOMBRE_COURBES_COULEUR];
 
-	int mode = COURBE_MAITRESSE;
+	int mode = COURBE_COULEUR_MAITRESSE;
 	int type = COURBE_COULEUR_RGB;
 
 	CourbeCouleur();

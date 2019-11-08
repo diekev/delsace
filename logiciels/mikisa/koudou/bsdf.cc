@@ -33,7 +33,6 @@
 #include "moteur_rendu.hh"
 #include "nuanceur.hh"
 #include "scene.hh"
-#include "structure_acceleration.hh"
 #include "types.hh"
 
 namespace kdo {
@@ -270,7 +269,7 @@ void BSDFVolume::genere_echantillon(GNA &gna, ParametresRendu const &parametres,
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
-	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
+	auto isect = parametres.scene.traverse(rayon_local);
 
 	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		L = Spectre(0.0);

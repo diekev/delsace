@@ -80,6 +80,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_fracture.cc
 	operatrices_groupes.cc
 	operatrices_image_profonde.cc
+	operatrices_images_3d.cc
 	operatrices_maillage.cc
 	operatrices_muscles.cc
 	operatrices_ocean.cc
@@ -88,12 +89,14 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_pixel.cc
 	operatrices_poseidon.cc
 	operatrices_region.cc
+	operatrices_rendu.cc
 	operatrices_script.cc
 	operatrices_simulation_foule.cc
 	operatrices_simulations.cc
 	operatrices_snh.cc
 	operatrices_srirp.cc
 	operatrices_terrain.cc
+	operatrices_uvs.cc
 	operatrices_vetements.cc
 	operatrices_visualisation.cc
 	operatrices_volume.cc
@@ -114,6 +117,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_fracture.hh
 	operatrices_groupes.hh
 	operatrices_image_profonde.hh
+	operatrices_images_3d.hh
 	operatrices_maillage.hh
 	operatrices_muscles.hh
 	operatrices_ocean.hh
@@ -122,12 +126,14 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_pixel.h
 	operatrices_poseidon.hh
 	operatrices_region.h
+	operatrices_rendu.hh
 	operatrices_script.hh
 	operatrices_simulation_foule.hh
 	operatrices_simulations.hh
 	operatrices_snh.hh
 	operatrices_srirp.hh
 	operatrices_terrain.hh
+	operatrices_uvs.hh
 	operatrices_vetements.hh
 	operatrices_visualisation.hh
 	operatrices_volume.hh

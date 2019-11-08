@@ -522,7 +522,8 @@ void MoteurRenduOpenGL::calcule_rendu(
 	}
 
 	for (auto i = 0; i < m_delegue->nombre_objets(); ++i) {
-		auto objet = m_delegue->objet(i);
+		auto objet_rendu = m_delegue->objet(i);
+		auto objet = objet_rendu.objet;
 
 		if (!objet->rendu_scene) {
 			continue;
@@ -534,7 +535,7 @@ void MoteurRenduOpenGL::calcule_rendu(
 
 		pile.pousse(objet->transformation.matrice());
 
-		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats](DonneesObjet const *donnees)
+		objet->donnees.accede_lecture([&objet, &pile, &contexte, &stats, &objet_rendu](DonneesObjet const *donnees)
 		{
 			if (objet->type == type_objet::CAMERA) {
 				auto const &camera = extrait_camera(donnees);
@@ -566,15 +567,20 @@ void MoteurRenduOpenGL::calcule_rendu(
 			}
 			else {
 				auto const &corps = extrait_corps(donnees);
-				pile.pousse(corps.transformation.matrice());
+
+				if (objet_rendu.matrices.taille() == 0) {
+					pile.pousse(corps.transformation.matrice());
+				}
 
 				contexte.matrice_objet(math::matf_depuis_matd(pile.sommet()));
 
 				RenduCorps rendu_corps(&corps);
-				rendu_corps.initialise(contexte, stats);
+				rendu_corps.initialise(contexte, stats, objet_rendu.matrices);
 				rendu_corps.dessine(contexte);
 
-				pile.enleve_sommet();
+				if (objet_rendu.matrices.taille() == 0) {
+					pile.enleve_sommet();
+				}
 			}
 		});
 

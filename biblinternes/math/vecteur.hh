@@ -183,6 +183,18 @@ struct vecteur final : public detail::selecteur_base_vecteur<O, T, Ns...>::type_
 		return *this;
 	}
 
+	inline type_vecteur &operator>>=(int dec)
+	{
+		((this->data[Ns] >>= dec), ...);
+		return *this;
+	}
+
+	inline type_vecteur &operator<<=(int dec)
+	{
+		((this->data[Ns] <<= dec), ...);
+		return *this;
+	}
+
 private:
 	auto construit_index(size_t &i, type_scalaire scalaire)
 	{
@@ -640,6 +652,32 @@ template <int O, typename T, int... Ns>
 	}
 
 	return index;
+}
+
+/**
+ * Retourne un vecteur orthogonal à celui précisé.
+ */
+template <int O, typename T>
+[[nodiscard]] inline auto vec_ortho(vecteur<O, T, 0, 1, 2> const &v)
+{
+	/* NOTE : il y a une infinité de vecteurs orthogonaux à v, mais nous n'en
+	 * prenons qu'un seul de manière déterministe. On pourrait également
+	 * calculer le vecteur en utilisant la plus grande dimension de v comme
+	 * discriminant, mais cela introduit des sursauts dans les animations car la
+	 * base orthonormale peut changer si on utilise ce vecteur pour faire des
+	 * matrices de rotation ou autre.
+	 *
+	 * Pour un vecteur (a, b, c), des vecteurs orthogonaux possibles sont :
+	 * (-b, a, 0)
+	 * (-c, 0, a)
+	 * (0, -c, b)
+	 * (-b-c, a, a)
+	 * (b, -a-c, b)
+	 * (c, c, -a-b)
+	 *
+	 * nous utilisons le premier.
+	 */
+	return vecteur<O, T, 0, 1, 2>(-v.y, v.x, 0.0f);
 }
 
 /**

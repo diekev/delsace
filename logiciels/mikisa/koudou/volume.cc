@@ -24,13 +24,11 @@
 
 #include "volume.hh"
 
-#include "biblinternes/math/bruit.hh"
 #include "biblinternes/outils/gna.hh"
 
 #include "bsdf.hh"
 #include "koudou.hh"
 #include "nuanceur.hh"
-#include "structure_acceleration.hh"
 #include "types.hh"
 
 namespace kdo {
@@ -52,7 +50,7 @@ bool VolumeLoiBeers::integre(GNA &gna, ParametresRendu const &parametres, Spectr
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
-	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
+	auto isect = parametres.scene.traverse(rayon_local);
 
 	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
@@ -100,7 +98,7 @@ bool VolumeHeterogeneLoiBeers::integre(GNA &gna, ParametresRendu const &parametr
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
-	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
+	auto isect = parametres.scene.traverse(rayon_local);
 
 	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
@@ -173,7 +171,7 @@ bool VolumeDiffusionSimple::integre(
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
-	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
+	auto isect = parametres.scene.traverse(rayon_local);
 
 	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;
@@ -261,7 +259,7 @@ bool VolumeHeterogeneDiffusionSimple::integre(
 	auto rayon_local = contexte.rayon;
 	rayon_local.origine = contexte.P;
 
-	auto isect = parametres.acceleratrice->entresecte(parametres.scene, rayon_local, 1000.0);
+	auto isect = parametres.scene.traverse(rayon_local);
 
 	if (isect.type == ESECT_OBJET_TYPE_AUCUN) {
 		return false;

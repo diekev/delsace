@@ -24,8 +24,8 @@
 
 #include "commandes_objet.hh"
 
-#include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/outils/fichier.hh"
+#include "biblinternes/patrons_conception/commande.h"
 
 #include "danjo/danjo.h"
 
@@ -40,6 +40,7 @@
 /* ************************************************************************** */
 
 static auto cree_noeud_op(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine,
 		dls::chaine const &nom_noeud,
@@ -49,8 +50,7 @@ static auto cree_noeud_op(
 
 	auto op = usine(nom_op, graphe, *noeud);
 
-	auto texte = dls::contenu_fichier(op->chemin_entreface());
-	danjo::initialise_entreface(op, texte.c_str());
+	gestionnaire->initialise_entreface_fichier(op, op->chemin_entreface());
 
 	synchronise_donnees_operatrice(*noeud);
 
@@ -58,13 +58,14 @@ static auto cree_noeud_op(
 }
 
 static auto cree_graphe_creation_objet(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine,
 		dls::chaine const &nom_noeud,
 		const char *nom_op)
 {
-	auto noeud_creation = cree_noeud_op(graphe, usine, nom_noeud, nom_op);
-	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps");
+	auto noeud_creation = cree_noeud_op(gestionnaire, graphe, usine, nom_noeud, nom_op);
+	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 
 	noeud_creation->pos_y(-200.0f);
 
@@ -73,22 +74,24 @@ static auto cree_graphe_creation_objet(
 }
 
 static auto cree_graphe_objet_vide(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine)
 {
-	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps");
+	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 	graphe.dernier_noeud_sortie = noeud_sortie;
 }
 
 static auto cree_graphe_ocean(
+		danjo::GestionnaireInterface *gestionnaire,
 		Graphe &graphe,
 		UsineOperatrice &usine,
 		int temps_debut,
 		int temps_fin)
 {
-	auto noeud_grille = cree_noeud_op(graphe, usine, "grille", "Création Grille");
-	auto noeud_ocean = cree_noeud_op(graphe, usine, "océan", "Océan");
-	auto noeud_sortie = cree_noeud_op(graphe, usine, "sortie", "Sortie Corps");
+	auto noeud_grille = cree_noeud_op(gestionnaire, graphe, usine, "grille", "Création Grille");
+	auto noeud_ocean = cree_noeud_op(gestionnaire, graphe, usine, "océan", "Océan");
+	auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
 
 	noeud_grille->pos_y(-200.0f);
 	noeud_sortie->pos_y( 200.0f);
@@ -124,35 +127,36 @@ int CommandeAjoutePrereglage::execute(const std::any &pointeur, const DonneesCom
 	auto mikisa = extrait_mikisa(pointeur);
 	auto &bdd = mikisa->bdd;
 	auto nom = donnees.metadonnee;
+	auto gestionnaire = mikisa->gestionnaire_entreface;
 
 	auto objet = bdd.cree_objet(nom, type_objet::CORPS);
 
 	if (nom == "boîte") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cube");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cube");
 	}
 	else if (nom == "grille") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Grille");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Grille");
 	}
 	else if (nom == "cercle") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cercle");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cercle");
 	}
 	else if (nom == "icosphère") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Sphère Ico");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Sphère Ico");
 	}
 	else if (nom == "tube") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cylindre");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cylindre");
 	}
 	else if (nom == "cone") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cone");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Cone");
 	}
 	else if (nom == "torus") {
-		cree_graphe_creation_objet(objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Torus");
+		cree_graphe_creation_objet(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), nom, "Création Torus");
 	}
 	else if (nom == "océan") {
-		cree_graphe_ocean(objet->noeud->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
+		cree_graphe_ocean(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices(), mikisa->temps_debut, mikisa->temps_fin);
 	}
 	else if (nom == "vide") {
-		cree_graphe_objet_vide(objet->noeud->graphe, mikisa->usine_operatrices());
+		cree_graphe_objet_vide(gestionnaire, objet->noeud->graphe, mikisa->usine_operatrices());
 	}
 	else {
 		mikisa->affiche_erreur("Type de préréglage inconnu");
@@ -201,6 +205,43 @@ int CommandeAjouteObjet::execute(const std::any &pointeur, const DonneesCommande
 
 /* ************************************************************************** */
 
+struct CommandeImportObjet final : public Commande {
+	int execute(std::any const &pointeur, DonneesCommande const &/*donnees*/) override
+	{
+		auto mikisa = extrait_mikisa(pointeur);
+		auto const chemin = mikisa->requiers_dialogue(FICHIER_OUVERTURE, "*.obj *.stl");
+
+		if (chemin.est_vide()) {
+			return EXECUTION_COMMANDE_ECHOUEE;
+		}
+
+		auto &usine = mikisa->usine_operatrices();
+		auto gestionnaire = mikisa->gestionnaire_entreface;
+
+		auto obj = mikisa->bdd.cree_objet("objet", type_objet::CORPS);
+		auto &graphe = obj->noeud->graphe;
+
+		auto noeud_lecture = cree_noeud_op(gestionnaire, graphe, usine, "lecture", "Import Objet");
+		auto noeud_sortie = cree_noeud_op(gestionnaire, graphe, usine, "sortie", "Sortie Corps");
+
+		noeud_lecture->pos_y(-200.0f);
+
+		auto op_lecture = extrait_opimage(noeud_lecture->donnees);
+		op_lecture->valeur_chaine("chemin", chemin);
+
+		graphe.connecte(noeud_lecture->sortie(0), noeud_sortie->entree(0));
+		graphe.dernier_noeud_sortie = noeud_sortie;
+
+		mikisa->notifie_observatrices(type_evenement::objet | type_evenement::ajoute);
+
+		requiers_evaluation(*mikisa, OBJET_AJOUTE, "exécution import objet");
+
+		return EXECUTION_COMMANDE_REUSSIE;
+	}
+};
+
+/* ************************************************************************** */
+
 void enregistre_commandes_objet(UsineCommande &usine)
 {
 	usine.enregistre_type("ajoute_prereglage",
@@ -209,5 +250,9 @@ void enregistre_commandes_objet(UsineCommande &usine)
 
 	usine.enregistre_type("ajoute_objet",
 						   description_commande<CommandeAjouteObjet>(
+							   "objet", 0, 0, 0, false));
+
+	usine.enregistre_type("import_objet",
+						   description_commande<CommandeImportObjet>(
 							   "objet", 0, 0, 0, false));
 }

@@ -81,7 +81,6 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::TILDE:
 		case id_morceau::AROBASE:
 		case id_morceau::DOLLAR:
-		case id_morceau::DE:
 		case id_morceau::PLUS_UNAIRE:
 		case id_morceau::MOINS_UNAIRE:
 			return { dir_associativite::DROITE, 13 };

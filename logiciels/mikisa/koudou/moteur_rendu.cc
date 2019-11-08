@@ -36,7 +36,6 @@
 #include "maillage.hh"
 #include "nuanceur.hh"
 #include "statistiques.hh"
-#include "structure_acceleration.hh"
 #include "types.hh"
 #include "volume.hh"
 
@@ -176,10 +175,7 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 	ContexteNuancage contexte;
 
 	for (auto i = 0u; i < parametres.nombre_rebonds; ++i) {
-		auto const entresection = parametres.acceleratrice->entresecte(
-									  scene,
-									  rayon_local,
-									  1000.0);
+		auto const entresection = scene.traverse(rayon_local);
 
 		if (entresection.type == ESECT_OBJET_TYPE_AUCUN) {
 			auto vecteur = dls::math::vec3d(rayon_local.origine) + rayon_local.direction;
@@ -202,11 +198,17 @@ Spectre calcul_spectre(GNA &gna, ParametresRendu const &parametres, dls::phys::r
 		contexte.rayon = rayon_local;
 
 		// get color from the surface
-		auto maillage = scene.maillages[entresection.idx_objet];
-		auto nuanceur = maillage->nuanceur();
+		auto noeud = scene.noeuds[entresection.idx_objet];
+		auto nuanceur = noeud->nuanceur;
+		auto idx_volume = -1;
 
-		if (nuanceur->a_volume() && maillage->volume != -1) {
-			auto grille = scene.volumes[maillage->volume];
+		if (entresection.type == ESECT_OBJET_TYPE_TRIANGLE) {
+			auto maillage = dynamic_cast<kdo::maillage *>(noeud);
+			idx_volume = maillage->volume;
+		}
+
+		if (nuanceur->a_volume() && idx_volume != -1) {
+			auto grille = scene.volumes[idx_volume];
 			auto volume = nuanceur->cree_volume(contexte, grille);
 			Spectre Lv;
 			Spectre transmittance;

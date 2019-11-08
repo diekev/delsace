@@ -25,7 +25,8 @@
 #pragma once
 
 #include "biblinternes/phys/spectre.hh"
-#include "biblinternes/math/transformation.hh"
+
+#include "noeud.hh"
 
 namespace kdo {
 
@@ -36,12 +37,10 @@ enum class type_lumiere : char {
 	DISTANTE,
 };
 
-struct Lumiere {
-	math::transformation transformation;
-	Nuanceur *nuanceur = nullptr;
+struct Lumiere : public noeud {
 	double intensite = 0.0;
 	Spectre spectre{};
-	type_lumiere type = type_lumiere::POINT;
+	type_lumiere type_l = type_lumiere::POINT;
 	char pad[3];
 
 	Lumiere() = default;

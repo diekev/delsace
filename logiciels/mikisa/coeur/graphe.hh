@@ -79,8 +79,11 @@ enum class type_graphe : int {
 	OBJET,
 	COMPOSITE,
 	DETAIL,
+	RENDU,
 	RACINE_OBJET,
 	RACINE_COMPOSITE,
+	RACINE_NUANCEUR,
+	RACINE_RENDU,
 	INVALIDE,
 };
 
@@ -194,6 +197,8 @@ struct Graphe {
 	 * Supprime tous les noeuds et vide la sélection.
 	 */
 	void supprime_tout();
+
+	dls::chaine rend_nom_unique(const dls::chaine &nom);
 
 private:
 	/**

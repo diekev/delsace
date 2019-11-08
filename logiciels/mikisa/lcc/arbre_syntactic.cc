@@ -28,6 +28,7 @@
 
 #include "contexte_generation_code.h"
 #include "code_inst.hh"
+#include "erreur.h"
 
 namespace lcc {
 
@@ -79,6 +80,12 @@ static auto chaine_type_noeud(type_noeud type)
 			return "pour";
 		case type_noeud::PLAGE:
 			return "plage";
+		case type_noeud::RETOURNE:
+			return "retourne";
+		case type_noeud::ARRETE:
+			return "arrête";
+		case type_noeud::CONTINUE:
+			return "continue";
 	}
 
 	return "invalide";
@@ -134,8 +141,14 @@ void base::imprime_code(std::ostream &os, int profondeur)
 		os << ' ' << ' ';
 	}
 
-	os << chaine_type_noeud(this->type) << " : " << donnees.chaine
-	   << " (" << chaine_type_var(this->donnees_type) << ')' << '\n';
+	os << chaine_type_noeud(this->type);
+
+	if (this->type != type_noeud::RACINE) {
+		os << " : " << donnees.chaine
+		   << " (" << chaine_type_var(this->donnees_type) << ')';
+	}
+
+	os << '\n';
 
 	for (auto const &enfant : this->enfants) {
 		enfant->imprime_code(os, profondeur + 1);
@@ -169,6 +182,8 @@ static auto type_var_depuis_id(id_morceau id)
 	switch (id) {
 		default:
 			return type_var::INVALIDE;
+		case id_morceau::CHAINE_LITTERALE:
+			return type_var::CHAINE;
 		case id_morceau::TABLEAU:
 			return type_var::TABLEAU;
 		case id_morceau::NOMBRE_ENTIER:
@@ -239,28 +254,38 @@ int genere_code(
 			break;
 		}
 		case type_noeud::PROPRIETE:
-		{
-			auto &gest_props = contexte_generation.gest_props;
-			b->donnees_type = gest_props.type_propriete(b->chaine());
-			b->pointeur_donnees = gest_props.pointeur_donnees(b->chaine());
-
-			break;
-		}
 		case type_noeud::ATTRIBUT:
 		{
 			auto &gest_attrs = contexte_generation.gest_attrs;
+			auto donnees = gest_attrs.donnees_pour_propriete(b->chaine());
 
-			if (!gest_attrs.propriete_existe(b->chaine())) {
+			if (donnees == nullptr) {
 				if (expr_gauche) {
 					gest_attrs.requiers_attr(dls::chaine(b->chaine()), b->donnees_type, b->pointeur_donnees);
 				}
 				else {
-					// À FAIRE : erreur
+					erreur::lance_erreur(
+								"Attribut inconnu.",
+								contexte_generation,
+								b->donnees,
+								erreur::type_erreur::NORMAL);
 				}
 			}
 			else {
-				b->donnees_type = gest_attrs.type_propriete(b->chaine());
-				b->pointeur_donnees = gest_attrs.pointeur_donnees(b->chaine());
+				if (expr_gauche) {
+					if (donnees->est_non_modifiable) {
+						erreur::lance_erreur(
+									"La propriété n'est pas modifiable.",
+									contexte_generation,
+									b->donnees,
+									erreur::type_erreur::NORMAL);
+					}
+
+					donnees->est_modifiee = true;
+				}
+
+				b->donnees_type = donnees->type;
+				b->pointeur_donnees = donnees->ptr;
 			}
 
 			break;
@@ -358,7 +383,7 @@ int genere_code(
 
 					compileuse.ajoute_instructions(code_inst::CONSTRUIT_TABLEAU);
 					compileuse.ajoute_instructions(type_feuille);
-					compileuse.ajoute_instructions(feuilles.taille());
+					compileuse.ajoute_instructions(static_cast<int>(feuilles.taille()));
 
 					for (auto feuille : feuilles) {
 						compileuse.ajoute_instructions(feuille->pointeur_donnees);
@@ -373,6 +398,11 @@ int genere_code(
 				}
 				case type_var::CHAINE:
 				{
+					/* là où se trouve l'index de la chaine */
+					b->pointeur_donnees = compileuse.donnees().loge_donnees(1);
+					auto ptr = b->pointeur_donnees;
+					compileuse.donnees().stocke(ptr, static_cast<int>(contexte_generation.chaines.taille()));
+					contexte_generation.chaines.pousse(b->chaine());
 					break;
 				}
 				case type_var::COULEUR:
@@ -406,6 +436,8 @@ int genere_code(
 			}
 
 			auto type_instance = donnees_fonc.type;
+
+			contexte_generation.requetes.insere(donnees_fonc.donnees->requete);
 
 			/* rassemble les pointeurs et crée les conversions au besoin */
 			dls::tableau<int> pointeurs;
@@ -516,28 +548,49 @@ int genere_code(
 
 			/* À FAIRE : multiplication mat/vec, etc. */
 
-			auto conversion = calcul_conversion(enfant1->donnees_type, enfant2->donnees_type);
+			if (b->identifiant() == id_morceau::CROCHET_OUVRANT) {
+				if (enfant2->donnees_type != lcc::type_var::TABLEAU) {
+					erreur::lance_erreur(
+								"Un tableau est requis pour l'opérateur []",
+								contexte_generation,
+								enfant2->donnees_morceau());
+				}
 
-			if (conversion == conv_op::aucune) {
-				b->donnees_type = enfant1->donnees_type;
-			}
-			else if (conversion == conv_op::converti_type1) {
-				b->donnees_type = enfant2->donnees_type;
+				if (enfant1->donnees_type != lcc::type_var::ENT32) {
+					erreur::lance_erreur(
+								"Un nombre entier est requis dans l'opérateur []",
+								contexte_generation,
+								enfant1->donnees_morceau());
+				}
 
-				decalage1 = ajoute_conversion(
-							compileuse,
-							enfant1->donnees_type,
-							enfant2->donnees_type,
-							enfant1->pointeur_donnees);
+				b->donnees_type = lcc::type_var::ENT32;
+				decalage1 = enfant2->pointeur_donnees;
+				decalage2 = enfant1->pointeur_donnees;
 			}
 			else {
-				b->donnees_type = enfant1->donnees_type;
+				auto conversion = calcul_conversion(enfant1->donnees_type, enfant2->donnees_type);
 
-				decalage2 = ajoute_conversion(
-							compileuse,
-							enfant2->donnees_type,
-							enfant1->donnees_type,
-							enfant2->pointeur_donnees);
+				if (conversion == conv_op::aucune) {
+					b->donnees_type = enfant1->donnees_type;
+				}
+				else if (conversion == conv_op::converti_type1) {
+					b->donnees_type = enfant2->donnees_type;
+
+					decalage1 = ajoute_conversion(
+								compileuse,
+								enfant1->donnees_type,
+								enfant2->donnees_type,
+								enfant1->pointeur_donnees);
+				}
+				else {
+					b->donnees_type = enfant1->donnees_type;
+
+					decalage2 = ajoute_conversion(
+								compileuse,
+								enfant2->donnees_type,
+								enfant1->donnees_type,
+								enfant2->pointeur_donnees);
+				}
 			}
 
 			auto ajoute_insts_op_assign = [&](code_inst inst)
@@ -559,6 +612,8 @@ int genere_code(
 
 				return b->pointeur_donnees;
 			};
+
+			auto requiers_inst_type = true;
 
 			switch (b->identifiant()) {
 				case id_morceau::PLUS:
@@ -661,14 +716,25 @@ int genere_code(
 					compileuse.ajoute_instructions(code_inst::FN_COMP_OUX);
 					break;
 				}
+				case id_morceau::CROCHET_OUVRANT:
+				{
+					compileuse.ajoute_instructions(code_inst::IN_EXTRAIT_TABLEAU);
+					requiers_inst_type = false;
+					break;
+				}
 				default:
 				{
-					/* À FAIRE : erreur */
-					break;
+					erreur::lance_erreur(
+								"Opération inconnue",
+								contexte_generation,
+								b->donnees_morceau());
 				}
 			}
 
-			compileuse.ajoute_instructions(b->donnees_type);
+			if (requiers_inst_type) {
+				compileuse.ajoute_instructions(b->donnees_type);
+			}
+
 			compileuse.ajoute_instructions(decalage1);
 			compileuse.ajoute_instructions(decalage2);
 
@@ -972,8 +1038,16 @@ int genere_code(
 			 * cette instruction n'est pas nécessaire */
 			instructions.stocke(decalage_branche_si_vrai, static_cast<int>(instructions.taille()));
 
+			/* données pour cette boucle */
+			auto db = donnees_boucles{};
+			contexte_generation.boucles.empile(&db);
+
 			/* génère le code du bloc */
 			genere_code(enfant3, contexte_generation, compileuse, expr_gauche);
+
+			/* on « continue » après le bloc, mais avant d'incrémenter la
+			 * variable bouclée */
+			auto ptr_inst_continue = static_cast<int>(instructions.taille());
 
 			/* incrémente la variable */
 			compileuse.ajoute_instructions(code_inst::IN_INCREMENTE);
@@ -982,9 +1056,21 @@ int genere_code(
 
 			/* branche vers l'entrée de la boucle */
 			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
-			compileuse.ajoute_instructions(ptr_debut_boucle);
+			compileuse.ajoute_instructions(static_cast<int>(ptr_debut_boucle));
 
-			instructions.stocke(decalage_branche_si_faux, static_cast<int>(instructions.taille()));
+			auto ptr_fin_boucle = static_cast<int>(instructions.taille());
+
+			instructions.stocke(decalage_branche_si_faux, ptr_fin_boucle);
+
+			contexte_generation.boucles.depile();
+
+			for (auto ptr_arrete : db.arretes) {
+				instructions.stocke(ptr_arrete, ptr_fin_boucle);
+			}
+
+			for (auto ptr_continue : db.continues) {
+				instructions.stocke(ptr_continue, ptr_inst_continue);
+			}
 
 			break;
 		}
@@ -994,6 +1080,34 @@ int genere_code(
 				genere_code(enfant, contexte_generation, compileuse, expr_gauche);
 			}
 
+			break;
+		}
+		case type_noeud::ARRETE:
+		{
+			auto &instructions = compileuse.instructions();
+
+			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
+			auto decalage_inst = static_cast<int>(instructions.taille());
+			compileuse.ajoute_instructions(0);
+
+			auto donnees_boucle = contexte_generation.boucles.haut();
+			donnees_boucle->arretes.pousse(decalage_inst);
+			break;
+		}
+		case type_noeud::CONTINUE:
+		{
+			auto &instructions = compileuse.instructions();
+			compileuse.ajoute_instructions(code_inst::IN_BRANCHE);
+			auto decalage_inst = static_cast<int>(instructions.taille());
+			compileuse.ajoute_instructions(0);
+
+			auto donnees_boucle = contexte_generation.boucles.haut();
+			donnees_boucle->continues.pousse(decalage_inst);
+			break;
+		}
+		case type_noeud::RETOURNE:
+		{
+			compileuse.ajoute_instructions(code_inst::TERMINE);
 			break;
 		}
 	}

@@ -68,84 +68,32 @@ mikisa
 -- système de mise en cache
 -- cryptomatte
 -- format d'images : PNG, DCX, TIF
--- deep compositing
 -- bit depth (8, 16, 32)
--- rassemblement récursif des objets connectés entre eux
 -- désactivation de certains noeuds
--- alembic
 -- chemin de fichiers relatifs
 -- utilisation d'un plan personnalisable pour placer/éditer les objets (Houdini, Polybrush)
 -- flou directionnel
 -- graphe rendu/nuançage
 
 - NOEUDS
--- cache/tampon
 -- lightwrap
 -- incrustation
--- masque/rotoscopie
 -- transformation/position
 -- échantillonage de disque Poisson
 -- LUTs
 -- conversion log/linéaire Cinéon
 -- texture image, procédurelle
--- bruits procéduraux
-
-- NOEUDS 3D :
--- PARTICULES
----- entrées
------- texture (optionnelle), pour la distribution
------- objet pour l'emission (optionnel)
------- objet pour la collision
----- sorties
------- liste de points
--- PANCARTES
----- entrées
------- liste de poins (optionel), pour la distribution
------- texture
------- caméra
----- sorties
------- objet(s)
--- INSTANTIATION OBJET
----- entrées
------- liste de points
------- objet à instancier
----- sorties
------- objets
--- DISTRIBUTION POINTS
----- entrées
------- objet pour la surface a utilisé
------- texture pour définir la distribution de point (densité, rayon, etc.)
----- sorties
------- liste de points
-
-- OBJETS 3D :
--- Maillage
--- Pancarte avec masque(s) (AFTER EFFECTS)
----- 4 sommets
----- UV implicites
----- 1 normal
----- pos, rot, éch
----- pivot
--- Courbe (Bézier, Cheveux)
--- Surface (NURBS)
--- Points (Particules)
-
-- SIMULATION :
--- Particules
----- Collision à l'intérieur des bornes des polygones
----- Durée de vie des particules
 
 - CANNEVAS :
 -- sélection couleur
 
 - VUE 2D :
 -- peinture par brosse
--- rotoscopie
 -- déformation d'image avec un maillage
 
 - VUE 3D :
--- simulation 3D, particules
--- instance de cartes sur des points
+-- peinture par brosse sur les points/sommets
+-- sélection des points/primitives avec la souris
 
 - ROTOSCOPIE :
 -- assignation de couleurs aux cerces
@@ -198,20 +146,37 @@ mikisa
 -- orientation autour d'un point (modification du pivot)
 -- orientation automatique selon le chemin de mouvement (motion path) défini par une courbe de bézier
 
-STRUCTURE
--- /
--- /audios/
--- /audios/{nom}
--- /bandes/
--- /bandes/graphe/
--- /bandes/graphe/{noeud}/graphe/
--- /projets/
--- /images/
--- /images/{nom}
--- /materiaux/
--- /materiaux/{nom}
--- /vidéos/
--- /vidéos/{nom}
+- IDÉES
+-- opératrice nuançage (graphe objet, ou graphe rendu)
+-- -> ajoute une propriété "nuanceur" sur le corps pour les moteurs de rendu
+-- -> propriété "nuanceur" sur points/courbes/polygones/spheres
+-- -> rendu point comme sphère avec attribut rayon
+-- rendu -> tire propriété "nuanceur", si aucune -> utilise nuanceur par défaut (défaut volume, défaut surface)
+-- si nuanceur inexistant -> couleur violet
+-- nuanceur défaut surface -> (attr_C -> diffus -> sortie)
+-- filtre les opératrices dans le menu quand on a une connexion active dans un graphe
+-- commande de renommage multiple
+-- objet type instance/scatter, type composite (pour mieux filtrer les points créer depuis les images)?
+-- suppression d'opératrices :
+---- SRIRP, sim foule, Deep Scattering, Sim Cheveux, Grille Temporel (?), Grille Éclairage
+---- fonte maillage -> script LCC
+---- opératrices pixels -> LCC
+-- reusinage
+---- changement de la manière de déclarer les prises des opératrices et suppression de la fonction de synchronisation des opératrices
+---- ouverture et fermeture des fichiers via ligne de commandes (--> test ouverture des fichiers existants)
+---- commande pour réinitialiser le projet
+---- opératrice vide pour les opératrices n'étant pas dans l'usine + possibilité de changer l'opératrice via un menu contextuel
+
+- LCC
+-- erreur si fonction non-compatible avec le contexte
+-- graphe vers script, script vers graphe
+-- couleur_depuis_rvb, couleur_depuis_hsv, etc.
+-- type attribut (pour les scripts topologiques)
+-- converti opératrices
+---- kelvinlets dynamics (en utilisant des attributs)
+---- couleur maillage ? (requiers 2 systèmes différents pour les attributs)
+---- modification attributs ? -> couleurs aléatoire RGB, HSV
+---- création corps ?
 
 BUGS
 -- le texte sur la visionneuse 3D ne s'affiche pas correctement quand on a la scène 2D et la scène 3D actives en même temps
@@ -220,6 +185,9 @@ BUGS
 -- l'inversion de l'étalonnage ne fonctionne pas correctement
 -- crash lors de l'évaluation d'une courbe ou d'une rampe lue depuis un fichier de sauvegarde, car les données de ces types ne sont pas écrits dans les fichiers.
 -- les graphes racines ne sont ni lus ni écris
+-- les graphes de simulation ne sont pas ajournés quand un noeud en amont est modifié
+-- les graphes de simulation n'ont pas de menu après avoir ouvert un fichier de sauvegarde
+-- fuite de mémoire dans l'exécution de LCC
 
 ################################################################################
 danjo
@@ -227,26 +195,21 @@ danjo
 - initialisation propriétés
 - animation des propriétés selon le temps
 -- courbes
-- BUGS :
--- les tabs/onglets sont réinitialisés
 - controle interface
 -- courbes (teinte, couleur)
 -- rampe (sélection couleur par point de controle)
 -- meilleur différence interface sélection, entrée de nombre valeur entière ou décimale
 -- roue couleur (sélection couleur par valeur chaine)
 -- séparation drapeau activé / visibilité
--- remémoration de l'onglet choisi
 -- remémoration du texte dans l'éditeur de texte pour quand on redessine l'interface
 -- ajout d'un widget pour afficher les valeurs des attributs (danjo ?)
 -- ajout d'un widget de liste (similaire Blender -> liste matériaux, textures, etc..)
--- ajout d'un drapeau d'animabilité
 -- ajout d'un drapeau pour l'activabilité (if est_activé("valeur_max"))
 -- ajout d'une icone pour les échelles de valeurs
 -- ajout d'une icone pour les chronomètres
 -- ajout d'un opérateur pour remettre les valeurs à la valeur par défaut
 -- ajout d'un callback pour quand une valeur change, avec la valeur précédente
 -- dessine les boites de valeurs selon les min/max
--- vérifie que les params des propriétés soient correctes (i.e. par de min/max pour les énums)
 -- évaluation des scripts .dan
 -- les dialogues ferment quand on appuie sur entrée pour terminer l'édition d'une entrée de texte
 -- lecture et écriture des propriétés dans des flux

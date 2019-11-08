@@ -81,7 +81,7 @@ struct BendingConstraint {
 };
 
 static auto ajoute_contrainte_distance(
-		ListePoints3D *X,
+		AccesseusePointEcriture &X,
 		long a,
 		long b,
 		float k,
@@ -97,14 +97,14 @@ static auto ajoute_contrainte_distance(
 		c.k_prime = 1.0f;
 	}
 
-	auto const deltaP = X->point(c.p1) - X->point(c.p2);
+	auto const deltaP = X.point_local(c.p1) - X.point_local(c.p2);
 	c.longueur_repos = longueur(deltaP);
 
 	return c;
 }
 
 static auto ajoute_contrainte_courbure(
-		ListePoints3D *X,
+		AccesseusePointEcriture &X,
 		Attribut *W,
 		long pa,
 		long pb,
@@ -118,8 +118,8 @@ static auto ajoute_contrainte_courbure(
 	c.p3 = pc;
 
 	c.w = W->r32(pa)[0] + W->r32(pb)[0] + 2.0f * W->r32(pc)[0];
-	auto const centre = 0.3333f * (X->point(pa) + X->point(pb) + X->point(pc));
-	c.longueur_repos = longueur(X->point(pc) - centre);
+	auto const centre = 0.3333f * (X.point_local(pa) + X.point_local(pb) + X.point_local(pc));
+	c.longueur_repos = longueur(X.point_local(pc) - centre);
 	c.k = k;
 	c.k_prime = 1.0f - std::pow((1.0f - c.k), 1.0f / static_cast<float>(solver_iterations));
 
@@ -149,7 +149,7 @@ static void integre_explicitement_avec_attenuation(
 		Attribut *tmp_X,
 		Attribut *V,
 		Attribut *F,
-		ListePoints3D *X,
+		AccesseusePointEcriture &X,
 		Attribut *Ri,
 		Attribut *W,
 		float mass,
@@ -163,14 +163,14 @@ static void integre_explicitement_avec_attenuation(
 	auto Vcm = dls::math::vec3f(0.0f);
 	auto sumM = 0.0f;
 
-	for (auto i = 0; i < X->taille(); ++i) {
+	for (auto i = 0; i < X.taille(); ++i) {
 		extrait(V->r32(i), v);
 		extrait(F->r32(i), f);
 		auto Vi = (v * global_dampening) + (f * deltaTime) * W->r32(i)[0];
 		assigne(V->r32(i), Vi);
 
 		/* calcul la position et la vélocité du centre de masse pour l'atténuation */
-		Xcm += (X->point(i) * mass);
+		Xcm += (X.point_local(i) * mass);
 		Vcm += (Vi * mass);
 		sumM += mass;
 	}
@@ -184,8 +184,8 @@ static void integre_explicitement_avec_attenuation(
 	/* vélocité angulaire */
 	auto w = dls::math::vec3f(0.0f);
 
-	for (auto i = 0; i < X->taille(); ++i) {
-		auto Ri_i = (X->point(i) - Xcm);
+	for (auto i = 0; i < X.taille(); ++i) {
+		auto Ri_i = (X.point_local(i) - Xcm);
 		assigne(Ri->r32(i), Ri_i);
 
 		extrait(V->r32(i), v);
@@ -211,7 +211,7 @@ static void integre_explicitement_avec_attenuation(
 	w = inverse(I) * L;
 
 	/* applique l'atténuation du centre de masse */
-	for (auto i = 0; i < X->taille(); ++i) {
+	for (auto i = 0; i < X.taille(); ++i) {
 		extrait(V->r32(i), v);
 		extrait(Ri->r32(i), ri);
 		auto delVi = Vcm + produit_croix(w, ri) - v;
@@ -219,13 +219,13 @@ static void integre_explicitement_avec_attenuation(
 	}
 
 	/* calcul position prédite */
-	for (auto i = 0; i < X->taille(); ++i) {
+	for (auto i = 0; i < X.taille(); ++i) {
 		if (W->r32(i)[0] <= 0.0f) {
-			assigne(tmp_X->r32(i), X->point(i)); //fixed points
+			assigne(tmp_X->r32(i), X.point_local(i)); //fixed points
 		}
 		else {
 			extrait(V->r32(i), v);
-			assigne(tmp_X->r32(i), X->point(i) + v * deltaTime);
+			assigne(tmp_X->r32(i), X.point_local(i) + v * deltaTime);
 		}
 	}
 }
@@ -233,16 +233,16 @@ static void integre_explicitement_avec_attenuation(
 static void integre(
 		float deltaTime,
 		Attribut *V,
-		ListePoints3D *X,
+		AccesseusePointEcriture &X,
 		Attribut *tmp_X)
 {
 	auto const inv_dt = 1.0f / deltaTime;
 	auto tmp_x = dls::math::vec3f();
 
-	for (auto i = 0; i < X->taille(); i++) {
+	for (auto i = 0; i < X.taille(); i++) {
 		extrait(tmp_X->r32(i), tmp_x);
-		assigne(V->r32(i), (tmp_x - X->point(i)) * inv_dt);
-		X->point(i, tmp_x);
+		assigne(V->r32(i), (tmp_x - X.point_local(i)) * inv_dt);
+		X.point(i, tmp_x);
 	}
 }
 
@@ -372,11 +372,11 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 	auto attr_F = corps.attribut("F");
 	auto points = corps.points_pour_ecriture();
 
-	boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); ++i) {
-			auto pos_cour = points->point(i);
+			auto pos_cour = points.point_local(i);
 			auto pos_prev = dls::math::vec3f();
 			extrait(attr_P->r32(i), pos_prev);
 			auto force = dls::math::vec3f();
@@ -389,7 +389,7 @@ static void integre_verlet(Corps &corps, DonneesSimVerlet const &donnees_sim)
 
 			/* ajourne données solveur */
 			assigne(attr_P->r32(i), pos_cour);
-			points->point(i, pos_nouv);
+			points.point(i, pos_nouv);
 		}
 	});
 }
@@ -399,8 +399,8 @@ static void contraintes_distance_verlet(Corps &corps, DonneesSimVerlet const &do
 	auto points = corps.points_pour_ecriture();
 
 	for (auto const &contrainte : donnees_sim.contrainte_distance) {
-		auto vec1 = points->point(contrainte.v0);
-		auto vec2 = points->point(contrainte.v1);
+		auto vec1 = points.point_local(contrainte.v0);
+		auto vec2 = points.point_local(contrainte.v1);
 
 		/* calcul nouvelles positions */
 		auto const delta = vec2 - vec1;
@@ -410,8 +410,8 @@ static void contraintes_distance_verlet(Corps &corps, DonneesSimVerlet const &do
 		vec2 = vec2 - delta * 0.5f * difference;
 
 		/* ajourne positions */
-		points->point(contrainte.v0, vec1);
-		points->point(contrainte.v1, vec2);
+		points.point(contrainte.v0, vec1);
+		points.point(contrainte.v1, vec2);
 	}
 }
 
@@ -421,14 +421,14 @@ static void contraintes_position_verlet(Corps &corps, DonneesSimVerlet const &/*
 	auto attr_W = corps.attribut("W");
 	auto points = corps.points_pour_ecriture();
 
-	boucle_parallele(tbb::blocked_range<long>(0, points->taille()),
+	boucle_parallele(tbb::blocked_range<long>(0, points.taille()),
 					 [&](tbb::blocked_range<long> const &plage)
 	{
 		for (auto i = plage.begin(); i < plage.end(); ++i) {
 			if (attr_W->r32(i)[0] <= 0.0f) {
 				auto p = dls::math::vec3f();
 				extrait(attr_P->r32(i), p);
-				points->point(i, p);
+				points.point(i, p);
 			}
 		}
 	});
@@ -509,13 +509,13 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 		entree(0)->requiers_copie_corps(&m_corps, contexte, donnees_aval);
 
 		if (!valide_corps_entree(*this, &m_corps, true, true)) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto integration = evalue_enum("intégration");
@@ -527,15 +527,15 @@ public:
 			simule_dbp(contexte.temps_courant);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int simule_verlet(int temps)
+	res_exec simule_verlet(int temps)
 	{
 		auto points_entree = m_corps.points_pour_lecture();
 
 		auto const gravity = evalue_vecteur("gravité", temps);
-		auto const mass = evalue_decimal("masse") / static_cast<float>(points_entree->taille());
+		auto const mass = evalue_decimal("masse") / static_cast<float>(points_entree.taille());
 
 		auto W = m_corps.ajoute_attribut("W", type_attribut::R32, 1, portee_attr::POINT);
 		auto F = m_corps.ajoute_attribut("F", type_attribut::R32, 3, portee_attr::POINT);
@@ -543,12 +543,12 @@ public:
 
 		/* À FAIRE : réinitialisation */
 		if (temps == 1) {
-			for (auto i = 0; i < points_entree->taille(); ++i) {
-				assigne(P->r32(i), points_entree->point(i));
+			for (auto i = 0; i < points_entree.taille(); ++i) {
+				assigne(P->r32(i), points_entree.point_local(i));
 			}
 		}
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
+		for (auto i = 0; i < points_entree.taille(); ++i) {
 			assigne(W->r32(i), 1.0f / mass);
 		}
 
@@ -570,7 +570,7 @@ public:
 				c.v0 = cote.first;
 				c.v1 = cote.second;
 
-				c.longueur_repos = longueur(points_entree->point(c.v0) - points_entree->point(c.v1));
+				c.longueur_repos = longueur(points_entree.point_local(c.v0) - points_entree.point_local(c.v1));
 
 				m_donnees_verlet.contrainte_distance.pousse(c);
 			}
@@ -585,15 +585,15 @@ public:
 			applique_contraintes_verlet(m_corps, m_donnees_verlet);
 		}
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
-	int simule_dbp(int temps)
+	res_exec simule_dbp(int temps)
 	{
 		auto points_entree = m_corps.points_pour_ecriture();
 		auto prims_entree = m_corps.prims();
 
-		auto total_points = static_cast<size_t>(points_entree->taille());
+		auto total_points = static_cast<size_t>(points_entree.taille());
 
 		dls::tableau<unsigned short> indices;
 		dls::tableau<float> phi0; //initial dihedral angle between adjacent triangles
@@ -617,7 +617,7 @@ public:
 
 		/* prépare données */
 
-		for (auto i = 0; i < points_entree->taille(); ++i) {
+		for (auto i = 0; i < points_entree.taille(); ++i) {
 			assigne(W->r32(i), 1.0f / mass);
 		}
 
@@ -665,7 +665,7 @@ public:
 
 		if (d_constraints.est_vide() || b_constraints.est_vide()) {
 			this->ajoute_avertissement("Aucune contrainte n'a pu être ajoutée, aucun polygone trouvé !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* lance simulation */
@@ -696,7 +696,7 @@ public:
 
 		integre(dt, V, X, tmp_X);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -1079,7 +1079,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -1133,13 +1133,14 @@ public:
 		chef->indique_progression(90.0f);
 
 		auto const &vertex = delaunay.getVertices();
+		auto points = m_corps.points_pour_ecriture();
 
 		for (auto const &v : vertex) {
 			auto p = centre;
 			p.x += v.x - (taille_x / 2.0f);
 			p.z += v.y - (taille_y / 2.0f);
 
-			m_corps.ajoute_point(p.x, p.y, p.z);
+			points.ajoute_point(p.x, p.y, p.z);
 		}
 
 		auto const &cotes = delaunay.getTriangles();
@@ -1153,7 +1154,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 

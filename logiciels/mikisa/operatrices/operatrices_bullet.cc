@@ -308,13 +308,13 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_corps.reinitialise();
 
 		if (!donnees_aval->possede("monde_physique")) {
 			this->ajoute_avertissement("Aucun monde physique en aval !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		/* L'entrée 0 est pour le corps. */
@@ -329,14 +329,14 @@ public:
 
 		if (nom_objet.est_vide()) {
 			this->ajoute_avertissement("Aucun objet sélectionné");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Aucun objet de ce nom n'existe");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto monde = std::any_cast<MondePhysique *>(donnees_aval->table["monde_physique"]);
@@ -361,7 +361,7 @@ public:
 
 		monde->ajoute_corps_rigide(corps_rigide, m_objet, m_corps.transformation);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
@@ -374,7 +374,7 @@ public:
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+		compilatrice.ajoute_dependance(noeud_reseau, m_objet->noeud);
 	}
 
 	btRigidBody *cree_corps_rigide(btTransform const &transforme_initiale, btCollisionShape *forme_collision)
@@ -473,7 +473,7 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 
@@ -501,7 +501,7 @@ public:
 
 		ajourne_corps_depuis_sim();
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	void ajourne_corps_depuis_sim()

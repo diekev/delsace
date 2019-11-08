@@ -29,6 +29,8 @@
 #include "biblinternes/phys/spectre.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "coeur/arbre_hbe.hh"
+
 #include "wolika/grille_eparse.hh"
 
 #include "types.hh"
@@ -39,11 +41,10 @@ class Texture;
 namespace kdo {
 
 class Lumiere;
-class Maillage;
 class Nuanceur;
 struct ParametresRendu;
 
-struct Objet;
+struct noeud;
 
 /* ************************************************************************** */
 
@@ -62,16 +63,28 @@ Spectre spectre_monde(Monde const &monde, dls::math::vec3d const &direction);
 
 /* ************************************************************************** */
 
+struct Scene;
+
+struct delegue_scene {
+	Scene const &ptr_scene;
+
+	delegue_scene(Scene const &scene);
+
+	long nombre_elements() const;
+
+	void coords_element(int idx, dls::tableau<dls::math::vec3f> &cos) const;
+
+	dls::phys::esectd intersecte_element(long idx, const dls::phys::rayond &r) const;
+};
+
 struct Scene {
 	Monde monde{};
 
-	dls::tableau<Lumiere *> lumieres{};
-	dls::tableau<Maillage *> maillages{};
-
 	dls::tableau<wlk::grille_eparse<float> *> volumes{};
 
-	dls::tableau<Objet *> objets{};
-	Objet *objet_actif = nullptr;
+	dls::tableau<noeud *> noeuds{};
+	delegue_scene delegue;
+	bli::BVHTree *arbre_hbe = nullptr;
 
 	Scene();
 	~Scene();
@@ -79,10 +92,11 @@ struct Scene {
 	Scene(Scene const &) = default;
 	Scene &operator=(Scene const &) = default;
 
-	void ajoute_maillage(Maillage *maillage);
-	void ajoute_lumiere(Lumiere *lumiere);
-
 	void reinitialise();
+
+	void construit_arbre_hbe();
+
+	dls::phys::esectd traverse(dls::phys::rayond const &r) const;
 };
 
 /* ************************************************************************** */

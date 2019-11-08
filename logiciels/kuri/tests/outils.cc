@@ -58,7 +58,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 		analyseuse.lance_analyse(os);
 
 		if (genere_code) {
-			assembleuse.genere_code_C(contexte, os);
+			assembleuse.genere_code_C(contexte, os, "");
 		}
 	}
 	catch (const erreur::frappe &e) {

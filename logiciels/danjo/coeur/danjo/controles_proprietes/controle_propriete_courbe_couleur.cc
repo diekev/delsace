@@ -130,7 +130,7 @@ void ControleProprieteCourbeCouleur::finalise(const DonneesControle &donnees)
 	m_selection_mode->setCurrentIndex(m_courbe->mode);
 	change_mode_courbe(m_courbe->mode);
 	m_selection_type->setCurrentIndex(m_courbe->type);
-	m_utilise_table->setChecked(m_courbe->courbes[COURBE_MAITRESSE].utilise_table);
+	m_utilise_table->setChecked(m_courbe->courbes[COURBE_COULEUR_MAITRESSE].utilise_table);
 	m_pos_x->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
 	m_pos_y->ajourne_plage(m_courbe_active->valeur_min, m_courbe_active->valeur_max);
 	setToolTip(donnees.infobulle.c_str());
@@ -161,6 +161,7 @@ void ControleProprieteCourbeCouleur::change_mode_courbe(int mode)
 
 void ControleProprieteCourbeCouleur::change_type_courbe(int type)
 {
+	Q_EMIT(precontrole_change());
 	m_courbe->type = type;
 
 	Q_EMIT(controle_change());
@@ -168,11 +169,12 @@ void ControleProprieteCourbeCouleur::change_type_courbe(int type)
 
 void ControleProprieteCourbeCouleur::bascule_utilise_table(bool ouinon)
 {
-	m_courbe->courbes[COURBE_MAITRESSE].utilise_table = ouinon;
-	m_courbe->courbes[COURBE_ROUGE].utilise_table = ouinon;
-	m_courbe->courbes[COURBE_VERTE].utilise_table = ouinon;
-	m_courbe->courbes[COURBE_BLEUE].utilise_table = ouinon;
-	m_courbe->courbes[COURBE_VALEUR].utilise_table = ouinon;
+	Q_EMIT(precontrole_change());
+	m_courbe->courbes[COURBE_COULEUR_MAITRESSE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_COULEUR_ROUGE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_COULEUR_VERTE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_COULEUR_BLEUE].utilise_table = ouinon;
+	m_courbe->courbes[COURBE_COULEUR_VALEUR].utilise_table = ouinon;
 	Q_EMIT(controle_change());
 }
 
@@ -186,12 +188,14 @@ void ControleProprieteCourbeCouleur::ajourne_position(float x, float y)
 
 void ControleProprieteCourbeCouleur::ajourne_position_x(float v)
 {
+	Q_EMIT(precontrole_change());
 	m_controle_courbe->ajourne_position_x(v);
 	Q_EMIT(controle_change());
 }
 
 void ControleProprieteCourbeCouleur::ajourne_position_y(float v)
 {
+	Q_EMIT(precontrole_change());
 	m_controle_courbe->ajourne_position_y(v);
 	Q_EMIT(controle_change());
 }

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/math/limites.hh"
 #include "biblinternes/math/outils.hh"
 #include "biblinternes/math/vecteur.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -53,4 +54,56 @@ public:
 			const float radius);
 
 	long calcul_index_pos(dls::math::vec3f const &point);
+};
+
+/* ************************************************************************** */
+
+struct GrillePoint {
+	struct DonneesPoint {
+		dls::math::vec3f pos{};
+		long idx{};
+
+		DonneesPoint() = default;
+
+		DonneesPoint(dls::math::vec3f const &p, long i)
+			: pos(p)
+			, idx(i)
+		{}
+	};
+
+	using coord = dls::math::vec3i;
+	using bloc  = limites3i;
+	using tableau_index = dls::tableau<unsigned>;
+	using tableau_point = dls::tableau<DonneesPoint>;
+
+private:
+	coord m_resolution{};
+	dls::math::vec3f m_coord_min{};
+
+	tableau_index m_index_cellules{};
+	tableau_point m_points{};
+
+	float m_taille_cellule{};
+
+public:
+	GrillePoint(float taille_cellule);
+
+	static GrillePoint construit_avec_fonction(
+			std::function<dls::math::vec3f(long)> points,
+			long nombre_points,
+			float taille_cellule);
+
+	coord pos_grille(dls::math::vec3f const &p) const;
+
+	long index_cellule(dls::math::vec3f const &p) const;
+
+	long index_cellule(coord const &c) const;
+
+	long nombre_elements() const;
+
+	DonneesPoint *debut_points(long idx);
+
+	DonneesPoint *fin_points(long idx);
+
+	bloc cellules_autour(dls::math::vec3f const &p, float rayon);
 };

@@ -24,9 +24,8 @@
 
 #pragma once
 
+#include "compileuse_lcc.hh"
 #include "operatrice_corps.h"
-
-#include "lcc/contexte_generation_code.h"
 
 namespace lcc {
 struct donnees_fonction;
@@ -39,45 +38,15 @@ enum {
 	DETAIL_VOXELS,
 	DETAIL_PIXELS,
 	DETAIL_TERRAIN,
+	DETAIL_POSEIDON_GAZ,
+	DETAIL_NUANCAGE,
 };
+
+extern lcc::param_sorties params_noeuds_entree[];
+extern lcc::param_entrees params_noeuds_sortie[];
 
 struct Mikisa;
-
-/* ************************************************************************** */
-
-struct CompileuseGrapheLCC {
-	compileuse_lng m_compileuse{};
-	gestionnaire_propriete m_gest_props{};
-	gestionnaire_propriete m_gest_attrs{};
-
-	Graphe &graphe;
-
-	CompileuseGrapheLCC(Graphe &ptr_graphe);
-
-	lcc::pile &donnees();
-
-	template <typename T>
-	void remplis_donnees(
-			lcc::pile &donnees_pile,
-			dls::chaine const &nom,
-			T const &valeur)
-	{
-		::remplis_donnees(donnees_pile, m_gest_props, nom, valeur);
-	}
-
-	void stocke_attributs(lcc::pile &donnees, long idx_attr);
-
-	void charge_attributs(lcc::pile &donnees, long idx_attr);
-
-	bool compile_graphe(ContexteEvaluation const &contexte, Corps *corps);
-
-	void execute_pile(
-			lcc::ctx_exec &ctx_exec,
-			lcc::ctx_local &ctx_local,
-			lcc::pile &donnees_pile);
-
-	int pointeur_donnees(dls::chaine const &nom);
-};
+struct Nuanceur;
 
 /* ************************************************************************** */
 
@@ -104,12 +73,14 @@ public:
 
 	int type() const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 private:
-	int execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	res_exec execute_detail_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
 
-	int execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	res_exec execute_detail_pixel(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+
+	void execute_script_sur_points(ChefExecution *chef, const AccesseusePointLecture &points_entree, AccesseusePointEcriture *points_sortie);
 };
 
 /* ************************************************************************** */
@@ -141,7 +112,7 @@ public:
 
 	type_prise type_sortie(int i) const override;
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override;
 
 	/* ceci n'est appelé que lors des créations par l'utilisateur car les
 	 * opératrices venant de sauvegardes ont déjà les propriétés créées */
@@ -154,12 +125,15 @@ private:
 			dls::tableau<int> const &pointeurs);
 
 	void cree_code_coulisse_opengl(
+			DonneesAval *donnees_aval,
 			lcc::type_var type_specialise,
 			dls::tableau<int> const &pointeurs,
 			int temps_courant);
 };
 
 /* ************************************************************************** */
+
+bool compile_nuanceur_opengl(ContexteEvaluation const &contexte, Nuanceur &nuanceur);
 
 OperatriceFonctionDetail *cree_op_detail(
 		Mikisa &mikisa,

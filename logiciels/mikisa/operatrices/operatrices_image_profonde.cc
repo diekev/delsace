@@ -27,7 +27,6 @@
 #include "biblinternes/moultfilage/boucle.hh"
 #include "biblinternes/outils/constantes.h"
 #include "biblinternes/outils/gna.hh"
-#include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
 #include "coeur/base_de_donnees.hh"
@@ -57,16 +56,12 @@ static Image const *cherche_image_profonde(
 	auto image = op.entree(index)->requiers_image(contexte, donnees_aval, index_lien);
 
 	if (image == nullptr) {
-		auto flux = dls::flux_chaine();
-		flux << "Aucune image trouvée dans l'entrée à l'index " << index << ", lien " << index_lien << " !";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("Aucune image trouvée dans l'entrée à l'index ", index, ", lien ", index_lien, " !");
 		return nullptr;
 	}
 
 	if (!image->est_profonde) {
-		auto flux = dls::flux_chaine();
-		flux << "L'image à l'index " << index << "n'est pas profonde !";
-		op.ajoute_avertissement(flux.chn());
+		op.ajoute_avertissement("L'image à l'index ", index, "n'est pas profonde !");
 		return nullptr;
 	}
 
@@ -131,14 +126,14 @@ public:
 		return AIDE;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
 		auto image = cherche_image_profonde(*this, 0, contexte, donnees_aval);
 
 		if (image == nullptr) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto S = image->calque_profond_pour_lecture("S");
@@ -243,7 +238,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -281,7 +276,7 @@ public:
 		return n == 0;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		m_image.reinitialise();
 
@@ -296,7 +291,7 @@ public:
 		}
 
 		if (images.est_vide()) {
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_image.est_profonde = true;
@@ -448,7 +443,7 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 };
 
@@ -503,28 +498,15 @@ public:
 		return m_objet;
 	}
 
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
+	res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
 	{
 		INUTILISE(donnees_aval);
 		m_corps.reinitialise();
 
-		auto chemin_noeud = evalue_chaine("chemin_noeud");
-
-		if (chemin_noeud.est_vide()) {
-			this->ajoute_avertissement("Le chemin est vide !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
+		auto noeud_image = cherche_noeud_image(contexte);
 
 		if (noeud_image == nullptr) {
-			this->ajoute_avertissement("Impossible de trouver le noeud !");
-			return EXECUTION_ECHOUEE;
-		}
-
-		if (noeud_image->type != type_noeud::OPERATRICE) {
-			this->ajoute_avertissement("Le noeud n'est pas un noeud composite !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto op = extrait_opimage(noeud_image->donnees);
@@ -532,19 +514,19 @@ public:
 
 		if (!image->est_profonde) {
 			this->ajoute_avertissement("L'image n'est pas profonde !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		m_objet = trouve_objet(contexte);
 
 		if (m_objet == nullptr) {
 			this->ajoute_avertissement("Ne peut pas trouver l'objet caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		if (m_objet->type != type_objet::CAMERA) {
 			this->ajoute_avertissement("L'objet n'est pas une caméra !");
-			return EXECUTION_ECHOUEE;
+			return res_exec::ECHOUEE;
 		}
 
 		auto S1 = image->calque_profond_pour_lecture("S");
@@ -586,6 +568,7 @@ public:
 		echelle = (echelle == 0.0f) ? 0.0f : 1.0f / echelle;
 
 		auto C = m_corps.ajoute_attribut("C", type_attribut::R32, 3, portee_attr::POINT);
+		auto points = m_corps.points_pour_ecriture();
 
 		for (auto y = 0; y < hauteur; ++y) {
 			for (auto x = 0; x < largeur; ++x, ++index) {
@@ -618,7 +601,7 @@ public:
 
 					min_z = std::min(pmnd.z, min_z);
 
-					auto idx_point = m_corps.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
+					auto idx_point = points.ajoute_point(pmnd.x, pmnd.y, pmnd.z);
 
 					auto couleur = dls::math::vec3f(eR[i], eG[i], eB[i]);
 					assigne(C->r32(idx_point), couleur);
@@ -630,7 +613,31 @@ public:
 
 		chef->indique_progression(100.0f);
 
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
+	}
+
+	Noeud const *cherche_noeud_image(ContexteEvaluation const &contexte)
+	{
+		auto chemin_noeud = evalue_chaine("chemin_noeud");
+
+		if (chemin_noeud == "") {
+			this->ajoute_avertissement("Le chemin du noeud pour l'image est vide");
+			return nullptr;
+		}
+
+		auto noeud_image = cherche_noeud_pour_chemin(*contexte.bdd, chemin_noeud);
+
+		if (noeud_image == nullptr) {
+			this->ajoute_avertissement("Impossible de trouver le noeud spécifié");
+			return nullptr;
+		}
+
+		if (noeud_image->type != type_noeud::OPERATRICE) {
+			this->ajoute_avertissement("Le noeud image n'est pas un composite");
+			return nullptr;
+		}
+
+		return noeud_image;
 	}
 
 	void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau) override
@@ -638,12 +645,18 @@ public:
 		if (m_objet == nullptr) {
 			m_objet = trouve_objet(contexte);
 
-			if (m_objet == nullptr) {
-				return;
+			if (m_objet != nullptr) {
+				compilatrice.ajoute_dependance(noeud_reseau, m_objet->noeud);
 			}
 		}
 
-		compilatrice.ajoute_dependance(noeud_reseau, m_objet);
+		auto noeud_image = cherche_noeud_image(contexte);
+
+		if (noeud_image == nullptr) {
+			return;
+		}
+
+		compilatrice.ajoute_dependance(noeud_reseau, noeud_base_hierarchie(const_cast<Noeud *>(noeud_image)));
 	}
 
 	void obtiens_liste(
@@ -653,6 +666,10 @@ public:
 	{
 		if (raison == "nom_caméra") {
 			for (auto &objet : contexte.bdd->objets()) {
+				if (objet->type != type_objet::CAMERA) {
+					continue;
+				}
+
 				liste.pousse(objet->noeud->nom);
 			}
 		}
@@ -676,54 +693,11 @@ public:
 
 /* ************************************************************************** */
 
-class OpCacheImage final : public OperatriceImage {
-public:
-	static constexpr auto NOM = "Cache Image";
-	static constexpr auto AIDE = "";
-
-	OpCacheImage(Graphe &graphe_parent, Noeud &noeud_)
-		: OperatriceImage(graphe_parent, noeud_)
-	{
-		entrees(1);
-		sorties(1);
-	}
-
-	const char *nom_classe() const override
-	{
-		return NOM;
-	}
-
-	const char *texte_aide() const override
-	{
-		return AIDE;
-	}
-
-	int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) override
-	{
-		INUTILISE(donnees_aval);
-		m_image.reinitialise();
-
-		entree(0)->requiers_copie_image(m_image, contexte, donnees_aval);
-
-		auto chef = contexte.chef;
-		chef->demarre_evaluation("cache image");
-
-		entree(0)->signale_cache(chef);
-
-		chef->indique_progression(100.0f);
-
-		return EXECUTION_REUSSIE;
-	}
-};
-
-/* ************************************************************************** */
-
 void enregistre_operatrices_image_profonde(UsineOperatrice &usine)
 {
 	usine.enregistre_type(cree_desc<OpAplanisProfonde>());
 	usine.enregistre_type(cree_desc<OpFusionProfonde>());
 	usine.enregistre_type(cree_desc<OpPointsDepuisProfonde>());
-	usine.enregistre_type(cree_desc<OpCacheImage>());
 }
 
 #pragma clang diagnostic pop
