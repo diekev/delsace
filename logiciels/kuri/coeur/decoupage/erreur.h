@@ -108,4 +108,10 @@ using frappe = lng::erreur::frappe<type_erreur>;
 		noeud::base *n,
 		dls::tableau<DonneesCandidate> const &candidates);
 
+[[noreturn]] void lance_erreur_fonction_nulctx(
+		ContexteGenerationCode const &contexte,
+		noeud::base *appl_fonc,
+		noeud::base *decl_fonc,
+		noeud::base *decl_appel);
+
 }

@@ -332,4 +332,48 @@ void lance_erreur_fonction_inconnue(
 	throw erreur::frappe(ss.chn().c_str(), type_erreur);
 }
 
+void lance_erreur_fonction_nulctx(
+			ContexteGenerationCode const &contexte,
+			noeud::base *appl_fonc,
+			noeud::base *decl_fonc,
+			noeud::base *decl_appel)
+{
+	auto const &morceau = appl_fonc->morceau;
+	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
+	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto ligne = module->tampon[numero_ligne];
+
+	dls::flux_chaine ss;
+
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << module->chemin << ':' << (appl_fonc->morceau.ligne_pos >> 32) << '\n';
+	ss << "\nDans l'appel de la fonction « " << appl_fonc->morceau.chaine << " »\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Ne peut appeler une fonction avec contexte dans une fonction sans contexte !\n";
+
+	ss << "Note : la fonction est appelée dans « " << decl_fonc->chaine() << " » "
+	   << " qui a été déclarée sans contexte via #!nulctx.\n";
+
+	ss << "\n« " << decl_fonc->chaine() << " » est déclarée ici :\n";
+	module = contexte.module(static_cast<size_t>(decl_fonc->morceau.module));
+	ss << module->chemin << ':' << (decl_fonc->morceau.ligne_pos >> 32) << '\n' << '\n';
+	ss << module->tampon[static_cast<long>(decl_fonc->morceau.ligne_pos >> 32)];
+
+	ss << "\n« " << appl_fonc->chaine() << " » est déclarée ici :\n";
+	module = contexte.module(static_cast<size_t>(decl_appel->morceau.module));
+	ss << module->chemin << ':' << (decl_appel->morceau.ligne_pos >> 32) << '\n' << '\n';
+	ss << module->tampon[static_cast<long>(decl_appel->morceau.ligne_pos >> 32)];
+
+	ss << "\n----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::APPEL_INVALIDE);
+}
+
 }

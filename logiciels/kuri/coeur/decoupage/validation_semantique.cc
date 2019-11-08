@@ -834,6 +834,21 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			donnees_fonction = candidate->df;
 
+			using dls::outils::possede_drapeau;
+			auto decl_fonc = contexte.donnees_fonction->noeud_decl;
+
+			if (possede_drapeau(decl_fonc->drapeaux, FORCE_NULCTX)) {
+				auto decl_appel = donnees_fonction->noeud_decl;
+
+				if (!donnees_fonction->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
+					erreur::lance_erreur_fonction_nulctx(
+								contexte,
+								b,
+								decl_fonc,
+								decl_appel);
+				}
+			}
+
 			/* met en place les drapeaux sur les enfants */
 
 			auto i = 0l;
