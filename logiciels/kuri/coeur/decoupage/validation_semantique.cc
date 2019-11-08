@@ -654,7 +654,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			 * - considération du type de retour des fonctions récursive
 			 */
 
-			auto const est_externe = dls::outils::possede_drapeau(b->drapeaux, EST_EXTERNE);
+			using dls::outils::possede_drapeau;
+			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
 			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
 			auto nom_fonction = b->morceau.chaine;
@@ -688,12 +689,15 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.commence_fonction(donnees_fonction);
 
 			auto donnees_var = DonneesVariable{};
-			donnees_var.est_dynamique = true;
-			donnees_var.est_variadic = false;
-			donnees_var.donnees_type = contexte.index_type_ctx;
-			donnees_var.est_argument = true;
 
-			contexte.pousse_locale("ctx", donnees_var);
+			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+				donnees_var.est_dynamique = true;
+				donnees_var.est_variadic = false;
+				donnees_var.donnees_type = contexte.index_type_ctx;
+				donnees_var.est_argument = true;
+
+				contexte.pousse_locale("ctx", donnees_var);
+			}
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction->nom_args) {

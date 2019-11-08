@@ -171,6 +171,7 @@ enum drapeaux_noeud : unsigned short {
 	PREND_REFERENCE        = (1 << 12),
 	FORCE_ENLIGNE          = (1 << 13),
 	FORCE_HORSLIGNE        = (1 << 14),
+	FORCE_NULCTX           = (1 << 15),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };

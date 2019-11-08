@@ -59,6 +59,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	bool m_etiquette_enligne = false;
 	bool m_etiquette_horsligne = false;
+	bool m_etiquette_nulctx = false;
 
 public:
 	analyseuse_grammaire(

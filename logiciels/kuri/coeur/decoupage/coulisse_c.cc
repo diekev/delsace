@@ -816,15 +816,20 @@ static void cree_appel(
 		virgule = ' ';
 	}
 
-	if ((b->df != nullptr) && !b->df->est_externe) {
-		os << virgule;
-		os << "ctx";
-		virgule = ',';
-	}
+	if (b->df != nullptr) {
+		auto df = b->df;
+		auto noeud_decl = df->noeud_decl;
 
-	if ((b->df != nullptr) && b->df->est_coroutine) {
-		os << virgule << "&__etat" << b->morceau.ligne_pos;
-		virgule = ',';
+		if (!df->est_externe && noeud_decl != nullptr && !dls::outils::possede_drapeau(noeud_decl->drapeaux, FORCE_NULCTX)) {
+			os << virgule;
+			os << "ctx";
+			virgule = ',';
+		}
+
+		if (df->est_coroutine) {
+			os << virgule << "&__etat" << b->morceau.ligne_pos;
+			virgule = ',';
+		}
 	}
 
 	for (auto enf : enfants) {
@@ -1542,7 +1547,9 @@ void genere_code_C(
 			 * Nos tableaux, quant à eux, sont portables.
 			 */
 
-			auto const est_externe = dls::outils::possede_drapeau(b->drapeaux, EST_EXTERNE);
+			using dls::outils::possede_drapeau;
+
+			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
 			if (est_externe) {
 				return;
@@ -1591,17 +1598,17 @@ void genere_code_C(
 
 				os << "static ";
 
-				if (!dls::outils::possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+				if (!possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "inline ";
 				}
 
 				os << "void " << nom_fonction;
 			}
 			else if (moult_retour) {
-				if (dls::outils::possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
 					os << "static inline void ";
 				}
-				else if (dls::outils::possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "static void __attribute__ ((noinline)) ";
 				}
 				else {
@@ -1611,10 +1618,10 @@ void genere_code_C(
 				os << nom_fonction;
 			}
 			else {
-				if (dls::outils::possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
 					os << "static inline ";
 				}
-				else if (dls::outils::possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
 					os << "__attribute__ ((noinline)) ";
 				}
 
@@ -1635,7 +1642,7 @@ void genere_code_C(
 				virgule = ' ';
 			}
 
-			if (!donnees_fonction->est_externe) {
+			if (!donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
 				os << virgule;
 				os << "__contexte_global *ctx";
 				virgule = ',';

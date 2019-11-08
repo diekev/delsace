@@ -395,6 +395,11 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		m_etiquette_horsligne = false;
 	}
 
+	if (m_etiquette_nulctx) {
+		noeud->drapeaux |= FORCE_NULCTX;
+		m_etiquette_nulctx = false;
+	}
+
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
@@ -1497,8 +1502,9 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 						// ajoute le chemin à la liste des chemins où chercher les modules
 					}
 					else if (directive == "nulctx") {
-						// marque la fonction; où la déclaration d'un pointeur
-						// de fonction comme ne requierant pas le contexte implicite (À FAIRE)
+						/* marque la  déclaration  d'une fonction comme ne
+						 * requierant pas le contexte implicite */
+						m_etiquette_nulctx = true;
 					}
 					else {
 						lance_erreur("Directive inconnue");
