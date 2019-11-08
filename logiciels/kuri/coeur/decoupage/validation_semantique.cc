@@ -24,6 +24,7 @@
 
 #include "validation_semantique.hh"
 
+#include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/magasin.hh"
@@ -32,6 +33,8 @@
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "erreur.h"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 namespace noeud {
 
@@ -178,8 +181,8 @@ static void drapeau_depuis_niveau_compat(
 static void verifie_compatibilite(
 		base *b,
 		ContexteGenerationCode &contexte,
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		base *enfant)
 {
 	auto compat = sont_compatibles(type_arg, type_enf, enfant->type);
@@ -207,8 +210,8 @@ static void verifie_compatibilite(
 }
 
 bool peut_operer(
-		const DonneesType &type1,
-		const DonneesType &type2,
+		const DonneesTypeFinal &type1,
+		const DonneesTypeFinal &type2,
 		type_noeud type_gauche,
 		type_noeud type_droite)
 {
@@ -273,6 +276,75 @@ bool peut_operer(
 	}
 
 	return false;
+}
+
+/* ************************************************************************** */
+
+static long resoud_type_final(
+		ContexteGenerationCode &contexte,
+		DonneesTypeDeclare &type_declare,
+		bool est_type_fonction = false)
+{
+	if (type_declare.taille() == 0) {
+		return -1l;
+	}
+
+	auto type_final = DonneesTypeFinal{};
+	auto idx_expr = 0;
+
+	for (auto i = 0; i < type_declare.taille(); ++i) {
+		auto type = type_declare[i];
+
+		if (type == id_morceau::TYPE_DE) {
+			auto expr = type_declare.expressions[idx_expr++];
+			assert(expr != nullptr);
+
+			performe_validation_semantique(expr, contexte);
+
+			if (expr->type == type_noeud::VARIABLE) {
+				auto &dv = contexte.donnees_variable(expr->chaine());
+				expr->index_type = dv.index_type;
+			}
+
+			auto &dt = contexte.magasin_types.donnees_types[expr->index_type];
+
+			type_final.pousse(dt);
+		}
+		else if (type == id_morceau::TROIS_POINTS) {
+			/* Pour la signature des fonctions, il faut préserver le type
+			 * variadic sinon nous ne pourrions vérifier que les types attendus
+			 * et ceux donnés sont compatibles, ou encore accidentellement
+			 * assigner un pointeur de fonction prenant un tableau à un type
+			 * espérant une liste variadique et vice versa.
+			 */
+			type_final.pousse(est_type_fonction ? type : id_morceau::TABLEAU);
+		}
+		else if (type == id_morceau::TABLEAU) {
+			auto expr = type_declare.expressions[idx_expr++];
+
+			if (expr != nullptr) {
+				performe_validation_semantique(expr, contexte);
+
+				/* À FAIRE : évalue expressions tableaux */
+				if (expr->type != type_noeud::NOMBRE_ENTIER) {
+					erreur::lance_erreur(
+								"Attendu un nombre entier dans l'expression du type",
+								contexte,
+								expr->morceau);
+				}
+
+				auto taille = lng::converti_nombre_entier(expr->chaine());
+				type = type | (static_cast<int>(taille) << 8);
+			}
+
+			type_final.pousse(type);
+		}
+		else {
+			type_final.pousse(type);
+		}
+	}
+
+	return contexte.magasin_types.ajoute_type(type_final);
 }
 
 /* ************************************************************************** */
@@ -517,7 +589,7 @@ static void valide_acces_membre(
 		if (membre->chaine() == "info") {
 			auto id_info_type = contexte.donnees_structure("InfoType").id;
 
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::POINTEUR);
 			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(id_info_type << 8));
 
@@ -548,7 +620,7 @@ static void valide_acces_membre(
 		}
 #endif
 		if (membre->chaine() == "pointeur") {
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::POINTEUR);
 			dt.pousse(type_structure.dereference());
 
@@ -593,7 +665,7 @@ static void valide_acces_membre(
 
 		auto const &donnees_membres = iter->second;
 
-		b->index_type = donnees_structure.donnees_types[donnees_membres.index_membre];
+		b->index_type = donnees_structure.index_types[donnees_membres.index_membre];
 
 		/* pointeur vers une fonction */
 		if (membre->type == type_noeud::APPEL_FONCTION) {
@@ -671,6 +743,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto est_principale = (nom_fonction == "principale");
 
+			donnees_fonction->index_type = resoud_type_final(contexte, donnees_fonction->type_declare, true);
+			b->index_type = resoud_type_final(contexte, b->type_declare);
+
+			for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
+				auto idx_type = resoud_type_final(contexte, donnees_fonction->types_retours_decl[i]);
+				donnees_fonction->idx_types_retours.pousse(idx_type);
+			}
+
 			if (!est_externe && !est_principale) {
 				donnees_fonction->nom_broye = broye_nom_fonction(nom_fonction, module->nom, donnees_fonction->index_type);
 			}
@@ -683,6 +763,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (est_externe) {
+				for (auto const &nom : donnees_fonction->nom_args) {
+					auto &argument = donnees_fonction->args[nom];
+					argument.index_type = resoud_type_final(contexte, argument.type_declare);
+				}
+
 				return;
 			}
 
@@ -693,7 +778,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
 				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
-				donnees_var.donnees_type = contexte.index_type_ctx;
+				donnees_var.index_type = contexte.index_type_ctx;
 				donnees_var.est_argument = true;
 
 				contexte.pousse_locale("ctx", donnees_var);
@@ -701,40 +786,29 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto const &nom : donnees_fonction->nom_args) {
-				auto const &argument = donnees_fonction->args[nom];
+				auto &argument = donnees_fonction->args[nom];
+				argument.index_type = resoud_type_final(contexte, argument.type_declare);
 
-				auto index_dt = argument.donnees_type;
-
-				auto dt = DonneesType{};
-
-				if (argument.est_variadic) {
-					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
-
-					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(dt_var.dereference());
-				}
-				else {
-					dt = contexte.magasin_types.donnees_types[argument.donnees_type];
-				}
-
-				index_dt = contexte.magasin_types.ajoute_type(dt);
+				auto index_dt = argument.index_type;
 
 				donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.donnees_type = index_dt;
+				donnees_var.index_type = index_dt;
 				donnees_var.est_argument = true;
+
+				auto dt = contexte.magasin_types.donnees_types[argument.index_type];
 
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
 					dt = dt.dereference();
-					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt);
+					donnees_var.index_type = contexte.magasin_types.ajoute_type(dt);
 				}
 
 				contexte.pousse_locale(nom, donnees_var);
 
 				if (argument.est_employe) {
-					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
+					auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
 					auto id_structure = 0l;
 
 					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
@@ -749,10 +823,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					/* pousse chaque membre de la structure sur la pile */
 
 					for (auto &dm : ds.donnees_membres) {
-						auto index_dt_m = ds.donnees_types[dm.second.index_membre];
+						auto index_dt_m = ds.index_types[dm.second.index_membre];
 
 						donnees_var.est_dynamique = argument.est_dynamic;
-						donnees_var.donnees_type = index_dt_m;
+						donnees_var.index_type = index_dt_m;
 						donnees_var.est_argument = true;
 						donnees_var.est_membre_emploie = true;
 
@@ -917,6 +991,28 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			 * x = 6; # illégal car non dynamique
 			 */
 
+			auto declare_variable = [&b, &contexte]()
+			{
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
+				donnees_var.index_type = b->index_type;
+
+				auto &dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
+
+				if (dt.type_base() == id_morceau::REFERENCE) {
+					donnees_var.drapeaux |= BESOIN_DEREF;
+				}
+
+				if (contexte.donnees_fonction == nullptr) {
+					contexte.pousse_globale(b->morceau.chaine, donnees_var);
+				}
+				else {
+					contexte.pousse_locale(b->morceau.chaine, donnees_var);
+				}
+
+				b->aide_generation_code = GENERE_CODE_DECL_VAR;
+			};
+
 			if (dls::outils::possede_drapeau(b->drapeaux, DECLARATION)) {
 				auto existe = contexte.locale_existe(b->morceau.chaine);
 
@@ -940,43 +1036,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 
 				if (b->index_type == -1l) {
+					b->index_type = resoud_type_final(contexte, b->type_declare);
+				}
+
+				if (b->index_type == -1l) {
 					erreur::lance_erreur(
-								"Aucun type précisé",
+								"Aucun type précisé pour la déclaration",
 								contexte,
 								b->morceau,
 								erreur::type_erreur::TYPE_INCONNU);
 				}
 
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.donnees_type = b->index_type;
-
-				auto &dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-				}
-				else if (dt.type_base() == id_morceau::TYPE_DE) {
-					assert(dt.expr != nullptr);
-					performe_validation_semantique(dt.expr, contexte);
-
-					if (dt.expr->type == type_noeud::VARIABLE) {
-						auto &dv = contexte.donnees_variable(dt.expr->chaine());
-						b->index_type = dv.donnees_type;
-					}
-
-					donnees_var.donnees_type = b->index_type;
-				}
-
-				if (contexte.donnees_fonction == nullptr) {
-					contexte.pousse_globale(b->morceau.chaine, donnees_var);
-				}
-				else {
-					contexte.pousse_locale(b->morceau.chaine, donnees_var);
-				}
-
-				b->aide_generation_code = GENERE_CODE_DECL_VAR;
-
+				declare_variable();
 				return;
 			}
 
@@ -984,7 +1055,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (iter_locale != contexte.fin_locales()) {
 				b->aide_generation_code = GENERE_CODE_ACCES_VAR;
-				b->index_type = iter_locale->second.donnees_type;
+				b->index_type = iter_locale->second.index_type;
 				return;
 			}
 
@@ -992,48 +1063,24 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (iter_globale != contexte.fin_globales()) {
 				b->aide_generation_code = GENERE_CODE_ACCES_VAR;
-				b->index_type = iter_globale->second.donnees_type;
+				b->index_type = iter_globale->second.index_type;
 				return;
 			}
+
 			if (b->aide_generation_code == GAUCHE_ASSIGNATION) {
-				b->aide_generation_code = GENERE_CODE_DECL_VAR;
+				if (b->index_type == -1l) {
+					b->index_type = resoud_type_final(contexte, b->type_declare);
+				}
 
 				if (b->index_type == -1l) {
 					erreur::lance_erreur(
-								"Aucun type précisé",
+								"Aucun type précisé pour l'assignation déclarative",
 								contexte,
 								b->morceau,
 								erreur::type_erreur::TYPE_INCONNU);
 				}
 
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.donnees_type = b->index_type;
-
-				auto &dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-				}
-				else if (dt.type_base() == id_morceau::TYPE_DE) {
-					assert(dt.expr != nullptr);
-					performe_validation_semantique(dt.expr, contexte);
-
-					if (dt.expr->type == type_noeud::VARIABLE) {
-						auto &dv = contexte.donnees_variable(dt.expr->chaine());
-						b->index_type = dv.donnees_type;
-					}
-
-					donnees_var.donnees_type = b->index_type;
-				}
-
-				if (contexte.donnees_fonction == nullptr) {
-					contexte.pousse_globale(b->morceau.chaine, donnees_var);
-				}
-				else {
-					contexte.pousse_locale(b->morceau.chaine, donnees_var);
-				}
-
+				declare_variable();
 				return;
 			}
 
@@ -1062,36 +1109,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			/* déclare la variable */
+			b->index_type = resoud_type_final(contexte, b->type_declare);
+
 			if (b->index_type != -1l) {
-				b->aide_generation_code = GENERE_CODE_DECL_VAR;
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.donnees_type = b->index_type;
-
-				auto &dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-				}
-				else if (dt.type_base() == id_morceau::TYPE_DE) {
-					assert(dt.expr != nullptr);
-					performe_validation_semantique(dt.expr, contexte);
-
-					if (dt.expr->type == type_noeud::VARIABLE) {
-						auto &dv = contexte.donnees_variable(dt.expr->chaine());
-						b->index_type = dv.donnees_type;
-					}
-
-					donnees_var.donnees_type = b->index_type;
-				}
-
-				if (contexte.donnees_fonction == nullptr) {
-					contexte.pousse_globale(b->morceau.chaine, donnees_var);
-				}
-				else {
-					contexte.pousse_locale(b->morceau.chaine, donnees_var);
-				}
-
+				declare_variable();
 				return;
 			}
 
@@ -1232,6 +1253,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* Ajourne les données du premier enfant si elles sont invalides, dans le
 			 * cas d'une déclaration de variable. */
+			variable->index_type = resoud_type_final(contexte, variable->type_declare);
+
 			if (variable->index_type == -1l) {
 				variable->index_type = b->index_type;
 			}
@@ -1442,9 +1465,55 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						b->index_type = enfant->index_type;
 						break;
 					}
+					case id_morceau::MOINS_UNAIRE:
+					{
+						if (enfant->type == type_noeud::NOMBRE_REEL) {
+							auto val = denombreuse::converti_chaine_nombre_reel(
+								enfant->morceau.chaine,
+								enfant->morceau.identifiant);
+
+							b->valeur_calculee = -val;
+						}
+						else if (enfant->type == type_noeud::NOMBRE_ENTIER) {
+							auto val = denombreuse::converti_chaine_nombre_entier(
+								enfant->morceau.chaine,
+								enfant->morceau.identifiant);
+
+							b->valeur_calculee = -val;
+						}
+
+						b->drapeaux |= EST_CALCULE;
+						b->index_type = enfant->index_type;
+						b->type = enfant->type;
+
+						break;
+					}
+					case id_morceau::PLUS_UNAIRE:
+					{
+						if (enfant->type == type_noeud::NOMBRE_REEL) {
+							auto val = denombreuse::converti_chaine_nombre_reel(
+								enfant->morceau.chaine,
+								enfant->morceau.identifiant);
+
+							b->valeur_calculee = val;
+						}
+						else if (enfant->type == type_noeud::NOMBRE_ENTIER) {
+							auto val = denombreuse::converti_chaine_nombre_entier(
+								enfant->morceau.chaine,
+								enfant->morceau.identifiant);
+
+							b->valeur_calculee = val;
+						}
+
+						b->drapeaux |= EST_CALCULE;
+						b->index_type = enfant->index_type;
+						b->type = enfant->type;
+
+						break;
+					}
 					case id_morceau::AROBASE:
 					{
-						auto dt = DonneesType{};
+						auto dt = DonneesTypeFinal{};
 						dt.pousse(id_morceau::POINTEUR);
 						dt.pousse(type);
 
@@ -1779,7 +1848,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				contexte.magasin_chaines.pousse(nom_var);
 
 				auto donnees_var = DonneesVariable{};
-				donnees_var.donnees_type = contexte.magasin_types[TYPE_Z32];
+				donnees_var.index_type = contexte.magasin_types[TYPE_Z32];
 				donnees_var.drapeaux = 0;
 
 				contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
@@ -1809,10 +1878,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto donnees_var = DonneesVariable{};
 
 				if (df != nullptr) {
-					donnees_var.donnees_type = df->idx_types_retours[i];
+					donnees_var.index_type = df->idx_types_retours[i];
 				}
 				else {
-					donnees_var.donnees_type = index_type;
+					donnees_var.index_type = index_type;
 				}
 
 				donnees_var.drapeaux = drapeaux;
@@ -1828,7 +1897,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				idx->index_type = index_type;
 
 				auto donnees_var = DonneesVariable{};
-				donnees_var.donnees_type = index_type;
+				donnees_var.index_type = index_type;
 				donnees_var.drapeaux = 0;
 				donnees_var.est_dynamique = est_dynamique;
 
@@ -1862,6 +1931,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::TRANSTYPE:
 		{
+			b->index_type = resoud_type_final(contexte, b->type_declare);
+
 			if (b->index_type == -1l) {
 				erreur::lance_erreur(
 							"Ne peut transtyper vers un type invalide",
@@ -1890,6 +1961,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::TAILLE_DE:
 		{
+			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
+			b->valeur_calculee = resoud_type_final(contexte, type_declare);
 			b->index_type = contexte.magasin_types[TYPE_N32];
 			valides_enfants(b, contexte);
 			break;
@@ -2072,7 +2145,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			DonneesType dt;
+			DonneesTypeFinal dt;
 			dt.pousse(id_morceau::TABLEAU | static_cast<int>(feuilles.taille() << 8));
 			dt.pousse(contexte.magasin_types.donnees_types[type_feuille]);
 
@@ -2092,7 +2165,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto &donnees_struct = contexte.donnees_structure(b->chaine());
 
-			DonneesType dt;
+			DonneesTypeFinal dt;
 			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
 
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
@@ -2106,7 +2179,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (enfant->type == type_noeud::VARIABLE) {
 				auto &dv = contexte.donnees_variable(enfant->chaine());
-				enfant->index_type = dv.donnees_type;
+				enfant->index_type = dv.index_type;
 			}
 
 			auto &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
@@ -2173,7 +2246,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto &ds = contexte.donnees_structure(nom_struct);
 
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::POINTEUR);
 			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
 
@@ -2203,6 +2276,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto nombre_enfant = b->enfants.taille();
 			auto enfant = b->enfants.debut();
+
+			b->index_type = resoud_type_final(contexte, b->type_declare);
+
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
@@ -2211,7 +2287,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->drapeaux |= EST_CALCULE;
 				b->valeur_calculee = taille;
 
-				auto ndt = DonneesType{};
+				auto ndt = DonneesTypeFinal{};
 				ndt.pousse(id_morceau::TABLEAU);
 				ndt.pousse(dt.dereference());
 
@@ -2222,7 +2298,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				nombre_enfant -= 1;
 			}
 			else {
-				auto dt_loge = DonneesType{};
+				auto dt_loge = DonneesTypeFinal{};
 				dt_loge.pousse(id_morceau::POINTEUR);
 				dt_loge.pousse(dt);
 
@@ -2239,6 +2315,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::RELOGE:
 		{
+			b->index_type = resoud_type_final(contexte, b->type_declare);
+
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			auto nombre_enfant = b->enfants.taille();
@@ -2252,7 +2330,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->drapeaux |= EST_CALCULE;
 				b->valeur_calculee = taille;
 
-				auto ndt = DonneesType{};
+				auto ndt = DonneesTypeFinal{};
 				ndt.pousse(id_morceau::TABLEAU);
 				ndt.pousse(dt.dereference());
 
@@ -2263,7 +2341,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				nombre_enfant -= 1;
 			}
 			else {
-				auto dt_loge = DonneesType{};
+				auto dt_loge = DonneesTypeFinal{};
 				dt_loge.pousse(id_morceau::POINTEUR);
 				dt_loge.pousse(dt);
 
@@ -2347,12 +2425,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			{
 				auto &dt_membre = contexte.magasin_types.donnees_types[enfant->index_type];
 				auto align_type = alignement(contexte, dt_membre);
-				max_alignement = std::max(align_type, max_alignement);
+				max_alignement = std::max(align_type, max_alignement);			
 				auto padding = (align_type - (decalage % align_type)) % align_type;
 				decalage += padding;
 
-				ds.donnees_membres.insere({enfant->chaine(), { ds.donnees_types.taille(), expression, decalage }});
-				ds.donnees_types.pousse(enfant->index_type);
+				ds.donnees_membres.insere({enfant->chaine(), { ds.index_types.taille(), expression, decalage }});
+				ds.index_types.pousse(enfant->index_type);
 
 				decalage += taille_type_octet(contexte, dt_membre);
 			};
@@ -2369,6 +2447,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					auto decl_membre = enfant->enfants.front();
 					auto decl_expr = enfant->enfants.back();
+
+					decl_membre->index_type = resoud_type_final(contexte, decl_membre->type_declare);
 
 					verifie_redefinition_membre(decl_membre);
 
@@ -2403,6 +2483,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					ajoute_donnees_membre(decl_membre, decl_expr);
 				}
 				else if (enfant->type == type_noeud::VARIABLE) {
+					enfant->index_type = resoud_type_final(contexte, enfant->type_declare);
+
 					verifie_redefinition_membre(enfant);
 					verifie_inclusion_valeur(enfant);
 
@@ -2418,6 +2500,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::DECLARATION_ENUM:
 		{
+			auto &ds = contexte.donnees_structure(b->chaine());
+			ds.noeud_decl->index_type = resoud_type_final(contexte, ds.noeud_decl->type_declare);
+
 			/* À FAIRE : vérification nom unique, valeur unique + test */
 			break;
 		}
@@ -2478,7 +2563,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 
 				if (!duplique) {
-					variables.pousse({dls::chaine(debut->first), {debut->second.donnees_type, debut->second.drapeaux}});
+					variables.pousse({dls::chaine(debut->first), {debut->second.index_type, debut->second.drapeaux}});
 				}
 			}
 

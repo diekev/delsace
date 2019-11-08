@@ -82,7 +82,7 @@ struct DonneesVariable {
 #ifdef AVEC_LLVM
 	llvm::Value *valeur{nullptr};
 #endif
-	long donnees_type{-1l};
+	long index_type{-1l};
 	bool est_dynamique = false;
 	bool est_variadic = false;
 	char drapeaux = 0;
@@ -104,7 +104,7 @@ struct DonneesMembre {
 
 struct DonneesStructure {
 	dls::dico_desordonne<dls::vue_chaine, DonneesMembre> donnees_membres{};
-	dls::tableau<long> donnees_types{};
+	dls::tableau<long> index_types{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *type_llvm{nullptr};

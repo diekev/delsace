@@ -41,35 +41,86 @@
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 
-DonneesType::DonneesType(id_morceau i0)
+/* ************************************************************************** */
+
+id_morceau DonneesTypeDeclare::type_base() const
+{
+	if (donnees.est_vide()) {
+		return id_morceau::INCONNU;
+	}
+
+	return donnees[0];
+}
+
+long DonneesTypeDeclare::taille() const
+{
+	return donnees.taille();
+}
+
+id_morceau DonneesTypeDeclare::operator[](long idx) const
+{
+	return donnees[idx];
+}
+
+void DonneesTypeDeclare::pousse(id_morceau id)
+{
+	donnees.pousse(id);
+}
+
+void DonneesTypeDeclare::pousse(const DonneesTypeDeclare &dtd)
+{
+	for (auto i = 0; i < dtd.donnees.taille(); ++i) {
+		donnees.pousse(dtd.donnees[i]);
+	}
+
+	for (auto i = 0; i < dtd.expressions.taille(); ++i) {
+		expressions.pousse(dtd.expressions[i]);
+	}
+}
+
+DonneesTypeDeclare::type_plage DonneesTypeDeclare::plage() const
+{
+	return type_plage(donnees.donnees(), donnees.donnees() + donnees.taille());
+}
+
+DonneesTypeDeclare::type_plage DonneesTypeDeclare::dereference() const
+{
+	auto p = plage();
+	p.effronte();
+	return p;
+}
+
+/* ************************************************************************** */
+
+DonneesTypeFinal::DonneesTypeFinal(id_morceau i0)
 {
 	m_donnees.pousse(i0);
 }
 
-DonneesType::DonneesType(id_morceau i0, id_morceau i1)
+DonneesTypeFinal::DonneesTypeFinal(id_morceau i0, id_morceau i1)
 {
 	m_donnees.pousse(i0);
 	m_donnees.pousse(i1);
 }
 
-DonneesType::DonneesType(DonneesType::type_plage autre)
+DonneesTypeFinal::DonneesTypeFinal(type_plage_donnees_type autre)
 {
 	pousse(autre);
 }
 
-void DonneesType::pousse(id_morceau identifiant)
+void DonneesTypeFinal::pousse(id_morceau identifiant)
 {
 	m_donnees.pousse(identifiant);
 }
 
-void DonneesType::pousse(const DonneesType &autre)
+void DonneesTypeFinal::pousse(const DonneesTypeFinal &autre)
 {
 	auto const taille = m_donnees.taille();
 	m_donnees.redimensionne(taille + autre.m_donnees.taille());
 	std::copy(autre.m_donnees.debut(), autre.m_donnees.fin(), m_donnees.debut() + taille);
 }
 
-void DonneesType::pousse(DonneesType::type_plage autre)
+void DonneesTypeFinal::pousse(type_plage_donnees_type autre)
 {
 	auto const taille = m_donnees.taille();
 	m_donnees.reserve(taille + autre.taille());
@@ -80,12 +131,12 @@ void DonneesType::pousse(DonneesType::type_plage autre)
 	}
 }
 
-id_morceau DonneesType::type_base() const
+id_morceau DonneesTypeFinal::type_base() const
 {
 	return m_donnees.front();
 }
 
-bool DonneesType::est_invalide() const
+bool DonneesTypeFinal::est_invalide() const
 {
 	if (m_donnees.est_vide()) {
 		return true;
@@ -101,37 +152,37 @@ bool DonneesType::est_invalide() const
 	}
 }
 
-DonneesType::iterateur_const DonneesType::begin() const
+DonneesTypeFinal::iterateur_const DonneesTypeFinal::begin() const
 {
 	return m_donnees.debut_inverse();
 }
 
-DonneesType::iterateur_const DonneesType::end() const
+DonneesTypeFinal::iterateur_const DonneesTypeFinal::end() const
 {
 	return m_donnees.fin_inverse();
 }
 
-DonneesType::type_plage DonneesType::plage() const
+type_plage_donnees_type DonneesTypeFinal::plage() const
 {
-	auto d = &m_donnees[0];
+	auto d = m_donnees.donnees();
 	auto f = d + this->taille();
 
 	return type_plage(d, f);
 }
 
-DonneesType::type_plage DonneesType::dereference() const
+type_plage_donnees_type DonneesTypeFinal::dereference() const
 {
 	auto p = plage();
 	p.effronte();
 	return p;
 }
 
-long DonneesType::taille() const
+long DonneesTypeFinal::taille() const
 {
 	return m_donnees.taille();
 }
 
-dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode const &contexte)
+dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGenerationCode const &contexte)
 {
 	dls::flux_chaine os;
 
@@ -256,79 +307,79 @@ dls::chaine chaine_type(DonneesType const &donnees_type, ContexteGenerationCode 
 
 struct DonneesTypeCommun {
 	int val_enum;
-	DonneesType dt;
+	DonneesTypeFinal dt;
 };
 
 static const DonneesTypeCommun donnees_types_communs[] = {
-	{ TYPE_N8, DonneesType(id_morceau::N8) },
-	{ TYPE_N16, DonneesType(id_morceau::N16) },
-	{ TYPE_N32, DonneesType(id_morceau::N32) },
-	{ TYPE_N64, DonneesType(id_morceau::N64) },
-	{ TYPE_Z8, DonneesType(id_morceau::Z8) },
-	{ TYPE_Z16, DonneesType(id_morceau::Z16) },
-	{ TYPE_Z32, DonneesType(id_morceau::Z32) },
-	{ TYPE_Z64, DonneesType(id_morceau::Z64) },
-	{ TYPE_R16, DonneesType(id_morceau::R16) },
-	{ TYPE_R32, DonneesType(id_morceau::R32) },
-	{ TYPE_R64, DonneesType(id_morceau::R64) },
-	{ TYPE_EINI, DonneesType(id_morceau::EINI) },
-	{ TYPE_CHAINE, DonneesType(id_morceau::CHAINE) },
-	{ TYPE_RIEN, DonneesType(id_morceau::RIEN) },
-	{ TYPE_BOOL, DonneesType(id_morceau::BOOL) },
-	{ TYPE_OCTET, DonneesType(id_morceau::OCTET) },
+	{ TYPE_N8, DonneesTypeFinal(id_morceau::N8) },
+	{ TYPE_N16, DonneesTypeFinal(id_morceau::N16) },
+	{ TYPE_N32, DonneesTypeFinal(id_morceau::N32) },
+	{ TYPE_N64, DonneesTypeFinal(id_morceau::N64) },
+	{ TYPE_Z8, DonneesTypeFinal(id_morceau::Z8) },
+	{ TYPE_Z16, DonneesTypeFinal(id_morceau::Z16) },
+	{ TYPE_Z32, DonneesTypeFinal(id_morceau::Z32) },
+	{ TYPE_Z64, DonneesTypeFinal(id_morceau::Z64) },
+	{ TYPE_R16, DonneesTypeFinal(id_morceau::R16) },
+	{ TYPE_R32, DonneesTypeFinal(id_morceau::R32) },
+	{ TYPE_R64, DonneesTypeFinal(id_morceau::R64) },
+	{ TYPE_EINI, DonneesTypeFinal(id_morceau::EINI) },
+	{ TYPE_CHAINE, DonneesTypeFinal(id_morceau::CHAINE) },
+	{ TYPE_RIEN, DonneesTypeFinal(id_morceau::RIEN) },
+	{ TYPE_BOOL, DonneesTypeFinal(id_morceau::BOOL) },
+	{ TYPE_OCTET, DonneesTypeFinal(id_morceau::OCTET) },
 
-	{ TYPE_PTR_N8, DonneesType(id_morceau::POINTEUR, id_morceau::N8) },
-	{ TYPE_PTR_N16, DonneesType(id_morceau::POINTEUR, id_morceau::N16) },
-	{ TYPE_PTR_N32, DonneesType(id_morceau::POINTEUR, id_morceau::N32) },
-	{ TYPE_PTR_N64, DonneesType(id_morceau::POINTEUR, id_morceau::N64) },
-	{ TYPE_PTR_Z8, DonneesType(id_morceau::POINTEUR, id_morceau::Z8) },
-	{ TYPE_PTR_Z16, DonneesType(id_morceau::POINTEUR, id_morceau::Z16) },
-	{ TYPE_PTR_Z32, DonneesType(id_morceau::POINTEUR, id_morceau::Z32) },
-	{ TYPE_PTR_Z64, DonneesType(id_morceau::POINTEUR, id_morceau::Z64) },
+	{ TYPE_PTR_N8, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N8) },
+	{ TYPE_PTR_N16, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N16) },
+	{ TYPE_PTR_N32, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N32) },
+	{ TYPE_PTR_N64, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N64) },
+	{ TYPE_PTR_Z8, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z8) },
+	{ TYPE_PTR_Z16, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z16) },
+	{ TYPE_PTR_Z32, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z32) },
+	{ TYPE_PTR_Z64, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z64) },
 
-	{ TYPE_PTR_R16, DonneesType(id_morceau::POINTEUR, id_morceau::R16) },
-	{ TYPE_PTR_R32, DonneesType(id_morceau::POINTEUR, id_morceau::R32) },
-	{ TYPE_PTR_R64, DonneesType(id_morceau::POINTEUR, id_morceau::R64) },
-	{ TYPE_PTR_EINI, DonneesType(id_morceau::POINTEUR, id_morceau::EINI) },
-	{ TYPE_PTR_CHAINE, DonneesType(id_morceau::POINTEUR, id_morceau::CHAINE) },
-	{ TYPE_PTR_RIEN, DonneesType(id_morceau::POINTEUR, id_morceau::RIEN) },
-	{ TYPE_PTR_NUL, DonneesType(id_morceau::POINTEUR, id_morceau::NUL) },
-	{ TYPE_PTR_BOOL, DonneesType(id_morceau::POINTEUR, id_morceau::BOOL) },
+	{ TYPE_PTR_R16, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R16) },
+	{ TYPE_PTR_R32, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R32) },
+	{ TYPE_PTR_R64, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R64) },
+	{ TYPE_PTR_EINI, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::EINI) },
+	{ TYPE_PTR_CHAINE, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::CHAINE) },
+	{ TYPE_PTR_RIEN, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::RIEN) },
+	{ TYPE_PTR_NUL, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::NUL) },
+	{ TYPE_PTR_BOOL, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::BOOL) },
 
-	{ TYPE_REF_N8, DonneesType(id_morceau::REFERENCE, id_morceau::N8) },
-	{ TYPE_REF_N16, DonneesType(id_morceau::REFERENCE, id_morceau::N16) },
-	{ TYPE_REF_N32, DonneesType(id_morceau::REFERENCE, id_morceau::N32) },
-	{ TYPE_REF_N64, DonneesType(id_morceau::REFERENCE, id_morceau::N64) },
-	{ TYPE_REF_Z8, DonneesType(id_morceau::REFERENCE, id_morceau::Z8) },
-	{ TYPE_REF_Z16, DonneesType(id_morceau::REFERENCE, id_morceau::Z16) },
-	{ TYPE_REF_Z32, DonneesType(id_morceau::REFERENCE, id_morceau::Z32) },
-	{ TYPE_REF_Z64, DonneesType(id_morceau::REFERENCE, id_morceau::Z64) },
+	{ TYPE_REF_N8, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N8) },
+	{ TYPE_REF_N16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N16) },
+	{ TYPE_REF_N32, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N32) },
+	{ TYPE_REF_N64, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N64) },
+	{ TYPE_REF_Z8, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z8) },
+	{ TYPE_REF_Z16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z16) },
+	{ TYPE_REF_Z32, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z32) },
+	{ TYPE_REF_Z64, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z64) },
 
-	{ TYPE_REF_R16, DonneesType(id_morceau::REFERENCE, id_morceau::R16) },
-	{ TYPE_REF_R32, DonneesType(id_morceau::REFERENCE, id_morceau::R32) },
-	{ TYPE_REF_R64, DonneesType(id_morceau::REFERENCE, id_morceau::R64) },
-	{ TYPE_REF_EINI, DonneesType(id_morceau::REFERENCE, id_morceau::EINI) },
-	{ TYPE_REF_CHAINE, DonneesType(id_morceau::REFERENCE, id_morceau::CHAINE) },
-	{ TYPE_REF_RIEN, DonneesType(id_morceau::REFERENCE, id_morceau::RIEN) },
-	{ TYPE_REF_NUL, DonneesType(id_morceau::REFERENCE, id_morceau::NUL) },
-	{ TYPE_REF_BOOL, DonneesType(id_morceau::REFERENCE, id_morceau::BOOL) },
+	{ TYPE_REF_R16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R16) },
+	{ TYPE_REF_R32, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R32) },
+	{ TYPE_REF_R64, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R64) },
+	{ TYPE_REF_EINI, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::EINI) },
+	{ TYPE_REF_CHAINE, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::CHAINE) },
+	{ TYPE_REF_RIEN, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::RIEN) },
+	{ TYPE_REF_NUL, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::NUL) },
+	{ TYPE_REF_BOOL, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::BOOL) },
 
-	{ TYPE_TABL_N8, DonneesType(id_morceau::TABLEAU, id_morceau::N8) },
-	{ TYPE_TABL_N16, DonneesType(id_morceau::TABLEAU, id_morceau::N16) },
-	{ TYPE_TABL_N32, DonneesType(id_morceau::TABLEAU, id_morceau::N32) },
-	{ TYPE_TABL_N64, DonneesType(id_morceau::TABLEAU, id_morceau::N64) },
-	{ TYPE_TABL_Z8, DonneesType(id_morceau::TABLEAU, id_morceau::Z8) },
-	{ TYPE_TABL_Z16, DonneesType(id_morceau::TABLEAU, id_morceau::Z16) },
-	{ TYPE_TABL_Z32, DonneesType(id_morceau::TABLEAU, id_morceau::Z32) },
-	{ TYPE_TABL_Z64, DonneesType(id_morceau::TABLEAU, id_morceau::Z64) },
+	{ TYPE_TABL_N8, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N8) },
+	{ TYPE_TABL_N16, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N16) },
+	{ TYPE_TABL_N32, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N32) },
+	{ TYPE_TABL_N64, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N64) },
+	{ TYPE_TABL_Z8, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z8) },
+	{ TYPE_TABL_Z16, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z16) },
+	{ TYPE_TABL_Z32, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z32) },
+	{ TYPE_TABL_Z64, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z64) },
 
-	{ TYPE_TABL_R16, DonneesType(id_morceau::TABLEAU, id_morceau::R16) },
-	{ TYPE_TABL_R32, DonneesType(id_morceau::TABLEAU, id_morceau::R32) },
-	{ TYPE_TABL_R64, DonneesType(id_morceau::TABLEAU, id_morceau::R64) },
-	{ TYPE_TABL_EINI, DonneesType(id_morceau::TABLEAU, id_morceau::EINI) },
-	{ TYPE_TABL_CHAINE, DonneesType(id_morceau::TABLEAU, id_morceau::CHAINE) },
-	{ TYPE_TABL_BOOL, DonneesType(id_morceau::TABLEAU, id_morceau::BOOL) },
-	{ TYPE_TABL_OCTET, DonneesType(id_morceau::TABLEAU, id_morceau::OCTET) },
+	{ TYPE_TABL_R16, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R16) },
+	{ TYPE_TABL_R32, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R32) },
+	{ TYPE_TABL_R64, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R64) },
+	{ TYPE_TABL_EINI, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::EINI) },
+	{ TYPE_TABL_CHAINE, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::CHAINE) },
+	{ TYPE_TABL_BOOL, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::BOOL) },
+	{ TYPE_TABL_OCTET, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::OCTET) },
 };
 
 MagasinDonneesType::MagasinDonneesType()
@@ -355,7 +406,7 @@ static bool peut_etre_dereference(id_morceau id)
 	}
 }
 
-long MagasinDonneesType::ajoute_type(const DonneesType &donnees)
+long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 {
 	if (donnees.est_invalide()) {
 		return -1l;
@@ -631,7 +682,7 @@ static auto converti_type_simple_C(
 void MagasinDonneesType::converti_type_C(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom_variable,
-		DonneesType::type_plage donnees,
+		type_plage_donnees_type donnees,
 		dls::flux_chaine &os,
 		bool echappe,
 		bool echappe_struct,
@@ -809,7 +860,7 @@ void MagasinDonneesType::converti_type_C(
 #ifdef AVEC_LLVM
 llvm::Type *MagasinDonneesType::converti_type(
 		ContexteGenerationCode &contexte,
-		const DonneesType &donnees)
+		const DonneesTypeFinal &donnees)
 {
 	auto index = ajoute_type(donnees);
 	auto &dt = donnees_types[index];
@@ -925,7 +976,7 @@ llvm::Type *converti_type_simple(
 		}
 		case id_morceau::EINI:
 		{
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::EINI);
 
 			auto index_eini = contexte.magasin_types.ajoute_type(dt);
@@ -936,7 +987,7 @@ llvm::Type *converti_type_simple(
 
 				auto index_struct_info = contexte.donnees_structure("InfoType").id;
 
-				auto dt_info = DonneesType{};
+				auto dt_info = DonneesTypeFinal{};
 				dt_info.pousse(id_morceau::POINTEUR);
 				dt_info.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
 
@@ -963,7 +1014,7 @@ llvm::Type *converti_type_simple(
 		}
 		case id_morceau::CHAINE:
 		{
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::CHAINE);
 
 			auto index_chaine = contexte.magasin_types.ajoute_type(dt);
@@ -995,11 +1046,11 @@ llvm::Type *converti_type_simple(
 }
 #endif
 
-static DonneesType analyse_type(
-		DonneesType::iterateur_const &debut,
+static DonneesTypeFinal analyse_type(
+		DonneesTypeFinal::iterateur_const &debut,
 		bool pousse_virgule = false)
 {
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 
 	if (*debut == id_morceau::FONC || *debut == id_morceau::COROUT) {
 		/* fonc ou corout */
@@ -1040,13 +1091,14 @@ static DonneesType analyse_type(
 }
 
 /**
- * Retourne un vecteur contenant les DonneesType de chaque paramètre et du type
- * de retour d'un DonneesType d'un pointeur fonction. Si le DonneesType passé en
- * paramètre n'est pas un pointeur fonction, retourne un vecteur vide.
+ * Retourne un vecteur contenant les DonneesTypeFinal de chaque paramètre et du
+ * type de retour d'un DonneesTypeFinal d'un pointeur fonction. Si le
+ * DonneesTypeFinal passé en paramètre n'est pas un pointeur fonction, retourne
+ * un vecteur vide.
  */
 [[nodiscard]] auto donnees_types_parametres(
 		MagasinDonneesType &magasin,
-		DonneesType const &donnees_type,
+		DonneesTypeFinal const &donnees_type,
 		long &nombre_types_retour) noexcept(false) -> dls::tableau<long>
 {
 	if (donnees_type.type_base() != id_morceau::FONC && donnees_type.type_base() != id_morceau::COROUT) {
@@ -1095,7 +1147,7 @@ llvm::Type *converti_type(
 		}
 
 		llvm::Type *type = nullptr;
-		auto dt = DonneesType{};
+		auto dt = DonneesTypeFinal{};
 		dls::tableau<llvm::Type *> parametres;
 
 		auto dt_params = donnees_types_parametres(donnees_type);
@@ -1134,7 +1186,7 @@ llvm::Type *converti_type(
 
 unsigned alignement(
 		ContexteGenerationCode &contexte,
-		const DonneesType &donnees_type)
+		const DonneesTypeFinal &donnees_type)
 {
 	id_morceau identifiant = donnees_type.type_base();
 
@@ -1179,7 +1231,7 @@ unsigned alignement(
 
 			auto a = 0u;
 
-			for (auto const &donnees : ds.donnees_types) {
+			for (auto const &donnees : ds.index_types) {
 				auto const &dt = contexte.magasin_types.donnees_types[donnees];
 				a = std::max(a, alignement(contexte, dt));
 			}
@@ -1255,8 +1307,8 @@ bool est_type_reel(id_morceau type)
 }
 
 niveau_compat sont_compatibles(
-		DonneesType const &type1,
-		DonneesType const &type2,
+		DonneesTypeFinal const &type1,
+		DonneesTypeFinal const &type2,
 		type_noeud type_droite)
 {
 	if (type1 == type2) {
@@ -1346,7 +1398,7 @@ niveau_compat sont_compatibles(
 
 unsigned int taille_type_octet(
 		ContexteGenerationCode &contexte,
-		const DonneesType &donnees_type)
+		const DonneesTypeFinal &donnees_type)
 {
 	auto type_base = donnees_type.type_base();
 

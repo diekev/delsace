@@ -131,7 +131,7 @@ void assembleuse_arbre::genere_code_C(
 	 * bibliothèques C. */
 	auto donnees_var = DonneesVariable{};
 	donnees_var.est_dynamique = true;
-	donnees_var.donnees_type = contexte_generation.magasin_types[TYPE_Z32];
+	donnees_var.index_type = contexte_generation.magasin_types[TYPE_Z32];
 
 	contexte_generation.pousse_globale("errno", donnees_var);
 
@@ -161,12 +161,12 @@ void assembleuse_arbre::genere_code_C(
 	dm.index_membre = 0;
 	ds_contexte_global.donnees_membres.insere({ "compteur", dm });
 
-	ds_contexte_global.donnees_types.pousse(magasin[TYPE_Z32]);
+	ds_contexte_global.index_types.pousse(magasin[TYPE_Z32]);
 
 	contexte_generation.ajoute_donnees_structure("__contexte_global", ds_contexte_global);
 	//contexte_generation.index_type_ctx = ds_contexte_global.index_type;
 
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::POINTEUR);
 	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds_contexte_global.id << 8));
 	contexte_generation.index_type_ctx = magasin.ajoute_type(dt);
@@ -222,7 +222,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 {
 	os << "------------------------------------------------------------------\n";
 	os << "noeud::base              : " << sizeof(noeud::base) << '\n';
-	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
+	os << "DonneesTypeFinal         : " << sizeof(DonneesTypeFinal) << '\n';
 	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';
 	os << "dls::liste<noeud::base *> : " << sizeof(dls::liste<noeud::base *>) << '\n';
 	os << "std::any                 : " << sizeof(std::any) << '\n';

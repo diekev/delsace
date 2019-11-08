@@ -160,7 +160,7 @@ static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
-		DonneesType &donnees_type);
+		DonneesTypeFinal &donnees_type);
 
 static auto cree_info_type_structure_C(
 		dls::flux_chaine &os_decl,
@@ -168,7 +168,7 @@ static auto cree_info_type_structure_C(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine const &nom_struct,
 		DonneesStructure const &donnees_structure,
-		DonneesType &dt)
+		DonneesTypeFinal &dt)
 {
 	auto nom_info_type = "__info_type_struct" + dls::vers_chaine(index++);
 
@@ -190,7 +190,7 @@ static auto cree_info_type_structure_C(
 	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	/* crée un tableau fixe puis converti le en tableau dyn */
-	auto nombre_membres = donnees_structure.donnees_types.taille();
+	auto nombre_membres = donnees_structure.index_types.taille();
 
 	if (donnees_structure.est_externe && nombre_membres == 0) {
 		os_init << nom_info_type << ".membres.taille = 0;\n";
@@ -202,8 +202,8 @@ static auto cree_info_type_structure_C(
 	dls::tableau<dls::chaine> pointeurs;
 	pointeurs.reserve(nombre_membres);
 
-	for (auto i = 0l; i < donnees_structure.donnees_types.taille(); ++i) {
-		auto index_dt = donnees_structure.donnees_types[i];
+	for (auto i = 0l; i < donnees_structure.index_types.taille(); ++i) {
+		auto index_dt = donnees_structure.index_types[i];
 		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
 
 		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
@@ -236,10 +236,10 @@ static auto cree_info_type_structure_C(
 
 	/* alloue un tableau fixe pour stocker les pointeurs */
 	auto idx_type_tabl = contexte.donnees_structure("InfoTypeMembreStructure").id;
-	auto type_struct_membre = DonneesType{};
+	auto type_struct_membre = DonneesTypeFinal{};
 	type_struct_membre.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(idx_type_tabl << 8));
 
-	auto dt_tfixe = DonneesType{};
+	auto dt_tfixe = DonneesTypeFinal{};
 	dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(nombre_membres << 8));
 	dt_tfixe.pousse(type_struct_membre);
 
@@ -261,7 +261,7 @@ static auto cree_info_type_structure_C(
 	os_init << "};\n";
 
 	/* alloue un tableau dynamique */
-	auto dt_tdyn = DonneesType{};
+	auto dt_tdyn = DonneesTypeFinal{};
 	dt_tdyn.pousse(id_morceau::TABLEAU);
 	dt_tdyn.pousse(type_struct_membre);
 
@@ -360,7 +360,7 @@ static dls::chaine cree_info_type_C(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
-		DonneesType &donnees_type)
+		DonneesTypeFinal &donnees_type)
 {
 	auto valeur = dls::chaine("");
 
@@ -909,8 +909,8 @@ static void declare_structures_C(
 		auto const &nom_struct = broye_nom_simple(contexte.nom_struct(is));
 		os << "typedef struct " << nom_struct << "{\n";
 
-		for (auto i = 0l; i < donnees.donnees_types.taille(); ++i) {
-			auto index_dt = donnees.donnees_types[i];
+		for (auto i = 0l; i < donnees.index_types.taille(); ++i) {
+			auto index_dt = donnees.index_types[i];
 			auto &dt = contexte.magasin_types.donnees_types[index_dt];
 
 			for (auto paire_idx_mb : donnees.donnees_membres) {
@@ -968,7 +968,7 @@ static auto genere_code_acces_membre(
 
 static void cree_initialisation(
 		ContexteGenerationCode &contexte,
-		DonneesType::type_plage dt_parent,
+		DonneesTypeFinal::type_plage dt_parent,
 		dls::chaine const &chaine_parent,
 		dls::vue_chaine const &accesseur,
 		dls::flux_chaine &os)
@@ -981,8 +981,8 @@ static void cree_initialisation(
 		auto const index_structure = static_cast<long>(dt_parent.front() >> 8);
 		auto const &ds = contexte.donnees_structure(index_structure);
 
-		for (auto i = 0l; i < ds.donnees_types.taille(); ++i) {
-			auto index_dt = ds.donnees_types[i];
+		for (auto i = 0l; i < ds.index_types.taille(); ++i) {
+			auto index_dt = ds.index_types[i];
 			auto dt_enf = contexte.magasin_types.donnees_types[index_dt].plage();
 
 			for (auto paire_idx_mb : ds.donnees_membres) {
@@ -1348,7 +1348,7 @@ static void genere_code_C_prepasse(
 			}
 
 			/* alloue un tableau fixe */
-			auto dt_tfixe = DonneesType{};
+			auto dt_tfixe = DonneesTypeFinal{};
 			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
 			dt_tfixe.pousse(type);
 
@@ -1377,7 +1377,7 @@ static void genere_code_C_prepasse(
 			os << "};\n";
 
 			/* alloue un tableau dynamique */
-			auto dt_tdyn = DonneesType{};
+			auto dt_tdyn = DonneesTypeFinal{};
 			dt_tdyn.pousse(id_morceau::TABLEAU);
 			dt_tdyn.pousse(type);
 
@@ -1502,9 +1502,7 @@ void genere_code_C(
 			/* Crée les infos types pour tous les types connus.
 			 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
 			for (auto &dt : contexte.magasin_types.donnees_types) {
-				if (dt.type_base() != id_morceau::TYPE_DE) {
-					cree_info_type_C(contexte, os, os_init, dt);
-				}
+				cree_info_type_C(contexte, os, os_init, dt);
 			}
 			temps_generation += debut_generation.temps();
 
@@ -1650,7 +1648,7 @@ void genere_code_C(
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
-				donnees_var.donnees_type = contexte.index_type_ctx;
+				donnees_var.index_type = contexte.index_type_ctx;
 				donnees_var.est_argument = true;
 
 				contexte.pousse_locale("ctx", donnees_var);
@@ -1666,22 +1664,9 @@ void genere_code_C(
 				os << virgule;
 
 				auto &argument = donnees_fonction->args[nom];
-				auto index_type = argument.donnees_type;
+				auto index_type = argument.index_type;
 
-				auto dt = DonneesType{};
-
-				if (argument.est_variadic) {
-					auto &dt_var = contexte.magasin_types.donnees_types[index_type];
-
-					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(dt_var.dereference());
-
-					index_type = argument.donnees_type;
-					contexte.magasin_types.ajoute_type(dt);
-				}
-				else {
-					dt = contexte.magasin_types.donnees_types[index_type];
-				}
+				auto dt = contexte.magasin_types.donnees_types[index_type];
 
 				auto nom_broye = broye_nom_simple(nom);
 
@@ -1696,19 +1681,19 @@ void genere_code_C(
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.donnees_type = index_type;
+				donnees_var.index_type = index_type;
 				donnees_var.est_argument = true;
 
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
-					donnees_var.donnees_type = contexte.magasin_types.ajoute_type(dt.dereference());
-					dt = contexte.magasin_types.donnees_types[donnees_var.donnees_type];
+					donnees_var.index_type = contexte.magasin_types.ajoute_type(dt.dereference());
+					dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
 				}
 
 				contexte.pousse_locale(nom, donnees_var);
 
 				if (argument.est_employe) {
-					auto &dt_var = contexte.magasin_types.donnees_types[argument.donnees_type];
+					auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
 					auto id_structure = 0l;
 					auto est_pointeur = false;
 
@@ -1725,10 +1710,10 @@ void genere_code_C(
 					/* pousse chaque membre de la structure sur la pile */
 
 					for (auto &dm : ds.donnees_membres) {
-						auto index_dt_m = ds.donnees_types[dm.second.index_membre];
+						auto index_dt_m = ds.index_types[dm.second.index_membre];
 
 						donnees_var.est_dynamique = argument.est_dynamic;
-						donnees_var.donnees_type = index_dt_m;
+						donnees_var.index_type = index_dt_m;
 						donnees_var.est_argument = true;
 						donnees_var.est_membre_emploie = true;
 						donnees_var.structure = broye_nom_simple(nom) + (est_pointeur ? "->" : ".");
@@ -1800,7 +1785,7 @@ void genere_code_C(
 				 * par des pointeurs pour la déclaration */
 				if (dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
 					if (dt.type_base() != id_morceau::TABLEAU && (dt.type_base() & 0xff) == id_morceau::TABLEAU) {
-						auto ndt = DonneesType{};
+						auto ndt = DonneesTypeFinal{};
 						ndt.pousse(id_morceau::POINTEUR);
 						ndt.pousse(dt.dereference());
 
@@ -1819,7 +1804,7 @@ void genere_code_C(
 				if (contexte.donnees_fonction == nullptr) {
 					auto donnees_var = DonneesVariable{};
 					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-					donnees_var.donnees_type = b->index_type;
+					donnees_var.index_type = b->index_type;
 
 					if (dt.type_base() == id_morceau::REFERENCE) {
 						donnees_var.drapeaux |= BESOIN_DEREF;
@@ -1842,7 +1827,7 @@ void genere_code_C(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.donnees_type = b->index_type;
+				donnees_var.index_type = b->index_type;
 
 				if (dt.type_base() == id_morceau::REFERENCE) {
 					donnees_var.drapeaux |= BESOIN_DEREF;
@@ -2346,7 +2331,7 @@ void genere_code_C(
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
-					DonneesType::type_plage dt,
+					DonneesTypeFinal::type_plage dt,
 					dls::chaine const &nom_var)
 			{
 				auto var = enfant_1;
@@ -2377,7 +2362,7 @@ void genere_code_C(
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
-					DonneesType::type_plage dt,
+					DonneesTypeFinal::type_plage dt,
 					dls::chaine const &nom_var,
 					uint64_t taille_tableau)
 			{
@@ -2443,15 +2428,15 @@ void genere_code_C(
 					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
 						auto donnees_var = DonneesVariable{};
 
-						donnees_var.donnees_type = var->index_type;
+						donnees_var.index_type = var->index_type;
 						contexte.pousse_locale(var->chaine(), donnees_var);
 
-						donnees_var.donnees_type = idx->index_type;
+						donnees_var.index_type = idx->index_type;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
 						auto donnees_var = DonneesVariable{};
-						donnees_var.donnees_type = index_type;
+						donnees_var.index_type = index_type;
 						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
@@ -2464,7 +2449,7 @@ void genere_code_C(
 					contexte.magasin_chaines.pousse(nom_var);
 
 					auto donnees_var = DonneesVariable{};
-					donnees_var.donnees_type = contexte.magasin_types[TYPE_Z32];
+					donnees_var.index_type = contexte.magasin_types[TYPE_Z32];
 
 					contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
 
@@ -2479,7 +2464,7 @@ void genere_code_C(
 						}
 					}
 					else if (type == id_morceau::CHAINE) {
-						auto dt = DonneesType(id_morceau::Z8);
+						auto dt = DonneesTypeFinal(id_morceau::Z8);
 						index_type = contexte.magasin_types[TYPE_Z8];
 						genere_code_tableau_chaine(os, contexte, enfant1, enfant2, dt.plage(), nom_var);
 					}
@@ -2488,17 +2473,17 @@ void genere_code_C(
 						auto var = enfant1->enfants.front();
 						auto idx = enfant1->enfants.back();
 
-						donnees_var.donnees_type = var->index_type;
+						donnees_var.index_type = var->index_type;
 						donnees_var.drapeaux = BESOIN_DEREF;
 
 						contexte.pousse_locale(var->chaine(), donnees_var);
 
-						donnees_var.donnees_type = idx->index_type;
+						donnees_var.index_type = idx->index_type;
 						donnees_var.drapeaux = 0;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
-						donnees_var.donnees_type = index_type;
+						donnees_var.index_type = index_type;
 						donnees_var.drapeaux = BESOIN_DEREF;
 						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
@@ -2554,7 +2539,7 @@ void genere_code_C(
 						   << '.' << df->noms_retours[i] << ";\n";
 
 						auto donnees_var = DonneesVariable{};
-						donnees_var.donnees_type = df->idx_types_retours[i];
+						donnees_var.index_type = df->idx_types_retours[i];
 						contexte.pousse_locale(f->chaine(), donnees_var);
 					}
 
@@ -2563,7 +2548,7 @@ void genere_code_C(
 						os << nom_idx << " += 1;";
 
 						auto donnees_var = DonneesVariable{};
-						donnees_var.donnees_type = idx->index_type;
+						donnees_var.index_type = idx->index_type;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 				}
@@ -2817,7 +2802,7 @@ void genere_code_C(
 							os);
 				os << ") * " << taille_tabl << ");\n";
 
-				auto dt_ptr = DonneesType{};
+				auto dt_ptr = DonneesTypeFinal{};
 				dt_ptr.pousse(id_morceau::POINTEUR);
 				dt_ptr.pousse(dt.dereference());
 

@@ -191,8 +191,8 @@ void charge_module(
 /* ************************************************************************** */
 
 static double verifie_compatibilite(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		noeud::base *enfant,
 		niveau_compat &drapeau)
 {
@@ -371,7 +371,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		noeud_tableau->drapeaux |= EST_CALCULE;
 		auto nom_arg = donnees_fonction.nom_args.back();
 
-		auto index_dt_var = donnees_fonction.args[nom_arg].donnees_type;
+		auto index_dt_var = donnees_fonction.args[nom_arg].index_type;
 		auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
 		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.dereference());
 
@@ -391,9 +391,9 @@ static DonneesCandidate verifie_donnees_fonction(
 		 * car ça a déjà été fait plus haut. */
 		auto const iter = donnees_fonction.args.trouve(nom);
 		auto index_arg = iter->second.index;
-		auto const index_type_arg = iter->second.donnees_type;
+		auto const index_type_arg = iter->second.index_type;
 		auto const index_type_enf = (*enfant)->index_type;
-		auto const &type_arg = (index_type_arg == -1l) ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
+		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.magasin_types.donnees_types[index_type_arg];
 		auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
 		/* À FAIRE : arguments variadics : comment les passer d'une
@@ -433,7 +433,12 @@ static DonneesCandidate verifie_donnees_fonction(
 		}
 		else {
 			auto drapeau = niveau_compat::ok;
-			poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant, drapeau);
+
+			/* il est possible que le type final ne soit pas encore résolu car
+			 * la déclaration de la candidate n'a pas encore été validée */
+			if (!est_invalide(type_arg.plage())) {
+				poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant, drapeau);
+			}
 
 			if (poids_args == 0.0) {
 				poids_args = 0.0;

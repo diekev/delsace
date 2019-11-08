@@ -69,7 +69,7 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	auto nom_fonction = "mémoire_utilisée";
 
 	auto donnees_fonctions = DonneesFonction();
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::FONC);
 	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
@@ -288,7 +288,7 @@ long ContexteGenerationCode::type_globale(const dls::vue_chaine &nom)
 		return -1l;
 	}
 
-	return iter->second.donnees_type;
+	return iter->second.index_type;
 }
 
 conteneur_globales::const_iteratrice ContexteGenerationCode::iter_globale(const dls::vue_chaine &nom)
@@ -405,7 +405,7 @@ long ContexteGenerationCode::type_locale(const dls::vue_chaine &nom)
 		return -1l;
 	}
 
-	return iter->second.donnees_type;
+	return iter->second.index_type;
 }
 
 bool ContexteGenerationCode::peut_etre_assigne(const dls::vue_chaine &nom)
@@ -522,7 +522,7 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine &nom
 	donnees.type_llvm = nullptr;
 #endif
 
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
 
 	donnees.index_type = magasin_types.ajoute_type(dt);
@@ -596,7 +596,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 
 	for (auto const &structure : structures) {
 		memoire += static_cast<size_t>(structure.second.donnees_membres.taille()) * (sizeof(DonneesMembre) + sizeof(dls::vue_chaine));
-		memoire += static_cast<size_t>(structure.second.donnees_types.taille()) * sizeof(DonneesType);
+		memoire += static_cast<size_t>(structure.second.index_types.taille()) * sizeof(DonneesTypeFinal);
 	}
 
 	memoire += static_cast<size_t>(nom_structures.taille()) * sizeof(dls::vue_chaine);
@@ -614,7 +614,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 #endif
 
 	/* magasin_types */
-	memoire += static_cast<size_t>(magasin_types.donnees_types.taille()) * sizeof(DonneesType);
+	memoire += static_cast<size_t>(magasin_types.donnees_types.taille()) * sizeof(DonneesTypeFinal);
 	memoire += static_cast<size_t>(magasin_types.donnees_type_index.taille()) * (sizeof(size_t) + sizeof(size_t));
 
 	for (auto module : modules) {

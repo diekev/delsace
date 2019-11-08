@@ -88,8 +88,8 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_type_arguments(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
@@ -126,8 +126,8 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_type_retour(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
@@ -164,8 +164,8 @@ void lance_erreur_plage(
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
+		const DonneesTypeFinal &type_gauche,
+		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
@@ -191,8 +191,8 @@ void lance_erreur_plage(
 }
 
 void lance_erreur_type_operation(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
+		const DonneesTypeFinal &type_gauche,
+		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {

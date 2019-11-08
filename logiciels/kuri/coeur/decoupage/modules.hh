@@ -42,7 +42,8 @@ struct ContexteGenerationCode;
 
 struct DonneesArgument {
 	long index = 0;
-	long donnees_type{-1l};
+	long index_type{-1l};
+	DonneesTypeDeclare type_declare{};
 	bool est_variadic = false;
 	bool est_dynamic = false;
 	bool est_employe = false;
@@ -58,8 +59,10 @@ struct DonneesCoroutine {
 
 struct DonneesFonction {
 	dls::dico_desordonne<dls::vue_chaine, DonneesArgument> args{};
+	dls::tableau<DonneesTypeDeclare> types_retours_decl{};
 	dls::tableau<long> idx_types_retours{};
 	dls::tableau<dls::chaine> noms_retours{};
+	DonneesTypeDeclare type_declare{};
 	long index_type{-1l};
 	dls::tableau<dls::vue_chaine> nom_args{};
 	dls::chaine nom_broye{};
@@ -185,8 +188,8 @@ struct DonneesCandidate {
 	dls::vue_chaine nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
 	dls::tableau<noeud::base *> exprs{};
-	DonneesType type1{};
-	DonneesType type2{};
+	DonneesTypeFinal type1{};
+	DonneesTypeFinal type2{};
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
 	dls::tableau<niveau_compat> drapeaux{};

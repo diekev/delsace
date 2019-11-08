@@ -235,6 +235,8 @@ struct base {
 
 	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
 
+	DonneesTypeDeclare type_declare{};
+
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
 	base(base const &) = default;
@@ -284,8 +286,8 @@ bool est_constant(base *b);
 void ajoute_nom_argument(base *b, const dls::vue_chaine &nom);
 
 bool peut_operer(
-		const DonneesType &type1,
-		const DonneesType &type2,
+		const DonneesTypeFinal &type1,
+		const DonneesTypeFinal &type2,
 		type_noeud type_gauche,
 		type_noeud type_droite);
 
