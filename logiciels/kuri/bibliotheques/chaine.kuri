@@ -46,7 +46,7 @@ fonc enchaine(chns : ...chaine) : chaine
 }
 
 # Retourne la taille d'une chaine C, c'est à dire nul-terminé.
-fonc taille_chaine_c(ch : *z8) : z64
+#!nulctx fonc taille_chaine_c(ch : *z8) : z64
 {
     dyn index : z64 = 0;
 
@@ -57,7 +57,7 @@ fonc taille_chaine_c(ch : *z8) : z64
     retourne index;
 }
 
-fonc construit_chaine(ptr : *z8, taille : z64) : chaine
+#!nulctx fonc construit_chaine(ptr : *z8, taille : z64) : chaine
 {
     dyn ret : chaine;
 	pointeur de ret = ptr;
@@ -66,7 +66,7 @@ fonc construit_chaine(ptr : *z8, taille : z64) : chaine
 }
 
 # Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
-fonc converti_chaine_c(chaine_c : *z8) : chaine
+#!nulctx fonc converti_chaine_c(chaine_c : *z8) : chaine
 {
     retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c));
 }
