@@ -761,8 +761,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			for (auto feuille : feuilles) {
 				auto donnees_arg = DonneesArgument{};
-				donnees_arg.index = donnees_fonction->args.taille();
 				donnees_arg.type_declare = feuille->type_declare;
+				donnees_arg.nom = feuille->chaine();
 
 				/* doit être vrai uniquement pour le dernier argument */
 				donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == id_morceau::TROIS_POINTS;
@@ -770,8 +770,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
 
 				donnees_fonction->est_variadique = donnees_arg.est_variadic;
-				donnees_fonction->args.insere({feuille->chaine(), donnees_arg});
-				donnees_fonction->nom_args.pousse(feuille->chaine());
+				donnees_fonction->args.pousse(donnees_arg);
 
 				donnees_fonction->type_declare.pousse(donnees_arg.type_declare);
 
@@ -840,8 +839,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (est_externe) {
-				for (auto const &nom : donnees_fonction->nom_args) {
-					auto &argument = donnees_fonction->args[nom];
+				for (auto &argument : donnees_fonction->args) {
 					argument.index_type = resoud_type_final(contexte, argument.type_declare);
 				}
 
@@ -862,8 +860,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			/* Pousse les paramètres sur la pile. */
-			for (auto const &nom : donnees_fonction->nom_args) {
-				auto &argument = donnees_fonction->args[nom];
+			for (auto &argument : donnees_fonction->args) {
 				argument.index_type = resoud_type_final(contexte, argument.type_declare);
 
 				auto index_dt = argument.index_type;
@@ -882,7 +879,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					donnees_var.index_type = contexte.magasin_types.ajoute_type(dt);
 				}
 
-				contexte.pousse_locale(nom, donnees_var);
+				contexte.pousse_locale(argument.nom, donnees_var);
 
 				if (argument.est_employe) {
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];

@@ -41,7 +41,7 @@ struct base;
 struct ContexteGenerationCode;
 
 struct DonneesArgument {
-	long index = 0;
+	dls::vue_chaine nom;
 	long index_type{-1l};
 	DonneesTypeDeclare type_declare{};
 	bool est_variadic = false;
@@ -58,13 +58,12 @@ struct DonneesCoroutine {
 };
 
 struct DonneesFonction {
-	dls::dico_desordonne<dls::vue_chaine, DonneesArgument> args{};
+	dls::tableau<DonneesArgument> args{};
 	dls::tableau<DonneesTypeDeclare> types_retours_decl{};
 	dls::tableau<long> idx_types_retours{};
 	dls::tableau<dls::chaine> noms_retours{};
 	DonneesTypeDeclare type_declare{};
 	long index_type{-1l};
-	dls::tableau<dls::vue_chaine> nom_args{};
 	dls::chaine nom_broye{};
 	noeud::base *noeud_decl = nullptr;
 	bool est_externe = false;
@@ -73,6 +72,10 @@ struct DonneesFonction {
 	bool est_utilisee = false;
 	char pad[4];
 	DonneesCoroutine donnees_coroutine{};
+
+	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
+
+	iteratrice_arg trouve(dls::vue_chaine const &nom);
 };
 
 struct DonneesModule {
