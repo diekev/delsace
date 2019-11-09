@@ -374,33 +374,26 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
 	}
 
-	auto donnees_type_fonction = DonneesTypeDeclare{};
-	donnees_type_fonction.pousse(id);
-	donnees_type_fonction.pousse(id_morceau::PARENTHESE_OUVRANTE);
-
 	auto donnees_fonctions = DonneesFonction{};
 	donnees_fonctions.est_coroutine = (id == id_morceau::COROUT);
 	donnees_fonctions.est_externe = externe;
 	donnees_fonctions.noeud_decl = noeud;
 
-	analyse_parametres_fonction(noeud, donnees_fonctions, &donnees_type_fonction);
+	/* analyse les paramètres de la fonction */
+	m_assembleuse->empile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION, m_contexte, donnees());
 
-	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		lance_erreur("Attendu une parenthèse fermante après la liste des paramètres de la fonction");
-	}
+	analyse_expression_droite(id_morceau::PARENTHESE_FERMANTE, id_morceau::PARENTHESE_OUVRANTE);
 
-	donnees_type_fonction.pousse(id_morceau::PARENTHESE_FERMANTE);
+	m_assembleuse->depile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION);
 
-	/* À FAIRE : inférence de type retour. */
+	/* analyse les types de retour de la fonction, À FAIRE : inférence */
 
 	avance();
-
-	donnees_type_fonction.pousse(type_id::PARENTHESE_OUVRANTE);
 
 	auto idx_ret = 0;
 
 	while (true) {
-		auto type_declare = analyse_declaration_type(&donnees_type_fonction, false);
+		auto type_declare = analyse_declaration_type(false);
 		donnees_fonctions.types_retours_decl.pousse(type_declare);
 		donnees_fonctions.noms_retours.pousse("__ret" + dls::vers_chaine(idx_ret++));
 
@@ -409,25 +402,11 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		}
 
 		if (est_identifiant(type_id::VIRGULE)) {
-			donnees_type_fonction.pousse(type_id::VIRGULE);
 			avance();
 		}
 	}
 
-	donnees_type_fonction.pousse(type_id::PARENTHESE_FERMANTE);
-
 	noeud->type_declare = donnees_fonctions.types_retours_decl[0];
-	donnees_fonctions.type_declare = donnees_type_fonction;
-
-	if (m_module->fonction_existe(nom_fonction)) {
-		auto const &vdf = m_module->donnees_fonction(nom_fonction);
-
-		for (auto const &df : vdf) {
-			if (df.type_declare == donnees_fonctions.type_declare) {
-				lance_erreur("Redéfinition de la fonction", erreur::type_erreur::FONCTION_REDEFINIE);
-			}
-		}
-	}
 
 	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
@@ -455,83 +434,6 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
-}
-
-void analyseuse_grammaire::analyse_parametres_fonction(
-		noeud::base *noeud,
-		DonneesFonction &donnees_fonction,
-		DonneesTypeDeclare *donnees_type_fonction)
-{
-	if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		/* La liste est vide. */
-		return;
-	}
-
-	auto est_dynamic = false;
-	auto est_employe = false;
-
-	if (est_identifiant(id_morceau::DYN)) {
-		est_dynamic = true;
-		avance();
-	}
-
-	if (est_identifiant(id_morceau::EMPL)) {
-		est_employe = true;
-		avance();
-	}
-
-	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu le nom de la variable");
-	}
-
-	auto nom_parametre = donnees().chaine;
-
-	if (donnees_fonction.args.trouve(nom_parametre) != donnees_fonction.args.fin()) {
-		lance_erreur("Redéfinition de l'argument", erreur::type_erreur::ARGUMENT_REDEFINI);
-	}
-
-	if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
-		lance_erreur("Attendu ':' après le nom de l'argument");
-	}
-
-	auto type_declare = DonneesTypeDeclare{};
-
-	if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		type_declare = analyse_declaration_type(donnees_type_fonction, false);
-
-		if (type_declare.type_base() == type_id::TROIS_POINTS) {
-			noeud->drapeaux |= VARIADIC;
-
-			if (!dls::outils::possede_drapeau(noeud->drapeaux, EST_EXTERNE) && est_invalide(type_declare.dereference())) {
-				lance_erreur("La déclaration de fonction variadique sans type n'est"
-							 " implémentée que pour les fonctions externes");
-			}
-		}
-	}
-
-	DonneesArgument donnees_arg;
-	donnees_arg.index = donnees_fonction.args.taille();
-	donnees_arg.type_declare = type_declare;
-	/* doit être vrai uniquement pour le dernier argument */
-	donnees_arg.est_variadic = (noeud->drapeaux & VARIADIC) != 0;
-	donnees_arg.est_dynamic = est_dynamic;
-	donnees_arg.est_employe = est_employe;
-
-	donnees_fonction.args.insere({nom_parametre, donnees_arg});
-	donnees_fonction.nom_args.pousse(nom_parametre);
-	donnees_fonction.est_variadique = (noeud->drapeaux & VARIADIC) != 0;
-
-	/* fin des paramètres */
-	if (!requiers_identifiant(id_morceau::VIRGULE)) {
-		recule();
-		return;
-	}
-
-	donnees_type_fonction->pousse(id_morceau::VIRGULE);
-
-	if ((noeud->drapeaux & VARIADIC) == 0) {
-		analyse_parametres_fonction(noeud, donnees_fonction, donnees_type_fonction);
-	}
 }
 
 void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
@@ -943,6 +845,11 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				drapeaux |= (DYNAMIC | DECLARATION);
 				break;
 			}
+			case id_morceau::EMPL:
+			{
+				drapeaux |= EMPLOYE;
+				break;
+			}
 			case id_morceau::CHAINE_CARACTERE:
 			{
 				/* appel fonction : chaine + ( */
@@ -1025,7 +932,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				}
 
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, m_contexte, morceau);
-				noeud->valeur_calculee = analyse_declaration_type(nullptr, false);
+				noeud->valeur_calculee = analyse_declaration_type(false);
 
 				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu ')' après le type de 'taille_de'");
@@ -1073,7 +980,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				analyse_expression_droite(id_morceau::DOUBLE_POINTS, id_morceau::TRANSTYPE);
 
-				noeud->type_declare = analyse_declaration_type(nullptr, false);
+				noeud->type_declare = analyse_declaration_type(false);
 
 				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 					lance_erreur("Attendu ')' après la déclaration du type");
@@ -1309,7 +1216,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 							false);
 
 				if (est_identifiant(id_morceau::CHAINE)) {
-					noeud->type_declare = analyse_declaration_type(nullptr, false);
+					noeud->type_declare = analyse_declaration_type(false);
 
 					avance();
 
@@ -1320,7 +1227,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					}
 				}
 				else {
-					noeud->type_declare = analyse_declaration_type(nullptr, false);
+					noeud->type_declare = analyse_declaration_type(false);
 				}
 
 				if (est_identifiant(type_id::SINON)) {
@@ -1362,7 +1269,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				analyse_expression_droite(type_id::DOUBLE_POINTS, type_id::RELOGE);
 
 				if (est_identifiant(type_id::CHAINE)) {
-					noeud_reloge->type_declare = analyse_declaration_type(nullptr, false);
+					noeud_reloge->type_declare = analyse_declaration_type(false);
 
 					avance();
 
@@ -1373,7 +1280,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					}
 				}
 				else {
-					noeud_reloge->type_declare = analyse_declaration_type(nullptr, false);
+					noeud_reloge->type_declare = analyse_declaration_type(false);
 				}
 
 				if (est_identifiant(type_id::SINON)) {
@@ -1733,7 +1640,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_ENUM);
 }
 
-DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(DonneesTypeDeclare *donnees_type_fonction, bool double_point)
+DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_point)
 {
 	if (double_point && !requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
@@ -1757,7 +1664,8 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(DonneesTypeDec
 				break;
 			}
 
-			analyse_declaration_type(&dt, false);
+			auto dtd = analyse_declaration_type(false);
+			dt.pousse(dtd);
 
 			if (!est_identifiant(id_morceau::VIRGULE)) {
 				break;
@@ -1784,7 +1692,8 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(DonneesTypeDec
 				break;
 			}
 
-			analyse_declaration_type(&dt, false);
+			auto dtd = analyse_declaration_type(false);
+			dt.pousse(dtd);
 
 			auto est_virgule = est_identifiant(id_morceau::VIRGULE);
 
@@ -1802,17 +1711,13 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(DonneesTypeDec
 
 		dt.pousse(id_morceau::PARENTHESE_FERMANTE);
 
-		if (donnees_type_fonction) {
-			donnees_type_fonction->pousse(dt);
-		}
-
 		return dt;
 	}
 
-	return analyse_declaration_type_ex(donnees_type_fonction);
+	return analyse_declaration_type_ex();
 }
 
-DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex(DonneesTypeDeclare *donnees_type_fonction)
+DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 {
 	auto dernier_id = id_morceau{};
 	auto donnees_type = DonneesTypeDeclare{};
@@ -1908,10 +1813,6 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex(DonneesType
 		}
 
 		donnees_type.pousse(identifiant);
-
-		if (donnees_type_fonction) {
-			donnees_type_fonction->pousse(donnees_type);
-		}
 	}
 
 	return donnees_type;

@@ -1149,6 +1149,7 @@ static void genere_code_C_prepasse(
 			break;
 		}
 		case type_noeud::DECLARATION_FONCTION:
+		case type_noeud::LISTE_PARAMETRES_FONCTION:
 		{
 			assert(false);
 			break;
@@ -1767,6 +1768,11 @@ void genere_code_C(
 
 			contexte.termine_fonction();
 
+			break;
+		}
+		case type_noeud::LISTE_PARAMETRES_FONCTION:
+		{
+			/* géré dans DECLARATION_FONCTION */
 			break;
 		}
 		case type_noeud::APPEL_FONCTION:
