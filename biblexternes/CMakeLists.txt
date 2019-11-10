@@ -22,5 +22,4 @@
 ajoute_sousdossier(REQUIERS_DOCOPT docopt)
 ajoute_sousdossier(REQUIERS_KELVINLET kelvinlet)
 ajoute_sousdossier(REQUIERS_PATATE Patate)
-ajoute_sousdossier(REQUIERS_SNH snh)
 ajoute_sousdossier(REQUIERS_VORO voro)

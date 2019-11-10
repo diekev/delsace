@@ -37,7 +37,6 @@ set(BIBLIOTHEQUES
 	bib_kelvinlet
 	bib_objets
 	bib_outils
-	bib_snh
 	bib_structures
 	bib_vision
 	bib_voro
@@ -89,7 +88,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_rendu.cc
 	operatrices_script.cc
 	operatrices_simulations.cc
-	operatrices_snh.cc
 	operatrices_srirp.cc
 	operatrices_terrain.cc
 	operatrices_uvs.cc
@@ -123,7 +121,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_rendu.hh
 	operatrices_script.hh
 	operatrices_simulations.hh
-	operatrices_snh.hh
 	operatrices_srirp.hh
 	operatrices_terrain.hh
 	operatrices_uvs.hh
