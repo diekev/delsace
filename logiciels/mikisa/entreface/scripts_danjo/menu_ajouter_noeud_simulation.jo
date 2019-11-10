@@ -44,7 +44,6 @@ menu "Noeud Simulation" {
 		action(valeur="Force d'Interaction"; attache=ajouter_noeud; métadonnée="Force d'Interaction")
 		action(valeur="Gravité"; attache=ajouter_noeud; métadonnée="Gravité")
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
-		action(valeur="Simulation Foule"; attache=ajouter_noeud; métadonnée="Simulation Foule")
 		action(valeur="Simulation Vêtement"; attache=ajouter_noeud; métadonnée="Simulation Vêtement")
 		action(valeur="Solveur N-Corps"; attache=ajouter_noeud; métadonnée="Solveur N-Corps")
 		action(valeur="Solveur Particules"; attache=ajouter_noeud; métadonnée="Solveur Particules")

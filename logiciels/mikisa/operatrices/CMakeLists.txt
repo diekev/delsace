@@ -89,7 +89,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_region.cc
 	operatrices_rendu.cc
 	operatrices_script.cc
-	operatrices_simulation_foule.cc
 	operatrices_simulations.cc
 	operatrices_snh.cc
 	operatrices_srirp.cc
@@ -125,7 +124,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_region.h
 	operatrices_rendu.hh
 	operatrices_script.hh
-	operatrices_simulation_foule.hh
 	operatrices_simulations.hh
 	operatrices_snh.hh
 	operatrices_srirp.hh
