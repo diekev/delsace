@@ -1,0 +1,93 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2019 Kévin Dietrich.
+ * All rights reserved.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
+
+#pragma once
+
+#include <functional>  /* pour la déclaration de std::hash */
+
+#include "pointeur_marque.hh"
+
+namespace dls {
+
+struct vue_chaine_compacte {
+private:
+	pointeur_marque_haut<char const> m_ptr{};
+
+public:
+	template <unsigned long N>
+	vue_chaine_compacte(char const (&c)[N])
+		: m_ptr(&c[0], N)
+	{}
+
+	vue_chaine_compacte() = default;
+
+	vue_chaine_compacte(char const *ptr);
+
+	vue_chaine_compacte(char const *ptr, long taille);
+
+	char const &operator[](long idx) const;
+
+	long taille() const;
+
+	bool est_vide() const;
+
+	char const *pointeur() const;
+
+	const char *begin() const;
+
+	const char *end() const;
+};
+
+bool operator<(vue_chaine_compacte const &c1, vue_chaine_compacte const &c2);
+
+bool operator>(vue_chaine_compacte const &c1, vue_chaine_compacte const &c2);
+
+bool operator==(vue_chaine_compacte const &vc1, vue_chaine_compacte const &vc2);
+
+bool operator==(vue_chaine_compacte const &vc1, char const *vc2);
+
+bool operator==(char const *vc1, vue_chaine_compacte const &vc2);
+
+bool operator!=(vue_chaine_compacte const &vc1, vue_chaine_compacte const &vc2);
+
+bool operator!=(vue_chaine_compacte const &vc1, char const *vc2);
+
+bool operator!=(char const *vc1, vue_chaine_compacte const &vc2);
+
+std::ostream &operator<<(std::ostream &os, vue_chaine_compacte const &vc);
+
+}  /* namespace dls */
+
+namespace std {
+
+template <>
+struct hash<dls::vue_chaine_compacte> {
+	std::size_t operator()(dls::vue_chaine_compacte const &chn) const
+	{
+		auto h = std::hash<std::string>{};
+		return h(std::string(&chn[0], static_cast<size_t>(chn.taille())));
+	}
+};
+
+}  /* namespace std */
