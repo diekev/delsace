@@ -1923,7 +1923,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				/* À FAIRE : ceci est là pour sauvegarder l'index des coroutines
 				 * lors de l'itération de chaines ou de tableaux, ceci duplique
 				 * le code dans la coulisse C pour le nom de la variable. */
-				auto nom_var = "__i" + dls::vers_chaine(b->morceau.ligne_pos);
+				auto nom_var = "__i" + dls::vers_chaine(b);
 				contexte.magasin_chaines.pousse(nom_var);
 
 				auto donnees_var = DonneesVariable{};
@@ -1984,9 +1984,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			/* À FAIRE : ceci duplique logique coulisse. */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
+			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
 
 			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
 			contexte.empile_goto_arrete(enfant1->chaine(), (enfant4 != nullptr) ? goto_brise : goto_apres);
@@ -2132,8 +2132,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::BOUCLE:
 		{
 			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -2161,8 +2161,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(enfant1, contexte);
 
 			/* À FAIRE : ceci duplique logique coulisse */
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);

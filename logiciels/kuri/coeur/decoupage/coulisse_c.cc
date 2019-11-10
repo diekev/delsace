@@ -607,7 +607,7 @@ static void genere_code_C_prepasse(
 static auto cree_eini(ContexteGenerationCode &contexte, dls::flux_chaine &os, base *b)
 {
 	auto nom_eini = dls::chaine("__eini_")
-			.append(dls::vers_chaine(b->morceau.ligne_pos).c_str());
+			.append(dls::vers_chaine(b).c_str());
 
 	auto nom_var = dls::chaine{};
 
@@ -796,7 +796,7 @@ static void cree_appel(
 		b->valeur_calculee = dls::chaine("");
 	}
 	else if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
-		auto nom_indirection = "__ret" + dls::vers_chaine(b->morceau.ligne_pos);
+		auto nom_indirection = "__ret" + dls::vers_chaine(b);
 		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt.plage(), os);
 
 		os << " = ";
@@ -827,7 +827,7 @@ static void cree_appel(
 		}
 
 		if (df->est_coroutine) {
-			os << virgule << "&__etat" << b->morceau.ligne_pos;
+			os << virgule << "&__etat" << b;
 			virgule = ',';
 		}
 	}
@@ -1047,7 +1047,7 @@ static void prepasse_acces_membre(
 		type_structure.effronte();
 	}
 
-	auto nom_acces = "__acces" + dls::vers_chaine(b->morceau.ligne_pos);
+	auto nom_acces = "__acces" + dls::vers_chaine(b);
 	b->valeur_calculee = nom_acces;
 
 	if ((type_structure.front() & 0xff) == id_morceau::TABLEAU) {
@@ -1265,7 +1265,7 @@ static void genere_code_C_prepasse(
 			 * utiliser la chaine originale. */
 			auto chaine = b->morceau.chaine;
 
-			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b);
 
 			os << "chaine " << nom_chaine << " = {.pointeur=";
 			os << '"';
@@ -1354,7 +1354,7 @@ static void genere_code_C_prepasse(
 			dt_tfixe.pousse(type);
 
 			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
-					.append(dls::vers_chaine(b->morceau.ligne_pos >> 32));
+					.append(dls::vers_chaine(reinterpret_cast<long>(b) >> 32));
 
 			contexte.magasin_types.converti_type_C(
 						contexte, nom_tableau_fixe, dt_tfixe.plage(), os);
@@ -1383,7 +1383,7 @@ static void genere_code_C_prepasse(
 			dt_tdyn.pousse(type);
 
 			auto nom_tableau_dyn = dls::chaine("__tabl_dyn")
-					.append(dls::vers_chaine(b->morceau.ligne_pos));
+					.append(dls::vers_chaine(b));
 
 			contexte.magasin_types.converti_type_C(
 						contexte, nom_tableau_dyn, dt_tdyn.plage(), os);
@@ -1401,7 +1401,7 @@ static void genere_code_C_prepasse(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
-			auto nom_tableau = "__tabl" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto nom_tableau = "__tabl" + dls::vers_chaine(b);
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			contexte.magasin_types.converti_type_C(
@@ -2450,7 +2450,7 @@ void genere_code_C(
 				case GENERE_BOUCLE_TABLEAU:
 				case GENERE_BOUCLE_TABLEAU_INDEX:
 				{
-					auto nom_var = "__i" + dls::vers_chaine(b->morceau.ligne_pos);
+					auto nom_var = "__i" + dls::vers_chaine(b);
 					contexte.magasin_chaines.pousse(nom_var);
 
 					auto donnees_var = DonneesVariable{};
@@ -2516,7 +2516,7 @@ void genere_code_C(
 
 					if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
 						idx = feuilles.back();
-						nom_idx = "__idx" + dls::vers_chaine(b->morceau.ligne_pos);
+						nom_idx = "__idx" + dls::vers_chaine(b);
 						os << "int " << nom_idx << " = 0;";
 					}
 
@@ -2559,9 +2559,9 @@ void genere_code_C(
 				}
 			}
 
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
+			auto goto_brise = "__boucle_pour_brise" + dls::vers_chaine(b);
 
 			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
 			contexte.empile_goto_arrete(enfant1->chaine(), (enfant_sinon != nullptr) ? goto_brise : goto_apres);
@@ -2616,8 +2616,8 @@ void genere_code_C(
 
 			/* création des blocs */
 
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -2642,8 +2642,8 @@ void genere_code_C(
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
 
-			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b->morceau.ligne_pos);
-			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b->morceau.ligne_pos);
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
 
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
@@ -2795,8 +2795,8 @@ void genere_code_C(
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
 				a_pointeur = true;
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b->morceau.ligne_pos);
-				auto nom_tabl = "__tabl" + dls::vers_chaine(b->morceau.ligne_pos);
+				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
+				auto nom_tabl = "__tabl" + dls::vers_chaine(b);
 				auto taille_tabl = std::any_cast<int>(b->valeur_calculee);
 
 				os << "long " << nom_taille << " = sizeof(";
@@ -2840,8 +2840,8 @@ void genere_code_C(
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
 				a_pointeur = true;
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b->morceau.ligne_pos);
-				auto nom_chaine = "__chaine" + dls::vers_chaine(b->morceau.ligne_pos);
+				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
+				auto nom_chaine = "__chaine" + dls::vers_chaine(b);
 
 				auto enf = *enfant++;
 
@@ -2873,7 +2873,7 @@ void genere_code_C(
 							dt_deref,
 							os);
 				os << ");\n";
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b->morceau.ligne_pos);
+				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
 
 				contexte.magasin_types.converti_type_C(
 							contexte,
