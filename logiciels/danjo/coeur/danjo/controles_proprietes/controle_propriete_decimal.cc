@@ -71,7 +71,9 @@ ControleProprieteDecimal::ControleProprieteDecimal(QWidget *parent)
 	m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
 
 	connect(m_controle, &ControleNombreDecimal::valeur_changee, this, &ControleProprieteDecimal::ajourne_valeur_pointee);
+	connect(m_controle, &ControleNombreDecimal::prevaleur_changee, this, &ControleProprieteDecimal::emet_precontrole_change);
 	connect(m_bouton, &QPushButton::pressed, this, &ControleProprieteDecimal::montre_echelle);
+	connect(m_echelle, &ControleEchelleDecimale::prevaleur_changee, this, &ControleProprieteDecimal::emet_precontrole_change);
 	connect(m_echelle, &ControleEchelleDecimale::valeur_changee, m_controle, &ControleNombreDecimal::ajourne_valeur);
 	connect(m_bouton_animation, &QPushButton::pressed, this, &ControleProprieteDecimal::bascule_animation);
 }
@@ -102,6 +104,7 @@ void ControleProprieteDecimal::montre_echelle()
 
 void ControleProprieteDecimal::bascule_animation()
 {
+	Q_EMIT(precontrole_change());
 	m_animation = !m_animation;
 
 	if (m_animation == false) {
@@ -115,6 +118,7 @@ void ControleProprieteDecimal::bascule_animation()
 	}
 
 	m_controle->marque_anime(m_animation, m_animation);
+	Q_EMIT(controle_change());
 }
 
 void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
@@ -137,7 +141,11 @@ void ControleProprieteDecimal::finalise(const DonneesControle &donnees)
 		m_propriete->valeur = convertie<float>(donnees.valeur_defaut);
 	}
 
-	m_animation = m_propriete->est_anime();
+	if ((m_propriete->etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE) {
+		m_bouton_animation->hide();
+	}
+
+	m_animation = m_propriete->est_animee();
 
 	if (m_animation) {
 		m_bouton_animation->setText("c");

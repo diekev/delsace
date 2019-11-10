@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 namespace arachne {
 
@@ -37,11 +37,11 @@ public:
 	lectrice_fichier(lectrice_fichier const &autre) = default;
 	lectrice_fichier &operator=(lectrice_fichier const &autre) = default;
 
-	explicit lectrice_fichier(const std::experimental::filesystem::path &chemin);
+	explicit lectrice_fichier(const std::filesystem::path &chemin);
 
 	~lectrice_fichier();
 
-	void ouvre(const std::experimental::filesystem::path &chemin);
+	void ouvre(const std::filesystem::path &chemin);
 
 	long taille() const;
 

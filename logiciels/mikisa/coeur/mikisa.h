@@ -28,7 +28,7 @@
 
 #include "biblinternes/patrons_conception/observation.hh"
 #include "biblinternes/patrons_conception/commande.h"
-
+#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "base_de_donnees.hh"
@@ -37,9 +37,9 @@
 #include "gestionnaire_fichier.hh"
 #include "usine_operatrice.h"
 
+#include "evaluation/reseau.hh"
+
 class BaseEditrice;
-class Composite;
-class Configuration;
 class FenetrePrincipale;
 class Graphe;
 class Manipulatrice3D;
@@ -47,7 +47,6 @@ class Manipulatrice2D;
 class Noeud;
 class ProjectSettings;
 class RepondantCommande;
-class Scene;
 class TaskNotifier;
 
 namespace vision {
@@ -59,18 +58,13 @@ namespace danjo {
 class GestionnaireInterface;
 }  /* namespace danjo */
 
+namespace lcc {
+struct LCC;
+}
+
 enum {
 	FICHIER_OUVERTURE,
 	FICHIER_SAUVEGARDE,
-};
-
-enum {
-	GRAPHE_COMPOSITE,
-	GRAPHE_PIXEL,
-	GRAPHE_SCENE,
-	GRAPHE_OBJET,
-	GRAPHE_MAILLAGE,
-	GRAPHE_SIMULATION,
 };
 
 class Mikisa : public Sujette {
@@ -97,7 +91,7 @@ public:
 
 	UsineOperatrice &usine_operatrices();
 
-	dls::chaine requiers_dialogue(int type);
+	dls::chaine requiers_dialogue(int type, dls::chaine const &filtre);
 	void affiche_erreur(dls::chaine const &message);
 
 	dls::chaine chemin_projet() const;
@@ -112,8 +106,6 @@ public:
 	void projet_ouvert(bool ouinon);
 
 	RepondantCommande *repondant_commande() const;
-
-	Composite *composite;
 
 	/* entreface */
 	FenetrePrincipale *fenetre_principale;
@@ -141,12 +133,8 @@ public:
 	bool animation = false;
 
 	/* contexte graphe */
-	int contexte = GRAPHE_SCENE;
 	Graphe *graphe = nullptr;
-
-	Scene *scene = nullptr;
-
-	Noeud *derniere_visionneuse_selectionnee = nullptr;
+	Noeud *noeud = nullptr;
 
 	/* manipulation objets 2d */
 	bool manipulation_2d_activee = false;
@@ -176,5 +164,31 @@ public:
 
 	BaseDeDonnees bdd{};
 
+	/* Pour la compilation des scripts LCC */
+	lcc::LCC *lcc = nullptr;
+
+	/* pour l'évaluation du graphe d'objets */
+	Reseau reseau{};
+
 	void ajourne_pour_nouveau_temps(const char *message);
+
+	struct EtatLogiciel {
+		BaseDeDonnees bdd{};
+	};
+
+	dls::pile<EtatLogiciel> pile_defait{};
+	dls::pile<EtatLogiciel> pile_refait{};
+
+	EtatLogiciel etat_courant();
+
+	void empile_etat();
+
+	void defait();
+
+	void refait();
 };
+
+inline Mikisa *extrait_mikisa(std::any const &any)
+{
+	return std::any_cast<Mikisa *>(any);
+}

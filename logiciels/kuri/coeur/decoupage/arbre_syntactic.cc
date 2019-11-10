@@ -24,11 +24,7 @@
 
 #include "arbre_syntactic.h"
 
-#include "assembleuse_arbre.h"
-#include "broyage.hh"
-#include "contexte_generation_code.h"
-#include "erreur.h"
-#include "modules.hh"
+#include "biblinternes/outils/conditions.h"
 
 /* ************************************************************************** */
 
@@ -81,6 +77,7 @@ const char *chaine_type_noeud(type_noeud type)
 	switch (type) {
 		CAS_TYPE(type_noeud::RACINE)
 		CAS_TYPE(type_noeud::DECLARATION_FONCTION)
+		CAS_TYPE(type_noeud::LISTE_PARAMETRES_FONCTION)
 		CAS_TYPE(type_noeud::APPEL_FONCTION)
 		CAS_TYPE(type_noeud::VARIABLE)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE_DE)
@@ -164,7 +161,7 @@ void base::imprime_code(std::ostream &os, int tab)
 
 	os << chaine_type_noeud(this->type) << ' ';
 
-	if (possede_drapeau(this->drapeaux, EST_CALCULE)) {
+	if (dls::outils::possede_drapeau(this->drapeaux, EST_CALCULE)) {
 		if (this->type == type_noeud::NOMBRE_ENTIER) {
 			os << std::any_cast<long>(this->valeur_calculee);
 		}

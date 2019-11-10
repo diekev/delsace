@@ -24,133 +24,41 @@
 
 #pragma once
 
-#include <any>
-#include "biblinternes/structures/liste.hh"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
-#include "biblinternes/math/rectangle.hh"
-#include "biblinternes/image/pixel.h"
-#include "biblinternes/math/matrice/matrice.hh"
-#include "biblinternes/outils/iterateurs.h"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/tableau.hh"
+#include <any>
+
+#include "image.hh"
 
 #include "danjo/manipulable.h"
 
+enum class type_prise : int;
+
+class ChefExecution;
 class Corps;
 class Graphe;
 class Manipulatrice3D;
 class Noeud;
 class PriseEntree;
-class Scene;
-class TextureImage;
 class CompilatriceReseau;
 class NoeudReseau;
 class UsineOperatrice;
 
-namespace vision {
-class Camera3D;
-}  /* namespace vision */
-
 struct ContexteEvaluation;
 struct DonneesAval;
-struct Objet;
 
-using type_image = dls::math::matrice_dyn<dls::image::Pixel<float>>;
-
-enum {
-	EXECUTION_REUSSIE = 0,
-	EXECUTION_ECHOUEE = 1,
+enum class res_exec : int {
+	REUSSIE = 0,
+	ECHOUEE = 1,
 };
 
 enum {
 	OPERATRICE_IMAGE,
-	OPERATRICE_SORTIE_IMAGE,
-	OPERATRICE_PIXEL,
-	OPERATRICE_GRAPHE_PIXEL,
-	OPERATRICE_SCENE,
-	OPERATRICE_OBJET,
-	OPERATRICE_CAMERA,
 	OPERATRICE_CORPS,
-	OPERATRICE_SORTIE_CORPS,
-	OPERATRICE_GRAPHE_MAILLAGE,
+	OPERATRICE_GRAPHE_DETAIL,
+	OPERATRICE_DETAIL,
 	OPERATRICE_SIMULATION,
-};
-
-/* ************************************************************************** */
-
-struct Calque {
-	dls::chaine nom{};
-	type_image tampon{};
-
-	/**
-	 * Retourne la valeur du tampon de ce calque à la position <x, y>.
-	 */
-	dls::image::Pixel<float> valeur(size_t x, size_t y) const;
-
-	/**
-	 * Ajourne la valeur du tampon de ce calque à la position <x, y>.
-	 */
-	void valeur(size_t x, size_t y, dls::image::Pixel<float> const &pixel);
-
-	/**
-	 * Échantillonne le tampon de ce calque à la position <x, y> en utilisant
-	 * une entrepolation linéaire entre les pixels se trouvant entre les quatre
-	 * coins de la position spécifiée.
-	 */
-	dls::image::Pixel<float> echantillone(float x, float y) const;
-};
-
-/* ************************************************************************** */
-
-class Image {
-	dls::liste<Calque *> m_calques{};
-	dls::chaine m_nom_calque{};
-
-public:
-	using plage_calques = dls::outils::plage_iterable<dls::liste<Calque *>::iteratrice>;
-	using plage_calques_const = dls::outils::plage_iterable<dls::liste<Calque *>::const_iteratrice>;
-
-	~Image();
-
-	/**
-	 * Ajoute un calque à cette image avec le nom spécifié. La taille du calque
-	 * est définie par le rectangle passé en paramètre. Retourne un pointeur
-	 * vers le calque ajouté.
-	 */
-	Calque *ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle);
-
-	/**
-	 * Retourne un pointeur vers le calque portant le nom passé en paramètre. Si
-	 * aucun calque ne portant ce nom est trouvé, retourne nullptr.
-	 */
-	Calque *calque(dls::chaine const &nom) const;
-
-	/**
-	 * Retourne une plage itérable sur la liste de calques de cette Image.
-	 */
-	plage_calques calques();
-
-	/**
-	 * Retourne une plage itérable constante sur la liste de calques de cette Image.
-	 */
-	plage_calques_const calques() const;
-
-	/**
-	 * Vide la liste de calques de cette image. Si garde_memoires est faux,
-	 * les calques seront supprimés. Cette méthode est à utiliser pour
-	 * transférer la propriété des calques d'une image à une autre.
-	 */
-	void reinitialise(bool garde_memoires = false);
-
-	/**
-	 * Renseigne le nom du calque actif.
-	 */
-	void nom_calque_actif(dls::chaine const &nom);
-
-	/**
-	 * Retourne le nom du calque actif.
-	 */
-	dls::chaine const &nom_calque_actif() const;
 };
 
 /* ************************************************************************** */
@@ -188,31 +96,22 @@ public:
 	bool connectee() const;
 
 	/**
+	 * Retourne le nombre de connexions du lien pointé.
+	 */
+	long nombre_connexions() const;
+
+	/**
 	 * Requiers l'image du noeud connecté à cette prise en exécutant ledit noeud
 	 * avant de lui prendre son image. La liste de nom de calque est mise à jour
 	 * selon l'image obtenue.
-	 */
-	void requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	 */	
+	Image const *requiers_image(ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
-	/**
-	 * Requiers la caméra du noeud connecté à cette prise en exécutant ledit
-	 * noeud avant de retourner un pointeur vers la caméra. Si aucune caméra
-	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
-	 * nullptr.
-	 */
-	vision::Camera3D *requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	Image *requiers_copie_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
-	/**
-	 * Requiers la texture du noeud connecté à cette prise en exécutant ledit
-	 * noeud avant de retourner un pointeur vers la texture. Si aucune texture
-	 * n'est créée par le noeud, ou si aucune connexion n'existe, retourne
-	 * nullptr.
-	 */
-	TextureImage *requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
-	const Corps *requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
-
-	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval);
+	Corps *requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval, int index = 0);
 
 	/**
 	 * Place la liste de calque de l'image transitante par cette entrée dans le
@@ -238,10 +137,9 @@ public:
 	 */
 	void obtiens_liste_groupes_points(dls::tableau<dls::chaine> &chaines) const;
 
-	PriseEntree *pointeur()
-	{
-		return m_ptr;
-	}
+	PriseEntree *pointeur();
+
+	void signale_cache(ChefExecution *chef) const;
 };
 
 struct PriseSortie;
@@ -252,16 +150,11 @@ class SortieOperatrice {
 public:
 	SortieOperatrice() = default;
 
-	explicit SortieOperatrice(PriseSortie *prise)
-		: m_ptr(prise)
-	{}
+	explicit SortieOperatrice(PriseSortie *prise);
 
 	SortieOperatrice(SortieOperatrice const &autre) = default;
 
-	PriseSortie *pointeur()
-	{
-		return m_ptr;
-	}
+	PriseSortie *pointeur();
 };
 
 /* ************************************************************************** */
@@ -279,27 +172,35 @@ class OperatriceImage : public danjo::Manipulable {
 
 protected:
 	Graphe &m_graphe_parent;
+	Noeud &noeud;
 	Image m_image{};
+	bool m_execute_toujours = false;
+
+	REMBOURRE(6);
 
 public:
 	/* Prevent creating an operator without an accompanying node. */
 	OperatriceImage() = delete;
 
-	explicit OperatriceImage(Graphe &graphe_parent, Noeud *node);
+	OperatriceImage(Graphe &graphe_parent, Noeud &n);
 
 	OperatriceImage(OperatriceImage const &) = default;
 	OperatriceImage &operator=(OperatriceImage const &) = default;
 
 	virtual ~OperatriceImage() = default;
 
+	bool cache_est_invalide = true;
+
 	/* L'usine est utilisé pour pouvoir supprimer correctement l'opératrice.
 	 * Voir supprime_operatrice_image. */
 	void usine(UsineOperatrice *usine_op);
 	UsineOperatrice *usine() const;
 
+	bool execute_toujours() const;
+
 	virtual int type() const;
 
-	/* Input handling. */
+	/* gestion des entrées */
 
 	void entrees(long number);
 
@@ -307,7 +208,9 @@ public:
 
 	virtual const char *nom_entree(int n);
 
-	virtual int type_entree(int n) const;
+	virtual type_prise type_entree(int n) const;
+
+	virtual bool connexions_multiples(int n) const;
 
 	EntreeOperatrice *entree(long index);
 
@@ -315,11 +218,7 @@ public:
 
 	void donnees_entree(long index, PriseEntree *socket);
 
-	SortieOperatrice *sortie(long index);
-
-	void donnees_sortie(long index, PriseSortie *prise);
-
-	/* Output handling. */
+	/* gestion des sorties */
 
 	void sorties(long number);
 
@@ -327,29 +226,41 @@ public:
 
 	virtual const char *nom_sortie(int n);
 
-	virtual int type_sortie(int n) const;
+	virtual type_prise type_sortie(int n) const;
 
-	/* Information about this operator. */
+	SortieOperatrice *sortie(long index);
+
+	void donnees_sortie(long index, PriseSortie *prise);
+
+	/* informations sur cette opératrice */
 
 	virtual const char *nom_classe() const = 0;
 	virtual const char *texte_aide() const = 0;
 	virtual const char *chemin_entreface() const;
 
-	/* The main processing logic of this operator. */
+	/* la logique principale d'exécution de cette opératrice */
 
-	virtual int execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) = 0;
+	virtual res_exec execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval) = 0;
 
 	void transfere_image(Image &image);
 
 	void ajoute_avertissement(dls::chaine const &avertissement);
 
+	template <typename T, typename... Ts>
+	void ajoute_avertissement(T &&t, Ts &&... ts)
+	{
+		auto flux = dls::flux_chaine();
+		ajoute_avertissement_flux(flux, t, ts...);
+		m_avertissements.pousse(flux.chn());
+	}
+
 	void reinitialise_avertisements();
 
 	dls::tableau<dls::chaine> const &avertissements() const;
 
-	virtual vision::Camera3D *camera();
+	Image *image();
 
-	virtual TextureImage *texture();
+	Image const *image() const;
 
 	virtual Corps *corps();
 
@@ -384,17 +295,39 @@ public:
 			dls::chaine const &attache,
 			dls::tableau<dls::chaine> &chaines);
 
-	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud);
-
-	bool possede_animation();
+	virtual void renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau);
 
 	virtual bool depend_sur_temps() const;
 
-	virtual void amont_change();
+	virtual void amont_change(PriseEntree *entree);
+
+	virtual void parametres_changes();
+
+	virtual void libere_memoire();
+
+private:
+	template <typename T>
+	void ajoute_avertissement_flux(dls::flux_chaine &flux, T &&t)
+	{
+		flux << t;
+	}
+
+	template <typename T, typename... Ts>
+	void ajoute_avertissement_flux(dls::flux_chaine &flux, T &&t, Ts &&... ts)
+	{
+		flux << t;
+		ajoute_avertissement_flux(flux, ts...);
+	}
 };
+
+calque_image const *cherche_calque(
+		OperatriceImage &op,
+		Image const *image,
+		dls::chaine const &nom_calque);
 
 /* ************************************************************************** */
 
-Noeud *cree_noeud_image();
-
-void supprime_noeud_image(Noeud *noeud);
+inline OperatriceImage *extrait_opimage(std::any const &any)
+{
+	return std::any_cast<OperatriceImage *>(any);
+}

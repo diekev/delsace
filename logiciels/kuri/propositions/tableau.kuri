@@ -1,0 +1,29 @@
+
+
+fonction ajoute(tabl : *[]$T, val : $T) : rien
+{
+	si capacite de tabl == taille de tabl {
+		reloge tabl : []$T(taille de tabl + 1);
+		capacite de tabl += 1;
+	}
+
+	tabl[taille de tabl] = val;
+	taille de tabl += 1;
+}
+
+fonction enleve(tabl : *[]$T, idx : z64) : rien
+{
+	si idx < 0 {
+		retourne;
+	}
+
+	si idx < taille de tabl - 1 {
+		soit src = @tabl[idx + 1];
+		soit dst = @tabl[idx];
+		soit n = taille de tabl - idx - 1;
+
+		copie_mem_nonsur(src=src, dst=dst, taille=n);
+	}
+
+	taille de tabl -= 1;
+}

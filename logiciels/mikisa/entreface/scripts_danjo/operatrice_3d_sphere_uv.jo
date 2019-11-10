@@ -1,26 +1,26 @@
 disposition "operatrice_3d_sphere_uv" {
     ligne {
 	    étiquette(valeur="Rayon")
-		décimal(valeur=1.0; attache=rayon; min=0.0)
+		décimal(valeur=1.0; attache=rayon; min=0.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Résolution U")
-		entier(valeur=48; attache=res_u; min=4)
+		entier(valeur=48; attache=res_u; min=4; animable)
 	}
 	ligne {
 	    étiquette(valeur="Résolution V")
-		entier(valeur=24; attache=res_v; min=2)
+		entier(valeur=24; attache=res_v; min=2; animable)
 	}
 	ligne {
 	    étiquette(valeur="Position")
-		vecteur(valeur="0,0,0"; attache=position)
+		vecteur(valeur="0,0,0"; attache=position; animable)
 	}
 	ligne {
 	    étiquette(valeur="Rotation")
-		vecteur(valeur="0,0,0"; attache=rotation)
+		vecteur(valeur="0,0,0"; attache=rotation; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		vecteur(valeur="1,1,1"; attache=taille)
+		vecteur(valeur="1,1,1"; attache=taille; animable)
 	}
 }

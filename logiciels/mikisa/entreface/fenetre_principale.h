@@ -59,7 +59,7 @@ public Q_SLOTS:
 	void tache_demarree();
 	void ajourne_progres(float progres);
 	void tache_terminee();
-	void evaluation_debutee(const char *message);
+	void evaluation_debutee(const char *message, int execution, int total);
 
 private:
 	QDockWidget *ajoute_dock(QString const &nom, int type, int aire, QDockWidget *premier = nullptr);

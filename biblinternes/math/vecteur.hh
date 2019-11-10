@@ -183,6 +183,18 @@ struct vecteur final : public detail::selecteur_base_vecteur<O, T, Ns...>::type_
 		return *this;
 	}
 
+	inline type_vecteur &operator>>=(int dec)
+	{
+		((this->data[Ns] >>= dec), ...);
+		return *this;
+	}
+
+	inline type_vecteur &operator<<=(int dec)
+	{
+		((this->data[Ns] <<= dec), ...);
+		return *this;
+	}
+
 private:
 	auto construit_index(size_t &i, type_scalaire scalaire)
 	{
@@ -337,8 +349,8 @@ template <int O, typename T, int... Ns>
 template <int O, typename T, int... Ns>
 [[nodiscard]] auto operator/(const T valeur, vecteur<O, T, Ns...> const &v)
 {
-	auto tmp(v);
-	tmp /= valeur;
+	auto tmp = vecteur<O, T, Ns...>(valeur);
+	tmp /= v;
 	return tmp;
 }
 
@@ -470,6 +482,15 @@ template <int O, typename T, int... Ns>
 [[nodiscard]] constexpr auto produit_croix(vecteur<O, T, Ns...> const &u, vecteur<O, T, Ns...> const &v)
 {
 	return produit_vectorielle(u, v);
+}
+
+/**
+ * Spécialisation du produit en croix pour des vecteurs 2D.
+ */
+template <int O, typename T>
+[[nodiscard]] constexpr auto produit_croix(vecteur<O, T, 0, 1> const &u, vecteur<O, T, 0, 1> const &v)
+{
+	return (u.x * v.y) - (v.x * u.y);
 }
 
 /**
@@ -634,6 +655,32 @@ template <int O, typename T, int... Ns>
 }
 
 /**
+ * Retourne un vecteur orthogonal à celui précisé.
+ */
+template <int O, typename T>
+[[nodiscard]] inline auto vec_ortho(vecteur<O, T, 0, 1, 2> const &v)
+{
+	/* NOTE : il y a une infinité de vecteurs orthogonaux à v, mais nous n'en
+	 * prenons qu'un seul de manière déterministe. On pourrait également
+	 * calculer le vecteur en utilisant la plus grande dimension de v comme
+	 * discriminant, mais cela introduit des sursauts dans les animations car la
+	 * base orthonormale peut changer si on utilise ce vecteur pour faire des
+	 * matrices de rotation ou autre.
+	 *
+	 * Pour un vecteur (a, b, c), des vecteurs orthogonaux possibles sont :
+	 * (-b, a, 0)
+	 * (-c, 0, a)
+	 * (0, -c, b)
+	 * (-b-c, a, a)
+	 * (b, -a-c, b)
+	 * (c, c, -a-b)
+	 *
+	 * nous utilisons le premier.
+	 */
+	return vecteur<O, T, 0, 1, 2>(-v.y, v.x, 0.0f);
+}
+
+/**
  * Retourne l'aire du triangle représenté par les trois vecteurs spécifiés.
  */
 template <int O, typename T, int... Ns>
@@ -731,6 +778,112 @@ auto reflechi(
         vecteur<O, T, Ns...> const &N)
 {
 	return I - static_cast<T>(2) * produit_scalaire(I, N) * N;
+}
+
+/**
+ * Retourne un vecteur correspondant à la conversion du vecteur d'entrée de
+ * l'espace continu vers l'espace discret.
+ */
+template <typename Ent, int O, typename Dec, int... Ns>
+[[nodiscard]] auto continu_vers_discret(vecteur<O, Dec, Ns...> const &cont) noexcept
+{
+	static_assert(std::is_floating_point<Dec>::value
+				  && std::is_integral<Ent>::value,
+				  "continu_vers_discret va de décimal à entier");
+
+	auto tmp = vecteur<O, Ent, Ns...>();
+	((tmp[Ns] = static_cast<Ent>(std::floor(cont[Ns]))), ...);
+	return tmp;
+}
+
+/**
+ * Retourne un vecteur correspondant à la conversion du vecteur d'entrée de
+ * l'espace discret vers l'espace continu.
+ */
+template <typename Dec, int O, typename Ent, int... Ns>
+[[nodiscard]] auto discret_vers_continu(vecteur<O, Ent, Ns...> const &cont) noexcept
+{
+	static_assert(std::is_floating_point<Dec>::value
+				  && std::is_integral<Ent>::value,
+				  "discret_vers_continu va de entier à décimal");
+
+	auto tmp = vecteur<O, Dec, Ns...>();
+	((tmp[Ns] = static_cast<Dec>(cont[Ns]) + static_cast<Dec>(0.5)), ...);
+	return tmp;
+}
+
+/**
+ * Converti les valeurs du vecteur d'un type à un autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<O, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Converti les valeurs d'un point ou d'un normal d'un type vers un vecteur d'un
+ * autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type_vecteur(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<TYPE_VECTEUR, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Converti les valeurs d'un vecteur ou d'un normal d'un type vers un point d'un
+ * autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type_point(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<TYPE_POINT, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Converti les valeurs d'un point ou d'un vecteur d'un type vers un normal d'un
+ * autre (p.e. de float à int).
+ */
+template <typename TypeRet, typename T, int O, int... Ns>
+[[nodiscard]] inline auto converti_type_normal(vecteur<O, T, Ns...> const &vec)
+{
+	auto tmp = vecteur<TYPE_NORMAL, TypeRet, Ns...>();
+	((tmp[Ns] = static_cast<TypeRet>(vec[Ns])), ...);
+	return tmp;
+}
+
+/**
+ * Retourne la valeur de la somme de toutes les valeurs du vecteur.
+ */
+template <int O, typename T, int... Ns>
+[[nodiscard]] inline auto somme_interne(vecteur<O, T, Ns...> const &vec)
+{
+	return (vec[Ns] + ...);
+}
+
+/**
+ * Retourne la valeur du produit de toutes les valeurs du vecteur.
+ */
+template <int O, typename T, int... Ns>
+[[nodiscard]] inline auto produit_interne(vecteur<O, T, Ns...> const &vec)
+{
+	return (vec[Ns] * ...);
+}
+
+/**
+ * Retourne la moyenne de tous les vecteurs spécifiés.
+ */
+template <template<int, typename, int...> typename... Vecs, int O, typename T, int... Ds>
+[[nodiscard]] inline auto moyenne(Vecs<O, T, Ds...> const &... vs)
+{
+	return (vs + ...) / static_cast<T>(sizeof...(vs));
 }
 
 /* ***************************** opérateurs flux **************************** */
@@ -854,6 +1007,22 @@ void cree_base_orthonormale(
 	auto const b = n.x * n.y * a;
 	b0 = vec3<T>(static_cast<T>(1.0) + sign * n.x * n.x * a, sign * b, -sign * n.x);
 	b1 = vec3<T>(b, sign + n.y * n.y * a, -n.y);
+}
+
+/**
+ * Calcul l'index d'un pixel ou plus généralement d'un point dans une grille.
+ */
+[[nodiscard]] inline auto calcul_index(vec2i const &co, vec2i const &res)
+{
+	return static_cast<long>(co.x + co.y * res.x);
+}
+
+/**
+ * Calcul l'index d'un voxel ou plus généralement d'un point dans une grille.
+ */
+[[nodiscard]] inline auto calcul_index(vec3i const &co, vec3i const &res)
+{
+	return static_cast<long>(co.x + (co.y + co.z * res.y) * res.x);
 }
 
 }  /* namespace dls::math */

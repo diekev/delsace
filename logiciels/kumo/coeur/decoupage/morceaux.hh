@@ -28,63 +28,63 @@
 
 #include "biblinternes/structures/vue_chaine.hh"
 
-enum {
-	ID_PARENTHESE_OUVRANTE,
-	ID_PARENTHESE_FERMANTE,
-	ID_VIRGULE,
-	ID_POINT,
-	ID_DOUBLE_POINTS,
-	ID_POINT_VIRGULE,
-	ID_ACCOLADE_OUVRANTE,
-	ID_ACCOLADE_FERMANTE,
-	ID_AJOURNE,
-	ID_AUTO_INCREMENTE,
-	ID_BINAIRE,
-	ID_BIT,
-	ID_CASCADE,
-	ID_CHAINE,
-	ID_CLE,
-	ID_CLE_PRIMAIRE,
-	ID_DEFAUT,
-	ID_ENTIER,
-	ID_FAUX,
-	ID_NUL,
-	ID_OCTET,
-	ID_REEL,
-	ID_REFERENCE,
-	ID_SIGNE,
-	ID_SUPPRIME,
-	ID_TABLE,
-	ID_TAILLE,
-	ID_TEMPS,
-	ID_TEMPS_COURANT,
-	ID_TEMPS_DATE,
-	ID_TEXTE,
-	ID_VARIABLE,
-	ID_VRAI,
-	ID_ZEROFILL,
-	ID_CHAINE_CARACTERE,
-	ID_NOMBRE_ENTIER,
-	ID_NOMBRE_REEL,
-	ID_NOMBRE_BINAIRE,
-	ID_NOMBRE_OCTAL,
-	ID_NOMBRE_HEXADECIMAL,
-	ID_INCONNU,
+enum class id_morceau : unsigned int {
+	PARENTHESE_OUVRANTE,
+	PARENTHESE_FERMANTE,
+	VIRGULE,
+	POINT,
+	DOUBLE_POINTS,
+	POINT_VIRGULE,
+	ACCOLADE_OUVRANTE,
+	ACCOLADE_FERMANTE,
+	AJOURNE,
+	AUTO_INCREMENTE,
+	BINAIRE,
+	BIT,
+	CASCADE,
+	CHAINE,
+	CLE,
+	CLE_PRIMAIRE,
+	DEFAUT,
+	ENTIER,
+	FAUX,
+	NUL,
+	OCTET,
+	REEL,
+	REFERENCE,
+	SIGNE,
+	SUPPRIME,
+	TABLE,
+	TAILLE,
+	TEMPS,
+	TEMPS_COURANT,
+	TEMPS_DATE,
+	TEXTE,
+	VARIABLE,
+	VRAI,
+	ZEROFILL,
+	CHAINE_CARACTERE,
+	NOMBRE_ENTIER,
+	NOMBRE_REEL,
+	NOMBRE_BINAIRE,
+	NOMBRE_OCTAL,
+	NOMBRE_HEXADECIMAL,
+	INCONNU,
 };
 
 struct DonneesMorceaux {
-	using type = unsigned long;
-	static constexpr type INCONNU = ID_INCONNU;
+	using type = id_morceau;
+	static constexpr type INCONNU = id_morceau::INCONNU;
 
 	dls::vue_chaine chaine;
 	unsigned long ligne_pos;
-	unsigned long identifiant;
+	id_morceau identifiant;
 };
 
-const char *chaine_identifiant(int id);
+const char *chaine_identifiant(id_morceau id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, int &i);
+bool est_caractere_special(char c, id_morceau &i);
 
-int id_chaine(const dls::vue_chaine &chaine);
+id_morceau id_chaine(const dls::vue_chaine &chaine);

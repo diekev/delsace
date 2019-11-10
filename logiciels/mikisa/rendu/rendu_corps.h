@@ -24,9 +24,21 @@
 
 #pragma once
 
+#include "biblinternes/math/matrice.hh"
+#include "biblinternes/structures/tableau.hh"
+
 class Corps;
 class ContexteRendu;
 class TamponRendu;
+
+struct StatistiquesRendu {
+	long nombre_objets = 0;
+	long nombre_polygones = 0;
+	long nombre_polylignes = 0;
+	long nombre_volumes = 0;
+	long nombre_points = 0;
+	double temps = 0.0;
+};
 
 /**
  * La classe RenduCorps contient la logique de rendu d'un corps dans la
@@ -55,7 +67,9 @@ public:
 	 */
 	~RenduCorps();
 
-	void initialise(ContexteRendu const &contexte);
+	void initialise(ContexteRendu const &contexte,
+					StatistiquesRendu &stats,
+					dls::tableau<dls::math::mat4x4f> &matrices);
 
 	/**
 	 * Dessine le maillage dans le contexte spécifié.

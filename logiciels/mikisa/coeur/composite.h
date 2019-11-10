@@ -24,26 +24,32 @@
 
 #pragma once
 
-#include "biblinternes/graphe/graphe.h"
-#include "biblinternes/structures/chaine.hh"
+#include <any>
 
-#include "operatrice_image.h"
+#include "biblinternes/outils/definitions.h"
+
+#include "image.hh"
+
+struct Noeud;
 
 class Composite {
-	Graphe m_graph;
 	Image m_image{};
 
 public:
-	Composite();
+	Composite() = default;
+
+	COPIE_CONSTRUCT(Composite);
 
 	~Composite() = default;
 
-	dls::chaine nom = "";
+	Noeud *noeud = nullptr;
 
 	Image const &image() const;
 
 	void image(Image const &img);
-
-	Graphe const &graph() const;
-	Graphe &graph();
 };
+
+inline Composite *extrait_composite(std::any const &any)
+{
+	return std::any_cast<Composite *>(any);
+}

@@ -53,18 +53,18 @@ public:
 	 */
 	class chronometre_portee {
 		pointeur_chronometre *m_parent = nullptr;
-		double m_debut = 0.0;
+		compte_seconde m_debut{};
 
 	public:
 		explicit chronometre_portee(pointeur_chronometre *parent)
 			: m_parent(parent)
-			, m_debut(maintenant())
+			, m_debut(compte_seconde())
 		{}
 
 		~chronometre_portee()
 		{
 			if (m_parent != nullptr) {
-				m_parent->m_flux_sortie << delta(m_debut) << '\n';
+				m_parent->m_flux_sortie << m_debut.temps() << '\n';
 			}
 		}
 

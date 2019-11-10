@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301) USA.
  *
  * The Original Code is Copyright (C) 2019 Kévin Dietrich.
  * All rights reserved.
@@ -40,9 +40,10 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::NIE)
 		CHAINE_CAS(code_inst::FN_TRADUIT)
 		CHAINE_CAS(code_inst::FN_BASE_ORTHONORMALE)
+		CHAINE_CAS(code_inst::FN_COMBINE_VEC2)
 		CHAINE_CAS(code_inst::FN_COMBINE_VEC3)
+		CHAINE_CAS(code_inst::FN_SEPARE_VEC2)
 		CHAINE_CAS(code_inst::FN_SEPARE_VEC3)
-		CHAINE_CAS(code_inst::FN_BRUIT_TURBULENT)
 		CHAINE_CAS(code_inst::FN_NORMALISE_VEC3)
 		CHAINE_CAS(code_inst::FN_COMPLEMENT)
 		CHAINE_CAS(code_inst::FN_PRODUIT_SCALAIRE_VEC3)
@@ -50,7 +51,8 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_FRESNEL)
 		CHAINE_CAS(code_inst::FN_REFLECHI)
 		CHAINE_CAS(code_inst::FN_REFRACTE)
-		CHAINE_CAS(code_inst::FN_ALEA)
+		CHAINE_CAS(code_inst::FN_ALEA_UNI)
+		CHAINE_CAS(code_inst::FN_ALEA_NRM)
 		CHAINE_CAS(code_inst::FN_AJOUTE)
 		CHAINE_CAS(code_inst::FN_SOUSTRAIT)
 		CHAINE_CAS(code_inst::FN_MULTIPLIE)
@@ -86,6 +88,9 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::DEC_VERS_VEC3)
 		CHAINE_CAS(code_inst::ENT_VERS_VEC4)
 		CHAINE_CAS(code_inst::DEC_VERS_VEC4)
+		CHAINE_CAS(code_inst::DEC_VERS_COULEUR)
+		CHAINE_CAS(code_inst::VEC3_VERS_COULEUR)
+		CHAINE_CAS(code_inst::COULEUR_VERS_VEC3)
 		CHAINE_CAS(code_inst::FN_RESTREINT)
 		CHAINE_CAS(code_inst::FN_ENLIGNE)
 		CHAINE_CAS(code_inst::FN_HERMITE1)
@@ -99,6 +104,9 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_AJOUTE_PRIMITIVE_SOMMETS)
 		CHAINE_CAS(code_inst::FN_AJOUTE_SOMMET)
 		CHAINE_CAS(code_inst::FN_AJOUTE_SOMMETS)
+		CHAINE_CAS(code_inst::FN_POINTS_VOISINS)
+		CHAINE_CAS(code_inst::FN_POINTS_VOISINS_RAYON)
+		CHAINE_CAS(code_inst::FN_POINT)
 		CHAINE_CAS(code_inst::FN_SATURE)
 		CHAINE_CAS(code_inst::FN_LUMINANCE)
 		CHAINE_CAS(code_inst::FN_CONTRASTE)
@@ -123,6 +131,35 @@ const char *chaine_code_inst(code_inst inst)
 		CHAINE_CAS(code_inst::FN_LONGUEUR_VEC3)
 		CHAINE_CAS(code_inst::FN_AJOUTE_LIGNE)
 		CHAINE_CAS(code_inst::FN_ECHANTILLONE_SPHERE)
+		CHAINE_CAS(code_inst::FN_ECHANTILLONE_IMAGE)
+		CHAINE_CAS(code_inst::FN_ECHANTILLONE_TRIPLAN)
+		CHAINE_CAS(code_inst::FN_PROJECTION_SPHERIQUE)
+		CHAINE_CAS(code_inst::FN_PROJECTION_CYLINDRIQUE)
+		CHAINE_CAS(code_inst::FN_PROJECTION_CAMERA)
+		CHAINE_CAS(code_inst::FN_BRUIT_CELLULE)
+		CHAINE_CAS(code_inst::FN_BRUIT_FLUX)
+		CHAINE_CAS(code_inst::FN_BRUIT_FOURIER)
+		CHAINE_CAS(code_inst::FN_BRUIT_ONDELETTE)
+		CHAINE_CAS(code_inst::FN_BRUIT_PERLIN)
+		CHAINE_CAS(code_inst::FN_BRUIT_SIMPLEX)
+		CHAINE_CAS(code_inst::FN_BRUIT_VALEUR)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F1)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F2)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F3)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F4)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_F1F2)
+		CHAINE_CAS(code_inst::FN_BRUIT_VORONOI_CR)
+		CHAINE_CAS(code_inst::FN_EVALUE_BRUIT)
+		CHAINE_CAS(code_inst::FN_EVALUE_BRUIT_TURBULENCE)
+		CHAINE_CAS(code_inst::FN_EVALUE_COURBE_COULEUR)
+		CHAINE_CAS(code_inst::FN_EVALUE_COURBE_VALEUR)
+		CHAINE_CAS(code_inst::FN_EVALUE_RAMPE_COULEUR)
+		CHAINE_CAS(code_inst::FN_TAILLE_CHAINE)
+		CHAINE_CAS(code_inst::FN_MORCELLE_CHAINE)
+		CHAINE_CAS(code_inst::FN_EXTRAIT_CHAINE_TABL)
+		CHAINE_CAS(code_inst::FN_CHAINE_VERS_DECIMAL)
+		CHAINE_CAS(code_inst::FN_PROJ_UV_SPHERE)
+		CHAINE_CAS(code_inst::FN_ATTRIBUT_DECIMAL)
 	}
 
 	return "erreur : code_inst inconnu";

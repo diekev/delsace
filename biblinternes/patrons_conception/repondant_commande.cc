@@ -100,5 +100,7 @@ void RepondantCommande::repond_clique(dls::chaine const &identifiant, dls::chain
 bool RepondantCommande::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
 	auto commande = m_usine_commande(identifiant);
-	return commande->evalue_predicat(m_pointeur, metadonnee);
+	auto ok = commande->evalue_predicat(m_pointeur, metadonnee);
+	delete commande;
+	return ok;
 }

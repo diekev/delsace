@@ -130,10 +130,17 @@ void Graphe::connecte(PriseSortie *sortie, PriseEntree *entree)
 		return;
 	}
 
+	/* Évite d'avoir plusieurs fois le même lien. */
+	for (auto lien : entree->liens) {
+		if (lien == sortie) {
+			return;
+		}
+	}
+
 	entree->liens.pousse(sortie);
 	sortie->liens.pousse(entree);
 
-	marque_surannee(entree->parent);
+	marque_surannee(entree->parent, nullptr);
 
 	besoin_ajournement = true;
 }
@@ -157,7 +164,7 @@ bool Graphe::deconnecte(PriseSortie *sortie, PriseEntree *entree)
 	sortie->liens.erase(iter_entree);
 	entree->liens.erase(iter_sortie);
 
-	marque_surannee(entree->parent);
+	marque_surannee(entree->parent, nullptr);
 
 	besoin_ajournement = true;
 
@@ -192,6 +199,7 @@ void Graphe::supprime_tout()
 		supprime_noeud(noeud);
 	}
 
+	m_noms_noeuds.efface();
 	m_noeuds_selectionnes.efface();
 	m_noeuds.efface();
 }

@@ -86,7 +86,7 @@ CourbeBezier::~CourbeBezier()
 
 CourbeCouleur::CourbeCouleur()
 {
-	for (int i = 0; i < NOMBRE_COURBES; ++i) {
+	for (int i = 0; i < NOMBRE_COURBES_COULEUR; ++i) {
 		cree_courbe_defaut(courbes[i]);
 	}
 }
@@ -410,25 +410,25 @@ dls::phys::couleur32 evalue_courbe_couleur(
 	dls::phys::couleur32 res;
 
 	/* applique la courbe maitresse, sauf pour l'alpha */
-	res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[0]);
-	res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[1]);
-	res[2] = evalue_courbe_bezier(courbe.courbes[COURBE_MAITRESSE], valeur[2]);
+	res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_MAITRESSE], valeur[0]);
+	res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_MAITRESSE], valeur[1]);
+	res[2] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_MAITRESSE], valeur[2]);
 	res[3] = valeur[3];
 
 	/* applique les courbes individuelles */
 	if (courbe.type == COURBE_COULEUR_RGB) {
-		res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE], res[0]);
-		res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_VERTE], res[1]);
-		res[2] = evalue_courbe_bezier(courbe.courbes[COURBE_BLEUE], res[2]);
-		res[3] = evalue_courbe_bezier(courbe.courbes[COURBE_VALEUR], res[3]);
+		res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_ROUGE], res[0]);
+		res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_VERTE], res[1]);
+		res[2] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_BLEUE], res[2]);
+		res[3] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_VALEUR], res[3]);
 	}
 	else {
 		const auto ordre = ordre_triage_canal(res);
 
 		if (ordre == R_S_V_E_B) {
 			/* Cas 4 : r >= g == b */
-			res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE], res[0]);
-			res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_VERTE], res[1]);
+			res[0] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_ROUGE], res[0]);
+			res[1] = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_VERTE], res[1]);
 			res[2] = res[1];
 		}
 		else {
@@ -437,8 +437,8 @@ dls::phys::couleur32 evalue_courbe_couleur(
 			const float v1in = res[index[1]];
 			const float v2in = res[index[2]];
 
-			const float v0 = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE + index[0]], v0in);
-			const float v2 = evalue_courbe_bezier(courbe.courbes[COURBE_ROUGE + index[2]], v2in);
+			const float v0 = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_ROUGE + index[0]], v0in);
+			const float v2 = evalue_courbe_bezier(courbe.courbes[COURBE_COULEUR_ROUGE + index[2]], v2in);
 			const float v1 = v2 + ((v0 - v2) * (v1in - v2in) / (v0in - v2in));
 
 			res[index[0]] = v0;

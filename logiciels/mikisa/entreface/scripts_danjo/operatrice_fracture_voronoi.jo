@@ -1,0 +1,8 @@
+disposition "operatrice_fracture_voronoi" {
+	ligne {
+		étiquette(valeur="Périodic X/Y/Z")
+		case(valeur=faux; attache=périodic_x)
+		case(valeur=faux; attache=périodic_y)
+		case(valeur=faux; attache=périodic_z)
+	}
+}

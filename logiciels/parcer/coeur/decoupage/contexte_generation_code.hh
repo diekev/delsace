@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/pile.hh"
 
 #include "donnees_type.hh"
@@ -50,10 +48,6 @@ struct Metriques {
 	double temps_decoupage = 0.0;
 	double temps_validation = 0.0;
 	double temps_generation = 0.0;
-};
-
-enum {
-	BESOIN_DEREF = (1 << 0),
 };
 
 struct DonneesVariable {
@@ -324,23 +318,6 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	/**
-	 * Ajoute un noeud à la pile des noeuds différés.
-	 */
-	void differe_noeud(noeud::base *noeud);
-
-	/**
-	 * Retourne une référence vers la pile constante de noeuds différés.
-	 */
-	dls::tableau<noeud::base *> const &noeuds_differes() const;
-
-	/**
-	 * Retourne une liste des noeuds différés du bloc courant.
-	 */
-	dls::tableau<noeud::base *> noeuds_differes_bloc() const;
-
-	/* ********************************************************************** */
-
 	size_t memoire_utilisee() const;
 
 	/**
@@ -352,17 +329,6 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	/**
-	 * Définie si oui ou non le contexte est non-sûr, c'est-à-dire que l'on peut
-	 * manipuler des objets dangereux.
-	 */
-	void non_sur(bool ouinon);
-
-	/**
-	 * Retourne si oui ou non le contexte est non-sûr.
-	 */
-	bool non_sur() const;
-
 	dls::dico_desordonne<dls::vue_chaine, DonneesStructure> structures{};
 
 private:
@@ -372,9 +338,6 @@ private:
 	conteneur_locales m_locales{};
 	dls::pile<long> m_pile_nombre_locales{};
 	long m_nombre_locales = 0;
-
-	dls::pile<long> m_pile_nombre_differes{};
-	long m_nombre_differes = 0;
 
 	using paire_goto = std::pair<dls::vue_chaine, dls::chaine>;
 

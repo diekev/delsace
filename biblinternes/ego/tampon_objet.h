@@ -34,7 +34,7 @@ namespace dls {
 namespace ego {
 EGO_VERSION_NAMESPACE_BEGIN
 
-/* TODO:
+/* À FAIRE:
  * - Make regular type:
  *   - Copyable
  *   - Assignable
@@ -73,7 +73,7 @@ public:
 	void attache() const noexcept;
 	void detache() const noexcept;
 
-	void pointeur_attribut(unsigned int index, int size) const noexcept;
+	void pointeur_attribut(unsigned int index, int size, int stride = 0, void *pointeur = nullptr) const noexcept;
 
 	void genere_tampon_sommet(void const *vertices, long const size);
 	void genere_tampon_index(void const *indices, long const size);

@@ -26,12 +26,15 @@
 
 #include <cstring>
 
+#include "biblinternes/langage/nombres.hh"
+
 #include "decoupage/contexte_generation_code.h"  // pour DonneesModule
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 #include "decoupage/modules.hh"
 #include "decoupage/morceaux.hh"
-#include "decoupage/nombres.h"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 {
@@ -39,14 +42,14 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "0.5 ";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 3);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_REEL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0.5"));
 
-		auto nombre = converti_chaine_nombre_reel(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_reel(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE_DECIMALE(controleuse, nombre, 0.5);
 	}
@@ -55,14 +58,14 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "0.559_57";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 8);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_REEL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0.559_57"));
 
-		auto nombre = converti_chaine_nombre_reel(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_reel(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE_DECIMALE(controleuse, nombre, 0.55957);
 	}
@@ -71,14 +74,14 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "100000+";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 6);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_ENTIER);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("100000"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 100000l);
 	}
@@ -87,14 +90,14 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "1_234_567_890 ";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 13);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_ENTIER);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("1_234_567_890"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 1234567890l);
 	}
@@ -106,14 +109,14 @@ void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "0b1001100+";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 9);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_BINAIRE);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0b1001100"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 76l);
 	}
@@ -122,14 +125,14 @@ void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "0B1001_1011 ";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 11);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_BINAIRE);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0B1001_1011"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 155l);
 	}
@@ -141,14 +144,14 @@ void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "0o1234567+";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 9);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_OCTAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0o1234567"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 342391l);
 	}
@@ -157,14 +160,14 @@ void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 		auto const tampon = "0O01_23_45_67 ";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 13);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_OCTAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0O01_23_45_67"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 342391l);
 	}
@@ -176,14 +179,14 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		auto const tampon = "0xff38ce+";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 8);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_HEXADECIMAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0xff38ce"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 0xff38cel);
 	}
@@ -192,14 +195,14 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		auto const tampon = "0XFF_c9_45_AB ";
 		id_morceau id_nombre;
 
-		auto compte = extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
+		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 13);
 		CU_VERIFIE_CONDITION(controleuse, id_nombre == id_morceau::NOMBRE_HEXADECIMAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine("0XFF_c9_45_AB"));
 
-		auto nombre = converti_chaine_nombre_entier(chaine, id_nombre);
+		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, 0xFFc945ABl);
 	}
@@ -221,27 +224,27 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 void test_surchage_binaire(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
-		auto nombre = converti_chaine_nombre_entier(
+		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  "0b10000000000000000000000000000000000000000000000000000000000000000",
 						  id_morceau::NOMBRE_BINAIRE);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
-		auto nombre = converti_chaine_nombre_entier(
+		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  "0o2777777777777777777777",
 						  id_morceau::NOMBRE_OCTAL);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 
-		nombre = converti_chaine_nombre_entier(
+		nombre = denombreuse::converti_chaine_nombre_entier(
 					 "0o17777777777777777777777",
 					 id_morceau::NOMBRE_OCTAL);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
-		auto nombre = converti_chaine_nombre_entier(
+		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  "9223372036854775808",
 						  id_morceau::NOMBRE_ENTIER);
 
@@ -249,14 +252,14 @@ void test_surchage_binaire(dls::test_unitaire::Controleuse &controleuse)
 		 * valeur négative. */
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::min());
 
-		nombre = converti_chaine_nombre_entier(
+		nombre = denombreuse::converti_chaine_nombre_entier(
 					 "9223372036854775807456",
 					 id_morceau::NOMBRE_ENTIER);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
-		auto nombre = converti_chaine_nombre_entier(
+		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  "0x1ffffffffffffffff",
 						  id_morceau::NOMBRE_HEXADECIMAL);
 

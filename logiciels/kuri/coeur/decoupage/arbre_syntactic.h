@@ -25,10 +25,11 @@
 #pragma once
 
 #include <any>
+
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
-#include "morceaux.hh"
 
 char caractere_echape(char const *sequence);
 
@@ -37,6 +38,7 @@ struct ContexteGenerationCode;
 enum class type_noeud : char {
 	RACINE,
 	DECLARATION_FONCTION,
+	LISTE_PARAMETRES_FONCTION,
 	APPEL_FONCTION,
 	VARIABLE,
 	ACCES_MEMBRE_DE,
@@ -153,9 +155,10 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-enum : unsigned short {
+enum drapeaux_noeud : unsigned short {
+	AUCUN                  = 0,
 	DYNAMIC                = (1 << 0),
-	VARIADIC               = (1 << 1),
+	EMPLOYE                = (1 << 1),
 	DECLARATION            = (1 << 2),
 	CONVERTI_TABLEAU       = (1 << 3),
 	CONVERTI_EINI          = (1 << 4),
@@ -169,14 +172,12 @@ enum : unsigned short {
 	PREND_REFERENCE        = (1 << 12),
 	FORCE_ENLIGNE          = (1 << 13),
 	FORCE_HORSLIGNE        = (1 << 14),
+	FORCE_NULCTX           = (1 << 15),
 
 	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
 };
 
-inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
-{
-	return (drapeau & valeur) != 0;
-}
+DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
 
 enum {
 	/* instruction 'pour' */
@@ -229,11 +230,13 @@ struct base {
 	long index_type_fonc = -1l;
 
 	char aide_generation_code = 0;
-	unsigned short drapeaux = 0;
 	type_noeud type{};
+	drapeaux_noeud drapeaux = drapeaux_noeud::AUCUN;
 	int module_appel{}; // module pour les appels de fonctions importées
 
 	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
+
+	DonneesTypeDeclare type_declare{};
 
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
 
@@ -284,8 +287,8 @@ bool est_constant(base *b);
 void ajoute_nom_argument(base *b, const dls::vue_chaine &nom);
 
 bool peut_operer(
-		const DonneesType &type1,
-		const DonneesType &type2,
+		const DonneesTypeFinal &type1,
+		const DonneesTypeFinal &type2,
 		type_noeud type_gauche,
 		type_noeud type_droite);
 

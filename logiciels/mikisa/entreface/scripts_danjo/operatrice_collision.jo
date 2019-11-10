@@ -1,7 +1,7 @@
 disposition "operatrice_collision" {
 	ligne {
 	    étiquette(valeur="Rayon")
-		décimal(valeur=0.1; attache=rayon; min=0.0)
+		décimal(valeur=0.1; attache=rayon; min=0.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Réponse Collision")
@@ -13,6 +13,6 @@ disposition "operatrice_collision" {
 	}
 	ligne {
 	    étiquette(valeur="Élasticité")
-		décimal(valeur=1.0; attache=élasticité; min=0.0)
+		décimal(valeur=1.0; attache=élasticité; min=0.0; animable)
 	}
 }

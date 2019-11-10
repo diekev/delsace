@@ -11,10 +11,12 @@ uniform vec4 couleur;
 
 smooth out vec4 couleur_fragment;
 smooth out vec3 sommet;
+smooth out vec4 vpos;
 
 void main()
 {
 	gl_Position = MVP * matrice * vec4(sommets.xyz, 1.0);
+	vpos = gl_Position;
 
 	sommet = sommets.xyz;
 

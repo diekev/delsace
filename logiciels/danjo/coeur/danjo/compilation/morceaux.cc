@@ -32,6 +32,8 @@ namespace danjo {
 
 static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine("action"), id_morceau::ACTION },
+	dls::paire{ dls::vue_chaine("activable"), id_morceau::ACTIVABLE },
+	dls::paire{ dls::vue_chaine("animable"), id_morceau::ANIMABLE },
 	dls::paire{ dls::vue_chaine("attache"), id_morceau::ATTACHE },
 	dls::paire{ dls::vue_chaine("barre_outils"), id_morceau::BARRE_OUTILS },
 	dls::paire{ dls::vue_chaine("bouton"), id_morceau::BOUTON },
@@ -231,6 +233,10 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::BARE_BARRE";
 		case id_morceau::ACTION:
 			return "id_morceau::ACTION";
+		case id_morceau::ACTIVABLE:
+			return "id_morceau::ACTIVABLE";
+		case id_morceau::ANIMABLE:
+			return "id_morceau::ANIMABLE";
 		case id_morceau::ATTACHE:
 			return "id_morceau::ATTACHE";
 		case id_morceau::BARRE_OUTILS:
@@ -333,10 +339,16 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::CHAINE_LITTERALE";
 		case id_morceau::CARACTERE:
 			return "id_morceau::CARACTERE";
-		case id_morceau::NOMBRE:
-			return "id_morceau::NOMBRE";
-		case id_morceau::NOMBRE_DECIMAL:
-			return "id_morceau::NOMBRE_DECIMAL";
+		case id_morceau::NOMBRE_BINAIRE:
+			return "id_morceau::NOMBRE_BINAIRE";
+		case id_morceau::NOMBRE_ENTIER:
+			return "id_morceau::NOMBRE_ENTIER";
+		case id_morceau::NOMBRE_REEL:
+			return "id_morceau::NOMBRE_REEL";
+		case id_morceau::NOMBRE_OCTAL:
+			return "id_morceau::NOMBRE_OCTAL";
+		case id_morceau::NOMBRE_HEXADECIMAL:
+			return "id_morceau::NOMBRE_HEXADECIMAL";
 		case id_morceau::BOOL:
 			return "id_morceau::BOOL";
 		case id_morceau::NUL:

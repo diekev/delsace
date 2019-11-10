@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include "biblinternes/structures/chaine.hh"
 
 namespace sql {
@@ -38,7 +38,7 @@ class ObjetsCommuns {
 	sql::Driver *m_pilote_sql = nullptr;
 	sql::Connection *m_connection_sql = nullptr;
 
-	std::experimental::filesystem::path m_chemin_racine = {};
+	std::filesystem::path m_chemin_racine = {};
 
 public:
 	ObjetsCommuns() = default;
@@ -77,5 +77,5 @@ public:
 	 * Retourne le chemin vers le dossier racine du programme, là où le
 	 * programme sauvegarde ses données.
 	 */
-	std::experimental::filesystem::path chemin_racine() const;
+	std::filesystem::path chemin_racine() const;
 };

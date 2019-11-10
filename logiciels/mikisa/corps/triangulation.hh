@@ -38,6 +38,8 @@ struct Triangle {
 	type_vec v1 = type_vec(0.0f, 0.0f, 0.0f);
 	type_vec v2 = type_vec(0.0f, 0.0f, 0.0f);
 
+	long index_orig = 0;
+
 	float aire = 0.0f;
 	Triangle *precedent = nullptr, *suivant = nullptr;
 

@@ -28,6 +28,16 @@
 
 #include "maillage.h"
 
+/**
+ * Considération des deux papiers suivant pour continuer l'implémentation :
+ *
+ * « A Space-efficient and Hardware-friendly Implementation of Ptex »
+ * http://wwwx.cs.unc.edu/~sujeong/Ptex/PTEX-sa011-small.pdf
+ *
+ * « Per-Face Texture Mapping for Realtime Rendering »
+ * http://developer.download.nvidia.com/assets/gamedev/docs/RealtimePtex-siggraph2011.pdf
+ */
+
 #undef LOGUE_EMPATQUETTAGE
 
 #undef QUEUE_PRIORITE
@@ -88,7 +98,7 @@ void PaqueuseTexture::empaquete(const dls::tableau<Polygone *> &polygones)
 		<< m_racine->largeur << 'x' << m_racine->hauteur << "...\n";
 
 #ifdef QUEUE_PRIORITE
-	m_queue_priorite.push(m_racine);
+	m_queue_priorite.enfile(m_racine);
 #endif
 
 	Noeud *noeud;
@@ -96,7 +106,7 @@ void PaqueuseTexture::empaquete(const dls::tableau<Polygone *> &polygones)
 	for (auto const &polygone : polygones) {
 #ifdef QUEUE_PRIORITE
 		while (!m_queue_priorite.est_vide()) {
-			noeud = m_queue_priorite.top();
+			noeud = m_queue_priorite.haut();
 
 			if (polygone->res_u <= noeud->largeur && polygone->res_v <= noeud->hauteur) {
 				noeud = brise_noeud(noeud, polygone->res_u, polygone->res_v);
@@ -207,7 +217,7 @@ PaqueuseTexture::Noeud *PaqueuseTexture::brise_noeud(
 		noeud->gauche->hauteur = noeud->hauteur - hauteur;
 
 #ifdef QUEUE_PRIORITE
-		m_queue_priorite.push(noeud->gauche);
+		m_queue_priorite.enfile(noeud->gauche);
 #endif
 	}
 
@@ -219,7 +229,7 @@ PaqueuseTexture::Noeud *PaqueuseTexture::brise_noeud(
 		noeud->droite->hauteur = noeud->hauteur;
 
 #ifdef QUEUE_PRIORITE
-		m_queue_priorite.push(noeud->droite);
+		m_queue_priorite.enfile(noeud->droite);
 #endif
 	}
 

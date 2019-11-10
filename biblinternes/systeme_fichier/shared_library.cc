@@ -76,7 +76,7 @@ static void *get_symbol(void *handle, const dls::chaine &name)
 	const auto sym = get_symbol(handle, name, ec);
 
 	if (ec != std::error_code()) {
-		throw std::experimental::filesystem::filesystem_error("Cannot lookup symbol in library", ec);
+		throw std::filesystem::filesystem_error("Cannot lookup symbol in library", ec);
 	}
 
 	return sym;
@@ -99,13 +99,13 @@ dso_loading &operator^=(dso_loading &lhs, dso_loading rhs)
 	return (lhs = lhs ^ rhs);
 }
 
-shared_library::shared_library(const std::experimental::filesystem::path &filename, dso_loading flag)
+shared_library::shared_library(const std::filesystem::path &filename, dso_loading flag)
     : shared_library()
 {
 	open(filename, flag);
 }
 
-shared_library::shared_library(const std::experimental::filesystem::path &filename, std::error_code &ec, dso_loading flag) noexcept
+shared_library::shared_library(const std::filesystem::path &filename, std::error_code &ec, dso_loading flag) noexcept
     : shared_library()
 {
 	open(filename, ec, flag);
@@ -141,7 +141,7 @@ void shared_library::swap(shared_library &other)
 	swap(m_chemin, other.m_chemin);
 }
 
-void shared_library::open(const std::experimental::filesystem::path &filename, dso_loading flag)
+void shared_library::open(const std::filesystem::path &filename, dso_loading flag)
 {
 	if (m_chemin == filename.c_str()) {
 		return;
@@ -152,11 +152,11 @@ void shared_library::open(const std::experimental::filesystem::path &filename, d
 
 	if (ec != std::error_code()) {
 		//const dls::chaine error = dlerror();
-		throw std::experimental::filesystem::filesystem_error("Cannot open shared library", m_chemin.c_str(), filename, ec);
+		throw std::filesystem::filesystem_error("Cannot open shared library", m_chemin.c_str(), filename, ec);
 	}
 }
 
-void shared_library::open(const std::experimental::filesystem::path &filename, std::error_code &ec, dso_loading flag) noexcept
+void shared_library::open(const std::filesystem::path &filename, std::error_code &ec, dso_loading flag) noexcept
 {
 	if (m_chemin == filename.c_str()) {
 		return;
@@ -189,7 +189,7 @@ dso_symbol shared_library::operator()(const dls::chaine &symbol_name, std::error
 	return dso_symbol{ __detail::get_symbol(m_handle, symbol_name, ec) };
 }
 
-std::experimental::filesystem::path shared_library::chemin() const
+std::filesystem::path shared_library::chemin() const
 {
 	return m_chemin.c_str();
 }

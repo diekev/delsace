@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,17 +24,36 @@
 
 #include "execution_pile.hh"
 
+#include "biblinternes/bruit/outils.hh"
+#include "biblinternes/bruit/evaluation.hh"
+#include "biblinternes/bruit/turbulent.hh"
 #include "biblinternes/math/entrepolation.hh"
+#include "biblinternes/outils/constantes.h"
+#include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/gna.hh"
+#include "biblinternes/structures/flux_chaine.hh"
+#include "biblinternes/vision/camera.h"
 
-#include <cstring>
-#include <random>
+#include "coeur/image.hh"
 
 #include "corps/corps.h"
 
 #include "donnees_type.h"
 #include "code_inst.hh"
 
+#include "wolika/echantillonnage.hh"
+
 namespace lcc {
+
+static auto extrait_decimal(dls::vue_chaine const &vue_chaine)
+{
+	dls::flux_chaine ss;
+	ss << vue_chaine;
+
+	float r;
+	ss >> r;
+	return r;
+}
 
 static auto cosinus(float x)
 {
@@ -54,6 +73,11 @@ static auto tangeante(float x)
 static auto arccosinus(float x)
 {
 	return std::acos(x);
+}
+
+static auto acos_sur(float x)
+{
+	return std::cos(dls::math::restreint(x, -1.0f, 1.0f));
 }
 
 static auto arcsinus(float x)
@@ -261,7 +285,7 @@ static auto appel_fonction_math_double(
 		int &inst_courante,
 		std::function<float(float, float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -362,6 +386,7 @@ static auto appel_fonction_math_double(
 			res.r = fonc(v0.r, v1.r);
 			res.v = fonc(v0.v, v1.v);
 			res.b = fonc(v0.b, v1.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -375,7 +400,7 @@ static auto appel_fonction_math_simple(
 		int &inst_courante,
 		std::function<float(float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -468,6 +493,7 @@ static auto appel_fonction_math_simple(
 			res.r = fonc(v0.r);
 			res.v = fonc(v0.v);
 			res.b = fonc(v0.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -491,7 +517,7 @@ static void appel_fonction_3_args(
 		int &inst_courante,
 		std::function<float(float, float, float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -610,6 +636,7 @@ static void appel_fonction_3_args(
 			res.r = fonc(v0.r, v1.r, v2.r);
 			res.v = fonc(v0.v, v1.v, v2.v);
 			res.b = fonc(v0.b, v1.b, v2.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
@@ -658,7 +685,7 @@ static void appel_fonction_5_args(
 		int &inst_courante,
 		std::function<float(float, float, float, float, float)> fonc)
 {
-	auto donnees_type = static_cast<type_var>(pile_insts.charge_entier(inst_courante));
+	auto donnees_type = pile_insts.charge_type(inst_courante);
 
 	switch (donnees_type) {
 		default:
@@ -793,11 +820,118 @@ static void appel_fonction_5_args(
 			res.r = fonc(v0.r, v1.r, v2.r, v3.r, v4.r);
 			res.v = fonc(v0.v, v1.v, v2.v, v3.v, v4.v);
 			res.b = fonc(v0.b, v1.b, v2.b, v3.b, v4.b);
+			res.a = v0.a;
 
 			pile_donnees.stocke(inst_courante, pile_insts, res);
 			break;
 		}
 	}
+}
+
+static auto charge_param_bruit(
+		bruit::parametres &params,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	params.origine_bruit = pile_donnees.charge_vec3(inst_courante, insts);
+	params.taille_bruit = pile_donnees.charge_vec3(inst_courante, insts);
+	params.decalage_valeur = pile_donnees.charge_decimal(inst_courante, insts);
+	params.echelle_valeur = pile_donnees.charge_decimal(inst_courante, insts);
+	params.temps_anim = pile_donnees.charge_decimal(inst_courante, insts);
+}
+
+static auto charge_param_bruit_turb(
+		bruit::param_turbulence &params,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	params.octaves = pile_donnees.charge_decimal(inst_courante, insts);
+	params.gain = pile_donnees.charge_decimal(inst_courante, insts);
+	params.lacunarite = pile_donnees.charge_decimal(inst_courante, insts);
+	params.amplitude = pile_donnees.charge_decimal(inst_courante, insts);
+}
+
+auto cree_bruit(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante,
+		bruit::type type_bruit)
+{
+	auto graine = pile_donnees.charge_entier(inst_courante, insts);
+
+	auto params = bruit::parametres();
+	charge_param_bruit(params, pile_donnees, insts, inst_courante);
+
+	bruit::construit(type_bruit, params, graine);
+
+	ctx.params_bruits.pousse(params);
+	auto idx = ctx.params_bruits.taille() - 1;
+
+	pile_donnees.stocke(inst_courante, insts, static_cast<int>(idx));
+}
+
+static auto evalue_bruit(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	auto idx = pile_donnees.charge_entier(inst_courante, insts);
+	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+
+	auto res = 0.0f;
+	auto deriv = dls::math::vec3f();
+
+	if (idx < ctx.params_bruits.taille()) {
+		auto const &params = ctx.params_bruits[idx];
+		res = bruit::evalue_derivee(params, pos, deriv);
+	}
+
+	auto ptr_sortie = insts.charge_entier(inst_courante);
+	pile_donnees.stocke(ptr_sortie, res);
+	pile_donnees.stocke(ptr_sortie, deriv);
+}
+
+static auto evalue_bruit_turbulence(
+		ctx_local &ctx,
+		pile &pile_donnees,
+		pile const &insts,
+		int &inst_courante)
+{
+	auto idx = pile_donnees.charge_entier(inst_courante, insts);
+	auto pos = pile_donnees.charge_vec3(inst_courante, insts);
+
+	auto params_turb = bruit::param_turbulence();
+	charge_param_bruit_turb(params_turb, pile_donnees, insts, inst_courante);
+
+	auto res = 0.0f;
+	auto deriv = dls::math::vec3f();
+
+	if (idx < ctx.params_bruits.taille()) {
+		auto const &params = ctx.params_bruits[idx];
+		res = bruit::evalue_turb_derivee(params, params_turb, pos, deriv);
+	}
+
+	auto ptr_sortie = insts.charge_entier(inst_courante);
+	pile_donnees.stocke(ptr_sortie, res);
+	pile_donnees.stocke(ptr_sortie, deriv);
+}
+
+static dls::chaine const &cherche_chaine(
+		ctx_exec const &contexte,
+		ctx_local const &contexte_local,
+		int ptr_chaine)
+{
+	auto decalage_chaine = contexte.chaines.taille();
+
+	if (ptr_chaine >= decalage_chaine) {
+		return contexte_local.chaines[ptr_chaine - decalage_chaine];
+	}
+
+	return contexte.chaines[ptr_chaine];
 }
 
 void execute_pile(
@@ -811,7 +945,7 @@ void execute_pile(
 	std::mt19937 gna(graine);
 
 	while (compteur != insts.taille()) {
-		auto inst = static_cast<code_inst>(insts.charge_entier(compteur));
+		auto inst = insts.charge_inst(compteur);
 
 		//std::cerr << "code_inst : " << chaine_code_inst(inst) << '\n';
 
@@ -822,14 +956,15 @@ void execute_pile(
 			}
 			case code_inst::ASSIGNATION:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 
 				switch (donnees_type) {
 					default:
 					{
 						break;
 					}
-						/* copie le pointeur du tableau */
+					/* copie le pointeur du tableau ou de la chaine */
+					case type_var::CHAINE:
 					case type_var::TABLEAU:
 					case type_var::ENT32:
 					{
@@ -898,7 +1033,7 @@ void execute_pile(
 
 				break;
 			}
-			case code_inst::FN_ALEA:
+			case code_inst::FN_ALEA_UNI:
 			{
 				auto v0 = pile_donnees.charge_decimal(compteur, insts);
 				auto v1 = pile_donnees.charge_decimal(compteur, insts);
@@ -908,10 +1043,21 @@ void execute_pile(
 
 				break;
 			}
+			case code_inst::FN_ALEA_NRM:
+			{
+				auto v0 = pile_donnees.charge_decimal(compteur, insts);
+				auto v1 = pile_donnees.charge_decimal(compteur, insts);
+
+				std::normal_distribution<float> dist(v0, v1);
+				pile_donnees.stocke(compteur, insts, dist(gna));
+
+				break;
+			}
 			case code_inst::FN_ECHANTILLONE_SPHERE:
 			{
 				auto g = static_cast<unsigned>(graine);
-				auto res = dls::math::echantillone_sphere<dls::math::vec3f>(g);
+				auto gna_loc = GNASimple(g);
+				auto res = echantillone_sphere<dls::math::vec3f>(gna_loc);
 				graine = static_cast<int>(g);
 				pile_donnees.stocke(compteur, insts, res);
 				break;
@@ -923,7 +1069,7 @@ void execute_pile(
 			}
 			case code_inst::FN_INVERSE:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 
 				switch (donnees_type) {
 					default:
@@ -1065,6 +1211,15 @@ void execute_pile(
 				pile_donnees.stocke(ptr_sortie, b1);
 				break;
 			}
+			case code_inst::FN_COMBINE_VEC2:
+			{
+				dls::math::vec2f vec;
+				vec.x = pile_donnees.charge_decimal(compteur, insts);
+				vec.y = pile_donnees.charge_decimal(compteur, insts);
+
+				pile_donnees.stocke(compteur, insts, vec);
+				break;
+			}
 			case code_inst::FN_COMBINE_VEC3:
 			{
 				dls::math::vec3f vec;
@@ -1075,16 +1230,20 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, vec);
 				break;
 			}
+			case code_inst::FN_SEPARE_VEC2:
+			{
+				auto vec = pile_donnees.charge_vec2(compteur, insts);
+				/* les trois sorties sont l'une après l'autre donc on peut
+				 * simplement stocker le vecteur directement */
+				pile_donnees.stocke(compteur, insts, vec);
+				break;
+			}
 			case code_inst::FN_SEPARE_VEC3:
 			{
 				auto vec = pile_donnees.charge_vec3(compteur, insts);
 				/* les trois sorties sont l'une après l'autre donc on peut
 				 * simplement stocker le vecteur directement */
 				pile_donnees.stocke(compteur, insts, vec);
-				break;
-			}
-			case code_inst::FN_BRUIT_TURBULENT:
-			{
 				break;
 			}
 			case code_inst::FN_NORMALISE_VEC3:
@@ -1394,9 +1553,33 @@ void execute_pile(
 				pile_donnees.stocke(compteur, insts, res);
 				break;
 			}
+			case code_inst::DEC_VERS_COULEUR:
+			{
+				auto dec = pile_donnees.charge_decimal(compteur, insts);
+				auto res = dls::phys::couleur32(dec, dec, dec, 1.0f);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::VEC3_VERS_COULEUR:
+			{
+				auto vec = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::phys::couleur32(vec.x, vec.y, vec.z, 1.0f);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::COULEUR_VERS_VEC3:
+			{
+				auto clr = pile_donnees.charge_couleur(compteur, insts);
+				auto res = dls::math::vec3f(clr.r, clr.v, clr.b);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_MULTIPLIE_MAT:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 
 				if (donnees_type == type_var::MAT3) {
 					auto mat0 = pile_donnees.charge_mat3(compteur, insts);
@@ -1420,7 +1603,8 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([pos, &index](Corps *corps)
 				{
-					index = corps->ajoute_point(pos);
+					auto points = corps->points_pour_ecriture();
+					index = points.ajoute_point(pos);
 				});
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
@@ -1435,8 +1619,8 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([type, &index](Corps *corps)
 				{
-					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
-					index = static_cast<long>(poly->index);
+					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
+					index = poly->index;
 				});
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(index));
@@ -1453,11 +1637,11 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([type, &index, &tableau](Corps *corps)
 				{
-					auto poly = Polygone::construit(corps, static_cast<type_polygone>(type));
-					index = static_cast<long>(poly->index);
+					auto poly = corps->ajoute_polygone(static_cast<type_polygone>(type));
+					index = poly->index;
 
 					for (auto const &v : tableau) {
-						poly->ajoute_sommet(v);
+						corps->ajoute_sommet(poly, v);
 					}
 				});
 
@@ -1470,16 +1654,16 @@ void execute_pile(
 				auto idx_prim = pile_donnees.charge_entier(compteur, insts);
 				auto idx_point = pile_donnees.charge_entier(compteur, insts);
 				auto &ptr_corps = contexte.ptr_corps;
+				auto idx_sommet = -1l;
 
-				ptr_corps.accede_ecriture([idx_prim, idx_point](Corps *corps)
+				ptr_corps.accede_ecriture([idx_prim, idx_point, &idx_sommet](Corps *corps)
 				{
 					auto prim = corps->prims()->prim(idx_prim);
 					auto poly = dynamic_cast<Polygone *>(prim);
-					poly->ajoute_sommet(idx_point);
+					idx_sommet = corps->ajoute_sommet(poly, idx_point);
 				});
 
-				// À FAIRE : retourne un index pour le sommet
-				pile_donnees.stocke(compteur, insts, 0);
+				pile_donnees.stocke(compteur, insts, static_cast<int>(idx_sommet));
 
 				break;
 			}
@@ -1489,18 +1673,21 @@ void execute_pile(
 				auto idx_tabl = pile_donnees.charge_entier(compteur, insts);
 				auto &ptr_corps = contexte.ptr_corps;
 				auto &tableau = contexte_local.tableaux.tableau(idx_tabl);
+				auto paire_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tabl_smt = paire_tabl_idx.first;
 
-				ptr_corps.accede_ecriture([idx_prim, &tableau](Corps *corps)
+				ptr_corps.accede_ecriture([idx_prim, &tableau, &tabl_smt](Corps *corps)
 				{
+					auto prim = corps->prims()->prim(idx_prim);
+					auto poly = dynamic_cast<Polygone *>(prim);
+
 					for (auto const &v : tableau) {
-						auto prim = corps->prims()->prim(idx_prim);
-						auto poly = dynamic_cast<Polygone *>(prim);
-						poly->ajoute_sommet(v);
+						auto idx = corps->ajoute_sommet(poly, v);
+						tabl_smt.pousse(static_cast<int>(idx));
 					}
 				});
 
-				// À FAIRE : retourne un tableau d'index des sommets ajoutés
-				pile_donnees.stocke(compteur, insts, 0);
+				pile_donnees.stocke(compteur, insts, static_cast<int>(paire_tabl_idx.second));
 
 				break;
 			}
@@ -1513,12 +1700,13 @@ void execute_pile(
 
 				ptr_corps.accede_ecriture([&pos, &dir, &index](Corps *corps)
 				{
-					auto p0 = corps->ajoute_point(pos);
-					auto p1 = corps->ajoute_point(pos + dir);
+					auto points = corps->points_pour_ecriture();
+					auto p0 = points.ajoute_point(pos);
+					auto p1 = points.ajoute_point(pos + dir);
 
-					auto prim = Polygone::construit(corps, type_polygone::OUVERT, 2);
-					prim->ajoute_sommet(p0);
-					prim->ajoute_sommet(p1);
+					auto prim = corps->ajoute_polygone(type_polygone::OUVERT, 2);
+					corps->ajoute_sommet(prim, p0);
+					corps->ajoute_sommet(prim, p1);
 
 					index = static_cast<int>(prim->index);
 				});
@@ -1527,16 +1715,88 @@ void execute_pile(
 
 				break;
 			}
+			case code_inst::FN_POINTS_VOISINS:
+			{
+				auto idx_point = pile_donnees.charge_entier(compteur, insts);
+				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tableau = pair_tabl_idx.first;
+
+				if (idx_point < contexte.polyedre.sommets.taille()) {
+					auto sommet = contexte.polyedre.sommets[idx_point];
+					auto debut = sommet->arete;
+					auto fin = debut;
+
+					do {
+						auto voisin = debut->paire->sommet->label;
+						tableau.pousse(static_cast<int>(voisin));
+						debut = suivante_autour_point(debut);
+					} while (debut != fin && debut != nullptr);
+				}
+
+				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+				break;
+			}
+			case code_inst::FN_POINTS_VOISINS_RAYON:
+			{
+				auto idx_point = pile_donnees.charge_entier(compteur, insts);
+				auto rayon = pile_donnees.charge_decimal(compteur, insts);
+
+				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tableau = pair_tabl_idx.first;
+				auto const &arbre_kd = contexte.arbre_kd;
+
+				if (idx_point < arbre_kd.compte_points()) {
+					auto pos = arbre_kd.pos_point(idx_point);
+
+					arbre_kd.cherche_points(pos, rayon, [&](
+											int idx, dls::math::vec3f const &, float, float &)
+					{
+						tableau.pousse(idx);
+					});
+				}
+
+				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+				break;
+			}
+			case code_inst::FN_POINT:
+			{
+				auto idx_point = pile_donnees.charge_entier(compteur, insts);
+				auto res = dls::math::vec3f();
+
+				if (idx_point < contexte.polyedre.sommets.taille()) {
+					auto sommet = contexte.polyedre.sommets[idx_point];
+					res = sommet->p;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_ATTRIBUT_DECIMAL:
+			{
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto idx_attr = pile_donnees.charge_entier(compteur, insts);
+				auto res = 0.0f;
+
+				auto chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto attr = contexte.corps->attribut(chn);
+
+				if (attr != nullptr) {
+					res = *attr->r32(idx_attr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_SATURE:
 			{
 				auto clr = pile_donnees.charge_couleur(compteur, insts);
-				auto sat = pile_donnees.charge_decimal(compteur, insts);
+				auto l   = pile_donnees.charge_decimal(compteur, insts);
+				auto fac = pile_donnees.charge_decimal(compteur, insts);
 
-				auto l = luminance(clr);
 				auto lum = dls::phys::couleur32(l, l, l, clr.a);
 
-				if (sat != 0.0f) {
-					lum = (1.0f - sat) * lum + clr * sat;
+				if (fac != 0.0f) {
+					lum = (1.0f - fac) * lum + clr * fac;
 				}
 
 				pile_donnees.stocke(compteur, insts, lum);
@@ -1574,10 +1834,131 @@ void execute_pile(
 
 				pile_donnees.stocke(compteur, insts, res);
 				break;
+			}				
+#define EVALUE_BRUIT(code_, type_) \
+			case code_inst::code_: \
+			{ \
+				cree_bruit(contexte_local, pile_donnees, insts, compteur, type_); \
+				break; \
+			}
+			EVALUE_BRUIT(FN_BRUIT_CELLULE, bruit::type::CELLULE)
+			EVALUE_BRUIT(FN_BRUIT_FLUX, bruit::type::FLUX)
+			EVALUE_BRUIT(FN_BRUIT_FOURIER, bruit::type::FOURIER)
+			EVALUE_BRUIT(FN_BRUIT_ONDELETTE, bruit::type::ONDELETTE)
+			EVALUE_BRUIT(FN_BRUIT_PERLIN, bruit::type::PERLIN)
+			EVALUE_BRUIT(FN_BRUIT_SIMPLEX, bruit::type::SIMPLEX)
+			EVALUE_BRUIT(FN_BRUIT_VALEUR, bruit::type::VALEUR)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1, bruit::type::VORONOI_F1)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F2, bruit::type::VORONOI_F2)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F3, bruit::type::VORONOI_F3)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F4, bruit::type::VORONOI_F4)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_F1F2, bruit::type::VORONOI_F1F2)
+			EVALUE_BRUIT(FN_BRUIT_VORONOI_CR, bruit::type::VORONOI_CR)
+#undef EVALUE_BRUIT
+			case code_inst::FN_EVALUE_BRUIT:
+			{
+				evalue_bruit(contexte_local, pile_donnees, insts, compteur);
+				break;
+			}
+			case code_inst::FN_EVALUE_BRUIT_TURBULENCE:
+			{
+				evalue_bruit_turbulence(contexte_local, pile_donnees, insts, compteur);
+				break;
+			}
+			case code_inst::FN_ECHANTILLONE_IMAGE:
+			{
+				auto ptr_image = pile_donnees.charge_entier(compteur, insts);
+				auto uv = pile_donnees.charge_vec2(compteur, insts);
+				auto res = dls::phys::couleur32();
+
+				if (ptr_image < contexte.images.taille()) {
+					auto image = contexte.images[ptr_image];
+					auto calque = image->calque_pour_lecture("image");
+					auto tampon = extrait_grille_couleur(calque);
+
+					res = wlk::echantillonne_lineaire(*tampon, uv.x, uv.y);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_ECHANTILLONE_TRIPLAN:
+			{
+				auto ptr_image = pile_donnees.charge_entier(compteur, insts);
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto nor = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::phys::couleur32(0.0f, 0.0f, 0.0f, 1.0f);
+
+				auto angle_xy = abs(nor.z);
+				auto angle_xz = abs(nor.y);
+				auto angle_yz = abs(nor.x);
+				auto poids = angle_xy + angle_xz + angle_yz;
+
+				if (poids != 0.0f && ptr_image < contexte.images.taille()) {
+					auto image = contexte.images[ptr_image];
+					auto calque = image->calque_pour_lecture("image");
+					auto tampon = extrait_grille_couleur(calque);
+
+					auto couleur_xy = wlk::echantillonne_lineaire(*tampon, pos.x, pos.y);
+					auto couleur_xz = wlk::echantillonne_lineaire(*tampon, pos.x, pos.z);
+					auto couleur_yz = wlk::echantillonne_lineaire(*tampon, pos.y, pos.z);
+
+					res = (angle_xy * couleur_xy + angle_xz * couleur_xz + angle_yz * couleur_yz) / poids;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_PROJECTION_SPHERIQUE:
+			{
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto l = longueur(pos);
+				auto res = dls::math::vec2f(0.0f);
+
+				if (l > 0.0f) {
+					if (pos.x != 0.0f || pos.y != 0.0f) {
+						res.x = (1.0f - std::atan2(pos.x, pos.y) * constantes<float>::PI_INV) / 2.0f;
+					}
+
+					res.y = 1.0f - acos_sur(pos.z / l) * constantes<float>::PI_INV;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_PROJECTION_CYLINDRIQUE:
+			{
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::math::vec2f(0.0f);
+				auto l = std::sqrt(pos.x * pos.x + pos.y * pos.y);
+
+				if (l > 0.0f) {
+					res.x = (1.0f - (std::atan2(pos.x / l, pos.y / l) * constantes<float>::PI_INV)) * 0.5f;
+					res.y = (pos.z + 1.0f) * 0.5f;
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_PROJECTION_CAMERA:
+			{
+				auto ptr_camera = pile_donnees.charge_entier(compteur, insts);
+				auto pos = pile_donnees.charge_vec3(compteur, insts);
+				auto res = dls::math::vec2f(0.0f);
+
+				if (ptr_camera < contexte.cameras.taille()) {
+					auto camera = contexte.cameras[ptr_camera];
+					auto p = camera->pos_ecran(dls::math::point3f(pos));
+					res.x = p.x / static_cast<float>(camera->largeur());
+					res.y = p.y / static_cast<float>(camera->hauteur());
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
 			}
 			case code_inst::CONSTRUIT_TABLEAU:
 			{
-				auto donnees_type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto donnees_type = insts.charge_type(compteur);
 				auto nombre_donnees = insts.charge_entier(compteur);
 
 				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
@@ -1640,7 +2021,7 @@ void execute_pile(
 				// ptr de la valeur à insérer
 
 				auto ptr_tabl = insts.charge_entier(compteur);
-				auto type = static_cast<type_var>(insts.charge_entier(compteur));
+				auto type = insts.charge_type(compteur);
 				auto index = insts.charge_entier(compteur);
 
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
@@ -1658,48 +2039,126 @@ void execute_pile(
 				break;
 			}
 			case code_inst::IN_EXTRAIT_TABLEAU:
+			case code_inst::FN_EXTRAIT_CHAINE_TABL:
 			{
-				// ptr où se trouve le tableau
-				// type des données du tableau
-				// index où extraire
-				// ptr où écrire
-
-				auto ptr_tabl = insts.charge_entier(compteur);
-				auto type = static_cast<type_var>(insts.charge_entier(compteur));
-				auto index = insts.charge_entier(compteur);
+				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
+				auto index = pile_donnees.charge_entier(compteur, insts);
+				auto res = 0;
 
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
-				/* À FAIRE */
-				switch (type) {
-					default:
-					{
-						break;
-					}
+				if (index < tableau.taille()) {
+					res = tableau[index];
 				}
 
-				pile_donnees.stocke(compteur, insts, tableau[index]);
+				pile_donnees.stocke(compteur, insts, res);
 
 				break;
 			}
 			case code_inst::FN_TAILLE_TABLEAU:
 			{
-				auto ptr_tabl = insts.charge_entier(compteur);
+				auto ptr_tabl = pile_donnees.charge_entier(compteur, insts);
 				auto &tableau = contexte_local.tableaux.tableau(ptr_tabl);
 
 				pile_donnees.stocke(compteur, insts, static_cast<int>(tableau.taille()));
 				break;
 			}
-#if 0
+			case code_inst::FN_EVALUE_COURBE_COULEUR:
+			{
+				auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
+				auto clr = pile_donnees.charge_couleur(compteur, insts);
+				auto res = dls::phys::couleur32();
+
+				if (ptr_courbe < contexte.courbes_couleur.taille()) {
+					auto &courbe = contexte.courbes_couleur[ptr_courbe];
+					res = evalue_courbe_couleur(*courbe, clr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_EVALUE_COURBE_VALEUR:
+			{
+				auto ptr_courbe = pile_donnees.charge_entier(compteur, insts);
+				auto vlr = pile_donnees.charge_decimal(compteur, insts);
+				auto res = 0.0f;
+
+				if (ptr_courbe < contexte.courbes_valeur.taille()) {
+					auto &courbe = contexte.courbes_valeur[ptr_courbe];
+					res = evalue_courbe_bezier(*courbe, vlr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+			case code_inst::FN_EVALUE_RAMPE_COULEUR:
+			{
+				auto ptr_rampe = pile_donnees.charge_entier(compteur, insts);
+				auto vlr = pile_donnees.charge_decimal(compteur, insts);
+				auto res = dls::phys::couleur32();
+
+				if (ptr_rampe < contexte.rampes_couleur.taille()) {
+					auto &courbe = contexte.rampes_couleur[ptr_rampe];
+					res = evalue_rampe_couleur(*courbe, vlr);
+				}
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
 			case code_inst::FN_TAILLE_CHAINE:
 			{
-				auto ptr_chaine = donnees.charge_entier(insts, courant);
-				auto chaine = gest_chn.get(ptr_chaine);
-
-				donnees.stocke(insts, courant, chaine->taille());
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto taille_chaine = chn.taille();
+				pile_donnees.stocke(compteur, insts, static_cast<int>(taille_chaine));
 
 				break;
 			}
+			case code_inst::FN_MORCELLE_CHAINE:
+			{
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto ptr_sep = pile_donnees.charge_entier(compteur, insts);
+
+				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto &sep = cherche_chaine(contexte, contexte_local, ptr_sep);
+
+				auto morceaux = dls::morcelle(chn, sep);
+
+				auto pair_tabl_idx = contexte_local.tableaux.cree_tableau();
+				auto &tableau = pair_tabl_idx.first;
+
+				for (auto i = 0; i < morceaux.taille(); ++i) {
+					auto idx_chn = contexte_local.chaines.taille();
+					contexte_local.chaines.pousse(morceaux[i]);
+					tableau.pousse(static_cast<int>(contexte.chaines.taille() + idx_chn));
+				}
+
+				pile_donnees.stocke(compteur, insts, static_cast<int>(pair_tabl_idx.second));
+
+				break;
+			}
+			case code_inst::FN_CHAINE_VERS_DECIMAL:
+			{
+				auto ptr_chn = pile_donnees.charge_entier(compteur, insts);
+				auto &chn = cherche_chaine(contexte, contexte_local, ptr_chn);
+				auto valeur = extrait_decimal(chn);
+				pile_donnees.stocke(compteur, insts, valeur);
+				break;
+			}
+			case code_inst::FN_PROJ_UV_SPHERE:
+			{
+				auto u = pile_donnees.charge_decimal(compteur, insts);
+				auto v = pile_donnees.charge_decimal(compteur, insts);
+
+				auto res = dls::math::vec3f();
+				res.x = std::cos(u) + std::sin(v);
+				res.y = std::cos(v);
+				res.z = std::sin(u) * std::sin(v);
+
+				pile_donnees.stocke(compteur, insts, res);
+				break;
+			}
+#if 0
 			case code_inst::FN_CONCAT_CHAINE:
 			{
 				auto ptr_chaine1 = donnees.charge_entier(insts, courant);
@@ -1712,35 +2171,6 @@ void execute_pile(
 
 				donnees.stocke(insts, courant, idx_chn);
 
-				break;
-			}
-			case code_inst::FN_DECOUPE_CHAINE:
-			{
-				auto ptr_chaine = donnees.charge_entier(insts, courant);
-				auto ptr_seprtr = donnees.charge_entier(insts, courant);
-
-				auto chaine = gest_chn.get(ptr_chaine);
-				auto sepa = gest_chn.get(ptr_separa);
-
-				auto morceaux = dls::morcelle(chaine, sepa);
-
-				auto tabl = gest_tabl.cree(morceaux.taille());
-
-				for (auto i = 0; i < morceaux.taille(); ++i) {
-					auto idx_chn = gest_chn.cree(morceaux[i]);
-					tabl->pousse(idx_chn);
-				}
-
-				donnees.stocke(insts, tabl->index());
-
-				break;
-			}
-			case code_inst::FN_CHAINE_VERS_DECIMAL:
-			{
-				break;
-			}
-			case code_inst::FN_SHERE_UV:
-			{
 				break;
 			}
 #endif

@@ -35,6 +35,8 @@ set(SOURCES
 	synchronise.cc
 
 	boucle.hh
+	sse_mathfun.hh
+	sse_r32.hh
 	synchronise.hh
 	synchrone.hh
 )
@@ -59,7 +61,6 @@ add_executable(${NOM_PROJET}
 	flow_graph.hh
 	future.hh
 	image_graph.hh
-	sse_float.hh
 	sse_test.hh
 	task.hh
 )

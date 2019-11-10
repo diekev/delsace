@@ -120,6 +120,7 @@ void ControleProprieteListeManip::init_arbre()
 void ControleProprieteListeManip::ajoute_manipulable()
 {
 	std::cerr << __func__ << '\n';
+	Q_EMIT(precontrole_change());
 	m_pointeur->manipulables.pousse(Manipulable());
 	m_manipulable_courant = &m_pointeur->manipulables.back();
 	m_index_courant = m_pointeur->manipulables.taille() - 1;
@@ -131,6 +132,7 @@ void ControleProprieteListeManip::ajoute_manipulable()
 
 void ControleProprieteListeManip::enleve_manipulable()
 {
+	Q_EMIT(precontrole_change());
 	std::cerr << __func__ << '\n';
 	auto index = m_index_courant;
 

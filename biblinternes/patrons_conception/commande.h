@@ -138,4 +138,6 @@ public:
 	Commande *operator()(dls::chaine const &nom);
 
 	Commande *trouve_commande(dls::chaine const &categorie, DonneesCommande &donnees_commande);
+
+	long taille() const;
 };

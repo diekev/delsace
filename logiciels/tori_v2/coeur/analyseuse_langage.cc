@@ -26,7 +26,6 @@
 
 #include <iostream>
 
-#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/structures/pile.hh"
 
 #include "erreur.h"
@@ -101,7 +100,7 @@ void AnalyseuseLangage::analyse_imprime()
 		auto iter = m_chronometres.trouve(valeur);
 
 		if (iter != m_chronometres.fin()) {
-			std::cout << dls::chrono::maintenant() - iter->second  << "s";
+			std::cout << iter->second.temps() << "s";
 		}
 		else {
 			lance_erreur("Chronomètre inconnu");
@@ -194,7 +193,7 @@ void AnalyseuseLangage::analyse_chronometre()
 		lance_erreur("Attendu une chaîne de caractère");
 	}
 
-	m_chronometres.insere({m_identifiants[position()].contenu, dls::chrono::maintenant()});
+	m_chronometres.insere({m_identifiants[position()].contenu, dls::chrono::compte_seconde()});
 }
 
 void AnalyseuseLangage::analyse_fonction()
@@ -288,8 +287,7 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 				   && est_operateur(stack.haut().identifiant)
 				   && (precedence_faible(variable.identifiant, stack.haut().identifiant)))
 			{
-				output.pousse(stack.haut());
-				stack.depile();
+				output.pousse(stack.depile());
 			}
 
 			stack.empile(variable);
@@ -303,8 +301,7 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 			}
 
 			while (stack.haut().identifiant != IDENTIFIANT_PARENTHESE_OUVERTE) {
-				output.pousse(stack.haut());
-				stack.depile();
+				output.pousse(stack.depile());
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
@@ -321,8 +318,7 @@ void AnalyseuseLangage::analyse_expression(DonneesFonction &donnees_fonction)
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		output.pousse(stack.haut());
-		stack.depile();
+		output.pousse(stack.depile());
 	}
 
 	donnees_fonction.expressions.pousse(output);

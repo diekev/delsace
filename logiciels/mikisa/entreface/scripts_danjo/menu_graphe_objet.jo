@@ -1,0 +1,23 @@
+menu "Noeud Scène" {
+	action(valeur="Caméra"; attache=ajoute_objet; métadonnée="caméra")
+
+	séparateur
+
+	action(valeur="Lumière"; attache=ajoute_objet; métadonnée="lumière")
+
+	séparateur
+
+	action(valeur="Objet Vide"; attache=ajoute_prereglage; métadonnée="vide")
+
+	séparateur
+
+	menu "Objet" {
+		action(valeur="Boîte"; attache=ajoute_prereglage; métadonnée="boîte")
+		action(valeur="Cercle"; attache=ajoute_prereglage; métadonnée="cercle")
+		action(valeur="Cone"; attache=ajoute_prereglage; métadonnée="cone")
+		action(valeur="Grille"; attache=ajoute_prereglage; métadonnée="grille")
+		action(valeur="Icosphère"; attache=ajoute_prereglage; métadonnée="icosphère")
+		action(valeur="Torus"; attache=ajoute_prereglage; métadonnée="torus")
+		action(valeur="Tube"; attache=ajoute_prereglage; métadonnée="tube")
+	}
+}

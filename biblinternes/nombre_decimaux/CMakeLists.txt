@@ -25,21 +25,31 @@ set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
+set(ENTETES_R16
+	r16_c.h
+	r16_tables.h
+)
+
 set(ENTETES
 	imprimeur.h
 	ordre.h
 	quatification.h
 	tableau_precision.h
 	traits.h
+	r16_cpp.hh
 )
 
 set(SOURCES
 	main.cc
 )
 
-add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
+add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES} ${ENTETES_R16})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
 
-install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
+################################################################################
+
+install(
+	FILES ${ENTETES_R16}
+	DESTINATION kuri/fichiers
+)

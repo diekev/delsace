@@ -102,6 +102,7 @@ void ControleProprieteFichier::finalise(const DonneesControle &donnees)
 
 void ControleProprieteFichier::ajourne_valeur_pointee(const QString &valeur)
 {
+	Q_EMIT(precontrole_change());
 	*m_pointeur = valeur.toStdString();
 	Q_EMIT(controle_change());
 }

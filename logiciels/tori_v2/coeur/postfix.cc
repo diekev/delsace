@@ -168,18 +168,14 @@ double evalue_expression(const dls::tableau<Variable> &expression)
 
 	for (const Variable &variable : expression) {
 		if (est_operateur(variable.identifiant)) {
-			auto op1 = stack.haut();
-			stack.depile();
-
-			auto op2 = stack.haut();
-			stack.depile();
+			auto op1 = stack.depile();
+			auto op2 = stack.depile();
 
 			auto result = evalue_operation(op2, op1, variable.identifiant);
 			stack.empile(result);
 		}
 		else if (est_operateur_logique(variable.identifiant)) {
-			auto op1 = stack.haut();
-			stack.depile();
+			auto op1 = stack.depile();
 
 			auto result = evalue_operation_logique(op1, variable.identifiant);
 			stack.empile(result);

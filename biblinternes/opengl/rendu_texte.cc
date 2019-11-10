@@ -25,155 +25,91 @@
 #include "rendu_texte.h"
 
 #include "biblinternes/ego/outils.h"
-#include "biblinternes/math/vecteur.hh"
 
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
-#include "../texture/texture.h"
+#include "biblinternes/texture/texture.h"
+
+#include "texte/freetype-gl.h"
+#include "texte/texture-atlas.h"
+#include "texte/mat4.h"
+#include "texte/markup.h"
+#include "texte/shader.h"
+#include "texte/vertex-buffer.h"
 
 #include "tampon_rendu.h"
 
-#if 0
-static constexpr auto HAUTEUR_TEXTURE_POLICE = 36;
-static constexpr auto LARGEUR_TEXTURE_POLICE = 1254;
-static constexpr auto LARGEUR_PAR_LETTRE = 19;
-
-dls::dico_desordonne<char, int> table_uv_texte({
-	{'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}, {'e', 4}, {'f', 5}, {'g', 6},
-	{'h', 7}, {'i', 8}, {'j', 9}, {'k', 10}, {'l', 11}, {'m', 12}, {'n', 13},
-	{'o', 14}, {'p', 15}, {'q', 16}, {'r', 17}, {'s', 18}, {'t', 19}, {'u', 20},
-	{'v', 21}, {'w', 22}, {'x', 23}, {'y', 24}, {'z', 25}, {'A', 26}, {'B', 27},
-	{'C', 28}, {'D', 29}, {'E', 30}, {'F', 31}, {'G', 32}, {'H', 33}, {'I', 34},
-	{'J', 35}, {'K', 36}, {'L', 37}, {'M', 38}, {'N', 39}, {'O', 40}, {'P', 41},
-	{'Q', 42}, {'R', 43}, {'S', 44}, {'T', 45}, {'U', 46}, {'V', 47}, {'W', 48},
-	{'X', 49}, {'Y', 50}, {'Z', 51}, {':', 52}, {' ', 53}, {',', 54}, {'.', 55},
-	{'0', 56}, {'1', 57}, {'2', 58}, {'3', 59}, {'4', 60}, {'5', 61}, {'6', 62},
-	{'7', 63}, {'8', 64}, {'9', 65}
-});
-#else
-static constexpr auto HAUTEUR_TEXTURE_POLICE = 40;
-static constexpr auto LARGEUR_TEXTURE_POLICE = 1748;
-static constexpr auto LARGEUR_PAR_LETTRE = 19;
-
-static dls::dico_desordonne<int, int> table_uv_texte({
-	{97, 0}, {98, 1}, {99, 2}, {100, 3}, {101, 4}, {102, 5}, {103, 6}, {104, 7}, {105, 8}, {106, 9}, {107, 10}, {108, 11}, {109, 12}, {110, 13}, {111, 14}, {112, 15}, {113, 16}, {114, 17}, {115, 18}, {116, 19}, {117, 20}, {118, 21}, {119, 22}, {120, 23}, {121, 24}, {122, 25}, {65, 26}, {66, 27}, {67, 28}, {68, 29}, {69, 30}, {70, 31}, {71, 32}, {72, 33}, {73, 34}, {74, 35}, {75, 36}, {76, 37}, {77, 38}, {78, 39}, {79, 40}, {80, 41}, {81, 42}, {82, 43}, {83, 44}, {84, 45}, {85, 46}, {86, 47}, {87, 48}, {88, 49}, {89, 50}, {90, 51}, {32, 52}, {44, 53}, {63, 54}, {59, 55}, {46, 56}, {58, 57}, {47, 58}, {33, 59}, {45, 60}, {42, 61}, {48, 62}, {49, 63}, {50, 64}, {51, 65}, {52, 66}, {53, 67}, {54, 68}, {55, 69}, {56, 70}, {57, 71}, {201, 72}, {202, 73}, {200, 74}, {192, 75}, {194, 76}, {207, 77}, {206, 78}, {212, 79}, {217, 80}, {220, 81}, {233, 82}, {234, 83}, {232, 84}, {224, 85}, {226, 86}, {239, 87}, {238, 88}, {244, 89}, {249, 90}, {252, 91},
-});
-
-static void rempli_uv(dls::chaine const &chaine, dls::tableau<dls::math::vec2f> &uvs)
-{
-	auto const echelle_lettres = 1.0f / static_cast<float>(table_uv_texte.taille());
-
-	for (auto i = 0; i < chaine.taille();) {
-		int valeur = -1;
-		if (static_cast<unsigned char>(chaine[i]) < 192) {
-			valeur = static_cast<int>(chaine[i]);
-			i += 1;
-		}
-		else if (static_cast<unsigned char>(chaine[i]) < 224 && i + 1 < chaine.taille() && static_cast<unsigned char>(chaine[i + 1]) > 127) {
-			// double byte character
-			valeur = ((static_cast<unsigned char>(chaine[i]) & 0x1f) << 6) | (static_cast<unsigned char>(chaine[i + 1]) & 0x3f);
-			i += 2;
-		}
-		else if (static_cast<unsigned char>(chaine[i]) < 240 && i + 2 < chaine.taille() && static_cast<unsigned char>(chaine[i + 1]) > 127 && static_cast<unsigned char>(chaine[i + 2]) > 127) {
-			// triple byte character
-			valeur = ((static_cast<unsigned char>(chaine[i]) & 0x0f) << 12) | ((static_cast<unsigned char>(chaine[i + 1]) & 0x1f) << 6) | (static_cast<unsigned char>(chaine[i + 2]) & 0x3f);
-
-			i += 3;
-		}
-		else if (static_cast<unsigned char>(chaine[i]) < 248 && i + 3 < chaine.taille() && static_cast<unsigned char>(chaine[i + 1]) > 127 && static_cast<unsigned char>(chaine[i + 2]) > 127 && static_cast<unsigned char>(chaine[i + 3]) > 127) {
-			// 4-byte character
-			valeur = ((static_cast<unsigned char>(chaine[i]) & 0x07) << 18) | ((static_cast<unsigned char>(chaine[i + 1]) & 0x0f) << 12) | ((static_cast<unsigned char>(chaine[i + 2]) & 0x1f) << 6) | (static_cast<unsigned char>(chaine[i + 3]) & 0x3f);
-
-			i += 4;
-		}
-
-		if (valeur == -1) {
-			++i;
-			continue;
-		}
-
-		auto const decalage = static_cast<float>(table_uv_texte[valeur]) * echelle_lettres;
-
-		uvs.pousse(dls::math::vec2f(decalage, 1.0f));
-		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
-		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
-		uvs.pousse(dls::math::vec2f(decalage, 0.0f));
-	}
-}
-#endif
-
 /* ************************************************************************** */
 
-static const char *source_vertex =
+static const char *source_vertex_texte =
 		"#version 330 core\n"
-		"layout(location = 0) in vec2 sommets;\n"
-		"layout(location = 1) in vec2 uvs;\n"
+		"layout(location = 0) in vec2 vertex;\n"
+		"layout(location = 1) in vec2 tex_coord;\n"
+		"layout(location = 2) in vec4 color;\n"
+		"uniform mat4 MVP;\n"
+		"uniform mat4 matrice;\n"
 		"smooth out vec2 UV;\n"
+		"smooth out vec4 couleur;\n"
 		"void main()\n"
 		"{\n"
-		"	gl_Position = vec4(sommets, 0.0, 1.0);\n"
-		"	UV = uvs;\n"
+		"	gl_Position = vec4(vertex.x * 2.0 - 1.0, (vertex.y) * 2.0 - 1.0, 0.0, 1.0);\n"
+		"	UV = tex_coord;\n"
+		"   couleur = color;\n"
 		"}\n";
 
-static const char *source_fragment =
+static const char *source_fragment_texte =
 		"#version 330 core\n"
-		"layout (location = 0) out vec4 couleur_fragment;\n"
-		"uniform sampler2D texture_texte;\n"
+		"layout (location = 0) out vec4 fragment_color;\n"
+		"uniform sampler2D atlas;\n"
+		"smooth in vec4 couleur;\n"
 		"smooth in vec2 UV;\n"
-		" void main()\n"
+		"void main()\n"
 		"{\n"
-		"	vec2 UV_inverse = vec2(UV.x, 1.0f - UV.y);\n"
-		"	vec3 couleur = texture2D(texture_texte, UV_inverse).rgb;\n"
-		"	couleur_fragment = vec4(couleur, couleur.r);\n"
+		"	float a = texture2D(atlas, UV).r;\n"
+		"	fragment_color = vec4(couleur.xyz, couleur.a*a);\n"
 		"}\n";
 
 static TamponRendu *cree_tampon()
 {
-	auto tampon = new TamponRendu;
+	auto tampon = new TamponRendu{};
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::VERTEX,
-				source_vertex);
+				source_vertex_texte);
 
 	tampon->charge_source_programme(
 				dls::ego::Nuanceur::FRAGMENT,
-				source_fragment);
+				source_fragment_texte);
 
 	tampon->finalise_programme();
 
-	ParametresProgramme parametre_programme;
-	parametre_programme.ajoute_attribut("sommets");
-	parametre_programme.ajoute_attribut("uvs");
-	parametre_programme.ajoute_uniforme("texture_texte");
-	parametre_programme.ajoute_uniforme("couleur");
-	parametre_programme.ajoute_uniforme("MVP");
-	parametre_programme.ajoute_uniforme("matrice");
+	auto params = ParametresProgramme{};
+	params.ajoute_attribut("vertex");
+	params.ajoute_attribut("tex_coord");
+	params.ajoute_attribut("color");
+	params.ajoute_uniforme("MVP");
+	params.ajoute_uniforme("matrice");
+	params.ajoute_uniforme("atlas");
 
-	tampon->parametres_programme(parametre_programme);
-
-	tampon->ajoute_texture();
-
-	auto texture = tampon->texture();
-
-	auto programme = tampon->programme();
-	programme->active();
-	programme->uniforme("couleur", 1.0f, 0.0f, 1.0f, 1.0f);
-	programme->uniforme("texture_texte", texture->code_attache());
-	programme->desactive();
+	tampon->parametres_programme(params);
 
 	return tampon;
 }
 
-static void genere_texture(dls::ego::Texture2D *texture, const void *data, GLint size[2])
+static void genere_texture(dls::ego::Texture2D *texture, texture_atlas_t *atlas)
 {
+	int taille[2] = { static_cast<int>(atlas->width), static_cast<int>(atlas->height) };
+
 	texture->deloge(true);
 	texture->attache();
-	texture->type(GL_FLOAT, GL_RGB, GL_RGB);
+	texture->type(GL_UNSIGNED_BYTE, GL_RED, GL_RED);
 	texture->filtre_min_mag(GL_LINEAR, GL_LINEAR);
-	texture->enveloppe(GL_CLAMP);
-	texture->remplie(data, size);
+	texture->enveloppe(GL_CLAMP_TO_EDGE);
+	texture->remplie(atlas->data, taille);
 	texture->detache();
+
+	atlas->id = texture->code_attache();
 }
 
 /* ************************************************************************** */
@@ -182,6 +118,12 @@ RenduTexte::~RenduTexte()
 {
 	delete m_texture;
 	delete m_tampon;
+
+	if (m_atlas != nullptr) {
+		m_atlas->id = 0;
+		texture_atlas_delete(m_atlas);
+		texture_font_delete(m_font);
+	}
 }
 
 void RenduTexte::reinitialise()
@@ -191,87 +133,6 @@ void RenduTexte::reinitialise()
 
 void RenduTexte::ajourne(dls::chaine const &texte)
 {
-	if (!m_tampon) {
-		m_tampon = cree_tampon();
-		m_texture = charge_texture("texte/texture_texte.png");
-
-		int taille[2] = { m_texture->largeur(), m_texture->hauteur() };
-
-		genere_texture(m_tampon->texture(), m_texture->donnees(), taille);
-	}
-
-	/* Une texture avec toutes les lettres. */
-
-	dls::tableau<dls::math::vec2f> vertex;
-	dls::tableau<unsigned int> index;
-
-	/* Calcul taille des lettres relativement à la fenêtre. */
-	auto const largeur_lettre = LARGEUR_PAR_LETTRE / static_cast<float>(m_largeur);
-	auto const hauteur_lettre = HAUTEUR_TEXTURE_POLICE / static_cast<float>(m_hauteur);
-
-	/* Un quad par lettre du mot. */
-	for (auto i = 0; i < texte.taille(); ++i) {
-		auto const origine_x = static_cast<float>(i) * largeur_lettre;
-
-		vertex.pousse(dls::math::vec2f(origine_x, hauteur_lettre));
-		vertex.pousse(dls::math::vec2f(origine_x + largeur_lettre, hauteur_lettre));
-		vertex.pousse(dls::math::vec2f(origine_x + largeur_lettre, 0.0f));
-		vertex.pousse(dls::math::vec2f(origine_x, 0.0f));
-
-		index.pousse(static_cast<unsigned>(i * 4 + 0));
-		index.pousse(static_cast<unsigned>(i * 4 + 1));
-		index.pousse(static_cast<unsigned>(i * 4 + 2));
-		index.pousse(static_cast<unsigned>(i * 4 + 0));
-		index.pousse(static_cast<unsigned>(i * 4 + 2));
-		index.pousse(static_cast<unsigned>(i * 4 + 3));
-	}
-
-	/* Placement en haut à gauche de l'écran. */
-	m_decalage += 1.0f;
-
-	const dls::math::vec2f decalage_vertex(
-				-1.0f + largeur_lettre,
-				1.0f - m_decalage * hauteur_lettre);
-
-	for (auto &v : vertex) {
-		v += decalage_vertex;
-	}
-
-	/* Une fonction qui associe lettre -> coordonnées UV */
-	dls::tableau<dls::math::vec2f> uvs;
-
-#if 0
-	auto const echelle_lettres = 1.0 / table_uv_texte.taille();
-
-	for (auto const &caractere : texte) {
-		auto const decalage = table_uv_texte[caractere] * echelle_lettres;
-
-		uvs.pousse(dls::math::vec2f(decalage, 1.0f));
-		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 1.0f));
-		uvs.pousse(dls::math::vec2f(decalage + echelle_lettres, 0.0f));
-		uvs.pousse(dls::math::vec2f(decalage, 0.0f));
-	}
-#else
-	rempli_uv(texte, uvs);
-#endif
-
-	ParametresTampon parametres_tampon;
-	parametres_tampon.attribut = "sommets";
-	parametres_tampon.elements = static_cast<size_t>(index.taille());
-	parametres_tampon.pointeur_index = index.donnees();
-	parametres_tampon.pointeur_sommets = vertex.donnees();
-	parametres_tampon.taille_octet_sommets = static_cast<size_t>(vertex.taille()) * sizeof(dls::math::vec2f);
-	parametres_tampon.taille_octet_index = static_cast<size_t>(index.taille()) * sizeof(unsigned int);
-	parametres_tampon.dimension_attribut = 2;
-
-	m_tampon->remplie_tampon(parametres_tampon);
-
-	parametres_tampon.attribut = "uvs";
-	parametres_tampon.pointeur_donnees_extra = uvs.donnees();
-	parametres_tampon.taille_octet_donnees_extra = static_cast<size_t>(uvs.taille()) * sizeof(dls::math::vec2f);
-	parametres_tampon.dimension_attribut = 2;
-
-	m_tampon->remplie_tampon_extra(parametres_tampon);
 }
 
 void RenduTexte::etablie_dimension_fenetre(int largeur, int hauteur)
@@ -280,8 +141,218 @@ void RenduTexte::etablie_dimension_fenetre(int largeur, int hauteur)
 	m_hauteur = hauteur;
 }
 
-void RenduTexte::dessine(ContexteRendu const &contexte, dls::chaine const &texte)
+static void rend_lettres(
+		TamponRendu &tampon,
+		dls::chaine const &texte,
+		texture_atlas_t *atlas,
+		markup_t &markup,
+		dls::math::vec2d const &pos,
+		dls::math::vec2d const &taille)
 {
-	this->ajourne(texte);
-	m_tampon->dessine(contexte);
+	vec2 pen = {
+		{static_cast<float>(pos.x),
+		 static_cast<float>(taille.y - pos.y - 16.0)}
+	};
+
+	std::vector<dls::math::vec2f> sommets;
+	std::vector<dls::math::vec2f> uvs;
+	std::vector<dls::math::vec4f> colors;
+	std::vector<unsigned int> indices;
+
+	auto inv_taille = dls::math::vec2f(1.0f /
+									   static_cast<float>(taille.x),
+									   1.0f / static_cast<float>(taille.y));
+
+	auto r = markup.foreground_color.r;
+	auto g = markup.foreground_color.g;
+	auto b = markup.foreground_color.b;
+	auto a = markup.foreground_color.a;
+
+	for(auto i = 0; i < texte.taille(); ++i) {
+		texture_glyph_t *glyph = texture_font_get_glyph(markup.font, &texte[i]);
+
+		if (glyph == nullptr) {
+			continue;
+		}
+
+		float kerning = 0.0f;
+
+		if (i > 0) {
+			kerning = texture_glyph_get_kerning(glyph, &texte[i - 1]);
+		}
+
+		pen.x += kerning;
+		auto x0 = pen.x + static_cast<float>(glyph->offset_x);
+		auto y0 = pen.y + static_cast<float>(glyph->offset_y);
+		auto x1 = x0 + static_cast<float>(glyph->width);
+		auto y1 = y0 - static_cast<float>(glyph->height);
+		auto s0 = glyph->s0;
+		auto t0 = glyph->t0;
+		auto s1 = glyph->s1;
+		auto t1 = glyph->t1;
+
+		auto decalage_index = static_cast<unsigned int>(sommets.size());
+		indices.push_back(0 + decalage_index);
+		indices.push_back(1 + decalage_index);
+		indices.push_back(2 + decalage_index);
+		indices.push_back(0 + decalage_index);
+		indices.push_back(2 + decalage_index);
+		indices.push_back(3 + decalage_index);
+
+		sommets.push_back(dls::math::vec2f(x0, y0) * inv_taille);
+		sommets.push_back(dls::math::vec2f(x0, y1) * inv_taille);
+		sommets.push_back(dls::math::vec2f(x1, y1) * inv_taille);
+		sommets.push_back(dls::math::vec2f(x1, y0) * inv_taille);
+
+		uvs.push_back(dls::math::vec2f(s0,t0));
+		uvs.push_back(dls::math::vec2f(s0,t1));
+		uvs.push_back(dls::math::vec2f(s1,t1));
+		uvs.push_back(dls::math::vec2f(s1,t0));
+
+		colors.push_back(dls::math::vec4f(r, g, b, a));
+		colors.push_back(dls::math::vec4f(r, g, b, a));
+		colors.push_back(dls::math::vec4f(r, g, b, a));
+		colors.push_back(dls::math::vec4f(r, g, b, a));
+
+		pen.x += glyph->advance_x;
+	}
+
+	auto params_tampon = ParametresTampon{};
+	params_tampon.attribut = "vertex";
+	params_tampon.dimension_attribut = 2;
+	params_tampon.pointeur_sommets = sommets.data();
+	params_tampon.taille_octet_sommets = sizeof(dls::math::vec2f) * sommets.size();
+	params_tampon.elements = indices.size();
+	params_tampon.pointeur_index = indices.data();
+	params_tampon.taille_octet_index = sizeof(unsigned int) * indices.size();
+
+	tampon.remplie_tampon(params_tampon);
+
+	params_tampon.attribut = "tex_coord";
+	params_tampon.dimension_attribut = 2;
+	params_tampon.pointeur_donnees_extra = uvs.data();
+	params_tampon.taille_octet_donnees_extra = sizeof(dls::math::vec2f) * uvs.size();
+
+	tampon.remplie_tampon_extra(params_tampon);
+
+	params_tampon.attribut = "color";
+	params_tampon.dimension_attribut = 4;
+	params_tampon.pointeur_donnees_extra = colors.data();
+	params_tampon.taille_octet_donnees_extra = sizeof(dls::math::vec4f) * colors.size();
+
+	tampon.remplie_tampon_extra(params_tampon);
+
+	if (atlas == nullptr) {
+		std::cerr << "L'atlas est nul !\n";
+	}
+	else if (atlas->data == nullptr) {
+		std::cerr << "Les données de l'atlas sont nuls !\n";
+	}
+
+	//genere_texture(tampon.texture(), atlas);
+
+	glGenTextures( 1, &atlas->id );
+	glBindTexture( GL_TEXTURE_2D, atlas->id );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RED, static_cast<int>(atlas->width), static_cast<int>(atlas->height),
+				  0, GL_RED, GL_UNSIGNED_BYTE, atlas->data );
+
+	{
+		auto programme = tampon.programme();
+
+		if (!programme->est_valide()) {
+			std::cerr << "Programme invalide !\n";
+			return;
+		}
+
+		dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon avant utilisation programme");
+
+		programme->active();
+
+		programme->uniforme("atlas", 0);
+
+		tampon.donnees()->attache();
+		//tampon.texture()->attache();
+
+		//		numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après attache texture");
+
+		mat4   model, view, projection;
+		mat4_set_identity(&projection);
+		mat4_set_identity(&model);
+		mat4_set_identity(&view);
+		glUniformMatrix4fv((*programme)("MVP"), 1, 0, model.data);
+		glUniformMatrix4fv((*programme)("matrice"), 1, 0, view.data);
+		//glUniformMatrix4fv((*programme)("projection"), 1, 0, projection.data);
+
+		glDrawElements(tampon.parametres_dessin().type_dessin(),
+					   static_cast<int>(indices.size()),
+					   tampon.parametres_dessin().type_donnees(),
+					   nullptr);
+
+		//		numero7::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");
+
+		//tampon.texture()->detache();
+		tampon.donnees()->detache();
+		programme->desactive();
+	}
+
+	glDeleteTextures( 1, &atlas->id );
+}
+
+void RenduTexte::dessine(
+		ContexteRendu const &contexte,
+		dls::chaine const &texte,
+		dls::math::vec4f const &couleur)
+{
+	char const *filename = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf";
+
+	vec4 white  = {{couleur.r, couleur.g, couleur.b, couleur.a}};
+	vec4 noir   = {{0.0, 0.0, 0.0, 1.0}};
+	vec4 none   = {{1.0, 1.0, 1.0, 0.0}};
+
+	markup_t markup;
+	markup.family  = const_cast<char *>(filename);
+	markup.size    = static_cast<float>(m_taille_fonte);
+	markup.bold    = 0;
+	markup.italic  = 0;
+	markup.spacing = 0.0;
+	markup.gamma   = 1.5;
+	markup.foreground_color    = white;
+	markup.background_color    = none;
+	markup.underline           = 0;
+	markup.underline_color     = white;
+	markup.overline            = 0;
+	markup.overline_color      = white;
+	markup.strikethrough       = 0;
+	markup.strikethrough_color = white;
+
+	if (!m_tampon) {
+		m_tampon = cree_tampon();
+		m_atlas = texture_atlas_new(512, 512, 1);
+		m_font = texture_font_new_from_file(m_atlas, markup.size, markup.family);
+
+		//m_tampon->ajoute_texture();
+		//genere_texture(m_tampon->texture(), m_atlas);
+	}
+
+	markup.font = m_font;
+
+	auto pos = dls::math::vec2d(8.0, 8.0 + m_decalage);
+	auto taille = dls::math::vec2d(this->m_largeur, this->m_hauteur);
+
+	markup.foreground_color = noir;
+	markup.font->rendermode = RENDER_OUTLINE_EDGE;
+	markup.font->outline_thickness = 0.2f;
+
+	rend_lettres(*m_tampon, texte, m_atlas, markup, pos, taille);
+
+	markup.foreground_color = white;
+	markup.font->rendermode = RENDER_NORMAL;
+
+	rend_lettres(*m_tampon, texte, m_atlas, markup, pos, taille);
+
+	m_decalage += m_taille_fonte;
 }

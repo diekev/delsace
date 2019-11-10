@@ -1,0 +1,17 @@
+disposition "operatrice_vis_arbre_hbe" {
+	ligne {
+		étiquette(valeur="Type Visualisation")
+		énum(valeur="topologie"; attache=type_visualisation; items=[
+			{ nom="Noeuds Colorés", valeur="noeuds_colorés" },
+			{ nom="Topologie", valeur="topologie" }
+		])
+	}
+	ligne {
+		étiquette(valeur="Dessine Branches")
+		case(valeur=vrai; attache=dessine_branches)
+	}
+	ligne {
+		étiquette(valeur="Dessine Feuilles")
+		case(valeur=vrai; attache=dessine_feuilles)
+	}
+}

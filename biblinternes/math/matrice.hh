@@ -74,7 +74,7 @@ struct matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_in
 	{
 		static_assert((sizeof...(args) <= N*M), "too many arguments");
 
-		size_t i = 0; //TODO: get rid of this
+		size_t i = 0; //À FAIRE: get rid of this
 		(construct_at_index(i, detail::dechoie(std::forward<Args>(args))), ...);
 	}
 
@@ -163,7 +163,7 @@ private:
 	template<int O, typename Other, size_t... Other_Ns>
 	void construct_at_index(size_t &i, type_vecteur<O, Other, Other_Ns...> &&arg)
 	{
-		//TODO: do not go over N*M
+		//À FAIRE: do not go over N*M
 		detail::boucle_statique<0, sizeof...(Other_Ns)>()([&](size_t j) {
 			data[i / N][i % N] = arg[j];
 			i++;
@@ -220,6 +220,38 @@ template <
 	return tmp;
 }
 
+template <
+		typename type_scalaire,
+		template <int, typename, int...> class type_vecteur,
+		size_t... Colonnes1,
+		size_t... Lignes1,
+		size_t... Colonnes2,
+		size_t... Lignes2
+		>
+[[nodiscard]] auto operator*(
+		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes1...>, paquet_index<Lignes1...>> &m1,
+		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes2...>, paquet_index<Lignes2...>> &m2)
+{
+//	static_assert(sizeof...(Lignes1) == sizeof...(Colonnes2),
+//				  "Les tailles des matrices ne sont pas compatibles pour la multiplication !");
+
+	auto tmp = matrice<type_scalaire, type_vecteur, paquet_index<Lignes1...>, paquet_index<Colonnes2...>>();
+
+	for (auto l = 0ul; l < sizeof...(Lignes1); ++l) {
+		for (auto c = 0ul; c < sizeof...(Colonnes2); ++c) {
+			auto valeur = static_cast<type_scalaire>(0);
+
+			for (auto m = 0ul; m < sizeof...(Lignes2); ++m) {
+				valeur += m1[l][m] * m2[m][c];
+			}
+
+			tmp[l][c] = valeur;
+		}
+	}
+
+	return tmp;
+}
+
 /*
  * Comparaisons.
  */
@@ -266,8 +298,8 @@ template <
 	auto mat = matrice<type_scalaire, type_vecteur, paquet_index<Lignes...>, paquet_index<Colonnes...>>();
 	//((mat[Lignes][Colonnes] = m1[Colonnes][Lignes]), ...);
 
-	for (size_t i = 0; i < sizeof...(Colonnes); ++i) {
-		for (size_t j = 0; j < sizeof...(Lignes); ++j) {
+	for (size_t i = 0; i < sizeof...(Lignes); ++i) {
+		for (size_t j = 0; j < sizeof...(Colonnes); ++j) {
 			mat[j][i] = m1[i][j];
 		}
 	}
@@ -474,10 +506,10 @@ template <
         size_t... Colonnes,
         size_t... Lignes
         >
-void nie(matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Colonnes...>> &m)
+void nie(matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Lignes...>> &m)
 {
-	for (size_t i = 0; i < sizeof...(Colonnes); i++) {
-		for (size_t j = 0; j < sizeof...(Lignes); j++) {
+	for (size_t i = 0; i < sizeof...(Lignes); i++) {
+		for (size_t j = 0; j < sizeof...(Colonnes); j++) {
 			m[i][j] = -m[i][j];
 		}
 	}
@@ -495,8 +527,8 @@ auto &operator<<(
 		std::basic_ostream<CharT, Traits> &os,
 		const matrice<type_scalaire, type_vecteur, paquet_index<Colonnes...>, paquet_index<Lignes...>> &m1)
 {
-	for (size_t i = 0; i < sizeof...(Colonnes); ++i) {
-		for (size_t j = 0; j < sizeof...(Lignes); ++j) {
+	for (size_t i = 0; i < sizeof...(Lignes); ++i) {
+		for (size_t j = 0; j < sizeof...(Colonnes); ++j) {
 			os << m1[i][j] << ' ';
 		}
 
@@ -515,6 +547,12 @@ using mat2x2 = matrice<T, vecteur, paquet_index<0, 1>, paquet_index<0, 1>>;
 using mat2x2i = mat2x2<int>;
 using mat2x2f = mat2x2<float>;
 using mat2x2d = mat2x2<double>;
+
+template <ConceptNombre T>
+using mat3x2 = matrice<T, vecteur, paquet_index<0, 1>, paquet_index<0, 1, 2>>;
+using mat3x2i = mat3x2<int>;
+using mat3x2f = mat3x2<float>;
+using mat3x2d = mat3x2<double>;
 
 template <ConceptNombre T>
 using mat3x3 = matrice<T, vecteur, paquet_index<0, 1, 2>, paquet_index<0, 1, 2>>;

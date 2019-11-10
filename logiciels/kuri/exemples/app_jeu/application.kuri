@@ -6,20 +6,90 @@ importe "flux"
 importe "chaine"
 importe "dessin_opengl"
 importe "chrono"
+importe "memoire"
 
 # À FAIRE : rendu texte, chargement image
 
 ################################################################################
 
-dyn VG_file_évènements : *file = nul;
-
-fonc rappel_erreur(erreur : z32, desc : *z8) : rien
-{
-    soit chn = converti_chaine_c(desc);
-    imprime("Erreur ", erreur, " : ", chn, '\n');
+# Puisqu'on ne peut pas passer de contexte aux méthodes de « file » via les
+# fonctions de rappel, cette structure est spécialisée pour les file d'évènements.
+structure FileÉvènement {
+    taille_elem : z64;
+    taille : z64;
+	capacité : z64;
+	tampon : chaine;
 }
 
-fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) : rien
+#!nulctx fonc crée_file(taille_elem : z64) : *FileÉvènement
+{
+    dyn q = loge FileÉvènement;
+    taille_elem de q = taille_elem;
+    retourne q;
+}
+
+#!nulctx fonc decrée_file(dyn q : *FileÉvènement) : rien
+{
+    taille_elem de q = 0;
+    taille de q = 0;
+	capacité de q = 0;
+    déloge tampon de q;
+    déloge q;
+}
+
+#!nulctx fonc enfile(dyn q : *FileÉvènement, d : *rien) : rien
+{
+    si taille de q == capacité de q {
+        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
+		reloge tampon de q : chaine((taille de q + 1) * taille_elem de q);
+		capacité de q += 1;
+    }
+
+    soit ptr = @q.tampon[taille de q * taille_elem de q];
+	copie_mem_nonsur(d, ptr, taille_elem de q);
+
+    taille de q += 1;
+}
+
+#!nulctx fonc est_vide(q : *FileÉvènement) : bool
+{
+    retourne taille de q == 0;
+}
+
+#!nulctx fonc défile(dyn q : *FileÉvènement, d : *rien) : rien
+{
+    si est_vide(q) {
+        retourne;
+    }
+
+    si d != nul {
+	    soit ptr = @q.tampon[0];
+		copie_mem_nonsur(ptr, d, taille_elem de q);
+    }
+
+    # réajuste la file en décalant les données
+
+    si taille de q > 1 {
+	    soit ptr_dst = @q.tampon[0];
+		soit ptr_src = @q.tampon[taille_elem de q];
+        copie_mem_nonsur(ptr_src, ptr_dst, taille_elem de q * (taille de q - 1));
+    }
+
+    taille de q -= 1;
+}
+
+################################################################################
+
+dyn VG_file_évènements : *FileÉvènement = nul;
+
+#!nulctx fonc rappel_erreur(erreur : z32, desc : *z8) : rien
+{
+    # À FAIRE : imprime n'a pas de contexte.
+    #soit chn = converti_chaine_c(desc);
+    #imprime("Erreur ", erreur, " : ", chn, '\n');
+}
+
+#!nulctx fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) : rien
 {
     #glfwSetWindowShouldClose(fenetre, 1);
     dyn évènement : Évènement;
@@ -40,7 +110,7 @@ fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, actio
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) : rien
+#!nulctx fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) : rien
 {
     dyn évènement : Évènement;
 
@@ -57,7 +127,7 @@ fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action 
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : rien
+#!nulctx fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : rien
 {
     dyn évènement : Évènement;
     type de évènement = SOURIS_BOUGEE de type_évènement;
@@ -67,7 +137,7 @@ fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : r
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
+#!nulctx fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
 {
     dyn évènement : Évènement;
     type de évènement = SOURIS_ROULETTE de type_évènement;
@@ -77,7 +147,7 @@ fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
     enfile(VG_file_évènements, @évènement);
 }
 
-fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) : rien
+#!nulctx fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) : rien
 {
 	glViewport(0, 0, x, y);
 

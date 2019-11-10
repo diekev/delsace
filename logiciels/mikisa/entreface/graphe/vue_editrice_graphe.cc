@@ -63,28 +63,27 @@ VueEditeurNoeud::VueEditeurNoeud(Mikisa &mikisa,
 
 	auto gestionnaire = m_mikisa.gestionnaire_entreface;
 
-	auto texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_composite.jo");
-	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_objet.jo");
-	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_point3d.jo");
-	m_menu_ajout_noeud_point3d = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_scene.jo");
-	m_menu_ajout_noeud_scene = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
-
-	texte_entree = dls::contenu_fichier("entreface/menu_ajouter_noeud_simulation.jo");
-	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_entrerogeable(donnees, texte_entree.c_str());
+	m_menu_ajout_noeud_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_composite.jo");
+	m_menu_ajout_noeud_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_objet.jo");
+	m_menu_ajout_noeud_detail = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_detail.jo");
+	m_menu_ajout_noeud_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_rendu.jo");
+	m_menu_graphe_objet = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_objet.jo");
+	m_menu_ajout_noeud_simulation = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_ajouter_noeud_simulation.jo");
+	m_menu_graphe_composite = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_composite.jo");
+	m_menu_graphe_nuanceur = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_nuanceur.jo");
+	m_menu_graphe_rendu = gestionnaire->compile_menu_fichier(donnees, "entreface/menu_graphe_rendu.jo");
 }
 
 VueEditeurNoeud::~VueEditeurNoeud()
 {
+	delete m_menu_graphe_rendu;
+	delete m_menu_graphe_nuanceur;
+	delete m_menu_graphe_composite;
+	delete m_menu_ajout_noeud_rendu;
 	delete m_menu_ajout_noeud_composite;
 	delete m_menu_ajout_noeud_objet;
-	delete m_menu_ajout_noeud_point3d;
-	delete m_menu_ajout_noeud_scene;
+	delete m_menu_ajout_noeud_detail;
+	delete m_menu_graphe_objet;
 	delete m_menu_ajout_noeud_simulation;
 }
 
@@ -93,21 +92,32 @@ void VueEditeurNoeud::keyPressEvent(QKeyEvent *event)
 	m_base->rend_actif();
 
 	if (event->key() == Qt::Key_Tab) {
-		switch (m_mikisa.contexte) {
-			case GRAPHE_COMPOSITE:
+		switch (m_mikisa.graphe->type) {
+			case type_graphe::RACINE_COMPOSITE:
+				m_menu_graphe_composite->popup(QCursor::pos());
+				break;
+			case type_graphe::RACINE_NUANCEUR:
+				m_menu_graphe_nuanceur->popup(QCursor::pos());
+				break;
+			case type_graphe::RACINE_RENDU:
+				m_menu_graphe_rendu->popup(QCursor::pos());
+				break;
+			case type_graphe::RENDU:
+				m_menu_ajout_noeud_rendu->popup(QCursor::pos());
+				break;
+			case type_graphe::COMPOSITE:
 				m_menu_ajout_noeud_composite->popup(QCursor::pos());
 				break;
-			case GRAPHE_SCENE:
-				m_menu_ajout_noeud_scene->popup(QCursor::pos());
+			case type_graphe::RACINE_OBJET:
+				m_menu_graphe_objet->popup(QCursor::pos());
 				break;
-			case GRAPHE_OBJET:
+			case type_graphe::OBJET:
 				m_menu_ajout_noeud_objet->popup(QCursor::pos());
 				break;
-			case GRAPHE_MAILLAGE:
-				m_menu_ajout_noeud_point3d->popup(QCursor::pos());
+			case type_graphe::DETAIL:
+				m_menu_ajout_noeud_detail->popup(QCursor::pos());
 				break;
-			case GRAPHE_SIMULATION:
-				m_menu_ajout_noeud_simulation->popup(QCursor::pos());
+			case type_graphe::INVALIDE:
 				break;
 		}
 	}

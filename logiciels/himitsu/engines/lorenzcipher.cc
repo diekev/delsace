@@ -155,7 +155,7 @@ void LorenzCipher::reset()
 		m_wheels[i]->setValue(m_original_keys[i]);
 	}
 
-	/* TODO: reset rng */
+	/* À FAIRE: reset rng */
 
 	Q_EMIT reencode();
 }

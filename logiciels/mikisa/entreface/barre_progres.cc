@@ -59,9 +59,16 @@ void BarreDeProgres::ajourne_valeur(int valeur)
 	m_barre_progres->setValue(valeur);
 }
 
-void BarreDeProgres::ajourne_message(const char *message)
+void BarreDeProgres::ajourne_message(const char *message, int execution, int total)
 {
-	m_label->setText(QString("Évaluation en cours : ") + message);
+	auto str = QString("Évaluation en cours ")
+			.append(QString::number(execution))
+			.append('/')
+			.append(QString::number(total))
+			.append(" : ")
+			.append(message);
+
+	m_label->setText(str);
 }
 
 void BarreDeProgres::signal_stop()

@@ -67,6 +67,9 @@ struct ParametresTampon {
 
 	/* Le taille en octet des données extra. */
 	size_t taille_octet_donnees_extra = 0ul;
+
+	/* Le nombre d'instances à dessiner */
+	size_t nombre_instances = 0ul;
 };
 
 /* ************************************************************************** */
@@ -172,6 +175,7 @@ class TamponRendu {
 	dls::ego::TamponObjet::Ptr m_donnees_tampon = nullptr;
 	dls::ego::Programme m_programme{};
 	size_t m_elements = 0;
+	size_t m_nombre_instances = 0;
 
 	dls::ego::Texture2D::Ptr m_texture = nullptr;
 	dls::ego::Texture3D::Ptr m_texture_3d = nullptr;
@@ -183,6 +187,7 @@ class TamponRendu {
 	bool m_requiers_normal = false;
 	bool m_peut_surligner = false;
 	bool m_dessin_indexe = false;
+	bool m_instance = false;
 
 public:
 	~TamponRendu();
@@ -238,6 +243,11 @@ public:
 	 * Remplie un tampon extra selon les paramètres spécifiés.
 	 */
 	void remplie_tampon_extra(ParametresTampon const &parametres);
+
+	/**
+	 * Remplie un tampon extra selon les paramètres spécifiés.
+	 */
+	void remplie_tampon_matrices_instance(ParametresTampon const &parametres);
 
 	/**
 	 * Dessine ce tampon selon le dans le contexte spécifié.

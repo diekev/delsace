@@ -29,12 +29,15 @@
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QToolTip>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/outils/conditions.h"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
 
 #include "graphe/item_noeud.h"
@@ -49,12 +52,24 @@ EditriceGraphe::EditriceGraphe(Mikisa &mikisa, QWidget *parent)
 	, m_scene(new QGraphicsScene(this))
 	, m_vue(new VueEditeurNoeud(mikisa, this, this))
 	, m_barre_chemin(new QLineEdit())
+	, m_selecteur_graphe(new QComboBox(this))
 {
 	m_vue->setScene(m_scene);
 
 	auto disposition_vert = new QVBoxLayout();
 	auto disposition_barre = new QHBoxLayout();
 
+	m_selecteur_graphe->addItem("Graphe Composites", QVariant("composites"));
+	m_selecteur_graphe->addItem("Graphe Nuanceurs", QVariant("nuanceurs"));
+	m_selecteur_graphe->addItem("Graphe Objets", QVariant("objets"));
+	m_selecteur_graphe->addItem("Graphe Rendus", QVariant("rendus"));
+
+	m_selecteur_graphe->setCurrentIndex(2);
+
+	connect(m_selecteur_graphe, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(change_contexte(int)));
+
+	disposition_barre->addWidget(m_selecteur_graphe);
 	disposition_barre->addWidget(m_barre_chemin);
 
 	auto bouton_retour = new QPushButton("^");
@@ -85,11 +100,46 @@ void EditriceGraphe::ajourne_etat(int evenement)
 		return;
 	}
 
+	/* ajourne le sélecteur, car il sera désynchronisé lors des ouvertures de
+	 * fichiers */
+	{
+		auto const bloque_signaux = m_selecteur_graphe->blockSignals(true);
+
+		switch (m_mikisa.chemin_courant[1]) {
+			case 'c':
+			{
+				m_selecteur_graphe->setCurrentIndex(0);
+				break;
+			}
+			case 'n':
+			{
+				m_selecteur_graphe->setCurrentIndex(1);
+				break;
+			}
+			case 'o':
+			{
+				m_selecteur_graphe->setCurrentIndex(2);
+				break;
+			}
+			case 'r':
+			{
+				m_selecteur_graphe->setCurrentIndex(3);
+				break;
+			}
+		}
+
+		m_selecteur_graphe->blockSignals(bloque_signaux);
+	}
+
 	m_scene->clear();
 	m_scene->items().clear();
 	assert(m_scene->items().size() == 0);
 
 	auto const graphe = m_mikisa.graphe;
+
+	if (graphe == nullptr) {
+		return;
+	}
 
 	m_vue->resetTransform();
 
@@ -109,26 +159,29 @@ void EditriceGraphe::ajourne_etat(int evenement)
 	m_vue->scale(graphe->zoom, graphe->zoom);
 
 	for (auto node_ptr : graphe->noeuds()) {
-		auto item = new ItemNoeud(node_ptr, node_ptr == graphe->noeud_actif);
+		auto item = new ItemNoeud(
+					node_ptr,
+					node_ptr == graphe->noeud_actif,
+					graphe->type == type_graphe::DETAIL);
 		m_scene->addItem(item);
 
-		for (PriseEntree *prise : node_ptr->entrees()) {
+		for (PriseEntree *prise : node_ptr->entrees) {
 			if (prise->liens.est_vide()) {
 				continue;
 			}
 
-			auto lien = prise->liens[0];
+			for (auto lien : prise->liens) {
+				auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
+				auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
+				auto const x2 = lien->rectangle.x + lien->rectangle.largeur / 2.0f;
+				auto const y2 = lien->rectangle.y + lien->rectangle.hauteur / 2.0f;
 
-			auto const x1 = prise->rectangle.x + prise->rectangle.largeur / 2.0f;
-			auto const y1 = prise->rectangle.y + prise->rectangle.hauteur / 2.0f;
-			auto const x2 = lien->rectangle.x + lien->rectangle.largeur / 2.0f;
-			auto const y2 = lien->rectangle.y + lien->rectangle.hauteur / 2.0f;
+				auto ligne = new QGraphicsLineItem();
+				ligne->setPen(QPen(Qt::white, 2.0));
+				ligne->setLine(x1, y1, x2, y2);
 
-			auto ligne = new QGraphicsLineItem();
-			ligne->setPen(QPen(Qt::white, 2.0));
-			ligne->setLine(x1, y1, x2, y2);
-
-			m_scene->addItem(ligne);
+				m_scene->addItem(ligne);
+			}
 		}
 	}
 
@@ -168,4 +221,13 @@ void EditriceGraphe::ajourne_etat(int evenement)
 void EditriceGraphe::sors_noeud()
 {
 	m_mikisa.repondant_commande()->repond_clique("sors_noeud", "");
+}
+
+void EditriceGraphe::change_contexte(int index)
+{
+	INUTILISE(index);
+	auto repondant_commande = m_mikisa.repondant_commande();
+	auto valeur = m_selecteur_graphe->currentData().toString().toStdString();
+
+	repondant_commande->repond_clique("change_contexte", valeur);
 }

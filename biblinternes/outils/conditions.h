@@ -34,7 +34,7 @@ namespace outils {
  * suivants.
  */
 template <typename T, typename... Ts>
-auto est_element(T &&a, Ts &&... ts)
+inline auto est_element(T &&a, Ts &&... ts)
 {
 	return ((a == ts) || ...);
 }
@@ -43,9 +43,18 @@ auto est_element(T &&a, Ts &&... ts)
  * Retourne vrai si tous les éléments sont égaux les uns aux autres.
  */
 template <typename T, typename... Ts>
-auto sont_egaux(T &&a, Ts &&... ts)
+inline auto sont_egaux(T &&a, Ts &&... ts)
 {
 	return ((a == ts) && ...);
+}
+
+/**
+ * Retourne vrai si 'v' possède l'un ou l'autre des bits contenu dans 'd'.
+ */
+template <typename T>
+inline auto possede_drapeau(T v, T d)
+{
+	return (v & d) != static_cast<T>(0);
 }
 
 }  /* namespace outils */

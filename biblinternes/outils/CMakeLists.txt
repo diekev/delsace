@@ -31,26 +31,36 @@ set(BIBLIOTHEQUES
 )
 
 set(ENTETES
+	attendu.hh
 	chaine.hh
 	chemin.hh
 	constantes.h
 	conditions.h
 	definitions.h
+	empreintes.hh
 	fichier.hh
+	format.hh
 	gna.hh
 	garde_portee.h
+	indexeuse.hh
 	iterateurs.h
 	masque_binaire.h
+	parametres.hh
 	temps.hh
+	transbit.hh
 )
 
 set(SOURCES
 	chaine.cc
 	chemin.cc
+	empreintes.cc
 	fichier.cc
+	format.cc
 	gna.cc
 	garde_portee.cc
+	indexeuse.cc
 	iterateurs.cc
+	parametres.cc
 	temps.cc
 	main.cc
 )
@@ -59,6 +69,3 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 target_link_libraries(${NOM_BIBLIOTHEQUE} ${BIBLIOTHEQUES})
-
-install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})

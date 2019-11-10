@@ -26,11 +26,11 @@
 
 #include <cassert>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include "biblinternes/structures/chaine.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/flux/outils.h"
+#include "biblinternes/structures/chaine.hh"
 
 #include "analyseuse_grammaire.hh"
 #include "assembleuse_arbre.hh"
@@ -113,14 +113,14 @@ dls::chaine charge_fichier(
 	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
-	std::string tampon;
 	dls::chaine res;
 	res.reserve(taille_fichier);
 
-	while (std::getline(fichier, tampon)) {
-		res += tampon;
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
 		res.pousse('\n');
-	}
+	});
 
 	return res;
 }
@@ -170,18 +170,18 @@ void charge_module(
 
 	os << "Chargement du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
 
-	auto debut_chargement = dls::chrono::maintenant();
+	auto debut_chargement = dls::chrono::compte_seconde();
 	auto tampon = charge_fichier(chemin, contexte, morceau);
-	module->temps_chargement = dls::chrono::delta(debut_chargement);
+	module->temps_chargement = debut_chargement.temps();
 
-	auto debut_tampon = dls::chrono::maintenant();
+	auto debut_tampon = dls::chrono::compte_seconde();
 	module->tampon = lng::tampon_source(tampon);
-	module->temps_tampon = dls::chrono::delta(debut_tampon);
+	module->temps_tampon = debut_tampon.temps();
 
 	auto decoupeuse = decoupeuse_texte(module);
-	auto debut_decoupage = dls::chrono::maintenant();
+	auto debut_decoupage = dls::chrono::compte_seconde();
 	decoupeuse.genere_morceaux();
-	module->temps_decoupage = dls::chrono::delta(debut_decoupage);
+	module->temps_decoupage = debut_decoupage.temps();
 
 	decoupeuse.imprime_morceaux(std::cerr);
 

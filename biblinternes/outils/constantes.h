@@ -42,9 +42,9 @@ struct constantes<float> {
 	static constexpr auto PI_4      = 0.78539816339744830962f;	/* pi/4 */
 	static constexpr auto PI_INV     = 0.31830988618379067154f;	/* 1/pi */
 	static constexpr auto PI_INV_2     = 0.63661977236758134308f;	/* 2/pi */
-	static constexpr auto SQRTPI_INV_2 = 1.12837916709551257390f;	/* 2/sqrt(pi) */
-	static constexpr auto SQRT2     = 1.41421356237309504880f;	/* sqrt(2) */
-	static constexpr auto SQRT1_2   = 0.70710678118654752440f;	/* 1/sqrt(2) */
+	static constexpr auto RCN2_PI_INV_2 = 1.12837916709551257390f;	/* 2/sqrt(pi) */
+	static constexpr auto RCN2_2     = 1.41421356237309504880f;	/* sqrt(2) */
+	static constexpr auto RCN2_1_2   = 0.70710678118654752440f;	/* 1/sqrt(2) */
 	static constexpr auto TAU     = 2.0f * PI;
 	static constexpr auto TAU_INV = 1.0f / TAU;
 	static constexpr auto PHI     = 1.6180339887498948482f;
@@ -66,9 +66,9 @@ struct constantes<double> {
 	static constexpr auto PI_4      = 0.78539816339744830962;  /* pi/4 */
 	static constexpr auto PI_INV     = 0.31830988618379067154;  /* 1/pi */
 	static constexpr auto PI_INV_2     = 0.63661977236758134308;  /* 2/pi */
-	static constexpr auto SQRTPI_INV_2 = 1.12837916709551257390;  /* 2/sqrt(pi) */
-	static constexpr auto SQRT2     = 1.41421356237309504880;  /* sqrt(2) */
-	static constexpr auto SQRT1_2   = 0.70710678118654752440;  /* 1/sqrt(2) */
+	static constexpr auto RCN2_PI_INV_2 = 1.12837916709551257390;  /* 2/sqrt(pi) */
+	static constexpr auto RCN2_2     = 1.41421356237309504880;  /* sqrt(2) */
+	static constexpr auto RCN2_1_2   = 0.70710678118654752440;  /* 1/sqrt(2) */
 	static constexpr auto TAU     = 2.0 * PI;
 	static constexpr auto TAU_INV = 1.0 / TAU;
 	static constexpr auto PHI     = 1.6180339887498948482;

@@ -1,10 +1,10 @@
 disposition "operatrice_maillage_vers_volume" {
     ligne {
 	    étiquette(valeur="Taille Voxel")
-		décimal(valeur=0.1; attache=taille_voxel; min=0.0001)
+		décimal(valeur=0.1; attache=taille_voxel; min=0.0001; animable)
 	}
 	ligne {
 	    étiquette(valeur="Densité")
-		décimal(valeur=1.0; attache=densité; min=0.0)
+		décimal(valeur=1.0; attache=densité; min=0.0; animable)
 	}
 }

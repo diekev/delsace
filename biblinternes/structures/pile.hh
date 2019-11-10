@@ -30,28 +30,35 @@ namespace dls {
 
 template <typename T>
 struct pile {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
+
 private:
-	dls::tableau<T> m_pile{};
+	dls::tableau<type_valeur> m_pile{};
 
 public:
 	pile() = default;
 
-	void empile(T const &valeur)
+	void empile(type_reference_const valeur)
 	{
 		m_pile.pousse(valeur);
 	}
 
-	void depile()
+	type_valeur depile()
 	{
+		auto t = this->haut();
 		m_pile.pop_back();
+		return t;
 	}
 
-	T &haut()
+	type_reference haut()
 	{
 		return m_pile.back();
 	}
 
-	T const &haut() const
+	type_reference_const haut() const
 	{
 		return m_pile.back();
 	}
@@ -61,9 +68,68 @@ public:
 		return m_pile.est_vide();
 	}
 
-	long taille() const
+	void efface()
+	{
+		m_pile.efface();
+	}
+
+	type_taille taille() const
 	{
 		return m_pile.taille();
+	}
+};
+
+template <typename T, unsigned long N>
+struct pile_fixe {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
+
+private:
+	type_valeur m_pile[N];
+	type_taille m_index = -1;
+
+public:
+	pile_fixe() = default;
+
+	void empile(type_reference_const valeur)
+	{
+		if (m_index + 1 < N) {
+			m_pile[++m_index] = valeur;
+		}
+	}
+
+	type_valeur depile()
+	{
+		auto t = haut();
+		--m_index;
+		return t;
+	}
+
+	type_reference haut()
+	{
+		return m_pile[m_index];
+	}
+
+	type_reference_const haut() const
+	{
+		return m_pile[m_index];
+	}
+
+	bool est_vide() const
+	{
+		return m_index < 0;
+	}
+
+	bool est_pleine() const
+	{
+		return m_index == N;
+	}
+
+	type_taille taille() const
+	{
+		return m_index + 1;
 	}
 };
 

@@ -26,25 +26,23 @@
 
 #include <iomanip>
 
-#include "biblinternes/graphe/graphe.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/systeme_fichier/file.h"
 
+#include "noeud.hh"
 #include "noeud_image.h"
 
-/* Adapted from Blender's BVM debug code. */
+static constexpr auto nom_police = "helvetica";
+static constexpr auto taille_police = 20.0;
+static constexpr auto taille_lable_noeud = 14.0;
+static constexpr auto valeur_couleur = "gold1";
 
-static constexpr auto fontname = "helvetica";
-static constexpr auto fontsize = 20.0;
-static constexpr auto node_label_size = 14.0;
-static constexpr auto color_value = "gold1";
-
-inline static dls::chaine node_id(const Noeud *node, bool quoted = true)
+dls::chaine id_dot_pour_noeud(Noeud const *noeud, bool quoted)
 {
 	dls::flux_chaine ss;
 
-	ss << "node_" << node;
+	ss << "noeud_" << noeud;
 
 	if (quoted) {
 		dls::flux_chaine ssq;
@@ -55,11 +53,11 @@ inline static dls::chaine node_id(const Noeud *node, bool quoted = true)
 	return ss.chn();
 }
 
-inline long get_input_index(const PriseEntree *socket)
+inline long index_entree(PriseEntree const *prise)
 {
 	auto i = 0l;
-	for (auto const &input : socket->parent->entrees()) {
-		if (input->nom == socket->nom) {
+	for (auto const &input : prise->parent->entrees) {
+		if (input->nom == prise->nom) {
 			return i;
 		}
 
@@ -69,11 +67,11 @@ inline long get_input_index(const PriseEntree *socket)
 	return -1l;
 }
 
-inline long get_output_index(const PriseSortie *socket)
+inline long index_sortie(PriseSortie const *prise)
 {
 	auto i = 0l;
-	for (auto const &output : socket->parent->sorties()) {
-		if (output->nom == socket->nom) {
+	for (auto const &output : prise->parent->sorties) {
+		if (output->nom == prise->nom) {
 			return i;
 		}
 
@@ -83,17 +81,20 @@ inline long get_output_index(const PriseSortie *socket)
 	return -1l;
 }
 
-inline static dls::chaine input_id(const PriseEntree *socket, long index, bool quoted = true)
+inline static dls::chaine id_dot_pour_entree(
+		PriseEntree const *prise,
+		long index,
+		bool apostrophes = true)
 {
 	if (index == -1l) {
-		index = get_input_index(socket);
+		index = index_entree(prise);
 	}
 
 	dls::flux_chaine ss;
 
-	ss << "I" << socket->nom << "_" << index;
+	ss << "E" << prise->nom << "_" << index;
 
-	if (quoted) {
+	if (apostrophes) {
 		dls::flux_chaine ssq;
 		ssq << std::quoted(ss.chn());
 		return ssq.chn();
@@ -102,17 +103,20 @@ inline static dls::chaine input_id(const PriseEntree *socket, long index, bool q
 	return ss.chn();
 }
 
-inline static dls::chaine output_id(const PriseSortie *socket, long index, bool quoted = true)
+inline static dls::chaine id_dot_pour_sortie(
+		PriseSortie const *prise,
+		long index,
+		bool apostrophes = true)
 {
 	if (index == -1l) {
-		index = get_output_index(socket);
+		index = index_sortie(prise);
 	}
 
 	dls::flux_chaine ss;
 
-	ss << "O" << socket->nom << "_" << index;
+	ss << "S" << prise->nom << "_" << index;
 
-	if (quoted) {
+	if (apostrophes) {
 		dls::flux_chaine ssq;
 		ssq << std::quoted(ss.chn());
 		return ssq.chn();
@@ -121,100 +125,135 @@ inline static dls::chaine output_id(const PriseSortie *socket, long index, bool 
 	return ss.chn();
 }
 
-inline void dump_node(dls::systeme_fichier::File &file, Noeud *node)
+inline void imprime_noeud(dls::flux_chaine &flux, Noeud const *noeud)
 {
-	constexpr auto shape = "box";
+	constexpr auto forme = "box";
 	constexpr auto style = "filled,rounded";
-	constexpr auto color = "black";
-	constexpr auto fillcolor = "gainsboro";
-	constexpr auto penwidth = 1.0;
+	constexpr auto couleur = "black";
+	constexpr auto couleur_remplissage = "gainsboro";
+	constexpr auto largeur_stylo = 1.0;
 
-	file.print("// %s\n", node->nom().c_str());
-	file.print("%s", node_id(node).c_str());
-	file.print("[");
+	flux << "// " << noeud->nom << "\n";
+	flux << id_dot_pour_noeud(noeud);
+	flux << "[";
 
-	file.print("label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">");
-	file.print("<TR><TD COLSPAN=\"2\">%s</TD></TR>", node->nom().c_str());
+	flux << "label=<<TABLE BORDER=\"0\" CELLBORDER=\"0\" CELLSPACING=\"0\" CELLPADDING=\"4\">";
+	flux << "<TR><TD COLSPAN=\"2\">" << noeud->nom << "</TD></TR>";
 
-	auto const numin = node->entrees().taille();
-	auto const numout = node->sorties().taille();
+	auto const numin = noeud->entrees.taille();
+	auto const numout = noeud->sorties.taille();
 
 	for (auto i = 0; (i < numin) || (i < numout); ++i) {
-		file.print("<TR>");
+		flux << "<TR>";
 
 		if (i < numin) {
-			auto const &input = node->entree(i);
+			auto const &input = noeud->entree(i);
 			auto const &name_in = input->nom;
 
-			file.print("<TD");
-			file.print(" PORT=%s", input_id(input, i).c_str());
-			file.print(" BORDER=\"1\"");
-			file.print(" BGCOLOR=\"%s\"", color_value);
-			file.print(">");
-			file.print("%s", name_in.c_str());
-			file.print("</TD>");
+			flux << "<TD";
+			flux << " PORT=" << id_dot_pour_entree(input, i);
+			flux << " BORDER=\"1\"";
+			flux << " BGCOLOR=\"" << valeur_couleur << "\"";
+			flux << ">";
+			flux << name_in;
+			flux << "</TD>";
 		}
 		else {
-			file.print("<TD></TD>");
+			flux << "<TD></TD>";
 		}
 
 		if (i < numout) {
-			auto const &output = node->sortie(i);
+			auto const &output = noeud->sortie(i);
 			auto const &name_out = output->nom;
 
-			file.print("<TD");
-			file.print(" PORT=%s", output_id(output, i).c_str());
-			file.print(" BORDER=\"1\"");
-			file.print(" BGCOLOR=\"%s\"", color_value);
-			file.print(">");
-			file.print("%s", name_out.c_str());
-			file.print("</TD>");
+			flux << "<TD";
+			flux << " PORT=" << id_dot_pour_sortie(output, i);
+			flux << " BORDER=\"1\"";
+			flux << " BGCOLOR=\"" << valeur_couleur << "\"";
+			flux << ">";
+			flux << name_out;
+			flux << "</TD>";
 		}
 		else {
-			file.print("<TD></TD>");
+			flux << "<TD></TD>";
 		}
 
-		file.print("</TR>");
+		flux << "</TR>";
 	}
 
-	file.print("</TABLE>>");
+	flux << "</TABLE>>";
 
-	file.print(",fontname=\"%s\"", fontname);
-	file.print(",fontsize=\"%f\"", node_label_size);
-	file.print(",shape=\"%s\"", shape);
-	file.print(",style=\"%s\"", style);
-	file.print(",color=\"%s\"", color);
-	file.print(",fillcolor=\"%s\"", fillcolor);
-	file.print(",penwidth=\"%f\"", penwidth);
-	file.print("];\n");
-	file.print("\n");
+	flux << ",fontname=\"" << nom_police << "\"";
+	flux << ",fontsize=\"" << taille_lable_noeud << "\"";
+	flux << ",shape=\"" << forme << "\"";
+	flux << ",style=\"" << style << "\"";
+	flux << ",color=\"" << couleur << "\"";
+	flux << ",fillcolor=\"" << couleur_remplissage << "\"";
+	flux << ",penwidth=\"" << largeur_stylo << "\"";
+	flux << "];\n";
+	flux << "\n";
 }
 
-inline void dump_link(dls::systeme_fichier::File &file, const PriseSortie *from, const PriseEntree *to)
+inline void imprime_lien(
+		dls::flux_chaine &flux,
+		PriseSortie const *sortie,
+		PriseEntree const *entree)
 {
-	auto penwidth = 2.0;
+	auto largeur_stylo = 2.0;
 
-	file.print("%s:%s -> %s:%s",
-			   node_id(from->parent).c_str(), output_id(from, -1l).c_str(),
-			   node_id(to->parent).c_str(), input_id(to, -1l).c_str());
-
-	file.print("[");
-
-	/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
-	file.print("id=\"VAL%s:%s\"", node_id(to->parent, false).c_str(), input_id(to, -1l, false).c_str());
-	file.print(",penwidth=\"%f\"", penwidth);
-
-	file.print("];\n");
-	file.print("\n");
+	flux << id_dot_pour_noeud(sortie->parent) << ':' << id_dot_pour_sortie(sortie, -1l);
+	flux << " -> ";
+	flux << id_dot_pour_noeud(entree->parent) << ':' << id_dot_pour_entree(entree, -1l);
+	flux << "[";
+	/* Note: graphviz/dot semble requérir soit un id, soit un label */
+	flux << "id=\"VAL" << id_dot_pour_noeud(entree->parent, false) << ':' << id_dot_pour_entree(entree, -1l, false) << '"';
+	flux << ",penwidth=\"" << largeur_stylo << '"';
+	flux << "];\n";
+	flux << '\n';
 }
 
-inline void dump_node_links(dls::systeme_fichier::File &file, const Noeud *node)
+inline void imprime_liens_noeud(dls::flux_chaine &flux, Noeud const *noeud)
 {
-	for (auto const &entree : node->entrees()) {
+	for (auto const &entree : noeud->entrees) {
 		for (auto const &sortie : entree->liens) {
-			dump_link(file, sortie, entree);
+			imprime_lien(flux, sortie, entree);
 		}
 	}
+}
+
+dls::chaine chaine_dot_pour_graphe(Graphe const &graphe)
+{
+	auto flux = dls::flux_chaine();
+
+	flux << "digraph depgraph {\n";
+
+	if (graphe.type == type_graphe::DETAIL) {
+		flux << "rankdir=LR\n";
+	}
+	else {
+		flux << "rankdir=BT\n";
+	}
+
+	flux << "nodesep=100\n";
+	flux << "ranksep=1\n";
+	flux << "graph [";
+	flux << "labbelloc=\"t\"";
+	flux << ",fontsize=\"" << taille_police << "\"";
+	flux << ",fontname=\"" << nom_police << "\"";
+	flux << ",label=\"Image Graph\"";
+	flux << "]\n";
+
+	for (auto const &noeud : graphe.noeuds()) {
+		imprime_noeud(flux, noeud);
+	}
+
+	for (auto const &noeud : graphe.noeuds()) {
+		imprime_liens_noeud(flux, noeud);
+	}
+
+	flux << "}\n";
+
+	return flux.chn();
 }
 
 ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
@@ -223,28 +262,13 @@ ImprimeuseGraphe::ImprimeuseGraphe(Graphe *graph)
 
 void ImprimeuseGraphe::operator()(filesystem::path const &path)
 {
-	dls::systeme_fichier::File file(path.c_str(), "w");
+	auto fichier = dls::systeme_fichier::File(path.c_str(), "w" );
 
-	if (!file) {
+	if (!fichier) {
 		return;
 	}
 
-	file.print("digraph depgraph {\n");
-	file.print("rankdir=LR\n");
-	file.print("graph [");
-	file.print("labbelloc=\"t\"");
-	file.print(",fontsize=\"%f\"", fontsize);
-	file.print("fontname=\"%s\"", fontname);
-	file.print("label=\"Image Graph\"");
-	file.print("]\n");
+	auto chn = chaine_dot_pour_graphe(*m_graph);
 
-	for (auto const &node : m_graph->noeuds()) {
-		dump_node(file, node);
-	}
-
-	for (auto const &node : m_graph->noeuds()) {
-		dump_node_links(file, node);
-	}
-
-	file.print("}\n");
+	fichier.print("%s", chn.c_str());
 }

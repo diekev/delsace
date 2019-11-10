@@ -27,8 +27,8 @@
 #include <any>
 
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/phys/couleur.hh"
-
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -58,9 +58,22 @@ enum TypePropriete {
 	LISTE_MANIP,
 };
 
+enum etat_propriete : char {
+	VIERGE            = 0,
+	EST_ANIMEE        = (1 << 0),
+	EST_ANIMABLE      = (1 << 1),
+	EST_ACTIVEE       = (1 << 2),
+	EST_ACTIVABLE     = (1 << 3),
+	EST_VERROUILLEE   = (1 << 4),
+};
+
+DEFINIE_OPERATEURS_DRAPEAU(etat_propriete, unsigned short)
+
 struct Propriete {
 	std::any valeur{};
 	TypePropriete type{};
+
+	etat_propriete etat = etat_propriete::VIERGE;
 
 	bool est_extra = false;
 
@@ -80,7 +93,7 @@ struct Propriete {
 
 	void supprime_animation();
 
-	bool est_anime() const;
+	bool est_animee() const;
 
 	bool possede_cle(int temps) const;
 
@@ -116,17 +129,23 @@ public:
 
 	virtual	~Manipulable() = default;
 
+	/* Pour l'entreface des dossier. */
+	int onglet_courant = 0;
+
 	using iterateur = dls::dico_desordonne<dls::chaine, Propriete>::iteratrice;
+	using iterateur_const = dls::dico_desordonne<dls::chaine, Propriete>::const_iteratrice;
 
 	/**
 	 * Retourne un itérateur pointant vers le début de la liste de propriétés.
 	 */
 	iterateur debut();
+	iterateur_const debut() const;
 
 	/**
 	 * Retourne un itérateur pointant vers la fin de la liste de propriétés.
 	 */
 	iterateur fin();
+	iterateur_const fin() const;
 
 	/**
 	 * Ajoute une propriété à ce manipulable avec le nom et type spécifiés.
@@ -272,6 +291,10 @@ public:
 	Propriete *propriete(const dls::chaine &nom);
 
 	Propriete const *propriete(const dls::chaine &nom) const;
+
+	bool possede_animation() const;
+
+	virtual void performe_versionnage();
 };
 
 }  /* namespace danjo */

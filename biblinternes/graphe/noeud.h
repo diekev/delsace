@@ -35,17 +35,22 @@ class Noeud;
 struct PriseEntree;
 struct PriseSortie;
 
-enum type_prise {
-	DECIMAL = 0,
-	ENTIER  = 1,
-	VECTEUR = 2,
-	COULEUR = 3,
-	IMAGE   = 4,
-	PIXEL   = 5,
-	CORPS   = 6,
-	OBJET   = 7,
-	CAMERA  = 8,
-	SCENE   = 9,
+enum class type_prise : int {
+	DECIMAL,
+	ENTIER,
+	VEC2,
+	VEC3,
+	VEC4,
+	MAT3,
+	MAT4,
+	COULEUR,
+	CORPS,
+	IMAGE,
+	OBJET,
+	TABLEAU,
+	POLYMORPHIQUE,
+	CHAINE,
+	INVALIDE,
 };
 
 /* ************************************************************************** */
@@ -54,7 +59,10 @@ struct PriseSortie {
 	Noeud *parent = nullptr;
 	dls::tableau<PriseEntree *> liens{};
 	dls::chaine nom = "";
-	int type = 0;
+	type_prise type{};
+
+	/* inférence de type pour les noeuds dont les entrées sont polymorphiques */
+	type_prise type_infere{};
 
 	/* décalage dans la pile d'une CompileuseGraphe */
 	long decalage_pile = 0;
@@ -76,7 +84,7 @@ struct PriseEntree {
 	dls::tableau<PriseSortie *> liens{};
 	//PriseSortie *lien = nullptr;
 	dls::chaine nom = "";
-	int type = 0;
+	type_prise type{};
 	bool multiple_connexions = false;
 
 	/* position et taille dans l'entreface */
@@ -179,12 +187,12 @@ public:
 	/**
 	 * Ajoute une prise d'entrée au noeud.
 	 */
-	void ajoute_entree(dls::chaine const &nom, const int type);
+	void ajoute_entree(dls::chaine const &nom, const type_prise type, bool connexions_multiples);
 
 	/**
 	 * Ajoute une prise de sortie au noeud.
 	 */
-	void ajoute_sortie(dls::chaine const &nom, const int type);
+	void ajoute_sortie(dls::chaine const &nom, const type_prise type);
 
 	/**
 	 * Retourne l'entrée selon l'index spécifié.
@@ -279,4 +287,4 @@ public:
 	int degre = 0;
 };
 
-void marque_surannee(Noeud *noeud);
+void marque_surannee(Noeud *noeud, std::function<void(Noeud *, PriseEntree *)> const &rp);

@@ -4,7 +4,7 @@
 # tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
 # blocs de mémoires à manipuler.
 
-fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) : z32
+#!nulctx fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) : z32
 {
     si taille de a < taille {
 	    retourne -1;
@@ -25,7 +25,7 @@ fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) : z32
     retourne 0;
 }
 
-fonc comp_mem(a : []octet, b : []octet, taille : z64) : bool
+#!nulctx fonc comp_mem(a : []octet, b : []octet, taille : z64) : bool
 {
     si taille de a < taille {
 	    retourne faux;
@@ -48,7 +48,7 @@ fonc comp_mem(a : []octet, b : []octet, taille : z64) : bool
     retourne vrai;
 }
 
-fonc copie_mem_nonsur(src : *octet, dyn dst : *octet, taille : z64) : rien
+#!nulctx fonc copie_mem_nonsur(src : *octet, dyn dst : *octet, taille : z64) : rien
 {
     pour i dans transtype(0 : z64)...taille - 1 {
 	    dst[i] = src[i];
@@ -58,7 +58,7 @@ fonc copie_mem_nonsur(src : *octet, dyn dst : *octet, taille : z64) : rien
 # Copie 'taille' octets depuis la source vers la destination
 # La copie se fait comme si un tampon intermédiaire a été utilisé,
 # permettant à la source et à la destination de se surposer.
-fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) : rien
+#!nulctx fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) : rien
 {
     si taille de src < taille {
 	    retourne;
@@ -96,13 +96,13 @@ fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) : rien
 # vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
 # Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
 # qu'autre chose.
-fonc bouge_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
+#!nulctx fonc bouge_mem(source : []octet, dyn destination : []octet, taille : z64) : rien
 {
     copie_mem(source, destination, taille);
 }
 
 # À FAIRE : considération pour la surposition de blocs.
-fonc echange_mem(a : []octet, b : []octet) : rien
+#!nulctx fonc echange_mem(a : []octet, b : []octet) : rien
 {
     dyn tmp : [128]octet;
 
@@ -140,7 +140,7 @@ fonc echange_mem(a : []octet, b : []octet) : rien
 	}
 }
 
-fonc init_mem(dyn destination : []octet, valeur : z8, taille : z64) : rien
+#!nulctx fonc init_mem(dyn destination : []octet, valeur : z8, taille : z64) : rien
 {
     dyn t = taille;
 	si taille de destination < taille {
@@ -152,7 +152,7 @@ fonc init_mem(dyn destination : []octet, valeur : z8, taille : z64) : rien
 	}
 }
 
-fonc cherche_mem(source : []octet, valeur : z8, taille : z64) : []octet
+#!nulctx fonc cherche_mem(source : []octet, valeur : z8, taille : z64) : []octet
 {
     dyn t = taille;
 	si taille de source < taille {

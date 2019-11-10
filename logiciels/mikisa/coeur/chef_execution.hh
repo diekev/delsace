@@ -26,12 +26,17 @@
 
 #include <mutex>
 
+#include "wolika/interruptrice.hh"
+
 class Mikisa;
 
 class ChefExecution {
 	Mikisa &m_mikisa;
 	float m_progression_parallele = 0.0f;
 	std::mutex m_mutex_progression{};
+
+	int m_nombre_a_executer = 0;
+	int m_nombre_execution = 0;
 
 public:
 	explicit ChefExecution(Mikisa &mikisa);
@@ -53,4 +58,25 @@ public:
 	void indique_progression_parallele(float delta);
 
 	void demarre_evaluation(const char *message);
+
+	void reinitialise();
+
+	void incremente_compte_a_executer();
+};
+
+/* ************************************************************************** */
+
+struct ChefWolika : public wlk::interruptrice {
+	ChefExecution *chef;
+
+	ChefWolika(ChefExecution *chef_ex, const char *message);
+
+	ChefWolika(ChefWolika const &) = default;
+	ChefWolika &operator=(ChefWolika const &) = default;
+
+	bool interrompue() const override;
+
+	void indique_progression(float progression) override;
+
+	void indique_progression_parallele(float delta) override;
 };

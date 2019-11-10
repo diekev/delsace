@@ -24,9 +24,6 @@
 
 #include "assembleuse_arbre.h"
 
-#include <cassert>
-
-#include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "coulisse_c.hh"
 
@@ -123,7 +120,8 @@ void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_genera
 
 void assembleuse_arbre::genere_code_C(
 		ContexteGenerationCode &contexte_generation,
-		std::ostream &os)
+		std::ostream &os,
+		dls::chaine const &racine_kuri)
 {
 	if (m_pile.est_vide()) {
 		return;
@@ -133,7 +131,7 @@ void assembleuse_arbre::genere_code_C(
 	 * bibliothèques C. */
 	auto donnees_var = DonneesVariable{};
 	donnees_var.est_dynamique = true;
-	donnees_var.donnees_type = contexte_generation.magasin_types[TYPE_Z32];
+	donnees_var.index_type = contexte_generation.magasin_types[TYPE_Z32];
 
 	contexte_generation.pousse_globale("errno", donnees_var);
 
@@ -146,13 +144,34 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "\n";
 
+	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 	os << "static long __VG_memoire_utilisee__ = 0;";
 	os << "static long ";
 	auto &df = contexte_generation.module(0)->donnees_fonction("mémoire_utilisée").front();
 	os << df.nom_broye;
 	os << "() { return __VG_memoire_utilisee__; }";
 
-	/* NOTE : les initiliaseurs des infos types doivent être valide pour toute
+	auto &magasin = contexte_generation.magasin_types;
+
+	auto ds_contexte_global = DonneesStructure();
+	ds_contexte_global.est_enum = false;
+	ds_contexte_global.noeud_decl = nullptr;
+
+	auto dm = DonneesMembre();
+	dm.index_membre = 0;
+	ds_contexte_global.donnees_membres.insere({ "compteur", dm });
+
+	ds_contexte_global.index_types.pousse(magasin[TYPE_Z32]);
+
+	contexte_generation.ajoute_donnees_structure("__contexte_global", ds_contexte_global);
+	//contexte_generation.index_type_ctx = ds_contexte_global.index_type;
+
+	auto dt = DonneesTypeFinal{};
+	dt.pousse(id_morceau::POINTEUR);
+	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds_contexte_global.id << 8));
+	contexte_generation.index_type_ctx = magasin.ajoute_type(dt);
+
+	/* NOTE : les initialiseurs des infos types doivent être valides pour toute
 	 * la durée du programme, donc nous les mettons dans la fonction principale.
 	 */
 	dls::flux_chaine ss_infos_types;
@@ -167,11 +186,14 @@ int main(int argc, char **argv)
 	Tableau_char_ptr_ tabl_args;
 	tabl_args.pointeur = argv;
 	tabl_args.taille = argc;
+
+	__contexte_global ctx;
+	ctx.compteur = 0;
 )";
 
 	auto fin_main =
 R"(
-	return principale(tabl_args);
+	return principale(&ctx, tabl_args);
 }
 )";
 
@@ -200,7 +222,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 {
 	os << "------------------------------------------------------------------\n";
 	os << "noeud::base              : " << sizeof(noeud::base) << '\n';
-	os << "DonneesType              : " << sizeof(DonneesType) << '\n';
+	os << "DonneesTypeFinal         : " << sizeof(DonneesTypeFinal) << '\n';
 	os << "DonneesMorceaux          : " << sizeof(DonneesMorceaux) << '\n';
 	os << "dls::liste<noeud::base *> : " << sizeof(dls::liste<noeud::base *>) << '\n';
 	os << "std::any                 : " << sizeof(std::any) << '\n';

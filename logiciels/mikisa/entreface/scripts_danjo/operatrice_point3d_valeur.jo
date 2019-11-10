@@ -1,6 +1,0 @@
-disposition "operatrice_point3d_vecteur" {
-    ligne {
-	    étiquette(valeur="Valeur")
-		décimal(attache=val; valeur=0.0)
-	}
-}

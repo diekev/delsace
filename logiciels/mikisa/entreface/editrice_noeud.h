@@ -26,6 +26,7 @@
 
 #include "base_editrice.h"
 
+class QComboBox;
 class QGraphicsScene;
 class VueEditeurNoeud;
 
@@ -36,6 +37,7 @@ class EditriceGraphe : public BaseEditrice {
 	VueEditeurNoeud *m_vue;
 
 	QLineEdit *m_barre_chemin;
+	QComboBox *m_selecteur_graphe;
 
 public:
 	explicit EditriceGraphe(Mikisa &mikisa, QWidget *parent = nullptr);
@@ -51,4 +53,5 @@ public:
 
 private Q_SLOTS:
 	void sors_noeud();
+	void change_contexte(int index);
 };

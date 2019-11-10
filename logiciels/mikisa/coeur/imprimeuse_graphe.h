@@ -24,11 +24,17 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
-namespace filesystem = std::experimental::filesystem;
+#include "biblinternes/structures/chaine.hh"
 
+namespace filesystem = std::filesystem;
+
+class Noeud;
 class Graphe;
+
+dls::chaine id_dot_pour_noeud(Noeud const *noeud, bool apostrophes = true);
+dls::chaine chaine_dot_pour_graphe(Graphe const &graphe);
 
 class ImprimeuseGraphe {
 	Graphe *m_graph;

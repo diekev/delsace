@@ -36,12 +36,12 @@ set(ENTETES_MATRICE
 )
 
 set(ENTETES
-	aleatoire.hh
 	base_vecteur.hh
 	boite_englobante.hh
-	bruit.hh
+	complexe.hh
 	concepts.hh
 	entrepolation.hh
+	fourier.hh
 	limites.hh
 	matrice.hh
 	outils.hh
@@ -57,9 +57,10 @@ set(ENTETES
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC
 	boite_englobante.cc
-	bruit.cc
+	complexe.cc
 	concepts.cc
 	entrepolation.cc
+	fourier.cc
 	limites.cc
 	matrice.cc
 	outils.cc
@@ -80,10 +81,27 @@ target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
 
-install(
-	TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib
+################################################################################
+
+set(NOM_BIBLIOTHEQUE test_mat)
+
+set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../../
 )
 
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
+set(BIBLIOTHEQUES
+)
 
-install(FILES ${ENTETES_MATRICE} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE}/matrice)
+set(ENTETES
+)
+
+set(SOURCES
+	test_mat.cc
+)
+
+add_executable(${NOM_BIBLIOTHEQUE} ${SOURCES} ${ENTETES})
+
+target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
+
+target_link_libraries(${NOM_BIBLIOTHEQUE} "${BIBLIOTHEQUES}")
+

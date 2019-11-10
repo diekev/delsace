@@ -24,38 +24,26 @@
 
 #include "visionneur_scene.h"
 
-#include "biblinternes/chrono/outils.hh"
+#include "biblinternes/math/transformation.hh"
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/opengl/rendu_texte.h"
 #include "biblinternes/opengl/tampon_rendu.h"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/vision/camera.h"
 
-#include "coeur/composite.h"
+#include "coeur/contexte_evaluation.hh"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
-#include "coeur/scene.h"
+#include "coeur/rendu.hh"
 
-#include "rendu/moteur_rendu.hh"
+#include "lcc/lcc.hh"
+
+#include "rendu/moteur_rendu_koudou.hh"
+#include "rendu/moteur_rendu_opengl.hh"
+#include "rendu/rendu_corps.h"
 
 #include "rendu_image.h"
 #include "rendu_manipulatrice.h"
-
-/* ************************************************************************** */
-
-template <typename T>
-static auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
-{
-	dls::math::mat4x4<float> resultat;
-
-	for (size_t i = 0; i < 4; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			resultat[i][j] = static_cast<float>(matrice[i][j]);
-		}
-	}
-
-	return resultat;
-}
 
 /* ************************************************************************** */
 
@@ -67,10 +55,8 @@ VisionneurScene::VisionneurScene(VueCanevas3D *parent, Mikisa &mikisa)
 	, m_rendu_manipulatrice_pos(nullptr)
 	, m_rendu_manipulatrice_rot(nullptr)
 	, m_rendu_manipulatrice_ech(nullptr)
-	, m_moteur_rendu(memoire::loge<MoteurRendu>("MoteurRendu"))
 	, m_pos_x(0)
 	, m_pos_y(0)
-	, m_debut(0)
 {}
 
 VisionneurScene::~VisionneurScene()
@@ -79,7 +65,7 @@ VisionneurScene::~VisionneurScene()
 	memoire::deloge("RenduManipulatricePosition", m_rendu_manipulatrice_pos);
 	memoire::deloge("RenduManipulatriceRotation", m_rendu_manipulatrice_rot);
 	memoire::deloge("RenduManipulatriceEchelle", m_rendu_manipulatrice_ech);
-	memoire::deloge("MoteurRendu", m_moteur_rendu);
+
 	memoire::deloge("TamponRendu", m_tampon_image);
 
 	if (m_tampon != nullptr) {
@@ -97,22 +83,23 @@ void VisionneurScene::initialise()
 
 	m_camera->ajourne();
 
-	m_debut = dls::chrono::maintenant();
-
-	m_moteur_rendu->camera(m_camera);
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::peint_opengl()
 {
 	/* dessine la scène dans le tampon */
-	auto scene = m_mikisa.scene;
-	m_moteur_rendu->scene(scene);
+	auto stats = StatistiquesRendu{};
 
-	m_moteur_rendu->calcule_rendu(
-				m_tampon,
-				m_camera->hauteur(),
-				m_camera->largeur(),
-				false);
+	auto contexte_eval = cree_contexte_evaluation(m_mikisa);
+	contexte_eval.rendu_final = false;
+	contexte_eval.camera_rendu = m_camera;
+	contexte_eval.tampon_rendu = m_tampon;
+	contexte_eval.stats_rendu = &stats;
+
+	auto rendu = m_mikisa.bdd.rendu(m_nom_rendu);
+
+	evalue_graphe_rendu(rendu, contexte_eval);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -150,7 +137,7 @@ void VisionneurScene::peint_opengl()
 		auto matrice = dls::math::mat4x4d(1.0);
 		matrice = dls::math::translation(matrice, dls::math::vec3d(pos.x, pos.y, pos.z));
 		m_stack.pousse(matrice);
-		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
 		if (m_mikisa.type_manipulation_3d == MANIPULATION_ROTATION) {
 			m_rendu_manipulatrice_rot->manipulatrice(m_mikisa.manipulatrice_3d);
@@ -168,10 +155,7 @@ void VisionneurScene::peint_opengl()
 		m_stack.enleve_sommet();
 	}
 
-	auto const fin = dls::chrono::maintenant();
-
-	auto const temps = fin - m_debut;
-	auto const fps = static_cast<int>(1.0 / temps);
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
 	glEnable(GL_BLEND);
 
@@ -179,14 +163,14 @@ void VisionneurScene::peint_opengl()
 
 	dls::flux_chaine ss;
 	ss << fps << " IPS";
-	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	if (scene != nullptr) {
-		ss.chn("");
-		ss << "Scène : " << scene->nom;
+	auto couleur_fps = dls::math::vec4f(1.0f);
 
-		m_rendu_texte->dessine(m_contexte, ss.chn());
+	if (fps < 12) {
+		couleur_fps = dls::math::vec4f(0.8f, 0.1f, 0.1f, 1.0f);
 	}
+
+	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
 
 	ss.chn("");
 	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
@@ -196,41 +180,47 @@ void VisionneurScene::peint_opengl()
 	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
 	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-#if 0
-	noeud = m_mikisa.graphe->noeud_actif;
+	ss.chn("");
+	ss << "Nombre objets     : " << stats.nombre_objets;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-	if (noeud != nullptr) {
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	ss.chn("");
+	ss << "Nombre points     : " << stats.nombre_points;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-		if (operatrice->type() == OPERATRICE_OBJET && operatrice->objet()) {
-			auto objet = operatrice->objet();
-			auto maillage = objet->donnees;
+	ss.chn("");
+	ss << "Nombre polygones  : " << stats.nombre_polygones;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
 
-			ss.chn("");
-			ss << "Maillage : " << maillage->nom;
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre sommets   : " << maillage->nombre_sommets();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre polygones : " << maillage->nombre_polygones();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre arrêtes   : " << maillage->nombre_arretes();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre uvs       : " << maillage->nombre_uvs();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-			ss.chn("");
-			ss << "Nombre normaux   : " << maillage->nombre_normaux();
-			m_rendu_texte->dessine(m_contexte, ss.chn());
-		}
+	ss.chn("");
+	ss << "Nombre polylignes : " << stats.nombre_polylignes;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre volumes    : " << stats.nombre_volumes;
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre commandes  : " << m_mikisa.usine_commandes().taille();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre fonctions  : " << m_mikisa.lcc->fonctions.table.taille();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	if (stats.temps != 0.0) {
+		ss.chn("");
+		ss << "Temps             : " << stats.temps << 's';
+		m_rendu_texte->dessine(m_contexte, ss.chn());
 	}
-#endif
 
 	glDisable(GL_BLEND);
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)
@@ -249,4 +239,9 @@ void VisionneurScene::position_souris(int x, int y)
 {
 	m_pos_x = static_cast<float>(x) / static_cast<float>(m_camera->largeur()) * 2.0f - 1.0f;
 	m_pos_y = static_cast<float>(m_camera->hauteur() - y) / static_cast<float>(m_camera->hauteur()) * 2.0f - 1.0f;
+}
+
+void VisionneurScene::change_moteur_rendu(const dls::chaine &id)
+{
+	m_nom_rendu = id;
 }

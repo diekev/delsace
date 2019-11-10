@@ -1,0 +1,10 @@
+disposition "operatrice_advection_gaz" {
+	ligne {
+		étiquette(valeur="Ordre")
+		énum(valeur="simple"; attache=ordre; items=
+		[
+			{ nom="Semi-Lagrangienne", valeur="semi_lagrangienne" },
+			{ nom="MacCormack", valeur="maccormack" }
+		])
+	}
+}

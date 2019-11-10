@@ -14,6 +14,6 @@ disposition "operatrice_champs_distance" {
     }
 	ligne {
 	    étiquette(valeur="Valeur ISO")
-		décimal(valeur=0.5; attache=valeur_iso; min=0.0; max=1.0)
+		décimal(valeur=0.5; attache=valeur_iso; min=0.0; max=1.0; animable)
 	}
 }

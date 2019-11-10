@@ -8,9 +8,9 @@ fonc test_pile() : rien
 {
     imprime("==========================================\n");
 
-    dyn p = cree_pile(transtype(taille_de(z32) : z64));
+    dyn p = crée_pile(transtype(taille_de(z32) : z64));
     diffère { 
-        decree_pile(p);
+        decrée_pile(p);
         imprime("pile décréée !\n");
     }
 
@@ -26,7 +26,7 @@ fonc test_pile() : rien
 
     tantque !est_vide(p) {
         dyn v : z32;
-        depile(p, @v);
+        dépile(p, @v);
         imprime("dépile : ", v, " -> ", mémoire(p), '\n');
     }
 }
@@ -35,9 +35,9 @@ fonc test_file() : rien
 {
     imprime("==========================================\n");
 
-    dyn p = cree_file(transtype(taille_de(z32) : z64));
+    dyn p = crée_file(transtype(taille_de(z32) : z64));
     diffère { 
-        decree_file(p);
+        decrée_file(p);
         imprime("file décréée !\n");
     }
 
@@ -51,9 +51,9 @@ fonc test_file() : rien
 
     imprime(" ----------- vidage de la file\n");
 
-    tantque !file_est_vide(p) {
+    tantque !est_vide(p) {
         dyn v : z32;
-        defile(p, @v);
+        défile(p, @v);
         imprime("défile : ", v, " -> ", mémoire(p), '\n');
     }
 }
@@ -62,9 +62,9 @@ fonc test_tableau() : rien
 {
     imprime("==========================================\n");
 
-    dyn t = cree_tableau(transtype(taille_de(z32) : z64));
+    dyn t = crée_tableau(transtype(taille_de(z32) : z64));
     diffère { 
-        decree_tableau(t);
+        decrée_tableau(t);
         imprime("tableau décréé !\n");
     }
 
@@ -78,7 +78,7 @@ fonc test_tableau() : rien
 
     imprime(" ----------- itération du tableau\n");
 
-    soit debut = transtype(debut_tableau(t) : *z32);
+    soit debut = transtype(début_tableau(t) : *z32);
     soit fin   = transtype(fin_tableau(t) : *z32);
 
     imprime("plage tableau : ", debut, " -> ", fin, '\n');
@@ -94,8 +94,8 @@ fonc principale(args : []*z8) : z32
     imprime("Il y a ", taille de args, " arguments :\n");
 
     pour arg dans args {
-        soit chaine = converti_chaine_c(arg);
-        imprime('\t', chaine, '\n');
+        soit chn = converti_chaine_c(arg);
+        imprime('\t', chn, '\n');
     }
 
     test_pile();

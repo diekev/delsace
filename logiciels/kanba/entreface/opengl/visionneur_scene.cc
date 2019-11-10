@@ -26,7 +26,7 @@
 
 #include <GL/glew.h>
 
-#include "biblinternes/chrono/outils.hh"
+#include "biblinternes/math/transformation.hh"
 #include "biblinternes/opengl/rendu_grille.h"
 #include "biblinternes/opengl/rendu_texte.h"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -39,20 +39,6 @@
 #include "rendu_maillage.h"
 #include "rendu_rayon.h"
 
-template <typename T>
-auto converti_matrice_glm(dls::math::mat4x4<T> const &matrice)
-{
-	dls::math::mat4x4<float> resultat;
-
-	for (size_t i = 0; i < 4; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			resultat[i][j] = static_cast<float>(matrice[i][j]);
-		}
-	}
-
-	return resultat;
-}
-
 VisionneurScene::VisionneurScene(VueCanevas *parent, Kanba *kanba)
 	: m_parent(parent)
 	, m_kanba(kanba)
@@ -63,7 +49,6 @@ VisionneurScene::VisionneurScene(VueCanevas *parent, Kanba *kanba)
 	, m_rendu_maillage(nullptr)
 	, m_pos_x(0)
 	, m_pos_y(0)
-	, m_debut(0)
 {}
 
 VisionneurScene::~VisionneurScene()
@@ -87,7 +72,7 @@ void VisionneurScene::initialise()
 
 	m_camera->ajourne();
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::peint_opengl()
@@ -106,7 +91,7 @@ void VisionneurScene::peint_opengl()
 	m_contexte.projection(P);
 	m_contexte.MVP(MVP);
 	m_contexte.normal(dls::math::inverse_transpose(dls::math::mat3_depuis_mat4(MV)));
-	m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+	m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 	m_contexte.pour_surlignage(false);
 
 	/* Peint la scene. */
@@ -124,7 +109,7 @@ void VisionneurScene::peint_opengl()
 
 	if (m_rendu_maillage) {
 		m_stack.pousse(m_rendu_maillage->matrice());
-		m_contexte.matrice_objet(converti_matrice_glm(m_stack.sommet()));
+		m_contexte.matrice_objet(math::matf_depuis_matd(m_stack.sommet()));
 
 		m_rendu_maillage->dessine(m_contexte);
 
@@ -139,10 +124,7 @@ void VisionneurScene::peint_opengl()
 							m_pos_x,
 							m_pos_y);
 
-	auto const fin = dls::chrono::maintenant();
-
-	auto const temps = fin - m_debut;
-	auto const fps = static_cast<int>(1.0 / temps);
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
 
 	dls::flux_chaine ss;
 	ss << fps << " IPS";
@@ -154,7 +136,7 @@ void VisionneurScene::peint_opengl()
 
 	glDisable(GL_BLEND);
 
-	m_debut = dls::chrono::maintenant();
+	m_chrono_rendu.commence();
 }
 
 void VisionneurScene::redimensionne(int largeur, int hauteur)

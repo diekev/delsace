@@ -28,6 +28,12 @@
 
 #include "../outils/constantes.h"
 
+enum class Axe : int {
+	X,
+	Y,
+	Z
+};
+
 /**
  * La classe BoiteEnglobante représente le volume englobant un objet dans
  * l'espace tridimensionnel.
@@ -36,6 +42,10 @@ class BoiteEnglobante {
 public:
 	dls::math::point3d min = dls::math::point3d( constantes<double>::INFINITE);
 	dls::math::point3d max = dls::math::point3d(-constantes<double>::INFINITE);
+	dls::math::point3d centroide = dls::math::point3d(0.0);
+
+	/* Peut-être utilisé pour déterminer ce que la boite contient. */
+	long id = 0;
 
 	/**
 	 * Construit une instance de BoiteEnglobante avec des valeurs par défaut.
@@ -76,6 +86,12 @@ public:
 	void etend(double delta);
 
 	/**
+	 * Étend les limite de la boîte selon la boite spécifiée, qui est enlevé au
+	 * point minimum, et ajouté au point maximum.
+	 */
+	void etend(BoiteEnglobante const &autre);
+
+	/**
 	 * Retourne l'aire de la surface des six faces de cette boîte.
 	 */
 	double aire_surface() const;
@@ -89,7 +105,7 @@ public:
 	 * Retourne l'index (0, 1, 2) de la dimension (x, y, z) ayant la plus grande
 	 * ampleur.
 	 */
-	int ampleur_maximale() const;
+	Axe ampleur_maximale() const;
 
 	/**
 	 * Retourne la position d'un point relativement aux coordonnées de cette

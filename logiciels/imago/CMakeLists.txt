@@ -42,7 +42,6 @@ qt5_wrap_cpp(
 
 	src/mainwindow.h
 	src/user_preferences.h
-	src/glcanvas.h
 )
 
 qt5_wrap_ui(

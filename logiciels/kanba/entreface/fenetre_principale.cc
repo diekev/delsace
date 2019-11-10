@@ -143,7 +143,7 @@ void FenetrePrincipale::ajoute_editeur_proprietes()
 
 void FenetrePrincipale::ajoute_visionneur_image()
 {
-	/* TODO: figure out a way to have multiple GL context. */
+	/* À FAIRE: figure out a way to have multiple GL context. */
 	if (m_viewer_dock == nullptr) {
 		m_viewer_dock = new QDockWidget("Visionneur", this);
 

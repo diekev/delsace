@@ -40,4 +40,9 @@ void ControlePropriete::temps(int t)
 	m_temps = t;
 }
 
+void ControlePropriete::emet_precontrole_change()
+{
+	Q_EMIT(precontrole_change());
+}
+
 }  /* namespace danjo */

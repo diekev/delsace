@@ -52,7 +52,7 @@ public:
 
 	void ajourne_valeur(int valeur);
 
-	void ajourne_message(const char *message);
+	void ajourne_message(const char *message, int execution, int total);
 
 private Q_SLOTS:
 	void signal_stop();

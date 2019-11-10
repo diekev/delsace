@@ -1,14 +1,31 @@
 menu "Noeud Composite" {
-    menu "3D" {
-	    action(valeur="Caméra"; attache=ajouter_noeud; métadonnée="Caméra")
+	menu "Cache" {
+		action(valeur="Cache Image Mémoire"; attache=ajouter_noeud; métadonnée="Cache Image Mémoire")
 	}
-    menu "Flux" {
-	    action(valeur="Commutateur"; attache=ajouter_noeud; métadonnée="Commutateur")
-		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
-    }
-    menu "Entrée" {
+	menu "Détail" {
+		action(valeur="Graphe Pixel"; attache=ajouter_graphe_detail; métadonnée="détail_pixel")
+	}
+	menu "Entrée" {
 	    action(valeur="Lecture Image"; attache=ajouter_noeud; métadonnée="Lecture Image")
+		action(valeur="Lecture Vidéo"; attache=ajouter_noeud; métadonnée="Lecture Vidéo")
+		action(valeur="Image Profonde"; attache=ajouter_noeud; métadonnée="Lecture Image Profonde")
     }
+	menu "Filtre" {
+		action(valeur="Affinage Image"; attache=ajouter_noeud; métadonnée="Affinage Image")
+		action(valeur="Bilatéral Image"; attache=ajouter_noeud; métadonnée="Bilatéral Image")
+		action(valeur="Dilation"; attache=ajouter_noeud; métadonnée="Dilation")
+		action(valeur="Érosion"; attache=ajouter_noeud; métadonnée="Érosion")
+		action(valeur="Filtre"; attache=ajouter_noeud; métadonnée="Filtre")
+		action(valeur="Flou"; attache=ajouter_noeud; métadonnée="Flou")
+		action(valeur="Lueur Image"; attache=ajouter_noeud; métadonnée="Lueur Image")
+		action(valeur="Médiane Image"; attache=ajouter_noeud; métadonnée="Médiane Image")
+		action(valeur="Préfiltre Cubic B-Spline"; attache=ajouter_noeud; métadonnée="Préfiltre Cubic B-Spline")
+		action(valeur="Rayons Soleil"; attache=ajouter_noeud; métadonnée="Rayons Soleil")
+	}
+	menu "Flux" {
+		action(valeur="Commutation Image"; attache=ajouter_noeud; métadonnée="Commutation Image")
+		action(valeur="Visionneur"; attache=ajouter_noeud; métadonnée="Visionneur")
+	}
     menu "Pixel" {
 	    action(valeur="Bruitage"; attache=ajouter_noeud; métadonnée="Bruitage")
 		action(valeur="Constante"; attache=ajouter_noeud; métadonnée="Constante")
@@ -19,33 +36,28 @@ menu "Noeud Composite" {
 		action(valeur="Daltonisme"; attache=ajouter_noeud; métadonnée="Daltonisme")
 		action(valeur="Dégradé"; attache=ajouter_noeud; métadonnée="Dégradé")
 		action(valeur="Étalonnage"; attache=ajouter_noeud; métadonnée="Étalonnage")
-		action(valeur="Fusionnage"; attache=ajouter_noeud; métadonnée="Fusionnage")
-		action(valeur="Graphe"; attache=ajouter_noeud; métadonnée="Graphe")
 		action(valeur="Incrustation"; attache=ajouter_noeud; métadonnée="Incrustation")
-		action(valeur="Inversement"; attache=ajouter_noeud; métadonnée="Inversement")
 		action(valeur="Mélanger"; attache=ajouter_noeud; métadonnée="Mélanger")
 		action(valeur="MinMax"; attache=ajouter_noeud; métadonnée="MinMax")
-		action(valeur="Normalisation Pixel"; attache=ajouter_noeud; métadonnée="Normalisation Pixel")
-		action(valeur="Nuage"; attache=ajouter_noeud; métadonnée="Nuage")
 		action(valeur="Pré-multiplication"; attache=ajouter_noeud; métadonnée="Pré-multiplication")
-		action(valeur="Saturation"; attache=ajouter_noeud; métadonnée="Saturation")
-		action(valeur="Traduction"; attache=ajouter_noeud; métadonnée="Traduction")
 		action(valeur="Mappage Tonal"; attache=ajouter_noeud; métadonnée="Mappage Tonal")
     }
+	menu "Profonde" {
+		action(valeur="Aplanis"; attache=ajouter_noeud; métadonnée="Aplanis Image Profonde")
+		action(valeur="Fusion Profondes"; attache=ajouter_noeud; métadonnée="Fusion Profondes")
+	}
     menu "Région" {
 	    action(valeur="Analyse"; attache=ajouter_noeud; métadonnée="Analyse")
 		action(valeur="Champs de distance"; attache=ajouter_noeud; métadonnée="Champs distance")
 		action(valeur="Coordonnées Polaires"; attache=ajouter_noeud; métadonnée="Coordonnées Polaires")
 		action(valeur="Déformation"; attache=ajouter_noeud; métadonnée="Déformation")
-		action(valeur="Dilation"; attache=ajouter_noeud; métadonnée="Dilation")
-		action(valeur="Érosion"; attache=ajouter_noeud; métadonnée="Érosion")
 		action(valeur="Extraction Palette"; attache=ajouter_noeud; métadonnée="Extraction Palette")
-		action(valeur="Filtre"; attache=ajouter_noeud; métadonnée="Filtre")
-		action(valeur="Flou"; attache=ajouter_noeud; métadonnée="Flou")
+		action(valeur="Génération Bruit Bleu"; attache=ajouter_noeud; métadonnée="Génération Bruit Bleu")
+		action(valeur="Mappage Tonal Ondelette"; attache=ajouter_noeud; métadonnée="Mappage Tonal Ondelette")
 		action(valeur="Normalisation Région"; attache=ajouter_noeud; métadonnée="Normalisation Région")
 		action(valeur="Ondelette de Haar"; attache=ajouter_noeud; métadonnée="Ondelette de Haar")
-		action(valeur="Préfiltre Cubic B-Spline"; attache=ajouter_noeud; métadonnée="Préfiltre Cubic B-Spline")
 		action(valeur="Simulation de grain"; attache=ajouter_noeud; métadonnée="Simulation de grain")
+		action(valeur="SRIRP"; attache=ajouter_noeud; métadonnée="SRIRP")
 		action(valeur="Tournoiement"; attache=ajouter_noeud; métadonnée="Tournoiement")
-    }
+	}
 }

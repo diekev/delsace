@@ -26,15 +26,8 @@
 
 #include <any>
 
-#include "biblinternes/phys/couleur.hh"
-#include "biblinternes/math/vecteur.hh"
-
-#include "biblinternes/memoire/logeuse_memoire.hh"
-
-#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/pile.hh"
 
-#include "donnees_type.h"
 #include "execution_pile.hh"
 #include "fonctions.hh"
 
@@ -76,27 +69,13 @@ private:
 
 /* ************************************************************************** */
 
-struct Metriques {
-	size_t nombre_modules = 0ul;
-	size_t nombre_lignes = 0ul;
-	size_t nombre_morceaux = 0ul;
-	size_t memoire_tampons = 0ul;
-	size_t memoire_morceaux = 0ul;
-	double temps_chargement = 0.0;
-	double temps_analyse = 0.0;
-	double temps_tampon = 0.0;
-	double temps_decoupage = 0.0;
-	double temps_validation = 0.0;
-	double temps_generation = 0.0;
-};
-
-/* ************************************************************************** */
-
 struct donnees_propriete {
 	dls::chaine nom = "";
 	lcc::type_var type{};
 	bool est_requis = false;
-	bool pad = false;
+	bool est_propriete = false;
+	bool est_modifiee = false;
+	bool est_non_modifiable = false;
 	int ptr = 0;
 	std::any ptr_donnees = nullptr;
 
@@ -104,33 +83,67 @@ struct donnees_propriete {
 			dls::chaine const &_nom_,
 			lcc::type_var _type_,
 			bool _est_requis_,
+			bool _est_propriete_,
 			int _ptr_)
 		: nom(_nom_)
 		, type(_type_)
 		, est_requis(_est_requis_)
+		, est_propriete(_est_propriete_)
 	    , ptr(_ptr_)
 	{}
 };
 
 struct gestionnaire_propriete {
-	dls::tableau<donnees_propriete *> donnees;
-	dls::tableau<donnees_propriete *> requetes;
+	dls::tableau<donnees_propriete *> donnees{};
+	dls::tableau<donnees_propriete *> requetes{};
 
 	~gestionnaire_propriete()
+	{
+		reinitialise();
+	}
+
+	void reinitialise()
 	{
 		for (auto &d : donnees) {
 			memoire::deloge("donnees_propriete", d);
 		}
+
+		donnees.efface();
 	}
 
-	void ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
+	donnees_propriete *donnees_pour_propriete(dls::vue_chaine const &nom)
 	{
-		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, idx));
+		for (auto const &donnee : donnees) {
+			if (donnee->nom == nom) {
+				return donnee;
+			}
+		}
+
+		return nullptr;
+	}
+
+	donnees_propriete *ajoute_propriete(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, true, idx);
+		donnees.pousse(prop);
+		return prop;
+	}
+
+	void ajoute_propriete_non_modifiable(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		auto prop = ajoute_propriete(nom, type, idx);
+		prop->est_non_modifiable = true;
+	}
+
+	void ajoute_attribut(dls::chaine const &nom, lcc::type_var type, int idx)
+	{
+		donnees.pousse(memoire::loge<donnees_propriete>("donnees_propriete", nom, type, false, false, idx));
 	}
 
 	void requiers_attr(dls::chaine const &nom, lcc::type_var type, int idx)
 	{
-		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, idx);
+		auto prop = memoire::loge<donnees_propriete>("donnees_propriete", nom, type, true, false, idx);
+		prop->est_modifiee = true;
 		donnees.pousse(prop);
 		requetes.pousse(prop);
 	}
@@ -169,11 +182,42 @@ struct gestionnaire_propriete {
 	}
 };
 
+template <typename T>
+auto remplis_donnees(
+		lcc::pile &donnees,
+		gestionnaire_propriete &gest_props,
+		dls::chaine const &nom,
+		T const &v)
+{
+	auto idx = gest_props.pointeur_donnees(nom);
+
+	if (idx == -1) {
+		/* À FAIRE : erreur */
+		return;
+	}
+
+	donnees.stocke(idx, v);
+}
+
 /* ************************************************************************** */
 
 struct donnees_variables {
 	int type{};
 	lcc::type_var donnees_type{};
+};
+
+struct donnees_boucles {
+	dls::tableau<int> arretes{};
+	dls::tableau<int> continues{};
+};
+
+/* pour les paramètres déclarés dans les scripts via #!param */
+struct DonneesDeclarationParam {
+	dls::chaine nom{};
+	lcc::type_var type{};
+	dls::math::vec3f min{};
+	dls::math::vec3f max{};
+	dls::math::vec3f valeur{};
 };
 
 using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, donnees_variables>>;
@@ -183,10 +227,18 @@ struct ContexteGenerationCode {
 
 	dls::tableau<DonneesModule *> modules{};
 
+	dls::ensemble<lcc::req_fonc> requetes{};
+
+	dls::pile<donnees_boucles *> boucles{};
+
+	dls::tableau<DonneesDeclarationParam> params_declare{};
+
 	lcc::magasin_fonctions fonctions{};
 
-	gestionnaire_propriete gest_props{};
 	gestionnaire_propriete gest_attrs{};
+
+	/* les chaines qui seront transférées au contexte globale */
+	dls::tableau<dls::chaine> chaines{};
 
 	ContexteGenerationCode() = default;
 
@@ -194,10 +246,11 @@ struct ContexteGenerationCode {
 
 	/* ********************************************************************** */
 
-	/* Désactive la copie, car il ne peut y avoir qu'un seul contexte par
-	 * compilation. */
-	ContexteGenerationCode(const ContexteGenerationCode &) = delete;
-	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = delete;
+	/* La copie devrait être désactivée, car il ne peut y avoir qu'un seul
+	 * contexte par compilation, mais nous l'avons besoin pour retourner des
+	 * contextes par valeur. */
+	ContexteGenerationCode(const ContexteGenerationCode &) = default;
+	ContexteGenerationCode &operator=(const ContexteGenerationCode &) = default;
 
 	/* ********************************************************************** */
 
@@ -239,89 +292,6 @@ struct ContexteGenerationCode {
 	 */
 	bool locale_existe(const dls::vue_chaine &nom);
 
-	/**
-	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
-	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
-	 * retournées.
-	 */
-	size_t type_locale(const dls::vue_chaine &nom);
-
-	/**
-	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
-	 * assignée.
-	 */
-	bool peut_etre_assigne(const dls::vue_chaine &nom);
-
-	/**
-	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous
-	 * enregistrons le nombre de variables jusqu'ici. Voir 'pop_bloc_locales'
-	 * pour la gestion des variables.
-	 */
-	void empile_nombre_locales();
-
-	/**
-	 * Indique que nous sortons d'un bloc, donc toutes les variables du bloc
-	 * sont 'effacées'. En fait les variables des fonctions sont tenues dans un
-	 * vecteur. À chaque fois que l'on rencontre un bloc, on pousse le nombre de
-	 * variables sur une pile, ainsi toutes les variables se trouvant entre
-	 * l'index de début du bloc et l'index de fin d'un bloc sont des variables
-	 * locales à ce bloc. Quand on sort du bloc, l'index de fin des variables
-	 * est réinitialisé pour être égal à ce qu'il était avant le début du bloc.
-	 * Ainsi, nous pouvons réutilisé la mémoire du vecteur de variable d'un bloc
-	 * à l'autre, d'une fonction à l'autre, tout en faisant en sorte que peut
-	 * importe le bloc dans lequel nous nous trouvons, on a accès à toutes les
-	 * variables jusqu'ici déclarées.
-	 */
-	void depile_nombre_locales();
-
-	/**
-	 * Imprime le nom des variables locales dans le flux précisé.
-	 */
-	void imprime_locales(std::ostream &os);
-
-	/**
-	 * Retourne vrai si la variable est un argument variadic. Autrement,
-	 * retourne faux.
-	 */
-	bool est_locale_variadique(const dls::vue_chaine &nom);
-
-	conteneur_locales::iteratrice iter_locale(const dls::vue_chaine &nom);
-
-	conteneur_locales::iteratrice fin_locales();
-
-	/* ********************************************************************** */
-
-	size_t memoire_utilisee() const;
-
-	/**
-	 * Retourne les métriques de ce contexte. Les métriques sont calculées à
-	 * chaque appel à cette fonction, et une structure neuve est retournée à
-	 * chaque fois.
-	 */
-	Metriques rassemble_metriques() const;
-
-	/* ********************************************************************** */
-
-	/**
-	 * Définie si oui ou non le contexte est non-sûr, c'est-à-dire que l'on peut
-	 * manipuler des objets dangereux.
-	 */
-	void non_sur(bool ouinon);
-
-	/**
-	 * Retourne si oui ou non le contexte est non-sûr.
-	 */
-	bool non_sur() const;
-
 private:
 	conteneur_locales m_locales{};
-	dls::pile<size_t> m_pile_nombre_locales{};
-	size_t m_nombre_locales = 0;
-
-	bool m_non_sur = false;
-
-public:
-	/* À FAIRE : bouge ça d'ici. */
-	double temps_validation = 0.0;
-	double temps_generation = 0.0;
 };

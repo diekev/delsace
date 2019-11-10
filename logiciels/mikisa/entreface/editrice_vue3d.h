@@ -36,6 +36,7 @@
 
 class EditriceVue3D;
 class Mikisa;
+class QComboBox;
 class QToolButton;
 class VisionneurScene;
 
@@ -69,6 +70,7 @@ public:
 	void mouseReleaseEvent(QMouseEvent *) override;
 
 	void reconstruit_scene() const;
+	void change_moteur_rendu(const dls::chaine &id) const;
 };
 
 /* ************************************************************************** */
@@ -81,6 +83,7 @@ class EditriceVue3D : public BaseEditrice {
 	QToolButton *m_bouton_rotation{};
 	QToolButton *m_bouton_echelle{};
 	QToolButton *m_bouton_actif{};
+	QComboBox *m_selecteur_rendu{};
 
 public:
 	explicit EditriceVue3D(Mikisa &mikisa, QWidget *parent = nullptr);
@@ -97,4 +100,5 @@ private Q_SLOTS:
 	void manipule_rotation();
 	void manipule_position();
 	void manipule_echelle();
+	void change_moteur_rendu(int idx);
 };

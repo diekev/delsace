@@ -29,8 +29,8 @@ class Value;
 }
 
 struct ContexteGenerationCode;
-class DonneesType;
+struct DonneesTypeFinal;
 
 llvm::Value *cree_info_type(
 		ContexteGenerationCode &contexte,
-		DonneesType &donnees_type);
+		DonneesTypeFinal &donnees_type);

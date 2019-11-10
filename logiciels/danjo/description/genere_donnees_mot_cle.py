@@ -54,6 +54,8 @@ mot_cles = [
 	u"rampe_couleur",
 	u"texte",
 	u"liste_manip",
+	u"animable",
+	u"activable",
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -120,8 +122,11 @@ id_extra = [
 	u"CHAINE_CARACTERE",
 	u"CHAINE_LITTERALE",
 	u"CARACTERE",
-	u"NOMBRE",
-	u"NOMBRE_DECIMAL",
+	u"NOMBRE_BINAIRE",
+	u"NOMBRE_ENTIER",
+	u"NOMBRE_REEL",
+	u"NOMBRE_OCTAL",
+	u"NOMBRE_HEXADECIMAL",
 	u"BOOL",
 	u"NUL",
 	u"INCONNU",

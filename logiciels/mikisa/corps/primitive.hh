@@ -27,12 +27,13 @@
 enum class type_primitive : char {
 	POLYGONE = 0,
 	VOLUME   = 1,
+	SPHERE   = 2,
 };
 
 class Primitive {
 public:
 	/* L'index de cette primitive. */
-	unsigned long index = 0;
+	long index = 0;
 
 	virtual ~Primitive() = default;
 

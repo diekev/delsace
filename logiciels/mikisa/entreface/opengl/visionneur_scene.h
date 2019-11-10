@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/opengl/pile_matrice.h"
 
@@ -61,11 +62,11 @@ class VisionneurScene {
 	PileMatrice m_stack = {};
 
 	TamponRendu *m_tampon_image = nullptr;
-	MoteurRendu *m_moteur_rendu = nullptr;
+	dls::chaine m_nom_rendu = "rendu";
 	float *m_tampon = nullptr;
 
 	float m_pos_x, m_pos_y;
-	double m_debut;
+	dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
 	/**
@@ -111,4 +112,6 @@ public:
 	 * Renseigne la position de la souris.
 	 */
 	void position_souris(int x, int y);
+
+	void change_moteur_rendu(const dls::chaine &id);
 };

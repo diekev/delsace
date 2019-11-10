@@ -24,14 +24,16 @@
 
 #pragma once
 
+#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/langage/analyseuse.hh"
-#include "biblinternes/structures/chaine.hh"
 
-#include "assembleuse_arbre.hh"
+#include "arbre_syntactic.hh"
+#include "morceaux.hh"
 #include "erreur.hh"
 
 class DonneesType;
 
+struct assembleuse_arbre;
 struct ContexteGenerationCode;
 struct DonneesFonction;
 struct DonneesModule;
@@ -55,7 +57,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
 
 	DonneesModule *m_module;
 
-	double m_debut_analyse = 0.0;
+	dls::chrono::compte_seconde m_chrono_analyse{};
 
 public:
 	analyseuse_grammaire(
@@ -81,7 +83,7 @@ private:
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
 	void analyse_corps(std::ostream &os);
-	void analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool const calcul_expression = false);
+	void analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr);
 
 	bool requiers_identifiant_type();
 	bool requiers_nombre_entier();

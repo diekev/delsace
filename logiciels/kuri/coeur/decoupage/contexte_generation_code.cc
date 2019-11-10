@@ -33,10 +33,6 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <algorithm>
-#include <cassert>
-#include <iostream>
-
 #include "broyage.hh"
 #include "modules.hh"
 
@@ -73,7 +69,7 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	auto nom_fonction = "mémoire_utilisée";
 
 	auto donnees_fonctions = DonneesFonction();
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::FONC);
 	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
@@ -292,7 +288,7 @@ long ContexteGenerationCode::type_globale(const dls::vue_chaine &nom)
 		return -1l;
 	}
 
-	return iter->second.donnees_type;
+	return iter->second.index_type;
 }
 
 conteneur_globales::const_iteratrice ContexteGenerationCode::iter_globale(const dls::vue_chaine &nom)
@@ -409,7 +405,7 @@ long ContexteGenerationCode::type_locale(const dls::vue_chaine &nom)
 		return -1l;
 	}
 
-	return iter->second.donnees_type;
+	return iter->second.index_type;
 }
 
 bool ContexteGenerationCode::peut_etre_assigne(const dls::vue_chaine &nom)
@@ -431,19 +427,15 @@ void ContexteGenerationCode::empile_nombre_locales()
 
 void ContexteGenerationCode::depile_nombre_locales()
 {
-	auto nombre_locales = m_pile_nombre_locales.haut();
 	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
-	assert(nombre_locales <= m_nombre_locales);
-	m_nombre_locales = nombre_locales;
-	m_pile_nombre_locales.depile();
+	assert(m_pile_nombre_locales.haut() <= m_nombre_locales);
+	m_nombre_locales = m_pile_nombre_locales.depile();
 
-	auto nombre_differes = m_pile_nombre_differes.haut();
 	/* nous ne pouvons pas avoir moins de noeuds différés en sortant du bloc */
-	assert(nombre_differes <= m_nombre_differes);
-	m_nombre_differes = nombre_differes;
-	m_pile_nombre_differes.depile();
+	assert(m_pile_nombre_differes.haut() <= m_nombre_differes);
+	m_nombre_differes = m_pile_nombre_differes.depile();
 
-	while (m_noeuds_differes.taille() > nombre_differes) {
+	while (m_noeuds_differes.taille() > m_nombre_differes) {
 		m_noeuds_differes.pop_back();
 	}
 }
@@ -530,7 +522,7 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine &nom
 	donnees.type_llvm = nullptr;
 #endif
 
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
 
 	donnees.index_type = magasin_types.ajoute_type(dt);
@@ -604,7 +596,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 
 	for (auto const &structure : structures) {
 		memoire += static_cast<size_t>(structure.second.donnees_membres.taille()) * (sizeof(DonneesMembre) + sizeof(dls::vue_chaine));
-		memoire += static_cast<size_t>(structure.second.donnees_types.taille()) * sizeof(DonneesType);
+		memoire += static_cast<size_t>(structure.second.index_types.taille()) * sizeof(DonneesTypeFinal);
 	}
 
 	memoire += static_cast<size_t>(nom_structures.taille()) * sizeof(dls::vue_chaine);
@@ -622,7 +614,7 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 #endif
 
 	/* magasin_types */
-	memoire += static_cast<size_t>(magasin_types.donnees_types.taille()) * sizeof(DonneesType);
+	memoire += static_cast<size_t>(magasin_types.donnees_types.taille()) * sizeof(DonneesTypeFinal);
 	memoire += static_cast<size_t>(magasin_types.donnees_type_index.taille()) * (sizeof(size_t) + sizeof(size_t));
 
 	for (auto module : modules) {

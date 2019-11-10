@@ -18,14 +18,14 @@ disposition "operatrice_creation_kelvinlet" {
 	}
 	ligne {
 		étiquette(valeur="Incompressibilité")
-		décimal(valeur=0.45; max=0.5; attache=incompressibilité)
+		décimal(valeur=0.45; max=0.5; attache=incompressibilité; animable)
 	}
 	ligne {
 		étiquette(valeur="Échelle Régularisation")
-		décimal(valeur=1.5; min=0; attache=échelle)
+		décimal(valeur=1.5; min=0; attache=échelle; animable)
 	}
 	ligne {
 		étiquette(valeur="Répétition")
-		entier(valeur=1; min=0; max=10; attache=répétition)
+		entier(valeur=1; min=0; max=10; attache=répétition; animable)
 	}
 }

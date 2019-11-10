@@ -31,12 +31,12 @@
 namespace dls {
 namespace systeme_fichier {
 
-bool est_bibilotheque(const std::experimental::filesystem::path &p)
+bool est_bibilotheque(const std::filesystem::path &p)
 {
 	return p.extension() == ".so";
 }
 
-std::experimental::filesystem::path chemin_repertoire_maison()
+std::filesystem::path chemin_repertoire_maison()
 {
 	const char *dir = getenv("HOME");
 
@@ -47,9 +47,9 @@ std::experimental::filesystem::path chemin_repertoire_maison()
 	return {};
 }
 
-std::experimental::filesystem::path chemin_repertoire_poubelle()
+std::filesystem::path chemin_repertoire_poubelle()
 {
-	std::experimental::filesystem::path trash_path;
+	std::filesystem::path trash_path;
 
 	const char *xdg_data_home = getenv("XDG_DATA_HOME");
 
@@ -57,12 +57,12 @@ std::experimental::filesystem::path chemin_repertoire_poubelle()
         trash_path = xdg_data_home;
 		trash_path /= "Trash";
 
-		if (std::experimental::filesystem::exists(trash_path)) {
+		if (std::filesystem::exists(trash_path)) {
 			return trash_path;
 		}
     }
 
-	std::experimental::filesystem::path home = chemin_repertoire_maison();
+	std::filesystem::path home = chemin_repertoire_maison();
 
 	trash_path = home / ".local/share/Trash";
 
@@ -72,14 +72,14 @@ std::experimental::filesystem::path chemin_repertoire_poubelle()
 
 	trash_path = home / ".trash";
 
-	if (std::experimental::filesystem::exists(trash_path)) {
+	if (std::filesystem::exists(trash_path)) {
 		return trash_path;
 	}
 
 	return {};
 }
 
-void mettre_poubelle(const std::experimental::filesystem::path &chemin)
+void mettre_poubelle(const std::filesystem::path &chemin)
 {
 	auto chemin_poubelle = chemin_repertoire_poubelle();
 
@@ -91,8 +91,8 @@ void mettre_poubelle(const std::experimental::filesystem::path &chemin)
 	auto listes_fichiers_poubelle = chemin_poubelle / "files" / nom_fichier;
 	int nr = 0;
 
-	while (   std::experimental::filesystem::exists(info_fichier_poubelle)
-		   || std::experimental::filesystem::exists(listes_fichiers_poubelle))
+	while (   std::filesystem::exists(info_fichier_poubelle)
+		   || std::filesystem::exists(listes_fichiers_poubelle))
 	{
 		nom_fichier = chemin.filename().string() + "." + std::to_string(++nr);
 
@@ -110,8 +110,8 @@ void mettre_poubelle(const std::experimental::filesystem::path &chemin)
 	info_fichier += "\nDeletionDate=";
 
 	/* get deletion date and time */
-	auto ftemps = std::experimental::filesystem::file_time_type::clock::now();
-	auto temps = std::experimental::filesystem::file_time_type::clock::to_time_t(ftemps);
+	auto ftemps = std::filesystem::file_time_type::clock::now();
+	auto temps = std::filesystem::file_time_type::clock::to_time_t(ftemps);
 	char tampon[32];
 	std::strftime(tampon, sizeof(tampon), "%Y-%m-%dT%H:%M:%S", std::localtime(&temps));
 
@@ -124,7 +124,7 @@ void mettre_poubelle(const std::experimental::filesystem::path &chemin)
 	infofile << info_fichier;
 }
 
-std::experimental::filesystem::path chemin_repertoire_config()
+std::filesystem::path chemin_repertoire_config()
 {
 	return chemin_repertoire_maison() / ".config";
 }

@@ -43,14 +43,17 @@
 
 #include "biblinternes/image/operations/operations.h"
 #include "biblinternes/image/pixel.h"
-
+#include "biblinternes/opengl/rendu_texte.h"
+#include "biblinternes/outils/constantes.h"
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/outils/constantes.h"
+#include "biblinternes/structures/flux_chaine.hh"
 
 #include "coeur/composite.h"
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
+
+#include "lcc/lcc.hh"
 
 #include "opengl/rendu_image.h"
 #include "opengl/rendu_manipulatrice_2d.h"
@@ -65,6 +68,7 @@ Visionneuse2D::Visionneuse2D(Mikisa &mikisa, EditriceVue2D *base, QWidget *paren
 
 Visionneuse2D::~Visionneuse2D()
 {
+	memoire::deloge("RenduTexte", m_rendu_texte);
 	memoire::deloge("RenduImage", m_rendu_image);
 	memoire::deloge("RenduManipulatrice", m_rendu_manipulatrice);
 }
@@ -80,7 +84,9 @@ void Visionneuse2D::initializeGL()
 	}
 
 	m_rendu_image = memoire::loge<RenduImage>("RenduImage");
+	m_rendu_texte = memoire::loge<RenduTexte>("RenduTexte");
 	m_rendu_manipulatrice = memoire::loge<RenduManipulatrice2D>("RenduManipulatrice");
+	m_chrono_rendu.commence();
 }
 
 void Visionneuse2D::paintGL()
@@ -95,13 +101,58 @@ void Visionneuse2D::paintGL()
 	m_contexte.matrice_objet(m_matrice_image);
 
 	m_rendu_image->dessine(m_contexte);
+	m_rendu_image->dessine_bordure(m_contexte);
+
+	auto matrice_passe_partout = dls::math::mat4x4f(1.0f);
+	matrice_passe_partout[0][0] = 1.0f;
+	matrice_passe_partout[1][1] = 1080.0f / 1920.0f;
+
+	m_contexte.matrice_objet(matrice_passe_partout);
+	m_rendu_image->dessine_bordure(m_contexte);
 
 	m_contexte.matrice_objet(dls::math::mat4x4f(1.0));
 
 	/* À FAIRE */
 	m_rendu_manipulatrice->dessine(m_contexte);
 
+	auto const fps = static_cast<int>(1.0 / m_chrono_rendu.arrete());
+
+	m_rendu_texte->reinitialise();
+
+	dls::flux_chaine ss;
+	ss << fps << " IPS";
+
+	auto couleur_fps = dls::math::vec4f(1.0f);
+
+	if (fps < 12) {
+		couleur_fps = dls::math::vec4f(0.8f, 0.1f, 0.1f, 1.0f);
+	}
+
+	m_rendu_texte->dessine(m_contexte, ss.chn(), couleur_fps);
+
+	ss.chn("");
+	ss << "Mémoire allouée   : " << memoire::formate_taille(memoire::allouee());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Mémoire consommée : " << memoire::formate_taille(memoire::consommee());
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre commandes  : " << m_mikisa.usine_commandes().taille();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre noeuds     : " << m_mikisa.usine_operatrices().num_entries();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
+	ss.chn("");
+	ss << "Nombre fonctions  : " << m_mikisa.lcc->fonctions.table.taille();
+	m_rendu_texte->dessine(m_contexte, ss.chn());
+
 	glDisable(GL_BLEND);
+
+	m_chrono_rendu.commence();
 }
 
 void Visionneuse2D::resizeGL(int w, int h)
@@ -112,15 +163,16 @@ void Visionneuse2D::resizeGL(int w, int h)
 	m_mikisa.camera_2d->largeur = w;
 
 	m_mikisa.camera_2d->ajourne_matrice();
+	m_rendu_texte->etablie_dimension_fenetre(w, h);
 
 	m_matrice_image = dls::math::mat4x4f(1.0);
 	m_matrice_image[0][0] = 1.0;
 	m_matrice_image[1][1] = static_cast<float>(720) / 1280;
 }
 
-void Visionneuse2D::charge_image(dls::math::matrice_dyn<dls::image::Pixel<float>> const &image)
+void Visionneuse2D::charge_image(grille_couleur const &image)
 {
-	if ((image.nombre_colonnes() == 0) || (image.nombre_lignes() == 0)) {
+	if ((image.desc().resolution.x == 0) || (image.desc().resolution.y == 0)) {
 		m_matrice_image = dls::math::mat4x4f(1.0);
 		m_matrice_image[0][0] = 1.0;
 		m_matrice_image[1][1] = static_cast<float>(720) / 1280;
@@ -128,13 +180,27 @@ void Visionneuse2D::charge_image(dls::math::matrice_dyn<dls::image::Pixel<float>
 	}
 
 	GLint size[2] = {
-		image.nombre_colonnes(),
-		image.nombre_lignes()
+		image.desc().resolution.x,
+		image.desc().resolution.y
 	};
 
 	m_matrice_image = dls::math::mat4x4f(1.0f);
-	m_matrice_image[0][0] = 1.0f;
-	m_matrice_image[1][1] = static_cast<float>(size[1]) / static_cast<float>(size[0]);
+	m_matrice_image[0][0] = static_cast<float>(size[0]) / 1920.0f;
+	m_matrice_image[1][1] = static_cast<float>(size[1]) / 1920.0f;
+
+	/* calcul de la translation puisque l'image n'est pas forcément centrée
+	 * À FAIRE : pour les images EXR il faut préserver la fenêtre d'affichage */
+	auto moitie_x = -static_cast<float>(size[0]) * 0.5f;
+	auto moitie_y = -static_cast<float>(size[1]) * 0.5f;
+
+	auto min_x = image.desc().etendue.min.x;
+	auto min_y = image.desc().etendue.min.y;
+
+	auto trans_x = (moitie_x - min_x) / 1920.0f;
+	auto trans_y = (moitie_y - min_y) / 1920.0f;
+
+	m_matrice_image[3][0] = trans_x;
+	m_matrice_image[3][1] = trans_y;
 
 	/* À FAIRE : il y a des crashs lors du démarrage, il faudrait réviser la
 	 * manière d'initialiser les éditeurs quand ils sont ajoutés */
@@ -216,28 +282,40 @@ EditriceVue2D::EditriceVue2D(Mikisa &mikisa, QWidget *parent)
 void EditriceVue2D::ajourne_etat(int evenement)
 {
 	auto chargement = evenement == (type_evenement::image | type_evenement::traite);
+	chargement |= (evenement == (type_evenement::temps | type_evenement::modifie));
 	chargement |= (evenement == (type_evenement::rafraichissement));
 
 	if (chargement) {
-		auto const &image = m_mikisa.composite->image();
-		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
-		auto tampon = image.calque(image.nom_calque_actif());
+		auto const &noeud_composite = m_mikisa.bdd.graphe_composites()->noeud_actif;
 
-		if (tampon == nullptr) {
+		if (noeud_composite == nullptr) {
+			return;
+		}
+
+		auto const &composite = extrait_composite(noeud_composite->donnees);
+		auto const &image = composite->image();
+		/* À FAIRE : meilleur façon de sélectionner le calque à visionner. */
+		auto calque = image.calque_pour_lecture(image.nom_calque_actif());
+
+		if (calque == nullptr) {
 			/* Charge une image vide, les dimensions sont à peu près celle d'une
 			 * image de 1280x720. */
-			auto image_vide = type_image(dls::math::Hauteur(10),
-										 dls::math::Largeur(17));
+			auto desc = wlk::desc_grille_2d();
+			desc.etendue.min = dls::math::vec2f(-1.7f);
+			desc.etendue.max = dls::math::vec2f( 1.0f);
+			desc.fenetre_donnees = desc.etendue;
+			desc.taille_pixel = 1.0;
 
-			auto pixel = dls::image::Pixel<float>(0.0f);
+			auto pixel = dls::phys::couleur32(0.0f);
 			pixel.a = 1.0f;
 
-			image_vide.remplie(pixel);
+			auto image_vide = grille_couleur(desc, pixel);
 
 			m_vue->charge_image(image_vide);
 		}
 		else {
-			m_vue->charge_image(tampon->tampon);
+			auto tampon = extrait_grille_couleur(calque);
+			m_vue->charge_image(*tampon);
 		}
 	}
 

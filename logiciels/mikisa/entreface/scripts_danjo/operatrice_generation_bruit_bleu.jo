@@ -1,0 +1,22 @@
+disposition "operatrice_generation_bruit_bleu" {
+	ligne {
+		étiquette(valeur="Taille")
+		entier(valeur=64; attache=taille; min=2; infobulle="Défini la largeur et la hauteur de l'image générée.")
+	}
+	ligne {
+		étiquette(valeur="Dimensions")
+		entier(valeur=1; attache=dimensions; min=1; infobulle="Défini le nombre d'images à générer.")
+	}
+	ligne {
+		étiquette(valeur="Itérations")
+		entier(valeur=128; attache=itérations; min=1; infobulle="Défini le nombre de boucle pour générer le bruit bleu.")
+	}
+	ligne {
+		étiquette(valeur="Graine")
+		entier(valeur=1; attache=graine; min=1; infobulle="Rend le bruit unique avec un valeur différente.")
+	}
+	ligne {
+		étiquette(valeur="Algorithme Génétique")
+		case(valeur=faux; attache=génétique; infobulle="Utilise un algorithme génétique pour résoudre le problème.")
+	}
+}

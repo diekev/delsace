@@ -24,19 +24,26 @@
 
 #include "modules.hh"
 
-#include <cassert>
 #include <filesystem>
-#include <fstream>
-#include <iostream>
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
 
 #include "analyseuse_grammaire.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "decoupeuse.h"
-#include "erreur.h"
+
+/* ************************************************************************** */
+
+DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine &nom)
+{
+	return std::find_if(args.debut(), args.fin(), [&](DonneesArgument const &da)
+	{
+		return da.nom == nom;
+	});
+}
 
 /* ************************************************************************** */
 
@@ -113,14 +120,14 @@ dls::chaine charge_fichier(
 	auto const taille_fichier = fichier.tellg();
 	fichier.seekg(0, fichier.beg);
 
-	std::string tampon;
 	dls::chaine res;
 	res.reserve(taille_fichier);
 
-	while (std::getline(fichier, tampon)) {
-		res += tampon;
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
 		res.pousse('\n');
-	}
+	});
 
 	return res;
 }
@@ -170,18 +177,18 @@ void charge_module(
 
 	os << "Chargement du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
 
-	auto debut_chargement = dls::chrono::maintenant();
+	auto debut_chargement = dls::chrono::compte_seconde();
 	auto tampon = charge_fichier(chemin, contexte, morceau);
-	module->temps_chargement = dls::chrono::delta(debut_chargement);
+	module->temps_chargement = debut_chargement.temps();
 
-	auto debut_tampon = dls::chrono::maintenant();
+	auto debut_tampon = dls::chrono::compte_seconde();
 	module->tampon = lng::tampon_source(tampon);
-	module->temps_tampon = dls::chrono::delta(debut_tampon);
+	module->temps_tampon = debut_tampon.temps();
 
 	auto decoupeuse = decoupeuse_texte(module);
-	auto debut_decoupage = dls::chrono::maintenant();
+	auto debut_decoupage = dls::chrono::compte_seconde();
 	decoupeuse.genere_morceaux();
-	module->temps_decoupage = dls::chrono::delta(debut_decoupage);
+	module->temps_decoupage = debut_decoupage.temps();
 
 	auto analyseuse = analyseuse_grammaire(
 						  contexte,
@@ -194,8 +201,8 @@ void charge_module(
 /* ************************************************************************** */
 
 static double verifie_compatibilite(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
+		const DonneesTypeFinal &type_arg,
+		const DonneesTypeFinal &type_enf,
 		noeud::base *enfant,
 		niveau_compat &drapeau)
 {
@@ -273,7 +280,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		if (nom_arg != "") {
 			arguments_nommes = true;
 
-			auto iter = donnees_fonction.args.trouve(nom_arg);
+			auto iter = donnees_fonction.trouve(nom_arg);
 
 			if (iter == donnees_fonction.args.fin()) {
 				res.etat = FONCTION_INTROUVEE;
@@ -283,7 +290,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				return res;
 			}
 
-			auto &donnees = iter->second;
+			auto &donnees = *iter;
 
 			if ((args.trouve(nom_arg) != args.fin()) && !donnees.est_variadic) {
 				res.etat = FONCTION_INTROUVEE;
@@ -301,7 +308,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 #endif
 
-			dernier_arg_variadique = iter->second.est_variadic;
+			dernier_arg_variadique = donnees.est_variadic;
 
 			args.insere(nom_arg);
 		}
@@ -314,7 +321,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 
 			if (nombre_args != 0) {
-				auto nom_argument = donnees_fonction.nom_args[index];
+				auto nom_argument = donnees_fonction.args[index].nom;
 				args.insere(nom_argument);
 				nom_arg = nom_argument;
 
@@ -372,11 +379,10 @@ static DonneesCandidate verifie_donnees_fonction(
 					type_noeud::TABLEAU, contexte, (*enfant)->morceau);
 		noeud_tableau->valeur_calculee = nombre_args_var;
 		noeud_tableau->drapeaux |= EST_CALCULE;
-		auto nom_arg = donnees_fonction.nom_args.back();
 
-		auto index_dt_var = donnees_fonction.args[nom_arg].donnees_type;
+		auto index_dt_var = donnees_fonction.args.back().index_type;
 		auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
-		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.derefence());
+		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.dereference());
 
 		enfants[index_premier_var_arg] = noeud_tableau;
 	}
@@ -392,24 +398,24 @@ static DonneesCandidate verifie_donnees_fonction(
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 		 * car ça a déjà été fait plus haut. */
-		auto const iter = donnees_fonction.args.trouve(nom);
-		auto index_arg = iter->second.index;
-		auto const index_type_arg = iter->second.donnees_type;
+		auto const iter = donnees_fonction.trouve(nom);
+		auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
+		auto const index_type_arg = iter->index_type;
 		auto const index_type_enf = (*enfant)->index_type;
-		auto const &type_arg = (index_type_arg == -1l) ? DonneesType{} : contexte.magasin_types.donnees_types[index_type_arg];
+		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.magasin_types.donnees_types[index_type_arg];
 		auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
 		/* À FAIRE : arguments variadics : comment les passer d'une
 		 * fonction à une autre. */
-		if (iter->second.est_variadic) {
-			if (!type_arg.derefence().est_invalide()) {
+		if (iter->est_variadic) {
+			if (!est_invalide(type_arg.dereference())) {
 				auto drapeau = niveau_compat::ok;
-				poids_args *= verifie_compatibilite(type_arg.derefence(), type_enf, *enfant, drapeau);
+				poids_args *= verifie_compatibilite(type_arg.dereference(), type_enf, *enfant, drapeau);
 
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
 					res.raison = METYPAGE_ARG;
-					res.type1 = type_arg.derefence();
+					res.type1 = type_arg.dereference();
 					res.type2 = type_enf;
 					res.noeud_decl = *enfant;
 					break;
@@ -436,7 +442,12 @@ static DonneesCandidate verifie_donnees_fonction(
 		}
 		else {
 			auto drapeau = niveau_compat::ok;
-			poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant, drapeau);
+
+			/* il est possible que le type final ne soit pas encore résolu car
+			 * la déclaration de la candidate n'a pas encore été validée */
+			if (!est_invalide(type_arg.plage())) {
+				poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant, drapeau);
+			}
 
 			if (poids_args == 0.0) {
 				poids_args = 0.0;

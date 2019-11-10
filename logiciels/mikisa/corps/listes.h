@@ -82,7 +82,8 @@ enum class type_polygone : char {
  * tridimensionel.
  */
 class Polygone final : public Primitive {
-	dls::tableau<size_t> m_sommets{};
+	dls::tableau<long> m_idx_points{};
+	dls::tableau<long> m_idx_sommets{};
 
 public:
 	/* nouvelle entreface */
@@ -100,9 +101,7 @@ public:
 	/* Le vecteur normal de ce polygone. */
 	dls::math::vec3f nor{};
 
-	static Polygone *construit(Corps *corps, type_polygone type_poly = type_polygone::FERME, long nombre_sommets = 0);
-
-	void ajoute_sommet(long sommet);
+	void ajoute_point(long idx_point, long idx_sommet);
 
 	void reserve_sommets(long nombre);
 
@@ -110,7 +109,9 @@ public:
 
 	long nombre_segments() const;
 
-	long index_point(long i);
+	long index_point(long i) const;
+
+	long index_sommet(long i) const;
 
 	type_primitive type_prim() const override
 	{

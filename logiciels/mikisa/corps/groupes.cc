@@ -30,20 +30,20 @@
 
 /* ************************************************************************** */
 
-static void supprime_liste(dls::tableau<size_t> *liste)
+static void supprime_liste(dls::tableau<long> *liste)
 {
 	memoire::deloge("groupe", liste);
 }
 
 /* ************************************************************************** */
 
-void GroupePoint::ajoute_point(size_t index_point)
+void GroupePoint::ajoute_index(long index_point)
 {
 	detache();
 	this->m_points->pousse(index_point);
 }
 
-void GroupePoint::remplace_index(long i, size_t j)
+void GroupePoint::remplace_index(long i, long j)
 {
 	detache();
 	(*this->m_points)[i] = j;
@@ -71,7 +71,7 @@ long GroupePoint::taille() const
 	return m_points->taille();
 }
 
-bool GroupePoint::contiens(size_t index_point) const
+bool GroupePoint::contiens(long index_point) const
 {
 	if (m_points == nullptr) {
 		return false;
@@ -86,7 +86,7 @@ bool GroupePoint::contiens(size_t index_point) const
 	return false;
 }
 
-size_t GroupePoint::index(long i) const
+long GroupePoint::index(long i) const
 {
 	return m_points->a(i);
 }
@@ -105,13 +105,13 @@ void GroupePoint::detache()
 
 /* ************************************************************************** */
 
-void GroupePrimitive::ajoute_primitive(size_t index_poly)
+void GroupePrimitive::ajoute_index(long index_poly)
 {
 	detache();
 	this->m_primitives->pousse(index_poly);
 }
 
-void GroupePrimitive::remplace_index(long i, size_t j)
+void GroupePrimitive::remplace_index(long i, long j)
 {
 	(*this->m_primitives)[i] = j;
 }
@@ -129,6 +129,17 @@ void GroupePrimitive::reinitialise()
 	m_primitives->efface();
 }
 
+bool GroupePrimitive::contient(long index_poly) const
+{
+	for (auto i = 0; i < m_primitives->taille(); ++i) {
+		if ((*m_primitives)[i] == index_poly) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 long GroupePrimitive::taille() const
 {
 	if (m_primitives == nullptr) {
@@ -138,7 +149,7 @@ long GroupePrimitive::taille() const
 	return m_primitives->taille();
 }
 
-size_t GroupePrimitive::index(long i) const
+long GroupePrimitive::index(long i) const
 {
 	return m_primitives->a(i);
 }
@@ -175,11 +186,11 @@ iteratrice_index::iteratrice::iteratrice(GroupePrimitive *groupe_primitive)
 long iteratrice_index::iteratrice::operator*()
 {
 	if (gpnt) {
-		return static_cast<long>(gpnt->index(m_etat_nombre));
+		return gpnt->index(m_etat_nombre);
 	}
 
 	if (gprm) {
-		return static_cast<long>(gprm->index(m_etat_nombre));
+		return gprm->index(m_etat_nombre);
 	}
 
 	return m_etat_nombre;

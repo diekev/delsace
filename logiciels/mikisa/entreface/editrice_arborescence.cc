@@ -38,22 +38,21 @@
 #include "coeur/evenement.h"
 #include "coeur/mikisa.h"
 #include "coeur/objet.h"
-#include "coeur/scene.h"
 
 //#define DRAG_DROP_PARENTING
 
 /* ************************************************************************** */
 
-SceneTreeWidgetItem::SceneTreeWidgetItem(Scene *scene, QWidget *parent)
+SceneTreeWidgetItem::SceneTreeWidgetItem(BaseDeDonnees *scene, QWidget *parent)
     : QWidget(parent)
     , m_scene(scene)
     , m_visited(false)
 {
 	setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
-	setText(0, scene->nom.c_str());
+	setText(0, "objets");
 }
 
-Scene *SceneTreeWidgetItem::getScene() const
+BaseDeDonnees *SceneTreeWidgetItem::getScene() const
 {
 	return m_scene;
 }
@@ -76,7 +75,7 @@ ObjectTreeWidgetItem::ObjectTreeWidgetItem(Objet *scene_node, QTreeWidgetItem *p
     , m_visited(false)
 {
 	setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
-	setText(0, m_scene_node->nom.c_str());
+	setText(0, m_scene_node->noeud->nom.c_str());
 
 #ifdef DRAG_DROP_PARENTING
 	setFlags(flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
@@ -104,7 +103,7 @@ ObjectNodeTreeWidgetItem::ObjectNodeTreeWidgetItem(Noeud *noeud, QTreeWidgetItem
     : QTreeWidgetItem(parent)
 	, m_noeud(noeud)
 {
-	setText(0, m_noeud->nom().c_str());
+	setText(0, m_noeud->nom.c_str());
 }
 
 Noeud *ObjectNodeTreeWidgetItem::pointeur_noeud() const
@@ -221,8 +220,7 @@ void EditriceArborescence::ajourne_etat(int evenement_)
 	 * updates. Maybe there is a slightly better way to do so. */
 	m_tree_widget->clear();
 
-	auto scene = m_mikisa.scene;
-	auto item = new SceneTreeWidgetItem(scene, this);
+	auto item = new SceneTreeWidgetItem(&m_mikisa.bdd, this);
 	m_tree_widget->addTopLevelItem(item);
 
 	/* Need to first add the item to the tree. */
@@ -234,7 +232,7 @@ void EditriceArborescence::handleItemExpanded(QTreeWidgetItem *item)
 	auto scene_item = dynamic_cast<SceneTreeWidgetItem *>(item);
 
 	if (scene_item && !scene_item->visited()) {
-		Scene *scene = scene_item->getScene();
+		auto scene = scene_item->getScene();
 	//	scene->set_flags(SCENE_OL_EXPANDED);
 
 		for (auto const &objet : scene->objets()) {

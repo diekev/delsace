@@ -54,12 +54,14 @@
 #endif
 
 #include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/assembleuse_arbre.h"
 #include "decoupage/contexte_generation_code.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/erreur.h"
 #include "decoupage/modules.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/outils/format.hh"
 
 static const char *options =
 R"(kuri [OPTIONS...] FICHIER
@@ -125,9 +127,10 @@ struct OptionsCompilation {
 	bool imprime_version = false;
 	bool imprime_aide = false;
 	bool erreur = false;
+	bool bit32 = false;
 
 	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
-	char pad[7];
+	char pad[6];
 };
 
 static OptionsCompilation genere_options_compilation(int argc, char **argv)
@@ -195,6 +198,9 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 				++i;
 			}
 		}
+		else if (std::strcmp(argv[i], "--bit32") == 0) {
+			opts.bit32 = true;
+		}
 		else {
 			if (argv[i][0] == '-') {
 				std::cerr << "Argument inconnu " << argv[i] << '\n';
@@ -216,7 +222,7 @@ static void initialise_llvm()
 			|| llvm::InitializeNativeTargetAsmParser()
 			|| llvm::InitializeNativeTargetAsmPrinter())
 	{
-		std::cerr << "Ne peut pas initiliser LLVM !\n";
+		std::cerr << "Ne peut pas initialiser LLVM !\n";
 		exit(EXIT_FAILURE);
 	}
 
@@ -336,102 +342,7 @@ static bool ecris_fichier_objet(llvm::TargetMachine *machine_cible, llvm::Module
 
 	return true;
 }
-#endif
 
-struct temps_seconde {
-	double valeur;
-
-	explicit temps_seconde(double v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const temps_seconde &t)
-{
-	auto valeur = static_cast<int>(t.valeur * 1000);
-
-	if (valeur < 1) {
-		valeur = static_cast<int>(t.valeur * 1000000);
-		if (valeur < 10) {
-			os << ' ' << ' ' << ' ';
-		}
-		else if (valeur < 100) {
-			os << ' ' << ' ';
-		}
-		else if (valeur < 1000) {
-			os << ' ';
-		}
-
-		os << valeur << "ns";
-	}
-	else {
-		if (valeur < 10) {
-			os << ' ' << ' ' << ' ';
-		}
-		else if (valeur < 100) {
-			os << ' ' << ' ';
-		}
-		else if (valeur < 1000) {
-			os << ' ';
-		}
-
-		os << valeur << "ms";
-	}
-
-	return os;
-}
-
-struct pourcentage {
-	double valeur;
-
-	explicit pourcentage(double v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const pourcentage &p)
-{
-	auto const valeur = static_cast<int>(p.valeur * 100) / 100.0;
-
-	if (valeur < 10) {
-		os << ' ' << ' ';
-	}
-	else if (valeur < 100) {
-		os << ' ';
-	}
-
-	os << valeur << "%";
-
-	return os;
-}
-
-struct taille_octet {
-	size_t valeur;
-
-	explicit taille_octet(size_t v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
-{
-	if (taille.valeur > (1024 * 1024 * 1024)) {
-		os << (taille.valeur / (1024 * 1024 * 1024)) << "Go";
-	}
-	else if (taille.valeur > (1024 * 1024)) {
-		os << (taille.valeur / (1024 * 1024)) << "Mo";
-	}
-	else if (taille.valeur > 1024) {
-		os << (taille.valeur / 1024) << "Ko";
-	}
-	else {
-		os << (taille.valeur) << "o";
-	}
-
-	return os;
-}
-
-#ifdef AVEC_LLVM
 static void cree_executable(const std::filesystem::path &dest, const std::filesystem::path &racine_kuri)
 {
 	/* Compile le fichier objet qui appelera 'fonction principale'. */
@@ -520,8 +431,8 @@ int main(int argc, char *argv[])
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
-	auto debut_compilation   = dls::chrono::maintenant();
-	auto debut_nettoyage     = 0.0;
+	auto debut_compilation   = dls::chrono::compte_seconde();
+	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 	auto temps_nettoyage     = 0.0;
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
@@ -544,6 +455,7 @@ int main(int argc, char *argv[])
 		auto nom_module = chemin.stem();
 
 		auto contexte_generation = ContexteGenerationCode{};
+		contexte_generation.bit32 = ops.bit32;
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
@@ -625,13 +537,13 @@ int main(int argc, char *argv[])
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
-			assembleuse.genere_code_C(contexte_generation, of);
+			assembleuse.genere_code_C(contexte_generation, of, chemin_racine_kuri);
 			mem_arbre = assembleuse.memoire_utilisee();
 			nombre_noeuds = assembleuse.nombre_noeuds();
 
 			of.close();
 
-			auto debut_executable = dls::chrono::maintenant();
+			auto debut_executable = dls::chrono::compte_seconde();
 			auto commande = dls::chaine("gcc /tmp/compilation_kuri.c ");
 
 			switch (ops.optimisation) {
@@ -666,6 +578,10 @@ int main(int argc, char *argv[])
 				}
 			}
 
+			if (ops.bit32) {
+				commande += "-m32 ";
+			}
+
 			for (auto const &bib : assembleuse.bibliotheques) {
 				commande += " -l" + dls::chaine(bib);
 			}
@@ -680,7 +596,7 @@ int main(int argc, char *argv[])
 			if (err != 0) {
 				std::cerr << "Ne peut pas créer l'executable !\n";
 			}
-			temps_executable = dls::chrono::delta(debut_executable);
+			temps_executable = debut_executable.temps();
 		}
 
 		/* restore le dossier d'origine */
@@ -690,14 +606,14 @@ int main(int argc, char *argv[])
 		mem_contexte = contexte_generation.memoire_utilisee();
 
 		os << "Nettoyage..." << std::endl;
-		debut_nettoyage = dls::chrono::maintenant();
+		debut_nettoyage = dls::chrono::compte_seconde();
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	temps_nettoyage = dls::chrono::delta(debut_nettoyage);
-	auto const temps_total = dls::chrono::delta(debut_compilation);
+	temps_nettoyage = debut_nettoyage.temps();
+	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage

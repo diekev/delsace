@@ -100,7 +100,7 @@ magasin_chaine::iterateur_const magasin_chaine::end() const
 	return m_tableau.fin();
 }
 
-void ecris_magasin_chaine(const magasin_chaine &magasin, const std::experimental::filesystem::path &chemin)
+void ecris_magasin_chaine(const magasin_chaine &magasin, const std::filesystem::path &chemin)
 {
 	autrice_fichier autrice;
 	autrice.ouvre(chemin);
@@ -135,7 +135,7 @@ void ecris_magasin_chaine(const magasin_chaine &magasin, const std::experimental
 	autrice.ferme();
 }
 
-void lis_magasin_chaine(const std::experimental::filesystem::path &chemin)
+void lis_magasin_chaine(const std::filesystem::path &chemin)
 {
 	lectrice_fichier lectrice;
 	lectrice.ouvre(chemin);

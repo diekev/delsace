@@ -202,6 +202,44 @@ void TamponRendu::remplie_tampon_extra(ParametresTampon const &parametres)
 	}
 }
 
+void TamponRendu::remplie_tampon_matrices_instance(const ParametresTampon &parametres)
+{
+	initialise_tampon();
+
+	m_donnees_tampon->attache();
+
+	m_instance = true;
+	m_nombre_instances = parametres.nombre_instances;
+
+	m_donnees_tampon->genere_tampon_extra(
+				parametres.pointeur_donnees_extra,
+				static_cast<long>(parametres.taille_octet_donnees_extra));
+	dls::ego::util::GPU_check_errors("Erreur lors de la génération du tampon extra");
+
+	auto idx_attr = static_cast<unsigned>(m_programme[parametres.attribut]);
+	auto dim_attr = parametres.dimension_attribut;
+
+	auto taille_vec4 = static_cast<int>(sizeof(dls::math::vec4f));
+
+	m_donnees_tampon->pointeur_attribut(idx_attr    , dim_attr, 4 * taille_vec4, nullptr);
+	m_donnees_tampon->pointeur_attribut(idx_attr + 1, dim_attr, 4 * taille_vec4, reinterpret_cast<void *>(taille_vec4));
+	m_donnees_tampon->pointeur_attribut(idx_attr + 2, dim_attr, 4 * taille_vec4, reinterpret_cast<void *>(2 * taille_vec4));
+	m_donnees_tampon->pointeur_attribut(idx_attr + 3, dim_attr, 4 * taille_vec4, reinterpret_cast<void *>(3 * taille_vec4));
+
+	glVertexAttribDivisor(idx_attr    , 1);
+	glVertexAttribDivisor(idx_attr + 1, 1);
+	glVertexAttribDivisor(idx_attr + 2, 1);
+	glVertexAttribDivisor(idx_attr + 3, 1);
+
+	dls::ego::util::GPU_check_errors("Erreur lors de la mise en place du pointeur");
+
+	m_donnees_tampon->detache();
+
+	if (parametres.attribut == "normal" || parametres.attribut == "normaux") {
+		m_requiers_normal = true;
+	}
+}
+
 void TamponRendu::dessine(ContexteRendu const &contexte)
 {
 	if (!m_programme.est_valide()) {
@@ -250,11 +288,30 @@ void TamponRendu::dessine(ContexteRendu const &contexte)
 		dls::ego::util::GPU_check_errors("Erreur lors du passage pour_surlignage");
 	}
 
-	if (m_dessin_indexe) {
-		glDrawElements(m_paramatres_dessin.type_dessin(), static_cast<int>(m_elements), m_paramatres_dessin.type_donnees(), nullptr);
+	if (m_instance) {
+		if (m_dessin_indexe) {
+			glDrawElementsInstanced(
+						m_paramatres_dessin.type_dessin(),
+						static_cast<int>(m_elements),
+						m_paramatres_dessin.type_donnees(),
+						nullptr,
+						static_cast<int>(m_nombre_instances));
+		}
+		else {
+			glDrawArraysInstanced(
+						m_paramatres_dessin.type_dessin(),
+						0,
+						static_cast<int>(m_elements),
+						static_cast<int>(m_nombre_instances));
+		}
 	}
 	else {
-		glDrawArrays(m_paramatres_dessin.type_dessin(), 0, static_cast<int>(m_elements));
+		if (m_dessin_indexe) {
+			glDrawElements(m_paramatres_dessin.type_dessin(), static_cast<int>(m_elements), m_paramatres_dessin.type_donnees(), nullptr);
+		}
+		else {
+			glDrawArrays(m_paramatres_dessin.type_dessin(), 0, static_cast<int>(m_elements));
+		}
 	}
 
 	dls::ego::util::GPU_check_errors("Erreur lors du rendu du tampon après dessin indexé");

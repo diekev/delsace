@@ -24,16 +24,16 @@
 
 #pragma once
 
-//#include "biblinternes/graphe/compileuse_graphe.h"
-
 #include "biblinternes/math/matrice.hh"
+#include "biblinternes/outils/transbit.hh"
 #include "biblinternes/phys/couleur.hh"
-
-#include "biblinternes/structures/tableau.hh"
 
 #include "contexte_execution.hh"
 
 namespace lcc {
+
+enum class code_inst : int;
+enum class type_var : unsigned short;
 
 struct pile {
 private:
@@ -55,7 +55,17 @@ public:
 	template <typename T>
 	void pousse(T const &v)
 	{
-		m_donnees.pousse(static_cast<float>(v));
+		m_donnees.pousse(transbit<float>(v));
+	}
+
+	void pousse(code_inst inst)
+	{
+		m_donnees.pousse(static_cast<float>(inst));
+	}
+
+	void pousse(type_var var)
+	{
+		m_donnees.pousse(static_cast<float>(var));
 	}
 
 	long taille() const
@@ -67,7 +77,17 @@ public:
 
 	inline int charge_entier(int &idx) const
 	{
-		return static_cast<int>(m_donnees[idx++]);
+		return transbit<int>(m_donnees[idx++]);
+	}
+
+	inline code_inst charge_inst(int &idx) const
+	{
+		return static_cast<code_inst>(m_donnees[idx++]);
+	}
+
+	inline type_var charge_type(int &idx) const
+	{
+		return static_cast<type_var>(m_donnees[idx++]);
 	}
 
 	inline float charge_decimal(int &idx) const
@@ -192,7 +212,7 @@ public:
 
 	inline void stocke(int &idx, int const &v)
 	{
-		m_donnees[idx++] = static_cast<float>(v);
+		m_donnees[idx++] = transbit<float>(v);
 	}
 
 	inline void stocke(int &idx, float const &v)

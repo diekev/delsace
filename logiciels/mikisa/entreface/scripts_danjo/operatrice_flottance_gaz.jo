@@ -1,0 +1,22 @@
+disposition "operatrice_flottance_gaz" {
+	ligne {
+		étiquette(valeur="Gravité")
+		décimal(valeur=1.0; attache=gravité; animable)
+	}
+	ligne {
+		étiquette(valeur="Coefficient Gravité")
+		décimal(valeur=1.0; attache=coefficient; min=0.0; animable)
+	}
+	ligne {
+		étiquette(valeur="Température Ambiante")
+		décimal(valeur=0.0; attache=température; animable)
+	}
+	ligne {
+		étiquette(valeur="Coefficient Densité")
+		décimal(valeur=0.001; attache=alpha; min=0.0; animable)
+	}
+	ligne {
+		étiquette(valeur="Coefficient Température")
+		décimal(valeur=0.1; attache=beta; min=0.0; animable)
+	}
+}

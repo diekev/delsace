@@ -31,7 +31,7 @@ void rotate_wheel(QSpinBox *spin_box, int increment)
 	spin_box->setValue(spin_box->value() + increment);
 }
 
-/* TODO: implement routine for special characters and numbers */
+/* À FAIRE: implement routine for special characters and numbers */
 int beaudot_encode(const char ch)
 {
 	switch (ch) {
@@ -63,7 +63,7 @@ int beaudot_encode(const char ch)
 		case 'n': case 'N': return 0b01100; // ,
 		case 'm': case 'M': return 0b11100; // .
 
-		/* TODO: the following cases are wrong, need other chars */
+		/* À FAIRE: the following cases are wrong, need other chars */
 		case '[': return 0b01000; // retour à la ligne CR
 		case ']': return 0b00010; // retour à la ligne LF
 		case '<': return 0b11011; // passage aux chiffres
@@ -73,7 +73,7 @@ int beaudot_encode(const char ch)
 	return 0b00000;
 }
 
-/* TODO: implement routine for special characters and numbers */
+/* À FAIRE: implement routine for special characters and numbers */
 char beaudot_decode(const int code)
 {
 	switch (code) {
@@ -105,7 +105,7 @@ char beaudot_decode(const int code)
 		case 0b01100: return 'n'; // ,
 		case 0b11100: return 'm'; // .
 
-		/* TODO: the following cases are wrong, need other chars */
+		/* À FAIRE: the following cases are wrong, need other chars */
 		case 0b01000: return '['; // retour à la ligne CR
 		case 0b00010: return ']'; // retour à la ligne LF
 		case 0b11011: return '<'; // passage aux chiffres

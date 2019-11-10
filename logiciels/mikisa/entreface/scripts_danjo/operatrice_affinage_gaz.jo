@@ -1,0 +1,35 @@
+disposition "operatrice_affinage_gaz" {
+	ligne {
+		étiquette(valeur="Fumée")
+	}
+	ligne {
+		étiquette(valeur="Quantité")
+		décimal(valeur=0.0; min=0; attache=quantité_fum; animable; infobulle="Pendant la simulation la fumée tend à se diffuser et se dissiper ce qui n'est pas toujours désirable. En utilisant une valeur modérée d'affinage (comme 0.2), il est possible de maintenir les détails plus longtemps.")
+	}
+	ligne {
+		étiquette(valeur="Rayon")
+		décimal(valeur=2.0; min=0; attache=rayon_fum; animable; infobulle="Controle la largeur du filtre d'affinage.")
+	}
+	ligne {
+		étiquette(valeur="Température")
+	}
+	ligne {
+		étiquette(valeur="Quantité")
+		décimal(valeur=0.0; min=0; attache=quantité_tmp; animable; infobulle="Pendant la simulation la vélocité tend à se diffuser et se dissiper ce qui est généralement acceptable pour ce champs. En utilisant une valeur modérée d'affinage (comme 0.2), il est possible de maintenir plus de détails pouvant être intéressants pour rendre la température en utilisant un nuanceur avec corps noir.")
+	}
+	ligne {
+		étiquette(valeur="Rayon")
+		décimal(valeur=2.0; min=0; attache=rayon_tmp; animable; infobulle="Controle la largeur du filtre d'affinage.")
+	}
+	ligne {
+		étiquette(valeur="Vélocité")
+	}
+	ligne {
+		étiquette(valeur="Quantité")
+		décimal(valeur=0.0; min=0; attache=quantité_vel; animable; infobulle="Pendant la simulation la vélocité tend à se diffuser et se dissiper comme la fumée, le feu et d'autre champs. En utilisant ce paramètre, on controle la dose d'affinage du champs de vélocité.")
+	}
+	ligne {
+		étiquette(valeur="Rayon")
+		décimal(valeur=2.0; min=0; attache=rayon_vel; animable; infobulle="Controle la largeur du filtre d'affinage. Des valeurs plus grandes peuvent en une fumée ayant l'air plus globuleuse.")
+	}
+}

@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
 	stdc++fs
 	systeme_fichier
 	memoire
+	bib_outils
 )
 
 set(SOURCES
@@ -52,6 +53,7 @@ set(SOURCES
 
 	tests.cc
 	test_float.cc
+	test_pointeur_marque.cc
 	test_string.cc
 	test_temperature.cc
 	test_time.cc

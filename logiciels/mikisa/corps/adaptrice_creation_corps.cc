@@ -38,29 +38,25 @@
 void AdaptriceCreationCorps::ajoute_sommet(const float x, const float y, const float z, const float w)
 {
 	INUTILISE(w);
-
-	auto point = dls::math::vec3f(x, y, z);
-	corps->points()->pousse(point);
+	corps->points_pour_ecriture().ajoute_point(x, y, z);
 }
 
 void AdaptriceCreationCorps::ajoute_normal(const float x, const float y, const float z)
 {
 	if (attribut_normal == nullptr) {
-		attribut_normal = corps->ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, true);
+		attribut_normal = corps->ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT, true);
 	}
 
-	attribut_normal->pousse(dls::math::vec3f(x, y, z));
+	auto idx = attribut_normal->taille();
+	attribut_normal->redimensionne(attribut_normal->taille() + 1);
+	assigne(attribut_normal->r32(idx), dls::math::vec3f(x, y, z));
 }
 
 void AdaptriceCreationCorps::ajoute_coord_uv_sommet(const float u, const float v, const float w)
 {
 	INUTILISE(w);
 
-	if (attribut_uvs == nullptr) {
-		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX, true);
-	}
-
-	attribut_uvs->pousse(dls::math::vec2f(u, v));
+	uvs.pousse(dls::math::vec2f(u, v));
 }
 
 void AdaptriceCreationCorps::ajoute_parametres_sommet(const float x, const float y, const float z)
@@ -74,10 +70,18 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 {
 	INUTILISE(index_uvs);
 
-	auto poly = Polygone::construit(corps, type_polygone::FERME, nombre);
+	auto poly = corps->ajoute_polygone(type_polygone::FERME, nombre);
+
+	if (index_uvs != nullptr && attribut_uvs == nullptr) {
+		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::R32, 2, portee_attr::VERTEX);
+	}
 
 	for (long i = 0; i < nombre; ++i) {
-		poly->ajoute_sommet(index_sommet[i]);
+		auto idx = corps->ajoute_sommet(poly, index_sommet[i]);
+
+		if (attribut_uvs != nullptr) {
+			assigne(attribut_uvs->r32(idx), uvs[index_uvs[i]]);
+		}
 	}
 
 	if (index_normaux != nullptr) {
@@ -91,15 +95,15 @@ void AdaptriceCreationCorps::ajoute_polygone(const int *index_sommet, const int 
 
 		if (normaux_polys) {
 			if (attribut_normal_polys == nullptr) {
-				attribut_normal_polys = corps->ajoute_attribut("N_polys", type_attribut::VEC3, portee_attr::PRIMITIVE, true);
+				attribut_normal_polys = corps->ajoute_attribut("N_polys", type_attribut::R32, 3, portee_attr::PRIMITIVE);
 			}
 
-			attribut_normal_polys->pousse(attribut_normal->vec3(index_normaux[0]));
+			copie_attribut(attribut_normal, index_normaux[0], attribut_normal_polys, poly->index);
 		}
 	}
 
 	for (GroupePrimitive *groupe : groupes_courant) {
-		groupe->ajoute_primitive(poly->index);
+		groupe->ajoute_index(poly->index);
 	}
 }
 
@@ -121,23 +125,20 @@ void AdaptriceCreationCorps::reserve_polygones(long const nombre)
 
 void AdaptriceCreationCorps::reserve_sommets(long const nombre)
 {
-	corps->points()->reserve(nombre);
+	corps->points_pour_ecriture().reserve(nombre);
 }
 
 void AdaptriceCreationCorps::reserve_normaux(long const nombre)
 {
 	if (attribut_normal == nullptr) {
-		attribut_normal = corps->ajoute_attribut("N", type_attribut::VEC3, portee_attr::POINT, true);
+		attribut_normal = corps->ajoute_attribut("N", type_attribut::R32, 3, portee_attr::POINT, true);
 		attribut_normal->reserve(nombre);
 	}
 }
 
 void AdaptriceCreationCorps::reserve_uvs(long const nombre)
 {
-	if (attribut_uvs == nullptr) {
-		attribut_uvs = corps->ajoute_attribut("UV", type_attribut::VEC2, portee_attr::VERTEX, true);
-		attribut_uvs->reserve(nombre);
-	}
+	uvs.reserve(nombre);
 }
 
 void AdaptriceCreationCorps::groupes(dls::tableau<dls::chaine> const &noms)

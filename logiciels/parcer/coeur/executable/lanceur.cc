@@ -28,12 +28,14 @@
 #include <iostream>
 
 #include "decoupage/analyseuse_grammaire.hh"
+#include "decoupage/assembleuse_arbre.hh"
 #include "decoupage/contexte_generation_code.hh"
 #include "decoupage/decoupeuse.hh"
 #include "decoupage/erreur.hh"
 #include "decoupage/modules.hh"
 
 #include "biblinternes/chrono/outils.hh"
+#include "biblinternes/outils/format.hh"
 
 static const char *options =
 R"(kuri [OPTIONS...] FICHIER
@@ -185,99 +187,6 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 	return opts;
 }
 
-struct temps_seconde {
-	double valeur;
-
-	explicit temps_seconde(double v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const temps_seconde &t)
-{
-	auto valeur = static_cast<int>(t.valeur * 1000);
-
-	if (valeur < 1) {
-		valeur = static_cast<int>(t.valeur * 1000000);
-		if (valeur < 10) {
-			os << ' ' << ' ' << ' ';
-		}
-		else if (valeur < 100) {
-			os << ' ' << ' ';
-		}
-		else if (valeur < 1000) {
-			os << ' ';
-		}
-
-		os << valeur << "ns";
-	}
-	else {
-		if (valeur < 10) {
-			os << ' ' << ' ' << ' ';
-		}
-		else if (valeur < 100) {
-			os << ' ' << ' ';
-		}
-		else if (valeur < 1000) {
-			os << ' ';
-		}
-
-		os << valeur << "ms";
-	}
-
-	return os;
-}
-
-struct pourcentage {
-	double valeur;
-
-	explicit pourcentage(double v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const pourcentage &p)
-{
-	auto const valeur = static_cast<int>(p.valeur * 100) / 100.0;
-
-	if (valeur < 10) {
-		os << ' ' << ' ';
-	}
-	else if (valeur < 100) {
-		os << ' ';
-	}
-
-	os << valeur << "%";
-
-	return os;
-}
-
-struct taille_octet {
-	size_t valeur;
-
-	explicit taille_octet(size_t v)
-		: valeur(v)
-	{}
-};
-
-static std::ostream &operator<<(std::ostream &os, const taille_octet &taille)
-{
-	if (taille.valeur > (1024 * 1024 * 1024)) {
-		os << (taille.valeur / (1024 * 1024 * 1024)) << "Go";
-	}
-	else if (taille.valeur > (1024 * 1024)) {
-		os << (taille.valeur / (1024 * 1024)) << "Mo";
-	}
-	else if (taille.valeur > 1024) {
-		os << (taille.valeur / 1024) << "Ko";
-	}
-	else {
-		os << (taille.valeur) << "o";
-	}
-
-	return os;
-}
-
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -316,8 +225,8 @@ int main(int argc, char *argv[])
 	std::ostream &os = std::cout;
 
 	auto resultat = 0;
-	auto debut_compilation   = dls::chrono::maintenant();
-	auto debut_nettoyage     = 0.0;
+	auto debut_compilation   = dls::chrono::compte_seconde();
+	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 	auto temps_nettoyage     = 0.0;
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
@@ -365,7 +274,7 @@ int main(int argc, char *argv[])
 
 		of.close();
 
-		auto debut_executable = dls::chrono::maintenant();
+		auto debut_executable = dls::chrono::compte_seconde();
 //		auto commande = dls::chaine("gcc /tmp/conversion.kuri ");
 
 //		commande += " -o ";
@@ -378,7 +287,7 @@ int main(int argc, char *argv[])
 //		if (err != 0) {
 //			std::cerr << "Ne peut pas créer l'executable !\n";
 //		}
-		temps_executable = dls::chrono::delta(debut_executable);
+		temps_executable = debut_executable.temps();
 
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
@@ -387,14 +296,14 @@ int main(int argc, char *argv[])
 		mem_contexte = contexte_generation.memoire_utilisee();
 
 		os << "Nettoyage..." << std::endl;
-		debut_nettoyage = dls::chrono::maintenant();
+		debut_nettoyage.commence();
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	temps_nettoyage = dls::chrono::delta(debut_nettoyage);
-	auto const temps_total = dls::chrono::delta(debut_compilation);
+	temps_nettoyage = debut_nettoyage.temps();
+	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_scene = metriques.temps_tampon
 							 + metriques.temps_decoupage

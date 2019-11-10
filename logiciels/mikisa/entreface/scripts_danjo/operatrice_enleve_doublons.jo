@@ -1,6 +1,6 @@
 disposition "operatrice_enleve_doublons" {
     ligne {
 	    étiquette(valeur="Distance")
-		décimal(valeur=0.001; min=0; attache=distance)
+		décimal(valeur=0.001; min=0; attache=distance; animable)
 	}
 }

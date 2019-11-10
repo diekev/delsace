@@ -28,13 +28,15 @@
 #include <fstream>
 #include <mutex>
 
+#include <functional>
+
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 
-using type_fonction_lecture = void(*)(std::istream &, std::any const&);
-using type_fonction_ecriture = void(*)(std::ostream &, std::any const&);
-using type_fonction_lecture_chemin = void(*)(const char *, std::any const&);
-using type_fonction_ecriture_chemin = void(*)(const char *, std::any const&);
+using type_fonction_lecture = std::function<void(std::istream &, std::any const&)>;
+using type_fonction_ecriture = std::function<void(std::ostream &, std::any const&)>;
+using type_fonction_lecture_chemin = std::function<void(const char *, std::any const&)>;
+using type_fonction_ecriture_chemin = std::function<void(const char *, std::any const&)>;
 
 struct PoigneeFichier {
 private:
@@ -58,6 +60,7 @@ public:
 };
 
 class GestionnaireFichier {
+	std::mutex m_mutex{};
 	dls::dico_desordonne<dls::chaine, PoigneeFichier *> m_table{};
 
 public:

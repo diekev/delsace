@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
-namespace filesystem = std::experimental::filesystem;
+namespace filesystem = std::filesystem;
 
 namespace dls {
 namespace image {

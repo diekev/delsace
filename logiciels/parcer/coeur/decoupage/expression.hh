@@ -24,26 +24,6 @@
 
 #pragma once
 
-#include "morceaux.hh"
-
-namespace noeud {
-struct base;
-}
-
-class assembleuse_arbre;
-
-struct ContexteGenerationCode;
+enum class id_morceau : unsigned int;
 
 bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
-
-noeud::base *calcul_expression_double(
-		assembleuse_arbre &assembleuse,
-		ContexteGenerationCode &contexte,
-		noeud::base *op,
-		noeud::base *n1,
-		noeud::base *n2);
-
-noeud::base *calcul_expression_simple(
-		assembleuse_arbre &assembleuse,
-		noeud::base *op,
-		noeud::base *n1);

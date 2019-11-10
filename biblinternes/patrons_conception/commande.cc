@@ -103,3 +103,8 @@ Commande *UsineCommande::trouve_commande(dls::chaine const &categorie, DonneesCo
 
 	return nullptr;
 }
+
+long UsineCommande::taille() const
+{
+	return m_tableau.taille();
+}

@@ -33,7 +33,6 @@ class QSlider;
 class QPushButton;
 class QSpinBox;
 class QVBoxLayout;
-class Scene;
 
 namespace danjo {
 

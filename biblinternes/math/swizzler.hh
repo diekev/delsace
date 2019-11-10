@@ -30,6 +30,13 @@ struct swizzler {
 
 	T donnees[N];
 
+	type_vecteur dechoie() const
+	{
+		auto vec = type_vecteur{};
+		copie_vers(vec, 0, index...);
+		return vec;
+	}
+
 	type_vecteur dechoie()
 	{
 		auto vec = type_vecteur{};

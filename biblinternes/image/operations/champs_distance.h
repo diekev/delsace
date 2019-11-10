@@ -25,6 +25,7 @@
 #pragma once
 
 #include "../../math/matrice/matrice.hh"
+#include "../../math/outils.hh"
 #include "../../math/vecteur.hh"
 
 namespace dls {
@@ -67,22 +68,22 @@ void navigation_estime_ex(
 
 			if (distance[l][c - 1] + unit < dist) {
 				p = nearest_point[l][c - 1];
-				dist = static_cast<float>(hypot((l - p[0]), c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			if (distance[l - 1][c - 1] + diagonal < dist) {
 				p = nearest_point[l - 1][c - 1];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			if (distance[l - 1][c] + unit < dist) {
 				p = nearest_point[l - 1][c];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			if (distance[l - 1][c + 1] + diagonal < dist) {
 				p = nearest_point[l - 1][c + 1];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			distance[l][c] = dist;
@@ -103,22 +104,22 @@ void navigation_estime_ex(
 
 			if (distance[l][c + 1] + unit < dist) {
 				p = nearest_point[l][c + 1];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			if (distance[l + 1][c + 1] + diagonal < dist) {
 				p = nearest_point[l + 1][c + 1];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			if (distance[l + 1][c] + unit < dist) {
 				p = nearest_point[l + 1][c];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			if (distance[l + 1][c - 1] + diagonal < dist) {
 				p = nearest_point[l + 1][c - 1];
-				dist = static_cast<float>(hypot(l - p[0], c - p[1])) * unit;
+				dist = dls::math::hypotenuse(static_cast<float>(l - p[0]), static_cast<float>(c - p[1])) * unit;
 			}
 
 			distance[l][c] = dist;
@@ -172,7 +173,7 @@ void initialise(const math::matrice_dyn<float> &image,
 {
 	const auto nc = image.nombre_colonnes();
 	const auto nl = image.nombre_lignes();
-	const auto max_dist = static_cast<float>(hypot(nc, nl));
+	const auto max_dist = dls::math::hypotenuse(static_cast<float>(nc), static_cast<float>(nl));
 
 	for (auto l = 0; l < nl; ++l) {
 		for (auto c = 0; c < nc; ++c) {
@@ -296,7 +297,7 @@ void initialise(
 {
 	const auto sx = image.nombre_colonnes();
 	const auto sy = image.nombre_lignes();
-	const auto max_dist = static_cast<int>(std::hypot(sx, sy));
+	const auto max_dist = static_cast<int>(dls::math::hypotenuse(static_cast<float>(sx), static_cast<float>(sy)));
 
 	for (auto l = 0; l < sy; ++l) {
 		for (auto c = 0; c < sx; ++c) {

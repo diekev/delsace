@@ -1,0 +1,17 @@
+disposition "operatrice_attribut_nuanceur" {
+	ligne {
+		étiquette(valeur="Nom nuanceur")
+		liste(valeur=""; attache=nom_nuanceur)
+		bouton(valeur="Créer Nuanceur"; attache=crée_nuanceur_opératrice)
+	}
+	ligne {
+		étiquette(valeur="Portée")
+		énum(valeur="points"; attache=portée_attribut; items=[
+			 {nom="Points", valeur="points"},
+			 {nom="Primitives", valeur="primitives"},
+			 {nom="Sommets", valeur="sommets"},
+			 {nom="Groupe", valeur="groupe"},
+			 {nom="Corps", valeur="corps"}
+			 ])
+	}
+}

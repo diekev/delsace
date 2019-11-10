@@ -1,0 +1,10 @@
+disposition "operatrice_vorticite_gaz" {
+	ligne {
+		étiquette(valeur="Quantité")
+		décimal(valeur=2.0; attache=quantité; min=0.0; animable)
+	}
+	ligne {
+		étiquette(valeur="Vorticité Flamme")
+		décimal(valeur=0.5; attache=vort_flamme; min=0.0; animable)
+	}
+}

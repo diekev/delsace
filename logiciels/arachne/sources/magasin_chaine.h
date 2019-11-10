@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -119,12 +119,12 @@ public:
  */
 void ecris_magasin_chaine(
 		const magasin_chaine &magasin,
-		const std::experimental::filesystem::path &chemin);
+		const std::filesystem::path &chemin);
 
 /**
  * Écris le contenu d'un magasin de chaînes depuis le fichier pointé par le
  * chemin donné.
  */
-void lis_magasin_chaine(const std::experimental::filesystem::path &chemin);
+void lis_magasin_chaine(const std::filesystem::path &chemin);
 
 }  /* namespace arachne */

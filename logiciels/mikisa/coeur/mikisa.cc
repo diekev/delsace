@@ -35,6 +35,10 @@
 #include <QMessageBox>
 #pragma GCC diagnostic pop
 
+#ifdef AVEC_OPENEXR
+#	include <OpenEXR/ImfThreading.h>
+#endif
+
 #include "danjo/danjo.h"
 
 #include "biblinternes/patrons_conception/repondant_commande.h"
@@ -49,8 +53,9 @@
 #include "configuration.h"
 #include "manipulatrice.h"
 #include "noeud_image.h"
-#include "scene.h"
+#include "rendu.hh"
 #include "tache.h"
+#include "operatrice_graphe_detail.hh"
 
 #include "commandes/commandes_edition.h"
 #include "commandes/commandes_noeuds.h"
@@ -61,10 +66,11 @@
 #include "commandes/commandes_vue2d.h"
 #include "commandes/commandes_vue3d.h"
 
+#include "lcc/lcc.hh"
+
 #include "operatrices/operatrices_3d.h"
 #include "operatrices/operatrices_alembic.hh"
 #include "operatrices/operatrices_arbre.hh"
-#include "operatrices/operatrices_ariel.hh"
 #include "operatrices/operatrices_attributs.hh"
 #include "operatrices/operatrices_bullet.hh"
 #include "operatrices/operatrices_cheveux.h"
@@ -72,18 +78,21 @@
 #include "operatrices/operatrices_flux.h"
 #include "operatrices/operatrices_fracture.hh"
 #include "operatrices/operatrices_groupes.hh"
+#include "operatrices/operatrices_image_profonde.hh"
+#include "operatrices/operatrices_images_3d.hh"
 #include "operatrices/operatrices_maillage.hh"
-#include "operatrices/operatrices_muscles.hh"
+#include "operatrices/operatrices_ocean.hh"
 #include "operatrices/operatrices_opensubdiv.hh"
 #include "operatrices/operatrices_particules.h"
 #include "operatrices/operatrices_pixel.h"
-#include "operatrices/operatrices_point3d.h"
 #include "operatrices/operatrices_poseidon.hh"
 #include "operatrices/operatrices_region.h"
+#include "operatrices/operatrices_rendu.hh"
 #include "operatrices/operatrices_script.hh"
-#include "operatrices/operatrices_simulation_foule.hh"
 #include "operatrices/operatrices_simulations.hh"
-#include "operatrices/operatrices_snh.hh"
+#include "operatrices/operatrices_srirp.hh"
+#include "operatrices/operatrices_terrain.hh"
+#include "operatrices/operatrices_uvs.hh"
 #include "operatrices/operatrices_vetements.hh"
 #include "operatrices/operatrices_visualisation.hh"
 #include "operatrices/operatrices_volume.hh"
@@ -94,7 +103,6 @@ Mikisa::Mikisa()
 	: m_usine_commande{}
 	, m_usine_operatrices{}
 	, m_repondant_commande(memoire::loge<RepondantCommande>("RepondantCommande", m_usine_commande, this))
-	, composite(nullptr)
 	, fenetre_principale(nullptr)
 	, editrice_active(nullptr)
 	, gestionnaire_entreface(memoire::loge<danjo::GestionnaireInterface>("danjo::GestionnaireInterface"))
@@ -103,25 +111,35 @@ Mikisa::Mikisa()
 	, camera_3d(memoire::loge<vision::Camera3D>("vision::Camera3D", 0, 0))
 	, graphe(nullptr)
 	, type_manipulation_3d(MANIPULATION_POSITION)
-	, chemin_courant("/scènes/Scène")
+	, chemin_courant("/objets/")
 	, notifiant_thread(nullptr)
 	, chef_execution(*this)
+	, lcc(memoire::loge<lcc::LCC>("LCC"))
 {
-	scene = bdd.cree_scene("Scène");
-	composite = bdd.cree_composite("composite");
-	graphe = &scene->graphe;
+	graphe = bdd.graphe_objets();
 
 	camera_3d->projection(vision::TypeProjection::PERSPECTIVE);
+
+#ifdef AVEC_OPENEXR
+	auto fils = static_cast<int>(std::thread::hardware_concurrency());
+	OPENEXR_IMF_NAMESPACE::setGlobalThreadCount(fils);
+#endif
 }
 
 Mikisa::~Mikisa()
 {
+	memoire::deloge("LCC", lcc);
 	memoire::deloge("TaskNotifier", notifiant_thread);
 	memoire::deloge("vision::Camera2D", camera_2d);
 	memoire::deloge("vision::Camera3D", camera_3d);
 	memoire::deloge("ProjectSettings", project_settings);
 	memoire::deloge("RepondantCommande", m_repondant_commande);
 	memoire::deloge("danjo::GestionnaireInterface", gestionnaire_entreface);
+
+#ifdef AVEC_OPENEXR
+	/* Détruit la mémoire allouée par openexr pour gérer les fils. */
+	OPENEXR_IMF_NAMESPACE::setGlobalThreadCount(0);
+#endif
 }
 
 void Mikisa::initialise()
@@ -129,26 +147,29 @@ void Mikisa::initialise()
 	enregistre_operatrices_3d(m_usine_operatrices);
 	enregistre_operatrices_alembic(m_usine_operatrices);
 	enregistre_operatrices_arbre(m_usine_operatrices);
-	enregistre_operatrices_ariel(m_usine_operatrices);
 	enregistre_operatrices_attributs(m_usine_operatrices);
 	enregistre_operatrices_bullet(m_usine_operatrices);
 	enregistre_operatrices_cheveux(m_usine_operatrices);
 	enregistre_operatrices_corps(m_usine_operatrices);
+	enregistre_operatrices_detail(m_usine_operatrices);
 	enregistre_operatrices_flux(m_usine_operatrices);
 	enregistre_operatrices_fracture(m_usine_operatrices);
+	enregistre_operatrices_image_profonde(m_usine_operatrices);
+	enregistre_operatrices_images_3d(m_usine_operatrices);
 	enregistre_operatrices_groupes(m_usine_operatrices);
 	enregistre_operatrices_maillage(m_usine_operatrices);
-	enregistre_operatrices_muscles(m_usine_operatrices);
+	enregistre_operatrices_ocean(m_usine_operatrices);
 	enregistre_operatrices_opensubdiv(m_usine_operatrices);
 	enregistre_operatrices_particules(m_usine_operatrices);
 	enregistre_operatrices_pixel(m_usine_operatrices);
-	enregistre_operatrices_point3d(m_usine_operatrices);
 	enregistre_operatrices_poseidon(m_usine_operatrices);
 	enregistre_operatrices_region(m_usine_operatrices);
+	enregistre_operatrices_rendu(m_usine_operatrices);
 	enregistre_operatrices_script(m_usine_operatrices);
-	enregistre_operatrices_sim_foule(m_usine_operatrices);
 	enregistre_operatrices_simulations(m_usine_operatrices);
-	enregistre_operatrices_snh(m_usine_operatrices);
+	enregistre_operatrices_srirp(m_usine_operatrices);
+	enregistre_operatrices_terrain(m_usine_operatrices);
+	enregistre_operatrices_uvs(m_usine_operatrices);
 	enregistre_operatrices_vetement(m_usine_operatrices);
 	enregistre_operatrices_visualisation(m_usine_operatrices);
 	enregistre_operatrices_volume(m_usine_operatrices);
@@ -161,6 +182,10 @@ void Mikisa::initialise()
 	enregistre_commandes_temps(m_usine_commande);
 	enregistre_commandes_vue2d(m_usine_commande);
 	enregistre_commandes_vue3d(m_usine_commande);
+
+	cree_rendu_defaut(*this);
+
+	lcc::initialise(*lcc);
 }
 
 UsineCommande &Mikisa::usine_commandes()
@@ -173,16 +198,29 @@ UsineOperatrice &Mikisa::usine_operatrices()
 	return m_usine_operatrices;
 }
 
-dls::chaine Mikisa::requiers_dialogue(int type)
+dls::chaine Mikisa::requiers_dialogue(int type, dls::chaine const &filtre)
 {
+	auto parent = static_cast<QWidget *>(nullptr);
+	auto caption = "";
+	auto dir = "";
+
 	/* À FAIRE : sort ça de la classe. */
 	if (type == FICHIER_OUVERTURE) {
-		auto const chemin = QFileDialog::getOpenFileName();
+
+		auto const chemin = QFileDialog::getOpenFileName(
+					parent,
+					caption,
+					dir,
+					filtre.c_str());
 		return chemin.toStdString();
 	}
 
 	if (type == FICHIER_SAUVEGARDE) {
-		auto const chemin = QFileDialog::getSaveFileName();
+		auto const chemin = QFileDialog::getSaveFileName(
+					parent,
+					caption,
+					dir,
+					filtre.c_str());
 		return chemin.toStdString();
 	}
 
@@ -247,4 +285,42 @@ RepondantCommande *Mikisa::repondant_commande() const
 void Mikisa::ajourne_pour_nouveau_temps(const char *message)
 {
 	requiers_evaluation(*this, TEMPS_CHANGE, message);
+}
+
+Mikisa::EtatLogiciel Mikisa::etat_courant()
+{
+	auto etat = EtatLogiciel();
+
+	return etat;
+}
+
+void Mikisa::empile_etat()
+{
+//	if (!pile_refait.est_vide()) {
+//		pile_refait.efface();
+//	}
+
+//	pile_defait.empile(etat_courant());
+}
+
+void Mikisa::defait()
+{
+//	if (pile_defait.est_vide()) {
+//		return;
+//	}
+
+//	pile_refait.empile(etat_courant());
+
+//	auto etat = pile_defait.depile();
+}
+
+void Mikisa::refait()
+{
+//	if (pile_refait.est_vide()) {
+//		return;
+//	}
+
+//	pile_defait.empile(etat_courant());
+
+//	auto etat = pile_refait.depile();
 }

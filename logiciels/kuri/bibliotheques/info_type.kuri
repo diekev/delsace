@@ -34,6 +34,7 @@ structure InfoTypeRéel {
 structure InfoTypePointeur {
     id : id_info; # employant InfoType
 	type_pointé : *InfoType;
+	est_référence : bool;
 }
 
 structure InfoTypeTableau {
@@ -55,9 +56,10 @@ structure InfoTypeStructure {
 }
 
 structure InfoTypeFonction {
-    id : id_info; # employant InfoType
-	type_retour : *InfoType;
-	type_arguments : []*InfoType;
+	id : id_info; # employant InfoType
+	types_entrée : []*InfoType;
+	types_sortie : []*InfoType;
+	est_coroutine : bool;
 }
 
 structure InfoTypeÉnum {

@@ -24,20 +24,20 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 namespace dls {
 namespace systeme_fichier {
 
-bool est_bibilotheque(const std::experimental::filesystem::path &path);
+bool est_bibilotheque(const std::filesystem::path &path);
 
-std::experimental::filesystem::path chemin_repertoire_maison();
+std::filesystem::path chemin_repertoire_maison();
 
-std::experimental::filesystem::path chemin_repertoire_config();
+std::filesystem::path chemin_repertoire_config();
 
-std::experimental::filesystem::path chemin_repertoire_poubelle();
+std::filesystem::path chemin_repertoire_poubelle();
 
-void mettre_poubelle(const std::experimental::filesystem::path &chemin);
+void mettre_poubelle(const std::filesystem::path &chemin);
 
 }  /* namespace systeme_fichier */
 }  /* namespace dls */

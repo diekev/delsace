@@ -83,6 +83,7 @@ void ControleProprieteCouleur::finalise(const DonneesControle &donnees)
 
 void ControleProprieteCouleur::ajourne_couleur()
 {
+	Q_EMIT(precontrole_change());
 	m_propriete->valeur = m_controle_couleur->couleur();
 	Q_EMIT(controle_change());
 }

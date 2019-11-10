@@ -26,7 +26,9 @@
 
 #include <iostream>
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_fixe.hh"
 
 #include "assembleuse_disposition.h"
 
@@ -61,7 +63,7 @@ bool est_identifiant_controle(id_morceau identifiant)
 	}
 }
 
-static bool est_identifiant_propriete(id_morceau identifiant)
+bool est_identifiant_propriete(id_morceau identifiant)
 {
 	switch (identifiant) {
 		case id_morceau::INFOBULLE:
@@ -76,10 +78,55 @@ static bool est_identifiant_propriete(id_morceau identifiant)
 		case id_morceau::ICONE:
 		case id_morceau::FILTRES:
 		case id_morceau::SUFFIXE:
+		case id_morceau::ACTIVABLE:
+		case id_morceau::ANIMABLE:
 			return true;
 		default:
 			return false;
 	}
+}
+
+static auto valeurs_possibles = dls::cree_dico(
+	dls::paire{ id_morceau::ENTIER,         dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::SUFFIXE, id_morceau::ANIMABLE, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::DECIMAL,        dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::SUFFIXE, id_morceau::PRECISION, id_morceau::ANIMABLE, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::VECTEUR,        dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::SUFFIXE, id_morceau::ANIMABLE, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::COULEUR,        dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::COURBE_COULEUR, dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::ANIMABLE, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::COURBE_VALEUR,  dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::ANIMABLE, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::RAMPE_COULEUR,  dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::MIN, id_morceau::MAX, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::CASE,           dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR) },
+	dls::paire{ id_morceau::ENUM,           dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ITEMS, id_morceau::NOM, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::CHAINE,         dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::TEXTE,          dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::FICHIER_ENTREE, dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::FILTRES, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::FICHIER_SORTIE, dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::FILTRES, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::LISTE_MANIP,    dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::LISTE,          dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::ETIQUETTE,      dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR) },
+	dls::paire{ id_morceau::ACTION,         dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ICONE, id_morceau::METADONNEE, id_morceau::ACTIVABLE) },
+	dls::paire{ id_morceau::BOUTON,         dls::magasin(id_morceau::ATTACHE, id_morceau::INFOBULLE, id_morceau::VALEUR, id_morceau::ICONE, id_morceau::METADONNEE, id_morceau::ACTIVABLE) }
+);
+
+bool valideuse_propriete::cherche_magasin(id_morceau id)
+{
+	auto const &magasin_valeur = valeurs_possibles.trouve(id);
+
+	if (magasin_valeur.est_finie()) {
+		return false;
+	}
+
+	this->magasin = &magasin_valeur.front().second;
+
+	return this->magasin != nullptr;
+}
+
+bool valideuse_propriete::est_propriete_valide(id_morceau id)
+{
+	if (this->magasin == nullptr) {
+		return false;
+	}
+
+	return this->magasin->possede(id);
 }
 
 /* ************************************************************************** */
@@ -152,8 +199,6 @@ void AnalyseuseDisposition::analyse_script_disposition()
 	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Attendu une accolade fermante à la fin du script !");
 	}
-
-	m_assembleur->cree_controles_proprietes_extra();
 
 #ifdef DEBOGUE_ANALYSEUR
 	std::cout << __func__ << " fin\n";
@@ -248,6 +293,10 @@ void AnalyseuseDisposition::analyse_action()
 	}
 
 	m_assembleur->ajoute_action();
+
+	if (!m_valideuse.cherche_magasin(id_morceau::ACTION)) {
+		lance_erreur("Impossible de trouver le magasin de propriétés pour l'action");
+	}
 
 	analyse_propriete(id_morceau::ACTION);
 
@@ -411,6 +460,10 @@ void AnalyseuseDisposition::analyse_controle()
 
 	m_assembleur->ajoute_controle(identifiant_controle);
 
+	if (!m_valideuse.cherche_magasin(identifiant_controle)) {
+		lance_erreur("Impossible de trouver le magasin de propriétés pour le controle");
+	}
+
 	analyse_propriete(identifiant_controle);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -432,6 +485,10 @@ void AnalyseuseDisposition::analyse_bouton()
 
 	m_assembleur->ajoute_bouton();
 
+	if (!m_valideuse.cherche_magasin(id_morceau::BOUTON)) {
+		lance_erreur("Impossible de trouver le magasin de propriétés pour le bouton");
+	}
+
 	analyse_propriete(id_morceau::BOUTON);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
@@ -451,9 +508,19 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 
 	const auto identifiant_propriete = identifiant_courant();
 
+	if (!m_valideuse.est_propriete_valide(identifiant_propriete)) {
+		std::cerr << "'Attention : propriété '"
+				  << chaine_identifiant(identifiant_propriete)
+				  << "' inutile pour type '"
+				  << chaine_identifiant(type_controle)
+				  << "'\n";
+	}
+
 	avance();
 
-	if (!requiers_identifiant(id_morceau::EGAL)) {
+	auto est_drapeaux = dls::outils::est_element(identifiant_propriete, id_morceau::ANIMABLE, id_morceau::ACTIVABLE);
+
+	if (!est_drapeaux && !requiers_identifiant(id_morceau::EGAL)) {
 		lance_erreur("Attendu la déclaration '=' !");
 	}
 
@@ -466,6 +533,15 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 		switch (identifiant_propriete) {
 			default:
 				break;
+			case id_morceau::ANIMABLE:
+			case id_morceau::ACTIVABLE:
+			{
+				if (!dls::outils::est_element(identifiant_propriete, id_morceau::BOUTON, id_morceau::ACTION)) {
+					m_assembleur->propriete_controle(identifiant_propriete, "");
+				}
+
+				break;
+			}
 			case id_morceau::VALEUR:
 			{
 				switch (type_controle) {
@@ -479,7 +555,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 							avance();
 						}
 
-						if (!est_identifiant(id_morceau::NOMBRE) && !est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
+						if (!est_identifiant(id_morceau::NOMBRE_ENTIER) && !est_identifiant(id_morceau::NOMBRE_REEL)) {
 							lance_erreur("Attendu un nombre !");
 						}
 
@@ -536,7 +612,7 @@ void AnalyseuseDisposition::analyse_propriete(id_morceau type_controle)
 					avance();
 				}
 
-				if (!est_identifiant(id_morceau::NOMBRE) && !est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
+				if (!est_identifiant(id_morceau::NOMBRE_ENTIER) && !est_identifiant(id_morceau::NOMBRE_REEL)) {
 					lance_erreur("Attendu un nombre !");
 				}
 

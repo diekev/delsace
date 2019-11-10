@@ -31,7 +31,7 @@
 #include <cstring>
 
 /*
-   TODO: intern strings instead of allocation.
+   À FAIRE: intern strings instead of allocation.
 */
 /*
 	gcc:

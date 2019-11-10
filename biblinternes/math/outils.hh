@@ -34,6 +34,81 @@
 
 namespace dls::math {
 
+template <typename T>
+inline auto extrait_min_max(T const v, T &min, T &max)
+{
+	if (v < min) {
+		min = v;
+	}
+	if (v > max) {
+		max = v;
+	}
+}
+
+/**
+ * Calcul la différence de produits (a * b - c * d) de manière à éviter les
+ * annulations catastophiques. Ceci exploite les implémentations matérielles de
+ * certaines opérations sur point flottant en minimisant les accumulations
+ * d'erreurs de précisions.
+ *
+ * Pour le détail et des exemples, voir :
+ * https://pharr.org/matt/blog/2019/11/03/difference-of-floats.html
+ */
+template <typename T>
+[[nodiscard]] inline auto difference_de_produits(T a, T b, T c, T d)
+{
+	static_assert(std::is_floating_point<T>::value,
+				  "produits_de_differences ne prend que des nombres décimaux");
+
+	auto const cd = c * d;
+	/* quantité d'erreur due à l'arrondi du nombre décimal */
+	auto const err = std::fma(-c, d, cd);
+	auto const ddp = std::fma(a, b, cd);
+	return ddp + err;
+}
+
+/**
+ * Converti un nombre de l'espace continu vers l'espace discret.
+ */
+template <typename Ent, typename Dec>
+[[nodiscard]] inline auto continu_vers_discret(Dec cont)
+{
+	static_assert(std::is_floating_point<Dec>::value
+				  && std::is_integral<Ent>::value,
+				  "continu_vers_discret va de décimal à entier");
+
+	return static_cast<Ent>(std::floor(cont));
+}
+
+/**
+ * Converti un nombre de l'espace discret vers l'espace continu.
+ */
+template <typename Dec, typename Ent>
+[[nodiscard]] inline auto discret_vers_continu(Ent disc)
+{
+	return static_cast<Dec>(disc) + static_cast<Dec>(0.5);
+}
+
+/**
+ * Retourne l'hypoténuse des nombres réels a et b en évitant les
+ * sous/dépassements via (a * racine(1 + (b/a) * (b/a))) au lieu de
+ * racine(a*a + b*b).
+ */
+template <typename T>
+[[nodiscard]] constexpr auto hypotenuse(T const a, T const b)
+{
+	if (a == 0) {
+		return std::abs(b);
+	}
+
+	if (b == 0) {
+		return std::abs(a);
+	}
+
+	auto const c = b / a;
+	return std::abs(a) * std::sqrt(static_cast<T>(1) + c * c);
+}
+
 /**
  * Retourne une valeur équivalente à la restriction de la valeur 'a' entre 'min'
  * et 'max'.
@@ -77,51 +152,6 @@ template <typename T>
 [[nodiscard]] constexpr auto carre(T x) noexcept
 {
 	return x * x;
-}
-
-// transforms even the sequence 0,1,2,3,... into reasonably good random numbers
-// challenge: improve on this in speed and "randomness"!
-[[nodiscard]] inline auto hash_aleatoire(unsigned int seed) noexcept
-{
-   unsigned int i = (seed ^ 12345391u) * 2654435769u;
-
-   i ^= (i << 6) ^ (i >> 26);
-   i *= 2654435769u;
-   i += (i << 5) ^ (i >> 12);
-
-   return i;
-}
-
-template <typename T>
-[[nodiscard]] inline auto hash_aleatoiref(unsigned int seed) noexcept
-{
-	return static_cast<T>(hash_aleatoire(seed)) / static_cast<T>(std::numeric_limits<unsigned int>::max());
-}
-
-template <typename T>
-[[nodiscard]] inline auto hash_aleatoiref(unsigned int seed, T a, T b) noexcept
-{
-	return ((b - a) * hash_aleatoiref<T>(seed) + a);
-}
-
-template <typename type_vecteur>
-[[nodiscard]] auto echantillone_sphere(unsigned int &seed) noexcept
-{
-	using type_scalaire = typename type_vecteur::type_scalaire;
-
-	type_vecteur v;
-	type_scalaire m2;
-
-	do {
-		m2 = static_cast<type_scalaire>(0);
-
-		for (unsigned int i = 0; i < type_vecteur::nombre_composants; ++i) {
-			v[i] = hash_aleatoiref(seed++, -static_cast<type_scalaire>(1), static_cast<type_scalaire>(1));
-			m2 += carre(v[i]);
-		}
-	} while (m2 > static_cast<type_scalaire>(1) || m2 == static_cast<type_scalaire>(0));
-
-	return v / std::sqrt(m2);
 }
 
 template <typename T>
@@ -196,17 +226,6 @@ template <ConceptNombre nombre, ConceptNombre... nombres>
 inline auto max(const nombre &a, const nombre &b, const nombres &... c) -> const nombre&
 {
 	return max(a, max(b, c...));
-}
-
-/**
- * Retourne la valeur du premier paramètre serrée entre min et max.
- */
-template <ConceptNombre nombre>
-inline auto clamp(const nombre &x, const nombre &min = nombre(0), const nombre &max = nombre(1)) -> const nombre&
-{
-	if      (x < min) return min;
-	else if (x > max) return max;
-	return x;
 }
 
 template <ConceptNombre nombre>

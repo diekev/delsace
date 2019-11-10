@@ -1,0 +1,10 @@
+disposition "operatrice_mediane_image" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Rayon")
+		décimal(valeur=1.0; attache=rayon; min=0; animable)
+    }
+}

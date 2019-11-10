@@ -1,0 +1,11 @@
+disposition "operatrice_creation_volume_temporel" {
+	ligne {
+		étiquette(valeur="Temps")
+		décimal(valeur=0.0; min=-2.0; max=2.0; attache=temps)
+	}
+	ligne {
+		étiquette(valeur="Seuil Saillance")
+		décimal(valeur=1.0; min=0.0; attache=seuil_saillance;
+				infobulle="Seuil sous lequel les échantillons temporels ne sont pas considérés. Une valeur trop haute peut causer des artéfacts lors de l'entrepolation du volume. Le seuil peut-être compris comme étant la densité sous laquelle l'échantillon est retiré.")
+	}
+}

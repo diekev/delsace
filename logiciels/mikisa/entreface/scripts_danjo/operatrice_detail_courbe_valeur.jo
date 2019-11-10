@@ -1,0 +1,5 @@
+disposition "operatrice_detail_courbe_valeur" {
+	ligne {
+		courbe_valeur(attache=courbe)
+	}
+}

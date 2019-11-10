@@ -24,74 +24,12 @@
 
 #include "erreur.h"
 
-#include <iostream>
-
-#include "biblinternes/langage/unicode.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "contexte_generation_code.h"
-#include "donnees_type.h"
 #include "modules.hh"
 
 namespace erreur {
-
-frappe::frappe(const char *message, type_erreur type)
-	: m_message(message)
-	, m_type(type)
-{}
-
-type_erreur frappe::type() const
-{
-	return m_type;
-}
-
-const char *frappe::message() const
-{
-	return m_message.c_str();
-}
-
-static void imprime_caractere_vide(dls::flux_chaine &os, const long nombre, const dls::vue_chaine &chaine)
-{
-	/* Le 'nombre' est en octet, il faut donc compter le nombre d'octets
-	 * de chaque point de code pour bien formater l'erreur. */
-	for (auto i = 0l; i < std::min(nombre, chaine.taille());) {
-		if (chaine[i] == '\t') {
-			os << '\t';
-		}
-		else {
-			os << ' ';
-		}
-
-		i += lng::decalage_pour_caractere(chaine, i);
-	}
-}
-
-static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine)
-{
-	for (auto i = 0l; i < chaine.taille() - 1;) {
-		os << '~';
-		i += lng::decalage_pour_caractere(chaine, i);
-	}
-}
-
-static void imprime_tilde(dls::flux_chaine &os, const dls::vue_chaine &chaine, long debut, long fin)
-{
-	for (auto i = debut; i < fin;) {
-		os << '~';
-		i += lng::decalage_pour_caractere(chaine, i);
-	}
-}
-
-static void imprime_ligne_entre(
-		dls::flux_chaine &os,
-		const dls::vue_chaine &chaine,
-		long debut,
-		long fin)
-{
-	for (auto i = debut; i < fin; ++i) {
-		os << chaine[i];
-	}
-}
 
 void lance_erreur(
 		const dls::chaine &quoi,
@@ -111,9 +49,9 @@ void lance_erreur(
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
-	imprime_caractere_vide(ss, pos_mot, ligne_courante);
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
 	ss << '^';
-	imprime_tilde(ss, chaine);
+	lng::erreur::imprime_tilde(ss, chaine);
 	ss << '\n';
 
 	ss << quoi;
@@ -140,183 +78,14 @@ void lance_erreur_plage(
 	ss << "Erreur : ligne:" << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
-	imprime_caractere_vide(ss, pos_premier, ligne_courante);
+	lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
 	ss << '^';
-	imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
+	lng::erreur::imprime_tilde(ss, ligne_courante, pos_premier, pos_dernier + 1);
 	ss << '\n';
 
 	ss << quoi;
 
 	throw erreur::frappe(ss.chn().c_str(), type);
-}
-
-[[noreturn]] void lance_erreur_nombre_arguments(
-		const size_t nombre_arguments,
-		const size_t nombre_recus,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Le nombre d'arguments de la fonction est incorrect.\n";
-	ss << "Requiers : " << nombre_arguments << '\n';
-	ss << "Obtenu : " << nombre_recus << '\n';
-
-	throw frappe(ss.chn().c_str(), type_erreur::NOMBRE_ARGUMENT);
-}
-
-[[noreturn]] void lance_erreur_type_arguments(
-		const DonneesType &type_arg,
-		const DonneesType &type_enf,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau_enfant.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
-	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau_enfant.chaine);
-	ss << '\n';
-
-	ss << "Le type de l'argument '" << morceau_enfant.chaine << "' ne correspond pas à celui requis !\n";
-	ss << "Requiers : " << "type_arg" << '\n';
-	ss << "Obtenu   : " << "type_enf" << '\n';
-	ss << '\n';
-	ss << "Astuce :\n";
-	ss << "Vous pouvez convertir le type en utilisant l'opérateur 'transtype', comme ceci :\n";
-
-	imprime_ligne_entre(ss, ligne, 0, pos_mot);
-	ss << "transtype(" << morceau_enfant.chaine << " : " << "type_arg" << ")";
-	imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
-	ss << "\n----------------------------------------------------------------\n";
-
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
-}
-
-[[noreturn]] void lance_erreur_argument_inconnu(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Fonction : '" << morceau.chaine
-	   << "', argument nommé '" << nom_arg << "' inconnu !\n";
-
-	throw frappe(ss.chn().c_str(), type_erreur::ARGUMENT_INCONNU);
-}
-
-[[noreturn]] void lance_erreur_redeclaration_argument(
-		const dls::vue_chaine &nom_arg,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Fonction : '" << morceau.chaine
-	   << "', redéclaration de l'argument '" << nom_arg << "' !\n";
-
-	throw frappe(ss.chn().c_str(), type_erreur::ARGUMENT_REDEFINI);
-}
-
-[[noreturn]] void lance_erreur_assignation_type_differents(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Ne peut pas assigner des types différents !\n";
-	ss << "Type à gauche : " << "type_gauche" << '\n';
-	ss << "Type à droite : " << "type_droite" << '\n';
-
-	throw frappe(ss.chn().c_str(), type_erreur::ASSIGNATION_MAUVAIS_TYPE);
-}
-
-void lance_erreur_type_operation(
-		const DonneesType &type_gauche,
-		const DonneesType &type_droite,
-		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
-{
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto ligne = module->tampon[numero_ligne];
-
-	dls::flux_chaine ss;
-	ss << "Erreur : ligne:" << numero_ligne + 1 << ":\n";
-	ss << ligne;
-
-	imprime_caractere_vide(ss, pos_mot, ligne);
-	ss << '^';
-	imprime_tilde(ss, morceau.chaine);
-	ss << '\n';
-
-	ss << "Les types de l'opération sont différents !\n";
-	ss << "Type à gauche : " << "type_gauche" << '\n';
-	ss << "Type à droite : " << "type_droite" << '\n';
-
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
 }
 
 }

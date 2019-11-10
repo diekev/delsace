@@ -32,6 +32,7 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <QApplication>
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QToolButton>
@@ -39,12 +40,12 @@
 
 #include "biblinternes/patrons_conception/commande.h"
 #include "biblinternes/patrons_conception/repondant_commande.h"
-#include "biblinternes/graphe/graphe.h"
 
 #include "coeur/evenement.h"
 #include "coeur/manipulatrice.h"
 #include "coeur/mikisa.h"
 #include "coeur/operatrice_image.h"
+#include "coeur/rendu.hh"
 
 #include "opengl/visionneur_scene.h"
 
@@ -54,10 +55,6 @@ static void charge_manipulatrice(Mikisa &mikisa, int type_manipulation)
 {
 	mikisa.type_manipulation_3d = type_manipulation;
 
-	if (mikisa.contexte != GRAPHE_COMPOSITE) {
-		return;
-	}
-
 	auto graphe = mikisa.graphe;
 	auto noeud = graphe->noeud_actif;
 
@@ -65,7 +62,11 @@ static void charge_manipulatrice(Mikisa &mikisa, int type_manipulation)
 		return;
 	}
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	if (noeud->type != type_noeud::OPERATRICE) {
+		return;
+	}
+
+	auto operatrice = extrait_opimage(noeud->donnees);
 
 	if (!operatrice->possede_manipulatrice_3d(mikisa.type_manipulation_3d)) {
 		mikisa.manipulatrice_3d = nullptr;
@@ -174,6 +175,11 @@ void VueCanevas3D::reconstruit_scene() const
 	//m_visionneur_scene->reconstruit_scene();
 }
 
+void VueCanevas3D::change_moteur_rendu(dls::chaine const &id) const
+{
+	m_visionneur_scene->change_moteur_rendu(id);
+}
+
 /* ************************************************************************** */
 
 EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
@@ -238,6 +244,13 @@ EditriceVue3D::EditriceVue3D(Mikisa &mikisa, QWidget *parent)
 	disp_boutons->addWidget(bouton);
 	m_bouton_echelle = bouton;
 
+	m_selecteur_rendu = new QComboBox(this);
+
+	connect(m_selecteur_rendu, SIGNAL(currentIndexChanged(int)),
+			this, SLOT(change_moteur_rendu(int)));
+
+	disp_boutons->addWidget(m_selecteur_rendu);
+
 	disp_boutons->addStretch();
 
 	disp_widgets->addWidget(m_vue);
@@ -257,9 +270,17 @@ void EditriceVue3D::ajourne_etat(int evenement)
 	ajourne |= evenement == (type_evenement::image | type_evenement::traite);
 	ajourne |= evenement == (type_evenement::objet | type_evenement::manipule);
 	ajourne |= evenement == (type_evenement::objet | type_evenement::traite);
-	ajourne |= evenement == (type_evenement::scene | type_evenement::traite);
 	ajourne |= evenement == (type_evenement::temps | type_evenement::modifie);
 	ajourne |= evenement == (type_evenement::rafraichissement);
+
+	auto signaux_blockes = m_selecteur_rendu->blockSignals(true);
+	m_selecteur_rendu->clear();
+
+	for (auto rendu : m_mikisa.bdd.rendus()) {
+		m_selecteur_rendu->addItem(rendu->noeud.nom.c_str(), QVariant(rendu->noeud.nom.c_str()));
+	}
+
+	m_selecteur_rendu->blockSignals(signaux_blockes);
 
 	if (!ajourne) {
 		return;
@@ -302,5 +323,14 @@ void EditriceVue3D::manipule_echelle()
 	m_bouton_actif = m_bouton_echelle;
 
 	charge_manipulatrice(m_mikisa, MANIPULATION_ECHELLE);
+	m_vue->update();
+}
+
+void EditriceVue3D::change_moteur_rendu(int idx)
+{
+	INUTILISE(idx);
+	auto valeur = m_selecteur_rendu->currentData().toString().toStdString();
+
+	m_vue->change_moteur_rendu(valeur);
 	m_vue->update();
 }

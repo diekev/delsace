@@ -24,13 +24,13 @@
 
 #include "expression.h"
 
-#include <cassert>
+#include "biblinternes/langage/nombres.hh"
+#include "biblinternes/outils/conditions.h"
 
-#include "arbre_syntactic.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "erreur.h"
-#include "nombres.h"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 enum class dir_associativite : int {
 	GAUCHE,
@@ -290,17 +290,17 @@ static bool sont_compatibles(id_morceau id1, id_morceau id2)
 
 static inline long extrait_nombre_entier(noeud::base *n)
 {
-	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<long>(n->valeur_calculee) : converti_chaine_nombre_entier(n->chaine(), n->identifiant());
+	return dls::outils::possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<long>(n->valeur_calculee) : denombreuse::converti_chaine_nombre_entier(n->chaine(), n->identifiant());
 }
 
 static inline double extrait_nombre_reel(noeud::base *n)
 {
-	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<double>(n->valeur_calculee) : converti_chaine_nombre_reel(n->chaine(), n->identifiant());
+	return dls::outils::possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<double>(n->valeur_calculee) : denombreuse::converti_chaine_nombre_reel(n->chaine(), n->identifiant());
 }
 
 static inline bool extrait_valeur_bool(noeud::base *n)
 {
-	return possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
+	return dls::outils::possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
 }
 
 static inline dls::chaine extrait_chaine(noeud::base *n)
@@ -331,7 +331,7 @@ noeud::base *calcul_expression_double(
 
 			n1->valeur_calculee = v;
 			n1->drapeaux |= EST_CALCULE;
-			auto dt = DonneesType{};
+			auto dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.taille() << 8));
 			dt.pousse(id_morceau::Z8);
 			n1->index_type = contexte.magasin_types.ajoute_type(dt);

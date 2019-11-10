@@ -34,11 +34,12 @@ enum {
 	NOEUD_IMAGE_SORTIE = 1,
 	NOEUD_OBJET_SORTIE = 2,
 	NOEUD_OBJET        = 3,
+	NOEUD_COMPOSITE    = 4,
 };
 
-void synchronise_donnees_operatrice(Noeud *noeud);
+void synchronise_donnees_operatrice(Noeud &noeud);
 
 void execute_noeud(
-		Noeud *noeud,
+		Noeud &noeud,
 		ContexteEvaluation const &contexte,
 		DonneesAval *donnees_aval);

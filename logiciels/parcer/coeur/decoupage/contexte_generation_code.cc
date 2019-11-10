@@ -24,11 +24,6 @@
 
 #include "contexte_generation_code.hh"
 
-#include <algorithm>
-#include <cassert>
-#include <iostream>
-
-#include "broyage.hh"
 #include "modules.hh"
 
 ContexteGenerationCode::~ContexteGenerationCode()
@@ -292,26 +287,13 @@ bool ContexteGenerationCode::peut_etre_assigne(const dls::vue_chaine &nom)
 void ContexteGenerationCode::empile_nombre_locales()
 {
 	m_pile_nombre_locales.empile(m_nombre_locales);
-	m_pile_nombre_differes.empile(m_nombre_differes);
 }
 
 void ContexteGenerationCode::depile_nombre_locales()
 {
-	auto nombre_locales = m_pile_nombre_locales.haut();
 	/* nous ne pouvons pas avoir moins de locales en sortant du bloc */
-	assert(nombre_locales <= m_nombre_locales);
-	m_nombre_locales = nombre_locales;
-	m_pile_nombre_locales.depile();
-
-	auto nombre_differes = m_pile_nombre_differes.haut();
-	/* nous ne pouvons pas avoir moins de noeuds différés en sortant du bloc */
-	assert(nombre_differes <= m_nombre_differes);
-	m_nombre_differes = nombre_differes;
-	m_pile_nombre_differes.depile();
-
-	while (m_noeuds_differes.taille() > nombre_differes) {
-		m_noeuds_differes.pop_back();
-	}
+	assert(m_pile_nombre_locales.haut() <= m_nombre_locales);
+	m_nombre_locales = m_pile_nombre_locales.depile();
 }
 
 void ContexteGenerationCode::imprime_locales(std::ostream &os)
@@ -409,38 +391,6 @@ dls::chaine ContexteGenerationCode::nom_struct(const long id) const
 
 /* ************************************************************************** */
 
-void ContexteGenerationCode::differe_noeud(noeud::base *noeud)
-{
-	m_noeuds_differes.pousse(noeud);
-	++m_nombre_differes;
-}
-
-dls::tableau<noeud::base *> const &ContexteGenerationCode::noeuds_differes() const
-{
-	return m_noeuds_differes;
-}
-
-dls::tableau<noeud::base *> ContexteGenerationCode::noeuds_differes_bloc() const
-{
-	auto idx_debut = m_pile_nombre_differes.haut();
-	auto idx_fin = m_nombre_differes;
-
-	if (idx_debut == idx_fin) {
-		return {};
-	}
-
-	auto liste = dls::tableau<noeud::base *>{};
-	liste.reserve(idx_fin - idx_debut);
-
-	for (auto i = idx_debut; i < idx_fin; ++i) {
-		liste.pousse(m_noeuds_differes[i]);
-	}
-
-	return liste;
-}
-
-/* ************************************************************************** */
-
 size_t ContexteGenerationCode::memoire_utilisee() const
 {
 	size_t memoire = sizeof(ContexteGenerationCode);
@@ -494,16 +444,4 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	}
 
 	return metriques;
-}
-
-/* ************************************************************************** */
-
-void ContexteGenerationCode::non_sur(bool ouinon)
-{
-	m_non_sur = ouinon;
-}
-
-bool ContexteGenerationCode::non_sur() const
-{
-	return m_non_sur;
 }

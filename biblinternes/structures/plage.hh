@@ -33,6 +33,7 @@ struct plage_continue {
 	using type_pointeur = T*;
 	using type_reference_const = T const&;
 	using type_pointeur_const = T const*;
+	using type_difference = long;
 
 private:
 	type_pointeur m_debut{};
@@ -54,14 +55,34 @@ public:
 		++m_debut;
 	}
 
+	void ecule()
+	{
+		--m_fin;
+	}
+
+	type_difference taille() const
+	{
+		return m_fin - m_debut;
+	}
+
 	type_reference front()
 	{
 		return *m_debut;
 	}
 
-	type_pointeur_const front() const
+	type_reference_const front() const
 	{
 		return *m_debut;
+	}
+
+	type_reference cul()
+	{
+		return *(m_fin - 1);
+	}
+
+	type_reference_const cul() const
+	{
+		return *(m_fin - 1);
 	}
 
 	plage_continue premiere_moitie() const

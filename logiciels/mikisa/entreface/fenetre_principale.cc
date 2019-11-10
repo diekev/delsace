@@ -61,7 +61,7 @@ static const char *chemins_scripts[] = {
 	"entreface/menu_fichier.jo",
 	"entreface/menu_edition.jo",
 	"entreface/menu_ajouter_noeud_composite.jo",
-	"entreface/menu_ajouter_noeud_point3d.jo",
+	"entreface/menu_ajouter_noeud_detail.jo",
 	"entreface/menu_ajouter_noeud_objet.jo",
 	"entreface/menu_ajouter_noeud_scene.jo",
 	"entreface/menu_ajouter_noeud_simulation.jo",
@@ -169,8 +169,7 @@ void FenetrePrincipale::genere_barre_menu()
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
 	for (auto const &chemin : chemins_scripts) {
-		auto const texte_entree = dls::contenu_fichier(chemin);
-		auto menu = m_mikisa.gestionnaire_entreface->compile_menu(donnees, texte_entree.c_str());
+		auto menu = m_mikisa.gestionnaire_entreface->compile_menu_fichier(donnees, chemin);
 
 		menuBar()->addMenu(menu);
 	}
@@ -187,9 +186,7 @@ void FenetrePrincipale::genere_menu_prereglages()
 	donnees.conteneur = nullptr;
 	donnees.repondant_bouton = m_mikisa.repondant_commande();
 
-	auto const texte_entree = dls::contenu_fichier("entreface/menu_prereglage.jo");
-
-	m_barre_outil = m_mikisa.gestionnaire_entreface->compile_barre_outils(donnees, texte_entree.c_str());
+	m_barre_outil = m_mikisa.gestionnaire_entreface->compile_barre_outils_fichier(donnees, "entreface/menu_prereglage.jo");
 	addToolBar(Qt::TopToolBarArea, m_barre_outil);
 }
 
@@ -264,8 +261,8 @@ void FenetrePrincipale::tache_terminee()
 	m_barre_progres->setVisible(false);
 }
 
-void FenetrePrincipale::evaluation_debutee(const char *message)
+void FenetrePrincipale::evaluation_debutee(const char *message, int execution, int total)
 {
 	m_barre_progres->ajourne_valeur(0);
-	m_barre_progres->ajourne_message(message);
+	m_barre_progres->ajourne_message(message, execution, total);
 }

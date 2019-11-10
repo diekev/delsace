@@ -47,11 +47,8 @@ class FunctionPassManager;
 }  /* namespace llvm */
 #endif
 
-#include "biblinternes/structures/liste.hh"
-
-#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/pile.hh"
-#include "biblinternes/structures/tableau.hh"
+#include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
 
@@ -85,7 +82,7 @@ struct DonneesVariable {
 #ifdef AVEC_LLVM
 	llvm::Value *valeur{nullptr};
 #endif
-	long donnees_type{-1l};
+	long index_type{-1l};
 	bool est_dynamique = false;
 	bool est_variadic = false;
 	char drapeaux = 0;
@@ -100,11 +97,14 @@ struct DonneesVariable {
 struct DonneesMembre {
 	long index_membre{};
 	noeud::base *noeud_decl = nullptr;
+
+	/* le décalage en octets dans la struct */
+	unsigned int decalage = 0;
 };
 
 struct DonneesStructure {
 	dls::dico_desordonne<dls::vue_chaine, DonneesMembre> donnees_membres{};
-	dls::tableau<long> donnees_types{};
+	dls::tableau<long> index_types{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *type_llvm{nullptr};
@@ -115,7 +115,8 @@ struct DonneesStructure {
 	noeud::base *noeud_decl = nullptr;
 	bool est_enum = false;
 	bool est_externe = false;
-	char pad[6] = {};
+	char pad[2] = {};
+	unsigned int taille_octet = 0;
 };
 
 struct DonneesFonction;
@@ -145,6 +146,10 @@ struct ContexteGenerationCode {
 	 * utilisation d'une liste afin d'éviter les crashs quand on tient une
 	 * référence à une chaine qui sera libéré */
 	dls::liste<dls::chaine> magasin_chaines{};
+
+	long index_type_ctx = -1;
+
+	bool bit32 = false;
 
 	ContexteGenerationCode() = default;
 

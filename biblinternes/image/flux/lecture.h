@@ -24,13 +24,13 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "../../math/matrice/matrice.hh"
 
 #include "../pixel.h"
 
-namespace filesystem = std::experimental::filesystem;
+namespace filesystem = std::filesystem;
 
 namespace dls {
 namespace image {

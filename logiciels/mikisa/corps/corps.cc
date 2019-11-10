@@ -31,6 +31,7 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "groupes.h"
+#include "sphere.hh"
 #include "volume.hh"
 
 Corps::~Corps()
@@ -45,12 +46,13 @@ bool Corps::possede_attribut(dls::chaine const &nom_attribut)
 
 void Corps::ajoute_attribut(Attribut *attr)
 {
-	this->m_attributs.pousse(attr);
+	this->m_attributs.pousse(*attr);
 }
 
 Attribut *Corps::ajoute_attribut(
 		dls::chaine const &nom_attribut,
 		type_attribut type_,
+		int dimensions,
 		portee_attr portee,
 		bool force_vide)
 {
@@ -60,26 +62,18 @@ Attribut *Corps::ajoute_attribut(
 		auto taille_attrib = 0l;
 
 		if (!force_vide) {
-			auto liste_points = this->points();
+			auto liste_points = this->points_pour_lecture();
 			auto liste_prims = this->prims();
 
 			switch (portee) {
 				case portee_attr::POINT:
-					taille_attrib = liste_points->taille();
+					taille_attrib = liste_points.taille();
 					break;
 				case portee_attr::PRIMITIVE:
 					taille_attrib = liste_prims->taille();
 					break;
 				case portee_attr::VERTEX:
-					for (auto i = 0; i < liste_prims->taille(); ++i) {
-						auto prim = liste_prims->prim(i);
-						if (prim->type_prim() != type_primitive::POLYGONE) {
-							continue;
-						}
-
-						auto poly = dynamic_cast<Polygone *>(prim);
-						taille_attrib += poly->nombre_sommets();
-					}
+					taille_attrib = this->nombre_sommets();
 					break;
 				case portee_attr::GROUPE:
 					taille_attrib = this->m_groupes_prims.taille();
@@ -90,8 +84,9 @@ Attribut *Corps::ajoute_attribut(
 			}
 		}
 
-		attr = memoire::loge<Attribut>("Attribut", nom_attribut, type_, portee, taille_attrib);
-		m_attributs.pousse(attr);
+		auto nattr = Attribut(nom_attribut, type_, dimensions, portee, taille_attrib);
+		m_attributs.pousse(nattr);
+		attr = &m_attributs.back();
 	}
 
 	return attr;
@@ -100,94 +95,64 @@ Attribut *Corps::ajoute_attribut(
 void Corps::supprime_attribut(dls::chaine const &nom_attribut)
 {
 	auto iter = std::find_if(m_attributs.debut(), m_attributs.fin(),
-							 [&](Attribut *attr)
+							 [&](Attribut const &attr)
 	{
-		return attr->nom() == nom_attribut;
+		return attr.nom() == nom_attribut;
 	});
 
 	if (iter == m_attributs.fin()) {
 		return;
 	}
 
-	memoire::deloge("Attribut", *iter);
-
-	m_attributs.erase(iter);
+	m_attributs.efface(iter);
 }
 
-Attribut *Corps::attribut(dls::chaine const &nom_attribut) const
+Attribut *Corps::attribut(const dls::chaine &nom_attribut)
 {
-	for (auto const &attr : m_attributs) {
-		if (attr->nom() != nom_attribut) {
+	for (auto &attr : m_attributs) {
+		if (attr.nom() != nom_attribut) {
 			continue;
 		}
 
-		return attr;
+		return &attr;
 	}
 
 	return nullptr;
 }
 
-long Corps::ajoute_point(const dls::math::vec3f &pos)
+Attribut const *Corps::attribut(dls::chaine const &nom_attribut) const
 {
-	return static_cast<long>(ajoute_point(pos.x, pos.y, pos.z));
-}
+	for (auto const &attr : m_attributs) {
+		if (attr.nom() != nom_attribut) {
+			continue;
+		}
 
-size_t Corps::ajoute_point(float x, float y, float z)
-{
-	auto index = index_point(x, y, z);
-
-	if (index != -1ul) {
-		return index;
+		return &attr;
 	}
 
-	auto point = dls::math::vec3f(x, y, z);
-	m_points.pousse(point);
-
-	return static_cast<size_t>(m_points.taille()) - 1;
-}
-
-size_t Corps::index_point(float x, float y, float z)
-{
-	INUTILISE(x);
-	INUTILISE(y);
-	INUTILISE(z);
-//	int i = 0;
-
-//	for (auto const &point : m_points.points()) {
-//		if (point.x == x && point.y == y && point.z == z) {
-//			return i;
-//		}
-
-//		++i;
-//	};
-
-	return -1ul;
+	return nullptr;
 }
 
 void Corps::ajoute_primitive(Primitive *p)
 {
-	p->index = static_cast<size_t>(m_prims.taille());
+	p->index = m_prims.taille();
 	m_prims.pousse(p);
 }
 
-ListePoints3D *Corps::points()
+void Corps::copie_points(const Corps autre)
 {
-	return &m_points;
+	m_points = autre.m_points;
 }
 
-const ListePoints3D *Corps::points() const
+AccesseusePointEcriture Corps::points_pour_ecriture()
 {
-	return &m_points;
+	m_points.detache();
+	return AccesseusePointEcriture(*this, m_points, transformation);
 }
 
-dls::math::vec3f Corps::point_transforme(long i) const
+AccesseusePointLecture Corps::points_pour_lecture() const
 {
-	auto p = m_points.point(i);
-	auto pos_monde_d = this->transformation(dls::math::point3d(p));
-	return dls::math::vec3f(
-						 static_cast<float>(pos_monde_d.x),
-						 static_cast<float>(pos_monde_d.y),
-						 static_cast<float>(pos_monde_d.z));
+	return AccesseusePointLecture(m_points, transformation);
 }
 
 ListePrimitives *Corps::prims()
@@ -200,19 +165,52 @@ const ListePrimitives *Corps::prims() const
 	return &m_prims;
 }
 
+Polygone *Corps::ajoute_polygone(type_polygone type_poly, long nombre_sommets)
+{
+	auto p = memoire::loge<Polygone>("Polygone");
+	p->type = type_poly;
+	p->reserve_sommets(nombre_sommets);
+
+	ajoute_primitive(p);
+
+	redimensionne_attributs(portee_attr::PRIMITIVE);
+
+	return p;
+}
+
+long Corps::ajoute_sommet(Polygone *p, long idx_point)
+{
+	auto idx_sommet = m_nombre_sommets++;
+
+	p->ajoute_point(idx_point, idx_sommet);
+
+	redimensionne_attributs(portee_attr::VERTEX);
+
+	return idx_sommet;
+}
+
+long Corps::nombre_sommets() const
+{
+	return m_nombre_sommets;
+}
+
+Sphere *Corps::ajoute_sphere(long idx_point, float rayon)
+{
+	auto sphere = memoire::loge<Sphere>("Sphère", idx_point, rayon);
+	ajoute_primitive(sphere);
+	return sphere;
+}
+
 void Corps::reinitialise()
 {
 	m_points.reinitialise();
 	m_prims.reinitialise();
-
-	for (auto &attribut : m_attributs) {
-		memoire::deloge("Attribut", attribut);
-	}
+	m_nombre_sommets = 0;
 
 	m_attributs.efface();
 
-	m_groupes_prims.efface();
 	m_groupes_points.efface();
+	m_groupes_prims.efface();
 }
 
 Corps *Corps::copie() const
@@ -236,22 +234,17 @@ void Corps::copie_vers(Corps *corps) const
 
 	/* copie les primitives */
 	corps->m_prims = this->m_prims;
+	corps->m_nombre_sommets = this->nombre_sommets();
 
 	/* copie les attributs */
-	for (Attribut *attr : this->m_attributs) {
-		auto attr_corps = memoire::loge<Attribut>("Attribut", *attr);
-
-		corps->m_attributs.pousse(attr_corps);
+	for (auto attr : this->m_attributs) {
+		corps->m_attributs.pousse(attr);
 	}
 
 	/* copie les groupes */
-	corps->m_groupes_points.reserve(this->m_groupes_points.taille());
-
 	for (auto groupe : this->m_groupes_points) {
 		corps->m_groupes_points.pousse(groupe);
 	}
-
-	corps->m_groupes_prims.reserve(this->m_groupes_prims.taille());
 
 	for (auto groupe : this->m_groupes_prims) {
 		corps->m_groupes_prims.pousse(groupe);
@@ -283,6 +276,8 @@ GroupePoint *Corps::ajoute_groupe_point(const dls::chaine &nom_groupe)
 
 	m_groupes_points.pousse(groupe);
 
+	redimensionne_attributs(portee_attr::GROUPE);
+
 	return &m_groupes_points.back();
 }
 
@@ -295,8 +290,7 @@ GroupePoint *Corps::groupe_point(const dls::chaine &nom_groupe) const
 	});
 
 	if (iter != m_groupes_points.fin()) {
-		auto index = std::distance(m_groupes_points.debut(), iter);
-		return const_cast<GroupePoint *>(&m_groupes_points[index]);
+		return const_cast<GroupePoint *>(&(*iter));
 	}
 
 	return nullptr;
@@ -327,6 +321,8 @@ GroupePrimitive *Corps::ajoute_groupe_primitive(dls::chaine const &nom_groupe)
 
 	m_groupes_prims.pousse(groupe);
 
+	redimensionne_attributs(portee_attr::GROUPE);
+
 	return &m_groupes_prims.back();
 }
 
@@ -339,8 +335,7 @@ GroupePrimitive *Corps::groupe_primitive(const dls::chaine &nom_groupe) const
 	});
 
 	if (iter != m_groupes_prims.fin()) {
-		auto index = std::distance(m_groupes_prims.debut(), iter);
-		return const_cast<GroupePrimitive *>(&m_groupes_prims[index]);
+		return const_cast<GroupePrimitive *>(&(*iter));
 	}
 
 	return nullptr;
@@ -354,4 +349,45 @@ Corps::plage_grp_prims Corps::groupes_prims()
 Corps::plage_const_grp_prims Corps::groupes_prims() const
 {
 	return plage_const_grp_prims(m_groupes_prims.debut(), m_groupes_prims.fin());
+}
+
+void Corps::redimensionne_attributs(portee_attr portee)
+{
+	for (auto &attr : m_attributs) {
+		if (attr.portee == portee) {
+			attr.redimensionne(attr.taille() + 1);
+		}
+	}
+}
+
+/* ************************************************************************** */
+
+bool possede_volume(const Corps &corps)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::VOLUME) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool possede_sphere(Corps const &corps)
+{
+	auto prims = corps.prims();
+
+	for (auto i = 0; i < prims->taille(); ++i) {
+		auto prim = prims->prim(i);
+
+		if (prim->type_prim() == type_primitive::SPHERE) {
+			return true;
+		}
+	}
+
+	return false;
 }

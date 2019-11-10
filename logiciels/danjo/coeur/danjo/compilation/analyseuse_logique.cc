@@ -201,11 +201,11 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 		symbole.identifiant = identifiant_courant();
 		valeur = m_identifiants[position() + 1].chaine;
 
-		if (est_identifiant(id_morceau::NOMBRE)) {
+		if (est_identifiant(id_morceau::NOMBRE_ENTIER)) {
 			symbole.valeur = std::any(std::stoi(valeur.c_str()));
 			expression.pousse(symbole);
 		}
-		else if (est_identifiant(id_morceau::NOMBRE_DECIMAL)) {
+		else if (est_identifiant(id_morceau::NOMBRE_REEL)) {
 			symbole.valeur = std::any(std::stof(valeur.c_str()));
 			expression.pousse(symbole);
 		}
@@ -244,8 +244,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 				   && est_operateur(pile.haut().identifiant)
 				   && (precedence_faible(symbole.identifiant, pile.haut().identifiant)))
 			{
-				expression.pousse(pile.haut());
-				pile.depile();
+				expression.pousse(pile.depile());
 			}
 
 			symbole.valeur = std::any(valeur);
@@ -260,8 +259,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			}
 
 			while (pile.haut().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
-				expression.pousse(pile.haut());
-				pile.depile();
+				expression.pousse(pile.depile());
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
@@ -278,8 +276,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
-		expression.pousse(pile.haut());
-		pile.depile();
+		expression.pousse(pile.depile());
 	}
 
 #ifdef DEBOGUE_EXPRESSION
@@ -300,10 +297,10 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 		switch (resultat.identifiant) {
 			default:
 				break;
-			case id_morceau::NOMBRE:
+			case id_morceau::NOMBRE_ENTIER:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::ENTIER, resultat.valeur);
 				break;
-			case id_morceau::NOMBRE_DECIMAL:
+			case id_morceau::NOMBRE_REEL:
 				m_manipulable->ajoute_propriete(nom, TypePropriete::DECIMAL, resultat.valeur);
 				break;
 			case id_morceau::BOOL:

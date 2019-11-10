@@ -1,35 +1,35 @@
 disposition "operatrice_bruit_cheveux" {
     ligne {
 	    étiquette(valeur="Quantité")
-		décimal(valeur=1.0; attache=quantité)
+		décimal(valeur=1.0; attache=quantité; animable)
 	}
 	ligne {
 	    étiquette(valeur="Quantité Base")
-		décimal(valeur=1.0; attache=quantité_base)
+		décimal(valeur=1.0; attache=quantité_base; animable)
 	}
 	ligne {
 	    étiquette(valeur="Quantité Bout")
-		décimal(valeur=1.0; attache=quantité_bout)
+		décimal(valeur=1.0; attache=quantité_bout; animable)
 	}
 	ligne {
 	    étiquette(valeur="Multiplication")
-		décimal(valeur=1.0; attache=mult)
+		décimal(valeur=1.0; attache=mult; animable)
 	}
 	ligne {
 	    étiquette(valeur="Aléatoire")
-		décimal(valeur=1.0; attache=alea)
+		décimal(valeur=1.0; attache=alea; animable)
 	}
 	ligne {
 	    étiquette(valeur="Décalage")
-		décimal(valeur=0.0; attache=décalage)
+		décimal(valeur=0.0; attache=décalage; animable)
 	}
 	ligne {
 	    étiquette(valeur="Fréquence")
-		décimal(valeur=1.0; attache=fréquence)
+		décimal(valeur=1.0; attache=fréquence; animable)
 	}
 	ligne {
 	    étiquette(valeur="Probabilité")
-		décimal(valeur=1.0; attache=probabilité; min=0.0; max=1.0; infobulle="Probabilité qu'une courbe soit affectée par l'effet")
+		décimal(valeur=1.0; attache=probabilité; min=0.0; max=1.0; infobulle="Probabilité qu'une courbe soit affectée par l'effet"; animable)
 	}
 	ligne {
 	    étiquette(valeur="Maintiens Longueur")

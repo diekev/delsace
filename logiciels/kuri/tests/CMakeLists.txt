@@ -70,14 +70,9 @@ add_executable(test_kuri ${SOURCES})
 target_include_directories(test_kuri PUBLIC "${INCLUSIONS}")
 target_link_libraries(test_kuri "${BIBLIOTHEQUES}")
 
-install(
-    FILES ${FICHIERS}
-	DESTINATION exemples
-)
-
 add_test(tests test_kuri)
 
-install(TARGETS test_kuri RUNTIME DESTINATION .)
+install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 add_executable(test_aleatoire_kuri test_donnees_aleatoire.cc)
 target_include_directories(test_aleatoire_kuri PUBLIC "${INCLUSIONS}")
@@ -85,7 +80,7 @@ target_link_libraries(test_aleatoire_kuri "${BIBLIOTHEQUES}")
 
 add_test(tests test_aleatoire_kuri)
 
-install(TARGETS test_aleatoire_kuri RUNTIME DESTINATION .)
+install(TARGETS test_aleatoire_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 add_executable(charge_fichier_aleatoire charge_fichier_aleatoire.cc)
 target_include_directories(charge_fichier_aleatoire PUBLIC "${INCLUSIONS}")
@@ -93,7 +88,7 @@ target_link_libraries(charge_fichier_aleatoire "${BIBLIOTHEQUES}")
 
 add_test(tests charge_fichier_aleatoire)
 
-install(TARGETS charge_fichier_aleatoire RUNTIME DESTINATION .)
+install(TARGETS charge_fichier_aleatoire RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 set(FICHIERS_TESTS
 	fichiers/module_test.kuri
@@ -105,5 +100,5 @@ set(FICHIERS_TESTS
 
 install(
 	FILES ${FICHIERS_TESTS}
-	DESTINATION fichiers_tests
+	DESTINATION ${RACINE_INSTALLATION}/fichiers_tests
 )

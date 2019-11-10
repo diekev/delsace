@@ -27,6 +27,7 @@
 #include <filesystem>
 
 #include "decoupage/analyseuse_grammaire.h"
+#include "decoupage/assembleuse_arbre.h"
 #include "decoupage/contexte_generation_code.h"
 #include "decoupage/decoupeuse.h"
 #include "decoupage/modules.hh"
@@ -56,7 +57,7 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 		charge_module(os, "", nom_module.c_str(), contexte_generation, {}, true);
 
 		if (genere_code) {
-			assembleuse.genere_code_C(contexte_generation, os);
+			assembleuse.genere_code_C(contexte_generation, os, "");
 		}
 	}
 	catch (const erreur::frappe &e) {

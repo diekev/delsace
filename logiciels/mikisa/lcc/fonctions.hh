@@ -26,6 +26,7 @@
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
+#include "biblinternes/structures/ensemble.hh"
 
 #include "donnees_type.h"
 
@@ -34,12 +35,12 @@ namespace lcc {
 /* ************************************************************************** */
 
 struct signature {
-	types_entrees entrees{};
-	types_sorties sorties{};
+	param_entrees entrees{};
+	param_sorties sorties{};
 
 	signature() = default;
 
-	signature(types_entrees _entrees_, types_sorties _sorties_);
+	signature(param_entrees _entrees_, param_sorties _sorties_);
 };
 
 /* ************************************************************************** */
@@ -47,11 +48,17 @@ struct signature {
 enum class code_inst : int;
 enum class ctx_script : unsigned short;
 
+enum class req_fonc : char {
+	polyedre,
+	arbre_kd,
+};
+
 struct donnees_fonction {
 	signature seing{};
 	lcc::code_inst type{};
 	lcc::ctx_script ctx{};
-	short pad{};
+	req_fonc requete{};
+	char pad{};
 
 	donnees_fonction() = default;
 };
@@ -66,7 +73,7 @@ struct donnees_fonction_generation {
 };
 
 struct magasin_fonctions {
-	void ajoute_fonction(
+	donnees_fonction *ajoute_fonction(
 			dls::chaine const &nom,
 			lcc::code_inst type,
 			signature const &seing,
@@ -76,8 +83,10 @@ struct magasin_fonctions {
 			dls::chaine const &nom,
 			types_entrees const &type_params);
 
-private:
+	dls::chaine categorie = "";
+
 	dls::dico_desordonne<dls::chaine, dls::tableau<donnees_fonction>> table{};
+	dls::dico_desordonne<dls::chaine, dls::ensemble<dls::chaine>> table_categories{};
 };
 
 /* ************************************************************************** */

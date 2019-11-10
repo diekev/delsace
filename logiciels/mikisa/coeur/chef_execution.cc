@@ -52,5 +52,40 @@ void ChefExecution::indique_progression_parallele(float delta)
 void ChefExecution::demarre_evaluation(const char *message)
 {
 	m_progression_parallele = 0.0f;
-	m_mikisa.notifiant_thread->signale_debut_evaluation(message);
+	m_nombre_execution += 1;
+	m_mikisa.notifiant_thread->signale_debut_evaluation(message, m_nombre_execution, m_nombre_a_executer);
+}
+
+void ChefExecution::reinitialise()
+{
+	m_nombre_a_executer = 0;
+	m_nombre_execution = 0;
+}
+
+void ChefExecution::incremente_compte_a_executer()
+{
+	m_nombre_a_executer += 1;
+}
+
+/* ************************************************************************** */
+
+ChefWolika::ChefWolika(ChefExecution *chef_ex, const char *message)
+	: chef(chef_ex)
+{
+	chef->demarre_evaluation(message);
+}
+
+bool ChefWolika::interrompue() const
+{
+	return chef->interrompu();
+}
+
+void ChefWolika::indique_progression(float progression)
+{
+	chef->indique_progression(progression);
+}
+
+void ChefWolika::indique_progression_parallele(float delta)
+{
+	chef->indique_progression(delta);
 }

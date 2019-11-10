@@ -26,7 +26,6 @@
 
 #include <cassert>
 
-#include "broyage.hh"
 #include "contexte_generation_code.hh"
 
 #include "modules.hh"
@@ -70,21 +69,8 @@ noeud::base *assembleuse_arbre::cree_noeud(
 	auto noeud = new noeud::base(contexte, morceau);
 	m_memoire_utilisee += sizeof(noeud::base);
 
-	/* À FAIRE : réutilise la mémoire des noeuds libérés. */
-
 	if (noeud != nullptr) {
 		noeud->type = type;
-
-		if (type == type_noeud::APPEL_FONCTION) {
-			/* requis pour pouvoir renseigner le noms de arguments depuis
-			 * l'analyse. */
-			noeud->valeur_calculee = dls::liste<dls::vue_chaine>{};
-
-			/* requis pour déterminer le module dans le noeud d'accès point
-			 * À FAIRE : trouver mieux pour accéder à cette information */
-			noeud->module_appel = noeud->morceau.module;
-		}
-
 		m_noeuds.pousse(noeud);
 	}
 

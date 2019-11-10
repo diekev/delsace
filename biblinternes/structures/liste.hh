@@ -32,53 +32,59 @@ namespace dls {
 
 template <typename T>
 struct liste {
+	using type_valeur = T;
+	using type_reference = T&;
+	using type_reference_const = T const&;
+	using type_taille = long;
 	using type_liste = std::list<T, memoire::logeuse_guardee<T>>;
+	using iteratrice = typename type_liste::iterator;
+	using const_iteratrice = typename type_liste::const_iterator;
 
 private:
 	type_liste m_liste{};
 
 public:
-	void pousse(T const &v)
+	void pousse(type_reference_const v)
 	{
 		m_liste.push_back(v);
 	}
 
-	long taille() const
+	type_taille taille() const
 	{
-		return static_cast<long>(m_liste.size());
+		return static_cast<type_taille>(m_liste.size());
 	}
 
-	void push_front(T const &v)
-	{
-		m_liste.push_front(v);
-	}
-
-	void push_front(T &&v)
+	void push_front(type_reference_const v)
 	{
 		m_liste.push_front(v);
 	}
 
-	void pousse(T &&v)
+	void push_front(type_valeur &&v)
 	{
 		m_liste.push_front(v);
 	}
 
-	T &front()
+	void pousse(type_valeur &&v)
+	{
+		m_liste.push_front(v);
+	}
+
+	type_reference front()
 	{
 		return m_liste.front();
 	}
 
-	T const &front() const
+	type_reference_const front() const
 	{
 		return m_liste.front();
 	}
 
-	T &back()
+	type_reference back()
 	{
 		return m_liste.back();
 	}
 
-	T const &back() const
+	type_reference_const back() const
 	{
 		return m_liste.back();
 	}
@@ -93,8 +99,10 @@ public:
 		m_liste.clear();
 	}
 
-	using iteratrice = typename type_liste::iterator;
-	using const_iteratrice = typename type_liste::const_iterator;
+	void efface(iteratrice iter)
+	{
+		m_liste.erase(iter);
+	}
 
 	iteratrice debut()
 	{
@@ -116,12 +124,12 @@ public:
 		return m_liste.cend();
 	}
 
-	void insere(iteratrice ou, T const &v)
+	void insere(iteratrice ou, type_reference_const v)
 	{
 		m_liste.insert(ou, v);
 	}
 
-	void insere(iteratrice ou, T &&v)
+	void insere(iteratrice ou, type_valeur &&v)
 	{
 		m_liste.insert(ou, v);
 	}

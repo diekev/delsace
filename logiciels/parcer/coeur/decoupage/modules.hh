@@ -35,10 +35,6 @@
 #include "donnees_type.hh"
 #include "morceaux.hh"
 
-namespace llvm {
-class Type;
-}
-
 namespace noeud {
 struct base;
 }

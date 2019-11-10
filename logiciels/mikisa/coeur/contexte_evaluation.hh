@@ -31,6 +31,16 @@ class ChefExecution;
 struct GestionnaireFichier;
 struct Mikisa;
 
+namespace lcc {
+struct LCC;
+}
+
+namespace vision {
+class Camera3D;
+}
+
+struct StatistiquesRendu;
+
 struct ContexteEvaluation {
 	/* Le rectangle définissant l'aire de rendu. */
 	Rectangle resolution_rendu{};
@@ -44,11 +54,20 @@ struct ContexteEvaluation {
 	/* Base de données du logiciel */
 	BaseDeDonnees const *bdd = nullptr;
 
+	/* Pour la compilation des scripts LCC */
+	lcc::LCC const *lcc = nullptr;
+
 	/* données sur le temps */
 	int temps_debut = 0;
 	int temps_fin = 250;
 	int temps_courant = 0;
 	double cadence = 0.0;
+
+	/* rendu final */
+	float *tampon_rendu = nullptr;
+	vision::Camera3D *camera_rendu = nullptr;
+	StatistiquesRendu *stats_rendu = nullptr; // un pointeur c'est pas beau
+	bool rendu_final = false;
 
 	ContexteEvaluation(ContexteEvaluation const &) = default;
 	ContexteEvaluation &operator=(ContexteEvaluation const &) = default;

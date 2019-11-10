@@ -39,7 +39,6 @@ set(SOURCES
     analyseuse_grammaire.hh
     arbre_syntactic.hh
     assembleuse_arbre.hh
-    broyage.hh
     contexte_generation_code.hh
     decoupeuse.hh
     donnees_type.hh
@@ -47,13 +46,11 @@ set(SOURCES
     expression.hh
     modules.hh
     morceaux.hh
-    nombres.hh
     validation_semantique.hh
 
     analyseuse_grammaire.cc
     arbre_syntactic.cc
     assembleuse_arbre.cc
-    broyage.cc
     contexte_generation_code.cc
     decoupeuse.cc
     donnees_type.cc
@@ -61,7 +58,6 @@ set(SOURCES
     expression.cc
     modules.cc
     morceaux.cc
-    nombres.cc
     validation_semantique.cc
 )
 

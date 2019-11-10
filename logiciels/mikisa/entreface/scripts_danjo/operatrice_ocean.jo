@@ -1,66 +1,75 @@
 disposition "operatrice_ocean" {
     ligne {
 	    étiquette(valeur="Temps")
-		décimal(valeur=1.0; min=0.0; attache=temps)
+		décimal(valeur=1.0; min=0.0; attache=temps; animable)
 	}
 	ligne {
 	    étiquette(valeur="Résolution")
-		entier(valeur=7; min=1; max=1024; attache=résolution)
+		entier(valeur=7; min=1; max=1024; attache=résolution; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		décimal(valeur=1.0; attache=taille)
+		décimal(valeur=1.0; attache=taille; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille spaciale")
-		entier(valeur=50; min=1; max=512; attache=taille_spaciale)
+		entier(valeur=50; min=1; max=512; attache=taille_spaciale; animable)
+	}
+	ligne {
+		étiquette(valeur="Entrepolation")
+		énum(valeur="proche"; attache=entrepolation; items=[
+			{nom="Proche", valeur="proche"},
+			{nom="Linéaire", valeur="linéaire"},
+			{nom="Cat-Rom", valeur="catrom"}
+		])
 	}
 	ligne {
 	    étiquette(valeur="Gravité")
-		décimal(valeur=9.81; attache=gravité; min=0)
+		décimal(valeur=9.81; attache=gravité; min=0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Vélocité vent")
-		décimal(valeur=30.0; attache=vélocité_vent)
+		décimal(valeur=30.0; attache=vélocité_vent; animable)
 	}
 	ligne {
 	    étiquette(valeur="Damping")
-		décimal(valeur=0.5; attache=damping; min=0.0; max=1.0)
+		décimal(valeur=0.5; attache=damping; min=0.0; max=1.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille plus petite vague")
-		décimal(valeur=0.01; attache=plus_petite_vague)
+		décimal(valeur=0.01; attache=plus_petite_vague; animable)
 	}
 	ligne {
 	    étiquette(valeur="Alignement vague")
-		décimal(valeur=0.01; attache=alignement_vague; min=0.0; max=10.0)
+		décimal(valeur=0.01; attache=alignement_vague; min=0.0; max=10.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Direction vague")
-		décimal(valeur=0.0; attache=direction_vague)
+		décimal(valeur=0.0; attache=direction_vague; animable)
 	}
 	ligne {
 	    étiquette(valeur="Échelle vague")
-		décimal(valeur=1.0; attache=échelle_vague)
+		décimal(valeur=1.0; attache=échelle_vague; animable)
 	}
 	ligne {
 	    étiquette(valeur="Profondeur")
-		décimal(valeur=200.0; attache=profondeur)
+		décimal(valeur=200.0; attache=profondeur; animable)
 	}
 	ligne {
 	    étiquette(valeur="Couverture écume")
-		décimal(valeur=0.0; attache=couverture_écume)
+		décimal(valeur=0.0; attache=couverture_écume; animable)
 	}
 	ligne {
 	    étiquette(valeur="Atténuation écume")
-		décimal(valeur=0.98; attache=atténuation_écume)
+		décimal(valeur=0.98; attache=atténuation_écume; animable)
 	}
 	ligne {
-	    étiquette(valeur="Quantité chop")
-		décimal(valeur=1.0; attache=quantité_chop; min=0.0; max=4.0)
+		étiquette(valeur="Quantité chop X/Z")
+		décimal(valeur=1.0; attache=chop_x; min=0.0; max=4.0; animable)
+		décimal(valeur=1.0; attache=chop_z; min=0.0; max=4.0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=0; min=0; attache=graine)
+		entier(valeur=0; min=0; attache=graine; animable)
 	}
 }

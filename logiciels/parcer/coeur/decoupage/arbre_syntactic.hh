@@ -25,12 +25,11 @@
 #pragma once
 
 #include <any>
+
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.hh"
-#include "morceaux.hh"
-
-char caractere_echape(char const *sequence);
 
 struct ContexteGenerationCode;
 
@@ -82,113 +81,11 @@ const char *chaine_type_noeud(type_noeud type);
 
 /* ************************************************************************** */
 
-/* Notes pour supprimer le dls::liste de la structure noeud et n'utiliser de la
- * mémoire que quand nécessaire.
- *
- * noeud racine : multiples enfants pouvant être dans des tableaux différents
- * -- noeud déclaration fonction
- * -- noeud déclaration structure
- * -- noeud déclaration énum
- *
- * noeud déclaration fonction : un seul enfant
- * -- noeud bloc
- *
- * noeud appel fonction : multiples enfants de mêmes types
- * -- noeud expression
- *
- * noeud assignation variable : deux enfants
- * -- noeud expression | noeud déclaration variable
- * -- noeud expression
- *
- * noeud retour : un seul enfant
- * -- noeud expression
- *
- * noeud opérateur binaire : 2 enfants de même type
- * -- noeud expression
- * -- noeud expression
- *
- * noeud opérateur binaire : un seul enfant
- * -- noeud expression
- *
- * noeud expression : un seul enfant, peut utiliser une énumeration pour choisir
- *                    le bon noeud
- * -- noeud (variable | opérateur | nombre entier | nombre réel | appel fonction)
- *
- * noeud accès membre : deux enfants de même type
- * -- noeud variable
- *
- * noeud boucle : un seul enfant
- * -- noeud bloc
- *
- * noeud pour : 4 enfants
- * -- noeud variable
- * -- noeud expression
- * -- noeud expression
- * -- noeud bloc
- *
- * noeud bloc : multiples enfants de types différents
- * -- déclaration variable / expression / retour / boucle pour
- *
- * noeud si : 2 ou 3 enfants
- * -- noeud expression
- * -- noeud bloc
- * -- noeud si | noeud bloc
- *
- * noeud déclaration variable : aucun enfant
- * noeud variable : aucun enfant
- * noeud nombre entier : aucun enfant
- * noeud nombre réel : aucun enfant
- * noeud booléen : aucun enfant
- * noeud chaine caractère : aucun enfant
- * noeud continue_arrête : aucun enfant
- * noeud pointeur nul : aucun enfant
- *
- * Le seul type de neoud posant problème est le noeud de déclaration de
- * fonction, mais nous pourrions avoir des tableaux séparés avec une structure
- * de données pour définir l'ordre d'apparition des noeuds des tableaux dans la
- * fonction. Tous les autres types de noeuds ont des enfants bien défini, donc
- * nous pourrions peut-être supprimer l'héritage, tout en forçant une interface
- * commune à tous les noeuds.
- */
-
-/* ************************************************************************** */
-
-enum : unsigned short {
-	DYNAMIC                = (1 << 0),
-	VARIADIC               = (1 << 1),
-	DECLARATION            = (1 << 2),
-	CONVERTI_TABLEAU       = (1 << 3),
-	CONVERTI_EINI          = (1 << 4),
-	EXTRAIT_EINI           = (1 << 5),
-	EXTRAIT_CHAINE_C       = (1 << 6),
-	EST_EXTERNE            = (1 << 7),
-	EST_CALCULE            = (1 << 8),
-	CONVERTI_TABLEAU_OCTET = (1 << 9),
-	POUR_ASSIGNATION       = (1 << 10),
-	IGNORE_OPERATEUR       = (1 << 11),
-
-	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
+enum drapeaux_noeud : unsigned short {
+	IGNORE_OPERATEUR = (1 << 0),
 };
 
-inline bool possede_drapeau(unsigned short drapeau, unsigned short valeur)
-{
-	return (drapeau & valeur) != 0;
-}
-
-enum {
-	GENERE_BOUCLE_PLAGE,
-	GENERE_BOUCLE_PLAGE_INDEX,
-	GENERE_BOUCLE_TABLEAU,
-	GENERE_BOUCLE_TABLEAU_INDEX,
-	GENERE_BOUCLE_COROUTINE,
-	GENERE_BOUCLE_COROUTINE_INDEX,
-
-	GENERE_CODE_PTR_FONC_MEMBRE,
-
-	GAUCHE_ASSIGNATION,
-	GENERE_CODE_DECL_VAR,
-	GENERE_CODE_ACCES_VAR,
-};
+DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
 
 struct DonneesFonction;
 
@@ -208,7 +105,7 @@ struct base {
 	long index_type = -1l;
 
 	char aide_generation_code = 0;
-	unsigned short drapeaux = 0;
+	drapeaux_noeud drapeaux{};
 	type_noeud type{};
 	int module_appel{}; // module pour les appels de fonctions importées
 
@@ -252,20 +149,5 @@ struct base {
 	 */
 	base *dernier_enfant() const;
 };
-
-void rassemble_feuilles(
-		base *noeud_base,
-		dls::tableau<base *> &feuilles);
-
-bool est_constant(base *b);
-
-/* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
-void ajoute_nom_argument(base *b, const dls::vue_chaine &nom);
-
-bool peut_operer(
-		const DonneesType &type1,
-		const DonneesType &type2,
-		type_noeud type_gauche,
-		type_noeud type_droite);
 
 }  /* namespace noeud */

@@ -26,9 +26,25 @@
 
 #include "base_analyseuse.h"
 
+#include "biblinternes/structures/magasin.hh"
+
 namespace danjo {
 
 class AssembleurDisposition;
+
+struct valideuse_propriete {
+private:
+	dls::magasin<id_morceau> const *magasin = nullptr;
+
+public:
+	valideuse_propriete() = default;
+	valideuse_propriete(valideuse_propriete const &) = default;
+	valideuse_propriete &operator=(valideuse_propriete const &) = default;
+
+	bool cherche_magasin(id_morceau id);
+
+	bool est_propriete_valide(id_morceau id);
+};
 
 /**
  * La classe AnalyseuseDisposition s'occupe de vérifié que la grammaire du
@@ -41,6 +57,8 @@ class AssembleurDisposition;
  */
 class AnalyseuseDisposition : public base_analyseuse {
 	AssembleurDisposition *m_assembleur = nullptr;
+
+	valideuse_propriete m_valideuse{};
 
 public:
 	explicit AnalyseuseDisposition(
@@ -167,5 +185,7 @@ private:
 };
 
 bool est_identifiant_controle(id_morceau identifiant);
+
+bool est_identifiant_propriete(id_morceau identifiant);
 
 }  /* namespace danjo */

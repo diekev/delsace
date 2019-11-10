@@ -34,23 +34,23 @@
 
 #include "base_editrice.h"
 
+class BaseDeDonnees;
 class Noeud;
-class Scene;
 class Objet;
 
 /* ************************************************************************** */
 
 class SceneTreeWidgetItem : public QWidget, public QTreeWidgetItem {
-	Scene *m_scene;
+	BaseDeDonnees *m_scene;
     bool m_visited;
 
 public:
-    explicit SceneTreeWidgetItem(Scene *scene, QWidget *parent = nullptr);
+	explicit SceneTreeWidgetItem(BaseDeDonnees *scene, QWidget *parent = nullptr);
 
 	SceneTreeWidgetItem(SceneTreeWidgetItem const &) = default;
 	SceneTreeWidgetItem &operator=(SceneTreeWidgetItem const &) = default;
 
-    Scene *getScene() const;
+	BaseDeDonnees *getScene() const;
 
     bool visited() const;
     void setVisited();

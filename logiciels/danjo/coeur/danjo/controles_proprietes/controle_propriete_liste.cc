@@ -98,6 +98,7 @@ void ControleProprieteListe::ajourne_valeur_pointee(const QString &valeur)
 		return;
 	}
 
+	Q_EMIT(precontrole_change());
 	*m_pointeur = valeur.toStdString();
 	Q_EMIT(controle_change());
 }

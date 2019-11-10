@@ -24,12 +24,6 @@
 
 #include "arbre_syntactic.hh"
 
-#include "assembleuse_arbre.hh"
-#include "broyage.hh"
-#include "contexte_generation_code.hh"
-#include "erreur.hh"
-#include "modules.hh"
-
 /* ************************************************************************** */
 
 static void imprime_tab(std::ostream &os, int tab)
@@ -38,41 +32,6 @@ static void imprime_tab(std::ostream &os, int tab)
 		os << ' ' << ' ';
 	}
 }
-
-char caractere_echape(char const *sequence)
-{
-	switch (sequence[0]) {
-		case '\\':
-			switch (sequence[1]) {
-				case '\\':
-					return '\\';
-				case '\'':
-					return '\'';
-				case 'a':
-					return '\a';
-				case 'b':
-					return '\b';
-				case 'f':
-					return '\f';
-				case 'n':
-					return '\n';
-				case 'r':
-					return '\r';
-				case 't':
-					return '\t';
-				case 'v':
-					return '\v';
-				case '0':
-					return '\0';
-				default:
-					return sequence[1];
-			}
-		default:
-			return sequence[0];
-	}
-}
-
-/* ************************************************************************** */
 
 const char *chaine_type_noeud(type_noeud type)
 {
@@ -163,31 +122,7 @@ void base::imprime_code(std::ostream &os, int tab)
 	imprime_tab(os, tab);
 
 	os << chaine_type_noeud(this->type) << ' ';
-
-	if (possede_drapeau(this->drapeaux, EST_CALCULE)) {
-		if (this->type == type_noeud::NOMBRE_ENTIER) {
-			os << std::any_cast<long>(this->valeur_calculee);
-		}
-		else if (this->type == type_noeud::NOMBRE_REEL) {
-			os << std::any_cast<double>(this->valeur_calculee);
-		}
-		else if (this->type == type_noeud::BOOLEEN) {
-			os << ((std::any_cast<bool>(this->valeur_calculee)) ? "vrai" : "faux");
-		}
-		else if (this->type == type_noeud::CHAINE_LITTERALE) {
-			os << std::any_cast<dls::chaine>(this->valeur_calculee);
-		}
-	}
-	else if (this->type == type_noeud::TRANSTYPE) {
-		os << this->index_type;
-	}
-	else if (this->type == type_noeud::TAILLE_DE) {
-		os << this->index_type;
-	}
-	else if (this->type != type_noeud::RACINE) {
-		os << morceau.chaine;
-	}
-
+	os << morceau.chaine;
 	os << ":\n";
 
 	for (auto enfant : this->enfants) {
@@ -198,28 +133,6 @@ void base::imprime_code(std::ostream &os, int tab)
 id_morceau base::identifiant() const
 {
 	return morceau.identifiant;
-}
-
-/* ************************************************************************** */
-
-void rassemble_feuilles(
-		base *noeud_base,
-		dls::tableau<base *> &feuilles)
-{
-	for (auto enfant : noeud_base->enfants) {
-		if (enfant->identifiant() == id_morceau::VIRGULE) {
-			rassemble_feuilles(enfant, feuilles);
-		}
-		else {
-			feuilles.pousse(enfant);
-		}
-	}
-}
-
-void ajoute_nom_argument(base *b, const dls::vue_chaine &nom)
-{
-	auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine>>(&b->valeur_calculee);
-	noms_arguments->pousse(nom);
 }
 
 }  /* namespace noeud */

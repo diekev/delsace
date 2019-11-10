@@ -27,16 +27,15 @@
 #include <iostream>
 
 #include "erreur.hh"
-#include "nombres.hh"
 
 /* ************************************************************************** */
 
 static bool est_drapeaux(DonneesMorceaux::type identifiant)
 {
 	switch (identifiant) {
-		case ID_VARIABLE:
-		case ID_AUTO_INCREMENTE:
-		case ID_CLE_PRIMAIRE:
+		case id_morceau::VARIABLE:
+		case id_morceau::AUTO_INCREMENTE:
+		case id_morceau::CLE_PRIMAIRE:
 			return true;
 		default:
 			return false;
@@ -46,22 +45,24 @@ static bool est_drapeaux(DonneesMorceaux::type identifiant)
 static void initialise_colonne(Colonne &colonne)
 {
 	switch (colonne.type) {
-		case ID_ENTIER:
+		case id_morceau::ENTIER:
 			colonne.octet = 4;
 			colonne.taille = 10;
 			break;
-		case ID_BIT:
+		case id_morceau::BIT:
 			colonne.octet = 1;
 			break;
-		case ID_CHAINE:
+		case id_morceau::CHAINE:
 			break;
-		case ID_BINAIRE:
+		case id_morceau::BINAIRE:
 			break;
-		case ID_TEMPS:
+		case id_morceau::TEMPS:
 			break;
-		case ID_TEMPS_DATE:
+		case id_morceau::TEMPS_DATE:
 			break;
-		case ID_TEXTE:
+		case id_morceau::TEXTE:
+			break;
+		default:
 			break;
 	}
 }
@@ -91,30 +92,30 @@ const Schema *analyseuse_grammaire::schema() const
 
 void analyseuse_grammaire::analyse_schema()
 {
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Le script doit commencer par le nom de la base de données");
 	}
 
 	m_schema.nom = donnees().chaine;
 
-	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante '{' après le nom de la base de données");
 	}
 
 	this->analyse_declaration_table();
 
-	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("Le script doit terminer par une accolade fermante '}'");
 	}
 }
 
 void analyseuse_grammaire::analyse_declaration_table()
 {
-	if (est_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		return;
 	}
 
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("La déclaration d'une table doit commencer par un nom");
 	}
 
@@ -128,13 +129,13 @@ void analyseuse_grammaire::analyse_declaration_table()
 		}
 	}
 
-	if (!requiers_identifiant(ID_ACCOLADE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 		lance_erreur("Attendu une accolade ouvrante '{' après le nom de la table");
 	}
 
 	this->analyse_declaration_colonne(table);
 
-	if (!requiers_identifiant(ID_ACCOLADE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		lance_erreur("La déclaration d'une table doit terminer par une accolade fermante '}'");
 	}
 
@@ -147,7 +148,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 {
 	auto colonne = Colonne{};
 
-	if (!requiers_identifiant(ID_CHAINE_CARACTERE)) {
+	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("La déclaration d'une colonne doit commencer par un nom");
 	}
 
@@ -161,7 +162,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 		}
 	}
 
-	if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
+	if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 		lance_erreur("Attendu un double point ':' après le nom de la colonne");
 	}
 
@@ -172,22 +173,22 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 	colonne.type = donnees().identifiant;
 	initialise_colonne(colonne);
 
-	if (!requiers_identifiant(ID_PARENTHESE_OUVRANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
 		lance_erreur("Attendu une paranthèse ouvrante '(' après le type de la colonne");
 	}
 
-	while (!est_identifiant(ID_PARENTHESE_FERMANTE)) {
+	while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		analyse_propriete_colonne(colonne);
 	}
 
-	if (!requiers_identifiant(ID_PARENTHESE_FERMANTE)) {
+	if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		lance_erreur("Attendu une paranthère fermante ')' à la fin de la déclaration de la colonne");
 	}
 
 	/* À FAIRE : validation des propriétés. */
 	table.colonnes.pousse(colonne);
 
-	if (est_identifiant(ID_CHAINE_CARACTERE)) {
+	if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		this->analyse_declaration_colonne(table);
 	}
 }
@@ -197,14 +198,14 @@ bool analyseuse_grammaire::requiers_type(DonneesMorceaux::type identifiant)
 	avance();
 
 	switch (identifiant) {
-		case ID_ENTIER:
-		case ID_BIT:
-		case ID_CHAINE:
-		case ID_BINAIRE:
-		case ID_CLE:
-		case ID_TEMPS:
-		case ID_TEMPS_DATE:
-		case ID_TEXTE:
+		case id_morceau::ENTIER:
+		case id_morceau::BIT:
+		case id_morceau::CHAINE:
+		case id_morceau::BINAIRE:
+		case id_morceau::CLE:
+		case id_morceau::TEMPS:
+		case id_morceau::TEMPS_DATE:
+		case id_morceau::TEXTE:
 			return true;
 		default:
 			return false;
@@ -213,35 +214,37 @@ bool analyseuse_grammaire::requiers_type(DonneesMorceaux::type identifiant)
 
 static void initialise_propriete(
 		Colonne &colonne,
-		size_t id_propriete,
+		id_morceau id_propriete,
 		const DonneesMorceaux &donnees)
 {
 	switch (id_propriete) {
-		case ID_SIGNE:
-			colonne.signee = (donnees.identifiant == ID_VRAI);
+		case id_morceau::SIGNE:
+			colonne.signee = (donnees.identifiant == id_morceau::VRAI);
 			break;
-		case ID_SUPPRIME:
+		case id_morceau::SUPPRIME:
 			colonne.suppression = donnees.identifiant;
 			break;
-		case ID_NUL:
-			colonne.peut_etre_nulle = (donnees.identifiant == ID_VRAI);
+		case id_morceau::NUL:
+			colonne.peut_etre_nulle = (donnees.identifiant == id_morceau::VRAI);
 			break;
-		case ID_DEFAUT:
+		case id_morceau::DEFAUT:
 			colonne.a_valeur_defaut = true;
 			colonne.id_valeur_defaut = donnees.identifiant;
 			colonne.defaut = donnees.chaine;
 			break;
-		case ID_TAILLE:
+		case id_morceau::TAILLE:
 			colonne.taille = std::atoi(dls::chaine(donnees.chaine).c_str());
 			break;
-		case ID_OCTET:
+		case id_morceau::OCTET:
 			colonne.octet = std::atoi(dls::chaine(donnees.chaine).c_str());
 			break;
-		case ID_TABLE:
+		case id_morceau::TABLE:
 			colonne.table = donnees.chaine;
 			break;
-		case ID_REFERENCE:
+		case id_morceau::REFERENCE:
 			colonne.ref = donnees.chaine;
+			break;
+		default:
 			break;
 	}
 }
@@ -250,14 +253,16 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 {
 	if (est_drapeaux(identifiant_courant())) {
 		switch (identifiant_courant()) {
-			case ID_VARIABLE:
+			case id_morceau::VARIABLE:
 				colonne.variable = true;
 				break;
-			case ID_AUTO_INCREMENTE:
+			case id_morceau::AUTO_INCREMENTE:
 				colonne.auto_inc = true;
 				break;
-			case ID_CLE_PRIMAIRE:
+			case id_morceau::CLE_PRIMAIRE:
 				colonne.cle_primaire = true;
+				break;
+			default:
 				break;
 		}
 
@@ -270,7 +275,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 
 		auto id_propriete = donnees().identifiant;
 
-		if (!requiers_identifiant(ID_DOUBLE_POINTS)) {
+		if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 			lance_erreur("Attendu un double point ':' après la propriété");
 		}
 
@@ -281,7 +286,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 		initialise_propriete(colonne, id_propriete, donnees());
 	}
 
-	if (est_identifiant(ID_VIRGULE)) {
+	if (est_identifiant(id_morceau::VIRGULE)) {
 		avance();
 	}
 }
@@ -291,14 +296,14 @@ bool analyseuse_grammaire::requiers_propriete(DonneesMorceaux::type identifiant)
 	avance();
 
 	switch (identifiant) {
-		case ID_SIGNE:
-		case ID_SUPPRIME:
-		case ID_NUL:
-		case ID_DEFAUT:
-		case ID_TAILLE:
-		case ID_OCTET:
-		case ID_TABLE:
-		case ID_REFERENCE:
+		case id_morceau::SIGNE:
+		case id_morceau::SUPPRIME:
+		case id_morceau::NUL:
+		case id_morceau::DEFAUT:
+		case id_morceau::TAILLE:
+		case id_morceau::OCTET:
+		case id_morceau::TABLE:
+		case id_morceau::REFERENCE:
 			return true;
 		default:
 			return false;
@@ -310,16 +315,16 @@ bool analyseuse_grammaire::requiers_valeur(DonneesMorceaux::type identifiant)
 	avance();
 
 	switch (identifiant) {
-		case ID_NOMBRE_ENTIER:
-		case ID_NOMBRE_HEXADECIMAL:
-		case ID_NOMBRE_BINAIRE:
-		case ID_NOMBRE_OCTAL:
-		case ID_NUL:
-		case ID_FAUX:
-		case ID_VRAI:
-		case ID_TEMPS_COURANT:
-		case ID_CHAINE_CARACTERE:
-		case ID_CASCADE:
+		case id_morceau::NOMBRE_ENTIER:
+		case id_morceau::NOMBRE_HEXADECIMAL:
+		case id_morceau::NOMBRE_BINAIRE:
+		case id_morceau::NOMBRE_OCTAL:
+		case id_morceau::NUL:
+		case id_morceau::FAUX:
+		case id_morceau::VRAI:
+		case id_morceau::TEMPS_COURANT:
+		case id_morceau::CHAINE_CARACTERE:
+		case id_morceau::CASCADE:
 			return true;
 		default:
 			return false;

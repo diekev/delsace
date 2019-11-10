@@ -24,6 +24,8 @@
 
 #include "ecriture.h"
 
+#include "biblinternes/structures/tableau.hh"
+
 #include <cassert>
 #include <iostream>
 
@@ -32,8 +34,16 @@
 #endif
 
 #ifdef AVEC_OPENEXR
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wregister"
+#	pragma GCC diagnostic ignored "-Wold-style-cast"
+#	pragma GCC diagnostic ignored "-Wsign-conversion"
+#	pragma GCC diagnostic ignored "-Weffc++"
+#	pragma GCC diagnostic ignored "-Wconversion"
+#	pragma GCC diagnostic ignored "-Wshadow"
 #	include <OpenEXR/ImfRgbaFile.h>
 #	include <OpenEXR/ImathBox.h>
+#	pragma GCC diagnostic pop
 #endif
 
 #include "../outils/flux.h"
@@ -97,8 +107,8 @@ void AuteurJPEG::ecris(const filesystem::path &chemin, const math::matrice_dyn<P
 	info.err = jpeg_std_error(&jerr);
 
 	jpeg_stdio_dest(&info, file);
-	info.image_width = image.nombre_colonnes();
-	info.image_height = image.nombre_lignes();
+	info.image_width = static_cast<unsigned>(image.nombre_colonnes());
+	info.image_height = static_cast<unsigned>(image.nombre_lignes());
 	info.input_components = 3;
 
 	switch (info.input_components) {
@@ -118,13 +128,13 @@ void AuteurJPEG::ecris(const filesystem::path &chemin, const math::matrice_dyn<P
 	jpeg_set_quality(&info, 95, FALSE);
     jpeg_start_compress(&info, TRUE);
 
-	const auto &stride = info.image_width * info.input_components;
+	const auto &stride = info.image_width * static_cast<unsigned>(info.input_components);
 	unsigned char *buffer = new unsigned char[stride];
 
-	for (size_t x = 0; x < info.image_height; ++x) {
+	for (auto x = 0; x < image.nombre_lignes(); ++x) {
 		auto idx = 0;
 
-		for (size_t y = 0; y < info.image_width; ++y) {
+		for (auto y = 0; y < image.nombre_colonnes(); ++y) {
 			buffer[idx++] = image[x][y].r;
 			buffer[idx++] = image[x][y].g;
 			buffer[idx++] = image[x][y].b;
@@ -173,32 +183,32 @@ void AuteurPNM::ecris(const filesystem::path &chemin, const math::matrice_dyn<Pi
 }
 
 
-// TODO: catch exceptions (std::exception)?
+// À FAIRE: catch exceptions (std::exception)?
 void AuteurEXR::ecris(const filesystem::path &chemin, const math::matrice_dyn<PixelFloat> &image)
 {
 #ifdef AVEC_OPENEXR
 	namespace openexr = OPENEXR_IMF_NAMESPACE;
 
-	const auto &height = grid.height();
-	const auto &width = grid.width();
+	const auto &height = image.nombre_lignes();
+	const auto &width = image.nombre_colonnes();
 
 	openexr::Header header(width, height);
 	openexr::RgbaOutputFile file(chemin.c_str(), header, openexr::WRITE_RGBA);
 
-	dls::tableau<openexr::Rgba> pixels(image.resolution());
+	dls::tableau<openexr::Rgba> pixels(image.dimensions().nombre_elements());
 
-	size_t idx(0);
-	for (size_t y = 0; y < height; ++y) {
-		for (size_t x = 0, xe = grid.stride(); x < xe; x += grid.components(), ++idx) {
-			pixels[idx].r = grid(x + 0, y);
-			pixels[idx].g = grid(x + 1, y);
-			pixels[idx].b = grid(x + 2, y);
-			pixels[idx].a = 1.0f;
+	auto idx(0);
+	for (auto y = 0; y < height; ++y) {
+		for (auto x = 0; x < width; ++x, ++idx) {
+			pixels[idx].r = image[y][x].r;
+			pixels[idx].g = image[y][x].g;
+			pixels[idx].b = image[y][x].b;
+			pixels[idx].a = image[y][x].a;
 		}
 	}
 
-	file.setFrameBuffer(&pixels[0], 1, width);
-	file.writePixels(grid.height());
+	file.setFrameBuffer(&pixels[0], 1, static_cast<size_t>(width));
+	file.writePixels(height);
 #else
 	INUTILISE(chemin);
 	INUTILISE(image);

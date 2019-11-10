@@ -24,9 +24,6 @@
 
 #pragma once
 
-#include "biblinternes/image/pixel.h"
-#include "biblinternes/math/matrice/matrice.hh"
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -35,14 +32,18 @@
 #include <QGLWidget>
 #pragma GCC diagnostic pop
 
+#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/opengl/contexte_rendu.h"
 #include "biblinternes/vision/camera_2d.h"
+
+#include "coeur/image.hh"
 
 #include "base_editrice.h"
 
 /* ************************************************************************** */
 
 class EditriceVue2D;
+class RenduTexte;
 class RenduImage;
 class RenduManipulatrice2D;
 
@@ -51,9 +52,11 @@ class Visionneuse2D : public QGLWidget {
 	RenduManipulatrice2D *m_rendu_manipulatrice = nullptr;
 	Mikisa &m_mikisa;
 	EditriceVue2D *m_base;
+	RenduTexte *m_rendu_texte = nullptr;
 
 	ContexteRendu m_contexte{};
 	dls::math::mat4x4f m_matrice_image{};
+	dls::chrono::metre_seconde m_chrono_rendu{};
 
 public:
 	explicit Visionneuse2D(Mikisa &mikisa, EditriceVue2D *base, QWidget *parent = nullptr);
@@ -65,7 +68,7 @@ public:
 	void initializeGL() override;
 	void paintGL() override;
 	void resizeGL(int w, int h) override;
-	void charge_image(const dls::math::matrice_dyn<dls::image::Pixel<float> > &image);
+	void charge_image(const grille_couleur &image);
 	void wheelEvent(QWheelEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;

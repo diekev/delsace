@@ -30,12 +30,16 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	analyseuse.hh
+	erreur.hh
+	nombres.hh
 	tampon_source.hh
 	unicode.hh
 )
 
 set(SOURCES
 	analyseuse.cc
+	erreur.cc
+	nombres.cc
 	tampon_source.cc
 	unicode.cc
 
@@ -46,6 +50,3 @@ add_library(${NOM_PROJET} STATIC "${SOURCES}")
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")
-
-install(TARGETS ${NOM_PROJET} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_PROJET})

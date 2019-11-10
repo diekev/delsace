@@ -29,6 +29,7 @@
 
 /* Algorithms derived from
  * "A Fundamental Algorithm for Dependency Parsing", Michael A. Covington, 2001
+ * https://web.stanford.edu/~mjkay/covington.pdf
  */
 
 void link(word *head, word *dependent)
@@ -41,7 +42,7 @@ void link(word *head, word *dependent)
 
 static bool grammar_permits(word */*head*/, word */*dependent*/)
 {
-	/* TODO */
+	/* À FAIRE */
 	return false;
 }
 

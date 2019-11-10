@@ -1,0 +1,6 @@
+disposition "operatrice_attribut_detail" {
+	ligne {
+		étiquette(valeur="Nom Attribut")
+		chaine(valeur=""; attache=nom_attribut)
+	}
+}

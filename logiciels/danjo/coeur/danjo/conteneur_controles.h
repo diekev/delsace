@@ -53,6 +53,10 @@ public Q_SLOTS:
 	 */
 	virtual void ajourne_manipulable() = 0;
 
+	virtual void precontrole_change() {}
+
+	virtual void onglet_dossier_change(int index);
+
 	/**
 	 * Cette méthode est appelée à chaque fois qu'un controle de liste a besoin
 	 * de mettre à jour sa liste de chaînes disponible pour l'attache spécifiée.

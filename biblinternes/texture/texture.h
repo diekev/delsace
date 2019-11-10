@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "biblinternes/image/pixel.h"
 #include "biblinternes/math/matrice/matrice.hh"
@@ -96,7 +96,7 @@ public:
 
 class TextureImage final : public Texture {
 	dls::math::matrice_dyn<Spectre> m_image{};
-	std::experimental::filesystem::path m_chemin{};
+	std::filesystem::path m_chemin{};
 	vision::Camera3D *m_camera = nullptr;
 
 	int m_projection = PROJECTION_PLANAIRE;
@@ -139,9 +139,9 @@ public:
 
 	vision::Camera3D *camera() const;
 
-	void etablie_chemin(std::experimental::filesystem::path const &chemin);
+	void etablie_chemin(std::filesystem::path const &chemin);
 
-	std::experimental::filesystem::path const &chemin() const;
+	std::filesystem::path const &chemin() const;
 
 	TypeTexture type() const override;
 
@@ -150,4 +150,4 @@ public:
 	void charge_donnees(dls::math::matrice_dyn<dls::image::PixelFloat> const &donnees);
 };
 
-TextureImage *charge_texture(std::experimental::filesystem::path const &chemin);
+TextureImage *charge_texture(std::filesystem::path const &chemin);

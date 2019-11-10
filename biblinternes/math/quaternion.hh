@@ -311,7 +311,7 @@ inline auto interp_spherique(const quaternion<Nombre> &a, const quaternion<Nombr
 		return normalise((un - t) * a + t * b);
 	}
 
-	const auto theta = std::acos(clamp(cos_theta, -un, un));
+	const auto theta = std::acos(restreint(cos_theta, -un, un));
 	const auto thetap = theta * t;
 	const auto qperp = normalise(b - a * thetap);
 

@@ -297,7 +297,7 @@ static void reechantillone_spectre_lineaire(
 	// For each destination sample, compute the wavelength lambda for the
 	// sample and then resample the source SPD distribution at that point.
 	for (size_t outOffset = 0; outOffset < nOut; ++outOffset) {
-		// TODO: Currently, resample() does a binary search each time,
+		// À FAIRE: Currently, resample() does a binary search each time,
 		// even though we could do a single sweep across the input array,
 		// since we're resampling it at a regular and increasing set of
 		// lambdas. It would be nice to polish that up.

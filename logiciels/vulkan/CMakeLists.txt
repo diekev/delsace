@@ -27,7 +27,6 @@ set(INCLUSIONS
 	${INCLUSIONS_DELSACE_MATH}
 	#/home/kevin/src/lib/vulkan/x86_64/include/
 	${INCLUSIONS_EGO}
-	/usr/include/freetype2/
 )
 
 set(BIBLIOTHEQUES
@@ -37,7 +36,6 @@ set(BIBLIOTHEQUES
 	GLEW
 	${BIBLIOTHEQUES_EGO}
 	bib_opengl
-	freetype
 )
 
 add_executable(${NOM_CIBLE}
@@ -51,37 +49,6 @@ add_executable(${NOM_CIBLE}
 	editrice.hh
 	editrice_nulle.hh
 	evenement.hh
-
-	texte/distance-field.c
-	texte/edtaa3func.c
-	texte/font-manager.c
-	texte/platform.c
-	texte/text-buffer.c
-	texte/texture-atlas.c
-	texte/texture-font.c
-	texte/utf8-utils.c
-	texte/vector.c
-	texte/vertex-attribute.c
-	texte/vertex-buffer.c
-	texte/distance-field.h
-	texte/edtaa3func.h
-	texte/font-manager.h
-	texte/freetype-gl.h
-	texte/markup.h
-	texte/opengl.h
-	texte/platform.h
-	texte/text-buffer.h
-	texte/texture-atlas.h
-	texte/texture-font.h
-	texte/utf8-utils.h
-	texte/vec234.h
-	texte/vector.h
-	texte/vertex-attribute.h
-	texte/vertex-buffer.h
-	texte/mat4.h
-	texte/mat4.c
-	texte/shader.h
-	texte/shader.c
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")

@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_PROJET bib_lcc)
+set(NOM_PROJET mikisa_lcc)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
@@ -28,12 +28,14 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	bib_corps
+	mikisa_coeur
+	mikisa_corps
 	stdc++fs
 	bib_phys
 	memoire
 	bib_structures
 	langage
+	bib_bruit
 )
 
 set(SOURCES
@@ -48,9 +50,9 @@ set(SOURCES
 	execution_pile.hh
 	expression.h
 	fonctions.hh
+	lcc.hh
 	modules.hh
 	morceaux.hh
-	nombres.h
 	code_inst.hh
 
 	analyseuse_grammaire.cc
@@ -64,9 +66,9 @@ set(SOURCES
 	execution_pile.cc
 	expression.cc
 	fonctions.cc
+	lcc.cc
 	modules.cc
 	morceaux.cc
-	nombres.cc
 	code_inst.cc
 )
 
@@ -80,4 +82,4 @@ add_executable(test_lcc test_lcc.cc)
 
 target_include_directories(test_lcc PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(test_lcc ${NOM_PROJET} bib_graphe memoire)
+target_link_libraries(test_lcc ${NOM_PROJET} memoire)

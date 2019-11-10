@@ -1,0 +1,26 @@
+disposition "operatrice_affinage_image" {
+    ligne {
+	    étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
+	}
+    ligne {
+        étiquette(valeur="Type")
+		énum(valeur="boîte"; attache=type;
+			items=[{nom="Boîte", valeur="boîte"},
+				   {nom="Catrom", valeur="catrom"},
+				   {nom="Cubic", valeur="cubic"},
+				   {nom="Gaussien", valeur="gaussien"},
+				   {nom="Mitchell", valeur="mitchell"},
+				   {nom="Triangulaire", valeur="triangulaire"},
+				   {nom="Quadratic", valeur="quadratic"}
+            ])
+    }
+    ligne {
+        étiquette(valeur="Rayon")
+		décimal(valeur=1.0; attache=rayon; min=0; animable)
+    }
+	ligne {
+		étiquette(valeur="Poids")
+		décimal(valeur=0.5; attache=poids; min=0; animable)
+	}
+}

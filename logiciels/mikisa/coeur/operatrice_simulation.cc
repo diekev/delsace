@@ -26,12 +26,13 @@
 
 #include "contexte_evaluation.hh"
 #include "donnees_simulation.hh"
+#include "noeud.hh"
 #include "noeud_image.h"
 
-OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud *noeud)
-	: OperatriceCorps(graphe_parent, noeud)
-	, m_graphe(cree_noeud_image, supprime_noeud_image)
+OperatriceSimulation::OperatriceSimulation(Graphe &graphe_parent, Noeud &noeud_)
+	: OperatriceCorps(graphe_parent, noeud_)
 {
+	noeud.peut_avoir_graphe = true;
 }
 
 const char *OperatriceSimulation::nom_classe() const
@@ -44,24 +45,9 @@ const char *OperatriceSimulation::texte_aide() const
 	return AIDE;
 }
 
-int OperatriceSimulation::type_entree(int) const
-{
-	return OPERATRICE_CORPS;
-}
-
-int OperatriceSimulation::type_sortie(int) const
-{
-	return OPERATRICE_CORPS;
-}
-
 const char *OperatriceSimulation::chemin_entreface() const
 {
 	return "entreface/operatrice_simulation.jo";
-}
-
-Graphe *OperatriceSimulation::graphe()
-{
-	return &m_graphe;
 }
 
 int OperatriceSimulation::type() const
@@ -69,13 +55,13 @@ int OperatriceSimulation::type() const
 	return OPERATRICE_SIMULATION;
 }
 
-int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+res_exec OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
 {
-	auto sortie_graphe = m_graphe.dernier_noeud_sortie;
+	auto sortie_graphe = noeud.graphe.dernier_noeud_sortie;
 
 	if (sortie_graphe == nullptr) {
 		ajoute_avertissement("Aucune sortie trouvée dans le graphe !");
-		return EXECUTION_ECHOUEE;
+		return res_exec::ECHOUEE;
 	}
 
 	auto const temps_debut = evalue_entier("temps_début");
@@ -87,12 +73,12 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 		m_corps1.reinitialise();
 		m_corps2.reinitialise();
 
-		m_graphe.entrees.efface();
-		m_graphe.entrees.pousse(&m_corps1);
-		m_graphe.entrees.pousse(&m_corps2);
+		noeud.graphe.entrees.efface();
+		noeud.graphe.entrees.pousse(&m_corps1);
+		noeud.graphe.entrees.pousse(&m_corps2);
 
-		m_graphe.donnees.efface();
-		m_graphe.donnees.pousse(&m_corps);
+		noeud.graphe.donnees.efface();
+		noeud.graphe.donnees.pousse(&m_corps);
 
 		/* copie l'état de base */
 		auto corps = entree(0)->requiers_corps(contexte, donnees_aval);
@@ -109,10 +95,10 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	}
 	/* Ne simule que si l'on a avancé d'une image. */
 	else if (contexte.temps_courant != m_dernier_temps + 1) {
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 	else if (contexte.temps_courant > temps_fin) {
-		return EXECUTION_REUSSIE;
+		return res_exec::REUSSIE;
 	}
 
 	m_dernier_temps = contexte.temps_courant;
@@ -125,8 +111,8 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	donnees_sim.sous_etape = 0;
 	donnees_sim.dernier_temps = m_dernier_temps;
 
-	for (auto &noeud : m_graphe.noeuds()) {
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+	for (auto &noeud_graphe : noeud.graphe.noeuds()) {
+		auto op = extrait_opimage(noeud_graphe->donnees);
 
 		if (op->type() == OPERATRICE_CORPS) {
 			auto op_corps = dynamic_cast<OperatriceCorps *>(op);
@@ -135,14 +121,14 @@ int OperatriceSimulation::execute(ContexteEvaluation const &contexte, DonneesAva
 	}
 
 	/* exécute graphe */
-	execute_noeud(sortie_graphe, contexte, donnees_aval);
+	execute_noeud(*sortie_graphe, contexte, donnees_aval);
 
-	auto op_sortie = std::any_cast<OperatriceImage *>(sortie_graphe->donnees());
+	auto op_sortie = extrait_opimage(sortie_graphe->donnees);
 
 	m_corps.reinitialise();
 	op_sortie->corps()->copie_vers(&m_corps);
 
-	return EXECUTION_REUSSIE;
+	return res_exec::REUSSIE;
 }
 
 bool OperatriceSimulation::depend_sur_temps() const
@@ -150,12 +136,14 @@ bool OperatriceSimulation::depend_sur_temps() const
 	return true;
 }
 
-void OperatriceSimulation::amont_change()
+void OperatriceSimulation::amont_change(PriseEntree *entree)
 {
-	for (auto noeud : m_graphe.noeuds()) {
-		noeud->besoin_execution(true);
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
-		op->amont_change();
+	INUTILISE(entree);
+
+	for (auto noeud_graphe : noeud.graphe.noeuds()) {
+		noeud_graphe->besoin_execution = true;
+		auto op = extrait_opimage(noeud_graphe->donnees);
+		op->amont_change(nullptr);
 	}
 }
 
@@ -164,8 +152,8 @@ void OperatriceSimulation::renseigne_dependance(
 		CompilatriceReseau &compilatrice,
 		NoeudReseau *noeud_res)
 {
-	for (auto noeud : m_graphe.noeuds()) {
-		auto op = std::any_cast<OperatriceImage *>(noeud->donnees());
+	for (auto noeud_graphe : noeud.graphe.noeuds()) {
+		auto op = extrait_opimage(noeud_graphe->donnees);
 		op->renseigne_dependance(contexte, compilatrice, noeud_res);
 	}
 }

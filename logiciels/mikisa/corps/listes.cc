@@ -27,36 +27,29 @@
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
 #include "corps.h"
+#include "sphere.hh"
 #include "volume.hh"
 
 /* ************************************************************************** */
 
-Polygone *Polygone::construit(Corps *corps, type_polygone type_poly, long nombre_sommets)
+void Polygone::ajoute_point(long idx_point, long idx_sommet)
 {
-	auto p = memoire::loge<Polygone>("Polygone");
-	p->type = type_poly;
-	p->reserve_sommets(nombre_sommets);
-
-	corps->ajoute_primitive(p);
-
-	return p;
-}
-
-void Polygone::ajoute_sommet(long sommet)
-{
-	assert(sommet >= 0);
-	m_sommets.pousse(static_cast<size_t>(sommet));
+	assert(idx_point >= 0);
+	assert(idx_sommet >= 0);
+	m_idx_points.pousse(idx_point);
+	m_idx_sommets.pousse(idx_sommet);
 }
 
 void Polygone::reserve_sommets(long nombre)
 {
 	assert(nombre >= 0);
-	m_sommets.reserve(nombre);
+	m_idx_points.reserve(nombre);
+	m_idx_sommets.reserve(nombre);
 }
 
 long Polygone::nombre_sommets() const
 {
-	return m_sommets.taille();
+	return m_idx_points.taille();
 }
 
 long Polygone::nombre_segments() const
@@ -68,17 +61,23 @@ long Polygone::nombre_segments() const
 	return this->nombre_sommets() - 1;
 }
 
-long Polygone::index_point(long i)
+long Polygone::index_point(long i) const
 {
-	assert(i >= 0);
-	return static_cast<long>(m_sommets[i]);
+	assert(i >= 0 && i < m_idx_points.taille());
+	return m_idx_points[i];
+}
+
+long Polygone::index_sommet(long i) const
+{
+	assert(i >= 0 && i < m_idx_sommets.taille());
+	return m_idx_sommets[i];
 }
 
 void Polygone::ajourne_index(long i, long j)
 {
 	assert(i >= 0);
 	assert(j >= 0);
-	m_sommets[i] = static_cast<size_t>(j);
+	m_idx_points[i] = j;
 }
 
 /* ************************************************************************** */
@@ -193,6 +192,10 @@ void ListePrimitives::reinitialise()
 					auto derivee = dynamic_cast<Volume *>(s);
 					memoire::deloge("Volume", derivee);
 				}
+				else if (s->type_prim() == type_primitive::SPHERE) {
+					auto derivee = dynamic_cast<Sphere *>(s);
+					memoire::deloge("Sphère", derivee);
+				}
 				else {
 					/* au cas où */
 					memoire::deloge("liste_prims", s);
@@ -258,27 +261,32 @@ void ListePrimitives::detache()
 				auto p = memoire::loge<Polygone>("Polygone");
 				p->type = polygone->type;
 				p->reserve_sommets(polygone->nombre_sommets());
-
-				/* Nous obtenons des crashs lors des copies car l'index devient
-				 * différent ou n'est pas correctement initialisé ? */
 				p->index = polygone->index;
 
 				for (long i = 0; i < polygone->nombre_sommets(); ++i) {
-					p->ajoute_sommet(polygone->index_point(i));
+					p->ajoute_point(polygone->index_point(i), polygone->index_sommet(i));
 				}
 
 				m_primitives->pousse(p);
 			}
 			else if (prim->type_prim() == type_primitive::VOLUME) {
 				auto volume = dynamic_cast<Volume *>(prim);
-				auto nouveau_volume = memoire::loge<Volume>("Volume");
+				auto grille = static_cast<wlk::base_grille_3d *>(nullptr);
 
 				if (volume->grille) {
-					nouveau_volume->grille = volume->grille->copie();
+					grille = volume->grille->copie();
 				}
 
+				auto nouveau_volume = memoire::loge<Volume>("Volume", grille);
 				nouveau_volume->index = volume->index;
 				m_primitives->pousse(nouveau_volume);
+			}
+			else if (prim->type_prim() == type_primitive::SPHERE) {
+				auto sphere = dynamic_cast<Sphere *>(prim);
+
+				auto nvl_volume = memoire::loge<Sphere>("Sphère", sphere->idx_point, sphere->rayon);
+				nvl_volume->index = sphere->index;
+				m_primitives->pousse(nvl_volume);
 			}
 		}
 	}

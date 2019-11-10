@@ -94,7 +94,7 @@ public:
 	auto date() const -> QDate;
 };
 
-/* TODO: consider removing all this, maybe let the user input a single value? */
+/* À FAIRE: consider removing all this, maybe let the user input a single value? */
 class MonnaieDialog : public QDialog {
 	Q_OBJECT
 
@@ -167,7 +167,7 @@ public:
 	auto blockedStatus() const -> bool;
 };
 
-/* TODO:
+/* À FAIRE:
  * - tabs
  * - database path
  * - translation

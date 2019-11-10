@@ -40,9 +40,9 @@ struct Jour {
 };
 
 struct Mois {
-	unsigned int valeur;
+	int valeur;
 
-	explicit Mois(unsigned int mois);
+	explicit Mois(int mois);
 
 	enum {
 		JANUARY   = 1,
@@ -68,11 +68,11 @@ struct Annee {
 
 class Date {
 	int m_jour;
-	unsigned int m_mois;
+	int m_mois;
 	int m_annee;
-	const unsigned int MOIS_PAR_ANNEE = 12;
+	const int MOIS_PAR_ANNEE = 12;
 
-	unsigned int m_jours_par_mois[12] = {
+	int m_jours_par_mois[12] = {
 	    31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 	};
 
@@ -206,9 +206,9 @@ private:
 
 	void soustrait_jour(int dd);
 
-	void ajoute_mois(unsigned int mm);
+	void ajoute_mois(int mm);
 
-	void soustrait_mois(unsigned int mm);
+	void soustrait_mois(int mm);
 
 	void ajoute_annee(int yy);
 

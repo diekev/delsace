@@ -48,6 +48,6 @@ disposition "operatrice_texture" {
 	}
 	ligne {
 	    étiquette(valeur="Taille")
-		vecteur(valeur="1,1,1"; attache=taille_texture)
+		vecteur(valeur="1,1,1"; attache=taille_texture; animable)
 	}
 }

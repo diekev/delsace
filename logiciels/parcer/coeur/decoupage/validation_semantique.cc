@@ -24,10 +24,7 @@
 
 #include "validation_semantique.hh"
 
-#include <cassert>
-
 #include "arbre_syntactic.hh"
-#include "broyage.hh"
 #include "contexte_generation_code.hh"
 #include "donnees_type.hh"
 #include "erreur.hh"

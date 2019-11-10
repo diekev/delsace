@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE bib_corps)
+set(NOM_CIBLE mikisa_corps)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../
@@ -28,28 +28,35 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	math
+	wolika
 )
 
 add_library(${NOM_CIBLE} STATIC
+	accesseuses.cc
     adaptrice_creation_corps.cc
 	attribut.cc
-    collision.cc
     corps.cc
     groupes.cc
     iteration_corps.cc
+	limites_corps.cc
     listes.cc
+	polyedre.cc
     primitive.cc
+	sphere.cc
     triangulation.cc
     volume.cc
 
+	accesseuses.hh
     adaptrice_creation_corps.h
 	attribut.h
-    collision.hh
     corps.h
     groupes.h
     iteration_corps.hh
+	limites_corps.hh
     listes.h
+	polyedre.hh
     primitive.hh
+	sphere.hh
     triangulation.hh
     volume.hh
 )

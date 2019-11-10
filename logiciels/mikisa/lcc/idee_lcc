@@ -1,0 +1,457 @@
+//----------------------------------------
+
+faitures
+
+-- opérateurs mathématiques et booléen
+-- vecteurs, matrices et accès membre
+-- controle de flux et boucle simples
+-- syntax d'appel de fonction uniforme (c-à-d : a.ajoute(b) ou ajoute(a, b))
+-- création de points, de primitives, et d'attributs
+-- manipulation de tableau
+
+porter opératrices :
+-- outils cheveux
+-- création kelvinlets
+-- fonte maillage
+-- coordonnées terrestres
+
+//----------------------------------------
+
+param("facteur", "Facteur", "décimal", 0.0, 0.0, 0.0);
+param("direction", "Direction", "énum", "normale,radiale");
+
+x, v += 1.0;
+
+
+# déclare une chaine
+c = "chaîne de caractère";
+
+# déclare un tableau
+
+#### tableau CLAS
+# création FAIT
+c = [0, 0, 0, 0];
+# lecture
+a = c[0];
+c.taille(); FAIT
+# ajournage
+c[0] = a + 1;
+pousse(c, a + 1); À FAIRE
+# suppression
+efface(c, 1);
+efface(c, 1, 10);
+
+//---------------------------------------
+
+auto fonction = fonctions(metadonnees);
+
+if fonction == nullptr {
+	erreur();
+}
+
+noeud_detail = graphe->contruit_noeud(metadonnees);
+
+// crée les entrées selon le type
+
+
+struct entree_graphe;
+struct sortie_graphe;
+
+struct controle_si : public noeud_detail;
+struct controle_pour : public noeud_detail;
+
+struct entree_prop;
+struct sortie_prop;
+
+struct fonction : public noeud_detail {
+public:
+	genere_code(lcc::compileuse &compileuse)
+	{
+		compileuse.ajoute_instruction(fonction.type);
+
+		if (est_polymorphic(fonction)) {
+			compileuse.ajoute_instruction(donnees_type);
+		}
+
+		for (auto entree : m_entrees) {
+			if (entree.est_connecte()) {
+				compileuse.ajoute_instruction(entree.pointeur);
+			}
+			else {
+				// loge données, prend pointeur
+			}
+		}
+
+		compileuse.ajoute_instruction(sortie.pointeur);
+	}
+
+	rappel_connexion()
+	{
+		// fais quelque chose si le type est polymorphic ou variadic
+	}
+};
+
+//----------------------------------------
+
+
+if (donnees_fonc->rappel != nullptr) {
+	donnees_fonc->rappel(ctx_exec);
+}
+
+void rappel_calcul_limites(ctx_exec const &contexte)
+{
+	// ajoute requête pour les limites
+	// renseigne les pointeurs sur la pile de données
+}
+
+// première passe  : calcul des types
+// deuxième passe  : calcul des requêtes
+// troisième passe : génération du code
+
+//----------------------------------------
+
+// fichier lat/lng
+
+# format = 1.8 -54.5
+
+morceaux = découpe(@ligne, '\t');
+
+# on doit avoir deux morceaux
+chaine_lat = morceaux[0];
+chaine_lng = morceaux[1];
+
+lat = décimal(chaine_lat);
+lng = décimal(chaine_lng);
+
+point = point_sphère_uv(lat, lng);
+uv = vec2(sin(lat), cos(lng));
+
+idx = ajoute_point(point);
+ajourne_attr("UV", idx, uv);
+
+// point_sphere_uv
+// ajoute_point
+// ajourne_attr
+// decoupe
+// décimal (depuis chaine)
+// compute_fft
+// concat
+// voisins
+// ptex
+
+//---------------------------------------
+                      _______
+    nom_prop (C) (H) (__1.3__) (x) (t)
+                      _______
+             (C) (H) (__1.3__)
+                      _______
+             (C) (H) (__1.3__)
+                      _______
+    nom_prop (C) (H) (__1.3__) (x) (t)
+ _                    _______
+|_| nom_prop (C) (H) |__1.3__) (x) (t)
+ _                    _______
+|_| nom_prop (C) (H) (__1.3__| (x) (t)
+ _                    _______
+|_| nom_prop (C) (H) |__1.3__| (x) (t)
+
+fonctions
+-- aléatoire
+---- uniforme
+---- normale
+---- gaussienne
+---- echantillone_disque/sphere
+-- bruit
+---- gradient (perlin)
+---- valeur
+---- flux (gradient)
+-- couleur
+---- tone map
+-- vecteur
+---- sont_parrallèles (u ^ v == 0)
+---- sont_perpendilaires (u CROISE v == 0)
+-- statistiques
+---- moyenne
+---- médiane
+---- covariance
+---- variance
+
+attributs :
+- ptex
+- tableau
+
+// ---------------------------
+min, max = $limites;
+$P = traduit($P, min, max, $PI, $PI);
+
+// propriétés :: contexte détail point
+// variables
+$P -> position
+
+// constantes
+$index -> index du point dans le nuage
+$image_courante -> index de l'image courante
+$temps_courant -> temps de l'image courante
+$fraction_image -> fraction de l'image dans l'interval (temps début - temps fin)
+
+// propriétés :: contexte détail primitive
+// variables
+$nombre_points
+$type // polygone, polyligne, courbe, volume
+
+// constantes
+$index -> index de la primitive dans le nuage
+$image_courante -> index de l'image courante
+$temps_courant -> temps de l'image courante
+$fraction_image -> fraction de l'image dans l'interval (temps début - temps fin)
+
+// propriétés :: contexte topology corps
+$image_courante -> index de l'image courante
+$temps_courant -> temps de l'image courante
+$fraction_image -> fraction de l'image dans l'interval (temps début - temps fin)
+
+objet :
+-- forme
+-- caméra
+-- lumière
+
+
+template <typename T, int TAILLE>
+struct tableau_epars {
+private:
+	dls::tableau<T> m_tableau;
+	T m_valeur;
+	bool m_alloue;
+	bool m_initialise;
+
+public:
+	void pousse(T v)
+	{
+		if (m_initialise) {
+			if (v != m_valeur) {
+				// allocation
+			}
+		}
+
+		if (m_alloue) {
+			pousse
+		}
+	}
+
+	T const &operator[](long idx) const
+	{
+		if (m_alloue) {
+			return m_donnees[idx];
+		}
+
+		return m_valeur;
+	}
+
+	bool alloue() const
+	{
+		return m_alloue;
+	}
+
+	bool initialise() const
+	{
+		return m_initialise;
+	}
+};
+
+template <typename T, int TAILLE>
+struct tableau_page {
+private:
+	dls::tableau<dls::tableau<T>> m_donnees;
+
+public:
+	void pousse(T v)
+	{
+		if (m_donnees.back().taille() >= TAILLE) {
+			m_donnees.emplace();
+		}
+
+		m_donnees.back().pousse(v);
+	}
+
+	T const &operator[](long idx) const
+	{
+		auto idx_tableau = idx / TAILLE;
+		auto idx_valeur = idx % TAILLE;
+
+		return m_donnees[idx_tableau][idx_valeur];
+	}
+
+	T &operator[](long idx)
+	{
+		auto idx_tableau = idx / TAILLE;
+		auto idx_valeur = idx % TAILLE;
+
+		return m_donnees[idx_tableau][idx_valeur];
+	}
+
+	long taille()
+	{
+		return m_donnees.taille() * TAILLE + m_donnees.back().taille();
+	}
+};
+
+// ------------------------------------
+// moteur rendu
+
+struct delegue_scene {
+	Scene *scene;
+
+public:
+	long nombre_objet() const
+	{
+		return scene->objets.taille();
+	}
+
+	objet *objet(long idx) const
+	{
+		return scene->objets[idx];
+	}
+};
+
+struct Objet {
+	long tampon; // index le tampon de rendu de l'objet
+	long temps_tampon; // temps du tamponage
+	long temps_evaluation; // temps de la dernière modification
+};
+
+struct gestionnaire_tampon {
+private:
+	dls::pile<long> m_tampons_supprimes;
+	dls::tableau<TamponRendu> m_tampons;
+
+public:
+	TamponRendu *cree_tampon()
+	{
+		if (!pile.est_vide()) {
+			auto idx = pile.top();
+			pile.pop();
+
+			auto ptr = m_tampons[idx];
+			ptr->reinitialise();
+			return ptr;
+		}
+
+		auto ptr = memoire::loge<TamponRendu>();
+		m_tampons.pousse(ptr);
+		return ptr;
+	}
+
+	void jete_tampon(long idx)
+	{
+		index.pousse(idx);
+	}
+
+	void reserve(long nombre)
+	{
+		m_tampons.reserve(nombre);
+	}
+};
+
+// appelé quand la scène change
+void construit()
+{
+	auto nombre_objets = delegue.nombre_objet();
+
+	m_tampons.reserve(nombre_objets);
+
+	dls::ensemble index_tampons;
+	dls::tableau<long> objet_a_tamponne;
+
+	for (auto i = 0; i < nombre_objets; ++i) {
+		auto objet = delegue.objet(i);
+
+		// donne un index aux tampons
+		// donne un index aux objets
+
+		// l'objet n'a pas déjà été rendu
+		if (objet->tampon < 0) {
+			objet_a_tamponne.pousse(i);
+			continue;
+		}
+
+		index_tampons.pousse(objet->tampon);
+
+		if (objet->temps_tampon < objet->temps_evaluation) {
+			objet_a_tamponne.pousse(i);
+			continue;
+		}
+	}
+
+	// marque les tampons a supprimer
+	for (auto i = 0; i < m_tampons; ++i) {
+		if (i not in index_tampons) { ... }
+	}
+
+	// reconstruit les tampons
+
+	for (auto i = 0; i < objet_a_tamponne.taille(); ++i) {
+		auto objet = delegue.objet(i);
+
+		TamponRendu *tampon;
+
+		if (objet->tampon >= 0) {
+			tampon = m_tampons[objet->tampon];
+		}
+		else {
+			tampon = m_gest_tampon->cree_tampon();
+			objet->tampon = tampon->index;
+		}
+
+		m_tampons.push_back(tampon);
+		objet->temps_tampon = clock();
+	}
+}
+
+// ------------------------------------
+
+struct Tampon {
+	PoigneeFichier *poignee;
+
+};
+
+using ptr_tampon = std::shared_ptr<Tampon>;
+
+struct GestionnaireTampon {
+	GestionnaireFichier *gest_fichier;
+
+public:
+	ptr_tampon cree_tampon(void *, nom);
+
+	bool possede_tampon(void *);
+
+	void requiers_tampon(void *, nom, temps);
+
+	void supprime_tampon(void *);
+};
+
+struct ogl::noeud {
+public:
+	void genere_code()
+	{
+		// pour chaque entrée obtiens le nom de la variable
+		// pour chaque sortie alloue une variable
+		// opengl a des fonctions avec des paramètres "out"
+		// pour simplifier toutes les fonctions seront redéfinies avec
+		// des paramètres "out"
+
+		auto i = compileuse.nom_variable();
+
+		this->sortie[0] = declare_sortie(type);
+
+
+
+		float __xxx;
+		float __yyy;
+
+		max(__xxx, __yyy, __res);
+	}
+};
+
+// ----------------------------
+
+- redessine ligne temps, ajout clés images, tampons

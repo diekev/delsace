@@ -25,37 +25,67 @@
 #pragma once
 
 #include "biblinternes/structures/tableau.hh"
+#include "biblinternes/math/matrice.hh"
 
 namespace vision {
 class Camera3D;
 }
 
-class RenduGrille;
+class Objet;
 class Scene;
-class TamponRendu;
 
 struct deleguee_scene;
+struct StatistiquesRendu;
+
+/* ************************************************************************** */
+
+struct ObjetRendu {
+	Objet *objet{};
+
+	/* matrices pour définir où instancier l'objet */
+	dls::tableau<dls::math::mat4x4f> matrices{};
+
+	COPIE_CONSTRUCT(ObjetRendu);
+};
+
+/* Concernant ce déléguée_scène :
+ * La finalité du MoteurRendu est d'abstraire différents moteurs de rendus
+ * (traçage de rayon, ratissage, OpenGL, etc.) dans un système où il y a
+ * plusieurs moteurs de rendu, et plusieurs représentation scénique différentes,
+ * opérants en même temps. La Déléguée de scène servira de pont entre les
+ * différentes représentations scéniques et les différents moteurs de rendus.
+ * L'idée est similaire à celle présente dans Hydra de Pixar.
+ */
+struct deleguee_scene {
+	dls::tableau<ObjetRendu> objets{};
+
+	long nombre_objets() const;
+
+	ObjetRendu const &objet(long idx) const;
+};
+
+/* ************************************************************************** */
 
 class MoteurRendu {
+protected:
 	vision::Camera3D *m_camera = nullptr;
-	RenduGrille *m_rendu_grille = nullptr;
 	deleguee_scene *m_delegue = nullptr;
-
-	dls::tableau<TamponRendu *> m_tampons{};
 
 public:
 	MoteurRendu();
 
-	~MoteurRendu();
+	virtual ~MoteurRendu();
 
 	MoteurRendu(MoteurRendu const &) = default;
 	MoteurRendu &operator=(MoteurRendu const &) = default;
 
 	void camera(vision::Camera3D *camera);
 
-	void scene(Scene *scene);
+	deleguee_scene *delegue();
 
-	void calcule_rendu(float *tampon, int hauteur, int largeur, bool rendu_final);
+	virtual const char *id() const = 0;
 
-	void construit_scene();
+	virtual void calcule_rendu(StatistiquesRendu &stats, float *tampon, int hauteur, int largeur, bool rendu_final) = 0;
+
+	virtual void construit_scene();
 };

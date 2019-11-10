@@ -9,14 +9,14 @@ disposition "operatrice_incrustation" {
 	}
 	ligne {
 	    étiquette(valeur="Angle")
-		décimal(valeur=0.0; attache=angle)
+		décimal(valeur=0.0; attache=angle; animable)
 	}
 	ligne {
 	    étiquette(valeur="A")
-		décimal(valeur=1.0; attache=a)
+		décimal(valeur=1.0; attache=a; animable)
 	}
 	ligne {
 	    étiquette(valeur="B")
-		décimal(valeur=1.0; attache=b)
+		décimal(valeur=1.0; attache=b; animable)
 	}
 }

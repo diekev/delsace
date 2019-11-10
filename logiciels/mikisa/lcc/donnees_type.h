@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/outils/parametres.hh"
 #include "biblinternes/structures/tableau.hh"
 
 namespace lcc {
@@ -48,8 +49,76 @@ enum class type_var : unsigned short {
 
 const char *chaine_type_var(type_var type);
 
+const char *type_var_opengl(type_var type);
+
 /* ************************************************************************** */
 
+struct donnees_parametre {
+	type_var type{};
+	float valeur_defaut = 0.0f;
+	const char *nom = "";
+
+	donnees_parametre() = default;
+
+	donnees_parametre(char const *n, type_var t, float v = 0.0f)
+		: type(t)
+		, valeur_defaut(v)
+		, nom(n)
+	{}
+};
+
+/* Le paramètre de gabarit est utilisé pour définir des types différents. */
+template <int N>
+struct parametres_fonction {
+private:
+	dls::tableau<donnees_parametre> m_donnees{};
+
+public:
+	parametres_fonction() = default;
+
+	parametres_fonction(donnees_parametre type0)
+	{
+		m_donnees.pousse(type0);
+	}
+
+	template <typename... Ts>
+	parametres_fonction(donnees_parametre type0, Ts... reste)
+	{
+		m_donnees.redimensionne(1 + static_cast<long>(sizeof...(reste)));
+		otl::accumule(0, &m_donnees[0], type0, reste...);
+	}
+
+	type_var type(int idx) const
+	{
+		return m_donnees[idx].type;
+	}
+
+	char const *nom(int idx) const
+	{
+		return m_donnees[idx].nom;
+	}
+
+	float valeur_defaut(int idx) const
+	{
+		return m_donnees[idx].valeur_defaut;
+	}
+
+	long taille() const
+	{
+		return m_donnees.taille();
+	}
+};
+
+/* ************************************************************************** */
+
+using param_entrees = parametres_fonction<0>;
+using param_sorties = parametres_fonction<1>;
+
+/* ************************************************************************** */
+
+/* Le paramètre de gabarit est utilisé pour définir des types différents.
+ * Cela semble redondant avec parametres_fonction, mais on l'utilise dans la
+ * résolution de fonctions surchargés puisque nous n'avons que les types. */
 template <int N>
 struct donnees_type {
 	dls::tableau<type_var> types{};
@@ -65,27 +134,12 @@ struct donnees_type {
 	donnees_type(type_var type0, Ts... reste)
 	{
 		types.redimensionne(1 + static_cast<long>(sizeof...(reste)));
-		types[0] = type0;
-
-		accumule(1, reste...);
+		otl::accumule(1, &types[0], type0, reste...);
 	}
 
 	void ajoute(type_var type)
 	{
 		types.pousse(type);
-	}
-
-private:
-	template <typename... Ts>
-	void accumule(long idx, type_var type0, Ts... reste)
-	{
-		types[idx] = type0;
-		accumule(idx + 1, reste...);
-	}
-
-	void accumule(long idx, type_var type0)
-	{
-		types[idx] = type0;
 	}
 };
 
@@ -98,6 +152,21 @@ int taille_type(type_var type);
 enum class code_inst : int;
 
 code_inst code_inst_conversion(type_var type1, type_var type2);
+
+/* ************************************************************************** */
+
+template <int N>
+auto extrait_types(parametres_fonction<N> const &params)
+{
+	auto dt = donnees_type<N>();
+	dt.types.reserve(params.taille());
+
+	for (auto i = 0; i < params.taille(); ++i) {
+		dt.types.pousse(params.type(i));
+	}
+
+	return dt;
+}
 
 /* ************************************************************************** */
 

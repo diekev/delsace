@@ -22,11 +22,11 @@ disposition "operatrice_dispersion_points" {
 	}
     ligne {
         étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=1; max=100000)
+		entier(valeur=1; attache=graine; min=1; max=100000; animable)
     }
     ligne {
 	    étiquette(valeur="Nombre Points Émission")
-		entier(valeur=100; attache=nombre_points; min=1)
+		entier(valeur=100; attache=nombre_points; min=1; animable)
 	}
 	ligne {
 	    étiquette(valeur="Grouper les Points")

@@ -24,14 +24,9 @@
 
 #include "donnees_type.hh"
 
-#include <cassert>
-
 #include "biblinternes/structures/flux_chaine.hh"
 
-#include "arbre_syntactic.hh"
-#include "broyage.hh"
 #include "contexte_generation_code.hh"
-#include "morceaux.hh"
 
 DonneesType::DonneesType(id_morceau i0)
 {

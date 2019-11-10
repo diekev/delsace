@@ -33,14 +33,21 @@ set(BIBLIOTHEQUES
 	bib_texture
 	mikisa_coeur
 	bib_outils
+	mikisa_koudou
 )
 
 add_library(${NOM_CIBLE} STATIC
 	moteur_rendu.cc
+	moteur_rendu_koudou.cc
+	moteur_rendu_opengl.cc
 	rendu_corps.cc
+	rendu_lumiere.cc
 
 	moteur_rendu.hh
+	moteur_rendu_koudou.hh
+	moteur_rendu_opengl.hh
 	rendu_corps.h
+	rendu_lumiere.h
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")

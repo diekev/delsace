@@ -36,18 +36,29 @@ protected:
 	DonneesSimulation *m_donnees_simulation = nullptr;
 
 public:
-	OperatriceCorps(Graphe &graphe_parent, Noeud *noeud);
+	OperatriceCorps(Graphe &graphe_parent, Noeud &noeud_);
 
 	OperatriceCorps(OperatriceCorps const &) = default;
 	OperatriceCorps &operator=(OperatriceCorps const &) = default;
 
 	int type() const override;
 
-	int type_entree(int) const override;
+	type_prise type_entree(int) const override;
 
-	int type_sortie(int) const override;
+	type_prise type_sortie(int) const override;
 
 	Corps *corps() override;
 
 	void donnees_simulation(DonneesSimulation *donnees);
+
+	void libere_memoire() override;
 };
+
+/* ************************************************************************** */
+
+bool valide_corps_entree(
+		OperatriceCorps &op,
+		Corps const *corps,
+		bool besoin_points,
+		bool besoin_prims,
+		int index = 0);

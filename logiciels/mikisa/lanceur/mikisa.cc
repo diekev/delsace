@@ -32,6 +32,8 @@
 #pragma GCC diagnostic pop
 
 #include "coeur/mikisa.h"
+#include "coeur/sauvegarde.h"
+
 #include "entreface/fenetre_principale.h"
 
 #include <iostream>
@@ -43,10 +45,11 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("mikisa");
 
 	QFile file("styles/main.qss");
-	file.open(QFile::ReadOnly);
-	QString style_sheet = QLatin1String(file.readAll());
 
-	qApp->setStyleSheet(style_sheet);
+	if (file.open(QFile::ReadOnly)) {
+		QString style_sheet = QLatin1String(file.readAll());
+		qApp->setStyleSheet(style_sheet);
+	}
 
 	Mikisa mikisa;
 	mikisa.initialise();
@@ -54,6 +57,11 @@ int main(int argc, char *argv[])
 	FenetrePrincipale w(mikisa);
 	w.setWindowTitle(QCoreApplication::applicationName());
 	w.showMaximized();
+
+	if (argc == 2) {
+		auto chemin = argv[1];
+		coeur::ouvre_projet(chemin, mikisa);
+	}
 
 	return a.exec();
 }

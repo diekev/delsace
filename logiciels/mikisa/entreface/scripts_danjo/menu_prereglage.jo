@@ -6,4 +6,5 @@ barre_outils {
 	action(valeur="Création tube"; attache=ajoute_prereglage; métadonnée="tube"; icône="icones/icon_tube.png")
 	action(valeur="Création cone"; attache=ajoute_prereglage; métadonnée="cone"; icône="icones/icon_cone.png")
 	action(valeur="Création torus"; attache=ajoute_prereglage; métadonnée="torus"; icône="icones/icon_torus.png")
+	action(valeur="Création océan"; attache=ajoute_prereglage; métadonnée="océan"; icône="icones/icone_ocean.png")
 }

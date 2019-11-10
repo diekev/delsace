@@ -113,6 +113,7 @@ void ControleEchelleDecimale::mousePressEvent(QMouseEvent *event)
 
 		m_vieil_x = event->pos().x();
 		m_souris_pressee = true;
+		m_premier_changement = true;
 		update();
 	}
 }
@@ -125,6 +126,11 @@ void ControleEchelleDecimale::mouseMoveEvent(QMouseEvent *event)
 		m_vieil_x = x;
 
 		m_valeur = std::max(std::min(m_valeur, m_max), m_min);
+
+		if (m_premier_changement) {
+			Q_EMIT(prevaleur_changee());
+			m_premier_changement = false;
+		}
 
 		Q_EMIT(valeur_changee(m_valeur));
 
@@ -231,6 +237,7 @@ void ControleEchelleEntiere::mousePressEvent(QMouseEvent *event)
 
 		m_vieil_x = event->pos().x();
 		m_souris_pressee = true;
+		m_premier_changement = true;
 		update();
 	}
 }
@@ -243,6 +250,11 @@ void ControleEchelleEntiere::mouseMoveEvent(QMouseEvent *event)
 		m_vieil_x = x;
 
 		m_valeur = std::max(std::min(m_valeur, m_max), m_min);
+
+		if (m_premier_changement) {
+			Q_EMIT(prevaleur_changee());
+			m_premier_changement = false;
+		}
 
 		Q_EMIT(valeur_changee(m_valeur));
 

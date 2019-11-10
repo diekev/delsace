@@ -46,9 +46,6 @@ add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES} ${ENTETES})
 
 target_include_directories(${NOM_BIBLIOTHEQUE} PUBLIC ${INCLUSIONS})
 
-install(TARGETS ${NOM_BIBLIOTHEQUE} ARCHIVE DESTINATION lib)
-install(FILES ${ENTETES} DESTINATION include/delsace/${NOM_BIBLIOTHEQUE})
-
 if(AVEC_EXEMPLES)
 	set(FICHIERS_KNAPSACK
 		exemples/1000_poids.txt
@@ -66,3 +63,7 @@ if(AVEC_EXEMPLES)
 	target_link_libraries(exemple_chaine chisei)
 	install(TARGETS exemple_chaine RUNTIME DESTINATION bin)
 endif()
+
+add_executable(exemple_markov exemples/exemple_markov.cc)
+target_link_libraries(exemple_markov chisei bib_outils bib_structures langage)
+install(TARGETS exemple_markov RUNTIME DESTINATION bin)

@@ -3,22 +3,15 @@
 import io
 
 mot_cles = [
-    # structures
-	u'de',
     # controle de flux
 	u'boucle',
 	u'pour',
 	u'dans',
-	u'hors',
 	u'arrête',
 	u'continue',
-	u'associe',
 	u'si',
 	u'sinon',
-	u'renvoie',
-	u'retiens',
-	u'diffère',
-	u'sansarrêt',
+	u'retourne',
     # types
 	u'vrai',
 	u'faux',
@@ -83,6 +76,7 @@ caracteres_double = [
 	[u'-=', u'MOINS_EGAL'],
 	[u'/=', u'DIVISE_EGAL'],
 	[u'*=', u'FOIS_EGAL'],
+	[u'#!', u'DIRECTIVE'],
 ]
 
 caracteres_double = sorted(caracteres_double)

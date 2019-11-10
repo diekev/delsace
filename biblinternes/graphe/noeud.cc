@@ -24,7 +24,8 @@
 
 #include "noeud.h"
 
-#include <tbb/tick_count.h>
+#include "biblinternes/structures/ensemble.hh"
+#include "biblinternes/structures/pile.hh"
 
 /* ************************************************************************** */
 
@@ -126,16 +127,17 @@ Rectangle const &Noeud::rectangle() const
 	return m_rectangle;
 }
 
-void Noeud::ajoute_entree(dls::chaine const &name, const int type)
+void Noeud::ajoute_entree(dls::chaine const &name, const type_prise type, bool connexions_multiples)
 {
 	auto prise = new PriseEntree(name);
 	prise->parent = this;
 	prise->type = type;
+	prise->multiple_connexions = connexions_multiples;
 
 	this->m_entrees.pousse(prise);
 }
 
-void Noeud::ajoute_sortie(dls::chaine const &name, const int type)
+void Noeud::ajoute_sortie(dls::chaine const &name, const type_prise type)
 {
 	auto prise = new PriseSortie(name);
 	prise->parent = this;
@@ -241,9 +243,6 @@ bool Noeud::besoin_execution() const
 void Noeud::besoin_execution(bool ouinon)
 {
 	m_besoin_traitement = ouinon;
-
-	/* Réinitialise le temps d'exécution. */
-	this->temps_execution(0.0f);
 }
 
 float Noeud::temps_execution() const
@@ -277,17 +276,32 @@ int Noeud::compte_execution() const
 
 /* ************************************************************************** */
 
-void marque_surannee(Noeud *noeud)
+void marque_surannee(Noeud *noeud, const std::function<void(Noeud *, PriseEntree *)> &rp)
 {
-	if (noeud == nullptr) {
-		return;
-	}
+	auto noeuds = dls::pile<Noeud *>();
+	noeuds.empile(noeud);
 
-	noeud->besoin_execution(true);
+	auto noeuds_visites = dls::ensemble<Noeud *>();
 
-	for (PriseSortie *sortie : noeud->sorties()) {
-		for (PriseEntree *entree : sortie->liens) {
-			marque_surannee(entree->parent);
+	while (!noeuds.est_vide()) {
+		noeud = noeuds.depile();
+
+		if (noeuds_visites.trouve(noeud) != noeuds_visites.fin()) {
+			continue;
+		}
+
+		noeuds_visites.insere(noeud);
+
+		noeud->besoin_execution(true);
+
+		for (auto sortie : noeud->sorties()) {
+			for (auto entree : sortie->liens) {
+				if (rp != nullptr) {
+					rp(entree->parent, entree);
+				}
+
+				noeuds.empile(entree->parent);
+			}
 		}
 	}
 }

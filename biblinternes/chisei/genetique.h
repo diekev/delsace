@@ -106,7 +106,8 @@ concept bool ConceptTypeProbleme = requires(
 	typename T::type_donnees donnees,
 	typename T::type_chromosome chromosome,
 	std::mt19937 &rng,
-	std::ostream &os)
+	std::ostream &os,
+	float progression)
 {
 	/**
 	 * Le type de chromosome.
@@ -118,6 +119,11 @@ concept bool ConceptTypeProbleme = requires(
 	 * appelant l'algorithme.
 	 */
 	typename T::type_donnees;
+
+	/**
+	 * Le type de la population.
+	 */
+	typename T::type_population;
 
 	/**
 	 * Le nombre maximum d'itérations ou de générations de l'algorithme.
@@ -153,7 +159,7 @@ concept bool ConceptTypeProbleme = requires(
 	 * de nombre aléatoire de type std::mt19937. Cette fonction doit retourner
 	 * un dls::tableau<typename T::type_chromosome.
 	 */
-	T::cree_population(donnees, rng);
+	{ T::cree_population(donnees, rng) } -> typename T::type_population;
 
 	/**
 	 * Créer un chromosome à partir des données principales et d'un générateur
@@ -161,50 +167,62 @@ concept bool ConceptTypeProbleme = requires(
 	 * un typename T::type_chromosome, mais n'est pas appeler directement par
 	 * l'algorithme : elle doit être appelé par la fonction cree_population.
 	 */
-	T::cree_chromosome(donnees, rng);
+	{ T::cree_chromosome(donnees, rng) } -> typename T::type_chromosome;
 
 	/**
 	 * Calcule l'aptitude du chromosome spécifié, qui est passé par référence,
 	 * avec les données fournies.
 	 */
-	T::calcule_aptitude(donnees, chromosome);
+	{ T::calcule_aptitude(donnees, chromosome) } -> void;
 
 	/**
 	 * Croise deux chromosome spécifié. La fonction doit retourner un nouveau
 	 * chromosome. Un générateur de nombre aléatoire de type std::mt19937
 	 * est fourni.
 	 */
-	T::croise(donnees, chromosome, chromosome, rng);
+	{ T::croise(donnees, chromosome, chromosome, rng) } -> typename T::type_chromosome;
 
 	/**
 	 * Mute le chromosome passé par référence. Un générateur de nombre aléatoire
 	 * de type std::mt19937 est également passé par référence.
 	 */
-	T::mute(chromosome, rng);
+	{ T::mute(chromosome, rng) } -> void;
 
 	/**
 	 * Compare les aptitudes de deux chromosomes spécifiés. Cette fonction est
 	 * utilisé pour trié les chromosomes selon leurs aptitudes.
 	 */
-	T::compare_aptitude(chromosome, chromosome);
+	{ T::compare_aptitude(chromosome, chromosome) } -> bool;
 
 	/**
 	 * Retourne l'aptitude du chromosome spécifié.
 	 */
-	T::aptitude(chromosome);
+	{ T::aptitude(chromosome) } -> double;
 
 	/**
 	 * Retourne vrai ou faux si le chromosome passé en paramètre est le meilleur
 	 * pour résoudre le problème. Si la fonction retourne vrai, l'algorithme
 	 * s'arrête et le chromosome est retourné.
 	 */
-	T::meilleur_trouve(chromosome);
+	{ T::meilleur_trouve(chromosome) } -> bool;
 
 	/**
 	 * Fonction de rappel qui est appelé à chaque génération avec le meilleur
 	 * chromosome de la génération passé en paramètre.
 	 */
-	T::rappel_pour_meilleur(donnees, chromosome);
+	{ T::rappel_pour_meilleur(donnees, chromosome) } -> void;
+
+	/**
+	 * Fonction de rappel qui est appelé à chaque génération pour notifier de la
+	 * progression, qui est données entre 0 et 100.
+	 */
+	{ T::rappel_pour_progression(donnees, progression) } -> void;
+
+	/**
+	 * Fonction de rappel qui est appelé à chaque génération pour savoir s'il
+	 * faut s'arrêter, par exemple pour une interruption.
+	 */
+	{ T::rappel_pour_arret(donnees) } -> bool;
 };
 #else
 #	define ConceptConteneur typename
@@ -358,21 +376,36 @@ auto lance_algorithme_genetique(std::ostream &os, const typename TypeProbleme::t
 	auto meilleur_chromosome = type_chromosome();
 
 	while (generation++ < TypeProbleme::GENERATIONS_MAX) {
+		if (TypeProbleme::rappel_pour_arret(donnees)) {
+			return std::pair<type_chromosome, DonneesAlgorithme>{
+				meilleur_chromosome,
+				DonneesAlgorithme{ generation, meilleur_aptitude, moyenne / TypeProbleme::TAILLE_POPULATION }
+			};
+		}
+
 		std::sort(population.debut(), population.fin(), TypeProbleme::compare_aptitude);
 
 		moyenne = 0.0;
 		auto parent = 0;
 		auto meilleur_index = 0;
 
-		for (size_t i = 0; i < TypeProbleme::TAILLE_POPULATION; ++i) {
+		for (auto i = 0; i < TypeProbleme::TAILLE_POPULATION; ++i) {
 			/* Élitisme : on ne s'occupe que des chromosomes discriminés. */
 			if (i >= TypeProbleme::TAILLE_ELITE) {
 				if (dist(rng_crp) < TypeProbleme::PROB_CROISEMENT) {
 					/* Croisement. */
 
 					/* Choix des parents. */
-					const auto index1 = parent + static_cast<int>(dist(rng_crp) * 10);
-					const auto index2 = parent + 1 + static_cast<int>(dist(rng_crp) * 10);
+					auto index1 = parent + static_cast<int>(dist(rng_crp) * 10);
+					auto index2 = parent + 1 + static_cast<int>(dist(rng_crp) * 10);
+
+					if (index1 >= TypeProbleme::TAILLE_POPULATION) {
+						index1 = TypeProbleme::TAILLE_POPULATION - 1;
+					}
+
+					if (index2 >= TypeProbleme::TAILLE_POPULATION) {
+						index2 = TypeProbleme::TAILLE_POPULATION - 1;
+					}
 
 					population[i] = TypeProbleme::croise(donnees, population[index1], population[index2], rng);
 					TypeProbleme::calcule_aptitude(donnees, population[i]);
@@ -404,6 +437,11 @@ auto lance_algorithme_genetique(std::ostream &os, const typename TypeProbleme::t
 		meilleur_chromosome = population[meilleur_index];
 
 		TypeProbleme::rappel_pour_meilleur(donnees, meilleur_chromosome);
+
+		auto progression = static_cast<float>(generation)
+				/ static_cast<float>(TypeProbleme::GENERATIONS_MAX);
+
+		TypeProbleme::rappel_pour_progression(donnees, progression * 100.0f);
 
 		if ((generation % TypeProbleme::ITERATIONS_ETAPE) == 0) {
 			os << "Meilleur : " << meilleur_aptitude << '\n';

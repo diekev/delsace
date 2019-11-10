@@ -1,0 +1,10 @@
+disposition "operatrice_3d_primitive_sphere" {
+	ligne {
+		étiquette(valeur="Position")
+		vecteur(valeur="0,0,0"; attache=pos_sphère; infobulle="La position de la sphère dans l'espace 3D."; animable)
+	}
+	ligne {
+		étiquette(valeur="Rayon")
+		décimal(valeur=1.0; attache=rayon_sphère; infobulle="Le rayon de la sphère."; animable)
+	}
+}

@@ -27,6 +27,8 @@
 #include "biblinternes/tests/test_unitaire.hh"
 
 void test_nombre_decimaux(dls::test_unitaire::Controleuse &controleur);
+void test_pointeur_marque(dls::test_unitaire::Controleuse &controleur);
 void test_pystring(dls::test_unitaire::Controleuse &controleur);
 void test_date(dls::test_unitaire::Controleuse &controleur);
+void test_tableau_compact(dls::test_unitaire::Controleuse &controleur);
 void test_temperature(dls::test_unitaire::Controleuse &controleur);

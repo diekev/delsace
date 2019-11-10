@@ -1,6 +1,0 @@
-disposition "operatrice_point3d_vecteur" {
-    ligne {
-	    étiquette(valeur="Valeur")
-		vecteur(attache=vec; valeur="0,0,0")
-	}
-}

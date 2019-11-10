@@ -48,7 +48,7 @@ int test_huffman(const dls::chaine &filename, bool encode)
 	if (encode) {
 		std::ifstream ifs(filename.c_str());
 
-		dls::flux::foreach_line(ifs, [&str](const dls::chaine &line)
+		dls::flux::pour_chaque_ligne(ifs, [&str](const dls::chaine &line)
 		{
 			str.append(line + "\n");
 		});

@@ -1,3 +1,9 @@
+/* l'idée est de ne pas utiliser un arbre avec des pointeurs, mais plusieurs listes
+ * de noeuds selon leurs type avec une liste centrale de type de noeud dans le bon ordre
+ * ainsi un arbre pour un opérateur binaire sera représenté selon la liste
+ * OP_BINAIRE OP_EXPRESSION OP_EXPRESSION sans avoir à contenir de pointeurs
+ * dans les structures de noeuds */
+
 class NoeudVariable {};
 class NoeudNombreEntier {};
 class NoeudNombreDecimal {};

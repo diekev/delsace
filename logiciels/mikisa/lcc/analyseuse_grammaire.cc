@@ -24,16 +24,34 @@
 
 #include "analyseuse_grammaire.h"
 
-#include <iostream>
+#include "biblinternes/structures/dico_fixe.hh"
 
-#include "biblinternes/outils/definitions.h"
-
-#include "arbre_syntactic.h"
+#include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "erreur.h"
 #include "expression.h"
 #include "modules.hh"
-#include "nombres.h"
+
+/* ************************************************************************** */
+
+static auto dico_params = dls::cree_dico(
+			dls::paire(dls::vue_chaine("décimal"), lcc::type_var::DEC),
+			dls::paire(dls::vue_chaine("entier"),  lcc::type_var::ENT32),
+			dls::paire(dls::vue_chaine("vecteur"), lcc::type_var::VEC3));
+
+enum {
+	PROP_PARAM_MAX,
+	PROP_PARAM_MIN,
+	PROP_PARAM_NOM,
+	PROP_PARAM_VALEUR,
+};
+
+static auto dico_props_params = dls::cree_dico(
+			dls::paire(dls::vue_chaine("max"), PROP_PARAM_MAX),
+			dls::paire(dls::vue_chaine("min"),  PROP_PARAM_MIN),
+			dls::paire(dls::vue_chaine("nom"),  PROP_PARAM_NOM),
+			dls::paire(dls::vue_chaine("valeur"), PROP_PARAM_VALEUR));
+
+/* ************************************************************************** */
 
 #undef DEBOGUE_EXPRESSION
 
@@ -177,7 +195,6 @@ static bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::BARRE_BARRE:
 		case id_morceau::BARRE:
 		case id_morceau::CHAPEAU:
-		case id_morceau::DE:
 		case id_morceau::POINT:
 		case id_morceau::EGAL:
 		case id_morceau::TROIS_POINTS:
@@ -301,6 +318,40 @@ void analyseuse_grammaire::analyse_bloc()
 		}
 		else if (est_identifiant(id_morceau::POUR)) {
 			analyse_controle_pour();
+		}
+		else if (est_identifiant(id_morceau::ARRETE)) {
+			avance();
+			m_assembleuse->empile_noeud(lcc::noeud::type_noeud::ARRETE, m_contexte, m_identifiants[position()]);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point-virgule ';' après « arrête »");
+			}
+
+			m_assembleuse->depile_noeud(lcc::noeud::type_noeud::ARRETE);
+		}
+		else if (est_identifiant(id_morceau::CONTINUE)) {
+			avance();
+			m_assembleuse->empile_noeud(lcc::noeud::type_noeud::CONTINUE, m_contexte, m_identifiants[position()]);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point-virgule ';' après « continue »");
+			}
+
+			m_assembleuse->depile_noeud(lcc::noeud::type_noeud::CONTINUE);
+		}
+		else if (est_identifiant(id_morceau::RETOURNE)) {
+			avance();
+			m_assembleuse->empile_noeud(lcc::noeud::type_noeud::RETOURNE, m_contexte, m_identifiants[position()]);
+
+			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
+				lance_erreur("Attendu un point-virgule ';' après « retourne »");
+			}
+
+			m_assembleuse->depile_noeud(lcc::noeud::type_noeud::RETOURNE);
+		}
+		else if (est_identifiant(id_morceau::DIRECTIVE)) {
+			avance();
+			analyse_directive();
 		}
 		else {
 			analyse_expression(id_morceau::POINT_VIRGULE, false);
@@ -838,6 +889,115 @@ void analyseuse_grammaire::analyse_appel_fonction()
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
 		analyse_expression(id_morceau::VIRGULE);
+	}
+}
+
+void analyseuse_grammaire::analyse_directive()
+{
+	avance();
+
+	if (donnees().chaine == "param") {
+		avance();
+
+		auto plg_dp = dico_params.trouve(donnees().chaine);
+
+		if (plg_dp.est_finie()) {
+			lance_erreur("Type paramètre inconnu");
+		}
+
+		auto type_param = plg_dp.front().second;
+
+		analyse_parametre(type_param);
+	}
+	else {
+		lance_erreur("Directive inconnue");
+	}
+}
+
+void analyseuse_grammaire::analyse_parametre(lcc::type_var type_param)
+{
+	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+		lance_erreur("Attendu une parenthèse ouvrante '(' après la déclaration du paramètre");
+	}
+
+	auto param = DonneesDeclarationParam();
+	param.type = type_param;
+
+	while (true) {
+		/* aucun paramètre, ou la liste de paramètre est vide */
+		if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+			avance();
+
+			if (param.nom == "") {
+				lance_erreur("Le paramètre n'a pas de nom !");
+			}
+
+			m_contexte.params_declare.pousse(param);
+
+			return;
+		}
+
+		avance();
+
+		auto plg_prop = dico_props_params.trouve(donnees().chaine);
+
+		if (plg_prop.est_finie()) {
+			lance_erreur("Propriété paramètre inconnue");
+		}
+
+		if (!requiers_identifiant(id_morceau::EGAL)) {
+			lance_erreur("Attendu '=' après le nom de la propriété du paramètre");
+		}
+
+		auto type_prop = plg_prop.front().second;
+
+		switch (type_prop) {
+			case PROP_PARAM_MAX:
+			{
+				avance();
+				if (!est_nombre(donnees().identifiant)) {
+					lance_erreur("Attendu un nombre pour « max »");
+				}
+
+				break;
+			}
+			case PROP_PARAM_MIN:
+			{
+				avance();
+				if (!est_nombre(donnees().identifiant)) {
+					lance_erreur("Attendu un nombre pour « min »");
+				}
+
+				break;
+			}
+			case PROP_PARAM_NOM:
+			{
+				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+					lance_erreur("Attendu une chaine littérale pour « nom »");
+				}
+
+				param.nom = donnees().chaine;
+
+				break;
+			}
+			case PROP_PARAM_VALEUR:
+			{
+				avance();
+
+				if (type_param == lcc::type_var::VEC3) {
+					if (!est_identifiant(id_morceau::CHAINE_LITTERALE)) {
+						lance_erreur("Attendu une chaine littérale pour « valeur »");
+					}
+				}
+				else {
+					if (!est_nombre(donnees().identifiant)) {
+						lance_erreur("Attendu un nombre pour « valeur »");
+					}
+				}
+
+				break;
+			}
+		}
 	}
 }
 

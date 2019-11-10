@@ -1,4 +1,16 @@
 disposition "operatrice_script_detail" {
+	ligne {
+		étiquette(valeur="Portée Exécution")
+		énum(valeur="points"; attache=portée_script; items=[
+			{ nom="Fichier", valeur="fichier" },
+			{ nom="Points", valeur="points" },
+			{ nom="Primitives", valeur="primitives" }
+		])
+	}
+	ligne {
+		étiquette(valeur="Fichier Entrée")
+		fichier_entrée(valeur=""; attache=source_entrée; infobulle="Le fichier à utiliser pour une exécution de portée « fichier »")
+	}
     ligne {
 	    étiquette(valeur="Texte")
 		texte(valeur=""; attache=script)

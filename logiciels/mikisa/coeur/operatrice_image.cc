@@ -24,122 +24,17 @@
 
 #include "operatrice_image.h"
 
-#include "biblinternes/graphe/noeud.h"
-#include "biblinternes/outils/definitions.h"
-
 #include "biblinternes/memoire/logeuse_memoire.hh"
+#include "biblinternes/outils/definitions.h"
+#include "biblinternes/structures/pile.hh"
 
 #include "corps/corps.h"
 
+#include "chef_execution.hh"
+#include "noeud.hh"
 #include "noeud_image.h"
+#include "operatrice_graphe_detail.hh"
 #include "usine_operatrice.h"
-
-/* ************************************************************************** */
-
-dls::image::Pixel<float> Calque::valeur(size_t x, size_t y) const
-{
-	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
-	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
-	return tampon[static_cast<int>(y)][static_cast<int>(x)];
-}
-
-void Calque::valeur(size_t x, size_t y, dls::image::Pixel<float> const &pixel)
-{
-	x = std::max(0ul, std::min(x, static_cast<size_t>(tampon.nombre_colonnes()) - 1));
-	y = std::max(0ul, std::min(y, static_cast<size_t>(tampon.nombre_lignes()) - 1));
-	tampon[static_cast<int>(y)][static_cast<int>(x)] = pixel;
-}
-
-dls::image::Pixel<float> Calque::echantillone(float x, float y) const
-{
-	auto const res_x = tampon.nombre_colonnes();
-	auto const res_y = tampon.nombre_lignes();
-
-	auto const entier_x = static_cast<int>(x);
-	auto const entier_y = static_cast<int>(y);
-
-	auto const fract_x = x - static_cast<float>(entier_x);
-	auto const fract_y = y - static_cast<float>(entier_y);
-
-	auto const x1 = std::max(0, std::min(entier_x, res_x - 1));
-	auto const y1 = std::max(0, std::min(entier_y, res_y - 1));
-	auto const x2 = std::max(0, std::min(entier_x + 1, res_x - 1));
-	auto const y2 = std::max(0, std::min(entier_y + 1, res_y - 1));
-
-	auto valeur = dls::image::Pixel<float>(0.0f);
-	valeur += fract_x * fract_y * tampon[y1][x1];
-	valeur += (1.0f - fract_x) * fract_y * tampon[y1][x2];
-	valeur += fract_x * (1.0f - fract_y) * tampon[y2][x1];
-	valeur += (1.0f - fract_x) * (1.0f - fract_y) * tampon[y2][x2];
-
-	return valeur;
-}
-
-/* ************************************************************************** */
-
-Image::~Image()
-{
-	reinitialise();
-}
-
-Calque *Image::ajoute_calque(dls::chaine const &nom, Rectangle const &rectangle)
-{
-	auto tampon = memoire::loge<Calque>("Calque");
-	tampon->nom = nom;
-	tampon->tampon = type_image(dls::math::Hauteur(static_cast<int>(rectangle.hauteur)),
-								dls::math::Largeur(static_cast<int>(rectangle.largeur)));
-
-	auto pixel = dls::image::Pixel<float>(0.0f);
-	pixel.a = 1.0f;
-
-	tampon->tampon.remplie(pixel);
-
-	m_calques.pousse(tampon);
-
-	return tampon;
-}
-
-Calque *Image::calque(dls::chaine const &nom) const
-{
-	for (Calque *tampon : m_calques) {
-		if (tampon->nom == nom) {
-			return tampon;
-		}
-	}
-
-	return nullptr;
-}
-
-Image::plage_calques Image::calques()
-{
-	return plage_calques(m_calques.debut(), m_calques.fin());
-}
-
-Image::plage_calques_const Image::calques() const
-{
-	return plage_calques_const(m_calques.debut(), m_calques.fin());
-}
-
-void Image::reinitialise(bool garde_memoires)
-{
-	if (!garde_memoires) {
-		for (Calque *tampon : m_calques) {
-			memoire::deloge("Calque", tampon);
-		}
-	}
-
-	m_calques.efface();
-}
-
-void Image::nom_calque_actif(dls::chaine const &nom)
-{
-	m_nom_calque = nom;
-}
-
-dls::chaine const &Image::nom_calque_actif() const
-{
-	return m_nom_calque;
-}
 
 /* ************************************************************************** */
 
@@ -152,37 +47,73 @@ bool EntreeOperatrice::connectee() const
 	return !m_ptr->liens.est_vide();
 }
 
-void EntreeOperatrice::requiers_image(Image &image, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+long EntreeOperatrice::nombre_connexions() const
 {
-	if (m_ptr->liens.est_vide()) {
-		return;
+	return m_ptr->liens.taille();
+}
+
+Image const *EntreeOperatrice::requiers_image(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
+{
+	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
+		return nullptr;
 	}
 
-	auto lien = m_ptr->liens[0];
+	auto lien = m_ptr->liens[index];
 
 	m_liste_noms_calques.efface();
 
-	if (lien != nullptr) {
-		auto noeud = lien->parent;
-
-		execute_noeud(noeud, contexte, donnees_aval);
-
-		auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-		operatrice->transfere_image(image);
-
-		for (auto const &calque : image.calques()) {
-			m_liste_noms_calques.pousse(calque->nom);
-		}
-	}
-}
-
-vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (m_ptr->liens.est_vide()) {
+	if (lien == nullptr) {
 		return nullptr;
 	}
 
-	auto lien = m_ptr->liens[0];
+	auto noeud = lien->parent;
+
+	execute_noeud(*noeud, contexte, donnees_aval);
+
+	auto operatrice = extrait_opimage(noeud->donnees);
+	auto image = operatrice->image();
+
+	for (auto const &calque : image->calques()) {
+		m_liste_noms_calques.pousse(calque->nom);
+	}
+
+	return image;
+}
+
+Image *EntreeOperatrice::requiers_copie_image(
+		Image &image,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
+{
+	auto image_op = this->requiers_image(contexte, donnees_aval, index);
+
+	if (image_op == nullptr) {
+		return nullptr;
+	}
+
+	image = *image_op;
+
+	for (auto const &calque : image.calques()) {
+		m_liste_noms_calques.pousse(calque->nom);
+	}
+
+	return &image;
+}
+
+const Corps *EntreeOperatrice::requiers_corps(
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
+{
+	if (m_ptr->liens.est_vide() || index < 0 || index >= m_ptr->liens.taille()) {
+		return nullptr;
+	}
+
+	auto lien = m_ptr->liens[index];
 
 	if (lien == nullptr) {
 		return nullptr;
@@ -190,56 +121,20 @@ vision::Camera3D *EntreeOperatrice::requiers_camera(ContexteEvaluation const &co
 
 	auto noeud = lien->parent;
 
-	execute_noeud(noeud, contexte, donnees_aval);
+	execute_noeud(*noeud, contexte, donnees_aval);
 
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-	return operatrice->camera();
-}
-
-TextureImage *EntreeOperatrice::requiers_texture(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (m_ptr->liens.est_vide()) {
-		return nullptr;
-	}
-
-	auto lien = m_ptr->liens[0];
-
-	if (lien == nullptr) {
-		return nullptr;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, contexte, donnees_aval);
-
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
-	return operatrice->texture();
-}
-
-const Corps *EntreeOperatrice::requiers_corps(ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
-{
-	if (m_ptr->liens.est_vide()) {
-		return nullptr;
-	}
-
-	auto lien = m_ptr->liens[0];
-
-	if (lien == nullptr) {
-		return nullptr;
-	}
-
-	auto noeud = lien->parent;
-
-	execute_noeud(noeud, contexte, donnees_aval);
-
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 
 	return operatrice->corps();
 }
 
-Corps *EntreeOperatrice::requiers_copie_corps(Corps *corps, ContexteEvaluation const &contexte, DonneesAval *donnees_aval)
+Corps *EntreeOperatrice::requiers_copie_corps(
+		Corps *corps,
+		ContexteEvaluation const &contexte,
+		DonneesAval *donnees_aval,
+		int index)
 {
-	auto corps_lien = this->requiers_corps(contexte, donnees_aval);
+	auto corps_lien = this->requiers_corps(contexte, donnees_aval, index);
 
 	if (corps_lien == nullptr) {
 		return nullptr;
@@ -271,15 +166,15 @@ void EntreeOperatrice::obtiens_liste_attributs(dls::tableau<dls::chaine> &chaine
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
 		return;
 	}
 
-	for (auto attributs : corps->attributs()) {
-		chaines.pousse(attributs->nom());
+	for (auto const &attributs : corps->attributs()) {
+		chaines.pousse(attributs.nom());
 	}
 }
 
@@ -296,7 +191,7 @@ void EntreeOperatrice::obtiens_liste_groupes_prims(dls::tableau<dls::chaine> &ch
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -321,7 +216,7 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 	}
 
 	auto noeud = lien->parent;
-	auto operatrice = std::any_cast<OperatriceImage *>(noeud->donnees());
+	auto operatrice = extrait_opimage(noeud->donnees);
 	auto corps = operatrice->corps();
 
 	if (corps == nullptr) {
@@ -333,12 +228,73 @@ void EntreeOperatrice::obtiens_liste_groupes_points(dls::tableau<dls::chaine> &c
 	}
 }
 
+PriseEntree *EntreeOperatrice::pointeur()
+{
+	return m_ptr;
+}
+
+void EntreeOperatrice::signale_cache(ChefExecution *chef) const
+{
+	if (m_ptr->liens.est_vide()) {
+		return;
+	}
+
+	auto lien = m_ptr->liens[0];
+
+	if (lien == nullptr) {
+		return;
+	}
+
+	/* nous poussons les noeuds dans une liste pour pouvoir donner une
+	 * progression correcte */
+
+	auto liste = dls::tableau<Noeud *>();
+	auto pile = dls::pile<Noeud *>();
+	pile.empile(lien->parent);
+
+	while (!pile.est_vide()) {
+		auto noeud = pile.depile();
+
+		liste.pousse(noeud);
+
+		for (auto entree : noeud->entrees) {
+			for (auto sortie : entree->liens) {
+				pile.empile(sortie->parent);
+			}
+		}
+	}
+
+	auto progres = 0.0f;
+	auto delta = 100.0f / static_cast<float>(liste.taille());
+
+	for (auto noeud : liste) {
+		noeud->besoin_execution = true;
+		auto op = extrait_opimage(noeud->donnees);
+		op->libere_memoire();
+
+		chef->indique_progression(progres + delta);
+		progres += delta;
+	}
+}
+
 /* ************************************************************************** */
 
-OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud *node)
-	: m_graphe_parent(graphe_parent)
+SortieOperatrice::SortieOperatrice(PriseSortie *prise)
+	: m_ptr(prise)
+{}
+
+PriseSortie *SortieOperatrice::pointeur()
 {
-	node->donnees(this);
+	return m_ptr;
+}
+
+/* ************************************************************************** */
+
+OperatriceImage::OperatriceImage(Graphe &graphe_parent, Noeud &n)
+	: m_graphe_parent(graphe_parent)
+	, noeud(n)
+{
+	noeud.donnees = this;
 	m_input_data.redimensionne(m_num_inputs);
 	m_sorties.redimensionne(m_num_outputs);
 }
@@ -351,6 +307,11 @@ void OperatriceImage::usine(UsineOperatrice *usine_op)
 UsineOperatrice *OperatriceImage::usine() const
 {
 	return m_usine;
+}
+
+bool OperatriceImage::execute_toujours() const
+{
+	return m_execute_toujours;
 }
 
 int OperatriceImage::type() const
@@ -371,20 +332,26 @@ long OperatriceImage::entrees() const
 
 const char *OperatriceImage::nom_entree(int n)
 {
-	switch (n) {
-		default:
-		case 0: return "A";
-		case 1: return "B";
-	}
+	static const char *noms[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	};
+
+	return noms[n];
 }
 
-int OperatriceImage::type_entree(int n) const
+type_prise OperatriceImage::type_entree(int n) const
 {
 	switch (n) {
 		default:
-		case 0: return OPERATRICE_IMAGE;
-		case 1: return OPERATRICE_IMAGE;
+		case 0: return type_prise::IMAGE;
 	}
+}
+
+bool OperatriceImage::connexions_multiples(int n) const
+{
+	INUTILISE(n);
+	return false;
 }
 
 EntreeOperatrice *OperatriceImage::entree(long index)
@@ -449,17 +416,19 @@ long OperatriceImage::sorties() const
 
 const char *OperatriceImage::nom_sortie(int n)
 {
-	switch (n) {
-		default:
-		case 0: return "R";
-	}
+	static const char *noms[] = {
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+		"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
+	};
+
+	return noms[n];
 }
 
-int OperatriceImage::type_sortie(int n) const
+type_prise OperatriceImage::type_sortie(int n) const
 {
 	switch (n) {
 		default:
-		case 0: return OPERATRICE_IMAGE;
+		case 0: return type_prise::IMAGE;
 	}
 }
 
@@ -471,7 +440,6 @@ const char *OperatriceImage::chemin_entreface() const
 void OperatriceImage::transfere_image(Image &image)
 {
 	image = m_image;
-	m_image.reinitialise(true);
 }
 
 void OperatriceImage::ajoute_avertissement(dls::chaine const &avertissement)
@@ -489,14 +457,14 @@ dls::tableau<dls::chaine> const &OperatriceImage::avertissements() const
 	return m_avertissements;
 }
 
-vision::Camera3D *OperatriceImage::camera()
+Image *OperatriceImage::image()
 {
-	return nullptr;
+	return &m_image;
 }
 
-TextureImage *OperatriceImage::texture()
+Image const *OperatriceImage::image() const
 {
-	return nullptr;
+	return &m_image;
 }
 
 Corps *OperatriceImage::corps()
@@ -534,24 +502,11 @@ void OperatriceImage::obtiens_liste(
 	entree(0)->obtiens_liste_calque(chaines);
 }
 
-void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud)
+void OperatriceImage::renseigne_dependance(ContexteEvaluation const &contexte, CompilatriceReseau &compilatrice, NoeudReseau *noeud_reseau)
 {
 	INUTILISE(contexte);
 	INUTILISE(compilatrice);
-	INUTILISE(noeud);
-}
-
-bool OperatriceImage::possede_animation()
-{
-	for (auto iter = this->debut(); iter != this->fin(); ++iter) {
-		auto &prop = iter->second;
-
-		if (prop.est_anime()) {
-			return true;
-		}
-	}
-
-	return false;
+	INUTILISE(noeud_reseau);
 }
 
 bool OperatriceImage::depend_sur_temps() const
@@ -559,33 +514,46 @@ bool OperatriceImage::depend_sur_temps() const
 	return false;
 }
 
-void OperatriceImage::amont_change()
+void OperatriceImage::amont_change(PriseEntree *entree)
+{
+	INUTILISE(entree);
+	return;
+}
+
+void OperatriceImage::parametres_changes()
 {
 	return;
 }
 
+void OperatriceImage::libere_memoire()
+{
+	m_image.reinitialise();
+	cache_est_invalide = true;
+}
+
 /* ************************************************************************** */
 
-static void supprime_operatrice_image(std::any pointeur)
+calque_image const *cherche_calque(
+		OperatriceImage &op,
+		Image const *image,
+		dls::chaine const &nom_calque)
 {
-	auto ptr = std::any_cast<OperatriceImage *>(pointeur);
+	if (image == nullptr) {
+		op.ajoute_avertissement("Aucune image trouvée en entrée !");
+		return nullptr;
+	}
 
-	/* Lorsque nous logeons un pointeur nous utilisons la taille de la classe
-	 * dérivée pour estimer la quantité de mémoire allouée. Donc pour déloger
-	 * proprement l'opératrice, en prenant en compte la taille de la classe
-	 * dériviée, il faut transtyper le pointeur vers le bon type dérivée. Pour
-	 * ce faire, nous devons utiliser l'usine pour avoir accès aux descriptions
-	 * des opératrices. */
-	auto usine = ptr->usine();
-	usine->deloge(ptr);
-}
+	if (nom_calque.est_vide()) {
+		op.ajoute_avertissement("Le nom du calque est vide");
+		return nullptr;
+	}
 
-Noeud *cree_noeud_image()
-{
-	return memoire::loge<Noeud>("Noeud", supprime_operatrice_image);
-}
+	auto tampon = image->calque_pour_lecture(nom_calque);
 
-void supprime_noeud_image(Noeud *noeud)
-{
-	memoire::deloge("Noeud", noeud);
+	if (tampon == nullptr) {
+		op.ajoute_avertissement("Calque '", nom_calque, "' introuvable !\n");
+		return nullptr;
+	}
+
+	return tampon;
 }

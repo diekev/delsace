@@ -1,0 +1,6 @@
+disposition "ajouter_propriete" {
+	ligne {
+		étiquette(valeur="Nom")
+		chaine(valeur=""; attache=nouveau_nom)
+	}
+}

@@ -1,14 +1,14 @@
 disposition "operatrice_gigue_points" {
     ligne {
 	    étiquette(valeur="Taille")
-		décimal(valeur=1.0; attache=taille; min=0)
+		décimal(valeur=1.0; attache=taille; min=0; animable)
 	}
 	ligne {
 	    étiquette(valeur="Taille Par Axe")
-		vecteur(valeur="1,1,1"; attache=taille_par_axe)
+		vecteur(valeur="1,1,1"; attache=taille_par_axe; animable)
 	}
 	ligne {
 	    étiquette(valeur="Graine")
-		entier(valeur=1; attache=graine; min=1)
+		entier(valeur=1; attache=graine; min=1; animable)
 	}
 }

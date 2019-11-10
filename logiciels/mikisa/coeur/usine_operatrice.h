@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -34,16 +36,16 @@ class Noeud;
 class OperatriceImage;
 
 struct DescOperatrice {
-	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
-	typedef void (*fonc_suppression)(OperatriceImage *);
+	using fonction_construction = std::function<OperatriceImage *(Graphe &, Noeud &)>;
+	using fonction_destruction = std::function<void(OperatriceImage *)>;
 
 	DescOperatrice() = default;
 
 	DescOperatrice(
 			dls::chaine const &opname,
 			dls::chaine const &ophelp,
-			factory_func func,
-			fonc_suppression func_supp)
+			fonction_construction func,
+			fonction_destruction func_supp)
 	    : name(opname)
 	    , tooltip(ophelp)
 	    , build_operator(func)
@@ -52,8 +54,8 @@ struct DescOperatrice {
 
 	dls::chaine name = "";
 	dls::chaine tooltip = "";
-	factory_func build_operator = nullptr;
-	fonc_suppression supprime_operatrice = nullptr;
+	fonction_construction build_operator = nullptr;
+	fonction_destruction supprime_operatrice = nullptr;
 };
 
 template <typename T>
@@ -62,7 +64,7 @@ inline DescOperatrice cree_desc()
 	return DescOperatrice(
 				T::NOM,
 				T::AIDE,
-				[](Graphe &graphe_parent, Noeud *noeud) -> OperatriceImage*
+				[](Graphe &graphe_parent, Noeud &noeud) -> OperatriceImage*
 	{
 		return memoire::loge<T>(T::NOM, graphe_parent, noeud);
 	},
@@ -73,10 +75,35 @@ inline DescOperatrice cree_desc()
 	});
 }
 
+class OperatriceCorps;
+struct ContexteEvaluation;
+struct DonneesAval;
+struct Corps;
+
+enum class res_exec : int;
+
+using type_operatrice_sans_entree = std::function<res_exec(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*)>;
+
+using type_operatrice_entree0 = std::function<res_exec(OperatriceCorps&, ContexteEvaluation const &, DonneesAval*, Corps const &)>;
+
+DescOperatrice cree_desc(
+		const char *nom,
+		const char *aide,
+		const char *chemin_entreface,
+		type_operatrice_sans_entree &&fonction,
+		bool depend_sur_temps);
+
+DescOperatrice cree_desc(
+		const char *nom,
+		const char *aide,
+		const char *chemin_entreface,
+		type_operatrice_entree0 &&fonction,
+		bool depend_sur_temps);
+
+/* ************************************************************************** */
+
 class UsineOperatrice final {
 public:
-	typedef OperatriceImage *(*factory_func)(Graphe &, Noeud *);
-
 	/**
 	 * @brief register_type Register a new element in this factory.
 	 *
@@ -93,7 +120,7 @@ public:
 	 * @param key The key to lookup.
 	 * @return A new ImageNode object corresponding to the given key.
 	 */
-	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud *noeud);
+	OperatriceImage *operator()(dls::chaine const &name, Graphe &graphe_parent, Noeud &noeud_);
 
 	void deloge(OperatriceImage *operatrice);
 

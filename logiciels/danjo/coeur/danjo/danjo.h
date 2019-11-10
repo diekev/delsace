@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -37,6 +37,7 @@ class QWidget;
 
 namespace danjo {
 
+class ControlePropriete;
 class ConteneurControles;
 class Manipulable;
 class RepondantBouton;
@@ -62,11 +63,13 @@ struct DonneesAction {
 
 class GestionnaireInterface {
 	dls::dico_desordonne<dls::chaine, QMenu *> m_menus{};
-	dls::dico_desordonne<dls::chaine, QMenu *> m_menus_entrerogeables{};
 	dls::dico_desordonne<dls::chaine, QBoxLayout *> m_dispositions{};
 	dls::tableau<QToolBar *> m_barres_outils{};
 
 	QWidget *m_parent_dialogue = nullptr;
+
+	/* cache des controles pour ajourner l'interface */
+	dls::dico_desordonne<dls::chaine, ControlePropriete *> m_controles{};
 
 public:
 	~GestionnaireInterface();
@@ -81,27 +84,42 @@ public:
 
 	void ajourne_disposition(const dls::chaine &nom, int temps = 0);
 
-	QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
+	QMenu *compile_menu_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree);
+	QMenu *compile_menu_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
 
-	QBoxLayout *compile_entreface(
+	QBoxLayout *compile_entreface_texte(
 			DonneesInterface &donnees,
-			const char *texte_entree,
+			dls::chaine const &texte,
 			int temps = 0);
 
-	void initialise_entreface(Manipulable *manipulable, const char *texte_entree);
+	QBoxLayout *compile_entreface_fichier(
+			DonneesInterface &donnees,
+			dls::chaine const &texte,
+			int temps = 0);
+
+	void ajourne_entreface(Manipulable *manipulable);
+
+	void initialise_entreface_texte(
+			Manipulable *manipulable,
+			dls::chaine const &texte);
+
+	void initialise_entreface_fichier(
+			Manipulable *manipulable,
+			dls::chaine const &fichier);
 
 	QMenu *pointeur_menu(const dls::chaine &nom);
 
-	QToolBar *compile_barre_outils(DonneesInterface &donnees, const char *texte_entree);
+	QToolBar *compile_barre_outils_texte(DonneesInterface &donnees, dls::chaine const &texte);
 
-	bool montre_dialogue(DonneesInterface &donnees, const char *texte_entree);
+	QToolBar *compile_barre_outils_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
+
+	bool montre_dialogue_texte(DonneesInterface &donnees, dls::chaine const &texte);
+
+	bool montre_dialogue_fichier(DonneesInterface &donnees, dls::chaine const &fichier);
 };
 
 QMenu *compile_menu(DonneesInterface &donnees, const char *texte_entree);
-
-QMenu *compile_menu_entrerogeable(DonneesInterface &donnees, const char *texte_entree);
 
 /**
  * Compile le script d'entreface contenu dans texte_entree, et retourne un
@@ -118,7 +136,7 @@ QBoxLayout *compile_entreface(
  */
 QBoxLayout *compile_entreface(
 		DonneesInterface &donnees,
-		const std::experimental::filesystem::path &chemin_texte,
+		const std::filesystem::path &chemin_texte,
 		int temps = 0);
 
 void compile_feuille_logique(const char *texte_entree);

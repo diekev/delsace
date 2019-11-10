@@ -55,8 +55,10 @@ ControleProprieteEntier::ControleProprieteEntier(QWidget *parent)
 	m_echelle->setWindowFlags(Qt::WindowStaysOnTopHint);
 
 	connect(m_controle, &ControleNombreEntier::valeur_changee, this, &ControleProprieteEntier::ajourne_valeur_pointee);
+	connect(m_controle, &ControleNombreEntier::prevaleur_changee, this, &ControleProprieteEntier::emet_precontrole_change);
 	connect(m_bouton, &QPushButton::pressed, this, &ControleProprieteEntier::montre_echelle);
 	connect(m_echelle, &ControleEchelleEntiere::valeur_changee, m_controle, &ControleNombreEntier::ajourne_valeur);
+	connect(m_echelle, &ControleEchelleEntiere::prevaleur_changee, this, &ControleProprieteEntier::emet_precontrole_change);
 	connect(m_bouton_animation, &QPushButton::pressed, this, &ControleProprieteEntier::bascule_animation);
 }
 
@@ -74,6 +76,7 @@ void ControleProprieteEntier::montre_echelle()
 
 void ControleProprieteEntier::bascule_animation()
 {
+	Q_EMIT(precontrole_change());
 	m_animation = !m_animation;
 
 	if (m_animation == false) {
@@ -87,6 +90,7 @@ void ControleProprieteEntier::bascule_animation()
 	}
 
 	m_controle->marque_anime(m_animation, m_animation);
+	Q_EMIT(controle_change());
 }
 
 void ControleProprieteEntier::finalise(const DonneesControle &donnees)
@@ -109,7 +113,11 @@ void ControleProprieteEntier::finalise(const DonneesControle &donnees)
 		m_propriete->valeur = std::atoi(donnees.valeur_defaut.c_str());
 	}
 
-	m_animation = m_propriete->est_anime();
+	if ((m_propriete->etat & etat_propriete::EST_ANIMABLE) == etat_propriete::VIERGE) {
+		m_bouton_animation->hide();
+	}
+
+	m_animation = m_propriete->est_animee();
 
 	if (m_animation) {
 		m_bouton_animation->setText("c");

@@ -23,10 +23,10 @@
  */
 
 #include <cstring>
-#include <experimental/filesystem>
-#include <fstream>
+#include <filesystem>
 #include <iostream>
 
+#include "biblinternes/flux/outils.h"
 #include "biblinternes/langage/tampon_source.hh"
 
 #include "decoupage/analyseuse_grammaire.hh"
@@ -38,15 +38,20 @@ static lng::tampon_source charge_fichier(const char *chemin_fichier)
 	std::ifstream fichier;
 	fichier.open(chemin_fichier);
 
-	dls::chaine tampon;
-	std::string temp;
+	fichier.seekg(0, fichier.end);
+	auto const taille_fichier = fichier.tellg();
+	fichier.seekg(0, fichier.beg);
 
-	while (std::getline(fichier, temp)) {
-		tampon += temp;
-		tampon.pousse('\n');
-	}
+	dls::chaine res;
+	res.reserve(taille_fichier);
 
-	return lng::tampon_source{tampon};
+	dls::flux::pour_chaque_ligne(fichier, [&](dls::chaine const &ligne)
+	{
+		res += ligne;
+		res.pousse('\n');
+	});
+
+	return lng::tampon_source{res};
 }
 
 struct OptionsCompilation {
@@ -67,7 +72,9 @@ static OptionsCompilation genere_options_compilation(int argc, char **argv)
 static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 {
 	switch (colonne.type) {
-		case ID_ENTIER:
+		default:
+			break;
+		case id_morceau::ENTIER:
 			if (colonne.octet == 1) {
 				os << "TINYINT";
 			}
@@ -92,30 +99,30 @@ static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 				os << " UNSIGNED";
 			}
 			break;
-		case ID_BIT:
+		case id_morceau::BIT:
 			os << "BIT" << '(' << colonne.taille << ')';
 			break;
-		case ID_CHAINE:
+		case id_morceau::CHAINE:
 			if (colonne.variable) {
 				os << "VAR";
 			}
 
 			os << "CHAR(" << colonne.taille << ')';
 			break;
-		case ID_BINAIRE:
+		case id_morceau::BINAIRE:
 			if (colonne.variable) {
 				os << "VAR";
 			}
 
 			os << "BINARY";
 			break;
-		case ID_TEMPS:
+		case id_morceau::TEMPS:
 			os << "TIMESTAMP";
 			break;
-		case ID_TEMPS_DATE:
+		case id_morceau::TEMPS_DATE:
 			os << "DATETIME";
 			break;
-		case ID_TEXTE:
+		case id_morceau::TEXTE:
 			os << "TEXT";
 			break;
 	}
@@ -124,10 +131,12 @@ static void imprime_type(std::ostream &os, const Colonne &colonne, bool est_ref)
 		os << " DEFAULT";
 
 		switch (colonne.id_valeur_defaut) {
-			case ID_TEMPS_COURANT:
+			default:
+				break;
+			case id_morceau::TEMPS_COURANT:
 				os << " CURRENT_TIMESTAMP";
 				break;
-			case ID_NUL:
+			case id_morceau::NUL:
 				os << " NULL";
 				break;
 		}
@@ -171,7 +180,7 @@ const Colonne &trouve_colonne(const Table &table, const dls::chaine &nom)
 static void imprime_cles_etrangeres(std::ostream &os, const Table &table)
 {
 	for (const auto &colonne : table.colonnes) {
-		if (colonne.type != ID_CLE) {
+		if (colonne.type != id_morceau::CLE) {
 			continue;
 		}
 
@@ -196,7 +205,7 @@ static void imprime_creation_schema(std::ostream &os, const Schema *schema)
 
 			os << colonne.nom << ' ';
 
-			if (colonne.type == ID_CLE) {
+			if (colonne.type == id_morceau::CLE) {
 				const auto &tab_ref = trouve_table(*schema, colonne.table);
 				const auto &col_ref = trouve_colonne(tab_ref, colonne.ref);
 
@@ -240,7 +249,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!std::experimental::filesystem::exists(chemin_fichier)) {
+	if (!std::filesystem::exists(chemin_fichier)) {
 		std::cerr << "Impossible d'ouvrir le fichier : " << chemin_fichier << '\n';
 		return 1;
 	}

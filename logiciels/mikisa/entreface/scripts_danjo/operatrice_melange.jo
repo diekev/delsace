@@ -1,27 +1,45 @@
 disposition "operatrice_melange" {
     ligne {
-	    étiquette(valeur="Nom Calque A")
-		liste(valeur="image"; attache=nom_calque_a; infobulle="Nom du calque à modifier.")
-	}
-	ligne {
-	    étiquette(valeur="Nom Calque B")
-		liste(valeur="image"; attache=nom_calque_b; infobulle="Nom du calque à modifier.")
+		étiquette(valeur="Nom Calque")
+		liste(valeur="image"; attache=nom_calque; infobulle="Nom du calque à modifier.")
 	}
     ligne {
         étiquette(valeur="Opération")
-		énum(valeur="mélanger"; attache=operation;
-            items=[{nom="Mélanger", valeur="mélanger"},
-                   {nom="Ajouter", valeur="ajouter"},
-                   {nom="Soustraire", valeur="soustraire"},
-                   {nom="Diviser", valeur="diviser"},
-                   {nom="Multiplier", valeur="multiplier"},
-                   {nom="Écran", valeur="écran"},
-                   {nom="Superposer", valeur="superposer"},
-                   {nom="Différence", valeur="différence"}
+		énum(valeur="dessus"; attache=operation;
+			items=[	{ nom="copie", valeur="copie" },
+					{ nom="ecran", valeur="ecran" },
+					{ nom="dedans", valeur="dedans" },
+					{ nom="densite_couleur_pos", valeur="densite_couleur_pos" },
+					{ nom="densite_couleur_neg", valeur="densite_couleur_neg" },
+					{ nom="dehors", valeur="dehors" },
+					{ nom="depuis", valeur="depuis" },
+					{ nom="dessous", valeur="dessous" },
+					{ nom="dessus", valeur="dessus" },
+					{ nom="dessus_conjoint", valeur="dessus_conjoint" },
+					{ nom="dessus_disjoint", valeur="dessus_disjoint" },
+					{ nom="difference", valeur="difference" },
+					{ nom="divise", valeur="divise" },
+					{ nom="enhaut", valeur="enhaut" },
+					{ nom="exclus", valeur="exclus" },
+					{ nom="geometrique", valeur="geometrique" },
+					{ nom="lumiere_douce", valeur="lumiere_douce" },
+					{ nom="lumiere_dure", valeur="lumiere_dure" },
+					{ nom="hypot", valeur="hypot" },
+					{ nom="masque", valeur="masque" },
+					{ nom="matte", valeur="matte" },
+					{ nom="max", valeur="max" },
+					{ nom="min", valeur="min" },
+					{ nom="moins", valeur="moins" },
+					{ nom="moyenne", valeur="moyenne" },
+					{ nom="multiplie", valeur="multiplie" },
+					{ nom="ou_exclusif", valeur="ou_exclusif" },
+					{ nom="plus", valeur="plus" },
+					{ nom="pochoir", valeur="pochoir" },
+					{ nom="superpose", valeur="superpose" }
             ])
     }
     ligne {
         étiquette(valeur="Facteur")
-		décimal(valeur=1.0; attache=facteur; min=0; max=1)
+		décimal(valeur=1.0; attache=facteur; min=0; max=1; animable)
     }
 }
