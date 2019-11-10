@@ -158,7 +158,6 @@ set(REQUIERS_BOOST ON)
 set(REQUIERS_DOCOPT ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
-set(REQUIERS_SNH OFF)
 set(REQUIERS_VORO OFF)
 set(REQUIERS_CGAL OFF)
 
@@ -212,7 +211,6 @@ active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
 active_dependances(AVEC_MIKISA REQUIERS_CGAL)
 active_dependances(AVEC_MIKISA REQUIERS_KELVINLET)
 active_dependances(AVEC_MIKISA REQUIERS_PATATE)
-active_dependances(AVEC_MIKISA REQUIERS_SNH)
 active_dependances(AVEC_MIKISA REQUIERS_VORO)
 
 active_dependances(AVEC_DANJO REQUIERS_QT)

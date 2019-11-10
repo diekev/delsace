@@ -81,7 +81,6 @@
 #include "operatrices/operatrices_image_profonde.hh"
 #include "operatrices/operatrices_images_3d.hh"
 #include "operatrices/operatrices_maillage.hh"
-#include "operatrices/operatrices_muscles.hh"
 #include "operatrices/operatrices_ocean.hh"
 #include "operatrices/operatrices_opensubdiv.hh"
 #include "operatrices/operatrices_particules.h"
@@ -90,9 +89,7 @@
 #include "operatrices/operatrices_region.h"
 #include "operatrices/operatrices_rendu.hh"
 #include "operatrices/operatrices_script.hh"
-#include "operatrices/operatrices_simulation_foule.hh"
 #include "operatrices/operatrices_simulations.hh"
-#include "operatrices/operatrices_snh.hh"
 #include "operatrices/operatrices_srirp.hh"
 #include "operatrices/operatrices_terrain.hh"
 #include "operatrices/operatrices_uvs.hh"
@@ -161,7 +158,6 @@ void Mikisa::initialise()
 	enregistre_operatrices_images_3d(m_usine_operatrices);
 	enregistre_operatrices_groupes(m_usine_operatrices);
 	enregistre_operatrices_maillage(m_usine_operatrices);
-	enregistre_operatrices_muscles(m_usine_operatrices);
 	enregistre_operatrices_ocean(m_usine_operatrices);
 	enregistre_operatrices_opensubdiv(m_usine_operatrices);
 	enregistre_operatrices_particules(m_usine_operatrices);
@@ -170,9 +166,7 @@ void Mikisa::initialise()
 	enregistre_operatrices_region(m_usine_operatrices);
 	enregistre_operatrices_rendu(m_usine_operatrices);
 	enregistre_operatrices_script(m_usine_operatrices);
-	enregistre_operatrices_sim_foule(m_usine_operatrices);
 	enregistre_operatrices_simulations(m_usine_operatrices);
-	enregistre_operatrices_snh(m_usine_operatrices);
 	enregistre_operatrices_srirp(m_usine_operatrices);
 	enregistre_operatrices_terrain(m_usine_operatrices);
 	enregistre_operatrices_uvs(m_usine_operatrices);

@@ -84,14 +84,13 @@ private:
 
 	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction(id_morceau id);
-	void analyse_parametres_fonction(noeud::base *noeud, DonneesFonction &donnees_fonction, DonneesTypeDeclare *donnees_type_fonction);
 	void analyse_corps_fonction();
 	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure();
 	void analyse_declaration_enum();
-	DonneesTypeDeclare analyse_declaration_type(DonneesTypeDeclare *donnees_type_fonction = nullptr, bool double_point = true);
-	DonneesTypeDeclare analyse_declaration_type_ex(DonneesTypeDeclare *donnees_type_fonction = nullptr);
+	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
+	DonneesTypeDeclare analyse_declaration_type_ex();
 	void analyse_controle_si(type_noeud tn);
 	void analyse_controle_pour();
 	void analyse_construction_structure(noeud::base *noeud);

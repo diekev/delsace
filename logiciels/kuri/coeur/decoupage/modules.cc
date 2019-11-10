@@ -37,6 +37,16 @@
 
 /* ************************************************************************** */
 
+DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine &nom)
+{
+	return std::find_if(args.debut(), args.fin(), [&](DonneesArgument const &da)
+	{
+		return da.nom == nom;
+	});
+}
+
+/* ************************************************************************** */
+
 bool DonneesModule::importe_module(dls::vue_chaine const &nom_module) const
 {
 	return modules_importes.trouve(nom_module) != modules_importes.fin();
@@ -270,7 +280,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		if (nom_arg != "") {
 			arguments_nommes = true;
 
-			auto iter = donnees_fonction.args.trouve(nom_arg);
+			auto iter = donnees_fonction.trouve(nom_arg);
 
 			if (iter == donnees_fonction.args.fin()) {
 				res.etat = FONCTION_INTROUVEE;
@@ -280,7 +290,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				return res;
 			}
 
-			auto &donnees = iter->second;
+			auto &donnees = *iter;
 
 			if ((args.trouve(nom_arg) != args.fin()) && !donnees.est_variadic) {
 				res.etat = FONCTION_INTROUVEE;
@@ -298,7 +308,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 #endif
 
-			dernier_arg_variadique = iter->second.est_variadic;
+			dernier_arg_variadique = donnees.est_variadic;
 
 			args.insere(nom_arg);
 		}
@@ -311,7 +321,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 
 			if (nombre_args != 0) {
-				auto nom_argument = donnees_fonction.nom_args[index];
+				auto nom_argument = donnees_fonction.args[index].nom;
 				args.insere(nom_argument);
 				nom_arg = nom_argument;
 
@@ -369,9 +379,8 @@ static DonneesCandidate verifie_donnees_fonction(
 					type_noeud::TABLEAU, contexte, (*enfant)->morceau);
 		noeud_tableau->valeur_calculee = nombre_args_var;
 		noeud_tableau->drapeaux |= EST_CALCULE;
-		auto nom_arg = donnees_fonction.nom_args.back();
 
-		auto index_dt_var = donnees_fonction.args[nom_arg].index_type;
+		auto index_dt_var = donnees_fonction.args.back().index_type;
 		auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
 		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.dereference());
 
@@ -389,16 +398,16 @@ static DonneesCandidate verifie_donnees_fonction(
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
 		 * car ça a déjà été fait plus haut. */
-		auto const iter = donnees_fonction.args.trouve(nom);
-		auto index_arg = iter->second.index;
-		auto const index_type_arg = iter->second.index_type;
+		auto const iter = donnees_fonction.trouve(nom);
+		auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
+		auto const index_type_arg = iter->index_type;
 		auto const index_type_enf = (*enfant)->index_type;
 		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.magasin_types.donnees_types[index_type_arg];
 		auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
 
 		/* À FAIRE : arguments variadics : comment les passer d'une
 		 * fonction à une autre. */
-		if (iter->second.est_variadic) {
+		if (iter->est_variadic) {
 			if (!est_invalide(type_arg.dereference())) {
 				auto drapeau = niveau_compat::ok;
 				poids_args *= verifie_compatibilite(type_arg.dereference(), type_enf, *enfant, drapeau);

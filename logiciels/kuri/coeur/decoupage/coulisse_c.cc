@@ -1149,6 +1149,7 @@ static void genere_code_C_prepasse(
 			break;
 		}
 		case type_noeud::DECLARATION_FONCTION:
+		case type_noeud::LISTE_PARAMETRES_FONCTION:
 		{
 			assert(false);
 			break;
@@ -1635,7 +1636,7 @@ void genere_code_C(
 
 			auto virgule = '(';
 
-			if (donnees_fonction->nom_args.taille() == 0 && !moult_retour) {
+			if (donnees_fonction->args.taille() == 0 && !moult_retour) {
 				os << '(';
 				virgule = ' ';
 			}
@@ -1660,15 +1661,14 @@ void genere_code_C(
 				virgule = ',';
 			}
 
-			for (auto const &nom : donnees_fonction->nom_args) {
+			for (auto &argument : donnees_fonction->args) {
 				os << virgule;
 
-				auto &argument = donnees_fonction->args[nom];
 				auto index_type = argument.index_type;
 
 				auto dt = contexte.magasin_types.donnees_types[index_type];
 
-				auto nom_broye = broye_nom_simple(nom);
+				auto nom_broye = broye_nom_simple(argument.nom);
 
 				contexte.magasin_types.converti_type_C(
 							contexte,
@@ -1690,7 +1690,7 @@ void genere_code_C(
 					dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
 				}
 
-				contexte.pousse_locale(nom, donnees_var);
+				contexte.pousse_locale(argument.nom, donnees_var);
 
 				if (argument.est_employe) {
 					auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
@@ -1716,7 +1716,7 @@ void genere_code_C(
 						donnees_var.index_type = index_dt_m;
 						donnees_var.est_argument = true;
 						donnees_var.est_membre_emploie = true;
-						donnees_var.structure = broye_nom_simple(nom) + (est_pointeur ? "->" : ".");
+						donnees_var.structure = nom_broye + (est_pointeur ? "->" : ".");
 
 						contexte.pousse_locale(dm.first, donnees_var);
 					}
@@ -1767,6 +1767,11 @@ void genere_code_C(
 
 			contexte.termine_fonction();
 
+			break;
+		}
+		case type_noeud::LISTE_PARAMETRES_FONCTION:
+		{
+			/* géré dans DECLARATION_FONCTION */
 			break;
 		}
 		case type_noeud::APPEL_FONCTION:

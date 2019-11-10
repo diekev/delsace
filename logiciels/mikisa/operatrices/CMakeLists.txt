@@ -39,7 +39,6 @@ set(BIBLIOTHEQUES
 	bib_kelvinlet
 	bib_objets
 	bib_outils
-	bib_snh
 	bib_structures
 	bib_vision
 	bib_voro
@@ -82,7 +81,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_image_profonde.cc
 	operatrices_images_3d.cc
 	operatrices_maillage.cc
-	operatrices_muscles.cc
 	operatrices_ocean.cc
 	operatrices_opensubdiv.cc
 	operatrices_particules.cc
@@ -91,9 +89,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_region.cc
 	operatrices_rendu.cc
 	operatrices_script.cc
-	operatrices_simulation_foule.cc
 	operatrices_simulations.cc
-	operatrices_snh.cc
 	operatrices_srirp.cc
 	operatrices_terrain.cc
 	operatrices_uvs.cc
@@ -119,7 +115,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_image_profonde.hh
 	operatrices_images_3d.hh
 	operatrices_maillage.hh
-	operatrices_muscles.hh
 	operatrices_ocean.hh
 	operatrices_opensubdiv.hh
 	operatrices_particules.h
@@ -128,9 +123,7 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_region.h
 	operatrices_rendu.hh
 	operatrices_script.hh
-	operatrices_simulation_foule.hh
 	operatrices_simulations.hh
-	operatrices_snh.hh
 	operatrices_srirp.hh
 	operatrices_terrain.hh
 	operatrices_uvs.hh

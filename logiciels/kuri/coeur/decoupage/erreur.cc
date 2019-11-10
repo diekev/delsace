@@ -281,8 +281,8 @@ void lance_erreur_fonction_inconnue(
 			ss << "\tArgument '" << dc.nom_arg << "' inconnu !\n";
 			ss << "\tLes arguments de la fonction sont : \n";
 
-			for (auto const &nom_arg : df->nom_args) {
-				ss << "\t\t" << nom_arg << '\n';
+			for (auto const &argument : df->args) {
+				ss << "\t\t" << argument.nom << '\n';
 			}
 
 			type_erreur = erreur::type_erreur::ARGUMENT_INCONNU;

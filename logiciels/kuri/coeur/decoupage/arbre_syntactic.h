@@ -38,6 +38,7 @@ struct ContexteGenerationCode;
 enum class type_noeud : char {
 	RACINE,
 	DECLARATION_FONCTION,
+	LISTE_PARAMETRES_FONCTION,
 	APPEL_FONCTION,
 	VARIABLE,
 	ACCES_MEMBRE_DE,
@@ -157,7 +158,7 @@ const char *chaine_type_noeud(type_noeud type);
 enum drapeaux_noeud : unsigned short {
 	AUCUN                  = 0,
 	DYNAMIC                = (1 << 0),
-	VARIADIC               = (1 << 1),
+	EMPLOYE                = (1 << 1),
 	DECLARATION            = (1 << 2),
 	CONVERTI_TABLEAU       = (1 << 3),
 	CONVERTI_EINI          = (1 << 4),
