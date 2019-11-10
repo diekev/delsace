@@ -28,7 +28,40 @@
 #include "contexte_generation_code.h"
 #include "morceaux.hh"
 
+namespace lng::erreur {
+
+static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
+{
+	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
+}
+
+}
+
 namespace erreur {
+
+struct PositionMorceau {
+	long ligne = 0;
+	long pos = 0;
+};
+
+static auto trouve_position(DonneesMorceaux const &morceau, DonneesModule *module)
+{
+	auto ptr = morceau.chaine.pointeur();
+	auto pos = PositionMorceau{};
+
+	for (auto i = 0ul; i < module->tampon.nombre_lignes() - 1; ++i) {
+		auto l0 = module->tampon[static_cast<long>(i)];
+		auto l1 = module->tampon[static_cast<long>(i + 1)];
+
+		if (ptr >= l0.begin() && ptr < l1.begin()) {
+			pos.ligne = static_cast<long>(i + 1);
+			pos.pos = ptr - l0.begin();
+			break;
+		}
+	}
+
+	return pos;
+}
 
 void lance_erreur(
 		const dls::chaine &quoi,
@@ -36,12 +69,13 @@ void lance_erreur(
 		const DonneesMorceaux &morceau,
 		type_erreur type)
 {
-	auto const ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto const identifiant = morceau.identifiant;
 	auto const &chaine = morceau.chaine;
 
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto ligne_courante = module->tampon[ligne];
 
 	dls::flux_chaine ss;
@@ -66,11 +100,14 @@ void lance_erreur_plage(
 		const DonneesMorceaux &dernier_morceau,
 		type_erreur type)
 {
-	auto const ligne = static_cast<long>(premier_morceau.ligne_pos >> 32);
-	auto const pos_premier = static_cast<long>(premier_morceau.ligne_pos & 0xffffffff);
-	auto const pos_dernier = static_cast<long>(dernier_morceau.ligne_pos & 0xffffffff);
-
 	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
+	auto pos = trouve_position(premier_morceau, module);
+	auto const ligne = pos.ligne;
+	auto const pos_premier = pos.pos;
+
+	auto module_dernier = contexte.module(static_cast<size_t>(dernier_morceau.module));
+	auto const pos_dernier = trouve_position(premier_morceau, module_dernier).pos;
+
 	auto ligne_courante = module->tampon[ligne];
 
 	dls::flux_chaine ss;
@@ -94,9 +131,10 @@ void lance_erreur_plage(
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau_enfant.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto ligne = module->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
@@ -132,9 +170,10 @@ void lance_erreur_plage(
 		const DonneesMorceaux &morceau_enfant,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau_enfant.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto ligne = module->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
@@ -169,9 +208,10 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto ligne = module->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
@@ -196,9 +236,10 @@ void lance_erreur_type_operation(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceaux &morceau)
 {
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto ligne = module->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
@@ -223,15 +264,16 @@ void lance_erreur_fonction_inconnue(
 		dls::tableau<DonneesCandidate> const &candidates)
 {
 	auto const &morceau = b->morceau;
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto ligne = module->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << (b->morceau.ligne_pos >> 32) << '\n';
+	ss << "Erreur : " << module->chemin << ':' << pos_mot << '\n';
 	ss << "\nDans l'appel de la fonction '" << b->morceau.chaine << "'\n";
 	ss << ligne;
 
@@ -259,8 +301,9 @@ void lance_erreur_fonction_inconnue(
 			auto noeud_decl = df->noeud_decl;
 
 			auto const &morceau_df = noeud_decl->morceau;
-			auto const numero_ligne_df = morceau_df.ligne_pos >> 32;
 			auto module_df = contexte.module(static_cast<size_t>(morceau_df.module));
+			auto pos_df = trouve_position(morceau_df, module_df);
+			auto const numero_ligne_df = pos_df.ligne;
 
 			ss << ' ' << noeud_decl->chaine()
 			   << " (trouvée à " << module_df->chemin << ':' << numero_ligne_df + 1 << ")\n";
@@ -339,15 +382,16 @@ void lance_erreur_fonction_nulctx(
 			noeud::base *decl_appel)
 {
 	auto const &morceau = appl_fonc->morceau;
-	auto const numero_ligne = static_cast<long>(morceau.ligne_pos >> 32);
-	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
 	auto ligne = module->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << (appl_fonc->morceau.ligne_pos >> 32) << '\n';
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne << '\n';
 	ss << "\nDans l'appel de la fonction « " << appl_fonc->morceau.chaine << " »\n";
 	ss << ligne;
 
@@ -363,13 +407,15 @@ void lance_erreur_fonction_nulctx(
 
 	ss << "\n« " << decl_fonc->chaine() << " » est déclarée ici :\n";
 	module = contexte.module(static_cast<size_t>(decl_fonc->morceau.module));
-	ss << module->chemin << ':' << (decl_fonc->morceau.ligne_pos >> 32) << '\n' << '\n';
-	ss << module->tampon[static_cast<long>(decl_fonc->morceau.ligne_pos >> 32)];
+	auto pos_decl = trouve_position(decl_fonc->morceau, module);
+	ss << module->chemin << ':' << pos_decl.ligne << '\n' << '\n';
+	ss << module->tampon[pos_decl.ligne];
 
 	ss << "\n« " << appl_fonc->chaine() << " » est déclarée ici :\n";
 	module = contexte.module(static_cast<size_t>(decl_appel->morceau.module));
-	ss << module->chemin << ':' << (decl_appel->morceau.ligne_pos >> 32) << '\n' << '\n';
-	ss << module->tampon[static_cast<long>(decl_appel->morceau.ligne_pos >> 32)];
+	auto pos_appel = trouve_position(decl_appel->morceau, module);
+	ss << module->chemin << ':' << pos_appel.ligne << '\n' << '\n';
+	ss << module->tampon[pos_appel.ligne];
 
 	ss << "\n----------------------------------------------------------------\n";
 

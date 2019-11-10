@@ -41,7 +41,7 @@ struct base;
 struct ContexteGenerationCode;
 
 struct DonneesArgument {
-	dls::vue_chaine nom;
+	dls::vue_chaine_compacte nom;
 	long index_type{-1l};
 	DonneesTypeDeclare type_declare{};
 	bool est_variadic = false;
@@ -75,15 +75,15 @@ struct DonneesFonction {
 
 	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
 
-	iteratrice_arg trouve(dls::vue_chaine const &nom);
+	iteratrice_arg trouve(dls::vue_chaine_compacte const &nom);
 };
 
 struct DonneesModule {
 	lng::tampon_source tampon{""};
 	dls::tableau<DonneesMorceaux> morceaux{};
-	dls::ensemble<dls::vue_chaine> modules_importes{};
-	dls::ensemble<dls::vue_chaine> fonctions_exportees{};
-	dls::dico_desordonne<dls::vue_chaine, dls::tableau<DonneesFonction>> fonctions{};
+	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
+	dls::ensemble<dls::vue_chaine_compacte> fonctions_exportees{};
+	dls::dico_desordonne<dls::vue_chaine_compacte, dls::tableau<DonneesFonction>> fonctions{};
 	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
@@ -97,31 +97,31 @@ struct DonneesModule {
 	/**
 	 * Retourne vrai si le module importe un module du nom spécifié.
 	 */
-	bool importe_module(dls::vue_chaine const &nom_module) const;
+	bool importe_module(dls::vue_chaine_compacte const &nom_module) const;
 
 	/**
 	 * Retourne vrai si le module possède une fonction du nom spécifié.
 	 */
-	bool possede_fonction(dls::vue_chaine const &nom_fonction) const;
+	bool possede_fonction(dls::vue_chaine_compacte const &nom_fonction) const;
 
 	/**
 	 * Ajoute les données de la fonction dont le nom est spécifié en paramètres
 	 * à la table de fonctions de ce contexte.
 	 */
-	void ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction, DonneesFonction const &donnees);
+	void ajoute_donnees_fonctions(dls::vue_chaine_compacte const &nom_fonction, DonneesFonction const &donnees);
 
 	/**
 	 * Retourne les données de la fonction dont le nom est spécifié en
 	 * paramètre. Si aucune fonction ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	[[nodiscard]] dls::tableau<DonneesFonction> &donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept;
+	[[nodiscard]] dls::tableau<DonneesFonction> &donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept;
 
 	/**
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une fonction
 	 * ayant déjà été ajouté à la liste de fonctions de ce module.
 	 */
-	[[nodiscard]] bool fonction_existe(dls::vue_chaine const &nom_fonction) const noexcept;
+	[[nodiscard]] bool fonction_existe(dls::vue_chaine_compacte const &nom_fonction) const noexcept;
 
 	/**
 	 * Retourne la mémoire utilisée en octet par les données de ce module. La
@@ -188,7 +188,7 @@ struct DonneesCandidate {
 	int etat = FONCTION_INTROUVEE;
 	int raison = AUCUNE_RAISON;
 	double poids_args = 0.0;
-	dls::vue_chaine nom_arg{};
+	dls::vue_chaine_compacte nom_arg{};
 	/* les expressions remises dans l'ordre selon les noms, si la fonction est trouvée. */
 	dls::tableau<noeud::base *> exprs{};
 	DonneesTypeFinal type1{};
@@ -204,8 +204,8 @@ struct ResultatRecherche {
 
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine const &nom,
-		dls::liste<dls::vue_chaine> &noms_arguments,
+		dls::vue_chaine_compacte const &nom,
+		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
 		dls::liste<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel);

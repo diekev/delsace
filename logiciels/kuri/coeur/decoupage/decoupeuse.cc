@@ -270,9 +270,9 @@ char decoupeuse_texte::caractere_voisin(int n) const
 	return *(m_debut + n);
 }
 
-dls::vue_chaine decoupeuse_texte::mot_courant() const
+dls::vue_chaine_compacte decoupeuse_texte::mot_courant() const
 {
-	return dls::vue_chaine(m_debut_mot, m_taille_mot_courant);
+	return dls::vue_chaine_compacte(m_debut_mot, m_taille_mot_courant);
 }
 
 void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
@@ -347,7 +347,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 		this->enregistre_pos_mot();
 
-		auto id = id_trigraphe(dls::vue_chaine(m_debut, 3));
+		auto id = id_trigraphe(dls::vue_chaine_compacte(m_debut, 3));
 
 		if (id != id_morceau::INCONNU) {
 			this->pousse_caractere(3);
@@ -356,7 +356,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 			return;
 		}
 
-		id = id_digraphe(dls::vue_chaine(m_debut, 2));
+		id = id_digraphe(dls::vue_chaine_compacte(m_debut, 2));
 
 		if (id != id_morceau::INCONNU) {
 			this->pousse_caractere(2);
@@ -504,7 +504,7 @@ void decoupeuse_texte::pousse_caractere(int n)
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_module->morceaux.pousse({ mot_courant(), static_cast<size_t>((m_compte_ligne << 32) | m_pos_mot), identifiant, static_cast<int>(m_module->id) });
+	m_module->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_module->id) });
 	m_taille_mot_courant = 0;
 }
 

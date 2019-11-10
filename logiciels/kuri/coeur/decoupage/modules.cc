@@ -37,7 +37,7 @@
 
 /* ************************************************************************** */
 
-DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine &nom)
+DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine_compacte &nom)
 {
 	return std::find_if(args.debut(), args.fin(), [&](DonneesArgument const &da)
 	{
@@ -47,17 +47,17 @@ DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine &n
 
 /* ************************************************************************** */
 
-bool DonneesModule::importe_module(dls::vue_chaine const &nom_module) const
+bool DonneesModule::importe_module(dls::vue_chaine_compacte const &nom_module) const
 {
 	return modules_importes.trouve(nom_module) != modules_importes.fin();
 }
 
-bool DonneesModule::possede_fonction(dls::vue_chaine const &nom_fonction) const
+bool DonneesModule::possede_fonction(dls::vue_chaine_compacte const &nom_fonction) const
 {
 	return fonctions_exportees.trouve(nom_fonction) != fonctions_exportees.fin();
 }
 
-void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction, DonneesFonction const &donnees)
+void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine_compacte const &nom_fonction, DonneesFonction const &donnees)
 {
 	auto iter = fonctions.trouve(nom_fonction);
 
@@ -69,7 +69,7 @@ void DonneesModule::ajoute_donnees_fonctions(dls::vue_chaine const &nom_fonction
 	}
 }
 
-dls::tableau<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine const &nom_fonction) noexcept
+dls::tableau<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine_compacte const &nom_fonction) noexcept
 {
 	auto iter = fonctions.trouve(nom_fonction);
 
@@ -80,18 +80,18 @@ dls::tableau<DonneesFonction> &DonneesModule::donnees_fonction(dls::vue_chaine c
 	return iter->second;
 }
 
-bool DonneesModule::fonction_existe(dls::vue_chaine const &nom_fonction) const noexcept
+bool DonneesModule::fonction_existe(dls::vue_chaine_compacte const &nom_fonction) const noexcept
 {
 	return fonctions.trouve(nom_fonction) != fonctions.fin();
 }
 
 size_t DonneesModule::memoire_utilisee() const noexcept
 {
-	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(dls::tableau<DonneesFonction>) + sizeof(dls::vue_chaine));
+	auto memoire = static_cast<size_t>(fonctions.taille()) * (sizeof(dls::tableau<DonneesFonction>) + sizeof(dls::vue_chaine_compacte));
 
 	for (auto const &df : fonctions) {
 		for (auto const &fonc : df.second) {
-			memoire += static_cast<size_t>(fonc.args.taille()) * (sizeof(DonneesArgument) + sizeof(dls::vue_chaine));
+			memoire += static_cast<size_t>(fonc.args.taille()) * (sizeof(DonneesArgument) + sizeof(dls::vue_chaine_compacte));
 		}
 	}
 
@@ -244,7 +244,7 @@ static double verifie_compatibilite(
 static DonneesCandidate verifie_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction &donnees_fonction,
-		dls::liste<dls::vue_chaine> &noms_arguments_,
+		dls::liste<dls::vue_chaine_compacte> &noms_arguments_,
 		dls::liste<noeud::base *> const &exprs)
 {
 	auto res = DonneesCandidate{};
@@ -269,7 +269,7 @@ static DonneesCandidate verifie_donnees_fonction(
 	/* ***************** vérifie si les noms correspondent ****************** */
 
 	auto arguments_nommes = false;
-	dls::ensemble<dls::vue_chaine> args;
+	dls::ensemble<dls::vue_chaine_compacte> args;
 	auto dernier_arg_variadique = false;
 
 	/* crée une copie pour ne pas polluer la liste pour les appels suivants */
@@ -476,8 +476,8 @@ static DonneesCandidate verifie_donnees_fonction(
 
 ResultatRecherche cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine const &nom,
-		dls::liste<dls::vue_chaine> &noms_arguments,
+		dls::vue_chaine_compacte const &nom,
+		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
 		dls::liste<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel)

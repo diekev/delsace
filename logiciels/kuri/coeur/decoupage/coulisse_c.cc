@@ -166,7 +166,7 @@ static auto cree_info_type_structure_C(
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine const &nom_struct,
+		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure,
 		DonneesTypeFinal &dt)
 {
@@ -283,7 +283,7 @@ static auto cree_info_type_enum_C(
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine const &nom_struct,
+		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure)
 {
 	auto nom_info_type = "__info_type_enum" + dls::vers_chaine(index++);
@@ -680,7 +680,7 @@ static void cree_appel(
 			auto nom_var_chaine = dls::chaine("");
 
 			if (enf->type != type_noeud::VARIABLE) {
-				nom_var_chaine = "__chaine" + dls::vers_chaine(enf->morceau.ligne_pos);
+				nom_var_chaine = "__chaine" + dls::vers_chaine(enf);
 
 				genere_code_C_prepasse(enf, contexte, false, os);
 				os << "chaine " << nom_var_chaine << " = ";
@@ -691,7 +691,7 @@ static void cree_appel(
 				nom_var_chaine = enf->chaine();
 			}
 
-			auto nom_var = "__pointeur" + dls::vers_chaine(enf->morceau.ligne_pos);
+			auto nom_var = "__pointeur" + dls::vers_chaine(enf);
 
 			os << "const char *" + nom_var;
 			os << " = " << nom_var_chaine << ".pointeur;\n";
@@ -699,7 +699,7 @@ static void cree_appel(
 			enf->valeur_calculee = nom_var;
 		}
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
-			auto nom_var_tableau = "__tableau_octet" + dls::vers_chaine(enf->morceau.ligne_pos);
+			auto nom_var_tableau = "__tableau_octet" + dls::vers_chaine(enf);
 
 			os << "Tableau_octet " << nom_var_tableau << ";\n";
 
@@ -970,7 +970,7 @@ static void cree_initialisation(
 		ContexteGenerationCode &contexte,
 		DonneesTypeFinal::type_plage dt_parent,
 		dls::chaine const &chaine_parent,
-		dls::vue_chaine const &accesseur,
+		dls::vue_chaine_compacte const &accesseur,
 		dls::flux_chaine &os)
 {
 	if (dt_parent.front() == id_morceau::CHAINE || dt_parent.front() == id_morceau::TABLEAU) {
@@ -1929,7 +1929,7 @@ void genere_code_C(
 				expression_modifiee = true;
 
 				auto nom_eini = dls::chaine("__eini_ext_")
-						.append(dls::vers_chaine(expression->morceau.ligne_pos >> 32));
+						.append(dls::vers_chaine(reinterpret_cast<long>(expression) >> 32));
 
 				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
 
@@ -2498,7 +2498,7 @@ void genere_code_C(
 				case GENERE_BOUCLE_COROUTINE:
 				case GENERE_BOUCLE_COROUTINE_INDEX:
 				{
-					auto nom_etat = "__etat" + dls::vers_chaine(enfant2->morceau.ligne_pos);
+					auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
 
 					os << "__etat_coro" << enfant2->df->nom_broye << " " << nom_etat << ";\n";
 					os << nom_etat << ".__reprend_coro = 0;\n";
@@ -2592,7 +2592,7 @@ void genere_code_C(
 		}
 		case type_noeud::CONTINUE_ARRETE:
 		{
-			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
 			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
 					? contexte.goto_continue(chaine_var)
@@ -2744,7 +2744,7 @@ void genere_code_C(
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
 		{
-			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine>>(&b->valeur_calculee);
+			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 
 			auto enfant = b->enfants.debut();
 			auto nom_param = liste_params->debut();

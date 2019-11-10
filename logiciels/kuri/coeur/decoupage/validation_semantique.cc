@@ -333,7 +333,7 @@ static long resoud_type_final(
 								expr->morceau);
 				}
 
-				auto taille = lng::converti_nombre_entier(expr->chaine());
+				auto taille = lng::converti_nombre_entier(dls::vue_chaine(expr->chaine().pointeur(), expr->chaine().taille()));
 				type = type | (static_cast<int>(taille) << 8);
 			}
 
@@ -490,7 +490,7 @@ static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
 static auto valide_appel_pointeur_fonction(
 		base *b,
 		ContexteGenerationCode &contexte,
-		dls::liste<dls::vue_chaine> const &noms_arguments,
+		dls::liste<dls::vue_chaine_compacte> const &noms_arguments,
 		dls::chaine const &nom_fonction)
 {
 	for (auto const &nom : noms_arguments) {
@@ -941,7 +941,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::APPEL_FONCTION:
 		{
 			auto const nom_fonction = dls::chaine(b->morceau.chaine);
-			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine>>(&b->valeur_calculee);
+			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 
 			/* Nous avons un pointeur vers une fonction. */
 			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
@@ -2104,7 +2104,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			valides_enfants(b, contexte);
 
-			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
 			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
 					? contexte.goto_continue(chaine_var)

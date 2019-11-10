@@ -131,7 +131,7 @@ base::base(ContexteGenerationCode &/*contexte*/, DonneesMorceaux const &morceau_
 	: morceau{morceau_}
 {}
 
-dls::vue_chaine const &base::chaine() const
+dls::vue_chaine_compacte const &base::chaine() const
 {
 	return morceau.chaine;
 }
@@ -218,9 +218,9 @@ void rassemble_feuilles(
 	}
 }
 
-void ajoute_nom_argument(base *b, const dls::vue_chaine &nom)
+void ajoute_nom_argument(base *b, const dls::vue_chaine_compacte &nom)
 {
-	auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine>>(&b->valeur_calculee);
+	auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 	noms_arguments->pousse(nom);
 }
 

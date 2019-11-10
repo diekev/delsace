@@ -26,9 +26,9 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-dls::chaine broye_nom_simple(dls::vue_chaine const &nom);
+dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
 
 dls::chaine broye_nom_fonction(
-		dls::vue_chaine const &nom_fonction,
+		dls::vue_chaine_compacte const &nom_fonction,
 		dls::chaine const &nom_module,
 		long index_type);

@@ -103,7 +103,7 @@ struct DonneesMembre {
 };
 
 struct DonneesStructure {
-	dls::dico_desordonne<dls::vue_chaine, DonneesMembre> donnees_membres{};
+	dls::dico_desordonne<dls::vue_chaine_compacte, DonneesMembre> donnees_membres{};
 	dls::tableau<long> index_types{};
 
 #ifdef AVEC_LLVM
@@ -121,8 +121,8 @@ struct DonneesStructure {
 
 struct DonneesFonction;
 
-using conteneur_globales = dls::dico_desordonne<dls::vue_chaine, DonneesVariable>;
-using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine, DonneesVariable>>;
+using conteneur_globales = dls::dico_desordonne<dls::vue_chaine_compacte, DonneesVariable>;
+using conteneur_locales = dls::tableau<std::pair<dls::vue_chaine_compacte, DonneesVariable>>;
 
 struct ContexteGenerationCode {
 #ifdef AVEC_LLVM
@@ -181,13 +181,13 @@ struct ContexteGenerationCode {
 	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
 	 * module n'a ce nom, retourne nullptr.
 	 */
-	DonneesModule *module(const dls::vue_chaine &nom) const;
+	DonneesModule *module(const dls::vue_chaine_compacte &nom) const;
 
 	/**
 	 * Retourne vrai si le module dont le nom est spécifié existe dans la liste
 	 * de module de ce contexte.
 	 */
-	bool module_existe(const dls::vue_chaine &nom) const;
+	bool module_existe(const dls::vue_chaine_compacte &nom) const;
 
 	/* ********************************************************************** */
 
@@ -205,7 +205,7 @@ struct ContexteGenerationCode {
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
 	 */
-	void empile_bloc_continue(dls::vue_chaine chaine, llvm::BasicBlock *bloc);
+	void empile_bloc_continue(dls::vue_chaine_compacte chaine, llvm::BasicBlock *bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
@@ -216,12 +216,12 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	llvm::BasicBlock *bloc_continue(dls::vue_chaine chaine);
+	llvm::BasicBlock *bloc_continue(dls::vue_chaine_compacte chaine);
 
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
 	 */
-	void empile_bloc_arrete(dls::vue_chaine chaine, llvm::BasicBlock *bloc);
+	void empile_bloc_arrete(dls::vue_chaine_compacte chaine, llvm::BasicBlock *bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
@@ -232,7 +232,7 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	llvm::BasicBlock *bloc_arrete(dls::vue_chaine chaine);
+	llvm::BasicBlock *bloc_arrete(dls::vue_chaine_compacte chaine);
 #endif
 
 	/* ********************************************************************** */
@@ -240,7 +240,7 @@ struct ContexteGenerationCode {
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs de continuation de boucle.
 	 */
-	void empile_goto_continue(dls::vue_chaine chaine, dls::chaine const &bloc);
+	void empile_goto_continue(dls::vue_chaine_compacte chaine, dls::chaine const &bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs de continuation de boucle.
@@ -251,12 +251,12 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs de continuation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	dls::chaine goto_continue(dls::vue_chaine chaine);
+	dls::chaine goto_continue(dls::vue_chaine_compacte chaine);
 
 	/**
 	 * Ajoute le bloc spécifié sur la pile de blocs d'arrestation de boucle.
 	 */
-	void empile_goto_arrete(dls::vue_chaine chaine, dls::chaine const &bloc);
+	void empile_goto_arrete(dls::vue_chaine_compacte chaine, dls::chaine const &bloc);
 
 	/**
 	 * Enlève le bloc spécifié de la pile de blocs d'arrestation de boucle.
@@ -267,7 +267,7 @@ struct ContexteGenerationCode {
 	 * Retourne le bloc se trouvant au sommet de la pile de blocs d'arrestation
 	 * de boucle. Si la pile est vide, retourne un pointeur nul.
 	 */
-	dls::chaine goto_arrete(dls::vue_chaine chaine);
+	dls::chaine goto_arrete(dls::vue_chaine_compacte chaine);
 
 	/* ********************************************************************** */
 
@@ -275,7 +275,7 @@ struct ContexteGenerationCode {
 	 * Ajoute les données de la globale dont le nom est spécifié en paramètres
 	 * à la table de globales de ce contexte.
 	 */
-	void pousse_globale(const dls::vue_chaine &nom, DonneesVariable const &donnees);
+	void pousse_globale(const dls::vue_chaine_compacte &nom, DonneesVariable const &donnees);
 
 #ifdef AVEC_LLVM
 	/**
@@ -283,22 +283,22 @@ struct ContexteGenerationCode {
 	 * spécifié en paramètre. Si aucune globale de ce nom n'existe, retourne
 	 * nullptr.
 	 */
-	llvm::Value *valeur_globale(const dls::vue_chaine &nom);
+	llvm::Value *valeur_globale(const dls::vue_chaine_compacte &nom);
 #endif
 
 	/**
 	 * Retourne vrai s'il existe une globale dont le nom correspond au spécifié.
 	 */
-	bool globale_existe(const dls::vue_chaine &nom);
+	bool globale_existe(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Retourne les données de la globale dont le nom est spécifié en
 	 * paramètre. Si aucune globale ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	long type_globale(const dls::vue_chaine &nom);
+	long type_globale(const dls::vue_chaine_compacte &nom);
 
-	conteneur_globales::const_iteratrice iter_globale(const dls::vue_chaine &nom);
+	conteneur_globales::const_iteratrice iter_globale(const dls::vue_chaine_compacte &nom);
 
 	conteneur_globales::const_iteratrice fin_globales();
 
@@ -312,12 +312,12 @@ struct ContexteGenerationCode {
 	 * variables.
 	 */
 	void pousse_locale(
-			const dls::vue_chaine &nom,
+			const dls::vue_chaine_compacte &nom,
 			DonneesVariable const &donnees);
 
-	char drapeaux_variable(dls::vue_chaine const &nom);
+	char drapeaux_variable(dls::vue_chaine_compacte const &nom);
 
-	DonneesVariable &donnees_variable(const dls::vue_chaine &nom);
+	DonneesVariable &donnees_variable(const dls::vue_chaine_compacte &nom);
 
 #ifdef AVEC_LLVM
 	/**
@@ -325,26 +325,26 @@ struct ContexteGenerationCode {
 	 * spécifié en paramètre. Si aucune locale de ce nom n'existe, retourne
 	 * nullptr.
 	 */
-	llvm::Value *valeur_locale(const dls::vue_chaine &nom);
+	llvm::Value *valeur_locale(const dls::vue_chaine_compacte &nom);
 #endif
 
 	/**
 	 * Retourne vrai s'il existe une locale dont le nom correspond au spécifié.
 	 */
-	bool locale_existe(const dls::vue_chaine &nom);
+	bool locale_existe(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Retourne les données de la locale dont le nom est spécifié en paramètre.
 	 * Si aucune locale ne portant ce nom n'existe, des données vides sont
 	 * retournées.
 	 */
-	long type_locale(const dls::vue_chaine &nom);
+	long type_locale(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Retourne vrai si la variable locale dont le nom est spécifié peut être
 	 * assignée.
 	 */
-	bool peut_etre_assigne(const dls::vue_chaine &nom);
+	bool peut_etre_assigne(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Indique que l'on débute un nouveau bloc dans la fonction, et donc nous
@@ -377,9 +377,9 @@ struct ContexteGenerationCode {
 	 * Retourne vrai si la variable est un argument variadic. Autrement,
 	 * retourne faux.
 	 */
-	bool est_locale_variadique(const dls::vue_chaine &nom);
+	bool est_locale_variadique(const dls::vue_chaine_compacte &nom);
 
-	conteneur_locales::const_iteratrice iter_locale(const dls::vue_chaine &nom) const;
+	conteneur_locales::const_iteratrice iter_locale(const dls::vue_chaine_compacte &nom) const;
 
 	conteneur_locales::const_iteratrice debut_locales() const;
 
@@ -410,21 +410,21 @@ struct ContexteGenerationCode {
 	 * Retourne vrai si le nom spécifié en paramètre est celui d'une structure
 	 * ayant déjà été ajouté à la liste de structures de ce contexte.
 	 */
-	bool structure_existe(const dls::vue_chaine &nom);
+	bool structure_existe(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Ajoute les données de la structure dont le nom est spécifié en paramètres
 	 * à la table de structure de ce contexte. Retourne l'id de la structure
 	 * ainsi ajoutée.
 	 */
-	long ajoute_donnees_structure(dls::vue_chaine const &nom, DonneesStructure &donnees);
+	long ajoute_donnees_structure(dls::vue_chaine_compacte const &nom, DonneesStructure &donnees);
 
 	/**
 	 * Retourne les données de la structure dont le nom est spécifié en
 	 * paramètre. Si aucune structure ne portant ce nom n'existe, des données
 	 * vides sont retournées.
 	 */
-	DonneesStructure &donnees_structure(const dls::vue_chaine &nom);
+	DonneesStructure &donnees_structure(const dls::vue_chaine_compacte &nom);
 
 	/**
 	 * Retourne les données de la structure dont l'id est spécifié en
@@ -476,14 +476,14 @@ struct ContexteGenerationCode {
 	 */
 	bool non_sur() const;
 
-	dls::dico_desordonne<dls::vue_chaine, DonneesStructure> structures{};
+	dls::dico_desordonne<dls::vue_chaine_compacte, DonneesStructure> structures{};
 
 private:
 #ifdef AVEC_LLVM
 	llvm::BasicBlock *m_bloc_courant = nullptr;
 #endif
 	conteneur_globales globales{};
-	dls::tableau<dls::vue_chaine> nom_structures{};
+	dls::tableau<dls::vue_chaine_compacte> nom_structures{};
 
 	conteneur_locales m_locales{};
 	dls::pile<long> m_pile_nombre_locales{};
@@ -493,13 +493,13 @@ private:
 	long m_nombre_differes = 0;
 
 #ifdef AVEC_LLVM
-	using paire_bloc = std::pair<dls::vue_chaine, llvm::BasicBlock *>;
+	using paire_bloc = std::pair<dls::vue_chaine_compacte, llvm::BasicBlock *>;
 
 	dls::tableau<paire_bloc> m_pile_continue{};
 	dls::tableau<paire_bloc> m_pile_arrete{};
 #endif
 
-	using paire_goto = std::pair<dls::vue_chaine, dls::chaine>;
+	using paire_goto = std::pair<dls::vue_chaine_compacte, dls::chaine>;
 
 	dls::tableau<paire_goto> m_pile_goto_continue{};
 	dls::tableau<paire_goto> m_pile_goto_arrete{};

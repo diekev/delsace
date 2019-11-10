@@ -29,86 +29,86 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 static auto paires_mots_cles = dls::cree_dico(
-	dls::paire{ dls::vue_chaine("arrête"), id_morceau::ARRETE },
-	dls::paire{ dls::vue_chaine("associe"), id_morceau::ASSOCIE },
-	dls::paire{ dls::vue_chaine("bool"), id_morceau::BOOL },
-	dls::paire{ dls::vue_chaine("boucle"), id_morceau::BOUCLE },
-	dls::paire{ dls::vue_chaine("chaine"), id_morceau::CHAINE },
-	dls::paire{ dls::vue_chaine("continue"), id_morceau::CONTINUE },
-	dls::paire{ dls::vue_chaine("corout"), id_morceau::COROUT },
-	dls::paire{ dls::vue_chaine("dans"), id_morceau::DANS },
-	dls::paire{ dls::vue_chaine("de"), id_morceau::DE },
-	dls::paire{ dls::vue_chaine("diffère"), id_morceau::DIFFERE },
-	dls::paire{ dls::vue_chaine("dyn"), id_morceau::DYN },
-	dls::paire{ dls::vue_chaine("déloge"), id_morceau::DELOGE },
-	dls::paire{ dls::vue_chaine("eini"), id_morceau::EINI },
-	dls::paire{ dls::vue_chaine("empl"), id_morceau::EMPL },
-	dls::paire{ dls::vue_chaine("externe"), id_morceau::EXTERNE },
-	dls::paire{ dls::vue_chaine("faux"), id_morceau::FAUX },
-	dls::paire{ dls::vue_chaine("fonc"), id_morceau::FONC },
-	dls::paire{ dls::vue_chaine("gabarit"), id_morceau::GABARIT },
-	dls::paire{ dls::vue_chaine("garde"), id_morceau::GARDE },
-	dls::paire{ dls::vue_chaine("importe"), id_morceau::IMPORTE },
-	dls::paire{ dls::vue_chaine("info_de"), id_morceau::INFO_DE },
-	dls::paire{ dls::vue_chaine("loge"), id_morceau::LOGE },
-	dls::paire{ dls::vue_chaine("mémoire"), id_morceau::MEMOIRE },
-	dls::paire{ dls::vue_chaine("n16"), id_morceau::N16 },
-	dls::paire{ dls::vue_chaine("n32"), id_morceau::N32 },
-	dls::paire{ dls::vue_chaine("n64"), id_morceau::N64 },
-	dls::paire{ dls::vue_chaine("n8"), id_morceau::N8 },
-	dls::paire{ dls::vue_chaine("nonsûr"), id_morceau::NONSUR },
-	dls::paire{ dls::vue_chaine("nul"), id_morceau::NUL },
-	dls::paire{ dls::vue_chaine("octet"), id_morceau::OCTET },
-	dls::paire{ dls::vue_chaine("pour"), id_morceau::POUR },
-	dls::paire{ dls::vue_chaine("r16"), id_morceau::R16 },
-	dls::paire{ dls::vue_chaine("r32"), id_morceau::R32 },
-	dls::paire{ dls::vue_chaine("r64"), id_morceau::R64 },
-	dls::paire{ dls::vue_chaine("reloge"), id_morceau::RELOGE },
-	dls::paire{ dls::vue_chaine("retiens"), id_morceau::RETIENS },
-	dls::paire{ dls::vue_chaine("retourne"), id_morceau::RETOURNE },
-	dls::paire{ dls::vue_chaine("rien"), id_morceau::RIEN },
-	dls::paire{ dls::vue_chaine("sansarrêt"), id_morceau::SANSARRET },
-	dls::paire{ dls::vue_chaine("saufsi"), id_morceau::SAUFSI },
-	dls::paire{ dls::vue_chaine("si"), id_morceau::SI },
-	dls::paire{ dls::vue_chaine("sinon"), id_morceau::SINON },
-	dls::paire{ dls::vue_chaine("soit"), id_morceau::SOIT },
-	dls::paire{ dls::vue_chaine("structure"), id_morceau::STRUCTURE },
-	dls::paire{ dls::vue_chaine("taille_de"), id_morceau::TAILLE_DE },
-	dls::paire{ dls::vue_chaine("tantque"), id_morceau::TANTQUE },
-	dls::paire{ dls::vue_chaine("transtype"), id_morceau::TRANSTYPE },
-	dls::paire{ dls::vue_chaine("type_de"), id_morceau::TYPE_DE },
-	dls::paire{ dls::vue_chaine("vrai"), id_morceau::VRAI },
-	dls::paire{ dls::vue_chaine("z16"), id_morceau::Z16 },
-	dls::paire{ dls::vue_chaine("z32"), id_morceau::Z32 },
-	dls::paire{ dls::vue_chaine("z64"), id_morceau::Z64 },
-	dls::paire{ dls::vue_chaine("z8"), id_morceau::Z8 },
-	dls::paire{ dls::vue_chaine("énum"), id_morceau::ENUM }
+	dls::paire{ dls::vue_chaine_compacte("arrête"), id_morceau::ARRETE },
+	dls::paire{ dls::vue_chaine_compacte("associe"), id_morceau::ASSOCIE },
+	dls::paire{ dls::vue_chaine_compacte("bool"), id_morceau::BOOL },
+	dls::paire{ dls::vue_chaine_compacte("boucle"), id_morceau::BOUCLE },
+	dls::paire{ dls::vue_chaine_compacte("chaine"), id_morceau::CHAINE },
+	dls::paire{ dls::vue_chaine_compacte("continue"), id_morceau::CONTINUE },
+	dls::paire{ dls::vue_chaine_compacte("corout"), id_morceau::COROUT },
+	dls::paire{ dls::vue_chaine_compacte("dans"), id_morceau::DANS },
+	dls::paire{ dls::vue_chaine_compacte("de"), id_morceau::DE },
+	dls::paire{ dls::vue_chaine_compacte("diffère"), id_morceau::DIFFERE },
+	dls::paire{ dls::vue_chaine_compacte("dyn"), id_morceau::DYN },
+	dls::paire{ dls::vue_chaine_compacte("déloge"), id_morceau::DELOGE },
+	dls::paire{ dls::vue_chaine_compacte("eini"), id_morceau::EINI },
+	dls::paire{ dls::vue_chaine_compacte("empl"), id_morceau::EMPL },
+	dls::paire{ dls::vue_chaine_compacte("externe"), id_morceau::EXTERNE },
+	dls::paire{ dls::vue_chaine_compacte("faux"), id_morceau::FAUX },
+	dls::paire{ dls::vue_chaine_compacte("fonc"), id_morceau::FONC },
+	dls::paire{ dls::vue_chaine_compacte("gabarit"), id_morceau::GABARIT },
+	dls::paire{ dls::vue_chaine_compacte("garde"), id_morceau::GARDE },
+	dls::paire{ dls::vue_chaine_compacte("importe"), id_morceau::IMPORTE },
+	dls::paire{ dls::vue_chaine_compacte("info_de"), id_morceau::INFO_DE },
+	dls::paire{ dls::vue_chaine_compacte("loge"), id_morceau::LOGE },
+	dls::paire{ dls::vue_chaine_compacte("mémoire"), id_morceau::MEMOIRE },
+	dls::paire{ dls::vue_chaine_compacte("n16"), id_morceau::N16 },
+	dls::paire{ dls::vue_chaine_compacte("n32"), id_morceau::N32 },
+	dls::paire{ dls::vue_chaine_compacte("n64"), id_morceau::N64 },
+	dls::paire{ dls::vue_chaine_compacte("n8"), id_morceau::N8 },
+	dls::paire{ dls::vue_chaine_compacte("nonsûr"), id_morceau::NONSUR },
+	dls::paire{ dls::vue_chaine_compacte("nul"), id_morceau::NUL },
+	dls::paire{ dls::vue_chaine_compacte("octet"), id_morceau::OCTET },
+	dls::paire{ dls::vue_chaine_compacte("pour"), id_morceau::POUR },
+	dls::paire{ dls::vue_chaine_compacte("r16"), id_morceau::R16 },
+	dls::paire{ dls::vue_chaine_compacte("r32"), id_morceau::R32 },
+	dls::paire{ dls::vue_chaine_compacte("r64"), id_morceau::R64 },
+	dls::paire{ dls::vue_chaine_compacte("reloge"), id_morceau::RELOGE },
+	dls::paire{ dls::vue_chaine_compacte("retiens"), id_morceau::RETIENS },
+	dls::paire{ dls::vue_chaine_compacte("retourne"), id_morceau::RETOURNE },
+	dls::paire{ dls::vue_chaine_compacte("rien"), id_morceau::RIEN },
+	dls::paire{ dls::vue_chaine_compacte("sansarrêt"), id_morceau::SANSARRET },
+	dls::paire{ dls::vue_chaine_compacte("saufsi"), id_morceau::SAUFSI },
+	dls::paire{ dls::vue_chaine_compacte("si"), id_morceau::SI },
+	dls::paire{ dls::vue_chaine_compacte("sinon"), id_morceau::SINON },
+	dls::paire{ dls::vue_chaine_compacte("soit"), id_morceau::SOIT },
+	dls::paire{ dls::vue_chaine_compacte("structure"), id_morceau::STRUCTURE },
+	dls::paire{ dls::vue_chaine_compacte("taille_de"), id_morceau::TAILLE_DE },
+	dls::paire{ dls::vue_chaine_compacte("tantque"), id_morceau::TANTQUE },
+	dls::paire{ dls::vue_chaine_compacte("transtype"), id_morceau::TRANSTYPE },
+	dls::paire{ dls::vue_chaine_compacte("type_de"), id_morceau::TYPE_DE },
+	dls::paire{ dls::vue_chaine_compacte("vrai"), id_morceau::VRAI },
+	dls::paire{ dls::vue_chaine_compacte("z16"), id_morceau::Z16 },
+	dls::paire{ dls::vue_chaine_compacte("z32"), id_morceau::Z32 },
+	dls::paire{ dls::vue_chaine_compacte("z64"), id_morceau::Z64 },
+	dls::paire{ dls::vue_chaine_compacte("z8"), id_morceau::Z8 },
+	dls::paire{ dls::vue_chaine_compacte("énum"), id_morceau::ENUM }
 );
 
 static auto paires_digraphes = dls::cree_dico(
-	dls::paire{ dls::vue_chaine("!="), id_morceau::DIFFERENCE },
-	dls::paire{ dls::vue_chaine("#!"), id_morceau::DIRECTIVE },
-	dls::paire{ dls::vue_chaine("%="), id_morceau::MODULO_EGAL },
-	dls::paire{ dls::vue_chaine("&&"), id_morceau::ESP_ESP },
-	dls::paire{ dls::vue_chaine("&="), id_morceau::ET_EGAL },
-	dls::paire{ dls::vue_chaine("*="), id_morceau::MULTIPLIE_EGAL },
-	dls::paire{ dls::vue_chaine("+="), id_morceau::PLUS_EGAL },
-	dls::paire{ dls::vue_chaine("-="), id_morceau::MOINS_EGAL },
-	dls::paire{ dls::vue_chaine("/="), id_morceau::DIVISE_EGAL },
-	dls::paire{ dls::vue_chaine("<<"), id_morceau::DECALAGE_GAUCHE },
-	dls::paire{ dls::vue_chaine("<="), id_morceau::INFERIEUR_EGAL },
-	dls::paire{ dls::vue_chaine("=="), id_morceau::EGALITE },
-	dls::paire{ dls::vue_chaine(">="), id_morceau::SUPERIEUR_EGAL },
-	dls::paire{ dls::vue_chaine(">>"), id_morceau::DECALAGE_DROITE },
-	dls::paire{ dls::vue_chaine("^="), id_morceau::OUX_EGAL },
-	dls::paire{ dls::vue_chaine("|="), id_morceau::OU_EGAL },
-	dls::paire{ dls::vue_chaine("||"), id_morceau::BARRE_BARRE }
+	dls::paire{ dls::vue_chaine_compacte("!="), id_morceau::DIFFERENCE },
+	dls::paire{ dls::vue_chaine_compacte("#!"), id_morceau::DIRECTIVE },
+	dls::paire{ dls::vue_chaine_compacte("%="), id_morceau::MODULO_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("&&"), id_morceau::ESP_ESP },
+	dls::paire{ dls::vue_chaine_compacte("&="), id_morceau::ET_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("*="), id_morceau::MULTIPLIE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("+="), id_morceau::PLUS_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("-="), id_morceau::MOINS_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("/="), id_morceau::DIVISE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("<<"), id_morceau::DECALAGE_GAUCHE },
+	dls::paire{ dls::vue_chaine_compacte("<="), id_morceau::INFERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("=="), id_morceau::EGALITE },
+	dls::paire{ dls::vue_chaine_compacte(">="), id_morceau::SUPERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine_compacte(">>"), id_morceau::DECALAGE_DROITE },
+	dls::paire{ dls::vue_chaine_compacte("^="), id_morceau::OUX_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("|="), id_morceau::OU_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("||"), id_morceau::BARRE_BARRE }
 );
 
 static auto paires_trigraphes = dls::cree_dico(
-	dls::paire{ dls::vue_chaine("..."), id_morceau::TROIS_POINTS },
-	dls::paire{ dls::vue_chaine("<<="), id_morceau::DEC_GAUCHE_EGAL },
-	dls::paire{ dls::vue_chaine(">>="), id_morceau::DEC_DROITE_EGAL }
+	dls::paire{ dls::vue_chaine_compacte("..."), id_morceau::TROIS_POINTS },
+	dls::paire{ dls::vue_chaine_compacte("<<="), id_morceau::DEC_GAUCHE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte(">>="), id_morceau::DEC_DROITE_EGAL }
 );
 
 static auto paires_caracteres_speciaux = dls::cree_dico(
@@ -452,7 +452,7 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_digraphe(const dls::vue_chaine &chaine)
+id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
@@ -467,7 +467,7 @@ id_morceau id_digraphe(const dls::vue_chaine &chaine)
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_trigraphe(const dls::vue_chaine &chaine)
+id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
@@ -482,7 +482,7 @@ id_morceau id_trigraphe(const dls::vue_chaine &chaine)
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_chaine(const dls::vue_chaine &chaine)
+id_morceau id_chaine(const dls::vue_chaine_compacte &chaine)
 {
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;

@@ -40,8 +40,8 @@ class assembleuse_arbre {
 	size_t m_memoire_utilisee = 0;
 
 public:
-	dls::tableau<dls::vue_chaine> inclusions{};
-	dls::tableau<dls::vue_chaine> bibliotheques{};
+	dls::tableau<dls::vue_chaine_compacte> inclusions{};
+	dls::tableau<dls::vue_chaine_compacte> bibliotheques{};
 
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();

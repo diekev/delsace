@@ -470,7 +470,6 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 	auto dm = DonneesMorceaux{};
 	dm.chaine = "texte_test";
-	dm.ligne_pos = 0ul;
 	dm.module = 0;
 
 	for (size_t i = 0; i < nombre_morceaux; ++i) {

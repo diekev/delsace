@@ -177,8 +177,7 @@ inline id_morceau operator>>(id_morceau id1, int id2)
 struct DonneesMorceaux {
 	using type = id_morceau;
 	static constexpr type INCONNU = id_morceau::INCONNU;
-	dls::vue_chaine chaine;
-	size_t ligne_pos;
+	dls::vue_chaine_compacte chaine;
 	id_morceau identifiant;
 	int module = 0;
 };
@@ -189,8 +188,8 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_digraphe(const dls::vue_chaine &chaine);
+id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_trigraphe(const dls::vue_chaine &chaine);
+id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_chaine(const dls::vue_chaine &chaine);
+id_morceau id_chaine(const dls::vue_chaine_compacte &chaine);

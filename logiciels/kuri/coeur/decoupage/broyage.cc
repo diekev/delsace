@@ -31,7 +31,7 @@ static char char_depuis_hex(char hex)
 	return "0123456789ABCDEF"[static_cast<int>(hex)];
 }
 
-dls::chaine broye_nom_simple(dls::vue_chaine const &nom)
+dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
 {
 	auto ret = dls::chaine{};
 
@@ -71,7 +71,7 @@ dls::chaine broye_nom_simple(dls::vue_chaine const &nom)
 }
 
 dls::chaine broye_nom_fonction(
-		dls::vue_chaine const &nom_fonction,
+		dls::vue_chaine_compacte const &nom_fonction,
 		dls::chaine const &nom_module,
 		long index_type)
 {

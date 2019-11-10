@@ -1477,14 +1477,14 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 		auto dernier_noeud = premier_noeud;
 		pile.pop_back();
 
-		auto pos_premier = premier_noeud->donnees_morceau().ligne_pos & 0xffffffff;
+		auto pos_premier = premier_noeud->donnees_morceau().chaine.pointeur();
 		auto pos_dernier = pos_premier;
 
 		while (!pile.est_vide()) {
 			auto n = pile.back();
 			pile.pop_back();
 
-			auto pos_n = n->donnees_morceau().ligne_pos & 0xffffffff;
+			auto pos_n = n->donnees_morceau().chaine.pointeur();
 
 			if (pos_n < pos_premier) {
 				premier_noeud = n;
@@ -1820,7 +1820,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 
 void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 {
-	auto liste_param = dls::tableau<dls::vue_chaine>{};
+	auto liste_param = dls::tableau<dls::vue_chaine_compacte>{};
 
 	/* ici nous devons être au niveau du premier paramètre */
 	while (true) {

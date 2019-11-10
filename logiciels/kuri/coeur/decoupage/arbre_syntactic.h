@@ -263,7 +263,7 @@ struct base {
 	/**
 	 * Retourne une référence constante vers la chaine du morceau de ce noeud.
 	 */
-	dls::vue_chaine const &chaine() const;
+	dls::vue_chaine_compacte const &chaine() const;
 
 	/**
 	 * Retourne une référence constante vers les données du morceau de ce neoud.
@@ -284,7 +284,7 @@ void rassemble_feuilles(
 bool est_constant(base *b);
 
 /* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
-void ajoute_nom_argument(base *b, const dls::vue_chaine &nom);
+void ajoute_nom_argument(base *b, const dls::vue_chaine_compacte &nom);
 
 bool peut_operer(
 		const DonneesTypeFinal &type1,

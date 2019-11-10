@@ -80,7 +80,7 @@ noeud::base *assembleuse_arbre::cree_noeud(
 		if (type == type_noeud::APPEL_FONCTION) {
 			/* requis pour pouvoir renseigner le noms de arguments depuis
 			 * l'analyse. */
-			noeud->valeur_calculee = dls::liste<dls::vue_chaine>{};
+			noeud->valeur_calculee = dls::liste<dls::vue_chaine_compacte>{};
 
 			/* requis pour déterminer le module dans le noeud d'accès point
 			 * À FAIRE : trouver mieux pour accéder à cette information */

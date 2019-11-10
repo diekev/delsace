@@ -67,7 +67,7 @@ private:
 
 	char caractere_voisin(int n = 1) const;
 
-	dls::vue_chaine mot_courant() const;
+	dls::vue_chaine_compacte mot_courant() const;
 
 	[[noreturn]] void lance_erreur(const dls::chaine &quoi) const;
 
