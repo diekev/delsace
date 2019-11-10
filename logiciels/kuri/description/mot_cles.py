@@ -160,7 +160,7 @@ def enleve_accent(mot):
 
 def construit_structures():
 	structures = u''
-	structures += u'\nstruct DonneesMorceaux {\n'
+	structures += u'\nstruct DonneesMorceau {\n'
 	structures += u'\tusing type = id_morceau;\n'
 	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'

@@ -127,7 +127,7 @@ const char *chaine_type_noeud(type_noeud type)
 
 namespace noeud {
 
-base::base(ContexteGenerationCode &/*contexte*/, DonneesMorceaux const &morceau_)
+base::base(ContexteGenerationCode &/*contexte*/, DonneesMorceau const &morceau_)
 	: morceau{morceau_}
 {}
 
@@ -136,7 +136,7 @@ dls::vue_chaine_compacte const &base::chaine() const
 	return morceau.chaine;
 }
 
-DonneesMorceaux const &base::donnees_morceau() const
+DonneesMorceau const &base::donnees_morceau() const
 {
 	return morceau;
 }

@@ -80,7 +80,7 @@ struct DonneesFonction {
 
 struct DonneesModule {
 	lng::tampon_source tampon{""};
-	dls::tableau<DonneesMorceaux> morceaux{};
+	dls::tableau<DonneesMorceau> morceaux{};
 	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
 	dls::ensemble<dls::vue_chaine_compacte> fonctions_exportees{};
 	dls::dico_desordonne<dls::vue_chaine_compacte, dls::tableau<DonneesFonction>> fonctions{};
@@ -138,7 +138,7 @@ private:
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesMorceaux const &morceau);
+		DonneesMorceau const &morceau);
 
 /**
  * Charge le module dont le nom est spécifié.
@@ -154,7 +154,7 @@ dls::chaine charge_fichier(
  * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
  * exception est lancée.
  *
- * Les DonneesMorceaux doivent être celles du nom du module et sont utilisées
+ * Les DonneesMorceau doivent être celles du nom du module et sont utilisées
  * pour les erreurs lancées.
  *
  * Le paramètre est_racine ne doit être vrai que pour le module racine.
@@ -164,7 +164,7 @@ void charge_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceaux const &morceau,
+		DonneesMorceau const &morceau,
 		bool est_racine = false);
 
 /* ************************************************************************** */

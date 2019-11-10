@@ -30,7 +30,7 @@
 #include "arbre_syntactic.h"
 
 struct ContexteGenerationCode;
-struct DonneesMorceaux;
+struct DonneesMorceau;
 
 class assembleuse_arbre {
 	dls::pile<noeud::base *> m_pile{};
@@ -54,7 +54,7 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouté.
 	 */
-	noeud::base *empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau, bool ajoute = true);
+	noeud::base *empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceau const &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -65,7 +65,7 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	noeud::base *cree_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+	noeud::base *cree_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceau const &morceau);
 
 	/**
 	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et

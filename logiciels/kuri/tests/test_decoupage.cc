@@ -90,7 +90,7 @@ associe nombre {
 decoupeuse_texte decoupeuse(str, str + len);
 )";
 
-	const DonneesMorceaux donnees_morceaux[] = {
+	const DonneesMorceau donnees_morceaux[] = {
 		{ " ceci est une chaine française avec espaces ", id_morceau::CHAINE_LITTERALE },
 		{ "ceci est une chaine française sans espaces", id_morceau::CHAINE_LITTERALE },
 		{ "soit", id_morceau::SOIT },

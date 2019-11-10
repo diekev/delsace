@@ -230,7 +230,7 @@ void decoupeuse_texte::genere_morceaux()
 
 size_t decoupeuse_texte::memoire_morceaux() const
 {
-	return static_cast<size_t>(m_module->morceaux.taille()) * sizeof(DonneesMorceaux);
+	return static_cast<size_t>(m_module->morceaux.taille()) * sizeof(DonneesMorceau);
 }
 
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)

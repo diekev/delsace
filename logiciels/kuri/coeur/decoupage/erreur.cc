@@ -44,7 +44,7 @@ struct PositionMorceau {
 	long pos = 0;
 };
 
-static auto trouve_position(DonneesMorceaux const &morceau, DonneesModule *module)
+static auto trouve_position(DonneesMorceau const &morceau, DonneesModule *module)
 {
 	auto ptr = morceau.chaine.pointeur();
 	auto pos = PositionMorceau{};
@@ -66,7 +66,7 @@ static auto trouve_position(DonneesMorceaux const &morceau, DonneesModule *modul
 void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
+		const DonneesMorceau &morceau,
 		type_erreur type)
 {
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
@@ -96,8 +96,8 @@ void lance_erreur(
 void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &premier_morceau,
-		const DonneesMorceaux &dernier_morceau,
+		const DonneesMorceau &premier_morceau,
+		const DonneesMorceau &dernier_morceau,
 		type_erreur type)
 {
 	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
@@ -128,8 +128,8 @@ void lance_erreur_plage(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau)
+		const DonneesMorceau &morceau_enfant,
+		const DonneesMorceau &morceau)
 {
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto pos = trouve_position(morceau, module);
@@ -167,8 +167,8 @@ void lance_erreur_plage(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau)
+		const DonneesMorceau &morceau_enfant,
+		const DonneesMorceau &morceau)
 {
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto pos = trouve_position(morceau, module);
@@ -206,7 +206,7 @@ void lance_erreur_plage(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
+		const DonneesMorceau &morceau)
 {
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto pos = trouve_position(morceau, module);
@@ -234,7 +234,7 @@ void lance_erreur_type_operation(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau)
+		const DonneesMorceau &morceau)
 {
 	auto module = contexte.module(static_cast<size_t>(morceau.module));
 	auto pos = trouve_position(morceau, module);

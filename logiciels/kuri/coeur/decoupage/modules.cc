@@ -103,7 +103,7 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 dls::chaine charge_fichier(
 		const dls::chaine &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesMorceaux const &morceau)
+		DonneesMorceau const &morceau)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());
@@ -137,7 +137,7 @@ void charge_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceaux const &morceau,
+		DonneesMorceau const &morceau,
 		bool est_racine)
 {
 	auto chemin = nom + ".kuri";

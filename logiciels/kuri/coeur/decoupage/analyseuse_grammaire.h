@@ -34,7 +34,7 @@ struct ContexteGenerationCode;
 struct DonneesFonction;
 struct DonneesModule;
 
-class analyseuse_grammaire : public lng::analyseuse<DonneesMorceaux> {
+class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
 	ContexteGenerationCode &m_contexte;
 	assembleuse_arbre *m_assembleuse = nullptr;
 
@@ -76,7 +76,7 @@ private:
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance DonneesMorceaux lui correspondant.
+	 * contenues dans l'instance DonneesMorceau lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(
 			const dls::chaine &quoi,

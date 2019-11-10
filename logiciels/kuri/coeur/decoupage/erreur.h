@@ -28,7 +28,7 @@
 
 #include "biblinternes/langage/erreur.hh"
 
-struct DonneesMorceaux;
+struct DonneesMorceau;
 struct ContexteGenerationCode;
 
 namespace erreur {
@@ -65,41 +65,41 @@ using frappe = lng::erreur::frappe<type_erreur>;
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau,
+		const DonneesMorceau &morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &premier_morceau,
-		const DonneesMorceaux &dernier_morceau,
+		const DonneesMorceau &premier_morceau,
+		const DonneesMorceau &dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau);
+		const DonneesMorceau &morceau_enfant,
+		const DonneesMorceau &morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau_enfant,
-		const DonneesMorceaux &morceau);
+		const DonneesMorceau &morceau_enfant,
+		const DonneesMorceau &morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
+		const DonneesMorceau &morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceaux &morceau);
+		const DonneesMorceau &morceau);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,

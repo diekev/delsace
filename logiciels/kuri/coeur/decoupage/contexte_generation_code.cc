@@ -634,7 +634,7 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	for (auto module : modules) {
 		metriques.nombre_lignes += module->tampon.nombre_lignes();
 		metriques.memoire_tampons += module->tampon.taille_donnees();
-		metriques.memoire_morceaux += static_cast<size_t>(module->morceaux.taille()) * sizeof(DonneesMorceaux);
+		metriques.memoire_morceaux += static_cast<size_t>(module->morceaux.taille()) * sizeof(DonneesMorceau);
 		metriques.nombre_morceaux += static_cast<size_t>(module->morceaux.taille());
 		metriques.temps_analyse += module->temps_analyse;
 		metriques.temps_chargement += module->temps_chargement;

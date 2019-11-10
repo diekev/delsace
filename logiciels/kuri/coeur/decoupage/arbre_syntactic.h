@@ -216,7 +216,7 @@ namespace noeud {
  */
 struct base {
 	dls::liste<base *> enfants{};
-	DonneesMorceaux const &morceau;
+	DonneesMorceau const &morceau;
 
 	std::any valeur_calculee{};
 
@@ -238,7 +238,7 @@ struct base {
 
 	DonneesTypeDeclare type_declare{};
 
-	explicit base(ContexteGenerationCode &contexte, DonneesMorceaux const &morceau);
+	explicit base(ContexteGenerationCode &contexte, DonneesMorceau const &morceau);
 
 	base(base const &) = default;
 	base &operator=(base const &) = default;
@@ -268,7 +268,7 @@ struct base {
 	/**
 	 * Retourne une référence constante vers les données du morceau de ce neoud.
 	 */
-	DonneesMorceaux const &donnees_morceau() const;
+	DonneesMorceau const &donnees_morceau() const;
 
 	/**
 	 * Retourne un pointeur vers le dernier enfant de ce noeud. Si le noeud n'a

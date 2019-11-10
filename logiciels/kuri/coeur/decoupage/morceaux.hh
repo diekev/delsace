@@ -174,7 +174,7 @@ inline id_morceau operator>>(id_morceau id1, int id2)
 	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
 }
 
-struct DonneesMorceaux {
+struct DonneesMorceau {
 	using type = id_morceau;
 	static constexpr type INCONNU = id_morceau::INCONNU;
 	dls::vue_chaine_compacte chaine;

@@ -257,7 +257,7 @@ analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
 		DonneesModule *module,
 		dls::chaine const &racine_kuri)
-	: lng::analyseuse<DonneesMorceaux>(module->morceaux)
+	: lng::analyseuse<DonneesMorceau>(module->morceaux)
 	, m_contexte(contexte)
 	, m_assembleuse(contexte.assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
