@@ -81,7 +81,6 @@
 #include "operatrices/operatrices_image_profonde.hh"
 #include "operatrices/operatrices_images_3d.hh"
 #include "operatrices/operatrices_maillage.hh"
-#include "operatrices/operatrices_muscles.hh"
 #include "operatrices/operatrices_ocean.hh"
 #include "operatrices/operatrices_opensubdiv.hh"
 #include "operatrices/operatrices_particules.h"
@@ -160,7 +159,6 @@ void Mikisa::initialise()
 	enregistre_operatrices_images_3d(m_usine_operatrices);
 	enregistre_operatrices_groupes(m_usine_operatrices);
 	enregistre_operatrices_maillage(m_usine_operatrices);
-	enregistre_operatrices_muscles(m_usine_operatrices);
 	enregistre_operatrices_ocean(m_usine_operatrices);
 	enregistre_operatrices_opensubdiv(m_usine_operatrices);
 	enregistre_operatrices_particules(m_usine_operatrices);

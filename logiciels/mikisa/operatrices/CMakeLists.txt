@@ -80,7 +80,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_image_profonde.cc
 	operatrices_images_3d.cc
 	operatrices_maillage.cc
-	operatrices_muscles.cc
 	operatrices_ocean.cc
 	operatrices_opensubdiv.cc
 	operatrices_particules.cc
@@ -115,7 +114,6 @@ add_library(${NOM_CIBLE} STATIC
 	operatrices_image_profonde.hh
 	operatrices_images_3d.hh
 	operatrices_maillage.hh
-	operatrices_muscles.hh
 	operatrices_ocean.hh
 	operatrices_opensubdiv.hh
 	operatrices_particules.h

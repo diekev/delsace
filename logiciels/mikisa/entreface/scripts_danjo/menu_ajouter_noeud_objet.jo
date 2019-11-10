@@ -107,7 +107,6 @@ menu "Noeud Objet" {
 		action(valeur="Océan"; attache=ajouter_noeud; métadonnée="Océan")
 		action(valeur="Vaguelette Océan"; attache=ajouter_noeud; métadonnée="Vaguelette Océan")
 		action(valeur="Simulation"; attache=ajouter_noeud; métadonnée="Simulation")
-		action(valeur="Simulation Muscles"; attache=ajouter_noeud; métadonnée="Simulation Muscles")
 		action(valeur="Stable Neo Hookean"; attache=ajouter_noeud; métadonnée="Stable Neo Hookean")
 	}
 	menu "Script" {
