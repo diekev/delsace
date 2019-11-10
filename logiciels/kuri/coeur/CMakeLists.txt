@@ -19,5 +19,5 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(decoupage)
+add_subdirectory(compilation)
 add_subdirectory(executable)

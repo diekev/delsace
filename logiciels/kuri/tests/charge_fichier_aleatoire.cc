@@ -25,10 +25,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "decoupage/analyseuse_grammaire.h"
-#include "decoupage/contexte_generation_code.h"
-#include "decoupage/decoupeuse.h"
-#include "decoupage/modules.hh"
+#include "compilation/analyseuse_grammaire.h"
+#include "compilation/contexte_generation_code.h"
+#include "compilation/decoupeuse.h"
+#include "compilation/modules.hh"
 
 int main(int argc, char *argv[])
 {

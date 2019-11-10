@@ -24,7 +24,7 @@
 
 #include "test_assignation.hh"
 
-#include "decoupage/erreur.h"
+#include "compilation/erreur.h"
 
 #include "outils.h"
 

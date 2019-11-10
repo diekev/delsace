@@ -27,7 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	tests
-	kuri_decoupage
+	kuri_compilation
 )
 
 set(SOURCES

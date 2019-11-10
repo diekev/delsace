@@ -26,10 +26,10 @@
 #include <filesystem>
 #include <iostream>
 
-#include "decoupage/contexte_generation_code.h"
-#include "decoupage/decoupeuse.h"
-#include "decoupage/erreur.h"
-#include "decoupage/modules.hh"
+#include "compilation/contexte_generation_code.h"
+#include "compilation/decoupeuse.h"
+#include "compilation/erreur.h"
+#include "compilation/modules.hh"
 
 static const char *options =
 R"(kuri [OPTIONS...] FICHIER

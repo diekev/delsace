@@ -28,11 +28,11 @@
 
 #include "biblinternes/langage/nombres.hh"
 
-#include "decoupage/contexte_generation_code.h"  // pour DonneesModule
-#include "decoupage/decoupeuse.h"
-#include "decoupage/erreur.h"
-#include "decoupage/modules.hh"
-#include "decoupage/morceaux.hh"
+#include "compilation/contexte_generation_code.h"  // pour DonneesModule
+#include "compilation/decoupeuse.h"
+#include "compilation/erreur.h"
+#include "compilation/modules.hh"
+#include "compilation/morceaux.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 

@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE kuri_decoupage)
+set(NOM_CIBLE kuri_compilation)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../

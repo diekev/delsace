@@ -26,9 +26,9 @@
 
 #include <cstring>
 
-#include "decoupage/contexte_generation_code.h"  // pour DonneesModule
-#include "decoupage/decoupeuse.h"
-#include "decoupage/modules.hh"
+#include "compilation/contexte_generation_code.h"  // pour DonneesModule
+#include "compilation/decoupeuse.h"
+#include "compilation/modules.hh"
 
 #undef DEBOGUE_MORCEAUX
 
