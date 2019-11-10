@@ -212,9 +212,15 @@ inline auto end(chaine const &c)
 /* ************************************************************************** */
 
 template <typename T>
-auto vers_chaine(T const &valeur)
+inline auto vers_chaine(T valeur)
 {
 	return chaine(std::to_string(valeur));
+}
+
+template <typename T>
+inline auto vers_chaine(T *valeur)
+{
+	return chaine(std::to_string(reinterpret_cast<long>(valeur)));
 }
 
 }  /* namespace dls */
