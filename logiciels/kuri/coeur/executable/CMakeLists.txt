@@ -60,3 +60,17 @@ target_link_libraries(converti_html "${BIBLIOTHEQUES}")
 install(
 	TARGETS converti_html RUNTIME DESTINATION ${RACINE_INSTALLATION}
 )
+
+################################################################################
+
+add_executable(kuri_markov
+	kuri_markov.cc
+)
+
+target_include_directories(kuri_markov PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(kuri_markov "${BIBLIOTHEQUES}")
+
+install(
+	TARGETS kuri_markov RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
