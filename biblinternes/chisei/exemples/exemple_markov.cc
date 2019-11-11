@@ -150,37 +150,6 @@ static void converti_fonction_repartition(type_matrice &matrice)
 	}
 }
 
-static void converti_fonction_repartition(type_matrice_ep &matrice)
-{
-	CHRONOMETRE_PORTEE(__func__, std::cerr);
-	static constexpr auto _0 = static_cast<type_scalaire>(0);
-
-	for (auto y = 0; y < matrice.lignes.taille(); ++y) {
-		auto &ligne = matrice.lignes[y];
-		auto total = _0;
-
-		for (auto n : ligne) {
-			total += n->valeur;
-		}
-
-		// que faire si une lettre n'est suivit par aucune ? on s'arrête ?
-		if (total == _0) {
-			continue;
-		}
-
-		for (auto n : ligne) {
-			n->valeur /= total;
-		}
-
-		auto accum = _0;
-
-		for (auto n : ligne) {
-			accum += n->valeur;
-			n->valeur = accum;
-		}
-	}
-}
-
 static auto filtres_mots(dls::tableau<dls::vue_chaine> const &morceaux)
 {
 	dls::ensemble<dls::vue_chaine> mots_filtres;

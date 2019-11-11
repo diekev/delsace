@@ -195,37 +195,6 @@ static auto id_depuis_idx(int id)
 	return static_cast<id_morceau>(id);
 }
 
-static void converti_fonction_repartition(type_matrice_ep &matrice)
-{
-	//CHRONOMETRE_PORTEE(__func__, std::cerr);
-	static constexpr auto _0 = static_cast<type_scalaire>(0);
-
-	for (auto y = 0; y < matrice.lignes.taille(); ++y) {
-		auto &ligne = matrice.lignes[y];
-		auto total = _0;
-
-		for (auto n : ligne) {
-			total += n->valeur;
-		}
-
-		// que faire si une lettre n'est suivit par aucune ? on s'arrête ?
-		if (total == _0) {
-			continue;
-		}
-
-		for (auto n : ligne) {
-			n->valeur /= total;
-		}
-
-		auto accum = _0;
-
-		for (auto n : ligne) {
-			accum += n->valeur;
-			n->valeur = accum;
-		}
-	}
-}
-
 static void imprime_mot(id_morceau id, std::ostream &os)
 {
 	switch (id) {

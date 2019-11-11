@@ -268,3 +268,36 @@ bool matrice_valide(matrice_colonne_eparse<T> const &mat)
 
 	return true;
 }
+
+template <typename T>
+void converti_fonction_repartition(matrice_colonne_eparse<T> &matrice)
+{
+	//CHRONOMETRE_PORTEE(__func__, std::cerr);
+	static constexpr auto _0 = static_cast<T>(0);
+
+	for (auto y = 0; y < matrice.lignes.taille(); ++y) {
+		auto &ligne = matrice.lignes[y];
+		auto total = _0;
+
+		for (auto n : ligne) {
+			total += n->valeur;
+		}
+
+		/* que faire si une ligne est vide (par exemple dans une génération de
+		 * texte, un mot suivit par aucun) ? on s'arrête ? */
+		if (total == _0) {
+			continue;
+		}
+
+		for (auto n : ligne) {
+			n->valeur /= total;
+		}
+
+		auto accum = _0;
+
+		for (auto n : ligne) {
+			accum += n->valeur;
+			n->valeur = accum;
+		}
+	}
+}
