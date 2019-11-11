@@ -19,6 +19,14 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+################################################################################
+
+set(NOM_PROJET kuri_options)
+
+add_library(${NOM_PROJET} STATIC options.cc options.hh)
+
+################################################################################
+
 set(NOM_PROJET kuri)
 
 set(INCLUSIONS
@@ -29,6 +37,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	kuri_compilation
+	kuri_options
 	stdc++fs
 	bib_outils
 )

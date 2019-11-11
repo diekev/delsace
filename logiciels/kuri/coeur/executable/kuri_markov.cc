@@ -22,7 +22,6 @@
  *
  */
 
-#include <cstring>
 #include <filesystem>
 #include <iostream>
 
@@ -34,153 +33,7 @@
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
 
-static const char *options =
-R"(kuri [OPTIONS...] FICHIER
-
--a, --aide
-	imprime cette aide
-
--d, --dest FICHIER
-	Utilisé pour spécifié le nom du programme produit, utilise a.out par défaut.
-
---émet-llvm
-	émet la représentation intermédiaire du code LLVM
-
---émet-arbre
-	émet l'arbre syntactic
-
--m, --mémoire
-	imprime la mémoire utilisée
-
--t, --temps
-	imprime le temps utilisé
-
--v, --version
-	imprime la version
-
--O0
-	Ne performe aucune optimisation. Ceci est le défaut.
-
--O1
-	Optimise le code. Augmente le temps de compilation.
-
--O2
-	Optimise le code encore plus. Augmente le temps de compilation.
-
--Os
-	Comme -O2, mais minimise la taille du code. Augmente le temps de compilation.
-
--Oz
-	Comme -Os, mais minimise encore plus la taille du code. Augmente le temps de compilation.
-
--O3
-	Optimise le code toujours plus. Augmente le temps de compilation.
-)";
-
-enum class NiveauOptimisation : char {
-	Aucun,
-	O0,
-	O1,
-	O2,
-	Os,
-	Oz,
-	O3,
-};
-
-struct OptionsCompilation {
-	const char *chemin_fichier = nullptr;
-	const char *chemin_sortie = "a.out";
-	bool emet_fichier_objet = true;
-	bool emet_code_intermediaire = false;
-	bool emet_arbre = false;
-	bool imprime_taille_memoire_objet = false;
-	bool imprime_temps = false;
-	bool imprime_version = false;
-	bool imprime_aide = false;
-	bool erreur = false;
-
-	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
-	char pad[7];
-};
-
-static OptionsCompilation genere_options_compilation(int argc, char **argv)
-{
-	OptionsCompilation opts;
-
-	for (int i = 1; i < argc; ++i) {
-		if (std::strcmp(argv[i], "-a") == 0) {
-			opts.imprime_aide = true;
-		}
-		else if (std::strcmp(argv[i], "--aide") == 0) {
-			opts.imprime_aide = true;
-		}
-		else if (std::strcmp(argv[i], "-t") == 0) {
-			opts.imprime_temps = true;
-		}
-		else if (std::strcmp(argv[i], "--temps") == 0) {
-			opts.imprime_temps = true;
-		}
-		else if (std::strcmp(argv[i], "-v") == 0) {
-			opts.imprime_version = true;
-		}
-		else if (std::strcmp(argv[i], "--version") == 0) {
-			opts.imprime_version = true;
-		}
-		else if (std::strcmp(argv[i], "--émet-llvm") == 0) {
-			opts.emet_code_intermediaire = true;
-		}
-		else if (std::strcmp(argv[i], "-o") == 0) {
-			opts.emet_fichier_objet = true;
-		}
-		else if (std::strcmp(argv[i], "--émet-arbre") == 0) {
-			opts.emet_arbre = true;
-		}
-		else if (std::strcmp(argv[i], "-m") == 0) {
-			opts.imprime_taille_memoire_objet = true;
-		}
-		else if (std::strcmp(argv[i], "-O0") == 0) {
-			opts.optimisation = NiveauOptimisation::O0;
-		}
-		else if (std::strcmp(argv[i], "-O1") == 0) {
-			opts.optimisation = NiveauOptimisation::O1;
-		}
-		else if (std::strcmp(argv[i], "-O2") == 0) {
-			opts.optimisation = NiveauOptimisation::O2;
-		}
-		else if (std::strcmp(argv[i], "-Os") == 0) {
-			opts.optimisation = NiveauOptimisation::Os;
-		}
-		else if (std::strcmp(argv[i], "-Oz") == 0) {
-			opts.optimisation = NiveauOptimisation::Oz;
-		}
-		else if (std::strcmp(argv[i], "-O3") == 0) {
-			opts.optimisation = NiveauOptimisation::O3;
-		}
-		else if (std::strcmp(argv[i], "-d") == 0) {
-			if (i + 1 < argc) {
-				opts.chemin_sortie = argv[i + 1];
-				++i;
-			}
-		}
-		else if (std::strcmp(argv[i], "--dest") == 0) {
-			if (i + 1 < argc) {
-				opts.chemin_sortie = argv[i + 1];
-				++i;
-			}
-		}
-		else {
-			if (argv[i][0] == '-') {
-				std::cerr << "Argument inconnu " << argv[i] << '\n';
-				opts.erreur = true;
-				break;
-			}
-
-			opts.chemin_fichier = argv[i];
-		}
-	}
-
-	return opts;
-}
+#include "options.hh"
 
 using type_scalaire = double;
 using type_matrice_ep = matrice_colonne_eparse<double>;
@@ -632,20 +485,7 @@ int main(int argc, char **argv)
 {
 	std::ios::sync_with_stdio(false);
 
-	if (argc < 2) {
-		std::cerr << "Utilisation : " << argv[0] << " FICHIER [options...]\n";
-		return 1;
-	}
-
 	auto const ops = genere_options_compilation(argc, argv);
-
-	if (ops.imprime_aide) {
-		std::cout << options;
-	}
-
-	if (ops.imprime_version) {
-		std::cout << "Kuri 0.1 alpha\n";
-	}
 
 	if (ops.erreur) {
 		return 1;
