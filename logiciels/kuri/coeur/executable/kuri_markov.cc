@@ -592,20 +592,11 @@ void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)
 		matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 	}
 
-	/* conditions de bordures : il y a un mot vide avant et après le texte */
-
 	tri_lignes_matrice(matrice);
 	converti_fonction_repartition(matrice);
 
-	//imprime_matrice("Matrice = \n", matrice, index_arriere);
-
-	std::cerr << "Génère texte :\n";
 	auto gna = GNA();
-
 	auto mot_courant = id_morceau::STRUCTURE;
-
-	//CHRONOMETRE_PORTEE("génération du texte", std::cerr);
-
 	auto nombre_phrases = 5;
 
 	while (nombre_phrases > 0) {
