@@ -32,7 +32,8 @@ endif()
 
 set(RACINE_INSTALLATION kuri)
 
-add_subdirectory(coeur)
+add_subdirectory(compilation)
+add_subdirectory(executable)
 add_subdirectory(exemples)
 add_subdirectory(tests)
 
