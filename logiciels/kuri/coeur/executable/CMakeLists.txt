@@ -83,3 +83,17 @@ target_link_libraries(kuri_markov "${BIBLIOTHEQUES}")
 install(
 	TARGETS kuri_markov RUNTIME DESTINATION ${RACINE_INSTALLATION}
 )
+
+################################################################################
+
+add_executable(kuri_remplace
+	kuri_remplace.cc
+)
+
+target_include_directories(kuri_remplace PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}")
+
+install(
+	TARGETS kuri_remplace RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
