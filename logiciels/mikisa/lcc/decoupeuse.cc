@@ -42,65 +42,6 @@ constexpr bool est_espace_blanc(char c)
 
 /* ************************************************************************** */
 
-/* espaces */
-static constexpr auto ESPACE_INSECABLE             = 0x00A0;
-static constexpr auto ESPACE_D_OGAM                = 0x1680;
-static constexpr auto SEPARATEUR_VOYELLES_MONGOL   = 0x180E;
-static constexpr auto DEMI_CADRATIN                = 0x2000;
-static constexpr auto CADRATIN                     = 0x2001;
-static constexpr auto ESPACE_DEMI_CADRATIN         = 0x2002;
-static constexpr auto ESPACE_CADRATIN              = 0x2003;
-static constexpr auto TIERS_DE_CADRATIN            = 0x2004;
-static constexpr auto QUART_DE_CADRATIN            = 0x2005;
-static constexpr auto SIXIEME_DE_CADRATIN          = 0x2006;
-static constexpr auto ESPACE_TABULAIRE             = 0x2007;
-static constexpr auto ESPACE_PONCTUATION           = 0x2008;
-static constexpr auto ESPACE_FINE                  = 0x2009;
-static constexpr auto ESPACE_ULTRAFINE             = 0x200A;
-static constexpr auto ESPACE_SANS_CHASSE           = 0x200B;
-static constexpr auto ESPACE_INSECABLE_ETROITE     = 0x202F;
-static constexpr auto ESPACE_MOYENNE_MATHEMATIQUE  = 0x205F;
-static constexpr auto ESPACE_IDEOGRAPHIQUE         = 0x3000;
-static constexpr auto ESPACE_INSECABLE_SANS_CHASSE = 0xFEFF;
-
-/* guillemets */
-static constexpr auto GUILLEMET_OUVRANT = 0x00AB;  /* « */
-static constexpr auto GUILLEMET_FERMANT = 0x00BB;  /* » */
-
-constexpr auto converti_utf32(const char *sequence, int n)
-{
-	auto const s0 = static_cast<unsigned char>(sequence[0]);
-
-	if (n == 1) {
-		return static_cast<int>(s0) & 0b01111111;
-	}
-
-	auto const s1 = static_cast<unsigned char>(sequence[1]);
-
-	if (n == 2) {
-		auto valeur = (s0 & 0b00011111) << 6 | (s1 & 0b00111111);
-		return valeur;
-	}
-
-	auto const s2 = static_cast<unsigned char>(sequence[2]);
-
-	if (n == 3) {
-		auto valeur = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111);
-		return valeur;
-	}
-
-	auto const s3 = static_cast<unsigned char>(sequence[3]);
-
-	if (n == 4) {
-		auto valeur = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111);
-		return valeur;
-	}
-
-	return 0;
-}
-
-/* ************************************************************************** */
-
 decoupeuse_texte::decoupeuse_texte(DonneesModule *module)
 	: m_module(module)
 	, m_debut_mot(module->tampon.debut())
@@ -131,7 +72,7 @@ void decoupeuse_texte::genere_morceaux()
 					this->enregistre_pos_mot();
 				}
 
-				auto c = converti_utf32(m_debut, nombre_octet);
+				auto c = lng::converti_utf32(m_debut, nombre_octet);
 
 				switch (c) {
 					case ESPACE_INSECABLE:
@@ -173,7 +114,7 @@ void decoupeuse_texte::genere_morceaux()
 
 						while (!this->fini()) {
 							nombre_octet = lng::nombre_octets(m_debut);
-							c = converti_utf32(m_debut, nombre_octet);
+							c = lng::converti_utf32(m_debut, nombre_octet);
 
 							if (c == GUILLEMET_FERMANT) {
 								break;

@@ -153,4 +153,36 @@ dls::chaine supprime_accents(dls::chaine const &chaine)
 	return res;
 }
 
+int converti_utf32(const char *sequence, int n)
+{
+	auto const s0 = static_cast<unsigned char>(sequence[0]);
+
+	if (n == 1) {
+		return static_cast<int>(s0) & 0b01111111;
+	}
+
+	auto const s1 = static_cast<unsigned char>(sequence[1]);
+
+	if (n == 2) {
+		auto valeur = (s0 & 0b00011111) << 6 | (s1 & 0b00111111);
+		return valeur;
+	}
+
+	auto const s2 = static_cast<unsigned char>(sequence[2]);
+
+	if (n == 3) {
+		auto valeur = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111);
+		return valeur;
+	}
+
+	auto const s3 = static_cast<unsigned char>(sequence[3]);
+
+	if (n == 4) {
+		auto valeur = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111);
+		return valeur;
+	}
+
+	return 0;
+}
+
 }  /* namespace lng */
