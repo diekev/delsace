@@ -94,7 +94,6 @@ enum class id_morceau : unsigned int {
 	EXTERNE,
 	FAUX,
 	FONC,
-	GABARIT,
 	GARDE,
 	IMPORTE,
 	INFO_DE,

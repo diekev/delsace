@@ -46,7 +46,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("externe"), id_morceau::EXTERNE },
 	dls::paire{ dls::vue_chaine_compacte("faux"), id_morceau::FAUX },
 	dls::paire{ dls::vue_chaine_compacte("fonc"), id_morceau::FONC },
-	dls::paire{ dls::vue_chaine_compacte("gabarit"), id_morceau::GABARIT },
 	dls::paire{ dls::vue_chaine_compacte("garde"), id_morceau::GARDE },
 	dls::paire{ dls::vue_chaine_compacte("importe"), id_morceau::IMPORTE },
 	dls::paire{ dls::vue_chaine_compacte("info_de"), id_morceau::INFO_DE },
@@ -275,8 +274,6 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::FAUX";
 		case id_morceau::FONC:
 			return "id_morceau::FONC";
-		case id_morceau::GABARIT:
-			return "id_morceau::GABARIT";
 		case id_morceau::GARDE:
 			return "id_morceau::GARDE";
 		case id_morceau::IMPORTE:

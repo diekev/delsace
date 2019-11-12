@@ -246,9 +246,6 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::FONC:
 			os << "fonc";
 			return;
-		case id_morceau::GABARIT:
-			os << "gabarit";
-			return;
 		case id_morceau::GARDE:
 			os << "garde";
 			return;
