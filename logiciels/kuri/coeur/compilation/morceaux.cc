@@ -72,7 +72,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("si"), id_morceau::SI },
 	dls::paire{ dls::vue_chaine_compacte("sinon"), id_morceau::SINON },
 	dls::paire{ dls::vue_chaine_compacte("soit"), id_morceau::SOIT },
-	dls::paire{ dls::vue_chaine_compacte("structure"), id_morceau::STRUCTURE },
+	dls::paire{ dls::vue_chaine_compacte("struct"), id_morceau::STRUCT },
 	dls::paire{ dls::vue_chaine_compacte("taille_de"), id_morceau::TAILLE_DE },
 	dls::paire{ dls::vue_chaine_compacte("tantque"), id_morceau::TANTQUE },
 	dls::paire{ dls::vue_chaine_compacte("transtype"), id_morceau::TRANSTYPE },
@@ -327,8 +327,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::SINON";
 		case id_morceau::SOIT:
 			return "id_morceau::SOIT";
-		case id_morceau::STRUCTURE:
-			return "id_morceau::STRUCTURE";
+		case id_morceau::STRUCT:
+			return "id_morceau::STRUCT";
 		case id_morceau::TAILLE_DE:
 			return "id_morceau::TAILLE_DE";
 		case id_morceau::TANTQUE:

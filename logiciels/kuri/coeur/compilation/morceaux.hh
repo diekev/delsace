@@ -120,7 +120,7 @@ enum class id_morceau : unsigned int {
 	SI,
 	SINON,
 	SOIT,
-	STRUCTURE,
+	STRUCT,
 	TAILLE_DE,
 	TANTQUE,
 	TRANSTYPE,

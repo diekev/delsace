@@ -16,7 +16,7 @@ mot_cles = [
 	u'si',
 	u'sinon',
 	u'énum',
-	u'structure',
+	u'struct',
 	u'gabarit',
 	u'de',
 	u'retourne',

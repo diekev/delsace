@@ -292,7 +292,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 				analyse_declaration_fonction(id);
 				break;
 			}
-			case id_morceau::STRUCTURE:
+			case id_morceau::STRUCT:
 			{
 				analyse_declaration_structure();
 				break;
@@ -1539,7 +1539,7 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 
 void analyseuse_grammaire::analyse_declaration_structure()
 {
-	if (!requiers_identifiant(id_morceau::STRUCTURE)) {
+	if (!requiers_identifiant(id_morceau::STRUCT)) {
 		lance_erreur("Attendu la déclaration 'structure'");
 	}
 
@@ -1588,7 +1588,7 @@ void analyseuse_grammaire::analyse_declaration_structure()
 				break;
 			}
 
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCTURE);
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCT);
 		}
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {

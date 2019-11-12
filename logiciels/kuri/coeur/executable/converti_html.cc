@@ -40,7 +40,7 @@ static auto est_mot_cle(id_morceau id)
 			return false;
 		}
 		case id_morceau::FONC:
-		case id_morceau::STRUCTURE:
+		case id_morceau::STRUCT:
 		case id_morceau::DYN:
 		case id_morceau::SOIT:
 		case id_morceau::RETOURNE:

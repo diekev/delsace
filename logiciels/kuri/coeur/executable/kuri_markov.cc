@@ -324,7 +324,7 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::SOIT:
 			os << "soit";
 			return;
-		case id_morceau::STRUCTURE:
+		case id_morceau::STRUCT:
 			os << "structure";
 			return;
 		case id_morceau::TAILLE_DE:
@@ -417,7 +417,7 @@ static bool est_mot_cle(id_morceau id)
 		{
 			return false;
 		}
-		case id_morceau::STRUCTURE:
+		case id_morceau::STRUCT:
 		case id_morceau::FONC:
 		case id_morceau::SI:
 		case id_morceau::SINON:
@@ -449,7 +449,7 @@ void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)
 	converti_fonction_repartition(matrice);
 
 	auto gna = GNA();
-	auto mot_courant = id_morceau::STRUCTURE;
+	auto mot_courant = id_morceau::STRUCT;
 	auto nombre_phrases = 5;
 
 	while (nombre_phrases > 0) {
