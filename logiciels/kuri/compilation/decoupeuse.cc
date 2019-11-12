@@ -25,16 +25,10 @@
 #include "decoupeuse.h"
 
 #include "biblinternes/langage/nombres.hh"
+#include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/unicode.hh"
 
 #include "erreur.h"
-
-/* ************************************************************************** */
-
-constexpr bool est_espace_blanc(char c)
-{
-	return c == ' ' || c == '\n' || c == '\t' || c == '\r' || c == '\v' || c == '\f';
-}
 
 /* ************************************************************************** */
 
@@ -267,7 +261,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 {
 	auto idc = id_morceau::INCONNU;
 
-	if (est_espace_blanc(this->caractere_courant())) {
+	if (lng::est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
 			this->pousse_mot(id_chaine(this->mot_courant()));
 		}
