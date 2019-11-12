@@ -157,12 +157,11 @@ void decoupeuse_texte::genere_morceaux()
 
 						if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 							this->enregistre_pos_mot();
-							this->avance(nombre_octet);
+							this->pousse_caractere(nombre_octet);
 							this->pousse_mot(id_morceau::CARACTERE_BLANC);
 						}
-						else {
-							this->avance(nombre_octet);
-						}
+
+						this->avance(nombre_octet);
 
 						break;
 					}
