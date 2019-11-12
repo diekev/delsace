@@ -13,7 +13,7 @@ fonc externe read(fd : z32, tampon : *z8, taille : n64) : z64;
 fonc externe stat(chemin : *z8, buf : *rien) : z32;
 
 # Version 64-bit de la structure 'stat' de "sys/stat.h"
-structure StatFichier {
+struct StatFichier {
     _dev : n64;         # ID of device containing file
 	_ino : n64;         # inode number
 	_nlink : n64;     # number of hard links

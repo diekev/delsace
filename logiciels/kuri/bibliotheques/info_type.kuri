@@ -16,53 +16,53 @@ importe "chaine"
 	ÉNUM      = 10,
 }
 
-structure InfoType {
+struct InfoType {
     id : id_info;
 }
 
-structure InfoTypeEntier {
+struct InfoTypeEntier {
     id : id_info; # employant InfoType
 	est_signé : bool;
 	taille_en_octet : n32;
 }
 
-structure InfoTypeRéel {
+struct InfoTypeRéel {
     id : id_info; # employant InfoType
 	taille_en_octet : n32;
 }
 
-structure InfoTypePointeur {
+struct InfoTypePointeur {
     id : id_info; # employant InfoType
 	type_pointé : *InfoType;
 	est_référence : bool;
 }
 
-structure InfoTypeTableau {
+struct InfoTypeTableau {
     id : id_info; # employant InfoType
 	type_pointé : *InfoType;
 }
 
-structure InfoTypeMembreStructure {
+struct InfoTypeMembreStructure {
     nom : chaine;
 	id : *InfoType;
 	décalage : z64; # décalage en octets dans la structure
 	#drapeaux : n32;
 }
 
-structure InfoTypeStructure {
+struct InfoTypeStructure {
     id : id_info; # employant InfoType
 	nom : chaine;
 	membres : []InfoTypeMembreStructure;
 }
 
-structure InfoTypeFonction {
+struct InfoTypeFonction {
 	id : id_info; # employant InfoType
 	types_entrée : []*InfoType;
 	types_sortie : []*InfoType;
 	est_coroutine : bool;
 }
 
-structure InfoTypeÉnum {
+struct InfoTypeÉnum {
     id : id_info; # employant InfoType
 	nom : chaine;
 	valeurs : []z32; # À FAIRE typage selon énum

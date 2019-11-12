@@ -8,7 +8,7 @@ importe "memoire"
 
 # Une pile où les premiers éléments ajoutés sont les derniers retirés.
 
-structure pile {
+struct pile {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;
@@ -68,7 +68,7 @@ fonc dépile(dyn p : *pile, d : *rien) : rien
 
 # Une file où les premiers éléments ajoutés sont les premiers retirés.
 
-structure file {
+struct file {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;
@@ -136,7 +136,7 @@ fonc défile(dyn q : *file, d : *rien) : rien
 
 # Une tableau où les données sont stockées de manière séquentielle.
 
-structure tableau {
+struct tableau {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;

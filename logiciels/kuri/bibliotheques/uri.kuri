@@ -4,7 +4,7 @@ importe "chaine"
 
 # URI = schéma:[//autorité]chemin[?requête][#fragment]
 # autorité = [info_usager@]hôte[:port]
-structure URI {
+struct URI {
     uri : chaine;
 	schéma : chaine;
 	autorité : chaine;

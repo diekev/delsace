@@ -5,14 +5,14 @@
 # À FAIRE : regarde les bibliothèques de temps/date des différents langages
 
 # ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
-structure externe timeval {
+struct externe timeval {
     tv_sec : z64;
 	tv_usec : z64;
 }
 
 # ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 # À FAIRE : déprécié
-structure externe timezone {
+struct externe timezone {
     tz_minuteswest : z64; # Minutes à l'ouest de GMT
 	tz_dsttime : z64; # Nonzéro si DST est en effet
 }
@@ -55,7 +55,7 @@ fonc compte_ticks_ms() : z64
 	retourne tv_sec de heure * 1000 + tv_usec de heure / 1000;
 }
 
-structure DonnéesTemps {
+struct DonnéesTemps {
     heures : z32;
     minutes : z32;
     secondes : z32;
