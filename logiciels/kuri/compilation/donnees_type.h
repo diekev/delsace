@@ -66,7 +66,7 @@ class Type;
  *
  * Ce niveau d'indirection nous permet également d'avoir un système de gabarit
  * où les types déclarés possèdent les informations sur les gabarits et nous
- * aident à résoudre leus typers finaux lors des appels.
+ * aident à résoudre leurs types finaux lors des appels.
  */
 
 namespace noeud {
