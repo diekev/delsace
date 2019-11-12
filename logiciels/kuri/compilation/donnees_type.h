@@ -134,11 +134,11 @@ public:
 
 	DonneesTypeFinal() = default;
 
-	DonneesTypeFinal(id_morceau i0);
+	explicit DonneesTypeFinal(id_morceau i0);
 
 	DonneesTypeFinal(id_morceau i0, id_morceau i1);
 
-	DonneesTypeFinal(type_plage autre);
+	explicit DonneesTypeFinal(type_plage autre);
 
 	DonneesTypeFinal(const DonneesTypeFinal &) = default;
 	DonneesTypeFinal &operator=(const DonneesTypeFinal &) = default;

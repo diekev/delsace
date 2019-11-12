@@ -915,10 +915,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(bloc, contexte);
 			auto inst_ret = derniere_instruction(bloc->dernier_enfant());
 
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-
 			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
-			if (inst_ret == nullptr) {
+			if (inst_ret == nullptr) {				
+				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+
 				if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
 					erreur::lance_erreur(
 								"Instruction de retour manquante",
@@ -1116,14 +1116,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 				if (b->index_type == -1l) {
 					b->index_type = resoud_type_final(contexte, b->type_declare);
-				}
 
-				if (b->index_type == -1l) {
-					erreur::lance_erreur(
-								"Aucun type précisé pour la déclaration",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::TYPE_INCONNU);
+					if (b->index_type == -1l) {
+						erreur::lance_erreur(
+									"Aucun type précisé pour la déclaration",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::TYPE_INCONNU);
+					}
 				}
 
 				declare_variable();
@@ -1149,14 +1149,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			if (b->aide_generation_code == GAUCHE_ASSIGNATION) {
 				if (b->index_type == -1l) {
 					b->index_type = resoud_type_final(contexte, b->type_declare);
-				}
 
-				if (b->index_type == -1l) {
-					erreur::lance_erreur(
-								"Aucun type précisé pour l'assignation déclarative",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::TYPE_INCONNU);
+					if (b->index_type == -1l) {
+						erreur::lance_erreur(
+									"Aucun type précisé pour l'assignation déclarative",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::TYPE_INCONNU);
+					}
 				}
 
 				declare_variable();
