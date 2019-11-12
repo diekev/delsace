@@ -2,7 +2,7 @@ importe "flux"
 
 N = 5;
 
-structure XYZ {
+struct XYZ {
     a = 128.0;
     b : type_de(a);
 }

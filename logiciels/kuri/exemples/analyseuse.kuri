@@ -1,4 +1,4 @@
-structure Analyseuse {
+struct Analyseuse {
 	morceaux : []Morceau;
 	coureur  : z32;
 }

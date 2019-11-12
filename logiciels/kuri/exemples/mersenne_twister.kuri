@@ -49,7 +49,7 @@ SAVE = N + 1;
 # Paramètre de période.
 M = 397;
 
-structure MTRand {
+struct MTRand {
     # État interne.
     state : [624]n32;
 

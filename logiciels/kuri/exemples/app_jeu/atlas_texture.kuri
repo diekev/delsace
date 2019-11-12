@@ -1,17 +1,17 @@
-structure ivec3 {
+struct ivec3 {
     x : z32;
     y : z32;
     z : z32;
 }
 
-structure ivec4 {
+struct ivec4 {
     x : z32;
     y : z32;
     z : z32;
     w : z32;
 }
 
-structure atlas_texture {
+struct atlas_texture {
     noeuds : []ivec3;
     utilise : z32;
     largeur : z32;

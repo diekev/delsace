@@ -1,6 +1,6 @@
 importe "flux"
 
-structure TEST {
+struct TEST {
     x = 5;
     y = "une chaine au hasard";
     z = 0.35;

@@ -164,7 +164,7 @@
 	SUPER   = 0x0008,
 }
 
-structure Évènement {
+struct Évènement {
     type = NUL de type_évènement;
 	mods = AUCUN de type_mod;
 	cle = INCONNU de type_cle;

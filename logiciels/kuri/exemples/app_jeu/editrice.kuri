@@ -4,17 +4,17 @@
 	TEMPS     = 2,
 }
 
-structure vec2d {
+struct vec2d {
 	x : r32;
 	y : r32;
 }
 
-structure rect2d {
+struct rect2d {
 	pos : vec2d;
 	taille : vec2d;
 }
 
-structure Editrice {
+struct Editrice {
 	nom : chaîne;
 	type : type_éditrice;
 

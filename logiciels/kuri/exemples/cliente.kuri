@@ -11,7 +11,7 @@ importe "uri"
 soit _AF_INET = 2;
 soit _SOCK_STREAM = 1;
 
-structure externe hostent {
+struct externe hostent {
     h_name : *z8;
     h_aliases : **z8;
     h_addrtype : z32;
@@ -19,16 +19,16 @@ structure externe hostent {
     h_addr_list : **z8;
 }
 
-structure externe in_addr {
+struct externe in_addr {
     s_addr : n32;
 }
 
-structure externe sockaddr {
+struct externe sockaddr {
     sa_family : n16;
     sa_data : [14]z8;
 }
 
-structure externe sockaddr_in {
+struct externe sockaddr_in {
     sin_family : n16;
     sin_port : n16;
     sin_addr : in_addr;

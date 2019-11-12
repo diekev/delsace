@@ -1,7 +1,7 @@
 importe "info_type"
 importe "flux"
 
-structure Objet {
+struct Objet {
     nom = "objet";
 }
 

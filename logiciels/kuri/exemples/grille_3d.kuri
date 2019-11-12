@@ -1,4 +1,4 @@
-structure Résolution3D {
+struct Résolution3D {
 	x : n32;
 	y : n32;
 	z : n32;
@@ -10,7 +10,7 @@ fonc initialise_résolution3D(x : n32, y : n32, z : n32) : Résolution3D
 	return résolution;
 }
 
-structure gabarit(type T) Grille3D {
+struct gabarit(type T) Grille3D {
 	données : *T;
 	résolution : Résolution3D;
 	matrice : Matrice4x4;

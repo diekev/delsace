@@ -1,12 +1,12 @@
 # Implémentation inachevée d'une table de hachage avec adressage ouvert
 # https://en.wikipedia.org/wiki/Open_addressing
 
-structure pair {
+struct pair {
 	clé : z32;
 	valeur : z32;
 }
 
-structure table_hachage {
+struct table_hachage {
 	nombre_alvéole : z32;
 	alvéoles : *pair;
 }

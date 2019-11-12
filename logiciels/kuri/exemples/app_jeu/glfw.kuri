@@ -9,12 +9,12 @@ importe "glew"
 
 importe "evenements"
 
-structure externe GLFWwindow;
+struct externe GLFWwindow;
 
 fonc externe glfwGetVideoMode(desktop : *rien) : *rien;
 
 # cette structure doit être synchroniser avec DesktopMode de GLFW
-structure DonneesMoniteur {
+struct DonneesMoniteur {
     largeur : z32;
     hauteur : z32;
     bits_rouge : z32;

@@ -14,7 +14,7 @@ importe "memoire"
 
 # Puisqu'on ne peut pas passer de contexte aux méthodes de « file » via les
 # fonctions de rappel, cette structure est spécialisée pour les file d'évènements.
-structure FileÉvènement {
+struct FileÉvènement {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;
@@ -165,14 +165,14 @@ soit TAILLE_TUILE = 32;
 soit TUILES_X = 20;
 soit TUILES_Y = 15;
 
-structure Entite {
+struct Entite {
     pos_x = TAILLE_TUILE * 10;
     pos_y = TAILLE_TUILE * 7;
 }
 
 ################################################################################
 
-structure Application {
+struct Application {
     fenetre : *GLFWwindow = nul;
     hauteur : z32 = 0;
     largeur : z32 = 0;

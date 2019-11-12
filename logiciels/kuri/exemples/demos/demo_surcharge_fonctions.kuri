@@ -2,7 +2,7 @@
 
 importe "flux"
 
-structure TEST {
+struct TEST {
     fonction : fonc(eini)z32;
 }
 

@@ -7,31 +7,31 @@
 	DICTIONNAIRE  = 6,
 }
 
-structure Objet {
+struct Objet {
 	type : type_objet;
 }
 
-structure ObjetNombreEntier {
+struct ObjetNombreEntier {
 	objet : Objet;
 	valeur : z64;
 }
 
-structure ObjetNombreReel {
+struct ObjetNombreReel {
 	objet : Objet;
 	valeur : r64;
 }
 
-structure ObjetChaine {
+struct ObjetChaine {
 	objet : Objet;
 	valeur : chaîne;
 }
 
-structure ObjetListe {
+struct ObjetListe {
 	objet : Objet;
 	valeur : []*Objet;
 }
 
-structure ObjetDictionaire {
+struct ObjetDictionaire {
 	objet : Objet;
 	valeur : *rien;
 }

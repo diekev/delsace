@@ -2,7 +2,7 @@ importe "flux"
 importe "chaine"
 importe "iter"
 
-structure Noeud {
+struct Noeud {
     suiv : *Noeud;
     val = 0;
 }

@@ -2,16 +2,16 @@
 	NUL = 0;
 }
 
-structure vec2 {
+struct vec2 {
 	x = 0.0;
 	y = 0.0;
 }
 
-structure Éditrice {
+struct Éditrice {
 
 };
 
-structure Application {
+struct Application {
 	fenetre : *rien = nul;
 	éditrices : []*Éditrice;
 	souris : vec2;

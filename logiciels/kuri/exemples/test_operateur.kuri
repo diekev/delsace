@@ -1,4 +1,4 @@
-structure Vecteur3D {
+struct Vecteur3D {
 	x : n32;
 	y : n32;
 	z : n32;

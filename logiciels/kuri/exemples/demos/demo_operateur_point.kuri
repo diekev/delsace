@@ -1,12 +1,12 @@
 importe "flux"
 
-structure TEST {
+struct TEST {
     m = "Membre de la structure";
     tabl : [2]z32;
     mat4x4 : [4][4]z32;
 }
 
-structure TEST2 {
+struct TEST2 {
     tests : [2]TEST;
 }
 

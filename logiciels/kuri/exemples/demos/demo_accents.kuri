@@ -5,7 +5,7 @@ importe "flux"
     LUMIÈRE = 0,
 }
 
-structure Structurée {
+struct Structurée {
     membrée : z32;
     fn_pointée : fonc()rien;
 }

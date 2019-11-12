@@ -164,7 +164,7 @@ fonc ajoute_sommet(x : r32, y : r32, z : r32) : rien
     pousse_tableau(tabl_sommets, @z);
 }
 
-structure Couleur {
+struct Couleur {
     r : r32 = 0.0;
     v : r32 = 0.0;
     b : r32 = 0.0;

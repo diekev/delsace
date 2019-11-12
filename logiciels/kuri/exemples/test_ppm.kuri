@@ -5,7 +5,7 @@ importe "chrono"
 
 fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
 
-structure Image {
+struct Image {
     tampon : chaine; # À FAIRE : []octet
     chemin : chaine;
     hauteur : z32;
@@ -148,7 +148,7 @@ fonc dessine_triangle(
 }
 
 # http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-structure Vec2 {
+struct Vec2 {
     x : r64;
     y : r64;
 }
@@ -434,40 +434,40 @@ fonc détruit_image(image : *Image) : rien
     déloge tampon de image;
 }
 
-structure externe FILE;
+struct externe FILE;
 fonc externe fopen(__filename : *z8, __modes : *z8) : *FILE;
 fonc externe fclose(__file : *FILE) : z32;
 
-structure externe jpeg_error_mgr;
-structure externe jpeg_memory_mgr;
-structure externe jpeg_progress_mgr;
-structure externe jpeg_source_mgr;
-structure externe JQUANT_TBL;
-structure externe JHUFF_TBL;
-structure externe jpeg_marker_struct;
-structure externe jpeg_decomp_master;
-structure externe jpeg_d_main_controller;
-structure externe jpeg_d_coef_controller;
-structure externe jpeg_d_post_controller;
-structure externe jpeg_input_controller;
-structure externe jpeg_marker_reader;
-structure externe jpeg_entropy_decoder;
-structure externe jpeg_inverse_dct;
-structure externe jpeg_upsampler;
-structure externe jpeg_color_deconverter;
-structure externe jpeg_color_quantizer;
-structure externe jpeg_comp_master;
-structure externe jpeg_c_main_controller;
-structure externe jpeg_c_prep_controller;
-structure externe jpeg_c_coef_controller;
-structure externe jpeg_marker_writer;
-structure externe jpeg_color_converter;
-structure externe jpeg_downsampler;
-structure externe jpeg_forward_dct;
-structure externe jpeg_entropy_encoder;
-structure externe jpeg_scan_info;
+struct externe jpeg_error_mgr;
+struct externe jpeg_memory_mgr;
+struct externe jpeg_progress_mgr;
+struct externe jpeg_source_mgr;
+struct externe JQUANT_TBL;
+struct externe JHUFF_TBL;
+struct externe jpeg_marker_struct;
+struct externe jpeg_decomp_master;
+struct externe jpeg_d_main_controller;
+struct externe jpeg_d_coef_controller;
+struct externe jpeg_d_post_controller;
+struct externe jpeg_input_controller;
+struct externe jpeg_marker_reader;
+struct externe jpeg_entropy_decoder;
+struct externe jpeg_inverse_dct;
+struct externe jpeg_upsampler;
+struct externe jpeg_color_deconverter;
+struct externe jpeg_color_quantizer;
+struct externe jpeg_comp_master;
+struct externe jpeg_c_main_controller;
+struct externe jpeg_c_prep_controller;
+struct externe jpeg_c_coef_controller;
+struct externe jpeg_marker_writer;
+struct externe jpeg_color_converter;
+struct externe jpeg_downsampler;
+struct externe jpeg_forward_dct;
+struct externe jpeg_entropy_encoder;
+struct externe jpeg_scan_info;
 
-structure externe jpeg_component_info {
+struct externe jpeg_component_info {
     component_id : z32;
     component_index : z32;
     h_samp_factor : z32;
@@ -495,7 +495,7 @@ structure externe jpeg_component_info {
     dct_table : *rien;
 }
 
-structure externe jpeg_decompress_struct {
+struct externe jpeg_decompress_struct {
     err : *jpeg_error_mgr;
     mem : *jpeg_memory_mgr;
     progress : *jpeg_progress_mgr;
@@ -697,7 +697,7 @@ fonc lis_jpeg(chemin : chaine) : Image
     retourne image;
 }
 
-structure externe jpeg_compress_struct {
+struct externe jpeg_compress_struct {
     err : *jpeg_error_mgr;
     mem : *jpeg_memory_mgr;
     progress : *jpeg_progress_mgr;
