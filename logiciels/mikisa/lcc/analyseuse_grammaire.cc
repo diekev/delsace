@@ -873,7 +873,6 @@ void analyseuse_grammaire::analyse_expression(
 	--m_profondeur;
 }
 
-/* f(g(5, 6 + 3 * (2 - 5)), h()); */
 void analyseuse_grammaire::analyse_appel_fonction()
 {
 	/* ici nous devons être au niveau du premier paramètre */

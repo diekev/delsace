@@ -1506,7 +1506,6 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	return noeud_expr;
 }
 
-/* f(g(5, 6 + 3 * (2 - 5)), h()); */
 void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
