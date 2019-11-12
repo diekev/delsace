@@ -54,7 +54,7 @@ static auto trouve_position(DonneesMorceau const &morceau, DonneesModule *module
 		auto l1 = module->tampon[static_cast<long>(i + 1)];
 
 		if (ptr >= l0.begin() && ptr < l1.begin()) {
-			pos.ligne = static_cast<long>(i + 1);
+			pos.ligne = static_cast<long>(i);
 			pos.pos = ptr - l0.begin();
 			break;
 		}
