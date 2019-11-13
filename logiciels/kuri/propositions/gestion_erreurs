@@ -1,0 +1,101 @@
+Gestion des erreurs
+-------------------
+
+Les erreurs sont pour signifier que quelque chose ne va pas, mais aussi pour aider l'utilisateur à trouver une solution.
+
+Les langages utilisent plusieurs approches :
+
+-- les exceptions (par exemple : C++, JAVA, Python)
+-- un code d'erreur global (par exemple : C, C++ via errno)
+-- un type spécifique (par exemple : Rust)
+-- plusieurs valeurs de retour (par exemple : Go)
+
+Un bon système d'erreur doit pouvoir localiser l'erreur, à savoir nous permettre d'être au plus près de celle-ci, et d'y répondre le plus vite.
+
+Les exceptions tournent un problème local en un problème global.
+
+Le code d'erreur peut être modifié à n'importe quel moment.
+
+Il faut pouvoir composer les erreurs.
+
+Les multiples valeurs de retours nous forcent à toutes les considérer, nous forçant à devoir toutes les tester.
+
+En tout, les approches pour gérer les erreurs ne nous permettent de la corriger et de recommencer là où l'on s'étaient arrêtés.
+
+Nos conditions :
+-- permettre de revenir en arrière en corrigeant le problème
+-- pouvoir définir des manières centralisées de régler un problème
+-- ne pas avoir d'état global, il faut être le plus local possible
+-- pouvoir composer les erreurs pour ajouter plus d'informations
+
+Composer des erreurs peut se faire via le système de type, avec un type optionnel, construisant un arbre de paires de types (type algébrique).
+
+Une approche possible serait d'avoir quelque chose comme les conditions de Common Lisp, où les effets algébriques.
+
+-- dès qu'une erreur est lancée on arrête toutes les fonctions en sauvegardants leurs états jusqu'à ce qu'il y ait une note tente/corrige
+-- il faut prendre note de chaque fonction pour les recommencer
+-- si aucun tente/corrige atteint lorsque l'on retourne dans la fonction principale : avortement du programme.
+
+système de conditions :
+-- chaque fonction possède un état (ce qui permet d'unifier les fonctions avec les coroutines)
+-- avant chaque appel, l'état est construit et passé
+-- un pointeur indique où l'état se trouve sur la pile d'état (il faudrait que les états soient allouer sur le tas..., quid de la performance ?)
+-- quand une erreur survient, on sauvegarde l'état et prend note de l'erreur
+-- quand un bloc de correction est atteint, s'il est possible de corriger l'erreur, on applique la correction et revient là où l'on etait en remettant les fonctions dans leurs états
+
+tente {
+
+}
+corrige {
+
+}
+
+fonc foo()
+{
+	a = 5;
+	retourne;
+}
+
+void foo(__etat_foo *etat)
+{
+	int a;
+
+	if (etat->reprend == 1) {
+		goto __reprend1;
+	}
+
+	a = 5;
+
+	etat->reprend = 1;
+	etat->termine = true;
+
+__reprend1:
+	a = etat->a;
+	etat->a = a;
+	return;
+}
+
+fonc principale()
+{
+	foo();
+	retourne 0;
+}
+
+int principale(__etat_principale *etat, __contexte_global *ctx)
+{
+	__etat_foo __etat12141425;
+	__etat12141425.termine = false;
+	ctx->etats[ctx->pointeur_pile] = &__etat_foo; // il nous faut allouer sur la pile, où alors savoir tous les chemins possibles
+	foo(&__etat12141425, ctx);
+
+	if (__etat123121414.erreur) {
+		etat->erreur = true;
+		retourne;
+	}
+}
+
+problèmes :
+- concurrence/moultfilage
+- destructeurs
+
+voir aussi Zig : https://ziglang.org/#A-fresh-take-on-error-handling
