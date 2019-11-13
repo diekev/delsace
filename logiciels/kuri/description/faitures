@@ -66,6 +66,7 @@ Faitures
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
 - suppression ':' et ';'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
+- ananlyseuse_grammaire -> suppression des vérifications redondantes
 
 
 À faire (tests)
