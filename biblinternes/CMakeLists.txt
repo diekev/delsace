@@ -19,7 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(audio)
 add_subdirectory(base64)
 add_subdirectory(bcrypt)
 add_subdirectory(bruit)
