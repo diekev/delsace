@@ -54,7 +54,7 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 
 	this->analyse_page();
 
-	m_assembleuse.escompte_type(type_noeud::BLOC);
+	m_assembleuse.attend_type(type_noeud::BLOC);
 }
 
 void analyseuse_grammaire::analyse_page()
@@ -105,7 +105,7 @@ void analyseuse_grammaire::analyse_expression()
 
 		m_assembleuse.depile_noeud(type_noeud::BLOC);
 
-		m_assembleuse.escompte_type(type_noeud::SI);
+		m_assembleuse.attend_type(type_noeud::SI);
 
 		m_assembleuse.empile_noeud(type_noeud::BLOC, donnees());
 
