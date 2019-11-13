@@ -110,6 +110,7 @@ Idées
 - ajout de nom et valeur par défaut au type de retour
 - contexte (modifiable par l'utilisateur) implicit passé en paramètre de toutes les fonctions internes pour pouvoir faciliter la gestion de la mémoire et d'autres données du programme
 - compte de la mémoire utilisée avec rapport en fin d'exécution du programme sur ce qui a utilisé le plus de mémoire, et s'il y a fuite de mémoire
+- constructeurs/destructeurs via mot-clés et pointeurs de fonction
 
 
 Zones d'ombres
