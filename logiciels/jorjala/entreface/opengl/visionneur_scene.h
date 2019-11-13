@@ -34,7 +34,7 @@ class Camera3D;
 
 }  /* namespace VisionneurScene */
 
-class Jorjala;
+struct Jorjala;
 class MoteurRendu;
 class RenduManipulatriceEchelle;
 class RenduManipulatricePosition;

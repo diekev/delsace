@@ -24,7 +24,7 @@
 
 #pragma once
 
-class Jorjala;
+struct Jorjala;
 
 enum {
 	OBJET_AJOUTE,

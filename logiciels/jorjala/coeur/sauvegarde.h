@@ -26,7 +26,7 @@
 
 #include <filesystem>
 
-class Jorjala;
+struct Jorjala;
 
 namespace filesystem = std::filesystem;
 

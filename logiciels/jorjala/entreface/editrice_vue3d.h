@@ -35,7 +35,7 @@
 #include "base_editrice.h"
 
 class EditriceVue3D;
-class Jorjala;
+struct Jorjala;
 class QComboBox;
 class QToolButton;
 class VisionneurScene;

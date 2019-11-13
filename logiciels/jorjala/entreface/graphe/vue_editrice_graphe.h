@@ -34,7 +34,7 @@
 #pragma GCC diagnostic pop
 
 class EditriceGraphe;
-class Jorjala;
+struct Jorjala;
 class QMenu;
 class RepondantCommande;
 

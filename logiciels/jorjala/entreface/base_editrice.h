@@ -28,7 +28,7 @@
 
 #include "biblinternes/patrons_conception/observation.hh"
 
-class Jorjala;
+struct Jorjala;
 class QFrame;
 class QHBoxLayout;
 class QLineEdit;

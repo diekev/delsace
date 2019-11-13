@@ -28,7 +28,7 @@
 
 #include "wolika/interruptrice.hh"
 
-class Jorjala;
+struct Jorjala;
 
 class ChefExecution {
 	Jorjala &m_jorjala;

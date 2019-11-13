@@ -33,7 +33,7 @@
 #pragma GCC diagnostic pop
 
 class BarreDeProgres;
-class Jorjala;
+struct Jorjala;
 
 class FenetrePrincipale : public QMainWindow {
 	Q_OBJECT

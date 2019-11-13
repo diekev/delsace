@@ -67,7 +67,8 @@ enum {
 	FICHIER_SAUVEGARDE,
 };
 
-class Jorjala : public Sujette {
+struct Jorjala : public Sujette {
+private:
 	UsineCommande m_usine_commande{};
 	UsineOperatrice m_usine_operatrices;
 	RepondantCommande *m_repondant_commande = nullptr;
