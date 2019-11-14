@@ -129,390 +129,315 @@ bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 
 /* ************************************************************************** */
 
-static bool est_operation_arithmetique(id_morceau op)
+template <typename T>
+static auto applique_operateur_unaire(id_morceau id, T &a)
 {
-	switch (op) {
-		case id_morceau::PLUS:
-		case id_morceau::MOINS:
-		case id_morceau::FOIS:
-		case id_morceau::DIVISE:
-		case id_morceau::POURCENT:
-		case id_morceau::DECALAGE_DROITE:
-		case id_morceau::DECALAGE_GAUCHE:
-		case id_morceau::ESPERLUETTE:
-		case id_morceau::BARRE:
-		case id_morceau::CHAPEAU:
-			return true;
+	switch (id) {
+		case id_morceau::EXCLAMATION:
+		{
+			a = !a;
+			break;
+		}
+		case id_morceau::TILDE:
+		{
+			a = ~a;
+			break;
+		}
+		case id_morceau::PLUS_UNAIRE:
+		{
+			break;
+		}
+		case id_morceau::MOINS_UNAIRE:
+		{
+			a = -a;
+			break;
+		}
 		default:
-			return false;
+		{
+			a = 0;
+			break;
+		}
 	}
 }
 
-static bool est_operation_arithmetique_reel(id_morceau op)
+static auto applique_operateur_unaire(id_morceau id, double &a)
 {
-	switch (op) {
-		case id_morceau::PLUS:
-		case id_morceau::MOINS:
-		case id_morceau::FOIS:
-		case id_morceau::DIVISE:
-			return true;
+	switch (id) {
+		case id_morceau::PLUS_UNAIRE:
+		{
+			break;
+		}
+		case id_morceau::MOINS_UNAIRE:
+		{
+			a = -a;
+			break;
+		}
 		default:
-			return false;
+		{
+			a = 0;
+			break;
+		}
 	}
 }
 
-static bool est_operation_comparaison(id_morceau op)
+static auto est_operateur_bool(id_morceau id)
 {
-	switch (op) {
+	switch (id) {
+		case id_morceau::EXCLAMATION:
 		case id_morceau::INFERIEUR:
 		case id_morceau::INFERIEUR_EGAL:
 		case id_morceau::SUPERIEUR:
 		case id_morceau::SUPERIEUR_EGAL:
-		case id_morceau::EGALITE:
 		case id_morceau::DIFFERENCE:
-			return true;
-		default:
-			return false;
-	}
-}
-
-static bool est_operation_booleenne(id_morceau op)
-{
-	switch (op) {
 		case id_morceau::ESP_ESP:
+		case id_morceau::EGALITE:
 		case id_morceau::BARRE_BARRE:
+		{
 			return true;
+		}
 		default:
+		{
 			return false;
+		}
 	}
 }
 
-static long calcul_expression_nombre_entier(id_morceau op, long n1, long n2)
+template <typename T>
+static auto applique_operateur_binaire(id_morceau id, T a, T b)
 {
-	switch (op) {
+	switch (id) {
 		case id_morceau::PLUS:
-			return n1 + n2;
+		case id_morceau::PLUS_EGAL:
+		{
+			return a + b;
+		}
 		case id_morceau::MOINS:
-			return n1 - n2;
+		case id_morceau::MOINS_EGAL:
+		{
+			return a - b;
+		}
 		case id_morceau::FOIS:
-			return n1 * n2;
+		case id_morceau::MULTIPLIE_EGAL:
+		{
+			return a * b;
+		}
 		case id_morceau::DIVISE:
-			if (n2 == 0) {
-				return 0;
-			}
-
-			return n1 / n2;
-		case id_morceau::ESPERLUETTE:
-			return n1 & n2;
+		case id_morceau::DIVISE_EGAL:
+		{
+			return a / b;
+		}
 		case id_morceau::POURCENT:
-			return n1 % n2;
-		case id_morceau::DECALAGE_DROITE:
-			return n1 >> n2;
-		case id_morceau::DECALAGE_GAUCHE:
-			return n1 << n2;
+		case id_morceau::MODULO_EGAL:
+		{
+			return a % b;
+		}
+		case id_morceau::ESPERLUETTE:
+		case id_morceau::ET_EGAL:
+		{
+			return a & b;
+		}
+		case id_morceau::OU_EGAL:
 		case id_morceau::BARRE:
-			return n1 | n2;
+		{
+			return a | b;
+		}
 		case id_morceau::CHAPEAU:
-			return n1 ^ n2;
+		case id_morceau::OUX_EGAL:
+		{
+			return a ^ b;
+		}
+		case id_morceau::DECALAGE_DROITE:
+		case id_morceau::DEC_DROITE_EGAL:
+		{
+			return a >> b;
+		}
+		case id_morceau::DECALAGE_GAUCHE:
+		case id_morceau::DEC_GAUCHE_EGAL:
+		{
+			return a << b;
+		}
 		default:
-			return 0;
+		{
+			return T(0);
+		}
 	}
 }
 
-static double calcul_expression_nombre_reel(id_morceau op, double n1, double n2)
+static auto applique_operateur_binaire(id_morceau id, double a, double b)
 {
-	switch (op) {
+	switch (id) {
 		case id_morceau::PLUS:
-			return n1 + n2;
+		case id_morceau::PLUS_EGAL:
+		{
+			return a + b;
+		}
 		case id_morceau::MOINS:
-			return n1 - n2;
+		case id_morceau::MOINS_EGAL:
+		{
+			return a - b;
+		}
 		case id_morceau::FOIS:
-			return n1 * n2;
+		case id_morceau::MULTIPLIE_EGAL:
+		{
+			return a * b;
+		}
 		case id_morceau::DIVISE:
-			if (n2 == 0.0) {
-				return 0;
-			}
-
-			return n1 / n2;
+		case id_morceau::DIVISE_EGAL:
+		{
+			return a / b;
+		}
 		default:
-			return 0;
+		{
+			return 0.0;
+		}
 	}
 }
 
 template <typename T>
-static bool calcul_expression_comparaison(id_morceau op, T n1, T n2)
+static auto applique_operateur_binaire_comp(id_morceau id, T a, T b)
 {
-	switch (op) {
+	switch (id) {
 		case id_morceau::INFERIEUR:
-			return n1 < n2;
 		case id_morceau::INFERIEUR_EGAL:
-			return n1 <= n2;
+		{
+			return a < b;
+		}
 		case id_morceau::SUPERIEUR:
-			return n1 > n2;
 		case id_morceau::SUPERIEUR_EGAL:
-			return n1 >= n2;
+		{
+			return a > b;
+		}
 		case id_morceau::DIFFERENCE:
-			if constexpr (std::is_floating_point<T>::value) {
-				return std::abs(n1 - n2) > std::numeric_limits<T>::epsilon();
-			}
-			else {
-				return n1 != n2;
-			}
-		case id_morceau::EGALITE:
-			if constexpr (std::is_floating_point<T>::value) {
-				return std::abs(n1 - n2) <= std::numeric_limits<T>::epsilon();
-			}
-			else {
-				return n1 == n2;
-			}
-		default:
-			return false;
-	}
-}
-
-template <typename T>
-static bool calcul_expression_boolenne(id_morceau op, T n1, T n2)
-{
-	switch (op) {
+		{
+			return a != b;
+		}
 		case id_morceau::ESP_ESP:
-			return n1 && n2;
+		{
+			return a && b;
+		}
+		case id_morceau::EGALITE:
+		{
+			return a == b;
+		}
 		case id_morceau::BARRE_BARRE:
-			return n1 || n2;
+		{
+			return a || b;
+		}
 		default:
+		{
 			return false;
+		}
 	}
 }
 
-static bool sont_compatibles(id_morceau id1, id_morceau id2)
+/**
+ * Évalue l'expression dont « b » est la racine. L'expression doit être
+ * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
+ * lors de la compilation.
+ *
+ * Dans le future, ce sera sans doute la base d'un interpreteur pour exécuter de
+ * manière arbitraire du code lors de la compilation. Pour cela, la prochaine
+ * étape sera de pouvoir évaluer des fonctions entières.
+ */
+ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::base *b)
 {
-	return id1 == id2;
-}
+	switch (b->type) {
+		default:
+		{
+			auto res = ResultatExpression();
+			res.est_errone = true;
+			res.noeud_erreur = b;
+			res.message_erreur = "L'expression n'est pas constante et ne peut être calculée !";
 
-static inline long extrait_nombre_entier(noeud::base *n)
-{
-	return dls::outils::possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<long>(n->valeur_calculee) : denombreuse::converti_chaine_nombre_entier(n->chaine(), n->identifiant());
-}
-
-static inline double extrait_nombre_reel(noeud::base *n)
-{
-	return dls::outils::possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<double>(n->valeur_calculee) : denombreuse::converti_chaine_nombre_reel(n->chaine(), n->identifiant());
-}
-
-static inline bool extrait_valeur_bool(noeud::base *n)
-{
-	return dls::outils::possede_drapeau(n->drapeaux, EST_CALCULE) ? std::any_cast<bool>(n->valeur_calculee) : (n->chaine() == "vrai");
-}
-
-static inline dls::chaine extrait_chaine(noeud::base *n)
-{
-	return std::any_cast<dls::chaine>(n->valeur_calculee);
-}
-
-noeud::base *calcul_expression_double(
-		assembleuse_arbre &assembleuse,
-		ContexteGenerationCode &contexte,
-		noeud::base *op,
-		noeud::base *n1,
-		noeud::base *n2)
-{
-	if (!sont_compatibles(n1->identifiant(), n2->identifiant())) {
-		return nullptr;
-	}
-
-	if (n1->identifiant() == id_morceau::CHAINE_LITTERALE) {
-		if (op->identifiant() == id_morceau::PLUS) {
-			auto v1 = extrait_chaine(n1);
-			auto v2 = extrait_chaine(n2);
-
-			dls::chaine v;
-			v.reserve(v1.taille() + v2.taille());
-			v.append(v1);
-			v.append(v2);
-
-			n1->valeur_calculee = v;
-			n1->drapeaux |= EST_CALCULE;
-			auto dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::TABLEAU | static_cast<int>(v.taille() << 8));
-			dt.pousse(id_morceau::Z8);
-			n1->index_type = contexte.magasin_types.ajoute_type(dt);
-
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n2);
-
-			return n1;
+			return res;
 		}
+		case type_noeud::TAILLE_DE:
+		{
+			auto index_dt = std::any_cast<long>(b->valeur_calculee);
+			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
 
-		return nullptr;
-	}
+			auto res = ResultatExpression();
+			res.type = type_expression::ENTIER;
+			res.entier = taille_type_octet(contexte, donnees);
 
-	if (n1->identifiant() == id_morceau::NOMBRE_REEL) {
-		auto v1 = extrait_nombre_reel(n1);
-		auto v2 = extrait_nombre_reel(n2);
-
-		if (est_operation_arithmetique_reel(op->identifiant())) {
-			n1->valeur_calculee = calcul_expression_nombre_reel(op->identifiant(), v1, v2);
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n2);
-
-			return n1;
+			return res;
 		}
+		case type_noeud::BOOLEEN:
+		{
+			auto res = ResultatExpression();
+			res.type = type_expression::ENTIER;
+			res.entier = b->chaine() == "vrai";
 
-		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, op->donnees_morceau());
-			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
-			noeud->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n1);
-			assembleuse.supprime_noeud(n2);
-
-			return noeud;
+			return res;
 		}
+		case type_noeud::NOMBRE_ENTIER:
+		{
+			auto res = ResultatExpression();
+			res.type = type_expression::ENTIER;
+			res.entier = lng::converti_nombre_entier(dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille()));
 
-		return nullptr;
-	}
-
-	if (n1->identifiant() == id_morceau::NOMBRE_ENTIER) {
-		auto v1 = extrait_nombre_entier(n1);
-		auto v2 = extrait_nombre_entier(n2);
-
-		if (est_operation_arithmetique(op->identifiant())) {
-			n1->valeur_calculee = calcul_expression_nombre_entier(op->identifiant(), v1, v2);
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n2);
-
-			return n1;
+			return res;
 		}
+		case type_noeud::NOMBRE_REEL:
+		{
+			auto res = ResultatExpression();
+			res.type = type_expression::REEL;
+			res.reel = lng::converti_nombre_reel(dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille()));
 
-		if (est_operation_comparaison(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, op->donnees_morceau());
-			noeud->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
-			noeud->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n1);
-			assembleuse.supprime_noeud(n2);
-
-			return noeud;
+			return res;
 		}
+		case type_noeud::OPERATION_UNAIRE:
+		{
+			auto res = evalue_expression(contexte, b->enfants.front());
 
-		if (est_operation_booleenne(op->identifiant())) {
-			auto noeud = assembleuse.cree_noeud(type_noeud::BOOLEEN, contexte, op->donnees_morceau());
-			noeud->valeur_calculee = calcul_expression_boolenne(op->identifiant(), v1, v2);
-			noeud->drapeaux |= EST_CALCULE;
+			if (res.est_errone) {
+				return res;
+			}
 
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n1);
-			assembleuse.supprime_noeud(n2);
+			if (res.type == type_expression::REEL) {
+				applique_operateur_unaire(b->identifiant(), res.reel);
+			}
+			else {
+				applique_operateur_unaire(b->identifiant(), res.entier);
+			}
 
-			return noeud;
+			return res;
 		}
+		case type_noeud::OPERATION_BINAIRE:
+		{
+			auto res1 = evalue_expression(contexte, b->enfants.front());
 
-		return nullptr;
-	}
+			if (res1.est_errone) {
+				return res1;
+			}
 
-	if (n1->identifiant() == id_morceau::BOOL) {
-		auto v1 = extrait_valeur_bool(n1);
-		auto v2 = extrait_valeur_bool(n2);
+			auto res2 = evalue_expression(contexte, b->enfants.back());
 
-		if (est_operation_comparaison(op->identifiant())) {
-			n1->valeur_calculee = calcul_expression_comparaison(op->identifiant(), v1, v2);
-			n1->drapeaux |= EST_CALCULE;
+			if (res2.est_errone) {
+				return res2;
+			}
 
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n2);
+			auto res = ResultatExpression();
+			res.type = res1.type;
 
-			return n1;
-		}
+			if (est_operateur_bool(b->identifiant())) {
+				if (res.type == type_expression::REEL) {
+					res.condition = applique_operateur_binaire_comp(b->identifiant(), res1.reel, res2.reel);
+				}
+				else {
+					res.condition = applique_operateur_binaire_comp(b->identifiant(), res1.entier, res2.entier);
+				}
+			}
+			else {
+				if (res.type == type_expression::REEL) {
+					res.reel = applique_operateur_binaire(b->identifiant(), res1.reel, res2.reel);
+				}
+				else {
+					res.entier = applique_operateur_binaire(b->identifiant(), res1.entier, res2.entier);
+				}
+			}
 
-		if (est_operation_booleenne(op->identifiant())) {
-			n1->valeur_calculee = calcul_expression_boolenne(op->identifiant(), v1, v2);
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-			assembleuse.supprime_noeud(n2);
-
-			return n1;
+			return res;
 		}
 	}
-
-	return nullptr;
-}
-
-/* ************************************************************************** */
-
-noeud::base *calcul_expression_simple(
-		assembleuse_arbre &assembleuse,
-		noeud::base *op,
-		noeud::base *n1)
-{
-	if (n1->identifiant() == id_morceau::NOMBRE_ENTIER) {
-		if (op->identifiant() == id_morceau::TILDE) {
-			auto v = extrait_nombre_entier(n1);
-			n1->valeur_calculee = ~v;
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-
-			return n1;
-		}
-
-		if (op->identifiant() == id_morceau::MOINS_UNAIRE) {
-			auto v = extrait_nombre_entier(n1);
-			n1->valeur_calculee = -v;
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-
-			return n1;
-		}
-
-		if (op->identifiant() == id_morceau::PLUS_UNAIRE) {
-			/* nul-op */
-			assembleuse.supprime_noeud(op);
-			return n1;
-		}
-
-		return nullptr;
-	}
-
-	if (n1->identifiant() == id_morceau::NOMBRE_REEL) {
-		if (op->identifiant() == id_morceau::MOINS_UNAIRE) {
-			auto v = extrait_nombre_reel(n1);
-			n1->valeur_calculee = -v;
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-
-			return n1;
-		}
-
-		if (op->identifiant() == id_morceau::PLUS_UNAIRE) {
-			/* nul-op */
-			assembleuse.supprime_noeud(op);
-			return n1;
-		}
-
-		return nullptr;
-	}
-
-	if (n1->identifiant() == id_morceau::BOOL) {
-		if (op->identifiant() == id_morceau::EXCLAMATION) {
-			auto v = extrait_valeur_bool(n1);
-			n1->valeur_calculee = !v;
-			n1->drapeaux |= EST_CALCULE;
-
-			assembleuse.supprime_noeud(op);
-
-			return n1;
-		}
-
-		return nullptr;
-	}
-
-	return nullptr;
 }

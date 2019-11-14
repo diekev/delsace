@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
+
 enum class id_morceau : unsigned int;
 
 namespace noeud {
@@ -36,14 +38,28 @@ struct ContexteGenerationCode;
 
 bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
 
-noeud::base *calcul_expression_double(
-		assembleuse_arbre &assembleuse,
-		ContexteGenerationCode &contexte,
-		noeud::base *op,
-		noeud::base *n1,
-		noeud::base *n2);
+/* ************************************************************************** */
 
-noeud::base *calcul_expression_simple(
-		assembleuse_arbre &assembleuse,
-		noeud::base *op,
-		noeud::base *n1);
+enum class type_expression : char {
+	ENTIER,
+	REEL,
+};
+
+struct ResultatExpression {
+	union {
+		long entier = 0;
+		double reel;
+		bool condition;
+	};
+
+	type_expression type{};
+	bool est_errone = false;
+	noeud::base *noeud_erreur = nullptr;
+	const char *message_erreur = nullptr;
+
+	ResultatExpression() = default;
+
+	COPIE_CONSTRUCT(ResultatExpression);
+};
+
+ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::base *b);

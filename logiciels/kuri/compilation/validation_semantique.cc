@@ -33,6 +33,7 @@
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "erreur.h"
+#include "expression.h"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -325,16 +326,30 @@ static long resoud_type_final(
 			if (expr != nullptr) {
 				performe_validation_semantique(expr, contexte);
 
-				/* À FAIRE : évalue expressions tableaux */
-				if (expr->type != type_noeud::NOMBRE_ENTIER) {
+				auto res = evalue_expression(contexte, expr);
+
+				if (res.est_errone) {
 					erreur::lance_erreur(
-								"Attendu un nombre entier dans l'expression du type",
+								res.message_erreur,
 								contexte,
 								expr->morceau);
 				}
 
-				auto taille = lng::converti_nombre_entier(dls::vue_chaine(expr->chaine().pointeur(), expr->chaine().taille()));
-				type = type | (static_cast<int>(taille) << 8);
+				if (res.type != type_expression::ENTIER) {
+					erreur::lance_erreur(
+								"Attendu un type entier pour l'expression du tableau",
+								contexte,
+								expr->morceau);
+				}
+
+				if (res.entier == 0) {
+					erreur::lance_erreur(
+								"L'expression évalue à zéro",
+								contexte,
+								expr->morceau);
+				}
+
+				type = type | (static_cast<int>(res.entier) << 8);
 			}
 
 			type_final.pousse(type);
