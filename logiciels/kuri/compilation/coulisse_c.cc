@@ -1432,7 +1432,7 @@ static void genere_code_C_prepasse(
 			dt_tfixe.pousse(type);
 
 			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
-					.append(dls::vers_chaine(reinterpret_cast<long>(b) >> 32));
+					.append(dls::vers_chaine(reinterpret_cast<long>(b)));
 
 			contexte.magasin_types.converti_type_C(
 						contexte, nom_tableau_fixe, dt_tfixe.plage(), os);
@@ -2007,7 +2007,7 @@ void genere_code_C(
 				expression_modifiee = true;
 
 				auto nom_eini = dls::chaine("__eini_ext_")
-						.append(dls::vers_chaine(reinterpret_cast<long>(expression) >> 32));
+						.append(dls::vers_chaine(reinterpret_cast<long>(expression)));
 
 				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
 
