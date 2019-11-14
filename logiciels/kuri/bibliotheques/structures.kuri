@@ -12,7 +12,7 @@ struct pile {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;
-	tampon : chaine;
+	tampon : []octet;
 }
 
 fonc crée_pile(taille_elem : z64) : *pile
@@ -34,8 +34,7 @@ fonc decrée_pile(dyn p : *pile) : rien
 fonc empile(dyn p : *pile, d : *rien) : rien
 {
     si taille de p == capacité de p {
-        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-		reloge tampon de p : chaine((taille de p + 1) * taille_elem de p);
+		reloge tampon de p : [(taille de p + 1) * taille_elem de p]octet;
 		capacité de p += 1;
     }
 
@@ -72,7 +71,7 @@ struct file {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;
-	tampon : chaine;
+	tampon : []octet;
 }
 
 fonc crée_file(taille_elem : z64) : *file
@@ -94,8 +93,7 @@ fonc decrée_file(dyn q : *file) : rien
 fonc enfile(dyn q : *file, d : *rien) : rien
 {
     si taille de q == capacité de q {
-        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-		reloge tampon de q : chaine((taille de q + 1) * taille_elem de q);
+		reloge tampon de q : [(taille de q + 1) * taille_elem de q]octet;
 		capacité de q += 1;
     }
 
@@ -140,7 +138,7 @@ struct tableau {
     taille_elem : z64;
     taille : z64;
 	capacité : z64;
-	tampon : chaine;
+	tampon : []octet;
 }
 
 fonc crée_tableau(taille_elem : z64) : *tableau
@@ -162,8 +160,7 @@ fonc decrée_tableau(dyn t : *tableau) : rien
 fonc pousse_tableau(dyn t : *tableau, d : *rien) : rien
 {
     si taille de t == capacité de t {
-        # À FAIRE : le logement de tableau requiers un nombre entier, et non une expression
-		reloge tampon de t : chaine((taille de t + 1) * taille_elem de t);
+		reloge tampon de t : [(taille de t + 1) * taille_elem de t]octet;
 		capacité de t += 1;
     }
 

@@ -284,7 +284,8 @@ bool peut_operer(
 static long resoud_type_final(
 		ContexteGenerationCode &contexte,
 		DonneesTypeDeclare &type_declare,
-		bool est_type_fonction = false)
+		bool est_type_fonction = false,
+		bool evalue_expr = true)
 {
 	if (type_declare.taille() == 0) {
 		return -1l;
@@ -323,7 +324,7 @@ static long resoud_type_final(
 		else if (type == id_morceau::TABLEAU) {
 			auto expr = type_declare.expressions[idx_expr++];
 
-			if (expr != nullptr) {
+			if (expr != nullptr && evalue_expr) {
 				performe_validation_semantique(expr, contexte);
 
 				auto res = evalue_expression(contexte, expr);
@@ -2393,11 +2394,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto nombre_enfant = b->enfants.taille();
 			auto enfant = b->enfants.debut();
 
-			b->index_type = resoud_type_final(contexte, b->type_declare);
+			b->index_type = resoud_type_final(contexte, b->type_declare, false, false);
 
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+				auto expr = b->type_declare.expressions[0];
+				performe_validation_semantique(expr, contexte);
+
 				/* transforme en type tableau dynamic */
 				auto taille = (static_cast<int>(dt.type_base() >> 8));
 				b->drapeaux |= EST_CALCULE;
@@ -2431,7 +2435,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::RELOGE:
 		{
-			b->index_type = resoud_type_final(contexte, b->type_declare);
+			b->index_type = resoud_type_final(contexte, b->type_declare, false, false);
 
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
@@ -2441,16 +2445,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(enfant1, contexte);
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
-				/* transforme en type tableau dynamic */
-				auto taille = (static_cast<int>(dt.type_base() >> 8));
-				b->drapeaux |= EST_CALCULE;
-				b->valeur_calculee = taille;
-
-				auto ndt = DonneesTypeFinal{};
-				ndt.pousse(id_morceau::TABLEAU);
-				ndt.pousse(dt.dereference());
-
-				b->index_type = contexte.magasin_types.ajoute_type(ndt);
+				auto expr = b->type_declare.expressions[0];
+				performe_validation_semantique(expr, contexte);
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
 				performe_validation_semantique(*enfant++, contexte);

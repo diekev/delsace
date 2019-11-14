@@ -2872,10 +2872,17 @@ void genere_code_C(
 			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
+				auto expr = b->type_declare.expressions[0];
+				performe_validation_semantique(expr, contexte);
+
 				a_pointeur = true;
 				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
 				auto nom_tabl = "__tabl" + dls::vers_chaine(b);
-				auto taille_tabl = std::any_cast<int>(b->valeur_calculee);
+				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
+
+				os << "long " << taille_tabl << " = ";
+				genere_code_C(expr, contexte, false, os, os);
+				os << ";";
 
 				os << "long " << nom_taille << " = sizeof(";
 				contexte.magasin_types.converti_type_C(
@@ -3063,7 +3070,45 @@ void genere_code_C(
 			auto nom_nouvelle_taille = "__nouvelle_taille" + dls::vers_chaine(index++);
 
 			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
-				/* À FAIRE : expression pour les types. */
+				auto expr = b->type_declare.expressions[0];
+				performe_validation_semantique(expr, contexte);
+
+				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
+
+				os << "long " << taille_tabl << " = ";
+				genere_code_C(expr, contexte, false, os, os);
+				os << ";";
+
+				os << "long " << nom_ancienne_taille << " = ";
+				genere_code_C(enfant1, contexte, true, os, os);
+				os << ".taille;\n";
+
+				auto flux_type = dls::flux_chaine();
+				auto dt_ptr = DonneesTypeFinal{};
+				dt_ptr.pousse(id_morceau::POINTEUR);
+				dt_ptr.pousse(dt_pointeur.dereference());
+
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_ptr.plage(),
+							flux_type);
+
+				os << "int " << nom_nouvelle_taille << " = sizeof(";
+				contexte.magasin_types.converti_type_C(
+							contexte,
+							"",
+							dt_pointeur.dereference(),
+							os);
+				os << ") * " << taille_tabl << ";\n";
+				os << ";\n";
+
+				genere_code_C(enfant1, contexte, true, os, os);
+				os << ".pointeur = (" << flux_type.chn() << ")(realloc(";
+				genere_code_C(enfant1, contexte, true, os, os);
+				os << ".pointeur, " << nom_nouvelle_taille << "));\n";
+				genere_code_C(enfant1, contexte, true, os, os);
+				os << ".taille = " << taille_tabl << ";\n";
 			}
 			else if (dt_pointeur.type_base() == id_morceau::CHAINE) {
 				auto enfant2 = *enfant++;
