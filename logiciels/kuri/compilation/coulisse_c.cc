@@ -1744,7 +1744,7 @@ void genere_code_C(
 			os << ")\n";
 
 			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.front();
+			auto bloc = b->enfants.back();
 			os << "{\n";
 
 			if (donnees_fonction->est_coroutine) {
