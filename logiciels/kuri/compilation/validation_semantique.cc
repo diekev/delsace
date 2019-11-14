@@ -1501,6 +1501,28 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					switch (type_base & 0xff) {
 						case id_morceau::TABLEAU:
+						{
+							b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
+
+							auto taille_tableau = static_cast<int>(type_base >> 8);
+
+							if (taille_tableau != 0) {
+								auto res = evalue_expression(contexte, enfant2);
+
+								if (!res.est_errone) {
+									if (res.entier >= taille_tableau) {
+										erreur::lance_erreur_acces_hors_limites(
+													contexte,
+													enfant2,
+													taille_tableau,
+													type1,
+													res.entier);
+									}
+								}
+							}
+
+							break;
+						}
 						case id_morceau::POINTEUR:
 						{
 							b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());

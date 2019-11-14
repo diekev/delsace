@@ -1218,6 +1218,11 @@ static void genere_code_C_prepasse(
 				return;
 			}
 
+			genere_code_C_prepasse(variable,
+								   contexte,
+								   true,
+								   os);
+
 			genere_code_C_prepasse(expression,
 								   contexte,
 								   true,
@@ -1242,6 +1247,79 @@ static void genere_code_C_prepasse(
 									   contexte,
 									   true,
 									   os);
+			}
+
+			auto enfant1 = b->enfants.front();
+			auto enfant2 = b->enfants.back();
+
+			auto const index_type1 = enfant1->index_type;
+			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
+
+			/* À CONSIDÉRER :
+			 * - directive pour ne pas générer ce code, car les branches nuit à
+			 *   la vitesse d'exécution des programmes
+			 * - tests redondants ou inutiles, par exemple :
+			 *    - ceci génère deux fois la même instruction
+			 *      x[i] = 0;
+			 *      y = x[i];
+			 *    - ceci génère une instruction inutile
+			 *	    dyn x : [6]z32;
+			 *      x[0] = 8;
+			 */
+
+			switch (b->identifiant()) {
+				default:
+				{
+					break;
+				}
+				case id_morceau::CROCHET_OUVRANT:
+				{
+					auto type_base = type1.type_base();
+
+					switch (type_base & 0xff) {
+						case id_morceau::POINTEUR:
+						{
+							break;
+						}
+						case id_morceau::CHAINE:
+						{
+							os << "if (";
+							genere_code_C(enfant2, contexte, true, os, os);
+							os << " >= ";
+							genere_code_C(enfant1, contexte, true, os, os);
+							os << ".taille) {\nabort();\n}\n";
+
+							break;
+						}
+						case id_morceau::TABLEAU:
+						{
+							os << "if (";
+							genere_code_C(enfant2, contexte, true, os, os);
+							os << " >= ";
+
+							auto taille_tableau = static_cast<int>(type_base >> 8);
+
+							if (taille_tableau == 0) {
+								genere_code_C(enfant1, contexte, true, os, os);
+								os << ".taille";
+							}
+							else {
+								os << taille_tableau;
+							}
+
+							os << ") {\nabort();\n}\n";
+
+							break;
+						}
+						default:
+						{
+							assert(false);
+							break;
+						}
+					}
+
+					break;
+				}
 			}
 
 			break;

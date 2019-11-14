@@ -422,4 +422,40 @@ void lance_erreur_fonction_nulctx(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::APPEL_INVALIDE);
 }
 
+void lance_erreur_acces_hors_limites(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b,
+			int taille_tableau,
+			DonneesTypeFinal const &type_tableau,
+			long index_acces)
+{
+	auto const &morceau = b->morceau;
+	auto module = contexte.module(static_cast<size_t>(morceau.module));
+	auto pos = trouve_position(morceau, module);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
+	auto ligne = module->tampon[numero_ligne];
+
+	dls::flux_chaine ss;
+
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << module->chemin << ':' << numero_ligne << '\n';
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, morceau.chaine);
+	ss << '\n';
+
+	ss << "Accès au tableau hors de ses limites !\n";
+
+	ss << "\tLe tableau a une taille de " << taille_tableau << " (de type : "
+	   << chaine_type(type_tableau, contexte) << ").\n";
+	ss << "\tL'accès se fait à l'index " << index_acces << " (index maximal : " << taille_tableau - 1 << ").\n";
+
+	ss << "\n----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::NORMAL);
+}
+
 }

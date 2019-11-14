@@ -112,4 +112,11 @@ using frappe = lng::erreur::frappe<type_erreur>;
 		noeud::base *decl_fonc,
 		noeud::base *decl_appel);
 
+[[noreturn]] void lance_erreur_acces_hors_limites(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b,
+			int taille_tableau,
+			DonneesTypeFinal const &type_tableau,
+			long index_acces);
+
 }
