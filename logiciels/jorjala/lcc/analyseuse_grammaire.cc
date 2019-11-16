@@ -24,6 +24,9 @@
 
 #include "analyseuse_grammaire.h"
 
+#undef DEBOGUE_EXPRESSION
+
+#include "biblinternes/langage/debogage.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 
 #include "assembleuse_arbre.h"
@@ -52,59 +55,6 @@ static auto dico_props_params = dls::cree_dico(
 			dls::paire(dls::vue_chaine("valeur"), PROP_PARAM_VALEUR));
 
 /* ************************************************************************** */
-
-#undef DEBOGUE_EXPRESSION
-
-#ifdef DEBOGUE_EXPRESSION
-static constexpr auto g_log_expression = true;
-#else
-static constexpr auto g_log_expression = false;
-#endif
-
-#define DEB_LOG_EXPRESSION if (g_log_expression) { std::cerr
-#define FIN_LOG_EXPRESSION '\n';}
-
-/**
- * Limitation du nombre récursif de sous-expressions (par exemple :
- * f(g(h(i(j()))))).
- */
-static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
-
-/* Tabulations utilisées au début des logs. */
-static const char *tabulations[PROFONDEUR_EXPRESSION_MAX] = {
-	"",
-	" ",
-	"  ",
-	"   ",
-	"    ",
-	"     ",
-	"      ",
-	"       ",
-	"        ",
-	"         ",
-	"          ",
-	"           ",
-	"            ",
-	"             ",
-	"              ",
-	"               ",
-	"                ",
-	"                 ",
-	"                  ",
-	"                   ",
-	"                    ",
-	"                     ",
-	"                      ",
-	"                       ",
-	"                        ",
-	"                         ",
-	"                          ",
-	"                           ",
-	"                            ",
-	"                             ",
-	"                              ",
-	"                               ",
-};
 
 /**
  * Pointeur spécial utilisé pour représenter un noeud de type paranthèse

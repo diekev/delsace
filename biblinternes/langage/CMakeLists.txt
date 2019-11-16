@@ -30,6 +30,7 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	analyseuse.hh
+	debogage.hh
 	erreur.hh
 	nombres.hh
 	outils.hh

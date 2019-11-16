@@ -24,65 +24,15 @@
 
 #include "analyseuse_grammaire.hh"
 
+#undef DEBOGUE_EXPRESSION
+
+#include "biblinternes/langage/debogage.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "assembleuse_arbre.hh"
 #include "contexte_generation_code.hh"
 #include "expression.hh"
 #include "modules.hh"
-
-#undef DEBOGUE_EXPRESSION
-
-#ifdef DEBOGUE_EXPRESSION
-static constexpr auto g_log_expression = true;
-#else
-static constexpr auto g_log_expression = false;
-#endif
-
-#define DEB_LOG_EXPRESSION if (g_log_expression) { std::cerr
-#define FIN_LOG_EXPRESSION '\n';}
-
-/**
- * Limitation du nombre récursif de sous-expressions (par exemple :
- * f(g(h(i(j()))))).
- */
-static constexpr auto PROFONDEUR_EXPRESSION_MAX = 32;
-
-/* Tabulations utilisées au début des logs. */
-static const char *tabulations[PROFONDEUR_EXPRESSION_MAX] = {
-	"",
-	" ",
-	"  ",
-	"   ",
-	"    ",
-	"     ",
-	"      ",
-	"       ",
-	"        ",
-	"         ",
-	"          ",
-	"           ",
-	"            ",
-	"             ",
-	"              ",
-	"               ",
-	"                ",
-	"                 ",
-	"                  ",
-	"                   ",
-	"                    ",
-	"                     ",
-	"                      ",
-	"                       ",
-	"                        ",
-	"                         ",
-	"                          ",
-	"                           ",
-	"                            ",
-	"                             ",
-	"                              ",
-	"                               ",
-};
 
 /**
  * Pointeur spécial utilisé pour représenter un noeud de type paranthèse
