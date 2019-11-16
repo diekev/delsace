@@ -299,12 +299,46 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 void analyseuse_grammaire::analyse_corps(std::ostream &os)
 {
 	while (!fini()) {
-		if (est_identifiant(type_id::STRUCT)) {
-			//analyse_declaration_structure();
-		}
-		else {
-			//analyse_expression();
-		}
+		std::cerr << __func__ << '\n';
+		analyse_declaration();
+	}
+}
+
+void analyseuse_grammaire::analyse_declaration()
+{
+	if (est_identifiant(type_id::STRUCT)) {
+		analyse_declaration_structure();
+	}
+	else {
+		//analyse_expression();
+	}
+}
+
+// struct chaine { declaration... };
+void analyseuse_grammaire::analyse_declaration_structure()
+{
+	std::cerr << __func__ << '\n';
+
+	if (!requiers_identifiant(type_id::STRUCT)) {
+		lance_erreur("Attendu « struct »");
+	}
+
+	if (!requiers_identifiant(type_id::CHAINE_CARACTERE)) {
+		lance_erreur("Attendu une chaine de caractère après « struct »");
+	}
+
+	if (!requiers_identifiant(type_id::ACCOLADE_OUVRANTE)) {
+		lance_erreur("Attendu une accolade ouvrante après la chaine de caractère");
+	}
+
+	analyse_declaration();
+
+	if (!requiers_identifiant(type_id::ACCOLADE_FERMANTE)) {
+		lance_erreur("Attendu une accolade fermante à la fin de la déclaration de « struct »");
+	}
+
+	if (!requiers_identifiant(type_id::POINT_VIRGULE)) {
+		lance_erreur("Attendu un point virgule à la fin de la déclaration de « struct »");
 	}
 }
 

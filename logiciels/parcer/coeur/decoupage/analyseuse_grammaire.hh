@@ -87,4 +87,7 @@ private:
 
 	bool requiers_identifiant_type();
 	bool requiers_nombre_entier();
+
+	void analyse_declaration();
+	void analyse_declaration_structure();
 };
