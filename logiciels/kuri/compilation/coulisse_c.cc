@@ -1143,25 +1143,49 @@ static void genere_code_C_prepasse(
 		dls::flux_chaine &os)
 {
 	switch (b->type) {
+		/* ce genre de noeud n'ont pas de prépasses, seulements leurs enfants
+		 * en auront potentiellement */
 		case type_noeud::RACINE:
-		{
-			assert(false);
-			break;
-		}
 		case type_noeud::DECLARATION_FONCTION:
 		case type_noeud::LISTE_PARAMETRES_FONCTION:
+		case type_noeud::BLOC:
+		case type_noeud::RETIENS:
+		case type_noeud::RETOUR:
+		case type_noeud::SAUFSI:
+		case type_noeud::SI:
+		case type_noeud::POUR:
+		case type_noeud::CONTINUE_ARRETE:
+		case type_noeud::BOUCLE:
+		case type_noeud::TANTQUE:
+		case type_noeud::TRANSTYPE:
+		case type_noeud::PLAGE:
+		case type_noeud::DIFFERE:
+		case type_noeud::NONSUR:
+		case type_noeud::CONSTRUIT_STRUCTURE:
+		case type_noeud::INFO_DE:
+		case type_noeud::MEMOIRE:
+		case type_noeud::LOGE:
+		case type_noeud::DELOGE:
+		case type_noeud::RELOGE:
+		case type_noeud::DECLARATION_STRUCTURE:
+		case type_noeud::DECLARATION_ENUM:
+		case type_noeud::ASSOCIE:
+		case type_noeud::PAIRE_ASSOCIATION:
+		/* ce genre de noeuds ont des valeurs « littérales » qui n'ont pas
+		 * besoin de prépasse */
+		case type_noeud::VARIABLE:
+		case type_noeud::NOMBRE_REEL:
+		case type_noeud::NOMBRE_ENTIER:
+		case type_noeud::CARACTERE:
+		case type_noeud::BOOLEEN:
+		case type_noeud::NUL:
+		case type_noeud::TAILLE_DE:
 		{
-			assert(false);
 			break;
 		}
 		case type_noeud::APPEL_FONCTION:
 		{
 			cree_appel(b, os, contexte, b->nom_fonction_appel, b->enfants);
-			break;
-		}
-		case type_noeud::VARIABLE:
-		{
-			// À FAIRE
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
@@ -1229,17 +1253,7 @@ static void genere_code_C_prepasse(
 								   os);
 
 			break;
-		}
-		case type_noeud::NOMBRE_REEL:
-		{
-			// À FAIRE
-			break;
-		}
-		case type_noeud::NOMBRE_ENTIER:
-		{
-			// À FAIRE
-			break;
-		}
+		}		
 		case type_noeud::OPERATION_BINAIRE:
 		{
 			for (auto enfant : b->enfants) {
@@ -1332,11 +1346,6 @@ static void genere_code_C_prepasse(
 								   os);
 			break;
 		}
-		case type_noeud::RETIENS:
-		case type_noeud::RETOUR:
-		{
-			break;
-		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
 			/* Note : dû à la possibilité de différer le code, nous devons
@@ -1363,51 +1372,6 @@ static void genere_code_C_prepasse(
 			os << '"';
 			os << ", .taille=" << chaine.taille() << "};\n";
 			b->valeur_calculee = nom_chaine;
-			break;
-		}
-		case type_noeud::BOOLEEN:
-		{
-			break;
-		}
-		case type_noeud::CARACTERE:
-		{
-			break;
-		}
-		case type_noeud::BLOC:
-		{
-			assert(false);
-			break;
-		}
-		case type_noeud::SAUFSI:
-		case type_noeud::SI:
-		case type_noeud::POUR:
-		case type_noeud::CONTINUE_ARRETE:
-		case type_noeud::BOUCLE:
-		case type_noeud::TANTQUE:
-		case type_noeud::TRANSTYPE:
-		{
-			break;
-		}
-		case type_noeud::NUL:
-		{
-			// À FAIRE
-			break;
-		}
-		case type_noeud::TAILLE_DE:
-		{
-			break;
-		}
-		case type_noeud::PLAGE:
-		{
-			assert(false);
-			break;
-		}
-		case type_noeud::DIFFERE:
-		{
-			break;
-		}
-		case type_noeud::NONSUR:
-		{
 			break;
 		}
 		case type_noeud::TABLEAU:
@@ -1473,10 +1437,6 @@ static void genere_code_C_prepasse(
 			b->valeur_calculee = nom_tableau_dyn;
 			break;
 		}
-		case type_noeud::CONSTRUIT_STRUCTURE:
-		{
-			break;
-		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
 			auto nom_tableau = "__tabl" + dls::vers_chaine(b);
@@ -1505,51 +1465,6 @@ static void genere_code_C_prepasse(
 
 			b->valeur_calculee = nom_tableau;
 
-			break;
-		}
-		case type_noeud::INFO_DE:
-		{
-			// À FAIRE
-			break;
-		}
-		case type_noeud::MEMOIRE:
-		{
-			break;
-		}
-		case type_noeud::LOGE:
-		{
-			// À FAIRE
-			break;
-		}
-		case type_noeud::DELOGE:
-		{
-			break;
-		}
-		case type_noeud::RELOGE:
-		{
-			// À FAIRE
-			break;
-		}
-		case type_noeud::DECLARATION_STRUCTURE:
-		{
-			assert(false);
-			break;
-		}
-		case type_noeud::DECLARATION_ENUM:
-		{
-			assert(false);
-			break;
-		}
-		case type_noeud::ASSOCIE:
-		{
-			break;
-		}
-		case type_noeud::PAIRE_ASSOCIATION:
-		{
-			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
-			 * pour ajouter un niveau d'indirection et faciliter la compilation
-			 * des associations. */
-			assert(false);
 			break;
 		}
 	}
