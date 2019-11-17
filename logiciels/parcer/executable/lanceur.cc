@@ -227,6 +227,25 @@ static auto determine_operateur_binaire(
 	clang_disposeTokens(tu, tokens, nombre_tokens);
 }
 
+static auto determine_operateur_unaire(
+		CXTranslationUnit tu,
+		CXCursor cursor)
+{
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXToken *tokens = nullptr;
+	unsigned nombre_tokens = 0;
+	clang_tokenize(tu, range, &tokens, &nombre_tokens);
+
+	auto spelling = clang_getTokenSpelling(tu, tokens[0]);
+
+	dls::chaine chn = clang_getCString(spelling);
+	clang_disposeString(spelling);
+
+	clang_disposeTokens(tu, tokens, nombre_tokens);
+
+	return chn;
+}
+
 //https://stackoverflow.com/questions/10692015/libclang-get-primitive-value
 static auto obtiens_litterale(
 		CXTranslationUnit tu,
@@ -495,6 +514,28 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 			std::cout << ' ';
 
 			rappel_visite_enfant(enfants[1], c, client_data);
+
+			break;
+		}
+		case CXCursorKind::CXCursor_UnaryOperator:
+		{
+			auto enfants = rassemble_enfants(c);
+			assert(enfants.taille() == 1);
+
+			auto chn = determine_operateur_unaire(tu, c);
+
+			if (chn == "++") {
+				rappel_visite_enfant(enfants[0], c, client_data);
+				std::cout << " += 1";
+			}
+			else if (chn == "--") {
+				rappel_visite_enfant(enfants[0], c, client_data);
+				std::cout << " -= 1";
+			}
+			else {
+				std::cout << chn;
+				rappel_visite_enfant(enfants[0], c, client_data);
+			}
 
 			break;
 		}
