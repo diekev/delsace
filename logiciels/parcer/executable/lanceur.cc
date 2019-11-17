@@ -355,7 +355,8 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 				virgule = ", ";
 			}
 
-			if (enfants.taille() == 1) {
+			/* pour les constructeurs implicites, il n'y a pas de premier enfant */
+			if (enfants.taille() <= 1) {
 				std::cout << '(';
 			}
 
