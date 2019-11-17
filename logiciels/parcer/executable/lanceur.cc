@@ -202,6 +202,23 @@ static auto rassemble_enfants(CXCursor cursor)
 	return enfants;
 }
 
+void imprime_asa(CXCursor c, int tab, std::ostream &os)
+{
+	for (auto i = 0; i < tab; ++ i) {
+		std::cout << ' ' << ' ';
+	}
+
+	os << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
+			  << clang_getCursorKindSpelling(clang_getCursorKind(c))
+			  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
+
+	auto enfants = rassemble_enfants(c);
+
+	for (auto enfant : enfants) {
+		imprime_asa(enfant, tab + 1, os);
+	}
+}
+
 //https://stackoverflow.com/questions/23227812/get-operator-type-for-cxcursor-binaryoperator
 static auto determine_operateur_binaire(
 		CXTranslationUnit tu,
@@ -348,7 +365,6 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 		}
 		case CXCursorKind::CXCursor_DeclStmt:
 		{
-			//std::cout << "déclaration...\n";
 			converti_declaration_expression(tu, c);
 			break;
 		}
@@ -553,7 +569,6 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 		}
 		case CXCursorKind::CXCursor_DeclRefExpr:
 		{
-			/* variable : enfant -> DeclRefExpr */
 			std::cout << clang_getCursorSpelling(c);
 			break;
 		}
@@ -570,23 +585,6 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 static void converti_declaration_expression(CXTranslationUnit trans_unit, CXCursor cursor)
 {
 	clang_visitChildren(cursor, rappel_visite_enfant, trans_unit);
-}
-
-void imprime_asa(CXCursor c, int tab, std::ostream &os)
-{
-	for (auto i = 0; i < tab; ++ i) {
-		std::cout << ' ' << ' ';
-	}
-
-	os << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
-			  << clang_getCursorKindSpelling(clang_getCursorKind(c))
-			  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
-
-	auto enfants = rassemble_enfants(c);
-
-	for (auto enfant : enfants) {
-		imprime_asa(enfant, tab + 1, os);
-	}
 }
 
 static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor cursor)
