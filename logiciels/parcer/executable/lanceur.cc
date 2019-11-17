@@ -280,7 +280,8 @@ static void converti_compound_stmt(CXCursor c, CXClientData client_data)
 		auto besoin_point_virgule = !est_element(
 					enfant.kind,
 					CXCursorKind::CXCursor_IfStmt,
-					CXCursorKind::CXCursor_WhileStmt);
+					CXCursorKind::CXCursor_WhileStmt,
+					CXCursorKind::CXCursor_ForStmt);
 
 		if (besoin_point_virgule) {
 			std::cout << ';';
@@ -397,6 +398,49 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 			converti_compound_stmt(enfants[0], client_data);
 			std::cout << "} tantque ";
 			rappel_visite_enfant(enfants[1], c, client_data);
+
+			break;
+		}
+		case CXCursorKind::CXCursor_ForStmt:
+		{
+			/* Transforme :
+			 * for (int i = 0; i < 10; ++i) {
+			 *		...
+			 * }
+			 *
+			 * en :
+			 *
+			 * i = 0;
+			 *
+			 * boucle {
+			 *		si i < 10 {
+			 *			arrête;
+			 *		}
+			 *
+			 *		...
+			 *		++i;
+			 * }
+			 */
+			auto enfants = rassemble_enfants(c);
+
+			/* int i = 0 */
+			rappel_visite_enfant(enfants[0], c, client_data);
+			std::cout << ";\n";
+
+			std::cout << "boucle {\n";
+
+			/* i < 10 */
+			std::cout << "si ";
+			rappel_visite_enfant(enfants[1], c, client_data);
+			std::cout << " {\narrête;\n}\n";
+
+			/* ... */
+			converti_compound_stmt(enfants[3], client_data);
+
+			/* ++i */
+			rappel_visite_enfant(enfants[2], c, client_data);
+
+			std::cout << "}";
 
 			break;
 		}
