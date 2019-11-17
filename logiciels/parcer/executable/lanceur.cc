@@ -27,6 +27,7 @@
 
 #include <clang-c/Index.h>
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -230,14 +231,25 @@ static auto determine_operateur_binaire(
 static auto obtiens_litterale(
 		CXTranslationUnit tu,
 		CXCursor cursor,
-		std::ostream &os)
+		std::ostream &os,
+		bool est_bool)
 {
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
 	clang_tokenize(tu, range, &tokens, &nombre_tokens);
 
-	os << clang_getTokenSpelling(tu, tokens[0]);
+	if (est_bool) {
+		CXString s = clang_getTokenSpelling(tu, tokens[0]);
+		const char* str = clang_getCString(s);
+
+		os << ((strcmp(str, "true") == 0) ? "vrai" : "faux");
+
+		clang_disposeString(s);
+	}
+	else {
+		os << clang_getTokenSpelling(tu, tokens[0]);
+	}
 
 	clang_disposeTokens(tu, tokens, nombre_tokens);
 }
@@ -256,6 +268,8 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
  */
 static void converti_compound_stmt(CXCursor c, CXClientData client_data)
 {
+	using dls::outils::est_element;
+
 	auto enfants = rassemble_enfants(c);
 
 	for (auto enfant : enfants) {
@@ -263,7 +277,12 @@ static void converti_compound_stmt(CXCursor c, CXClientData client_data)
 
 		/* il est possible que le point-virgule ne soit pas désiré, par exemple
 		 * après le '}' à la fin de certains blocs (if, for, etc.) */
-		if (enfant.kind != CXCursorKind::CXCursor_IfStmt) {
+		auto besoin_point_virgule = !est_element(
+					enfant.kind,
+					CXCursorKind::CXCursor_IfStmt,
+					CXCursorKind::CXCursor_WhileStmt);
+
+		if (besoin_point_virgule) {
 			std::cout << ';';
 		}
 
@@ -334,6 +353,29 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 
 			break;
 		}
+		case CXCursorKind::CXCursor_WhileStmt:
+		{
+			auto enfants = rassemble_enfants(c);
+
+			std::cout << "tantque ";
+			rappel_visite_enfant(enfants[0], c, client_data);
+
+			std::cout << " {\n";
+			converti_compound_stmt(enfants[1], client_data);
+			std::cout << "}";
+
+			break;
+		}
+		case CXCursorKind::CXCursor_BreakStmt:
+		{
+			std::cout << "arrête";
+			break;
+		}
+		case CXCursorKind::CXCursor_ContinueStmt:
+		{
+			std::cout << "continue";
+			break;
+		}
 		case CXCursorKind::CXCursor_ReturnStmt:
 		{
 			std::cout << "retourne ";
@@ -352,7 +394,12 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 		case CXCursorKind::CXCursor_CharacterLiteral:
 		case CXCursorKind::CXCursor_StringLiteral:
 		{
-			obtiens_litterale(tu, c, std::cout);
+			obtiens_litterale(tu, c, std::cout, false);
+			break;
+		}
+		case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
+		{
+			obtiens_litterale(tu, c, std::cout, true);
 			break;
 		}
 		case CXCursorKind::CXCursor_BinaryOperator:
