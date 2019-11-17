@@ -260,7 +260,14 @@ static void converti_compound_stmt(CXCursor c, CXClientData client_data)
 
 	for (auto enfant : enfants) {
 		rappel_visite_enfant(enfant, c, client_data);
-		std::cout << ";\n"; // À FAIRE : il est possible que le point-virgule ne soit pas désiré, par exemple après '}'
+
+		/* il est possible que le point-virgule ne soit pas désiré, par exemple
+		 * après le '}' à la fin de certains blocs (if, for, etc.) */
+		if (enfant.kind != CXCursorKind::CXCursor_IfStmt) {
+			std::cout << ';';
+		}
+
+		std::cout << '\n';
 	}
 }
 
