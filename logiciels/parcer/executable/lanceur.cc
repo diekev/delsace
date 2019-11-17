@@ -243,6 +243,17 @@ static auto obtiens_litterale(
 }
 
 static void converti_declaration_expression(CXTranslationUnit trans_unit, CXCursor cursor);
+static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXClientData client_data);
+
+static void converti_compound_stmt(CXCursor c, CXClientData client_data)
+{
+	auto enfants = rassemble_enfants(c);
+
+	for (auto enfant : enfants) {
+		rappel_visite_enfant(enfant, c, client_data);
+		std::cout << ";\n"; // À FAIRE : il est possible que le point-virgule ne soit pas désiré, par exemple après '}'
+	}
+}
 
 static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXClientData client_data)
 {
@@ -280,6 +291,31 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 		case CXCursorKind::CXCursor_TypedefDecl:
 		{
 			/* ne peut pas en avoir à ce niveau */
+			break;
+		}
+		case CXCursorKind::CXCursor_IfStmt:
+		{
+			auto enfants = rassemble_enfants(c);
+
+			std::cout << "si ";
+			rappel_visite_enfant(enfants[0], c, client_data);
+
+			std::cout << " {\n";
+			converti_compound_stmt(enfants[1], client_data);
+			std::cout << "}";
+
+			if (enfants.taille() == 3) {
+				std::cout << "\nsinon ";
+				if (enfants[2].kind == CXCursorKind::CXCursor_IfStmt) {
+					rappel_visite_enfant(enfants[2], c, client_data);
+				}
+				else {
+					std::cout << "{\n";
+					converti_compound_stmt(enfants[2], client_data);
+					std::cout << "}";
+				}
+			}
+
 			break;
 		}
 		case CXCursorKind::CXCursor_ReturnStmt:
@@ -475,12 +511,7 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 
 				//imprime_asa(c, 0, std::cout);
 
-				auto enfants = rassemble_enfants(c);
-
-				for (auto enfant : enfants) {
-					rappel_visite_enfant(enfant, c, client_data);
-					std::cout << ";\n";
-				}
+				converti_compound_stmt(c, client_data);
 
 				break;
 			}
