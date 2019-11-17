@@ -32,7 +32,6 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-	decoupage_parcer
 	stdc++fs
 	bib_outils
 	/usr/lib/llvm-6.0/lib/libclang.so
