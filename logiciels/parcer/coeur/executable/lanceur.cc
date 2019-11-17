@@ -22,6 +22,193 @@
  *
  */
 
+#if 1
+
+#include <iostream>
+#include <sstream>
+
+#include <clang-c/Index.h>
+
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
+
+std::ostream& operator<<(std::ostream& stream, const CXString& str)
+{
+	stream << clang_getCString(str);
+	clang_disposeString(str);
+	return stream;
+}
+
+static auto morcelle_type(dls::chaine const &str)
+{
+	auto ret = dls::tableau<dls::chaine>();
+	auto taille_mot = 0;
+	auto ptr = &str[0];
+
+	for (auto i = 0; i < str.taille(); ++i) {
+		if (str[i] == ' ') {
+			if (taille_mot != 0) {
+				ret.pousse({ ptr, taille_mot });
+				taille_mot = 0;
+			}
+		}
+		else if (str[i] == '*') {
+			if (taille_mot != 0) {
+				ret.pousse({ ptr, taille_mot });
+				taille_mot = 0;
+			}
+
+			ptr = &str[i];
+			ret.pousse({ ptr, 1 });
+
+			taille_mot = 0;
+		}
+		else if (str[i] == '&') {
+			if (taille_mot != 0) {
+				ret.pousse({ ptr, taille_mot });
+				taille_mot = 0;
+			}
+
+			ptr = &str[i];
+			ret.pousse({ ptr, 1 });
+
+			taille_mot = 0;
+		}
+		else {
+			if (taille_mot == 0) {
+				ptr = &str[i];
+			}
+
+			++taille_mot;
+		}
+	}
+
+	if (taille_mot != 0) {
+		ret.pousse({ ptr, taille_mot });
+	}
+
+	return ret;
+}
+
+static auto converti_type(CXCursor const &c)
+{
+	auto flux = std::stringstream();
+
+	//CXTypeKind e;
+
+	switch (clang_getCursorType(c).kind) {
+		default:
+		{
+			flux << "(cas défaut) " << clang_getTypeSpelling(clang_getCursorType(c));
+			break;
+		}
+		case CXType_Int:
+		{
+			flux << "z32";
+			break;
+		}
+		case CXType_UInt:
+		{
+			flux << "n32";
+			break;
+		}
+		case CXType_Pointer:
+		{
+			auto flux_tmp = std::stringstream();
+			flux_tmp << clang_getTypeSpelling(clang_getCursorType(c));
+
+			auto chn = flux_tmp.str();
+
+			auto morceaux = morcelle_type(chn);
+
+			for (auto &morceau : morceaux) {
+				flux << morceau << ' ';
+			}
+
+			break;
+		}
+	}
+
+	return flux.str();
+}
+
+int main(int argc, char **argv)
+{
+	if (argc < 2) {
+		std::cerr << "Utilisation " << argv[0] << " FICHIER\n";
+		return 1;
+	}
+
+	auto chemin = argv[1];
+
+	CXIndex index = clang_createIndex(0, 0);
+	CXTranslationUnit unit = clang_parseTranslationUnit(
+				index,
+				chemin, nullptr, 0,
+				nullptr, 0,
+				CXTranslationUnit_None);
+
+	if (unit == nullptr) {
+		std::cerr << "Unable to parse translation unit. Quitting.\n";
+		exit(-1);
+	}
+
+	CXCursor cursor = clang_getTranslationUnitCursor(unit);
+	clang_visitChildren(
+				cursor,
+				[](CXCursor c, CXCursor parent, CXClientData client_data)
+	{
+		switch (c.kind) {
+			default:
+			{
+				std::cout << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
+						  << clang_getCursorKindSpelling(clang_getCursorKind(c))
+						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_StructDecl:
+			{
+				std::cout << "struct ";
+				std::cout << clang_getCursorSpelling(c);
+				std::cout << " {\n";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_FieldDecl:
+			{
+				std::cout << "\t";
+				std::cout << clang_getCursorSpelling(c);
+				std::cout << " : ";
+				std::cout << converti_type(c);
+				std::cout << ";\n";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_TypeRef:
+			{
+				/* ceci semble être pour quand nous utilisons une structure
+				 * comme type ? */
+				break;
+			}
+			case CXCursorKind::CXCursor_TypedefDecl:
+			{
+				/* pas encore supporter dans le langage */
+				break;
+			}
+		}
+
+		return CXChildVisit_Recurse;
+	},
+	nullptr);
+
+	clang_disposeTranslationUnit(unit);
+	clang_disposeIndex(index);
+
+	return 0;
+}
+
+#else
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -38,47 +225,47 @@
 #include "biblinternes/outils/format.hh"
 
 static const char *options =
-R"(kuri [OPTIONS...] FICHIER
+		R"(kuri [OPTIONS...] FICHIER
 
--a, --aide
-	imprime cette aide
+		-a, --aide
+		imprime cette aide
 
--d, --dest FICHIER
-	Utilisé pour spécifié le nom du programme produit, utilise a.out par défaut.
+		-d, --dest FICHIER
+		Utilisé pour spécifié le nom du programme produit, utilise a.out par défaut.
 
---émet-llvm
-	émet la représentation intermédiaire du code LLVM
+		--émet-llvm
+		émet la représentation intermédiaire du code LLVM
 
---émet-arbre
-	émet l'arbre syntactic
+		--émet-arbre
+		émet l'arbre syntactic
 
--m, --mémoire
-	imprime la mémoire utilisée
+		-m, --mémoire
+		imprime la mémoire utilisée
 
--t, --temps
-	imprime le temps utilisé
+		-t, --temps
+		imprime le temps utilisé
 
--v, --version
-	imprime la version
+		-v, --version
+		imprime la version
 
--O0
-	Ne performe aucune optimisation. Ceci est le défaut.
+		-O0
+		Ne performe aucune optimisation. Ceci est le défaut.
 
--O1
-	Optimise le code. Augmente le temps de compilation.
+		-O1
+		Optimise le code. Augmente le temps de compilation.
 
--O2
-	Optimise le code encore plus. Augmente le temps de compilation.
+		-O2
+		Optimise le code encore plus. Augmente le temps de compilation.
 
--Os
-	Comme -O2, mais minimise la taille du code. Augmente le temps de compilation.
+		-Os
+		Comme -O2, mais minimise la taille du code. Augmente le temps de compilation.
 
--Oz
-	Comme -Os, mais minimise encore plus la taille du code. Augmente le temps de compilation.
+		-Oz
+		Comme -Os, mais minimise encore plus la taille du code. Augmente le temps de compilation.
 
--O3
-	Optimise le code toujours plus. Augmente le temps de compilation.
-)";
+		-O3
+		Optimise le code toujours plus. Augmente le temps de compilation.
+		)";
 
 enum class NiveauOptimisation : char {
 	Aucun,
@@ -275,18 +462,18 @@ int main(int argc, char *argv[])
 		of.close();
 
 		auto debut_executable = dls::chrono::compte_seconde();
-//		auto commande = dls::chaine("gcc /tmp/conversion.kuri ");
+		//		auto commande = dls::chaine("gcc /tmp/conversion.kuri ");
 
-//		commande += " -o ";
-//		commande += ops.chemin_sortie;
+		//		commande += " -o ";
+		//		commande += ops.chemin_sortie;
 
-//		os << "Exécution de la commade '" << commande << "'..." << std::endl;
+		//		os << "Exécution de la commade '" << commande << "'..." << std::endl;
 
-//		auto err = system(commande.c_str());
+		//		auto err = system(commande.c_str());
 
-//		if (err != 0) {
-//			std::cerr << "Ne peut pas créer l'executable !\n";
-//		}
+		//		if (err != 0) {
+		//			std::cerr << "Ne peut pas créer l'executable !\n";
+		//		}
 		temps_executable = debut_executable.temps();
 
 		/* restore le dossier d'origine */
@@ -306,14 +493,14 @@ int main(int argc, char *argv[])
 	auto const temps_total = debut_compilation.temps();
 
 	auto const temps_scene = metriques.temps_tampon
-							 + metriques.temps_decoupage
-							 + metriques.temps_analyse
-							 + metriques.temps_chargement
-							 + metriques.temps_validation;
+			+ metriques.temps_decoupage
+			+ metriques.temps_analyse
+			+ metriques.temps_chargement
+			+ metriques.temps_validation;
 
 	auto const temps_coulisse = metriques.temps_generation
-								+ temps_fichier_objet
-								+ temps_executable;
+			+ temps_fichier_objet
+			+ temps_executable;
 
 	auto const temps_aggrege = temps_scene + temps_coulisse + temps_nettoyage;
 
@@ -323,9 +510,9 @@ int main(int argc, char *argv[])
 	};
 
 	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_morceaux
-							+ mem_arbre
-							+ mem_contexte;
+			+ metriques.memoire_morceaux
+			+ mem_arbre
+			+ mem_contexte;
 
 	os << "------------------------------------------------------------------\n";
 	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
@@ -385,3 +572,4 @@ int main(int argc, char *argv[])
 
 	return resultat;
 }
+#endif

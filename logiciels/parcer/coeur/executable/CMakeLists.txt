@@ -21,17 +21,21 @@
 
 set(NOM_PROJET parcer)
 
+find_package(LLVM REQUIRED)
+
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 	${INCLUSIONS_DELSACE_CHRONO}
+	/usr/lib/llvm-6.0/include/
 )
 
 set(BIBLIOTHEQUES
 	decoupage_parcer
 	stdc++fs
 	bib_outils
+	/usr/lib/llvm-6.0/lib/libclang.so
 )
 
 add_executable(${NOM_PROJET}
