@@ -500,6 +500,17 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 			obtiens_litterale(tu, c, std::cout, true);
 			break;
 		}
+		case CXCursorKind::CXCursor_MemberRefExpr:
+		{
+			auto enfants = rassemble_enfants(c);
+			assert(enfants.taille() == 1);
+
+			rappel_visite_enfant(enfants[0], c, client_data);
+			std::cout << '.';
+			std::cout << clang_getCursorSpelling(c);
+
+			break;
+		}
 		case CXCursorKind::CXCursor_BinaryOperator:
 		{
 			auto enfants = rassemble_enfants(c);
