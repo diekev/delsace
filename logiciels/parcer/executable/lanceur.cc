@@ -458,6 +458,7 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 
 			/* ++i */
 			rappel_visite_enfant(enfants[2], c, client_data);
+			std::cout << ";\n";
 
 			std::cout << "}";
 
