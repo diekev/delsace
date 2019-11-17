@@ -139,11 +139,18 @@ int main(int argc, char **argv)
 
 	auto chemin = argv[1];
 
+	const char *args[] = {
+		"-fparse-all-comments",
+	};
+
 	CXIndex index = clang_createIndex(0, 0);
 	CXTranslationUnit unit = clang_parseTranslationUnit(
 				index,
-				chemin, nullptr, 0,
-				nullptr, 0,
+				chemin,
+				args,
+				0,
+				nullptr,
+				0,
 				CXTranslationUnit_None);
 
 	if (unit == nullptr) {
