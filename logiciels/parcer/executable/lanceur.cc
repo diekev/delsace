@@ -245,6 +245,15 @@ static auto obtiens_litterale(
 static void converti_declaration_expression(CXTranslationUnit trans_unit, CXCursor cursor);
 static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXClientData client_data);
 
+/* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir pluseurs
+ * instructions, par exemple :
+ *
+ * int a = 0;
+ * int b = 5;
+ * retourne a + b;
+ *
+ * est un CompoundStmt, et non trois différentes instructions.
+ */
 static void converti_compound_stmt(CXCursor c, CXClientData client_data)
 {
 	auto enfants = rassemble_enfants(c);
@@ -378,28 +387,6 @@ static void converti_declaration_expression(CXTranslationUnit trans_unit, CXCurs
 	clang_visitChildren(cursor, rappel_visite_enfant, trans_unit);
 }
 
-static auto rassemble_params(CXCursor cursor)
-{
-	auto enfants = dls::tableau<CXCursor>();
-
-	clang_visitChildren(
-				cursor,
-				[](CXCursor c, CXCursor parent, CXClientData client_data)
-	{
-		auto ptr_enfants = static_cast<dls::tableau<CXCursor> *>(client_data);
-
-		if (c.kind != CXCursorKind::CXCursor_ParmDecl) {
-			return CXChildVisit_Break;
-		}
-
-		ptr_enfants->pousse(c);
-		return CXChildVisit_Continue;
-	},
-	&enfants);
-
-	return enfants;
-}
-
 void imprime_asa(CXCursor c, int tab, std::ostream &os)
 {
 	for (auto i = 0; i < tab; ++ i) {
@@ -419,35 +406,26 @@ void imprime_asa(CXCursor c, int tab, std::ostream &os)
 
 static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor cursor)
 {
-	/* À FAIRE : considère le cas où nous n'avons qu'une déclaration et non une
-	 * implémentation, par exemple :
-	 *
-	 * void foo();
-	 * void foo()
-	 * {
-	 * }
-	 *
-	 * générera deux fois le code :
-	 *
-	 * fonc foo() : rien
-	 * {
-	 * }
-	 * fonc foo() : rien
-	 * {
-	 * }
-	 *
-	 * au lieu d'une seule fois.
-	 */
+	auto enfants = rassemble_enfants(cursor);
+
+	if (enfants.est_vide()) {
+		/* Nous avons une déclaration */
+		return;
+	}
+
+	if (enfants.back().kind != CXCursorKind::CXCursor_CompoundStmt) {
+		/* Nous avons une déclaration */
+		return;
+	}
 
 	std::cout << "fonc ";
 	std::cout << clang_getCursorSpelling(cursor);
 
-	// les paramètres sont dans les ParamDecl
-	auto params = rassemble_params(cursor);
-
 	auto virgule = "(";
 
-	for (auto param : params) {
+	for (auto i = 0; i < enfants.taille() - 1; ++i) {
+		auto param = enfants[i];
+
 		std::cout << virgule;
 		std::cout << clang_getCursorSpelling(param);
 		std::cout << " : ";
@@ -456,7 +434,8 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 		virgule = ", ";
 	}
 
-	if (params.est_vide()) {
+	/* Il n'y a pas de paramètres. */
+	if (enfants.taille() == 1) {
 		std::cout << '(';
 	}
 
@@ -464,62 +443,7 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 
 	std::cout << "{\n";
 
-	clang_visitChildren(
-				cursor,
-				[](CXCursor c, CXCursor parent, CXClientData client_data)
-	{
-		switch (c.kind) {
-			default:
-			{
-				std::cout << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
-						  << clang_getCursorKindSpelling(clang_getCursorKind(c))
-						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
-
-				break;
-			}
-			case CXCursorKind::CXCursor_StructDecl:
-			{
-				converti_declaration_struct(c);
-				break;
-			}
-			case CXCursorKind::CXCursor_ParmDecl:
-			case CXCursorKind::CXCursor_FieldDecl:
-			{
-				/* ne peut pas en avoir à ce niveau */
-				break;
-			}
-			case CXCursorKind::CXCursor_TypeRef:
-			{
-				/* ceci semble être pour quand nous utilisons une structure
-				 * comme type ? */
-				break;
-			}
-			case CXCursorKind::CXCursor_TypedefDecl:
-			{
-				/* pas encore supporter dans le langage */
-				break;
-			}
-			case CXCursorKind::CXCursor_CompoundStmt:
-			{
-				/* NOTE : un CompoundStmt peut contenir pluseurs instructions,
-				 * par exemple :
-				 * int a = 0;
-				 * int b = 5;
-				 * retourne a + b;
-				 * est un seul, et non trois CompoundStmt
-				 */
-
-				//imprime_asa(c, 0, std::cout);
-
-				converti_compound_stmt(c, client_data);
-
-				break;
-			}
-		}
-
-		return CXChildVisit_Continue;
-	},
-	trans_unit);
+	converti_compound_stmt(enfants.back(), trans_unit);
 
 	std::cout << "}\n";
 }
