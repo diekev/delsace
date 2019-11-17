@@ -303,6 +303,29 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 
 			return CXChildVisit_Recurse;
 		}
+		case CXCursorKind::CXCursor_CallExpr:
+		{
+			std::cout << clang_getCursorSpelling(c);
+
+			auto enfants = rassemble_enfants(c);
+			auto virgule = "(";
+
+			/* le premier enfant est UnexposedExpr pour savoir le type du
+			 * pointeur de fonction */
+			for (auto i = 1; i < enfants.taille(); ++i) {
+				std::cout << virgule;
+				rappel_visite_enfant(enfants[i], c, client_data);
+				virgule = ", ";
+			}
+
+			if (enfants.taille() == 1) {
+				std::cout << '(';
+			}
+
+			std::cout << ')';
+
+			break;
+		}
 		case CXCursorKind::CXCursor_DeclStmt:
 		{
 			//std::cout << "déclaration...\n";
