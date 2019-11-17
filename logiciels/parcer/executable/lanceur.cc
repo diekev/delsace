@@ -389,6 +389,17 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 
 			break;
 		}
+		case CXCursorKind::CXCursor_DoStmt:
+		{
+			auto enfants = rassemble_enfants(c);
+
+			std::cout << "répète {\n";
+			converti_compound_stmt(enfants[0], client_data);
+			std::cout << "} tantque ";
+			rappel_visite_enfant(enfants[1], c, client_data);
+
+			break;
+		}
 		case CXCursorKind::CXCursor_BreakStmt:
 		{
 			std::cout << "arrête";
