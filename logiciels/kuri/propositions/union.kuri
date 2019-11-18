@@ -1,0 +1,44 @@
+union NOM [nonsûr] {
+	x : z32;
+	y : r32;
+}
+
+// converti en C
+struct NOM {
+	enum e_etat_union_NOM {
+		NUL,
+		x_MODIFIE,
+		y_MODIFIE,
+	};
+
+	e_etat_union_NOM etat;
+
+	union {
+		int x;
+		float y;
+	} donnees;
+};
+
+// code :
+
+x : NOM;
+x.x = 5;
+
+y = x.y; # erreur de compilation ou alors erreur en runtime
+
+pour :
+- permet au compilateur de faire des vérifications quant à la validité du type
+
+contre :
+- utilise un peu plus de mémoire -> ne peut pas paquer une structure
+- impossible de copier de la mémoire d'un type à l'autre
+
+considération :
+- si erreur en runtime -> IPA pour déterminer comment vérifier
+
+utilisation (C, C++) :
+- copier de la mémoire d'un type à un autre
+- swizzler pour les vecteurs (voir biblinterne math de delsace)
+
+voir (types algébriques) :
+- https://nullbuffer.com/2019/11/15/algebraic_c.html
