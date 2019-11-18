@@ -578,6 +578,7 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				/* int i = 0 */
+				std::cout << "dyn ";
 				convertis(enfants[0], tu);
 				std::cout << ";\n";
 
