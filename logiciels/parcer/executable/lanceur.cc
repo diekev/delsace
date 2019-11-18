@@ -263,7 +263,7 @@ static void converti_declaration_struct(CXCursor cursor)
 	},
 	nullptr);
 
-	std::cout << "}\n";
+	std::cout << "}\n\n";
 }
 
 static auto rassemble_enfants(CXCursor cursor)
@@ -753,7 +753,7 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 
 	converti_compound_stmt(enfants.back(), trans_unit);
 
-	std::cout << "}\n";
+	std::cout << "}\n\n";
 }
 
 int main(int argc, char **argv)
