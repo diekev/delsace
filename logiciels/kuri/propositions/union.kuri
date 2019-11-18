@@ -42,3 +42,63 @@ utilisation (C, C++) :
 
 voir (types algébriques) :
 - https://nullbuffer.com/2019/11/15/algebraic_c.html
+
+########################################################################
+
+struct InfoTypeUnion {
+    id : id_info; # employant InfoType
+	nom : chaine;
+	valeurs : []z32;
+	noms : []chaine;
+	est_nonsûre : bool;
+}
+
+# trouve si l'union est nonsûr
+fonc est_nonsûre(arg : eini) : bool
+{
+	info = arg.info;
+
+	si info.id != id_info.UNION  {
+	    retourne vrai;
+	}
+
+	info_arg = transtype(info : *InfoTypeUnion);
+	retourne info_arg.est_nonsûre;
+}
+
+fonc valeur_énum(valeur : chaine, enum_ou_union : eini) : z32
+{
+	info = enum_ou_union.info;
+
+	si info.id == id_info.UNION  {
+		info_arg = transtype(info : *InfoTypeUnion);
+
+		pour nom, idx dans info_arg.noms {
+			si compare_chaines(nom, valeur) {
+				retourne info_arg.valeurs[idx];
+			}
+		}
+
+		retourne -1;
+	}
+
+	retourne -1;
+}
+
+fonc est_activé(x : eini, membre : chaine) : bool
+{
+	# trouve les données de l'union
+	si !possède_membre(x, membre) {
+		retourne faux;
+	}
+
+	retourne x.membre_actif == valeur_énum(membre, x);
+}
+
+si est_nonsûre(UNION) {
+	...
+}
+
+si est_activé(UNION, "x") {
+	...
+}
