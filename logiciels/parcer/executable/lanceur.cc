@@ -211,59 +211,6 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 	return flux.str();
 }
 
-static void converti_declaration_struct(CXCursor cursor)
-{
-	std::cout << "struct ";
-	std::cout << clang_getCursorSpelling(cursor);
-	std::cout << " {\n";
-
-	clang_visitChildren(
-				cursor,
-				[](CXCursor c, CXCursor parent, CXClientData client_data)
-	{
-		switch (c.kind) {
-			default:
-			{
-				std::cout << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
-						  << clang_getCursorKindSpelling(clang_getCursorKind(c))
-						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
-
-				break;
-			}
-			case CXCursorKind::CXCursor_StructDecl:
-			{
-				converti_declaration_struct(c);
-				return CXChildVisit_Continue;
-			}
-			case CXCursorKind::CXCursor_FieldDecl:
-			{
-				std::cout << "\t";
-				std::cout << clang_getCursorSpelling(c);
-				std::cout << " : ";
-				std::cout << converti_type(c);
-				std::cout << ";\n";
-				return CXChildVisit_Continue;
-			}
-			case CXCursorKind::CXCursor_TypeRef:
-			{
-				/* ceci semble être pour quand nous utilisons une structure
-				 * comme type ? */
-				break;
-			}
-			case CXCursorKind::CXCursor_TypedefDecl:
-			{
-				/* pas encore supporter dans le langage */
-				break;
-			}
-		}
-
-		return CXChildVisit_Recurse;
-	},
-	nullptr);
-
-	std::cout << "}\n\n";
-}
-
 static auto rassemble_enfants(CXCursor cursor)
 {
 	auto enfants = dls::tableau<CXCursor>();
@@ -402,361 +349,437 @@ static auto obtiens_litterale(
 	clang_disposeTokens(tu, tokens, nombre_tokens);
 }
 
-static void converti_declaration_expression(CXTranslationUnit trans_unit, CXCursor cursor);
-static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXClientData client_data);
+struct Convertisseuse {
+	int profondeur = 0;
 
-/* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir pluseurs
- * instructions, par exemple :
- *
- * int a = 0;
- * int b = 5;
- * retourne a + b;
- *
- * est un CompoundStmt, et non trois différentes instructions.
- */
-static void converti_compound_stmt(CXCursor c, CXClientData client_data)
-{
-	auto enfants = rassemble_enfants(c);
+	void convertis(CXCursor cursor, CXTranslationUnit tu)
+	{
+		++profondeur;
 
-	for (auto enfant : enfants) {
-		rappel_visite_enfant(enfant, c, client_data);
+		switch (cursor.kind) {
+			default:
+			{
+				std::cout << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
+						  << clang_getCursorKindSpelling(clang_getCursorKind(cursor))
+						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
 
-		/* il est possible que le point-virgule ne soit pas désiré, par exemple
-		 * après le '}' à la fin de certains blocs (if, for, etc.) */
-		auto besoin_point_virgule = !est_element(
-					enfant.kind,
-					CXCursorKind::CXCursor_IfStmt,
-					CXCursorKind::CXCursor_WhileStmt,
-					CXCursorKind::CXCursor_ForStmt);
-
-		if (besoin_point_virgule) {
-			std::cout << ';';
-		}
-
-		std::cout << '\n';
-	}
-}
-
-static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXClientData client_data)
-{
-	auto tu = static_cast<CXTranslationUnit>(client_data);
-
-	switch (c.kind) {
-		default:
-		{
-			std::cout << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
-					  << clang_getCursorKindSpelling(clang_getCursorKind(c))
-					  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
-
-			return CXChildVisit_Recurse;
-		}
-		case CXCursorKind::CXCursor_CallExpr:
-		{
-			std::cout << clang_getCursorSpelling(c);
-
-			auto enfants = rassemble_enfants(c);
-			auto virgule = "(";
-
-			/* le premier enfant est UnexposedExpr pour savoir le type du
-			 * pointeur de fonction */
-			for (auto i = 1; i < enfants.taille(); ++i) {
-				std::cout << virgule;
-				rappel_visite_enfant(enfants[i], c, client_data);
-				virgule = ", ";
+				break;
 			}
-
-			/* pour les constructeurs implicites, il n'y a pas de premier enfant */
-			if (enfants.taille() <= 1) {
-				std::cout << '(';
+			case CXCursorKind::CXCursor_TranslationUnit:
+			{
+				converti_enfants(cursor, tu);
+				break;
 			}
+			case CXCursorKind::CXCursor_StructDecl:
+			{
+				imprime_tab();
+				std::cout << "struct ";
+				std::cout << clang_getCursorSpelling(cursor);
+				std::cout << " {\n";
+				converti_enfants(cursor, tu);
 
-			std::cout << ')';
+				imprime_tab();
+				std::cout << "}\n\n";
 
-			break;
-		}
-		case CXCursorKind::CXCursor_DeclStmt:
-		{
-			converti_declaration_expression(tu, c);
-			break;
-		}
-		case CXCursorKind::CXCursor_VarDecl:
-		{
-			std::cout << clang_getCursorSpelling(c);
-			std::cout << " : ";
-			std::cout << converti_type(c);
-			std::cout << " = ";
-			converti_declaration_expression(tu, c);
-			break;
-		}
-		case CXCursorKind::CXCursor_ParmDecl:
-		case CXCursorKind::CXCursor_StructDecl:
-		case CXCursorKind::CXCursor_FieldDecl:
-		case CXCursorKind::CXCursor_TypeRef:
-		case CXCursorKind::CXCursor_CompoundStmt:
-		case CXCursorKind::CXCursor_TypedefDecl:
-		{
-			/* ne peut pas en avoir à ce niveau */
-			break;
-		}
-		case CXCursorKind::CXCursor_IfStmt:
-		{
-			auto enfants = rassemble_enfants(c);
+				break;
+			}
+			case CXCursorKind::CXCursor_FieldDecl:
+			{
+				imprime_tab();
+				std::cout << clang_getCursorSpelling(cursor);
+				std::cout << " : ";
+				std::cout << converti_type(cursor);
+				std::cout << ";\n";
+				break;
+			}
+			case CXCursorKind::CXCursor_TypeRef:
+			{
+				/* ceci semble être pour quand nous utilisons une structure
+				 * comme type ? */
+				break;
+			}
+			case CXCursorKind::CXCursor_FunctionDecl:
+			{
+				converti_declaration_fonction(tu, cursor);
+				break;
+			}
+			case CXCursorKind::CXCursor_TypedefDecl:
+			{
+				/* pas encore supporter dans le langage */
+				break;
+			}
+			case CXCursorKind::CXCursor_CallExpr:
+			{
+				std::cout << clang_getCursorSpelling(cursor);
 
-			std::cout << "si ";
-			rappel_visite_enfant(enfants[0], c, client_data);
+				auto enfants = rassemble_enfants(cursor);
+				auto virgule = "(";
 
-			std::cout << " {\n";
-			converti_compound_stmt(enfants[1], client_data);
-			std::cout << "}";
+				/* le premier enfant est UnexposedExpr pour savoir le type du
+				 * pointeur de fonction */
+				for (auto i = 1; i < enfants.taille(); ++i) {
+					std::cout << virgule;
+					convertis(enfants[i], tu);
+					virgule = ", ";
+				}
 
-			if (enfants.taille() == 3) {
-				std::cout << "\nsinon ";
-				if (enfants[2].kind == CXCursorKind::CXCursor_IfStmt) {
-					rappel_visite_enfant(enfants[2], c, client_data);
+				/* pour les constructeurs implicites, il n'y a pas de premier enfant */
+				if (enfants.taille() <= 1) {
+					std::cout << '(';
+				}
+
+				std::cout << ')';
+
+				break;
+			}
+			case CXCursorKind::CXCursor_DeclStmt:
+			{
+				converti_enfants(cursor, tu);
+				break;
+			}
+			case CXCursorKind::CXCursor_VarDecl:
+			{
+				std::cout << clang_getCursorSpelling(cursor);
+				std::cout << " : ";
+				std::cout << converti_type(cursor);
+				std::cout << " = ";
+				converti_enfants(cursor, tu);
+				break;
+			}
+			case CXCursorKind::CXCursor_ParmDecl:
+			{
+				/* ne peut pas en avoir à ce niveau */
+				break;
+			}
+			case CXCursorKind::CXCursor_CompoundStmt:
+			{
+				/* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir pluseurs
+				 * instructions, par exemple :
+				 *
+				 * int a = 0;
+				 * int b = 5;
+				 * retourne a + b;
+				 *
+				 * est un CompoundStmt, et non trois différentes instructions.
+				 */
+
+				auto enfants = rassemble_enfants(cursor);
+
+				for (auto enfant : enfants) {
+					imprime_tab();
+					convertis(enfant, tu);
+
+					/* il est possible que le point-virgule ne soit pas désiré, par exemple
+					 * après le '}' à la fin de certains blocs (if, for, etc.) */
+					auto besoin_point_virgule = !est_element(
+								enfant.kind,
+								CXCursorKind::CXCursor_IfStmt,
+								CXCursorKind::CXCursor_WhileStmt,
+								CXCursorKind::CXCursor_ForStmt);
+
+					if (besoin_point_virgule) {
+						std::cout << ';';
+					}
+
+					std::cout << '\n';
+				}
+
+				break;
+			}
+			case CXCursorKind::CXCursor_IfStmt:
+			{
+				auto enfants = rassemble_enfants(cursor);
+
+				std::cout << "si ";
+				convertis(enfants[0], tu);
+
+				std::cout << " {\n";
+				convertis(enfants[1], tu);
+				std::cout << "}";
+
+				if (enfants.taille() == 3) {
+					std::cout << "\nsinon ";
+					if (enfants[2].kind == CXCursorKind::CXCursor_IfStmt) {
+						convertis(enfants[2], tu);
+					}
+					else {
+						std::cout << "{\n";
+						convertis(enfants[2], tu);
+						std::cout << "}";
+					}
+				}
+
+				break;
+			}
+			case CXCursorKind::CXCursor_WhileStmt:
+			{
+				auto enfants = rassemble_enfants(cursor);
+
+				std::cout << "tantque ";
+				convertis(enfants[0], tu);
+
+				std::cout << " {\n";
+				--profondeur;
+				convertis(enfants[1], tu);
+				imprime_tab();
+				++profondeur;
+
+				std::cout << "}";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_DoStmt:
+			{
+				auto enfants = rassemble_enfants(cursor);
+
+				std::cout << "répète {\n";
+				--profondeur;
+				convertis(enfants[0], tu);
+				imprime_tab();
+				++profondeur;
+
+				std::cout << "} tantque ";
+				convertis(enfants[1], tu);
+
+				break;
+			}
+			case CXCursorKind::CXCursor_ForStmt:
+			{
+				/* Transforme :
+				 * for (int i = 0; i < 10; ++i) {
+				 *		...
+				 * }
+				 *
+				 * en :
+				 *
+				 * i = 0;
+				 *
+				 * boucle {
+				 *		si i < 10 {
+				 *			arrête;
+				 *		}
+				 *
+				 *		...
+				 *		++i;
+				 * }
+				 */
+				auto enfants = rassemble_enfants(cursor);
+
+				/* int i = 0 */
+				convertis(enfants[0], tu);
+				std::cout << ";\n";
+
+				--profondeur;
+				imprime_tab();
+				++profondeur;
+				std::cout << "boucle {\n";
+
+				/* i < 10 */
+				imprime_tab();
+				std::cout << "si ";
+				convertis(enfants[1], tu);
+				std::cout << " {\n";
+				++profondeur;
+				imprime_tab();
+				std::cout << "arrête;\n";
+				--profondeur;
+
+				imprime_tab();
+				std::cout << "}\n";
+
+				/* ... */
+				convertis(enfants[3], tu);
+
+				/* ++i */
+				imprime_tab();
+				convertis(enfants[2], tu);
+				std::cout << ";\n";
+
+				--profondeur;
+				imprime_tab();
+				++profondeur;
+				std::cout << "}";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_BreakStmt:
+			{
+				std::cout << "arrête";
+				break;
+			}
+			case CXCursorKind::CXCursor_ContinueStmt:
+			{
+				std::cout << "continue";
+				break;
+			}
+			case CXCursorKind::CXCursor_ReturnStmt:
+			{
+				std::cout << "retourne ";
+				converti_enfants(cursor, tu);
+				break;
+			}
+			case CXCursorKind::CXCursor_ParenExpr:
+			{
+				std::cout << "(";
+				converti_enfants(cursor, tu);
+				std::cout << ")";
+				break;
+			}
+			case CXCursorKind::CXCursor_IntegerLiteral:
+			case CXCursorKind::CXCursor_FloatingLiteral:
+			case CXCursorKind::CXCursor_CharacterLiteral:
+			case CXCursorKind::CXCursor_StringLiteral:
+			{
+				obtiens_litterale(tu, cursor, std::cout, false);
+				break;
+			}
+			case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
+			{
+				obtiens_litterale(tu, cursor, std::cout, true);
+				break;
+			}
+			case CXCursorKind::CXCursor_ArraySubscriptExpr:
+			{
+				auto enfants = rassemble_enfants(cursor);
+				assert(enfants.taille() == 2);
+
+				convertis(enfants[0], tu);
+				std::cout << '[';
+				convertis(enfants[1], tu);
+				std::cout << ']';
+
+				break;
+			}
+			case CXCursorKind::CXCursor_MemberRefExpr:
+			{
+				auto enfants = rassemble_enfants(cursor);
+				assert(enfants.taille() == 1);
+
+				convertis(enfants[0], tu);
+				std::cout << '.';
+				std::cout << clang_getCursorSpelling(cursor);
+
+				break;
+			}
+			case CXCursorKind::CXCursor_BinaryOperator:
+			{
+				auto enfants = rassemble_enfants(cursor);
+				assert(enfants.taille() == 2);
+
+				/* NOTE : il nous faut appeler rappel_visite_enfant au lieu de
+				 * converti_declaration_expression, car ce dernier visitera les
+				 * enfants du curseur passé et non le curseur lui-même. */
+				convertis(enfants[0], tu);
+
+				std::cout << ' ';
+				determine_operateur_binaire(tu, cursor, std::cout);
+				std::cout << ' ';
+
+				convertis(enfants[1], tu);
+
+				break;
+			}
+			case CXCursorKind::CXCursor_UnaryOperator:
+			{
+				auto enfants = rassemble_enfants(cursor);
+				assert(enfants.taille() == 1);
+
+				auto chn = determine_operateur_unaire(tu, cursor);
+
+				if (chn == "++") {
+					convertis(enfants[0], tu);
+					std::cout << " += 1";
+				}
+				else if (chn == "--") {
+					convertis(enfants[0], tu);
+					std::cout << " -= 1";
 				}
 				else {
-					std::cout << "{\n";
-					converti_compound_stmt(enfants[2], client_data);
-					std::cout << "}";
+					std::cout << chn;
+					convertis(enfants[0], tu);
 				}
+
+				break;
 			}
-
-			break;
-		}
-		case CXCursorKind::CXCursor_WhileStmt:
-		{
-			auto enfants = rassemble_enfants(c);
-
-			std::cout << "tantque ";
-			rappel_visite_enfant(enfants[0], c, client_data);
-
-			std::cout << " {\n";
-			converti_compound_stmt(enfants[1], client_data);
-			std::cout << "}";
-
-			break;
-		}
-		case CXCursorKind::CXCursor_DoStmt:
-		{
-			auto enfants = rassemble_enfants(c);
-
-			std::cout << "répète {\n";
-			converti_compound_stmt(enfants[0], client_data);
-			std::cout << "} tantque ";
-			rappel_visite_enfant(enfants[1], c, client_data);
-
-			break;
-		}
-		case CXCursorKind::CXCursor_ForStmt:
-		{
-			/* Transforme :
-			 * for (int i = 0; i < 10; ++i) {
-			 *		...
-			 * }
-			 *
-			 * en :
-			 *
-			 * i = 0;
-			 *
-			 * boucle {
-			 *		si i < 10 {
-			 *			arrête;
-			 *		}
-			 *
-			 *		...
-			 *		++i;
-			 * }
-			 */
-			auto enfants = rassemble_enfants(c);
-
-			/* int i = 0 */
-			rappel_visite_enfant(enfants[0], c, client_data);
-			std::cout << ";\n";
-
-			std::cout << "boucle {\n";
-
-			/* i < 10 */
-			std::cout << "si ";
-			rappel_visite_enfant(enfants[1], c, client_data);
-			std::cout << " {\narrête;\n}\n";
-
-			/* ... */
-			converti_compound_stmt(enfants[3], client_data);
-
-			/* ++i */
-			rappel_visite_enfant(enfants[2], c, client_data);
-			std::cout << ";\n";
-
-			std::cout << "}";
-
-			break;
-		}
-		case CXCursorKind::CXCursor_BreakStmt:
-		{
-			std::cout << "arrête";
-			break;
-		}
-		case CXCursorKind::CXCursor_ContinueStmt:
-		{
-			std::cout << "continue";
-			break;
-		}
-		case CXCursorKind::CXCursor_ReturnStmt:
-		{
-			std::cout << "retourne ";
-			converti_declaration_expression(tu, c);
-			break;
-		}
-		case CXCursorKind::CXCursor_ParenExpr:
-		{
-			std::cout << "(";
-			converti_declaration_expression(tu, c);
-			std::cout << ")";
-			break;
-		}
-		case CXCursorKind::CXCursor_IntegerLiteral:
-		case CXCursorKind::CXCursor_FloatingLiteral:
-		case CXCursorKind::CXCursor_CharacterLiteral:
-		case CXCursorKind::CXCursor_StringLiteral:
-		{
-			obtiens_litterale(tu, c, std::cout, false);
-			break;
-		}
-		case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
-		{
-			obtiens_litterale(tu, c, std::cout, true);
-			break;
-		}
-		case CXCursorKind::CXCursor_ArraySubscriptExpr:
-		{
-			auto enfants = rassemble_enfants(c);
-			assert(enfants.taille() == 2);
-
-			rappel_visite_enfant(enfants[0], c, client_data);
-			std::cout << '[';
-			rappel_visite_enfant(enfants[1], c, client_data);
-			std::cout << ']';
-
-			break;
-		}
-		case CXCursorKind::CXCursor_MemberRefExpr:
-		{
-			auto enfants = rassemble_enfants(c);
-			assert(enfants.taille() == 1);
-
-			rappel_visite_enfant(enfants[0], c, client_data);
-			std::cout << '.';
-			std::cout << clang_getCursorSpelling(c);
-
-			break;
-		}
-		case CXCursorKind::CXCursor_BinaryOperator:
-		{
-			auto enfants = rassemble_enfants(c);
-			assert(enfants.taille() == 2);
-
-			/* NOTE : il nous faut appeler rappel_visite_enfant au lieu de
-			 * converti_declaration_expression, car ce dernier visitera les
-			 * enfants du curseur passé et non le curseur lui-même. */
-			rappel_visite_enfant(enfants[0], c, client_data);
-
-			std::cout << ' ';
-			determine_operateur_binaire(tu, c, std::cout);
-			std::cout << ' ';
-
-			rappel_visite_enfant(enfants[1], c, client_data);
-
-			break;
-		}
-		case CXCursorKind::CXCursor_UnaryOperator:
-		{
-			auto enfants = rassemble_enfants(c);
-			assert(enfants.taille() == 1);
-
-			auto chn = determine_operateur_unaire(tu, c);
-
-			if (chn == "++") {
-				rappel_visite_enfant(enfants[0], c, client_data);
-				std::cout << " += 1";
+			case CXCursorKind::CXCursor_DeclRefExpr:
+			{
+				std::cout << clang_getCursorSpelling(cursor);
+				break;
 			}
-			else if (chn == "--") {
-				rappel_visite_enfant(enfants[0], c, client_data);
-				std::cout << " -= 1";
+			case CXCursorKind::CXCursor_UnexposedExpr:
+			{
+				converti_enfants(cursor, tu);
+				break;
 			}
-			else {
-				std::cout << chn;
-				rappel_visite_enfant(enfants[0], c, client_data);
-			}
+		}
 
-			break;
-		}
-		case CXCursorKind::CXCursor_DeclRefExpr:
-		{
-			std::cout << clang_getCursorSpelling(c);
-			break;
-		}
-		case CXCursorKind::CXCursor_UnexposedExpr:
-		{
-			converti_declaration_expression(tu, c);
-			break;
+		--profondeur;
+	}
+
+	void imprime_tab()
+	{
+		for (auto i = 0; i < profondeur - 2; ++i) {
+			std::cout << '\t';
 		}
 	}
 
-	return CXChildVisit_Continue;
-}
+	void converti_enfants(CXCursor cursor, CXTranslationUnit tu)
+	{
+		auto enfants = rassemble_enfants(cursor);
 
-static void converti_declaration_expression(CXTranslationUnit trans_unit, CXCursor cursor)
-{
-	clang_visitChildren(cursor, rappel_visite_enfant, trans_unit);
-}
-
-static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor cursor)
-{
-	auto enfants = rassemble_enfants(cursor);
-
-	if (enfants.est_vide()) {
-		/* Nous avons une déclaration */
-		return;
+		for (auto enfant : enfants) {
+			convertis(enfant, tu);
+		}
 	}
 
-	if (enfants.back().kind != CXCursorKind::CXCursor_CompoundStmt) {
-		/* Nous avons une déclaration */
-		return;
+	void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor cursor)
+	{
+		auto enfants = rassemble_enfants(cursor);
+
+		if (enfants.est_vide()) {
+			/* Nous avons une déclaration */
+			return;
+		}
+
+		if (enfants.back().kind != CXCursorKind::CXCursor_CompoundStmt) {
+			/* Nous avons une déclaration */
+			return;
+		}
+
+		if (clang_Cursor_isFunctionInlined(cursor)) {
+			std::cout << "#!enligne ";
+		}
+
+		std::cout << "fonc ";
+		std::cout << clang_getCursorSpelling(cursor);
+
+		auto virgule = "(";
+
+		for (auto i = 0; i < enfants.taille() - 1; ++i) {
+			auto param = enfants[i];
+
+			std::cout << virgule;
+			std::cout << clang_getCursorSpelling(param);
+			std::cout << " : ";
+			std::cout << converti_type(param);
+
+			virgule = ", ";
+		}
+
+		/* Il n'y a pas de paramètres. */
+		if (enfants.taille() == 1) {
+			std::cout << '(';
+		}
+
+		std::cout << ") : " << converti_type(cursor, true) << '\n';
+
+		std::cout << "{\n";
+
+		convertis(enfants.back(), trans_unit);
+
+		std::cout << "}\n\n";
 	}
-
-	if (clang_Cursor_isFunctionInlined(cursor)) {
-		std::cout << "#!enligne ";
-	}
-
-	std::cout << "fonc ";
-	std::cout << clang_getCursorSpelling(cursor);
-
-	auto virgule = "(";
-
-	for (auto i = 0; i < enfants.taille() - 1; ++i) {
-		auto param = enfants[i];
-
-		std::cout << virgule;
-		std::cout << clang_getCursorSpelling(param);
-		std::cout << " : ";
-		std::cout << converti_type(param);
-
-		virgule = ", ";
-	}
-
-	/* Il n'y a pas de paramètres. */
-	if (enfants.taille() == 1) {
-		std::cout << '(';
-	}
-
-	std::cout << ") : " << converti_type(cursor, true) << '\n';
-
-	std::cout << "{\n";
-
-	converti_compound_stmt(enfants.back(), trans_unit);
-
-	std::cout << "}\n\n";
-}
+};
 
 int main(int argc, char **argv)
 {
@@ -787,52 +810,9 @@ int main(int argc, char **argv)
 	}
 
 	CXCursor cursor = clang_getTranslationUnitCursor(unit);
-	clang_visitChildren(
-				cursor,
-				[](CXCursor c, CXCursor parent, CXClientData client_data)
-	{
-		auto tu = static_cast<CXTranslationUnit>(client_data);
 
-		switch (c.kind) {
-			default:
-			{
-				std::cout << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
-						  << clang_getCursorKindSpelling(clang_getCursorKind(c))
-						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(c)) << "'\n";
-
-				break;
-			}
-			case CXCursorKind::CXCursor_StructDecl:
-			{
-				converti_declaration_struct(c);
-				break;
-			}
-			case CXCursorKind::CXCursor_FieldDecl:
-			{
-				/* ne peut en avoir à ce niveau là */
-				break;
-			}
-			case CXCursorKind::CXCursor_TypeRef:
-			{
-				/* ceci semble être pour quand nous utilisons une structure
-				 * comme type ? */
-				break;
-			}
-			case CXCursorKind::CXCursor_FunctionDecl:
-			{
-				converti_declaration_fonction(tu, c);
-				break;
-			}
-			case CXCursorKind::CXCursor_TypedefDecl:
-			{
-				/* pas encore supporter dans le langage */
-				break;
-			}
-		}
-
-		return CXChildVisit_Continue;
-	},
-	unit);
+	auto convertisseuse = Convertisseuse();
+	convertisseuse.convertis(cursor, unit);
 
 	clang_disposeTranslationUnit(unit);
 	clang_disposeIndex(index);
