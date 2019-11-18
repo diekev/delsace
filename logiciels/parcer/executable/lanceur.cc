@@ -119,7 +119,7 @@ static auto morcelle_type(dls::chaine const &str)
 	return ret;
 }
 
-static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
+static dls::chaine converti_type(CXType const &cxtype)
 {
 	static auto dico_type = dls::cree_dico(
 				dls::paire{ CXType_Void, dls::vue_chaine("rien") },
@@ -136,7 +136,6 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 				dls::paire{ CXType_Float, dls::vue_chaine("r32") },
 				dls::paire{ CXType_Double, dls::vue_chaine("r64") });
 
-	auto cxtype = est_fonction ? clang_getCursorResultType(c) : clang_getCursorType(c);
 	auto type = cxtype.kind;
 
 	auto plg_type = dico_type.trouve(type);
@@ -165,14 +164,14 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 	switch (type) {
 		default:
 		{
-			flux << "(cas défaut) " << type << " : " << clang_getTypeSpelling(clang_getCursorType(c));
+			flux << "(cas défaut) " << type << " : " << clang_getTypeSpelling(cxtype);
 			break;
 		}
 		case CXType_Typedef:
 		{
 			// cxtype = clang_getTypedefDeclUnderlyingType(c); // seulement pour les déclarations des typedefs
 			// flux << clang_getTypeSpelling(cxtype);
-			flux << clang_getTypedefName(clang_getCursorType(c));
+			flux << clang_getTypedefName(cxtype);
 			break;
 		}
 		case CXType_Record:          /* p.e. struct Vecteur */
@@ -182,7 +181,7 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 		case CXType_LValueReference: /* p.e. float & */
 		{
 			auto flux_tmp = std::stringstream();
-			flux_tmp << clang_getTypeSpelling(clang_getCursorType(c));
+			flux_tmp << clang_getTypeSpelling(cxtype);
 
 			auto chn = flux_tmp.str();
 
@@ -215,6 +214,12 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 	}
 
 	return flux.str();
+}
+
+static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
+{
+	auto cxtype = est_fonction ? clang_getCursorResultType(c) : clang_getCursorType(c);
+	return converti_type(cxtype);
 }
 
 static auto rassemble_enfants(CXCursor cursor)
@@ -421,6 +426,9 @@ struct Convertisseuse {
 				}
 
 				clang_disposeString(str);
+
+				auto type = clang_getEnumDeclIntegerType(cursor);
+				std::cout << " : " << converti_type(type);
 
 				std::cout << " {\n";
 				converti_enfants(cursor, trans_unit);
