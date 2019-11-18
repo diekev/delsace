@@ -193,6 +193,10 @@ static dls::chaine converti_type(CXType const &cxtype)
 					continue;
 				}
 
+				if (morceau == "const") {
+					continue;
+				}
+
 				pile_morceaux.empile(morceau);
 			}
 
