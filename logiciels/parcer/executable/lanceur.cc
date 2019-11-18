@@ -517,6 +517,18 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
 			obtiens_litterale(tu, c, std::cout, true);
 			break;
 		}
+		case CXCursorKind::CXCursor_ArraySubscriptExpr:
+		{
+			auto enfants = rassemble_enfants(c);
+			assert(enfants.taille() == 2);
+
+			rappel_visite_enfant(enfants[0], c, client_data);
+			std::cout << '[';
+			rappel_visite_enfant(enfants[1], c, client_data);
+			std::cout << ']';
+
+			break;
+		}
 		case CXCursorKind::CXCursor_MemberRefExpr:
 		{
 			auto enfants = rassemble_enfants(c);
