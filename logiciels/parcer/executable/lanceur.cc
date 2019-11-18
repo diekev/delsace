@@ -57,6 +57,7 @@ using dls::outils::est_element;
  * - conversion des types, avec les tailles des tableaux, typedefs
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
+ * - ctors/dtors
  */
 
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
