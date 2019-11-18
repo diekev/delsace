@@ -25,6 +25,8 @@
 #include <iostream>
 #include <sstream>
 
+#if 1
+
 #include <clang-c/Index.h>
 
 #include "biblinternes/outils/conditions.h"
@@ -737,3 +739,100 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#else
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "clang/AST/RecursiveASTVisitor.h"
+
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Frontend/FrontendActions.h"
+
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Tooling.h"
+
+class ExampleVisitor : public clang::RecursiveASTVisitor<ExampleVisitor>
+{
+private:
+	clang::ASTContext *astContext;
+public:
+	ExampleVisitor(ExampleVisitor const &) = default;
+	ExampleVisitor &operator=(ExampleVisitor const &) = default;
+
+	virtual ~ExampleVisitor() = default;
+
+	explicit
+	ExampleVisitor(clang::CompilerInstance* CI, clang::StringRef file):
+		astContext(&(CI->getASTContext()))
+	{
+
+	}
+
+	virtual bool VisitTypeDecl(clang::Decl *d)
+	{
+		d->dump();
+		return true;
+	}
+
+	bool VisitCXXRecordDecl(clang::CXXRecordDecl *Declaration)
+	{
+		// For debugging, dumping the AST nodes will show which nodes are already
+		// being visited.
+	//	Declaration->dump();
+
+		// The return value indicates whether we want the visitation to proceed.
+		// Return false to stop the traversal of the AST.
+		return true;
+	}
+};
+#pragma GCC diagnostic pop
+
+class ExampleASTConsumer : public clang::ASTConsumer
+{
+private:
+	ExampleVisitor *visitor;
+public:
+
+	ExampleASTConsumer(ExampleASTConsumer const &) = default;
+	ExampleASTConsumer &operator=(ExampleASTConsumer const &) = default;
+
+	explicit ExampleASTConsumer(clang::CompilerInstance *CI, clang::StringRef file) :
+		visitor(new ExampleVisitor(CI,file))
+	{}
+
+	~ExampleASTConsumer()
+	{
+		delete visitor;
+	}
+
+	virtual void HandleTranslationUnit(clang::ASTContext &Context) {
+		// de cette façon, on applique le visiteur sur l'ensemble de la translation unit
+		visitor->TraverseDecl(Context.getTranslationUnitDecl());
+	}
+};
+
+class ExampleFrontendAction : public clang::ASTFrontendAction {
+public:
+	virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI, clang::StringRef file)
+	{
+		return std::make_unique<ExampleASTConsumer>(&CI, file);
+	}
+};
+
+int main(int argc, const char **argv)
+{
+	llvm::cl::OptionCategory MyToolCategory("My tool options");
+
+	clang::tooling::CommonOptionsParser op(argc, argv, MyToolCategory);
+	clang::tooling::ClangTool Tool(op.getCompilations(), op.getSourcePathList());
+	int result = Tool.run(clang::tooling::newFrontendActionFactory<ExampleFrontendAction>().get());
+	return result;
+}
+#endif
