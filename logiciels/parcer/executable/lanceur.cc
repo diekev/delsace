@@ -33,9 +33,24 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#include "clang/AST/OperationKinds.h"
+#include "clang/AST/Stmt.h"
+#include "clang/AST/Expr.h"
+#include "clang/AST/ExprCXX.h"
+#pragma GCC diagnostic pop
+
+using dls::outils::est_element;
+
 /* À FAIRE :
- * - la résolution des opérateurs via determine_operateur_binaire échoue quand
- *   une expression contient des accès '.' ou '[]'
  * - 'auto'
  * - 'template' (FunctionTemplate, ClassTemplate)
  * - 'class' (ClassDecl)
@@ -233,12 +248,45 @@ void imprime_asa(CXCursor c, int tab, std::ostream &os)
 	}
 }
 
-//https://stackoverflow.com/questions/23227812/get-operator-type-for-cxcursor-binaryoperator
+static inline const clang::Stmt *getCursorStmt(CXCursor c)
+{
+	auto est_stmt = !est_element(
+				c.kind,
+				CXCursor_ObjCSuperClassRef,
+				CXCursor_ObjCProtocolRef,
+				CXCursor_ObjCClassRef);
+
+	return est_stmt ? static_cast<const clang::Stmt *>(c.data[1]) : nullptr;
+}
+
+static inline const clang::Expr *getCursorExpr(CXCursor c)
+{
+	return clang::dyn_cast_or_null<clang::Expr>(getCursorStmt(c));
+}
+
 static auto determine_operateur_binaire(
 		CXTranslationUnit tu,
 		CXCursor cursor,
 		std::ostream &os)
 {
+	/* Méthode tirée de
+	 * https://www.mail-archive.com/cfe-commits@cs.uiuc.edu/msg95414.html
+	 * https://github.com/llvm-mirror/clang/blob/master/tools/libclang/CXCursor.cpp
+	 * https://github.com/pybee/sealang/blob/f4c1b0a9f3203912b6367d8de4ab7508517e60ef/sealang/sealang.cpp
+	 */
+	auto expr = getCursorExpr(cursor);
+
+	if (expr != nullptr) {
+		auto op = clang::cast<clang::BinaryOperator>(expr);
+		os << op->getOpcodeStr().str();
+
+		return;
+	}
+
+	/* Si la méthode au-dessus échoue, utilise celle-ci tirée de
+	 * https://stackoverflow.com/questions/23227812/get-operator-type-for-cxcursor-binaryoperator
+	 */
+
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
@@ -318,8 +366,6 @@ static CXChildVisitResult rappel_visite_enfant(CXCursor c, CXCursor parent, CXCl
  */
 static void converti_compound_stmt(CXCursor c, CXClientData client_data)
 {
-	using dls::outils::est_element;
-
 	auto enfants = rassemble_enfants(c);
 
 	for (auto enfant : enfants) {
