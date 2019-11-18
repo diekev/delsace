@@ -31,6 +31,18 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/tableau.hh"
 
+/* À FAIRE :
+ * - la résolution des opérateurs via determine_operateur_binaire échoue quand
+ *   une expression contient des accès '.' ou '[]'
+ * - 'auto'
+ * - 'template' (FunctionTemplate, ClassTemplate)
+ * - 'class' (ClassDecl)
+ * - conversion des types, avec les tailles des tableaux, et les types retours
+ *   des fonctions
+ * - les noeuds correspondants aux tailles des tableaux sont considérés comme
+ *   des noeuds dans les expressions (lors des assignements)
+ */
+
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
 {
 	stream << clang_getCString(str);
@@ -635,7 +647,7 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 		std::cout << '(';
 	}
 
-	std::cout << ") : rien\n"; // À FAIRE : type fonction
+	std::cout << ") : rien\n";
 
 	std::cout << "{\n";
 
