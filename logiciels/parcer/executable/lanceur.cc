@@ -580,10 +580,17 @@ struct Convertisseuse {
 					std::cout << ";\n";
 				}
 
+				--profondeur;
+				imprime_tab();
+				++profondeur;
 				std::cout << "}";
 
 				if (enfants.taille() == 3) {
-					std::cout << "\nsinon ";
+					std::cout << "\n";
+					--profondeur;
+					imprime_tab();
+					++profondeur;
+					std::cout << "sinon ";
 					if (enfants[2].kind == CXCursorKind::CXCursor_IfStmt) {
 						convertis(enfants[2], trans_unit);
 					}
@@ -601,6 +608,9 @@ struct Convertisseuse {
 							std::cout << ";\n";
 						}
 
+						--profondeur;
+						imprime_tab();
+						++profondeur;
 						std::cout << "}";
 					}
 				}
