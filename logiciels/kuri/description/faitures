@@ -67,7 +67,8 @@ Faitures
 - suppression ':' et ';'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
 - ananlyseuse_grammaire -> suppression des vérifications redondantes
-
+- opérateur ternaire (x = si cond { y } sinon { z })
+- instruction répète { ... } tantque
 
 À faire (tests)
 ---------------
