@@ -568,7 +568,18 @@ struct Convertisseuse {
 				convertis(enfants[0], trans_unit);
 
 				std::cout << " {\n";
+				auto non_compound = enfants[1].kind != CXCursorKind::CXCursor_CompoundStmt;
+
+				if (non_compound) {
+					imprime_tab();
+				}
+
 				convertis(enfants[1], trans_unit);
+
+				if (non_compound) {
+					std::cout << ";\n";
+				}
+
 				std::cout << "}";
 
 				if (enfants.taille() == 3) {
@@ -578,7 +589,18 @@ struct Convertisseuse {
 					}
 					else {
 						std::cout << "{\n";
+						non_compound = enfants[2].kind != CXCursorKind::CXCursor_CompoundStmt;
+
+						if (non_compound) {
+							imprime_tab();
+						}
+
 						convertis(enfants[2], trans_unit);
+
+						if (non_compound) {
+							std::cout << ";\n";
+						}
+
 						std::cout << "}";
 					}
 				}
