@@ -726,6 +726,10 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 		return;
 	}
 
+	if (clang_Cursor_isFunctionInlined(cursor)) {
+		std::cout << "#!enligne ";
+	}
+
 	std::cout << "fonc ";
 	std::cout << clang_getCursorSpelling(cursor);
 
