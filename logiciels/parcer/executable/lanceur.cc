@@ -745,6 +745,12 @@ struct Convertisseuse {
 				obtiens_litterale(cursor, trans_unit, std::cout, true);
 				break;
 			}
+			case CXCursorKind::CXCursor_GNUNullExpr:
+			case CXCursorKind::CXCursor_CXXNullPtrLiteralExpr:
+			{
+				std::cout << "nul";
+				break;
+			}
 			case CXCursorKind::CXCursor_ArraySubscriptExpr:
 			{
 				auto enfants = rassemble_enfants(cursor);
