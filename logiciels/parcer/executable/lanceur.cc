@@ -377,14 +377,19 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_StructDecl:
 			{
-				imprime_tab();
-				std::cout << "struct ";
-				std::cout << clang_getCursorSpelling(cursor);
-				std::cout << " {\n";
-				converti_enfants(cursor, trans_unit);
+				auto enfants = rassemble_enfants(cursor);
 
-				imprime_tab();
-				std::cout << "}\n\n";
+				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
+				if (!enfants.est_vide()) {
+					imprime_tab();
+					std::cout << "struct ";
+					std::cout << clang_getCursorSpelling(cursor);
+					std::cout << " {\n";
+					converti_enfants(enfants, trans_unit);
+
+					imprime_tab();
+					std::cout << "}\n\n";
+				}
 
 				break;
 			}
@@ -419,12 +424,7 @@ struct Convertisseuse {
 
 				if (!enfants.est_vide()) {
 					std::cout << " = ";
-
-					/* déduplication de converti_enfant pour éviter d'avoir à
-					 * retraverser les noeuds enfants */
-					for (auto enfant : enfants) {
-						convertis(enfant, trans_unit);
-					}
+					converti_enfants(enfants, trans_unit);
 				}
 
 				std::cout << ",\n";
@@ -778,7 +778,11 @@ struct Convertisseuse {
 	void converti_enfants(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		auto enfants = rassemble_enfants(cursor);
+		converti_enfants(enfants, trans_unit);
+	}
 
+	void converti_enfants(dls::tableau<CXCursor> const &enfants, CXTranslationUnit trans_unit)
+	{
 		for (auto enfant : enfants) {
 			convertis(enfant, trans_unit);
 		}
