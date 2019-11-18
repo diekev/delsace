@@ -393,6 +393,40 @@ struct Convertisseuse {
 				std::cout << ";\n";
 				break;
 			}
+			case CXCursorKind::CXCursor_EnumDecl:
+			{
+				imprime_tab();
+				std::cout << "énum ";
+				std::cout << clang_getCursorSpelling(cursor);
+				std::cout << " {\n";
+				converti_enfants(cursor, trans_unit);
+
+				imprime_tab();
+				std::cout << "}\n\n";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_EnumConstantDecl:
+			{
+				imprime_tab();
+				std::cout << clang_getCursorSpelling(cursor);
+
+				auto enfants = rassemble_enfants(cursor);
+
+				if (!enfants.est_vide()) {
+					std::cout << " = ";
+
+					/* déduplication de converti_enfant pour éviter d'avoir à
+					 * retraverser les noeuds enfants */
+					for (auto enfant : enfants) {
+						convertis(enfant, trans_unit);
+					}
+				}
+
+				std::cout << ",\n";
+
+				break;
+			}
 			case CXCursorKind::CXCursor_TypeRef:
 			{
 				/* ceci semble être pour quand nous utilisons une structure
