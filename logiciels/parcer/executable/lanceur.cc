@@ -59,6 +59,8 @@ using dls::outils::est_element;
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
  * - ctors/dtors
+ * - opérateur ternaire -> ajourne selon kuri (quand fait dans kuri)
+ * - transtypage
  */
 
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
