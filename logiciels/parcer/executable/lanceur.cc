@@ -189,6 +189,10 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 			auto pile_morceaux = dls::pile<dls::chaine>();
 
 			for (auto &morceau : morceaux) {
+				if (morceau == "struct") {
+					continue;
+				}
+
 				pile_morceaux.empile(morceau);
 			}
 
