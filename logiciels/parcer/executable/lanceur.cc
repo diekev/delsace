@@ -466,6 +466,18 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				for (auto enfant : enfants) {
+					auto besoin_nouvelle_ligne = est_element(
+								enfant.kind,
+								CXCursorKind::CXCursor_IfStmt,
+								CXCursorKind::CXCursor_WhileStmt,
+								CXCursorKind::CXCursor_ForStmt,
+								CXCursorKind::CXCursor_DoStmt,
+								CXCursorKind::CXCursor_ReturnStmt);
+
+					if (besoin_nouvelle_ligne) {
+						std::cout << '\n';
+					}
+
 					imprime_tab();
 					convertis(enfant, tu);
 
