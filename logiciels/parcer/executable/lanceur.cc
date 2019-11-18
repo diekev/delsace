@@ -590,9 +590,9 @@ struct Convertisseuse {
 
 				/* i < 10 */
 				imprime_tab();
-				std::cout << "si ";
+				std::cout << "si !(";
 				convertis(enfants[1], trans_unit);
-				std::cout << " {\n";
+				std::cout << ") {\n";
 				++profondeur;
 				imprime_tab();
 				std::cout << "arrête;\n";
