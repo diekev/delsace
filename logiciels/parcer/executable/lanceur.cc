@@ -357,6 +357,8 @@ static auto obtiens_litterale(
 
 struct Convertisseuse {
 	int profondeur = 0;
+	/* pour les énumérations anonymes */
+	int nombre_enums = 0;
 
 	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
@@ -407,7 +409,19 @@ struct Convertisseuse {
 			{
 				imprime_tab();
 				std::cout << "énum ";
-				std::cout << clang_getCursorSpelling(cursor);
+
+				auto str = clang_getCursorSpelling(cursor);
+				auto c_str = clang_getCString(str);
+
+				if (strcmp(c_str, "") == 0) {
+					std::cout << "anomyme" << nombre_enums++;
+				}
+				else {
+					std::cout << c_str;
+				}
+
+				clang_disposeString(str);
+
 				std::cout << " {\n";
 				converti_enfants(cursor, trans_unit);
 
