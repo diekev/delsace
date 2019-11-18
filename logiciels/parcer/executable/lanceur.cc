@@ -31,6 +31,8 @@
 
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_fixe.hh"
+#include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #pragma GCC diagnostic push
@@ -54,8 +56,7 @@ using dls::outils::est_element;
  * - 'auto'
  * - 'template' (FunctionTemplate, ClassTemplate)
  * - 'class' (ClassDecl)
- * - conversion des types, avec les tailles des tableaux, et les types retours
- *   des fonctions
+ * - conversion des types, avec les tailles des tableaux, typedefs
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
  */
@@ -118,29 +119,67 @@ static auto morcelle_type(dls::chaine const &str)
 	return ret;
 }
 
-static auto converti_type(CXCursor const &c)
+static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 {
+	static auto dico_type = dls::cree_dico(
+				dls::paire{ CXType_Void, dls::vue_chaine("rien") },
+				dls::paire{ CXType_Bool, dls::vue_chaine("bool") },
+				dls::paire{ CXType_Char_U, dls::vue_chaine("n8") },
+				dls::paire{ CXType_UChar, dls::vue_chaine("n8") },
+				dls::paire{ CXType_UShort, dls::vue_chaine("n16") },
+				dls::paire{ CXType_UInt, dls::vue_chaine("n32") },
+				dls::paire{ CXType_ULong, dls::vue_chaine("n64") },
+				dls::paire{ CXType_Char_S, dls::vue_chaine("z8") },
+				dls::paire{ CXType_Short, dls::vue_chaine("z16") },
+				dls::paire{ CXType_Int, dls::vue_chaine("z32") },
+				dls::paire{ CXType_Long, dls::vue_chaine("z64") },
+				dls::paire{ CXType_Float, dls::vue_chaine("r32") },
+				dls::paire{ CXType_Double, dls::vue_chaine("r64") });
+
+	auto cxtype = est_fonction ? clang_getCursorResultType(c) : clang_getCursorType(c);
+	auto type = cxtype.kind;
+
+	auto plg_type = dico_type.trouve(type);
+
+	if (!plg_type.est_finie()) {
+		return plg_type.front().second;
+	}
+
+	static auto dico_type_chn = dls::cree_dico(
+				dls::paire{ dls::vue_chaine("void"), dls::vue_chaine("rien") },
+				dls::paire{ dls::vue_chaine("bool"), dls::vue_chaine("bool") },
+				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("n8") },
+				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("n8") },
+				dls::paire{ dls::vue_chaine("short"), dls::vue_chaine("n16") },
+				dls::paire{ dls::vue_chaine("int"), dls::vue_chaine("n32") },
+				dls::paire{ dls::vue_chaine("long"), dls::vue_chaine("n64") },
+				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("z8") },
+				dls::paire{ dls::vue_chaine("short"), dls::vue_chaine("z16") },
+				dls::paire{ dls::vue_chaine("int"), dls::vue_chaine("z32") },
+				dls::paire{ dls::vue_chaine("long"), dls::vue_chaine("z64") },
+				dls::paire{ dls::vue_chaine("float"), dls::vue_chaine("r32") },
+				dls::paire{ dls::vue_chaine("double"), dls::vue_chaine("r64") });
+
 	auto flux = std::stringstream();
 
-	//CXTypeKind e;
-
-	switch (clang_getCursorType(c).kind) {
+	switch (type) {
 		default:
 		{
-			flux << "(cas défaut) " << clang_getTypeSpelling(clang_getCursorType(c));
+			flux << "(cas défaut) " << type << " : " << clang_getTypeSpelling(clang_getCursorType(c));
 			break;
 		}
-		case CXType_Int:
+		case CXType_Typedef:
 		{
-			flux << "z32";
+			// cxtype = clang_getTypedefDeclUnderlyingType(c); // seulement pour les déclarations des typedefs
+			// flux << clang_getTypeSpelling(cxtype);
+			flux << clang_getTypedefName(clang_getCursorType(c));
 			break;
 		}
-		case CXType_UInt:
-		{
-			flux << "n32";
-			break;
-		}
-		case CXType_Pointer:
+		case CXType_Record:          /* p.e. struct Vecteur */
+		case CXType_ConstantArray:   /* p.e. float [4] */
+		case CXType_IncompleteArray: /* p.e. float [] */
+		case CXType_Pointer:         /* p.e. float * */
+		case CXType_LValueReference: /* p.e. float & */
 		{
 			auto flux_tmp = std::stringstream();
 			flux_tmp << clang_getTypeSpelling(clang_getCursorType(c));
@@ -148,9 +187,23 @@ static auto converti_type(CXCursor const &c)
 			auto chn = flux_tmp.str();
 
 			auto morceaux = morcelle_type(chn);
+			auto pile_morceaux = dls::pile<dls::chaine>();
 
 			for (auto &morceau : morceaux) {
-				flux << morceau << ' ';
+				pile_morceaux.empile(morceau);
+			}
+
+			while (!pile_morceaux.est_vide()) {
+				auto morceau = pile_morceaux.depile();
+
+				auto plg_type_chn = dico_type_chn.trouve(morceau);
+
+				if (!plg_type_chn.est_finie()) {
+					flux << plg_type_chn.front().second;
+				}
+				else {
+					flux << morceau;
+				}
 			}
 
 			break;
@@ -191,8 +244,7 @@ static void converti_declaration_struct(CXCursor cursor)
 				std::cout << " : ";
 				std::cout << converti_type(c);
 				std::cout << ";\n";
-
-				break;
+				return CXChildVisit_Continue;
 			}
 			case CXCursorKind::CXCursor_TypeRef:
 			{
@@ -695,7 +747,7 @@ static void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor
 		std::cout << '(';
 	}
 
-	std::cout << ") : rien\n";
+	std::cout << ") : " << converti_type(cursor, true) << '\n';
 
 	std::cout << "{\n";
 
