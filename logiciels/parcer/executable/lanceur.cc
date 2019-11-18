@@ -54,6 +54,7 @@ using dls::outils::est_element;
  * - 'auto'
  * - 'template' (FunctionTemplate, ClassTemplate)
  * - 'class' (ClassDecl)
+ * - 'new', 'delete'
  * - conversion des types, avec les tailles des tableaux, typedefs
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
