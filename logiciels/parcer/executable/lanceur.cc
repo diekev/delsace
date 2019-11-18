@@ -263,8 +263,8 @@ static inline const clang::Expr *getCursorExpr(CXCursor c)
 }
 
 static auto determine_operateur_binaire(
-		CXTranslationUnit tu,
 		CXCursor cursor,
+		CXTranslationUnit trans_unit,
 		std::ostream &os)
 {
 	/* Méthode tirée de
@@ -288,55 +288,55 @@ static auto determine_operateur_binaire(
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
-	clang_tokenize(tu, range, &tokens, &nombre_tokens);
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
 	for (unsigned i = 0; i < nombre_tokens; i++) {
-		auto loc_tok = clang_getTokenLocation(tu, tokens[i]);
+		auto loc_tok = clang_getTokenLocation(trans_unit, tokens[i]);
 		auto loc_cur = clang_getCursorLocation(cursor);
 
 		if (clang_equalLocations(loc_cur, loc_tok) == 0) {
-			CXString s = clang_getTokenSpelling(tu, tokens[i]);
+			CXString s = clang_getTokenSpelling(trans_unit, tokens[i]);
 			os << s;
 			break;
 		}
 	}
 
-	clang_disposeTokens(tu, tokens, nombre_tokens);
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
 
 static auto determine_operateur_unaire(
-		CXTranslationUnit tu,
-		CXCursor cursor)
+		CXCursor cursor,
+		CXTranslationUnit trans_unit)
 {
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
-	clang_tokenize(tu, range, &tokens, &nombre_tokens);
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
-	auto spelling = clang_getTokenSpelling(tu, tokens[0]);
+	auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
 
 	dls::chaine chn = clang_getCString(spelling);
 	clang_disposeString(spelling);
 
-	clang_disposeTokens(tu, tokens, nombre_tokens);
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 
 	return chn;
 }
 
 //https://stackoverflow.com/questions/10692015/libclang-get-primitive-value
 static auto obtiens_litterale(
-		CXTranslationUnit tu,
 		CXCursor cursor,
+		CXTranslationUnit trans_unit,
 		std::ostream &os,
 		bool est_bool)
 {
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
-	clang_tokenize(tu, range, &tokens, &nombre_tokens);
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
 	if (est_bool) {
-		CXString s = clang_getTokenSpelling(tu, tokens[0]);
+		CXString s = clang_getTokenSpelling(trans_unit, tokens[0]);
 		const char* str = clang_getCString(s);
 
 		os << ((strcmp(str, "true") == 0) ? "vrai" : "faux");
@@ -344,16 +344,16 @@ static auto obtiens_litterale(
 		clang_disposeString(s);
 	}
 	else {
-		os << clang_getTokenSpelling(tu, tokens[0]);
+		os << clang_getTokenSpelling(trans_unit, tokens[0]);
 	}
 
-	clang_disposeTokens(tu, tokens, nombre_tokens);
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
 
 struct Convertisseuse {
 	int profondeur = 0;
 
-	void convertis(CXCursor cursor, CXTranslationUnit tu)
+	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		++profondeur;
 
@@ -368,7 +368,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_TranslationUnit:
 			{
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 				break;
 			}
 			case CXCursorKind::CXCursor_StructDecl:
@@ -377,7 +377,7 @@ struct Convertisseuse {
 				std::cout << "struct ";
 				std::cout << clang_getCursorSpelling(cursor);
 				std::cout << " {\n";
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 
 				imprime_tab();
 				std::cout << "}\n\n";
@@ -401,7 +401,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_FunctionDecl:
 			{
-				converti_declaration_fonction(tu, cursor);
+				converti_declaration_fonction(cursor, trans_unit);
 				break;
 			}
 			case CXCursorKind::CXCursor_TypedefDecl:
@@ -420,7 +420,7 @@ struct Convertisseuse {
 				 * pointeur de fonction */
 				for (auto i = 1; i < enfants.taille(); ++i) {
 					std::cout << virgule;
-					convertis(enfants[i], tu);
+					convertis(enfants[i], trans_unit);
 					virgule = ", ";
 				}
 
@@ -435,7 +435,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_DeclStmt:
 			{
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 				break;
 			}
 			case CXCursorKind::CXCursor_VarDecl:
@@ -444,7 +444,7 @@ struct Convertisseuse {
 				std::cout << " : ";
 				std::cout << converti_type(cursor);
 				std::cout << " = ";
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 				break;
 			}
 			case CXCursorKind::CXCursor_ParmDecl:
@@ -480,7 +480,7 @@ struct Convertisseuse {
 					}
 
 					imprime_tab();
-					convertis(enfant, tu);
+					convertis(enfant, trans_unit);
 
 					/* il est possible que le point-virgule ne soit pas désiré, par exemple
 					 * après le '}' à la fin de certains blocs (if, for, etc.) */
@@ -504,20 +504,20 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				std::cout << "si ";
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 
 				std::cout << " {\n";
-				convertis(enfants[1], tu);
+				convertis(enfants[1], trans_unit);
 				std::cout << "}";
 
 				if (enfants.taille() == 3) {
 					std::cout << "\nsinon ";
 					if (enfants[2].kind == CXCursorKind::CXCursor_IfStmt) {
-						convertis(enfants[2], tu);
+						convertis(enfants[2], trans_unit);
 					}
 					else {
 						std::cout << "{\n";
-						convertis(enfants[2], tu);
+						convertis(enfants[2], trans_unit);
 						std::cout << "}";
 					}
 				}
@@ -529,11 +529,11 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				std::cout << "tantque ";
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 
 				std::cout << " {\n";
 				--profondeur;
-				convertis(enfants[1], tu);
+				convertis(enfants[1], trans_unit);
 				imprime_tab();
 				++profondeur;
 
@@ -547,12 +547,12 @@ struct Convertisseuse {
 
 				std::cout << "répète {\n";
 				--profondeur;
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 				imprime_tab();
 				++profondeur;
 
 				std::cout << "} tantque ";
-				convertis(enfants[1], tu);
+				convertis(enfants[1], trans_unit);
 
 				break;
 			}
@@ -580,7 +580,7 @@ struct Convertisseuse {
 
 				/* int i = 0 */
 				std::cout << "dyn ";
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 				std::cout << ";\n";
 
 				--profondeur;
@@ -591,7 +591,7 @@ struct Convertisseuse {
 				/* i < 10 */
 				imprime_tab();
 				std::cout << "si ";
-				convertis(enfants[1], tu);
+				convertis(enfants[1], trans_unit);
 				std::cout << " {\n";
 				++profondeur;
 				imprime_tab();
@@ -602,11 +602,11 @@ struct Convertisseuse {
 				std::cout << "}\n";
 
 				/* ... */
-				convertis(enfants[3], tu);
+				convertis(enfants[3], trans_unit);
 
 				/* ++i */
 				imprime_tab();
-				convertis(enfants[2], tu);
+				convertis(enfants[2], trans_unit);
 				std::cout << ";\n";
 
 				--profondeur;
@@ -629,13 +629,13 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_ReturnStmt:
 			{
 				std::cout << "retourne ";
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 				break;
 			}
 			case CXCursorKind::CXCursor_ParenExpr:
 			{
 				std::cout << "(";
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 				std::cout << ")";
 				break;
 			}
@@ -644,12 +644,12 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_CharacterLiteral:
 			case CXCursorKind::CXCursor_StringLiteral:
 			{
-				obtiens_litterale(tu, cursor, std::cout, false);
+				obtiens_litterale(cursor, trans_unit, std::cout, false);
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
 			{
-				obtiens_litterale(tu, cursor, std::cout, true);
+				obtiens_litterale(cursor, trans_unit, std::cout, true);
 				break;
 			}
 			case CXCursorKind::CXCursor_ArraySubscriptExpr:
@@ -657,9 +657,9 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 2);
 
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 				std::cout << '[';
-				convertis(enfants[1], tu);
+				convertis(enfants[1], trans_unit);
 				std::cout << ']';
 
 				break;
@@ -669,7 +669,7 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 1);
 
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 				std::cout << '.';
 				std::cout << clang_getCursorSpelling(cursor);
 
@@ -683,13 +683,13 @@ struct Convertisseuse {
 				/* NOTE : il nous faut appeler rappel_visite_enfant au lieu de
 				 * converti_declaration_expression, car ce dernier visitera les
 				 * enfants du curseur passé et non le curseur lui-même. */
-				convertis(enfants[0], tu);
+				convertis(enfants[0], trans_unit);
 
 				std::cout << ' ';
-				determine_operateur_binaire(tu, cursor, std::cout);
+				determine_operateur_binaire(cursor, trans_unit, std::cout);
 				std::cout << ' ';
 
-				convertis(enfants[1], tu);
+				convertis(enfants[1], trans_unit);
 
 				break;
 			}
@@ -698,19 +698,19 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 1);
 
-				auto chn = determine_operateur_unaire(tu, cursor);
+				auto chn = determine_operateur_unaire(cursor, trans_unit);
 
 				if (chn == "++") {
-					convertis(enfants[0], tu);
+					convertis(enfants[0], trans_unit);
 					std::cout << " += 1";
 				}
 				else if (chn == "--") {
-					convertis(enfants[0], tu);
+					convertis(enfants[0], trans_unit);
 					std::cout << " -= 1";
 				}
 				else {
 					std::cout << chn;
-					convertis(enfants[0], tu);
+					convertis(enfants[0], trans_unit);
 				}
 
 				break;
@@ -722,7 +722,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_UnexposedExpr:
 			{
-				converti_enfants(cursor, tu);
+				converti_enfants(cursor, trans_unit);
 				break;
 			}
 		}
@@ -737,16 +737,16 @@ struct Convertisseuse {
 		}
 	}
 
-	void converti_enfants(CXCursor cursor, CXTranslationUnit tu)
+	void converti_enfants(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		auto enfants = rassemble_enfants(cursor);
 
 		for (auto enfant : enfants) {
-			convertis(enfant, tu);
+			convertis(enfant, trans_unit);
 		}
 	}
 
-	void converti_declaration_fonction(CXTranslationUnit trans_unit, CXCursor cursor)
+	void converti_declaration_fonction(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		auto enfants = rassemble_enfants(cursor);
 
