@@ -776,6 +776,20 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_ConditionalOperator:
+			{
+				/* À FAIRE : non supporté dans le langage */
+				auto enfants = rassemble_enfants(cursor);
+				assert(enfants.taille() == 3);
+
+				convertis(enfants[0], trans_unit);
+				std::cout << " ? ";
+				convertis(enfants[1], trans_unit);
+				std::cout << " : ";
+				convertis(enfants[2], trans_unit);
+
+				break;
+			}
 			case CXCursorKind::CXCursor_DeclRefExpr:
 			{
 				std::cout << clang_getCursorSpelling(cursor);
