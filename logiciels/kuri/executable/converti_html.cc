@@ -53,6 +53,7 @@ static auto est_mot_cle(id_morceau id)
 		case id_morceau::DANS:
 		case id_morceau::BOUCLE:
 		case id_morceau::TANTQUE:
+		case id_morceau::REPETE:
 		case id_morceau::SINON:
 		case id_morceau::SI:
 		case id_morceau::SAUFSI:
