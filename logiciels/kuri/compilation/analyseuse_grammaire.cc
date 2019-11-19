@@ -1526,7 +1526,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 	}
 
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu une chaine de caractères après 'structure'");
+		lance_erreur("Attendu une chaine de caractères après 'struct'");
 	}
 
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, m_contexte, donnees());

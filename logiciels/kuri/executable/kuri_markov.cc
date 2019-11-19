@@ -331,7 +331,7 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 			os << "soit";
 			return;
 		case id_morceau::STRUCT:
-			os << "structure";
+			os << "struct";
 			return;
 		case id_morceau::TAILLE_DE:
 			os << "taille_de";
