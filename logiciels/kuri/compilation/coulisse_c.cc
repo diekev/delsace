@@ -413,9 +413,19 @@ static dls::chaine cree_info_type_C(
 			valeur = cree_info_type_entier_C(os_decl, os_init, 64, false);
 			break;
 		}
+		case id_morceau::N128:
+		{
+			valeur = cree_info_type_entier_C(os_decl, os_init, 128, false);
+			break;
+		}
 		case id_morceau::Z64:
 		{
 			valeur = cree_info_type_entier_C(os_decl, os_init, 64, true);
+			break;
+		}
+		case id_morceau::Z128:
+		{
+			valeur = cree_info_type_entier_C(os_decl, os_init, 128, true);
 			break;
 		}
 		case id_morceau::R16:
@@ -431,6 +441,11 @@ static dls::chaine cree_info_type_C(
 		case id_morceau::R64:
 		{
 			valeur = cree_info_type_reel_C(os_decl, os_init, 64);
+			break;
+		}
+		case id_morceau::R128:
+		{
+			valeur = cree_info_type_reel_C(os_decl, os_init, 128);
 			break;
 		}
 		case id_morceau::REFERENCE:

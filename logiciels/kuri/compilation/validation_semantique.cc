@@ -2317,6 +2317,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				case id_morceau::Z32:
 				case id_morceau::N64:
 				case id_morceau::Z64:
+				case id_morceau::N128:
+				case id_morceau::Z128:
 				{
 					nom_struct = "InfoTypeEntier";
 					break;
@@ -2324,6 +2326,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				case id_morceau::R16:
 				case id_morceau::R32:
 				case id_morceau::R64:
+				case id_morceau::R128:
 				{
 					nom_struct = "InfoTypeRéel";
 					break;

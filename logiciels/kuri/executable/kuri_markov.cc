@@ -261,6 +261,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::MEMOIRE:
 			os << "mémoire";
 			return;
+		case id_morceau::N128:
+			os << "n128";
+			return;
 		case id_morceau::N16:
 			os << "n16";
 			return;
@@ -284,6 +287,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 			return;
 		case id_morceau::POUR:
 			os << "pour";
+			return;
+		case id_morceau::R128:
+			os << "r128";
 			return;
 		case id_morceau::R16:
 			os << "r16";
@@ -338,6 +344,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 			return;
 		case id_morceau::VRAI:
 			os << "vrai";
+			return;
+		case id_morceau::Z128:
+			os << "z128";
 			return;
 		case id_morceau::Z16:
 			os << "z16";

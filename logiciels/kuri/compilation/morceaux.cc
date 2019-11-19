@@ -51,6 +51,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("info_de"), id_morceau::INFO_DE },
 	dls::paire{ dls::vue_chaine_compacte("loge"), id_morceau::LOGE },
 	dls::paire{ dls::vue_chaine_compacte("mémoire"), id_morceau::MEMOIRE },
+	dls::paire{ dls::vue_chaine_compacte("n128"), id_morceau::N128 },
 	dls::paire{ dls::vue_chaine_compacte("n16"), id_morceau::N16 },
 	dls::paire{ dls::vue_chaine_compacte("n32"), id_morceau::N32 },
 	dls::paire{ dls::vue_chaine_compacte("n64"), id_morceau::N64 },
@@ -59,6 +60,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("nul"), id_morceau::NUL },
 	dls::paire{ dls::vue_chaine_compacte("octet"), id_morceau::OCTET },
 	dls::paire{ dls::vue_chaine_compacte("pour"), id_morceau::POUR },
+	dls::paire{ dls::vue_chaine_compacte("r128"), id_morceau::R128 },
 	dls::paire{ dls::vue_chaine_compacte("r16"), id_morceau::R16 },
 	dls::paire{ dls::vue_chaine_compacte("r32"), id_morceau::R32 },
 	dls::paire{ dls::vue_chaine_compacte("r64"), id_morceau::R64 },
@@ -77,6 +79,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("transtype"), id_morceau::TRANSTYPE },
 	dls::paire{ dls::vue_chaine_compacte("type_de"), id_morceau::TYPE_DE },
 	dls::paire{ dls::vue_chaine_compacte("vrai"), id_morceau::VRAI },
+	dls::paire{ dls::vue_chaine_compacte("z128"), id_morceau::Z128 },
 	dls::paire{ dls::vue_chaine_compacte("z16"), id_morceau::Z16 },
 	dls::paire{ dls::vue_chaine_compacte("z32"), id_morceau::Z32 },
 	dls::paire{ dls::vue_chaine_compacte("z64"), id_morceau::Z64 },
@@ -284,6 +287,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::LOGE";
 		case id_morceau::MEMOIRE:
 			return "id_morceau::MEMOIRE";
+		case id_morceau::N128:
+			return "id_morceau::N128";
 		case id_morceau::N16:
 			return "id_morceau::N16";
 		case id_morceau::N32:
@@ -300,6 +305,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::OCTET";
 		case id_morceau::POUR:
 			return "id_morceau::POUR";
+		case id_morceau::R128:
+			return "id_morceau::R128";
 		case id_morceau::R16:
 			return "id_morceau::R16";
 		case id_morceau::R32:
@@ -336,6 +343,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TYPE_DE";
 		case id_morceau::VRAI:
 			return "id_morceau::VRAI";
+		case id_morceau::Z128:
+			return "id_morceau::Z128";
 		case id_morceau::Z16:
 			return "id_morceau::Z16";
 		case id_morceau::Z32:

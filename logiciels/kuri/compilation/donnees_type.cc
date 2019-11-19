@@ -226,6 +226,9 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 				case id_morceau::N64:
 					os << "n64";
 					break;
+				case id_morceau::N128:
+					os << "n128";
+					break;
 				case id_morceau::R16:
 					os << "r16";
 					break;
@@ -234,6 +237,9 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 					break;
 				case id_morceau::R64:
 					os << "r64";
+					break;
+				case id_morceau::R128:
+					os << "r128";
 					break;
 				case id_morceau::Z8:
 					os << "z8";
@@ -246,6 +252,9 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 					break;
 				case id_morceau::Z64:
 					os << "z64";
+					break;
+				case id_morceau::Z128:
+					os << "z128";
 					break;
 				case id_morceau::BOOL:
 					os << "bool";
@@ -315,13 +324,16 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_N16, DonneesTypeFinal(id_morceau::N16) },
 	{ TYPE_N32, DonneesTypeFinal(id_morceau::N32) },
 	{ TYPE_N64, DonneesTypeFinal(id_morceau::N64) },
+	{ TYPE_N128, DonneesTypeFinal(id_morceau::N128) },
 	{ TYPE_Z8, DonneesTypeFinal(id_morceau::Z8) },
 	{ TYPE_Z16, DonneesTypeFinal(id_morceau::Z16) },
 	{ TYPE_Z32, DonneesTypeFinal(id_morceau::Z32) },
 	{ TYPE_Z64, DonneesTypeFinal(id_morceau::Z64) },
+	{ TYPE_Z128, DonneesTypeFinal(id_morceau::Z128) },
 	{ TYPE_R16, DonneesTypeFinal(id_morceau::R16) },
 	{ TYPE_R32, DonneesTypeFinal(id_morceau::R32) },
 	{ TYPE_R64, DonneesTypeFinal(id_morceau::R64) },
+	{ TYPE_R128, DonneesTypeFinal(id_morceau::R128) },
 	{ TYPE_EINI, DonneesTypeFinal(id_morceau::EINI) },
 	{ TYPE_CHAINE, DonneesTypeFinal(id_morceau::CHAINE) },
 	{ TYPE_RIEN, DonneesTypeFinal(id_morceau::RIEN) },
@@ -332,14 +344,16 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_PTR_N16, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N16) },
 	{ TYPE_PTR_N32, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N32) },
 	{ TYPE_PTR_N64, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N64) },
+	{ TYPE_PTR_N128, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::N128) },
 	{ TYPE_PTR_Z8, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z8) },
 	{ TYPE_PTR_Z16, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z16) },
 	{ TYPE_PTR_Z32, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z32) },
 	{ TYPE_PTR_Z64, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z64) },
-
+	{ TYPE_PTR_Z128, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::Z128) },
 	{ TYPE_PTR_R16, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R16) },
 	{ TYPE_PTR_R32, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R32) },
 	{ TYPE_PTR_R64, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R64) },
+	{ TYPE_PTR_R128, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::R128) },
 	{ TYPE_PTR_EINI, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::EINI) },
 	{ TYPE_PTR_CHAINE, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::CHAINE) },
 	{ TYPE_PTR_RIEN, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::RIEN) },
@@ -350,14 +364,16 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_REF_N16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N16) },
 	{ TYPE_REF_N32, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N32) },
 	{ TYPE_REF_N64, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N64) },
+	{ TYPE_REF_N128, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N128) },
 	{ TYPE_REF_Z8, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z8) },
 	{ TYPE_REF_Z16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z16) },
 	{ TYPE_REF_Z32, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z32) },
 	{ TYPE_REF_Z64, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z64) },
-
+	{ TYPE_REF_Z128, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::Z128) },
 	{ TYPE_REF_R16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R16) },
 	{ TYPE_REF_R32, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R32) },
 	{ TYPE_REF_R64, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R64) },
+	{ TYPE_REF_R128, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::R128) },
 	{ TYPE_REF_EINI, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::EINI) },
 	{ TYPE_REF_CHAINE, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::CHAINE) },
 	{ TYPE_REF_RIEN, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::RIEN) },
@@ -368,14 +384,16 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_TABL_N16, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N16) },
 	{ TYPE_TABL_N32, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N32) },
 	{ TYPE_TABL_N64, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N64) },
+	{ TYPE_TABL_N128, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::N128) },
 	{ TYPE_TABL_Z8, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z8) },
 	{ TYPE_TABL_Z16, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z16) },
 	{ TYPE_TABL_Z32, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z32) },
 	{ TYPE_TABL_Z64, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z64) },
-
+	{ TYPE_TABL_Z128, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::Z128) },
 	{ TYPE_TABL_R16, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R16) },
 	{ TYPE_TABL_R32, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R32) },
 	{ TYPE_TABL_R64, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R64) },
+	{ TYPE_TABL_R128, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::R128) },
 	{ TYPE_TABL_EINI, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::EINI) },
 	{ TYPE_TABL_CHAINE, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::CHAINE) },
 	{ TYPE_TABL_BOOL, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::BOOL) },
@@ -562,6 +580,11 @@ static auto converti_type_simple_C(
 
 			break;
 		}
+		case id_morceau::N128:
+		{
+			os << ((echappe) ? "unsigned_long_long" : "unsigned long long");
+			break;
+		}
 		case id_morceau::R16:
 		{
 			os << "r16";
@@ -575,6 +598,11 @@ static auto converti_type_simple_C(
 		case id_morceau::R64:
 		{
 			os << "double";
+			break;
+		}
+		case id_morceau::R128:
+		{
+			os << ((echappe) ? "long_double" : "long double");
 			break;
 		}
 		case id_morceau::Z8:
@@ -595,6 +623,11 @@ static auto converti_type_simple_C(
 		case id_morceau::Z64:
 		{
 			os << "long";
+			break;
+		}
+		case id_morceau::Z128:
+		{
+			os << ((echappe) ? "long_long" : "long long");
 			break;
 		}
 		case id_morceau::CHAINE:
@@ -1217,6 +1250,9 @@ unsigned alignement(
 		case id_morceau::R64:
 		case id_morceau::N64:
 		case id_morceau::Z64:
+		case id_morceau::N128:
+		case id_morceau::Z128:
+		case id_morceau::R128:
 		case id_morceau::CHAINE:
 			return 8;
 		case id_morceau::CHAINE_CARACTERE:
@@ -1274,6 +1310,7 @@ bool est_type_entier_naturel(id_morceau type)
 		case id_morceau::N16:
 		case id_morceau::N32:
 		case id_morceau::N64:
+		case id_morceau::N128:
 		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
@@ -1288,6 +1325,7 @@ bool est_type_entier_relatif(id_morceau type)
 		case id_morceau::Z16:
 		case id_morceau::Z32:
 		case id_morceau::Z64:
+		case id_morceau::Z128:
 			return true;
 		default:
 			return false;
@@ -1300,6 +1338,7 @@ bool est_type_reel(id_morceau type)
 		case id_morceau::R16:
 		case id_morceau::R32:
 		case id_morceau::R64:
+		case id_morceau::R128:
 			return true;
 		default:
 			return false;
@@ -1441,6 +1480,12 @@ unsigned int taille_type_octet(
 		case id_morceau::R64:
 		{
 			return 8;
+		}
+		case id_morceau::N128:
+		case id_morceau::Z128:
+		case id_morceau::R128:
+		{
+			return 16;
 		}
 		case id_morceau::CHAINE_CARACTERE:
 		{

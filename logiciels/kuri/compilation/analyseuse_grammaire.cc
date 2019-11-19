@@ -64,13 +64,16 @@ static bool est_identifiant_type(id_morceau identifiant)
 		case id_morceau::N16:
 		case id_morceau::N32:
 		case id_morceau::N64:
+		case id_morceau::N128:
 		case id_morceau::R16:
 		case id_morceau::R32:
 		case id_morceau::R64:
+		case id_morceau::R128:
 		case id_morceau::Z8:
 		case id_morceau::Z16:
 		case id_morceau::Z32:
 		case id_morceau::Z64:
+		case id_morceau::Z128:
 		case id_morceau::BOOL:
 		case id_morceau::RIEN:
 		case id_morceau::EINI:
