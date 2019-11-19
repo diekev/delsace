@@ -405,6 +405,19 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_UnionDecl:
+			{
+				imprime_tab();
+				std::cout << "union ";
+				std::cout << clang_getCursorSpelling(cursor);
+				std::cout << " nonsûr {\n";
+				converti_enfants(cursor, trans_unit);
+
+				imprime_tab();
+				std::cout << "}\n\n";
+
+				break;
+			}
 			case CXCursorKind::CXCursor_FieldDecl:
 			{
 				imprime_tab();
