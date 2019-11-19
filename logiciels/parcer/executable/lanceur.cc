@@ -971,6 +971,11 @@ struct Convertisseuse {
 		for (auto i = 0; i < enfants.taille() - 1; ++i) {
 			auto param = enfants[i];
 
+			/* les premiers enfants peuvent être des infos sur la fonctions */
+			if (param.kind != CXCursorKind::CXCursor_ParmDecl) {
+				continue;
+			}
+
 			std::cout << virgule;
 			std::cout << clang_getCursorSpelling(param);
 			std::cout << " : ";
