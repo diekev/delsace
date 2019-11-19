@@ -812,7 +812,13 @@ struct Convertisseuse {
 					std::cout << " -= 1";
 				}
 				else {
-					std::cout << chn;
+					if (chn == "&") {
+						std::cout << '@';
+					}
+					else {
+						std::cout << chn;
+					}
+
 					convertis(enfants[0], trans_unit);
 				}
 
