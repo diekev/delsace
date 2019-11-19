@@ -830,9 +830,6 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 2);
 
-				/* NOTE : il nous faut appeler rappel_visite_enfant au lieu de
-				 * converti_declaration_expression, car ce dernier visitera les
-				 * enfants du curseur passé et non le curseur lui-même. */
 				convertis(enfants[0], trans_unit);
 
 				std::cout << ' ';
