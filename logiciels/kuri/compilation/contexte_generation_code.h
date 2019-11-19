@@ -115,7 +115,8 @@ struct DonneesStructure {
 	noeud::base *noeud_decl = nullptr;
 	bool est_enum = false;
 	bool est_externe = false;
-	char pad[2] = {};
+	bool est_union = false;
+	bool est_nonsur = false;
 	unsigned int taille_octet = 0;
 };
 

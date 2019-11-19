@@ -345,6 +345,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::TYPE_DE:
 			os << "type_de";
 			return;
+		case id_morceau::UNION:
+			os << "union";
+			return;
 		case id_morceau::VRAI:
 			os << "vrai";
 			return;
@@ -427,6 +430,7 @@ static bool est_mot_cle(id_morceau id)
 			return false;
 		}
 		case id_morceau::STRUCT:
+		case id_morceau::UNION:
 		case id_morceau::FONC:
 		case id_morceau::SI:
 		case id_morceau::SINON:

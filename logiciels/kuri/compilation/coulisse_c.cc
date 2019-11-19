@@ -922,7 +922,20 @@ static void declare_structures_C(
 		}
 
 		auto const &nom_struct = broye_nom_simple(contexte.nom_struct(is));
-		os << "typedef struct " << nom_struct << "{\n";
+
+		if (donnees.est_union) {
+			if (donnees.est_nonsur) {
+				os << "typedef union " << nom_struct << "{\n";
+			}
+			else {
+				os << "typedef struct " << nom_struct << "{\n";
+				os << "int membre_actif;\n";
+				os << "union {\n";
+			}
+		}
+		else {
+			os << "typedef struct " << nom_struct << "{\n";
+		}
 
 		for (auto i = 0l; i < donnees.index_types.taille(); ++i) {
 			auto index_dt = donnees.index_types[i];
@@ -944,6 +957,10 @@ static void declare_structures_C(
 					break;
 				}
 			}
+		}
+
+		if (donnees.est_union && !donnees.est_nonsur) {
+			os << "};\n";
 		}
 
 		os << "} " << nom_struct << ";\n\n";

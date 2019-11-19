@@ -79,6 +79,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("tantque"), id_morceau::TANTQUE },
 	dls::paire{ dls::vue_chaine_compacte("transtype"), id_morceau::TRANSTYPE },
 	dls::paire{ dls::vue_chaine_compacte("type_de"), id_morceau::TYPE_DE },
+	dls::paire{ dls::vue_chaine_compacte("union"), id_morceau::UNION },
 	dls::paire{ dls::vue_chaine_compacte("vrai"), id_morceau::VRAI },
 	dls::paire{ dls::vue_chaine_compacte("z128"), id_morceau::Z128 },
 	dls::paire{ dls::vue_chaine_compacte("z16"), id_morceau::Z16 },
@@ -344,6 +345,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::TRANSTYPE";
 		case id_morceau::TYPE_DE:
 			return "id_morceau::TYPE_DE";
+		case id_morceau::UNION:
+			return "id_morceau::UNION";
 		case id_morceau::VRAI:
 			return "id_morceau::VRAI";
 		case id_morceau::Z128:

@@ -127,6 +127,7 @@ enum class id_morceau : unsigned int {
 	TANTQUE,
 	TRANSTYPE,
 	TYPE_DE,
+	UNION,
 	VRAI,
 	Z128,
 	Z16,

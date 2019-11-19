@@ -246,8 +246,10 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 				break;
 			}
 			case id_morceau::STRUCT:
+			case id_morceau::UNION:
 			{
-				analyse_declaration_structure();
+				avance();
+				analyse_declaration_structure(id);
 				break;
 			}
 			case id_morceau::ENUM:
@@ -1513,13 +1515,10 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_structure()
+void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 {
-	if (!requiers_identifiant(id_morceau::STRUCT)) {
-		lance_erreur("Attendu la déclaration 'structure'");
-	}
-
 	auto est_externe = false;
+	auto est_nonsur = false;
 
 	if (est_identifiant(type_id::EXTERNE)) {
 		est_externe = true;
@@ -1533,6 +1532,11 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, m_contexte, donnees());
 	auto nom_structure = donnees().chaine;
 
+	if (est_identifiant(type_id::NONSUR)) {
+		est_nonsur = true;
+		avance();
+	}
+
 	if (m_contexte.structure_existe(nom_structure)) {
 		lance_erreur("Redéfinition de la structure", erreur::type_erreur::STRUCTURE_REDEFINIE);
 	}
@@ -1541,6 +1545,8 @@ void analyseuse_grammaire::analyse_declaration_structure()
 	donnees_structure.noeud_decl = noeud_decl;
 	donnees_structure.est_enum = false;
 	donnees_structure.est_externe = est_externe;
+	donnees_structure.est_union = (id == id_morceau::UNION);
+	donnees_structure.est_nonsur = est_nonsur;
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 

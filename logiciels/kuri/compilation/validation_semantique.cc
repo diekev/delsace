@@ -668,6 +668,21 @@ static void valide_acces_membre(
 			return;
 		}
 
+		if (donnees_structure.est_union) {
+			if (nom_membre == "membre_actif") {
+				if (donnees_structure.est_nonsur) {
+					erreur::lance_erreur(
+								"Une union nonsûre n'a pas de propriété « membre_actif »",
+								contexte,
+								membre->morceau,
+								erreur::type_erreur::MEMBRE_INCONNU);
+				}
+
+				b->index_type = contexte.magasin_types[TYPE_Z32];
+				return;
+			}
+		}
+
 		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 		if (iter == donnees_structure.donnees_membres.fin()) {

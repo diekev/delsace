@@ -79,6 +79,7 @@ static auto est_mot_cle(id_morceau id)
 		case id_morceau::RIEN:
 		case id_morceau::CHAINE:
 		case id_morceau::OCTET:
+		case id_morceau::UNION:
 		{
 			return true;
 		}
