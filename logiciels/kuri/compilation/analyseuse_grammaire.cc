@@ -254,6 +254,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			}
 			case id_morceau::ENUM:
 			{
+				avance();
 				analyse_declaration_enum();
 				break;
 			}
@@ -457,10 +458,6 @@ void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
  */
 void analyseuse_grammaire::analyse_controle_pour()
 {
-	if (!requiers_identifiant(id_morceau::POUR)) {
-		lance_erreur("Attendu la déclaration 'pour'");
-	}
-
 	m_assembleuse->empile_noeud(type_noeud::POUR, m_contexte, donnees());
 
 	/* enfant 1 : déclaration variable */
@@ -568,6 +565,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			analyse_controle_si(type_noeud::SAUFSI);
 		}
 		else if (est_identifiant(id_morceau::POUR)) {
+			avance();
 			analyse_controle_pour();
 		}
 		else if (est_identifiant(id_morceau::BOUCLE)) {
@@ -737,10 +735,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			}
 
 			m_assembleuse->depile_noeud(type_noeud::ASSOCIE);
-		}
-		/* appel : fais_quelque_chose(); */
-		else if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::PARENTHESE_OUVRANTE)) {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::PARENTHESE_OUVRANTE);
 		}
 		else {
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
@@ -1583,10 +1577,6 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 
 void analyseuse_grammaire::analyse_declaration_enum()
 {
-	if (!requiers_identifiant(id_morceau::ENUM)) {
-		lance_erreur("Attendu la déclaration 'énum'");
-	}
-
 	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 		lance_erreur("Attendu un nom après 'énum'");
 	}
