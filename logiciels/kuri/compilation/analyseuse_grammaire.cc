@@ -517,14 +517,6 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::RETIENS);
 		}
-		else if (est_identifiant(id_morceau::SI)) {
-			avance();
-			analyse_controle_si(type_noeud::SI);
-		}
-		else if (est_identifiant(id_morceau::SAUFSI)) {
-			avance();
-			analyse_controle_si(type_noeud::SAUFSI);
-		}
 		else if (est_identifiant(id_morceau::POUR)) {
 			avance();
 			analyse_controle_pour();
@@ -1292,6 +1284,18 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					lance_erreur("Directive inconnue");
 				}
 
+				termine_boucle = true;
+				break;
+			}
+			case id_morceau::SI:
+			{
+				analyse_controle_si(type_noeud::SI);
+				termine_boucle = true;
+				break;
+			}
+			case id_morceau::SAUFSI:
+			{
+				analyse_controle_si(type_noeud::SAUFSI);
 				termine_boucle = true;
 				break;
 			}
