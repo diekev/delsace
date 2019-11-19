@@ -586,6 +586,30 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
 		}
+		else if (est_identifiant(id_morceau::REPETE)) {
+			avance();
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+				lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
+			}
+
+			m_assembleuse->empile_noeud(type_noeud::REPETE, m_contexte, donnees());
+			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
+			analyse_corps_fonction();
+			m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'répète'");
+			}
+
+			if (!requiers_identifiant(id_morceau::TANTQUE)) {
+				lance_erreur("Attendu une 'tantque' après le bloc de 'répète'");
+			}
+
+			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::TANTQUE);
+
+			m_assembleuse->depile_noeud(type_noeud::REPETE);
+		}
 		else if (est_identifiant(id_morceau::TANTQUE)) {
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::TANTQUE, m_contexte, donnees());

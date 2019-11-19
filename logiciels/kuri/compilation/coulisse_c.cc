@@ -1171,6 +1171,7 @@ static void genere_code_C_prepasse(
 		case type_noeud::POUR:
 		case type_noeud::CONTINUE_ARRETE:
 		case type_noeud::BOUCLE:
+		case type_noeud::REPETE:
 		case type_noeud::TANTQUE:
 		case type_noeud::TRANSTYPE:
 		case type_noeud::PLAGE:
@@ -2636,6 +2637,33 @@ void genere_code_C(
 
 			os << goto_continue << ":;\n";
 			os << "}\n";
+			os << goto_apres << ":;\n";
+
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
+
+			break;
+		}
+		case type_noeud::REPETE:
+		{
+			auto iter = b->enfants.debut();
+			auto enfant1 = *iter++;
+			auto enfant2 = *iter++;
+
+			/* création des blocs */
+
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
+
+			contexte.empile_goto_continue("", goto_continue);
+			contexte.empile_goto_arrete("", goto_apres);
+
+			os << "do {\n";
+			genere_code_C(enfant1, contexte, false, os, os);
+			os << goto_continue << ":;\n";
+			os << "} while (";
+			genere_code_C(enfant2, contexte, false, os, os);
+			os << ");\n";
 			os << goto_apres << ":;\n";
 
 			contexte.depile_goto_continue();

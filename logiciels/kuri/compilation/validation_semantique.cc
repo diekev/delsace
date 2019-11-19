@@ -2183,6 +2183,23 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			break;
 		}
+		case type_noeud::REPETE:
+		{
+			/* À FAIRE : ceci duplique logique coulisse */
+			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
+			auto goto_apres = "__boucle_pour_post" + dls::vers_chaine(b);
+
+			contexte.empile_goto_continue("", goto_continue);
+			contexte.empile_goto_arrete("", goto_apres);
+
+			performe_validation_semantique(b->enfants.front(), contexte);
+			performe_validation_semantique(b->enfants.back(), contexte);
+
+			contexte.depile_goto_continue();
+			contexte.depile_goto_arrete();
+
+			break;
+		}
 		case type_noeud::DIFFERE:
 		case type_noeud::TABLEAU:
 		{

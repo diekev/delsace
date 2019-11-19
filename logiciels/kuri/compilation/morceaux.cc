@@ -68,6 +68,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("retiens"), id_morceau::RETIENS },
 	dls::paire{ dls::vue_chaine_compacte("retourne"), id_morceau::RETOURNE },
 	dls::paire{ dls::vue_chaine_compacte("rien"), id_morceau::RIEN },
+	dls::paire{ dls::vue_chaine_compacte("répète"), id_morceau::REPETE },
 	dls::paire{ dls::vue_chaine_compacte("sansarrêt"), id_morceau::SANSARRET },
 	dls::paire{ dls::vue_chaine_compacte("saufsi"), id_morceau::SAUFSI },
 	dls::paire{ dls::vue_chaine_compacte("si"), id_morceau::SI },
@@ -321,6 +322,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::RETOURNE";
 		case id_morceau::RIEN:
 			return "id_morceau::RIEN";
+		case id_morceau::REPETE:
+			return "id_morceau::REPETE";
 		case id_morceau::SANSARRET:
 			return "id_morceau::SANSARRET";
 		case id_morceau::SAUFSI:

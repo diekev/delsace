@@ -116,6 +116,7 @@ enum class id_morceau : unsigned int {
 	RETIENS,
 	RETOURNE,
 	RIEN,
+	REPETE,
 	SANSARRET,
 	SAUFSI,
 	SI,

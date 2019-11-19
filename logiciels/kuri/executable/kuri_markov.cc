@@ -303,6 +303,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::RELOGE:
 			os << "reloge";
 			return;
+		case id_morceau::REPETE:
+			os << "répète";
+			return;
 		case id_morceau::RETIENS:
 			os << "retiens";
 			return;
