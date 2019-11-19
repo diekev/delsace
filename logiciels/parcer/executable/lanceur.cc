@@ -132,12 +132,16 @@ static dls::chaine converti_type(CXType const &cxtype)
 				dls::paire{ CXType_UShort, dls::vue_chaine("n16") },
 				dls::paire{ CXType_UInt, dls::vue_chaine("n32") },
 				dls::paire{ CXType_ULong, dls::vue_chaine("n64") },
+				dls::paire{ CXType_ULongLong, dls::vue_chaine("n128") },
 				dls::paire{ CXType_Char_S, dls::vue_chaine("z8") },
+				dls::paire{ CXType_SChar, dls::vue_chaine("z8") },
 				dls::paire{ CXType_Short, dls::vue_chaine("z16") },
 				dls::paire{ CXType_Int, dls::vue_chaine("z32") },
 				dls::paire{ CXType_Long, dls::vue_chaine("z64") },
+				dls::paire{ CXType_LongLong, dls::vue_chaine("z128") },
 				dls::paire{ CXType_Float, dls::vue_chaine("r32") },
-				dls::paire{ CXType_Double, dls::vue_chaine("r64") });
+				dls::paire{ CXType_Double, dls::vue_chaine("r64") },
+				dls::paire{ CXType_LongDouble, dls::vue_chaine("r128") });
 
 	auto type = cxtype.kind;
 
@@ -150,11 +154,10 @@ static dls::chaine converti_type(CXType const &cxtype)
 	static auto dico_type_chn = dls::cree_dico(
 				dls::paire{ dls::vue_chaine("void"), dls::vue_chaine("rien") },
 				dls::paire{ dls::vue_chaine("bool"), dls::vue_chaine("bool") },
-				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("n8") },
-				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("n8") },
-				dls::paire{ dls::vue_chaine("short"), dls::vue_chaine("n16") },
-				dls::paire{ dls::vue_chaine("int"), dls::vue_chaine("n32") },
-				dls::paire{ dls::vue_chaine("long"), dls::vue_chaine("n64") },
+				dls::paire{ dls::vue_chaine("uchar"), dls::vue_chaine("n8") },
+				dls::paire{ dls::vue_chaine("ushort"), dls::vue_chaine("n16") },
+				dls::paire{ dls::vue_chaine("uint"), dls::vue_chaine("n32") },
+				dls::paire{ dls::vue_chaine("ulong"), dls::vue_chaine("n64") },
 				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("z8") },
 				dls::paire{ dls::vue_chaine("short"), dls::vue_chaine("z16") },
 				dls::paire{ dls::vue_chaine("int"), dls::vue_chaine("z32") },
@@ -170,6 +173,11 @@ static dls::chaine converti_type(CXType const &cxtype)
 			flux << "(cas défaut) " << type << " : " << clang_getTypeSpelling(cxtype);
 			break;
 		}
+		case CXType_Invalid:
+		{
+			std::cout << "invalide";
+			break;
+		}
 		case CXType_Typedef:
 		{
 			// cxtype = clang_getTypedefDeclUnderlyingType(c); // seulement pour les déclarations des typedefs
@@ -182,6 +190,7 @@ static dls::chaine converti_type(CXType const &cxtype)
 		case CXType_IncompleteArray: /* p.e. float [] */
 		case CXType_Pointer:         /* p.e. float * */
 		case CXType_LValueReference: /* p.e. float & */
+		case CXType_Elaborated:      /* p.e. struct Vecteur */
 		{
 			auto flux_tmp = std::stringstream();
 			flux_tmp << clang_getTypeSpelling(cxtype);
@@ -191,12 +200,34 @@ static dls::chaine converti_type(CXType const &cxtype)
 			auto morceaux = morcelle_type(chn);
 			auto pile_morceaux = dls::pile<dls::chaine>();
 
-			for (auto &morceau : morceaux) {
+			for (auto i = 0; i < morceaux.taille(); ++i) {
+				auto &morceau = morceaux[i];
+
 				if (morceau == "struct") {
 					continue;
 				}
 
 				if (morceau == "const") {
+					continue;
+				}
+
+				if (morceau == "unsigned") {
+					if (pile_morceaux.est_vide()) {
+						if (i + 1 >= morceaux.taille() - 1) {
+							pile_morceaux.empile("uint");
+						}
+						else {
+							auto morceau_suiv = morceaux[i + 1];
+							pile_morceaux.empile("u" + morceau_suiv);
+
+							i += 1;
+						}
+					}
+					else {
+						auto morceau_prev = pile_morceaux.depile();
+						pile_morceaux.empile("u" + morceau_prev);
+					}
+
 					continue;
 				}
 
