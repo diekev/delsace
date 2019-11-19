@@ -85,6 +85,7 @@ private:
 	void analyse_corps(std::ostream &os);
 	void analyse_declaration_fonction(id_morceau id);
 	void analyse_corps_fonction();
+	void analyse_bloc();
 	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure(id_morceau id);

@@ -380,13 +380,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 			lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 		}
 
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-		analyse_corps_fonction();
-		m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu une accolade fermante à la fin de la fonction");
-		}
+		analyse_bloc();
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
@@ -398,15 +392,7 @@ void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
 
 	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::SI);
 
-	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-
-	analyse_corps_fonction();
-
-	m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'");
-	}
+	analyse_bloc();
 
 	if (est_identifiant(id_morceau::SINON)) {
 		avance();
@@ -475,53 +461,28 @@ void analyseuse_grammaire::analyse_controle_pour()
 	}
 
 	/* enfant 3 : bloc */
-
-	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-
-	analyse_corps_fonction();
-
-	m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'pour'");
-	}
+	analyse_bloc();
 
 	/* enfant 4 : bloc sansarrêt (optionel) */
 	if (est_identifiant(id_morceau::SANSARRET)) {
 		avance();
 
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 		}
 
-		analyse_corps_fonction();
-
-		m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'sinon'");
-		}
+		analyse_bloc();
 	}
 
 	/* enfant 4 ou 5 : bloc sinon (optionel) */
 	if (est_identifiant(id_morceau::SINON)) {
 		avance();
 
-		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 		}
 
-		analyse_corps_fonction();
-
-		m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'sinon'");
-		}
+		analyse_bloc();
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::POUR);
@@ -576,13 +537,8 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			}
 
 			m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_contexte, donnees());
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-			analyse_corps_fonction();
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
-			}
+			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
 		}
@@ -594,13 +550,8 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			}
 
 			m_assembleuse->empile_noeud(type_noeud::REPETE, m_contexte, donnees());
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-			analyse_corps_fonction();
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'répète'");
-			}
+			analyse_bloc();
 
 			if (!requiers_identifiant(id_morceau::TANTQUE)) {
 				lance_erreur("Attendu une 'tantque' après le bloc de 'répète'");
@@ -623,13 +574,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
 			}
 
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-			analyse_corps_fonction();
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'boucle'");
-			}
+			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::TANTQUE);
 		}
@@ -659,13 +604,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade ouvrante '{' après 'défère'");
 			}
 
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-			analyse_corps_fonction();
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'défère'");
-			}
+			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::DIFFERE);
 		}
@@ -678,13 +617,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade ouvrante '{' après 'nonsûr'");
 			}
 
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-			analyse_corps_fonction();
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'défère'");
-			}
+			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::NONSUR);
 		}
@@ -719,13 +652,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");
 				}
 
-				m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-				analyse_corps_fonction();
-				m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-				if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-					lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'associe'");
-				}
+				analyse_bloc();
 
 				m_assembleuse->depile_noeud(type_noeud::PAIRE_ASSOCIATION);
 			}
@@ -738,14 +665,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		}
 		else if (est_identifiant(type_id::ACCOLADE_OUVRANTE)) {
 			avance();
-
-			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
-			analyse_corps_fonction();
-			m_assembleuse->depile_noeud(type_noeud::BLOC);
-
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc");
-			}
+			analyse_bloc();
 		}
 		else {
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
@@ -765,6 +685,17 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		if (pos == position()) {
 			lance_erreur("Boucle infini dans l'analyse du corps de la fonction");
 		}
+	}
+}
+
+void analyseuse_grammaire::analyse_bloc()
+{
+	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
+	analyse_corps_fonction();
+	m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+		lance_erreur("Attendu une accolade fermante '}' à la fin du bloc");
 	}
 }
 
@@ -1216,22 +1147,12 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				if (est_identifiant(type_id::SINON)) {
 					avance();
-					m_assembleuse->empile_noeud(
-								type_noeud::BLOC,
-								m_contexte,
-								morceau);
 
 					if (!requiers_identifiant(type_id::ACCOLADE_OUVRANTE)) {
 						lance_erreur("Attendu une accolade ouvrante '{'");
 					}
 
-					analyse_corps_fonction();
-
-					if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-						lance_erreur("Attendu une accolade fermante '}'");
-					}
-
-					m_assembleuse->depile_noeud(type_noeud::BLOC);
+					analyse_bloc();
 
 					termine_boucle = true;
 				}
@@ -1269,22 +1190,12 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				if (est_identifiant(type_id::SINON)) {
 					avance();
-					m_assembleuse->empile_noeud(
-								type_noeud::BLOC,
-								m_contexte,
-								morceau);
 
 					if (!requiers_identifiant(type_id::ACCOLADE_OUVRANTE)) {
 						lance_erreur("Attendu une accolade ouvrante '{'");
 					}
 
-					analyse_corps_fonction();
-
-					if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-						lance_erreur("Attendu une accolade fermante '}'");
-					}
-
-					m_assembleuse->depile_noeud(type_noeud::BLOC);
+					analyse_bloc();
 
 					termine_boucle = true;
 				}
