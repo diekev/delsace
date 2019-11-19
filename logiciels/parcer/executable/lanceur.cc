@@ -860,6 +860,14 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_CXXFinalAttr:
+			case CXCursorKind::CXCursor_CXXOverrideAttr:
+			case CXCursorKind::CXCursor_PackedAttr:
+			case CXCursorKind::CXCursor_VisibilityAttr:
+			{
+				/* ignore pour le moment les attributs */
+				break;
+			}
 		}
 
 		--profondeur;
