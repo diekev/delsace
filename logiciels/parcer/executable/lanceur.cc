@@ -59,7 +59,6 @@ using dls::outils::est_element;
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
  * - ctors/dtors
- * - opérateur ternaire -> ajourne selon kuri (quand fait dans kuri)
  * - transtypage
  */
 
@@ -822,15 +821,16 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_ConditionalOperator:
 			{
-				/* À FAIRE : non supporté dans le langage */
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 3);
 
+				std::cout << "si ";
 				convertis(enfants[0], trans_unit);
-				std::cout << " ? ";
+				std::cout << " { ";
 				convertis(enfants[1], trans_unit);
-				std::cout << " : ";
+				std::cout << " sinon { ";
 				convertis(enfants[2], trans_unit);
+				std::cout << " } ";
 
 				break;
 			}
