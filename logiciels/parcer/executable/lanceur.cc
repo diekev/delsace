@@ -59,7 +59,6 @@ using dls::outils::est_element;
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
  * - ctors/dtors
- * - transtypage
  */
 
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
@@ -842,6 +841,17 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_UnexposedExpr:
 			{
 				converti_enfants(cursor, trans_unit);
+				break;
+			}
+			case CXCursorKind::CXCursor_CStyleCastExpr:
+			{
+				auto enfants = rassemble_enfants(cursor);
+				assert(enfants.taille() == 1);
+
+				std::cout << "transtype(";
+				convertis(enfants[0], trans_unit);
+				std::cout << " : " << converti_type(cursor) << ')';
+
 				break;
 			}
 		}
