@@ -468,7 +468,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 		avance();
 
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
+			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
 		}
 
 		analyse_bloc();
@@ -546,7 +546,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			avance();
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
+				lance_erreur("Attendu une accolade ouvrante '{' après 'répète'");
 			}
 
 			m_assembleuse->empile_noeud(type_noeud::REPETE, m_contexte, donnees());
@@ -601,7 +601,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			m_assembleuse->empile_noeud(type_noeud::DIFFERE, m_contexte, donnees());
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après 'défère'");
+				lance_erreur("Attendu une accolade ouvrante '{' après 'diffère'");
 			}
 
 			analyse_bloc();
