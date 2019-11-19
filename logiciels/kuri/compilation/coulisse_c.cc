@@ -2283,19 +2283,17 @@ void genere_code_C(
 			}
 
 			genere_code_C(enfant1, contexte, false, os, os);
-			os << ") {\n";
+			os << ")";
 
 			/* noeud 2 : bloc */
 			auto enfant2 = *iter_enfant++;
 			genere_code_C(enfant2, contexte, false, os, os);
-			os << "}\n";
 
 			/* noeud 3 : sinon (optionel) */
 			if (nombre_enfants == 3) {
-				os << "else {\n";
+				os << "else ";
 				auto enfant3 = *iter_enfant++;
 				genere_code_C(enfant3, contexte, false, os, os);
-				os << "}\n";
 			}
 
 			break;
@@ -2305,6 +2303,8 @@ void genere_code_C(
 			contexte.empile_nombre_locales();
 
 			auto dernier_enfant = static_cast<base *>(nullptr);
+
+			os << "{\n";
 
 			for (auto enfant : b->enfants) {
 				genere_code_C_prepasse(enfant, contexte, true, os);
@@ -2328,6 +2328,8 @@ void genere_code_C(
 					noeuds.pop_back();
 				}
 			}
+
+			os << "}\n";
 
 			contexte.depile_nombre_locales();
 
@@ -2972,9 +2974,8 @@ void genere_code_C(
 					os << ".pointeur ";
 				}
 
-				os << " == 0 ) {\n";
+				os << " == 0 )";
 				genere_code_C(*enfant++, contexte, true, os, os);
-				os << "}\n";
 			}
 
 			os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";
@@ -3143,9 +3144,8 @@ void genere_code_C(
 					os << ".pointeur ";
 				}
 
-				os << " == 0 ) {\n";
+				os << " == 0 )";
 				genere_code_C(*enfant++, contexte, true, os, os);
-				os << "}\n";
 			}
 
 			os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
@@ -3205,9 +3205,8 @@ void genere_code_C(
 				genere_code_C(expression, contexte, true, os, os);
 				os << " == ";
 				genere_code_C(enf0, contexte, true, os, os);
-				os << ") {\n";
+				os << ")";
 				genere_code_C(enf1, contexte, false, os, os);
-				os << "}\n";
 
 				condition = "else if";
 			}

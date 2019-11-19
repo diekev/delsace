@@ -736,6 +736,17 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::ASSOCIE);
 		}
+		else if (est_identifiant(type_id::ACCOLADE_OUVRANTE)) {
+			avance();
+
+			m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
+			analyse_corps_fonction();
+			m_assembleuse->depile_noeud(type_noeud::BLOC);
+
+			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc");
+			}
+		}
 		else {
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
 		}
