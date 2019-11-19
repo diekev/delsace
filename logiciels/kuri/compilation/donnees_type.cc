@@ -447,6 +447,12 @@ long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 		ajoute_type(donnees.dereference());
 	}
 
+	/* ajoute les types des paramètres et de retour des fonctions */
+	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
+		long nombre_type_retour = 0;
+		donnees_types_parametres(*this, donnees, nombre_type_retour);
+	}
+
 	return index;
 }
 
