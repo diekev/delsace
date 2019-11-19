@@ -849,7 +849,7 @@ struct Convertisseuse {
 				convertis(enfants[0], trans_unit);
 				std::cout << " { ";
 				convertis(enfants[1], trans_unit);
-				std::cout << " sinon { ";
+				std::cout << " } sinon { ";
 				convertis(enfants[2], trans_unit);
 				std::cout << " } ";
 
