@@ -896,6 +896,11 @@ struct Convertisseuse {
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
+			case CXCursorKind::CXCursor_UnexposedDecl:
+			{
+				converti_enfants(cursor, trans_unit);
+				break;
+			}
 			case CXCursorKind::CXCursor_CStyleCastExpr:
 			{
 				auto enfants = rassemble_enfants(cursor);
