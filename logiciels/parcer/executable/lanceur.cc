@@ -59,6 +59,9 @@ using dls::outils::est_element;
  * - les noeuds correspondants aux tailles des tableaux sont considérés comme
  *   des noeuds dans les expressions (lors des assignements)
  * - ctors/dtors
+ * - les structs et unions anonymes ayant pourtant un typedef ne peuvent être
+ *   converties car l'arbre syntactique n'a pas cette l'information à la fin du
+ *   typedef => typedef struct { } nom_t; « nom_t » est perdu.
  */
 
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
