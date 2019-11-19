@@ -469,7 +469,7 @@ id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine);
 id_morceau id_chaine(const dls::vue_chaine_compacte &chaine);
 """
 
-with io.open(u"../coeur/compilation/morceaux.hh", u'w') as entete:
+with io.open(u"../compilation/morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include "biblinternes/structures/chaine.hh"\n\n')
@@ -479,7 +479,7 @@ with io.open(u"../coeur/compilation/morceaux.hh", u'w') as entete:
 	entete.write(declaration_fonctions)
 
 
-with io.open(u'../coeur/compilation/morceaux.cc', u'w') as source:
+with io.open(u'../compilation/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.hh"\n\n')
 	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
