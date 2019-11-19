@@ -69,6 +69,8 @@ Faitures
 - ananlyseuse_grammaire -> suppression des vérifications redondantes
 - opérateur ternaire (x = si cond { y } sinon { z })
 - instruction répète { ... } tantque
+- unions
+- types longs : n128, z128, r128
 
 À faire (tests)
 ---------------
