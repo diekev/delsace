@@ -386,6 +386,41 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
+		case type_noeud::SAUFSI:
+		case type_noeud::SI:
+		{
+			auto const nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
+
+			auto enfant1 = *iter_enfant++;
+
+			auto res = evalue_expression(contexte, enfant1);
+
+			if (res.est_errone) {
+				return res;
+			}
+
+			if (res.type != type_expression::ENTIER) {
+				res.est_errone = true;
+				res.noeud_erreur = b;
+				res.message_erreur = "L'expression n'est pas de type booléen !";
+				return res;
+			}
+
+			auto enfant2 = *iter_enfant++;
+
+			if (res.condition == (b->type == type_noeud::SI)) {
+				res = evalue_expression(contexte, enfant2);
+			}
+			else {
+				if (nombre_enfants == 3) {
+					auto enfant3 = *iter_enfant++;
+					res = evalue_expression(contexte, enfant3);
+				}
+			}
+
+			return res;
+		}
 		case type_noeud::OPERATION_UNAIRE:
 		{
 			auto res = evalue_expression(contexte, b->enfants.front());
