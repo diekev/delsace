@@ -56,8 +56,6 @@ using dls::outils::est_element;
  * - 'class' (ClassDecl)
  * - 'new', 'delete'
  * - conversion des types, avec les tailles des tableaux, typedefs
- * - les noeuds correspondants aux tailles des tableaux sont considérés comme
- *   des noeuds dans les expressions (lors des assignements)
  * - ctors/dtors
  * - les structs et unions anonymes ayant pourtant un typedef ne peuvent être
  *   converties car l'arbre syntactique n'a pas cette l'information à la fin du
@@ -592,8 +590,18 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_VarDecl:
 			{
 				auto enfants = rassemble_enfants(cursor);
+				auto cxtype = clang_getCursorType(cursor);
 
-				if (enfants.est_vide()) {
+				auto nombre_enfants = enfants.taille();
+				auto decalage = 0;
+
+				if (cxtype.kind == CXTypeKind::CXType_ConstantArray) {
+					/* le premier enfant est la taille du tableau */
+					nombre_enfants -= 1;
+					decalage += 1;
+				}
+
+				if (nombre_enfants == 0) {
 					/* nous avons une déclaration simple (int x;) */
 					std::cout << "dyn ";
 					std::cout << clang_getCursorSpelling(cursor);
@@ -605,7 +613,10 @@ struct Convertisseuse {
 					std::cout << " : ";
 					std::cout << converti_type(cursor);
 					std::cout << " = ";
-					converti_enfants(enfants, trans_unit);
+
+					for (auto i = decalage; i < enfants.taille(); ++i) {
+						convertis(enfants[i], trans_unit);
+					}
 				}
 
 				break;
