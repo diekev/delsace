@@ -1070,6 +1070,11 @@ static void prepasse_acces_membre(
 		return;
 	}
 
+	if (b->aide_generation_code == ACCEDE_MODULE) {
+		genere_code_C_prepasse(membre, contexte, false, os);
+		return;
+	}
+
 	auto const &index_type = structure->index_type;
 	auto type_structure = contexte.magasin_types.donnees_types[index_type].plage();
 
@@ -1900,12 +1905,16 @@ void genere_code_C(
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
-			if (expr_gauche == false || b->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
+			auto structure = b->enfants.front();
+			auto membre = b->enfants.back();
+
+			if (b->aide_generation_code == ACCEDE_MODULE) {
+				os << std::any_cast<dls::chaine>(membre->valeur_calculee);
+			}
+			else if (expr_gauche == false || b->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
 				os << std::any_cast<dls::chaine>(b->valeur_calculee);
 			}
 			else {
-				auto structure = b->enfants.front();
-				auto membre = b->enfants.back();
 				genere_code_acces_membre(structure, membre, contexte, os);
 			}
 

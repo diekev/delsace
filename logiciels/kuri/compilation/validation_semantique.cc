@@ -1276,6 +1276,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					performe_validation_semantique(enfant2, contexte);
 
 					b->index_type = enfant2->index_type;
+					b->aide_generation_code = ACCEDE_MODULE;
 
 					return;
 				}
