@@ -1512,6 +1512,20 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					b->index_type = index_type1;
 					break;
 				}
+				case id_morceau::POURCENT:
+				{
+					b->index_type = index_type1;
+
+					if (!est_type_entier(type1.type_base())) {
+						erreur::lance_erreur(
+									"Le modulo n'est défini que pour les types entiers !",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::NORMAL);
+					}
+
+					break;
+				}
 				case id_morceau::CROCHET_OUVRANT:
 				{
 					auto type_base = type1.type_base();
