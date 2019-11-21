@@ -1829,6 +1829,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				performe_validation_semantique(enfant3, contexte);
 			}
 
+			/* pour les expressions x = si y { z } sinon { w } */
+			b->index_type = enfant2->index_type;
+
 			break;
 		}
 		case type_noeud::BLOC:

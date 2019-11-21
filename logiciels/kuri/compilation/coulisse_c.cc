@@ -1183,8 +1183,6 @@ static void genere_code_C_prepasse(
 		case type_noeud::BLOC:
 		case type_noeud::RETIENS:
 		case type_noeud::RETOUR:
-		case type_noeud::SAUFSI:
-		case type_noeud::SI:
 		case type_noeud::POUR:
 		case type_noeud::CONTINUE_ARRETE:
 		case type_noeud::BOUCLE:
@@ -1214,6 +1212,12 @@ static void genere_code_C_prepasse(
 		case type_noeud::NUL:
 		case type_noeud::TAILLE_DE:
 		{
+			break;
+		}
+		case type_noeud::SAUFSI:
+		case type_noeud::SI:
+		{
+			genere_code_C_prepasse(b->enfants.front(), contexte, true, os);
 			break;
 		}
 		case type_noeud::APPEL_FONCTION:
@@ -2271,10 +2275,28 @@ void genere_code_C(
 			auto const nombre_enfants = b->enfants.taille();
 			auto iter_enfant = b->enfants.debut();
 
+			if (!expr_gauche) {
+				auto enfant1 = *iter_enfant++;
+				auto enfant2 = *iter_enfant++;
+				auto enfant3 = *iter_enfant++;
+
+				if (b->type == type_noeud::SAUFSI) {
+					os << '!';
+				}
+
+				genere_code_C(enfant1, contexte, false, os, os);
+				os << " ? ";
+				/* prenons les enfants des enfants pour ne mettre des accolades
+				 * autour de l'expression vu qu'ils sont de type 'BLOC' */
+				genere_code_C(enfant2->enfants.front(), contexte, false, os, os);
+				os << " : ";
+				genere_code_C(enfant3->enfants.front(), contexte, false, os, os);
+
+				return;
+			}
+
 			/* noeud 1 : condition */
 			auto enfant1 = *iter_enfant++;
-
-			genere_code_C_prepasse(enfant1, contexte, true, os);
 
 			os << "if (";
 
