@@ -22,6 +22,7 @@
 ajoute_sousdossier(AVEC_ARACHNE arachne)
 ajoute_sousdossier(AVEC_CRESUS cresus)
 ajoute_sousdossier(AVEC_DANJO danjo)
+ajoute_sousdossier(AVEC_DEPLOIE deploie)
 ajoute_sousdossier(AVEC_HIKAGE hikage)
 ajoute_sousdossier(AVEC_HIMITSU himitsu)
 ajoute_sousdossier(AVEC_IMAGO imago)
