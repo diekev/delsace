@@ -564,7 +564,29 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_DeclStmt:
 			{
-				converti_enfants(cursor, trans_unit);
+				/* Un DeclStmt peut être :
+				 * soit int x = 0;
+				 * soit int x = 0, y = 0, z = 0;
+				 *
+				 * Dans le deuxième cas, la virgule n'est pas considérée comme
+				 * un opérateur binaire, et les différentes expressions sont
+				 * les filles du DeclStmt. Donc pour proprement tenir en compte
+				 * ce cas, on rassemble et converti les enfants en insérant un
+				 * point-virgule quand nécessaire.
+				 */
+				auto enfants = rassemble_enfants(cursor);
+
+				for (auto i = 0; i < enfants.taille(); ++i) {
+					convertis(enfants[i], trans_unit);
+
+					if (enfants.taille() > 1 && i < enfants.taille() - 1) {
+						std::cout << ";\n";
+						--profondeur;
+						imprime_tab();
+						++profondeur;
+					}
+				}
+
 				break;
 			}
 			case CXCursorKind::CXCursor_VarDecl:
