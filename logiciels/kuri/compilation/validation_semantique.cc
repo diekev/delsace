@@ -790,15 +790,38 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
 
+			auto noms = dls::ensemble<dls::vue_chaine_compacte>();
+			auto dernier_est_variadic = false;
+
 			for (auto feuille : feuilles) {
+				if (noms.trouve(feuille->chaine()) != noms.fin()) {
+					erreur::lance_erreur(
+								"Redéfinition de l'argument",
+								contexte,
+								feuille->morceau,
+								erreur::type_erreur::ARGUMENT_REDEFINI);
+				}
+
+				if (dernier_est_variadic) {
+					erreur::lance_erreur(
+								"Argument déclaré après un argument variadic",
+								contexte,
+								feuille->morceau,
+								erreur::type_erreur::NORMAL);
+				}
+
 				auto donnees_arg = DonneesArgument{};
 				donnees_arg.type_declare = feuille->type_declare;
 				donnees_arg.nom = feuille->chaine();
+
+				noms.insere(feuille->chaine());
 
 				/* doit être vrai uniquement pour le dernier argument */
 				donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == id_morceau::TROIS_POINTS;
 				donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
 				donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
+
+				dernier_est_variadic = donnees_arg.est_variadic;
 
 				donnees_fonction->est_variadique = donnees_arg.est_variadic;
 				donnees_fonction->args.pousse(donnees_arg);
