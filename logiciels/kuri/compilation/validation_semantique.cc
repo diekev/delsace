@@ -1526,6 +1526,48 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					break;
 				}
+				case id_morceau::ESPERLUETTE:
+				{
+					b->index_type = index_type1;
+
+					if (!est_type_entier(type1.type_base())) {
+						erreur::lance_erreur(
+									"L'opérateur « & » n'est défini que pour les types entiers !",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::NORMAL);
+					}
+
+					break;
+				}
+				case id_morceau::BARRE:
+				{
+					b->index_type = index_type1;
+
+					if (!est_type_entier(type1.type_base())) {
+						erreur::lance_erreur(
+									"L'opérateur « | » n'est défini que pour les types entiers !",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::NORMAL);
+					}
+
+					break;
+				}
+				case id_morceau::CHAPEAU:
+				{
+					b->index_type = index_type1;
+
+					if (!est_type_entier(type1.type_base())) {
+						erreur::lance_erreur(
+									"L'opérateur « ^ » n'est défini que pour les types entiers !",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::NORMAL);
+					}
+
+					break;
+				}
 				case id_morceau::CROCHET_OUVRANT:
 				{
 					auto type_base = type1.type_base();
@@ -1586,10 +1628,23 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				case id_morceau::INFERIEUR_EGAL:
 				case id_morceau::SUPERIEUR:
 				case id_morceau::SUPERIEUR_EGAL:
+				{
+					b->index_type = contexte.magasin_types[TYPE_BOOL];
+					break;
+				}
 				case id_morceau::ESP_ESP:
 				case id_morceau::BARRE_BARRE:
 				{
 					b->index_type = contexte.magasin_types[TYPE_BOOL];
+
+					if (enfant1->index_type != contexte.magasin_types[TYPE_BOOL]) {
+						erreur::lance_erreur(
+									"L'opérateur n'est défini que pour les types booléens",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::NORMAL);
+					}
+
 					break;
 				}
 			}
