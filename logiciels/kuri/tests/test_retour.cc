@@ -162,12 +162,11 @@ void test_retour(dls::test_unitaire::Controleuse &controleuse)
 				fonc foo() : z32
 				{
 					retourne 0.0;
-					soit a = 5;
 				}
 				)";
 
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_lancee(
-				texte, false, erreur::type_erreur::NORMAL);
+				texte, false, erreur::type_erreur::TYPE_DIFFERENTS);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);

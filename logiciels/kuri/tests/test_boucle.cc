@@ -99,7 +99,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Demo {
+				struct Demo {
 					demo : z32;
 				}
 
@@ -124,7 +124,7 @@ static void test_plage_pour(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Demo {
+				struct Demo {
 					demo : z32;
 				}
 

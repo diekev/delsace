@@ -116,7 +116,7 @@ void test_modules(dls::test_unitaire::Controleuse &controleuse)
 				"On ne peut accéder à un module non-importé.");
 	{
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
-				"fichiers_tests/test_utilisation_module_inconnu.kuri", false, erreur::type_erreur::MODULE_INCONNU);
+				"fichiers_tests/test_utilisation_module_inconnu.kuri", false, erreur::type_erreur::VARIABLE_INCONNUE);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);
