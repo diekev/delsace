@@ -376,7 +376,8 @@ static auto obtiens_litterale(
 		CXCursor cursor,
 		CXTranslationUnit trans_unit,
 		std::ostream &os,
-		bool est_bool)
+		bool est_bool,
+		bool est_float = false)
 {
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
@@ -388,6 +389,22 @@ static auto obtiens_litterale(
 		const char* str = clang_getCString(s);
 
 		os << ((strcmp(str, "true") == 0) ? "vrai" : "faux");
+
+		clang_disposeString(s);
+	}
+	else if (est_float) {
+		/* il faut se débarasser du 'f' final */
+		auto s = clang_getTokenSpelling(trans_unit, tokens[0]);
+		const char* str = clang_getCString(s);
+		auto len = strlen(str);
+
+		if (str[len - 1] == 'f') {
+			len = len - 1;
+		}
+
+		for (auto i = 0u; i < len; ++i) {
+			os << str[i];
+		}
 
 		clang_disposeString(s);
 	}
@@ -784,11 +801,15 @@ struct Convertisseuse {
 				break;
 			}
 			case CXCursorKind::CXCursor_IntegerLiteral:
-			case CXCursorKind::CXCursor_FloatingLiteral:
 			case CXCursorKind::CXCursor_CharacterLiteral:
 			case CXCursorKind::CXCursor_StringLiteral:
 			{
 				obtiens_litterale(cursor, trans_unit, std::cout, false);
+				break;
+			}
+			case CXCursorKind::CXCursor_FloatingLiteral:
+			{
+				obtiens_litterale(cursor, trans_unit, std::cout, false, true);
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
