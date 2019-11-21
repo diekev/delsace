@@ -199,7 +199,7 @@ void lance_erreur_plage(
 	lng::erreur::imprime_ligne_entre(ss, ligne, pos_mot + morceau_enfant.chaine.taille(), ligne.taille());
 	ss << "\n----------------------------------------------------------------\n";
 
-	throw frappe(ss.chn().c_str(), type_erreur::TYPE_ARGUMENT);
+	throw frappe(ss.chn().c_str(), type_erreur::TYPE_DIFFERENTS);
 }
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
