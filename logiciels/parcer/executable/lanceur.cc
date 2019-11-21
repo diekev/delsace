@@ -591,11 +591,23 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_VarDecl:
 			{
-				std::cout << clang_getCursorSpelling(cursor);
-				std::cout << " : ";
-				std::cout << converti_type(cursor);
-				std::cout << " = ";
-				converti_enfants(cursor, trans_unit);
+				auto enfants = rassemble_enfants(cursor);
+
+				if (enfants.est_vide()) {
+					/* nous avons une déclaration simple (int x;) */
+					std::cout << "dyn ";
+					std::cout << clang_getCursorSpelling(cursor);
+					std::cout << " : ";
+					std::cout << converti_type(cursor);
+				}
+				else {
+					std::cout << clang_getCursorSpelling(cursor);
+					std::cout << " : ";
+					std::cout << converti_type(cursor);
+					std::cout << " = ";
+					converti_enfants(enfants, trans_unit);
+				}
+
 				break;
 			}
 			case CXCursorKind::CXCursor_ParmDecl:
