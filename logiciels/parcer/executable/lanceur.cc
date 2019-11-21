@@ -610,6 +610,21 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_InitListExpr:
+			{
+				auto enfants = rassemble_enfants(cursor);
+
+				auto virgule = "[ ";
+
+				for (auto enfant : enfants) {
+					std::cout << virgule;
+					convertis(enfant, trans_unit);
+					virgule = ", ";
+				}
+
+				std::cout << " ]";
+				break;
+			}
 			case CXCursorKind::CXCursor_ParmDecl:
 			{
 				/* ne peut pas en avoir à ce niveau */
