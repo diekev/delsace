@@ -142,6 +142,7 @@ struct DonneesSite {
 		dls::chaine hote{};
 		dls::chaine mot_de_passe{};
 		dls::chaine identifiant{};
+		dls::chaine chemin{};
 		int port = 0;
 	};
 
@@ -150,6 +151,8 @@ struct DonneesSite {
 	DonneesFTP ftp{};
 
 	dls::tableau<dls::vue_chaine> erreurs{};
+
+	dls::tableau<std::pair<filesystem::path, filesystem::path>> chemins_fichiers{};
 
 	bool valide()
 	{
@@ -176,6 +179,10 @@ struct DonneesSite {
 
 		if (ftp.identifiant == "") {
 			ajoute_erreur("L'identifiant de l'hôte est vide");
+		}
+
+		if (ftp.chemin == "") {
+			ajoute_erreur("Le chemin sur l'hôte est vide");
 		}
 
 		if (ftp.port == 0) {
@@ -251,6 +258,7 @@ static auto analyse_configuration(const char *chemin)
 		auto obj_port = cherche_nombre_entier(ftp, "port");
 		auto obj_identifiant = cherche_chaine(ftp, "identifiant");
 		auto obj_mot_de_passe = cherche_chaine(ftp, "mot_de_passe");
+		auto obj_chemin = cherche_chaine(ftp, "chemin");
 
 		if (obj_hote == nullptr) {
 			continue;
@@ -268,10 +276,15 @@ static auto analyse_configuration(const char *chemin)
 			continue;
 		}
 
+		if (obj_chemin == nullptr) {
+			continue;
+		}
+
 		donnees_site.ftp.hote = obj_hote->valeur;
 		donnees_site.ftp.port = static_cast<int>(obj_port->valeur);
 		donnees_site.ftp.identifiant = obj_identifiant->valeur;
 		donnees_site.ftp.mot_de_passe = obj_mot_de_passe->valeur;
+		donnees_site.ftp.chemin = obj_chemin->valeur;
 	}
 
 	return donnees_sites;
@@ -294,7 +307,7 @@ static bool besoin_ajournement(
 	return etat_source.st_mtim.tv_sec > etat_cible.st_mtim.tv_sec;
 }
 
-static auto copie_fichiers(DonneesSite const &donnees)
+static auto copie_fichiers(DonneesSite &donnees)
 {
 	auto chemin_dossier = filesystem::path(donnees.chemin.c_str());
 
@@ -334,6 +347,10 @@ static auto copie_fichiers(DonneesSite const &donnees)
 			continue;
 		}
 
+		if (!filesystem::is_directory(chemin_source)) {
+			donnees.chemins_fichiers.pousse({ chemin_cible, ch_relatif });
+		}
+
 		//std::cout << "Copie de " << chemin_source << "\n\t-- cible : " << chemin_cible << '\n';
 
 		if (extension == ".html") {
@@ -366,6 +383,51 @@ static auto copie_fichiers(DonneesSite const &donnees)
 	return true;
 }
 
+static auto log_client_ftp(const std::string &chn)
+{
+	std::cerr << '\n' << __func__ << chn << '\n';
+}
+
+static bool envoie_fichiers(DonneesSite &donnees)
+{
+	if (donnees.chemins_fichiers.est_vide()) {
+		return true;
+	}
+
+	auto client_ftp = CFTPClient(log_client_ftp);
+
+	auto session_ouverte = client_ftp.InitSession(
+				donnees.ftp.hote.c_str(),
+				static_cast<unsigned>(donnees.ftp.port),
+				donnees.ftp.identifiant.c_str(),
+				donnees.ftp.mot_de_passe.c_str(),
+				CFTPClient::FTP_PROTOCOL::FTP);
+
+	if (!session_ouverte) {
+		std::cerr << "Impossible d'ouvrir une session curl\n";
+		return false;
+	}
+
+	auto chemin_ftp = filesystem::path(donnees.ftp.chemin.c_str());
+
+	std::cout << "Envoie des fichiers :" << std::endl;
+
+	for (auto const &paire : donnees.chemins_fichiers) {
+		auto chemin_cible = chemin_ftp / paire.second;
+
+		std::cout << '.' << std::endl;
+
+		auto ok = client_ftp.UploadFile(paire.first.c_str(), chemin_cible.c_str());
+
+		if (!ok) {
+			std::cerr << "Ne peut pas téléverser le fichier " << paire.first << '\n';
+			return false;
+		}
+	}
+
+	return true;
+}
+
 static auto deploie_sites(dls::tableau<DonneesSite> &donnees_sites)
 {
 	for (auto &donnees_site : donnees_sites) {
@@ -388,6 +450,12 @@ static auto deploie_sites(dls::tableau<DonneesSite> &donnees_sites)
 
 		if (!copie_fichiers(donnees_site)) {
 			std::cerr << "Impossible de traiter les fichier pour « " << donnees_site.nom << " »\n";
+			continue;
+		}
+
+		if (!envoie_fichiers(donnees_site)) {
+			std::cerr << "Impossible d'envoyer les fichiers pour « " << donnees_site.nom << " »\n";
+			continue;
 		}
 	}
 }
@@ -423,30 +491,7 @@ int main(int argc, char **argv)
 	deploie_sites(donnees_sites);
 
 #if 0
-	auto client_ftp = CFTPClient(nullptr);
 
-	auto session_ouverte = client_ftp.InitSession(
-				"",
-				0,
-				"",
-				"",
-				CFTPClient::FTP_PROTOCOL::FTP,
-				CFTPClient::NO_FLAGS);
-
-	if (!session_ouverte) {
-		std::cerr << "Impossible d'ouvrir une session curl\n";
-		return 1;
-	}
-
-	auto liste = std::string();
-	auto res = client_ftp.List("www/www", liste);
-
-	if (!res) {
-		std::cerr << "Impossible d'obtenir la liste des fichiers\n";
-		return 1;
-	}
-
-	std::cerr << "Liste :\n" << liste << '\n';
 
 #endif
 
