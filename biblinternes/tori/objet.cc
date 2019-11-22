@@ -26,6 +26,42 @@
 
 namespace tori {
 
+static void detruit_objet(Objet *objet)
+{
+	switch (objet->type) {
+		case type_objet::NUL:
+		{
+			delete objet;
+			break;
+		}
+		case type_objet::DICTIONNAIRE:
+		{
+			delete static_cast<ObjetDictionnaire *>(objet);
+			break;
+		}
+		case type_objet::TABLEAU:
+		{
+			delete static_cast<ObjetTableau *>(objet);
+			break;
+		}
+		case type_objet::CHAINE:
+		{
+			delete static_cast<ObjetChaine *>(objet);
+			break;
+		}
+		case type_objet::NOMBRE_ENTIER:
+		{
+			delete static_cast<ObjetNombreEntier *>(objet);
+			break;
+		}
+		case type_objet::NOMBRE_REEL:
+		{
+			delete static_cast<ObjetNombreReel *>(objet);
+			break;
+		}
+	}
+}
+
 std::shared_ptr<Objet> construit_objet(type_objet type)
 {
 	auto objet = static_cast<Objet *>(nullptr);
@@ -53,7 +89,7 @@ std::shared_ptr<Objet> construit_objet(type_objet type)
 
 	objet->type = type;
 
-	return std::shared_ptr<Objet>(objet);
+	return std::shared_ptr<Objet>(objet, detruit_objet);
 }
 
 std::shared_ptr<Objet> construit_objet(long v)
