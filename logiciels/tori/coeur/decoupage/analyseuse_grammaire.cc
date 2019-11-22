@@ -29,7 +29,6 @@
 #include "arbre_syntactic.hh"
 #include "assembleuse_arbre.hh"
 #include "erreur.hh"
-#include "objet.hh"
 
 /* ************************************************************************** */
 
