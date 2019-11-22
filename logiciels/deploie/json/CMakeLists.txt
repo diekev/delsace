@@ -19,30 +19,37 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(json)
-
-set(NOM_PROJET deploie)
+set(NOM_PROJET bib_json)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
 
 set(BIBLIOTHEQUES
-	bib_json
-	stdc++fs
+	langage
+	memoire
 	bib_structures
-	curl
+	bib_tori
 )
 
-add_executable(${NOM_PROJET}
-	deploie.cc
-	client_ftp.cc
+set(SOURCES
+	assembleuse_objet.cc
+	analyseuse_grammaire.cc
+	decoupeuse.cc
+	erreur.cc
+	json.cc
+	morceaux.cc
 
-	client_ftp.hh
+	assembleuse_objet.hh
+	analyseuse_grammaire.hh
+	decoupeuse.hh
+	erreur.hh
+	json.hh
+	morceaux.hh
 )
+
+add_library(${NOM_PROJET} STATIC "${SOURCES}")
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(${NOM_PROJET} ${BIBLIOTHEQUES})
-
-install(TARGETS ${NOM_PROJET} RUNTIME DESTINATION .)
+target_link_libraries(${NOM_PROJET} "${BIBLIOTHEQUES}")

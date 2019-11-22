@@ -27,6 +27,7 @@
 #include "biblinternes/structures/chaine.hh"
 
 #include "client_ftp.hh"
+#include "json/json.hh"
 
 namespace filesystem = std::filesystem;
 
@@ -143,6 +144,27 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	auto obj = json::compile_script(argv[1]);
+
+	if (obj == nullptr) {
+		std::cerr << "La compilation du script a renvoyé un objet nul !\n";
+		return 1;
+	}
+
+	if (obj->type != tori::type_objet::DICTIONNAIRE) {
+		std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
+		return 1;
+	}
+
+	auto dico = static_cast<tori::ObjetDictionnaire *>(obj.get());
+	auto sites = dico->valeur["sites"];
+
+	if (sites == nullptr) {
+		std::cerr << "Il n'y a pas de sites dans le dictionnaire !\n";
+		return 1;
+	}
+
+#else
 	auto chemin_dossier = filesystem::path(argv[1]);
 
 	if (!filesystem::is_directory(chemin_dossier)) {
@@ -205,7 +227,7 @@ int main(int argc, char **argv)
 	}
 
 	std::cout << '\n';
-#else
+
 	auto client_ftp = CFTPClient(nullptr);
 
 	auto session_ouverte = client_ftp.InitSession(
