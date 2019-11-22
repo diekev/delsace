@@ -113,7 +113,13 @@ static int minimise_html(
 		filesystem::path const &chemin_cible)
 {
 	auto commande = dls::chaine();
-	commande += "html-minifier --collapse-whitespace ";
+	commande += "html-minifier ";
+	commande += "--collapse-whitespace ";
+	commande += "--remove-comments ";
+	commande += "--minify-css ";
+	commande += "--minify-js ";
+	/* doit être à la fin pour une raison qui m'échappe */
+	commande += "--continue-on-parse-error ";
 	commande += chemin_source.string();
 	commande += " -o  ";
 	commande += chemin_cible.string();
