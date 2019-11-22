@@ -26,6 +26,7 @@
 
 #include <iostream>
 
+#include "biblinternes/langage/nombres.hh"
 
 #include "erreur.hh"
 
@@ -200,12 +201,33 @@ void analyseuse_grammaire::analyse_valeur(dls::vue_chaine const &nom_objet)
 			break;
 		}
 		case type_id::NOMBRE_ENTIER:
+		case type_id::NOMBRE_BINAIRE:
+		case type_id::NOMBRE_HEXADECIMAL:
+		case type_id::NOMBRE_OCTAL:
 		{
 			avance();
 
+			using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+
 			auto obj = m_assembleuse.cree_objet(nom_objet, tori::type_objet::NOMBRE_ENTIER);
 			auto obj_chaine = static_cast<tori::ObjetNombreEntier *>(obj.get());
-			obj_chaine->valeur = 0;
+			obj_chaine->valeur = denombreuse::converti_chaine_nombre_entier(
+						donnees().chaine,
+						donnees().identifiant);
+
+			break;
+		}
+		case type_id::NOMBRE_REEL:
+		{
+			avance();
+
+			using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+
+			auto obj = m_assembleuse.cree_objet(nom_objet, tori::type_objet::NOMBRE_REEL);
+			auto obj_chaine = static_cast<tori::ObjetNombreReel *>(obj.get());
+			obj_chaine->valeur = denombreuse::converti_chaine_nombre_reel(
+						donnees().chaine,
+						donnees().identifiant);
 
 			break;
 		}
