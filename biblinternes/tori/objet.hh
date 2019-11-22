@@ -128,4 +128,68 @@ struct ObjetNombreReel final : public Objet {
 
 std::shared_ptr<Objet> construit_objet(type_objet type);
 
+/* ************************************************************************** */
+
+inline auto extrait_dictionnaire(Objet *objet)
+{
+	assert(objet->type == type_objet::DICTIONNAIRE);
+	return static_cast<ObjetDictionnaire *>(objet);
+}
+
+inline auto extrait_dictionnaire(Objet const *objet)
+{
+	assert(objet->type == type_objet::DICTIONNAIRE);
+	return static_cast<ObjetDictionnaire const *>(objet);
+}
+
+inline auto extrait_tableau(Objet *objet)
+{
+	assert(objet->type == type_objet::TABLEAU);
+	return static_cast<ObjetTableau *>(objet);
+}
+
+inline auto extrait_tableau(Objet const *objet)
+{
+	assert(objet->type == type_objet::TABLEAU);
+	return static_cast<ObjetTableau const *>(objet);
+}
+
+inline auto extrait_chaine(Objet *objet)
+{
+	assert(objet->type == type_objet::CHAINE);
+	return static_cast<ObjetChaine *>(objet);
+}
+
+inline auto extrait_chaine(Objet const *objet)
+{
+	assert(objet->type == type_objet::CHAINE);
+	return static_cast<ObjetChaine const *>(objet);
+}
+
+inline auto extrait_nombre_entier(Objet *objet)
+{
+	assert(objet->type == type_objet::NOMBRE_ENTIER);
+	return static_cast<ObjetNombreEntier *>(objet);
+}
+
+inline auto extrait_nombre_entier(Objet const *objet)
+{
+	assert(objet->type == type_objet::NOMBRE_ENTIER);
+	return static_cast<ObjetNombreEntier const *>(objet);
+}
+
+inline auto extrait_nombre_reel(Objet *objet)
+{
+	assert(objet->type == type_objet::NOMBRE_REEL);
+	return static_cast<ObjetNombreReel *>(objet);
+}
+
+inline auto extrait_nombre_reel(Objet const *objet)
+{
+	assert(objet->type == type_objet::NOMBRE_REEL);
+	return static_cast<ObjetNombreReel const *>(objet);
+}
+
+/* ************************************************************************** */
+
 }  /* namespace tori */
