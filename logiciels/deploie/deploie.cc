@@ -131,49 +131,157 @@ static int minimise_html(
 	return 0;
 }
 
-/**
- * Dépendances :
- * npm install uglify-js html-minifier cssnano
- * sudo apt-get install libcurl4-openssl-dev
- */
-int main(int argc, char **argv)
-{
-#if 1
-	if (argc != 2) {
-		std::cerr << "Utilisation : " << argv[0] << " DOSSIER\n";
-		return 1;
+struct DonneesSite {
+	struct DonneesFTP {
+		dls::chaine hote{};
+		dls::chaine mot_de_passe{};
+		dls::chaine identifiant{};
+		int port = 0;
+	};
+
+	dls::chaine nom{};
+	dls::chaine chemin{};
+	DonneesFTP ftp{};
+
+	dls::tableau<dls::vue_chaine> erreurs{};
+
+	bool valide()
+	{
+		if (nom == "") {
+			ajoute_erreur("Le nom est vide");
+		}
+
+		if (chemin == "") {
+			ajoute_erreur("Le chemin est vide");
+		}
+		else {
+			if (!filesystem::exists(chemin.c_str())) {
+				ajoute_erreur("Le chemin n'existe pas");
+			}
+		}
+
+		if (ftp.hote == "") {
+			ajoute_erreur("Le chemin de l'hôte est vide");
+		}
+
+		if (ftp.mot_de_passe == "") {
+			ajoute_erreur("Le mot de passe de l'hôte est vide");
+		}
+
+		if (ftp.identifiant == "") {
+			ajoute_erreur("L'identifiant de l'hôte est vide");
+		}
+
+		if (ftp.port == 0) {
+			ajoute_erreur("Le port est égal à zéro");
+		}
+
+		return erreurs.est_vide();
 	}
 
-	auto obj = json::compile_script(argv[1]);
+	void ajoute_erreur(dls::vue_chaine const &message)
+	{
+		erreurs.pousse(message);
+	}
+};
+
+static auto analyse_configuration(const char *chemin)
+{
+	auto donnees_sites = dls::tableau<DonneesSite>();
+	auto obj = json::compile_script(chemin);
 
 	if (obj == nullptr) {
 		std::cerr << "La compilation du script a renvoyé un objet nul !\n";
-		return 1;
+		return donnees_sites;
 	}
 
 	if (obj->type != tori::type_objet::DICTIONNAIRE) {
 		std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
-		return 1;
+		return donnees_sites;
 	}
 
-	auto dico = static_cast<tori::ObjetDictionnaire *>(obj.get());
-	auto sites = dico->valeur["sites"];
+	auto dico = tori::extrait_dictionnaire(obj.get());
+
+	auto sites = cherche_tableau(dico, "sites");
 
 	if (sites == nullptr) {
-		std::cerr << "Il n'y a pas de sites dans le dictionnaire !\n";
-		return 1;
+		return donnees_sites;
 	}
 
-#else
-	auto chemin_dossier = filesystem::path(argv[1]);
+	for (auto obj_site : sites->valeur) {
+		donnees_sites.emplace_back();
+		auto &donnees_site = donnees_sites.back();
+
+		if (obj_site->type != tori::type_objet::DICTIONNAIRE) {
+			std::cerr << "L'objet n'est pas un dictionnaire !\n";
+			continue;
+		}
+
+		auto site = tori::extrait_dictionnaire(obj_site.get());
+
+		auto nom_site = cherche_chaine(site, "nom");
+
+		if (nom_site == nullptr) {
+			continue;
+		}
+
+		donnees_site.nom = nom_site->valeur;
+
+		auto chemin_site = cherche_chaine(site, "chemin");
+
+		if (chemin_site == nullptr) {
+			continue;
+		}
+
+		donnees_site.chemin = chemin_site->valeur;
+
+		auto ftp = cherche_dico(site, "ftp");
+
+		if (ftp == nullptr) {
+			continue;
+		}
+
+		auto obj_hote = cherche_chaine(ftp, "hôte");
+		auto obj_port = cherche_nombre_entier(ftp, "port");
+		auto obj_identifiant = cherche_chaine(ftp, "identifiant");
+		auto obj_mot_de_passe = cherche_chaine(ftp, "mot_de_passe");
+
+		if (obj_hote == nullptr) {
+			continue;
+		}
+
+		if (obj_port == nullptr) {
+			continue;
+		}
+
+		if (obj_identifiant == nullptr) {
+			continue;
+		}
+
+		if (obj_mot_de_passe == nullptr) {
+			continue;
+		}
+
+		donnees_site.ftp.hote = obj_hote->valeur;
+		donnees_site.ftp.port = static_cast<int>(obj_port->valeur);
+		donnees_site.ftp.identifiant = obj_identifiant->valeur;
+		donnees_site.ftp.mot_de_passe = obj_mot_de_passe->valeur;
+	}
+
+	return donnees_sites;
+}
+
+static auto copie_fichiers(DonneesSite const &donnees)
+{
+	auto chemin_dossier = filesystem::path(donnees.chemin.c_str());
 
 	if (!filesystem::is_directory(chemin_dossier)) {
 		std::cerr << "Le chemin " << chemin_dossier << " ne pointe pas vers un dossier !\n";
-		return 1;
+		return false;
 	}
 
 	auto nom_dossier = chemin_dossier.stem();
-	std::cout << "Déploiement de " << nom_dossier << '\n';
+	std::cout << "Déploiement de " << donnees.nom << " (" << nom_dossier << ")\n";
 
 	auto dossier_cible = filesystem::path("/home/kevin/deploie/") / nom_dossier;
 
@@ -201,22 +309,22 @@ int main(int argc, char **argv)
 
 		if (extension == ".html") {
 			if (minimise_html(chemin_source, chemin_cible) == 1) {
-				return 1;
+				return false;
 			}
 		}
 		else if (extension == ".js") {
 			if (minimise_js(chemin_source, chemin_cible) == 1) {
-				return 1;
+				return false;
 			}
 		}
 		else if (extension == ".jsx") {
 			if (minimise_jsx(chemin_source, chemin_cible) == 1) {
-				return 1;
+				return false;
 			}
 		}
 		else if (extension == ".css") {
 			if (minimise_css(chemin_source, chemin_cible) == 1) {
-				return 1;
+				return false;
 			}
 		}
 		else {
@@ -228,6 +336,66 @@ int main(int argc, char **argv)
 
 	std::cout << '\n';
 
+	return true;
+}
+
+static auto deploie_sites(dls::tableau<DonneesSite> &donnees_sites)
+{
+	for (auto &donnees_site : donnees_sites) {
+		if (!donnees_site.valide()) {
+			std::cerr << "Impossible de déployer « " << donnees_site.nom << " »\n";
+
+			if (donnees_site.erreurs.taille() == 1) {
+				std::cerr << "Une erreur est survenue :\n";
+			}
+			else {
+				std::cerr << "Plusieurs erreurs sont survenues :\n";
+			}
+
+			for (auto const &erreur : donnees_site.erreurs) {
+				std::cerr << '\t' << erreur << '\n';
+			}
+
+			continue;
+		}
+
+		if (!copie_fichiers(donnees_site)) {
+			std::cerr << "Impossible de traiter les fichier pour « " << donnees_site.nom << " »\n";
+		}
+	}
+}
+
+/**
+ * Dépendances :
+ * npm install uglify-js html-minifier cssnano
+ * sudo apt-get install libcurl4-openssl-dev
+ */
+int main(int argc, char **argv)
+{
+	if (argc != 2) {
+		std::cerr << "Utilisation : " << argv[0] << " FICHIER\n";
+		return 1;
+	}
+
+	if (!filesystem::exists(argv[1])) {
+		std::cerr << "Le fichier \"" << argv[1] << "\" n'existe pas !\n";
+		return 1;
+	}
+
+	if (!filesystem::is_regular_file(argv[1])) {
+		std::cerr << "\"" << argv[1] << "\" n'est pas un fichier !\n";
+		return 1;
+	}
+
+	auto donnees_sites = analyse_configuration(argv[1]);
+
+	if (donnees_sites.est_vide()) {
+		return 1;
+	}
+
+	deploie_sites(donnees_sites);
+
+#if 0
 	auto client_ftp = CFTPClient(nullptr);
 
 	auto session_ouverte = client_ftp.InitSession(
