@@ -26,6 +26,40 @@
 
 namespace tori {
 
+const char *chaine_type(type_objet type)
+{
+	switch (type) {
+		case type_objet::NUL:
+		{
+			return "NUL";
+		}
+		case type_objet::DICTIONNAIRE:
+		{
+			return "DICTIONNAIRE";
+		}
+		case type_objet::TABLEAU:
+		{
+			return "TABLEAU";
+		}
+		case type_objet::CHAINE:
+		{
+			return "CHAINE";
+		}
+		case type_objet::NOMBRE_ENTIER:
+		{
+			return "NOMBRE_ENTIER";
+		}
+		case type_objet::NOMBRE_REEL:
+		{
+			return "NOMBRE_REEL";
+		}
+	}
+
+	return "INVALIDE";
+}
+
+/* ************************************************************************** */
+
 static void detruit_objet(Objet *objet)
 {
 	switch (objet->type) {
@@ -122,6 +156,85 @@ std::shared_ptr<Objet> construit_objet(char const *v)
 	objet->valeur = v;
 	objet->type = type_objet::CHAINE;
 	return objet;
+}
+
+/* ************************************************************************** */
+
+static Objet *cherche_propriete(
+		ObjetDictionnaire *dico,
+		dls::chaine const &nom,
+		type_objet type)
+{
+	auto objet = dico->objet(nom);
+
+	if (objet == nullptr) {
+		std::cerr << "La propriété « " << nom << " » n'existe pas !\n";
+		return nullptr;
+	}
+
+	if (objet->type != type) {
+		std::cerr << "La propriété « " << nom << " » n'est pas de type « "
+				  << chaine_type(type) << " » (mais de type « "
+				  << chaine_type(objet->type) << " ») !\n";
+		return nullptr;
+	}
+
+	return objet;
+}
+
+ObjetChaine *cherche_chaine(ObjetDictionnaire *dico, const dls::chaine &nom)
+{
+	auto objet = cherche_propriete(dico, nom, type_objet::CHAINE);
+
+	if (objet == nullptr) {
+		return nullptr;
+	}
+
+	return extrait_chaine(objet);
+}
+
+ObjetDictionnaire *cherche_dico(ObjetDictionnaire *dico, const dls::chaine &nom)
+{
+	auto objet = cherche_propriete(dico, nom, type_objet::DICTIONNAIRE);
+
+	if (objet == nullptr) {
+		return nullptr;
+	}
+
+	return extrait_dictionnaire(objet);
+}
+
+ObjetNombreEntier *cherche_nombre_entier(ObjetDictionnaire *dico, const dls::chaine &nom)
+{
+	auto objet = cherche_propriete(dico, nom, type_objet::NOMBRE_ENTIER);
+
+	if (objet == nullptr) {
+		return nullptr;
+	}
+
+	return extrait_nombre_entier(objet);
+}
+
+ObjetNombreReel *cherche_nombre_reel(ObjetDictionnaire *dico, const dls::chaine &nom)
+{
+	auto objet = cherche_propriete(dico, nom, type_objet::NOMBRE_REEL);
+
+	if (objet == nullptr) {
+		return nullptr;
+	}
+
+	return extrait_nombre_reel(objet);
+}
+
+ObjetTableau *cherche_tableau(ObjetDictionnaire *dico, const dls::chaine &nom)
+{
+	auto objet = cherche_propriete(dico, nom, type_objet::TABLEAU);
+
+	if (objet == nullptr) {
+		return nullptr;
+	}
+
+	return extrait_tableau(objet);
 }
 
 }  /* namespace tori */

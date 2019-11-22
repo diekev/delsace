@@ -41,6 +41,10 @@ enum type_objet : unsigned {
 	NOMBRE_REEL,
 };
 
+const char *chaine_type(type_objet type);
+
+/* ************************************************************************** */
+
 struct Objet {
 	type_objet type = type_objet::NUL;
 	int pad{};
@@ -72,6 +76,33 @@ struct ObjetDictionnaire final : public Objet {
 	void insere(dls::chaine const &cle, std::shared_ptr<Objet> const &v)
 	{
 		valeur[cle] = v;
+	}
+
+	bool possede(dls::chaine const &cle) const
+	{
+		return valeur.trouve(cle) != valeur.fin();
+	}
+
+	bool possede(dls::tableau<dls::chaine> const &cles) const
+	{
+		for (auto const &cle : cles) {
+			if (!possede(cle)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	Objet *objet(dls::chaine const &cle) const
+	{
+		auto iter = valeur.trouve(cle);
+
+		if (iter == valeur.fin()) {
+			return nullptr;
+		}
+
+		return iter->second.get();
 	}
 };
 
@@ -191,5 +222,25 @@ inline auto extrait_nombre_reel(Objet const *objet)
 }
 
 /* ************************************************************************** */
+
+ObjetChaine *cherche_chaine(
+		ObjetDictionnaire *dico,
+		dls::chaine const &nom);
+
+ObjetDictionnaire *cherche_dico(
+		ObjetDictionnaire *dico,
+		dls::chaine const &nom);
+
+ObjetNombreEntier *cherche_nombre_entier(
+		ObjetDictionnaire *dico,
+		dls::chaine const &nom);
+
+ObjetNombreReel *cherche_nombre_reel(
+		ObjetDictionnaire *dico,
+		dls::chaine const &nom);
+
+ObjetTableau *cherche_tableau(
+		ObjetDictionnaire *dico,
+		dls::chaine const &nom);
 
 }  /* namespace tori */
