@@ -277,6 +277,23 @@ static auto analyse_configuration(const char *chemin)
 	return donnees_sites;
 }
 
+static bool besoin_ajournement(
+		filesystem::path const &chemin_source,
+		filesystem::path const &chemin_cible)
+{
+	if (!filesystem::exists(chemin_cible)) {
+		return true;
+	}
+
+	struct stat etat_source;
+	struct stat etat_cible;
+
+	stat(chemin_source.c_str(), &etat_source);
+	stat(chemin_cible.c_str(), &etat_cible);
+
+	return etat_source.st_mtim.tv_sec > etat_cible.st_mtim.tv_sec;
+}
+
 static auto copie_fichiers(DonneesSite const &donnees)
 {
 	auto chemin_dossier = filesystem::path(donnees.chemin.c_str());
@@ -311,6 +328,12 @@ static auto copie_fichiers(DonneesSite const &donnees)
 
 		filesystem::create_directories(chemin_cible.parent_path());
 
+		std::cout << '.' << std::flush;
+
+		if (!besoin_ajournement(chemin_source, chemin_cible)) {
+			continue;
+		}
+
 		//std::cout << "Copie de " << chemin_source << "\n\t-- cible : " << chemin_cible << '\n';
 
 		if (extension == ".html") {
@@ -336,8 +359,6 @@ static auto copie_fichiers(DonneesSite const &donnees)
 		else {
 			filesystem::copy(chemin_source, chemin_cible, filesystem::copy_options::overwrite_existing);
 		}
-
-		std::cout << '.' << std::flush;
 	}
 
 	std::cout << '\n';
