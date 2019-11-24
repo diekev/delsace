@@ -791,9 +791,11 @@ bool CFTPClient::DownloadWildcard(const std::string& strLocalDir, const std::str
  *    // if they don't exist and if the connected user has the proper rights.
  * @endcode
  */
-bool CFTPClient::UploadFile(const std::string& strLocalFile,
-								  const std::string& strRemoteFile,
-								  const bool& bCreateDir) const
+bool CFTPClient::UploadFile(
+		const std::string& strLocalFile,
+		const std::string& strRemoteFile,
+		const dls::tableau<dls::chaine> &commandes,
+		const bool& bCreateDir) const
 {
 	if (strLocalFile.empty() || strRemoteFile.empty())
 		return false;
@@ -844,6 +846,16 @@ bool CFTPClient::UploadFile(const std::string& strLocalFile,
 		/* enable uploading */
 		curl_easy_setopt(m_pCurlSession, CURLOPT_UPLOAD, 1L);
 
+		auto headerlist = static_cast<struct curl_slist*>(nullptr);
+
+		for (auto const &cmd : commandes) {
+			headerlist = curl_slist_append(headerlist, cmd.c_str());
+		}
+
+		if (headerlist != nullptr) {
+			curl_easy_setopt(m_pCurlSession, CURLOPT_POSTQUOTE, headerlist);
+		}
+
 		if (bCreateDir)
 			curl_easy_setopt(m_pCurlSession, CURLOPT_FTP_CREATE_MISSING_DIRS, CURLFTP_CREATE_DIR);
 
@@ -858,6 +870,10 @@ bool CFTPClient::UploadFile(const std::string& strLocalFile,
 		}
 		else
 			bRes = true;
+
+		if (headerlist != nullptr) {
+			curl_slist_free_all(headerlist);
+		}
 	}
 	InputFile.close();
 

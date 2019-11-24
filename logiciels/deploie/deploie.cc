@@ -143,6 +143,7 @@ struct DonneesSite {
 		dls::chaine mot_de_passe{};
 		dls::chaine identifiant{};
 		dls::chaine chemin{};
+		dls::chaine nom_exec{};
 		int port = 0;
 	};
 
@@ -259,6 +260,7 @@ static auto analyse_configuration(const char *chemin)
 		auto obj_identifiant = cherche_chaine(ftp, "identifiant");
 		auto obj_mot_de_passe = cherche_chaine(ftp, "mot_de_passe");
 		auto obj_chemin = cherche_chaine(ftp, "chemin");
+		auto obj_exec = cherche_chaine(ftp, "exéc");
 
 		if (obj_hote == nullptr) {
 			continue;
@@ -285,6 +287,7 @@ static auto analyse_configuration(const char *chemin)
 		donnees_site.ftp.identifiant = obj_identifiant->valeur;
 		donnees_site.ftp.mot_de_passe = obj_mot_de_passe->valeur;
 		donnees_site.ftp.chemin = obj_chemin->valeur;
+		donnees_site.ftp.nom_exec = obj_exec->valeur;
 	}
 
 	return donnees_sites;
@@ -412,17 +415,26 @@ static bool envoie_fichiers(DonneesSite &donnees)
 
 	std::cout << "Envoie des fichiers :" << std::endl;
 
+	auto commandes = dls::tableau<dls::chaine>();
+
 	for (auto const &paire : donnees.chemins_fichiers) {
 		auto chemin_cible = chemin_ftp / paire.second;
 
+		if (paire.second.filename() == filesystem::path(donnees.ftp.nom_exec.c_str())) {
+			auto commande = dls::chaine("SITE CHMOD 705 ") + "/" + chemin_cible.c_str();
+			commandes.pousse(commande);
+		}
+
 		std::cout << '.' << std::endl;
 
-		auto ok = client_ftp.UploadFile(paire.first.c_str(), chemin_cible.c_str());
+		auto ok = client_ftp.UploadFile(paire.first.c_str(), chemin_cible.c_str(), commandes);
 
 		if (!ok) {
 			std::cerr << "Ne peut pas téléverser le fichier " << paire.first << '\n';
 			return false;
 		}
+
+		commandes.efface();
 	}
 
 	client_ftp.CleanupSession();

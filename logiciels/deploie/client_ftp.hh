@@ -11,6 +11,9 @@
 
 #define FTPCLIENT_VERSION "FTPCLIENT_VERSION_1.0.0"
 
+#include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/tableau.hh"
+
 #include <algorithm>
 #include <atomic>
 #include <cstddef>         // std::size_t
@@ -161,6 +164,7 @@ public:
 
    bool UploadFile(const std::string& strLocalFile,
 						 const std::string& strRemoteFile,
+				   dls::tableau<dls::chaine> const &commandes,
 						 const bool& bCreateDir = false) const;
 
    // SSL certs
