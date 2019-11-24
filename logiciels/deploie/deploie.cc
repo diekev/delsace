@@ -425,6 +425,8 @@ static bool envoie_fichiers(DonneesSite &donnees)
 		}
 	}
 
+	client_ftp.CleanupSession();
+
 	return true;
 }
 
