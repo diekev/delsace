@@ -1,43 +1,43 @@
 importe "flux"
 
 struct TEST {
-    m = "Membre de la structure";
-    tabl : [2]z32;
-    mat4x4 : [4][4]z32;
+    m = "Membre de la structure"
+    tabl : [2]z32
+    mat4x4 : [4][4]z32
 }
 
 struct TEST2 {
-    tests : [2]TEST;
+    tests : [2]TEST
 }
 
 fonc hex_depuis_char(hex : z8) : z8
 {
-    retourne "0123456789ABCDEF"[hex];
+    retourne "0123456789ABCDEF"[hex]
 }
 
 fonc principale(args : []*z8) : z32
 {
-    dyn y : [2]z32;
-    y[0] = 12389;
+    dyn y : [2]z32
+    y[0] = 12389
 
-    dyn t : TEST;
-    tabl[0] de t = 127;
+    dyn t : TEST
+    tabl[0] de t = 127
 
-    soit z = [0, 1];
+    soit z = [0, 1]
 
     #z[0] = 3;
 
 	pour i dans 0 ... 15 {
-	    imprime("Hex : ", i, " = ", hex_depuis_char(transtype(i : z8)), '\n');
+	    imprime("Hex : ", i, " = ", hex_depuis_char(transtype(i : z8)), '\n')
 	}
 
-	t2 : TEST2;
+	t2 : TEST2
 
-	x = @tabl[0] de tests[0] de t2;
-	y0 = mat4x4[0][1] de tests[1] de t2;
+	x = @tabl[0] de tests[0] de t2
+	y0 = mat4x4[0][1] de tests[1] de t2
 
-	dyn w : [3]z32;
-	w[taille de y] = 0;
+	dyn w : [3]z32
+	w[taille de y] = 0
 
-	retourne 0;
+	retourne 0
 }

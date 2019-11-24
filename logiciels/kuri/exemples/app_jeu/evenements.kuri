@@ -165,16 +165,16 @@
 }
 
 struct Évènement {
-    type = NUL de type_évènement;
-	mods = AUCUN de type_mod;
-	cle = INCONNU de type_cle;
-	souris = AUCUN de bouton_souris;
+    type = NUL de type_évènement
+	mods = AUCUN de type_mod
+	cle = INCONNU de type_cle
+	souris = AUCUN de bouton_souris
 
 	# position de la souris
-	pos_x : r64 = 0.0;
-	pos_y : r64 = 0.0;
+	pos_x : r64 = 0.0
+	pos_y : r64 = 0.0
 
 	# delta de la roulette
-	delta_x : r64 = 0.0;
-	delta_y : r64 = 0.0;
+	delta_x : r64 = 0.0
+	delta_y : r64 = 0.0
 }

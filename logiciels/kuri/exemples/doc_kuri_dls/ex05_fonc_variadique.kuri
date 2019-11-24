@@ -1,12 +1,12 @@
 fonc somme_carrée(args : ...r64) : r64
 {
-	dyn résultat = 0.0;
+	dyn résultat = 0.0
 
 	pour x dans args {
 		pour y dans args {
-			résultat = résultat + x * y;
+			résultat = résultat + x * y
 		}
 	}
 
-	retourne résultat / (taille de args);
+	retourne résultat / (taille de args)
 }

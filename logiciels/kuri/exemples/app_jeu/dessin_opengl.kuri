@@ -5,12 +5,12 @@ importe "structures"
 importe "glew"
 importe "flux"
 
-dyn VertexArrayID : n32 = 0;
-dyn ProgramID : n32 = 0;
-dyn vertexbuffer : n32 = 0;
-dyn colorbuffer : n32 = 0;
-dyn tabl_sommets : *tableau = nul;
-dyn tabl_couleur : *tableau = nul;
+dyn VertexArrayID : n32 = 0
+dyn ProgramID : n32 = 0
+dyn vertexbuffer : n32 = 0
+dyn colorbuffer : n32 = 0
+dyn tabl_sommets : *tableau = nul
+dyn tabl_couleur : *tableau = nul
 
 fonc charge_programme() : n32
 {
@@ -25,7 +25,7 @@ fonc charge_programme() : n32
         gl_Position.w = 1.0;
         couleur = couleurs;
     }
-    ";
+    "
 
     soit source_fragment = "
     #version 330 core
@@ -35,284 +35,284 @@ fonc charge_programme() : n32
     {
         couleur_fragment = couleur;
     }
-    ";
+    "
 
     # crée les nuanceurs
-	soit VertexShaderID = glCreateShader(VERTEX_SHADER de OGL);
-	soit FragmentShaderID = glCreateShader(FRAGMENT_SHADER de OGL);
+	soit VertexShaderID = glCreateShader(VERTEX_SHADER de OGL)
+	soit FragmentShaderID = glCreateShader(FRAGMENT_SHADER de OGL)
 
-    soit taille_src_vertex = transtype(taille de source_vertex : z32);
-	glShaderSource(VertexShaderID, 1, @pointeur de source_vertex , @taille_src_vertex);
-	glCompileShader(VertexShaderID);
-
-    # verifie la compilation
-    dyn Result : z32 = 0;
-    dyn InfoLogLength : z32 = 0;
-    glGetShaderiv(VertexShaderID, LINK_STATUS de OGL, @Result);
-	glGetShaderiv(VertexShaderID, INFO_LOG_LENGTH de OGL, @InfoLogLength);
-
-    si InfoLogLength > 0 {
-		soit ProgramErrorMessage = loge chaine(InfoLogLength+1);
-		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, pointeur de ProgramErrorMessage);
-		imprime("!!!!! Erreur compilation : VertexShaderID", ProgramErrorMessage, '\n');
-        déloge ProgramErrorMessage;
-	}
-
-    soit taille_src_fragment = transtype(taille de source_fragment : z32);
-	glShaderSource(FragmentShaderID, 1, @pointeur de source_fragment , @taille_src_fragment);
-	glCompileShader(FragmentShaderID);
+    soit taille_src_vertex = transtype(taille de source_vertex : z32)
+	glShaderSource(VertexShaderID, 1, @pointeur de source_vertex , @taille_src_vertex)
+	glCompileShader(VertexShaderID)
 
     # verifie la compilation
-    Result = 0;
-    InfoLogLength = 0;
-    glGetShaderiv(FragmentShaderID, LINK_STATUS de OGL, @Result);
-	glGetShaderiv(FragmentShaderID, INFO_LOG_LENGTH de OGL, @InfoLogLength);
+    dyn Result : z32 = 0
+    dyn InfoLogLength : z32 = 0
+    glGetShaderiv(VertexShaderID, LINK_STATUS de OGL, @Result)
+	glGetShaderiv(VertexShaderID, INFO_LOG_LENGTH de OGL, @InfoLogLength)
 
     si InfoLogLength > 0 {
-		soit ProgramErrorMessage = loge chaine(InfoLogLength+1);
-		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, pointeur de ProgramErrorMessage);
-		imprime("!!!!! Erreur compilation : FragmentShaderID", ProgramErrorMessage, '\n');
-        déloge ProgramErrorMessage;
+		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
+		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, pointeur de ProgramErrorMessage)
+		imprime("!!!!! Erreur compilation : VertexShaderID", ProgramErrorMessage, '\n')
+        déloge ProgramErrorMessage
 	}
 
-    soit ProgramID_ = glCreateProgram();
-	glAttachShader(ProgramID_, VertexShaderID);
-	glAttachShader(ProgramID_, FragmentShaderID);
-	glLinkProgram(ProgramID_);
+    soit taille_src_fragment = transtype(taille de source_fragment : z32)
+	glShaderSource(FragmentShaderID, 1, @pointeur de source_fragment , @taille_src_fragment)
+	glCompileShader(FragmentShaderID)
+
+    # verifie la compilation
+    Result = 0
+    InfoLogLength = 0
+    glGetShaderiv(FragmentShaderID, LINK_STATUS de OGL, @Result)
+	glGetShaderiv(FragmentShaderID, INFO_LOG_LENGTH de OGL, @InfoLogLength)
+
+    si InfoLogLength > 0 {
+		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
+		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, pointeur de ProgramErrorMessage)
+		imprime("!!!!! Erreur compilation : FragmentShaderID", ProgramErrorMessage, '\n')
+        déloge ProgramErrorMessage
+	}
+
+    soit ProgramID_ = glCreateProgram()
+	glAttachShader(ProgramID_, VertexShaderID)
+	glAttachShader(ProgramID_, FragmentShaderID)
+	glLinkProgram(ProgramID_)
 
     # verifie la liaison
-    Result = 0;
-    InfoLogLength = 0;
-    glGetProgramiv(ProgramID_, COMPILE_STATUS de OGL, @Result);
-	glGetProgramiv(ProgramID_, INFO_LOG_LENGTH de OGL, @InfoLogLength);
+    Result = 0
+    InfoLogLength = 0
+    glGetProgramiv(ProgramID_, COMPILE_STATUS de OGL, @Result)
+	glGetProgramiv(ProgramID_, INFO_LOG_LENGTH de OGL, @InfoLogLength)
 
     si InfoLogLength > 0 {
-		soit ProgramErrorMessage = loge chaine(InfoLogLength+1);
-		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, pointeur de ProgramErrorMessage);
-		imprime("!!!!! Erreur liaison : ProgramID", ProgramErrorMessage, '\n');
-        déloge ProgramErrorMessage;
+		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
+		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, pointeur de ProgramErrorMessage)
+		imprime("!!!!! Erreur liaison : ProgramID", ProgramErrorMessage, '\n')
+        déloge ProgramErrorMessage
 	}
 
-	glDetachShader(ProgramID_, VertexShaderID);
-	glDetachShader(ProgramID_, FragmentShaderID);
+	glDetachShader(ProgramID_, VertexShaderID)
+	glDetachShader(ProgramID_, FragmentShaderID)
 
-	glDeleteShader(VertexShaderID);
-	glDeleteShader(FragmentShaderID);
+	glDeleteShader(VertexShaderID)
+	glDeleteShader(FragmentShaderID)
 
-    retourne ProgramID_;
+    retourne ProgramID_
 }
 
 fonc initialise_tampon_dessin() : rien
 {
     nonsûr {
-        tabl_sommets = crée_tableau(transtype(taille_de(z32) : z64));
-        tabl_couleur = crée_tableau(transtype(taille_de(z32) : z64));
-        ProgramID = charge_programme();
+        tabl_sommets = crée_tableau(transtype(taille_de(z32) : z64))
+        tabl_couleur = crée_tableau(transtype(taille_de(z32) : z64))
+        ProgramID = charge_programme()
     }
 
-    glGenVertexArrays(1, @VertexArrayID);
-    glGenBuffers(1, @vertexbuffer);
-    glGenBuffers(1, @colorbuffer);
+    glGenVertexArrays(1, @VertexArrayID)
+    glGenBuffers(1, @vertexbuffer)
+    glGenBuffers(1, @colorbuffer)
 }
 
 fonc issitialise_tampon_dessin() : rien
 {
-    glDeleteVertexArrays(1, @VertexArrayID);
-    glDeleteBuffers(1, @vertexbuffer);
-    glDeleteBuffers(1, @colorbuffer);
-    decrée_tableau(tabl_sommets);
-    decrée_tableau(tabl_couleur);
-    glDeleteProgram(ProgramID);
+    glDeleteVertexArrays(1, @VertexArrayID)
+    glDeleteBuffers(1, @vertexbuffer)
+    glDeleteBuffers(1, @colorbuffer)
+    decrée_tableau(tabl_sommets)
+    decrée_tableau(tabl_couleur)
+    glDeleteProgram(ProgramID)
 }
 
 fonc débute_dessin() : rien
 {
-    glBindVertexArray(VertexArrayID);
+    glBindVertexArray(VertexArrayID)
 }
 
 fonc termine_dessin() : rien
 {
-    glUseProgram(ProgramID);
+    glUseProgram(ProgramID)
 
-    glEnableVertexAttribArray(0);
-    glBindBuffer(ARRAY_BUFFER de OGL, vertexbuffer);
-    glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_sommets * taille_de(z32) : n64), pointeur de tampon de tabl_sommets, STATIC_DRAW de OGL);
-    glVertexAttribPointer(0, 3, FLOAT de OGL, FALSE de OGL, 0, nul);
+    glEnableVertexAttribArray(0)
+    glBindBuffer(ARRAY_BUFFER de OGL, vertexbuffer)
+    glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_sommets * taille_de(z32) : n64), pointeur de tampon de tabl_sommets, STATIC_DRAW de OGL)
+    glVertexAttribPointer(0, 3, FLOAT de OGL, FALSE de OGL, 0, nul)
 
-    glEnableVertexAttribArray(1);
-    glBindBuffer(ARRAY_BUFFER de OGL, colorbuffer);
-    glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_couleur * taille_de(z32) : n64), pointeur de tampon de tabl_couleur, STATIC_DRAW de OGL);
-    glVertexAttribPointer(1, 4, FLOAT de OGL, FALSE de OGL, 0, nul);
+    glEnableVertexAttribArray(1)
+    glBindBuffer(ARRAY_BUFFER de OGL, colorbuffer)
+    glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_couleur * taille_de(z32) : n64), pointeur de tampon de tabl_couleur, STATIC_DRAW de OGL)
+    glVertexAttribPointer(1, 4, FLOAT de OGL, FALSE de OGL, 0, nul)
 
-    glDrawArrays(TRIANGLES de OGL, 0, taille de tabl_sommets / 3);
-    glDisableVertexAttribArray(0);
+    glDrawArrays(TRIANGLES de OGL, 0, taille de tabl_sommets / 3)
+    glDisableVertexAttribArray(0)
 
-    glUseProgram(0);
+    glUseProgram(0)
 
     nonsûr {
-        taille de tabl_sommets = 0;
-        taille de tabl_couleur = 0;
+        taille de tabl_sommets = 0
+        taille de tabl_couleur = 0
     }
 
-    glBindVertexArray(0);
+    glBindVertexArray(0)
 }
 
 fonc ajoute_sommet(x : r32, y : r32, z : r32) : rien
 {
-    pousse_tableau(tabl_sommets, @x);
-    pousse_tableau(tabl_sommets, @y);
-    pousse_tableau(tabl_sommets, @z);
+    pousse_tableau(tabl_sommets, @x)
+    pousse_tableau(tabl_sommets, @y)
+    pousse_tableau(tabl_sommets, @z)
 }
 
 struct Couleur {
-    r : r32 = 0.0;
-    v : r32 = 0.0;
-    b : r32 = 0.0;
-    a : r32 = 0.0;
+    r : r32 = 0.0
+    v : r32 = 0.0
+    b : r32 = 0.0
+    a : r32 = 0.0
 }
 
 fonc ajoute_couleur(coul : Couleur) : rien
 {
-    pousse_tableau(tabl_couleur, @r de coul);
-    pousse_tableau(tabl_couleur, @v de coul);
-    pousse_tableau(tabl_couleur, @b de coul);
-    pousse_tableau(tabl_couleur, @a de coul);
+    pousse_tableau(tabl_couleur, @r de coul)
+    pousse_tableau(tabl_couleur, @v de coul)
+    pousse_tableau(tabl_couleur, @b de coul)
+    pousse_tableau(tabl_couleur, @a de coul)
 }
 
 fonc dessine_triangle() : rien
 {
-    débute_dessin();
+    débute_dessin()
 
-    ajoute_sommet(-1.0, -1.0, 0.0);
-    ajoute_sommet( 1.0, -1.0, 0.0);
-    ajoute_sommet( 0.0,  1.0, 0.0);
+    ajoute_sommet(-1.0, -1.0, 0.0)
+    ajoute_sommet( 1.0, -1.0, 0.0)
+    ajoute_sommet( 0.0,  1.0, 0.0)
 
-    termine_dessin();
+    termine_dessin()
 }
 
 fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) : rien
 {
-    débute_dessin();
+    débute_dessin()
 
-    soit min_x = px;
-    soit min_y = py;
-    soit max_x = px + tx;
-    soit max_y = py + ty;
+    soit min_x = px
+    soit min_y = py
+    soit max_x = px + tx
+    soit max_y = py + ty
 
-    ajoute_sommet(min_x, min_y, 0.0);
-    ajoute_couleur(coul);
-    ajoute_sommet(max_x, min_y, 0.0);
-    ajoute_couleur(coul);
-    ajoute_sommet(min_x, max_y, 0.0);
-    ajoute_couleur(coul);
+    ajoute_sommet(min_x, min_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(max_x, min_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(min_x, max_y, 0.0)
+    ajoute_couleur(coul)
 
-    ajoute_sommet(max_x, min_y, 0.0);
-    ajoute_couleur(coul);
-    ajoute_sommet(max_x, max_y, 0.0);
-    ajoute_couleur(coul);
-    ajoute_sommet(min_x, max_y, 0.0);
-    ajoute_couleur(coul);
+    ajoute_sommet(max_x, min_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(max_x, max_y, 0.0)
+    ajoute_couleur(coul)
+    ajoute_sommet(min_x, max_y, 0.0)
+    ajoute_couleur(coul)
 
-    termine_dessin();
+    termine_dessin()
 }
 
 fonc dessine_carré() : rien
 {
-    soit couleur = Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 };
-    dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur);
+    soit couleur = Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
+    dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur)
 }
 
-fonc externe cos(a : r32) : r32;
-fonc externe sin(a : r32) : r32;
+fonc externe cos(a : r32) : r32
+fonc externe sin(a : r32) : r32
 
 fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) : rien
 {
-    débute_dessin();
+    débute_dessin()
 
-    soit segs = 32;
-    dyn phi = transtype(0.0 : r32);
-    dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs : r32) : r32);
+    soit segs = 32
+    dyn phi = transtype(0.0 : r32)
+    dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs : r32) : r32)
 
     pour i dans 0...segs - 1 {
-        soit ca0 = cx + cos(phi) * rx;
-        soit sa0 = cy + sin(phi) * ry;
+        soit ca0 = cx + cos(phi) * rx
+        soit sa0 = cy + sin(phi) * ry
 
-        soit ca1 = cx + cos(phi + phi_delta) * rx;
-        soit sa1 = cy + sin(phi + phi_delta) * ry;
+        soit ca1 = cx + cos(phi + phi_delta) * rx
+        soit sa1 = cy + sin(phi + phi_delta) * ry
 
-        ajoute_sommet(cx, cy, 0.0);
-        ajoute_sommet(ca0, sa0, 0.0);
-        ajoute_sommet(ca1, sa1, 0.0);
+        ajoute_sommet(cx, cy, 0.0)
+        ajoute_sommet(ca0, sa0, 0.0)
+        ajoute_sommet(ca1, sa1, 0.0)
 
-        phi += phi_delta;
+        phi += phi_delta
     }
 
-    termine_dessin();
+    termine_dessin()
 }
 
 fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32) : rien
 {
-    débute_dessin();
+    débute_dessin()
 
-    soit segs = 8;
-    dyn phi = transtype(quadrant : r32) * (3.14159 / 2.0);
-    dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32);
+    soit segs = 8
+    dyn phi = transtype(quadrant : r32) * (3.14159 / 2.0)
+    dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
 
     pour i dans 0...segs - 1 {
-        soit ca0 = cx + cos(phi) * rx;
-        soit sa0 = cy + sin(phi) * ry;
+        soit ca0 = cx + cos(phi) * rx
+        soit sa0 = cy + sin(phi) * ry
 
-        soit ca1 = cx + cos(phi + phi_delta) * rx;
-        soit sa1 = cy + sin(phi + phi_delta) * ry;
+        soit ca1 = cx + cos(phi + phi_delta) * rx
+        soit sa1 = cy + sin(phi + phi_delta) * ry
 
-        ajoute_sommet(cx, cy, 0.0);
-        ajoute_sommet(ca0, sa0, 0.0);
-        ajoute_sommet(ca1, sa1, 0.0);
+        ajoute_sommet(cx, cy, 0.0)
+        ajoute_sommet(ca0, sa0, 0.0)
+        ajoute_sommet(ca1, sa1, 0.0)
 
-        phi += phi_delta;
+        phi += phi_delta
     }
 
-    termine_dessin();
+    termine_dessin()
 }
 
 fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) : rien
 {
-    soit rx = arrondis_pixel / largeur;
-    soit ry = arrondis_pixel / hauteur;
+    soit rx = arrondis_pixel / largeur
+    soit ry = arrondis_pixel / hauteur
 
-    soit px : r32 = transtype(-1.0 + rx : r32);
-    soit py : r32 = transtype(-1.0 + ry : r32);
-    soit tx : r32 = transtype(2.0 - 2.0 * rx : r32);
-    soit ty : r32 = transtype(2.0 - 2.0 * ry : r32);
+    soit px : r32 = transtype(-1.0 + rx : r32)
+    soit py : r32 = transtype(-1.0 + ry : r32)
+    soit tx : r32 = transtype(2.0 - 2.0 * rx : r32)
+    soit ty : r32 = transtype(2.0 - 2.0 * ry : r32)
 
-    soit couleur = Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 };
+    soit couleur = Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
 
     # dessine centre
-    dessine_carré_ex(px, py, tx, ty, couleur);
+    dessine_carré_ex(px, py, tx, ty, couleur)
 
     # dessine rect gauche
-    dessine_carré_ex(px - rx, py, rx, ty, couleur);
+    dessine_carré_ex(px - rx, py, rx, ty, couleur)
 
     # dessine rect droite
-    dessine_carré_ex(px + tx, py, rx, ty, couleur);
+    dessine_carré_ex(px + tx, py, rx, ty, couleur)
 
     # dessine rect dessus
-    dessine_carré_ex(px, py + ty, tx, ry, couleur);
+    dessine_carré_ex(px, py + ty, tx, ry, couleur)
 
     # dessine rect dessous
-    dessine_carré_ex(px, py - ry, tx, ry, couleur);
+    dessine_carré_ex(px, py - ry, tx, ry, couleur)
 
     # dessine coin haut-gauche
-    dessine_quart_cercle(px, py + ty, rx, ry, 1);
+    dessine_quart_cercle(px, py + ty, rx, ry, 1)
 
     # dessine coin haut-droite
-    dessine_quart_cercle(px + tx, py + ty, rx, ry, 0);
+    dessine_quart_cercle(px + tx, py + ty, rx, ry, 0)
 
     # dessine coin bas-gauche
-    dessine_quart_cercle(px, py, rx, ry, 2);
+    dessine_quart_cercle(px, py, rx, ry, 2)
 
     # dessine coin bas-droite
-    dessine_quart_cercle(px + tx, py, rx, ry, 3);
+    dessine_quart_cercle(px + tx, py, rx, ry, 3)
 }
 
 fonc dessine_bouton() : rien

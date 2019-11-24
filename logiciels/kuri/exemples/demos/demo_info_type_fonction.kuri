@@ -2,12 +2,12 @@ importe "info_type"
 importe "flux"
 
 struct Objet {
-    nom = "objet";
+    nom = "objet"
 }
 
 fonc execute_noeud(obj1 : &Objet, objs : []&Objet) : z32, *Objet
 {
-    retourne 0, nul;
+    retourne 0, nul
 }
 
 fonc imprime_type(info : *InfoType) : rien
@@ -15,134 +15,134 @@ fonc imprime_type(info : *InfoType) : rien
     associe id de info {
 	    ENTIER de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypeEntier);
+		    soit info_arg = transtype(info : *InfoTypeEntier)
 
             si est_signé de info_arg {
 			    si taille_en_octet de info_arg == 8 {
-				    imprime("z8");
+				    imprime("z8")
 				}
 				sinon si taille_en_octet de info_arg == 16 {
-				    imprime("z16");
+				    imprime("z16")
 				}
 				sinon si taille_en_octet de info_arg == 32 {
-				    imprime("z32");
+				    imprime("z32")
 				}
 				sinon si taille_en_octet de info_arg == 64 {
-				    imprime("z64");
+				    imprime("z64")
 				}
 			}
 			sinon {
 			    si taille_en_octet de info_arg == 8 {
-				    imprime("n8");
+				    imprime("n8")
 				}
 				sinon si taille_en_octet de info_arg == 16 {
-				    imprime("n16");
+				    imprime("n16")
 				}
 				sinon si taille_en_octet de info_arg == 32 {
-				    imprime("n32");
+				    imprime("n32")
 				}
 				sinon si taille_en_octet de info_arg == 64 {
-				    imprime("n64");
+				    imprime("n64")
 				}
 			}
 		}
 		RÉEL de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypeRéel);
+		    soit info_arg = transtype(info : *InfoTypeRéel)
 
             si taille_en_octet de info_arg == 16 {
-			    imprime("r16");
+			    imprime("r16")
 			}
 			sinon si taille_en_octet de info_arg == 32 {
-			    imprime("r32");
+			    imprime("r32")
 			}
 			sinon si taille_en_octet de info_arg == 64 {
-			    imprime("r64");
+			    imprime("r64")
 			}
 		}
 		BOOLÉEN de id_info
 		{
-			imprime("bool");
+			imprime("bool")
 		}
 		CHAINE de id_info
 		{
-			imprime("chaine");
+			imprime("chaine")
 		}
 		STRUCTURE de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypeStructure);
-			imprime(nom de info_arg);
+		    soit info_arg = transtype(info : *InfoTypeStructure)
+			imprime(nom de info_arg)
 		}
 		POINTEUR de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypePointeur);
+		    soit info_arg = transtype(info : *InfoTypePointeur)
 
 		    si info_arg.est_référence {
-			    imprime('&');
+			    imprime('&')
 		    }
 		    sinon {
-			    imprime('*');
+			    imprime('*')
 		    }
 
-			imprime_type(info_arg.type_pointé);
+			imprime_type(info_arg.type_pointé)
 		}
 		FONCTION de id_info
 		{
 		    # À FAIRE : types paramètres
-			imprime("fonction()");
+			imprime("fonction()")
 		}
 		EINI de id_info
 		{
-			imprime("eini");
+			imprime("eini")
 		}
 		RIEN de id_info
 		{
-			imprime("rien");
+			imprime("rien")
 		}
 		TABLEAU de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypeTableau);
-			imprime("[]");
-			imprime_type(info_arg.type_pointé);
+		    soit info_arg = transtype(info : *InfoTypeTableau)
+			imprime("[]")
+			imprime_type(info_arg.type_pointé)
 		}
 		ÉNUM de id_info
 		{
-		    soit info_arg = transtype(info : *InfoTypeÉnum);
-			imprime(nom de info_arg);
+		    soit info_arg = transtype(info : *InfoTypeÉnum)
+			imprime(nom de info_arg)
 		}
 	}
 }
 
 fonc enregistre_noeud(fonc_exec : eini) : rien
 {
-    info = fonc_exec.info;
+    info = fonc_exec.info
 
     si info.id != id_info.FONCTION {
-        imprime("Obtenu autre chose qu'une fonction !", '\n');
-        retourne;
+        imprime("Obtenu autre chose qu'une fonction !", '\n')
+        retourne
     }
 
-    info_fonc = transtype(info : *InfoTypeFonction);
+    info_fonc = transtype(info : *InfoTypeFonction)
 
-    imprime("Les types d'entrée sont : ", '\n');
+    imprime("Les types d'entrée sont : ", '\n')
 
     pour type dans info_fonc.types_entrée {
-        imprime("Type = ");
-        imprime_type(type);
-        imprime('\n');
+        imprime("Type = ")
+        imprime_type(type)
+        imprime('\n')
     }
 
-    imprime("Les types de sortie sont : ", '\n');
+    imprime("Les types de sortie sont : ", '\n')
 
     pour type dans info_fonc.types_sortie {
-        imprime("Type = ");
-        imprime_type(type);
-        imprime('\n');
+        imprime("Type = ")
+        imprime_type(type)
+        imprime('\n')
     }
 }
 
 fonc principale(args : []*z8) : z32
 {
-    enregistre_noeud(execute_noeud);
-    retourne 0;
+    enregistre_noeud(execute_noeud)
+    retourne 0
 }

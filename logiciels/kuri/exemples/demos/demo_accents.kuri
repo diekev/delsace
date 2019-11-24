@@ -6,8 +6,8 @@ importe "flux"
 }
 
 struct Structurée {
-    membrée : z32;
-    fn_pointée : fonc()rien;
+    membrée : z32
+    fn_pointée : fonc()rien
 }
 
 fonc fée() : rien
@@ -16,31 +16,31 @@ fonc fée() : rien
 
 fonc prend_énum(lumière : Énumération) : rien
 {
-    imprime("Valeur passée : ", lumière, '\n');
+    imprime("Valeur passée : ", lumière, '\n')
 }
 
 fonc principale(args : []*z8) : z32
 {
-    soit début = 0;
-    soit fin = 9;
+    soit début = 0
+    soit fin = 9
     
     pour à, è dans début ... fin {
-        prend_énum(LUMIÈRE de Énumération);
+        prend_énum(LUMIÈRE de Énumération)
     }
     
-    dyn structurée0 : Structurée;
-    membrée de structurée0 = 68;
-    fn_pointée de structurée0 = fée;
-    soit structurée1 = Structurée{ membrée = 123 };
+    dyn structurée0 : Structurée
+    membrée de structurée0 = 68
+    fn_pointée de structurée0 = fée
+    soit structurée1 = Structurée{ membrée = 123 }
     
-    soit x = membrée de structurée1;
-    soit y = LUMIÈRE de Énumération;
+    soit x = membrée de structurée1
+    soit y = LUMIÈRE de Énumération
     
-    soit car = '\n';
+    soit car = '\n'
     
-    soit chaine_française = « chaine frainçaise »;
+    soit chaine_française = « chaine frainçaise »
     
-    imprime("structurée1 : ", structurée1, '\n');    
+    imprime("structurée1 : ", structurée1, '\n')    
     
-    retourne 0;
+    retourne 0
 }

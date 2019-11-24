@@ -7,48 +7,48 @@ fonc est_premier(n : z32) : bool
      }
 
      si (n % 2 == 0) || (n % 3 == 0) {
-        retourne faux;
+        retourne faux
      }
 
-     dyn i = 5;
+     dyn i = 5
 
      tantque i * i <= n {
         si (n % i == 0) || (n % (i + 2) == 0) {
-            retourne faux;
+            retourne faux
         }
 
-        i += 6;
+        i += 6
      }
 
-     retourne vrai;
+     retourne vrai
 }
 
 corout genere_premiers(n : z32) : z32
 {
-    dyn nombre = 0;
-    dyn dernier = 0;
+    dyn nombre = 0
+    dyn dernier = 0
 
     tantque nombre < n {
         boucle {
             si est_premier(dernier) {
-                retiens dernier;
+                retiens dernier
 
-                dernier += 1;
-                arrête;
+                dernier += 1
+                arrête
             }
 
-            dernier += 1;
+            dernier += 1
         }
 
-        nombre += 1;
+        nombre += 1
     }
 }
 
 fonc principale(args : []*z8) : z32
 {
     pour i, j dans genere_premiers(100) {
-        imprime(j, " : ", i, '\n');
+        imprime(j, " : ", i, '\n')
     }
 
-    retourne 0;
+    retourne 0
 }

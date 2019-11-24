@@ -1,16 +1,16 @@
 importe "flux"
 
-N = 5;
+N = 5
 
 struct XYZ {
-    a = 128.0;
-    b : type_de(a);
+    a = 128.0
+    b : type_de(a)
 }
 
 fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) : rien
 {
     pour v, i dans b {
-        a[i] = v;
+        a[i] = v
     }
 }
 
@@ -23,27 +23,27 @@ fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) : rien
 # lors de la génération
 fonc ajoute(a : $T, b : $T) : $T
 {
-    retourne a + b;
+    retourne a + b
 }
 
 fonc principale(args : []*z8) : type_de(N)
 {
-    x = 5.0;
-    dyn y : type_de(x);
+    x = 5.0
+    dyn y : type_de(x)
 
-    infos = info_de(y);
+    infos = info_de(y)
 
-    imprime(mémoire(infos), '\n');
+    imprime(mémoire(infos), '\n')
 
-    imprime("N = ", N, '\n');
+    imprime("N = ", N, '\n')
 
-    z = faux;
+    z = faux
 
-    w : type_de(z) = vrai;
+    w : type_de(z) = vrai
 
-    a = 0;
+    a = 0
 
-    b = transtype(a : type_de(w));
+    b = transtype(a : type_de(w))
 
-    retourne 0;
+    retourne 0
 }

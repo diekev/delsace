@@ -1,31 +1,31 @@
 importe "flux"
 
 struct TEST {
-    x = 5;
-    y = "une chaine au hasard";
-    z = 0.35;
+    x = 5
+    y = "une chaine au hasard"
+    z = 0.35
 }
 
 fonc imprime_test(empl test : TEST) : rien
 {
-    imprime("x = ", x, '\n');
-    imprime("y = ", y, '\n');
-    imprime("z = ", z, '\n');
+    imprime("x = ", x, '\n')
+    imprime("y = ", y, '\n')
+    imprime("z = ", z, '\n')
 }
 
 fonc modifie_test(dyn empl test : *TEST) : rien
 {
-    x = 7;
-    y = "chaine modifiée";
-    z = 135.75;
+    x = 7
+    y = "chaine modifiée"
+    z = 135.75
 }
 
 fonc principale(args : []*z8) : z32
 {
-    test : TEST;
-    imprime_test(test);
-    modifie_test(@test);
-    imprime_test(test);
+    test : TEST
+    imprime_test(test)
+    modifie_test(@test)
+    imprime_test(test)
 
-    retourne 0;
+    retourne 0
 }
