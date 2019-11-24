@@ -787,6 +787,8 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_STRUCTURE);
 
 					expression.pousse(noeud);
+
+					termine_boucle = true;
 				}
 				/* variable : chaine */
 				else {
