@@ -473,7 +473,7 @@ struct Convertisseuse {
 				std::cout << clang_getCursorSpelling(cursor);
 				std::cout << " : ";
 				std::cout << converti_type(cursor);
-				std::cout << ";\n";
+				std::cout << '\n';
 				break;
 			}
 			case CXCursorKind::CXCursor_EnumDecl:
@@ -578,7 +578,7 @@ struct Convertisseuse {
 					convertis(enfants[i], trans_unit);
 
 					if (enfants.taille() > 1 && i < enfants.taille() - 1) {
-						std::cout << ";\n";
+						std::cout << '\n';
 						--profondeur;
 						imprime_tab();
 						++profondeur;
@@ -671,18 +671,6 @@ struct Convertisseuse {
 					imprime_tab();
 					convertis(enfant, trans_unit);
 
-					/* il est possible que le point-virgule ne soit pas désiré, par exemple
-					 * après le '}' à la fin de certains blocs (if, for, etc.) */
-					auto besoin_point_virgule = !est_element(
-								enfant.kind,
-								CXCursorKind::CXCursor_IfStmt,
-								CXCursorKind::CXCursor_WhileStmt,
-								CXCursorKind::CXCursor_ForStmt);
-
-					if (besoin_point_virgule) {
-						std::cout << ';';
-					}
-
 					std::cout << '\n';
 				}
 
@@ -705,7 +693,7 @@ struct Convertisseuse {
 				convertis(enfants[1], trans_unit);
 
 				if (non_compound) {
-					std::cout << ";\n";
+					std::cout << '\n';
 				}
 
 				--profondeur;
@@ -733,7 +721,7 @@ struct Convertisseuse {
 						convertis(enfants[2], trans_unit);
 
 						if (non_compound) {
-							std::cout << ";\n";
+							std::cout << '\n';
 						}
 
 						--profondeur;
@@ -790,7 +778,7 @@ struct Convertisseuse {
 				 *
 				 * boucle {
 				 *		si i < 10 {
-				 *			arrête;
+				 *			arrête
 				 *		}
 				 *
 				 *		...
@@ -802,7 +790,7 @@ struct Convertisseuse {
 				/* int i = 0 */
 				std::cout << "dyn ";
 				convertis(enfants[0], trans_unit);
-				std::cout << ";\n";
+				std::cout << '\n';
 
 				--profondeur;
 				imprime_tab();
@@ -816,7 +804,7 @@ struct Convertisseuse {
 				std::cout << ") {\n";
 				++profondeur;
 				imprime_tab();
-				std::cout << "arrête;\n";
+				std::cout << "arrête\n";
 				--profondeur;
 
 				imprime_tab();
@@ -828,7 +816,7 @@ struct Convertisseuse {
 				/* ++i */
 				imprime_tab();
 				convertis(enfants[2], trans_unit);
-				std::cout << ";\n";
+				std::cout << '\n';
 
 				--profondeur;
 				imprime_tab();
