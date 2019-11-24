@@ -4,7 +4,7 @@ fonc exemple(args : ...r64) : r64
 
 	pour x dans args {
 		pour y dans args {
-			résultat = résultat + x * y
+			résultat += x * y
 		}
 	}
 
