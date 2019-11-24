@@ -127,14 +127,16 @@ Zones d'ombres
 Sécurité/évitement des bugs
 ---------------------------
 - les variables sont constantes par défaut
-- les variables doivent être initialisées lors de leur déclaration
-- aucune conversion n'est implicite (sauf pour les valeurs littérales)
+- les variables sont initialisées à zéro lors de leur déclaration
+- aucune conversion n'est implicite (sauf pour les valeurs littérales, quand cela est sensé, z32 -> z64)
 - les contrôles de flux doivent avoir des valeurs booléennes explicit
 - l'opérateur booléen d'inversion '!' ne peut prendre qu'une valeur booléenne
 - les portées doivent être explicitement entourées de { } pour éviter que des expressions ne devant qu'être exécutées dans un contrôle de flux ne soient pas exécutées en dehors.
 - l'opérateur d'assignemet '=' ne retourne pas de valeur pour éviter toute confusion avec '==' (peut-être à réviser puisque il n'a pas de conversion implicite vers des valeurs booléennes)
 - les ombrages de variables sont interdites, toutes les variables dans une portée ne peuvent avoir le nom d'une variable déjà déclarée dans une portée parente
-- variables globales non constante interdites
+- blocs explicites : impossible de ne pas avoir un bloc afin de mieux définir ce qui se trouve dans un bloc
+- accès aléatoire via des index protégé
+- conservation de la taille des tableaux et des chaines (contrairement à C qui les jette et utilise un pointeur nul pour définir la fin)
 
 
 Néologismes
