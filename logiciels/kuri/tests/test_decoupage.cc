@@ -92,7 +92,9 @@ decoupeuse_texte decoupeuse(str, str + len);
 
 	const DonneesMorceau donnees_morceaux[] = {
 		{ " ceci est une chaine française avec espaces ", id_morceau::CHAINE_LITTERALE },
+		{ "\n", id_morceau::POINT_VIRGULE },
 		{ "ceci est une chaine française sans espaces", id_morceau::CHAINE_LITTERALE },
+		{ "\n", id_morceau::POINT_VIRGULE },
 		{ "soit", id_morceau::SOIT },
 		{ "str", id_morceau::CHAINE_CARACTERE },
 		{ "=", id_morceau::EGAL },

@@ -45,6 +45,7 @@ class decoupeuse_texte {
 	long m_taille_mot_courant = 0;
 
 	int m_drapeaux = 0;
+	id_morceau m_dernier_id = id_morceau::INCONNU;
 
 public:
 	explicit decoupeuse_texte(DonneesModule *module, int drapeaux = 0);

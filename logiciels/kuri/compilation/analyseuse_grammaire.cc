@@ -376,6 +376,11 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		}
 	}
 	else {
+		/* ignore les points-virgules implicites */
+		if (est_identifiant(id_morceau::POINT_VIRGULE)) {
+			avance();
+		}
+
 		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 			lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 		}

@@ -32,6 +32,70 @@
 
 /* ************************************************************************** */
 
+/* Point-virgule implicite.
+ *
+ * Un point-virgule est ajouter quand nous rencontrons une nouvelle ligne si le
+ * dernier identifiant correspond à l'un des cas suivants :
+ *
+ * - une chaine de caractère (nom de variable) ou un type
+ * - une littérale (nombre, chaine, faux, vrai)
+ * - une des instructions de controle de flux suivantes : retourne, arrête, continue
+ * - une parenthèse ou en un crochet fermant
+ */
+static bool doit_ajouter_point_virgule(id_morceau dernier_id)
+{
+	switch (dernier_id) {
+		default:
+		{
+			return false;
+		}
+		/* types */
+		case id_morceau::N8:
+		case id_morceau::N16:
+		case id_morceau::N32:
+		case id_morceau::N64:
+		case id_morceau::N128:
+		case id_morceau::R16:
+		case id_morceau::R32:
+		case id_morceau::R64:
+		case id_morceau::R128:
+		case id_morceau::Z8:
+		case id_morceau::Z16:
+		case id_morceau::Z32:
+		case id_morceau::Z64:
+		case id_morceau::Z128:
+		case id_morceau::BOOL:
+		case id_morceau::RIEN:
+		case id_morceau::EINI:
+		case id_morceau::CHAINE:
+		case id_morceau::OCTET:
+		case id_morceau::CHAINE_CARACTERE:
+		/* littérales */
+		case id_morceau::CHAINE_LITTERALE:
+		case id_morceau::NOMBRE_REEL:
+		case id_morceau::NOMBRE_ENTIER:
+		case id_morceau::NOMBRE_OCTAL:
+		case id_morceau::NOMBRE_HEXADECIMAL:
+		case id_morceau::NOMBRE_BINAIRE:
+		case id_morceau::CARACTERE:
+		case id_morceau::VRAI:
+		case id_morceau::FAUX:
+		case id_morceau::NUL:
+		/* instructions */
+		case id_morceau::ARRETE:
+		case id_morceau::CONTINUE:
+		case id_morceau::RETOURNE:
+		/* fermeture */
+		case id_morceau::PARENTHESE_FERMANTE:
+		case id_morceau::CROCHET_FERMANT:
+		{
+			return true;
+		}
+	}
+}
+
+/* ************************************************************************** */
+
 decoupeuse_texte::decoupeuse_texte(DonneesModule *module, int drapeaux)
 	: m_module(module)
 	, m_debut_mot(module->tampon.debut())
@@ -272,6 +336,14 @@ void decoupeuse_texte::analyse_caractere_simple()
 			this->pousse_mot(id_morceau::CARACTERE_BLANC);
 		}
 
+		if (this->caractere_courant() == '\n') {
+			if (doit_ajouter_point_virgule(m_dernier_id)) {
+				this->enregistre_pos_mot();
+				this->pousse_caractere();
+				this->pousse_mot(id_morceau::POINT_VIRGULE);
+			}
+		}
+
 		this->avance();
 	}
 	else if (est_caractere_special(this->caractere_courant(), idc)) {
@@ -440,6 +512,7 @@ void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
 	m_module->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_module->id) });
 	m_taille_mot_courant = 0;
+	m_dernier_id = identifiant;
 }
 
 void decoupeuse_texte::enregistre_pos_mot()
