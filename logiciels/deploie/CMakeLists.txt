@@ -25,13 +25,14 @@ set(NOM_PROJET deploie)
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/../../
+	${INCLUSIONS_CURL}/../
 )
 
 set(BIBLIOTHEQUES
 	bib_json
 	stdc++fs
 	bib_structures
-	curl
+	${BIBLIOTHEQUES_CURL}
 )
 
 add_executable(${NOM_PROJET}

@@ -388,6 +388,10 @@ if(AVEC_JORJALA)
 	set(REQUIERS_BIB_XML ON)
 endif(AVEC_JORJALA)
 
+if(AVEC_DEPLOIE)
+	find_package(Curl REQUIRED)
+endif(AVEC_DEPLOIE)
+
 if(REQUIERS_QT)
 	find_package(Qt5Core REQUIRED)
 	set(INCLUSIONS_QT5_CORE ${Qt5Core_INCLUDE_DIRS})
