@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "vec234.h"
-#include "platform.h"
 #include "vertex-buffer.h"
 
 /**

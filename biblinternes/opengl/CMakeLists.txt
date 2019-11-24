@@ -38,7 +38,6 @@ set(FTGL
 	texte/distance-field.c
 	texte/edtaa3func.c
 	texte/font-manager.c
-	texte/platform.c
 	texte/text-buffer.c
 	texte/texture-atlas.c
 	texte/texture-font.c
@@ -52,7 +51,6 @@ set(FTGL
 	texte/freetype-gl.h
 	texte/markup.h
 	texte/opengl.h
-	texte/platform.h
 	texte/text-buffer.h
 	texte/texture-atlas.h
 	texte/texture-font.h
