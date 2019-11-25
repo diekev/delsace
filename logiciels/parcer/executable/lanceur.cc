@@ -350,6 +350,23 @@ static auto determine_operateur_binaire(
 	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
 
+static auto est_operateur_unaire(CXString const &str)
+{
+	auto c_str = clang_getCString(str);
+
+	const char *operateurs[] = {
+		"+", "-", "++", "--", "!", "&", "~", "*"
+	};
+
+	for (auto op : operateurs) {
+		if (strcmp(c_str, op) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static auto determine_operateur_unaire(
 		CXCursor cursor,
 		CXTranslationUnit trans_unit)
@@ -360,6 +377,13 @@ static auto determine_operateur_unaire(
 	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
 	auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
+
+	/* les opérateurs post-fix sont après */
+	if (!est_operateur_unaire(spelling)) {
+		clang_disposeString(spelling);
+
+		spelling = clang_getTokenSpelling(trans_unit, tokens[nombre_tokens - 1]);
+	}
 
 	dls::chaine chn = clang_getCString(spelling);
 	clang_disposeString(spelling);
