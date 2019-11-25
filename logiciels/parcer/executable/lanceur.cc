@@ -809,43 +809,87 @@ struct Convertisseuse {
 				 *		++i;
 				 * }
 				 */
+
+				/* Les enfants, si la boucle a toutes les expressions :
+				 * - le premier est soit :
+				 *   un DeclStmt -> for (int i = 0...) ou for (int i = 0, j = 0...)
+				 *   un BinaryOperator -> for (i = 0, j = 1) ou for (i = 0...)
+				 *
+				 * - le deuxième est soit :
+				 *   un BinaryOperator (de type bool) -> for (...; i < 10; ...)
+				 *
+				 * - le troisième est soit :
+				 *   un UnaryOperator -> for (...; ...; ++i)
+				 *   un BinaryOperator -> for (...; ...; ++i, ++j) ou for (...; ...; i + j)
+				 *   un CompoundAssignOperator -> (...; ...; i += 1)
+				 *
+				 * - le quatrième est soit :
+				 *   un CompountStmt -> for (;;) { ... }
+				 *   une expression simple
+				 *
+				 * Il est possible qu'il manque des expressions -> for (;;) { ... }
+				 * donc que le nombre d'enfants ne soit pas égal à 4 (À FAIRE)
+				 */
 				auto enfants = rassemble_enfants(cursor);
 
-				/* int i = 0 */
-				std::cout << "dyn ";
-				convertis(enfants[0], trans_unit);
-				std::cout << '\n';
+				if (enfants.taille() == 1) {
+					/* nous avons une boucle sans expressions for (;;) { ... } */
 
-				--profondeur;
-				imprime_tab();
-				++profondeur;
-				std::cout << "boucle {\n";
+					--profondeur;
+					imprime_tab();
+					++profondeur;
+					std::cout << "boucle {\n";
 
-				/* i < 10 */
-				imprime_tab();
-				std::cout << "si !(";
-				convertis(enfants[1], trans_unit);
-				std::cout << ") {\n";
-				++profondeur;
-				imprime_tab();
-				std::cout << "arrête\n";
-				--profondeur;
+					if (enfants[0].kind != CXCursorKind::CXCursor_CompoundStmt) {
+						imprime_tab();
+					}
 
-				imprime_tab();
-				std::cout << "}\n";
+					convertis(enfants[0], trans_unit);
 
-				/* ... */
-				convertis(enfants[3], trans_unit);
+					std::cout <<'\n';
 
-				/* ++i */
-				imprime_tab();
-				convertis(enfants[2], trans_unit);
-				std::cout << '\n';
+					--profondeur;
+					imprime_tab();
+					++profondeur;
+					std::cout << "}\n";
+				}
+				else {
+					/* int i = 0 */
+					std::cout << "dyn ";
+					convertis(enfants[0], trans_unit);
+					std::cout << '\n';
 
-				--profondeur;
-				imprime_tab();
-				++profondeur;
-				std::cout << "}";
+					--profondeur;
+					imprime_tab();
+					++profondeur;
+					std::cout << "boucle {\n";
+
+					/* i < 10 */
+					imprime_tab();
+					std::cout << "si !(";
+					convertis(enfants[1], trans_unit);
+					std::cout << ") {\n";
+					++profondeur;
+					imprime_tab();
+					std::cout << "arrête\n";
+					--profondeur;
+
+					imprime_tab();
+					std::cout << "}\n";
+
+					/* ... */
+					convertis(enfants[3], trans_unit);
+
+					/* ++i */
+					imprime_tab();
+					convertis(enfants[2], trans_unit);
+					std::cout << '\n';
+
+					--profondeur;
+					imprime_tab();
+					++profondeur;
+					std::cout << "}";
+				}
 
 				break;
 			}
