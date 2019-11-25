@@ -63,15 +63,23 @@ static int minimise_js(
 }
 
 static int minimise_jsx(
+		filesystem::path const &chemin_babel,
 		filesystem::path const &chemin_source,
 		filesystem::path const &chemin_cible)
 {
-	/* À FAIRE : appel babel */
+	if (chemin_babel == "") {
+		std::cerr << "Le chemin pour Babel n'est pas renseigné\n";
+		return 1;
+	}
+
+	auto ancien_chemin = filesystem::current_path();
+	filesystem::current_path(chemin_babel);
+
 	auto commande = dls::chaine();
-	commande += "uglifyjs --compress --mangle -o ";
-	commande += chemin_cible.string();
-	commande += " -- ";
+	commande += "./node_modules/.bin/babel ";
 	commande += chemin_source.string();
+	commande += " -o ";
+	commande += chemin_cible.string();
 
 	//std::cout << "\t-- Minimisation de " << chemin_cible << '\n';
 	//std::cout << "\t-- commande : " << commande << '\n';
@@ -79,9 +87,15 @@ static int minimise_jsx(
 	auto err = system(commande.c_str());
 
 	if (err != 0) {
-		std::cerr << "Ne peut pas minimiser le fichier " << chemin_cible << '\n';
+		std::cerr << "[Babel] Ne peut pas compiler le fichier " << chemin_cible << '\n';
+		filesystem::current_path(ancien_chemin);
 		return 1;
 	}
+
+	/* À FAIRE : minifie le code généré, uglifyjs ne fonctionne pas avec la
+	 * syntaxe ES6 -> autre plugin */
+
+	filesystem::current_path(ancien_chemin);
 
 	return 0;
 }
@@ -199,19 +213,24 @@ struct DonneesSite {
 	}
 };
 
+struct DonneesScript {
+	dls::tableau<DonneesSite> donnees_sites{};
+	filesystem::path chemin_babel{};
+};
+
 static auto analyse_configuration(const char *chemin)
 {
-	auto donnees_sites = dls::tableau<DonneesSite>();
+	auto donnees_script = DonneesScript{};
 	auto obj = json::compile_script(chemin);
 
 	if (obj == nullptr) {
 		std::cerr << "La compilation du script a renvoyé un objet nul !\n";
-		return donnees_sites;
+		return donnees_script;
 	}
 
 	if (obj->type != tori::type_objet::DICTIONNAIRE) {
 		std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
-		return donnees_sites;
+		return donnees_script;
 	}
 
 	auto dico = tori::extrait_dictionnaire(obj.get());
@@ -219,12 +238,18 @@ static auto analyse_configuration(const char *chemin)
 	auto sites = cherche_tableau(dico, "sites");
 
 	if (sites == nullptr) {
-		return donnees_sites;
+		return donnees_script;
+	}
+
+	auto chemin_babel = cherche_chaine(dico, "chemin_babel");
+
+	if (chemin_babel != nullptr) {
+		donnees_script.chemin_babel = chemin_babel->valeur.c_str();
 	}
 
 	for (auto obj_site : sites->valeur) {
-		donnees_sites.emplace_back();
-		auto &donnees_site = donnees_sites.back();
+		donnees_script.donnees_sites.emplace_back();
+		auto &donnees_site = donnees_script.donnees_sites.back();
 
 		if (obj_site->type != tori::type_objet::DICTIONNAIRE) {
 			std::cerr << "L'objet n'est pas un dictionnaire !\n";
@@ -290,7 +315,7 @@ static auto analyse_configuration(const char *chemin)
 		donnees_site.ftp.nom_exec = obj_exec->valeur;
 	}
 
-	return donnees_sites;
+	return donnees_script;
 }
 
 static bool besoin_ajournement(
@@ -310,7 +335,7 @@ static bool besoin_ajournement(
 	return etat_source.st_mtim.tv_sec > etat_cible.st_mtim.tv_sec;
 }
 
-static auto copie_fichiers(DonneesSite &donnees)
+static auto copie_fichiers(DonneesSite &donnees, filesystem::path const &chemin_babel)
 {
 	auto chemin_dossier = filesystem::path(donnees.chemin.c_str());
 
@@ -367,7 +392,7 @@ static auto copie_fichiers(DonneesSite &donnees)
 			}
 		}
 		else if (extension == ".jsx") {
-			if (minimise_jsx(chemin_source, chemin_cible) == 1) {
+			if (minimise_jsx(chemin_babel, chemin_source, chemin_cible) == 1) {
 				return false;
 			}
 		}
@@ -442,9 +467,9 @@ static bool envoie_fichiers(DonneesSite &donnees)
 	return true;
 }
 
-static auto deploie_sites(dls::tableau<DonneesSite> &donnees_sites)
+static auto deploie_sites(DonneesScript &donnees_script)
 {
-	for (auto &donnees_site : donnees_sites) {
+	for (auto &donnees_site : donnees_script.donnees_sites) {
 		if (!donnees_site.valide()) {
 			std::cerr << "Impossible de déployer « " << donnees_site.nom << " »\n";
 
@@ -462,7 +487,7 @@ static auto deploie_sites(dls::tableau<DonneesSite> &donnees_sites)
 			continue;
 		}
 
-		if (!copie_fichiers(donnees_site)) {
+		if (!copie_fichiers(donnees_site, donnees_script.chemin_babel)) {
 			std::cerr << "Impossible de traiter les fichier pour « " << donnees_site.nom << " »\n";
 			continue;
 		}
@@ -496,13 +521,13 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto donnees_sites = analyse_configuration(argv[1]);
+	auto donnees_script = analyse_configuration(argv[1]);
 
-	if (donnees_sites.est_vide()) {
+	if (donnees_script.donnees_sites.est_vide()) {
 		return 1;
 	}
 
-	deploie_sites(donnees_sites);
+	deploie_sites(donnees_script);
 
 #if 0
 
