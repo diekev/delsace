@@ -24,6 +24,7 @@
 #include <iostream>
 #include <filesystem>
 
+#include "biblinternes/outils/fichier.hh"
 #include "biblinternes/structures/chaine.hh"
 
 #include "client_ftp.hh"
@@ -124,7 +125,8 @@ static int minimise_css(
 
 static int minimise_html(
 		filesystem::path const &chemin_source,
-		filesystem::path const &chemin_cible)
+		filesystem::path const &chemin_cible,
+		dls::tableau<std::pair<dls::chaine, dls::chaine>> const &remplacements)
 {
 	auto commande = dls::chaine();
 	commande += "html-minifier ";
@@ -146,6 +148,31 @@ static int minimise_html(
 	if (err != 0) {
 		std::cerr << "Ne peut pas minimiser le fichier " << chemin_cible << '\n';
 		return 1;
+	}
+
+	/* performe les remplacements si nécessaire */
+
+	if (remplacements.est_vide()) {
+		return 0;
+	}
+
+	auto contenu = dls::contenu_fichier(chemin_cible.c_str());
+	auto change = false;
+
+	for (auto const &paire : remplacements) {
+		auto pos = contenu.trouve(paire.first);
+
+		if (pos == -1) {
+			continue;
+		}
+
+		contenu.remplace(pos, paire.first.taille(), paire.second);
+		change = true;
+	}
+
+	if (change) {
+		std::ofstream sortie(chemin_cible.c_str());
+		sortie << contenu;
 	}
 
 	return 0;
@@ -216,6 +243,8 @@ struct DonneesSite {
 struct DonneesScript {
 	dls::tableau<DonneesSite> donnees_sites{};
 	filesystem::path chemin_babel{};
+
+	dls::tableau<std::pair<dls::chaine, dls::chaine>> remplace_html{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -245,6 +274,34 @@ static auto analyse_configuration(const char *chemin)
 
 	if (chemin_babel != nullptr) {
 		donnees_script.chemin_babel = chemin_babel->valeur.c_str();
+	}
+
+	auto remplace_html = cherche_tableau(dico, "remplace_html");
+
+	if (remplace_html != nullptr) {
+		for (auto objet_remplace : remplace_html->valeur) {
+			if (objet_remplace->type != tori::type_objet::DICTIONNAIRE) {
+				std::cerr << "remplace_html : l'objet n'est pas un dictionnaire !\n";
+				continue;
+			}
+
+			auto remplace = tori::extrait_dictionnaire(objet_remplace.get());
+
+			auto obj_de = cherche_chaine(remplace, "de");
+			auto obj_a = cherche_chaine(remplace, "à");
+
+			if (obj_de == nullptr) {
+				std::cerr << "remplace_html : propriété « de » manquante !\n";
+				continue;
+			}
+
+			if (obj_a == nullptr) {
+				std::cerr << "remplace_html : propriété « à » manquante !\n";
+				continue;
+			}
+
+			donnees_script.remplace_html.pousse({ obj_de->valeur, obj_a->valeur });
+		}
 	}
 
 	for (auto obj_site : sites->valeur) {
@@ -335,7 +392,7 @@ static bool besoin_ajournement(
 	return etat_source.st_mtim.tv_sec > etat_cible.st_mtim.tv_sec;
 }
 
-static auto copie_fichiers(DonneesSite &donnees, filesystem::path const &chemin_babel)
+static auto copie_fichiers(DonneesSite &donnees, DonneesScript &donnees_script)
 {
 	auto chemin_dossier = filesystem::path(donnees.chemin.c_str());
 
@@ -382,7 +439,7 @@ static auto copie_fichiers(DonneesSite &donnees, filesystem::path const &chemin_
 		//std::cout << "Copie de " << chemin_source << "\n\t-- cible : " << chemin_cible << '\n';
 
 		if (extension == ".html") {
-			if (minimise_html(chemin_source, chemin_cible) == 1) {
+			if (minimise_html(chemin_source, chemin_cible, donnees_script.remplace_html) == 1) {
 				return false;
 			}
 		}
@@ -392,7 +449,7 @@ static auto copie_fichiers(DonneesSite &donnees, filesystem::path const &chemin_
 			}
 		}
 		else if (extension == ".jsx") {
-			if (minimise_jsx(chemin_babel, chemin_source, chemin_cible) == 1) {
+			if (minimise_jsx(donnees_script.chemin_babel, chemin_source, chemin_cible) == 1) {
 				return false;
 			}
 		}
@@ -487,7 +544,7 @@ static auto deploie_sites(DonneesScript &donnees_script)
 			continue;
 		}
 
-		if (!copie_fichiers(donnees_site, donnees_script.chemin_babel)) {
+		if (!copie_fichiers(donnees_site, donnees_script)) {
 			std::cerr << "Impossible de traiter les fichier pour « " << donnees_site.nom << " »\n";
 			continue;
 		}

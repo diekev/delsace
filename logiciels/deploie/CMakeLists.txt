@@ -31,6 +31,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	bib_json
 	stdc++fs
+	bib_outils
 	bib_structures
 	${BIBLIOTHEQUES_CURL}
 )
