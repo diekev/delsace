@@ -65,7 +65,15 @@ void decoupeuse_texte::genere_morceaux()
 
 			this->enregistre_position_mot();
 
-			while (this->caractere_courant() != '"') {
+			auto dernier_caractere = this->caractere_courant();
+
+			while (true) {
+				if (this->caractere_courant() == '"' && dernier_caractere != '\\') {
+					break;
+				}
+
+				dernier_caractere = this->caractere_courant();
+
 				this->pousse_caractere();
 				this->avance();
 			}

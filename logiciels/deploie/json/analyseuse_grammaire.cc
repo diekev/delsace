@@ -237,7 +237,20 @@ void analyseuse_grammaire::analyse_valeur(dls::vue_chaine const &nom_objet)
 
 			auto obj = m_assembleuse.cree_objet(nom_objet, tori::type_objet::CHAINE);
 			auto obj_chaine = static_cast<tori::ObjetChaine *>(obj.get());
-			obj_chaine->valeur = donnees().chaine;
+
+			auto res = dls::chaine();
+
+			for (auto i = 0; i < donnees().chaine.taille(); ++i) {
+				auto c = donnees().chaine[i];
+
+				if (c == '\\') {
+					continue;
+				}
+
+				res += c;
+			}
+
+			obj_chaine->valeur = res;
 
 			break;
 		}
