@@ -586,10 +586,5 @@ int main(int argc, char **argv)
 
 	deploie_sites(donnees_script);
 
-#if 0
-
-
-#endif
-
 	return 0;
 }
