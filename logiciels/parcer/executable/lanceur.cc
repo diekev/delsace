@@ -1070,6 +1070,11 @@ struct Convertisseuse {
 				break;
 			}
 			case CXCursorKind::CXCursor_CStyleCastExpr:
+			case CXCursorKind::CXCursor_CXXFunctionalCastExpr:
+			case CXCursorKind::CXCursor_CXXStaticCastExpr:
+			case CXCursorKind::CXCursor_CXXDynamicCastExpr:
+			case CXCursorKind::CXCursor_CXXConstCastExpr:
+			case CXCursorKind::CXCursor_CXXReinterpretCastExpr:
 			{
 				auto enfants = rassemble_enfants(cursor);
 
