@@ -475,20 +475,29 @@ static auto determine_expression_unaire(
 static auto obtiens_litterale(
 		CXCursor cursor,
 		CXTranslationUnit trans_unit,
-		std::ostream &os,
-		bool est_bool,
-		bool est_float = false)
+		std::ostream &os)
 {
+	auto expr = getCursorExpr(cursor);
+
+	if (expr != nullptr) {
+		if (cursor.kind == CXCursorKind::CXCursor_IntegerLiteral) {
+			auto op = clang::cast<clang::IntegerLiteral>(expr);
+			os << op->getValue().getLimitedValue();
+			return;
+		}
+	}
+
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
 	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
 	if (tokens == nullptr) {
+		os << clang_getCursorSpelling(cursor);
 		return;
 	}
 
-	if (est_bool) {
+	if (cursor.kind == CXCursorKind::CXCursor_CXXBoolLiteralExpr) {
 		CXString s = clang_getTokenSpelling(trans_unit, tokens[0]);
 		const char* str = clang_getCString(s);
 
@@ -496,7 +505,7 @@ static auto obtiens_litterale(
 
 		clang_disposeString(s);
 	}
-	else if (est_float) {
+	else if (cursor.kind == CXCursorKind::CXCursor_FloatingLiteral) {
 		/* il faut se débarasser du 'f' final */
 		auto s = clang_getTokenSpelling(trans_unit, tokens[0]);
 		const char* str = clang_getCString(s);
@@ -643,6 +652,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_TranslationUnit:
 			{
+				imprime_asa(cursor, 0, std::cout);
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
@@ -1103,18 +1113,10 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_IntegerLiteral:
 			case CXCursorKind::CXCursor_CharacterLiteral:
 			case CXCursorKind::CXCursor_StringLiteral:
-			{
-				obtiens_litterale(cursor, trans_unit, std::cout, false);
-				break;
-			}
 			case CXCursorKind::CXCursor_FloatingLiteral:
-			{
-				obtiens_litterale(cursor, trans_unit, std::cout, false, true);
-				break;
-			}
 			case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
 			{
-				obtiens_litterale(cursor, trans_unit, std::cout, true);
+				obtiens_litterale(cursor, trans_unit, std::cout);
 				break;
 			}
 			case CXCursorKind::CXCursor_GNUNullExpr:
