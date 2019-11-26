@@ -626,8 +626,7 @@ struct Convertisseuse {
 	/* pour les structures, unions, et énumérations anonymes */
 	int nombre_anonymes = 0;
 
-	bool est_contexte_structure = true;
-	dls::chaine nom_structure = "";
+	dls::pile<dls::chaine> noms_structure{};
 
 	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
@@ -654,18 +653,20 @@ struct Convertisseuse {
 
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
 				if (!enfants.est_vide()) {
-					est_contexte_structure = true;
-					nom_structure = determine_nom_anomyme(cursor, nombre_anonymes);
+					auto nom = determine_nom_anomyme(cursor, nombre_anonymes);
 					imprime_tab();
 					std::cout << "struct ";
-					std::cout << nom_structure;
+					std::cout << nom;
 					std::cout << " {\n";
+
+					noms_structure.empile(nom);
+
 					converti_enfants(enfants, trans_unit);
+
+					noms_structure.depile();
 
 					imprime_tab();
 					std::cout << "}\n\n";
-
-					est_contexte_structure = false;
 				}
 
 				break;
@@ -1364,9 +1365,9 @@ struct Convertisseuse {
 
 		auto virgule = "(";
 
-		if (est_contexte_structure) {
+		if (!noms_structure.est_vide()) {
 			std::cout << virgule;
-			std::cout << "this : *" << nom_structure;
+			std::cout << "this : *" << noms_structure.haut();
 			virgule = ", ";
 		}
 
@@ -1387,7 +1388,7 @@ struct Convertisseuse {
 		}
 
 		/* Il n'y a pas de paramètres. */
-		if (enfants.taille() == 1 && !est_contexte_structure) {
+		if (enfants.taille() == 1 && noms_structure.est_vide()) {
 			std::cout << '(';
 		}
 
