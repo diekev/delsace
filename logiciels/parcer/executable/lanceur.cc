@@ -393,6 +393,25 @@ static auto determine_operateur_unaire(
 	return chn;
 }
 
+static auto determine_expression_unaire(
+		CXCursor cursor,
+		CXTranslationUnit trans_unit)
+{
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXToken *tokens = nullptr;
+	unsigned nombre_tokens = 0;
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+	auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
+
+	dls::chaine chn = clang_getCString(spelling);
+	clang_disposeString(spelling);
+
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+
+	return chn;
+}
+
 //https://stackoverflow.com/questions/10692015/libclang-get-primitive-value
 static auto obtiens_litterale(
 		CXCursor cursor,
@@ -1043,6 +1062,18 @@ struct Convertisseuse {
 				std::cout << "transtype(";
 				convertis(enfants[0], trans_unit);
 				std::cout << " : " << converti_type(cursor) << ')';
+
+				break;
+			}
+			case CXCursorKind::CXCursor_UnaryExpr:
+			{
+				auto chn = determine_expression_unaire(cursor, trans_unit);
+
+				if (chn == "sizeof") {
+					std::cout << "taille_de(";
+					converti_type(cursor); // À FAIRE : comment trouver l'expression ?, le type du curseur est celui du résultat sizeof(...) -> n64
+					std::cout << ")";
+				}
 
 				break;
 			}
