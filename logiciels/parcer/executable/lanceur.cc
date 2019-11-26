@@ -1070,11 +1070,12 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_CStyleCastExpr:
 			{
 				auto enfants = rassemble_enfants(cursor);
-				assert(enfants.taille() == 1);
 
-				std::cout << "transtype(";
-				convertis(enfants[0], trans_unit);
-				std::cout << " : " << converti_type(cursor) << ')';
+				if (enfants.taille() == 1) {
+					std::cout << "transtype(";
+					convertis(enfants[0], trans_unit);
+					std::cout << " : " << converti_type(cursor) << ')';
+				}
 
 				break;
 			}
