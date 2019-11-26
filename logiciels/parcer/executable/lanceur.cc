@@ -1083,6 +1083,15 @@ struct Convertisseuse {
 					convertis(enfants[0], trans_unit);
 					std::cout << " : " << converti_type(cursor) << ')';
 				}
+				else if (enfants.taille() == 2) {
+					/* par exemple :
+					 * - static_cast<decltype(a)>(b)
+					 * - (typeof(a))(b)
+					 */
+					std::cout << "transtype(";
+					convertis(enfants[1], trans_unit);
+					std::cout << " : " << converti_type(enfants[0]) << ')';
+				}
 
 				break;
 			}
