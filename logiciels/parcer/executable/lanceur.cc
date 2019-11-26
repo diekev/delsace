@@ -707,6 +707,32 @@ struct Convertisseuse {
 				std::cout << "this";
 				break;
 			}
+			case CXCursorKind::CXCursor_CXXAccessSpecifier:
+			{
+#if 0
+				auto acces = clang_getCXXAccessSpecifier(cursor);
+
+				switch (acces) {
+					case CX_CXXInvalidAccessSpecifier:
+					{
+						break;
+					}
+					case CX_CXXPublic:
+					{
+						break;
+					}
+					case CX_CXXProtected:
+					{
+						break;
+					}
+					case CX_CXXPrivate:
+					{
+						break;
+					}
+				}
+#endif
+				break;
+			}
 			case CXCursorKind::CXCursor_TypedefDecl:
 			{
 				/* pas encore supporter dans le langage */
