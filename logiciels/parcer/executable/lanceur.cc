@@ -62,6 +62,12 @@ using dls::outils::est_element;
  *   typedef => typedef struct { } nom_t; « nom_t » est perdu.
  * - le préprocessor n'est pas bon : il manque __FILE__, __LINE__, etc.
  * - assert est mal converti
+ * - conversion typage pour les opérateurs 'new' :
+ *      int i = new int[a * b];
+ *      devient
+ *      i : *z32 = loge [a * b]z32
+ *      et non
+ *      i : []z32 = loge [a * b]z32
  */
 
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
@@ -122,7 +128,7 @@ static auto morcelle_type(dls::chaine const &str)
 	return ret;
 }
 
-static dls::chaine converti_type(CXType const &cxtype)
+static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 {
 	static auto dico_type = dls::cree_dico(
 				dls::paire{ CXType_Void, dls::vue_chaine("rien") },
@@ -232,6 +238,10 @@ static dls::chaine converti_type(CXType const &cxtype)
 				}
 
 				pile_morceaux.empile(morceau);
+			}
+
+			if (dereference) {
+				pile_morceaux.depile();
 			}
 
 			while (!pile_morceaux.est_vide()) {
@@ -1205,6 +1215,32 @@ struct Convertisseuse {
 			{
 				/* les lignes ne consistant que d'un ';' */
 				std::cout << '\n';
+				break;
+			}
+			case CXCursorKind::CXCursor_CXXNewExpr:
+			{
+				auto enfants = rassemble_enfants(cursor);
+				auto cxtype = clang_getCursorType(cursor);
+
+				std::cout << "loge ";
+
+				if (enfants.est_vide()) {
+					std::cout << converti_type(cxtype, true);
+				}
+				else {
+					/* tableau */
+					std::cout << '[';
+					convertis(enfants[0], trans_unit);
+					std::cout << ']';
+					std::cout << converti_type(cxtype, true);
+				}
+
+				break;
+			}
+			case CXCursorKind::CXCursor_CXXDeleteExpr:
+			{
+				std::cout << "déloge ";
+				converti_enfants(cursor, trans_unit);
 				break;
 			}
 		}
