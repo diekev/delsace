@@ -486,6 +486,92 @@ static auto determine_nom_anomyme(CXCursor cursor, int &nombre_anonyme)
 	return "anonyme" + dls::vers_chaine(nombre_anonyme++);
 }
 
+static auto compare_token(CXToken token, CXTranslationUnit trans_unit, const char *str)
+{
+	auto spelling = clang_getTokenSpelling(trans_unit, token);
+	auto c_str = clang_getCString(spelling);
+	auto ok = strcmp(c_str, str) == 0;
+	clang_disposeString(spelling);
+	return ok;
+}
+
+static auto trouve_decalage(
+		CXToken *tokens,
+		unsigned nombre_tokens,
+		int decalage,
+		CXTranslationUnit trans_unit)
+{
+	if (compare_token(tokens[decalage], trans_unit, ";")) {
+		return 0;
+	}
+
+	auto dec = 0;
+
+	for (auto i = decalage; i < nombre_tokens; ++i) {
+		if (compare_token(tokens[i], trans_unit, ";")) {
+			break;
+		}
+
+		dec += 1;
+	}
+
+	return dec;
+}
+
+struct EnfantsBoucleFor {
+	CXCursor const *enfant_init = nullptr;
+	CXCursor const *enfant_comp = nullptr;
+	CXCursor const *enfant_inc = nullptr;
+	CXCursor const *enfant_bloc = nullptr;
+};
+
+static EnfantsBoucleFor determine_enfants_for(CXCursor cursor, CXTranslationUnit trans_unit, dls::tableau<CXCursor> const &enfants)
+{
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXToken *tokens = nullptr;
+	unsigned nombre_tokens = 0;
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+	if (tokens == nullptr) {
+		return {};
+	}
+
+	auto res = EnfantsBoucleFor{};
+	auto decalage_enfant = 0;
+
+	auto decalage = 2;
+
+	auto dec = trouve_decalage(tokens, nombre_tokens, decalage, trans_unit);
+
+	if (dec == 0) {
+		decalage += 1;
+	}
+	else {
+		res.enfant_init = &enfants[decalage_enfant++];
+		decalage += dec + 1;
+	}
+
+	dec = trouve_decalage(tokens, nombre_tokens, decalage, trans_unit);
+
+	if (dec == 0) {
+		decalage += 1;
+	}
+	else {
+		res.enfant_comp = &enfants[decalage_enfant++];
+		decalage += dec + 1;
+	}
+
+	if (!compare_token(tokens[decalage], trans_unit, ")")) {
+		res.enfant_inc = &enfants[decalage_enfant++];
+	}
+
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+
+	res.enfant_bloc = &enfants[decalage_enfant];
+
+	return res;
+}
+
 struct Convertisseuse {
 	int profondeur = 0;
 	/* pour les énumérations anonymes */
@@ -847,65 +933,26 @@ struct Convertisseuse {
 				 *		++i;
 				 * }
 				 */
-
-				/* Les enfants, si la boucle a toutes les expressions :
-				 * - le premier est soit :
-				 *   un DeclStmt -> for (int i = 0...) ou for (int i = 0, j = 0...)
-				 *   un BinaryOperator -> for (i = 0, j = 1) ou for (i = 0...)
-				 *
-				 * - le deuxième est soit :
-				 *   un BinaryOperator (de type bool) -> for (...; i < 10; ...)
-				 *
-				 * - le troisième est soit :
-				 *   un UnaryOperator -> for (...; ...; ++i)
-				 *   un BinaryOperator -> for (...; ...; ++i, ++j) ou for (...; ...; i + j)
-				 *   un CompoundAssignOperator -> (...; ...; i += 1)
-				 *
-				 * - le quatrième est soit :
-				 *   un CompountStmt -> for (;;) { ... }
-				 *   une expression simple
-				 *
-				 * Il est possible qu'il manque des expressions -> for (;;) { ... }
-				 * donc que le nombre d'enfants ne soit pas égal à 4 (À FAIRE)
-				 */
 				auto enfants = rassemble_enfants(cursor);
+				auto enfants_for = determine_enfants_for(cursor, trans_unit, enfants);
 
-				if (enfants.taille() == 1) {
-					/* nous avons une boucle sans expressions for (;;) { ... } */
-
-					--profondeur;
-					imprime_tab();
-					++profondeur;
-					std::cout << "boucle {\n";
-
-					if (enfants[0].kind != CXCursorKind::CXCursor_CompoundStmt) {
-						imprime_tab();
-					}
-
-					convertis(enfants[0], trans_unit);
-
-					std::cout <<'\n';
-
-					--profondeur;
-					imprime_tab();
-					++profondeur;
-					std::cout << "}\n";
-				}
-				else {
-					/* int i = 0 */
+				/* int i = 0 */
+				if (enfants_for.enfant_init) {
 					std::cout << "dyn ";
-					convertis(enfants[0], trans_unit);
+					convertis(*enfants_for.enfant_init, trans_unit);
 					std::cout << '\n';
+				}
 
-					--profondeur;
-					imprime_tab();
-					++profondeur;
-					std::cout << "boucle {\n";
+				--profondeur;
+				imprime_tab();
+				++profondeur;
+				std::cout << "boucle {\n";
 
-					/* i < 10 */
+				/* i < 10 */
+				if (enfants_for.enfant_comp) {
 					imprime_tab();
 					std::cout << "si !(";
-					convertis(enfants[1], trans_unit);
+					convertis(*enfants_for.enfant_comp, trans_unit);
 					std::cout << ") {\n";
 					++profondeur;
 					imprime_tab();
@@ -914,20 +961,22 @@ struct Convertisseuse {
 
 					imprime_tab();
 					std::cout << "}\n";
-
-					/* ... */
-					convertis(enfants[3], trans_unit);
-
-					/* ++i */
-					imprime_tab();
-					convertis(enfants[2], trans_unit);
-					std::cout << '\n';
-
-					--profondeur;
-					imprime_tab();
-					++profondeur;
-					std::cout << "}";
 				}
+
+				/* ... */
+				convertis(*enfants_for.enfant_bloc, trans_unit);
+
+				/* ++i */
+				if (enfants_for.enfant_inc) {
+					imprime_tab();
+					convertis(*enfants_for.enfant_inc, trans_unit);
+					std::cout << '\n';
+				}
+
+				--profondeur;
+				imprime_tab();
+				++profondeur;
+				std::cout << "}";
 
 				break;
 			}
