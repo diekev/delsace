@@ -470,6 +470,22 @@ static auto obtiens_litterale(
 	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
 
+static auto determine_nom_anomyme(CXCursor cursor, int &nombre_anonyme)
+{
+	auto spelling = clang_getCursorSpelling(cursor);
+	auto c_str = clang_getCString(spelling);
+
+	if (strcmp(c_str, "") != 0) {
+		auto chn = dls::chaine(c_str);
+		clang_disposeString(spelling);
+		return chn;
+	}
+
+	clang_disposeString(spelling);
+
+	return "anonyme" + dls::vers_chaine(nombre_anonyme++);
+}
+
 struct Convertisseuse {
 	int profondeur = 0;
 	/* pour les énumérations anonymes */
@@ -501,7 +517,7 @@ struct Convertisseuse {
 				if (!enfants.est_vide()) {
 					imprime_tab();
 					std::cout << "struct ";
-					std::cout << clang_getCursorSpelling(cursor);
+					std::cout << determine_nom_anomyme(cursor, nombre_enums);
 					std::cout << " {\n";
 					converti_enfants(enfants, trans_unit);
 
@@ -515,7 +531,7 @@ struct Convertisseuse {
 			{
 				imprime_tab();
 				std::cout << "union ";
-				std::cout << clang_getCursorSpelling(cursor);
+				std::cout << determine_nom_anomyme(cursor, nombre_enums);
 				std::cout << " nonsûr {\n";
 				converti_enfants(cursor, trans_unit);
 
@@ -536,19 +552,8 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_EnumDecl:
 			{
 				imprime_tab();
-				std::cout << "énum ";
-
-				auto str = clang_getCursorSpelling(cursor);
-				auto c_str = clang_getCString(str);
-
-				if (strcmp(c_str, "") == 0) {
-					std::cout << "anomyme" << nombre_enums++;
-				}
-				else {
-					std::cout << c_str;
-				}
-
-				clang_disposeString(str);
+				std::cout << "énum ";				
+				std::cout << determine_nom_anomyme(cursor, nombre_enums);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
 				std::cout << " : " << converti_type(type);
