@@ -1091,6 +1091,11 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_StmtExpr:
+			{
+				converti_enfants(cursor, trans_unit);
+				break;
+			}
 			case CXCursorKind::CXCursor_CXXFinalAttr:
 			case CXCursorKind::CXCursor_CXXOverrideAttr:
 			case CXCursorKind::CXCursor_PackedAttr:
