@@ -376,6 +376,10 @@ static auto determine_operateur_unaire(
 	unsigned nombre_tokens = 0;
 	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
+	if (tokens == nullptr) {
+		return dls::chaine();
+	}
+
 	auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
 
 	/* les opérateurs post-fix sont après */
@@ -402,6 +406,10 @@ static auto determine_expression_unaire(
 	unsigned nombre_tokens = 0;
 	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
+	if (tokens == nullptr) {
+		return dls::chaine();
+	}
+
 	auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
 
 	dls::chaine chn = clang_getCString(spelling);
@@ -424,6 +432,10 @@ static auto obtiens_litterale(
 	CXToken *tokens = nullptr;
 	unsigned nombre_tokens = 0;
 	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+	if (tokens == nullptr) {
+		return;
+	}
 
 	if (est_bool) {
 		CXString s = clang_getTokenSpelling(trans_unit, tokens[0]);
