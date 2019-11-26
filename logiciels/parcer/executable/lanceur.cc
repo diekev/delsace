@@ -1263,6 +1263,9 @@ struct Convertisseuse {
 					std::cout << converti_type_sizeof(cursor, trans_unit);
 					std::cout << ")";
 				}
+				else {
+					converti_enfants(cursor, trans_unit);
+				}
 
 				break;
 			}
