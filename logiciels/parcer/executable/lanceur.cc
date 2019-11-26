@@ -60,6 +60,8 @@ using dls::outils::est_element;
  * - les structs et unions anonymes ayant pourtant un typedef ne peuvent être
  *   converties car l'arbre syntactique n'a pas cette l'information à la fin du
  *   typedef => typedef struct { } nom_t; « nom_t » est perdu.
+ * - le préprocessor n'est pas bon : il manque __FILE__, __LINE__, etc.
+ * - assert est mal converti
  */
 
 std::ostream& operator<<(std::ostream& stream, const CXString& str)
@@ -1102,6 +1104,12 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_VisibilityAttr:
 			{
 				/* ignore pour le moment les attributs */
+				break;
+			}
+			case CXCursorKind::CXCursor_NullStmt:
+			{
+				/* les lignes ne consistant que d'un ';' */
+				std::cout << '\n';
 				break;
 			}
 		}
