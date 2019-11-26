@@ -1320,6 +1320,18 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
+	auto nombre_diagnostics = clang_getNumDiagnostics(unit);
+
+	if (nombre_diagnostics != 0) {
+		std::cerr << "Il y a " << nombre_diagnostics << " diagnostics\n";
+
+		for (auto i = 0u; i < nombre_diagnostics; ++i) {
+			auto diag = clang_getDiagnostic(unit, i);
+			std::cerr << clang_getDiagnosticSpelling(diag) << '\n';
+			clang_disposeDiagnostic(diag);
+		}
+	}
+
 	CXCursor cursor = clang_getTranslationUnitCursor(unit);
 
 	auto convertisseuse = Convertisseuse();
