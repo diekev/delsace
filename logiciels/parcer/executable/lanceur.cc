@@ -1402,6 +1402,8 @@ int main(int argc, char **argv)
 			std::cerr << clang_getDiagnosticSpelling(diag) << '\n';
 			clang_disposeDiagnostic(diag);
 		}
+
+		exit(-1);
 	}
 
 	CXCursor cursor = clang_getTranslationUnitCursor(unit);
