@@ -53,7 +53,7 @@ using dls::outils::est_element;
 /* À FAIRE :
  * - 'auto'
  * - 'template' (FunctionTemplate, ClassTemplate)
- * - 'class' (ClassDecl)
+ * - classes : public/protected/private, si supporté dans le langage
  * - 'new', 'delete'
  * - conversion des types, avec les tailles des tableaux, typedefs
  * - ctors/dtors
@@ -599,6 +599,7 @@ struct Convertisseuse {
 				break;
 			}
 			case CXCursorKind::CXCursor_StructDecl:
+			case CXCursorKind::CXCursor_ClassDecl:
 			{
 				auto enfants = rassemble_enfants(cursor);
 
