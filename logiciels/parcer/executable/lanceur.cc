@@ -1373,6 +1373,8 @@ int main(int argc, char **argv)
 
 	const char *args[] = {
 		"-fparse-all-comments",
+		"-I",
+		"/usr/lib/gcc/x86_64-linux-gnu/8/include/"
 	};
 
 	CXIndex index = clang_createIndex(0, 0);
@@ -1380,7 +1382,7 @@ int main(int argc, char **argv)
 				index,
 				chemin,
 				args,
-				0,
+				3,
 				nullptr,
 				0,
 				CXTranslationUnit_None);
