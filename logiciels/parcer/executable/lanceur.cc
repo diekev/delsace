@@ -577,6 +577,9 @@ struct Convertisseuse {
 	/* pour les énumérations anonymes */
 	int nombre_enums = 0;
 
+	bool est_contexte_structure = true;
+	dls::chaine nom_structure = "";
+
 	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		++profondeur;
@@ -601,14 +604,18 @@ struct Convertisseuse {
 
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
 				if (!enfants.est_vide()) {
+					est_contexte_structure = true;
+					nom_structure = determine_nom_anomyme(cursor, nombre_enums);
 					imprime_tab();
 					std::cout << "struct ";
-					std::cout << determine_nom_anomyme(cursor, nombre_enums);
+					std::cout << nom_structure;
 					std::cout << " {\n";
 					converti_enfants(enfants, trans_unit);
 
 					imprime_tab();
 					std::cout << "}\n\n";
+
+					est_contexte_structure = false;
 				}
 
 				break;
@@ -677,6 +684,16 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_FunctionDecl:
 			{
 				converti_declaration_fonction(cursor, trans_unit);
+				break;
+			}
+			case CXCursorKind::CXCursor_CXXMethod:
+			{
+				converti_declaration_fonction(cursor, trans_unit);
+				break;
+			}
+			case CXCursorKind::CXCursor_CXXThisExpr:
+			{
+				std::cout << "this";
 				break;
 			}
 			case CXCursorKind::CXCursor_TypedefDecl:
@@ -1041,11 +1058,17 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_MemberRefExpr:
 			{
 				auto enfants = rassemble_enfants(cursor);
-				assert(enfants.taille() == 1);
 
-				convertis(enfants[0], trans_unit);
-				std::cout << '.';
-				std::cout << clang_getCursorSpelling(cursor);
+				if (enfants.taille() == 1) {
+					convertis(enfants[0], trans_unit);
+					std::cout << '.';
+					std::cout << clang_getCursorSpelling(cursor);
+				}
+				else {
+					/* this implicit */
+					std::cout << "this.";
+					std::cout << clang_getCursorSpelling(cursor);
+				}
 
 				break;
 			}
@@ -1228,6 +1251,12 @@ struct Convertisseuse {
 
 		auto virgule = "(";
 
+		if (est_contexte_structure) {
+			std::cout << virgule;
+			std::cout << "this : *" << nom_structure;
+			virgule = ", ";
+		}
+
 		for (auto i = 0; i < enfants.taille() - 1; ++i) {
 			auto param = enfants[i];
 
@@ -1245,7 +1274,7 @@ struct Convertisseuse {
 		}
 
 		/* Il n'y a pas de paramètres. */
-		if (enfants.taille() == 1) {
+		if (enfants.taille() == 1 && !est_contexte_structure) {
 			std::cout << '(';
 		}
 
