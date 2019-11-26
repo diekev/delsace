@@ -574,8 +574,8 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor, CXTranslationUnit
 
 struct Convertisseuse {
 	int profondeur = 0;
-	/* pour les énumérations anonymes */
-	int nombre_enums = 0;
+	/* pour les structures, unions, et énumérations anonymes */
+	int nombre_anonymes = 0;
 
 	bool est_contexte_structure = true;
 	dls::chaine nom_structure = "";
@@ -605,7 +605,7 @@ struct Convertisseuse {
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
 				if (!enfants.est_vide()) {
 					est_contexte_structure = true;
-					nom_structure = determine_nom_anomyme(cursor, nombre_enums);
+					nom_structure = determine_nom_anomyme(cursor, nombre_anonymes);
 					imprime_tab();
 					std::cout << "struct ";
 					std::cout << nom_structure;
@@ -624,7 +624,7 @@ struct Convertisseuse {
 			{
 				imprime_tab();
 				std::cout << "union ";
-				std::cout << determine_nom_anomyme(cursor, nombre_enums);
+				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
 				std::cout << " nonsûr {\n";
 				converti_enfants(cursor, trans_unit);
 
@@ -646,7 +646,7 @@ struct Convertisseuse {
 			{
 				imprime_tab();
 				std::cout << "énum ";				
-				std::cout << determine_nom_anomyme(cursor, nombre_enums);
+				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
 				std::cout << " : " << converti_type(type);
