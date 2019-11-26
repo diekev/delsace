@@ -1243,6 +1243,14 @@ struct Convertisseuse {
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
+			case CXCursorKind::CXCursor_Namespace:
+			{
+				/* À FAIRE : conversion correcte des espaces de nom, cela
+				 * demandera peut-être de savoir comment bien déclarer les
+				 * modules et espaces de noms dans Kuri. */
+				converti_enfants(cursor, trans_unit);
+				break;
+			}
 		}
 
 		--profondeur;
