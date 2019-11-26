@@ -819,6 +819,7 @@ struct Convertisseuse {
 				 */
 
 				auto enfants = rassemble_enfants(cursor);
+				auto debut = true;
 
 				for (auto enfant : enfants) {
 					auto besoin_nouvelle_ligne = est_element(
@@ -829,9 +830,11 @@ struct Convertisseuse {
 								CXCursorKind::CXCursor_DoStmt,
 								CXCursorKind::CXCursor_ReturnStmt);
 
-					if (besoin_nouvelle_ligne) {
+					if (besoin_nouvelle_ligne && !debut) {
 						std::cout << '\n';
 					}
+
+					debut = false;
 
 					imprime_tab();
 					convertis(enfant, trans_unit);
