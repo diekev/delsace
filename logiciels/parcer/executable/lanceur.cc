@@ -128,6 +128,82 @@ static auto morcelle_type(dls::chaine const &str)
 	return ret;
 }
 
+static dls::chaine converti_type(
+		dls::tableau<dls::chaine> const &morceaux,
+		bool dereference = false)
+{
+	static auto dico_type_chn = dls::cree_dico(
+				dls::paire{ dls::vue_chaine("void"), dls::vue_chaine("rien") },
+				dls::paire{ dls::vue_chaine("bool"), dls::vue_chaine("bool") },
+				dls::paire{ dls::vue_chaine("uchar"), dls::vue_chaine("n8") },
+				dls::paire{ dls::vue_chaine("ushort"), dls::vue_chaine("n16") },
+				dls::paire{ dls::vue_chaine("uint"), dls::vue_chaine("n32") },
+				dls::paire{ dls::vue_chaine("ulong"), dls::vue_chaine("n64") },
+				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("z8") },
+				dls::paire{ dls::vue_chaine("short"), dls::vue_chaine("z16") },
+				dls::paire{ dls::vue_chaine("int"), dls::vue_chaine("z32") },
+				dls::paire{ dls::vue_chaine("long"), dls::vue_chaine("z64") },
+				dls::paire{ dls::vue_chaine("float"), dls::vue_chaine("r32") },
+				dls::paire{ dls::vue_chaine("double"), dls::vue_chaine("r64") });
+
+	auto pile_morceaux = dls::pile<dls::chaine>();
+
+	for (auto i = 0; i < morceaux.taille(); ++i) {
+		auto &morceau = morceaux[i];
+
+		if (morceau == "struct") {
+			continue;
+		}
+
+		if (morceau == "const") {
+			continue;
+		}
+
+		if (morceau == "unsigned") {
+			if (pile_morceaux.est_vide()) {
+				if (i + 1 >= morceaux.taille() - 1) {
+					pile_morceaux.empile("uint");
+				}
+				else {
+					auto morceau_suiv = morceaux[i + 1];
+					pile_morceaux.empile("u" + morceau_suiv);
+
+					i += 1;
+				}
+			}
+			else {
+				auto morceau_prev = pile_morceaux.depile();
+				pile_morceaux.empile("u" + morceau_prev);
+			}
+
+			continue;
+		}
+
+		pile_morceaux.empile(morceau);
+	}
+
+	if (dereference) {
+		pile_morceaux.depile();
+	}
+
+	auto flux = std::stringstream();
+
+	while (!pile_morceaux.est_vide()) {
+		auto morceau = pile_morceaux.depile();
+
+		auto plg_type_chn = dico_type_chn.trouve(morceau);
+
+		if (!plg_type_chn.est_finie()) {
+			flux << plg_type_chn.front().second;
+		}
+		else {
+			flux << morceau;
+		}
+	}
+
+	return flux.str();
+}
+
 static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 {
 	static auto dico_type = dls::cree_dico(
@@ -156,20 +232,6 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 	if (!plg_type.est_finie()) {
 		return plg_type.front().second;
 	}
-
-	static auto dico_type_chn = dls::cree_dico(
-				dls::paire{ dls::vue_chaine("void"), dls::vue_chaine("rien") },
-				dls::paire{ dls::vue_chaine("bool"), dls::vue_chaine("bool") },
-				dls::paire{ dls::vue_chaine("uchar"), dls::vue_chaine("n8") },
-				dls::paire{ dls::vue_chaine("ushort"), dls::vue_chaine("n16") },
-				dls::paire{ dls::vue_chaine("uint"), dls::vue_chaine("n32") },
-				dls::paire{ dls::vue_chaine("ulong"), dls::vue_chaine("n64") },
-				dls::paire{ dls::vue_chaine("char"), dls::vue_chaine("z8") },
-				dls::paire{ dls::vue_chaine("short"), dls::vue_chaine("z16") },
-				dls::paire{ dls::vue_chaine("int"), dls::vue_chaine("z32") },
-				dls::paire{ dls::vue_chaine("long"), dls::vue_chaine("z64") },
-				dls::paire{ dls::vue_chaine("float"), dls::vue_chaine("r32") },
-				dls::paire{ dls::vue_chaine("double"), dls::vue_chaine("r64") });
 
 	auto flux = std::stringstream();
 
@@ -202,62 +264,9 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 			flux_tmp << clang_getTypeSpelling(cxtype);
 
 			auto chn = flux_tmp.str();
-
 			auto morceaux = morcelle_type(chn);
-			auto pile_morceaux = dls::pile<dls::chaine>();
 
-			for (auto i = 0; i < morceaux.taille(); ++i) {
-				auto &morceau = morceaux[i];
-
-				if (morceau == "struct") {
-					continue;
-				}
-
-				if (morceau == "const") {
-					continue;
-				}
-
-				if (morceau == "unsigned") {
-					if (pile_morceaux.est_vide()) {
-						if (i + 1 >= morceaux.taille() - 1) {
-							pile_morceaux.empile("uint");
-						}
-						else {
-							auto morceau_suiv = morceaux[i + 1];
-							pile_morceaux.empile("u" + morceau_suiv);
-
-							i += 1;
-						}
-					}
-					else {
-						auto morceau_prev = pile_morceaux.depile();
-						pile_morceaux.empile("u" + morceau_prev);
-					}
-
-					continue;
-				}
-
-				pile_morceaux.empile(morceau);
-			}
-
-			if (dereference) {
-				pile_morceaux.depile();
-			}
-
-			while (!pile_morceaux.est_vide()) {
-				auto morceau = pile_morceaux.depile();
-
-				auto plg_type_chn = dico_type_chn.trouve(morceau);
-
-				if (!plg_type_chn.est_finie()) {
-					flux << plg_type_chn.front().second;
-				}
-				else {
-					flux << morceau;
-				}
-			}
-
-			break;
+			return converti_type(morceaux);
 		}
 	}
 
@@ -268,6 +277,36 @@ static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
 {
 	auto cxtype = est_fonction ? clang_getCursorResultType(c) : clang_getCursorType(c);
 	return converti_type(cxtype);
+}
+
+static dls::chaine converti_type_sizeof(
+		CXCursor cursor,
+		CXTranslationUnit trans_unit)
+{
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXToken *tokens = nullptr;
+	unsigned nombre_tokens = 0;
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+	if (tokens == nullptr) {
+		clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+		return dls::chaine();
+	}
+
+	auto donnees_types = dls::tableau<dls::chaine>();
+
+	for (auto i = 2u; i < nombre_tokens - 1; ++i) {
+		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
+		auto c_str = clang_getCString(spelling);
+
+		donnees_types.pousse(c_str);
+
+		clang_disposeString(spelling);
+	}
+
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+
+	return converti_type(donnees_types);
 }
 
 static auto rassemble_enfants(CXCursor cursor)
@@ -1218,7 +1257,7 @@ struct Convertisseuse {
 
 				if (chn == "sizeof") {
 					std::cout << "taille_de(";
-					converti_type(cursor); // À FAIRE : comment trouver l'expression ?, le type du curseur est celui du résultat sizeof(...) -> n64
+					std::cout << converti_type_sizeof(cursor, trans_unit);
 					std::cout << ")";
 				}
 
