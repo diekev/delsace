@@ -982,6 +982,7 @@ struct Convertisseuse {
 				break;
 			}
 			case CXCursorKind::CXCursor_BinaryOperator:
+			case CXCursorKind::CXCursor_CompoundAssignOperator:
 			{
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 2);
