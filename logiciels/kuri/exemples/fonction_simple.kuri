@@ -1,7 +1,0 @@
-# License GPL
-
-fonc main()
-{
-	soit valeur = 0;
-	retourne valeur;
-}
