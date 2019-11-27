@@ -1138,6 +1138,81 @@ struct Convertisseuse {
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
+			case CXCursorKind::CXCursor_SwitchStmt:
+			{
+				auto enfants = rassemble_enfants(cursor);
+
+				std::cout << "associe ";
+				convertis(enfants[0], trans_unit);
+				std::cout << " {\n";
+				convertis(enfants[1], trans_unit);
+
+				--profondeur;
+				imprime_tab();
+				++profondeur;
+				std::cout << "}\n";
+
+				break;
+			}
+			case CXCursorKind::CXCursor_DefaultStmt:
+			{
+				/* À FAIRE : gestion propre du cas défaut, le langage possède un
+				 * 'sinon' qu'il faudra utiliser correctement */
+				converti_enfants(cursor, trans_unit);
+				break;
+			}
+			case CXCursorKind::CXCursor_CaseStmt:
+			{
+				/* L'arbre des cas est ainsi :
+				 * case
+				 *	valeur
+				 *	case | bloc
+				 *
+				 * Le case | bloc dépend de si on a plusieurs cas successif avec
+				 * le même bloc, p.e. :
+				 *
+				 * case 0:
+				 * case 1:
+				 * case 2:
+				 * {
+				 *	...
+				 * }
+				 *
+				 * donc nous rassemblons tous les enfants récursivement jusqu'à
+				 * ce que nous ayons un bloc, qui sera l'enfant restant
+				 */
+
+				auto enfants = rassemble_enfants(cursor);
+
+				/* valeur */
+				convertis(enfants[0], trans_unit);
+
+				auto cas_similaires = dls::tableau<CXCursor>();
+
+				/* case | bloc */
+				auto enfant = enfants[1];
+
+				while (enfant.kind == CXCursorKind::CXCursor_CaseStmt) {
+					auto petits_enfants = rassemble_enfants(enfant);
+					cas_similaires.pousse(petits_enfants[0]);
+					enfant = petits_enfants[1];
+				}
+
+				for (auto const &cas : cas_similaires) {
+					std::cout << ", ";
+					convertis(cas, trans_unit);
+				}
+
+				std::cout << " {\n";
+				convertis(enfant, trans_unit);
+
+				--profondeur;
+				imprime_tab();
+				++profondeur;
+				std::cout << "}\n";
+
+				break;
+			}
 			case CXCursorKind::CXCursor_ParenExpr:
 			{
 				std::cout << "(";
