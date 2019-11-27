@@ -630,6 +630,22 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor, CXTranslationUnit
 	return res;
 }
 
+static auto imprime_commentaire(CXCursor cursor, std::ostream &os)
+{
+	auto comment = clang_Cursor_getBriefCommentText(cursor);
+	auto c_str = clang_getCString(comment);
+
+	if (c_str != nullptr) {
+		auto chn = dls::chaine(c_str);
+
+		if (chn != "") {
+			os << "# " << chn << '\n';
+		}
+	}
+
+	clang_disposeString(comment);
+}
+
 struct Convertisseuse {
 	int profondeur = 0;
 	/* pour les structures, unions, et énumérations anonymes */
@@ -662,6 +678,8 @@ struct Convertisseuse {
 
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
 				if (!enfants.est_vide()) {
+					imprime_commentaire(cursor, std::cout);
+
 					auto nom = determine_nom_anomyme(cursor, nombre_anonymes);
 					imprime_tab();
 					std::cout << "struct ";
@@ -682,6 +700,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_UnionDecl:
 			{
+				imprime_commentaire(cursor, std::cout);
 				imprime_tab();
 				std::cout << "union ";
 				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
@@ -695,6 +714,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_FieldDecl:
 			{
+				imprime_commentaire(cursor, std::cout);
 				imprime_tab();
 				std::cout << clang_getCursorSpelling(cursor);
 				std::cout << " : ";
@@ -704,6 +724,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_EnumDecl:
 			{
+				imprime_commentaire(cursor, std::cout);
 				imprime_tab();
 				std::cout << "énum ";				
 				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
@@ -721,6 +742,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_EnumConstantDecl:
 			{
+				imprime_commentaire(cursor, std::cout);
 				imprime_tab();
 				std::cout << clang_getCursorSpelling(cursor);
 
@@ -813,6 +835,8 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_DeclStmt:
 			{
+				imprime_commentaire(cursor, std::cout);
+
 				/* Un DeclStmt peut être :
 				 * soit int x = 0;
 				 * soit int x = 0, y = 0, z = 0;
@@ -840,6 +864,8 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_VarDecl:
 			{
+				imprime_commentaire(cursor, std::cout);
+
 				auto enfants = rassemble_enfants(cursor);
 				auto cxtype = clang_getCursorType(cursor);
 
@@ -1359,6 +1385,8 @@ struct Convertisseuse {
 			/* Nous avons une déclaration */
 			return;
 		}
+
+		imprime_commentaire(cursor, std::cout);
 
 		if (clang_Cursor_isFunctionInlined(cursor)) {
 			std::cout << "#!enligne ";
