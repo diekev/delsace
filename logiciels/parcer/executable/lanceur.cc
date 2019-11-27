@@ -652,7 +652,6 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_TranslationUnit:
 			{
-				imprime_asa(cursor, 0, std::cout);
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
