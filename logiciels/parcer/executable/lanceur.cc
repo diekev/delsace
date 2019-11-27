@@ -878,6 +878,16 @@ struct Convertisseuse {
 					decalage += 1;
 				}
 
+				if (nombre_enfants == 1) {
+					/* pour certaines déclarations dans les codes C, le premier
+					 * enfant semble être une référence vers le type
+					 * (p.e. struct Vecteur) */
+					if (enfants[0].kind == CXCursorKind::CXCursor_TypeRef) {
+						decalage += 1;
+						nombre_enfants -= 1;
+					}
+				}
+
 				if (nombre_enfants == 0) {
 					/* nous avons une déclaration simple (int x;) */
 					std::cout << "dyn ";
