@@ -16,7 +16,7 @@ struct URI {
 	port : chaine
 }
 
-fonc est_valide(uri : *URI) : bool
+fonc est_valide(uri : &URI) : bool
 {
     si est_vide(schéma de uri) {
 		retourne faux
