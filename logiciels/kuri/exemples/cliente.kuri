@@ -50,19 +50,13 @@ fonc externe send(prise : z32, tampon : *rien, taille : n64, flags : z32) : z64;
 
 ################################################################################
 
-fonc charge_page(chemin : chaine) : chaine
+fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
 {
-    retourne chemin;
-}
+    dyn réponse : chaine;
 
-fonc principale(args : []*z8) : z32
-{
-    # connecte vers la page
-    uri = construit_uri("http://www.youtube.com/watch?v=Pxdgu2XIAAg");
-
-    si !est_valide(@uri) {
+    si !est_valide(uri) {
         imprime("L'uri est invalide !", '\n');
-        retourne 1;
+        retourne réponse, 1;
     }
 
     dyn tampon : [1024]z8;
@@ -72,68 +66,59 @@ fonc principale(args : []*z8) : z32
 
     si he == nul {
         imprime("Ne peut pas trouver les informations de l'hôte !", '\n');
-        retourne 1;
+        retourne réponse, 1;
     }
 
     prise = socket(_AF_INET, _SOCK_STREAM, 0);
 
     si prise == -1 {
         imprime("Ne peut pas créer la prise !", '\n');
-        retourne 1;
+        retourne réponse, 1;
     }
 
-    diffère { close(prise); }
+    diffère { close(prise); }
 
-    # À FAIRE : calcule port
+    # À FAIRE : calcule port
     port : n16 = 80;
 
     dyn their_addr : sockaddr_in;
     sin_family de their_addr = transtype(_AF_INET : n16);
     sin_port de their_addr = htons(port);
-    sin_zero[0] de their_addr = 0;
-    sin_zero[1] de their_addr = 0;
-    sin_zero[2] de their_addr = 0;
-    sin_zero[3] de their_addr = 0;
-    sin_zero[4] de their_addr = 0;
-    sin_zero[5] de their_addr = 0;
-    sin_zero[6] de their_addr = 0;
-    sin_zero[7] de their_addr = 0;
+    their_addr.sin_zero[0]= 0;
+    their_addr.sin_zero[1]= 0;
+    their_addr.sin_zero[2]= 0;
+    their_addr.sin_zero[3]= 0;
+    their_addr.sin_zero[4]= 0;
+    their_addr.sin_zero[5]= 0;
+    their_addr.sin_zero[6]= 0;
+    their_addr.sin_zero[7]= 0;
 
-    x = h_addr_list[0] de he;
+    x = he.h_addr_list[0];
     sin_addr de their_addr = mémoire(transtype(x : *in_addr));
 
-    imprime(their_addr, '\n');
+    #imprime(their_addr, '\n');
 
     si connect(prise, transtype(@their_addr : *sockaddr), transtype(taille_de(sockaddr) : z64)) == -1 {
         imprime("Impossible de se connecter à la prise !", '\n');
-        retourne 1;
+        retourne réponse, 1;
     }
 
-    imprime("Connexion active", '\n');
+    #imprime("Connexion active", '\n');
 
-    # envoie la requête
-
-    imprime(uri, '\n', '\n');
-
-    requête = "GET / HTTP/1.1\r\nHost: www.youtube.com\r\nAccept-Encoding: identity\r\nAccept-Charset: utf-8, iso-8859-1;q=0.5\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\nUser-Agent: delsace\r\nConnection: close\r\n\r\n";
+    # envoie la requête
 
     si send(prise, pointeur de requête, transtype(taille de requête : n64), 0) == -1 {
-        imprime("Ne peut pas envoyer la reqûete !", '\n');
-        retourne 1;
+		imprime("Ne peut pas envoyer la reqûete !", '\n');
+        retourne réponse, 1;
     }
 
-    imprime("Reqûete envoyée :", '\n');
-    imprime(requête, '\n', '\n');
-
-    # obtiens les données
+    # obtiens les données
 
     taille_max_données = 1024;
-    dyn réponse : chaine;
-    diffère { déloge réponse; }
 
     boucle {
         taille_reçue = recv(prise, @tampon[0], transtype(taille_max_données : n64), 0);
-        imprime("Reçu paquet de taille ", taille_reçue, '\n');
+        #imprime("Reçu paquet de taille ", taille_reçue, '\n');
 
         si taille_reçue > 0 {
             ancienne_taille = taille de réponse;
@@ -148,7 +133,55 @@ fonc principale(args : []*z8) : z32
         }
     }
 
-    imprime("Réponse :", '\n', réponse, '\n');
+    retourne réponse, 0
+}
+
+fonc principale(args : []*z8) : z32
+{
+    si args.taille != 2 {
+        chn = converti_chaine_c(args[0])
+        imprime_err("Utilisation : ", chn, " URL\n")
+        retourne 1
+    }
+
+    # connecte vers la page
+    chn = converti_chaine_c(args[1])
+    uri = construit_uri(chn);
+
+    si !est_valide(uri) {
+        imprime("L'uri est invalide !", '\n');
+        retourne 1;
+    }
+
+    #imprime(uri, '\n', '\n');
+
+    constructrice = crée_constructrice_chaine()
+    diffère { déloge constructrice.résultat; }
+
+    pousse(constructrice, "GET ")
+    pousse(constructrice, chemin de uri)
+    pousse(constructrice, requête de uri)
+    pousse(constructrice, " HTTP/1.1\r\n")
+    pousse(constructrice, "Host:")
+    pousse(constructrice, hôte de uri)
+    pousse(constructrice, "\r\n")
+    pousse(constructrice, "Accept-Encoding: identity\r\n")
+    pousse(constructrice, "Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")
+    pousse(constructrice, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\n")
+    pousse(constructrice, "User-Agent: delsace\r\n")
+    pousse(constructrice, "Connection: close\r\n")
+    pousse(constructrice, "\r\n")
+
+    requête = constructrice.résultat
+
+    imprime("Reqûete envoyée :\n", requête, '\n');
+
+    réponse, erreur = lance_requête(uri, requête)
+    diffère { déloge réponse; }
+
+    si erreur == 0 {
+        imprime("Réponse :", '\n', réponse, '\n');
+    }
 
     retourne 0;
 }
