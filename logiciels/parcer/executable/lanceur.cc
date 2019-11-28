@@ -112,6 +112,39 @@ static auto morcelle_type(dls::chaine const &str)
 
 			taille_mot = 0;
 		}
+		else if (str[i] == '(') {
+			if (taille_mot != 0) {
+				ret.pousse({ ptr, taille_mot });
+				taille_mot = 0;
+			}
+
+			ptr = &str[i];
+			ret.pousse({ ptr, 1 });
+
+			taille_mot = 0;
+		}
+		else if (str[i] == ')') {
+			if (taille_mot != 0) {
+				ret.pousse({ ptr, taille_mot });
+				taille_mot = 0;
+			}
+
+			ptr = &str[i];
+			ret.pousse({ ptr, 1 });
+
+			taille_mot = 0;
+		}
+		else if (str[i] == ',') {
+			if (taille_mot != 0) {
+				ret.pousse({ ptr, taille_mot });
+				taille_mot = 0;
+			}
+
+			ptr = &str[i];
+			ret.pousse({ ptr, 1 });
+
+			taille_mot = 0;
+		}
 		else {
 			if (taille_mot == 0) {
 				ptr = &str[i];
@@ -265,6 +298,58 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 
 			auto chn = flux_tmp.str();
 			auto morceaux = morcelle_type(chn);
+
+			if (type == CXTypeKind::CXType_Pointer) {
+				/* vérifie s'il y a pointeur de fonction */
+
+				auto est_pointeur_fonc = false;
+
+				for (auto const &m : morceaux) {
+					if (m == "(") {
+						est_pointeur_fonc = true;
+						break;
+					}
+				}
+
+				if (est_pointeur_fonc) {
+					auto type_retour = dls::tableau<dls::chaine>();
+					auto decalage = 0;
+
+					for (auto i = 0; i < morceaux.taille(); ++i) {
+						auto const &m = morceaux[i];
+
+						if (m == "(") {
+							break;
+						}
+
+						type_retour.pousse(m);
+						decalage++;
+					}
+
+					flux << "fonc(";
+
+					auto type_param = dls::tableau<dls::chaine>();
+
+					for (auto i = decalage + 4; i < morceaux.taille(); ++i) {
+						auto const &m = morceaux[i];
+
+						if (m == ")" || m == ",") {
+							flux << converti_type(type_param, dereference);
+							flux << m;
+							type_param.efface();
+						}
+						else {
+							type_param.pousse(m);
+						}
+					}
+
+					flux << "(";
+					flux << converti_type(type_retour, dereference);
+					flux << ")";
+				}
+
+				return flux.str();
+			}
 
 			return converti_type(morceaux, dereference);
 		}
