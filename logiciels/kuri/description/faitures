@@ -84,6 +84,12 @@ Faitures
 - test valeurs de retours multiples
 
 
+Bugs
+----
+- incohérence accès '.' et 'de' (voir cliente.kuri)
+- les tableaux issus des arguments variadics ne sont pas converti quand le type n'est pas 'eini'
+
+
 Bugs (coulisse LLVM)
 --------------------
 - crash lors de la compilation de boucle contenant un 'arrête' après des blocs si/sinon
