@@ -266,7 +266,7 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 			auto chn = flux_tmp.str();
 			auto morceaux = morcelle_type(chn);
 
-			return converti_type(morceaux);
+			return converti_type(morceaux, dereference);
 		}
 	}
 
