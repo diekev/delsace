@@ -137,6 +137,8 @@ void assembleuse_arbre::genere_code_C(
 
 	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
 	os << "#include <stdlib.h>\n";
+	/* Pour strlen, nous incluons toujours "string.h". */
+	os << "#include <string.h>\n";
 
 	for (auto const &inc : this->inclusions) {
 		os << "#include <" << inc << ">\n";

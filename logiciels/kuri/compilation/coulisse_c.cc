@@ -1412,7 +1412,10 @@ static void genere_code_C_prepasse(
 			}
 
 			os << '"';
-			os << ", .taille=" << chaine.taille() << "};\n";
+			os << "};\n";
+			/* on utilise strlen pour être sûr d'avoir la bonne taille à cause
+			 * des caractères échappés */
+			os << nom_chaine << ".taille=strlen(" << nom_chaine << ".pointeur);\n";
 			b->valeur_calculee = nom_chaine;
 			break;
 		}
