@@ -963,13 +963,22 @@ struct Convertisseuse {
 					decalage += 1;
 				}
 
-				if (nombre_enfants == 1) {
+				if (nombre_enfants >= 1) {
 					/* pour certaines déclarations dans les codes C, le premier
 					 * enfant semble être une référence vers le type
 					 * (p.e. struct Vecteur) */
 					if (enfants[0].kind == CXCursorKind::CXCursor_TypeRef) {
 						decalage += 1;
 						nombre_enfants -= 1;
+					}
+
+					/* les variables déclarées comme étant des pointeurs de
+					 * fonctions ont les types des arguments comme enfants */
+					for (auto const &enfant : enfants) {
+						if (enfant.kind == CXCursorKind::CXCursor_ParmDecl) {
+							decalage += 1;
+							nombre_enfants -= 1;
+						}
 					}
 				}
 
