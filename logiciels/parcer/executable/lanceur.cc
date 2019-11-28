@@ -346,9 +346,9 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 					flux << "(";
 					flux << converti_type(type_retour, dereference);
 					flux << ")";
-				}
 
-				return flux.str();
+					return flux.str();
+				}
 			}
 
 			return converti_type(morceaux, dereference);
