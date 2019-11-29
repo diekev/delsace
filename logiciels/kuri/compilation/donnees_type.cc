@@ -679,7 +679,7 @@ static auto converti_type_simple_C(
 			}
 			else {
 				if (echappe_struct || donnees_struct.est_externe) {
-					os << "struct ";
+					os << ((echappe) ? "struct_" : "struct ");
 				}
 
 				os << broye_nom_simple(nom_structure);
