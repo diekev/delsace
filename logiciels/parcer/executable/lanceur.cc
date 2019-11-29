@@ -709,6 +709,34 @@ static auto tokens_typedef(
 	return ;
 }
 
+static auto tokens_typealias(
+		CXCursor cursor,
+		CXTranslationUnit trans_unit,
+		dico_typedefs &dico)
+{
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXToken *tokens = nullptr;
+	unsigned nombre_tokens = 0;
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+	if (tokens == nullptr) {
+		clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+		return;
+	}
+
+	auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[1]));
+	auto morceaux = dls::tableau<dls::chaine>();
+
+	for (auto i = 3u; i < nombre_tokens; ++i) {
+		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
+		morceaux.pousse(converti_chaine(spelling));
+	}
+
+	dico.insere({ nom, morceaux });
+
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+}
+
 struct EnfantsBoucleFor {
 	CXCursor const *enfant_init = nullptr;
 	CXCursor const *enfant_comp = nullptr;
@@ -942,6 +970,11 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_TypedefDecl:
 			{
 				tokens_typedef(cursor, trans_unit, typedefs);
+				break;
+			}
+			case CXCursorKind::CXCursor_TypeAliasDecl:
+			{
+				tokens_typealias(cursor, trans_unit, typedefs);
 				break;
 			}
 			case CXCursorKind::CXCursor_CallExpr:
