@@ -859,7 +859,17 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_TranslationUnit:
 			{
-				converti_enfants(cursor, trans_unit);
+				auto enfants = rassemble_enfants(cursor);
+
+				for (auto enfant : enfants) {
+					convertis(enfant, trans_unit);
+
+					/* variable globale */
+					if (enfant.kind == CXCursorKind::CXCursor_VarDecl) {
+						std::cout << "\n";
+					}
+				}
+
 				break;
 			}
 			case CXCursorKind::CXCursor_StructDecl:
