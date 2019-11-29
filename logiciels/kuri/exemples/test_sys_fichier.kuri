@@ -1,0 +1,58 @@
+importe "flux"
+importe "sys_fichier"
+
+################################################################################
+
+fonc test_chemin_courant() : rien
+{
+    dyn chemin = chemin_courant()
+
+    imprime("chemin courant : ", chemin.chn, '\n')
+    déloge chemin.chn
+
+    chemin = construit_chemin("/home/kevin/src/")
+    chemin_courant(chemin)
+
+    chemin = chemin_courant()
+
+    imprime("chemin courant : ", chemin.chn, '\n')
+    déloge chemin.chn
+}
+
+fonc test_itération_dossier() : rien
+{
+    chemin = construit_chemin("/home/kevin/")
+
+    pour entrée dans chaque_chemin(chemin) {
+        imprime(entrée.chn, '\n')
+
+        si est_dossier(entrée) {
+            imprime("---- dossier\n")
+        }
+        sinon si est_fichier_régulier(entrée) {
+            imprime("---- fichier\n")
+        }
+        sinon si !fichier_existe(entrée) {
+            imprime("---- le fichier n'existe pas\n")
+        }
+    }
+}
+
+fonc principale(args : []*z8) : z32
+{
+    chm = construit_chemin("/home/kevin/test_parcer.cc")
+    contenu = contenu_fichier_texte(chm)
+
+    chm_sortie = construit_chemin("/home/kevin/SORITE_test_parcer.cc")
+
+    fd = ouvre_fichier_ecriture(chm_sortie)
+    diffère { ferme_fichier(fd) }
+
+    écris_fichier(fd, contenu)
+
+    imprime(contenu, '\n');
+
+    déloge contenu
+
+    retourne 0
+}
