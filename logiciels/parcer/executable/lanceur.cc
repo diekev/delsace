@@ -196,7 +196,7 @@ static dls::chaine converti_type(
 
 		if (morceau == "unsigned") {
 			if (pile_morceaux.est_vide()) {
-				if (i + 1 >= morceaux.taille() - 1) {
+				if (i >= morceaux.taille() - 1) {
 					pile_morceaux.empile("uint");
 				}
 				else {
