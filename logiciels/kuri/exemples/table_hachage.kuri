@@ -1,115 +1,158 @@
-# Implémentation inachevée d'une table de hachage avec adressage ouvert
+################################################################################
+# Implémentation d'une table de hachage clé -> clé
+# Voir aussi, comme inspiration :
 # https://en.wikipedia.org/wiki/Open_addressing
 
-struct pair {
-	clé : z32;
-	valeur : z32;
+importe "chaine"
+importe "flux"
+
+struct NoeudTableHachage {
+    clé : chaine
+    valeur : chaine
+    suivant : *NoeudTableHachage
 }
 
-struct table_hachage {
-	nombre_alvéole : z32;
-	alvéoles : *pair;
+struct TableHachage {
+    alvéoles : []*NoeudTableHachage
 }
 
-fonction empreinte(clé : z32) : z32
+fonc crée_table_hachage() : *TableHachage
 {
-	retourne z32;
+    dyn table = loge TableHachage
+    table.alvéoles = loge [10000]*NoeudTableHachage
+
+    pour i dans 0 ... 9999 {
+        table.alvéoles[i] = nul
+    }
+
+    retourne table
 }
 
-fonction trouve_alvéole(table : *table_hachage, clé : z32) : z32
+fonc décrée_table_hachage(table : *TableHachage) : rien
 {
-	soit variable i = empreinte(clé) % nombre_alvéole de table;
+    pour noeud dans table.alvéoles {
+        dyn n = noeud;
 
+        tantque n != nul {
+            dyn ns = n.suivant
+            déloge n
+            n = ns
+        }
+    }
 
-	boucle {
-		si (alvéoles[i] de table == nul) || (clé de alvéoles[i] de table == clé) {
-			arrête;
-		}
-
-		i = i + 1;
-	}
-
-	retourne i;
+    déloge table.alvéoles
+    déloge table
 }
 
-fonction lookup(table : *table_hachage, clé : z32) : z32
+fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudTableHachage
 {
-	soit i = trouve_alvéole(table, clé);
-
-	si alvéoles[i] de table != nul {
-		# la clé est dans la table
-		retourne valeur de alvéoles[i] de table;
-	}
-
-	retourne 0;
+    dyn n = loge NoeudTableHachage
+    n.clé = clé
+    n.valeur = valeur
+    n.suivant = nul
+    retourne n
 }
 
-fonction élargis_table(variable table : *table_hachage) : rien
+fonc calcule_empreinte(chn : chaine) : n64
 {
-	# Il est recommandé d'allouer un tampon de manière logarithmique
-	# Insérer les éléments dans la nouvelle table avec set
-	retourne;
+    dyn empreinte : n64 = 5381
+
+    pour c dans chn {
+        empreinte = ((empreinte << 5) + empreinte) + transtype(c : n64)
+    }
+
+	retourne empreinte
 }
 
-fonction set(table : *table_hachage, clé : z32, valeur : z32) : z32
+fonc insère(dyn table : *TableHachage, clé : chaine, valeur : chaine) : rien
 {
-	soit variable i = trouve_alvéole(table, clé);
+    empreinte = calcule_empreinte(clé) % 10000
 
-	si alvéoles[i] de table != nul {
-		# nous avons notre clé
-		valeur de alvéoles[i] de table = valeur;
-		retourne;
-	}
+    dyn alvéole = table.alvéoles[empreinte]
 
-	si presque_pleine(table) {
-		élargis_table(table);
-		i = trouve_alvéole(table);
-	}
+    si alvéole == nul {
+        table.alvéoles[empreinte] = crée_noeud(clé, valeur)
+        retourne
+    }
 
-	clé de alvéoles[i] de table = clé;
-	valeur de alvéoles[i] de table = valeur;
-	
-	retourne;
+    boucle {
+        si alvéole.suivant == nul {
+            alvéole.suivant = crée_noeud(clé, valeur)
+            arrête
+        }
+
+        alvéole = alvéole.suivant
+    }
 }
 
-fonction remove(table : *table_hachage, clé : z32) : rien
+fonc trouve(table : *TableHachage, clé : chaine) : *NoeudTableHachage
 {
-	soit variable i = trouve_alvéole(table, clé);
+    empreinte = calcule_empreinte(clé) % 10000
 
-	si alvéoles[i] de table == nul {
-		retourne;
-	}
+    dyn alvéole = table.alvéoles[empreinte]
 
-	soit variable j = i;
+    si alvéole == nul {
+        retourne nul
+    }
 
-	boucle {
-		alvéoles[i] de table = inoccupé;
+    boucle {
+        si compare_chaines(alvéole.clé, clé) {
+            retourne alvéole
+        }
 
-		boucle {
-			j = (j + 1) % nombre_alvéole de table;
+        si alvéole.suivant == nul {
+            arrête
+        }
 
-			si alvéoles[j] != nul {
-				arrête;
-			}
+        alvéole = alvéole.suivant
+    }
 
-			soit k = empreinte(clé de alvéoles[i] de table) % nombre_alvéole de table;
-			
-			# Détermine si k est cycliquement dans (i, j]
-			# |   i.k.j ]
-			# [....j i.k. | ou |.k..j i...|
-			si (i <= j) {
-				si ((i < k) && (k <= j)) {
-					continue;
-				}
-			}
-			sinon si ((i < k) || (k <= j)) {
-				continue;
-			}
+    retourne nul
+}
 
-			arrête;
-		}
+fonc cherche_noeud(table : *TableHachage, clé : chaine) : rien
+{
+    n = trouve(table, clé)
 
-		alvéoles[i] de table = alvéoles[j] de table;
-		i = j;
-	}
+    si n == nul {
+        imprime("Impossible de trouver le noeud dans la table !\n")
+    }
+    sinon {
+        imprime("Trouvé noeud, valeur : ", n.valeur, '\n')
+    }
+}
+
+# À FAIRE : la coroutine semble ne pas retenir correctement le noeud, il y a un crash à la deuxième itération
+corout chaque_noeud(table : *TableHachage) : *NoeudTableHachage
+{
+    pour alvéole dans table.alvéoles {
+        dyn n = alvéole
+
+        tantque n != nul {
+            retiens n
+            n = n.suivant
+        }
+    }
+}
+
+fonc principale(args : []*z8) : z32
+{
+    table = crée_table_hachage()
+    diffère { décrée_table_hachage(table); }
+
+    insère(table, "Accept", "text/html")
+    insère(table, "Accept-Charset", "utf-8, iso-8859-1;q=0.5")
+    insère(table, "Accept-Encoding", "identity")
+
+    #cherche_noeud(table, "Accept")
+    #cherche_noeud(table, "Accept-Charset")
+    #cherche_noeud(table, "Accept-Encoding")
+    #cherche_noeud(table, "Quelque Chose")
+
+    pour noeud dans chaque_noeud(table) {
+        imprime("noeud : ", noeud, '\n')
+        imprime(noeud.clé, ": ", noeud.valeur, "\r\n")
+    }
+
+    retourne 0
 }
