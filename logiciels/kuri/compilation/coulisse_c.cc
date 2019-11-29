@@ -842,7 +842,7 @@ static void cree_appel(
 		}
 
 		if (df->est_coroutine) {
-			os << virgule << "&__etat" << b;
+			os << virgule << "&__etat" << dls::vers_chaine(b);
 			virgule = ',';
 		}
 	}
