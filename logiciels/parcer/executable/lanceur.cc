@@ -56,12 +56,10 @@ using dls::outils::est_element;
  * - 'template' (FunctionTemplate, ClassTemplate)
  * - classes : public/protected/private, si supporté dans le langage
  * - 'new', 'delete'
- * - conversion des types, avec les tailles des tableaux, typedefs
  * - ctors/dtors
  * - les structs et unions anonymes ayant pourtant un typedef ne peuvent être
  *   converties car l'arbre syntactique n'a pas cette l'information à la fin du
  *   typedef => typedef struct { } nom_t; « nom_t » est perdu.
- * - le préprocessor n'est pas bon : il manque __FILE__, __LINE__, etc.
  * - assert est mal converti
  * - conversion typage pour les opérateurs 'new' :
  *      int i = new int[a * b];
