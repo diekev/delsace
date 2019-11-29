@@ -41,11 +41,11 @@ set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/adn.kuri
 	bibliotheques/chaine.kuri
 	bibliotheques/chrono.kuri
-	bibliotheques/fichier.kuri
 	bibliotheques/flux.kuri
 	bibliotheques/info_type.kuri
 	bibliotheques/iter.kuri
 	bibliotheques/memoire.kuri
+	bibliotheques/sys_fichier.kuri
 	bibliotheques/structures.kuri
 	bibliotheques/uri.kuri
 )
