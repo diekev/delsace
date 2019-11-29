@@ -2912,7 +2912,7 @@ void genere_code_C(
 							"",
 							dt.dereference(),
 							os);
-				os << ") * " << taille_tabl << ");\n";
+				os << ") * " << taille_tabl << ";\n";
 
 				auto dt_ptr = DonneesTypeFinal{};
 				dt_ptr.pousse(id_morceau::POINTEUR);
@@ -2931,7 +2931,7 @@ void genere_code_C(
 							dt_ptr.plage(),
 							os);
 
-				os << ")(malloc(" << nom_taille << ");\n";
+				os << ")(malloc(" << nom_taille << "));\n";
 
 				contexte.magasin_types.converti_type_C(
 							contexte,
