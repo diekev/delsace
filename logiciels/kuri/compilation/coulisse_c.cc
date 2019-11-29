@@ -1617,14 +1617,25 @@ void genere_code_C(
 				auto &donnees_coroutine = donnees_fonction->donnees_coroutine;
 
 				for (auto const &paire : donnees_coroutine.variables) {
-					contexte.magasin_types.converti_type_C(contexte,
-												"",
-												contexte.magasin_types.donnees_types[paire.second.first].plage(),
-											os);
+					auto dt_m = contexte.magasin_types.donnees_types[paire.second.first].plage();
 
 					/* Stocke un pointeur pour ne pas qu'il soit invalidé par
 					 * le retour de la coroutine. */
-					if ((paire.second.second & BESOIN_DEREF) != 0) {
+					auto requiers_pointeur = (paire.second.second & BESOIN_DEREF) != 0;
+
+					if (est_type_tableau_fixe(dt_m)) {
+						/* déférence, on stockera un pointeur */
+						dt_m.effronte();
+						requiers_pointeur = true;
+					}
+
+					contexte.magasin_types.converti_type_C(
+								contexte,
+								"",
+								dt_m,
+								os);
+
+					if (requiers_pointeur) {
 						os << '*';
 					}
 
@@ -3309,6 +3320,13 @@ void genere_code_C(
 
 			for (; debut != fin; ++debut) {
 				if (debut->second.est_argument) {
+					continue;
+				}
+
+				auto dt_enf = contexte.magasin_types.donnees_types[debut->second.index_type].plage();
+
+				/* À FAIRE : trouve une manière de restaurer les tableaux fixes */
+				if (est_type_tableau_fixe(dt_enf)) {
 					continue;
 				}
 
