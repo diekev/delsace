@@ -694,6 +694,34 @@ static auto tokens_typedef(
 		return ;
 	}
 
+	/* il y a des cas où le token pour typedef se trouve être caché derrière un
+	 * define donc la range pointent sur tout le code entre le define et son
+	 * utilisation, ce qui peut représenter plusieurs lignes, donc valide le
+	 * typedef
+	 * À FAIRE : il manque les typedefs pour les structures et union connues
+	 */
+	for (auto i = 1u; i < nombre_tokens - 1; ++i) {
+		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
+
+		auto chn = converti_chaine(spelling);
+
+		auto est_mot_cle = est_element(
+					chn,
+					"struct", "enum", "union", "*", "&",
+					"unsigned", "char", "short", "int", "long", "float", "double", "void", ";");
+
+		if (est_mot_cle) {
+			continue;
+		}
+
+		if (dico.trouve(chn) != dico.fin()) {
+			continue;
+		}
+
+		clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+		return;
+	}
+
 	auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[nombre_tokens - 1]));
 	auto morceaux = dls::tableau<dls::chaine>();
 
