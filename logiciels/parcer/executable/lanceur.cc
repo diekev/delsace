@@ -44,6 +44,7 @@
 
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
@@ -161,8 +162,11 @@ static auto morcelle_type(dls::chaine const &str)
 	return ret;
 }
 
+using dico_typedefs = dls::dico_desordonne<dls::chaine, dls::tableau<dls::chaine>>;
+
 static dls::chaine converti_type(
 		dls::tableau<dls::chaine> const &morceaux,
+		dico_typedefs const &typedefs,
 		bool dereference = false)
 {
 	static auto dico_type_chn = dls::cree_dico(
@@ -230,14 +234,24 @@ static dls::chaine converti_type(
 			flux << plg_type_chn.front().second;
 		}
 		else {
-			flux << morceau;
+			auto iter_typedef = typedefs.trouve(morceau);
+
+			if (iter_typedef != typedefs.fin()) {
+				flux << converti_type(iter_typedef->second, typedefs, dereference);
+			}
+			else {
+				flux << morceau;
+			}
 		}
 	}
 
 	return flux.str();
 }
 
-static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
+static dls::chaine converti_type(
+		CXType const &cxtype,
+		dico_typedefs const &typedefs,
+		bool dereference = false)
 {
 	static auto dico_type = dls::cree_dico(
 				dls::paire{ CXType_Void, dls::vue_chaine("rien") },
@@ -280,12 +294,6 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 			break;
 		}
 		case CXType_Typedef:
-		{
-			// cxtype = clang_getTypedefDeclUnderlyingType(c); // seulement pour les déclarations des typedefs
-			// flux << clang_getTypeSpelling(cxtype);
-			flux << clang_getTypedefName(cxtype);
-			break;
-		}
 		case CXType_Record:          /* p.e. struct Vecteur */
 		case CXType_ConstantArray:   /* p.e. float [4] */
 		case CXType_IncompleteArray: /* p.e. float [] */
@@ -334,7 +342,7 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 						auto const &m = morceaux[i];
 
 						if (m == ")" || m == ",") {
-							flux << converti_type(type_param, dereference);
+							flux << converti_type(type_param, typedefs, dereference);
 							flux << m;
 							type_param.efface();
 						}
@@ -344,29 +352,33 @@ static dls::chaine converti_type(CXType const &cxtype, bool dereference = false)
 					}
 
 					flux << "(";
-					flux << converti_type(type_retour, dereference);
+					flux << converti_type(type_retour, typedefs, dereference);
 					flux << ")";
 
 					return flux.str();
 				}
 			}
 
-			return converti_type(morceaux, dereference);
+			return converti_type(morceaux, typedefs, dereference);
 		}
 	}
 
 	return flux.str();
 }
 
-static dls::chaine converti_type(CXCursor const &c, bool est_fonction = false)
+static dls::chaine converti_type(
+		CXCursor const &c,
+		dico_typedefs const &typedefs,
+		bool est_fonction = false)
 {
 	auto cxtype = est_fonction ? clang_getCursorResultType(c) : clang_getCursorType(c);
-	return converti_type(cxtype);
+	return converti_type(cxtype, typedefs);
 }
 
 static dls::chaine converti_type_sizeof(
 		CXCursor cursor,
-		CXTranslationUnit trans_unit)
+		CXTranslationUnit trans_unit,
+		dico_typedefs const &typedefs)
 {
 	CXSourceRange range = clang_getCursorExtent(cursor);
 	CXToken *tokens = nullptr;
@@ -391,7 +403,7 @@ static dls::chaine converti_type_sizeof(
 
 	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 
-	return converti_type(donnees_types);
+	return converti_type(donnees_types, typedefs);
 }
 
 static auto rassemble_enfants(CXCursor cursor)
@@ -661,6 +673,44 @@ static auto trouve_decalage(
 	return dec;
 }
 
+static auto converti_chaine(CXString string)
+{
+	auto c_str = clang_getCString(string);
+	auto chaine = dls::chaine(c_str);
+	clang_disposeString(string);
+	return chaine;
+}
+
+static auto tokens_typedef(
+		CXCursor cursor,
+		CXTranslationUnit trans_unit,
+		dico_typedefs &dico)
+{
+	CXSourceRange range = clang_getCursorExtent(cursor);
+	CXToken *tokens = nullptr;
+	unsigned nombre_tokens = 0;
+	clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+
+	if (tokens == nullptr) {
+		clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+		return ;
+	}
+
+	auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[nombre_tokens - 1]));
+	auto morceaux = dls::tableau<dls::chaine>();
+
+	for (auto i = 1u; i < nombre_tokens - 1; ++i) {
+		auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
+		morceaux.pousse(converti_chaine(spelling));
+	}
+
+	dico.insere({ nom, morceaux });
+
+	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+
+	return ;
+}
+
 struct EnfantsBoucleFor {
 	CXCursor const *enfant_init = nullptr;
 	CXCursor const *enfant_comp = nullptr;
@@ -738,6 +788,8 @@ struct Convertisseuse {
 
 	dls::pile<dls::chaine> noms_structure{};
 
+	dico_typedefs typedefs{};
+
 	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		++profondeur;
@@ -803,7 +855,7 @@ struct Convertisseuse {
 				imprime_tab();
 				std::cout << clang_getCursorSpelling(cursor);
 				std::cout << " : ";
-				std::cout << converti_type(cursor);
+				std::cout << converti_type(cursor, typedefs);
 				std::cout << '\n';
 				break;
 			}
@@ -815,7 +867,7 @@ struct Convertisseuse {
 				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
-				std::cout << " : " << converti_type(type);
+				std::cout << " : " << converti_type(type, typedefs);
 
 				std::cout << " {\n";
 				converti_enfants(cursor, trans_unit);
@@ -891,7 +943,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_TypedefDecl:
 			{
-				/* pas encore supporter dans le langage */
+				tokens_typedef(cursor, trans_unit, typedefs);
 				break;
 			}
 			case CXCursorKind::CXCursor_CallExpr:
@@ -987,12 +1039,12 @@ struct Convertisseuse {
 					std::cout << "dyn ";
 					std::cout << clang_getCursorSpelling(cursor);
 					std::cout << " : ";
-					std::cout << converti_type(cursor);
+					std::cout << converti_type(cursor, typedefs);
 				}
 				else {
 					std::cout << clang_getCursorSpelling(cursor);
 					std::cout << " : ";
-					std::cout << converti_type(cursor);
+					std::cout << converti_type(cursor, typedefs);
 					std::cout << " = ";
 
 					for (auto i = decalage; i < enfants.taille(); ++i) {
@@ -1444,7 +1496,7 @@ struct Convertisseuse {
 				if (enfants.taille() == 1) {
 					std::cout << "transtype(";
 					convertis(enfants[0], trans_unit);
-					std::cout << " : " << converti_type(cursor) << ')';
+					std::cout << " : " << converti_type(cursor, typedefs) << ')';
 				}
 				else if (enfants.taille() == 2) {
 					/* par exemple :
@@ -1453,7 +1505,7 @@ struct Convertisseuse {
 					 */
 					std::cout << "transtype(";
 					convertis(enfants[1], trans_unit);
-					std::cout << " : " << converti_type(enfants[0]) << ')';
+					std::cout << " : " << converti_type(enfants[0], typedefs) << ')';
 				}
 
 				break;
@@ -1464,7 +1516,7 @@ struct Convertisseuse {
 
 				if (chn == "sizeof") {
 					std::cout << "taille_de(";
-					std::cout << converti_type_sizeof(cursor, trans_unit);
+					std::cout << converti_type_sizeof(cursor, trans_unit, typedefs);
 					std::cout << ")";
 				}
 				else {
@@ -1500,14 +1552,14 @@ struct Convertisseuse {
 				std::cout << "loge ";
 
 				if (enfants.est_vide()) {
-					std::cout << converti_type(cxtype, true);
+					std::cout << converti_type(cxtype, typedefs, true);
 				}
 				else {
 					/* tableau */
 					std::cout << '[';
 					convertis(enfants[0], trans_unit);
 					std::cout << ']';
-					std::cout << converti_type(cxtype, true);
+					std::cout << converti_type(cxtype, typedefs, true);
 				}
 
 				break;
@@ -1593,7 +1645,7 @@ struct Convertisseuse {
 			std::cout << virgule;
 			std::cout << clang_getCursorSpelling(param);
 			std::cout << " : ";
-			std::cout << converti_type(param);
+			std::cout << converti_type(param, typedefs);
 
 			virgule = ", ";
 		}
@@ -1603,7 +1655,7 @@ struct Convertisseuse {
 			std::cout << '(';
 		}
 
-		std::cout << ") : " << converti_type(cursor, true) << '\n';
+		std::cout << ") : " << converti_type(cursor, typedefs, true) << '\n';
 
 		std::cout << "{\n";
 
