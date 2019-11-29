@@ -59,7 +59,7 @@ using dls::outils::est_element;
  * - ctors/dtors
  * - les structs et unions anonymes ayant pourtant un typedef ne peuvent être
  *   converties car l'arbre syntactique n'a pas cette l'information à la fin du
- *   typedef => typedef struct { } nom_t; « nom_t » est perdu.
+ *   typedef => typedef struct { } nom_t; « nom_t » est perdu -> le frère du cursor possède cette information.
  * - assert est mal converti
  * - conversion typage pour les opérateurs 'new' :
  *      int i = new int[a * b];
