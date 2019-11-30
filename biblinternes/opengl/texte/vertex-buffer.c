@@ -13,9 +13,11 @@
 /**
  * Buffer status
  */
-#define CLEAN  (0)
-#define DIRTY  (1)
-#define FROZEN (2)
+enum {
+    CLEAN = 0,
+    DIRTY = 1,
+    FROZEN = 2,
+};
 
 
 // ----------------------------------------------------------------------------
