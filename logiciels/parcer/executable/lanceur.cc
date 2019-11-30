@@ -867,8 +867,12 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_Namespace:
 			case CXCursorKind::CXCursor_TranslationUnit:
 			{
+				/* À FAIRE : conversion correcte des espaces de nom, cela
+				 * demandera peut-être de savoir comment bien déclarer les
+				 * modules et espaces de noms dans Kuri. */
 				auto enfants = rassemble_enfants(cursor);
 
 				for (auto enfant : enfants) {
@@ -1648,14 +1652,6 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_CXXDeleteExpr:
 			{
 				std::cout << "déloge ";
-				converti_enfants(cursor, trans_unit);
-				break;
-			}
-			case CXCursorKind::CXCursor_Namespace:
-			{
-				/* À FAIRE : conversion correcte des espaces de nom, cela
-				 * demandera peut-être de savoir comment bien déclarer les
-				 * modules et espaces de noms dans Kuri. */
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
