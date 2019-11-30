@@ -55,7 +55,6 @@ using dls::outils::est_element;
  * - 'auto'
  * - 'template' (FunctionTemplate, ClassTemplate)
  * - classes : public/protected/private, si supporté dans le langage
- * - 'new', 'delete'
  * - les appels de constructeurs ont une paire de parenthèse extra
  * - les structs/unions/enum déclarés avec un typedef n'ont pas le bon type
  *   p.e. typedef struct X { } X_t sera X et non X_t => le petit frère du cursor
