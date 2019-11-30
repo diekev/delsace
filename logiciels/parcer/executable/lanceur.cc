@@ -1040,14 +1040,15 @@ struct Convertisseuse {
 				break;
 			}
 			case CXCursorKind::CXCursor_CallExpr:
-			{
-				std::cout << clang_getCursorSpelling(cursor);
-
+			{				
 				auto enfants = rassemble_enfants(cursor);
+
+				/* le premier enfant nous fournis soit le nom de la fonction,
+				 * soit l'expression this.nom si la fonction est appelée depuis
+				 * une méthode de classe */
+				convertis(enfants[0], trans_unit);
 				auto virgule = "(";
 
-				/* le premier enfant est UnexposedExpr pour savoir le type du
-				 * pointeur de fonction */
 				for (auto i = 1; i < enfants.taille(); ++i) {
 					std::cout << virgule;
 					convertis(enfants[i], trans_unit);
