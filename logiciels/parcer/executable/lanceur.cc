@@ -1047,7 +1047,13 @@ struct Convertisseuse {
 				/* le premier enfant nous fournis soit le nom de la fonction,
 				 * soit l'expression this.nom si la fonction est appelée depuis
 				 * une méthode de classe */
-				convertis(enfants[0], trans_unit);
+				if (enfants.taille() > 0) {
+					convertis(enfants[0], trans_unit);
+				}
+				else {
+					std::cout << clang_getCursorSpelling(cursor);
+				}
+
 				auto virgule = "(";
 
 				for (auto i = 1; i < enfants.taille(); ++i) {
@@ -1537,6 +1543,11 @@ struct Convertisseuse {
 				else if (chn == "--") {
 					convertis(enfants[0], trans_unit);
 					std::cout << " -= 1";
+				}
+				else if (chn == "*") {
+					std::cout << "mémoire(";
+					convertis(enfants[0], trans_unit);
+					std::cout << ")";
 				}
 				else {
 					if (chn == "&") {
