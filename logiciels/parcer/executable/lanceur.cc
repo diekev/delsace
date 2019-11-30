@@ -1819,6 +1819,9 @@ int main(int argc, char **argv)
 	CXCursor cursor = clang_getTranslationUnitCursor(unit);
 
 	auto convertisseuse = Convertisseuse();
+	convertisseuse.typedefs.insere({ "size_t", { "ulong" } });
+	convertisseuse.typedefs.insere({ "std::size_t", { "ulong" } });
+
 	convertisseuse.convertis(cursor, unit);
 
 	if (convertisseuse.cursors_non_pris_en_charges.taille() != 0) {
