@@ -891,8 +891,18 @@ struct Convertisseuse {
 			{
 				auto enfants = rassemble_enfants(cursor);
 
+				auto enfants_filtres = dls::tableau<CXCursor>();
+
+				for (auto enfant : enfants) {
+					if (enfant.kind == CXCursorKind::CXCursor_VisibilityAttr) {
+						continue;
+					}
+
+					enfants_filtres.pousse(enfant);
+				}
+
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
-				if (!enfants.est_vide()) {
+				if (!enfants_filtres.est_vide()) {
 					imprime_commentaire(cursor, std::cout);
 
 					auto nom = determine_nom_anomyme(cursor, nombre_anonymes);
@@ -903,7 +913,7 @@ struct Convertisseuse {
 
 					noms_structure.empile(nom);
 
-					converti_enfants(enfants, trans_unit);
+					converti_enfants(enfants_filtres, trans_unit);
 
 					noms_structure.depile();
 
