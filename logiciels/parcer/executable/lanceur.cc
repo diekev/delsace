@@ -160,6 +160,27 @@ static auto morcelle_type(dls::chaine const &str)
 	return ret;
 }
 
+/* En fonction de là où ils apparaissent, les types anonymes sont de la forme :
+ * (anonymous at FILE:POS)
+ * ou
+ * (anonymous {struct|union|enum} at FILE:POS)
+ *
+ * Donc nous utilions "FILE:POS)" comme « nom » pour les insérer et les trouver
+ * dans la liste des typedefs afin de ne pas avoir à ce soucier de la
+ * possibilité d'avoir un mot-clé dans la chaine.
+ */
+static dls::chaine trouve_nom_anonyme(dls::chaine chn)
+{
+	auto pos_anonymous = chn.trouve("(anonymous");
+
+	if (pos_anonymous == -1) {
+		return "";
+	}
+
+	auto pos_slash = chn.trouve_premier_de('/');
+	return chn.sous_chaine(pos_slash);
+}
+
 using dico_typedefs = dls::dico_desordonne<dls::chaine, dls::tableau<dls::chaine>>;
 
 static dls::chaine converti_type(
@@ -303,6 +324,20 @@ static dls::chaine converti_type(
 			flux_tmp << clang_getTypeSpelling(cxtype);
 
 			auto chn = flux_tmp.str();
+
+			/* pour les types anonymes */
+			auto nom_anonymous = trouve_nom_anonyme(chn);
+
+			if (nom_anonymous != "") {
+				auto iter_typedefs = typedefs.trouve(nom_anonymous);
+
+				if (iter_typedefs != typedefs.fin()) {
+					return iter_typedefs->second[0];
+				}
+
+				return nom_anonymous;
+			}
+
 			auto morceaux = morcelle_type(chn);
 
 			if (type == CXTypeKind::CXType_Pointer) {
@@ -623,7 +658,18 @@ static auto obtiens_litterale(
 	clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
 
-static auto determine_nom_anomyme(CXCursor cursor, int &nombre_anonyme)
+static auto converti_chaine(CXString string)
+{
+	auto c_str = clang_getCString(string);
+	auto chaine = dls::chaine(c_str);
+	clang_disposeString(string);
+	return chaine;
+}
+
+static auto determine_nom_anomyme(
+		CXCursor cursor,
+		dico_typedefs &typedefs,
+		int &nombre_anonyme)
 {
 	auto spelling = clang_getCursorSpelling(cursor);
 	auto c_str = clang_getCString(spelling);
@@ -638,12 +684,18 @@ static auto determine_nom_anomyme(CXCursor cursor, int &nombre_anonyme)
 
 	/* le type peut avoir l'information : typedef struct {} TYPE */
 	spelling = clang_getTypeSpelling(clang_getCursorType(cursor));
-	c_str = clang_getCString(spelling);
+	auto chn_spelling = converti_chaine(spelling);
 
-	if (strcmp(c_str, "") != 0) {
-		auto chn = dls::chaine(c_str);
-		clang_disposeString(spelling);
-		return chn;
+	if (chn_spelling != "") {
+		auto nom_anonymous = trouve_nom_anonyme(chn_spelling);
+
+		if (nom_anonymous != "") {
+			auto nom = "anonyme" + dls::vers_chaine(nombre_anonyme++);
+			typedefs.insere({ nom_anonymous, { nom } });
+			return nom;
+		}
+
+		return chn_spelling;
 	}
 
 	return "anonyme" + dls::vers_chaine(nombre_anonyme++);
@@ -679,14 +731,6 @@ static auto trouve_decalage(
 	}
 
 	return dec;
-}
-
-static auto converti_chaine(CXString string)
-{
-	auto c_str = clang_getCString(string);
-	auto chaine = dls::chaine(c_str);
-	clang_disposeString(string);
-	return chaine;
 }
 
 static auto tokens_typedef(
@@ -909,7 +953,7 @@ struct Convertisseuse {
 				if (!enfants_filtres.est_vide()) {
 					imprime_commentaire(cursor, std::cout);
 
-					auto nom = determine_nom_anomyme(cursor, nombre_anonymes);
+					auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 					imprime_tab();
 					std::cout << "struct ";
 					std::cout << nom;
@@ -932,7 +976,7 @@ struct Convertisseuse {
 				imprime_commentaire(cursor, std::cout);
 				imprime_tab();
 				std::cout << "union ";
-				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
+				std::cout << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 				std::cout << " nonsûr {\n";
 				converti_enfants(cursor, trans_unit);
 
@@ -956,7 +1000,7 @@ struct Convertisseuse {
 				imprime_commentaire(cursor, std::cout);
 				imprime_tab();
 				std::cout << "énum ";				
-				std::cout << determine_nom_anomyme(cursor, nombre_anonymes);
+				std::cout << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
 				std::cout << " : " << converti_type(type, typedefs);
