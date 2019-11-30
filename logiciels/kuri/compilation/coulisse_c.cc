@@ -31,6 +31,7 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
+#include "generatrice_code_c.hh"
 #include "modules.hh"
 #include "validation_semantique.hh"
 
@@ -2893,6 +2894,8 @@ void genere_code_C(
 			auto nom_ptr_ret = dls::chaine("");
 			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
+			auto generatrice = GeneratriceCodeC(contexte, os);
+
 			if (dt.type_base() == id_morceau::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte);
@@ -2902,44 +2905,37 @@ void genere_code_C(
 				auto nom_tabl = "__tabl" + dls::vers_chaine(b);
 				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
 
-				os << "long " << taille_tabl << " = ";
-				genere_code_C(expr, contexte, false, os, os);
-				os << ";";
+				auto flux = dls::flux_chaine();
+				genere_code_C(expr, contexte, false, flux, flux);
 
-				os << "long " << nom_taille << " = sizeof(";
+				generatrice.declare_variable(
+							contexte.magasin_types[TYPE_Z64],
+							taille_tabl,
+							flux.chn());
+
+				flux.chn("");
+
+				flux << "sizeof(";
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
 							dt.dereference(),
-							os);
-				os << ") * " << taille_tabl << ";\n";
+							flux);
+				flux << ") * " << taille_tabl;
+
+				generatrice.declare_variable(
+							contexte.magasin_types[TYPE_Z64],
+							nom_taille,
+							flux.chn());
 
 				auto dt_ptr = DonneesTypeFinal{};
 				dt_ptr.pousse(id_morceau::POINTEUR);
 				dt_ptr.pousse(dt.dereference());
 
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_ptr.plage(),
-							os);
+				auto expr_m = generatrice.expression_malloc(dt_ptr, nom_taille);
+				generatrice.declare_variable(dt_ptr, nom_ptr, expr_m);
 
-				os << nom_ptr << " = (";
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_ptr.plage(),
-							os);
-
-				os << ")(malloc(" << nom_taille << "));\n";
-
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt.plage(),
-							os);
-
-				os << " " << nom_tabl << ";\n";
+				generatrice.declare_variable(dt, nom_tabl, "");
 				os << nom_tabl << ".pointeur = " << nom_ptr << ";\n";
 				os << nom_tabl << ".taille = " << taille_tabl << ";\n";
 
@@ -2952,15 +2948,18 @@ void genere_code_C(
 
 				auto enf = *enfant++;
 
+				auto flux = dls::flux_chaine();
+
 				/* Prépasse pour les accès de membres dans l'expression. */
 				genere_code_C_prepasse(enf, contexte, false, os);
+				genere_code_C(enf, contexte, false, flux, flux);
 
-				os << "long " << nom_taille << " = ";
+				generatrice.declare_variable(
+							contexte.magasin_types[TYPE_Z64],
+							nom_taille,
+							flux.chn());
 
-				genere_code_C(enf, contexte, false, os, os);
 				nombre_enfant -= 1;
-
-				os << ";\n";
 
 				os << "char *" << nom_ptr << " = (char *)(malloc(sizeof(char) * (";
 				os << nom_taille << ")));\n";

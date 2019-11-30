@@ -43,6 +43,7 @@ set(SOURCES
 	donnees_type.h
 	erreur.h
 	expression.h
+	generatrice_code_c.hh
 	modules.hh
 	morceaux.hh
 	validation_semantique.hh
@@ -57,6 +58,7 @@ set(SOURCES
 	donnees_type.cc
 	erreur.cc
 	expression.cc
+	generatrice_code_c.cc
 	modules.cc
 	morceaux.cc
 	validation_semantique.cc
