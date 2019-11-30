@@ -1383,24 +1383,20 @@ struct Convertisseuse {
 					std::cout << '\n';
 				}
 
-				--profondeur;
-				imprime_tab();
-				++profondeur;
-				std::cout << "boucle {\n";
-
 				/* i < 10 */
 				if (enfants_for.enfant_comp) {
-					imprime_tab();
-					std::cout << "si !(";
-					convertis(*enfants_for.enfant_comp, trans_unit);
-					std::cout << ") {\n";
-					++profondeur;
-					imprime_tab();
-					std::cout << "arrête\n";
 					--profondeur;
-
 					imprime_tab();
-					std::cout << "}\n";
+					++profondeur;
+					std::cout << "tantque ";
+					convertis(*enfants_for.enfant_comp, trans_unit);
+					std::cout << " {\n";
+				}
+				else {
+					--profondeur;
+					imprime_tab();
+					++profondeur;
+					std::cout << "boucle {\n";
 				}
 
 				/* ... */
