@@ -46,6 +46,7 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
@@ -853,6 +854,8 @@ struct Convertisseuse {
 
 	dico_typedefs typedefs{};
 
+	dls::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
+
 	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
 	{
 		++profondeur;
@@ -860,6 +863,8 @@ struct Convertisseuse {
 		switch (cursor.kind) {
 			default:
 			{
+				cursors_non_pris_en_charges.insere(clang_getCursorKind(cursor));
+
 				std::cout << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
 						  << clang_getCursorKindSpelling(clang_getCursorKind(cursor))
 						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
@@ -1815,6 +1820,14 @@ int main(int argc, char **argv)
 
 	auto convertisseuse = Convertisseuse();
 	convertisseuse.convertis(cursor, unit);
+
+	if (convertisseuse.cursors_non_pris_en_charges.taille() != 0) {
+		std::cerr << "Les cursors non pris en charges sont :\n";
+
+		for (auto kind : convertisseuse.cursors_non_pris_en_charges) {
+			std::cerr << '\t' << clang_getCursorKindSpelling(kind) << " (" << kind << ')' << '\n';
+		}
+	}
 
 	clang_disposeTranslationUnit(unit);
 	clang_disposeIndex(index);
