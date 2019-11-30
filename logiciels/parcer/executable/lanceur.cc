@@ -56,7 +56,7 @@ using dls::outils::est_element;
  * - 'template' (FunctionTemplate, ClassTemplate)
  * - classes : public/protected/private, si supporté dans le langage
  * - 'new', 'delete'
- * - ctors/dtors
+ * - ctors/dtors : les appels de constructeurs ont une paire de parenthèse extra
  * - les structs/unions/enum déclarés avec un typedef n'ont pas le bon type
  *   p.e. typedef struct X { } X_t sera X et non X_t => le petit frère du cursor
  *   possède cette information
@@ -984,8 +984,8 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_TypeRef:
 			{
-				/* ceci semble être pour quand nous utilisons une structure
-				 * comme type ? */
+				/* pour les constructeurs entre autres */
+				std::cout << clang_getTypeSpelling(clang_getCursorType(cursor));
 				break;
 			}
 			case CXCursorKind::CXCursor_FunctionDecl:
