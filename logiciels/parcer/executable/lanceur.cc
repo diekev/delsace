@@ -57,9 +57,9 @@ using dls::outils::est_element;
  * - classes : public/protected/private, si supporté dans le langage
  * - 'new', 'delete'
  * - ctors/dtors
- * - les structs et unions anonymes ayant pourtant un typedef ne peuvent être
- *   converties car l'arbre syntactique n'a pas cette l'information à la fin du
- *   typedef => typedef struct { } nom_t; « nom_t » est perdu -> le frère du cursor possède cette information.
+ * - les structs/unions/enum déclarés avec un typedef n'ont pas le bon type
+ *   p.e. typedef struct X { } X_t sera X et non X_t => le petit frère du cursor
+ *   possède cette information
  * - assert est mal converti
  * - conversion typage pour les opérateurs 'new' :
  *      int i = new int[a * b];
@@ -635,6 +635,16 @@ static auto determine_nom_anomyme(CXCursor cursor, int &nombre_anonyme)
 	}
 
 	clang_disposeString(spelling);
+
+	/* le type peut avoir l'information : typedef struct {} TYPE */
+	spelling = clang_getTypeSpelling(clang_getCursorType(cursor));
+	c_str = clang_getCString(spelling);
+
+	if (strcmp(c_str, "") != 0) {
+		auto chn = dls::chaine(c_str);
+		clang_disposeString(spelling);
+		return chn;
+	}
 
 	return "anonyme" + dls::vers_chaine(nombre_anonyme++);
 }
