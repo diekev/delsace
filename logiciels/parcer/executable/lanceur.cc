@@ -1362,15 +1362,10 @@ struct Convertisseuse {
 				 *
 				 * en :
 				 *
-				 * i = 0;
-				 *
-				 * boucle {
-				 *		si i < 10 {
-				 *			arrête
-				 *		}
-				 *
+				 * i = 0				 *
+				 * tantque i < 10 {
 				 *		...
-				 *		++i;
+				 *		i += 1
 				 * }
 				 */
 				auto enfants = rassemble_enfants(cursor);
