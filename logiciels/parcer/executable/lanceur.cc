@@ -926,6 +926,16 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				for (auto enfant : enfants) {
+#if 0
+					auto loc = clang_getCursorLocation(enfant);
+					CXFile file;
+					unsigned line;
+					unsigned column;
+					unsigned offset;
+					clang_getExpansionLocation(loc, &file, &line, &column, &offset);
+
+					std::cout << "Cursor at " << clang_getFileName(file) << '\n';
+#endif
 					convertis(enfant, trans_unit);
 
 					/* variable globale */
