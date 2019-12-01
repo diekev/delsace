@@ -55,6 +55,7 @@ set(BIBLIOTHEQUES
 	/usr/lib/llvm-6.0/lib/libclangBasic.a
 	/usr/lib/llvm-6.0/lib/libLLVM.so
 	/usr/lib/llvm-6.0/lib/libclang.so
+	bib_json
 )
 
 add_executable(${NOM_PROJET}

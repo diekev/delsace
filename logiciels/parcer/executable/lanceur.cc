@@ -50,6 +50,8 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include "../deploie/json/json.hh"
+
 using dls::outils::est_element;
 
 /* À FAIRE :
@@ -1805,29 +1807,98 @@ struct Convertisseuse {
 	}
 };
 
+struct Configuration {
+	dls::chaine fichier{};
+	dls::tableau<dls::chaine> args{};
+	dls::tableau<dls::chaine> inclusions{};
+};
+
+static auto analyse_configuration(const char *chemin)
+{
+	auto config = Configuration{};
+	auto obj = json::compile_script(chemin);
+
+	if (obj == nullptr) {
+		std::cerr << "La compilation du script a renvoyé un objet nul !\n";
+		return config;
+	}
+
+	if (obj->type != tori::type_objet::DICTIONNAIRE) {
+		std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
+		return config;
+	}
+
+	auto dico = tori::extrait_dictionnaire(obj.get());
+
+	auto obj_fichier = cherche_chaine(dico, "fichier");
+
+	if (obj_fichier == nullptr) {
+		return config;
+	}
+
+	config.fichier = obj_fichier->valeur;
+
+	auto obj_args = cherche_tableau(dico, "args");
+
+	if (obj_args != nullptr) {
+		for (auto objet : obj_args->valeur) {
+			if (objet->type != tori::type_objet::CHAINE) {
+				std::cerr << "args : l'objet n'est pas une chaine !\n";
+				continue;
+			}
+
+			auto obj_chaine = extrait_chaine(objet.get());
+			config.args.pousse(obj_chaine->valeur);
+		}
+	}
+
+	auto obj_inclusions = cherche_tableau(dico, "inclusions");
+
+	if (obj_inclusions != nullptr) {
+		for (auto objet : obj_inclusions->valeur) {
+			if (objet->type != tori::type_objet::CHAINE) {
+				std::cerr << "inclusions : l'objet n'est pas une chaine !\n";
+				continue;
+			}
+
+			auto obj_chaine = extrait_chaine(objet.get());
+			config.inclusions.pousse(obj_chaine->valeur);
+		}
+	}
+
+	return config;
+}
+
 int main(int argc, char **argv)
 {
 	if (argc < 2) {
-		std::cerr << "Utilisation " << argv[0] << " FICHIER\n";
+		std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
 		return 1;
 	}
 
-	auto chemin = argv[1];
+	auto config = analyse_configuration(argv[1]);
 
-	const char *args[] = {
-		"-fparse-all-comments",
-		"-I",
-		"/usr/lib/gcc/x86_64-linux-gnu/8/include/",
-		"-I",
-		"/usr/lib/llvm-6.0/lib/clang/6.0.0/include/"
-	};
+	if (config.fichier == "") {
+		return 1;
+	}
+
+	auto args = dls::tableau<const char *>();
+
+	for (auto const &arg : config.args) {
+		args.pousse(arg.c_str());
+	}
+
+	for (auto const &inclusion : config.inclusions) {
+		args.pousse("-I");
+		args.pousse(inclusion.c_str());
+	}
 
 	CXIndex index = clang_createIndex(0, 0);
 	CXTranslationUnit unit = clang_parseTranslationUnit(
 				index,
-				chemin,
-				args,
-				5,
+				config.fichier.c_str(),
+				args.donnees(),
+				static_cast<int>(args.taille()),
 				nullptr,
 				0,
 				CXTranslationUnit_None);
