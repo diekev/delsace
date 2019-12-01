@@ -19,8 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(json)
-
 set(NOM_PROJET deploie)
 
 set(INCLUSIONS

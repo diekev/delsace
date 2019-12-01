@@ -24,11 +24,11 @@
 #include <iostream>
 #include <filesystem>
 
+#include "biblinternes/json/json.hh"
 #include "biblinternes/outils/fichier.hh"
 #include "biblinternes/structures/chaine.hh"
 
 #include "client_ftp.hh"
-#include "json/json.hh"
 
 namespace filesystem = std::filesystem;
 

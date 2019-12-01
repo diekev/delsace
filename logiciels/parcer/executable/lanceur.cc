@@ -42,6 +42,7 @@
 
 #include <clang-c/Index.h>
 
+#include "biblinternes/json/json.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
@@ -49,8 +50,6 @@
 #include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/tableau.hh"
-
-#include "../deploie/json/json.hh"
 
 using dls::outils::est_element;
 
