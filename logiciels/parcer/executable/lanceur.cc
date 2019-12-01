@@ -1397,7 +1397,9 @@ struct Convertisseuse {
 				}
 
 				/* ... */
-				convertis(*enfants_for.enfant_bloc, trans_unit);
+				if (enfants_for.enfant_bloc) {
+					convertis(*enfants_for.enfant_bloc, trans_unit);
+				}
 
 				/* ++i */
 				if (enfants_for.enfant_inc) {
