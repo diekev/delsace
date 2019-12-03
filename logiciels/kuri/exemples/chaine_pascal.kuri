@@ -11,7 +11,7 @@
 fonc externe printf(format : *z8, args : ...) : z32;
 
 # Définition de la structure ChaînePascal.
-structure ChaînePascal {
+struct ChaînePascal {
 	# Les données sont un tableau de 256 z8, à savoir taille + 255 caractères
 	# ascii.
 	données : [256]z8;

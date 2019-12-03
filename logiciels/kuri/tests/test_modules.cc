@@ -26,11 +26,11 @@
 
 #include <filesystem>
 
-#include "decoupage/analyseuse_grammaire.h"
-#include "decoupage/assembleuse_arbre.h"
-#include "decoupage/contexte_generation_code.h"
-#include "decoupage/decoupeuse.h"
-#include "decoupage/modules.hh"
+#include "compilation/analyseuse_grammaire.h"
+#include "compilation/assembleuse_arbre.h"
+#include "compilation/contexte_generation_code.h"
+#include "compilation/decoupeuse.h"
+#include "compilation/modules.hh"
 
 static std::pair<bool, bool> retourne_erreur_module_lancee(
 		const char *chemin_fichier,
@@ -116,7 +116,7 @@ void test_modules(dls::test_unitaire::Controleuse &controleuse)
 				"On ne peut accéder à un module non-importé.");
 	{
 		auto const [erreur_lancee, type_correcte] = retourne_erreur_module_lancee(
-				"fichiers_tests/test_utilisation_module_inconnu.kuri", false, erreur::type_erreur::MODULE_INCONNU);
+				"fichiers_tests/test_utilisation_module_inconnu.kuri", false, erreur::type_erreur::VARIABLE_INCONNUE);
 
 		CU_VERIFIE_CONDITION(controleuse, erreur_lancee == true);
 		CU_VERIFIE_CONDITION(controleuse, type_correcte == true);

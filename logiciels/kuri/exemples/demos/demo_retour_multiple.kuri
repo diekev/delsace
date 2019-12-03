@@ -4,62 +4,62 @@ importe "structures"
 
 # Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
-fonc externe ext_indirection1() : z32;
+fonc externe ext_indirection1() : z32
 
 ###############################################################################
 
 fonc ret_simple() : z32
 {
     si vrai {
-        retourne 12987;
+        retourne 12987
     }
     sinon {
-        retourne 129;
+        retourne 129
     }
 }
 
 fonc indirection_simple() : z32
 {
-    retourne ret_simple();
+    retourne ret_simple()
 }
 
 fonc test_fonction_ret_simple() : rien
 {
-    imprime("---------------------------", '\n');
-    imprime("fonc ret simple", '\n');
+    imprime("---------------------------", '\n')
+    imprime("fonc ret simple", '\n')
 
-    a = indirection_simple();
+    a = indirection_simple()
 
-    imprime("a = ", a, '\n');
+    imprime("a = ", a, '\n')
 }
 
 fonc test_ptr_fonction_ret_simple() : rien
 {
-    imprime("---------------------------", '\n');
-    imprime("pointeur ret fonc simple", '\n');
+    imprime("---------------------------", '\n')
+    imprime("pointeur ret fonc simple", '\n')
 
-    ptr = indirection_simple;
+    ptr = indirection_simple
 
-    a = ptr();
+    a = ptr()
 
-    imprime("a = ", a, '\n');
+    imprime("a = ", a, '\n')
 }
 
 corout coro_simple() : z32
 {
     pour i dans 0...10 {
-        retiens i;
+        retiens i
     }
 }
 
 fonc test_coro_simple() : rien
 {
-    imprime("---------------------------", '\n');
-    imprime("coro simple", '\n');
+    imprime("---------------------------", '\n')
+    imprime("coro simple", '\n')
 
     pour a dans coro_simple() {
 
-     imprime("a = ", a, '\n');
+     imprime("a = ", a, '\n')
 
     }
 }
@@ -68,22 +68,22 @@ fonc test_coro_simple() : rien
 
 fonc ret_multiple() : z32, bool
 {
-    retourne 1237, faux;
+    retourne 1237, faux
 }
 
 fonc indirection() : z32, bool
 {
-    retourne ret_multiple();
+    retourne ret_multiple()
 }
 
 fonc test_fonction_ret_moult() : rien
 {
-    imprime("---------------------------", '\n');
-    imprime("fonc ret multiple", '\n');
+    imprime("---------------------------", '\n')
+    imprime("fonc ret multiple", '\n')
 
-    a, b = indirection();
+    a, b = indirection()
 
-    imprime("a = ", a, ", b = ", b, '\n');
+    imprime("a = ", a, ", b = ", b, '\n')
 
     # ignore un paramètre
 
@@ -94,9 +94,9 @@ fonc test_fonction_ret_moult() : rien
 
 fonc appel_ptr_moult_ret() : z32, bool
 {
-    ptr = indirection;
+    ptr = indirection
 
-    retourne ptr();
+    retourne ptr()
 }
 
 fonc test___(x : fonc(z32)z32, y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w : z32) : rien
@@ -105,18 +105,18 @@ fonc test___(x : fonc(z32)z32, y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w : z3
 
 fonc test_ptr_fonction_ret_moult() : rien
 {
-    imprime("---------------------------", '\n');
-    imprime("pointeur fonc ret multiple", '\n');
+    imprime("---------------------------", '\n')
+    imprime("pointeur fonc ret multiple", '\n')
 
-    x : fonc(z32)z32 = nul;
-    y : fonc(z32)(z32) = nul;
-    z : fonc(z32)(z32,z32) = nul;
+    x : fonc(z32)z32 = nul
+    y : fonc(z32)(z32) = nul
+    z : fonc(z32)(z32,z32) = nul
 
-    test___(x, y, z, 90);
+    test___(x, y, z, 90)
 
-    a, b = appel_ptr_moult_ret();
+    a, b = appel_ptr_moult_ret()
 
-    imprime("a = ", a, ", b = ", b, '\n');
+    imprime("a = ", a, ", b = ", b, '\n')
 }
 
 ###############################################################################
@@ -124,7 +124,7 @@ fonc test_ptr_fonction_ret_moult() : rien
 corout coro_multiple() : z32, bool
 {
     pour i dans 0 ... 10 {
-        retiens i * 3, (i % 3) == 0;
+        retiens i * 3, (i % 3) == 0
     }
 }
 
@@ -136,11 +136,11 @@ corout coro_multiple() : z32, bool
 
 fonc test_coro_ret_moult() : rien
 {
-    imprime("---------------------------", '\n');
-    imprime("coro ret multiple", '\n');
+    imprime("---------------------------", '\n')
+    imprime("coro ret multiple", '\n')
 
     pour a, b, i dans coro_multiple() {
-        imprime("a = ", a, ", b = ", b, ", i = ", i, '\n');
+        imprime("a = ", a, ", b = ", b, ", i = ", i, '\n')
     }
 
     # ignore un paramètre
@@ -154,13 +154,13 @@ fonc test_coro_ret_moult() : rien
 
 fonc principale(args : []*z8) : z32
 {
-    test_fonction_ret_simple();
-    test_ptr_fonction_ret_simple();
-    test_coro_simple();
+    test_fonction_ret_simple()
+    test_ptr_fonction_ret_simple()
+    test_coro_simple()
 
-    test_fonction_ret_moult();
-    test_ptr_fonction_ret_moult();
-    test_coro_ret_moult();
+    test_fonction_ret_moult()
+    test_ptr_fonction_ret_moult()
+    test_coro_ret_moult()
 
-    retourne 0;
+    retourne 0
 }

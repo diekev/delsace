@@ -30,8 +30,10 @@ set(BIBLIOTHEQUES
 
 set(ENTETES
 	analyseuse.hh
+	debogage.hh
 	erreur.hh
 	nombres.hh
+	outils.hh
 	tampon_source.hh
 	unicode.hh
 )
@@ -40,6 +42,7 @@ set(SOURCES
 	analyseuse.cc
 	erreur.cc
 	nombres.cc
+	outils.cc
 	tampon_source.cc
 	unicode.cc
 

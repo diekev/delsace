@@ -28,18 +28,12 @@
 #include <cstring>
 
 #include "biblinternes/langage/nombres.hh"
+#include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/langage/unicode.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "erreur.hh"
-
-/* ************************************************************************** */
-
-bool est_espace_blanc(char c)
-{
-	return c == ' ' || c == '\n' || c == '\t';
-}
 
 /* ************************************************************************** */
 
@@ -176,7 +170,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 {
 	auto idc = id_morceau::INCONNU;
 
-	if (est_espace_blanc(this->caractere_courant())) {
+	if (lng::est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
 			this->pousse_mot(id_chaine(this->mot_courant()));
 		}

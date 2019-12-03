@@ -27,6 +27,7 @@
 #include "biblinternes/memoire/logeuse_gardee.hh"
 
 #include "biblinternes/structures/vue_chaine.hh"
+#include "biblinternes/structures/vue_chaine_compacte.hh"
 
 #include <cstring>
 #include <string>
@@ -56,6 +57,8 @@ public:
 	chaine(char const *__c_str, long taille);
 
 	chaine(vue_chaine const &vue);
+
+	chaine(vue_chaine_compacte const &vue);
 
 	chaine(long nombre, char c);
 
@@ -151,6 +154,8 @@ public:
 	chaine &operator+=(chaine const &autre);
 
 	operator vue_chaine() const;
+
+	operator vue_chaine_compacte() const;
 };
 
 /* ************************************************************************** */
@@ -165,6 +170,10 @@ bool operator==(chaine const &c1, vue_chaine const &c2);
 
 bool operator==(vue_chaine const &c1, chaine const &c2);
 
+bool operator==(chaine const &c1, vue_chaine_compacte const &c2);
+
+bool operator==(vue_chaine_compacte const &c1, chaine const &c2);
+
 bool operator==(chaine const &c1, char const *c2);
 
 bool operator==(char const *c1, chaine const &c2);
@@ -174,6 +183,10 @@ bool operator!=(chaine const &c1, chaine const &c2);
 bool operator!=(chaine const &c1, vue_chaine const &c2);
 
 bool operator!=(vue_chaine const &c1, chaine const &c2);
+
+bool operator!=(chaine const &c1, vue_chaine_compacte const &c2);
+
+bool operator!=(vue_chaine_compacte const &c1, chaine const &c2);
 
 bool operator!=(chaine const &c1, char const *c2);
 
@@ -212,9 +225,15 @@ inline auto end(chaine const &c)
 /* ************************************************************************** */
 
 template <typename T>
-auto vers_chaine(T const &valeur)
+inline auto vers_chaine(T valeur)
 {
 	return chaine(std::to_string(valeur));
+}
+
+template <typename T>
+inline auto vers_chaine(T *valeur)
+{
+	return chaine(std::to_string(reinterpret_cast<long>(valeur)));
 }
 
 }  /* namespace dls */

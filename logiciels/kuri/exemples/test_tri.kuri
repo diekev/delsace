@@ -27,7 +27,7 @@ fonc tri_rapide(tableau : []z32, premier : z32, dernier : z32) : rien
 	}
 }
 
-structure Plage {
+struct Plage {
 	premier : *z32;
 	dernier : *z32;
 }
@@ -56,7 +56,7 @@ fonc tri_rapide(plage : *Plage) : rien
 	}
 }
 
-structure GNASimple {
+struct GNASimple {
 	z : z32;
 	w : z32;
 }

@@ -139,14 +139,14 @@ static void test_pointeur_fonction(
 	{
 		const char *texte =
 				R"(
-				structure Foo {
+				struct Foo {
 					x : fonc(z32,*z8,z32)z32;
 				}
 
-				fonc bar(a : fonc(r32, r64)rien) : rien
+				fonc bar(a : fonc(r32, r64)(rien)) : rien
 				{
 					soit x = a;
-					soit y : fonc(r32, r64)rien = a;
+					soit y : fonc(r32, r64)(rien) = a;
 				}
 				)";
 

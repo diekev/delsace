@@ -42,6 +42,10 @@ chaine::chaine(const vue_chaine &vue)
 	: m_chaine(&vue[0], static_cast<size_t>(vue.taille()))
 {}
 
+chaine::chaine(const vue_chaine_compacte &vue)
+	: m_chaine(&vue[0], static_cast<size_t>(vue.taille()))
+{}
+
 chaine::chaine(long nombre, char c)
 	: m_chaine(static_cast<size_t>(nombre), c)
 {}
@@ -244,6 +248,11 @@ dls::chaine::operator vue_chaine() const
 	return vue_chaine(this->c_str(), this->taille());
 }
 
+dls::chaine::operator vue_chaine_compacte() const
+{
+	return vue_chaine_compacte(this->c_str(), this->taille());
+}
+
 /* ************************************************************************** */
 
 std::ostream &operator<<(std::ostream &os, const chaine &c)
@@ -275,6 +284,16 @@ bool operator==(vue_chaine const &c1, chaine const &c2)
 	return vue_chaine(c2) == c1;
 }
 
+bool operator==(chaine const &c1, vue_chaine_compacte const &c2)
+{
+	return vue_chaine_compacte(c1) == c2;
+}
+
+bool operator==(vue_chaine_compacte const &c1, chaine const &c2)
+{
+	return vue_chaine_compacte(c2) == c1;
+}
+
 bool operator==(chaine const &c1, char const *c2)
 {
 	return std::strcmp(c1.c_str(), c2) == 0;
@@ -296,6 +315,16 @@ bool operator!=(chaine const &c1, vue_chaine const &c2)
 }
 
 bool operator!=(vue_chaine const &c1, chaine const &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(chaine const &c1, vue_chaine_compacte const &c2)
+{
+	return !(c1 == c2);
+}
+
+bool operator!=(vue_chaine_compacte const &c1, chaine const &c2)
 {
 	return !(c1 == c2);
 }

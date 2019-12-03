@@ -25,8 +25,9 @@
 #include <cstring>
 #include <iostream>
 
+#include "biblinternes/tori/objet.hh"
+
 #include "tori/gabarit.hh"
-#include "tori/objet.hh"
 
 int main()
 {

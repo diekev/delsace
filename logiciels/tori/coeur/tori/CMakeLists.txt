@@ -32,10 +32,8 @@ set(BIBLIOTHEQUES
 
 set(SOURCES
 	gabarit.cc
-	objet.cc
 
 	gabarit.hh
-	objet.hh
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")

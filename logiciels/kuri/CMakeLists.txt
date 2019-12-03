@@ -32,7 +32,8 @@ endif()
 
 set(RACINE_INSTALLATION kuri)
 
-add_subdirectory(coeur)
+add_subdirectory(compilation)
+add_subdirectory(executable)
 add_subdirectory(exemples)
 add_subdirectory(tests)
 
@@ -40,11 +41,11 @@ set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/adn.kuri
 	bibliotheques/chaine.kuri
 	bibliotheques/chrono.kuri
-	bibliotheques/fichier.kuri
 	bibliotheques/flux.kuri
 	bibliotheques/info_type.kuri
 	bibliotheques/iter.kuri
 	bibliotheques/memoire.kuri
+	bibliotheques/sys_fichier.kuri
 	bibliotheques/structures.kuri
 	bibliotheques/uri.kuri
 )

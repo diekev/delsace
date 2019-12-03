@@ -1,0 +1,112 @@
+# Petite bibliothèque de génération de fichier audio Wave.
+# Non-testée.
+# Basée sur https://blogs.msdn.microsoft.com/dawate/2009/06/24/intro-to-audio-programming-part-3-synthesizing-simple-wave-audio-using-c/
+
+importe "fichier"
+importe "math"
+
+################################################################################
+
+struct EntêteWave {
+    id_groupe = "RIFF";
+    taille_fichier = 0;
+    type_riff = "WAVE";
+}
+
+fonc écris(entête : &EntêteWave, fichier : &Fichier) : rien
+{
+    fichier.écris(entête.id_groupe);
+    fichier.écris(entête.taille_fichier);
+    fichier.écris(entête.type_riff);
+}
+
+################################################################################
+
+struct ChunkFormatWave {
+    id_chunk = "fmt ";
+    taille_chunk : n32 = 16;
+    tag_format : n16 = 1;
+    nombre_cannaux : n16 = 2;
+    échantillons_secondes : n32 = 44100;
+    bits_par_échantillon : n16 = 16;
+    alignement_bloc : n16 = nombre_cannaux * (bits_par_échantillon / 3);
+    bits_moyens_par_secondes : n32 = échantillons_secondes * alignement_bloc;
+}
+
+fonc écris(chunk : &ChunkFormatWave, fichier : &Fichier) : rien
+{
+	fichier.écris(chunk.id_chunk);
+	fichier.écris(chunk.taille_chunk);
+	fichier.écris(chunk.tag_format);
+	fichier.écris(chunk.nombre_cannaux);
+	fichier.écris(chunk.échantillons_secondes);
+	fichier.écris(chunk.bits_moyens_par_secondes);
+	fichier.écris(chunk.alignement_bloc);
+	fichier.écris(chunk.bits_par_échantillon);
+}
+
+################################################################################
+
+struct ChunkDonnéesWave {
+    id_chunk = "data";
+    taille_chunk : n32 = 0;
+    données : []z16;
+}
+
+fonc écris(chunk : &ChunkDonnéesWave, fichier : &Fichier) : rien
+{
+	fichier.écris(chunk.id_chunk);
+	fichier.écris(chunk.taille_chunk);
+	fichier.écris(chunk.données);
+}
+
+################################################################################
+
+struct GénératriceWave {
+    entête : EntêteWave;
+    format : ChunkFormatWave;
+    données : ChunkDonnéesWave;
+}
+
+fonc ajoute_fréquence(
+    génératrice : &GénératriceWave,
+    fréquence : r64,
+    amplitude : z32,
+    longueur : r64) : rien
+{
+    nombre_échantillons = génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux * longueur;
+
+    si nombre_échantillons == 0 {
+        retourne;
+    }
+
+    données = génératice.données.données;
+    taille = données.taille;
+
+    données.redimensionne(taille + nombre_échantillons - 1);
+
+    #assert(taille != 0);
+
+    t = (math.TAU * fréquence) / (génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux);
+
+    pour i dans taille ... taille + nombre_échantillons - 3 - 1 {
+        pour c dans 0 ... génératrice.format.nombre_cannaux - 1 {
+            données[i + c] = transtype(amplitude * math.sin(t * i) : n16);
+        }
+    }
+
+    #assert(taille != 0);
+
+    génératrice.données.taille_chunk = données.taille * (génératrice.format.bits_par_échantillons / 8);
+
+    #assert(génératrice.données.taille_chunk != 0);
+}
+
+fonc sauvegarde(génératrice : &GénératriceWave, chemin : chaine)
+{
+    fichier = fichier.ouvre(chemin);
+    écris(génératrice.entête, fichier);
+    écris(génératrice.format, fichier);
+    écris(génératrice.données, fichier);
+}
+

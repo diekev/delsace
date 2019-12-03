@@ -21,13 +21,13 @@
 
 set(INCLUSIONS
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/../coeur
+	${CMAKE_CURRENT_SOURCE_DIR}/../
 	${INCLUSIONS_DELSACE_TESTS}
 )
 
 set(BIBLIOTHEQUES
 	tests
-	kuri_decoupage
+	kuri_compilation
 )
 
 set(SOURCES

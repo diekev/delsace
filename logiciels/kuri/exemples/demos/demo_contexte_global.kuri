@@ -2,18 +2,18 @@ importe "flux"
 
 fonc imprime_compteur() : rien
 {
-    imprime("Compteur = ", ctx.compteur, '\n');
+    imprime("Compteur = ", ctx.compteur, '\n')
 }
 
 fonc incrémente_compteur() : rien
 {
-    ctx.compteur += 1;
+    ctx.compteur += 1
 }
 
 fonc principale(args : []*z8) : z32
 {
-    imprime_compteur();
-    incrémente_compteur();
-    imprime_compteur();
-    retourne 0;
+    imprime_compteur()
+    incrémente_compteur()
+    imprime_compteur()
+    retourne 0
 }

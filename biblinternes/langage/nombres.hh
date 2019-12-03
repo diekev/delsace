@@ -29,6 +29,7 @@
  */
 
 #include "biblinternes/structures/vue_chaine.hh"
+#include "biblinternes/structures/vue_chaine_compacte.hh"
 
 namespace lng {
 
@@ -61,6 +62,18 @@ long converti_chaine_nombre_hexadecimal(dls::vue_chaine const &chaine);
 long converti_nombre_entier(dls::vue_chaine const &chaine);
 
 double converti_nombre_reel(dls::vue_chaine const &chaine);
+
+/* ************************************************************************** */
+
+long converti_chaine_nombre_binaire(dls::vue_chaine_compacte const &chaine);
+
+long converti_chaine_nombre_octal(dls::vue_chaine_compacte const &chaine);
+
+long converti_chaine_nombre_hexadecimal(dls::vue_chaine_compacte const &chaine);
+
+long converti_nombre_entier(dls::vue_chaine_compacte const &chaine);
+
+double converti_nombre_reel(dls::vue_chaine_compacte const &chaine);
 
 /* ************************************************************************** */
 
@@ -145,11 +158,27 @@ struct decoupeuse_nombre {
 			case id_morceau::NOMBRE_ENTIER:
 				return converti_nombre_entier(chaine);
 			case id_morceau::NOMBRE_BINAIRE:
-				return converti_chaine_nombre_binaire({&chaine[2], chaine.taille() - 2});
+				return converti_chaine_nombre_binaire(dls::vue_chaine{&chaine[2], chaine.taille() - 2});
 			case id_morceau::NOMBRE_OCTAL:
-				return converti_chaine_nombre_octal({&chaine[2], chaine.taille() - 2});
+				return converti_chaine_nombre_octal(dls::vue_chaine{&chaine[2], chaine.taille() - 2});
 			case id_morceau::NOMBRE_HEXADECIMAL:
-				return converti_chaine_nombre_hexadecimal({&chaine[2], chaine.taille() - 2});
+				return converti_chaine_nombre_hexadecimal(dls::vue_chaine{&chaine[2], chaine.taille() - 2});
+			default:
+				return 0l;
+		}
+	}
+
+	static long converti_chaine_nombre_entier(dls::vue_chaine_compacte const &chaine, id_morceau identifiant)
+	{
+		switch (identifiant) {
+			case id_morceau::NOMBRE_ENTIER:
+				return converti_nombre_entier(chaine);
+			case id_morceau::NOMBRE_BINAIRE:
+				return converti_chaine_nombre_binaire(dls::vue_chaine_compacte{&chaine[2], chaine.taille() - 2});
+			case id_morceau::NOMBRE_OCTAL:
+				return converti_chaine_nombre_octal(dls::vue_chaine_compacte{&chaine[2], chaine.taille() - 2});
+			case id_morceau::NOMBRE_HEXADECIMAL:
+				return converti_chaine_nombre_hexadecimal(dls::vue_chaine_compacte{&chaine[2], chaine.taille() - 2});
 			default:
 				return 0l;
 		}
@@ -159,6 +188,16 @@ struct decoupeuse_nombre {
 	 * Converti une chaine de caractère en un nombre réel de type 'double'.
 	 */
 	static double converti_chaine_nombre_reel(dls::vue_chaine const &chaine, id_morceau identifiant)
+	{
+		switch (identifiant) {
+			case id_morceau::NOMBRE_REEL:
+				return converti_nombre_reel(chaine);
+			default:
+				return 0.0;
+		}
+	}
+
+	static double converti_chaine_nombre_reel(dls::vue_chaine_compacte const &chaine, id_morceau identifiant)
 	{
 		switch (identifiant) {
 			case id_morceau::NOMBRE_REEL:

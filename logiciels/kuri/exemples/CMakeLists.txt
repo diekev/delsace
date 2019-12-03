@@ -24,8 +24,6 @@ set(INCLUSIONS
 )
 
 set(FICHIERS
-    controle_flux.kuri
-    fonction_simple.kuri
 )
 
 install(

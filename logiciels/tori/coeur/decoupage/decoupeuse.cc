@@ -27,18 +27,12 @@
 #include <iostream>
 #include <cstring>
 
+#include "biblinternes/langage/outils.hh"
 #include "biblinternes/langage/tampon_source.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/flux_chaine.hh"
 
 #include "erreur.hh"
-
-/* ************************************************************************** */
-
-static bool est_caractere_blanc(char c)
-{
-	return dls::outils::est_element(c, '\t', '\r', '\n', ' ');
-}
 
 /* ************************************************************************** */
 
@@ -218,7 +212,7 @@ void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
 
 void decoupeuse_texte::analyse_caractere_simple()
 {
-	if (est_caractere_blanc(this->caractere_courant())) {
+	if (lng::est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
 			pousse_mot(id_chaine(mot_courant()));
 		}

@@ -1,0 +1,134 @@
+########################################################################
+# https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
+
+struct Point2D {
+	x = 0.0;
+	y = 0.0;
+}
+
+struct Rectangle2D {
+	gauche = 0.0;
+	bas = 0.0;
+	droite = 0.0;
+	haut = 0.0;
+}
+
+struct MondeVersEcran {
+	A = 0.0;
+	B = 0.0;
+	C = 0.0;
+	D = 0.0;
+}
+
+fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) : MondeVersEcran
+{
+	dyn mve : MondeVersEcran;
+
+	mve.A = (ecran.droite - ecan.gauche) / (monde.droite - monde.gauche);
+	mve.B = (ecran.haut - ecran.bas) / (monde.haut - monde.bas);
+	mve.C = ecran.gauche - mve.A * monde.gauche;
+	mve.D = ecran.bas - mve.B * monde.bas;
+
+	retourne mve;
+}
+
+fonc mappage(mve : &MondeVersEcran, x : r64, y : r64) : Point2D
+{
+	dyn pos_ecran : Point2D;
+
+	pos_ecran.x = mve.A * x + mve.C;
+	pos_ecran.y = mve.B * y + mve.D;
+
+	retourne pos_ecran;
+}
+
+fonc mappage(mve : &MondeVersEcran, p : &Point2D) : Point2D
+{
+	retourne mappage(mve, p.x, p.y);
+}
+
+########################################################################
+
+fonc dessine_point_rayon(
+	cannevas : []z8,
+	hauteur : z32,
+	largeur : z32,
+	p : &Point2D,
+	rayon_point : z32) : rien
+{
+
+}
+
+fonc dessine_point_rayon(
+	cannevas : []z8,
+	hauteur : z32,
+	largeur : z32,
+	p : &Point2D,
+	rayon_point : z32) : rien
+{
+
+}
+
+fonc dessine_bmp(
+	chemin : chaine,
+	hauteur : z32,
+	largeur : z32,
+	monde : &Rectangle2D,
+	ecran : &Rectangle2D,
+	points : []Points2D,
+	rayon_point : z32) : rien
+{
+	cannevas = loge : [hauteur * largeur * 4]z8;
+	diffère { déloge cannevas; }
+
+	pour v dans cannevas {
+		v = 255;
+	}
+
+	points_ecran = points_vers_ecran(hauteur, largeur, monde, ecran, points);
+	diffère { déloge points_ecran; }
+
+	si rayon_point == 0 {
+		pour p dans points_ecran {
+			idx = index_point(p.x, p.y);
+			cannevas[idx    ] = 0;
+			cannevas[idx + 1] = 0;
+			cannevas[idx + 2] = 0;
+			cannevas[idx + 3] = 255;
+		}
+	}
+	sinon {
+		pour p dans points_ecran {
+			dessine_point_rayon(cannevas, hauteur, largeur, p, rayon_point);
+		}
+	}
+
+	écris_cannevas(chemin, cannevas);
+}
+
+########################################################################
+
+fonc principale(args : []*z8) : z32
+{
+	monde = Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
+
+	# À FAIRE(compilation) : construction de structure dans un tableau
+	points = [
+		Point2D{x =   0.0, y =  0.0},
+		Point2D{x =  10.0, y =  10.0},
+		Point2D{x =  20.0, y =  20.0},
+		Point2D{x =  30.0, y =  30.0},
+		Point2D{x =  40.0, y =  40.0},
+		Point2D{x =  50.0, y =  50.0},
+		Point2D{x =  60.0, y =  60.0},
+		Point2D{x =  70.0, y =  70.0},
+		Point2D{x =  80.0, y =  80.0},
+		Point2D{x =  90.0, y =  90.0},
+		Point2D{x = 799.0, y = 799.0}
+	];
+
+	espace_écran = Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 799.0, droite = 799.0 };
+	dessine_bmp("chaos.bmp", hauteur, largeur, monde, espace_écran, points, 5);
+
+	retourne 0;
+}

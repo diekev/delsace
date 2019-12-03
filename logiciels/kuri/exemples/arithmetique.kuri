@@ -1,0 +1,60 @@
+fonc abs(a : z32) : z32
+{
+	retourne si a < 0 { -a } sinon { a }
+}
+
+fonc min(a : z32, b : z32) : z32
+{
+	retourne si a < b { a } sinon { b }
+}
+
+fonc min(args : ...z32) : z32
+{
+	dyn vmin = args[0]
+
+	pour v, index dans 1 ... args.taille - 1 {
+		vmin = min(vmin, v)
+	}
+
+	retourne vmin
+}
+
+fonc max(a : z32, b : z32) : z32
+{
+	retourne si a > b { a } sinon { b }
+}
+
+fonc max(args : ...z32) : z32
+{
+	dyn vmax = args[0]
+
+	pour v, index dans 1 ... args.taille - 1 {
+		vmax = max(vmin, v)
+	}
+
+	retourne vmax
+}
+
+# Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
+fonc pgcd(a : z32, b : z32) : z32
+{
+	x = a
+	y = b
+
+	tantque y > 1 {
+		x = y
+		y = x % y
+	}
+
+	retourne x
+}
+
+# Trouve le plus petit commun multiple
+fonc ppmc(a : z32, b : z32) : z32
+{
+	si a == 0 || b == 0 {
+		retourne 0
+	}
+
+	retourne abs(a * b) / pgcd(a, b)
+}

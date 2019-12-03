@@ -16,93 +16,93 @@ importe "chaine"
 	ÉNUM      = 10,
 }
 
-structure InfoType {
-    id : id_info;
+struct InfoType {
+	id : id_info
 }
 
-structure InfoTypeEntier {
-    id : id_info; # employant InfoType
-	est_signé : bool;
-	taille_en_octet : n32;
+struct InfoTypeEntier {
+	id : id_info # employant InfoType
+	est_signé : bool
+	taille_en_octet : n32
 }
 
-structure InfoTypeRéel {
-    id : id_info; # employant InfoType
-	taille_en_octet : n32;
+struct InfoTypeRéel {
+	id : id_info # employant InfoType
+	taille_en_octet : n32
 }
 
-structure InfoTypePointeur {
-    id : id_info; # employant InfoType
-	type_pointé : *InfoType;
-	est_référence : bool;
+struct InfoTypePointeur {
+	id : id_info # employant InfoType
+	type_pointé : *InfoType
+	est_référence : bool
 }
 
-structure InfoTypeTableau {
-    id : id_info; # employant InfoType
-	type_pointé : *InfoType;
+struct InfoTypeTableau {
+	id : id_info # employant InfoType
+	type_pointé : *InfoType
 }
 
-structure InfoTypeMembreStructure {
-    nom : chaine;
-	id : *InfoType;
-	décalage : z64; # décalage en octets dans la structure
-	#drapeaux : n32;
+struct InfoTypeMembreStructure {
+	nom : chaine
+	id : *InfoType
+	décalage : z64 # décalage en octets dans la structure
+	#drapeaux : n32
 }
 
-structure InfoTypeStructure {
-    id : id_info; # employant InfoType
-	nom : chaine;
-	membres : []InfoTypeMembreStructure;
+struct InfoTypeStructure {
+	id : id_info # employant InfoType
+	nom : chaine
+	membres : []InfoTypeMembreStructure
 }
 
-structure InfoTypeFonction {
-	id : id_info; # employant InfoType
-	types_entrée : []*InfoType;
-	types_sortie : []*InfoType;
-	est_coroutine : bool;
+struct InfoTypeFonction {
+	id : id_info # employant InfoType
+	types_entrée : []*InfoType
+	types_sortie : []*InfoType
+	est_coroutine : bool
 }
 
-structure InfoTypeÉnum {
-    id : id_info; # employant InfoType
-	nom : chaine;
-	valeurs : []z32; # À FAIRE typage selon énum
-	noms : []chaine;
+struct InfoTypeÉnum {
+	id : id_info # employant InfoType
+	nom : chaine
+	valeurs : []z32 # À FAIRE typage selon énum
+	noms : []chaine
 }
 
 fonc possède_membre(arg : eini, nom : chaine) : bool
 {
-    info = info de arg;
+	info = info de arg
 
     si id de info != STRUCTURE de id_info {
-	    retourne faux;
+		retourne faux
 	}
 
-    soit info_arg = transtype(info : *InfoTypeStructure); 
+	soit info_arg = transtype(info : *InfoTypeStructure)
     
-    soit membres = membres de info_arg;
+	soit membres = membres de info_arg
 
     pour membre dans membres {
         si compare_chaines(nom de membre, nom) {
-            retourne vrai;
+			retourne vrai
         }
     }
 
-    retourne faux;
+	retourne faux
 }
 
 corout membres(arg : eini) : chaine
 {
-    info = info de arg;
+	info = info de arg
 
     si id de info != STRUCTURE de id_info {
-	    retourne;
+		retourne
 	}
 
-    info_arg = transtype(info : *InfoTypeStructure);
+	info_arg = transtype(info : *InfoTypeStructure)
 
-    membres = membres de info_arg;
+	membres = membres de info_arg
 
     pour membre dans membres {
-	    retiens nom de membre;
+		retiens nom de membre
 	}
 }

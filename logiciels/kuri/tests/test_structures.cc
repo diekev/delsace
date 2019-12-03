@@ -34,11 +34,11 @@ static void test_structure_redefinie(dls::test_unitaire::Controleuse &controleus
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
-				structure Vecteur3D {
+				struct Vecteur3D {
 					x : n32;
 					y : n32;
 					z : n32;
@@ -56,11 +56,11 @@ static void test_structure_redefinie(dls::test_unitaire::Controleuse &controleus
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 					z : n32;
@@ -82,11 +82,11 @@ static void test_structure_inconnue(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
-				structure Vecteur3D {
+				struct Vecteur3D {
 					xy : Vecteur2D;
 					z : n32;
 				}
@@ -103,7 +103,7 @@ static void test_structure_inconnue(dls::test_unitaire::Controleuse &controleuse
 	{
 		const char *texte =
 				R"(
-				structure Vecteur3D {
+				struct Vecteur3D {
 					xy : Vecteur2D;
 					z : n32;
 				}
@@ -141,7 +141,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
@@ -162,7 +162,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
@@ -184,7 +184,7 @@ static void test_acces_membre(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
@@ -230,7 +230,7 @@ static void test_membre_unique(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					x : n32;
 				}
@@ -251,7 +251,7 @@ static void test_expression_defaut(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32 = 0;
 					y : n32 = 1;
 				}
@@ -273,7 +273,7 @@ static void test_construction(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}
@@ -297,7 +297,7 @@ static void test_construction(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur2D {
+				struct Vecteur2D {
 					x : n32;
 					y : n32;
 				}

@@ -1,20 +1,19 @@
-Kamikaze
-- Modélisation procédurale d'objet 3D
-
 Kanba
 - Peinture d'objet 3D en utilisant PTex
 
 Koudou
 - Rendu de scène 3D par traçage de rayon
 
-Mikisa
+Jorjala
 - Composition/compositing
+- Modélisation procédurale d'objet 3D
 - Fonctionalités :
 -- Compositage :
 ---- Lecture de fichiers JPG, EXR
 ---- Écriture de fichiers JPG, EXR
 -- Édition 3D :
 ---- Lecture de fichiers OBJ, STL
+---- Modélisation procédurale de maillage, points/particules, cheveux, et volumes
 
 Poséidon
 - Simulation de fluide

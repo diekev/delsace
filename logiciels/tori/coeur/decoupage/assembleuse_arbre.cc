@@ -79,11 +79,11 @@ void assembleuse_arbre::empile_noeud(type_noeud type, const DonneesMorceaux &don
 
 void assembleuse_arbre::depile_noeud(type_noeud type)
 {
-	escompte_type(type);
+	attend_type(type);
 	m_pile.depile();
 }
 
-void assembleuse_arbre::escompte_type(type_noeud type)
+void assembleuse_arbre::attend_type(type_noeud type)
 {
 	auto noeud = m_pile.haut();
 	if (noeud->type() != type) {

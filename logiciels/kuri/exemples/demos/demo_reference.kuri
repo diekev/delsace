@@ -1,66 +1,66 @@
 importe "flux"
 
-structure FOO {
-    a = 123;
+struct FOO {
+    a = 123
 }
 
 fonc bar(dyn f : &FOO) : rien
 {
-    a de f = 987;
+    a de f = 987
 }
 
 fonc foo(dyn a : &z32) : rien
 {
-    a = 7;
+    a = 7
 }
 
 fonc échange(dyn a : &z32, dyn b : &z32) : rien
 {
-    tmp = a;
-    a = b;
-    b = tmp;
+    tmp = a
+    a = b
+    b = tmp
 }
 
 fonc principale(args : []*z8) : z32
 {
-    dyn a = 5;
-    imprime("a = ", a, '\n');
+    dyn a = 5
+    imprime("a = ", a, '\n')
 
-    foo(a);
+    foo(a)
 
-    imprime("a = ", a, '\n');
-
-    ######################
-
-    dyn foo : FOO;
-
-    imprime(foo, '\n');
-
-    bar(foo);
-
-    imprime(foo, '\n');
+    imprime("a = ", a, '\n')
 
     ######################
 
-    x = 123;
-    y = 456;
-    imprime("x = ", x, ", y = ", y, '\n');
+    dyn foo : FOO
 
-    échange(x, y);
-    imprime("x = ", x, ", y = ", y, '\n');
+    imprime(foo, '\n')
 
-    ######################
+    bar(foo)
 
-    z = 5;
-    dyn w : &z32 = z;
-
-    imprime("z = ", z, '\n');
-
-    w = 10;
-
-    imprime("z = ", z, '\n');
+    imprime(foo, '\n')
 
     ######################
 
-    retourne 0;
+    x = 123
+    y = 456
+    imprime("x = ", x, ", y = ", y, '\n')
+
+    échange(x, y)
+    imprime("x = ", x, ", y = ", y, '\n')
+
+    ######################
+
+    z = 5
+    dyn w : &z32 = z
+
+    imprime("z = ", z, '\n')
+
+    w = 10
+
+    imprime("z = ", z, '\n')
+
+    ######################
+
+    retourne 0
 }

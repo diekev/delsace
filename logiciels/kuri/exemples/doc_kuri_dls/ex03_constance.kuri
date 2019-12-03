@@ -1,12 +1,15 @@
 fonc exemple() : rien
 {
 	# Déclaration d'une variable constante qui ne peut être modifiée.
-	soit x = 1;
+	x = 1
 
-	x = 5; # Erreur de compilation
+	# On peut également utiliser :
+	# soit x = 1;
 
-	# Déclaration d'une variable dynamique qui peut être modifiée.
-	dyn y = x;
+	x = 5 # Erreur de compilation
 
-	y = 5; # OK.
+	# Déclaration d'une variable « dynamique » qui peut être modifiée.
+	dyn y = x
+
+	y = 5 # OK.
 }

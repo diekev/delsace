@@ -10,7 +10,7 @@ rout processInput()
 rout ajourne(entités : &[]entités)
 {
 	pour entité dans entités {
-		ajourne(entité);
+		ajourne(entité)
 	}
 }
 
@@ -21,35 +21,35 @@ rout rend(entités : &[]entités)
 	}
 }
 
-MS_PAR_IMAGE = 16;
+MS_PAR_IMAGE = 16
 
 rout lance_jeu()
 {
-	entités : []Entité;
+	entités : []Entité
 
-	dyn temps_précédent = temps_courant();
-	dyn lag = 0;
+	dyn temps_précédent = temps_courant()
+	dyn lag = 0
 
 	boucle {
-		temps_courant = temps_courant();
-		temps_passé = temps_courant - temps_précédent;
-		temps_précédent = temps_courant;
-		lag += temps_passé;
+		temps_courant = temps_courant()
+		temps_passé = temps_courant - temps_précédent
+		temps_précédent = temps_courant
+		lag += temps_passé
 
-		processInput();
+		processInput()
 
 		tantque lag >= MS_PAR_IMAGE {
-			ajourne(entités);
-			lag -= MS_PAR_IMAGE;
+			ajourne(entités)
+			lag -= MS_PAR_IMAGE
 		}
 
-		rend(entités);
+		rend(entités)
 	}
 }
 
 rout principale()
 {
-	lance_jeu();
+	lance_jeu()
 
-	renv 0;
+	renv 0
 }
