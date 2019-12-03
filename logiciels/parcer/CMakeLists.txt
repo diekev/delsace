@@ -19,4 +19,4 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(coeur)
+add_subdirectory(executable)

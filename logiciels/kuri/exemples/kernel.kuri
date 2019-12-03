@@ -43,7 +43,7 @@
 	TE_BLANC         = 0x0F,
 }
 
-structure Kernel {
+struct Kernel {
 	ptr_vidéo : *z8;
 }
 

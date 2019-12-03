@@ -45,32 +45,30 @@ Faitures
 -------
 - transtypage entre types complexes
 - transtypage automatique des valeurs littérales dans les expressions ou autre
----- littérale + littérale -> littérale  # OK
----- type + littérale      -> type       # À FAIRE (OK pour Z32, R64)
----- littérale + type      -> type       # À FAIRE (OK pour Z32, R64)
+---- littérale + littérale -> littérale  # OK
+---- type + littérale      -> type       # À FAIRE (OK pour Z32, R64)
+---- littérale + type      -> type       # À FAIRE (OK pour Z32, R64)
 ---- caractere + entier    -> caractère  # À FAIRE
 ---- entier + caractere    -> caractère  # À FAIRE
----- chaîne + caractere    -> chaîne     # À FAIRE
----- caractere + chaîne    -> chaîne     # À FAIRE
+---- chaîne + caractere    -> chaîne     # À FAIRE
+---- caractere + chaîne    -> chaîne     # À FAIRE
 - fonctions gabarit/génériques avec contrats/concepts
 - structures gabarit/génériques
 - type nombre réel sur 16-bit
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries (coulisse LLVM)
-- modules
----- préfixe les structures et les énumérations du nom du module
----- stocke les données des fonctions par module
----- ne charge les modules que s'il n'ont pas déjà été chargés
+- préfixe les structures et les énumérations du nom du module
 - réusinage du système de vérification sémantique du code notamment pour dédupliquer ce code et prendre en compte l'analyse de fonctions dans des modules externes dont nous ne pouvons savoir le type avant l'analyse sémantique
-- unification du code d'accès au membre avec 'de' et '.'
-- fonctions génériques
 - coroutines en dehours de boucles
-- syntaxe d'appel uniforme
 - variables employées
 - évite l'initialisation via "---"
 - surcharge d'opérateur
-- accès via '.'
-
+- interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
+- suppression ':' et ';'
+- ajoute accès membre pour les types (==> déplacer structures dans les modules)
+- ananlyseuse_grammaire -> suppression des vérifications redondantes
+- opérateur ternaire (x = si cond { y } sinon { z })
+- unions -> info type, tiens trace de l'état à chaque modification, décalage au sein de la structure
 
 À faire (tests)
 ---------------
@@ -84,6 +82,12 @@ Faitures
 - test surcharge de fonction
 - test coroutine
 - test valeurs de retours multiples
+
+
+Bugs
+----
+- incohérence accès '.' et 'de' (voir cliente.kuri)
+- les tableaux issus des arguments variadics ne sont pas converti quand le type n'est pas 'eini'
 
 
 Bugs (coulisse LLVM)
@@ -114,19 +118,31 @@ Idées
 - ajout de nom et valeur par défaut au type de retour
 - contexte (modifiable par l'utilisateur) implicit passé en paramètre de toutes les fonctions internes pour pouvoir faciliter la gestion de la mémoire et d'autres données du programme
 - compte de la mémoire utilisée avec rapport en fin d'exécution du programme sur ce qui a utilisé le plus de mémoire, et s'il y a fuite de mémoire
+- constructeurs/destructeurs via mot-clés et pointeurs de fonction
+
+
+Zones d'ombres
+--------------
+- gestion des modules et espaces de noms
+- gabarits
+- héritage
+- introspection lors de la compilation
+- concurrence, moultfilage
 
 
 Sécurité/évitement des bugs
 ---------------------------
 - les variables sont constantes par défaut
-- les variables doivent être initialisées lors de leur déclaration
-- aucune conversion n'est implicite (sauf pour les valeurs littérales)
+- les variables sont initialisées à zéro lors de leur déclaration
+- aucune conversion n'est implicite (sauf pour les valeurs littérales, quand cela est sensé, z32 -> z64)
 - les contrôles de flux doivent avoir des valeurs booléennes explicit
 - l'opérateur booléen d'inversion '!' ne peut prendre qu'une valeur booléenne
 - les portées doivent être explicitement entourées de { } pour éviter que des expressions ne devant qu'être exécutées dans un contrôle de flux ne soient pas exécutées en dehors.
 - l'opérateur d'assignemet '=' ne retourne pas de valeur pour éviter toute confusion avec '==' (peut-être à réviser puisque il n'a pas de conversion implicite vers des valeurs booléennes)
 - les ombrages de variables sont interdites, toutes les variables dans une portée ne peuvent avoir le nom d'une variable déjà déclarée dans une portée parente
-- variables globales non constante interdites
+- blocs explicites : impossible de ne pas avoir un bloc afin de mieux définir ce qui se trouve dans un bloc
+- accès aléatoire via des index protégé
+- conservation de la taille des tableaux et des chaines (contrairement à C qui les jette et utilise un pointeur nul pour définir la fin)
 
 
 Néologismes
@@ -135,6 +151,7 @@ Néologismes
 - entredit  : interdit
 - enligner  : inline
 - compileur : compilateur
+- moultfilage : multithreading
 
 
 Anglicisme
@@ -142,4 +159,3 @@ Anglicisme
 - fuzzing/fuzzées
 - constant folding
 - stack canaries
-- multi-threading (moulthreadage)

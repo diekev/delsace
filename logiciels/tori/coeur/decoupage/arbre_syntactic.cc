@@ -25,8 +25,7 @@
 #include "arbre_syntactic.hh"
 
 #include "biblinternes/structures/flux_chaine.hh"
-
-#include "../tori/objet.hh"
+#include "biblinternes/tori/objet.hh"
 
 static void imprime_tab(std::ostream &os, int tab)
 {

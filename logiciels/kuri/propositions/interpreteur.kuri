@@ -1,0 +1,3 @@
+Le langage se devra d'avoir un interprêteur afin de pouvoir évaluer n'importe quelle fonction à la compilation.
+
+Le seul problème avec un tel interprêteur sera d'appeler des fonctions se trouvant dans des bibliothèques C : trouver le pointeur n'est pas le problème, c'est de passer les arguments aux fonctions. L'interprêteur stocke les données dans des petits objets englobant les valeurs. Il faudrait construire une structure représentant les paramètres, remplir la structure, et la passer à la fonction, ou un truc de ce genre.

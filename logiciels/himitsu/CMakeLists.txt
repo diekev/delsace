@@ -50,7 +50,6 @@ qt5_wrap_cpp(
 set(BIBLIOTHEQUES
 	${BIBLIOTHEQUES_QT}
 	bib_structures
-	ego
 )
 
 set(ENTETES

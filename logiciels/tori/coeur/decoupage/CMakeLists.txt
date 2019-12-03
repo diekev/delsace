@@ -30,6 +30,7 @@ set(BIBLIOTHEQUES
 	langage
 	memoire
 	bib_structures
+	bib_tori
 )
 
 set(SOURCES

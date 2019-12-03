@@ -41,7 +41,7 @@
 
 ##########################
 
-structure externe stat {
+struct externe stat {
     st_dev : n64;         # ID of device containing file
 	st_ino : n64;         # inode number
 	st_nlink : n64;     # number of hard links
@@ -682,7 +682,7 @@ fonc safe_open_wrapper_follow(fn : *z8, flags : z32, mode : z32) : z32
 soit _O_RDONLY = 0;
 soit _O_WRONLY = 1;
 
-structure externe FILE;
+struct externe FILE;
 
 fonc externe umask(m : z32) : rien;
 fonc externe perror(c : *z8) : rien;

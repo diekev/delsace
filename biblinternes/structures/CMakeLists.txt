@@ -53,6 +53,7 @@ add_library(${NOM_CIBLE} STATIC
 	tableau_fixe.cc
 	tableau_simple_compact.cc
 	vue_chaine.cc
+	vue_chaine_compacte.cc
 
 	arbre_kd.hh
 	chaine.hh
@@ -78,6 +79,7 @@ add_library(${NOM_CIBLE} STATIC
 	tableau_fixe.hh
 	tableau_simple_compact.hh
 	vue_chaine.hh
+	vue_chaine_compacte.hh
 )
 
 target_include_directories(${NOM_CIBLE} PUBLIC ${INCLUSIONS})

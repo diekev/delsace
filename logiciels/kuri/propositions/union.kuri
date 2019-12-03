@@ -1,0 +1,104 @@
+union NOM [nonsûr] {
+	x : z32;
+	y : r32;
+}
+
+// converti en C
+struct NOM {
+	enum e_etat_union_NOM {
+		NUL,
+		x_MODIFIE,
+		y_MODIFIE,
+	};
+
+	e_etat_union_NOM etat;
+
+	union {
+		int x;
+		float y;
+	} donnees;
+};
+
+// code :
+
+x : NOM;
+x.x = 5;
+
+y = x.y; # erreur de compilation ou alors erreur en runtime
+
+pour :
+- permet au compilateur de faire des vérifications quant à la validité du type
+
+contre :
+- utilise un peu plus de mémoire -> ne peut pas paquer une structure
+- impossible de copier de la mémoire d'un type à l'autre
+
+considération :
+- si erreur en runtime -> IPA pour déterminer comment vérifier
+
+utilisation (C, C++) :
+- copier de la mémoire d'un type à un autre
+- swizzler pour les vecteurs (voir biblinterne math de delsace)
+
+voir (types algébriques) :
+- https://nullbuffer.com/2019/11/15/algebraic_c.html
+
+########################################################################
+
+struct InfoTypeUnion {
+    id : id_info; # employant InfoType
+	nom : chaine;
+	valeurs : []z32;
+	noms : []chaine;
+	est_nonsûre : bool;
+}
+
+# trouve si l'union est nonsûr
+fonc est_nonsûre(arg : eini) : bool
+{
+	info = arg.info;
+
+	si info.id != id_info.UNION  {
+	    retourne vrai;
+	}
+
+	info_arg = transtype(info : *InfoTypeUnion);
+	retourne info_arg.est_nonsûre;
+}
+
+fonc valeur_énum(valeur : chaine, enum_ou_union : eini) : z32
+{
+	info = enum_ou_union.info;
+
+	si info.id == id_info.UNION  {
+		info_arg = transtype(info : *InfoTypeUnion);
+
+		pour nom, idx dans info_arg.noms {
+			si compare_chaines(nom, valeur) {
+				retourne info_arg.valeurs[idx];
+			}
+		}
+
+		retourne -1;
+	}
+
+	retourne -1;
+}
+
+fonc est_activé(x : eini, membre : chaine) : bool
+{
+	# trouve les données de l'union
+	si !possède_membre(x, membre) {
+		retourne faux;
+	}
+
+	retourne x.membre_actif == valeur_énum(membre, x);
+}
+
+si est_nonsûre(UNION) {
+	...
+}
+
+si est_activé(UNION, "x") {
+	...
+}

@@ -25,6 +25,7 @@
 #include "tests_vecteur.hh"
 
 #include "biblinternes/math/vecteur.hh"
+#include "biblinternes/outils/gna.hh"
 
 static void test_ordre(dls::test_unitaire::Controleuse &controleuse)
 {
@@ -55,20 +56,37 @@ static void test_addition(dls::test_unitaire::Controleuse &controleuse)
 
 	CU_DEBUTE_PROPOSITION(controleuse, "Les opérateurs d'addition et de soustractions sont corrects.");
 
-	vec3<int> v1(0, 1, 2);
-	vec3<int> v2(4, 2, 3);
+	auto gna = GNA(rand());
 
-	CU_VERIFIE_EGALITE(controleuse, (v1 + v2), vec3<int>( 4,  3,  5));
-	CU_VERIFIE_EGALITE(controleuse, (v1 - v2), vec3<int>(-4, -1, -1));
-	CU_VERIFIE_EGALITE(controleuse, (v2 - v1), vec3<int>( 4,  1,  1));
+	for (auto i = 0; i < 1000; ++i) {
+		auto a = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto b = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto c = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto d = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto e = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto f = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+
+		auto v1 = vec3<int>(a, b, c);
+		auto v2 = vec3<int>(d, e, f);
+
+		CU_VERIFIE_EGALITE(controleuse, (v1 + v2), vec3<int>(a + d,  b + e, c + f));
+		CU_VERIFIE_EGALITE(controleuse, (v1 - v2), vec3<int>(a - d,  b - e, c - f));
+		CU_VERIFIE_EGALITE(controleuse, (v2 - v1), vec3<int>(d - a,  e - b, f - c));
+	}
 
 	CU_TERMINE_PROPOSITION(controleuse);
 
 	CU_DEBUTE_PROPOSITION(controleuse, "L'opérateur moins unaire retourne l'inverse du vecteur passé.");
 
-	CU_VERIFIE_EGALITE(controleuse, -v1,  vec3<int>( 0, -1, -2));
-	CU_VERIFIE_EGALITE(controleuse, -v2,  vec3<int>(-4, -2, -3));
-	CU_VERIFIE_EGALITE(controleuse,  v2, -vec3<int>(-4, -2, -3));
+	for (auto i = 0; i < 1000; ++i) {
+		auto a = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto b = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+		auto c = gna.uniforme(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+
+		auto v1 = vec3<int>(a, b, c);
+
+		CU_VERIFIE_EGALITE(controleuse, -v1, vec3<int>(-a, -b, -c));
+	}
 
 	CU_TERMINE_PROPOSITION(controleuse);
 }
@@ -79,13 +97,24 @@ static void test_multiplication(dls::test_unitaire::Controleuse &controleuse)
 
 	CU_DEBUTE_PROPOSITION(controleuse, "Les opérateurs de multiplications et de divisions sont corrects.");
 
-	vec3<float> v1(0.0f, 1.0f, 2.0f);
-	vec3<float> v2(3.0f, 4.0f, 5.0f);
+	auto gna = GNA(rand());
 
-	CU_VERIFIE_EGALITE(controleuse, (v1 * v2), vec3<float>(0.0f, 4.0f, 10.0f));
-	CU_VERIFIE_EGALITE(controleuse, (v2 * v1), vec3<float>(0.0f, 4.0f, 10.0f));
-	CU_VERIFIE_EGALITE(controleuse, (v1 / v2), vec3<float>(0.0f, 0.25f, 0.4f));
-	CU_VERIFIE_EGALITE(controleuse, (v2 / v1), vec3<float>(0.0f, 4.0f, 2.5f));
+	for (auto i = 0; i < 1000; ++i) {
+		auto a = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto b = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto c = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto d = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto e = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto f = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+
+		auto v1 = vec3<float>(a, b, c);
+		auto v2 = vec3<float>(d, e, f);
+
+		CU_VERIFIE_EGALITE(controleuse, (v1 * v2), vec3<float>(a * d,  b * e, c * f));
+		CU_VERIFIE_EGALITE(controleuse, (v2 * v1), vec3<float>(a * d,  b * e, c * f));
+		CU_VERIFIE_EGALITE(controleuse, (v1 / v2), vec3<float>(a / d,  b / e, c / f));
+		CU_VERIFIE_EGALITE(controleuse, (v2 / v1), vec3<float>(d / a,  e / b, f / c));
+	}
 
 	CU_TERMINE_PROPOSITION(controleuse);
 }
@@ -95,6 +124,27 @@ static void test_produit_scalaire(dls::test_unitaire::Controleuse &controleuse)
 	using namespace dls::math;
 
 	CU_DEBUTE_PROPOSITION(controleuse, "Les produits scalaires sont corrects.");
+
+	auto gna = GNA(rand());
+
+	for (auto i = 0; i < 1000; ++i) {
+		auto a = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto b = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto c = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto d = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto e = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+		auto f = gna.uniforme(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+
+		auto v1 = vec3<float>(a, b, c);
+		auto v2 = vec3<float>(d, e, f);
+
+		CU_VERIFIE_EGALITE(controleuse, produit_scalaire(v1, v1), a * a + b * b + c * c);
+		CU_VERIFIE_EGALITE(controleuse, produit_scalaire(v2, v2), d * d + e * e + f * f);
+		CU_VERIFIE_EGALITE(controleuse, produit_scalaire(v1, v2), a * d + b * e + c * f);
+		CU_VERIFIE_EGALITE(controleuse, produit_scalaire(v2, v1), a * d + b * e + c * f);
+	}
+
+	CU_TERMINE_PROPOSITION(controleuse);
 
 	vec3<float> v1(0.0f, 1.0f, 0.0f);
 	vec3<float> v2(1.0f, 0.0f, 0.0f);

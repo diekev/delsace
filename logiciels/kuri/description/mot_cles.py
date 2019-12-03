@@ -16,8 +16,7 @@ mot_cles = [
 	u'si',
 	u'sinon',
 	u'énum',
-	u'structure',
-	u'gabarit',
+	u'struct',
 	u'de',
 	u'retourne',
 	u'diffère',
@@ -33,13 +32,16 @@ mot_cles = [
 	u'n16',
 	u'n32',
 	u'n64',
+	u'n128',
 	u'z8',
 	u'z16',
 	u'z32',
 	u'z64',
+	u'z128',
 	u'r16',
 	u'r32',
 	u'r64',
+	u'r128',
 	u'bool',
 	u'rien',
 	u'nul',
@@ -57,6 +59,8 @@ mot_cles = [
 	u'garde',
 	u'saufsi',
 	u'retiens',
+	u'répète',
+	u'union',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -160,11 +164,10 @@ def enleve_accent(mot):
 
 def construit_structures():
 	structures = u''
-	structures += u'\nstruct DonneesMorceaux {\n'
+	structures += u'\nstruct DonneesMorceau {\n'
 	structures += u'\tusing type = id_morceau;\n'
 	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n'
-	structures += u'\tdls::vue_chaine chaine;\n'
-	structures += u'\tsize_t ligne_pos;\n'
+	structures += u'\tdls::vue_chaine_compacte chaine;\n'
 	structures += u'\tid_morceau identifiant;\n'
 	structures += u'\tint module = 0;\n'
 	structures += u'};\n'
@@ -183,7 +186,7 @@ def construit_tableaux():
 		tableaux += virgule
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), id_morceau::{} }}'.format(mot, m)
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), id_morceau::{} }}'.format(mot, m)
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -194,7 +197,7 @@ def construit_tableaux():
 
 	for c in digraphes:
 		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), id_morceau::{} }}'.format(c[0], c[1])
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), id_morceau::{} }}'.format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -205,7 +208,7 @@ def construit_tableaux():
 
 	for c in trigraphes:
 		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine("{}"), id_morceau::{} }}'.format(c[0], c[1])
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), id_morceau::{} }}'.format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -377,7 +380,7 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_digraphe(const dls::vue_chaine &chaine)
+id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
@@ -392,7 +395,7 @@ id_morceau id_digraphe(const dls::vue_chaine &chaine)
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_trigraphe(const dls::vue_chaine &chaine)
+id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
 		return id_morceau::INCONNU;
@@ -407,7 +410,7 @@ id_morceau id_trigraphe(const dls::vue_chaine &chaine)
 	return id_morceau::INCONNU;
 }
 
-id_morceau id_chaine(const dls::vue_chaine &chaine)
+id_morceau id_chaine(const dls::vue_chaine_compacte &chaine)
 {
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
 		return id_morceau::CHAINE_CARACTERE;
@@ -461,14 +464,14 @@ void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
 
-id_morceau id_digraphe(const dls::vue_chaine &chaine);
+id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_trigraphe(const dls::vue_chaine &chaine);
+id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_chaine(const dls::vue_chaine &chaine);
+id_morceau id_chaine(const dls::vue_chaine_compacte &chaine);
 """
 
-with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
+with io.open(u"../compilation/morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include "biblinternes/structures/chaine.hh"\n\n')
@@ -478,7 +481,7 @@ with io.open(u"../coeur/decoupage/morceaux.hh", u'w') as entete:
 	entete.write(declaration_fonctions)
 
 
-with io.open(u'../coeur/decoupage/morceaux.cc', u'w') as source:
+with io.open(u'../compilation/morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.hh"\n\n')
 	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')

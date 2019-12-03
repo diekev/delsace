@@ -15,7 +15,7 @@ fonc imprime_tableau(tabl : []r64) : rien
     }
 }
 
-structure Vecteur {
+struct Vecteur {
     x : r64;
     y : r64;
     z : r64;

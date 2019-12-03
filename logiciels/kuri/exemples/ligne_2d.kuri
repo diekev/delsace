@@ -1,6 +1,6 @@
 fonction externe printf(format : *z8, args : ...) : z32;
 
-structure Point2D {
+struct Point2D {
 	x : r64;
 	y : r64;
 }
@@ -14,7 +14,7 @@ fonction crée_point(x : r64, y : r64) : Point2D
 	retourne point;
 }
 
-structure Ligne2D {
+struct Ligne2D {
 	p1 : Point2D;
 	p2 : Point2D;
 }

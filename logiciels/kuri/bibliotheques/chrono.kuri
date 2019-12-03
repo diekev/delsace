@@ -5,70 +5,70 @@
 # À FAIRE : regarde les bibliothèques de temps/date des différents langages
 
 # ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
-structure externe timeval {
-    tv_sec : z64;
-	tv_usec : z64;
+struct externe timeval {
+	tv_sec : z64
+	tv_usec : z64
 }
 
 # ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 # À FAIRE : déprécié
-structure externe timezone {
-    tz_minuteswest : z64; # Minutes à l'ouest de GMT
-	tz_dsttime : z64; # Nonzéro si DST est en effet
+struct externe timezone {
+	tz_minuteswest : z64 # Minutes à l'ouest de GMT
+	tz_dsttime : z64 # Nonzéro si DST est en effet
 }
 
-fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien;
+fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien
 
 fonc maintenant_sec() : r64
 {
-    dyn heure : timeval;
-	gettimeofday(@heure, nul);
+	dyn heure : timeval
+	gettimeofday(@heure, nul)
 
-	soit s = transtype(tv_sec de heure : r64);
+	soit s = transtype(tv_sec de heure : r64)
 
     # À FAIRE : 1e-6
-	retourne s + transtype(tv_usec de heure : r64) * 0.000001;
+	retourne s + transtype(tv_usec de heure : r64) * 0.000001
 }
 
 fonc maintenant_local() : r64
 {
-    dyn heure : timeval;
-	dyn fuseau : timezone;
-	gettimeofday(@heure, @fuseau);
+	dyn heure : timeval
+	dyn fuseau : timezone
+	gettimeofday(@heure, @fuseau)
 
-	dyn s = transtype(tv_sec de heure : r64);    
-    s += transtype(tz_minuteswest de fuseau : r64) * 60.0;
+	dyn s = transtype(tv_sec de heure : r64)
+	s += transtype(tz_minuteswest de fuseau : r64) * 60.0
 
     # À FAIRE : 1e-6
-	retourne s + transtype(tv_usec de heure : r64) * 0.000001;
+	retourne s + transtype(tv_usec de heure : r64) * 0.000001
 }
 
 fonc delta_sec(temps : r64) : r64
 {
-    retourne maintenant_sec() - temps;
+	retourne maintenant_sec() - temps
 }
 
 fonc compte_ticks_ms() : z64
 {
-    dyn heure : timeval;
-	gettimeofday(@heure, nul);
-	retourne tv_sec de heure * 1000 + tv_usec de heure / 1000;
+	dyn heure : timeval
+	gettimeofday(@heure, nul)
+	retourne tv_sec de heure * 1000 + tv_usec de heure / 1000
 }
 
-structure DonnéesTemps {
-    heures : z32;
-    minutes : z32;
-    secondes : z32;
+struct DonnéesTemps {
+	heures : z32
+	minutes : z32
+	secondes : z32
 }
 
 fonc calcule_temps() : DonnéesTemps
 {
-    dyn maint = maintenant_local();
+	dyn maint = maintenant_local()
     
-    dyn dt : DonnéesTemps;
-    minutes de dt = transtype(maint / 60.0 : z32) % 60;
-    heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24;
-    secondes de dt = transtype(maint : z32) % 60;
+	dyn dt : DonnéesTemps
+	minutes de dt = transtype(maint / 60.0 : z32) % 60
+	heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24
+	secondes de dt = transtype(maint : z32) % 60
     
-    retourne dt;
+	retourne dt
 }

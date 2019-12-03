@@ -25,10 +25,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "decoupage/analyseuse_grammaire.h"
-#include "decoupage/contexte_generation_code.h"
-#include "decoupage/decoupeuse.h"
-#include "decoupage/modules.hh"
+#include "compilation/analyseuse_grammaire.h"
+#include "compilation/contexte_generation_code.h"
+#include "compilation/decoupeuse.h"
+#include "compilation/modules.hh"
 
 int main(int argc, char *argv[])
 {
@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
 	auto nombre_morceaux = taille_fichier / static_cast<long>(sizeof(id_morceau));
 
-	dls::tableau<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceau> morceaux;
 	morceaux.reserve(nombre_morceaux);
 
 	for (auto i = 0; i < nombre_morceaux; ++i) {
-		auto dm = DonneesMorceaux{};
+		auto dm = DonneesMorceau{};
 		dm.identifiant = donnees_morceaux[i];
 		/* rétabli une chaine car nous une décharge de la mémoire, donc les
 		 * pointeurs sont mauvais. */

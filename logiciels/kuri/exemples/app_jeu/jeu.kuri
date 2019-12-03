@@ -6,9 +6,9 @@ importe "flux"
 fonc principale(args : []*z8) : z32
 {
 	diffère {
-	    imprime("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n");
+	    imprime("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
 	}
 
-    dyn app : Application;
-    retourne lance_application(app);
+    dyn app : Application
+    retourne lance_application(app)
 }

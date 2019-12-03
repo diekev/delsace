@@ -8,15 +8,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "vec234.h"
-#include "platform.h"
 #include "vertex-buffer.h"
 
 /**
  * Buffer status
  */
-#define CLEAN  (0)
-#define DIRTY  (1)
-#define FROZEN (2)
+enum {
+    CLEAN = 0,
+    DIRTY = 1,
+    FROZEN = 2,
+};
 
 
 // ----------------------------------------------------------------------------

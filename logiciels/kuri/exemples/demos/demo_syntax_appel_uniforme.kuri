@@ -2,17 +2,17 @@ importe "flux"
 
 fonc ajoute(a : z32, b : z32) : z32
 {
-    retourne a + b;
+    retourne a + b
 }
 
 fonc principale(args : []*z8) : z32
 {
-    x = 1;
-    y = 2;
+    x = 1
+    y = 2
 
-    z = ajoute(x, y).ajoute(x);
+    z = ajoute(x, y).ajoute(x)
 
-    imprime(z, '\n');
+    imprime(z, '\n')
 
-    retourne 0;
+    retourne 0
 }

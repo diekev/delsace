@@ -24,7 +24,7 @@
 
 #include "test_assignation.hh"
 
-#include "decoupage/erreur.h"
+#include "compilation/erreur.h"
 
 #include "outils.h"
 
@@ -186,7 +186,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur3D {
+				struct Vecteur3D {
 					x : z32;
 				}
 				fonc foo(dyn v : Vecteur3D) : rien
@@ -207,12 +207,12 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur3D {
+				struct Vecteur3D {
 					x : [2]z32;
 				}
 				fonc foo(dyn v : Vecteur3D) : rien
 				{
-					x[0] de v = 5;
+					v.x[0] = 5;
 				}
 				)";
 
@@ -228,7 +228,7 @@ void test_assignation(dls::test_unitaire::Controleuse &controleuse)
 	{
 		const char *texte =
 				R"(
-				structure Vecteur3D {
+				struct Vecteur3D {
 					x : [2]n32;
 				}
 				fonc foo(dyn v : Vecteur3D) : rien

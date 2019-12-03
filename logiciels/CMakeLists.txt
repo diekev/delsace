@@ -22,15 +22,16 @@
 ajoute_sousdossier(AVEC_ARACHNE arachne)
 ajoute_sousdossier(AVEC_CRESUS cresus)
 ajoute_sousdossier(AVEC_DANJO danjo)
+ajoute_sousdossier(AVEC_DEPLOIE deploie)
 ajoute_sousdossier(AVEC_HIKAGE hikage)
 ajoute_sousdossier(AVEC_HIMITSU himitsu)
 ajoute_sousdossier(AVEC_IMAGO imago)
 ajoute_sousdossier(AVEC_INFOGRAPHIE infographie)
+ajoute_sousdossier(AVEC_JORJALA jorjala)
 ajoute_sousdossier(AVEC_KANBA kanba)
 ajoute_sousdossier(AVEC_KUMO kumo)
 ajoute_sousdossier(AVEC_KURI kuri)
 ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
-ajoute_sousdossier(AVEC_MIKISA mikisa)
 ajoute_sousdossier(AVEC_MESURE mesure)
 ajoute_sousdossier(AVEC_PARCER parcer)
 ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
@@ -83,22 +84,22 @@ if (AVEC_KANBA)
 	)
 endif (AVEC_KANBA)
 
-if (AVEC_MIKISA)
+if (AVEC_JORJALA)
 	install(
 		FILES ${STYLES}
-		DESTINATION mikisa/styles
+		DESTINATION jorjala/styles
 	)
 
 	install(
 		FILES ${ICONES}
-		DESTINATION mikisa/icones
+		DESTINATION jorjala/icones
 	)
 
 	install(
 		FILES fichiers/texte/texture_texte.png
-		DESTINATION mikisa/texte
+		DESTINATION jorjala/texte
 	)
-endif (AVEC_MIKISA)
+endif (AVEC_JORJALA)
 
 if (AVEC_SILVATHEQUE)
 	install(

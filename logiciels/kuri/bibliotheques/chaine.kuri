@@ -6,19 +6,19 @@ importe "memoire"
 fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 {
     si taille de ch1 != taille de ch2 {
-        retourne faux;
+		retourne faux
     }
 
-    soit taille = taille de ch1;
-	soit début : z64 = 0;
+	soit taille = taille de ch1
+	soit début : z64 = 0
 
     pour i dans début...(taille - 1) {
         si ch1[i] != ch2[i] {
-            retourne faux;
+			retourne faux
         }
     }
 
-    retourne vrai;
+	retourne vrai
 }
 
 # Retourne une chaine correspondant à l'enchainement de toutes les chaines
@@ -26,49 +26,49 @@ fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 # l'appelante.
 fonc enchaine(chns : ...chaine) : chaine
 {
-    dyn taille = 0;
+	dyn taille = 0
 
     pour chn dans chns {
-	    taille += taille de chn;
+		taille += taille de chn
     }
 
-    dyn res = loge chaine(taille);
-    dyn coureur = 0;
-    
+	dyn res = loge chaine(taille)
+	dyn coureur = 0
+
     pour chn dans chns {
 	    pour v dans chn {
-		    res[coureur] = v;
-            coureur += 1;
+			res[coureur] = v
+			coureur += 1
         }
     }
 
-    retourne res;
+	retourne res
 }
 
 # Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 #!nulctx fonc taille_chaine_c(ch : *z8) : z64
 {
-    dyn index : z64 = 0;
+	dyn index : z64 = 0
 
     tantque ch[index] != '\0' {
-        index += 1;
+		index += 1
     }
 
-    retourne index;
+	retourne index
 }
 
 #!nulctx fonc construit_chaine(ptr : *z8, taille : z64) : chaine
 {
-    dyn ret : chaine;
-	pointeur de ret = ptr;
-	taille de ret = taille;
-	retourne ret;
+	dyn ret : chaine
+	pointeur de ret = ptr
+	taille de ret = taille
+	retourne ret
 }
 
 # Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
 #!nulctx fonc converti_chaine_c(chaine_c : *z8) : chaine
 {
-    retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c));
+	retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c))
 }
 
 # Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
@@ -76,101 +76,142 @@ fonc enchaine(chns : ...chaine) : chaine
 fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) : *z8
 {
     si taille de tampon == 0 {
-	    retourne nul;
+		retourne nul
 	}
 
     si taille de tampon < taille de chn + 1 {
-	    tampon[0] = '\0';
-		retourne @tampon[0];
+		tampon[0] = '\0'
+		retourne @tampon[0]
 	}
 
-    taille = taille de chn;
+	taille = taille de chn
 
     copie_mem_nonsur(
 	    src=pointeur de chn,
 		dst=@tampon[0],
-		taille=taille);
+		taille=taille)
 
-    tampon[taille] = '\0';
+	tampon[taille] = '\0'
 
-    retourne @tampon[0];
+	retourne @tampon[0]
 }
 
 # execute une fonction pour chaque ligne du texte d'entrée
 fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) : rien
 {
-    dyn taille_chaine : z64 = 0;
-	dyn début_chaine : z64 = 0;
+	dyn taille_chaine : z64 = 0
+	dyn début_chaine : z64 = 0
 
     pour c, i dans texte {
-	    taille_chaine += 1;
+		taille_chaine += 1
 
         si c == '\n' {
-		    dyn ligne : chaine;
-			taille de ligne = taille_chaine;
-			pointeur de ligne = @texte[début_chaine];
+			dyn ligne : chaine
+			taille de ligne = taille_chaine
+			pointeur de ligne = @texte[début_chaine]
 
-            rappel(ligne, donnees);
+			rappel(ligne, donnees)
 
-            début_chaine = transtype(i + 1 : z64);
-			taille_chaine = 0;
+			début_chaine = transtype(i + 1 : z64)
+			taille_chaine = 0
 		}
 	}
 
     # La dernière ligne n'a pas de retour...
 	si taille_chaine != 0 {
-	    dyn ligne : chaine;
-		taille de ligne = taille_chaine;
-		pointeur de ligne = @texte[début_chaine];
+		dyn ligne : chaine
+		taille de ligne = taille_chaine
+		pointeur de ligne = @texte[début_chaine]
 
-        rappel(ligne, donnees);
+		rappel(ligne, donnees)
 	}
 }
 
 fonc est_vide(chn : chaine) : bool
 {
-    retourne taille de chn == 0;
+	retourne taille de chn == 0
 }
 
 fonc trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
 {
-    soit début = pos;
-	soit fin   = taille de chn;
+	soit début = pos
+	soit fin   = taille de chn
 
     pour i dans début ... fin - 1 {
 	    si chn[i] == carac {
-		    retourne i;
+			retourne i
 		}
 	}
 
-    retourne transtype(-1 : z64);
+	retourne transtype(-1 : z64)
 }
 
 corout découpe(texte : chaine, sep : z8) : chaine
 {
-    dyn taille_mot : z64 = 0;
-	dyn début_mot : z64 = 0;
-	dyn mot : chaine;
+	dyn taille_mot : z64 = 0
+	dyn début_mot : z64 = 0
+	dyn mot : chaine
 
     pour c, i dans texte {
 	    si c == sep {
-		    pointeur de mot = @texte[début_mot];
-			taille de mot = taille_mot;
+			pointeur de mot = @texte[début_mot]
+			taille de mot = taille_mot
 
-            retiens mot;
+			retiens mot
 
-            début_mot = transtype(i + 1 : z64);
-			taille_mot = 0;
-			continue;
+			début_mot = transtype(i + 1 : z64)
+			taille_mot = 0
+			continue
 		}
 
-        taille_mot += 1;
+		taille_mot += 1
 	}
 
     si taille_mot != 0 {
-	    pointeur de mot = @texte[début_mot];
-		taille de mot = taille_mot;
+		pointeur de mot = @texte[début_mot]
+		taille de mot = taille_mot
 
-        retiens mot;
+		retiens mot
 	}
+}
+
+################################################################################
+
+struct ConstructriceChaine {
+    résultat : chaine;
+}
+
+fonc crée_constructrice_chaine() : ConstructriceChaine
+{
+    dyn constructrice : ConstructriceChaine;
+    retourne constructrice
+}
+
+# À FAIRE : il y a un bug dans le compilateur quand on utilise
+# enchaine(...chaine) vis-à-vis de la conversion de l'argument variadic en un
+# tableau
+fonc enchaine2(chn1 : chaine, chn2 : chaine) : chaine
+{
+	dyn taille = taille de chn1 + taille de chn2
+
+	dyn res = loge chaine(taille)
+
+	pour v, idx dans chn1 {
+		res[idx] = v
+    }
+
+	dyn coureur = taille de chn1
+
+	pour v, idx dans chn2 {
+		res[coureur + idx] = v
+    }
+
+	retourne res
+}
+
+fonc pousse(dyn constructrice : &ConstructriceChaine, chn : chaine) : rien
+{
+    résultat = enchaine2(constructrice.résultat, chn)
+    déloge constructrice.résultat
+    constructrice.résultat = résultat
 }

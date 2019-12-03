@@ -22,11 +22,11 @@
  *
  */
 
-#include "decoupage/analyseuse_grammaire.h"
-#include "decoupage/assembleuse_arbre.h"
-#include "decoupage/contexte_generation_code.h"
-#include "decoupage/decoupeuse.h"
-#include "decoupage/modules.hh"
+#include "compilation/analyseuse_grammaire.h"
+#include "compilation/assembleuse_arbre.h"
+#include "compilation/contexte_generation_code.h"
+#include "compilation/decoupeuse.h"
+#include "compilation/modules.hh"
 
 #include <cstdlib>
 #include <cstring>
@@ -326,12 +326,12 @@ struct arbre {
 static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
+	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceau);
 
-	dls::tableau<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceau> morceaux;
 	morceaux.reserve(max_morceaux);
 
-	auto dm = DonneesMorceaux{};
+	auto dm = DonneesMorceau{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
 
@@ -361,7 +361,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
 	morceaux.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.taille();
+	auto const taille_octet = sizeof(DonneesMorceau) * morceaux.taille();
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #else
@@ -392,7 +392,7 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	morceaux.pousse(id_morceau::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * static_cast<size_t>(morceaux.taille());
+	auto const taille_octet = sizeof(DonneesMorceau) * static_cast<size_t>(morceaux.taille());
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #endif
@@ -401,9 +401,9 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceaux);
+	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceau);
 
-	dls::tableau<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceau> morceaux;
 	morceaux.reserve(max_morceaux);
 
 	std::random_device device{};
@@ -412,7 +412,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 		static_cast<int>(id_morceau::INCONNU)
 	};
 
-	auto dm = DonneesMorceaux{};
+	auto dm = DonneesMorceau{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
 
@@ -429,7 +429,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
 	morceaux.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * morceaux.taille();
+	auto const taille_octet = sizeof(DonneesMorceau) * morceaux.taille();
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #else
@@ -454,7 +454,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	morceaux.pousse(id_morceau::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesMorceaux) * static_cast<size_t>(morceaux.taille());
+	auto const taille_octet = sizeof(DonneesMorceau) * static_cast<size_t>(morceaux.taille());
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #endif
@@ -465,12 +465,11 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
 	auto nombre_morceaux = taille / sizeof(id_morceau);
 
-	dls::tableau<DonneesMorceaux> morceaux;
+	dls::tableau<DonneesMorceau> morceaux;
 	morceaux.reserve(static_cast<long>(nombre_morceaux));
 
-	auto dm = DonneesMorceaux{};
+	auto dm = DonneesMorceau{};
 	dm.chaine = "texte_test";
-	dm.ligne_pos = 0ul;
 	dm.module = 0;
 
 	for (size_t i = 0; i < nombre_morceaux; ++i) {

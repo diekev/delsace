@@ -15,7 +15,6 @@
 #include <math.h>
 #include "distance-field.h"
 #include "texture-font.h"
-#include "platform.h"
 #include "utf8-utils.h"
 
 #define HRES  64
