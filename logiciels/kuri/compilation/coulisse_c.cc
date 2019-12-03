@@ -2784,28 +2784,14 @@ void genere_code_C(
 				return;
 			}
 
-			auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
-
 			auto const &dt = contexte.magasin_types.donnees_types[b->index_type];
-
-			auto type_de = donnees_type_de.type_base();
-			auto type_vers = dt.type_base();
-
-			/* À FAIRE : vérifie compatibilité */
-			if (type_de == id_morceau::POINTEUR && type_vers == id_morceau::POINTEUR) {
-				os << "(";
-				contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
-				os << ")(";
-				genere_code_C(enfant, contexte, false, os, os);
-				os << ")";
-				return;
-			}
 
 			os << "(";
 			contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
 			os << ")(";
 			genere_code_C(enfant, contexte, true, os, os);
 			os << ")";
+
 			break;
 		}
 		case type_noeud::NUL:

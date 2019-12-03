@@ -2161,6 +2161,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			b->index_type = resoud_type_final(contexte, b->type_declare);
 
+			/* À FAIRE : vérifie compatibilité */
+
 			if (b->index_type == -1l) {
 				erreur::lance_erreur(
 							"Ne peut transtyper vers un type invalide",
