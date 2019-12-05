@@ -1,0 +1,23 @@
+amélioration des coroutines :
+
+limites :
+- ne peut pas appeler une coroutine hors d'une boucle pour
+- ne peut pas appeler une coroutine dans une coroutine
+- ne peut stocker un tableau fixe dans une coroutine (sans avoir à dupliquer toute la mémoire)
+
+==========================
+- coroutine dans coroutine
+--> enregistre etat de la coroutine
+--> pousse les états des coroutines sur la pile
+--> le type de l'état de la coroutine doit être connu du magasin de types
+
+- quand une coroutine est appelée, on vérifie si une coroutine du même type a déjà été construite
+
+contexte.ajoute_coroutine("")
+contexte.coroutine("__etat_coro_XXXX")
+
+=====
+- cas
+-- appel coroutine hors boucle
+-- appel coroutine hors boucle avant une boucle 'pour'
+-- appel coroutine dans boucle
