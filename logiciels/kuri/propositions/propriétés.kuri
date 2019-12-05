@@ -1,3 +1,24 @@
+# L'idée pour les "propriétés" est d'émuler un système possible sous C++
+# en utilisant les constructeurs/destructeurs pour créer quelque chose et
+# le détruire automatiquement. Ceci peut se faire via un objet temporaire
+# qui est construit quand on appel une fonction et détruit à la fin de
+# l'appel.
+# Par exemple pour un chronomètre calculant la durée d'exécution des méthodes d'un objet :
+# 	auto xc = ptr_chrono<X>(&x);
+# 	xc->foo(); // ceci chronomètrerait la fonction foo()
+# 
+# Un autre cas d'usage est celui de la synchronisation, on l'on acquiers
+# un mutex dans le constructeur et le relâche dans le destructeur.
+# 	auto xc = ptr_syncro<X>(&x);
+# 	xc->foo(); // ceci syncroniserait l'appel de foo()
+# 
+# Ceci propose un système de propriété pour attacher des actions à des
+# fonctions à faire avant et après leurs qu'elles sont appelées.
+# 
+# Il faudrait veiller à ce que les mutex soient réentrants.
+# Certains des problèmes que cela viendrait à résoudre possiblement
+# pourraient être résolus via 'diffère' ou un système de macro
+
 propriété Chronomètre(temps : r64) {
 	avant {
 		temps = maintenant();
@@ -18,7 +39,7 @@ propriété ExclusionMutuelle(mutex : Mutex) {
 	}
 }
 
-fonction chronomètrée(temps : r64)
+fonc chronomètrée(temps : r64)
 {
 propriété:
 	Chronomètre(temps);
@@ -27,12 +48,12 @@ propriété:
 structure GestionnaireImage {
 	mutex_image : Mutex;
 
-	fonction charge_image()
+	fonc charge_image()
 	{
 
 	}
 
-	fonction ecris_image()
+	fonc ecris_image()
 	{
 
 	}
@@ -40,10 +61,13 @@ structure GestionnaireImage {
 	propriété : ExclusionMutuelle(mutex_image);
 }
 
-fonction protégée(kuri : Kuri)
+fonc protégé(kuri : Kuri)
 {
 	propriété: ExclusionMutuelle(mutex de kuri);
+}
 
-	auto fichier = ;
-
+fonc foo() : rien
+{
+	dyn kuri : Kuri
+	protégé(kuri) # prend et relâche automatiquement le mutex
 }

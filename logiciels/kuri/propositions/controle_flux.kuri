@@ -1,67 +1,84 @@
-#
-tantque x == 6 {
-}
-sansarrêt {
-}
-sinon {}
+importe "flux"
 
-bloc condition
-	goto bloc suivant, bloc condition
-bloc corps
-	goto bloc condition
+fonc exemple1() : rien
+{
+	si x == y {
 
-#
-jusque x == 6 {}
-sansarrêt {}
-sinon {}
+	}
+	sinon si x == y {
 
-bloc condition
-	goto bloc suivant, bloc condition
-bloc corps
-	goto bloc condition
+	}
 
-#
-saufsi x == 6 {
-}
-sinon {  }
+	si x < y && y < z {
 
-#
-si x == 6 {
-}
-sinon {  }
+	}
 
-#
-garde x == 6 sinon {
+	si x < y < z {
+
+	}
 }
 
-#
-boucle {
+fonc exemple2() : rien
+{
+	associe x {
+		y {
+		}
+		z {
+		}
+		sinon {
+		}
+	}
 }
 
-#
-répète {
-} tandis x == 6;
+fonc exemple3() : rien
+{
+	garde x == y sinon {
 
-bloc corps
-	goto bloc condition
-bloc condition
-	goto bloc corps, bloc suivant
-
-#
-pour x dans 0 ... 6 {
-}
-sansarrêt {
-}
-sinon {}
-
-#
-associe expr {
-	expr : bloc;
-	sinon : bloc;
+	}
 }
 
-#
-cas expr {
-	quand expr : bloc;
-	sinon : bloc;
+fonc exemple4() : rien
+{
+	boucle {
+
+	}
+}
+
+fonc exemple5() : rien
+{
+	tantque x == y {
+
+	}
+}
+
+fonc exemple6() : rien
+{
+	répète {
+
+	} tantque x == y
+}
+
+fonc exemple7() : rien
+{
+	pour x dans y ... z {
+
+	}
+	sansarrêt {
+
+	}
+	sinon {
+
+	}
+
+	pour x dans y ... z {
+		pour u dans v ... w {
+			si x == u {
+				continue x
+			}
+
+			# IDÉE
+			continue x si x == u
+			arrête u si x == v # la mention u n'est pas nécessaire
+		}
+	}
 }
