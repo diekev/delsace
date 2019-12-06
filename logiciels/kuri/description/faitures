@@ -64,7 +64,7 @@ Faitures
 - évite l'initialisation via "---"
 - surcharge d'opérateur
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
-- suppression ':' et ';'
+- suppression ':'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
 - ananlyseuse_grammaire -> suppression des vérifications redondantes
 - opérateur ternaire (x = si cond { y } sinon { z })
@@ -86,8 +86,8 @@ Faitures
 
 Bugs
 ----
-- incohérence accès '.' et 'de' (voir cliente.kuri)
-- les tableaux issus des arguments variadics ne sont pas converti quand le type n'est pas 'eini'
+- retour multiple non converti correctement depuis le réusinage de la coulisse C
+- expressions dans les opérateurs [] non converties correctement depuis le réusinage de la coulisse C
 
 
 Bugs (coulisse LLVM)
