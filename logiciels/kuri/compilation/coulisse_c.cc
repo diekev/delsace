@@ -2831,16 +2831,26 @@ void genere_code_C(
 				nom_ptr_ret = nom_ptr;
 			}
 
-			/* À FAIRE : que faire si le bloc est absent ? avorter ? */
+			generatrice.os << "if (" << nom_ptr_ret;
+			if (a_pointeur) {
+				generatrice.os << ".pointeur ";
+			}
+			generatrice.os << " == 0)";
+
 			if (nombre_enfant == 1) {
-				generatrice.os << "if (" << nom_ptr_ret;
-
-				if (a_pointeur) {
-					generatrice.os << ".pointeur ";
-				}
-
-				generatrice.os << " == 0 )";
 				genere_code_C(*enfant++, generatrice, contexte, true);
+			}
+			else {
+				auto const &morceau = b->morceau;
+				auto module = contexte.module(static_cast<size_t>(morceau.module));
+				auto pos = trouve_position(morceau, module);
+
+				generatrice.os << " {\n";
+				generatrice.os << "KR__hors_memoire(";
+				generatrice.os << '"' << module->chemin << '"' << ',';
+				generatrice.os << pos.ligne;
+				generatrice.os << ");\n";
+				generatrice.os << "}\n";
 			}
 
 			generatrice.os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";

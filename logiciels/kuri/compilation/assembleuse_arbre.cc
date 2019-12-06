@@ -173,6 +173,20 @@ void KR__depassement_limites(
 
 	os << depassement_limites;
 
+	auto hors_memoire =
+R"(
+void KR__hors_memoire(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'allouer de la mémoire !\n");
+	abort();
+}
+)";
+
+	os << hors_memoire;
+
 	auto &magasin = contexte_generation.magasin_types;
 
 	auto ds_contexte_global = DonneesStructure();
