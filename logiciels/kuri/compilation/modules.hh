@@ -209,3 +209,11 @@ ResultatRecherche cherche_donnees_fonction(
 		dls::liste<noeud::base *> const &exprs,
 		size_t index_module,
 		size_t index_module_appel);
+
+
+struct PositionMorceau {
+	long ligne = 0;
+	long pos = 0;
+};
+
+PositionMorceau trouve_position(DonneesMorceau const &morceau, DonneesModule *module);

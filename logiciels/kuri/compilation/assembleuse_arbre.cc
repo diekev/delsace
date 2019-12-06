@@ -157,9 +157,15 @@ void assembleuse_arbre::genere_code_C(
 
 	auto depassement_limites =
 R"(
-void KR__depassement_limites(long taille, long index)
+void KR__depassement_limites(
+	const char *fichier,
+	long ligne,
+	const char *type,
+	long taille,
+	long index)
 {
-	fprintf(stderr, "Dépassement des limites du tableaux !\n");
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Dépassement des limites %s !\n", type);
 	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
 	abort();
 }

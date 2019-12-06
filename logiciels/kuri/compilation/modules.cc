@@ -529,3 +529,22 @@ ResultatRecherche cherche_donnees_fonction(
 
 	return res;
 }
+
+PositionMorceau trouve_position(const DonneesMorceau &morceau, DonneesModule *module)
+{
+	auto ptr = morceau.chaine.pointeur();
+	auto pos = PositionMorceau{};
+
+	for (auto i = 0ul; i < module->tampon.nombre_lignes() - 1; ++i) {
+		auto l0 = module->tampon[static_cast<long>(i)];
+		auto l1 = module->tampon[static_cast<long>(i + 1)];
+
+		if (ptr >= l0.begin() && ptr < l1.begin()) {
+			pos.ligne = static_cast<long>(i);
+			pos.pos = ptr - l0.begin();
+			break;
+		}
+	}
+
+	return pos;
+}

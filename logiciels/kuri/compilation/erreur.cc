@@ -39,30 +39,6 @@ static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
 
 namespace erreur {
 
-struct PositionMorceau {
-	long ligne = 0;
-	long pos = 0;
-};
-
-static auto trouve_position(DonneesMorceau const &morceau, DonneesModule *module)
-{
-	auto ptr = morceau.chaine.pointeur();
-	auto pos = PositionMorceau{};
-
-	for (auto i = 0ul; i < module->tampon.nombre_lignes() - 1; ++i) {
-		auto l0 = module->tampon[static_cast<long>(i)];
-		auto l1 = module->tampon[static_cast<long>(i + 1)];
-
-		if (ptr >= l0.begin() && ptr < l1.begin()) {
-			pos.ligne = static_cast<long>(i);
-			pos.pos = ptr - l0.begin();
-			break;
-		}
-	}
-
-	return pos;
-}
-
 void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,

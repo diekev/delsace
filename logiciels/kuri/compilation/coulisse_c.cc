@@ -1742,6 +1742,10 @@ void genere_code_C(
 					 *      x[0] = 8;
 					 */
 
+					auto const &morceau = b->morceau;
+					auto module = contexte.module(static_cast<size_t>(morceau.module));
+					auto pos = trouve_position(morceau, module);
+
 					switch (type_base & 0xff) {
 						case id_morceau::POINTEUR:
 						{
@@ -1761,6 +1765,9 @@ void genere_code_C(
 							generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);					
 							generatrice.os << ".taille) {\n";
 							generatrice.os << "KR__depassement_limites(";
+							generatrice.os << '"' << module->chemin << '"' << ',';
+							generatrice.os << pos.ligne << ',';
+							generatrice.os << "\"de la chaine\",";
 							generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
 							generatrice.os << ".taille,";
 							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
@@ -1794,6 +1801,9 @@ void genere_code_C(
 
 							generatrice.os << ") {\n";
 							generatrice.os << "KR__depassement_limites(";
+							generatrice.os << '"' << module->chemin << '"' << ',';
+							generatrice.os << pos.ligne << ',';
+							generatrice.os << "\"du tableau\",";
 							if (taille_tableau == 0) {
 								generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
 								generatrice.os << ".taille";
