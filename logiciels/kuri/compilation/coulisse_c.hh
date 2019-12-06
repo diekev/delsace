@@ -34,7 +34,6 @@ struct base;
 
 void genere_code_C(base *b,
 		ContexteGenerationCode &contexte,
-		bool expr_gauche,
 		dls::flux_chaine &os,
 		dls::flux_chaine &os_init);
 

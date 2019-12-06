@@ -25,11 +25,14 @@
 #pragma once
 
 struct ContexteGenerationCode;
+enum class id_morceau : unsigned int;
 
 namespace noeud {
 
 struct base;
 
 void performe_validation_semantique(base *b, ContexteGenerationCode &contexte);
+
+bool est_assignation_operee(id_morceau id);
 
 }  /* namespace noeud */

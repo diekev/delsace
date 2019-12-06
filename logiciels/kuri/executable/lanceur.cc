@@ -382,6 +382,11 @@ int main(int argc, char *argv[])
 			auto debut_executable = dls::chrono::compte_seconde();
 			auto commande = dls::chaine("gcc /tmp/compilation_kuri.c ");
 
+			/* désactivation des erreurs concernant le manque de "const" quand
+			 * on passe des variables générés temporairement par la coulisse à
+			 * des fonctions qui dont les paramètres ne sont pas constants */
+			commande += "-Wno-discarded-qualifiers ";
+
 			switch (ops.optimisation) {
 				case NiveauOptimisation::Aucun:
 				case NiveauOptimisation::O0:

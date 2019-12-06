@@ -135,6 +135,8 @@ void assembleuse_arbre::genere_code_C(
 
 	contexte_generation.pousse_globale("errno", donnees_var);
 
+	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
+	os << "#include <stdio.h>\n";
 	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
 	os << "#include <stdlib.h>\n";
 	/* Pour strlen, nous incluons toujours "string.h". */
@@ -152,6 +154,18 @@ void assembleuse_arbre::genere_code_C(
 	auto &df = contexte_generation.module(0)->donnees_fonction("mémoire_utilisée").front();
 	os << df.nom_broye;
 	os << "() { return __VG_memoire_utilisee__; }";
+
+	auto depassement_limites =
+R"(
+void KR__depassement_limites(long taille, long index)
+{
+	fprintf(stderr, "Dépassement des limites du tableaux !\n");
+	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
+	abort();
+}
+)";
+
+	os << depassement_limites;
 
 	auto &magasin = contexte_generation.magasin_types;
 
@@ -179,7 +193,7 @@ void assembleuse_arbre::genere_code_C(
 	dls::flux_chaine ss_infos_types;
 	dls::flux_chaine fc_code;
 
-	noeud::genere_code_C(m_pile.haut(), contexte_generation, false, fc_code, ss_infos_types);
+	noeud::genere_code_C(m_pile.haut(), contexte_generation, fc_code, ss_infos_types);
 
 	auto debut_main =
 R"(

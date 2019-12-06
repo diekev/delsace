@@ -384,7 +384,7 @@ bool est_constant(base *b)
 	}
 }
 
-static bool est_assignation_operee(id_morceau id)
+bool est_assignation_operee(id_morceau id)
 {
 	switch (id) {
 		default:
