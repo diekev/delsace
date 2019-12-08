@@ -50,6 +50,21 @@ fonc externe send(prise : z32, tampon : *rien, taille : n64, flags : z32) : z64;
 
 ################################################################################
 
+fonc port_pour_uri(uri_ : &URI) : n16
+{
+    si uri_.port.taille == 0 {
+        retourne 80
+    }
+
+    dyn résultat : n16 = 0
+
+    pour c dans uri_.port {
+        résultat = résultat * 10 + transtype(c - '0' : n16)
+    }
+
+    retourne résultat
+}
+
 fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
 {
     dyn réponse : chaine;
@@ -78,8 +93,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
 
     diffère { close(prise); }
 
-    # À FAIRE : calcule port
-    port : n16 = 80;
+    port : n16 = port_pour_uri(uri);
 
     dyn their_addr : sockaddr_in;
     sin_family de their_addr = transtype(_AF_INET : n16);
