@@ -2165,7 +2165,9 @@ void genere_code_C(
 					idx = enfant_1->enfants.back();
 				}
 
-				genere_code_C(enfant_2, generatrice, contexte_loc, false);
+				/* utilise une expression gauche, car dans les coroutine, les
+				 * variables temporaires ne sont pas sauvegarées */
+				genere_code_C(enfant_2, generatrice, contexte_loc, true);
 
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
 				os_loc << std::any_cast<dls::chaine>(enfant_2->valeur_calculee);
@@ -2200,7 +2202,9 @@ void genere_code_C(
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= "
 				   << taille_tableau << "-1; ++"<< nom_var <<") {\n";
 
-				genere_code_C(enfant_2, generatrice, contexte_loc, false);
+				/* utilise une expression gauche, car dans les coroutine, les
+				 * variables temporaires ne sont pas sauvegarées */
+				genere_code_C(enfant_2, generatrice, contexte_loc, true);
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
 				os_loc << " *" << broye_chaine(var) << " = &";
 				os_loc << std::any_cast<dls::chaine>(enfant_2->valeur_calculee);
