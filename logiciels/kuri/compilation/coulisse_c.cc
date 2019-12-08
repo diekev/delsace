@@ -1855,6 +1855,11 @@ void genere_code_C(
 		case type_noeud::OPERATION_UNAIRE:
 		{
 			auto enfant = b->enfants.front();
+
+			/* force une expression si l'opérateur est @, pour que les
+			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
+			 * pointeur de la variable temporaire du code généré */
+			expr_gauche |= b->morceau.identifiant == id_morceau::AROBASE;
 			genere_code_C(enfant, generatrice, contexte, expr_gauche);
 
 			char const *pref = nullptr;
