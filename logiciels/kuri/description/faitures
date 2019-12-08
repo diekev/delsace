@@ -69,6 +69,8 @@ Faitures
 - ananlyseuse_grammaire -> suppression des vérifications redondantes
 - opérateur ternaire (x = si cond { y } sinon { z })
 - unions -> info type, tiens trace de l'état à chaque modification, décalage au sein de la structure
+- ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
+
 
 À faire (tests)
 ---------------
@@ -86,7 +88,6 @@ Faitures
 
 Bugs
 ----
-- retour multiple non converti correctement depuis le réusinage de la coulisse C
 - expressions dans les opérateurs [] non converties correctement depuis le réusinage de la coulisse C
 
 
