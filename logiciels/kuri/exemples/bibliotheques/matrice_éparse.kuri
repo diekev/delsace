@@ -1,0 +1,51 @@
+struct NoeudMatrice<$T> {
+	colonne = 0
+	valeur : $T = 0.0
+	suivant : *NoeudMatrice = nul
+}
+
+fonc crée_noeud(colonne : z32, valeur : $T) : *NoeudMatrice
+{
+	dyn noeud = loge NoeudMatrice
+	noeud.colonne = colonne
+	noeud.valeur = valeur
+	retourne noeud
+}
+
+struct Vecteur<$T, N : z32> {
+	données : [N]$T
+}
+
+fonc copie<$T, N : z32>(a : [N]$T, b : [N]$T) : rien
+{
+	pour va, i dans a {
+		va = b[i]
+	}
+}
+
+struct MatriceÉparse<$T> {
+	lignes = []*NoeudMatrice<$T>
+}
+
+fonc construit_matrice_éparse(nombre_lignes : z32) : MatriceÉparse<$T>
+{
+	dyn matrice : MatriceÉparse
+	matrice.lignes = loge [lignes]*NoeudMatrice<$T>
+	retourne matrice
+}
+
+fonc insère(matrice : &MatriceÉparse<$T>, idx_ligne : z32, idx_colonne : z32, valeur : $T) : rien
+{
+	noeud = matrice.lignes[idx_ligne]
+
+	si noeud == nul {
+		matrice.lignes[idx_ligne] = crée_noeud(idx_colonne, valeur)
+		retourne
+	}
+
+	tantque noeud.suivant != nul {
+		noeud = noeud.suivant
+	}
+
+	noeud.suivant = crée_noeud(idx_colonne, valeur)
+}
