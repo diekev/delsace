@@ -19,11 +19,11 @@
         },
         "control-keyword": {
             "name": "keyword.control.kuri",
-            "match": "\\b(retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|associe|sansarrêt)\\b"
+            "match": "\\b(retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|associe|sansarrêt|diffère)\\b"
         },
         "other-keyword": {
             "name": "keyword.other.kuri",
-            "match": "\\b(loge|déloge|reloge|struct|énum|importe|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|de|externe|mémoire)\\b"
+            "match": "\\b(loge|déloge|reloge|struct|énum|importe|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|de|externe|mémoire|info_de|type_de|taille_de)\\b"
         },
         "string": {
             "name": "string.quoted.double.kuri",
