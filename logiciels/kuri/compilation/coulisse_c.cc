@@ -820,6 +820,10 @@ static void cree_appel(
 		liste_var_retour = std::any_cast<dls::liste<base *>>(b->valeur_calculee);
 		/* la valeur calculée doit être toujours valide. */
 		b->valeur_calculee = dls::chaine("");
+
+		for (auto n : liste_var_retour) {
+			genere_code_C(n, generatrice, contexte, false);
+		}
 	}
 	else if (b->aide_generation_code == APPEL_FONCTION_MOULT_RET2) {
 		liste_noms_retour = std::any_cast<dls::tableau<dls::chaine>>(b->valeur_calculee);
@@ -874,11 +878,7 @@ static void cree_appel(
 
 	for (auto n : liste_var_retour) {
 		os << virgule;
-
-		os << "&(";
-		genere_code_C(n, generatrice, contexte, false);
-		os << ')';
-
+		os << "&(" << std::any_cast<dls::chaine>(n->valeur_calculee) << ')';
 		virgule = ',';
 	}
 
@@ -1547,6 +1547,7 @@ void genere_code_C(
 					/* déclare au besoin */
 					if (f->aide_generation_code == GENERE_CODE_DECL_VAR) {
 						genere_code_C(f, generatrice, contexte, true);
+						generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
 						generatrice.os << ';' << '\n';
 					}
 
