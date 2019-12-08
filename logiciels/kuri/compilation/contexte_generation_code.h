@@ -152,7 +152,7 @@ struct ContexteGenerationCode {
 
 	bool bit32 = false;
 
-	ContexteGenerationCode() = default;
+	ContexteGenerationCode();
 
 	~ContexteGenerationCode();
 

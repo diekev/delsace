@@ -187,26 +187,6 @@ void KR__hors_memoire(
 
 	os << hors_memoire;
 
-	auto &magasin = contexte_generation.magasin_types;
-
-	auto ds_contexte_global = DonneesStructure();
-	ds_contexte_global.est_enum = false;
-	ds_contexte_global.noeud_decl = nullptr;
-
-	auto dm = DonneesMembre();
-	dm.index_membre = 0;
-	ds_contexte_global.donnees_membres.insere({ "compteur", dm });
-
-	ds_contexte_global.index_types.pousse(magasin[TYPE_Z32]);
-
-	contexte_generation.ajoute_donnees_structure("__contexte_global", ds_contexte_global);
-	//contexte_generation.index_type_ctx = ds_contexte_global.index_type;
-
-	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::POINTEUR);
-	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds_contexte_global.id << 8));
-	contexte_generation.index_type_ctx = magasin.ajoute_type(dt);
-
 	/* NOTE : les initialiseurs des infos types doivent être valides pour toute
 	 * la durée du programme, donc nous les mettons dans la fonction principale.
 	 */

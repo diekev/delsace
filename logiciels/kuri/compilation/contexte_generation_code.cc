@@ -36,6 +36,26 @@
 #include "broyage.hh"
 #include "modules.hh"
 
+ContexteGenerationCode::ContexteGenerationCode()
+{
+	auto ds_contexte_global = DonneesStructure();
+	ds_contexte_global.est_enum = false;
+	ds_contexte_global.noeud_decl = nullptr;
+
+	auto dm = DonneesMembre();
+	dm.index_membre = 0;
+	ds_contexte_global.donnees_membres.insere({ "compteur", dm });
+
+	ds_contexte_global.index_types.pousse(magasin_types[TYPE_Z32]);
+
+	this->ajoute_donnees_structure("__contexte_global", ds_contexte_global);
+
+	auto dt = DonneesTypeFinal{};
+	dt.pousse(id_morceau::POINTEUR);
+	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds_contexte_global.id << 8));
+	this->index_type_ctx = magasin_types.ajoute_type(dt);
+}
+
 ContexteGenerationCode::~ContexteGenerationCode()
 {
 	for (auto module : modules) {
