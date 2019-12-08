@@ -47,6 +47,7 @@ set(FICHIERS_BIBLIOTHEQUES
 	bibliotheques/memoire.kuri
 	bibliotheques/sys_fichier.kuri
 	bibliotheques/structures.kuri
+	bibliotheques/table_hachage.kuri
 	bibliotheques/uri.kuri
 )
 install(

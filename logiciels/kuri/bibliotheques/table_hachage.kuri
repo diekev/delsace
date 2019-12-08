@@ -1,5 +1,5 @@
 ################################################################################
-# Implémentation d'une table de hachage clé -> clé
+# Implémentation d'une table de hachage chaine -> chaine
 # Voir aussi, comme inspiration :
 # https://en.wikipedia.org/wiki/Open_addressing
 
@@ -132,26 +132,4 @@ corout chaque_noeud(table : *TableHachage) : *NoeudTableHachage
             n = n.suivant
         }
     }
-}
-
-fonc principale(args : []*z8) : z32
-{
-    table = crée_table_hachage()
-    diffère { décrée_table_hachage(table); }
-
-    insère(table, "Accept", "text/html")
-    insère(table, "Accept-Charset", "utf-8, iso-8859-1;q=0.5")
-    insère(table, "Accept-Encoding", "identity")
-
-    #cherche_noeud(table, "Accept")
-    #cherche_noeud(table, "Accept-Charset")
-    #cherche_noeud(table, "Accept-Encoding")
-    #cherche_noeud(table, "Quelque Chose")
-
-    pour noeud dans chaque_noeud(table) {
-        imprime("noeud : ", noeud, '\n')
-        imprime(noeud.clé, ": ", noeud.valeur, "\r\n")
-    }
-
-    retourne 0
 }
