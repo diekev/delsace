@@ -24,8 +24,6 @@
 
 #include "tests.hh"
 
-//#include "test_uri.hh"
-
 #include "math/tests_math.hh"
 #include "math/tests_matrice.hh"
 #include "math/tests_quaternion.hh"
@@ -34,7 +32,6 @@
 int main()
 {
 	dls::test_unitaire::Controleuse controleuse;
-	//controleuse.ajoute_fonction(test_uri);
 	controleuse.ajoute_fonction(tests_matrice);
 	controleuse.ajoute_fonction(tests_quaternion);
 	controleuse.ajoute_fonction(tests_vecteur);
