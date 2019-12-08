@@ -118,3 +118,29 @@ fonc construit_uri(chn : chaine) : URI
 
 	retourne uri
 }
+
+# Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
+# https://en.wikipedia.org/wiki/Fletcher%27s_checksum
+fonc somme_controle(uri : &URI) : n64
+{
+    # nous ne considérons que l'autorité, le chemin et la requête
+    dyn somme1 = 0;
+    dyn somme2 = 0;
+
+    pour c dans uri.autorité {
+        somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
+        somme2 = (somme1 + somme2) % 0xffffffff
+    }
+
+    pour c dans uri.chemin {
+        somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
+        somme2 = (somme1 + somme2) % 0xffffffff
+    }
+
+    pour c dans uri.requête {
+        somme1 = (somme1 + transtype(c : z32)) % 0xffffffff
+        somme2 = (somme1 + somme2) % 0xffffffff
+    }
+
+    retourne (transtype(somme2 : n64) << 32) | transtype(somme1 : n64);
+}
