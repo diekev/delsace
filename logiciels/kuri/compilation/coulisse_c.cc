@@ -1767,7 +1767,7 @@ void genere_code_C(
 							generatrice.os << ".taille) {\n";
 							generatrice.os << "KR__depassement_limites(";
 							generatrice.os << '"' << module->chemin << '"' << ',';
-							generatrice.os << pos.ligne << ',';
+							generatrice.os << pos.ligne + 1 << ',';
 							generatrice.os << "\"de la chaine\",";
 							generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
 							generatrice.os << ".taille,";
@@ -1803,7 +1803,7 @@ void genere_code_C(
 							generatrice.os << ") {\n";
 							generatrice.os << "KR__depassement_limites(";
 							generatrice.os << '"' << module->chemin << '"' << ',';
-							generatrice.os << pos.ligne << ',';
+							generatrice.os << pos.ligne + 1 << ',';
 							generatrice.os << "\"du tableau\",";
 							if (taille_tableau == 0) {
 								generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
@@ -2854,7 +2854,7 @@ void genere_code_C(
 				generatrice.os << " {\n";
 				generatrice.os << "KR__hors_memoire(";
 				generatrice.os << '"' << module->chemin << '"' << ',';
-				generatrice.os << pos.ligne;
+				generatrice.os << pos.ligne + 1;
 				generatrice.os << ");\n";
 				generatrice.os << "}\n";
 			}
