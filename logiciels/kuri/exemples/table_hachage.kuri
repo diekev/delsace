@@ -122,7 +122,6 @@ fonc cherche_noeud(table : *TableHachage, clé : chaine) : rien
     }
 }
 
-# À FAIRE : la coroutine semble ne pas retenir correctement le noeud, il y a un crash à la deuxième itération
 corout chaque_noeud(table : *TableHachage) : *NoeudTableHachage
 {
     pour alvéole dans table.alvéoles {
