@@ -2732,16 +2732,14 @@ void genere_code_C(
 				auto nom_tabl = "__tabl" + dls::vers_chaine(b);
 				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
 
-				auto flux = dls::flux_chaine();
 				genere_code_C(expr, generatrice, contexte, false);
 
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
 							taille_tabl,
-							flux.chn());
+							std::any_cast<dls::chaine>(expr->valeur_calculee));
 
-				flux.chn("");
-
+				auto flux = dls::flux_chaine();
 				flux << "sizeof(";
 				contexte.magasin_types.converti_type_C(
 							contexte,
