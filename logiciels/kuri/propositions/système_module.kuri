@@ -27,3 +27,51 @@ BKE$CacheFile$new()
 BKE.Object.remove() # BKE/Object.kuri
 
 BLI.path.
+
+Image
+- image
+ImageES
+- jpeg
+- pnm
+- png
+- bmp
+- exr
+
+inclus image
+
+module_dossier :
+-- importer des fonctions d'un autre fichier du module
+-- importer des modules dans un fichier affècte les autres
+-- sous-dossier -> sous-module comme en Python ?
+
+module_fichier :
+-- déclarer des espaces de nom commun à plusieus fichiers
+-- devoir importer énormement de fichier si un fichier devient trop gros et qu'on doive le découper
+
+
+modèle : MODULE DOSSIER
+
+Un module est un dossier, on importe un module en indiquant son nom.
+
+importe OpenGL
+
+importera le module OpenGL se trouvant être un dossier nommé OpenGL. Ce dossier devra se trouver dans un de trois endroits :
+- le dossier racine de l'installation Kuri (pour les modules standards)
+- le dossier où se trouve le script racine
+- le dossier parent du dernier
+
+Quand un module est chargé, tous les fichiers du dossier sont chargés et compilé un à un.
+
+On peut ordonner le chargement d'un fichier via charge
+
+charge fichier
+
+chargera un fichier se trouvant dans le dossier du module, ce fichier sera chargé avant de continuer la compilation du fichier courant, utile quand on veut enforcer une dépendance
+
+Quand un fichier importe un module, le contenu du module n'est visible que pour ce fichier, et non tous les fichiers du module. Ceci simplifie la vision mental du programme pour le programmeur.
+
+L'importation de module ne donne pas accès aux modules importés par celui-ci. Si module A importe module B, et que module B importe module C, les fonctions et types de C ne seront pas visibles pour A, sauf si A l'importe explicitement.
+
+Les espaces de noms des fonctions et types d'un module est le nom de dossier, donc du module.
+
+Pour appeler la fonction foo() de A, on peut utiliser A.foo()
