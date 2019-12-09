@@ -1106,6 +1106,37 @@ static void genere_code_acces_membre(
 	}
 }
 
+static void genere_code_echec_logement(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice,
+		dls::chaine const &nom_ptr,
+		bool a_pointeur,
+		base *b,
+		base *bloc)
+{
+	generatrice.os << "if (" << nom_ptr;
+	if (a_pointeur) {
+		generatrice.os << ".pointeur ";
+	}
+	generatrice.os << " == 0)";
+
+	if (bloc) {
+		genere_code_C(bloc, generatrice, contexte, true);
+	}
+	else {
+		auto const &morceau = b->morceau;
+		auto module = contexte.module(static_cast<size_t>(morceau.module));
+		auto pos = trouve_position(morceau, module);
+
+		generatrice.os << " {\n";
+		generatrice.os << "KR__hors_memoire(";
+		generatrice.os << '"' << module->chemin << '"' << ',';
+		generatrice.os << pos.ligne + 1;
+		generatrice.os << ");\n";
+		generatrice.os << "}\n";
+	}
+}
+
 /* Génère le code C pour la base b passée en paramètre.
  *
  * Le code est généré en visitant d'abord les enfants des noeuds avant ceux-ci.
@@ -2839,27 +2870,19 @@ void genere_code_C(
 				nom_ptr_ret = nom_ptr;
 			}
 
-			generatrice.os << "if (" << nom_ptr_ret;
-			if (a_pointeur) {
-				generatrice.os << ".pointeur ";
-			}
-			generatrice.os << " == 0)";
+			auto bloc_sinon = static_cast<base *>(nullptr);
 
 			if (nombre_enfant == 1) {
-				genere_code_C(*enfant++, generatrice, contexte, true);
+				bloc_sinon = *enfant++;
 			}
-			else {
-				auto const &morceau = b->morceau;
-				auto module = contexte.module(static_cast<size_t>(morceau.module));
-				auto pos = trouve_position(morceau, module);
 
-				generatrice.os << " {\n";
-				generatrice.os << "KR__hors_memoire(";
-				generatrice.os << '"' << module->chemin << '"' << ',';
-				generatrice.os << pos.ligne + 1;
-				generatrice.os << ");\n";
-				generatrice.os << "}\n";
-			}
+			genere_code_echec_logement(
+						contexte,
+						generatrice,
+						nom_ptr_ret,
+						a_pointeur,
+						b,
+						bloc_sinon);
 
 			generatrice.os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";
 			b->valeur_calculee = nom_ptr_ret;
@@ -2938,9 +2961,9 @@ void genere_code_C(
 							taille_tabl,
 							std::any_cast<dls::chaine>(expr->valeur_calculee));
 
-				auto chn_enf = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-				auto acces_taille = chn_enf + ".taille";
-				auto acces_pointeur = chn_enf + ".pointeur";
+				nom_ptr_ret = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				auto acces_taille = nom_ptr_ret + ".taille";
+				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
@@ -2977,11 +3000,11 @@ void genere_code_C(
 				a_pointeur = true;
 
 				genere_code_C(enfant1, generatrice, contexte, true);
+				nom_ptr_ret = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
 				genere_code_C(enfant2, generatrice, contexte, true);
 
-				auto chn_enf = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-				auto acces_taille = chn_enf + ".taille";
-				auto acces_pointeur = chn_enf + ".pointeur";
+				auto acces_taille = nom_ptr_ret + ".taille";
+				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
@@ -3019,6 +3042,7 @@ void genere_code_C(
 							nom_ancienne_taille);
 
 				genere_code_C(enfant1, generatrice, contexte, true);
+				nom_ptr_ret = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
 
 				flux_type.chn("");
 				contexte.magasin_types.converti_type_C(
@@ -3027,36 +3051,26 @@ void genere_code_C(
 							dt_pointeur.plage(),
 							flux_type);
 
-				generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				generatrice.os << nom_ptr_ret;
 				generatrice.os << " = (" << flux_type.chn();
 				generatrice.os << ")(realloc(";
-				generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				generatrice.os << nom_ptr_ret;
 				generatrice.os << ", sizeof(" << chn_type_deref << ")));\n";
 			}
 
-			genere_code_C(enfant1, generatrice, contexte, true);
-			generatrice.os << "if (";
-			generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-			if (a_pointeur) {
-				generatrice.os << ".pointeur ";
-			}
-			generatrice.os << " == 0)";
+			auto bloc_sinon = static_cast<base *>(nullptr);
 
 			if (nombre_enfant == 2) {
-				genere_code_C(*enfant++, generatrice, contexte, true);
+				bloc_sinon = *enfant++;
 			}
-			else {
-				auto const &morceau = b->morceau;
-				auto module = contexte.module(static_cast<size_t>(morceau.module));
-				auto pos = trouve_position(morceau, module);
 
-				generatrice.os << " {\n";
-				generatrice.os << "KR__hors_memoire(";
-				generatrice.os << '"' << module->chemin << '"' << ',';
-				generatrice.os << pos.ligne + 1;
-				generatrice.os << ");\n";
-				generatrice.os << "}\n";
-			}
+			genere_code_echec_logement(
+						contexte,
+						generatrice,
+						nom_ptr_ret,
+						a_pointeur,
+						b,
+						bloc_sinon);
 
 			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
 			   << " - " << nom_ancienne_taille << ";\n";
