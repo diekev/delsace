@@ -3034,19 +3034,28 @@ void genere_code_C(
 				generatrice.os << ", sizeof(" << chn_type_deref << ")));\n";
 			}
 
-			/* À FAIRE : que faire si le bloc est absent ? avorter ? */
+			genere_code_C(enfant1, generatrice, contexte, true);
+			generatrice.os << "if (";
+			generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+			if (a_pointeur) {
+				generatrice.os << ".pointeur ";
+			}
+			generatrice.os << " == 0)";
+
 			if (nombre_enfant == 2) {
-				genere_code_C(enfant1, generatrice, contexte, true);
-				generatrice.os << "if (";
-
-				generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-
-				if (a_pointeur) {
-					generatrice.os << ".pointeur ";
-				}
-
-				generatrice.os << " == 0 )";
 				genere_code_C(*enfant++, generatrice, contexte, true);
+			}
+			else {
+				auto const &morceau = b->morceau;
+				auto module = contexte.module(static_cast<size_t>(morceau.module));
+				auto pos = trouve_position(morceau, module);
+
+				generatrice.os << " {\n";
+				generatrice.os << "KR__hors_memoire(";
+				generatrice.os << '"' << module->chemin << '"' << ',';
+				generatrice.os << pos.ligne + 1;
+				generatrice.os << ");\n";
+				generatrice.os << "}\n";
 			}
 
 			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
