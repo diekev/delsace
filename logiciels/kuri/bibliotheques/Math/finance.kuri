@@ -1,19 +1,11 @@
-#!enligne fonc min(a : $T, b : $T) : $T
+#!enligne fonc min(a : r32, b : r32) : r32
 {
-	si a < b {
-		retourne a;
-	}
-
-	retourne b;
+	retourne retourne si a < b { a } sinon { b }
 }
 
-#!enligne fonc max(a : $T, b : $T) : $T
+#!enligne fonc max(a : r32, b : r32) : r32
 {
-	si a > b {
-		retourne a;
-	}
-
-	retourne b;
+	retourne retourne si a < b { a } sinon { b }
 }
 
 # fma pour les anglophone
@@ -33,19 +25,19 @@
 }
 
 fonc covariance(
-		cours1 : []$T,
-		moyenne1 : $T,
-		cours2 : []$T,
-		moyenne2 : $T) : ($T, z64)
+		cours1 : []r32,
+		moyenne1 : r32,
+		cours2 : []r32,
+		moyenne2 : r32) : (r32, z64)
 {
 	taille = min(cours1.taille, cours2.taille);
-	dyn res : $T;
+	dyn res : r32;
 
 	pour i dans 0 ... taille - 1 {
 		res += (cours1[i] - moyenne1) * (cours2[i] - moyenne2);
 	}
 
-	res /= transtype(taille : $T);
+	res /= transtype(taille : r32);
 
 	retourne res, taille;
 }
