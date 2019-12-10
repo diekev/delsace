@@ -1110,6 +1110,10 @@ static DonneesTypeFinal analyse_type(
 		}
 		/* ) */
 		dt.pousse(*debut--);
+
+		if (*debut == id_morceau::VIRGULE) {
+			--debut;
+		}
 	}
 	else {
 		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
