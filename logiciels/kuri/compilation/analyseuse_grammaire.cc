@@ -1260,7 +1260,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 						}
 
 						auto chaine = donnees().chaine;
-						m_assembleuse->inclusions.pousse(chaine);
+						m_assembleuse->ajoute_inclusion(chaine);
 					}
 					else if (directive == "bib") {
 						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {

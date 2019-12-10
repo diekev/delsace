@@ -37,6 +37,13 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 {
 	contexte.assembleuse = this;
 	this->empile_noeud(type_noeud::RACINE, contexte, {});
+
+	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
+	this->ajoute_inclusion("stdio.h");
+	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
+	this->ajoute_inclusion("stdlib.h");
+	/* Pour strlen, nous incluons toujours "string.h". */
+	this->ajoute_inclusion("string.h");
 }
 
 assembleuse_arbre::~assembleuse_arbre()
@@ -135,13 +142,6 @@ void assembleuse_arbre::genere_code_C(
 
 	contexte_generation.pousse_globale("errno", donnees_var);
 
-	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
-	os << "#include <stdio.h>\n";
-	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
-	os << "#include <stdlib.h>\n";
-	/* Pour strlen, nous incluons toujours "string.h". */
-	os << "#include <string.h>\n";
-
 	for (auto const &inc : this->inclusions) {
 		os << "#include <" << inc << ">\n";
 	}
@@ -232,6 +232,16 @@ size_t assembleuse_arbre::memoire_utilisee() const
 size_t assembleuse_arbre::nombre_noeuds() const
 {
 	return static_cast<size_t>(m_noeuds.taille());
+}
+
+void assembleuse_arbre::ajoute_inclusion(const dls::vue_chaine_compacte &fichier)
+{
+	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
+		return;
+	}
+
+	deja_inclus.insere(fichier);
+	inclusions.pousse(fichier);
 }
 
 void imprime_taille_memoire_noeud(std::ostream &os)
