@@ -37,7 +37,7 @@ corout compte(début : z32, pas : z32) : z32
 }
 
 # Répète la 'valeur' précisée indéfiniment.
-corout répète(valeur : z32) : z32
+corout réitère(valeur : z32) : z32
 {
     boucle {
 		retiens valeur
@@ -47,7 +47,7 @@ corout répète(valeur : z32) : z32
 # Itérateurs finis.
 
 # Répète la 'valeur' précisée selon le 'nombre' défini de fois.
-corout répète(valeur : z32, nombre : z32) : z32
+corout réitère(valeur : z32, nombre : z32) : z32
 {
     pour i dans 0 ... nombre - 1 {
 		retiens valeur
