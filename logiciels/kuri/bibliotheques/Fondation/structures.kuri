@@ -2,7 +2,7 @@
 # Les structures utilisent des pointeurs vers 'rien', et la taille des données
 # en octet pour avoir un semblant de généricité.
 
-importe "memoire"
+charge "memoire"
 
 #################################################################
 

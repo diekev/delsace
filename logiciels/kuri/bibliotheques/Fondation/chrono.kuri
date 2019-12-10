@@ -1,23 +1,7 @@
 # Bibliothèque de chronométrage.
-
-#!inclus "sys/time.h"
-
 # À FAIRE : regarde les bibliothèques de temps/date des différents langages
 
-# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
-struct externe timeval {
-	tv_sec : z64
-	tv_usec : z64
-}
-
-# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
-# À FAIRE : déprécié
-struct externe timezone {
-	tz_minuteswest : z64 # Minutes à l'ouest de GMT
-	tz_dsttime : z64 # Nonzéro si DST est en effet
-}
-
-fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien
+importe GlibC
 
 fonc maintenant_sec() : r64
 {
@@ -64,11 +48,11 @@ struct DonnéesTemps {
 fonc calcule_temps() : DonnéesTemps
 {
 	dyn maint = maintenant_local()
-    
+
 	dyn dt : DonnéesTemps
 	minutes de dt = transtype(maint / 60.0 : z32) % 60
 	heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24
 	secondes de dt = transtype(maint : z32) % 60
-    
+
 	retourne dt
 }

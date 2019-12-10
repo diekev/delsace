@@ -1,6 +1,6 @@
 # Fonctions de manipulation de chaines.
 
-importe "memoire"
+charge "memoire"
 
 # Retourne vrai si les deux chaines données sont égales.
 fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool

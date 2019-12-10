@@ -96,11 +96,11 @@ static bool doit_ajouter_point_virgule(id_morceau dernier_id)
 
 /* ************************************************************************** */
 
-decoupeuse_texte::decoupeuse_texte(DonneesModule *module, int drapeaux)
-	: m_module(module)
-	, m_debut_mot(module->tampon.debut())
-	, m_debut(module->tampon.debut())
-	, m_fin(module->tampon.fin())
+decoupeuse_texte::decoupeuse_texte(Fichier *fichier, int drapeaux)
+	: m_fichier(fichier)
+	, m_debut_mot(fichier->tampon.debut())
+	, m_debut(fichier->tampon.debut())
+	, m_fin(fichier->tampon.fin())
 	, m_drapeaux(drapeaux)
 {
 	construit_tables_caractere_speciaux();
@@ -228,12 +228,12 @@ void decoupeuse_texte::genere_morceaux()
 
 size_t decoupeuse_texte::memoire_morceaux() const
 {
-	return static_cast<size_t>(m_module->morceaux.taille()) * sizeof(DonneesMorceau);
+	return static_cast<size_t>(m_fichier->morceaux.taille()) * sizeof(DonneesMorceau);
 }
 
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)
 {
-	for (auto const &morceau : m_module->morceaux) {
+	for (auto const &morceau : m_fichier->morceaux) {
 		os << chaine_identifiant(morceau.identifiant) << '\n';
 	}
 }
@@ -275,7 +275,7 @@ dls::vue_chaine_compacte decoupeuse_texte::mot_courant() const
 
 void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
 {
-	auto ligne_courante = m_module->tampon[m_compte_ligne];
+	auto ligne_courante = m_fichier->tampon[m_compte_ligne];
 
 	dls::flux_chaine ss;
 	ss << "Erreur : ligne:" << m_compte_ligne + 1 << ":\n";
@@ -510,7 +510,7 @@ void decoupeuse_texte::pousse_caractere(int n)
 
 void decoupeuse_texte::pousse_mot(id_morceau identifiant)
 {
-	m_module->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_module->id) });
+	m_fichier->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }

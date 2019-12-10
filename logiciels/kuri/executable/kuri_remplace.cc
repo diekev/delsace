@@ -50,15 +50,15 @@ static void reecris_fichier(std::filesystem::path &chemin)
 
 		auto contexte = ContexteGenerationCode{};
 		auto tampon = charge_fichier(chemin.c_str(), contexte, {});
-		auto module = contexte.cree_module("", chemin.c_str());
-		module->tampon = lng::tampon_source(tampon);
+		auto fichier = contexte.cree_fichier("", chemin.c_str());
+		fichier->tampon = lng::tampon_source(tampon);
 
-		auto decoupeuse = decoupeuse_texte(module, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+		auto decoupeuse = decoupeuse_texte(fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
 		decoupeuse.genere_morceaux();
 
 		auto os = std::ofstream(chemin);
 
-		for (auto const &morceau : module->morceaux) {
+		for (auto const &morceau : fichier->morceaux) {
 #if 0
 			if (morceau.identifiant == id_morceau::STRUCTURE) {
 				os << "struct";

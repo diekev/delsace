@@ -1125,7 +1125,7 @@ static void genere_code_echec_logement(
 	}
 	else {
 		auto const &morceau = b->morceau;
-		auto module = contexte.module(static_cast<size_t>(morceau.module));
+		auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
 		auto pos = trouve_position(morceau, module);
 
 		generatrice.os << " {\n";
@@ -1175,7 +1175,7 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
 			auto &vdf = module->donnees_fonction(b->morceau.chaine);
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
 
@@ -1775,7 +1775,7 @@ void genere_code_C(
 					 */
 
 					auto const &morceau = b->morceau;
-					auto module = contexte.module(static_cast<size_t>(morceau.module));
+					auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
 					auto pos = trouve_position(morceau, module);
 
 					switch (type_base & 0xff) {

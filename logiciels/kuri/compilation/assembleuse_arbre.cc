@@ -84,7 +84,7 @@ noeud::base *assembleuse_arbre::cree_noeud(
 
 			/* requis pour déterminer le module dans le noeud d'accès point
 			 * À FAIRE : trouver mieux pour accéder à cette information */
-			noeud->module_appel = noeud->morceau.module;
+			noeud->module_appel = noeud->morceau.fichier;
 		}
 
 		m_noeuds.pousse(noeud);

@@ -208,14 +208,14 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 
 analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
-		DonneesModule *module,
+		Fichier *fichier,
 		dls::chaine const &racine_kuri)
-	: lng::analyseuse<DonneesMorceau>(module->morceaux)
+	: lng::analyseuse<DonneesMorceau>(fichier->morceaux)
 	, m_contexte(contexte)
 	, m_assembleuse(contexte.assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
 	, m_racine_kuri(racine_kuri)
-	, m_module(module)
+	, m_fichier(fichier)
 {}
 
 void analyseuse_grammaire::lance_analyse(std::ostream &os)
@@ -226,10 +226,10 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 		return;
 	}
 
-	m_module->temps_analyse = 0.0;
+	m_fichier->temps_analyse = 0.0;
 	m_chrono_analyse.commence();
 	analyse_corps(os);
-	m_module->temps_analyse += m_chrono_analyse.arrete();
+	m_fichier->temps_analyse += m_chrono_analyse.arrete();
 }
 
 void analyseuse_grammaire::analyse_corps(std::ostream &os)
@@ -262,19 +262,42 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			{
 				avance();
 
-				if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+				if (!est_identifiant(id_morceau::CHAINE_LITTERALE) && !est_identifiant(id_morceau::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu une chaine littérale après 'importe'");
 				}
 
+				avance();
+
 				auto const nom_module = donnees().chaine;
-				m_module->modules_importes.insere(nom_module);
+				m_fichier->modules_importes.insere(nom_module);
 
 				/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
 				 * également en compte le chargement, le découpage, et l'analyse du
 				 * module importé */
-				m_module->temps_analyse += m_chrono_analyse.arrete();
-				charge_module(os, m_racine_kuri, dls::chaine(nom_module), m_contexte, donnees());
+				m_fichier->temps_analyse += m_chrono_analyse.arrete();
+				importe_module(os, m_racine_kuri, dls::chaine(nom_module), m_contexte, donnees());
 				m_chrono_analyse.reprend();
+				break;
+			}
+			case id_morceau::CHARGE:
+			{
+				avance();
+
+				if (!est_identifiant(id_morceau::CHAINE_LITTERALE) && !est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+					lance_erreur("Attendu une chaine littérale après 'charge'");
+				}
+
+				avance();
+
+				auto const nom_fichier = donnees().chaine;
+
+				/* désactive le 'chronomètre' car sinon le temps d'analyse prendra
+				 * également en compte le chargement, le découpage, et l'analyse du
+				 * fichier chargé */
+				m_fichier->temps_analyse += m_chrono_analyse.arrete();
+				charge_fichier(os, m_fichier->module, m_racine_kuri, dls::chaine(nom_fichier), m_contexte, donnees());
+				m_chrono_analyse.reprend();
+
 				break;
 			}
 			default:
@@ -304,7 +327,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	}
 
 	auto const nom_fonction = donnees().chaine;
-	m_module->fonctions_exportees.insere(nom_fonction);
+	m_fichier->module->fonctions_exportees.insere(nom_fonction);
 
 	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, m_contexte, donnees());
 
@@ -364,7 +387,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 
 	noeud->type_declare = donnees_fonctions.types_retours_decl[0];
 
-	m_module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
+	m_fichier->module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	if (externe) {
 		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {

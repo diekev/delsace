@@ -3,8 +3,8 @@
 # Voir aussi, comme inspiration :
 # https://en.wikipedia.org/wiki/Open_addressing
 
-importe "chaine"
-importe "flux"
+charge "chaine"
+charge "flux"
 
 struct NoeudTableHachage {
     clé : chaine

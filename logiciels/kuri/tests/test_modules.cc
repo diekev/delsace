@@ -54,7 +54,7 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		std::ostream os(nullptr);
-		charge_module(os, "", nom_module.c_str(), contexte_generation, {}, true);
+		importe_module(os, "", nom_module.c_str(), contexte_generation, {});
 
 		if (genere_code) {
 			assembleuse.genere_code_C(contexte_generation, os, "");

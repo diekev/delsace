@@ -1,0 +1,181 @@
+# définitions des interfaces de la bibliothèques C pour GNU/Linux
+
+#!inclus "arpa/inet.h"
+#!inclus "dirent.h"
+#!inclus "fcntl.h"
+#!inclus "netdb.h"
+#!inclus "stdio.h"
+#!inclus "sys/stat.h"
+#!inclus "sys/time.h"
+#!inclus "sys/wait.h"
+#!inclus "unistd.h"
+
+################################################################################
+
+# Valeur des descripteurs fichiers pour les flux standards.
+soit std_out = 0
+soit std_err = 1
+soit std_log = 2
+
+fonc externe sprintf(tmp : *z8, fmt : *z8, args : ...) : z32
+
+################################################################################
+
+# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
+struct externe timeval {
+	tv_sec : z64
+	tv_usec : z64
+}
+
+# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
+# À FAIRE : déprécié
+struct externe timezone {
+	tz_minuteswest : z64 # Minutes à l'ouest de GMT
+	tz_dsttime : z64 # Nonzéro si DST est en effet
+}
+
+fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien
+
+################################################################################
+
+fonc externe open(chemin : *z8, drapeaux : z32) : z32
+fonc externe close(fd : z32) : z32
+fonc externe read(fd : z32, tampon : *z8, taille : n64) : z64
+fonc externe write(fd : z32, tampon : *z8, taille : z64) : z32
+fonc externe stat(chemin : *z8, buf : *rien) : z32
+
+fonc externe getcwd(ptr : *z8, taille : z64) : rien
+fonc externe chdir(ptr : *z8) : rien
+
+fonc externe rename(orig : *z8, dest : *z8) : z32
+fonc externe remove(chemin : *z8) : z32
+
+# Ceci sont des macros
+fonc externe S_ISREG(mode : n32) : bool
+fonc externe S_ISDIR(mode : n32) : bool
+fonc externe S_IFSOCK(mode : n32) : bool
+fonc externe S_IFLNK(mode : n32) : bool
+fonc externe S_IFBLK(mode : n32) : bool
+fonc externe S_IFCHR(mode : n32) : bool
+fonc externe S_IFIFO(mode : n32) : bool
+
+# Version 64-bit de la structure 'stat' de "sys/stat.h"
+struct externe stat {
+    st_dev : n64         # ID of device containing file
+	st_ino : n64         # inode number
+	st_nlink : n64     # number of hard links
+	st_mode : n32       # protection
+	st_uid : n32         # user ID of owner
+	st_gid : n32         # group ID of owner
+	__pad0 : n32         # padding pour la version 64-bit
+	st_rdev : n64        # device ID (if special file)
+	st_size : z64        # total size, in bytes
+	st_blksize : z64 # blocksize for file system I/O
+	st_blocks : z64
+	st_atime : z64      # time of last access
+	st_mtime : z64      # time of last modification
+	st_ctime : z64      # time of last status change
+}
+
+struct externe DIR
+
+struct externe dirent {
+    d_ino : n64
+    d_off : n64
+    d_reclen : n16
+    d_type : n8
+    d_name : *z8
+}
+
+# duplique un énum
+soit _DT_UNKNOWN = 0
+soit _DT_FIFO = 1
+soit _DT_CHR = 2
+soit _DT_DIR = 4
+soit _DT_BLK = 6
+soit _DT_REG = 8
+soit _DT_LNK = 10
+soit _DT_SOCK = 12
+soit _DT_WHT = 14
+
+# open/fnctl
+soit MODE_ACCÈS       =      0003
+soit LECTURE_SEULE    =        00
+soit ÉCRITURE_SEULE   =        01
+soit LECTURE_ÉCRITURE =        02
+soit CREATION         =      0100
+soit EXCLUSION        =      0200
+soit NOCTTY           =      0400
+soit TRONCAGE         =     01000
+soit APPEND           =     02000
+soit NONBLOCK         =     04000
+soit NDELAY           =     04000
+soit SYNC             =  04010000
+soit FSYNC            =  04010000
+soit ASYNC            =    020000
+soit LARGEFILE        =   0100000
+soit DIRECTORY	      =   0200000
+soit NOFOLLOW	      =   0400000
+soit CLOEXEC          =  02000000
+soit DIRECT	          =    040000
+soit NOATIME          =  01000000
+soit PATH             = 010000000
+soit DSYNC	          =    010000
+# À FAIRE : les expressions utilisent des variables temporaires lors de la
+# génération du code, ce qui n'est pas possible pour les variables globales ou
+# encore les énum. L'expression devrait être (020000000 | 0200000)
+soit TMPFILE          = 020200000
+
+fonc externe opendir(chemin : *z8) : *DIR
+fonc externe closedir(d : *DIR) : z32
+fonc externe readdir(d : *DIR) : *dirent
+
+################################################################################
+
+soit _AF_INET = 2
+soit _SOCK_STREAM = 1
+soit _WNOHANG = 1
+
+struct externe hostent {
+    h_name : *z8
+    h_aliases : **z8
+    h_addrtype : z32
+    h_length : z32
+    h_addr_list : **z8
+}
+
+struct externe in_addr {
+    s_addr : n32
+}
+
+struct externe sockaddr {
+    sa_family : n16
+    sa_data : [14]z8
+}
+
+struct externe sockaddr_in {
+    sin_family : n16
+    sin_port : n16
+    sin_addr : in_addr
+    sin_zero : [8]n8
+}
+
+fonc externe gethostbyname(arg : *z8) : *hostent
+
+fonc externe socket(a : z32, b : z32, c : z32) : z32
+
+fonc externe htons(a : n16) : n16
+
+fonc externe connect(prise : z32, addr : *sockaddr, taille : z64) : z32
+
+fonc externe recv(prise : z32, tampon : *z8, taille : n64, flags : z32) : z64
+fonc externe send(prise : z32, tampon : *rien, taille : n64, flags : z32) : z64
+fonc externe bind(prise : z32, addr : *sockaddr, taille : n64) : z32
+fonc externe listen(prise : z32, connexions : z32) : z32
+fonc externe accept(prise : z32, addr : *sockaddr, taille : *n32) : z32
+fonc externe perror(ptr : *z8) : rien
+fonc externe fork() : z32
+fonc externe exit(id : z32) : rien
+fonc externe waitpid(id : z32, ptr : *z32, options : z32) : z32
+fonc externe send(prise : z32, pointeur : *z8, taille : z64, options : z32) : z32
+fonc externe inet_ntoa(addr : in_addr) : *z8

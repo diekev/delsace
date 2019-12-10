@@ -51,7 +51,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
 
 	dls::chaine m_racine_kuri{};
 
-	DonneesModule *m_module;
+	Fichier *m_fichier;
 
 	dls::chrono::metre_seconde m_chrono_analyse{};
 
@@ -62,7 +62,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
 public:
 	analyseuse_grammaire(
 			ContexteGenerationCode &contexte,
-			DonneesModule *module,
+			Fichier *fichier,
 			dls::chaine const &racine_kuri);
 
 	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par

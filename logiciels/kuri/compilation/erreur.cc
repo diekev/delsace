@@ -45,17 +45,17 @@ void lance_erreur(
 		const DonneesMorceau &morceau,
 		type_erreur type)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
 	auto const identifiant = morceau.identifiant;
 	auto const &chaine = morceau.chaine;
 
-	auto ligne_courante = module->tampon[ligne];
+	auto ligne_courante = fichier->tampon[ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
@@ -76,18 +76,18 @@ void lance_erreur_plage(
 		const DonneesMorceau &dernier_morceau,
 		type_erreur type)
 {
-	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
-	auto pos = trouve_position(premier_morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(premier_morceau.fichier));
+	auto pos = trouve_position(premier_morceau, fichier);
 	auto const ligne = pos.ligne;
 	auto const pos_premier = pos.pos;
 
-	auto module_dernier = contexte.module(static_cast<size_t>(dernier_morceau.module));
-	auto const pos_dernier = trouve_position(premier_morceau, module_dernier).pos;
+	auto fichier_dernier = contexte.fichier(static_cast<size_t>(dernier_morceau.fichier));
+	auto const pos_dernier = trouve_position(premier_morceau, fichier_dernier).pos;
 
-	auto ligne_courante = module->tampon[ligne];
+	auto ligne_courante = fichier->tampon[ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << ligne + 1 << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
@@ -107,15 +107,15 @@ void lance_erreur_plage(
 		const DonneesMorceau &morceau_enfant,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
 	ss << ligne;
 
@@ -146,15 +146,15 @@ void lance_erreur_plage(
 		const DonneesMorceau &morceau_enfant,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << "Dans l'expression de '" << morceau.chaine << "':\n";
 	ss << ligne;
 
@@ -184,14 +184,14 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -212,14 +212,14 @@ void lance_erreur_type_operation(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne + 1 << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -240,16 +240,16 @@ void lance_erreur_fonction_inconnue(
 		dls::tableau<DonneesCandidate> const &candidates)
 {
 	auto const &morceau = b->morceau;
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << pos_mot << '\n';
+	ss << "Erreur : " << fichier->chemin << ':' << pos_mot << '\n';
 	ss << "\nDans l'appel de la fonction '" << b->morceau.chaine << "'\n";
 	ss << ligne;
 
@@ -260,7 +260,7 @@ void lance_erreur_fonction_inconnue(
 
 	if (candidates.est_vide()) {
 		ss << "\nFonction inconnue : aucune candidate trouvée\n";
-		ss << "Vérifiez que la fonction existe bel et bien dans un module importé\n";
+		ss << "Vérifiez que la fonction existe bel et bien dans un fichier importé\n";
 
 		throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
 	}
@@ -277,12 +277,12 @@ void lance_erreur_fonction_inconnue(
 			auto noeud_decl = df->noeud_decl;
 
 			auto const &morceau_df = noeud_decl->morceau;
-			auto module_df = contexte.module(static_cast<size_t>(morceau_df.module));
-			auto pos_df = trouve_position(morceau_df, module_df);
+			auto fichier_df = contexte.fichier(static_cast<size_t>(morceau_df.fichier));
+			auto pos_df = trouve_position(morceau_df, fichier_df);
 			auto const numero_ligne_df = pos_df.ligne;
 
 			ss << ' ' << noeud_decl->chaine()
-			   << " (trouvée à " << module_df->chemin << ':' << numero_ligne_df + 1 << ")\n";
+			   << " (trouvée à " << fichier_df->chemin << ':' << numero_ligne_df + 1 << ")\n";
 		}
 		else {
 			ss << '\n';
@@ -358,16 +358,16 @@ void lance_erreur_fonction_nulctx(
 			noeud::base *decl_appel)
 {
 	auto const &morceau = appl_fonc->morceau;
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne << '\n';
 	ss << "\nDans l'appel de la fonction « " << appl_fonc->morceau.chaine << " »\n";
 	ss << ligne;
 
@@ -382,16 +382,16 @@ void lance_erreur_fonction_nulctx(
 	   << " qui a été déclarée sans contexte via #!nulctx.\n";
 
 	ss << "\n« " << decl_fonc->chaine() << " » est déclarée ici :\n";
-	module = contexte.module(static_cast<size_t>(decl_fonc->morceau.module));
-	auto pos_decl = trouve_position(decl_fonc->morceau, module);
-	ss << module->chemin << ':' << pos_decl.ligne << '\n' << '\n';
-	ss << module->tampon[pos_decl.ligne];
+	fichier = contexte.fichier(static_cast<size_t>(decl_fonc->morceau.fichier));
+	auto pos_decl = trouve_position(decl_fonc->morceau, fichier);
+	ss << fichier->chemin << ':' << pos_decl.ligne << '\n' << '\n';
+	ss << fichier->tampon[pos_decl.ligne];
 
 	ss << "\n« " << appl_fonc->chaine() << " » est déclarée ici :\n";
-	module = contexte.module(static_cast<size_t>(decl_appel->morceau.module));
-	auto pos_appel = trouve_position(decl_appel->morceau, module);
-	ss << module->chemin << ':' << pos_appel.ligne << '\n' << '\n';
-	ss << module->tampon[pos_appel.ligne];
+	fichier = contexte.fichier(static_cast<size_t>(decl_appel->morceau.fichier));
+	auto pos_appel = trouve_position(decl_appel->morceau, fichier);
+	ss << fichier->chemin << ':' << pos_appel.ligne << '\n' << '\n';
+	ss << fichier->tampon[pos_appel.ligne];
 
 	ss << "\n----------------------------------------------------------------\n";
 
@@ -406,16 +406,16 @@ void lance_erreur_acces_hors_limites(
 			long index_acces)
 {
 	auto const &morceau = b->morceau;
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const numero_ligne = pos.ligne;
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[numero_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne << '\n';
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);

@@ -760,7 +760,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			using dls::outils::possede_drapeau;
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
 			auto nom_fonction = b->morceau.chaine;
 			auto &vdf = module->donnees_fonction(nom_fonction);
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
@@ -1014,7 +1014,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						nom_fonction,
 						*noms_arguments,
 						b->enfants,
-						static_cast<size_t>(b->morceau.module),
+						static_cast<size_t>(b->morceau.fichier),
 						static_cast<size_t>(b->module_appel));
 
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
@@ -1220,7 +1220,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->aide_generation_code = GENERE_CODE_ACCES_VAR;
 
 			/* Vérifie si c'est une fonction. */
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
 
 			/* À FAIRE : trouve la fonction selon le type */
 			if (module->fonction_existe(b->morceau.chaine)) {
@@ -1271,9 +1271,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto const nom_symbole = enfant1->chaine();
 
 			if (enfant1->type == type_noeud::VARIABLE) {
-				auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+				auto fichier = contexte.fichier(static_cast<size_t>(b->morceau.fichier));
 
-				if (module->importe_module(nom_symbole)) {
+				if (fichier->importe_module(nom_symbole)) {
 					auto module_importe = contexte.module(nom_symbole);
 
 					if (module_importe == nullptr) {

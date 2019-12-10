@@ -59,6 +59,7 @@ struct base;
 }
 
 struct DonneesModule;
+struct Fichier;
 
 struct Metriques {
 	size_t nombre_modules = 0ul;
@@ -136,6 +137,7 @@ struct ContexteGenerationCode {
 	assembleuse_arbre *assembleuse = nullptr;
 
 	dls::tableau<DonneesModule *> modules{};
+	dls::tableau<Fichier *> fichiers{};
 
 	MagasinDonneesType magasin_types{};
 
@@ -167,8 +169,8 @@ struct ContexteGenerationCode {
 
 	/**
 	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
-	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
-	 * d'un module avec un nom similaire pour l'instant.
+	 * module ainsi créé. Si un module avec le même chemin existe, il est
+	 * retourné sans qu'un nouveau module ne soit créé.
 	 */
 	DonneesModule *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
 
@@ -189,6 +191,33 @@ struct ContexteGenerationCode {
 	 * de module de ce contexte.
 	 */
 	bool module_existe(const dls::vue_chaine_compacte &nom) const;
+
+	/* ********************************************************************** */
+
+	/**
+	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
+	 * fichier ainsi créé. Aucune vérification n'est faite quant à la présence
+	 * d'un fichier avec un nom similaire pour l'instant.
+	 */
+	Fichier *cree_fichier(dls::chaine const &nom, dls::chaine const &chemin);
+
+	/**
+	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
+	 * en dehors de portée, le programme crashera.
+	 */
+	Fichier *fichier(size_t index) const;
+
+	/**
+	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+	 * fichier n'a ce nom, retourne nullptr.
+	 */
+	Fichier *fichier(const dls::vue_chaine_compacte &nom) const;
+
+	/**
+	 * Retourne vrai si le fichier dont le nom est spécifié existe dans la liste
+	 * de fichier de ce contexte.
+	 */
+	bool fichier_existe(const dls::vue_chaine_compacte &nom) const;
 
 	/* ********************************************************************** */
 

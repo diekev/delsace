@@ -34,6 +34,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("bool"), id_morceau::BOOL },
 	dls::paire{ dls::vue_chaine_compacte("boucle"), id_morceau::BOUCLE },
 	dls::paire{ dls::vue_chaine_compacte("chaine"), id_morceau::CHAINE },
+	dls::paire{ dls::vue_chaine_compacte("charge"), id_morceau::CHARGE },
 	dls::paire{ dls::vue_chaine_compacte("continue"), id_morceau::CONTINUE },
 	dls::paire{ dls::vue_chaine_compacte("corout"), id_morceau::COROUT },
 	dls::paire{ dls::vue_chaine_compacte("dans"), id_morceau::DANS },
@@ -255,6 +256,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::BOUCLE";
 		case id_morceau::CHAINE:
 			return "id_morceau::CHAINE";
+		case id_morceau::CHARGE:
+			return "id_morceau::CHARGE";
 		case id_morceau::CONTINUE:
 			return "id_morceau::CONTINUE";
 		case id_morceau::COROUT:

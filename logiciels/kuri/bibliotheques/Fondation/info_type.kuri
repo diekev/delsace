@@ -1,6 +1,6 @@
 # Bibliothèque d'introspection.
 
-importe "chaine"
+charge "chaine"
 
 énum id_info : z32 {
     ENTIER    = 0,
@@ -78,7 +78,7 @@ fonc possède_membre(arg : eini, nom : chaine) : bool
 	}
 
 	soit info_arg = transtype(info : *InfoTypeStructure)
-    
+
 	soit membres = membres de info_arg
 
     pour membre dans membres {

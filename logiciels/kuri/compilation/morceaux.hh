@@ -82,6 +82,7 @@ enum class id_morceau : unsigned int {
 	BOOL,
 	BOUCLE,
 	CHAINE,
+	CHARGE,
 	CONTINUE,
 	COROUT,
 	DANS,
@@ -183,7 +184,7 @@ struct DonneesMorceau {
 	static constexpr type INCONNU = id_morceau::INCONNU;
 	dls::vue_chaine_compacte chaine;
 	id_morceau identifiant;
-	int module = 0;
+	int fichier = 0;
 };
 
 const char *chaine_identifiant(id_morceau id);

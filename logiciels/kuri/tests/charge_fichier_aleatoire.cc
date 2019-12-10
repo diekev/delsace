@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 #if 1
 	try {
 		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("", "");
+		auto module = contexte.cree_fichier("", "");
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
 		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
 		auto decoupeuse = decoupeuse_texte(module);

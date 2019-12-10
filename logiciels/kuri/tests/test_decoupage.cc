@@ -146,14 +146,14 @@ decoupeuse_texte decoupeuse(str, str + len);
 		{ ";", id_morceau::POINT_VIRGULE }
 	};
 
-	auto module = DonneesModule{};
-	module.tampon = lng::tampon_source(texte);
+	auto fichier = Fichier{};
+	fichier.tampon = lng::tampon_source(texte);
 
-	decoupeuse_texte decoupeuse(&module);
+	decoupeuse_texte decoupeuse(&fichier);
 	decoupeuse.genere_morceaux();
 
-	return verifie_morceaux(module.morceaux.debut(),
-							module.morceaux.fin(),
+	return verifie_morceaux(fichier.morceaux.debut(),
+							fichier.morceaux.fin(),
 							std::begin(donnees_morceaux),
 							std::end(donnees_morceaux));
 }

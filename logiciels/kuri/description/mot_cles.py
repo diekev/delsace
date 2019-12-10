@@ -61,6 +61,7 @@ mot_cles = [
 	u'retiens',
 	u'répète',
 	u'union',
+	u'charge',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -169,7 +170,7 @@ def construit_structures():
 	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
 	structures += u'\tid_morceau identifiant;\n'
-	structures += u'\tint module = 0;\n'
+	structures += u'\tint fichier = 0;\n'
 	structures += u'};\n'
 
 	return structures

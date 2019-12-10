@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
 			chemin = std::filesystem::absolute(chemin);
 		}
 
-		auto nom_module = chemin.stem();
+		auto nom_fichier = chemin.stem();
 
 		auto contexte_generation = ContexteGenerationCode{};
 		contexte_generation.bit32 = ops.bit32;
@@ -296,14 +296,16 @@ int main(int argc, char *argv[])
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
-		/* Charge d'abord le module d'informations de type */
-		charge_module(os, chemin_racine_kuri, "info_type", contexte_generation, {}, false);
+		/* Charge d'abord le fichier d'informations de type */
+		auto module = contexte_generation.cree_module("Fondation", dls::chaine(chemin_racine_kuri) + "/modules/Fondation/");
+		charge_fichier(os, module, chemin_racine_kuri, "info_type", contexte_generation, {});
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
-		charge_module(os, chemin_racine_kuri, nom_module.c_str(), contexte_generation, {}, true);
+		module = contexte_generation.cree_module("", dossier.c_str());
+		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);

@@ -1,6 +1,6 @@
 # Bibliothèque de manipulation d'uri.
 
-importe "chaine"
+importe Fondation
 
 # URI = schéma:[//autorité]chemin[?requête][#fragment]
 # autorité = [info_usager@]hôte[:port]

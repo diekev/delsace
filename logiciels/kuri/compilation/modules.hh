@@ -78,26 +78,42 @@ struct DonneesFonction {
 	iteratrice_arg trouve(dls::vue_chaine_compacte const &nom);
 };
 
-struct DonneesModule {
+struct DonneesModule;
+
+struct Fichier {
+	double temps_analyse = 0.0;
+	double temps_chargement = 0.0;
+	double temps_decoupage = 0.0;
+	double temps_tampon = 0.0;
+
 	lng::tampon_source tampon{""};
+
 	dls::tableau<DonneesMorceau> morceaux{};
+
 	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
+
+	DonneesModule *module = nullptr;
+
+	size_t id = 0ul;
+	dls::chaine nom{""};
+	dls::chaine chemin{""};
+
+	/**
+	 * Retourne vrai si le fichier importe un module du nom spécifié.
+	 */
+	bool importe_module(dls::vue_chaine_compacte const &nom_module) const;
+};
+
+struct DonneesModule {
+	dls::tableau<Fichier *> fichiers{};
 	dls::ensemble<dls::vue_chaine_compacte> fonctions_exportees{};
 	dls::dico_desordonne<dls::vue_chaine_compacte, dls::tableau<DonneesFonction>> fonctions{};
 	size_t id = 0ul;
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
-	double temps_chargement = 0.0;
-	double temps_analyse = 0.0;
-	double temps_tampon = 0.0;
-	double temps_decoupage = 0.0;
+	bool importe = false;
 
 	DonneesModule() = default;
-
-	/**
-	 * Retourne vrai si le module importe un module du nom spécifié.
-	 */
-	bool importe_module(dls::vue_chaine_compacte const &nom_module) const;
 
 	/**
 	 * Retourne vrai si le module possède une fonction du nom spécifié.
@@ -140,6 +156,13 @@ dls::chaine charge_fichier(
 		ContexteGenerationCode &contexte,
 		DonneesMorceau const &morceau);
 
+void charge_fichier(std::ostream &os,
+		DonneesModule *module,
+		dls::chaine const &racine_kuri,
+		dls::chaine const &nom,
+		ContexteGenerationCode &contexte,
+		DonneesMorceau const &morceau);
+
 /**
  * Charge le module dont le nom est spécifié.
  *
@@ -159,13 +182,12 @@ dls::chaine charge_fichier(
  *
  * Le paramètre est_racine ne doit être vrai que pour le module racine.
  */
-void charge_module(
+void importe_module(
 		std::ostream &os,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau,
-		bool est_racine = false);
+		DonneesMorceau const &morceau);
 
 /* ************************************************************************** */
 
@@ -207,8 +229,8 @@ ResultatRecherche cherche_donnees_fonction(
 		dls::vue_chaine_compacte const &nom,
 		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
 		dls::liste<noeud::base *> const &exprs,
-		size_t index_module,
-		size_t index_module_appel);
+		size_t index_fichier,
+		size_t index_fichier_appel);
 
 
 struct PositionMorceau {
@@ -216,4 +238,4 @@ struct PositionMorceau {
 	long pos = 0;
 };
 
-PositionMorceau trouve_position(DonneesMorceau const &morceau, DonneesModule *module);
+PositionMorceau trouve_position(DonneesMorceau const &morceau, Fichier *fichier);
