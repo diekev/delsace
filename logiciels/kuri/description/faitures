@@ -52,9 +52,8 @@ Faitures
 ---- entier + caractere    -> caractère  # À FAIRE
 ---- chaîne + caractere    -> chaîne     # À FAIRE
 ---- caractere + chaîne    -> chaîne     # À FAIRE
-- fonctions gabarit/génériques avec contrats/concepts
-- structures gabarit/génériques
-- type nombre réel sur 16-bit
+- fonctions et structures gabarit/génériques avec contrats/concepts
+- type nombre réel sur 16-bit (en cours)
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries (coulisse LLVM)
 - préfixe les structures et les énumérations du nom du module
@@ -62,14 +61,17 @@ Faitures
 - coroutines en dehours de boucles
 - variables employées
 - évite l'initialisation via "---"
+- amélioration de la validation et la génération de code pour les initialisations des structures
 - surcharge d'opérateur
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
 - suppression ':'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
-- ananlyseuse_grammaire -> suppression des vérifications redondantes
-- opérateur ternaire (x = si cond { y } sinon { z })
+- analyseuse_grammaire -> suppression des vérifications redondantes
 - unions -> info type, tiens trace de l'état à chaque modification, décalage au sein de la structure
 - ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
+- amélioration du système de vérification des opérateurs
+- surcharge d'opérateurs
+- surcharge de transtypage/transtypage personnalisé entre type
 
 
 À faire (tests)
