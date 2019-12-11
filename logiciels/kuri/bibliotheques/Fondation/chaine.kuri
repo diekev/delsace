@@ -106,10 +106,7 @@ fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, ein
 		taille_chaine += 1
 
         si c == '\n' {
-			dyn ligne : chaine
-			taille de ligne = taille_chaine
-			pointeur de ligne = @texte[début_chaine]
-
+			ligne = construit_chaine(@texte[début_chaine], taille_chaine)
 			rappel(ligne, donnees)
 
 			début_chaine = transtype(i + 1 : z64)
@@ -119,10 +116,7 @@ fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, ein
 
     # La dernière ligne n'a pas de retour...
 	si taille_chaine != 0 {
-		dyn ligne : chaine
-		taille de ligne = taille_chaine
-		pointeur de ligne = @texte[début_chaine]
-
+		ligne = construit_chaine(@texte[début_chaine], taille_chaine)
 		rappel(ligne, donnees)
 	}
 }
@@ -154,10 +148,7 @@ corout découpe(texte : chaine, sep : z8) : chaine
 
     pour c, i dans texte {
 	    si c == sep {
-			pointeur de mot = @texte[début_mot]
-			taille de mot = taille_mot
-
-			retiens mot
+			retiens construit_chaine(@texte[début_mot], taille_mot)
 
 			début_mot = transtype(i + 1 : z64)
 			taille_mot = 0
@@ -168,10 +159,7 @@ corout découpe(texte : chaine, sep : z8) : chaine
 	}
 
     si taille_mot != 0 {
-		pointeur de mot = @texte[début_mot]
-		taille de mot = taille_mot
-
-		retiens mot
+		retiens construit_chaine(@texte[début_mot], taille_mot)
 	}
 }
 
