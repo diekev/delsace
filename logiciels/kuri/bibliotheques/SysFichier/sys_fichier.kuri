@@ -144,8 +144,6 @@ fonc contenu_fichier_binaire(chemin : &CheminFichier) : []octet
 {
     dyn contenu : []octet
 
-    dyn ret : chaine
-
 	soit fd = ouvre_fichier(chemin)
 	diffère { ferme_fichier(fd) }
 
@@ -165,13 +163,13 @@ fonc contenu_fichier_binaire(chemin : &CheminFichier) : []octet
 
 		si lu == -1 {
 			# À FAIRE : erreur
-			déloge ret
+			déloge contenu
 			arrête
 		}
 
-		soit taille_courante = taille de ret
+		soit taille_courante = contenu.taille
 
-		reloge contenu : [taille de ret + lu]octet
+		reloge contenu : [taille_courante + lu]octet
 
 		dyn src = @tampon[0]
 		dyn dst = @contenu[taille_courante]
