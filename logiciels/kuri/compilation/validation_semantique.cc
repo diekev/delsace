@@ -645,7 +645,7 @@ static void valide_acces_membre(
 		}
 
 		if (membre->chaine() == "taille") {
-			b->index_type = contexte.magasin_types[TYPE_N64];
+			b->index_type = contexte.magasin_types[TYPE_Z64];
 			return;
 		}
 

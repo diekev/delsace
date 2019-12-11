@@ -187,8 +187,7 @@ fonc contenu_fichier_texte(chemin : &CheminFichier) : chaine
 
     nonsûr {
         chn.pointeur = transtype(contenu.pointeur : *z8)
-        # À FAIRE : cohérence des types de taille
-        chn.taille = transtype(contenu.taille : z64)
+        chn.taille = contenu.taille
     }
 
     retourne chn

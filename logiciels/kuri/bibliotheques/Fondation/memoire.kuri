@@ -118,7 +118,7 @@
 		dyn source = @a[debut]
 		dyn destination = @tmp[0]
 
-		dyn taille_tmp = transtype(taille - debut : z64)
+		dyn taille_tmp = taille - debut
 
         si taille_tmp > 128 {
 		    taille_tmp = 128
@@ -144,7 +144,7 @@
 {
 	dyn t = taille
 	si taille de destination < taille {
-		t = transtype(taille de destination : z64)
+		t = taille de destination
 	}
 
     pour o dans destination {
@@ -156,7 +156,7 @@
 {
 	dyn t = taille
 	si taille de source < taille {
-		t = transtype(taille de source : z64)
+		t = taille de source
 	}
 
 	dyn ret : []octet
@@ -166,7 +166,7 @@
     pour i dans transtype(0 : z64)...t - 1 {
 	    si source[i] == valeur {
 			pointeur de ret = @source[i]
-			taille de ret = transtype(t - i : n64)
+			taille de ret = t - i
 			arrête
 		}
 	}

@@ -475,7 +475,7 @@ void MagasinDonneesType::declare_structures_C(
 
 			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
 
-			os << " *pointeur;\n\tint taille;\n} Tableau_";
+			os << " *pointeur;\n\tlong taille;\n} Tableau_";
 
 			converti_type_C(contexte, "", donnees.dereference(), os, true);
 
