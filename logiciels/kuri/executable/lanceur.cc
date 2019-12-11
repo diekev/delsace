@@ -358,6 +358,7 @@ int main(int argc, char *argv[])
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
+	auto est_errone = false;
 
 	auto metriques = Metriques{};
 
@@ -519,7 +520,9 @@ int main(int argc, char *argv[])
 
 			if (err != 0) {
 				std::cerr << "Ne peut pas créer l'executable !\n";
+				est_errone = true;
 			}
+
 			temps_executable = debut_executable.temps();
 		}
 
@@ -538,11 +541,14 @@ int main(int argc, char *argv[])
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
+		est_errone = true;
 	}
 
 	metriques.temps_nettoyage = debut_nettoyage.temps();
 
-	imprime_stats(os, metriques, ops, debut_compilation);
+	if (!est_errone) {
+		imprime_stats(os, metriques, ops, debut_compilation);
+	}
 
 #ifdef AVEC_LLVM
 	issitialise_llvm();
