@@ -46,27 +46,6 @@ soit _SSL_ERROR_WANT_ACCEPT = 8
 
 fonc externe ERR_print_errors_cb(cb : fonc(*z8,n64,*rien)z32, u : *rien) : rien
 
-fonc port_pour_uri(uri_ : &URI) : n16
-{
-    si uri_.port.taille == 0 {
-        si compare_chaines(uri_.schéma, "http") {
-            retourne 80
-        }
-
-        si compare_chaines(uri_.schéma, "https") {
-            retourne 443
-        }
-    }
-
-    dyn résultat : n16 = 0
-
-    pour c dans uri_.port {
-        résultat = résultat * 10 + transtype(c - '0' : n16)
-    }
-
-    retourne résultat
-}
-
 fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) : rien
 {
 	imprime(message)

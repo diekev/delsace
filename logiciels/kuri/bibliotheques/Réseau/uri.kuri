@@ -144,3 +144,18 @@ fonc somme_controle(uri : &URI) : n64
 
     retourne (transtype(somme2 : n64) << 32) | transtype(somme1 : n64);
 }
+
+fonc port_pour_uri(uri : &URI) : n16
+{
+    si uri.port.taille == 0 {
+        si compare_chaines(uri.schéma, "http") {
+            retourne 80
+        }
+
+        si compare_chaines(uri.schéma, "https") {
+            retourne 443
+        }
+    }
+
+    retourne transtype(extrait_nombre_entier(uri.port) : n16)
+}
