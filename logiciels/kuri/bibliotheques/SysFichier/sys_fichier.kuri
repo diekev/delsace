@@ -186,12 +186,9 @@ fonc contenu_fichier_texte(chemin : &CheminFichier) : chaine
     dyn chn : chaine;
 
     nonsûr {
-        # À FAIRE : prépasse pour les accès membres
-        ptr = contenu.pointeur
-        chn.pointeur = transtype(ptr : *z8)
+        chn.pointeur = transtype(contenu.pointeur : *z8)
         # À FAIRE : cohérence des types de taille
-        taille = contenu.taille
-        chn.taille = transtype(taille : z64)
+        chn.taille = transtype(contenu.taille : z64)
     }
 
     retourne chn
