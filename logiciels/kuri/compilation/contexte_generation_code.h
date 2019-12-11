@@ -65,14 +65,22 @@ struct Metriques {
 	size_t nombre_modules = 0ul;
 	size_t nombre_lignes = 0ul;
 	size_t nombre_morceaux = 0ul;
+	size_t nombre_noeuds = 0ul;
 	size_t memoire_tampons = 0ul;
 	size_t memoire_morceaux = 0ul;
+	size_t memoire_arbre = 0ul;
+	size_t memoire_contexte = 0ul;
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;
 	double temps_decoupage = 0.0;
 	double temps_validation = 0.0;
 	double temps_generation = 0.0;
+	double temps_fichier_objet = 0.0;
+	double temps_executable = 0.0;
+	double temps_nettoyage = 0.0;
+	double temps_coulisse = 0.0;
+	double temps_scene = 0.0;
 };
 
 enum {

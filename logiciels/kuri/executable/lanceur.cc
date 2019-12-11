@@ -234,6 +234,93 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 }
 #endif
 
+static void imprime_stats(
+		std::ostream &os,
+		Metriques const &metriques,
+		OptionsCompilation const &ops,
+		dls::chrono::compte_seconde debut_compilation)
+{
+	auto const temps_total = debut_compilation.temps();
+
+	auto const temps_scene = metriques.temps_tampon
+							 + metriques.temps_decoupage
+							 + metriques.temps_analyse
+							 + metriques.temps_chargement
+							 + metriques.temps_validation;
+
+	auto const temps_coulisse = metriques.temps_generation
+								+ metriques.temps_fichier_objet
+								+ metriques.temps_executable;
+
+	auto const temps_aggrege = temps_scene + temps_coulisse + metriques.temps_nettoyage;
+
+	auto calc_pourcentage = [&](const double &x, const double &total)
+	{
+		return pourcentage(x * 100.0 / total);
+	};
+
+	auto const mem_totale = metriques.memoire_tampons
+							+ metriques.memoire_morceaux
+							+ metriques.memoire_arbre
+							+ metriques.memoire_contexte;
+
+	os << "------------------------------------------------------------------\n";
+	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
+	os << "Temps aggrégé                : " << temps_seconde(temps_aggrege) << '\n';
+	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
+	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
+	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
+	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
+
+	os << '\n';
+	os << "Métriques :\n";
+	os << "\tNombre morceaux : " << metriques.nombre_morceaux << '\n';
+	os << "\tNombre noeuds   : " << metriques.nombre_noeuds << '\n';
+
+	os << '\n';
+	os << "Mémoire : " << taille_octet(mem_totale) << " (" << taille_octet(static_cast<size_t>(memoire::consommee())) << ')' << '\n';
+	os << "\tTampon   : " << taille_octet(metriques.memoire_tampons) << '\n';
+	os << "\tMorceaux : " << taille_octet(metriques.memoire_morceaux) << '\n';
+	os << "\tArbre    : " << taille_octet(metriques.memoire_arbre) << '\n';
+	os << "\tContexte : " << taille_octet(metriques.memoire_contexte) << '\n';
+
+	os << '\n';
+	os << "Temps scène : " << temps_seconde(metriques.temps_scene)
+	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
+	os << '\t' << "Temps chargement : " << temps_seconde(metriques.temps_chargement)
+	   << " (" << calc_pourcentage(metriques.temps_chargement, temps_scene) << ")\n";
+	os << '\t' << "Temps tampon     : " << temps_seconde(metriques.temps_tampon)
+	   << " (" << calc_pourcentage(metriques.temps_tampon, temps_scene) << ")\n";
+	os << '\t' << "Temps découpage  : " << temps_seconde(metriques.temps_decoupage)
+	   << " (" << calc_pourcentage(metriques.temps_decoupage, temps_scene) << ") ("
+	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_tampons) / metriques.temps_decoupage)) << ")\n";
+	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
+	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
+	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_morceaux) / metriques.temps_analyse)) << ")\n";
+	os << '\t' << "Temps validation : " << temps_seconde(metriques.temps_validation)
+	   << " (" << calc_pourcentage(metriques.temps_validation, temps_scene) << ")\n";
+
+	os << '\n';
+	os << "Temps coulisse : " << temps_seconde(metriques.temps_coulisse)
+	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
+	os << '\t' << "Temps génération code : " << temps_seconde(metriques.temps_generation)
+	   << " (" << calc_pourcentage(metriques.temps_generation, temps_coulisse) << ")\n";
+	os << '\t' << "Temps fichier objet   : " << temps_seconde(metriques.temps_fichier_objet)
+	   << " (" << calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse) << ")\n";
+	os << '\t' << "Temps exécutable      : " << temps_seconde(metriques.temps_executable)
+	   << " (" << calc_pourcentage(metriques.temps_executable, temps_coulisse) << ")\n";
+
+	os << '\n';
+	os << "Temps Nettoyage : " << temps_seconde(metriques.temps_nettoyage)
+	   << " (" << calc_pourcentage(metriques.temps_nettoyage, temps_total) << ")\n";
+
+	if (ops.imprime_taille_memoire_objet) {
+		imprime_taille_memoire_noeud(os);
+	}
+
+	os << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -269,12 +356,8 @@ int main(int argc, char *argv[])
 	auto resultat = 0;
 	auto debut_compilation   = dls::chrono::compte_seconde();
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
-	auto temps_nettoyage     = 0.0;
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
-	auto mem_arbre           = 0ul;
-	auto mem_contexte        = 0ul;
-	auto nombre_noeuds       = 0ul;
 
 	auto metriques = Metriques{};
 
@@ -376,8 +459,6 @@ int main(int argc, char *argv[])
 			of.open("/tmp/compilation_kuri.c");
 
 			assembleuse.genere_code_C(contexte_generation, of, chemin_racine_kuri);
-			mem_arbre = assembleuse.memoire_utilisee();
-			nombre_noeuds = assembleuse.nombre_noeuds();
 
 			of.close();
 
@@ -446,7 +527,11 @@ int main(int argc, char *argv[])
 		std::filesystem::current_path(dossier_origine);
 
 		metriques = contexte_generation.rassemble_metriques();
-		mem_contexte = contexte_generation.memoire_utilisee();
+		metriques.memoire_contexte = contexte_generation.memoire_utilisee();
+		metriques.memoire_arbre = assembleuse.memoire_utilisee();
+		metriques.nombre_noeuds = assembleuse.nombre_noeuds();
+		metriques.temps_executable = temps_executable;
+		metriques.temps_fichier_objet = temps_fichier_objet;
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
@@ -455,86 +540,9 @@ int main(int argc, char *argv[])
 		std::cerr << erreur_frappe.message() << '\n';
 	}
 
-	temps_nettoyage = debut_nettoyage.temps();
-	auto const temps_total = debut_compilation.temps();
+	metriques.temps_nettoyage = debut_nettoyage.temps();
 
-	auto const temps_scene = metriques.temps_tampon
-							 + metriques.temps_decoupage
-							 + metriques.temps_analyse
-							 + metriques.temps_chargement
-							 + metriques.temps_validation;
-
-	auto const temps_coulisse = metriques.temps_generation
-								+ temps_fichier_objet
-								+ temps_executable;
-
-	auto const temps_aggrege = temps_scene + temps_coulisse + temps_nettoyage;
-
-	auto calc_pourcentage = [&](const double &x, const double &total)
-	{
-		return pourcentage(x * 100.0 / total);
-	};
-
-	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_morceaux
-							+ mem_arbre
-							+ mem_contexte;
-
-	os << "------------------------------------------------------------------\n";
-	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
-	os << "Temps aggrégé                : " << temps_seconde(temps_aggrege) << '\n';
-	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
-	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
-	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
-
-	os << '\n';
-	os << "Métriques :\n";
-	os << "\tNombre morceaux : " << metriques.nombre_morceaux << '\n';
-	os << "\tNombre noeuds   : " << nombre_noeuds << '\n';
-
-	os << '\n';
-	os << "Mémoire : " << taille_octet(mem_totale) << " (" << taille_octet(static_cast<size_t>(memoire::consommee())) << ')' << '\n';
-	os << "\tTampon   : " << taille_octet(metriques.memoire_tampons) << '\n';
-	os << "\tMorceaux : " << taille_octet(metriques.memoire_morceaux) << '\n';
-	os << "\tArbre    : " << taille_octet(mem_arbre) << '\n';
-	os << "\tContexte : " << taille_octet(mem_contexte) << '\n';
-
-	os << '\n';
-	os << "Temps scène : " << temps_seconde(temps_scene)
-	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
-	os << '\t' << "Temps chargement : " << temps_seconde(metriques.temps_chargement)
-	   << " (" << calc_pourcentage(metriques.temps_chargement, temps_scene) << ")\n";
-	os << '\t' << "Temps tampon     : " << temps_seconde(metriques.temps_tampon)
-	   << " (" << calc_pourcentage(metriques.temps_tampon, temps_scene) << ")\n";
-	os << '\t' << "Temps découpage  : " << temps_seconde(metriques.temps_decoupage)
-	   << " (" << calc_pourcentage(metriques.temps_decoupage, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_tampons) / metriques.temps_decoupage)) << ")\n";
-	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
-	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_morceaux) / metriques.temps_analyse)) << ")\n";
-	os << '\t' << "Temps validation : " << temps_seconde(metriques.temps_validation)
-	   << " (" << calc_pourcentage(metriques.temps_validation, temps_scene) << ")\n";
-
-	os << '\n';
-	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
-	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
-	os << '\t' << "Temps génération code : " << temps_seconde(metriques.temps_generation)
-	   << " (" << calc_pourcentage(metriques.temps_generation, temps_coulisse) << ")\n";
-	os << '\t' << "Temps fichier objet   : " << temps_seconde(temps_fichier_objet)
-	   << " (" << calc_pourcentage(temps_fichier_objet, temps_coulisse) << ")\n";
-	os << '\t' << "Temps exécutable      : " << temps_seconde(temps_executable)
-	   << " (" << calc_pourcentage(temps_executable, temps_coulisse) << ")\n";
-
-	os << '\n';
-	os << "Temps Nettoyage : " << temps_seconde(temps_nettoyage)
-	   << " (" << calc_pourcentage(temps_nettoyage, temps_total) << ")\n";
-
-	if (ops.imprime_taille_memoire_objet) {
-		imprime_taille_memoire_noeud(os);
-	}
-
-	os << std::endl;
+	imprime_stats(os, metriques, ops, debut_compilation);
 
 #ifdef AVEC_LLVM
 	issitialise_llvm();
