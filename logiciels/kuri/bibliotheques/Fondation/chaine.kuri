@@ -187,31 +187,9 @@ fonc crée_constructrice_chaine() : ConstructriceChaine
     retourne constructrice
 }
 
-# À FAIRE : il y a un bug dans le compilateur quand on utilise
-# enchaine(...chaine) vis-à-vis de la conversion de l'argument variadic en un
-# tableau
-fonc enchaine2(chn1 : chaine, chn2 : chaine) : chaine
-{
-	dyn taille = taille de chn1 + taille de chn2
-
-	dyn res = loge chaine(taille)
-
-	pour v, idx dans chn1 {
-		res[idx] = v
-    }
-
-	dyn coureur = taille de chn1
-
-	pour v, idx dans chn2 {
-		res[coureur + idx] = v
-    }
-
-	retourne res
-}
-
 fonc pousse(dyn constructrice : &ConstructriceChaine, chn : chaine) : rien
 {
-    résultat = enchaine2(constructrice.résultat, chn)
+    résultat = enchaine(constructrice.résultat, chn)
     déloge constructrice.résultat
     constructrice.résultat = résultat
 }
