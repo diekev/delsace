@@ -1,0 +1,176 @@
+{
+    "si": {
+        "prefix": "si",
+        "body": [
+            "si ${1:expression} {",
+            "\t${2:pass}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction si"
+    },
+    "saufsi": {
+        "prefix": "saufsi",
+        "body": [
+            "saufsi ${1:expression} {",
+            "\t${2:pass}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction saufsi"
+    },
+    "si/sinon": {
+        "prefix": "si/sinon",
+        "body": [
+            "si ${1:expression} {",
+            "\t${2:pass}",
+            "}",
+            "sinon {",
+            "\t${3:pass}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction si avec sinon"
+    },
+    "saufsi/sinon": {
+        "prefix": "saufsi/sinon",
+        "body": [
+            "saufsi ${1:expression} {",
+            "\t${2:pass}",
+            "}",
+            "sinon {",
+            "\t${3:pass}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction saufsi avec sinon"
+    },
+    "sinon/si": {
+        "prefix": "sinon",
+        "body": [
+            "sinon si ${1:expression} {",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction sinon avec si"
+    },
+    "sinon/saufsi": {
+        "prefix": "sinon",
+        "body": [
+            "sinon saufsi ${1:expression} {",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction sinon avec saufsi"
+    },
+    "sinon": {
+        "prefix": "sinon",
+        "body": [
+            "sinon {",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction sinon"
+    },
+    "boucle": {
+        "prefix": "boucle",
+        "body": [
+            "boucle {",
+            "\t${1:continue}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction boucle"
+    },
+    "tantque": {
+        "prefix": "tantque",
+        "body": [
+            "tantque ${1:expression} {",
+            "\t${2:continue}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction tantque"
+    },
+    "répète": {
+        "prefix": "répète",
+        "body": [
+            "répète {",
+            "\t${2:continue}",
+            "} tantque ${1:expression}"
+        ],
+        "description": "Fragment de code pour une instruction répète/tantque"
+    },
+    "pour": {
+        "prefix": "pour",
+        "body": [
+            "pour ${1:nom} dans ${2:expression} {",
+            "\t${3:continue}",
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction pour"
+    },
+    "fonc": {
+        "prefix": "fonc",
+        "body": [
+            "fonc ${1:nom_fonction}(${2:parameter_list}) : ${3:type_retour}",
+            "{",
+            "\t${4:retourne}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition de fonction"
+    },
+    "corout": {
+        "prefix": "corout",
+        "body": [
+            "corout ${1:nom_fonction}(${2:parameter_list}) : ${3:type_retour}",
+            "{",
+            "\t${4:retiens}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition de coroutine"
+    },
+    "struct": {
+        "prefix": "struct",
+        "body": [
+            "struct ${1:nom_struct} {",
+            "\t${2:membre}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition de structure"
+    },
+    "énum": {
+        "prefix": "énum",
+        "body": [
+            "énum ${1:nom_énum} {",
+            "\t${2:membre}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition d'une énumération"
+    },
+    "union": {
+        "prefix": "union",
+        "body": [
+            "union ${1:nom_union} {",
+            "\t${2:membre}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition de structure"
+    },
+    "associe": {
+        "prefix": "associe",
+        "body": [
+            "associe ${1:expression} {",
+            "\t${2:test} {",
+            "\t\t${3:expression}"
+            "\t}"
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction associe"
+    },
+    "associe/sinon": {
+        "prefix": "associe/sinon",
+        "body": [
+            "associe ${1:expression} {",
+            "\t${2:test} {",
+            "\t\t${3:expression}"
+            "\t}"
+            "\tsinon {",
+            "\t\t${4:expression}"
+            "\t}"
+            "}"
+        ],
+        "description": "Fragment de code pour une instruction associe avec un bloc sinon"
+    }
+}

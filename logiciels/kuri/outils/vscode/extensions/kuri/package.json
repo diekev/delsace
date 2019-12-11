@@ -9,6 +9,12 @@
 		"name": "Kévin Dietrich"
 	},
     "contributes": {
+		"snippets": [
+			{
+				"language": "kuri",
+				"path": "./snippets/kuri.json"
+			}
+		],
         "languages": [{
             "id": "kuri",
             "aliases": ["Kuri", "kuri"],
