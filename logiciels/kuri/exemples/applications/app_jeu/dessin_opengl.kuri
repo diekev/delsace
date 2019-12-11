@@ -1,9 +1,9 @@
 #!inclus "math.h"
 #!bib "m"
 
-importe "structures"
-importe "glew"
-importe "flux"
+charge "glew"
+
+importe "Fondation"
 
 dyn VertexArrayID : n32 = 0
 dyn ProgramID : n32 = 0

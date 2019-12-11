@@ -1,12 +1,9 @@
-importe "evenements"
-importe "glfw"
-importe "glew"
-importe "structures"
-importe "flux"
-importe "chaine"
-importe "dessin_opengl"
-importe "chrono"
-importe "memoire"
+charge "evenements"
+charge "glfw"
+charge "glew"
+charge "dessin_opengl"
+
+importe Fondation
 
 # À FAIRE : rendu texte, chargement image
 

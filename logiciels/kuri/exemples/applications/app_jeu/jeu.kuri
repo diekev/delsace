@@ -1,5 +1,6 @@
-importe "application"
-importe "flux"
+charge "application"
+
+importe Fondation
 
 ################################################################################
 

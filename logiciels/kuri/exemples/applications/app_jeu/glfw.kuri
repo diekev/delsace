@@ -1,13 +1,13 @@
 # GLEW doit être importé avant car il inclut "glew.h" doit être inclus avant
 # "glfw3" à cause des macros d'OpenGL et autres définis dans les différents
 # fichiers d'entêtes devant être dans le bon ordre.
-importe "glew"
+charge "glew"
 
 #!inclus "GLFW/glfw3.h"
 
 #!bib "glfw"
 
-importe "evenements"
+charge "evenements"
 
 struct externe GLFWwindow
 
