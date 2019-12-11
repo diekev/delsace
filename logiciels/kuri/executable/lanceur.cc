@@ -509,7 +509,7 @@ int main(int argc, char *argv[])
 
 			commande += "-o /tmp/compilation_kuri.o";
 
-			os << "Exécution de la commade '" << commande << "'..." << std::endl;
+			os << "Exécution de la commande '" << commande << "'..." << std::endl;
 
 			auto err = system(commande.c_str());
 
@@ -530,7 +530,7 @@ int main(int argc, char *argv[])
 				commande += " -o ";
 				commande += ops.chemin_sortie;
 
-				os << "Exécution de la commade '" << commande << "'..." << std::endl;
+				os << "Exécution de la commande '" << commande << "'..." << std::endl;
 
 				err = system(commande.c_str());
 
