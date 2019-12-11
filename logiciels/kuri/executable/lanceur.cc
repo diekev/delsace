@@ -463,8 +463,8 @@ int main(int argc, char *argv[])
 
 			of.close();
 
-			auto debut_executable = dls::chrono::compte_seconde();
-			auto commande = dls::chaine("gcc /tmp/compilation_kuri.c ");
+			auto debut_fichier_objet = dls::chrono::compte_seconde();
+			auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
 
 			/* désactivation des erreurs concernant le manque de "const" quand
 			 * on passe des variables générés temporairement par la coulisse à
@@ -507,23 +507,40 @@ int main(int argc, char *argv[])
 				commande += "-m32 ";
 			}
 
-			for (auto const &bib : assembleuse.bibliotheques) {
-				commande += " -l" + dls::chaine(bib);
-			}
-
-			commande += " -o ";
-			commande += ops.chemin_sortie;
+			commande += "-o /tmp/compilation_kuri.o";
 
 			os << "Exécution de la commade '" << commande << "'..." << std::endl;
 
 			auto err = system(commande.c_str());
 
+			temps_fichier_objet = debut_fichier_objet.temps();
+
 			if (err != 0) {
-				std::cerr << "Ne peut pas créer l'executable !\n";
+				std::cerr << "Ne peut pas créer le fichier objet !\n";
 				est_errone = true;
 			}
+			else {
+				auto debut_executable = dls::chrono::compte_seconde();
+				commande = dls::chaine("gcc /tmp/compilation_kuri.o ");
 
-			temps_executable = debut_executable.temps();
+				for (auto const &bib : assembleuse.bibliotheques) {
+					commande += " -l" + dls::chaine(bib);
+				}
+
+				commande += " -o ";
+				commande += ops.chemin_sortie;
+
+				os << "Exécution de la commade '" << commande << "'..." << std::endl;
+
+				err = system(commande.c_str());
+
+				if (err != 0) {
+					std::cerr << "Ne peut pas créer l'exécutable !\n";
+					est_errone = true;
+				}
+
+				temps_executable = debut_executable.temps();
+			}
 		}
 
 		/* restore le dossier d'origine */
