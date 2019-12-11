@@ -285,7 +285,7 @@ static void imprime_stats(
 	os << "\tContexte : " << taille_octet(metriques.memoire_contexte) << '\n';
 
 	os << '\n';
-	os << "Temps scène : " << temps_seconde(metriques.temps_scene)
+	os << "Temps scène : " << temps_seconde(temps_scene)
 	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
 	os << '\t' << "Temps chargement : " << temps_seconde(metriques.temps_chargement)
 	   << " (" << calc_pourcentage(metriques.temps_chargement, temps_scene) << ")\n";
@@ -301,7 +301,7 @@ static void imprime_stats(
 	   << " (" << calc_pourcentage(metriques.temps_validation, temps_scene) << ")\n";
 
 	os << '\n';
-	os << "Temps coulisse : " << temps_seconde(metriques.temps_coulisse)
+	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
 	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
 	os << '\t' << "Temps génération code : " << temps_seconde(metriques.temps_generation)
 	   << " (" << calc_pourcentage(metriques.temps_generation, temps_coulisse) << ")\n";
