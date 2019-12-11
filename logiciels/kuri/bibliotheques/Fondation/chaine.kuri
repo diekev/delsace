@@ -175,6 +175,19 @@ corout découpe(texte : chaine, sep : z8) : chaine
 	}
 }
 
+# Converti une chaine, par exemple "5005", en un nombre entier
+# La fonction présume que la chaine est entièrement composée de caractères numériques
+fonc extrait_nombre_entier(chn : chaine) : z64
+{
+    dyn résultat : z64 = 0
+
+	pour c dans chn {
+        résultat = résultat * 10 + transtype(c - '0' : z64)
+    }
+
+	retourne résultat
+}
+
 ################################################################################
 
 struct ConstructriceChaine {
