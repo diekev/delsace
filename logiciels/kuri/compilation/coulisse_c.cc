@@ -2948,6 +2948,7 @@ void genere_code_C(
 			auto nom_nouvelle_taille = "__nouvelle_taille" + dls::vers_chaine(index++);
 
 			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
+				a_pointeur = true;
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte);
 
