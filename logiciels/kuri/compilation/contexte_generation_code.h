@@ -51,6 +51,7 @@ class FunctionPassManager;
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
+#include "expression.h"
 
 class assembleuse_arbre;
 
@@ -99,6 +100,9 @@ struct DonneesVariable {
 
 	/* nom de la structure pour l'accès des variables employées */
 	dls::chaine structure = "";
+
+	/* pour les évaluations des énums pour l'instant */
+	ResultatExpression resultat_expression{};
 };
 
 struct DonneesMembre {
@@ -107,6 +111,9 @@ struct DonneesMembre {
 
 	/* le décalage en octets dans la struct */
 	unsigned int decalage = 0;
+
+	/* pour les évaluations des énums pour l'instant */
+	ResultatExpression resultat_expression{};
 };
 
 struct DonneesStructure {

@@ -294,7 +294,6 @@ static auto cree_info_type_enum_C(
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
 		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
 		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure)
 {
@@ -327,7 +326,12 @@ static auto cree_info_type_enum_C(
 	os_init << "chaine " << nom_tabl_fixe << "[" << nombre_enfants << "] = {\n";
 
 	for (auto enfant : noeud_decl->enfants) {
-		auto enf0 = enfant->enfants.front();
+		auto enf0 = enfant;
+
+		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
+			enf0 = enf0->enfants.front();
+		}
+
 		os_init << "{.pointeur=\"" << enf0->chaine() << "\", .taille=" << enf0->chaine().taille() << "},";
 	}
 
@@ -342,11 +346,6 @@ static auto cree_info_type_enum_C(
 			+ nom_broye
 			+ dls::vers_chaine(index++);
 
-	for (auto enfant : noeud_decl->enfants) {
-		auto enf1 = enfant->enfants.back();
-		genere_code_C(enf1, generatrice, contexte, false);
-	}
-
 	auto &dt = contexte.magasin_types.donnees_types[noeud_decl->index_type];
 
 	contexte.magasin_types.converti_type_C(
@@ -358,8 +357,21 @@ static auto cree_info_type_enum_C(
 	os_init << " " << nom_tabl_fixe_vals << "[" << nombre_enfants << "] = {\n";
 
 	for (auto enfant : noeud_decl->enfants) {
-		auto enf1 = enfant->enfants.back();
-		os_init << std::any_cast<dls::chaine>(enf1->valeur_calculee);
+		auto enf0 = enfant;
+
+		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
+			enf0 = enf0->enfants.front();
+		}
+
+		auto const &donnees_membre = donnees_structure.donnees_membres.trouve(enf0->chaine())->second;
+
+		if (donnees_membre.resultat_expression.type == type_expression::ENTIER) {
+			os_init << donnees_membre.resultat_expression.entier;
+		}
+		else {
+			os_init << donnees_membre.resultat_expression.reel;
+		}
+
 		os_init << ',';
 	}
 
@@ -498,7 +510,6 @@ static dls::chaine cree_info_type_C(
 							os_decl,
 							os_init,
 							contexte,
-							generatrice,
 							contexte.nom_struct(id_structure),
 							donnees_structure);
 
@@ -3068,17 +3079,25 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_ENUM:
 		{
+			auto &ds = contexte.donnees_structure(b->chaine());
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
-			for (auto enfant : b->enfants) {
-				auto enf0 = enfant->enfants.front();
-				auto enf1 = enfant->enfants.back();
+			for (auto const &donnees_membre : ds.donnees_membres) {
+				auto enf0 = donnees_membre.second.noeud_decl;
+				auto const &valeur = donnees_membre.second.resultat_expression;
 				auto nom_valeur = broye_chaine(b) + '_' + broye_chaine(enf0);
 
-				genere_code_C(enf1, generatrice, contexte, false);
+				auto chaine_valeur = dls::chaine();
+
+				if (valeur.type == type_expression::ENTIER) {
+					chaine_valeur = dls::vers_chaine(valeur.entier);
+				}
+				else if (valeur.type == type_expression::REEL) {
+					chaine_valeur = dls::vers_chaine(valeur.reel);
+				}
 
 				generatrice.os << "static const ";
-				generatrice.declare_variable(dt, nom_valeur, std::any_cast<dls::chaine>(enf1->valeur_calculee));
+				generatrice.declare_variable(dt, nom_valeur, chaine_valeur);
 			}
 
 			break;

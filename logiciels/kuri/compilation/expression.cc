@@ -330,6 +330,25 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
+		case type_noeud::VARIABLE:
+		{
+			auto res = ResultatExpression();
+
+			if (!contexte.locale_existe(b->chaine())) {
+				res.est_errone = true;
+				res.noeud_erreur = b;
+				res.message_erreur = "La variable n'existe pas !";
+
+				return res;
+			}
+
+			auto &donnees = contexte.donnees_variable(b->chaine());
+
+			res.type = donnees.resultat_expression.type;
+			res.entier = donnees.resultat_expression.entier;
+
+			return res;
+		}
 		case type_noeud::TAILLE_DE:
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);

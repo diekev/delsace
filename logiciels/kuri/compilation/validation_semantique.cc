@@ -2707,7 +2707,93 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto &ds = contexte.donnees_structure(b->chaine());
 			ds.noeud_decl->index_type = resoud_type_final(contexte, ds.noeud_decl->type_declare);
 
-			/* À FAIRE : vérification nom unique, valeur unique + test */
+			/* À FAIRE : tests */
+
+			auto noms_presents = dls::ensemble<dls::vue_chaine_compacte>();
+
+			auto dernier_res = ResultatExpression();
+			/* utilise est_errone pour indiquer que nous sommes à la première valeur */
+			dernier_res.est_errone = true;
+
+			contexte.empile_nombre_locales();
+
+			for (auto enfant : b->enfants) {
+				auto var = static_cast<base *>(nullptr);
+				auto expr = static_cast<base *>(nullptr);
+
+				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
+					var = enfant->enfants.front();
+					expr = enfant->enfants.back();
+				}
+				else if (enfant->type == type_noeud::VARIABLE) {
+					var = enfant;
+				}
+				else {
+					erreur::lance_erreur(
+								"Type d'expression inattendu dans l'énum",
+								contexte,
+								enfant->morceau);
+				}
+
+				auto nom = var->chaine();
+
+				if (noms_presents.trouve(nom) != noms_presents.fin()) {
+					erreur::lance_erreur(
+								"Rédéfinition de la valeur de l'énum",
+								contexte,
+								var->morceau,
+								erreur::type_erreur::VARIABLE_REDEFINIE);
+				}
+
+				noms_presents.insere(nom);
+
+				auto res = ResultatExpression();
+
+				auto donnees_variables = DonneesVariable{};
+				donnees_variables.index_type = ds.noeud_decl->index_type;
+				contexte.pousse_locale(nom, donnees_variables);
+
+				if (expr != nullptr) {
+					performe_validation_semantique(expr, contexte);
+
+					res = evalue_expression(contexte, expr);
+
+					if (res.est_errone) {
+						erreur::lance_erreur(
+									res.message_erreur,
+									contexte,
+									res.noeud_erreur->morceau,
+									erreur::type_erreur::VARIABLE_REDEFINIE);
+					}
+				}
+				else {
+					if (dernier_res.est_errone) {
+						/* première valeur, laisse à zéro */
+						dernier_res.est_errone = false;
+					}
+					else {
+						if (dernier_res.type == type_expression::ENTIER) {
+							res.entier = dernier_res.entier + 1;
+						}
+						else {
+							res.reel = dernier_res.reel + 1;
+						}
+					}
+				}
+
+				/* À FAIRE : pas joli */
+				auto &dv = contexte.donnees_variable(nom);
+				dv.resultat_expression = res;
+
+				auto &donnees_membre = ds.donnees_membres[nom];
+				donnees_membre.resultat_expression = res;
+				donnees_membre.noeud_decl = var;
+
+				dernier_res = res;
+			}
+
+			contexte.depile_nombre_locales();
+
 			break;
 		}
 		case type_noeud::ASSOCIE:
