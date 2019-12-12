@@ -561,6 +561,58 @@ static void valide_acces_membre(
 		type_structure = type_structure.dereference();
 	}
 
+	auto est_structure = (type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE;
+
+	if (membre->type == type_noeud::APPEL_FONCTION) {
+		/* si nous avons une structure, vérifie si nous avons un appel vers un
+		 * pointeur de fonction */
+		if (est_structure) {
+			auto const index_structure = static_cast<long>(type_structure.type_base() >> 8);
+			auto const &nom_membre = membre->chaine();
+
+			auto &ds = contexte.donnees_structure(index_structure);
+
+			if (!ds.est_enum && !ds.est_union) {
+				auto const iter = ds.donnees_membres.trouve(nom_membre);
+
+				if (iter != ds.donnees_membres.fin()) {
+					/* ceci est le type de la fonction, l'analyse de l'appel
+					 * vérifiera le type des arguments et ajournera le type du
+					 * membre pour être celui du type de retour */
+					b->index_type = ds.index_types[iter->second.index_membre];
+					membre->index_type = b->index_type;
+					membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
+
+					performe_validation_semantique(membre, contexte);
+
+					/* le type de l'accès est celui du retour de la fonction */
+					b->index_type = membre->index_type;
+					return;
+				}
+			}
+		}
+
+		membre->enfants.push_front(structure);
+
+		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
+		 * même vides, et il nous faut le bon compte de noms */
+		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&membre->valeur_calculee);
+		nom_args->push_front("");
+
+		performe_validation_semantique(membre, contexte);
+
+		/* transforme le noeud */
+		b->type = type_noeud::APPEL_FONCTION;
+		b->valeur_calculee = membre->valeur_calculee;
+		b->module_appel = membre->module_appel;
+		b->index_type = membre->index_type;
+		b->nom_fonction_appel = membre->nom_fonction_appel;
+		b->df = membre->df;
+		b->enfants = membre->enfants;
+
+		return;
+	}
+
 	if (type_structure.type_base() == id_morceau::CHAINE) {
 		if (membre->chaine() == "taille") {
 			b->index_type = contexte.magasin_types[TYPE_Z64];
@@ -634,7 +686,7 @@ static void valide_acces_membre(
 					erreur::type_erreur::MEMBRE_INCONNU);
 	}
 
-	if ((type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+	if (est_structure) {
 		auto const index_structure = static_cast<long>(type_structure.type_base() >> 8);
 
 		auto const &nom_membre = membre->chaine();
@@ -672,45 +724,7 @@ static void valide_acces_membre(
 						erreur::type_erreur::MEMBRE_INCONNU);
 		}
 
-		auto const &donnees_membres = iter->second;
-
-		b->index_type = donnees_structure.index_types[donnees_membres.index_membre];
-
-		/* pointeur vers une fonction */
-		if (membre->type == type_noeud::APPEL_FONCTION) {
-			/* ceci est le type de la fonction, l'analyse de l'appel
-			 * vérifiera le type des arguments et ajournera le type du
-			 * membre pour être celui du type de retour */
-			membre->index_type = b->index_type;
-			membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
-
-			performe_validation_semantique(membre, contexte);
-
-			/* le type de l'accès est celui du retour de la fonction */
-			b->index_type = membre->index_type;
-		}
-
-		return;
-	}
-
-	if (membre->type == type_noeud::APPEL_FONCTION) {
-		membre->enfants.push_front(structure);
-
-		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
-		 * même vides, et il nous faut le bon compte de noms */
-		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&membre->valeur_calculee);
-		nom_args->push_front("");
-
-		performe_validation_semantique(membre, contexte);
-
-		/* transforme le noeud */
-		b->type = type_noeud::APPEL_FONCTION;
-		b->valeur_calculee = membre->valeur_calculee;
-		b->module_appel = membre->module_appel;
-		b->index_type = membre->index_type;
-		b->nom_fonction_appel = membre->nom_fonction_appel;
-		b->df = membre->df;
-		b->enfants = membre->enfants;
+		b->index_type = donnees_structure.index_types[iter->second.index_membre];
 
 		return;
 	}
