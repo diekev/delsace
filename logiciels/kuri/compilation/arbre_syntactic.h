@@ -79,9 +79,19 @@ enum class type_noeud : char {
 	PAIRE_ASSOCIATION,
 	SAUFSI,
 	RETIENS,
+
+	/* mis en place dans la validation sémantique pour simplifier la génération
+	 * du code */
+	RETOUR_MULTIPLE,
+	RETOUR_SIMPLE,
 };
 
 const char *chaine_type_noeud(type_noeud type);
+
+inline bool est_type_retour(type_noeud type)
+{
+	return type == type_noeud::RETOUR || type == type_noeud::RETOUR_MULTIPLE || type == type_noeud::RETOUR_SIMPLE;
+}
 
 /* ************************************************************************** */
 
@@ -206,8 +216,6 @@ enum {
 
 	/* instruction 'retourne' */
 	REQUIERS_CODE_EXTRA_RETOUR,
-	GENERE_CODE_RETOUR_MOULT,
-	GENERE_CODE_RETOUR_SIMPLE,
 };
 
 struct DonneesFonction;

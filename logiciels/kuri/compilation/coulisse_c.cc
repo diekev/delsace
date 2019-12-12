@@ -1959,56 +1959,63 @@ void genere_code_C(
 		}
 		case type_noeud::RETOUR:
 		{
-			auto nom_variable = dls::chaine("");
+			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+			generatrice.os << "return;\n";
+			break;
+		}
+		case type_noeud::RETOUR_SIMPLE:
+		{
+			auto enfant = b->enfants.front();
+			auto df = contexte.donnees_fonction;
+			auto nom_variable = df->noms_retours[0];
 
-			if (b->aide_generation_code == GENERE_CODE_RETOUR_MOULT) {
-				auto enfant = b->enfants.front();
-				auto df = contexte.donnees_fonction;
+			genere_code_C(enfant, generatrice, contexte, false);
 
-				if (enfant->type == type_noeud::APPEL_FONCTION) {
-					/* retourne foo() -> foo(__ret...); return; */
-					enfant->aide_generation_code = APPEL_FONCTION_MOULT_RET2;
-					enfant->valeur_calculee = df->noms_retours;
-					genere_code_C(enfant, generatrice, contexte, false);
-				}
-				else if (enfant->identifiant() == id_morceau::VIRGULE) {
-					/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
-					dls::tableau<base *> feuilles;
-					rassemble_feuilles(enfant, feuilles);
+			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
 
-					auto idx = 0l;
-					for (auto f : feuilles) {
-						genere_code_C(f, generatrice, contexte, false);
+			generatrice.declare_variable(
+						dt,
+						nom_variable,
+						std::any_cast<dls::chaine>(enfant->valeur_calculee));
 
-						generatrice.os << '*' << df->noms_retours[idx++] << " = ";
-						generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
-						generatrice.os << ';';
-					}
-				}
-			}
-			else if (b->aide_generation_code == GENERE_CODE_RETOUR_SIMPLE) {
-				auto enfant = b->enfants.front();
-				auto df = contexte.donnees_fonction;
-
-				nom_variable = df->noms_retours[0];
-
-				genere_code_C(enfant, generatrice, contexte, false);
-
-				auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
-
-				generatrice.declare_variable(
-							dt,
-							nom_variable,
-							std::any_cast<dls::chaine>(enfant->valeur_calculee));
-			}
-
-			/* NOTE : le code différé doit être crée après l'expression de retour, car
+			/* NOTE : le code différé doit être créé après l'expression de retour, car
 			 * nous risquerions par exemple de déloger une variable utilisée dans
 			 * l'expression de retour. */
 			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
-
 			generatrice.os << "return " << nom_variable << ";\n";
+			break;
+		}
+		case type_noeud::RETOUR_MULTIPLE:
+		{
+			auto enfant = b->enfants.front();
+			auto df = contexte.donnees_fonction;
 
+			if (enfant->type == type_noeud::APPEL_FONCTION) {
+				/* retourne foo() -> foo(__ret...); return; */
+				enfant->aide_generation_code = APPEL_FONCTION_MOULT_RET2;
+				enfant->valeur_calculee = df->noms_retours;
+				genere_code_C(enfant, generatrice, contexte, false);
+			}
+			else if (enfant->identifiant() == id_morceau::VIRGULE) {
+				/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
+				dls::tableau<base *> feuilles;
+				rassemble_feuilles(enfant, feuilles);
+
+				auto idx = 0l;
+				for (auto f : feuilles) {
+					genere_code_C(f, generatrice, contexte, false);
+
+					generatrice.os << '*' << df->noms_retours[idx++] << " = ";
+					generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
+					generatrice.os << ';';
+				}
+			}
+
+			/* NOTE : le code différé doit être créé après l'expression de retour, car
+			 * nous risquerions par exemple de déloger une variable utilisée dans
+			 * l'expression de retour. */
+			genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+			generatrice.os << "return;\n";
 			break;
 		}
 		case type_noeud::CHAINE_LITTERALE:
@@ -2150,7 +2157,7 @@ void genere_code_C(
 
 				dernier_enfant = enfant;
 
-				if (enfant->type == type_noeud::RETOUR) {
+				if (est_type_retour(enfant->type)) {
 					break;
 				}
 
@@ -2164,7 +2171,7 @@ void genere_code_C(
 				}
 			}
 
-			if (dernier_enfant != nullptr && dernier_enfant->type != type_noeud::RETOUR) {
+			if (dernier_enfant != nullptr && !est_type_retour(dernier_enfant->type)) {
 				/* génère le code pour tous les noeuds différés de ce bloc */
 				auto noeuds = contexte.noeuds_differes_bloc();
 

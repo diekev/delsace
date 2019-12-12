@@ -459,7 +459,7 @@ static auto derniere_instruction(base *b)
 		return static_cast<base *>(nullptr);
 	}
 
-	if (b->type == type_noeud::RETOUR) {
+	if (est_type_retour(b->type)) {
 		return b;
 	}
 
@@ -726,6 +726,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 {
 	switch (b->type) {
 		case type_noeud::RACINE:
+		case type_noeud::RETOUR_MULTIPLE:
+		case type_noeud::RETOUR_SIMPLE:
 		{
 			break;
 		}
@@ -1742,7 +1744,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			assert(b->enfants.taille() == 1);
 
 			auto enfant = b->enfants.front();
-
 			auto nombre_retour = df->idx_types_retours.taille();
 
 			if (nombre_retour > 1) {
@@ -1778,14 +1779,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					/* À FAIRE : multiples types de retour */
 					b->index_type = feuilles[0]->index_type;
-					b->aide_generation_code = GENERE_CODE_RETOUR_MOULT;
+					b->type = type_noeud::RETOUR_MULTIPLE;
 				}
 				else if (enfant->type == type_noeud::APPEL_FONCTION) {
 					performe_validation_semantique(enfant, contexte);
 
 					/* À FAIRE : multiples types de retour, confirmation typage */
 					b->index_type = enfant->index_type;
-					b->aide_generation_code = GENERE_CODE_RETOUR_MOULT;
+					b->type = type_noeud::RETOUR_MULTIPLE;
 				}
 				else {
 					erreur::lance_erreur(
@@ -1797,6 +1798,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			else {
 				performe_validation_semantique(enfant, contexte);
 				b->index_type = enfant->index_type;
+				b->type = type_noeud::RETOUR_SIMPLE;
 
 				auto &dt_f = contexte.magasin_types.donnees_types[b->index_type];
 				auto &dt_i = contexte.magasin_types.donnees_types[df->idx_types_retours[0]];
@@ -1811,8 +1813,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								enfant->morceau,
 								b->morceau);
 				}
-
-				b->aide_generation_code = GENERE_CODE_RETOUR_SIMPLE;
 			}
 
 			break;
