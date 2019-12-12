@@ -706,7 +706,7 @@ static void valide_acces_membre(
 
 		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
 		 * même vides, et il nous faut le bon compte de noms */
-		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine>>(&membre->valeur_calculee);
+		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&membre->valeur_calculee);
 		nom_args->push_front("");
 
 		performe_validation_semantique(membre, contexte);
