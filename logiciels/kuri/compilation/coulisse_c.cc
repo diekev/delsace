@@ -1069,10 +1069,6 @@ static void genere_code_acces_membre(
 		genere_code_C(membre, generatrice, contexte, false);
 		flux << std::any_cast<dls::chaine>(membre->valeur_calculee);
 	}
-	else if (b->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
-		cree_appel(membre, flux, contexte, generatrice, membre->nom_fonction_appel, membre->enfants);
-		b->valeur_calculee = membre->valeur_calculee;
-	}
 	else {
 		auto const &index_type = structure->index_type;
 		auto type_structure = contexte.magasin_types.donnees_types[index_type].plage();

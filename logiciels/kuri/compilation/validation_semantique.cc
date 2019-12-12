@@ -694,15 +694,7 @@ static void valide_acces_membre(
 	}
 
 	if (membre->type == type_noeud::APPEL_FONCTION) {
-		auto noeud_gauche = structure;
-		/* vérifie si la 'structure' n'est pas déjà un appel */
-
-		if (structure->aide_generation_code == APPEL_FONCTION_SYNT_UNI) {
-			noeud_gauche = structure->enfants.back();
-		}
-
-		b->aide_generation_code = APPEL_FONCTION_SYNT_UNI;
-		membre->enfants.push_front(noeud_gauche);
+		membre->enfants.push_front(structure);
 
 		/* les noms d'arguments sont nécessaire pour trouver la bonne fonction,
 		 * même vides, et il nous faut le bon compte de noms */
@@ -710,7 +702,15 @@ static void valide_acces_membre(
 		nom_args->push_front("");
 
 		performe_validation_semantique(membre, contexte);
+
+		/* transforme le noeud */
+		b->type = type_noeud::APPEL_FONCTION;
+		b->valeur_calculee = membre->valeur_calculee;
+		b->module_appel = membre->module_appel;
 		b->index_type = membre->index_type;
+		b->nom_fonction_appel = membre->nom_fonction_appel;
+		b->df = membre->df;
+		b->enfants = membre->enfants;
 
 		return;
 	}
@@ -976,6 +976,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto const nom_fonction = dls::chaine(b->morceau.chaine);
 			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
+
+			if (b->nom_fonction_appel != "") {
+				/* Nous avons déjà validé ce noeud, sans doute via une syntaxe
+				 * d'appel uniforme. */
+				return;
+			}
 
 			/* Nous avons un pointeur vers une fonction. */
 			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
