@@ -85,6 +85,40 @@ static auto imprime(
 
 /* ************************************************************************** */
 
+/* À tenir synchronisé avec l'énum dans info_type.kuri
+ * Nous utilisons ceci lors de la génération du code des infos types car nous ne
+ * générons pas de code (ou symboles) pour les énums, mais prenons directements
+ * leurs valeurs.
+ */
+struct IDInfoType {
+	dls::chaine ENTIER    = "0";
+	dls::chaine REEL      = "1";
+	dls::chaine BOOLEEN   = "2";
+	dls::chaine CHAINE    = "3";
+	dls::chaine POINTEUR  = "4";
+	dls::chaine STRUCTURE = "5";
+	dls::chaine FONCTION  = "6";
+	dls::chaine TABLEAU   = "7";
+	dls::chaine EINI      = "8";
+	dls::chaine RIEN      = "9";
+	dls::chaine ENUM      = "10";
+};
+
+static auto chaine_valeur_enum(
+		DonneesStructure const &ds,
+		dls::vue_chaine_compacte const &nom)
+{
+	auto &dm = ds.donnees_membres.trouve(nom)->second;
+
+	if (dm.resultat_expression.type == type_expression::ENTIER) {
+		return dls::vers_chaine(dm.resultat_expression.entier);
+	}
+
+	return dls::vers_chaine(dm.resultat_expression.reel);
+}
+
+/* ************************************************************************** */
+
 void genere_code_C(
 		base *b,
 		GeneratriceCodeC &generatrice,
@@ -139,12 +173,13 @@ static auto cree_info_type_entier_C(
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
 		int taille_en_octet,
-		bool est_signe)
+		bool est_signe,
+		IDInfoType const &id_info_type)
 {
 	auto nom_info_type = "__info_type_entier" + dls::vers_chaine(index++);
 
 	os_decl << "static InfoTypeEntier " << nom_info_type << ";\n";
-	os_init << nom_info_type << ".id = id_info_ENTIER;\n";
+	os_init << nom_info_type << ".id = " << id_info_type.ENTIER << ";\n";
 	os_init << nom_info_type << broye_nom_simple(".est_signé = ") << est_signe << ";\n";
 	os_init << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
@@ -154,12 +189,13 @@ static auto cree_info_type_entier_C(
 static auto cree_info_type_reel_C(
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
-		int taille_en_octet)
+		int taille_en_octet,
+		IDInfoType const &id_info_type)
 {
 	auto nom_info_type = "__info_type_reel" + dls::vers_chaine(index++);
 
 	os_decl << broye_nom_simple("static InfoTypeRéel ") << nom_info_type << ";\n";
-	os_init << nom_info_type << broye_nom_simple(".id = id_info_RÉEL;\n");
+	os_init << nom_info_type << ".id = " << id_info_type.REEL << ";\n";
 	os_init << nom_info_type << ".taille_en_octet = " << taille_en_octet << ";\n";
 
 	return nom_info_type;
@@ -170,7 +206,8 @@ static dls::chaine cree_info_type_C(
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
-		DonneesTypeFinal &donnees_type);
+		DonneesTypeFinal &donnees_type,
+		IDInfoType const &id_info_type);
 
 static auto cree_info_type_structure_C(
 		dls::flux_chaine &os_decl,
@@ -179,7 +216,8 @@ static auto cree_info_type_structure_C(
 		GeneratriceCodeC &generatrice,
 		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure,
-		DonneesTypeFinal &dt)
+		DonneesTypeFinal &dt,
+		IDInfoType const &id_info_type)
 {
 	auto nom_info_type = "__info_type_struct" + dls::vers_chaine(index++);
 
@@ -197,7 +235,7 @@ static auto cree_info_type_structure_C(
 	   << ", .taille = " << nom_struct.taille() << "};\n";
 
 	os_decl << "static InfoTypeStructure " << nom_info_type << ";\n";
-	os_init << nom_info_type << ".id = id_info_STRUCTURE;\n";
+	os_init << nom_info_type << ".id = " << id_info_type.STRUCTURE << ";\n";
 	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	/* crée un tableau fixe puis converti le en tableau dyn */
@@ -231,7 +269,7 @@ static auto cree_info_type_structure_C(
 
 			if (rderef.ptr_info_type == "") {
 				rderef.ptr_info_type = cree_info_type_C(
-							contexte, generatrice, os_decl, os_init, dt_membre);
+							contexte, generatrice, os_decl, os_init, dt_membre, id_info_type);
 			}
 
 			os_decl << "static InfoTypeMembreStructure " << nom_info_type_membre << ";\n";
@@ -295,7 +333,8 @@ static auto cree_info_type_enum_C(
 		dls::flux_chaine &os_init,
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine_compacte const &nom_struct,
-		DonneesStructure const &donnees_structure)
+		DonneesStructure const &donnees_structure,
+		IDInfoType const &id_info_type)
 {
 	auto nom_info_type = "__info_type_enum" + dls::vers_chaine(index++);
 
@@ -311,7 +350,7 @@ static auto cree_info_type_enum_C(
 	   << ", .taille = " << nom_struct.taille() << "};\n";
 
 	os_decl << broye_nom_simple("static InfoTypeÉnum ") << nom_info_type << ";\n";
-	os_init << nom_info_type << broye_nom_simple(".id = id_info_ÉNUM;\n");
+	os_init << nom_info_type << ".id = " << id_info_type.ENUM << ";\n";
 	os_init << nom_info_type << ".nom = " << nom_chaine << ";\n";
 
 	auto noeud_decl = donnees_structure.noeud_decl;
@@ -363,15 +402,7 @@ static auto cree_info_type_enum_C(
 			enf0 = enf0->enfants.front();
 		}
 
-		auto const &donnees_membre = donnees_structure.donnees_membres.trouve(enf0->chaine())->second;
-
-		if (donnees_membre.resultat_expression.type == type_expression::ENTIER) {
-			os_init << donnees_membre.resultat_expression.entier;
-		}
-		else {
-			os_init << donnees_membre.resultat_expression.reel;
-		}
-
+		os_init << chaine_valeur_enum(donnees_structure, enf0->chaine());
 		os_init << ',';
 	}
 
@@ -388,7 +419,8 @@ static dls::chaine cree_info_type_C(
 		GeneratriceCodeC &generatrice,
 		dls::flux_chaine &os_decl,
 		dls::flux_chaine &os_init,
-		DonneesTypeFinal &donnees_type)
+		DonneesTypeFinal &donnees_type,
+		IDInfoType const &id_info_type)
 {
 	auto valeur = dls::chaine("");
 
@@ -402,78 +434,78 @@ static dls::chaine cree_info_type_C(
 		}
 		case id_morceau::BOOL:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, broye_nom_simple("id_info_BOOLÉEN"));
+			valeur = cree_info_type_defaul_C(os_decl, os_init, id_info_type.BOOLEEN);
 			break;
 		}
 		case id_morceau::N8:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 8, false);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 8, false, id_info_type);
 			break;
 		}
 		case id_morceau::OCTET:
 		case id_morceau::Z8:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 8, true);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 8, true, id_info_type);
 			break;
 		}
 		case id_morceau::N16:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 16, false);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 16, false, id_info_type);
 			break;
 		}
 		case id_morceau::Z16:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 16, true);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 16, true, id_info_type);
 			break;
 		}
 		case id_morceau::N32:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 32, false);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 32, false, id_info_type);
 			break;
 		}
 		case id_morceau::Z32:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 32, true);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 32, true, id_info_type);
 			break;
 		}
 		case id_morceau::N64:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 64, false);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 64, false, id_info_type);
 			break;
 		}
 		case id_morceau::N128:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 128, false);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 128, false, id_info_type);
 			break;
 		}
 		case id_morceau::Z64:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 64, true);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 64, true, id_info_type);
 			break;
 		}
 		case id_morceau::Z128:
 		{
-			valeur = cree_info_type_entier_C(os_decl, os_init, 128, true);
+			valeur = cree_info_type_entier_C(os_decl, os_init, 128, true, id_info_type);
 			break;
 		}
 		case id_morceau::R16:
 		{
-			valeur = cree_info_type_reel_C(os_decl, os_init, 16);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 16, id_info_type);
 			break;
 		}
 		case id_morceau::R32:
 		{
-			valeur = cree_info_type_reel_C(os_decl, os_init, 32);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 32, id_info_type);
 			break;
 		}
 		case id_morceau::R64:
 		{
-			valeur = cree_info_type_reel_C(os_decl, os_init, 64);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 64, id_info_type);
 			break;
 		}
 		case id_morceau::R128:
 		{
-			valeur = cree_info_type_reel_C(os_decl, os_init, 128);
+			valeur = cree_info_type_reel_C(os_decl, os_init, 128, id_info_type);
 			break;
 		}
 		case id_morceau::REFERENCE:
@@ -485,13 +517,13 @@ static dls::chaine cree_info_type_C(
 			auto &rderef = contexte.magasin_types.donnees_types[idx];
 
 			if (rderef.ptr_info_type == "") {
-				rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, os_init, rderef);
+				rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, os_init, rderef, id_info_type);
 			}
 
 			auto nom_info_type = "__info_type_pointeur" + dls::vers_chaine(index++);
 
 			os_decl << "static InfoTypePointeur " << nom_info_type << ";\n";
-			os_init << nom_info_type << ".id = id_info_POINTEUR;\n";
+			os_init << nom_info_type << ".id = " << id_info_type.POINTEUR << ";\n";
 			os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 			os_init << nom_info_type << broye_nom_simple(".est_référence = ")
 					<< (donnees_type.type_base() == id_morceau::REFERENCE) << ";\n";
@@ -511,7 +543,8 @@ static dls::chaine cree_info_type_C(
 							os_init,
 							contexte,
 							contexte.nom_struct(id_structure),
-							donnees_structure);
+							donnees_structure,
+							id_info_type);
 
 				donnees_type.ptr_info_type = valeur;
 			}
@@ -523,7 +556,8 @@ static dls::chaine cree_info_type_C(
 							generatrice,
 							contexte.nom_struct(id_structure),
 							donnees_structure,
-							donnees_type);
+							donnees_type,
+							id_info_type);
 			}
 
 			break;
@@ -538,7 +572,7 @@ static dls::chaine cree_info_type_C(
 			/* dans le cas des arguments variadics des fonctions externes */
 			if (est_invalide(deref)) {
 				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
-				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
+				os_init << nom_info_type << ".id = " << id_info_type.TABLEAU << ";\n";
 				os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = 0;\n";
 			}
 			else {
@@ -546,11 +580,11 @@ static dls::chaine cree_info_type_C(
 				auto &rderef = contexte.magasin_types.donnees_types[idx];
 
 				if (rderef.ptr_info_type == "") {
-					rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, os_init, rderef);
+					rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, os_init, rderef, id_info_type);
 				}
 
 				os_decl << "static InfoTypeTableau " << nom_info_type << ";\n";
-				os_init << nom_info_type << ".id = id_info_TABLEAU;\n";
+				os_init << nom_info_type << ".id = " << id_info_type.TABLEAU << ";\n";
 				os_init << nom_info_type << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << ");\n";
 			}
 
@@ -563,7 +597,7 @@ static dls::chaine cree_info_type_C(
 			auto nom_info_type = "__info_type_FONCTION" + dls::vers_chaine(index++);
 
 			os_decl << "static InfoTypeFonction " << nom_info_type << ";\n";
-			os_init << nom_info_type << ".id = id_info_FONCTION;\n";
+			os_init << nom_info_type << ".id = " << id_info_type.FONCTION << ";\n";
 			os_init << nom_info_type << ".est_coroutine = " << (donnees_type.type_base() == id_morceau::COROUT) << ";\n";
 
 			donnees_type.ptr_info_type = nom_info_type;
@@ -579,7 +613,7 @@ static dls::chaine cree_info_type_C(
 					continue;
 				}
 
-				cree_info_type_C(contexte, generatrice, os_decl, os_init, dt_prm);
+				cree_info_type_C(contexte, generatrice, os_decl, os_init, dt_prm, id_info_type);
 			}
 
 			auto nom_tabl_fix_entree = "__tabl_fix_entree" + dls::vers_chaine(index++);
@@ -619,18 +653,18 @@ static dls::chaine cree_info_type_C(
 		}
 		case id_morceau::EINI:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_EINI");
+			valeur = cree_info_type_defaul_C(os_decl, os_init, id_info_type.EINI);
 			break;
 		}
 		case id_morceau::NUL: /* À FAIRE */
 		case id_morceau::RIEN:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_RIEN");
+			valeur = cree_info_type_defaul_C(os_decl, os_init, id_info_type.RIEN);
 			break;
 		}
 		case id_morceau::CHAINE:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, os_init, "id_info_CHAINE");
+			valeur = cree_info_type_defaul_C(os_decl, os_init, id_info_type.CHAINE);
 			break;
 		}
 	}
@@ -1077,9 +1111,7 @@ static void genere_code_acces_membre(
 			auto &ds = contexte.donnees_structure(structure->chaine());
 
 			if (ds.est_enum) {
-				generatrice.os << "long " << nom_acces << " = "
-				   << broye_chaine(structure) << '_' << broye_chaine(membre) << ";\n";
-				flux << nom_acces;
+				flux << chaine_valeur_enum(ds, membre->chaine());
 			}
 		}
 		else {
@@ -3079,27 +3111,8 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_ENUM:
 		{
-			auto &ds = contexte.donnees_structure(b->chaine());
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-
-			for (auto const &donnees_membre : ds.donnees_membres) {
-				auto enf0 = donnees_membre.second.noeud_decl;
-				auto const &valeur = donnees_membre.second.resultat_expression;
-				auto nom_valeur = broye_chaine(b) + '_' + broye_chaine(enf0);
-
-				auto chaine_valeur = dls::chaine();
-
-				if (valeur.type == type_expression::ENTIER) {
-					chaine_valeur = dls::vers_chaine(valeur.entier);
-				}
-				else if (valeur.type == type_expression::REEL) {
-					chaine_valeur = dls::vers_chaine(valeur.reel);
-				}
-
-				generatrice.os << "static const ";
-				generatrice.declare_variable(dt, nom_valeur, chaine_valeur);
-			}
-
+			/* nous ne générons pas de code pour les énums, nous prenons leurs
+			 * valeurs directement */
 			break;
 		}
 		case type_noeud::ASSOCIE:
@@ -3247,8 +3260,9 @@ void genere_code_C(
 	auto debut_generation = dls::chrono::compte_seconde();
 	/* Crée les infos types pour tous les types connus.
 	 * À FAIRE : évite de créer ceux qui ne sont pas utiles */
+	auto id_info_type = IDInfoType();
 	for (auto &dt : contexte.magasin_types.donnees_types) {
-		cree_info_type_C(contexte, generatrice, os, os_init, dt);
+		cree_info_type_C(contexte, generatrice, os, os_init, dt, id_info_type);
 	}
 	temps_generation += debut_generation.temps();
 
