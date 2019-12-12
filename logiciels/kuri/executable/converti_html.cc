@@ -29,79 +29,9 @@
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
+#include "compilation/outils_morceaux.hh"
 
 #include "options.hh"
-
-static auto est_mot_cle(id_morceau id)
-{
-	switch (id) {
-		default:
-		{
-			return false;
-		}
-		case id_morceau::FONC:
-		case id_morceau::STRUCT:
-		case id_morceau::DYN:
-		case id_morceau::SOIT:
-		case id_morceau::RETOURNE:
-		case id_morceau::ENUM:
-		case id_morceau::RETIENS:
-		case id_morceau::DE:
-		case id_morceau::EXTERNE:
-		case id_morceau::IMPORTE:
-		case id_morceau::POUR:
-		case id_morceau::DANS:
-		case id_morceau::BOUCLE:
-		case id_morceau::TANTQUE:
-		case id_morceau::REPETE:
-		case id_morceau::SINON:
-		case id_morceau::SI:
-		case id_morceau::SAUFSI:
-		case id_morceau::LOGE:
-		case id_morceau::DELOGE:
-		case id_morceau::RELOGE:
-		case id_morceau::ASSOCIE:
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::Z128:
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::N128:
-		case id_morceau::R16:
-		case id_morceau::R32:
-		case id_morceau::R64:
-		case id_morceau::R128:
-		case id_morceau::EINI:
-		case id_morceau::BOOL:
-		case id_morceau::RIEN:
-		case id_morceau::CHAINE:
-		case id_morceau::OCTET:
-		case id_morceau::UNION:
-		case id_morceau::COROUT:
-		{
-			return true;
-		}
-	}
-}
-
-static auto est_chaine_litterale(id_morceau id)
-{
-	switch (id) {
-		default:
-		{
-			return false;
-		}
-		case id_morceau::CHAINE_LITTERALE:
-		case id_morceau::CARACTERE:
-		{
-			return true;
-		}
-	}
-}
 
 int main(int argc, char **argv)
 {

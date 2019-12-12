@@ -509,12 +509,4 @@ niveau_compat sont_compatibles(
 
 /* ************************************************************************** */
 
-bool est_type_entier(id_morceau type);
-
-bool est_type_entier_naturel(id_morceau type);
-
-bool est_type_entier_relatif(id_morceau type);
-
-bool est_type_reel(id_morceau type);
-
 unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesTypeFinal const &donnees_type);

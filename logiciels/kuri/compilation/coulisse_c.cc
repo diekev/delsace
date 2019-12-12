@@ -33,6 +33,7 @@
 #include "contexte_generation_code.h"
 #include "generatrice_code_c.hh"
 #include "modules.hh"
+#include "outils_morceaux.hh"
 #include "validation_semantique.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
@@ -1697,25 +1698,6 @@ void genere_code_C(
 			/* À FAIRE : typage */
 
 			/* À FAIRE : tests */
-			auto est_operateur_comp = [](id_morceau id)
-			{
-				switch (id) {
-					default:
-					{
-						return false;
-					}
-					case id_morceau::INFERIEUR:
-					case id_morceau::INFERIEUR_EGAL:
-					case id_morceau::SUPERIEUR:
-					case id_morceau::SUPERIEUR_EGAL:
-					case id_morceau::EGALITE:
-					case id_morceau::DIFFERENCE:
-					{
-						return true;
-					}
-				}
-			};
-
 			auto flux = dls::flux_chaine();
 
 			genere_code_C(enfant1, generatrice, contexte, expr_gauche);

@@ -32,6 +32,7 @@
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
+#include "compilation/outils_morceaux.hh"
 
 #include "options.hh"
 
@@ -423,26 +424,6 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 	};
 
 	os << "ERREUR";
-}
-
-static bool est_mot_cle(id_morceau id)
-{
-	switch (id) {
-		default:
-		{
-			return false;
-		}
-		case id_morceau::STRUCT:
-		case id_morceau::UNION:
-		case id_morceau::FONC:
-		case id_morceau::SI:
-		case id_morceau::SINON:
-		case id_morceau::SAUFSI:
-		case id_morceau::GARDE:
-		{
-			return true;
-		}
-	}
 }
 
 void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)

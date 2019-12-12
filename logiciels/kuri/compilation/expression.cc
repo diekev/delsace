@@ -29,6 +29,7 @@
 
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
+#include "outils_morceaux.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -176,28 +177,6 @@ static auto applique_operateur_unaire(id_morceau id, double &a)
 		{
 			a = 0;
 			break;
-		}
-	}
-}
-
-static auto est_operateur_bool(id_morceau id)
-{
-	switch (id) {
-		case id_morceau::EXCLAMATION:
-		case id_morceau::INFERIEUR:
-		case id_morceau::INFERIEUR_EGAL:
-		case id_morceau::SUPERIEUR:
-		case id_morceau::SUPERIEUR_EGAL:
-		case id_morceau::DIFFERENCE:
-		case id_morceau::ESP_ESP:
-		case id_morceau::EGALITE:
-		case id_morceau::BARRE_BARRE:
-		{
-			return true;
-		}
-		default:
-		{
-			return false;
 		}
 	}
 }

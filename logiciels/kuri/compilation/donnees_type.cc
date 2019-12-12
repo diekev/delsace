@@ -40,6 +40,7 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
+#include "outils_morceaux.hh"
 
 /* ************************************************************************** */
 
@@ -408,19 +409,6 @@ MagasinDonneesType::MagasinDonneesType()
 	for (auto donnees : donnees_types_communs) {
 		auto const idx = static_cast<long>(donnees.val_enum);
 		index_types_communs[idx] = ajoute_type(donnees.dt);
-	}
-}
-
-static bool peut_etre_dereference(id_morceau id)
-{
-	switch (id) {
-		default:
-			return false;
-		case id_morceau::POINTEUR:
-		case id_morceau::REFERENCE:
-		case id_morceau::TABLEAU:
-		case id_morceau::TROIS_POINTS:
-			return true;
 	}
 }
 
@@ -1292,68 +1280,6 @@ unsigned alignement(
 }
 
 /* ************************************************************************** */
-
-bool est_type_entier(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::BOOL:
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
-		case id_morceau::OCTET:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_entier_naturel(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::N128:
-		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_entier_relatif(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::Z128:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_reel(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::R16:
-		case id_morceau::R32:
-		case id_morceau::R64:
-		case id_morceau::R128:
-			return true;
-		default:
-			return false;
-	}
-}
 
 niveau_compat sont_compatibles(
 		DonneesTypeFinal const &type1,

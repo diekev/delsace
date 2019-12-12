@@ -24,13 +24,36 @@
 
 #pragma once
 
-struct ContexteGenerationCode;
 enum class id_morceau : unsigned int;
 
-namespace noeud {
+bool est_type_entier(id_morceau type);
 
-struct base;
+bool est_type_entier_naturel(id_morceau type);
 
-void performe_validation_semantique(base *b, ContexteGenerationCode &contexte);
+bool est_type_entier_relatif(id_morceau type);
 
-}  /* namespace noeud */
+bool est_type_reel(id_morceau type);
+
+bool est_operateur_bool(id_morceau type);
+
+bool est_assignation_operee(id_morceau type);
+
+bool est_operateur_comp(id_morceau type);
+
+bool peut_etre_dereference(id_morceau id);
+
+bool est_mot_cle(id_morceau id);
+
+bool est_chaine_litterale(id_morceau id);
+
+bool est_specifiant_type(id_morceau identifiant);
+
+bool est_identifiant_type(id_morceau identifiant);
+
+bool est_nombre_entier(id_morceau identifiant);
+
+bool est_nombre(id_morceau identifiant);
+
+bool est_operateur_unaire(id_morceau identifiant);
+
+bool est_operateur_binaire(id_morceau identifiant);

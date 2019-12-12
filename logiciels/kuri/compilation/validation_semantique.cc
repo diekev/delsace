@@ -34,6 +34,7 @@
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "expression.h"
+#include "outils_morceaux.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -378,29 +379,6 @@ bool est_constant(base *b)
 		case type_noeud::NOMBRE_ENTIER:
 		case type_noeud::NOMBRE_REEL:
 		case type_noeud::CHAINE_LITTERALE:
-		{
-			return true;
-		}
-	}
-}
-
-bool est_assignation_operee(id_morceau id)
-{
-	switch (id) {
-		default:
-		{
-			return false;
-		}
-		case id_morceau::MOINS_EGAL:
-		case id_morceau::PLUS_EGAL:
-		case id_morceau::MULTIPLIE_EGAL:
-		case id_morceau::DIVISE_EGAL:
-		case id_morceau::MODULO_EGAL:
-		case id_morceau::ET_EGAL:
-		case id_morceau::OU_EGAL:
-		case id_morceau::OUX_EGAL:
-		case id_morceau::DEC_DROITE_EGAL:
-		case id_morceau::DEC_GAUCHE_EGAL:
 		{
 			return true;
 		}
@@ -1483,25 +1461,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
 			auto const &type2 = contexte.magasin_types.donnees_types[index_type2];
-
-			auto est_operateur_comp = [](id_morceau id)
-			{
-				switch (id) {
-					default:
-					{
-						return false;
-					}
-					case id_morceau::INFERIEUR:
-					case id_morceau::INFERIEUR_EGAL:
-					case id_morceau::SUPERIEUR:
-					case id_morceau::SUPERIEUR_EGAL:
-					case id_morceau::EGALITE:
-					case id_morceau::DIFFERENCE:
-					{
-						return true;
-					}
-				}
-			};
 
 			/* détecte a comp b comp c */
 			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {

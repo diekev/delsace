@@ -33,6 +33,7 @@
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "expression.h"
+#include "outils_morceaux.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -42,125 +43,6 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  * mais simplement utilisé pour compiler les arbres syntactics des expressions.
  */
 static auto NOEUD_PARENTHESE = reinterpret_cast<noeud::base *>(id_morceau::PARENTHESE_OUVRANTE);
-
-static bool est_specifiant_type(id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::FOIS:
-		case id_morceau::ESPERLUETTE:
-		case id_morceau::CROCHET_OUVRANT:
-		case id_morceau::TROIS_POINTS:
-		case id_morceau::TYPE_DE:
-			return true;
-		default:
-			return false;
-	}
-}
-
-static bool est_identifiant_type(id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::N128:
-		case id_morceau::R16:
-		case id_morceau::R32:
-		case id_morceau::R64:
-		case id_morceau::R128:
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::Z128:
-		case id_morceau::BOOL:
-		case id_morceau::RIEN:
-		case id_morceau::EINI:
-		case id_morceau::CHAINE:
-		case id_morceau::CHAINE_CARACTERE:
-		case id_morceau::OCTET:
-			return true;
-		default:
-			return false;
-	}
-}
-
-static bool est_nombre_entier(id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::NOMBRE_BINAIRE:
-		case id_morceau::NOMBRE_ENTIER:
-		case id_morceau::NOMBRE_HEXADECIMAL:
-		case id_morceau::NOMBRE_OCTAL:
-			return true;
-		default:
-			return false;
-	}
-}
-
-static bool est_nombre(id_morceau identifiant)
-{
-	return est_nombre_entier(identifiant) || (identifiant == id_morceau::NOMBRE_REEL);
-}
-
-static bool est_operateur_unaire(id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::AROBASE:
-		case id_morceau::EXCLAMATION:
-		case id_morceau::TILDE:
-		case id_morceau::CROCHET_OUVRANT:
-		case id_morceau::PLUS_UNAIRE:
-		case id_morceau::MOINS_UNAIRE:
-			return true;
-		default:
-			return false;
-	}
-}
-
-static bool est_operateur_binaire(id_morceau identifiant)
-{
-	switch (identifiant) {
-		case id_morceau::PLUS:
-		case id_morceau::MOINS:
-		case id_morceau::FOIS:
-		case id_morceau::DIVISE:
-		case id_morceau::PLUS_EGAL:
-		case id_morceau::MOINS_EGAL:
-		case id_morceau::DIVISE_EGAL:
-		case id_morceau::MULTIPLIE_EGAL:
-		case id_morceau::MODULO_EGAL:
-		case id_morceau::ET_EGAL:
-		case id_morceau::OU_EGAL:
-		case id_morceau::OUX_EGAL:
-		case id_morceau::DEC_DROITE_EGAL:
-		case id_morceau::DEC_GAUCHE_EGAL:
-		case id_morceau::ESPERLUETTE:
-		case id_morceau::POURCENT:
-		case id_morceau::INFERIEUR:
-		case id_morceau::INFERIEUR_EGAL:
-		case id_morceau::SUPERIEUR:
-		case id_morceau::SUPERIEUR_EGAL:
-		case id_morceau::DECALAGE_DROITE:
-		case id_morceau::DECALAGE_GAUCHE:
-		case id_morceau::DIFFERENCE:
-		case id_morceau::ESP_ESP:
-		case id_morceau::EGALITE:
-		case id_morceau::BARRE_BARRE:
-		case id_morceau::BARRE:
-		case id_morceau::CHAPEAU:
-		case id_morceau::DE:
-		case id_morceau::POINT:
-		case id_morceau::EGAL:
-		case id_morceau::TROIS_POINTS:
-		case id_morceau::VIRGULE:
-		case id_morceau::CROCHET_OUVRANT:
-			return true;
-		default:
-			return false;
-	}
-}
 
 /**
  * Retourne vrai se l'identifiant passé en paramètre peut-être un identifiant
