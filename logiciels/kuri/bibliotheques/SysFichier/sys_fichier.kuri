@@ -296,9 +296,9 @@ fonc défile(dyn q : *FileDir) : *DIR
 
 ################################################################################
 
-fonc enfile_dossier(file : *FileDir, dir : *dirent) : rien
+fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) : rien
 {
-    chm = chemin_pour_dirname(dir)
+    dyn chm = chemin_pour_dirname(dir)
 
     si compare_chaines(chm.chn, ".") {
         retourne
@@ -308,17 +308,28 @@ fonc enfile_dossier(file : *FileDir, dir : *dirent) : rien
         retourne
     }
 
+    # Trouve le chemin absolu.
+    dyn chn : chaine
+    diffère { déloge chn; }
+
+    si chemin.chn[chemin.chn.taille - 1] != '/' {
+        chn = enchaine(chemin.chn, "/", chm.chn)
+    }
+    sinon {
+        chn = enchaine(chemin.chn, chm.chn)
+    }
+
+    chm.chn = chn
+
     nd = ouvre_dossier(chm)
 
     si nd == nul {
         retourne
     }
 
-    #imprime("enfile ", nd, '\n')
     enfile(file, nd)
 }
 
-# À FAIRE : il y a un crash, il semblerait que des dossiers soit ajoutés en double dans la file
 corout chaque_chemin_récursif(chemin : &CheminFichier) : CheminFichier
 {
     si !est_dossier(chemin) {
@@ -339,22 +350,15 @@ corout chaque_chemin_récursif(chemin : &CheminFichier) : CheminFichier
     tantque !est_vide(file) {
         d = défile(file)
 
-        si d == nul {
-            arrête
-        }
-
-        #imprime("défile ", d, " (", taille de file, ")", '\n')
-
         boucle {
             dir = readdir(d)
 
             si dir == nul {
-                #imprime("fin dossier\n")
                 arrête
             }
 
             si dir.d_type == _DT_DIR {
-                enfile_dossier(file, dir)
+                enfile_dossier(file, dir, chemin)
             }
 
             retiens chemin_pour_dirname(dir)
