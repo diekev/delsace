@@ -1760,14 +1760,17 @@ struct Convertisseuse {
 	{
 		auto enfants = rassemble_enfants(cursor);
 
-		if (enfants.est_vide()) {
-			/* Nous avons une déclaration */
-			return;
-		}
+		bool est_declaration = enfants.est_vide();
+		CXCursor enfant_bloc;
 
-		if (enfants.back().kind != CXCursorKind::CXCursor_CompoundStmt) {
-			/* Nous avons une déclaration */
-			return;
+		if (!est_declaration) {
+			est_declaration = enfants.back().kind != CXCursorKind::CXCursor_CompoundStmt;
+
+			if (!est_declaration) {
+				/* Nous n'avons pas une déclaration */
+				enfant_bloc = enfants.back();
+				enfants.pop_back();
+			}
 		}
 
 		imprime_commentaire(cursor, std::cout);
@@ -1787,7 +1790,7 @@ struct Convertisseuse {
 			virgule = ", ";
 		}
 
-		for (auto i = 0; i < enfants.taille() - 1; ++i) {
+		for (auto i = 0; i < enfants.taille(); ++i) {
 			auto param = enfants[i];
 
 			/* les premiers enfants peuvent être des infos sur la fonctions */
@@ -1804,15 +1807,20 @@ struct Convertisseuse {
 		}
 
 		/* Il n'y a pas de paramètres. */
-		if (enfants.taille() == 1 && noms_structure.est_vide()) {
+		if (enfants.taille() == 0 && noms_structure.est_vide()) {
 			std::cout << '(';
 		}
 
 		std::cout << ") : " << converti_type(cursor, typedefs, true) << '\n';
 
+		if (est_declaration) {
+			/* Nous avons une déclaration */
+			return;
+		}
+
 		std::cout << "{\n";
 
-		convertis(enfants.back(), trans_unit);
+		convertis(enfant_bloc, trans_unit);
 
 		std::cout << "}\n\n";
 	}
@@ -1948,6 +1956,8 @@ int main(int argc, char **argv)
 			std::cerr << '\t' << clang_getCursorKindSpelling(kind) << " (" << kind << ')' << '\n';
 		}
 	}
+
+	//imprime_asa(cursor, 0, std::cout);
 
 	clang_disposeTranslationUnit(unit);
 	clang_disposeIndex(index);
