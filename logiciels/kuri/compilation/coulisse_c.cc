@@ -132,6 +132,9 @@ static void genere_code_extra_pre_retour(
 {
 	if (contexte.donnees_fonction->est_coroutine) {
 		os << "__etat->__termine_coro = 1;\n";
+		os << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
+		os << "pthread_cond_signal(&__etat->cond_boucle);\n";
+		os << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
 	}
 
 	/* génère le code pour les blocs déférés */
@@ -901,14 +904,14 @@ static void cree_appel(
 		auto df = b->df;
 		auto noeud_decl = df->noeud_decl;
 
+		if (df->est_coroutine) {
+			os << virgule << "&__etat" << dls::vers_chaine(b) << ");\n";
+			return;
+		}
+
 		if (!df->est_externe && noeud_decl != nullptr && !dls::outils::possede_drapeau(noeud_decl->drapeaux, FORCE_NULCTX)) {
 			os << virgule;
 			os << "ctx";
-			virgule = ',';
-		}
-
-		if (df->est_coroutine) {
-			os << virgule << "&__etat" << dls::vers_chaine(b);
 			virgule = ',';
 		}
 	}
@@ -1177,6 +1180,73 @@ static void genere_code_echec_logement(
 	}
 }
 
+static DonneesFonction *cherche_donnees_fonction(
+		ContexteGenerationCode &contexte,
+		base *b)
+{
+	auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
+	auto &vdf = module->donnees_fonction(b->morceau.chaine);
+
+	for (auto &df : vdf) {
+		if (df.noeud_decl == b) {
+			return &df;
+		}
+	}
+
+	return nullptr;
+}
+
+static void pousse_argument_fonction_pile(
+		ContexteGenerationCode &contexte,
+		DonneesArgument const &argument,
+		dls::chaine const &nom_broye,
+		DonneesTypeFinal &dt)
+{
+	auto donnees_var = DonneesVariable{};
+	donnees_var.est_dynamique = argument.est_dynamic;
+	donnees_var.est_variadic = argument.est_variadic;
+	donnees_var.index_type = argument.index_type;
+	donnees_var.est_argument = true;
+
+	if (dt.type_base() == id_morceau::REFERENCE) {
+		donnees_var.drapeaux |= BESOIN_DEREF;
+		donnees_var.index_type = contexte.magasin_types.ajoute_type(dt.dereference());
+		dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
+	}
+
+	contexte.pousse_locale(argument.nom, donnees_var);
+
+	if (argument.est_employe) {
+		auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
+		auto id_structure = 0l;
+		auto est_pointeur = false;
+
+		if (dt_var.type_base() == id_morceau::POINTEUR) {
+			est_pointeur = true;
+			id_structure = static_cast<long>(dt_var.dereference().front() >> 8);
+		}
+		else {
+			id_structure = static_cast<long>(dt_var.type_base() >> 8);
+		}
+
+		auto &ds = contexte.donnees_structure(id_structure);
+
+		/* pousse chaque membre de la structure sur la pile */
+
+		for (auto &dm : ds.donnees_membres) {
+			auto index_dt_m = ds.index_types[dm.second.index_membre];
+
+			donnees_var.est_dynamique = argument.est_dynamic;
+			donnees_var.index_type = index_dt_m;
+			donnees_var.est_argument = true;
+			donnees_var.est_membre_emploie = true;
+			donnees_var.structure = nom_broye + (est_pointeur ? "->" : ".");
+
+			contexte.pousse_locale(dm.first, donnees_var);
+		}
+	}
+}
+
 /* Génère le code C pour la base b passée en paramètre.
  *
  * Le code est généré en visitant d'abord les enfants des noeuds avant ceux-ci.
@@ -1215,16 +1285,7 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
-			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
-			auto &vdf = module->donnees_fonction(b->morceau.chaine);
-			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
-
-			for (auto &df : vdf) {
-				if (df.noeud_decl == b) {
-					donnees_fonction = &df;
-					break;
-				}
-			}
+			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
 
 			if (!donnees_fonction->est_utilisee) {
 				return;
@@ -1252,62 +1313,7 @@ void genere_code_C(
 
 			auto moult_retour = donnees_fonction->idx_types_retours.taille() > 1;
 
-			if (donnees_fonction->est_coroutine) {
-				generatrice.os << "typedef struct __etat_coro" << nom_fonction << " { bool __reprend_coro; bool __termine_coro; ";
-
-				auto idx_ret = 0l;
-				for (auto idx : donnees_fonction->idx_types_retours) {
-					auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
-
-					auto &dt = contexte.magasin_types.donnees_types[idx];
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								nom_ret,
-								dt.plage(),
-								generatrice.os);
-
-					generatrice.os << ";\n";
-				}
-
-				auto &donnees_coroutine = donnees_fonction->donnees_coroutine;
-
-				for (auto const &paire : donnees_coroutine.variables) {
-					auto dt_m = contexte.magasin_types.donnees_types[paire.second.first].plage();
-
-					/* Stocke un pointeur pour ne pas qu'il soit invalidé par
-					 * le retour de la coroutine. */
-					auto requiers_pointeur = (paire.second.second & BESOIN_DEREF) != 0;
-
-					if (est_type_tableau_fixe(dt_m)) {
-						/* déférence, on stockera un pointeur */
-						dt_m.effronte();
-						requiers_pointeur = true;
-					}
-
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								"",
-								dt_m,
-								generatrice.os);
-
-					if (requiers_pointeur) {
-						generatrice.os << '*';
-					}
-
-					generatrice.os << ' ' << broye_nom_simple(paire.first) << ";\n";
-				}
-
-				generatrice.os << " } __etat_coro" << nom_fonction << ";\n";
-
-				generatrice.os << "static ";
-
-				if (!possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
-					generatrice.os << "inline ";
-				}
-
-				generatrice.os << "void " << nom_fonction;
-			}
-			else if (moult_retour) {
+			if (moult_retour) {
 				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
 					generatrice.os << "static inline void ";
 				}
@@ -1359,21 +1365,11 @@ void genere_code_C(
 				contexte.pousse_locale("ctx", donnees_var);
 			}
 
-			if (donnees_fonction->est_coroutine) {
-				generatrice.os << virgule;
-				generatrice.os << "__etat_coro" << nom_fonction << " *__etat";
-				virgule = ',';
-			}
-
 			for (auto &argument : donnees_fonction->args) {
-				generatrice.os << virgule;
-
-				auto index_type = argument.index_type;
-
-				auto dt = contexte.magasin_types.donnees_types[index_type];
-
+				auto dt = contexte.magasin_types.donnees_types[argument.index_type];
 				auto nom_broye = broye_nom_simple(argument.nom);
 
+				generatrice.os << virgule;
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_broye,
@@ -1382,52 +1378,10 @@ void genere_code_C(
 
 				virgule = ',';
 
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = argument.est_dynamic;
-				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.index_type = index_type;
-				donnees_var.est_argument = true;
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-					donnees_var.index_type = contexte.magasin_types.ajoute_type(dt.dereference());
-					dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
-				}
-
-				contexte.pousse_locale(argument.nom, donnees_var);
-
-				if (argument.est_employe) {
-					auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
-					auto id_structure = 0l;
-					auto est_pointeur = false;
-
-					if (dt_var.type_base() == id_morceau::POINTEUR) {
-						est_pointeur = true;
-						id_structure = static_cast<long>(dt_var.dereference().front() >> 8);
-					}
-					else {
-						id_structure = static_cast<long>(dt_var.type_base() >> 8);
-					}
-
-					auto &ds = contexte.donnees_structure(id_structure);
-
-					/* pousse chaque membre de la structure sur la pile */
-
-					for (auto &dm : ds.donnees_membres) {
-						auto index_dt_m = ds.index_types[dm.second.index_membre];
-
-						donnees_var.est_dynamique = argument.est_dynamic;
-						donnees_var.index_type = index_dt_m;
-						donnees_var.est_argument = true;
-						donnees_var.est_membre_emploie = true;
-						donnees_var.structure = nom_broye + (est_pointeur ? "->" : ".");
-
-						contexte.pousse_locale(dm.first, donnees_var);
-					}
-				}
+				pousse_argument_fonction_pile(contexte, argument, nom_broye, dt);
 			}
 
-			if (moult_retour && !donnees_fonction->est_coroutine) {
+			if (moult_retour) {
 				auto idx_ret = 0l;
 				for (auto idx : donnees_fonction->idx_types_retours) {
 					generatrice.os << virgule;
@@ -1450,20 +1404,72 @@ void genere_code_C(
 			/* Crée code pour le bloc. */
 			auto bloc = b->enfants.back();
 
-			if (donnees_fonction->est_coroutine) {
-				/* les coroutines ont du code avant le bloc, donc ajoute
-				 * explicitement des accolades, pour les autres fonctions, le
-				 * bloc se charge d'ajouter les accolades */
-				generatrice.os << "{\n";
+			genere_code_C(bloc, generatrice, contexte, false);
 
-				for (auto i = 1; i <= donnees_fonction->donnees_coroutine.nombre_retenues; ++i) {
-					generatrice.os << "if (__etat->__reprend_coro == " << i << ") { goto __reprend_coro" << i << "; }";
-				}
-
-				/* remet à zéro car nous avons besoin de les compter pour
-				 * générer les labels des goto */
-				donnees_fonction->donnees_coroutine.nombre_retenues = 0;
+			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
+				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
 			}
+
+			contexte.termine_fonction();
+
+			break;
+		}
+		case type_noeud::DECLARATION_COROUTINE:
+		{
+			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
+
+			if (!donnees_fonction->est_utilisee) {
+				return;
+			}
+
+			contexte.commence_fonction(donnees_fonction);
+
+			/* Crée fonction */
+			auto nom_fonction = donnees_fonction->nom_broye;
+			auto nom_type_coro = "__etat_coro" + nom_fonction;
+
+			/* Déclare la structure d'état de la coroutine. */
+			generatrice.os << "typedef struct " << nom_type_coro << " {\n";
+			generatrice.os << "pthread_mutex_t mutex_boucle;\n";
+			generatrice.os << "pthread_cond_t cond_boucle;\n";
+			generatrice.os << "pthread_mutex_t mutex_coro;\n";
+			generatrice.os << "pthread_cond_t cond_coro;\n";
+			generatrice.os << "bool __termine_coro;\n";
+			generatrice.os << "__contexte_global *ctx;\n";
+
+			auto idx_ret = 0l;
+			for (auto idx : donnees_fonction->idx_types_retours) {
+				auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
+				auto &dt = contexte.magasin_types.donnees_types[idx];
+				generatrice.declare_variable(dt, nom_ret, "");
+			}
+
+			for (auto &argument : donnees_fonction->args) {
+				auto &dt = contexte.magasin_types.donnees_types[argument.index_type];
+				auto nom_broye = broye_nom_simple(argument.nom);
+				generatrice.declare_variable(dt, nom_broye, "");
+			}
+
+			generatrice.os << " } " << nom_type_coro << ";\n";
+
+			/* Déclare la fonction. */
+			generatrice.os << "static void *" << nom_fonction << "(void *data)\n";
+			generatrice.os << "{\n";
+			generatrice.os << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
+			generatrice.os << "__contexte_global *ctx = __etat->ctx;\n";
+
+			/* déclare les paramètres. */
+			for (auto &argument : donnees_fonction->args) {
+				auto &dt = contexte.magasin_types.donnees_types[argument.index_type];
+				auto nom_broye = broye_nom_simple(argument.nom);
+
+				generatrice.declare_variable(dt, nom_broye, "__etat->" + nom_broye);
+
+				pousse_argument_fonction_pile(contexte, argument, nom_broye, dt);
+			}
+
+			/* Crée code pour le bloc. */
+			auto bloc = b->enfants.back();
 
 			genere_code_C(bloc, generatrice, contexte, false);
 
@@ -1471,9 +1477,7 @@ void genere_code_C(
 				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
 			}
 
-			if (donnees_fonction->est_coroutine) {
-				generatrice.os << "}\n";
-			}
+			generatrice.os << "}\n";
 
 			contexte.termine_fonction();
 
@@ -2384,14 +2388,41 @@ void genere_code_C(
 				case GENERE_BOUCLE_COROUTINE:
 				case GENERE_BOUCLE_COROUTINE_INDEX:
 				{
+					auto df = enfant2->df;
 					auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
+					auto nom_type_coro = "__etat_coro" + df->nom_broye;
 
-					generatrice.os << "__etat_coro" << enfant2->df->nom_broye << " " << nom_etat << ";\n";
-					generatrice.os << nom_etat << ".__reprend_coro = 0;\n";
-					generatrice.os << nom_etat << ".__termine_coro = 0;\n";
+					generatrice.os << nom_type_coro << " " << nom_etat << " = {\n";
+					generatrice.os << ".mutex_boucle = PTHREAD_MUTEX_INITIALIZER,\n";
+					generatrice.os << ".mutex_coro = PTHREAD_MUTEX_INITIALIZER,\n";
+					generatrice.os << ".cond_coro = PTHREAD_COND_INITIALIZER,\n";
+					generatrice.os << ".cond_boucle = PTHREAD_COND_INITIALIZER,\n";
+					generatrice.os << ".ctx = ctx,\n";
+					generatrice.os << ".__termine_coro = 0\n";
+					generatrice.os << "};\n";
+
+					/* intialise les arguments de la fonction. */
+					for (auto enfs : enfant2->enfants) {
+						genere_code_C(enfs, generatrice, contexte, false);
+					}
+
+					auto iter_enf = enfant2->enfants.debut();
+
+					for (auto &arg : df->args) {
+						auto nom_broye = broye_nom_simple(arg.nom);
+						generatrice.os << nom_etat << '.' << nom_broye << " = ";
+						generatrice.os << std::any_cast<dls::chaine>((*iter_enf)->valeur_calculee);
+						generatrice.os << ";\n";
+						++iter_enf;
+					}
+
+					generatrice.os << "pthread_t fil_coro;\n";
+					generatrice.os << "pthread_create(&fil_coro, NULL, " << df->nom_broye << ", &" << nom_etat << ");\n";
+					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
+					generatrice.os << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
+					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
 
 					/* À FAIRE : utilisation du type */
-					auto df = enfant2->df;
 					auto nombre_vars_ret = df->idx_types_retours.taille();
 
 					auto feuilles = dls::tableau<base *>{};
@@ -2406,30 +2437,27 @@ void genere_code_C(
 						generatrice.os << "int " << nom_idx << " = 0;";
 					}
 
-					generatrice.os << "while (1) {\n";
-					genere_code_C(enfant2, generatrice, contexte, true);
-
-					generatrice.os << "if (" << nom_etat << ".__termine_coro == 1) { break; }\n";
+					generatrice.os << "while (" << nom_etat << ".__termine_coro == 0) {\n";
+					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
 
 					for (auto i = 0l; i < nombre_vars_ret; ++i) {
 						auto f = feuilles[i];
 						auto nom_var_broye = broye_chaine(f);
-
-						contexte.magasin_types.converti_type_C(
-									contexte,
-									nom_var_broye,
-									type_debut.plage(),
-									generatrice.os);
-
-						generatrice.os << ';'
-						   << nom_var_broye
-						   << " = " << nom_etat
-						   << '.' << df->noms_retours[i] << ";\n";
+						generatrice.declare_variable(type_debut, nom_var_broye, "");
+						generatrice.os << nom_var_broye << " = "
+									   << nom_etat << '.' << df->noms_retours[i]
+									   << ";\n";
 
 						auto donnees_var = DonneesVariable{};
 						donnees_var.index_type = df->idx_types_retours[i];
 						contexte.pousse_locale(f->chaine(), donnees_var);
 					}
+
+					generatrice.os << "pthread_mutex_lock(&" << nom_etat << ".mutex_coro);\n";
+					generatrice.os << "pthread_cond_signal(&" << nom_etat << ".cond_coro);\n";
+					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_coro);\n";
+					generatrice.os << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
+					generatrice.os << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
 
 					if (idx) {
 						generatrice.os << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
@@ -2470,6 +2498,10 @@ void genere_code_C(
 			contexte.depile_goto_continue();
 
 			contexte.depile_nombre_locales();
+
+			if (b->aide_generation_code == GENERE_BOUCLE_COROUTINE || b->aide_generation_code == GENERE_BOUCLE_COROUTINE_INDEX) {
+				generatrice.os << "pthread_join(fil_coro, NULL);\n";
+			}
 
 			break;
 		}
@@ -3167,24 +3199,10 @@ void genere_code_C(
 		}
 		case type_noeud::RETIENS:
 		{
-			/* Transformation du code :
-			 *
-			 * retiens i;
-			 *
-			 * devient :
-			 *
-			 * __etat->val = i;
-			 * __etat->reprend = 1;
-			 * return;
-			 * __reprend_coroN:
-			 * i = __etat->val;
-			 */
-
 			auto df = contexte.donnees_fonction;
-			auto &donnees_coroutine = df->donnees_coroutine;
-			donnees_coroutine.nombre_retenues += 1;
-
 			auto enfant = b->enfants.front();
+
+			generatrice.os << "pthread_mutex_lock(&__etat->mutex_coro);\n";
 
 			auto feuilles = dls::tableau<base *>{};
 			rassemble_feuilles(enfant, feuilles);
@@ -3192,46 +3210,18 @@ void genere_code_C(
 			for (auto i = 0l; i < feuilles.taille(); ++i) {
 				auto f = feuilles[i];
 
-				genere_code_C(f, generatrice, contexte, true);
+				genere_code_C(f, generatrice, contexte, true);				
 
 				generatrice.os << "__etat->" << df->noms_retours[i] << " = ";
 				generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
 				generatrice.os << ";\n";
 			}
 
-			auto debut = contexte.debut_locales();
-			auto fin   = contexte.fin_locales();
-
-			for (; debut != fin; ++debut) {
-				if (debut->second.est_argument) {
-					continue;
-				}
-
-				auto nom_broye = broye_nom_simple(debut->first);
-				generatrice.os << "__etat->" << nom_broye << " = " << nom_broye << ";\n";
-			}
-
-			generatrice.os << "__etat->__reprend_coro = " << donnees_coroutine.nombre_retenues << ";\n";
-			generatrice.os << "return;\n";
-			generatrice.os << "__reprend_coro" << donnees_coroutine.nombre_retenues << ":\n";
-
-			debut = contexte.debut_locales();
-
-			for (; debut != fin; ++debut) {
-				if (debut->second.est_argument) {
-					continue;
-				}
-
-				auto dt_enf = contexte.magasin_types.donnees_types[debut->second.index_type].plage();
-
-				/* À FAIRE : trouve une manière de restaurer les tableaux fixes */
-				if (est_type_tableau_fixe(dt_enf)) {
-					continue;
-				}
-
-				auto nom_broye = broye_nom_simple(debut->first);
-				generatrice.os << nom_broye << " = __etat->" << nom_broye << ";\n";
-			}
+			generatrice.os << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
+			generatrice.os << "pthread_cond_signal(&__etat->cond_boucle);\n";
+			generatrice.os << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
+			generatrice.os << "pthread_cond_wait(&__etat->cond_coro, &__etat->mutex_coro);\n";
+			generatrice.os << "pthread_mutex_unlock(&__etat->mutex_coro);\n";
 
 			break;
 		}

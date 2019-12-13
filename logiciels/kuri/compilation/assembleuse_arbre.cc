@@ -44,6 +44,10 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 	this->ajoute_inclusion("stdlib.h");
 	/* Pour strlen, nous incluons toujours "string.h". */
 	this->ajoute_inclusion("string.h");
+	/* Pour les coroutines nous incluons toujours pthread */
+	this->ajoute_inclusion("pthread.h");
+	this->bibliotheques.pousse("pthread");
+	this->definitions.pousse("_REENTRANT");
 }
 
 assembleuse_arbre::~assembleuse_arbre()

@@ -50,13 +50,6 @@ struct DonneesArgument {
 	char pad[5];
 };
 
-struct DonneesCoroutine {
-	using paire_donnees = std::pair<long, char>;
-	using paire_variable = std::pair<dls::chaine, paire_donnees>;
-	dls::tableau<paire_variable> variables{};
-	int nombre_retenues = 0;
-};
-
 struct DonneesFonction {
 	dls::tableau<DonneesArgument> args{};
 	dls::tableau<DonneesTypeDeclare> types_retours_decl{};
@@ -71,7 +64,6 @@ struct DonneesFonction {
 	bool est_coroutine = false;
 	bool est_utilisee = false;
 	char pad[4];
-	DonneesCoroutine donnees_coroutine{};
 
 	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
 

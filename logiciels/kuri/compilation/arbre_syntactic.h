@@ -38,6 +38,7 @@ struct ContexteGenerationCode;
 enum class type_noeud : char {
 	RACINE,
 	DECLARATION_FONCTION,
+	DECLARATION_COROUTINE,
 	LISTE_PARAMETRES_FONCTION,
 	APPEL_FONCTION,
 	VARIABLE,

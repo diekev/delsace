@@ -77,6 +77,7 @@ const char *chaine_type_noeud(type_noeud type)
 	switch (type) {
 		CAS_TYPE(type_noeud::RACINE)
 		CAS_TYPE(type_noeud::DECLARATION_FONCTION)
+		CAS_TYPE(type_noeud::DECLARATION_COROUTINE)
 		CAS_TYPE(type_noeud::LISTE_PARAMETRES_FONCTION)
 		CAS_TYPE(type_noeud::APPEL_FONCTION)
 		CAS_TYPE(type_noeud::VARIABLE)

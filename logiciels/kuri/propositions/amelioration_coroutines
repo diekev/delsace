@@ -2,9 +2,6 @@ amélioration des coroutines :
 
 limites :
 - ne peut pas appeler une coroutine hors d'une boucle pour
-- ne peut pas appeler une coroutine dans une coroutine
-- ne peut stocker un tableau fixe dans une coroutine (sans avoir à dupliquer toute la mémoire)
-- (bug) pour restaurer les variables, il faut également prendre en compte les indirections de celles-ci (les variables temporaires générées en coulisse)
 
 ==========================
 - coroutine dans coroutine

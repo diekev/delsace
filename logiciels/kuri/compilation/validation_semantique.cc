@@ -742,6 +742,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::RACINE:
 		case type_noeud::RETOUR_MULTIPLE:
 		case type_noeud::RETOUR_SIMPLE:
+		case type_noeud::DECLARATION_COROUTINE:
 		{
 			break;
 		}
@@ -777,6 +778,10 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if (!enfant->enfants.est_vide()) {
 				rassemble_feuilles(enfant->enfants.front(), feuilles);
+			}
+
+			if (donnees_fonction->est_coroutine) {
+				b->type = type_noeud::DECLARATION_COROUTINE;
 			}
 
 			donnees_fonction->type_declare.pousse(
@@ -2853,33 +2858,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							contexte,
 							enfant->morceau,
 							b->morceau);
-			}
-
-			auto debut = contexte.debut_locales();
-			auto fin   = contexte.fin_locales();
-
-			auto &donnees_coroutine = contexte.donnees_fonction->donnees_coroutine;
-			donnees_coroutine.nombre_retenues += 1;
-
-			auto &variables = donnees_coroutine.variables;
-
-			for (; debut != fin; ++debut) {
-				if (debut->second.est_argument) {
-					continue;
-				}
-
-				auto duplique = false;
-
-				for (auto const &var : variables) {
-					if (var.first == debut->first) {
-						duplique = true;
-						break;
-					}
-				}
-
-				if (!duplique) {
-					variables.pousse({dls::chaine(debut->first), {debut->second.index_type, debut->second.drapeaux}});
-				}
 			}
 
 			break;
