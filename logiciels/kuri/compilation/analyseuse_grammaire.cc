@@ -1152,6 +1152,14 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 						auto chaine = donnees().chaine;
 						m_assembleuse->bibliotheques.pousse(chaine);
 					}
+					else if (directive == "def") {
+						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
+							lance_erreur("Attendu une chaine littérale après la directive");
+						}
+
+						auto chaine = donnees().chaine;
+						m_assembleuse->definitions.pousse(chaine);
+					}
 					else if (directive == "finsi") {
 						// dépile la dernière directive si, erreur si aucune
 					}

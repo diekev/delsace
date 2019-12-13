@@ -49,6 +49,9 @@ public:
 
 	dls::tableau<dls::vue_chaine_compacte> bibliotheques{};
 
+	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
+	dls::tableau<dls::vue_chaine_compacte> definitions{};
+
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();
 

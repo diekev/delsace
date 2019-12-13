@@ -507,7 +507,11 @@ int main(int argc, char *argv[])
 				commande += "-m32 ";
 			}
 
-			commande += "-o /tmp/compilation_kuri.o";
+			for (auto const &def : assembleuse.definitions) {
+				commande += " -D" + dls::chaine(def);
+			}
+
+			commande += " -o /tmp/compilation_kuri.o";
 
 			os << "Exécution de la commande '" << commande << "'..." << std::endl;
 
