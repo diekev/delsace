@@ -1,0 +1,257 @@
+énum État : z32 {
+	DÉBUT,
+	INSTRUCTION,
+	CHEMIN,
+	PROTOCOL,
+}
+
+éunm Instruction : z32 {
+	CHERCHE,
+	CRÉE,
+	AJOURNE,
+	DÉTRUIT,
+	ÉCRIT,
+	INVALIDE,
+}
+
+fonc détermine_instruction(chn : chaine) : Instruction
+{
+	info_inst = info_de(Instruction)
+
+	pour nom, idx dans info_inst.noms {
+		si compare_chaines(chn, nom) {
+			retourne transtype(info_inst.valeurs[idx] : Instruction)
+		}
+	}
+
+	retourne Instruction.INVALIDE
+}
+
+# CHERCHE /arachne/noeuds.base PGF/1.0\r\n
+# CRÉE /arachne/noeuds.base PGF/1.0\r\n
+# AJOURNE /arachne/noeuds.base PGF/1.0\r\n
+fonc analyse_réponse(réponse : chaine) : rien
+{
+	dyn début_mot = 0
+	dyn taille_mot = 0
+
+	dyn inst : Instruction
+	dyn chemin : chaine
+	dyn protocole : chaine
+
+	pour c, idx dans réponse {
+		associe c {
+			' ' {
+				si état == État.DÉBUT {
+					mot = construit_chaine(@c, taille_mot)
+					taille_mot = 0
+					inst = détermine_instruction(mot)
+
+					si inst == Instruction.INVALIDE {
+						retourne INSTRUCTION_INVALIDE
+					}
+
+					état = État.INSTRUCTION
+				}
+				sinon état == État.INSTRUCTION {
+					chemin = construit_chaine(@c, taille_mot)
+					taille_mot = 0
+
+					état = État.CHEMIN
+				}
+			}
+			'\n',
+			'\r' {
+				si état == État.CHEMIN {
+					protocole = construit_chaine(@c, taille_mot)
+					taille_mot = 0
+
+					si !compare_chaines(protocole, "PGF/1.0") {
+						retourne PROTOCOLE_INVALIDE
+					}
+
+					état = État.FINI
+				}
+				sinon si état == État.FINI {
+					# OK
+				}
+			}
+			sinon {
+				si taille_mot == 0 {
+					début_mot = idx
+				}
+
+				taille_mot += 1
+			}
+		}
+	}
+}
+
+énum TypeNoeud : z32 {
+	DOSSIER,
+	FEUILLE,
+}
+
+struct Noeud {
+	enfants : []*Noeud
+	nom : chaine
+}
+
+fonc trouve(noeud : *Noeud, nom : chaine) : *Noeud
+{
+	pour enfant dans noeud.enfants {
+		si compare_chaine(enfant.nom, nom) {
+			retourne enfant
+		}
+	}
+
+	retourne nul
+}
+
+struct Arbre {
+	racine : *Noeud
+	noeuds : []*Noeud
+}
+
+fonc décrée_arbre(arbre : &Arbre) : rien
+{
+	pour noeud dans noeuds {
+		déloge noeud
+	}
+}
+
+fonc cherche_fichier(arbre : &Arbre, chemin : chaine) : chaine
+{
+	dyn noeud = arbre.noeud_racine
+
+	pour morceau dans morcelle(chemin) {
+		noeud = noeud.trouve(morceau)
+
+		si noeud == nul {
+			retourne nul
+		}
+	}
+
+	si noeud.type != TypeNoeud.FEUILLE {
+		retourne nul
+	}
+
+	retourne noeud
+}
+
+struct Journal {
+	requêtes : []Requête
+}
+
+fonc pousse_requête(dyn journal : &Journal, requête : Requête) : rien
+{
+	taille = journal.requêtes.taille
+	reloge journal.requêtes : [taille + 1]Requête
+	journal.requête[taille] = requête
+}
+
+fonc crée_journal() : Journal
+{
+	dyn journal : Journal
+
+	requête = Requête {
+		inst = Instruction.CRÉE,
+		chemin = "/",
+		protocole = "PGL/1.1"
+	}
+
+	journal.pousse_requête(requête)
+
+	retourne journal
+}
+
+fonc charge_journal(chemin : chaine) : Journal
+{
+	contenu = contenu_fichier_texte(chemin)
+	diffère { déloge contenu; }
+
+	analyse_requête(contenu)
+}
+
+struct Système {
+	chemins : []chemin
+	journal : Journal
+}
+
+fonc crée_système() : Système
+{
+	dyn système : Système
+
+	# charge le fichier journal ou crée le si inexistant
+	dyn journal : Journal
+
+	si fichier_existe("journal_requête") {
+		journal = crée_journal()
+	}
+	sinon {
+		journal = ouvre_journal("")
+	}
+
+	# rejoue chaque requête dans le journal
+	pour requête dans rejoue(journal) {
+		répond_requête(système, requête)
+	}
+
+	système
+}
+
+fonc fichier_existe(système : &Système, chn : chaine) : bool
+{
+	pour chemin dans système.chemins {
+		si compare_chaines(chn, chemin) {
+			retourne vrai
+		}
+	}
+
+	retourne faux
+}
+
+struct Requête {
+	inst : Instruction
+	chemin : chaine
+	protocole : chaine
+}
+
+# ÉCRITURE_IMPOSSIBLE
+# FICHIER_INTROUVABLE
+# FICHIER_EXISTE
+# FICHIER_CRÉE
+# AJOURNEMENT_IMPOSSIBLE
+# AJOURNEMENT_FAIT
+# CRÉATION_IMPOSSIBLE
+# FICHIER_ÉCRIS
+# DESTRUCTION_IMPOSSIBLE
+# FICHIER_DÉTRUIT
+fonc répond(système : &Système, requête : &Requête) : chaine
+{
+	dyn enchaineuse = crée_constructrice_chaine()
+
+	associe requête.inst {
+		Instruction.CHERCHE {
+			si !fichier_existe(système, requête.chemin) {
+				enchaineuse.pousse("FICHIER_INTROUVABLE")
+			}
+		}
+		Instruction.CRÉE {
+			si fichier_existe(système, requête.chemin) {
+				enchaineuse.pousse("FICHIER_EXISTE")
+			}
+
+			si !crée_fichier(système, requête.chemin) {
+				enchaineuse.pousse("CRÉATION_IMPOSSIBLE")
+			}
+		}
+		Instruction.AJOURNE {
+
+		}
+		Instruction.ÉCRIT {
+		}
+		Instruction.DÉTRUIT {
+		}
+	}
+}
