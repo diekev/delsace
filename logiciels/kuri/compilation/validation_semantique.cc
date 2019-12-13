@@ -2395,6 +2395,11 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
 
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
+
+			for (auto enfant : b->enfants) {
+				performe_validation_semantique(enfant, contexte);
+			}
+
 			break;
 		}
 		case type_noeud::INFO_DE:
