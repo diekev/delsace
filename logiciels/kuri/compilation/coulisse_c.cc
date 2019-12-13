@@ -2883,6 +2883,8 @@ void genere_code_C(
 							generatrice.os);
 
 				generatrice.os << ")(malloc(" << nom_taille << "));\n";
+				/* À FAIRE : évite de mettre à zéro quand non-nécessaire */
+				generatrice.os << "memset(" << nom_ptr << ",0," << nom_taille << ");\n";
 
 				/* initialise la structure */
 				if ((dt_deref.front() & 0xff) == id_morceau::CHAINE_CARACTERE) {
