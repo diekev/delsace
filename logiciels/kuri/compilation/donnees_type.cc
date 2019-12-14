@@ -731,7 +731,7 @@ void MagasinDonneesType::converti_type_C(
 	}
 
 	/* cas spécial pour convertir les types complexes comme *[]z8 */
-	if (donnees.front() == id_morceau::POINTEUR) {
+	if (donnees.front() == id_morceau::POINTEUR || donnees.front() == id_morceau::REFERENCE) {
 		donnees.effronte();
 		this->converti_type_C(contexte, "", donnees, os, echappe, echappe_struct);
 
