@@ -485,7 +485,7 @@ static auto valide_appel_pointeur_fonction(
 			continue;
 		}
 
-		/* À FAIRE : trouve les données morceaux idoines. */
+		/* À FAIRE : trouve les données morceaux des arguments. */
 		erreur::lance_erreur(
 					"Les arguments d'un pointeur fonction ne peuvent être nommés",
 					contexte,
@@ -1963,18 +1963,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									enfant2->donnees_morceau());
 					}
 				}
-
-				/* À FAIRE : ceci est là pour sauvegarder l'index des coroutines
-				 * lors de l'itération de chaines ou de tableaux, ceci duplique
-				 * le code dans la coulisse C pour le nom de la variable. */
-				auto nom_var = "__i" + dls::vers_chaine(b);
-				contexte.magasin_chaines.pousse(nom_var);
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.index_type = contexte.magasin_types[TYPE_Z32];
-				donnees_var.drapeaux = 0;
-
-				contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
 			}
 
 			contexte.empile_nombre_locales();
@@ -2458,8 +2446,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
 			}
 
-			/* À FAIRE : détermine ce qui doit se passer dans un bloc suite à un
-			 * échec d'allocation. */
 			if (nombre_enfant == 1) {
 				performe_validation_semantique(*enfant++, contexte);
 			}
@@ -2503,8 +2489,6 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							enfant1->morceau);
 			}
 
-			/* À FAIRE : détermine ce qui doit se passer dans un bloc suite à un
-			 * échec d'allocation. */
 			if (nombre_enfant == 2) {
 				performe_validation_semantique(*enfant++, contexte);
 			}

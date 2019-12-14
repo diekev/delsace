@@ -2381,12 +2381,8 @@ void genere_code_C(
 				case GENERE_BOUCLE_TABLEAU_INDEX:
 				{
 					auto nom_var = "__i" + dls::vers_chaine(b);
-					contexte.magasin_chaines.pousse(nom_var);
 
 					auto donnees_var = DonneesVariable{};
-					donnees_var.index_type = contexte.magasin_types[TYPE_Z32];
-
-					contexte.pousse_locale(contexte.magasin_chaines.back(), donnees_var);
 
 					if ((type & 0xff) == id_morceau::TABLEAU) {
 						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
@@ -3286,7 +3282,6 @@ void genere_code_C(
 	for (auto noeud : b->enfants) {
 		auto debut_validation = dls::chrono::compte_seconde();
 		performe_validation_semantique(noeud, contexte);
-		contexte.magasin_chaines.efface();
 		temps_validation += debut_validation.temps();
 	}
 
@@ -3305,7 +3300,6 @@ void genere_code_C(
 	for (auto noeud : b->enfants) {
 		debut_generation.commence();
 		genere_code_C(noeud, generatrice, contexte, false);
-		contexte.magasin_chaines.efface();
 		temps_generation += debut_generation.temps();
 	}
 

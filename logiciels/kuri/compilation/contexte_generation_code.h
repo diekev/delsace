@@ -157,13 +157,6 @@ struct ContexteGenerationCode {
 
 	DonneesFonction *donnees_fonction = nullptr;
 
-	/* magasin pour que les string_views des chaines temporaires soient toujours
-	 * valides (notamment utilisé pour les variables des boucles dans les
-	 * coroutines)
-	 * utilisation d'une liste afin d'éviter les crashs quand on tient une
-	 * référence à une chaine qui sera libéré */
-	dls::liste<dls::chaine> magasin_chaines{};
-
 	long index_type_ctx = -1;
 
 	Operateurs operateurs{};
