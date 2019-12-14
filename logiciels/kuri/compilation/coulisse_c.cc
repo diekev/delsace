@@ -693,7 +693,7 @@ static auto cree_eini(
 
 	/* dans le cas d'un nombre ou d'un tableau, etc. */
 	if (b->type != type_noeud::VARIABLE) {
-		nom_var = dls::chaine("__var_").append(nom_eini);		
+		nom_var = dls::chaine("__var_").append(nom_eini);
 		generatrice.declare_variable(dt, nom_var, std::any_cast<dls::chaine>(b->valeur_calculee));
 	}
 	else {
@@ -1098,7 +1098,7 @@ static void genere_code_acces_membre(
 				flux << std::any_cast<dls::chaine>(structure->valeur_calculee);
 				flux << ((est_pointeur) ? "->" : ".");
 				flux << broye_chaine(membre);
-			}			
+			}
 		}
 		else if (est_type_tableau_fixe(type_structure)) {
 			auto taille_tableau = static_cast<size_t>(type_structure.front() >> 8);
@@ -1735,10 +1735,69 @@ void genere_code_C(
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
+			/* À FAIRE : tests */
+			auto flux = dls::flux_chaine();
+
+			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
+			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
+
+			flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+			flux << b->morceau.chaine;
+			flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+
+			if (expr_gauche) {
+				b->valeur_calculee = dls::chaine(flux.chn());
+			}
+			else {
+				auto nom_var = "__var_temp" + dls::vers_chaine(index++);
+				generatrice.os << "const ";
+				generatrice.declare_variable(b->index_type, nom_var, flux.chn());
+
+				b->valeur_calculee = nom_var;
+			}
+
+			break;
+		}
+		case type_noeud::OPERATION_COMP_CHAINEE:
+		{
+			auto enfant1 = b->enfants.front();
+			auto enfant2 = b->enfants.back();
+
+			/* À FAIRE : tests */
+			auto flux = dls::flux_chaine();
+
+			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
+			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
+			genere_code_C(enfant1->enfants.back(), generatrice, contexte, expr_gauche);
+
+			/* (a comp b) */
+			flux << '(';
+			flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+			flux << ')';
+
+			flux << "&&";
+
+			/* (b comp c) */
+			flux << '(';
+			flux << std::any_cast<dls::chaine>(enfant1->enfants.back()->valeur_calculee);
+			flux << b->morceau.chaine;
+			flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+			flux << ')';
+
+			auto nom_var = "__var_temp" + dls::vers_chaine(index++);
+			generatrice.os << "const ";
+			generatrice.declare_variable(b->index_type, nom_var, flux.chn());
+
+			b->valeur_calculee = nom_var;
+			break;
+		}
+		case type_noeud::ACCES_TABLEAU:
+		{
+			auto enfant1 = b->enfants.front();
+			auto enfant2 = b->enfants.back();
+
 			auto const index_type1 = enfant1->index_type;
 			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-
-			/* À FAIRE : typage */
 
 			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
@@ -1746,150 +1805,108 @@ void genere_code_C(
 			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
 			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
 
-			switch (b->morceau.identifiant) {
-				default:
+			auto type_base = type1.type_base();
+
+			/* À CONSIDÉRER :
+			 * - directive pour ne pas générer le code de vérification,
+			 *   car les branches nuisent à la vitesse d'exécution des
+			 *   programmes
+			 * - tests redondants ou inutiles, par exemple :
+			 *    - ceci génère deux fois la même instruction
+			 *      x[i] = 0;
+			 *      y = x[i];
+			 *    - ceci génère une instruction inutile
+			 *	    dyn x : [6]z32;
+			 *      x[0] = 8;
+			 */
+
+			auto const &morceau = b->morceau;
+			auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
+			auto pos = trouve_position(morceau, module);
+
+			switch (type_base & 0xff) {
+				case id_morceau::POINTEUR:
 				{
-					/* vérifie (a comp b comp c), transforme ((a comp b) && (b comp c)) */
-					if (est_operateur_comp(b->morceau.identifiant)) {
-						if (enfant1->morceau.identifiant == b->morceau.identifiant) {
-							genere_code_C(enfant1->enfants.back(), generatrice, contexte, expr_gauche);
+					flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					flux << '[';
+					flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					flux << ']';
+					break;
+				}
+				case id_morceau::CHAINE:
+				{
+					generatrice.os << "if (";
+					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << " < 0 || ";
+					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << " >= ";
+					generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					generatrice.os << ".taille) {\n";
+					generatrice.os << "KR__depassement_limites(";
+					generatrice.os << '"' << module->chemin << '"' << ',';
+					generatrice.os << pos.ligne + 1 << ',';
+					generatrice.os << "\"de la chaine\",";
+					generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					generatrice.os << ".taille,";
+					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << ");\n}\n";
 
-							/* (a comp b) */
-							flux << '(';
-							flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-							flux << ')';
-
-							flux << "&&";
-
-							/* (b comp c) */
-							flux << '(';
-							flux << std::any_cast<dls::chaine>(enfant1->enfants.back()->valeur_calculee);
-							flux << b->morceau.chaine;
-							flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							flux << ')';
-						}
-						else {
-							flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-							flux << b->morceau.chaine;
-							flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-						}
-					}
-					else {
-						flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-						flux << b->morceau.chaine;
-						flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-					}
+					flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					flux << ".pointeur";
+					flux << '[';
+					flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					flux << ']';
 
 					break;
 				}
-				case id_morceau::CROCHET_OUVRANT:
+				case id_morceau::TABLEAU:
 				{
-					auto type_base = type1.type_base();
+					auto taille_tableau = static_cast<int>(type_base >> 8);
 
-					/* À CONSIDÉRER :
-					 * - directive pour ne pas générer le code de vérification,
-					 *   car les branches nuisent à la vitesse d'exécution des
-					 *   programmes
-					 * - tests redondants ou inutiles, par exemple :
-					 *    - ceci génère deux fois la même instruction
-					 *      x[i] = 0;
-					 *      y = x[i];
-					 *    - ceci génère une instruction inutile
-					 *	    dyn x : [6]z32;
-					 *      x[0] = 8;
-					 */
+					generatrice.os << "if (";
+					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << " < 0 || ";
+					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << " >= ";
 
-					auto const &morceau = b->morceau;
-					auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-					auto pos = trouve_position(morceau, module);
-
-					switch (type_base & 0xff) {
-						case id_morceau::POINTEUR:
-						{
-							flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-							flux << '[';
-							flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							flux << ']';
-							break;
-						}
-						case id_morceau::CHAINE:
-						{
-							generatrice.os << "if (";
-							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							generatrice.os << " < 0 || ";
-							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							generatrice.os << " >= ";
-							generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);					
-							generatrice.os << ".taille) {\n";
-							generatrice.os << "KR__depassement_limites(";
-							generatrice.os << '"' << module->chemin << '"' << ',';
-							generatrice.os << pos.ligne + 1 << ',';
-							generatrice.os << "\"de la chaine\",";
-							generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-							generatrice.os << ".taille,";
-							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							generatrice.os << ");\n}\n";
-
-							flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-							flux << ".pointeur";
-							flux << '[';
-							flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							flux << ']';
-
-							break;
-						}
-						case id_morceau::TABLEAU:
-						{
-							auto taille_tableau = static_cast<int>(type_base >> 8);
-
-							generatrice.os << "if (";
-							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							generatrice.os << " < 0 || ";
-							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							generatrice.os << " >= ";
-
-							if (taille_tableau == 0) {
-								generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-								generatrice.os << ".taille";
-							}
-							else {
-								generatrice.os << taille_tableau;
-							}
-
-							generatrice.os << ") {\n";
-							generatrice.os << "KR__depassement_limites(";
-							generatrice.os << '"' << module->chemin << '"' << ',';
-							generatrice.os << pos.ligne + 1 << ',';
-							generatrice.os << "\"du tableau\",";
-							if (taille_tableau == 0) {
-								generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-								generatrice.os << ".taille";
-							}
-							else {
-								generatrice.os << taille_tableau;
-							}
-							generatrice.os << ",";
-							generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							generatrice.os << ");\n}\n";
-
-							flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-
-							if (taille_tableau == 0) {
-								flux << ".pointeur";
-							}
-
-							flux << '[';
-							flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
-							flux << ']';
-							break;
-						}
-						default:
-						{
-							assert(false);
-							break;
-						}
+					if (taille_tableau == 0) {
+						generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+						generatrice.os << ".taille";
+					}
+					else {
+						generatrice.os << taille_tableau;
 					}
 
+					generatrice.os << ") {\n";
+					generatrice.os << "KR__depassement_limites(";
+					generatrice.os << '"' << module->chemin << '"' << ',';
+					generatrice.os << pos.ligne + 1 << ',';
+					generatrice.os << "\"du tableau\",";
+					if (taille_tableau == 0) {
+						generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+						generatrice.os << ".taille";
+					}
+					else {
+						generatrice.os << taille_tableau;
+					}
+					generatrice.os << ",";
+					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << ");\n}\n";
+
+					flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+
+					if (taille_tableau == 0) {
+						flux << ".pointeur";
+					}
+
+					flux << '[';
+					flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					flux << ']';
+					break;
+				}
+				default:
+				{
+					assert(false);
 					break;
 				}
 			}
@@ -3210,7 +3227,7 @@ void genere_code_C(
 			for (auto i = 0l; i < feuilles.taille(); ++i) {
 				auto f = feuilles[i];
 
-				genere_code_C(f, generatrice, contexte, true);				
+				genere_code_C(f, generatrice, contexte, true);
 
 				generatrice.os << "__etat->" << df->noms_retours[i] << " = ";
 				generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);

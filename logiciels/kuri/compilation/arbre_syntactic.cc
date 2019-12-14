@@ -121,6 +121,8 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::PAIRE_ASSOCIATION)
 		CAS_TYPE(type_noeud::SAUFSI)
 		CAS_TYPE(type_noeud::RETIENS)
+		CAS_TYPE(type_noeud::ACCES_TABLEAU)
+		CAS_TYPE(type_noeud::OPERATION_COMP_CHAINEE)
 	}
 
 	return "erreur : type_noeud inconnu";

@@ -439,16 +439,9 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 			return peut_etre_assigne(b->enfants.back(), contexte);
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
+		case type_noeud::ACCES_TABLEAU:
 		{
 			return peut_etre_assigne(b->enfants.front(), contexte);
-		}
-		case type_noeud::OPERATION_BINAIRE:
-		{
-			if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
-				return peut_etre_assigne(b->enfants.front(), contexte);
-			}
-
-			return false;
 		}
 	}
 }
@@ -743,6 +736,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::RETOUR_MULTIPLE:
 		case type_noeud::RETOUR_SIMPLE:
 		case type_noeud::DECLARATION_COROUTINE:
+		case type_noeud::ACCES_TABLEAU:
+		case type_noeud::OPERATION_COMP_CHAINEE:
 		{
 			break;
 		}
@@ -969,7 +964,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto inst_ret = derniere_instruction(bloc->dernier_enfant());
 
 			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
-			if (inst_ret == nullptr) {				
+			if (inst_ret == nullptr) {
 				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 				if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
@@ -1447,7 +1442,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			/* À FAIRE : type R16, conversion automatique, etc. */
+			/* À FAIRE : type R16, typage, conversion automatique, etc. */
 
 #if 0
 			/* Désactivation du code de correction d'arbre syntactic pour
@@ -1491,27 +1486,28 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* détecte a comp b comp c */
 			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {
-				/* OK */
+				b->type = type_noeud::OPERATION_COMP_CHAINEE;
+			}
+			else if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
+				b->type = type_noeud::ACCES_TABLEAU;
 			}
 			else {
-				if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
-					if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
-						erreur::lance_erreur_type_operation(
-									type1,
-									type2,
-									contexte,
-									b->morceau);
-					}
-				}
-			}
-
-			if (est_assignation_operee(b->morceau.identifiant)) {
-				if (!peut_etre_assigne(enfant1, contexte)) {
-					erreur::lance_erreur(
-								"Impossible d'assigner l'expression à la variable !",
+				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
+					erreur::lance_erreur_type_operation(
+								type1,
+								type2,
 								contexte,
-								b->morceau,
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
+								b->morceau);
+				}
+
+				if (est_assignation_operee(b->morceau.identifiant)) {
+					if (!peut_etre_assigne(enfant1, contexte)) {
+						erreur::lance_erreur(
+									"Impossible d'assigner l'expression à la variable !",
+									contexte,
+									b->morceau,
+									erreur::type_erreur::ASSIGNATION_INVALIDE);
+					}
 				}
 			}
 
@@ -2659,7 +2655,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			{
 				auto &dt_membre = contexte.magasin_types.donnees_types[enfant->index_type];
 				auto align_type = alignement(contexte, dt_membre);
-				max_alignement = std::max(align_type, max_alignement);			
+				max_alignement = std::max(align_type, max_alignement);
 				auto padding = (align_type - (decalage % align_type)) % align_type;
 				decalage += padding;
 

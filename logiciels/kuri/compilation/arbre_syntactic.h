@@ -85,6 +85,8 @@ enum class type_noeud : char {
 	 * du code */
 	RETOUR_MULTIPLE,
 	RETOUR_SIMPLE,
+	ACCES_TABLEAU,
+	OPERATION_COMP_CHAINEE,
 };
 
 const char *chaine_type_noeud(type_noeud type);
