@@ -1383,6 +1383,7 @@ unsigned int taille_type_octet(
 			assert(false);
 			break;
 		}
+		case id_morceau::OCTET:
 		case id_morceau::BOOL:
 		case id_morceau::N8:
 		case id_morceau::Z8:
