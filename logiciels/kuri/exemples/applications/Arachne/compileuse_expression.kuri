@@ -233,7 +233,7 @@ fonc analyse_objet(dyn compileuse : &CompileuseExpression, caractère_final : z8
 fonc analyse_expression(
 	dyn compileuse : &CompileuseExpression) : rien
 {
-    imprime("analyse_expression : ", compileuse.chn, '\n')
+    #imprime("analyse_expression : ", compileuse.chn, '\n')
 
 	dyn eu_noeud = faux
 	dyn eu_relation = faux
@@ -422,7 +422,7 @@ fonc principale(args : []*z8) : z32
 
     requêtes = [
         "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",
-        "TROUVE (moi : { nom : \"bibi\" })\nCREE (moi) -[:AIME]-> (quelquechose)\nRETOURNE moi, quelquechose\n"
+        "TROUVE (moi { nom : \"bibi\" })\nCREE (moi) -[:AIME]-> (quelquechose)\nRETOURNE moi, quelquechose\n"
     ]
 
     pour requête dans requêtes {
@@ -430,4 +430,151 @@ fonc principale(args : []*z8) : z32
     }
 
     retourne 0
+}
+
+énum IdentifiantLexème : z32 {
+    PARENTHÈSE_OUVRANTE,
+    PARENTHÈSE_FERMANTE,
+    CROCHET_OUVRANT,
+    CROCHET_FERMANT,
+    ACCOLADE_OUVRANTE,
+    ACCOLADE_FERMANTE,
+    CHAINE_CARACTÈRE,
+    CHAINE_LITTÉRALE,
+    NOMBRE,
+    DOUBLE_POINTS,
+    VIRGULE,
+    INVALIDE,
+    FLÈCHE_GAUCHE,
+    FLÈCHE_DROITE,
+    TIRET,
+    DOUBLE_TIRET,
+}
+
+struct Lexème {
+    chn : chaine
+    id : IdentifiantLexème
+}
+
+struct Lexeuse {
+    chn : chaine
+    lexèmes : []Lexème
+	pos_mot : z64 = 0
+	taille_mot : z64 = 0
+	début_mot : z64 = 0
+}
+
+fonc consomme(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.pos_mot += 1
+}
+
+fonc caractère_courant(dyn lexeuse : &Lexeuse) : z8
+{
+	retourne lexeuse.chn[lexeuse.pos_mot]
+}
+
+fonc a_fini(dyn lexeuse : &Lexeuse) : bool
+{
+	retourne lexeuse.pos_mot >= lexeuse.chn.taille
+}
+
+fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.début_mot = lexeuse.pos_mot
+	lexeuse.taille_mot = 0
+}
+
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.taille_mot += 1
+	lexeuse.consomme()
+}
+
+fonc mot(empl lexeuse : &Lexeuse) : chaine
+{
+	retourne construit_chaine(@lexeuse.chn[lexeuse.début_mot], lexeuse.taille_mot)
+}
+
+fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) : rien
+{
+    taille = lexèmes.taille
+    reloge lexèmes : [taille + 1]Lexème
+    lexèmes[taille] = lexème
+}
+
+fonc trouve_identifiant_caractère(c : z8) : IdentifiantLexème
+{
+    si c == '(' {
+        retourne IdentifiantLexème.PARENTHÈSE_OUVRANTE
+    }
+    sinon si c == ')' {
+        retourne IdentifiantLexème.PARENTHÈSE_FERMANTE
+    }
+    sinon si c == '{' {
+        retourne IdentifiantLexème.ACCOLADE_OUVRANTE
+    }
+    sinon si c == '}' {
+        retourne IdentifiantLexème.ACCOLADE_FERMANTE
+    }
+    sinon si c == '[' {
+        retourne IdentifiantLexème.CROCHET_OUVRANT
+    }
+    sinon si c == ']' {
+        retourne IdentifiantLexème.CROCHET_FERMANT
+    }
+    sinon si c == '-' {
+        retourne IdentifiantLexème.TIRET
+    }
+    sinon si c == ',' {
+        retourne IdentifiantLexème.VIRGULE
+    }
+    sinon si c == ':' {
+        retourne IdentifiantLexème.DOUBLE_POINTS
+    }
+
+    retourne IdentifiantLexème.INVALIDE
+}
+
+fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
+{
+    lexeuse.chn = chn
+    lexeuse.pos_mot = 0
+    lexeuse.taille_mot = 0
+    lexeuse.début_mot = 0
+
+    tantque !lexeuse.a_fini() {
+        c = lexeuse.caractère_courant()
+
+        si c == '<' || c == '>' {
+            lexeuse.enregistre_pos_mot()
+            lexeuse.pousse_caractère()
+            lexeuse.pousse_caractère()
+
+            si c == '<' {
+                id = IdentifiantLexème.FLÈCHE_GAUCHE
+            }
+            sinon {
+                id = IdentifiantLexème.FLÈCHE_DROITE
+            }
+
+            # ajoute lexème
+        }
+        sinon si c == ' ' || c == '\t' || c == '\n' {
+
+        }
+        sinon {
+            id = trouve_identifiant_caractère(c)
+
+            si id != IdentifiantLexème.INVALIDE {
+                lexeuse.enregistre_pos_mot()
+                lexeuse.pousse_caractère()
+                # ajoute lexème
+
+                continue
+            }
+
+            lexeuse.consomme()
+        }
+    } 
 }
