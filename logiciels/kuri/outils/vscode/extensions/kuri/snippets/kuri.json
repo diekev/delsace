@@ -111,6 +111,17 @@
         ],
         "description": "Fragment de code pour une définition de fonction"
     },
+    "principale": {
+        "prefix": "principale",
+        "body": [
+            "fonc principale(args : []*z8) : z32",
+            "{",
+            "\t${1:expression}",
+            "\tretourne 0",
+            "}"
+        ],
+        "description": "Fragment de code pour générer la définition de la fonction principale"
+    },
     "corout": {
         "prefix": "corout",
         "body": [
