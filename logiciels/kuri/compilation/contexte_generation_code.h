@@ -51,6 +51,7 @@ class FunctionPassManager;
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
+#include "operateurs.hh"
 #include "expression.h"
 
 class assembleuse_arbre;
@@ -164,6 +165,8 @@ struct ContexteGenerationCode {
 	dls::liste<dls::chaine> magasin_chaines{};
 
 	long index_type_ctx = -1;
+
+	Operateurs operateurs{};
 
 	bool bit32 = false;
 

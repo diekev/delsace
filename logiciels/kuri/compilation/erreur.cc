@@ -35,6 +35,15 @@ static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
 	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
 }
 
+static void imprime_tilde(
+		dls::flux_chaine &ss,
+		dls::vue_chaine_compacte chaine,
+		long debut,
+		long fin)
+{
+	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()), debut, fin);
+}
+
 }
 
 namespace erreur {
@@ -432,6 +441,95 @@ void lance_erreur_acces_hors_limites(
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::NORMAL);
+}
+
+struct Etendue {
+	long pos_min = 0;
+	long pos_max = 0;
+};
+
+static Etendue calcule_etendue_noeud(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b)
+{
+	auto const &morceau = b->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+
+	auto etendue = Etendue{};
+	etendue.pos_min = pos.pos;
+	etendue.pos_max = pos.pos + b->morceau.chaine.taille();
+
+	for (auto enfant : b->enfants) {
+		auto etendue_enfant = calcule_etendue_noeud(contexte, enfant);
+
+		etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+		etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+	}
+
+	return etendue;
+}
+
+void lance_erreur_type_operation(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b)
+{
+	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
+	// soit l'opérateur n'est pas commutatif
+	// soit l'opérateur n'est pas défini pour le type
+
+	auto const &morceau = b->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[numero_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, b);
+
+	auto enfant_gauche = b->enfants.front();
+	auto enfant_droite = b->enfants.back();
+
+	auto index_type_gauche = enfant_gauche->index_type;
+	auto index_type_droite = enfant_droite->index_type;
+
+	auto const &type_gauche = contexte.magasin_types.donnees_types[index_type_gauche];
+	auto const &type_droite = contexte.magasin_types.donnees_types[index_type_droite];
+
+	auto etendue_gauche = calcule_etendue_noeud(contexte, enfant_gauche);
+	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
+
+	auto expr_gauche = dls::vue_chaine_compacte(&ligne[etendue_gauche.pos_min], etendue_gauche.pos_max - etendue_gauche.pos_min);
+	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
+
+	dls::flux_chaine ss;
+
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne << '\n';
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << "Aucun opérateur trouvé pour l'opération !\n";
+	ss << "Veuillez vous assurer que les types correspondent.\n";
+	ss << '\n';
+	ss << "L'expression à gauche de l'opérateur, " << expr_gauche << ", est de type : ";
+	ss << chaine_type(type_gauche, contexte) << '\n';
+	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
+	ss << chaine_type(type_droite, contexte) << '\n';
+	ss << '\n';
+	ss << "Pour résoudre ce problème, vous pouvez par exemple transtyper l'une des deux expressions :\n";
+	ss << "transtype(" << expr_gauche << " : " << chaine_type(type_droite, contexte) << ")\n";
+	ss << "ou\n";
+	ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche, contexte) << ")\n";
+
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
 }

@@ -1442,7 +1442,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			/* À FAIRE : type R16, typage, conversion automatique, etc. */
+			/* À FAIRE : conversion automatique */
 
 #if 0
 			/* Désactivation du code de correction d'arbre syntactic pour
@@ -1478,29 +1478,124 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			performe_validation_semantique(enfant1, contexte);
 			performe_validation_semantique(enfant2, contexte);
 
-			auto const index_type1 = enfant1->index_type;
-			auto const index_type2 = enfant2->index_type;
+			auto index_type1 = enfant1->index_type;
+			auto index_type2 = enfant2->index_type;
 
 			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
 			auto const &type2 = contexte.magasin_types.donnees_types[index_type2];
 
+			/* tentative de faire fonctionner les expressions de type : a - 1, où
+			 * a n'est pas z32. Il faudrait peut-être donner des indices aux
+			 * noeuds de nombre littéraux afin de mieux leur attribuer un type */
+			if (est_type_entier(type1.type_base()) && est_type_entier(type2.type_base())) {
+				if (index_type1 != index_type2) {
+					if (enfant1->type == type_noeud::NOMBRE_ENTIER) {
+						index_type1 = index_type2;
+					}
+					else if (enfant2->type == type_noeud::NOMBRE_ENTIER) {
+						index_type2 = index_type1;
+					}
+					else {
+						if (taille_octet_type(contexte, type1) >= taille_octet_type(contexte, type2)) {
+							index_type2 = index_type1;
+						}
+						else {
+							index_type1 = index_type2;
+						}
+					}
+				}
+			}
+
+			if (est_type_reel(type1.type_base()) && est_type_reel(type2.type_base())) {
+				if (index_type1 != index_type2) {
+					if (enfant1->type == type_noeud::NOMBRE_REEL) {
+						index_type1 = index_type2;
+					}
+					else if (enfant2->type == type_noeud::NOMBRE_REEL) {
+						index_type2 = index_type1;
+					}
+					else {
+						if (taille_octet_type(contexte, type1) >= taille_octet_type(contexte, type2)) {
+							index_type2 = index_type1;
+						}
+						else {
+							index_type1 = index_type2;
+						}
+					}
+				}
+			}
+
 			/* détecte a comp b comp c */
 			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {
+				/* À FAIRE : trouve l'opérateur */
 				b->type = type_noeud::OPERATION_COMP_CHAINEE;
+				b->index_type = contexte.magasin_types[TYPE_BOOL];
 			}
 			else if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				b->type = type_noeud::ACCES_TABLEAU;
+
+				auto type_base = type1.type_base();
+
+				switch (type_base & 0xff) {
+					case id_morceau::TABLEAU:
+					{
+						b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
+
+						auto taille_tableau = static_cast<int>(type_base >> 8);
+
+						if (taille_tableau != 0) {
+							auto res = evalue_expression(contexte, enfant2);
+
+							if (!res.est_errone) {
+								if (res.entier >= taille_tableau) {
+									erreur::lance_erreur_acces_hors_limites(
+												contexte,
+												enfant2,
+												taille_tableau,
+												type1,
+												res.entier);
+								}
+							}
+						}
+
+						break;
+					}
+					case id_morceau::POINTEUR:
+					{
+						b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
+						break;
+					}
+					case id_morceau::CHAINE:
+					{
+						b->index_type = contexte.magasin_types[TYPE_Z8];
+						break;
+					}
+					default:
+					{
+						dls::flux_chaine ss;
+						ss << "Le type '" << chaine_type(type1, contexte)
+						   << "' ne peut être déréférencé par opérateur[] !";
+
+						erreur::lance_erreur(
+									ss.chn(),
+									contexte,
+									b->morceau,
+									erreur::type_erreur::TYPE_DIFFERENTS);
+					}
+				}
 			}
 			else {
-				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
-					erreur::lance_erreur_type_operation(
-								type1,
-								type2,
-								contexte,
-								b->morceau);
+				if (type1.type_base() == id_morceau::POINTEUR) {
+					index_type1 = contexte.magasin_types[TYPE_PTR_NUL];
 				}
 
-				if (est_assignation_operee(b->morceau.identifiant)) {
+				if (type2.type_base() == id_morceau::POINTEUR) {
+					index_type2 = contexte.magasin_types[TYPE_PTR_NUL];
+				}
+
+				auto type_op = b->morceau.identifiant;
+
+				if (est_assignation_operee(type_op)) {
 					if (!peut_etre_assigne(enfant1, contexte)) {
 						erreur::lance_erreur(
 									"Impossible d'assigner l'expression à la variable !",
@@ -1508,150 +1603,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									b->morceau,
 									erreur::type_erreur::ASSIGNATION_INVALIDE);
 					}
+
+					type_op = operateur_pour_assignation_operee(type_op);
 				}
-			}
 
-			switch (b->identifiant()) {
-				default:
-				{
-					b->index_type = index_type1;
-					break;
+				auto op = cherche_operateur(contexte.operateurs, index_type1, index_type2, type_op);
+
+				if (op == nullptr) {
+					erreur::lance_erreur_type_operation(contexte, b);
 				}
-				case id_morceau::POURCENT:
-				{
-					b->index_type = index_type1;
 
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Le modulo n'est défini que pour les types entiers !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::NORMAL);
-					}
-
-					break;
-				}
-				case id_morceau::ESPERLUETTE:
-				{
-					b->index_type = index_type1;
-
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"L'opérateur « & » n'est défini que pour les types entiers !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::NORMAL);
-					}
-
-					break;
-				}
-				case id_morceau::BARRE:
-				{
-					b->index_type = index_type1;
-
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"L'opérateur « | » n'est défini que pour les types entiers !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::NORMAL);
-					}
-
-					break;
-				}
-				case id_morceau::CHAPEAU:
-				{
-					b->index_type = index_type1;
-
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"L'opérateur « ^ » n'est défini que pour les types entiers !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::NORMAL);
-					}
-
-					break;
-				}
-				case id_morceau::CROCHET_OUVRANT:
-				{
-					auto type_base = type1.type_base();
-
-					switch (type_base & 0xff) {
-						case id_morceau::TABLEAU:
-						{
-							b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
-
-							auto taille_tableau = static_cast<int>(type_base >> 8);
-
-							if (taille_tableau != 0) {
-								auto res = evalue_expression(contexte, enfant2);
-
-								if (!res.est_errone) {
-									if (res.entier >= taille_tableau) {
-										erreur::lance_erreur_acces_hors_limites(
-													contexte,
-													enfant2,
-													taille_tableau,
-													type1,
-													res.entier);
-									}
-								}
-							}
-
-							break;
-						}
-						case id_morceau::POINTEUR:
-						{
-							b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
-							break;
-						}
-						case id_morceau::CHAINE:
-						{
-							b->index_type = contexte.magasin_types[TYPE_Z8];
-							break;
-						}
-						default:
-						{
-							dls::flux_chaine ss;
-							ss << "Le type '" << chaine_type(type1, contexte)
-							   << "' ne peut être déréférencé par opérateur[] !";
-
-							erreur::lance_erreur(
-										ss.chn(),
-										contexte,
-										b->morceau,
-										erreur::type_erreur::TYPE_DIFFERENTS);
-						}
-					}
-
-					break;
-				}
-				case id_morceau::EGALITE:
-				case id_morceau::DIFFERENCE:
-				case id_morceau::INFERIEUR:
-				case id_morceau::INFERIEUR_EGAL:
-				case id_morceau::SUPERIEUR:
-				case id_morceau::SUPERIEUR_EGAL:
-				{
-					b->index_type = contexte.magasin_types[TYPE_BOOL];
-					break;
-				}
-				case id_morceau::ESP_ESP:
-				case id_morceau::BARRE_BARRE:
-				{
-					b->index_type = contexte.magasin_types[TYPE_BOOL];
-
-					if (enfant1->index_type != contexte.magasin_types[TYPE_BOOL]) {
-						erreur::lance_erreur(
-									"L'opérateur n'est défini que pour les types booléens",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::NORMAL);
-					}
-
-					break;
-				}
+				b->index_type = op->index_resultat;
+				b->op = op;
 			}
 
 			break;
@@ -2732,6 +2695,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto &ds = contexte.donnees_structure(b->chaine());
 			ds.noeud_decl->index_type = resoud_type_final(contexte, ds.noeud_decl->type_declare);
+			contexte.operateurs.ajoute_operateur_basique_enum(ds.index_type);
 
 			/* À FAIRE : tests */
 

@@ -1741,9 +1741,20 @@ void genere_code_C(
 			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
 			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
 
-			flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
-			flux << b->morceau.chaine;
-			flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+			auto op = b->op;
+
+			if (op->est_basique) {
+				flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				flux << b->morceau.chaine;
+				flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+			}
+			else {
+				flux << op->nom_fonction << '(';
+				flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				flux << ',';
+				flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+				flux << ')';
+			}
 
 			if (expr_gauche) {
 				b->valeur_calculee = dls::chaine(flux.chn());

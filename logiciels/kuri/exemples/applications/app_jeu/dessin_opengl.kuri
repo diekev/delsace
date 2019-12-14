@@ -255,7 +255,7 @@ fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32
     débute_dessin()
 
     soit segs = 8
-    dyn phi = transtype(quadrant : r32) * (3.14159 / 2.0)
+    dyn phi = transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
     dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
 
     pour i dans 0...segs - 1 {

@@ -46,6 +46,7 @@ set(SOURCES
 	generatrice_code_c.hh
 	modules.hh
 	morceaux.hh
+	operateurs.hh
 	outils_morceaux.hh
 	validation_semantique.hh
 
@@ -62,6 +63,7 @@ set(SOURCES
 	generatrice_code_c.cc
 	modules.cc
 	morceaux.cc
+	operateurs.cc
 	outils_morceaux.cc
 	validation_semantique.cc
 )

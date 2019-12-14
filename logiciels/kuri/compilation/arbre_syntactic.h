@@ -220,6 +220,7 @@ enum {
 };
 
 struct DonneesFonction;
+struct DonneesOperateur;
 
 namespace noeud {
 
@@ -247,6 +248,7 @@ struct base {
 	int module_appel{}; // module pour les appels de fonctions importées
 
 	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
+	DonneesOperateur const *op = nullptr;
 
 	DonneesTypeDeclare type_declare{};
 

@@ -38,7 +38,6 @@ bool est_type_entier(id_morceau type)
 		case id_morceau::Z16:
 		case id_morceau::Z32:
 		case id_morceau::Z64:
-		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
 		case id_morceau::OCTET:
 			return true;
 		default:
@@ -54,7 +53,6 @@ bool est_type_entier_naturel(id_morceau type)
 		case id_morceau::N32:
 		case id_morceau::N64:
 		case id_morceau::N128:
-		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
 			return true;
 		default:
 			return false;
@@ -129,6 +127,56 @@ bool est_assignation_operee(id_morceau type)
 		case id_morceau::DEC_GAUCHE_EGAL:
 		{
 			return true;
+		}
+	}
+}
+
+id_morceau operateur_pour_assignation_operee(id_morceau type)
+{
+	switch (type) {
+		default:
+		{
+			return type;
+		}
+		case id_morceau::MOINS_EGAL:
+		{
+			return id_morceau::MOINS;
+		}
+		case id_morceau::PLUS_EGAL:
+		{
+			return id_morceau::PLUS;
+		}
+		case id_morceau::MULTIPLIE_EGAL:
+		{
+			return id_morceau::FOIS;
+		}
+		case id_morceau::DIVISE_EGAL:
+		{
+			return id_morceau::DIVISE;
+		}
+		case id_morceau::MODULO_EGAL:
+		{
+			return id_morceau::POURCENT;
+		}
+		case id_morceau::ET_EGAL:
+		{
+			return id_morceau::ESPERLUETTE;
+		}
+		case id_morceau::OU_EGAL:
+		{
+			return id_morceau::BARRE;
+		}
+		case id_morceau::OUX_EGAL:
+		{
+			return id_morceau::CHAPEAU;
+		}
+		case id_morceau::DEC_DROITE_EGAL:
+		{
+			return id_morceau::DECALAGE_DROITE;
+		}
+		case id_morceau::DEC_GAUCHE_EGAL:
+		{
+			return id_morceau::DECALAGE_GAUCHE;
 		}
 	}
 }

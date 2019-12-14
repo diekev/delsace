@@ -38,6 +38,8 @@ bool est_operateur_bool(id_morceau type);
 
 bool est_assignation_operee(id_morceau type);
 
+id_morceau operateur_pour_assignation_operee(id_morceau type);
+
 bool est_operateur_comp(id_morceau type);
 
 bool peut_etre_dereference(id_morceau id);

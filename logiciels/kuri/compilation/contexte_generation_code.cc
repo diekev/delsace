@@ -38,6 +38,8 @@
 
 ContexteGenerationCode::ContexteGenerationCode()
 {
+	enregistre_operateurs_basiques(*this, this->operateurs);
+
 	auto ds_contexte_global = DonneesStructure();
 	ds_contexte_global.est_enum = false;
 	ds_contexte_global.noeud_decl = nullptr;

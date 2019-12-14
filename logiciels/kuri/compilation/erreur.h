@@ -119,4 +119,8 @@ using frappe = lng::erreur::frappe<type_erreur>;
 			DonneesTypeFinal const &type_tableau,
 			long index_acces);
 
+[[noreturn]] void lance_erreur_type_operation(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b);
+
 }
