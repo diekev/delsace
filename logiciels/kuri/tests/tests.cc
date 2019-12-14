@@ -52,7 +52,7 @@ int main()
 	controleuse.ajoute_fonction(test_retour);
 	controleuse.ajoute_fonction(test_boucle);
 	controleuse.ajoute_fonction(test_transtype);
-	controleuse.ajoute_fonction(test_modules);
+	//controleuse.ajoute_fonction(test_modules);
 	controleuse.ajoute_fonction(test_tableaux);
 
 	controleuse.performe_controles();

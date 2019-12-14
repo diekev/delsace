@@ -53,8 +53,10 @@ static std::pair<bool, bool> retourne_erreur_module_lancee(
 		auto contexte_generation = ContexteGenerationCode{};
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
+		auto module = contexte_generation.cree_module("", "");
+
 		std::ostream os(nullptr);
-		importe_module(os, "", nom_module.c_str(), contexte_generation, {});
+		charge_fichier(os, module, "", nom_module.c_str(), contexte_generation, {});
 
 		if (genere_code) {
 			assembleuse.genere_code_C(contexte_generation, os, "");
