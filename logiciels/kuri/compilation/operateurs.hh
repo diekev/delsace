@@ -60,10 +60,13 @@ struct Operateurs {
 	void ajoute_basique(id_morceau id, long index_type, long index_type_resultat);
 	void ajoute_basique(id_morceau id, long index_type1, long index_type2, long index_type_resultat);
 
+	void ajoute_basique_unaire(id_morceau id, long index_type, long index_type_resultat);
+
 	void ajoute_perso(id_morceau id, long index_type1, long index_type2, long index_type_resultat, dls::chaine const &nom_fonction);
 
-	void ajoute_operateur_basique_enum(long index_type);
+	void ajoute_perso_unaire(id_morceau id, long index_type, long index_type_resultat, dls::chaine const &nom_fonction);
 
+	void ajoute_operateur_basique_enum(long index_type);
 };
 
 const DonneesOperateur *cherche_operateur(
@@ -71,6 +74,11 @@ const DonneesOperateur *cherche_operateur(
 	long index_type1,
 	long index_type2,
 	id_morceau type_op);
+
+DonneesOperateur const *cherche_operateur_unaire(
+		Operateurs const &operateurs,
+		long index_type1,
+		id_morceau type_op);
 
 void enregistre_operateurs_basiques(
 	ContexteGenerationCode &contexte,

@@ -123,4 +123,8 @@ using frappe = lng::erreur::frappe<type_erreur>;
 			ContexteGenerationCode const &contexte,
 			noeud::base *b);
 
+[[noreturn]] void lance_erreur_type_operation_unaire(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b);
+
 }

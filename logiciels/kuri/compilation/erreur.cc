@@ -532,4 +532,48 @@ void lance_erreur_type_operation(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
+void lance_erreur_type_operation_unaire(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b)
+{
+	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
+	// soit l'opérateur n'est pas commutatif
+	// soit l'opérateur n'est pas défini pour le type
+
+	auto const &morceau = b->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const numero_ligne = pos.ligne;
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[numero_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, b);
+
+	auto enfant_droite = b->enfants.front();
+	auto index_type_droite = enfant_droite->index_type;
+	auto const &type_droite = contexte.magasin_types.donnees_types[index_type_droite];
+	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
+	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
+
+	dls::flux_chaine ss;
+
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << numero_ligne << '\n';
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << "Aucun opérateur trouvé pour l'opération !\n";
+	ss << "Veuillez vous assurer que les types correspondent.\n";
+	ss << '\n';
+	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
+	ss << chaine_type(type_droite, contexte) << '\n';
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
+}
+
 }

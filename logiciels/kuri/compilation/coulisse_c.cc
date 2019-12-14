@@ -1941,47 +1941,35 @@ void genere_code_C(
 		{
 			auto enfant = b->enfants.front();
 
-			/* force une expression si l'opérateur est @, pour que les
-			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
-			 * pointeur de la variable temporaire du code généré */
+			/* À FAIRE : tests */
+
 			expr_gauche |= b->morceau.identifiant == id_morceau::AROBASE;
 			genere_code_C(enfant, generatrice, contexte, expr_gauche);
 
-			char const *pref = nullptr;
-
-			switch (b->morceau.identifiant) {
-				case id_morceau::EXCLAMATION:
-				{
-					pref = "!(";
-					break;
-				}
-				case id_morceau::TILDE:
-				{
-					pref = "~(";
-					break;
-				}
-				case id_morceau::AROBASE:
-				{
-					pref = "&(";
-					break;
-				}
-				case id_morceau::PLUS_UNAIRE:
-				{
-					pref = "(";
-					break;
-				}
-				case id_morceau::MOINS_UNAIRE:
-				{
-					pref = "-(";
-					break;
-				}
-				default:
-				{
-					break;
-				}
+			if (b->morceau.identifiant == id_morceau::AROBASE) {
+				/* force une expression si l'opérateur est @, pour que les
+				 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
+				 * pointeur de la variable temporaire du code généré */
+				genere_code_C(enfant, generatrice, contexte, true);
+				b->valeur_calculee = "&(" + std::any_cast<dls::chaine>(enfant->valeur_calculee) + ")";
 			}
+			else {
+				auto flux = dls::flux_chaine();
+				auto op = b->op;
 
-			b->valeur_calculee = pref + std::any_cast<dls::chaine>(enfant->valeur_calculee) + ")";
+				if (op->est_basique) {
+					flux << b->morceau.chaine;
+				}
+				else {
+					flux << b->op->nom_fonction;
+				}
+
+				flux << '(';
+				flux << std::any_cast<dls::chaine>(enfant->valeur_calculee);
+				flux << ')';
+
+				b->valeur_calculee = dls::chaine(flux.chn());
+			}
 
 			break;
 		}

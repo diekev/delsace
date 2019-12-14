@@ -98,6 +98,11 @@ void Operateurs::ajoute_basique(id_morceau id, long index_type1, long index_type
 	donnees_operateurs[id].pousse(op);
 }
 
+void Operateurs::ajoute_basique_unaire(id_morceau id, long index_type, long index_type_resultat)
+{
+	ajoute_basique(id, index_type, index_type, index_type_resultat);
+}
+
 void Operateurs::ajoute_perso(
 		id_morceau id,
 		long index_type1,
@@ -108,6 +113,22 @@ void Operateurs::ajoute_perso(
 	auto op = DonneesOperateur{};
 	op.index_type1 = index_type1;
 	op.index_type2 = index_type2;
+	op.index_resultat = index_type_resultat;
+	op.est_commutatif = est_commutatif(id);
+	op.est_basique = false;
+	op.nom_fonction = nom_fonction;
+
+	donnees_operateurs[id].pousse(op);
+}
+
+void Operateurs::ajoute_perso_unaire(
+		id_morceau id,
+		long index_type,
+		long index_type_resultat,
+		const dls::chaine &nom_fonction)
+{
+	auto op = DonneesOperateur{};
+	op.index_type1 = index_type;
 	op.index_resultat = index_type_resultat;
 	op.est_commutatif = est_commutatif(id);
 	op.est_basique = false;
@@ -148,6 +169,20 @@ DonneesOperateur const *cherche_operateur(
 	}
 
 	return op_commutatif;
+}
+
+DonneesOperateur const *cherche_operateur_unaire(
+		Operateurs const &operateurs,
+		long index_type1,
+		id_morceau type_op)
+{
+	for (auto const &op : operateurs.trouve(type_op)) {
+		if (op.index_type1 == index_type1) {
+			return &op;
+		}
+	}
+
+	return nullptr;
 }
 
 void enregistre_operateurs_basiques(
@@ -224,6 +259,21 @@ void enregistre_operateurs_basiques(
 	operateurs.ajoute_basique(id_morceau::ESP_ESP, type_bool, type_bool);
 	operateurs.ajoute_basique(id_morceau::BARRE_BARRE, type_bool, type_bool);
 
+	// opérateurs unaires + - ~
+	for (auto type : types_entiers) {
+		operateurs.ajoute_basique_unaire(id_morceau::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(id_morceau::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(id_morceau::TILDE, type, type);
+	}
+
+	for (auto type : types_reels) {
+		operateurs.ajoute_basique_unaire(id_morceau::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(id_morceau::MOINS_UNAIRE, type, type);
+	}
+
+	// opérateurs unaires booléens !
+	operateurs.ajoute_basique_unaire(id_morceau::EXCLAMATION, type_bool, type_bool);
+
 	// type r16
 
 	// r16 + r32 => DLS_ajoute_r16r32
@@ -265,4 +315,7 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_perso(op, type_r16, type_r64, type_bool, chaine + "r16r64");
 		operateurs.ajoute_perso(op, type_r64, type_r16, type_bool, chaine + "r64r16");
 	}
+
+	operateurs.ajoute_perso_unaire(id_morceau::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
+	operateurs.ajoute_perso_unaire(id_morceau::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
 }

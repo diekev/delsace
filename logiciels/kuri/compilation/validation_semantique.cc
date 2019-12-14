@@ -1621,88 +1621,28 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::OPERATION_UNAIRE:
 		{
-			/* À FAIRE : type R16 */
-
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte);
 			auto index_type = enfant->index_type;
 			auto const &type = contexte.magasin_types.donnees_types[index_type];
 
 			if (b->index_type == -1l) {
-				switch (b->identifiant()) {
-					default:
-					{
-						b->index_type = enfant->index_type;
-						break;
+				if (b->identifiant() == id_morceau::AROBASE) {
+					auto dt = DonneesTypeFinal{};
+					dt.pousse(id_morceau::POINTEUR);
+					dt.pousse(type);
+
+					b->index_type = contexte.magasin_types.ajoute_type(dt);
+				}
+				else {
+					auto op = cherche_operateur_unaire(contexte.operateurs, index_type, b->identifiant());
+
+					if (op == nullptr) {
+						erreur::lance_erreur_type_operation_unaire(contexte, b);
 					}
-					case id_morceau::MOINS_UNAIRE:
-					{
-						if (enfant->type == type_noeud::NOMBRE_REEL) {
-							auto val = denombreuse::converti_chaine_nombre_reel(
-								enfant->morceau.chaine,
-								enfant->morceau.identifiant);
 
-							b->valeur_calculee = -val;
-						}
-						else if (enfant->type == type_noeud::NOMBRE_ENTIER) {
-							auto val = denombreuse::converti_chaine_nombre_entier(
-								enfant->morceau.chaine,
-								enfant->morceau.identifiant);
-
-							b->valeur_calculee = -val;
-						}
-
-						b->drapeaux |= EST_CALCULE;
-						b->index_type = enfant->index_type;
-						b->type = enfant->type;
-
-						break;
-					}
-					case id_morceau::PLUS_UNAIRE:
-					{
-						if (enfant->type == type_noeud::NOMBRE_REEL) {
-							auto val = denombreuse::converti_chaine_nombre_reel(
-								enfant->morceau.chaine,
-								enfant->morceau.identifiant);
-
-							b->valeur_calculee = val;
-						}
-						else if (enfant->type == type_noeud::NOMBRE_ENTIER) {
-							auto val = denombreuse::converti_chaine_nombre_entier(
-								enfant->morceau.chaine,
-								enfant->morceau.identifiant);
-
-							b->valeur_calculee = val;
-						}
-
-						b->drapeaux |= EST_CALCULE;
-						b->index_type = enfant->index_type;
-						b->type = enfant->type;
-
-						break;
-					}
-					case id_morceau::AROBASE:
-					{
-						auto dt = DonneesTypeFinal{};
-						dt.pousse(id_morceau::POINTEUR);
-						dt.pousse(type);
-
-						b->index_type = contexte.magasin_types.ajoute_type(dt);
-						break;
-					}
-					case id_morceau::EXCLAMATION:
-					{
-						if (type.type_base() != id_morceau::BOOL) {
-							erreur::lance_erreur(
-										"L'opérateur '!' doit recevoir une expression de type 'bool'",
-										contexte,
-										enfant->donnees_morceau(),
-										erreur::type_erreur::TYPE_DIFFERENTS);
-						}
-
-						b->index_type = contexte.magasin_types[TYPE_BOOL];
-						break;
-					}
+					b->index_type = op->index_resultat;
+					b->op = op;
 				}
 			}
 
