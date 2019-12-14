@@ -231,15 +231,9 @@ fonc analyse_objet(dyn compileuse : &CompileuseExpression, caractère_final : z8
 }
 
 fonc analyse_expression(
-	dyn compileuse : &CompileuseExpression,
-	chn : chaine) : rien
+	dyn compileuse : &CompileuseExpression) : rien
 {
-    imprime("analyse_expression : ", chn, '\n')
-
-	compileuse.pos_mot = 0
-	compileuse.début_mot = 0
-	compileuse.taille_mot = 0
-	compileuse.chn = chn
+    imprime("analyse_expression : ", compileuse.chn, '\n')
 
 	dyn eu_noeud = faux
 	dyn eu_relation = faux
@@ -274,9 +268,122 @@ fonc analyse_expression(
             compileuse.consomme()
 		}
         sinon {
-            compileuse.consomme()
+            arrête
         }
 	}
+}
+
+fonc analyse_expression(
+	dyn compileuse : &CompileuseExpression,
+	chn : chaine) : rien
+{
+	compileuse.pos_mot = 0
+	compileuse.début_mot = 0
+	compileuse.taille_mot = 0
+	compileuse.chn = chn
+
+    compileuse.analyse_expression()
+}
+
+fonc analyse_expression_retour(
+	dyn compileuse : &CompileuseExpression) : rien
+{
+    compileuse.enregistre_pos_mot()
+
+    tantque !compileuse.est_fini() {
+        c = compileuse.caractère_courant()
+
+        si c == ' ' || c == '\n' {
+            si compileuse.taille_mot != 0 {
+                mot = compileuse.mot()
+                imprime("expression : ", mot, '\n')
+            }
+
+            compileuse.enregistre_pos_mot()
+            compileuse.consomme()
+        }
+        sinon {
+            si compileuse.taille_mot == 0 {
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.pousse_caractère()
+        }
+    }
+
+    si compileuse.taille_mot != 0 {
+        mot = compileuse.mot()
+        imprime("expression : ", mot, '\n')
+    }
+}
+
+énum Instruction : z32 {
+    CREE,
+    SUPPRIME,
+    TROUVE,
+    RETOURNE,
+    INVALIDE,
+}
+
+fonc détermine_instruction(chn : chaine) : Instruction
+{
+    info = info_de(Instruction.CREE)
+
+    pour nom, idx dans info.noms {
+        si compare_chaines(nom, chn) {
+            retourne transtype(info.valeurs[idx] : Instruction)
+        }
+    }
+
+    retourne Instruction.INVALIDE
+}
+
+fonc analyse_requête(dyn compileuse : &CompileuseExpression, chn : chaine) : rien
+{
+	compileuse.pos_mot = 0
+	compileuse.début_mot = 0
+	compileuse.taille_mot = 0
+	compileuse.chn = chn
+
+	tantque !compileuse.est_fini() {
+        c = compileuse.caractère_courant()
+
+        si c == ' ' {
+            si compileuse.taille_mot != 0 {
+                mot = compileuse.mot()
+                inst = détermine_instruction(mot)
+
+                si inst == Instruction.INVALIDE {
+                    imprime("Instruction '", mot, "' invalide !\n")
+                    retourne
+                }
+
+                imprime("Instruction : ", mot, '\n')
+
+                si inst == Instruction.RETOURNE {
+                    compileuse.analyse_expression_retour()
+                }
+            }
+
+            compileuse.enregistre_pos_mot()
+            compileuse.consomme()
+        }
+        sinon si c == '\n' {
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == '(' {
+            compileuse.analyse_expression()
+            imprime("fin analyse expression\n")
+        }
+        sinon {
+            si compileuse.taille_mot == 0 {
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.pousse_caractère()
+        }
+    }
 }
 
 fonc principale(args : []*z8) : z32
@@ -299,12 +406,12 @@ fonc principale(args : []*z8) : z32
         # relation de type "AMI" depuis le nœud "a" vers le nœud "b"
         "(a)-[:AMI]->(b)",
         # relation de type "AMI" ou "CONNAIT" depuis le nœud "a" vers le nœud "b"
-        "(a)-[:AMI|CONNAIT]->(b)",
-        ""]
+        "(a)-[:AMI|CONNAIT]->(b)"
+    ]
 
-    pour expression dans expressions {
-        compileuse.analyse_expression(expression)
-    }
+    #pour expression dans expressions {
+    #    compileuse.analyse_expression(expression)
+    #}
 
     # CREE (moi : { nom : "bibi" })
     # RETOURNE moi
@@ -312,6 +419,15 @@ fonc principale(args : []*z8) : z32
     # TROUVE (moi : { nom : "bibi" })
     # CREE (moi) -[:AIME]-> (quelquechose)
     # RETOURNE moi, quelquechose
+
+    requêtes = [
+        "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",
+        "TROUVE (moi : { nom : \"bibi\" })\nCREE (moi) -[:AIME]-> (quelquechose)\nRETOURNE moi, quelquechose\n"
+    ]
+
+    pour requête dans requêtes {
+        compileuse.analyse_requête(requête)
+    }
 
     retourne 0
 }
