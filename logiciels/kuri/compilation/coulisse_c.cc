@@ -1641,6 +1641,30 @@ void genere_code_C(
 				return;
 			}
 
+			if (b->op != nullptr) {
+				genere_code_C(expression, generatrice, contexte, false);
+
+				variable->drapeaux |= POUR_ASSIGNATION;
+				genere_code_C(variable, generatrice, contexte, true);
+
+				generatrice.os << std::any_cast<dls::chaine>(variable->valeur_calculee);
+				generatrice.os << " = ";
+
+				if (b->op->est_basique) {
+					generatrice.os << std::any_cast<dls::chaine>(expression->valeur_calculee);
+				}
+				else {
+					generatrice.os << b->op->nom_fonction << "(";
+					generatrice.os << std::any_cast<dls::chaine>(expression->valeur_calculee);
+					generatrice.os << ")";
+				}
+
+				/* pour les globales */
+				generatrice.os << ";\n";
+
+				return;
+			}
+
 			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
 			auto expression_modifiee = false;
 			auto nouvelle_expr = dls::chaine();

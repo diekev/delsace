@@ -57,10 +57,10 @@ fonc imprime_valeur(
 		RÉEL de id_info {
 			soit info_arg = transtype(info : *InfoTypeRéel)
 
-            # À FAIRE : type R16
             si taille_en_octet de info_arg == 16 {
 				soit x = mémoire(transtype(pointeur : *r16))
-				écrie = sprintf(ptr_tmp, "%f", x)
+				y : r64 = x
+				écrie = sprintf(ptr_tmp, "%f", y)
 			}
 			sinon si taille_en_octet de info_arg == 32 {
 				soit x = mémoire(transtype(pointeur : *r32))

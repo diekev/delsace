@@ -1409,6 +1409,18 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			auto const &type_gauche = contexte.magasin_types.donnees_types[variable->index_type];
+
+			if (variable->index_type != expression->index_type) {
+				auto op = cherche_operateur(contexte.operateurs, variable->index_type, expression->index_type, id_morceau::EGAL);
+
+				if (op != nullptr) {
+					//erreur::lance_erreur_type_operation(contexte, b);
+					b->index_type = op->index_resultat;
+					b->op = op;
+					return;
+				}
+			}
+
 			auto const niveau_compat = sont_compatibles(type_gauche, dt, expression->type);
 
 			b->valeur_calculee = niveau_compat;

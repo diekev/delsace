@@ -318,4 +318,10 @@ void enregistre_operateurs_basiques(
 
 	operateurs.ajoute_perso_unaire(id_morceau::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
 	operateurs.ajoute_perso_unaire(id_morceau::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
+
+	operateurs.ajoute_perso(id_morceau::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
+	operateurs.ajoute_perso(id_morceau::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
+
+	operateurs.ajoute_perso(id_morceau::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
+	operateurs.ajoute_perso(id_morceau::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
 }
