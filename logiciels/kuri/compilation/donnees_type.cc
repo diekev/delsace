@@ -1371,7 +1371,7 @@ niveau_compat sont_compatibles(
 	return niveau_compat::aucune;
 }
 
-unsigned int taille_type_octet(
+unsigned int taille_octet_type(
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type)
 {
@@ -1431,7 +1431,7 @@ unsigned int taille_type_octet(
 
 			if (ds.est_enum) {
 				auto dt_enum = contexte.magasin_types.donnees_types[ds.noeud_decl->index_type];
-				return taille_type_octet(contexte, dt_enum);
+				return taille_octet_type(contexte, dt_enum);
 			}
 
 			return ds.taille_octet;

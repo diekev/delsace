@@ -2662,7 +2662,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				ds.donnees_membres.insere({enfant->chaine(), { ds.index_types.taille(), expression, decalage }});
 				ds.index_types.pousse(enfant->index_type);
 
-				decalage += taille_type_octet(contexte, dt_membre);
+				decalage += taille_octet_type(contexte, dt_membre);
 			};
 
 			for (auto enfant : b->enfants) {

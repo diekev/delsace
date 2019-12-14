@@ -2668,7 +2668,7 @@ void genere_code_C(
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
-			b->valeur_calculee = dls::vers_chaine(taille_type_octet(contexte, donnees));
+			b->valeur_calculee = dls::vers_chaine(taille_octet_type(contexte, donnees));
 			break;
 		}
 		case type_noeud::PLAGE:

@@ -356,7 +356,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-			res.entier = taille_type_octet(contexte, donnees);
+			res.entier = taille_octet_type(contexte, donnees);
 
 			return res;
 		}
