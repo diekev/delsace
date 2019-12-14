@@ -1,0 +1,590 @@
+charge magasin_chaine
+
+#################################################################################
+
+struct NoeudListe {
+	suivant : *NoeudListe = nul
+	données : *rien = nul
+}
+
+fonc crée_noeud_liste(données : *rien) : *NoeudListe
+{
+	noeud = loge NoeudListe
+	noeud.suivant = nul
+	noeud.données = données
+	retourne noeud
+}
+
+fonc BaseListe {
+	premier : *NoeudListe = nul
+	dernier : *NoeudListe = nul
+}
+
+fonc pousse(dyn liste : &BaseListe, données : *rien) : rien
+{
+	noeud = crée_noeud_liste(données)
+
+	si liste.premier == nul {
+		liste.premier = noeud
+		liste.dernier = noeud
+	}
+	sinon {
+		liste.dernier.suivant = noeud
+		liste.dernier = noeud
+	}
+}
+
+fonc est_vide(liste : &BaseListe) : bool
+{
+	retourne liste.premier == nul
+}
+
+struct ListePropriété {
+	base : BaseListe
+}
+
+struct ListeRelation {
+	base : BaseListe
+}
+
+struct ListeNoeud {
+	base : BaseListe
+}
+
+struct ListeÉtiquette {
+	base : BaseListe
+}
+
+#################################################################################
+
+struct Étiquette {
+	suivante : *Étiquette = nul
+	id : n32 = 0
+	id_nom : n32 = 0
+}
+
+fonc pousse(dyn liste : &ListeÉtiquette, étq : *Étiquette) : rien
+{
+	pousse(liste.base, prop)
+}
+
+fonc est_vide(liste : &ListeÉtiquette) : bool
+{
+	retourne est_vide(liste.base)
+}
+
+corout chaque_étiquette(liste : &ListeÉtiquette) : *Étiquette
+{
+	dyn n = liste.premier
+
+	tantque n != nul {
+		retiens transtype(n.données : *Étiquette)
+		n = n.suivant
+	}
+}
+
+#################################################################################
+
+struct Noeud {
+	proprietes : ListePropriété
+	relations : ListeRelation
+	etiquettes : ListeÉtiquette
+
+	id : n32 = 0
+	utilise : bool = faux
+}
+
+fonc pousse(dyn liste : &ListeNoeud, n : *Noeud) : rien
+{
+	pousse(liste.base, prop)
+}
+
+fonc est_vide(liste : &ListeNoeud) : bool
+{
+	retourne est_vide(liste.base)
+}
+
+corout chaque_noeud(liste : &ListeNoeud) : *Noeud
+{
+	dyn n = liste.premier
+
+	tantque n != nul {
+		retiens transtype(n.données : *Noeud)
+		n = n.suivant
+	}
+}
+
+#################################################################################
+
+struct Relation {
+	début : *Noeud
+	fin : *Noeud
+
+	rel_prev_debut : *Relation
+	rel_suiv_debut : *Relation
+	rel_prev_fin : *Relation
+	rel_suiv_fin : *Relation
+
+	type_relation : n32 = 0
+
+	proprietes : ListePropriété
+	id : n32 = 0
+}
+
+fonc pousse(dyn liste : &ListeRelation, rel : *Relation) : rien
+{
+	pousse(liste.base, prop)
+}
+
+fonc est_vide(liste : &ListeRelation) : bool
+{
+	retourne est_vide(liste.base)
+}
+
+corout chaque_relation(liste : &ListeRelation) : *Relation
+{
+	dyn n = liste.premier
+
+	tantque n != nul {
+		retiens transtype(n.données : *Relation)
+		n = n.suivant
+	}
+}
+
+#################################################################################
+
+struct Propriété {
+	suivante : *Propriété
+
+	id : n32 = 0
+	id_nom : n32 = 0
+	valeur : z32
+}
+
+fonc pousse(dyn liste : &ListePropriété, prop : *Propriété) : rien
+{
+	pousse(liste.base, prop)
+}
+
+fonc est_vide(liste : &ListePropriété) : bool
+{
+	retourne est_vide(liste.base)
+}
+
+corout chaque_propriété(liste : &ListePropriété) : *Propriété
+{
+	dyn n = liste.premier
+
+	tantque n != nul {
+		retiens transtype(n.données : *Propriété)
+		n = n.suivant
+	}
+}
+
+#################################################################################
+
+struct Graphe {
+	noeuds : ListeNoeud
+	relations : ListeRelation
+	proprietes : ListePropriété
+	étiquettes : ListeÉtiquette
+
+	noms_proprietes : MagasinChaine
+	types_relations : MagasinChaine
+	noms_étiquettes : MagasinChaine
+
+	# À chaque fois qu'un noeud est ajouté, le compte est incrémenté, et la
+	# valeur incrémentée est assigné au noeud comme identifiant, de sorte que
+	# l'identifiant 0 est réservé pour vérifié les noeuds nuls.
+	nombre_noeuds : n32 = 0
+
+	# À chaque fois qu'une relation est ajoutée, le compte est incrémenté, et
+	# la valeur incrémentée est assigné à la relation comme identifiant, de
+	# sorte que l'identifiant 0 est réservé pour vérifié les relations nulles.
+	nombre_relations : n32 = 0
+
+	# À chaque fois qu'une propriété est ajoutée, le compte est incrémenté, et
+	# la valeur incrémentée est assigné à la propriété comme identifiant, de
+	# sorte que l'identifiant 0 est réservé pour vérifié les propriétés nulles.
+	nombre_proprietes : n32 = 0
+
+	# À chaque fois qu'une étiquette est ajoutée, le compte est incrémenté, et
+	# la valeur incrémentée est assigné à l'étiquette comme identifiant, de
+	# sorte que l'identifiant 0 est réservé pour vérifié les étiquettes nulles.
+	nombre_etiquettes : n32 = 0
+}
+
+fonc supprime_graphe(dyn graphe : &Graphe)
+{
+	pour noeud dans chaque_noeud(graphe.noeuds) {
+		déloge noeud
+	}
+
+	pour relation dans chaque_relation(graphe.relations) {
+		déloge relation
+	}
+
+	pour propriete dans chaque_propriété(graphe.proprietes) {
+		déloge propriete
+	}
+
+	pour étiquette dans chaque_étiquette(graphe.étiquettes) {
+		déloge étiquette
+	}
+}
+
+fonc ajoute_noeud(
+	dyn graphe : &Graphe,
+	nom : chaine,
+	valeur : z32) : *Noeud
+{
+	imprime("Création d'un noeud...\n")
+
+	si (nom.est_vide()) {
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		retourne
+	}
+
+	dyn n = loge noeud sinon {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	n.id = ++graphe.nombre_noeuds
+	# assert(n.id != 0)
+
+	ajoute_propriete(n, nom, valeur)
+
+	graphe.noeuds.pousse(n)
+
+	retourne n
+}
+
+fonc ajoute_propriete(
+	dyn graphe : &Graphe,
+	dyn n : *Noeud,
+	nom : chaine,
+	valeur : z32) : rien
+{
+	imprime("Création d'une propriété <", nom, ", ", valeur, "> pour un noeud...\n")
+
+	si (n == nul || n.id == 0) {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	si nom.est_vide() {
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		retourne
+	}
+
+	dyn p = loge propriete sinon {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	p.suivante = nul
+	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
+	p.valeur = valeur
+	p.id = ++graphe.nombre_proprietes
+	# assert(p.id != 0)
+
+	graphe.proprietes.pousse(p)
+
+	si !n.proprietes.est_vide() {
+		n.proprietes.dernier.suivante = p
+	}
+
+	n.proprietes.pousse(p)
+}
+
+fonc ajoute_etiquette(
+	dyn graphe : &Graphe,
+	dyn n : *Noeud,
+	nom : chaine) : rien
+{
+	si (n == nul || n.id == 0) {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	si (nom.est_vide()) {
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		retourne
+	}
+
+	imprime("Création d'une étiquette <", nom,"> pour un noeud...\n")
+
+	dyn e = loge etiquette sinon {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	e.suivante = nul
+	e.id = ++graphe.nombre_etiquettes
+	e.id_nom = static_cast<unsigned>(graphe.nom_etiquettes.ajoute_chaine(nom))
+	# assert(e.id != 0)
+
+	graphe.etiquettes.pousse(e)
+
+	si (!n.etiquettes.est_vide()) {
+		n.etiquettes.back().suivante = e
+	}
+
+	n.etiquettes.pousse(e)
+}
+
+fonc ajoute_propriete(
+	dyn graphe : &Graphe,
+	dyn r : *Relation,
+	nom : chaine,
+	valeur : z32) : rien
+{
+	imprime("Création d'une propriété pour une relation...\n")
+
+	si r == nul || r.id == 0 {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	si (nom.est_vide()) {
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		retourne
+	}
+
+	dyn p = loge propriete sinon {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	p.suivante = nul
+	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
+	p.valeur = valeur
+	p.id = ++graphe.nombre_proprietes
+	# assert(p.id != 0)
+
+	graphe.proprietes.pousse(p)
+
+	si (!r.proprietes.est_vide()) {
+		r.proprietes.dernier.suivante = p
+	}
+
+	r.proprietes.pousse(p)
+}
+
+fonc ajoute_relation(
+	dyn graphe : &Graphe,
+	debut : *Noeud,
+	fin : *Noeud,
+	nom : chaine) : rien
+{
+	si (debut == nul || fin == nul) {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	si (debut == fin || debut.id == fin.id) {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	imprime("Création d'une relation entre les noeuds ", debut.id, " et ", fin.id, "...\n")
+
+	dyn r = loge relation sinon {
+		# À FAIRE : erreur
+		retourne
+	}
+
+	r.debut = debut
+	r.fin = fin
+	r.id = ++graphe.nombre_relations
+	r.type_relation = transtype(graphe.types_relations.ajoute_chaine(nom) : n32)
+	r.rel_prev_debut = nul
+	r.rel_suiv_debut = nul
+	r.rel_prev_fin = nul
+	r.rel_suiv_fin = nul
+	# assert(r.id != 0)
+
+	si (!debut.relations.est_vide()) {
+		r.rel_prev_debut = debut.relations.back()
+		debut.relations.back().rel_suiv_debut = r
+	}
+
+	si !fin.relations.est_vide() {
+		r.rel_prev_fin = fin.relations.dernier
+		debut.relations.dernier.rel_suiv_fin = r
+	}
+
+	debut.relations.pousse(r)
+	fin.relations.pousse(r)
+
+	graphe.relations.pousse(r)
+}
+
+#################################################################################
+
+struct CompileuseExpression {
+	chn : chaine
+	pos_mot : z64 = 0
+	taille_mot = 0
+	début_mot = 0
+}
+
+fonc consomme(dyn compileuse : &CompileuseExpression) : rien
+{
+	compileuse.pos_mot += 1
+}
+
+fonc caractère_courant(dyn compileuse : &CompileuseExpression) : z8
+{
+	retourne compileuse.chn[compileuse.pos_mot]
+}
+
+fonc est_fini(dyn compileuse : &CompileuseExpression) : bool
+{
+	retourne pos_mot >= compileuse.chn.taille
+}
+
+fonc enregistre_pos_mot(dyn compileuse : &CompileuseExpression) : rien
+{
+	compileuse.début_mot = compileuse.pos_mot
+	taille_mot = 0
+}
+
+fonc pousse_caractère(dyn compileuse : &CompileuseExpression) : rien
+{
+	compileuse.taille_mot += 1
+	compileuse.consomme()
+}
+
+fonc mot(empl compileuse : &CompileuseExpression) : chaine
+{
+	retourne construit_chaine(@chn[début_mot], taille_mot)
+}
+
+fonc analyse_propriétés(dyn compileuse : &CompileuseExpression) : rien
+{
+
+}
+
+fonc analyse_objet(dyn compileuse : &CompileuseExpression, caractère_final : z8) : rien
+{
+	compileuse.consomme()
+	c = compileuse.caractère_courant()
+
+	compileuse.enregistre_pos_mot()
+
+	tantque c != ':' {
+		compileuse.pousse_caractère()
+		c = compileuse.caractère_courant()
+	}
+
+	nom = compileuse.mot()
+
+	compileuse.consomme()
+	c = compileuse.caractère_courant()
+
+	compileuse.enregistre_pos_mot()
+
+	tantque c != '{' {
+		compileuse.pousse_caractère()
+		c = compileuse.caractère_courant()
+	}
+
+	label = compileuse.mot()
+
+	compileuse.analyse_propriétés()
+
+	compileuse.consomme()
+	c = compileuse.caractère_courant()
+
+	si c != caractère_final {
+		# erreur
+	}
+
+	compileuse.consomme()
+}
+
+fonc analyse_commande(
+	dyn compileuse : &CompileuseExpression,
+	chn : chaine) : rien
+{
+	compileuse.pos_mot = 0
+	compileuse.début_mot = 0
+	compileuse.taille_mot = 0
+	compileuse.chn = chn
+
+	dyn eu_noeud = faux
+	dyn eu_relation = faux
+
+	tantque !compileuse.est_fini() {
+		c = compileuse.caractère_courant()
+
+		si c == '(' {
+			compileuse.analyse_noeud(')')
+			eu_noeud = vrai
+			eu_relation = faux
+		}
+		sinon c == '[' {
+			compileuse.analyse_relation(']')
+			eu_noeud = faux
+			eu_relation = vrai
+		}
+		sinon si c == '-' {
+			si !eu_relation && !eu_noeud {
+				# erreur
+			}
+
+			eu_relation = vrai
+		}
+		sinon si c == '<' {
+			# assert(eu_noeud)
+		}
+		sinon si c == '>' {
+			# assert(eu_relation)
+		}
+	}
+}
+
+fonc principale(args : []*z8) : z32
+{
+	dyn graphe : Graphe
+	diffère { supprime_graphe(graphe); }
+
+	n1 = graphe.crée_noeud("nom", 1)
+	n2 = graphe.crée_noeud("nom", 2)
+
+	graphe.ajoute_relation(n1, n2, "CONNECTÉ")
+
+	# "(n1:{nom:1})-[:CONNECTÉ_AMONT]->(n2:{nom:2})"
+	# graphe.imprime_relation()
+
+	#####
+
+	# "(n1:{nom:1})-[:CONNECTÉ_AMONT]->(n2:{nom:2})"
+	# graphe.cherche_noeud(recherche)
+
+	# cherche_noeud
+	# propriétés...
+	# étiquettes...
+	# cherche relation
+	# cherche_noeud
+	# propriétés...
+	# étiquettes...
+
+	# "(n1:{nom:1})-[label:CONVERTI { ratio : 1.34 }]->(n2:{nom:2})"
+	# "(n1:{nom:1})<-[label:CONVERTI { ratio : 0.75 }]-(n2:{nom:2})"
+
+	# Jorjala
+	# crée un noeud
+	# "(:OBJET {nom:"cube"})"
+	# "(:COMPOSITE {nom:"composite"]})"
+	# "(:OPÉRATRICE {nom:""})
+	# crée un graphe
+	# "(:OBJET {nom:"cube"})-[:EST_GRAPHE]->(noeud_graphe:GRAPHE)"
+	# cherche le graphe d'un noeud
+	# "(:OBJET {nom:"cube"})-[:EST_GRAPHE]->(noeud_graphe:GRAPHE)"
+	# "(noeud_graphe)-[:DANS_GRAPHE]->(noeud)"
+
+	retourne 0
+}

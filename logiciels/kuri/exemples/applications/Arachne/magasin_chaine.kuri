@@ -1,0 +1,34 @@
+struct MagasinChaine {
+	tableau : DicoChaine
+	nombre_chaines : z64 = 0
+	taille_chaines : z64 = 0
+}
+
+fonc index_chaine(dyn magasin : &MagasinChaine, chn : chaine) : z64
+{
+
+}
+
+fonc ajoute_chaine(dyn magasin : &MagasinChaine, chn : chaine) : z64
+{
+	index = index_chaine(magasin, chn)
+
+	si index == 0 {
+		magasin.tableau.insere(chaine, magasin.nombre_chaines)
+		magasin.taille_chaines += chaine.taille
+		magasin.nombre_chaines += 1
+		retourne magasin.nombre_chaines
+	}
+
+	retourne index
+}
+
+fonc est_valide(magasin : &MagasinChaine) : bool
+{
+	magasin.nombre_chaines == magasin.nombre_chaines
+}
+
+corout chaque_chaine(magasin : &Magasin) : chaine
+{
+
+}
