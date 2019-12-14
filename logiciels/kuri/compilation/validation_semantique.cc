@@ -2357,7 +2357,9 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 				case id_morceau::CHAINE_CARACTERE:
 				{
-					nom_struct = "InfoTypeStructure";
+					auto const &id_structure = (static_cast<long>(dt_enf.type_base()) & 0xffffff00) >> 8;
+					auto &ds = contexte.donnees_structure(id_structure);
+					nom_struct = ds.est_enum ? "InfoTypeÉnum" : "InfoTypeStructure";
 					break;
 				}
 				case id_morceau::TROIS_POINTS:
