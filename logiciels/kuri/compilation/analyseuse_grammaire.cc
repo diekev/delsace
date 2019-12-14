@@ -997,6 +997,13 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
 
+					/* il est possible que le crochet n'ait pas été consommé,
+					 * par exemple dans le cas où nous avons un point-virgule
+					 * implicite dans la construction */
+					if (est_identifiant(id_morceau::CROCHET_FERMANT)) {
+						avance();
+					}
+
 					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_TABLEAU);
 
 					expression.pousse(noeud);
@@ -1216,6 +1223,11 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 			case id_morceau::SAUFSI:
 			{
 				analyse_controle_si(type_noeud::SAUFSI);
+				termine_boucle = true;
+				break;
+			}
+			case id_morceau::POINT_VIRGULE:
+			{
 				termine_boucle = true;
 				break;
 			}
