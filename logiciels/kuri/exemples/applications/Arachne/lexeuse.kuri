@@ -1,0 +1,256 @@
+énum IdentifiantLexème : z32 {
+	# Ponctuations
+    PARENTHÈSE_OUVRANTE,
+    PARENTHÈSE_FERMANTE,
+    CROCHET_OUVRANT,
+    CROCHET_FERMANT,
+    ACCOLADE_OUVRANTE,
+    ACCOLADE_FERMANTE,
+    CHAINE_CARACTÈRE,
+    CHAINE_LITTÉRALE,
+    NOMBRE,
+    DOUBLE_POINTS,
+    VIRGULE,
+    FLÈCHE_GAUCHE,
+    FLÈCHE_DROITE,
+    TIRET,
+    DOUBLE_TIRET,
+
+    # Instructions
+    CREE,
+    SUPPRIME,
+    TROUVE,
+    RETOURNE,
+
+    INVALIDE,
+}
+
+struct Lexème {
+    chn : chaine
+    id : IdentifiantLexème
+}
+
+struct Lexeuse {
+    chn : chaine
+    lexèmes : []Lexème
+	pos_mot : z64 = 0
+	taille_mot : z64 = 0
+	début_mot : z64 = 0
+}
+
+fonc consomme(dyn lexeuse : &Lexeuse, n : z32) : rien
+{
+	lexeuse.pos_mot += n
+}
+
+fonc caractère_courant(dyn lexeuse : &Lexeuse) : z8
+{
+	retourne lexeuse.chn[lexeuse.pos_mot]
+}
+
+fonc a_fini(dyn lexeuse : &Lexeuse) : bool
+{
+	retourne lexeuse.pos_mot >= lexeuse.chn.taille
+}
+
+fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.début_mot = lexeuse.pos_mot
+	lexeuse.taille_mot = 0
+}
+
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.taille_mot += 1
+	lexeuse.consomme(1)
+}
+
+fonc mot(empl lexeuse : &Lexeuse) : chaine
+{
+	retourne construit_chaine(@lexeuse.chn[lexeuse.début_mot], lexeuse.taille_mot)
+}
+
+fonc pousse_mot(empl lexeuse : &Lexeuse, id : IdentifiantLexème) : rien
+{
+	dyn lexème : Lexème
+	lexème.chn = lexeuse.mot()
+	lexème.id = id
+
+	lexeuse.lexèmes.pousse(lexème)
+	lexeuse.taille_mot = 0
+}
+
+fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) : rien
+{
+    taille = lexèmes.taille
+    reloge lexèmes : [taille + 1]Lexème
+    lexèmes[taille] = lexème
+}
+
+fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
+{
+    si c == '(' {
+        id = IdentifiantLexème.PARENTHÈSE_OUVRANTE
+        retourne vrai
+    }
+
+    si c == ')' {
+        id = IdentifiantLexème.PARENTHÈSE_FERMANTE
+        retourne vrai
+    }
+
+    si c == '{' {
+        id = IdentifiantLexème.ACCOLADE_OUVRANTE
+        retourne vrai
+    }
+
+    si c == '}' {
+        id = IdentifiantLexème.ACCOLADE_FERMANTE
+        retourne vrai
+    }
+
+    si c == '[' {
+        id = IdentifiantLexème.CROCHET_OUVRANT
+        retourne vrai
+    }
+
+	si c == ']' {
+        id = IdentifiantLexème.CROCHET_FERMANT
+        retourne vrai
+    }
+
+    si c == '-' {
+        id = IdentifiantLexème.TIRET
+        retourne vrai
+    }
+
+    si c == ',' {
+        id = IdentifiantLexème.VIRGULE
+        retourne vrai
+    }
+
+	si c == ':' {
+        id = IdentifiantLexème.DOUBLE_POINTS
+        retourne vrai
+    }
+
+    id = IdentifiantLexème.INVALIDE
+
+    # N'existe que dans un digraphe
+    si c == '<' {
+        retourne vrai
+    }
+
+    # N'existe que dans un digraphe
+	si c == '>' {
+        retourne vrai
+    }
+	si c == '"' {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+fonc id_drigraphe(chn : chaine) : IdentifiantLexème
+{
+    si compare_chaines(chn, "--") {
+        retourne IdentifiantLexème.DOUBLE_TIRETS
+    }
+
+    si compare_chaines(chn, "<-") {
+        retourne IdentifiantLexème.FLÈCHE_GAUCHE
+    }
+
+    si compare_chaines(chn, "->") {
+        retourne IdentifiantLexème.FLÈCHE_DROITE
+    }
+
+    retourne IdentifiantLexème.INVALIDE
+}
+
+fonc est_caractère_blanc(c : z8) : bool
+{
+	retourne c == '\t' || c == '\r' || c == '\v' || c == '\f' || c == '\n' || c == ' '
+}
+
+fonc id_mot(chn : chaine) : IdentifiantLexème
+{
+	info = info_de(IdentifiantLexème.INVALIDE)
+
+	pour nom, idx dans info.noms {
+		si compare_chaines(nom, chn) {
+			retourne transtype(info.valeurs[idx] : IdentifiantLexème)
+		}
+	}
+
+	retourne IdentifiantLexème.CHAINE_CARACTÈRE
+}
+
+fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
+{
+    lexeuse.chn = chn
+    lexeuse.pos_mot = 0
+    lexeuse.taille_mot = 0
+    lexeuse.début_mot = 0
+
+    dyn idc : IdentifiantLexème
+
+    tantque !lexeuse.a_fini() {
+        c = lexeuse.caractère_courant()
+
+        si est_caractère_blanc(c) {
+			si lexeuse.taille_mot != 0 {
+				lexeuse.pousse_mot(id_mot(lexeuse.mot()))
+			}
+
+			lexeuse.consomme(1)
+        }
+        sinon si est_caractère_spéciale(c, idc) {
+			si lexeuse.taille_mot != 0 {
+				lexeuse.pousse_mot(id_mot(lexeuse.mot()))
+			}
+
+            lexeuse.enregistre_pos_mot()
+
+            dyn digraphe = construit_chaine(@chn[lexeuse.pos_mot], 2)
+            id = id_digraphe(digraphe)
+
+            si id != IdentifiantLexème.INVALIDE {
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(id)
+				continue
+            }
+
+            si c == '"' {
+				lexeuse.consomme(1)
+
+				lexeuse.enregistre_pos_mot()
+
+				tantque c != '"' {
+					lexeuse.pousse_caracètre()
+					c = lexeuse.caractère_courant()
+				}
+
+				lexeuse.pousse_mot(IdentifiantLexème.CHAINE_LITTÉRALE)
+				lexeuse.consomme(1)
+            }
+			sinon {
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(id)
+            }
+        }
+        sinon {
+            si lexeuse.taille_mot == 0 {
+				lexeuse.enregistre_pos_mot()
+            }
+
+            lexeuse.consomme(1)
+        }
+    }
+
+	si lexeuse.taille_mot != 0 {
+		lexeuse.pousse_mot(id_mot(lexeuse.mot()))
+	}
+}

@@ -1,0 +1,95 @@
+# écrire dans un fichier ou dans une page mémoire
+
+struct PageMémoire {
+	données : []octet
+	position : z64
+}
+
+fonc pousse(dyn pages : &[]PageMémoire, page : PageMémoire) : rien
+{
+    taille = pages.taille
+    reloge pages : [taille + 1]PageMémoire
+    pages[taille] = page
+}
+
+struct FichierMémoire {
+	pages : []PageMémoire
+	page_courante : z32
+	taille_totale : z64
+}
+
+fonc ajoute_page(dyn fichier : &FichierMémoire) : rien
+{
+	dyn page = PageMémoire
+	page.données = loge [64 * 1024]octet
+
+	pousse(fichier.pages, page)
+}
+
+fonc supprime_fichier(dyn fichier : &FichierMémoire) : rien
+{
+	pour page dans fichier.pages {
+		déloge page.données
+	}
+
+	déloge fichier.pages
+}
+
+fonc écris(dyn fichier : &FichierMémoire, données : []octet, position : z64) : rien
+{
+	page_courante = fichier.pages[fichier.page_courante]
+
+	si position + données.taille >= page_courante.données.taille {
+		# À FAIRE : alloue une nouvelle page
+		retourne
+	}
+
+	pour d, idx dans données {
+		page_courante.données[idx + position] = d
+	}
+}
+
+fonc écris(dyn fichier : &Fichier, données : []octet) : rien
+{
+	page_courante = @fichier.pages[fichier.page_courante]
+	position = page_courante.position
+
+	si position + données.taille >= page_courante.données.taille {
+		# À FAIRE : alloue une nouvelle page
+		retourne
+	}
+
+	pour d, idx dans données {
+		page_courante.données[idx + position] = d
+	}
+
+	page_courante.position += données.taille
+}
+
+fonc lis(dyn fichier : &FichierMémoire, données : []octet) : rien
+{
+	page_courante = @fichier.pages[fichier.page_courante]
+	position = page_courante.position
+
+	si position + données.taille >= page_courante.données.taille {
+		# À FAIRE : lis jusqu'à la fin du fichier, et charge la page suivante
+		# À FAIRE : si la page_courante est la dernière, que faire ?
+		retourne
+	}
+
+	pour d, idx dans données {
+		d = page_courante.données[idx + position]
+	}
+
+	page_courante.position += données.taille
+}
+
+struct Enregistrement {
+	ptr : *octet
+	position : z64
+}
+
+fonc principale(args : []*z8) : z32
+{
+	retourne 0
+}

@@ -1,0 +1,117 @@
+charge lexeuse
+
+struct Syntaxeuse {
+	lexèmes : *[]Lexèmes
+	position : z64 = 0
+}
+
+fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexèmes) : rien
+{
+	syntaxeuse.position = 0
+	syntaxeuse.lexèmes = lexèmes
+}
+
+fonc a_fini(dyn syntaxeuse : &Syntaxeuse) : bool
+{
+	retourne syntaxeuse.position == syntaxeuse.lexèmes.taille
+}
+
+fonc est_identifiant(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position].id == id
+}
+
+fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position += 1
+}
+
+fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position -= 1
+}
+
+fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+{
+	si syntaxeuse.position >= syntaxeuse.lexèmes.taille {
+		retourne faux
+	}
+
+	est_bon = syntaxeuse.est_identifiant(id)
+	syntaxeuse.avance()
+	retourne est_bon
+}
+
+################################################################################
+
+fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	# { chaine : chaine }
+	boucle {
+		si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
+			syntaxeuse.avance()
+			arrête
+		}
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			retourne
+		}
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.DOUBLE_POINTS) {
+			retourne
+		}
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			retourne
+		}
+
+		si syntaxeuse.est_identifiant(IdentifiantLexème.VIRGULE) {
+			syntaxeuse.avance()
+		}
+	}
+}
+
+fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) : rien
+{
+	# ( chaine : chaine : chaine propriétés )
+	# [ chaine : chaine : chaine propriétés ]
+	# <- -- ->
+
+	si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+		# nom_objet
+		syntaxeuse.avance()
+	}
+
+	tantque syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+		syntaxeuse.avance()
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			# nom_étiquette
+			retourne
+		}
+	}
+
+	si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
+		syntaxeuse.avance()
+
+		syntaxeuse.analyse_propriétés()
+	}
+
+	si !syntaxeuse.requiers_lexème(id_final) {
+		retourne
+	}
+}
+
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	# boucle { }
+}
+
+fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	tantque !syntaxeuse.a_fini() {
+		si syntaxeuse.est_lexème(IdentifiantLexème.TROUVE) {
+
+		}
+	}
+}
