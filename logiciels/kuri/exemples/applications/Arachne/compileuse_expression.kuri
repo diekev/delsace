@@ -1,0 +1,317 @@
+
+importe Fondation
+
+struct CompileuseExpression {
+	chn : chaine
+	pos_mot : z64 = 0
+	taille_mot : z64 = 0
+	début_mot : z64 = 0
+}
+
+fonc consomme(dyn compileuse : &CompileuseExpression) : rien
+{
+	compileuse.pos_mot += 1
+}
+
+fonc caractère_courant(dyn compileuse : &CompileuseExpression) : z8
+{
+	retourne compileuse.chn[compileuse.pos_mot]
+}
+
+fonc est_fini(dyn compileuse : &CompileuseExpression) : bool
+{
+	retourne compileuse.pos_mot >= compileuse.chn.taille
+}
+
+fonc enregistre_pos_mot(dyn compileuse : &CompileuseExpression) : rien
+{
+	compileuse.début_mot = compileuse.pos_mot
+	compileuse.taille_mot = 0
+}
+
+fonc pousse_caractère(dyn compileuse : &CompileuseExpression) : rien
+{
+	compileuse.taille_mot += 1
+	compileuse.consomme()
+}
+
+fonc mot(empl compileuse : &CompileuseExpression) : chaine
+{
+	retourne construit_chaine(@compileuse.chn[compileuse.début_mot], compileuse.taille_mot)
+}
+
+fonc analyse_propriétés(dyn compileuse : &CompileuseExpression) : rien
+{
+    imprime("analyse_propriétés : \n")
+
+	compileuse.consomme()
+	dyn c = compileuse.caractère_courant()
+
+	compileuse.enregistre_pos_mot()
+
+    dyn nom_propriété : chaine
+    dyn valeur_propriété : chaine
+    
+    boucle {
+        si c == ' ' {
+            si compileuse.taille_mot != 0 {
+                si nom_propriété.est_vide() {
+                    nom_propriété = compileuse.mot()
+                }
+                sinon si valeur_propriété.est_vide() {
+                    valeur_propriété = compileuse.mot()
+                }
+            }
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == ':' {
+            si compileuse.taille_mot != 0 {
+                nom_propriété = compileuse.mot()
+            }
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == '"' {
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+            c = compileuse.caractère_courant()
+
+            tantque c != '"' {
+                compileuse.pousse_caractère()
+                c = compileuse.caractère_courant()
+            }
+
+            valeur_propriété = compileuse.mot()
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == ',' {
+            si compileuse.taille_mot != 0 {
+                valeur_propriété = compileuse.mot()
+            }
+
+            imprime('\t', nom_propriété, " : ", valeur_propriété, '\n')
+            nom_propriété = ""
+            valeur_propriété = ""
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == '}' {
+            si compileuse.taille_mot != 0 {
+                valeur_propriété = compileuse.mot()
+            }
+
+            imprime('\t', nom_propriété, " : ", valeur_propriété, '\n')
+            nom_propriété = ""
+            valeur_propriété = ""
+
+            arrête
+        }
+        sinon {
+            si compileuse.taille_mot == 0 {
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.pousse_caractère()
+        }
+
+        c = compileuse.caractère_courant()
+    }
+
+    imprime("fin analyse_propriétés\n")
+}
+
+fonc pousse(dyn liste : &[]chaine, chn : chaine) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]chaine
+    liste[taille] = chn
+}
+
+fonc analyse_objet(dyn compileuse : &CompileuseExpression, caractère_final : z8) : rien
+{
+    imprime("analyse_objet : \n")
+	compileuse.consomme()
+	dyn c = compileuse.caractère_courant()
+
+	compileuse.enregistre_pos_mot()
+
+    dyn nom_objet : chaine
+    dyn étiquettes : []chaine
+    diffère { déloge étiquettes; }
+
+    boucle {
+        si c == ':' {
+            si compileuse.taille_mot != 0 {
+                si nom_objet.est_vide() && étiquettes.taille == 0 {
+                    nom_objet = compileuse.mot()
+                }
+                sinon {
+                    pousse(étiquettes, compileuse.mot())
+                }
+                
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == ' ' {
+            si compileuse.taille_mot != 0 {
+                si nom_objet.est_vide() && étiquettes.taille == 0 {
+                    nom_objet = compileuse.mot()
+                }
+                sinon {
+                    pousse(étiquettes, compileuse.mot())
+                }
+                
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == '{' {
+            si compileuse.taille_mot != 0 {
+                si nom_objet.est_vide() && étiquettes.taille == 0 {
+                    nom_objet = compileuse.mot()
+                }
+                sinon {
+                    pousse(étiquettes, compileuse.mot())
+                }
+
+                compileuse.enregistre_pos_mot()
+            }
+
+	        compileuse.analyse_propriétés()
+
+            compileuse.consomme()
+            compileuse.enregistre_pos_mot()
+        }
+        sinon si c == caractère_final {
+            si compileuse.taille_mot != 0 {
+                si nom_objet.est_vide() && étiquettes.taille == 0 {
+                    nom_objet = compileuse.mot()
+                }
+                sinon {
+                    pousse(étiquettes, compileuse.mot())
+                }
+                
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.consomme()
+            arrête
+        }
+        sinon {
+            si compileuse.taille_mot == 0 {
+                compileuse.enregistre_pos_mot()
+            }
+
+            compileuse.pousse_caractère()
+        }
+        
+        c = compileuse.caractère_courant()
+    }
+
+    imprime('\t', nom_objet)
+
+    pour étiquette dans étiquettes {
+        imprime(':', étiquette)
+    }
+
+    imprime('\n')
+
+    imprime("fin analyse_objet\n")
+}
+
+fonc analyse_expression(
+	dyn compileuse : &CompileuseExpression,
+	chn : chaine) : rien
+{
+    imprime("analyse_expression : ", chn, '\n')
+
+	compileuse.pos_mot = 0
+	compileuse.début_mot = 0
+	compileuse.taille_mot = 0
+	compileuse.chn = chn
+
+	dyn eu_noeud = faux
+	dyn eu_relation = faux
+
+	tantque !compileuse.est_fini() {
+		c = compileuse.caractère_courant()
+
+		si c == '(' {
+			compileuse.analyse_objet(')')
+			eu_noeud = vrai
+			eu_relation = faux
+		}
+		sinon si c == '[' {
+			compileuse.analyse_objet(']')
+			eu_noeud = faux
+			eu_relation = vrai
+		}
+		sinon si c == '-' {
+			si !eu_relation && !eu_noeud {
+				# erreur
+			}
+
+			eu_relation = vrai
+            compileuse.consomme()
+		}
+		sinon si c == '<' {
+			# assert(eu_noeud)
+            compileuse.consomme()
+		}
+		sinon si c == '>' {
+			# assert(eu_relation)
+            compileuse.consomme()
+		}
+        sinon {
+            compileuse.consomme()
+        }
+	}
+}
+
+fonc principale(args : []*z8) : z32
+{
+    dyn compileuse : CompileuseExpression
+
+    expressions = [
+        "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",
+        "( noeud : Personne :Acteur )-[ : LABEL { nom : \"bibi\" } ]->( noeud : LABEL { nom : 8, id : 56, voiture : 789 } )",
+        # N'importe quel noeud
+        "()",
+        # Un noeud avec l'étiquette "Personne"
+        "(:Personne)",
+        # Un noeud identifié avec la variable "n" et avec l'étiquette "Personne"
+        "(n:Personne)",
+        # Un noeud identifié avec la variable "n" et avec les étiquettes "Personne" et "Acteur"
+        "(n:Personne:Acteur)",
+        # N'importe quelle relation entre "a" et "b", peu importe la direction
+        "(a)--(b)",
+        # relation de type "AMI" depuis le nœud "a" vers le nœud "b"
+        "(a)-[:AMI]->(b)",
+        # relation de type "AMI" ou "CONNAIT" depuis le nœud "a" vers le nœud "b"
+        "(a)-[:AMI|CONNAIT]->(b)",
+        ""]
+
+    pour expression dans expressions {
+        compileuse.analyse_expression(expression)
+    }
+
+    # CREE (moi : { nom : "bibi" })
+    # RETOURNE moi
+
+    # TROUVE (moi : { nom : "bibi" })
+    # CREE (moi) -[:AIME]-> (quelquechose)
+    # RETOURNE moi, quelquechose
+
+    retourne 0
+}
