@@ -727,6 +727,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
+		case type_noeud::ASSOCIE_UNION:
 		{
 			break;
 		}
@@ -2753,10 +2754,80 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			break;
 		}
 		case type_noeud::ASSOCIE:
-		case type_noeud::PAIRE_ASSOCIATION:
 		{
 			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
 			 * en compte, sauf s'il y a un bloc sinon après. */
+
+			auto nombre_enfant = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
+			auto expression = *iter_enfant++;
+
+			performe_validation_semantique(expression, contexte);
+
+			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
+
+			if ((dt.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+				auto id = static_cast<long>(dt.type_base() >> 8);
+				auto &ds = contexte.donnees_structure(id);
+
+				if (ds.est_union) {
+					if (ds.est_nonsur) {
+						erreur::lance_erreur(
+									"« associe » ne peut prendre une union nonsûre",
+									contexte,
+									expression->morceau);
+					}
+
+					b->type = type_noeud::ASSOCIE_UNION;
+
+					/* vérifie que tous les expressions des paires sont bel et
+					 * bien des membres */
+
+					auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
+
+					for (auto i = 1; i < nombre_enfant; ++i) {
+						auto enfant = *iter_enfant++;
+						auto expr_paire = enfant->enfants.front();
+						auto bloc_paire = enfant->enfants.back();
+
+						if (expr_paire->type != type_noeud::VARIABLE) {
+							erreur::lance_erreur(
+										"Attendu une variable membre de l'union nonsûre",
+										contexte,
+										expression->morceau);
+						}
+
+						auto nom_membre = expr_paire->chaine();
+
+						if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
+							erreur::lance_erreur(
+										"Redéfinition de l'expression",
+										contexte,
+										expr_paire->morceau);
+						}
+
+						membres_rencontres.insere(nom_membre);
+
+						auto iter_membre = ds.donnees_membres.trouve(nom_membre);
+
+						if (iter_membre == ds.donnees_membres.fin()) {
+							erreur::membre_inconnu(contexte, ds, b, expression, expr_paire);
+						}
+
+						performe_validation_semantique(bloc_paire, contexte);
+					}
+
+					return;
+				}
+			}
+
+			valides_enfants(b, contexte);
+			break;
+		}
+		case type_noeud::PAIRE_ASSOCIATION:
+		{
+			/* Ceci n'est évalué que si l'association est faite avec un type
+			 * autre que union (sûre) */
 			valides_enfants(b, contexte);
 			break;
 		}

@@ -3227,6 +3227,47 @@ void genere_code_C(
 			assert(false);
 			break;
 		}
+		case type_noeud::ASSOCIE_UNION:
+		{
+			/* switch (union.membre_actif) {
+			 * case index membre + 1: {
+			 *	bloc
+			 *	break;
+			 * }
+			 */
+
+			auto nombre_enfant = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
+			auto expression = *iter_enfant++;
+
+			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
+			auto id = static_cast<long>(dt.type_base() >> 8);
+			auto &ds = contexte.donnees_structure(id);
+
+			genere_code_C(expression, generatrice, contexte, true);
+			auto chaine_calculee = std::any_cast<dls::chaine>(expression->valeur_calculee);
+
+			generatrice.os << "switch (" << chaine_calculee << ".membre_actif) {\n";
+
+			for (auto i = 1; i < nombre_enfant; ++i) {
+				auto enfant = *iter_enfant++;
+				auto expr_paire = enfant->enfants.front();
+				auto bloc_paire = enfant->enfants.back();
+
+				auto iter_dm = ds.donnees_membres.trouve(expr_paire->chaine());
+				auto const &dm = iter_dm->second;
+
+				generatrice.os << "case " << dm.index_membre + 1 << ": {\n";
+
+				genere_code_C(bloc_paire, generatrice, contexte, true);
+
+				generatrice.os << "break;\n}\n";
+			}
+
+			generatrice.os << "}\n";
+
+			break;
+		}
 		case type_noeud::RETIENS:
 		{
 			auto df = contexte.donnees_fonction;
