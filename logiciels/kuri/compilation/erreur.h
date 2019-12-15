@@ -51,6 +51,7 @@ enum class type_erreur : int {
 	STRUCTURE_INCONNUE,
 	STRUCTURE_REDEFINIE,
 	MEMBRE_INCONNU,
+	MEMBRE_INACTIF,
 	MEMBRE_REDEFINI,
 	ASSIGNATION_INVALIDE,
 	ASSIGNATION_MAUVAIS_TYPE,
@@ -148,6 +149,12 @@ using frappe = lng::erreur::frappe<type_erreur>;
 			noeud::base *membre);
 
 [[noreturn]] void membre_inconnu_eini(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void membre_inactif(
 			ContexteGenerationCode &contexte,
 			noeud::base *acces,
 			noeud::base *structure,

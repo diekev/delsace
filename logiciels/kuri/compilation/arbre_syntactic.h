@@ -218,6 +218,10 @@ enum {
 
 	ACCEDE_MODULE,
 
+	/* pour ne pas avoir à générer des conditions de vérification pour par
+	 * exemple les accès à des membres d'unions */
+	IGNORE_VERIFICATION,
+
 	/* instruction 'retourne' */
 	REQUIERS_CODE_EXTRA_RETOUR,
 };

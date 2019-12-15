@@ -705,4 +705,38 @@ void membre_inconnu_eini(
 	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
 }
 
+void membre_inactif(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto const &morceau = acces->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, acces);
+
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Dans l'accès à « " << structure->chaine() << " » :\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << '\n';
+	ss << "Le membre « " << membre->chaine() << " » est inactif dans ce contexte !\n";
+	ss << "Le membre actif dans ce contexte est « " << contexte.nom_actif_union << " ».\n";
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+}
+
 }

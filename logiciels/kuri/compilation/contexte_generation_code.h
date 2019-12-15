@@ -163,6 +163,12 @@ struct ContexteGenerationCode {
 
 	bool bit32 = false;
 
+	/* active la vérification au lors de la validation sémantique des accès aux
+	 * membres des unions, ceci est mise en place dans la validation des
+	 * instructions « associe » */
+	bool verifie_acces_union = false;
+	dls::vue_chaine_compacte nom_actif_union = "";
+
 	ContexteGenerationCode();
 
 	~ContexteGenerationCode();

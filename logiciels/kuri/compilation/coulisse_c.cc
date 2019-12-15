@@ -1625,16 +1625,18 @@ void genere_code_C(
 				generatrice.os << expr_membre << " = " << index_membre + 1 << ";";
 			}
 			else {
-				auto const &morceau = b->morceau;
-				auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-				auto pos = trouve_position(morceau, module);
+				if (b->aide_generation_code != IGNORE_VERIFICATION) {
+					auto const &morceau = b->morceau;
+					auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
+					auto pos = trouve_position(morceau, module);
 
-				generatrice.os << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
-				generatrice.os << "KR__acces_membre_union(";
-				generatrice.os << '"' << module->chemin << '"' << ',';
-				generatrice.os << pos.numero_ligne;
-				generatrice.os << ");\n";
-				generatrice.os << "}\n";
+					generatrice.os << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
+					generatrice.os << "KR__acces_membre_union(";
+					generatrice.os << '"' << module->chemin << '"' << ',';
+					generatrice.os << pos.numero_ligne;
+					generatrice.os << ");\n";
+					generatrice.os << "}\n";
+				}
 			}
 
 			b->valeur_calculee = dls::chaine(flux.chn());
