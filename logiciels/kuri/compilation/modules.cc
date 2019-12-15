@@ -283,7 +283,7 @@ static double verifie_compatibilite(
 	if ((drapeau & niveau_compat::prend_reference) != niveau_compat::aucune) {
 		/* À FAIRE : ceci est pour différencier les valeurs gauches des valeurs
 		 * droites (littérales), il manque d'autres cas... */
-		if (dls::outils::est_element(enfant->type, type_noeud::VARIABLE, type_noeud::ACCES_MEMBRE_DE)) {
+		if (dls::outils::est_element(enfant->type, type_noeud::VARIABLE, type_noeud::ACCES_MEMBRE_DE, type_noeud::ACCES_MEMBRE_POINT)) {
 			return 1.0;
 		}
 
