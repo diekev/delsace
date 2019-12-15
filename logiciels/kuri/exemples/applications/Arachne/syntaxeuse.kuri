@@ -318,7 +318,36 @@ fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) : bool
 
 fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Requête
 {
+	dyn requête : Requête
 
+	#imprime("analyse_requête ", '\n')
+	tantque !syntaxeuse.a_fini() {
+		#imprime("-- boucle analyse_requête\n")
+		si syntaxeuse.est_instruction() {
+			syntaxeuse.avance()
+
+			si !syntaxeuse.requiers_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+				imprime("ERREUR : l'instruction doit être suivie par un noeud !\n")
+				arrête
+			}
+
+			dyn bloc : Bloc
+			bloc.inst = syntaxeuse.inst
+			bloc.expression = syntaxeuse.analyse_expression()
+
+			requête.blocs.pousse(bloc)
+		}
+		sinon {
+			imprime("ERREUR : la requête doit commencer par une instruction !\n")
+			arrête
+		}
+	}
+
+	retourne requête
+}
+
+fonc principale(args : []*z8) : z32
+{
     expressions = [
         "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",
         "( noeud : Personne :Acteur )-[ : LABEL { nom : \"bibi\" } ]->( noeud : LABEL { nom : 8, id : 56, voiture : 789 } )",
@@ -354,36 +383,6 @@ fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Requête
         "TROUVE (moi { nom : \"bibi\" })\nCREE (moi) -[:AIME]-> (quelquechose)\nRETOURNE moi, quelquechose\n"
     ]
 
-	dyn requête : Requête
-
-	#imprime("analyse_requête ", '\n')
-	tantque !syntaxeuse.a_fini() {
-		#imprime("-- boucle analyse_requête\n")
-		si syntaxeuse.est_instruction() {
-			syntaxeuse.avance()
-
-			si !syntaxeuse.requiers_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
-				imprime("ERREUR : l'instruction doit être suivie par un noeud !\n")
-				arrête
-			}
-
-			dyn bloc : Bloc
-			bloc.inst = syntaxeuse.inst
-			bloc.expression = syntaxeuse.analyse_expression()
-
-			requête.blocs.pousse(bloc)
-		}
-		sinon {
-			imprime("ERREUR : la requête doit commencer par une instruction !\n")
-			arrête
-		}
-	}
-
-	retourne requête
-}
-
-fonc principale(args : []*z8) : z32
-{
 	diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), "o\n"); }
 
     chaine_requête = "CHERCHE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
