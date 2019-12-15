@@ -1046,6 +1046,10 @@ static void cree_initialisation(
 				}
 			}
 		}
+
+		if (ds.est_union && !ds.est_nonsur) {
+			os << chaine_parent << dls::chaine(accesseur) << "membre_actif = 0;\n";
+		}
 	}
 	else if ((dt_parent.front() & 0xff) == id_morceau::TABLEAU) {
 		/* À FAIRE */
