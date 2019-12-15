@@ -60,6 +60,8 @@ Faitures
 - amélioration du système de vérification des opérateurs
 - surcharge d'opérateurs
 - surcharge de transtypage/transtypage personnalisé entre type
+- conversion automatique des types en unions et extraction automatique des valeurs des unions
+- infos types pour les unions
 
 
 À faire (tests)
