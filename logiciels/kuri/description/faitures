@@ -63,6 +63,20 @@ Faitures
 - conversion automatique des types en unions et extraction automatique des valeurs des unions
 - infos types pour les unions
 - tenir trace du nombre d'allocations et de réallocations
+- à faire : urgent
+-- surcharge d'opérateurs (simple)
+-- expression gauche dans la validation sémantique
+-- validation des assignations des accès aux unions
+-- système de transtypage
+-- réusinage des tests
+- à faire : moins urgent
+-- gabarits (maintenir une table de symboles afin de désambiguer a < b (comparaison), et a<b> (paramètres)
+-- empl (vérifier tous les cas)
+-- évaluation arbitraire du code
+-- initialisation des objets : évite d'initialiser plusieurs fois le même membre
+-- validation des énum dans associe
+-- alias de types
+-- contexte implicite
 
 
 À faire (tests)
@@ -96,13 +110,8 @@ Idées
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - mot clés pour le nom du fichier courant, la ligne, la colonne, et le temps où la ligne a été rencontré pour la première foix (__fichier__, __ligne__, __colonne__, __temps__)
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++)
-- multiple valeurs de retour, notamment pour gérer les erreurs sans passer par des exceptions (on pourrait transformer les fonction pour avoir les valeurs retournées en paramètres pointés x = foo() -> foo(&x))
 - héritage/polymorphisme par enlignage de structures dans d'autres
-- surcharges des opérateurs
-- déclarations de nouveaux types par alias d'un type connu (comme typedef en C/C++, mais avec typage strict) (mot-clé 'entredit', pour empêcher qu'un opérateur soit hérité)
-- surcharge de fonctions
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
-- vérification automatique des limites des tableaux (peut-être interdiction de passer des pointeurs, et passage uniquement de tableaux)
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
 - mot-clés pour des tests unitaires, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour des tests fuzzés, avec maintenance des fonctions auxilliaires des tests par le compileur
@@ -110,10 +119,42 @@ Idées
 - transformer les messages d'erreur en tutoriaux
 - valeur par défaut des arguments
 - ajout de nom et valeur par défaut au type de retour
-- contexte (modifiable par l'utilisateur) implicit passé en paramètre de toutes les fonctions internes pour pouvoir faciliter la gestion de la mémoire et d'autres données du programme
-- compte de la mémoire utilisée avec rapport en fin d'exécution du programme sur ce qui a utilisé le plus de mémoire, et s'il y a fuite de mémoire
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
+- opérateurs prenant des listes :
+	a += (c, d, e, f, g, h, i, j)
+
+	équivalent à
+
+	a += b + c + d + e + f + g
+
+	si a == (c, d, e, f, g, h, i, j) {
+
+	}
+
+	équivalent à
+
+	si a == c || a == d || a == e ... {
+
+	}
+
+	comment pour a && c
+- graphe de typage :
+- trouve les opérations à effectuer pour transtyper un type à un autre
+-- prend référence
+-- construit eini
+-- construit tableau octet
+-- construit union
+-- extrait eini
+-- extrait tableau octet
+-- extrait union
+- pour :
+-- initialisation/assignement (a = b)
+-- passage de paramètre (foo(a, b))
+-- opérateurs (a + b)
+-- transtype (a = transtype(b : type))
+- trouve une fonction selon les paramètres de types
+- trouve une fonction pour passer d'un type à un autre (suggestion, gare aux conversions implicites)
 
 
 Zones d'ombres
