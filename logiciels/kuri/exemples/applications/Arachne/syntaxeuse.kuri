@@ -117,6 +117,8 @@ fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) : rien
 struct Syntaxeuse {
 	lexèmes : *[]Lexème
 	position : z64 = 0
+	# L'instruction si le lexème courant est celui d'une instruction
+	inst : Instruction
 }
 
 fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) : rien
@@ -293,22 +295,51 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
 	retourne expression
 }
 
+fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
+{
+	associe id {
+		IdentifiantLexème.CREE     { retourne Instruction.CREE; }
+		IdentifiantLexème.SUPPRIME { retourne Instruction.SUPPRIME; }
+		IdentifiantLexème.TROUVE   { retourne Instruction.TROUVE; }
+		IdentifiantLexème.RETOURNE { retourne Instruction.RETOURNE; }
+	}
+
+    retourne Instruction.INVALIDE
+}
+
+fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) : bool
+{
+	lexème = syntaxeuse.lexème_courant()
+	inst = instruction_pour_lexème(lexème.id)
+	syntaxeuse.inst = inst
+
+	retourne inst != Instruction.INVALIDE
+}
+
 fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Requête
 {
 	dyn requête : Requête
-	dyn bloc_courant : Bloc
 
 	#imprime("analyse_requête ", '\n')
 	tantque !syntaxeuse.a_fini() {
 		#imprime("-- boucle analyse_requête\n")
-		si syntaxeuse.est_lexème(IdentifiantLexème.TROUVE) {
+		si syntaxeuse.est_instruction() {
 			syntaxeuse.avance()
 
-			bloc_courant.inst = Instruction.TROUVE
+			si !syntaxeuse.requiers_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+				imprime("ERREUR : l'instruction doit être suivie par un noeud !\n")
+				arrête
+			}
+
+			dyn bloc : Bloc
+			bloc.inst = syntaxeuse.inst
+			bloc.expression = syntaxeuse.analyse_expression()
+
+			requête.blocs.pousse(bloc)
 		}
-		sinon si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
-			bloc_courant.expression = syntaxeuse.analyse_expression()
-			requête.blocs.pousse(bloc_courant)
+		sinon {
+			imprime("ERREUR : la requête doit commencer par une instruction !\n")
+			arrête
 		}
 	}
 
@@ -319,7 +350,7 @@ fonc principale(args : []*z8) : z32
 {
 	diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), "o\n"); }
 
-    chaine_requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
+    chaine_requête = "CHERCHE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
 
     dyn lexeuse : Lexeuse
     lexeuse.analyse_texte(chaine_requête)
