@@ -3064,32 +3064,26 @@ void genere_code_C(
 				auto acces_taille = nom_ptr_ret + ".taille";
 				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
-				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
-							nom_ancienne_taille,
-							acces_taille);
-
 				auto flux_type = dls::flux_chaine();
-				auto dt_ptr = DonneesTypeFinal{};
-				dt_ptr.pousse(id_morceau::POINTEUR);
-				dt_ptr.pousse(dt_pointeur.dereference());
-
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_ptr.plage(),
-							flux_type);
-
-				generatrice.os << "long " << nom_nouvelle_taille << " = sizeof(";
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							"",
 							dt_pointeur.dereference(),
-							generatrice.os);
-				generatrice.os << ") * " << taille_tabl << ";\n";
-				generatrice.os << ";\n";
+							flux_type);
 
-				generatrice.os << acces_pointeur << " = (" << flux_type.chn() << ")(realloc(";
+				auto expr_sizeof = "sizeof(" + flux_type.chn() + ")";
+
+				generatrice.declare_variable(
+							contexte.magasin_types[TYPE_Z64],
+							nom_ancienne_taille,
+							expr_sizeof + " * " + acces_taille);
+
+				generatrice.declare_variable(
+							contexte.magasin_types[TYPE_Z64],
+							nom_nouvelle_taille,
+							expr_sizeof + " * " + taille_tabl);
+
+				generatrice.os << acces_pointeur << " = (" << flux_type.chn() << " *)(realloc(";
 				generatrice.os << acces_pointeur << ", " << nom_nouvelle_taille << "));\n";
 				generatrice.os << acces_taille << " = " << taille_tabl << ";\n";
 			}
