@@ -694,10 +694,10 @@ static auto cree_eini(
 	/* dans le cas d'un nombre ou d'un tableau, etc. */
 	if (b->type != type_noeud::VARIABLE) {
 		nom_var = dls::chaine("__var_").append(nom_eini);
-		generatrice.declare_variable(dt, nom_var, std::any_cast<dls::chaine>(b->valeur_calculee));
+		generatrice.declare_variable(dt, nom_var, b->chaine_calculee());
 	}
 	else {
-		nom_var = std::any_cast<dls::chaine>(b->valeur_calculee);
+		nom_var = b->chaine_calculee();
 	}
 
 	os << "eini " << nom_eini << ";\n";
@@ -721,7 +721,7 @@ static void cree_appel(
 
 			if (enf->type == type_noeud::CONSTRUIT_TABLEAU) {
 				genere_code_C(enf, generatrice, contexte, false);
-				nom_tabl_fixe = std::any_cast<dls::chaine>(enf->valeur_calculee);
+				nom_tabl_fixe = enf->chaine_calculee();
 			}
 
 			auto nom_tableau = dls::chaine("__tabl_dyn") + dls::vers_chaine(index++);
@@ -746,7 +746,7 @@ static void cree_appel(
 
 				genere_code_C(enf, generatrice, contexte, false);
 				os << "chaine " << nom_var_chaine << " = ";
-				os << std::any_cast<dls::chaine>(enf->valeur_calculee);
+				os << enf->chaine_calculee();
 				os << ";\n";
 			}
 			else {
@@ -798,7 +798,7 @@ static void cree_appel(
 					genere_code_C(enf, generatrice, contexte, false);
 
 					os << nom_var_tableau << ".pointeur = ";
-					os << std::any_cast<dls::chaine>(enf->valeur_calculee);
+					os << enf->chaine_calculee();
 					os << ".pointeur;\n";
 
 					os << nom_var_tableau << ".taille = ";
@@ -921,13 +921,13 @@ static void cree_appel(
 		if ((enf->drapeaux & PREND_REFERENCE) != 0) {
 			os << '&';
 		}
-		os << std::any_cast<dls::chaine>(enf->valeur_calculee);
+		os << enf->chaine_calculee();
 		virgule = ',';
 	}
 
 	for (auto n : liste_var_retour) {
 		os << virgule;
-		os << "&(" << std::any_cast<dls::chaine>(n->valeur_calculee) << ')';
+		os << "&(" << n->chaine_calculee() << ')';
 		virgule = ',';
 	}
 
@@ -1032,7 +1032,7 @@ static void cree_initialisation(
 					/* indirection pour les chaines ou autres */
 					genere_code_C(donnees_membre.noeud_decl, generatrice, contexte, false);
 					os << decl_nom << " = ";
-					os << std::any_cast<dls::chaine>(donnees_membre.noeud_decl->valeur_calculee);
+					os << donnees_membre.noeud_decl->chaine_calculee();
 					os << ";\n";
 				}
 				else {
@@ -1074,7 +1074,7 @@ static void genere_code_acces_membre(
 
 	if (b->aide_generation_code == ACCEDE_MODULE) {
 		genere_code_C(membre, generatrice, contexte, false);
-		flux << std::any_cast<dls::chaine>(membre->valeur_calculee);
+		flux << membre->chaine_calculee();
 	}
 	else {
 		auto const &index_type = structure->index_type;
@@ -1099,7 +1099,7 @@ static void genere_code_acces_membre(
 					genere_code_C(membre, generatrice, contexte, expr_gauche);
 				}
 
-				flux << std::any_cast<dls::chaine>(structure->valeur_calculee);
+				flux << structure->chaine_calculee();
 				flux << ((est_pointeur) ? "->" : ".");
 				flux << broye_chaine(membre);
 			}
@@ -1124,7 +1124,7 @@ static void genere_code_acces_membre(
 				genere_code_C(membre, generatrice, contexte, expr_gauche);
 			}
 
-			flux << std::any_cast<dls::chaine>(structure->valeur_calculee);
+			flux << structure->chaine_calculee();
 			flux << ((est_pointeur) ? "->" : ".");
 			flux << broye_chaine(membre);
 		}
@@ -1139,7 +1139,7 @@ static void genere_code_acces_membre(
 			genere_code_C(membre, generatrice, contexte, false);
 
 			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-			generatrice.declare_variable(dt, nom_acces, std::any_cast<dls::chaine>(membre->valeur_calculee));
+			generatrice.declare_variable(dt, nom_acces, membre->chaine_calculee());
 
 			b->valeur_calculee = nom_acces;
 		}
@@ -1673,7 +1673,7 @@ void genere_code_C(
 					/* déclare au besoin */
 					if (f->aide_generation_code == GENERE_CODE_DECL_VAR) {
 						genere_code_C(f, generatrice, contexte, true);
-						generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
+						generatrice.os << f->chaine_calculee();
 						generatrice.os << ';' << '\n';
 					}
 
@@ -1698,15 +1698,15 @@ void genere_code_C(
 				variable->drapeaux |= POUR_ASSIGNATION;
 				genere_code_C(variable, generatrice, contexte, true);
 
-				generatrice.os << std::any_cast<dls::chaine>(variable->valeur_calculee);
+				generatrice.os << variable->chaine_calculee();
 				generatrice.os << " = ";
 
 				if (b->op->est_basique) {
-					generatrice.os << std::any_cast<dls::chaine>(expression->valeur_calculee);
+					generatrice.os << expression->chaine_calculee();
 				}
 				else {
 					generatrice.os << b->op->nom_fonction << "(";
-					generatrice.os << std::any_cast<dls::chaine>(expression->valeur_calculee);
+					generatrice.os << expression->chaine_calculee();
 					generatrice.os << ")";
 				}
 
@@ -1758,7 +1758,7 @@ void genere_code_C(
 			if (expression->type == type_noeud::LOGE) {
 				expression_modifiee = true;
 				genere_code_C(expression, generatrice, contexte, false);
-				nouvelle_expr = std::any_cast<dls::chaine>(expression->valeur_calculee);
+				nouvelle_expr = expression->chaine_calculee();
 			}
 
 			if (!expression_modifiee) {
@@ -1768,11 +1768,11 @@ void genere_code_C(
 			variable->drapeaux |= POUR_ASSIGNATION;
 			genere_code_C(variable, generatrice, contexte, true);
 
-			generatrice.os << std::any_cast<dls::chaine>(variable->valeur_calculee);
+			generatrice.os << variable->chaine_calculee();
 			generatrice.os << " = ";
 
 			if (!expression_modifiee) {
-				generatrice.os << std::any_cast<dls::chaine>(expression->valeur_calculee);
+				generatrice.os << expression->chaine_calculee();
 			}
 			else {
 				generatrice.os << nouvelle_expr;
@@ -1819,15 +1819,15 @@ void genere_code_C(
 			auto op = b->op;
 
 			if (op->est_basique) {
-				flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				flux << enfant1->chaine_calculee();
 				flux << b->morceau.chaine;
-				flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+				flux << enfant2->chaine_calculee();
 			}
 			else {
 				flux << op->nom_fonction << '(';
-				flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				flux << enfant1->chaine_calculee();
 				flux << ',';
-				flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+				flux << enfant2->chaine_calculee();
 				flux << ')';
 			}
 
@@ -1858,16 +1858,16 @@ void genere_code_C(
 
 			/* (a comp b) */
 			flux << '(';
-			flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+			flux << enfant1->chaine_calculee();
 			flux << ')';
 
 			flux << "&&";
 
 			/* (b comp c) */
 			flux << '(';
-			flux << std::any_cast<dls::chaine>(enfant1->enfants.back()->valeur_calculee);
+			flux << enfant1->enfants.back()->chaine_calculee();
 			flux << b->morceau.chaine;
-			flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+			flux << enfant2->chaine_calculee();
 			flux << ')';
 
 			auto nom_var = "__var_temp" + dls::vers_chaine(index++);
@@ -1913,34 +1913,34 @@ void genere_code_C(
 			switch (type_base & 0xff) {
 				case id_morceau::POINTEUR:
 				{
-					flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					flux << enfant1->chaine_calculee();
 					flux << '[';
-					flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					flux << enfant2->chaine_calculee();
 					flux << ']';
 					break;
 				}
 				case id_morceau::CHAINE:
 				{
 					generatrice.os << "if (";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << enfant2->chaine_calculee();
 					generatrice.os << " < 0 || ";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << enfant2->chaine_calculee();
 					generatrice.os << " >= ";
-					generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					generatrice.os << enfant1->chaine_calculee();
 					generatrice.os << ".taille) {\n";
 					generatrice.os << "KR__depassement_limites(";
 					generatrice.os << '"' << module->chemin << '"' << ',';
 					generatrice.os << pos.numero_ligne << ',';
 					generatrice.os << "\"de la chaine\",";
-					generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					generatrice.os << enfant1->chaine_calculee();
 					generatrice.os << ".taille,";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << enfant2->chaine_calculee();
 					generatrice.os << ");\n}\n";
 
-					flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					flux << enfant1->chaine_calculee();
 					flux << ".pointeur";
 					flux << '[';
-					flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					flux << enfant2->chaine_calculee();
 					flux << ']';
 
 					break;
@@ -1950,13 +1950,13 @@ void genere_code_C(
 					auto taille_tableau = static_cast<int>(type_base >> 8);
 
 					generatrice.os << "if (";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << enfant2->chaine_calculee();
 					generatrice.os << " < 0 || ";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << enfant2->chaine_calculee();
 					generatrice.os << " >= ";
 
 					if (taille_tableau == 0) {
-						generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+						generatrice.os << enfant1->chaine_calculee();
 						generatrice.os << ".taille";
 					}
 					else {
@@ -1969,24 +1969,24 @@ void genere_code_C(
 					generatrice.os << pos.numero_ligne << ',';
 					generatrice.os << "\"du tableau\",";
 					if (taille_tableau == 0) {
-						generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+						generatrice.os << enfant1->chaine_calculee();
 						generatrice.os << ".taille";
 					}
 					else {
 						generatrice.os << taille_tableau;
 					}
 					generatrice.os << ",";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					generatrice.os << enfant2->chaine_calculee();
 					generatrice.os << ");\n}\n";
 
-					flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+					flux << enfant1->chaine_calculee();
 
 					if (taille_tableau == 0) {
 						flux << ".pointeur";
 					}
 
 					flux << '[';
-					flux << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+					flux << enfant2->chaine_calculee();
 					flux << ']';
 					break;
 				}
@@ -2026,7 +2026,7 @@ void genere_code_C(
 				 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
 				 * pointeur de la variable temporaire du code généré */
 				genere_code_C(enfant, generatrice, contexte, true);
-				b->valeur_calculee = "&(" + std::any_cast<dls::chaine>(enfant->valeur_calculee) + ")";
+				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
 			}
 			else {
 				auto flux = dls::flux_chaine();
@@ -2040,7 +2040,7 @@ void genere_code_C(
 				}
 
 				flux << '(';
-				flux << std::any_cast<dls::chaine>(enfant->valeur_calculee);
+				flux << enfant->chaine_calculee();
 				flux << ')';
 
 				b->valeur_calculee = dls::chaine(flux.chn());
@@ -2067,7 +2067,7 @@ void genere_code_C(
 			generatrice.declare_variable(
 						dt,
 						nom_variable,
-						std::any_cast<dls::chaine>(enfant->valeur_calculee));
+						enfant->chaine_calculee());
 
 			/* NOTE : le code différé doit être créé après l'expression de retour, car
 			 * nous risquerions par exemple de déloger une variable utilisée dans
@@ -2097,7 +2097,7 @@ void genere_code_C(
 					genere_code_C(f, generatrice, contexte, false);
 
 					generatrice.os << '*' << df->noms_retours[idx++] << " = ";
-					generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
+					generatrice.os << f->chaine_calculee();
 					generatrice.os << ';';
 				}
 			}
@@ -2188,13 +2188,13 @@ void genere_code_C(
 					flux << '!';
 				}
 
-				flux << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				flux << enfant1->chaine_calculee();
 				flux << " ? ";
 				/* prenons les enfants des enfants pour ne mettre des accolades
 				 * autour de l'expression vu qu'ils sont de type 'BLOC' */
-				flux << std::any_cast<dls::chaine>(enfant2->enfants.front()->valeur_calculee);
+				flux << enfant2->enfants.front()->chaine_calculee();
 				flux << " : ";
-				flux << std::any_cast<dls::chaine>(enfant3->enfants.front()->valeur_calculee);
+				flux << enfant3->enfants.front()->chaine_calculee();
 
 				auto nom_variable = "__var_temp" + dls::vers_chaine(index++);
 
@@ -2219,7 +2219,7 @@ void genere_code_C(
 				generatrice.os << '!';
 			}
 
-			generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+			generatrice.os << enfant1->chaine_calculee();
 			generatrice.os << ")";
 
 			/* noeud 2 : bloc */
@@ -2256,7 +2256,7 @@ void genere_code_C(
 					/* les assignations opérées (+=, etc) n'ont pas leurs codes
 					 * générées via genere_code_C  */
 					if (est_assignation_operee(enfant->identifiant())) {
-						generatrice.os << std::any_cast<dls::chaine>(enfant->valeur_calculee);
+						generatrice.os << enfant->chaine_calculee();
 						generatrice.os << ";\n";
 					}
 				}
@@ -2324,11 +2324,11 @@ void genere_code_C(
 				genere_code_C(enfant_2, generatrice, contexte_loc, true);
 
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
-				os_loc << std::any_cast<dls::chaine>(enfant_2->valeur_calculee);
+				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
 				os_loc << " *" << broye_chaine(var) << " = &";
-				os_loc << std::any_cast<dls::chaine>(enfant_2->valeur_calculee);
+				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".pointeur["<< nom_var <<"];\n";
 
 				if (idx) {
@@ -2361,7 +2361,7 @@ void genere_code_C(
 				genere_code_C(enfant_2, generatrice, contexte_loc, true);
 				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
 				os_loc << " *" << broye_chaine(var) << " = &";
-				os_loc << std::any_cast<dls::chaine>(enfant_2->valeur_calculee);
+				os_loc << enfant_2->chaine_calculee();
 				os_loc << "["<< nom_var <<"];\n";
 
 				if (idx) {
@@ -2397,11 +2397,11 @@ void genere_code_C(
 								type_debut.plage(),
 								generatrice.os);
 					generatrice.os << " " << nom_broye << " = ";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->enfants.front()->valeur_calculee);
+					generatrice.os << enfant2->enfants.front()->chaine_calculee();
 
 					generatrice.os << "; "
 					   << nom_broye << " <= ";
-					generatrice.os << std::any_cast<dls::chaine>(enfant2->enfants.back()->valeur_calculee);
+					generatrice.os << enfant2->enfants.back()->chaine_calculee();
 
 					generatrice.os <<"; ++" << nom_broye;
 
@@ -2498,7 +2498,7 @@ void genere_code_C(
 					for (auto &arg : df->args) {
 						auto nom_broye = broye_nom_simple(arg.nom);
 						generatrice.os << nom_etat << '.' << nom_broye << " = ";
-						generatrice.os << std::any_cast<dls::chaine>((*iter_enf)->valeur_calculee);
+						generatrice.os << (*iter_enf)->chaine_calculee();
 						generatrice.os << ";\n";
 						++iter_enf;
 					}
@@ -2656,7 +2656,7 @@ void genere_code_C(
 			generatrice.os << goto_continue << ":;\n";
 			genere_code_C(enfant2, generatrice, contexte, false);
 			generatrice.os << "if (!";
-			generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+			generatrice.os << enfant2->chaine_calculee();
 			generatrice.os << ") {\nbreak;\n}\n";
 			generatrice.os << "}\n";
 			generatrice.os << goto_apres << ":;\n";
@@ -2689,7 +2689,7 @@ void genere_code_C(
 			generatrice.os << "while (1) {";
 			genere_code_C(enfant1, generatrice, contexte, false);
 			generatrice.os << "if (!";
-			generatrice.os << std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+			generatrice.os << enfant1->chaine_calculee();
 			generatrice.os << ") { break; }\n";
 
 			genere_code_C(enfant2, generatrice, contexte, false);
@@ -2722,7 +2722,7 @@ void genere_code_C(
 			flux << "(";
 			contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), flux);
 			flux << ")(";
-			flux << std::any_cast<dls::chaine>(enfant->valeur_calculee);
+			flux << enfant->chaine_calculee();
 			flux << ")";
 
 			b->valeur_calculee = dls::chaine(flux.chn());
@@ -2795,7 +2795,7 @@ void genere_code_C(
 
 			for (auto enfant : b->enfants) {
 				generatrice.os << virgule;
-				generatrice.os << std::any_cast<dls::chaine>(enfant->valeur_calculee);
+				generatrice.os << enfant->chaine_calculee();
 				virgule = ',';
 			}
 
@@ -2837,7 +2837,7 @@ void genere_code_C(
 				flux << virgule;
 
 				flux << '.' << broye_nom_simple(*nom_param) << '=';
-				flux << std::any_cast<dls::chaine>((*enfant)->valeur_calculee);
+				flux << (*enfant)->chaine_calculee();
 				++enfant;
 				++nom_param;
 
@@ -2874,7 +2874,7 @@ void genere_code_C(
 
 			for (auto f : feuilles) {
 				generatrice.os << virgule;
-				generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
+				generatrice.os << f->chaine_calculee();
 				virgule = ',';
 			}
 
@@ -2893,7 +2893,7 @@ void genere_code_C(
 		case type_noeud::MEMOIRE:
 		{
 			genere_code_C(b->enfants.front(), generatrice, contexte, false);
-			b->valeur_calculee = "*(" + std::any_cast<dls::chaine>(b->enfants.front()->valeur_calculee) + ")";
+			b->valeur_calculee = "*(" + b->enfants.front()->chaine_calculee() + ")";
 			break;
 		}
 		case type_noeud::LOGE:
@@ -2919,7 +2919,7 @@ void genere_code_C(
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
 							taille_tabl,
-							std::any_cast<dls::chaine>(expr->valeur_calculee));
+							expr->chaine_calculee());
 
 				auto flux = dls::flux_chaine();
 				flux << "sizeof(";
@@ -2963,7 +2963,7 @@ void genere_code_C(
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
 							nom_taille,
-							std::any_cast<dls::chaine>(enf->valeur_calculee));
+							enf->chaine_calculee());
 
 				nombre_enfant -= 1;
 
@@ -3045,7 +3045,7 @@ void genere_code_C(
 			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
 			genere_code_C(enfant, generatrice, contexte, true);
-			auto chn_enfant = std::any_cast<dls::chaine>(enfant->valeur_calculee);
+			auto chn_enfant = enfant->chaine_calculee();
 
 			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
 
@@ -3109,9 +3109,9 @@ void genere_code_C(
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
 							taille_tabl,
-							std::any_cast<dls::chaine>(expr->valeur_calculee));
+							expr->chaine_calculee());
 
-				nom_ptr_ret = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				nom_ptr_ret = enfant1->chaine_calculee();
 				auto acces_taille = nom_ptr_ret + ".taille";
 				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
@@ -3144,7 +3144,7 @@ void genere_code_C(
 				a_pointeur = true;
 
 				genere_code_C(enfant1, generatrice, contexte, true);
-				nom_ptr_ret = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				nom_ptr_ret = enfant1->chaine_calculee();
 				genere_code_C(enfant2, generatrice, contexte, true);
 
 				auto acces_taille = nom_ptr_ret + ".taille";
@@ -3156,7 +3156,7 @@ void genere_code_C(
 							acces_taille);
 
 				generatrice.os << "long " << nom_nouvelle_taille << " = sizeof(char) *";
-				generatrice.os << std::any_cast<dls::chaine>(enfant2->valeur_calculee);
+				generatrice.os << enfant2->chaine_calculee();
 				generatrice.os << ";\n";
 
 				generatrice.os << acces_pointeur << " = (char *)(realloc(";
@@ -3186,7 +3186,7 @@ void genere_code_C(
 							nom_ancienne_taille);
 
 				genere_code_C(enfant1, generatrice, contexte, true);
-				nom_ptr_ret = std::any_cast<dls::chaine>(enfant1->valeur_calculee);
+				nom_ptr_ret = enfant1->chaine_calculee();
 
 				flux_type.chn("");
 				contexte.magasin_types.converti_type_C(
@@ -3242,7 +3242,7 @@ void genere_code_C(
 			auto expression = *iter_enfant++;
 
 			genere_code_C(expression, generatrice, contexte, true);
-			auto chaine_expr = std::any_cast<dls::chaine>(expression->valeur_calculee);
+			auto chaine_expr = expression->chaine_calculee();
 
 			for (auto i = 1l; i < nombre_enfants; ++i) {
 				auto paire = *iter_enfant++;
@@ -3254,7 +3254,7 @@ void genere_code_C(
 				generatrice.os << "if (";
 				generatrice.os << chaine_expr;
 				generatrice.os << " == ";
-				generatrice.os << std::any_cast<dls::chaine>(enf0->valeur_calculee);
+				generatrice.os << enf0->chaine_calculee();
 				generatrice.os << ") ";
 				genere_code_C(enf1, generatrice, contexte, false);
 
@@ -3296,7 +3296,7 @@ void genere_code_C(
 			auto &ds = contexte.donnees_structure(id);
 
 			genere_code_C(expression, generatrice, contexte, true);
-			auto chaine_calculee = std::any_cast<dls::chaine>(expression->valeur_calculee);
+			auto chaine_calculee = expression->chaine_calculee();
 
 			generatrice.os << "switch (" << chaine_calculee << ".membre_actif) {\n";
 
@@ -3339,7 +3339,7 @@ void genere_code_C(
 				genere_code_C(f, generatrice, contexte, true);
 
 				generatrice.os << "__etat->" << df->noms_retours[i] << " = ";
-				generatrice.os << std::any_cast<dls::chaine>(f->valeur_calculee);
+				generatrice.os << f->chaine_calculee();
 				generatrice.os << ";\n";
 			}
 

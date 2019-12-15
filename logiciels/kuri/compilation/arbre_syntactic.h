@@ -296,6 +296,9 @@ struct base {
 	 * aucun enfant, retourne nullptr.
 	 */
 	base *dernier_enfant() const;
+
+	/* retourne la valeur_calculee avec le type dls::chaine */
+	dls::chaine chaine_calculee() const;
 };
 
 void rassemble_feuilles(

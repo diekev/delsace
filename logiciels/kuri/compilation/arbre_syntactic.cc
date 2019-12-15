@@ -181,7 +181,7 @@ void base::imprime_code(std::ostream &os, int tab)
 			os << ((std::any_cast<bool>(this->valeur_calculee)) ? "vrai" : "faux");
 		}
 		else if (this->type == type_noeud::CHAINE_LITTERALE) {
-			os << std::any_cast<dls::chaine>(this->valeur_calculee);
+			os << this->chaine_calculee();
 		}
 	}
 	else if (this->type == type_noeud::TRANSTYPE) {
@@ -199,6 +199,11 @@ void base::imprime_code(std::ostream &os, int tab)
 	for (auto enfant : this->enfants) {
 		enfant->imprime_code(os, tab + 1);
 	}
+}
+
+dls::chaine base::chaine_calculee() const
+{
+	return std::any_cast<dls::chaine>(this->valeur_calculee);
 }
 
 id_morceau base::identifiant() const
