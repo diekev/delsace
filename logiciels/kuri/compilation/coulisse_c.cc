@@ -1602,6 +1602,44 @@ void genere_code_C(
 			genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
 			break;
 		}
+		case type_noeud::ACCES_MEMBRE_UNION:
+		{
+			auto structure = b->enfants.front();
+			auto membre = b->enfants.back();
+
+			auto index_membre = std::any_cast<long>(b->valeur_calculee);
+			auto &dt = contexte.magasin_types.donnees_types[structure->index_type];
+
+			auto flux = dls::flux_chaine();
+			flux << broye_chaine(structure);
+			flux << ((dt.type_base() == id_morceau::POINTEUR) ? "->" : ".");
+
+			auto acces_structure = flux.chn();
+
+			flux << broye_chaine(membre);
+
+			auto expr_membre = acces_structure + "membre_actif";
+
+			if (expr_gauche) {
+				generatrice.os << expr_membre << " = " << index_membre + 1 << ";";
+			}
+			else {
+				auto const &morceau = b->morceau;
+				auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
+				auto pos = trouve_position(morceau, module);
+
+				generatrice.os << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
+				generatrice.os << "KR__acces_membre_union(";
+				generatrice.os << '"' << module->chemin << '"' << ',';
+				generatrice.os << pos.numero_ligne;
+				generatrice.os << ");\n";
+				generatrice.os << "}\n";
+			}
+
+			b->valeur_calculee = dls::chaine(flux.chn());
+
+			break;
+		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
 			assert(b->enfants.taille() == 2);

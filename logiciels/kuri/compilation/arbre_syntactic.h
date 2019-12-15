@@ -88,6 +88,7 @@ enum class type_noeud : char {
 	ACCES_TABLEAU,
 	OPERATION_COMP_CHAINEE,
 	ASSOCIE_UNION,
+	ACCES_MEMBRE_UNION,
 };
 
 const char *chaine_type_noeud(type_noeud type);

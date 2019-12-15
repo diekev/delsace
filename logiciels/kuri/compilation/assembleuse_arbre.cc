@@ -191,6 +191,21 @@ void KR__hors_memoire(
 
 	os << hors_memoire;
 
+	/* À FAIRE : renseigner le membre actif */
+	auto acces_membre_union =
+R"(
+void KR__acces_membre_union(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'accèder au membre de l'union car il n'est pas actif !\n");
+	abort();
+}
+)";
+
+	os << acces_membre_union;
+
 	/* NOTE : les initialiseurs des infos types doivent être valides pour toute
 	 * la durée du programme, donc nous les mettons dans la fonction principale.
 	 */

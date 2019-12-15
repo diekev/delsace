@@ -438,6 +438,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 		{
 			return peut_etre_assigne(b->enfants.back(), contexte);
 		}
+		case type_noeud::ACCES_MEMBRE_UNION:
 		case type_noeud::ACCES_MEMBRE_POINT:
 		case type_noeud::ACCES_TABLEAU:
 		{
@@ -698,6 +699,8 @@ static void valide_acces_membre(
 				b->index_type = contexte.magasin_types[TYPE_Z32];
 				return;
 			}
+
+			b->type = type_noeud::ACCES_MEMBRE_UNION;
 		}
 
 		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
@@ -707,6 +710,7 @@ static void valide_acces_membre(
 		}
 
 		b->index_type = donnees_structure.index_types[iter->second.index_membre];
+		b->valeur_calculee = iter->second.index_membre;
 
 		return;
 	}
@@ -728,6 +732,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
 		case type_noeud::ASSOCIE_UNION:
+		case type_noeud::ACCES_MEMBRE_UNION:
 		{
 			break;
 		}
