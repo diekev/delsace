@@ -1,11 +1,13 @@
+importe Fondation
+
 charge lexeuse
 
 struct Syntaxeuse {
-	lexèmes : *[]Lexèmes
+	lexèmes : *[]Lexème
 	position : z64 = 0
 }
 
-fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexèmes) : rien
+fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) : rien
 {
 	syntaxeuse.position = 0
 	syntaxeuse.lexèmes = lexèmes
@@ -13,12 +15,19 @@ fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexèmes) : rien
 
 fonc a_fini(dyn syntaxeuse : &Syntaxeuse) : bool
 {
-	retourne syntaxeuse.position == syntaxeuse.lexèmes.taille
+	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
 }
 
-fonc est_identifiant(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+fonc lexème_courant(dyn syntaxeuse : &Syntaxeuse) : Lexème
 {
-	retourne syntaxeuse.lexèmes[syntaxeuse.position].id == id
+	# À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
+	lexèmes = mémoire(syntaxeuse.lexèmes)
+	retourne lexèmes[syntaxeuse.position]
+}
+
+fonc est_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+{
+	retourne syntaxeuse.lexème_courant().id == id
 }
 
 fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
@@ -37,7 +46,7 @@ fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : b
 		retourne faux
 	}
 
-	est_bon = syntaxeuse.est_identifiant(id)
+	est_bon = syntaxeuse.est_lexème(id)
 	syntaxeuse.avance()
 	retourne est_bon
 }
@@ -46,26 +55,37 @@ fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : b
 
 fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
 {
+	#imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
 	# { chaine : chaine }
 	boucle {
-		si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
+		#imprime("-- boucle analyse_propriétés\n")
+		si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_FERMANTE) {
 			syntaxeuse.avance()
 			arrête
 		}
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			imprime("ERREUR : attendu une chaine de caractère après '{' ou ','\n")
 			retourne
 		}
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.DOUBLE_POINTS) {
+			imprime("ERREUR : attendu un double point\n")
 			retourne
 		}
 
-		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+		si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			syntaxeuse.avance()
+		}
+		sinon si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_LITTÉRALE) {
+			syntaxeuse.avance()
+		}
+		sinon {
+			imprime("ERREUR : attendu une chaine de caractère ou une littérale après ':'\n")
 			retourne
 		}
 
-		si syntaxeuse.est_identifiant(IdentifiantLexème.VIRGULE) {
+		si syntaxeuse.est_lexème(IdentifiantLexème.VIRGULE) {
 			syntaxeuse.avance()
 		}
 	}
@@ -73,16 +93,24 @@ fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
 
 fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) : rien
 {
+	#imprime("analyse_objet ", id_final, '\n')
 	# ( chaine : chaine : chaine propriétés )
 	# [ chaine : chaine : chaine propriétés ]
 	# <- -- ->
+
+	si syntaxeuse.est_lexème(id_final) {
+		#imprime("Objet vide\n")
+		# Nous avons un objet vide
+		syntaxeuse.avance()
+		retourne
+	}
 
 	si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
 		# nom_objet
 		syntaxeuse.avance()
 	}
 
-	tantque syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+	tantque syntaxeuse.est_lexème(IdentifiantLexème.DOUBLE_POINTS) {
 		syntaxeuse.avance()
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
@@ -93,25 +121,61 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) 
 
 	si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
 		syntaxeuse.avance()
-
 		syntaxeuse.analyse_propriétés()
 	}
 
 	si !syntaxeuse.requiers_lexème(id_final) {
+		#imprime("ERREUR : attendu l'identifiant final de l'objet\n")
 		retourne
 	}
 }
 
 fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : rien
 {
-	# boucle { }
+	tantque !syntaxeuse.a_fini() {
+		#imprime("-- boucle analyse_expression\n")
+
+		si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+			syntaxeuse.avance()
+			syntaxeuse.analyse_objet(IdentifiantLexème.PARENTHÈSE_FERMANTE)
+		}
+		sinon si syntaxeuse.est_lexème(IdentifiantLexème.CROCHET_OUVRANT) {
+			syntaxeuse.avance()
+			syntaxeuse.analyse_objet(IdentifiantLexème.CROCHET_FERMANT)
+		}
+		sinon {
+			#imprime("ignore lexème ", syntaxeuse.lexème_courant(), '\n')
+			syntaxeuse.avance()
+		}
+	}
 }
 
 fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : rien
 {
+	#imprime("analyse_requête ", '\n')
 	tantque !syntaxeuse.a_fini() {
+		#imprime("-- boucle analyse_requête\n")
 		si syntaxeuse.est_lexème(IdentifiantLexème.TROUVE) {
-
+			syntaxeuse.avance()
+		}
+		sinon si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+			syntaxeuse.analyse_expression()
 		}
 	}
+}
+
+fonc principale(args : []*z8) : z32
+{
+    requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
+
+    dyn lexeuse : Lexeuse
+    lexeuse.analyse_texte(requête)
+
+    diffère { déloge lexeuse.lexèmes; }
+
+	dyn syntaxeuse : Syntaxeuse
+	syntaxeuse.initialise(@lexeuse.lexèmes)
+	syntaxeuse.analyse_requête()
+
+	retourne 0
 }
