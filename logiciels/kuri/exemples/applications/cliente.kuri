@@ -291,24 +291,24 @@ fonc principale(args : []*z8) : z32
 
     #imprime(uri, '\n', '\n');
 
-    constructrice = crée_constructrice_chaine()
-    diffère { déloge constructrice.résultat; }
+    enchaineuse = crée_enchaineuse()
+    diffère { enchaineuse.détruit(); }
 
-    pousse(constructrice, "GET ")
-    pousse(constructrice, chemin de uri)
-    pousse(constructrice, requête de uri)
-    pousse(constructrice, " HTTP/1.1\r\n")
-    pousse(constructrice, "Host:")
-    pousse(constructrice, hôte de uri)
-    pousse(constructrice, "\r\n")
-    pousse(constructrice, "Accept-Encoding: identity\r\n")
-    pousse(constructrice, "Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")
-    pousse(constructrice, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\n")
-    pousse(constructrice, "User-Agent: delsace\r\n")
-    pousse(constructrice, "Connection: close\r\n")
-    pousse(constructrice, "\r\n")
+    enchaineuse.pousse("GET ")
+    enchaineuse.pousse(chemin de uri)
+    enchaineuse.pousse(requête de uri)
+    enchaineuse.pousse(" HTTP/1.1\r\n")
+    enchaineuse.pousse("Host:")
+    enchaineuse.pousse(hôte de uri)
+    enchaineuse.pousse("\r\n")
+    enchaineuse.pousse("Accept-Encoding: identity\r\n")
+    enchaineuse.pousse("Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")
+    enchaineuse.pousse("Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/ *;q=0.8\r\n")
+    enchaineuse.pousse("User-Agent: delsace\r\n")
+    enchaineuse.pousse("Connection: close\r\n")
+    enchaineuse.pousse("\r\n")
 
-    requête = constructrice.résultat
+    requête = enchaineuse.résultat
 
     imprime("Reqûete envoyée :\n", requête, '\n');
 

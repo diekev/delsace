@@ -113,20 +113,20 @@ fonc démarre(dyn serveuse : &Serveuse) : rien
 
             #reponse = repond_requete(requete)
 
-            constructrice = crée_constructrice_chaine()
-            diffère { déloge constructrice.résultat; }
+            enchaineuse = crée_enchaineuse()
+            diffère { déloge enchaineuse.détruit(); }
 
             contenu = "<p>ma réponse</p>"
 
-            pousse(constructrice, "HTTP/1.1 200 OK\r\n")
-            pousse(constructrice, "Content-Length ")
-            pousse(constructrice, "18")
-            pousse(constructrice, "\r\n")
-            pousse(constructrice, "Content-Type: text/html; charset=utf-8\r\n")
-            pousse(constructrice, "\r\n")
-            pousse(constructrice, contenu)
+            enchaineuse.pousse("HTTP/1.1 200 OK\r\n")
+            enchaineuse.pousse("Content-Length ")
+            enchaineuse.pousse("18")
+            enchaineuse.pousse("\r\n")
+            enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
+            enchaineuse.pousse("\r\n")
+            enchaineuse.pousse(contenu)
 
-            chaine_reponse = constructrice.résultat
+            chaine_reponse = enchaineuse.résultat
 
             #chaine_reponse = construit_reponse(reponse)
 
