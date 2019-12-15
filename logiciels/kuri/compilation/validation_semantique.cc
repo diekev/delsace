@@ -2576,7 +2576,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					taille_union += padding;
 
 					/* ajoute la taille du membre actif */
-					taille_union += sizeof(int);
+					taille_union += static_cast<unsigned>(sizeof(int));
 
 					/* ajoute une marge d'alignement finale */
 					padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
