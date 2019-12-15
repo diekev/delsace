@@ -1,3 +1,5 @@
+importe Fondation
+
 énum IdentifiantLexème : z32 {
 	# Ponctuations
     PARENTHÈSE_OUVRANTE,
@@ -70,21 +72,22 @@ fonc mot(empl lexeuse : &Lexeuse) : chaine
 	retourne construit_chaine(@lexeuse.chn[lexeuse.début_mot], lexeuse.taille_mot)
 }
 
-fonc pousse_mot(empl lexeuse : &Lexeuse, id : IdentifiantLexème) : rien
+fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) : rien
+{
+    taille = lexèmes.taille
+    reloge lexèmes : [taille + 1]Lexème
+    lexèmes[taille] = lexème
+}
+
+fonc pousse_mot(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) : rien
 {
 	dyn lexème : Lexème
 	lexème.chn = lexeuse.mot()
 	lexème.id = id
 
 	lexeuse.lexèmes.pousse(lexème)
-	lexeuse.taille_mot = 0
-}
 
-fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) : rien
-{
-    taille = lexèmes.taille
-    reloge lexèmes : [taille + 1]Lexème
-    lexèmes[taille] = lexème
+	lexeuse.taille_mot = 0
 }
 
 fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
@@ -152,10 +155,10 @@ fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
     retourne faux
 }
 
-fonc id_drigraphe(chn : chaine) : IdentifiantLexème
+fonc id_digraphe(chn : chaine) : IdentifiantLexème
 {
     si compare_chaines(chn, "--") {
-        retourne IdentifiantLexème.DOUBLE_TIRETS
+        retourne IdentifiantLexème.DOUBLE_TIRET
     }
 
     si compare_chaines(chn, "<-") {
@@ -197,7 +200,7 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
     dyn idc : IdentifiantLexème
 
     tantque !lexeuse.a_fini() {
-        c = lexeuse.caractère_courant()
+        dyn c = lexeuse.caractère_courant()
 
         si est_caractère_blanc(c) {
 			si lexeuse.taille_mot != 0 {
@@ -225,20 +228,23 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 
             si c == '"' {
 				lexeuse.consomme(1)
+                c = lexeuse.caractère_courant()
 
 				lexeuse.enregistre_pos_mot()
 
 				tantque c != '"' {
-					lexeuse.pousse_caracètre()
+					lexeuse.pousse_caractère()
 					c = lexeuse.caractère_courant()
 				}
 
 				lexeuse.pousse_mot(IdentifiantLexème.CHAINE_LITTÉRALE)
 				lexeuse.consomme(1)
+
+                lexeuse.enregistre_pos_mot()
             }
 			sinon {
 				lexeuse.pousse_caractère()
-				lexeuse.pousse_mot(id)
+				lexeuse.pousse_mot(idc)
             }
         }
         sinon {
@@ -246,11 +252,25 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 				lexeuse.enregistre_pos_mot()
             }
 
-            lexeuse.consomme(1)
+            lexeuse.pousse_caractère()
         }
     }
 
 	si lexeuse.taille_mot != 0 {
 		lexeuse.pousse_mot(id_mot(lexeuse.mot()))
 	}
+}
+
+fonc test_lexeuse() : rien
+{
+    requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->()"
+
+    dyn lexeuse : Lexeuse
+    lexeuse.analyse_texte(requête)
+
+    diffère { déloge lexeuse.lexèmes; }
+
+    pour lexème dans lexeuse.lexèmes {
+        imprime(lexème, '\n')
+    }
 }
