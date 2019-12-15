@@ -155,6 +155,18 @@ struct valideuse_operateurs {
 
 /* ************************************************************************** */
 
+static auto &trouve_donnees_type(ContexteGenerationCode const &contexte, long index)
+{
+	return contexte.magasin_types.donnees_types[index];
+}
+
+static auto &trouve_donnees_type(ContexteGenerationCode const &contexte, base *b)
+{
+	return trouve_donnees_type(contexte, b->index_type);
+}
+
+/* ************************************************************************** */
+
 static void drapeau_depuis_niveau_compat(
 		base *enfant,
 		niveau_compat compat)
@@ -309,8 +321,7 @@ static long resoud_type_final(
 				expr->index_type = dv.index_type;
 			}
 
-			auto &dt = contexte.magasin_types.donnees_types[expr->index_type];
-
+			auto &dt = trouve_donnees_type(contexte, expr);
 			type_final.pousse(dt);
 		}
 		else if (type == id_morceau::TROIS_POINTS) {
@@ -959,7 +970,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
 			if (inst_ret == nullptr) {
-				auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+				auto &dt = trouve_donnees_type(contexte, b);
 
 				if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
 					erreur::lance_erreur(
@@ -1323,7 +1334,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* NOTE : l'appel à performe_validation_semantique plus bas peut
 			 * changer le vecteur et invalider une référence ou un pointeur,
 			 * donc nous faisons une copie... */
-			auto const dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto const dt = trouve_donnees_type(contexte, b);
 
 			if (dt.type_base() == id_morceau::RIEN) {
 				erreur::lance_erreur(
@@ -1350,7 +1361,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				 * DonneesFonction::idx_types_retour car les pointeurs de
 				 * fonctions n'ont pas de DonneesFonction. */
 				auto idx_dt_fonc = expression->index_type_fonc;
-				auto &dt_fonc = contexte.magasin_types.donnees_types[idx_dt_fonc];
+				auto &dt_fonc = trouve_donnees_type(contexte, idx_dt_fonc);
 
 				auto nombre_type_retour = 0l;
 				auto dt_params = donnees_types_parametres(contexte.magasin_types, dt_fonc, nombre_type_retour);
@@ -1402,7 +1413,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
 			}
 
-			auto const &type_gauche = contexte.magasin_types.donnees_types[variable->index_type];
+			auto const &type_gauche = trouve_donnees_type(contexte, variable);
 
 			if (variable->index_type != expression->index_type) {
 				auto op = cherche_operateur(contexte.operateurs, variable->index_type, expression->index_type, id_morceau::EGAL);
@@ -1692,7 +1703,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						auto f = feuilles[i];
 						performe_validation_semantique(f, contexte);
 
-						auto &dt_f = contexte.magasin_types.donnees_types[f->index_type];
+						auto &dt_f = trouve_donnees_type(contexte, f);
 						auto &dt_i = contexte.magasin_types.donnees_types[df->idx_types_retours[i]];
 
 						auto nc = sont_compatibles(dt_i, dt_f, f->type);
@@ -1730,7 +1741,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = enfant->index_type;
 				b->type = type_noeud::RETOUR_SIMPLE;
 
-				auto &dt_f = contexte.magasin_types.donnees_types[b->index_type];
+				auto &dt_f = trouve_donnees_type(contexte, b);
 				auto &dt_i = contexte.magasin_types.donnees_types[df->idx_types_retours[0]];
 
 				auto nc = sont_compatibles(dt_i, dt_f, enfant->type);
@@ -2259,7 +2270,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				/* À FAIRE : test */
 				if (f->index_type != type_feuille) {
 					auto dt_feuille0 = contexte.magasin_types.donnees_types[type_feuille];
-					auto dt_feuille1 = contexte.magasin_types.donnees_types[f->index_type];
+					auto dt_feuille1 = trouve_donnees_type(contexte, f);
 
 					erreur::lance_erreur_assignation_type_differents(
 								dt_feuille0,
@@ -2311,7 +2322,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				enfant->index_type = dv.index_type;
 			}
 
-			auto &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto &dt_enf = trouve_donnees_type(contexte, enfant);
 			auto nom_struct = "InfoType";
 
 			switch (dt_enf.type_base() & 0xff) {
@@ -2393,7 +2404,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte);
 
-			auto &dt_enfant = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto &dt_enfant = trouve_donnees_type(contexte, enfant);
 			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.dereference());
 
 			if (dt_enfant.type_base() != id_morceau::POINTEUR) {
@@ -2413,7 +2424,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			b->index_type = resoud_type_final(contexte, b->type_declare, false, false);
 
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = trouve_donnees_type(contexte, b);
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
@@ -2452,7 +2463,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			b->index_type = resoud_type_final(contexte, b->type_declare, false, false);
 
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = trouve_donnees_type(contexte, b);
 
 			auto nombre_enfant = b->enfants.taille();
 			auto enfant = b->enfants.debut();
@@ -2515,7 +2526,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 								erreur::type_erreur::TYPE_ARGUMENT);
 				}
 				else {
-					auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
+					auto &dt = trouve_donnees_type(contexte, enf);
 					auto type_base = dt.type_base();
 
 					if ((type_base & 0xff) == id_morceau::TABLEAU && type_base != id_morceau::TABLEAU) {
@@ -2548,7 +2559,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			auto ajoute_donnees_membre = [&contexte, &decalage, &ds, &max_alignement](base *enfant, base *expression)
 			{
-				auto &dt_membre = contexte.magasin_types.donnees_types[enfant->index_type];
+				auto &dt_membre = trouve_donnees_type(contexte, enfant);
 				auto align_type = alignement(contexte, dt_membre);
 				max_alignement = std::max(align_type, max_alignement);
 				auto padding = (align_type - (decalage % align_type)) % align_type;
@@ -2573,7 +2584,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				auto taille_union = 0u;
 
 				for (auto enfant : b->enfants) {
-					auto &dt_membre = contexte.magasin_types.donnees_types[enfant->index_type];
+					auto &dt_membre = trouve_donnees_type(contexte, enfant);
 					auto taille = taille_octet_type(contexte, dt_membre);
 
 					taille_union = std::max(taille_union, taille);
@@ -2768,7 +2779,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			performe_validation_semantique(expression, contexte);
 
-			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
+			auto const &dt = trouve_donnees_type(contexte, expression);
 
 			if ((dt.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
 				auto id = static_cast<long>(dt.type_base() >> 8);
@@ -2865,7 +2876,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto idx_type_retour = contexte.donnees_fonction->idx_types_retours[0];
 			if (enfant->index_type != contexte.donnees_fonction->idx_types_retours[0]) {
 				auto const &dt_arg = contexte.magasin_types.donnees_types[idx_type_retour];
-				auto const &dt_enf = contexte.magasin_types.donnees_types[enfant->index_type];
+				auto const &dt_enf = trouve_donnees_type(contexte, enfant);
 				erreur::lance_erreur_type_retour(
 							dt_arg,
 							dt_enf,
