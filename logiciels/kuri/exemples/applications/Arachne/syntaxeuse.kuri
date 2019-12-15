@@ -398,7 +398,7 @@ fonc principale(args : []*z8) : z32
 
     requêtes = [
         "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",
-        "TROUVE (moi { nom : \"bibi\" })\nCREE (moi) -[:AIME]-> (quelquechose)\nRETOURNE moi, quelquechose\n"
+        "TROUVE (:Type { index : 1 }) -[opérateur:Opérateur { nom : '+' }]-> (:Type { index : 5 })\nRETOURNE opérateur.id\n"
     ]
 
 	diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), "o\n"); }
