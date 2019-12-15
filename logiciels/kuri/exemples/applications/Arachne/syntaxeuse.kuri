@@ -1,6 +1,118 @@
 importe Fondation
 
+charge instruction
 charge lexeuse
+
+################################################################################
+
+énum TypeObjet : z32 {
+	NOEUD,
+	RELATION,
+}
+
+struct Propriété {
+	nom : chaine
+	valeur : chaine
+}
+
+struct Étiquette {
+	valeur : chaine
+}
+
+struct Objet {
+	type : TypeObjet
+	nom : chaine
+	propriétés : []Propriété
+	étiquettes : []Étiquette
+}
+
+struct Expression {
+	objets : []Objet
+}
+
+struct Bloc {
+	inst : Instruction
+	expression : Expression
+}
+
+struct Requête {
+	blocs : []Bloc
+}
+
+fonc détruit_requête(dyn requête : &Requête) : rien
+{
+	pour bloc dans requête.blocs {
+		expression = bloc.expression
+
+		pour objet dans expression.objets {
+			déloge objet.propriétés
+			déloge objet.étiquettes
+		}
+
+		déloge expression.objets
+	}
+
+	déloge requête.blocs
+}
+
+fonc imprime_requête(dyn requête : &Requête) : rien
+{
+	imprime("Requête :\n")
+
+	pour bloc dans requête.blocs {
+		imprime(bloc.inst, '\n')
+
+		pour objet dans bloc.expression.objets {
+			imprime("Objet ", objet.type, " :\n")
+			imprime("\tNom : ", objet.nom, "\n")
+
+			imprime("\tÉtiquettes :\n")
+			pour étiquette dans objet.étiquettes {
+				imprime("\t\t", étiquette.valeur, '\n')
+			}
+
+			imprime("\tPropriétés : {\n")
+			pour propriété dans objet.propriétés {
+				imprime("\t\t", propriété.nom, " : ", propriété.valeur, ",\n")
+			}
+			imprime("\t}\n")
+		}
+	}
+}
+
+################################################################################
+
+# À FAIRE(langage) : gabarits
+
+fonc pousse(dyn liste : &[]Bloc, valeur : Bloc) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Bloc
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]Objet, valeur : Objet) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Objet
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]Propriété, valeur : Propriété) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Propriété
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Étiquette
+    liste[taille] = valeur
+}
+
+################################################################################
 
 struct Syntaxeuse {
 	lexèmes : *[]Lexème
@@ -53,7 +165,7 @@ fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : b
 
 ################################################################################
 
-fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) : rien
 {
 	#imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
 	# { chaine : chaine }
@@ -64,10 +176,16 @@ fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
 			arrête
 		}
 
+		dyn propriété : Propriété
+
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
 			imprime("ERREUR : attendu une chaine de caractère après '{' ou ','\n")
 			retourne
 		}
+
+		syntaxeuse.recule()
+		propriété.nom = syntaxeuse.lexème_courant().chn
+		syntaxeuse.avance()
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.DOUBLE_POINTS) {
 			imprime("ERREUR : attendu un double point\n")
@@ -75,9 +193,11 @@ fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
 		}
 
 		si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			propriété.valeur = syntaxeuse.lexème_courant().chn
 			syntaxeuse.avance()
 		}
 		sinon si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_LITTÉRALE) {
+			propriété.valeur = syntaxeuse.lexème_courant().chn
 			syntaxeuse.avance()
 		}
 		sinon {
@@ -85,18 +205,27 @@ fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse) : rien
 			retourne
 		}
 
+		objet.propriétés.pousse(propriété)
+
 		si syntaxeuse.est_lexème(IdentifiantLexème.VIRGULE) {
 			syntaxeuse.avance()
 		}
 	}
 }
 
-fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) : rien
+fonc analyse_objet(
+	dyn syntaxeuse : &Syntaxeuse,
+	expression : &Expression,
+	type_objet : TypeObjet,
+	id_final : IdentifiantLexème) : rien
 {
 	#imprime("analyse_objet ", id_final, '\n')
 	# ( chaine : chaine : chaine propriétés )
 	# [ chaine : chaine : chaine propriétés ]
 	# <- -- ->
+
+	dyn objet : Objet
+	objet.type = type_objet
 
 	si syntaxeuse.est_lexème(id_final) {
 		#imprime("Objet vide\n")
@@ -107,6 +236,7 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) 
 
 	si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
 		# nom_objet
+		objet.nom = syntaxeuse.lexème_courant().chn
 		syntaxeuse.avance()
 	}
 
@@ -117,12 +247,21 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) 
 			# nom_étiquette
 			retourne
 		}
+
+		dyn étiquette : Étiquette
+		syntaxeuse.recule()
+		étiquette.valeur = syntaxeuse.lexème_courant().chn
+		syntaxeuse.avance()
+
+		objet.étiquettes.pousse(étiquette)
 	}
 
 	si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
 		syntaxeuse.avance()
-		syntaxeuse.analyse_propriétés()
+		syntaxeuse.analyse_propriétés(objet)
 	}
+
+	expression.objets.pousse(objet)
 
 	si !syntaxeuse.requiers_lexème(id_final) {
 		#imprime("ERREUR : attendu l'identifiant final de l'objet\n")
@@ -130,52 +269,70 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse, id_final : IdentifiantLexème) 
 	}
 }
 
-fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
 {
+	dyn expression : Expression
+
 	tantque !syntaxeuse.a_fini() {
 		#imprime("-- boucle analyse_expression\n")
 
 		si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
 			syntaxeuse.avance()
-			syntaxeuse.analyse_objet(IdentifiantLexème.PARENTHÈSE_FERMANTE)
+			syntaxeuse.analyse_objet(expression, TypeObjet.NOEUD, IdentifiantLexème.PARENTHÈSE_FERMANTE)
 		}
 		sinon si syntaxeuse.est_lexème(IdentifiantLexème.CROCHET_OUVRANT) {
 			syntaxeuse.avance()
-			syntaxeuse.analyse_objet(IdentifiantLexème.CROCHET_FERMANT)
+			syntaxeuse.analyse_objet(expression, TypeObjet.RELATION, IdentifiantLexème.CROCHET_FERMANT)
 		}
 		sinon {
 			#imprime("ignore lexème ", syntaxeuse.lexème_courant(), '\n')
 			syntaxeuse.avance()
 		}
 	}
+
+	retourne expression
 }
 
-fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Requête
 {
+	dyn requête : Requête
+	dyn bloc_courant : Bloc
+
 	#imprime("analyse_requête ", '\n')
 	tantque !syntaxeuse.a_fini() {
 		#imprime("-- boucle analyse_requête\n")
 		si syntaxeuse.est_lexème(IdentifiantLexème.TROUVE) {
 			syntaxeuse.avance()
+
+			bloc_courant.inst = Instruction.TROUVE
 		}
 		sinon si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
-			syntaxeuse.analyse_expression()
+			bloc_courant.expression = syntaxeuse.analyse_expression()
+			requête.blocs.pousse(bloc_courant)
 		}
 	}
+
+	retourne requête
 }
 
 fonc principale(args : []*z8) : z32
 {
-    requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
+	diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), "o\n"); }
+
+    chaine_requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
 
     dyn lexeuse : Lexeuse
-    lexeuse.analyse_texte(requête)
+    lexeuse.analyse_texte(chaine_requête)
 
     diffère { déloge lexeuse.lexèmes; }
 
 	dyn syntaxeuse : Syntaxeuse
 	syntaxeuse.initialise(@lexeuse.lexèmes)
-	syntaxeuse.analyse_requête()
+	requête = syntaxeuse.analyse_requête()
+
+	imprime_requête(requête)
+
+	détruit_requête(requête)
 
 	retourne 0
 }

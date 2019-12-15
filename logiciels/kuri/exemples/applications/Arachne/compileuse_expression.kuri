@@ -1,6 +1,8 @@
 
 importe Fondation
 
+charge instruction
+
 struct CompileuseExpression {
 	chn : chaine
 	pos_mot : z64 = 0
@@ -315,27 +317,6 @@ fonc analyse_expression_retour(
         mot = compileuse.mot()
         imprime("expression : ", mot, '\n')
     }
-}
-
-énum Instruction : z32 {
-    CREE,
-    SUPPRIME,
-    TROUVE,
-    RETOURNE,
-    INVALIDE,
-}
-
-fonc détermine_instruction(chn : chaine) : Instruction
-{
-    info = info_de(Instruction.CREE)
-
-    pour nom, idx dans info.noms {
-        si compare_chaines(nom, chn) {
-            retourne transtype(info.valeurs[idx] : Instruction)
-        }
-    }
-
-    retourne Instruction.INVALIDE
 }
 
 fonc analyse_requête(dyn compileuse : &CompileuseExpression, chn : chaine) : rien
