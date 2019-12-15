@@ -62,6 +62,7 @@ Faitures
 - surcharge de transtypage/transtypage personnalisé entre type
 - conversion automatique des types en unions et extraction automatique des valeurs des unions
 - infos types pour les unions
+- tenir trace du nombre d'allocations et de réallocations
 
 
 À faire (tests)
