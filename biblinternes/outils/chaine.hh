@@ -52,4 +52,6 @@ long compte(const dls::chaine &str, char c);
 
 long compte_commun(dls::chaine const &rhs, dls::chaine const &lhs);
 
+long distance_levenshtein(dls::vue_chaine_compacte const &chn1, dls::vue_chaine_compacte const &chn2);
+
 }  /* namespace dls */
