@@ -687,6 +687,17 @@ static void valide_acces_membre(
 		auto &donnees_structure = contexte.donnees_structure(index_structure);
 
 		if (donnees_structure.est_enum) {
+			auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
+
+			if (iter == donnees_structure.donnees_membres.fin()) {
+				/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
+				erreur::lance_erreur(
+							"Membre inconnu",
+							contexte,
+							membre->morceau,
+							erreur::type_erreur::MEMBRE_INCONNU);
+			}
+
 			b->index_type = donnees_structure.index_type;
 			return;
 		}
