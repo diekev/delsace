@@ -1611,9 +1611,15 @@ void genere_code_C(
 			auto index_membre = std::any_cast<long>(b->valeur_calculee);
 			auto &dt = contexte.magasin_types.donnees_types[structure->index_type];
 
+			auto est_pointeur = (dt.type_base() == id_morceau::POINTEUR);
+			est_pointeur |= (dt.type_base() == id_morceau::REFERENCE);
+
+			auto const &donnees_var = contexte.donnees_variable(structure->chaine());
+			est_pointeur |= (donnees_var.drapeaux & BESOIN_DEREF) != 0;
+
 			auto flux = dls::flux_chaine();
 			flux << broye_chaine(structure);
-			flux << ((dt.type_base() == id_morceau::POINTEUR) ? "->" : ".");
+			flux << (est_pointeur ? "->" : ".");
 
 			auto acces_structure = flux.chn();
 
