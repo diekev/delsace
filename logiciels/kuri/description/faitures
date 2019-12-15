@@ -65,6 +65,30 @@ Faitures
 - tenir trace du nombre d'allocations et de réallocations
 - à faire : urgent
 -- surcharge d'opérateurs (simple)
+	syntaxe : opér [opérateur] (args..) : [type]
+	opérateurs composés avec = sont implicites
+	+
+	-
+	+ unaire
+	- unaire
+	=
+	/
+	*
+	%
+	&
+	&&
+	|
+	||
+	^
+	<<
+	>>
+	== (!= implicite)
+	< (<= implicite si == ou (> et ==) est défini)
+	> (>= implicite si == ou (< et ==) est défini)
+	!
+	~
+-- surcharge transtypage
+	opér [type] (arg) : [type]
 -- expression gauche dans la validation sémantique
 -- validation des assignations des accès aux unions
 -- système de transtypage
