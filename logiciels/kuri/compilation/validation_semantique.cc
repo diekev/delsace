@@ -686,12 +686,6 @@ static void valide_acces_membre(
 			return;
 		}
 
-		if (donnees_structure.est_union) {
-			if (!donnees_structure.est_nonsur) {
-				b->type = type_noeud::ACCES_MEMBRE_UNION;
-			}
-		}
-
 		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 		if (iter == donnees_structure.donnees_membres.fin()) {
@@ -699,7 +693,11 @@ static void valide_acces_membre(
 		}
 
 		b->index_type = donnees_structure.index_types[iter->second.index_membre];
-		b->valeur_calculee = iter->second.index_membre;
+
+		if (donnees_structure.est_union && !donnees_structure.est_nonsur) {
+			b->type = type_noeud::ACCES_MEMBRE_UNION;
+			b->valeur_calculee = iter->second.index_membre;
+		}
 
 		return;
 	}
