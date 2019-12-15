@@ -2568,7 +2568,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					taille_union = std::max(taille_union, taille);
 				}
 
-				/* Pour les unions sûre, il nous faut prendre en compte le
+				/* Pour les unions sûres, il nous faut prendre en compte le
 				 * membre supplémentaire. */
 				if (!ds.est_nonsur) {
 					/* ajoute une marge d'alignement */
