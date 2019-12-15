@@ -2555,6 +2555,45 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				decalage += taille_octet_type(contexte, dt_membre);
 			};
 
+			if (ds.est_union) {
+				for (auto enfant : b->enfants) {
+					enfant->index_type = resoud_type_final(contexte, enfant->type_declare);
+
+					verifie_redefinition_membre(enfant);
+					verifie_inclusion_valeur(enfant);
+
+					ajoute_donnees_membre(enfant, nullptr);
+				}
+
+				auto taille_union = 0u;
+
+				for (auto enfant : b->enfants) {
+					auto &dt_membre = contexte.magasin_types.donnees_types[enfant->index_type];
+					auto taille = taille_octet_type(contexte, dt_membre);
+
+					taille_union = std::max(taille_union, taille);
+				}
+
+				/* Pour les unions sûre, il nous faut prendre en compte le
+				 * membre supplémentaire. */
+				if (!ds.est_nonsur) {
+					/* ajoute une marge d'alignement */
+					auto padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+					taille_union += padding;
+
+					/* ajoute la taille du membre actif */
+					taille_union += sizeof(int);
+
+					/* ajoute une marge d'alignement finale */
+					padding = (max_alignement - (taille_union % max_alignement)) % max_alignement;
+					taille_union += padding;
+				}
+
+				ds.taille_octet = taille_union;
+
+				return;
+			}
+
 			for (auto enfant : b->enfants) {
 				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
 					if (enfant->morceau.identifiant != id_morceau::EGAL) {
