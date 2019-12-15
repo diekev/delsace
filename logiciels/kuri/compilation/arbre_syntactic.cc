@@ -125,6 +125,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::OPERATION_COMP_CHAINEE)
 		CAS_TYPE(type_noeud::ASSOCIE_UNION)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE_UNION)
+		CAS_TYPE(type_noeud::SINON)
 	}
 
 	return "erreur : type_noeud inconnu";

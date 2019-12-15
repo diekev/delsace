@@ -54,6 +54,7 @@ enum class type_noeud : char {
 	BOOLEEN,
 	CARACTERE,
 	SI,
+	SINON,
 	BLOC,
 	POUR,
 	CONTINUE_ARRETE,

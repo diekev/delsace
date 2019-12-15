@@ -1279,6 +1279,7 @@ void genere_code_C(
 		bool expr_gauche)
 {
 	switch (b->type) {
+		case type_noeud::SINON:
 		case type_noeud::RACINE:
 		{
 			break;
@@ -3292,13 +3293,17 @@ void genere_code_C(
 				auto expr_paire = enfant->enfants.front();
 				auto bloc_paire = enfant->enfants.back();
 
-				auto iter_dm = ds.donnees_membres.trouve(expr_paire->chaine());
-				auto const &dm = iter_dm->second;
+				if (expr_paire->type == type_noeud::SINON) {
+					generatrice.os << "default";
+				}
+				else {
+					auto iter_dm = ds.donnees_membres.trouve(expr_paire->chaine());
+					auto const &dm = iter_dm->second;
+					generatrice.os << "case " << dm.index_membre + 1;
+				}
 
-				generatrice.os << "case " << dm.index_membre + 1 << ": {\n";
-
+				generatrice.os << ": {\n";
 				genere_code_C(bloc_paire, generatrice, contexte, true);
-
 				generatrice.os << "break;\n}\n";
 			}
 

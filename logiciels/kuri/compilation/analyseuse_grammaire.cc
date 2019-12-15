@@ -537,6 +537,8 @@ void analyseuse_grammaire::analyse_corps_fonction()
 				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");
 			}
 
+			auto sinon_rencontre = false;
+
 			while (true) {
 				if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 					/* nous avons terminé */
@@ -545,10 +547,24 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 				m_assembleuse->empile_noeud(type_noeud::PAIRE_ASSOCIATION, m_contexte, donnees());
 
-				analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
+				if (est_identifiant(id_morceau::SINON)) {
+					avance();
 
-				/* recule pour être de nouveau synchronisé */
-				recule();
+					if (sinon_rencontre) {
+						lance_erreur("Redéfinition d'un bloc sinon");
+					}
+
+					auto noeud = m_assembleuse->cree_noeud(type_noeud::SINON, m_contexte, donnees());
+					m_assembleuse->ajoute_noeud(noeud);
+
+					sinon_rencontre = true;
+				}
+				else {
+					analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
+
+					/* recule pour être de nouveau synchronisé */
+					recule();
+				}
 
 				if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 					lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");

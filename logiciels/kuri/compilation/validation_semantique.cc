@@ -712,6 +712,7 @@ static void valide_acces_membre(
 void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 {
 	switch (b->type) {
+		case type_noeud::SINON:
 		case type_noeud::RACINE:
 		case type_noeud::RETOUR_MULTIPLE:
 		case type_noeud::RETOUR_SIMPLE:
@@ -2782,11 +2783,16 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						auto expr_paire = enfant->enfants.front();
 						auto bloc_paire = enfant->enfants.back();
 
+						if (expr_paire->type == type_noeud::SINON) {
+							performe_validation_semantique(bloc_paire, contexte);
+							continue;
+						}
+
 						if (expr_paire->type != type_noeud::VARIABLE) {
 							erreur::lance_erreur(
 										"Attendu une variable membre de l'union nonsûre",
 										contexte,
-										expression->morceau);
+										expr_paire->morceau);
 						}
 
 						auto nom_membre = expr_paire->chaine();
