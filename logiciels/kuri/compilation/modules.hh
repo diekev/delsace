@@ -226,7 +226,8 @@ ResultatRecherche cherche_donnees_fonction(
 
 
 struct PositionMorceau {
-	long ligne = 0;
+	long index_ligne = 0;
+	long numero_ligne = 0;
 	long pos = 0;
 };
 

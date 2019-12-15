@@ -594,7 +594,8 @@ PositionMorceau trouve_position(const DonneesMorceau &morceau, Fichier *fichier)
 		auto l1 = fichier->tampon[static_cast<long>(i + 1)];
 
 		if (ptr >= l0.begin() && ptr < l1.begin()) {
-			pos.ligne = static_cast<long>(i);
+			pos.index_ligne = static_cast<long>(i);
+			pos.numero_ligne = pos.index_ligne + 1;
 			pos.pos = ptr - l0.begin();
 			break;
 		}
