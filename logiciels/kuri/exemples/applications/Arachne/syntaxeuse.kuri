@@ -318,6 +318,42 @@ fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) : bool
 
 fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Requête
 {
+
+    expressions = [
+        "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",
+        "( noeud : Personne :Acteur )-[ : LABEL { nom : \"bibi\" } ]->( noeud : LABEL { nom : 8, id : 56, voiture : 789 } )",
+        # N'importe quel noeud
+        "()",
+        # Un noeud avec l'étiquette "Personne"
+        "(:Personne)",
+        # Un noeud identifié avec la variable "n" et avec l'étiquette "Personne"
+        "(n:Personne)",
+        # Un noeud identifié avec la variable "n" et avec les étiquettes "Personne" et "Acteur"
+        "(n:Personne:Acteur)",
+        # N'importe quelle relation entre "a" et "b", peu importe la direction
+        "(a)--(b)",
+        # relation de type "AMI" depuis le nœud "a" vers le nœud "b"
+        "(a)-[:AMI]->(b)",
+        # relation de type "AMI" ou "CONNAIT" depuis le nœud "a" vers le nœud "b"
+        "(a)-[:AMI|CONNAIT]->(b)"
+    ]
+
+    #pour expression dans expressions {
+    #    compileuse.analyse_expression(expression)
+    #}
+
+    # CREE (moi : { nom : "bibi" })
+    # RETOURNE moi
+
+    # TROUVE (moi : { nom : "bibi" })
+    # CREE (moi) -[:AIME]-> (quelquechose)
+    # RETOURNE moi, quelquechose
+
+    requêtes = [
+        "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",
+        "TROUVE (moi { nom : \"bibi\" })\nCREE (moi) -[:AIME]-> (quelquechose)\nRETOURNE moi, quelquechose\n"
+    ]
+
 	dyn requête : Requête
 
 	#imprime("analyse_requête ", '\n')
