@@ -44,7 +44,7 @@ fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
 	}
 
 	pour i dans 0 ... nombre_de_ligne - 1 {
-		enchaine.pousse(chaines[6])
+		enchaineuse.pousse(chaines[6])
 	}
 
 	enchaineuse.pousse(chaines[7])
