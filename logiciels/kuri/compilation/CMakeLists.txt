@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	stdc++fs
 	langage
+	bib_outils
 	bib_structures
 	memoire
 )

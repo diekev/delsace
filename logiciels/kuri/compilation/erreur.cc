@@ -24,6 +24,8 @@
 
 #include "erreur.h"
 
+#include "biblinternes/outils/chaine.hh"
+
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "morceaux.hh"
@@ -562,6 +564,145 @@ void lance_erreur_type_operation_unaire(
 	ss << "----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
+}
+
+struct CandidatMembre {
+	long distance = 0;
+	dls::vue_chaine_compacte chaine = "";
+};
+
+static auto trouve_candidat(
+			dls::ensemble<dls::vue_chaine_compacte> const &membres,
+			dls::vue_chaine_compacte const &nom_donne)
+{
+	auto candidat = CandidatMembre{};
+	candidat.distance = 1000;
+
+	for (auto const &nom_membre : membres) {
+		auto candidat_possible = CandidatMembre();
+		candidat_possible.distance = distance_levenshtein(nom_donne, nom_membre);
+		candidat_possible.chaine = nom_membre;
+
+		if (candidat_possible.distance < candidat.distance) {
+			candidat = candidat_possible;
+		}
+	}
+
+	return candidat;
+}
+
+[[noreturn]] static void genere_erreur_membre_inconnu(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre,
+			dls::ensemble<dls::vue_chaine_compacte> const &membres,
+			const char *chaine_structure)
+{
+	auto candidat = trouve_candidat(membres, membre->chaine());
+
+	auto const &morceau = acces->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, acces);
+
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Dans l'accès à « " << structure->chaine() << " » :\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << '\n';
+	ss << "Le membre « " << membre->chaine() << " » est inconnu !\n";
+
+	ss << '\n';
+	ss << "Les membres " << chaine_structure << " sont :\n";
+
+	for (auto nom : membres) {
+		ss << '\t' << nom << '\n';
+	}
+
+	ss << '\n';
+	ss << "Candidat possible : " << candidat.chaine << '\n';
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INCONNU);
+}
+
+void membre_inconnu(
+			ContexteGenerationCode &contexte,
+			DonneesStructure &ds,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+
+	for (auto const &paire : ds.donnees_membres) {
+		membres.insere(paire.first);
+	}
+
+	const char *message;
+
+	if (ds.est_enum) {
+		message = "de l'énumération";
+	}
+	else if (ds.est_union) {
+		message = "de l'union";
+	}
+	else {
+		message = "de la structure";
+	}
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, message);
+}
+
+void membre_inconnu_tableau(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	membres.insere("taille");
+	membres.insere("pointeur");
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "du tableau");
+}
+
+void membre_inconnu_chaine(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	membres.insere("taille");
+	membres.insere("pointeur");
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
+}
+
+void membre_inconnu_eini(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	membres.insere("info");
+	membres.insere("pointeur");
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
 }
 
 }

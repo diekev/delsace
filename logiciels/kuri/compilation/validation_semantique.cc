@@ -617,11 +617,7 @@ static void valide_acces_membre(
 			return;
 		}
 
-		erreur::lance_erreur(
-					"'chaine' ne possède pas cette propriété !",
-					contexte,
-					membre->donnees_morceau(),
-					erreur::type_erreur::MEMBRE_INCONNU);
+		erreur::membre_inconnu_chaine(contexte, b, structure, membre);
 	}
 
 	if (type_structure.type_base() == id_morceau::EINI) {
@@ -641,11 +637,7 @@ static void valide_acces_membre(
 			return;
 		}
 
-		erreur::lance_erreur(
-					"'eini' ne possède pas cette propriété !",
-					contexte,
-					membre->donnees_morceau(),
-					erreur::type_erreur::MEMBRE_INCONNU);
+		erreur::membre_inconnu_eini(contexte, b, structure, membre);
 	}
 
 	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
@@ -672,11 +664,7 @@ static void valide_acces_membre(
 			return;
 		}
 
-		erreur::lance_erreur(
-					"Le tableau ne possède pas cette propriété !",
-					contexte,
-					membre->donnees_morceau(),
-					erreur::type_erreur::MEMBRE_INCONNU);
+		erreur::membre_inconnu_tableau(contexte, b, structure, membre);
 	}
 
 	if (est_structure) {
@@ -690,12 +678,7 @@ static void valide_acces_membre(
 			auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 			if (iter == donnees_structure.donnees_membres.fin()) {
-				/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
-				erreur::lance_erreur(
-							"Membre inconnu",
-							contexte,
-							membre->morceau,
-							erreur::type_erreur::MEMBRE_INCONNU);
+				erreur::membre_inconnu(contexte, donnees_structure, b, structure, membre);
 			}
 
 			b->index_type = donnees_structure.index_type;
@@ -720,12 +703,7 @@ static void valide_acces_membre(
 		auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 		if (iter == donnees_structure.donnees_membres.fin()) {
-			/* À FAIRE : proposer des candidats possibles ou imprimer la structure. */
-			erreur::lance_erreur(
-						"Membre inconnu",
-						contexte,
-						membre->morceau,
-						erreur::type_erreur::MEMBRE_INCONNU);
+			erreur::membre_inconnu(contexte, donnees_structure, b, structure, membre);
 		}
 
 		b->index_type = donnees_structure.index_types[iter->second.index_membre];

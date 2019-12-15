@@ -29,6 +29,7 @@
 #include "biblinternes/langage/erreur.hh"
 
 struct DonneesMorceau;
+struct DonneesStructure;
 struct ContexteGenerationCode;
 
 namespace erreur {
@@ -126,5 +127,30 @@ using frappe = lng::erreur::frappe<type_erreur>;
 [[noreturn]] void lance_erreur_type_operation_unaire(
 			ContexteGenerationCode const &contexte,
 			noeud::base *b);
+
+[[noreturn]] void membre_inconnu(
+		ContexteGenerationCode &contexte,
+		DonneesStructure &ds,
+		noeud::base *acces,
+		noeud::base *structure,
+		noeud::base *membre);
+
+[[noreturn]] void membre_inconnu_tableau(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void membre_inconnu_chaine(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void membre_inconnu_eini(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
 
 }
