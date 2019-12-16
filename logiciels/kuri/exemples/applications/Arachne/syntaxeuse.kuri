@@ -401,7 +401,12 @@ fonc principale(args : []*z8) : z32
         "TROUVE (:Type { index : 1 }) -[opérateur:Opérateur { nom : '+' }]-> (:Type { index : 5 })\nRETOURNE opérateur.id\n"
     ]
 
-	diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), "o\n"); }
+	diffère { 
+		imprime("Mémoire utilisée        : ", mémoire_utilisée(), "o\n")
+		imprime("Mémoire consommée       : ", mémoire_consommée(), "o\n")
+		imprime("Nombre d'allocations    : ", nombre_allocations(), "\n")
+		imprime("Nombre de réallocations : ", nombre_réallocations(), "\n")
+	}
 
     chaine_requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
 

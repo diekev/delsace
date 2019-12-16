@@ -10,6 +10,15 @@
 # et diminuée à chaque « déloge ».
 externe __VG_memoire_utilisee__ : z64
 
+# Contient trace de la quantité maximale de mémoire consomée.
+externe __VG_memoire_consommee__ : z64
+
+# Contient le nombre de fois que « loge » et « reloge » ont été appelés.
+externe __VG_nombre_allocations__ : z64
+
+# Contient le nombre de fois que « reloge » a étét appelé.
+externe __VG_nombre_reallocations__ : z64
+
 # Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 # À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
 # cette structure. 
@@ -21,4 +30,22 @@ struct __contexte_global {
 fonc mémoire_utilisée() : z64
 {
     retourne __VG_memoire_utilisee__
+}
+
+# Fonction pour accéder à la variable __VG_memoire_utilisee__.
+fonc mémoire_consommée() : z64
+{
+    retourne __VG_memoire_consommee__
+}
+
+# Fonction pour accéder à la variable __VG_nombre_allocations__.
+fonc nombre_allocations() : z64
+{
+    retourne __VG_nombre_allocations__
+}
+
+# Fonction pour accéder à la variable __VG_nombre_reallocations__.
+fonc nombre_réallocations() : z64
+{
+    retourne __VG_nombre_reallocations__
 }

@@ -3034,6 +3034,8 @@ void genere_code_C(
 						bloc_sinon);
 
 			generatrice.os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";
+			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
+			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
 			b->valeur_calculee = nom_ptr_ret;
 
 			break;
@@ -3216,6 +3218,9 @@ void genere_code_C(
 
 			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
 			   << " - " << nom_ancienne_taille << ";\n";
+			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
+			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
+			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
 
 			break;
 		}

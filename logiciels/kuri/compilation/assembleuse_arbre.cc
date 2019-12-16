@@ -146,6 +146,9 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 	os << "static long __VG_memoire_utilisee__ = 0;";
+	os << "static long __VG_memoire_consommee__ = 0;";
+	os << "static long __VG_nombre_allocations__ = 0;";
+	os << "static long __VG_nombre_reallocations__ = 0;";
 
 	auto depassement_limites =
 R"(
