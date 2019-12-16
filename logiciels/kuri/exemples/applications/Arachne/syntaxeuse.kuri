@@ -336,7 +336,7 @@ fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Résultat
 		si syntaxeuse.est_instruction() {
 			syntaxeuse.avance()
 
-			si !syntaxeuse.requiers_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+			si !syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
 				dyn erreur : Erreur;
 				erreur.message = "ERREUR : l'instruction doit être suivie par un noeud !\n"
 
