@@ -314,7 +314,7 @@ static long resoud_type_final(
 			auto expr = type_declare.expressions[idx_expr++];
 			assert(expr != nullptr);
 
-			performe_validation_semantique(expr, contexte);
+			performe_validation_semantique(expr, contexte, false);
 
 			if (expr->type == type_noeud::VARIABLE) {
 				auto &dv = contexte.donnees_variable(expr->chaine());
@@ -337,7 +337,7 @@ static long resoud_type_final(
 			auto expr = type_declare.expressions[idx_expr++];
 
 			if (expr != nullptr && evalue_expr) {
-				performe_validation_semantique(expr, contexte);
+				performe_validation_semantique(expr, contexte, false);
 
 				auto res = evalue_expression(contexte, expr);
 
@@ -479,10 +479,10 @@ static auto derniere_instruction(base *b)
 
 /* ************************************************************************** */
 
-static auto valides_enfants(base *b, ContexteGenerationCode &contexte)
+static auto valides_enfants(base *b, ContexteGenerationCode &contexte, bool expr_gauche)
 {
 	for (auto enfant : b->enfants) {
-		performe_validation_semantique(enfant, contexte);
+		performe_validation_semantique(enfant, contexte, expr_gauche);
 	}
 }
 
@@ -520,7 +520,7 @@ static auto valide_appel_pointeur_fonction(
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
-	valides_enfants(b, contexte);
+	valides_enfants(b, contexte, false);
 
 	/* vérifie la compatibilité des arguments pour déterminer
 	 * s'il y aura besoin d'une conversion. */
@@ -555,9 +555,10 @@ static void valide_acces_membre(
 		ContexteGenerationCode &contexte,
 		base *b,
 		base *structure,
-		base *membre)
+		base *membre,
+		bool expr_gauche)
 {
-	performe_validation_semantique(structure, contexte);
+	performe_validation_semantique(structure, contexte, expr_gauche);
 
 	auto const &index_type = structure->index_type;
 	auto type_structure = contexte.magasin_types.donnees_types[index_type];
@@ -588,7 +589,7 @@ static void valide_acces_membre(
 					membre->index_type = b->index_type;
 					membre->aide_generation_code = GENERE_CODE_PTR_FONC_MEMBRE;
 
-					performe_validation_semantique(membre, contexte);
+					performe_validation_semantique(membre, contexte, expr_gauche);
 
 					/* le type de l'accès est celui du retour de la fonction */
 					b->index_type = membre->index_type;
@@ -604,7 +605,7 @@ static void valide_acces_membre(
 		auto *nom_args = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&membre->valeur_calculee);
 		nom_args->push_front("");
 
-		performe_validation_semantique(membre, contexte);
+		performe_validation_semantique(membre, contexte, expr_gauche);
 
 		/* transforme le noeud */
 		b->type = type_noeud::APPEL_FONCTION;
@@ -731,7 +732,10 @@ static void valide_acces_membre(
 				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
-void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
+void performe_validation_semantique(
+		base *b,
+		ContexteGenerationCode &contexte,
+		bool expr_gauche)
 {
 	switch (b->type) {
 		case type_noeud::SINON:
@@ -965,7 +969,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			/* vérifie le type du bloc */
 			auto bloc = *iter_enfant++;
 
-			performe_validation_semantique(bloc, contexte);
+			performe_validation_semantique(bloc, contexte, true);
 			auto inst_ret = derniere_instruction(bloc->dernier_enfant());
 
 			/* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
@@ -1012,7 +1016,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			/* Commence par valider les enfants puisqu'il nous faudra leurs
 			 * types pour déterminer la fonction à appeler. */
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, false);
 
 			auto res = cherche_donnees_fonction(
 						contexte,
@@ -1273,7 +1277,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
 
-			valide_acces_membre(contexte, b, structure, membre);
+			valide_acces_membre(contexte, b, structure, membre, expr_gauche);
 			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
@@ -1309,7 +1313,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					enfant2->module_appel = static_cast<int>(module_importe->id);
 
-					performe_validation_semantique(enfant2, contexte);
+					performe_validation_semantique(enfant2, contexte, expr_gauche);
 
 					b->index_type = enfant2->index_type;
 					b->aide_generation_code = ACCEDE_MODULE;
@@ -1318,7 +1322,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			valide_acces_membre(contexte, b, enfant1, enfant2);
+			valide_acces_membre(contexte, b, enfant1, enfant2, expr_gauche);
 
 			break;
 		}
@@ -1327,7 +1331,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
 
-			performe_validation_semantique(expression, contexte);
+			performe_validation_semantique(expression, contexte, false);
 
 			b->index_type = expression->index_type;
 
@@ -1392,7 +1396,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					}
 
 					f->aide_generation_code = GAUCHE_ASSIGNATION;
-					performe_validation_semantique(f, contexte);
+					performe_validation_semantique(f, contexte, true);
 				}
 
 				return;
@@ -1407,7 +1411,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			variable->aide_generation_code = GAUCHE_ASSIGNATION;
-			performe_validation_semantique(variable, contexte);
+			performe_validation_semantique(variable, contexte, true);
 
 			/* À cause du mélange des opérateurs "[]" et "de", il faut attendre
 			 * que toutes les validations sémantiques soient faites pour pouvoir
@@ -1500,8 +1504,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 #endif
 
-			performe_validation_semantique(enfant1, contexte);
-			performe_validation_semantique(enfant2, contexte);
+			performe_validation_semantique(enfant1, contexte, expr_gauche);
+			performe_validation_semantique(enfant2, contexte, expr_gauche);
 
 			auto index_type1 = enfant1->index_type;
 			auto index_type2 = enfant2->index_type;
@@ -1647,7 +1651,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::OPERATION_UNAIRE:
 		{
 			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte);
+			performe_validation_semantique(enfant, contexte, expr_gauche);
 			auto index_type = enfant->index_type;
 			auto const &type = contexte.magasin_types.donnees_types[index_type];
 
@@ -1709,7 +1713,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					for (auto i = 0l; i < feuilles.taille(); ++i) {
 						auto f = feuilles[i];
-						performe_validation_semantique(f, contexte);
+						performe_validation_semantique(f, contexte, false);
 
 						auto &dt_f = trouve_donnees_type(contexte, f);
 						auto &dt_i = contexte.magasin_types.donnees_types[df->idx_types_retours[i]];
@@ -1731,7 +1735,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 					b->type = type_noeud::RETOUR_MULTIPLE;
 				}
 				else if (enfant->type == type_noeud::APPEL_FONCTION) {
-					performe_validation_semantique(enfant, contexte);
+					performe_validation_semantique(enfant, contexte, false);
 
 					/* À FAIRE : multiples types de retour, confirmation typage */
 					b->index_type = enfant->index_type;
@@ -1745,7 +1749,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 			else {
-				performe_validation_semantique(enfant, contexte);
+				performe_validation_semantique(enfant, contexte, false);
 				b->index_type = enfant->index_type;
 				b->type = type_noeud::RETOUR_SIMPLE;
 
@@ -1811,7 +1815,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = *iter_enfant++;
 			auto enfant2 = *iter_enfant++;
 
-			performe_validation_semantique(enfant1, contexte);
+			performe_validation_semantique(enfant1, contexte, false);
 			auto index_type = enfant1->index_type;
 			auto const &type_condition = contexte.magasin_types.donnees_types[index_type];
 
@@ -1822,12 +1826,12 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 									 erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
-			performe_validation_semantique(enfant2, contexte);
+			performe_validation_semantique(enfant2, contexte, true);
 
 			/* noeud 3 : sinon (optionel) */
 			if (nombre_enfants == 3) {
 				auto enfant3 = *iter_enfant++;
-				performe_validation_semantique(enfant3, contexte);
+				performe_validation_semantique(enfant3, contexte, true);
 			}
 
 			/* pour les expressions x = si y { z } sinon { w } */
@@ -1845,7 +1849,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			contexte.empile_nombre_locales();
 
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, true);
 
 			if (b->enfants.est_vide()) {
 				b->index_type = contexte.magasin_types[TYPE_RIEN];
@@ -1890,7 +1894,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			};
 
 
-			performe_validation_semantique(enfant2, contexte);
+			performe_validation_semantique(enfant2, contexte, true);
 
 			/* À FAIRE : utilisation du type */
 			auto df = static_cast<DonneesFonction *>(nullptr);
@@ -2036,13 +2040,13 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.empile_goto_continue(enfant1->chaine(), goto_continue);
 			contexte.empile_goto_arrete(enfant1->chaine(), (enfant4 != nullptr) ? goto_brise : goto_apres);
 
-			performe_validation_semantique(enfant3, contexte);
+			performe_validation_semantique(enfant3, contexte, true);
 
 			if (enfant4 != nullptr) {
-				performe_validation_semantique(enfant4, contexte);
+				performe_validation_semantique(enfant4, contexte, true);
 
 				if (enfant5 != nullptr) {
-					performe_validation_semantique(enfant5, contexte);
+					performe_validation_semantique(enfant5, contexte, true);
 				}
 			}
 
@@ -2068,7 +2072,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte);
+			performe_validation_semantique(enfant, contexte, false);
 
 			if (enfant->index_type == -1l) {
 				erreur::lance_erreur(
@@ -2090,7 +2094,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
 			b->valeur_calculee = resoud_type_final(contexte, type_declare);
 			b->index_type = contexte.magasin_types[TYPE_N32];
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, false);
 			break;
 		}
 		case type_noeud::PLAGE:
@@ -2100,8 +2104,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
 
-			performe_validation_semantique(enfant1, contexte);
-			performe_validation_semantique(enfant2, contexte);
+			performe_validation_semantique(enfant1, contexte, false);
+			performe_validation_semantique(enfant2, contexte, false);
 
 			auto index_type_debut = enfant1->index_type;
 			auto index_type_fin   = enfant2->index_type;
@@ -2149,7 +2153,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::CONTINUE_ARRETE:
 		{
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, false);
 
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
@@ -2185,7 +2189,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(b->enfants.front(), contexte);
+			performe_validation_semantique(b->enfants.front(), contexte, true);
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
@@ -2201,8 +2205,8 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(b->enfants.front(), contexte);
-			performe_validation_semantique(b->enfants.back(), contexte);
+			performe_validation_semantique(b->enfants.front(), contexte, true);
+			performe_validation_semantique(b->enfants.back(), contexte, false);
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
@@ -2212,7 +2216,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::DIFFERE:
 		case type_noeud::TABLEAU:
 		{
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, true);
 			break;
 		}
 		case type_noeud::TANTQUE:
@@ -2222,7 +2226,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
 
-			performe_validation_semantique(enfant1, contexte);
+			performe_validation_semantique(enfant1, contexte, false);
 
 			/* À FAIRE : ceci duplique logique coulisse */
 			auto goto_continue = "__continue_boucle_pour" + dls::vers_chaine(b);
@@ -2231,7 +2235,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			contexte.empile_goto_continue("", goto_continue);
 			contexte.empile_goto_arrete("", goto_apres);
 
-			performe_validation_semantique(enfant2, contexte);
+			performe_validation_semantique(enfant2, contexte, true);
 
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
@@ -2252,7 +2256,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::NONSUR:
 		{
 			contexte.non_sur(true);
-			performe_validation_semantique(b->enfants.front(), contexte);
+			performe_validation_semantique(b->enfants.front(), contexte, true);
 			contexte.non_sur(false);
 
 			break;
@@ -2263,7 +2267,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			rassemble_feuilles(b->enfants.front(), feuilles);
 
 			for (auto f : feuilles) {
-				performe_validation_semantique(f, contexte);
+				performe_validation_semantique(f, contexte, false);
 			}
 
 			if (feuilles.est_vide()) {
@@ -2314,7 +2318,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
 
 			for (auto enfant : b->enfants) {
-				performe_validation_semantique(enfant, contexte);
+				performe_validation_semantique(enfant, contexte, false);
 			}
 
 			break;
@@ -2323,7 +2327,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		{
 			auto enfant = b->enfants.front();
 
-			performe_validation_semantique(enfant, contexte);
+			performe_validation_semantique(enfant, contexte, false);
 
 			if (enfant->type == type_noeud::VARIABLE) {
 				auto &dv = contexte.donnees_variable(enfant->chaine());
@@ -2410,7 +2414,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::MEMOIRE:
 		{
 			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte);
+			performe_validation_semantique(enfant, contexte, false);
 
 			auto &dt_enfant = trouve_donnees_type(contexte, enfant);
 			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.dereference());
@@ -2436,7 +2440,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
-				performe_validation_semantique(expr, contexte);
+				performe_validation_semantique(expr, contexte, false);
 
 				/* transforme en type tableau dynamic */
 				auto taille = (static_cast<int>(dt.type_base() >> 8));
@@ -2450,7 +2454,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				b->index_type = contexte.magasin_types.ajoute_type(ndt);
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
-				performe_validation_semantique(*enfant++, contexte);
+				performe_validation_semantique(*enfant++, contexte, false);
 				nombre_enfant -= 1;
 			}
 			else {
@@ -2462,7 +2466,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (nombre_enfant == 1) {
-				performe_validation_semantique(*enfant++, contexte);
+				performe_validation_semantique(*enfant++, contexte, true);
 			}
 
 			break;
@@ -2476,14 +2480,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto nombre_enfant = b->enfants.taille();
 			auto enfant = b->enfants.debut();
 			auto enfant1 = *enfant++;
-			performe_validation_semantique(enfant1, contexte);
+			performe_validation_semantique(enfant1, contexte, true);
 
 			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
-				performe_validation_semantique(expr, contexte);
+				performe_validation_semantique(expr, contexte, false);
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
-				performe_validation_semantique(*enfant++, contexte);
+				performe_validation_semantique(*enfant++, contexte, false);
 				nombre_enfant -= 1;
 			}
 			else {
@@ -2505,7 +2509,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			}
 
 			if (nombre_enfant == 2) {
-				performe_validation_semantique(*enfant++, contexte);
+				performe_validation_semantique(*enfant++, contexte, true);
 			}
 
 			break;
@@ -2513,7 +2517,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 		case type_noeud::DELOGE:
 		{
 			auto enfant = b->enfants.front();
-			performe_validation_semantique(enfant, contexte);
+			performe_validation_semantique(enfant, contexte, true);
 			break;
 		}
 		case type_noeud::DECLARATION_STRUCTURE:
@@ -2635,7 +2639,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 
 					verifie_redefinition_membre(decl_membre);
 
-					performe_validation_semantique(decl_expr, contexte);
+					performe_validation_semantique(decl_expr, contexte, false);
 
 					if (decl_membre->index_type != decl_expr->index_type) {
 						if (decl_membre->index_type == -1l) {
@@ -2734,7 +2738,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				contexte.pousse_locale(nom, donnees_variables);
 
 				if (expr != nullptr) {
-					performe_validation_semantique(expr, contexte);
+					performe_validation_semantique(expr, contexte, false);
 
 					res = evalue_expression(contexte, expr);
 
@@ -2785,7 +2789,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto iter_enfant = b->enfants.debut();
 			auto expression = *iter_enfant++;
 
-			performe_validation_semantique(expression, contexte);
+			performe_validation_semantique(expression, contexte, false);
 
 			auto const &dt = trouve_donnees_type(contexte, expression);
 
@@ -2814,7 +2818,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						auto bloc_paire = enfant->enfants.back();
 
 						if (expr_paire->type == type_noeud::SINON) {
-							performe_validation_semantique(bloc_paire, contexte);
+							performe_validation_semantique(bloc_paire, contexte, true);
 							continue;
 						}
 
@@ -2847,7 +2851,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 						contexte.verifie_acces_union = true;
 						contexte.nom_actif_union = nom_membre;
 
-						performe_validation_semantique(bloc_paire, contexte);
+						performe_validation_semantique(bloc_paire, contexte, true);
 
 						contexte.verifie_acces_union = verifie_acces_union;
 						contexte.nom_actif_union = nom_membre_union;
@@ -2857,14 +2861,14 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 				}
 			}
 
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, false);
 			break;
 		}
 		case type_noeud::PAIRE_ASSOCIATION:
 		{
 			/* Ceci n'est évalué que si l'association est faite avec un type
 			 * autre que union (sûre) */
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, true);
 			break;
 		}
 		case type_noeud::RETIENS:
@@ -2876,7 +2880,7 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 							b->morceau);
 			}
 
-			valides_enfants(b, contexte);
+			valides_enfants(b, contexte, false);
 
 			auto enfant = b->enfants.front();
 

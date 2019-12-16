@@ -2908,7 +2908,6 @@ void genere_code_C(
 
 			if (dt.type_base() == id_morceau::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
-				performe_validation_semantique(expr, contexte);
 
 				a_pointeur = true;
 				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
@@ -3100,8 +3099,6 @@ void genere_code_C(
 			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
 				a_pointeur = true;
 				auto expr = b->type_declare.expressions[0];
-				performe_validation_semantique(expr, contexte);
-
 				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
 
 				genere_code_C(expr, generatrice, contexte, false);
@@ -3372,7 +3369,7 @@ void genere_code_C(
 
 	for (auto noeud : b->enfants) {
 		auto debut_validation = dls::chrono::compte_seconde();
-		performe_validation_semantique(noeud, contexte);
+		performe_validation_semantique(noeud, contexte, true);
 		temps_validation += debut_validation.temps();
 	}
 
