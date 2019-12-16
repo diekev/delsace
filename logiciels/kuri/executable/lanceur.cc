@@ -321,6 +321,32 @@ static void imprime_stats(
 	os << std::endl;
 }
 
+static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
+{
+	auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+	auto chemin_objet = "/tmp/r16_tables.o";
+
+	if (std::filesystem::exists(chemin_objet)) {
+		return;
+	}
+
+	auto commande = dls::chaine("g++ -c ");
+	commande += chemin_fichier.c_str();
+	commande += " -o /tmp/r16_tables.o";
+
+	std::cout << "Compilation des tables de conversion R16...\n";
+	std::cout << "Exécution de la commande " << commande << std::endl;
+
+	auto err = system(commande.c_str());
+
+	if (err != 0) {
+		std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+		return;
+	}
+
+	std::cout << "Compilation réussie !" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -363,6 +389,8 @@ int main(int argc, char *argv[])
 	auto metriques = Metriques{};
 
 	try {
+		precompile_objet_r16(chemin_racine_kuri);
+
 		/* enregistre le dossier d'origine */
 		auto dossier_origine = std::filesystem::current_path();
 
@@ -524,7 +552,7 @@ int main(int argc, char *argv[])
 			}
 			else {
 				auto debut_executable = dls::chrono::compte_seconde();
-				commande = dls::chaine("gcc /tmp/compilation_kuri.o ");
+				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
 
 				for (auto const &bib : assembleuse.bibliotheques) {
 					commande += " -l" + dls::chaine(bib);
