@@ -38,7 +38,7 @@ fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien
 
 ################################################################################
 
-fonc externe open(chemin : *z8, drapeaux : z32) : z32
+fonc externe open(chemin : *z8, drapeaux : z32, args : ...) : z32
 fonc externe close(fd : z32) : z32
 fonc externe read(fd : z32, tampon : *z8, taille : n64) : z64
 fonc externe write(fd : z32, tampon : *z8, taille : z64) : z32

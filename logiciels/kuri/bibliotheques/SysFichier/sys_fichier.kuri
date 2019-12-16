@@ -25,7 +25,7 @@ fonc obtiens_stmode(chemin : &CheminFichier) : n32
 	soit ok = stat(ptr_chemin, @st)
 
 	si ok == -1 {
-		retourne -1
+		retourne 0xffffffff
 	}
 
 	retourne st.st_mode
@@ -33,14 +33,14 @@ fonc obtiens_stmode(chemin : &CheminFichier) : n32
 
 fonc fichier_existe(chemin : &CheminFichier) : bool
 {
-    retourne obtiens_stmode(chemin) != -1
+    retourne obtiens_stmode(chemin) != 0xffffffff
 }
 
 fonc est_dossier(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -51,7 +51,7 @@ fonc est_fichier_régulier(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -62,7 +62,7 @@ fonc est_prise(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -73,7 +73,7 @@ fonc est_lien_symbolique(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -84,7 +84,7 @@ fonc est_fichier_périphérique(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -95,7 +95,7 @@ fonc est_fichier_caractère(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -106,7 +106,7 @@ fonc est_pipe(chemin : &CheminFichier) : bool
 {
     mode = obtiens_stmode(chemin)
 
-	si mode == -1 {
+	si mode == 0xffffffff {
 		retourne faux
 	}
 
@@ -130,7 +130,7 @@ fonc ouvre_fichier_ecriture(chemin : &CheminFichier) : z32
 	dyn tampon : [1024]z8
 	ptr_chemin = copie_chaine_c_tampon(tampon, chemin.chn)
 
-	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE)
+	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0777)
 }
 
 fonc ferme_fichier(desc : z32) : rien
