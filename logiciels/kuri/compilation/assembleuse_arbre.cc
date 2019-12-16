@@ -197,13 +197,9 @@ void KR__acces_membre_union(
 
 	os << acces_membre_union;
 
-	/* NOTE : les initialiseurs des infos types doivent être valides pour toute
-	 * la durée du programme, donc nous les mettons dans la fonction principale.
-	 */
-	dls::flux_chaine ss_infos_types;
 	dls::flux_chaine fc_code;
 
-	noeud::genere_code_C(m_pile.haut(), contexte_generation, fc_code, ss_infos_types);
+	noeud::genere_code_C(m_pile.haut(), contexte_generation, fc_code);
 
 	auto debut_main =
 R"(
@@ -225,7 +221,6 @@ R"(
 
 	os << fc_code.chn();
 	os << debut_main;
-	os << ss_infos_types.chn();
 	os << fin_main;
 }
 

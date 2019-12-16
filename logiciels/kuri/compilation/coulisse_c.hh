@@ -32,9 +32,9 @@ namespace noeud {
 
 struct base;
 
-void genere_code_C(base *b,
+void genere_code_C(
+		base *b,
 		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os,
-		dls::flux_chaine &os_init);
+		dls::flux_chaine &os);
 
 }  /* namespace noeud */
