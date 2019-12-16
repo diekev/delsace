@@ -40,21 +40,10 @@ ContexteGenerationCode::ContexteGenerationCode()
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
 
-	auto ds_contexte_global = DonneesStructure();
-	ds_contexte_global.est_enum = false;
-	ds_contexte_global.noeud_decl = nullptr;
-
-	auto dm = DonneesMembre();
-	dm.index_membre = 0;
-	ds_contexte_global.donnees_membres.insere({ "compteur", dm });
-
-	ds_contexte_global.index_types.pousse(magasin_types[TYPE_Z32]);
-
-	this->ajoute_donnees_structure("__contexte_global", ds_contexte_global);
-
+	/* À FAIRE : type du pointeur de __contexte_global */
 	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::POINTEUR);
-	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds_contexte_global.id << 8));
+	dt.pousse(id_morceau::CHAINE_CARACTERE);
 	this->index_type_ctx = magasin_types.ajoute_type(dt);
 }
 
@@ -95,25 +84,6 @@ DonneesModule *ContexteGenerationCode::cree_module(
 	module->id = static_cast<size_t>(modules.taille());
 	module->nom = nom;
 	module->chemin = chemin_corrige;
-
-	/* La fonction memoire_utilisee est définie globalement donc doit être
-	 * définie dans chaque module. */
-	auto nom_fonction = "mémoire_utilisée";
-
-	auto donnees_fonctions = DonneesFonction();
-	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::FONC);
-	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
-	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
-	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
-	dt.pousse(id_morceau::Z64);
-	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
-	donnees_fonctions.index_type = magasin_types.ajoute_type(dt);
-	donnees_fonctions.idx_types_retours.pousse(magasin_types[TYPE_Z64]);
-	donnees_fonctions.nom_broye = broye_nom_fonction(nom_fonction, "", donnees_fonctions.index_type);
-
-	module->fonctions_exportees.insere(nom_fonction);
-	module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	modules.pousse(module);
 

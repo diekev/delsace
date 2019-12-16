@@ -1,6 +1,4 @@
-# Bibliothèque d'introspection.
-
-charge "chaine"
+# Structures de bases pour contenir les informations d'un type.
 
 énum id_info : z32 {
     ENTIER    = 0,
@@ -67,42 +65,4 @@ struct InfoTypeÉnum {
 	nom : chaine
 	valeurs : []z32 # À FAIRE typage selon énum
 	noms : []chaine
-}
-
-fonc possède_membre(arg : eini, nom : chaine) : bool
-{
-	info = info de arg
-
-    si id de info != STRUCTURE de id_info {
-		retourne faux
-	}
-
-	soit info_arg = transtype(info : *InfoTypeStructure)
-
-	soit membres = membres de info_arg
-
-    pour membre dans membres {
-        si compare_chaines(nom de membre, nom) {
-			retourne vrai
-        }
-    }
-
-	retourne faux
-}
-
-corout membres(arg : eini) : chaine
-{
-	info = info de arg
-
-    si id de info != STRUCTURE de id_info {
-		retourne
-	}
-
-	info_arg = transtype(info : *InfoTypeStructure)
-
-	membres = membres de info_arg
-
-    pour membre dans membres {
-		retiens nom de membre
-	}
 }

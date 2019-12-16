@@ -40,6 +40,7 @@ add_subdirectory(tests)
 set(DOSSIER_MODULES
 	bibliotheques/Fondation
 	bibliotheques/GlibC
+	bibliotheques/Kuri
 	bibliotheques/Réseau
 	bibliotheques/SysFichier
 )

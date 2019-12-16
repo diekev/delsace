@@ -47,6 +47,12 @@ DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine_co
 
 /* ************************************************************************** */
 
+Fichier::Fichier()
+{
+	/* Tous les fichiers importent implicitement Kuri. */
+	modules_importes.insere("Kuri");
+}
+
 bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 {
 	return modules_importes.trouve(nom_module) != modules_importes.fin();

@@ -90,6 +90,10 @@ struct Fichier {
 	dls::chaine nom{""};
 	dls::chaine chemin{""};
 
+	Fichier();
+
+	COPIE_CONSTRUCT(Fichier);
+
 	/**
 	 * Retourne vrai si le fichier importe un module du nom spécifié.
 	 */
