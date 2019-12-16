@@ -182,7 +182,7 @@ fonc réserve(dyn enchaineuse : &Enchaineuse, taille : z64) : rien
 		retourne
 	}
 
-	reloge enchaineuse.résultat : chaine(nouvelle_taille)
+	reloge enchaineuse.résultat : chaine(taille)
 }
 
 fonc appends(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
@@ -222,7 +222,8 @@ fonc pousse(dyn enchaineuse : &Enchaineuse, chns : ...chaine) : rien
 # l'appelante.
 fonc enchaine(chns : ...chaine) : chaine
 {
-	dyn enchaine : Enchaineuse
+	dyn enchaineuse : Enchaineuse
+	dyn taille : z64
 
 	# À FAIRE : trouve comment passer des arguments variadiques à
 	# d'autres fonctions

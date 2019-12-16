@@ -114,7 +114,7 @@ fonc démarre(dyn serveuse : &Serveuse) : rien
             #reponse = repond_requete(requete)
 
             enchaineuse = crée_enchaineuse()
-            diffère { déloge enchaineuse.détruit(); }
+            diffère { enchaineuse.détruit(); }
 
             contenu = "<p>ma réponse</p>"
 
