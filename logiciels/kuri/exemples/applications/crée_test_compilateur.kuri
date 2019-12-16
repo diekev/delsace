@@ -25,7 +25,7 @@ fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
 	]
 
 	# calcule l'espace nécessaire
-	dyn taille = 0
+	dyn taille : z64 = 0
 
 	pour chn dans chaines {
 		taille += chn.taille
@@ -37,7 +37,7 @@ fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
 	dyn enchaineuse : Enchaineuse
 	diffère { enchaineuse.détruit(); }
 
-	enchaine.réserve(taille)
+	enchaineuse.réserve(taille)
 
 	pour i dans 0 ... 5 {
 		enchaineuse.pousse(chaines[i])
@@ -53,7 +53,7 @@ fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
 	# écris le fichier
 	chemin = construit_chemin(chemin_fichier)
 	fichier = ouvre_fichier_ecriture(chemin)
-	fichier.écris(enchaineuse.résultat)
+	écris_fichier(fichier, enchaineuse.résultat)
 }
 
 fonc principale(args : []*z8) : z32
