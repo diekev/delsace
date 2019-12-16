@@ -1530,6 +1530,7 @@ void genere_code_C(
 
 				if (contexte.donnees_fonction == nullptr) {
 					auto donnees_var = DonneesVariable{};
+					donnees_var.est_externe = (b->drapeaux & EST_EXTERNE) != 0;
 					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 					donnees_var.index_type = b->index_type;
 

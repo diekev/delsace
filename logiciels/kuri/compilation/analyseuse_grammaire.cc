@@ -683,6 +683,11 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				drapeaux |= EMPLOYE;
 				break;
 			}
+			case id_morceau::EXTERNE:
+			{
+				drapeaux |= (EST_EXTERNE | DECLARATION);
+				break;
+			}
 			case id_morceau::CHAINE_CARACTERE:
 			{
 				/* appel fonction : chaine + ( */

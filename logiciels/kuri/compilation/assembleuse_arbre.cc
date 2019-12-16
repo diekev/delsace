@@ -138,14 +138,6 @@ void assembleuse_arbre::genere_code_C(
 		return;
 	}
 
-	/* Définition de errno, puisque requis dans la plupart des erreurs des
-	 * bibliothèques C. */
-	auto donnees_var = DonneesVariable{};
-	donnees_var.est_dynamique = true;
-	donnees_var.index_type = contexte_generation.magasin_types[TYPE_Z32];
-
-	contexte_generation.pousse_globale("errno", donnees_var);
-
 	for (auto const &inc : this->inclusions) {
 		os << "#include <" << inc << ">\n";
 	}

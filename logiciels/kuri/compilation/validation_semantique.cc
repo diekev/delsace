@@ -1132,8 +1132,16 @@ void performe_validation_semantique(base *b, ContexteGenerationCode &contexte)
 			auto declare_variable = [&b, &contexte]()
 			{
 				auto donnees_var = DonneesVariable{};
+				donnees_var.est_externe = (b->drapeaux & EST_EXTERNE) != 0;
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.index_type = b->index_type;
+
+				if (donnees_var.est_externe && b->aide_generation_code == GAUCHE_ASSIGNATION) {
+					erreur::lance_erreur(
+								"Ne peut pas assigner une variable globale externe dans sa déclaration",
+								contexte,
+								b->morceau);
+				}
 
 				auto &dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
 
