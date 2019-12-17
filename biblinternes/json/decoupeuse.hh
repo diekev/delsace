@@ -33,6 +33,8 @@ namespace lng {
 class tampon_source;
 }
 
+namespace json {
+
 class decoupeuse_texte {
 	lng::tampon_source const &m_tampon;
 	const char *m_debut_mot = nullptr;
@@ -89,3 +91,5 @@ private:
 
 	void enregistre_position_mot();
 };
+
+}  /* namespace json */

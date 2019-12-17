@@ -32,6 +32,8 @@ struct DonneesMorceau;
 namespace lng {
 struct tampon_source;
 }
+
+namespace json {
 namespace erreur {
 
 enum {
@@ -50,3 +52,5 @@ using frappe = lng::erreur::frappe<int>;
 		int type = NORMAL);
 
 }
+
+}  /* namespace json */
