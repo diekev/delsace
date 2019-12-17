@@ -74,19 +74,7 @@ inline void pour_chaque_ligne(std::ifstream &ifs, type_op_pour_chaque_ligne &&op
  * @param first A pointer to the first element in the array.
  * @param last A pointer to the last element in the array.
  */
-void format_number_array(char *first, char *last)
-{
-	bool is_null = true;
-
-	while (last-- > first) {
-		if (is_null && *last == 0) {
-			continue;
-		}
-
-		is_null = false;
-		*last = static_cast<char>(*last + '0');
-	}
-}
+void format_number_array(char *first, char *last);
 
 /**
  * @brief Print an array of chars as if it were an array of ints.
@@ -94,13 +82,7 @@ void format_number_array(char *first, char *last)
  * @param last A pointer to the last element in the array.
  * @param os The output stream.
  */
-void print_array(const char *first, const char *last, std::ostream &os)
-{
-	while (first < last) {
-		os << *first;
-		++first;
-	}
-}
+void print_array(const char *first, const char *last, std::ostream &os);
 
 /**
  * @brief Print an array of chars as if it were an array of ints.
@@ -111,18 +93,7 @@ void print_array(const char *first, const char *last, std::ostream &os)
  * @param suffix An optional string which will be printed after the array.
  */
 void print_array(const char *first, const char *last, std::ostream &os,
-                 const char *prefix, const char *suffix)
-{
-	if (prefix) {
-		os << prefix;
-	}
-
-	print_array(first, last, os);
-
-	if (suffix) {
-		os << suffix;
-	}
-}
+				 const char *prefix, const char *suffix);
 
 namespace couleur {
 

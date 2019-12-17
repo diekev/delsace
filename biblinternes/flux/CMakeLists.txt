@@ -31,6 +31,7 @@ set(ENTETES
 )
 
 set(SOURCES
+    outils.cc
 	main.cc
 )
 
