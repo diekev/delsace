@@ -172,16 +172,20 @@ with io.open(u"morceaux.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include "biblinternes/structures/vue_chaine.hh"\n\n')
+	entete.write(u'namespace json {\n\n')
 	entete.write(enumeration)
 	entete.write(structures)
 	entete.write(declaration_fonctions)
+	entete.write(u'\n}  /* namespace json */\n')
 
 
 with io.open(u'morceaux.cc', u'w') as source:
 	source.write(license_)
 	source.write(u'\n#include "morceaux.hh"\n\n')
 	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
+	source.write(u'namespace json {\n\n')
 	source.write(tableaux)
 	source.write(fonction)
 	source.write(fonctions)
+	source.write(u'\n}  /* namespace json */\n')
 
