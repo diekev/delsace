@@ -27,7 +27,7 @@ fonction cree_editrice(type : type_éditrice) : Editrice
 	dyn éditrice = loge Editrice
 	type de éditrice = type
 
-	associe type {
+	discr type {
 		NULLE de type_éditrice {
 			nom de éditrice = "nulle"
 		}

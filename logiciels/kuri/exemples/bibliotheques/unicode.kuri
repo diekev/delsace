@@ -71,7 +71,7 @@ fonc decoupe_texte(debut : *n8)
     boucle (*copie != '\0') {
         soit nombre_octet = nombre_octets_unicode(copie);
 
-        associe nombre_octet {
+        discr nombre_octet {
             1: {
                 # vérifie caractère simple
                 ++copie;

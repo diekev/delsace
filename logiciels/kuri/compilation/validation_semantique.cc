@@ -745,7 +745,7 @@ void performe_validation_semantique(
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
-		case type_noeud::ASSOCIE_UNION:
+		case type_noeud::DISCR_UNION:
 		case type_noeud::ACCES_MEMBRE_UNION:
 		{
 			break;
@@ -2780,7 +2780,7 @@ void performe_validation_semantique(
 
 			break;
 		}
-		case type_noeud::ASSOCIE:
+		case type_noeud::DISCR:
 		{
 			/* TESTS : si énum -> vérifie que toutes les valeurs soient prises
 			 * en compte, sauf s'il y a un bloc sinon après. */
@@ -2800,12 +2800,12 @@ void performe_validation_semantique(
 				if (ds.est_union) {
 					if (ds.est_nonsur) {
 						erreur::lance_erreur(
-									"« associe » ne peut prendre une union nonsûre",
+									"« discr » ne peut prendre une union nonsûre",
 									contexte,
 									expression->morceau);
 					}
 
-					b->type = type_noeud::ASSOCIE_UNION;
+					b->type = type_noeud::DISCR_UNION;
 
 					/* vérifie que tous les expressions des paires sont bel et
 					 * bien des membres */
@@ -2864,9 +2864,9 @@ void performe_validation_semantique(
 			valides_enfants(b, contexte, false);
 			break;
 		}
-		case type_noeud::PAIRE_ASSOCIATION:
+		case type_noeud::PAIRE_DISCR:
 		{
-			/* Ceci n'est évalué que si l'association est faite avec un type
+			/* Ceci n'est évalué que si la discrimination est faite avec un type
 			 * autre que union (sûre) */
 			valides_enfants(b, contexte, true);
 			break;

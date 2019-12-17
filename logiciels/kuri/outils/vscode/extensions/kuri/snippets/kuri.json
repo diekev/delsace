@@ -159,19 +159,19 @@
         ],
         "description": "Fragment de code pour une définition de structure"
     },
-    "associe": {
-        "prefix": "associe",
+    "discr": {
+        "prefix": "discr",
         "body": [
-            "associe ${1:expression} {",
+            "discr ${1:expression} {",
             "\t${2:test} {",
             "\t\t${3:expression}"
             "\t}"
             "}"
         ],
-        "description": "Fragment de code pour une instruction associe"
+        "description": "Fragment de code pour une instruction discr"
     },
-    "associe/sinon": {
-        "prefix": "associe/sinon",
+    "discr/sinon": {
+        "prefix": "discr/sinon",
         "body": [
             "associe ${1:expression} {",
             "\t${2:test} {",
@@ -182,6 +182,6 @@
             "\t}"
             "}"
         ],
-        "description": "Fragment de code pour une instruction associe avec un bloc sinon"
+        "description": "Fragment de code pour une instruction discr avec un bloc sinon"
     }
 }

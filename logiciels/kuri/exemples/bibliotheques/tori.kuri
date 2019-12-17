@@ -154,7 +154,7 @@ fonc crée_objet(gestionnaire : &GestionnaireObjet, type : TypeObjet) : *Objet
 {
 	dyn objet : *Objet = nul
 
-	associe type {
+	discr type {
 		TypeObjet.ENTIER {
 			obj = loge ObjetEntier
 			objet = transtype(obj : *Objet)
@@ -191,7 +191,7 @@ fonc crée_objet(gestionnaire : &GestionnaireObjet, type : TypeObjet) : *Objet
 
 fonc détruit_objet(objet : *Objet) : rien
 {
-	associe objet.type {
+	discr objet.type {
 		TypeObjet.NUL {
 			déloge objet
 		}

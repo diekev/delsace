@@ -12,7 +12,7 @@ fonc execute_noeud(obj1 : &Objet, objs : []&Objet) : z32, *Objet
 
 fonc imprime_type(info : *InfoType) : rien
 {
-    associe id de info {
+    discr id de info {
 	    ENTIER de id_info
 		{
 		    soit info_arg = transtype(info : *InfoTypeEntier)

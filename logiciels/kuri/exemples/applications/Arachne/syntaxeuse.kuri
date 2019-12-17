@@ -297,7 +297,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
 
 fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
 {
-	associe id {
+	discr id {
 		IdentifiantLexème.CREE     { retourne Instruction.CREE; }
 		IdentifiantLexème.SUPPRIME { retourne Instruction.SUPPRIME; }
 		IdentifiantLexème.TROUVE   { retourne Instruction.TROUVE; }
@@ -419,7 +419,7 @@ fonc principale(args : []*z8) : z32
 	syntaxeuse.initialise(@lexeuse.lexèmes)
 	résultat = syntaxeuse.analyse_requête()
 
-	associe résultat {
+	discr résultat {
 		requête {
 			imprime_requête(résultat.requête)
 			détruit_requête(résultat.requête)

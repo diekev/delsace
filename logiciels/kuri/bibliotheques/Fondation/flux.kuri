@@ -13,7 +13,7 @@ fonc imprime_valeur(
 
 	dyn écrie = 0
 
-    associe id de info {
+    discr id de info {
 		ENTIER de id_info {
 			soit info_arg = transtype(info : *InfoTypeEntier)
 

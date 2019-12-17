@@ -12,7 +12,7 @@ mot_cles = [
 	u'dans',
 	u'arrête',
 	u'continue',
-	u'associe',
+	u'discr',
 	u'si',
 	u'sinon',
 	u'énum',

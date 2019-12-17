@@ -199,8 +199,8 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::ARRETE:
 			os << "arrête";
 			return;
-		case id_morceau::ASSOCIE:
-			os << "associe";
+		case id_morceau::DISCR:
+			os << "discr";
 			return;
 		case id_morceau::BOOL:
 			os << "bool";

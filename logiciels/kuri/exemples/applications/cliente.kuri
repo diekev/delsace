@@ -52,7 +52,7 @@ fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile 
 
 	erreur = SSL_get_error(ssl, erreur);
 
-	associe (erreur) {
+	discr (erreur) {
 		_SSL_ERROR_NONE {
 			imprime("SSL_ERROR_NONE\n")
         }
@@ -215,7 +215,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
                 si erreur != _SSL_ERROR_NONE || erreur != _SSL_ERROR_ZERO_RETURN {
                     imprime("Erreur lors de la lecture SSL : ");
 
-                    associe (erreur) {
+                    discr (erreur) {
                         _SSL_ERROR_NONE {
                             imprime("SSL_ERROR_NONE\n")
                         }

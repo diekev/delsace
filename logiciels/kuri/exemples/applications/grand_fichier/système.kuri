@@ -40,7 +40,7 @@ fonc analyse_réponse(réponse : chaine) : rien
 	dyn protocole : chaine
 
 	pour c, idx dans réponse {
-		associe c {
+		discr c {
 			' ' {
 				si état == État.DÉBUT {
 					mot = construit_chaine(@c, taille_mot)
@@ -231,7 +231,7 @@ fonc répond(système : &Système, requête : &Requête) : chaine
 {
 	dyn enchaineuse = crée_constructrice_chaine()
 
-	associe requête.inst {
+	discr requête.inst {
 		Instruction.CHERCHE {
 			si !fichier_existe(système, requête.chemin) {
 				enchaineuse.pousse("FICHIER_INTROUVABLE")

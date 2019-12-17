@@ -241,7 +241,7 @@ bool est_mot_cle(id_morceau id)
 		case id_morceau::LOGE:
 		case id_morceau::DELOGE:
 		case id_morceau::RELOGE:
-		case id_morceau::ASSOCIE:
+		case id_morceau::DISCR:
 		case id_morceau::Z8:
 		case id_morceau::Z16:
 		case id_morceau::Z32:

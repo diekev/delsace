@@ -3169,7 +3169,7 @@ void genere_code_C(
 			 * valeurs directement */
 			break;
 		}
-		case type_noeud::ASSOCIE:
+		case type_noeud::DISCR:
 		{
 			/* le premier enfant est l'expression, les suivants les paires */
 
@@ -3206,15 +3206,15 @@ void genere_code_C(
 
 			break;
 		}
-		case type_noeud::PAIRE_ASSOCIATION:
+		case type_noeud::PAIRE_DISCR:
 		{
-			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
+			/* RAF : pris en charge dans type_noeud::DISCR, ce noeud n'est que
 			 * pour ajouter un niveau d'indirection et faciliter la compilation
-			 * des associations. */
+			 * des discriminations. */
 			assert(false);
 			break;
 		}
-		case type_noeud::ASSOCIE_UNION:
+		case type_noeud::DISCR_UNION:
 		{
 			/* switch (union.membre_actif) {
 			 * case index membre + 1: {

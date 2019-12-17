@@ -523,18 +523,18 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::NONSUR);
 		}
-		else if (est_identifiant(id_morceau::ASSOCIE)) {
+		else if (est_identifiant(id_morceau::DISCR)) {
 			avance();
 
-			m_assembleuse->empile_noeud(type_noeud::ASSOCIE, m_contexte, donnees());
+			m_assembleuse->empile_noeud(type_noeud::DISCR, m_contexte, donnees());
 
-			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
+			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");
+				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de « discr »");
 			}
 
 			auto sinon_rencontre = false;
@@ -545,7 +545,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					break;
 				}
 
-				m_assembleuse->empile_noeud(type_noeud::PAIRE_ASSOCIATION, m_contexte, donnees());
+				m_assembleuse->empile_noeud(type_noeud::PAIRE_DISCR, m_contexte, donnees());
 
 				if (est_identifiant(id_morceau::SINON)) {
 					avance();
@@ -560,26 +560,26 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					sinon_rencontre = true;
 				}
 				else {
-					analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::ASSOCIE);
+					analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
 					/* recule pour être de nouveau synchronisé */
 					recule();
 				}
 
 				if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-					lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'associe'");
+					lance_erreur("Attendu une accolade ouvrante '{' après l'expression de « discr »");
 				}
 
 				analyse_bloc();
 
-				m_assembleuse->depile_noeud(type_noeud::PAIRE_ASSOCIATION);
+				m_assembleuse->depile_noeud(type_noeud::PAIRE_DISCR);
 			}
 
 			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de 'associe'");
+				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 			}
 
-			m_assembleuse->depile_noeud(type_noeud::ASSOCIE);
+			m_assembleuse->depile_noeud(type_noeud::DISCR);
 		}
 		else if (est_identifiant(type_id::ACCOLADE_OUVRANTE)) {
 			avance();

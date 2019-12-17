@@ -14,7 +14,7 @@ rout crée_manipulable(valeur : eini) : &Manipulable
 	pour membre dans membres de info {
 		dyn tprop : type_prop;
 
-		associe id de info de membre {
+		discr id de info de membre {
 			id_type.ENTIER    : { tprop = type_prop.ENTIER; }
 			id_type.RÉEL      : { tprop = type_prop.RÉEL; }
 			id_type.STRUCTURE : { tprop = type_prop.NUL; }

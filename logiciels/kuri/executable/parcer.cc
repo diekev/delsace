@@ -1444,7 +1444,7 @@ struct Convertisseuse {
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				std::cout << "associe ";
+				std::cout << "discr ";
 				convertis(enfants[0], trans_unit);
 				std::cout << " {\n";
 				convertis(enfants[1], trans_unit);

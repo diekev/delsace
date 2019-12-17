@@ -30,7 +30,6 @@
 
 static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("arrête"), id_morceau::ARRETE },
-	dls::paire{ dls::vue_chaine_compacte("associe"), id_morceau::ASSOCIE },
 	dls::paire{ dls::vue_chaine_compacte("bool"), id_morceau::BOOL },
 	dls::paire{ dls::vue_chaine_compacte("boucle"), id_morceau::BOUCLE },
 	dls::paire{ dls::vue_chaine_compacte("chaine"), id_morceau::CHAINE },
@@ -40,6 +39,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("dans"), id_morceau::DANS },
 	dls::paire{ dls::vue_chaine_compacte("de"), id_morceau::DE },
 	dls::paire{ dls::vue_chaine_compacte("diffère"), id_morceau::DIFFERE },
+	dls::paire{ dls::vue_chaine_compacte("discr"), id_morceau::DISCR },
 	dls::paire{ dls::vue_chaine_compacte("dyn"), id_morceau::DYN },
 	dls::paire{ dls::vue_chaine_compacte("déloge"), id_morceau::DELOGE },
 	dls::paire{ dls::vue_chaine_compacte("eini"), id_morceau::EINI },
@@ -248,8 +248,6 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::DEC_DROITE_EGAL";
 		case id_morceau::ARRETE:
 			return "id_morceau::ARRETE";
-		case id_morceau::ASSOCIE:
-			return "id_morceau::ASSOCIE";
 		case id_morceau::BOOL:
 			return "id_morceau::BOOL";
 		case id_morceau::BOUCLE:
@@ -268,6 +266,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::DE";
 		case id_morceau::DIFFERE:
 			return "id_morceau::DIFFERE";
+		case id_morceau::DISCR:
+			return "id_morceau::DISCR";
 		case id_morceau::DYN:
 			return "id_morceau::DYN";
 		case id_morceau::DELOGE:

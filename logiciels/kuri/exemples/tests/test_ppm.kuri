@@ -388,7 +388,7 @@ fonc écris_pnm(image : Image, chemin : chaine) : rien
 
     dyn entete : chaine;
 
-    associe channels de image {
+    discr channels de image {
         1 { entete = "P5"; }
         3 { entete = "P6"; }
     }
@@ -836,7 +836,7 @@ fonc écris_jpeg(image : Image, chemin : chaine) : rien
 	image_height de info = transtype(hauteur de image : n32);
 	input_components de info = channels de image;
 
-	associe (input_components de info) {
+	discr (input_components de info) {
 		1 { in_color_space de info = _JCS_GRAYSCALE; }
 		3 { in_color_space de info = _JCS_RGB; }
 	}
