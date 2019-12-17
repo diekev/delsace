@@ -3186,13 +3186,16 @@ void genere_code_C(
 				auto enf0 = paire->enfants.front();
 				auto enf1 = paire->enfants.back();
 
-				genere_code_C(enf0, generatrice, contexte, true);
+				if (enf0->type != type_noeud::SINON) {
+					genere_code_C(enf0, generatrice, contexte, true);
 
-				generatrice.os << "if (";
-				generatrice.os << chaine_expr;
-				generatrice.os << " == ";
-				generatrice.os << enf0->chaine_calculee();
-				generatrice.os << ") ";
+					generatrice.os << "if (";
+					generatrice.os << chaine_expr;
+					generatrice.os << " == ";
+					generatrice.os << enf0->chaine_calculee();
+					generatrice.os << ") ";
+				}
+
 				genere_code_C(enf1, generatrice, contexte, false);
 
 				if (i < nombre_enfants - 1) {
