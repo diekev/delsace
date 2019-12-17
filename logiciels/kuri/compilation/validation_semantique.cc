@@ -2803,6 +2803,20 @@ void performe_validation_semantique(
 
 				auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
 
+				auto valide_presence_membres = [&membres_rencontres, &ds, &contexte, &expression]() {
+					auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
+
+					for (auto const &paire : ds.donnees_membres) {
+						if (membres_rencontres.trouve(paire.first) == membres_rencontres.fin()) {
+							valeurs_manquantes.insere(paire.first);
+						}
+					}
+
+					if (valeurs_manquantes.taille() != 0) {
+						erreur::valeur_manquante_discr(contexte, expression, valeurs_manquantes);
+					}
+				};
+
 				if (ds.est_union) {
 					if (ds.est_nonsur) {
 						erreur::lance_erreur(
@@ -2812,6 +2826,7 @@ void performe_validation_semantique(
 					}
 
 					b->type = type_noeud::DISCR_UNION;
+					auto sinon_rencontre = false;
 
 					for (auto i = 1; i < nombre_enfant; ++i) {
 						auto enfant = *iter_enfant++;
@@ -2819,6 +2834,7 @@ void performe_validation_semantique(
 						auto bloc_paire = enfant->enfants.back();
 
 						if (expr_paire->type == type_noeud::SINON) {
+							sinon_rencontre = true;
 							performe_validation_semantique(bloc_paire, contexte, true);
 							continue;
 						}
@@ -2873,6 +2889,10 @@ void performe_validation_semantique(
 						contexte.depile_nombre_locales();
 					}
 
+					if (!sinon_rencontre) {
+						valide_presence_membres();
+					}
+
 					return;
 				}
 
@@ -2916,17 +2936,7 @@ void performe_validation_semantique(
 					}
 
 					if (!sinon_rencontre) {
-						auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
-
-						for (auto const &paire : ds.donnees_membres) {
-							if (membres_rencontres.trouve(paire.first) == membres_rencontres.fin()) {
-								valeurs_manquantes.insere(paire.first);
-							}
-						}
-
-						if (valeurs_manquantes.taille() != 0) {
-							erreur::valeur_manquante_discr(contexte, expression, valeurs_manquantes);
-						}
+						valide_presence_membres();
 					}
 
 					return;
