@@ -2852,7 +2852,26 @@ void performe_validation_semantique(
 
 						contexte.renseigne_membre_actif(expression->chaine(), nom_membre);
 
+						/* Pousse la variable comme étant employée, puisque nous savons ce qu'elle est */
+						if (contexte.locale_existe(iter_membre->first)) {
+							erreur::lance_erreur(
+										"Ne peut pas utiliser implicitement le membre car une variable de ce nom existe déjà",
+										contexte,
+										expr_paire->morceau);
+						}
+
+						auto donnees_var = DonneesVariable{};
+						donnees_var.index_type = ds.index_types[iter_membre->second.index_membre];
+						donnees_var.est_argument = true;
+						donnees_var.est_membre_emploie = true;
+						/* À FAIRE : est_dynamique */
+
+						contexte.empile_nombre_locales();
+						contexte.pousse_locale(iter_membre->first, donnees_var);
+
 						performe_validation_semantique(bloc_paire, contexte, true);
+
+						contexte.depile_nombre_locales();
 					}
 
 					return;

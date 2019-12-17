@@ -421,13 +421,15 @@ fonc principale(args : []*z8) : z32
 
 	discr résultat {
 		requête {
-			imprime_requête(résultat.requête)
-			détruit_requête(résultat.requête)
+			imprime_requête(requête)
+			détruit_requête(requête)
 		}
 		erreur {
-			imprime(résultat.erreur.message, '\n')
+			imprime(erreur.message, '\n')
 		}
 	}
+
+	requête = faux
 
 	retourne 0
 }

@@ -3228,13 +3228,15 @@ void genere_code_C(
 			auto expression = *iter_enfant++;
 
 			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
+			auto const est_pointeur = dt.type_base() == id_morceau::POINTEUR;
 			auto id = static_cast<long>(dt.type_base() >> 8);
 			auto &ds = contexte.donnees_structure(id);
 
 			genere_code_C(expression, generatrice, contexte, true);
 			auto chaine_calculee = expression->chaine_calculee();
+			chaine_calculee += (est_pointeur ? "->" : ".");
 
-			generatrice.os << "switch (" << chaine_calculee << ".membre_actif) {\n";
+			generatrice.os << "switch (" << chaine_calculee << "membre_actif) {\n";
 
 			for (auto i = 1; i < nombre_enfant; ++i) {
 				auto enfant = *iter_enfant++;
@@ -3250,9 +3252,21 @@ void genere_code_C(
 					generatrice.os << "case " << dm.index_membre + 1;
 				}
 
+				auto iter_membre = ds.donnees_membres.trouve(expr_paire->chaine());
+
+				auto dv = DonneesVariable{};
+				dv.index_type = ds.index_types[iter_membre->second.index_membre];
+				dv.est_argument = true;
+				dv.est_membre_emploie = true;
+				dv.structure = chaine_calculee;
+
+				contexte.empile_nombre_locales();
+				contexte.pousse_locale(iter_membre->first, dv);
+
 				generatrice.os << ": {\n";
 				genere_code_C(bloc_paire, generatrice, contexte, true);
 				generatrice.os << "break;\n}\n";
+				contexte.depile_nombre_locales();
 			}
 
 			generatrice.os << "}\n";
