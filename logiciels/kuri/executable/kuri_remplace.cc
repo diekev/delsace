@@ -26,9 +26,12 @@
 #include <fstream>
 #include <iostream>
 
+#include "biblinternes/json/json.hh"
+
 #include "compilation/contexte_generation_code.h"
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
+#include "compilation/outils_morceaux.hh"
 #include "compilation/modules.hh"
 
 #include "options.hh"
@@ -39,7 +42,89 @@
  * définir comment changer les choses, ou formater le code
  */
 
-static void reecris_fichier(std::filesystem::path &chemin)
+struct Configuration {
+	dls::tableau<dls::chaine> dossiers{};
+	dls::tableau<dls::chaine> fichiers{};
+
+	using paire = std::pair<dls::chaine, dls::chaine>;
+
+	dls::tableau<paire> mots_cles{};
+};
+
+static void analyse_liste_chemin(
+		tori::ObjetTableau *tableau,
+		dls::tableau<dls::chaine> &chaines)
+{
+	for (auto objet : tableau->valeur) {
+		if (objet->type != tori::type_objet::CHAINE) {
+			std::cerr << "liste : l'objet n'est pas une chaine !\n";
+			continue;
+		}
+
+		auto obj_chaine = extrait_chaine(objet.get());
+		chaines.pousse(obj_chaine->valeur);
+	}
+}
+
+static Configuration analyse_configuration(const char *chemin)
+{
+	auto config = Configuration{};
+	auto obj = json::compile_script(chemin);
+
+	if (obj == nullptr) {
+		std::cerr << "La compilation du script a renvoyé un objet nul !\n";
+		return config;
+	}
+
+	if (obj->type != tori::type_objet::DICTIONNAIRE) {
+		std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
+		return config;
+	}
+
+	auto dico = tori::extrait_dictionnaire(obj.get());
+
+	auto obj_fichiers = cherche_tableau(dico, "fichiers");
+
+	if (obj_fichiers != nullptr) {
+		analyse_liste_chemin(obj_fichiers, config.fichiers);
+	}
+
+	auto obj_dossiers = cherche_tableau(dico, "dossiers");
+
+	if (obj_dossiers != nullptr) {
+		analyse_liste_chemin(obj_dossiers, config.dossiers);
+	}
+
+	auto obj_change = cherche_dico(dico, "change");
+
+	if (obj_change != nullptr) {
+		auto obj_mots_cles = cherche_dico(obj_change, "mots-clés");
+
+		if (obj_mots_cles == nullptr) {
+			return config;
+		}
+
+		for (auto objet : obj_mots_cles->valeur) {
+			auto const &nom_objet = objet.first;
+
+			if (objet.second->type != tori::type_objet::CHAINE) {
+				std::cerr << "mots-clés : la valeur l'objet '" << nom_objet << "' n'est pas une chaine !\n";
+				continue;
+			}
+
+			auto obj_chaine = extrait_chaine(objet.second.get());
+			config.mots_cles.pousse({ nom_objet, obj_chaine->valeur });
+
+			//std::cerr << "Remplacement de '" << nom_objet << "' par '" << obj_chaine->valeur << "'\n";
+		}
+	}
+
+	return config;
+}
+
+static void reecris_fichier(
+		std::filesystem::path &chemin,
+		Configuration const &config)
 {
 	std::cerr << "Réécriture du fichier " << chemin << "\n";
 
@@ -59,16 +144,27 @@ static void reecris_fichier(std::filesystem::path &chemin)
 		auto os = std::ofstream(chemin);
 
 		for (auto const &morceau : fichier->morceaux) {
-#if 0
-			if (morceau.identifiant == id_morceau::STRUCTURE) {
-				os << "struct";
+			if (!est_mot_cle(morceau.identifiant)) {
+				os << morceau.chaine;
+				continue;
 			}
-			else {
+
+			auto trouve = false;
+
+			for (auto const &paire : config.mots_cles) {
+				if (paire.first != dls::chaine(morceau.chaine)) {
+					continue;
+				}
+
+				os << paire.second;
+				trouve = true;
+
+				break;
+			}
+
+			if (!trouve) {
 				os << morceau.chaine;
 			}
-#else
-			os << morceau.chaine;
-#endif
 		}
 	}
 	catch (const erreur::frappe &erreur_frappe) {
@@ -80,9 +176,20 @@ int main(int argc, char **argv)
 {
 	std::ios::sync_with_stdio(false);
 
-	auto const ops = genere_options_compilation(argc, argv);
+	if (argc < 2) {
+		std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
+		return 1;
+	}
 
-	if (ops.erreur) {
+	auto config = analyse_configuration(argv[1]);
+
+	if (config.dossiers.est_vide() && config.fichiers.est_vide()) {
+		std::cerr << "Aucun fichier ni dossier précisé dans le fichier de configuration !\n";
+		return 1;
+	}
+
+	if (config.mots_cles.est_vide()) {
+		std::cerr << "Aucun mot-clé précisé !\n";
 		return 1;
 	}
 
@@ -94,21 +201,19 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto const chemin_fichier = ops.chemin_fichier;
+	for (auto const &chemin_dossier : config.dossiers) {
+		auto chemin = std::filesystem::path(chemin_dossier.c_str());
 
-	if (chemin_fichier == nullptr) {
-		std::cerr << "Aucun fichier spécifié !\n";
-		return 1;
-	}
+		if (!std::filesystem::exists(chemin)) {
+			std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
+			continue;
+		}
 
-	if (!std::filesystem::exists(chemin_fichier)) {
-		std::cerr << "Le chemin « " << chemin_fichier << " » ne pointe vers aucun fichier ou dossier !\n";
-		return 1;
-	}
+		if (!std::filesystem::is_directory(chemin)) {
+			std::cerr << "Le chemin " << chemin << " ne pointe pas vers un dossier !\n";
+			continue;
+		}
 
-	auto chemin = std::filesystem::path(chemin_fichier);
-
-	if (std::filesystem::is_directory(chemin)) {
 		for (auto donnees : std::filesystem::recursive_directory_iterator(chemin)) {
 			chemin = donnees.path();
 
@@ -116,11 +221,29 @@ int main(int argc, char **argv)
 				continue;
 			}
 
-			reecris_fichier(chemin);
+			reecris_fichier(chemin, config);
 		}
 	}
-	else {
-		reecris_fichier(chemin);
+
+	for (auto const &chemin_fichier : config.fichiers) {
+		auto chemin = std::filesystem::path(chemin_fichier.c_str());
+
+		if (!std::filesystem::exists(chemin)) {
+			std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
+			continue;
+		}
+
+		if (!std::filesystem::is_regular_file(chemin)) {
+			std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier !\n";
+			continue;
+		}
+
+		if (chemin.extension() != ".kuri") {
+			std::cerr << "Le chemin " << chemin << " ne pointe pas vers un fichier kuri !\n";
+			continue;
+		}
+
+		reecris_fichier(chemin, config);
 	}
 
 	return 0;

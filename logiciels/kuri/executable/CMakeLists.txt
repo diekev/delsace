@@ -92,7 +92,7 @@ add_executable(kuri_remplace
 
 target_include_directories(kuri_remplace PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}")
+target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}" bib_json)
 
 install(
 	TARGETS kuri_remplace RUNTIME DESTINATION ${RACINE_INSTALLATION}
