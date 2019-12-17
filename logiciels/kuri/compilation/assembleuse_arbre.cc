@@ -149,6 +149,7 @@ void assembleuse_arbre::genere_code_C(
 	os << "static long __VG_memoire_consommee__ = 0;";
 	os << "static long __VG_nombre_allocations__ = 0;";
 	os << "static long __VG_nombre_reallocations__ = 0;";
+	os << "static long __VG_nombre_deallocations__ = 0;";
 
 	auto depassement_limites =
 R"(

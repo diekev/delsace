@@ -3017,6 +3017,7 @@ void genere_code_C(
 			}
 
 			generatrice.os << "__VG_memoire_utilisee__ -= " << nom_taille << ";\n";
+			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
 
 			break;
 		}

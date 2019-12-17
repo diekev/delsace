@@ -406,6 +406,7 @@ fonc principale(args : []*z8) : z32
 		imprime("Mémoire consommée       : ", mémoire_consommée(), "o\n")
 		imprime("Nombre d'allocations    : ", nombre_allocations(), "\n")
 		imprime("Nombre de réallocations : ", nombre_réallocations(), "\n")
+		imprime("Nombre de déallocations : ", nombre_déallocations(), "\n")
 	}
 
     chaine_requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"

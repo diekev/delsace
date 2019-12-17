@@ -16,8 +16,11 @@ externe __VG_memoire_consommee__ : z64
 # Contient le nombre de fois que « loge » et « reloge » ont été appelés.
 externe __VG_nombre_allocations__ : z64
 
-# Contient le nombre de fois que « reloge » a étét appelé.
+# Contient le nombre de fois que « reloge » a été appelé.
 externe __VG_nombre_reallocations__ : z64
+
+# Contient le nombre de fois que « déloge » a été appelé.
+externe __VG_nombre_deallocations__ : z64
 
 # Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 # À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
@@ -48,4 +51,10 @@ fonc nombre_allocations() : z64
 fonc nombre_réallocations() : z64
 {
     retourne __VG_nombre_reallocations__
+}
+
+# Fonction pour accéder à la variable __VG_nombre_deallocations__.
+fonc nombre_déallocations() : z64
+{
+    retourne __VG_nombre_deallocations__
 }
