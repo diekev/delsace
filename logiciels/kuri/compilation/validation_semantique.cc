@@ -2801,6 +2801,8 @@ void performe_validation_semantique(
 				auto id = static_cast<long>(dt.type_base() >> 8);
 				auto &ds = contexte.donnees_structure(id);
 
+				auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
+
 				if (ds.est_union) {
 					if (ds.est_nonsur) {
 						erreur::lance_erreur(
@@ -2810,11 +2812,6 @@ void performe_validation_semantique(
 					}
 
 					b->type = type_noeud::DISCR_UNION;
-
-					/* vérifie que tous les expressions des paires sont bel et
-					 * bien des membres */
-
-					auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
 
 					for (auto i = 1; i < nombre_enfant; ++i) {
 						auto enfant = *iter_enfant++;
@@ -2826,6 +2823,8 @@ void performe_validation_semantique(
 							continue;
 						}
 
+						/* vérifie que toutes les expressions des paires sont bel et
+						 * bien des membres */
 						if (expr_paire->type != type_noeud::VARIABLE) {
 							erreur::lance_erreur(
 										"Attendu une variable membre de l'union nonsûre",
@@ -2872,6 +2871,62 @@ void performe_validation_semantique(
 						performe_validation_semantique(bloc_paire, contexte, true);
 
 						contexte.depile_nombre_locales();
+					}
+
+					return;
+				}
+
+				auto chaine_acces = [](base *n)
+				{
+					if (n->type == type_noeud::ACCES_MEMBRE_DE) {
+						return n->enfants.front()->chaine();
+					}
+
+					return n->enfants.back()->chaine();
+				};
+
+				if (ds.est_enum) {
+					auto sinon_rencontre = false;
+
+					for (auto i = 1; i < nombre_enfant; ++i) {
+						auto enfant = *iter_enfant++;
+						auto expr_paire = enfant->enfants.front();
+						auto bloc_paire = enfant->enfants.back();
+
+						if (expr_paire->type == type_noeud::SINON) {
+							sinon_rencontre = true;
+							performe_validation_semantique(bloc_paire, contexte, true);
+							continue;
+						}
+
+						performe_validation_semantique(expr_paire, contexte, true);
+
+						auto nom_membre = chaine_acces(expr_paire);
+
+						if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
+							erreur::lance_erreur(
+										"Redéfinition de l'expression",
+										contexte,
+										expr_paire->morceau);
+						}
+
+						membres_rencontres.insere(nom_membre);
+
+						performe_validation_semantique(bloc_paire, contexte, true);
+					}
+
+					if (!sinon_rencontre) {
+						auto valeurs_manquantes = dls::ensemble<dls::vue_chaine_compacte>();
+
+						for (auto const &paire : ds.donnees_membres) {
+							if (membres_rencontres.trouve(paire.first) == membres_rencontres.fin()) {
+								valeurs_manquantes.insere(paire.first);
+							}
+						}
+
+						if (valeurs_manquantes.taille() != 0) {
+							erreur::valeur_manquante_discr(contexte, expression, valeurs_manquantes);
+						}
 					}
 
 					return;

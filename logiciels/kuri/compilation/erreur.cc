@@ -739,4 +739,47 @@ void membre_inactif(
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
 }
 
+void valeur_manquante_discr(
+			ContexteGenerationCode &contexte,
+			noeud::base *expression,
+			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
+{
+	auto const &morceau = expression->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, expression);
+
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Dans la discrimination de « " << expression->chaine() << " » :\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << '\n';
+
+	if (valeurs_manquantes.taille() == 1) {
+		ss << "Une valeur n'est pas prise en compte :\n";
+	}
+	else {
+		ss << "Plusieurs valeurs ne sont pas prises en compte :\n";
+	}
+
+	for (auto const &valeur : valeurs_manquantes) {
+		ss << '\t' << valeur << '\n';
+	}
+
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+}
+
 }

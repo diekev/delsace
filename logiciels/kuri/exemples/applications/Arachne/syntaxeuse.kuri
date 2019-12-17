@@ -302,6 +302,7 @@ fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
 		IdentifiantLexème.SUPPRIME { retourne Instruction.SUPPRIME; }
 		IdentifiantLexème.TROUVE   { retourne Instruction.TROUVE; }
 		IdentifiantLexème.RETOURNE { retourne Instruction.RETOURNE; }
+		sinon { retourne Instruction.INVALIDE; }
 	}
 
     retourne Instruction.INVALIDE

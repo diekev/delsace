@@ -160,4 +160,8 @@ using frappe = lng::erreur::frappe<type_erreur>;
 			noeud::base *structure,
 			noeud::base *membre);
 
+[[noreturn]] void valeur_manquante_discr(
+			ContexteGenerationCode &contexte,
+			noeud::base *expression,
+			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
 }
