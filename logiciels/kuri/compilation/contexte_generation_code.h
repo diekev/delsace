@@ -164,12 +164,6 @@ struct ContexteGenerationCode {
 
 	bool bit32 = false;
 
-	/* active la vérification au lors de la validation sémantique des accès aux
-	 * membres des unions, ceci est mise en place dans la validation des
-	 * instructions « discr » */
-	bool verifie_acces_union = false;
-	dls::vue_chaine_compacte nom_actif_union = "";
-
 	ContexteGenerationCode();
 
 	~ContexteGenerationCode();
@@ -524,6 +518,15 @@ struct ContexteGenerationCode {
 
 	dls::dico_desordonne<dls::vue_chaine_compacte, DonneesStructure> structures{};
 
+	/* gestion des membres actifs des unions :
+	 * cas à considérer :
+	 * -- les portées des variables
+	 * -- les unions dans les structures (accès par '.')
+	 */
+	dls::vue_chaine_compacte trouve_membre_actif(dls::vue_chaine_compacte const &nom_union);
+
+	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
+
 private:
 #ifdef AVEC_LLVM
 	llvm::BasicBlock *m_bloc_courant = nullptr;
@@ -553,6 +556,9 @@ private:
 	dls::tableau<noeud::base *> m_noeuds_differes{};
 
 	bool m_non_sur = false;
+
+	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
+	dls::tableau<paire_union_membre> membres_actifs{};
 
 public:
 	/* À FAIRE : bouge ça d'ici. */

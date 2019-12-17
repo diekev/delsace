@@ -733,7 +733,7 @@ void membre_inactif(
 
 	ss << '\n';
 	ss << "Le membre « " << membre->chaine() << " » est inactif dans ce contexte !\n";
-	ss << "Le membre actif dans ce contexte est « " << contexte.nom_actif_union << " ».\n";
+	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->chaine()) << " ».\n";
 	ss << "----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);

@@ -707,3 +707,26 @@ bool ContexteGenerationCode::non_sur() const
 {
 	return m_non_sur;
 }
+
+dls::vue_chaine_compacte ContexteGenerationCode::trouve_membre_actif(const dls::vue_chaine_compacte &nom_union)
+{
+	for (auto const &paire : membres_actifs) {
+		if (paire.first == nom_union) {
+			return paire.second;
+		}
+	}
+
+	return "";
+}
+
+void ContexteGenerationCode::renseigne_membre_actif(const dls::vue_chaine_compacte &nom_union, const dls::vue_chaine_compacte &nom_membre)
+{
+	for (auto &paire : membres_actifs) {
+		if (paire.first == nom_union) {
+			paire.second = nom_membre;
+			return;
+		}
+	}
+
+	membres_actifs.pousse({ nom_union, nom_membre });
+}

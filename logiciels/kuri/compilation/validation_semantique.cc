@@ -710,10 +710,14 @@ static void valide_acces_membre(
 			b->type = type_noeud::ACCES_MEMBRE_UNION;
 			b->valeur_calculee = iter->second.index_membre;
 
-			/* À FAIRE : considérer les expressions gauches, et étendre ce
-			 * système à toute la fonction. */
-			if (contexte.verifie_acces_union) {
-				if (membre->chaine() != contexte.nom_actif_union) {
+			if (expr_gauche) {
+				contexte.renseigne_membre_actif(structure->chaine(), membre->chaine());
+			}
+			else {
+				auto membre_actif = contexte.trouve_membre_actif(structure->chaine());
+
+				/* si l'union vient d'un retour ou d'un paramètre, le membre actif sera inconnu */
+				if (membre_actif != "" && membre_actif != membre->chaine()) {
 					erreur::membre_inactif(contexte, b, structure, membre);
 				}
 
@@ -2846,15 +2850,9 @@ void performe_validation_semantique(
 							erreur::membre_inconnu(contexte, ds, b, expression, expr_paire);
 						}
 
-						auto verifie_acces_union = contexte.verifie_acces_union;
-						auto nom_membre_union = contexte.nom_actif_union;
-						contexte.verifie_acces_union = true;
-						contexte.nom_actif_union = nom_membre;
+						contexte.renseigne_membre_actif(expression->chaine(), nom_membre);
 
 						performe_validation_semantique(bloc_paire, contexte, true);
-
-						contexte.verifie_acces_union = verifie_acces_union;
-						contexte.nom_actif_union = nom_membre_union;
 					}
 
 					return;
