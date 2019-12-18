@@ -206,7 +206,7 @@ void KR__acces_membre_union(
 R"(
 int main(int argc, char **argv)
 {
-	Tableau_char_ptr_ tabl_args;
+	KtKPKsz8 tabl_args;
 	tabl_args.pointeur = argv;
 	tabl_args.taille = argc;
 

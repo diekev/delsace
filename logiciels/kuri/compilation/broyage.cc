@@ -82,26 +82,19 @@ dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom)
  * KT : tableau fixe, suivi de la taille
  * Kt : tableau dynamique
  * Ks : introduit un type scalaire, suivi de la chaine du type
- * Kb : bool
  * Kf : fonction
  * Kc : coroutine
- * Ke : eini
- * Kr : rien
- * Ko : octet
- * Kn : nul
  *
- * Un type scalaire est un type de base, sauf exception, ou un type du programme.
+ * Un type scalaire est un type de base, ou un type du programme.
  *
  * Exemples :
  * *z8 devient KPKsz8
  * &[]Foo devient KRKtKsFoo
  */
-static dls::chaine const &nom_broye_type(
+dls::chaine const &nom_broye_type(
 		ContexteGenerationCode &contexte,
-		long index_type)
+		DonneesTypeFinal &dt)
 {
-	auto &dt = contexte.magasin_types.donnees_types[index_type];
-
 	if (dt.nom_broye == "") {
 		auto flux = dls::flux_chaine();
 		auto plage = dt.plage();
@@ -204,12 +197,12 @@ static dls::chaine const &nom_broye_type(
 				}
 				case id_morceau::BOOL:
 				{
-					flux << "Kb";
+					flux << "Ksbool";
 					break;
 				}
 				case id_morceau::CHAINE:
 				{
-					flux << "Kc";
+					flux << "Kschaine";
 					break;
 				}
 				case id_morceau::FONC:
@@ -228,22 +221,22 @@ static dls::chaine const &nom_broye_type(
 				case id_morceau::VIRGULE:
 				case id_morceau::EINI:
 				{
-					flux << "Ke";
+					flux << "Kseini";
 					break;
 				}
 				case id_morceau::RIEN:
 				{
-					flux << "Kr";
+					flux << "Ksrien";
 					break;
 				}
 				case id_morceau::OCTET:
 				{
-					flux << "Ko";
+					flux << "Ksoctet";
 					break;
 				}
 				case id_morceau::NUL:
 				{
-					flux << "Kn";
+					flux << "Ksnul";
 					break;
 				}
 				case id_morceau::REFERENCE:
@@ -270,6 +263,14 @@ static dls::chaine const &nom_broye_type(
 	}
 
 	return dt.nom_broye;
+}
+
+dls::chaine const &nom_broye_type(
+		ContexteGenerationCode &contexte,
+		long index_type)
+{
+	auto &dt = contexte.magasin_types.donnees_types[index_type];
+	return nom_broye_type(contexte, dt);
 }
 
 /* format :

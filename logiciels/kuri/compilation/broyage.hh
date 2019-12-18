@@ -28,8 +28,17 @@
 
 struct ContexteGenerationCode;
 struct DonneesFonction;
+struct DonneesTypeFinal;
 
 dls::chaine broye_nom_simple(dls::vue_chaine_compacte const &nom);
+
+dls::chaine const &nom_broye_type(
+		ContexteGenerationCode &contexte,
+		DonneesTypeFinal &dt);
+
+dls::chaine const &nom_broye_type(
+		ContexteGenerationCode &contexte,
+		long index_type);
 
 dls::chaine broye_nom_fonction(
 		ContexteGenerationCode &contexte,

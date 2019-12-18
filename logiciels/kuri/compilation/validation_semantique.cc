@@ -1080,6 +1080,17 @@ void performe_validation_semantique(
 				/* ne compte pas le tableau */
 				nombre_args_simples -= 1;
 				nombre_args_variadics = candidate->drapeaux.taille();
+
+				/* ajoute le type du tableau */
+				auto noeud_tabl = candidate->exprs.back();
+				auto taille_tableau = noeud_tabl->enfants.taille();
+				auto &type_tabl = contexte.magasin_types.donnees_types[noeud_tabl->index_type];
+
+				auto dt_tfixe = DonneesTypeFinal{};
+				dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
+				dt_tfixe.pousse(type_tabl);
+
+				contexte.magasin_types.ajoute_type(dt_tfixe);
 			}
 
 			/* les drapeaux pour les arguments simples */

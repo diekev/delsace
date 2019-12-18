@@ -660,11 +660,14 @@ static void cree_appel(
 			auto nom_tableau = dls::chaine("__tabl_dyn") + dls::vers_chaine(index++);
 			enf->valeur_calculee = nom_tableau;
 
-			os << "Tableau_";
 			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
-			contexte.magasin_types.converti_type_C(contexte, "", dt.dereference(), os);
+			auto dt_tabl_dyn = DonneesTypeFinal{};
+			dt_tabl_dyn.pousse(id_morceau::TABLEAU);
+			dt_tabl_dyn.pousse(dt.dereference());
+			auto index = contexte.magasin_types.ajoute_type(dt_tabl_dyn);
+			auto &dt_tabl = contexte.magasin_types.donnees_types[index];
 
-			os << ' ' << nom_tableau << ";\n";
+			os << nom_broye_type(contexte, dt_tabl) << ' ' << nom_tableau << ";\n";
 			os << nom_tableau << ".taille = " << static_cast<size_t>(dt.type_base() >> 8) << ";\n";
 			os << nom_tableau << ".pointeur = " << nom_tabl_fixe << ";\n";
 		}
@@ -696,7 +699,7 @@ static void cree_appel(
 		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
 			auto nom_var_tableau = "__tableau_octet" + dls::vers_chaine(enf);
 
-			os << "Tableau_octet " << nom_var_tableau << ";\n";
+			os << "KtKsoctet " << nom_var_tableau << ";\n";
 
 			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
 			auto type_base = dt.type_base();
@@ -709,7 +712,7 @@ static void cree_appel(
 					os << ");\n";
 
 					os << nom_var_tableau << ".taille = sizeof(";
-					contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), os);
+					os << nom_broye_type(contexte, enf->index_type);
 					os << ");\n";
 					break;
 				}
@@ -719,10 +722,13 @@ static void cree_appel(
 					genere_code_C(enf, generatrice, contexte, false);
 					os << ".pointeur);\n";
 
+					auto index = contexte.magasin_types.ajoute_type(dt.dereference());
+					auto &dt_deref = contexte.magasin_types.donnees_types[index];
+
 					os << nom_var_tableau << ".taille = ";
 					genere_code_C(enf, generatrice, contexte, false);
 					os << ".sizeof(";
-					contexte.magasin_types.converti_type_C(contexte, "", dt.dereference(), os);
+					nom_broye_type(contexte, dt_deref);
 					os << ");\n";
 					break;
 				}
@@ -743,6 +749,9 @@ static void cree_appel(
 				{
 					auto taille = static_cast<int>(type_base >> 8);
 
+					auto index = contexte.magasin_types.ajoute_type(dt.dereference());
+					auto &dt_deref = contexte.magasin_types.donnees_types[index];
+
 					if (taille == 0) {
 						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
 						genere_code_C(enf, generatrice, contexte, false);
@@ -751,7 +760,7 @@ static void cree_appel(
 						os << nom_var_tableau << ".taille = ";
 						genere_code_C(enf, generatrice, contexte, false);
 						os << ".taille * sizeof(";
-						contexte.magasin_types.converti_type_C(contexte, "", dt.dereference(), os);
+						nom_broye_type(contexte, dt_deref);
 						os << ");\n";
 					}
 					else {
@@ -760,7 +769,7 @@ static void cree_appel(
 						os << ");\n";
 
 						os << nom_var_tableau << ".taille = " << taille << " * sizeof(";
-						contexte.magasin_types.converti_type_C(contexte, "", dt.dereference(), os);
+						nom_broye_type(contexte, dt_deref);
 						os << ");\n";
 					}
 
@@ -813,10 +822,8 @@ static void cree_appel(
 		b->valeur_calculee = dls::chaine("");
 	}
 	else if (dt.type_base() != id_morceau::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
-		auto nom_indirection = "__ret" + dls::vers_chaine(b);
-		contexte.magasin_types.converti_type_C(contexte, nom_indirection, dt.plage(), os);
-
-		os << " = ";
+		auto nom_indirection = "__ret" + dls::vers_chaine(b);		
+		os << nom_broye_type(contexte, dt) << ' ' << nom_indirection << " = ";
 		b->valeur_calculee = nom_indirection;
 	}
 	else {
@@ -908,16 +915,7 @@ static void declare_structures_C(
 			for (auto paire_idx_mb : donnees.donnees_membres) {
 				if (paire_idx_mb.second.index_membre == i) {
 					auto nom = broye_nom_simple(paire_idx_mb.first);
-
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								nom,
-								dt.plage(),
-								os,
-								false,
-								true);
-
-					os << ";\n";
+					os << nom_broye_type(contexte, dt) << ' ' << nom << ";\n";
 					break;
 				}
 			}
@@ -1272,10 +1270,8 @@ void genere_code_C(
 					generatrice.os << "__attribute__ ((noinline)) ";
 				}
 
-				contexte.magasin_types.converti_type_C(contexte,
-							nom_fonction,
-							contexte.magasin_types.donnees_types[b->index_type].plage(),
-						generatrice.os);
+				auto &dt_ret = contexte.magasin_types.donnees_types[b->index_type];
+				generatrice.os << nom_broye_type(contexte, dt_ret) << ' ' << nom_fonction;
 			}
 
 			contexte.commence_fonction(donnees_fonction);
@@ -1308,11 +1304,7 @@ void genere_code_C(
 				auto nom_broye = broye_nom_simple(argument.nom);
 
 				generatrice.os << virgule << '\n';
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							nom_broye,
-							dt.plage(),
-							generatrice.os);
+				generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_broye;
 
 				virgule = ',';
 
@@ -1327,12 +1319,7 @@ void genere_code_C(
 					auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
 
 					auto &dt = contexte.magasin_types.donnees_types[idx];
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								nom_ret,
-								dt.plage(),
-								generatrice.os);
-
+					generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_ret;
 					virgule = ',';
 				}
 			}
@@ -1451,14 +1438,8 @@ void genere_code_C(
 					}
 				}
 
-				auto nom_broye = broye_chaine(b);
-
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							nom_broye,
-							dt.plage(),
-							flux);
-
+				auto nom_broye = broye_chaine(b);				
+				flux << nom_broye_type(contexte, dt) << ' ' << nom_broye;
 				b->valeur_calculee = dls::chaine(flux.chn());
 
 				if (contexte.donnees_fonction == nullptr) {
@@ -1676,12 +1657,9 @@ void genere_code_C(
 
 				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
 
-				contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), generatrice.os);
-
+				generatrice.os << nom_broye_type(contexte, dt);
 				generatrice.os << " " << nom_eini << " = *(";
-
-				contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), generatrice.os);
-
+				generatrice.os << nom_broye_type(contexte, dt);
 				generatrice.os << " *)(";
 				genere_code_C(expression, generatrice, contexte, false);
 				generatrice.os << ".pointeur);\n";
@@ -2230,7 +2208,7 @@ void genere_code_C(
 			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 			auto index_type = enfant2->index_type;
-			auto const &type_debut = contexte.magasin_types.donnees_types[index_type];
+			auto &type_debut = contexte.magasin_types.donnees_types[index_type];
 			auto const type = type_debut.type_base();
 
 			enfant1->index_type = index_type;
@@ -2242,7 +2220,7 @@ void genere_code_C(
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
-					DonneesTypeFinal::type_plage dt,
+					DonneesTypeFinal &dt,
 					dls::chaine const &nom_var)
 			{
 				auto var = enfant_1;
@@ -2260,7 +2238,7 @@ void genere_code_C(
 				os_loc << "\nfor (int "<< nom_var <<" = 0; "<< nom_var <<" <= ";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
-				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
+				os_loc << nom_broye_type(contexte_loc, dt);
 				os_loc << " *" << broye_chaine(var) << " = &";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".pointeur["<< nom_var <<"];\n";
@@ -2275,7 +2253,7 @@ void genere_code_C(
 					ContexteGenerationCode &contexte_loc,
 					base *enfant_1,
 					base *enfant_2,
-					DonneesTypeFinal::type_plage dt,
+					DonneesTypeFinal &dt,
 					dls::chaine const &nom_var,
 					uint64_t taille_tableau)
 			{
@@ -2293,7 +2271,7 @@ void genere_code_C(
 				/* utilise une expression gauche, car dans les coroutine, les
 				 * variables temporaires ne sont pas sauvegarées */
 				genere_code_C(enfant_2, generatrice, contexte_loc, true);
-				contexte_loc.magasin_types.converti_type_C(contexte_loc, "", dt, os_loc);
+				os_loc << nom_broye_type(contexte_loc, dt);
 				os_loc << " *" << broye_chaine(var) << " = &";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << "["<< nom_var <<"];\n";
@@ -2325,11 +2303,7 @@ void genere_code_C(
 					genere_code_C(enfant2->enfants.back(), generatrice, contexte, false);
 
 					generatrice.os << "for (";
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								"",
-								type_debut.plage(),
-								generatrice.os);
+					generatrice.os << nom_broye_type(contexte, type_debut);
 					generatrice.os << " " << nom_broye << " = ";
 					generatrice.os << enfant2->enfants.front()->chaine_calculee();
 
@@ -2372,17 +2346,21 @@ void genere_code_C(
 					if ((type & 0xff) == id_morceau::TABLEAU) {
 						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
 
+						auto type_deref = type_debut.dereference();
+						auto index = contexte.magasin_types.ajoute_type(type_deref);
+						auto &dt_type = contexte.magasin_types.donnees_types[index];
+
 						if (taille_tableau != 0) {
-							genere_code_tableau_fixe(generatrice.os, contexte, enfant1, enfant2, type_debut.dereference(), nom_var, taille_tableau);
+							genere_code_tableau_fixe(generatrice.os, contexte, enfant1, enfant2, dt_type, nom_var, taille_tableau);
 						}
 						else {
-							genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, type_debut.dereference(), nom_var);
+							genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt_type, nom_var);
 						}
 					}
 					else if (type == id_morceau::CHAINE) {
 						auto dt = DonneesTypeFinal(id_morceau::Z8);
 						index_type = contexte.magasin_types[TYPE_Z8];
-						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt.plage(), nom_var);
+						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt, nom_var);
 					}
 
 					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
@@ -2649,12 +2627,12 @@ void genere_code_C(
 				return;
 			}
 
-			auto const &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
 
 			auto flux = dls::flux_chaine();
 
 			flux << "(";
-			contexte.magasin_types.converti_type_C(contexte, "", dt.plage(), flux);
+			flux << nom_broye_type(contexte, dt);
 			flux << ")(";
 			flux << enfant->chaine_calculee();
 			flux << ")";
@@ -2720,9 +2698,7 @@ void genere_code_C(
 			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
 					.append(dls::vers_chaine(reinterpret_cast<long>(b)));
 
-			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_fixe, dt_tfixe.plage(), generatrice.os);
-
+			generatrice.os << nom_broye_type(contexte, dt_tfixe) << ' ' << nom_tableau_fixe;
 			generatrice.os << " = ";
 
 			auto virgule = '{';
@@ -2743,10 +2719,7 @@ void genere_code_C(
 			auto nom_tableau_dyn = dls::chaine("__tabl_dyn")
 					.append(dls::vers_chaine(b));
 
-			contexte.magasin_types.converti_type_C(
-						contexte, nom_tableau_dyn, dt_tdyn.plage(), generatrice.os);
-
-			generatrice.os << ";\n";
+			generatrice.os << nom_broye_type(contexte, dt_tdyn) << ' ' << nom_tableau_dyn << ";\n";
 			generatrice.os << nom_tableau_dyn << ".pointeur = " << nom_tableau_fixe << ";\n";
 			generatrice.os << nom_tableau_dyn << ".taille = " << taille_tableau << ";\n";
 
@@ -2800,13 +2773,7 @@ void genere_code_C(
 				genere_code_C(f, generatrice, contexte, false);
 			}
 
-			contexte.magasin_types.converti_type_C(
-						contexte,
-						nom_tableau,
-						dt.plage(),
-						generatrice.os);
-
-			generatrice.os << " = ";
+			generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_tableau << " = ";
 
 			auto virgule = '{';
 
@@ -2859,18 +2826,15 @@ void genere_code_C(
 							expr->chaine_calculee());
 
 				auto flux = dls::flux_chaine();
-				flux << "sizeof(";
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt.dereference(),
-							flux);
-				flux << ") * " << taille_tabl;
+				auto index = contexte.magasin_types.ajoute_type(dt.dereference());
+				auto &dt_deref = contexte.magasin_types.donnees_types[index];
+
+				auto expr_sizeof = "sizeof(" + nom_broye_type(contexte, dt_deref) + ") * " + taille_tabl;
 
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
 							nom_taille,
-							flux.chn());
+							expr_sizeof);
 
 				auto dt_ptr = DonneesTypeFinal{};
 				dt_ptr.pousse(id_morceau::POINTEUR);
@@ -2914,40 +2878,25 @@ void genere_code_C(
 				nom_ptr_ret = nom_chaine;
 			}
 			else {
-				auto const dt_deref = dt.dereference();
+				auto index = contexte.magasin_types.ajoute_type(dt.dereference());
+				auto &dt_deref = contexte.magasin_types.donnees_types[index];
 				generatrice.os << "long " << nom_taille << " = sizeof(";
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_deref,
-							generatrice.os);
-				generatrice.os << ");\n";
+				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
+
 				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt.plage(),
-							generatrice.os);
-
-				generatrice.os << " " << nom_ptr << " = (";
-
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt.plage(),
-							generatrice.os);
-
+				generatrice.os << nom_broye_type(contexte, dt);
+				generatrice.os << ' ' << nom_ptr << " = (";
+				generatrice.os << nom_broye_type(contexte, dt);
 				generatrice.os << ")(malloc(" << nom_taille << "));\n";
 				/* À FAIRE : évite de mettre à zéro quand non-nécessaire */
 				generatrice.os << "memset(" << nom_ptr << ",0," << nom_taille << ");\n";
 
 				/* initialise la structure */
-				if ((dt_deref.front() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+				if ((dt_deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
 					cree_initialisation(
 								contexte,
 								generatrice,
-								dt_deref,
+								dt_deref.plage(),
 								nom_ptr,
 								"->",
 								generatrice.os);
@@ -2987,18 +2936,13 @@ void genere_code_C(
 			auto chn_enfant = enfant->chaine_calculee();
 
 			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
-
 				generatrice.os << "long " << nom_taille << " = ";
 				generatrice.os << chn_enfant << ".taille";
 
 				if (dt.type_base() == id_morceau::TABLEAU) {
-					generatrice.os << " * sizeof(";
-					contexte.magasin_types.converti_type_C(
-								contexte,
-								"",
-								dt.dereference(),
-								generatrice.os);
-					generatrice.os << ")";
+					auto index = contexte.magasin_types.ajoute_type(dt.dereference());
+					auto &dt_deref = contexte.magasin_types.donnees_types[index];
+					generatrice.os << " * sizeof(" << nom_broye_type(contexte, dt_deref) << ")";
 				}
 
 				generatrice.os << ";\n";
@@ -3008,14 +2952,11 @@ void genere_code_C(
 				generatrice.os << chn_enfant << ".taille = 0;\n";
 			}
 			else {
-				generatrice.os << "long " << nom_taille << " = sizeof(";
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt.dereference(),
-							generatrice.os);
-				generatrice.os << ");\n";
+				auto index = contexte.magasin_types.ajoute_type(dt.dereference());
+				auto &dt_deref = contexte.magasin_types.donnees_types[index];
 
+				generatrice.os << "long " << nom_taille << " = sizeof(";
+				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
 				generatrice.os << "free(" << chn_enfant << ");\n";
 				generatrice.os << chn_enfant << " = 0;\n";
 			}
@@ -3053,14 +2994,11 @@ void genere_code_C(
 				auto acces_taille = nom_ptr_ret + ".taille";
 				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
-				auto flux_type = dls::flux_chaine();
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_pointeur.dereference(),
-							flux_type);
+				auto index = contexte.magasin_types.ajoute_type(dt_pointeur.dereference());
+				auto &dt_deref = contexte.magasin_types.donnees_types[index];
+				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
 
-				auto expr_sizeof = "sizeof(" + flux_type.chn() + ")";
+				auto expr_sizeof = "sizeof(" + chn_type_deref + ")";
 
 				generatrice.declare_variable(
 							contexte.magasin_types[TYPE_Z64],
@@ -3072,7 +3010,7 @@ void genere_code_C(
 							nom_nouvelle_taille,
 							expr_sizeof + " * " + taille_tabl);
 
-				generatrice.os << acces_pointeur << " = (" << flux_type.chn() << " *)(realloc(";
+				generatrice.os << acces_pointeur << " = (" << chn_type_deref << " *)(realloc(";
 				generatrice.os << acces_pointeur << ", " << nom_nouvelle_taille << "));\n";
 				generatrice.os << acces_taille << " = " << taille_tabl << ";\n";
 			}
@@ -3102,14 +3040,10 @@ void genere_code_C(
 				generatrice.os << acces_taille << " = " << nom_nouvelle_taille << ";\n";
 			}
 			else {
-				auto flux_type = dls::flux_chaine();
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_pointeur.dereference(),
-							flux_type);
+				auto index = contexte.magasin_types.ajoute_type(dt_pointeur.dereference());
+				auto &dt_deref = contexte.magasin_types.donnees_types[index];
 
-				auto chn_type_deref = flux_type.chn();
+				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
 
 				auto expr = "sizeof(" + chn_type_deref + ")";
 
@@ -3126,15 +3060,8 @@ void genere_code_C(
 				genere_code_C(enfant1, generatrice, contexte, true);
 				nom_ptr_ret = enfant1->chaine_calculee();
 
-				flux_type.chn("");
-				contexte.magasin_types.converti_type_C(
-							contexte,
-							"",
-							dt_pointeur.plage(),
-							flux_type);
-
 				generatrice.os << nom_ptr_ret;
-				generatrice.os << " = (" << flux_type.chn();
+				generatrice.os << " = (" << nom_broye_type(contexte, dt_pointeur);
 				generatrice.os << ")(realloc(";
 				generatrice.os << nom_ptr_ret;
 				generatrice.os << ", sizeof(" << chn_type_deref << ")));\n";
