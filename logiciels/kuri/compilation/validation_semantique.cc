@@ -888,18 +888,9 @@ void performe_validation_semantique(
 				donnees_fonction->idx_types_retours.pousse(idx_type);
 			}
 
-			if (!est_externe && !est_principale) {
-				donnees_fonction->nom_broye = broye_nom_fonction(nom_fonction, module->nom, donnees_fonction->index_type);
-			}
-			else {
+			if (est_externe) {
 				donnees_fonction->nom_broye = nom_fonction;
 
-				if (est_principale) {
-					donnees_fonction->est_utilisee = true;
-				}
-			}
-
-			if (est_externe) {
 				for (auto &argument : donnees_fonction->args) {
 					argument.index_type = resoud_type_final(contexte, argument.type_declare);
 				}
@@ -968,6 +959,16 @@ void performe_validation_semantique(
 						contexte.pousse_locale(dm.first, donnees_var);
 					}
 				}
+			}
+
+			/* nous devons attendre d'avoir les types des arguments avant de
+			 * pouvoir broyer le nom de la fonction */
+			if (!est_principale) {
+				donnees_fonction->nom_broye = broye_nom_fonction(contexte, *donnees_fonction, nom_fonction, module->nom);
+			}
+			else {
+				donnees_fonction->nom_broye = nom_fonction;
+				donnees_fonction->est_utilisee = true;
 			}
 
 			/* vérifie le type du bloc */

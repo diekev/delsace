@@ -129,6 +129,7 @@ public:
 	using type_plage = type_plage_donnees_type;
 
 	dls::chaine ptr_info_type{};
+	dls::chaine nom_broye{};
 
 	using iterateur_const = dls::tableau<id_morceau>::const_iteratrice_inverse;
 

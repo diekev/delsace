@@ -1285,12 +1285,12 @@ void genere_code_C(
 			auto virgule = '(';
 
 			if (donnees_fonction->args.taille() == 0 && !moult_retour) {
-				generatrice.os << '(';
+				generatrice.os << '(' << '\n';
 				virgule = ' ';
 			}
 
 			if (!donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-				generatrice.os << virgule;
+				generatrice.os << virgule << '\n';
 				generatrice.os << "__contexte_global *ctx";
 				virgule = ',';
 
@@ -1307,7 +1307,7 @@ void genere_code_C(
 				auto dt = contexte.magasin_types.donnees_types[argument.index_type];
 				auto nom_broye = broye_nom_simple(argument.nom);
 
-				generatrice.os << virgule;
+				generatrice.os << virgule << '\n';
 				contexte.magasin_types.converti_type_C(
 							contexte,
 							nom_broye,
@@ -1322,7 +1322,7 @@ void genere_code_C(
 			if (moult_retour) {
 				auto idx_ret = 0l;
 				for (auto idx : donnees_fonction->idx_types_retours) {
-					generatrice.os << virgule;
+					generatrice.os << virgule << '\n';
 
 					auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
 
@@ -1391,7 +1391,7 @@ void genere_code_C(
 			generatrice.os << " } " << nom_type_coro << ";\n";
 
 			/* Déclare la fonction. */
-			generatrice.os << "static void *" << nom_fonction << "(void *data)\n";
+			generatrice.os << "static void *" << nom_fonction << "(\nvoid *data)\n";
 			generatrice.os << "{\n";
 			generatrice.os << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
 			generatrice.os << "__contexte_global *ctx = __etat->ctx;\n";
