@@ -2778,6 +2778,10 @@ void genere_code_C(
 				virgule = ',';
 			}
 
+			if (liste_params->taille() == 0) {
+				flux << '{';
+			}
+
 			flux << '}';
 
 			b->valeur_calculee = dls::chaine(flux.chn());
