@@ -360,6 +360,7 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_PTR_RIEN, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::RIEN) },
 	{ TYPE_PTR_NUL, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::NUL) },
 	{ TYPE_PTR_BOOL, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::BOOL) },
+	{ TYPE_PTR_OCTET, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::OCTET) },
 
 	{ TYPE_REF_N8, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N8) },
 	{ TYPE_REF_N16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N16) },
