@@ -2323,6 +2323,23 @@ void performe_validation_semantique(
 							b->morceau);
 			}
 
+			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
+
+			auto noms_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
+
+			/* À FAIRE : il nous faut les noms -> il nous faut les assignations
+			 * dans l'arbre */
+			for (auto &nom : *liste_params) {
+				if (noms_rencontres.trouve(nom) != noms_rencontres.fin()) {
+					erreur::lance_erreur(
+								"Redéfinition de l'initialisation du membre",
+								contexte,
+								b->morceau);
+				}
+
+				noms_rencontres.insere(nom);
+			}
+
 			DonneesTypeFinal dt;
 			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
 
