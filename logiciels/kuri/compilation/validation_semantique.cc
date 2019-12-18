@@ -2340,6 +2340,21 @@ void performe_validation_semantique(
 				noms_rencontres.insere(nom);
 			}
 
+			if (donnees_struct.est_union) {
+				if (liste_params->taille() > 1) {
+					erreur::lance_erreur(
+								"On ne peut initialiser qu'un seul membre d'une union à la fois",
+								contexte,
+								b->morceau);
+				}
+				else if (liste_params->taille() == 0) {
+					erreur::lance_erreur(
+								"On doit initialiser au moins un membre de l'union",
+								contexte,
+								b->morceau);
+				}
+			}
+
 			DonneesTypeFinal dt;
 			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
 
