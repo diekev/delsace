@@ -2316,6 +2316,13 @@ void performe_validation_semantique(
 
 			auto &donnees_struct = contexte.donnees_structure(b->chaine());
 
+			if (donnees_struct.est_enum) {
+				erreur::lance_erreur(
+							"Ne peut pas construire une énumération",
+							contexte,
+							b->morceau);
+			}
+
 			DonneesTypeFinal dt;
 			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
 
