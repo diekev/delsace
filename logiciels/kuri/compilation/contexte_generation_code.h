@@ -53,6 +53,7 @@ class FunctionPassManager;
 #include "donnees_type.h"
 #include "operateurs.hh"
 #include "expression.h"
+#include "graphe_dependance.hh"
 
 class assembleuse_arbre;
 
@@ -134,6 +135,10 @@ struct DonneesStructure {
 	bool est_union = false;
 	bool est_nonsur = false;
 	unsigned int taille_octet = 0;
+
+	/* pour la prédéclaration des InfoType* */
+	bool deja_genere = false;
+	REMBOURRE(7);
 };
 
 struct DonneesFonction;
@@ -154,7 +159,9 @@ struct ContexteGenerationCode {
 	dls::tableau<DonneesModule *> modules{};
 	dls::tableau<Fichier *> fichiers{};
 
-	MagasinDonneesType magasin_types{};
+	GrapheDependance graphe_dependance{};
+
+	MagasinDonneesType magasin_types;
 
 	DonneesFonction *donnees_fonction = nullptr;
 

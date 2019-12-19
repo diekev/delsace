@@ -425,11 +425,15 @@ enum {
 	TYPES_TOTAUX,
 };
 
+struct GrapheDependance;
+
 struct MagasinDonneesType {
 	dls::dico_desordonne<DonneesTypeFinal, long> donnees_type_index{};
 	dls::tableau<DonneesTypeFinal> donnees_types{};
 
-	MagasinDonneesType();
+	GrapheDependance &graphe_dependance;
+
+	MagasinDonneesType(GrapheDependance &graphe);
 
 	long ajoute_type(const DonneesTypeFinal &donnees);
 

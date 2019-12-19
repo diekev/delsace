@@ -45,6 +45,7 @@ set(SOURCES
 	erreur.h
 	expression.h
 	generatrice_code_c.hh
+	graphe_dependance.hh
 	modules.hh
 	morceaux.hh
 	operateurs.hh
@@ -62,6 +63,7 @@ set(SOURCES
 	erreur.cc
 	expression.cc
 	generatrice_code_c.cc
+	graphe_dependance.cc
 	modules.cc
 	morceaux.cc
 	operateurs.cc

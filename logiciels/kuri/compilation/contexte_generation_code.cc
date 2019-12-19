@@ -37,6 +37,7 @@
 #include "modules.hh"
 
 ContexteGenerationCode::ContexteGenerationCode()
+	: magasin_types(graphe_dependance)
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
 

@@ -31,6 +31,7 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
+#include "erreur.h"
 #include "generatrice_code_c.hh"
 #include "modules.hh"
 #include "outils_morceaux.hh"
@@ -879,56 +880,6 @@ static void cree_appel(
 	os << ");\n";
 }
 
-static void declare_structures_C(
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os)
-{
-	contexte.magasin_types.declare_structures_C(contexte, os);
-
-	for (auto is = 0l; is < contexte.structures.taille(); ++is) {
-		auto const &donnees = contexte.donnees_structure(is);
-
-		if (donnees.est_enum || donnees.est_externe) {
-			continue;
-		}
-
-		auto const &nom_struct = broye_nom_simple(contexte.nom_struct(is));
-
-		if (donnees.est_union) {
-			if (donnees.est_nonsur) {
-				os << "typedef union " << nom_struct << "{\n";
-			}
-			else {
-				os << "typedef struct " << nom_struct << "{\n";
-				os << "int membre_actif;\n";
-				os << "union {\n";
-			}
-		}
-		else {
-			os << "typedef struct " << nom_struct << "{\n";
-		}
-
-		for (auto i = 0l; i < donnees.index_types.taille(); ++i) {
-			auto index_dt = donnees.index_types[i];
-			auto &dt = contexte.magasin_types.donnees_types[index_dt];
-
-			for (auto paire_idx_mb : donnees.donnees_membres) {
-				if (paire_idx_mb.second.index_membre == i) {
-					auto nom = broye_nom_simple(paire_idx_mb.first);
-					os << nom_broye_type(contexte, dt) << ' ' << nom << ";\n";
-					break;
-				}
-			}
-		}
-
-		if (donnees.est_union && !donnees.est_nonsur) {
-			os << "};\n";
-		}
-
-		os << "} " << nom_struct << ";\n\n";
-	}
-}
-
 static void cree_initialisation(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
@@ -1182,6 +1133,59 @@ static void pousse_argument_fonction_pile(
 	}
 }
 
+static void genere_declaration_structure(
+		ContexteGenerationCode &contexte,
+		dls::flux_chaine &os,
+		dls::vue_chaine_compacte const &nom_struct)
+{
+	auto &donnees = contexte.donnees_structure(nom_struct);
+
+	if (donnees.est_externe) {
+		return;
+	}
+
+	if (donnees.deja_genere) {
+		return;
+	}
+
+	auto nom_broye = broye_nom_simple(contexte.nom_struct(donnees.id));
+
+	if (donnees.est_union) {
+		if (donnees.est_nonsur) {
+			os << "typedef union " << nom_broye << "{\n";
+		}
+		else {
+			os << "typedef struct " << nom_broye << "{\n";
+			os << "int membre_actif;\n";
+			os << "union {\n";
+		}
+	}
+	else {
+		os << "typedef struct " << nom_broye << "{\n";
+	}
+
+	for (auto i = 0l; i < donnees.index_types.taille(); ++i) {
+		auto index_dt = donnees.index_types[i];
+		auto &dt = contexte.magasin_types.donnees_types[index_dt];
+
+		for (auto paire_idx_mb : donnees.donnees_membres) {
+			if (paire_idx_mb.second.index_membre == i) {
+				auto nom = broye_nom_simple(paire_idx_mb.first);
+				os << nom_broye_type(contexte, dt) << ' ' << nom << ";\n";
+				break;
+			}
+		}
+	}
+
+	if (donnees.est_union && !donnees.est_nonsur) {
+		os << "};\n";
+	}
+
+	os << "} " << nom_broye << ";\n\n";
+
+	donnees.deja_genere = true;
+}
+
 /* Génère le code C pour la base b passée en paramètre.
  *
  * Le code est généré en visitant d'abord les enfants des noeuds avant ceux-ci.
@@ -1222,10 +1226,6 @@ void genere_code_C(
 		case type_noeud::DECLARATION_FONCTION:
 		{
 			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
-
-			if (!donnees_fonction->est_utilisee) {
-				return;
-			}
 
 			/* Pour les fonctions variadiques nous transformons la liste d'argument en
 			 * un tableau dynamique transmis à la fonction. La raison étant que les
@@ -1343,10 +1343,6 @@ void genere_code_C(
 		{
 			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
 
-			if (!donnees_fonction->est_utilisee) {
-				return;
-			}
-
 			contexte.commence_fonction(donnees_fonction);
 
 			/* Crée fonction */
@@ -1423,7 +1419,7 @@ void genere_code_C(
 			auto drapeaux = contexte.drapeaux_variable(b->morceau.chaine);
 			auto flux = dls::flux_chaine();
 
-			if (b->aide_generation_code == GENERE_CODE_DECL_VAR) {
+			if (b->aide_generation_code == GENERE_CODE_DECL_VAR || b->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
 				auto dt = contexte.magasin_types.donnees_types[b->index_type];
 
 				/* pour les assignations de tableaux fixes, remplace les crochets
@@ -1586,7 +1582,7 @@ void genere_code_C(
 					f->drapeaux |= POUR_ASSIGNATION;
 
 					/* déclare au besoin */
-					if (f->aide_generation_code == GENERE_CODE_DECL_VAR) {
+					if (f->aide_generation_code == GENERE_CODE_DECL_VAR || f->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
 						genere_code_C(f, generatrice, contexte, true);
 						generatrice.os << f->chaine_calculee();
 						generatrice.os << ';' << '\n';
@@ -3091,8 +3087,7 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_STRUCTURE:
 		{
-			/* RAF, puisque le code est généré pour toutes les structures avant
-			 * les fonctions. */
+			genere_declaration_structure(contexte, generatrice.os, b->chaine());
 			break;
 		}
 		case type_noeud::DECLARATION_ENUM:
@@ -3239,6 +3234,64 @@ void genere_code_C(
 	}
 }
 
+// CHERCHE (noeud_principale : FONCTION { nom = "principale" })
+// CHERCHE (noeud_principale) -[:UTILISE_FONCTION|UTILISE_TYPE*]-> (noeud)
+// RETOURNE DISTINCT noeud_principale, noeud
+static void traverse_graphe_pour_generation_code(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice,
+		NoeudDependance *noeud)
+{
+	noeud->fut_visite = true;
+
+	for (auto const &relation : noeud->relations) {
+		/* À FAIRE : dépendances cycliques :
+		 * - types qui s'incluent indirectement (listes chainées intrusives)
+		 * - fonctions recursives
+		 */
+		if (relation.noeud_fin->fut_visite) {
+			continue;
+		}
+
+		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin);
+	}
+
+	/* Déjà généré.
+	 * À FAIRE : il existe des algorithmes pour supprimer les connextions
+	 * redondantes entre les noeuds. */
+	if (noeud->termine == true) {
+		return;
+	}
+
+	if (noeud->type == TypeNoeudDependance::TYPE) {
+		if (noeud->noeud_syntactique != nullptr) {
+			genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
+		}
+
+		if (noeud->index != -1) {
+			/* Suppression des avertissements pour les conversions dites
+			 * « imcompatibles » alors qu'elles sont bonnes.
+			 * Elles surviennent dans les assignations des pointeurs, par exemple pour
+			 * ceux des tableaux des membres des fonctions.
+			 */
+			generatrice.os << "#pragma GCC diagnostic push\n";
+			generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
+
+			auto &dt = contexte.magasin_types.donnees_types[noeud->index];
+			auto id_info_type = IDInfoType();
+
+			cree_info_type_C(contexte, generatrice, generatrice.os, dt, id_info_type);
+
+			generatrice.os << "#pragma GCC diagnostic pop\n";
+		}
+	}
+	else {
+		genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
+	}
+
+	noeud->termine = true;
+}
+
 void genere_code_C(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -3259,36 +3312,39 @@ void genere_code_C(
 		temps_validation += debut_validation.temps();
 	}
 
-	declare_structures_C(contexte, os);
+	contexte.magasin_types.declare_structures_C(contexte, os);
 
 	auto debut_generation = dls::chrono::compte_seconde();
-	/* Crée les infos types pour tous les types connus.
-	 * À FAIRE : évite de créer ceux qui ne sont pas utiles
-	 */
 
-	/* Suppression des avertissements pour les conversions dites
-	 * « imcompatibles » alors qu'elles sont bonnes.
-	 * Elles surviennent dans les assignations des pointeurs, par exemple pour
-	 * ceux des tableaux des membres des fonctions.
-	 */
-	os << "#pragma GCC diagnostic push\n";
-	os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
+	/* il faut d'abord crée le code pour les structures InfoType */
+	const char *noms_structs_infos_types[] = {
+		"InfoType",
+		"InfoTypeEntier",
+		"InfoTypeRéel",
+		"InfoTypePointeur",
+		"InfoTypeÉnum",
+		"InfoTypeStructure",
+		"InfoTypeTableau",
+		"InfoTypeFonction",
+		"InfoTypeMembreStructure",
+	};
 
-	auto id_info_type = IDInfoType();
-	for (auto &dt : contexte.magasin_types.donnees_types) {
-		cree_info_type_C(contexte, generatrice, os, dt, id_info_type);
+	for (auto nom_struct : noms_structs_infos_types) {
+		genere_declaration_structure(contexte, generatrice.os, nom_struct);
 	}
-
-	os << "#pragma GCC diagnostic pop\n";
 
 	temps_generation += debut_generation.temps();
 
-	/* génère le code */
-	for (auto noeud : b->enfants) {
-		debut_generation.commence();
-		genere_code_C(noeud, generatrice, contexte, false);
-		temps_generation += debut_generation.temps();
+	auto &graphe_dependance = contexte.graphe_dependance;
+	auto noeud = graphe_dependance.cherche_noeud_fonction("principale");
+
+	if (noeud == nullptr) {
+		erreur::fonction_principale_manquante();
 	}
+
+	debut_generation.commence();
+	traverse_graphe_pour_generation_code(contexte, generatrice, noeud);
+	temps_generation += debut_generation.temps();
 
 	contexte.temps_generation = temps_generation;
 	contexte.temps_validation = temps_validation;

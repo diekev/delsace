@@ -62,8 +62,12 @@ struct DonneesFonction {
 	bool est_externe = false;
 	bool est_variadique = false;
 	bool est_coroutine = false;
-	bool est_utilisee = false;
 	char pad[4];
+
+	/* pour la construction du graphe de dépendances */
+	dls::ensemble<dls::vue_chaine_compacte> fonctions_utilisees{};
+	dls::ensemble<dls::vue_chaine_compacte> globales_utilisees{};
+	dls::ensemble<long> types_utilises{};
 
 	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
 

@@ -402,7 +402,8 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_TABL_OCTET, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::OCTET) },
 };
 
-MagasinDonneesType::MagasinDonneesType()
+MagasinDonneesType::MagasinDonneesType(GrapheDependance &graphe)
+	: graphe_dependance(graphe)
 {
 	/* initialise les types communs */
 	index_types_communs.redimensionne(TYPES_TOTAUX);
@@ -421,17 +422,20 @@ long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 
 	/* ajoute d'abord les sous-types possibles afin de résoudre les problèmes de
 	 * dépendances lors de la génération du code C */
+	auto type_deref = -1l;
 
 	/* Ajoute récursivement les types afin d'être sûr que tous les types
 	 * possibles du programme existent lors de la création des infos types. */
 	if (peut_etre_dereference(donnees.type_base())) {
-		ajoute_type(donnees.dereference());
+		type_deref = ajoute_type(donnees.dereference());
 	}
+
+	auto index_params = dls::tableau<long>();
 
 	/* ajoute les types des paramètres et de retour des fonctions */
 	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
 		long nombre_type_retour = 0;
-		donnees_types_parametres(*this, donnees, nombre_type_retour);
+		index_params = donnees_types_parametres(*this, donnees, nombre_type_retour);
 	}
 
 	auto iter = donnees_type_index.trouve(donnees);
@@ -444,6 +448,16 @@ long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 	donnees_types.pousse(donnees);
 
 	donnees_type_index.insere({donnees, index});
+
+	graphe_dependance.cree_noeud_type(index);
+
+	if (type_deref != -1l) {
+		graphe_dependance.connecte_type_type(index, type_deref);
+	}
+
+	for (auto index_param : index_params) {
+		graphe_dependance.connecte_type_type(index, index_param);
+	}
 
 	return index;
 }
