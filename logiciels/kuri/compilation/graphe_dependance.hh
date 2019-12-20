@@ -52,6 +52,7 @@ struct NoeudDependance;
 
 struct Relation {
 	TypeRelation type = TypeRelation::INVALIDE;
+	NoeudDependance *noeud_debut  = nullptr;
 	NoeudDependance *noeud_fin  = nullptr;
 
 	COPIE_CONSTRUCT(Relation);
@@ -71,7 +72,9 @@ struct NoeudDependance {
 	noeud::base *noeud_syntactique{};
 
 	bool fut_visite = false;
-	bool termine = false;
+
+	/* pour certains algorithmes de travail sur le graphe */
+	char drapeaux = 0;
 };
 
 struct GrapheDependance {
@@ -127,3 +130,5 @@ struct GrapheDependance {
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);
+
+void reduction_transitive(GrapheDependance &graphe_dependance);

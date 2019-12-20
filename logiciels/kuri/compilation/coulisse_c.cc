@@ -3256,13 +3256,6 @@ static void traverse_graphe_pour_generation_code(
 		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin);
 	}
 
-	/* Déjà généré.
-	 * À FAIRE : il existe des algorithmes pour supprimer les connextions
-	 * redondantes entre les noeuds. */
-	if (noeud->termine == true) {
-		return;
-	}
-
 	if (noeud->type == TypeNoeudDependance::TYPE) {
 		if (noeud->noeud_syntactique != nullptr) {
 			genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
@@ -3288,8 +3281,6 @@ static void traverse_graphe_pour_generation_code(
 	else {
 		genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
 	}
-
-	noeud->termine = true;
 }
 
 void genere_code_C(
@@ -3336,6 +3327,8 @@ void genere_code_C(
 	temps_generation += debut_generation.temps();
 
 	auto &graphe_dependance = contexte.graphe_dependance;
+	reduction_transitive(graphe_dependance);
+
 	auto noeud = graphe_dependance.cherche_noeud_fonction("principale");
 
 	if (noeud == nullptr) {

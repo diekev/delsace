@@ -134,7 +134,7 @@ void GrapheDependance::connecte_fonction_fonction(NoeudDependance &fonction1, No
 		}
 	}
 
-	fonction1.relations.pousse({ TypeRelation::UTILISE_FONCTION, &fonction2 });
+	fonction1.relations.pousse({ TypeRelation::UTILISE_FONCTION, &fonction1, &fonction2 });
 }
 
 void GrapheDependance::connecte_fonction_fonction(
@@ -160,7 +160,7 @@ void GrapheDependance::connecte_fonction_globale(
 		}
 	}
 
-	fonction.relations.pousse({ TypeRelation::UTILISE_GLOBALE, &globale });
+	fonction.relations.pousse({ TypeRelation::UTILISE_GLOBALE, &fonction, &globale });
 }
 
 void GrapheDependance::connecte_fonction_globale(
@@ -184,7 +184,7 @@ void GrapheDependance::connecte_fonction_type(NoeudDependance &fonction, NoeudDe
 		}
 	}
 
-	fonction.relations.pousse({ TypeRelation::UTILISE_TYPE, &type });
+	fonction.relations.pousse({ TypeRelation::UTILISE_TYPE, &fonction, &type });
 }
 
 void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2)
@@ -198,7 +198,7 @@ void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependanc
 		}
 	}
 
-	type1.relations.pousse({ TypeRelation::UTILISE_TYPE, &type2 });
+	type1.relations.pousse({ TypeRelation::UTILISE_TYPE, &type1, &type2 });
 }
 
 void GrapheDependance::connecte_type_type(long type1, long type2)
@@ -248,4 +248,83 @@ void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance)
 	}
 
 	std::cerr << nombre_inutilisees << " fonctions sont inutilisées sur " << nombre_fonctions << '\n';
+}
+
+/**
+ * Algorithme de réduction transitive d'un graphe visant à supprimer les
+ * connexions redondantes :
+ *
+ * Si A dépend de B et de C, et que B dépend de C, nous pouvons supprimer les
+ * la relation entre A et C. L'algortithme prend en compte les cas cycliques.
+ *
+ * Voir : https://en.wikipedia.org/wiki/Transitive_reduction
+ *
+ * La complexité de l'algorithme serait dans le pire cas O(V * E).
+ *
+ * Un meilleur algorithme serait :
+ * http://www.sciencedirect.com/science/article/pii/0304397588900321/pdf?md5=3391e309b708b6f9cdedcd08f84f4afc&pid=1-s2.
+ */
+
+enum {
+	ATTEIGNABLE = 1,
+	VISITE = 2,
+};
+
+static void marque_chemins_atteignables(NoeudDependance &noeud)
+{
+	if ((noeud.drapeaux & VISITE) != 0) {
+		return;
+	}
+
+	noeud.drapeaux |= VISITE;
+
+	for (auto &relation : noeud.relations) {
+		marque_chemins_atteignables(*relation.noeud_fin);
+		relation.noeud_fin->drapeaux |= ATTEIGNABLE;
+	}
+}
+
+void reduction_transitive(GrapheDependance &graphe_dependance)
+{
+	std::cout << "Réduction transitive du graphe..." << std::endl;
+
+	auto relations_supprimees = 0;
+	auto relations_totales = 0;
+
+	auto relations_filtrees = dls::tableau<Relation>();
+
+	for (auto cible : graphe_dependance.noeuds) {
+		/* Réinitialisation des drapeaux. */
+		for (auto noeud : graphe_dependance.noeuds) {
+			noeud->drapeaux = 0;
+		}
+
+		/* Marque les noeuds que nous pouvons atteindre depuis la cible.
+		 * Commence avec les enfants, afin que la cible et ses enfants ne soient
+		 * pas marqués.
+		 */
+		cible->drapeaux |= VISITE;
+		for (auto &relation : cible->relations) {
+			marque_chemins_atteignables(*relation.noeud_fin);
+		}
+
+		relations_filtrees = cible->relations;
+
+		for (auto &relation : cible->relations) {
+			++relations_totales;
+
+			if ((relation.noeud_fin->drapeaux & ATTEIGNABLE) != 0) {
+				++relations_supprimees;
+				continue;
+			}
+
+			relations_filtrees.pousse(relation);
+		}
+
+		cible->relations = relations_filtrees;
+	}
+
+	std::cout << "Nombre de relations supprimées : "
+			  << relations_supprimees << " sur " << relations_totales
+			  << std::endl;
 }
