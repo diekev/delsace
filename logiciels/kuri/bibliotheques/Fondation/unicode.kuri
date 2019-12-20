@@ -1,0 +1,240 @@
+# Bibliothèque de travail sur des chaines de caractères encodées en utilisant le
+# standard Unicode
+
+importe Fondation
+
+# Retourne le nombre d'octets du caractère en début de la séquence encodée en Unicode
+fonc nombre_octets_utf8(caractère : *z8) : z32
+{
+    si caractère == nul {
+        retourne 0
+    }
+
+	s0 = transtype(caractère[0] : n8)
+
+	si 0x00 <= s0 <= 0x7F {
+		retourne 1
+	}
+
+	s1 = transtype(caractère[1] : n8)
+
+	si 0xC2 <= s0 <= 0xDF {
+		si !(0x80 <= s1 <= 0xBF) {
+			retourne 0
+		}
+
+		retourne 2
+	}
+
+	si 0xE0 <= s0 <= 0xEF {
+		si s0 == 0xE0 && !(0xA0 <= s1 <= 0xBF) {
+			retourne 0
+		}
+
+		si s0 == 0xED && !(0x80 <= s1 <= 0x9F) {
+			retourne 0
+		}
+
+		si !(0x80 <= s1 <= 0xBF) {
+			retourne 0
+		}
+
+		s2 = transtype(caractère[2] : n8)
+
+		si !(0x80 <= s2 <= 0xBF) {
+			retourne 0
+		}
+
+		retourne 3
+	}
+
+	si s0 <= 0xF0 <= 0xF4 {
+		si s0 == 0xF0 && !(0x90 <= s1 <= 0xBF) {
+			retourne 0
+		}
+
+		si s0 == 0xF4 && !(0x80 <= s1 <= 0x8F) {
+			retourne 0
+		}
+
+		si !(0x80 <= s1 <= 0xBF) {
+			retourne 0
+		}
+
+		s2 = transtype(caractère[2] : n8)
+
+		si !(0x80 <= s2 <= 0xBF) {
+			retourne 0
+		}
+
+		s3 = transtype(caractère[3] : n8)
+
+		si !(0x80 <= s3 <= 0xBF) {
+			retourne 0
+		}
+
+		retourne 4
+	}
+
+	retourne 0
+}
+
+# Similaire à celle au dessus, avec moins de comparaisons
+fonc nombre_octets_utf8_rapide(caractère : *z8) : z64
+{
+	si caractère == nul {
+		retourne 0
+	}
+
+	dyn test_char = caractère[0]
+	dyn result : z64 = 0
+
+	si (test_char & 128) == 0 {
+		retourne 1
+	}
+
+	tantque (test_char & 128) != 0 {
+		test_char <<= 1
+		result += 1
+	}
+
+	retourne result
+}
+
+fonc décalage_pour_caractère(chn : chaine, i : z64) : z32
+{
+	dyn décalage = 0
+	dyn n = nombre_octets_utf8(@chn[i])
+
+	tantque (n == 0 && i < chn.taille) {
+		++décalage
+		++i
+		n = nombre_octets_utf8(@chn[i])
+	}
+
+	décalage += n
+
+	retourne décalage
+}
+
+# Structure similaire à ce que Go possède pour les caractères Unicode
+# Toutefois, dans Go c'est un type entier sur 32-bit
+# Peut-être en aurons nous un dans le future, notamment pour les impressions
+struct Rune {
+    pointeur : *z8
+    taille : z64
+}
+
+fonc converti_en_chaine(rune : &Rune) : chaine
+{
+    retourne construit_chaine(rune.pointeur, rune.taille)
+}
+
+fonc construit_rune(pointeur : *z8, taille : z64) : Rune
+{
+    rune = Rune{ pointeur = pointeur, taille = taille }
+    retourne rune
+}
+
+# Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
+fonc converti_utf8_utf32(caractère : *z8, n : z64) : z32
+{
+	s0 = transtype(caractère[0] : n8)
+
+	si (n == 1) {
+		retourne transtype(s0 : z32) & 0b01111111
+	}
+
+	s1 = transtype(caractère[1] : n8)
+
+	si (n == 2) {
+        v = (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
+		retourne transtype(v : z32)
+	}
+
+	s2 = transtype(caractère[2] : n8)
+
+	si (n == 3) {
+		v = (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
+		retourne transtype(v : z32)
+	}
+
+	s3 = transtype(caractère[3] : n8)
+
+	si (n == 4) {
+		v = (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
+		retourne transtype(v : z32)
+	}
+
+	retourne 0
+}
+
+fonc converti_utf8_utf32(rune : Rune) : z32
+{
+    retourne converti_utf8_utf32(rune.pointeur, rune.taille)
+}
+
+fonc converti_utf8_utf32(caractère : *z8) : z32
+{
+    si caractère == nul {
+        retourne -1
+    }
+
+    dyn résultat : z32
+
+    c0 = transtype(caractère[0] : z32)
+
+    si (c0 & 0x80) == 0x0 {
+		résultat = c0
+	}
+
+	si (c0 & 0xC0) == 0xC0 {
+        c1 = transtype(caractère[1] : z32)
+        c2 = transtype(caractère[2] : z32)
+		résultat = ((c0 & 0x3F) << 6) | (c1 & 0x3F)
+	}
+
+	si (c0 & 0xE0) == 0xE0 {
+        c1 = transtype(caractère[1] : z32)
+        c2 = transtype(caractère[2] : z32)
+		résultat = ((c0 & 0x1F) << 12) | ((c1 & 0x3F) << 6) | (c2 & 0x3F)
+	}
+
+	si (c0 & 0xF0) == 0xF0 {
+        c1 = transtype(caractère[1] : z32)
+        c2 = transtype(caractère[2] : z32)
+        c3 = transtype(caractère[3] : z32)
+		résultat = ((c0 & 0x0F) << 18) | ((c1 & 0x3F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F)
+	}
+
+	si (c0 & 0xF8) == 0xF8 {
+        c1 = transtype(caractère[1] : z32)
+        c2 = transtype(caractère[2] : z32)
+        c3 = transtype(caractère[3] : z32)
+        c4 = transtype(caractère[4] : z32)
+		résultat = ((c0 & 0x07) << 24) | ((c1 & 0x3F) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F)
+	}
+
+    retourne résultat
+}
+
+# Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
+fonc taille_unicode(chn : chaine) : z64
+{
+    dyn taille : z64 = 0
+    dyn i = 0
+
+    tantque i < chn.taille {
+        pointeur = @chn[i]
+        n = nombre_octets_utf8(pointeur)
+
+        si n == 0 {
+            retourne transtype(-1 : z64)
+        }
+
+        i += n
+        taille += 1
+    }
+
+    retourne taille
+}
