@@ -264,13 +264,20 @@ static void imprime_stats(
 							+ metriques.memoire_arbre
 							+ metriques.memoire_contexte;
 
+	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
+	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
+	auto const debit_lignes_scene = static_cast<int>(lignes_double / temps_scene);
+	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
+
 	os << "------------------------------------------------------------------\n";
-	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
-	os << "Temps aggrégé                : " << temps_seconde(temps_aggrege) << '\n';
-	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
-	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
-	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
+	os << "Temps total                            : " << temps_seconde(temps_total) << '\n';
+	os << "Temps aggrégé                          : " << temps_seconde(temps_aggrege) << '\n';
+	os << "Nombre de modules                      : " << metriques.nombre_modules << '\n';
+	os << "Nombre de lignes                       : " << metriques.nombre_lignes << '\n';
+	os << "Débit de lignes par seconde            : " << debit_lignes << '\n';
+	os << "Débit de lignes par seconde (scène)    : " << debit_lignes_scene << '\n';
+	os << "Débit de lignes par seconde (coulisse) : " << debit_lignes_coulisse << '\n';
+	os << "Débit par seconde                      : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
 
 	os << '\n';
 	os << "Métriques :\n";
