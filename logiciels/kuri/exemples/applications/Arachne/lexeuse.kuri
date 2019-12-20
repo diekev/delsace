@@ -13,10 +13,15 @@ importe Fondation
     NOMBRE,
     DOUBLE_POINTS,
     VIRGULE,
-    FLÈCHE_GAUCHE,
-    FLÈCHE_DROITE,
-    TIRET,
-    DOUBLE_TIRET,
+
+    # Relations
+    RELATION_BIDIR,
+    RELATION_ENTRANTE,
+    RELATION_SORTANTE,
+    RELATION_ENTRANTE_DEBUT,
+    RELATION_SORTANTE_FIN,
+    RELATION_FIN,
+    RELATION_DEBUT,
 
     # Instructions
     CREE,
@@ -122,11 +127,6 @@ fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
         retourne vrai
     }
 
-    si c == '-' {
-        id = IdentifiantLexème.TIRET
-        retourne vrai
-    }
-
     si c == ',' {
         id = IdentifiantLexème.VIRGULE
         retourne vrai
@@ -139,15 +139,18 @@ fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
 
     id = IdentifiantLexème.INVALIDE
 
-    # N'existe que dans un digraphe
+    si c == '-' {
+        retourne vrai
+    }
+
     si c == '<' {
         retourne vrai
     }
 
-    # N'existe que dans un digraphe
 	si c == '>' {
         retourne vrai
     }
+
 	si c == '"' {
         retourne vrai
     }
@@ -158,15 +161,36 @@ fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
 fonc id_digraphe(chn : chaine) : IdentifiantLexème
 {
     si compare_chaines(chn, "--") {
-        retourne IdentifiantLexème.DOUBLE_TIRET
+        retourne IdentifiantLexème.RELATION_BIDIR
     }
 
-    si compare_chaines(chn, "<-") {
-        retourne IdentifiantLexème.FLÈCHE_GAUCHE
+    si compare_chaines(chn, "-[") {
+        retourne IdentifiantLexème.RELATION_DÉBUT
     }
 
-    si compare_chaines(chn, "->") {
-        retourne IdentifiantLexème.FLÈCHE_DROITE
+    si compare_chaines(chn, "]-") {
+        retourne IdentifiantLexème.RELATION_FIN
+    }
+
+    retourne IdentifiantLexème.INVALIDE
+}
+
+fonc id_digraphe(chn : chaine) : IdentifiantLexème
+{
+    si compare_chaines(chn, "<--") {
+        retourne IdentifiantLexème.RELATION_ENTRANTE
+    }
+
+    si compare_chaines(chn, "-->") {
+        retourne IdentifiantLexème.RELATION_SORTANTE
+    }
+
+    si compare_chaines(chn, "<-[") {
+        retourne IdentifiantLexème.RELATION_ENTRANTE_DÉBUT
+    }
+
+    si compare_chaines(chn, "]->") {
+        retourne IdentifiantLexème.RELATION_SORTANTE_FIN
     }
 
     retourne IdentifiantLexème.INVALIDE
@@ -215,6 +239,17 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 			}
 
             lexeuse.enregistre_pos_mot()
+
+            dyn trigraphe = construit_chaine(@chn[lexeuse.pos_mot], 3)
+            dyn id = id_trigraphe(trigraphe)
+
+            si id != IdentifiantLexème.INVALIDE {
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(id)
+				continue
+            }
 
             dyn digraphe = construit_chaine(@chn[lexeuse.pos_mot], 2)
             id = id_digraphe(digraphe)

@@ -282,9 +282,9 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
 			syntaxeuse.avance()
 			syntaxeuse.analyse_objet(expression, TypeObjet.NOEUD, IdentifiantLexème.PARENTHÈSE_FERMANTE)
 		}
-		sinon si syntaxeuse.est_lexème(IdentifiantLexème.CROCHET_OUVRANT) {
+		sinon si syntaxeuse.est_lexème(IdentifiantLexème.RELATION_DÉBUT) {
 			syntaxeuse.avance()
-			syntaxeuse.analyse_objet(expression, TypeObjet.RELATION, IdentifiantLexème.CROCHET_FERMANT)
+			syntaxeuse.analyse_objet(expression, TypeObjet.RELATION, IdentifiantLexème.RELATION_FIN)
 		}
 		sinon {
 			#imprime("ignore lexème ", syntaxeuse.lexème_courant(), '\n')
@@ -402,7 +402,7 @@ fonc principale(args : []*z8) : z32
         "TROUVE (:Type { index : 1 }) -[opérateur:Opérateur { nom : '+' }]-> (:Type { index : 5 })\nRETOURNE opérateur.id\n"
     ]
 
-	diffère { 
+	diffère {
 		imprime("Mémoire utilisée        : ", mémoire_utilisée(), "o\n")
 		imprime("Mémoire consommée       : ", mémoire_consommée(), "o\n")
 		imprime("Nombre d'allocations    : ", nombre_allocations(), "\n")
