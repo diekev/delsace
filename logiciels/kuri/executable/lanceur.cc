@@ -63,6 +63,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
+#include "biblinternes/outils/tableau_donnees.hh"
 
 #ifdef AVEC_LLVM
 static void initialise_llvm()
@@ -234,6 +235,40 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 }
 #endif
 
+static dls::chaine formatte_nombre(int nombre)
+{
+	if (nombre == 0) {
+		return "0";
+	}
+
+	auto resultat = dls::chaine();
+
+	auto chiffres = 0;
+
+	while (nombre != 0) {
+		auto chiffre = nombre % 10;
+		resultat.pousse(static_cast<char>('0' + static_cast<char>(chiffre)));
+
+		chiffres += 1;
+
+		if (chiffres % 3 == 0) {
+			resultat.pousse(' ');
+		}
+
+		nombre /= 10;
+	}
+
+	std::reverse(resultat.debut(), resultat.fin());
+
+	return resultat;
+}
+
+template <typename T>
+static dls::chaine formatte_nombre(T n)
+{
+	return formatte_nombre(static_cast<int>(n));
+}
+
 static void imprime_stats(
 		std::ostream &os,
 		Metriques const &metriques,
@@ -256,7 +291,7 @@ static void imprime_stats(
 
 	auto calc_pourcentage = [&](const double &x, const double &total)
 	{
-		return pourcentage(x * 100.0 / total);
+		return static_cast<int>(x * 100.0 / total);
 	};
 
 	auto const mem_totale = metriques.memoire_tampons
@@ -264,68 +299,60 @@ static void imprime_stats(
 							+ metriques.memoire_arbre
 							+ metriques.memoire_contexte;
 
+	auto memoire_consommee = memoire::consommee();
+
 	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
 	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
 	auto const debit_lignes_scene = static_cast<int>(lignes_double / temps_scene);
 	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
+	auto const debit_seconde = static_cast<int>(static_cast<double>(memoire_consommee) / temps_aggrege);
 
-	os << "------------------------------------------------------------------\n";
-	os << "Temps total                            : " << temps_seconde(temps_total) << '\n';
-	os << "Temps aggrégé                          : " << temps_seconde(temps_aggrege) << '\n';
-	os << "Nombre de modules                      : " << metriques.nombre_modules << '\n';
-	os << "Nombre de lignes                       : " << metriques.nombre_lignes << '\n';
-	os << "Débit de lignes par seconde            : " << debit_lignes << '\n';
-	os << "Débit de lignes par seconde (scène)    : " << debit_lignes_scene << '\n';
-	os << "Débit de lignes par seconde (coulisse) : " << debit_lignes_coulisse << '\n';
-	os << "Débit par seconde                      : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
+	auto tableau = Tableau({ "Nom", "Valeur", "Unité", "Pourcentage" });
+	tableau.alignement(1, Alignement::DROITE);
+	tableau.alignement(3, Alignement::DROITE);
 
-	os << '\n';
-	os << "Métriques :\n";
-	os << "\tNombre morceaux : " << metriques.nombre_morceaux << '\n';
-	os << "\tNombre noeuds   : " << metriques.nombre_noeuds << '\n';
+	tableau.ajoute_ligne({ "Temps total", formatte_nombre(temps_total * 1000.0), "ms" });
+	tableau.ajoute_ligne({ "Temps aggrégé", formatte_nombre(temps_aggrege * 1000.0), "ms" });
+	tableau.ajoute_ligne({ "Nombre de modules", formatte_nombre(metriques.nombre_modules), "" });
+	tableau.ajoute_ligne({ "Nombre de lignes", formatte_nombre(metriques.nombre_lignes), "" });
+	tableau.ajoute_ligne({ "Débit de lignes par seconde", formatte_nombre(debit_lignes), "" });
+	tableau.ajoute_ligne({ "Débit de lignes par seconde (scène)", formatte_nombre(debit_lignes_scene), "" });
+	tableau.ajoute_ligne({ "Débit de lignes par seconde (coulisse)", formatte_nombre(debit_lignes_coulisse), "" });
+	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
 
-	os << '\n';
-	os << "Mémoire : " << taille_octet(mem_totale) << " (" << taille_octet(static_cast<size_t>(memoire::consommee())) << ')' << '\n';
-	os << "\tTampon   : " << taille_octet(metriques.memoire_tampons) << '\n';
-	os << "\tMorceaux : " << taille_octet(metriques.memoire_morceaux) << '\n';
-	os << "\tArbre    : " << taille_octet(metriques.memoire_arbre) << '\n';
-	os << "\tContexte : " << taille_octet(metriques.memoire_contexte) << '\n';
+	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
+	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_morceaux), "" });
+	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
 
-	os << '\n';
-	os << "Temps scène : " << temps_seconde(temps_scene)
-	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
-	os << '\t' << "Temps chargement : " << temps_seconde(metriques.temps_chargement)
-	   << " (" << calc_pourcentage(metriques.temps_chargement, temps_scene) << ")\n";
-	os << '\t' << "Temps tampon     : " << temps_seconde(metriques.temps_tampon)
-	   << " (" << calc_pourcentage(metriques.temps_tampon, temps_scene) << ")\n";
-	os << '\t' << "Temps découpage  : " << temps_seconde(metriques.temps_decoupage)
-	   << " (" << calc_pourcentage(metriques.temps_decoupage, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_tampons) / metriques.temps_decoupage)) << ")\n";
-	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
-	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_morceaux) / metriques.temps_analyse)) << ")\n";
-	os << '\t' << "Temps validation : " << temps_seconde(metriques.temps_validation)
-	   << " (" << calc_pourcentage(metriques.temps_validation, temps_scene) << ")\n";
+	tableau.ajoute_ligne({ "Mémoire", "", "" });
+	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
+	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
+	tableau.ajoute_ligne({ "- Morceaux", formatte_nombre(metriques.memoire_morceaux), "o" });
+	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
+	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
 
-	os << '\n';
-	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
-	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
-	os << '\t' << "Temps génération code : " << temps_seconde(metriques.temps_generation)
-	   << " (" << calc_pourcentage(metriques.temps_generation, temps_coulisse) << ")\n";
-	os << '\t' << "Temps fichier objet   : " << temps_seconde(metriques.temps_fichier_objet)
-	   << " (" << calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse) << ")\n";
-	os << '\t' << "Temps exécutable      : " << temps_seconde(metriques.temps_executable)
-	   << " (" << calc_pourcentage(metriques.temps_executable, temps_coulisse) << ")\n";
+	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
+	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.temps_tampon * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_tampon, temps_scene)) });
+	tableau.ajoute_ligne({ "- Découpage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Analyse", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Validation", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
 
-	os << '\n';
-	os << "Temps Nettoyage : " << temps_seconde(metriques.temps_nettoyage)
-	   << " (" << calc_pourcentage(metriques.temps_nettoyage, temps_total) << ")\n";
+	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
+	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Fichier Objet", formatte_nombre(metriques.temps_fichier_objet * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Exécutable", formatte_nombre(metriques.temps_executable * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_executable, temps_coulisse)) });
+
+	tableau.ajoute_ligne({ "Temps Nettoyage", formatte_nombre(metriques.temps_nettoyage * 1000.0), "ms" });
+
+	imprime_tableau(tableau);
 
 	if (ops.imprime_taille_memoire_objet) {
 		imprime_taille_memoire_noeud(os);
 	}
 
-	os << std::endl;
+	return;
 }
 
 static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
