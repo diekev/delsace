@@ -48,7 +48,7 @@ fonc nombre_octets_utf8(caractère : *z8) : z32
 		retourne 3
 	}
 
-	si s0 <= 0xF0 <= 0xF4 {
+	si 0xF0 <= s0 <= 0xF4 {
 		si s0 == 0xF0 && !(0x90 <= s1 <= 0xBF) {
 			retourne 0
 		}
