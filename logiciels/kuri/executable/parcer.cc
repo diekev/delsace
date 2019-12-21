@@ -1048,16 +1048,16 @@ struct Convertisseuse {
 				std::cout << clang_getTypeSpelling(clang_getCursorType(cursor));
 				break;
 			}
-			case CXCursorKind::CXCursor_Constructor:
-			case CXCursorKind::CXCursor_Destructor:
 			case CXCursorKind::CXCursor_FunctionDecl:
 			{
-				converti_declaration_fonction(cursor, trans_unit);
+				converti_declaration_fonction(cursor, trans_unit, false);
 				break;
 			}
+			case CXCursorKind::CXCursor_Constructor:
+			case CXCursorKind::CXCursor_Destructor:
 			case CXCursorKind::CXCursor_CXXMethod:
 			{
-				converti_declaration_fonction(cursor, trans_unit);
+				converti_declaration_fonction(cursor, trans_unit, true);
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXThisExpr:
@@ -1782,7 +1782,7 @@ struct Convertisseuse {
 		}
 	}
 
-	void converti_declaration_fonction(CXCursor cursor, CXTranslationUnit trans_unit)
+	void converti_declaration_fonction(CXCursor cursor, CXTranslationUnit trans_unit, bool est_methode_cpp)
 	{
 		auto enfants = rassemble_enfants(cursor);
 
@@ -1818,6 +1818,14 @@ struct Convertisseuse {
 
 		for (auto i = 0; i < enfants.taille(); ++i) {
 			auto param = enfants[i];
+
+			if (est_methode_cpp && param.kind == CXCursorKind::CXCursor_TypeRef) {
+				std::cout << virgule;
+				std::cout << "this : &";
+				std::cout << converti_type(param, typedefs);
+				virgule = ", ";
+				continue;
+			}
 
 			/* les premiers enfants peuvent être des infos sur la fonctions */
 			if (param.kind != CXCursorKind::CXCursor_ParmDecl) {
