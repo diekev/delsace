@@ -313,6 +313,7 @@ static dls::chaine converti_type(
 			std::cout << "invalide";
 			break;
 		}
+		case CXType_Auto:
 		case CXType_Typedef:
 		case CXType_Record:          /* p.e. struct Vecteur */
 		case CXType_ConstantArray:   /* p.e. float [4] */
