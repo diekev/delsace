@@ -703,7 +703,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
-				else if (racine_expr == id_morceau::EGAL && est_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+				else if ((racine_expr == id_morceau::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_STRUCTURE, m_contexte, morceau, false);
 
 					avance();
