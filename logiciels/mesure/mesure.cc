@@ -198,6 +198,8 @@ int main()
 	auto nombre_total_commentaires_source = 0;
 	auto nombre_total_commentaires_entete = 0;
 	auto nombre_fichiers = 0;
+	auto nombre_fichiers_entete = 0;
+	auto nombre_fichiers_source = 0;
 
 	std::ostream &os = std::cout;
 
@@ -230,10 +232,12 @@ int main()
 		nombre_total_commentaires += nombre_lignes.second;
 
 		if (type == FICHIER_ENTETE) {
+			nombre_fichiers_entete += 1;
 			nombre_total_lignes_entete += nombre_lignes.first;
 			nombre_total_commentaires_entete += nombre_lignes.second;
 		}
 		else if (type == FICHIER_SOURCE) {
+			nombre_fichiers_source += 1;
 			nombre_total_lignes_source += nombre_lignes.first;
 			nombre_total_commentaires_source += nombre_lignes.second;
 		}
@@ -242,12 +246,12 @@ int main()
 	os << "Il y a " << formatte(nombre_total_lignes + nombre_total_commentaires)
 	   << " lignes en tout, dans " << formatte(nombre_fichiers) << " fichiers.\n";
 	os << '\n';
-	os << "Fichiers sources :\n";
+	os << "Fichiers sources (" << nombre_fichiers_source << ") :\n";
 	os << "    - " << formatte(nombre_total_lignes_source) << " lignes de programmes\n";
 	os << "    - " << formatte(nombre_total_commentaires_source) << " lignes de commentaires\n";
 	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires_source) / nombre_total_lignes_source << '\n';
 	os << '\n';
-	os << "Fichiers entêtes :\n";
+	os << "Fichiers entêtes (" << nombre_fichiers_entete << ") :\n";
 	os << "    - " << formatte(nombre_total_lignes_entete) << " lignes de programmes\n";
 	os << "    - " << formatte(nombre_total_commentaires_entete) << " lignes de commentaires\n";
 	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires_entete) / nombre_total_lignes_entete << '\n';
