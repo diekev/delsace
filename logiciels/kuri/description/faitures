@@ -49,20 +49,13 @@ Faitures
 - coroutines en dehours de boucles
 - variables employées
 - évite l'initialisation via "---"
-- amélioration de la validation et la génération de code pour les initialisations des structures
-- surcharge d'opérateur
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
 - suppression ':'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
 - analyseuse_grammaire -> suppression des vérifications redondantes
-- unions -> info type, tiens trace de l'état à chaque modification, décalage au sein de la structure
 - ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
-- amélioration du système de vérification des opérateurs
-- surcharge d'opérateurs
-- surcharge de transtypage/transtypage personnalisé entre type
 - conversion automatique des types en unions et extraction automatique des valeurs des unions
 - infos types pour les unions
-- tenir trace du nombre d'allocations et de réallocations
 - à faire : urgent
 -- surcharge d'opérateurs (simple)
 	syntaxe : opér [opérateur] (args..) : [type]
@@ -90,9 +83,9 @@ Faitures
 -- surcharge transtypage
 	opér [type] (arg) : [type]
 -- expression gauche dans la validation sémantique
--- validation des assignations des accès aux unions
 -- système de transtypage
 -- réusinage des tests
+-- avoir une meilleur gestion de la correctitude de constance, il est possible de passer une variable constante à un fonction la modifiant
 - à faire : moins urgent
 -- gabarits (maintenir une table de symboles afin de désambiguer a < b (comparaison), et a<b> (paramètres)
 -- empl (vérifier tous les cas)
@@ -101,6 +94,8 @@ Faitures
 -- validation des énum dans associe
 -- alias de types
 -- contexte implicite
+-- opérateurs implicites
+-- validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
 
 
 À faire (tests)
@@ -117,11 +112,6 @@ Faitures
 - test valeurs de retours multiples
 
 
-Bugs
-----
-- expressions dans les opérateurs [] non converties correctement depuis le réusinage de la coulisse C
-
-
 Bugs (coulisse LLVM)
 --------------------
 - crash lors de la compilation de boucle contenant un 'arrête' après des blocs si/sinon
@@ -131,9 +121,9 @@ Bugs (coulisse LLVM)
 
 Idées
 -----
-- opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - mot clés pour le nom du fichier courant, la ligne, la colonne, et le temps où la ligne a été rencontré pour la première foix (__fichier__, __ligne__, __colonne__, __temps__)
-- utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++)
+- opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
+- utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - héritage/polymorphisme par enlignage de structures dans d'autres
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
@@ -164,21 +154,22 @@ Idées
 
 	comment pour a && c
 - graphe de typage :
-- trouve les opérations à effectuer pour transtyper un type à un autre
--- prend référence
--- construit eini
--- construit tableau octet
--- construit union
--- extrait eini
--- extrait tableau octet
--- extrait union
-- pour :
--- initialisation/assignement (a = b)
+-- trouve les opérations à effectuer pour transtyper un type à un autre
+--- prend référence
+--- construit eini
+--- construit tableau octet
+--- construit union
+--- extrait eini
+--- extrait tableau octet
+--- extrait union
+-- pour :
+--- initialisation/assignement (a = b)
 -- passage de paramètre (foo(a, b))
--- opérateurs (a + b)
--- transtype (a = transtype(b : type))
-- trouve une fonction selon les paramètres de types
-- trouve une fonction pour passer d'un type à un autre (suggestion, gare aux conversions implicites)
+---- opérateurs (a + b)
+--- transtype (a = transtype(b : type))
+--- retours et retenus
+-- trouve une fonction selon les paramètres de types
+-- trouve une fonction pour passer d'un type à un autre (suggestion, gare aux conversions implicites)
 
 
 Zones d'ombres
@@ -203,6 +194,7 @@ Sécurité/évitement des bugs
 - blocs explicites : impossible de ne pas avoir un bloc afin de mieux définir ce qui se trouve dans un bloc
 - accès aléatoire via des index protégé
 - conservation de la taille des tableaux et des chaines (contrairement à C qui les jette et utilise un pointeur nul pour définir la fin)
+- remembrance du membre actif des unions
 
 
 Néologismes
