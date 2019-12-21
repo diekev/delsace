@@ -27,41 +27,11 @@
 #include "biblinternes/chrono/chronometre_de_portee.hh"
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
+#include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
 #include "biblinternes/structures/chaine.hh"
 
 namespace filesystem = std::filesystem;
-
-static auto formatte(int nombre)
-{
-	auto resultat_tmp = dls::chaine(std::to_string(nombre));
-
-	const auto taille = resultat_tmp.taille();
-
-	if (taille <= 3) {
-		return resultat_tmp;
-	}
-
-	const auto reste = taille % 3;
-	auto resultat = dls::chaine{""};
-	resultat.reserve(taille + taille / 3);
-
-	for (auto i = 0l; i < reste; ++i) {
-		resultat.pousse(resultat_tmp[i]);
-	}
-
-	for (auto i = reste; i < taille; i += 3) {
-		if (reste != 0 || i != reste) {
-			resultat.pousse(' ');
-		}
-
-		resultat.pousse(resultat_tmp[i + 0]);
-		resultat.pousse(resultat_tmp[i + 1]);
-		resultat.pousse(resultat_tmp[i + 2]);
-	}
-
-	return resultat;
-}
 
 static auto commence_par(dls::chaine const &ligne, dls::chaine const &motif)
 {
@@ -253,31 +223,31 @@ int main()
 	tableau.alignement(6, Alignement::DROITE);
 
 	auto nombre_lignes_fichiers_sources = nombre_total_lignes_source + nombre_total_commentaires_source;
-	auto chn_fichiers = formatte(nombre_fichiers_source);
-	auto chn_lignes = formatte(nombre_lignes_fichiers_sources);
+	auto chn_fichiers = formatte_nombre(nombre_fichiers_source);
+	auto chn_lignes = formatte_nombre(nombre_lignes_fichiers_sources);
 	auto chn_lignes_fichiers = dls::vers_chaine(static_cast<double>(nombre_lignes_fichiers_sources) / nombre_fichiers_source);
-	auto chn_sources = formatte(nombre_total_lignes_source);
-	auto chn_commentaires = formatte(nombre_total_commentaires_source);
+	auto chn_sources = formatte_nombre(nombre_total_lignes_source);
+	auto chn_commentaires = formatte_nombre(nombre_total_commentaires_source);
 	auto chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires_source) / nombre_total_lignes_source);
 
 	tableau.ajoute_ligne({ "Sources", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });
 
 	auto nombre_lignes_fichiers_entetes = nombre_total_lignes_entete + nombre_total_commentaires_entete;
-	chn_fichiers = formatte(nombre_fichiers_entete);
-	chn_lignes = formatte(nombre_lignes_fichiers_entetes);
+	chn_fichiers = formatte_nombre(nombre_fichiers_entete);
+	chn_lignes = formatte_nombre(nombre_lignes_fichiers_entetes);
 	chn_lignes_fichiers = dls::vers_chaine(static_cast<double>(nombre_lignes_fichiers_entetes) / nombre_fichiers_entete);
-	chn_sources = formatte(nombre_total_lignes_entete);
-	chn_commentaires = formatte(nombre_total_commentaires_entete);
+	chn_sources = formatte_nombre(nombre_total_lignes_entete);
+	chn_commentaires = formatte_nombre(nombre_total_commentaires_entete);
 	chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires_entete) / nombre_total_lignes_entete);
 
 	tableau.ajoute_ligne({ "Entêtes", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });
 
 	auto nombre_lignes_fichiers = nombre_total_lignes + nombre_total_commentaires;
-	chn_fichiers = formatte(nombre_fichiers);
-	chn_lignes = formatte(nombre_lignes_fichiers);
+	chn_fichiers = formatte_nombre(nombre_fichiers);
+	chn_lignes = formatte_nombre(nombre_lignes_fichiers);
 	chn_lignes_fichiers = dls::vers_chaine(static_cast<double>(nombre_lignes_fichiers) / nombre_fichiers);
-	chn_sources = formatte(nombre_total_lignes);
-	chn_commentaires = formatte(nombre_total_commentaires);
+	chn_sources = formatte_nombre(nombre_total_lignes);
+	chn_commentaires = formatte_nombre(nombre_total_commentaires);
 	chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires) / nombre_total_lignes);
 
 	tableau.ajoute_ligne({ "Total", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });

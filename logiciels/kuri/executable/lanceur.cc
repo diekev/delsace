@@ -235,40 +235,6 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 }
 #endif
 
-static dls::chaine formatte_nombre(int nombre)
-{
-	if (nombre == 0) {
-		return "0";
-	}
-
-	auto resultat = dls::chaine();
-
-	auto chiffres = 0;
-
-	while (nombre != 0) {
-		auto chiffre = nombre % 10;
-		resultat.pousse(static_cast<char>('0' + static_cast<char>(chiffre)));
-
-		chiffres += 1;
-
-		if (chiffres % 3 == 0) {
-			resultat.pousse(' ');
-		}
-
-		nombre /= 10;
-	}
-
-	std::reverse(resultat.debut(), resultat.fin());
-
-	return resultat;
-}
-
-template <typename T>
-static dls::chaine formatte_nombre(T n)
-{
-	return formatte_nombre(static_cast<int>(n));
-}
-
 static void imprime_stats(
 		std::ostream &os,
 		Metriques const &metriques,
