@@ -1731,6 +1731,21 @@ struct Convertisseuse {
 				converti_enfants(cursor, trans_unit);
 				break;
 			}
+			case CXCursorKind::CXCursor_CXXForRangeStmt:
+			{
+				auto enfants = rassemble_enfants(cursor);
+
+				std::cout << "pour ";
+				std::cout << clang_getCursorSpelling(enfants[0]);
+				std::cout << " dans ";
+				std::cout << clang_getCursorSpelling(enfants[1]);
+				std::cout << " {\n";
+				convertis(enfants[2], trans_unit);
+				imprime_tab();
+				std::cout << "}\n";
+
+				break;
+			}
 		}
 
 		--profondeur;
