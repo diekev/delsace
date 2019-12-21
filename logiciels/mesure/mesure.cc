@@ -27,6 +27,7 @@
 #include "biblinternes/chrono/chronometre_de_portee.hh"
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
+#include "biblinternes/outils/tableau_donnees.hh"
 #include "biblinternes/structures/chaine.hh"
 
 namespace filesystem = std::filesystem;
@@ -243,22 +244,43 @@ int main()
 		}
 	}
 
-	os << "Il y a " << formatte(nombre_total_lignes + nombre_total_commentaires)
-	   << " lignes en tout, dans " << formatte(nombre_fichiers) << " fichiers.\n";
-	os << '\n';
-	os << "Fichiers sources (" << nombre_fichiers_source << ") :\n";
-	os << "    - " << formatte(nombre_total_lignes_source) << " lignes de programmes\n";
-	os << "    - " << formatte(nombre_total_commentaires_source) << " lignes de commentaires\n";
-	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires_source) / nombre_total_lignes_source << '\n';
-	os << '\n';
-	os << "Fichiers entêtes (" << nombre_fichiers_entete << ") :\n";
-	os << "    - " << formatte(nombre_total_lignes_entete) << " lignes de programmes\n";
-	os << "    - " << formatte(nombre_total_commentaires_entete) << " lignes de commentaires\n";
-	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires_entete) / nombre_total_lignes_entete << '\n';
-	os << '\n';
-	os << "Total :\n";
-	os << "    - " << formatte(nombre_total_lignes) << " lignes de programmes\n";
-	os << "    - " << formatte(nombre_total_commentaires) << " lignes de commentaires\n";
-	os << "Ratio commentaires / lignes programmes : " << static_cast<double>(nombre_total_commentaires) / nombre_total_lignes << '\n';
-	os << '\n';
+	auto tableau = Tableau({ "Fichiers", "Nombre", "Lignes", "Lignes/Fichiers", "Sources", "Commentaires", "Sources/Commentaires" });
+	tableau.alignement(1, Alignement::DROITE);
+	tableau.alignement(2, Alignement::DROITE);
+	tableau.alignement(3, Alignement::DROITE);
+	tableau.alignement(4, Alignement::DROITE);
+	tableau.alignement(5, Alignement::DROITE);
+	tableau.alignement(6, Alignement::DROITE);
+
+	auto nombre_lignes_fichiers_sources = nombre_total_lignes_source + nombre_total_commentaires_source;
+	auto chn_fichiers = formatte(nombre_fichiers_source);
+	auto chn_lignes = formatte(nombre_lignes_fichiers_sources);
+	auto chn_lignes_fichiers = dls::vers_chaine(static_cast<double>(nombre_lignes_fichiers_sources) / nombre_fichiers_source);
+	auto chn_sources = formatte(nombre_total_lignes_source);
+	auto chn_commentaires = formatte(nombre_total_commentaires_source);
+	auto chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires_source) / nombre_total_lignes_source);
+
+	tableau.ajoute_ligne({ "Sources", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });
+
+	auto nombre_lignes_fichiers_entetes = nombre_total_lignes_entete + nombre_total_commentaires_entete;
+	chn_fichiers = formatte(nombre_fichiers_entete);
+	chn_lignes = formatte(nombre_lignes_fichiers_entetes);
+	chn_lignes_fichiers = dls::vers_chaine(static_cast<double>(nombre_lignes_fichiers_entetes) / nombre_fichiers_entete);
+	chn_sources = formatte(nombre_total_lignes_entete);
+	chn_commentaires = formatte(nombre_total_commentaires_entete);
+	chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires_entete) / nombre_total_lignes_entete);
+
+	tableau.ajoute_ligne({ "Entêtes", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });
+
+	auto nombre_lignes_fichiers = nombre_total_lignes + nombre_total_commentaires;
+	chn_fichiers = formatte(nombre_fichiers);
+	chn_lignes = formatte(nombre_lignes_fichiers);
+	chn_lignes_fichiers = dls::vers_chaine(static_cast<double>(nombre_lignes_fichiers) / nombre_fichiers);
+	chn_sources = formatte(nombre_total_lignes);
+	chn_commentaires = formatte(nombre_total_commentaires);
+	chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires) / nombre_total_lignes);
+
+	tableau.ajoute_ligne({ "Total", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });
+
+	imprime_tableau(tableau);
 }
