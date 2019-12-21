@@ -132,8 +132,7 @@ fonc converti_en_chaine(rune : &Rune) : chaine
 
 fonc construit_rune(pointeur : *z8, taille : z64) : Rune
 {
-    rune = Rune{ pointeur = pointeur, taille = taille }
-    retourne rune
+    retourne Rune{ pointeur = pointeur, taille = taille }
 }
 
 # Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
