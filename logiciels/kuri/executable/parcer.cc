@@ -314,6 +314,7 @@ static dls::chaine converti_type(
 			break;
 		}
 		case CXType_Auto:
+		case CXType_Enum:
 		case CXType_Typedef:
 		case CXType_Record:          /* p.e. struct Vecteur */
 		case CXType_ConstantArray:   /* p.e. float [4] */
