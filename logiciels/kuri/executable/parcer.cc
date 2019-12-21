@@ -1747,6 +1747,16 @@ struct Convertisseuse {
 
 				break;
 			}
+			case CXCursorKind::CXCursor_NamespaceRef:
+			{
+				std::cout << clang_getCursorSpelling(cursor) << '.';
+				break;
+			}
+			case CXCursorKind::CXCursor_TemplateRef:
+			{
+				std::cout << clang_getCursorSpelling(cursor) << '.';
+				break;
+			}
 		}
 
 		--profondeur;

@@ -36,11 +36,6 @@ ChaineUTF8::ChaineUTF8(const dls::chaine &chn)
 	calcule_taille();
 }
 
-long ChaineUTF8::taille() const
-{
-	return m_taille;
-}
-
 void ChaineUTF8::calcule_taille()
 {
 	for (auto i = 0l; i < chaine.taille(); ) {
@@ -173,4 +168,9 @@ void imprime_tableau(Tableau &tableau)
 	}
 
 	imprime_ligne_demarcation(tailles_max_colonnes);
+}
+
+long ChaineUTF8::taille() const
+{
+	return m_taille;
 }
