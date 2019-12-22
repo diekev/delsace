@@ -25,6 +25,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -894,6 +895,9 @@ static auto imprime_commentaire(CXCursor cursor, std::ostream &os)
 }
 
 struct Convertisseuse {
+	std::filesystem::path fichier_source{};
+	std::filesystem::path fichier_entete{};
+
 	int profondeur = 0;
 	/* pour les structures, unions, et énumérations anonymes */
 	int nombre_anonymes = 0;
@@ -928,7 +932,6 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				for (auto enfant : enfants) {
-#if 0
 					auto loc = clang_getCursorLocation(enfant);
 					CXFile file;
 					unsigned line;
@@ -936,8 +939,14 @@ struct Convertisseuse {
 					unsigned offset;
 					clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
-					flux_sortie << "Cursor at " << clang_getFileName(file) << '\n';
-#endif
+					auto nom_fichier = clang_getFileName(file);
+					auto nom_fichier_c = std::filesystem::path(clang_getCString(nom_fichier));
+					clang_disposeString(nom_fichier);
+
+					if (nom_fichier_c != fichier_source && nom_fichier_c != fichier_entete) {
+						continue;
+					}
+
 					convertis(enfant, trans_unit, flux_sortie);
 
 					/* variable globale */
@@ -1970,6 +1979,18 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
+	auto fichier_source = std::filesystem::path(config.fichier.c_str());
+	auto fichier_entete = fichier_source;
+	fichier_entete = fichier_entete.replace_extension(".hh");
+
+	if (!std::filesystem::exists(fichier_entete)) {
+		fichier_entete = fichier_entete.replace_extension(".h");
+
+		if (!std::filesystem::exists(fichier_entete)) {
+			fichier_entete = "";
+		}
+	}
+
 	auto nombre_diagnostics = clang_getNumDiagnostics(unit);
 
 	if (nombre_diagnostics != 0) {
@@ -1987,6 +2008,8 @@ int main(int argc, char **argv)
 	CXCursor cursor = clang_getTranslationUnitCursor(unit);
 
 	auto convertisseuse = Convertisseuse();
+	convertisseuse.fichier_source = fichier_source;
+	convertisseuse.fichier_entete = fichier_entete;
 	convertisseuse.typedefs.insere({ "size_t", { "ulong" } });
 	convertisseuse.typedefs.insere({ "std::size_t", { "ulong" } });
 
