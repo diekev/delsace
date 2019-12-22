@@ -1857,35 +1857,37 @@ void genere_code_C(
 				{
 					auto taille_tableau = static_cast<int>(type_base >> 8);
 
-					generatrice.os << "if (";
-					generatrice.os << enfant2->chaine_calculee();
-					generatrice.os << " < 0 || ";
-					generatrice.os << enfant2->chaine_calculee();
-					generatrice.os << " >= ";
+					if (b->aide_generation_code != IGNORE_VERIFICATION) {
+						generatrice.os << "if (";
+						generatrice.os << enfant2->chaine_calculee();
+						generatrice.os << " < 0 || ";
+						generatrice.os << enfant2->chaine_calculee();
+						generatrice.os << " >= ";
 
-					if (taille_tableau == 0) {
-						generatrice.os << enfant1->chaine_calculee();
-						generatrice.os << ".taille";
-					}
-					else {
-						generatrice.os << taille_tableau;
-					}
+						if (taille_tableau == 0) {
+							generatrice.os << enfant1->chaine_calculee();
+							generatrice.os << ".taille";
+						}
+						else {
+							generatrice.os << taille_tableau;
+						}
 
-					generatrice.os << ") {\n";
-					generatrice.os << "KR__depassement_limites(";
-					generatrice.os << '"' << module->chemin << '"' << ',';
-					generatrice.os << pos.numero_ligne << ',';
-					generatrice.os << "\"du tableau\",";
-					if (taille_tableau == 0) {
-						generatrice.os << enfant1->chaine_calculee();
-						generatrice.os << ".taille";
+						generatrice.os << ") {\n";
+						generatrice.os << "KR__depassement_limites(";
+						generatrice.os << '"' << module->chemin << '"' << ',';
+						generatrice.os << pos.numero_ligne << ',';
+						generatrice.os << "\"du tableau\",";
+						if (taille_tableau == 0) {
+							generatrice.os << enfant1->chaine_calculee();
+							generatrice.os << ".taille";
+						}
+						else {
+							generatrice.os << taille_tableau;
+						}
+						generatrice.os << ",";
+						generatrice.os << enfant2->chaine_calculee();
+						generatrice.os << ");\n}\n";
 					}
-					else {
-						generatrice.os << taille_tableau;
-					}
-					generatrice.os << ",";
-					generatrice.os << enfant2->chaine_calculee();
-					generatrice.os << ");\n}\n";
 
 					flux << enfant1->chaine_calculee();
 

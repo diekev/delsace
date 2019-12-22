@@ -1697,6 +1697,10 @@ void performe_validation_semantique(
 												type1,
 												res.entier);
 								}
+
+								/* nous savons que l'accès est dans les limites,
+								 * évite d'émettre le code de vérification */
+								b->aide_generation_code = IGNORE_VERIFICATION;
 							}
 						}
 
