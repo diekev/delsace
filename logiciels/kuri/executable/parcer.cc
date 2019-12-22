@@ -22,6 +22,7 @@
  *
  */
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -310,7 +311,7 @@ static dls::chaine converti_type(
 		}
 		case CXType_Invalid:
 		{
-			std::cout << "invalide";
+			flux << "invalide";
 			break;
 		}
 		case CXType_Auto:
@@ -462,7 +463,7 @@ static auto rassemble_enfants(CXCursor cursor)
 void imprime_asa(CXCursor c, int tab, std::ostream &os)
 {
 	for (auto i = 0; i < tab; ++ i) {
-		std::cout << ' ' << ' ';
+		os << ' ' << ' ';
 	}
 
 	os << "Cursor '" << clang_getCursorSpelling(c) << "' of kind '"
@@ -903,7 +904,7 @@ struct Convertisseuse {
 
 	dls::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
 
-	void convertis(CXCursor cursor, CXTranslationUnit trans_unit)
+	void convertis(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
 	{
 		++profondeur;
 
@@ -912,7 +913,7 @@ struct Convertisseuse {
 			{
 				cursors_non_pris_en_charges.insere(clang_getCursorKind(cursor));
 
-				std::cout << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
+				flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
 						  << clang_getCursorKindSpelling(clang_getCursorKind(cursor))
 						  << "' of type '" << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
 
@@ -935,13 +936,13 @@ struct Convertisseuse {
 					unsigned offset;
 					clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
-					std::cout << "Cursor at " << clang_getFileName(file) << '\n';
+					flux_sortie << "Cursor at " << clang_getFileName(file) << '\n';
 #endif
-					convertis(enfant, trans_unit);
+					convertis(enfant, trans_unit, flux_sortie);
 
 					/* variable globale */
 					if (enfant.kind == CXCursorKind::CXCursor_VarDecl) {
-						std::cout << "\n";
+						flux_sortie << "\n";
 					}
 				}
 
@@ -964,106 +965,106 @@ struct Convertisseuse {
 
 				/* S'il n'y a pas d'enfants, nous avons une déclaration, donc ignore. */
 				if (!enfants_filtres.est_vide()) {
-					imprime_commentaire(cursor, std::cout);
+					imprime_commentaire(cursor, flux_sortie);
 
 					auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-					imprime_tab();
-					std::cout << "struct ";
-					std::cout << nom;
-					std::cout << " {\n";
+					imprime_tab(flux_sortie);
+					flux_sortie << "struct ";
+					flux_sortie << nom;
+					flux_sortie << " {\n";
 
 					noms_structure.empile(nom);
 
-					converti_enfants(enfants_filtres, trans_unit);
+					converti_enfants(enfants_filtres, trans_unit, flux_sortie);
 
 					noms_structure.depile();
 
-					imprime_tab();
-					std::cout << "}\n\n";
+					imprime_tab(flux_sortie);
+					flux_sortie << "}\n\n";
 				}
 
 				break;
 			}
 			case CXCursorKind::CXCursor_UnionDecl:
 			{
-				imprime_commentaire(cursor, std::cout);
-				imprime_tab();
-				std::cout << "union ";
-				std::cout << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-				std::cout << " nonsûr {\n";
-				converti_enfants(cursor, trans_unit);
+				imprime_commentaire(cursor, flux_sortie);
+				imprime_tab(flux_sortie);
+				flux_sortie << "union ";
+				flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+				flux_sortie << " nonsûr {\n";
+				converti_enfants(cursor, trans_unit, flux_sortie);
 
-				imprime_tab();
-				std::cout << "}\n\n";
+				imprime_tab(flux_sortie);
+				flux_sortie << "}\n\n";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_FieldDecl:
 			{
-				imprime_commentaire(cursor, std::cout);
-				imprime_tab();
-				std::cout << clang_getCursorSpelling(cursor);
-				std::cout << " : ";
-				std::cout << converti_type(cursor, typedefs);
-				std::cout << '\n';
+				imprime_commentaire(cursor, flux_sortie);
+				imprime_tab(flux_sortie);
+				flux_sortie << clang_getCursorSpelling(cursor);
+				flux_sortie << " : ";
+				flux_sortie << converti_type(cursor, typedefs);
+				flux_sortie << '\n';
 				break;
 			}
 			case CXCursorKind::CXCursor_EnumDecl:
 			{
-				imprime_commentaire(cursor, std::cout);
-				imprime_tab();
-				std::cout << "énum ";				
-				std::cout << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+				imprime_commentaire(cursor, flux_sortie);
+				imprime_tab(flux_sortie);
+				flux_sortie << "énum ";
+				flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
-				std::cout << " : " << converti_type(type, typedefs);
+				flux_sortie << " : " << converti_type(type, typedefs);
 
-				std::cout << " {\n";
-				converti_enfants(cursor, trans_unit);
+				flux_sortie << " {\n";
+				converti_enfants(cursor, trans_unit, flux_sortie);
 
-				imprime_tab();
-				std::cout << "}\n\n";
+				imprime_tab(flux_sortie);
+				flux_sortie << "}\n\n";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_EnumConstantDecl:
 			{
-				imprime_commentaire(cursor, std::cout);
-				imprime_tab();
-				std::cout << clang_getCursorSpelling(cursor);
+				imprime_commentaire(cursor, flux_sortie);
+				imprime_tab(flux_sortie);
+				flux_sortie << clang_getCursorSpelling(cursor);
 
 				auto enfants = rassemble_enfants(cursor);
 
 				if (!enfants.est_vide()) {
-					std::cout << " = ";
-					converti_enfants(enfants, trans_unit);
+					flux_sortie << " = ";
+					converti_enfants(enfants, trans_unit, flux_sortie);
 				}
 
-				std::cout << ",\n";
+				flux_sortie << ",\n";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_TypeRef:
 			{
 				/* pour les constructeurs entre autres */
-				std::cout << clang_getTypeSpelling(clang_getCursorType(cursor));
+				flux_sortie << clang_getTypeSpelling(clang_getCursorType(cursor));
 				break;
 			}
 			case CXCursorKind::CXCursor_FunctionDecl:
 			{
-				converti_declaration_fonction(cursor, trans_unit, false);
+				converti_declaration_fonction(cursor, trans_unit, false, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_Constructor:
 			case CXCursorKind::CXCursor_Destructor:
 			case CXCursorKind::CXCursor_CXXMethod:
 			{
-				converti_declaration_fonction(cursor, trans_unit, true);
+				converti_declaration_fonction(cursor, trans_unit, true, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXThisExpr:
 			{
-				std::cout << "this";
+				flux_sortie << "this";
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXAccessSpecifier:
@@ -1110,32 +1111,32 @@ struct Convertisseuse {
 				 * soit l'expression this.nom si la fonction est appelée depuis
 				 * une méthode de classe */
 				if (enfants.taille() > 0) {
-					convertis(enfants[0], trans_unit);
+					convertis(enfants[0], trans_unit, flux_sortie);
 				}
 				else {
-					std::cout << clang_getCursorSpelling(cursor);
+					flux_sortie << clang_getCursorSpelling(cursor);
 				}
 
 				auto virgule = "(";
 
 				for (auto i = 1; i < enfants.taille(); ++i) {
-					std::cout << virgule;
-					convertis(enfants[i], trans_unit);
+					flux_sortie << virgule;
+					convertis(enfants[i], trans_unit, flux_sortie);
 					virgule = ", ";
 				}
 
 				/* pour les constructeurs implicites, il n'y a pas de premier enfant */
 				if (enfants.taille() <= 1) {
-					std::cout << '(';
+					flux_sortie << '(';
 				}
 
-				std::cout << ')';
+				flux_sortie << ')';
 
 				break;
 			}
 			case CXCursorKind::CXCursor_DeclStmt:
 			{
-				imprime_commentaire(cursor, std::cout);
+				imprime_commentaire(cursor, flux_sortie);
 
 				/* Un DeclStmt peut être :
 				 * soit int x = 0;
@@ -1150,12 +1151,12 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				for (auto i = 0; i < enfants.taille(); ++i) {
-					convertis(enfants[i], trans_unit);
+					convertis(enfants[i], trans_unit, flux_sortie);
 
 					if (enfants.taille() > 1 && i < enfants.taille() - 1) {
-						std::cout << '\n';
+						flux_sortie << '\n';
 						--profondeur;
-						imprime_tab();
+						imprime_tab(flux_sortie);
 						++profondeur;
 					}
 				}
@@ -1164,7 +1165,7 @@ struct Convertisseuse {
 			}
 			case CXCursorKind::CXCursor_VarDecl:
 			{
-				imprime_commentaire(cursor, std::cout);
+				imprime_commentaire(cursor, flux_sortie);
 
 				auto enfants = rassemble_enfants(cursor);
 				auto cxtype = clang_getCursorType(cursor);
@@ -1201,19 +1202,19 @@ struct Convertisseuse {
 
 				if (nombre_enfants == 0) {
 					/* nous avons une déclaration simple (int x;) */
-					std::cout << "dyn ";
-					std::cout << clang_getCursorSpelling(cursor);
-					std::cout << " : ";
-					std::cout << converti_type(cursor, typedefs);
+					flux_sortie << "dyn ";
+					flux_sortie << clang_getCursorSpelling(cursor);
+					flux_sortie << " : ";
+					flux_sortie << converti_type(cursor, typedefs);
 				}
 				else {
-					std::cout << clang_getCursorSpelling(cursor);
-					std::cout << " : ";
-					std::cout << converti_type(cursor, typedefs);
-					std::cout << " = ";
+					flux_sortie << clang_getCursorSpelling(cursor);
+					flux_sortie << " : ";
+					flux_sortie << converti_type(cursor, typedefs);
+					flux_sortie << " = ";
 
 					for (auto i = decalage; i < enfants.taille(); ++i) {
-						convertis(enfants[i], trans_unit);
+						convertis(enfants[i], trans_unit, flux_sortie);
 					}
 				}
 
@@ -1226,12 +1227,12 @@ struct Convertisseuse {
 				auto virgule = "[ ";
 
 				for (auto enfant : enfants) {
-					std::cout << virgule;
-					convertis(enfant, trans_unit);
+					flux_sortie << virgule;
+					convertis(enfant, trans_unit, flux_sortie);
 					virgule = ", ";
 				}
 
-				std::cout << " ]";
+				flux_sortie << " ]";
 				break;
 			}
 			case CXCursorKind::CXCursor_ParmDecl:
@@ -1264,15 +1265,15 @@ struct Convertisseuse {
 								CXCursorKind::CXCursor_ReturnStmt);
 
 					if (besoin_nouvelle_ligne && !debut) {
-						std::cout << '\n';
+						flux_sortie << '\n';
 					}
 
 					debut = false;
 
-					imprime_tab();
-					convertis(enfant, trans_unit);
+					imprime_tab(flux_sortie);
+					convertis(enfant, trans_unit, flux_sortie);
 
-					std::cout << '\n';
+					flux_sortie << '\n';
 				}
 
 				break;
@@ -1281,54 +1282,54 @@ struct Convertisseuse {
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				std::cout << "si ";
-				convertis(enfants[0], trans_unit);
+				flux_sortie << "si ";
+				convertis(enfants[0], trans_unit, flux_sortie);
 
-				std::cout << " {\n";
+				flux_sortie << " {\n";
 				auto non_compound = enfants[1].kind != CXCursorKind::CXCursor_CompoundStmt;
 
 				if (non_compound) {
-					imprime_tab();
+					imprime_tab(flux_sortie);
 				}
 
-				convertis(enfants[1], trans_unit);
+				convertis(enfants[1], trans_unit, flux_sortie);
 
 				if (non_compound) {
-					std::cout << '\n';
+					flux_sortie << '\n';
 				}
 
 				--profondeur;
-				imprime_tab();
+				imprime_tab(flux_sortie);
 				++profondeur;
-				std::cout << "}";
+				flux_sortie << "}";
 
 				if (enfants.taille() == 3) {
-					std::cout << "\n";
+					flux_sortie << "\n";
 					--profondeur;
-					imprime_tab();
+					imprime_tab(flux_sortie);
 					++profondeur;
-					std::cout << "sinon ";
+					flux_sortie << "sinon ";
 					if (enfants[2].kind == CXCursorKind::CXCursor_IfStmt) {
-						convertis(enfants[2], trans_unit);
+						convertis(enfants[2], trans_unit, flux_sortie);
 					}
 					else {
-						std::cout << "{\n";
+						flux_sortie << "{\n";
 						non_compound = enfants[2].kind != CXCursorKind::CXCursor_CompoundStmt;
 
 						if (non_compound) {
-							imprime_tab();
+							imprime_tab(flux_sortie);
 						}
 
-						convertis(enfants[2], trans_unit);
+						convertis(enfants[2], trans_unit, flux_sortie);
 
 						if (non_compound) {
-							std::cout << '\n';
+							flux_sortie << '\n';
 						}
 
 						--profondeur;
-						imprime_tab();
+						imprime_tab(flux_sortie);
 						++profondeur;
-						std::cout << "}";
+						flux_sortie << "}";
 					}
 				}
 
@@ -1338,16 +1339,16 @@ struct Convertisseuse {
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				std::cout << "tantque ";
-				convertis(enfants[0], trans_unit);
+				flux_sortie << "tantque ";
+				convertis(enfants[0], trans_unit, flux_sortie);
 
-				std::cout << " {\n";
+				flux_sortie << " {\n";
 				--profondeur;
-				convertis(enfants[1], trans_unit);
-				imprime_tab();
+				convertis(enfants[1], trans_unit, flux_sortie);
+				imprime_tab(flux_sortie);
 				++profondeur;
 
-				std::cout << "}";
+				flux_sortie << "}";
 
 				break;
 			}
@@ -1355,14 +1356,14 @@ struct Convertisseuse {
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				std::cout << "répète {\n";
+				flux_sortie << "répète {\n";
 				--profondeur;
-				convertis(enfants[0], trans_unit);
-				imprime_tab();
+				convertis(enfants[0], trans_unit, flux_sortie);
+				imprime_tab(flux_sortie);
 				++profondeur;
 
-				std::cout << "} tantque ";
-				convertis(enfants[1], trans_unit);
+				flux_sortie << "} tantque ";
+				convertis(enfants[1], trans_unit, flux_sortie);
 
 				break;
 			}
@@ -1386,75 +1387,75 @@ struct Convertisseuse {
 
 				/* int i = 0 */
 				if (enfants_for.enfant_init) {
-					std::cout << "dyn ";
-					convertis(*enfants_for.enfant_init, trans_unit);
-					std::cout << '\n';
+					flux_sortie << "dyn ";
+					convertis(*enfants_for.enfant_init, trans_unit, flux_sortie);
+					flux_sortie << '\n';
 				}
 
 				/* i < 10 */
 				if (enfants_for.enfant_comp) {
 					--profondeur;
-					imprime_tab();
+					imprime_tab(flux_sortie);
 					++profondeur;
-					std::cout << "tantque ";
-					convertis(*enfants_for.enfant_comp, trans_unit);
-					std::cout << " {\n";
+					flux_sortie << "tantque ";
+					convertis(*enfants_for.enfant_comp, trans_unit, flux_sortie);
+					flux_sortie << " {\n";
 				}
 				else {
 					--profondeur;
-					imprime_tab();
+					imprime_tab(flux_sortie);
 					++profondeur;
-					std::cout << "boucle {\n";
+					flux_sortie << "boucle {\n";
 				}
 
 				/* ... */
 				if (enfants_for.enfant_bloc) {
-					convertis(*enfants_for.enfant_bloc, trans_unit);
+					convertis(*enfants_for.enfant_bloc, trans_unit, flux_sortie);
 				}
 
 				/* ++i */
 				if (enfants_for.enfant_inc) {
-					imprime_tab();
-					convertis(*enfants_for.enfant_inc, trans_unit);
-					std::cout << '\n';
+					imprime_tab(flux_sortie);
+					convertis(*enfants_for.enfant_inc, trans_unit, flux_sortie);
+					flux_sortie << '\n';
 				}
 
 				--profondeur;
-				imprime_tab();
+				imprime_tab(flux_sortie);
 				++profondeur;
-				std::cout << "}";
+				flux_sortie << "}";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_BreakStmt:
 			{
-				std::cout << "arrête";
+				flux_sortie << "arrête";
 				break;
 			}
 			case CXCursorKind::CXCursor_ContinueStmt:
 			{
-				std::cout << "continue";
+				flux_sortie << "continue";
 				break;
 			}
 			case CXCursorKind::CXCursor_ReturnStmt:
 			{
-				std::cout << "retourne ";
-				converti_enfants(cursor, trans_unit);
+				flux_sortie << "retourne ";
+				converti_enfants(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_SwitchStmt:
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				std::cout << "discr ";
-				convertis(enfants[0], trans_unit);
-				std::cout << " {\n";
-				convertis(enfants[1], trans_unit);
+				flux_sortie << "discr ";
+				convertis(enfants[0], trans_unit, flux_sortie);
+				flux_sortie << " {\n";
+				convertis(enfants[1], trans_unit, flux_sortie);
 
 				--profondeur;
-				imprime_tab();
+				imprime_tab(flux_sortie);
 				++profondeur;
-				std::cout << "}\n";
+				flux_sortie << "}\n";
 
 				break;
 			}
@@ -1462,7 +1463,7 @@ struct Convertisseuse {
 			{
 				/* À FAIRE : gestion propre du cas défaut, le langage possède un
 				 * 'sinon' qu'il faudra utiliser correctement */
-				converti_enfants(cursor, trans_unit);
+				converti_enfants(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_CaseStmt:
@@ -1489,7 +1490,7 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				/* valeur */
-				convertis(enfants[0], trans_unit);
+				convertis(enfants[0], trans_unit, flux_sortie);
 
 				auto cas_similaires = dls::tableau<CXCursor>();
 
@@ -1503,25 +1504,25 @@ struct Convertisseuse {
 				}
 
 				for (auto const &cas : cas_similaires) {
-					std::cout << ", ";
-					convertis(cas, trans_unit);
+					flux_sortie << ", ";
+					convertis(cas, trans_unit, flux_sortie);
 				}
 
-				std::cout << " {\n";
-				convertis(enfant, trans_unit);
+				flux_sortie << " {\n";
+				convertis(enfant, trans_unit, flux_sortie);
 
 				--profondeur;
-				imprime_tab();
+				imprime_tab(flux_sortie);
 				++profondeur;
-				std::cout << "}\n";
+				flux_sortie << "}\n";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_ParenExpr:
 			{
-				std::cout << "(";
-				converti_enfants(cursor, trans_unit);
-				std::cout << ")";
+				flux_sortie << "(";
+				converti_enfants(cursor, trans_unit, flux_sortie);
+				flux_sortie << ")";
 				break;
 			}
 			case CXCursorKind::CXCursor_IntegerLiteral:
@@ -1530,13 +1531,13 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_FloatingLiteral:
 			case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
 			{
-				obtiens_litterale(cursor, trans_unit, std::cout);
+				obtiens_litterale(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_GNUNullExpr:
 			case CXCursorKind::CXCursor_CXXNullPtrLiteralExpr:
 			{
-				std::cout << "nul";
+				flux_sortie << "nul";
 				break;
 			}
 			case CXCursorKind::CXCursor_ArraySubscriptExpr:
@@ -1544,10 +1545,10 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 2);
 
-				convertis(enfants[0], trans_unit);
-				std::cout << '[';
-				convertis(enfants[1], trans_unit);
-				std::cout << ']';
+				convertis(enfants[0], trans_unit, flux_sortie);
+				flux_sortie << '[';
+				convertis(enfants[1], trans_unit, flux_sortie);
+				flux_sortie << ']';
 
 				break;
 			}
@@ -1556,14 +1557,14 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				if (enfants.taille() == 1) {
-					convertis(enfants[0], trans_unit);
-					std::cout << '.';
-					std::cout << clang_getCursorSpelling(cursor);
+					convertis(enfants[0], trans_unit, flux_sortie);
+					flux_sortie << '.';
+					flux_sortie << clang_getCursorSpelling(cursor);
 				}
 				else {
 					/* this implicit */
-					std::cout << "this.";
-					std::cout << clang_getCursorSpelling(cursor);
+					flux_sortie << "this.";
+					flux_sortie << clang_getCursorSpelling(cursor);
 				}
 
 				break;
@@ -1574,13 +1575,13 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 2);
 
-				convertis(enfants[0], trans_unit);
+				convertis(enfants[0], trans_unit, flux_sortie);
 
-				std::cout << ' ';
-				determine_operateur_binaire(cursor, trans_unit, std::cout);
-				std::cout << ' ';
+				flux_sortie << ' ';
+				determine_operateur_binaire(cursor, trans_unit, flux_sortie);
+				flux_sortie << ' ';
 
-				convertis(enfants[1], trans_unit);
+				convertis(enfants[1], trans_unit, flux_sortie);
 
 				break;
 			}
@@ -1592,27 +1593,27 @@ struct Convertisseuse {
 				auto chn = determine_operateur_unaire(cursor, trans_unit);
 
 				if (chn == "++") {
-					convertis(enfants[0], trans_unit);
-					std::cout << " += 1";
+					convertis(enfants[0], trans_unit, flux_sortie);
+					flux_sortie << " += 1";
 				}
 				else if (chn == "--") {
-					convertis(enfants[0], trans_unit);
-					std::cout << " -= 1";
+					convertis(enfants[0], trans_unit, flux_sortie);
+					flux_sortie << " -= 1";
 				}
 				else if (chn == "*") {
-					std::cout << "mémoire(";
-					convertis(enfants[0], trans_unit);
-					std::cout << ")";
+					flux_sortie << "mémoire(";
+					convertis(enfants[0], trans_unit, flux_sortie);
+					flux_sortie << ")";
 				}
 				else {
 					if (chn == "&") {
-						std::cout << '@';
+						flux_sortie << '@';
 					}
 					else {
-						std::cout << chn;
+						flux_sortie << chn;
 					}
 
-					convertis(enfants[0], trans_unit);
+					convertis(enfants[0], trans_unit, flux_sortie);
 				}
 
 				break;
@@ -1622,29 +1623,29 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				assert(enfants.taille() == 3);
 
-				std::cout << "si ";
-				convertis(enfants[0], trans_unit);
-				std::cout << " { ";
-				convertis(enfants[1], trans_unit);
-				std::cout << " } sinon { ";
-				convertis(enfants[2], trans_unit);
-				std::cout << " } ";
+				flux_sortie << "si ";
+				convertis(enfants[0], trans_unit, flux_sortie);
+				flux_sortie << " { ";
+				convertis(enfants[1], trans_unit, flux_sortie);
+				flux_sortie << " } sinon { ";
+				convertis(enfants[2], trans_unit, flux_sortie);
+				flux_sortie << " } ";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_DeclRefExpr:
 			{
-				std::cout << clang_getCursorSpelling(cursor);
+				flux_sortie << clang_getCursorSpelling(cursor);
 				break;
 			}
 			case CXCursorKind::CXCursor_UnexposedExpr:
 			{
-				converti_enfants(cursor, trans_unit);
+				converti_enfants(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_UnexposedDecl:
 			{
-				converti_enfants(cursor, trans_unit);
+				converti_enfants(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_CStyleCastExpr:
@@ -1657,18 +1658,18 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				if (enfants.taille() == 1) {
-					std::cout << "transtype(";
-					convertis(enfants[0], trans_unit);
-					std::cout << " : " << converti_type(cursor, typedefs) << ')';
+					flux_sortie << "transtype(";
+					convertis(enfants[0], trans_unit, flux_sortie);
+					flux_sortie << " : " << converti_type(cursor, typedefs) << ')';
 				}
 				else if (enfants.taille() == 2) {
 					/* par exemple :
 					 * - static_cast<decltype(a)>(b)
 					 * - (typeof(a))(b)
 					 */
-					std::cout << "transtype(";
-					convertis(enfants[1], trans_unit);
-					std::cout << " : " << converti_type(enfants[0], typedefs) << ')';
+					flux_sortie << "transtype(";
+					convertis(enfants[1], trans_unit, flux_sortie);
+					flux_sortie << " : " << converti_type(enfants[0], typedefs) << ')';
 				}
 
 				break;
@@ -1678,19 +1679,19 @@ struct Convertisseuse {
 				auto chn = determine_expression_unaire(cursor, trans_unit);
 
 				if (chn == "sizeof") {
-					std::cout << "taille_de(";
-					std::cout << converti_type_sizeof(cursor, trans_unit, typedefs);
-					std::cout << ")";
+					flux_sortie << "taille_de(";
+					flux_sortie << converti_type_sizeof(cursor, trans_unit, typedefs);
+					flux_sortie << ")";
 				}
 				else {
-					converti_enfants(cursor, trans_unit);
+					converti_enfants(cursor, trans_unit, flux_sortie);
 				}
 
 				break;
 			}
 			case CXCursorKind::CXCursor_StmtExpr:
 			{
-				converti_enfants(cursor, trans_unit);
+				converti_enfants(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXFinalAttr:
@@ -1704,7 +1705,7 @@ struct Convertisseuse {
 			case CXCursorKind::CXCursor_NullStmt:
 			{
 				/* les lignes ne consistant que d'un ';' */
-				std::cout << '\n';
+				flux_sortie << '\n';
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXNewExpr:
@@ -1712,50 +1713,50 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 				auto cxtype = clang_getCursorType(cursor);
 
-				std::cout << "loge ";
+				flux_sortie << "loge ";
 
 				if (enfants.est_vide()) {
-					std::cout << converti_type(cxtype, typedefs, true);
+					flux_sortie << converti_type(cxtype, typedefs, true);
 				}
 				else {
 					/* tableau */
-					std::cout << '[';
-					convertis(enfants[0], trans_unit);
-					std::cout << ']';
-					std::cout << converti_type(cxtype, typedefs, true);
+					flux_sortie << '[';
+					convertis(enfants[0], trans_unit, flux_sortie);
+					flux_sortie << ']';
+					flux_sortie << converti_type(cxtype, typedefs, true);
 				}
 
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXDeleteExpr:
 			{
-				std::cout << "déloge ";
-				converti_enfants(cursor, trans_unit);
+				flux_sortie << "déloge ";
+				converti_enfants(cursor, trans_unit, flux_sortie);
 				break;
 			}
 			case CXCursorKind::CXCursor_CXXForRangeStmt:
 			{
 				auto enfants = rassemble_enfants(cursor);
 
-				std::cout << "pour ";
-				std::cout << clang_getCursorSpelling(enfants[0]);
-				std::cout << " dans ";
-				std::cout << clang_getCursorSpelling(enfants[1]);
-				std::cout << " {\n";
-				convertis(enfants[2], trans_unit);
-				imprime_tab();
-				std::cout << "}\n";
+				flux_sortie << "pour ";
+				flux_sortie << clang_getCursorSpelling(enfants[0]);
+				flux_sortie << " dans ";
+				flux_sortie << clang_getCursorSpelling(enfants[1]);
+				flux_sortie << " {\n";
+				convertis(enfants[2], trans_unit, flux_sortie);
+				imprime_tab(flux_sortie);
+				flux_sortie << "}\n";
 
 				break;
 			}
 			case CXCursorKind::CXCursor_NamespaceRef:
 			{
-				std::cout << clang_getCursorSpelling(cursor) << '.';
+				flux_sortie << clang_getCursorSpelling(cursor) << '.';
 				break;
 			}
 			case CXCursorKind::CXCursor_TemplateRef:
 			{
-				std::cout << clang_getCursorSpelling(cursor) << '.';
+				flux_sortie << clang_getCursorSpelling(cursor) << '.';
 				break;
 			}
 		}
@@ -1763,27 +1764,27 @@ struct Convertisseuse {
 		--profondeur;
 	}
 
-	void imprime_tab()
+	void imprime_tab(std::ostream &flux_sortie)
 	{
 		for (auto i = 0; i < profondeur - 2; ++i) {
-			std::cout << '\t';
+			flux_sortie << '\t';
 		}
 	}
 
-	void converti_enfants(CXCursor cursor, CXTranslationUnit trans_unit)
+	void converti_enfants(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
 	{
 		auto enfants = rassemble_enfants(cursor);
-		converti_enfants(enfants, trans_unit);
+		converti_enfants(enfants, trans_unit, flux_sortie);
 	}
 
-	void converti_enfants(dls::tableau<CXCursor> const &enfants, CXTranslationUnit trans_unit)
+	void converti_enfants(dls::tableau<CXCursor> const &enfants, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
 	{
 		for (auto enfant : enfants) {
-			convertis(enfant, trans_unit);
+			convertis(enfant, trans_unit, flux_sortie);
 		}
 	}
 
-	void converti_declaration_fonction(CXCursor cursor, CXTranslationUnit trans_unit, bool est_methode_cpp)
+	void converti_declaration_fonction(CXCursor cursor, CXTranslationUnit trans_unit, bool est_methode_cpp, std::ostream &flux_sortie)
 	{
 		auto enfants = rassemble_enfants(cursor);
 
@@ -1800,20 +1801,20 @@ struct Convertisseuse {
 			}
 		}
 
-		imprime_commentaire(cursor, std::cout);
+		imprime_commentaire(cursor, flux_sortie);
 
 		if (clang_Cursor_isFunctionInlined(cursor)) {
-			std::cout << "#!enligne ";
+			flux_sortie << "#!enligne ";
 		}
 
-		std::cout << "fonc ";
-		std::cout << clang_getCursorSpelling(cursor);
+		flux_sortie << "fonc ";
+		flux_sortie << clang_getCursorSpelling(cursor);
 
 		auto virgule = "(";
 
 		if (!noms_structure.est_vide()) {
-			std::cout << virgule;
-			std::cout << "this : *" << noms_structure.haut();
+			flux_sortie << virgule;
+			flux_sortie << "this : *" << noms_structure.haut();
 			virgule = ", ";
 		}
 
@@ -1821,9 +1822,9 @@ struct Convertisseuse {
 			auto param = enfants[i];
 
 			if (est_methode_cpp && param.kind == CXCursorKind::CXCursor_TypeRef) {
-				std::cout << virgule;
-				std::cout << "this : &";
-				std::cout << converti_type(param, typedefs);
+				flux_sortie << virgule;
+				flux_sortie << "this : &";
+				flux_sortie << converti_type(param, typedefs);
 				virgule = ", ";
 				continue;
 			}
@@ -1833,36 +1834,37 @@ struct Convertisseuse {
 				continue;
 			}
 
-			std::cout << virgule;
-			std::cout << clang_getCursorSpelling(param);
-			std::cout << " : ";
-			std::cout << converti_type(param, typedefs);
+			flux_sortie << virgule;
+			flux_sortie << clang_getCursorSpelling(param);
+			flux_sortie << " : ";
+			flux_sortie << converti_type(param, typedefs);
 
 			virgule = ", ";
 		}
 
 		/* Il n'y a pas de paramètres. */
 		if (enfants.taille() == 0 && noms_structure.est_vide()) {
-			std::cout << '(';
+			flux_sortie << '(';
 		}
 
-		std::cout << ") : " << converti_type(cursor, typedefs, true) << '\n';
+		flux_sortie << ") : " << converti_type(cursor, typedefs, true) << '\n';
 
 		if (est_declaration) {
 			/* Nous avons une déclaration */
 			return;
 		}
 
-		std::cout << "{\n";
+		flux_sortie << "{\n";
 
-		convertis(enfant_bloc, trans_unit);
+		convertis(enfant_bloc, trans_unit, flux_sortie);
 
-		std::cout << "}\n\n";
+		flux_sortie << "}\n\n";
 	}
 };
 
 struct Configuration {
 	dls::chaine fichier{};
+	dls::chaine fichier_sortie{};
 	dls::tableau<dls::chaine> args{};
 	dls::tableau<dls::chaine> inclusions{};
 };
@@ -1918,6 +1920,12 @@ static auto analyse_configuration(const char *chemin)
 			auto obj_chaine = extrait_chaine(objet.get());
 			config.inclusions.pousse(obj_chaine->valeur);
 		}
+	}
+
+	auto obj_sortie = cherche_chaine(dico, "sortie");
+
+	if (obj_sortie != nullptr) {
+		config.fichier_sortie = obj_sortie->valeur;
 	}
 
 	return config;
@@ -1982,7 +1990,13 @@ int main(int argc, char **argv)
 	convertisseuse.typedefs.insere({ "size_t", { "ulong" } });
 	convertisseuse.typedefs.insere({ "std::size_t", { "ulong" } });
 
-	convertisseuse.convertis(cursor, unit);
+	if (config.fichier_sortie != "") {
+		std::ofstream fichier(config.fichier_sortie.c_str());
+		convertisseuse.convertis(cursor, unit, fichier);
+	}
+	else {
+		convertisseuse.convertis(cursor, unit, std::cout);
+	}
 
 	if (convertisseuse.cursors_non_pris_en_charges.taille() != 0) {
 		std::cerr << "Les cursors non pris en charges sont :\n";
