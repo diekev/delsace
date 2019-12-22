@@ -234,7 +234,6 @@ fonc principale(args : []*z8) : z32
 	dyn arachné : Arachné
 
 	colonne = Colonne{ nom="nom", type = TypeDonnées.NOMBRE_ENTIER }
-	# À FAIRE : erreur de compilation du code C pour type inconnu
 	colonnes = [colonne]
 	arachné.crée_schéma("FONCTION", colonnes)
 
