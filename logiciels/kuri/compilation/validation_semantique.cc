@@ -1109,7 +1109,11 @@ void performe_validation_semantique(
 				dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
 				dt_tfixe.pousse(type_tabl);
 
-				contexte.magasin_types.ajoute_type(dt_tfixe);
+				auto idx_dt_tfixe = contexte.magasin_types.ajoute_type(dt_tfixe);
+
+				if (fonction_courante != nullptr) {
+					fonction_courante->types_utilises.insere(idx_dt_tfixe);
+				}
 			}
 
 			/* les drapeaux pour les arguments simples */
@@ -2225,6 +2229,10 @@ void performe_validation_semantique(
 							contexte,
 							b->donnees_morceau(),
 							erreur::type_erreur::TYPE_INCONNU);
+			}
+
+			if (fonction_courante != nullptr) {
+				fonction_courante->types_utilises.insere(b->index_type);
 			}
 
 			auto enfant = b->enfants.front();
