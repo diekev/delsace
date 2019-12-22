@@ -1585,37 +1585,6 @@ void performe_validation_semantique(
 
 			/* À FAIRE : conversion automatique */
 
-#if 0
-			/* Désactivation du code de correction d'arbre syntactic pour
-			 * l'opérateur 'de', il cause trop de problème, pour une logique
-			 * trop compliquée. */
-			if ((b->morceau.identifiant == id_morceau::CROCHET_OUVRANT)
-					&& ((enfant2->type == type_noeud::ACCES_MEMBRE && !possede_drapeau(enfant2->drapeaux, IGNORE_OPERATEUR))
-						|| enfant2->morceau.identifiant == id_morceau::CROCHET_OUVRANT))
-			{
-				/* Pour corriger les accès membres via 'de' ou les accès chainés
-				 * des opérateurs[], il faut interchanger le premier enfant des
-				 * noeuds. */
-
-				auto enfant1de = enfant2->enfants.front();
-				auto enfant2de = enfant2->enfants.back();
-
-				b->enfants.efface();
-				enfant2->enfants.efface();
-
-				/* inverse les enfants pour que le 'pointeur' soit à gauche et
-				 * l'index à droite */
-				b->enfants.pousse(enfant2);
-				b->enfants.pousse(enfant1de);
-
-				enfant2->enfants.pousse(enfant1);
-				enfant2->enfants.pousse(enfant2de);
-
-				enfant1 = b->enfants.front();
-				enfant2 = b->enfants.back();
-			}
-#endif
-
 			performe_validation_semantique(enfant1, contexte, expr_gauche);
 			performe_validation_semantique(enfant2, contexte, expr_gauche);
 
