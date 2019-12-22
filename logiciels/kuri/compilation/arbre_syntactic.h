@@ -227,6 +227,47 @@ enum {
 	REQUIERS_CODE_EXTRA_RETOUR,
 };
 
+/* Le type d'une valeur, gauche, droite, ou transcendantale.
+ *
+ * Une valeur gauche est une valeur qui peut être assignée, donc à
+ * gauche de '=', et comprend :
+ * - les variables et accès de membres de structures
+ * - les déréférencements (via mémoire(...))
+ * - les opérateurs []
+ *
+ * Une valeur droite est une valeur qui peut être utilisée dans une
+ * assignation, donc à droite de '=', et comprend :
+ * - les valeurs littéralles (0, 1.5, "chaine", 'a', vrai)
+ * - les énumérations
+ * - les variables et accès de membres de structures
+ * - les pointeurs de fonctions
+ * - les déréférencements (via mémoire(...))
+ * - les opérateurs []
+ * - les transtypages
+ * - les prises d'addresses (via @...)
+ *
+ * Une valeur transcendantale est une valeur droite qui peut aussi être
+ * une valeur gauche (l'intersection des deux ensembles).
+ */
+enum TypeValeur : char {
+	INVALIDE = 0,
+	GAUCHE = (1 << 1),
+	DROITE = (1 << 2),
+	TRANSCENDANTALE = GAUCHE | DROITE,
+};
+
+DEFINIE_OPERATEURS_DRAPEAU(TypeValeur, char)
+
+inline bool est_valeur_gauche(TypeValeur type_valeur)
+{
+	return (type_valeur & TypeValeur::GAUCHE) != TypeValeur::INVALIDE;
+}
+
+inline bool est_valeur_droite(TypeValeur type_valeur)
+{
+	return (type_valeur & TypeValeur::DROITE) != TypeValeur::INVALIDE;
+}
+
 struct DonneesFonction;
 struct DonneesOperateur;
 
@@ -259,6 +300,8 @@ struct base {
 	DonneesOperateur const *op = nullptr;
 
 	DonneesTypeDeclare type_declare{};
+
+	TypeValeur type_valeur = TypeValeur::INVALIDE;
 
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceau const &morceau);
 

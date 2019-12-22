@@ -593,6 +593,7 @@ static void valide_acces_membre(
 
 					/* le type de l'accès est celui du retour de la fonction */
 					b->index_type = membre->index_type;
+					b->type_valeur = TypeValeur::DROITE;
 					return;
 				}
 			}
@@ -615,6 +616,7 @@ static void valide_acces_membre(
 		b->nom_fonction_appel = membre->nom_fonction_appel;
 		b->df = membre->df;
 		b->enfants = membre->enfants;
+		b->type_valeur = TypeValeur::DROITE;
 
 		return;
 	}
@@ -695,6 +697,7 @@ static void valide_acces_membre(
 			}
 
 			b->index_type = donnees_structure.index_type;
+			b->type_valeur = TypeValeur::DROITE;
 			return;
 		}
 
@@ -1019,6 +1022,8 @@ void performe_validation_semantique(
 			auto const nom_fonction = dls::chaine(b->morceau.chaine);
 			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 
+			b->type_valeur = TypeValeur::DROITE;
+
 			if (b->nom_fonction_appel != "") {
 				/* Nous avons déjà validé ce noeud, sans doute via une syntaxe
 				 * d'appel uniforme. */
@@ -1173,6 +1178,8 @@ void performe_validation_semantique(
 			 * soit x = 5; # déclaration car taggé
 			 * x = 6; # illégal car non dynamique
 			 */
+
+			b->type_valeur = TypeValeur::TRANSCENDANTALE;
 
 			auto declare_variable = [&b, &contexte, &fonction_courante, &graphe]()
 			{
@@ -1343,6 +1350,7 @@ void performe_validation_semantique(
 		{
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
+			b->type_valeur = TypeValeur::TRANSCENDANTALE;
 
 			valide_acces_membre(contexte, b, structure, membre, expr_gauche);
 			break;
@@ -1351,6 +1359,7 @@ void performe_validation_semantique(
 		{
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
+			b->type_valeur = TypeValeur::TRANSCENDANTALE;
 
 			auto const nom_symbole = enfant1->chaine();
 
@@ -1494,6 +1503,14 @@ void performe_validation_semantique(
 			auto est_declaration = variable->aide_generation_code == GENERE_CODE_DECL_VAR;
 			est_declaration |= variable->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE;
 
+			if (!est_valeur_gauche(variable->type_valeur)) {
+				erreur::lance_erreur(
+							"Impossible d'assigner une expression à une valeur-droite !",
+							contexte,
+							b->morceau,
+							erreur::type_erreur::ASSIGNATION_INVALIDE);
+			}
+
 			if (!est_declaration && !peut_etre_assigne(variable, contexte)) {
 				erreur::lance_erreur(
 							"Impossible d'assigner l'expression à la variable !",
@@ -1535,6 +1552,7 @@ void performe_validation_semantique(
 		}
 		case type_noeud::NOMBRE_REEL:
 		{
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types[TYPE_R64];
 
 			if (fonction_courante != nullptr) {
@@ -1545,6 +1563,7 @@ void performe_validation_semantique(
 		}
 		case type_noeud::NOMBRE_ENTIER:
 		{
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types[TYPE_Z32];
 
 			if (fonction_courante != nullptr) {
@@ -1555,6 +1574,8 @@ void performe_validation_semantique(
 		}
 		case type_noeud::OPERATION_BINAIRE:
 		{
+			b->type_valeur = TypeValeur::DROITE;
+
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
@@ -1649,6 +1670,7 @@ void performe_validation_semantique(
 			}
 			else if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				b->type = type_noeud::ACCES_TABLEAU;
+				b->type_valeur = TypeValeur::TRANSCENDANTALE;
 
 				auto type_base = type1.type_base();
 
@@ -1741,6 +1763,8 @@ void performe_validation_semantique(
 		}
 		case type_noeud::OPERATION_UNAIRE:
 		{
+			b->type_valeur = TypeValeur::DROITE;
+
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte, expr_gauche);
 			auto index_type = enfant->index_type;
@@ -1748,6 +1772,13 @@ void performe_validation_semantique(
 
 			if (b->index_type == -1l) {
 				if (b->identifiant() == id_morceau::AROBASE) {
+					if (!est_valeur_gauche(enfant->type_valeur)) {
+						erreur::lance_erreur(
+									"Ne peut pas prendre l'adresse d'une valeur-droite.",
+									contexte,
+									enfant->morceau);
+					}
+
 					auto dt = DonneesTypeFinal{};
 					dt.pousse(id_morceau::POINTEUR);
 					dt.pousse(type);
@@ -1774,6 +1805,8 @@ void performe_validation_semantique(
 		}
 		case type_noeud::RETOUR:
 		{
+			b->type_valeur = TypeValeur::DROITE;
+
 			if (b->enfants.est_vide()) {
 				b->index_type = contexte.magasin_types[TYPE_RIEN];
 
@@ -1898,6 +1931,7 @@ void performe_validation_semantique(
 			 * où la valeur calculee est redéfinie. */
 			b->valeur_calculee = corrigee;
 			b->index_type = contexte.magasin_types[TYPE_CHAINE];
+			b->type_valeur = TypeValeur::DROITE;
 
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
@@ -1907,6 +1941,7 @@ void performe_validation_semantique(
 		}
 		case type_noeud::BOOLEEN:
 		{
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types[TYPE_BOOL];
 
 			if (fonction_courante != nullptr) {
@@ -1917,6 +1952,7 @@ void performe_validation_semantique(
 		}
 		case type_noeud::CARACTERE:
 		{
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types[TYPE_Z8];
 
 			if (fonction_courante != nullptr) {
@@ -2178,6 +2214,7 @@ void performe_validation_semantique(
 		}
 		case type_noeud::TRANSTYPE:
 		{
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = resoud_type_final(contexte, b->type_declare);
 
 			/* À FAIRE : vérifie compatibilité */
@@ -2205,6 +2242,7 @@ void performe_validation_semantique(
 		}
 		case type_noeud::NUL:
 		{
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types[TYPE_PTR_NUL];
 			break;
 		}
@@ -2212,6 +2250,7 @@ void performe_validation_semantique(
 		{
 			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
 			b->valeur_calculee = resoud_type_final(contexte, type_declare);
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types[TYPE_N32];
 			valides_enfants(b, contexte, false);
 			break;
@@ -2382,6 +2421,8 @@ void performe_validation_semantique(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
+			b->type_valeur = TypeValeur::DROITE;
+
 			dls::tableau<base *> feuilles;
 			rassemble_feuilles(b->enfants.front(), feuilles);
 
@@ -2425,6 +2466,8 @@ void performe_validation_semantique(
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
 		{
+			b->type_valeur = TypeValeur::DROITE;
+
 			/* cherche la structure dans le tableau de structure */
 			if (!contexte.structure_existe(b->chaine())) {
 				erreur::lance_erreur(
@@ -2570,6 +2613,7 @@ void performe_validation_semantique(
 			dt.pousse(id_morceau::POINTEUR);
 			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
 
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
 
 			break;
@@ -2580,6 +2624,7 @@ void performe_validation_semantique(
 			performe_validation_semantique(enfant, contexte, false);
 
 			auto &dt_enfant = trouve_donnees_type(contexte, enfant);
+			b->type_valeur = TypeValeur::TRANSCENDANTALE;
 			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.dereference());
 
 			if (dt_enfant.type_base() != id_morceau::POINTEUR) {
@@ -2597,6 +2642,7 @@ void performe_validation_semantique(
 			auto nombre_enfant = b->enfants.taille();
 			auto enfant = b->enfants.debut();
 
+			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = resoud_type_final(contexte, b->type_declare, false, false);
 
 			auto &dt = trouve_donnees_type(contexte, b);
