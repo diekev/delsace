@@ -398,7 +398,7 @@ bool est_constant(base *b)
 
 /* ************************************************************************** */
 
-static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
+static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool emet_erreur = true)
 {
 	switch (b->type) {
 		default:
@@ -411,11 +411,15 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 
 			if (iter_local != contexte.fin_locales()) {
 				if (!iter_local->second.est_dynamique) {
-					erreur::lance_erreur(
-								"Ne peut pas assigner une variable locale non-dynamique",
-								contexte,
-								b->donnees_morceau(),
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
+					if (emet_erreur) {
+						erreur::lance_erreur(
+									"Ne peut pas assigner une variable locale non-dynamique",
+									contexte,
+									b->donnees_morceau(),
+									erreur::type_erreur::ASSIGNATION_INVALIDE);
+					}
+
+					return false;
 				}
 
 				return true;
@@ -425,19 +429,27 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 
 			if (iter_globale != contexte.fin_globales()) {
 				if (!contexte.non_sur()) {
-					erreur::lance_erreur(
-								"Ne peut pas assigner une variable globale en dehors d'un bloc 'nonsûr'",
-								contexte,
-								b->donnees_morceau(),
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
+					if (emet_erreur) {
+						erreur::lance_erreur(
+									"Ne peut pas assigner une variable globale en dehors d'un bloc 'nonsûr'",
+									contexte,
+									b->donnees_morceau(),
+									erreur::type_erreur::ASSIGNATION_INVALIDE);
+					}
+
+					return false;
 				}
 
 				if (!iter_globale->second.est_dynamique) {
-					erreur::lance_erreur(
-								"Ne peut pas assigner une variable globale non-dynamique",
-								contexte,
-								b->donnees_morceau(),
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
+					if (emet_erreur) {
+						erreur::lance_erreur(
+									"Ne peut pas assigner une variable globale non-dynamique",
+									contexte,
+									b->donnees_morceau(),
+									erreur::type_erreur::ASSIGNATION_INVALIDE);
+					}
+
+					return false;
 				}
 
 				return true;
@@ -447,13 +459,13 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte)
 		}
 		case type_noeud::ACCES_MEMBRE_DE:
 		{
-			return peut_etre_assigne(b->enfants.back(), contexte);
+			return peut_etre_assigne(b->enfants.back(), contexte, emet_erreur);
 		}
 		case type_noeud::ACCES_MEMBRE_UNION:
 		case type_noeud::ACCES_MEMBRE_POINT:
 		case type_noeud::ACCES_TABLEAU:
 		{
-			return peut_etre_assigne(b->enfants.front(), contexte);
+			return peut_etre_assigne(b->enfants.front(), contexte, emet_erreur);
 		}
 	}
 }
@@ -2116,20 +2128,7 @@ void performe_validation_semantique(
 
 			contexte.empile_nombre_locales();
 
-			auto est_dynamique = false;
-			auto iter_locale = contexte.iter_locale(enfant2->chaine());
-
-			if (iter_locale != contexte.fin_locales()) {
-				est_dynamique = iter_locale->second.est_dynamique;
-			}
-			else {
-				auto iter_globale = contexte.iter_globale(enfant2->chaine());
-
-				if (iter_globale != contexte.fin_globales()) {
-					est_dynamique = iter_globale->second.est_dynamique;
-				}
-			}
-
+			auto est_dynamique = peut_etre_assigne(enfant2, contexte, false);
 			auto nombre_feuilles = feuilles.taille() - requiers_index;
 
 			for (auto i = 0l; i < nombre_feuilles; ++i) {

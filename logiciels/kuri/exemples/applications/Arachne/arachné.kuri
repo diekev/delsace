@@ -200,8 +200,7 @@ fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32
 
 	pour colonne dans schéma.colonnes {
 		si compare_chaines(nom_colonne, colonne.nom) {
-			# À FAIRE : considéré comme une assignation à une variable constante
-			#colonne.données[noeud.id_ligne] = valeur
+			colonne.données[noeud.id_ligne] = valeur
 		}
 	}
 
