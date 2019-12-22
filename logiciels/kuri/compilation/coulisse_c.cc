@@ -3240,7 +3240,8 @@ void genere_code_C(
 static void traverse_graphe_pour_generation_code(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
-		NoeudDependance *noeud)
+		NoeudDependance *noeud,
+		bool genere_info_type = true)
 {
 	noeud->fut_visite = true;
 
@@ -3253,7 +3254,7 @@ static void traverse_graphe_pour_generation_code(
 			continue;
 		}
 
-		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin);
+		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin, genere_info_type);
 	}
 
 	if (noeud->type == TypeNoeudDependance::TYPE) {
@@ -3261,22 +3262,30 @@ static void traverse_graphe_pour_generation_code(
 			genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
 		}
 
-		if (noeud->index != -1) {
-			/* Suppression des avertissements pour les conversions dites
-			 * « imcompatibles » alors qu'elles sont bonnes.
-			 * Elles surviennent dans les assignations des pointeurs, par exemple pour
-			 * ceux des tableaux des membres des fonctions.
-			 */
-			generatrice.os << "#pragma GCC diagnostic push\n";
-			generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
-
-			auto &dt = contexte.magasin_types.donnees_types[noeud->index];
-			auto id_info_type = IDInfoType();
-
-			cree_info_type_C(contexte, generatrice, generatrice.os, dt, id_info_type);
-
-			generatrice.os << "#pragma GCC diagnostic pop\n";
+		if (noeud->index == -1) {
+			return;
 		}
+
+		auto &dt = contexte.magasin_types.donnees_types[noeud->index];
+		cree_typedef(contexte, dt, generatrice.os);
+
+		if (!genere_info_type) {
+			return;
+		}
+
+		/* Suppression des avertissements pour les conversions dites
+		 * « imcompatibles » alors qu'elles sont bonnes.
+		 * Elles surviennent dans les assignations des pointeurs, par exemple pour
+		 * ceux des tableaux des membres des fonctions.
+		 */
+		generatrice.os << "#pragma GCC diagnostic push\n";
+		generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
+
+		auto id_info_type = IDInfoType();
+
+		cree_info_type_C(contexte, generatrice, generatrice.os, dt, id_info_type);
+
+		generatrice.os << "#pragma GCC diagnostic pop\n";
 	}
 	else {
 		genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
@@ -3306,6 +3315,7 @@ void genere_code_C(
 	contexte.magasin_types.declare_structures_C(contexte, os);
 
 	auto debut_generation = dls::chrono::compte_seconde();
+	auto &graphe_dependance = contexte.graphe_dependance;
 
 	/* il faut d'abord crée le code pour les structures InfoType */
 	const char *noms_structs_infos_types[] = {
@@ -3321,12 +3331,21 @@ void genere_code_C(
 	};
 
 	for (auto nom_struct : noms_structs_infos_types) {
-		genere_declaration_structure(contexte, generatrice.os, nom_struct);
+		auto const &ds = contexte.donnees_structure(nom_struct);
+		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false);
+		/* restaure le drapeaux pour la génération des infos des types */
+		noeud->fut_visite = false;
+	}
+
+	for (auto nom_struct : noms_structs_infos_types) {
+		auto const &ds = contexte.donnees_structure(nom_struct);
+		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, true);
 	}
 
 	temps_generation += debut_generation.temps();
 
-	auto &graphe_dependance = contexte.graphe_dependance;
 	reduction_transitive(graphe_dependance);
 
 	auto noeud = graphe_dependance.cherche_noeud_fonction("principale");

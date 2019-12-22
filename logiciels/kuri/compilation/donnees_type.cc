@@ -462,6 +462,113 @@ long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 	return index;
 }
 
+void cree_typedef(
+		ContexteGenerationCode &contexte,
+		DonneesTypeFinal &donnees,
+		dls::flux_chaine &os)
+{
+	auto const &nom_broye = nom_broye_type(contexte, donnees);
+	auto &magasin = contexte.magasin_types;
+
+	if (donnees.type_base() == id_morceau::TABLEAU || donnees.type_base() == id_morceau::TROIS_POINTS) {
+		if (est_invalide(donnees.dereference())) {
+			return;
+		}
+
+		os << "typedef struct Tableau_" << nom_broye;
+
+		os << "{\n\t";
+
+		magasin.converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+
+		os << " *pointeur;\n\tlong taille;\n} " << nom_broye << ";\n\n";
+	}
+	else if ((donnees.type_base() & 0xff) == id_morceau::TABLEAU) {
+		os << "typedef ";
+		magasin.converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+		os << ' ' << nom_broye;
+		os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
+		os << ";\n\n";
+	}
+	else if (donnees.type_base() == id_morceau::COROUT) {
+		/* ne peut prendre un pointeur vers une coroutine pour le moment */
+	}
+	else if (donnees.type_base() == id_morceau::FONC) {
+		auto nombre_types_retour = 0l;
+		auto type_parametres = donnees_types_parametres(contexte.magasin_types, donnees, nombre_types_retour);
+
+		auto prefixe = dls::chaine("");
+		auto suffixe = dls::chaine("");
+
+		auto nombre_types_entree = type_parametres.taille() - nombre_types_retour;
+
+		auto nouveau_nom_broye = dls::chaine("Kf");
+		nouveau_nom_broye += dls::vers_chaine(nombre_types_entree);
+
+		if (nombre_types_retour > 1) {
+			prefixe += "void (*";
+		}
+		else {
+			auto &dt = contexte.magasin_types.donnees_types[type_parametres.back()];
+			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
+			prefixe += nom_broye_dt + " (*";
+		}
+
+		auto virgule = "(";
+
+		for (auto i = 0; i < nombre_types_entree; ++i) {
+			auto &dt = contexte.magasin_types.donnees_types[type_parametres[i]];
+			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
+
+			suffixe += virgule;
+			suffixe += nom_broye_dt;
+			nouveau_nom_broye += nom_broye_dt;
+			virgule = ",";
+		}
+
+		if (nombre_types_entree == 0) {
+			suffixe += virgule;
+			virgule = ",";
+		}
+
+		nouveau_nom_broye += dls::vers_chaine(nombre_types_retour);
+
+		for (auto i = nombre_types_entree; i < type_parametres.taille(); ++i) {
+			auto &dt = contexte.magasin_types.donnees_types[type_parametres[i]];
+			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
+
+			if (nombre_types_retour > 1) {
+				suffixe += virgule;
+				suffixe += nom_broye_dt;
+			}
+
+			nouveau_nom_broye += nom_broye_dt;
+		}
+
+		suffixe += ")";
+
+		donnees.nom_broye = nouveau_nom_broye;
+
+		nouveau_nom_broye = prefixe + nouveau_nom_broye + ")" + suffixe;
+
+		os << "typedef " << nouveau_nom_broye << ";\n\n";
+	}
+	/* cas spécial pour les types complexes : &[]z8 */
+	else if (donnees.type_base() == id_morceau::POINTEUR || donnees.type_base() == id_morceau::REFERENCE) {
+		auto index = contexte.magasin_types.ajoute_type(donnees.dereference());
+		auto &dt_deref = contexte.magasin_types.donnees_types[index];
+
+		auto nom_broye_deref = nom_broye_type(contexte, dt_deref);
+
+		os << "typedef " << nom_broye_deref << "* " << nom_broye << ";\n\n";
+	}
+	else {
+		os << "typedef ";
+		magasin.converti_type_C(contexte, "", donnees.plage(), os, false, true);
+		os << ' ' << nom_broye <<  ";\n\n";
+	}
+}
+
 void MagasinDonneesType::declare_structures_C(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &os)
@@ -476,108 +583,6 @@ void MagasinDonneesType::declare_structures_C(
 	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
 	 * typés */
 	os << "#define Kv ...\n";
-
-	for (auto &donnees : donnees_types) {
-		auto const &nom_broye = nom_broye_type(contexte, donnees);
-
-		if (donnees.type_base() == id_morceau::TABLEAU || donnees.type_base() == id_morceau::TROIS_POINTS) {
-			if (est_invalide(donnees.dereference())) {
-				continue;
-			}
-
-			os << "typedef struct Tableau_" << nom_broye;
-
-			os << "{\n\t";
-
-			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
-
-			os << " *pointeur;\n\tlong taille;\n} " << nom_broye << ";\n\n";
-		}
-		else if ((donnees.type_base() & 0xff) == id_morceau::TABLEAU) {
-			os << "typedef ";
-			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
-			os << ' ' << nom_broye;
-			os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
-			os << ";\n\n";
-		}
-		else if (donnees.type_base() == id_morceau::COROUT) {
-			/* ne peut prendre un pointeur vers une coroutine pour le moment */
-		}
-		else if (donnees.type_base() == id_morceau::FONC) {
-			auto nombre_types_retour = 0l;
-			auto type_parametres = donnees_types_parametres(contexte.magasin_types, donnees, nombre_types_retour);
-
-			auto prefixe = dls::chaine("");
-			auto suffixe = dls::chaine("");
-
-			auto nombre_types_entree = type_parametres.taille() - nombre_types_retour;
-
-			auto nouveau_nom_broye = dls::chaine("Kf");
-			nouveau_nom_broye += dls::vers_chaine(nombre_types_entree);
-
-			if (nombre_types_retour > 1) {
-				prefixe += "void (*";
-			}
-			else {
-				auto &dt = contexte.magasin_types.donnees_types[type_parametres.back()];
-				auto const &nom_broye_dt = nom_broye_type(contexte, dt);
-				prefixe += nom_broye_dt + " (*";
-			}
-
-			auto virgule = "(";
-
-			for (auto i = 0; i < nombre_types_entree; ++i) {
-				auto &dt = contexte.magasin_types.donnees_types[type_parametres[i]];
-				auto const &nom_broye_dt = nom_broye_type(contexte, dt);
-
-				suffixe += virgule;
-				suffixe += nom_broye_dt;
-				nouveau_nom_broye += nom_broye_dt;
-				virgule = ",";
-			}
-
-			if (nombre_types_entree == 0) {
-				suffixe += virgule;
-				virgule = ",";
-			}
-
-			nouveau_nom_broye += dls::vers_chaine(nombre_types_retour);
-
-			for (auto i = nombre_types_entree; i < type_parametres.taille(); ++i) {
-				auto &dt = contexte.magasin_types.donnees_types[type_parametres[i]];
-				auto const &nom_broye_dt = nom_broye_type(contexte, dt);
-
-				if (nombre_types_retour > 1) {
-					suffixe += virgule;
-					suffixe += nom_broye_dt;
-				}
-
-				nouveau_nom_broye += nom_broye_dt;
-			}
-
-			suffixe += ")";
-
-			donnees.nom_broye = nouveau_nom_broye;
-
-			nouveau_nom_broye = prefixe + nouveau_nom_broye + ")" + suffixe;
-
-			os << "typedef " << nouveau_nom_broye << ";\n\n";
-		}
-		/* cas spécial pour les types complexes : &[]z8 */
-		else if (donnees.type_base() == id_morceau::POINTEUR || donnees.type_base() == id_morceau::REFERENCE) {
-			auto index = contexte.magasin_types.ajoute_type(donnees.dereference());
-			auto &dt_deref = contexte.magasin_types.donnees_types[index];
-
-			auto nom_broye_deref = nom_broye_type(contexte, dt_deref);
-
-			os << "typedef " << nom_broye_deref << "* " << nom_broye << ";\n\n";
-		}
-		else {
-			os << "typedef ";
-			converti_type_C(contexte, "", donnees.plage(), os, false, true);
-			os << ' ' << nom_broye <<  ";\n\n";
-		}
-	}
 }
 
 long MagasinDonneesType::operator[](int type)

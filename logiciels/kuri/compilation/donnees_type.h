@@ -488,6 +488,11 @@ private:
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type);
 
+void cree_typedef(
+		ContexteGenerationCode &contexte,
+		DonneesTypeFinal &donnees,
+		dls::flux_chaine &os);
+
 /* ************************************************************************** */
 
 enum class type_noeud : char;
