@@ -3312,7 +3312,17 @@ void genere_code_C(
 		temps_validation += debut_validation.temps();
 	}
 
-	contexte.magasin_types.declare_structures_C(contexte, os);
+	/* déclaration des types de bases */
+	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
+	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
+	os << "typedef unsigned char bool;\n";
+	os << "typedef unsigned char octet;\n";
+	os << "typedef void Ksnul;\n";
+	os << "typedef struct __contexte_global Ks__contexte_global;\n";
+	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
+	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
+	 * typés */
+	os << "#define Kv ...\n";
 
 	auto debut_generation = dls::chrono::compte_seconde();
 	auto &graphe_dependance = contexte.graphe_dependance;

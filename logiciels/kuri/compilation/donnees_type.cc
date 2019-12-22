@@ -569,22 +569,6 @@ void cree_typedef(
 	}
 }
 
-void MagasinDonneesType::declare_structures_C(
-		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os)
-{
-	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n\n";
-	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n\n";
-	os << "typedef unsigned char bool;\n\n";
-	os << "typedef unsigned char octet;\n\n";
-	os << "typedef void Ksnul;\n\n";
-	os << "typedef struct __contexte_global Ks__contexte_global;\n\n";
-	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
-	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
-	 * typés */
-	os << "#define Kv ...\n";
-}
-
 long MagasinDonneesType::operator[](int type)
 {
 	return index_types_communs[type];

@@ -456,10 +456,6 @@ struct MagasinDonneesType {
 			size_t donnees);
 #endif
 
-	void declare_structures_C(
-			ContexteGenerationCode &contexte,
-			dls::flux_chaine &os);
-
 	long operator[](int type);
 
 private:
