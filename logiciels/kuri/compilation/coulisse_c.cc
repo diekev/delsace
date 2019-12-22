@@ -3317,7 +3317,7 @@ void genere_code_C(
 	auto debut_generation = dls::chrono::compte_seconde();
 	auto &graphe_dependance = contexte.graphe_dependance;
 
-	/* il faut d'abord crée le code pour les structures InfoType */
+	/* il faut d'abord créer le code pour les structures InfoType */
 	const char *noms_structs_infos_types[] = {
 		"InfoType",
 		"InfoTypeEntier",
