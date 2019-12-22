@@ -202,7 +202,7 @@ bool est_operateur_comp(id_morceau type)
 
 bool peut_etre_dereference(id_morceau id)
 {
-	switch (id) {
+	switch (id & 0xff) {
 		default:
 			return false;
 		case id_morceau::POINTEUR:
