@@ -2458,8 +2458,16 @@ void performe_validation_semantique(
 
 			b->index_type = contexte.magasin_types.ajoute_type(dt);
 
+			/* ajoute également le type de pointeur pour la génération de code C */
+			dt = DonneesTypeFinal{};
+			dt.pousse(id_morceau::POINTEUR);
+			dt.pousse(contexte.magasin_types.donnees_types[type_feuille]);
+
+			auto index_type_ptr = contexte.magasin_types.ajoute_type(dt);
+
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
+				fonction_courante->types_utilises.insere(index_type_ptr);
 			}
 
 			break;
