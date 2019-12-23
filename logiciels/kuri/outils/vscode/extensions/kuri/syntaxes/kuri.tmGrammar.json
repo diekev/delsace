@@ -2,6 +2,7 @@
     "scopeName": "source.kuri",
     "patterns": [
         { "include": "#comment" },
+        { "include": "#directive" },
         { "include": "#control-keyword" },
         { "include": "#other-keyword" },
         { "include": "#string" },
@@ -14,8 +15,13 @@
     "repository": {
         "comment": {
             "name": "comment.kuri",
-            "begin": "#",
+            "begin": "#[^!]",
             "end": "\\n"
+        },
+        "directive": {
+            "name": "comment.kuri",
+            "begin": "#!",
+            "end": " "
         },
         "control-keyword": {
             "name": "keyword.control.kuri",
