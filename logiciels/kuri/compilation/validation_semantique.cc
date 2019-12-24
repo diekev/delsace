@@ -541,8 +541,25 @@ static auto valide_appel_pointeur_fonction(
 
 	auto enfant = b->enfants.debut();
 
+	auto debut_params = 0l;
+
+	if (dt_params.taille() > 0) {
+		if (dt_params[0] == contexte.index_type_ctx) {
+			debut_params = 1;
+
+			auto fonc_courante = contexte.donnees_fonction;
+
+			if (fonc_courante != nullptr && dls::outils::possede_drapeau(fonc_courante->noeud_decl->drapeaux, FORCE_NULCTX)) {
+				erreur::lance_erreur_fonction_nulctx(contexte, b, b, fonc_courante->noeud_decl);
+			}
+		}
+		else {
+			b->drapeaux |= FORCE_NULCTX;
+		}
+	}
+
 	/* Validation des types passés en paramètre. */
-	for (auto i = 0l; i < dt_params.taille() - nombre_type_retour; ++i) {
+	for (auto i = debut_params; i < dt_params.taille() - nombre_type_retour; ++i) {
 		auto &type_prm = contexte.magasin_types.donnees_types[dt_params[i]];
 		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
 
@@ -814,6 +831,14 @@ void performe_validation_semantique(
 						donnees_fonction->est_coroutine ? id_morceau::COROUT : id_morceau::FONC);
 
 			donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
+			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+				ajoute_contexte_programme(contexte, donnees_fonction->type_declare);
+
+				if (feuilles.taille() != 0) {
+					donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+				}
+			}
 
 			auto noms = dls::ensemble<dls::vue_chaine_compacte>();
 			auto dernier_est_variadic = false;

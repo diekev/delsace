@@ -489,6 +489,10 @@ void cree_typedef(
 		DonneesTypeFinal &donnees,
 		dls::flux_chaine &os);
 
+void ajoute_contexte_programme(
+		ContexteGenerationCode &contexte,
+		DonneesTypeDeclare &dt);
+
 /* ************************************************************************** */
 
 enum class type_noeud : char;

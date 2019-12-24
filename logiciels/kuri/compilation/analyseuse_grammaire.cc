@@ -1497,6 +1497,21 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 		lance_erreur("Attendu ':'");
 	}
 
+	auto nulctx = false;
+
+	if (est_identifiant(id_morceau::DIRECTIVE)) {
+		avance();
+		avance();
+
+		auto nom_directive = donnees().chaine;
+
+		if (nom_directive != "nulctx") {
+			lance_erreur("Directive invalide pour le type");
+		}
+
+		nulctx = true;
+	}
+
 	/* Vérifie si l'on a un pointeur vers une fonction. */
 	if (est_identifiant(id_morceau::FONC) || est_identifiant(id_morceau::COROUT)) {
 		avance();
@@ -1509,6 +1524,14 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 		}
 
 		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
+		if (!nulctx) {
+			ajoute_contexte_programme(m_contexte, dt);
+
+			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+				dt.pousse(id_morceau::VIRGULE);
+			}
+		}
 
 		while (true) {
 			if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {

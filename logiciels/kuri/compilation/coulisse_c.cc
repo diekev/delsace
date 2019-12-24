@@ -856,6 +856,13 @@ static void cree_appel(
 			virgule = ',';
 		}
 	}
+	else {
+		if (!dls::outils::possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+			os << virgule;
+			os << "ctx";
+			virgule = ',';
+		}
+	}
 
 	for (auto enf : enfants) {
 		os << virgule;
