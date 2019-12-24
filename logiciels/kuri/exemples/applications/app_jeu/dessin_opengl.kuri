@@ -21,8 +21,8 @@ fonc charge_programme() : n32
     smooth out vec4 couleur;
     void main()
     {
-        gl_Position.xyz = 2.0 * sommet - 1.0;
-        gl_Position.w = 1.0;
+        gl_Position.xyz = 2.0 * sommet - transtype(1.0 : r32);
+        gl_Position.w = transtype(1.0 : r32);
         couleur = couleurs;
     }
     "
@@ -183,9 +183,9 @@ fonc dessine_triangle() : rien
 {
     débute_dessin()
 
-    ajoute_sommet(-1.0, -1.0, 0.0)
-    ajoute_sommet( 1.0, -1.0, 0.0)
-    ajoute_sommet( 0.0,  1.0, 0.0)
+    ajoute_sommet(transtype(-transtype(1.0 : r32) : r32), transtype(-transtype(1.0 : r32) : r32), 0.0)
+    ajoute_sommet( transtype(1.0 : r32), transtype(-transtype(1.0 : r32) : r32), 0.0)
+    ajoute_sommet( 0.0,  transtype(1.0 : r32), 0.0)
 
     termine_dessin()
 }
@@ -218,8 +218,8 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) :
 
 fonc dessine_carré() : rien
 {
-    soit couleur = Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
-    dessine_carré_ex(-0.5, -0.5, 1.0, 1.0, couleur)
+    soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
+    dessine_carré_ex(transtype(-0.5 : r32), transtype(-0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32), couleur)
 }
 
 fonc externe cos(a : r32) : r32
@@ -280,12 +280,12 @@ fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) : 
     soit rx = arrondis_pixel / largeur
     soit ry = arrondis_pixel / hauteur
 
-    soit px : r32 = transtype(-1.0 + rx : r32)
-    soit py : r32 = transtype(-1.0 + ry : r32)
+    soit px : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + rx : r32)
+    soit py : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + ry : r32)
     soit tx : r32 = transtype(2.0 - 2.0 * rx : r32)
     soit ty : r32 = transtype(2.0 - 2.0 * ry : r32)
 
-    soit couleur = Couleur{r = 1.0, v = 1.0, b = 0.0, a = 1.0 }
+    soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
 
     # dessine centre
     dessine_carré_ex(px, py, tx, ty, couleur)
