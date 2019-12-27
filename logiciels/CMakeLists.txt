@@ -19,7 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ajoute_sousdossier(AVEC_ARACHNE arachne)
 ajoute_sousdossier(AVEC_CRESUS cresus)
 ajoute_sousdossier(AVEC_DANJO danjo)
 ajoute_sousdossier(AVEC_DEPLOIE deploie)

@@ -129,7 +129,6 @@ add_compile_options(-march=native)
 
 # ------------------------------------------------------------------------------
 
-option(AVEC_ARACHNE "Compiler le logiciel Arachné" ON)
 option(AVEC_CRESUS "Compiler Crésus" ON)
 option(AVEC_DANJO "Compiler le langage de création d'interface Danjo" ON)
 option(AVEC_DEPLOIE "Compiler l'outil de déploiement d'application web Déploie" ON)
@@ -207,7 +206,6 @@ set(REQUIERS_BIB_XML OFF)
 if(SEULEMENT_KURI)
 	set(AVEC_KURI ON)
 
-	set(AVEC_ARACHNE OFF)
 	set(AVEC_CRESUS OFF)
 	set(AVEC_DANJO OFF)
 	set(AVEC_DEPLOIE OFF)
@@ -297,8 +295,6 @@ active_dependances(AVEC_JORJALA REQUIERS_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_OPENGL)
 active_dependances(AVEC_VULKAN REQUIERS_OPENGL)
 
-active_dependances(AVEC_ARACHNE REQUIERS_BIB_SYSTEME_FICHIER)
-
 active_dependances(AVEC_JORJALA REQUIERS_KELVINLET)
 active_dependances(AVEC_JORJALA REQUIERS_PATATE)
 active_dependances(AVEC_JORJALA REQUIERS_VORO)
@@ -338,7 +334,6 @@ active_dependances(AVEC_TORI REQUIERS_BIB_TORI)
 
 active_dependances(AVEC_TORI_V2 REQUIERS_BIB_LANGAGE)
 
-active_dependances(AVEC_TESTS AVEC_ARACHNE)
 active_dependances(AVEC_TESTS REQUIERS_BIB_BASE64)
 active_dependances(AVEC_TESTS REQUIERS_BIB_MATH)
 active_dependances(AVEC_TESTS REQUIERS_BIB_SHA256)
