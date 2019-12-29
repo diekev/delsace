@@ -43,49 +43,6 @@ namespace noeud {
 
 /* ************************************************************************** */
 
-#if 0
-struct Tampon {
-	char tampon[16384];
-	char *ptr;
-};
-
-// imprime(tampon, "for (%0 %1 = %2; %1 <= %3 - 1; ++%1) {\n", {str_type, str_nom, str_expr_debut, str_expr_fin});
-
-static auto imprime(
-		Tampon &tampon,
-		const char *chn_fmt,
-		dls::tableau<const char *> const &args)
-{
-	auto ptr = chn_fmt;
-	auto ptr_tampon = tampon.ptr;
-
-	for (;*ptr != '\0'; ++ptr) {
-		if (*ptr != '%') {
-			*ptr_tampon++ = *ptr;
-			continue;
-		}
-
-		auto suivant = *(ptr + 1);
-		++ptr;
-
-		if (suivant == '%') {
-			*ptr_tampon++ = suivant;
-			continue;
-		}
-
-		auto index = static_cast<size_t>('0' - *ptr);
-
-		auto chn_arg = args[index];
-
-		while (*chn_arg != '\0') {
-			*ptr_tampon++ = *chn_arg++;
-		}
-	}
-}
-#endif
-
-/* ************************************************************************** */
-
 /* À tenir synchronisé avec l'énum dans info_type.kuri
  * Nous utilisons ceci lors de la génération du code des infos types car nous ne
  * générons pas de code (ou symboles) pour les énums, mais prenons directements

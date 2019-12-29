@@ -349,15 +349,7 @@ void rassemble_feuilles(
 		base *noeud_base,
 		dls::tableau<base *> &feuilles);
 
-bool est_constant(base *b);
-
 /* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
 void ajoute_nom_argument(base *b, const dls::vue_chaine_compacte &nom);
-
-bool peut_operer(
-		const DonneesTypeFinal &type1,
-		const DonneesTypeFinal &type2,
-		type_noeud type_gauche,
-		type_noeud type_droite);
 
 }  /* namespace noeud */
