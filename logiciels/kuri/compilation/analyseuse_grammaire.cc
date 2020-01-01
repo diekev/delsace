@@ -204,9 +204,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		}
 	}
 
-	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu la déclaration du nom de la fonction");
-	}
+	consomme(id_morceau::CHAINE_CARACTERE, "Attendu la déclaration du nom de la fonction");
 
 	auto const nom_fonction = donnees().chaine;
 	m_fichier->module->fonctions_exportees.insere(nom_fonction);
@@ -231,9 +229,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		m_etiquette_nulctx = false;
 	}
 
-	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-		lance_erreur("Attendu une parenthèse ouvrante après le nom de la fonction");
-	}
+	consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	auto donnees_fonctions = DonneesFonction{};
 	donnees_fonctions.est_coroutine = (id == id_morceau::COROUT);
@@ -272,9 +268,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	m_fichier->module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	if (externe) {
-		if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
-			lance_erreur("Attendu un point-virgule ';' après la déclaration de la fonction externe");
-		}
+		consomme(id_morceau::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
 		if (donnees_fonctions.idx_types_retours.taille() > 1) {
 			lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
@@ -286,9 +280,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 			avance();
 		}
 
-		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-			lance_erreur("Attendu une accolade ouvrante après la liste des paramètres de la fonction");
-		}
+		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 
 		analyse_bloc();
 	}
@@ -327,15 +319,11 @@ void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
 			analyse_controle_si(type_noeud::SAUFSI);
 		}
 		else {
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante après 'sinon'");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
 
 			analyse_corps_fonction();
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'");
-			}
+			consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 
 		m_assembleuse->depile_noeud(type_noeud::BLOC);
@@ -366,9 +354,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 
 	recule();
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-		lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
-	}
+	consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
 
 	/* enfant 3 : bloc */
 	analyse_bloc();
@@ -377,9 +363,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 	if (est_identifiant(id_morceau::SANSARRET)) {
 		avance();
 
-		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
-		}
+		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
 
 		analyse_bloc();
 	}
@@ -388,9 +372,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 	if (est_identifiant(id_morceau::SINON)) {
 		avance();
 
-		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-			lance_erreur("Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
-		}
+		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 
 		analyse_bloc();
 	}
@@ -434,9 +416,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		else if (est_identifiant(id_morceau::BOUCLE)) {
 			avance();
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après 'boucle'");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
 
 			m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_contexte, donnees());
 
@@ -447,17 +427,13 @@ void analyseuse_grammaire::analyse_corps_fonction()
 		else if (est_identifiant(id_morceau::REPETE)) {
 			avance();
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après 'répète'");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
 
 			m_assembleuse->empile_noeud(type_noeud::REPETE, m_contexte, donnees());
 
 			analyse_bloc();
 
-			if (!requiers_identifiant(id_morceau::TANTQUE)) {
-				lance_erreur("Attendu une 'tantque' après le bloc de 'répète'");
-			}
+			consomme(id_morceau::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
 
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::TANTQUE);
 
@@ -472,9 +448,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
 
 			analyse_bloc();
 
@@ -493,18 +467,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
 
-			if (!requiers_identifiant(id_morceau::POINT_VIRGULE)) {
-				lance_erreur("Attendu un point virgule ';'");
-			}
+			consomme(id_morceau::POINT_VIRGULE, "Attendu un point virgule ';'");
 		}
 		else if (est_identifiant(id_morceau::DIFFERE)) {
 			avance();
 
 			m_assembleuse->empile_noeud(type_noeud::DIFFERE, m_contexte, donnees());
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après 'diffère'");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
 
 			analyse_bloc();
 
@@ -515,9 +485,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->empile_noeud(type_noeud::NONSUR, m_contexte, donnees());
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après 'nonsûr'");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
 
 			analyse_bloc();
 
@@ -533,9 +501,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-				lance_erreur("Attendu une accolade ouvrante '{' après l'expression de « discr »");
-			}
+			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 			auto sinon_rencontre = false;
 
@@ -566,18 +532,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					recule();
 				}
 
-				if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-					lance_erreur("Attendu une accolade ouvrante '{' après l'expression de « discr »");
-				}
+				consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 				analyse_bloc();
 
 				m_assembleuse->depile_noeud(type_noeud::PAIRE_DISCR);
 			}
 
-			if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				lance_erreur("Attendu une accolade fermante '}' à la fin du bloc de « discr »");
-			}
+			consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
 			m_assembleuse->depile_noeud(type_noeud::DISCR);
 		}
@@ -612,9 +574,7 @@ void analyseuse_grammaire::analyse_bloc()
 	analyse_corps_fonction();
 	m_assembleuse->depile_noeud(type_noeud::BLOC);
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu une accolade fermante '}' à la fin du bloc");
-	}
+	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
 }
 
 noeud::base *analyseuse_grammaire::analyse_expression_droite(
@@ -767,25 +727,19 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::TAILLE_DE:
 			{
-				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu '(' après 'taille_de'");
-				}
+				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, m_contexte, morceau);
 				noeud->valeur_calculee = analyse_declaration_type(false);
 
-				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-					lance_erreur("Attendu ')' après le type de 'taille_de'");
-				}
+				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
 
 				expression.pousse(noeud);
 				break;
 			}
 			case id_morceau::INFO_DE:
 			{
-				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu '(' après 'info_de'");
-				}
+				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::INFO_DE, m_contexte, morceau, false);
 
@@ -794,9 +748,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				m_assembleuse->depile_noeud(type_noeud::INFO_DE);
 
 				/* vérifie mais n'avance pas */
-				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-					lance_erreur("Attendu ')' après l'expression de 'taille_de'");
-				}
+				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
 
 				expression.pousse(noeud);
 				break;
@@ -812,9 +764,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::TRANSTYPE:
 			{
-				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu '(' après 'transtype'");
-				}
+				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
@@ -822,9 +772,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				noeud->type_declare = analyse_declaration_type(false);
 
-				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-					lance_erreur("Attendu ')' après la déclaration du type");
-				}
+				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après la déclaration du type");
 
 				m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
 				expression.pousse(noeud);
@@ -832,17 +780,13 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::MEMOIRE:
 			{
-				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu '(' après 'mémoire'");
-				}
+				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::MEMOIRE, m_contexte, morceau, false);
 
 				analyse_expression_droite(id_morceau::INCONNU, id_morceau::MEMOIRE);
 
-				if (!requiers_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-					lance_erreur("Attendu ')' après l'expression");
-				}
+				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
 
 				m_assembleuse->depile_noeud(type_noeud::MEMOIRE);
 				expression.pousse(noeud);
@@ -1165,25 +1109,19 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					auto directive = donnees().chaine;
 
 					if (directive == "inclus") {
-						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-							lance_erreur("Attendu une chaine littérale après la directive");
-						}
+						consomme(id_morceau::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->ajoute_inclusion(chaine);
 					}
 					else if (directive == "bib") {
-						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-							lance_erreur("Attendu une chaine littérale après la directive");
-						}
+						consomme(id_morceau::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->bibliotheques.pousse(chaine);
 					}
 					else if (directive == "def") {
-						if (!requiers_identifiant(id_morceau::CHAINE_LITTERALE)) {
-							lance_erreur("Attendu une chaine littérale après la directive");
-						}
+						consomme(id_morceau::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->definitions.pousse(chaine);
@@ -1398,9 +1336,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 		avance();
 	}
 
-	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu une chaine de caractères après 'struct'");
-	}
+	consomme(id_morceau::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, m_contexte, donnees());
 	auto nom_structure = donnees().chaine;
@@ -1433,9 +1369,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 	}
 
 	if (analyse_membres) {
-		if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-			lance_erreur("Attendu '{' après le nom de la structure");
-		}
+		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
 		while (true) {
 			if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
@@ -1446,9 +1380,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCT);
 		}
 
-		if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			lance_erreur("Attendu '}' à la fin de la déclaration de la structure");
-		}
+		consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);
@@ -1456,9 +1388,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 
 void analyseuse_grammaire::analyse_declaration_enum()
 {
-	if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
-		lance_erreur("Attendu un nom après 'énum'");
-	}
+	consomme(id_morceau::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_ENUM, m_contexte, donnees());
 	auto nom = noeud_decl->morceau.chaine;
@@ -1471,9 +1401,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 	noeud_decl->type_declare = analyse_declaration_type();
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
-		lance_erreur("Attendu '{' après 'énum'");
-	}
+	consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
 	while (true) {
 		if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
@@ -1484,9 +1412,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
 	}
 
-	if (!requiers_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		lance_erreur("Attendu '}' à la fin de la déclaration de l'énum");
-	}
+	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_ENUM);
 }
@@ -1519,9 +1445,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 		auto dt = DonneesTypeDeclare{};
 		dt.pousse(donnees().identifiant);
 
-		if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-			lance_erreur("Attendu un '(' après 'fonction'");
-		}
+		consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
 
 		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 
@@ -1634,9 +1558,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 			}
 			case type_id::TYPE_DE:
 			{
-				if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
-					lance_erreur("Attendu un '(' après 'type_de'");
-				}
+				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu un '(' après 'type_de'");
 
 				auto expr = analyse_expression_droite(
 							id_morceau::PARENTHESE_FERMANTE,
@@ -1669,9 +1591,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 	}
 
 	if (type_attendu) {
-		if (!requiers_identifiant_type()) {
-			lance_erreur("Attendu la déclaration d'un type");
-		}
+		consomme_type("Attendu la déclaration d'un type");
 
 		auto identifiant = donnees().identifiant;
 
@@ -1758,18 +1678,28 @@ void analyseuse_grammaire::analyse_directive_si()
 	}
 }
 
-bool analyseuse_grammaire::requiers_identifiant_type()
-{
-	auto const ok = est_identifiant_type(this->identifiant_courant());
-	avance();
-	return ok;
-}
-
 bool analyseuse_grammaire::requiers_nombre_entier()
 {
 	auto const ok = est_nombre_entier(this->identifiant_courant());
 	avance();
 	return ok;
+}
+
+void analyseuse_grammaire::consomme(id_morceau id, const char *message)
+{
+	if (!requiers_identifiant(id)) {
+		lance_erreur(message);
+	}
+}
+
+void analyseuse_grammaire::consomme_type(const char *message)
+{
+	auto const ok = est_identifiant_type(this->identifiant_courant());
+	avance();
+
+	if (!ok) {
+		lance_erreur(message);
+	}
 }
 
 void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)

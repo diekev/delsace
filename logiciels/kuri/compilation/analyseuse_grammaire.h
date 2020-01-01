@@ -97,6 +97,8 @@ private:
 	void analyse_construction_structure(noeud::base *noeud);
 	void analyse_directive_si();
 
-	bool requiers_identifiant_type();
 	bool requiers_nombre_entier();
+
+	void consomme(id_morceau id, const char *message);
+	void consomme_type(const char *message);
 };
