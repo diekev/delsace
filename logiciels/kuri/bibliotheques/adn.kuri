@@ -54,7 +54,7 @@ fonc décode_adn(valeurs : []octet) : chaine
 		idx = i % 4
 		décalage = (3 - idx) * 2
 
-        associe v {
+        discr v {
 			'a' { val |= (0b00 << décalage) }
 			'c' { val |= (0b01 << décalage) }
 			'g' { val |= (0b10 << décalage) }
@@ -75,7 +75,7 @@ fonc décode_adn(valeurs : []octet) : chaine
 fonc appariement(dyn chn : []octet) : rien
 {
     pour v dans chn {
-        associe v {
+        discr v {
 			'a' { v = transtype('t' : octet) }
 			'c' { v = transtype('g' : octet) }
 			'g' { v = transtype('c' : octet) }

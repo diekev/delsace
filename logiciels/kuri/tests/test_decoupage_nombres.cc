@@ -207,13 +207,13 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		CU_VERIFIE_EGALITE(controleuse, nombre, 0xFFc945ABl);
 	}
 	{
-		auto module = DonneesModule{};
-		module.tampon = lng::tampon_source("0xff38ce");
+		auto fichier = Fichier{};
+		fichier.tampon = lng::tampon_source("0xff38ce");
 
-		decoupeuse_texte decoupeuse(&module);
+		decoupeuse_texte decoupeuse(&fichier);
 		decoupeuse.genere_morceaux();
 
-		auto const &morceaux = module.morceaux;
+		auto const &morceaux = fichier.morceaux;
 
 		CU_VERIFIE_CONDITION(controleuse, morceaux.taille() == 1);
 		CU_VERIFIE_CONDITION(controleuse, morceaux[0].identifiant == id_morceau::NOMBRE_HEXADECIMAL);

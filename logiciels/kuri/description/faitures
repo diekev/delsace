@@ -1,44 +1,32 @@
 Faitures
 --------
 - utilisation de caractères unicodes UTF-8 dans les sources
-- impression dans la sortie standard via printf
-- contrôle de flux via si/sinon
-- boucle avec plage
-- boucle sans plage
-- déclaration et manipulation de variable
-- déclaration de structure
-- déclaration et appel de fonctions
-- nommage explicit des paramètres des fonctions f(a=0);
-- règle de définition unique : deux structures ou deux fonctions ou deux variables ne peuvent avoir le même nom
+- possibilité d'appeler des fonctions C (comme printf, ou les appels système) et de bibliothèques partagées (.so)
+- contrôle de flux via boucles et conditions
+- fonctions variadiques typées
+- possibilité de nommer les paramètres des fonctions lors des appels (p.e. f(a=0, b=5) au lieu de f(0, 5))
+- règle de définition unique : deux structures ou deux fonctions ayant les mêmes paramètres ou deux variables ne peuvent avoir le même nom
 - inférence de type
-- concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
-- constant folding
-- manipulation de structure
-- manipulation de tableaux
+- type de tableaux et de chaine connus par le compilateur
+- vérification de l'accès hors des bornes des chaines et tableaux
 - transtypage entre types simples
-- déclaration de fonctions externes pour lier des fichiers objets
-- déclaration de fonctions variadiques externes
-- fonctions variadiques sur un type donnée
-- utilisation des fonctions de la bibliothèque standard de C
-- utilisation de modules pour séparer le code en composant
+- système de modules pour séparer le code en composants
 - manipulation de pointeurs vers fonction
-- initialisation de tableaux dans la déclaration
-- initialisation de structures dans la déclaration
+- initialisation de tableaux dans une déclaration
+- initialisation de structures dans une déclaration
 - nommage et typage explicite des énums pour éviter les problèmes de transtypage ou autre
 - déréférencement de pointeur (via 'mémoire')
 - initialisation explicite des membres des structures lors de leur définition
-- type chaîne caractère par défaut
-- modules
-- introspection
-- mot clé pour déférer l'exécution d'un bloc lors du retour d'une fonction
+- système d'introspection/de réflexion
+- mot clé pour différer l'exécution d'un bloc lors du retour d'une fonction
 - type 'octet' pour ne pas confondre avec un 'char'
-- type de tableau par défaut, le compilateur s'occupant de préserver la taille du tableau pour faire des vérifications en place
-- loge/déloge/reloge pour les loyers dynamics de mémoire
+- allocations dynamiques de mémoire via les mots-clés loge/déloge/reloge
+- accès à la mémoire actuellement allouée
 - association/switch
 - surcharge de fonction avec des types différents
-- générateurs/coroutine permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
-- accès à la mémoire actuellement allouée
+- générateurs/coroutines permettant de reprendre une fonction là où l'on s'est arrêté comme le yield de Python
 - plusieurs valeur de retour
+- point-virgule implicite (à la fin des expressions)
 
 
 À faire
@@ -52,9 +40,8 @@ Faitures
 ---- entier + caractere    -> caractère  # À FAIRE
 ---- chaîne + caractere    -> chaîne     # À FAIRE
 ---- caractere + chaîne    -> chaîne     # À FAIRE
-- fonctions gabarit/génériques avec contrats/concepts
-- structures gabarit/génériques
-- type nombre réel sur 16-bit
+- fonctions et structures gabarit/génériques avec contrats/concepts
+- type nombre réel sur 16-bit (en cours)
 - types spéciaux pour chaînes de caractères et caractère simple
 - stack canaries (coulisse LLVM)
 - préfixe les structures et les énumérations du nom du module
@@ -62,13 +49,54 @@ Faitures
 - coroutines en dehours de boucles
 - variables employées
 - évite l'initialisation via "---"
-- surcharge d'opérateur
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
-- suppression ':' et ';'
+- suppression ':'
 - ajoute accès membre pour les types (==> déplacer structures dans les modules)
-- ananlyseuse_grammaire -> suppression des vérifications redondantes
-- opérateur ternaire (x = si cond { y } sinon { z })
-- unions -> info type, tiens trace de l'état à chaque modification, décalage au sein de la structure
+- analyseuse_grammaire -> suppression des vérifications redondantes
+- ajout d'une option pour controler la génération du code d'introspection/réflexion (il faut alors également exclure les einis)
+- conversion automatique des types en unions et extraction automatique des valeurs des unions
+- infos types pour les unions
+- à faire : urgent
+-- surcharge d'opérateurs (simple)
+	syntaxe : opér [opérateur] (args..) : [type]
+	opérateurs composés avec = sont implicites
+	+
+	-
+	+ unaire
+	- unaire
+	=
+	/
+	*
+	%
+	&
+	&&
+	|
+	||
+	^
+	<<
+	>>
+	== (!= implicite)
+	< (<= implicite si == ou (> et ==) est défini)
+	> (>= implicite si == ou (< et ==) est défini)
+	!
+	~
+-- surcharge transtypage
+	opér [type] (arg) : [type]
+-- expression gauche dans la validation sémantique
+-- système de transtypage
+-- réusinage des tests
+-- avoir une meilleur gestion de la correctitude de constance, il est possible de passer une variable constante à un fonction la modifiant
+- à faire : moins urgent
+-- gabarits (maintenir une table de symboles afin de désambiguer a < b (comparaison), et a<b> (paramètres)
+-- empl (vérifier tous les cas)
+-- évaluation arbitraire du code
+-- initialisation des objets : évite d'initialiser plusieurs fois le même membre
+-- validation des énum dans associe
+-- alias de types
+-- contexte implicite
+-- opérateurs implicites
+-- validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
+
 
 À faire (tests)
 ---------------
@@ -84,12 +112,6 @@ Faitures
 - test valeurs de retours multiples
 
 
-Bugs
-----
-- incohérence accès '.' et 'de' (voir cliente.kuri)
-- les tableaux issus des arguments variadics ne sont pas converti quand le type n'est pas 'eini'
-
-
 Bugs (coulisse LLVM)
 --------------------
 - crash lors de la compilation de boucle contenant un 'arrête' après des blocs si/sinon
@@ -99,16 +121,11 @@ Bugs (coulisse LLVM)
 
 Idées
 -----
-- opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - mot clés pour le nom du fichier courant, la ligne, la colonne, et le temps où la ligne a été rencontré pour la première foix (__fichier__, __ligne__, __colonne__, __temps__)
-- utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++)
-- multiple valeurs de retour, notamment pour gérer les erreurs sans passer par des exceptions (on pourrait transformer les fonction pour avoir les valeurs retournées en paramètres pointés x = foo() -> foo(&x))
+- opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
+- utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - héritage/polymorphisme par enlignage de structures dans d'autres
-- surcharges des opérateurs
-- déclarations de nouveaux types par alias d'un type connu (comme typedef en C/C++, mais avec typage strict) (mot-clé 'entredit', pour empêcher qu'un opérateur soit hérité)
-- surcharge de fonctions
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
-- vérification automatique des limites des tableaux (peut-être interdiction de passer des pointeurs, et passage uniquement de tableaux)
 - passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
 - mot-clés pour des tests unitaires, avec maintenance des fonctions auxilliaires des tests par le compileur
 - mot-clés pour des tests fuzzés, avec maintenance des fonctions auxilliaires des tests par le compileur
@@ -116,9 +133,43 @@ Idées
 - transformer les messages d'erreur en tutoriaux
 - valeur par défaut des arguments
 - ajout de nom et valeur par défaut au type de retour
-- contexte (modifiable par l'utilisateur) implicit passé en paramètre de toutes les fonctions internes pour pouvoir faciliter la gestion de la mémoire et d'autres données du programme
-- compte de la mémoire utilisée avec rapport en fin d'exécution du programme sur ce qui a utilisé le plus de mémoire, et s'il y a fuite de mémoire
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
+- concaténation des chaînes littérales connues lors de la compilation via l'opérateur '+'
+- opérateurs prenant des listes :
+	a += (c, d, e, f, g, h, i, j)
+
+	équivalent à
+
+	a += b + c + d + e + f + g
+
+	si a == (c, d, e, f, g, h, i, j) {
+
+	}
+
+	équivalent à
+
+	si a == c || a == d || a == e ... {
+
+	}
+
+	comment pour a && c
+- graphe de typage :
+-- trouve les opérations à effectuer pour transtyper un type à un autre
+--- prend référence
+--- construit eini
+--- construit tableau octet
+--- construit union
+--- extrait eini
+--- extrait tableau octet
+--- extrait union
+-- pour :
+--- initialisation/assignement (a = b)
+-- passage de paramètre (foo(a, b))
+---- opérateurs (a + b)
+--- transtype (a = transtype(b : type))
+--- retours et retenus
+-- trouve une fonction selon les paramètres de types
+-- trouve une fonction pour passer d'un type à un autre (suggestion, gare aux conversions implicites)
 
 
 Zones d'ombres
@@ -143,6 +194,7 @@ Sécurité/évitement des bugs
 - blocs explicites : impossible de ne pas avoir un bloc afin de mieux définir ce qui se trouve dans un bloc
 - accès aléatoire via des index protégé
 - conservation de la taille des tableaux et des chaines (contrairement à C qui les jette et utilise un pointeur nul pour définir la fin)
+- remembrance du membre actif des unions
 
 
 Néologismes

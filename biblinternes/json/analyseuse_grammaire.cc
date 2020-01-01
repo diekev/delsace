@@ -30,6 +30,8 @@
 
 #include "erreur.hh"
 
+namespace json {
+
 /* ************************************************************************** */
 
 static void imprime_tab(std::ostream &os, int tab)
@@ -266,3 +268,5 @@ void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, int type)
 {
 	erreur::lance_erreur(quoi, m_tampon, donnees(), type);
 }
+
+}  /* namespace json */

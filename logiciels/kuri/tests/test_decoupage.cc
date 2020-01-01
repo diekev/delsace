@@ -82,7 +82,7 @@ R"(# Ceci est un commentaire
 «ceci est une chaine française sans espaces»
 soit str='a';
 soit str0='\0';
-associe nombre {
+discr nombre {
 	0...1_000: imprime(1000);
 	11_000...2_0000: imprime(20000);
 	sinon:imprime(inconnu);
@@ -105,7 +105,7 @@ decoupeuse_texte decoupeuse(str, str + len);
 		{ "=", id_morceau::EGAL },
 		{ "\\0", id_morceau::CARACTERE },
 		{ ";", id_morceau::POINT_VIRGULE },
-		{ "associe", id_morceau::ASSOCIE },
+		{ "discr", id_morceau::DISCR },
 		{ "nombre", id_morceau::CHAINE_CARACTERE },
 		{ "{", id_morceau::ACCOLADE_OUVRANTE },
 		{ "0", id_morceau::NOMBRE_ENTIER },
@@ -146,14 +146,14 @@ decoupeuse_texte decoupeuse(str, str + len);
 		{ ";", id_morceau::POINT_VIRGULE }
 	};
 
-	auto module = DonneesModule{};
-	module.tampon = lng::tampon_source(texte);
+	auto fichier = Fichier{};
+	fichier.tampon = lng::tampon_source(texte);
 
-	decoupeuse_texte decoupeuse(&module);
+	decoupeuse_texte decoupeuse(&fichier);
 	decoupeuse.genere_morceaux();
 
-	return verifie_morceaux(module.morceaux.debut(),
-							module.morceaux.fin(),
+	return verifie_morceaux(fichier.morceaux.debut(),
+							fichier.morceaux.fin(),
 							std::begin(donnees_morceaux),
 							std::end(donnees_morceaux));
 }

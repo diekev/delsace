@@ -28,6 +28,8 @@
 
 #include "biblinternes/structures/dico_fixe.hh"
 
+namespace json {
+
 static auto paires_caracteres_speciaux = dls::cree_dico(
 	dls::paire{ '(', id_morceau::PARENTHESE_OUVRANTE },
 	dls::paire{ ')', id_morceau::PARENTHESE_FERMANTE },
@@ -107,3 +109,5 @@ bool est_caractere_special(char c, id_morceau &i)
 	i = tables_identifiants[static_cast<int>(c)];
 	return true;
 }
+
+}  /* namespace json */

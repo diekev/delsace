@@ -24,6 +24,8 @@
 
 #include "assembleuse_objet.hh"
 
+namespace json {
+
 assembleuse_objet::assembleuse_objet()
 	: racine(tori::construit_objet(tori::type_objet::DICTIONNAIRE))
 {
@@ -60,3 +62,5 @@ void assembleuse_objet::depile_objet()
 {
 	objets.depile();
 }
+
+}  /* namespace json */

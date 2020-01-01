@@ -24,6 +24,8 @@
 
 #include "erreur.h"
 
+#include "biblinternes/outils/chaine.hh"
+
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
 #include "morceaux.hh"
@@ -35,33 +37,18 @@ static void imprime_tilde(dls::flux_chaine &ss, dls::vue_chaine_compacte chaine)
 	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()));
 }
 
+static void imprime_tilde(
+		dls::flux_chaine &ss,
+		dls::vue_chaine_compacte chaine,
+		long debut,
+		long fin)
+{
+	imprime_tilde(ss, dls::vue_chaine(chaine.pointeur(), chaine.taille()), debut, fin);
+}
+
 }
 
 namespace erreur {
-
-struct PositionMorceau {
-	long ligne = 0;
-	long pos = 0;
-};
-
-static auto trouve_position(DonneesMorceau const &morceau, DonneesModule *module)
-{
-	auto ptr = morceau.chaine.pointeur();
-	auto pos = PositionMorceau{};
-
-	for (auto i = 0ul; i < module->tampon.nombre_lignes() - 1; ++i) {
-		auto l0 = module->tampon[static_cast<long>(i)];
-		auto l1 = module->tampon[static_cast<long>(i + 1)];
-
-		if (ptr >= l0.begin() && ptr < l1.begin()) {
-			pos.ligne = static_cast<long>(i);
-			pos.pos = ptr - l0.begin();
-			break;
-		}
-	}
-
-	return pos;
-}
 
 void lance_erreur(
 		const dls::chaine &quoi,
@@ -69,17 +56,16 @@ void lance_erreur(
 		const DonneesMorceau &morceau,
 		type_erreur type)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
 	auto const identifiant = morceau.identifiant;
 	auto const &chaine = morceau.chaine;
 
-	auto ligne_courante = module->tampon[ligne];
+	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne_courante);
@@ -100,18 +86,17 @@ void lance_erreur_plage(
 		const DonneesMorceau &dernier_morceau,
 		type_erreur type)
 {
-	auto module = contexte.module(static_cast<size_t>(premier_morceau.module));
-	auto pos = trouve_position(premier_morceau, module);
-	auto const ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(premier_morceau.fichier));
+	auto pos = trouve_position(premier_morceau, fichier);
 	auto const pos_premier = pos.pos;
 
-	auto module_dernier = contexte.module(static_cast<size_t>(dernier_morceau.module));
-	auto const pos_dernier = trouve_position(premier_morceau, module_dernier).pos;
+	auto fichier_dernier = contexte.fichier(static_cast<size_t>(dernier_morceau.fichier));
+	auto const pos_dernier = trouve_position(premier_morceau, fichier_dernier).pos;
 
-	auto ligne_courante = module->tampon[ligne];
+	auto ligne_courante = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
 	ss << ligne_courante;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_premier, ligne_courante);
@@ -131,15 +116,14 @@ void lance_erreur_plage(
 		const DonneesMorceau &morceau_enfant,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
 	ss << "Dans l'appel de la fonction '" << morceau.chaine << "':\n";
 	ss << ligne;
 
@@ -170,15 +154,14 @@ void lance_erreur_plage(
 		const DonneesMorceau &morceau_enfant,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
 	ss << "Dans l'expression de '" << morceau.chaine << "':\n";
 	ss << ligne;
 
@@ -208,14 +191,13 @@ void lance_erreur_plage(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -236,14 +218,13 @@ void lance_erreur_type_operation(
 		const ContexteGenerationCode &contexte,
 		const DonneesMorceau &morceau)
 {
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne + 1 << ":\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << ":\n";
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -264,16 +245,15 @@ void lance_erreur_fonction_inconnue(
 		dls::tableau<DonneesCandidate> const &candidates)
 {
 	auto const &morceau = b->morceau;
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << pos_mot << '\n';
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
 	ss << "\nDans l'appel de la fonction '" << b->morceau.chaine << "'\n";
 	ss << ligne;
 
@@ -284,7 +264,7 @@ void lance_erreur_fonction_inconnue(
 
 	if (candidates.est_vide()) {
 		ss << "\nFonction inconnue : aucune candidate trouvée\n";
-		ss << "Vérifiez que la fonction existe bel et bien dans un module importé\n";
+		ss << "Vérifiez que la fonction existe bel et bien dans un fichier importé\n";
 
 		throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::FONCTION_INCONNUE);
 	}
@@ -301,12 +281,11 @@ void lance_erreur_fonction_inconnue(
 			auto noeud_decl = df->noeud_decl;
 
 			auto const &morceau_df = noeud_decl->morceau;
-			auto module_df = contexte.module(static_cast<size_t>(morceau_df.module));
-			auto pos_df = trouve_position(morceau_df, module_df);
-			auto const numero_ligne_df = pos_df.ligne;
+			auto fichier_df = contexte.fichier(static_cast<size_t>(morceau_df.fichier));
+			auto pos_df = trouve_position(morceau_df, fichier_df);
 
 			ss << ' ' << noeud_decl->chaine()
-			   << " (trouvée à " << module_df->chemin << ':' << numero_ligne_df + 1 << ")\n";
+			   << " (trouvée à " << fichier_df->chemin << ':' << pos_df.numero_ligne << ")\n";
 		}
 		else {
 			ss << '\n';
@@ -382,16 +361,15 @@ void lance_erreur_fonction_nulctx(
 			noeud::base *decl_appel)
 {
 	auto const &morceau = appl_fonc->morceau;
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
 	ss << "\nDans l'appel de la fonction « " << appl_fonc->morceau.chaine << " »\n";
 	ss << ligne;
 
@@ -406,16 +384,16 @@ void lance_erreur_fonction_nulctx(
 	   << " qui a été déclarée sans contexte via #!nulctx.\n";
 
 	ss << "\n« " << decl_fonc->chaine() << " » est déclarée ici :\n";
-	module = contexte.module(static_cast<size_t>(decl_fonc->morceau.module));
-	auto pos_decl = trouve_position(decl_fonc->morceau, module);
-	ss << module->chemin << ':' << pos_decl.ligne << '\n' << '\n';
-	ss << module->tampon[pos_decl.ligne];
+	fichier = contexte.fichier(static_cast<size_t>(decl_fonc->morceau.fichier));
+	auto pos_decl = trouve_position(decl_fonc->morceau, fichier);
+	ss << fichier->chemin << ':' << pos_decl.numero_ligne << '\n' << '\n';
+	ss << fichier->tampon[pos_decl.index_ligne];
 
 	ss << "\n« " << appl_fonc->chaine() << " » est déclarée ici :\n";
-	module = contexte.module(static_cast<size_t>(decl_appel->morceau.module));
-	auto pos_appel = trouve_position(decl_appel->morceau, module);
-	ss << module->chemin << ':' << pos_appel.ligne << '\n' << '\n';
-	ss << module->tampon[pos_appel.ligne];
+	fichier = contexte.fichier(static_cast<size_t>(decl_appel->morceau.fichier));
+	auto pos_appel = trouve_position(decl_appel->morceau, fichier);
+	ss << fichier->chemin << ':' << pos_appel.numero_ligne << '\n' << '\n';
+	ss << fichier->tampon[pos_appel.index_ligne];
 
 	ss << "\n----------------------------------------------------------------\n";
 
@@ -430,16 +408,15 @@ void lance_erreur_acces_hors_limites(
 			long index_acces)
 {
 	auto const &morceau = b->morceau;
-	auto module = contexte.module(static_cast<size_t>(morceau.module));
-	auto pos = trouve_position(morceau, module);
-	auto const numero_ligne = pos.ligne;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto ligne = module->tampon[numero_ligne];
+	auto ligne = fichier->tampon[pos.index_ligne];
 
 	dls::flux_chaine ss;
 
 	ss << "\n----------------------------------------------------------------\n";
-	ss << "Erreur : " << module->chemin << ':' << numero_ligne << '\n';
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
 	ss << ligne;
 
 	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
@@ -456,6 +433,363 @@ void lance_erreur_acces_hors_limites(
 	ss << "\n----------------------------------------------------------------\n";
 
 	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::NORMAL);
+}
+
+struct Etendue {
+	long pos_min = 0;
+	long pos_max = 0;
+};
+
+static Etendue calcule_etendue_noeud(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b)
+{
+	auto const &morceau = b->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+
+	auto etendue = Etendue{};
+	etendue.pos_min = pos.pos;
+	etendue.pos_max = pos.pos + b->morceau.chaine.taille();
+
+	for (auto enfant : b->enfants) {
+		auto etendue_enfant = calcule_etendue_noeud(contexte, enfant);
+
+		etendue.pos_min = std::min(etendue.pos_min, etendue_enfant.pos_min);
+		etendue.pos_max = std::max(etendue.pos_max, etendue_enfant.pos_max);
+	}
+
+	return etendue;
+}
+
+void lance_erreur_type_operation(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b)
+{
+	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
+	// soit l'opérateur n'est pas commutatif
+	// soit l'opérateur n'est pas défini pour le type
+
+	auto const &morceau = b->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, b);
+
+	auto enfant_gauche = b->enfants.front();
+	auto enfant_droite = b->enfants.back();
+
+	auto index_type_gauche = enfant_gauche->index_type;
+	auto index_type_droite = enfant_droite->index_type;
+
+	auto const &type_gauche = contexte.magasin_types.donnees_types[index_type_gauche];
+	auto const &type_droite = contexte.magasin_types.donnees_types[index_type_droite];
+
+	auto etendue_gauche = calcule_etendue_noeud(contexte, enfant_gauche);
+	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
+
+	auto expr_gauche = dls::vue_chaine_compacte(&ligne[etendue_gauche.pos_min], etendue_gauche.pos_max - etendue_gauche.pos_min);
+	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
+
+	dls::flux_chaine ss;
+
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << "Aucun opérateur trouvé pour l'opération !\n";
+	ss << "Veuillez vous assurer que les types correspondent.\n";
+	ss << '\n';
+	ss << "L'expression à gauche de l'opérateur, " << expr_gauche << ", est de type : ";
+	ss << chaine_type(type_gauche, contexte) << '\n';
+	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
+	ss << chaine_type(type_droite, contexte) << '\n';
+	ss << '\n';
+	ss << "Pour résoudre ce problème, vous pouvez par exemple transtyper l'une des deux expressions :\n";
+	ss << "transtype(" << expr_gauche << " : " << chaine_type(type_droite, contexte) << ")\n";
+	ss << "ou\n";
+	ss << "transtype(" << expr_droite << " : " << chaine_type(type_gauche, contexte) << ")\n";
+
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
+}
+
+void lance_erreur_type_operation_unaire(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b)
+{
+	// soit l'opérateur n'a pas de surcharge (le typage n'est pas bon)
+	// soit l'opérateur n'est pas commutatif
+	// soit l'opérateur n'est pas défini pour le type
+
+	auto const &morceau = b->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, b);
+
+	auto enfant_droite = b->enfants.front();
+	auto index_type_droite = enfant_droite->index_type;
+	auto const &type_droite = contexte.magasin_types.donnees_types[index_type_droite];
+	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
+	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
+
+	dls::flux_chaine ss;
+
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n';
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, pos_mot, ligne);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << "Aucun opérateur trouvé pour l'opération !\n";
+	ss << "Veuillez vous assurer que les types correspondent.\n";
+	ss << '\n';
+	ss << "L'expression à droite de l'opérateur, " << expr_droite << ", est de type : ";
+	ss << chaine_type(type_droite, contexte) << '\n';
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::TYPE_DIFFERENTS);
+}
+
+struct CandidatMembre {
+	long distance = 0;
+	dls::vue_chaine_compacte chaine = "";
+};
+
+static auto trouve_candidat(
+			dls::ensemble<dls::vue_chaine_compacte> const &membres,
+			dls::vue_chaine_compacte const &nom_donne)
+{
+	auto candidat = CandidatMembre{};
+	candidat.distance = 1000;
+
+	for (auto const &nom_membre : membres) {
+		auto candidat_possible = CandidatMembre();
+		candidat_possible.distance = distance_levenshtein(nom_donne, nom_membre);
+		candidat_possible.chaine = nom_membre;
+
+		if (candidat_possible.distance < candidat.distance) {
+			candidat = candidat_possible;
+		}
+	}
+
+	return candidat;
+}
+
+[[noreturn]] static void genere_erreur_membre_inconnu(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre,
+			dls::ensemble<dls::vue_chaine_compacte> const &membres,
+			const char *chaine_structure)
+{
+	auto candidat = trouve_candidat(membres, membre->chaine());
+
+	auto const &morceau = acces->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, acces);
+
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Dans l'accès à « " << structure->chaine() << " » :\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << '\n';
+	ss << "Le membre « " << membre->chaine() << " » est inconnu !\n";
+
+	ss << '\n';
+	ss << "Les membres " << chaine_structure << " sont :\n";
+
+	for (auto nom : membres) {
+		ss << '\t' << nom << '\n';
+	}
+
+	ss << '\n';
+	ss << "Candidat possible : " << candidat.chaine << '\n';
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INCONNU);
+}
+
+void membre_inconnu(
+			ContexteGenerationCode &contexte,
+			DonneesStructure &ds,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+
+	for (auto const &paire : ds.donnees_membres) {
+		membres.insere(paire.first);
+	}
+
+	const char *message;
+
+	if (ds.est_enum) {
+		message = "de l'énumération";
+	}
+	else if (ds.est_union) {
+		message = "de l'union";
+	}
+	else {
+		message = "de la structure";
+	}
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, message);
+}
+
+void membre_inconnu_tableau(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	membres.insere("taille");
+	membres.insere("pointeur");
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "du tableau");
+}
+
+void membre_inconnu_chaine(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	membres.insere("taille");
+	membres.insere("pointeur");
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
+}
+
+void membre_inconnu_eini(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto membres = dls::ensemble<dls::vue_chaine_compacte>();
+	membres.insere("info");
+	membres.insere("pointeur");
+
+	genere_erreur_membre_inconnu(contexte, acces, structure, membre, membres, "de la chaine");
+}
+
+void membre_inactif(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre)
+{
+	auto const &morceau = acces->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, acces);
+
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Dans l'accès à « " << structure->chaine() << " » :\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << '\n';
+	ss << "Le membre « " << membre->chaine() << " » est inactif dans ce contexte !\n";
+	ss << "Le membre actif dans ce contexte est « " << contexte.trouve_membre_actif(structure->chaine()) << " ».\n";
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+}
+
+void valeur_manquante_discr(
+			ContexteGenerationCode &contexte,
+			noeud::base *expression,
+			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes)
+{
+	auto const &morceau = expression->morceau;
+	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
+	auto pos = trouve_position(morceau, fichier);
+	auto const pos_mot = pos.pos;
+	auto ligne = fichier->tampon[pos.index_ligne];
+
+	auto etendue = calcule_etendue_noeud(contexte, expression);
+
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : " << fichier->chemin << ':' << pos.numero_ligne << '\n' << '\n';
+	ss << "Dans la discrimination de « " << expression->chaine() << " » :\n";
+	ss << ligne;
+
+	lng::erreur::imprime_caractere_vide(ss, etendue.pos_min, ligne);
+	lng::erreur::imprime_tilde(ss, ligne, etendue.pos_min, pos_mot);
+	ss << '^';
+	lng::erreur::imprime_tilde(ss, ligne, pos_mot + 1, etendue.pos_max);
+	ss << '\n';
+
+	ss << '\n';
+
+	if (valeurs_manquantes.taille() == 1) {
+		ss << "Une valeur n'est pas prise en compte :\n";
+	}
+	else {
+		ss << "Plusieurs valeurs ne sont pas prises en compte :\n";
+	}
+
+	for (auto const &valeur : valeurs_manquantes) {
+		ss << '\t' << valeur << '\n';
+	}
+
+	ss << "----------------------------------------------------------------\n";
+
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
+}
+
+void fonction_principale_manquante()
+{
+	dls::flux_chaine ss;
+	ss << "\n----------------------------------------------------------------\n";
+	ss << "Erreur : impossible de trouver la fonction principale\n";
+	ss << "Veuillez vérifier qu'elle soit bien présente dans un module\n";
+	ss << "\n----------------------------------------------------------------\n";
+	throw erreur::frappe(ss.chn().c_str(), erreur::type_erreur::MEMBRE_INACTIF);
 }
 
 }

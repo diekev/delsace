@@ -155,4 +155,47 @@ void remplace_souschaine(chaine &str, const chaine &substr, const chaine &rep)
 	}
 }
 
+long distance_levenshtein(
+			dls::vue_chaine_compacte const &chn1,
+			dls::vue_chaine_compacte const &chn2)
+{
+	auto const m = chn1.taille();
+	auto const n = chn2.taille();
+
+	if (m == 0) {
+		return n;
+	}
+
+	if (n == 0) {
+		return m;
+	}
+
+	auto couts = dls::tableau<long>(n + 1);
+
+	for (auto k = 0; k <= n; k++) {
+		couts[k] = k;
+	}
+
+	for (auto i = 0l; i < chn1.taille(); ++i) {
+		couts[0] = i + 1;
+		auto coin = i;
+
+		for (auto j = 0; j < chn2.taille(); ++j) {
+			auto enhaut = couts[j + 1];
+
+			if (chn1[i] == chn2[j]) {
+				couts[j + 1] = coin;
+			}
+			else {
+				auto t = enhaut < coin ? enhaut : coin;
+				couts[j + 1] = (couts[j] < t ? couts[j] : t) + 1;
+			}
+
+			coin = enhaut;
+		}
+	}
+
+	return couts[n];
+}
+
 }  /* namespace dls */

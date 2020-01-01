@@ -1,0 +1,67 @@
+importe Fondation
+importe SysFichier
+
+# tests pour vérifier la vitesse de compilation de gros blocs de code
+# redondant mais simple
+# les entrées sont 20 000, 100 000, 500 000, 2 000 000 lignes de
+# a = b + c * d
+# a, b, c, d sont des nombres entiers initialisés à 1, 2, 3, 4
+#
+# les tests sont inspirés de
+# https://github.com/sal55/langs/blob/master/compilertest.txt
+
+fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
+{
+	chaines = [
+		"fonc principale(args : []*z8) : z32\n",
+		"{\n",
+		"\tdyn a = 1\n",
+		"\tdyn b = 2\n",
+		"\tdyn c = 3\n",
+		"\tdyn d = 4\n",
+		"\ta = b + c * d\n",
+		"\tretourne 0\n",
+		"}"
+	]
+
+	# calcule l'espace nécessaire
+	dyn taille : z64 = 0
+
+	pour chn dans chaines {
+		taille += chn.taille
+	}
+
+	taille += chaines[6].taille * nombre_de_ligne - 1
+
+	# génère le code du test
+	dyn enchaineuse : Enchaineuse
+	diffère { enchaineuse.détruit(); }
+
+	enchaineuse.réserve(taille)
+
+	pour i dans 0 ... 5 {
+		enchaineuse.pousse(chaines[i])
+	}
+
+	pour i dans 0 ... nombre_de_ligne - 1 {
+		enchaineuse.pousse(chaines[6])
+	}
+
+	enchaineuse.pousse(chaines[7])
+	enchaineuse.pousse(chaines[8])
+
+	# écris le fichier
+	chemin = construit_chemin(chemin_fichier)
+	fichier = ouvre_fichier_ecriture(chemin)
+	écris_fichier(fichier, enchaineuse.résultat)
+}
+
+fonc principale(args : []*z8) : z32
+{
+	crée_test(20_000, "/tmp/test_20_000_lignes.kuri")
+	crée_test(100_000, "/tmp/test_100_000_lignes.kuri")
+	crée_test(500_000, "/tmp/test_500_000_lignes.kuri")
+	crée_test(2_000_000, "/tmp/test_2_000_000_lignes.kuri")
+
+	retourne 0
+}

@@ -75,13 +75,37 @@ types = [u'n8', u'n16', u'n32', u'n64', u'r16', u'r32', u'r64']
 lettres = u'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 tampon = u""
-
+"""
 for l0 in lettres:
 	for l in lettres:
 		for t in types:
-			tampon += fonctions.format(l0 + l, t);
+			tampon += fonctions.format(l0 + l, t)
 
 tampon += fonction_principale
+
+with open(u'/tmp/test_long.kuri', 'w') as fichier:
+	fichier.write(tampon)"""
+
+chaines = [
+	u"fonc principale(args : []*z8) : z32\n",
+	u"{\n",
+	u"\tdyn a = 1\n",
+	u"\tdyn b = 2\n",
+	u"\tdyn c = 3\n",
+	u"\tdyn d = 4\n",
+	u"\ta = b + c * d\n",
+	u"\tretourne 0\n",
+	u"}"
+]
+
+for i in range(0, 6):
+	tampon += chaines[i]
+
+for i in range(1, 20000):
+	tampon += chaines[6]
+
+tampon += chaines[7]
+tampon += chaines[8]
 
 with open(u'/tmp/test_long.kuri', 'w') as fichier:
 	fichier.write(tampon)

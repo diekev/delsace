@@ -1,0 +1,60 @@
+# Ce fichier est utiliser pour définir des variables et fonctions de
+# bases (« connus par le compilateur ») que tous les modules doivent importer.
+# Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
+# code du compilateur.
+# Par contre, ce fichier ne devrait pas pouvoir être modifié par les
+# utilisateurs du langage.
+
+# Tenant trace de la mémoire utilisée par le programme, cette variable est
+# augmentée par le compilateur à chaque instruction « loge » ou « reloge »,
+# et diminuée à chaque « déloge ».
+externe __VG_memoire_utilisee__ : z64
+
+# Contient trace de la quantité maximale de mémoire consomée.
+externe __VG_memoire_consommee__ : z64
+
+# Contient le nombre de fois que « loge » et « reloge » ont été appelés.
+externe __VG_nombre_allocations__ : z64
+
+# Contient le nombre de fois que « reloge » a été appelé.
+externe __VG_nombre_reallocations__ : z64
+
+# Contient le nombre de fois que « déloge » a été appelé.
+externe __VG_nombre_deallocations__ : z64
+
+# Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
+# À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
+# cette structure. 
+struct __contexte_global {
+    compteur : z32
+}
+
+# Fonction pour accéder à la variable __VG_memoire_utilisee__.
+fonc mémoire_utilisée() : z64
+{
+    retourne __VG_memoire_utilisee__
+}
+
+# Fonction pour accéder à la variable __VG_memoire_utilisee__.
+fonc mémoire_consommée() : z64
+{
+    retourne __VG_memoire_consommee__
+}
+
+# Fonction pour accéder à la variable __VG_nombre_allocations__.
+fonc nombre_allocations() : z64
+{
+    retourne __VG_nombre_allocations__
+}
+
+# Fonction pour accéder à la variable __VG_nombre_reallocations__.
+fonc nombre_réallocations() : z64
+{
+    retourne __VG_nombre_reallocations__
+}
+
+# Fonction pour accéder à la variable __VG_nombre_deallocations__.
+fonc nombre_déallocations() : z64
+{
+    retourne __VG_nombre_deallocations__
+}

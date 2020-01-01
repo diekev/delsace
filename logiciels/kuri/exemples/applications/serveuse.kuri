@@ -1,0 +1,160 @@
+importe Fondation
+importe GlibC
+importe Réseau
+
+################################################################################
+
+CONNEXIONS_MAX = 1000
+
+struct Serveuse {
+    prise = -1
+}
+
+fonc construit_serveuse(dyn serveuse : &Serveuse, port : n16) : chaine
+{
+    serveuse.prise = socket(_AF_INET, _SOCK_STREAM, 0)
+
+    si serveuse.prise == -1 {
+        retourne "erreur lors de la création de la prise"
+    }
+
+    dyn mon_addresse : sockaddr_in
+	mon_addresse.sin_family = transtype(_AF_INET : n16)
+    mon_addresse.sin_port = htons(port)
+    # trouve notre propre addresse
+	mon_addresse.sin_addr.s_addr = 0
+    mon_addresse.sin_zero[0] = 0
+    mon_addresse.sin_zero[1] = 0
+    mon_addresse.sin_zero[2] = 0
+    mon_addresse.sin_zero[3] = 0
+    mon_addresse.sin_zero[4] = 0
+    mon_addresse.sin_zero[5] = 0
+    mon_addresse.sin_zero[6] = 0
+    mon_addresse.sin_zero[7] = 0
+
+	dyn err = bind(serveuse.prise, transtype(@mon_addresse : *sockaddr), transtype(taille_de(sockaddr) : n64))
+
+	si err == -1 {
+		retourne "erreur lors de la liaison"
+	}
+
+	err = listen(serveuse.prise, CONNEXIONS_MAX);
+
+	si err == -1 {
+		retourne "erreur lors de l'écoute"
+	}
+
+    retourne ""
+}
+
+fonc détruit_serveuse(dyn serveuse : &Serveuse) : rien
+{
+    si serveuse.prise == -1 {
+        retourne
+    }
+
+    close(serveuse.prise)
+}
+
+fonc charge_donnees_requete(prise : z32, mon_addresse : &sockaddr_in) : chaine
+{
+    #ip = converti_chaine_c(inet_ntoa(mon_addresse.sin_addr))
+    #imprime("serveur: Reçu connexion de ", ip, '\n')
+    MAXDATASIZE : n64 = 1024
+
+    dyn tampon : [1024]z8
+    dyn requete : chaine
+
+    boucle {
+        taille_reçue = recv(prise, @tampon[0], MAXDATASIZE, 0)
+
+        si taille_reçue > 0 {
+            ancienne_taille = requete.taille
+            reloge requete : chaine(requete.taille + taille_reçue)
+            copie_mem_nonsur(src=@tampon[0], dst=@requete[ancienne_taille], taille=taille_reçue)
+
+            si taille_reçue < MAXDATASIZE {
+                arrête
+            }
+        }
+        sinon si taille_reçue == 0 {
+            arrête;
+        }
+        sinon si taille_reçue == -1 {
+            # À FAIRE : erreur
+            arrête;
+        }
+    }
+
+    #imprime("requete :\n", requete, '\n')
+
+    retourne requete
+}
+
+fonc démarre(dyn serveuse : &Serveuse) : rien
+{
+    si serveuse.prise == -1 {
+        retourne
+    }
+
+    dyn mon_addresse : sockaddr_in # Adresse du connecté
+    sin_size = transtype(taille_de(sockaddr_in) : n32)
+
+    boucle {
+        prise = accept(serveuse.prise, transtype(@mon_addresse : *sockaddr), @sin_size)
+
+        si prise == -1 {
+            perror("accept".pointeur)
+            continue
+        }
+
+        si fork() == 0 {
+            requete = charge_donnees_requete(prise, mon_addresse);
+
+            #reponse = repond_requete(requete)
+
+            enchaineuse = crée_enchaineuse()
+            diffère { enchaineuse.détruit(); }
+
+            contenu = "<p>ma réponse</p>"
+
+            enchaineuse.pousse("HTTP/1.1 200 OK\r\n")
+            enchaineuse.pousse("Content-Length ")
+            enchaineuse.pousse("18")
+            enchaineuse.pousse("\r\n")
+            enchaineuse.pousse("Content-Type: text/html; charset=utf-8\r\n")
+            enchaineuse.pousse("\r\n")
+            enchaineuse.pousse(contenu)
+
+            chaine_reponse = enchaineuse.résultat
+
+            #chaine_reponse = construit_reponse(reponse)
+
+            si send(prise, chaine_reponse.pointeur, chaine_reponse.taille, 0) == -1 {
+                perror("send".pointeur)
+            }
+
+            close(prise)
+            exit(0)
+        }
+
+        # le parent n'a pas besoin de cela
+        close(prise)
+
+        # nettoyage des processus fils
+        tantque waitpid(-1, nul, _WNOHANG) > 0 {}
+    }
+}
+
+################################################################################
+
+# commentaire
+fonc principale(args : []*z8) : z32
+{
+    dyn serveuse : Serveuse
+    construit_serveuse(serveuse, 5009)
+
+    démarre(serveuse)
+
+    retourne 0
+}

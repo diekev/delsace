@@ -29,11 +29,9 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	tests
 	base64
-	#reseau
 	sha256
 	math
 	types
-	arachne
 	stdc++fs
 	systeme_fichier
 	memoire
@@ -41,9 +39,6 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	arachne/test_creation_base_donnees.cc
-	arachne/test_graphe.cc
-
 	math/test_math.cc
 	math/test_matrice.cc
 	math/test_matrice_fixe.cc
@@ -57,16 +52,12 @@ set(SOURCES
 	test_string.cc
 	test_temperature.cc
 	test_time.cc
-	#test_uri.cc
-
-	arachne/tests_arachne.hh
 
 	math/tests_math.hh
 	math/tests_matrice.hh
 	math/tests_quaternion.hh
 	math/tests_vecteur.hh
 
-	#test_uri.hh
 	tests.hh
 )
 

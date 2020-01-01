@@ -1,0 +1,84 @@
+énum type_éditrice {
+	NULLE     = 0,
+	PROPRIETE = 1,
+	TEMPS     = 2,
+}
+
+struct vec2d {
+	x : r32
+	y : r32
+}
+
+struct rect2d {
+	pos : vec2d
+	taille : vec2d
+}
+
+struct Editrice {
+	nom : chaîne
+	type : type_éditrice
+
+	rect_abs : vec2d # rectangle en coordonnées pixel
+	rect_rel : vec2d # rectangle en coordonnées normalisées
+}
+
+fonction cree_editrice(type : type_éditrice) : Editrice
+{
+	dyn éditrice = loge Editrice
+	type de éditrice = type
+
+	discr type {
+		NULLE de type_éditrice {
+			nom de éditrice = "nulle"
+		}
+		PROPRIETE de type_éditrice {
+			nom de éditrice = "propriété"
+		}
+		TEMPS de type_éditrice {
+			nom de éditrice = "temps"
+		}
+	}
+
+	retourne éditrice
+}
+
+fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) : Editrice
+{
+	dyn editrice = cree_editrice(type)
+
+	pousse_tableau(editrices, editrice)
+
+	# initialise la taille de l'éditrice selon sa position
+
+	retourne editrice
+}
+
+fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
+{
+	# trouve l'index de l'éditrice dans le tableau
+	soit index = taille de tableau
+
+	pour i dans 0 ... taille de tableau - 1 {
+		soit ed : *Editrice
+		valeur_tableau(editrices, i)
+	}
+
+	# supprime à l'index
+}
+
+# editrice gauche-droite-haut-bas
+fonction divise_editrice(editrice : *Editrice) : bool
+{
+	soit gauche = gauche de editrice
+	soit droite = droite de editrice
+	soit haut   = haut de editrice
+	soit bas    = bas de editrice
+
+	si gauche == droite == haut == bas == nul {
+		retourne vrai
+	}
+
+	# trouve s'il est possible de diviser l'éditrice
+
+	retourne vrai
+}

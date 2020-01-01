@@ -1,0 +1,118 @@
+importe Fondation
+importe Réseau
+
+fonc vérifie_égalité(chaine1 : chaine, chaine2 : chaine) : rien
+{
+    si compare_chaines(chaine1, chaine2) {
+        retourne
+    }
+
+    # À FAIRE : il nous la ligne et le fichier pour imprimer où se trouve l'erreur
+    imprime("Les chaines ne sont pas égales '", chaine1, "' et '", chaine2, "'\n")
+}
+
+fonc vérifie_égalité(a : bool, b : bool) : rien
+{
+    si a == b {
+        retourne
+    }
+
+    imprime("Les valeurs ne sont pas égales '", a, "' et '", b, "'\n")
+}
+
+fonc principale(args : []*z8) : z32
+{
+	{
+		uri = construit_uri("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top")
+
+		vérifie_égalité(uri.schéma, "https")
+		vérifie_égalité(uri.autorité, "//john.doe@www.example.com:123")
+		vérifie_égalité(uri.info_usager, "john.doe")
+		vérifie_égalité(uri.hôte, "www.example.com")
+		vérifie_égalité(uri.port, "123")
+		vérifie_égalité(uri.chemin, "/forum/questions/")
+		vérifie_égalité(uri.requête, "?tag=networking&order=newest")
+		vérifie_égalité(uri.fragment, "#top")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+	{
+		uri = construit_uri("ldap://[2001:db8::7]/c=GB?objectClass?one")
+
+		vérifie_égalité(uri.schéma, "ldap")
+		vérifie_égalité(uri.autorité, "//[2001:db8::7]")
+		vérifie_égalité(uri.info_usager, "")
+		vérifie_égalité(uri.hôte, "[2001:db8::7]")
+		vérifie_égalité(uri.port, "")
+		vérifie_égalité(uri.chemin, "/c=GB")
+		vérifie_égalité(uri.requête, "?objectClass?one")
+		vérifie_égalité(uri.fragment, "")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+	{
+		uri = construit_uri("mailto:John.Doe@example.com")
+
+		vérifie_égalité(uri.schéma, "mailto")
+		vérifie_égalité(uri.autorité, "")
+		vérifie_égalité(uri.info_usager, "")
+		vérifie_égalité(uri.hôte, "")
+		vérifie_égalité(uri.port, "")
+		vérifie_égalité(uri.chemin, "John.Doe@example.com")
+		vérifie_égalité(uri.requête, "")
+		vérifie_égalité(uri.fragment, "")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+	{
+		uri = construit_uri("news:comp.infosystems.www.servers.unix")
+
+		vérifie_égalité(uri.schéma, "news")
+		vérifie_égalité(uri.autorité, "")
+		vérifie_égalité(uri.info_usager, "")
+		vérifie_égalité(uri.hôte, "")
+		vérifie_égalité(uri.port, "")
+		vérifie_égalité(uri.chemin, "comp.infosystems.www.servers.unix")
+		vérifie_égalité(uri.requête, "")
+		vérifie_égalité(uri.fragment, "")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+	{
+		uri = construit_uri("tel:+1-816-555-1212")
+
+		vérifie_égalité(uri.schéma, "tel")
+		vérifie_égalité(uri.autorité, "")
+		vérifie_égalité(uri.info_usager, "")
+		vérifie_égalité(uri.hôte, "")
+		vérifie_égalité(uri.port, "")
+		vérifie_égalité(uri.chemin, "+1-816-555-1212")
+		vérifie_égalité(uri.requête, "")
+		vérifie_égalité(uri.fragment, "")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+	{
+		uri = construit_uri("telnet://192.0.2.16:80/")
+
+		vérifie_égalité(uri.schéma, "telnet")
+		vérifie_égalité(uri.autorité, "//192.0.2.16:80")
+		vérifie_égalité(uri.info_usager, "")
+		vérifie_égalité(uri.hôte, "192.0.2.16")
+		vérifie_égalité(uri.port, "80")
+		vérifie_égalité(uri.chemin, "/")
+		vérifie_égalité(uri.requête, "")
+		vérifie_égalité(uri.fragment, "")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+	{
+		uri = construit_uri("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")
+
+		vérifie_égalité(uri.schéma, "urn")
+		vérifie_égalité(uri.autorité, "")
+		vérifie_égalité(uri.info_usager, "")
+		vérifie_égalité(uri.hôte, "")
+		vérifie_égalité(uri.port, "")
+		vérifie_égalité(uri.chemin, "oasis:names:specification:docbook:dtd:xml:4.1.2")
+		vérifie_égalité(uri.requête, "")
+		vérifie_égalité(uri.fragment, "")
+		vérifie_égalité(est_valide(uri), vrai)
+	}
+
+    retourne 0
+}

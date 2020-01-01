@@ -38,6 +38,7 @@ struct ContexteGenerationCode;
 enum class type_noeud : char {
 	RACINE,
 	DECLARATION_FONCTION,
+	DECLARATION_COROUTINE,
 	LISTE_PARAMETRES_FONCTION,
 	APPEL_FONCTION,
 	VARIABLE,
@@ -53,6 +54,7 @@ enum class type_noeud : char {
 	BOOLEEN,
 	CARACTERE,
 	SI,
+	SINON,
 	BLOC,
 	POUR,
 	CONTINUE_ARRETE,
@@ -75,13 +77,27 @@ enum class type_noeud : char {
 	RELOGE,
 	DECLARATION_STRUCTURE,
 	DECLARATION_ENUM,
-	ASSOCIE,
-	PAIRE_ASSOCIATION,
+	DISCR,
+	PAIRE_DISCR,
 	SAUFSI,
 	RETIENS,
+
+	/* mis en place dans la validation sémantique pour simplifier la génération
+	 * du code */
+	RETOUR_MULTIPLE,
+	RETOUR_SIMPLE,
+	ACCES_TABLEAU,
+	OPERATION_COMP_CHAINEE,
+	DISCR_UNION,
+	ACCES_MEMBRE_UNION,
 };
 
 const char *chaine_type_noeud(type_noeud type);
+
+inline bool est_type_retour(type_noeud type)
+{
+	return type == type_noeud::RETOUR || type == type_noeud::RETOUR_MULTIPLE || type == type_noeud::RETOUR_SIMPLE;
+}
 
 /* ************************************************************************** */
 
@@ -193,24 +209,67 @@ enum {
 
 	GAUCHE_ASSIGNATION,
 	GENERE_CODE_DECL_VAR,
+	GENERE_CODE_DECL_VAR_GLOBALE,
 	GENERE_CODE_ACCES_VAR,
 
 	APPEL_POINTEUR_FONCTION,
-
-	APPEL_FONCTION_SYNT_UNI,
 
 	APPEL_FONCTION_MOULT_RET,
 	APPEL_FONCTION_MOULT_RET2,
 
 	ACCEDE_MODULE,
 
+	/* pour ne pas avoir à générer des conditions de vérification pour par
+	 * exemple les accès à des membres d'unions */
+	IGNORE_VERIFICATION,
+
 	/* instruction 'retourne' */
 	REQUIERS_CODE_EXTRA_RETOUR,
-	GENERE_CODE_RETOUR_MOULT,
-	GENERE_CODE_RETOUR_SIMPLE,
 };
 
+/* Le type d'une valeur, gauche, droite, ou transcendantale.
+ *
+ * Une valeur gauche est une valeur qui peut être assignée, donc à
+ * gauche de '=', et comprend :
+ * - les variables et accès de membres de structures
+ * - les déréférencements (via mémoire(...))
+ * - les opérateurs []
+ *
+ * Une valeur droite est une valeur qui peut être utilisée dans une
+ * assignation, donc à droite de '=', et comprend :
+ * - les valeurs littéralles (0, 1.5, "chaine", 'a', vrai)
+ * - les énumérations
+ * - les variables et accès de membres de structures
+ * - les pointeurs de fonctions
+ * - les déréférencements (via mémoire(...))
+ * - les opérateurs []
+ * - les transtypages
+ * - les prises d'addresses (via @...)
+ *
+ * Une valeur transcendantale est une valeur droite qui peut aussi être
+ * une valeur gauche (l'intersection des deux ensembles).
+ */
+enum TypeValeur : char {
+	INVALIDE = 0,
+	GAUCHE = (1 << 1),
+	DROITE = (1 << 2),
+	TRANSCENDANTALE = GAUCHE | DROITE,
+};
+
+DEFINIE_OPERATEURS_DRAPEAU(TypeValeur, char)
+
+inline bool est_valeur_gauche(TypeValeur type_valeur)
+{
+	return (type_valeur & TypeValeur::GAUCHE) != TypeValeur::INVALIDE;
+}
+
+inline bool est_valeur_droite(TypeValeur type_valeur)
+{
+	return (type_valeur & TypeValeur::DROITE) != TypeValeur::INVALIDE;
+}
+
 struct DonneesFonction;
+struct DonneesOperateur;
 
 namespace noeud {
 
@@ -238,8 +297,11 @@ struct base {
 	int module_appel{}; // module pour les appels de fonctions importées
 
 	DonneesFonction *df = nullptr; // pour les appels de coroutines dans les boucles ou autres.
+	DonneesOperateur const *op = nullptr;
 
 	DonneesTypeDeclare type_declare{};
+
+	TypeValeur type_valeur = TypeValeur::INVALIDE;
 
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceau const &morceau);
 
@@ -278,21 +340,16 @@ struct base {
 	 * aucun enfant, retourne nullptr.
 	 */
 	base *dernier_enfant() const;
+
+	/* retourne la valeur_calculee avec le type dls::chaine */
+	dls::chaine chaine_calculee() const;
 };
 
 void rassemble_feuilles(
 		base *noeud_base,
 		dls::tableau<base *> &feuilles);
 
-bool est_constant(base *b);
-
 /* Ajout le nom d'un argument à la liste des noms d'un noeud d'appel */
 void ajoute_nom_argument(base *b, const dls::vue_chaine_compacte &nom);
-
-bool peut_operer(
-		const DonneesTypeFinal &type1,
-		const DonneesTypeFinal &type2,
-		type_noeud type_gauche,
-		type_noeud type_droite);
 
 }  /* namespace noeud */

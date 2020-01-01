@@ -26,6 +26,9 @@
 
 #include <iostream>
 
+#include "biblinternes/nombre_decimaux/traits.h"
+#include "biblinternes/structures/chaine.hh"
+
 /**
  * Petite bibliothèque de typage pour mieux formatter les messages.
  */
@@ -59,3 +62,67 @@ struct taille_octet {
 };
 
 std::ostream &operator<<(std::ostream &os, taille_octet const &taille);
+
+/* ************************************************************************** */
+
+template <typename T>
+auto formatte_nombre_entier(T nombre)
+{
+	auto resultat_tmp = dls::vers_chaine(nombre);
+
+	const auto taille = resultat_tmp.taille();
+
+	if (taille <= 3) {
+		return resultat_tmp;
+	}
+
+	const auto reste = taille % 3;
+	auto resultat = dls::chaine{""};
+	resultat.reserve(taille + taille / 3);
+
+	for (auto i = 0l; i < reste; ++i) {
+		resultat.pousse(resultat_tmp[i]);
+	}
+
+	for (auto i = reste; i < taille; i += 3) {
+		if (reste != 0 || i != reste) {
+			resultat.pousse(' ');
+		}
+
+		resultat.pousse(resultat_tmp[i + 0]);
+		resultat.pousse(resultat_tmp[i + 1]);
+		resultat.pousse(resultat_tmp[i + 2]);
+	}
+
+	return resultat;
+}
+
+template <typename T>
+auto formatte_nombre_decimal(T nombre)
+{
+	using type_entier = typename dls::nombre_decimaux::integral_repr<T>::type;
+	auto part_entiere = formatte_nombre_entier(static_cast<type_entier>(nombre));
+
+	auto part_decimale = dls::vers_chaine(nombre);
+
+	auto pos_point = part_decimale.trouve('.');
+
+	if (pos_point != -1) {
+		part_entiere.append(part_decimale.sous_chaine(pos_point));
+	}
+
+	return part_entiere;
+}
+
+template <typename T>
+auto formatte_nombre(T nombre)
+{
+	if constexpr (std::is_integral_v<T>) {
+		return formatte_nombre_entier(nombre);
+	}
+	else if constexpr (std::is_floating_point_v<T>) {
+		return formatte_nombre_decimal(nombre);
+	}
+
+	return dls::chaine("pas un nombre");
+}

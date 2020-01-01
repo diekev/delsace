@@ -27,15 +27,7 @@
 #include "biblinternes/tests/test_aleatoire.hh"
 
 #include "biblinternes/base64/base64.hh"
-//#include "../réseau/uri.hh"
 #include "biblinternes/sha256/sha256.hh"
-
-//int test_aleatoire_uri(const u_char *donnees, size_t taille)
-//{
-//	dls::chaine chaine(reinterpret_cast<const char *>(donnees), taille);
-//	reseau::uri uri(chaine);
-//	return !uri.est_valide();
-//}
 
 int test_aleatoire_base64_encode(const u_char *donnees, size_t taille)
 {
@@ -65,7 +57,6 @@ int test_aleatoire_sha256(const u_char *donnees, long taille)
 int main()
 {
 	dls::test_aleatoire::Testeuse testeur;
-	//testeur.ajoute_tests("uri", nullptr, test_aleatoire_uri);
 	testeur.ajoute_tests("base64_encode", nullptr, test_aleatoire_base64_encode);
 	testeur.ajoute_tests("base64_decode", nullptr, test_aleatoire_base64_decode);
 	testeur.ajoute_tests("sha256", nullptr, test_aleatoire_sha256);

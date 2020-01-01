@@ -1,0 +1,241 @@
+# Fonctions de manipulation de chaines.
+
+charge "memoire"
+
+# Retourne vrai si les deux chaines données sont égales.
+fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
+{
+    si taille de ch1 != taille de ch2 {
+		retourne faux
+    }
+
+	soit taille = taille de ch1
+	soit début : z64 = 0
+
+    pour i dans début...(taille - 1) {
+        si ch1[i] != ch2[i] {
+			retourne faux
+        }
+    }
+
+	retourne vrai
+}
+
+# Retourne la taille d'une chaine C, c'est à dire nul-terminé.
+#!nulctx fonc taille_chaine_c(ch : *z8) : z64
+{
+	dyn index : z64 = 0
+
+    tantque ch[index] != '\0' {
+		index += 1
+    }
+
+	retourne index
+}
+
+#!nulctx fonc construit_chaine(ptr : *z8, taille : z64) : chaine
+{
+	dyn ret : chaine
+	pointeur de ret = ptr
+	taille de ret = taille
+	retourne ret
+}
+
+# Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
+#!nulctx fonc converti_chaine_c(chaine_c : *z8) : chaine
+{
+	retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c))
+}
+
+# Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
+# par un '\0' et l'utiliser dans les fonctions C.
+fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) : *z8
+{
+    si taille de tampon == 0 {
+		retourne nul
+	}
+
+    si taille de tampon < taille de chn + 1 {
+		tampon[0] = '\0'
+		retourne @tampon[0]
+	}
+
+	taille = taille de chn
+
+    copie_mem_nonsur(
+	    src=pointeur de chn,
+		dst=@tampon[0],
+		taille=taille)
+
+	tampon[taille] = '\0'
+
+	retourne @tampon[0]
+}
+
+# execute une fonction pour chaque ligne du texte d'entrée
+fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) : rien
+{
+	dyn taille_chaine : z64 = 0
+	dyn début_chaine : z64 = 0
+
+    pour c, i dans texte {
+		taille_chaine += 1
+
+        si c == '\n' {
+			ligne = construit_chaine(@texte[début_chaine], taille_chaine)
+			rappel(ligne, donnees)
+
+			début_chaine = transtype(i + 1 : z64)
+			taille_chaine = 0
+		}
+	}
+
+    # La dernière ligne n'a pas de retour...
+	si taille_chaine != 0 {
+		ligne = construit_chaine(@texte[début_chaine], taille_chaine)
+		rappel(ligne, donnees)
+	}
+}
+
+fonc est_vide(chn : chaine) : bool
+{
+	retourne taille de chn == 0
+}
+
+fonc trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
+{
+	soit début = pos
+	soit fin   = taille de chn
+
+    pour i dans début ... fin - 1 {
+	    si chn[i] == carac {
+			retourne i
+		}
+	}
+
+	retourne transtype(-1 : z64)
+}
+
+corout découpe(texte : chaine, sep : z8) : chaine
+{
+	dyn taille_mot : z64 = 0
+	dyn début_mot : z64 = 0
+	dyn mot : chaine
+
+    pour c, i dans texte {
+	    si c == sep {
+			retiens construit_chaine(@texte[début_mot], taille_mot)
+
+			début_mot = transtype(i + 1 : z64)
+			taille_mot = 0
+			continue
+		}
+
+		taille_mot += 1
+	}
+
+    si taille_mot != 0 {
+		retiens construit_chaine(@texte[début_mot], taille_mot)
+	}
+}
+
+# Converti une chaine, par exemple "5005", en un nombre entier
+# La fonction présume que la chaine est entièrement composée de caractères numériques
+fonc extrait_nombre_entier(chn : chaine) : z64
+{
+    dyn résultat : z64 = 0
+
+	pour c dans chn {
+        résultat = résultat * 10 + transtype(c - '0' : z64)
+    }
+
+	retourne résultat
+}
+
+################################################################################
+
+struct Enchaineuse {
+    résultat : chaine
+    taille : z64
+}
+
+fonc crée_enchaineuse() : Enchaineuse
+{
+    dyn enchaineuse : Enchaineuse
+    retourne enchaineuse
+}
+
+fonc détruit(dyn enchaineuse : &Enchaineuse) : rien
+{
+	déloge enchaineuse.résultat
+	enchaineuse.taille = 0
+}
+
+fonc réserve(dyn enchaineuse : &Enchaineuse, taille : z64) : rien
+{
+	si taille < 0 {
+		# Erreur ?
+		retourne
+	}
+
+	si taille <= enchaineuse.résultat.taille {
+		retourne
+	}
+
+	reloge enchaineuse.résultat : chaine(taille)
+}
+
+fonc appends(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
+{
+	src = chn.pointeur
+	dst = @enchaineuse.résultat[enchaineuse.taille]
+	taille = chn.taille
+
+    copie_mem_nonsur(src=src, dst=dst, taille=taille)
+    enchaineuse.taille += taille
+}
+
+fonc pousse(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
+{
+	nouvelle_taille = enchaineuse.résultat.taille + chn.taille
+	enchaineuse.réserve(nouvelle_taille)
+	enchaineuse.appends(chn)
+}
+
+fonc pousse(dyn enchaineuse : &Enchaineuse, chns : ...chaine) : rien
+{
+	dyn taille : z64
+
+	pour chn dans chns {
+		taille += chn.taille
+	}
+
+	enchaineuse.réserve(taille)
+
+	pour chn dans chns {
+		enchaineuse.appends(chn)
+	}
+}
+
+# Retourne une chaine correspondant à l'enchainement de toutes les chaines
+# spécifiées. La chaine retournée a été logé et doit être délogée par
+# l'appelante.
+fonc enchaine(chns : ...chaine) : chaine
+{
+	dyn enchaineuse : Enchaineuse
+	dyn taille : z64
+
+	# À FAIRE : trouve comment passer des arguments variadiques à
+	# d'autres fonctions
+	pour chn dans chns {
+		taille += chn.taille
+	}
+
+	enchaineuse.réserve(taille)
+
+	pour chn dans chns {
+		enchaineuse.appends(chn)
+	}
+
+	retourne enchaineuse.résultat
+}

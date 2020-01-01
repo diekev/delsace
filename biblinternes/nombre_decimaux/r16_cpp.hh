@@ -129,6 +129,20 @@ struct r16 {
 	}
 };
 
+/* ******************************** operateurs unairse ******************************* */
+
+inline r16 operator+(r16 const &a)
+{
+	return a;
+}
+
+inline r16 operator-(r16 const &a)
+{
+	auto tmp = a;
+	tmp.bits = DLS_moins_r16(a.bits);
+	return tmp;
+}
+
 /* ******************************** additions ******************************* */
 
 inline r16 operator+(r16 const &a, r16 const &b)

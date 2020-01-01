@@ -37,19 +37,15 @@ add_subdirectory(executable)
 add_subdirectory(exemples)
 add_subdirectory(tests)
 
-set(FICHIERS_BIBLIOTHEQUES
-	bibliotheques/adn.kuri
-	bibliotheques/chaine.kuri
-	bibliotheques/chrono.kuri
-	bibliotheques/flux.kuri
-	bibliotheques/info_type.kuri
-	bibliotheques/iter.kuri
-	bibliotheques/memoire.kuri
-	bibliotheques/sys_fichier.kuri
-	bibliotheques/structures.kuri
-	bibliotheques/uri.kuri
+set(DOSSIER_MODULES
+	bibliotheques/Fondation
+	bibliotheques/GlibC
+	bibliotheques/Kuri
+	bibliotheques/Réseau
+	bibliotheques/SysFichier
 )
+
 install(
-	FILES ${FICHIERS_BIBLIOTHEQUES}
-	DESTINATION ${RACINE_INSTALLATION}/bibliotheques
+	DIRECTORY ${DOSSIER_MODULES}
+	DESTINATION ${RACINE_INSTALLATION}/modules
 )

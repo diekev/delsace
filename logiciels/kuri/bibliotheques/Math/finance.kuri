@@ -1,0 +1,43 @@
+#!enligne fonc min(a : r32, b : r32) : r32
+{
+	retourne retourne si a < b { a } sinon { b }
+}
+
+#!enligne fonc max(a : r32, b : r32) : r32
+{
+	retourne retourne si a < b { a } sinon { b }
+}
+
+# fma pour les anglophone
+#!enligne fonc mar(a : r16, b : r16, c : r16) : r16
+{
+	retourne mar(a, b, c);
+}
+
+#!enligne fonc mar(a : r32, b : r32, c : r32) : r32
+{
+	retourne #!enstruite mar_r32(a, b, c);
+}
+
+#!enligne fonc mar(a : r64, b : r64, c : r64) : r64
+{
+	retourne #!enstruite mar_r64(a, b, c);
+}
+
+fonc covariance(
+		cours1 : []r32,
+		moyenne1 : r32,
+		cours2 : []r32,
+		moyenne2 : r32) : (r32, z64)
+{
+	taille = min(cours1.taille, cours2.taille);
+	dyn res : r32;
+
+	pour i dans 0 ... taille - 1 {
+		res += (cours1[i] - moyenne1) * (cours2[i] - moyenne2);
+	}
+
+	res /= transtype(taille : r32);
+
+	retourne res, taille;
+}

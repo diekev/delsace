@@ -111,6 +111,19 @@ static inline n16 DLS_depuis_r64(r64 v)
 	return DLS_depuis_r32((float)(v));
 }
 
+/* ************* opérateurs unaires ************* */
+
+static inline n16 DLS_plus_r16(n16 a)
+{
+	return a;
+}
+
+static inline n16 DLS_moins_r16(n16 a)
+{
+	r32 f = DLS_vers_r32(a);
+	return DLS_depuis_r32(-f);
+}
+
 /* ************* addition ************* */
 
 static inline n16 DLS_ajoute_r16r16(n16 a, n16 b)

@@ -36,10 +36,26 @@
 #include "broyage.hh"
 #include "modules.hh"
 
+ContexteGenerationCode::ContexteGenerationCode()
+	: magasin_types(graphe_dependance)
+{
+	enregistre_operateurs_basiques(*this, this->operateurs);
+
+	/* À FAIRE : type du pointeur de __contexte_global */
+	auto dt = DonneesTypeFinal{};
+	dt.pousse(id_morceau::POINTEUR);
+	dt.pousse(id_morceau::CHAINE_CARACTERE);
+	this->index_type_ctx = magasin_types.ajoute_type(dt);
+}
+
 ContexteGenerationCode::~ContexteGenerationCode()
 {
 	for (auto module : modules) {
 		memoire::deloge("DonneesModule", module);
+	}
+
+	for (auto fichier : fichiers) {
+		memoire::deloge("Fichier", fichier);
 	}
 
 #ifdef AVEC_LLVM
@@ -53,35 +69,22 @@ DonneesModule *ContexteGenerationCode::cree_module(
 		dls::chaine const &nom,
 		dls::chaine const &chemin)
 {
+	auto chemin_corrige = chemin;
+
+	if (chemin_corrige[chemin_corrige.taille() - 1] != '/') {
+		chemin_corrige.append('/');
+	}
+
 	for (auto module : modules) {
-		if (module->chemin == chemin) {
-			return nullptr;
+		if (module->chemin == chemin_corrige) {
+			return module;
 		}
 	}
 
 	auto module = memoire::loge<DonneesModule>("DonneesModule");
 	module->id = static_cast<size_t>(modules.taille());
 	module->nom = nom;
-	module->chemin = chemin;
-
-	/* La fonction memoire_utilisee est définie globalement donc doit être
-	 * définie dans chaque module. */
-	auto nom_fonction = "mémoire_utilisée";
-
-	auto donnees_fonctions = DonneesFonction();
-	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::FONC);
-	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
-	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
-	dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
-	dt.pousse(id_morceau::Z64);
-	dt.pousse(id_morceau::PARENTHESE_FERMANTE);
-	donnees_fonctions.index_type = magasin_types.ajoute_type(dt);
-	donnees_fonctions.idx_types_retours.pousse(magasin_types[TYPE_Z64]);
-	donnees_fonctions.nom_broye = broye_nom_fonction(nom_fonction, "", donnees_fonctions.index_type);
-
-	module->fonctions_exportees.insere(nom_fonction);
-	module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
+	module->chemin = chemin_corrige;
 
 	modules.pousse(module);
 
@@ -108,6 +111,55 @@ bool ContexteGenerationCode::module_existe(const dls::vue_chaine_compacte &nom) 
 {
 	for (auto module : modules) {
 		if (module->nom == nom) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* ************************************************************************** */
+
+Fichier *ContexteGenerationCode::cree_fichier(
+		dls::chaine const &nom,
+		dls::chaine const &chemin)
+{
+	for (auto fichier : fichiers) {
+		if (fichier->chemin == chemin) {
+			return nullptr;
+		}
+	}
+
+	auto fichier = memoire::loge<Fichier>("Fichier");
+	fichier->id = static_cast<size_t>(fichiers.taille());
+	fichier->nom = nom;
+	fichier->chemin = chemin;
+
+	fichiers.pousse(fichier);
+
+	return fichier;
+}
+
+Fichier *ContexteGenerationCode::fichier(size_t index) const
+{
+	return fichiers[static_cast<long>(index)];
+}
+
+Fichier *ContexteGenerationCode::fichier(const dls::vue_chaine_compacte &nom) const
+{
+	for (auto fichier : fichiers) {
+		if (fichier->nom == nom) {
+			return fichier;
+		}
+	}
+
+	return nullptr;
+}
+
+bool ContexteGenerationCode::fichier_existe(const dls::vue_chaine_compacte &nom) const
+{
+	for (auto fichier : fichiers) {
+		if (fichier->nom == nom) {
 			return true;
 		}
 	}
@@ -631,15 +683,15 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	metriques.temps_validation = this->temps_validation;
 	metriques.temps_generation = this->temps_generation;
 
-	for (auto module : modules) {
-		metriques.nombre_lignes += module->tampon.nombre_lignes();
-		metriques.memoire_tampons += module->tampon.taille_donnees();
-		metriques.memoire_morceaux += static_cast<size_t>(module->morceaux.taille()) * sizeof(DonneesMorceau);
-		metriques.nombre_morceaux += static_cast<size_t>(module->morceaux.taille());
-		metriques.temps_analyse += module->temps_analyse;
-		metriques.temps_chargement += module->temps_chargement;
-		metriques.temps_tampon += module->temps_tampon;
-		metriques.temps_decoupage += module->temps_decoupage;
+	for (auto fichier : fichiers) {
+		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
+		metriques.memoire_tampons += fichier->tampon.taille_donnees();
+		metriques.memoire_morceaux += static_cast<size_t>(fichier->morceaux.taille()) * sizeof(DonneesMorceau);
+		metriques.nombre_morceaux += static_cast<size_t>(fichier->morceaux.taille());
+		metriques.temps_analyse += fichier->temps_analyse;
+		metriques.temps_chargement += fichier->temps_chargement;
+		metriques.temps_tampon += fichier->temps_tampon;
+		metriques.temps_decoupage += fichier->temps_decoupage;
 	}
 
 	return metriques;
@@ -655,4 +707,27 @@ void ContexteGenerationCode::non_sur(bool ouinon)
 bool ContexteGenerationCode::non_sur() const
 {
 	return m_non_sur;
+}
+
+dls::vue_chaine_compacte ContexteGenerationCode::trouve_membre_actif(const dls::vue_chaine_compacte &nom_union)
+{
+	for (auto const &paire : membres_actifs) {
+		if (paire.first == nom_union) {
+			return paire.second;
+		}
+	}
+
+	return "";
+}
+
+void ContexteGenerationCode::renseigne_membre_actif(const dls::vue_chaine_compacte &nom_union, const dls::vue_chaine_compacte &nom_membre)
+{
+	for (auto &paire : membres_actifs) {
+		if (paire.first == nom_union) {
+			paire.second = nom_membre;
+			return;
+		}
+	}
+
+	membres_actifs.pousse({ nom_union, nom_membre });
 }

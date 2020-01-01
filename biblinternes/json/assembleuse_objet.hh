@@ -27,6 +27,8 @@
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/tori/objet.hh"
 
+namespace json {
+
 struct assembleuse_objet {
 	using ptr_objet = std::shared_ptr<tori::Objet>;
 
@@ -42,3 +44,5 @@ struct assembleuse_objet {
 
 	void depile_objet();
 };
+
+}  /* namespace json */

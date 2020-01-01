@@ -32,6 +32,7 @@
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
+#include "compilation/outils_morceaux.hh"
 
 #include "options.hh"
 
@@ -198,8 +199,8 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::ARRETE:
 			os << "arrête";
 			return;
-		case id_morceau::ASSOCIE:
-			os << "associe";
+		case id_morceau::DISCR:
+			os << "discr";
 			return;
 		case id_morceau::BOOL:
 			os << "bool";
@@ -408,6 +409,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::REFERENCE:
 			os << "&";
 			return;
+		case id_morceau::CHARGE:
+			os << "charge";
+			return;
 		case id_morceau::INCONNU:
 			os << "inconnu";
 			return;
@@ -420,26 +424,6 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 	};
 
 	os << "ERREUR";
-}
-
-static bool est_mot_cle(id_morceau id)
-{
-	switch (id) {
-		default:
-		{
-			return false;
-		}
-		case id_morceau::STRUCT:
-		case id_morceau::UNION:
-		case id_morceau::FONC:
-		case id_morceau::SI:
-		case id_morceau::SINON:
-		case id_morceau::SAUFSI:
-		case id_morceau::GARDE:
-		{
-			return true;
-		}
-	}
 }
 
 void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)
@@ -533,13 +517,13 @@ int main(int argc, char **argv)
 
 		auto contexte = ContexteGenerationCode{};
 		auto tampon = charge_fichier(chemin.c_str(), contexte, {});
-		auto module = contexte.cree_module("", chemin.c_str());
-		module->tampon = lng::tampon_source(tampon);
+		auto fichier = contexte.cree_fichier("", chemin.c_str());
+		fichier->tampon = lng::tampon_source(tampon);
 
-		auto decoupeuse = decoupeuse_texte(module);
+		auto decoupeuse = decoupeuse_texte(fichier);
 		decoupeuse.genere_morceaux();
 
-		test_markov_id_simple(module->morceaux);
+		test_markov_id_simple(fichier->morceaux);
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
