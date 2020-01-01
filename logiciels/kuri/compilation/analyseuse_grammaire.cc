@@ -505,12 +505,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			auto sinon_rencontre = false;
 
-			while (true) {
-				if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-					/* nous avons terminé */
-					break;
-				}
-
+			while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 				m_assembleuse->empile_noeud(type_noeud::PAIRE_DISCR, m_contexte, donnees());
 
 				if (est_identifiant(id_morceau::SINON)) {
@@ -1299,14 +1294,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
-
-	while (true) {
-		/* aucun paramètre, ou la liste de paramètre est vide */
-		if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-			avance();
-			return;
-		}
-
+	while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::EGAL)) {
 			avance();
 
@@ -1324,6 +1312,8 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 		 * paranthèse fermante est trouvé et que la pile est vide */
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
 	}
+
+	consomme(id_morceau::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
 }
 
 void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
@@ -1371,12 +1361,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 	if (analyse_membres) {
 		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
-		while (true) {
-			if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-				/* nous avons terminé */
-				break;
-			}
-
+		while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 			analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCT);
 		}
 
@@ -1403,12 +1388,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 	consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-	while (true) {
-		if (est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			/* nous avons terminé */
-			break;
-		}
-
+	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
 	}
 
@@ -1457,11 +1437,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 			}
 		}
 
-		while (true) {
-			if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-				break;
-			}
-
+		while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
 			dt.pousse(dtd);
 
@@ -1485,11 +1461,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 
 		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
 
-		while (true) {
-			if (est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-				break;
-			}
-
+		while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
 			dt.pousse(dtd);
 
@@ -1617,14 +1589,7 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 	auto liste_param = dls::tableau<dls::vue_chaine_compacte>{};
 
 	/* ici nous devons être au niveau du premier paramètre */
-	while (true) {
-		if (est_identifiant(type_id::ACCOLADE_FERMANTE)) {
-			avance();
-			noeud->drapeaux |= EST_CALCULE;
-			noeud->valeur_calculee = liste_param;
-			return;
-		}
-
+	while (!est_identifiant(type_id::ACCOLADE_FERMANTE)) {
 		if (!sont_2_identifiants(type_id::CHAINE_CARACTERE, type_id::EGAL)) {
 			lance_erreur(
 						"Le nom des membres est requis pour la construction de la structure",
@@ -1640,6 +1605,11 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 
 		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
 	}
+
+	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
+
+	noeud->drapeaux |= EST_CALCULE;
+	noeud->valeur_calculee = liste_param;
 }
 
 void analyseuse_grammaire::analyse_directive_si()
