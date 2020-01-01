@@ -77,6 +77,7 @@ const char *chaine_type_noeud(type_noeud type)
 	switch (type) {
 		CAS_TYPE(type_noeud::RACINE)
 		CAS_TYPE(type_noeud::DECLARATION_FONCTION)
+		CAS_TYPE(type_noeud::DECLARATION_COROUTINE)
 		CAS_TYPE(type_noeud::LISTE_PARAMETRES_FONCTION)
 		CAS_TYPE(type_noeud::APPEL_FONCTION)
 		CAS_TYPE(type_noeud::VARIABLE)
@@ -88,6 +89,8 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::OPERATION_BINAIRE)
 		CAS_TYPE(type_noeud::OPERATION_UNAIRE)
 		CAS_TYPE(type_noeud::RETOUR)
+		CAS_TYPE(type_noeud::RETOUR_MULTIPLE)
+		CAS_TYPE(type_noeud::RETOUR_SIMPLE)
 		CAS_TYPE(type_noeud::CHAINE_LITTERALE)
 		CAS_TYPE(type_noeud::BOOLEEN)
 		CAS_TYPE(type_noeud::CARACTERE)
@@ -114,10 +117,15 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::RELOGE)
 		CAS_TYPE(type_noeud::DECLARATION_STRUCTURE)
 		CAS_TYPE(type_noeud::DECLARATION_ENUM)
-		CAS_TYPE(type_noeud::ASSOCIE)
-		CAS_TYPE(type_noeud::PAIRE_ASSOCIATION)
+		CAS_TYPE(type_noeud::DISCR)
+		CAS_TYPE(type_noeud::PAIRE_DISCR)
 		CAS_TYPE(type_noeud::SAUFSI)
 		CAS_TYPE(type_noeud::RETIENS)
+		CAS_TYPE(type_noeud::ACCES_TABLEAU)
+		CAS_TYPE(type_noeud::OPERATION_COMP_CHAINEE)
+		CAS_TYPE(type_noeud::DISCR_UNION)
+		CAS_TYPE(type_noeud::ACCES_MEMBRE_UNION)
+		CAS_TYPE(type_noeud::SINON)
 	}
 
 	return "erreur : type_noeud inconnu";
@@ -173,7 +181,7 @@ void base::imprime_code(std::ostream &os, int tab)
 			os << ((std::any_cast<bool>(this->valeur_calculee)) ? "vrai" : "faux");
 		}
 		else if (this->type == type_noeud::CHAINE_LITTERALE) {
-			os << std::any_cast<dls::chaine>(this->valeur_calculee);
+			os << this->chaine_calculee();
 		}
 	}
 	else if (this->type == type_noeud::TRANSTYPE) {
@@ -191,6 +199,11 @@ void base::imprime_code(std::ostream &os, int tab)
 	for (auto enfant : this->enfants) {
 		enfant->imprime_code(os, tab + 1);
 	}
+}
+
+dls::chaine base::chaine_calculee() const
+{
+	return std::any_cast<dls::chaine>(this->valeur_calculee);
 }
 
 id_morceau base::identifiant() const

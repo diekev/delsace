@@ -63,6 +63,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
+#include "biblinternes/outils/tableau_donnees.hh"
 
 #ifdef AVEC_LLVM
 static void initialise_llvm()
@@ -234,6 +235,118 @@ static void cree_executable(const std::filesystem::path &dest, const std::filesy
 }
 #endif
 
+static void imprime_stats(
+		std::ostream &os,
+		Metriques const &metriques,
+		OptionsCompilation const &ops,
+		dls::chrono::compte_seconde debut_compilation)
+{
+	auto const temps_total = debut_compilation.temps();
+
+	auto const temps_scene = metriques.temps_tampon
+							 + metriques.temps_decoupage
+							 + metriques.temps_analyse
+							 + metriques.temps_chargement
+							 + metriques.temps_validation;
+
+	auto const temps_coulisse = metriques.temps_generation
+								+ metriques.temps_fichier_objet
+								+ metriques.temps_executable;
+
+	auto const temps_aggrege = temps_scene + temps_coulisse + metriques.temps_nettoyage;
+
+	auto calc_pourcentage = [&](const double &x, const double &total)
+	{
+		return (x * 100.0 / total);
+	};
+
+	auto const mem_totale = metriques.memoire_tampons
+							+ metriques.memoire_morceaux
+							+ metriques.memoire_arbre
+							+ metriques.memoire_contexte;
+
+	auto memoire_consommee = memoire::consommee();
+
+	auto const lignes_double = static_cast<double>(metriques.nombre_lignes);
+	auto const debit_lignes = static_cast<int>(lignes_double / temps_aggrege);
+	auto const debit_lignes_scene = static_cast<int>(lignes_double / temps_scene);
+	auto const debit_lignes_coulisse = static_cast<int>(lignes_double / temps_coulisse);
+	auto const debit_seconde = static_cast<int>(static_cast<double>(memoire_consommee) / temps_aggrege);
+
+	auto tableau = Tableau({ "Nom", "Valeur", "Unité", "Pourcentage" });
+	tableau.alignement(1, Alignement::DROITE);
+	tableau.alignement(3, Alignement::DROITE);
+
+	tableau.ajoute_ligne({ "Temps total", formatte_nombre(temps_total * 1000.0), "ms" });
+	tableau.ajoute_ligne({ "Temps aggrégé", formatte_nombre(temps_aggrege * 1000.0), "ms" });
+	tableau.ajoute_ligne({ "Nombre de modules", formatte_nombre(metriques.nombre_modules), "" });
+	tableau.ajoute_ligne({ "Nombre de lignes", formatte_nombre(metriques.nombre_lignes), "" });
+	tableau.ajoute_ligne({ "Débit de lignes par seconde", formatte_nombre(debit_lignes), "" });
+	tableau.ajoute_ligne({ "Débit de lignes par seconde (scène)", formatte_nombre(debit_lignes_scene), "" });
+	tableau.ajoute_ligne({ "Débit de lignes par seconde (coulisse)", formatte_nombre(debit_lignes_coulisse), "" });
+	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
+
+	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
+	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_morceaux), "" });
+	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
+
+	tableau.ajoute_ligne({ "Mémoire", "", "" });
+	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
+	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
+	tableau.ajoute_ligne({ "- Morceaux", formatte_nombre(metriques.memoire_morceaux), "o" });
+	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
+	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
+
+	tableau.ajoute_ligne({ "Temps Scène", formatte_nombre(temps_scene * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_scene, temps_total)) });
+	tableau.ajoute_ligne({ "- Chargement", formatte_nombre(metriques.temps_chargement * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_chargement, temps_scene)) });
+	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.temps_tampon * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_tampon, temps_scene)) });
+	tableau.ajoute_ligne({ "- Découpage", formatte_nombre(metriques.temps_decoupage * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_decoupage, temps_scene)) });
+	tableau.ajoute_ligne({ "- Analyse", formatte_nombre(metriques.temps_analyse * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_analyse, temps_scene)) });
+	tableau.ajoute_ligne({ "- Validation", formatte_nombre(metriques.temps_validation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_validation, temps_scene)) });
+
+	tableau.ajoute_ligne({ "Temps Coulisse", formatte_nombre(temps_coulisse * 1000.0), "ms", formatte_nombre(calc_pourcentage(temps_coulisse, temps_total)) });
+	tableau.ajoute_ligne({ "- Génération Code", formatte_nombre(metriques.temps_generation * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_generation, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Fichier Objet", formatte_nombre(metriques.temps_fichier_objet * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_fichier_objet, temps_coulisse)) });
+	tableau.ajoute_ligne({ "- Exécutable", formatte_nombre(metriques.temps_executable * 1000.0), "ms", formatte_nombre(calc_pourcentage(metriques.temps_executable, temps_coulisse)) });
+
+	tableau.ajoute_ligne({ "Temps Nettoyage", formatte_nombre(metriques.temps_nettoyage * 1000.0), "ms" });
+
+	imprime_tableau(tableau);
+
+	if (ops.imprime_taille_memoire_objet) {
+		imprime_taille_memoire_noeud(os);
+	}
+
+	return;
+}
+
+static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri)
+{
+	auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
+	auto chemin_objet = "/tmp/r16_tables.o";
+
+	if (std::filesystem::exists(chemin_objet)) {
+		return;
+	}
+
+	auto commande = dls::chaine("g++ -c ");
+	commande += chemin_fichier.c_str();
+	commande += " -o /tmp/r16_tables.o";
+
+	std::cout << "Compilation des tables de conversion R16...\n";
+	std::cout << "Exécution de la commande " << commande << std::endl;
+
+	auto err = system(commande.c_str());
+
+	if (err != 0) {
+		std::cerr << "Impossible de compiler les tables de conversion R16 !\n";
+		return;
+	}
+
+	std::cout << "Compilation réussie !" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -269,16 +382,15 @@ int main(int argc, char *argv[])
 	auto resultat = 0;
 	auto debut_compilation   = dls::chrono::compte_seconde();
 	auto debut_nettoyage     = dls::chrono::compte_seconde(false);
-	auto temps_nettoyage     = 0.0;
 	auto temps_fichier_objet = 0.0;
 	auto temps_executable    = 0.0;
-	auto mem_arbre           = 0ul;
-	auto mem_contexte        = 0ul;
-	auto nombre_noeuds       = 0ul;
+	auto est_errone = false;
 
 	auto metriques = Metriques{};
 
 	try {
+		precompile_objet_r16(chemin_racine_kuri);
+
 		/* enregistre le dossier d'origine */
 		auto dossier_origine = std::filesystem::current_path();
 
@@ -288,7 +400,7 @@ int main(int argc, char *argv[])
 			chemin = std::filesystem::absolute(chemin);
 		}
 
-		auto nom_module = chemin.stem();
+		auto nom_fichier = chemin.stem();
 
 		auto contexte_generation = ContexteGenerationCode{};
 		contexte_generation.bit32 = ops.bit32;
@@ -296,14 +408,15 @@ int main(int argc, char *argv[])
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
 
-		/* Charge d'abord le module d'informations de type */
-		charge_module(os, chemin_racine_kuri, "info_type", contexte_generation, {}, false);
+		/* Charge d'abord le module basique. */
+		importe_module(os, chemin_racine_kuri, "Kuri", contexte_generation, {});
 
 		/* Change le dossier courant et lance la compilation. */
 		auto dossier = chemin.parent_path();
 		std::filesystem::current_path(dossier);
 
-		charge_module(os, chemin_racine_kuri, nom_module.c_str(), contexte_generation, {}, true);
+		auto module = contexte_generation.cree_module("", dossier.c_str());
+		charge_fichier(os, module, chemin_racine_kuri, nom_fichier.c_str(), contexte_generation, {});
 
 		if (ops.emet_arbre) {
 			assembleuse.imprime_code(os);
@@ -374,13 +487,16 @@ int main(int argc, char *argv[])
 			of.open("/tmp/compilation_kuri.c");
 
 			assembleuse.genere_code_C(contexte_generation, of, chemin_racine_kuri);
-			mem_arbre = assembleuse.memoire_utilisee();
-			nombre_noeuds = assembleuse.nombre_noeuds();
 
 			of.close();
 
-			auto debut_executable = dls::chrono::compte_seconde();
-			auto commande = dls::chaine("gcc /tmp/compilation_kuri.c ");
+			auto debut_fichier_objet = dls::chrono::compte_seconde();
+			auto commande = dls::chaine("gcc -c /tmp/compilation_kuri.c ");
+
+			/* désactivation des erreurs concernant le manque de "const" quand
+			 * on passe des variables générés temporairement par la coulisse à
+			 * des fonctions qui dont les paramètres ne sont pas constants */
+			commande += "-Wno-discarded-qualifiers ";
 
 			switch (ops.optimisation) {
 				case NiveauOptimisation::Aucun:
@@ -418,116 +534,69 @@ int main(int argc, char *argv[])
 				commande += "-m32 ";
 			}
 
-			for (auto const &bib : assembleuse.bibliotheques) {
-				commande += " -l" + dls::chaine(bib);
+			for (auto const &def : assembleuse.definitions) {
+				commande += " -D" + dls::chaine(def);
 			}
 
-			commande += " -o ";
-			commande += ops.chemin_sortie;
+			commande += " -o /tmp/compilation_kuri.o";
 
-			os << "Exécution de la commade '" << commande << "'..." << std::endl;
+			os << "Exécution de la commande '" << commande << "'..." << std::endl;
 
 			auto err = system(commande.c_str());
 
+			temps_fichier_objet = debut_fichier_objet.temps();
+
 			if (err != 0) {
-				std::cerr << "Ne peut pas créer l'executable !\n";
+				std::cerr << "Ne peut pas créer le fichier objet !\n";
+				est_errone = true;
 			}
-			temps_executable = debut_executable.temps();
+			else {
+				auto debut_executable = dls::chrono::compte_seconde();
+				commande = dls::chaine("gcc /tmp/compilation_kuri.o /tmp/r16_tables.o ");
+
+				for (auto const &bib : assembleuse.bibliotheques) {
+					commande += " -l" + dls::chaine(bib);
+				}
+
+				commande += " -o ";
+				commande += ops.chemin_sortie;
+
+				os << "Exécution de la commande '" << commande << "'..." << std::endl;
+
+				err = system(commande.c_str());
+
+				if (err != 0) {
+					std::cerr << "Ne peut pas créer l'exécutable !\n";
+					est_errone = true;
+				}
+
+				temps_executable = debut_executable.temps();
+			}
 		}
 
 		/* restore le dossier d'origine */
 		std::filesystem::current_path(dossier_origine);
 
 		metriques = contexte_generation.rassemble_metriques();
-		mem_contexte = contexte_generation.memoire_utilisee();
+		metriques.memoire_contexte = contexte_generation.memoire_utilisee();
+		metriques.memoire_arbre = assembleuse.memoire_utilisee();
+		metriques.nombre_noeuds = assembleuse.nombre_noeuds();
+		metriques.temps_executable = temps_executable;
+		metriques.temps_fichier_objet = temps_fichier_objet;
 
 		os << "Nettoyage..." << std::endl;
 		debut_nettoyage = dls::chrono::compte_seconde();
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';
+		est_errone = true;
 	}
 
-	temps_nettoyage = debut_nettoyage.temps();
-	auto const temps_total = debut_compilation.temps();
+	metriques.temps_nettoyage = debut_nettoyage.temps();
 
-	auto const temps_scene = metriques.temps_tampon
-							 + metriques.temps_decoupage
-							 + metriques.temps_analyse
-							 + metriques.temps_chargement
-							 + metriques.temps_validation;
-
-	auto const temps_coulisse = metriques.temps_generation
-								+ temps_fichier_objet
-								+ temps_executable;
-
-	auto const temps_aggrege = temps_scene + temps_coulisse + temps_nettoyage;
-
-	auto calc_pourcentage = [&](const double &x, const double &total)
-	{
-		return pourcentage(x * 100.0 / total);
-	};
-
-	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_morceaux
-							+ mem_arbre
-							+ mem_contexte;
-
-	os << "------------------------------------------------------------------\n";
-	os << "Temps total                  : " << temps_seconde(temps_total) << '\n';
-	os << "Temps aggrégé                : " << temps_seconde(temps_aggrege) << '\n';
-	os << "Nombre de modules            : " << metriques.nombre_modules << '\n';
-	os << "Nombre de lignes             : " << metriques.nombre_lignes << '\n';
-	os << "Nombre de lignes par seconde : " << static_cast<double>(metriques.nombre_lignes) / temps_aggrege << '\n';
-	os << "Débit par seconde            : " << taille_octet(static_cast<size_t>(static_cast<double>(memoire::consommee()) / temps_aggrege)) << '\n';
-
-	os << '\n';
-	os << "Métriques :\n";
-	os << "\tNombre morceaux : " << metriques.nombre_morceaux << '\n';
-	os << "\tNombre noeuds   : " << nombre_noeuds << '\n';
-
-	os << '\n';
-	os << "Mémoire : " << taille_octet(mem_totale) << " (" << taille_octet(static_cast<size_t>(memoire::consommee())) << ')' << '\n';
-	os << "\tTampon   : " << taille_octet(metriques.memoire_tampons) << '\n';
-	os << "\tMorceaux : " << taille_octet(metriques.memoire_morceaux) << '\n';
-	os << "\tArbre    : " << taille_octet(mem_arbre) << '\n';
-	os << "\tContexte : " << taille_octet(mem_contexte) << '\n';
-
-	os << '\n';
-	os << "Temps scène : " << temps_seconde(temps_scene)
-	   << " (" << calc_pourcentage(temps_scene, temps_total) << ")\n";
-	os << '\t' << "Temps chargement : " << temps_seconde(metriques.temps_chargement)
-	   << " (" << calc_pourcentage(metriques.temps_chargement, temps_scene) << ")\n";
-	os << '\t' << "Temps tampon     : " << temps_seconde(metriques.temps_tampon)
-	   << " (" << calc_pourcentage(metriques.temps_tampon, temps_scene) << ")\n";
-	os << '\t' << "Temps découpage  : " << temps_seconde(metriques.temps_decoupage)
-	   << " (" << calc_pourcentage(metriques.temps_decoupage, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_tampons) / metriques.temps_decoupage)) << ")\n";
-	os << '\t' << "Temps analyse    : " << temps_seconde(metriques.temps_analyse)
-	   << " (" << calc_pourcentage(metriques.temps_analyse, temps_scene) << ") ("
-	   << taille_octet(static_cast<size_t>(static_cast<double>(metriques.memoire_morceaux) / metriques.temps_analyse)) << ")\n";
-	os << '\t' << "Temps validation : " << temps_seconde(metriques.temps_validation)
-	   << " (" << calc_pourcentage(metriques.temps_validation, temps_scene) << ")\n";
-
-	os << '\n';
-	os << "Temps coulisse : " << temps_seconde(temps_coulisse)
-	   << " (" << calc_pourcentage(temps_coulisse, temps_total) << ")\n";
-	os << '\t' << "Temps génération code : " << temps_seconde(metriques.temps_generation)
-	   << " (" << calc_pourcentage(metriques.temps_generation, temps_coulisse) << ")\n";
-	os << '\t' << "Temps fichier objet   : " << temps_seconde(temps_fichier_objet)
-	   << " (" << calc_pourcentage(temps_fichier_objet, temps_coulisse) << ")\n";
-	os << '\t' << "Temps exécutable      : " << temps_seconde(temps_executable)
-	   << " (" << calc_pourcentage(temps_executable, temps_coulisse) << ")\n";
-
-	os << '\n';
-	os << "Temps Nettoyage : " << temps_seconde(temps_nettoyage)
-	   << " (" << calc_pourcentage(temps_nettoyage, temps_total) << ")\n";
-
-	if (ops.imprime_taille_memoire_objet) {
-		imprime_taille_memoire_noeud(os);
+	if (!est_errone) {
+		imprime_stats(os, metriques, ops, debut_compilation);
 	}
-
-	os << std::endl;
 
 #ifdef AVEC_LLVM
 	issitialise_llvm();

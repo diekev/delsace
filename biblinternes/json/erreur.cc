@@ -29,6 +29,7 @@
 
 #include "morceaux.hh"
 
+namespace json {
 namespace erreur {
 
 void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, const DonneesMorceau &morceau, int type)
@@ -55,4 +56,5 @@ void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, con
 	throw erreur::frappe(ss.chn().c_str(), type);
 }
 
-}
+}  /* namespace erreur */
+}  /* namespace json */

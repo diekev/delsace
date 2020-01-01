@@ -1,21 +1,36 @@
-# Exemple d'association avec kuri
+# Exemple d'associations (filtrage par motif) avec kuri
+# https://fr.wikipedia.org/wiki/Filtrage_par_motif
 
-fonction main()
+fonc main()
 {
 	soit nombre = 1;
 
+	# À FAIRE : plages
 	associe nombre {
-		0...9 : imprime('0' + nombre);
-		10...99 : imprime("10...99");
-		sinon : imprime("Inconnu");
+		0 ... 9 {
+			imprime('0' + nombre)
+		}
+		10 ... 99 {
+			imprime("10...99")
+		}
+		sinon {
+			imprime("Inconnu")
+		}
 	}
 
 	soit nom = "bob";
 
+	# À FAIRE : type chaine
 	associe nom {
-		"bob" : imprime("bob");
-		"stéphane" : imprime("stéphane");
-		sinon : imprime("Inconnu");
+		"bob" {
+			imprime("bob")
+		}
+		"stéphane" {
+			imprime("stéphane")
+		}
+		sinon {
+			imprime("Inconnu")
+		}
 	}
 
     retourne 0;

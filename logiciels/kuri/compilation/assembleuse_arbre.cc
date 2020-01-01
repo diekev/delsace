@@ -37,6 +37,17 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 {
 	contexte.assembleuse = this;
 	this->empile_noeud(type_noeud::RACINE, contexte, {});
+
+	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
+	this->ajoute_inclusion("stdio.h");
+	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
+	this->ajoute_inclusion("stdlib.h");
+	/* Pour strlen, nous incluons toujours "string.h". */
+	this->ajoute_inclusion("string.h");
+	/* Pour les coroutines nous incluons toujours pthread */
+	this->ajoute_inclusion("pthread.h");
+	this->bibliotheques.pousse("pthread");
+	this->definitions.pousse("_REENTRANT");
 }
 
 assembleuse_arbre::~assembleuse_arbre()
@@ -84,7 +95,7 @@ noeud::base *assembleuse_arbre::cree_noeud(
 
 			/* requis pour déterminer le module dans le noeud d'accès point
 			 * À FAIRE : trouver mieux pour accéder à cette information */
-			noeud->module_appel = noeud->morceau.module;
+			noeud->module_appel = noeud->morceau.fichier;
 		}
 
 		m_noeuds.pousse(noeud);
@@ -127,19 +138,6 @@ void assembleuse_arbre::genere_code_C(
 		return;
 	}
 
-	/* Définition de errno, puisque requis dans la plupart des erreurs des
-	 * bibliothèques C. */
-	auto donnees_var = DonneesVariable{};
-	donnees_var.est_dynamique = true;
-	donnees_var.index_type = contexte_generation.magasin_types[TYPE_Z32];
-
-	contexte_generation.pousse_globale("errno", donnees_var);
-
-	/* Pour malloc/free, nous incluons toujours "stdlib.h". */
-	os << "#include <stdlib.h>\n";
-	/* Pour strlen, nous incluons toujours "string.h". */
-	os << "#include <string.h>\n";
-
 	for (auto const &inc : this->inclusions) {
 		os << "#include <" << inc << ">\n";
 	}
@@ -148,44 +146,67 @@ void assembleuse_arbre::genere_code_C(
 
 	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
 	os << "static long __VG_memoire_utilisee__ = 0;";
-	os << "static long ";
-	auto &df = contexte_generation.module(0)->donnees_fonction("mémoire_utilisée").front();
-	os << df.nom_broye;
-	os << "() { return __VG_memoire_utilisee__; }";
+	os << "static long __VG_memoire_consommee__ = 0;";
+	os << "static long __VG_nombre_allocations__ = 0;";
+	os << "static long __VG_nombre_reallocations__ = 0;";
+	os << "static long __VG_nombre_deallocations__ = 0;";
 
-	auto &magasin = contexte_generation.magasin_types;
+	auto depassement_limites =
+R"(
+void KR__depassement_limites(
+	const char *fichier,
+	long ligne,
+	const char *type,
+	long taille,
+	long index)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Dépassement des limites %s !\n", type);
+	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
+	abort();
+}
+)";
 
-	auto ds_contexte_global = DonneesStructure();
-	ds_contexte_global.est_enum = false;
-	ds_contexte_global.noeud_decl = nullptr;
+	os << depassement_limites;
 
-	auto dm = DonneesMembre();
-	dm.index_membre = 0;
-	ds_contexte_global.donnees_membres.insere({ "compteur", dm });
+	auto hors_memoire =
+R"(
+void KR__hors_memoire(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'allouer de la mémoire !\n");
+	abort();
+}
+)";
 
-	ds_contexte_global.index_types.pousse(magasin[TYPE_Z32]);
+	os << hors_memoire;
 
-	contexte_generation.ajoute_donnees_structure("__contexte_global", ds_contexte_global);
-	//contexte_generation.index_type_ctx = ds_contexte_global.index_type;
+	/* À FAIRE : renseigner le membre actif */
+	auto acces_membre_union =
+R"(
+void KR__acces_membre_union(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'accèder au membre de l'union car il n'est pas actif !\n");
+	abort();
+}
+)";
 
-	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::POINTEUR);
-	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds_contexte_global.id << 8));
-	contexte_generation.index_type_ctx = magasin.ajoute_type(dt);
+	os << acces_membre_union;
 
-	/* NOTE : les initialiseurs des infos types doivent être valides pour toute
-	 * la durée du programme, donc nous les mettons dans la fonction principale.
-	 */
-	dls::flux_chaine ss_infos_types;
 	dls::flux_chaine fc_code;
 
-	noeud::genere_code_C(m_pile.haut(), contexte_generation, false, fc_code, ss_infos_types);
+	noeud::genere_code_C(m_pile.haut(), contexte_generation, fc_code);
 
 	auto debut_main =
 R"(
 int main(int argc, char **argv)
 {
-	Tableau_char_ptr_ tabl_args;
+	KtKPKsz8 tabl_args;
 	tabl_args.pointeur = argv;
 	tabl_args.taille = argc;
 
@@ -201,7 +222,6 @@ R"(
 
 	os << fc_code.chn();
 	os << debut_main;
-	os << ss_infos_types.chn();
 	os << fin_main;
 }
 
@@ -218,6 +238,16 @@ size_t assembleuse_arbre::memoire_utilisee() const
 size_t assembleuse_arbre::nombre_noeuds() const
 {
 	return static_cast<size_t>(m_noeuds.taille());
+}
+
+void assembleuse_arbre::ajoute_inclusion(const dls::vue_chaine_compacte &fichier)
+{
+	if (deja_inclus.trouve(fichier) != deja_inclus.fin()) {
+		return;
+	}
+
+	deja_inclus.insere(fichier);
+	inclusions.pousse(fichier);
 }
 
 void imprime_taille_memoire_noeud(std::ostream &os)

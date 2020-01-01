@@ -3,7 +3,7 @@ importe "flux"
 fonc imprime_type_args(args : ...eini) : rien
 {
 	pour arg dans args {
-	    associe id de info de arg {
+	    discr id de info de arg {
 		    RÉEL de id_info {
 			    imprime("Nous avons un nombre réel\n")
 		    }

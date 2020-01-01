@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(ENTETES_R16
 	r16_c.h
 	r16_tables.h
+	r16_tables.cc
 )
 
 set(ENTETES

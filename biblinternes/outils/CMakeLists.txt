@@ -27,6 +27,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	bib_structures
+	langage
 	stdc++fs
 )
 
@@ -46,6 +47,7 @@ set(ENTETES
 	iterateurs.h
 	masque_binaire.h
 	parametres.hh
+	tableau_donnees.hh
 	temps.hh
 	transbit.hh
 )
@@ -61,6 +63,7 @@ set(SOURCES
 	indexeuse.cc
 	iterateurs.cc
 	parametres.cc
+	tableau_donnees.cc
 	temps.cc
 	main.cc
 )

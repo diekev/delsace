@@ -47,7 +47,13 @@ DonneesFonction::iteratrice_arg DonneesFonction::trouve(const dls::vue_chaine_co
 
 /* ************************************************************************** */
 
-bool DonneesModule::importe_module(dls::vue_chaine_compacte const &nom_module) const
+Fichier::Fichier()
+{
+	/* Tous les fichiers importent implicitement Kuri. */
+	modules_importes.insere("Kuri");
+}
+
+bool Fichier::importe_module(dls::vue_chaine_compacte const &nom_module) const
 {
 	return modules_importes.trouve(nom_module) != modules_importes.fin();
 }
@@ -132,32 +138,92 @@ dls::chaine charge_fichier(
 	return res;
 }
 
-void charge_module(
+void charge_fichier(
+		std::ostream &os,
+		DonneesModule *module,
+		dls::chaine const &racine_kuri,
+		dls::chaine const &nom,
+		ContexteGenerationCode &contexte,
+		DonneesMorceau const &morceau)
+{
+	auto chemin = module->chemin + nom + ".kuri";
+
+	if (!std::filesystem::exists(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Impossible de trouver le fichier correspondant au module",
+					contexte,
+					morceau,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	if (!std::filesystem::is_regular_file(chemin.c_str())) {
+		erreur::lance_erreur(
+					"Le nom du fichier ne pointe pas vers un fichier régulier",
+					contexte,
+					morceau,
+					erreur::type_erreur::MODULE_INCONNU);
+	}
+
+	/* trouve le chemin absolu du fichier */
+	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+
+	auto fichier = contexte.cree_fichier(nom.c_str(), chemin_absolu.c_str());
+
+	if (fichier == nullptr) {
+		/* le fichier a déjà été chargé */
+		return;
+	}
+
+	os << "Chargement du fichier : " << chemin << std::endl;
+
+	fichier->module = module;
+
+	auto debut_chargement = dls::chrono::compte_seconde();
+	auto tampon = charge_fichier(chemin, contexte, morceau);
+	fichier->temps_chargement = debut_chargement.temps();
+
+	auto debut_tampon = dls::chrono::compte_seconde();
+	fichier->tampon = lng::tampon_source(tampon);
+	fichier->temps_tampon = debut_tampon.temps();
+
+	auto decoupeuse = decoupeuse_texte(fichier);
+	auto debut_decoupage = dls::chrono::compte_seconde();
+	decoupeuse.genere_morceaux();
+	fichier->temps_decoupage = debut_decoupage.temps();
+
+	auto analyseuse = analyseuse_grammaire(
+						  contexte,
+						  fichier,
+						  racine_kuri);
+
+	analyseuse.lance_analyse(os);
+}
+
+void importe_module(
 		std::ostream &os,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau,
-		bool est_racine)
+		DonneesMorceau const &morceau)
 {
-	auto chemin = nom + ".kuri";
+	auto chemin = nom;
 
 	if (!std::filesystem::exists(chemin.c_str())) {
 		/* essaie dans la racine kuri */
-		chemin = racine_kuri + "/bibliotheques/" + chemin;
+		chemin = racine_kuri + "/modules/" + chemin;
 
 		if (!std::filesystem::exists(chemin.c_str())) {
 			erreur::lance_erreur(
-						"Impossible de trouver le fichier correspondant au module",
+						"Impossible de trouver le dossier correspondant au module",
 						contexte,
 						morceau,
 						erreur::type_erreur::MODULE_INCONNU);
 		}
 	}
 
-	if (!std::filesystem::is_regular_file(chemin.c_str())) {
+	if (!std::filesystem::is_directory(chemin.c_str())) {
 		erreur::lance_erreur(
-					"Le nom du module ne pointe pas vers un fichier régulier",
+					"Le nom du module ne pointe pas vers un dossier",
 					contexte,
 					morceau,
 					erreur::type_erreur::MODULE_INCONNU);
@@ -165,37 +231,29 @@ void charge_module(
 
 	/* trouve le chemin absolu du module */
 	auto chemin_absolu = std::filesystem::absolute(chemin.c_str());
+	auto module = contexte.cree_module(nom.c_str(), chemin_absolu.c_str());
 
-	/* Le module racine n'a pas de nom, afin que les noms de ses fonctions ne
-	 * soient pas broyés. */
-	auto module = contexte.cree_module(est_racine ? "" : nom.c_str(), chemin_absolu.c_str());
-
-	if (module == nullptr) {
-		/* le module a déjà été chargé */
+	if (module->importe) {
 		return;
 	}
 
-	os << "Chargement du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
+	module->importe = true;
 
-	auto debut_chargement = dls::chrono::compte_seconde();
-	auto tampon = charge_fichier(chemin, contexte, morceau);
-	module->temps_chargement = debut_chargement.temps();
+	os << "Importation du module : " << nom << " (" << chemin_absolu << ")" << std::endl;
 
-	auto debut_tampon = dls::chrono::compte_seconde();
-	module->tampon = lng::tampon_source(tampon);
-	module->temps_tampon = debut_tampon.temps();
+	for (auto const &entree : std::filesystem::directory_iterator(chemin_absolu)) {
+		auto chemin_entree = entree.path();
 
-	auto decoupeuse = decoupeuse_texte(module);
-	auto debut_decoupage = dls::chrono::compte_seconde();
-	decoupeuse.genere_morceaux();
-	module->temps_decoupage = debut_decoupage.temps();
+		if (!std::filesystem::is_regular_file(chemin_entree)) {
+			continue;
+		}
 
-	auto analyseuse = analyseuse_grammaire(
-						  contexte,
-						  module,
-						  racine_kuri);
+		if (chemin_entree.extension() != ".kuri") {
+			continue;
+		}
 
-	analyseuse.lance_analyse(os);
+		charge_fichier(os, module, racine_kuri, chemin_entree.stem().c_str(), contexte, {});
+	}
 }
 
 /* ************************************************************************** */
@@ -229,9 +287,7 @@ static double verifie_compatibilite(
 	}
 
 	if ((drapeau & niveau_compat::prend_reference) != niveau_compat::aucune) {
-		/* À FAIRE : ceci est pour différencier les valeurs gauches des valeurs
-		 * droites (littérales), il manque d'autres cas... */
-		if (dls::outils::est_element(enfant->type, type_noeud::VARIABLE, type_noeud::ACCES_MEMBRE_DE)) {
+		if (est_valeur_gauche(enfant->type_valeur)) {
 			return 1.0;
 		}
 
@@ -479,14 +535,15 @@ ResultatRecherche cherche_donnees_fonction(
 		dls::vue_chaine_compacte const &nom,
 		dls::liste<dls::vue_chaine_compacte> &noms_arguments,
 		dls::liste<noeud::base *> const &exprs,
-		size_t index_module,
-		size_t index_module_appel)
+		size_t index_fichier,
+		size_t index_fichier_appel)
 {
 	auto res = ResultatRecherche{};
 
-	if (index_module != index_module_appel) {
+	if (index_fichier != index_fichier_appel) {
 		/* l'appel est qualifié (À FAIRE, méthode plus robuste) */
-		auto module = contexte.module(index_module_appel);
+		auto fichier = contexte.fichier(index_fichier_appel);
+		auto module = fichier->module;
 
 		if (!module->possede_fonction(nom)) {
 			return {};
@@ -502,7 +559,8 @@ ResultatRecherche cherche_donnees_fonction(
 		return res;
 	}
 
-	auto module = contexte.module(index_module);
+	auto fichier = contexte.fichier(index_fichier);
+	auto module = fichier->module;
 
 	if (module->possede_fonction(nom)) {
 		auto &vdf = module->donnees_fonction(nom);
@@ -514,7 +572,7 @@ ResultatRecherche cherche_donnees_fonction(
 	}
 
 	/* cherche dans les modules importés */
-	for (auto &nom_module : module->modules_importes) {
+	for (auto &nom_module : fichier->modules_importes) {
 		module = contexte.module(nom_module);
 
 		if (module->possede_fonction(nom)) {
@@ -528,4 +586,24 @@ ResultatRecherche cherche_donnees_fonction(
 	}
 
 	return res;
+}
+
+PositionMorceau trouve_position(const DonneesMorceau &morceau, Fichier *fichier)
+{
+	auto ptr = morceau.chaine.pointeur();
+	auto pos = PositionMorceau{};
+
+	for (auto i = 0ul; i < fichier->tampon.nombre_lignes() - 1; ++i) {
+		auto l0 = fichier->tampon[static_cast<long>(i)];
+		auto l1 = fichier->tampon[static_cast<long>(i + 1)];
+
+		if (ptr >= l0.begin() && ptr < l1.begin()) {
+			pos.index_ligne = static_cast<long>(i);
+			pos.numero_ligne = pos.index_ligne + 1;
+			pos.pos = ptr - l0.begin();
+			break;
+		}
+	}
+
+	return pos;
 }

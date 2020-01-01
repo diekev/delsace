@@ -45,15 +45,6 @@ structure lieu {
 
 --------------------------------------------------------------------------------
 
-# conditions
-garde ... sinon
-si ... dans ...
-si ... hors ...
-
-# boucles
-boucle ... tantque
-jusque ...
-
 # erreur, exception
 tente ... sinon ... (try ... catch ...)
 tente ... (si échec, la fonction échoue aussi)

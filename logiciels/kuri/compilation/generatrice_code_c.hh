@@ -27,6 +27,7 @@
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
+#include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 
@@ -46,15 +47,9 @@ struct GeneratriceCodeC {
 		declare_variable(contexte.magasin_types.donnees_types[type], nom, expr);
 	}
 
-	void declare_variable(DonneesTypeFinal const &type, dls::chaine const &nom, dls::chaine const &expr)
+	void declare_variable(DonneesTypeFinal &type, dls::chaine const &nom, dls::chaine const &expr)
 	{
-		contexte.magasin_types.converti_type_C(
-					contexte,
-					"",
-					type.plage(),
-					os);
-
-		os << " " << nom;
+		os << nom_broye_type(contexte, type) << " " << nom;
 
 		if (!expr.est_vide()) {
 			os << " = " << expr;
@@ -63,15 +58,11 @@ struct GeneratriceCodeC {
 		os << ";\n";
 	}
 
-	dls::chaine expression_malloc(DonneesTypeFinal const &type, dls::chaine const &expr)
+	dls::chaine expression_malloc(DonneesTypeFinal &type, dls::chaine const &expr)
 	{
 		auto flux = dls::flux_chaine();
 		flux << "(";
-		contexte.magasin_types.converti_type_C(
-					contexte,
-					"",
-					type.plage(),
-					flux);
+		os << nom_broye_type(contexte, type);
 		flux << ")(malloc(" << expr << "))";
 
 		return flux.chn();

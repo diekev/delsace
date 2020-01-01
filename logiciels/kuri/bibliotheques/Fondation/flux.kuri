@@ -1,0 +1,184 @@
+# Bibliothèque de flux, d'impression dans stdout.
+
+importe GlibC
+
+fonc imprime_valeur(
+    flux_std : z32,
+	pointeur : *z8,
+	info : *InfoType,
+	échappe_chn : bool) : rien
+{
+	dyn tmp : [128]z8
+	dyn ptr_tmp = @tmp[0]
+
+	dyn écrie = 0
+
+    discr id de info {
+		ENTIER de id_info {
+			soit info_arg = transtype(info : *InfoTypeEntier)
+
+            si est_signé de info_arg {
+			    si taille_en_octet de info_arg == 8 {
+					soit x = mémoire(transtype(pointeur : *z8))
+					écrie = sprintf(ptr_tmp, "%c", x)
+				}
+				sinon si taille_en_octet de info_arg == 16 {
+					soit x = mémoire(transtype(pointeur : *z16))
+					écrie = sprintf(ptr_tmp, "%d", x)
+				}
+				sinon si taille_en_octet de info_arg == 32 {
+					soit x = mémoire(transtype(pointeur : *z32))
+					écrie = sprintf(ptr_tmp, "%d", x)
+				}
+				sinon si taille_en_octet de info_arg == 64 {
+					soit x = mémoire(transtype(pointeur : *z64))
+					écrie = sprintf(ptr_tmp, "%ld", x)
+				}
+			}
+			sinon {
+			    si taille_en_octet de info_arg == 8 {
+					soit x = mémoire(transtype(pointeur : *n8))
+					écrie = sprintf(ptr_tmp, "%c", x)
+				}
+				sinon si taille_en_octet de info_arg == 16 {
+					soit x = mémoire(transtype(pointeur : *n16))
+					écrie = sprintf(ptr_tmp, "%d", x)
+				}
+				sinon si taille_en_octet de info_arg == 32 {
+					soit x = mémoire(transtype(pointeur : *n32))
+					écrie = sprintf(ptr_tmp, "%d", x)
+				}
+				sinon si taille_en_octet de info_arg == 64 {
+					soit x = mémoire(transtype(pointeur : *n64))
+					écrie = sprintf(ptr_tmp, "%ld", x)
+				}
+			}
+		}
+		RÉEL de id_info {
+			soit info_arg = transtype(info : *InfoTypeRéel)
+
+            si taille_en_octet de info_arg == 16 {
+				soit x = mémoire(transtype(pointeur : *r16))
+				y : r64 = x
+				écrie = sprintf(ptr_tmp, "%f", y)
+			}
+			sinon si taille_en_octet de info_arg == 32 {
+				soit x = mémoire(transtype(pointeur : *r32))
+				écrie = sprintf(ptr_tmp, "%f", x)
+			}
+			sinon si taille_en_octet de info_arg == 64 {
+				soit x = mémoire(transtype(pointeur : *r64))
+				écrie = sprintf(ptr_tmp, "%f", x)
+			}
+		}
+		BOOLÉEN de id_info {
+			soit x = mémoire(transtype(pointeur : *bool))
+			dyn chn : chaine
+
+            si x {
+				chn = "vrai"
+			}
+			sinon {
+				chn = "faux"
+			}
+
+			write(flux_std, pointeur de chn, taille de chn)
+		}
+		CHAINE de id_info {
+			soit x = mémoire(transtype(pointeur : *chaine))
+			soit apostrophe = '"'
+
+            si échappe_chn {
+				write(flux_std, @apostrophe, 1)
+			}
+
+			write(flux_std, pointeur de x, taille de x)
+
+            si échappe_chn {
+				write(flux_std, @apostrophe, 1)
+			}
+		}
+		STRUCTURE de id_info {
+			soit info_arg = transtype(info : *InfoTypeStructure)
+
+			écrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg)
+			write(flux_std, ptr_tmp, transtype(écrie : z64))
+
+			dyn virgule = '\0'
+
+            pour membre dans membres de info_arg {
+				soit ptr_nom = pointeur de nom de membre
+				soit décalage = décalage de membre
+				soit id = id de membre
+
+				écrie = sprintf(ptr_tmp, "%c", virgule)
+				write(flux_std, ptr_tmp, transtype(écrie : z64))
+
+				écrie = sprintf(ptr_tmp, " %s = ", ptr_nom)
+				write(flux_std, ptr_tmp, transtype(écrie : z64))
+
+				imprime_valeur(flux_std, pointeur + décalage, id, vrai)
+				virgule = ','
+			}
+
+			écrie = sprintf(ptr_tmp, " %c", '}')
+			write(flux_std, ptr_tmp, transtype(écrie : z64))
+			écrie = 0
+		}
+		POINTEUR de id_info {
+		    # Ne pas oublier qu'il y a un niveau d'indirection.
+			soit x = transtype(pointeur : **z8)
+			soit x0 = mémoire(x)
+			écrie = sprintf(ptr_tmp, "%p", x0)
+		}
+		FONCTION de id_info {
+		    # À FAIRE : types paramètres
+			soit x = "fonction()"
+			write(flux_std, pointeur de x, taille de x)
+		}
+		EINI de id_info {
+			soit x = mémoire(transtype(pointeur : *eini))
+			écrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }", pointeur de x, info de x)
+		}
+		RIEN de id_info {
+			soit x = "rien"
+			write(flux_std, pointeur de x, taille de x)
+		}
+		TABLEAU de id_info {
+			soit x = mémoire(transtype(pointeur : *[]z8))
+			écrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x)
+		}
+		ÉNUM de id_info {
+			soit info_arg = transtype(info : *InfoTypeÉnum)
+			# À FAIRE : typage selon énum
+			soit valeur = mémoire(transtype(pointeur : *z32))
+			soit noms = noms de info_arg
+
+			pour v, i dans valeurs de info_arg {
+			    si v == valeur {
+					soit n = noms[i]
+					write(flux_std, pointeur de n, taille de n)
+					arrête
+				}
+			}
+		}
+	}
+
+    si écrie != 0 {
+		write(flux_std, ptr_tmp, transtype(écrie : z64))
+	}
+}
+
+fonc imprime(args : ...eini) : rien
+{
+    pour arg dans args {
+		imprime_valeur(std_out, pointeur de arg, info de arg, faux)
+    }
+}
+
+fonc imprime_err(args : ...eini) : rien
+{
+    pour arg dans args {
+		imprime_valeur(std_err, pointeur de arg, info de arg, faux)
+	}
+}

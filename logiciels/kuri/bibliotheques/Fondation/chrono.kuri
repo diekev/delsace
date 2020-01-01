@@ -1,0 +1,58 @@
+# Bibliothèque de chronométrage.
+# À FAIRE : regarde les bibliothèques de temps/date des différents langages
+
+importe GlibC
+
+fonc maintenant_sec() : r64
+{
+	dyn heure : timeval
+	gettimeofday(@heure, nul)
+
+	soit s = transtype(tv_sec de heure : r64)
+
+    # À FAIRE : 1e-6
+	retourne s + transtype(tv_usec de heure : r64) * 0.000001
+}
+
+fonc maintenant_local() : r64
+{
+	dyn heure : timeval
+	dyn fuseau : timezone
+	gettimeofday(@heure, @fuseau)
+
+	dyn s = transtype(tv_sec de heure : r64)
+	s += transtype(tz_minuteswest de fuseau : r64) * 60.0
+
+    # À FAIRE : 1e-6
+	retourne s + transtype(tv_usec de heure : r64) * 0.000001
+}
+
+fonc delta_sec(temps : r64) : r64
+{
+	retourne maintenant_sec() - temps
+}
+
+fonc compte_ticks_ms() : z64
+{
+	dyn heure : timeval
+	gettimeofday(@heure, nul)
+	retourne tv_sec de heure * 1000 + tv_usec de heure / 1000
+}
+
+struct DonnéesTemps {
+	heures : z32
+	minutes : z32
+	secondes : z32
+}
+
+fonc calcule_temps() : DonnéesTemps
+{
+	dyn maint = maintenant_local()
+
+	dyn dt : DonnéesTemps
+	minutes de dt = transtype(maint / 60.0 : z32) % 60
+	heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24
+	secondes de dt = transtype(maint : z32) % 60
+
+	retourne dt
+}

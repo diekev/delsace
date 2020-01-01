@@ -1,0 +1,410 @@
+importe Fondation
+importe GlibC
+
+struct CheminFichier {
+    chn : chaine
+}
+
+fonc construit_chemin(chn : chaine) : CheminFichier
+{
+    chemin = CheminFichier{ chn = chn }
+    retourne chemin
+}
+
+struct Fichier {
+    chemin : CheminFichier
+    fd : z32
+}
+
+fonc obtiens_stmode(chemin : &CheminFichier) : n32
+{
+    dyn tampon : [1024]z8
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin.chn)
+
+	dyn st : stat
+	soit ok = stat(ptr_chemin, @st)
+
+	si ok == -1 {
+		retourne 0xffffffff
+	}
+
+	retourne st.st_mode
+}
+
+fonc fichier_existe(chemin : &CheminFichier) : bool
+{
+    retourne obtiens_stmode(chemin) != 0xffffffff
+}
+
+fonc est_dossier(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_ISDIR(mode)
+}
+
+fonc est_fichier_régulier(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_ISREG(mode)
+}
+
+fonc est_prise(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_IFSOCK(mode)
+}
+
+fonc est_lien_symbolique(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_IFLNK(mode)
+}
+
+fonc est_fichier_périphérique(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_IFBLK(mode)
+}
+
+fonc est_fichier_caractère(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_IFCHR(mode)
+}
+
+fonc est_pipe(chemin : &CheminFichier) : bool
+{
+    mode = obtiens_stmode(chemin)
+
+	si mode == 0xffffffff {
+		retourne faux
+	}
+
+    retourne S_IFIFO(mode)
+}
+
+fonc ouvre_fichier(chemin : &CheminFichier) : z32
+{
+	si !fichier_existe(chemin) {
+		retourne -1
+	}
+
+	dyn tampon : [1024]z8
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin.chn)
+
+	retourne open(ptr_chemin, LECTURE_SEULE)
+}
+
+fonc ouvre_fichier_ecriture(chemin : &CheminFichier) : z32
+{
+	dyn tampon : [1024]z8
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin.chn)
+
+	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0777)
+}
+
+fonc ferme_fichier(desc : z32) : rien
+{
+	si desc != -1 {
+		close(desc)
+	}
+}
+
+fonc contenu_fichier_binaire(chemin : &CheminFichier) : []octet
+{
+    dyn contenu : []octet
+
+	soit fd = ouvre_fichier(chemin)
+	diffère { ferme_fichier(fd) }
+
+	si fd == -1 {
+		retourne contenu
+	}
+
+	dyn tampon : [1024]z8
+
+    boucle {
+	    # À FAIRE : prend pointeur automatiquement
+		dyn lu = read(fd, @tampon[0], 1024)
+
+		si lu == 0 {
+			arrête
+		}
+
+		si lu == -1 {
+			# À FAIRE : erreur
+			déloge contenu
+			arrête
+		}
+
+		soit taille_courante = contenu.taille
+
+		reloge contenu : [taille_courante + lu]octet
+
+		dyn src = @tampon[0]
+		dyn dst = @contenu[taille_courante]
+
+		copie_mem_nonsur(src=src, dst=dst, taille=lu)
+	}
+
+    retourne contenu
+}
+
+fonc contenu_fichier_texte(chemin : &CheminFichier) : chaine
+{
+    contenu = contenu_fichier_binaire(chemin)
+    dyn chn : chaine;
+
+    nonsûr {
+        chn.pointeur = transtype(contenu.pointeur : *z8)
+        chn.taille = contenu.taille
+    }
+
+    retourne chn
+}
+
+fonc écris_fichier(fd : z32, contenu : chaine) : rien
+{
+    write(fd, contenu.pointeur, contenu.taille)
+}
+
+fonc ouvre_dossier(chemin : &CheminFichier) : *DIR
+{
+    dyn tampon : [1024]z8
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin.chn)
+
+    retourne opendir(ptr_chemin)
+}
+
+fonc chemin_pour_dirname(dir : *dirent) : CheminFichier
+{
+    taille = taille_chaine_c(dir.d_name)
+    chn = construit_chaine(dir.d_name, taille)
+
+    retourne construit_chemin(chn)
+}
+
+corout chaque_chemin(chemin : &CheminFichier) : CheminFichier
+{
+    si !est_dossier(chemin) {
+        retourne
+    }
+
+    dyn d = ouvre_dossier(chemin)
+
+    si d == nul {
+        retourne
+    }
+
+    boucle {
+        dir = readdir(d)
+
+        si dir == nul {
+            arrête
+        }
+
+        retiens chemin_pour_dirname(dir)
+    }
+
+    closedir(d)
+}
+
+################################################################################
+
+# File spécialisé pour les DIR.
+struct FileDir {
+	taille : z64
+	capacité : z64
+	tampon : []*DIR
+}
+
+fonc crée_file_dir() : *FileDir
+{
+	dyn q = loge FileDir
+	retourne q
+}
+
+fonc decrée_file(dyn q : *FileDir) : rien
+{
+	taille de q = 0
+	capacité de q = 0
+	déloge tampon de q
+	déloge q
+}
+
+fonc enfile(dyn q : *FileDir, d : *DIR) : rien
+{
+    si taille de q == capacité de q {
+		reloge tampon de q : [(taille de q + 1)]*DIR
+		capacité de q += 1
+    }
+
+	q.tampon[taille de q] = d
+	taille de q += 1
+}
+
+fonc est_vide(q : *FileDir) : bool
+{
+	retourne taille de q == 0
+}
+
+fonc défile(dyn q : *FileDir) : *DIR
+{
+    si est_vide(q) {
+		retourne nul
+    }
+
+    ret = q.tampon[0]
+	taille de q -= 1
+
+    pour i dans 1 ... transtype(taille de q - 1 : z32) {
+        q.tampon[i - 1] = q.tampon[i]
+    }
+
+    retourne ret
+}
+
+################################################################################
+
+fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) : rien
+{
+    dyn chm = chemin_pour_dirname(dir)
+
+    si compare_chaines(chm.chn, ".") {
+        retourne
+    }
+
+    si compare_chaines(chm.chn, "..") {
+        retourne
+    }
+
+    # Trouve le chemin absolu.
+    dyn chn : chaine
+    diffère { déloge chn; }
+
+    si chemin.chn[chemin.chn.taille - 1] != '/' {
+        chn = enchaine(chemin.chn, "/", chm.chn)
+    }
+    sinon {
+        chn = enchaine(chemin.chn, chm.chn)
+    }
+
+    chm.chn = chn
+
+    nd = ouvre_dossier(chm)
+
+    si nd == nul {
+        retourne
+    }
+
+    enfile(file, nd)
+}
+
+corout chaque_chemin_récursif(chemin : &CheminFichier) : CheminFichier
+{
+    si !est_dossier(chemin) {
+        imprime("Le chemin n'est pas un dossier")
+        retourne
+    }
+
+    dyn d = ouvre_dossier(chemin)
+
+    si d == nul {
+        retourne
+    }
+
+    file = crée_file_dir()
+
+    enfile(file, d)
+
+    tantque !est_vide(file) {
+        d = défile(file)
+
+        boucle {
+            dir = readdir(d)
+
+            si dir == nul {
+                arrête
+            }
+
+            si dir.d_type == _DT_DIR {
+                enfile_dossier(file, dir, chemin)
+            }
+
+            retiens chemin_pour_dirname(dir)
+        }
+
+        closedir(d)
+    }
+
+    decrée_file(file)
+}
+
+################################################################################
+
+fonc chemin_courant() : CheminFichier
+{
+    dyn ret = loge chaine(1024)
+    getcwd(ret.pointeur, ret.taille)
+    retourne construit_chemin(ret)
+}
+
+fonc chemin_courant(chemin : CheminFichier) : rien
+{
+    dyn tampon : [1024]z8
+	ptr_chemin = copie_chaine_c_tampon(tampon, chemin.chn)
+    chdir(ptr_chemin)
+}
+
+# À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
+
+################################################################################
+
+fonc renomme(orig : &CheminFichier, dest : &CheminFichier) : z32
+{
+    dyn tampon_orig : [1024]z8
+	ptr_chemin_orig = copie_chaine_c_tampon(tampon_orig, orig.chn)
+
+    dyn tampon_dest : [1024]z8
+	ptr_chemin_dest = copie_chaine_c_tampon(tampon_dest, dest.chn)
+
+	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
+}
+
+fonc supprime(chm : &CheminFichier) : z32
+{
+    dyn tampon : [1024]z8
+	ptr_chemin = copie_chaine_c_tampon(tampon, chm.chn)
+    retourne remove(ptr_chemin)
+}
+

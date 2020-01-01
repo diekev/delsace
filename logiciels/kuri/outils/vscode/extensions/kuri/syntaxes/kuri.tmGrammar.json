@@ -1,0 +1,59 @@
+{
+    "scopeName": "source.kuri",
+    "patterns": [
+        { "include": "#comment" },
+        { "include": "#directive" },
+        { "include": "#control-keyword" },
+        { "include": "#other-keyword" },
+        { "include": "#string" },
+        { "include": "#char" },
+        { "include": "#integer" },
+        { "include": "#boolean" },
+        { "include": "#pointer" },
+        { "include": "#typename" }
+    ],
+    "repository": {
+        "comment": {
+            "name": "comment.kuri",
+            "begin": "#[^!]",
+            "end": "\\n"
+        },
+        "directive": {
+            "name": "comment.kuri",
+            "begin": "#!",
+            "end": " "
+        },
+        "control-keyword": {
+            "name": "keyword.control.kuri",
+            "match": "\\b(retourne|retiens|si|saufsi|sinon|boucle|tantque|répète|pour|dans|arrête|continue|discr|sansarrêt|diffère)\\b"
+        },
+        "other-keyword": {
+            "name": "keyword.other.kuri",
+            "match": "\\b(loge|déloge|reloge|struct|énum|importe|charge|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|de|externe|mémoire|info_de|type_de|taille_de)\\b"
+        },
+        "string": {
+            "name": "string.quoted.double.kuri",
+            "match": "\"([^\"\\\\\\n]|\\\\[^\\n]?)*?[\"\\n]"
+        },
+        "char": {
+            "name": "constant.character.kuri",
+            "match": "'([^'\\\\\\n]|\\\\[^\\n]?)*?['\\n]"
+        },
+        "integer": {
+            "name": "constant.numeric.kuri",
+            "match": "\\b(0[xXbBoO][0-9A-Fa-f]+|[0-9]+)(_[a-z]+)?\\b"
+        },
+        "boolean": {
+            "name": "constant.language.kuri",
+            "match": "\\b(faux|vrai)\\b"
+        },
+        "pointer": {
+            "name": "constant.language.kuri",
+            "match": "\\bnul\\b"
+        },
+        "typename": {
+            "name": "support.type.kuri",
+            "match": "\\b(rien|octet|n8|n16|n32|n64|n128|z8|z16|z32|z64|z128|r16|r32|r64|r128|bool|chaine|eini)\\b"
+        }
+    }
+}

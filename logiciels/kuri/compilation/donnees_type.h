@@ -129,6 +129,7 @@ public:
 	using type_plage = type_plage_donnees_type;
 
 	dls::chaine ptr_info_type{};
+	dls::chaine nom_broye{};
 
 	using iterateur_const = dls::tableau<id_morceau>::const_iteratrice_inverse;
 
@@ -380,6 +381,7 @@ enum {
 	TYPE_PTR_RIEN,
 	TYPE_PTR_NUL,
 	TYPE_PTR_BOOL,
+	TYPE_PTR_OCTET,
 
 	TYPE_REF_N8,
 	TYPE_REF_N16,
@@ -423,11 +425,15 @@ enum {
 	TYPES_TOTAUX,
 };
 
+struct GrapheDependance;
+
 struct MagasinDonneesType {
 	dls::dico_desordonne<DonneesTypeFinal, long> donnees_type_index{};
 	dls::tableau<DonneesTypeFinal> donnees_types{};
 
-	MagasinDonneesType();
+	GrapheDependance &graphe_dependance;
+
+	MagasinDonneesType(GrapheDependance &graphe);
 
 	long ajoute_type(const DonneesTypeFinal &donnees);
 
@@ -449,10 +455,6 @@ struct MagasinDonneesType {
 			ContexteGenerationCode &contexte,
 			size_t donnees);
 #endif
-
-	void declare_structures_C(
-			ContexteGenerationCode &contexte,
-			dls::flux_chaine &os);
 
 	long operator[](int type);
 
@@ -482,6 +484,15 @@ private:
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type);
 
+void cree_typedef(
+		ContexteGenerationCode &contexte,
+		DonneesTypeFinal &donnees,
+		dls::flux_chaine &os);
+
+void ajoute_contexte_programme(
+		ContexteGenerationCode &contexte,
+		DonneesTypeDeclare &dt);
+
 /* ************************************************************************** */
 
 enum class type_noeud : char;
@@ -509,12 +520,4 @@ niveau_compat sont_compatibles(
 
 /* ************************************************************************** */
 
-bool est_type_entier(id_morceau type);
-
-bool est_type_entier_naturel(id_morceau type);
-
-bool est_type_entier_relatif(id_morceau type);
-
-bool est_type_reel(id_morceau type);
-
-unsigned int taille_type_octet(ContexteGenerationCode &contexte, DonneesTypeFinal const &donnees_type);
+unsigned int taille_octet_type(ContexteGenerationCode &contexte, DonneesTypeFinal const &donnees_type);

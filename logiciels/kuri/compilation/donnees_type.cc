@@ -40,6 +40,7 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
+#include "outils_morceaux.hh"
 
 /* ************************************************************************** */
 
@@ -359,6 +360,7 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_PTR_RIEN, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::RIEN) },
 	{ TYPE_PTR_NUL, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::NUL) },
 	{ TYPE_PTR_BOOL, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::BOOL) },
+	{ TYPE_PTR_OCTET, DonneesTypeFinal(id_morceau::POINTEUR, id_morceau::OCTET) },
 
 	{ TYPE_REF_N8, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N8) },
 	{ TYPE_REF_N16, DonneesTypeFinal(id_morceau::REFERENCE, id_morceau::N16) },
@@ -400,7 +402,8 @@ static const DonneesTypeCommun donnees_types_communs[] = {
 	{ TYPE_TABL_OCTET, DonneesTypeFinal(id_morceau::TABLEAU, id_morceau::OCTET) },
 };
 
-MagasinDonneesType::MagasinDonneesType()
+MagasinDonneesType::MagasinDonneesType(GrapheDependance &graphe)
+	: graphe_dependance(graphe)
 {
 	/* initialise les types communs */
 	index_types_communs.redimensionne(TYPES_TOTAUX);
@@ -411,23 +414,28 @@ MagasinDonneesType::MagasinDonneesType()
 	}
 }
 
-static bool peut_etre_dereference(id_morceau id)
-{
-	switch (id) {
-		default:
-			return false;
-		case id_morceau::POINTEUR:
-		case id_morceau::REFERENCE:
-		case id_morceau::TABLEAU:
-		case id_morceau::TROIS_POINTS:
-			return true;
-	}
-}
-
 long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 {
 	if (donnees.est_invalide()) {
 		return -1l;
+	}
+
+	/* ajoute d'abord les sous-types possibles afin de résoudre les problèmes de
+	 * dépendances lors de la génération du code C */
+	auto type_deref = -1l;
+
+	/* Ajoute récursivement les types afin d'être sûr que tous les types
+	 * possibles du programme existent lors de la création des infos types. */
+	if (peut_etre_dereference(donnees.type_base())) {
+		type_deref = ajoute_type(donnees.dereference());
+	}
+
+	auto index_params = dls::tableau<long>();
+
+	/* ajoute les types des paramètres et de retour des fonctions */
+	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
+		long nombre_type_retour = 0;
+		index_params = donnees_types_parametres(*this, donnees, nombre_type_retour);
 	}
 
 	auto iter = donnees_type_index.trouve(donnees);
@@ -441,46 +449,123 @@ long MagasinDonneesType::ajoute_type(const DonneesTypeFinal &donnees)
 
 	donnees_type_index.insere({donnees, index});
 
-	/* Ajoute récursivement les types afin d'être sûr que tous les types
-	 * possibles du programme existent lors de la création des infos types. */
-	if (peut_etre_dereference(donnees.type_base())) {
-		ajoute_type(donnees.dereference());
+	graphe_dependance.cree_noeud_type(index);
+
+	if (type_deref != -1l) {
+		graphe_dependance.connecte_type_type(index, type_deref);
 	}
 
-	/* ajoute les types des paramètres et de retour des fonctions */
-	if (donnees.type_base() == id_morceau::FONC || donnees.type_base() == id_morceau::COROUT) {
-		long nombre_type_retour = 0;
-		donnees_types_parametres(*this, donnees, nombre_type_retour);
+	for (auto index_param : index_params) {
+		graphe_dependance.connecte_type_type(index, index_param);
 	}
 
 	return index;
 }
 
-void MagasinDonneesType::declare_structures_C(
+void cree_typedef(
 		ContexteGenerationCode &contexte,
+		DonneesTypeFinal &donnees,
 		dls::flux_chaine &os)
 {
-	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n\n";
-	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n\n";
-	os << "typedef unsigned char bool;\n\n";
-	os << "typedef unsigned char octet;\n\n";
+	auto const &nom_broye = nom_broye_type(contexte, donnees);
+	auto &magasin = contexte.magasin_types;
 
-	for (auto &donnees : donnees_types) {
-		if (donnees.type_base() == id_morceau::TABLEAU) {
-			os << "typedef struct Tableau_";
-
-			converti_type_C(contexte, "", donnees.dereference(), os, true);
-
-			os << "{\n\t";
-
-			converti_type_C(contexte, "", donnees.dereference(), os, false, true);
-
-			os << " *pointeur;\n\tint taille;\n} Tableau_";
-
-			converti_type_C(contexte, "", donnees.dereference(), os, true);
-
-			os << ";\n\n";
+	if (donnees.type_base() == id_morceau::TABLEAU || donnees.type_base() == id_morceau::TROIS_POINTS) {
+		if (est_invalide(donnees.dereference())) {
+			return;
 		}
+
+		os << "typedef struct Tableau_" << nom_broye;
+
+		os << "{\n\t";
+
+		magasin.converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+
+		os << " *pointeur;\n\tlong taille;\n} " << nom_broye << ";\n\n";
+	}
+	else if ((donnees.type_base() & 0xff) == id_morceau::TABLEAU) {
+		os << "typedef ";
+		magasin.converti_type_C(contexte, "", donnees.dereference(), os, false, true);
+		os << ' ' << nom_broye;
+		os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
+		os << ";\n\n";
+	}
+	else if (donnees.type_base() == id_morceau::COROUT) {
+		/* ne peut prendre un pointeur vers une coroutine pour le moment */
+	}
+	else if (donnees.type_base() == id_morceau::FONC) {
+		auto nombre_types_retour = 0l;
+		auto type_parametres = donnees_types_parametres(contexte.magasin_types, donnees, nombre_types_retour);
+
+		auto prefixe = dls::chaine("");
+		auto suffixe = dls::chaine("");
+
+		auto nombre_types_entree = type_parametres.taille() - nombre_types_retour;
+
+		auto nouveau_nom_broye = dls::chaine("Kf");
+		nouveau_nom_broye += dls::vers_chaine(nombre_types_entree);
+
+		if (nombre_types_retour > 1) {
+			prefixe += "void (*";
+		}
+		else {
+			auto &dt = contexte.magasin_types.donnees_types[type_parametres.back()];
+			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
+			prefixe += nom_broye_dt + " (*";
+		}
+
+		auto virgule = "(";
+
+		for (auto i = 0; i < nombre_types_entree; ++i) {
+			auto &dt = contexte.magasin_types.donnees_types[type_parametres[i]];
+			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
+
+			suffixe += virgule;
+			suffixe += nom_broye_dt;
+			nouveau_nom_broye += nom_broye_dt;
+			virgule = ",";
+		}
+
+		if (nombre_types_entree == 0) {
+			suffixe += virgule;
+			virgule = ",";
+		}
+
+		nouveau_nom_broye += dls::vers_chaine(nombre_types_retour);
+
+		for (auto i = nombre_types_entree; i < type_parametres.taille(); ++i) {
+			auto &dt = contexte.magasin_types.donnees_types[type_parametres[i]];
+			auto const &nom_broye_dt = nom_broye_type(contexte, dt);
+
+			if (nombre_types_retour > 1) {
+				suffixe += virgule;
+				suffixe += nom_broye_dt;
+			}
+
+			nouveau_nom_broye += nom_broye_dt;
+		}
+
+		suffixe += ")";
+
+		donnees.nom_broye = nouveau_nom_broye;
+
+		nouveau_nom_broye = prefixe + nouveau_nom_broye + ")" + suffixe;
+
+		os << "typedef " << nouveau_nom_broye << ";\n\n";
+	}
+	/* cas spécial pour les types complexes : &[]z8 */
+	else if (donnees.type_base() == id_morceau::POINTEUR || donnees.type_base() == id_morceau::REFERENCE) {
+		auto index = contexte.magasin_types.ajoute_type(donnees.dereference());
+		auto &dt_deref = contexte.magasin_types.donnees_types[index];
+
+		auto nom_broye_deref = nom_broye_type(contexte, dt_deref);
+
+		os << "typedef " << nom_broye_deref << "* " << nom_broye << ";\n\n";
+	}
+	else {
+		os << "typedef ";
+		magasin.converti_type_C(contexte, "", donnees.plage(), os, false, true);
+		os << ' ' << nom_broye <<  ";\n\n";
 	}
 }
 
@@ -743,7 +828,7 @@ void MagasinDonneesType::converti_type_C(
 	}
 
 	/* cas spécial pour convertir les types complexes comme *[]z8 */
-	if (donnees.front() == id_morceau::POINTEUR) {
+	if (donnees.front() == id_morceau::POINTEUR || donnees.front() == id_morceau::REFERENCE) {
 		donnees.effronte();
 		this->converti_type_C(contexte, "", donnees, os, echappe, echappe_struct);
 
@@ -1110,6 +1195,10 @@ static DonneesTypeFinal analyse_type(
 		}
 		/* ) */
 		dt.pousse(*debut--);
+
+		if (*debut == id_morceau::VIRGULE) {
+			--debut;
+		}
 	}
 	else {
 		while (*debut != id_morceau::PARENTHESE_FERMANTE) {
@@ -1289,68 +1378,6 @@ unsigned alignement(
 
 /* ************************************************************************** */
 
-bool est_type_entier(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::BOOL:
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
-		case id_morceau::OCTET:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_entier_naturel(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::N128:
-		case id_morceau::POINTEUR:  /* À FAIRE : sépare ça. */
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_entier_relatif(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::Z128:
-			return true;
-		default:
-			return false;
-	}
-}
-
-bool est_type_reel(id_morceau type)
-{
-	switch (type) {
-		case id_morceau::R16:
-		case id_morceau::R32:
-		case id_morceau::R64:
-		case id_morceau::R128:
-			return true;
-		default:
-			return false;
-	}
-}
-
 niveau_compat sont_compatibles(
 		DonneesTypeFinal const &type1,
 		DonneesTypeFinal const &type2,
@@ -1441,7 +1468,7 @@ niveau_compat sont_compatibles(
 	return niveau_compat::aucune;
 }
 
-unsigned int taille_type_octet(
+unsigned int taille_octet_type(
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type)
 {
@@ -1453,6 +1480,7 @@ unsigned int taille_type_octet(
 			assert(false);
 			break;
 		}
+		case id_morceau::OCTET:
 		case id_morceau::BOOL:
 		case id_morceau::N8:
 		case id_morceau::Z8:
@@ -1500,7 +1528,7 @@ unsigned int taille_type_octet(
 
 			if (ds.est_enum) {
 				auto dt_enum = contexte.magasin_types.donnees_types[ds.noeud_decl->index_type];
-				return taille_type_octet(contexte, dt_enum);
+				return taille_octet_type(contexte, dt_enum);
 			}
 
 			return ds.taille_octet;
@@ -1531,4 +1559,19 @@ unsigned int taille_type_octet(
 	}
 
 	return 0;
+}
+
+void ajoute_contexte_programme(ContexteGenerationCode &contexte, DonneesTypeDeclare &dt)
+{
+	auto ds = DonneesStructure();
+
+	if (contexte.structure_existe("__contexte_global")) {
+		ds = contexte.donnees_structure("__contexte_global");
+	}
+	else {
+		contexte.ajoute_donnees_structure("__contexte_global", ds);
+	}
+
+	dt.pousse(id_morceau::POINTEUR);
+	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
 }

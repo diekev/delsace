@@ -30,6 +30,8 @@
 #include "assembleuse_objet.hh"
 #include "morceaux.hh"
 
+namespace json {
+
 class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
 	lng::tampon_source const &m_tampon;
 	assembleuse_objet m_assembleuse{};
@@ -54,3 +56,5 @@ private:
 	 */
 	[[noreturn]] void lance_erreur(const dls::chaine &quoi, int type = 0);
 };
+
+}  /* namespace json */

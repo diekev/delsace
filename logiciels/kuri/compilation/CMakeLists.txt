@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	stdc++fs
 	langage
+	bib_outils
 	bib_structures
 	memoire
 )
@@ -44,8 +45,11 @@ set(SOURCES
 	erreur.h
 	expression.h
 	generatrice_code_c.hh
+	graphe_dependance.hh
 	modules.hh
 	morceaux.hh
+	operateurs.hh
+	outils_morceaux.hh
 	validation_semantique.hh
 
 	analyseuse_grammaire.cc
@@ -59,8 +63,11 @@ set(SOURCES
 	erreur.cc
 	expression.cc
 	generatrice_code_c.cc
+	graphe_dependance.cc
 	modules.cc
 	morceaux.cc
+	operateurs.cc
+	outils_morceaux.cc
 	validation_semantique.cc
 )
 

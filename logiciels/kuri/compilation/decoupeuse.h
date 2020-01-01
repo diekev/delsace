@@ -26,7 +26,7 @@
 
 #include "morceaux.hh"
 
-struct DonneesModule;
+struct Fichier;
 
 enum {
 	INCLUS_CARACTERES_BLANC = (1 << 0),
@@ -34,7 +34,7 @@ enum {
 };
 
 class decoupeuse_texte {
-	DonneesModule *m_module;
+	Fichier *m_fichier;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
 	const char *m_fin = nullptr;
@@ -48,7 +48,7 @@ class decoupeuse_texte {
 	id_morceau m_dernier_id = id_morceau::INCONNU;
 
 public:
-	explicit decoupeuse_texte(DonneesModule *module, int drapeaux = 0);
+	explicit decoupeuse_texte(Fichier *fichier, int drapeaux = 0);
 
 	void genere_morceaux();
 

@@ -37,6 +37,8 @@
 
 /* ************************************************************************** */
 
+namespace json {
+
 decoupeuse_texte::decoupeuse_texte(lng::tampon_source const &tampon)
 	: m_tampon(tampon)
 	, m_debut_mot(m_tampon.debut())
@@ -201,3 +203,5 @@ void decoupeuse_texte::enregistre_position_mot()
 	m_pos_mot = m_position_ligne;
 	m_debut_mot = m_debut;
 }
+
+}  /* namespace json */

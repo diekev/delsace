@@ -1,0 +1,96 @@
+struct Automate {
+	code : []z32
+	pointeur : z32
+}
+
+fonc état(automate : &Automate) : z32
+{
+	retourne automate.code[automate.pointeur]
+}
+
+fonc avance(dyn automate : &Automate) : rien
+{
+	automate.pointeur += 1
+}
+
+fonc reinitialise(dyn automate : &Automate) : rien
+{
+	automate.pointeur = 0
+}
+
+struct DonnéesRecherche {
+	inst : Intruction
+
+	sequence : []z32
+}
+
+fonc foo()
+{
+	si état est compatible avec état automate
+
+
+	si noeud remplis condition {
+		ajourne_automate
+	}
+
+	si automate est finie {
+
+	}
+
+	possède_propriété
+
+	possède_étiquette
+
+	si automate.état() == CHERCHE_NOEUD {
+		automate.avance()
+
+		automate.enregistre_état()
+
+		pour noeud dans graphe.noeuds {
+			boucle {
+				si automate.état() == POSSÈDE_PROPRIÉTÉ {
+					automate.avance()
+
+					id_prop = automate.état()
+
+					pour prop dans noeud.props {
+						si prop.id == id_prop {
+							automate.avance()
+							arrête
+						}
+					}
+
+					# le noeud n'a pas la propriété
+					automate.rembobine()
+					arrête
+				}
+
+				si automate.état() == POSSÈDE_ÉTIQUETTE {
+					automate.avance()
+
+					id_étiquette = automate.état()
+
+					pour étiquette dans noeud.étiquettes {
+						si étiquette.id == id_étiquette {
+							automate.avance()
+							arrête
+						}
+					}
+
+					# le noeud n'a pas l'étiquette
+					automate.rembobine()
+					arrête
+				}
+
+				# le noeud est bon
+				résultat.pousse(nom_var, noeud)
+				arrête
+			}
+		}
+
+		si automate.état() == CHERCHE_RELATION {
+			# accepte le noeud
+		}
+	}
+}
+

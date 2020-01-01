@@ -29,6 +29,7 @@
 #include "biblinternes/langage/erreur.hh"
 
 struct DonneesMorceau;
+struct DonneesStructure;
 struct ContexteGenerationCode;
 
 namespace erreur {
@@ -50,6 +51,7 @@ enum class type_erreur : int {
 	STRUCTURE_INCONNUE,
 	STRUCTURE_REDEFINIE,
 	MEMBRE_INCONNU,
+	MEMBRE_INACTIF,
 	MEMBRE_REDEFINI,
 	ASSIGNATION_INVALIDE,
 	ASSIGNATION_MAUVAIS_TYPE,
@@ -119,4 +121,49 @@ using frappe = lng::erreur::frappe<type_erreur>;
 			DonneesTypeFinal const &type_tableau,
 			long index_acces);
 
+[[noreturn]] void lance_erreur_type_operation(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b);
+
+[[noreturn]] void lance_erreur_type_operation_unaire(
+			ContexteGenerationCode const &contexte,
+			noeud::base *b);
+
+[[noreturn]] void membre_inconnu(
+		ContexteGenerationCode &contexte,
+		DonneesStructure &ds,
+		noeud::base *acces,
+		noeud::base *structure,
+		noeud::base *membre);
+
+[[noreturn]] void membre_inconnu_tableau(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void membre_inconnu_chaine(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void membre_inconnu_eini(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void membre_inactif(
+			ContexteGenerationCode &contexte,
+			noeud::base *acces,
+			noeud::base *structure,
+			noeud::base *membre);
+
+[[noreturn]] void valeur_manquante_discr(
+			ContexteGenerationCode &contexte,
+			noeud::base *expression,
+			dls::ensemble<dls::vue_chaine_compacte> const &valeurs_manquantes);
+
+[[noreturn]] void fonction_principale_manquante();
 }

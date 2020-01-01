@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/pile.hh"
 #include "biblinternes/structures/liste.hh"
 
@@ -40,8 +41,16 @@ class assembleuse_arbre {
 	size_t m_memoire_utilisee = 0;
 
 public:
+	dls::ensemble<dls::vue_chaine_compacte> deja_inclus{};
+	/* certains fichiers d'entête requiers d'être inclus dans un certain ordre,
+	 * par exemple pour OpenGL, donc les inclusions finales sont stockées dans
+	 * un tableau dans l'ordre dans lequel elles apparaissent dans le code */
 	dls::tableau<dls::vue_chaine_compacte> inclusions{};
+
 	dls::tableau<dls::vue_chaine_compacte> bibliotheques{};
+
+	/* définitions passées au compilateur C pour modifier les fichiers d'entête */
+	dls::tableau<dls::vue_chaine_compacte> definitions{};
 
 	explicit assembleuse_arbre(ContexteGenerationCode &contexte);
 	~assembleuse_arbre();
@@ -113,6 +122,8 @@ public:
 	 * Retourne le nombre de noeuds dans l'arbre.
 	 */
 	size_t nombre_noeuds() const;
+
+	void ajoute_inclusion(dls::vue_chaine_compacte const &fichier);
 };
 
 /**

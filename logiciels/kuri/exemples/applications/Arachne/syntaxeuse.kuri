@@ -1,0 +1,437 @@
+importe Fondation
+
+charge instruction
+charge lexeuse
+
+################################################################################
+
+énum TypeObjet : z32 {
+	NOEUD,
+	RELATION,
+}
+
+struct Propriété {
+	nom : chaine
+	valeur : chaine
+}
+
+struct Étiquette {
+	valeur : chaine
+}
+
+struct Objet {
+	type : TypeObjet
+	nom : chaine
+	propriétés : []Propriété
+	étiquettes : []Étiquette
+}
+
+struct Expression {
+	objets : []Objet
+}
+
+struct Bloc {
+	inst : Instruction
+	expression : Expression
+}
+
+struct Requête {
+	blocs : []Bloc
+}
+
+fonc détruit_requête(dyn requête : &Requête) : rien
+{
+	pour bloc dans requête.blocs {
+		expression = bloc.expression
+
+		pour objet dans expression.objets {
+			déloge objet.propriétés
+			déloge objet.étiquettes
+		}
+
+		déloge expression.objets
+	}
+
+	déloge requête.blocs
+}
+
+fonc imprime_requête(dyn requête : &Requête) : rien
+{
+	imprime("Requête :\n")
+
+	pour bloc dans requête.blocs {
+		imprime(bloc.inst, '\n')
+
+		pour objet dans bloc.expression.objets {
+			imprime("Objet ", objet.type, " :\n")
+			imprime("\tNom : ", objet.nom, "\n")
+
+			imprime("\tÉtiquettes :\n")
+			pour étiquette dans objet.étiquettes {
+				imprime("\t\t", étiquette.valeur, '\n')
+			}
+
+			imprime("\tPropriétés : {\n")
+			pour propriété dans objet.propriétés {
+				imprime("\t\t", propriété.nom, " : ", propriété.valeur, ",\n")
+			}
+			imprime("\t}\n")
+		}
+	}
+}
+
+################################################################################
+
+# À FAIRE(langage) : gabarits
+
+fonc pousse(dyn liste : &[]Bloc, valeur : Bloc) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Bloc
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]Objet, valeur : Objet) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Objet
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]Propriété, valeur : Propriété) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Propriété
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]Étiquette
+    liste[taille] = valeur
+}
+
+################################################################################
+
+struct Syntaxeuse {
+	lexèmes : *[]Lexème
+	position : z64 = 0
+	# L'instruction si le lexème courant est celui d'une instruction
+	inst : Instruction
+}
+
+fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) : rien
+{
+	syntaxeuse.position = 0
+	syntaxeuse.lexèmes = lexèmes
+}
+
+fonc a_fini(dyn syntaxeuse : &Syntaxeuse) : bool
+{
+	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
+}
+
+fonc lexème_courant(dyn syntaxeuse : &Syntaxeuse) : Lexème
+{
+	# À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
+	lexèmes = mémoire(syntaxeuse.lexèmes)
+	retourne lexèmes[syntaxeuse.position]
+}
+
+fonc est_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+{
+	retourne syntaxeuse.lexème_courant().id == id
+}
+
+fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position += 1
+}
+
+fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position -= 1
+}
+
+fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+{
+	si syntaxeuse.position >= syntaxeuse.lexèmes.taille {
+		retourne faux
+	}
+
+	est_bon = syntaxeuse.est_lexème(id)
+	syntaxeuse.avance()
+	retourne est_bon
+}
+
+################################################################################
+
+fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) : rien
+{
+	#imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
+	# { chaine : chaine }
+	boucle {
+		#imprime("-- boucle analyse_propriétés\n")
+		si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_FERMANTE) {
+			syntaxeuse.avance()
+			arrête
+		}
+
+		dyn propriété : Propriété
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			imprime("ERREUR : attendu une chaine de caractère après '{' ou ','\n")
+			retourne
+		}
+
+		syntaxeuse.recule()
+		propriété.nom = syntaxeuse.lexème_courant().chn
+		syntaxeuse.avance()
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.DOUBLE_POINTS) {
+			imprime("ERREUR : attendu un double point\n")
+			retourne
+		}
+
+		si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			propriété.valeur = syntaxeuse.lexème_courant().chn
+			syntaxeuse.avance()
+		}
+		sinon si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_LITTÉRALE) {
+			propriété.valeur = syntaxeuse.lexème_courant().chn
+			syntaxeuse.avance()
+		}
+		sinon {
+			imprime("ERREUR : attendu une chaine de caractère ou une littérale après ':'\n")
+			retourne
+		}
+
+		objet.propriétés.pousse(propriété)
+
+		si syntaxeuse.est_lexème(IdentifiantLexème.VIRGULE) {
+			syntaxeuse.avance()
+		}
+	}
+}
+
+fonc analyse_objet(
+	dyn syntaxeuse : &Syntaxeuse,
+	expression : &Expression,
+	type_objet : TypeObjet,
+	id_final : IdentifiantLexème) : rien
+{
+	#imprime("analyse_objet ", id_final, '\n')
+	# ( chaine : chaine : chaine propriétés )
+	# [ chaine : chaine : chaine propriétés ]
+	# <- -- ->
+
+	dyn objet : Objet
+	objet.type = type_objet
+
+	si syntaxeuse.est_lexème(id_final) {
+		#imprime("Objet vide\n")
+		# Nous avons un objet vide
+		syntaxeuse.avance()
+		retourne
+	}
+
+	si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+		# nom_objet
+		objet.nom = syntaxeuse.lexème_courant().chn
+		syntaxeuse.avance()
+	}
+
+	tantque syntaxeuse.est_lexème(IdentifiantLexème.DOUBLE_POINTS) {
+		syntaxeuse.avance()
+
+		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
+			# nom_étiquette
+			retourne
+		}
+
+		dyn étiquette : Étiquette
+		syntaxeuse.recule()
+		étiquette.valeur = syntaxeuse.lexème_courant().chn
+		syntaxeuse.avance()
+
+		objet.étiquettes.pousse(étiquette)
+	}
+
+	si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_OUVRANTE) {
+		syntaxeuse.avance()
+		syntaxeuse.analyse_propriétés(objet)
+	}
+
+	expression.objets.pousse(objet)
+
+	si !syntaxeuse.requiers_lexème(id_final) {
+		#imprime("ERREUR : attendu l'identifiant final de l'objet\n")
+		retourne
+	}
+}
+
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
+{
+	dyn expression : Expression
+
+	tantque !syntaxeuse.a_fini() {
+		#imprime("-- boucle analyse_expression\n")
+
+		si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+			syntaxeuse.avance()
+			syntaxeuse.analyse_objet(expression, TypeObjet.NOEUD, IdentifiantLexème.PARENTHÈSE_FERMANTE)
+		}
+		sinon si syntaxeuse.est_lexème(IdentifiantLexème.RELATION_DÉBUT) {
+			syntaxeuse.avance()
+			syntaxeuse.analyse_objet(expression, TypeObjet.RELATION, IdentifiantLexème.RELATION_FIN)
+		}
+		sinon {
+			#imprime("ignore lexème ", syntaxeuse.lexème_courant(), '\n')
+			syntaxeuse.avance()
+		}
+	}
+
+	retourne expression
+}
+
+fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
+{
+	discr id {
+		IdentifiantLexème.CREE     { retourne Instruction.CREE; }
+		IdentifiantLexème.SUPPRIME { retourne Instruction.SUPPRIME; }
+		IdentifiantLexème.TROUVE   { retourne Instruction.TROUVE; }
+		IdentifiantLexème.RETOURNE { retourne Instruction.RETOURNE; }
+		sinon { retourne Instruction.INVALIDE; }
+	}
+
+    retourne Instruction.INVALIDE
+}
+
+fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) : bool
+{
+	lexème = syntaxeuse.lexème_courant()
+	inst = instruction_pour_lexème(lexème.id)
+	syntaxeuse.inst = inst
+
+	retourne inst != Instruction.INVALIDE
+}
+
+struct Erreur {
+	message : chaine
+}
+
+union Résultat {
+	requête : Requête
+	erreur : Erreur
+}
+
+fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Résultat
+{
+	dyn résultat : Résultat
+	dyn requête : Requête
+
+	#imprime("analyse_requête ", '\n')
+	tantque !syntaxeuse.a_fini() {
+		#imprime("-- boucle analyse_requête\n")
+		si syntaxeuse.est_instruction() {
+			syntaxeuse.avance()
+
+			si !syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
+				dyn erreur : Erreur;
+				erreur.message = "ERREUR : l'instruction doit être suivie par un noeud !\n"
+
+				résultat.erreur = erreur
+				retourne résultat
+			}
+
+			dyn bloc : Bloc
+			bloc.inst = syntaxeuse.inst
+			bloc.expression = syntaxeuse.analyse_expression()
+
+			requête.blocs.pousse(bloc)
+		}
+		sinon {
+			dyn erreur : Erreur;
+			erreur.message = "ERREUR : la requête doit commencer par une instruction !\n"
+
+			résultat.erreur = erreur
+			retourne résultat
+		}
+	}
+
+	résultat.requête = requête
+
+	retourne résultat
+}
+
+fonc principale(args : []*z8) : z32
+{
+    expressions = [
+        "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",
+        "( noeud : Personne :Acteur )-[ : LABEL { nom : \"bibi\" } ]->( noeud : LABEL { nom : 8, id : 56, voiture : 789 } )",
+        # N'importe quel noeud
+        "()",
+        # Un noeud avec l'étiquette "Personne"
+        "(:Personne)",
+        # Un noeud identifié avec la variable "n" et avec l'étiquette "Personne"
+        "(n:Personne)",
+        # Un noeud identifié avec la variable "n" et avec les étiquettes "Personne" et "Acteur"
+        "(n:Personne:Acteur)",
+        # N'importe quelle relation entre "a" et "b", peu importe la direction
+        "(a)--(b)",
+        # relation de type "AMI" depuis le nœud "a" vers le nœud "b"
+        "(a)-[:AMI]->(b)",
+        # relation de type "AMI" ou "CONNAIT" depuis le nœud "a" vers le nœud "b"
+        "(a)-[:AMI|CONNAIT]->(b)"
+    ]
+
+    #pour expression dans expressions {
+    #    compileuse.analyse_expression(expression)
+    #}
+
+    # CREE (moi : { nom : "bibi" })
+    # RETOURNE moi
+
+    # TROUVE (moi : { nom : "bibi" })
+    # CREE (moi) -[:AIME]-> (quelquechose)
+    # RETOURNE moi, quelquechose
+
+    requêtes = [
+        "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",
+        "TROUVE (:Type { index : 1 }) -[opérateur:Opérateur { nom : '+' }]-> (:Type { index : 5 })\nRETOURNE opérateur.id\n"
+    ]
+
+	diffère {
+		imprime("Mémoire utilisée        : ", mémoire_utilisée(), "o\n")
+		imprime("Mémoire consommée       : ", mémoire_consommée(), "o\n")
+		imprime("Nombre d'allocations    : ", nombre_allocations(), "\n")
+		imprime("Nombre de réallocations : ", nombre_réallocations(), "\n")
+		imprime("Nombre de déallocations : ", nombre_déallocations(), "\n")
+	}
+
+    chaine_requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
+
+    dyn lexeuse : Lexeuse
+    lexeuse.analyse_texte(chaine_requête)
+
+    diffère { déloge lexeuse.lexèmes; }
+
+	dyn syntaxeuse : Syntaxeuse
+	syntaxeuse.initialise(@lexeuse.lexèmes)
+	résultat = syntaxeuse.analyse_requête()
+
+	discr résultat {
+		requête {
+			imprime_requête(requête)
+			détruit_requête(requête)
+		}
+		erreur {
+			imprime(erreur.message, '\n')
+		}
+	}
+
+	requête = faux
+
+	retourne 0
+}

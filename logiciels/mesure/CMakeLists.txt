@@ -27,6 +27,6 @@ add_executable(mesure mesure.cc)
 
 target_include_directories(mesure PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(mesure stdc++fs bib_structures)
+target_link_libraries(mesure stdc++fs bib_outils bib_structures)
 
 install(TARGETS mesure RUNTIME DESTINATION .)

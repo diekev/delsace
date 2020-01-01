@@ -1,0 +1,128 @@
+# Implémentation spécialisée de la table de hachage du module Fondation
+# pour avoir une clé de type chaine et une valeur de type z64
+
+importe Fondation
+
+struct NoeudDicoChaineIndex {
+    clé : chaine
+    valeur : chaine
+    suivant : *NoeudDicoChaineIndex
+}
+
+struct DicoChaineIndex {
+    alvéoles : []*NoeudDicoChaineIndex
+}
+
+fonc crée_table_hachage() : DicoChaineIndex
+{
+    dyn table : DicoChaineIndex
+    table.alvéoles = loge [10000]*NoeudDicoChaineIndex
+
+    pour i dans 0 ... 9999 {
+        table.alvéoles[i] = nul
+    }
+
+    retourne table
+}
+
+fonc décrée_table_hachage(table : &DicoChaineIndex) : rien
+{
+    pour noeud dans table.alvéoles {
+        dyn n = noeud;
+
+        tantque n != nul {
+            dyn ns = n.suivant
+            déloge n
+            n = ns
+        }
+    }
+
+    déloge table.alvéoles
+}
+
+fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudDicoChaineIndex
+{
+    dyn n = loge NoeudDicoChaineIndex
+    n.clé = clé
+    n.valeur = valeur
+    n.suivant = nul
+    retourne n
+}
+
+fonc insère(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) : rien
+{
+    empreinte = calcule_empreinte(clé) % 10000
+
+    dyn alvéole = table.alvéoles[empreinte]
+
+    si alvéole == nul {
+        table.alvéoles[empreinte] = crée_noeud(clé, valeur)
+        retourne
+    }
+
+    boucle {
+        si alvéole.suivant == nul {
+            alvéole.suivant = crée_noeud(clé, valeur)
+            arrête
+        }
+
+        alvéole = alvéole.suivant
+    }
+}
+
+fonc trouve(table : &DicoChaineIndex, clé : chaine) : *NoeudDicoChaineIndex
+{
+    empreinte = calcule_empreinte(clé) % 10000
+
+    dyn alvéole = table.alvéoles[empreinte]
+
+    si alvéole == nul {
+        retourne nul
+    }
+
+    boucle {
+        si compare_chaines(alvéole.clé, clé) {
+            retourne alvéole
+        }
+
+        si alvéole.suivant == nul {
+            arrête
+        }
+
+        alvéole = alvéole.suivant
+    }
+
+    retourne nul
+}
+
+union RésultatRecherche {
+	valeur : z64
+	erreur : bool
+}
+
+fonc cherche_valeur(table : &DicoChaineIndex, clé : chaine) : RésultatRecherche
+{
+    n = trouve(table, clé)
+    dyn résultat : RésultatRecherche
+
+    si n == nul {
+        résultat.erreur = vrai
+    }
+    sinon {
+        résultat.valeur = n.valeur
+    }
+
+    retourne résultat
+}
+
+corout chaque_noeud(table : &DicoChaineIndex) : *NoeudDicoChaineIndex
+{
+    pour alvéole dans table.alvéoles {
+        dyn n = alvéole
+
+        tantque n != nul {
+            retiens n
+            n = n.suivant
+        }
+    }
+}

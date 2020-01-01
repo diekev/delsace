@@ -41,18 +41,20 @@ std::pair<bool, bool> retourne_erreur_lancee(
 	auto contexte = ContexteGenerationCode{};
 	/* Ne nomme pas le module, car c'est le module racine. */
 	auto module = contexte.cree_module("", "");
-	module->tampon = lng::tampon_source(texte);
+	auto fichier = contexte.cree_fichier("", "");
+	fichier->tampon = lng::tampon_source(texte);
+	fichier->module = module;
 
 	auto erreur_lancee = false;
 	auto type_correcte = false;
 
 	try {
-		decoupeuse_texte decoupeuse(module);
+		decoupeuse_texte decoupeuse(fichier);
 		decoupeuse.genere_morceaux();
 
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, module, "");
+		auto analyseuse = analyseuse_grammaire(contexte, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

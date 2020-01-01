@@ -1,0 +1,251 @@
+importe Fondation
+
+énum TypeDonnées : z32 {
+	NOMBRE_ENTIER,
+	NOMBRE_DÉCIMAL,
+	DATE,
+	HEURE,
+	HEUREDATE,
+	CHAINE
+}
+
+struct Colonne {
+	nom : chaine
+	type : TypeDonnées
+	données : []z32
+}
+
+fonc pousse(dyn liste : &[]Colonne, valeur : Colonne) : rien
+{
+	taille = liste.taille
+	reloge liste : [taille + 1]Colonne
+	liste[taille] = valeur
+}
+
+fonc redimensionne(données : &[]z32) : rien
+{
+	reloge données : [données.taille + 1]z32
+}
+
+struct Schéma {
+	nom : chaine
+	colonnes : []Colonne
+	lignes : z64
+}
+
+fonc pousse(dyn liste : &[]Schéma, valeur : Schéma) : rien
+{
+	taille = liste.taille
+	reloge liste : [taille + 1]Schéma
+	liste[taille] = valeur
+}
+
+fonc redimensionne_schéma(dyn schéma : &Schéma) : rien
+{
+	schéma.lignes += 1
+
+	pour colonne dans schéma.colonnes {
+		redimensionne(colonne.données)
+	}
+}
+
+fonc trouve_colonne(dyn schéma : &Schéma, nom : chaine) : *Colonne
+{
+	pour colonne dans schéma.colonnes {
+		si compare_chaines(colonne.nom, nom) {
+			retourne @colonne
+		}
+	}
+
+	retourne nul
+}
+
+fonc ajoute_colonne(dyn schéma : &Schéma, nom : chaine, type : TypeDonnées) : rien
+{
+	colonne_existante = schéma.trouve_colonne(nom)
+
+	si colonne_existante != nul {
+		retourne
+	}
+
+	colonne = Colonne{ nom = nom, type = type }
+	schéma.colonnes.pousse(colonne)
+}
+
+struct Noeud {
+	schéma : *Schéma
+
+	id_ligne : z64
+
+	id : z64
+
+	# première relation du noeud
+	relation : z64
+}
+
+fonc pousse(dyn liste : &[]Noeud, valeur : Noeud) : rien
+{
+	taille = liste.taille
+	reloge liste : [taille + 1]Noeud
+	liste[taille] = valeur
+}
+
+struct Relation {
+	schéma : *Schéma
+
+	id_ligne : z64
+
+	id : z64
+	noeud_de : z64
+	noeud_vers : z64
+
+	# relation suivante
+	relation_suivante : z64
+}
+
+fonc pousse(dyn liste : &[]Relation, valeur : Relation) : rien
+{
+	taille = liste.taille
+	reloge liste : [taille + 1]Relation
+	liste[taille] = valeur
+}
+
+struct Arachné {
+	schémas : []Schéma
+	noeuds : []Noeud
+	relations : []Relation
+}
+
+énum TypeErreur : z32 {
+	AUCUNE,
+	SCHÉMA_EXISTANT,
+	SCHÉMA_INEXISTANT,
+}
+
+fonc trouve_schéma(arachné : &Arachné, nom : chaine) : *Schéma
+{
+	pour schéma dans arachné.schémas {
+		si compare_chaines(schéma.nom, nom) {
+			retourne @schéma
+		}
+	}
+
+	retourne nul
+}
+
+fonc crée_schéma(arachné : &Arachné, nom : chaine, colonnes : []Colonne) : TypeErreur
+{
+	schéma_existant = arachné.trouve_schéma(nom)
+
+	si schéma_existant != nul {
+		retourne TypeErreur.SCHÉMA_EXISTANT
+	}
+
+	schéma = Schéma{ nom = nom, colonnes = colonnes }
+	arachné.schémas.pousse(schéma)
+
+	retourne TypeErreur.AUCUNE
+}
+
+fonc crée_noeud(dyn arachné : &Arachné, nom_schéma : chaine) : TypeErreur
+{
+	schéma = arachné.trouve_schéma(nom_schéma)
+
+	si schéma == nul {
+		retourne TypeErreur.SCHÉMA_INEXISTANT
+	}
+
+	noeud = Noeud{ schéma = schéma, id = arachné.noeuds.taille, id_ligne = schéma.lignes }
+	arachné.noeuds.pousse(noeud)
+
+	réf = mémoire(schéma)
+	redimensionne_schéma(réf)
+
+	retourne TypeErreur.AUCUNE
+}
+
+fonc crée_relation(dyn arachné : &Arachné, nom_schéma : chaine) : TypeErreur
+{
+	schéma = arachné.trouve_schéma(nom_schéma)
+
+	si schéma == nul {
+		retourne TypeErreur.SCHÉMA_INEXISTANT
+	}
+
+	relation = Relation{ schéma = schéma, id = arachné.relations.taille, id_ligne = schéma.lignes }
+	arachné.relations.pousse(relation)
+
+	réf = mémoire(schéma)
+	redimensionne_schéma(réf)
+
+	retourne TypeErreur.AUCUNE
+}
+
+fonc connecte_relation(arachné : &Arachné, dyn relation : &Relation, noeud1 : &Noeud, noeud2 : &Noeud) : rien
+{
+	relation.noeud_de = noeud1.id
+	relation.noeud_vers = noeud2.id
+
+	# connecte les relations
+	#noeud1.relation_finale.relation_suivante = relation.id
+}
+
+fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32) : rien
+{
+	# trouve le noeud
+	# trouve la colonne à modifier
+	# trouve la place où insérer la valeur
+
+	dyn schéma = noeud.schéma
+
+	pour colonne dans schéma.colonnes {
+		si compare_chaines(nom_colonne, colonne.nom) {
+			colonne.données[noeud.id_ligne] = valeur
+		}
+	}
+
+	retourne
+}
+
+fonc trouve_valeur_noeud(noeud : &Noeud, nom_colonne : chaine) : z32
+{
+	schéma = noeud.schéma
+
+	pour colonne dans schéma.colonnes {
+		si compare_chaines(nom_colonne, colonne.nom) {
+			retourne colonne.données[noeud.id_ligne]
+		}
+	}
+
+	retourne 0
+}
+
+fonc trouve_noeud(arachné : &Arachné, nom_colonne : chaine, valeur : z32) : *Noeud
+{
+	retourne nul
+}
+
+# CRÉE TYPE nom ()
+# CHERCHE (n : TYPE {})
+# CRÉE NOEUD
+fonc principale(args : []*z8) : z32
+{
+	dyn arachné : Arachné
+
+	colonne = Colonne{ nom="nom", type = TypeDonnées.NOMBRE_ENTIER }
+	colonnes = [colonne]
+	arachné.crée_schéma("FONCTION", colonnes)
+
+	schéma = arachné.trouve_schéma("FONCTION")
+	#schéma.ajoute_colonne("nom", TypeDonnées.NOMBRE_ENTIER)
+
+	#arachné.montre_schémas()
+
+	arachné.crée_noeud("FONCTION")
+
+	#arachné.montre_noeuds("FONCTION")
+
+	#noeud = arachné.trouve_noeud("FONCTION", "nom", 5)
+
+	retourne 0
+}

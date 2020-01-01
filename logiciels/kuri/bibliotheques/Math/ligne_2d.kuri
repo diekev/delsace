@@ -1,0 +1,39 @@
+struct Point2D {
+	x : r64
+	y : r64
+}
+
+fonc crée_point(x : r64, y : r64) : Point2D
+{
+	point = Point2D{ x = x, y = y }
+	retourne point
+}
+
+struct Ligne2D {
+	p1 : Point2D
+	p2 : Point2D
+}
+
+fonc crée_ligne(p1 : Point2D, p2 : Point2D) : Ligne2D
+{
+	ligne = Ligne2D { p1 = p1, p2 = p2 }
+	retourne ligne
+}
+
+fonc crée_ligne_depuis_coef(coef : r64) : Ligne2D
+{
+	soit variable ligne : Ligne2D
+	p1 de ligne = crée_point(0.0, 0.0)
+	p2 de ligne = crée_point(1.0, coef)
+
+	retourne ligne
+}
+
+fonc coefficient_directeur(ligne : *Ligne2D) : r64
+{
+	x1 = ligne.p1.x
+	x2 = ligne.p2.x
+	y1 = ligne.p1.y
+	y2 = ligne.p2.y
+	retourne (y2 - y1) / (x2 - x1)
+}

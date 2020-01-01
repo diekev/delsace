@@ -28,6 +28,8 @@
 
 #include "biblinternes/structures/vue_chaine.hh"
 
+namespace json {
+
 enum class id_morceau : unsigned int {
 	PARENTHESE_OUVRANTE,
 	PARENTHESE_FERMANTE,
@@ -60,3 +62,5 @@ const char *chaine_identifiant(id_morceau id);
 void construit_tables_caractere_speciaux();
 
 bool est_caractere_special(char c, id_morceau &i);
+
+}  /* namespace json */

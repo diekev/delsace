@@ -29,6 +29,7 @@
 
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
+#include "outils_morceaux.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -98,19 +99,7 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::POINT:
 		case id_morceau::CROCHET_OUVRANT:
 			return { dir_associativite::GAUCHE, 14 };
-		/* NOTE : pour l'instant ceci est désactivé, car la logique de
-		 * correction de l'arbre syntactic est capillotractée et decevante.
-		 *
-		 * NOTE : 'de' et '[]' doivent avoir la même précédence pour pouvoir
-		 * être dans le bon ordre quand nous avons des expressions du style :
-		 * @tampon[0] de indir[0] de x;
-		 * mais il faudra tout de même inverser leurs premiers enfants pour que
-		 * l'arbre syntactic soit correcte ; voir l'inversion dans l'analyse
-		 * sémantique de '[]'. */
 		case id_morceau::DE:
-#if 0
-		case id_morceau::CROCHET_OUVRANT:
-#endif
 			return { dir_associativite::DROITE, 15 };
 		default:
 			assert(false);
@@ -176,28 +165,6 @@ static auto applique_operateur_unaire(id_morceau id, double &a)
 		{
 			a = 0;
 			break;
-		}
-	}
-}
-
-static auto est_operateur_bool(id_morceau id)
-{
-	switch (id) {
-		case id_morceau::EXCLAMATION:
-		case id_morceau::INFERIEUR:
-		case id_morceau::INFERIEUR_EGAL:
-		case id_morceau::SUPERIEUR:
-		case id_morceau::SUPERIEUR_EGAL:
-		case id_morceau::DIFFERENCE:
-		case id_morceau::ESP_ESP:
-		case id_morceau::EGALITE:
-		case id_morceau::BARRE_BARRE:
-		{
-			return true;
-		}
-		default:
-		{
-			return false;
 		}
 	}
 }
@@ -351,6 +318,25 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
+		case type_noeud::VARIABLE:
+		{
+			auto res = ResultatExpression();
+
+			if (!contexte.locale_existe(b->chaine())) {
+				res.est_errone = true;
+				res.noeud_erreur = b;
+				res.message_erreur = "La variable n'existe pas !";
+
+				return res;
+			}
+
+			auto &donnees = contexte.donnees_variable(b->chaine());
+
+			res.type = donnees.resultat_expression.type;
+			res.entier = donnees.resultat_expression.entier;
+
+			return res;
+		}
 		case type_noeud::TAILLE_DE:
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
@@ -358,7 +344,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
-			res.entier = taille_type_octet(contexte, donnees);
+			res.entier = taille_octet_type(contexte, donnees);
 
 			return res;
 		}

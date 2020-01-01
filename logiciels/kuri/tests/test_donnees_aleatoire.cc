@@ -51,15 +51,15 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		}
 
 		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("", "");
-		module->tampon = lng::tampon_source(texte);
+		auto fichier = contexte.cree_fichier("", "");
+		fichier->tampon = lng::tampon_source(texte);
 
-		decoupeuse_texte decoupeuse(module);
+		decoupeuse_texte decoupeuse(fichier);
 		decoupeuse.genere_morceaux();
 
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, module, "");
+		auto analyseuse = analyseuse_grammaire(contexte, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
@@ -470,7 +470,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 	auto dm = DonneesMorceau{};
 	dm.chaine = "texte_test";
-	dm.module = 0;
+	dm.fichier = 0;
 
 	for (size_t i = 0; i < nombre_morceaux; ++i) {
 		dm.identifiant = donnees_morceaux[i];
@@ -479,12 +479,12 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 	try {
 		auto contexte = ContexteGenerationCode{};
-		auto module = contexte.cree_module("", "");
-		module->tampon = lng::tampon_source("texte_test");
-		module->morceaux = morceaux;
+		auto fichier = contexte.cree_fichier("", "");
+		fichier->tampon = lng::tampon_source("texte_test");
+		fichier->morceaux = morceaux;
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, module, "");
+		auto analyseuse = analyseuse_grammaire(contexte, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

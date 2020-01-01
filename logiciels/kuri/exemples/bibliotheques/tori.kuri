@@ -1,0 +1,228 @@
+énum TypeObjet : z32 {
+	NUL = 0,
+	ENTIER = 1,
+	RÉEL = 2,
+	LISTE = 3,
+	DICTIONNAIRE = 4,
+	CHAINE = 5
+}
+
+########################################################################
+
+struct Objet {
+	id : TypeObjet
+}
+
+########################################################################
+
+struct ObjetEntier {
+	objet : Objet
+	valeur : z64
+}
+
+########################################################################
+
+struct ObjetRéel {
+	objet : Objet
+	valeur : r64
+}
+
+########################################################################
+
+struct ObjetChaine {
+	objet : Objet
+	valeur : chaine
+}
+
+########################################################################
+
+struct ObjetListe {
+	objet : Objet
+	valeur : []*Objet
+}
+
+########################################################################
+
+struct ObjetDictionnaire {
+	objet : Objet
+	noms : []chaine
+	valeurs : []*Objet
+}
+
+fonc trouve_objet(dico : &ObjetDictionnaire, nom_objet : chaine) : *Objet
+{
+	pour nom, idx dans dico.noms {
+		si !compare_chaine(nom, nom_objet) {
+			continue
+		}
+
+		retourne valeurs[idx]
+	}
+
+	retourne nul
+}
+
+fonc trouve_objet(
+	dico : &ObjetDictionnaire,
+	nom_objet : chaine,
+	type : TypeObjet) : *Objet
+{
+	pour nom, idx dans dico.noms {
+		si !compare_chaine(nom, nom_objet) {
+			continue
+		}
+
+		objet = valeurs[idx]
+
+		si objet.type != type {
+			retourne nul
+		}
+
+		retourne objet
+	}
+
+}
+
+fonc trouve_entier(dico : &ObjetDictionnaire, nom_objet : chaine) : *ObjetEntier
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.ENTIER)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetEntier)
+	}
+
+	retourne nul
+}
+
+fonc trouve_réel(dico : &ObjetDictionnaire, nom_objet : chaine) : *ObjetRéel
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.RÉEL)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetRéel)
+	}
+
+	retourne nul
+}
+
+fonc trouve_liste(dico : &ObjetDictionnaire, nom_objet : chaine) : *ObjetListe
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.LISTE)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetListe)
+	}
+
+	retourne nul
+}
+
+fonc trouve_chaine(dico : &ObjetDictionnaire, nom_objet : chaine) : *ObjetChaine
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.CHAINE)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetChaine)
+	}
+
+	retourne nul
+}
+
+fonc trouve_dico(dico : &ObjetDictionnaire, nom_objet : chaine) : *ObjetDictionnaire
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.DICTIONNAIRE)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetDictionnaire)
+	}
+
+	retourne nul
+}
+
+########################################################################
+
+struct GestionnaireObjet {
+	objets : []*Objet
+}
+
+fonc insère(objet : *Objet, liste : []*Objet) : rien
+{
+	reloge liste : [liste.taille + 1]*Objet
+	liste[liste.taille - 1] = objet
+}
+
+fonc crée_objet(gestionnaire : &GestionnaireObjet, type : TypeObjet) : *Objet
+{
+	dyn objet : *Objet = nul
+
+	discr type {
+		TypeObjet.ENTIER {
+			obj = loge ObjetEntier
+			objet = transtype(obj : *Objet)
+		}
+		TypeObjet.RÉEL {
+			obj = loge ObjetRéel
+			objet = transtype(obj : *Objet)
+		}
+		TypeObjet.CHAINE {
+			obj = loge ObjetChaine
+			objet = transtype(obj : *Objet)
+		}
+		TypeObjet.NUL {
+			obj = loge Objet
+			objet = transtype(obj : *Objet)
+		}
+		TypeObjet.LISTE {
+			obj = loge ObjetListe
+			objet = transtype(obj : *Objet)
+		}
+		TypeObjet.DICTIONNAIRE {
+			obj = loge ObjetDictionnaire
+			objet = transtype(obj : *Objet)
+		}
+	}
+
+	si objet != nul {
+		objet.type = type
+		insère(gestionnaire.objets, obj)
+	}
+
+	retourne nul
+}
+
+fonc détruit_objet(objet : *Objet) : rien
+{
+	discr objet.type {
+		TypeObjet.NUL {
+			déloge objet
+		}
+		TypeObjet.ENTIER {
+			obj = transtype(obj : *ObjetEntier)
+			déloge obj
+		}
+		TypeObjet.RÉEL {
+			obj = transtype(obj : *ObjetRéel)
+			déloge obj
+		}
+		TypeObjet.CHAINE {
+			obj = transtype(obj : *ObjetChaine)
+			déloge obj
+		}
+		TypeObjet.LISTE {
+			obj = transtype(objet : *ObjetListe)
+			déloge obj
+		}
+		TypeObjet.DICTIONNAIRE {
+			obj = transtype(objet : *ObjetDictionnaire)
+			déloge obj
+		}
+	}
+}
+
+fonc détruit(gestionnaire : &GestionnaireObjet)
+{
+	pour obj dans gestionnaire.objets {
+		détruit_objet(obj)
+	}
+
+	déloge gestionnaire.objets
+}

@@ -51,6 +51,9 @@ class FunctionPassManager;
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
+#include "operateurs.hh"
+#include "expression.h"
+#include "graphe_dependance.hh"
 
 class assembleuse_arbre;
 
@@ -59,19 +62,26 @@ struct base;
 }
 
 struct DonneesModule;
+struct Fichier;
 
 struct Metriques {
 	size_t nombre_modules = 0ul;
 	size_t nombre_lignes = 0ul;
 	size_t nombre_morceaux = 0ul;
+	size_t nombre_noeuds = 0ul;
 	size_t memoire_tampons = 0ul;
 	size_t memoire_morceaux = 0ul;
+	size_t memoire_arbre = 0ul;
+	size_t memoire_contexte = 0ul;
 	double temps_chargement = 0.0;
 	double temps_analyse = 0.0;
 	double temps_tampon = 0.0;
 	double temps_decoupage = 0.0;
 	double temps_validation = 0.0;
 	double temps_generation = 0.0;
+	double temps_fichier_objet = 0.0;
+	double temps_executable = 0.0;
+	double temps_nettoyage = 0.0;
 };
 
 enum {
@@ -88,10 +98,14 @@ struct DonneesVariable {
 	char drapeaux = 0;
 	bool est_argument = false;
 	bool est_membre_emploie = false;
-	char pad[3] = {};
+	bool est_externe = false;
+	char pad[2] = {};
 
 	/* nom de la structure pour l'accès des variables employées */
 	dls::chaine structure = "";
+
+	/* pour les évaluations des énums pour l'instant */
+	ResultatExpression resultat_expression{};
 };
 
 struct DonneesMembre {
@@ -100,6 +114,9 @@ struct DonneesMembre {
 
 	/* le décalage en octets dans la struct */
 	unsigned int decalage = 0;
+
+	/* pour les évaluations des énums pour l'instant */
+	ResultatExpression resultat_expression{};
 };
 
 struct DonneesStructure {
@@ -118,6 +135,10 @@ struct DonneesStructure {
 	bool est_union = false;
 	bool est_nonsur = false;
 	unsigned int taille_octet = 0;
+
+	/* pour la prédéclaration des InfoType* */
+	bool deja_genere = false;
+	REMBOURRE(7);
 };
 
 struct DonneesFonction;
@@ -136,23 +157,21 @@ struct ContexteGenerationCode {
 	assembleuse_arbre *assembleuse = nullptr;
 
 	dls::tableau<DonneesModule *> modules{};
+	dls::tableau<Fichier *> fichiers{};
 
-	MagasinDonneesType magasin_types{};
+	GrapheDependance graphe_dependance{};
+
+	MagasinDonneesType magasin_types;
 
 	DonneesFonction *donnees_fonction = nullptr;
 
-	/* magasin pour que les string_views des chaines temporaires soient toujours
-	 * valides (notamment utilisé pour les variables des boucles dans les
-	 * coroutines)
-	 * utilisation d'une liste afin d'éviter les crashs quand on tient une
-	 * référence à une chaine qui sera libéré */
-	dls::liste<dls::chaine> magasin_chaines{};
-
 	long index_type_ctx = -1;
+
+	Operateurs operateurs{};
 
 	bool bit32 = false;
 
-	ContexteGenerationCode() = default;
+	ContexteGenerationCode();
 
 	~ContexteGenerationCode();
 
@@ -167,8 +186,8 @@ struct ContexteGenerationCode {
 
 	/**
 	 * Crée un module avec le nom spécifié, et retourne un pointeur vers le
-	 * module ainsi créé. Aucune vérification n'est faite quant à la présence
-	 * d'un module avec un nom similaire pour l'instant.
+	 * module ainsi créé. Si un module avec le même chemin existe, il est
+	 * retourné sans qu'un nouveau module ne soit créé.
 	 */
 	DonneesModule *cree_module(dls::chaine const &nom, dls::chaine const &chemin);
 
@@ -189,6 +208,33 @@ struct ContexteGenerationCode {
 	 * de module de ce contexte.
 	 */
 	bool module_existe(const dls::vue_chaine_compacte &nom) const;
+
+	/* ********************************************************************** */
+
+	/**
+	 * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
+	 * fichier ainsi créé. Aucune vérification n'est faite quant à la présence
+	 * d'un fichier avec un nom similaire pour l'instant.
+	 */
+	Fichier *cree_fichier(dls::chaine const &nom, dls::chaine const &chemin);
+
+	/**
+	 * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
+	 * en dehors de portée, le programme crashera.
+	 */
+	Fichier *fichier(size_t index) const;
+
+	/**
+	 * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
+	 * fichier n'a ce nom, retourne nullptr.
+	 */
+	Fichier *fichier(const dls::vue_chaine_compacte &nom) const;
+
+	/**
+	 * Retourne vrai si le fichier dont le nom est spécifié existe dans la liste
+	 * de fichier de ce contexte.
+	 */
+	bool fichier_existe(const dls::vue_chaine_compacte &nom) const;
 
 	/* ********************************************************************** */
 
@@ -479,6 +525,15 @@ struct ContexteGenerationCode {
 
 	dls::dico_desordonne<dls::vue_chaine_compacte, DonneesStructure> structures{};
 
+	/* gestion des membres actifs des unions :
+	 * cas à considérer :
+	 * -- les portées des variables
+	 * -- les unions dans les structures (accès par '.')
+	 */
+	dls::vue_chaine_compacte trouve_membre_actif(dls::vue_chaine_compacte const &nom_union);
+
+	void renseigne_membre_actif(dls::vue_chaine_compacte const &nom_union, dls::vue_chaine_compacte const &nom_membre);
+
 private:
 #ifdef AVEC_LLVM
 	llvm::BasicBlock *m_bloc_courant = nullptr;
@@ -508,6 +563,9 @@ private:
 	dls::tableau<noeud::base *> m_noeuds_differes{};
 
 	bool m_non_sur = false;
+
+	using paire_union_membre = std::pair<dls::vue_chaine_compacte, dls::vue_chaine_compacte>;
+	dls::tableau<paire_union_membre> membres_actifs{};
 
 public:
 	/* À FAIRE : bouge ça d'ici. */
