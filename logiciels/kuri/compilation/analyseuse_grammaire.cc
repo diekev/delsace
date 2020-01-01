@@ -1678,13 +1678,6 @@ void analyseuse_grammaire::analyse_directive_si()
 	}
 }
 
-bool analyseuse_grammaire::requiers_nombre_entier()
-{
-	auto const ok = est_nombre_entier(this->identifiant_courant());
-	avance();
-	return ok;
-}
-
 void analyseuse_grammaire::consomme(id_morceau id, const char *message)
 {
 	if (!requiers_identifiant(id)) {
