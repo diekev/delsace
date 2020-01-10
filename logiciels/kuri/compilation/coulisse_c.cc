@@ -1892,14 +1892,13 @@ void genere_code_C(
 
 			/* À FAIRE : tests */
 
+			/* force une expression si l'opérateur est @, pour que les
+			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
+			 * pointeur de la variable temporaire du code généré */
 			expr_gauche |= b->morceau.identifiant == id_morceau::AROBASE;
 			genere_code_C(enfant, generatrice, contexte, expr_gauche);
 
 			if (b->morceau.identifiant == id_morceau::AROBASE) {
-				/* force une expression si l'opérateur est @, pour que les
-				 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
-				 * pointeur de la variable temporaire du code généré */
-				genere_code_C(enfant, generatrice, contexte, true);
 				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
 			}
 			else {
