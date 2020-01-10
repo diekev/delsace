@@ -92,13 +92,13 @@ struct GrapheDependance {
 	NoeudDependance *cree_noeud_type(long index);
 
 	// CHERCHE (:FONCTION { nom = $nom })
-	NoeudDependance *cherche_noeud_fonction(dls::vue_chaine_compacte const &nom);
+	NoeudDependance *cherche_noeud_fonction(dls::vue_chaine_compacte const &nom) const;
 
 	// CHERCHE (:GLOBALE { nom = $nom })
-	NoeudDependance *cherche_noeud_globale(dls::vue_chaine_compacte const &nom);
+	NoeudDependance *cherche_noeud_globale(dls::vue_chaine_compacte const &nom) const;
 
 	// CHERCHE (:TYPE { index = $index })
-	NoeudDependance *cherche_noeud_type(long index);
+	NoeudDependance *cherche_noeud_type(long index) const;
 
 	// CHERCHE (fonction1 :FONCTION { nom = $nom1 })
 	// CHERCHE (fonction2 :FONCTION { nom = $nom2 })

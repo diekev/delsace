@@ -78,7 +78,7 @@ NoeudDependance *GrapheDependance::cree_noeud_type(long index)
 	return noeud;
 }
 
-NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_compacte &nom)
+NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto noeud : noeuds) {
 		if (noeud->type != TypeNoeudDependance::FONCTION) {
@@ -93,7 +93,7 @@ NoeudDependance *GrapheDependance::cherche_noeud_fonction(const dls::vue_chaine_
 	return nullptr;
 }
 
-NoeudDependance *GrapheDependance::cherche_noeud_globale(const dls::vue_chaine_compacte &nom)
+NoeudDependance *GrapheDependance::cherche_noeud_globale(const dls::vue_chaine_compacte &nom) const
 {
 	for (auto noeud : noeuds) {
 		if (noeud->type != TypeNoeudDependance::GLOBALE) {
@@ -108,7 +108,7 @@ NoeudDependance *GrapheDependance::cherche_noeud_globale(const dls::vue_chaine_c
 	return nullptr;
 }
 
-NoeudDependance *GrapheDependance::cherche_noeud_type(long index)
+NoeudDependance *GrapheDependance::cherche_noeud_type(long index) const
 {
 	for (auto noeud : noeuds) {
 		if (noeud->type != TypeNoeudDependance::TYPE) {
