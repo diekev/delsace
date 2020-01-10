@@ -80,7 +80,7 @@ Operateurs::~Operateurs()
 {
 	for (auto &paire : donnees_operateurs) {
 		for (auto &op : paire.second) {
-			memoire::deloge("DonneesOperateur", op);
+			memoire::deloge("DonneesOpérateur", op);
 		}
 	}
 }
