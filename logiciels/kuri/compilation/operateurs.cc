@@ -76,6 +76,15 @@ static bool est_commutatif(id_morceau id)
 	}
 }
 
+Operateurs::~Operateurs()
+{
+	for (auto &paire : donnees_operateurs) {
+		for (auto &op : paire.second) {
+			memoire::deloge("DonneesOperateur", op);
+		}
+	}
+}
+
 const Operateurs::type_conteneur &Operateurs::trouve(id_morceau id) const
 {
 	return donnees_operateurs.trouve(id)->second;
@@ -88,12 +97,12 @@ void Operateurs::ajoute_basique(id_morceau id, long index_type, long index_type_
 
 void Operateurs::ajoute_basique(id_morceau id, long index_type1, long index_type2, long index_type_resultat)
 {
-	auto op = DonneesOperateur{};
-	op.index_type1 = index_type1;
-	op.index_type2 = index_type2;
-	op.index_resultat = index_type_resultat;
-	op.est_commutatif = est_commutatif(id);
-	op.est_basique = true;
+	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
+	op->index_type1 = index_type1;
+	op->index_type2 = index_type2;
+	op->index_resultat = index_type_resultat;
+	op->est_commutatif = est_commutatif(id);
+	op->est_basique = true;
 
 	donnees_operateurs[id].pousse(op);
 }
@@ -110,13 +119,13 @@ void Operateurs::ajoute_perso(
 		long index_type_resultat,
 		const dls::chaine &nom_fonction)
 {
-	auto op = DonneesOperateur{};
-	op.index_type1 = index_type1;
-	op.index_type2 = index_type2;
-	op.index_resultat = index_type_resultat;
-	op.est_commutatif = est_commutatif(id);
-	op.est_basique = false;
-	op.nom_fonction = nom_fonction;
+	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
+	op->index_type1 = index_type1;
+	op->index_type2 = index_type2;
+	op->index_resultat = index_type_resultat;
+	op->est_commutatif = est_commutatif(id);
+	op->est_basique = false;
+	op->nom_fonction = nom_fonction;
 
 	donnees_operateurs[id].pousse(op);
 }
@@ -127,12 +136,12 @@ void Operateurs::ajoute_perso_unaire(
 		long index_type_resultat,
 		const dls::chaine &nom_fonction)
 {
-	auto op = DonneesOperateur{};
-	op.index_type1 = index_type;
-	op.index_resultat = index_type_resultat;
-	op.est_commutatif = est_commutatif(id);
-	op.est_basique = false;
-	op.nom_fonction = nom_fonction;
+	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
+	op->index_type1 = index_type;
+	op->index_resultat = index_type_resultat;
+	op->est_commutatif = est_commutatif(id);
+	op->est_basique = false;
+	op->nom_fonction = nom_fonction;
 
 	donnees_operateurs[id].pousse(op);
 }
@@ -157,12 +166,12 @@ DonneesOperateur const *cherche_operateur(
 	auto op_commutatif = static_cast<DonneesOperateur const *>(nullptr);
 
 	for (auto const &op : operateurs.trouve(type_op)) {
-		if (op.index_type1 == index_type1 && op.index_type2 == index_type2) {
-			return &op;
+		if (op->index_type1 == index_type1 && op->index_type2 == index_type2) {
+			return op;
 		}
 
-		if (op.est_commutatif && op.index_type1 == index_type2 && op.index_type2 == index_type1) {
-			op_commutatif = &op;
+		if (op->est_commutatif && op->index_type1 == index_type2 && op->index_type2 == index_type1) {
+			op_commutatif = op;
 			//op_cummutatif->inverse_parametres = true;
 			// ne retourne pas au cas où nous avons un opérateur avec les arguments dans le bon ordre
 		}
@@ -177,8 +186,8 @@ DonneesOperateur const *cherche_operateur_unaire(
 		id_morceau type_op)
 {
 	for (auto const &op : operateurs.trouve(type_op)) {
-		if (op.index_type1 == index_type1) {
-			return &op;
+		if (op->index_type1 == index_type1) {
+			return op;
 		}
 	}
 

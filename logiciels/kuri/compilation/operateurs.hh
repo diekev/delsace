@@ -49,11 +49,13 @@ struct DonneesOperateur {
 };
 
 struct Operateurs {
-	using type_conteneur = dls::tableau<DonneesOperateur>;
+	using type_conteneur = dls::tableau<DonneesOperateur *>;
 
 	dls::dico_desordonne<id_morceau, type_conteneur> donnees_operateurs;
 
 	long type_bool = 0;
+
+	~Operateurs();
 
 	type_conteneur const &trouve(id_morceau id) const;
 
