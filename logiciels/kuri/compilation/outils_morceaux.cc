@@ -34,10 +34,12 @@ bool est_type_entier(id_morceau type)
 		case id_morceau::N16:
 		case id_morceau::N32:
 		case id_morceau::N64:
+		case id_morceau::N128:
 		case id_morceau::Z8:
 		case id_morceau::Z16:
 		case id_morceau::Z32:
 		case id_morceau::Z64:
+		case id_morceau::Z128:
 		case id_morceau::OCTET:
 			return true;
 		default:
