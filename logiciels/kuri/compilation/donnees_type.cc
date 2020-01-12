@@ -1469,7 +1469,7 @@ niveau_compat sont_compatibles(
 }
 
 unsigned int taille_octet_type(
-		ContexteGenerationCode &contexte,
+		ContexteGenerationCode const &contexte,
 		const DonneesTypeFinal &donnees_type)
 {
 	auto type_base = donnees_type.type_base();

@@ -520,4 +520,4 @@ niveau_compat sont_compatibles(
 
 /* ************************************************************************** */
 
-unsigned int taille_octet_type(ContexteGenerationCode &contexte, DonneesTypeFinal const &donnees_type);
+unsigned int taille_octet_type(ContexteGenerationCode const &contexte, DonneesTypeFinal const &donnees_type);
