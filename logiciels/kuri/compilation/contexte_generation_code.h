@@ -472,6 +472,7 @@ struct ContexteGenerationCode {
 	 * vides sont retournées.
 	 */
 	DonneesStructure &donnees_structure(const dls::vue_chaine_compacte &nom);
+	DonneesStructure const &donnees_structure(const dls::vue_chaine_compacte &nom) const;
 
 	/**
 	 * Retourne les données de la structure dont l'id est spécifié en
@@ -479,6 +480,7 @@ struct ContexteGenerationCode {
 	 * vides sont retournées.
 	 */
 	DonneesStructure &donnees_structure(const long id);
+	DonneesStructure const &donnees_structure(const long id) const;
 
 	dls::chaine nom_struct(const long id) const;
 

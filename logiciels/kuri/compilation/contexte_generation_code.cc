@@ -587,12 +587,22 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine_comp
 
 DonneesStructure &ContexteGenerationCode::donnees_structure(const dls::vue_chaine_compacte &nom)
 {
-	return structures[nom];
+	return structures.trouve(nom)->second;
+}
+
+DonneesStructure const &ContexteGenerationCode::donnees_structure(const dls::vue_chaine_compacte &nom) const
+{
+	return structures.trouve(nom)->second;
 }
 
 DonneesStructure &ContexteGenerationCode::donnees_structure(const long id)
 {
-	return structures[nom_structures[id]];
+	return structures.trouve(nom_structures[id])->second;
+}
+
+DonneesStructure const &ContexteGenerationCode::donnees_structure(const long id) const
+{
+	return structures.trouve(nom_structures[id])->second;
 }
 
 dls::chaine ContexteGenerationCode::nom_struct(const long id) const
