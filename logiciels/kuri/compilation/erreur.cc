@@ -484,8 +484,8 @@ void lance_erreur_type_operation(
 	auto index_type_gauche = enfant_gauche->index_type;
 	auto index_type_droite = enfant_droite->index_type;
 
-	auto const &type_gauche = contexte.magasin_types.donnees_types[index_type_gauche];
-	auto const &type_droite = contexte.magasin_types.donnees_types[index_type_droite];
+	auto const &type_gauche = contexte.typeuse[index_type_gauche];
+	auto const &type_droite = contexte.typeuse[index_type_droite];
 
 	auto etendue_gauche = calcule_etendue_noeud(contexte, enfant_gauche);
 	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
@@ -541,7 +541,7 @@ void lance_erreur_type_operation_unaire(
 
 	auto enfant_droite = b->enfants.front();
 	auto index_type_droite = enfant_droite->index_type;
-	auto const &type_droite = contexte.magasin_types.donnees_types[index_type_droite];
+	auto const &type_droite = contexte.typeuse[index_type_droite];
 	auto etendue_droite = calcule_etendue_noeud(contexte, enfant_droite);
 	auto expr_droite = dls::vue_chaine_compacte(&ligne[etendue_droite.pos_min], etendue_droite.pos_max - etendue_droite.pos_min);
 

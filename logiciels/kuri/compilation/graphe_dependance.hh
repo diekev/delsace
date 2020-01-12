@@ -24,8 +24,10 @@
 
 #pragma once
 
+#include "biblinternes/outils/conditions.h"
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
+#include "biblinternes/structures/dico.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "arbre_syntactic.h"
@@ -41,12 +43,24 @@ enum class TypeNoeudDependance {
 	GLOBALE,
 };
 
-enum class TypeRelation {
+enum class TypeRelation : int {
 	INVALIDE,
 	UTILISE_TYPE,
 	UTILISE_FONCTION,
 	UTILISE_GLOBALE,
+
+	/* pour les relations entre les types
+	 * l'idée est de stocker dans le graphe les relations entre les types, afin
+	 * de ne pas avoir à construire partout des DonneesTypeFinal
+	 */
+	TYPE_TABLEAU,
+	TYPE_REFERENCE,
+	TYPE_POINTEUR,
+	/* le type du déréférencement d'un pointeur ou d'un tableau */
+	TYPE_DEREFERENCE,
 };
+
+const char *chaine_type_relation(TypeRelation type);
 
 struct NoeudDependance;
 
@@ -79,6 +93,8 @@ struct NoeudDependance {
 
 struct GrapheDependance {
 	dls::tableau<NoeudDependance *> noeuds{};
+
+	dls::dico<long, NoeudDependance *> index_noeuds_type{};
 
 	~GrapheDependance();
 
@@ -122,11 +138,13 @@ struct GrapheDependance {
 	// CHERCHE (type1 :TYPE { index = $index1 })
 	// CHERCHE (type2 :TYPE { index = $index1 })
 	// FUSIONNE (type1)-[:UTILISE_TYPE]->(type2)
-	void connecte_type_type(NoeudDependance &type1, NoeudDependance &type2);
+	void connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-	void connecte_type_type(long type1, long type2);
+	void connecte_type_type(long type1, long type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
 	void ajoute_connexions_fonction(NoeudDependance &noeud, DonneesFonction &donnees);
+
+	long trouve_index_type(long index_racine, TypeRelation type) const;
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);

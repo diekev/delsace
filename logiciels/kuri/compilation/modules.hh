@@ -29,6 +29,7 @@
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
+#include "transformation_type.hh"
 
 namespace llvm {
 class Type;
@@ -217,7 +218,7 @@ struct DonneesCandidate {
 	DonneesTypeFinal type2{};
 	noeud::base *noeud_decl = nullptr;
 	bool arg_pointeur = false;
-	dls::tableau<niveau_compat> drapeaux{};
+	dls::tableau<TransformationType> transformations{};
 };
 
 struct ResultatRecherche {

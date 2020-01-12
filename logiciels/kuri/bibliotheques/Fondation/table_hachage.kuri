@@ -55,10 +55,10 @@ fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudTableHachage
 
 fonc calcule_empreinte(chn : chaine) : n64
 {
-    dyn empreinte : n64 = 5381
+    dyn empreinte : n64 = transtype(5381 : n64)
 
     pour c dans chn {
-        empreinte = ((empreinte << 5) + empreinte) + transtype(c : n64)
+        empreinte = ((empreinte << transtype(5 : n64)) + empreinte) + transtype(c : n64)
     }
 
 	retourne empreinte

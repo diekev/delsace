@@ -27,6 +27,7 @@
 #include "biblinternes/chrono/outils.hh"
 #include "biblinternes/langage/analyseuse.hh"
 
+#include "arbre_syntactic.h"
 #include "erreur.h"
 
 struct assembleuse_arbre;

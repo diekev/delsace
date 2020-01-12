@@ -20,37 +20,37 @@ fonc imprime_valeur(
             si est_signé de info_arg {
 			    si taille_en_octet de info_arg == 8 {
 					soit x = mémoire(transtype(pointeur : *z8))
-					écrie = sprintf(ptr_tmp, "%c", x)
+					écrie = sprintf(ptr_tmp, "%c".pointeur, x)
 				}
 				sinon si taille_en_octet de info_arg == 16 {
 					soit x = mémoire(transtype(pointeur : *z16))
-					écrie = sprintf(ptr_tmp, "%d", x)
+					écrie = sprintf(ptr_tmp, "%d".pointeur, x)
 				}
 				sinon si taille_en_octet de info_arg == 32 {
 					soit x = mémoire(transtype(pointeur : *z32))
-					écrie = sprintf(ptr_tmp, "%d", x)
+					écrie = sprintf(ptr_tmp, "%d".pointeur, x)
 				}
 				sinon si taille_en_octet de info_arg == 64 {
 					soit x = mémoire(transtype(pointeur : *z64))
-					écrie = sprintf(ptr_tmp, "%ld", x)
+					écrie = sprintf(ptr_tmp, "%ld".pointeur, x)
 				}
 			}
 			sinon {
 			    si taille_en_octet de info_arg == 8 {
 					soit x = mémoire(transtype(pointeur : *n8))
-					écrie = sprintf(ptr_tmp, "%c", x)
+					écrie = sprintf(ptr_tmp, "%c".pointeur, x)
 				}
 				sinon si taille_en_octet de info_arg == 16 {
 					soit x = mémoire(transtype(pointeur : *n16))
-					écrie = sprintf(ptr_tmp, "%d", x)
+					écrie = sprintf(ptr_tmp, "%d".pointeur, x)
 				}
 				sinon si taille_en_octet de info_arg == 32 {
 					soit x = mémoire(transtype(pointeur : *n32))
-					écrie = sprintf(ptr_tmp, "%d", x)
+					écrie = sprintf(ptr_tmp, "%d".pointeur, x)
 				}
 				sinon si taille_en_octet de info_arg == 64 {
 					soit x = mémoire(transtype(pointeur : *n64))
-					écrie = sprintf(ptr_tmp, "%ld", x)
+					écrie = sprintf(ptr_tmp, "%ld".pointeur, x)
 				}
 			}
 		}
@@ -60,15 +60,15 @@ fonc imprime_valeur(
             si taille_en_octet de info_arg == 16 {
 				soit x = mémoire(transtype(pointeur : *r16))
 				y : r64 = x
-				écrie = sprintf(ptr_tmp, "%f", y)
+				écrie = sprintf(ptr_tmp, "%f".pointeur, y)
 			}
 			sinon si taille_en_octet de info_arg == 32 {
 				soit x = mémoire(transtype(pointeur : *r32))
-				écrie = sprintf(ptr_tmp, "%f", x)
+				écrie = sprintf(ptr_tmp, "%f".pointeur, x)
 			}
 			sinon si taille_en_octet de info_arg == 64 {
 				soit x = mémoire(transtype(pointeur : *r64))
-				écrie = sprintf(ptr_tmp, "%f", x)
+				écrie = sprintf(ptr_tmp, "%f".pointeur, x)
 			}
 		}
 		BOOLÉEN de id_info {
@@ -101,7 +101,7 @@ fonc imprime_valeur(
 		STRUCTURE de id_info {
 			soit info_arg = transtype(info : *InfoTypeStructure)
 
-			écrie = sprintf(ptr_tmp, "%s {", pointeur de nom de info_arg)
+			écrie = sprintf(ptr_tmp, "%s {".pointeur, pointeur de nom de info_arg)
 			write(flux_std, ptr_tmp, transtype(écrie : z64))
 
 			dyn virgule = '\0'
@@ -111,17 +111,17 @@ fonc imprime_valeur(
 				soit décalage = décalage de membre
 				soit id = id de membre
 
-				écrie = sprintf(ptr_tmp, "%c", virgule)
+				écrie = sprintf(ptr_tmp, "%c".pointeur, virgule)
 				write(flux_std, ptr_tmp, transtype(écrie : z64))
 
-				écrie = sprintf(ptr_tmp, " %s = ", ptr_nom)
+				écrie = sprintf(ptr_tmp, " %s = ".pointeur, ptr_nom)
 				write(flux_std, ptr_tmp, transtype(écrie : z64))
 
 				imprime_valeur(flux_std, pointeur + décalage, id, vrai)
 				virgule = ','
 			}
 
-			écrie = sprintf(ptr_tmp, " %c", '}')
+			écrie = sprintf(ptr_tmp, " %c".pointeur, '}')
 			write(flux_std, ptr_tmp, transtype(écrie : z64))
 			écrie = 0
 		}
@@ -129,16 +129,16 @@ fonc imprime_valeur(
 		    # Ne pas oublier qu'il y a un niveau d'indirection.
 			soit x = transtype(pointeur : **z8)
 			soit x0 = mémoire(x)
-			écrie = sprintf(ptr_tmp, "%p", x0)
+			écrie = sprintf(ptr_tmp, "%p".pointeur, x0)
 		}
 		FONCTION de id_info {
 		    # À FAIRE : types paramètres
 			soit x = "fonction()"
-			write(flux_std, pointeur de x, taille de x)
+			write(flux_std, x.pointeur, taille de x)
 		}
 		EINI de id_info {
 			soit x = mémoire(transtype(pointeur : *eini))
-			écrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }", pointeur de x, info de x)
+			écrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }".pointeur, pointeur de x, info de x)
 		}
 		RIEN de id_info {
 			soit x = "rien"
@@ -146,7 +146,7 @@ fonc imprime_valeur(
 		}
 		TABLEAU de id_info {
 			soit x = mémoire(transtype(pointeur : *[]z8))
-			écrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }", pointeur de x, taille de x)
+			écrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }".pointeur, pointeur de x, taille de x)
 		}
 		ÉNUM de id_info {
 			soit info_arg = transtype(info : *InfoTypeÉnum)

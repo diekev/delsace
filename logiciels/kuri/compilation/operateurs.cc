@@ -157,27 +157,91 @@ void Operateurs::ajoute_operateur_basique_enum(long index_type)
 	}
 }
 
-DonneesOperateur const *cherche_operateur(
-		Operateurs const &operateurs,
+static double verifie_compatibilite(
+		ContexteGenerationCode const &contexte,
+		long idx_type_arg,
+		long idx_type_enf,
+		TransformationType &transformation)
+{
+	transformation = cherche_transformation(contexte, idx_type_enf, idx_type_arg);
+
+	if (transformation.type == TypeTransformation::INUTILE) {
+		return 1.0;
+	}
+
+	if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+		return 0.0;
+	}
+
+	/* nous savons que nous devons transformer la valeur (par ex. eini), donc
+	 * donne un mi-poids à l'argument */
+	return 0.5;
+}
+
+dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
+		ContexteGenerationCode const &contexte,
 		long index_type1,
 		long index_type2,
 		id_morceau type_op)
 {
-	auto op_commutatif = static_cast<DonneesOperateur const *>(nullptr);
+	auto op_candidats = dls::tableau<DonneesOperateur const *>();
 
-	for (auto const &op : operateurs.trouve(type_op)) {
+	for (auto const &op : contexte.operateurs.trouve(type_op)) {
 		if (op->index_type1 == index_type1 && op->index_type2 == index_type2) {
-			return op;
+			op_candidats.efface();
+			op_candidats.pousse(op);
+			break;
 		}
 
-		if (op->est_commutatif && op->index_type1 == index_type2 && op->index_type2 == index_type1) {
-			op_commutatif = op;
-			//op_cummutatif->inverse_parametres = true;
-			// ne retourne pas au cas où nous avons un opérateur avec les arguments dans le bon ordre
+		if (op->index_type1 == index_type1 || op->index_type2 == index_type2) {
+			op_candidats.pousse(op);
+		}
+		else if (op->est_commutatif && (op->index_type2 == index_type1 || op->index_type1 == index_type2)) {
+			op_candidats.pousse(op);
 		}
 	}
 
-	return op_commutatif;
+	auto candidats = dls::tableau<OperateurCandidat>();
+
+	for (auto const op : op_candidats) {
+		auto seq1 = TransformationType{};
+		auto seq2 = TransformationType{};
+
+		auto poids1 = verifie_compatibilite(contexte, op->index_type1, index_type1, seq1);
+		auto poids2 = verifie_compatibilite(contexte, op->index_type2, index_type2, seq2);
+
+		auto poids = poids1 * poids2;
+
+		if (poids != 0.0) {
+			auto candidat = OperateurCandidat{};
+			candidat.op = op;
+			candidat.poids = poids;
+			candidat.transformation_type1 = seq1;
+			candidat.transformation_type2 = seq2;
+
+			candidats.pousse(candidat);
+		}
+
+		if (op->est_commutatif && poids != 1.0) {
+			poids1 = verifie_compatibilite(contexte, op->index_type1, index_type2, seq2);
+			poids2 = verifie_compatibilite(contexte, op->index_type2, index_type1, seq1);
+
+			poids = poids1 * poids2;
+
+			if (poids != 0.0) {
+				auto candidat = OperateurCandidat{};
+				candidat.op = op;
+				candidat.poids = poids;
+				candidat.transformation_type1 = seq1;
+				candidat.transformation_type2 = seq2;
+				candidat.inverse_operandes = true;
+
+				candidats.pousse(candidat);
+			}
+		}
+	}
+
+	return candidats;
 }
 
 DonneesOperateur const *cherche_operateur_unaire(
@@ -199,29 +263,29 @@ void enregistre_operateurs_basiques(
 		Operateurs &operateurs)
 {
 	static long types_entiers[] = {
-		contexte.magasin_types[TYPE_N8],
-		contexte.magasin_types[TYPE_N16],
-		contexte.magasin_types[TYPE_N32],
-		contexte.magasin_types[TYPE_N64],
-		contexte.magasin_types[TYPE_N128],
-		contexte.magasin_types[TYPE_Z8],
-		contexte.magasin_types[TYPE_Z16],
-		contexte.magasin_types[TYPE_Z32],
-		contexte.magasin_types[TYPE_Z64],
-		contexte.magasin_types[TYPE_Z128],
+		contexte.typeuse[TypeBase::N8],
+		contexte.typeuse[TypeBase::N16],
+		contexte.typeuse[TypeBase::N32],
+		contexte.typeuse[TypeBase::N64],
+		contexte.typeuse[TypeBase::N128],
+		contexte.typeuse[TypeBase::Z8],
+		contexte.typeuse[TypeBase::Z16],
+		contexte.typeuse[TypeBase::Z32],
+		contexte.typeuse[TypeBase::Z64],
+		contexte.typeuse[TypeBase::Z128],
 	};
 
-	auto type_r16 = contexte.magasin_types[TYPE_R16];
-	auto type_r32 = contexte.magasin_types[TYPE_R32];
-	auto type_r64 = contexte.magasin_types[TYPE_R64];
+	auto type_r16 = contexte.typeuse[TypeBase::R16];
+	auto type_r32 = contexte.typeuse[TypeBase::R32];
+	auto type_r64 = contexte.typeuse[TypeBase::R64];
 
 	static long types_reels[] = {
 		type_r32, type_r64
 	};
 
-	auto type_pointeur = contexte.magasin_types[TYPE_PTR_NUL];
-	auto type_octet = contexte.magasin_types[TYPE_OCTET];
-	auto type_bool = contexte.magasin_types[TYPE_BOOL];
+	auto type_pointeur = contexte.typeuse[TypeBase::PTR_NUL];
+	auto type_octet = contexte.typeuse[TypeBase::OCTET];
+	auto type_bool = contexte.typeuse[TypeBase::BOOL];
 	operateurs.type_bool = type_bool;
 
 	for (auto op : operateurs_entiers_reels) {

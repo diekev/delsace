@@ -22,15 +22,15 @@ fonc construit_serveuse(dyn serveuse : &Serveuse, port : n16) : chaine
 	mon_addresse.sin_family = transtype(_AF_INET : n16)
     mon_addresse.sin_port = htons(port)
     # trouve notre propre addresse
-	mon_addresse.sin_addr.s_addr = 0
-    mon_addresse.sin_zero[0] = 0
-    mon_addresse.sin_zero[1] = 0
-    mon_addresse.sin_zero[2] = 0
-    mon_addresse.sin_zero[3] = 0
-    mon_addresse.sin_zero[4] = 0
-    mon_addresse.sin_zero[5] = 0
-    mon_addresse.sin_zero[6] = 0
-    mon_addresse.sin_zero[7] = 0
+	mon_addresse.sin_addr.s_addr = transtype(0 : n32)
+    mon_addresse.sin_zero[0] = transtype(0 : n8)
+    mon_addresse.sin_zero[1] = transtype(0 : n8)
+    mon_addresse.sin_zero[2] = transtype(0 : n8)
+    mon_addresse.sin_zero[3] = transtype(0 : n8)
+    mon_addresse.sin_zero[4] = transtype(0 : n8)
+    mon_addresse.sin_zero[5] = transtype(0 : n8)
+    mon_addresse.sin_zero[6] = transtype(0 : n8)
+    mon_addresse.sin_zero[7] = transtype(0 : n8)
 
 	dyn err = bind(serveuse.prise, transtype(@mon_addresse : *sockaddr), transtype(taille_de(sockaddr) : n64))
 
@@ -60,7 +60,7 @@ fonc charge_donnees_requete(prise : z32, mon_addresse : &sockaddr_in) : chaine
 {
     #ip = converti_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     #imprime("serveur: Reçu connexion de ", ip, '\n')
-    MAXDATASIZE : n64 = 1024
+    MAXDATASIZE : n64 = transtype(1024 : n64)
 
     dyn tampon : [1024]z8
     dyn requete : chaine
@@ -152,7 +152,7 @@ fonc démarre(dyn serveuse : &Serveuse) : rien
 fonc principale(args : []*z8) : z32
 {
     dyn serveuse : Serveuse
-    construit_serveuse(serveuse, 5009)
+    construit_serveuse(serveuse, transtype(5009 : n16))
 
     démarre(serveuse)
 

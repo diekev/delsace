@@ -37,7 +37,7 @@
 #include "modules.hh"
 
 ContexteGenerationCode::ContexteGenerationCode()
-	: magasin_types(graphe_dependance)
+	: typeuse(graphe_dependance, this->operateurs)
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
 
@@ -45,7 +45,7 @@ ContexteGenerationCode::ContexteGenerationCode()
 	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::POINTEUR);
 	dt.pousse(id_morceau::CHAINE_CARACTERE);
-	this->index_type_ctx = magasin_types.ajoute_type(dt);
+	this->index_type_ctx = typeuse.ajoute_type(dt);
 }
 
 ContexteGenerationCode::~ContexteGenerationCode()
@@ -367,23 +367,6 @@ void ContexteGenerationCode::pousse_locale(
 	++m_nombre_locales;
 }
 
-char ContexteGenerationCode::drapeaux_variable(dls::vue_chaine_compacte const &nom)
-{
-	auto iter_fin = m_locales.debut() + m_nombre_locales;
-
-	auto iter = std::find_if(m_locales.debut(), iter_fin,
-							 [&](const std::pair<dls::vue_chaine_compacte, DonneesVariable> &paire)
-	{
-		return paire.first == nom;
-	});
-
-	if (iter == iter_fin) {
-		return 0;
-	}
-
-	return iter->second.drapeaux;
-}
-
 DonneesVariable &ContexteGenerationCode::donnees_variable(dls::vue_chaine_compacte const &nom)
 {
 	auto iter_fin = m_locales.debut() + m_nombre_locales;
@@ -577,7 +560,7 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine_comp
 	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
 
-	donnees.index_type = magasin_types.ajoute_type(dt);
+	donnees.index_type = typeuse.ajoute_type(dt);
 
 	structures.insere({nom, donnees});
 	nom_structures.pousse(nom);
@@ -675,9 +658,9 @@ size_t ContexteGenerationCode::memoire_utilisee() const
 	memoire += static_cast<size_t>(m_pile_arrete.taille()) * sizeof(llvm::BasicBlock *);
 #endif
 
-	/* magasin_types */
-	memoire += static_cast<size_t>(magasin_types.donnees_types.taille()) * sizeof(DonneesTypeFinal);
-	memoire += static_cast<size_t>(magasin_types.donnees_type_index.taille()) * (sizeof(size_t) + sizeof(size_t));
+	/* types */
+	memoire += static_cast<size_t>(typeuse.indexeuse.donnees_types.taille()) * sizeof(DonneesTypeFinal);
+	memoire += static_cast<size_t>(typeuse.indexeuse.donnees_type_index.taille()) * (sizeof(size_t) + sizeof(size_t));
 
 	for (auto module : modules) {
 		memoire += module->memoire_utilisee();

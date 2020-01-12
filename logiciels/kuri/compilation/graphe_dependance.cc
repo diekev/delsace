@@ -26,6 +26,24 @@
 
 #include "modules.hh"
 
+const char *chaine_type_relation(TypeRelation type)
+{
+#define CAS_TYPE(x) case TypeRelation::x: return #x;
+	switch (type) {
+		CAS_TYPE(INVALIDE)
+		CAS_TYPE(UTILISE_TYPE)
+		CAS_TYPE(UTILISE_FONCTION)
+		CAS_TYPE(UTILISE_GLOBALE)
+		CAS_TYPE(TYPE_TABLEAU)
+		CAS_TYPE(TYPE_REFERENCE)
+		CAS_TYPE(TYPE_POINTEUR)
+		CAS_TYPE(TYPE_DEREFERENCE)
+	}
+
+	return "erreur : relation inconnue";
+#undef CAS_TYPE
+}
+
 GrapheDependance::~GrapheDependance()
 {
 	for (auto noeud : noeuds) {
@@ -73,6 +91,7 @@ NoeudDependance *GrapheDependance::cree_noeud_type(long index)
 		noeud->type = TypeNoeudDependance::TYPE;
 
 		noeuds.pousse(noeud);
+		index_noeuds_type.insere({index, noeud});
 	}
 
 	return noeud;
@@ -110,14 +129,10 @@ NoeudDependance *GrapheDependance::cherche_noeud_globale(const dls::vue_chaine_c
 
 NoeudDependance *GrapheDependance::cherche_noeud_type(long index) const
 {
-	for (auto noeud : noeuds) {
-		if (noeud->type != TypeNoeudDependance::TYPE) {
-			continue;
-		}
+	auto iter = index_noeuds_type.trouve(index);
 
-		if (noeud->index == index) {
-			return noeud;
-		}
+	if (iter != index_noeuds_type.fin()) {
+		return iter->second;
 	}
 
 	return nullptr;
@@ -187,26 +202,39 @@ void GrapheDependance::connecte_fonction_type(NoeudDependance &fonction, NoeudDe
 	fonction.relations.pousse({ TypeRelation::UTILISE_TYPE, &fonction, &type });
 }
 
-void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2)
+void GrapheDependance::connecte_type_type(NoeudDependance &type1, NoeudDependance &type2, TypeRelation type_rel)
 {
 	assert(type1.type == TypeNoeudDependance::TYPE);
 	assert(type2.type == TypeNoeudDependance::TYPE);
 
 	for (auto const &relation : type1.relations) {
-		if (relation.type == TypeRelation::UTILISE_TYPE && relation.noeud_fin == &type2) {
+		if (relation.type == type_rel && relation.noeud_fin == &type2) {
 			return;
 		}
 	}
 
-	type1.relations.pousse({ TypeRelation::UTILISE_TYPE, &type1, &type2 });
+	type1.relations.pousse({ type_rel, &type1, &type2 });
 }
 
-void GrapheDependance::connecte_type_type(long type1, long type2)
+void GrapheDependance::connecte_type_type(long type1, long type2, TypeRelation type_rel)
 {
 	auto noeud1 = cherche_noeud_type(type1);
 	auto noeud2 = cherche_noeud_type(type2);
 
-	connecte_type_type(*noeud1, *noeud2);
+	connecte_type_type(*noeud1, *noeud2, type_rel);
+}
+
+long GrapheDependance::trouve_index_type(long index_racine, TypeRelation type) const
+{
+	auto noeud = cherche_noeud_type(index_racine);
+
+	for (auto const &relation : noeud->relations) {
+		if (relation.type == type) {
+			return relation.noeud_fin->index;
+		}
+	}
+
+	return -1;
 }
 
 void GrapheDependance::ajoute_connexions_fonction(

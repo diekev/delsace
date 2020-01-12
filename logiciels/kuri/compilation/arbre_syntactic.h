@@ -30,6 +30,7 @@
 #include "biblinternes/structures/liste.hh"
 
 #include "donnees_type.h"
+#include "transformation_type.hh"
 
 char caractere_echape(char const *sequence);
 
@@ -177,21 +178,13 @@ enum drapeaux_noeud : unsigned short {
 	DYNAMIC                = (1 << 0),
 	EMPLOYE                = (1 << 1),
 	DECLARATION            = (1 << 2),
-	CONVERTI_TABLEAU       = (1 << 3),
-	CONVERTI_EINI          = (1 << 4),
-	EXTRAIT_EINI           = (1 << 5),
-	EXTRAIT_CHAINE_C       = (1 << 6),
-	EST_EXTERNE            = (1 << 7),
-	EST_CALCULE            = (1 << 8),
-	CONVERTI_TABLEAU_OCTET = (1 << 9),
-	POUR_ASSIGNATION       = (1 << 10),
-	IGNORE_OPERATEUR       = (1 << 11),
-	PREND_REFERENCE        = (1 << 12),
-	FORCE_ENLIGNE          = (1 << 13),
-	FORCE_HORSLIGNE        = (1 << 14),
-	FORCE_NULCTX           = (1 << 15),
-
-	MASQUE_CONVERSION = CONVERTI_EINI | CONVERTI_TABLEAU | EXTRAIT_EINI | EXTRAIT_CHAINE_C | CONVERTI_TABLEAU_OCTET,
+	EST_EXTERNE            = (1 << 3),
+	EST_CALCULE            = (1 << 4),
+	POUR_ASSIGNATION       = (1 << 5),
+	IGNORE_OPERATEUR       = (1 << 6),
+	FORCE_ENLIGNE          = (1 << 7),
+	FORCE_HORSLIGNE        = (1 << 8),
+	FORCE_NULCTX           = (1 << 9),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -302,6 +295,8 @@ struct base {
 	DonneesTypeDeclare type_declare{};
 
 	TypeValeur type_valeur = TypeValeur::INVALIDE;
+
+	TransformationType transformation{};
 
 	explicit base(ContexteGenerationCode &contexte, DonneesMorceau const &morceau);
 

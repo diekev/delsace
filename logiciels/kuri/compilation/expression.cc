@@ -340,7 +340,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 		case type_noeud::TAILLE_DE:
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
-			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
+			auto const &donnees = contexte.typeuse[index_dt];
 
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;

@@ -5,10 +5,10 @@ charge "glew"
 
 importe "Fondation"
 
-dyn VertexArrayID : n32 = 0
-dyn ProgramID : n32 = 0
-dyn vertexbuffer : n32 = 0
-dyn colorbuffer : n32 = 0
+dyn VertexArrayID = transtype(0 : n32)
+dyn ProgramID = transtype(0 : n32)
+dyn vertexbuffer = transtype(0 : n32)
+dyn colorbuffer = transtype(0 : n32)
 dyn tabl_sommets : *tableau = nul
 dyn tabl_couleur : *tableau = nul
 
@@ -134,27 +134,27 @@ fonc termine_dessin() : rien
 {
     glUseProgram(ProgramID)
 
-    glEnableVertexAttribArray(0)
+    glEnableVertexAttribArray(transtype(0 : n32))
     glBindBuffer(ARRAY_BUFFER de OGL, vertexbuffer)
     glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_sommets * taille_de(z32) : n64), pointeur de tampon de tabl_sommets, STATIC_DRAW de OGL)
-    glVertexAttribPointer(0, 3, FLOAT de OGL, FALSE de OGL, 0, nul)
+    glVertexAttribPointer(transtype(0 : n32), 3, FLOAT de OGL, FALSE de OGL, 0, nul)
 
-    glEnableVertexAttribArray(1)
+    glEnableVertexAttribArray(transtype(1 : n32))
     glBindBuffer(ARRAY_BUFFER de OGL, colorbuffer)
     glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_couleur * taille_de(z32) : n64), pointeur de tampon de tabl_couleur, STATIC_DRAW de OGL)
-    glVertexAttribPointer(1, 4, FLOAT de OGL, FALSE de OGL, 0, nul)
+    glVertexAttribPointer(transtype(1 : n32), 4, FLOAT de OGL, FALSE de OGL, 0, nul)
 
     glDrawArrays(TRIANGLES de OGL, 0, taille de tabl_sommets / 3)
-    glDisableVertexAttribArray(0)
+    glDisableVertexAttribArray(transtype(0 : n32))
 
-    glUseProgram(0)
+    glUseProgram(transtype(0 : n32))
 
     nonsûr {
         taille de tabl_sommets = 0
         taille de tabl_couleur = 0
     }
 
-    glBindVertexArray(0)
+    glBindVertexArray(transtype(0 : n32))
 }
 
 fonc ajoute_sommet(x : r32, y : r32, z : r32) : rien
@@ -165,10 +165,10 @@ fonc ajoute_sommet(x : r32, y : r32, z : r32) : rien
 }
 
 struct Couleur {
-    r : r32 = 0.0
-    v : r32 = 0.0
-    b : r32 = 0.0
-    a : r32 = 0.0
+    r : r32 = transtype(0.0 : r32)
+    v : r32 = transtype(0.0 : r32)
+    b : r32 = transtype(0.0 : r32)
+    a : r32 = transtype(0.0 : r32)
 }
 
 fonc ajoute_couleur(coul : Couleur) : rien
@@ -183,9 +183,9 @@ fonc dessine_triangle() : rien
 {
     débute_dessin()
 
-    ajoute_sommet(transtype(-transtype(1.0 : r32) : r32), transtype(-transtype(1.0 : r32) : r32), 0.0)
-    ajoute_sommet( transtype(1.0 : r32), transtype(-transtype(1.0 : r32) : r32), 0.0)
-    ajoute_sommet( 0.0,  transtype(1.0 : r32), 0.0)
+    ajoute_sommet(transtype(-transtype(1.0 : r32) : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
+    ajoute_sommet( transtype(1.0 : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
+    ajoute_sommet( transtype(0.0 : r32),  transtype(1.0 : r32), transtype(0.0 : r32))
 
     termine_dessin()
 }
@@ -199,18 +199,18 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) :
     soit max_x = px + tx
     soit max_y = py + ty
 
-    ajoute_sommet(min_x, min_y, 0.0)
+    ajoute_sommet(min_x, min_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
-    ajoute_sommet(max_x, min_y, 0.0)
+    ajoute_sommet(max_x, min_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
-    ajoute_sommet(min_x, max_y, 0.0)
+    ajoute_sommet(min_x, max_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
 
-    ajoute_sommet(max_x, min_y, 0.0)
+    ajoute_sommet(max_x, min_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
-    ajoute_sommet(max_x, max_y, 0.0)
+    ajoute_sommet(max_x, max_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
-    ajoute_sommet(min_x, max_y, 0.0)
+    ajoute_sommet(min_x, max_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
 
     termine_dessin()
@@ -218,7 +218,7 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) :
 
 fonc dessine_carré() : rien
 {
-    soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
+    soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(0.0 : r32), a = transtype(1.0 : r32) }
     dessine_carré_ex(transtype(-0.5 : r32), transtype(-0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32), couleur)
 }
 
@@ -240,9 +240,9 @@ fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) : rien
         soit ca1 = cx + cos(phi + phi_delta) * rx
         soit sa1 = cy + sin(phi + phi_delta) * ry
 
-        ajoute_sommet(cx, cy, 0.0)
-        ajoute_sommet(ca0, sa0, 0.0)
-        ajoute_sommet(ca1, sa1, 0.0)
+        ajoute_sommet(cx, cy, transtype(0.0 : r32))
+        ajoute_sommet(ca0, sa0, transtype(0.0 : r32))
+        ajoute_sommet(ca1, sa1, transtype(0.0 : r32))
 
         phi += phi_delta
     }
@@ -265,9 +265,9 @@ fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32
         soit ca1 = cx + cos(phi + phi_delta) * rx
         soit sa1 = cy + sin(phi + phi_delta) * ry
 
-        ajoute_sommet(cx, cy, 0.0)
-        ajoute_sommet(ca0, sa0, 0.0)
-        ajoute_sommet(ca1, sa1, 0.0)
+        ajoute_sommet(cx, cy, transtype(0.0 : r32))
+        ajoute_sommet(ca0, sa0, transtype(0.0 : r32))
+        ajoute_sommet(ca1, sa1, transtype(0.0 : r32))
 
         phi += phi_delta
     }

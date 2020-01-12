@@ -31,10 +31,12 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
+#include "conversion_type_c.hh"
 #include "erreur.h"
 #include "generatrice_code_c.hh"
 #include "modules.hh"
 #include "outils_morceaux.hh"
+#include "typeuse.hh"
 #include "validation_semantique.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
@@ -77,11 +79,178 @@ static auto chaine_valeur_enum(
 
 /* ************************************************************************** */
 
+/* À FAIRE : trouve une bonne manière de générer des noms uniques. */
+static int index = 0;
+
 void genere_code_C(
 		base *b,
 		GeneratriceCodeC &generatrice,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche);
+
+static void applique_transformation(
+		base *b,
+		GeneratriceCodeC &generatrice,
+		ContexteGenerationCode &contexte,
+		bool expr_gauche)
+{
+	genere_code_C(b, generatrice, contexte, expr_gauche);
+
+	auto nom_courant = b->chaine_calculee();
+	auto &dt = contexte.typeuse[b->index_type];
+
+	auto &os = generatrice.os;
+
+	auto nom_var_temp = "__var_temp_conv" + dls::vers_chaine(index++);
+
+	switch (b->transformation.type) {
+		default:
+		case TypeTransformation::INUTILE:
+		case TypeTransformation::PREND_PTR_RIEN:
+		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
+		{
+			nom_var_temp = nom_courant;
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_EINI:
+		{
+			/* dans le cas d'un nombre ou d'un tableau, etc. */
+			if (b->type != type_noeud::VARIABLE) {
+				generatrice.declare_variable(dt, nom_var_temp, b->chaine_calculee());
+				nom_courant = nom_var_temp;
+				nom_var_temp = "__var_temp_eini" + dls::vers_chaine(index++);
+			}
+
+			os << "Kseini " << nom_var_temp << " = {\n";
+			os << "\t.pointeur = &" << nom_courant << ",\n";
+			os << "\t.info = (InfoType *)(&" << dt.ptr_info_type << ")\n";
+			os << "};\n";
+
+			break;
+		}
+		case TypeTransformation::EXTRAIT_EINI:
+		{
+			os << nom_broye_type(contexte, dt) << " " << nom_var_temp << " = *(";
+			os << nom_broye_type(contexte, dt) << " *)(" << nom_courant << ".pointeur);\n";
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_TABL_OCTET:
+		{
+			auto type_base = dt.type_base();
+
+			os << "KtKsoctet " << nom_var_temp << " = {\n";
+
+			switch (type_base & 0xff) {
+				default:
+				{
+					os << "\t.pointeur = (unsigned char *)(&" << nom_courant << "),\n";
+					os << "\t.taille = sizeof(" << nom_broye_type(contexte, dt) << ")\n";
+					break;
+				}
+				case id_morceau::POINTEUR:
+				{
+					os << "\t.pointeur = (unsigned char *)(" << nom_courant << "),\n";
+					os << "\t.taille = sizeof(";
+					auto index = contexte.typeuse.ajoute_type(dt.dereference());
+					os << nom_broye_type(contexte, index) << ")\n";
+					break;
+				}
+				case id_morceau::CHAINE:
+				{
+					os << "\t.pointeur = " << nom_courant << ".pointeur,\n";
+					os << "\t.taille = " << nom_courant << ".taille,\n";
+					break;
+				}
+				case id_morceau::TABLEAU:
+				{
+					auto taille = static_cast<int>(type_base >> 8);
+
+					if (taille == 0) {
+						os << "\t.pointeur = (unsigned char *)(&" << nom_courant << ".pointeur),\n";
+						os << "\t.taille = " << nom_courant << ".taille * sizeof(";
+						auto index = contexte.typeuse.ajoute_type(dt.dereference());
+						os << nom_broye_type(contexte, index) << ")\n";
+					}
+					else {
+						os << "\t.pointeur = " << nom_courant << ".pointeur,\n";
+						os << "\t.taille = " << taille << " * sizeof(";
+						auto index = contexte.typeuse.ajoute_type(dt.dereference());
+						os << nom_broye_type(contexte, index) << ")\n";
+					}
+
+					break;
+				}
+			}
+
+			os << "};\n";
+
+			break;
+		}
+		case TypeTransformation::EXTRAIT_TABL_OCTET:
+		{
+			/* À FAIRE */
+			break;
+		}
+		case TypeTransformation::CONVERTI_TABLEAU:
+		{
+			auto index = contexte.typeuse.ajoute_type(dt.dereference());
+			index = contexte.typeuse.type_tableau_pour(index);
+			os << nom_broye_type(contexte, index) << ' ' << nom_var_temp << " = {\n";
+			os << "\t.taille = " << static_cast<size_t>(dt.type_base() >> 8) << ",\n";
+			os << "\t.pointeur = " << nom_courant << "\n";
+			os << "};";
+
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_EINI_TABLEAU:
+		{
+			auto index = contexte.typeuse.ajoute_type(dt.dereference());
+			index = contexte.typeuse.type_tableau_pour(index);
+			os << nom_broye_type(contexte, index) << ' ' << nom_var_temp << " = {\n";
+			os << "\t.taille = " << static_cast<size_t>(dt.type_base() >> 8) << ",\n";
+			os << "\t.pointeur = " << nom_courant << "\n";
+			os << "};";
+
+			nom_courant = nom_var_temp;
+			nom_var_temp = "__var_temp_tabl_eini" + dls::vers_chaine(index++);
+
+			os << "Kseini " << nom_var_temp << " = {\n";
+			os << "\t.pointeur = &" << nom_courant << ",\n";
+			os << "\t.info = (InfoType *)(&" << dt.ptr_info_type << ")\n";
+			os << "};\n";
+
+			break;
+		}
+		case TypeTransformation::FONCTION:
+		{
+			/* À FAIRE : typage */
+			os << nom_var_temp << " = " << b->transformation.nom_fonction << '(';
+			os << nom_courant << ");n\n";
+
+			break;
+		}
+		case TypeTransformation::PREND_REFERENCE:
+		{
+			nom_var_temp = "&(" + nom_courant + ")";
+			break;
+		}
+		case TypeTransformation::DEREFERENCE:
+		{
+			if (expr_gauche) {
+				nom_var_temp = "(*" + nom_courant + ")";
+			}
+			else {
+				auto index = contexte.typeuse.ajoute_type(dt.dereference());
+				os << nom_broye_type(contexte, index);
+				os << ' ' << nom_var_temp << " = *(" << nom_courant << ");\n";
+			}
+
+			break;
+		}
+	}
+
+	b->valeur_calculee = nom_var_temp;
+}
 
 static void genere_code_extra_pre_retour(
 		ContexteGenerationCode &contexte,
@@ -113,9 +282,6 @@ static inline auto broye_chaine(base *b)
 }
 
 /* ************************************************************************** */
-
-/* À FAIRE : trouve une bonne manière de générer des noms uniques. */
-static int index = 0;
 
 static auto cree_info_type_defaul_C(
 		dls::flux_chaine &os_decl,
@@ -198,15 +364,15 @@ static auto cree_info_type_structure_C(
 
 	for (auto i = 0l; i < nombre_membres; ++i) {
 		auto index_dt = donnees_structure.index_types[i];
-		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
+		auto &dt_membre = contexte.typeuse[index_dt];
 
 		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
 			if (paire_idx_mb.second.index_membre != i) {
 				continue;
 			}
 
-			auto idx = contexte.magasin_types.ajoute_type(dt_membre);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
+			auto idx = contexte.typeuse.ajoute_type(dt_membre);
+			auto &rderef = contexte.typeuse[idx];
 
 			if (rderef.ptr_info_type == "") {
 				rderef.ptr_info_type = cree_info_type_C(
@@ -223,15 +389,15 @@ static auto cree_info_type_structure_C(
 
 	for (auto i = 0l; i < nombre_membres; ++i) {
 		auto index_dt = donnees_structure.index_types[i];
-		auto &dt_membre = contexte.magasin_types.donnees_types[index_dt];
+		auto &dt_membre = contexte.typeuse[index_dt];
 
 		for (auto paire_idx_mb : donnees_structure.donnees_membres) {
 			if (paire_idx_mb.second.index_membre != i) {
 				continue;
 			}
 
-			auto idx = contexte.magasin_types.ajoute_type(dt_membre);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
+			auto idx = contexte.typeuse.ajoute_type(dt_membre);
+			auto &rderef = contexte.typeuse[idx];
 
 			os_decl << "\t{\n";
 			os_decl << "\t\t.nom = { .pointeur = \"" << paire_idx_mb.first << "\", .taille = " << paire_idx_mb.first.taille() << " },\n";
@@ -409,8 +575,8 @@ static dls::chaine cree_info_type_C(
 		{
 			auto deref = donnees_type.dereference();
 
-			auto idx = contexte.magasin_types.ajoute_type(deref);
-			auto &rderef = contexte.magasin_types.donnees_types[idx];
+			auto idx = contexte.typeuse.ajoute_type(deref);
+			auto &rderef = contexte.typeuse[idx];
 
 			if (rderef.ptr_info_type == "") {
 				rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
@@ -471,8 +637,8 @@ static dls::chaine cree_info_type_C(
 				os_decl << "};\n";
 			}
 			else {
-				auto idx = contexte.magasin_types.ajoute_type(deref);
-				auto &rderef = contexte.magasin_types.donnees_types[idx];
+				auto idx = contexte.typeuse.ajoute_type(deref);
+				auto &rderef = contexte.typeuse[idx];
 
 				if (rderef.ptr_info_type == "") {
 					rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
@@ -495,11 +661,11 @@ static dls::chaine cree_info_type_C(
 			donnees_type.ptr_info_type = nom_info_type;
 
 			auto nombre_types_retour = 0l;
-			auto dt_params = donnees_types_parametres(contexte.magasin_types, donnees_type, nombre_types_retour);
+			auto dt_params = donnees_types_parametres(contexte.typeuse, donnees_type, nombre_types_retour);
 			auto nombre_types_entree = dt_params.taille() - nombre_types_retour;
 
 			for (auto i = 0; i < dt_params.taille(); ++i) {
-				auto &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
+				auto &dt_prm = contexte.typeuse[dt_params[i]];
 
 				if (dt_prm.ptr_info_type != "") {
 					continue;
@@ -514,7 +680,7 @@ static dls::chaine cree_info_type_C(
 			os_decl << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
 
 			for (auto i = 0; i < nombre_types_entree; ++i) {
-				auto const &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
+				auto const &dt_prm = contexte.typeuse[dt_params[i]];
 				os_decl << "(InfoType *)&" << dt_prm.ptr_info_type << ",\n";
 			}
 
@@ -526,7 +692,7 @@ static dls::chaine cree_info_type_C(
 			os_decl << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
 
 			for (auto i = nombre_types_entree; i < dt_params.taille(); ++i) {
-				auto const &dt_prm = contexte.magasin_types.donnees_types[dt_params[i]];
+				auto const &dt_prm = contexte.typeuse[dt_params[i]];
 				os_decl << "(InfoType *)&" << dt_prm.ptr_info_type << ",\n";
 			}
 
@@ -570,34 +736,6 @@ static dls::chaine cree_info_type_C(
 	return valeur;
 }
 
-static auto cree_eini(
-		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		dls::flux_chaine &os, base *b)
-{
-	auto nom_eini = dls::chaine("__eini_").append(dls::vers_chaine(b).c_str());
-	auto nom_var = dls::chaine{};
-
-	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
-
-	genere_code_C(b, generatrice, contexte, false);
-
-	/* dans le cas d'un nombre ou d'un tableau, etc. */
-	if (b->type != type_noeud::VARIABLE) {
-		nom_var = dls::chaine("__var_").append(nom_eini);
-		generatrice.declare_variable(dt, nom_var, b->chaine_calculee());
-	}
-	else {
-		nom_var = b->chaine_calculee();
-	}
-
-	os << "eini " << nom_eini << ";\n";
-	os << nom_eini << ".pointeur = &" << nom_var << ";\n";
-	os << nom_eini << ".info = (InfoType *)(&" << dt.ptr_info_type << ");\n";
-
-	return nom_eini;
-}
-
 static void cree_appel(
 		base *b,
 		dls::flux_chaine &os,
@@ -607,160 +745,10 @@ static void cree_appel(
 		dls::liste<base *> const &enfants)
 {
 	for (auto enf : enfants) {
-		if ((enf->drapeaux & CONVERTI_TABLEAU) != 0) {
-			auto nom_tabl_fixe = dls::chaine(enf->chaine());
-
-			if (enf->type == type_noeud::CONSTRUIT_TABLEAU) {
-				genere_code_C(enf, generatrice, contexte, false);
-				nom_tabl_fixe = enf->chaine_calculee();
-			}
-
-			auto nom_tableau = dls::chaine("__tabl_dyn") + dls::vers_chaine(index++);
-			enf->valeur_calculee = nom_tableau;
-
-			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
-			auto dt_tabl_dyn = DonneesTypeFinal{};
-			dt_tabl_dyn.pousse(id_morceau::TABLEAU);
-			dt_tabl_dyn.pousse(dt.dereference());
-			auto index_dt = contexte.magasin_types.ajoute_type(dt_tabl_dyn);
-			auto &dt_tabl = contexte.magasin_types.donnees_types[index_dt];
-
-			os << nom_broye_type(contexte, dt_tabl) << ' ' << nom_tableau << ";\n";
-			os << nom_tableau << ".taille = " << static_cast<size_t>(dt.type_base() >> 8) << ";\n";
-			os << nom_tableau << ".pointeur = " << nom_tabl_fixe << ";\n";
-		}
-		else if ((enf->drapeaux & CONVERTI_EINI) != 0) {
-			enf->valeur_calculee = cree_eini(contexte, generatrice, os, enf);
-		}
-		else if ((enf->drapeaux & EXTRAIT_CHAINE_C) != 0) {
-			auto nom_var_chaine = dls::chaine("");
-
-			if (enf->type != type_noeud::VARIABLE) {
-				nom_var_chaine = "__chaine" + dls::vers_chaine(enf);
-
-				genere_code_C(enf, generatrice, contexte, false);
-				os << "chaine " << nom_var_chaine << " = ";
-				os << enf->chaine_calculee();
-				os << ";\n";
-			}
-			else {
-				nom_var_chaine = enf->chaine();
-			}
-
-			auto nom_var = "__pointeur" + dls::vers_chaine(enf);
-
-			os << "const char *" + nom_var;
-			os << " = " << nom_var_chaine << ".pointeur;\n";
-
-			enf->valeur_calculee = nom_var;
-		}
-		else if ((enf->drapeaux & CONVERTI_TABLEAU_OCTET) != 0) {
-			auto nom_var_tableau = "__tableau_octet" + dls::vers_chaine(enf);
-
-			os << "KtKsoctet " << nom_var_tableau << ";\n";
-
-			auto &dt = contexte.magasin_types.donnees_types[enf->index_type];
-			auto type_base = dt.type_base();
-
-			switch (type_base & 0xff) {
-				default:
-				{
-					os << nom_var_tableau << ".pointeur = (unsigned char*)(&";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ");\n";
-
-					os << nom_var_tableau << ".taille = sizeof(";
-					os << nom_broye_type(contexte, enf->index_type);
-					os << ");\n";
-					break;
-				}
-				case id_morceau::POINTEUR:
-				{
-					os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ".pointeur);\n";
-
-					auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-
-					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ".sizeof(";
-					nom_broye_type(contexte, dt_deref);
-					os << ");\n";
-					break;
-				}
-				case id_morceau::CHAINE:
-				{
-					genere_code_C(enf, generatrice, contexte, false);
-
-					os << nom_var_tableau << ".pointeur = ";
-					os << enf->chaine_calculee();
-					os << ".pointeur;\n";
-
-					os << nom_var_tableau << ".taille = ";
-					genere_code_C(enf, generatrice, contexte, false);
-					os << ".taille;\n";
-					break;
-				}
-				case id_morceau::TABLEAU:
-				{
-					auto taille = static_cast<int>(type_base >> 8);
-
-					auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
-
-					if (taille == 0) {
-						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-						genere_code_C(enf, generatrice, contexte, false);
-						os << ".pointeur);\n";
-
-						os << nom_var_tableau << ".taille = ";
-						genere_code_C(enf, generatrice, contexte, false);
-						os << ".taille * sizeof(";
-						nom_broye_type(contexte, dt_deref);
-						os << ");\n";
-					}
-					else {
-						os << nom_var_tableau << ".pointeur = (unsigned char*)(";
-						genere_code_C(enf, generatrice, contexte, false);
-						os << ");\n";
-
-						os << nom_var_tableau << ".taille = " << taille << " * sizeof(";
-						nom_broye_type(contexte, dt_deref);
-						os << ");\n";
-					}
-
-					break;
-				}
-			}
-
-			enf->valeur_calculee = nom_var_tableau;
-		}
-		else if ((enf->drapeaux & PREND_REFERENCE) != 0) {
-			/* Petit hack pour pouvoir passer des non-références à des
-			 * paramètres de type références : les références ont pour type le
-			 * type déréférencé, et sont automatiquement 'déréférencer' via (*x),
-			 * donc passer des références à des références n'est pas un problème
-			 * même si le code C généré ici devien '&(*x)'.
-			 * Mais lorsque nous devons passer une non-référence à une référence
-			 * le code devient '&&x' si le drapeaux PREND_REFERENCE est actif
-			 * donc on le désactive pour ne générer que '&x'.
-			 */
-			enf->drapeaux &= ~PREND_REFERENCE;
-
-			/* Pour les références des accès membres, on ne doit pas avoir de
-			 * prépasse, donc expr_gauche = true. */
-			genere_code_C(enf, generatrice, contexte, true);
-
-			enf->drapeaux |= PREND_REFERENCE;
-		}
-		else {
-			genere_code_C(enf, generatrice, contexte, false);
-		}
+		applique_transformation(enf, generatrice, contexte, false);
 	}
 
-	auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+	auto &dt = contexte.typeuse[b->index_type];
 
 	dls::liste<base *> liste_var_retour{};
 	dls::tableau<dls::chaine> liste_noms_retour{};
@@ -823,9 +811,6 @@ static void cree_appel(
 
 	for (auto enf : enfants) {
 		os << virgule;
-		if ((enf->drapeaux & PREND_REFERENCE) != 0) {
-			os << '&';
-		}
 		os << enf->chaine_calculee();
 		virgule = ',';
 	}
@@ -862,7 +847,7 @@ static void cree_initialisation(
 
 		for (auto i = 0l; i < ds.index_types.taille(); ++i) {
 			auto index_dt = ds.index_types[i];
-			auto dt_enf = contexte.magasin_types.donnees_types[index_dt].plage();
+			auto dt_enf = contexte.typeuse[index_dt].plage();
 
 			for (auto paire_idx_mb : ds.donnees_membres) {
 				auto const &donnees_membre = paire_idx_mb.second;
@@ -924,8 +909,8 @@ static void genere_code_acces_membre(
 	}
 	else {
 		auto const &index_type = structure->index_type;
-		auto type_structure = contexte.magasin_types.donnees_types[index_type].plage();
-		auto est_pointeur = type_structure.front() == id_morceau::POINTEUR;
+		auto type_structure = contexte.typeuse[index_type].plage();
+		auto est_pointeur = type_structure.front() == id_morceau::POINTEUR || type_structure.front() == id_morceau::REFERENCE;
 
 		if (est_pointeur) {
 			type_structure.effronte();
@@ -984,13 +969,13 @@ static void genere_code_acces_membre(
 			membre->nom_fonction_appel = flux.chn();
 			genere_code_C(membre, generatrice, contexte, false);
 
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 			generatrice.declare_variable(dt, nom_acces, membre->chaine_calculee());
 
 			b->valeur_calculee = nom_acces;
 		}
 		else {
-			auto nom_var = "__var_temp" + dls::vers_chaine(index++);
+			auto nom_var = "__var_temp_acc" + dls::vers_chaine(index++);
 			generatrice.os << "const ";
 			generatrice.declare_variable(b->index_type, nom_var, flux.chn());
 
@@ -1049,8 +1034,7 @@ static DonneesFonction *cherche_donnees_fonction(
 static void pousse_argument_fonction_pile(
 		ContexteGenerationCode &contexte,
 		DonneesArgument const &argument,
-		dls::chaine const &nom_broye,
-		DonneesTypeFinal &dt)
+		dls::chaine const &nom_broye)
 {
 	auto donnees_var = DonneesVariable{};
 	donnees_var.est_dynamique = argument.est_dynamic;
@@ -1058,16 +1042,10 @@ static void pousse_argument_fonction_pile(
 	donnees_var.index_type = argument.index_type;
 	donnees_var.est_argument = true;
 
-	if (dt.type_base() == id_morceau::REFERENCE) {
-		donnees_var.drapeaux |= BESOIN_DEREF;
-		donnees_var.index_type = contexte.magasin_types.ajoute_type(dt.dereference());
-		dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
-	}
-
 	contexte.pousse_locale(argument.nom, donnees_var);
 
 	if (argument.est_employe) {
-		auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
+		auto &dt_var = contexte.typeuse[argument.index_type];
 		auto id_structure = 0l;
 		auto est_pointeur = false;
 
@@ -1130,7 +1108,7 @@ static void genere_declaration_structure(
 
 	for (auto i = 0l; i < donnees.index_types.taille(); ++i) {
 		auto index_dt = donnees.index_types[i];
-		auto &dt = contexte.magasin_types.donnees_types[index_dt];
+		auto &dt = contexte.typeuse[index_dt];
 
 		for (auto paire_idx_mb : donnees.donnees_membres) {
 			if (paire_idx_mb.second.index_membre == i) {
@@ -1234,7 +1212,7 @@ void genere_code_C(
 					generatrice.os << "__attribute__ ((noinline)) ";
 				}
 
-				auto &dt_ret = contexte.magasin_types.donnees_types[b->index_type];
+				auto &dt_ret = contexte.typeuse[b->index_type];
 				generatrice.os << nom_broye_type(contexte, dt_ret) << ' ' << nom_fonction;
 			}
 
@@ -1264,7 +1242,7 @@ void genere_code_C(
 			}
 
 			for (auto &argument : donnees_fonction->args) {
-				auto dt = contexte.magasin_types.donnees_types[argument.index_type];
+				auto &dt = contexte.typeuse[argument.index_type];
 				auto nom_broye = broye_nom_simple(argument.nom);
 
 				generatrice.os << virgule << '\n';
@@ -1272,7 +1250,7 @@ void genere_code_C(
 
 				virgule = ',';
 
-				pousse_argument_fonction_pile(contexte, argument, nom_broye, dt);
+				pousse_argument_fonction_pile(contexte, argument, nom_broye);
 			}
 
 			if (moult_retour) {
@@ -1282,7 +1260,7 @@ void genere_code_C(
 
 					auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
 
-					auto &dt = contexte.magasin_types.donnees_types[idx];
+					auto &dt = contexte.typeuse[idx];
 					generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_ret;
 					virgule = ',';
 				}
@@ -1325,12 +1303,12 @@ void genere_code_C(
 			auto idx_ret = 0l;
 			for (auto idx : donnees_fonction->idx_types_retours) {
 				auto &nom_ret = donnees_fonction->noms_retours[idx_ret++];
-				auto &dt = contexte.magasin_types.donnees_types[idx];
+				auto &dt = contexte.typeuse[idx];
 				generatrice.declare_variable(dt, nom_ret, "");
 			}
 
 			for (auto &argument : donnees_fonction->args) {
-				auto &dt = contexte.magasin_types.donnees_types[argument.index_type];
+				auto &dt = contexte.typeuse[argument.index_type];
 				auto nom_broye = broye_nom_simple(argument.nom);
 				generatrice.declare_variable(dt, nom_broye, "");
 			}
@@ -1345,12 +1323,12 @@ void genere_code_C(
 
 			/* déclare les paramètres. */
 			for (auto &argument : donnees_fonction->args) {
-				auto &dt = contexte.magasin_types.donnees_types[argument.index_type];
+				auto &dt = contexte.typeuse[argument.index_type];
 				auto nom_broye = broye_nom_simple(argument.nom);
 
 				generatrice.declare_variable(dt, nom_broye, "__etat->" + nom_broye);
 
-				pousse_argument_fonction_pile(contexte, argument, nom_broye, dt);
+				pousse_argument_fonction_pile(contexte, argument, nom_broye);
 			}
 
 			/* Crée code pour le bloc. */
@@ -1380,11 +1358,10 @@ void genere_code_C(
 		}
 		case type_noeud::VARIABLE:
 		{
-			auto drapeaux = contexte.drapeaux_variable(b->morceau.chaine);
 			auto flux = dls::flux_chaine();
 
 			if (b->aide_generation_code == GENERE_CODE_DECL_VAR || b->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-				auto dt = contexte.magasin_types.donnees_types[b->index_type];
+				auto dt = contexte.typeuse[b->index_type];
 
 				/* pour les assignations de tableaux fixes, remplace les crochets
 				 * par des pointeurs pour la déclaration */
@@ -1408,10 +1385,6 @@ void genere_code_C(
 					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 					donnees_var.index_type = b->index_type;
 
-					if (dt.type_base() == id_morceau::REFERENCE) {
-						donnees_var.drapeaux |= BESOIN_DEREF;
-					}
-
 					contexte.pousse_globale(b->chaine(), donnees_var);
 					return;
 				}
@@ -1432,35 +1405,22 @@ void genere_code_C(
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
 				donnees_var.index_type = b->index_type;
 
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-				}
-
 				contexte.pousse_locale(b->chaine(), donnees_var);
 			}
 			/* désactive la vérification car les variables dans les
 			 * constructions de structures n'ont pas cette aide */
 			else /*if (b->aide_generation_code == GENERE_CODE_ACCES_VAR)*/ {
-				if ((drapeaux & BESOIN_DEREF) != 0) {
-					flux << "(*" << broye_chaine(b) << ")";
+				if (b->nom_fonction_appel != "") {
+					flux << b->nom_fonction_appel;
 				}
 				else {
-					if (b->nom_fonction_appel != "") {
-						flux << b->nom_fonction_appel;
+					auto dv = contexte.donnees_variable(b->morceau.chaine);
+
+					if (dv.est_membre_emploie) {
+						flux << dv.structure;
 					}
-					else {
-						auto dv = contexte.donnees_variable(b->morceau.chaine);
 
-						if (dv.est_membre_emploie) {
-							flux << dv.structure;
-						}
-
-						if ((b->drapeaux & PREND_REFERENCE) != 0) {
-							flux << '&';
-						}
-
-						flux << broye_chaine(b);
-					}
+					flux << broye_chaine(b);
 				}
 
 				b->valeur_calculee = dls::chaine(flux.chn());
@@ -1488,13 +1448,10 @@ void genere_code_C(
 			auto membre = b->enfants.back();
 
 			auto index_membre = std::any_cast<long>(b->valeur_calculee);
-			auto &dt = contexte.magasin_types.donnees_types[structure->index_type];
+			auto &dt = contexte.typeuse[structure->index_type];
 
 			auto est_pointeur = (dt.type_base() == id_morceau::POINTEUR);
 			est_pointeur |= (dt.type_base() == id_morceau::REFERENCE);
-
-			auto const &donnees_var = contexte.donnees_variable(structure->chaine());
-			est_pointeur |= (donnees_var.drapeaux & BESOIN_DEREF) != 0;
 
 			auto flux = dls::flux_chaine();
 			flux << broye_chaine(structure);
@@ -1591,64 +1548,14 @@ void genere_code_C(
 				return;
 			}
 
-			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
-			auto expression_modifiee = false;
-			auto nouvelle_expr = dls::chaine();
-
-			/* À FAIRE : conversion tableau */
-			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_TABLEAU;
-			}
-
-			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_EINI;
-				expression_modifiee = true;
-
-				nouvelle_expr = cree_eini(contexte, generatrice, generatrice.os, expression);
-			}
-
-			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= EXTRAIT_EINI;
-				expression->index_type = variable->index_type;
-				expression_modifiee = true;
-
-				auto nom_eini = dls::chaine("__eini_ext_")
-						.append(dls::vers_chaine(reinterpret_cast<long>(expression)));
-
-				auto &dt = contexte.magasin_types.donnees_types[expression->index_type];
-
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << " " << nom_eini << " = *(";
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << " *)(";
-				genere_code_C(expression, generatrice, contexte, false);
-				generatrice.os << ".pointeur);\n";
-
-				nouvelle_expr = nom_eini;
-			}
-
-			if (expression->type == type_noeud::LOGE) {
-				expression_modifiee = true;
-				genere_code_C(expression, generatrice, contexte, false);
-				nouvelle_expr = expression->chaine_calculee();
-			}
-
-			if (!expression_modifiee) {
-				genere_code_C(expression, generatrice, contexte, false);
-			}
+			applique_transformation(expression, generatrice, contexte, expr_gauche);
 
 			variable->drapeaux |= POUR_ASSIGNATION;
 			genere_code_C(variable, generatrice, contexte, true);
 
 			generatrice.os << variable->chaine_calculee();
 			generatrice.os << " = ";
-
-			if (!expression_modifiee) {
-				generatrice.os << expression->chaine_calculee();
-			}
-			else {
-				generatrice.os << nouvelle_expr;
-			}
+			generatrice.os << expression->chaine_calculee();
 
 			/* pour les globales */
 			generatrice.os << ";\n";
@@ -1685,8 +1592,8 @@ void genere_code_C(
 			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
 
-			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
-			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
+			applique_transformation(enfant1, generatrice, contexte, expr_gauche);
+			applique_transformation(enfant2, generatrice, contexte, expr_gauche);
 
 			auto op = b->op;
 
@@ -1707,7 +1614,7 @@ void genere_code_C(
 				b->valeur_calculee = dls::chaine(flux.chn());
 			}
 			else {
-				auto nom_var = "__var_temp" + dls::vers_chaine(index++);
+				auto nom_var = "__var_temp_bin" + dls::vers_chaine(index++);
 				generatrice.os << "const ";
 				generatrice.declare_variable(b->index_type, nom_var, flux.chn());
 
@@ -1742,7 +1649,7 @@ void genere_code_C(
 			flux << enfant2->chaine_calculee();
 			flux << ')';
 
-			auto nom_var = "__var_temp" + dls::vers_chaine(index++);
+			auto nom_var = "__var_temp_cmp" + dls::vers_chaine(index++);
 			generatrice.os << "const ";
 			generatrice.declare_variable(b->index_type, nom_var, flux.chn());
 
@@ -1755,12 +1662,16 @@ void genere_code_C(
 			auto enfant2 = b->enfants.back();
 
 			auto const index_type1 = enfant1->index_type;
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
+			auto type1 = contexte.typeuse[index_type1];
+
+			if (type1.type_base() == id_morceau::REFERENCE) {
+				type1 = type1.dereference();
+			}
 
 			/* À FAIRE : tests */
 			auto flux = dls::flux_chaine();
 
-			genere_code_C(enfant1, generatrice, contexte, expr_gauche);
+			applique_transformation(enfant1, generatrice, contexte, expr_gauche);
 			genere_code_C(enfant2, generatrice, contexte, expr_gauche);
 
 			auto type_base = type1.type_base();
@@ -1877,7 +1788,7 @@ void genere_code_C(
 				b->valeur_calculee = dls::chaine(flux.chn());
 			}
 			else {
-				auto nom_var = "__var_temp" + dls::vers_chaine(index++);
+				auto nom_var = "__var_temp_acctabl" + dls::vers_chaine(index++);
 				generatrice.os << "const ";
 				generatrice.declare_variable(b->index_type, nom_var, flux.chn());
 
@@ -1896,7 +1807,7 @@ void genere_code_C(
 			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
 			 * pointeur de la variable temporaire du code généré */
 			expr_gauche |= b->morceau.identifiant == id_morceau::AROBASE;
-			genere_code_C(enfant, generatrice, contexte, expr_gauche);
+			applique_transformation(enfant, generatrice, contexte, expr_gauche);
 
 			if (b->morceau.identifiant == id_morceau::AROBASE) {
 				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
@@ -1933,9 +1844,9 @@ void genere_code_C(
 			auto df = contexte.donnees_fonction;
 			auto nom_variable = df->noms_retours[0];
 
-			genere_code_C(enfant, generatrice, contexte, false);
+			applique_transformation(enfant, generatrice, contexte, false);
 
-			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto &dt = contexte.typeuse[enfant->index_type];
 
 			generatrice.declare_variable(
 						dt,
@@ -1967,7 +1878,7 @@ void genere_code_C(
 
 				auto idx = 0l;
 				for (auto f : feuilles) {
-					genere_code_C(f, generatrice, contexte, false);
+					applique_transformation(f, generatrice, contexte, false);
 
 					generatrice.os << '*' << df->noms_retours[idx++] << " = ";
 					generatrice.os << f->chaine_calculee();
@@ -2069,7 +1980,7 @@ void genere_code_C(
 				flux << " : ";
 				flux << enfant3->enfants.front()->chaine_calculee();
 
-				auto nom_variable = "__var_temp" + dls::vers_chaine(index++);
+				auto nom_variable = "__var_temp_si" + dls::vers_chaine(index++);
 
 				generatrice.declare_variable(
 							enfant2->enfants.front()->index_type,
@@ -2169,7 +2080,7 @@ void genere_code_C(
 			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 			auto index_type = enfant2->index_type;
-			auto &type_debut = contexte.magasin_types.donnees_types[index_type];
+			auto &type_debut = contexte.typeuse[index_type];
 			auto const type = type_debut.type_base();
 
 			enfant1->index_type = index_type;
@@ -2200,7 +2111,7 @@ void genere_code_C(
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
 				os_loc << nom_broye_type(contexte_loc, dt);
-				os_loc << " *" << broye_chaine(var) << " = &";
+				os_loc << " " << broye_chaine(var) << " = &";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".pointeur["<< nom_var <<"];\n";
 
@@ -2307,20 +2218,20 @@ void genere_code_C(
 					if ((type & 0xff) == id_morceau::TABLEAU) {
 						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
 
-						auto type_deref = type_debut.dereference();
-						auto index_dt = contexte.magasin_types.ajoute_type(type_deref);
-						auto &dt_type = contexte.magasin_types.donnees_types[index_dt];
+						auto idx_type_deref = contexte.typeuse.type_dereference_pour(index_type);
+						auto idx_type_ref = contexte.typeuse.type_reference_pour(idx_type_deref);
+						auto &type_deref = contexte.typeuse[idx_type_ref];
 
 						if (taille_tableau != 0) {
-							genere_code_tableau_fixe(generatrice.os, contexte, enfant1, enfant2, dt_type, nom_var, taille_tableau);
+							genere_code_tableau_fixe(generatrice.os, contexte, enfant1, enfant2, type_deref, nom_var, taille_tableau);
 						}
 						else {
-							genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt_type, nom_var);
+							genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, type_deref, nom_var);
 						}
 					}
 					else if (type == id_morceau::CHAINE) {
-						auto dt = DonneesTypeFinal(id_morceau::Z8);
-						index_type = contexte.magasin_types[TYPE_Z8];
+						index_type = contexte.typeuse[TypeBase::REF_Z8];
+						auto &dt = contexte.typeuse[index_type];
 						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt, nom_var);
 					}
 
@@ -2328,18 +2239,14 @@ void genere_code_C(
 						auto var = enfant1->enfants.front();
 						auto idx = enfant1->enfants.back();
 
-						donnees_var.index_type = var->index_type;
-						donnees_var.drapeaux = BESOIN_DEREF;
-
+						donnees_var.index_type = index_type;
 						contexte.pousse_locale(var->chaine(), donnees_var);
 
 						donnees_var.index_type = idx->index_type;
-						donnees_var.drapeaux = 0;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
 						donnees_var.index_type = index_type;
-						donnees_var.drapeaux = BESOIN_DEREF;
 						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
@@ -2588,7 +2495,7 @@ void genere_code_C(
 				return;
 			}
 
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 
 			auto flux = dls::flux_chaine();
 
@@ -2610,7 +2517,7 @@ void genere_code_C(
 		case type_noeud::TAILLE_DE:
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
-			auto const &donnees = contexte.magasin_types.donnees_types[index_dt];
+			auto const &donnees = contexte.typeuse[index_dt];
 			b->valeur_calculee = dls::vers_chaine(taille_octet_type(contexte, donnees));
 			break;
 		}
@@ -2639,16 +2546,10 @@ void genere_code_C(
 
 			auto taille_tableau = b->enfants.taille();
 
-			auto &type = contexte.magasin_types.donnees_types[b->index_type];
+			auto &type = contexte.typeuse[b->index_type];
 
-			/* cherche si une conversion est requise */
 			for (auto enfant : b->enfants) {
-				if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-					enfant->valeur_calculee = cree_eini(contexte, generatrice, generatrice.os, enfant);
-				}
-				else {
-					genere_code_C(enfant, generatrice, contexte, false);
-				}
+				applique_transformation(enfant, generatrice, contexte, false);
 			}
 
 			/* alloue un tableau fixe */
@@ -2725,7 +2626,7 @@ void genere_code_C(
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
 			auto nom_tableau = "__tabl" + dls::vers_chaine(b);
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 
 			dls::tableau<base *> feuilles;
 			rassemble_feuilles(b->enfants.front(), feuilles);
@@ -2752,7 +2653,7 @@ void genere_code_C(
 		case type_noeud::INFO_DE:
 		{
 			auto enfant = b->enfants.front();
-			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto &dt = contexte.typeuse[enfant->index_type];
 			b->valeur_calculee = "&" + dt.ptr_info_type;
 			break;
 		}
@@ -2764,7 +2665,7 @@ void genere_code_C(
 		}
 		case type_noeud::LOGE:
 		{
-			auto &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 			auto enfant = b->enfants.debut();
 			auto nombre_enfant = b->enfants.taille();
 			auto a_pointeur = false;
@@ -2782,18 +2683,18 @@ void genere_code_C(
 				genere_code_C(expr, generatrice, contexte, false);
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							taille_tabl,
 							expr->chaine_calculee());
 
 				auto flux = dls::flux_chaine();
-				auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+				auto &dt_deref = contexte.typeuse[index_dt];
 
 				auto expr_sizeof = "sizeof(" + nom_broye_type(contexte, dt_deref) + ") * " + taille_tabl;
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_taille,
 							expr_sizeof);
 
@@ -2823,7 +2724,7 @@ void genere_code_C(
 				auto flux = dls::flux_chaine();
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_taille,
 							enf->chaine_calculee());
 
@@ -2839,8 +2740,8 @@ void genere_code_C(
 				nom_ptr_ret = nom_chaine;
 			}
 			else {
-				auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+				auto &dt_deref = contexte.typeuse[index_dt];
 				generatrice.os << "long " << nom_taille << " = sizeof(";
 				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
 
@@ -2890,7 +2791,7 @@ void genere_code_C(
 		case type_noeud::DELOGE:
 		{
 			auto enfant = b->enfants.front();
-			auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+			auto &dt = contexte.typeuse[enfant->index_type];
 			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
 			genere_code_C(enfant, generatrice, contexte, true);
@@ -2901,8 +2802,8 @@ void genere_code_C(
 				generatrice.os << chn_enfant << ".taille";
 
 				if (dt.type_base() == id_morceau::TABLEAU) {
-					auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+					auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+					auto &dt_deref = contexte.typeuse[index_dt];
 					generatrice.os << " * sizeof(" << nom_broye_type(contexte, dt_deref) << ")";
 				}
 
@@ -2913,8 +2814,8 @@ void genere_code_C(
 				generatrice.os << chn_enfant << ".taille = 0;\n";
 			}
 			else {
-				auto index_dt = contexte.magasin_types.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+				auto &dt_deref = contexte.typeuse[index_dt];
 
 				generatrice.os << "long " << nom_taille << " = sizeof(";
 				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
@@ -2929,7 +2830,7 @@ void genere_code_C(
 		}
 		case type_noeud::RELOGE:
 		{
-			auto &dt_pointeur = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt_pointeur = contexte.typeuse[b->index_type];
 			auto enfant = b->enfants.debut();
 			auto enfant1 = *enfant++;
 			auto nombre_enfant = b->enfants.taille();
@@ -2944,10 +2845,10 @@ void genere_code_C(
 				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
 
 				genere_code_C(expr, generatrice, contexte, false);
-				genere_code_C(enfant1, generatrice, contexte, true);
+				applique_transformation(enfant1, generatrice, contexte, true);
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							taille_tabl,
 							expr->chaine_calculee());
 
@@ -2955,19 +2856,19 @@ void genere_code_C(
 				auto acces_taille = nom_ptr_ret + ".taille";
 				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
-				auto index_dt = contexte.magasin_types.ajoute_type(dt_pointeur.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+				auto index_dt = contexte.typeuse.ajoute_type(dt_pointeur.dereference());
+				auto &dt_deref = contexte.typeuse[index_dt];
 				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
 
 				auto expr_sizeof = "sizeof(" + chn_type_deref + ")";
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_ancienne_taille,
 							expr_sizeof + " * " + acces_taille);
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_nouvelle_taille,
 							expr_sizeof + " * " + taille_tabl);
 
@@ -2980,7 +2881,7 @@ void genere_code_C(
 				nombre_enfant -= 1;
 				a_pointeur = true;
 
-				genere_code_C(enfant1, generatrice, contexte, true);
+				applique_transformation(enfant1, generatrice, contexte, true);
 				nom_ptr_ret = enfant1->chaine_calculee();
 				genere_code_C(enfant2, generatrice, contexte, true);
 
@@ -2988,7 +2889,7 @@ void genere_code_C(
 				auto acces_pointeur = nom_ptr_ret + ".pointeur";
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_ancienne_taille,
 							acces_taille);
 
@@ -3001,24 +2902,24 @@ void genere_code_C(
 				generatrice.os << acces_taille << " = " << nom_nouvelle_taille << ";\n";
 			}
 			else {
-				auto index_dt = contexte.magasin_types.ajoute_type(dt_pointeur.dereference());
-				auto &dt_deref = contexte.magasin_types.donnees_types[index_dt];
+				auto index_dt = contexte.typeuse.ajoute_type(dt_pointeur.dereference());
+				auto &dt_deref = contexte.typeuse[index_dt];
 
 				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
 
 				auto expr = "sizeof(" + chn_type_deref + ")";
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_ancienne_taille,
 							expr);
 
 				generatrice.declare_variable(
-							contexte.magasin_types[TYPE_Z64],
+							contexte.typeuse[TypeBase::Z64],
 							nom_nouvelle_taille,
 							nom_ancienne_taille);
 
-				genere_code_C(enfant1, generatrice, contexte, true);
+				applique_transformation(enfant1, generatrice, contexte, true);
 				nom_ptr_ret = enfant1->chaine_calculee();
 
 				generatrice.os << nom_ptr_ret;
@@ -3122,7 +3023,7 @@ void genere_code_C(
 			auto iter_enfant = b->enfants.debut();
 			auto expression = *iter_enfant++;
 
-			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
+			auto const &dt = contexte.typeuse[expression->index_type];
 			auto const est_pointeur = dt.type_base() == id_morceau::POINTEUR;
 			auto id = static_cast<long>(dt.type_base() >> 8);
 			auto &ds = contexte.donnees_structure(id);
@@ -3211,6 +3112,14 @@ static void traverse_graphe_pour_generation_code(
 	noeud->fut_visite = true;
 
 	for (auto const &relation : noeud->relations) {
+		auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
+		accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
+		accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+
+		if (!accepte) {
+			continue;
+		}
+
 		/* À FAIRE : dépendances cycliques :
 		 * - types qui s'incluent indirectement (listes chainées intrusives)
 		 * - fonctions recursives
@@ -3231,7 +3140,7 @@ static void traverse_graphe_pour_generation_code(
 			return;
 		}
 
-		auto &dt = contexte.magasin_types.donnees_types[noeud->index];
+		auto &dt = contexte.typeuse[noeud->index];
 		cree_typedef(contexte, dt, generatrice.os);
 
 		if (!genere_info_type) {

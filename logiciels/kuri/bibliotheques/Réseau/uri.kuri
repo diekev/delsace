@@ -149,11 +149,11 @@ fonc port_pour_uri(uri : &URI) : n16
 {
     si uri.port.taille == 0 {
         si compare_chaines(uri.schéma, "http") {
-            retourne 80
+            retourne transtype(80 : n16)
         }
 
         si compare_chaines(uri.schéma, "https") {
-            retourne 443
+            retourne transtype(443 : n16)
         }
     }
 

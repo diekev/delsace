@@ -100,6 +100,20 @@ install(
 
 ################################################################################
 
+add_executable(test_transformation
+	test_transformation.cc
+)
+
+target_include_directories(test_transformation PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(test_transformation "${BIBLIOTHEQUES}")
+
+install(
+	TARGETS test_transformation RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
+
+################################################################################
+
 set(NOM_PROJET parcer)
 
 find_package(LLVM REQUIRED)

@@ -54,6 +54,7 @@ class FunctionPassManager;
 #include "operateurs.hh"
 #include "expression.h"
 #include "graphe_dependance.hh"
+#include "typeuse.hh"
 
 class assembleuse_arbre;
 
@@ -84,10 +85,6 @@ struct Metriques {
 	double temps_nettoyage = 0.0;
 };
 
-enum {
-	BESOIN_DEREF = (1 << 0),
-};
-
 struct DonneesVariable {
 #ifdef AVEC_LLVM
 	llvm::Value *valeur{nullptr};
@@ -95,11 +92,10 @@ struct DonneesVariable {
 	long index_type{-1l};
 	bool est_dynamique = false;
 	bool est_variadic = false;
-	char drapeaux = 0;
 	bool est_argument = false;
 	bool est_membre_emploie = false;
 	bool est_externe = false;
-	char pad[2] = {};
+	char pad[3] = {};
 
 	/* nom de la structure pour l'accès des variables employées */
 	dls::chaine structure = "";
@@ -161,13 +157,13 @@ struct ContexteGenerationCode {
 
 	GrapheDependance graphe_dependance{};
 
-	MagasinDonneesType magasin_types;
+	Operateurs operateurs{};
+
+	Typeuse typeuse;
 
 	DonneesFonction *donnees_fonction = nullptr;
 
 	long index_type_ctx = -1;
-
-	Operateurs operateurs{};
 
 	bool bit32 = false;
 
@@ -361,8 +357,6 @@ struct ContexteGenerationCode {
 	void pousse_locale(
 			const dls::vue_chaine_compacte &nom,
 			DonneesVariable const &donnees);
-
-	char drapeaux_variable(dls::vue_chaine_compacte const &nom);
 
 	DonneesVariable &donnees_variable(const dls::vue_chaine_compacte &nom);
 

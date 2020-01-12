@@ -35,6 +35,7 @@
 #include "erreur.h"
 #include "expression.h"
 #include "outils_morceaux.hh"
+#include "typeuse.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -44,70 +45,12 @@ namespace noeud {
 
 static auto &trouve_donnees_type(ContexteGenerationCode const &contexte, long index)
 {
-	return contexte.magasin_types.donnees_types[index];
+	return contexte.typeuse[index];
 }
 
 static auto &trouve_donnees_type(ContexteGenerationCode const &contexte, base *b)
 {
 	return trouve_donnees_type(contexte, b->index_type);
-}
-
-/* ************************************************************************** */
-
-static void drapeau_depuis_niveau_compat(
-		base *enfant,
-		niveau_compat compat)
-{
-	if ((compat & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_TABLEAU;
-	}
-
-	if ((compat & niveau_compat::converti_eini) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_EINI;
-	}
-
-	if ((compat & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
-		enfant->drapeaux |= EXTRAIT_CHAINE_C;
-	}
-
-	if ((compat & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
-		enfant->drapeaux |= CONVERTI_TABLEAU_OCTET;
-	}
-
-	if ((compat & niveau_compat::prend_reference) != niveau_compat::aucune) {
-		enfant->drapeaux |= PREND_REFERENCE;
-	}
-}
-
-static void verifie_compatibilite(
-		base *b,
-		ContexteGenerationCode &contexte,
-		const DonneesTypeFinal &type_arg,
-		const DonneesTypeFinal &type_enf,
-		base *enfant)
-{
-	auto compat = sont_compatibles(type_arg, type_enf, enfant->type);
-
-	if (compat == niveau_compat::aucune) {
-		erreur::lance_erreur_type_arguments(
-					type_arg,
-					type_enf,
-					contexte,
-					enfant->donnees_morceau(),
-					b->morceau);
-	}
-
-	if (compat == niveau_compat::prend_reference) {
-		if (enfant->type != type_noeud::VARIABLE) {
-			erreur::lance_erreur(
-						"Ne peut pas prendre la référence d'une valeur n'étant pas une variable",
-						contexte,
-						enfant->morceau,
-						erreur::type_erreur::TYPE_DIFFERENTS);
-		}
-	}
-
-	drapeau_depuis_niveau_compat(enfant, compat);
 }
 
 /* ************************************************************************** */
@@ -190,7 +133,7 @@ static long resoud_type_final(
 		}
 	}
 
-	return contexte.magasin_types.ajoute_type(type_final);
+	return contexte.typeuse.ajoute_type(type_final);
 }
 
 /* ************************************************************************** */
@@ -317,7 +260,7 @@ static auto valide_appel_pointeur_fonction(
 	auto index_type = (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE)
 			? b->index_type
 			: contexte.type_locale(b->morceau.chaine);
-	auto &dt_fonc = contexte.magasin_types.donnees_types[index_type];
+	auto &dt_fonc = contexte.typeuse[index_type];
 
 	/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
 
@@ -332,9 +275,9 @@ static auto valide_appel_pointeur_fonction(
 	valides_enfants(b, contexte, false);
 
 	/* vérifie la compatibilité des arguments pour déterminer
-	 * s'il y aura besoin d'une conversion. */
+	 * s'il y aura besoin d'une transformation. */
 	auto nombre_type_retour = 0l;
-	auto dt_params = donnees_types_parametres(contexte.magasin_types, dt_fonc, nombre_type_retour);
+	auto dt_params = donnees_types_parametres(contexte.typeuse, dt_fonc, nombre_type_retour);
 
 	auto enfant = b->enfants.debut();
 
@@ -357,16 +300,31 @@ static auto valide_appel_pointeur_fonction(
 
 	/* Validation des types passés en paramètre. */
 	for (auto i = debut_params; i < dt_params.taille() - nombre_type_retour; ++i) {
-		auto &type_prm = contexte.magasin_types.donnees_types[dt_params[i]];
-		auto &type_enf = contexte.magasin_types.donnees_types[(*enfant)->index_type];
+		auto index_type_prm = dt_params[i];
+		auto index_type_enf = (*enfant)->index_type;
+		auto &type_prm = contexte.typeuse[dt_params[i]];
 
 		if (type_prm.type_base() == id_morceau::TROIS_POINTS) {
-			verifie_compatibilite(b, contexte, type_prm.dereference(), type_enf, *enfant);
-		}
-		else {
-			verifie_compatibilite(b, contexte, type_prm, type_enf, *enfant);
+			index_type_prm = contexte.typeuse.type_dereference_pour(index_type_prm);
 		}
 
+		auto transformation = cherche_transformation(
+					contexte,
+					index_type_enf,
+					index_type_prm);
+
+		if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+			auto &type_enf = contexte.typeuse[(*enfant)->index_type];
+
+			erreur::lance_erreur_type_arguments(
+						type_prm,
+						type_enf,
+						contexte,
+						(*enfant)->morceau,
+						b->morceau);
+		}
+
+		(*enfant)->transformation = transformation;
 		++enfant;
 	}
 
@@ -387,9 +345,10 @@ static void valide_acces_membre(
 	performe_validation_semantique(structure, contexte, expr_gauche);
 
 	auto const &index_type = structure->index_type;
-	auto type_structure = contexte.magasin_types.donnees_types[index_type];
+	auto type_structure = contexte.typeuse[index_type];
 
-	if (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
+	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
+	while (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
 		type_structure = type_structure.dereference();
 	}
 
@@ -449,12 +408,12 @@ static void valide_acces_membre(
 
 	if (type_structure.type_base() == id_morceau::CHAINE) {
 		if (membre->chaine() == "taille") {
-			b->index_type = contexte.magasin_types[TYPE_Z64];
+			b->index_type = contexte.typeuse[TypeBase::Z64];
 			return;
 		}
 
 		if (membre->chaine() == "pointeur") {
-			b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
+			b->index_type = contexte.typeuse[TypeBase::PTR_Z8];
 			return;
 		}
 
@@ -463,18 +422,13 @@ static void valide_acces_membre(
 
 	if (type_structure.type_base() == id_morceau::EINI) {
 		if (membre->chaine() == "info") {
-			auto id_info_type = contexte.donnees_structure("InfoType").id;
-
-			auto dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::POINTEUR);
-			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(id_info_type << 8));
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			auto const &ds = contexte.donnees_structure("InfoType");
+			b->index_type = contexte.typeuse.type_pointeur_pour(ds.index_type);
 			return;
 		}
 
 		if (membre->chaine() == "pointeur") {
-			b->index_type = contexte.magasin_types[TYPE_PTR_Z8];
+			b->index_type = contexte.typeuse[TypeBase::PTR_Z8];
 			return;
 		}
 
@@ -492,16 +446,12 @@ static void valide_acces_membre(
 		}
 #endif
 		if (membre->chaine() == "pointeur") {
-			auto dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::POINTEUR);
-			dt.pousse(type_structure.dereference());
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.typeuse.type_pointeur_pour(contexte.typeuse.type_dereference_pour(index_type));
 			return;
 		}
 
 		if (membre->chaine() == "taille") {
-			b->index_type = contexte.magasin_types[TYPE_Z64];
+			b->index_type = contexte.typeuse[TypeBase::Z64];
 			return;
 		}
 
@@ -558,8 +508,13 @@ static void valide_acces_membre(
 		return;
 	}
 
+	auto flux = dls::flux_chaine();
+	flux << "Impossible d'accéder au membre d'un objet n'étant pas une structure";
+	flux << ", le type est ";
+	flux << chaine_type(type_structure, contexte);
+
 	erreur::lance_erreur(
-				"Impossible d'accéder au membre d'un objet n'étant pas une structure",
+				flux.chn(),
 				contexte,
 				structure->donnees_morceau(),
 				erreur::type_erreur::TYPE_DIFFERENTS);
@@ -771,18 +726,10 @@ void performe_validation_semantique(
 				donnees_var.index_type = index_dt;
 				donnees_var.est_argument = true;
 
-				auto dt = contexte.magasin_types.donnees_types[argument.index_type];
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
-					dt = dt.dereference();
-					donnees_var.index_type = contexte.magasin_types.ajoute_type(dt);
-				}
-
 				contexte.pousse_locale(argument.nom, donnees_var);
 
 				if (argument.est_employe) {
-					auto &dt_var = contexte.magasin_types.donnees_types[argument.index_type];
+					auto &dt_var = contexte.typeuse[argument.index_type];
 					auto id_structure = 0l;
 
 					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
@@ -925,36 +872,35 @@ void performe_validation_semantique(
 
 			/* met en place les drapeaux sur les enfants */
 
-			auto i = 0l;
 			auto nombre_args_simples = candidate->exprs.taille();
 			auto nombre_args_variadics = nombre_args_simples;
 
 			if (!candidate->exprs.est_vide() && candidate->exprs.back()->type == type_noeud::TABLEAU) {
 				/* ne compte pas le tableau */
 				nombre_args_simples -= 1;
-				nombre_args_variadics = candidate->drapeaux.taille();
+				nombre_args_variadics = candidate->transformations.taille();
 
 				/* ajoute le type du tableau */
 				auto noeud_tabl = candidate->exprs.back();
 				auto taille_tableau = noeud_tabl->enfants.taille();
-				auto &type_tabl = contexte.magasin_types.donnees_types[noeud_tabl->index_type];
+				auto &type_tabl = contexte.typeuse[noeud_tabl->index_type];
 
 				auto dt_tfixe = DonneesTypeFinal{};
 				dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
 				dt_tfixe.pousse(type_tabl);
 
-				auto idx_dt_tfixe = contexte.magasin_types.ajoute_type(dt_tfixe);
+				auto idx_dt_tfixe = contexte.typeuse.ajoute_type(dt_tfixe);
 
 				if (fonction_courante != nullptr) {
 					fonction_courante->types_utilises.insere(idx_dt_tfixe);
 				}
 			}
 
+			auto i = 0l;
 			/* les drapeaux pour les arguments simples */
 			for (; i < nombre_args_simples; ++i) {
-				auto ncompat = candidate->drapeaux[i];
 				auto enfant = candidate->exprs[i];
-				drapeau_depuis_niveau_compat(enfant, ncompat);
+				enfant->transformation = candidate->transformations[i];
 			}
 
 			/* les drapeaux pour les arguments variadics */
@@ -963,9 +909,8 @@ void performe_validation_semantique(
 				auto enfant_tabl = noeud_tableau->enfants.debut();
 
 				for (; i < nombre_args_variadics; ++i) {
-					auto ncompat = candidate->drapeaux[i];
 					auto enfant = *enfant_tabl++;
-					drapeau_depuis_niveau_compat(enfant, ncompat);
+					enfant->transformation = candidate->transformations[i];
 				}
 			}
 
@@ -1031,12 +976,6 @@ void performe_validation_semantique(
 								"Ne peut pas assigner une variable globale externe dans sa déclaration",
 								contexte,
 								b->morceau);
-				}
-
-				auto &dt = contexte.magasin_types.donnees_types[donnees_var.index_type];
-
-				if (dt.type_base() == id_morceau::REFERENCE) {
-					donnees_var.drapeaux |= BESOIN_DEREF;
 				}
 
 				if (fonction_courante == nullptr) {
@@ -1290,7 +1229,7 @@ void performe_validation_semantique(
 				auto &dt_fonc = trouve_donnees_type(contexte, idx_dt_fonc);
 
 				auto nombre_type_retour = 0l;
-				auto dt_params = donnees_types_parametres(contexte.magasin_types, dt_fonc, nombre_type_retour);
+				auto dt_params = donnees_types_parametres(contexte.typeuse, dt_fonc, nombre_type_retour);
 
 				if (feuilles.taille() != nombre_type_retour) {
 					erreur::lance_erreur(
@@ -1357,10 +1296,17 @@ void performe_validation_semantique(
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
 			}
 
-			auto const &type_gauche = trouve_donnees_type(contexte, variable);
-
 			if (variable->index_type != expression->index_type) {
-				auto op = cherche_operateur(contexte.operateurs, variable->index_type, expression->index_type, id_morceau::EGAL);
+				auto candidats = cherche_candidats_operateurs(contexte, variable->index_type, expression->index_type, id_morceau::EGAL);
+				auto op = static_cast<DonneesOperateur const *>(nullptr);
+				auto poids = 0.0;
+
+				for (auto const &candidat : candidats) {
+					if (candidat.poids > poids) {
+						poids = candidat.poids;
+						op = candidat.op;
+					}
+				}
 
 				if (op != nullptr) {
 					//erreur::lance_erreur_type_operation(contexte, b);
@@ -1370,28 +1316,27 @@ void performe_validation_semantique(
 				}
 			}
 
-			auto const niveau_compat = sont_compatibles(type_gauche, dt, expression->type);
+			auto transformation = cherche_transformation(
+						contexte,
+						expression->index_type,
+						variable->index_type);
 
-			b->valeur_calculee = niveau_compat;
-
-			if (niveau_compat == niveau_compat::aucune) {
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 				erreur::lance_erreur_assignation_type_differents(
-							type_gauche,
-							dt,
+							contexte.typeuse[variable->index_type],
+							contexte.typeuse[expression->index_type],
 							contexte,
 							b->morceau);
 			}
 
-			if (niveau_compat == niveau_compat::prend_reference) {
-				expression->drapeaux |= PREND_REFERENCE;
-			}
+			expression->transformation = transformation;
 
 			break;
 		}
 		case type_noeud::NOMBRE_REEL:
 		{
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types[TYPE_R64];
+			b->index_type = contexte.typeuse[TypeBase::R64];
 
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
@@ -1402,7 +1347,7 @@ void performe_validation_semantique(
 		case type_noeud::NOMBRE_ENTIER:
 		{
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types[TYPE_Z32];
+			b->index_type = contexte.typeuse[TypeBase::Z32];
 
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
@@ -1417,7 +1362,7 @@ void performe_validation_semantique(
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			/* À FAIRE : conversion automatique */
+			/* À FAIRE : transformation automatique */
 
 			performe_validation_semantique(enfant1, contexte, expr_gauche);
 			performe_validation_semantique(enfant2, contexte, expr_gauche);
@@ -1425,8 +1370,8 @@ void performe_validation_semantique(
 			auto index_type1 = enfant1->index_type;
 			auto index_type2 = enfant2->index_type;
 
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-			auto const &type2 = contexte.magasin_types.donnees_types[index_type2];
+			auto type1 = contexte.typeuse[index_type1];
+			auto const &type2 = contexte.typeuse[index_type2];
 
 			/* tentative de faire fonctionner les expressions de type : a - 1, où
 			 * a n'est pas z32. Il faudrait peut-être donner des indices aux
@@ -1473,18 +1418,23 @@ void performe_validation_semantique(
 			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {
 				/* À FAIRE : trouve l'opérateur */
 				b->type = type_noeud::OPERATION_COMP_CHAINEE;
-				b->index_type = contexte.magasin_types[TYPE_BOOL];
+				b->index_type = contexte.typeuse[TypeBase::BOOL];
 			}
 			else if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
 				b->type = type_noeud::ACCES_TABLEAU;
 				b->type_valeur = TypeValeur::TRANSCENDANTALE;
+
+				if (type1.type_base() == id_morceau::REFERENCE) {
+					enfant1->transformation = TypeTransformation::DEREFERENCE;
+					type1 = type1.dereference();
+				}
 
 				auto type_base = type1.type_base();
 
 				switch (type_base & 0xff) {
 					case id_morceau::TABLEAU:
 					{
-						b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
+						b->index_type = contexte.typeuse.ajoute_type(type1.dereference());
 
 						auto taille_tableau = static_cast<int>(type_base >> 8);
 
@@ -1511,12 +1461,12 @@ void performe_validation_semantique(
 					}
 					case id_morceau::POINTEUR:
 					{
-						b->index_type = contexte.magasin_types.ajoute_type(type1.dereference());
+						b->index_type = contexte.typeuse.ajoute_type(type1.dereference());
 						break;
 					}
 					case id_morceau::CHAINE:
 					{
-						b->index_type = contexte.magasin_types[TYPE_Z8];
+						b->index_type = contexte.typeuse[TypeBase::Z8];
 						break;
 					}
 					default:
@@ -1534,14 +1484,6 @@ void performe_validation_semantique(
 				}
 			}
 			else {
-				if (type1.type_base() == id_morceau::POINTEUR) {
-					index_type1 = contexte.magasin_types[TYPE_PTR_NUL];
-				}
-
-				if (type2.type_base() == id_morceau::POINTEUR) {
-					index_type2 = contexte.magasin_types[TYPE_PTR_NUL];
-				}
-
 				auto type_op = b->morceau.identifiant;
 
 				if (est_assignation_operee(type_op)) {
@@ -1556,14 +1498,25 @@ void performe_validation_semantique(
 					type_op = operateur_pour_assignation_operee(type_op);
 				}
 
-				auto op = cherche_operateur(contexte.operateurs, index_type1, index_type2, type_op);
+				auto candidats = cherche_candidats_operateurs(contexte, index_type1, index_type2, type_op);
+				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+				auto poids = 0.0;
 
-				if (op == nullptr) {
+				for (auto const &candidat : candidats) {
+					if (candidat.poids > poids) {
+						poids = candidat.poids;
+						meilleur_candidat = &candidat;
+					}
+				}
+
+				if (meilleur_candidat == nullptr) {
 					erreur::lance_erreur_type_operation(contexte, b);
 				}
 
-				b->index_type = op->index_resultat;
-				b->op = op;
+				b->index_type = meilleur_candidat->op->index_resultat;
+				b->op = meilleur_candidat->op;
+				enfant1->transformation = meilleur_candidat->transformation_type1;
+				enfant2->transformation = meilleur_candidat->transformation_type2;
 			}
 
 			if (fonction_courante != nullptr) {
@@ -1579,7 +1532,14 @@ void performe_validation_semantique(
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte, expr_gauche);
 			auto index_type = enfant->index_type;
-			auto const &type = contexte.magasin_types.donnees_types[index_type];
+
+			auto dt = contexte.typeuse[index_type];
+
+			if (dt.type_base() == id_morceau::REFERENCE) {
+				enfant->transformation = TypeTransformation::DEREFERENCE;
+				dt = dt.dereference();
+				index_type = contexte.typeuse.ajoute_type(dt);
+			}
 
 			if (b->index_type == -1l) {
 				if (b->identifiant() == id_morceau::AROBASE) {
@@ -1590,11 +1550,8 @@ void performe_validation_semantique(
 									enfant->morceau);
 					}
 
-					auto dt = DonneesTypeFinal{};
-					dt.pousse(id_morceau::POINTEUR);
-					dt.pousse(type);
 
-					b->index_type = contexte.magasin_types.ajoute_type(dt);
+					b->index_type = contexte.typeuse.type_pointeur_pour(index_type);
 				}
 				else {
 					auto op = cherche_operateur_unaire(contexte.operateurs, index_type, b->identifiant());
@@ -1619,7 +1576,7 @@ void performe_validation_semantique(
 			b->type_valeur = TypeValeur::DROITE;
 
 			if (b->enfants.est_vide()) {
-				b->index_type = contexte.magasin_types[TYPE_RIEN];
+				b->index_type = contexte.typeuse[TypeBase::RIEN];
 
 				if (!fonction_courante->est_coroutine && (fonction_courante->idx_types_retours[0] != b->index_type)) {
 					erreur::lance_erreur(
@@ -1656,19 +1613,21 @@ void performe_validation_semantique(
 						auto f = feuilles[i];
 						performe_validation_semantique(f, contexte, false);
 
-						auto &dt_f = trouve_donnees_type(contexte, f);
-						auto &dt_i = contexte.magasin_types.donnees_types[fonction_courante->idx_types_retours[i]];
+						auto transformation = cherche_transformation(
+									contexte,
+									f->index_type,
+									fonction_courante->idx_types_retours[i]);
 
-						auto nc = sont_compatibles(dt_i, dt_f, f->type);
-
-						if (nc == niveau_compat::aucune) {
+						if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 							erreur::lance_erreur_type_retour(
-										dt_i,
-										dt_f,
+										contexte.typeuse[fonction_courante->idx_types_retours[0]],
+										contexte.typeuse[f->index_type],
 										contexte,
-										f->morceau,
+										enfant->morceau,
 										b->morceau);
 						}
+
+						f->transformation = transformation;
 
 						if (fonction_courante != nullptr) {
 							fonction_courante->types_utilises.insere(f->index_type);
@@ -1698,19 +1657,21 @@ void performe_validation_semantique(
 				b->index_type = enfant->index_type;
 				b->type = type_noeud::RETOUR_SIMPLE;
 
-				auto &dt_f = trouve_donnees_type(contexte, b);
-				auto &dt_i = contexte.magasin_types.donnees_types[fonction_courante->idx_types_retours[0]];
+				auto transformation = cherche_transformation(
+							contexte,
+							enfant->index_type,
+							fonction_courante->idx_types_retours[0]);
 
-				auto nc = sont_compatibles(dt_i, dt_f, enfant->type);
-
-				if (nc == niveau_compat::aucune) {
-					erreur::lance_erreur_type_retour(
-								dt_i,
-								dt_f,
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_type_arguments(
+								contexte.typeuse[fonction_courante->idx_types_retours[0]],
+								contexte.typeuse[enfant->index_type],
 								contexte,
 								enfant->morceau,
 								b->morceau);
 				}
+
+				enfant->transformation = transformation;
 			}
 
 			if (fonction_courante != nullptr) {
@@ -1741,7 +1702,7 @@ void performe_validation_semantique(
 			/* À FAIRE : ceci ne fonctionne pas dans le cas des noeuds différés
 			 * où la valeur calculee est redéfinie. */
 			b->valeur_calculee = corrigee;
-			b->index_type = contexte.magasin_types[TYPE_CHAINE];
+			b->index_type = contexte.typeuse[TypeBase::CHAINE];
 			b->type_valeur = TypeValeur::DROITE;
 
 			if (fonction_courante != nullptr) {
@@ -1753,7 +1714,7 @@ void performe_validation_semantique(
 		case type_noeud::BOOLEEN:
 		{
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types[TYPE_BOOL];
+			b->index_type = contexte.typeuse[TypeBase::BOOL];
 
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
@@ -1764,7 +1725,7 @@ void performe_validation_semantique(
 		case type_noeud::CARACTERE:
 		{
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types[TYPE_Z8];
+			b->index_type = contexte.typeuse[TypeBase::Z8];
 
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
@@ -1783,7 +1744,7 @@ void performe_validation_semantique(
 
 			performe_validation_semantique(enfant1, contexte, false);
 			auto index_type = enfant1->index_type;
-			auto const &type_condition = contexte.magasin_types.donnees_types[index_type];
+			auto const &type_condition = contexte.typeuse[index_type];
 
 			if (type_condition.type_base() != id_morceau::BOOL) {
 				erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
@@ -1818,7 +1779,7 @@ void performe_validation_semantique(
 			valides_enfants(b, contexte, true);
 
 			if (b->enfants.est_vide()) {
-				b->index_type = contexte.magasin_types[TYPE_RIEN];
+				b->index_type = contexte.typeuse[TypeBase::RIEN];
 			}
 			else {
 				b->index_type = b->enfants.back()->index_type;
@@ -1875,8 +1836,7 @@ void performe_validation_semantique(
 			auto requiers_index = feuilles.taille() == 2;
 
 			auto index_type = enfant2->index_type;
-			auto &type = contexte.magasin_types.donnees_types[index_type];
-			auto drapeaux = static_cast<char>(0);
+			auto &type = contexte.typeuse[index_type];
 
 			/* NOTE : nous testons le type des noeuds d'abord pour ne pas que le
 			 * type de retour d'une coroutine n'interfère avec le type d'une
@@ -1912,7 +1872,7 @@ void performe_validation_semantique(
 			}
 			else {
 				if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
-					index_type = contexte.magasin_types.ajoute_type(type.dereference());
+					index_type = contexte.typeuse.type_reference_pour(contexte.typeuse.type_dereference_pour(index_type));
 
 					if (requiers_index) {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;
@@ -1920,11 +1880,9 @@ void performe_validation_semantique(
 					else {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
 					}
-
-					drapeaux = BESOIN_DEREF;
 				}
 				else if (type.type_base() == id_morceau::CHAINE) {
-					index_type = contexte.magasin_types[TYPE_Z8];
+					index_type = contexte.typeuse[TypeBase::REF_Z8];
 					enfant1->index_type = index_type;
 
 					if (requiers_index) {
@@ -1933,8 +1891,6 @@ void performe_validation_semantique(
 					else {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
 					}
-
-					drapeaux = BESOIN_DEREF;
 				}
 				else {
 					auto valeur = contexte.est_locale_variadique(enfant2->chaine());
@@ -1965,7 +1921,6 @@ void performe_validation_semantique(
 					donnees_var.index_type = index_type;
 				}
 
-				donnees_var.drapeaux = drapeaux;
 				donnees_var.est_dynamique = est_dynamique;
 
 				contexte.pousse_locale(f->chaine(), donnees_var);
@@ -1974,12 +1929,11 @@ void performe_validation_semantique(
 			if (requiers_index) {
 				auto idx = feuilles.back();
 
-				index_type = contexte.magasin_types[TYPE_Z32];
+				index_type = contexte.typeuse[TypeBase::Z32];
 				idx->index_type = index_type;
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.index_type = index_type;
-				donnees_var.drapeaux = 0;
 				donnees_var.est_dynamique = est_dynamique;
 
 				contexte.pousse_locale(idx->chaine(), donnees_var);
@@ -2045,7 +1999,7 @@ void performe_validation_semantique(
 		case type_noeud::NUL:
 		{
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types[TYPE_PTR_NUL];
+			b->index_type = contexte.typeuse[TypeBase::PTR_NUL];
 			break;
 		}
 		case type_noeud::TAILLE_DE:
@@ -2053,7 +2007,7 @@ void performe_validation_semantique(
 			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
 			b->valeur_calculee = resoud_type_final(contexte, type_declare);
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types[TYPE_N32];
+			b->index_type = contexte.typeuse[TypeBase::N32];
 			valides_enfants(b, contexte, false);
 			break;
 		}
@@ -2078,8 +2032,8 @@ void performe_validation_semantique(
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
-			auto const &type_debut = contexte.magasin_types.donnees_types[index_type_debut];
-			auto const &type_fin   = contexte.magasin_types.donnees_types[index_type_fin];
+			auto const &type_debut = contexte.typeuse[index_type_debut];
+			auto const &type_fin   = contexte.typeuse[index_type_fin];
 
 			if (type_debut.est_invalide() || type_fin.est_invalide()) {
 				erreur::lance_erreur(
@@ -2200,7 +2154,7 @@ void performe_validation_semantique(
 			contexte.depile_goto_continue();
 			contexte.depile_goto_arrete();
 
-			auto &dt = contexte.magasin_types.donnees_types[enfant1->index_type];
+			auto &dt = contexte.typeuse[enfant1->index_type];
 
 			/* À FAIRE : tests */
 			if (dt.type_base() != id_morceau::BOOL) {
@@ -2243,7 +2197,7 @@ void performe_validation_semantique(
 			for (auto f : feuilles) {
 				/* À FAIRE : test */
 				if (f->index_type != type_feuille) {
-					auto dt_feuille0 = contexte.magasin_types.donnees_types[type_feuille];
+					auto dt_feuille0 = contexte.typeuse[type_feuille];
 					auto dt_feuille1 = trouve_donnees_type(contexte, f);
 
 					erreur::lance_erreur_assignation_type_differents(
@@ -2256,16 +2210,16 @@ void performe_validation_semantique(
 
 			DonneesTypeFinal dt;
 			dt.pousse(id_morceau::TABLEAU | static_cast<int>(feuilles.taille() << 8));
-			dt.pousse(contexte.magasin_types.donnees_types[type_feuille]);
+			dt.pousse(contexte.typeuse[type_feuille]);
 
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.typeuse.ajoute_type(dt);
 
 			/* ajoute également le type de pointeur pour la génération de code C */
 			dt = DonneesTypeFinal{};
 			dt.pousse(id_morceau::POINTEUR);
-			dt.pousse(contexte.magasin_types.donnees_types[type_feuille]);
+			dt.pousse(contexte.typeuse[type_feuille]);
 
-			auto index_type_ptr = contexte.magasin_types.ajoute_type(dt);
+			auto index_type_ptr = contexte.typeuse.ajoute_type(dt);
 
 			if (fonction_courante != nullptr) {
 				fonction_courante->types_utilises.insere(b->index_type);
@@ -2288,6 +2242,7 @@ void performe_validation_semantique(
 			}
 
 			auto &donnees_struct = contexte.donnees_structure(b->chaine());
+			b->index_type = donnees_struct.index_type;
 
 			if (donnees_struct.est_enum) {
 				erreur::lance_erreur(
@@ -2327,11 +2282,6 @@ void performe_validation_semantique(
 								b->morceau);
 				}
 			}
-
-			DonneesTypeFinal dt;
-			dt.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(donnees_struct.id) << 8));
-
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
 
 			for (auto enfant : b->enfants) {
 				performe_validation_semantique(enfant, contexte, false);
@@ -2418,13 +2368,8 @@ void performe_validation_semantique(
 			}
 
 			auto &ds = contexte.donnees_structure(nom_struct);
-
-			auto dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::POINTEUR);
-			dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
-
 			b->type_valeur = TypeValeur::DROITE;
-			b->index_type = contexte.magasin_types.ajoute_type(dt);
+			b->index_type = contexte.typeuse.type_pointeur_pour(ds.index_type);
 
 			break;
 		}
@@ -2435,7 +2380,7 @@ void performe_validation_semantique(
 
 			auto &dt_enfant = trouve_donnees_type(contexte, enfant);
 			b->type_valeur = TypeValeur::TRANSCENDANTALE;
-			b->index_type = contexte.magasin_types.ajoute_type(dt_enfant.dereference());
+			b->index_type = contexte.typeuse.ajoute_type(dt_enfant.dereference());
 
 			if (dt_enfant.type_base() != id_morceau::POINTEUR) {
 				erreur::lance_erreur(
@@ -2466,22 +2411,14 @@ void performe_validation_semantique(
 				b->drapeaux |= EST_CALCULE;
 				b->valeur_calculee = taille;
 
-				auto ndt = DonneesTypeFinal{};
-				ndt.pousse(id_morceau::TABLEAU);
-				ndt.pousse(dt.dereference());
-
-				b->index_type = contexte.magasin_types.ajoute_type(ndt);
+				b->index_type = contexte.typeuse.type_tableau_pour(contexte.typeuse.type_dereference_pour(b->index_type));
 			}
 			else if (dt.type_base() == id_morceau::CHAINE) {
 				performe_validation_semantique(*enfant++, contexte, false);
 				nombre_enfant -= 1;
 			}
 			else {
-				auto dt_loge = DonneesTypeFinal{};
-				dt_loge.pousse(id_morceau::POINTEUR);
-				dt_loge.pousse(dt);
-
-				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
+				b->index_type = contexte.typeuse.type_pointeur_pour(b->index_type);
 			}
 
 			if (nombre_enfant == 1) {
@@ -2510,15 +2447,14 @@ void performe_validation_semantique(
 				nombre_enfant -= 1;
 			}
 			else {
-				auto dt_loge = DonneesTypeFinal{};
-				dt_loge.pousse(id_morceau::POINTEUR);
-				dt_loge.pousse(dt);
-
-				b->index_type = contexte.magasin_types.ajoute_type(dt_loge);
+				b->index_type = contexte.typeuse.type_pointeur_pour(b->index_type);
 			}
 
-			if (enfant1->index_type != b->index_type) {
-				auto &dt_enf = contexte.magasin_types.donnees_types[enfant1->index_type];
+			/* pour les références */
+			auto transformation = cherche_transformation(contexte, enfant1->index_type, b->index_type);
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				auto &dt_enf = contexte.typeuse[enfant1->index_type];
 				erreur::lance_erreur_type_arguments(
 							dt,
 							dt_enf,
@@ -2526,6 +2462,8 @@ void performe_validation_semantique(
 							b->morceau,
 							enfant1->morceau);
 			}
+
+			enfant1->transformation = transformation;
 
 			if (nombre_enfant == 2) {
 				performe_validation_semantique(*enfant++, contexte, true);
@@ -2566,7 +2504,7 @@ void performe_validation_semantique(
 					if ((type_base & 0xff) == id_morceau::TABLEAU && type_base != id_morceau::TABLEAU) {
 						auto dt_deref = dt.dereference();
 
-						if (dt_deref == contexte.magasin_types.donnees_types[ds.index_type]) {
+						if (dt_deref == contexte.typeuse[ds.index_type]) {
 							erreur::lance_erreur(
 										"Ne peut inclure la structure dans elle-même par valeur",
 										contexte,
@@ -2671,22 +2609,21 @@ void performe_validation_semantique(
 							decl_membre->index_type = decl_expr->index_type;
 						}
 						else {
-							auto &dt_enf = contexte.magasin_types.donnees_types[decl_membre->index_type];
-							auto &dt_exp = contexte.magasin_types.donnees_types[decl_expr->index_type];
+							auto transformation = cherche_transformation(
+										contexte,
+										decl_expr->index_type,
+										decl_membre->index_type);
 
-							auto compat = sont_compatibles(
-										dt_enf,
-										dt_exp,
-										decl_expr->type);
-
-							if (compat != niveau_compat::ok) {
+							if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 								erreur::lance_erreur_type_arguments(
-											dt_enf,
-											dt_exp,
+											contexte.typeuse[decl_membre->index_type],
+											contexte.typeuse[decl_expr->index_type],
 											contexte,
 											decl_membre->morceau,
 											decl_expr->morceau);
 							}
+
+							decl_expr->transformation = transformation;
 						}
 					}
 
@@ -2988,9 +2925,11 @@ void performe_validation_semantique(
 			auto enfant = b->enfants.front();
 
 			/* À FAIRE : multiple types retours. */
-			auto idx_type_retour = fonction_courante->idx_types_retours[0];
-			if (enfant->index_type != fonction_courante->idx_types_retours[0]) {
-				auto const &dt_arg = contexte.magasin_types.donnees_types[idx_type_retour];
+			auto idx_type_retour = fonction_courante->idx_types_retours[0];			
+			auto transformation = cherche_transformation(contexte, enfant->index_type, idx_type_retour);
+
+			if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+				auto const &dt_arg = contexte.typeuse[idx_type_retour];
 				auto const &dt_enf = trouve_donnees_type(contexte, enfant);
 				erreur::lance_erreur_type_retour(
 							dt_arg,
@@ -2999,6 +2938,8 @@ void performe_validation_semantique(
 							enfant->morceau,
 							b->morceau);
 			}
+
+			enfant->transformation = transformation;
 
 			break;
 		}

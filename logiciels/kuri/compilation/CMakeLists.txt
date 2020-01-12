@@ -39,6 +39,7 @@ set(SOURCES
 	assembleuse_arbre.h
 	broyage.hh
 	contexte_generation_code.h
+	conversion_type_c.hh
 	coulisse_c.hh
     decoupeuse.h
 	donnees_type.h
@@ -50,6 +51,8 @@ set(SOURCES
 	morceaux.hh
 	operateurs.hh
 	outils_morceaux.hh
+	transformation_type.hh
+	typeuse.hh
 	validation_semantique.hh
 
 	analyseuse_grammaire.cc
@@ -57,6 +60,7 @@ set(SOURCES
 	assembleuse_arbre.cc
 	broyage.cc
 	contexte_generation_code.cc
+	conversion_type_c.cc
 	coulisse_c.cc
     decoupeuse.cc
 	donnees_type.cc
@@ -68,13 +72,15 @@ set(SOURCES
 	morceaux.cc
 	operateurs.cc
 	outils_morceaux.cc
+	transformation_type.cc
+	typeuse.cc
 	validation_semantique.cc
 )
 
 if(AVEC_LLVM)
 	list(APPEND INCLUSIONS ${LLVM_INCLUDE_DIR})
 	list(APPEND BIBLIOTHEQUES /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
-	list(APPEND SOURCES coulisse_llvm.cc coulisse_llvm.hh info_type.cc info_type.hh)
+	list(APPEND SOURCES coulisse_llvm.cc coulisse_llvm.hh info_type.cc info_type.hh conversion_type_llvm.cc conversion_type_llvm.hh)
 endif()
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

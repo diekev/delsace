@@ -269,7 +269,7 @@ dls::chaine const &nom_broye_type(
 		ContexteGenerationCode &contexte,
 		long index_type)
 {
-	auto &dt = contexte.magasin_types.donnees_types[index_type];
+	auto &dt = contexte.typeuse[index_type];
 	return nom_broye_type(contexte, dt);
 }
 

@@ -120,14 +120,14 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
     dyn their_addr : sockaddr_in;
     sin_family de their_addr = transtype(_AF_INET : n16);
     sin_port de their_addr = htons(port);
-    their_addr.sin_zero[0]= 0;
-    their_addr.sin_zero[1]= 0;
-    their_addr.sin_zero[2]= 0;
-    their_addr.sin_zero[3]= 0;
-    their_addr.sin_zero[4]= 0;
-    their_addr.sin_zero[5]= 0;
-    their_addr.sin_zero[6]= 0;
-    their_addr.sin_zero[7]= 0;
+    their_addr.sin_zero[0] = transtype(0 : n8);
+    their_addr.sin_zero[1] = transtype(0 : n8);
+    their_addr.sin_zero[2] = transtype(0 : n8);
+    their_addr.sin_zero[3] = transtype(0 : n8);
+    their_addr.sin_zero[4] = transtype(0 : n8);
+    their_addr.sin_zero[5] = transtype(0 : n8);
+    their_addr.sin_zero[6] = transtype(0 : n8);
+    their_addr.sin_zero[7] = transtype(0 : n8);
 
     x = he.h_addr_list[0];
     sin_addr de their_addr = mémoire(transtype(x : *in_addr));

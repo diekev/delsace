@@ -259,42 +259,29 @@ void importe_module(
 /* ************************************************************************** */
 
 static double verifie_compatibilite(
-		const DonneesTypeFinal &type_arg,
-		const DonneesTypeFinal &type_enf,
+		ContexteGenerationCode &contexte,
+		long idx_type_arg,
+		long idx_type_enf,
 		noeud::base *enfant,
-		niveau_compat &drapeau)
+		TransformationType &transformation)
 {
-	drapeau = sont_compatibles(type_arg, type_enf, enfant->type);
+	transformation = cherche_transformation(contexte, idx_type_enf, idx_type_arg);
 
-	if (drapeau == niveau_compat::aucune) {
+	if (transformation.type == TypeTransformation::INUTILE) {
+		return 1.0;
+	}
+
+	if (transformation.type == TypeTransformation::IMPOSSIBLE) {
 		return 0.0;
 	}
 
-	if ((drapeau & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-		return 0.5;
+	if (transformation.type == TypeTransformation::PREND_REFERENCE) {
+		return est_valeur_gauche(enfant->type_valeur) ? 1.0 : 0.0;
 	}
 
-	if ((drapeau & niveau_compat::converti_eini) != niveau_compat::aucune) {
-		return 0.5;
-	}
-
-	if ((drapeau & niveau_compat::extrait_chaine_c) != niveau_compat::aucune) {
-		return 0.5;
-	}
-
-	if ((drapeau & niveau_compat::converti_tableau_octet) != niveau_compat::aucune) {
-		return 0.5;
-	}
-
-	if ((drapeau & niveau_compat::prend_reference) != niveau_compat::aucune) {
-		if (est_valeur_gauche(enfant->type_valeur)) {
-			return 1.0;
-		}
-
-		return 0.0;
-	}
-
-	return 1.0;
+	/* nous savons que nous devons transformer la valeur (par ex. eini), donc
+	 * donne un mi-poids à l'argument */
+	return 0.5;
 }
 
 static DonneesCandidate verifie_donnees_fonction(
@@ -437,8 +424,8 @@ static DonneesCandidate verifie_donnees_fonction(
 		noeud_tableau->drapeaux |= EST_CALCULE;
 
 		auto index_dt_var = donnees_fonction.args.back().index_type;
-		auto &dt_var = contexte.magasin_types.donnees_types[index_dt_var];
-		noeud_tableau->index_type = contexte.magasin_types.ajoute_type(dt_var.dereference());
+		auto &dt_var = contexte.typeuse[index_dt_var];
+		noeud_tableau->index_type = contexte.typeuse.ajoute_type(dt_var.dereference());
 
 		enfants[index_premier_var_arg] = noeud_tableau;
 	}
@@ -448,8 +435,8 @@ static DonneesCandidate verifie_donnees_fonction(
 	auto nombre_arg_variadic = 0l;
 	auto nombre_arg_variadic_drapeau = 0l;
 
-	dls::tableau<niveau_compat> drapeaux;
-	drapeaux.redimensionne(exprs.taille());
+	dls::tableau<TransformationType> transformations;
+	transformations.redimensionne(exprs.taille());
 
 	for (auto const &nom : noms_arguments) {
 		/* Pas la peine de vérifier qu'iter n'est pas égal à la fin de la table
@@ -458,15 +445,16 @@ static DonneesCandidate verifie_donnees_fonction(
 		auto index_arg = std::distance(donnees_fonction.args.debut(), iter);
 		auto const index_type_arg = iter->index_type;
 		auto const index_type_enf = (*enfant)->index_type;
-		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.magasin_types.donnees_types[index_type_arg];
-		auto const &type_enf = contexte.magasin_types.donnees_types[index_type_enf];
+		auto const &type_arg = (index_type_arg == -1l) ? DonneesTypeFinal{} : contexte.typeuse[index_type_arg];
+		auto const &type_enf = contexte.typeuse[index_type_enf];
 
 		/* À FAIRE : arguments variadics : comment les passer d'une
 		 * fonction à une autre. */
 		if (iter->est_variadic) {
 			if (!est_invalide(type_arg.dereference())) {
-				auto drapeau = niveau_compat::ok;
-				poids_args *= verifie_compatibilite(type_arg.dereference(), type_enf, *enfant, drapeau);
+				auto drapeau = TransformationType();
+				auto index_type_deref = contexte.typeuse.type_dereference_pour(index_type_arg);
+				poids_args *= verifie_compatibilite(contexte, index_type_deref, index_type_enf, *enfant, drapeau);
 
 				if (poids_args == 0.0) {
 					poids_args = 0.0;
@@ -479,30 +467,30 @@ static DonneesCandidate verifie_donnees_fonction(
 
 				if (noeud_tableau) {
 					noeud_tableau->ajoute_noeud(*enfant);
-					drapeaux[index_arg + nombre_arg_variadic_drapeau] = drapeau;
+					transformations[index_arg + nombre_arg_variadic_drapeau] = drapeau;
 					++nombre_arg_variadic_drapeau;
 				}
 				else {
 					enfants[index_arg + nombre_arg_variadic] = *enfant;
-					drapeaux[index_arg + nombre_arg_variadic_drapeau] = drapeau;
+					transformations[index_arg + nombre_arg_variadic_drapeau] = drapeau;
 					++nombre_arg_variadic;
 					++nombre_arg_variadic_drapeau;
 				}
 			}
 			else {
 				enfants[index_arg + nombre_arg_variadic] = *enfant;
-				drapeaux[index_arg + nombre_arg_variadic_drapeau] = niveau_compat::ok;
+				transformations[index_arg + nombre_arg_variadic_drapeau] = TransformationType();
 				++nombre_arg_variadic;
 				++nombre_arg_variadic_drapeau;
 			}
 		}
 		else {
-			auto drapeau = niveau_compat::ok;
+			auto transformation = TransformationType();
 
 			/* il est possible que le type final ne soit pas encore résolu car
 			 * la déclaration de la candidate n'a pas encore été validée */
 			if (!est_invalide(type_arg.plage())) {
-				poids_args *= verifie_compatibilite(type_arg, type_enf, *enfant, drapeau);
+				poids_args *= verifie_compatibilite(contexte, index_type_arg, index_type_enf, *enfant, transformation);
 			}
 
 			if (poids_args == 0.0) {
@@ -515,7 +503,7 @@ static DonneesCandidate verifie_donnees_fonction(
 			}
 
 			enfants[index_arg] = *enfant;
-			drapeaux[index_arg] = drapeau;
+			transformations[index_arg] = transformation;
 		}
 
 		++enfant;
@@ -525,7 +513,7 @@ static DonneesCandidate verifie_donnees_fonction(
 	res.poids_args = poids_args;
 	res.exprs = enfants;
 	res.etat = FONCTION_TROUVEE;
-	res.drapeaux = drapeaux;
+	res.transformations = transformations;
 
 	return res;
 }

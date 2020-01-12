@@ -24,9 +24,12 @@
 
 #pragma once
 
+#include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
+
+#include "transformation_type.hh"
 
 enum class id_morceau : unsigned int;
 struct ContexteGenerationCode;
@@ -71,12 +74,6 @@ struct Operateurs {
 	void ajoute_operateur_basique_enum(long index_type);
 };
 
-const DonneesOperateur *cherche_operateur(
-	Operateurs const &operateurs,
-	long index_type1,
-	long index_type2,
-	id_morceau type_op);
-
 DonneesOperateur const *cherche_operateur_unaire(
 		Operateurs const &operateurs,
 		long index_type1,
@@ -85,3 +82,19 @@ DonneesOperateur const *cherche_operateur_unaire(
 void enregistre_operateurs_basiques(
 	ContexteGenerationCode &contexte,
 	Operateurs &operateurs);
+
+struct OperateurCandidat {
+	DonneesOperateur const *op = nullptr;
+	TransformationType transformation_type1{};
+	TransformationType transformation_type2{};
+	double poids = 0.0;
+	bool inverse_operandes = false;
+
+	COPIE_CONSTRUCT(OperateurCandidat);
+};
+
+dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
+		ContexteGenerationCode const &contexte,
+		long index_type1,
+		long index_type2,
+		id_morceau type_op);

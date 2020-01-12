@@ -44,7 +44,7 @@ struct GeneratriceCodeC {
 
 	void declare_variable(long type, dls::chaine const &nom, dls::chaine const &expr)
 	{
-		declare_variable(contexte.magasin_types.donnees_types[type], nom, expr);
+		declare_variable(contexte.typeuse[type], nom, expr);
 	}
 
 	void declare_variable(DonneesTypeFinal &type, dls::chaine const &nom, dls::chaine const &expr)

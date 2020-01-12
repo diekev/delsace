@@ -24,22 +24,6 @@
 
 #pragma once
 
-#ifdef AVEC_LLVM
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-#include <llvm/ADT/SmallVector.h>
-#pragma GCC diagnostic pop
-
-namespace llvm {
-class Type;
-}
-#endif
-
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/flux_chaine.hh"
@@ -341,182 +325,13 @@ struct hash<DonneesTypeFinal> {
 
 /* ************************************************************************** */
 
-enum {
-	TYPE_N8,
-	TYPE_N16,
-	TYPE_N32,
-	TYPE_N64,
-	TYPE_N128,
-	TYPE_Z8,
-	TYPE_Z16,
-	TYPE_Z32,
-	TYPE_Z64,
-	TYPE_Z128,
-	TYPE_R16,
-	TYPE_R32,
-	TYPE_R64,
-	TYPE_R128,
-	TYPE_EINI,
-	TYPE_CHAINE,
-	TYPE_RIEN,
-	TYPE_BOOL,
-	TYPE_OCTET,
-
-	TYPE_PTR_N8,
-	TYPE_PTR_N16,
-	TYPE_PTR_N32,
-	TYPE_PTR_N64,
-	TYPE_PTR_N128,
-	TYPE_PTR_Z8,
-	TYPE_PTR_Z16,
-	TYPE_PTR_Z32,
-	TYPE_PTR_Z64,
-	TYPE_PTR_Z128,
-	TYPE_PTR_R16,
-	TYPE_PTR_R32,
-	TYPE_PTR_R64,
-	TYPE_PTR_R128,
-	TYPE_PTR_EINI,
-	TYPE_PTR_CHAINE,
-	TYPE_PTR_RIEN,
-	TYPE_PTR_NUL,
-	TYPE_PTR_BOOL,
-	TYPE_PTR_OCTET,
-
-	TYPE_REF_N8,
-	TYPE_REF_N16,
-	TYPE_REF_N32,
-	TYPE_REF_N64,
-	TYPE_REF_N128,
-	TYPE_REF_Z8,
-	TYPE_REF_Z16,
-	TYPE_REF_Z32,
-	TYPE_REF_Z64,
-	TYPE_REF_Z128,
-	TYPE_REF_R16,
-	TYPE_REF_R32,
-	TYPE_REF_R64,
-	TYPE_REF_R128,
-	TYPE_REF_EINI,
-	TYPE_REF_CHAINE,
-	TYPE_REF_RIEN,
-	TYPE_REF_NUL,
-	TYPE_REF_BOOL,
-
-	TYPE_TABL_N8,
-	TYPE_TABL_N16,
-	TYPE_TABL_N32,
-	TYPE_TABL_N64,
-	TYPE_TABL_N128,
-	TYPE_TABL_Z8,
-	TYPE_TABL_Z16,
-	TYPE_TABL_Z32,
-	TYPE_TABL_Z64,
-	TYPE_TABL_Z128,
-	TYPE_TABL_R16,
-	TYPE_TABL_R32,
-	TYPE_TABL_R64,
-	TYPE_TABL_R128,
-	TYPE_TABL_EINI,
-	TYPE_TABL_CHAINE,
-	TYPE_TABL_BOOL,
-	TYPE_TABL_OCTET,
-
-	TYPES_TOTAUX,
-};
-
-struct GrapheDependance;
-
-struct MagasinDonneesType {
-	dls::dico_desordonne<DonneesTypeFinal, long> donnees_type_index{};
-	dls::tableau<DonneesTypeFinal> donnees_types{};
-
-	GrapheDependance &graphe_dependance;
-
-	MagasinDonneesType(GrapheDependance &graphe);
-
-	long ajoute_type(const DonneesTypeFinal &donnees);
-
-	void converti_type_C(
-			ContexteGenerationCode &contexte,
-			dls::vue_chaine const &nom_variable,
-			type_plage_donnees_type donnees,
-			dls::flux_chaine &os,
-			bool echappe = false,
-			bool echappe_struct = false,
-			bool echappe_tableau_fixe = false);
-
-#ifdef AVEC_LLVM
-	llvm::Type *converti_type(
-			ContexteGenerationCode &contexte,
-			DonneesType const &donnees);
-
-	llvm::Type *converti_type(
-			ContexteGenerationCode &contexte,
-			size_t donnees);
-#endif
-
-	long operator[](int type);
-
-private:
-	dls::tableau<long> index_types_communs{};
-};
-
-/* ************************************************************************** */
-
-[[nodiscard]] auto donnees_types_parametres(
-		MagasinDonneesType &magasin,
-		const DonneesTypeFinal &donnees_type,
-		long &nombre_types_retour) noexcept(false) -> dls::tableau<long>;
-
-#ifdef AVEC_LLVM
-[[nodiscard]] llvm::Type *converti_type(
-		ContexteGenerationCode &contexte,
-		DonneesType &donnees_type);
-
-[[nodiscard]] llvm::Type *converti_type_simple(
-		ContexteGenerationCode &contexte,
-		const id_morceau &identifiant,
-		llvm::Type *type_entree);
-#endif
-
 [[nodiscard]] unsigned alignement(
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type);
 
-void cree_typedef(
-		ContexteGenerationCode &contexte,
-		DonneesTypeFinal &donnees,
-		dls::flux_chaine &os);
-
 void ajoute_contexte_programme(
 		ContexteGenerationCode &contexte,
 		DonneesTypeDeclare &dt);
-
-/* ************************************************************************** */
-
-enum class type_noeud : char;
-
-enum class niveau_compat : char {
-	aucune                 = (     0),
-	ok                     = (1 << 0),
-	converti_tableau       = (1 << 1),
-	converti_eini          = (1 << 2),
-	extrait_eini           = (1 << 3),
-	extrait_chaine_c       = (1 << 4),
-	converti_tableau_octet = (1 << 5),
-	prend_reference        = (1 << 6),
-};
-
-DEFINIE_OPERATEURS_DRAPEAU(niveau_compat, int)
-
-/**
- * Retourne le niveau de compatibilité entre les deux types spécifiés.
- */
-niveau_compat sont_compatibles(
-		const DonneesTypeFinal &type1,
-		const DonneesTypeFinal &type2,
-		type_noeud type_droite);
 
 /* ************************************************************************** */
 
