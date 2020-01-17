@@ -1482,7 +1482,7 @@ void genere_code_C(
 			generatrice.os << "pthread_mutex_t mutex_coro;\n";
 			generatrice.os << "pthread_cond_t cond_coro;\n";
 			generatrice.os << "bool __termine_coro;\n";
-			generatrice.os << "__contexte_global *contexte;\n";
+			generatrice.os << "ContexteProgramme *contexte;\n";
 
 			auto idx_ret = 0l;
 			for (auto idx : donnees_fonction->idx_types_retours) {
@@ -1503,7 +1503,7 @@ void genere_code_C(
 			generatrice.os << "static void *" << nom_fonction << "(\nvoid *data)\n";
 			generatrice.os << "{\n";
 			generatrice.os << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
-			generatrice.os << "__contexte_global *contexte = __etat->contexte;\n";
+			generatrice.os << "ContexteProgramme *contexte = __etat->contexte;\n";
 			generatrice.os << "KfTYPE_FONCTION_ALLOC __derniere_allocatrice = contexte->allocatrice;\n";
 
 			/* déclare les paramètres. */
@@ -3168,7 +3168,7 @@ void genere_code_C(
 	os << "typedef unsigned char bool;\n";
 	os << "typedef unsigned char octet;\n";
 	os << "typedef void Ksnul;\n";
-	os << "typedef struct __contexte_global Ks__contexte_global;\n";
+	os << "typedef struct ContexteProgramme KsContexteProgramme;\n";
 	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
 	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
 	 * typés */
@@ -3218,7 +3218,7 @@ int main(int argc, char **argv)
 	tabl_args.pointeur = argv;
 	tabl_args.taille = argc;
 
-	Ks__contexte_global contexte;
+	KsContexteProgramme contexte;
 )";
 
 	os << debut_main;

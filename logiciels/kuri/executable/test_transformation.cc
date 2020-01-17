@@ -97,7 +97,7 @@ int main()
 	auto contexte = ContexteGenerationCode();
 
 	auto ds_contexte = DonneesStructure();
-	contexte.ajoute_donnees_structure("__contexte_global", ds_contexte);
+	contexte.ajoute_donnees_structure("ContexteProgramme", ds_contexte);
 
 	auto &typeuse = contexte.typeuse;
 	contexte.index_type_contexte = typeuse.type_pointeur_pour(ds_contexte.index_type);

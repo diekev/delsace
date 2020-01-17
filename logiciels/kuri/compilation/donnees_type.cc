@@ -465,11 +465,11 @@ void ajoute_contexte_programme(ContexteGenerationCode &contexte, DonneesTypeDecl
 {
 	auto ds = DonneesStructure();
 
-	if (contexte.structure_existe("__contexte_global")) {
-		ds = contexte.donnees_structure("__contexte_global");
+	if (contexte.structure_existe("ContexteProgramme")) {
+		ds = contexte.donnees_structure("ContexteProgramme");
 	}
 	else {
-		contexte.ajoute_donnees_structure("__contexte_global", ds);
+		contexte.ajoute_donnees_structure("ContexteProgramme", ds);
 	}
 
 	dt.pousse(id_morceau::POINTEUR);

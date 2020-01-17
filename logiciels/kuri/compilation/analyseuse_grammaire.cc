@@ -1349,7 +1349,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
-	if (nom_structure == "__contexte_global") {
+	if (nom_structure == "ContexteProgramme") {
 		auto dt = DonneesTypeFinal();
 		dt.pousse(id_morceau::POINTEUR);
 		dt.pousse(m_contexte.typeuse[donnees_structure.index_type]);

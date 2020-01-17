@@ -59,7 +59,7 @@ fonc externe free(ptr : *rien) : rien
 # Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 # À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
 # cette structure.
-struct __contexte_global {
+struct ContexteProgramme {
     allocatrice = allocatrice_défaut
     données_allocatrice : *rien = nul
 }
