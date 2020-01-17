@@ -32,8 +32,6 @@
 #include "donnees_type.h"
 #include "transformation_type.hh"
 
-char caractere_echape(char const *sequence);
-
 struct ContexteGenerationCode;
 
 enum class type_noeud : char {

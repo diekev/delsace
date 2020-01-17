@@ -35,39 +35,6 @@ static void imprime_tab(std::ostream &os, int tab)
 	}
 }
 
-char caractere_echape(char const *sequence)
-{
-	switch (sequence[0]) {
-		case '\\':
-			switch (sequence[1]) {
-				case '\\':
-					return '\\';
-				case '\'':
-					return '\'';
-				case 'a':
-					return '\a';
-				case 'b':
-					return '\b';
-				case 'f':
-					return '\f';
-				case 'n':
-					return '\n';
-				case 'r':
-					return '\r';
-				case 't':
-					return '\t';
-				case 'v':
-					return '\v';
-				case '0':
-					return '\0';
-				default:
-					return sequence[1];
-			}
-		default:
-			return sequence[0];
-	}
-}
-
 /* ************************************************************************** */
 
 const char *chaine_type_noeud(type_noeud type)

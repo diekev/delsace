@@ -41,6 +41,39 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 namespace noeud {
 
+static char caractere_echape(char const *sequence)
+{
+	switch (sequence[0]) {
+		case '\\':
+			switch (sequence[1]) {
+				case '\\':
+					return '\\';
+				case '\'':
+					return '\'';
+				case 'a':
+					return '\a';
+				case 'b':
+					return '\b';
+				case 'f':
+					return '\f';
+				case 'n':
+					return '\n';
+				case 'r':
+					return '\r';
+				case 't':
+					return '\t';
+				case 'v':
+					return '\v';
+				case '0':
+					return '\0';
+				default:
+					return sequence[1];
+			}
+		default:
+			return sequence[0];
+	}
+}
+
 /* ************************************************************************** */
 
 static auto &trouve_donnees_type(ContexteGenerationCode const &contexte, long index)
