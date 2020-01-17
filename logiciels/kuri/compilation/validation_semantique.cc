@@ -204,6 +204,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 		case type_noeud::ACCES_MEMBRE_UNION:
 		case type_noeud::ACCES_MEMBRE_POINT:
 		case type_noeud::ACCES_TABLEAU:
+		case type_noeud::MEMOIRE:
 		{
 			return peut_etre_assigne(b->enfants.front(), contexte, emet_erreur);
 		}
