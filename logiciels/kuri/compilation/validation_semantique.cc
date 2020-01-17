@@ -285,7 +285,7 @@ static auto valide_appel_pointeur_fonction(
 	auto debut_params = 0l;
 
 	if (dt_params.taille() > 0) {
-		if (dt_params[0] == contexte.index_type_ctx) {
+		if (dt_params[0] == contexte.index_type_contexte) {
 			debut_params = 1;
 
 			auto fonc_courante = contexte.donnees_fonction;
@@ -707,11 +707,11 @@ void performe_validation_semantique(
 			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
 				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
-				donnees_var.index_type = contexte.index_type_ctx;
+				donnees_var.index_type = contexte.index_type_contexte;
 				donnees_var.est_argument = true;
 
-				contexte.pousse_locale("ctx", donnees_var);
-				donnees_fonction->types_utilises.insere(contexte.index_type_ctx);
+				contexte.pousse_locale("contexte", donnees_var);
+				donnees_fonction->types_utilises.insere(contexte.index_type_contexte);
 			}
 
 			/* Pousse les paramètres sur la pile. */

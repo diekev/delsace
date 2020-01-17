@@ -100,6 +100,7 @@ int main()
 	contexte.ajoute_donnees_structure("__contexte_global", ds_contexte);
 
 	auto &typeuse = contexte.typeuse;
+	contexte.index_type_contexte = typeuse.type_pointeur_pour(ds_contexte.index_type);
 
 	auto dt_tabl_fixe = DonneesTypeFinal{};
 	dt_tabl_fixe.pousse(id_morceau::TABLEAU | static_cast<id_morceau>(8 << 8));
@@ -138,11 +139,11 @@ int main()
 	verifie_transformation(typeuse, contexte, TypeBase::PTR_NUL, TypeBase::PTR_Z8, true);
 	verifie_transformation(typeuse, contexte, TypeBase::PTR_RIEN, TypeBase::PTR_Z8, true);
 
-	verifie_transformation(typeuse, contexte, typeuse[typeuse[TypeBase::PTR_NUL]], typeuse[contexte.index_type_ctx], true);
-	verifie_transformation(typeuse, contexte, typeuse[typeuse[TypeBase::PTR_RIEN]], typeuse[contexte.index_type_ctx], true);
+	verifie_transformation(typeuse, contexte, typeuse[typeuse[TypeBase::PTR_NUL]], typeuse[contexte.index_type_contexte], true);
+	verifie_transformation(typeuse, contexte, typeuse[typeuse[TypeBase::PTR_RIEN]], typeuse[contexte.index_type_contexte], true);
 
-	verifie_transformation(typeuse, contexte, typeuse[contexte.index_type_ctx], typeuse[typeuse[TypeBase::PTR_NUL]], true);
-	verifie_transformation(typeuse, contexte, typeuse[contexte.index_type_ctx], typeuse[typeuse[TypeBase::PTR_RIEN]], true);
+	verifie_transformation(typeuse, contexte, typeuse[contexte.index_type_contexte], typeuse[typeuse[TypeBase::PTR_NUL]], true);
+	verifie_transformation(typeuse, contexte, typeuse[contexte.index_type_contexte], typeuse[typeuse[TypeBase::PTR_RIEN]], true);
 
 	// test [4]z32 -> []z32 et [4]z32 -> eini
 	verifie_transformation(typeuse, contexte, TypeBase::TABL_N8, TypeBase::TABL_OCTET, true);

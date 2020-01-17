@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -262,6 +262,12 @@ static void genere_code_extra_pre_retour(
 		os << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
 		os << "pthread_cond_signal(&__etat->cond_boucle);\n";
 		os << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
+	}
+
+	if (!contexte.donnees_fonction->est_sans_contexte) {
+		os << "if (contexte->allocatrice != __derniere_allocatrice) {\n";
+		os << "    contexte->allocatrice  = __derniere_allocatrice;\n";
+		os << "}\n";
 	}
 
 	/* génère le code pour les blocs déférés */
@@ -797,7 +803,7 @@ static void cree_appel(
 
 		if (!df->est_externe && noeud_decl != nullptr && !dls::outils::possede_drapeau(noeud_decl->drapeaux, FORCE_NULCTX)) {
 			os << virgule;
-			os << "ctx";
+			os << "contexte";
 			virgule = ',';
 		}
 	}
@@ -988,15 +994,10 @@ static void genere_code_echec_logement(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		dls::chaine const &nom_ptr,
-		bool a_pointeur,
 		base *b,
 		base *bloc)
 {
-	generatrice.os << "if (" << nom_ptr;
-	if (a_pointeur) {
-		generatrice.os << ".pointeur ";
-	}
-	generatrice.os << " == 0)";
+	generatrice.os << "if (" << nom_ptr  << " == 0)";
 
 	if (bloc) {
 		genere_code_C(bloc, generatrice, contexte, true);
@@ -1128,6 +1129,176 @@ static void genere_declaration_structure(
 	donnees.deja_genere = true;
 }
 
+static void genere_code_allocation(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice,
+		DonneesTypeFinal &dt,
+		int mode,
+		base *b,
+		base *variable,
+		base *expression,
+		base *bloc_sinon)
+{
+	auto expr_nouvelle_taille_octet = dls::chaine("");
+	auto expr_ancienne_taille_octet = dls::chaine("");
+	auto expr_nouvelle_taille = dls::chaine("");
+	auto expr_acces_taille = dls::chaine("");
+	auto expr_pointeur = dls::chaine("");
+	auto chn_enfant = dls::chaine("");
+
+	/* variable n'est nul que pour les allocations simples */
+	if (variable != nullptr) {
+		assert(mode == 1 || mode == 2);
+		applique_transformation(variable, generatrice, contexte, true);
+		chn_enfant = variable->chaine_calculee();
+	}
+	else {
+		assert(mode == 0);
+		chn_enfant = generatrice.declare_variable_temp(dt, index++);
+	}
+
+	switch (dt.type_base()) {
+		case id_morceau::TABLEAU:
+		{
+			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+			auto &dt_deref = contexte.typeuse[index_dt];
+
+			expr_pointeur = chn_enfant + ".pointeur";
+			expr_acces_taille = chn_enfant + ".taille";
+			expr_ancienne_taille_octet = expr_acces_taille;
+			expr_ancienne_taille_octet += " * sizeof(" + nom_broye_type(contexte, dt_deref) + ")";
+
+			/* allocation ou réallocation */
+			if (!b->type_declare.expressions.est_vide()) {
+				expression = b->type_declare.expressions[0];
+				genere_code_C(expression, generatrice, contexte, false);
+				expr_nouvelle_taille = expression->chaine_calculee();
+				expr_nouvelle_taille_octet = expr_nouvelle_taille;
+				expr_nouvelle_taille_octet += " * sizeof(" + nom_broye_type(contexte, dt_deref) + ")";
+			}
+			/* désallocation */
+			else {
+				expr_nouvelle_taille = "0";
+				expr_nouvelle_taille_octet = "0";
+			}
+
+			expr_ancienne_taille_octet += " * sizeof(" + nom_broye_type(contexte, dt_deref) + ")";
+
+			break;
+		}
+		case id_morceau::CHAINE:
+		{
+			expr_pointeur = chn_enfant + ".pointeur";
+			expr_acces_taille = chn_enfant + ".taille";
+			expr_ancienne_taille_octet = expr_acces_taille;
+
+			/* allocation ou réallocation */
+			if (expression != nullptr) {
+				genere_code_C(expression, generatrice, contexte, false);
+				expr_nouvelle_taille = expression->chaine_calculee();
+				expr_nouvelle_taille_octet = expr_nouvelle_taille;
+			}
+			/* désallocation */
+			else {
+				expr_nouvelle_taille = "0";
+				expr_nouvelle_taille_octet = "0";
+			}
+
+			break;
+		}
+		default:
+		{
+			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+			auto &dt_deref = contexte.typeuse[index_dt];
+			expr_pointeur = chn_enfant;
+			expr_ancienne_taille_octet = "sizeof(" + nom_broye_type(contexte, dt_deref) + ")";
+
+			/* allocation ou réallocation */
+			expr_nouvelle_taille_octet = expr_ancienne_taille_octet;
+		}
+	}
+
+	// int mode = ...;
+	// long nouvelle_taille_octet = ...;
+	// long ancienne_taille_octet = ...;
+	// void *pointeur = ...;
+	// void *données = contexte->données_allocatrice;
+	// InfoType *info_type = ...;
+	// contexte->allocatrice(mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
+	auto const chn_index = dls::vers_chaine(index++);
+	auto const nom_nouvelle_taille = "nouvelle_taille" + chn_index;
+	auto const nom_ancienne_taille = "ancienne_taille" + chn_index;
+	auto const nom_ancien_pointeur = "ancien_pointeur" + chn_index;
+	auto const nom_nouveu_pointeur = "nouveu_pointeur" + chn_index;
+	auto const nom_info_type = "info_type" + chn_index;
+
+	generatrice.os << "long " << nom_nouvelle_taille << " = " << expr_nouvelle_taille_octet << ";\n";
+	generatrice.os << "long " << nom_ancienne_taille << " = " << expr_ancienne_taille_octet << ";\n";
+	generatrice.os << "InfoType *" << nom_info_type << " = (InfoType *)(&" << dt.ptr_info_type << ");\n";
+	generatrice.os << "void *" << nom_ancien_pointeur << " = " << expr_pointeur << ";\n";
+	generatrice.os << "void *" << nom_nouveu_pointeur << " = ";
+	generatrice.os << "contexte->allocatrice(";
+	generatrice.os << mode << ',';
+	generatrice.os << nom_nouvelle_taille << ',';
+	generatrice.os << nom_ancienne_taille << ',';
+	generatrice.os << nom_ancien_pointeur << ',';
+	generatrice.os << broye_nom_simple("contexte->données_allocatrice") << ',';
+	generatrice.os << nom_info_type << ");\n";
+	generatrice.os << expr_pointeur << " = " << nom_nouveu_pointeur << ";\n";
+
+	if (expr_acces_taille.taille() != 0) {
+		generatrice.os << expr_acces_taille << " = " << expr_nouvelle_taille <<  ";\n";
+	}
+
+	switch (mode) {
+		case 0:
+		{
+			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille << ";\n";
+			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
+			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
+
+			genere_code_echec_logement(
+						contexte,
+						generatrice,
+						expr_pointeur,
+						b,
+						bloc_sinon);
+
+			if (expr_acces_taille.taille() != 0) {
+				b->valeur_calculee = chn_enfant;
+			}
+			else {
+				b->valeur_calculee = expr_pointeur;
+			}
+
+			break;
+		}
+		case 1:
+		{
+			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
+			   << " - " << nom_ancienne_taille << ";\n";
+			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
+			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
+			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
+
+			genere_code_echec_logement(
+						contexte,
+						generatrice,
+						expr_pointeur,
+						b,
+						bloc_sinon);
+
+			break;
+		}
+		case 2:
+		{
+			generatrice.os << "__VG_memoire_utilisee__ -= " << expr_ancienne_taille_octet << ";\n";
+			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
+			break;
+		}
+	}
+}
+
 /* Génère le code C pour la base b passée en paramètre.
  *
  * Le code est généré en visitant d'abord les enfants des noeuds avant ceux-ci.
@@ -1188,6 +1359,7 @@ void genere_code_C(
 
 			/* Crée fonction */
 			auto nom_fonction = donnees_fonction->nom_broye;
+			donnees_fonction->est_sans_contexte = possede_drapeau(b->drapeaux, FORCE_NULCTX);
 
 			auto moult_retour = donnees_fonction->idx_types_retours.taille() > 1;
 
@@ -1227,18 +1399,18 @@ void genere_code_C(
 				virgule = ' ';
 			}
 
-			if (!donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+			if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
 				generatrice.os << virgule << '\n';
-				generatrice.os << "__contexte_global *ctx";
+				generatrice.os << nom_broye_type(contexte, contexte.index_type_contexte) << " contexte";
 				virgule = ',';
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
-				donnees_var.index_type = contexte.index_type_ctx;
+				donnees_var.index_type = contexte.index_type_contexte;
 				donnees_var.est_argument = true;
 
-				contexte.pousse_locale("ctx", donnees_var);
+				contexte.pousse_locale("contexte", donnees_var);
 			}
 
 			for (auto &argument : donnees_fonction->args) {
@@ -1268,6 +1440,14 @@ void genere_code_C(
 
 			generatrice.os << ")\n";
 
+			if (!donnees_fonction->est_sans_contexte) {
+				generatrice.os << "{\n";
+
+				auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
+				generatrice.os << nom_broye_type(contexte, df_fonc_alloc.index_type);
+				generatrice.os << " __derniere_allocatrice = contexte->allocatrice;\n";
+			}
+
 			/* Crée code pour le bloc. */
 			auto bloc = b->enfants.back();
 
@@ -1275,6 +1455,10 @@ void genere_code_C(
 
 			if (b->aide_generation_code == REQUIERS_CODE_EXTRA_RETOUR) {
 				genere_code_extra_pre_retour(contexte, generatrice, generatrice.os);
+			}
+
+			if (!donnees_fonction->est_sans_contexte) {
+				generatrice.os << "}\n";
 			}
 
 			contexte.termine_fonction();
@@ -1298,7 +1482,7 @@ void genere_code_C(
 			generatrice.os << "pthread_mutex_t mutex_coro;\n";
 			generatrice.os << "pthread_cond_t cond_coro;\n";
 			generatrice.os << "bool __termine_coro;\n";
-			generatrice.os << "__contexte_global *ctx;\n";
+			generatrice.os << "__contexte_global *contexte;\n";
 
 			auto idx_ret = 0l;
 			for (auto idx : donnees_fonction->idx_types_retours) {
@@ -1319,7 +1503,8 @@ void genere_code_C(
 			generatrice.os << "static void *" << nom_fonction << "(\nvoid *data)\n";
 			generatrice.os << "{\n";
 			generatrice.os << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
-			generatrice.os << "__contexte_global *ctx = __etat->ctx;\n";
+			generatrice.os << "__contexte_global *contexte = __etat->contexte;\n";
+			generatrice.os << "KfTYPE_FONCTION_ALLOC __derniere_allocatrice = contexte->allocatrice;\n";
 
 			/* déclare les paramètres. */
 			for (auto &argument : donnees_fonction->args) {
@@ -2264,7 +2449,7 @@ void genere_code_C(
 					generatrice.os << ".mutex_coro = PTHREAD_MUTEX_INITIALIZER,\n";
 					generatrice.os << ".cond_coro = PTHREAD_COND_INITIALIZER,\n";
 					generatrice.os << ".cond_boucle = PTHREAD_COND_INITIALIZER,\n";
-					generatrice.os << ".ctx = ctx,\n";
+					generatrice.os << ".contexte = contexte,\n";
 					generatrice.os << ".__termine_coro = 0\n";
 					generatrice.os << "};\n";
 
@@ -2666,289 +2851,68 @@ void genere_code_C(
 		case type_noeud::LOGE:
 		{
 			auto &dt = contexte.typeuse[b->index_type];
-			auto enfant = b->enfants.debut();
+			auto iter_enfant = b->enfants.debut();
 			auto nombre_enfant = b->enfants.taille();
-			auto a_pointeur = false;
-			auto nom_ptr_ret = dls::chaine("");
-			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
-
-			if (dt.type_base() == id_morceau::TABLEAU) {
-				auto expr = b->type_declare.expressions[0];
-
-				a_pointeur = true;
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-				auto nom_tabl = "__tabl" + dls::vers_chaine(b);
-				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
-
-				genere_code_C(expr, generatrice, contexte, false);
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							taille_tabl,
-							expr->chaine_calculee());
-
-				auto flux = dls::flux_chaine();
-				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.typeuse[index_dt];
-
-				auto expr_sizeof = "sizeof(" + nom_broye_type(contexte, dt_deref) + ") * " + taille_tabl;
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_taille,
-							expr_sizeof);
-
-				auto dt_ptr = DonneesTypeFinal{};
-				dt_ptr.pousse(id_morceau::POINTEUR);
-				dt_ptr.pousse(dt.dereference());
-
-				auto expr_m = generatrice.expression_malloc(dt_ptr, nom_taille);
-				generatrice.declare_variable(dt_ptr, nom_ptr, expr_m);
-
-				generatrice.declare_variable(dt, nom_tabl, "");
-				generatrice.os << nom_tabl << ".pointeur = " << nom_ptr << ";\n";
-				generatrice.os << nom_tabl << ".taille = " << taille_tabl << ";\n";
-
-				nom_ptr_ret = nom_tabl;
-			}
-			else if (dt.type_base() == id_morceau::CHAINE) {
-				a_pointeur = true;
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-				auto nom_chaine = "__chaine" + dls::vers_chaine(b);
-
-				auto enf = *enfant++;
-
-				/* Prépasse pour les accès de membres dans l'expression. */
-				genere_code_C(enf, generatrice, contexte, false);
-
-				auto flux = dls::flux_chaine();
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_taille,
-							enf->chaine_calculee());
-
-				nombre_enfant -= 1;
-
-				generatrice.os << "char *" << nom_ptr << " = (char *)(malloc(sizeof(char) * (";
-				generatrice.os << nom_taille << ")));\n";
-
-				generatrice.os << "chaine " << nom_chaine << ";\n";
-				generatrice.os << nom_chaine << ".pointeur = " << nom_ptr << ";\n";
-				generatrice.os << nom_chaine << ".taille = " << nom_taille << ";\n";
-
-				nom_ptr_ret = nom_chaine;
-			}
-			else {
-				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.typeuse[index_dt];
-				generatrice.os << "long " << nom_taille << " = sizeof(";
-				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
-
-				auto nom_ptr = "__ptr" + dls::vers_chaine(b);
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << ' ' << nom_ptr << " = (";
-				generatrice.os << nom_broye_type(contexte, dt);
-				generatrice.os << ")(malloc(" << nom_taille << "));\n";
-				/* À FAIRE : évite de mettre à zéro quand non-nécessaire */
-				generatrice.os << "memset(" << nom_ptr << ",0," << nom_taille << ");\n";
-
-				/* initialise la structure */
-				if ((dt_deref.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
-					cree_initialisation(
-								contexte,
-								generatrice,
-								dt_deref.plage(),
-								nom_ptr,
-								"->",
-								generatrice.os);
-				}
-
-				nom_ptr_ret = nom_ptr;
-			}
-
+			auto expression = static_cast<base *>(nullptr);
 			auto bloc_sinon = static_cast<base *>(nullptr);
 
 			if (nombre_enfant == 1) {
-				bloc_sinon = *enfant++;
+				auto enfant = *iter_enfant++;
+
+				if (enfant->type == type_noeud::BLOC) {
+					bloc_sinon = enfant;
+				}
+				else {
+					expression = enfant;
+				}
+			}
+			else if (nombre_enfant == 2) {
+				expression = *iter_enfant++;
+				bloc_sinon = *iter_enfant++;
 			}
 
-			genere_code_echec_logement(
-						contexte,
-						generatrice,
-						nom_ptr_ret,
-						a_pointeur,
-						b,
-						bloc_sinon);
-
-			generatrice.os << "__VG_memoire_utilisee__ += " << nom_taille << ";\n";
-			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-			b->valeur_calculee = nom_ptr_ret;
-
+			genere_code_allocation(contexte, generatrice, dt, 0, b, nullptr, expression, bloc_sinon);
 			break;
 		}
 		case type_noeud::DELOGE:
 		{
 			auto enfant = b->enfants.front();
 			auto &dt = contexte.typeuse[enfant->index_type];
-			auto nom_taille = "__taille_allouee" + dls::vers_chaine(index++);
 
-			genere_code_C(enfant, generatrice, contexte, true);
-			auto chn_enfant = enfant->chaine_calculee();
-
-			if (dt.type_base() == id_morceau::TABLEAU || dt.type_base() == id_morceau::CHAINE) {
-				generatrice.os << "long " << nom_taille << " = ";
-				generatrice.os << chn_enfant << ".taille";
-
-				if (dt.type_base() == id_morceau::TABLEAU) {
-					auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
-					auto &dt_deref = contexte.typeuse[index_dt];
-					generatrice.os << " * sizeof(" << nom_broye_type(contexte, dt_deref) << ")";
-				}
-
-				generatrice.os << ";\n";
-
-				generatrice.os << "free(" << chn_enfant << ".pointeur);\n";
-				generatrice.os << chn_enfant << ".pointeur = 0;\n";
-				generatrice.os << chn_enfant << ".taille = 0;\n";
-			}
-			else {
-				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
-				auto &dt_deref = contexte.typeuse[index_dt];
-
-				generatrice.os << "long " << nom_taille << " = sizeof(";
-				generatrice.os << nom_broye_type(contexte, dt_deref) << ");\n";
-				generatrice.os << "free(" << chn_enfant << ");\n";
-				generatrice.os << chn_enfant << " = 0;\n";
-			}
-
-			generatrice.os << "__VG_memoire_utilisee__ -= " << nom_taille << ";\n";
-			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
-
+			genere_code_allocation(contexte, generatrice, dt, 2, b, enfant, nullptr, nullptr);
 			break;
 		}
 		case type_noeud::RELOGE:
 		{
-			auto &dt_pointeur = contexte.typeuse[b->index_type];
-			auto enfant = b->enfants.debut();
-			auto enfant1 = *enfant++;
+			auto &dt = contexte.typeuse[b->index_type];
+			auto iter_enfant = b->enfants.debut();
 			auto nombre_enfant = b->enfants.taille();
-			auto a_pointeur = false;
-			auto nom_ptr_ret = dls::chaine("");
-			auto nom_ancienne_taille = "__ancienne_taille" + dls::vers_chaine(index++);
-			auto nom_nouvelle_taille = "__nouvelle_taille" + dls::vers_chaine(index++);
-
-			if (dt_pointeur.type_base() == id_morceau::TABLEAU) {
-				a_pointeur = true;
-				auto expr = b->type_declare.expressions[0];
-				auto taille_tabl = "__taille_tabl" + dls::vers_chaine(b);
-
-				genere_code_C(expr, generatrice, contexte, false);
-				applique_transformation(enfant1, generatrice, contexte, true);
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							taille_tabl,
-							expr->chaine_calculee());
-
-				nom_ptr_ret = enfant1->chaine_calculee();
-				auto acces_taille = nom_ptr_ret + ".taille";
-				auto acces_pointeur = nom_ptr_ret + ".pointeur";
-
-				auto index_dt = contexte.typeuse.ajoute_type(dt_pointeur.dereference());
-				auto &dt_deref = contexte.typeuse[index_dt];
-				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
-
-				auto expr_sizeof = "sizeof(" + chn_type_deref + ")";
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_ancienne_taille,
-							expr_sizeof + " * " + acces_taille);
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_nouvelle_taille,
-							expr_sizeof + " * " + taille_tabl);
-
-				generatrice.os << acces_pointeur << " = (" << chn_type_deref << " *)(realloc(";
-				generatrice.os << acces_pointeur << ", " << nom_nouvelle_taille << "));\n";
-				generatrice.os << acces_taille << " = " << taille_tabl << ";\n";
-			}
-			else if (dt_pointeur.type_base() == id_morceau::CHAINE) {
-				auto enfant2 = *enfant++;
-				nombre_enfant -= 1;
-				a_pointeur = true;
-
-				applique_transformation(enfant1, generatrice, contexte, true);
-				nom_ptr_ret = enfant1->chaine_calculee();
-				genere_code_C(enfant2, generatrice, contexte, true);
-
-				auto acces_taille = nom_ptr_ret + ".taille";
-				auto acces_pointeur = nom_ptr_ret + ".pointeur";
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_ancienne_taille,
-							acces_taille);
-
-				generatrice.os << "long " << nom_nouvelle_taille << " = sizeof(char) *";
-				generatrice.os << enfant2->chaine_calculee();
-				generatrice.os << ";\n";
-
-				generatrice.os << acces_pointeur << " = (char *)(realloc(";
-				generatrice.os << acces_pointeur << ", " << nom_nouvelle_taille<< "));\n";
-				generatrice.os << acces_taille << " = " << nom_nouvelle_taille << ";\n";
-			}
-			else {
-				auto index_dt = contexte.typeuse.ajoute_type(dt_pointeur.dereference());
-				auto &dt_deref = contexte.typeuse[index_dt];
-
-				auto const &chn_type_deref = nom_broye_type(contexte, dt_deref);
-
-				auto expr = "sizeof(" + chn_type_deref + ")";
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_ancienne_taille,
-							expr);
-
-				generatrice.declare_variable(
-							contexte.typeuse[TypeBase::Z64],
-							nom_nouvelle_taille,
-							nom_ancienne_taille);
-
-				applique_transformation(enfant1, generatrice, contexte, true);
-				nom_ptr_ret = enfant1->chaine_calculee();
-
-				generatrice.os << nom_ptr_ret;
-				generatrice.os << " = (" << nom_broye_type(contexte, dt_pointeur);
-				generatrice.os << ")(realloc(";
-				generatrice.os << nom_ptr_ret;
-				generatrice.os << ", sizeof(" << chn_type_deref << ")));\n";
-			}
-
+			auto variable = static_cast<base *>(nullptr);
+			auto expression = static_cast<base *>(nullptr);
 			auto bloc_sinon = static_cast<base *>(nullptr);
 
-			if (nombre_enfant == 2) {
-				bloc_sinon = *enfant++;
+			if (nombre_enfant == 1) {
+				variable = *iter_enfant;
+			}
+			else if (nombre_enfant == 2) {
+				variable = *iter_enfant++;
+
+				auto enfant = *iter_enfant++;
+
+				if (enfant->type == type_noeud::BLOC) {
+					bloc_sinon = enfant;
+				}
+				else {
+					expression = enfant;
+				}
+			}
+			else if (nombre_enfant == 3) {
+				variable = *iter_enfant++;
+				expression = *iter_enfant++;
+				bloc_sinon = *iter_enfant++;
 			}
 
-			genere_code_echec_logement(
-						contexte,
-						generatrice,
-						nom_ptr_ret,
-						a_pointeur,
-						b,
-						bloc_sinon);
-
-			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
-			   << " - " << nom_ancienne_taille << ";\n";
-			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
-
+			genere_code_allocation(contexte, generatrice, dt, 1, b, variable, expression, bloc_sinon);
 			break;
 		}
 		case type_noeud::DECLARATION_STRUCTURE:
@@ -3186,6 +3150,18 @@ void genere_code_C(
 		temps_validation += debut_validation.temps();
 	}
 
+	auto &graphe_dependance = contexte.graphe_dependance;
+	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction("principale");
+
+	if (noeud_fonction_principale == nullptr) {
+		erreur::fonction_principale_manquante();
+	}
+
+	/* met en place la dépendance sur la fonction d'allocation par défaut */
+	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
+	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
+
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
 	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
@@ -3199,7 +3175,6 @@ void genere_code_C(
 	os << "#define Kv ...\n";
 
 	auto debut_generation = dls::chrono::compte_seconde();
-	auto &graphe_dependance = contexte.graphe_dependance;
 
 	/* il faut d'abord créer le code pour les structures InfoType */
 	const char *noms_structs_infos_types[] = {
@@ -3232,14 +3207,31 @@ void genere_code_C(
 
 	reduction_transitive(graphe_dependance);
 
-	auto noeud = graphe_dependance.cherche_noeud_fonction("principale");
-
-	if (noeud == nullptr) {
-		erreur::fonction_principale_manquante();
-	}
-
 	debut_generation.commence();
-	traverse_graphe_pour_generation_code(contexte, generatrice, noeud);
+	traverse_graphe_pour_generation_code(contexte, generatrice, noeud_fonction_principale);
+
+	auto debut_main =
+R"(
+int main(int argc, char **argv)
+{
+	KtKPKsz8 tabl_args;
+	tabl_args.pointeur = argv;
+	tabl_args.taille = argc;
+
+	Ks__contexte_global contexte;
+)";
+
+	os << debut_main;
+	os << "contexte.allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
+	os << broye_nom_simple("contexte.données_allocatrice") << " = 0;\n";
+
+	auto fin_main =
+R"(
+	return principale(&contexte, tabl_args);
+}
+)";
+	os << fin_main;
+
 	temps_generation += debut_generation.temps();
 
 	contexte.temps_generation = temps_generation;

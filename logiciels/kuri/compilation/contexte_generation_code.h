@@ -163,7 +163,7 @@ struct ContexteGenerationCode {
 
 	DonneesFonction *donnees_fonction = nullptr;
 
-	long index_type_ctx = -1;
+	long index_type_contexte = -1;
 
 	bool bit32 = false;
 

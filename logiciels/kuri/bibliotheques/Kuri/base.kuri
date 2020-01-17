@@ -1,3 +1,5 @@
+charge "infos_types"
+
 # Ce fichier est utiliser pour définir des variables et fonctions de
 # bases (« connus par le compilateur ») que tous les modules doivent importer.
 # Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
@@ -22,11 +24,44 @@ externe __VG_nombre_reallocations__ : z64
 # Contient le nombre de fois que « déloge » a été appelé.
 externe __VG_nombre_deallocations__ : z64
 
+énum ModeAllocatrice : z32 {
+    ALLOUE,
+    RÉALLOUE,
+    DÉSALLOUE,
+}
+
+fonc externe malloc(taille : z64) : *rien
+fonc externe realloc(ptr : *rien, taille : z64) : *rien
+fonc externe free(ptr : *rien) : rien
+
+#!nulctx fonc allocatrice_défaut(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *rien,
+    info : *InfoType) : *rien
+{
+    discr mode {
+        ModeAllocatrice.ALLOUE {
+            retourne malloc(nouvelle_taille)
+        }
+        ModeAllocatrice.RÉALLOUE {
+            retourne realloc(ancien_pointeur, nouvelle_taille)
+        }
+        ModeAllocatrice.DÉSALLOUE {
+            free(ancien_pointeur)
+            retourne nul
+        }
+    }
+}
+
 # Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 # À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
-# cette structure. 
+# cette structure.
 struct __contexte_global {
-    compteur : z32
+    allocatrice = allocatrice_défaut
+    données_allocatrice : *rien = nul
 }
 
 # Fonction pour accéder à la variable __VG_memoire_utilisee__.

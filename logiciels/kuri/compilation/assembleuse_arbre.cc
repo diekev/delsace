@@ -202,27 +202,7 @@ void KR__acces_membre_union(
 
 	noeud::genere_code_C(m_pile.haut(), contexte_generation, fc_code);
 
-	auto debut_main =
-R"(
-int main(int argc, char **argv)
-{
-	KtKPKsz8 tabl_args;
-	tabl_args.pointeur = argv;
-	tabl_args.taille = argc;
-
-	__contexte_global ctx;
-	ctx.compteur = 0;
-)";
-
-	auto fin_main =
-R"(
-	return principale(&ctx, tabl_args);
-}
-)";
-
 	os << fc_code.chn();
-	os << debut_main;
-	os << fin_main;
 }
 
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)

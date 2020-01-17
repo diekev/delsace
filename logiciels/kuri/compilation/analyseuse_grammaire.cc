@@ -1349,6 +1349,13 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
+	if (nom_structure == "__contexte_global") {
+		auto dt = DonneesTypeFinal();
+		dt.pousse(id_morceau::POINTEUR);
+		dt.pousse(m_contexte.typeuse[donnees_structure.index_type]);
+		m_contexte.index_type_contexte = m_contexte.typeuse.ajoute_type(dt);
+	}
+
 	auto analyse_membres = true;
 
 	if (est_externe) {

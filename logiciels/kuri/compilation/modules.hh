@@ -63,6 +63,7 @@ struct DonneesFonction {
 	bool est_externe = false;
 	bool est_variadique = false;
 	bool est_coroutine = false;
+	bool est_sans_contexte = false;
 	char pad[4];
 
 	/* pour la construction du graphe de dépendances */

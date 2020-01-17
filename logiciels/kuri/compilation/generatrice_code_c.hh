@@ -58,6 +58,13 @@ struct GeneratriceCodeC {
 		os << ";\n";
 	}
 
+	dls::chaine declare_variable_temp(DonneesTypeFinal &type, int index_var)
+	{
+		auto nom_temp = "__var_temp" + dls::vers_chaine(index_var);
+		os << nom_broye_type(contexte, type) << " " << nom_temp << ";\n";
+		return nom_temp;
+	}
+
 	dls::chaine expression_malloc(DonneesTypeFinal &type, dls::chaine const &expr)
 	{
 		auto flux = dls::flux_chaine();

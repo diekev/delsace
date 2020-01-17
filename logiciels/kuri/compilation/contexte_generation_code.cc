@@ -40,12 +40,6 @@ ContexteGenerationCode::ContexteGenerationCode()
 	: typeuse(graphe_dependance, this->operateurs)
 {
 	enregistre_operateurs_basiques(*this, this->operateurs);
-
-	/* À FAIRE : type du pointeur de __contexte_global */
-	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::POINTEUR);
-	dt.pousse(id_morceau::CHAINE_CARACTERE);
-	this->index_type_ctx = typeuse.ajoute_type(dt);
 }
 
 ContexteGenerationCode::~ContexteGenerationCode()
