@@ -195,6 +195,15 @@ fonc appends(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
     enchaineuse.taille += taille
 }
 
+fonc pousse(dyn enchaineuse : &Enchaineuse, lettre : z8) : rien
+{
+	ancienne_taille = enchaineuse.résultat.taille
+	nouvelle_taille = ancienne_taille + 1
+	enchaineuse.réserve(nouvelle_taille)
+	enchaineuse.résultat[enchaineuse.taille] = lettre
+	enchaineuse.taille += 1
+}
+
 fonc pousse(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
 {
 	nouvelle_taille = enchaineuse.résultat.taille + chn.taille
