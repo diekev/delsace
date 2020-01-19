@@ -14,7 +14,7 @@ fonc imprime_valeur(
 	dyn écrie = 0
 
     discr id de info {
-		ENTIER de id_info {
+		ENTIER {
 			soit info_arg = transtype(info : *InfoTypeEntier)
 
             si est_signé de info_arg {
@@ -54,7 +54,7 @@ fonc imprime_valeur(
 				}
 			}
 		}
-		RÉEL de id_info {
+		RÉEL {
 			soit info_arg = transtype(info : *InfoTypeRéel)
 
             si taille_en_octet de info_arg == 16 {
@@ -71,7 +71,7 @@ fonc imprime_valeur(
 				écrie = sprintf(ptr_tmp, "%f".pointeur, x)
 			}
 		}
-		BOOLÉEN de id_info {
+		BOOLÉEN {
 			soit x = mémoire(transtype(pointeur : *bool))
 			dyn chn : chaine
 
@@ -84,7 +84,7 @@ fonc imprime_valeur(
 
 			write(flux_std, pointeur de chn, taille de chn)
 		}
-		CHAINE de id_info {
+		CHAINE {
 			soit x = mémoire(transtype(pointeur : *chaine))
 			soit apostrophe = '"'
 
@@ -98,7 +98,7 @@ fonc imprime_valeur(
 				write(flux_std, @apostrophe, 1)
 			}
 		}
-		STRUCTURE de id_info {
+		STRUCTURE {
 			soit info_arg = transtype(info : *InfoTypeStructure)
 
 			écrie = sprintf(ptr_tmp, "%s {".pointeur, pointeur de nom de info_arg)
@@ -125,30 +125,30 @@ fonc imprime_valeur(
 			write(flux_std, ptr_tmp, transtype(écrie : z64))
 			écrie = 0
 		}
-		POINTEUR de id_info {
+		POINTEUR {
 		    # Ne pas oublier qu'il y a un niveau d'indirection.
 			soit x = transtype(pointeur : **z8)
 			soit x0 = mémoire(x)
 			écrie = sprintf(ptr_tmp, "%p".pointeur, x0)
 		}
-		FONCTION de id_info {
+		FONCTION {
 		    # À FAIRE : types paramètres
 			soit x = "fonction()"
 			write(flux_std, x.pointeur, taille de x)
 		}
-		EINI de id_info {
+		EINI {
 			soit x = mémoire(transtype(pointeur : *eini))
 			écrie = sprintf(ptr_tmp, "eini { ptr = %p, info = %d }".pointeur, pointeur de x, info de x)
 		}
-		RIEN de id_info {
+		RIEN {
 			soit x = "rien"
 			write(flux_std, pointeur de x, taille de x)
 		}
-		TABLEAU de id_info {
+		TABLEAU {
 			soit x = mémoire(transtype(pointeur : *[]z8))
 			écrie = sprintf(ptr_tmp, "tableau { ptr = %p, taille = %d }".pointeur, pointeur de x, taille de x)
 		}
-		ÉNUM de id_info {
+		ÉNUM {
 			soit info_arg = transtype(info : *InfoTypeÉnum)
 			# À FAIRE : typage selon énum
 			soit valeur = mémoire(transtype(pointeur : *z32))

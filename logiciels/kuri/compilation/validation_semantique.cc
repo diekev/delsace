@@ -570,6 +570,7 @@ void performe_validation_semantique(
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
+		case type_noeud::DISCR_ENUM:
 		case type_noeud::DISCR_UNION:
 		case type_noeud::ACCES_MEMBRE_UNION:
 		{
@@ -2888,16 +2889,8 @@ void performe_validation_semantique(
 					return;
 				}
 
-				auto chaine_acces = [](base *n)
-				{
-					if (n->type == type_noeud::ACCES_MEMBRE_DE) {
-						return n->enfants.front()->chaine();
-					}
-
-					return n->enfants.back()->chaine();
-				};
-
 				if (ds.est_enum) {
+					b->type = type_noeud::DISCR_ENUM;
 					auto sinon_rencontre = false;
 
 					for (auto i = 1; i < nombre_enfant; ++i) {
@@ -2911,9 +2904,7 @@ void performe_validation_semantique(
 							continue;
 						}
 
-						performe_validation_semantique(expr_paire, contexte, true);
-
-						auto nom_membre = chaine_acces(expr_paire);
+						auto nom_membre = expr_paire->chaine();
 
 						if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
 							erreur::lance_erreur(

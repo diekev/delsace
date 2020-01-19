@@ -43,13 +43,13 @@ fonc externe free(ptr : *rien) : rien
     info : *InfoType) : *rien
 {
     discr mode {
-        ModeAllocatrice.ALLOUE {
+        ALLOUE {
             retourne malloc(nouvelle_taille)
         }
-        ModeAllocatrice.RÉALLOUE {
+        RÉALLOUE {
             retourne realloc(ancien_pointeur, nouvelle_taille)
         }
-        ModeAllocatrice.DÉSALLOUE {
+        DÉSALLOUE {
             free(ancien_pointeur)
             retourne nul
         }

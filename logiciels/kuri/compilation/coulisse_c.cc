@@ -2974,6 +2974,43 @@ void genere_code_C(
 			assert(false);
 			break;
 		}
+		case type_noeud::DISCR_ENUM:
+		{
+			/* le premier enfant est l'expression, les suivants les paires */
+
+			auto nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
+			auto expression = *iter_enfant++;
+			auto const &dt = contexte.typeuse[expression->index_type];
+			auto id = static_cast<long>(dt.type_base() >> 8);
+			auto &ds = contexte.donnees_structure(id);
+
+			genere_code_C(expression, generatrice, contexte, true);
+			auto chaine_expr = expression->chaine_calculee();
+
+			generatrice.os << "switch (" << chaine_expr << ") {\n";
+
+			for (auto i = 1l; i < nombre_enfants; ++i) {
+				auto paire = *iter_enfant++;
+				auto enf0 = paire->enfants.front();
+				auto enf1 = paire->enfants.back();
+
+				if (enf0->type == type_noeud::SINON) {
+					generatrice.os << "default";
+				}
+				else {
+					generatrice.os << "case " << chaine_valeur_enum(ds, enf0->chaine());
+				}
+
+				generatrice.os << ": {\n";
+				genere_code_C(enf1, generatrice, contexte, false);
+				generatrice.os << "break;\n}\n";
+			}
+
+			generatrice.os << "}\n";
+
+			break;
+		}
 		case type_noeud::DISCR_UNION:
 		{
 			/* switch (union.membre_actif) {
