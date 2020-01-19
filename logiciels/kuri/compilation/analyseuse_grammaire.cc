@@ -1396,7 +1396,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 	consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
 	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
+		analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
 	}
 
 	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");

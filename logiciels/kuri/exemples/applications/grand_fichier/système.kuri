@@ -1,8 +1,8 @@
 énum État : z32 {
-	DÉBUT,
-	INSTRUCTION,
-	CHEMIN,
-	PROTOCOL,
+	DÉBUT
+	INSTRUCTION
+	CHEMIN
+	PROTOCOL
 }
 
 éunm Instruction : z32 {
@@ -88,8 +88,8 @@ fonc analyse_réponse(réponse : chaine) : rien
 }
 
 énum TypeNoeud : z32 {
-	DOSSIER,
-	FEUILLE,
+	DOSSIER
+	FEUILLE
 }
 
 struct Noeud {

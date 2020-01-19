@@ -25,9 +25,9 @@ externe __VG_nombre_reallocations__ : z64
 externe __VG_nombre_deallocations__ : z64
 
 énum ModeAllocatrice : z32 {
-    ALLOUE,
-    RÉALLOUE,
-    DÉSALLOUE,
+    ALLOUE
+    RÉALLOUE
+    DÉSALLOUE
 }
 
 fonc externe malloc(taille : z64) : *rien

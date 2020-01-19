@@ -1,11 +1,11 @@
 importe Fondation
 
 énum Instruction : z32 {
-    CREE,
-    SUPPRIME,
-    TROUVE,
-    RETOURNE,
-    INVALIDE,
+    CREE
+    SUPPRIME
+    TROUVE
+    RETOURNE
+    INVALIDE
 }
 
 fonc détermine_instruction(chn : chaine) : Instruction

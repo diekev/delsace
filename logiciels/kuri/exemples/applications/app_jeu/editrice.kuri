@@ -1,7 +1,7 @@
 énum type_éditrice {
-	NULLE     = 0,
-	PROPRIETE = 1,
-	TEMPS     = 2,
+	NULLE     = 0
+	PROPRIETE = 1
+	TEMPS     = 2
 }
 
 struct vec2d {

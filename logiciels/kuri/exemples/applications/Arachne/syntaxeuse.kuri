@@ -6,8 +6,8 @@ charge lexeuse
 ################################################################################
 
 énum TypeObjet : z32 {
-	NOEUD,
-	RELATION,
+	NOEUD
+	RELATION
 }
 
 struct Propriété {

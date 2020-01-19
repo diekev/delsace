@@ -1,11 +1,11 @@
 importe Fondation
 
 énum TypeDonnées : z32 {
-	NOMBRE_ENTIER,
-	NOMBRE_DÉCIMAL,
-	DATE,
-	HEURE,
-	HEUREDATE,
+	NOMBRE_ENTIER
+	NOMBRE_DÉCIMAL
+	DATE
+	HEURE
+	HEUREDATE
 	CHAINE
 }
 
@@ -117,9 +117,9 @@ struct Arachné {
 }
 
 énum TypeErreur : z32 {
-	AUCUNE,
-	SCHÉMA_EXISTANT,
-	SCHÉMA_INEXISTANT,
+	AUCUNE
+	SCHÉMA_EXISTANT
+	SCHÉMA_INEXISTANT
 }
 
 fonc trouve_schéma(arachné : &Arachné, nom : chaine) : *Schéma

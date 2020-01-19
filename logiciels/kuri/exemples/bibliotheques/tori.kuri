@@ -1,9 +1,9 @@
 énum TypeObjet : z32 {
-	NUL = 0,
-	ENTIER = 1,
-	RÉEL = 2,
-	LISTE = 3,
-	DICTIONNAIRE = 4,
+	NUL = 0
+	ENTIER = 1
+	RÉEL = 2
+	LISTE = 3
+	DICTIONNAIRE = 4
 	CHAINE = 5
 }
 
