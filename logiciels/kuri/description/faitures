@@ -40,14 +40,10 @@ Faitures
 ---- entier + caractere    -> caractère  # À FAIRE
 ---- chaîne + caractere    -> chaîne     # À FAIRE
 ---- caractere + chaîne    -> chaîne     # À FAIRE
-- fonctions et structures gabarit/génériques avec contrats/concepts
-- type nombre réel sur 16-bit (en cours)
-- types spéciaux pour chaînes de caractères et caractère simple
+- types spécial pour caractère simple
 - stack canaries (coulisse LLVM)
-- préfixe les structures et les énumérations du nom du module
 - réusinage du système de vérification sémantique du code notamment pour dédupliquer ce code et prendre en compte l'analyse de fonctions dans des modules externes dont nous ne pouvons savoir le type avant l'analyse sémantique
 - coroutines en dehours de boucles
-- variables employées
 - évite l'initialisation via "---"
 - interpreteur pour calculer le code au niveau de l'émission de code (exécuter dans le compileur, voir JAI, pour les bibliothèques externes -> chargement du .so/.dll)
 - suppression ':'
@@ -82,8 +78,6 @@ Faitures
 	~
 -- surcharge transtypage
 	opér [type] (arg) : [type]
--- expression gauche dans la validation sémantique
--- système de transtypage
 -- réusinage des tests
 -- avoir une meilleur gestion de la correctitude de constance, il est possible de passer une variable constante à un fonction la modifiant
 - à faire : moins urgent
@@ -91,9 +85,7 @@ Faitures
 -- empl (vérifier tous les cas)
 -- évaluation arbitraire du code
 -- initialisation des objets : évite d'initialiser plusieurs fois le même membre
--- validation des énum dans associe
 -- alias de types
--- contexte implicite
 -- opérateurs implicites
 -- validation des types des énums, et typages plus libre (énum de chaines, de structures, etc.)
 
@@ -153,23 +145,6 @@ Idées
 	}
 
 	comment pour a && c
-- graphe de typage :
--- trouve les opérations à effectuer pour transtyper un type à un autre
---- prend référence
---- construit eini
---- construit tableau octet
---- construit union
---- extrait eini
---- extrait tableau octet
---- extrait union
--- pour :
---- initialisation/assignement (a = b)
--- passage de paramètre (foo(a, b))
----- opérateurs (a + b)
---- transtype (a = transtype(b : type))
---- retours et retenus
--- trouve une fonction selon les paramètres de types
--- trouve une fonction pour passer d'un type à un autre (suggestion, gare aux conversions implicites)
 
 
 Zones d'ombres
@@ -194,7 +169,7 @@ Sécurité/évitement des bugs
 - blocs explicites : impossible de ne pas avoir un bloc afin de mieux définir ce qui se trouve dans un bloc
 - accès aléatoire via des index protégé
 - conservation de la taille des tableaux et des chaines (contrairement à C qui les jette et utilise un pointeur nul pour définir la fin)
-- remembrance du membre actif des unions
+- souvenir du membre actif des unions
 
 
 Néologismes
