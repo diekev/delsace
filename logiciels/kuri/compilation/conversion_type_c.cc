@@ -322,7 +322,10 @@ static auto converti_type_simple_C(
 				converti_type_simple_C(contexte, os, dt.type_base(), false, false, false);
 			}
 			else {
-				if (echappe_struct || donnees_struct.est_externe) {
+				if (donnees_struct.est_union && donnees_struct.est_nonsur) {
+					os << ((echappe) ? "union_" : "union ");
+				}
+				else if (echappe_struct || donnees_struct.est_externe) {
 					os << ((echappe) ? "struct_" : "struct ");
 				}
 
