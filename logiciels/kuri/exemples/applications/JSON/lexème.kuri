@@ -1,0 +1,224 @@
+importe Fondation
+
+###############################################################################
+
+fonc est_espace_blanc(c : z8) : bool
+{
+    retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r'
+}
+
+fonc est_nombre_décimal(c : z8) : bool
+{
+    retourne '0' <= c <= '9'
+}
+
+###############################################################################
+
+énum TypeLexème : z32 {
+	INCONNU
+
+	PARENTHESE_OUVRANTE
+	PARENTHESE_FERMANTE
+	VIRGULE
+	DOUBLE_POINTS
+	CROCHET_OUVRANT
+	CROCHET_FERMANT
+	ACCOLADE_OUVRANTE
+	ACCOLADE_FERMANTE
+	CHAINE_CARACTERE
+	NOMBRE_ENTIER
+	NOMBRE_REEL
+	NOMBRE_BINAIRE
+	NOMBRE_OCTAL
+	NOMBRE_HEXADECIMAL
+}
+
+struct DonneesLexème {
+	chn : chaine
+	lexème : TypeLexème
+}
+
+fonc est_caractère_spécial(c : z8) : bool, TypeLexème
+{
+    discr c {
+        '(' { retourne vrai, TypeLexème.PARENTHESE_OUVRANTE; }
+        ')' { retourne vrai, TypeLexème.PARENTHESE_FERMANTE; }
+        ',' { retourne vrai, TypeLexème.VIRGULE; }
+        ':' { retourne vrai, TypeLexème.DOUBLE_POINTS; }
+        '[' { retourne vrai, TypeLexème.CROCHET_OUVRANT; }
+        ']' { retourne vrai, TypeLexème.CROCHET_FERMANT; }
+        '{' { retourne vrai, TypeLexème.ACCOLADE_OUVRANTE; }
+        '}' { retourne vrai, TypeLexème.ACCOLADE_FERMANTE; }
+    }
+
+    retourne faux, TypeLexème.INCONNU
+}
+
+struct Lexeuse {
+    tampon : chaine
+    début_mot : *z8 = nul
+    début : *z8 = nul
+    fin : *z8 = nul
+
+    lexèmes : []DonneesLexème
+
+    taille_mot_courant = 0
+    compte_ligne = 0
+    position_ligne = 0
+    pos_mot = 0
+}
+
+fonc pousse(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]DonneesLexème
+    liste[taille] = valeur
+}
+
+fonc construit_lexeuse(chn : chaine) : Lexeuse
+{
+    dyn lexeuse : Lexeuse
+    lexeuse.tampon = chn
+    lexeuse.début_mot = @chn[0]
+    lexeuse.début = @chn[0]
+    lexeuse.fin = lexeuse.début + chn.taille
+
+    retourne lexeuse
+}
+
+fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) : rien
+{
+    déloge lexeuse.lexèmes
+}
+
+fonc a_fini(dyn lexeuse : &Lexeuse) : bool
+{
+	retourne lexeuse.début >= lexeuse.fin
+}
+
+fonc caractère_courant(dyn lexeuse : &Lexeuse) : z8
+{
+    retourne mémoire(lexeuse.début)
+}
+
+fonc caractère_courant(dyn lexeuse : &Lexeuse, n : z32) : z8
+{
+    retourne mémoire(lexeuse.début + n)
+}
+
+fonc avance(dyn lexeuse : &Lexeuse, n : z32) : rien
+{
+	pour i dans 0 ... n - 1 {
+		si (lexeuse.caractère_courant() == '\n') {
+			lexeuse.compte_ligne += 1
+			lexeuse.position_ligne = 0
+		}
+		sinon {
+			lexeuse.position_ligne += 1
+		}
+
+		lexeuse.début += 1
+	}
+}
+
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.taille_mot_courant += 1
+}
+
+fonc mot_courant(dyn lexeuse : &Lexeuse) : chaine
+{
+	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
+}
+
+fonc pousse_mot(dyn lexeuse : &Lexeuse, lexème : TypeLexème) : rien
+{
+    dyn données : DonneesLexème
+    données.lexème = lexème
+    données.chn = lexeuse.mot_courant()
+
+    # À FAIRE(bug) : la prise de référence passe par une temporaire...
+    #pousse(lexeuse.lexèmes, données)
+
+    taille = lexeuse.lexèmes.taille
+    reloge lexeuse.lexèmes : [taille + 1]DonneesLexème
+    lexeuse.lexèmes[taille] = données
+
+    lexeuse.taille_mot_courant = 0
+	lexeuse.début_mot = nul
+}
+
+fonc enregistre_position_mot(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.pos_mot = lexeuse.position_ligne
+	lexeuse.début_mot = lexeuse.début
+}
+
+fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
+{
+    tantque !lexeuse.a_fini() {
+        est_spécial, lexème = est_caractère_spécial(lexeuse.caractère_courant())
+
+        si (est_spécial) {
+			lexeuse.enregistre_position_mot()
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_mot(lexème)
+			lexeuse.avance(1)
+		}
+		sinon si (est_espace_blanc(lexeuse.caractère_courant())) {
+			lexeuse.avance(1)
+		}
+		sinon si (lexeuse.caractère_courant() == '"') {
+			lexeuse.avance(1)
+
+			lexeuse.enregistre_position_mot()
+
+			dyn dernier_caractère = lexeuse.caractère_courant()
+
+			boucle {
+				si (lexeuse.caractère_courant() == '"' && dernier_caractère != '\\') {
+					arrête
+				}
+
+				dernier_caractère = lexeuse.caractère_courant()
+
+				lexeuse.pousse_caractère()
+				lexeuse.avance(1)
+			}
+
+			lexeuse.pousse_mot(TypeLexème.CHAINE_CARACTERE)
+			lexeuse.avance(1)
+		}
+		sinon si (est_nombre_décimal(lexeuse.caractère_courant())) {
+			lexeuse.enregistre_position_mot()
+
+			tantque est_nombre_décimal(lexeuse.caractère_courant()) {
+				lexeuse.pousse_caractère()
+				lexeuse.avance(1)
+            }
+
+			lexeuse.pousse_mot(TypeLexème.NOMBRE_ENTIER)
+		}
+		sinon {
+			lexeuse.avance(1)
+		}
+    }
+}
+
+fonc principale(args : []*z8) : z32
+{
+    chn = "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\" }"
+
+    dyn lexeuse = construit_lexeuse(chn)
+    diffère { détruit_lexeuse(lexeuse); }
+
+    lexeuse.performe_lexage()
+
+    imprime("Il y a ", lexeuse.lexèmes.taille, " lexèmes.\n")
+
+    pour données dans lexeuse.lexèmes {
+        imprime(données.lexème, "\n")
+    }
+
+    retourne 0
+}
