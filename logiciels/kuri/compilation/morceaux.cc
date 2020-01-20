@@ -86,7 +86,8 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("z32"), id_morceau::Z32 },
 	dls::paire{ dls::vue_chaine_compacte("z64"), id_morceau::Z64 },
 	dls::paire{ dls::vue_chaine_compacte("z8"), id_morceau::Z8 },
-	dls::paire{ dls::vue_chaine_compacte("énum"), id_morceau::ENUM }
+	dls::paire{ dls::vue_chaine_compacte("énum"), id_morceau::ENUM },
+	dls::paire{ dls::vue_chaine_compacte("énum_drapeau"), id_morceau::ENUM_DRAPEAU }
 );
 
 static auto paires_digraphes = dls::cree_dico(
@@ -361,6 +362,8 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::Z8";
 		case id_morceau::ENUM:
 			return "id_morceau::ENUM";
+		case id_morceau::ENUM_DRAPEAU:
+			return "id_morceau::ENUM_DRAPEAU";
 		case id_morceau::NOMBRE_REEL:
 			return "id_morceau::NOMBRE_REEL";
 		case id_morceau::NOMBRE_ENTIER:
@@ -398,7 +401,7 @@ const char *chaine_identifiant(id_morceau id)
 	return "ERREUR";
 }
 
-static constexpr auto TAILLE_MAX_MOT_CLE = 10;
+static constexpr auto TAILLE_MAX_MOT_CLE = 13;
 
 static bool tables_caracteres[256] = {};
 static id_morceau tables_identifiants[256] = {};

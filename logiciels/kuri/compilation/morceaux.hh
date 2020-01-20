@@ -135,6 +135,7 @@ enum class id_morceau : unsigned int {
 	Z64,
 	Z8,
 	ENUM,
+	ENUM_DRAPEAU,
 	NOMBRE_REEL,
 	NOMBRE_ENTIER,
 	NOMBRE_HEXADECIMAL,

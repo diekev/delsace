@@ -475,6 +475,7 @@ static auto cree_info_type_enum_C(
 
 	os_decl << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.ENUM << ",\n";
+	os_decl << "\t.est_drapeau = " << donnees_structure.est_drapeau << ",\n";
 	os_decl << "\t.nom = { .pointeur = \"" << nom_struct << "\", .taille = " << nom_struct.taille() << " },\n";
 	os_decl << "\t.noms = { .pointeur = " << nom_tableau_noms << ", .taille = " << nombre_enfants << " },\n ";
 	os_decl << "\t.valeurs = { .pointeur = " << nom_tableau_valeurs << ", .taille = " << nombre_enfants << " },\n ";

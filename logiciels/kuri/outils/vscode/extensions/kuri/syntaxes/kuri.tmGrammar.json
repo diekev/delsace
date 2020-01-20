@@ -29,7 +29,7 @@
         },
         "other-keyword": {
             "name": "keyword.other.kuri",
-            "match": "\\b(loge|déloge|reloge|struct|énum|importe|charge|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|de|externe|mémoire|info_de|type_de|taille_de)\\b"
+            "match": "\\b(loge|déloge|reloge|struct|énum|énum_drapeau|importe|charge|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|de|externe|mémoire|info_de|type_de|taille_de)\\b"
         },
         "string": {
             "name": "string.quoted.double.kuri",

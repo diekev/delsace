@@ -367,6 +367,9 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::ENUM:
 			os << "énum";
 			return;
+		case id_morceau::ENUM_DRAPEAU:
+			os << "énum_drapeau";
+			return;
 		case id_morceau::NOMBRE_REEL:
 			os << "0.0";
 			return;

@@ -137,7 +137,13 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			case id_morceau::ENUM:
 			{
 				avance();
-				analyse_declaration_enum();
+				analyse_declaration_enum(false);
+				break;
+			}
+			case id_morceau::ENUM_DRAPEAU:
+			{
+				avance();
+				analyse_declaration_enum(true);
 				break;
 			}
 			case id_morceau::IMPORTE:
@@ -1371,7 +1377,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);
 }
 
-void analyseuse_grammaire::analyse_declaration_enum()
+void analyseuse_grammaire::analyse_declaration_enum(bool est_drapeau)
 {
 	consomme(id_morceau::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
@@ -1380,6 +1386,7 @@ void analyseuse_grammaire::analyse_declaration_enum()
 
 	auto donnees_structure = DonneesStructure{};
 	donnees_structure.est_enum = true;
+	donnees_structure.est_drapeau = est_drapeau;
 	donnees_structure.noeud_decl = noeud_decl;
 
 	m_contexte.ajoute_donnees_structure(nom, donnees_structure);

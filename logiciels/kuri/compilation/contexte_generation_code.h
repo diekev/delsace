@@ -126,11 +126,13 @@ struct DonneesStructure {
 	long id{0l};
 	long index_type{-1l};
 	noeud::base *noeud_decl = nullptr;
+	unsigned int taille_octet = 0;
 	bool est_enum = false;
+	bool est_drapeau = false;
 	bool est_externe = false;
 	bool est_union = false;
 	bool est_nonsur = false;
-	unsigned int taille_octet = 0;
+	REMBOURRE(7);
 
 	/* pour la prédéclaration des InfoType* */
 	bool deja_genere = false;

@@ -90,7 +90,7 @@ private:
 	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure(id_morceau id);
-	void analyse_declaration_enum();
+	void analyse_declaration_enum(bool est_drapeau);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
 	void analyse_controle_si(type_noeud tn);

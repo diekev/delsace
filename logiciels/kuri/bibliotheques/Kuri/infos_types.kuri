@@ -65,4 +65,5 @@ struct InfoTypeÉnum {
 	nom : chaine
 	valeurs : []z32 # À FAIRE typage selon énum
 	noms : []chaine
+	est_drapeau : bool
 }

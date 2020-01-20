@@ -150,6 +150,15 @@
         ],
         "description": "Fragment de code pour une définition d'une énumération"
     },
+    "énum_drapeau": {
+        "prefix": "énum_drapeau",
+        "body": [
+            "énum_drapeau ${1:nom_énum} {",
+            "\t${2:membre}",
+            "}"
+        ],
+        "description": "Fragment de code pour une définition d'une énumération drapeau"
+    },
     "union": {
         "prefix": "union",
         "body": [

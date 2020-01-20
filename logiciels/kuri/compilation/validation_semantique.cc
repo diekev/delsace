@@ -2673,6 +2673,9 @@ void performe_validation_semantique(
 		{
 			auto &ds = contexte.donnees_structure(b->chaine());
 			ds.noeud_decl->index_type = resoud_type_final(contexte, ds.noeud_decl->type_declare);
+
+			auto const est_drapeau = ds.est_drapeau;
+
 			contexte.operateurs.ajoute_operateur_basique_enum(ds.index_type);
 
 			/* À FAIRE : tests */
@@ -2736,12 +2739,22 @@ void performe_validation_semantique(
 				}
 				else {
 					if (dernier_res.est_errone) {
-						/* première valeur, laisse à zéro */
+						/* première valeur, laisse à zéro si énum normal */
 						dernier_res.est_errone = false;
+
+						if (est_drapeau) {
+							res.type = type_expression::ENTIER;
+							res.entier = 1;
+						}
 					}
 					else {
 						if (dernier_res.type == type_expression::ENTIER) {
-							res.entier = dernier_res.entier + 1;
+							if (est_drapeau) {
+								res.entier = dernier_res.entier * 2;
+							}
+							else {
+								res.entier = dernier_res.entier + 1;
+							}
 						}
 						else {
 							res.reel = dernier_res.reel + 1;

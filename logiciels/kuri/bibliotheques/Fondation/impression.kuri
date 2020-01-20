@@ -533,14 +533,35 @@ fonc imprime_valeur(
 		}
 		ÉNUM {
 			info_arg = transtype(info : *InfoTypeÉnum)
+
 			# À FAIRE : typage selon énum
 			valeur = mémoire(transtype(pointeur : *z32))
 			noms = info_arg.noms
 
-			pour v, i dans info_arg.valeurs {
-			    si v == valeur {
-                    enchaineuse.pousse(noms[i])
-					arrête
+			si info_arg.est_drapeau {
+				dyn valeur_trouvée = faux
+
+				pour v, i dans info_arg.valeurs {
+					si (v & valeur) != 0 {
+						si valeur_trouvée {
+							enchaineuse.pousse(" | ")
+						}
+
+						enchaineuse.pousse(noms[i])
+						valeur_trouvée = vrai
+					}
+				}
+
+				si !valeur_trouvée {
+					enchaineuse.pousse("0")
+				}
+			}
+			sinon {
+				pour v, i dans info_arg.valeurs {
+					si v == valeur {
+						enchaineuse.pousse(noms[i])
+						arrête
+					}
 				}
 			}
 		}

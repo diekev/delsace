@@ -228,6 +228,7 @@ bool est_mot_cle(id_morceau id)
 		case id_morceau::SOIT:
 		case id_morceau::RETOURNE:
 		case id_morceau::ENUM:
+		case id_morceau::ENUM_DRAPEAU:
 		case id_morceau::RETIENS:
 		case id_morceau::EXTERNE:
 		case id_morceau::IMPORTE:
