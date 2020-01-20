@@ -43,6 +43,8 @@ set(BIBLIOTHEQUES
 	systeme_fichier
 	wolika
 	${BIBLIOTHEQUES_TBB}
+	# XXX - À FAIRE : pourquoi la mauvaise bibliothèque est utilisée ?
+	/usr/lib/gcc/x86_64-linux-gnu/8/libstdc++fs.a
 )
 
 qt5_wrap_cpp(

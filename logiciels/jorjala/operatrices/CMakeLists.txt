@@ -51,6 +51,7 @@ set(BIBLIOTHEQUES
 	jorjala_evaluation
 	jorjala_lcc
 	jorjala_poseidon
+	nombre_decimaux
 	opencv_core
 	opencv_videoio
 	png
