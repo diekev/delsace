@@ -1408,10 +1408,9 @@ void genere_code_C(
 					generatrice.os << " >= ";
 					generatrice.os << enfant1->chaine_calculee();
 					generatrice.os << ".taille) {\n";
-					generatrice.os << "KR__depassement_limites(";
+					generatrice.os << "KR__depassement_limites_chaine(";
 					generatrice.os << '"' << module->chemin << '"' << ',';
 					generatrice.os << pos.numero_ligne << ',';
-					generatrice.os << "\"de la chaine\",";
 					generatrice.os << enfant1->chaine_calculee();
 					generatrice.os << ".taille,";
 					generatrice.os << enfant2->chaine_calculee();
@@ -1445,10 +1444,9 @@ void genere_code_C(
 						}
 
 						generatrice.os << ") {\n";
-						generatrice.os << "KR__depassement_limites(";
+						generatrice.os << "KR__depassement_limites_tableau(";
 						generatrice.os << '"' << module->chemin << '"' << ',';
 						generatrice.os << pos.numero_ligne << ',';
-						generatrice.os << "\"du tableau\",";
 						if (taille_tableau == 0) {
 							generatrice.os << enfant1->chaine_calculee();
 							generatrice.os << ".taille";
@@ -2719,23 +2717,39 @@ void genere_code_C(
 	os << "static long __VG_nombre_reallocations__ = 0;\n";
 	os << "static long __VG_nombre_deallocations__ = 0;\n";
 
-	auto depassement_limites =
+	auto depassement_limites_tableau =
 R"(
-void KR__depassement_limites(
+void KR__depassement_limites_tableau(
 	const char *fichier,
 	long ligne,
-	const char *type,
 	long taille,
 	long index)
 {
 	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Dépassement des limites %s !\n", type);
+	fprintf(stderr, "Dépassement des limites du tableau !\n");
 	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
 	abort();
 }
 )";
 
-	os << depassement_limites;
+	os << depassement_limites_tableau;
+
+	auto depassement_limites_chaine =
+R"(
+void KR__depassement_limites_chaine(
+	const char *fichier,
+	long ligne,
+	long taille,
+	long index)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Dépassement des limites de la chaine !\n");
+	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
+	abort();
+}
+)";
+
+	os << depassement_limites_chaine;
 
 	auto hors_memoire =
 R"(
