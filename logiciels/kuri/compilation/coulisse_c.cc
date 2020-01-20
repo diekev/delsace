@@ -852,6 +852,11 @@ static void cree_initialisation(
 		auto const index_structure = static_cast<long>(dt_parent.front() >> 8);
 		auto const &ds = contexte.donnees_structure(index_structure);
 
+		if (ds.est_enum) {
+			os << chaine_parent << " = 0;\n";
+			return;
+		}
+
 		for (auto i = 0l; i < ds.index_types.taille(); ++i) {
 			auto index_dt = ds.index_types[i];
 			auto dt_enf = contexte.typeuse[index_dt].plage();
