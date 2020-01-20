@@ -29,8 +29,6 @@
 #include "contexte_generation_code.h"
 #include "donnees_type.h"
 
-static int index_var = 0;
-
 /* À tenir synchronisé avec l'énum dans info_type.kuri
  * Nous utilisons ceci lors de la génération du code des infos types car nous ne
  * générons pas de code (ou symboles) pour les énums, mais prenons directements
@@ -52,9 +50,10 @@ struct IDInfoType {
 
 static auto cree_info_type_defaul_C(
 		dls::flux_chaine &os_decl,
-		dls::chaine const &id_type)
+		dls::chaine const &id_type,
+		dls::chaine const &nom_type)
 {
-	auto nom_info_type = "__info_type" + id_type + dls::vers_chaine(index_var++);
+	auto nom_info_type = "__info_type" + nom_type;
 
 	os_decl << "static const InfoType " << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_type << '\n';
@@ -67,9 +66,10 @@ static auto cree_info_type_entier_C(
 		dls::flux_chaine &os_decl,
 		int taille_en_octet,
 		bool est_signe,
-		IDInfoType const &id_info_type)
+		IDInfoType const &id_info_type,
+		dls::chaine const &nom_type)
 {
-	auto nom_info_type = "__info_type_entier" + dls::vers_chaine(index_var++);
+	auto nom_info_type = "__info_type_entier" + nom_type;
 
 	os_decl << "static const InfoTypeEntier " << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.ENTIER << ",\n";
@@ -83,9 +83,10 @@ static auto cree_info_type_entier_C(
 static auto cree_info_type_reel_C(
 		dls::flux_chaine &os_decl,
 		int taille_en_octet,
-		IDInfoType const &id_info_type)
+		IDInfoType const &id_info_type,
+		dls::chaine const &nom_type)
 {
-	auto nom_info_type = "__info_type_reel" + dls::vers_chaine(index_var++);
+	auto nom_info_type = "__info_type_reel" + nom_type;
 
 	os_decl << "static const " << broye_nom_simple("InfoTypeRéel ") << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.REEL << ",\n";
@@ -109,13 +110,14 @@ static auto cree_info_type_structure_C(
 		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure,
 		DonneesTypeFinal &dt,
-		IDInfoType const &id_info_type)
+		IDInfoType const &id_info_type,
+		dls::chaine const &nom_type)
 {
 	if (dt.ptr_info_type != "") {
 		return dt.ptr_info_type;
 	}
 
-	auto const nom_info_type = "__info_type_struct" + dls::vers_chaine(index_var++);
+	auto const nom_info_type = "__info_type_struct" + nom_type;
 
 	auto const nom_broye = broye_nom_simple(nom_struct);
 
@@ -151,7 +153,7 @@ static auto cree_info_type_structure_C(
 	}
 
 	/* crée le tableau des données des membres */
-	auto const nom_tableau_membre = "__info_type_membres" + dls::vers_chaine(index_var++);
+	auto const nom_tableau_membre = "__info_type_membres" + nom_type;
 	os_decl << "static const InfoTypeMembreStructure " << nom_tableau_membre << "[] = {\n";
 
 	for (auto i = 0l; i < nombre_membres; ++i) {
@@ -192,12 +194,13 @@ static auto cree_info_type_enum_C(
 		dls::flux_chaine &os_decl,
 		dls::vue_chaine_compacte const &nom_struct,
 		DonneesStructure const &donnees_structure,
-		IDInfoType const &id_info_type)
+		IDInfoType const &id_info_type,
+		dls::chaine const &nom_type)
 {
 	auto nom_broye = broye_nom_simple(nom_struct);
 
 	/* crée un tableau pour les noms des énumérations */
-	auto const nom_tableau_noms = "__tableau_noms_enum" + dls::vers_chaine(index_var++);
+	auto const nom_tableau_noms = "__tableau_noms_enum" + nom_type;
 
 	os_decl << "static const chaine " << nom_tableau_noms << "[] = {\n";
 
@@ -216,7 +219,7 @@ static auto cree_info_type_enum_C(
 	os_decl << "};\n";
 
 	/* crée le tableau pour les valeurs */
-	auto const nom_tableau_valeurs = "__tableau_valeurs_enum" + dls::vers_chaine(index_var++);
+	auto const nom_tableau_valeurs = "__tableau_valeurs_enum" + nom_type;
 
 	os_decl << "static const int " << nom_tableau_valeurs << "[] = {\n\t";
 	for (auto enfant : noeud_decl->enfants) {
@@ -232,7 +235,7 @@ static auto cree_info_type_enum_C(
 	os_decl << "\n};\n";
 
 	/* crée l'info type pour l'énum */
-	auto const nom_info_type = "__info_type_enum" + dls::vers_chaine(index_var++);
+	auto const nom_info_type = "__info_type_enum" + nom_type;
 
 	os_decl << "static const " << broye_nom_simple("InfoTypeÉnum ") << nom_info_type << " = {\n";
 	os_decl << "\t.id = " << id_info_type.ENUM << ",\n";
@@ -253,6 +256,7 @@ dls::chaine cree_info_type_C(
 		IDInfoType const &id_info_type)
 {
 	auto valeur = dls::chaine("");
+	auto nom_type = nom_broye_type(contexte, donnees_type);
 
 	switch (donnees_type.type_base() & 0xff) {
 		default:
@@ -264,78 +268,78 @@ dls::chaine cree_info_type_C(
 		}
 		case id_morceau::BOOL:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN);
+			valeur = cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN, nom_type);
 			break;
 		}
 		case id_morceau::N8:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 8, false, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 8, false, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::OCTET:
 		case id_morceau::Z8:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 8, true, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 8, true, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::N16:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 16, false, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 16, false, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::Z16:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 16, true, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 16, true, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::N32:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 32, false, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 32, false, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::Z32:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 32, true, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 32, true, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::N64:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 64, false, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 64, false, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::N128:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 128, false, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 128, false, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::Z64:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 64, true, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 64, true, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::Z128:
 		{
-			valeur = cree_info_type_entier_C(os_decl, 128, true, id_info_type);
+			valeur = cree_info_type_entier_C(os_decl, 128, true, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::R16:
 		{
-			valeur = cree_info_type_reel_C(os_decl, 16, id_info_type);
+			valeur = cree_info_type_reel_C(os_decl, 16, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::R32:
 		{
-			valeur = cree_info_type_reel_C(os_decl, 32, id_info_type);
+			valeur = cree_info_type_reel_C(os_decl, 32, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::R64:
 		{
-			valeur = cree_info_type_reel_C(os_decl, 64, id_info_type);
+			valeur = cree_info_type_reel_C(os_decl, 64, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::R128:
 		{
-			valeur = cree_info_type_reel_C(os_decl, 128, id_info_type);
+			valeur = cree_info_type_reel_C(os_decl, 128, id_info_type, nom_type);
 			break;
 		}
 		case id_morceau::REFERENCE:
@@ -350,7 +354,7 @@ dls::chaine cree_info_type_C(
 				rderef.ptr_info_type = cree_info_type_C(contexte, generatrice, os_decl, rderef, id_info_type);
 			}
 
-			auto nom_info_type = "__info_type_pointeur" + dls::vers_chaine(index_var++);
+			auto nom_info_type = "__info_type_pointeur" + nom_type;
 
 			os_decl << "static const InfoTypePointeur " << nom_info_type << " = {\n";
 			os_decl << ".id = " << id_info_type.POINTEUR << ",\n";
@@ -373,7 +377,8 @@ dls::chaine cree_info_type_C(
 							os_decl,
 							contexte.nom_struct(id_structure),
 							donnees_structure,
-							id_info_type);
+							id_info_type,
+							nom_type);
 
 				donnees_type.ptr_info_type = valeur;
 			}
@@ -385,7 +390,8 @@ dls::chaine cree_info_type_C(
 							contexte.nom_struct(id_structure),
 							donnees_structure,
 							donnees_type,
-							id_info_type);
+							id_info_type,
+							nom_type);
 			}
 
 			break;
@@ -395,7 +401,7 @@ dls::chaine cree_info_type_C(
 		{
 			auto deref = donnees_type.dereference();
 
-			auto nom_info_type = "__info_type_tableau" + dls::vers_chaine(index_var++);
+			auto nom_info_type = "__info_type_tableau" + nom_type;
 
 			/* dans le cas des arguments variadics des fonctions externes */
 			if (est_invalide(deref)) {
@@ -424,7 +430,7 @@ dls::chaine cree_info_type_C(
 		case id_morceau::COROUT:
 		case id_morceau::FONC:
 		{
-			auto nom_info_type = "__info_type_FONCTION" + dls::vers_chaine(index_var++);
+			auto nom_info_type = "__info_type_FONCTION" + nom_type;
 
 			donnees_type.ptr_info_type = nom_info_type;
 
@@ -443,7 +449,7 @@ dls::chaine cree_info_type_C(
 			}
 
 			/* crée tableau infos type pour les entrées */
-			auto const nom_tableau_entrees = "__types_entree" + dls::vers_chaine(index_var++);
+			auto const nom_tableau_entrees = "__types_entree" + nom_type;
 
 			os_decl << "static const InfoType *" << nom_tableau_entrees << "[] = {\n";
 
@@ -455,7 +461,7 @@ dls::chaine cree_info_type_C(
 			os_decl << "};\n";
 
 			/* crée tableau infos type pour les sorties */
-			auto const nom_tableau_sorties = "__types_sortie" + dls::vers_chaine(index_var++);
+			auto const nom_tableau_sorties = "__types_sortie" + nom_type;
 
 			os_decl << "static const InfoType *" << nom_tableau_sorties << "[] = {\n";
 
@@ -481,18 +487,18 @@ dls::chaine cree_info_type_C(
 		}
 		case id_morceau::EINI:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.EINI);
+			valeur = cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_type);
 			break;
 		}
 		case id_morceau::NUL: /* À FAIRE */
 		case id_morceau::RIEN:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.RIEN);
+			valeur = cree_info_type_defaul_C(os_decl, id_info_type.RIEN, nom_type);
 			break;
 		}
 		case id_morceau::CHAINE:
 		{
-			valeur = cree_info_type_defaul_C(os_decl, id_info_type.CHAINE);
+			valeur = cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_type);
 			break;
 		}
 	}
