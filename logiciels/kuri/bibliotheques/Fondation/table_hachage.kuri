@@ -4,7 +4,7 @@
 # https://en.wikipedia.org/wiki/Open_addressing
 
 charge "chaine"
-charge "flux"
+charge "impression"
 
 struct NoeudTableHachage {
     clé : chaine
@@ -118,7 +118,7 @@ fonc cherche_noeud(table : *TableHachage, clé : chaine) : rien
         imprime("Impossible de trouver le noeud dans la table !\n")
     }
     sinon {
-        imprime("Trouvé noeud, valeur : ", n.valeur, '\n')
+        imprime("Trouvé noeud, valeur : ", n.valeur, "\n")
     }
 }
 

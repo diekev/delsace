@@ -1,0 +1,572 @@
+# Bibliothèque de flux, d'impression dans stdout.
+
+importe GlibC
+
+####################################################################################
+
+# Algorithme d'impression de nombre décimaux sur 32-bits tiré de
+# https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
+
+décalage_mot = 32
+
+# This class represents a very limited high-precision number with 'count' 32-bit
+# unsigned elements. */
+# template <size_t count>
+struct haute_précision {
+	# type type_valeur n32
+	# type type_produit n64
+
+	# The individual 'digits' (32-bit unsigned integers actually) that */
+	# make up the number. The most-significant digit is in m_data[0]. */
+	données : [5]n32
+
+	# Il y a un bug dans la génération de code C où on génére des variables temporaires
+	# avec le type [N]Type mais C ne peut pas initialisé une telle variable avec un
+	# tableau comme Kuri, donc pour l'instant nous utilisons un pointeur pour accéder
+	# au tableau de données.
+	pointeur : *n32
+}
+
+fonc construit_nombre_haute_précision() : haute_précision
+{
+	dyn n : haute_précision
+
+	pour i dans 0 ... 4 {
+		n.données[i] = transtype(0 : n32)
+	}
+
+	n.pointeur = @n.données[0]
+
+	retourne n
+}
+
+# Insert the bits from value into m_data, shifted in from the bottom (least
+# significant end) by the specified number of bits. A shift of zero or less
+# means that none of the bits will be shifted in. A shift of one means that
+# the high bit of value will be in the bottom of the last element of m_data -
+# the least significant bit. A shift of kWordShift means that value will be
+# in the least significant element of m_data, and so on.
+fonc insert_low_bits(
+	dyn n : &haute_précision,
+	valeur : n32,
+	quantité_décalage : z32) : rien
+{
+	si quantité_décalage <= 0 {
+		retourne
+	}
+
+	sub_shift = quantité_décalage & (décalage_mot - 1)
+	big_shift = quantité_décalage / décalage_mot
+	result = transtype(valeur : n64) << sub_shift
+	result_low = transtype(result : n32)
+	result_high = result >> décalage_mot
+
+	# Use an unsigned type so that negative numbers will become large,
+	# which makes the range checking below simpler. */
+	count = 5
+	high_index = count - 1 - big_shift;
+
+	# Write the results to the data array. If the index is too large then
+	# that means that the data was shifted off the edge. */
+	si high_index < count {
+		n.pointeur[high_index] |= result_high;
+	}
+
+	si high_index + 1 < count {
+		n.pointeur[high_index + 1] |= result_low;
+	}
+}
+
+# Insert the bits from value into m_data, shifted in from the top (most
+# significant end) by the specified number of bits. A shift of zero or less
+# means that none of the bits will be shifted in. A shift of one means that
+# the low bit of value will be in the top of the first element of m_data -
+# the most significant bit. A shift of kWordShift means that value will be
+# in the most significant element of m_data, and so on.
+fonc insert_top_bits(
+	dyn n : &haute_précision,
+	valeur : n32,
+	quantité_décalage : z32) : rien
+{
+	count = 5
+	insert_low_bits(n, valeur, (count + 1) * décalage_mot - quantité_décalage);
+}
+
+# Return true if all elements of m_data are zero.
+fonc is_zero(n : &haute_précision) : bool
+{
+	pour i dans 0 ... 4 {
+		si n.pointeur[i] != 0 {
+			retourne faux
+		}
+	}
+
+	retourne vrai
+}
+
+# Divide by div and return the remainder, from 0 to div-1.
+fonc remainder(dyn n : &haute_précision, divisor : n32) : n32
+{
+	dyn remain = transtype(0 : n32)
+
+	# Standard long-division algorithm.
+	pour i dans 0 ... 4 {
+		dividend = (transtype(remain : n64) << décalage_mot) + n.pointeur[i]
+		result = dividend / divisor
+		remain = transtype(dividend % divisor : n32)
+		n.pointeur[i] = transtype(result : n32)
+	}
+
+	retourne remain
+}
+
+# Multiply by mul and return the overflow, from 0 to mul - 1
+fonc overflow(dyn n : &haute_précision, mul : n32) : n32
+{
+	dyn over = transtype(0 : n32)
+
+	pour j dans 0 ... 4 {
+		i = 4 - j
+
+		result = transtype(mul : n64) * n.pointeur[i] + over;
+
+		# Put the bottom bits of the results back.
+		n.pointeur[i] = transtype(result : n32)
+		over = transtype(result >> décalage_mot : n32)
+	}
+
+	retourne over;
+}
+
+####################################################################################
+
+union NombreDécimal nonsûr {
+	i : z32
+	f : r32
+}
+
+fonc construit_nombre_décimal(f : r32) : NombreDécimal
+{
+	retourne NombreDécimal{ f = f }
+}
+
+# Extraction portable des composants
+fonc est_négatif(n : &NombreDécimal) : bool
+{
+	retourne (n.i >> 31) != 0
+}
+
+fonc mantisse_crue(n : &NombreDécimal) : z32
+{
+	retourne n.i & ((1 << 23) - 1)
+}
+
+fonc exposant_cru(n : &NombreDécimal) : z32
+{
+	retourne (n.i >> 23) & 0xFF
+}
+
+# Imprime le nombre décimal en utilisant un nombre entier de haute précision afin de
+# mieux cerner la valeur exacte du décimal.
+# À FAIRE : il y a un bug où les données du haute_précision sont corrompues quand on les
+# passe à une fonction il semblerait.
+fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f : r32) : rien
+{
+	# Mets le nombre dans notre union magique afin d'extraire les composants
+	num = construit_nombre_décimal(f)
+
+	# Défini le caractère pour le signe
+	si num.est_négatif() {
+		enchaineuse.pousse('-')
+	}
+
+	# Vérifie si NaN ou infinité
+	si num.exposant_cru() == 255 {
+		# Vérifie si infinité
+		si num.mantisse_crue() == 0 {
+			enchaineuse.pousse("inf")
+			retourne
+		}
+
+		# Sinon nous avons un NaN. On pourrait imprimer la valeur crue de la mantisse.
+		enchaineuse.pousse("nan")
+		retourne
+	}
+
+	# Ajustement pour le biais de l'exposant.
+	dyn valeur_exposant = num.exposant_cru() - 127
+
+	# Ajoute celui impliqué à la mantisse.
+	dyn valeur_mantisse = (1 << 23) + num.mantisse_crue()
+
+	# Cas spécial pour les dénormales - pas de valeur spéciale d'exposant et pas d'impliquée
+	si num.exposant_cru() == 0 {
+		valeur_exposant = -126
+		valeur_mantisse = num.mantisse_crue()
+	}
+
+	# Le premier bit de la mantisse a une valeur implicite de 1 et ceci peut
+	# être décalé de 127 positions vers la gauche, donc de 125 bits vers la gauche
+	# du point binaire, ou 4 mots pour la part entière.
+	dyn part_entière = construit_nombre_haute_précision() # haute_précision<4>
+
+	# Quand notre valeur_exposant est 0 (un nombre entre 1.0 et 2.0),
+	# nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
+	# est 1. Nous devons donc décaler 9 bits depuis le bas afin d'avoir le 24ème bit
+	# dans la position du 1 dans portion entière, ajoutant le décalage de l'exposant.
+	part_entière.insert_low_bits(
+		transtype(valeur_mantisse : n32),
+		9 + valeur_exposant : n32)
+
+	# Perfome toujours au moins une itération, afin d'avoir un zéro au début.
+	répète {
+		remainder = part_entière.remainder(transtype(10 : n32))
+		enchaineuse.pousse(transtype('0' + remainder : z8))
+	} tantque !part_entière.is_zero()
+
+	# À FAIRE : réordonne les chiffres.
+	# std::reverse(result.begin(), result.end());
+
+	# Ajout le point décimal.
+	enchaineuse.pousse('.')
+
+	# Nous avons une mantisse de 23-bits à droite du point binaire et ceci
+	# peut être décalé de 126 positions vers la droite, donc 149 bits, ou
+	# 5 mots de 32-bits.
+	dyn frac = construit_nombre_haute_précision() # haute_précision<5>
+
+	# Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
+	# la part fractionnelle.
+	frac.insert_top_bits(transtype(valeur_mantisse : n32), 23 - valeur_exposant);
+
+	tantque !frac.is_zero() {
+		overflow = frac.overflow(transtype(10 : n32))
+		enchaineuse.pousse(transtype('0' + overflow : z8))
+	}
+}
+
+####################################################################################
+
+fonc imprime_valeur_entier_naturel(
+	dyn enchaineuse : &Enchaineuse,
+	dyn valeur : n64) : rien
+{
+	si valeur == 0 {
+		enchaineuse.pousse("0")
+		retourne
+	}
+
+	chiffres = "0123456789"
+
+	dyn résultat : [20]z8
+	dyn taille_résultat = 0
+
+	tantque valeur != 0 {
+		chiffre = valeur % 10
+		résultat[taille_résultat] = chiffres[chiffre]
+		valeur /= 10
+		taille_résultat += 1
+	}
+
+	pour i dans 0 ... taille_résultat {
+		enchaineuse.pousse(résultat[taille_résultat - i])
+	}
+}
+
+fonc imprime_valeur_entier_relatif(
+	dyn enchaineuse : &Enchaineuse,
+	dyn valeur : z64) : rien
+{
+	si valeur == 0 {
+		enchaineuse.pousse("0")
+		retourne
+	}
+
+	si valeur < 0 {
+		enchaineuse.pousse("-")
+		valeur = -valeur
+	}
+
+	chiffres = "0123456789"
+
+	dyn résultat : [20]z8
+	dyn taille_résultat = 0
+
+	tantque valeur != 0 {
+		chiffre = valeur % 10
+		résultat[taille_résultat] = chiffres[chiffre]
+		valeur /= 10
+		taille_résultat += 1
+	}
+
+	pour i dans 0 ... taille_résultat - 1 {
+		enchaineuse.pousse(résultat[taille_résultat - i - 1])
+	}
+}
+
+fonc imprime_valeur_entière(
+	dyn enchaineuse : &Enchaineuse,
+	pointeur : *z8,
+	info : *InfoTypeEntier) : rien
+{
+	si info.est_signé {
+		dyn x : z64
+
+		si info.taille_en_octet == 8 {
+			x = mémoire(transtype(pointeur : *z8))
+		}
+		sinon si info.taille_en_octet == 16 {
+			x = mémoire(transtype(pointeur : *z16))
+		}
+		sinon si info.taille_en_octet == 32 {
+			x = mémoire(transtype(pointeur : *z32))
+		}
+		sinon si info.taille_en_octet == 64 {
+			x = mémoire(transtype(pointeur : *z64))
+		}
+
+		imprime_valeur_entier_relatif(enchaineuse, x)
+	}
+	sinon {
+		dyn x : n64
+
+		si info.taille_en_octet == 8 {
+			x = mémoire(transtype(pointeur : *n8))
+		}
+		sinon si info.taille_en_octet == 16 {
+			x = mémoire(transtype(pointeur : *n16))
+		}
+		sinon si info.taille_en_octet == 32 {
+			x = mémoire(transtype(pointeur : *n32))
+		}
+		sinon si info.taille_en_octet == 64 {
+			x = mémoire(transtype(pointeur : *n64))
+		}
+
+		imprime_valeur_entier_naturel(enchaineuse, x)
+	}
+}
+
+fonc imprime_nombre_décimal(dyn enchaineuse : &Enchaineuse, f : r32) : rien
+{
+	# Mets le nombre dans notre union magique afin d'extraire les composants
+	num = construit_nombre_décimal(f)
+
+	# Défini le caractère pour le signe
+	si num.est_négatif() {
+		enchaineuse.pousse('-')
+	}
+
+	# Vérifie si NaN ou infinité
+	si num.exposant_cru() == 255 {
+		# Vérifie si infinité
+		si num.mantisse_crue() == 0 {
+			enchaineuse.pousse("inf")
+			retourne
+		}
+
+		# Sinon nous avons un NaN. On pourrait imprimer la valeur crue de la mantisse.
+		enchaineuse.pousse("nan")
+		retourne
+	}
+
+	si f == 0.0 {
+		enchaineuse.pousse("0.0")
+		retourne
+	}
+
+	dyn x = f
+
+	si f < 0.0 {
+		x = -x
+	}
+
+	dyn part_entière = transtype(x : z64)
+
+	imprime_valeur_entier_relatif(enchaineuse, part_entière)
+
+	enchaineuse.pousse('.')
+
+	dyn frac = x - transtype(part_entière : r32)
+
+	chiffres = "0123456789"
+
+	répète {
+		frac *= 10.0
+		chiffre = transtype(frac : z64)
+
+		enchaineuse.pousse(chiffres[chiffre])
+
+		frac = frac - transtype(chiffre : r32)
+	} tantque frac < 1.0 && frac != 0.0
+}
+
+fonc imprime_pointeur(
+	dyn enchaineuse : &Enchaineuse,
+	pointeur : *rien) : rien
+{
+    si pointeur == nul {
+        enchaineuse.pousse("(nul)")
+        retourne
+    }
+
+    valeur = transtype(pointeur : n64)
+
+    enchaineuse.pousse("0x")
+
+    chiffres_hex = "0123456789ABCDEF"
+
+    dyn décalage = 60
+
+    pour i dans 0 ... 15 {
+        chiffre = (valeur >> décalage) & 0x0F
+        enchaineuse.pousse(chiffres_hex[chiffre])
+        décalage -= 4
+    }
+}
+
+fonc imprime_valeur(
+	dyn enchaineuse : &Enchaineuse,
+	pointeur : *z8,
+	info : *InfoType,
+	échappe_chn : bool) : rien
+{
+    discr info.id {
+		ENTIER {
+			info_arg = transtype(info : *InfoTypeEntier)
+            imprime_valeur_entière(enchaineuse, pointeur, info_arg)
+		}
+		RÉEL {
+			info_arg = transtype(info : *InfoTypeRéel)
+			dyn y : r32
+
+            si info_arg.taille_en_octet == 16 {
+				soit x = mémoire(transtype(pointeur : *r16))
+				y = x
+			}
+			sinon si info_arg.taille_en_octet == 32 {
+				y = mémoire(transtype(pointeur : *r32))
+			}
+			sinon si info_arg.taille_en_octet == 64 {
+				x = mémoire(transtype(pointeur : *r64))
+				y = transtype(x : r32)
+			}
+
+			imprime_nombre_décimal(enchaineuse, y)
+		}
+		BOOLÉEN {
+			x = mémoire(transtype(pointeur : *bool))
+
+            si x {
+				enchaineuse.pousse("vrai")
+			}
+			sinon {
+				enchaineuse.pousse("faux")
+			}
+		}
+		CHAINE {
+			x = mémoire(transtype(pointeur : *chaine))
+
+            si échappe_chn {
+				enchaineuse.pousse('"')
+			}
+
+			enchaineuse.pousse(x)
+
+            si échappe_chn {
+				enchaineuse.pousse('"')
+			}
+		}
+		STRUCTURE {
+			info_arg = transtype(info : *InfoTypeStructure)
+
+            enchaineuse.pousse(info_arg.nom)
+            enchaineuse.pousse(" {")
+
+            pour membre, idx dans info_arg.membres {
+				nom = membre.nom
+                décalage = membre.décalage
+				id = membre.id
+
+                si idx != 0 {
+                    enchaineuse.pousse(',')
+                }
+
+                enchaineuse.pousse(nom)
+                enchaineuse.pousse(" = ")
+
+				imprime_valeur(enchaineuse, pointeur + décalage, id, vrai)
+			}
+
+            enchaineuse.pousse(" }")
+		}
+		POINTEUR {
+		    # Ne pas oublier qu'il y a un niveau d'indirection.
+			x = mémoire(transtype(pointeur : **z8))
+
+            imprime_pointeur(enchaineuse, x)
+		}
+		FONCTION {
+		    # À FAIRE : types paramètres
+            enchaineuse.pousse("fonction()")
+		}
+		EINI {
+			x = mémoire(transtype(pointeur : *eini))
+
+            enchaineuse.pousse("eini { ptr = ")
+            imprime_pointeur(enchaineuse, x.pointeur)
+            enchaineuse.pousse(", info = ")
+            imprime_pointeur(enchaineuse, x.info)
+            enchaineuse.pousse(" }")
+		}
+		RIEN {
+            enchaineuse.pousse("rien")
+		}
+		TABLEAU {
+			x = mémoire(transtype(pointeur : *[]z8))
+
+            enchaineuse.pousse("tableau { ptr = ")
+            imprime_pointeur(enchaineuse, x.pointeur)
+            enchaineuse.pousse(", taille = ")
+            imprime_valeur_entier_relatif(enchaineuse, x.taille)
+            enchaineuse.pousse(" }")
+		}
+		ÉNUM {
+			info_arg = transtype(info : *InfoTypeÉnum)
+			# À FAIRE : typage selon énum
+			valeur = mémoire(transtype(pointeur : *z32))
+			noms = info_arg.noms
+
+			pour v, i dans info_arg.valeurs {
+			    si v == valeur {
+                    enchaineuse.pousse(noms[i])
+					arrête
+				}
+			}
+		}
+	}
+}
+
+fonc imprime(args : ...eini) : rien
+{
+    dyn enchaineuse = crée_enchaineuse()
+    diffère { détruit(enchaineuse); }
+
+    pour arg dans args {
+		imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+    }
+
+	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
+}
+
+fonc imprime_err(args : ...eini) : rien
+{
+    dyn enchaineuse = crée_enchaineuse()
+    diffère { détruit(enchaineuse); }
+
+    pour arg dans args {
+		imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+    }
+
+	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
+}
