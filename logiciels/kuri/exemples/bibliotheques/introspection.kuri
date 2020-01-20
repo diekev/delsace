@@ -1,27 +1,27 @@
 rout crée_manipulable(valeur : eini) : &Manipulable
 {
-	si id de info de valeur != id_type.STRUCTURE {
+	si valeur.info.id != id_type.STRUCTURE {
 		retourne nul;
 	}
 
-	soit info = transtype(info de valeur : &InfoTypeStructure);
+	soit info = transtype(valeur.info : &InfoTypeStructure);
 
 	dyn manipulable = loge Manipulable sinon {
 		# À FAIRE : erreur
 		retourne nul;
 	}
 
-	pour membre dans membres de info {
+	pour membre dans info.membres {
 		dyn tprop : type_prop;
 
-		discr id de info de membre {
+		discr membre.info.id {
 			id_type.ENTIER    : { tprop = type_prop.ENTIER; }
 			id_type.RÉEL      : { tprop = type_prop.RÉEL; }
 			id_type.STRUCTURE : { tprop = type_prop.NUL; }
 			id_type.CHAÎNE    : { tprop = type_prop.CHAÎNE; }
 		}
 
-		manipulable.ajoute_propriete(nom de membre, tprop);
+		manipulable.ajoute_propriete(membre.nom, tprop);
 	}
 
 	retourne manipulable;
@@ -32,15 +32,15 @@ rout ajourne_valeur(
 	nom_prop : &chaine,
 	valeur : eini) : rien
 {
-	garde id de info de objet == TYPE_STRUCTURE sinon {
+	garde objet.info.id == TYPE_STRUCTURE sinon {
 		# À FAIRE : erreur
 		retourne;
 	}
 
-	soit info = transtype(info de objet : &TypeInfoStructure);
+	soit info = transtype(objet.info : &TypeInfoStructure);
 
-	iter membre dans membres de info {
-		si nom de membre == nom_prop {
+	iter membre dans info.membres {
+		si membre.nom == nom_prop {
 			arrête;
 		}
 	}
@@ -50,20 +50,20 @@ rout ajourne_valeur(
 	}
 	sinon {
 		# Trouve le type de membre
-		si id de info de membre != id de info de valeur {
+		si membre.info.id != valeur.info.id {
 			# À FAIRE : erreur
 			retourne
 		}
 
 		# Trouve le décalage
-		soit décalage = décalage de info de membre;
+		soit décalage = membre.info.décalage;
 
 		# Écris la valeur
 		nonsûr {
-			soit ptr_début = pointeur de eini;
+			soit ptr_début = valeur.pointeur;
 			soit ptr_valeur = ptr_début + décalage
 
-			mémoire(ptr_valeur) = mémoire(pointeur de eini);
+			mémoire(ptr_valeur) = mémoire(ptr_début);
 		}
 	}
 }
@@ -76,7 +76,7 @@ struct Vecteur3D {
 
 rout invoque(methode : eini, args : ...eini) : eini
 {
-	soit fonc_ptr = pointeur de eini;
+	soit fonc_ptr = methode.pointeur;
 
 	# il faudrait émuler la manière dont les fonctions sont appelées
 	# sur chaque plateforme...
@@ -110,7 +110,7 @@ rout loge_concat(args... : []z32) : []z32
 	dyn taille : n64 = 0;
 
 	iter arg dans args {
-		taille = taille + taille de tabl;
+		taille = taille + tabl.taille;
 	}
 
 	soit res = loge [taille]z32 sinon {

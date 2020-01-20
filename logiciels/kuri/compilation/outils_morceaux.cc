@@ -229,7 +229,6 @@ bool est_mot_cle(id_morceau id)
 		case id_morceau::RETOURNE:
 		case id_morceau::ENUM:
 		case id_morceau::RETIENS:
-		case id_morceau::DE:
 		case id_morceau::EXTERNE:
 		case id_morceau::IMPORTE:
 		case id_morceau::POUR:
@@ -394,7 +393,6 @@ bool est_operateur_binaire(id_morceau identifiant)
 		case id_morceau::BARRE_BARRE:
 		case id_morceau::BARRE:
 		case id_morceau::CHAPEAU:
-		case id_morceau::DE:
 		case id_morceau::POINT:
 		case id_morceau::EGAL:
 		case id_morceau::TROIS_POINTS:

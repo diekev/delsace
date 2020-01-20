@@ -15,12 +15,12 @@ fonc encode_adn(valeurs : []octet) : chaine
 {
 	dyn chn : chaine
 
-    si taille de valeurs == 0 {
+    si valeurs.taille == 0 {
 		retourne chn
     }
 
 	codes = ['a', 'c', 'g', 't']
-	reloge chn : chaine(taille de valeurs * 4)
+	reloge chn : chaine(valeurs.taille * 4)
 
     pour v, i dans valeurs {
 		chn[i * 4 + 0] = codes[(v & 0b11000000) >> 6]
@@ -41,7 +41,7 @@ fonc encode_adn(valeurs : []octet) : chaine
 fonc décode_adn(valeurs : []octet) : chaine
 {
 	dyn chn : chaine
-	taille = taille de valeurs
+	taille = valeurs.taille
 
     si taille == 0 {
 		retourne chn

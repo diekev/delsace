@@ -24,15 +24,15 @@ struct FileÉvènement {
 
 #!nulctx fonc decrée_file(dyn q : *FileÉvènement) : rien
 {
-	taille de q = 0
-    déloge tampon de q
+	q.taille = 0
+    déloge q.tampon
     déloge q
 }
 
 #!nulctx fonc enfile(dyn q : *FileÉvènement, évènement : Évènement) : rien
 {
-    si taille de q == q.tampon.taille {
-		reloge tampon de q : [q.tampon.taille + 1]Évènement
+    si q.taille == q.tampon.taille {
+		reloge q.tampon : [q.tampon.taille + 1]Évènement
     }
 
     index = q.taille
@@ -42,7 +42,7 @@ struct FileÉvènement {
 
 #!nulctx fonc est_vide(q : *FileÉvènement) : bool
 {
-    retourne taille de q == 0
+    retourne q.taille == 0
 }
 
 #!nulctx fonc défile(dyn q : *FileÉvènement) : Évènement
@@ -57,13 +57,13 @@ struct FileÉvènement {
 
     # réajuste la file en décalant les données
 
-    si taille de q > 1 {
+    si q.taille > 1 {
 	    soit ptr_dst = @q.tampon[0]
 		soit ptr_src = @q.tampon[1]
-        copie_mem_nonsur(ptr_src, ptr_dst, transtype(taille_de(Évènement) : z64) * (taille de q - 1))
+        copie_mem_nonsur(ptr_src, ptr_dst, transtype(taille_de(Évènement) : z64) * (q.taille - 1))
     }
 
-    taille de q -= 1
+    q.taille -= 1
 
     retourne évènement
 }
@@ -85,17 +85,17 @@ dyn VG_file_évènements : *FileÉvènement = nul
     dyn évènement : Évènement
 
 	si action == 1 {
-		type de évènement = CLE_PRESSEE de type_évènement
+		évènement.type = type_évènement.CLE_PRESSEE
 	}
 	sinon si action == 0 {
-		type de évènement = CLE_RELACHEE de type_évènement
+		évènement.type = type_évènement.CLE_RELACHEE
 	}
 	sinon si action == 2 {
-		type de évènement = CLE_REPETEE de type_évènement
+		évènement.type = type_évènement.CLE_REPETEE
 	}
 
-    mods de évènement = mods
-    cle de évènement = cle
+    évènement.mods = mods
+    évènement.cle = cle
 
     enfile(VG_file_évènements, évènement)
 }
@@ -105,14 +105,14 @@ dyn VG_file_évènements : *FileÉvènement = nul
     dyn évènement : Évènement
 
     si action == 1 {
-		type de évènement = SOURIS_PRESSEE de type_évènement
+		évènement.type = type_évènement.SOURIS_PRESSEE
 	}
 	sinon si action == 0 {
-		type de évènement = SOURIS_RELACHEE de type_évènement
+		évènement.type = type_évènement.SOURIS_RELACHEE
 	}
 
-    mods de évènement = mods
-    souris de évènement = bouton
+    évènement.mods = mods
+    évènement.souris = bouton
 
     enfile(VG_file_évènements, évènement)
 }
@@ -120,9 +120,9 @@ dyn VG_file_évènements : *FileÉvènement = nul
 #!nulctx fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) : rien
 {
     dyn évènement : Évènement
-    type de évènement = SOURIS_BOUGEE de type_évènement
-    pos_x de évènement = pos_x
-    pos_y de évènement = pos_y
+    évènement.type = type_évènement.SOURIS_BOUGEE
+    évènement.pos_x = pos_x
+    évènement.pos_y = pos_y
 
     enfile(VG_file_évènements, évènement)
 }
@@ -130,9 +130,9 @@ dyn VG_file_évènements : *FileÉvènement = nul
 #!nulctx fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) : rien
 {
     dyn évènement : Évènement
-    type de évènement = SOURIS_ROULETTE de type_évènement
-    delta_x de évènement = delta_x
-    delta_y de évènement = delta_y
+    évènement.type = type_évènement.SOURIS_ROULETTE
+    évènement.delta_x = delta_x
+    évènement.delta_y = delta_y
 
     enfile(VG_file_évènements, évènement)
 }
@@ -142,9 +142,9 @@ dyn VG_file_évènements : *FileÉvènement = nul
 	glViewport(0, 0, x, y)
 
     dyn évènement : Évènement
-    type de évènement = REDIMENSION de type_évènement
-    delta_x de évènement = transtype(x : r64)
-    delta_y de évènement = transtype(y : r64)
+    évènement.type = type_évènement.REDIMENSION
+    évènement.delta_x = transtype(x : r64)
+    évènement.delta_y = transtype(y : r64)
 
     enfile(VG_file_évènements, évènement)
 }
@@ -168,7 +168,7 @@ struct Application {
     largeur : z32 = 0
     souris_x = 0.0
     souris_y = 0.0
-    dernier_évènement = NUL de type_évènement
+    dernier_évènement = type_évènement.NUL
     temps_double_clic : z64
 
     personnage : Entite
@@ -176,7 +176,7 @@ struct Application {
 
 fonc initialise_opengl(app : &Application) : rien
 {
-    glfwMakeContextCurrent(fenetre de app)
+    glfwMakeContextCurrent(app.fenetre)
 
     soit erreur = glewInit()
 
@@ -195,64 +195,64 @@ fonc dessine_fenetre(app : &Application) : rien
 
 	glClearColor(transtype(0.5 : r32), transtype(0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32))
 
-	soit l = transtype(largeur de app : r32)
-	soit h = transtype(hauteur de app : r32)
+	soit l = transtype(app.largeur : r32)
+	soit h = transtype(app.hauteur : r32)
 
     # dessine l'arrière plan
 
     # dessine les personnages
 	soit taille_x = transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
 	soit taille_y = transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
-	soit pos_x = transtype(pos_x de personnage de app : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
-	soit pos_y = transtype(pos_y de personnage de app : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
+	soit pos_x = transtype(app.personnage.pos_x : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
+	soit pos_y = transtype(app.personnage.pos_y : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
 
 	soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(1.0 : r32), a = transtype(1.0 : r32) }
 
 	dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur)
 
-	glfwSwapBuffers(fenetre de app)
+	glfwSwapBuffers(app.fenetre)
 }
 
 fonc traite_évènement(dyn app : &Application, évènement : Évènement) : rien
 {
     #imprime(évènement, '\n');
 
-    si type de évènement == REDIMENSION de type_évènement {
-        largeur de app = transtype(delta_x de évènement : z32)
-        hauteur de app = transtype(delta_y de évènement : z32)
+    si évènement.type == type_évènement.REDIMENSION {
+        app.largeur = transtype(évènement.delta_x : z32)
+        app.hauteur = transtype(évènement.delta_y : z32)
     }
 
-    si type de évènement == CLE_PRESSEE de type_évènement || type de évènement == CLE_REPETEE de type_évènement {
-        si cle de évènement == RIGHT de type_cle {
-            pos_x de personnage de app += TAILLE_TUILE
+    si évènement.type == type_évènement.CLE_PRESSEE || évènement.type == type_évènement.CLE_REPETEE {
+        si évènement.cle == type_cle.RIGHT {
+            app.personnage.pos_x += TAILLE_TUILE
 
             # vérifie collision
-            si pos_x de personnage de app >= largeur de app {
-               pos_x de personnage de app = largeur de app - TAILLE_TUILE
+            si app.personnage.pos_x >= app.largeur {
+               app.personnage.pos_x = app.largeur - TAILLE_TUILE
             }
         }
-        si cle de évènement == UP de type_cle {
-            pos_y de personnage de app += TAILLE_TUILE
+        si évènement.cle == type_cle.UP {
+            app.personnage.pos_y += TAILLE_TUILE
 
             # vérifie collision
-            si pos_y de personnage de app >= hauteur de app {
-               pos_y de personnage de app = hauteur de app - TAILLE_TUILE
+            si app.personnage.pos_y >= app.hauteur {
+               app.personnage.pos_y = app.hauteur - TAILLE_TUILE
             }
         }
-        si cle de évènement == LEFT de type_cle {
-            pos_x de personnage de app -= TAILLE_TUILE
+        si évènement.cle == type_cle.LEFT {
+            app.personnage.pos_x -= TAILLE_TUILE
 
             # vérifie collision
-            si pos_x de personnage de app < 0 {
-               pos_x de personnage de app = 0
+            si app.personnage.pos_x < 0 {
+               app.personnage.pos_x = 0
             }
         }
-        si cle de évènement == DOWN de type_cle {
-            pos_y de personnage de app -= TAILLE_TUILE
+        si évènement.cle == type_cle.DOWN {
+            app.personnage.pos_y -= TAILLE_TUILE
 
             # vérifie collision
-            si pos_y de personnage de app < 0 {
-               pos_y de personnage de app = 0
+            si app.personnage.pos_y < 0 {
+               app.personnage.pos_y = 0
             }
         }
     }
@@ -270,13 +270,13 @@ fonc traite_évènements(dyn app : &Application) : rien
 
         # enregistrement de la position de la souris, car ceci n'est donnée
 		# que pour les mouvements */
-		si type de évènement == SOURIS_BOUGEE de type_évènement {
-			souris_x de app = pos_x de évènement
-			souris_y de app = pos_y de évènement
+		si évènement.type == type_évènement.SOURIS_BOUGEE {
+			app.souris_x = évènement.pos_x
+			app.souris_y = évènement.pos_y
 		}
-		sinon si type de évènement != REDIMENSION de type_évènement {
-			pos_x de évènement = souris_x de app
-			pos_y de évènement = souris_y de app
+		sinon si évènement.type != type_évènement.REDIMENSION {
+			évènement.pos_x = app.souris_x
+			évènement.pos_y = app.souris_y
 		}
 
         # si souris relachée
@@ -289,30 +289,30 @@ fonc traite_évènements(dyn app : &Application) : rien
 		# Editrice::souris_relachee() est appelé un autre évènement est survenu depuis le dernier clic
 		#    par exemple : presse souris, tappe une lettre, relache souris
 
-		si type de évènement == SOURIS_RELACHEE de type_évènement {
-			si (dernier_évènement de app == SOURIS_PRESSEE de type_évènement) || (dernier_évènement de app == DOUBLE_CLIC de type_évènement) {
+		si évènement.type == type_évènement.SOURIS_RELACHEE {
+			si (app.dernier_évènement == type_évènement.SOURIS_PRESSEE) || (app.dernier_évènement == type_évènement.DOUBLE_CLIC) {
 				continue
 			}
 
 			# traite l'évènement
 		}
-		sinon si type de évènement == SOURIS_PRESSEE de type_évènement {
-			si (compte_ticks_ms() - temps_double_clic de app) <= TEMPS_DOUBLE_CLIC_MS {
-				type de évènement = DOUBLE_CLIC de type_évènement
+		sinon si évènement.type == type_évènement.SOURIS_PRESSEE {
+			si (compte_ticks_ms() - app.temps_double_clic) <= TEMPS_DOUBLE_CLIC_MS {
+				évènement.type = type_évènement.DOUBLE_CLIC
 			}
 
-			temps_double_clic de app = compte_ticks_ms()
+			app.temps_double_clic = compte_ticks_ms()
 		}
 
 		traite_évènement(app, évènement)
 
-		dernier_évènement de app = type de évènement
+		app.dernier_évènement = évènement.type
     }
 }
 
 fonc boucle_principale(app : &Application) : rien
 {
-    tantque glfwWindowShouldClose(fenetre de app) == 0 {
+    tantque glfwWindowShouldClose(app.fenetre) == 0 {
         # À FAIRE : l'impression de chaines contenant des caractères échappés
         # ont un déborderment de tampon car l'échappement est compté comme un
         # caractère en soi.
@@ -345,8 +345,8 @@ fonc lance_application(dyn app : &Application) : z32
     #dyn donnees_moniteur = transtype(glfwGetVideoMode(glfwGetPrimaryMonitor()) : *DonneesMoniteur);
 
     #si donnees_moniteur != nul {
-    #    largeur = largeur de donnees_moniteur;
-    #    hauteur = hauteur de donnees_moniteur;
+    #    largeur = donnees_moniteur.largeur;
+    #    hauteur = donnees_moniteur.hauteur;
     #}
 
     #imprime(mémoire(donnees_moniteur), '\n');
@@ -371,9 +371,9 @@ fonc lance_application(dyn app : &Application) : z32
 	#glfwSetWindowSizeCallback(fenetre, rappel_dimension);
 
     # initialise l'application
-    fenetre de app = fenetre
-    hauteur de app = hauteur
-    largeur de app = largeur
+    app.fenetre = fenetre
+    app.hauteur = hauteur
+    app.largeur = largeur
 
     initialise_opengl(app)
 

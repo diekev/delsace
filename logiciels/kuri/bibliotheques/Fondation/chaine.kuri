@@ -5,11 +5,11 @@ charge "memoire"
 # Retourne vrai si les deux chaines données sont égales.
 fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 {
-    si taille de ch1 != taille de ch2 {
+    si ch1.taille != ch2.taille {
 		retourne faux
     }
 
-	soit taille = taille de ch1
+	soit taille = ch1.taille
 	soit début : z64 = 0
 
     pour i dans début...(taille - 1) {
@@ -36,8 +36,8 @@ fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 #!nulctx fonc construit_chaine(ptr : *z8, taille : z64) : chaine
 {
 	dyn ret : chaine
-	pointeur de ret = ptr
-	taille de ret = taille
+	ret.pointeur = ptr
+	ret.taille = taille
 	retourne ret
 }
 
@@ -51,19 +51,19 @@ fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
 # par un '\0' et l'utiliser dans les fonctions C.
 fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) : *z8
 {
-    si taille de tampon == 0 {
+    si tampon.taille == 0 {
 		retourne nul
 	}
 
-    si taille de tampon < taille de chn + 1 {
+    si tampon.taille < chn.taille + 1 {
 		tampon[0] = '\0'
 		retourne @tampon[0]
 	}
 
-	taille = taille de chn
+	taille = chn.taille
 
     copie_mem_nonsur(
-	    src=pointeur de chn,
+	    src=chn.pointeur,
 		dst=@tampon[0],
 		taille=taille)
 
@@ -99,13 +99,13 @@ fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, ein
 
 fonc est_vide(chn : chaine) : bool
 {
-	retourne taille de chn == 0
+	retourne chn.taille == 0
 }
 
 fonc trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
 {
 	soit début = pos
-	soit fin   = taille de chn
+	soit fin   = chn.taille
 
     pour i dans début ... fin - 1 {
 	    si chn[i] == carac {

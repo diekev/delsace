@@ -119,7 +119,6 @@ static id_morceau id_operateurs_binaire[] = {
 	id_morceau::BARRE_BARRE,
 	id_morceau::BARRE,
 	id_morceau::CHAPEAU,
-	id_morceau::DE,
 	id_morceau::EGAL,
 	id_morceau::POINT,
 };

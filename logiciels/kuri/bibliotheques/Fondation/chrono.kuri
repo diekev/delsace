@@ -8,10 +8,10 @@ fonc maintenant_sec() : r64
 	dyn heure : timeval
 	gettimeofday(@heure, nul)
 
-	soit s = transtype(tv_sec de heure : r64)
+	soit s = transtype(heure.tv_sec : r64)
 
     # À FAIRE : 1e-6
-	retourne s + transtype(tv_usec de heure : r64) * 0.000001
+	retourne s + transtype(heure.tv_usec : r64) * 0.000001
 }
 
 fonc maintenant_local() : r64
@@ -20,11 +20,11 @@ fonc maintenant_local() : r64
 	dyn fuseau : timezone
 	gettimeofday(@heure, @fuseau)
 
-	dyn s = transtype(tv_sec de heure : r64)
-	s += transtype(tz_minuteswest de fuseau : r64) * 60.0
+	dyn s = transtype(heure.tv_sec : r64)
+	s += transtype(fuseau.tz_minuteswest : r64) * 60.0
 
     # À FAIRE : 1e-6
-	retourne s + transtype(tv_usec de heure : r64) * 0.000001
+	retourne s + transtype(heure.tv_usec : r64) * 0.000001
 }
 
 fonc delta_sec(temps : r64) : r64
@@ -36,7 +36,7 @@ fonc compte_ticks_ms() : z64
 {
 	dyn heure : timeval
 	gettimeofday(@heure, nul)
-	retourne tv_sec de heure * 1000 + tv_usec de heure / 1000
+	retourne heure.tv_sec * 1000 + heure.tv_usec / 1000
 }
 
 struct DonnéesTemps {
@@ -50,9 +50,9 @@ fonc calcule_temps() : DonnéesTemps
 	dyn maint = maintenant_local()
 
 	dyn dt : DonnéesTemps
-	minutes de dt = transtype(maint / 60.0 : z32) % 60
-	heures de dt = transtype(maint / 60.0 / 60.0 : z32) % 24
-	secondes de dt = transtype(maint : z32) % 60
+	dt.minutes = transtype(maint / 60.0 : z32) % 60
+	dt.heures = transtype(maint / 60.0 / 60.0 : z32) % 24
+	dt.secondes = transtype(maint : z32) % 60
 
 	retourne dt
 }

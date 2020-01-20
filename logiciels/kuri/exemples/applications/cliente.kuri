@@ -97,7 +97,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
     }
 
     dyn tampon : [1024]z8;
-    ptr_tampon = copie_chaine_c_tampon(tampon, hôte de uri);
+    ptr_tampon = copie_chaine_c_tampon(tampon, uri.hôte);
 
     he = gethostbyname(ptr_tampon);
 
@@ -118,8 +118,8 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
     port : n16 = port_pour_uri(uri);
 
     dyn their_addr : sockaddr_in;
-    sin_family de their_addr = transtype(_AF_INET : n16);
-    sin_port de their_addr = htons(port);
+    their_addr.sin_family = transtype(_AF_INET : n16);
+    their_addr.sin_port = htons(port);
     their_addr.sin_zero[0] = transtype(0 : n8);
     their_addr.sin_zero[1] = transtype(0 : n8);
     their_addr.sin_zero[2] = transtype(0 : n8);
@@ -130,7 +130,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
     their_addr.sin_zero[7] = transtype(0 : n8);
 
     x = he.h_addr_list[0];
-    sin_addr de their_addr = mémoire(transtype(x : *in_addr));
+    their_addr.sin_addr = mémoire(transtype(x : *in_addr));
 
     #imprime(their_addr, '\n');
 
@@ -191,7 +191,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
 		}
     }
     sinon {
-        si send(prise, pointeur de requête, transtype(taille de requête : n64), 0) == -1 {
+        si send(prise, requête.pointeur, transtype(requête.taille : n64), 0) == -1 {
             imprime("Ne peut pas envoyer la reqûete !", '\n');
             retourne réponse, 1;
         }
@@ -205,8 +205,8 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
             taille = SSL_read(m_ssl, @tampon[0], taille_max_données)
 
             si taille > 0 {
-                ancienne_taille = taille de réponse;
-                reloge réponse : chaine(taille de réponse + taille);
+                ancienne_taille = réponse.taille;
+                reloge réponse : chaine(réponse.taille + taille);
                 copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=transtype(taille : z64));
             }
             sinon {
@@ -256,8 +256,8 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
             #imprime("Reçu paquet de taille ", taille_reçue, '\n');
 
             si taille_reçue > 0 {
-                ancienne_taille = taille de réponse;
-                reloge réponse : chaine(taille de réponse + taille_reçue);
+                ancienne_taille = réponse.taille;
+                reloge réponse : chaine(réponse.taille + taille_reçue);
                 copie_mem_nonsur(src=@tampon[0], dst=@réponse[ancienne_taille], taille=taille_reçue);
             }
             sinon si taille_reçue == 0 {
@@ -295,11 +295,11 @@ fonc principale(args : []*z8) : z32
     diffère { enchaineuse.détruit(); }
 
     enchaineuse.pousse("GET ")
-    enchaineuse.pousse(chemin de uri)
-    enchaineuse.pousse(requête de uri)
+    enchaineuse.pousse(uri.chemin)
+    enchaineuse.pousse(uri.requête)
     enchaineuse.pousse(" HTTP/1.1\r\n")
     enchaineuse.pousse("Host:")
-    enchaineuse.pousse(hôte de uri)
+    enchaineuse.pousse(uri.hôte)
     enchaineuse.pousse("\r\n")
     enchaineuse.pousse("Accept-Encoding: identity\r\n")
     enchaineuse.pousse("Accept-Charset: utf-8, iso-8859-1;q=0.5\r\n")

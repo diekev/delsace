@@ -18,35 +18,35 @@ struct pile {
 fonc crée_pile(taille_elem : z64) : *pile
 {
 	dyn p = loge pile
-	taille_elem de p = taille_elem
+	p.taille_elem = taille_elem
 	retourne p
 }
 
 fonc decrée_pile(dyn p : *pile) : rien
 {
-	taille_elem de p = 0
-	taille de p = 0
-	capacité de p = 0
-	déloge tampon de p
+	p.taille_elem = 0
+	p.taille = 0
+	p.capacité = 0
+	déloge p.tampon
 	déloge p
 }
 
 fonc empile(dyn p : *pile, d : *rien) : rien
 {
-    si taille de p == capacité de p {
-		reloge tampon de p : [(taille de p + 1) * taille_elem de p]octet
-		capacité de p += 1
+    si p.taille == p.capacité {
+		reloge p.tampon : [(p.taille + 1) * p.taille_elem]octet
+		p.capacité += 1
     }
 
-	soit ptr = @p.tampon[taille de p * taille_elem de p]
-	copie_mem_nonsur(d, ptr, taille_elem de p)
+	soit ptr = @p.tampon[p.taille * p.taille_elem]
+	copie_mem_nonsur(d, ptr, p.taille_elem)
 
-	taille de p += 1
+	p.taille += 1
 }
 
 fonc est_vide(p : *pile) : bool
 {
-	retourne taille de p == 0
+	retourne p.taille == 0
 }
 
 fonc dépile(dyn p : *pile, d : *rien) : rien
@@ -56,11 +56,11 @@ fonc dépile(dyn p : *pile, d : *rien) : rien
     }
 
     si d != nul {
-		soit ptr = @p.tampon[(taille de p - 1) * taille_elem de p]
-		copie_mem_nonsur(ptr, d, taille_elem de p)
+		soit ptr = @p.tampon[(p.taille - 1) * p.taille_elem]
+		copie_mem_nonsur(ptr, d, p.taille_elem)
     }
 
-	taille de p -= 1
+	p.taille -= 1
 }
 
 #################################################################
@@ -77,35 +77,35 @@ struct file {
 fonc crée_file(taille_elem : z64) : *file
 {
 	dyn q = loge file
-	taille_elem de q = taille_elem
+	q.taille_elem = taille_elem
 	retourne q
 }
 
 fonc decrée_file(dyn q : *file) : rien
 {
-	taille_elem de q = 0
-	taille de q = 0
-	capacité de q = 0
-	déloge tampon de q
+	q.taille_elem = 0
+	q.taille = 0
+	q.capacité = 0
+	déloge q.tampon
 	déloge q
 }
 
 fonc enfile(dyn q : *file, d : *rien) : rien
 {
-    si taille de q == capacité de q {
-		reloge tampon de q : [(taille de q + 1) * taille_elem de q]octet
-		capacité de q += 1
+    si q.taille == q.capacité {
+		reloge q.tampon : [(q.taille + 1) * q.taille_elem]octet
+		q.capacité += 1
     }
 
-	soit ptr = @q.tampon[taille de q * taille_elem de q]
-	copie_mem_nonsur(d, ptr, taille_elem de q)
+	soit ptr = @q.tampon[q.taille * q.taille_elem]
+	copie_mem_nonsur(d, ptr, q.taille_elem)
 
-	taille de q += 1
+	q.taille += 1
 }
 
 fonc est_vide(q : *file) : bool
 {
-	retourne taille de q == 0
+	retourne q.taille == 0
 }
 
 fonc défile(dyn q : *file, d : *rien) : rien
@@ -116,18 +116,18 @@ fonc défile(dyn q : *file, d : *rien) : rien
 
     si d != nul {
 		soit ptr = @q.tampon[0]
-		copie_mem_nonsur(ptr, d, taille_elem de q)
+		copie_mem_nonsur(ptr, d, q.taille_elem)
     }
 
     # réajuste la file en décalant les données
 
-    si taille de q > 1 {
+    si q.taille > 1 {
 		soit ptr_dst = @q.tampon[0]
-		soit ptr_src = @q.tampon[taille_elem de q]
-		copie_mem_nonsur(ptr_src, ptr_dst, taille_elem de q * (taille de q - 1))
+		soit ptr_src = @q.tampon[q.taille_elem]
+		copie_mem_nonsur(ptr_src, ptr_dst, q.taille_elem * (q.taille - 1))
     }
 
-	taille de q -= 1
+	q.taille -= 1
 }
 
 #################################################################
@@ -144,35 +144,35 @@ struct tableau {
 fonc crée_tableau(taille_elem : z64) : *tableau
 {
 	dyn t = loge tableau
-	taille_elem de t = taille_elem
+	t.taille_elem = taille_elem
 	retourne t
 }
 
 fonc decrée_tableau(dyn t : *tableau) : rien
 {
-	taille_elem de t = 0
-	taille de t = 0
-	capacité de t = 0
-	déloge tampon de t
+	t.taille_elem = 0
+	t.taille = 0
+	t.capacité = 0
+	déloge t.tampon
 	déloge t
 }
 
 fonc pousse_tableau(dyn t : *tableau, d : *rien) : rien
 {
-    si taille de t == capacité de t {
-		reloge tampon de t : [(taille de t + 1) * taille_elem de t]octet
-		capacité de t += 1
+    si t.taille == t.capacité {
+		reloge t.tampon : [(t.taille + 1) * t.taille_elem]octet
+		t.capacité += 1
     }
 
-	soit ptr = @t.tampon[taille de t * taille_elem de t]
-	copie_mem_nonsur(d, ptr, taille_elem de t)
+	soit ptr = @t.tampon[t.taille * t.taille_elem]
+	copie_mem_nonsur(d, ptr, t.taille_elem)
 
-	taille de t += 1
+	t.taille += 1
 }
 
 fonc est_vide(t : *tableau) : bool
 {
-	retourne taille de t == 0
+	retourne t.taille == 0
 }
 
 fonc début_tableau(t : *tableau) : *rien
@@ -194,6 +194,6 @@ fonc fin_tableau(t : *tableau) : *rien
     # NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
     # mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
     # élément (<=)
-	soit ptr = @t.tampon[(taille de t - 1) * taille_elem de t]
+	soit ptr = @t.tampon[(t.taille - 1) * t.taille_elem]
 	retourne transtype(ptr : *rien)
 }

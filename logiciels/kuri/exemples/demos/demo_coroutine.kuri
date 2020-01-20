@@ -10,17 +10,17 @@ struct Noeud {
 corout iter_liste_noeud(noeud : *Noeud) : *Noeud
 {
     dyn nloc = noeud
-    
+
     tantque nloc != nul {
         retiens nloc
-        nloc = suiv de nloc
+        nloc = nloc.suiv
     }
 }
 
 corout iter_liste_noeud(noeud : *r32) : *r32
 {
     dyn nloc = noeud
-    
+
     tantque nloc != nul {
         retiens nloc
         nloc += 1
@@ -40,11 +40,11 @@ fonc principale(args : []*z8) : z32
     dyn n3 = Noeud{ suiv = nul, val = 789 }
     dyn n2 = Noeud{ suiv = @n3, val = 456 }
     dyn n1 = Noeud{ suiv = @n2, val = 123 }
-    
+
     pour n, i dans iter_liste_noeud(@n1) {
-        imprime("Valeur (", i, ") : ", val de n, '\n')
+        imprime("Valeur (", i, ") : ", n.val, '\n')
     }
-    
+
     pour c, i dans accumule([1, 2, 3, 4, 5, 6, 7, 8]) {
         si i == 24 {
             arrête

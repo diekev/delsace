@@ -25,17 +25,17 @@ struct Editrice {
 fonction cree_editrice(type : type_éditrice) : Editrice
 {
 	dyn éditrice = loge Editrice
-	type de éditrice = type
+	éditrice.type = type
 
 	discr type {
-		NULLE de type_éditrice {
-			nom de éditrice = "nulle"
+		NULLE {
+			éditrice.nom = "nulle"
 		}
-		PROPRIETE de type_éditrice {
-			nom de éditrice = "propriété"
+		PROPRIETE {
+			éditrice.nom = "propriété"
 		}
-		TEMPS de type_éditrice {
-			nom de éditrice = "temps"
+		TEMPS {
+			éditrice.nom = "temps"
 		}
 	}
 
@@ -56,9 +56,9 @@ fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) : Editrice
 fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
 {
 	# trouve l'index de l'éditrice dans le tableau
-	soit index = taille de tableau
+	soit index = tableau.taille
 
-	pour i dans 0 ... taille de tableau - 1 {
+	pour i dans 0 ... tableau.taille - 1 {
 		soit ed : *Editrice
 		valeur_tableau(editrices, i)
 	}
@@ -69,10 +69,10 @@ fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
 # editrice gauche-droite-haut-bas
 fonction divise_editrice(editrice : *Editrice) : bool
 {
-	soit gauche = gauche de editrice
-	soit droite = droite de editrice
-	soit haut   = haut de editrice
-	soit bas    = bas de editrice
+	soit gauche = editrice.gauche
+	soit droite = editrice.droite
+	soit haut   = editrice.haut
+	soit bas    = editrice.bas
 
 	si gauche == droite == haut == bas == nul {
 		retourne vrai

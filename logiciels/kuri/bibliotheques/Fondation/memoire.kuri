@@ -6,11 +6,11 @@
 
 #!nulctx fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) : z32
 {
-    si taille de a < taille {
+    si a.taille < taille {
 		retourne -1
 	}
 
-    si taille de b < taille {
+    si b.taille < taille {
 		retourne 1
 	}
 
@@ -27,15 +27,15 @@
 
 #!nulctx fonc comp_mem(a : []octet, b : []octet, taille : z64) : bool
 {
-    si taille de a < taille {
+    si a.taille < taille {
 		retourne faux
 	}
 
-    si taille de b < taille {
+    si b.taille < taille {
 		retourne faux
 	}
 
-    si taille de a != taille de b {
+    si a.taille != b.taille {
 		retourne faux
 	}
 
@@ -60,18 +60,18 @@
 # permettant à la source et à la destination de se surposer.
 #!nulctx fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) : rien
 {
-    si taille de src < taille {
+    si src.taille < taille {
 		retourne
 	}
 
-    si taille de dst < taille {
+    si dst.taille < taille {
 		retourne
 	}
 
     # vérifie si surposition
 
 	ptr_deb_src = @src[0]
-	ptr_fin_src = @src[taille de src - 1]
+	ptr_fin_src = @src[src.taille - 1]
 	ptr_deb_dst = @dst[0]
 
     # src |---------------|
@@ -106,10 +106,10 @@
 {
 	dyn tmp : [128]octet
 
-	dyn taille = taille de a
+	dyn taille = a.taille
 
-    si taille de a > taille de b {
-	   taille = taille de b
+    si a.taille > b.taille {
+	   taille = b.taille
 	}
 
 	dyn debut = 0
@@ -143,8 +143,8 @@
 #!nulctx fonc init_mem(dyn destination : []octet, valeur : z8, taille : z64) : rien
 {
 	dyn t = taille
-	si taille de destination < taille {
-		t = taille de destination
+	si destination.taille < taille {
+		t = destination.taille
 	}
 
     pour o dans destination {
@@ -155,18 +155,18 @@
 #!nulctx fonc cherche_mem(source : []octet, valeur : z8, taille : z64) : []octet
 {
 	dyn t = taille
-	si taille de source < taille {
-		t = taille de source
+	si source.taille < taille {
+		t = source.taille
 	}
 
 	dyn ret : []octet
-	pointeur de ret = nul
-	taille de ret = 0
+	ret.pointeur = nul
+	ret.taille = 0
 
     pour i dans transtype(0 : z64)...t - 1 {
 	    si source[i] == valeur {
-			pointeur de ret = @source[i]
-			taille de ret = t - i
+			ret.pointeur = @source[i]
+			ret.taille = t - i
 			arrête
 		}
 	}

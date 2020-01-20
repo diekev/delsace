@@ -38,39 +38,39 @@ fonc charge_programme() : n32
     "
 
     # crée les nuanceurs
-	soit VertexShaderID = glCreateShader(VERTEX_SHADER de OGL)
-	soit FragmentShaderID = glCreateShader(FRAGMENT_SHADER de OGL)
+	soit VertexShaderID = glCreateShader(OGL.VERTEX_SHADER)
+	soit FragmentShaderID = glCreateShader(OGL.FRAGMENT_SHADER)
 
-    soit taille_src_vertex = transtype(taille de source_vertex : z32)
-	glShaderSource(VertexShaderID, 1, @pointeur de source_vertex , @taille_src_vertex)
+    soit taille_src_vertex = transtype(source_vertex.taille : z32)
+	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
 	glCompileShader(VertexShaderID)
 
     # verifie la compilation
     dyn Result : z32 = 0
     dyn InfoLogLength : z32 = 0
-    glGetShaderiv(VertexShaderID, LINK_STATUS de OGL, @Result)
-	glGetShaderiv(VertexShaderID, INFO_LOG_LENGTH de OGL, @InfoLogLength)
+    glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, @Result)
+	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
     si InfoLogLength > 0 {
 		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
-		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, pointeur de ProgramErrorMessage)
+		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur compilation : VertexShaderID", ProgramErrorMessage, '\n')
         déloge ProgramErrorMessage
 	}
 
-    soit taille_src_fragment = transtype(taille de source_fragment : z32)
-	glShaderSource(FragmentShaderID, 1, @pointeur de source_fragment , @taille_src_fragment)
+    soit taille_src_fragment = transtype(source_fragment.taille : z32)
+	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
 	glCompileShader(FragmentShaderID)
 
     # verifie la compilation
     Result = 0
     InfoLogLength = 0
-    glGetShaderiv(FragmentShaderID, LINK_STATUS de OGL, @Result)
-	glGetShaderiv(FragmentShaderID, INFO_LOG_LENGTH de OGL, @InfoLogLength)
+    glGetShaderiv(FragmentShaderID, OGL.LINK_STATUS, @Result)
+	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
     si InfoLogLength > 0 {
 		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
-		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, pointeur de ProgramErrorMessage)
+		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur compilation : FragmentShaderID", ProgramErrorMessage, '\n')
         déloge ProgramErrorMessage
 	}
@@ -83,12 +83,12 @@ fonc charge_programme() : n32
     # verifie la liaison
     Result = 0
     InfoLogLength = 0
-    glGetProgramiv(ProgramID_, COMPILE_STATUS de OGL, @Result)
-	glGetProgramiv(ProgramID_, INFO_LOG_LENGTH de OGL, @InfoLogLength)
+    glGetProgramiv(ProgramID_, OGL.COMPILE_STATUS, @Result)
+	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
     si InfoLogLength > 0 {
 		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
-		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, pointeur de ProgramErrorMessage)
+		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur liaison : ProgramID", ProgramErrorMessage, '\n')
         déloge ProgramErrorMessage
 	}
@@ -135,23 +135,23 @@ fonc termine_dessin() : rien
     glUseProgram(ProgramID)
 
     glEnableVertexAttribArray(transtype(0 : n32))
-    glBindBuffer(ARRAY_BUFFER de OGL, vertexbuffer)
-    glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_sommets * taille_de(z32) : n64), pointeur de tampon de tabl_sommets, STATIC_DRAW de OGL)
-    glVertexAttribPointer(transtype(0 : n32), 3, FLOAT de OGL, FALSE de OGL, 0, nul)
+    glBindBuffer(OGL.ARRAY_BUFFER, vertexbuffer)
+    glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille * taille_de(z32) : n64), tabl_sommets.tampon.pointeur, OGL.STATIC_DRAW)
+    glVertexAttribPointer(transtype(0 : n32), 3, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glEnableVertexAttribArray(transtype(1 : n32))
-    glBindBuffer(ARRAY_BUFFER de OGL, colorbuffer)
-    glBufferData(ARRAY_BUFFER de OGL, transtype(taille de tabl_couleur * taille_de(z32) : n64), pointeur de tampon de tabl_couleur, STATIC_DRAW de OGL)
-    glVertexAttribPointer(transtype(1 : n32), 4, FLOAT de OGL, FALSE de OGL, 0, nul)
+    glBindBuffer(OGL.ARRAY_BUFFER, colorbuffer)
+    glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille * taille_de(z32) : n64), tabl_couleur.tampon.pointeur, OGL.STATIC_DRAW)
+    glVertexAttribPointer(transtype(1 : n32), 4, OGL.FLOAT, OGL.FALSE, 0, nul)
 
-    glDrawArrays(TRIANGLES de OGL, 0, taille de tabl_sommets / 3)
+    glDrawArrays(OGL.TRIANGLES, 0, tabl_sommets.taille / 3)
     glDisableVertexAttribArray(transtype(0 : n32))
 
     glUseProgram(transtype(0 : n32))
 
     nonsûr {
-        taille de tabl_sommets = 0
-        taille de tabl_couleur = 0
+        tabl_sommets.taille = 0
+        tabl_couleur.taille = 0
     }
 
     glBindVertexArray(transtype(0 : n32))
@@ -173,10 +173,10 @@ struct Couleur {
 
 fonc ajoute_couleur(coul : Couleur) : rien
 {
-    pousse_tableau(tabl_couleur, @r de coul)
-    pousse_tableau(tabl_couleur, @v de coul)
-    pousse_tableau(tabl_couleur, @b de coul)
-    pousse_tableau(tabl_couleur, @a de coul)
+    pousse_tableau(tabl_couleur, @coul.r)
+    pousse_tableau(tabl_couleur, @coul.v)
+    pousse_tableau(tabl_couleur, @coul.b)
+    pousse_tableau(tabl_couleur, @coul.a)
 }
 
 fonc dessine_triangle() : rien

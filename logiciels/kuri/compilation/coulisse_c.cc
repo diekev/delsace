@@ -1620,13 +1620,6 @@ void genere_code_C(
 			genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
 			break;
 		}
-		case type_noeud::ACCES_MEMBRE_DE:
-		{
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
-			genere_code_acces_membre(contexte, generatrice, b, structure, membre, expr_gauche);
-			break;
-		}
 		case type_noeud::ACCES_MEMBRE_UNION:
 		{
 			auto structure = b->enfants.front();

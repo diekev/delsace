@@ -91,7 +91,7 @@ fonc test_tableau() : rien
 
 fonc principale(args : []*z8) : z32
 {
-    imprime("Il y a ", taille de args, " arguments :\n")
+    imprime("Il y a ", args.taille, " arguments :\n")
 
     pour arg dans args {
         soit chn = converti_chaine_c(arg)

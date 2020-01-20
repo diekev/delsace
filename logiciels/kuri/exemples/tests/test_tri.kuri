@@ -34,22 +34,22 @@ struct Plage {
 
 fonc choix_pivot(plage : *Plage) : *z32
 {
-	retourne avance(premier de plage, distance(plage) / 2);
+	retourne avance(plage.premier, distance(plage) / 2);
 }
 
 fonc tri_rapide(plage : *Plage) : rien
 {
-	si premier de plage < dernier de plage {
+	si plage.premier < plage.dernier {
 		soit variable pivot = choix_pivot(plage);
 		pivot = partition(plage, pivot);
 
 		soit variable plage1;
-		premier de plage1 = premier de plage;
-		dernier de plage1 = pivot - taille_de(z32);
+		plage1.premier = plage.premier;
+		plage1.dernier = pivot - taille_de(z32);
 
 		soit variable plage2;
-		premier de plage2 = pivot + taille_de(z32);
-		dernier de plage2 = dernier de plage;
+		plage2.premier = pivot + taille_de(z32);
+		plage2.dernier = plage.dernier;
 
 		tri_rapide(plage1);
 		tri_rapide(plage2);
@@ -64,16 +64,16 @@ struct GNASimple {
 fonc construit_gna(graine : z32) : GNASimple
 {
 	soit variable gna_simple : GNASimple;
-	z de gna_simple = graine;
-	w de gna_simple = graine + 1;
+	gna_simple.z = graine;
+	gna_simple.w = graine + 1;
 	retourne gna_simple;
 }
 
 fonc nombre_aléatoire(variable gna_simple : *GNASimple) : z32
 {
-	z de gna_simple = 36969 * (z de gna_simple & 655535) + (z de gna_simple >> 16);
-	w de gna_simple = 36969 * (w de gna_simple & 655535) + (w de gna_simple >> 16);
-	retourne (z de gna_simple << 16) + w de gna_simple;
+	gna_simple.z = 36969 * (gna_simple.z & 655535) + (gna_simple.z >> 16);
+	gna_simple.w = 36969 * (gna_simple.w & 655535) + (gna_simple.w >> 16);
+	retourne (gna_simple.z << 16) + gna_simple.w;
 }
 
 fonc principale(compte : z32, arguments : **z8) : z32
@@ -87,8 +87,8 @@ fonc principale(compte : z32, arguments : **z8) : z32
 	}
 
 	soit variable plage : Plage;
-	premier de plage = @tableau[0];
-	dernier de plage = @tableau[1023];
+	plage.premier = @tableau[0];
+	plage.dernier = @tableau[1023];
 
 	tri_rapide(@plage);
 

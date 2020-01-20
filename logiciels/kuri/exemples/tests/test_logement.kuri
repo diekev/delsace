@@ -3,8 +3,8 @@ importe "flux"
 fonc imprime_tableau(tabl : []r64) : rien
 {
     imprime("imprime_tableau...\n");
-    imprime("taille de tabl = ", taille de tabl, "\n");
-    imprime("pointeur de tabl = ", pointeur de tabl, "\n");
+    imprime("tabl.taille = ", tabl.taille, "\n");
+    imprime("tabl.pointeur = ", tabl.pointeur, "\n");
 
     dyn index = 0;
     pour v dans tabl {
@@ -78,8 +78,8 @@ fonc logement_tableau() : rien
 
     dyn tabl = loge [32]r64;
 
-    imprime("Tableau logé à l'addresse : ", pointeur de tabl, '\n');
-    imprime("Taille tableau : ", taille de tabl, '\n');
+    imprime("Tableau logé à l'addresse : ", tabl.pointeur, '\n');
+    imprime("Taille tableau : ", tabl.taille, '\n');
 
     dyn debut = 1.0;
 
@@ -91,16 +91,16 @@ fonc logement_tableau() : rien
     imprime_tableau(tabl);
 
     déloge tabl;
-    
-    imprime("Tableau délogé : ", pointeur de tabl, '\n');
-    imprime("Taille tableau : ", taille de tabl, '\n');
+
+    imprime("Tableau délogé : ", tabl.pointeur, '\n');
+    imprime("Taille tableau : ", tabl.taille, '\n');
 
     imprime_tableau(tabl);
 }
 
 
 fonc logement_chaine() : rien
-{  
+{
     imprime("=========================================\n");
     imprime("            logements chaine             \n");
 
@@ -112,9 +112,9 @@ fonc logement_chaine() : rien
     imprime("Résultat : ", chnr, '\n');
 
     déloge chnr;
-    
-    imprime("Chaîne délogée : ", pointeur de chnr, '\n');
-    imprime("Taille chaîne  : ", taille de chnr, '\n');
+
+    imprime("Chaîne délogée : ", chnr.pointeur, '\n');
+    imprime("Taille chaîne  : ", chnr.taille, '\n');
 }
 
 fonc test_fichier() : rien
@@ -136,10 +136,10 @@ fonc test_fichier() : rien
         dyn nread = read(res, @tpn[0], 1024);
 
         imprime("Lu ", nread, " octets\n");
-        
+
         dyn chn : chaîne;
-        pointeur de chn = @tpn[0]; # À FAIRE : prend pointeur automatiquement
-        taille de chn = transtype(nread : z64);
+        chn.pointeur = @tpn[0]; # À FAIRE : prend pointeur automatiquement
+        chn.taille = transtype(nread : z64);
 
         imprime(chn, '\n');
 

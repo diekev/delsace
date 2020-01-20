@@ -14,11 +14,11 @@
 énum type_cle : z32 {
 	INCONNU       = -1
 	ESPACE        = 32
-	APOSTROPHE    = 39  # ' 
-	VIRGULE       = 44  # , 
-	MOINS         = 45  # - 
-	POINT         = 46  # . 
-	SLASH         = 47  # / 
+	APOSTROPHE    = 39  # '
+	VIRGULE       = 44  # ,
+	MOINS         = 45  # -
+	POINT         = 46  # .
+	SLASH         = 47  # /
 	N0            = 48
 	N1            = 49
 	N2            = 50
@@ -29,8 +29,8 @@
 	N7            = 55
 	N8            = 56
 	N9            = 57
-	POINT_VIRGULE = 59  # ; 
-	EGAL          = 61  # = 
+	POINT_VIRGULE = 59  # ;
+	EGAL          = 61  # =
 	A             = 65
 	B             = 66
 	C             = 67
@@ -57,14 +57,14 @@
 	X             = 88
 	Y             = 89
 	Z             = 90
-	LEFT_BRACKET  = 91  # [ 
-	BACKSLASH     = 92  # \ 
-	RIGHT_BRACKET = 93  # ] 
-	ACCENT_GRAVE  = 96  # ` 
-	WORLD_1       = 161 # non-US #1 
-	WORLD_2       = 162 # non-US #2 
+	LEFT_BRACKET  = 91  # [
+	BACKSLASH     = 92  # \
+	RIGHT_BRACKET = 93  # ]
+	ACCENT_GRAVE  = 96  # `
+	WORLD_1       = 161 # non-US #1
+	WORLD_2       = 162 # non-US #2
 
-	# Function keys 
+	# Function keys
 	ESCAPE        = 256
 	ENTREE        = 257
 	TAB           = 258
@@ -143,7 +143,7 @@
 	GAUCHE  = 0
 	DROITE  = 1
 	MILIEU  = 2
-	
+
 	_1      = 0
 	_2      = 1
 	_3      = 2
@@ -152,7 +152,7 @@
 	_6      = 5
 	_7      = 6
 	_8      = 7
-	
+
 	AUCUN   = 9
 }
 
@@ -165,10 +165,10 @@
 }
 
 struct Évènement {
-    type = NUL de type_évènement
-	mods = AUCUN de type_mod
-	cle = INCONNU de type_cle
-	souris = AUCUN de bouton_souris
+    type = type_évènement.NUL
+	mods = type_mod.AUCUN
+	cle = type_cle.INCONNU
+	souris = bouton_souris.AUCUN
 
 	# position de la souris
 	pos_x : r64 = 0.0

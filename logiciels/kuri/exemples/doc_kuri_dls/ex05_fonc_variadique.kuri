@@ -8,5 +8,5 @@ fonc exemple(args : ...r64) : r64
 		}
 	}
 
-	retourne résultat / (taille de args)
+	retourne résultat / (args.taille)
 }

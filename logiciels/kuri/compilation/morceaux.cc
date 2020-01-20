@@ -37,7 +37,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("continue"), id_morceau::CONTINUE },
 	dls::paire{ dls::vue_chaine_compacte("corout"), id_morceau::COROUT },
 	dls::paire{ dls::vue_chaine_compacte("dans"), id_morceau::DANS },
-	dls::paire{ dls::vue_chaine_compacte("de"), id_morceau::DE },
 	dls::paire{ dls::vue_chaine_compacte("diffère"), id_morceau::DIFFERE },
 	dls::paire{ dls::vue_chaine_compacte("discr"), id_morceau::DISCR },
 	dls::paire{ dls::vue_chaine_compacte("dyn"), id_morceau::DYN },
@@ -262,8 +261,6 @@ const char *chaine_identifiant(id_morceau id)
 			return "id_morceau::COROUT";
 		case id_morceau::DANS:
 			return "id_morceau::DANS";
-		case id_morceau::DE:
-			return "id_morceau::DE";
 		case id_morceau::DIFFERE:
 			return "id_morceau::DIFFERE";
 		case id_morceau::DISCR:

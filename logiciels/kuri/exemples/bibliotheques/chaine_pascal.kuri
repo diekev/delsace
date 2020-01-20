@@ -57,10 +57,10 @@ fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
 		retourne;
 	}
 
-	données[0] de cp = transtype(l : z8);
+	cp.données[0] = transtype(l : z8);
 
 	pour i dans 0 ... transtype(l : z32) {
-		données[1 + i] de cp = chaîne[i];
+		cp.données[1 + i] = chaîne[i];
 	}
 }
 
@@ -75,10 +75,10 @@ fonc imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 		retourne;
 	}
 
-	soit taille = données[0] de cp;
+	soit taille = cp.données[0];
 
 	pour i dans 0 ... transtype(taille : z32) {
-		printf("%c", données[i + 1] de cp);
+		printf("%c", cp.données[i + 1]);
 	}
 }
 

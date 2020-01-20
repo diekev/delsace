@@ -23,8 +23,8 @@ struct atlas_texture {
 
 fonc pousse(dyn tabl : *[]ivec3, val : ivec3) : rien
 {
-    reloge tabl : []ivec3 (taille de tabl + 1)
-    tabl[taille de tabl - 1] = val
+    reloge tabl : []ivec3 (tabl.taille + 1)
+    tabl[tabl.taille - 1] = val
 }
 
 fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) : *atlas_texture
@@ -39,24 +39,24 @@ fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) : *atla
         retourne nul
     }
 
-    utilise de atlas = 0
-    largeur de atlas = largeur
-    hauteur de atlas = hauteur
-    profondeur de atlas = profondeur
-    id de atlas = 0
+    atlas.utilise = 0
+    atlas.largeur = largeur
+    atlas.hauteur = hauteur
+    atlas.profondeur = profondeur
+    atlas.id = 0
 
     soit noeud = ivec3{ x = 1, y = 1, z = largeur - 2 }
-    pousse(@noeuds de atlas, noeud)
+    pousse(@atlas.noeuds, noeud)
 
-    donnees de atlas = loge []octet (largeur * profondeur * hauteur)
+    atlas.donnees = loge []octet (largeur * profondeur * hauteur)
 
     retourne atlas
 }
 
 fonc décree_atlas_texture(atlas : *atlas_texture) : rien
 {
-    déloge noeuds de atlas
-    déloge donnees de atlas
+    déloge atlas.noeuds
+    déloge atlas.donnees
     déloge atlas
 }
 
@@ -98,30 +98,30 @@ fonc texture_atlas_fit(
 {
     # assert( atlas );
 
-    dyn noeud = noeuds[index] de atlas
-    dyn x = x de noeud
-    dyn y = y de noeud
+    dyn noeud = atlas.noeuds[index]
+    dyn x = noeud.x
+    dyn y = noeud.y
     dyn largeur_restante = largeur
 
-    si ((x + largeur) > (largeur de atlas - 1)) {
+    si ((x + largeur) > (atlas.largeur - 1)) {
         retourne -1
     }
-    
-    dyn y = y de noeud
+
+    dyn y = noeud.y
     dyn i = index
 
     tantque largeur_restante > 0 {
-        noeud = noeuds[i] de atlas
-        
-        si (y de noeud > y) {
-            y = y de noeud
+        noeud = atlas.noeuds[i]
+
+        si (noeud.y > y) {
+            y = noeud.y
         }
-        
-        si ((y + hauteur) > (hauteur de atlas - 1)) {
+
+        si ((y + hauteur) > (atlas.hauteur - 1)) {
             retourne -1
         }
-        
-        largeur_restante -= z de noeud
+
+        largeur_restante -= noeud.z
         i += 1
     }
 
@@ -132,13 +132,13 @@ fonc texture_atlas_merge(atlas : *atlas_texture) : rien
 {
 	# assert(atlas);
 
-	pour i dans 0 ... taille de noeuds de atlas - 2 {
-		soit noeud = noeuds[i] de atlas
-		soit suiv  = noeuds[i + 1] de atlas
+	pour i dans 0 ... atlas.noeuds.taille - 2 {
+		soit noeud = atlas.noeuds[i]
+		soit suiv  = atlas.noeuds[i + 1]
 
-		si y de noeud == y de suiv {
-			z de noeud += z de suiv
-			tableau_efface(noeuds de atlas, i + 1) # À FAIRE
+		si noeud.y == suiv.y {
+			noeud.z += suiv.z
+			tableau_efface(atlas.noeuds, i + 1) # À FAIRE
 			i -= 1
 		}
 	}
@@ -154,76 +154,76 @@ fonc texture_atlas_get_region(
     dyn meilleur_hauteur = (1 << 31) # À FAIRE UINT_MAX
     dyn meilleur_largeur = (1 << 31) # À FAIRE UINT_MAX
     dyn meilleur_index   = -1
-    
-    pour noeud, i dans noeuds de atlas {
+
+    pour noeud, i dans atlas.noeuds {
         soit y = texture_atlas_fit(atlas, i, largeur, hauteur)
-        
+
         si y < 0 {
             continue
         }
-        
+
         noeud = (ivec3 *) vector_get( atlas->noeuds, i )
         si( ( (y + hauteur) < meilleur_hauteur ) ||
-            ( ((y + hauteur) == meilleur_hauteur) && (0 <= z de noeud && z de noeud < meilleur_largeur)) )
+            ( ((y + hauteur) == meilleur_hauteur) && (0 <= noeud.z && noeud.z < meilleur_largeur)) )
         {
             meilleur_hauteur = y + hauteur
             meilleur_index = i
-            meilleur_largeur = z de noeud
-            x de region = x de noeud
-            y de region = y
+            meilleur_largeur = noeud.z
+            region.x = noeud.x
+            region.y = y
         }
     }
 
     si meilleur_index == -1 {
-        x de region = -1
-        y de region = -1
-        largeur de region = 0
-        hauteur de region = 0
+        region.x = -1
+        region.y = -1
+        region.largeur = 0
+        region.hauteur = 0
         retourne region
     }
 
     dyn noeud : ivec3
-    x de noeud = x de region
-    y de noeud = y de region + hauteur
-    z de noeud = largeur
+    noeud.x = region.x
+    noeud.y = region.y + hauteur
+    noeud.z = largeur
     vector_insert( atlas->noeuds, meilleur_index, noeud ) # À FAIRE
 
-    pour i dans meilleur_index + 1 ... taille de noeuds de atlas - 1 {
-        noeud = noeuds[i] de atlas
-        prev  = noeuds[i - 1] de atlas
+    pour i dans meilleur_index + 1 ... atlas.noeuds.taille  - 1 {
+        noeud = atlas.noeuds[i]
+        prev  = atlas.noeuds[i - 1]
 
-        si x de noeud >= (x de prev + z de prev) {
+        si noeud.x >= (prev.x + prev.z) {
             arrête
         }
-        
-        soit shrink = x de prev + z de prev - x de noeud
-        x de noeud += shrink
-        z de noeud -= shrink
 
-        si z de noeud > 0 {
+        soit shrink = prev.x + prev.z - noeud.x
+        noeud.x += shrink
+        noeud.z -= shrink
+
+        si noeud.z > 0 {
             arrête
         }
-        
-        vector_erase(noeuds de atlas, i)
+
+        vector_erase(atlas.noeuds, i)
         i -= 1
     }
 
     texture_atlas_merge(atlas)
-    utilise de atlas += largeur * hauteur
+    atlas.utilise += largeur * hauteur
     retourne region
 }
 
 fonc texture_atlas_clear(atlas : *atlas_texture) : rien
 {
     #assert(atlas);
-    #assert(donnees de atlas);
+    #assert(atlas.donnees);
 
     vector_clear(atlas->noeuds) # À FAIRE
-    utilise de atlas = 0
+    atlas.utilise = 0
     # We want a one pixel border around the whole atlas to avoid any artefact when
     # sampling texture
-    soit noeud = ivec3{ x = 1, y = 1, z = largeur de atlas - 2 }
+    soit noeud = ivec3{ x = 1, y = 1, z = atlas.largeur - 2 }
 
-    pousse(noeuds de atlas, noeud)
+    pousse(atlas.noeuds, noeud)
     init_mem( atlas->data, 0, atlas->largeur*atlas->hauteur*atlas->depth )
 }

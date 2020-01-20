@@ -230,10 +230,6 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 
 			return false;
 		}
-		case type_noeud::ACCES_MEMBRE_DE:
-		{
-			return peut_etre_assigne(b->enfants.back(), contexte, emet_erreur);
-		}
 		case type_noeud::ACCES_MEMBRE_UNION:
 		case type_noeud::ACCES_MEMBRE_POINT:
 		case type_noeud::ACCES_TABLEAU:
@@ -1157,15 +1153,6 @@ void performe_validation_semantique(
 						contexte,
 						b->morceau,
 						erreur::type_erreur::VARIABLE_INCONNUE);
-		}
-		case type_noeud::ACCES_MEMBRE_DE:
-		{
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
-			b->type_valeur = TypeValeur::TRANSCENDANTALE;
-
-			valide_acces_membre(contexte, b, structure, membre, expr_gauche);
-			break;
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{

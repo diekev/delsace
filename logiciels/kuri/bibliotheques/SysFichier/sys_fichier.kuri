@@ -256,26 +256,26 @@ fonc crée_file_dir() : *FileDir
 
 fonc decrée_file(dyn q : *FileDir) : rien
 {
-	taille de q = 0
-	capacité de q = 0
-	déloge tampon de q
+	q.taille = 0
+	q.capacité = 0
+	déloge q.tampon
 	déloge q
 }
 
 fonc enfile(dyn q : *FileDir, d : *DIR) : rien
 {
-    si taille de q == capacité de q {
-		reloge tampon de q : [(taille de q + 1)]*DIR
-		capacité de q += 1
+    si q.taille == q.capacité {
+		reloge q.tampon : [(q.taille + 1)]*DIR
+		q.capacité += 1
     }
 
-	q.tampon[taille de q] = d
-	taille de q += 1
+	q.tampon[q.taille] = d
+	q.taille += 1
 }
 
 fonc est_vide(q : *FileDir) : bool
 {
-	retourne taille de q == 0
+	retourne q.taille == 0
 }
 
 fonc défile(dyn q : *FileDir) : *DIR
@@ -285,9 +285,9 @@ fonc défile(dyn q : *FileDir) : *DIR
     }
 
     ret = q.tampon[0]
-	taille de q -= 1
+	q.taille -= 1
 
-    pour i dans 1 ... transtype(taille de q - 1 : z32) {
+    pour i dans 1 ... transtype(q.taille - 1 : z32) {
         q.tampon[i - 1] = q.tampon[i]
     }
 

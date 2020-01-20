@@ -18,12 +18,12 @@ struct URI {
 
 fonc est_valide(uri : &URI) : bool
 {
-    si est_vide(schéma de uri) {
+    si est_vide(uri.schéma) {
 		retourne faux
 	}
 
-    si !est_vide(autorité de uri) {
-	    si est_vide(hôte de uri) {
+    si !est_vide(uri.autorité) {
+	    si est_vide(uri.hôte) {
 			retourne faux
 		}
 	}
@@ -34,13 +34,13 @@ fonc est_valide(uri : &URI) : bool
 fonc construit_uri(chn : chaine) : URI
 {
 	dyn uri : URI
-	uri de uri = chn
+	uri.uri = chn
 
 	# le schéma se trouve entre le début et ':'
 	dyn pos = trouve_caractère(chn, ':', 0)
 
 	si pos != -1 {
-		schéma de uri = construit_chaine(@chn[0], pos)
+		uri.schéma = construit_chaine(@chn[0], pos)
 		pos += 1
 	}
 	sinon {
@@ -52,16 +52,16 @@ fonc construit_uri(chn : chaine) : URI
 		dyn fin_autorité = trouve_caractère(chn, '/', pos)
 
         si (fin_autorité == -1) {
-			fin_autorité = taille de chn
+			fin_autorité = chn.taille
 		}
 
-		autorité de uri = construit_chaine(@chn[pos - 2], fin_autorité - pos + 2)
+		uri.autorité = construit_chaine(@chn[pos - 2], fin_autorité - pos + 2)
 
 		dyn fin_user_info = trouve_caractère(chn, '@', pos)
 
 		# il est possible d'avoir un mot de passe : username:motdepasse
 		si (fin_user_info != -1) {
-			info_usager de uri = construit_chaine(@chn[pos], fin_user_info - (pos))
+			uri.info_usager = construit_chaine(@chn[pos], fin_user_info - (pos))
 
 			pos = fin_user_info + 1
 		}
@@ -70,21 +70,21 @@ fonc construit_uri(chn : chaine) : URI
 
 		si (chn[pos] == '[') {
 			dyn fin_adresse = trouve_caractère(chn, ']', 0)
-			hôte de uri = construit_chaine(@chn[pos], fin_adresse - pos + 1)
+			uri.hôte = construit_chaine(@chn[pos], fin_adresse - pos + 1)
 
 			si (chn[fin_adresse + 1] == ':') {
-				port de uri = construit_chaine(@chn[fin_adresse + 2], fin_autorité - fin_adresse - 2)
+				uri.port = construit_chaine(@chn[fin_adresse + 2], fin_autorité - fin_adresse - 2)
 			}
 		}
 		sinon {
 			dyn debut_port = trouve_caractère(chn, ':', pos)
 
 			si (debut_port != -1) {
-				port de uri = construit_chaine(@chn[debut_port + 1], fin_autorité - debut_port - 1)
-				hôte de uri = construit_chaine(@chn[pos], debut_port - pos)
+				uri.port = construit_chaine(@chn[debut_port + 1], fin_autorité - debut_port - 1)
+				uri.hôte = construit_chaine(@chn[pos], debut_port - pos)
 			}
 			sinon {
-				hôte de uri = construit_chaine(@chn[pos], fin_autorité - pos)
+				uri.hôte = construit_chaine(@chn[pos], fin_autorité - pos)
 			}
 		}
 
@@ -93,7 +93,7 @@ fonc construit_uri(chn : chaine) : URI
 
 	dyn pos_requête = trouve_caractère(chn, '?', 0)
 	dyn pos_fragment = trouve_caractère(chn, '#', 0)
-	dyn pos_fin_chemin = taille de chn
+	dyn pos_fin_chemin = chn.taille
 
     si (pos_requête != -1) {
 		pos_fin_chemin = pos_requête
@@ -102,18 +102,18 @@ fonc construit_uri(chn : chaine) : URI
 		pos_fin_chemin = pos_requête
 	}
 
-	chemin de uri = construit_chaine(@chn[pos], pos_fin_chemin - pos)
+	uri.chemin = construit_chaine(@chn[pos], pos_fin_chemin - pos)
 
     si (pos_requête != -1) {
 		si (pos_fragment == -1) {
-			pos_fragment = taille de chn
+			pos_fragment = chn.taille
 		}
 
-		requête de uri = construit_chaine(@chn[pos_requête], pos_fragment - pos_requête)
+		uri.requête = construit_chaine(@chn[pos_requête], pos_fragment - pos_requête)
 	}
 
-	si (pos_fragment != -1 && pos_fragment < taille de chn) {
-		fragment de uri = construit_chaine(@chn[pos_fragment], taille de chn - pos_fragment)
+	si (pos_fragment != -1 && pos_fragment < chn.taille) {
+		uri.fragment = construit_chaine(@chn[pos_fragment], chn.taille - pos_fragment)
 	}
 
 	retourne uri

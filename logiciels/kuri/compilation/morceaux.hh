@@ -85,7 +85,6 @@ enum class id_morceau : unsigned int {
 	CONTINUE,
 	COROUT,
 	DANS,
-	DE,
 	DIFFERE,
 	DISCR,
 	DYN,

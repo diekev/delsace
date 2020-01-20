@@ -205,7 +205,7 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) : z32
 	    # Check if lstat fn is a symbolic link.  This is an error no matter what
 	    # the result of the open was.  Return an error of _EEXIST.
 
-	    si (S_ISLNK(st_mode de lstat_buf)) {
+	    si (S_ISLNK(lstat_buf.st_mode)) {
 		    si (f != -1) {
 			    close(f);
 		    }
@@ -261,9 +261,9 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) : z32
 	    # Check if the immutable properties (device, inode and type) of the file
 	    # system object opened match (fstat_buf) those of the directory entry
 	    # (lstat_buf).
-	    si (   st_dev de lstat_buf !=  st_dev de fstat_buf
-	            || st_ino de lstat_buf != st_ino de fstat_buf
-	            || (_S_IFMT & st_mode de lstat_buf) != (_S_IFMT & st_mode de fstat_buf)) {
+	    si (   lstat_buf.st_dev !=  fstat_buf.st_dev
+	            || lstat_buf.st_ino != fstat_buf.st_ino
+	            || (_S_IFMT & lstat_buf.st_mode) != (_S_IFMT & fstat_buf.st_mode)) {
 		    # Since the lstat was not a symbolic link, and the file opened does
 	        # not match the one in the directory, it must have been replaced
 	        # between the open and the lstat, so try again.
@@ -290,8 +290,8 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) : z32
 	# regular, fifo's or tty's, such as device files like /dev/null.  On some
 	# platforms _O_CREAT|O_WRONLY|_O_TRUNC works properly on /dev/null, but
 	# _O_WRONLY|_O_TRUNC fails.
-	si (want_trunc && !isatty(f) && !S_ISFIFO(st_mode de fstat_buf)
-	        && st_size de fstat_buf != 0) {
+	si (want_trunc && !isatty(f) && !S_ISFIFO(fstat_buf.st_mode)
+	        && fstat_buf.st_size != 0) {
 		r = ftruncate(f, 0);
 		si (r == -1) {
 			# truncate failed, so fail with the errno from ftruncate
@@ -522,8 +522,8 @@ fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) : z32
 	    # not regular, fifo's or tty's, such as device files like /dev/null.
 	    # on some platforms _O_CREAT|O_WRONLY|_O_TRUNC works properly on
 	    # /dev/null, but _O_WRONLY|_O_TRUNC fails.
-		si (!isatty(f) && !S_ISFIFO(st_mode de fstat_buf)
-		        && st_size de fstat_buf != 0) {
+		si (!isatty(f) && !S_ISFIFO(fstat_buf.st_mode)
+		        && fstat_buf.st_size != 0) {
 			r = ftruncate(f, 0);
 			si (r == -1) {
 				# fail if the ftruncate failed
@@ -617,7 +617,7 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) : 
 
 				# lstat succeeded check if directory entry is a symbolic
 		        # link.
-				si (S_ISLNK(st_mode de lstat_buf)) {
+				si (S_ISLNK(lstat_buf.st_mode)) {
 					nonsûr {
                         errno = _ENOENT;
                     }
@@ -692,7 +692,7 @@ fonc externe write(a : z32, b : *z8, c : z32) : z64;
 
 fonc perror(chn : chaine) : rien
 {
-    perror(pointeur de chn);
+    perror(chn.pointeur);
 }
 
 soit _stderr = 0;
@@ -700,10 +700,10 @@ soit _stderr = 0;
 fonc principale(args : []*z8) : z32
 {
     fn_chn = "test_file";
-    fn = pointeur de fn_chn;
+    fn = fn_chn.pointeur;
 
     linkFn_chn = "test_file.link";
-    linkFn = pointeur de linkFn_chn;
+    linkFn = linkFn_chn.pointeur;
 
     dyn r : z32; # result codes
     dyn f : z32; # file descriptor
@@ -721,7 +721,7 @@ fonc principale(args : []*z8) : z32
     dyn correctMask : n32;
 
     data_chn = "0123456789";
-    data = pointeur de data_chn;
+    data = data_chn.pointeur;
     dyn n : z64;
 
     # no umask
@@ -754,7 +754,7 @@ fonc principale(args : []*z8) : z32
 	    exit(3);
     }
 
-    curMask = st_mode de curStat & allMask;
+    curMask = curStat.st_mode & allMask;
     correctMask = transtype(allMask & ~myUmask : n32);
     si (curMask != correctMask)  {
 	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
@@ -815,13 +815,13 @@ fonc principale(args : []*z8) : z32
 	exit(24);
     }
 
-    si (st_dev de curStat == st_dev de prevStat && st_ino de curStat == st_ino de prevStat)  {
+    si (curStat.st_dev == prevStat.st_dev && curStat.st_ino == prevStat.st_ino)  {
 	##fputs("inode not different\n", _stderr);
 	exit(25);
     }
 
     # perms should have changed
-    curMask = st_mode de curStat & allMask;
+    curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
 	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
@@ -860,18 +860,18 @@ fonc principale(args : []*z8) : z32
 	exit(31);
     }
 
-    si (st_dev de curStat != st_dev de prevStat || st_ino de curStat != st_ino de prevStat)  {
+    si (curStat.st_dev != prevStat.st_dev || curStat.st_ino != prevStat.st_ino)  {
 	##fputs("inode different\n", _stderr);
 	exit(32);
     }
 
-    si (st_size de curStat != st_size de prevStat)  {
+    si (curStat.st_size != prevStat.st_size)  {
 	##fputs("file contents are changed", _stderr);
 	exit(33);
     }
 
     # perms should not have changed
-    curMask = st_mode de curStat & allMask;
+    curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
 	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
@@ -904,18 +904,18 @@ fonc principale(args : []*z8) : z32
 	exit(41);
     }
 
-    si (st_dev de curStat != st_dev de prevStat || st_ino de curStat != st_ino de prevStat)  {
+    si (curStat.st_dev != prevStat.st_dev || curStat.st_ino != prevStat.st_ino)  {
 	#fputs("inode different\n", _stderr);
 	exit(42);
     }
 
-    si (st_size de curStat != st_size de prevStat)  {
+    si (curStat.st_size != prevStat.st_size)  {
 	#fputs("file contents are changed", _stderr);
 	exit(43);
     }
 
     # perms should not have changed
-    curMask = st_mode de curStat & allMask;
+    curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
 	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
@@ -955,7 +955,7 @@ fonc principale(args : []*z8) : z32
     }
 
     # perms should not have changed
-    curMask = st_mode de curStat & allMask;
+    curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
 	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
@@ -995,7 +995,7 @@ fonc principale(args : []*z8) : z32
     }
 
     # perms should not have changed
-    curMask = st_mode de curStat & allMask;
+    curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
 	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);

@@ -23,9 +23,9 @@ fonc foo(args : chaine) : z32
 fonc principale(args : []*z8) : z32
 {
     dyn t : TEST
-    fonction de t = foo
+    t.fonction = foo
 
-    soit x = fonction("je ne sais pas") de t
+    soit x = t.fonction("je ne sais pas")
 
     imprime("résultat : ", x, '\n')
 

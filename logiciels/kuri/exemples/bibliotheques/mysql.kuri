@@ -24,8 +24,8 @@ fonc iter_résultat_requête(resultat, ligne) : chaine
 
     pour i dans 0 ... nombre_champs - 1 {
         dyn champ : chaine;
-        pointeur de champ = ligne[i];
-        taille de champ = longueurs[i];
+        champ.pointeur = ligne[i];
+        champ.taille = longueurs[i];
         retiens champ;
     }
 }

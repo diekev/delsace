@@ -31,7 +31,7 @@ rout défile(f : *file) : z32
 
 rout vide(f : *file)
 {
-	renv taille de f == 0;
+	renv f.taille == 0;
 }
 
 rout détruit(empl f : *file)

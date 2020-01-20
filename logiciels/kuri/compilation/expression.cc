@@ -99,8 +99,6 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 		case id_morceau::POINT:
 		case id_morceau::CROCHET_OUVRANT:
 			return { dir_associativite::GAUCHE, 14 };
-		case id_morceau::DE:
-			return { dir_associativite::DROITE, 15 };
 		default:
 			assert(false);
 			return { static_cast<dir_associativite>(-1), -1 };

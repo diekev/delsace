@@ -220,9 +220,6 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 		case id_morceau::DANS:
 			os << "dans";
 			return;
-		case id_morceau::DE:
-			os << "de";
-			return;
 		case id_morceau::DIFFERE:
 			os << "diffère";
 			return;

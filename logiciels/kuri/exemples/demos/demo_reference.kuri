@@ -6,7 +6,7 @@ struct FOO {
 
 fonc bar(dyn f : &FOO) : rien
 {
-    a de f = 987
+    f.a = 987
 }
 
 fonc foo(dyn a : &z32) : rien

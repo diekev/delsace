@@ -3,23 +3,23 @@ importe "flux"
 fonc imprime_type_args(args : ...eini) : rien
 {
 	pour arg dans args {
-	    discr id de info de arg {
-		    RÉEL de id_info {
+	    discr arg.info.id {
+		    RÉEL {
 			    imprime("Nous avons un nombre réel\n")
 		    }
-		    ENTIER de id_info {
+		    ENTIER {
 			    imprime("Nous avons un nombre entier\n")
 		    }
-		    STRUCTURE de id_info {
+		    STRUCTURE {
 			    imprime("Nous avons une structure\n")
 		    }
-		    FONCTION de id_info {
+		    FONCTION {
 			    imprime("Nous avons une fonction\n")
 		    }
-		    POINTEUR de id_info {
+		    POINTEUR {
 			    imprime("Nous avons un pointeur\n")
 		    }
-		    CHAINE de id_info {
+		    CHAINE {
 			    imprime("Nous avons une chaine\n")
 		    }
 	    }

@@ -12,69 +12,63 @@ fonc execute_noeud(obj1 : &Objet, objs : []&Objet) : z32, *Objet
 
 fonc imprime_type(info : *InfoType) : rien
 {
-    discr id de info {
-	    ENTIER de id_info
-		{
+    discr info.id {
+	    ENTIER {
 		    soit info_arg = transtype(info : *InfoTypeEntier)
 
-            si est_signé de info_arg {
-			    si taille_en_octet de info_arg == 8 {
+            si info_arg.est_signé {
+			    si info_arg.taille_en_octet == 8 {
 				    imprime("z8")
 				}
-				sinon si taille_en_octet de info_arg == 16 {
+				sinon si info_arg.taille_en_octet == 16 {
 				    imprime("z16")
 				}
-				sinon si taille_en_octet de info_arg == 32 {
+				sinon si info_arg.taille_en_octet == 32 {
 				    imprime("z32")
 				}
-				sinon si taille_en_octet de info_arg == 64 {
+				sinon si info_arg.taille_en_octet == 64 {
 				    imprime("z64")
 				}
 			}
 			sinon {
-			    si taille_en_octet de info_arg == 8 {
+			    si info_arg.taille_en_octet == 8 {
 				    imprime("n8")
 				}
-				sinon si taille_en_octet de info_arg == 16 {
+				sinon si info_arg.taille_en_octet == 16 {
 				    imprime("n16")
 				}
-				sinon si taille_en_octet de info_arg == 32 {
+				sinon si info_arg.taille_en_octet == 32 {
 				    imprime("n32")
 				}
-				sinon si taille_en_octet de info_arg == 64 {
+				sinon si info_arg.taille_en_octet == 64 {
 				    imprime("n64")
 				}
 			}
 		}
-		RÉEL de id_info
-		{
+		RÉEL {
 		    soit info_arg = transtype(info : *InfoTypeRéel)
 
-            si taille_en_octet de info_arg == 16 {
+            si info_arg.taille_en_octet == 16 {
 			    imprime("r16")
 			}
-			sinon si taille_en_octet de info_arg == 32 {
+			sinon si info_arg.taille_en_octet == 32 {
 			    imprime("r32")
 			}
-			sinon si taille_en_octet de info_arg == 64 {
+			sinon si info_arg.taille_en_octet == 64 {
 			    imprime("r64")
 			}
 		}
-		BOOLÉEN de id_info
-		{
+		BOOLÉEN {
 			imprime("bool")
 		}
-		CHAINE de id_info
-		{
+		CHAINE {
 			imprime("chaine")
 		}
-		STRUCTURE de id_info
-		{
+		STRUCTURE {
 		    soit info_arg = transtype(info : *InfoTypeStructure)
-			imprime(nom de info_arg)
+			imprime(info_arg.nom)
 		}
-		POINTEUR de id_info
-		{
+		POINTEUR {
 		    soit info_arg = transtype(info : *InfoTypePointeur)
 
 		    si info_arg.est_référence {
@@ -86,29 +80,24 @@ fonc imprime_type(info : *InfoType) : rien
 
 			imprime_type(info_arg.type_pointé)
 		}
-		FONCTION de id_info
-		{
+		FONCTION {
 		    # À FAIRE : types paramètres
 			imprime("fonction()")
 		}
-		EINI de id_info
-		{
+		EINI {
 			imprime("eini")
 		}
-		RIEN de id_info
-		{
+		RIEN {
 			imprime("rien")
 		}
-		TABLEAU de id_info
-		{
+		TABLEAU {
 		    soit info_arg = transtype(info : *InfoTypeTableau)
 			imprime("[]")
 			imprime_type(info_arg.type_pointé)
 		}
-		ÉNUM de id_info
-		{
+		ÉNUM {
 		    soit info_arg = transtype(info : *InfoTypeÉnum)
-			imprime(nom de info_arg)
+			imprime(info_arg.nom)
 		}
 	}
 }

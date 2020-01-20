@@ -895,13 +895,6 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				pile.pousse(noeud);
 				break;
 			}
-			case id_morceau::DE:
-			{
-				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_DE, m_contexte, morceau);
-				pile.pousse(noeud);
-				break;
-			}
 			case id_morceau::POINT:
 			{
 				vide_pile_operateur(morceau.identifiant);

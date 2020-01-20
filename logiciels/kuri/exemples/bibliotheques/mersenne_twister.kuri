@@ -134,8 +134,8 @@ struct MTRand {
 # Initialise avec un tableau de graines.
 #!enligne fonc init(mers : &MTRand, graines : []n32) : rien
 {
-    seedLength = taille de graines;
-    bigSeed = pointeur de graines;
+    seedLength = graines.taille;
+    bigSeed = graines.pointeur;
 
 	# Seed the generator with an array of uint32's
 	# There are 2^19937-1 possible initial states.  This function allows
