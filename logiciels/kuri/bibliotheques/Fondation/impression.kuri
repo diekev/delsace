@@ -501,10 +501,17 @@ fonc imprime_valeur(
             enchaineuse.pousse(" }")
 		}
 		POINTEUR {
+			info_arg = transtype(info : *InfoTypePointeur)
+
 		    # Ne pas oublier qu'il y a un niveau d'indirection.
 			x = mémoire(transtype(pointeur : **z8))
 
-            imprime_pointeur(enchaineuse, x)
+			si info_arg.est_référence {
+				imprime_valeur(enchaineuse, x, info_arg.type_pointé, vrai)
+			}
+			sinon {
+            	imprime_pointeur(enchaineuse, x)
+			}
 		}
 		FONCTION {
 		    # À FAIRE : types paramètres
