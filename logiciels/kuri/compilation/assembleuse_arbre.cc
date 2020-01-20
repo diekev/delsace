@@ -129,82 +129,6 @@ void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_genera
 }
 #endif
 
-void assembleuse_arbre::genere_code_C(
-		ContexteGenerationCode &contexte_generation,
-		std::ostream &os,
-		dls::chaine const &racine_kuri)
-{
-	if (m_pile.est_vide()) {
-		return;
-	}
-
-	for (auto const &inc : this->inclusions) {
-		os << "#include <" << inc << ">\n";
-	}
-
-	os << "\n";
-
-	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
-	os << "static long __VG_memoire_utilisee__ = 0;";
-	os << "static long __VG_memoire_consommee__ = 0;";
-	os << "static long __VG_nombre_allocations__ = 0;";
-	os << "static long __VG_nombre_reallocations__ = 0;";
-	os << "static long __VG_nombre_deallocations__ = 0;";
-
-	auto depassement_limites =
-R"(
-void KR__depassement_limites(
-	const char *fichier,
-	long ligne,
-	const char *type,
-	long taille,
-	long index)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Dépassement des limites %s !\n", type);
-	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
-	abort();
-}
-)";
-
-	os << depassement_limites;
-
-	auto hors_memoire =
-R"(
-void KR__hors_memoire(
-	const char *fichier,
-	long ligne)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Impossible d'allouer de la mémoire !\n");
-	abort();
-}
-)";
-
-	os << hors_memoire;
-
-	/* À FAIRE : renseigner le membre actif */
-	auto acces_membre_union =
-R"(
-void KR__acces_membre_union(
-	const char *fichier,
-	long ligne)
-{
-	fprintf(stderr, "%s:%ld\n", fichier, ligne);
-	fprintf(stderr, "Impossible d'accèder au membre de l'union car il n'est pas actif !\n");
-	abort();
-}
-)";
-
-	os << acces_membre_union;
-
-	dls::flux_chaine fc_code;
-
-	noeud::genere_code_C(m_pile.haut(), contexte_generation, fc_code);
-
-	os << fc_code.chn();
-}
-
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)
 {
 	this->noeuds_libres.pousse(noeud);
@@ -228,6 +152,11 @@ void assembleuse_arbre::ajoute_inclusion(const dls::vue_chaine_compacte &fichier
 
 	deja_inclus.insere(fichier);
 	inclusions.pousse(fichier);
+}
+
+noeud::base *assembleuse_arbre::racine() const
+{
+	return m_pile.haut();
 }
 
 void imprime_taille_memoire_noeud(std::ostream &os)

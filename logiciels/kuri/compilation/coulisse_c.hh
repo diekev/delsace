@@ -24,17 +24,23 @@
 
 #pragma once
 
+#include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 
+struct assembleuse_arbre;
 struct ContexteGenerationCode;
 
 namespace noeud {
 
 struct base;
 
+/**
+ * Traverse l'arbre et génère le code C.
+ */
 void genere_code_C(
-		base *b,
+		assembleuse_arbre const &arbre,
 		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os);
+		dls::chaine const &racine_kuri,
+		std::ostream &fichier_sortie);
 
 }  /* namespace noeud */

@@ -97,14 +97,6 @@ public:
 	void genere_code_llvm(ContexteGenerationCode &contexte_generation);
 
 	/**
-	 * Traverse l'arbre et génère le code C.
-	 */
-	void genere_code_C(
-			ContexteGenerationCode &contexte_generation,
-			std::ostream &os,
-			dls::chaine const &racine_kuri);
-
-	/**
 	 * Indique que le noeud passé en paramètre est supprimé. En fait, le noeud
 	 * est ajouté à une liste de noeuds supprimés en fonction de son type, pour
 	 * pouvoir réutiliser sa mémoire en cas de besoin, évitant d'avoir à
@@ -124,6 +116,8 @@ public:
 	size_t nombre_noeuds() const;
 
 	void ajoute_inclusion(dls::vue_chaine_compacte const &fichier);
+
+	noeud::base *racine() const;
 };
 
 /**

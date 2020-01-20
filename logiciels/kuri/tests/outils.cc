@@ -29,8 +29,10 @@
 #include "compilation/analyseuse_grammaire.h"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
+#include "compilation/coulisse_c.hh"
 #include "compilation/decoupeuse.h"
 #include "compilation/modules.hh"
+#include "compilation/validation_semantique.hh"
 
 std::pair<bool, bool> retourne_erreur_lancee(
 		const char *texte,
@@ -60,7 +62,8 @@ std::pair<bool, bool> retourne_erreur_lancee(
 		analyseuse.lance_analyse(os);
 
 		if (genere_code) {
-			assembleuse.genere_code_C(contexte, os, "");
+			noeud::performe_validation_semantique(assembleuse, contexte);
+			noeud::genere_code_C(assembleuse, contexte, "", os);
 		}
 	}
 	catch (const erreur::frappe &e) {

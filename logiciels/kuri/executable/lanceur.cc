@@ -55,9 +55,11 @@
 #include "compilation/analyseuse_grammaire.h"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
+#include "compilation/coulisse_c.hh"
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
+#include "compilation/validation_semantique.hh"
 
 #include "options.hh"
 
@@ -481,12 +483,14 @@ int main(int argc, char *argv[])
 		else
 #endif
 		{
-			os << "Génération du code..." << std::endl;
-
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
-			assembleuse.genere_code_C(contexte_generation, of, chemin_racine_kuri);
+			os << "Validation sémantique du code..." << std::endl;
+			noeud::performe_validation_semantique(assembleuse, contexte_generation);
+
+			os << "Génération du code..." << std::endl;
+			noeud::genere_code_C(assembleuse, contexte_generation, chemin_racine_kuri, of);
 
 			of.close();
 

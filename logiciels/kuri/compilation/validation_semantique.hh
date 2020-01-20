@@ -24,6 +24,7 @@
 
 #pragma once
 
+struct assembleuse_arbre;
 struct ContexteGenerationCode;
 enum class id_morceau : unsigned int;
 
@@ -32,8 +33,7 @@ namespace noeud {
 struct base;
 
 void performe_validation_semantique(
-		base *b,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche);
+		assembleuse_arbre const &arbre,
+		ContexteGenerationCode &contexte);
 
 }  /* namespace noeud */

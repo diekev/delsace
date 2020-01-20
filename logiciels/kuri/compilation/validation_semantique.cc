@@ -24,12 +24,14 @@
 
 #include "validation_semantique.hh"
 
+#include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/magasin.hh"
 
 #include "arbre_syntactic.h"
+#include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "erreur.h"
@@ -87,6 +89,11 @@ static auto &trouve_donnees_type(ContexteGenerationCode const &contexte, base *b
 }
 
 /* ************************************************************************** */
+
+static void performe_validation_semantique(
+		base *b,
+		ContexteGenerationCode &contexte,
+		bool expr_gauche);
 
 static long resoud_type_final(
 		ContexteGenerationCode &contexte,
@@ -550,7 +557,7 @@ static void valide_acces_membre(
 				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
-void performe_validation_semantique(
+static void performe_validation_semantique(
 		base *b,
 		ContexteGenerationCode &contexte,
 		bool expr_gauche)
@@ -2969,6 +2976,31 @@ void performe_validation_semantique(
 			break;
 		}
 	}
+}
+
+void performe_validation_semantique(
+		assembleuse_arbre const &arbre,
+		ContexteGenerationCode &contexte)
+{
+	auto racine = arbre.racine();
+
+	if (racine == nullptr) {
+		return;
+	}
+
+	if (racine->type != type_noeud::RACINE) {
+		return;
+	}
+
+	auto temps_validation = 0.0;
+
+	for (auto noeud : racine->enfants) {
+		auto debut_validation = dls::chrono::compte_seconde();
+		performe_validation_semantique(noeud, contexte, true);
+		temps_validation += debut_validation.temps();
+	}
+
+	contexte.temps_validation = temps_validation;
 }
 
 }  /* namespace noeud */

@@ -29,6 +29,7 @@
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntactic.h"
+#include "assembleuse_arbre.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
 #include "conversion_type_c.hh"
@@ -37,7 +38,6 @@
 #include "modules.hh"
 #include "outils_morceaux.hh"
 #include "typeuse.hh"
-#include "validation_semantique.hh"
 
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
@@ -3162,24 +3162,26 @@ static void traverse_graphe_pour_generation_code(
 }
 
 void genere_code_C(
-		base *b,
+		assembleuse_arbre const &arbre,
 		ContexteGenerationCode &contexte,
-		dls::flux_chaine &os)
+		dls::chaine const &racine_kuri,
+		std::ostream &fichier_sortie)
 {
-	if (b->type != type_noeud::RACINE) {
+	auto racine = arbre.racine();
+
+	if (racine == nullptr) {
 		return;
 	}
 
+	if (racine->type != type_noeud::RACINE) {
+		return;
+	}
+
+	dls::flux_chaine os;
+
 	auto generatrice = GeneratriceCodeC(contexte, os);
 
-	auto temps_validation = 0.0;
 	auto temps_generation = 0.0;
-
-	for (auto noeud : b->enfants) {
-		auto debut_validation = dls::chrono::compte_seconde();
-		performe_validation_semantique(noeud, contexte, true);
-		temps_validation += debut_validation.temps();
-	}
 
 	auto &graphe_dependance = contexte.graphe_dependance;
 	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction("principale");
@@ -3187,6 +3189,66 @@ void genere_code_C(
 	if (noeud_fonction_principale == nullptr) {
 		erreur::fonction_principale_manquante();
 	}
+
+	for (auto const &inc : arbre.inclusions) {
+		os << "#include <" << inc << ">\n";
+	}
+
+	os << "\n";
+
+	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
+	os << "static long __VG_memoire_utilisee__ = 0;\n";
+	os << "static long __VG_memoire_consommee__ = 0;\n";
+	os << "static long __VG_nombre_allocations__ = 0;\n";
+	os << "static long __VG_nombre_reallocations__ = 0;\n";
+	os << "static long __VG_nombre_deallocations__ = 0;\n";
+
+	auto depassement_limites =
+R"(
+void KR__depassement_limites(
+	const char *fichier,
+	long ligne,
+	const char *type,
+	long taille,
+	long index)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Dépassement des limites %s !\n", type);
+	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
+	abort();
+}
+)";
+
+	os << depassement_limites;
+
+	auto hors_memoire =
+R"(
+void KR__hors_memoire(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'allouer de la mémoire !\n");
+	abort();
+}
+)";
+
+	os << hors_memoire;
+
+	/* À FAIRE : renseigner le membre actif */
+	auto acces_membre_union =
+R"(
+void KR__acces_membre_union(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'accèder au membre de l'union car il n'est pas actif !\n");
+	abort();
+}
+)";
+
+	os << acces_membre_union;
 
 	/* met en place la dépendance sur la fonction d'allocation par défaut */
 	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
@@ -3266,7 +3328,8 @@ R"(
 	temps_generation += debut_generation.temps();
 
 	contexte.temps_generation = temps_generation;
-	contexte.temps_validation = temps_validation;
+
+	fichier_sortie << os.chn();
 }
 
 }  /* namespace noeud */
