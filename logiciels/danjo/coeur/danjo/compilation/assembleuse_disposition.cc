@@ -313,6 +313,10 @@ void AssembleurDisposition::finalise_controle()
 
 void AssembleurDisposition::sors_disposition()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_pile_dispositions.depile();
 }
 
@@ -448,6 +452,10 @@ void AssembleurDisposition::ajoute_menu(const dls::chaine &nom)
 
 void AssembleurDisposition::sort_menu()
 {
+	if (m_initialisation_seule) {
+		return;
+	}
+
 	m_pile_menus.depile();
 }
 
