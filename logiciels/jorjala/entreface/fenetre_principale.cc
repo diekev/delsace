@@ -63,7 +63,6 @@ static const char *chemins_scripts[] = {
 	"entreface/menu_ajouter_noeud_composite.jo",
 	"entreface/menu_ajouter_noeud_detail.jo",
 	"entreface/menu_ajouter_noeud_objet.jo",
-	"entreface/menu_ajouter_noeud_scene.jo",
 	"entreface/menu_ajouter_noeud_simulation.jo",
 	"entreface/menu_debogage.jo",
 };
