@@ -118,8 +118,8 @@ static void applique_transformation(
 				{
 					os << "\t.pointeur = (unsigned char *)(" << nom_courant << "),\n";
 					os << "\t.taille = sizeof(";
-					auto index = contexte.typeuse.ajoute_type(dt.dereference());
-					os << nom_broye_type(contexte, index) << ")\n";
+					auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+					os << nom_broye_type(contexte, index_dt) << ")\n";
 					break;
 				}
 				case id_morceau::CHAINE:
@@ -135,14 +135,14 @@ static void applique_transformation(
 					if (taille == 0) {
 						os << "\t.pointeur = (unsigned char *)(&" << nom_courant << ".pointeur),\n";
 						os << "\t.taille = " << nom_courant << ".taille * sizeof(";
-						auto index = contexte.typeuse.ajoute_type(dt.dereference());
-						os << nom_broye_type(contexte, index) << ")\n";
+						auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+						os << nom_broye_type(contexte, index_dt) << ")\n";
 					}
 					else {
 						os << "\t.pointeur = " << nom_courant << ".pointeur,\n";
 						os << "\t.taille = " << taille << " * sizeof(";
-						auto index = contexte.typeuse.ajoute_type(dt.dereference());
-						os << nom_broye_type(contexte, index) << ")\n";
+						auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+						os << nom_broye_type(contexte, index_dt) << ")\n";
 					}
 
 					break;
@@ -160,9 +160,9 @@ static void applique_transformation(
 		}
 		case TypeTransformation::CONVERTI_TABLEAU:
 		{
-			auto index = contexte.typeuse.ajoute_type(dt.dereference());
-			index = contexte.typeuse.type_tableau_pour(index);
-			os << nom_broye_type(contexte, index) << ' ' << nom_var_temp << " = {\n";
+			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+			index_dt = contexte.typeuse.type_tableau_pour(index_dt);
+			os << nom_broye_type(contexte, index_dt) << ' ' << nom_var_temp << " = {\n";
 			os << "\t.taille = " << static_cast<size_t>(dt.type_base() >> 8) << ",\n";
 			os << "\t.pointeur = " << nom_courant << "\n";
 			os << "};";
@@ -171,9 +171,9 @@ static void applique_transformation(
 		}
 		case TypeTransformation::CONSTRUIT_EINI_TABLEAU:
 		{
-			auto index = contexte.typeuse.ajoute_type(dt.dereference());
-			index = contexte.typeuse.type_tableau_pour(index);
-			os << nom_broye_type(contexte, index) << ' ' << nom_var_temp << " = {\n";
+			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+			index_dt = contexte.typeuse.type_tableau_pour(index_dt);
+			os << nom_broye_type(contexte, index_dt) << ' ' << nom_var_temp << " = {\n";
 			os << "\t.taille = " << static_cast<size_t>(dt.type_base() >> 8) << ",\n";
 			os << "\t.pointeur = " << nom_courant << "\n";
 			os << "};";
@@ -207,8 +207,8 @@ static void applique_transformation(
 				nom_var_temp = "(*" + nom_courant + ")";
 			}
 			else {
-				auto index = contexte.typeuse.ajoute_type(dt.dereference());
-				os << nom_broye_type(contexte, index);
+				auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+				os << nom_broye_type(contexte, index_dt);
 				os << ' ' << nom_var_temp << " = *(" << nom_courant << ");\n";
 			}
 

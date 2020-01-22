@@ -35,9 +35,9 @@ enum class id_morceau : unsigned int;
 struct ContexteGenerationCode;
 
 struct DonneesOperateur {
-	long index_type1;
-	long index_type2;
-	long index_resultat;
+	long index_type1{};
+	long index_type2{};
+	long index_resultat{};
 
 	/* vrai si l'on peut sainement inverser les paramètres,
 	 * vrai pour : +, -, !=, == */
