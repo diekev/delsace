@@ -2481,12 +2481,24 @@ void genere_code_C(
 				auto enf1 = paire->enfants.back();
 
 				if (enf0->type != type_noeud::SINON) {
-					genere_code_C(enf0, generatrice, contexte, true);
+					auto feuilles = dls::tableau<base *>();
+					rassemble_feuilles(enf0, feuilles);
 
-					generatrice.os << "if (";
-					generatrice.os << chaine_expr;
-					generatrice.os << " == ";
-					generatrice.os << enf0->chaine_calculee();
+					for (auto f : feuilles) {
+						genere_code_C(f, generatrice, contexte, true);
+					}
+
+					auto prefixe = "if (";
+
+					for (auto f : feuilles) {
+						generatrice.os << prefixe;
+						generatrice.os << chaine_expr;
+						generatrice.os << " == ";
+						generatrice.os << f->chaine_calculee();
+
+						prefixe = " || ";
+					}
+
 					generatrice.os << ") ";
 				}
 
@@ -2534,13 +2546,18 @@ void genere_code_C(
 				auto enf1 = paire->enfants.back();
 
 				if (enf0->type == type_noeud::SINON) {
-					generatrice.os << "default";
+					generatrice.os << "default:";
 				}
 				else {
-					generatrice.os << "case " << chaine_valeur_enum(ds, enf0->chaine());
+					auto feuilles = dls::tableau<base *>();
+					rassemble_feuilles(enf0, feuilles);
+
+					for (auto f : feuilles) {
+						generatrice.os << "case " << chaine_valeur_enum(ds, f->chaine()) << ":\n";
+					}
 				}
 
-				generatrice.os << ": {\n";
+				generatrice.os << " {\n";
 				genere_code_C(enf1, generatrice, contexte, false);
 				generatrice.os << "break;\n}\n";
 			}

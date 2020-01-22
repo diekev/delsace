@@ -2943,16 +2943,27 @@ static void performe_validation_semantique(
 							continue;
 						}
 
-						auto nom_membre = expr_paire->chaine();
+						auto feuilles = dls::tableau<base *>();
+						rassemble_feuilles(expr_paire, feuilles);
 
-						if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
-							erreur::lance_erreur(
-										"Redéfinition de l'expression",
-										contexte,
-										expr_paire->morceau);
+						for (auto f : feuilles) {
+							auto nom_membre = f->chaine();
+
+							auto iter_membre = ds.donnees_membres.trouve(nom_membre);
+
+							if (iter_membre == ds.donnees_membres.fin()) {
+								erreur::membre_inconnu(contexte, ds, b, expression, expr_paire);
+							}
+
+							if (membres_rencontres.trouve(nom_membre) != membres_rencontres.fin()) {
+								erreur::lance_erreur(
+											"Redéfinition de l'expression",
+											contexte,
+											f->morceau);
+							}
+
+							membres_rencontres.insere(nom_membre);
 						}
-
-						membres_rencontres.insere(nom_membre);
 
 						performe_validation_semantique(bloc_paire, contexte, true);
 					}
@@ -2965,14 +2976,41 @@ static void performe_validation_semantique(
 				}
 			}
 
-			valides_enfants(b, contexte, false);
+			for (auto i = 1; i < nombre_enfant; ++i) {
+				auto enfant = *iter_enfant++;
+				assert(enfant->type == type_noeud::PAIRE_DISCR);
+
+				auto expr_paire = enfant->enfants.front();
+				auto bloc_paire = enfant->enfants.back();
+
+				performe_validation_semantique(bloc_paire, contexte, true);
+
+				if (expr_paire->type == type_noeud::SINON) {
+					continue;
+				}
+
+				auto feuilles = dls::tableau<base *>();
+				rassemble_feuilles(expr_paire, feuilles);
+
+				for (auto f : feuilles) {
+					performe_validation_semantique(f, contexte, true);
+
+					if (f->index_type != expression->index_type) {
+						erreur::lance_erreur_type_arguments(
+									contexte.typeuse[expression->index_type],
+								contexte.typeuse[f->index_type],
+								contexte,
+								f->morceau,
+								expression->morceau);
+					}
+				}
+			}
+
 			break;
 		}
 		case type_noeud::PAIRE_DISCR:
 		{
-			/* Ceci n'est évalué que si la discrimination est faite avec un type
-			 * autre que union (sûre) */
-			valides_enfants(b, contexte, true);
+			/* RÀF : pris en charge plus haut */
 			break;
 		}
 		case type_noeud::RETIENS:
