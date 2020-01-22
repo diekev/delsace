@@ -1,0 +1,53 @@
+importe Fondation
+
+énum_drapeau Drapeau : z32 {
+    FA
+    FB
+    FC
+    FD
+    FE
+}
+
+énum Normal : z32 {
+    FA
+    FB
+    FC
+    FD
+    FE
+}
+
+fonc principale(args : []*z8) : z32
+{
+    dyn drapeau : Drapeau
+
+    imprime("drapeau = ", drapeau, "\n")
+
+    drapeau |= Drapeau.FA
+
+    imprime("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
+
+    drapeau |= Drapeau.FB
+
+    imprime("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
+
+    drapeau |= Drapeau.FE
+    drapeau |= Drapeau.FD
+
+    imprime("drapeau = ", drapeau, " (", transtype(drapeau : z32), ")\n")
+
+    dyn normal : Normal
+
+    imprime("normal = ", normal, "\n")
+
+    normal = Normal.FA
+
+    imprime("normal = ", normal, "\n")
+
+    # À définir si ceci est possible ou non
+    normal |= Normal.FB
+    normal |= Normal.FC
+
+    imprime("normal = ", normal, "\n")
+
+    retourne 0
+}
