@@ -1567,7 +1567,7 @@ void genere_code_C(
 
 			applique_transformation(enfant, generatrice, contexte, false);
 
-			auto &dt = contexte.typeuse[enfant->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 
 			generatrice.declare_variable(
 						dt,

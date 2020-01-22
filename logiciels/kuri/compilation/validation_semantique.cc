@@ -1715,7 +1715,7 @@ static void performe_validation_semantique(
 			}
 			else {
 				performe_validation_semantique(enfant, contexte, false);
-				b->index_type = enfant->index_type;
+				b->index_type = fonction_courante->idx_types_retours[0];
 				b->type = type_noeud::RETOUR_SIMPLE;
 
 				auto transformation = cherche_transformation(
