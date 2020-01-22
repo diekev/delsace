@@ -1,0 +1,492 @@
+importe Fondation
+
+###############################################################################
+
+énum TypeRune : z32 {
+    # espaces
+	ESPACE_INSECABLE             = 0x00A0
+	ESPACE_D_OGAM                = 0x1680
+	SEPARATEUR_VOYELLES_MONGOL   = 0x180E
+	DEMI_CADRATIN                = 0x2000
+	CADRATIN                     = 0x2001
+	ESPACE_DEMI_CADRATIN         = 0x2002
+	ESPACE_CADRATIN              = 0x2003
+	TIERS_DE_CADRATIN            = 0x2004
+	QUART_DE_CADRATIN            = 0x2005
+	SIXIEME_DE_CADRATIN          = 0x2006
+	ESPACE_TABULAIRE             = 0x2007
+	ESPACE_PONCTUATION           = 0x2008
+	ESPACE_FINE                  = 0x2009
+	ESPACE_ULTRAFINE             = 0x200A
+	ESPACE_SANS_CHASSE           = 0x200B
+	ESPACE_INSECABLE_ETROITE     = 0x202F
+	ESPACE_MOYENNE_MATHEMATIQUE  = 0x205F
+	ESPACE_IDEOGRAPHIQUE         = 0x3000
+	ESPACE_INSECABLE_SANS_CHASSE = 0xFEFF
+
+    # guillemets
+	GUILLEMET_OUVRANT = 0x00AB  # «
+	GUILLEMET_FERMANT = 0x00BB  # »
+}
+
+fonc est_espace_blanc(c : z8) : bool
+{
+    retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r'
+}
+
+fonc est_nombre_décimal(c : z8) : bool
+{
+    retourne '0' <= c <= '9'
+}
+
+###############################################################################
+
+énum TypeLexème : n32 {
+	INCONNU
+
+	EXCLAMATION
+	GUILLEMET
+	DIESE
+	DOLLAR
+	POURCENT
+	ESPERLUETTE
+	APOSTROPHE
+	PARENTHESE_OUVRANTE
+	PARENTHESE_FERMANTE
+	FOIS
+	PLUS
+	VIRGULE
+	MOINS
+	POINT
+	DIVISE
+	DOUBLE_POINTS
+	POINT_VIRGULE
+	INFERIEUR
+	EGAL
+	SUPERIEUR
+	AROBASE
+	CROCHET_OUVRANT
+	CROCHET_FERMANT
+	CHAPEAU
+	ACCOLADE_OUVRANTE
+	BARRE
+	ACCOLADE_FERMANTE
+	TILDE
+	DIFFERENCE
+	DIRECTIVE
+	ESP_ESP
+	FOIS_EGAL
+	PLUS_EGAL
+	MOINS_EGAL
+	DIVISE_EGAL
+	DECALAGE_GAUCHE
+	INFERIEUR_EGAL
+	EGALITE
+	SUPERIEUR_EGAL
+	DECALAGE_DROITE
+	BARRE_BARRE
+	ARRETE
+	BOOL
+	BOUCLE
+	CONTINUE
+	DANS
+	DEC
+	ENT
+	FAUX
+	MAT3
+	MAT4
+	NUL
+	POUR
+	RETOURNE
+	SI
+	SINON
+	VEC2
+	VEC3
+	VEC4
+	VRAI
+	NOMBRE_REEL
+	NOMBRE_ENTIER
+	NOMBRE_HEXADECIMAL
+	NOMBRE_OCTAL
+	NOMBRE_BINAIRE
+	PLUS_UNAIRE
+	MOINS_UNAIRE
+	TROIS_POINTS
+	CHAINE_CARACTERE
+	CHAINE_LITTERALE
+	CARACTERE
+	TABLEAU
+}
+
+struct DonneesLexème {
+	chn : chaine
+	lexème : TypeLexème
+}
+
+fonc pousse(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]DonneesLexème
+    liste[taille] = valeur
+}
+
+###############################################################################
+
+fonc est_caractère_spécial(c : z8) : bool, TypeLexème
+
+###############################################################################
+
+struct DiscriminatriceChaine {
+    # Digraphes
+    chn_digraphes : []chaine
+    type_digraphes : []TypeLexème
+
+    # Identifiants
+    chn_identifiants : []chaine
+    type_identifiants : []TypeLexème
+}
+
+fonc construit_discr() : DiscriminatriceChaine
+{
+    dyn discriminatrice : DiscriminatriceChaine
+
+    retourne discriminatrice
+}
+
+fonc id_digraphe(discriminatrice : &DiscriminatriceChaine, digraphe : chaine) : TypeLexème
+{
+    pour chn, idx dans discriminatrice.chn_digraphes {
+        si compare_chaines(chn, digraphe) {
+            retourne discriminatrice.type_digraphes[idx]
+        }
+    }
+
+    retourne TypeLexème.INCONNU
+}
+
+fonc id_identifiant(discriminatrice : &DiscriminatriceChaine, identifiant : chaine) : TypeLexème
+{
+    pour chn, idx dans discriminatrice.chn_identifiants {
+        si compare_chaines(chn, identifiant) {
+            retourne discriminatrice.type_identifiants[idx]
+        }
+    }
+
+    retourne TypeLexème.CHAINE_CARACTERE
+}
+
+###############################################################################
+
+struct Lexeuse {
+    chn : chaine
+
+    début : *z8
+    début_mot : *z8
+    fin : *z8
+
+    lexèmes : []DonneesLexème
+
+    taille_mot_courant = 0
+}
+
+fonc construit_lexeuse(chn : chaine)
+{
+    dyn lexeuse : Lexeuse
+    lexeuse.chn = chn
+    lexeuse.début = @chn[0]
+    lexeuse.début_mot = lexeuse.début
+    lexeuse.fin = lexeuse.début + chn.taille
+
+    retourne lexeuse
+}
+
+fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.taille_mot_courant = 0
+
+	tantque (!lexeuse.fini()) {
+		dyn nombre_octet = nombre_octets_utf8(lexeuse.début)
+
+		discr (nombre_octet) {
+			1 {
+				analyse_caractère_simple()
+			}
+			2,
+			3,
+			4 {
+				si (lexeuse.taille_mot_courant == 0) {
+					lexeuse.enregistre_pos_mot()
+				}
+
+				dyn c = converti_utf8_utf32(lexeuse.début, nombre_octet)
+
+				discr transtype(c : TypeRune) {
+					ESPACE_INSECABLE,
+					ESPACE_D_OGAM,
+					SEPARATEUR_VOYELLES_MONGOL,
+					DEMI_CADRATIN,
+					CADRATIN,
+					ESPACE_DEMI_CADRATIN,
+					ESPACE_CADRATIN,
+					TIERS_DE_CADRATIN,
+					QUART_DE_CADRATIN,
+					SIXIEME_DE_CADRATIN,
+					ESPACE_TABULAIRE,
+					ESPACE_PONCTUATION,
+					ESPACE_FINE,
+					ESPACE_ULTRAFINE,
+					ESPACE_SANS_CHASSE,
+					ESPACE_INSECABLE_ETROITE,
+					ESPACE_MOYENNE_MATHEMATIQUE,
+					ESPACE_IDEOGRAPHIQUE,
+					ESPACE_INSECABLE_SANS_CHASSE {
+						si (lexeuse.taille_mot_courant != 0) {
+							lexeuse.pousse_mot(id_chaine(lexeuse.mot_courant()))
+						}
+
+						lexeuse.avance(nombre_octet)
+					}
+					GUILLEMET_OUVRANT {
+						si (lexeuse.taille_mot_courant != 0) {
+							lexeuse.pousse_mot(id_chaine(lexeuse.mot_courant()))
+						}
+
+						# Saute le premier guillemet.
+						lexeuse.avance(nombre_octet)
+						lexeuse.enregistre_pos_mot()
+
+						tantque (!lexeuse.fini()) {
+							nombre_octet = nombre_octets_utf8(lexeuse.début)
+							c = converti_utf8_utf32(lexeuse.début, nombre_octet)
+
+							si (transtype(c : TypeRune) == TypeRune.GUILLEMET_FERMANT) {
+								arrête
+							}
+
+							lexeuse.taille_mot_courant += nombre_octet
+							lexeuse.avance(nombre_octet)
+						}
+
+						# Saute le dernier guillemet.
+						lexeuse.avance(nombre_octet)
+
+						lexeuse.pousse_mot(TypeLexème.CHAINE_LITTERALE)
+					}
+					sinon {
+						lexeuse.taille_mot_courant += nombre_octet
+						lexeuse.avance(nombre_octet)
+					}
+				}
+			}
+			sinon {
+				# Le caractère (octet) courant est invalide dans le codec unicode.
+				#lance_erreur("Le codec Unicode ne peut comprendre le caractère !")
+			}
+		}
+	}
+
+	si (lexeuse.taille_mot_courant != 0) {
+		#lance_erreur("Des caractères en trop se trouvent à la fin du texte !")
+	}
+}
+
+fonc fini(lexeuse : &Lexeuse) : bool
+{
+	retourne lexeuse.début >= lexeuse.fin
+}
+
+fonc avance(dyn lexeuse : &Lexeuse, n : z32)
+{
+	for (int i = 0 i < n ++i) {
+		si (lexeuse.caractère_courant() == '\n') {
+			++lexeuse.compte_ligne
+			lexeuse.position_ligne = 0
+		}
+		sinon {
+			++lexeuse.position_ligne
+		}
+
+		++lexeuse.début
+	}
+}
+
+fonc caractère_courant(lexeuse : &Lexeuse) : z8
+{
+	retourne mémoire(lexeuse.début)
+}
+
+fonc caractère_voisin(lexeuse : &Lexeuse, n : z32) : z8
+{
+	retourne mémoire(lexeuse.début + n)
+}
+
+fonc mot_courant(lexeuse : &Lexeuse) : chaine
+{
+	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
+}
+
+fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) : rien
+{
+	si (est_espace_blanc(lexeuse.caractère_courant())) {
+		si (lexeuse.taille_mot_courant != 0) {
+			lexeuse.pousse_mot(id_chaine(lexeuse.mot_courant()))
+		}
+
+		lexeuse.avance(1)
+
+        retourne
+	}
+
+    est_spécial, idc = est_caractère_spécial(lexeuse.caractère_courant())
+
+	si (est_spécial) {
+		si (lexeuse.taille_mot_courant != 0) {
+			lexeuse.pousse_mot(id_chaine(lexeuse.mot_courant()))
+		}
+
+		lexeuse.enregistre_pos_mot()
+
+		dyn id = id_digraphe(construit_chaine(lexeuse.début, 2))
+
+		si (id != TypeLexème.INCONNU) {
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_mot(id)
+			lexeuse.avance(2)
+			retourne
+		}
+
+		discr (lexeuse.caractère_courant()) {
+			'.' {
+				si (lexeuse.caractère_voisin() != '.') {
+					lexeuse.pousse_caractère()
+					lexeuse.pousse_mot(TypeLexème.POINT)
+					lexeuse.avance(1)
+					arrête
+				}
+
+				si (lexeuse.caractère_voisin(2) != '.') {
+					#lance_erreur("Un point est manquant ou un point est en trop !\n")
+				}
+
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+
+				lexeuse.pousse_mot(TypeLexème.TROIS_POINTS)
+				lexeuse.avance(3)
+			}
+			'"' {
+				# Saute le premier guillemet.
+				lexeuse.avance(1)
+				lexeuse.enregistre_pos_mot()
+
+				tantque (!lexeuse.fini()) {
+					si (lexeuse.caractère_courant() == '"' && lexeuse.caractère_voisin(-1) != '\\') {
+						arrête
+					}
+
+					lexeuse.pousse_caractère()
+					lexeuse.avance(1)
+				}
+
+				# Saute le dernier guillemet.
+				lexeuse.avance(1)
+
+				lexeuse.pousse_mot(TypeLexème.CHAINE_LITTERALE)
+			}
+			'\'' {
+				# Saute la première apostrophe.
+				lexeuse.avance(1)
+
+				lexeuse.enregistre_pos_mot()
+
+				si (lexeuse.caractère_courant() == '\\') {
+					lexeuse.pousse_caractère()
+					lexeuse.avance(1)
+				}
+
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(TypeLexème.CARACTERE)
+
+				lexeuse.avance(1)
+
+				# Saute la dernière apostrophe.
+				si (lexeuse.caractère_courant() != '\'') {
+					#lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n")
+				}
+
+				lexeuse.avance(1)
+			}
+			'#' {
+				# ignore commentaire
+				tantque (lexeuse.caractère_courant() != '\n') {
+					lexeuse.avance(1)
+				}
+			}
+			sinon {
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(idc)
+				lexeuse.avance(1)
+			}
+		}
+	}
+	sinon si (lexeuse.taille_mot_courant == 0 && est_nombre_décimal(lexeuse.caractère_courant())) {
+		lexeuse.enregistre_pos_mot()
+
+		# À FAIRE
+        compte = 1
+
+		lexeuse.pousse_mot(TypeLexème.NOMBRE_ENTIER)
+		lexeuse.avance(compte)
+	}
+	sinon {
+		si (lexeuse.taille_mot_courant == 0) {
+			lexeuse.enregistre_pos_mot()
+		}
+
+		lexeuse.pousse_caractère()
+		lexeuse.avance(1)
+	}
+}
+
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.taille_mot_courant += 1
+}
+
+fonc pousse_mot(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) : rien
+{
+    dyn données : DonneesLexème
+    données.lexème = lexème
+    données.chn = lexeuse.mot_courant()
+
+    # À FAIRE(bug) : la prise de référence passe par une temporaire...
+    #pousse(lexeuse.lexèmes, données)
+
+    taille = lexeuse.lexèmes.taille
+    reloge lexeuse.lexèmes : [taille + 1]DonneesLexème
+    lexeuse.lexèmes[taille] = données
+
+    lexeuse.taille_mot_courant = 0
+}
+
+fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.pos_mot = lexeuse.position_ligne
+	lexeuse.début_mot = lexeuse.début
+}
+
+###############################################################################
+
+fonc principale(args : []*z8) : z32
+{
+    script = "a = 5"
+
+    lexeuse = construit_lexeuse(script)
+    diffère { détruit_lexeuse(lexeuse) }
+
+    lexeuse.performe_lexage()
+
+    retourne 0
+}
