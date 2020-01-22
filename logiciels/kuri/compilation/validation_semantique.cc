@@ -557,6 +557,164 @@ static void valide_acces_membre(
 				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
+static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
+{
+	// certaines fonctions sont validées 2 fois...
+	if (b->index_type != -1) {
+		return;
+	}
+
+	using dls::outils::possede_drapeau;
+
+	auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
+	auto nom_fonction = b->morceau.chaine;
+	auto &vdf = module->donnees_fonction(nom_fonction);
+	auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
+
+	for (auto &df : vdf) {
+		if (df.noeud_decl == b) {
+			donnees_fonction = &df;
+			break;
+		}
+	}
+
+	auto iter_enfant = b->enfants.debut();
+	auto enfant = *iter_enfant++;
+	assert(enfant->type == type_noeud::LISTE_PARAMETRES_FONCTION);
+
+	auto feuilles = dls::tableau<noeud::base *>();
+
+	if (!enfant->enfants.est_vide()) {
+		rassemble_feuilles(enfant->enfants.front(), feuilles);
+	}
+
+	if (donnees_fonction->est_coroutine) {
+		b->type = type_noeud::DECLARATION_COROUTINE;
+	}
+
+	donnees_fonction->type_declare.pousse(
+				donnees_fonction->est_coroutine ? id_morceau::COROUT : id_morceau::FONC);
+
+	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
+	if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+		ajoute_contexte_programme(contexte, donnees_fonction->type_declare);
+
+		if (feuilles.taille() != 0) {
+			donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+		}
+	}
+
+	auto noms = dls::ensemble<dls::vue_chaine_compacte>();
+	auto dernier_est_variadic = false;
+
+	for (auto feuille : feuilles) {
+		if (noms.trouve(feuille->chaine()) != noms.fin()) {
+			erreur::lance_erreur(
+						"Redéfinition de l'argument",
+						contexte,
+						feuille->morceau,
+						erreur::type_erreur::ARGUMENT_REDEFINI);
+		}
+
+		if (dernier_est_variadic) {
+			erreur::lance_erreur(
+						"Argument déclaré après un argument variadic",
+						contexte,
+						feuille->morceau,
+						erreur::type_erreur::NORMAL);
+		}
+
+		auto donnees_arg = DonneesArgument{};
+		donnees_arg.type_declare = feuille->type_declare;
+		donnees_arg.nom = feuille->chaine();
+
+		noms.insere(feuille->chaine());
+
+		/* doit être vrai uniquement pour le dernier argument */
+		donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == id_morceau::TROIS_POINTS;
+		donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
+		donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
+
+		dernier_est_variadic = donnees_arg.est_variadic;
+
+		donnees_fonction->est_variadique = donnees_arg.est_variadic;
+		donnees_fonction->args.pousse(donnees_arg);
+
+		donnees_fonction->type_declare.pousse(donnees_arg.type_declare);
+
+		if (feuille != feuilles.back()) {
+			donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+		}
+		else {
+			if (!donnees_fonction->est_externe && donnees_arg.est_variadic && est_invalide(donnees_arg.type_declare.dereference())) {
+				erreur::lance_erreur(
+							"La déclaration de fonction variadique sans type n'est"
+							 " implémentée que pour les fonctions externes",
+							contexte,
+							feuille->morceau);
+			}
+		}
+	}
+
+	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_FERMANTE);
+
+	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
+
+	for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
+		donnees_fonction->type_declare.pousse(donnees_fonction->types_retours_decl[i]);
+
+		if (i < donnees_fonction->types_retours_decl.taille() - 1) {
+			donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+		}
+	}
+
+	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_FERMANTE);
+
+	if (vdf.taille() > 1) {
+		for (auto const &df : vdf) {
+			if (df.noeud_decl == b) {
+				continue;
+			}
+
+			if (df.type_declare == donnees_fonction->type_declare) {
+				erreur::lance_erreur(
+							"Redéfinition de la fonction",
+							contexte,
+							b->morceau,
+							erreur::type_erreur::FONCTION_REDEFINIE);
+			}
+		}
+	}
+
+	donnees_fonction->index_type = resoud_type_final(contexte, donnees_fonction->type_declare, true);
+
+	b->index_type = resoud_type_final(contexte, b->type_declare);
+
+	donnees_fonction->types_utilises.insere(b->index_type);
+
+	for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
+		auto idx_type = resoud_type_final(contexte, donnees_fonction->types_retours_decl[i]);
+		donnees_fonction->idx_types_retours.pousse(idx_type);
+		donnees_fonction->types_utilises.insere(idx_type);
+	}
+
+	for (auto &argument : donnees_fonction->args) {
+		argument.index_type = resoud_type_final(contexte, argument.type_declare);
+	}
+
+	/* nous devons attendre d'avoir les types des arguments avant de
+	 * pouvoir broyer le nom de la fonction */
+	if (nom_fonction != "principale" && !possede_drapeau(b->drapeaux, EST_EXTERNE)) {
+		donnees_fonction->nom_broye = broye_nom_fonction(contexte, *donnees_fonction, nom_fonction, module->nom);
+	}
+	else {
+		donnees_fonction->nom_broye = nom_fonction;
+	}
+
+	contexte.graphe_dependance.cree_noeud_fonction(donnees_fonction->nom_broye, b);
+}
+
 static void performe_validation_semantique(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -600,127 +758,11 @@ static void performe_validation_semantique(
 				}
 			}
 
-			auto est_principale = (nom_fonction == "principale");
-
-			/* analyse les arguments de la fonction, afin de résoudre son type final */
-			auto iter_enfant = b->enfants.debut();
-			auto enfant = *iter_enfant++;
-			assert(enfant->type == type_noeud::LISTE_PARAMETRES_FONCTION);
-
-			auto feuilles = dls::tableau<noeud::base *>();
-
-			if (!enfant->enfants.est_vide()) {
-				rassemble_feuilles(enfant->enfants.front(), feuilles);
-			}
-
-			if (donnees_fonction->est_coroutine) {
-				b->type = type_noeud::DECLARATION_COROUTINE;
-			}
-
-			donnees_fonction->type_declare.pousse(
-						donnees_fonction->est_coroutine ? id_morceau::COROUT : id_morceau::FONC);
-
-			donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
-
-			if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
-				ajoute_contexte_programme(contexte, donnees_fonction->type_declare);
-
-				if (feuilles.taille() != 0) {
-					donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
-				}
-			}
-
-			auto noms = dls::ensemble<dls::vue_chaine_compacte>();
-			auto dernier_est_variadic = false;
-
-			for (auto feuille : feuilles) {
-				if (noms.trouve(feuille->chaine()) != noms.fin()) {
-					erreur::lance_erreur(
-								"Redéfinition de l'argument",
-								contexte,
-								feuille->morceau,
-								erreur::type_erreur::ARGUMENT_REDEFINI);
-				}
-
-				if (dernier_est_variadic) {
-					erreur::lance_erreur(
-								"Argument déclaré après un argument variadic",
-								contexte,
-								feuille->morceau,
-								erreur::type_erreur::NORMAL);
-				}
-
-				auto donnees_arg = DonneesArgument{};
-				donnees_arg.type_declare = feuille->type_declare;
-				donnees_arg.nom = feuille->chaine();
-
-				noms.insere(feuille->chaine());
-
-				/* doit être vrai uniquement pour le dernier argument */
-				donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == id_morceau::TROIS_POINTS;
-				donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
-				donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
-
-				dernier_est_variadic = donnees_arg.est_variadic;
-
-				donnees_fonction->est_variadique = donnees_arg.est_variadic;
-				donnees_fonction->args.pousse(donnees_arg);
-
-				donnees_fonction->type_declare.pousse(donnees_arg.type_declare);
-
-				if (feuille != feuilles.back()) {
-					donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
-				}
-				else {
-					if (!donnees_fonction->est_externe && donnees_arg.est_variadic && est_invalide(donnees_arg.type_declare.dereference())) {
-						erreur::lance_erreur(
-									"La déclaration de fonction variadique sans type n'est"
-									 " implémentée que pour les fonctions externes",
-									contexte,
-									feuille->morceau);
-					}
-				}
-			}
-
-			donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_FERMANTE);
-
-			donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
-
-			for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
-				donnees_fonction->type_declare.pousse(donnees_fonction->types_retours_decl[i]);
-
-				if (i < donnees_fonction->types_retours_decl.taille() - 1) {
-					donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
-				}
-			}
-
-			donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_FERMANTE);
-
-			if (vdf.taille() > 1) {
-				for (auto const &df : vdf) {
-					if (df.noeud_decl == b) {
-						continue;
-					}
-
-					if (df.type_declare == donnees_fonction->type_declare) {
-						erreur::lance_erreur(
-									"Redéfinition de la fonction",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::FONCTION_REDEFINIE);
-					}
-				}
-			}
-
-			donnees_fonction->index_type = resoud_type_final(contexte, donnees_fonction->type_declare, true);
-
-			b->index_type = resoud_type_final(contexte, b->type_declare);
-			donnees_fonction->types_utilises.insere(b->index_type);
-
-			for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
-				auto idx_type = resoud_type_final(contexte, donnees_fonction->types_retours_decl[i]);
-				donnees_fonction->idx_types_retours.pousse(idx_type);
-				donnees_fonction->types_utilises.insere(idx_type);
+			/* Il est possible que certaines fonctions ne soient pas connectées
+			 * dans le graphe de symboles alors que nous avons besoin d'elles,
+			 * voir dans la fonction plus bas. */
+			if (b->index_type == -1) {
+				valide_type_fonction(b, contexte);
 			}
 
 			if (est_externe) {
@@ -753,7 +795,6 @@ static void performe_validation_semantique(
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto &argument : donnees_fonction->args) {
-				argument.index_type = resoud_type_final(contexte, argument.type_declare);
 				donnees_fonction->types_utilises.insere(argument.index_type);
 
 				auto index_dt = argument.index_type;
@@ -794,17 +835,8 @@ static void performe_validation_semantique(
 				}
 			}
 
-			/* nous devons attendre d'avoir les types des arguments avant de
-			 * pouvoir broyer le nom de la fonction */
-			if (!est_principale) {
-				donnees_fonction->nom_broye = broye_nom_fonction(contexte, *donnees_fonction, nom_fonction, module->nom);
-			}
-			else {
-				donnees_fonction->nom_broye = nom_fonction;
-			}
-
 			/* vérifie le type du bloc */
-			auto bloc = *iter_enfant++;
+			auto bloc = b->enfants.back();
 
 			auto noeud_dep = graphe.cree_noeud_fonction(donnees_fonction->nom_broye, b);
 
@@ -2978,6 +3010,35 @@ static void performe_validation_semantique(
 	}
 }
 
+static void traverse_graphe_pour_validation_semantique(
+		ContexteGenerationCode &contexte,
+		NoeudDependance *noeud_dep)
+{
+	noeud_dep->fut_visite = true;
+
+	for (auto const &relation : noeud_dep->relations) {
+		if (relation.type != TypeRelation::UTILISE_SYMBOLE) {
+			continue;
+		}
+
+		if (relation.noeud_fin->fut_visite) {
+			continue;
+		}
+
+		traverse_graphe_pour_validation_semantique(contexte, relation.noeud_fin);
+	}
+
+	if (noeud_dep->deja_genere) {
+		return;
+	}
+
+	noeud_dep->deja_genere = true;
+
+	for (auto &noeud : noeud_dep->noeuds_syntaxiques) {
+		performe_validation_semantique(noeud, contexte, true);
+	}
+}
+
 void performe_validation_semantique(
 		assembleuse_arbre const &arbre,
 		ContexteGenerationCode &contexte)
@@ -2992,13 +3053,60 @@ void performe_validation_semantique(
 		return;
 	}
 
+	auto &graphe_dependance = contexte.graphe_symboles;
+	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_groupe("principale");
+
+	if (noeud_fonction_principale == nullptr) {
+		erreur::fonction_principale_manquante();
+	}
+
 	auto temps_validation = 0.0;
 
-	for (auto noeud : racine->enfants) {
-		auto debut_validation = dls::chrono::compte_seconde();
-		performe_validation_semantique(noeud, contexte, true);
-		temps_validation += debut_validation.temps();
+	auto debut_validation = dls::chrono::compte_seconde();
+
+	/* À FAIRE : ces symboles ne sont peut-être pas connectés */
+	const char *noms_symboles[] = {
+		"InfoType",
+		"InfoTypeEntier",
+		"InfoTypeRéel",
+		"InfoTypePointeur",
+		"InfoTypeÉnum",
+		"InfoTypeStructure",
+		"InfoTypeTableau",
+		"InfoTypeFonction",
+		"InfoTypeMembreStructure",
+		"allocatrice_défaut",
+		"ContexteProgramme",
+	};
+
+	for (auto nom_symbole : noms_symboles) {
+		auto noeud_symbole = graphe_dependance.cherche_noeud_groupe(nom_symbole);
+
+		if (noeud_symbole != nullptr) {			
+			traverse_graphe_pour_validation_semantique(contexte, noeud_symbole);
+		}
 	}
+
+	/* À FAIRE : les variables globales ne sont pas connectées... */
+	for (auto noeud : racine->enfants) {
+		auto rejete = noeud->type == type_noeud::DECLARATION_STRUCTURE;
+		rejete |= noeud->type == type_noeud::DECLARATION_ENUM;
+
+		if (rejete) {
+			continue;
+		}
+
+		if (noeud->type == type_noeud::DECLARATION_COROUTINE || noeud->type == type_noeud::DECLARATION_FONCTION) {
+			valide_type_fonction(noeud, contexte);
+			continue;
+		}
+
+		performe_validation_semantique(noeud, contexte, true);
+	}
+
+	traverse_graphe_pour_validation_semantique(contexte, noeud_fonction_principale);
+
+	temps_validation += debut_validation.temps();
 
 	contexte.temps_validation = temps_validation;
 }

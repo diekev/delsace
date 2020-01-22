@@ -818,6 +818,94 @@ static void genere_code_allocation(
 	}
 }
 
+static void genere_declaration_fonction(
+		base *b,
+		GeneratriceCodeC &generatrice,
+		ContexteGenerationCode &contexte)
+{
+	using dls::outils::possede_drapeau;
+
+	auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
+
+	if (est_externe) {
+		return;
+	}
+
+	auto donnees_fonction = cherche_donnees_fonction(contexte, b);
+
+	/* Code pour le type et le nom */
+
+	auto nom_fonction = donnees_fonction->nom_broye;
+	donnees_fonction->est_sans_contexte = possede_drapeau(b->drapeaux, FORCE_NULCTX);
+
+	auto moult_retour = donnees_fonction->idx_types_retours.taille() > 1;
+
+	if (moult_retour) {
+		if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+			generatrice.os << "static inline void ";
+		}
+		else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+			generatrice.os << "static void __attribute__ ((noinline)) ";
+		}
+		else {
+			generatrice.os << "static void ";
+		}
+
+		generatrice.os << nom_fonction;
+	}
+	else {
+		if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
+			generatrice.os << "static inline ";
+		}
+		else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
+			generatrice.os << "__attribute__ ((noinline)) ";
+		}
+
+		auto &dt_ret = contexte.typeuse[b->index_type];
+		generatrice.os << nom_broye_type(contexte, dt_ret) << ' ' << nom_fonction;
+	}
+
+	/* Code pour les arguments */
+
+	auto virgule = '(';
+
+	if (donnees_fonction->args.taille() == 0 && !moult_retour) {
+		generatrice.os << '(' << '\n';
+		virgule = ' ';
+	}
+
+	if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
+		generatrice.os << virgule << '\n';
+		generatrice.os << nom_broye_type(contexte, contexte.index_type_contexte) << " contexte";
+		virgule = ',';
+	}
+
+	for (auto &argument : donnees_fonction->args) {
+		auto &dt = contexte.typeuse[argument.index_type];
+		auto nom_broye = broye_nom_simple(argument.nom);
+
+		generatrice.os << virgule << '\n';
+		generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_broye;
+
+		virgule = ',';
+	}
+
+	if (moult_retour) {
+		auto idx_ret = 0l;
+		for (auto idx : donnees_fonction->idx_types_retours) {
+			generatrice.os << virgule << '\n';
+
+			auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
+
+			auto &dt = contexte.typeuse[idx];
+			generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_ret;
+			virgule = ',';
+		}
+	}
+
+	generatrice.os << ")";
+}
+
 /* Génère le code C pour la base b passée en paramètre.
  *
  * Le code est généré en visitant d'abord les enfants des noeuds avant ceux-ci.
@@ -857,8 +945,6 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
-			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
-
 			/* Pour les fonctions variadiques nous transformons la liste d'argument en
 			 * un tableau dynamique transmis à la fonction. La raison étant que les
 			 * instruction de LLVM pour les arguments variadiques ne fonctionnent
@@ -876,53 +962,15 @@ void genere_code_C(
 				return;
 			}
 
-			/* Crée fonction */
-			auto nom_fonction = donnees_fonction->nom_broye;
-			donnees_fonction->est_sans_contexte = possede_drapeau(b->drapeaux, FORCE_NULCTX);
+			genere_declaration_fonction(b, generatrice, contexte);
 
-			auto moult_retour = donnees_fonction->idx_types_retours.taille() > 1;
+			generatrice.os << '\n';
 
-			if (moult_retour) {
-				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
-					generatrice.os << "static inline void ";
-				}
-				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
-					generatrice.os << "static void __attribute__ ((noinline)) ";
-				}
-				else {
-					generatrice.os << "static void ";
-				}
-
-				generatrice.os << nom_fonction;
-			}
-			else {
-				if (possede_drapeau(b->drapeaux, FORCE_ENLIGNE)) {
-					generatrice.os << "static inline ";
-				}
-				else if (possede_drapeau(b->drapeaux, FORCE_HORSLIGNE)) {
-					generatrice.os << "__attribute__ ((noinline)) ";
-				}
-
-				auto &dt_ret = contexte.typeuse[b->index_type];
-				generatrice.os << nom_broye_type(contexte, dt_ret) << ' ' << nom_fonction;
-			}
-
+			auto donnees_fonction = cherche_donnees_fonction(contexte, b);
 			contexte.commence_fonction(donnees_fonction);
 
-			/* Crée code pour les arguments */
-
-			auto virgule = '(';
-
-			if (donnees_fonction->args.taille() == 0 && !moult_retour) {
-				generatrice.os << '(' << '\n';
-				virgule = ' ';
-			}
-
+			/* pousse les arguments sur la pile */
 			if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
-				generatrice.os << virgule << '\n';
-				generatrice.os << nom_broye_type(contexte, contexte.index_type_contexte) << " contexte";
-				virgule = ',';
-
 				auto donnees_var = DonneesVariable{};
 				donnees_var.est_dynamique = true;
 				donnees_var.est_variadic = false;
@@ -933,31 +981,9 @@ void genere_code_C(
 			}
 
 			for (auto &argument : donnees_fonction->args) {
-				auto &dt = contexte.typeuse[argument.index_type];
 				auto nom_broye = broye_nom_simple(argument.nom);
-
-				generatrice.os << virgule << '\n';
-				generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_broye;
-
-				virgule = ',';
-
 				pousse_argument_fonction_pile(contexte, argument, nom_broye);
 			}
-
-			if (moult_retour) {
-				auto idx_ret = 0l;
-				for (auto idx : donnees_fonction->idx_types_retours) {
-					generatrice.os << virgule << '\n';
-
-					auto nom_ret = "*" + donnees_fonction->noms_retours[idx_ret++];
-
-					auto &dt = contexte.typeuse[idx];
-					generatrice.os << nom_broye_type(contexte, dt) << ' ' << nom_ret;
-					virgule = ',';
-				}
-			}
-
-			generatrice.os << ")\n";
 
 			if (!donnees_fonction->est_sans_contexte) {
 				generatrice.os << "{\n";
@@ -2618,7 +2644,8 @@ static void traverse_graphe_pour_generation_code(
 		ContexteGenerationCode &contexte,
 		GeneratriceCodeC &generatrice,
 		NoeudDependance *noeud,
-		bool genere_info_type = true)
+		bool genere_fonctions,
+		bool genere_info_type)
 {
 	noeud->fut_visite = true;
 
@@ -2639,7 +2666,7 @@ static void traverse_graphe_pour_generation_code(
 			continue;
 		}
 
-		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin, genere_info_type);
+		traverse_graphe_pour_generation_code(contexte, generatrice, relation.noeud_fin, genere_fonctions, genere_info_type);
 	}
 
 	if (noeud->type == TypeNoeudDependance::TYPE) {
@@ -2671,6 +2698,12 @@ static void traverse_graphe_pour_generation_code(
 		generatrice.os << "#pragma GCC diagnostic pop\n";
 	}
 	else {
+		if (noeud->type == TypeNoeudDependance::FONCTION && !genere_fonctions) {
+			genere_declaration_fonction(noeud->noeud_syntactique, generatrice, contexte);
+			generatrice.os << ";\n";
+			return;
+		}
+
 		genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
 	}
 }
@@ -2815,7 +2848,7 @@ void KR__acces_membre_union(
 	for (auto nom_struct : noms_structs_infos_types) {
 		auto const &ds = contexte.donnees_structure(nom_struct);
 		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
-		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false);
+		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, false);
 		/* restaure le drapeaux pour la génération des infos des types */
 		noeud->fut_visite = false;
 	}
@@ -2823,7 +2856,7 @@ void KR__acces_membre_union(
 	for (auto nom_struct : noms_structs_infos_types) {
 		auto const &ds = contexte.donnees_structure(nom_struct);
 		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
-		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, true);
+		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, true);
 	}
 
 	temps_generation += debut_generation.temps();
@@ -2831,7 +2864,18 @@ void KR__acces_membre_union(
 	reduction_transitive(graphe_dependance);
 
 	debut_generation.commence();
-	traverse_graphe_pour_generation_code(contexte, generatrice, noeud_fonction_principale);
+
+	/* génère d'abord les déclarations des fonctions et les types */
+	traverse_graphe_pour_generation_code(contexte, generatrice, noeud_fonction_principale, false, true);
+
+	/* génère ensuite les fonctions */
+	for (auto noeud_dep : graphe_dependance.noeuds) {
+		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
+			noeud_dep->fut_visite = false;
+		}
+	}
+
+	traverse_graphe_pour_generation_code(contexte, generatrice, noeud_fonction_principale, true, false);
 
 	auto debut_main =
 R"(

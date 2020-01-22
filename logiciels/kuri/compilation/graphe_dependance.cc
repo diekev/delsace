@@ -237,6 +237,54 @@ long GrapheDependance::trouve_index_type(long index_racine, TypeRelation type) c
 	return -1;
 }
 
+NoeudDependance *GrapheDependance::cherche_noeud_groupe(const dls::vue_chaine_compacte &nom_groupe)
+{
+	for (auto noeud : noeuds) {
+		if (noeud->type != TypeNoeudDependance::GROUPE_SYMBOLE) {
+			continue;
+		}
+
+		if (noeud->nom == nom_groupe) {
+			return noeud;
+		}
+	}
+
+	return nullptr;
+}
+
+NoeudDependance *GrapheDependance::fusionne_noeud_groupe(const dls::vue_chaine_compacte &nom_groupe)
+{
+	auto noeud = cherche_noeud_groupe(nom_groupe);
+
+	if (noeud == nullptr) {
+		noeud = memoire::loge<NoeudDependance>("NoeudDependance");
+		noeud->nom = nom_groupe;
+		noeud->type = TypeNoeudDependance::GROUPE_SYMBOLE;
+
+		noeuds.pousse(noeud);
+	}
+
+	return noeud;
+}
+
+void GrapheDependance::connecte_noeud_groupe(NoeudDependance &noeud, const dls::vue_chaine_compacte &nom_groupe)
+{
+	/* dépendance cyclique : fonction ou type récursif */
+	if (nom_groupe == noeud.nom) {
+		return;
+	}
+
+	auto noeud_groupe = fusionne_noeud_groupe(nom_groupe);
+
+	for (auto const &relation : noeud.relations) {
+		if (relation.type == TypeRelation::UTILISE_SYMBOLE && relation.noeud_fin == noeud_groupe) {
+			return;
+		}
+	}
+
+	noeud.relations.pousse({ TypeRelation::UTILISE_SYMBOLE, &noeud, noeud_groupe });
+}
+
 void GrapheDependance::ajoute_connexions_fonction(
 		NoeudDependance &noeud,
 		DonneesFonction &donnees)

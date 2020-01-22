@@ -39,6 +39,9 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
 	ContexteGenerationCode &m_contexte;
 	assembleuse_arbre *m_assembleuse = nullptr;
 
+	using type_ensemble_symboles = dls::ensemble<dls::vue_chaine_compacte>;
+	type_ensemble_symboles m_symboles_utilises{};
+
 	/* Ces vecteurs sont utilisés pour stocker les données des expressions
 	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
 	 * pour pouvoir réutiliser la mémoire qu'ils allouent après leurs
@@ -59,6 +62,7 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
 	bool m_etiquette_enligne = false;
 	bool m_etiquette_horsligne = false;
 	bool m_etiquette_nulctx = false;
+	bool m_global = false;
 
 public:
 	analyseuse_grammaire(
