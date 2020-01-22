@@ -1565,7 +1565,9 @@ void genere_code_C(
 			auto df = contexte.donnees_fonction;
 			auto nom_variable = df->noms_retours[0];
 
-			applique_transformation(enfant, generatrice, contexte, false);
+			/* utilisation d'une valeur gauche (donc sans temporaire) pour le
+			 * retour de références */
+			applique_transformation(enfant, generatrice, contexte, true);
 
 			auto &dt = contexte.typeuse[b->index_type];
 
