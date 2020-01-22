@@ -260,10 +260,7 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) : rien
 		#lance_erreur("Attendu un double-point ':'")
 	}
 
-	# À FAIRE : dépendance cyclique analyse_objet dépend de analyse_valeur
-	# qui dépend de analyse_objet. Le langage devra être plus flexible quant
-	# à l'ordre de déclaration des fonctions
-	# syntaxeuse.analyse_valeur(nom_objet)
+	syntaxeuse.analyse_valeur(nom_objet)
 
 	si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
 		syntaxeuse.avance()
@@ -386,6 +383,10 @@ fonc principale(args : []*z8) : z32
     pour données dans lexeuse.lexèmes {
         imprime(données.lexème, "\n")
     }
+
+	dyn syntaxeuse : Syntaxeuse
+	syntaxeuse.lexèmes = lexeuse.lexèmes
+	syntaxeuse.lance_analyse()
 
     retourne 0
 }
