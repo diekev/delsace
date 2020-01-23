@@ -1,0 +1,157 @@
+charge "lexage"
+
+énum TypeNoeud : z8 {
+    RACINE
+	PROPRIETE
+	VARIABLE
+	VALEUR
+	FONCTION
+	ATTRIBUT
+	OPERATION_UNAIRE
+	OPERATION_BINAIRE
+	ASSIGNATION
+	ACCES_MEMBRE_POINT
+	SI
+	BLOC
+	POUR
+	PLAGE
+	RETOURNE
+	ARRETE
+	CONTINUE
+}
+
+struct NoeudSyntaxique {
+    type : TypeNoeud
+    données : DonnéesLexème
+    enfants : []*NoeudSyntaxique
+}
+
+fonc ajoute_noeud(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) : rien
+{
+    taille = noeud.enfants.taille
+    reloge noeud.enfants : [taille + 1]*NoeudSyntaxique
+    noeud.enfants[taille] = enfant
+}
+
+fonc lexème(noeud : *NoeudSyntaxique) : TypeLexème
+{
+    retourne noeud.données.lexème
+}
+
+###############################################################################
+
+struct PileNoeud {
+    données : []*NoeudSyntaxique
+    curseur = 0
+}
+
+fonc détruit(dyn pile : &PileNoeud) : rien
+{
+    déloge pile.données
+}
+
+fonc empile(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) : rien
+{
+    si pile.curseur == pile.données.taille {
+        taille = pile.données.taille
+        reloge pile.données : [taille + 1]*NoeudSyntaxique
+    }
+
+    pile.données[pile.curseur] = noeud
+    pile.curseur += 1
+}
+
+fonc dépile(dyn pile : &PileNoeud) : *NoeudSyntaxique
+{
+    ret = pile.données[pile.curseur - 1]
+    pile.curseur -= 1
+    retourne ret
+}
+
+fonc haut(pile : &PileNoeud) : *NoeudSyntaxique
+{
+    retourne pile.données[pile.curseur - 1]
+}
+
+fonc taille(pile : &PileNoeud) : z32
+{
+    retourne pile.curseur
+}
+
+fonc est_vide(pile : &PileNoeud) : bool
+{
+    retourne pile.curseur == 0
+}
+
+###############################################################################
+
+struct AssembleuseArbre {
+    noeuds : []*NoeudSyntaxique
+    pile : PileNoeud
+}
+
+fonc construit_assembleuse() : AssembleuseArbre
+{
+    données : DonnéesLexème
+
+	dyn assembleuse : AssembleuseArbre
+    assembleuse.empile_noeud(TypeNoeud.RACINE, données, vrai)
+
+    retourne assembleuse
+}
+
+fonc détruit_assembleuse(dyn assembleuse : &AssembleuseArbre) : rien
+{
+    pour noeud dans assembleuse.noeuds {
+        déloge noeud
+    }
+
+    détruit(assembleuse.pile)
+}
+
+fonc empile_noeud(
+    dyn assembleuse : &AssembleuseArbre,
+    type_noeud : TypeNoeud,
+    données : &DonnéesLexème,
+    ajoute : bool) : *NoeudSyntaxique
+{
+	noeud = assembleuse.crée_noeud(type_noeud, données)
+
+	si (!assembleuse.pile.est_vide() && ajoute) {
+		assembleuse.ajoute_noeud(noeud)
+	}
+
+	assembleuse.pile.empile(noeud)
+
+	retourne noeud
+}
+
+fonc ajoute_noeud(
+    dyn assembleuse : &AssembleuseArbre,
+    noeud : *NoeudSyntaxique) : rien
+{
+	assembleuse.pile.haut().ajoute_noeud(noeud)
+}
+
+fonc crée_noeud(
+    dyn assembleuse : &AssembleuseArbre,
+    type_noeud : TypeNoeud,
+    données : &DonnéesLexème) : *NoeudSyntaxique
+{
+	dyn noeud = loge NoeudSyntaxique
+    noeud.type = type_noeud
+    noeud.données = données
+
+    # À FAIRE : déduplique, mais il faut régler le bug dans le langage
+    taille = assembleuse.noeuds.taille
+    reloge assembleuse.noeuds : [taille + 1]*NoeudSyntaxique
+    assembleuse.noeuds[taille] = noeud
+
+	retourne noeud
+}
+
+fonc dépile_noeud(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) : rien
+{
+	# assert(assembleuse.pile.haut().type == type_noeud)
+	assembleuse.pile.dépile()
+}

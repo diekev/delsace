@@ -1,0 +1,872 @@
+charge "assemblage_arbre"
+charge "paramètres"
+charge "précédence"
+
+importe Fondation
+
+fonc type_param_pour_chaine(chn : chaine) : TypeParamètre
+{
+    si compare_chaines(chn, "décimal") { retourne TypeParamètre.DEC }
+    si compare_chaines(chn, "entier")  { retourne TypeParamètre.ENT32 }
+    si compare_chaines(chn, "vecteur") { retourne TypeParamètre.VEC3 }
+
+    retourne TypeParamètre.INVALIDE
+}
+
+énum TypeProp : z32 {
+	PROP_PARAM_MAX
+	PROP_PARAM_MIN
+	PROP_PARAM_NOM
+	PROP_PARAM_VALEUR
+
+    INVALIDE
+}
+
+fonc type_prop_pour_chaine(chn : chaine) : TypeProp
+{
+    si compare_chaines(chn, "max") { retourne TypeProp.PROP_PARAM_MAX }
+    si compare_chaines(chn, "min")  { retourne TypeProp.PROP_PARAM_MIN }
+    si compare_chaines(chn, "nom")  { retourne TypeProp.PROP_PARAM_NOM }
+    si compare_chaines(chn, "valeur") { retourne TypeProp.PROP_PARAM_VALEUR }
+
+    retourne TypeProp.INVALIDE
+}
+
+###############################################################################
+
+fonc est_nombre_entier(lexème : TypeLexème) : bool
+{
+	discr lexème {
+		NOMBRE_BINAIRE,
+		NOMBRE_ENTIER,
+		NOMBRE_HEXADECIMAL,
+		NOMBRE_OCTAL {
+			retourne vrai
+        }
+		sinon {
+			retourne faux
+        }
+	}
+
+    retourne faux
+}
+
+fonc est_nombre(lexème : TypeLexème) : bool
+{
+	retourne est_nombre_entier(lexème) || (lexème == TypeLexème.NOMBRE_REEL)
+}
+
+fonc est_operateur_unaire(lexème : TypeLexème) : bool
+{
+	discr lexème {
+		AROBASE,
+		DOLLAR,
+		EXCLAMATION,
+		TILDE,
+		CROCHET_OUVRANT,
+		PLUS_UNAIRE,
+		MOINS_UNAIRE {
+			retourne vrai
+        }
+		sinon {
+			retourne faux
+        }
+	}
+
+    retourne faux
+}
+
+fonc est_operateur_binaire(lexème : TypeLexème) : bool
+{
+	discr lexème {
+		PLUS,
+		MOINS,
+		FOIS,
+		DIVISE,
+		ESPERLUETTE,
+		POURCENT,
+		INFERIEUR,
+		INFERIEUR_EGAL,
+		SUPERIEUR,
+		SUPERIEUR_EGAL,
+		DECALAGE_DROITE,
+		DECALAGE_GAUCHE,
+		DIFFERENCE,
+		ESP_ESP,
+		EGALITE,
+		BARRE_BARRE,
+		BARRE,
+		CHAPEAU,
+		POINT,
+		EGAL,
+		TROIS_POINTS,
+		VIRGULE,
+		PLUS_EGAL,
+		MOINS_EGAL,
+		DIVISE_EGAL,
+		FOIS_EGAL {
+			retourne vrai
+        }
+		sinon {
+			retourne faux
+        }
+	}
+
+    retourne faux
+}
+
+# Retourne vrai si l'lexème passé en paramètre peut-être un lexème
+# valide pour précèder un opérateur unaire '+' ou '-'.
+fonc precede_unaire_valide(dernier_lexème : TypeLexème) : bool
+{
+	si (dernier_lexème == TypeLexème.PARENTHESE_FERMANTE) {
+		retourne faux
+	}
+
+	si (dernier_lexème == TypeLexème.CROCHET_FERMANT) {
+		retourne faux
+	}
+
+	si (dernier_lexème == TypeLexème.CHAINE_CARACTERE) {
+		retourne faux
+	}
+
+	si (dernier_lexème == TypeLexème.CARACTERE) {
+		retourne faux
+	}
+
+	si (dernier_lexème == TypeLexème.DOLLAR) {
+		retourne faux
+	}
+
+	si (dernier_lexème == TypeLexème.AROBASE) {
+		retourne faux
+	}
+
+	si (est_nombre(dernier_lexème)) {
+		retourne faux
+	}
+
+	retourne vrai
+}
+
+###############################################################################
+
+struct Syntaxeuse {
+    assembleuse : AssembleuseArbre
+    lexèmes : []DonnéesLexème
+
+    position = 0
+}
+
+fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) : Syntaxeuse
+{
+    dyn syntaxeuse : Syntaxeuse
+    syntaxeuse.lexèmes = lexèmes
+
+    retourne syntaxeuse
+}
+
+fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position = 0
+
+	si (syntaxeuse.lexèmes.taille == 0) {
+		retourne
+	}
+
+	tantque (syntaxeuse.position != syntaxeuse.lexèmes.taille) {
+		syntaxeuse.analyse_bloc()
+	}
+}
+
+fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	tantque (syntaxeuse.position != syntaxeuse.lexèmes.taille) {
+		si (syntaxeuse.est_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+			arrête
+		}
+
+		si (syntaxeuse.est_lexème(TypeLexème.SI)) {
+			syntaxeuse.analyse_controle_si()
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.POUR)) {
+			syntaxeuse.analyse_controle_pour()
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.ARRETE)) {
+			syntaxeuse.avance()
+			syntaxeuse.assembleuse.empile_noeud(TypeNoeud.ARRETE, syntaxeuse.données(), vrai)
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.POINT_VIRGULE)) {
+				#lance_erreur("Attendu un point-virgule '' après « arrête »")
+			}
+
+			syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.ARRETE)
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.CONTINUE)) {
+			syntaxeuse.avance()
+			syntaxeuse.assembleuse.empile_noeud(TypeNoeud.CONTINUE, syntaxeuse.données(), vrai)
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.POINT_VIRGULE)) {
+				#lance_erreur("Attendu un point-virgule '' après « continue »")
+			}
+
+			syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.CONTINUE)
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.RETOURNE)) {
+			syntaxeuse.avance()
+			syntaxeuse.assembleuse.empile_noeud(TypeNoeud.RETOURNE, syntaxeuse.données(), vrai)
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.POINT_VIRGULE)) {
+				#lance_erreur("Attendu un point-virgule '' après « retourne »")
+			}
+
+			syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.RETOURNE)
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.DIRECTIVE)) {
+			syntaxeuse.avance()
+			syntaxeuse.analyse_directive()
+		}
+		sinon {
+			syntaxeuse.analyse_expression(TypeLexème.POINT_VIRGULE)
+		}
+	}
+}
+
+fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
+		#lance_erreur("Attendu la déclaration 'si'")
+	}
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données(), vrai)
+
+	syntaxeuse.analyse_expression(TypeLexème.ACCOLADE_OUVRANTE)
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données(), vrai)
+
+	syntaxeuse.analyse_bloc()
+
+	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+		#lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'")
+	}
+
+	si (syntaxeuse.est_lexème(TypeLexème.SINON)) {
+		syntaxeuse.avance()
+
+		# Peu importe que le 'sinon' contient un 'si' ou non, nous ajoutons un
+		# bloc pour créer un niveau d'indirection, afin d'éviter les problèmes
+		# de branchages.
+		# Originellement, cela vient du code de 'kuri'.
+		syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données(), vrai)
+
+		si (syntaxeuse.est_lexème(TypeLexème.SI)) {
+			syntaxeuse.analyse_controle_si()
+		}
+		sinon {
+			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_OUVRANTE)) {
+				#lance_erreur("Attendu une accolade ouvrante après 'sinon'")
+			}
+
+			syntaxeuse.analyse_bloc()
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+				#lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'")
+			}
+		}
+
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+	}
+
+	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
+}
+
+fonc analyse_controle_pour(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
+		#lance_erreur("Attendu la déclaration 'pour'")
+	}
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données(), vrai)
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
+		#lance_erreur("Attendu une chaîne de caractère après 'pour'")
+	}
+
+	# enfant 1 : déclaration variable
+
+	noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+	syntaxeuse.assembleuse.ajoute_noeud(noeud)
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.DANS)) {
+		#lance_erreur("Attendu le mot 'dans' après la chaîne de caractère")
+	}
+
+	# enfant 2 : expr
+
+	syntaxeuse.analyse_expression(TypeLexème.ACCOLADE_OUVRANTE)
+
+	# enfant 3 : bloc
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données(), vrai)
+
+	syntaxeuse.analyse_bloc()
+
+	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
+		#lance_erreur("Attendu une accolade fermante '}' à la fin du contrôle 'pour'")
+	}
+
+	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
+}
+
+fonc est_vide(tabl : &[]*NoeudSyntaxique) : bool
+{
+    retourne tabl.taille == 0
+}
+
+fonc dernier(tabl : &[]*NoeudSyntaxique) : *NoeudSyntaxique
+{
+    retourne tabl[tabl.taille - 1]
+}
+
+fonc pop_dernier(tabl : &[]*NoeudSyntaxique) : rien
+{
+    taille = tabl.taille
+    reloge tabl : [taille - 1]*NoeudSyntaxique
+}
+
+fonc pousse(dyn tabl : &[]*NoeudSyntaxique, valeur : *NoeudSyntaxique) : rien
+{
+    taille = tabl.taille
+    reloge tabl : [taille + 1]*NoeudSyntaxique
+    tabl[taille] = valeur
+}
+
+fonc lexème_courant(syntaxeuse : &Syntaxeuse) : TypeLexème
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
+}
+
+fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position += 1
+}
+
+fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position -= 1
+}
+
+fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+{
+	t = syntaxeuse.lexème_courant()
+	syntaxeuse.avance()
+	retourne t == type
+}
+
+fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+{
+	retourne syntaxeuse.lexème_courant() == type
+}
+
+fonc données(syntaxeuse : &Syntaxeuse) : &DonnéesLexème
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position]
+}
+
+fonc position(syntaxeuse : &Syntaxeuse) : z32
+{
+    retourne syntaxeuse.position - 1
+}
+
+fonc vide_pile_operateur(
+    expression : &[]*NoeudSyntaxique,
+    pile : &[]*NoeudSyntaxique,
+    lexème_op : TypeLexème) : rien
+{
+    NOEUD_PARENTHESE = transtype(TypeLexème.PARENTHESE_OUVRANTE : *NoeudSyntaxique)
+
+    tantque (!pile.est_vide() && pile.dernier() != NOEUD_PARENTHESE && (précédence_faible(lexème_op, pile.dernier().lexème()))) {
+        expression.pousse(pile.dernier())
+        pile.pop_dernier()
+    }
+}
+
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) : rien
+{
+	# Algorithme de Dijkstra pour générer une notation polonaise inversée.
+	dyn expression : []*NoeudSyntaxique
+	dyn pile : []*NoeudSyntaxique
+
+    # Pointeur spécial utilisé pour représenter un noeud de type paranthèse
+    # ouvrante dans l'arbre syntactic. Ce noeud n'est pas inséré dans l'arbre,
+    # mais simplement utilisé pour compiler les arbres syntactics des expressions.
+    NOEUD_PARENTHESE = transtype(TypeLexème.PARENTHESE_OUVRANTE : *NoeudSyntaxique)
+
+	# Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
+	# cas d'analyse d'une expression en dernier paramètre d'un appel de
+	# fontion.
+	dyn paren = 0
+
+    dyn dernier_lexème : TypeLexème
+
+    # XXX - À FAIRE
+    si syntaxeuse.position == 0 {
+        dernier_lexème = syntaxeuse.lexèmes[syntaxeuse.position].lexème
+    }
+    sinon {
+        dernier_lexème = syntaxeuse.lexèmes[syntaxeuse.position - 1].lexème
+    }
+
+	tantque (!syntaxeuse.requiers_lexème(lexème_final)) {
+		dyn morceau = syntaxeuse.lexèmes[position(syntaxeuse)]
+
+		discr (morceau.lexème) {
+			CHAINE_CARACTERE {
+				# appel fonction : chaine + (
+				si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
+					syntaxeuse.avance()
+
+					noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.FONCTION, morceau, faux)
+
+					syntaxeuse.analyse_appel_fonction()
+
+					syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.FONCTION)
+
+					expression.pousse(noeud)
+				}
+				# variable : chaine
+				sinon {
+					noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, morceau)
+					expression.pousse(noeud)
+				}
+			}
+			NOMBRE_REEL {
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				expression.pousse(noeud)
+			}
+			NOMBRE_BINAIRE,
+			NOMBRE_ENTIER,
+			NOMBRE_HEXADECIMAL,
+			NOMBRE_OCTAL {
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				expression.pousse(noeud)
+			}
+			VEC2,
+			VEC3,
+			VEC4,
+			MAT3,
+			MAT4 {
+				noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
+
+				si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
+					#lance_erreur("Attendu une paranthèse ouvrante après la déclaration du constructeur")
+				}
+
+				syntaxeuse.analyse_expression(TypeLexème.POINT_VIRGULE)
+
+				si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_FERMANTE)) {
+					#lance_erreur("Attendu une paranthèse fermante après la déclaration du constructeur")
+				}
+
+				syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.VALEUR)
+
+				expression.pousse(noeud)
+			}
+			CHAINE_LITTERALE {
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				expression.pousse(noeud)
+			}
+			CARACTERE {
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				expression.pousse(noeud)
+			}
+			NUL {
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				expression.pousse(noeud)
+			}
+			VRAI,
+			FAUX {
+				# remplace l'lexème par TypeLexème.BOOL
+				morceau.lexème = TypeLexème.BOOL
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				expression.pousse(noeud)
+			}
+			PARENTHESE_OUVRANTE {
+				paren += 1
+				pile.pousse(NOEUD_PARENTHESE)
+			}
+			PARENTHESE_FERMANTE {
+				# S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
+				# atteint la fin d'une déclaration d'appel de fonction.
+				si (paren == 0) {
+					# recule pour être synchroniser avec la sortie dans
+					# analyse_appel_fonction()
+					syntaxeuse.recule()
+					arrête
+				}
+
+				si (pile.est_vide()) {
+					#lance_erreur("Il manque une paranthèse dans l'expression !")
+				}
+
+				tantque (pile.dernier() != NOEUD_PARENTHESE) {
+					expression.pousse(pile.dernier())
+					pile.pop_dernier()
+				}
+
+				# Enlève la parenthèse restante de la pile.
+				pile.pop_dernier()
+
+				paren += 1
+			}
+			# opérations binaire
+			PLUS,
+			MOINS {
+				dyn lexème_op = morceau.lexème
+				dyn noeud : *NoeudSyntaxique = nul
+
+				si (precede_unaire_valide(dernier_lexème)) {
+					si (lexème_op == TypeLexème.PLUS) {
+						lexème_op = TypeLexème.PLUS_UNAIRE
+					}
+					sinon si (lexème_op == TypeLexème.MOINS) {
+						lexème_op = TypeLexème.MOINS_UNAIRE
+					}
+
+					morceau.lexème = lexème_op
+					noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_UNAIRE, morceau)
+				}
+				sinon {
+					noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_BINAIRE, morceau)
+				}
+
+				vide_pile_operateur(expression, pile, lexème_op)
+
+				pile.pousse(noeud)
+			}
+			FOIS,
+			DIVISE,
+			ESPERLUETTE,
+			POURCENT,
+			INFERIEUR,
+			INFERIEUR_EGAL,
+			SUPERIEUR,
+			SUPERIEUR_EGAL,
+			DECALAGE_DROITE,
+			DECALAGE_GAUCHE,
+			DIFFERENCE,
+			ESP_ESP,
+			EGALITE,
+			BARRE_BARRE,
+			BARRE,
+			CHAPEAU,
+			VIRGULE,
+			PLUS_EGAL,
+			MOINS_EGAL,
+			DIVISE_EGAL,
+			FOIS_EGAL {
+				# Correction de crash d'aléatest, improbable dans la vrai vie.
+				si (expression.est_vide() && est_operateur_binaire(morceau.lexème)) {
+					#lance_erreur("Opérateur binaire utilisé en début d'expression")
+				}
+
+				vide_pile_operateur(expression, pile, morceau.lexème)
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_BINAIRE, morceau)
+				pile.pousse(noeud)
+			}
+			EGAL {
+				vide_pile_operateur(expression, pile, morceau.lexème)
+
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ASSIGNATION, morceau)
+				pile.pousse(noeud)
+			}
+			CROCHET_OUVRANT {
+				# l'accès à un élément d'un tableau est chaine[index]
+				si (dernier_lexème == TypeLexème.CHAINE_CARACTERE) {
+					vide_pile_operateur(expression, pile, morceau.lexème)
+
+					noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.OPERATION_BINAIRE, morceau, faux)
+					pile.pousse(noeud)
+
+					syntaxeuse.analyse_expression(TypeLexème.CROCHET_FERMANT)
+
+					syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.OPERATION_BINAIRE)
+				}
+				sinon {
+					morceau.lexème = TypeLexème.TABLEAU
+					noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
+					pile.pousse(noeud)
+
+					syntaxeuse.analyse_expression(TypeLexème.CROCHET_FERMANT)
+
+					syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.VALEUR)
+				}
+			}
+			# opérations unaire
+			EXCLAMATION,
+			TILDE,
+			PLUS_UNAIRE,
+			MOINS_UNAIRE {
+				vide_pile_operateur(expression, pile, morceau.lexème)
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_UNAIRE, morceau)
+				pile.pousse(noeud)
+			}
+			DOLLAR {
+				vide_pile_operateur(expression, pile, morceau.lexème)
+
+				si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
+					#lance_erreur("Attendu un nom après '$'")
+				}
+
+				noeud = syntaxeuse.assembleuse.crée_noeud(
+							TypeNoeud.PROPRIETE,
+							syntaxeuse.lexèmes[position(syntaxeuse)])
+
+				expression.pousse(noeud)
+			}
+			AROBASE {
+				vide_pile_operateur(expression, pile, morceau.lexème)
+
+				si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
+					#lance_erreur("Attendu un nom après '@'")
+				}
+
+				noeud = syntaxeuse.assembleuse.crée_noeud(
+							TypeNoeud.ATTRIBUT,
+							syntaxeuse.lexèmes[position(syntaxeuse)])
+
+				expression.pousse(noeud)
+			}
+			POINT {
+				vide_pile_operateur(expression, pile, morceau.lexème)
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCES_MEMBRE_POINT, morceau)
+				pile.pousse(noeud)
+			}
+			TROIS_POINTS {
+				vide_pile_operateur(expression, pile, morceau.lexème)
+				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.PLAGE, morceau)
+				pile.pousse(noeud)
+			}
+			sinon {
+				#lance_erreur("Identifiant inattendu dans l'expression")
+			}
+		}
+
+		dernier_lexème = morceau.lexème
+	}
+
+	# Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
+	# éviter de crasher lors des fuzz-tests.
+	si (expression.est_vide()) {
+		retourne
+	}
+
+	tantque (!pile.est_vide()) {
+		si (pile.dernier() == NOEUD_PARENTHESE) {
+			#lance_erreur("Il manque une paranthèse dans l'expression !")
+		}
+
+		expression.pousse(pile.dernier())
+		pile.pop_dernier()
+	}
+
+	#pile.réserve(expression.taille)
+
+	pour noeud dans expression {
+		si (est_operateur_binaire(noeud.lexème())) {
+			si (pile.taille < 2) {
+				#erreur::lance_erreur(
+				#			"Expression malformée",
+				#			noeud.donnees_morceau(),
+				#			erreur::type_erreur::NORMAL)
+			}
+
+			n2 = pile.dernier()
+			pile.pop_dernier()
+
+			n1 = pile.dernier()
+			pile.pop_dernier()
+
+			noeud.ajoute_noeud(n1)
+			noeud.ajoute_noeud(n2)
+
+			pile.pousse(noeud)
+		}
+		sinon si (est_operateur_unaire(noeud.lexème())) {
+			n1 = pile.dernier()
+			pile.pop_dernier()
+
+			noeud.ajoute_noeud(n1)
+
+			pile.pousse(noeud)
+		}
+		sinon {
+			pile.pousse(noeud)
+		}
+	}
+
+	syntaxeuse.assembleuse.ajoute_noeud(pile.dernier())
+	pile.pop_dernier()
+
+	si (pile.taille != 0) {
+		#premier_noeud = pile.dernier()
+		#dernier_noeud = premier_noeud
+		#pile.pop_dernier()
+
+		#pos_premier = premier_noeud.donnees_morceau().ligne_pos & 0xffffffff
+		#pos_dernier = pos_premier
+
+		#tantque (!pile.est_vide()) {
+		#	n = pile.dernier()
+		#	pile.pop_dernier()
+
+		#	pos_n = n.donnees_morceau().ligne_pos & 0xffffffff
+
+		#	si (pos_n < pos_premier) {
+		#		premier_noeud = n
+		#	}
+		#	si (pos_n > pos_dernier) {
+		#		dernier_noeud = n
+		#	}
+		#}
+
+		#erreur::lance_erreur_plage(
+		#			"Expression malformée, il est possible qu'il manque un opérateur",
+		#			premier_noeud.donnees_morceau(),
+		#			dernier_noeud.donnees_morceau())
+	}
+}
+
+fonc analyse_appel_fonction(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	# ici nous devons être au niveau du premier paramètre
+
+	boucle {
+		# aucun paramètre, ou la liste de paramètre est vide
+		si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_FERMANTE)) {
+			syntaxeuse.avance()
+			retourne
+		}
+
+		# À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
+		# si lexème final == ')', alors l'algorithme s'arrête quand une
+		# paranthèse fermante est trouvé et que la pile est vide
+		syntaxeuse.analyse_expression(TypeLexème.VIRGULE)
+	}
+}
+
+fonc analyse_directive(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.avance()
+
+	si (compare_chaines(syntaxeuse.données().chn, "param")) {
+		syntaxeuse.avance()
+
+		type_param = type_param_pour_chaine(syntaxeuse.données().chn)
+		syntaxeuse.analyse_parametre(type_param)
+	}
+	sinon {
+		#lance_erreur("Directive inconnue")
+	}
+}
+
+struct DonneesDeclarationParam {
+    type : TypeParamètre
+    nom : chaine
+}
+
+fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre) : rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
+		#lance_erreur("Attendu une parenthèse ouvrante '(' après la déclaration du paramètre")
+	}
+
+	dyn param : DonneesDeclarationParam
+	param.type = type_param
+
+	boucle {
+		# aucun paramètre, ou la liste de paramètre est vide
+		si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_FERMANTE)) {
+			syntaxeuse.avance()
+
+			si (param.nom.taille == 0) {
+				#lance_erreur("Le paramètre n'a pas de nom !")
+			}
+
+			#syntaxeuse.contexte.params_declare.pousse(param)
+
+			retourne
+		}
+
+		syntaxeuse.avance()
+
+		type_prop = type_prop_pour_chaine(syntaxeuse.données().chn)
+
+		discr type_prop {
+			PROP_PARAM_MAX {
+				syntaxeuse.avance()
+				si (!est_nombre(syntaxeuse.données().lexème)) {
+					#lance_erreur("Attendu un nombre pour « max »")
+				}
+			}
+			PROP_PARAM_MIN {
+				syntaxeuse.avance()
+				si (!est_nombre(syntaxeuse.données().lexème)) {
+					#lance_erreur("Attendu un nombre pour « min »")
+				}
+			}
+			PROP_PARAM_NOM {
+				si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_LITTERALE)) {
+					#lance_erreur("Attendu une chaine littérale pour « nom »")
+				}
+
+				param.nom = syntaxeuse.données().chn
+			}
+			PROP_PARAM_VALEUR {
+				syntaxeuse.avance()
+
+				si (type_param == TypeParamètre.VEC3) {
+					si (!syntaxeuse.est_lexème(TypeLexème.CHAINE_LITTERALE)) {
+						#lance_erreur("Attendu une chaine littérale pour « valeur »")
+					}
+				}
+				sinon {
+					si (!est_nombre(syntaxeuse.données().lexème)) {
+						#lance_erreur("Attendu un nombre pour « valeur »")
+					}
+				}
+			}
+            INVALIDE {
+                #lance_erreur("Type de propriété invalide")
+            }
+		}
+	}
+}
+
+###############################################################################
+
+fonc principale(args : []*z8) : z32
+{
+    script = "a = 5"
+
+    lexeuse = construit_lexeuse(script)
+    diffère { détruit_lexeuse(lexeuse) }
+
+    lexeuse.performe_lexage()
+
+	pour lexème dans lexeuse.lexèmes {
+		imprime(lexème.lexème, "\n")
+	}
+
+    dyn syntaxeuse = construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse.lance_analyse()
+
+    détruit_assembleuse(syntaxeuse.assembleuse)
+
+    retourne 0
+}

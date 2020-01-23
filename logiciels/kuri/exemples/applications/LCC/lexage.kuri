@@ -118,15 +118,15 @@ fonc est_nombre_décimal(c : z8) : bool
 	TABLEAU
 }
 
-struct DonneesLexème {
+struct DonnéesLexème {
 	chn : chaine
 	lexème : TypeLexème
 }
 
-fonc pousse(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) : rien
+fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) : rien
 {
     taille = liste.taille
-    reloge liste : [taille + 1]DonneesLexème
+    reloge liste : [taille + 1]DonnéesLexème
     liste[taille] = valeur
 }
 
@@ -221,7 +221,7 @@ struct Lexeuse {
     début_mot : *z8
     fin : *z8
 
-    lexèmes : []DonneesLexème
+    lexèmes : []DonnéesLexème
 
     taille_mot_courant = 0
 	compte_ligne = 0
@@ -502,7 +502,7 @@ fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
 
 fonc pousse_mot(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) : rien
 {
-    dyn données : DonneesLexème
+    dyn données : DonnéesLexème
     données.lexème = type_lexème
     données.chn = lexeuse.mot_courant()
 
@@ -510,7 +510,7 @@ fonc pousse_mot(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) : rien
     #pousse(lexeuse.lexèmes, données)
 
     taille = lexeuse.lexèmes.taille
-    reloge lexeuse.lexèmes : [taille + 1]DonneesLexème
+    reloge lexeuse.lexèmes : [taille + 1]DonnéesLexème
     lexeuse.lexèmes[taille] = données
 
     lexeuse.taille_mot_courant = 0
@@ -520,22 +520,4 @@ fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) : rien
 {
 	lexeuse.pos_mot = lexeuse.position_ligne
 	lexeuse.début_mot = lexeuse.début
-}
-
-###############################################################################
-
-fonc principale(args : []*z8) : z32
-{
-    script = "a = 5"
-
-    lexeuse = construit_lexeuse(script)
-    diffère { détruit_lexeuse(lexeuse) }
-
-    lexeuse.performe_lexage()
-
-	pour lexème dans lexeuse.lexèmes {
-		imprime(lexème.lexème, "\n")
-	}
-
-    retourne 0
 }

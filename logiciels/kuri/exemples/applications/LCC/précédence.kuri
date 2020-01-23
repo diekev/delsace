@@ -1,0 +1,88 @@
+charge "lexage"
+
+énum DirAssociativité : z8 {
+    GAUCHE
+    DROITE
+    INVALIDE
+}
+
+fonc associativité(type_lexème : TypeLexème) : DirAssociativité, z32
+{
+	discr type_lexème {
+		TROIS_POINTS {
+			retourne DirAssociativité.GAUCHE, 0
+        }
+		EGAL,
+		PLUS_EGAL,
+		MOINS_EGAL,
+		DIVISE_EGAL,
+		FOIS_EGAL {
+			retourne DirAssociativité.GAUCHE, 1
+        }
+		VIRGULE {
+			retourne DirAssociativité.GAUCHE, 2
+        }
+		BARRE_BARRE {
+			retourne DirAssociativité.GAUCHE, 3
+        }
+		ESP_ESP {
+			retourne DirAssociativité.GAUCHE, 4
+        }
+		BARRE {
+			retourne DirAssociativité.GAUCHE, 5
+        }
+		CHAPEAU {
+			retourne DirAssociativité.GAUCHE, 6
+        }
+		ESPERLUETTE {
+			retourne DirAssociativité.GAUCHE, 7
+        }
+		DIFFERENCE,
+		EGALITE {
+			retourne DirAssociativité.GAUCHE, 8
+        }
+		INFERIEUR,
+		INFERIEUR_EGAL,
+		SUPERIEUR,
+		SUPERIEUR_EGAL {
+			retourne DirAssociativité.GAUCHE, 9
+        }
+		DECALAGE_GAUCHE,
+		DECALAGE_DROITE {
+			retourne DirAssociativité.GAUCHE, 10
+        }
+		PLUS,
+		MOINS {
+			retourne DirAssociativité.GAUCHE, 11
+        }
+		FOIS,
+		DIVISE,
+		POURCENT {
+			retourne DirAssociativité.GAUCHE, 12
+        }
+		EXCLAMATION,
+		TILDE,
+		AROBASE,
+		DOLLAR,
+		PLUS_UNAIRE,
+		MOINS_UNAIRE {
+			retourne DirAssociativité.DROITE, 13
+        }
+		POINT,
+		CROCHET_OUVRANT {
+			retourne DirAssociativité.GAUCHE, 14
+        }
+		sinon {
+			#assert(false)
+			retourne DirAssociativité.INVALIDE, -1
+        }
+	}
+}
+
+fonc précédence_faible(lexème1 : TypeLexème, lexème2 : TypeLexème) : bool
+{
+	dir1, prio1 = associativité(lexème1)
+	dir2, prio2 = associativité(lexème2)
+
+	retourne (dir1 == DirAssociativité.GAUCHE && prio1 <= prio2) || ((dir2 == DirAssociativité.DROITE) && (prio1 < prio2))
+}

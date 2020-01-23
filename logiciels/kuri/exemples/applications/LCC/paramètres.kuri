@@ -1,0 +1,68 @@
+énum_drapeau TypeParamètre : n16 {
+	TABLEAU
+	ENT32
+	DEC
+	VEC2
+	VEC3
+	VEC4
+	MAT3
+	MAT4
+	CHAINE
+	POLYMORPHIQUE
+	COULEUR
+
+	INVALIDE
+}
+
+fonc type_paramètre_opengl(type_param : TypeParamètre) : chaine
+{
+    discr type_param {
+		DEC { retourne "float" }
+		VEC2 { retourne "vec2" }
+		VEC3 { retourne "vec3" }
+		VEC4 { retourne "vec4" }
+		MAT3 { retourne "mat3" }
+		MAT4 { retourne "mat4" }
+		ENT32 { retourne "int" }
+		CHAINE { retourne "void" }
+		INVALIDE { retourne "invalide" }
+		TABLEAU { retourne "void" }
+		POLYMORPHIQUE { retourne "void" }
+		COULEUR { retourne "vec4" }
+    }
+
+    retourne "invalide"
+}
+
+fonc taille_type(type_param : TypeParamètre) : z32
+{
+	discr type_param {
+		CHAINE,
+		TABLEAU,
+		ENT32,
+		DEC {
+			retourne 1
+        }
+		VEC2 {
+			retourne 2
+        }
+		VEC3 {
+			retourne 3
+        }
+		COULEUR,
+		VEC4 {
+			retourne 4
+        }
+		MAT3 {
+			retourne 9
+        }
+		MAT4 {
+			retourne 16
+        }
+		sinon {
+			retourne 0
+		}
+	}
+
+	retourne 0
+}
