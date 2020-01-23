@@ -1,0 +1,137 @@
+
+énum_drapeau TypeAttribut : z8 {
+	Z8
+	Z16
+	Z32
+	Z64
+	N8
+	N16
+	N32
+	N64
+	R16
+	R32
+	R64
+	CHAINE
+    TABLEAU
+}
+
+fonc est_type_attribut_valide(dyn type : TypeAttribut) : bool
+{
+    # enlève le type tableau au cas où
+    type &= ~TypeAttribut.TABLEAU
+
+    si type == 0 {
+        retourne faux
+    }
+
+    info = info_de(type)
+
+    dyn valeur_trouvée = faux
+
+    pour valeur dans info.valeurs {
+        si type == valeur {
+            # Assurons nous qu'une seule valeur soit possible.
+            valeur_trouvée = !valeur_trouvée
+        }
+    }
+
+    retourne valeur_trouvée
+}
+
+fonc taille_octet_type_attribut(type : TypeAttribut) : z64
+{
+	discr type {
+		N8,
+		Z8 {
+			retourne taille_de(z8)
+        }
+		N16,
+		Z16 {
+			retourne taille_de(z16)
+        }
+		N32,
+		Z32 {
+			retourne taille_de(z32)
+        }
+		N64,
+		Z64 {
+			retourne taille_de(z64)
+        }
+		R16 {
+			retourne taille_de(r16)
+        }
+		R32 {
+			retourne taille_de(r32)
+        }
+		R64 {
+			retourne taille_de(r64)
+        }
+		CHAINE {
+			retourne taille_de(chaine)
+        }
+		sinon {
+            si (type & TypeAttribut.TABLEAU) != 0 {
+                # Tous les types de tableaux ont la même taille.
+                retourne taille_de([]octet)
+            }
+
+			retourne 0
+        }
+	}
+
+	retourne 0
+}
+
+énum PortéeAttribut : z8 {
+	# l'attribut varie pour chaque point
+	POINT
+	# l'attribut varie pour chaque primitive
+	PRIMITIVE
+	# l'attribut varie pour chaque vertex de chaque primitive
+	VERTEX
+	# l'attribut est unique pour le corps
+	CORPS
+	# l'attribut varie pour chaque groupe
+	GROUPE
+}
+
+struct TamponPartagé {
+    données : []octet
+    référence : *z32
+}
+
+struct Attribut {
+    tampon : TamponPartagé
+    nom : chaine
+    type : TypeAttribut
+    portée : PortéeAttribut
+    dimensions : z32
+}
+
+fonc crée_attribut_point(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+
+fonc crée_attribut_primitive(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+
+fonc crée_attribut_vertex(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+
+fonc crée_attribut_corps(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+
+fonc crée_attribut_groupe(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+
+fonc copie_attribut(attr : &Attribut) : Attribut
+{
+    dyn nattr : Attribut
+    nattr.tampon = attr.tampon
+    mémoire(nattr.tampon.référence) += 1
+    nattr.nom = attr.nom
+    nattr.type = attr.type
+    nattr.portée = attr.portée
+    nattr.dimensions = attr.dimensions
+
+    retourne nattr
+}
+
+# À FAIRE : définir une bonne interface pour accéder aux valeurs sans gabarits
+# peut-être aussi ajouter des attributs de type tableaux
+
+# attribut_tableau : []octet sont les octets du tableaux (pointeur + taille)
