@@ -175,14 +175,14 @@ fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) : rien
 		retourne
 	}
 
-	tantque (syntaxeuse.position != syntaxeuse.lexèmes.taille) {
+	tantque !syntaxeuse.a_fini() {
 		syntaxeuse.analyse_bloc()
 	}
 }
 
 fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) : rien
 {
-	tantque (syntaxeuse.position != syntaxeuse.lexèmes.taille) {
+	tantque !syntaxeuse.a_fini() {
 		si (syntaxeuse.est_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
 			arrête
 		}
@@ -333,9 +333,15 @@ fonc dernier(tabl : &[]*NoeudSyntaxique) : *NoeudSyntaxique
     retourne tabl[tabl.taille - 1]
 }
 
-fonc pop_dernier(tabl : &[]*NoeudSyntaxique) : rien
+fonc pop_dernier(dyn tabl : &[]*NoeudSyntaxique) : rien
 {
     taille = tabl.taille
+
+	si taille == 1 {
+		tabl.taille = 0
+		retourne
+	}
+
     reloge tabl : [taille - 1]*NoeudSyntaxique
 }
 
@@ -400,6 +406,11 @@ fonc vide_pile_operateur(
     }
 }
 
+fonc a_fini(syntaxeuse : &Syntaxeuse) : bool
+{
+	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
+}
+
 fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) : rien
 {
 	# Algorithme de Dijkstra pour générer une notation polonaise inversée.
@@ -426,7 +437,11 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
         dernier_lexème = syntaxeuse.lexèmes[syntaxeuse.position - 1].lexème
     }
 
-	tantque (!syntaxeuse.requiers_lexème(lexème_final)) {
+	tantque !syntaxeuse.a_fini() {
+		si syntaxeuse.requiers_lexème(lexème_final) {
+			arrête
+		}
+
 		dyn morceau = syntaxeuse.lexèmes[position(syntaxeuse)]
 
 		discr (morceau.lexème) {
@@ -856,7 +871,7 @@ fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre
 
 fonc principale(args : []*z8) : z32
 {
-    script = "a = 5"
+    script = "a = 5;"
 
     lexeuse = construit_lexeuse(script)
     diffère { détruit_lexeuse(lexeuse) }
