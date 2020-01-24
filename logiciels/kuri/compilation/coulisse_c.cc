@@ -701,8 +701,6 @@ static void genere_code_allocation(
 				expr_nouvelle_taille_octet = "0";
 			}
 
-			expr_ancienne_taille_octet += " * sizeof(" + nom_broye_type(contexte, dt_deref) + ")";
-
 			break;
 		}
 		case id_morceau::CHAINE:
