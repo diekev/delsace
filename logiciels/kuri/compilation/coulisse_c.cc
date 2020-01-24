@@ -2706,14 +2706,7 @@ static void traverse_graphe_pour_generation_code(
 			genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
 		}
 
-		if (noeud->index == -1) {
-			return;
-		}
-
-		auto &dt = contexte.typeuse[noeud->index];
-		cree_typedef(contexte, dt, generatrice.os);
-
-		if (!genere_info_type) {
+		if (noeud->index == -1 || !genere_info_type) {
 			return;
 		}
 
@@ -2725,6 +2718,7 @@ static void traverse_graphe_pour_generation_code(
 		generatrice.os << "#pragma GCC diagnostic push\n";
 		generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
 
+		auto &dt = contexte.typeuse[noeud->index];
 		cree_info_type_C(contexte, generatrice, generatrice.os, dt);
 
 		generatrice.os << "#pragma GCC diagnostic pop\n";
@@ -2737,6 +2731,45 @@ static void traverse_graphe_pour_generation_code(
 		}
 
 		genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
+	}
+}
+
+static void traverse_graphe_pour_typedefs(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice,
+		NoeudDependance *noeud)
+{
+	noeud->fut_visite = true;
+
+	if (noeud->typedef_genere) {
+		return;
+	}
+
+	for (auto const &relation : noeud->relations) {
+		auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
+		accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
+		accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+
+		if (!accepte) {
+			continue;
+		}
+
+		/* À FAIRE : dépendances cycliques :
+		 * - types qui s'incluent indirectement (listes chainées intrusives)
+		 * - fonctions recursives
+		 */
+		if (relation.noeud_fin->fut_visite) {
+			continue;
+		}
+
+		traverse_graphe_pour_typedefs(contexte, generatrice, relation.noeud_fin);
+	}
+
+	if (noeud->type == TypeNoeudDependance::TYPE) {
+		auto &dt = contexte.typeuse[noeud->index];
+		cree_typedef(contexte, dt, generatrice.os);
+
+		noeud->typedef_genere = true;
 	}
 }
 
@@ -2864,6 +2897,14 @@ void KR__acces_membre_union(
 
 	auto debut_generation = dls::chrono::compte_seconde();
 
+	/* création primordiale des typedefs pour éviter les problèmes liés aux
+	 * types récursifs */
+	traverse_graphe_pour_typedefs(contexte, generatrice, noeud_fonction_principale);
+
+	for (auto noeud : graphe_dependance.noeuds) {
+		noeud->fut_visite = false;
+	}
+
 	/* il faut d'abord créer le code pour les structures InfoType */
 	const char *noms_structs_infos_types[] = {
 		"InfoType",
@@ -2880,6 +2921,11 @@ void KR__acces_membre_union(
 	for (auto nom_struct : noms_structs_infos_types) {
 		auto const &ds = contexte.donnees_structure(nom_struct);
 		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+
+		/* puisque les structures d'info types ne sont pas forcément connectés,
+		 * il est possible que certains typedefs ne furent pas générés */
+		traverse_graphe_pour_typedefs(contexte, generatrice, noeud);
+
 		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, false);
 		/* restaure le drapeaux pour la génération des infos des types */
 		noeud->fut_visite = false;
