@@ -465,12 +465,25 @@ static void genere_code_acces_membre(
 			generatrice.os << "long " << nom_acces << " = " << taille_tableau << ";\n";
 			flux << nom_acces;
 		}
-		/* vérifie si nous avons une énumération */
-		else if (contexte.structure_existe(structure->chaine())) {
-			auto &ds = contexte.donnees_structure(structure->chaine());
+		else if ((type_structure.front() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+			auto id = static_cast<long>(type_structure.front() >> 8);
+
+			/* vérifie si nous avons une énumération */
+			auto &ds = contexte.donnees_structure(id);
 
 			if (ds.est_enum) {
 				flux << chaine_valeur_enum(ds, membre->chaine());
+			}
+			else {
+				genere_code_C(structure, generatrice, contexte, expr_gauche);
+
+				if (membre->type != type_noeud::VARIABLE) {
+					genere_code_C(membre, generatrice, contexte, expr_gauche);
+				}
+
+				flux << structure->chaine_calculee();
+				flux << ((est_pointeur) ? "->" : ".");
+				flux << broye_chaine(membre);
 			}
 		}
 		else {
