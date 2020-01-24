@@ -390,7 +390,11 @@ fonc vide_pile_operateur(
 {
     NOEUD_PARENTHESE = transtype(TypeLexème.PARENTHESE_OUVRANTE : *NoeudSyntaxique)
 
-    tantque (!pile.est_vide() && pile.dernier() != NOEUD_PARENTHESE && (précédence_faible(lexème_op, pile.dernier().lexème()))) {
+    tantque !pile.est_vide() {
+		si pile.dernier() == NOEUD_PARENTHESE || (précédence_faible(lexème_op, pile.dernier().lexème())) {
+			arrête
+		}
+
         expression.pousse(pile.dernier())
         pile.pop_dernier()
     }
