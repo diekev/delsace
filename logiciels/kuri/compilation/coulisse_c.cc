@@ -765,10 +765,6 @@ static void genere_code_allocation(
 	generatrice.os << nom_info_type << ");\n";
 	generatrice.os << expr_pointeur << " = " << nom_nouveu_pointeur << ";\n";
 
-	if (expr_acces_taille.taille() != 0) {
-		generatrice.os << expr_acces_taille << " = " << expr_nouvelle_taille <<  ";\n";
-	}
-
 	switch (mode) {
 		case 0:
 		{
@@ -815,6 +811,12 @@ static void genere_code_allocation(
 			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
 			break;
 		}
+	}
+
+	/* Il faut attendre d'avoir généré le code d'ajournement de la mémoire avant
+	 * de modifier la taille. */
+	if (expr_acces_taille.taille() != 0) {
+		generatrice.os << expr_acces_taille << " = " << expr_nouvelle_taille <<  ";\n";
 	}
 }
 
