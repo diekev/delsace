@@ -206,6 +206,10 @@ fonc pousse(dyn enchaineuse : &Enchaineuse, lettre : z8) : rien
 
 fonc pousse(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
 {
+	si chn.taille == 0 {
+		retourne
+	}
+
 	nouvelle_taille = enchaineuse.résultat.taille + chn.taille
 	enchaineuse.réserve(nouvelle_taille)
 	enchaineuse.appends(chn)
