@@ -56,7 +56,8 @@ static id_morceau operateurs_entiers[] = {
 	id_morceau::DECALAGE_DROITE,
 	id_morceau::ESPERLUETTE,
 	id_morceau::BARRE,
-	id_morceau::CHAPEAU
+	id_morceau::CHAPEAU,
+	id_morceau::TILDE
 };
 
 static bool est_commutatif(id_morceau id)
