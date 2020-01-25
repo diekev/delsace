@@ -391,7 +391,7 @@ fonc vide_pile_operateur(
     NOEUD_PARENTHESE = transtype(TypeLexème.PARENTHESE_OUVRANTE : *NoeudSyntaxique)
 
     tantque !pile.est_vide() {
-		si pile.dernier() == NOEUD_PARENTHESE || (précédence_faible(lexème_op, pile.dernier().lexème())) {
+		si pile.dernier() == NOEUD_PARENTHESE || (!précédence_faible(lexème_op, pile.dernier().lexème())) {
 			arrête
 		}
 
@@ -880,7 +880,7 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
 fonc principale(args : []*z8) : z32
 {
 	diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
-    script = "a = 5;"
+    script = "a = 5 + 8;"
 
 	imprime("script :\n\n", script, "\n\n")
 
