@@ -137,12 +137,7 @@ fonc pousse_mot(dyn lexeuse : &Lexeuse, lexème : TypeLexème) : rien
     données.lexème = lexème
     données.chn = lexeuse.mot_courant()
 
-    # À FAIRE(bug) : la prise de référence passe par une temporaire...
-    #pousse(lexeuse.lexèmes, données)
-
-    taille = lexeuse.lexèmes.taille
-    reloge lexeuse.lexèmes : [taille + 1]DonneesLexème
-    lexeuse.lexèmes[taille] = données
+    lexeuse.lexèmes.pousse(données)
 
     lexeuse.taille_mot_courant = 0
 	lexeuse.début_mot = nul
