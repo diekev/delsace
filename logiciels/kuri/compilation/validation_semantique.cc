@@ -3063,7 +3063,8 @@ static void performe_validation_semantique(
 
 static void traverse_graphe_pour_validation_semantique(
 		ContexteGenerationCode &contexte,
-		NoeudDependance *noeud_dep)
+		NoeudDependance *noeud_dep,
+		int nombre_noeud_valide)
 {
 	noeud_dep->fut_visite = true;
 
@@ -3076,7 +3077,7 @@ static void traverse_graphe_pour_validation_semantique(
 			continue;
 		}
 
-		traverse_graphe_pour_validation_semantique(contexte, relation.noeud_fin);
+		traverse_graphe_pour_validation_semantique(contexte, relation.noeud_fin, nombre_noeud_valide);
 	}
 
 	if (noeud_dep->deja_genere) {
@@ -3087,6 +3088,7 @@ static void traverse_graphe_pour_validation_semantique(
 
 	for (auto &noeud : noeud_dep->noeuds_syntaxiques) {
 		performe_validation_semantique(noeud, contexte, true);
+		nombre_noeud_valide += 1;
 	}
 }
 
@@ -3130,11 +3132,13 @@ void performe_validation_semantique(
 		"ContexteProgramme",
 	};
 
+	auto nombre_total_de_noeud_valide = 0;
+
 	for (auto nom_symbole : noms_symboles) {
 		auto noeud_symbole = graphe_dependance.cherche_noeud_groupe(nom_symbole);
 
 		if (noeud_symbole != nullptr) {			
-			traverse_graphe_pour_validation_semantique(contexte, noeud_symbole);
+			traverse_graphe_pour_validation_semantique(contexte, noeud_symbole, nombre_total_de_noeud_valide);
 		}
 	}
 
@@ -3153,11 +3157,20 @@ void performe_validation_semantique(
 		}
 
 		performe_validation_semantique(noeud, contexte, true);
+		nombre_total_de_noeud_valide += 1;
 	}
 
-	traverse_graphe_pour_validation_semantique(contexte, noeud_fonction_principale);
+	traverse_graphe_pour_validation_semantique(contexte, noeud_fonction_principale, nombre_total_de_noeud_valide);
+
+	auto nombre_total_de_noeuds = racine->enfants.taille();
 
 	temps_validation += debut_validation.temps();
+
+	std::cout << "Nombre de noeuds validés : "
+			  << nombre_total_de_noeud_valide
+			  << " sur "
+			  << nombre_total_de_noeuds
+			  << std::endl;
 
 	contexte.temps_validation = temps_validation;
 }
