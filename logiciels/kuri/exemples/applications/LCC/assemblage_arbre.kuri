@@ -1,6 +1,9 @@
 charge "lexage"
 
-énum TypeNoeud : z8 {
+importe Fondation
+
+# À FAIRE : les énums dont les valeurs sont autres que z32 ne sont pas imprimées (introspection)
+énum TypeNoeud : z32 {
     RACINE
 	PROPRIETE
 	VARIABLE
@@ -26,11 +29,22 @@ struct NoeudSyntaxique {
     enfants : []*NoeudSyntaxique
 }
 
+fonc détruit_noeud(dyn noeud : *NoeudSyntaxique) : rien
+{
+    déloge noeud.enfants
+    déloge noeud
+}
+
+fonc pousse(dyn liste : &[]*NoeudSyntaxique, valeur : *NoeudSyntaxique) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]*NoeudSyntaxique
+    liste[taille] = valeur
+}
+
 fonc ajoute_noeud(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) : rien
 {
-    taille = noeud.enfants.taille
-    reloge noeud.enfants : [taille + 1]*NoeudSyntaxique
-    noeud.enfants[taille] = enfant
+    noeud.enfants.pousse(enfant)
 }
 
 fonc lexème(noeud : *NoeudSyntaxique) : TypeLexème
@@ -63,7 +77,7 @@ fonc empile(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) : rien
 
 fonc dépile(dyn pile : &PileNoeud) : *NoeudSyntaxique
 {
-    ret = pile.données[pile.curseur - 1]
+    ret = pile.haut()
     pile.curseur -= 1
     retourne ret
 }
@@ -92,10 +106,10 @@ struct AssembleuseArbre {
 
 fonc construit_assembleuse() : AssembleuseArbre
 {
-    données : DonnéesLexème
+    données_lexème : DonnéesLexème
 
 	dyn assembleuse : AssembleuseArbre
-    assembleuse.empile_noeud(TypeNoeud.RACINE, données, vrai)
+    assembleuse.empile_noeud(TypeNoeud.RACINE, données_lexème, vrai)
 
     retourne assembleuse
 }
@@ -103,8 +117,11 @@ fonc construit_assembleuse() : AssembleuseArbre
 fonc détruit_assembleuse(dyn assembleuse : &AssembleuseArbre) : rien
 {
     pour noeud dans assembleuse.noeuds {
-        déloge noeud
+        # À FAIRE : accès à des références de pointeurs....
+        détruit_noeud(noeud)
     }
+
+    déloge assembleuse.noeuds
 
     détruit(assembleuse.pile)
 }
@@ -141,11 +158,10 @@ fonc crée_noeud(
 	dyn noeud = loge NoeudSyntaxique
     noeud.type = type_noeud
     noeud.données = données
+    noeud.enfants.taille = 0
+    noeud.enfants.pointeur = nul
 
-    # À FAIRE : déduplique, mais il faut régler le bug dans le langage
-    taille = assembleuse.noeuds.taille
-    reloge assembleuse.noeuds : [taille + 1]*NoeudSyntaxique
-    assembleuse.noeuds[taille] = noeud
+    assembleuse.noeuds.pousse(noeud)
 
 	retourne noeud
 }
