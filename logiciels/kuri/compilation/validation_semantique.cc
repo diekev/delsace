@@ -2536,6 +2536,19 @@ static void performe_validation_semantique(
 		{
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte, true);
+
+			auto const &dt = contexte.typeuse[enfant->index_type];
+			auto plg_dt = dt.plage();
+
+			if (plg_dt.front() == id_morceau::REFERENCE) {
+				enfant->transformation = TypeTransformation::DEREFERENCE;
+				plg_dt.effronte();
+			}
+
+			if (plg_dt.front() != id_morceau::POINTEUR && (plg_dt.front() & 0xff) != id_morceau::TABLEAU && plg_dt.front() != id_morceau::CHAINE) {
+				erreur::lance_erreur("Le type n'est pas délogeable", contexte, b->morceau);
+			}
+
 			break;
 		}
 		case type_noeud::DECLARATION_STRUCTURE:
