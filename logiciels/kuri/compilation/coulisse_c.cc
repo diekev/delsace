@@ -61,6 +61,9 @@ static void applique_transformation(
 		ContexteGenerationCode &contexte,
 		bool expr_gauche)
 {
+	/* force une expression gauche afin de ne pas prendre la référence d'une
+	 * variable temporaire */
+	expr_gauche |= b->transformation.type == TypeTransformation::PREND_REFERENCE;
 	genere_code_C(b, generatrice, contexte, expr_gauche);
 
 	auto nom_courant = b->chaine_calculee();
