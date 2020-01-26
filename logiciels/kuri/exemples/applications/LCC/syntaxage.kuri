@@ -388,10 +388,8 @@ fonc vide_pile_operateur(
     pile : &[]*NoeudSyntaxique,
     lexème_op : TypeLexème) : rien
 {
-    NOEUD_PARENTHESE = transtype(TypeLexème.PARENTHESE_OUVRANTE : *NoeudSyntaxique)
-
     tantque !pile.est_vide() {
-		si pile.dernier() == NOEUD_PARENTHESE || (!précédence_faible(lexème_op, pile.dernier().lexème())) {
+		si !précédence_faible(lexème_op, pile.dernier().lexème()) {
 			arrête
 		}
 
@@ -411,16 +409,6 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 	dyn expression : []*NoeudSyntaxique
 	dyn pile : []*NoeudSyntaxique
 	diffère { déloge pile; déloge expression; }
-
-    # Pointeur spécial utilisé pour représenter un noeud de type paranthèse
-    # ouvrante dans l'arbre syntactic. Ce noeud n'est pas inséré dans l'arbre,
-    # mais simplement utilisé pour compiler les arbres syntactics des expressions.
-    NOEUD_PARENTHESE = transtype(TypeLexème.PARENTHESE_OUVRANTE : *NoeudSyntaxique)
-
-	# Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
-	# cas d'analyse d'une expression en dernier paramètre d'un appel de
-	# fontion.
-	dyn paren = 0
 
     dyn dernier_lexème : TypeLexème
 
@@ -511,32 +499,19 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				expression.pousse(noeud)
 			}
 			PARENTHESE_OUVRANTE {
-				paren += 1
-				pile.pousse(NOEUD_PARENTHESE)
+				noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.EXPRESSION_PARENTHESE, morceau, faux)
+
+				syntaxeuse.analyse_expression(TypeLexème.PARENTHESE_FERMANTE)
+
+				syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.EXPRESSION_PARENTHESE)
+
+				expression.pousse(noeud)
 			}
 			PARENTHESE_FERMANTE {
-				# S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
-				# atteint la fin d'une déclaration d'appel de fonction.
-				si (paren == 0) {
-					# recule pour être synchroniser avec la sortie dans
-					# analyse_appel_fonction()
-					syntaxeuse.recule()
-					arrête
-				}
-
-				si (pile.est_vide()) {
-					#lance_erreur("Il manque une paranthèse dans l'expression !")
-				}
-
-				tantque (pile.dernier() != NOEUD_PARENTHESE) {
-					expression.pousse(pile.dernier())
-					pile.pop_dernier()
-				}
-
-				# Enlève la parenthèse restante de la pile.
-				pile.pop_dernier()
-
-				paren += 1
+				# À FAIRE : vérification de l'oubli de parenthèse fermante
+				# recule pour être synchronisé avec les différents points de sorties
+				syntaxeuse.recule()
+				arrête
 			}
 			# opérations binaire
 			PLUS,
@@ -681,10 +656,6 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 	}
 
 	tantque (!pile.est_vide()) {
-		si (pile.dernier() == NOEUD_PARENTHESE) {
-			#lance_erreur("Il manque une paranthèse dans l'expression !")
-		}
-
 		expression.pousse(pile.dernier())
 		pile.pop_dernier()
 	}
@@ -870,7 +841,7 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
 		imprime("  ")
 	}
 
-	imprime(racine.type, "\n")
+	imprime(racine.type, " (", racine.données.chn, ")\n")
 
 	pour noeud dans racine.enfants {
 		imprime_arbre(noeud, tab + 1)
@@ -880,7 +851,7 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
 fonc principale(args : []*z8) : z32
 {
 	diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
-    script = "a = 5 + 8;"
+    script = "a = (5 + 8 + 12) * 3;"
 
 	imprime("script :\n\n", script, "\n\n")
 

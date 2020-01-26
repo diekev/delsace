@@ -479,11 +479,17 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) : rien
 	sinon si (lexeuse.taille_mot_courant == 0 && est_nombre_décimal(lexeuse.caractère_courant())) {
 		lexeuse.enregistre_pos_mot()
 
-		# À FAIRE
-        compte = 1
+		# nous savons que nous avons un chiffre, pousse et avance
+		lexeuse.pousse_caractère()
+		lexeuse.avance(1)
+
+		# À FAIRE : nombre à virgule, hexadécimal, octal, binaire....
+		tantque est_nombre_décimal(lexeuse.caractère_courant()) {
+			lexeuse.pousse_caractère()
+			lexeuse.avance(1)
+		}
 
 		lexeuse.pousse_mot(TypeLexème.NOMBRE_ENTIER)
-		lexeuse.avance(compte)
 	}
 	sinon {
 		si (lexeuse.taille_mot_courant == 0) {

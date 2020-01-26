@@ -21,6 +21,7 @@ importe Fondation
 	RETOURNE
 	ARRETE
 	CONTINUE
+    EXPRESSION_PARENTHESE
 }
 
 struct NoeudSyntaxique {
