@@ -3058,6 +3058,13 @@ static void performe_validation_semantique(
 
 			break;
 		}
+		case type_noeud::EXPRESSION_PARENTHESE:
+		{
+			valides_enfants(b, contexte, expr_gauche);
+			b->index_type = b->enfants.front()->index_type;
+			b->type_valeur = b->enfants.front()->type_valeur;
+			break;
+		}
 	}
 }
 

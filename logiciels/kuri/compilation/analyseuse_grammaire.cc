@@ -38,13 +38,6 @@
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 /**
- * Pointeur spécial utilisé pour représenter un noeud de type paranthèse
- * ouvrante dans l'arbre syntactic. Ce noeud n'est pas insérer dans l'arbre,
- * mais simplement utilisé pour compiler les arbres syntactics des expressions.
- */
-static auto NOEUD_PARENTHESE = reinterpret_cast<noeud::base *>(id_morceau::PARENTHESE_OUVRANTE);
-
-/**
  * Retourne vrai se l'identifiant passé en paramètre peut-être un identifiant
  * valide pour précèder un opérateur unaire '+' ou '-'.
  */
@@ -610,7 +603,6 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	auto vide_pile_operateur = [&](id_morceau id_operateur)
 	{
 		while (!pile.est_vide()
-			   && pile.back() != NOEUD_PARENTHESE
 			   && (precedence_faible(id_operateur, pile.back()->identifiant())))
 		{
 			expression.pousse(pile.back());
@@ -618,10 +610,6 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 		}
 	};
 
-	/* Nous tenons compte du nombre de paranthèse pour pouvoir nous arrêter en
-	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
-	 * fontion. */
-	auto paren = 0;
 	auto dernier_identifiant = (m_position == 0) ? id_morceau::INCONNU : donnees().identifiant;
 
 	/* utilisé pour terminer la boucle quand elle nous atteignons une parenthèse
@@ -639,7 +627,9 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
 
-		switch (morceau.identifiant) {
+		auto id_courant = morceau.identifiant;
+
+		switch (id_courant) {
 			case id_morceau::SOIT:
 			{
 				drapeaux |= DECLARATION;
@@ -813,36 +803,26 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 			}
 			case id_morceau::PARENTHESE_OUVRANTE:
 			{
-				++paren;
-				pile.pousse(NOEUD_PARENTHESE);
+				auto noeud = m_assembleuse->empile_noeud(type_noeud::EXPRESSION_PARENTHESE, m_contexte, morceau, false);
+
+				analyse_expression_droite(id_morceau::PARENTHESE_FERMANTE, id_morceau::PARENTHESE_OUVRANTE);
+
+				m_assembleuse->depile_noeud(type_noeud::EXPRESSION_PARENTHESE);
+
+				expression.pousse(noeud);
+
+				/* ajourne id_courant avec une parenthèse fermante, car étant
+				 * une parenthèse ouvrante, il ferait échouer le test de
+				 * détermination d'un opérateur unaire */
+				id_courant = id_morceau::PARENTHESE_FERMANTE;
+
 				break;
 			}
 			case id_morceau::PARENTHESE_FERMANTE:
 			{
-				/* S'il n'y a pas de parenthèse ouvrante, c'est que nous avons
-				 * atteint la fin d'une déclaration d'appel de fonction. */
-				if (paren == 0) {
-					/* recule pour être synchroniser avec la sortie dans
-					 * analyse_appel_fonction() */
-					recule();
-
-					termine_boucle = true;
-					break;
-				}
-
-				if (pile.est_vide()) {
-					lance_erreur("Il manque une paranthèse dans l'expression !");
-				}
-
-				while (pile.back() != NOEUD_PARENTHESE) {
-					expression.pousse(pile.back());
-					pile.pop_back();
-				}
-
-				/* Enlève la parenthèse restante de la pile. */
-				pile.pop_back();
-
-				--paren;
+				/* recule pour être synchronisé avec les différentes sorties */
+				recule();
+				termine_boucle = true;
 				break;
 			}
 			/* opérations binaire */
@@ -1212,7 +1192,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 			break;
 		}
 
-		dernier_identifiant = morceau.identifiant;
+		dernier_identifiant = id_courant;
 	}
 
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
@@ -1223,10 +1203,6 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	}
 
 	while (!pile.est_vide()) {
-		if (pile.back() == NOEUD_PARENTHESE) {
-			lance_erreur("Il manque une paranthèse dans l'expression !");
-		}
-
 		expression.pousse(pile.back());
 		pile.pop_back();
 	}

@@ -2669,6 +2669,13 @@ void genere_code_C(
 
 			break;
 		}
+		case type_noeud::EXPRESSION_PARENTHESE:
+		{
+			auto enfant = b->enfants.front();
+			genere_code_C(enfant, generatrice, contexte, expr_gauche);
+			b->valeur_calculee = '(' + enfant->chaine_calculee() + ')';
+			break;
+		}
 	}
 }
 

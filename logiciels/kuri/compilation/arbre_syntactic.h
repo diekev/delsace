@@ -79,6 +79,7 @@ enum class type_noeud : char {
 	PAIRE_DISCR,
 	SAUFSI,
 	RETIENS,
+	EXPRESSION_PARENTHESE,
 
 	/* mis en place dans la validation sémantique pour simplifier la génération
 	 * du code */
