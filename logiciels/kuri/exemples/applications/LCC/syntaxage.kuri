@@ -420,17 +420,12 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
         dernier_lexème = syntaxeuse.lexèmes[syntaxeuse.position - 1].lexème
     }
 
-	imprime("analyse_expression -- début\n")
-	diffère { imprime("analyse_expression -- fin\n") }
-
 	tantque !syntaxeuse.a_fini() {
 		si syntaxeuse.requiers_lexème(lexème_final) {
 			arrête
 		}
 
 		dyn morceau = syntaxeuse.lexèmes[position(syntaxeuse)]
-
-		imprime("lexème : ", morceau.lexème, "\n")
 
 		discr (morceau.lexème) {
 			CHAINE_CARACTERE {
