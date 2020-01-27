@@ -506,6 +506,13 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.EXPRESSION_PARENTHESE)
 
 				expression.pousse(noeud)
+
+				dernier_lexème = TypeLexème.PARENTHESE_FERMANTE
+
+				# À FAIRE : morceau.lexème est la parenthèse ouvrante, donc dernier_lexème
+				# plus bas est ajourner avec PARENTHSE_OUVRANTE et non PARANTHESE_FERMANTE,
+				# ce qui fait échouer la logique de détermination d'un opérateur unaire
+				continue
 			}
 			PARENTHESE_FERMANTE {
 				# À FAIRE : vérification de l'oubli de parenthèse fermante
@@ -851,7 +858,7 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
 fonc principale(args : []*z8) : z32
 {
 	diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
-    script = "a = (5 + 8 + 12) * 3;"
+    script = "a = ((5 + 8) * 12) * foo(3);"
 
 	imprime("script :\n\n", script, "\n\n")
 
