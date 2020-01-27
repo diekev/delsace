@@ -1,0 +1,250 @@
+importe Fondation
+
+fonc est_espace_blanc(c : z8) : bool
+{
+    retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r'
+}
+
+fonc est_nombre_décimal(c : z8) : bool
+{
+    retourne '0' <= c <= '9'
+}
+
+énum TypeLexème : z32 {
+	INCONNU
+	DANS
+	FINPOUR
+	FINSI
+	POUR
+	SI
+	SINON
+	ÉTEND
+	DÉBUT_VARIABLE
+	DÉBUT_EXPRESSION
+	FIN_VARIABLE
+	FIN_EXPRESSION
+	CHAINE_CARACTÈRE
+}
+
+struct DonnéesLexème {
+    chn : chaine
+    type_lexème : TypeLexème
+}
+
+fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]DonnéesLexème
+    liste[taille] = valeur
+}
+
+#######################################
+
+fonc id_identifiant(identifiant : chaine) : TypeLexème
+{
+	si compare_chaines(identifiant, "dans") { retourne TypeLexème.DANS }
+	si compare_chaines(identifiant, "finpour") { retourne TypeLexème.FINPOUR }
+	si compare_chaines(identifiant, "finsi") { retourne TypeLexème.FINSI }
+	si compare_chaines(identifiant, "pour") { retourne TypeLexème.POUR }
+	si compare_chaines(identifiant, "si") { retourne TypeLexème.SI }
+	si compare_chaines(identifiant, "sinon") { retourne TypeLexème.SINON }
+	si compare_chaines(identifiant, "étend") { retourne TypeLexème.ÉTEND }
+
+	retourne TypeLexème.CHAINE_CARACTÈRE
+}
+
+#######################################
+
+# À FAIRE(compilateur) : l'énumération n'est pas dans le graphe de symboles
+énum ÉtatLexage : z32 {
+    # L'état quand nous sommes dans un script de contrôle du gabarit
+	SCRIPT
+    # L'état quand nous sommes dans du code HTML
+	HTML
+}
+
+struct Lexeuse {
+    tampon : chaine
+    début : *z8
+    début_mot : *z8
+    fin : *z8
+
+    lexèmes : []DonnéesLexème
+
+    position_ligne = 0
+    compte_ligne = 0
+    pos_mot = 0
+    taille_mot_courant = 0
+}
+
+fonc construit_lexeuse(chn : chaine) : Lexeuse
+{
+    dyn lexeuse : Lexeuse
+    lexeuse.tampon = chn
+    lexeuse.début = @chn[0]
+    lexeuse.début_mot = @chn[0]
+    lexeuse.fin = lexeuse.début + chn.taille
+
+    retourne lexeuse
+}
+
+fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) : rien
+{
+	déloge lexeuse.lexèmes
+}
+
+fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
+{
+    ÉTAT_HTML = 0
+    ÉTAT_SCRIPT = 1
+
+	dyn état = ÉTAT_HTML
+
+	tantque !lexeuse.fini() {
+		si (lexeuse.caractère_courant() == '{') {
+			si (lexeuse.caractère_voisin(1) == '{') {
+				si (lexeuse.taille_mot_courant != 0) {
+					lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+				}
+
+				état = ÉTAT_SCRIPT
+
+				lexeuse.enregistre_position_mot()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(TypeLexème.DÉBUT_VARIABLE)
+				lexeuse.avance(2)
+			}
+			sinon si (lexeuse.caractère_voisin(1) == '%') {
+				si (lexeuse.taille_mot_courant != 0) {
+					lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+				}
+
+				état = ÉTAT_SCRIPT
+
+				lexeuse.enregistre_position_mot()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_caractère()
+				lexeuse.pousse_mot(TypeLexème.DÉBUT_EXPRESSION)
+				lexeuse.avance(2)
+			}
+		}
+		sinon si (lexeuse.caractère_courant() == '}' && lexeuse.caractère_voisin(1) == '}') {
+			si (lexeuse.taille_mot_courant != 0) {
+				lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+			}
+
+			état = ÉTAT_HTML
+
+			lexeuse.enregistre_position_mot()
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_mot(TypeLexème.FIN_VARIABLE)
+			lexeuse.avance(2)
+		}
+		sinon si (lexeuse.caractère_courant() == '%' && lexeuse.caractère_voisin(1) == '}') {
+			si (lexeuse.taille_mot_courant != 0) {
+				lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+			}
+
+			état = ÉTAT_HTML
+
+			lexeuse.enregistre_position_mot()
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_caractère()
+			lexeuse.pousse_mot(TypeLexème.FIN_EXPRESSION)
+			lexeuse.avance(2)
+		}
+		sinon {
+			si (état == ÉTAT_HTML) {
+				si (lexeuse.taille_mot_courant == 0) {
+					lexeuse.enregistre_position_mot()
+				}
+
+				lexeuse.pousse_caractère()
+			}
+			sinon {
+				lexeuse.analyse_caractère_simple()
+			}
+
+			lexeuse.avance(1)
+		}
+	}
+
+	si (lexeuse.taille_mot_courant != 0) {
+		lexeuse.pousse_mot(TypeLexème.CHAINE_CARACTÈRE)
+	}
+}
+
+fonc fini(lexeuse : &Lexeuse) : bool
+{
+	retourne lexeuse.début >= lexeuse.fin
+}
+
+fonc avance(dyn lexeuse : &Lexeuse, n : z32) : rien
+{
+	pour i dans 0 ... n - 1 {
+		si (lexeuse.caractère_courant() == '\n') {
+			lexeuse.compte_ligne += 1
+			lexeuse.position_ligne = 0
+		}
+		sinon {
+			lexeuse.position_ligne += 1
+		}
+
+		lexeuse.début += 1
+	}
+}
+
+fonc caractère_courant(lexeuse : &Lexeuse) : z8
+{
+	retourne mémoire(lexeuse.début)
+}
+
+fonc caractère_voisin(lexeuse : &Lexeuse, n : z32) : z8
+{
+	retourne mémoire(lexeuse.début + n)
+}
+
+fonc mot_courant(lexeuse : &Lexeuse) : chaine
+{
+	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
+}
+
+fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) : rien
+{
+	si (est_espace_blanc(lexeuse.caractère_courant())) {
+		si (lexeuse.taille_mot_courant != 0) {
+			lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
+		}
+	}
+	sinon {
+		si (lexeuse.taille_mot_courant == 0) {
+			lexeuse.enregistre_position_mot()
+		}
+
+		lexeuse.pousse_caractère()
+	}
+}
+
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.taille_mot_courant += 1
+}
+
+fonc pousse_mot(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) : rien
+{
+    dyn données : DonnéesLexème
+    données.type_lexème = type_lexème
+    données.chn = lexeuse.mot_courant()
+
+    lexeuse.lexèmes.pousse(données)
+
+    lexeuse.taille_mot_courant = 0
+}
+
+fonc enregistre_position_mot(dyn lexeuse : &Lexeuse) : rien
+{
+	lexeuse.pos_mot = lexeuse.position_ligne
+	lexeuse.début_mot = lexeuse.début
+}

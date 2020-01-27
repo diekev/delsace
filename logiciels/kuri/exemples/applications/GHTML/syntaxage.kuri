@@ -1,0 +1,263 @@
+charge "assemblage_arbre"
+charge "lexage"
+
+importe Fondation
+
+struct Syntaxeuse {
+    lexèmes : []DonnéesLexème
+    assembleuse : AssembleuseArbre
+
+    position = 0
+}
+
+fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) : Syntaxeuse
+{
+    dyn syntaxeuse : Syntaxeuse
+    syntaxeuse.lexèmes = lexèmes
+	syntaxeuse.assembleuse = construit_assembleuse()
+
+    retourne syntaxeuse
+}
+
+fonc lexème_courant(syntaxeuse : &Syntaxeuse) : TypeLexème
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position].type_lexème
+}
+
+fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position += 1
+}
+
+fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position -= 1
+}
+
+fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+{
+	t = syntaxeuse.lexème_courant()
+	syntaxeuse.avance()
+	retourne t == type
+}
+
+fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+{
+	retourne syntaxeuse.lexème_courant() == type
+}
+
+fonc données(syntaxeuse : &Syntaxeuse) : &DonnéesLexème
+{
+	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
+}
+
+fonc position(syntaxeuse : &Syntaxeuse) : z32
+{
+    retourne syntaxeuse.position - 1
+}
+
+fonc fini(syntaxeuse : &Syntaxeuse) : bool
+{
+    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
+}
+
+fonc performe_syntaxage(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	syntaxeuse.position = 0
+
+	si (syntaxeuse.lexèmes.taille == 0) {
+		retourne
+	}
+
+    données_lexème : DonnéesLexème
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème)
+
+	syntaxeuse.analyse_page()
+
+	syntaxeuse.assembleuse.attend_type(TypeNoeud.BLOC)
+}
+
+fonc analyse_page(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	tantque !syntaxeuse.fini() {
+		si (syntaxeuse.est_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+			syntaxeuse.avance()
+			syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.CHAINE_CARACTÈRE, syntaxeuse.données())
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.DÉBUT_EXPRESSION)) {
+			syntaxeuse.analyse_expression()
+		}
+		sinon si (syntaxeuse.est_lexème(TypeLexème.DÉBUT_VARIABLE)) {
+			syntaxeuse.avance()
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+				#lance_erreur("Attendu identsiiant de la variable après '{{'")
+			}
+
+			syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+
+			si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_VARIABLE)) {
+				#lance_erreur("Attendu '}}' à la fin de la déclaration d'une variable")
+			}
+		}
+	}
+}
+
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.DÉBUT_EXPRESSION)) {
+		#lance_erreur("Attendu '{%'")
+	}
+
+	si (syntaxeuse.est_lexème(TypeLexème.SI)) {
+		syntaxeuse.analyse_si()
+	}
+	sinon si (syntaxeuse.est_lexème(TypeLexème.POUR)) {
+		syntaxeuse.analyse_pour()
+	}
+	sinon si (syntaxeuse.est_lexème(TypeLexème.SINON)) {
+		# assert(syntaxeuse.assembleuse.noued_courant() == 'SI')
+		syntaxeuse.avance()
+
+		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+			#lance_erreur("Attendu '%}'")
+		}
+
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+
+		syntaxeuse.assembleuse.attend_type(TypeNoeud.SI)
+
+		syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+
+		syntaxeuse.analyse_page()
+	}
+	sinon si (syntaxeuse.est_lexème(TypeLexème.FINSI)) {
+		syntaxeuse.avance()
+
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
+
+		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+			#lance_erreur("Attendu '%}'")
+		}
+	}
+	sinon si (syntaxeuse.est_lexème(TypeLexème.FINPOUR)) {
+		syntaxeuse.avance()
+
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+
+		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
+
+		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+			#lance_erreur("Attendu '%}'")
+		}
+	}
+	sinon {
+		#lance_erreur("Identsiiant inconnu")
+	}
+}
+
+fonc analyse_si(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
+		#lance_erreur("Attendu 'si'")
+	}
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		#lance_erreur("Attendu une chaîne de caractère après 'si'")
+	}
+
+	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		#lance_erreur("Attendu '%}'")
+	}
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+
+	syntaxeuse.analyse_page()
+}
+
+fonc analyse_pour(dyn syntaxeuse : &Syntaxeuse) : rien
+{
+	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
+		#lance_erreur("Attendu 'pour'")
+	}
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		#lance_erreur("Attendu une chaîne de caractère après 'pour'")
+	}
+
+	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.DANS)) {
+		#lance_erreur("Attendu 'dans'")
+	}
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
+		#lance_erreur("Attendu une chaîne de caractère après 'dans'")
+	}
+
+	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+
+	si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
+		#lance_erreur("Attendu '%}'")
+	}
+
+	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+
+	syntaxeuse.analyse_page()
+}
+
+fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
+{
+	pour i dans 0 ... tab - 1 {
+		imprime("  ")
+	}
+
+	imprime(racine.type, " (", racine.données.chn, ")\n")
+
+	pour noeud dans racine.enfants {
+		imprime_arbre(noeud, tab + 1)
+	}
+}
+
+fonc principale(args : []*z8) : z32
+{
+    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+    chn = "{%pour x dans evenements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
+
+    imprime("chaine :\n\n", chn, "\n\n")
+
+    dyn lexeuse = construit_lexeuse(chn)
+    diffère { détruit_lexeuse(lexeuse) }
+
+    lexeuse.performe_lexage()
+
+    imprime("lexèmes :\n\n")
+
+    pour lexème dans lexeuse.lexèmes {
+        imprime(lexème.type_lexème, " : ", lexème.chn, "\n")
+    }
+
+    imprime("\n")
+
+    dyn syntaxeuse = construit_syntaxeuse(lexeuse.lexèmes)
+    diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
+
+    syntaxeuse.performe_syntaxage()
+
+	racine = syntaxeuse.assembleuse.pile.haut()
+
+	imprime("arbre :\n\n")
+	imprime_arbre(racine, 0)
+	imprime("\n")
+
+    retourne 0
+}
