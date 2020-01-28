@@ -156,7 +156,6 @@ void execute_code(Interpreteuse *inter)
             }
             case CHARGE8:
             {
-                // trouver un registre libre
                 break;
             }
             case CHARGE16:
@@ -185,7 +184,6 @@ void execute_code(Interpreteuse *inter)
             }
 			case CHARGE_CONST_8:
 			{
-				// trouver un registre libre
 				break;
 			}
 			case CHARGE_CONST_16:
@@ -211,9 +209,7 @@ void execute_code(Interpreteuse *inter)
 				break;
 			}
             case STOCKE8:
-            {
-                // pointeur où stocker la valeur
-                // registre depuis où stocker la valeur
+			{
                 break;
             }
             case STOCKE16:
