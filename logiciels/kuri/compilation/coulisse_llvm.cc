@@ -24,7 +24,8 @@
 
 #include "coulisse_llvm.hh"
 
-#include <delsace/chrono/chronometrage.hh>
+#include "biblinternes/chrono/chronometrage.hh"
+#include "biblinternes/langage/nombres.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -42,10 +43,11 @@
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
+#include "conversion_type_llvm.hh"
 #include "erreur.h"
 #include "info_type.hh"
 #include "modules.hh"
-#include "nombres.h"
+#include "outils_morceaux.hh"
 #include "validation_semantique.hh"
 
 #undef NOMME_IR
@@ -80,7 +82,7 @@ static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
 	/* génère le code pour les blocs déférés */
 	auto pile_noeud = contexte.noeuds_differes();
 
-	while (!pile_noeud.empty()) {
+	while (!pile_noeud.est_vide()) {
 		auto noeud = pile_noeud.back();
 		genere_code_llvm(noeud, contexte, true);
 		pile_noeud.pop_back();
@@ -142,33 +144,28 @@ static bool est_branche_ou_retour(llvm::Value *valeur)
 static llvm::FunctionType *obtiens_type_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction const &donnees_fonction,
-		DonneesType &donnees_retour,
+		DonneesTypeFinal &donnees_retour,
 		bool est_variadique)
 {
 	std::vector<llvm::Type *> parametres;
-	parametres.reserve(donnees_fonction.nom_args.size());
+	parametres.reserve(static_cast<size_t>(donnees_fonction.args.taille()));
 
-	for (auto const &nom : donnees_fonction.nom_args) {
-		auto const &argument = donnees_fonction.args.find(nom);
-
-		if (argument->second.est_variadic) {
+	for (auto const &argument : donnees_fonction.args) {
+		if (argument.est_variadic) {
 			/* les arguments variadics sont transformés en un tableau */
 			if (!donnees_fonction.est_externe) {
-				auto dt = DonneesType{};
-				dt.pousse(id_morceau::TABLEAU);
-				dt.pousse(contexte.magasin_types.donnees_types[argument->second.donnees_type]);
-
-				parametres.push_back(contexte.magasin_types.converti_type(contexte, dt));
+				auto idx_dt_tabl = contexte.typeuse.type_tableau_pour(argument.index_type);
+				parametres.push_back(converti_type_llvm(contexte, contexte.typeuse[idx_dt_tabl]));
 			}
 
 			break;
 		}
 
-		parametres.push_back(contexte.magasin_types.converti_type(contexte, argument->second.donnees_type));
+		parametres.push_back(converti_type_llvm(contexte, contexte.typeuse[argument.index_type]));
 	}
 
 	return llvm::FunctionType::get(
-				contexte.magasin_types.converti_type(contexte, donnees_retour),
+				converti_type_llvm(contexte, donnees_retour),
 				parametres,
 				est_variadique && donnees_fonction.est_externe);
 }
@@ -236,16 +233,16 @@ enum {
 [[nodiscard]] static llvm::Value *converti_vers_tableau_dyn(
 		ContexteGenerationCode &contexte,
 		llvm::Value *tableau,
-		DonneesType const &donnees_type,
+		DonneesTypeFinal const &donnees_type,
 		bool charge_ = true)
 {
 	/* trouve le type de la structure tableau */
-	auto deref = donnees_type.derefence();
-	auto dt = DonneesType{};
+	auto deref = donnees_type.dereference();
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::TABLEAU);
 	dt.pousse(deref);
 
-	auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
+	auto type_llvm = converti_type_llvm(contexte, dt);
 
 	/* alloue de l'espace pour ce type */
 	auto alloc = new llvm::AllocaInst(type_llvm, 0, "", contexte.bloc_courant());
@@ -292,14 +289,14 @@ enum {
 [[nodiscard]] static llvm::Value *converti_vers_eini(
 		ContexteGenerationCode &contexte,
 		llvm::Value *valeur,
-		DonneesType &donnees_type,
+		DonneesTypeFinal &donnees_type,
 		bool charge_)
 {
 	/* alloue de l'espace pour un eini */
-	auto dt = DonneesType{};
+	auto dt = DonneesTypeFinal{};
 	dt.pousse(id_morceau::EINI);
 
-	auto type_eini_llvm = contexte.magasin_types.converti_type(contexte, dt);
+	auto type_eini_llvm = converti_type_llvm(contexte, dt);
 
 	auto alloc_eini = new llvm::AllocaInst(type_eini_llvm, 0, "", contexte.bloc_courant());
 	alloc_eini->setAlignment(8);
@@ -349,7 +346,7 @@ enum {
 	auto valeur_enfant = genere_code_llvm(enfant, contexte, conversion);
 
 	if (conversion) {
-		auto &dt = contexte.magasin_types.donnees_types[enfant->index_type];
+		auto &dt = contexte.typeuse[enfant->index_type];
 
 		if ((enfant->drapeaux & CONVERTI_TABLEAU) != 0) {
 			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt, false);
@@ -367,11 +364,11 @@ enum {
 			charge->setAlignment(8);
 
 			/* transtype le pointeur vers le bon type */
-			auto dt_vers = DonneesType{};
+			auto dt_vers = DonneesTypeFinal{};
 			dt_vers.pousse(id_morceau::POINTEUR);
-			dt_vers.pousse(contexte.magasin_types.donnees_types[enfant->index_type]);
+			dt_vers.pousse(contexte.typeuse[enfant->index_type]);
 
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_vers);
+			auto type_llvm = converti_type_llvm(contexte, dt_vers);
 			valeur_enfant = new llvm::BitCastInst(charge, type_llvm, "", contexte.bloc_courant());
 
 			/* déréfence ce pointeur : après la portée */
@@ -391,9 +388,9 @@ llvm::Value *cree_appel(
 		llvm::Value *fonction,
 		Conteneur const &conteneur)
 {
-	std::vector<llvm::Value *> parametres(conteneur.size());
+	std::vector<llvm::Value *> parametres(static_cast<size_t>(conteneur.taille()));
 
-	std::transform(conteneur.begin(), conteneur.end(), parametres.begin(),
+	std::transform(conteneur.debut(), conteneur.fin(), parametres.begin(),
 				   [&](base *noeud_enfant)
 	{
 		return genere_code_enfant(contexte, noeud_enfant);
@@ -492,7 +489,7 @@ static llvm::Value *incremente_pour_type(
 		llvm::PHINode *noeud_phi,
 		llvm::BasicBlock *bloc_courant)
 {
-	auto type_llvm = converti_type_simple(contexte, type, nullptr);
+	auto type_llvm = converti_type_simple_llvm(contexte, type, nullptr);
 
 	if (est_type_entier(type)) {
 		auto val_inc = llvm::ConstantInt::get(
@@ -538,10 +535,6 @@ llvm::Value *genere_code_llvm(
 			auto temps_generation = 0.0;
 
 			for (auto noeud : b->enfants) {
-				auto debut_validation = dls::chrono::maintenant();
-				performe_validation_semantique(noeud, contexte);
-				temps_validation += dls::chrono::delta(debut_validation);
-
 				auto debut_generation = dls::chrono::maintenant();
 				genere_code_llvm(noeud, contexte, true);
 				temps_generation += dls::chrono::delta(debut_generation);
@@ -574,14 +567,14 @@ llvm::Value *genere_code_llvm(
 			 */
 
 			/* Crée le type de la fonction */
-			auto &this_dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &this_dt = contexte.typeuse[b->index_type];
 			auto type_fonction = obtiens_type_fonction(
 									 contexte,
 									 *donnees_fonction,
 									 this_dt,
 									 (b->drapeaux & VARIADIC) != 0);
 
-			contexte.magasin_types.donnees_types[donnees_fonction->index_type].type_llvm(type_fonction);
+			contexte.typeuse[donnees_fonction->index_type].type_llvm(type_fonction);
 
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
@@ -605,27 +598,23 @@ llvm::Value *genere_code_llvm(
 			/* Crée code pour les arguments */
 			auto valeurs_args = fonction->arg_begin();
 
-			for (auto const &nom : donnees_fonction->nom_args) {
-				auto &argument = donnees_fonction->args[nom];
-				auto index_type = argument.donnees_type;
+			for (auto const &argument : donnees_fonction->args) {
+				auto index_type = argument.index_type;
 				auto align = unsigned{0};
 				auto type = static_cast<llvm::Type *>(nullptr);
 
 				if (argument.est_variadic) {
 					align = 8;
 
-					auto dt = DonneesType{};
-					dt.pousse(id_morceau::TABLEAU);
-					dt.pousse(contexte.magasin_types.donnees_types[argument.donnees_type]);
+					auto idx_tabl = contexte.typeuse.type_tableau_pour(argument.index_type);
+					auto &dt = contexte.typeuse[idx_tabl];
 
-					index_type = contexte.magasin_types.ajoute_type(dt);
-
-					type = contexte.magasin_types.converti_type(contexte, index_type);
+					type = converti_type_llvm(contexte, dt);
 				}
 				else {
-					auto dt = contexte.magasin_types.donnees_types[argument.donnees_type];
+					auto dt = contexte.typeuse[argument.index_type];
 					align = alignement(contexte, dt);
-					type = contexte.magasin_types.converti_type(contexte, argument.donnees_type);
+					type = converti_type_llvm(contexte, dt);
 				}
 
 		#ifdef NOMME_IR
@@ -651,7 +640,7 @@ llvm::Value *genere_code_llvm(
 				donnees_var.valeur = alloc;
 				donnees_var.est_dynamique = argument.est_dynamic;
 				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.donnees_type = index_type;
+				donnees_var.index_type = index_type;
 
 				contexte.pousse_locale(nom, donnees_var);
 			}
@@ -700,8 +689,8 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::VARIABLE:
 		{
 			if (b->aide_generation_code == GENERE_CODE_DECL_VAR) {
-				auto const &type = contexte.magasin_types.donnees_types[b->index_type];
-				auto type_llvm = contexte.magasin_types.converti_type(contexte, b->index_type);
+				auto &type = contexte.typeuse[b->index_type];
+				auto type_llvm = converti_type_llvm(contexte, type);
 
 				if (contexte.fonction == nullptr) {
 					auto valeur = new llvm::GlobalVariable(
@@ -717,7 +706,7 @@ llvm::Value *genere_code_llvm(
 					auto donnees_var = DonneesVariable{};
 					donnees_var.valeur = valeur;
 					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-					donnees_var.donnees_type = b->index_type;
+					donnees_var.index_type = b->index_type;
 
 					contexte.pousse_globale(b->chaine(), donnees_var);
 					return valeur;
@@ -762,7 +751,7 @@ llvm::Value *genere_code_llvm(
 				auto donnees_var = DonneesVariable{};
 				donnees_var.valeur = alloc;
 				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.donnees_type = b->index_type;
+				donnees_var.index_type = b->index_type;
 
 				contexte.pousse_locale(b->morceau.chaine, donnees_var);
 
@@ -785,7 +774,7 @@ llvm::Value *genere_code_llvm(
 			}
 
 			auto const &index_type = b->index_type;
-			auto &type = contexte.magasin_types.donnees_types[index_type];
+			auto &type = contexte.typeuse[index_type];
 
 			auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 			charge->setAlignment(alignement(contexte, type));
@@ -798,12 +787,12 @@ llvm::Value *genere_code_llvm(
 			auto membre = b->enfants.front();
 
 			auto const &index_type = structure->index_type;
-			auto type_structure = contexte.magasin_types.donnees_types[index_type];
+			auto type_structure = contexte.typeuse[index_type];
 
 			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
 
 			if (est_pointeur) {
-				type_structure = type_structure.derefence();
+				type_structure = type_structure.dereference();
 			}
 
 			if (type_structure.type_base() == id_morceau::EINI) {
@@ -835,7 +824,7 @@ llvm::Value *genere_code_llvm(
 
 				if (taille != 0) {
 					return llvm::ConstantInt::get(
-								contexte.magasin_types.converti_type(contexte, b->index_type),
+								converti_type_llvm(contexte, b->index_type),
 								taille);
 				}
 
@@ -862,7 +851,7 @@ llvm::Value *genere_code_llvm(
 
 			auto &donnees_structure = contexte.donnees_structure(index_structure);
 
-			auto const iter = donnees_structure.donnees_membres.find(nom_membre);
+			auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 			auto const &donnees_membres = iter->second;
 			auto const index_membre = donnees_membres.index_membre;
@@ -884,7 +873,7 @@ llvm::Value *genere_code_llvm(
 
 			if (!expr_gauche) {
 				auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
-				auto const &dt = contexte.magasin_types.donnees_types[donnees_structure.donnees_types[index_membre]];
+				auto const &dt = contexte.typeuse[donnees_structure.index_types[index_membre]];
 				charge->setAlignment(alignement(contexte, dt));
 				ret = charge;
 			}
@@ -933,7 +922,7 @@ llvm::Value *genere_code_llvm(
 
 			auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 
-			auto const &dt = contexte.magasin_types.donnees_types[expression->index_type];
+			auto const &dt = contexte.typeuse[expression->index_type];
 			store->setAlignment(alignement(contexte, dt));
 
 			return store;
@@ -976,8 +965,8 @@ llvm::Value *genere_code_llvm(
 			auto const index_type1 = enfant1->index_type;
 			auto const index_type2 = enfant2->index_type;
 
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
-			auto &type2 = contexte.magasin_types.donnees_types[index_type2];
+			auto const &type1 = contexte.typeuse[index_type1];
+			auto &type2 = contexte.typeuse[index_type2];
 
 			if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
 				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
@@ -1216,7 +1205,7 @@ llvm::Value *genere_code_llvm(
 						valeur = accede_element_tableau(
 									 contexte,
 									 valeur1,
-									 contexte.magasin_types.converti_type(contexte, index_type1),
+									 converti_type_llvm(contexte, index_type1),
 									 valeur2);
 					}
 
@@ -1254,7 +1243,7 @@ llvm::Value *genere_code_llvm(
 			llvm::Instruction::BinaryOps instr;
 			auto enfant = b->enfants.front();
 			auto index_type1 = enfant->index_type;
-			auto const &type1 = contexte.magasin_types.donnees_types[index_type1];
+			auto const &type1 = contexte.typeuse[index_type1];
 			auto valeur1 = genere_code_llvm(enfant, contexte, false);
 			auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
@@ -1319,7 +1308,7 @@ llvm::Value *genere_code_llvm(
 		{
 			llvm::Value *valeur = nullptr;
 
-			if (!b->enfants.empty()) {
+			if (!b->enfants.est_vide()) {
 				assert(b->enfants.size() == 1);
 				valeur = genere_code_llvm(b->enfants.front(), contexte, false);
 			}
@@ -1339,7 +1328,7 @@ llvm::Value *genere_code_llvm(
 								 contexte.contexte,
 								 chaine);
 
-			auto type = contexte.magasin_types.converti_type(contexte, b->index_type);
+			auto type = converti_type_llvm(contexte, b->index_type);
 
 			auto globale = new llvm::GlobalVariable(
 							   *contexte.module_llvm,
@@ -1376,8 +1365,8 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::SAUFSI:
 		case type_noeud::SI:
 		{
-			auto const nombre_enfants = b->enfants.size();
-			auto iter_enfant = b->enfants.begin();
+			auto const nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
 
 			/* noeud 1 : condition */
 			auto enfant1 = *iter_enfant++;
@@ -1480,8 +1469,8 @@ llvm::Value *genere_code_llvm(
 			 *	...
 			 */
 
-			auto nombre_enfants = b->enfants.size();
-			auto iter = b->enfants.begin();
+			auto nombre_enfants = b->enfants.taille();
+			auto iter = b->enfants.debut();
 
 			/* on génère d'abord le type de la variable */
 			auto enfant1 = *iter++;
@@ -1494,7 +1483,7 @@ llvm::Value *genere_code_llvm(
 			auto enfant_sinon = (nombre_enfants == 5) ? enfant5 : enfant4;
 
 			auto index_type = enfant2->index_type;
-			auto const &type_debut = contexte.magasin_types.donnees_types[index_type];
+			auto const &type_debut = contexte.typeuse[index_type];
 			auto const type = type_debut.type_base();
 
 			enfant1->index_type = index_type;
@@ -1543,7 +1532,7 @@ llvm::Value *genere_code_llvm(
 
 			if (enfant2->type == type_noeud::PLAGE) {
 				noeud_phi = llvm::PHINode::Create(
-								contexte.magasin_types.converti_type(contexte, index_type),
+								converti_type_llvm(contexte, index_type),
 								2,
 								std::string(enfant1->chaine()),
 								contexte.bloc_courant());
@@ -1579,7 +1568,7 @@ llvm::Value *genere_code_llvm(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.valeur = noeud_phi;
-				donnees_var.donnees_type = index_type;
+				donnees_var.index_type = index_type;
 
 				contexte.pousse_locale(enfant1->chaine(), donnees_var);
 			}
@@ -1633,7 +1622,7 @@ llvm::Value *genere_code_llvm(
 					valeur_arg = accede_element_tableau(
 								 contexte,
 								 valeur_tableau,
-								 contexte.magasin_types.converti_type(contexte, index_type),
+								 converti_type_llvm(contexte, index_type),
 								 noeud_phi);
 				}
 				else {
@@ -1650,7 +1639,7 @@ llvm::Value *genere_code_llvm(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.valeur = valeur_arg;
-				donnees_var.donnees_type = index_type;
+				donnees_var.index_type = index_type;
 
 				contexte.pousse_locale(enfant1->chaine(), donnees_var);
 			}
@@ -1705,28 +1694,11 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::CONTINUE_ARRETE:
 		{
-			auto chaine_var = b->enfants.empty() ? std::string_view{""} : b->enfants.front()->chaine();
+			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
 			auto bloc = (b->morceau.identifiant == id_morceau::CONTINUE)
 						? contexte.bloc_continue(chaine_var)
 						: contexte.bloc_arrete(chaine_var);
-
-			if (bloc == nullptr) {
-				if (chaine_var.empty()) {
-					erreur::lance_erreur(
-								"'continue' ou 'arrête' en dehors d'une boucle",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::CONTROLE_INVALIDE);
-				}
-				else {
-					erreur::lance_erreur(
-								"Variable inconnue",
-								contexte,
-								b->enfants.front()->donnees_morceau(),
-								erreur::type_erreur::VARIABLE_INCONNUE);
-				}
-			}
 
 			return llvm::BranchInst::Create(bloc, contexte.bloc_courant());
 		}
@@ -1778,12 +1750,12 @@ llvm::Value *genere_code_llvm(
 				return valeur;
 			}
 
-			auto const &donnees_type_de = contexte.magasin_types.donnees_types[index_type_de];
+			auto const &donnees_type_de = contexte.typeuse[index_type_de];
 
 			using CastOps = llvm::Instruction::CastOps;
-			auto const &dt = contexte.magasin_types.donnees_types[b->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 
-			auto type = contexte.magasin_types.converti_type(contexte, b->index_type);
+			auto type = converti_type_llvm(contexte, dt);
 			auto bloc = contexte.bloc_courant();
 			auto type_de = donnees_type_de.type_base();
 			auto type_vers = dt.type_base();
@@ -1854,8 +1826,9 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::TAILLE_DE:
 		{
 			auto dl = llvm::DataLayout(contexte.module_llvm);
-			auto donnees = std::any_cast<size_t>(b->valeur_calculee);
-			auto type = contexte.magasin_types.converti_type(contexte, donnees);
+			auto index_dt = std::any_cast<long>(b->valeur_calculee);
+			auto &donnees = contexte.typeuse[index_dt];
+			auto type = converti_type_llvm(contexte, donnees);
 			auto taille = dl.getTypeAllocSize(type);
 
 			return llvm::ConstantInt::get(
@@ -1865,7 +1838,7 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::PLAGE:
 		{
-			auto iter = b->enfants.begin();
+			auto iter = b->enfants.debut();
 
 			auto enfant1 = *iter++;
 			auto enfant2 = *iter++;
@@ -1875,7 +1848,7 @@ llvm::Value *genere_code_llvm(
 
 			auto donnees_var = DonneesVariable{};
 			donnees_var.valeur = valeur_debut;
-			donnees_var.donnees_type = b->index_type;
+			donnees_var.index_type = b->index_type;
 
 			contexte.pousse_locale("__debut", donnees_var);
 
@@ -1905,21 +1878,21 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::TABLEAU:
 		{
-			auto taille_tableau = b->enfants.size();
+			auto taille_tableau = b->enfants.taille();
 
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			if (est_calcule) {
 				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
 			}
 
-			auto &type = contexte.magasin_types.donnees_types[b->index_type];
+			auto &type = contexte.typeuse[b->index_type];
 
 			/* alloue un tableau fixe */
-			auto dt_tfixe = DonneesType{};
+			auto dt_tfixe = DonneesTypeFinal{};
 			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
 			dt_tfixe.pousse(type);
 
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt_tfixe);
+			auto type_llvm = converti_type_llvm(contexte, dt_tfixe);
 
 			auto pointeur_tableau = new llvm::AllocaInst(
 										type_llvm,
@@ -1949,12 +1922,12 @@ llvm::Value *genere_code_llvm(
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
 			/* À FAIRE : le stockage n'a pas l'air de fonctionner. */
-			std::vector<base *> feuilles;
+			dls::tableau<base *> feuilles;
 			rassemble_feuilles(b, feuilles);
 
 			/* alloue de la place pour le tableau */
-			auto dt = contexte.magasin_types.donnees_types[b->index_type];
-			auto type_llvm = contexte.magasin_types.converti_type(contexte, dt);
+			auto dt = contexte.typeuse[b->index_type];
+			auto type_llvm = converti_type_llvm(contexte, dt);
 
 			auto pointeur_tableau = new llvm::AllocaInst(
 										type_llvm,
@@ -1987,18 +1960,10 @@ llvm::Value *genere_code_llvm(
 			/* À FAIRE */
 			return nullptr;
 		}
-		case type_noeud::TYPE_DE:
+		case type_noeud::INFO_DE:
 		{
-			auto enfant = b->enfants.front();
-
-			genere_code_llvm(enfant, contexte, false);
-
-			auto valeur = llvm::ConstantInt::get(
-							  llvm::Type::getInt64Ty(contexte.contexte),
-							  enfant->index_type,
-							  false);
-
-			return valeur;
+			/* À FAIRE */
+			return nullptr;
 		}
 		case type_noeud::MEMOIRE:
 		{
@@ -2030,12 +1995,22 @@ llvm::Value *genere_code_llvm(
 			/* À FAIRE */
 			return nullptr;
 		}
-		case type_noeud::ASSOCIE:
+		case type_noeud::DISCR:
 		{
 			/* À FAIRE */
 			return nullptr;
 		}
-		case type_noeud::PAIRE_ASSOCIATION:
+		case type_noeud::DISCR_ENUM:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::DISCR_UNION:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
+		case type_noeud::PAIRE_DISCR:
 		{
 			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
 			 * pour ajouter un niveau d'indirection et faciliter la compilation
