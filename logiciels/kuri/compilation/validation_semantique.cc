@@ -26,6 +26,7 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
+#include "biblinternes/outils/chaine.hh"
 #include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/dico_fixe.hh"
 #include "biblinternes/structures/magasin.hh"
@@ -42,39 +43,6 @@
 using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 namespace noeud {
-
-static char caractere_echape(char const *sequence)
-{
-	switch (sequence[0]) {
-		case '\\':
-			switch (sequence[1]) {
-				case '\\':
-					return '\\';
-				case '\'':
-					return '\'';
-				case 'a':
-					return '\a';
-				case 'b':
-					return '\b';
-				case 'f':
-					return '\f';
-				case 'n':
-					return '\n';
-				case 'r':
-					return '\r';
-				case 't':
-					return '\t';
-				case 'v':
-					return '\v';
-				case '0':
-					return '\0';
-				default:
-					return sequence[1];
-			}
-		default:
-			return sequence[0];
-	}
-}
 
 /* ************************************************************************** */
 
@@ -1753,7 +1721,7 @@ static void performe_validation_semantique(
 				auto c = b->morceau.chaine[i];
 
 				if (c == '\\') {
-					c = caractere_echape(&b->morceau.chaine[i]);
+					c = dls::caractere_echappe(&b->morceau.chaine[i]);
 					++i;
 				}
 
