@@ -355,7 +355,7 @@ int main()
 
 	execute_code(&inter);
 
-	int ptr = inter.code.donnees[ptr_a];
+	int ptr = static_cast<int>(inter.code.donnees[ptr_a]);
 	int a = inter.memoire.charge32(ptr);
 	std::cerr << "a est de : " << a << '\n';
 
