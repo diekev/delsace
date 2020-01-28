@@ -50,6 +50,8 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
+
+#include "compilation/coulisse_llvm.hh"
 #endif
 
 #include "compilation/analyseuse_grammaire.h"
@@ -459,7 +461,7 @@ int main(int argc, char *argv[])
 			noeud::performe_validation_semantique(assembleuse, contexte_generation);
 
 			os << "Génération du code..." << std::endl;
-			assembleuse.genere_code_llvm(contexte_generation);
+			noeud::genere_code_llvm(assembleuse, contexte_generation);
 
 			//if (ops.emet_code_intermediaire) {
 				std::cerr <<  "------------------------------------------------------------------\n";
@@ -468,18 +470,18 @@ int main(int argc, char *argv[])
 			//}
 
 			/* définition du fichier de sortie */
-//			if (ops.emet_fichier_objet) {
-//				os << "Écriture du code dans un fichier..." << std::endl;
-//				//auto debut_fichier_objet = dls::chrono::maintenant();
-//				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
-//					resultat = 1;
-//				}
-//				//temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
+			if (ops.emet_fichier_objet) {
+				os << "Écriture du code dans un fichier..." << std::endl;
+				//auto debut_fichier_objet = dls::chrono::maintenant();
+				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
+					resultat = 1;
+				}
+				//temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
 
-//				//auto debut_executable = dls::chrono::maintenant();
-//				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
-//				//temps_executable = dls::chrono::delta(debut_executable);
-//			}
+				//auto debut_executable = dls::chrono::maintenant();
+				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
+				//temps_executable = dls::chrono::delta(debut_executable);
+			}
 		}
 		else
 #endif

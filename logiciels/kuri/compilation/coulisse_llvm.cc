@@ -46,6 +46,7 @@ using dls::outils::possede_drapeau;
 #pragma GCC diagnostic pop
 
 #include "arbre_syntactic.h"
+#include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "conversion_type_llvm.hh"
 #include "erreur.h"
@@ -82,6 +83,13 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  */
 
 /* ************************************************************************** */
+
+namespace noeud {
+static llvm::Value *genere_code_llvm(
+		base *b,
+		ContexteGenerationCode &contexte,
+		const bool expr_gauche);
+}
 
 static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
 {
@@ -534,7 +542,7 @@ static llvm::Value *incremente_pour_type(
 
 /* ************************************************************************** */
 
-llvm::Value *genere_code_llvm(
+static llvm::Value *genere_code_llvm(
 		base *b,
 		ContexteGenerationCode &contexte,
 		const bool expr_gauche)
@@ -553,14 +561,6 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::RACINE:
 		{
-			auto temps_generation = dls::chrono::compte_seconde();
-
-			for (auto noeud : b->enfants) {
-				genere_code_llvm(noeud, contexte, true);
-			}
-
-			contexte.temps_generation = temps_generation.temps();
-
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_FONCTION:
@@ -712,7 +712,7 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::VARIABLE:
 		{
-			if (b->aide_generation_code == GENERE_CODE_DECL_VAR) {
+			if (b->aide_generation_code == GENERE_CODE_DECL_VAR || b->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
 				auto &type = contexte.typeuse[b->index_type];
 				auto type_llvm = converti_type_llvm(contexte, type);
 
@@ -720,7 +720,7 @@ llvm::Value *genere_code_llvm(
 					auto valeur = new llvm::GlobalVariable(
 									  *contexte.module_llvm,
 									  type_llvm,
-									  true,
+									  !possede_drapeau(b->drapeaux, DYNAMIC),
 									  llvm::GlobalValue::InternalLinkage,
 									  nullptr);
 
@@ -1361,11 +1361,17 @@ llvm::Value *genere_code_llvm(
 								 contexte.contexte,
 								 chaine.c_str());
 
-			auto type_c_str = converti_type_llvm(contexte, contexte.typeuse[TypeBase::PTR_Z8]);
+
+			auto dt = DonneesTypeFinal{};
+			dt.pousse(id_morceau::TABLEAU | static_cast<int>(chaine.taille() << 8));
+			dt.pousse(id_morceau::Z8);
+
+			//auto type_c_str = converti_type_llvm(contexte, contexte.typeuse[TypeBase::PTR_Z8]);
+			auto type_c_str_tabl = converti_type_llvm(contexte, dt);
 
 			auto globale = new llvm::GlobalVariable(
 							   *contexte.module_llvm,
-							   type_c_str,
+							   type_c_str_tabl,
 							   true,
 							   llvm::GlobalValue::PrivateLinkage,
 							   constante,
@@ -1373,6 +1379,10 @@ llvm::Value *genere_code_llvm(
 
 			globale->setAlignment(1);
 			globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+
+			//auto type_char = converti_type_llvm(contexte, contexte.typeuse[TypeBase::Z8]);
+			//auto valeur_globale = accede_element_tableau(contexte, globale, type_c_str_tabl, 0ul);
+
 
 			/* crée la constante pour la taille */
 			auto valeur_taille = llvm::ConstantInt::get(
@@ -1389,11 +1399,25 @@ llvm::Value *genere_code_llvm(
 							 "",
 							 contexte.bloc_courant());
 
+			alloc->setAlignment(8);
+
 			auto membre_pointeur = accede_membre_structure(contexte, alloc, 0);
 			auto membre_taille = accede_membre_structure(contexte, alloc, 1);
 
-			new llvm::StoreInst(globale, membre_pointeur, false, contexte.bloc_courant());
-			new llvm::StoreInst(valeur_taille, membre_taille, false, contexte.bloc_courant());
+			auto valeur_globale = llvm::GetElementPtrInst::CreateInBounds(
+						nullptr,
+						globale, {
+							llvm::ConstantInt::get(llvm::Type::getInt64Ty(contexte.contexte), 0),
+							llvm::ConstantInt::get(llvm::Type::getInt64Ty(contexte.contexte), 0)
+						},
+						"",
+						contexte.bloc_courant());
+
+			auto charge = new llvm::StoreInst(valeur_globale, membre_pointeur, false, contexte.bloc_courant());
+			charge->setAlignment(8);
+
+			charge = new llvm::StoreInst(valeur_taille, membre_taille, false, contexte.bloc_courant());
+			charge->setAlignment(8);
 
 			return alloc;
 		}
@@ -2080,6 +2104,158 @@ llvm::Value *genere_code_llvm(
 	}
 
 	return nullptr;
+}
+static void traverse_graphe_pour_generation_code(
+		ContexteGenerationCode &contexte,
+		NoeudDependance *noeud)
+{
+	noeud->fut_visite = true;
+
+	for (auto const &relation : noeud->relations) {
+		auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
+		accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
+		accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+
+		if (!accepte) {
+			continue;
+		}
+
+		/* À FAIRE : dépendances cycliques :
+		 * - types qui s'incluent indirectement (listes chainées intrusives)
+		 * - fonctions recursives
+		 */
+		if (relation.noeud_fin->fut_visite) {
+			continue;
+		}
+
+		traverse_graphe_pour_generation_code(contexte, relation.noeud_fin);
+	}
+
+	if (noeud->noeud_syntactique == nullptr) {
+		// les types de bases n'ont pas de noeud syntaxique
+		return;
+	}
+
+	genere_code_llvm(noeud->noeud_syntactique, contexte, false);
+}
+
+static void genere_fonction_main(ContexteGenerationCode &contexte)
+{
+	// déclare une fonction de type int(int, char**) appelée main
+	auto type_int = llvm::Type::getInt32Ty(contexte.contexte);
+	auto type_argc = type_int;
+
+	llvm::Type *type_argv = llvm::Type::getInt8Ty(contexte.contexte);
+	type_argv = llvm::PointerType::get(type_argv, 0);
+	type_argv = llvm::PointerType::get(type_argv, 0);
+
+	std::vector<llvm::Type *> parametres;
+	parametres.push_back(type_argc);
+	parametres.push_back(type_argv);
+
+	auto type_fonction = llvm::FunctionType::get(type_int, parametres, false);
+
+	auto fonction = llvm::Function::Create(
+				type_fonction,
+				llvm::Function::ExternalLinkage,
+				"main",
+				contexte.module_llvm);
+
+	contexte.fonction = fonction;
+
+	auto block = cree_bloc(contexte, "entree");
+	contexte.bloc_courant(block);
+
+	// crée code pour les arguments
+	auto valeurs_args = fonction->arg_begin();
+
+	auto valeur = &(*valeurs_args++);
+	valeur->setName("argc");
+
+	auto alloc_argc = new llvm::AllocaInst(
+					 type_int,
+					 0,
+					 "argc",
+					 contexte.bloc_courant());
+
+	alloc_argc->setAlignment(4);
+	auto store_argc = new llvm::StoreInst(valeur, alloc_argc, false, contexte.bloc_courant());
+	store_argc->setAlignment(4);
+
+	valeur = &(*valeurs_args++);
+	valeur->setName("argv");
+
+	auto alloc_argv = new llvm::AllocaInst(
+					 type_argv,
+					 0,
+					 "argv",
+					 contexte.bloc_courant());
+
+	alloc_argv->setAlignment(8);
+	auto store_argv = new llvm::StoreInst(valeur, alloc_argv, false, contexte.bloc_courant());
+	store_argv->setAlignment(8);
+
+	// construit un tableau de type []*z8
+	auto type_tabl = contexte.typeuse[TypeBase::PTR_Z8];
+	type_tabl = contexte.typeuse.type_tableau_pour(type_tabl);
+
+	auto type_tabl_llvm = converti_type_llvm(contexte, type_tabl);
+	auto alloc_tabl = new llvm::AllocaInst(
+					 type_tabl_llvm,
+					 0,
+					 "tabl_args",
+					 contexte.bloc_courant());
+
+	auto membre_pointeur = accede_membre_structure(contexte, alloc_tabl, 0);
+	auto membre_taille = accede_membre_structure(contexte, alloc_tabl, 1);
+
+	new llvm::StoreInst(alloc_argv, membre_pointeur, false, contexte.bloc_courant());
+	new llvm::StoreInst(alloc_argc, membre_taille, false, contexte.bloc_courant());
+
+	// construit le contexte du programme
+
+	// appel notre fonction principale en passant le contexte et le tableau
+	auto fonc_princ = contexte.module_llvm->getFunction("principale");
+
+	std::vector<llvm::Value *> parametres_appel;
+	parametres_appel.push_back(alloc_tabl);
+
+	llvm::ArrayRef<llvm::Value *> args(parametres_appel);
+
+	auto valeur_princ = llvm::CallInst::Create(fonc_princ, args, "", contexte.bloc_courant());
+
+	// retourne 0
+	llvm::ReturnInst::Create(contexte.contexte, valeur_princ, contexte.bloc_courant());
+}
+
+void genere_code_llvm(
+		assembleuse_arbre const &arbre,
+		ContexteGenerationCode &contexte)
+{
+	auto racine = arbre.racine();
+
+	if (racine == nullptr) {
+		return;
+	}
+
+	if (racine->type != type_noeud::RACINE) {
+		return;
+	}
+
+	auto &graphe_dependance = contexte.graphe_dependance;
+	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction("principale");
+
+	if (noeud_fonction_principale == nullptr) {
+		erreur::fonction_principale_manquante();
+	}
+
+	auto temps_generation = dls::chrono::compte_seconde();
+
+	traverse_graphe_pour_generation_code(contexte, noeud_fonction_principale);
+
+	genere_fonction_main(contexte);
+
+	contexte.temps_generation = temps_generation.temps();
 }
 
 }  /* namespace noeud */

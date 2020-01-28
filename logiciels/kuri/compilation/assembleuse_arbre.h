@@ -92,11 +92,6 @@ public:
 	void imprime_code(std::ostream &os);
 
 	/**
-	 * Traverse l'arbre et génère le code LLVM.
-	 */
-	void genere_code_llvm(ContexteGenerationCode &contexte_generation);
-
-	/**
 	 * Indique que le noeud passé en paramètre est supprimé. En fait, le noeud
 	 * est ajouté à une liste de noeuds supprimés en fonction de son type, pour
 	 * pouvoir réutiliser sa mémoire en cas de besoin, évitant d'avoir à

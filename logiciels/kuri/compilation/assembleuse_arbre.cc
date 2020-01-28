@@ -118,17 +118,6 @@ void assembleuse_arbre::imprime_code(std::ostream &os)
 	os << "------------------------------------------------------------------\n";
 }
 
-#ifdef AVEC_LLVM
-void assembleuse_arbre::genere_code_llvm(ContexteGenerationCode &contexte_generation)
-{
-	if (m_pile.est_vide()) {
-		return;
-	}
-
-	noeud::genere_code_llvm(m_pile.haut(), contexte_generation, false);
-}
-#endif
-
 void assembleuse_arbre::supprime_noeud(noeud::base *noeud)
 {
 	this->noeuds_libres.pousse(noeud);

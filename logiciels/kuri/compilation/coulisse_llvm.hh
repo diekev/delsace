@@ -28,15 +28,18 @@ namespace llvm {
 class Value;
 }
 
+struct assembleuse_arbre;
 struct ContexteGenerationCode;
 
 namespace noeud {
 
 struct base;
 
-llvm::Value *genere_code_llvm(
-		base *b,
-		ContexteGenerationCode &contexte,
-		bool expr_gauche);
+/**
+ * Traverse l'arbre et génère le code LLVM.
+ */
+void genere_code_llvm(
+		assembleuse_arbre const &arbre,
+		ContexteGenerationCode &contexte);
 
 }  /* namespace noeud */
