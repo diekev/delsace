@@ -184,6 +184,10 @@ enum {
 	/* EINI */
 	POINTEUR_EINI = 0,
 	TYPE_EINI = 1,
+
+	/* CHAINE */
+	POINTEUR_CHAINE = 0,
+	TYPE_CHAINE = 1,
 };
 
 [[nodiscard]] static llvm::Value *accede_membre_structure(
@@ -536,6 +540,17 @@ llvm::Value *genere_code_llvm(
 		const bool expr_gauche)
 {
 	switch (b->type) {
+		case type_noeud::DECLARATION_COROUTINE:
+		case type_noeud::SINON:
+		case type_noeud::REPETE:
+		case type_noeud::EXPRESSION_PARENTHESE:
+		case type_noeud::ACCES_TABLEAU:
+		case type_noeud::OPERATION_COMP_CHAINEE:
+		case type_noeud::ACCES_MEMBRE_UNION:
+		{
+			/* À FAIRE */
+			return nullptr;
+		}
 		case type_noeud::RACINE:
 		{
 			auto temps_generation = dls::chrono::compte_seconde();
@@ -650,7 +665,7 @@ llvm::Value *genere_code_llvm(
 			}
 
 			/* Crée code pour le bloc. */
-			auto bloc = b->enfants.front();
+			auto bloc = b->enfants.back();
 			bloc->valeur_calculee = static_cast<llvm::BasicBlock *>(nullptr);
 			auto ret = genere_code_llvm(bloc, contexte, true);
 
@@ -671,6 +686,11 @@ llvm::Value *genere_code_llvm(
 				contexte.menageur_fonctions->run(*fonction);
 			}
 
+			return nullptr;
+		}
+		case type_noeud::LISTE_PARAMETRES_FONCTION:
+		{
+			/* RÀF */
 			return nullptr;
 		}
 		case type_noeud::APPEL_FONCTION:
@@ -787,8 +807,8 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::ACCES_MEMBRE_POINT:
 		{
-			auto structure = b->enfants.back();
-			auto membre = b->enfants.front();
+			auto structure = b->enfants.front();
+			auto membre = b->enfants.back();
 
 			auto const &index_type = structure->index_type;
 			auto type_structure = contexte.typeuse[index_type];
@@ -813,7 +833,19 @@ llvm::Value *genere_code_llvm(
 				return accede_membre_structure(contexte, valeur, TYPE_EINI, true);
 			}
 
-			/* À FAIRE : chaine */
+			if (type_structure.type_base() == id_morceau::CHAINE) {
+				auto valeur = genere_code_llvm(structure, contexte, true);
+
+				if (est_pointeur) {
+					valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+				}
+
+				if (membre->chaine() == "pointeur") {
+					return accede_membre_structure(contexte, valeur, POINTEUR_CHAINE, true);
+				}
+
+				return accede_membre_structure(contexte, valeur, TYPE_CHAINE, true);
+			}
 
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
 				if (!contexte.non_sur() && expr_gauche) {
@@ -886,7 +918,7 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
-			assert(b->enfants.size() == 2);
+			assert(b->enfants.taille() == 2);
 
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
@@ -916,7 +948,7 @@ llvm::Value *genere_code_llvm(
 			auto alloc = genere_code_llvm(variable, contexte, true);
 
 			if (variable->aide_generation_code == GENERE_CODE_DECL_VAR && contexte.fonction == nullptr) {
-				assert(est_constant(expression));
+				//assert(est_constant(expression));
 				auto vg = llvm::dyn_cast<llvm::GlobalVariable>(alloc);
 				vg->setInitializer(llvm::dyn_cast<llvm::Constant>(valeur));
 				return vg;
@@ -1298,10 +1330,18 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::RETOUR:
 		{
+			return llvm::ReturnInst::Create(contexte.contexte, nullptr, contexte.bloc_courant());
+		}
+		case type_noeud::RETOUR_MULTIPLE:
+		{
+			return nullptr;
+		}
+		case type_noeud::RETOUR_SIMPLE:
+		{
 			llvm::Value *valeur = nullptr;
 
 			if (!b->enfants.est_vide()) {
-				assert(b->enfants.size() == 1);
+				assert(b->enfants.taille() == 1);
 				valeur = genere_code_llvm(b->enfants.front(), contexte, false);
 			}
 
@@ -1314,17 +1354,18 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
-			auto chaine = std::any_cast<std::string>(b->valeur_calculee);
+			auto chaine = std::any_cast<dls::chaine>(b->valeur_calculee);
 
+			/* crée la constante pour une chaine C */
 			auto constante = llvm::ConstantDataArray::getString(
 								 contexte.contexte,
-								 chaine);
+								 chaine.c_str());
 
-			auto type = converti_type_llvm(contexte, b->index_type);
+			auto type_c_str = converti_type_llvm(contexte, contexte.typeuse[TypeBase::PTR_Z8]);
 
 			auto globale = new llvm::GlobalVariable(
 							   *contexte.module_llvm,
-							   type,
+							   type_c_str,
 							   true,
 							   llvm::GlobalValue::PrivateLinkage,
 							   constante,
@@ -1333,7 +1374,28 @@ llvm::Value *genere_code_llvm(
 			globale->setAlignment(1);
 			globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
 
-			return accede_membre_structure(contexte, globale, 0);
+			/* crée la constante pour la taille */
+			auto valeur_taille = llvm::ConstantInt::get(
+						  llvm::Type::getInt64Ty(contexte.contexte),
+						  static_cast<uint64_t>(chaine.taille()),
+						  false);
+
+			/* crée la chaine */
+			auto type = converti_type_llvm(contexte, b->index_type);
+
+			auto alloc = new llvm::AllocaInst(
+							 type,
+							 0,
+							 "",
+							 contexte.bloc_courant());
+
+			auto membre_pointeur = accede_membre_structure(contexte, alloc, 0);
+			auto membre_taille = accede_membre_structure(contexte, alloc, 1);
+
+			new llvm::StoreInst(globale, membre_pointeur, false, contexte.bloc_courant());
+			new llvm::StoreInst(valeur_taille, membre_taille, false, contexte.bloc_courant());
+
+			return alloc;
 		}
 		case type_noeud::BOOLEEN:
 		{
@@ -1874,7 +1936,7 @@ llvm::Value *genere_code_llvm(
 
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			if (est_calcule) {
-				assert(static_cast<long>(taille_tableau) == std::any_cast<long>(b->valeur_calculee));
+				assert(taille_tableau == std::any_cast<long>(b->valeur_calculee));
 			}
 
 			auto &type = contexte.typeuse[b->index_type];

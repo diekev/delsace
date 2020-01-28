@@ -447,11 +447,11 @@ int main(int argc, char *argv[])
 									 cible->createTargetMachine(
 										 triplet_cible, CPU, feature, options_cible, RM));
 
-			auto module = llvm::Module("Module", contexte_generation.contexte);
-			module.setDataLayout(machine_cible->createDataLayout());
-			module.setTargetTriple(triplet_cible);
+			auto module_llvm = llvm::Module("Module", contexte_generation.contexte);
+			module_llvm.setDataLayout(machine_cible->createDataLayout());
+			module_llvm.setTargetTriple(triplet_cible);
 
-			contexte_generation.module_llvm = &module;
+			contexte_generation.module_llvm = &module_llvm;
 
 			initialise_optimisation(ops.optimisation, contexte_generation);
 
@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
 
 			//if (ops.emet_code_intermediaire) {
 				std::cerr <<  "------------------------------------------------------------------\n";
-				module.print(llvm::errs(), nullptr);
+				module_llvm.print(llvm::errs(), nullptr);
 				std::cerr <<  "------------------------------------------------------------------\n";
 			//}
 
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 //			if (ops.emet_fichier_objet) {
 //				os << "Écriture du code dans un fichier..." << std::endl;
 //				//auto debut_fichier_objet = dls::chrono::maintenant();
-//				if (!ecris_fichier_objet(machine_cible.get(), module)) {
+//				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
 //					resultat = 1;
 //				}
 //				//temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
