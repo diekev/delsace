@@ -54,6 +54,8 @@ fonc externe free(ptr : *rien) : rien
             retourne nul
         }
     }
+
+    retourne nul
 }
 
 # Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
