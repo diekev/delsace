@@ -38,21 +38,22 @@
 #pragma GCC diagnostic pop
 
 #include "contexte_generation_code.h"
+#include "conversion_type_llvm.hh"
 #include "donnees_type.h"
 
 [[nodiscard]] static auto obtiens_type_pour(
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom_struct)
+		dls::vue_chaine_compacte const &nom_struct)
 {
 	auto index_struct_info = contexte.donnees_structure(nom_struct).id;
 
-	auto dt_info = DonneesType{};
+	auto dt_info = DonneesTypeFinal{};
 	dt_info.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
 
-	index_struct_info = contexte.magasin_types.ajoute_type(dt_info);
-	auto &ref_dt_info = contexte.magasin_types.donnees_types[index_struct_info];
+	index_struct_info = contexte.typeuse.ajoute_type(dt_info);
+	auto &ref_dt_info = contexte.typeuse[index_struct_info];
 
-	return converti_type(contexte, ref_dt_info);
+	return converti_type_llvm(contexte, ref_dt_info);
 }
 
 [[nodiscard]] static auto cree_info_type_reel(
@@ -131,7 +132,7 @@
 
 [[nodiscard]] static auto cree_info_type_defaut(
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom_type)
+		dls::vue_chaine_compacte const &nom_type)
 {
 	auto type_llvm = obtiens_type_pour(contexte, "InfoType");
 
@@ -160,7 +161,7 @@
 
 [[nodiscard]] static auto cree_info_type_pointeur(
 		ContexteGenerationCode &contexte,
-		std::string_view const &nom_type,
+		dls::vue_chaine_compacte const &nom_type,
 		llvm::GlobalVariable *valeur_pointee)
 {
 	auto type_llvm = obtiens_type_pour(contexte, "InfoTypePointeur");
@@ -190,7 +191,7 @@
 
 llvm::Value *cree_info_type(
 		ContexteGenerationCode &contexte,
-		DonneesType &donnees_type)
+		DonneesTypeFinal &donnees_type)
 {
 	auto valeur = static_cast<llvm::Value *>(nullptr);
 
@@ -247,8 +248,7 @@ llvm::Value *cree_info_type(
 		}
 		case id_morceau::R16:
 		{
-			/* À FAIRE : type r16 */
-			valeur = cree_info_type_reel(contexte, 32);
+			valeur = cree_info_type_reel(contexte, 16);
 			break;
 		}
 		case id_morceau::R32:
@@ -263,14 +263,15 @@ llvm::Value *cree_info_type(
 		}
 		case id_morceau::POINTEUR:
 		{
-			auto deref = donnees_type.derefence();
-			auto valeur_pointee = cree_info_type(contexte, deref);
-			valeur = cree_info_type_pointeur(contexte, "TYPE_POINTEUR", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
+			// À FAIRE
+//			auto deref = donnees_type.dereference();
+//			auto valeur_pointee = cree_info_type(contexte, deref);
+//			valeur = cree_info_type_pointeur(contexte, "TYPE_POINTEUR", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
 			break;
 		}
 		case id_morceau::CHAINE_CARACTERE:
 		{
-			auto id_structure = static_cast<size_t>(donnees_type.type_base() >> 8);
+			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
 
 			/* À FAIRE : tableaux. */
@@ -282,19 +283,19 @@ llvm::Value *cree_info_type(
 
 			for (auto &arg : donnees_structure.donnees_membres) {
 				/* { nom : []z8, info : *InfoType } */
-				auto id_dt = donnees_structure.donnees_types[arg.second.index_membre];
-				auto &ref_membre = contexte.magasin_types.donnees_types[id_dt];
+				auto id_dt = donnees_structure.index_types[arg.second.index_membre];
+				auto &ref_membre = contexte.typeuse[id_dt];
 
 				auto info_type = cree_info_type(contexte, ref_membre);
 
 				auto constante = llvm::ConstantDataArray::getString(
 									 contexte.contexte,
-									 std::string(arg.first));
+									 dls::chaine(arg.first).c_str());
 
-				auto dt_nom = DonneesType{};
-				dt_nom.pousse(id_morceau::TABLEAU | static_cast<id_morceau>(arg.first.size() << 8));
+				auto dt_nom = DonneesTypeFinal{};
+				dt_nom.pousse(id_morceau::TABLEAU | static_cast<id_morceau>(arg.first.taille() << 8));
 				dt_nom.pousse(id_morceau::Z8);
-				auto type = converti_type(contexte, dt_nom);
+				auto type = converti_type_llvm(contexte, dt_nom);
 
 				auto nom = new llvm::GlobalVariable(
 								   *contexte.module_llvm,
@@ -339,7 +340,7 @@ llvm::Value *cree_info_type(
 
 			llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id->getInitializer(), globale_ };
 
-			auto type_llvm = converti_type(contexte, donnees_type);
+			auto type_llvm = converti_type_llvm(contexte, donnees_type);
 
 			auto constant = llvm::ConstantStruct::get(
 								static_cast<llvm::StructType *>(type_llvm),
@@ -358,12 +359,13 @@ llvm::Value *cree_info_type(
 		}
 		case id_morceau::TABLEAU:
 		{
-			auto deref = donnees_type.derefence();
-			auto valeur_pointee = cree_info_type(contexte, deref);
-			valeur = cree_info_type_pointeur(contexte, "TYPE_TABLEAU", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
+			// À FAIRE
+//			auto deref = donnees_type.dereference();
+//			auto valeur_pointee = cree_info_type(contexte, deref);
+//			valeur = cree_info_type_pointeur(contexte, "TYPE_TABLEAU", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
 			break;
 		}
-		case id_morceau::FONCTION:
+		case id_morceau::FONC:
 		{
 			valeur = cree_info_type_defaut(contexte, "TYPE_FONCTION");
 			break;

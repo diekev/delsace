@@ -35,6 +35,10 @@ class Type;
 
 [[nodiscard]] llvm::Type *converti_type_llvm(
 		ContexteGenerationCode &contexte,
+		long index_type);
+
+[[nodiscard]] llvm::Type *converti_type_llvm(
+		ContexteGenerationCode &contexte,
 		DonneesTypeFinal &donnees_type);
 
 [[nodiscard]] llvm::Type *converti_type_simple_llvm(

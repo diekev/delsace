@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 
 			initialise_llvm();
 
-			auto erreur = dls::chaine{""};
+			auto erreur = std::string{""};
 			auto cible = llvm::TargetRegistry::lookupTarget(triplet_cible, erreur);
 
 			if (!cible) {
@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
 									 cible->createTargetMachine(
 										 triplet_cible, CPU, feature, options_cible, RM));
 
-			auto module = llvm::Module(nom_module.c_str(), contexte_generation.contexte);
+			auto module = llvm::Module("Module", contexte_generation.contexte);
 			module.setDataLayout(machine_cible->createDataLayout());
 			module.setTargetTriple(triplet_cible);
 
@@ -455,30 +455,31 @@ int main(int argc, char *argv[])
 
 			initialise_optimisation(ops.optimisation, contexte_generation);
 
+			os << "Validation sémantique du code..." << std::endl;
+			noeud::performe_validation_semantique(assembleuse, contexte_generation);
+
 			os << "Génération du code..." << std::endl;
 			assembleuse.genere_code_llvm(contexte_generation);
-			mem_arbre = assembleuse.memoire_utilisee();
-			nombre_noeuds = assembleuse.nombre_noeuds();
 
-			if (ops.emet_code_intermediaire) {
+			//if (ops.emet_code_intermediaire) {
 				std::cerr <<  "------------------------------------------------------------------\n";
 				module.print(llvm::errs(), nullptr);
 				std::cerr <<  "------------------------------------------------------------------\n";
-			}
+			//}
 
 			/* définition du fichier de sortie */
-			if (ops.emet_fichier_objet) {
-				os << "Écriture du code dans un fichier..." << std::endl;
-				auto debut_fichier_objet = dls::chrono::maintenant();
-				if (!ecris_fichier_objet(machine_cible.get(), module)) {
-					resultat = 1;
-				}
-				temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
+//			if (ops.emet_fichier_objet) {
+//				os << "Écriture du code dans un fichier..." << std::endl;
+//				//auto debut_fichier_objet = dls::chrono::maintenant();
+//				if (!ecris_fichier_objet(machine_cible.get(), module)) {
+//					resultat = 1;
+//				}
+//				//temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
 
-				auto debut_executable = dls::chrono::maintenant();
-				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
-				temps_executable = dls::chrono::delta(debut_executable);
-			}
+//				//auto debut_executable = dls::chrono::maintenant();
+//				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
+//				//temps_executable = dls::chrono::delta(debut_executable);
+//			}
 		}
 		else
 #endif

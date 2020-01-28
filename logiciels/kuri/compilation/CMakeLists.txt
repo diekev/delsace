@@ -80,7 +80,6 @@ set(SOURCES
 )
 
 if(AVEC_LLVM)
-	add_definitions(-DAVEC_LLVM)
 	list(APPEND INCLUSIONS ${LLVM_INCLUDE_DIR})
 	list(APPEND BIBLIOTHEQUES /usr/lib/llvm-6.0/lib/libLLVM.so) # À FAIRE
 	list(APPEND SOURCES coulisse_llvm.cc coulisse_llvm.hh info_type.cc info_type.hh conversion_type_llvm.cc conversion_type_llvm.hh)

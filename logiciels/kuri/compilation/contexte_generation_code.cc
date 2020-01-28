@@ -305,7 +305,7 @@ void ContexteGenerationCode::pousse_globale(const dls::vue_chaine_compacte &nom,
 #ifdef AVEC_LLVM
 llvm::Value *ContexteGenerationCode::valeur_globale(const dls::vue_chaine_compacte &nom)
 {
-	auto iter = globales.find(nom);
+	auto iter = globales.trouve(nom);
 
 	if (iter == globales.fin()) {
 		return nullptr;

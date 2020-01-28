@@ -26,6 +26,10 @@
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
+#include "biblinternes/outils/chaine.hh"
+#include "biblinternes/outils/conditions.h"
+
+using dls::outils::possede_drapeau;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
@@ -49,6 +53,8 @@
 #include "modules.hh"
 #include "outils_morceaux.hh"
 #include "validation_semantique.hh"
+
+using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 #undef NOMME_IR
 
@@ -342,42 +348,43 @@ enum {
 		ContexteGenerationCode &contexte,
 		base *enfant)
 {
-	auto conversion = (enfant->drapeaux & MASQUE_CONVERSION) != 0;
-	auto valeur_enfant = genere_code_llvm(enfant, contexte, conversion);
+	// À FAIRE(transformation)
+	//auto conversion = (enfant->drapeaux & MASQUE_CONVERSION) != 0;
+	auto valeur_enfant = genere_code_llvm(enfant, contexte, true);
 
-	if (conversion) {
-		auto &dt = contexte.typeuse[enfant->index_type];
+//	if (conversion) {
+//		auto &dt = contexte.typeuse[enfant->index_type];
 
-		if ((enfant->drapeaux & CONVERTI_TABLEAU) != 0) {
-			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt, false);
-		}
+//		if ((enfant->drapeaux & CONVERTI_TABLEAU) != 0) {
+//			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt, false);
+//		}
 
-		if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-			valeur_enfant = converti_vers_eini(contexte, valeur_enfant, dt, false);
-		}
+//		if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
+//			valeur_enfant = converti_vers_eini(contexte, valeur_enfant, dt, false);
+//		}
 
-		if ((enfant->drapeaux & EXTRAIT_EINI) != 0) {
-			auto ptr_valeur = accede_membre_structure(contexte, valeur_enfant, POINTEUR_EINI);
+//		if ((enfant->drapeaux & EXTRAIT_EINI) != 0) {
+//			auto ptr_valeur = accede_membre_structure(contexte, valeur_enfant, POINTEUR_EINI);
 
-			/* déréfence ce pointeur */
-			auto charge = new llvm::LoadInst(ptr_valeur, "", false, contexte.bloc_courant());
-			charge->setAlignment(8);
+//			/* déréfence ce pointeur */
+//			auto charge = new llvm::LoadInst(ptr_valeur, "", false, contexte.bloc_courant());
+//			charge->setAlignment(8);
 
-			/* transtype le pointeur vers le bon type */
-			auto dt_vers = DonneesTypeFinal{};
-			dt_vers.pousse(id_morceau::POINTEUR);
-			dt_vers.pousse(contexte.typeuse[enfant->index_type]);
+//			/* transtype le pointeur vers le bon type */
+//			auto dt_vers = DonneesTypeFinal{};
+//			dt_vers.pousse(id_morceau::POINTEUR);
+//			dt_vers.pousse(contexte.typeuse[enfant->index_type]);
 
-			auto type_llvm = converti_type_llvm(contexte, dt_vers);
-			valeur_enfant = new llvm::BitCastInst(charge, type_llvm, "", contexte.bloc_courant());
+//			auto type_llvm = converti_type_llvm(contexte, dt_vers);
+//			valeur_enfant = new llvm::BitCastInst(charge, type_llvm, "", contexte.bloc_courant());
 
-			/* déréfence ce pointeur : après la portée */
-		}
+//			/* déréfence ce pointeur : après la portée */
+//		}
 
-		auto charge = new llvm::LoadInst(valeur_enfant, "", contexte.bloc_courant());
-		//charge->setAlignment(8);
-		valeur_enfant = charge;
-	}
+//		auto charge = new llvm::LoadInst(valeur_enfant, "", contexte.bloc_courant());
+//		//charge->setAlignment(8);
+//		valeur_enfant = charge;
+//	}
 
 	return valeur_enfant;
 }
@@ -531,23 +538,20 @@ llvm::Value *genere_code_llvm(
 	switch (b->type) {
 		case type_noeud::RACINE:
 		{
-			auto temps_validation = 0.0;
-			auto temps_generation = 0.0;
+			auto temps_generation = dls::chrono::compte_seconde();
 
 			for (auto noeud : b->enfants) {
-				auto debut_generation = dls::chrono::maintenant();
 				genere_code_llvm(noeud, contexte, true);
-				temps_generation += dls::chrono::delta(debut_generation);
 			}
 
-			contexte.temps_generation = temps_generation;
-			contexte.temps_validation = temps_validation;
+			contexte.temps_generation = temps_generation.temps();
 
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
-			auto module = contexte.module(static_cast<size_t>(b->morceau.module));
+			auto fichier = contexte.fichier(static_cast<size_t>(b->morceau.fichier));
+			auto module = fichier->module;
 			auto &vdf = module->donnees_fonction(b->morceau.chaine);
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
 
@@ -572,7 +576,7 @@ llvm::Value *genere_code_llvm(
 									 contexte,
 									 *donnees_fonction,
 									 this_dt,
-									 (b->drapeaux & VARIADIC) != 0);
+									 donnees_fonction->est_variadique);
 
 			contexte.typeuse[donnees_fonction->index_type].type_llvm(type_fonction);
 
@@ -582,7 +586,7 @@ llvm::Value *genere_code_llvm(
 			auto fonction = llvm::Function::Create(
 								type_fonction,
 								llvm::Function::ExternalLinkage,
-								donnees_fonction->nom_broye,
+								donnees_fonction->nom_broye.c_str(),
 								contexte.module_llvm);
 
 			if (est_externe) {
@@ -642,7 +646,7 @@ llvm::Value *genere_code_llvm(
 				donnees_var.est_variadic = argument.est_variadic;
 				donnees_var.index_type = index_type;
 
-				contexte.pousse_locale(nom, donnees_var);
+				contexte.pousse_locale(argument.nom, donnees_var);
 			}
 
 			/* Crée code pour le bloc. */
@@ -683,7 +687,7 @@ llvm::Value *genere_code_llvm(
 				return cree_appel(contexte, charge, b->enfants);
 			}
 
-			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel);
+			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
 			return cree_appel(contexte, fonction, b->enfants);
 		}
 		case type_noeud::VARIABLE:
@@ -764,7 +768,7 @@ llvm::Value *genere_code_llvm(
 				valeur = contexte.valeur_globale(b->morceau.chaine);
 
 				if (valeur == nullptr && b->nom_fonction_appel != "") {
-					valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel);
+					valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
 					return valeur;
 				}
 			}
@@ -781,7 +785,7 @@ llvm::Value *genere_code_llvm(
 
 			return charge;
 		}
-		case type_noeud::ACCES_MEMBRE:
+		case type_noeud::ACCES_MEMBRE_POINT:
 		{
 			auto structure = b->enfants.back();
 			auto membre = b->enfants.front();
@@ -845,7 +849,7 @@ llvm::Value *genere_code_llvm(
 				return accede_membre_structure(contexte, valeur, true, TAILLE_TABLEAU);
 			}
 
-			auto index_structure = size_t(type_structure.type_base() >> 8);
+			auto index_structure = long(type_structure.type_base() >> 8);
 
 			auto const &nom_membre = membre->chaine();
 
@@ -869,7 +873,7 @@ llvm::Value *genere_code_llvm(
 				valeur = charge;
 			}
 
-			ret = accede_membre_structure(contexte, valeur, index_membre);
+			ret = accede_membre_structure(contexte, valeur, static_cast<size_t>(index_membre));
 
 			if (!expr_gauche) {
 				auto charge = new llvm::LoadInst(ret, "", contexte.bloc_courant());
@@ -880,10 +884,6 @@ llvm::Value *genere_code_llvm(
 
 			return ret;
 		}
-		case type_noeud::ACCES_MEMBRE_POINT:
-		{
-			return genere_code_llvm(b->enfants.back(), contexte, true);
-		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
 			assert(b->enfants.size() == 2);
@@ -891,20 +891,22 @@ llvm::Value *genere_code_llvm(
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
 
-			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
+			// À FAIRE(transformation)
 
-			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_TABLEAU;
-			}
+//			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
 
-			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= CONVERTI_EINI;
-			}
+//			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
+//				expression->drapeaux |= CONVERTI_TABLEAU;
+//			}
 
-			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
-				expression->drapeaux |= EXTRAIT_EINI;
-				expression->index_type = variable->index_type;
-			}
+//			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
+//				expression->drapeaux |= CONVERTI_EINI;
+//			}
+
+//			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
+//				expression->drapeaux |= EXTRAIT_EINI;
+//				expression->index_type = variable->index_type;
+//			}
 
 			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 			 * la variable sur la pile et celle de stockage de la valeur soit côte à
@@ -931,7 +933,7 @@ llvm::Value *genere_code_llvm(
 		{
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
-												converti_chaine_nombre_reel(
+												denombreuse::converti_chaine_nombre_reel(
 													b->morceau.chaine,
 													b->morceau.identifiant);
 
@@ -943,7 +945,7 @@ llvm::Value *genere_code_llvm(
 		{
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
-												converti_chaine_nombre_entier(
+												denombreuse::converti_chaine_nombre_entier(
 													b->morceau.chaine,
 													b->morceau.identifiant);
 
@@ -967,16 +969,6 @@ llvm::Value *genere_code_llvm(
 
 			auto const &type1 = contexte.typeuse[index_type1];
 			auto &type2 = contexte.typeuse[index_type2];
-
-			if ((b->morceau.identifiant != id_morceau::CROCHET_OUVRANT)) {
-				if (!peut_operer(type1, type2, enfant1->type, enfant2->type)) {
-					erreur::lance_erreur_type_operation(
-								type1,
-								type2,
-								contexte,
-								b->morceau);
-				}
-			}
 
 			/* À FAIRE : typage */
 
@@ -1355,7 +1347,7 @@ llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::CARACTERE:
 		{
-			auto valeur = caractere_echape(&b->morceau.chaine[0]);
+			auto valeur = dls::caractere_echappe(&b->morceau.chaine[0]);
 
 			return llvm::ConstantInt::get(
 						llvm::Type::getInt8Ty(contexte.contexte),
@@ -1534,7 +1526,7 @@ llvm::Value *genere_code_llvm(
 				noeud_phi = llvm::PHINode::Create(
 								converti_type_llvm(contexte, index_type),
 								2,
-								std::string(enfant1->chaine()),
+								dls::chaine(enfant1->chaine()).c_str(),
 								contexte.bloc_courant());
 			}
 			else if (enfant2->type == type_noeud::VARIABLE) {
@@ -1542,7 +1534,7 @@ llvm::Value *genere_code_llvm(
 								tableau ? llvm::Type::getInt64Ty(contexte.contexte)
 										: llvm::Type::getInt32Ty(contexte.contexte),
 								2,
-								std::string(enfant1->chaine()),
+								dls::chaine(enfant1->chaine()).c_str(),
 								contexte.bloc_courant());
 			}
 

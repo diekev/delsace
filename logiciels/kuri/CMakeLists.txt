@@ -25,7 +25,7 @@ option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
 
 if(AVEC_LLVM)
 	find_package(LLVM REQUIRED)
-	add_definitions(AVEC_LLVM)
+	add_definitions(-DAVEC_LLVM)
 endif()
 
 # ------------------------------------------------------------------------------

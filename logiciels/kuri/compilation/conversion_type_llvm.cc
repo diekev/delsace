@@ -94,7 +94,7 @@ static llvm::Type *converti_type(
 
 llvm::Type *converti_type_llvm(
 		ContexteGenerationCode &contexte,
-		const DonneesTypeFinal &donnees)
+		DonneesTypeFinal &donnees)
 {
 	auto index = contexte.typeuse.ajoute_type(donnees);
 	auto &dt = contexte.typeuse[index];
@@ -103,9 +103,9 @@ llvm::Type *converti_type_llvm(
 
 llvm::Type *converti_type_llvm(
 		ContexteGenerationCode &contexte,
-		long index)
+		long index_type)
 {
-	auto &dt = contexte.typeuse[index];
+	auto &dt = contexte.typeuse[index_type];
 	return converti_type(contexte, dt);
 }
 

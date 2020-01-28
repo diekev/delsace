@@ -93,6 +93,12 @@ struct DonneesTypeDeclare {
 
 /* ************************************************************************** */
 
+#ifdef AVEC_LLVM
+namespace llvm {
+class Type;
+}
+#endif
+
 /**
  * Classe pour gérer les données du type d'une variable ou d'une constante. En
  * l'espèce, la classe contient un vecteur qui peut contenir un nombre variable
