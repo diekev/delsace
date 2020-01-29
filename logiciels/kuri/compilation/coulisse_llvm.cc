@@ -76,7 +76,6 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  * - déclaration structure/énum/union
  * - discr
  * - ajourne la génération de code pour les boucles 'pour'
- * - saufsi
  * - trace de la mémoire utilisée
  * - retiens
  * - contexte implicit
@@ -1367,6 +1366,10 @@ static llvm::Value *genere_code_llvm(
 			auto enfant1 = *iter_enfant++;
 
 			auto condition = genere_code_llvm(enfant1, contexte, false);
+
+			if (b->type == type_noeud::SAUFSI) {
+				condition = llvm::BinaryOperator::Create(llvm::Instruction::Xor, condition, condition, "", contexte.bloc_courant());
+			}
 
 			auto bloc_alors = cree_bloc(contexte, "alors");
 
