@@ -553,7 +553,6 @@ static llvm::Value *genere_code_llvm(
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::SINON:
 		case type_noeud::REPETE:
-		case type_noeud::EXPRESSION_PARENTHESE:
 		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
 		case type_noeud::ACCES_MEMBRE_UNION:
@@ -564,6 +563,10 @@ static llvm::Value *genere_code_llvm(
 		case type_noeud::RACINE:
 		{
 			return nullptr;
+		}
+		case type_noeud::EXPRESSION_PARENTHESE:
+		{
+			return genere_code_llvm(b->enfants.front(), contexte, expr_gauche);
 		}
 		case type_noeud::DECLARATION_FONCTION:
 		{
