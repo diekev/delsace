@@ -358,11 +358,12 @@ enum {
 
 [[nodiscard]] static llvm::Value *genere_code_enfant(
 		ContexteGenerationCode &contexte,
-		base *enfant)
+		base *enfant,
+		bool expr_gauche)
 {
 	// À FAIRE(transformation)
 	//auto conversion = (enfant->drapeaux & MASQUE_CONVERSION) != 0;
-	auto valeur_enfant = genere_code_llvm(enfant, contexte, true);
+	auto valeur_enfant = genere_code_llvm(enfant, contexte, expr_gauche);
 
 //	if (conversion) {
 //		auto &dt = contexte.typeuse[enfant->index_type];
@@ -412,7 +413,7 @@ llvm::Value *cree_appel(
 	std::transform(conteneur.debut(), conteneur.fin(), parametres.begin(),
 				   [&](base *noeud_enfant)
 	{
-		return genere_code_enfant(contexte, noeud_enfant);
+		return genere_code_enfant(contexte, noeud_enfant, false);
 	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -943,7 +944,7 @@ static llvm::Value *genere_code_llvm(
 			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 			 * la variable sur la pile et celle de stockage de la valeur soit côte à
 			 * côte. */
-			auto valeur = genere_code_enfant(contexte, expression);
+			auto valeur = genere_code_enfant(contexte, expression, false);
 
 			auto alloc = genere_code_llvm(variable, contexte, true);
 
@@ -1354,70 +1355,34 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::CHAINE_LITTERALE:
 		{
+			auto builder = llvm::IRBuilder<>(contexte.contexte);
+			builder.SetInsertPoint(contexte.bloc_courant());
+
 			auto chaine = std::any_cast<dls::chaine>(b->valeur_calculee);
 
-			/* crée la constante pour une chaine C */
-			auto constante = llvm::ConstantDataArray::getString(
-								 contexte.contexte,
-								 chaine.c_str());
-
-
-			auto dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::TABLEAU | static_cast<int>(chaine.taille() << 8));
-			dt.pousse(id_morceau::Z8);
-
-			//auto type_c_str = converti_type_llvm(contexte, contexte.typeuse[TypeBase::PTR_Z8]);
-			auto type_c_str_tabl = converti_type_llvm(contexte, dt);
-
-			auto globale = new llvm::GlobalVariable(
-							   *contexte.module_llvm,
-							   type_c_str_tabl,
-							   true,
-							   llvm::GlobalValue::PrivateLinkage,
-							   constante,
-							   ".chn");
-
-			globale->setAlignment(1);
-			globale->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-
-			//auto type_char = converti_type_llvm(contexte, contexte.typeuse[TypeBase::Z8]);
-			//auto valeur_globale = accede_element_tableau(contexte, globale, type_c_str_tabl, 0ul);
-
+			auto pointeur_chaine_c = builder.CreateGlobalStringPtr(chaine.c_str());
 
 			/* crée la constante pour la taille */
-			auto valeur_taille = llvm::ConstantInt::get(
-						  llvm::Type::getInt64Ty(contexte.contexte),
-						  static_cast<uint64_t>(chaine.taille()),
-						  false);
+			auto valeur_taille = builder.getInt64(static_cast<uint64_t>(chaine.taille()));
 
 			/* crée la chaine */
 			auto type = converti_type_llvm(contexte, b->index_type);
 
-			auto alloc = new llvm::AllocaInst(
-							 type,
-							 0,
-							 "",
-							 contexte.bloc_courant());
-
+			auto alloc = builder.CreateAlloca(type, 0u);
 			alloc->setAlignment(8);
 
+			/* assigne le pointeur et la taille */
 			auto membre_pointeur = accede_membre_structure(contexte, alloc, 0);
+			auto charge = builder.CreateStore(pointeur_chaine_c, membre_pointeur);
+			charge->setAlignment(8);
+
 			auto membre_taille = accede_membre_structure(contexte, alloc, 1);
-
-			auto valeur_globale = llvm::GetElementPtrInst::CreateInBounds(
-						nullptr,
-						globale, {
-							llvm::ConstantInt::get(llvm::Type::getInt64Ty(contexte.contexte), 0),
-							llvm::ConstantInt::get(llvm::Type::getInt64Ty(contexte.contexte), 0)
-						},
-						"",
-						contexte.bloc_courant());
-
-			auto charge = new llvm::StoreInst(valeur_globale, membre_pointeur, false, contexte.bloc_courant());
+			charge = builder.CreateStore(valeur_taille, membre_taille);
 			charge->setAlignment(8);
 
-			charge = new llvm::StoreInst(valeur_taille, membre_taille, false, contexte.bloc_courant());
-			charge->setAlignment(8);
+			if (!expr_gauche) {
+				return builder.CreateLoad(alloc, "");
+			}
 
 			return alloc;
 		}
@@ -1983,7 +1948,7 @@ static llvm::Value *genere_code_llvm(
 			auto index = 0ul;
 
 			for (auto enfant : b->enfants) {
-				auto valeur_enfant = genere_code_enfant(contexte, enfant);
+				auto valeur_enfant = genere_code_enfant(contexte, enfant, false);
 
 				auto index_tableau = accede_element_tableau(
 										 contexte,
@@ -2019,7 +1984,7 @@ static llvm::Value *genere_code_llvm(
 			auto index = 0ul;
 
 			for (auto f : feuilles) {
-				auto valeur = genere_code_enfant(contexte, f);
+				auto valeur = genere_code_enfant(contexte, f, false);
 
 				auto index_tableau = accede_element_tableau(
 										 contexte,
