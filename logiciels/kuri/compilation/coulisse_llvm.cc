@@ -853,14 +853,6 @@ static llvm::Value *genere_code_llvm(
 			}
 
 			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
-				if (!contexte.non_sur() && expr_gauche) {
-					erreur::lance_erreur(
-								"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::ASSIGNATION_INVALIDE);
-				}
-
 				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
 
 				if (taille != 0) {
@@ -1074,55 +1066,19 @@ static llvm::Value *genere_code_llvm(
 					else if (est_type_entier_relatif(type1.type_base())) {
 						instr = llvm::Instruction::AShr;
 					}
-					else {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour le décalage !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
 					break;
 				case id_morceau::DECALAGE_GAUCHE:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour le décalage !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-
 					instr = llvm::Instruction::Shl;
 					break;
 				case id_morceau::ESPERLUETTE:
 				case id_morceau::ESP_ESP:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour l'opération binaire !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
 					instr = llvm::Instruction::And;
 					break;
 				case id_morceau::BARRE:
 				case id_morceau::BARRE_BARRE:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour l'opération binaire !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
 					instr = llvm::Instruction::Or;
 					break;
 				case id_morceau::CHAPEAU:
-					if (!est_type_entier(type1.type_base())) {
-						erreur::lance_erreur(
-									"Besoin d'un type entier pour l'opération binaire !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
 					instr = llvm::Instruction::Xor;
 					break;
 					/* À FAIRE. */
@@ -1213,14 +1169,6 @@ static llvm::Value *genere_code_llvm(
 					/* À FAIRE : la compilation de l'opérateur du crochet
 					 * ouvrant a été changé, vérifié si c'est toujours correcte
 					 */
-					if (type1.type_base() != id_morceau::POINTEUR && (type1.type_base() & 0xff) != id_morceau::TABLEAU) {
-						erreur::lance_erreur(
-									"Le type ne peut être déréférencé !",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_DIFFERENTS);
-					}
-
 					llvm::Value *valeur;
 
 					if (type2.type_base() == id_morceau::POINTEUR) {
@@ -1857,11 +1805,7 @@ static llvm::Value *genere_code_llvm(
 			}
 
 			/* À FAIRE : BitCast (Type Cast) */
-			erreur::lance_erreur_type_operation(
-						donnees_type_de,
-						dt,
-						contexte,
-						b->donnees_morceau());
+			return nullptr;
 		}
 		case type_noeud::NUL:
 		{
