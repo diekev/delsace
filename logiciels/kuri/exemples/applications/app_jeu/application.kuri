@@ -168,7 +168,7 @@ struct Application {
     largeur : z32 = 0
     souris_x = 0.0
     souris_y = 0.0
-    dernier_évènement = type_évènement.NUL
+    dernier_évènement : type_évènement = type_évènement.NUL
     temps_double_clic : z64
 
     personnage : Entite
