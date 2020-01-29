@@ -164,6 +164,10 @@ static llvm::FunctionType *obtiens_type_fonction(
 	std::vector<llvm::Type *> parametres;
 	parametres.reserve(static_cast<size_t>(donnees_fonction.args.taille()));
 
+	if (!donnees_fonction.est_externe) {
+		parametres.push_back(converti_type_llvm(contexte, contexte.index_type_contexte));
+	}
+
 	for (auto const &argument : donnees_fonction.args) {
 		if (argument.est_variadic) {
 			/* les arguments variadics sont transformés en un tableau */
@@ -406,11 +410,23 @@ template <typename Conteneur>
 llvm::Value *cree_appel(
 		ContexteGenerationCode &contexte,
 		llvm::Value *fonction,
-		Conteneur const &conteneur)
+		Conteneur const &conteneur,
+		bool besoin_contexte)
 {
 	std::vector<llvm::Value *> parametres(static_cast<size_t>(conteneur.taille()));
 
-	std::transform(conteneur.debut(), conteneur.fin(), parametres.begin(),
+	auto debut = parametres.begin();
+
+	if (besoin_contexte) {
+		auto valeur_contexte = contexte.valeur_locale("contexte");
+		parametres.resize(parametres.size() + 1);
+
+		parametres[0] = new llvm::LoadInst(valeur_contexte, "", false, contexte.bloc_courant());
+
+		debut = parametres.begin() + 1;
+	}
+
+	std::transform(conteneur.debut(), conteneur.fin(), debut,
 				   [&](base *noeud_enfant)
 	{
 		return genere_code_enfant(contexte, noeud_enfant, false);
@@ -621,6 +637,31 @@ static llvm::Value *genere_code_llvm(
 			/* Crée code pour les arguments */
 			auto valeurs_args = fonction->arg_begin();
 
+			if (!donnees_fonction->est_externe) {
+				auto valeur = &(*valeurs_args++);
+				valeur->setName("contexte");
+
+				auto type = converti_type_llvm(contexte, contexte.index_type_contexte);
+
+				auto alloc = new llvm::AllocaInst(
+								 type,
+								 0,
+								 "contexte",
+								 contexte.bloc_courant());
+				alloc->setAlignment(8);
+
+				auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
+				store->setAlignment(8);
+
+				auto donnees_var = DonneesVariable{};
+				donnees_var.valeur = alloc;
+				donnees_var.est_dynamique = true;
+				donnees_var.est_variadic = false;
+				donnees_var.index_type = contexte.index_type_contexte;
+
+				contexte.pousse_locale("contexte", donnees_var);
+			}
+
 			for (auto const &argument : donnees_fonction->args) {
 				auto index_type = argument.index_type;
 				auto align = unsigned{0};
@@ -708,11 +749,13 @@ static llvm::Value *genere_code_llvm(
 				/* À FAIRE : alignement pointeur. */
 				charge->setAlignment(8);
 
-				return cree_appel(contexte, charge, b->enfants);
+				/* À FAIRE(contexte) */
+				return cree_appel(contexte, charge, b->enfants, true);
 			}
 
+			auto df = b->df;
 			auto fonction = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
-			return cree_appel(contexte, fonction, b->enfants);
+			return cree_appel(contexte, fonction, b->enfants, !df->est_externe);
 		}
 		case type_noeud::VARIABLE:
 		{
@@ -2129,11 +2172,18 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 	store_argc->setAlignment(4);
 
 	// construit le contexte du programme
+	auto type_contexte = converti_type_llvm(contexte, contexte.index_type_contexte);
+	type_contexte = type_contexte->getPointerElementType();
+
+	auto alloc_contexte = builder.CreateAlloca(type_contexte, 0u, nullptr, "contexte");
+	alloc_contexte->setAlignment(8);
 
 	// appel notre fonction principale en passant le contexte et le tableau
 	auto fonc_princ = contexte.module_llvm->getFunction("principale");
 
 	std::vector<llvm::Value *> parametres_appel;
+	parametres_appel.push_back(alloc_contexte);
+
 	auto charge_tabl = builder.CreateLoad(alloc_tabl, "");
 	charge_tabl->setAlignment(8);
 
