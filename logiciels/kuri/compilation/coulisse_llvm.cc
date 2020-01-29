@@ -875,7 +875,7 @@ static llvm::Value *genere_code_llvm(
 					valeur = charge;
 				}
 
-				if (b->morceau.chaine == "pointeur") {
+				if (membre->chaine() == "pointeur") {
 					return accede_membre_structure(contexte, valeur, POINTEUR_TABLEAU, !expr_gauche);
 				}
 
