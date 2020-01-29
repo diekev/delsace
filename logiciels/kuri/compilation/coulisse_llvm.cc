@@ -63,23 +63,24 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 
 /* À FAIRE (coulisse LLVM)
  * - type 'chaine'
- * - noeud 'mémoire', 'déclaration structure/énum'
+ * - noeud 'mémoire'
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
  * - ajourne opérateur [] pour les chaines
  * - converti paramètres fonction principale en un tableau
- * - boucle 'tantque'
+ * - boucle 'tantque', 'répète'
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
- * - union accès membre par '.' et par 'de'
- * - déclaration structure/énum
- * - associe
+ * - déclaration structure/énum/union
+ * - discr
  * - ajourne la génération de code pour les boucles 'pour'
  * - saufsi
  * - trace de la mémoire utilisée
  * - retiens
+ * - contexte implicit
+ * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
  */
 
 /* ************************************************************************** */
