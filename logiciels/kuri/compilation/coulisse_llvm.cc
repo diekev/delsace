@@ -2148,6 +2148,7 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 
 	auto type_tabl_llvm = converti_type_llvm(contexte, type_tabl);
 	auto alloc_tabl = builder.CreateAlloca(type_tabl_llvm, 0u, nullptr, "tabl_args");
+	alloc_tabl->setAlignment(8);
 
 	auto valeurs_args = fonction->arg_begin();
 
@@ -2164,13 +2165,17 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 	store_argv->setAlignment(8);
 
 	auto charge_argv = builder.CreateLoad(alloc_argv, "");
+	charge_argv->setAlignment(8);
 	auto membre_pointeur = accede_membre_structure(contexte, alloc_tabl, 0);
-	builder.CreateStore(charge_argv, membre_pointeur);
+	store_argv = builder.CreateStore(charge_argv, membre_pointeur);
+	store_argv->setAlignment(8);
 
 	auto charge_argc = builder.CreateLoad(alloc_argc, "");
+	charge_argc->setAlignment(4);
 	auto sext = builder.CreateSExt(charge_argc, builder.getInt64Ty());
 	auto membre_taille = accede_membre_structure(contexte, alloc_tabl, 1);
-	builder.CreateStore(sext, membre_taille);
+	store_argc = builder.CreateStore(sext, membre_taille);
+	store_argc->setAlignment(4);
 
 	// construit le contexte du programme
 
@@ -2178,7 +2183,10 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 	auto fonc_princ = contexte.module_llvm->getFunction("principale");
 
 	std::vector<llvm::Value *> parametres_appel;
-	parametres_appel.push_back(builder.CreateLoad(alloc_tabl, ""));
+	auto charge_tabl = builder.CreateLoad(alloc_tabl, "");
+	charge_tabl->setAlignment(8);
+
+	parametres_appel.push_back(charge_tabl);
 
 	llvm::ArrayRef<llvm::Value *> args(parametres_appel);
 
