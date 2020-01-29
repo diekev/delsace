@@ -876,10 +876,10 @@ static llvm::Value *genere_code_llvm(
 				}
 
 				if (b->morceau.chaine == "pointeur") {
-					return accede_membre_structure(contexte, valeur, POINTEUR_TABLEAU);
+					return accede_membre_structure(contexte, valeur, POINTEUR_TABLEAU, !expr_gauche);
 				}
 
-				return accede_membre_structure(contexte, valeur, true, TAILLE_TABLEAU);
+				return accede_membre_structure(contexte, valeur, TAILLE_TABLEAU, !expr_gauche);
 			}
 
 			auto index_structure = long(type_structure.type_base() >> 8);
@@ -2106,6 +2106,8 @@ static void traverse_graphe_pour_generation_code(
 
 static void genere_fonction_main(ContexteGenerationCode &contexte)
 {
+	auto builder = llvm::IRBuilder<>(contexte.contexte);
+
 	// déclare une fonction de type int(int, char**) appelée main
 	auto type_int = llvm::Type::getInt32Ty(contexte.contexte);
 	auto type_argc = type_int;
@@ -2130,52 +2132,45 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 
 	auto block = cree_bloc(contexte, "entree");
 	contexte.bloc_courant(block);
+	builder.SetInsertPoint(contexte.bloc_courant());
 
 	// crée code pour les arguments
-	auto valeurs_args = fonction->arg_begin();
 
-	auto valeur = &(*valeurs_args++);
-	valeur->setName("argc");
-
-	auto alloc_argc = new llvm::AllocaInst(
-					 type_int,
-					 0,
-					 "argc",
-					 contexte.bloc_courant());
-
+	auto alloc_argc = builder.CreateAlloca(type_int, 0u, nullptr, "argc");
 	alloc_argc->setAlignment(4);
-	auto store_argc = new llvm::StoreInst(valeur, alloc_argc, false, contexte.bloc_courant());
-	store_argc->setAlignment(4);
 
-	valeur = &(*valeurs_args++);
-	valeur->setName("argv");
-
-	auto alloc_argv = new llvm::AllocaInst(
-					 type_argv,
-					 0,
-					 "argv",
-					 contexte.bloc_courant());
-
+	auto alloc_argv = builder.CreateAlloca(type_argv, 0u, nullptr, "argv");
 	alloc_argv->setAlignment(8);
-	auto store_argv = new llvm::StoreInst(valeur, alloc_argv, false, contexte.bloc_courant());
-	store_argv->setAlignment(8);
 
 	// construit un tableau de type []*z8
 	auto type_tabl = contexte.typeuse[TypeBase::PTR_Z8];
 	type_tabl = contexte.typeuse.type_tableau_pour(type_tabl);
 
 	auto type_tabl_llvm = converti_type_llvm(contexte, type_tabl);
-	auto alloc_tabl = new llvm::AllocaInst(
-					 type_tabl_llvm,
-					 0,
-					 "tabl_args",
-					 contexte.bloc_courant());
+	auto alloc_tabl = builder.CreateAlloca(type_tabl_llvm, 0u, nullptr, "tabl_args");
 
+	auto valeurs_args = fonction->arg_begin();
+
+	auto valeur = &(*valeurs_args++);
+	valeur->setName("argc");
+
+	auto store_argc = builder.CreateStore(valeur, alloc_argc);
+	store_argc->setAlignment(4);
+
+	valeur = &(*valeurs_args++);
+	valeur->setName("argv");
+
+	auto store_argv = builder.CreateStore(valeur, alloc_argv);
+	store_argv->setAlignment(8);
+
+	auto charge_argv = builder.CreateLoad(alloc_argv, "");
 	auto membre_pointeur = accede_membre_structure(contexte, alloc_tabl, 0);
-	auto membre_taille = accede_membre_structure(contexte, alloc_tabl, 1);
+	builder.CreateStore(charge_argv, membre_pointeur);
 
-	new llvm::StoreInst(alloc_argv, membre_pointeur, false, contexte.bloc_courant());
-	new llvm::StoreInst(alloc_argc, membre_taille, false, contexte.bloc_courant());
+	auto charge_argc = builder.CreateLoad(alloc_argc, "");
+	auto sext = builder.CreateSExt(charge_argc, builder.getInt64Ty());
+	auto membre_taille = accede_membre_structure(contexte, alloc_tabl, 1);
+	builder.CreateStore(sext, membre_taille);
 
 	// construit le contexte du programme
 
@@ -2183,14 +2178,14 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 	auto fonc_princ = contexte.module_llvm->getFunction("principale");
 
 	std::vector<llvm::Value *> parametres_appel;
-	parametres_appel.push_back(alloc_tabl);
+	parametres_appel.push_back(builder.CreateLoad(alloc_tabl, ""));
 
 	llvm::ArrayRef<llvm::Value *> args(parametres_appel);
 
-	auto valeur_princ = llvm::CallInst::Create(fonc_princ, args, "", contexte.bloc_courant());
+	auto valeur_princ = builder.CreateCall(fonc_princ, args);
 
-	// retourne 0
-	llvm::ReturnInst::Create(contexte.contexte, valeur_princ, contexte.bloc_courant());
+	// return
+	builder.CreateRet(valeur_princ);
 }
 
 void genere_code_llvm(
