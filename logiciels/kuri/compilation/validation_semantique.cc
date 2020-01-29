@@ -734,8 +734,6 @@ static void performe_validation_semantique(
 			}
 
 			if (est_externe) {
-				donnees_fonction->nom_broye = nom_fonction;
-
 				for (auto &argument : donnees_fonction->args) {
 					argument.index_type = resoud_type_final(contexte, argument.type_declare);
 					donnees_fonction->types_utilises.insere(argument.index_type);
