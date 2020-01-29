@@ -2776,6 +2776,12 @@ static void traverse_graphe_pour_typedefs(
 	}
 
 	if (noeud->type == TypeNoeudDependance::TYPE) {
+		if (noeud->index == -1) {
+			/* les fonctions externes ayant des arguments variadiques non-typés
+			 * n'ont pas de type valide */
+			return;
+		}
+
 		auto &dt = contexte.typeuse[noeud->index];
 		cree_typedef(contexte, dt, generatrice.os);
 
