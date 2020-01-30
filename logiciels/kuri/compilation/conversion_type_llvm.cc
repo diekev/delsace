@@ -183,6 +183,34 @@ llvm::Type *converti_type_simple_llvm(
 					auto &dt = contexte.typeuse[donnees_structure.noeud_decl->index_type];
 					donnees_structure.type_llvm = converti_type_simple_llvm(contexte, dt.type_base(), nullptr);
 				}
+				else if (donnees_structure.est_union) {
+					auto nom_nonsur = "union_nonsure." + contexte.nom_struct(donnees_structure.id);
+					auto nom = "union." + contexte.nom_struct(donnees_structure.id);
+
+					// création d'une structure ne contenant que le membre le plus grand
+					auto taille_max = 0u;
+					auto id_max = 0l;
+
+					for (auto &id : donnees_structure.index_types) {
+						auto taille_type = taille_octet_type(contexte, contexte.typeuse[id]);
+
+						if (taille_type > taille_max) {
+							taille_max = taille_type;
+							id_max = id;
+						}
+					}
+
+					auto type_max = converti_type(contexte, contexte.typeuse[id_max]);
+
+					auto type_union = llvm::StructType::create(contexte.contexte, { type_max }, nom_nonsur.c_str());
+
+					if (!donnees_structure.est_nonsur) {
+						// création d'une structure contenant l'union et une valeur discriminante
+						type_union = llvm::StructType::create(contexte.contexte, { type_union, llvm::Type::getInt32Ty(contexte.contexte) }, nom.c_str());
+					}
+
+					donnees_structure.type_llvm = type_union;
+				}
 				else {
 					auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
 
