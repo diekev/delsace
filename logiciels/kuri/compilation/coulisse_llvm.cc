@@ -2142,7 +2142,7 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::MEMOIRE:
 		{
-			auto valeur = genere_code_llvm(b->enfants.front(), contexte, false);
+			auto valeur = genere_code_llvm(b->enfants.front(), contexte, expr_gauche);
 			return new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 		}
 		case type_noeud::LOGE:
