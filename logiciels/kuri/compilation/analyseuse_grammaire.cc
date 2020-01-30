@@ -38,7 +38,7 @@
 using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 
 /**
- * Retourne vrai se l'identifiant passé en paramètre peut-être un identifiant
+ * Retourne vrai si l'identifiant passé en paramètre peut-être un identifiant
  * valide pour précèder un opérateur unaire '+' ou '-'.
  */
 static bool precede_unaire_valide(TypeLexeme dernier_identifiant)
