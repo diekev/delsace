@@ -29,7 +29,7 @@
 #include "biblinternes/json/json.hh"
 
 #include "compilation/contexte_generation_code.h"
-#include "compilation/decoupeuse.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
 #include "compilation/outils_lexemes.hh"
 #include "compilation/modules.hh"
@@ -138,8 +138,8 @@ static void reecris_fichier(
 		auto fichier = contexte.cree_fichier("", chemin.c_str());
 		fichier->tampon = lng::tampon_source(tampon);
 
-		auto decoupeuse = decoupeuse_texte(fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
-		decoupeuse.genere_morceaux();
+		auto lexeuse = Lexeuse(fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
+		lexeuse.performe_lexage();
 
 		auto os = std::ofstream(chemin);
 

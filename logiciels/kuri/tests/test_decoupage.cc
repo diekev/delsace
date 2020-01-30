@@ -27,7 +27,7 @@
 #include <cstring>
 
 #include "compilation/contexte_generation_code.h"  // pour DonneesModule
-#include "compilation/decoupeuse.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
 #undef DEBOGUE_MORCEAUX
@@ -87,7 +87,7 @@ discr nombre {
 	11_000...2_0000: imprime(20000);
 	sinon:imprime(inconnu);
 }
-decoupeuse_texte decoupeuse(str, str + len);
+Lexeuse lexeuse(str, str + len);
 )";
 
 	const DonneesLexeme donnees_morceaux[] = {
@@ -134,8 +134,8 @@ decoupeuse_texte decoupeuse(str, str + len);
 		{ ")", TypeLexeme::PARENTHESE_FERMANTE },
 		{ ";", TypeLexeme::POINT_VIRGULE },
 		{ "}", TypeLexeme::ACCOLADE_FERMANTE },
-		{ "decoupeuse_texte", TypeLexeme::CHAINE_CARACTERE },
-		{ "decoupeuse", TypeLexeme::CHAINE_CARACTERE },
+		{ "lexeuse_texte", TypeLexeme::CHAINE_CARACTERE },
+		{ "lexeuse", TypeLexeme::CHAINE_CARACTERE },
 		{ "(", TypeLexeme::PARENTHESE_OUVRANTE },
 		{ "str", TypeLexeme::CHAINE_CARACTERE },
 		{ ",", TypeLexeme::VIRGULE },
@@ -149,8 +149,8 @@ decoupeuse_texte decoupeuse(str, str + len);
 	auto fichier = Fichier{};
 	fichier.tampon = lng::tampon_source(texte);
 
-	decoupeuse_texte decoupeuse(&fichier);
-	decoupeuse.genere_morceaux();
+	Lexeuse lexeuse(&fichier);
+	lexeuse.performe_lexage();
 
 	return verifie_morceaux(fichier.morceaux.debut(),
 							fichier.morceaux.fin(),

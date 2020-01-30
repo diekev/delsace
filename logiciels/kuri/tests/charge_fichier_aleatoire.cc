@@ -27,7 +27,7 @@
 
 #include "compilation/analyseuse_grammaire.h"
 #include "compilation/contexte_generation_code.h"
-#include "compilation/decoupeuse.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
 int main(int argc, char *argv[])
@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 		auto module = contexte.cree_fichier("", "");
 		auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
 		module->tampon = lng::tampon_source(dls::chaine(vue_donnees));
-		auto decoupeuse = decoupeuse_texte(module);
-		decoupeuse.genere_morceaux();
+		auto lexeuse = Lexeuse(module);
+		lexeuse.performe_lexage();
 	}
 	catch (erreur::frappe const &e) {
 		std::cerr << e.message() << '\n';

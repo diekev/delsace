@@ -33,7 +33,7 @@
 #include "analyseuse_grammaire.h"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "decoupeuse.h"
+#include "lexeuse.hh"
 
 /* ************************************************************************** */
 
@@ -186,9 +186,9 @@ void charge_fichier(
 	fichier->tampon = lng::tampon_source(tampon);
 	fichier->temps_tampon = debut_tampon.temps();
 
-	auto decoupeuse = decoupeuse_texte(fichier);
+	auto lexeuse = Lexeuse(fichier);
 	auto debut_decoupage = dls::chrono::compte_seconde();
-	decoupeuse.genere_morceaux();
+	lexeuse.performe_lexage();
 	fichier->temps_decoupage = debut_decoupage.temps();
 
 	auto analyseuse = analyseuse_grammaire(

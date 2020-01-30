@@ -30,7 +30,7 @@
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
 #include "compilation/coulisse_c.hh"
-#include "compilation/decoupeuse.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 #include "compilation/validation_semantique.hh"
 
@@ -51,8 +51,8 @@ std::pair<bool, bool> retourne_erreur_lancee(
 	auto type_correcte = false;
 
 	try {
-		decoupeuse_texte decoupeuse(fichier);
-		decoupeuse.genere_morceaux();
+		Lexeuse lexeuse(fichier);
+		lexeuse.performe_lexage();
 
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;

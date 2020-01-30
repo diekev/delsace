@@ -29,7 +29,7 @@
 #include "biblinternes/langage/nombres.hh"
 
 #include "compilation/contexte_generation_code.h"  // pour DonneesModule
-#include "compilation/decoupeuse.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
 #include "compilation/lexemes.hh"
@@ -210,8 +210,8 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		auto fichier = Fichier{};
 		fichier.tampon = lng::tampon_source("0xff38ce");
 
-		decoupeuse_texte decoupeuse(&fichier);
-		decoupeuse.genere_morceaux();
+		Lexeuse lexeuse(&fichier);
+		lexeuse.performe_lexage();
 
 		auto const &morceaux = fichier.morceaux;
 

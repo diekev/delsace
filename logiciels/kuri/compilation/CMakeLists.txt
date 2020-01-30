@@ -41,7 +41,6 @@ set(SOURCES
 	contexte_generation_code.h
 	conversion_type_c.hh
 	coulisse_c.hh
-    decoupeuse.h
 	donnees_type.h
 	erreur.h
 	expression.h
@@ -49,6 +48,7 @@ set(SOURCES
 	graphe_dependance.hh
 	infos_type_c.hh
 	lexemes.hh
+	lexeuse.hh
 	modules.hh
 	operateurs.hh
 	outils_lexemes.hh
@@ -63,7 +63,6 @@ set(SOURCES
 	contexte_generation_code.cc
 	conversion_type_c.cc
 	coulisse_c.cc
-    decoupeuse.cc
 	donnees_type.cc
 	erreur.cc
 	expression.cc
@@ -71,6 +70,7 @@ set(SOURCES
 	graphe_dependance.cc
 	infos_type_c.cc
 	lexemes.cc
+	lexeuse.cc
 	modules.cc
 	operateurs.cc
 	outils_lexemes.cc

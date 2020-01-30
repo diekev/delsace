@@ -22,7 +22,7 @@
  *
  */
 
-#include "decoupeuse.h"
+#include "lexeuse.hh"
 
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/langage/outils.hh"
@@ -96,7 +96,7 @@ static bool doit_ajouter_point_virgule(TypeLexeme dernier_id)
 
 /* ************************************************************************** */
 
-decoupeuse_texte::decoupeuse_texte(Fichier *fichier, int drapeaux)
+Lexeuse::Lexeuse(Fichier *fichier, int drapeaux)
 	: m_fichier(fichier)
 	, m_debut_mot(fichier->tampon.debut())
 	, m_debut(fichier->tampon.debut())
@@ -106,7 +106,7 @@ decoupeuse_texte::decoupeuse_texte(Fichier *fichier, int drapeaux)
 	construit_tables_caractere_speciaux();
 }
 
-void decoupeuse_texte::genere_morceaux()
+void Lexeuse::performe_lexage()
 {
 	m_taille_mot_courant = 0;
 
@@ -226,24 +226,24 @@ void decoupeuse_texte::genere_morceaux()
 	}
 }
 
-size_t decoupeuse_texte::memoire_morceaux() const
+size_t Lexeuse::memoire_morceaux() const
 {
 	return static_cast<size_t>(m_fichier->morceaux.taille()) * sizeof(DonneesLexeme);
 }
 
-void decoupeuse_texte::imprime_morceaux(std::ostream &os)
+void Lexeuse::imprime_morceaux(std::ostream &os)
 {
 	for (auto const &morceau : m_fichier->morceaux) {
 		os << chaine_identifiant(morceau.identifiant) << '\n';
 	}
 }
 
-bool decoupeuse_texte::fini() const
+bool Lexeuse::fini() const
 {
 	return m_debut >= m_fin;
 }
 
-void decoupeuse_texte::avance(int n)
+void Lexeuse::avance(int n)
 {
 	for (int i = 0; i < n; ++i) {
 		if (this->caractere_courant() == '\n') {
@@ -258,22 +258,22 @@ void decoupeuse_texte::avance(int n)
 	}
 }
 
-char decoupeuse_texte::caractere_courant() const
+char Lexeuse::caractere_courant() const
 {
 	return *m_debut;
 }
 
-char decoupeuse_texte::caractere_voisin(int n) const
+char Lexeuse::caractere_voisin(int n) const
 {
 	return *(m_debut + n);
 }
 
-dls::vue_chaine_compacte decoupeuse_texte::mot_courant() const
+dls::vue_chaine_compacte Lexeuse::mot_courant() const
 {
 	return dls::vue_chaine_compacte(m_debut_mot, m_taille_mot_courant);
 }
 
-void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
+void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 {
 	auto ligne_courante = m_fichier->tampon[m_compte_ligne];
 
@@ -321,7 +321,7 @@ void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
 //    decoupe nombre
 // sinon:
 //    ajoute caractere mot courant
-void decoupeuse_texte::analyse_caractere_simple()
+void Lexeuse::analyse_caractere_simple()
 {
 	auto idc = TypeLexeme::INCONNU;
 
@@ -503,19 +503,19 @@ void decoupeuse_texte::analyse_caractere_simple()
 	}
 }
 
-void decoupeuse_texte::pousse_caractere(int n)
+void Lexeuse::pousse_caractere(int n)
 {
 	m_taille_mot_courant += n;
 }
 
-void decoupeuse_texte::pousse_mot(TypeLexeme identifiant)
+void Lexeuse::pousse_mot(TypeLexeme identifiant)
 {
 	m_fichier->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }
 
-void decoupeuse_texte::enregistre_pos_mot()
+void Lexeuse::enregistre_pos_mot()
 {
 	m_pos_mot = m_position_ligne;
 	m_debut_mot = m_debut;

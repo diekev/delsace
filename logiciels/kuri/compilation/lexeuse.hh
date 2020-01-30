@@ -33,7 +33,7 @@ enum {
 	INCLUS_COMMENTAIRES     = (1 << 1),
 };
 
-class decoupeuse_texte {
+class Lexeuse {
 	Fichier *m_fichier;
 	const char *m_debut_mot = nullptr;
 	const char *m_debut = nullptr;
@@ -48,9 +48,9 @@ class decoupeuse_texte {
 	TypeLexeme m_dernier_id = TypeLexeme::INCONNU;
 
 public:
-	explicit decoupeuse_texte(Fichier *fichier, int drapeaux = 0);
+	explicit Lexeuse(Fichier *fichier, int drapeaux = 0);
 
-	void genere_morceaux();
+	void performe_lexage();
 
 	/**
 	 * Retourne la taille en octets de la mémoire utilisée par les morceaux.

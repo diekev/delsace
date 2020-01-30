@@ -25,7 +25,7 @@
 #include "compilation/analyseuse_grammaire.h"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
-#include "compilation/decoupeuse.h"
+#include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 
 #include <cstdlib>
@@ -54,8 +54,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		auto fichier = contexte.cree_fichier("", "");
 		fichier->tampon = lng::tampon_source(texte);
 
-		decoupeuse_texte decoupeuse(fichier);
-		decoupeuse.genere_morceaux();
+		Lexeuse lexeuse(fichier);
+		lexeuse.performe_lexage();
 
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
