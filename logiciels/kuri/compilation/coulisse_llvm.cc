@@ -2101,7 +2101,7 @@ static llvm::Value *genere_code_llvm(
 			rassemble_feuilles(b, feuilles);
 
 			/* alloue de la place pour le tableau */
-			auto dt = contexte.typeuse[b->index_type];
+			auto &dt = contexte.typeuse[b->index_type];
 			auto type_llvm = converti_type_llvm(contexte, dt);
 
 			auto pointeur_tableau = new llvm::AllocaInst(
@@ -2110,7 +2110,7 @@ static llvm::Value *genere_code_llvm(
 										nullptr,
 										"",
 										contexte.bloc_courant());
-			pointeur_tableau->setAlignment(4); /* À FAIRE : nombre magic pour les z32 */
+			pointeur_tableau->setAlignment(alignement(contexte, dt));
 
 			/* stocke les valeurs des feuilles */
 			auto index = 0ul;
@@ -2125,7 +2125,7 @@ static llvm::Value *genere_code_llvm(
 										 index++);
 
 				auto stocke = new llvm::StoreInst(valeur, index_tableau, contexte.bloc_courant());
-				stocke->setAlignment(4); /* À FAIRE : nombre magic pour les z32 */
+				stocke->setAlignment(alignement(contexte, dt));
 			}
 
 			return pointeur_tableau;
