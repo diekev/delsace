@@ -560,16 +560,21 @@ static llvm::Value *genere_code_llvm(
 		const bool expr_gauche)
 {
 	switch (b->type) {
+		case type_noeud::DECLARATION_ENUM:
+		case type_noeud::LISTE_PARAMETRES_FONCTION:
+		case type_noeud::PAIRE_DISCR:
+		case type_noeud::RACINE:
+		case type_noeud::RETOUR:
+		{
+			/* RÀF pour ces types de noeuds */
+			return nullptr;
+		}
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::SINON:
 		case type_noeud::OPERATION_COMP_CHAINEE:
 		case type_noeud::ACCES_MEMBRE_UNION:
 		{
 			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::RACINE:
-		{
 			return nullptr;
 		}
 		case type_noeud::EXPRESSION_PARENTHESE:
@@ -724,11 +729,6 @@ static llvm::Value *genere_code_llvm(
 				contexte.menageur_fonctions->run(*fonction);
 			}
 
-			return nullptr;
-		}
-		case type_noeud::LISTE_PARAMETRES_FONCTION:
-		{
-			/* RÀF */
 			return nullptr;
 		}
 		case type_noeud::APPEL_FONCTION:
@@ -1333,10 +1333,6 @@ static llvm::Value *genere_code_llvm(
 			auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 			charge->setAlignment(alignement(contexte, type1));
 			return charge;
-		}
-		case type_noeud::RETOUR:
-		{
-			return llvm::ReturnInst::Create(contexte.contexte, nullptr, contexte.bloc_courant());
 		}
 		case type_noeud::RETOUR_MULTIPLE:
 		{
@@ -2173,11 +2169,6 @@ static llvm::Value *genere_code_llvm(
 			converti_type_llvm(contexte, donnees_structure.index_type);
 			return nullptr;
 		}
-		case type_noeud::DECLARATION_ENUM:
-		{
-			/* À FAIRE */
-			return nullptr;
-		}
 		case type_noeud::DISCR:
 		{
 			/* À FAIRE */
@@ -2191,14 +2182,6 @@ static llvm::Value *genere_code_llvm(
 		case type_noeud::DISCR_UNION:
 		{
 			/* À FAIRE */
-			return nullptr;
-		}
-		case type_noeud::PAIRE_DISCR:
-		{
-			/* RAF : pris en charge dans type_noeud::ASSOCIE, ce noeud n'est que
-			 * pour ajouter un niveau d'indirection et faciliter la compilation
-			 * des associations. */
-			assert(false);
 			return nullptr;
 		}
 		case type_noeud::RETIENS:
