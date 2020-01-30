@@ -562,7 +562,6 @@ static llvm::Value *genere_code_llvm(
 	switch (b->type) {
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::SINON:
-		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
 		case type_noeud::ACCES_MEMBRE_UNION:
 		{
@@ -1200,43 +1199,6 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::CROCHET_OUVRANT:
-				{
-					/* À FAIRE : la compilation de l'opérateur du crochet
-					 * ouvrant a été changé, vérifié si c'est toujours correcte
-					 */
-					llvm::Value *valeur;
-
-					if (type2.type_base() == id_morceau::POINTEUR) {
-						valeur = llvm::GetElementPtrInst::CreateInBounds(
-									 valeur1,
-									 valeur2,
-									 "",
-									 contexte.bloc_courant());
-					}
-					else {
-						valeur = accede_element_tableau(
-									 contexte,
-									 valeur1,
-									 converti_type_llvm(contexte, index_type1),
-									 valeur2);
-					}
-
-					/* Dans le cas d'une assignation, on n'a pas besoin de charger
-					 * la valeur dans un registre. */
-					if (expr_gauche) {
-						return valeur;
-					}
-
-					/* Ajout d'un niveau d'indirection pour pouvoir proprement
-					 * générer un code pour les expressions de type x[0][0]. Sans ça
-					 * LLVM n'arrive pas à déterminer correctement la valeur
-					 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
-					 * ce qui n'est pas forcément le cas. */
-					auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
-					charge->setAlignment(alignement(contexte, type2));
-					return charge;
-				}
 				default:
 					return nullptr;
 			}
@@ -1316,6 +1278,61 @@ static llvm::Value *genere_code_llvm(
 			}
 
 			return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
+		}
+		case type_noeud::ACCES_TABLEAU:
+		{
+			auto enfant1 = b->enfants.front();
+			auto enfant2 = b->enfants.back();
+
+			auto const index_type1 = enfant1->index_type;
+			auto &type1 = contexte.typeuse[index_type1];
+
+			auto valeur1 = genere_code_llvm(enfant1, contexte, true);
+			auto valeur2 = genere_code_llvm(enfant2, contexte, false);
+
+			llvm::Value *valeur;
+
+			if (type1.type_base() == id_morceau::POINTEUR) {
+				valeur1 = new llvm::LoadInst(valeur1, "", false, contexte.bloc_courant());
+				valeur = llvm::GetElementPtrInst::CreateInBounds(
+							 valeur1,
+							 valeur2,
+							 "",
+							 contexte.bloc_courant());
+			}
+			else {
+				if (est_type_tableau_fixe(type1)) {
+					valeur = accede_element_tableau(
+								 contexte,
+								 valeur1,
+								 converti_type_llvm(contexte, index_type1),
+								 valeur2);
+				}
+				else {
+					auto pointeur = accede_membre_structure(contexte, valeur1, 0, true);
+
+					valeur = llvm::GetElementPtrInst::CreateInBounds(
+								pointeur,
+								valeur2,
+								"",
+								contexte.bloc_courant());
+				}
+			}
+
+			/* Dans le cas d'une assignation, on n'a pas besoin de charger
+			 * la valeur dans un registre. */
+			if (expr_gauche) {
+				return valeur;
+			}
+
+			/* Ajout d'un niveau d'indirection pour pouvoir proprement
+			 * générer un code pour les expressions de type x[0][0]. Sans ça
+			 * LLVM n'arrive pas à déterminer correctement la valeur
+			 * déréférencée : on se retrouve avec type(x[0][0]) == (type[0])
+			 * ce qui n'est pas forcément le cas. */
+			auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
+			charge->setAlignment(alignement(contexte, type1));
+			return charge;
 		}
 		case type_noeud::RETOUR:
 		{
