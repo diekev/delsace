@@ -2152,7 +2152,8 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::DECLARATION_STRUCTURE:
 		{
-			/* À FAIRE */
+			auto donnees_structure = contexte.donnees_structure(b->chaine());
+			converti_type_llvm(contexte, donnees_structure.index_type);
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_ENUM:

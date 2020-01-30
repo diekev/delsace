@@ -184,6 +184,13 @@ llvm::Type *converti_type_simple_llvm(
 					donnees_structure.type_llvm = converti_type_simple_llvm(contexte, dt.type_base(), nullptr);
 				}
 				else {
+					auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
+
+					/* Pour les structures récursives, il faut créer un type
+					 * opaque, dont le corps sera renseigné à la fin */
+					auto type_opaque = llvm::StructType::create(contexte.contexte, nom.c_str());
+					donnees_structure.type_llvm = type_opaque;
+
 					std::vector<llvm::Type *> types_membres;
 					types_membres.resize(static_cast<size_t>(donnees_structure.index_types.taille()));
 
@@ -196,13 +203,7 @@ llvm::Type *converti_type_simple_llvm(
 						return converti_type(contexte, dt);
 					});
 
-					auto nom = "struct." + contexte.nom_struct(donnees_structure.id);
-
-					donnees_structure.type_llvm = llvm::StructType::create(
-													  contexte.contexte,
-													  types_membres,
-													  nom.c_str(),
-													  false);
+					type_opaque->setBody(types_membres, false);
 				}
 			}
 
