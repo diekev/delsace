@@ -331,6 +331,7 @@ unsigned alignement(
 		}
 		case id_morceau::FONC:
 		case id_morceau::POINTEUR:
+		case id_morceau::REFERENCE:
 		case id_morceau::EINI:
 		case id_morceau::R64:
 		case id_morceau::N64:
