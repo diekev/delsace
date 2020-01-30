@@ -88,7 +88,7 @@ private:
 	void analyse_declaration_fonction(TypeLexeme id);
 	void analyse_corps_fonction();
 	void analyse_bloc();
-	noeud::base *analyse_expression_droite(TypeLexeme identifiant_final, TypeLexeme racine_expr, bool ajoute_noeud = true);
+	noeud::base *analyse_expression(TypeLexeme identifiant_final, TypeLexeme racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
 	void analyse_declaration_structure(TypeLexeme id);
 	void analyse_declaration_enum(bool est_drapeau);

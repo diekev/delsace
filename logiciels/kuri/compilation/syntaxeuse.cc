@@ -184,7 +184,7 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 			default:
 			{
 				m_global = true;
-				analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
+				analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
 				m_global = false;
 				break;
 			}
@@ -240,7 +240,7 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 	/* analyse les paramètres de la fonction */
 	m_assembleuse->empile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION, m_contexte, donnees());
 
-	analyse_expression_droite(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
+	analyse_expression(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
 
 	m_assembleuse->depile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION);
 
@@ -293,7 +293,7 @@ void Syntaxeuse::analyse_controle_si(type_noeud tn)
 {
 	m_assembleuse->empile_noeud(tn, m_contexte, donnees());
 
-	analyse_expression_droite(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::SI);
+	analyse_expression(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::SI);
 
 	analyse_bloc();
 
@@ -347,11 +347,11 @@ void Syntaxeuse::analyse_controle_pour()
 
 	/* enfant 1 : déclaration variable */
 
-	analyse_expression_droite(TypeLexeme::DANS, TypeLexeme::POUR);
+	analyse_expression(TypeLexeme::DANS, TypeLexeme::POUR);
 
 	/* enfant 2 : expr */
 
-	analyse_expression_droite(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::DANS);
+	analyse_expression(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::DANS);
 
 	recule();
 
@@ -394,7 +394,7 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 			if (!est_identifiant(TypeLexeme::POINT_VIRGULE)) {
-				analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
+				analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
 			}
 			else {
 				avance();
@@ -406,7 +406,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::RETIENS, m_contexte, donnees());
 
-			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
+			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
 
 			m_assembleuse->depile_noeud(type_noeud::RETIENS);
 		}
@@ -436,7 +436,7 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			consomme(TypeLexeme::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
 
-			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::TANTQUE);
+			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::TANTQUE);
 
 			m_assembleuse->depile_noeud(type_noeud::REPETE);
 		}
@@ -444,7 +444,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::TANTQUE, m_contexte, donnees());
 
-			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
+			analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
 
 			/* recule pour être de nouveau synchronisé */
 			recule();
@@ -497,7 +497,7 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			m_assembleuse->empile_noeud(type_noeud::DISCR, m_contexte, donnees());
 
-			analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
+			analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
 			/* recule pour être de nouveau synchronisé */
 			recule();
@@ -522,7 +522,7 @@ void Syntaxeuse::analyse_corps_fonction()
 					sinon_rencontre = true;
 				}
 				else {
-					analyse_expression_droite(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
+					analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
 					/* recule pour être de nouveau synchronisé */
 					recule();
@@ -544,7 +544,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			analyse_bloc();
 		}
 		else {
-			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
 		}
 
 		/* Dans les fuzz-tests, c'est possible d'être bloqué dans une boucle
@@ -573,7 +573,7 @@ void Syntaxeuse::analyse_bloc()
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
 }
 
-noeud::base *Syntaxeuse::analyse_expression_droite(
+noeud::base *Syntaxeuse::analyse_expression(
 		TypeLexeme identifiant_final,
 		TypeLexeme racine_expr,
 		bool ajoute_noeud)
@@ -736,7 +736,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::INFO_DE, m_contexte, morceau, false);
 
-				analyse_expression_droite(TypeLexeme::INCONNU, TypeLexeme::INFO_DE);
+				analyse_expression(TypeLexeme::INCONNU, TypeLexeme::INFO_DE);
 
 				m_assembleuse->depile_noeud(type_noeud::INFO_DE);
 
@@ -761,7 +761,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
-				analyse_expression_droite(TypeLexeme::DOUBLE_POINTS, TypeLexeme::TRANSTYPE);
+				analyse_expression(TypeLexeme::DOUBLE_POINTS, TypeLexeme::TRANSTYPE);
 
 				noeud->type_declare = analyse_declaration_type(false);
 
@@ -777,7 +777,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::MEMOIRE, m_contexte, morceau, false);
 
-				analyse_expression_droite(TypeLexeme::INCONNU, TypeLexeme::MEMOIRE);
+				analyse_expression(TypeLexeme::INCONNU, TypeLexeme::MEMOIRE);
 
 				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
 
@@ -789,7 +789,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 			{
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::EXPRESSION_PARENTHESE, m_contexte, morceau, false);
 
-				analyse_expression_droite(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
+				analyse_expression(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
 
 				m_assembleuse->depile_noeud(type_noeud::EXPRESSION_PARENTHESE);
 
@@ -915,7 +915,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 					pile.pousse(noeud);
 
-					analyse_expression_droite(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
+					analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
 
 					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
 					 * la compilation de l'expression à la fin de la fonction. */
@@ -936,7 +936,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 					morceau.identifiant = TypeLexeme::TABLEAU;
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_TABLEAU, m_contexte, morceau, false);
 
-					analyse_expression_droite(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
+					analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
 
 					/* il est possible que le crochet n'ait pas été consommé,
 					 * par exemple dans le cas où nous avons un point-virgule
@@ -987,7 +987,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 
 					avance();
 
-					analyse_expression_droite(type_id::SINON, type_id::LOGE);
+					analyse_expression(type_id::SINON, type_id::LOGE);
 
 					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
 						lance_erreur("Attendu une paranthèse fermante ')");
@@ -1023,14 +1023,14 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 							morceau,
 							false);
 
-				analyse_expression_droite(type_id::DOUBLE_POINTS, type_id::RELOGE);
+				analyse_expression(type_id::DOUBLE_POINTS, type_id::RELOGE);
 
 				if (est_identifiant(type_id::CHAINE)) {
 					noeud_reloge->type_declare = analyse_declaration_type(false);
 
 					avance();
 
-					analyse_expression_droite(type_id::SINON, type_id::RELOGE);
+					analyse_expression(type_id::SINON, type_id::RELOGE);
 
 					if (!requiers_identifiant(type_id::PARENTHESE_FERMANTE)) {
 						lance_erreur("Attendu une paranthèse fermante ')");
@@ -1065,7 +1065,7 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 							morceau,
 							false);
 
-				analyse_expression_droite(type_id::POINT_VIRGULE, type_id::DELOGE);
+				analyse_expression(type_id::POINT_VIRGULE, type_id::DELOGE);
 
 				/* besoin de reculer car l'analyse va jusqu'au point-virgule, ce
 				 * qui nous fait absorber le code de l'expression suivante */
@@ -1287,7 +1287,7 @@ void Syntaxeuse::analyse_appel_fonction(noeud::base *noeud)
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
-		analyse_expression_droite(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
+		analyse_expression(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
 	}
 
 	consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
@@ -1346,7 +1346,7 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
 		while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
+			analyse_expression(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
 		}
 
 		consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
@@ -1374,7 +1374,7 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 	consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
 	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-		analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+		analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
 	}
 
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
@@ -1487,7 +1487,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 				auto expr = static_cast<noeud::base *>(nullptr);
 
 				if (this->identifiant_courant() != TypeLexeme::CROCHET_FERMANT) {
-					expr = analyse_expression_droite(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT, false);
+					expr = analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT, false);
 				}
 				else {
 					avance();
@@ -1517,7 +1517,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 			{
 				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'type_de'");
 
-				auto expr = analyse_expression_droite(
+				auto expr = analyse_expression(
 							TypeLexeme::PARENTHESE_FERMANTE,
 							TypeLexeme::TYPE_DE,
 							false);
@@ -1588,7 +1588,7 @@ void Syntaxeuse::analyse_construction_structure(noeud::base *noeud)
 
 		avance();
 
-		analyse_expression_droite(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
+		analyse_expression(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
 	}
 
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
