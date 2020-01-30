@@ -1,0 +1,376 @@
+importe Fondation
+
+énum TypeObjet : z32 {
+	NUL = 0
+	ENTIER = 1
+	RÉEL = 2
+	LISTE = 3
+	DICTIONNAIRE = 4
+	CHAINE = 5
+}
+
+########################################################################
+
+struct Objet {
+	id : TypeObjet
+}
+
+########################################################################
+
+struct ObjetEntier {
+	objet : Objet
+	valeur : z64
+}
+
+########################################################################
+
+struct ObjetRéel {
+	objet : Objet
+	valeur : r64
+}
+
+########################################################################
+
+struct ObjetChaine {
+	objet : Objet
+	valeur : chaine
+}
+
+########################################################################
+
+struct ObjetListe {
+	objet : Objet
+	valeur : []*Objet
+}
+
+########################################################################
+
+struct ObjetDictionnaire {
+	objet : Objet
+	noms : []chaine
+	valeurs : []*Objet
+}
+
+fonc pousse(dyn liste : &[]chaine, valeur : chaine) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]chaine
+    liste[taille] = valeur
+}
+
+fonc pousse(dyn liste : &[]*Objet, valeur : *Objet) : rien
+{
+    taille = liste.taille
+    reloge liste : [taille + 1]*Objet
+    liste[taille] = valeur
+}
+
+fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) : rien
+{
+	pour nom, idx dans dico.noms {
+		si !compare_chaines(nom, nom_objet) {
+			continue
+		}
+
+		dico.valeurs[idx] = objet
+		retourne
+	}
+
+	pousse(dico.noms, nom_objet)
+	pousse(dico.valeurs, objet)
+}
+
+fonc trouve_objet(dico : &ObjetDictionnaire, nom_objet : chaine) : *Objet
+{
+	pour nom, idx dans dico.noms {
+		si !compare_chaines(nom, nom_objet) {
+			continue
+		}
+
+		retourne dico.valeurs[idx]
+	}
+
+	retourne nul
+}
+
+fonc trouve_objet(
+	dico : *ObjetDictionnaire,
+	nom_objet : chaine,
+	type : TypeObjet) : *Objet
+{
+	pour nom, idx dans dico.noms {
+		si !compare_chaines(nom, nom_objet) {
+			continue
+		}
+
+		objet = dico.valeurs[idx]
+
+		si objet.id != type {
+			retourne nul
+		}
+
+		retourne objet
+	}
+}
+
+fonc trouve_entier(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetEntier
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.ENTIER)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetEntier)
+	}
+
+	retourne nul
+}
+
+fonc trouve_réel(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetRéel
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.RÉEL)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetRéel)
+	}
+
+	retourne nul
+}
+
+fonc trouve_liste(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetListe
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.LISTE)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetListe)
+	}
+
+	retourne nul
+}
+
+fonc trouve_chaine(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetChaine
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.CHAINE)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetChaine)
+	}
+
+	retourne nul
+}
+
+fonc trouve_dico(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetDictionnaire
+{
+	objet = trouve_objet(dico, nom_objet, TypeObjet.DICTIONNAIRE)
+
+	si objet != nul {
+		retourne transtype(objet : *ObjetDictionnaire)
+	}
+
+	retourne nul
+}
+
+########################################################################
+
+struct GestionnaireObjet {
+	objets : []*Objet
+}
+
+fonc insère(objet : *Objet, dyn liste : &[]*Objet) : rien
+{
+	reloge liste : [liste.taille + 1]*Objet
+	liste[liste.taille - 1] = objet
+}
+
+fonc crée_dictionnaire(gestionnaire : *GestionnaireObjet) : *ObjetDictionnaire
+{
+	dyn objet = loge ObjetDictionnaire
+	objet.objet.id = TypeObjet.DICTIONNAIRE
+	objet.noms.taille = 0
+	objet.noms.pointeur = nul
+	objet.valeurs.taille = 0
+	objet.valeurs.pointeur = nul
+
+	pousse(gestionnaire.objets, transtype(objet : *Objet))
+
+	retourne objet
+}
+
+fonc crée_liste(gestionnaire : *GestionnaireObjet) : *ObjetListe
+{
+	dyn objet = loge ObjetListe
+	objet.objet.id = TypeObjet.LISTE
+	objet.valeur.taille = 0
+	objet.valeur.pointeur = nul
+
+	pousse(gestionnaire.objets, transtype(objet : *Objet))
+
+	retourne objet
+}
+
+fonc crée_entier(gestionnaire : *GestionnaireObjet) : *ObjetEntier
+{
+	dyn objet = loge ObjetEntier
+	objet.objet.id = TypeObjet.ENTIER
+	objet.valeur = 0
+
+	pousse(gestionnaire.objets, transtype(objet : *Objet))
+
+	retourne objet
+}
+
+fonc crée_réel(gestionnaire : *GestionnaireObjet) : *ObjetRéel
+{
+	dyn objet = loge ObjetRéel
+	objet.objet.id = TypeObjet.RÉEL
+	objet.valeur = 0.0
+
+	pousse(gestionnaire.objets, transtype(objet : *Objet))
+
+	retourne objet
+}
+
+fonc crée_chaine(gestionnaire : *GestionnaireObjet) : *ObjetChaine
+{
+	dyn objet = loge ObjetChaine
+	objet.objet.id = TypeObjet.CHAINE
+	objet.valeur = ""
+
+	pousse(gestionnaire.objets, transtype(objet : *Objet))
+
+	retourne objet
+}
+
+fonc crée_nul(gestionnaire : *GestionnaireObjet) : *Objet
+{
+	dyn objet = loge Objet
+	objet.id = TypeObjet.NUL
+
+	pousse(gestionnaire.objets, objet)
+
+	retourne objet
+}
+
+fonc détruit_objet(objet : *Objet) : rien
+{
+	discr objet.id {
+		NUL {
+			déloge objet
+		}
+		ENTIER {
+			obj = transtype(objet : *ObjetEntier)
+			déloge obj
+		}
+		RÉEL {
+			obj = transtype(objet : *ObjetRéel)
+			déloge obj
+		}
+		CHAINE {
+			obj = transtype(objet : *ObjetChaine)
+			déloge obj
+		}
+		LISTE {
+			obj = transtype(objet : *ObjetListe)
+
+			déloge obj.valeur
+			déloge obj
+		}
+		DICTIONNAIRE {
+			obj = transtype(objet : *ObjetDictionnaire)
+
+			déloge obj.noms
+			déloge obj.valeurs
+			déloge obj
+		}
+	}
+}
+
+fonc détruit(gestionnaire : *GestionnaireObjet) : rien
+{
+	pour obj dans gestionnaire.objets {
+		détruit_objet(obj)
+	}
+
+	déloge gestionnaire.objets
+}
+
+fonc imprime_tab(n : z32) : rien
+{
+	pour i dans 0 ... n - 1 {
+		imprime("  ")
+	}
+}
+
+fonc imprime_json(objet : *Objet, tab : z32) : rien
+{
+	discr objet.id {
+		NUL {
+			imprime("nul,\n")
+		}
+		DICTIONNAIRE {
+			imprime_tab(tab)
+			imprime("{\n")
+
+			dico = transtype(objet : *ObjetDictionnaire)
+
+			pour nom, idx dans dico.noms {
+				obj = dico.valeurs[idx]
+
+				imprime_tab(tab + 1)
+				imprime(nom, " : ")
+				imprime_json(obj, tab + 1)
+			}
+
+			imprime_tab(tab)
+			imprime("},\n")
+		}
+		LISTE {
+			imprime("[\n")
+
+			liste = transtype(objet : *ObjetListe)
+
+			pour valeur dans liste.valeur {
+				imprime_json(valeur, tab + 1)
+			}
+
+			imprime_tab(tab)
+			imprime("],\n")
+		}
+		CHAINE {
+			obj = transtype(objet : *ObjetChaine)
+			imprime("\"", obj.valeur, "\"", ",\n")
+		}
+		ENTIER {
+			obj = transtype(objet : *ObjetEntier)
+			imprime(obj.valeur, ",\n")
+		}
+		RÉEL {
+			obj = transtype(objet : *ObjetRéel)
+			imprime(obj.valeur, ",\n")
+		}
+	}
+}
+
+fonc principale(args : []*z8) : z32
+{
+    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+	dyn gestionnaire : GestionnaireObjet
+	diffère { détruit(@gestionnaire) }
+
+	dyn dico = crée_dictionnaire(@gestionnaire)
+
+	obj1 = crée_liste(@gestionnaire)
+	obj2 = crée_entier(@gestionnaire)
+	obj3 = crée_réel(@gestionnaire)
+	obj4 = crée_nul(@gestionnaire)
+	obj5 = crée_chaine(@gestionnaire)
+
+	insère(dico, "liste", transtype(obj1 : *Objet))
+	insère(dico, "entier", transtype(obj2 : *Objet))
+	insère(dico, "réel", transtype(obj3 : *Objet))
+	insère(dico, "nul", transtype(obj4 : *Objet))
+	insère(dico, "chaine", transtype(obj5 : *Objet))
+
+	imprime_json(transtype(dico : *Objet), 0)
+
+	retourne 0
+}
