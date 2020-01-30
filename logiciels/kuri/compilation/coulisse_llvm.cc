@@ -69,7 +69,7 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  * - opérateurs : +=, -=, etc..
  * - ajourne opérateur [] pour les chaines
  * - converti paramètres fonction principale en un tableau
- * - boucle 'tantque', 'répète'
+ * - boucle 'tantque'
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
@@ -566,7 +566,6 @@ static llvm::Value *genere_code_llvm(
 	switch (b->type) {
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::SINON:
-		case type_noeud::REPETE:
 		case type_noeud::ACCES_TABLEAU:
 		case type_noeud::OPERATION_COMP_CHAINEE:
 		case type_noeud::ACCES_MEMBRE_UNION:
@@ -1838,6 +1837,41 @@ static llvm::Value *genere_code_llvm(
 
 			enfant->valeur_calculee = bloc_boucle;
 			auto ret = genere_code_llvm(enfant, contexte, false);
+
+			contexte.depile_bloc_continue();
+			contexte.depile_bloc_arrete();
+			contexte.bloc_courant(bloc_apres);
+
+			return ret;
+		}
+		case type_noeud::REPETE:
+		{
+			auto enfant = b->enfants.front();
+
+			auto bloc_boucle = cree_bloc(contexte, "repete");
+			auto bloc_tantque = cree_bloc(contexte, "tantque_boucle");
+			auto bloc_apres = cree_bloc(contexte, "apres_repete");
+
+			contexte.empile_bloc_continue("", bloc_boucle);
+			contexte.empile_bloc_arrete("", bloc_apres);
+
+			/* on crée une branche explicite dans le bloc */
+			llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
+
+			contexte.bloc_courant(bloc_boucle);
+
+			enfant->valeur_calculee = bloc_tantque;
+			auto ret = genere_code_llvm(enfant, contexte, false);
+
+			contexte.bloc_courant(bloc_tantque);
+
+			auto condition = genere_code_llvm(b->enfants.back(), contexte, false);
+
+			llvm::BranchInst::Create(
+						bloc_boucle,
+						bloc_apres,
+						condition,
+						contexte.bloc_courant());
 
 			contexte.depile_bloc_continue();
 			contexte.depile_bloc_arrete();
