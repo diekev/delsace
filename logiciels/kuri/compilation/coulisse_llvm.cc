@@ -75,9 +75,8 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  * - conversion tableau octet
  * - déclaration structure/énum/union
  * - discr
- * - ajourne la génération de code pour les boucles 'pour'
  * - trace de la mémoire utilisée
- * - retiens
+ * - coroutine, retiens
  * - contexte implicit
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
  */
@@ -1567,54 +1566,111 @@ static llvm::Value *genere_code_llvm(
 
 			contexte.bloc_courant(bloc_boucle);
 
-			const auto tableau = (type & 0xff) == id_morceau::TABLEAU;
 			const auto taille_tableau = static_cast<uint64_t>(type >> 8);
 			auto pointeur_tableau = static_cast<llvm::Value *>(nullptr);
 
-			if (enfant2->type == type_noeud::PLAGE) {
-				noeud_phi = llvm::PHINode::Create(
-								converti_type_llvm(contexte, index_type),
-								2,
-								dls::chaine(enfant1->chaine()).c_str(),
+			auto builder = llvm::IRBuilder<>(contexte.contexte);
+			builder.SetInsertPoint(contexte.bloc_courant());
+			auto ret = static_cast<llvm::Value *>(nullptr);
+
+			switch (b->aide_generation_code) {
+				case GENERE_BOUCLE_PLAGE:
+				case GENERE_BOUCLE_PLAGE_INDEX:
+				{
+					auto var = enfant1;
+					auto idx = static_cast<noeud::base *>(nullptr);
+					auto valeur_idx = static_cast<llvm::PHINode *>(nullptr);
+
+					if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
+						var = enfant1->enfants.front();
+						idx = enfant1->enfants.back();
+					}
+
+					if (idx != nullptr) {
+						valeur_idx = builder.CreatePHI(builder.getInt32Ty(), 2, "");
+						auto init_zero = builder.getInt32(0);
+						valeur_idx->addIncoming(init_zero, bloc_pre);
+					}
+
+					/* création du bloc de condition */
+
+					noeud_phi = builder.CreatePHI(converti_type_llvm(contexte, index_type), 2, dls::chaine(var->chaine()).c_str());
+
+					genere_code_llvm(enfant2, contexte, false);
+
+					auto valeur_debut = contexte.valeur_locale("__debut");
+					auto valeur_fin = contexte.valeur_locale("__fin");
+
+					noeud_phi->addIncoming(valeur_debut, bloc_pre);
+
+					auto condition = comparaison_pour_type(
+										 type,
+										 noeud_phi,
+										 valeur_fin,
+										 contexte.bloc_courant());
+
+					builder.CreateCondBr(condition, bloc_corps, (bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres);
+
+					if (b->aide_generation_code == GENERE_BOUCLE_PLAGE_INDEX) {
+						auto donnees_var = DonneesVariable{};
+
+						donnees_var.valeur = noeud_phi;
+						donnees_var.index_type = var->index_type;
+						contexte.pousse_locale(var->chaine(), donnees_var);
+
+						donnees_var.valeur = valeur_idx;
+						donnees_var.index_type = idx->index_type;
+						contexte.pousse_locale(idx->chaine(), donnees_var);
+					}
+					else {
+						auto donnees_var = DonneesVariable{};
+						donnees_var.valeur = noeud_phi;
+						donnees_var.index_type = index_type;
+						contexte.pousse_locale(enfant1->chaine(), donnees_var);
+					}
+
+					/* création du bloc de corps */
+
+					contexte.bloc_courant(bloc_corps);
+					builder.SetInsertPoint(contexte.bloc_courant());
+
+					enfant3->valeur_calculee = bloc_inc;
+					ret = genere_code_llvm(enfant3, contexte, false);
+
+					/* bloc_inc */
+					contexte.bloc_courant(bloc_inc);
+					builder.SetInsertPoint(contexte.bloc_courant());
+
+					auto inc = incremente_pour_type(
+								type,
+								contexte,
+								noeud_phi,
 								contexte.bloc_courant());
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
-				noeud_phi = llvm::PHINode::Create(
-								tableau ? llvm::Type::getInt64Ty(contexte.contexte)
-										: llvm::Type::getInt32Ty(contexte.contexte),
-								2,
-								dls::chaine(enfant1->chaine()).c_str(),
-								contexte.bloc_courant());
-			}
 
-			if (enfant2->type == type_noeud::PLAGE) {
-				genere_code_llvm(enfant2, contexte, false);
+					noeud_phi->addIncoming(inc, contexte.bloc_courant());
 
-				auto valeur_debut = contexte.valeur_locale("__debut");
-				auto valeur_fin = contexte.valeur_locale("__fin");
+					if (valeur_idx) {
+						inc = incremente_pour_type(
+									type,
+									contexte,
+									valeur_idx,
+									contexte.bloc_courant());
 
-				noeud_phi->addIncoming(valeur_debut, bloc_pre);
+						valeur_idx->addIncoming(inc, contexte.bloc_courant());
+					}
 
-				auto condition = comparaison_pour_type(
-									 type,
-									 noeud_phi,
-									 valeur_fin,
-									 contexte.bloc_courant());
+					break;
+				}
+				case GENERE_BOUCLE_TABLEAU:
+				case GENERE_BOUCLE_TABLEAU_INDEX:
+				{
+					noeud_phi = llvm::PHINode::Create(
+									llvm::Type::getInt64Ty(contexte.contexte),
+									2,
+									dls::chaine(enfant1->chaine()).c_str(),
+									contexte.bloc_courant());
 
-				llvm::BranchInst::Create(
-							bloc_corps,
-							(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
-							condition,
-							contexte.bloc_courant());
 
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = noeud_phi;
-				donnees_var.index_type = index_type;
-
-				contexte.pousse_locale(enfant1->chaine(), donnees_var);
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
-				if (tableau) {
 					auto valeur_debut = llvm::ConstantInt::get(
 											llvm::Type::getInt64Ty(contexte.contexte),
 											static_cast<uint64_t>(0),
@@ -1648,66 +1704,79 @@ static llvm::Value *genere_code_llvm(
 								(bloc_sansarret != nullptr) ? bloc_sansarret : bloc_apres,
 								condition,
 								contexte.bloc_courant());
+
+					contexte.bloc_courant(bloc_corps);
+
+					auto valeur_arg = static_cast<llvm::Value *>(nullptr);
+
+					if (taille_tableau != 0) {
+						auto valeur_tableau = genere_code_llvm(enfant2, contexte, true);
+
+						valeur_arg = accede_element_tableau(
+									 contexte,
+									 valeur_tableau,
+									 converti_type_llvm(contexte, index_type),
+									 noeud_phi);
+					}
+					else {
+						auto pointeur = accede_membre_structure(contexte, pointeur_tableau, POINTEUR_TABLEAU);
+
+						pointeur = new llvm::LoadInst(pointeur, "", contexte.bloc_courant());
+
+						valeur_arg = llvm::GetElementPtrInst::CreateInBounds(
+									 pointeur,
+									 noeud_phi,
+									 "",
+									 contexte.bloc_courant());
+					}
+
+					if (b->aide_generation_code == GENERE_BOUCLE_TABLEAU_INDEX) {
+						auto var = enfant1->enfants.front();
+						auto idx = enfant1->enfants.back();
+
+						auto donnees_var = DonneesVariable{};
+
+						donnees_var.valeur = valeur_arg;
+						donnees_var.index_type = index_type;
+						contexte.pousse_locale(var->chaine(), donnees_var);
+
+						donnees_var.valeur = noeud_phi;
+						donnees_var.index_type = idx->index_type;
+						contexte.pousse_locale(idx->chaine(), donnees_var);
+					}
+					else {
+						auto donnees_var = DonneesVariable{};
+						donnees_var.valeur = valeur_arg;
+						donnees_var.index_type = index_type;
+						contexte.pousse_locale(enfant1->chaine(), donnees_var);
+					}
+
+					/* création du bloc de corps */
+					builder.SetInsertPoint(contexte.bloc_courant());
+
+					enfant3->valeur_calculee = bloc_inc;
+					ret = genere_code_llvm(enfant3, contexte, false);
+
+					/* bloc_inc */
+					contexte.bloc_courant(bloc_inc);
+					builder.SetInsertPoint(contexte.bloc_courant());
+
+					auto inc = incremente_pour_type(
+								   id_morceau::N64,
+								   contexte,
+								   noeud_phi,
+								   contexte.bloc_courant());
+
+					noeud_phi->addIncoming(inc, contexte.bloc_courant());
+
+					break;
 				}
-			}
-
-			/* bloc_corps */
-			contexte.bloc_courant(bloc_corps);
-
-			if (tableau) {
-				auto valeur_arg = static_cast<llvm::Value *>(nullptr);
-
-				if (taille_tableau != 0) {
-					auto valeur_tableau = genere_code_llvm(enfant2, contexte, true);
-
-					valeur_arg = accede_element_tableau(
-								 contexte,
-								 valeur_tableau,
-								 converti_type_llvm(contexte, index_type),
-								 noeud_phi);
+				case GENERE_BOUCLE_COROUTINE:
+				case GENERE_BOUCLE_COROUTINE_INDEX:
+				{
+					/* À FAIRE */
+					break;
 				}
-				else {
-					auto pointeur = accede_membre_structure(contexte, pointeur_tableau, POINTEUR_TABLEAU);
-
-					pointeur = new llvm::LoadInst(pointeur, "", contexte.bloc_courant());
-
-					valeur_arg = llvm::GetElementPtrInst::CreateInBounds(
-								 pointeur,
-								 noeud_phi,
-								 "",
-								 contexte.bloc_courant());
-				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = valeur_arg;
-				donnees_var.index_type = index_type;
-
-				contexte.pousse_locale(enfant1->chaine(), donnees_var);
-			}
-
-			enfant3->valeur_calculee = bloc_inc;
-			auto ret = genere_code_llvm(enfant3, contexte, false);
-
-			/* bloc_inc */
-			contexte.bloc_courant(bloc_inc);
-
-			if (enfant2->type == type_noeud::PLAGE) {
-				auto inc = incremente_pour_type(
-							   type,
-							   contexte,
-							   noeud_phi,
-							   contexte.bloc_courant());
-
-				noeud_phi->addIncoming(inc, contexte.bloc_courant());
-			}
-			else if (enfant2->type == type_noeud::VARIABLE) {
-				auto inc = incremente_pour_type(
-							   tableau ? id_morceau::N64 : id_morceau::Z32,
-							   contexte,
-							   noeud_phi,
-							   contexte.bloc_courant());
-
-				noeud_phi->addIncoming(inc, contexte.bloc_courant());
 			}
 
 			ret = llvm::BranchInst::Create(bloc_boucle, contexte.bloc_courant());
