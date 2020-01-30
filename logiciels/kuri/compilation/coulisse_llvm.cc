@@ -62,13 +62,11 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 /* ************************************************************************** */
 
 /* À FAIRE (coulisse LLVM)
- * - type 'chaine'
  * - noeud 'mémoire'
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
  * - ajourne opérateur [] pour les chaines
- * - converti paramètres fonction principale en un tableau
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
@@ -76,7 +74,6 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  * - discr
  * - trace de la mémoire utilisée
  * - coroutine, retiens
- * - contexte implicit
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
  */
 
@@ -1822,7 +1819,6 @@ static llvm::Value *genere_code_llvm(
 
 			auto enfant = b->enfants.front();
 
-			/* création des blocs */
 			auto bloc_boucle = cree_bloc(contexte, "boucle");
 			auto bloc_apres = cree_bloc(contexte, "apres_boucle");
 
