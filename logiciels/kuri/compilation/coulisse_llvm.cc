@@ -62,15 +62,12 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
 /* ************************************************************************** */
 
 /* À FAIRE (coulisse LLVM)
- * - noeud 'mémoire'
  * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
- * - ajourne opérateur [] pour les chaines
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
- * - déclaration structure/énum/union
  * - discr
  * - trace de la mémoire utilisée
  * - coroutine, retiens
