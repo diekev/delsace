@@ -270,7 +270,7 @@ namespace noeud {
  */
 struct base {
 	dls::liste<base *> enfants{};
-	DonneesMorceau const &morceau;
+	DonneesLexeme const &morceau;
 
 	std::any valeur_calculee{};
 
@@ -297,7 +297,7 @@ struct base {
 
 	TransformationType transformation{};
 
-	explicit base(ContexteGenerationCode &contexte, DonneesMorceau const &morceau);
+	explicit base(ContexteGenerationCode &contexte, DonneesLexeme const &morceau);
 
 	base(base const &) = default;
 	base &operator=(base const &) = default;
@@ -317,7 +317,7 @@ struct base {
 	/**
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
-	id_morceau identifiant() const;
+	TypeLexeme identifiant() const;
 
 	/**
 	 * Retourne une référence constante vers la chaine du morceau de ce noeud.
@@ -327,7 +327,7 @@ struct base {
 	/**
 	 * Retourne une référence constante vers les données du morceau de ce neoud.
 	 */
-	DonneesMorceau const &donnees_morceau() const;
+	DonneesLexeme const &donnees_morceau() const;
 
 	/**
 	 * Retourne un pointeur vers le dernier enfant de ce noeud. Si le noeud n'a

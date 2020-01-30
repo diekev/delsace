@@ -24,38 +24,38 @@
 
 #pragma once
 
-enum class id_morceau : unsigned int;
+enum class TypeLexeme : unsigned int;
 
-bool est_type_entier(id_morceau type);
+bool est_type_entier(TypeLexeme type);
 
-bool est_type_entier_naturel(id_morceau type);
+bool est_type_entier_naturel(TypeLexeme type);
 
-bool est_type_entier_relatif(id_morceau type);
+bool est_type_entier_relatif(TypeLexeme type);
 
-bool est_type_reel(id_morceau type);
+bool est_type_reel(TypeLexeme type);
 
-bool est_operateur_bool(id_morceau type);
+bool est_operateur_bool(TypeLexeme type);
 
-bool est_assignation_operee(id_morceau type);
+bool est_assignation_operee(TypeLexeme type);
 
-id_morceau operateur_pour_assignation_operee(id_morceau type);
+TypeLexeme operateur_pour_assignation_operee(TypeLexeme type);
 
-bool est_operateur_comp(id_morceau type);
+bool est_operateur_comp(TypeLexeme type);
 
-bool peut_etre_dereference(id_morceau id);
+bool peut_etre_dereference(TypeLexeme id);
 
-bool est_mot_cle(id_morceau id);
+bool est_mot_cle(TypeLexeme id);
 
-bool est_chaine_litterale(id_morceau id);
+bool est_chaine_litterale(TypeLexeme id);
 
-bool est_specifiant_type(id_morceau identifiant);
+bool est_specifiant_type(TypeLexeme identifiant);
 
-bool est_identifiant_type(id_morceau identifiant);
+bool est_identifiant_type(TypeLexeme identifiant);
 
-bool est_nombre_entier(id_morceau identifiant);
+bool est_nombre_entier(TypeLexeme identifiant);
 
-bool est_nombre(id_morceau identifiant);
+bool est_nombre(TypeLexeme identifiant);
 
-bool est_operateur_unaire(id_morceau identifiant);
+bool est_operateur_unaire(TypeLexeme identifiant);
 
-bool est_operateur_binaire(id_morceau identifiant);
+bool est_operateur_binaire(TypeLexeme identifiant);

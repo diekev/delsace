@@ -30,47 +30,47 @@
 
 // types comparaisons :
 // ==, !=, <, >, <=, =>
-static id_morceau operateurs_comparaisons[] = {
-	id_morceau::EGALITE,
-	id_morceau::DIFFERENCE,
-	id_morceau::INFERIEUR,
-	id_morceau::SUPERIEUR,
-	id_morceau::INFERIEUR_EGAL,
-	id_morceau::SUPERIEUR_EGAL
+static TypeLexeme operateurs_comparaisons[] = {
+	TypeLexeme::EGALITE,
+	TypeLexeme::DIFFERENCE,
+	TypeLexeme::INFERIEUR,
+	TypeLexeme::SUPERIEUR,
+	TypeLexeme::INFERIEUR_EGAL,
+	TypeLexeme::SUPERIEUR_EGAL
 };
 
 // types entiers et réels :
 // +, -, *, / (assignés +=, -=, /=, *=)
-static id_morceau operateurs_entiers_reels[] = {
-	id_morceau::PLUS,
-	id_morceau::MOINS,
-	id_morceau::FOIS,
-	id_morceau::DIVISE,
+static TypeLexeme operateurs_entiers_reels[] = {
+	TypeLexeme::PLUS,
+	TypeLexeme::MOINS,
+	TypeLexeme::FOIS,
+	TypeLexeme::DIVISE,
 };
 
 // types entiers :
 // %, <<, >>, &, |, ^ (assignés %=, <<=, >>=, &, |, ^)
-static id_morceau operateurs_entiers[] = {
-	id_morceau::POURCENT,
-	id_morceau::DECALAGE_GAUCHE,
-	id_morceau::DECALAGE_DROITE,
-	id_morceau::ESPERLUETTE,
-	id_morceau::BARRE,
-	id_morceau::CHAPEAU,
-	id_morceau::TILDE
+static TypeLexeme operateurs_entiers[] = {
+	TypeLexeme::POURCENT,
+	TypeLexeme::DECALAGE_GAUCHE,
+	TypeLexeme::DECALAGE_DROITE,
+	TypeLexeme::ESPERLUETTE,
+	TypeLexeme::BARRE,
+	TypeLexeme::CHAPEAU,
+	TypeLexeme::TILDE
 };
 
-static bool est_commutatif(id_morceau id)
+static bool est_commutatif(TypeLexeme id)
 {
 	switch (id) {
 		default:
 		{
 			return false;
 		}
-		case id_morceau::PLUS:
-		case id_morceau::MOINS:
-		case id_morceau::EGALITE:
-		case id_morceau::DIFFERENCE:
+		case TypeLexeme::PLUS:
+		case TypeLexeme::MOINS:
+		case TypeLexeme::EGALITE:
+		case TypeLexeme::DIFFERENCE:
 		{
 			return true;
 		}
@@ -86,17 +86,17 @@ Operateurs::~Operateurs()
 	}
 }
 
-const Operateurs::type_conteneur &Operateurs::trouve(id_morceau id) const
+const Operateurs::type_conteneur &Operateurs::trouve(TypeLexeme id) const
 {
 	return donnees_operateurs.trouve(id)->second;
 }
 
-void Operateurs::ajoute_basique(id_morceau id, long index_type, long index_type_resultat)
+void Operateurs::ajoute_basique(TypeLexeme id, long index_type, long index_type_resultat)
 {
 	ajoute_basique(id, index_type, index_type, index_type_resultat);
 }
 
-void Operateurs::ajoute_basique(id_morceau id, long index_type1, long index_type2, long index_type_resultat)
+void Operateurs::ajoute_basique(TypeLexeme id, long index_type1, long index_type2, long index_type_resultat)
 {
 	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
 	op->index_type1 = index_type1;
@@ -108,13 +108,13 @@ void Operateurs::ajoute_basique(id_morceau id, long index_type1, long index_type
 	donnees_operateurs[id].pousse(op);
 }
 
-void Operateurs::ajoute_basique_unaire(id_morceau id, long index_type, long index_type_resultat)
+void Operateurs::ajoute_basique_unaire(TypeLexeme id, long index_type, long index_type_resultat)
 {
 	ajoute_basique(id, index_type, index_type, index_type_resultat);
 }
 
 void Operateurs::ajoute_perso(
-		id_morceau id,
+		TypeLexeme id,
 		long index_type1,
 		long index_type2,
 		long index_type_resultat,
@@ -132,7 +132,7 @@ void Operateurs::ajoute_perso(
 }
 
 void Operateurs::ajoute_perso_unaire(
-		id_morceau id,
+		TypeLexeme id,
 		long index_type,
 		long index_type_resultat,
 		const dls::chaine &nom_fonction)
@@ -183,7 +183,7 @@ dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
 		ContexteGenerationCode const &contexte,
 		long index_type1,
 		long index_type2,
-		id_morceau type_op)
+		TypeLexeme type_op)
 {
 	auto op_candidats = dls::tableau<DonneesOperateur const *>();
 
@@ -248,7 +248,7 @@ dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
 DonneesOperateur const *cherche_operateur_unaire(
 		Operateurs const &operateurs,
 		long index_type1,
-		id_morceau type_op)
+		TypeLexeme type_op)
 {
 	for (auto const &op : operateurs.trouve(type_op)) {
 		if (op->index_type1 == index_type1) {
@@ -330,42 +330,42 @@ void enregistre_operateurs_basiques(
 	}
 
 	// operateurs booléens && ||
-	operateurs.ajoute_basique(id_morceau::ESP_ESP, type_bool, type_bool);
-	operateurs.ajoute_basique(id_morceau::BARRE_BARRE, type_bool, type_bool);
+	operateurs.ajoute_basique(TypeLexeme::ESP_ESP, type_bool, type_bool);
+	operateurs.ajoute_basique(TypeLexeme::BARRE_BARRE, type_bool, type_bool);
 
 	// opérateurs unaires + - ~
 	for (auto type : types_entiers) {
-		operateurs.ajoute_basique_unaire(id_morceau::PLUS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(id_morceau::MOINS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(id_morceau::TILDE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::TILDE, type, type);
 	}
 
 	for (auto type : types_reels) {
-		operateurs.ajoute_basique_unaire(id_morceau::PLUS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(id_morceau::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
 	}
 
 	// opérateurs unaires booléens !
-	operateurs.ajoute_basique_unaire(id_morceau::EXCLAMATION, type_bool, type_bool);
+	operateurs.ajoute_basique_unaire(TypeLexeme::EXCLAMATION, type_bool, type_bool);
 
 	// type r16
 
 	// r16 + r32 => DLS_ajoute_r16r32
 
-	static dls::paire<id_morceau, dls::vue_chaine> op_r16[] = {
-		dls::paire{ id_morceau::PLUS, dls::vue_chaine("DLS_ajoute_") },
-		dls::paire{ id_morceau::MOINS, dls::vue_chaine("DLS_soustrait_") },
-		dls::paire{ id_morceau::FOIS, dls::vue_chaine("DLS_multiplie_") },
-		dls::paire{ id_morceau::DIVISE, dls::vue_chaine("DLS_divise_") },
+	static dls::paire<TypeLexeme, dls::vue_chaine> op_r16[] = {
+		dls::paire{ TypeLexeme::PLUS, dls::vue_chaine("DLS_ajoute_") },
+		dls::paire{ TypeLexeme::MOINS, dls::vue_chaine("DLS_soustrait_") },
+		dls::paire{ TypeLexeme::FOIS, dls::vue_chaine("DLS_multiplie_") },
+		dls::paire{ TypeLexeme::DIVISE, dls::vue_chaine("DLS_divise_") },
 	};
 
-	static dls::paire<id_morceau, dls::vue_chaine> op_comp_r16[] = {
-		dls::paire{ id_morceau::EGALITE, dls::vue_chaine("DLS_compare_egl_") },
-		dls::paire{ id_morceau::DIFFERENCE, dls::vue_chaine("DLS_compare_non_egl_") },
-		dls::paire{ id_morceau::INFERIEUR, dls::vue_chaine("DLS_compare_inf_") },
-		dls::paire{ id_morceau::SUPERIEUR, dls::vue_chaine("DLS_compare_sup_") },
-		dls::paire{ id_morceau::INFERIEUR_EGAL, dls::vue_chaine("DLS_compare_inf_egl_") },
-		dls::paire{ id_morceau::SUPERIEUR_EGAL, dls::vue_chaine("DLS_compare_sup_egl_") },
+	static dls::paire<TypeLexeme, dls::vue_chaine> op_comp_r16[] = {
+		dls::paire{ TypeLexeme::EGALITE, dls::vue_chaine("DLS_compare_egl_") },
+		dls::paire{ TypeLexeme::DIFFERENCE, dls::vue_chaine("DLS_compare_non_egl_") },
+		dls::paire{ TypeLexeme::INFERIEUR, dls::vue_chaine("DLS_compare_inf_") },
+		dls::paire{ TypeLexeme::SUPERIEUR, dls::vue_chaine("DLS_compare_sup_") },
+		dls::paire{ TypeLexeme::INFERIEUR_EGAL, dls::vue_chaine("DLS_compare_inf_egl_") },
+		dls::paire{ TypeLexeme::SUPERIEUR_EGAL, dls::vue_chaine("DLS_compare_sup_egl_") },
 	};
 
 	for (auto paire_op : op_r16) {
@@ -390,12 +390,12 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_perso(op, type_r64, type_r16, type_bool, chaine + "r64r16");
 	}
 
-	operateurs.ajoute_perso_unaire(id_morceau::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
-	operateurs.ajoute_perso_unaire(id_morceau::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
+	operateurs.ajoute_perso_unaire(TypeLexeme::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
+	operateurs.ajoute_perso_unaire(TypeLexeme::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
 
-	operateurs.ajoute_perso(id_morceau::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
-	operateurs.ajoute_perso(id_morceau::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
+	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
+	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
 
-	operateurs.ajoute_perso(id_morceau::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
-	operateurs.ajoute_perso(id_morceau::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
+	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
+	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
 }

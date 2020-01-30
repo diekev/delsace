@@ -104,17 +104,17 @@ dls::chaine const &nom_broye_type(
 			plage.effronte();
 
 			switch (donnee & 0xff) {
-				case id_morceau::TROIS_POINTS:
+				case TypeLexeme::TROIS_POINTS:
 				{
 					flux << "Kv";
 					break;
 				}
-				case id_morceau::POINTEUR:
+				case TypeLexeme::POINTEUR:
 				{
 					flux << "KP";
 					break;
 				}
-				case id_morceau::TABLEAU:
+				case TypeLexeme::TABLEAU:
 				{
 					if (static_cast<size_t>(donnee >> 8) != 0) {
 						flux << "KT" << static_cast<size_t>(donnee >> 8);
@@ -125,126 +125,126 @@ dls::chaine const &nom_broye_type(
 
 					break;
 				}
-				case id_morceau::N8:
+				case TypeLexeme::N8:
 				{
 					flux << "Ksn8";
 					break;
 				}
-				case id_morceau::N16:
+				case TypeLexeme::N16:
 				{
 					flux << "Ksn16";
 					break;
 				}
-				case id_morceau::N32:
+				case TypeLexeme::N32:
 				{
 					flux << "Ksn32";
 					break;
 				}
-				case id_morceau::N64:
+				case TypeLexeme::N64:
 				{
 					flux << "Ksn64";
 					break;
 				}
-				case id_morceau::N128:
+				case TypeLexeme::N128:
 				{
 					flux << "Ksn128";
 					break;
 				}
-				case id_morceau::R16:
+				case TypeLexeme::R16:
 				{
 					flux << "Ksr16";
 					break;
 				}
-				case id_morceau::R32:
+				case TypeLexeme::R32:
 				{
 					flux << "Ksr32";
 					break;
 				}
-				case id_morceau::R64:
+				case TypeLexeme::R64:
 				{
 					flux << "Ksr64";
 					break;
 				}
-				case id_morceau::R128:
+				case TypeLexeme::R128:
 				{
 					flux << "Ksr128";
 					break;
 				}
-				case id_morceau::Z8:
+				case TypeLexeme::Z8:
 				{
 					flux << "Ksz8";
 					break;
 				}
-				case id_morceau::Z16:
+				case TypeLexeme::Z16:
 				{
 					flux << "Ksz16";
 					break;
 				}
-				case id_morceau::Z32:
+				case TypeLexeme::Z32:
 				{
 					flux << "Ksz32";
 					break;
 				}
-				case id_morceau::Z64:
+				case TypeLexeme::Z64:
 				{
 					flux << "Ksz64";
 					break;
 				}
-				case id_morceau::Z128:
+				case TypeLexeme::Z128:
 				{
 					flux << "Ksz128";
 					break;
 				}
-				case id_morceau::BOOL:
+				case TypeLexeme::BOOL:
 				{
 					flux << "Ksbool";
 					break;
 				}
-				case id_morceau::CHAINE:
+				case TypeLexeme::CHAINE:
 				{
 					flux << "Kschaine";
 					break;
 				}
-				case id_morceau::FONC:
+				case TypeLexeme::FONC:
 				{
 					/* À FAIRE gestion des paramètres */
 					flux << "Kf";
 					break;
 				}
-				case id_morceau::COROUT:
+				case TypeLexeme::COROUT:
 				{
 					flux << "Kc";
 					break;
 				}
-				case id_morceau::PARENTHESE_OUVRANTE:
-				case id_morceau::PARENTHESE_FERMANTE:
-				case id_morceau::VIRGULE:
-				case id_morceau::EINI:
+				case TypeLexeme::PARENTHESE_OUVRANTE:
+				case TypeLexeme::PARENTHESE_FERMANTE:
+				case TypeLexeme::VIRGULE:
+				case TypeLexeme::EINI:
 				{
 					flux << "Kseini";
 					break;
 				}
-				case id_morceau::RIEN:
+				case TypeLexeme::RIEN:
 				{
 					flux << "Ksrien";
 					break;
 				}
-				case id_morceau::OCTET:
+				case TypeLexeme::OCTET:
 				{
 					flux << "Ksoctet";
 					break;
 				}
-				case id_morceau::NUL:
+				case TypeLexeme::NUL:
 				{
 					flux << "Ksnul";
 					break;
 				}
-				case id_morceau::REFERENCE:
+				case TypeLexeme::REFERENCE:
 				{
 					flux << "KR";
 					break;
 				}
-				case id_morceau::CHAINE_CARACTERE:
+				case TypeLexeme::CHAINE_CARACTERE:
 				{
 					auto id = static_cast<long>(donnee >> 8);
 					flux << "Ks";

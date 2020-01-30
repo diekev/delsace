@@ -28,7 +28,7 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-enum class id_morceau : unsigned int {
+enum class TypeLexeme : unsigned int {
 	EXCLAMATION,
 	GUILLEMET,
 	DIESE,
@@ -154,47 +154,47 @@ enum class id_morceau : unsigned int {
 	COMMENTAIRE,
 };
 
-inline id_morceau operator&(id_morceau id1, int id2)
+inline TypeLexeme operator&(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) & id2);
 }
 
-inline id_morceau operator|(id_morceau id1, int id2)
+inline TypeLexeme operator|(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) | id2);
 }
 
-inline id_morceau operator|(id_morceau id1, id_morceau id2)
+inline TypeLexeme operator|(TypeLexeme id1, TypeLexeme id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+	return static_cast<TypeLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
 }
 
-inline id_morceau operator<<(id_morceau id1, int id2)
+inline TypeLexeme operator<<(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) << id2);
 }
 
-inline id_morceau operator>>(id_morceau id1, int id2)
+inline TypeLexeme operator>>(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) >> id2);
 }
 
-struct DonneesMorceau {
-	using type = id_morceau;
-	static constexpr type INCONNU = id_morceau::INCONNU;
+struct DonneesLexeme {
+	using type = TypeLexeme;
+	static constexpr type INCONNU = TypeLexeme::INCONNU;
 	dls::vue_chaine_compacte chaine;
-	id_morceau identifiant;
+	TypeLexeme identifiant;
 	int fichier = 0;
 };
 
-const char *chaine_identifiant(id_morceau id);
+const char *chaine_identifiant(TypeLexeme id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, id_morceau &i);
+bool est_caractere_special(char c, TypeLexeme &i);
 
-id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine);
+TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine);
+TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_chaine(const dls::vue_chaine_compacte &chaine);
+TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine);

@@ -27,14 +27,14 @@
 #include "arbre_syntactic.h"
 #include "broyage.hh"
 #include "contexte_generation_code.h"
-#include "outils_morceaux.hh"
+#include "outils_lexemes.hh"
 
 /* ************************************************************************** */
 
-id_morceau DonneesTypeDeclare::type_base() const
+TypeLexeme DonneesTypeDeclare::type_base() const
 {
 	if (donnees.est_vide()) {
-		return id_morceau::INCONNU;
+		return TypeLexeme::INCONNU;
 	}
 
 	return donnees[0];
@@ -45,12 +45,12 @@ long DonneesTypeDeclare::taille() const
 	return donnees.taille();
 }
 
-id_morceau DonneesTypeDeclare::operator[](long idx) const
+TypeLexeme DonneesTypeDeclare::operator[](long idx) const
 {
 	return donnees[idx];
 }
 
-void DonneesTypeDeclare::pousse(id_morceau id)
+void DonneesTypeDeclare::pousse(TypeLexeme id)
 {
 	donnees.pousse(id);
 }
@@ -80,12 +80,12 @@ DonneesTypeDeclare::type_plage DonneesTypeDeclare::dereference() const
 
 /* ************************************************************************** */
 
-DonneesTypeFinal::DonneesTypeFinal(id_morceau i0)
+DonneesTypeFinal::DonneesTypeFinal(TypeLexeme i0)
 {
 	m_donnees.pousse(i0);
 }
 
-DonneesTypeFinal::DonneesTypeFinal(id_morceau i0, id_morceau i1)
+DonneesTypeFinal::DonneesTypeFinal(TypeLexeme i0, TypeLexeme i1)
 {
 	m_donnees.pousse(i0);
 	m_donnees.pousse(i1);
@@ -96,7 +96,7 @@ DonneesTypeFinal::DonneesTypeFinal(type_plage_donnees_type autre)
 	pousse(autre);
 }
 
-void DonneesTypeFinal::pousse(id_morceau identifiant)
+void DonneesTypeFinal::pousse(TypeLexeme identifiant)
 {
 	m_donnees.pousse(identifiant);
 }
@@ -119,7 +119,7 @@ void DonneesTypeFinal::pousse(type_plage_donnees_type autre)
 	}
 }
 
-id_morceau DonneesTypeFinal::type_base() const
+TypeLexeme DonneesTypeFinal::type_base() const
 {
 	return m_donnees.front();
 }
@@ -131,9 +131,9 @@ bool DonneesTypeFinal::est_invalide() const
 	}
 
 	switch (m_donnees.back()) {
-		case id_morceau::POINTEUR:
-		case id_morceau::REFERENCE:
-		case id_morceau::TABLEAU:
+		case TypeLexeme::POINTEUR:
+		case TypeLexeme::REFERENCE:
+		case TypeLexeme::TABLEAU:
 			return true;
 		default:
 			return false;
@@ -185,15 +185,15 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 			plage.effronte();
 
 			switch (donnee & 0xff) {
-				case id_morceau::TROIS_POINTS:
+				case TypeLexeme::TROIS_POINTS:
 				{
 					os << "...";
 					break;
 				}
-				case id_morceau::POINTEUR:
+				case TypeLexeme::POINTEUR:
 					os << '*';
 					break;
-				case id_morceau::TABLEAU:
+				case TypeLexeme::TABLEAU:
 					os << '[';
 
 					if (static_cast<size_t>(donnee >> 8) != 0) {
@@ -202,87 +202,87 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 
 					os << ']';
 					break;
-				case id_morceau::N8:
+				case TypeLexeme::N8:
 					os << "n8";
 					break;
-				case id_morceau::N16:
+				case TypeLexeme::N16:
 					os << "n16";
 					break;
-				case id_morceau::N32:
+				case TypeLexeme::N32:
 					os << "n32";
 					break;
-				case id_morceau::N64:
+				case TypeLexeme::N64:
 					os << "n64";
 					break;
-				case id_morceau::N128:
+				case TypeLexeme::N128:
 					os << "n128";
 					break;
-				case id_morceau::R16:
+				case TypeLexeme::R16:
 					os << "r16";
 					break;
-				case id_morceau::R32:
+				case TypeLexeme::R32:
 					os << "r32";
 					break;
-				case id_morceau::R64:
+				case TypeLexeme::R64:
 					os << "r64";
 					break;
-				case id_morceau::R128:
+				case TypeLexeme::R128:
 					os << "r128";
 					break;
-				case id_morceau::Z8:
+				case TypeLexeme::Z8:
 					os << "z8";
 					break;
-				case id_morceau::Z16:
+				case TypeLexeme::Z16:
 					os << "z16";
 					break;
-				case id_morceau::Z32:
+				case TypeLexeme::Z32:
 					os << "z32";
 					break;
-				case id_morceau::Z64:
+				case TypeLexeme::Z64:
 					os << "z64";
 					break;
-				case id_morceau::Z128:
+				case TypeLexeme::Z128:
 					os << "z128";
 					break;
-				case id_morceau::BOOL:
+				case TypeLexeme::BOOL:
 					os << "bool";
 					break;
-				case id_morceau::CHAINE:
+				case TypeLexeme::CHAINE:
 					os << "chaine";
 					break;
-				case id_morceau::FONC:
+				case TypeLexeme::FONC:
 					os << "fonc";
 					break;
-				case id_morceau::COROUT:
+				case TypeLexeme::COROUT:
 					os << "corout";
 					break;
-				case id_morceau::PARENTHESE_OUVRANTE:
+				case TypeLexeme::PARENTHESE_OUVRANTE:
 					os << '(';
 					break;
-				case id_morceau::PARENTHESE_FERMANTE:
+				case TypeLexeme::PARENTHESE_FERMANTE:
 					os << ')';
 					break;
-				case id_morceau::VIRGULE:
+				case TypeLexeme::VIRGULE:
 					os << ',';
 					break;
-				case id_morceau::EINI:
+				case TypeLexeme::EINI:
 					os << "eini";
 					break;
-				case id_morceau::RIEN:
+				case TypeLexeme::RIEN:
 					os << "rien";
 					break;
-				case id_morceau::OCTET:
+				case TypeLexeme::OCTET:
 					os << "octet";
 					break;
-				case id_morceau::NUL:
+				case TypeLexeme::NUL:
 					os << "nul";
 					break;
-				case id_morceau::REFERENCE:
+				case TypeLexeme::REFERENCE:
 				{
 					os << "&";
 					break;
 				}
-				case id_morceau::CHAINE_CARACTERE:
+				case TypeLexeme::CHAINE_CARACTERE:
 				{
 					auto id = static_cast<long>(donnee >> 8);
 					os << contexte.nom_struct(id);
@@ -306,22 +306,22 @@ unsigned alignement(
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type)
 {
-	id_morceau identifiant = donnees_type.type_base();
+	TypeLexeme identifiant = donnees_type.type_base();
 
 	switch (identifiant & 0xff) {
-		case id_morceau::BOOL:
-		case id_morceau::N8:
-		case id_morceau::Z8:
+		case TypeLexeme::BOOL:
+		case TypeLexeme::N8:
+		case TypeLexeme::Z8:
 			return 1;
-		case id_morceau::R16:
-		case id_morceau::N16:
-		case id_morceau::Z16:
+		case TypeLexeme::R16:
+		case TypeLexeme::N16:
+		case TypeLexeme::Z16:
 			return 2;
-		case id_morceau::R32:
-		case id_morceau::N32:
-		case id_morceau::Z32:
+		case TypeLexeme::R32:
+		case TypeLexeme::N32:
+		case TypeLexeme::Z32:
 			return 4;
-		case id_morceau::TABLEAU:
+		case TypeLexeme::TABLEAU:
 		{
 			if (size_t(identifiant >> 8) == 0) {
 				return 8;
@@ -329,19 +329,19 @@ unsigned alignement(
 
 			return alignement(contexte, donnees_type.dereference());
 		}
-		case id_morceau::FONC:
-		case id_morceau::POINTEUR:
-		case id_morceau::REFERENCE:
-		case id_morceau::EINI:
-		case id_morceau::R64:
-		case id_morceau::N64:
-		case id_morceau::Z64:
-		case id_morceau::N128:
-		case id_morceau::Z128:
-		case id_morceau::R128:
-		case id_morceau::CHAINE:
+		case TypeLexeme::FONC:
+		case TypeLexeme::POINTEUR:
+		case TypeLexeme::REFERENCE:
+		case TypeLexeme::EINI:
+		case TypeLexeme::R64:
+		case TypeLexeme::N64:
+		case TypeLexeme::Z64:
+		case TypeLexeme::N128:
+		case TypeLexeme::Z128:
+		case TypeLexeme::R128:
+		case TypeLexeme::CHAINE:
 			return 8;
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::CHAINE_CARACTERE:
 		{
 			auto const &id_structure = (static_cast<long>(identifiant) & 0xffffff00) >> 8;
 			auto &ds = contexte.donnees_structure(id_structure);
@@ -381,30 +381,30 @@ unsigned int taille_octet_type(
 			assert(false);
 			break;
 		}
-		case id_morceau::OCTET:
-		case id_morceau::BOOL:
-		case id_morceau::N8:
-		case id_morceau::Z8:
+		case TypeLexeme::OCTET:
+		case TypeLexeme::BOOL:
+		case TypeLexeme::N8:
+		case TypeLexeme::Z8:
 		{
 			return 1;
 		}
-		case id_morceau::N16:
-		case id_morceau::Z16:
+		case TypeLexeme::N16:
+		case TypeLexeme::Z16:
 		{
 			return 2;
 		}
-		case id_morceau::R16:
+		case TypeLexeme::R16:
 		{
 			return 2;
 		}
-		case id_morceau::N32:
-		case id_morceau::Z32:
-		case id_morceau::R32:
+		case TypeLexeme::N32:
+		case TypeLexeme::Z32:
+		case TypeLexeme::R32:
 		{
 			return 4;
 		}
-		case id_morceau::N64:
-		case id_morceau::Z64:
+		case TypeLexeme::N64:
+		case TypeLexeme::Z64:
 		{
 			if (contexte.bit32) {
 				return 4;
@@ -412,17 +412,17 @@ unsigned int taille_octet_type(
 
 			return 8;
 		}
-		case id_morceau::R64:
+		case TypeLexeme::R64:
 		{
 			return 8;
 		}
-		case id_morceau::N128:
-		case id_morceau::Z128:
-		case id_morceau::R128:
+		case TypeLexeme::N128:
+		case TypeLexeme::Z128:
+		case TypeLexeme::R128:
 		{
 			return 16;
 		}
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::CHAINE_CARACTERE:
 		{
 			auto index_struct = static_cast<long>(type_base >> 8);
 			auto &ds = contexte.donnees_structure(index_struct);
@@ -434,8 +434,8 @@ unsigned int taille_octet_type(
 
 			return ds.taille_octet;
 		}
-		case id_morceau::POINTEUR:
-		case id_morceau::FONC:
+		case TypeLexeme::POINTEUR:
+		case TypeLexeme::FONC:
 		{
 			if (contexte.bit32) {
 				return 4;
@@ -443,9 +443,9 @@ unsigned int taille_octet_type(
 
 			return 8;
 		}
-		case id_morceau::TABLEAU:
-		case id_morceau::EINI:
-		case id_morceau::CHAINE:
+		case TypeLexeme::TABLEAU:
+		case TypeLexeme::EINI:
+		case TypeLexeme::CHAINE:
 		{
 			if (contexte.bit32) {
 				return 8;
@@ -453,7 +453,7 @@ unsigned int taille_octet_type(
 
 			return 16;
 		}
-		case id_morceau::RIEN:
+		case TypeLexeme::RIEN:
 		{
 			return 0;
 		}
@@ -473,6 +473,6 @@ void ajoute_contexte_programme(ContexteGenerationCode &contexte, DonneesTypeDecl
 		contexte.ajoute_donnees_structure("ContexteProgramme", ds);
 	}
 
-	dt.pousse(id_morceau::POINTEUR);
-	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
+	dt.pousse(TypeLexeme::POINTEUR);
+	dt.pousse(TypeLexeme::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
 }

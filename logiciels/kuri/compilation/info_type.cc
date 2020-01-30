@@ -48,7 +48,7 @@
 	auto index_struct_info = contexte.donnees_structure(nom_struct).id;
 
 	auto dt_info = DonneesTypeFinal{};
-	dt_info.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
+	dt_info.pousse(TypeLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
 
 	index_struct_info = contexte.typeuse.ajoute_type(dt_info);
 	auto &ref_dt_info = contexte.typeuse[index_struct_info];
@@ -201,67 +201,67 @@ llvm::Value *cree_info_type(
 			assert(false);
 			break;
 		}
-		case id_morceau::BOOL:
+		case TypeLexeme::BOOL:
 		{
 			valeur = cree_info_type_defaut(contexte, "TYPE_BOOLEEN");
 			break;
 		}
-		case id_morceau::N8:
+		case TypeLexeme::N8:
 		{
 			valeur = cree_info_type_entier(contexte, 8, false);
 			break;
 		}
-		case id_morceau::Z8:
+		case TypeLexeme::Z8:
 		{
 			valeur = cree_info_type_entier(contexte, 8, true);
 			break;
 		}
-		case id_morceau::N16:
+		case TypeLexeme::N16:
 		{
 			valeur = cree_info_type_entier(contexte, 16, false);
 			break;
 		}
-		case id_morceau::Z16:
+		case TypeLexeme::Z16:
 		{
 			valeur = cree_info_type_entier(contexte, 16, true);
 			break;
 		}
-		case id_morceau::N32:
+		case TypeLexeme::N32:
 		{
 			valeur = cree_info_type_entier(contexte, 32, false);
 			break;
 		}
-		case id_morceau::Z32:
+		case TypeLexeme::Z32:
 		{
 			valeur = cree_info_type_entier(contexte, 32, true);
 			break;
 		}
-		case id_morceau::N64:
+		case TypeLexeme::N64:
 		{
 			valeur = cree_info_type_entier(contexte, 64, false);
 			break;
 		}
-		case id_morceau::Z64:
+		case TypeLexeme::Z64:
 		{
 			valeur = cree_info_type_entier(contexte, 64, true);
 			break;
 		}
-		case id_morceau::R16:
+		case TypeLexeme::R16:
 		{
 			valeur = cree_info_type_reel(contexte, 16);
 			break;
 		}
-		case id_morceau::R32:
+		case TypeLexeme::R32:
 		{
 			valeur = cree_info_type_reel(contexte, 32);
 			break;
 		}
-		case id_morceau::R64:
+		case TypeLexeme::R64:
 		{
 			valeur = cree_info_type_reel(contexte, 64);
 			break;
 		}
-		case id_morceau::POINTEUR:
+		case TypeLexeme::POINTEUR:
 		{
 			// À FAIRE
 //			auto deref = donnees_type.dereference();
@@ -269,7 +269,7 @@ llvm::Value *cree_info_type(
 //			valeur = cree_info_type_pointeur(contexte, "TYPE_POINTEUR", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
 			break;
 		}
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::CHAINE_CARACTERE:
 		{
 			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
@@ -293,8 +293,8 @@ llvm::Value *cree_info_type(
 									 dls::chaine(arg.first).c_str());
 
 				auto dt_nom = DonneesTypeFinal{};
-				dt_nom.pousse(id_morceau::TABLEAU | static_cast<id_morceau>(arg.first.taille() << 8));
-				dt_nom.pousse(id_morceau::Z8);
+				dt_nom.pousse(TypeLexeme::TABLEAU | static_cast<TypeLexeme>(arg.first.taille() << 8));
+				dt_nom.pousse(TypeLexeme::Z8);
 				auto type = converti_type_llvm(contexte, dt_nom);
 
 				auto nom = new llvm::GlobalVariable(
@@ -357,7 +357,7 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case id_morceau::TABLEAU:
+		case TypeLexeme::TABLEAU:
 		{
 			// À FAIRE
 //			auto deref = donnees_type.dereference();
@@ -365,17 +365,17 @@ llvm::Value *cree_info_type(
 //			valeur = cree_info_type_pointeur(contexte, "TYPE_TABLEAU", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
 			break;
 		}
-		case id_morceau::FONC:
+		case TypeLexeme::FONC:
 		{
 			valeur = cree_info_type_defaut(contexte, "TYPE_FONCTION");
 			break;
 		}
-		case id_morceau::EINI:
+		case TypeLexeme::EINI:
 		{
 			valeur = cree_info_type_defaut(contexte, "TYPE_EINI");
 			break;
 		}
-		case id_morceau::RIEN:
+		case TypeLexeme::RIEN:
 		{
 			valeur = cree_info_type_defaut(contexte, "TYPE_RIEN");
 			break;

@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
 	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
 	auto nombre_morceaux = taille_fichier / static_cast<long>(sizeof(id_morceau));
 
-	dls::tableau<DonneesMorceau> morceaux;
+	dls::tableau<DonneesLexeme> morceaux;
 	morceaux.reserve(nombre_morceaux);
 
 	for (auto i = 0; i < nombre_morceaux; ++i) {
-		auto dm = DonneesMorceau{};
+		auto dm = DonneesLexeme{};
 		dm.identifiant = donnees_morceaux[i];
 		/* rétabli une chaine car nous une décharge de la mémoire, donc les
 		 * pointeurs sont mauvais. */

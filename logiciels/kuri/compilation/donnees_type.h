@@ -31,7 +31,7 @@
 #include "biblinternes/structures/tableau.hh"
 #include "biblinternes/structures/tableau_simple_compact.hh"
 
-#include "morceaux.hh"
+#include "lexemes.hh"
 
 /**
  * Système de type.
@@ -59,25 +59,25 @@ struct base;
 
 struct ContexteGenerationCode;
 
-using type_plage_donnees_type = dls::plage_continue<const id_morceau>;
+using type_plage_donnees_type = dls::plage_continue<const TypeLexeme>;
 
 /* ************************************************************************** */
 
 struct DonneesTypeDeclare {
-	dls::tableau_simple_compact<id_morceau> donnees{};
+	dls::tableau_simple_compact<TypeLexeme> donnees{};
 	dls::tableau_simple_compact<noeud::base *> expressions{};
 
 	dls::vue_chaine nom_gabarit = "";
 
 	using type_plage = type_plage_donnees_type;
 
-	id_morceau type_base() const;
+	TypeLexeme type_base() const;
 
 	long taille() const;
 
-	id_morceau operator[](long idx) const;
+	TypeLexeme operator[](long idx) const;
 
-	void pousse(id_morceau id);
+	void pousse(TypeLexeme id);
 
 	void pousse(DonneesTypeDeclare const &dtd);
 
@@ -109,7 +109,7 @@ class Type;
 struct DonneesTypeFinal {
 private:
 	/* À FAIRE : type similaire à llvm::SmallVector. */
-	dls::tableau<id_morceau> m_donnees{};
+	dls::tableau<TypeLexeme> m_donnees{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *m_type{nullptr};
@@ -121,13 +121,13 @@ public:
 	dls::chaine ptr_info_type{};
 	dls::chaine nom_broye{};
 
-	using iterateur_const = dls::tableau<id_morceau>::const_iteratrice_inverse;
+	using iterateur_const = dls::tableau<TypeLexeme>::const_iteratrice_inverse;
 
 	DonneesTypeFinal() = default;
 
-	explicit DonneesTypeFinal(id_morceau i0);
+	explicit DonneesTypeFinal(TypeLexeme i0);
 
-	DonneesTypeFinal(id_morceau i0, id_morceau i1);
+	DonneesTypeFinal(TypeLexeme i0, TypeLexeme i1);
 
 	DonneesTypeFinal(type_plage autre);
 
@@ -139,7 +139,7 @@ public:
 	 * l'identifiant poussé, donc il vaut mieux faire en sorte de pousser des
 	 * données correctes dans un ordre correcte.
 	 */
-	void pousse(id_morceau identifiant);
+	void pousse(TypeLexeme identifiant);
 
 	/**
 	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
@@ -167,7 +167,7 @@ public:
 	 * Cette fonction ne vérifie pas que les données sont valide, donc l'appeler
 	 * sur des données invalide (vide) crashera le programme.
 	 */
-	id_morceau type_base() const;
+	TypeLexeme type_base() const;
 
 	/**
 	 * Retourne vrai si les données sont vides, ou si le dernier élément du
@@ -284,9 +284,9 @@ public:
 
 dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGenerationCode const &contexte);
 
-inline bool est_type_tableau_fixe(id_morceau id)
+inline bool est_type_tableau_fixe(TypeLexeme id)
 {
-	return (id != id_morceau::TABLEAU) && ((id & 0xff) == id_morceau::TABLEAU);
+	return (id != TypeLexeme::TABLEAU) && ((id & 0xff) == TypeLexeme::TABLEAU);
 }
 
 inline bool est_type_tableau_fixe(DonneesTypeFinal const &dt)

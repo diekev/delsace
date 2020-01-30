@@ -31,7 +31,7 @@
 #include "compilation/contexte_generation_code.h"
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
-#include "compilation/outils_morceaux.hh"
+#include "compilation/outils_lexemes.hh"
 #include "compilation/modules.hh"
 
 #include "options.hh"

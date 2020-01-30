@@ -26,7 +26,7 @@
 
 #include "biblinternes/outils/definitions.h"
 
-enum class id_morceau : unsigned int;
+enum class TypeLexeme : unsigned int;
 
 namespace noeud {
 struct base;
@@ -36,7 +36,7 @@ class assembleuse_arbre;
 
 struct ContexteGenerationCode;
 
-bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2);
+bool precedence_faible(TypeLexeme identifiant1, TypeLexeme identifiant2);
 
 /* ************************************************************************** */
 

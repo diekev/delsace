@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "morceaux.hh"
+#include "lexemes.hh"
 
 struct ContexteGenerationCode;
 struct DonneesTypeFinal;
@@ -43,5 +43,5 @@ class Type;
 
 [[nodiscard]] llvm::Type *converti_type_simple_llvm(
 		ContexteGenerationCode &contexte,
-		const id_morceau &identifiant,
+		const TypeLexeme &identifiant,
 		llvm::Type *type_entree);

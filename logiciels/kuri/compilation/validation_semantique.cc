@@ -37,10 +37,10 @@
 #include "contexte_generation_code.h"
 #include "erreur.h"
 #include "expression.h"
-#include "outils_morceaux.hh"
+#include "outils_lexemes.hh"
 #include "typeuse.hh"
 
-using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 
 namespace noeud {
 
@@ -79,7 +79,7 @@ static long resoud_type_final(
 	for (auto i = 0; i < type_declare.taille(); ++i) {
 		auto type = type_declare[i];
 
-		if (type == id_morceau::TYPE_DE) {
+		if (type == TypeLexeme::TYPE_DE) {
 			auto expr = type_declare.expressions[idx_expr++];
 			assert(expr != nullptr);
 
@@ -93,16 +93,16 @@ static long resoud_type_final(
 			auto &dt = trouve_donnees_type(contexte, expr);
 			type_final.pousse(dt);
 		}
-		else if (type == id_morceau::TROIS_POINTS) {
+		else if (type == TypeLexeme::TROIS_POINTS) {
 			/* Pour la signature des fonctions, il faut préserver le type
 			 * variadic sinon nous ne pourrions vérifier que les types attendus
 			 * et ceux donnés sont compatibles, ou encore accidentellement
 			 * assigner un pointeur de fonction prenant un tableau à un type
 			 * espérant une liste variadique et vice versa.
 			 */
-			type_final.pousse(est_type_fonction ? type : id_morceau::TABLEAU);
+			type_final.pousse(est_type_fonction ? type : TypeLexeme::TABLEAU);
 		}
-		else if (type == id_morceau::TABLEAU) {
+		else if (type == TypeLexeme::TABLEAU) {
 			auto expr = type_declare.expressions[idx_expr++];
 
 			if (expr != nullptr && evalue_expr) {
@@ -269,7 +269,7 @@ static auto valide_appel_pointeur_fonction(
 
 	/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
 
-	if (dt_fonc.type_base() != id_morceau::FONC) {
+	if (dt_fonc.type_base() != TypeLexeme::FONC) {
 		erreur::lance_erreur(
 					"La variable doit être un pointeur vers une fonction",
 					contexte,
@@ -309,7 +309,7 @@ static auto valide_appel_pointeur_fonction(
 		auto index_type_enf = (*enfant)->index_type;
 		auto &type_prm = contexte.typeuse[dt_params[i]];
 
-		if (type_prm.type_base() == id_morceau::TROIS_POINTS) {
+		if (type_prm.type_base() == TypeLexeme::TROIS_POINTS) {
 			index_type_prm = contexte.typeuse.type_dereference_pour(index_type_prm);
 		}
 
@@ -353,11 +353,11 @@ static void valide_acces_membre(
 	auto type_structure = contexte.typeuse[index_type];
 
 	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-	while (type_structure.type_base() == id_morceau::POINTEUR || type_structure.type_base() == id_morceau::REFERENCE) {
+	while (type_structure.type_base() == TypeLexeme::POINTEUR || type_structure.type_base() == TypeLexeme::REFERENCE) {
 		type_structure = type_structure.dereference();
 	}
 
-	auto est_structure = (type_structure.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE;
+	auto est_structure = (type_structure.type_base() & 0xff) == TypeLexeme::CHAINE_CARACTERE;
 
 	if (membre->type == type_noeud::APPEL_FONCTION) {
 		/* si nous avons une structure, vérifie si nous avons un appel vers un
@@ -411,7 +411,7 @@ static void valide_acces_membre(
 		return;
 	}
 
-	if (type_structure.type_base() == id_morceau::CHAINE) {
+	if (type_structure.type_base() == TypeLexeme::CHAINE) {
 		if (membre->chaine() == "taille") {
 			b->index_type = contexte.typeuse[TypeBase::Z64];
 			return;
@@ -425,7 +425,7 @@ static void valide_acces_membre(
 		erreur::membre_inconnu_chaine(contexte, b, structure, membre);
 	}
 
-	if (type_structure.type_base() == id_morceau::EINI) {
+	if (type_structure.type_base() == TypeLexeme::EINI) {
 		if (membre->chaine() == "info") {
 			auto const &ds = contexte.donnees_structure("InfoType");
 			b->index_type = contexte.typeuse.type_pointeur_pour(ds.index_type);
@@ -440,7 +440,7 @@ static void valide_acces_membre(
 		erreur::membre_inconnu_eini(contexte, b, structure, membre);
 	}
 
-	if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+	if ((type_structure.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 #ifdef NONSUR
 		if (!contexte.non_sur() && expr_gauche) {
 			erreur::lance_erreur(
@@ -561,15 +561,15 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 	}
 
 	donnees_fonction->type_declare.pousse(
-				donnees_fonction->est_coroutine ? id_morceau::COROUT : id_morceau::FONC);
+				donnees_fonction->est_coroutine ? TypeLexeme::COROUT : TypeLexeme::FONC);
 
-	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
+	donnees_fonction->type_declare.pousse(TypeLexeme::PARENTHESE_OUVRANTE);
 
 	if (!possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
 		ajoute_contexte_programme(contexte, donnees_fonction->type_declare);
 
 		if (feuilles.taille() != 0) {
-			donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+			donnees_fonction->type_declare.pousse(TypeLexeme::VIRGULE);
 		}
 	}
 
@@ -600,7 +600,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 		noms.insere(feuille->chaine());
 
 		/* doit être vrai uniquement pour le dernier argument */
-		donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == id_morceau::TROIS_POINTS;
+		donnees_arg.est_variadic = donnees_arg.type_declare.type_base() == TypeLexeme::TROIS_POINTS;
 		donnees_arg.est_dynamic = possede_drapeau(feuille->drapeaux, DYNAMIC);
 		donnees_arg.est_employe = possede_drapeau(feuille->drapeaux, EMPLOYE);
 
@@ -612,7 +612,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 		donnees_fonction->type_declare.pousse(donnees_arg.type_declare);
 
 		if (feuille != feuilles.back()) {
-			donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+			donnees_fonction->type_declare.pousse(TypeLexeme::VIRGULE);
 		}
 		else {
 			if (!donnees_fonction->est_externe && donnees_arg.est_variadic && est_invalide(donnees_arg.type_declare.dereference())) {
@@ -625,19 +625,19 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 		}
 	}
 
-	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_FERMANTE);
+	donnees_fonction->type_declare.pousse(TypeLexeme::PARENTHESE_FERMANTE);
 
-	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_OUVRANTE);
+	donnees_fonction->type_declare.pousse(TypeLexeme::PARENTHESE_OUVRANTE);
 
 	for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
 		donnees_fonction->type_declare.pousse(donnees_fonction->types_retours_decl[i]);
 
 		if (i < donnees_fonction->types_retours_decl.taille() - 1) {
-			donnees_fonction->type_declare.pousse(id_morceau::VIRGULE);
+			donnees_fonction->type_declare.pousse(TypeLexeme::VIRGULE);
 		}
 	}
 
-	donnees_fonction->type_declare.pousse(id_morceau::PARENTHESE_FERMANTE);
+	donnees_fonction->type_declare.pousse(TypeLexeme::PARENTHESE_FERMANTE);
 
 	if (vdf.taille() > 1) {
 		for (auto const &df : vdf) {
@@ -777,7 +777,7 @@ static void performe_validation_semantique(
 					auto &dt_var = contexte.typeuse[argument.index_type];
 					auto id_structure = 0l;
 
-					if (dt_var.type_base() == id_morceau::POINTEUR || dt_var.type_base() == id_morceau::REFERENCE) {
+					if (dt_var.type_base() == TypeLexeme::POINTEUR || dt_var.type_base() == TypeLexeme::REFERENCE) {
 						id_structure = static_cast<long>(dt_var.dereference().front() >> 8);
 					}
 					else {
@@ -813,7 +813,7 @@ static void performe_validation_semantique(
 			if (inst_ret == nullptr) {
 				auto &dt = trouve_donnees_type(contexte, b);
 
-				if (dt.type_base() != id_morceau::RIEN && !donnees_fonction->est_coroutine) {
+				if (dt.type_base() != TypeLexeme::RIEN && !donnees_fonction->est_coroutine) {
 					erreur::lance_erreur(
 								"Instruction de retour manquante",
 								contexte,
@@ -922,7 +922,7 @@ static void performe_validation_semantique(
 				auto &type_tabl = contexte.typeuse[noeud_tabl->index_type];
 
 				auto dt_tfixe = DonneesTypeFinal{};
-				dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
+				dt_tfixe.pousse(TypeLexeme::TABLEAU | static_cast<int>(taille_tableau << 8));
 				dt_tfixe.pousse(type_tabl);
 
 				auto idx_dt_tfixe = contexte.typeuse.ajoute_type(dt_tfixe);
@@ -1228,7 +1228,7 @@ static void performe_validation_semantique(
 			 * donc nous faisons une copie... */
 			auto const dt = trouve_donnees_type(contexte, b);
 
-			if (dt.type_base() == id_morceau::RIEN) {
+			if (dt.type_base() == TypeLexeme::RIEN) {
 				erreur::lance_erreur(
 							"Impossible d'assigner une expression de type 'rien' à une variable !",
 							contexte,
@@ -1237,7 +1237,7 @@ static void performe_validation_semantique(
 			}
 
 			/* a, b = foo() */
-			if (variable->identifiant() == id_morceau::VIRGULE) {
+			if (variable->identifiant() == TypeLexeme::VIRGULE) {
 				if (expression->type != type_noeud::APPEL_FONCTION) {
 					erreur::lance_erreur(
 								"Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.",
@@ -1324,7 +1324,7 @@ static void performe_validation_semantique(
 			}
 
 			if (variable->index_type != expression->index_type) {
-				auto candidats = cherche_candidats_operateurs(contexte, variable->index_type, expression->index_type, id_morceau::EGAL);
+				auto candidats = cherche_candidats_operateurs(contexte, variable->index_type, expression->index_type, TypeLexeme::EGAL);
 				auto op = static_cast<DonneesOperateur const *>(nullptr);
 				auto poids = 0.0;
 
@@ -1447,11 +1447,11 @@ static void performe_validation_semantique(
 				b->type = type_noeud::OPERATION_COMP_CHAINEE;
 				b->index_type = contexte.typeuse[TypeBase::BOOL];
 			}
-			else if (b->morceau.identifiant == id_morceau::CROCHET_OUVRANT) {
+			else if (b->morceau.identifiant == TypeLexeme::CROCHET_OUVRANT) {
 				b->type = type_noeud::ACCES_TABLEAU;
 				b->type_valeur = TypeValeur::TRANSCENDANTALE;
 
-				if (type1.type_base() == id_morceau::REFERENCE) {
+				if (type1.type_base() == TypeLexeme::REFERENCE) {
 					enfant1->transformation = TypeTransformation::DEREFERENCE;
 					type1 = type1.dereference();
 				}
@@ -1459,7 +1459,7 @@ static void performe_validation_semantique(
 				auto type_base = type1.type_base();
 
 				switch (type_base & 0xff) {
-					case id_morceau::TABLEAU:
+					case TypeLexeme::TABLEAU:
 					{
 						b->index_type = contexte.typeuse.ajoute_type(type1.dereference());
 
@@ -1486,12 +1486,12 @@ static void performe_validation_semantique(
 
 						break;
 					}
-					case id_morceau::POINTEUR:
+					case TypeLexeme::POINTEUR:
 					{
 						b->index_type = contexte.typeuse.ajoute_type(type1.dereference());
 						break;
 					}
-					case id_morceau::CHAINE:
+					case TypeLexeme::CHAINE:
 					{
 						b->index_type = contexte.typeuse[TypeBase::Z8];
 						break;
@@ -1562,14 +1562,14 @@ static void performe_validation_semantique(
 
 			auto dt = contexte.typeuse[index_type];
 
-			if (dt.type_base() == id_morceau::REFERENCE) {
+			if (dt.type_base() == TypeLexeme::REFERENCE) {
 				enfant->transformation = TypeTransformation::DEREFERENCE;
 				dt = dt.dereference();
 				index_type = contexte.typeuse.ajoute_type(dt);
 			}
 
 			if (b->index_type == -1l) {
-				if (b->identifiant() == id_morceau::AROBASE) {
+				if (b->identifiant() == TypeLexeme::AROBASE) {
 					if (!est_valeur_gauche(enfant->type_valeur)) {
 						erreur::lance_erreur(
 									"Ne peut pas prendre l'adresse d'une valeur-droite.",
@@ -1625,7 +1625,7 @@ static void performe_validation_semantique(
 			auto nombre_retour = fonction_courante->idx_types_retours.taille();
 
 			if (nombre_retour > 1) {
-				if (enfant->identifiant() == id_morceau::VIRGULE) {
+				if (enfant->identifiant() == TypeLexeme::VIRGULE) {
 					dls::tableau<base *> feuilles;
 					rassemble_feuilles(enfant, feuilles);
 
@@ -1773,7 +1773,7 @@ static void performe_validation_semantique(
 			auto index_type = enfant1->index_type;
 			auto const &type_condition = contexte.typeuse[index_type];
 
-			if (type_condition.type_base() != id_morceau::BOOL) {
+			if (type_condition.type_base() != TypeLexeme::BOOL) {
 				erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
 									 contexte,
 									 enfant1->donnees_morceau(),
@@ -1898,7 +1898,7 @@ static void performe_validation_semantique(
 				}
 			}
 			else {
-				if ((type.type_base() & 0xff) == id_morceau::TABLEAU) {
+				if ((type.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 					index_type = contexte.typeuse.type_reference_pour(contexte.typeuse.type_dereference_pour(index_type));
 
 					if (requiers_index) {
@@ -1908,7 +1908,7 @@ static void performe_validation_semantique(
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU;
 					}
 				}
-				else if (type.type_base() == id_morceau::CHAINE) {
+				else if (type.type_base() == TypeLexeme::CHAINE) {
 					index_type = contexte.typeuse[TypeBase::REF_Z8];
 					enfant1->index_type = index_type;
 
@@ -2098,7 +2098,7 @@ static void performe_validation_semantique(
 
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
-			auto label_goto = (b->morceau.identifiant == id_morceau::CONTINUE)
+			auto label_goto = (b->morceau.identifiant == TypeLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
@@ -2184,7 +2184,7 @@ static void performe_validation_semantique(
 			auto &dt = contexte.typeuse[enfant1->index_type];
 
 			/* À FAIRE : tests */
-			if (dt.type_base() != id_morceau::BOOL) {
+			if (dt.type_base() != TypeLexeme::BOOL) {
 				erreur::lance_erreur(
 							"Une expression booléenne est requise pour la boucle 'tantque'",
 							contexte,
@@ -2236,14 +2236,14 @@ static void performe_validation_semantique(
 			}
 
 			DonneesTypeFinal dt;
-			dt.pousse(id_morceau::TABLEAU | static_cast<int>(feuilles.taille() << 8));
+			dt.pousse(TypeLexeme::TABLEAU | static_cast<int>(feuilles.taille() << 8));
 			dt.pousse(contexte.typeuse[type_feuille]);
 
 			b->index_type = contexte.typeuse.ajoute_type(dt);
 
 			/* ajoute également le type de pointeur pour la génération de code C */
 			dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::POINTEUR);
+			dt.pousse(TypeLexeme::POINTEUR);
 			dt.pousse(contexte.typeuse[type_feuille]);
 
 			auto index_type_ptr = contexte.typeuse.ajoute_type(dt);
@@ -2335,59 +2335,59 @@ static void performe_validation_semantique(
 				{
 					break;
 				}
-				case id_morceau::BOOL:
-				case id_morceau::N8:
-				case id_morceau::OCTET:
-				case id_morceau::Z8:
-				case id_morceau::N16:
-				case id_morceau::Z16:
-				case id_morceau::N32:
-				case id_morceau::Z32:
-				case id_morceau::N64:
-				case id_morceau::Z64:
-				case id_morceau::N128:
-				case id_morceau::Z128:
+				case TypeLexeme::BOOL:
+				case TypeLexeme::N8:
+				case TypeLexeme::OCTET:
+				case TypeLexeme::Z8:
+				case TypeLexeme::N16:
+				case TypeLexeme::Z16:
+				case TypeLexeme::N32:
+				case TypeLexeme::Z32:
+				case TypeLexeme::N64:
+				case TypeLexeme::Z64:
+				case TypeLexeme::N128:
+				case TypeLexeme::Z128:
 				{
 					nom_struct = "InfoTypeEntier";
 					break;
 				}
-				case id_morceau::R16:
-				case id_morceau::R32:
-				case id_morceau::R64:
-				case id_morceau::R128:
+				case TypeLexeme::R16:
+				case TypeLexeme::R32:
+				case TypeLexeme::R64:
+				case TypeLexeme::R128:
 				{
 					nom_struct = "InfoTypeRéel";
 					break;
 				}
-				case id_morceau::REFERENCE:
-				case id_morceau::POINTEUR:
+				case TypeLexeme::REFERENCE:
+				case TypeLexeme::POINTEUR:
 				{
 					nom_struct = "InfoTypePointeur";
 					break;
 				}
-				case id_morceau::CHAINE_CARACTERE:
+				case TypeLexeme::CHAINE_CARACTERE:
 				{
 					auto const &id_structure = (static_cast<long>(dt_enf.type_base()) & 0xffffff00) >> 8;
 					auto &ds = contexte.donnees_structure(id_structure);
 					nom_struct = ds.est_enum ? "InfoTypeÉnum" : "InfoTypeStructure";
 					break;
 				}
-				case id_morceau::TROIS_POINTS:
-				case id_morceau::TABLEAU:
+				case TypeLexeme::TROIS_POINTS:
+				case TypeLexeme::TABLEAU:
 				{
 					nom_struct = "InfoTypeTableau";
 					break;
 				}
-				case id_morceau::COROUT:
-				case id_morceau::FONC:
+				case TypeLexeme::COROUT:
+				case TypeLexeme::FONC:
 				{
 					nom_struct = "InfoTypeFonction";
 					break;
 				}
-				case id_morceau::EINI:
-				case id_morceau::NUL: /* À FAIRE */
-				case id_morceau::RIEN:
-				case id_morceau::CHAINE:
+				case TypeLexeme::EINI:
+				case TypeLexeme::NUL: /* À FAIRE */
+				case TypeLexeme::RIEN:
+				case TypeLexeme::CHAINE:
 				{
 					nom_struct = "InfoType";
 					break;
@@ -2409,7 +2409,7 @@ static void performe_validation_semantique(
 			b->type_valeur = TypeValeur::TRANSCENDANTALE;
 			b->index_type = contexte.typeuse.ajoute_type(dt_enfant.dereference());
 
-			if (dt_enfant.type_base() != id_morceau::POINTEUR) {
+			if (dt_enfant.type_base() != TypeLexeme::POINTEUR) {
 				erreur::lance_erreur(
 							"Un pointeur est requis pour le déréférencement via 'mémoire'",
 							contexte,
@@ -2429,7 +2429,7 @@ static void performe_validation_semantique(
 
 			auto &dt = trouve_donnees_type(contexte, b);
 
-			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+			if ((dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte, false);
 
@@ -2440,7 +2440,7 @@ static void performe_validation_semantique(
 
 				b->index_type = contexte.typeuse.type_tableau_pour(contexte.typeuse.type_dereference_pour(b->index_type));
 			}
-			else if (dt.type_base() == id_morceau::CHAINE) {
+			else if (dt.type_base() == TypeLexeme::CHAINE) {
 				performe_validation_semantique(*enfant++, contexte, false);
 				nombre_enfant -= 1;
 			}
@@ -2465,11 +2465,11 @@ static void performe_validation_semantique(
 			auto enfant1 = *enfant++;
 			performe_validation_semantique(enfant1, contexte, true);
 
-			if ((dt.type_base() & 0xff) == id_morceau::TABLEAU) {
+			if ((dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte, false);
 			}
-			else if (dt.type_base() == id_morceau::CHAINE) {
+			else if (dt.type_base() == TypeLexeme::CHAINE) {
 				performe_validation_semantique(*enfant++, contexte, false);
 				nombre_enfant -= 1;
 			}
@@ -2506,12 +2506,12 @@ static void performe_validation_semantique(
 			auto const &dt = contexte.typeuse[enfant->index_type];
 			auto plg_dt = dt.plage();
 
-			if (plg_dt.front() == id_morceau::REFERENCE) {
+			if (plg_dt.front() == TypeLexeme::REFERENCE) {
 				enfant->transformation = TypeTransformation::DEREFERENCE;
 				plg_dt.effronte();
 			}
 
-			if (plg_dt.front() != id_morceau::POINTEUR && (plg_dt.front() & 0xff) != id_morceau::TABLEAU && plg_dt.front() != id_morceau::CHAINE) {
+			if (plg_dt.front() != TypeLexeme::POINTEUR && (plg_dt.front() & 0xff) != TypeLexeme::TABLEAU && plg_dt.front() != TypeLexeme::CHAINE) {
 				erreur::lance_erreur("Le type n'est pas délogeable", contexte, b->morceau);
 			}
 
@@ -2541,7 +2541,7 @@ static void performe_validation_semantique(
 					auto &dt = trouve_donnees_type(contexte, enf);
 					auto type_base = dt.type_base();
 
-					if ((type_base & 0xff) == id_morceau::TABLEAU && type_base != id_morceau::TABLEAU) {
+					if ((type_base & 0xff) == TypeLexeme::TABLEAU && type_base != TypeLexeme::TABLEAU) {
 						auto dt_deref = dt.dereference();
 
 						if (dt_deref == contexte.typeuse[ds.index_type]) {
@@ -2627,7 +2627,7 @@ static void performe_validation_semantique(
 
 			for (auto enfant : b->enfants) {
 				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
-					if (enfant->morceau.identifiant != id_morceau::EGAL) {
+					if (enfant->morceau.identifiant != TypeLexeme::EGAL) {
 						erreur::lance_erreur(
 									"Déclaration impossible dans la déclaration du membre",
 									contexte,
@@ -2808,7 +2808,7 @@ static void performe_validation_semantique(
 
 			auto const &dt = trouve_donnees_type(contexte, expression);
 
-			if ((dt.type_base() & 0xff) == id_morceau::CHAINE_CARACTERE) {
+			if ((dt.type_base() & 0xff) == TypeLexeme::CHAINE_CARACTERE) {
 				auto id = static_cast<long>(dt.type_base() >> 8);
 				auto &ds = contexte.donnees_structure(id);
 

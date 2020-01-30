@@ -57,7 +57,7 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-noeud::base *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesMorceau const &morceau, bool ajoute)
+noeud::base *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesLexeme const &morceau, bool ajoute)
 {
 	auto noeud = cree_noeud(type, contexte, morceau);
 
@@ -78,7 +78,7 @@ void assembleuse_arbre::ajoute_noeud(noeud::base *noeud)
 noeud::base *assembleuse_arbre::cree_noeud(
 		type_noeud type,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau)
+		DonneesLexeme const &morceau)
 {
 	auto noeud = memoire::loge<noeud::base>("noeud_base", contexte, morceau);
 	m_memoire_utilisee += sizeof(noeud::base);
@@ -153,7 +153,7 @@ void imprime_taille_memoire_noeud(std::ostream &os)
 	os << "------------------------------------------------------------------\n";
 	os << "noeud::base              : " << sizeof(noeud::base) << '\n';
 	os << "DonneesTypeFinal         : " << sizeof(DonneesTypeFinal) << '\n';
-	os << "DonneesMorceau          : " << sizeof(DonneesMorceau) << '\n';
+	os << "DonneesLexeme          : " << sizeof(DonneesLexeme) << '\n';
 	os << "dls::liste<noeud::base *> : " << sizeof(dls::liste<noeud::base *>) << '\n';
 	os << "std::any                 : " << sizeof(std::any) << '\n';
 	os << "------------------------------------------------------------------\n";

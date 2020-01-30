@@ -75,62 +75,62 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 namespace test_analyse {
 
-static id_morceau sequence_declaration_fonction[] = {
-	id_morceau::FONC,
-	id_morceau::CHAINE_CARACTERE,
-	id_morceau::PARENTHESE_OUVRANTE,
-	id_morceau::PARENTHESE_FERMANTE,
-	id_morceau::DOUBLE_POINTS,
-	id_morceau::RIEN,
-	id_morceau::ACCOLADE_OUVRANTE
+static TypeLexeme sequence_declaration_fonction[] = {
+	TypeLexeme::FONC,
+	TypeLexeme::CHAINE_CARACTERE,
+	TypeLexeme::PARENTHESE_OUVRANTE,
+	TypeLexeme::PARENTHESE_FERMANTE,
+	TypeLexeme::DOUBLE_POINTS,
+	TypeLexeme::RIEN,
+	TypeLexeme::ACCOLADE_OUVRANTE
 };
 
 namespace arbre_expression {
 
-using visiteur_arbre = std::function<void(id_morceau)>;
+using visiteur_arbre = std::function<void(TypeLexeme)>;
 
-static id_morceau id_operateurs_unaire[] = {
+static TypeLexeme id_operateurs_unaire[] = {
 	/* on utilise PLUS et MOINS, et non PLUS_UNAIRE et MOINS_UNAIRE, pour
 	 * pouvoir tester la détection des opérateurs unaires. */
-	id_morceau::PLUS,
-	id_morceau::MOINS,
-	id_morceau::AROBASE,
-	id_morceau::EXCLAMATION,
-	id_morceau::TILDE,
-	id_morceau::CROCHET_OUVRANT,
+	TypeLexeme::PLUS,
+	TypeLexeme::MOINS,
+	TypeLexeme::AROBASE,
+	TypeLexeme::EXCLAMATION,
+	TypeLexeme::TILDE,
+	TypeLexeme::CROCHET_OUVRANT,
 };
 
-static id_morceau id_operateurs_binaire[] = {
-	id_morceau::PLUS,
-	id_morceau::MOINS,
-	id_morceau::FOIS,
-	id_morceau::DIVISE,
-	id_morceau::ESPERLUETTE,
-	id_morceau::POURCENT,
-	id_morceau::INFERIEUR,
-	id_morceau::INFERIEUR_EGAL,
-	id_morceau::SUPERIEUR,
-	id_morceau::SUPERIEUR_EGAL,
-	id_morceau::DECALAGE_DROITE,
-	id_morceau::DECALAGE_GAUCHE,
-	id_morceau::DIFFERENCE,
-	id_morceau::ESP_ESP,
-	id_morceau::EGALITE,
-	id_morceau::BARRE_BARRE,
-	id_morceau::BARRE,
-	id_morceau::CHAPEAU,
-	id_morceau::EGAL,
-	id_morceau::POINT,
+static TypeLexeme id_operateurs_binaire[] = {
+	TypeLexeme::PLUS,
+	TypeLexeme::MOINS,
+	TypeLexeme::FOIS,
+	TypeLexeme::DIVISE,
+	TypeLexeme::ESPERLUETTE,
+	TypeLexeme::POURCENT,
+	TypeLexeme::INFERIEUR,
+	TypeLexeme::INFERIEUR_EGAL,
+	TypeLexeme::SUPERIEUR,
+	TypeLexeme::SUPERIEUR_EGAL,
+	TypeLexeme::DECALAGE_DROITE,
+	TypeLexeme::DECALAGE_GAUCHE,
+	TypeLexeme::DIFFERENCE,
+	TypeLexeme::ESP_ESP,
+	TypeLexeme::EGALITE,
+	TypeLexeme::BARRE_BARRE,
+	TypeLexeme::BARRE,
+	TypeLexeme::CHAPEAU,
+	TypeLexeme::EGAL,
+	TypeLexeme::POINT,
 };
 
-static id_morceau id_variables[] = {
-	id_morceau::CHAINE_CARACTERE,
-	id_morceau::NOMBRE_BINAIRE,
-	id_morceau::NOMBRE_ENTIER,
-	id_morceau::NOMBRE_HEXADECIMAL,
-	id_morceau::NOMBRE_OCTAL,
-	id_morceau::NOMBRE_REEL,
-	id_morceau::CARACTERE,
+static TypeLexeme id_variables[] = {
+	TypeLexeme::CHAINE_CARACTERE,
+	TypeLexeme::NOMBRE_BINAIRE,
+	TypeLexeme::NOMBRE_ENTIER,
+	TypeLexeme::NOMBRE_HEXADECIMAL,
+	TypeLexeme::NOMBRE_OCTAL,
+	TypeLexeme::NOMBRE_REEL,
+	TypeLexeme::CARACTERE,
 };
 
 struct expression {
@@ -192,9 +192,9 @@ struct parenthese : public expression {
 
 void parenthese::visite(visiteur_arbre visiteur)
 {
-	visiteur(id_morceau::PARENTHESE_OUVRANTE);
+	visiteur(TypeLexeme::PARENTHESE_OUVRANTE);
 	centre->visite(visiteur);
-	visiteur(id_morceau::PARENTHESE_FERMANTE);
+	visiteur(TypeLexeme::PARENTHESE_FERMANTE);
 }
 
 struct appel_fonction : public expression {
@@ -205,14 +205,14 @@ struct appel_fonction : public expression {
 
 void appel_fonction::visite(visiteur_arbre visiteur)
 {
-	visiteur(id_morceau::CHAINE_CARACTERE);
-	visiteur(id_morceau::PARENTHESE_OUVRANTE);
+	visiteur(TypeLexeme::CHAINE_CARACTERE);
+	visiteur(TypeLexeme::PARENTHESE_OUVRANTE);
 
 	for (auto enfant : params) {
 		enfant->visite(visiteur);
 	}
 
-	visiteur(id_morceau::PARENTHESE_FERMANTE);
+	visiteur(TypeLexeme::PARENTHESE_FERMANTE);
 }
 
 struct acces_tableau : public expression {
@@ -223,10 +223,10 @@ struct acces_tableau : public expression {
 
 void acces_tableau::visite(visiteur_arbre visiteur)
 {
-	visiteur(id_morceau::CHAINE_CARACTERE);
-	visiteur(id_morceau::CROCHET_OUVRANT);
+	visiteur(TypeLexeme::CHAINE_CARACTERE);
+	visiteur(TypeLexeme::CROCHET_OUVRANT);
 	param->visite(visiteur);
-	visiteur(id_morceau::CROCHET_FERMANT);
+	visiteur(TypeLexeme::CROCHET_FERMANT);
 }
 
 struct arbre {
@@ -325,12 +325,12 @@ struct arbre {
 static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceau);
+	auto const max_morceaux = taille_tampon / sizeof(DonneesLexeme);
 
-	dls::tableau<DonneesMorceau> morceaux;
+	dls::tableau<DonneesLexeme> morceaux;
 	morceaux.reserve(max_morceaux);
 
-	auto dm = DonneesMorceau{};
+	auto dm = DonneesLexeme{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
 
@@ -360,13 +360,13 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
 	morceaux.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesMorceau) * morceaux.taille();
+	auto const taille_octet = sizeof(DonneesLexeme) * morceaux.taille();
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #else
-	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
+	auto const max_morceaux = taille_tampon / sizeof(TypeLexeme);
 
-	dls::tableau<id_morceau> morceaux;
+	dls::tableau<TypeLexeme> morceaux;
 	morceaux.reserve(static_cast<long>(max_morceaux));
 
 	for (auto id : sequence_declaration_fonction) {
@@ -377,21 +377,21 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 		auto arbre = arbre_expression::arbre{};
 		arbre.construit_expression();
 
-		auto visiteur = [&](id_morceau id)
+		auto visiteur = [&](TypeLexeme id)
 		{
 			morceaux.pousse(id);
 		};
 
 		arbre.visite(visiteur);
 
-		morceaux.pousse(id_morceau::POINT_VIRGULE);
+		morceaux.pousse(TypeLexeme::POINT_VIRGULE);
 
 		n += arbre.noeuds.taille();
 	}
 
-	morceaux.pousse(id_morceau::ACCOLADE_FERMANTE);
+	morceaux.pousse(TypeLexeme::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesMorceau) * static_cast<size_t>(morceaux.taille());
+	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(morceaux.taille());
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #endif
@@ -400,9 +400,9 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_morceaux = taille_tampon / sizeof(DonneesMorceau);
+	auto const max_morceaux = taille_tampon / sizeof(DonneesLexeme);
 
-	dls::tableau<DonneesMorceau> morceaux;
+	dls::tableau<DonneesLexeme> morceaux;
 	morceaux.reserve(max_morceaux);
 
 	std::random_device device{};
@@ -411,7 +411,7 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 		static_cast<int>(id_morceau::INCONNU)
 	};
 
-	auto dm = DonneesMorceau{};
+	auto dm = DonneesLexeme{};
 	dm.chaine = "texte_test";
 	dm.ligne_pos = 0ul;
 
@@ -428,19 +428,19 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	dm.identifiant = id_morceau::ACCOLADE_FERMANTE;
 	morceaux.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesMorceau) * morceaux.taille();
+	auto const taille_octet = sizeof(DonneesLexeme) * morceaux.taille();
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #else
-	auto const max_morceaux = taille_tampon / sizeof(id_morceau);
+	auto const max_morceaux = taille_tampon / sizeof(TypeLexeme);
 
 	std::random_device device{};
 	std::uniform_int_distribution<u_char> rng{
-		static_cast<int>(id_morceau::EXCLAMATION),
-		static_cast<int>(id_morceau::INCONNU)
+		static_cast<int>(TypeLexeme::EXCLAMATION),
+		static_cast<int>(TypeLexeme::INCONNU)
 	};
 
-	dls::tableau<id_morceau> morceaux;
+	dls::tableau<TypeLexeme> morceaux;
 	morceaux.reserve(static_cast<long>(max_morceaux));
 
 	for (auto id : sequence_declaration_fonction) {
@@ -448,12 +448,12 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 	}
 
 	for (auto n = morceaux.taille(); n < static_cast<long>(max_morceaux) - 1; ++n) {
-		morceaux.pousse(static_cast<id_morceau>(rng(device)));
+		morceaux.pousse(static_cast<TypeLexeme>(rng(device)));
 	}
 
-	morceaux.pousse(id_morceau::ACCOLADE_FERMANTE);
+	morceaux.pousse(TypeLexeme::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesMorceau) * static_cast<size_t>(morceaux.taille());
+	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(morceaux.taille());
 
 	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
 #endif
@@ -461,13 +461,13 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 {
-	auto donnees_morceaux = reinterpret_cast<const id_morceau *>(donnees);
-	auto nombre_morceaux = taille / sizeof(id_morceau);
+	auto donnees_morceaux = reinterpret_cast<const TypeLexeme *>(donnees);
+	auto nombre_morceaux = taille / sizeof(TypeLexeme);
 
-	dls::tableau<DonneesMorceau> morceaux;
+	dls::tableau<DonneesLexeme> morceaux;
 	morceaux.reserve(static_cast<long>(nombre_morceaux));
 
-	auto dm = DonneesMorceau{};
+	auto dm = DonneesLexeme{};
 	dm.chaine = "texte_test";
 	dm.fichier = 0;
 

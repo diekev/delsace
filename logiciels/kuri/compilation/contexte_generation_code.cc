@@ -552,7 +552,7 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine_comp
 #endif
 
 	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
+	dt.pousse(TypeLexeme::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
 
 	donnees.index_type = typeuse.ajoute_type(dt);
 
@@ -673,7 +673,7 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
 		metriques.memoire_tampons += fichier->tampon.taille_donnees();
-		metriques.memoire_morceaux += static_cast<size_t>(fichier->morceaux.taille()) * sizeof(DonneesMorceau);
+		metriques.memoire_morceaux += static_cast<size_t>(fichier->morceaux.taille()) * sizeof(DonneesLexeme);
 		metriques.nombre_morceaux += static_cast<size_t>(fichier->morceaux.taille());
 		metriques.temps_analyse += fichier->temps_analyse;
 		metriques.temps_chargement += fichier->temps_chargement;

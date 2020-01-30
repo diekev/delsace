@@ -25,7 +25,7 @@
 #include "transformation_type.hh"
 
 #include "contexte_generation_code.h"
-#include "outils_morceaux.hh"
+#include "outils_lexemes.hh"
 
 const char *chaine_transformation(TypeTransformation type)
 {
@@ -100,12 +100,12 @@ TransformationType cherche_transformation(
 
 	if (est_type_reel(dt_de.type_base()) && est_type_reel(dt_vers.type_base())) {
 		/* cas spéciaux pour R16 */
-		if (dt_de.type_base() == id_morceau::R16) {
-			if (dt_vers.type_base() == id_morceau::R32) {
+		if (dt_de.type_base() == TypeLexeme::R16) {
+			if (dt_vers.type_base() == TypeLexeme::R32) {
 				return "DLS_vers_r32";
 			}
 
-			if (dt_vers.type_base() == id_morceau::R64) {
+			if (dt_vers.type_base() == TypeLexeme::R64) {
 				return "DLS_vers_r64";
 			}
 
@@ -113,12 +113,12 @@ TransformationType cherche_transformation(
 		}
 
 		/* cas spéciaux pour R16 */
-		if (dt_vers.type_base() == id_morceau::R16) {
-			if (dt_de.type_base() == id_morceau::R32) {
+		if (dt_vers.type_base() == TypeLexeme::R16) {
+			if (dt_de.type_base() == TypeLexeme::R32) {
 				return "DLS_depuis_r32";
 			}
 
-			if (dt_de.type_base() == id_morceau::R64) {
+			if (dt_de.type_base() == TypeLexeme::R64) {
 				return "DLS_depuis_r64";
 			}
 
@@ -144,9 +144,9 @@ TransformationType cherche_transformation(
 		return TypeTransformation::EXTRAIT_EINI;
 	}
 
-	if (dt_vers.type_base() == id_morceau::FONC) {
+	if (dt_vers.type_base() == TypeLexeme::FONC) {
 		/* x : fonc()rien = nul; */
-		if (dt_de.type_base() == id_morceau::POINTEUR && dt_de.dereference().front() == id_morceau::NUL) {
+		if (dt_de.type_base() == TypeLexeme::POINTEUR && dt_de.dereference().front() == TypeLexeme::NUL) {
 			return TypeTransformation::INUTILE;
 		}
 
@@ -155,24 +155,24 @@ TransformationType cherche_transformation(
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (dt_vers.type_base() == id_morceau::REFERENCE) {
+	if (dt_vers.type_base() == TypeLexeme::REFERENCE) {
 		if (dt_vers.dereference() == dt_de) {
 			return TypeTransformation::PREND_REFERENCE;
 		}
 	}
 
-	if (dt_de.type_base() == id_morceau::REFERENCE) {
+	if (dt_de.type_base() == TypeLexeme::REFERENCE) {
 		if (dt_de.dereference() == dt_vers) {
 			return TypeTransformation::DEREFERENCE;
 		}
 	}
 
-	if (dt_vers.type_base() == id_morceau::TABLEAU) {
-		if (dt_vers.dereference().front() == id_morceau::OCTET) {
+	if (dt_vers.type_base() == TypeLexeme::TABLEAU) {
+		if (dt_vers.dereference().front() == TypeLexeme::OCTET) {
 			return TypeTransformation::CONSTRUIT_TABL_OCTET;
 		}
 
-		if ((dt_de.type_base() & 0xff) != id_morceau::TABLEAU) {
+		if ((dt_de.type_base() & 0xff) != TypeLexeme::TABLEAU) {
 			return TypeTransformation::IMPOSSIBLE;
 		}
 
@@ -183,30 +183,30 @@ TransformationType cherche_transformation(
 		return TypeTransformation::IMPOSSIBLE;
 	}
 
-	if (dt_vers.type_base() == id_morceau::POINTEUR) {
-		if (dt_de.type_base() == id_morceau::POINTEUR) {
+	if (dt_vers.type_base() == TypeLexeme::POINTEUR) {
+		if (dt_de.type_base() == TypeLexeme::POINTEUR) {
 			/* x = nul; */
-			if (dt_de.dereference().front() == id_morceau::NUL) {
+			if (dt_de.dereference().front() == TypeLexeme::NUL) {
 				return TypeTransformation::INUTILE;
 			}
 
 			/* x : *z8 = y (*rien) */
-			if (dt_de.dereference().front() == id_morceau::RIEN) {
+			if (dt_de.dereference().front() == TypeLexeme::RIEN) {
 				return TypeTransformation::INUTILE;
 			}
 
 			/* x : *rien = y; */
-			if (dt_vers.dereference().front() == id_morceau::RIEN) {
+			if (dt_vers.dereference().front() == TypeLexeme::RIEN) {
 				return TypeTransformation::INUTILE;
 			}
 
 			/* x : *octet = y; */
-			if (dt_vers.dereference().front() == id_morceau::OCTET) {
+			if (dt_vers.dereference().front() == TypeLexeme::OCTET) {
 				return TypeTransformation::INUTILE;
 			}
 
 			/* x : *nul = y */
-			if (dt_vers.dereference().front() == id_morceau::NUL) {
+			if (dt_vers.dereference().front() == TypeLexeme::NUL) {
 				return TypeTransformation::INUTILE;
 			}
 		}

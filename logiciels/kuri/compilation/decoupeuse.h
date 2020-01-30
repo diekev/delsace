@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "morceaux.hh"
+#include "lexemes.hh"
 
 struct Fichier;
 
@@ -45,7 +45,7 @@ class decoupeuse_texte {
 	long m_taille_mot_courant = 0;
 
 	int m_drapeaux = 0;
-	id_morceau m_dernier_id = id_morceau::INCONNU;
+	TypeLexeme m_dernier_id = TypeLexeme::INCONNU;
 
 public:
 	explicit decoupeuse_texte(Fichier *fichier, int drapeaux = 0);
@@ -76,7 +76,7 @@ private:
 
 	void pousse_caractere(int n = 1);
 
-	void pousse_mot(id_morceau identifiant);
+	void pousse_mot(TypeLexeme identifiant);
 
 	void enregistre_pos_mot();
 };

@@ -52,10 +52,10 @@ using dls::outils::possede_drapeau;
 #include "erreur.h"
 #include "info_type.hh"
 #include "modules.hh"
-#include "outils_morceaux.hh"
+#include "outils_lexemes.hh"
 #include "validation_semantique.hh"
 
-using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 
 #undef NOMME_IR
 
@@ -97,33 +97,33 @@ static void genere_code_extra_pre_retour(ContexteGenerationCode &contexte)
 
 /* ************************************************************************** */
 
-static size_t taille_de(id_morceau type)
+static size_t taille_de(TypeLexeme type)
 {
 	switch (type) {
-		case id_morceau::BOOL:
+		case TypeLexeme::BOOL:
 			return 1;
-		case id_morceau::N8:
-		case id_morceau::Z8:
+		case TypeLexeme::N8:
+		case TypeLexeme::Z8:
 			return 8;
-		case id_morceau::N16:
-		case id_morceau::R16:
-		case id_morceau::Z16:
+		case TypeLexeme::N16:
+		case TypeLexeme::R16:
+		case TypeLexeme::Z16:
 			return 16;
-		case id_morceau::N32:
-		case id_morceau::R32:
-		case id_morceau::Z32:
+		case TypeLexeme::N32:
+		case TypeLexeme::R32:
+		case TypeLexeme::Z32:
 			return 32;
-		case id_morceau::N64:
-		case id_morceau::R64:
-		case id_morceau::Z64:
-		case id_morceau::POINTEUR:
+		case TypeLexeme::N64:
+		case TypeLexeme::R64:
+		case TypeLexeme::Z64:
+		case TypeLexeme::POINTEUR:
 			return 64;
 		default:
 			return 0ul;
 	}
 }
 
-static bool est_plus_petit(id_morceau type1, id_morceau type2)
+static bool est_plus_petit(TypeLexeme type1, TypeLexeme type2)
 {
 	return taille_de(type1) < taille_de(type2);
 }
@@ -253,7 +253,7 @@ enum {
 	/* trouve le type de la structure tableau */
 	auto deref = donnees_type.dereference();
 	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::TABLEAU);
+	dt.pousse(TypeLexeme::TABLEAU);
 	dt.pousse(deref);
 
 	auto type_llvm = converti_type_llvm(contexte, dt);
@@ -308,7 +308,7 @@ enum {
 {
 	/* alloue de l'espace pour un eini */
 	auto dt = DonneesTypeFinal{};
-	dt.pousse(id_morceau::EINI);
+	dt.pousse(TypeLexeme::EINI);
 
 	auto type_eini_llvm = converti_type_llvm(contexte, dt);
 
@@ -473,7 +473,7 @@ constexpr llvm::Value *cree_instruction(
 /* ************************************************************************** */
 
 static llvm::Value *comparaison_pour_type(
-		const id_morceau &type,
+		const TypeLexeme &type,
 		llvm::PHINode *noeud_phi,
 		llvm::Value *valeur_fin,
 		llvm::BasicBlock *bloc_courant)
@@ -512,7 +512,7 @@ static llvm::Value *comparaison_pour_type(
 }
 
 static llvm::Value *incremente_pour_type(
-		const id_morceau &type,
+		const TypeLexeme &type,
 		ContexteGenerationCode &contexte,
 		llvm::PHINode *noeud_phi,
 		llvm::BasicBlock *bloc_courant)
@@ -786,7 +786,7 @@ static llvm::Value *genere_code_llvm(
 				alloc->setAlignment(alignement(contexte, type));
 
 				/* Mets à zéro les valeurs des tableaux dynamics. */
-				if (type.type_base() == id_morceau::TABLEAU) {
+				if (type.type_base() == TypeLexeme::TABLEAU) {
 					auto pointeur = accede_membre_structure(contexte, alloc, POINTEUR_TABLEAU);
 
 					auto stocke = new llvm::StoreInst(
@@ -850,13 +850,13 @@ static llvm::Value *genere_code_llvm(
 			auto const &index_type = structure->index_type;
 			auto type_structure = contexte.typeuse[index_type];
 
-			auto est_pointeur = type_structure.type_base() == id_morceau::POINTEUR;
+			auto est_pointeur = type_structure.type_base() == TypeLexeme::POINTEUR;
 
 			if (est_pointeur) {
 				type_structure = type_structure.dereference();
 			}
 
-			if (type_structure.type_base() == id_morceau::EINI) {
+			if (type_structure.type_base() == TypeLexeme::EINI) {
 				auto valeur = genere_code_llvm(structure, contexte, true);
 
 				if (est_pointeur) {
@@ -870,7 +870,7 @@ static llvm::Value *genere_code_llvm(
 				return accede_membre_structure(contexte, valeur, TYPE_EINI, true);
 			}
 
-			if (type_structure.type_base() == id_morceau::CHAINE) {
+			if (type_structure.type_base() == TypeLexeme::CHAINE) {
 				auto valeur = genere_code_llvm(structure, contexte, true);
 
 				if (est_pointeur) {
@@ -884,7 +884,7 @@ static llvm::Value *genere_code_llvm(
 				return accede_membre_structure(contexte, valeur, TYPE_CHAINE, true);
 			}
 
-			if ((type_structure.type_base() & 0xff) == id_morceau::TABLEAU) {
+			if ((type_structure.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 				auto taille = static_cast<size_t>(type_structure.type_base() >> 8);
 
 				if (taille != 0) {
@@ -1034,13 +1034,13 @@ static llvm::Value *genere_code_llvm(
 			/* À FAIRE : typage */
 
 			/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
-			auto const valeur2_brut = ((type2.type_base() & 0xff) == id_morceau::TABLEAU);
+			auto const valeur2_brut = ((type2.type_base() & 0xff) == TypeLexeme::TABLEAU);
 
 			auto valeur1 = genere_code_llvm(enfant1, contexte, false);
 			auto valeur2 = genere_code_llvm(enfant2, contexte, valeur2_brut);
 
 			switch (b->morceau.identifiant) {
-				case id_morceau::PLUS:
+				case TypeLexeme::PLUS:
 					if (est_type_entier(type1.type_base())) {
 						instr = llvm::Instruction::Add;
 					}
@@ -1049,7 +1049,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::MOINS:
+				case TypeLexeme::MOINS:
 					if (est_type_entier(type1.type_base())) {
 						instr = llvm::Instruction::Sub;
 					}
@@ -1058,7 +1058,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::FOIS:
+				case TypeLexeme::FOIS:
 					if (est_type_entier(type1.type_base())) {
 						instr = llvm::Instruction::Mul;
 					}
@@ -1067,7 +1067,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::DIVISE:
+				case TypeLexeme::DIVISE:
 					if (est_type_entier_naturel(type1.type_base())) {
 						instr = llvm::Instruction::UDiv;
 					}
@@ -1079,7 +1079,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::POURCENT:
+				case TypeLexeme::POURCENT:
 					if (est_type_entier_naturel(type1.type_base())) {
 						instr = llvm::Instruction::URem;
 					}
@@ -1091,7 +1091,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::DECALAGE_DROITE:
+				case TypeLexeme::DECALAGE_DROITE:
 					if (est_type_entier_naturel(type1.type_base())) {
 						instr = llvm::Instruction::LShr;
 					}
@@ -1099,22 +1099,22 @@ static llvm::Value *genere_code_llvm(
 						instr = llvm::Instruction::AShr;
 					}
 					break;
-				case id_morceau::DECALAGE_GAUCHE:
+				case TypeLexeme::DECALAGE_GAUCHE:
 					instr = llvm::Instruction::Shl;
 					break;
-				case id_morceau::ESPERLUETTE:
-				case id_morceau::ESP_ESP:
+				case TypeLexeme::ESPERLUETTE:
+				case TypeLexeme::ESP_ESP:
 					instr = llvm::Instruction::And;
 					break;
-				case id_morceau::BARRE:
-				case id_morceau::BARRE_BARRE:
+				case TypeLexeme::BARRE:
+				case TypeLexeme::BARRE_BARRE:
 					instr = llvm::Instruction::Or;
 					break;
-				case id_morceau::CHAPEAU:
+				case TypeLexeme::CHAPEAU:
 					instr = llvm::Instruction::Xor;
 					break;
 					/* À FAIRE. */
-				case id_morceau::INFERIEUR:
+				case TypeLexeme::INFERIEUR:
 					if (est_type_entier_naturel(type1.type_base())) {
 						est_comp_entier = true;
 						predicat = llvm::CmpInst::Predicate::ICMP_ULT;
@@ -1129,7 +1129,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::INFERIEUR_EGAL:
+				case TypeLexeme::INFERIEUR_EGAL:
 					if (est_type_entier_naturel(type1.type_base())) {
 						est_comp_entier = true;
 						predicat = llvm::CmpInst::Predicate::ICMP_ULE;
@@ -1144,7 +1144,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::SUPERIEUR:
+				case TypeLexeme::SUPERIEUR:
 					if (est_type_entier_naturel(type1.type_base())) {
 						est_comp_entier = true;
 						predicat = llvm::CmpInst::Predicate::ICMP_UGT;
@@ -1159,7 +1159,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::SUPERIEUR_EGAL:
+				case TypeLexeme::SUPERIEUR_EGAL:
 					if (est_type_entier_naturel(type1.type_base())) {
 						est_comp_entier = true;
 						predicat = llvm::CmpInst::Predicate::ICMP_UGE;
@@ -1174,7 +1174,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::EGALITE:
+				case TypeLexeme::EGALITE:
 					if (est_type_entier(type1.type_base())) {
 						est_comp_entier = true;
 						predicat = llvm::CmpInst::Predicate::ICMP_EQ;
@@ -1185,7 +1185,7 @@ static llvm::Value *genere_code_llvm(
 					}
 
 					break;
-				case id_morceau::DIFFERENCE:
+				case TypeLexeme::DIFFERENCE:
 					if (est_type_entier(type1.type_base())) {
 						est_comp_entier = true;
 						predicat = llvm::CmpInst::Predicate::ICMP_NE;
@@ -1220,13 +1220,13 @@ static llvm::Value *genere_code_llvm(
 			auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
 			switch (b->morceau.identifiant) {
-				case id_morceau::EXCLAMATION:
+				case TypeLexeme::EXCLAMATION:
 				{
 					instr = llvm::Instruction::Xor;
 					valeur2 = valeur1;
 					break;
 				}
-				case id_morceau::TILDE:
+				case TypeLexeme::TILDE:
 				{
 					instr = llvm::Instruction::Xor;
 					valeur2 = llvm::ConstantInt::get(
@@ -1235,7 +1235,7 @@ static llvm::Value *genere_code_llvm(
 								  false);
 					break;
 				}
-				case id_morceau::AROBASE:
+				case TypeLexeme::AROBASE:
 				{
 					auto inst_load = llvm::dyn_cast<llvm::LoadInst>(valeur1);
 
@@ -1246,11 +1246,11 @@ static llvm::Value *genere_code_llvm(
 
 					return inst_load->getPointerOperand();
 				}
-				case id_morceau::PLUS_UNAIRE:
+				case TypeLexeme::PLUS_UNAIRE:
 				{
 					return valeur1;
 				}
-				case id_morceau::MOINS_UNAIRE:
+				case TypeLexeme::MOINS_UNAIRE:
 				{
 					valeur2 = valeur1;
 
@@ -1289,7 +1289,7 @@ static llvm::Value *genere_code_llvm(
 
 			llvm::Value *valeur;
 
-			if (type1.type_base() == id_morceau::POINTEUR) {
+			if (type1.type_base() == TypeLexeme::POINTEUR) {
 				valeur1 = new llvm::LoadInst(valeur1, "", false, contexte.bloc_courant());
 				valeur = llvm::GetElementPtrInst::CreateInBounds(
 							 valeur1,
@@ -1542,7 +1542,7 @@ static llvm::Value *genere_code_llvm(
 			auto bloc_sinon = static_cast<llvm::BasicBlock *>(nullptr);
 
 			if (nombre_enfants == 4) {
-				if (enfant4->identifiant() == id_morceau::SINON) {
+				if (enfant4->identifiant() == TypeLexeme::SINON) {
 					bloc_sinon = cree_bloc(contexte, "sinon_boucle");
 				}
 				else {
@@ -1586,7 +1586,7 @@ static llvm::Value *genere_code_llvm(
 					auto idx = static_cast<noeud::base *>(nullptr);
 					auto valeur_idx = static_cast<llvm::PHINode *>(nullptr);
 
-					if (enfant1->morceau.identifiant == id_morceau::VIRGULE) {
+					if (enfant1->morceau.identifiant == TypeLexeme::VIRGULE) {
 						var = enfant1->enfants.front();
 						idx = enfant1->enfants.back();
 					}
@@ -1767,7 +1767,7 @@ static llvm::Value *genere_code_llvm(
 					builder.SetInsertPoint(contexte.bloc_courant());
 
 					auto inc = incremente_pour_type(
-								   id_morceau::N64,
+								   TypeLexeme::N64,
 								   contexte,
 								   noeud_phi,
 								   contexte.bloc_courant());
@@ -1811,7 +1811,7 @@ static llvm::Value *genere_code_llvm(
 		{
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
-			auto bloc = (b->morceau.identifiant == id_morceau::CONTINUE)
+			auto bloc = (b->morceau.identifiant == TypeLexeme::CONTINUE)
 						? contexte.bloc_continue(chaine_var)
 						: contexte.bloc_arrete(chaine_var);
 
@@ -1941,7 +1941,7 @@ static llvm::Value *genere_code_llvm(
 
 			if (est_type_entier(type_de)) {
 				/* un nombre entier peut être converti en l'adresse d'un pointeur */
-				if (type_vers == id_morceau::POINTEUR) {
+				if (type_vers == TypeLexeme::POINTEUR) {
 					return cree_instruction<CastOps::IntToPtr>(valeur, type, bloc);
 				}
 
@@ -1984,7 +1984,7 @@ static llvm::Value *genere_code_llvm(
 				}
 			}
 
-			if (type_de == id_morceau::POINTEUR && est_type_entier(type_vers)) {
+			if (type_de == TypeLexeme::POINTEUR && est_type_entier(type_vers)) {
 				return cree_instruction<CastOps::PtrToInt>(valeur, type, bloc);
 			}
 
@@ -2064,7 +2064,7 @@ static llvm::Value *genere_code_llvm(
 
 			/* alloue un tableau fixe */
 			auto dt_tfixe = DonneesTypeFinal{};
-			dt_tfixe.pousse(id_morceau::TABLEAU | static_cast<int>(taille_tableau << 8));
+			dt_tfixe.pousse(TypeLexeme::TABLEAU | static_cast<int>(taille_tableau << 8));
 			dt_tfixe.pousse(type);
 
 			auto type_llvm = converti_type_llvm(contexte, dt_tfixe);

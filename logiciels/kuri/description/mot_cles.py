@@ -165,11 +165,11 @@ def enleve_accent(mot):
 
 def construit_structures():
 	structures = u''
-	structures += u'\nstruct DonneesMorceau {\n'
-	structures += u'\tusing type = id_morceau;\n'
-	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n'
+	structures += u'\nstruct DonneesLexeme {\n'
+	structures += u'\tusing type = TypeLexeme;\n'
+	structures += u'\tstatic constexpr type INCONNU = TypeLexeme::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
-	structures += u'\tid_morceau identifiant;\n'
+	structures += u'\tTypeLexeme identifiant;\n'
 	structures += u'\tint fichier = 0;\n'
 	structures += u'};\n'
 
@@ -187,7 +187,7 @@ def construit_tableaux():
 		tableaux += virgule
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), id_morceau::{} }}'.format(mot, m)
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), TypeLexeme::{} }}'.format(mot, m)
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -198,7 +198,7 @@ def construit_tableaux():
 
 	for c in digraphes:
 		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), id_morceau::{} }}'.format(c[0], c[1])
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), TypeLexeme::{} }}'.format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -209,7 +209,7 @@ def construit_tableaux():
 
 	for c in trigraphes:
 		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), id_morceau::{} }}'.format(c[0], c[1])
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), TypeLexeme::{} }}'.format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -223,7 +223,7 @@ def construit_tableaux():
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u"\tdls::paire{{ '{}', id_morceau::{} }}".format(c[0], c[1])
+		tableaux += u"\tdls::paire{{ '{}', TypeLexeme::{} }}".format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -232,7 +232,7 @@ def construit_tableaux():
 
 
 def constuit_enumeration():
-	enumeration = u'enum class id_morceau : unsigned int {\n'
+	enumeration = u'enum class TypeLexeme : unsigned int {\n'
 
 	for car in caracteres_simple:
 		enumeration += u'\t{},\n'.format(car[1])
@@ -255,27 +255,27 @@ def constuit_enumeration():
 
 
 def construit_fonction_chaine_identifiant():
-	fonction = u'const char *chaine_identifiant(id_morceau id)\n{\n'
+	fonction = u'const char *chaine_identifiant(TypeLexeme id)\n{\n'
 	fonction += u'\tswitch (id) {\n'
 
 	for car in caracteres_simple:
-		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
+		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(car[1])
 
 	for car in digraphes:
-		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
+		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(car[1])
 
 	for car in trigraphes:
-		fonction += u'\t\tcase id_morceau::{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(car[1])
+		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
 		m = enleve_accent(mot)
 		m = m.upper()
 
-		fonction += u'\t\tcase id_morceau::{}:\n'.format(m)
-		fonction += u'\t\t\treturn "id_morceau::{}";\n'.format(m)
+		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(m)
+		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(m)
 
 	fonction += u'\t};\n'
 	fonction += u'\n\treturn "ERREUR";\n'
@@ -318,7 +318,7 @@ tableaux = construit_tableaux()
 
 fonctions = u"""
 static bool tables_caracteres[256] = {};
-static id_morceau tables_identifiants[256] = {};
+static TypeLexeme tables_identifiants[256] = {};
 static bool tables_digraphes[256] = {};
 static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
@@ -330,7 +330,7 @@ void construit_tables_caractere_speciaux()
 		tables_digraphes[i] = false;
 		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = id_morceau::INCONNU;
+		tables_identifiants[i] = TypeLexeme::INCONNU;
 	}
 
     {
@@ -371,7 +371,7 @@ void construit_tables_caractere_speciaux()
 	}
 }
 
-bool est_caractere_special(char c, id_morceau &i)
+bool est_caractere_special(char c, TypeLexeme &i)
 {
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
@@ -381,10 +381,10 @@ bool est_caractere_special(char c, id_morceau &i)
 	return true;
 }
 
-id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine)
+TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
-		return id_morceau::INCONNU;
+		return TypeLexeme::INCONNU;
 	}
 
 	auto iterateur = paires_digraphes.trouve_binaire(chaine);
@@ -393,13 +393,13 @@ id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return id_morceau::INCONNU;
+	return TypeLexeme::INCONNU;
 }
 
-id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine)
+TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
-		return id_morceau::INCONNU;
+		return TypeLexeme::INCONNU;
 	}
 
 	auto iterateur = paires_trigraphes.trouve_binaire(chaine);
@@ -408,17 +408,17 @@ id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return id_morceau::INCONNU;
+	return TypeLexeme::INCONNU;
 }
 
-id_morceau id_chaine(const dls::vue_chaine_compacte &chaine)
+TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
-		return id_morceau::CHAINE_CARACTERE;
+		return TypeLexeme::CHAINE_CARACTERE;
 	}
 
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return id_morceau::CHAINE_CARACTERE;
+		return TypeLexeme::CHAINE_CARACTERE;
 	}
 
 	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
@@ -427,52 +427,52 @@ id_morceau id_chaine(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return id_morceau::CHAINE_CARACTERE;
+	return TypeLexeme::CHAINE_CARACTERE;
 }
 """
 
 fonctions_enumeration = u"""
-inline id_morceau operator&(id_morceau id1, int id2)
+inline TypeLexeme operator&(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) & id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) & id2);
 }
 
-inline id_morceau operator|(id_morceau id1, int id2)
+inline TypeLexeme operator|(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) | id2);
 }
 
-inline id_morceau operator|(id_morceau id1, id_morceau id2)
+inline TypeLexeme operator|(TypeLexeme id1, TypeLexeme id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) | static_cast<int>(id2));
+	return static_cast<TypeLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
 }
 
-inline id_morceau operator<<(id_morceau id1, int id2)
+inline TypeLexeme operator<<(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) << id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) << id2);
 }
 
-inline id_morceau operator>>(id_morceau id1, int id2)
+inline TypeLexeme operator>>(TypeLexeme id1, int id2)
 {
-	return static_cast<id_morceau>(static_cast<int>(id1) >> id2);
+	return static_cast<TypeLexeme>(static_cast<int>(id1) >> id2);
 }
 """
 
 declaration_fonctions = u"""
-const char *chaine_identifiant(id_morceau id);
+const char *chaine_identifiant(TypeLexeme id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, id_morceau &i);
+bool est_caractere_special(char c, TypeLexeme &i);
 
-id_morceau id_digraphe(const dls::vue_chaine_compacte &chaine);
+TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_trigraphe(const dls::vue_chaine_compacte &chaine);
+TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
-id_morceau id_chaine(const dls::vue_chaine_compacte &chaine);
+TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
 """
 
-with io.open(u"../compilation/morceaux.hh", u'w') as entete:
+with io.open(u"../compilation/lexemes.hh", u'w') as entete:
 	entete.write(license_)
 	entete.write(u'\n#pragma once\n\n')
 	entete.write(u'#include "biblinternes/structures/chaine.hh"\n\n')
@@ -482,9 +482,9 @@ with io.open(u"../compilation/morceaux.hh", u'w') as entete:
 	entete.write(declaration_fonctions)
 
 
-with io.open(u'../compilation/morceaux.cc', u'w') as source:
+with io.open(u'../compilation/lexemes.cc', u'w') as source:
 	source.write(license_)
-	source.write(u'\n#include "morceaux.hh"\n\n')
+	source.write(u'\n#include "lexemes.hh"\n\n')
 	source.write(u'#include "biblinternes/structures/dico_fixe.hh"\n\n')
 	source.write(tableaux)
 	source.write(fonction)

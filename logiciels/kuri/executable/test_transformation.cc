@@ -103,12 +103,12 @@ int main()
 	contexte.index_type_contexte = typeuse.type_pointeur_pour(ds_contexte.index_type);
 
 	auto dt_tabl_fixe = DonneesTypeFinal{};
-	dt_tabl_fixe.pousse(id_morceau::TABLEAU | static_cast<id_morceau>(8 << 8));
-	dt_tabl_fixe.pousse(id_morceau::Z32);
+	dt_tabl_fixe.pousse(TypeLexeme::TABLEAU | static_cast<TypeLexeme>(8 << 8));
+	dt_tabl_fixe.pousse(TypeLexeme::Z32);
 
 	auto dt_tabl_dyn = DonneesTypeFinal{};
-	dt_tabl_dyn.pousse(id_morceau::TABLEAU);
-	dt_tabl_dyn.pousse(id_morceau::Z32);
+	dt_tabl_dyn.pousse(TypeLexeme::TABLEAU);
+	dt_tabl_dyn.pousse(TypeLexeme::Z32);
 
 	typeuse.ajoute_type(dt_tabl_dyn);
 	typeuse.ajoute_type(dt_tabl_fixe);

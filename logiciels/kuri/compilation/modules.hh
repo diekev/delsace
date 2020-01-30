@@ -86,7 +86,7 @@ struct Fichier {
 
 	lng::tampon_source tampon{""};
 
-	dls::tableau<DonneesMorceau> morceaux{};
+	dls::tableau<DonneesLexeme> morceaux{};
 
 	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
 
@@ -156,14 +156,14 @@ private:
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau);
+		DonneesLexeme const &morceau);
 
 void charge_fichier(std::ostream &os,
 		DonneesModule *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau);
+		DonneesLexeme const &morceau);
 
 /**
  * Charge le module dont le nom est spécifié.
@@ -179,7 +179,7 @@ void charge_fichier(std::ostream &os,
  * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
  * exception est lancée.
  *
- * Les DonneesMorceau doivent être celles du nom du module et sont utilisées
+ * Les DonneesLexeme doivent être celles du nom du module et sont utilisées
  * pour les erreurs lancées.
  *
  * Le paramètre est_racine ne doit être vrai que pour le module racine.
@@ -189,7 +189,7 @@ void importe_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau);
+		DonneesLexeme const &morceau);
 
 /* ************************************************************************** */
 
@@ -241,4 +241,4 @@ struct PositionMorceau {
 	long pos = 0;
 };
 
-PositionMorceau trouve_position(DonneesMorceau const &morceau, Fichier *fichier);
+PositionMorceau trouve_position(DonneesLexeme const &morceau, Fichier *fichier);

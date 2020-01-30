@@ -28,7 +28,7 @@
 
 #include "biblinternes/langage/erreur.hh"
 
-struct DonneesMorceau;
+struct DonneesLexeme;
 struct DonneesStructure;
 struct ContexteGenerationCode;
 
@@ -67,41 +67,41 @@ using frappe = lng::erreur::frappe<type_erreur>;
 [[noreturn]] void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau,
+		const DonneesLexeme &morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &premier_morceau,
-		const DonneesMorceau &dernier_morceau,
+		const DonneesLexeme &premier_morceau,
+		const DonneesLexeme &dernier_morceau,
 		type_erreur type = type_erreur::NORMAL);
 
 [[noreturn]] void lance_erreur_type_arguments(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau_enfant,
-		const DonneesMorceau &morceau);
+		const DonneesLexeme &morceau_enfant,
+		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_type_retour(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau_enfant,
-		const DonneesMorceau &morceau);
+		const DonneesLexeme &morceau_enfant,
+		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_assignation_type_differents(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau);
+		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_type_operation(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau);
+		const DonneesLexeme &morceau);
 
 [[noreturn]] void lance_erreur_fonction_inconnue(
 		ContexteGenerationCode const &contexte,

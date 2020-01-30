@@ -26,7 +26,7 @@
 
 struct assembleuse_arbre;
 struct ContexteGenerationCode;
-enum class id_morceau : unsigned int;
+enum class TypeLexeme : unsigned int;
 
 namespace noeud {
 

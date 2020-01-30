@@ -29,7 +29,7 @@
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
-#include "compilation/outils_morceaux.hh"
+#include "compilation/outils_lexemes.hh"
 
 #include "options.hh"
 
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 			else if (est_chaine_litterale(morceau.identifiant)) {
 				os << "<span class=chn-lit>" << morceau.chaine << "</span>";
 			}
-			else if (morceau.identifiant == id_morceau::COMMENTAIRE) {
+			else if (morceau.identifiant == TypeLexeme::COMMENTAIRE) {
 				os << "<span class=comment>" << morceau.chaine << "</span>";
 			}
 			else {

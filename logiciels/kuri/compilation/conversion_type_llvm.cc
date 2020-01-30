@@ -49,7 +49,7 @@ static llvm::Type *converti_type(
 {
 	/* Pointeur vers une fonction, seulement valide lors d'assignement, ou en
 	 * paramètre de fonction. */
-	if (donnees_type.type_base() == id_morceau::FONC) {
+	if (donnees_type.type_base() == TypeLexeme::FONC) {
 		if (donnees_type.type_llvm() != nullptr) {
 			return llvm::PointerType::get(donnees_type.type_llvm(), 0);
 		}
@@ -83,7 +83,7 @@ static llvm::Type *converti_type(
 
 	llvm::Type *type = nullptr;
 
-	for (id_morceau identifiant : donnees_type) {
+	for (TypeLexeme identifiant : donnees_type) {
 		type = converti_type_simple_llvm(contexte, identifiant, type);
 	}
 
@@ -111,69 +111,69 @@ llvm::Type *converti_type_llvm(
 
 llvm::Type *converti_type_simple_llvm(
 		ContexteGenerationCode &contexte,
-		const id_morceau &identifiant,
+		const TypeLexeme &identifiant,
 		llvm::Type *type_entree)
 {
 	llvm::Type *type = nullptr;
 
 	switch (identifiant & 0xff) {
-		case id_morceau::BOOL:
+		case TypeLexeme::BOOL:
 		{
 			type = llvm::Type::getInt1Ty(contexte.contexte);
 			break;
 		}
-		case id_morceau::OCTET:
-		case id_morceau::N8:
-		case id_morceau::Z8:
+		case TypeLexeme::OCTET:
+		case TypeLexeme::N8:
+		case TypeLexeme::Z8:
 		{
 			type = llvm::Type::getInt8Ty(contexte.contexte);
 			break;
 		}
-		case id_morceau::N16:
-		case id_morceau::Z16:
+		case TypeLexeme::N16:
+		case TypeLexeme::Z16:
 		{
 			type = llvm::Type::getInt16Ty(contexte.contexte);
 			break;
 		}
-		case id_morceau::N32:
-		case id_morceau::Z32:
+		case TypeLexeme::N32:
+		case TypeLexeme::Z32:
 		{
 			type = llvm::Type::getInt32Ty(contexte.contexte);
 			break;
 		}
-		case id_morceau::N64:
-		case id_morceau::Z64:
+		case TypeLexeme::N64:
+		case TypeLexeme::Z64:
 		{
 			type = llvm::Type::getInt64Ty(contexte.contexte);
 			break;
 		}
-		case id_morceau::R16:
+		case TypeLexeme::R16:
 		{
 			type = llvm::Type::getInt16Ty(contexte.contexte);
 			break;
 		}
-		case id_morceau::R32:
+		case TypeLexeme::R32:
 		{
 			type = llvm::Type::getFloatTy(contexte.contexte);
 			break;
 		}
-		case id_morceau::R64:
+		case TypeLexeme::R64:
 		{
 			type = llvm::Type::getDoubleTy(contexte.contexte);
 			break;
 		}
-		case id_morceau::RIEN:
+		case TypeLexeme::RIEN:
 		{
 			type = llvm::Type::getVoidTy(contexte.contexte);
 			break;
 		}
-		case id_morceau::REFERENCE:
-		case id_morceau::POINTEUR:
+		case TypeLexeme::REFERENCE:
+		case TypeLexeme::POINTEUR:
 		{
 			type = llvm::PointerType::get(type_entree, 0);
 			break;
 		}
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::CHAINE_CARACTERE:
 		{
 			auto const &id_structure = (static_cast<long>(identifiant) & 0xffffff00) >> 8;
 			auto &donnees_structure = contexte.donnees_structure(id_structure);
@@ -238,7 +238,7 @@ llvm::Type *converti_type_simple_llvm(
 			type = donnees_structure.type_llvm;
 			break;
 		}
-		case id_morceau::TABLEAU:
+		case TypeLexeme::TABLEAU:
 		{
 			auto const taille = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
 
@@ -260,10 +260,10 @@ llvm::Type *converti_type_simple_llvm(
 
 			break;
 		}
-		case id_morceau::EINI:
+		case TypeLexeme::EINI:
 		{
 			auto dt = DonneesTypeFinal{};
-			dt.pousse(id_morceau::EINI);
+			dt.pousse(TypeLexeme::EINI);
 
 			auto index_eini = contexte.typeuse.ajoute_type(dt);
 			auto &type_eini = contexte.typeuse[index_eini];
@@ -274,8 +274,8 @@ llvm::Type *converti_type_simple_llvm(
 				auto index_struct_info = contexte.donnees_structure("InfoType").id;
 
 				auto dt_info = DonneesTypeFinal{};
-				dt_info.pousse(id_morceau::POINTEUR);
-				dt_info.pousse(id_morceau::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
+				dt_info.pousse(TypeLexeme::POINTEUR);
+				dt_info.pousse(TypeLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
 
 				index_struct_info = contexte.typeuse.ajoute_type(dt_info);
 				auto &ref_dt_info = contexte.typeuse[index_struct_info];
@@ -298,7 +298,7 @@ llvm::Type *converti_type_simple_llvm(
 			type = type_eini.type_llvm();
 			break;
 		}
-		case id_morceau::CHAINE:
+		case TypeLexeme::CHAINE:
 		{
 			auto index_chaine = contexte.typeuse[TypeBase::CHAINE];
 			auto &type_chaine = contexte.typeuse[index_chaine];
@@ -321,7 +321,7 @@ llvm::Type *converti_type_simple_llvm(
 			type = type_chaine.type_llvm();
 			break;
 		}
-		case id_morceau::TYPE_DE:
+		case TypeLexeme::TYPE_DE:
 		{
 			assert(false && "type_de aurait dû être résolu");
 			break;

@@ -32,393 +32,393 @@
 #include "compilation/decoupeuse.h"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
-#include "compilation/outils_morceaux.hh"
+#include "compilation/outils_lexemes.hh"
 
 #include "options.hh"
 
 using type_scalaire = double;
 using type_matrice_ep = matrice_colonne_eparse<double>;
 
-static auto idx_depuis_id(id_morceau id)
+static auto idx_depuis_id(TypeLexeme id)
 {
 	return static_cast<int>(id);
 }
 
 static auto id_depuis_idx(int id)
 {
-	return static_cast<id_morceau>(id);
+	return static_cast<TypeLexeme>(id);
 }
 
-static void imprime_mot(id_morceau id, std::ostream &os)
+static void imprime_mot(TypeLexeme id, std::ostream &os)
 {
 	switch (id) {
-		case id_morceau::EXCLAMATION:
+		case TypeLexeme::EXCLAMATION:
 			os << "!";
 			return;
-		case id_morceau::GUILLEMET:
+		case TypeLexeme::GUILLEMET:
 			os << "\"";
 			return;
-		case id_morceau::DIESE:
+		case TypeLexeme::DIESE:
 			os << "#";
 			return;
-		case id_morceau::DOLLAR:
+		case TypeLexeme::DOLLAR:
 			os << "$";
 			return;
-		case id_morceau::POURCENT:
+		case TypeLexeme::POURCENT:
 			os << "%";
 			return;
-		case id_morceau::ESPERLUETTE:
+		case TypeLexeme::ESPERLUETTE:
 			os << "&";
 			return;
-		case id_morceau::APOSTROPHE:
+		case TypeLexeme::APOSTROPHE:
 			os << "'";
 			return;
-		case id_morceau::PARENTHESE_OUVRANTE:
+		case TypeLexeme::PARENTHESE_OUVRANTE:
 			os << "(";
 			return;
-		case id_morceau::PARENTHESE_FERMANTE:
+		case TypeLexeme::PARENTHESE_FERMANTE:
 			os << ")";
 			return;
-		case id_morceau::FOIS:
+		case TypeLexeme::FOIS:
 			os << "*";
 			return;
-		case id_morceau::PLUS:
+		case TypeLexeme::PLUS:
 			os << "+";
 			return;
-		case id_morceau::VIRGULE:
+		case TypeLexeme::VIRGULE:
 			os << ",";
 			return;
-		case id_morceau::MOINS:
+		case TypeLexeme::MOINS:
 			os << "-";
 			return;
-		case id_morceau::POINT:
+		case TypeLexeme::POINT:
 			os << ".";
 			return;
-		case id_morceau::DIVISE:
+		case TypeLexeme::DIVISE:
 			os << "/";
 			return;
-		case id_morceau::DOUBLE_POINTS:
+		case TypeLexeme::DOUBLE_POINTS:
 			os << ":";
 			return;
-		case id_morceau::POINT_VIRGULE:
+		case TypeLexeme::POINT_VIRGULE:
 			os << ";";
 			return;
-		case id_morceau::INFERIEUR:
+		case TypeLexeme::INFERIEUR:
 			os << "<";
 			return;
-		case id_morceau::EGAL:
+		case TypeLexeme::EGAL:
 			os << "=";
 			return;
-		case id_morceau::SUPERIEUR:
+		case TypeLexeme::SUPERIEUR:
 			os << ">";
 			return;
-		case id_morceau::AROBASE:
+		case TypeLexeme::AROBASE:
 			os << "@";
 			return;
-		case id_morceau::CROCHET_OUVRANT:
+		case TypeLexeme::CROCHET_OUVRANT:
 			os << "[";
 			return;
-		case id_morceau::CROCHET_FERMANT:
+		case TypeLexeme::CROCHET_FERMANT:
 			os << "]";
 			return;
-		case id_morceau::CHAPEAU:
+		case TypeLexeme::CHAPEAU:
 			os << "^";
 			return;
-		case id_morceau::ACCOLADE_OUVRANTE:
+		case TypeLexeme::ACCOLADE_OUVRANTE:
 			os << "{";
 			return;
-		case id_morceau::BARRE:
+		case TypeLexeme::BARRE:
 			os << "|";
 			return;
-		case id_morceau::ACCOLADE_FERMANTE:
+		case TypeLexeme::ACCOLADE_FERMANTE:
 			os << "}";
 			return;
-		case id_morceau::TILDE:
+		case TypeLexeme::TILDE:
 			os << "~";
 			return;
-		case id_morceau::DIFFERENCE:
+		case TypeLexeme::DIFFERENCE:
 			os << "!=";
 			return;
-		case id_morceau::DIRECTIVE:
+		case TypeLexeme::DIRECTIVE:
 			os << "#!";
 			return;
-		case id_morceau::MODULO_EGAL:
+		case TypeLexeme::MODULO_EGAL:
 			os << "%=";
 			return;
-		case id_morceau::ESP_ESP:
+		case TypeLexeme::ESP_ESP:
 			os << "&&";
 			return;
-		case id_morceau::ET_EGAL:
+		case TypeLexeme::ET_EGAL:
 			os << "&=";
 			return;
-		case id_morceau::MULTIPLIE_EGAL:
+		case TypeLexeme::MULTIPLIE_EGAL:
 			os << "*=";
 			return;
-		case id_morceau::PLUS_EGAL:
+		case TypeLexeme::PLUS_EGAL:
 			os << "+=";
 			return;
-		case id_morceau::MOINS_EGAL:
+		case TypeLexeme::MOINS_EGAL:
 			os << "-=";
 			return;
-		case id_morceau::DIVISE_EGAL:
+		case TypeLexeme::DIVISE_EGAL:
 			os << "/=";
 			return;
-		case id_morceau::DECALAGE_GAUCHE:
+		case TypeLexeme::DECALAGE_GAUCHE:
 			os << "<<";
 			return;
-		case id_morceau::INFERIEUR_EGAL:
+		case TypeLexeme::INFERIEUR_EGAL:
 			os << "<=";
 			return;
-		case id_morceau::EGALITE:
+		case TypeLexeme::EGALITE:
 			os << "==";
 			return;
-		case id_morceau::SUPERIEUR_EGAL:
+		case TypeLexeme::SUPERIEUR_EGAL:
 			os << ">=";
 			return;
-		case id_morceau::DECALAGE_DROITE:
+		case TypeLexeme::DECALAGE_DROITE:
 			os << ">>=";
 			return;
-		case id_morceau::OUX_EGAL:
+		case TypeLexeme::OUX_EGAL:
 			os << "^=";
 			return;
-		case id_morceau::OU_EGAL:
+		case TypeLexeme::OU_EGAL:
 			os << "|=";
 			return;
-		case id_morceau::BARRE_BARRE:
+		case TypeLexeme::BARRE_BARRE:
 			os << "||";
 			return;
-		case id_morceau::TROIS_POINTS:
+		case TypeLexeme::TROIS_POINTS:
 			os << "...";
 			return;
-		case id_morceau::DEC_GAUCHE_EGAL:
+		case TypeLexeme::DEC_GAUCHE_EGAL:
 			os << "<<=";
 			return;
-		case id_morceau::DEC_DROITE_EGAL:
+		case TypeLexeme::DEC_DROITE_EGAL:
 			os << ">>";
 			return;
-		case id_morceau::ARRETE:
+		case TypeLexeme::ARRETE:
 			os << "arrête";
 			return;
-		case id_morceau::DISCR:
+		case TypeLexeme::DISCR:
 			os << "discr";
 			return;
-		case id_morceau::BOOL:
+		case TypeLexeme::BOOL:
 			os << "bool";
 			return;
-		case id_morceau::BOUCLE:
+		case TypeLexeme::BOUCLE:
 			os << "boucle";
 			return;
-		case id_morceau::CHAINE:
+		case TypeLexeme::CHAINE:
 			os << "chaine";
 			return;
-		case id_morceau::CONTINUE:
+		case TypeLexeme::CONTINUE:
 			os << "continue";
 			return;
-		case id_morceau::COROUT:
+		case TypeLexeme::COROUT:
 			os << "corout";
 			return;
-		case id_morceau::DANS:
+		case TypeLexeme::DANS:
 			os << "dans";
 			return;
-		case id_morceau::DIFFERE:
+		case TypeLexeme::DIFFERE:
 			os << "diffère";
 			return;
-		case id_morceau::DYN:
+		case TypeLexeme::DYN:
 			os << "dyn";
 			return;
-		case id_morceau::DELOGE:
+		case TypeLexeme::DELOGE:
 			os << "déloge";
 			return;
-		case id_morceau::EINI:
+		case TypeLexeme::EINI:
 			os << "eini";
 			return;
-		case id_morceau::EMPL:
+		case TypeLexeme::EMPL:
 			os << "empl";
 			return;
-		case id_morceau::EXTERNE:
+		case TypeLexeme::EXTERNE:
 			os << "externe";
 			return;
-		case id_morceau::FAUX:
+		case TypeLexeme::FAUX:
 			os << "faux";
 			return;
-		case id_morceau::FONC:
+		case TypeLexeme::FONC:
 			os << "fonc";
 			return;
-		case id_morceau::GARDE:
+		case TypeLexeme::GARDE:
 			os << "garde";
 			return;
-		case id_morceau::IMPORTE:
+		case TypeLexeme::IMPORTE:
 			os << "importe";
 			return;
-		case id_morceau::INFO_DE:
+		case TypeLexeme::INFO_DE:
 			os << "info_de";
 			return;
-		case id_morceau::LOGE:
+		case TypeLexeme::LOGE:
 			os << "loge";
 			return;
-		case id_morceau::MEMOIRE:
+		case TypeLexeme::MEMOIRE:
 			os << "mémoire";
 			return;
-		case id_morceau::N128:
+		case TypeLexeme::N128:
 			os << "n128";
 			return;
-		case id_morceau::N16:
+		case TypeLexeme::N16:
 			os << "n16";
 			return;
-		case id_morceau::N32:
+		case TypeLexeme::N32:
 			os << "n32";
 			return;
-		case id_morceau::N64:
+		case TypeLexeme::N64:
 			os << "n64";
 			return;
-		case id_morceau::N8:
+		case TypeLexeme::N8:
 			os << "n8";
 			return;
-		case id_morceau::NONSUR:
+		case TypeLexeme::NONSUR:
 			os << "nonsûr";
 			return;
-		case id_morceau::NUL:
+		case TypeLexeme::NUL:
 			os << "nul";
 			return;
-		case id_morceau::OCTET:
+		case TypeLexeme::OCTET:
 			os << "octet";
 			return;
-		case id_morceau::POUR:
+		case TypeLexeme::POUR:
 			os << "pour";
 			return;
-		case id_morceau::R128:
+		case TypeLexeme::R128:
 			os << "r128";
 			return;
-		case id_morceau::R16:
+		case TypeLexeme::R16:
 			os << "r16";
 			return;
-		case id_morceau::R32:
+		case TypeLexeme::R32:
 			os << "r32";
 			return;
-		case id_morceau::R64:
+		case TypeLexeme::R64:
 			os << "r64";
 			return;
-		case id_morceau::RELOGE:
+		case TypeLexeme::RELOGE:
 			os << "reloge";
 			return;
-		case id_morceau::REPETE:
+		case TypeLexeme::REPETE:
 			os << "répète";
 			return;
-		case id_morceau::RETIENS:
+		case TypeLexeme::RETIENS:
 			os << "retiens";
 			return;
-		case id_morceau::RETOURNE:
+		case TypeLexeme::RETOURNE:
 			os << "retourne";
 			return;
-		case id_morceau::RIEN:
+		case TypeLexeme::RIEN:
 			os << "rien";
 			return;
-		case id_morceau::SANSARRET:
+		case TypeLexeme::SANSARRET:
 			os << "sansarrêt";
 			return;
-		case id_morceau::SAUFSI:
+		case TypeLexeme::SAUFSI:
 			os << "saufsi";
 			return;
-		case id_morceau::SI:
+		case TypeLexeme::SI:
 			os << "si";
 			return;
-		case id_morceau::SINON:
+		case TypeLexeme::SINON:
 			os << "sinon";
 			return;
-		case id_morceau::SOIT:
+		case TypeLexeme::SOIT:
 			os << "soit";
 			return;
-		case id_morceau::STRUCT:
+		case TypeLexeme::STRUCT:
 			os << "struct";
 			return;
-		case id_morceau::TAILLE_DE:
+		case TypeLexeme::TAILLE_DE:
 			os << "taille_de";
 			return;
-		case id_morceau::TANTQUE:
+		case TypeLexeme::TANTQUE:
 			os << "tantque";
 			return;
-		case id_morceau::TRANSTYPE:
+		case TypeLexeme::TRANSTYPE:
 			os << "transtype";
 			return;
-		case id_morceau::TYPE_DE:
+		case TypeLexeme::TYPE_DE:
 			os << "type_de";
 			return;
-		case id_morceau::UNION:
+		case TypeLexeme::UNION:
 			os << "union";
 			return;
-		case id_morceau::VRAI:
+		case TypeLexeme::VRAI:
 			os << "vrai";
 			return;
-		case id_morceau::Z128:
+		case TypeLexeme::Z128:
 			os << "z128";
 			return;
-		case id_morceau::Z16:
+		case TypeLexeme::Z16:
 			os << "z16";
 			return;
-		case id_morceau::Z32:
+		case TypeLexeme::Z32:
 			os << "z32";
 			return;
-		case id_morceau::Z64:
+		case TypeLexeme::Z64:
 			os << "z64";
 			return;
-		case id_morceau::Z8:
+		case TypeLexeme::Z8:
 			os << "z8";
 			return;
-		case id_morceau::ENUM:
+		case TypeLexeme::ENUM:
 			os << "énum";
 			return;
-		case id_morceau::ENUM_DRAPEAU:
+		case TypeLexeme::ENUM_DRAPEAU:
 			os << "énum_drapeau";
 			return;
-		case id_morceau::NOMBRE_REEL:
+		case TypeLexeme::NOMBRE_REEL:
 			os << "0.0";
 			return;
-		case id_morceau::NOMBRE_ENTIER:
+		case TypeLexeme::NOMBRE_ENTIER:
 			os << "0";
 			return;
-		case id_morceau::NOMBRE_HEXADECIMAL:
+		case TypeLexeme::NOMBRE_HEXADECIMAL:
 			os << "0x0";
 			return;
-		case id_morceau::NOMBRE_OCTAL:
+		case TypeLexeme::NOMBRE_OCTAL:
 			os << "0o0";
 			return;
-		case id_morceau::NOMBRE_BINAIRE:
+		case TypeLexeme::NOMBRE_BINAIRE:
 			os << "0b0";
 			return;
-		case id_morceau::PLUS_UNAIRE:
+		case TypeLexeme::PLUS_UNAIRE:
 			os << "+";
 			return;
-		case id_morceau::MOINS_UNAIRE:
+		case TypeLexeme::MOINS_UNAIRE:
 			os << "-";
 			return;
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::CHAINE_CARACTERE:
 			os << "chaine_de_caractère";
 			return;
-		case id_morceau::CHAINE_LITTERALE:
+		case TypeLexeme::CHAINE_LITTERALE:
 			os << "\"chaine littérale\"";
 			return;
-		case id_morceau::CARACTERE:
+		case TypeLexeme::CARACTERE:
 			os << "'a'";
 			return;
-		case id_morceau::POINTEUR:
+		case TypeLexeme::POINTEUR:
 			os << "*";
 			return;
-		case id_morceau::TABLEAU:
+		case TypeLexeme::TABLEAU:
 			os << "[]";
 			return;
-		case id_morceau::REFERENCE:
+		case TypeLexeme::REFERENCE:
 			os << "&";
 			return;
-		case id_morceau::CHARGE:
+		case TypeLexeme::CHARGE:
 			os << "charge";
 			return;
-		case id_morceau::INCONNU:
+		case TypeLexeme::INCONNU:
 			os << "inconnu";
 			return;
-		case id_morceau::CARACTERE_BLANC:
+		case TypeLexeme::CARACTERE_BLANC:
 			os << " ";
 			return;
-		case id_morceau::COMMENTAIRE:
+		case TypeLexeme::COMMENTAIRE:
 			os << "# commentaire\n";
 			return;
 	};
@@ -426,13 +426,13 @@ static void imprime_mot(id_morceau id, std::ostream &os)
 	os << "ERREUR";
 }
 
-void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)
+void test_markov_id_simple(dls::tableau<DonneesLexeme> const &morceaux)
 {
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
 	static constexpr auto _1 = static_cast<type_scalaire>(1);
 
 	/* construction de la matrice */
-	auto nombre_id = static_cast<int>(id_morceau::COMMENTAIRE) + 1;
+	auto nombre_id = static_cast<int>(TypeLexeme::COMMENTAIRE) + 1;
 	auto matrice = type_matrice_ep(type_ligne(nombre_id), type_colonne(nombre_id));
 
 	for (auto i = 0; i < morceaux.taille() - 1; ++i) {
@@ -446,7 +446,7 @@ void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)
 	converti_fonction_repartition(matrice);
 
 	auto gna = GNA();
-	auto mot_courant = id_morceau::STRUCT;
+	auto mot_courant = TypeLexeme::STRUCT;
 	auto nombre_phrases = 5;
 
 	while (nombre_phrases > 0) {
@@ -456,7 +456,7 @@ void test_markov_id_simple(dls::tableau<DonneesMorceau> const &morceaux)
 			std::cerr << ' ';
 		}
 
-		if (mot_courant == id_morceau::ACCOLADE_FERMANTE) {
+		if (mot_courant == TypeLexeme::ACCOLADE_FERMANTE) {
 			std::cerr << '\n';
 			nombre_phrases--;
 		}

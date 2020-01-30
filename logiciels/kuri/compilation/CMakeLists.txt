@@ -48,10 +48,10 @@ set(SOURCES
 	generatrice_code_c.hh
 	graphe_dependance.hh
 	infos_type_c.hh
+	lexemes.hh
 	modules.hh
-	morceaux.hh
 	operateurs.hh
-	outils_morceaux.hh
+	outils_lexemes.hh
 	transformation_type.hh
 	typeuse.hh
 	validation_semantique.hh
@@ -70,10 +70,10 @@ set(SOURCES
 	generatrice_code_c.cc
 	graphe_dependance.cc
 	infos_type_c.cc
+	lexemes.cc
 	modules.cc
-	morceaux.cc
 	operateurs.cc
-	outils_morceaux.cc
+	outils_lexemes.cc
 	transformation_type.cc
 	typeuse.cc
 	validation_semantique.cc

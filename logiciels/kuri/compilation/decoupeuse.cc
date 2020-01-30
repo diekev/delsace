@@ -42,7 +42,7 @@
  * - une des instructions de controle de flux suivantes : retourne, arrête, continue
  * - une parenthèse ou en un crochet fermant
  */
-static bool doit_ajouter_point_virgule(id_morceau dernier_id)
+static bool doit_ajouter_point_virgule(TypeLexeme dernier_id)
 {
 	switch (dernier_id) {
 		default:
@@ -50,44 +50,44 @@ static bool doit_ajouter_point_virgule(id_morceau dernier_id)
 			return false;
 		}
 		/* types */
-		case id_morceau::N8:
-		case id_morceau::N16:
-		case id_morceau::N32:
-		case id_morceau::N64:
-		case id_morceau::N128:
-		case id_morceau::R16:
-		case id_morceau::R32:
-		case id_morceau::R64:
-		case id_morceau::R128:
-		case id_morceau::Z8:
-		case id_morceau::Z16:
-		case id_morceau::Z32:
-		case id_morceau::Z64:
-		case id_morceau::Z128:
-		case id_morceau::BOOL:
-		case id_morceau::RIEN:
-		case id_morceau::EINI:
-		case id_morceau::CHAINE:
-		case id_morceau::OCTET:
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::N8:
+		case TypeLexeme::N16:
+		case TypeLexeme::N32:
+		case TypeLexeme::N64:
+		case TypeLexeme::N128:
+		case TypeLexeme::R16:
+		case TypeLexeme::R32:
+		case TypeLexeme::R64:
+		case TypeLexeme::R128:
+		case TypeLexeme::Z8:
+		case TypeLexeme::Z16:
+		case TypeLexeme::Z32:
+		case TypeLexeme::Z64:
+		case TypeLexeme::Z128:
+		case TypeLexeme::BOOL:
+		case TypeLexeme::RIEN:
+		case TypeLexeme::EINI:
+		case TypeLexeme::CHAINE:
+		case TypeLexeme::OCTET:
+		case TypeLexeme::CHAINE_CARACTERE:
 		/* littérales */
-		case id_morceau::CHAINE_LITTERALE:
-		case id_morceau::NOMBRE_REEL:
-		case id_morceau::NOMBRE_ENTIER:
-		case id_morceau::NOMBRE_OCTAL:
-		case id_morceau::NOMBRE_HEXADECIMAL:
-		case id_morceau::NOMBRE_BINAIRE:
-		case id_morceau::CARACTERE:
-		case id_morceau::VRAI:
-		case id_morceau::FAUX:
-		case id_morceau::NUL:
+		case TypeLexeme::CHAINE_LITTERALE:
+		case TypeLexeme::NOMBRE_REEL:
+		case TypeLexeme::NOMBRE_ENTIER:
+		case TypeLexeme::NOMBRE_OCTAL:
+		case TypeLexeme::NOMBRE_HEXADECIMAL:
+		case TypeLexeme::NOMBRE_BINAIRE:
+		case TypeLexeme::CARACTERE:
+		case TypeLexeme::VRAI:
+		case TypeLexeme::FAUX:
+		case TypeLexeme::NUL:
 		/* instructions */
-		case id_morceau::ARRETE:
-		case id_morceau::CONTINUE:
-		case id_morceau::RETOURNE:
+		case TypeLexeme::ARRETE:
+		case TypeLexeme::CONTINUE:
+		case TypeLexeme::RETOURNE:
 		/* fermeture */
-		case id_morceau::PARENTHESE_FERMANTE:
-		case id_morceau::CROCHET_FERMANT:
+		case TypeLexeme::PARENTHESE_FERMANTE:
+		case TypeLexeme::CROCHET_FERMANT:
 		{
 			return true;
 		}
@@ -157,7 +157,7 @@ void decoupeuse_texte::genere_morceaux()
 						if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 							this->enregistre_pos_mot();
 							this->pousse_caractere(nombre_octet);
-							this->pousse_mot(id_morceau::CARACTERE_BLANC);
+							this->pousse_mot(TypeLexeme::CARACTERE_BLANC);
 						}
 
 						this->avance(nombre_octet);
@@ -200,7 +200,7 @@ void decoupeuse_texte::genere_morceaux()
 
 						this->avance(nombre_octet);
 
-						this->pousse_mot(id_morceau::CHAINE_LITTERALE);
+						this->pousse_mot(TypeLexeme::CHAINE_LITTERALE);
 						break;
 					}
 					default:
@@ -228,7 +228,7 @@ void decoupeuse_texte::genere_morceaux()
 
 size_t decoupeuse_texte::memoire_morceaux() const
 {
-	return static_cast<size_t>(m_fichier->morceaux.taille()) * sizeof(DonneesMorceau);
+	return static_cast<size_t>(m_fichier->morceaux.taille()) * sizeof(DonneesLexeme);
 }
 
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)
@@ -323,7 +323,7 @@ void decoupeuse_texte::lance_erreur(const dls::chaine &quoi) const
 //    ajoute caractere mot courant
 void decoupeuse_texte::analyse_caractere_simple()
 {
-	auto idc = id_morceau::INCONNU;
+	auto idc = TypeLexeme::INCONNU;
 
 	if (lng::est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
@@ -333,14 +333,14 @@ void decoupeuse_texte::analyse_caractere_simple()
 		if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 			this->enregistre_pos_mot();
 			this->pousse_caractere();
-			this->pousse_mot(id_morceau::CARACTERE_BLANC);
+			this->pousse_mot(TypeLexeme::CARACTERE_BLANC);
 		}
 
 		if (this->caractere_courant() == '\n') {
 			if (doit_ajouter_point_virgule(m_dernier_id)) {
 				this->enregistre_pos_mot();
 				this->pousse_caractere();
-				this->pousse_mot(id_morceau::POINT_VIRGULE);
+				this->pousse_mot(TypeLexeme::POINT_VIRGULE);
 			}
 		}
 
@@ -355,7 +355,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 		auto id = id_trigraphe(dls::vue_chaine_compacte(m_debut, 3));
 
-		if (id != id_morceau::INCONNU) {
+		if (id != TypeLexeme::INCONNU) {
 			this->pousse_caractere(3);
 			this->pousse_mot(id);
 			this->avance(3);
@@ -364,7 +364,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 		id = id_digraphe(dls::vue_chaine_compacte(m_debut, 2));
 
-		if (id != id_morceau::INCONNU) {
+		if (id != TypeLexeme::INCONNU) {
 			this->pousse_caractere(2);
 			this->pousse_mot(id);
 			this->avance(2);
@@ -375,7 +375,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 			case '.':
 			{
 				this->pousse_caractere();
-				this->pousse_mot(id_morceau::POINT);
+				this->pousse_mot(TypeLexeme::POINT);
 				this->avance();
 				break;
 			}
@@ -408,7 +408,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 
 				this->avance();
 
-				this->pousse_mot(id_morceau::CHAINE_LITTERALE);
+				this->pousse_mot(TypeLexeme::CHAINE_LITTERALE);
 				break;
 			}
 			case '\'':
@@ -442,7 +442,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 				}
 
 				this->avance();
-				this->pousse_mot(id_morceau::CARACTERE);
+				this->pousse_mot(TypeLexeme::CARACTERE);
 				break;
 			}
 			case '#':
@@ -458,7 +458,7 @@ void decoupeuse_texte::analyse_caractere_simple()
 				}
 
 				if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-					this->pousse_mot(id_morceau::COMMENTAIRE);
+					this->pousse_mot(TypeLexeme::COMMENTAIRE);
 				}
 
 				/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
@@ -479,8 +479,8 @@ void decoupeuse_texte::analyse_caractere_simple()
 	else if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
 		this->enregistre_pos_mot();
 
-		using denombreuse = lng::decoupeuse_nombre<id_morceau>;
-		id_morceau id_nombre;
+		using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
+		TypeLexeme id_nombre;
 
 		/* NOTE : on utilise une variable temporaire pour stocker le compte au
 		 * lieu d'utiliser m_taille_mot_courant directement, car
@@ -508,7 +508,7 @@ void decoupeuse_texte::pousse_caractere(int n)
 	m_taille_mot_courant += n;
 }
 
-void decoupeuse_texte::pousse_mot(id_morceau identifiant)
+void decoupeuse_texte::pousse_mot(TypeLexeme identifiant)
 {
 	m_fichier->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
 	m_taille_mot_courant = 0;

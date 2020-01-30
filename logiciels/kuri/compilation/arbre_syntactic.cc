@@ -104,7 +104,7 @@ const char *chaine_type_noeud(type_noeud type)
 
 namespace noeud {
 
-base::base(ContexteGenerationCode &/*contexte*/, DonneesMorceau const &morceau_)
+base::base(ContexteGenerationCode &/*contexte*/, DonneesLexeme const &morceau_)
 	: morceau{morceau_}
 {}
 
@@ -113,7 +113,7 @@ dls::vue_chaine_compacte const &base::chaine() const
 	return morceau.chaine;
 }
 
-DonneesMorceau const &base::donnees_morceau() const
+DonneesLexeme const &base::donnees_morceau() const
 {
 	return morceau;
 }
@@ -174,7 +174,7 @@ dls::chaine base::chaine_calculee() const
 	return std::any_cast<dls::chaine>(this->valeur_calculee);
 }
 
-id_morceau base::identifiant() const
+TypeLexeme base::identifiant() const
 {
 	return morceau.identifiant;
 }
@@ -185,13 +185,13 @@ void rassemble_feuilles(
 		base *noeud_base,
 		dls::tableau<base *> &feuilles)
 {
-	if (noeud_base->identifiant() != id_morceau::VIRGULE) {
+	if (noeud_base->identifiant() != TypeLexeme::VIRGULE) {
 		feuilles.pousse(noeud_base);
 		return;
 	}
 
 	for (auto enfant : noeud_base->enfants) {
-		if (enfant->identifiant() == id_morceau::VIRGULE) {
+		if (enfant->identifiant() == TypeLexeme::VIRGULE) {
 			rassemble_feuilles(enfant, feuilles);
 		}
 		else {

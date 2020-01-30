@@ -35,7 +35,7 @@ struct ContexteGenerationCode;
 struct DonneesFonction;
 struct DonneesModule;
 
-class analyseuse_grammaire : public lng::analyseuse<DonneesMorceau> {
+class analyseuse_grammaire : public lng::analyseuse<DonneesLexeme> {
 	ContexteGenerationCode &m_contexte;
 	assembleuse_arbre *m_assembleuse = nullptr;
 
@@ -81,19 +81,19 @@ private:
 	/**
 	 * Lance une exception de type ErreurSyntactique contenant la chaine passée
 	 * en paramètre ainsi que plusieurs données sur l'identifiant courant
-	 * contenues dans l'instance DonneesMorceau lui correspondant.
+	 * contenues dans l'instance DonneesLexeme lui correspondant.
 	 */
 	[[noreturn]] void lance_erreur(
 			const dls::chaine &quoi,
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
 	void analyse_corps(std::ostream &os);
-	void analyse_declaration_fonction(id_morceau id);
+	void analyse_declaration_fonction(TypeLexeme id);
 	void analyse_corps_fonction();
 	void analyse_bloc();
-	noeud::base *analyse_expression_droite(id_morceau identifiant_final, id_morceau racine_expr, bool ajoute_noeud = true);
+	noeud::base *analyse_expression_droite(TypeLexeme identifiant_final, TypeLexeme racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
-	void analyse_declaration_structure(id_morceau id);
+	void analyse_declaration_structure(TypeLexeme id);
 	void analyse_declaration_enum(bool est_drapeau);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
@@ -102,6 +102,6 @@ private:
 	void analyse_construction_structure(noeud::base *noeud);
 	void analyse_directive_si();
 
-	void consomme(id_morceau id, const char *message);
+	void consomme(TypeLexeme id, const char *message);
 	void consomme_type(const char *message);
 };

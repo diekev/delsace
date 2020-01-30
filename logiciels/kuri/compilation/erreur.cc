@@ -28,7 +28,7 @@
 
 #include "arbre_syntactic.h"
 #include "contexte_generation_code.h"
-#include "morceaux.hh"
+#include "lexemes.hh"
 
 namespace lng::erreur {
 
@@ -53,7 +53,7 @@ namespace erreur {
 void lance_erreur(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau,
+		const DonneesLexeme &morceau,
 		type_erreur type)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
@@ -82,8 +82,8 @@ void lance_erreur(
 void lance_erreur_plage(
 		const dls::chaine &quoi,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &premier_morceau,
-		const DonneesMorceau &dernier_morceau,
+		const DonneesLexeme &premier_morceau,
+		const DonneesLexeme &dernier_morceau,
 		type_erreur type)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(premier_morceau.fichier));
@@ -113,8 +113,8 @@ void lance_erreur_plage(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau_enfant,
-		const DonneesMorceau &morceau)
+		const DonneesLexeme &morceau_enfant,
+		const DonneesLexeme &morceau)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
 	auto pos = trouve_position(morceau, fichier);
@@ -151,8 +151,8 @@ void lance_erreur_plage(
 		const DonneesTypeFinal &type_arg,
 		const DonneesTypeFinal &type_enf,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau_enfant,
-		const DonneesMorceau &morceau)
+		const DonneesLexeme &morceau_enfant,
+		const DonneesLexeme &morceau)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
 	auto pos = trouve_position(morceau, fichier);
@@ -189,7 +189,7 @@ void lance_erreur_plage(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau)
+		const DonneesLexeme &morceau)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
 	auto pos = trouve_position(morceau, fichier);
@@ -216,7 +216,7 @@ void lance_erreur_type_operation(
 		const DonneesTypeFinal &type_gauche,
 		const DonneesTypeFinal &type_droite,
 		const ContexteGenerationCode &contexte,
-		const DonneesMorceau &morceau)
+		const DonneesLexeme &morceau)
 {
 	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
 	auto pos = trouve_position(morceau, fichier);

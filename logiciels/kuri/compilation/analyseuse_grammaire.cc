@@ -33,25 +33,25 @@
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "expression.h"
-#include "outils_morceaux.hh"
+#include "outils_lexemes.hh"
 
-using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 
 /**
  * Retourne vrai se l'identifiant passé en paramètre peut-être un identifiant
  * valide pour précèder un opérateur unaire '+' ou '-'.
  */
-static bool precede_unaire_valide(id_morceau dernier_identifiant)
+static bool precede_unaire_valide(TypeLexeme dernier_identifiant)
 {
-	if (dernier_identifiant == id_morceau::PARENTHESE_FERMANTE) {
+	if (dernier_identifiant == TypeLexeme::PARENTHESE_FERMANTE) {
 		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::CROCHET_FERMANT) {
+	if (dernier_identifiant == TypeLexeme::CROCHET_FERMANT) {
 		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::CHAINE_CARACTERE) {
+	if (dernier_identifiant == TypeLexeme::CHAINE_CARACTERE) {
 		return false;
 	}
 
@@ -60,19 +60,19 @@ static bool precede_unaire_valide(id_morceau dernier_identifiant)
 	}
 
 	/* À FAIRE : ceci mélange a[-i] et a[i] - b[i] */
-	if (dernier_identifiant == id_morceau::CROCHET_OUVRANT) {
+	if (dernier_identifiant == TypeLexeme::CROCHET_OUVRANT) {
 		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::CARACTERE) {
+	if (dernier_identifiant == TypeLexeme::CARACTERE) {
 		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::TRANSTYPE) {
+	if (dernier_identifiant == TypeLexeme::TRANSTYPE) {
 		return false;
 	}
 
-	if (dernier_identifiant == id_morceau::MEMOIRE) {
+	if (dernier_identifiant == TypeLexeme::MEMOIRE) {
 		return false;
 	}
 
@@ -85,7 +85,7 @@ analyseuse_grammaire::analyseuse_grammaire(
 		ContexteGenerationCode &contexte,
 		Fichier *fichier,
 		dls::chaine const &racine_kuri)
-	: lng::analyseuse<DonneesMorceau>(fichier->morceaux)
+	: lng::analyseuse<DonneesLexeme>(fichier->morceaux)
 	, m_contexte(contexte)
 	, m_assembleuse(contexte.assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
@@ -113,37 +113,37 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 		auto id = this->identifiant_courant();
 
 		switch (id) {
-			case id_morceau::FONC:
-			case id_morceau::COROUT:
+			case TypeLexeme::FONC:
+			case TypeLexeme::COROUT:
 			{
 				avance();
 				analyse_declaration_fonction(id);
 				break;
 			}
-			case id_morceau::STRUCT:
-			case id_morceau::UNION:
+			case TypeLexeme::STRUCT:
+			case TypeLexeme::UNION:
 			{
 				avance();
 				analyse_declaration_structure(id);
 				break;
 			}
-			case id_morceau::ENUM:
+			case TypeLexeme::ENUM:
 			{
 				avance();
 				analyse_declaration_enum(false);
 				break;
 			}
-			case id_morceau::ENUM_DRAPEAU:
+			case TypeLexeme::ENUM_DRAPEAU:
 			{
 				avance();
 				analyse_declaration_enum(true);
 				break;
 			}
-			case id_morceau::IMPORTE:
+			case TypeLexeme::IMPORTE:
 			{
 				avance();
 
-				if (!est_identifiant(id_morceau::CHAINE_LITTERALE) && !est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				if (!est_identifiant(TypeLexeme::CHAINE_LITTERALE) && !est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu une chaine littérale après 'importe'");
 				}
 
@@ -160,11 +160,11 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 				m_chrono_analyse.reprend();
 				break;
 			}
-			case id_morceau::CHARGE:
+			case TypeLexeme::CHARGE:
 			{
 				avance();
 
-				if (!est_identifiant(id_morceau::CHAINE_LITTERALE) && !est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				if (!est_identifiant(TypeLexeme::CHAINE_LITTERALE) && !est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu une chaine littérale après 'charge'");
 				}
 
@@ -184,7 +184,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 			default:
 			{
 				m_global = true;
-				analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::INCONNU);
+				analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
 				m_global = false;
 				break;
 			}
@@ -192,20 +192,20 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
+void analyseuse_grammaire::analyse_declaration_fonction(TypeLexeme id)
 {
 	auto externe = false;
 
-	if (est_identifiant(id_morceau::EXTERNE)) {
+	if (est_identifiant(TypeLexeme::EXTERNE)) {
 		avance();
 		externe = true;
 
-		if (id == id_morceau::COROUT && externe) {
+		if (id == TypeLexeme::COROUT && externe) {
 			lance_erreur("Une coroutine ne peut pas être externe");
 		}
 	}
 
-	consomme(id_morceau::CHAINE_CARACTERE, "Attendu la déclaration du nom de la fonction");
+	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu la déclaration du nom de la fonction");
 
 	auto const nom_fonction = donnees().chaine;
 	m_fichier->module->fonctions_exportees.insere(nom_fonction);
@@ -230,17 +230,17 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 		m_etiquette_nulctx = false;
 	}
 
-	consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
+	consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	auto donnees_fonctions = DonneesFonction{};
-	donnees_fonctions.est_coroutine = (id == id_morceau::COROUT);
+	donnees_fonctions.est_coroutine = (id == TypeLexeme::COROUT);
 	donnees_fonctions.est_externe = externe;
 	donnees_fonctions.noeud_decl = noeud;
 
 	/* analyse les paramètres de la fonction */
 	m_assembleuse->empile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION, m_contexte, donnees());
 
-	analyse_expression_droite(id_morceau::PARENTHESE_FERMANTE, id_morceau::PARENTHESE_OUVRANTE);
+	analyse_expression_droite(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
 
 	m_assembleuse->depile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION);
 
@@ -269,7 +269,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	m_fichier->module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	if (externe) {
-		consomme(id_morceau::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
+		consomme(TypeLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
 		if (donnees_fonctions.idx_types_retours.taille() > 1) {
 			lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
@@ -277,11 +277,11 @@ void analyseuse_grammaire::analyse_declaration_fonction(id_morceau id)
 	}
 	else {
 		/* ignore les points-virgules implicites */
-		if (est_identifiant(id_morceau::POINT_VIRGULE)) {
+		if (est_identifiant(TypeLexeme::POINT_VIRGULE)) {
 			avance();
 		}
 
-		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
+		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 
 		analyse_bloc();
 	}
@@ -302,11 +302,11 @@ void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
 {
 	m_assembleuse->empile_noeud(tn, m_contexte, donnees());
 
-	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::SI);
+	analyse_expression_droite(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::SI);
 
 	analyse_bloc();
 
-	if (est_identifiant(id_morceau::SINON)) {
+	if (est_identifiant(TypeLexeme::SINON)) {
 		avance();
 
 		/* Peu importe que le 'sinon' contient un 'si' ou non, nous ajoutons un
@@ -320,20 +320,20 @@ void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
 		 * branchements redondants. */
 		m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
 
-		if (est_identifiant(id_morceau::SI)) {
+		if (est_identifiant(TypeLexeme::SI)) {
 			avance();
 			analyse_controle_si(type_noeud::SI);
 		}
-		else if (est_identifiant(id_morceau::SAUFSI)) {
+		else if (est_identifiant(TypeLexeme::SAUFSI)) {
 			avance();
 			analyse_controle_si(type_noeud::SAUFSI);
 		}
 		else {
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
 
 			analyse_corps_fonction();
 
-			consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin du contrôle 'sinon'");
+			consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 
 		m_assembleuse->depile_noeud(type_noeud::BLOC);
@@ -356,33 +356,33 @@ void analyseuse_grammaire::analyse_controle_pour()
 
 	/* enfant 1 : déclaration variable */
 
-	analyse_expression_droite(id_morceau::DANS, id_morceau::POUR);
+	analyse_expression_droite(TypeLexeme::DANS, TypeLexeme::POUR);
 
 	/* enfant 2 : expr */
 
-	analyse_expression_droite(id_morceau::ACCOLADE_OUVRANTE, id_morceau::DANS);
+	analyse_expression_droite(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::DANS);
 
 	recule();
 
-	consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
+	consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
 
 	/* enfant 3 : bloc */
 	analyse_bloc();
 
 	/* enfant 4 : bloc sansarrêt (optionel) */
-	if (est_identifiant(id_morceau::SANSARRET)) {
+	if (est_identifiant(TypeLexeme::SANSARRET)) {
 		avance();
 
-		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
+		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
 
 		analyse_bloc();
 	}
 
 	/* enfant 4 ou 5 : bloc sinon (optionel) */
-	if (est_identifiant(id_morceau::SINON)) {
+	if (est_identifiant(TypeLexeme::SINON)) {
 		avance();
 
-		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
+		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 
 		analyse_bloc();
 	}
@@ -394,16 +394,16 @@ void analyseuse_grammaire::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
-	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
 		auto const pos = position();
 
-		if (est_identifiant(id_morceau::RETOURNE)) {
+		if (est_identifiant(TypeLexeme::RETOURNE)) {
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::RETOUR, m_contexte, donnees());
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
-			if (!est_identifiant(id_morceau::POINT_VIRGULE)) {
-				analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::RETOURNE);
+			if (!est_identifiant(TypeLexeme::POINT_VIRGULE)) {
+				analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
 			}
 			else {
 				avance();
@@ -411,22 +411,22 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::RETOUR);
 		}
-		else if (est_identifiant(id_morceau::RETIENS)) {
+		else if (est_identifiant(TypeLexeme::RETIENS)) {
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::RETIENS, m_contexte, donnees());
 
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::RETOURNE);
+			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
 
 			m_assembleuse->depile_noeud(type_noeud::RETIENS);
 		}
-		else if (est_identifiant(id_morceau::POUR)) {
+		else if (est_identifiant(TypeLexeme::POUR)) {
 			avance();
 			analyse_controle_pour();
 		}
-		else if (est_identifiant(id_morceau::BOUCLE)) {
+		else if (est_identifiant(TypeLexeme::BOUCLE)) {
 			avance();
 
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
 
 			m_assembleuse->empile_noeud(type_noeud::BOUCLE, m_contexte, donnees());
 
@@ -434,22 +434,22 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
 		}
-		else if (est_identifiant(id_morceau::REPETE)) {
+		else if (est_identifiant(TypeLexeme::REPETE)) {
 			avance();
 
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
 
 			m_assembleuse->empile_noeud(type_noeud::REPETE, m_contexte, donnees());
 
 			analyse_bloc();
 
-			consomme(id_morceau::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
+			consomme(TypeLexeme::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
 
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::TANTQUE);
+			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::TANTQUE);
 
 			m_assembleuse->depile_noeud(type_noeud::REPETE);
 		}
-		else if (est_identifiant(id_morceau::TANTQUE)) {
+		else if (est_identifiant(TypeLexeme::TANTQUE)) {
 			avance();
 			m_assembleuse->empile_noeud(type_noeud::TANTQUE, m_contexte, donnees());
 
@@ -458,18 +458,18 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
 
 			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::TANTQUE);
 		}
-		else if (est_identifiant(id_morceau::ARRETE) || est_identifiant(id_morceau::CONTINUE)) {
+		else if (est_identifiant(TypeLexeme::ARRETE) || est_identifiant(TypeLexeme::CONTINUE)) {
 			avance();
 
 			m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, m_contexte, donnees());
 
-			if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+			if (est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
 				avance();
 				m_assembleuse->empile_noeud(type_noeud::VARIABLE, m_contexte, donnees());
 				m_assembleuse->depile_noeud(type_noeud::VARIABLE);
@@ -477,31 +477,31 @@ void analyseuse_grammaire::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
 
-			consomme(id_morceau::POINT_VIRGULE, "Attendu un point virgule ';'");
+			consomme(TypeLexeme::POINT_VIRGULE, "Attendu un point virgule ';'");
 		}
-		else if (est_identifiant(id_morceau::DIFFERE)) {
+		else if (est_identifiant(TypeLexeme::DIFFERE)) {
 			avance();
 
 			m_assembleuse->empile_noeud(type_noeud::DIFFERE, m_contexte, donnees());
 
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
 
 			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::DIFFERE);
 		}
-		else if (est_identifiant(id_morceau::NONSUR)) {
+		else if (est_identifiant(TypeLexeme::NONSUR)) {
 			avance();
 
 			m_assembleuse->empile_noeud(type_noeud::NONSUR, m_contexte, donnees());
 
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
 
 			analyse_bloc();
 
 			m_assembleuse->depile_noeud(type_noeud::NONSUR);
 		}
-		else if (est_identifiant(id_morceau::DISCR)) {
+		else if (est_identifiant(TypeLexeme::DISCR)) {
 			avance();
 
 			m_assembleuse->empile_noeud(type_noeud::DISCR, m_contexte, donnees());
@@ -511,14 +511,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
-			consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 			auto sinon_rencontre = false;
 
-			while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
+			while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
 				m_assembleuse->empile_noeud(type_noeud::PAIRE_DISCR, m_contexte, donnees());
 
-				if (est_identifiant(id_morceau::SINON)) {
+				if (est_identifiant(TypeLexeme::SINON)) {
 					avance();
 
 					if (sinon_rencontre) {
@@ -537,14 +537,14 @@ void analyseuse_grammaire::analyse_corps_fonction()
 					recule();
 				}
 
-				consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+				consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 				analyse_bloc();
 
 				m_assembleuse->depile_noeud(type_noeud::PAIRE_DISCR);
 			}
 
-			consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
+			consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
 			m_assembleuse->depile_noeud(type_noeud::DISCR);
 		}
@@ -553,7 +553,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 			analyse_bloc();
 		}
 		else {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
+			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
 		}
 
 		/* Dans les fuzz-tests, c'est possible d'être bloqué dans une boucle
@@ -579,12 +579,12 @@ void analyseuse_grammaire::analyse_bloc()
 	analyse_corps_fonction();
 	m_assembleuse->depile_noeud(type_noeud::BLOC);
 
-	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
+	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
 }
 
 noeud::base *analyseuse_grammaire::analyse_expression_droite(
-		id_morceau identifiant_final,
-		id_morceau racine_expr,
+		TypeLexeme identifiant_final,
+		TypeLexeme racine_expr,
 		bool ajoute_noeud)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
@@ -600,7 +600,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	auto &pile = m_paires_vecteurs[profondeur].second;
 	pile.efface();
 
-	auto vide_pile_operateur = [&](id_morceau id_operateur)
+	auto vide_pile_operateur = [&](TypeLexeme id_operateur)
 	{
 		while (!pile.est_vide()
 			   && (precedence_faible(id_operateur, pile.back()->identifiant())))
@@ -610,7 +610,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 		}
 	};
 
-	auto dernier_identifiant = (m_position == 0) ? id_morceau::INCONNU : donnees().identifiant;
+	auto dernier_identifiant = (m_position == 0) ? TypeLexeme::INCONNU : donnees().identifiant;
 
 	/* utilisé pour terminer la boucle quand elle nous atteignons une parenthèse
 	 * fermante */
@@ -630,30 +630,30 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 		auto id_courant = morceau.identifiant;
 
 		switch (id_courant) {
-			case id_morceau::SOIT:
+			case TypeLexeme::SOIT:
 			{
 				drapeaux |= DECLARATION;
 				break;
 			}
-			case id_morceau::DYN:
+			case TypeLexeme::DYN:
 			{
 				drapeaux |= (DYNAMIC | DECLARATION);
 				break;
 			}
-			case id_morceau::EMPL:
+			case TypeLexeme::EMPL:
 			{
 				drapeaux |= EMPLOYE;
 				break;
 			}
-			case id_morceau::EXTERNE:
+			case TypeLexeme::EXTERNE:
 			{
 				drapeaux |= (EST_EXTERNE | DECLARATION);
 				break;
 			}
-			case id_morceau::CHAINE_CARACTERE:
+			case TypeLexeme::CHAINE_CARACTERE:
 			{
 				/* appel fonction : chaine + ( */
-				if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+				if (est_identifiant(TypeLexeme::PARENTHESE_OUVRANTE)) {
 					avance();
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, m_contexte, morceau, false);
@@ -666,7 +666,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
-				else if ((racine_expr == id_morceau::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(id_morceau::ACCOLADE_OUVRANTE)) {
+				else if ((racine_expr == TypeLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(TypeLexeme::ACCOLADE_OUVRANTE)) {
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_STRUCTURE, m_contexte, morceau, false);
 					m_symboles_utilises.insere(morceau.chaine);
 
@@ -694,118 +694,118 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 					drapeaux = drapeaux_noeud::AUCUN;
 
 					/* nous avons la déclaration d'un type dans la structure */
-					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(id_morceau::DOUBLE_POINTS)) {
+					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(TypeLexeme::DOUBLE_POINTS)) {
 						noeud->type_declare = analyse_declaration_type();
 					}
 				}
 
 				break;
 			}
-			case id_morceau::NOMBRE_REEL:
+			case TypeLexeme::NOMBRE_REEL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::NOMBRE_BINAIRE:
-			case id_morceau::NOMBRE_ENTIER:
-			case id_morceau::NOMBRE_HEXADECIMAL:
-			case id_morceau::NOMBRE_OCTAL:
+			case TypeLexeme::NOMBRE_BINAIRE:
+			case TypeLexeme::NOMBRE_ENTIER:
+			case TypeLexeme::NOMBRE_HEXADECIMAL:
+			case TypeLexeme::NOMBRE_OCTAL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::CHAINE_LITTERALE:
+			case TypeLexeme::CHAINE_LITTERALE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::CARACTERE:
+			case TypeLexeme::CARACTERE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::NUL:
+			case TypeLexeme::NUL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::TAILLE_DE:
+			case TypeLexeme::TAILLE_DE:
 			{
-				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
+				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, m_contexte, morceau);
 				noeud->valeur_calculee = analyse_declaration_type(false);
 
-				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
+				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
 
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::INFO_DE:
+			case TypeLexeme::INFO_DE:
 			{
-				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
+				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::INFO_DE, m_contexte, morceau, false);
 
-				analyse_expression_droite(id_morceau::INCONNU, id_morceau::INFO_DE);
+				analyse_expression_droite(TypeLexeme::INCONNU, TypeLexeme::INFO_DE);
 
 				m_assembleuse->depile_noeud(type_noeud::INFO_DE);
 
 				/* vérifie mais n'avance pas */
-				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
+				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
 
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::VRAI:
-			case id_morceau::FAUX:
+			case TypeLexeme::VRAI:
+			case TypeLexeme::FAUX:
 			{
 				/* remplace l'identifiant par id_morceau::BOOL */
-				morceau.identifiant = id_morceau::BOOL;
+				morceau.identifiant = TypeLexeme::BOOL;
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::TRANSTYPE:
+			case TypeLexeme::TRANSTYPE:
 			{
-				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
+				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, m_contexte, morceau, false);
 
-				analyse_expression_droite(id_morceau::DOUBLE_POINTS, id_morceau::TRANSTYPE);
+				analyse_expression_droite(TypeLexeme::DOUBLE_POINTS, TypeLexeme::TRANSTYPE);
 
 				noeud->type_declare = analyse_declaration_type(false);
 
-				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après la déclaration du type");
+				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après la déclaration du type");
 
 				m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::MEMOIRE:
+			case TypeLexeme::MEMOIRE:
 			{
-				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
+				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::MEMOIRE, m_contexte, morceau, false);
 
-				analyse_expression_droite(id_morceau::INCONNU, id_morceau::MEMOIRE);
+				analyse_expression_droite(TypeLexeme::INCONNU, TypeLexeme::MEMOIRE);
 
-				consomme(id_morceau::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
+				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
 
 				m_assembleuse->depile_noeud(type_noeud::MEMOIRE);
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::PARENTHESE_OUVRANTE:
+			case TypeLexeme::PARENTHESE_OUVRANTE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(type_noeud::EXPRESSION_PARENTHESE, m_contexte, morceau, false);
 
-				analyse_expression_droite(id_morceau::PARENTHESE_FERMANTE, id_morceau::PARENTHESE_OUVRANTE);
+				analyse_expression_droite(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
 
 				m_assembleuse->depile_noeud(type_noeud::EXPRESSION_PARENTHESE);
 
@@ -814,11 +814,11 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				/* ajourne id_courant avec une parenthèse fermante, car étant
 				 * une parenthèse ouvrante, il ferait échouer le test de
 				 * détermination d'un opérateur unaire */
-				id_courant = id_morceau::PARENTHESE_FERMANTE;
+				id_courant = TypeLexeme::PARENTHESE_FERMANTE;
 
 				break;
 			}
-			case id_morceau::PARENTHESE_FERMANTE:
+			case TypeLexeme::PARENTHESE_FERMANTE:
 			{
 				/* recule pour être synchronisé avec les différentes sorties */
 				recule();
@@ -826,18 +826,18 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				break;
 			}
 			/* opérations binaire */
-			case id_morceau::PLUS:
-			case id_morceau::MOINS:
+			case TypeLexeme::PLUS:
+			case TypeLexeme::MOINS:
 			{
 				auto id_operateur = morceau.identifiant;
 				auto noeud = static_cast<noeud::base *>(nullptr);
 
 				if (precede_unaire_valide(dernier_identifiant)) {
-					if (id_operateur == id_morceau::PLUS) {
-						id_operateur = id_morceau::PLUS_UNAIRE;
+					if (id_operateur == TypeLexeme::PLUS) {
+						id_operateur = TypeLexeme::PLUS_UNAIRE;
 					}
-					else if (id_operateur == id_morceau::MOINS) {
-						id_operateur = id_morceau::MOINS_UNAIRE;
+					else if (id_operateur == TypeLexeme::MOINS) {
+						id_operateur = TypeLexeme::MOINS_UNAIRE;
 					}
 
 					morceau.identifiant = id_operateur;
@@ -853,33 +853,33 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				break;
 			}
-			case id_morceau::FOIS:
-			case id_morceau::DIVISE:
-			case id_morceau::ESPERLUETTE:
-			case id_morceau::POURCENT:
-			case id_morceau::INFERIEUR:
-			case id_morceau::INFERIEUR_EGAL:
-			case id_morceau::SUPERIEUR:
-			case id_morceau::SUPERIEUR_EGAL:
-			case id_morceau::DECALAGE_DROITE:
-			case id_morceau::DECALAGE_GAUCHE:
-			case id_morceau::DIFFERENCE:
-			case id_morceau::ESP_ESP:
-			case id_morceau::EGALITE:
-			case id_morceau::BARRE_BARRE:
-			case id_morceau::BARRE:
-			case id_morceau::CHAPEAU:
-			case id_morceau::PLUS_EGAL:
-			case id_morceau::MOINS_EGAL:
-			case id_morceau::DIVISE_EGAL:
-			case id_morceau::MULTIPLIE_EGAL:
-			case id_morceau::MODULO_EGAL:
-			case id_morceau::ET_EGAL:
-			case id_morceau::OU_EGAL:
-			case id_morceau::OUX_EGAL:
-			case id_morceau::DEC_DROITE_EGAL:
-			case id_morceau::DEC_GAUCHE_EGAL:
-			case id_morceau::VIRGULE:
+			case TypeLexeme::FOIS:
+			case TypeLexeme::DIVISE:
+			case TypeLexeme::ESPERLUETTE:
+			case TypeLexeme::POURCENT:
+			case TypeLexeme::INFERIEUR:
+			case TypeLexeme::INFERIEUR_EGAL:
+			case TypeLexeme::SUPERIEUR:
+			case TypeLexeme::SUPERIEUR_EGAL:
+			case TypeLexeme::DECALAGE_DROITE:
+			case TypeLexeme::DECALAGE_GAUCHE:
+			case TypeLexeme::DIFFERENCE:
+			case TypeLexeme::ESP_ESP:
+			case TypeLexeme::EGALITE:
+			case TypeLexeme::BARRE_BARRE:
+			case TypeLexeme::BARRE:
+			case TypeLexeme::CHAPEAU:
+			case TypeLexeme::PLUS_EGAL:
+			case TypeLexeme::MOINS_EGAL:
+			case TypeLexeme::DIVISE_EGAL:
+			case TypeLexeme::MULTIPLIE_EGAL:
+			case TypeLexeme::MODULO_EGAL:
+			case TypeLexeme::ET_EGAL:
+			case TypeLexeme::OU_EGAL:
+			case TypeLexeme::OUX_EGAL:
+			case TypeLexeme::DEC_DROITE_EGAL:
+			case TypeLexeme::DEC_GAUCHE_EGAL:
+			case TypeLexeme::VIRGULE:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
 				if (expression.est_vide() && est_operateur_binaire(morceau.identifiant)) {
@@ -892,21 +892,21 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				break;
 			}
-			case id_morceau::TROIS_POINTS:
+			case TypeLexeme::TROIS_POINTS:
 			{
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::PLAGE, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case id_morceau::POINT:
+			case TypeLexeme::POINT:
 			{
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_POINT, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case id_morceau::EGAL:
+			case TypeLexeme::EGAL:
 			{
 				if (assignation) {
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
@@ -920,18 +920,18 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				pile.pousse(noeud);
 				break;
 			}
-			case id_morceau::CROCHET_OUVRANT:
+			case TypeLexeme::CROCHET_OUVRANT:
 			{
 				/* l'accès à un élément d'un tableau est chaine[index] */
-				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE
-						|| dernier_identifiant == id_morceau::CHAINE_LITTERALE
-						 || dernier_identifiant == id_morceau::CROCHET_OUVRANT) {
+				if (dernier_identifiant == TypeLexeme::CHAINE_CARACTERE
+						|| dernier_identifiant == TypeLexeme::CHAINE_LITTERALE
+						 || dernier_identifiant == TypeLexeme::CROCHET_OUVRANT) {
 					vide_pile_operateur(morceau.identifiant);
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 					pile.pousse(noeud);
 
-					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
+					analyse_expression_droite(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
 
 					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
 					 * la compilation de l'expression à la fin de la fonction. */
@@ -949,15 +949,15 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				}
 				else {
 					/* change l'identifiant pour ne pas le confondre avec l'opérateur binaire [] */
-					morceau.identifiant = id_morceau::TABLEAU;
+					morceau.identifiant = TypeLexeme::TABLEAU;
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_TABLEAU, m_contexte, morceau, false);
 
-					analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT);
+					analyse_expression_droite(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
 
 					/* il est possible que le crochet n'ait pas été consommé,
 					 * par exemple dans le cas où nous avons un point-virgule
 					 * implicite dans la construction */
-					if (est_identifiant(id_morceau::CROCHET_FERMANT)) {
+					if (est_identifiant(TypeLexeme::CROCHET_FERMANT)) {
 						avance();
 					}
 
@@ -969,18 +969,18 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				break;
 			}
 			/* opérations unaire */
-			case id_morceau::AROBASE:
-			case id_morceau::EXCLAMATION:
-			case id_morceau::TILDE:
-			case id_morceau::PLUS_UNAIRE:
-			case id_morceau::MOINS_UNAIRE:
+			case TypeLexeme::AROBASE:
+			case TypeLexeme::EXCLAMATION:
+			case TypeLexeme::TILDE:
+			case TypeLexeme::PLUS_UNAIRE:
+			case TypeLexeme::MOINS_UNAIRE:
 			{
 				vide_pile_operateur(morceau.identifiant);
 				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case id_morceau::ACCOLADE_FERMANTE:
+			case TypeLexeme::ACCOLADE_FERMANTE:
 			{
 				/* une accolade fermante marque généralement la fin de la
 				 * construction d'une structure */
@@ -990,7 +990,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				recule();
 				break;
 			}
-			case id_morceau::LOGE:
+			case TypeLexeme::LOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(
 							type_noeud::LOGE,
@@ -998,7 +998,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 							morceau,
 							false);
 
-				if (est_identifiant(id_morceau::CHAINE)) {
+				if (est_identifiant(TypeLexeme::CHAINE)) {
 					noeud->type_declare = analyse_declaration_type(false);
 
 					avance();
@@ -1030,7 +1030,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				expression.pousse(noeud);
 				break;
 			}
-			case id_morceau::RELOGE:
+			case TypeLexeme::RELOGE:
 			{
 				/* reloge nom : type; */
 				auto noeud_reloge = m_assembleuse->empile_noeud(
@@ -1073,7 +1073,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				expression.pousse(noeud_reloge);
 				break;
 			}
-			case id_morceau::DELOGE:
+			case TypeLexeme::DELOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(
 							type_noeud::DELOGE,
@@ -1093,27 +1093,27 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 
 				break;
 			}
-			case id_morceau::DIRECTIVE:
+			case TypeLexeme::DIRECTIVE:
 			{
-				if (est_identifiant(id_morceau::CHAINE_CARACTERE)) {
+				if (est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
 					avance();
 
 					auto directive = donnees().chaine;
 
 					if (directive == "inclus") {
-						consomme(id_morceau::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+						consomme(TypeLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->ajoute_inclusion(chaine);
 					}
 					else if (directive == "bib") {
-						consomme(id_morceau::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+						consomme(TypeLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->bibliotheques.pousse(chaine);
 					}
 					else if (directive == "def") {
-						consomme(id_morceau::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+						consomme(TypeLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->definitions.pousse(chaine);
@@ -1146,13 +1146,13 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 						lance_erreur("Directive inconnue");
 					}
 				}
-				else if (est_identifiant(id_morceau::SI)) {
+				else if (est_identifiant(TypeLexeme::SI)) {
 					analyse_directive_si();
 				}
-				else if (est_identifiant(id_morceau::SINON)) {
+				else if (est_identifiant(TypeLexeme::SINON)) {
 					avance();
 
-					if (est_identifiant(id_morceau::SI)) {
+					if (est_identifiant(TypeLexeme::SI)) {
 						analyse_directive_si();
 					}
 
@@ -1165,19 +1165,19 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 				termine_boucle = true;
 				break;
 			}
-			case id_morceau::SI:
+			case TypeLexeme::SI:
 			{
 				analyse_controle_si(type_noeud::SI);
 				termine_boucle = true;
 				break;
 			}
-			case id_morceau::SAUFSI:
+			case TypeLexeme::SAUFSI:
 			{
 				analyse_controle_si(type_noeud::SAUFSI);
 				termine_boucle = true;
 				break;
 			}
-			case id_morceau::POINT_VIRGULE:
+			case TypeLexeme::POINT_VIRGULE:
 			{
 				termine_boucle = true;
 				break;
@@ -1287,8 +1287,8 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
-	while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-		if (sont_2_identifiants(id_morceau::CHAINE_CARACTERE, id_morceau::EGAL)) {
+	while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
+		if (sont_2_identifiants(TypeLexeme::CHAINE_CARACTERE, TypeLexeme::EGAL)) {
 			avance();
 
 			auto nom_argument = donnees().chaine;
@@ -1303,13 +1303,13 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
-		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
+		analyse_expression_droite(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
 	}
 
-	consomme(id_morceau::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
+	consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
 }
 
-void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
+void analyseuse_grammaire::analyse_declaration_structure(TypeLexeme id)
 {
 	auto est_externe = false;
 	auto est_nonsur = false;
@@ -1319,7 +1319,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 		avance();
 	}
 
-	consomme(id_morceau::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
+	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, m_contexte, donnees());
 	auto nom_structure = donnees().chaine;
@@ -1337,14 +1337,14 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 	donnees_structure.noeud_decl = noeud_decl;
 	donnees_structure.est_enum = false;
 	donnees_structure.est_externe = est_externe;
-	donnees_structure.est_union = (id == id_morceau::UNION);
+	donnees_structure.est_union = (id == TypeLexeme::UNION);
 	donnees_structure.est_nonsur = est_nonsur;
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
 	if (nom_structure == "ContexteProgramme") {
 		auto dt = DonneesTypeFinal();
-		dt.pousse(id_morceau::POINTEUR);
+		dt.pousse(TypeLexeme::POINTEUR);
 		dt.pousse(m_contexte.typeuse[donnees_structure.index_type]);
 		m_contexte.index_type_contexte = m_contexte.typeuse.ajoute_type(dt);
 	}
@@ -1359,13 +1359,13 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 	}
 
 	if (analyse_membres) {
-		consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
+		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
-		while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-			analyse_expression_droite(id_morceau::POINT_VIRGULE, type_id::STRUCT);
+		while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
+			analyse_expression_droite(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
 		}
 
-		consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
+		consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);
@@ -1382,7 +1382,7 @@ void analyseuse_grammaire::analyse_declaration_structure(id_morceau id)
 
 void analyseuse_grammaire::analyse_declaration_enum(bool est_drapeau)
 {
-	consomme(id_morceau::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
+	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_ENUM, m_contexte, donnees());
 	auto nom = noeud_decl->morceau.chaine;
@@ -1396,13 +1396,13 @@ void analyseuse_grammaire::analyse_declaration_enum(bool est_drapeau)
 
 	noeud_decl->type_declare = analyse_declaration_type();
 
-	consomme(id_morceau::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
+	consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-	while (!est_identifiant(id_morceau::ACCOLADE_FERMANTE)) {
-		analyse_expression_droite(id_morceau::POINT_VIRGULE, id_morceau::EGAL);
+	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
+		analyse_expression_droite(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
 	}
 
-	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
+	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_ENUM);
 
@@ -1412,13 +1412,13 @@ void analyseuse_grammaire::analyse_declaration_enum(bool est_drapeau)
 
 DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_point)
 {
-	if (double_point && !requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
+	if (double_point && !requiers_identifiant(TypeLexeme::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
 
 	auto nulctx = false;
 
-	if (est_identifiant(id_morceau::DIRECTIVE)) {
+	if (est_identifiant(TypeLexeme::DIRECTIVE)) {
 		avance();
 		avance();
 
@@ -1432,67 +1432,67 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 	}
 
 	/* Vérifie si l'on a un pointeur vers une fonction. */
-	if (est_identifiant(id_morceau::FONC) || est_identifiant(id_morceau::COROUT)) {
+	if (est_identifiant(TypeLexeme::FONC) || est_identifiant(TypeLexeme::COROUT)) {
 		avance();
 
 		auto dt = DonneesTypeDeclare{};
 		dt.pousse(donnees().identifiant);
 
-		consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
+		consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
 
-		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
+		dt.pousse(TypeLexeme::PARENTHESE_OUVRANTE);
 
 		if (!nulctx) {
 			ajoute_contexte_programme(m_contexte, dt);
 
-			if (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
-				dt.pousse(id_morceau::VIRGULE);
+			if (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
+				dt.pousse(TypeLexeme::VIRGULE);
 			}
 		}
 
-		while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+		while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
 			dt.pousse(dtd);
 
-			if (!est_identifiant(id_morceau::VIRGULE)) {
+			if (!est_identifiant(TypeLexeme::VIRGULE)) {
 				break;
 			}
 
 			avance();
-			dt.pousse(id_morceau::VIRGULE);
+			dt.pousse(TypeLexeme::VIRGULE);
 		}
 
 		avance();
-		dt.pousse(id_morceau::PARENTHESE_FERMANTE);
+		dt.pousse(TypeLexeme::PARENTHESE_FERMANTE);
 
 		bool eu_paren_ouvrante = false;
 
-		if (est_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
+		if (est_identifiant(TypeLexeme::PARENTHESE_OUVRANTE)) {
 			avance();
 			eu_paren_ouvrante = true;
 		}
 
-		dt.pousse(id_morceau::PARENTHESE_OUVRANTE);
+		dt.pousse(TypeLexeme::PARENTHESE_OUVRANTE);
 
-		while (!est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+		while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
 			dt.pousse(dtd);
 
-			auto est_virgule = est_identifiant(id_morceau::VIRGULE);
+			auto est_virgule = est_identifiant(TypeLexeme::VIRGULE);
 
 			if ((est_virgule && !eu_paren_ouvrante) || !est_virgule) {
 				break;
 			}
 
 			avance();
-			dt.pousse(id_morceau::VIRGULE);
+			dt.pousse(TypeLexeme::VIRGULE);
 		}
 
-		if (eu_paren_ouvrante && est_identifiant(id_morceau::PARENTHESE_FERMANTE)) {
+		if (eu_paren_ouvrante && est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
 			avance();
 		}
 
-		dt.pousse(id_morceau::PARENTHESE_FERMANTE);
+		dt.pousse(TypeLexeme::PARENTHESE_FERMANTE);
 
 		return dt;
 	}
@@ -1502,7 +1502,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 
 DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 {
-	auto dernier_id = id_morceau{};
+	auto dernier_id = TypeLexeme{};
 	auto donnees_type = DonneesTypeDeclare{};
 
 	while (est_specifiant_type(identifiant_courant())) {
@@ -1514,14 +1514,14 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 			{
 				auto expr = static_cast<noeud::base *>(nullptr);
 
-				if (this->identifiant_courant() != id_morceau::CROCHET_FERMANT) {
-					expr = analyse_expression_droite(id_morceau::CROCHET_FERMANT, id_morceau::CROCHET_OUVRANT, false);
+				if (this->identifiant_courant() != TypeLexeme::CROCHET_FERMANT) {
+					expr = analyse_expression_droite(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT, false);
 				}
 				else {
 					avance();
 				}
 
-				donnees_type.pousse(id_morceau::TABLEAU);
+				donnees_type.pousse(TypeLexeme::TABLEAU);
 				donnees_type.expressions.pousse(expr);
 
 				break;
@@ -1533,24 +1533,24 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 			}
 			case type_id::FOIS:
 			{
-				donnees_type.pousse(id_morceau::POINTEUR);
+				donnees_type.pousse(TypeLexeme::POINTEUR);
 				break;
 			}
 			case type_id::ESPERLUETTE:
 			{
-				donnees_type.pousse(id_morceau::REFERENCE);
+				donnees_type.pousse(TypeLexeme::REFERENCE);
 				break;
 			}
 			case type_id::TYPE_DE:
 			{
-				consomme(id_morceau::PARENTHESE_OUVRANTE, "Attendu un '(' après 'type_de'");
+				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'type_de'");
 
 				auto expr = analyse_expression_droite(
-							id_morceau::PARENTHESE_FERMANTE,
-							id_morceau::TYPE_DE,
+							TypeLexeme::PARENTHESE_FERMANTE,
+							TypeLexeme::TYPE_DE,
 							false);
 
-				donnees_type.pousse(id_morceau::TYPE_DE);
+				donnees_type.pousse(TypeLexeme::TYPE_DE);
 				donnees_type.expressions.pousse(expr);
 
 				break;
@@ -1566,12 +1566,12 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 
 	auto type_attendu = true;
 
-	if (dernier_id == id_morceau::TYPE_DE) {
+	if (dernier_id == TypeLexeme::TYPE_DE) {
 		type_attendu = false;
 	}
 
 	/* Soutiens pour les types des fonctions variadiques externes. */
-	if (dernier_id == id_morceau::TROIS_POINTS && est_identifiant(type_id::PARENTHESE_FERMANTE)) {
+	if (dernier_id == TypeLexeme::TROIS_POINTS && est_identifiant(type_id::PARENTHESE_FERMANTE)) {
 		type_attendu = false;
 	}
 
@@ -1580,7 +1580,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 
 		auto identifiant = donnees().identifiant;
 
-		if (identifiant == id_morceau::CHAINE_CARACTERE) {
+		if (identifiant == TypeLexeme::CHAINE_CARACTERE) {
 			auto const nom_type = donnees().chaine;
 			m_symboles_utilises.insere(nom_type);
 
@@ -1617,10 +1617,10 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 
 		avance();
 
-		analyse_expression_droite(id_morceau::VIRGULE, id_morceau::EGAL);
+		analyse_expression_droite(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
 	}
 
-	consomme(id_morceau::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
+	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
 
 	noeud->drapeaux |= EST_CALCULE;
 	noeud->valeur_calculee = liste_param;
@@ -1662,7 +1662,7 @@ void analyseuse_grammaire::analyse_directive_si()
 	}
 }
 
-void analyseuse_grammaire::consomme(id_morceau id, const char *message)
+void analyseuse_grammaire::consomme(TypeLexeme id, const char *message)
 {
 	if (!requiers_identifiant(id)) {
 		lance_erreur(message);

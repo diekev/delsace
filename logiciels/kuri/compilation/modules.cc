@@ -109,7 +109,7 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 dls::chaine charge_fichier(
 		const dls::chaine &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau)
+		DonneesLexeme const &morceau)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());
@@ -144,7 +144,7 @@ void charge_fichier(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau)
+		DonneesLexeme const &morceau)
 {
 	auto chemin = module->chemin + nom + ".kuri";
 
@@ -204,7 +204,7 @@ void importe_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesMorceau const &morceau)
+		DonneesLexeme const &morceau)
 {
 	auto chemin = nom;
 
@@ -576,7 +576,7 @@ ResultatRecherche cherche_donnees_fonction(
 	return res;
 }
 
-PositionMorceau trouve_position(const DonneesMorceau &morceau, Fichier *fichier)
+PositionMorceau trouve_position(const DonneesLexeme &morceau, Fichier *fichier)
 {
 	auto ptr = morceau.chaine.pointeur();
 	auto pos = PositionMorceau{};

@@ -29,9 +29,9 @@
 
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
-#include "outils_morceaux.hh"
+#include "outils_lexemes.hh"
 
-using denombreuse = lng::decoupeuse_nombre<id_morceau>;
+using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 
 enum class dir_associativite : int {
 	GAUCHE,
@@ -43,61 +43,61 @@ struct DonneesPrecedence {
 	int priorite;
 };
 
-static DonneesPrecedence associativite(id_morceau identifiant)
+static DonneesPrecedence associativite(TypeLexeme identifiant)
 {
 	switch (identifiant) {
-		case id_morceau::TROIS_POINTS:
+		case TypeLexeme::TROIS_POINTS:
 			return { dir_associativite::GAUCHE, 0 };
-		case id_morceau::EGAL:
-		case id_morceau::PLUS_EGAL:
-		case id_morceau::MOINS_EGAL:
-		case id_morceau::DIVISE_EGAL:
-		case id_morceau::MULTIPLIE_EGAL:
-		case id_morceau::MODULO_EGAL:
-		case id_morceau::ET_EGAL:
-		case id_morceau::OU_EGAL:
-		case id_morceau::OUX_EGAL:
-		case id_morceau::DEC_DROITE_EGAL:
-		case id_morceau::DEC_GAUCHE_EGAL:
+		case TypeLexeme::EGAL:
+		case TypeLexeme::PLUS_EGAL:
+		case TypeLexeme::MOINS_EGAL:
+		case TypeLexeme::DIVISE_EGAL:
+		case TypeLexeme::MULTIPLIE_EGAL:
+		case TypeLexeme::MODULO_EGAL:
+		case TypeLexeme::ET_EGAL:
+		case TypeLexeme::OU_EGAL:
+		case TypeLexeme::OUX_EGAL:
+		case TypeLexeme::DEC_DROITE_EGAL:
+		case TypeLexeme::DEC_GAUCHE_EGAL:
 			return { dir_associativite::GAUCHE, 1 };
-		case id_morceau::VIRGULE:
+		case TypeLexeme::VIRGULE:
 			return { dir_associativite::GAUCHE, 2 };
-		case id_morceau::BARRE_BARRE:
+		case TypeLexeme::BARRE_BARRE:
 			return { dir_associativite::GAUCHE, 3 };
-		case id_morceau::ESP_ESP:
+		case TypeLexeme::ESP_ESP:
 			return { dir_associativite::GAUCHE, 4 };
-		case id_morceau::BARRE:
+		case TypeLexeme::BARRE:
 			return { dir_associativite::GAUCHE, 5 };
-		case id_morceau::CHAPEAU:
+		case TypeLexeme::CHAPEAU:
 			return { dir_associativite::GAUCHE, 6 };
-		case id_morceau::ESPERLUETTE:
+		case TypeLexeme::ESPERLUETTE:
 			return { dir_associativite::GAUCHE, 7 };
-		case id_morceau::DIFFERENCE:
-		case id_morceau::EGALITE:
+		case TypeLexeme::DIFFERENCE:
+		case TypeLexeme::EGALITE:
 			return { dir_associativite::GAUCHE, 8 };
-		case id_morceau::INFERIEUR:
-		case id_morceau::INFERIEUR_EGAL:
-		case id_morceau::SUPERIEUR:
-		case id_morceau::SUPERIEUR_EGAL:
+		case TypeLexeme::INFERIEUR:
+		case TypeLexeme::INFERIEUR_EGAL:
+		case TypeLexeme::SUPERIEUR:
+		case TypeLexeme::SUPERIEUR_EGAL:
 			return { dir_associativite::GAUCHE, 9 };
-		case id_morceau::DECALAGE_GAUCHE:
-		case id_morceau::DECALAGE_DROITE:
+		case TypeLexeme::DECALAGE_GAUCHE:
+		case TypeLexeme::DECALAGE_DROITE:
 			return { dir_associativite::GAUCHE, 10 };
-		case id_morceau::PLUS:
-		case id_morceau::MOINS:
+		case TypeLexeme::PLUS:
+		case TypeLexeme::MOINS:
 			return { dir_associativite::GAUCHE, 11 };
-		case id_morceau::FOIS:
-		case id_morceau::DIVISE:
-		case id_morceau::POURCENT:
+		case TypeLexeme::FOIS:
+		case TypeLexeme::DIVISE:
+		case TypeLexeme::POURCENT:
 			return { dir_associativite::GAUCHE, 12 };
-		case id_morceau::EXCLAMATION:
-		case id_morceau::TILDE:
-		case id_morceau::AROBASE:
-		case id_morceau::PLUS_UNAIRE:
-		case id_morceau::MOINS_UNAIRE:
+		case TypeLexeme::EXCLAMATION:
+		case TypeLexeme::TILDE:
+		case TypeLexeme::AROBASE:
+		case TypeLexeme::PLUS_UNAIRE:
+		case TypeLexeme::MOINS_UNAIRE:
 			return { dir_associativite::DROITE, 13 };
-		case id_morceau::POINT:
-		case id_morceau::CROCHET_OUVRANT:
+		case TypeLexeme::POINT:
+		case TypeLexeme::CROCHET_OUVRANT:
 			return { dir_associativite::GAUCHE, 14 };
 		default:
 			assert(false);
@@ -105,7 +105,7 @@ static DonneesPrecedence associativite(id_morceau identifiant)
 	}
 }
 
-bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
+bool precedence_faible(TypeLexeme identifiant1, TypeLexeme identifiant2)
 {
 	auto p1 = associativite(identifiant1);
 	auto p2 = associativite(identifiant2);
@@ -117,24 +117,24 @@ bool precedence_faible(id_morceau identifiant1, id_morceau identifiant2)
 /* ************************************************************************** */
 
 template <typename T>
-static auto applique_operateur_unaire(id_morceau id, T &a)
+static auto applique_operateur_unaire(TypeLexeme id, T &a)
 {
 	switch (id) {
-		case id_morceau::EXCLAMATION:
+		case TypeLexeme::EXCLAMATION:
 		{
 			a = !a;
 			break;
 		}
-		case id_morceau::TILDE:
+		case TypeLexeme::TILDE:
 		{
 			a = ~a;
 			break;
 		}
-		case id_morceau::PLUS_UNAIRE:
+		case TypeLexeme::PLUS_UNAIRE:
 		{
 			break;
 		}
-		case id_morceau::MOINS_UNAIRE:
+		case TypeLexeme::MOINS_UNAIRE:
 		{
 			a = -a;
 			break;
@@ -147,14 +147,14 @@ static auto applique_operateur_unaire(id_morceau id, T &a)
 	}
 }
 
-static auto applique_operateur_unaire(id_morceau id, double &a)
+static auto applique_operateur_unaire(TypeLexeme id, double &a)
 {
 	switch (id) {
-		case id_morceau::PLUS_UNAIRE:
+		case TypeLexeme::PLUS_UNAIRE:
 		{
 			break;
 		}
-		case id_morceau::MOINS_UNAIRE:
+		case TypeLexeme::MOINS_UNAIRE:
 		{
 			a = -a;
 			break;
@@ -168,56 +168,56 @@ static auto applique_operateur_unaire(id_morceau id, double &a)
 }
 
 template <typename T>
-static auto applique_operateur_binaire(id_morceau id, T a, T b)
+static auto applique_operateur_binaire(TypeLexeme id, T a, T b)
 {
 	switch (id) {
-		case id_morceau::PLUS:
-		case id_morceau::PLUS_EGAL:
+		case TypeLexeme::PLUS:
+		case TypeLexeme::PLUS_EGAL:
 		{
 			return a + b;
 		}
-		case id_morceau::MOINS:
-		case id_morceau::MOINS_EGAL:
+		case TypeLexeme::MOINS:
+		case TypeLexeme::MOINS_EGAL:
 		{
 			return a - b;
 		}
-		case id_morceau::FOIS:
-		case id_morceau::MULTIPLIE_EGAL:
+		case TypeLexeme::FOIS:
+		case TypeLexeme::MULTIPLIE_EGAL:
 		{
 			return a * b;
 		}
-		case id_morceau::DIVISE:
-		case id_morceau::DIVISE_EGAL:
+		case TypeLexeme::DIVISE:
+		case TypeLexeme::DIVISE_EGAL:
 		{
 			return a / b;
 		}
-		case id_morceau::POURCENT:
-		case id_morceau::MODULO_EGAL:
+		case TypeLexeme::POURCENT:
+		case TypeLexeme::MODULO_EGAL:
 		{
 			return a % b;
 		}
-		case id_morceau::ESPERLUETTE:
-		case id_morceau::ET_EGAL:
+		case TypeLexeme::ESPERLUETTE:
+		case TypeLexeme::ET_EGAL:
 		{
 			return a & b;
 		}
-		case id_morceau::OU_EGAL:
-		case id_morceau::BARRE:
+		case TypeLexeme::OU_EGAL:
+		case TypeLexeme::BARRE:
 		{
 			return a | b;
 		}
-		case id_morceau::CHAPEAU:
-		case id_morceau::OUX_EGAL:
+		case TypeLexeme::CHAPEAU:
+		case TypeLexeme::OUX_EGAL:
 		{
 			return a ^ b;
 		}
-		case id_morceau::DECALAGE_DROITE:
-		case id_morceau::DEC_DROITE_EGAL:
+		case TypeLexeme::DECALAGE_DROITE:
+		case TypeLexeme::DEC_DROITE_EGAL:
 		{
 			return a >> b;
 		}
-		case id_morceau::DECALAGE_GAUCHE:
-		case id_morceau::DEC_GAUCHE_EGAL:
+		case TypeLexeme::DECALAGE_GAUCHE:
+		case TypeLexeme::DEC_GAUCHE_EGAL:
 		{
 			return a << b;
 		}
@@ -228,26 +228,26 @@ static auto applique_operateur_binaire(id_morceau id, T a, T b)
 	}
 }
 
-static auto applique_operateur_binaire(id_morceau id, double a, double b)
+static auto applique_operateur_binaire(TypeLexeme id, double a, double b)
 {
 	switch (id) {
-		case id_morceau::PLUS:
-		case id_morceau::PLUS_EGAL:
+		case TypeLexeme::PLUS:
+		case TypeLexeme::PLUS_EGAL:
 		{
 			return a + b;
 		}
-		case id_morceau::MOINS:
-		case id_morceau::MOINS_EGAL:
+		case TypeLexeme::MOINS:
+		case TypeLexeme::MOINS_EGAL:
 		{
 			return a - b;
 		}
-		case id_morceau::FOIS:
-		case id_morceau::MULTIPLIE_EGAL:
+		case TypeLexeme::FOIS:
+		case TypeLexeme::MULTIPLIE_EGAL:
 		{
 			return a * b;
 		}
-		case id_morceau::DIVISE:
-		case id_morceau::DIVISE_EGAL:
+		case TypeLexeme::DIVISE:
+		case TypeLexeme::DIVISE_EGAL:
 		{
 			return a / b;
 		}
@@ -259,32 +259,32 @@ static auto applique_operateur_binaire(id_morceau id, double a, double b)
 }
 
 template <typename T>
-static auto applique_operateur_binaire_comp(id_morceau id, T a, T b)
+static auto applique_operateur_binaire_comp(TypeLexeme id, T a, T b)
 {
 	switch (id) {
-		case id_morceau::INFERIEUR:
-		case id_morceau::INFERIEUR_EGAL:
+		case TypeLexeme::INFERIEUR:
+		case TypeLexeme::INFERIEUR_EGAL:
 		{
 			return a < b;
 		}
-		case id_morceau::SUPERIEUR:
-		case id_morceau::SUPERIEUR_EGAL:
+		case TypeLexeme::SUPERIEUR:
+		case TypeLexeme::SUPERIEUR_EGAL:
 		{
 			return a > b;
 		}
-		case id_morceau::DIFFERENCE:
+		case TypeLexeme::DIFFERENCE:
 		{
 			return a != b;
 		}
-		case id_morceau::ESP_ESP:
+		case TypeLexeme::ESP_ESP:
 		{
 			return a && b;
 		}
-		case id_morceau::EGALITE:
+		case TypeLexeme::EGALITE:
 		{
 			return a == b;
 		}
-		case id_morceau::BARRE_BARRE:
+		case TypeLexeme::BARRE_BARRE:
 		{
 			return a || b;
 		}
@@ -362,22 +362,22 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 			auto chaine_chiffre = dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille());
 
 			switch (b->morceau.identifiant) {
-				case id_morceau::NOMBRE_ENTIER:
+				case TypeLexeme::NOMBRE_ENTIER:
 				{
 					res.entier = lng::converti_nombre_entier(chaine_chiffre);
 					break;
 				}
-				case id_morceau::NOMBRE_HEXADECIMAL:
+				case TypeLexeme::NOMBRE_HEXADECIMAL:
 				{
 					res.entier = lng::converti_chaine_nombre_hexadecimal(chaine_chiffre);
 					break;
 				}
-				case id_morceau::NOMBRE_OCTAL:
+				case TypeLexeme::NOMBRE_OCTAL:
 				{
 					res.entier = lng::converti_chaine_nombre_octal(chaine_chiffre);
 					break;
 				}
-				case id_morceau::NOMBRE_BINAIRE:
+				case TypeLexeme::NOMBRE_BINAIRE:
 				{
 					res.entier = lng::converti_chaine_nombre_binaire(chaine_chiffre);
 					break;

@@ -34,7 +34,7 @@ void cree_typedef(
 {
 	auto const &nom_broye = nom_broye_type(contexte, donnees);
 
-	if (donnees.type_base() == id_morceau::TABLEAU || donnees.type_base() == id_morceau::TROIS_POINTS) {
+	if (donnees.type_base() == TypeLexeme::TABLEAU || donnees.type_base() == TypeLexeme::TROIS_POINTS) {
 		if (est_invalide(donnees.dereference())) {
 			return;
 		}
@@ -47,17 +47,17 @@ void cree_typedef(
 
 		os << " *pointeur;\n\tlong taille;\n} " << nom_broye << ";\n\n";
 	}
-	else if ((donnees.type_base() & 0xff) == id_morceau::TABLEAU) {
+	else if ((donnees.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 		os << "typedef ";
 		converti_type_C(contexte, "", donnees.dereference(), os, false, true);
 		os << ' ' << nom_broye;
 		os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
 		os << ";\n\n";
 	}
-	else if (donnees.type_base() == id_morceau::COROUT) {
+	else if (donnees.type_base() == TypeLexeme::COROUT) {
 		/* ne peut prendre un pointeur vers une coroutine pour le moment */
 	}
-	else if (donnees.type_base() == id_morceau::FONC) {
+	else if (donnees.type_base() == TypeLexeme::FONC) {
 		auto nombre_types_retour = 0l;
 		auto type_parametres = donnees_types_parametres(contexte.typeuse, donnees, nombre_types_retour);
 
@@ -118,7 +118,7 @@ void cree_typedef(
 		os << "typedef " << nouveau_nom_broye << ";\n\n";
 	}
 	/* cas spécial pour les types complexes : &[]z8 */
-	else if (donnees.type_base() == id_morceau::POINTEUR || donnees.type_base() == id_morceau::REFERENCE) {
+	else if (donnees.type_base() == TypeLexeme::POINTEUR || donnees.type_base() == TypeLexeme::REFERENCE) {
 		auto index = contexte.typeuse.ajoute_type(donnees.dereference());
 		auto &dt_deref = contexte.typeuse[index];
 
@@ -136,13 +136,13 @@ void cree_typedef(
 static auto converti_type_simple_C(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &os,
-		id_morceau id,
+		TypeLexeme id,
 		bool echappe,
 		bool echappe_struct,
 		bool echappe_tableau_fixe)
 {
 	switch (id & 0xff) {
-		case id_morceau::POINTEUR:
+		case TypeLexeme::POINTEUR:
 		{
 			if (echappe) {
 				os << "_ptr_";
@@ -153,7 +153,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::REFERENCE:
+		case TypeLexeme::REFERENCE:
 		{
 			if (echappe) {
 				os << "_ref_";
@@ -164,7 +164,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::TABLEAU:
+		case TypeLexeme::TABLEAU:
 		{
 			if (echappe_tableau_fixe) {
 				os << '*';
@@ -176,17 +176,17 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::OCTET:
+		case TypeLexeme::OCTET:
 		{
 			os << "octet";
 			break;
 		}
-		case id_morceau::BOOL:
+		case TypeLexeme::BOOL:
 		{
 			os << "bool";
 			break;
 		}
-		case id_morceau::N8:
+		case TypeLexeme::N8:
 		{
 			if (echappe) {
 				os << "unsigned_char";
@@ -197,7 +197,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::N16:
+		case TypeLexeme::N16:
 		{
 			if (echappe) {
 				os << "unsigned_short";
@@ -208,7 +208,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::N32:
+		case TypeLexeme::N32:
 		{
 			if (echappe) {
 				os << "unsigned_int";
@@ -219,7 +219,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::N64:
+		case TypeLexeme::N64:
 		{
 			if (echappe) {
 				os << "unsigned_long";
@@ -230,88 +230,88 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::N128:
+		case TypeLexeme::N128:
 		{
 			os << ((echappe) ? "unsigned_long_long" : "unsigned long long");
 			break;
 		}
-		case id_morceau::R16:
+		case TypeLexeme::R16:
 		{
 			os << "r16";
 			break;
 		}
-		case id_morceau::R32:
+		case TypeLexeme::R32:
 		{
 			os << "float";
 			break;
 		}
-		case id_morceau::R64:
+		case TypeLexeme::R64:
 		{
 			os << "double";
 			break;
 		}
-		case id_morceau::R128:
+		case TypeLexeme::R128:
 		{
 			os << ((echappe) ? "long_double" : "long double");
 			break;
 		}
-		case id_morceau::Z8:
+		case TypeLexeme::Z8:
 		{
 			os << "char";
 			break;
 		}
-		case id_morceau::Z16:
+		case TypeLexeme::Z16:
 		{
 			os << "short";
 			break;
 		}
-		case id_morceau::Z32:
+		case TypeLexeme::Z32:
 		{
 			os << "int";
 			break;
 		}
-		case id_morceau::Z64:
+		case TypeLexeme::Z64:
 		{
 			os << "long";
 			break;
 		}
-		case id_morceau::Z128:
+		case TypeLexeme::Z128:
 		{
 			os << ((echappe) ? "long_long" : "long long");
 			break;
 		}
-		case id_morceau::CHAINE:
+		case TypeLexeme::CHAINE:
 		{
 			os << "chaine";
 			break;
 		}
-		case id_morceau::COROUT:
-		case id_morceau::FONC:
+		case TypeLexeme::COROUT:
+		case TypeLexeme::FONC:
 		{
 			break;
 		}
-		case id_morceau::PARENTHESE_OUVRANTE:
+		case TypeLexeme::PARENTHESE_OUVRANTE:
 		{
 			os << '(';
 			break;
 		}
-		case id_morceau::PARENTHESE_FERMANTE:
+		case TypeLexeme::PARENTHESE_FERMANTE:
 		{
 			os << ')';
 			break;
 		}
-		case id_morceau::VIRGULE:
+		case TypeLexeme::VIRGULE:
 		{
 			os << ',';
 			break;
 		}
-		case id_morceau::NUL: /* pour par exemple quand on retourne nul */
-		case id_morceau::RIEN:
+		case TypeLexeme::NUL: /* pour par exemple quand on retourne nul */
+		case TypeLexeme::RIEN:
 		{
 			os << "void";
 			break;
 		}
-		case id_morceau::CHAINE_CARACTERE:
+		case TypeLexeme::CHAINE_CARACTERE:
 		{
 			auto id_struct = static_cast<long>(id >> 8);
 			auto &donnees_struct = contexte.donnees_structure(id_struct);
@@ -334,12 +334,12 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case id_morceau::EINI:
+		case TypeLexeme::EINI:
 		{
 			os << "eini";
 			break;
 		}
-		case id_morceau::TYPE_DE:
+		case TypeLexeme::TYPE_DE:
 		{
 			assert(false && "type_de aurait dû être résolu");
 			break;
@@ -378,7 +378,7 @@ void converti_type_C(
 		return;
 	}
 
-	if (donnees.front() == id_morceau::TABLEAU || donnees.front() == id_morceau::TROIS_POINTS) {
+	if (donnees.front() == TypeLexeme::TABLEAU || donnees.front() == TypeLexeme::TROIS_POINTS) {
 		if (echappe_struct) {
 			os << "struct ";
 		}
@@ -390,7 +390,7 @@ void converti_type_C(
 	}
 
 	/* cas spécial pour convertir les types complexes comme *[]z8 */
-	if (donnees.front() == id_morceau::POINTEUR || donnees.front() == id_morceau::REFERENCE) {
+	if (donnees.front() == TypeLexeme::POINTEUR || donnees.front() == TypeLexeme::REFERENCE) {
 		donnees.effronte();
 		converti_type_C(contexte, "", donnees, os, echappe, echappe_struct);
 
@@ -408,8 +408,8 @@ void converti_type_C(
 		return;
 	}
 
-	if (donnees.front() == id_morceau::FONC || donnees.front() == id_morceau::COROUT) {
-		dls::tableau<dls::pile<id_morceau>> liste_pile_type;
+	if (donnees.front() == TypeLexeme::FONC || donnees.front() == TypeLexeme::COROUT) {
+		dls::tableau<dls::pile<TypeLexeme>> liste_pile_type;
 
 		auto nombre_types_retour = 0l;
 		auto parametres_finis = false;
@@ -417,22 +417,22 @@ void converti_type_C(
 		/* saute l'id fonction */
 		donnees.effronte();
 
-		dls::pile<id_morceau> pile;
+		dls::pile<TypeLexeme> pile;
 
 		while (!donnees.est_finie()) {
 			auto donnee = donnees.front();
 			donnees.effronte();
 
-			if (donnee == id_morceau::PARENTHESE_OUVRANTE) {
+			if (donnee == TypeLexeme::PARENTHESE_OUVRANTE) {
 				/* RAF */
 			}
-			else if (donnee == id_morceau::PARENTHESE_FERMANTE) {
+			else if (donnee == TypeLexeme::PARENTHESE_FERMANTE) {
 				/* évite d'empiler s'il n'y a pas de paramètre, càd 'foo()' */
 				if (!pile.est_vide()) {
 					liste_pile_type.pousse(pile);
 				}
 
-				pile = dls::pile<id_morceau>{};
+				pile = dls::pile<TypeLexeme>{};
 
 				if (parametres_finis) {
 					++nombre_types_retour;
@@ -440,9 +440,9 @@ void converti_type_C(
 
 				parametres_finis = true;
 			}
-			else if (donnee == id_morceau::VIRGULE) {
+			else if (donnee == TypeLexeme::VIRGULE) {
 				liste_pile_type.pousse(pile);
-				pile = dls::pile<id_morceau>{};
+				pile = dls::pile<TypeLexeme>{};
 
 				if (parametres_finis) {
 					++nombre_types_retour;
