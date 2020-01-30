@@ -25,7 +25,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "compilation/analyseuse_grammaire.h"
+#include "compilation/syntaxeuse.hh"
 #include "compilation/contexte_generation_code.h"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 		module->morceaux = morceaux;
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, module, "");
+		auto analyseuse = Syntaxeuse(contexte, module, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

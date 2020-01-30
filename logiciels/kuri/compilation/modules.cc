@@ -30,7 +30,7 @@
 #include "biblinternes/flux/outils.h"
 #include "biblinternes/outils/conditions.h"
 
-#include "analyseuse_grammaire.h"
+#include "syntaxeuse.hh"
 #include "assembleuse_arbre.h"
 #include "contexte_generation_code.h"
 #include "lexeuse.hh"
@@ -191,7 +191,7 @@ void charge_fichier(
 	lexeuse.performe_lexage();
 	fichier->temps_decoupage = debut_decoupage.temps();
 
-	auto analyseuse = analyseuse_grammaire(
+	auto analyseuse = Syntaxeuse(
 						  contexte,
 						  fichier,
 						  racine_kuri);

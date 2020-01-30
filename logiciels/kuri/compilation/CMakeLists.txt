@@ -34,7 +34,6 @@ set(BIBLIOTHEQUES
 )
 
 set(SOURCES
-	analyseuse_grammaire.h
 	arbre_syntactic.h
 	assembleuse_arbre.h
 	broyage.hh
@@ -52,11 +51,11 @@ set(SOURCES
 	modules.hh
 	operateurs.hh
 	outils_lexemes.hh
+	syntaxeuse.hh
 	transformation_type.hh
 	typeuse.hh
 	validation_semantique.hh
 
-	analyseuse_grammaire.cc
 	arbre_syntactic.cc
 	assembleuse_arbre.cc
 	broyage.cc
@@ -74,6 +73,7 @@ set(SOURCES
 	modules.cc
 	operateurs.cc
 	outils_lexemes.cc
+	syntaxeuse.cc
 	transformation_type.cc
 	typeuse.cc
 	validation_semantique.cc

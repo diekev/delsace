@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-#include "compilation/analyseuse_grammaire.h"
+#include "compilation/syntaxeuse.hh"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
 #include "compilation/coulisse_c.hh"
@@ -56,7 +56,7 @@ std::pair<bool, bool> retourne_erreur_lancee(
 
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, fichier, "");
+		auto analyseuse = Syntaxeuse(contexte, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);

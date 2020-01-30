@@ -22,7 +22,7 @@
  *
  */
 
-#include "analyseuse_grammaire.h"
+#include "syntaxeuse.hh"
 
 #undef DEBOGUE_EXPRESSION
 
@@ -81,7 +81,7 @@ static bool precede_unaire_valide(TypeLexeme dernier_identifiant)
 
 /* ************************************************************************** */
 
-analyseuse_grammaire::analyseuse_grammaire(
+Syntaxeuse::Syntaxeuse(
 		ContexteGenerationCode &contexte,
 		Fichier *fichier,
 		dls::chaine const &racine_kuri)
@@ -93,7 +93,7 @@ analyseuse_grammaire::analyseuse_grammaire(
 	, m_fichier(fichier)
 {}
 
-void analyseuse_grammaire::lance_analyse(std::ostream &os)
+void Syntaxeuse::lance_analyse(std::ostream &os)
 {
 	m_position = 0;
 
@@ -107,7 +107,7 @@ void analyseuse_grammaire::lance_analyse(std::ostream &os)
 	m_fichier->temps_analyse += m_chrono_analyse.arrete();
 }
 
-void analyseuse_grammaire::analyse_corps(std::ostream &os)
+void Syntaxeuse::analyse_corps(std::ostream &os)
 {
 	while (!fini()) {
 		auto id = this->identifiant_courant();
@@ -192,7 +192,7 @@ void analyseuse_grammaire::analyse_corps(std::ostream &os)
 	}
 }
 
-void analyseuse_grammaire::analyse_declaration_fonction(TypeLexeme id)
+void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 {
 	auto externe = false;
 
@@ -298,7 +298,7 @@ void analyseuse_grammaire::analyse_declaration_fonction(TypeLexeme id)
 	m_symboles_utilises.efface();
 }
 
-void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
+void Syntaxeuse::analyse_controle_si(type_noeud tn)
 {
 	m_assembleuse->empile_noeud(tn, m_contexte, donnees());
 
@@ -350,7 +350,7 @@ void analyseuse_grammaire::analyse_controle_si(type_noeud tn)
  * - enfant 4 : bloc sansarrêt ou sinon
  * - enfant 5 : bloc sinon
  */
-void analyseuse_grammaire::analyse_controle_pour()
+void Syntaxeuse::analyse_controle_pour()
 {
 	m_assembleuse->empile_noeud(type_noeud::POUR, m_contexte, donnees());
 
@@ -390,7 +390,7 @@ void analyseuse_grammaire::analyse_controle_pour()
 	m_assembleuse->depile_noeud(type_noeud::POUR);
 }
 
-void analyseuse_grammaire::analyse_corps_fonction()
+void Syntaxeuse::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
@@ -573,7 +573,7 @@ void analyseuse_grammaire::analyse_corps_fonction()
 	}
 }
 
-void analyseuse_grammaire::analyse_bloc()
+void Syntaxeuse::analyse_bloc()
 {
 	m_assembleuse->empile_noeud(type_noeud::BLOC, m_contexte, donnees());
 	analyse_corps_fonction();
@@ -582,7 +582,7 @@ void analyseuse_grammaire::analyse_bloc()
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
 }
 
-noeud::base *analyseuse_grammaire::analyse_expression_droite(
+noeud::base *Syntaxeuse::analyse_expression_droite(
 		TypeLexeme identifiant_final,
 		TypeLexeme racine_expr,
 		bool ajoute_noeud)
@@ -1284,7 +1284,7 @@ noeud::base *analyseuse_grammaire::analyse_expression_droite(
 	return noeud_expr;
 }
 
-void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
+void Syntaxeuse::analyse_appel_fonction(noeud::base *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
 	while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
@@ -1309,7 +1309,7 @@ void analyseuse_grammaire::analyse_appel_fonction(noeud::base *noeud)
 	consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
 }
 
-void analyseuse_grammaire::analyse_declaration_structure(TypeLexeme id)
+void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 {
 	auto est_externe = false;
 	auto est_nonsur = false;
@@ -1380,7 +1380,7 @@ void analyseuse_grammaire::analyse_declaration_structure(TypeLexeme id)
 	m_symboles_utilises.efface();
 }
 
-void analyseuse_grammaire::analyse_declaration_enum(bool est_drapeau)
+void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 {
 	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
@@ -1410,7 +1410,7 @@ void analyseuse_grammaire::analyse_declaration_enum(bool est_drapeau)
 	noeud_groupe->noeuds_syntaxiques.pousse(noeud_decl);
 }
 
-DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_point)
+DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 {
 	if (double_point && !requiers_identifiant(TypeLexeme::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
@@ -1500,7 +1500,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type(bool double_po
 	return analyse_declaration_type_ex();
 }
 
-DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
+DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 {
 	auto dernier_id = TypeLexeme{};
 	auto donnees_type = DonneesTypeDeclare{};
@@ -1598,7 +1598,7 @@ DonneesTypeDeclare analyseuse_grammaire::analyse_declaration_type_ex()
 	return donnees_type;
 }
 
-void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
+void Syntaxeuse::analyse_construction_structure(noeud::base *noeud)
 {
 	auto liste_param = dls::tableau<dls::vue_chaine_compacte>{};
 
@@ -1626,7 +1626,7 @@ void analyseuse_grammaire::analyse_construction_structure(noeud::base *noeud)
 	noeud->valeur_calculee = liste_param;
 }
 
-void analyseuse_grammaire::analyse_directive_si()
+void Syntaxeuse::analyse_directive_si()
 {
 	avance();
 	avance();
@@ -1662,14 +1662,14 @@ void analyseuse_grammaire::analyse_directive_si()
 	}
 }
 
-void analyseuse_grammaire::consomme(TypeLexeme id, const char *message)
+void Syntaxeuse::consomme(TypeLexeme id, const char *message)
 {
 	if (!requiers_identifiant(id)) {
 		lance_erreur(message);
 	}
 }
 
-void analyseuse_grammaire::consomme_type(const char *message)
+void Syntaxeuse::consomme_type(const char *message)
 {
 	auto const ok = est_identifiant_type(this->identifiant_courant());
 	avance();
@@ -1679,7 +1679,7 @@ void analyseuse_grammaire::consomme_type(const char *message)
 	}
 }
 
-void analyseuse_grammaire::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
+void Syntaxeuse::lance_erreur(const dls::chaine &quoi, erreur::type_erreur type)
 {
 	erreur::lance_erreur(quoi, m_contexte, donnees(), type);
 }

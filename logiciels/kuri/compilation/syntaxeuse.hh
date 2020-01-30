@@ -35,7 +35,7 @@ struct ContexteGenerationCode;
 struct DonneesFonction;
 struct DonneesModule;
 
-class analyseuse_grammaire : public lng::analyseuse<DonneesLexeme> {
+class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 	ContexteGenerationCode &m_contexte;
 	assembleuse_arbre *m_assembleuse = nullptr;
 
@@ -65,15 +65,15 @@ class analyseuse_grammaire : public lng::analyseuse<DonneesLexeme> {
 	bool m_global = false;
 
 public:
-	analyseuse_grammaire(
+	Syntaxeuse(
 			ContexteGenerationCode &contexte,
 			Fichier *fichier,
 			dls::chaine const &racine_kuri);
 
 	/* Désactive la copie, car il ne peut y avoir qu'une seule analyseuse par
 	 * module. */
-	analyseuse_grammaire(analyseuse_grammaire const &) = delete;
-	analyseuse_grammaire &operator=(analyseuse_grammaire const &) = delete;
+	Syntaxeuse(Syntaxeuse const &) = delete;
+	Syntaxeuse &operator=(Syntaxeuse const &) = delete;
 
 	void lance_analyse(std::ostream &os) override;
 

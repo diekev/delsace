@@ -26,7 +26,7 @@
 
 #include <filesystem>
 
-#include "compilation/analyseuse_grammaire.h"
+#include "compilation/syntaxeuse.hh"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
 #include "compilation/coulisse_c.hh"

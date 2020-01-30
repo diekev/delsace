@@ -22,7 +22,7 @@
  *
  */
 
-#include "compilation/analyseuse_grammaire.h"
+#include "compilation/syntaxeuse.hh"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
 #include "compilation/lexeuse.hh"
@@ -59,7 +59,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, fichier, "");
+		auto analyseuse = Syntaxeuse(contexte, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
@@ -483,7 +483,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 		fichier->morceaux = morceaux;
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
-		auto analyseuse = analyseuse_grammaire(contexte, fichier, "");
+		auto analyseuse = Syntaxeuse(contexte, fichier, "");
 
 		std::ostream os(nullptr);
 		analyseuse.lance_analyse(os);
