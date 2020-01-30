@@ -2098,7 +2098,7 @@ static void traverse_graphe_pour_generation_code(
 	genere_code_llvm(noeud->noeud_syntactique, contexte, false);
 }
 
-static void genere_fonction_main(ContexteGenerationCode &contexte)
+static void genere_fonction_vraie_principale(ContexteGenerationCode &contexte)
 {
 	auto builder = llvm::IRBuilder<>(contexte.contexte);
 
@@ -2119,7 +2119,7 @@ static void genere_fonction_main(ContexteGenerationCode &contexte)
 	auto fonction = llvm::Function::Create(
 				type_fonction,
 				llvm::Function::ExternalLinkage,
-				"main",
+				"vraie_principale",
 				contexte.module_llvm);
 
 	contexte.fonction = fonction;
@@ -2222,7 +2222,7 @@ void genere_code_llvm(
 
 	traverse_graphe_pour_generation_code(contexte, noeud_fonction_principale);
 
-	genere_fonction_main(contexte);
+	genere_fonction_vraie_principale(contexte);
 
 	contexte.temps_generation = temps_generation.temps();
 }
