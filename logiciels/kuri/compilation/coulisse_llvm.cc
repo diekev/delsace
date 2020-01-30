@@ -69,7 +69,6 @@ using denombreuse = lng::decoupeuse_nombre<id_morceau>;
  * - opérateurs : +=, -=, etc..
  * - ajourne opérateur [] pour les chaines
  * - converti paramètres fonction principale en un tableau
- * - boucle 'tantque'
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
@@ -1881,7 +1880,37 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::TANTQUE:
 		{
-			/* À FAIRE */
+			auto enfant_condition = b->enfants.front();
+			auto enfant_bloc = b->enfants.back();
+
+			auto bloc_tantque_cond = cree_bloc(contexte, "tantque_cond");
+			auto bloc_tantque_corps = cree_bloc(contexte, "tantque_corps");
+			auto bloc_apres = cree_bloc(contexte, "apres_tantque");
+
+			contexte.empile_bloc_continue("", bloc_tantque_cond);
+			contexte.empile_bloc_arrete("", bloc_apres);
+
+			/* on crée une branche explicite dans le bloc */
+			llvm::BranchInst::Create(bloc_tantque_cond, contexte.bloc_courant());
+
+			contexte.bloc_courant(bloc_tantque_cond);
+
+			auto condition = genere_code_llvm(enfant_condition, contexte, false);
+
+			llvm::BranchInst::Create(
+						bloc_tantque_corps,
+						bloc_apres,
+						condition,
+						contexte.bloc_courant());
+
+			contexte.bloc_courant(bloc_tantque_corps);
+
+			enfant_bloc->valeur_calculee = bloc_tantque_cond;
+			genere_code_llvm(enfant_bloc, contexte, false);
+
+			contexte.depile_bloc_continue();
+			contexte.depile_bloc_arrete();
+			contexte.bloc_courant(bloc_apres);
 			return nullptr;
 		}
 		case type_noeud::TRANSTYPE:
