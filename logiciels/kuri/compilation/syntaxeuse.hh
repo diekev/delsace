@@ -39,9 +39,6 @@ class Syntaxeuse : public lng::analyseuse<DonneesLexeme> {
 	ContexteGenerationCode &m_contexte;
 	assembleuse_arbre *m_assembleuse = nullptr;
 
-	using type_ensemble_symboles = dls::ensemble<dls::vue_chaine_compacte>;
-	type_ensemble_symboles m_symboles_utilises{};
-
 	/* Ces vecteurs sont utilisés pour stocker les données des expressions
 	 * compilées au travers de 'analyse_expression_droite()'. Nous les stockons
 	 * pour pouvoir réutiliser la mémoire qu'ils allouent après leurs

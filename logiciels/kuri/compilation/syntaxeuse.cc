@@ -287,15 +287,6 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
-
-	auto noeud_groupe = m_contexte.graphe_symboles.fusionne_noeud_groupe(nom_fonction);
-	noeud_groupe->noeuds_syntaxiques.pousse(noeud);
-
-	for (auto &symbole_utilise : m_symboles_utilises) {
-		m_contexte.graphe_symboles.connecte_noeud_groupe(*noeud_groupe, symbole_utilise);
-	}
-
-	m_symboles_utilises.efface();
 }
 
 void Syntaxeuse::analyse_controle_si(type_noeud tn)
@@ -657,7 +648,6 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 					avance();
 
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, m_contexte, morceau, false);
-					m_symboles_utilises.insere(morceau.chaine);
 
 					analyse_appel_fonction(noeud);
 
@@ -668,7 +658,6 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 				/* construction structure : chaine + { */
 				else if ((racine_expr == TypeLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(TypeLexeme::ACCOLADE_OUVRANTE)) {
 					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_STRUCTURE, m_contexte, morceau, false);
-					m_symboles_utilises.insere(morceau.chaine);
 
 					avance();
 
@@ -684,11 +673,6 @@ noeud::base *Syntaxeuse::analyse_expression_droite(
 				else {
 					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, m_contexte, morceau);
 					expression.pousse(noeud);
-
-					if (m_global) {
-						auto noeud_groupe = m_contexte.graphe_symboles.fusionne_noeud_groupe(morceau.chaine);
-						noeud_groupe->noeuds_syntaxiques.pousse(noeud);
-					}
 
 					noeud->drapeaux |= drapeaux;
 					drapeaux = drapeaux_noeud::AUCUN;
@@ -1369,15 +1353,6 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 	}
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);
-
-	auto noeud_groupe = m_contexte.graphe_symboles.fusionne_noeud_groupe(nom_structure);
-	noeud_groupe->noeuds_syntaxiques.pousse(noeud_decl);
-
-	for (auto &symbole_utilise : m_symboles_utilises) {
-		m_contexte.graphe_symboles.connecte_noeud_groupe(*noeud_groupe, symbole_utilise);
-	}
-
-	m_symboles_utilises.efface();
 }
 
 void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
@@ -1405,9 +1380,6 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
 	m_assembleuse->depile_noeud(type_noeud::DECLARATION_ENUM);
-
-	auto noeud_groupe = m_contexte.graphe_symboles.fusionne_noeud_groupe(nom);
-	noeud_groupe->noeuds_syntaxiques.pousse(noeud_decl);
 }
 
 DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
@@ -1582,7 +1554,6 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 
 		if (identifiant == TypeLexeme::CHAINE_CARACTERE) {
 			auto const nom_type = donnees().chaine;
-			m_symboles_utilises.insere(nom_type);
 
 			if (!m_contexte.structure_existe(nom_type)) {
 				lance_erreur("Structure inconnue", erreur::type_erreur::STRUCTURE_INCONNUE);

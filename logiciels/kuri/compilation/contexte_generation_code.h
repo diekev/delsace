@@ -158,7 +158,6 @@ struct ContexteGenerationCode {
 	dls::tableau<Fichier *> fichiers{};
 
 	GrapheDependance graphe_dependance{};
-	GrapheDependance graphe_symboles{};
 
 	Operateurs operateurs{};
 

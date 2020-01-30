@@ -41,7 +41,6 @@ enum class TypeNoeudDependance {
 	FONCTION,
 	TYPE,
 	GLOBALE,
-	GROUPE_SYMBOLE,
 };
 
 enum class TypeRelation : int {
@@ -49,7 +48,6 @@ enum class TypeRelation : int {
 	UTILISE_TYPE,
 	UTILISE_FONCTION,
 	UTILISE_GLOBALE,
-	UTILISE_SYMBOLE,
 
 	/* pour les relations entre les types
 	 * l'idée est de stocker dans le graphe les relations entre les types, afin
@@ -152,12 +150,6 @@ struct GrapheDependance {
 	void ajoute_connexions_fonction(NoeudDependance &noeud, DonneesFonction &donnees);
 
 	long trouve_index_type(long index_racine, TypeRelation type) const;
-
-	NoeudDependance *cherche_noeud_groupe(dls::vue_chaine_compacte const &nom_groupe);
-
-	NoeudDependance *fusionne_noeud_groupe(dls::vue_chaine_compacte const &nom_groupe);
-
-	void connecte_noeud_groupe(NoeudDependance &noeud, dls::vue_chaine_compacte const &nom_groupe);
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);

@@ -3034,37 +3034,6 @@ static void performe_validation_semantique(
 	}
 }
 
-static void traverse_graphe_pour_validation_semantique(
-		ContexteGenerationCode &contexte,
-		NoeudDependance *noeud_dep,
-		int nombre_noeud_valide)
-{
-	noeud_dep->fut_visite = true;
-
-	for (auto const &relation : noeud_dep->relations) {
-		if (relation.type != TypeRelation::UTILISE_SYMBOLE) {
-			continue;
-		}
-
-		if (relation.noeud_fin->fut_visite) {
-			continue;
-		}
-
-		traverse_graphe_pour_validation_semantique(contexte, relation.noeud_fin, nombre_noeud_valide);
-	}
-
-	if (noeud_dep->deja_genere) {
-		return;
-	}
-
-	noeud_dep->deja_genere = true;
-
-	for (auto &noeud : noeud_dep->noeuds_syntaxiques) {
-		performe_validation_semantique(noeud, contexte, true);
-		nombre_noeud_valide += 1;
-	}
-}
-
 void performe_validation_semantique(
 		assembleuse_arbre const &arbre,
 		ContexteGenerationCode &contexte)
@@ -3079,73 +3048,21 @@ void performe_validation_semantique(
 		return;
 	}
 
-	auto &graphe_dependance = contexte.graphe_symboles;
-	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_groupe("principale");
-
-	if (noeud_fonction_principale == nullptr) {
-		erreur::fonction_principale_manquante();
-	}
-
-	auto temps_validation = 0.0;
-
 	auto debut_validation = dls::chrono::compte_seconde();
 
-	/* À FAIRE : ces symboles ne sont peut-être pas connectés */
-	const char *noms_symboles[] = {
-		"InfoType",
-		"InfoTypeEntier",
-		"InfoTypeRéel",
-		"InfoTypePointeur",
-		"InfoTypeÉnum",
-		"InfoTypeStructure",
-		"InfoTypeTableau",
-		"InfoTypeFonction",
-		"InfoTypeMembreStructure",
-		"allocatrice_défaut",
-		"ContexteProgramme",
-	};
-
-	auto nombre_total_de_noeud_valide = 0;
-
-	for (auto nom_symbole : noms_symboles) {
-		auto noeud_symbole = graphe_dependance.cherche_noeud_groupe(nom_symbole);
-
-		if (noeud_symbole != nullptr) {			
-			traverse_graphe_pour_validation_semantique(contexte, noeud_symbole, nombre_total_de_noeud_valide);
-		}
-	}
-
-	/* À FAIRE : les variables globales ne sont pas connectées... */
+	/* valide d'abord les types de fonctions afin de résoudre les fonctions
+	 * appelées dans le cas de fonctions mutuellement récursives */
 	for (auto noeud : racine->enfants) {
-		auto rejete = noeud->type == type_noeud::DECLARATION_STRUCTURE;
-		rejete |= noeud->type == type_noeud::DECLARATION_ENUM;
-
-		if (rejete) {
-			continue;
-		}
-
 		if (noeud->type == type_noeud::DECLARATION_COROUTINE || noeud->type == type_noeud::DECLARATION_FONCTION) {
 			valide_type_fonction(noeud, contexte);
-			continue;
 		}
-
-		performe_validation_semantique(noeud, contexte, true);
-		nombre_total_de_noeud_valide += 1;
 	}
 
-	traverse_graphe_pour_validation_semantique(contexte, noeud_fonction_principale, nombre_total_de_noeud_valide);
+	for (auto noeud : racine->enfants) {
+		performe_validation_semantique(noeud, contexte, true);
+	}
 
-	auto nombre_total_de_noeuds = racine->enfants.taille();
-
-	temps_validation += debut_validation.temps();
-
-	std::cout << "Nombre de noeuds validés : "
-			  << nombre_total_de_noeud_valide
-			  << " sur "
-			  << nombre_total_de_noeuds
-			  << std::endl;
-
-	contexte.temps_validation = temps_validation;
+	contexte.temps_validation = debut_validation.temps();
 }
 
 }  /* namespace noeud */
