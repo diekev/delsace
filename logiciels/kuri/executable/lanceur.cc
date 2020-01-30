@@ -463,24 +463,24 @@ int main(int argc, char *argv[])
 			os << "Génération du code..." << std::endl;
 			noeud::genere_code_llvm(assembleuse, contexte_generation);
 
-			//if (ops.emet_code_intermediaire) {
+			if (ops.emet_code_intermediaire) {
 				std::cerr <<  "------------------------------------------------------------------\n";
 				module_llvm.print(llvm::errs(), nullptr);
 				std::cerr <<  "------------------------------------------------------------------\n";
-			//}
+			}
 
 			/* définition du fichier de sortie */
 			if (ops.emet_fichier_objet) {
 				os << "Écriture du code dans un fichier..." << std::endl;
-				//auto debut_fichier_objet = dls::chrono::maintenant();
+				auto debut_fichier_objet = dls::chrono::compte_seconde();
 				if (!ecris_fichier_objet(machine_cible.get(), module_llvm)) {
 					resultat = 1;
 				}
-				//temps_fichier_objet = dls::chrono::delta(debut_fichier_objet);
+				temps_fichier_objet = debut_fichier_objet.temps();
 
-				//auto debut_executable = dls::chrono::maintenant();
+				auto debut_executable = dls::chrono::compte_seconde();
 				cree_executable(ops.chemin_sortie, chemin_racine_kuri);
-				//temps_executable = dls::chrono::delta(debut_executable);
+				temps_executable = debut_executable.temps();
 			}
 		}
 		else
