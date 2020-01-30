@@ -2349,6 +2349,26 @@ void genere_code_llvm(
 
 	auto temps_generation = dls::chrono::compte_seconde();
 
+	/* il faut d'abord créer le code pour les structures InfoType */
+	const char *noms_structs_infos_types[] = {
+		"InfoType",
+		"InfoTypeEntier",
+		"InfoTypeRéel",
+		"InfoTypePointeur",
+		"InfoTypeÉnum",
+		"InfoTypeStructure",
+		"InfoTypeTableau",
+		"InfoTypeFonction",
+		"InfoTypeMembreStructure",
+	};
+
+	for (auto nom_struct : noms_structs_infos_types) {
+		auto const &ds = contexte.donnees_structure(nom_struct);
+		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+
+		traverse_graphe_pour_generation_code(contexte, noeud);
+	}
+
 	traverse_graphe_pour_generation_code(contexte, noeud_fonction_principale);
 
 	genere_fonction_vraie_principale(contexte);
