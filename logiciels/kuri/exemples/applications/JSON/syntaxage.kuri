@@ -1,9 +1,11 @@
-importe Fondation
+importe Tori
 
+charge "assemblage_objet"
 charge "lexage"
 
 struct Syntaxeuse {
 	lexèmes : []DonneesLexème
+    assembleuse : AssembleuseObjet
 
 	position = 0
 }
@@ -14,6 +16,11 @@ fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) : Syntaxeuse
 	syntaxeuse.lexèmes = lexèmes
 
 	retourne syntaxeuse
+}
+
+fonc détruit(syntaxeuse : &Syntaxeuse) : rien
+{
+    détruit(syntaxeuse.assembleuse)
 }
 
 fonc lexème_courant(syntaxeuse : &Syntaxeuse) : TypeLexème
@@ -40,7 +47,7 @@ fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
 
 fonc données(syntaxeuse : &Syntaxeuse) : &DonneesLexème
 {
-	retourne syntaxeuse.lexèmes[syntaxeuse.position]
+	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
 fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) : rien
@@ -69,12 +76,12 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 		ACCOLADE_OUVRANTE {
 			syntaxeuse.avance()
 
-			#obj = syntaxeuse.assembleuse.cree_objet(nom_objet, tori::type_objet::DICTIONNAIRE)
-			#syntaxeuse.assembleuse.empile_objet(obj)
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.DICTIONNAIRE)
+			syntaxeuse.assembleuse.empile_objet(obj)
 
 			syntaxeuse.analyse_objet()
 
-			#syntaxeuse.assembleuse.depile_objet()
+			syntaxeuse.assembleuse.dépile_objet()
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
 				#lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
@@ -83,14 +90,10 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 		CROCHET_OUVRANT {
 			syntaxeuse.avance()
 
-			#obj = syntaxeuse.assembleuse.cree_objet(nom_objet, tori::type_objet::TABLEAU)
-			#syntaxeuse.assembleuse.empile_objet(obj)
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.LISTE)
+			syntaxeuse.assembleuse.empile_objet(obj)
 
-			boucle {
-				si (syntaxeuse.est_lexème(TypeLexème.CROCHET_FERMANT)) {
-					arrête
-				}
-
+			tantque !syntaxeuse.est_lexème(TypeLexème.CROCHET_FERMANT) {
 				syntaxeuse.analyse_valeur("")
 
 				si (syntaxeuse.est_lexème(TypeLexème.VIRGULE)) {
@@ -98,7 +101,7 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 				}
 			}
 
-			#syntaxeuse.assembleuse.depile_objet()
+			syntaxeuse.assembleuse.dépile_objet()
 
 			syntaxeuse.avance()
 		}
@@ -106,20 +109,26 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 			syntaxeuse.avance()
 
 			# À FAIRE
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
+			dyn obj_chaine = transtype(obj: *ObjetChaine)
+            obj_chaine.valeur = syntaxeuse.données().chn
 		}
 		NOMBRE_REEL {
 			syntaxeuse.avance()
 
 			# À FAIRE
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
+			dyn obj_chaine = transtype(obj: *ObjetChaine)
+            obj_chaine.valeur = syntaxeuse.données().chn
 		}
 		CHAINE_CARACTERE {
 			syntaxeuse.avance()
 
-			# À FAIRE
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
+			dyn obj_chaine = transtype(obj: *ObjetChaine)
+            obj_chaine.valeur = syntaxeuse.données().chn
 
-			#obj = syntaxeuse.assembleuse.cree_objet(nom_objet, tori::type_objet::CHAINE)
-			#obj_chaine = static_cast<tori::ObjetChaine *>(obj.get())
-
+			# À FAIRE: gestion des chaines allouées dynamiquement
 			#res = dls::chaine()
 
 			#for (i = 0 i < donnees().chaine.taille() ++i) {
@@ -131,8 +140,6 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 
 			#	res += c
 			#}
-
-			#obj_chaine->valeur = res
 		}
 		sinon {
 			syntaxeuse.avance()
@@ -153,35 +160,16 @@ fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) : rien
 		#lance_erreur("Attendu une accolade ouvrante '{' au début du script")
 	}
 
+    obj = syntaxeuse.assembleuse.crée_objet("", TypeObjet.DICTIONNAIRE)
+	syntaxeuse.assembleuse.empile_objet(obj)
+
 	syntaxeuse.analyse_objet()
+
+    # Ne dépile pas le dictionnaire, car il est la racine
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
 		#lance_erreur("Attendu une accolade fermante '}' à la fin du script")
 	}
 
 	#imprime_arbre(syntaxeuse.assembleuse.racine.get(), 0, std::cerr)
-}
-
-###############################################################################
-
-fonc principale(args : []*z8) : z32
-{
-    chn = "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\" }"
-
-    dyn lexeuse = construit_lexeuse(chn)
-    diffère { détruit_lexeuse(lexeuse); }
-
-    lexeuse.performe_lexage()
-
-    imprime("Il y a ", lexeuse.lexèmes.taille, " lexèmes.\n")
-
-    pour données dans lexeuse.lexèmes {
-        imprime(données.lexème, "\n")
-    }
-
-	dyn syntaxeuse : Syntaxeuse
-	syntaxeuse.lexèmes = lexeuse.lexèmes
-	syntaxeuse.lance_analyse()
-
-    retourne 0
 }

@@ -1,0 +1,55 @@
+importe Fondation
+importe Tori # pour imprime_json
+
+charge "lexage"
+charge "syntaxage"
+
+###############################################################################
+
+fonc principale(args : []*z8) : z32
+{
+    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+    chn = "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28 }"
+
+    imprime("script :\n\n", chn, "\n\n")
+
+    #######################################################
+    # Lexage du script
+
+    dyn lexeuse = construit_lexeuse(chn)
+    diffère { détruit_lexeuse(lexeuse); }
+
+    lexeuse.performe_lexage()
+
+    imprime("lexèmes :\n\n")
+
+    pour données dans lexeuse.lexèmes {
+        imprime(données.lexème, "\n")
+    }
+
+    imprime("\n")
+
+    #######################################################
+    # Syntaxage du script, création de l'objet
+
+	dyn syntaxeuse : Syntaxeuse
+	syntaxeuse.lexèmes = lexeuse.lexèmes
+    diffère { détruit(syntaxeuse); }
+
+	syntaxeuse.lance_analyse()
+
+	imprime("JSON :\n\n")
+
+    si syntaxeuse.assembleuse.pile.est_vide() {
+        imprime("La pile est vide...\n")
+    }
+    sinon {
+        racine = syntaxeuse.assembleuse.pile.haut()
+        imprime_json(racine, 0)
+    }
+
+	imprime("\n")
+
+    retourne 0
+}
