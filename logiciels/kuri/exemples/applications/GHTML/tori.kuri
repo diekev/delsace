@@ -80,7 +80,7 @@ fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) 
 	pousse(dico.valeurs, objet)
 }
 
-fonc trouve_objet(dico : &ObjetDictionnaire, nom_objet : chaine) : *Objet
+fonc trouve_objet(dico : *ObjetDictionnaire, nom_objet : chaine) : *Objet
 {
 	pour nom, idx dans dico.noms {
 		si !compare_chaines(nom, nom_objet) {
@@ -349,7 +349,7 @@ fonc imprime_json(objet : *Objet, tab : z32) : rien
 	}
 }
 
-fonc principale(args : []*z8) : z32
+fonc test_tori() : rien
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
@@ -371,6 +371,4 @@ fonc principale(args : []*z8) : z32
 	insère(dico, "chaine", transtype(obj5 : *Objet))
 
 	imprime_json(transtype(dico : *Objet), 0)
-
-	retourne 0
 }

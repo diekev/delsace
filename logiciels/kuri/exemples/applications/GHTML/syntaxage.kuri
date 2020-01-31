@@ -226,38 +226,3 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
 		imprime_arbre(noeud, tab + 1)
 	}
 }
-
-fonc principale(args : []*z8) : z32
-{
-    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
-
-    chn = "{%pour x dans evenements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
-
-    imprime("chaine :\n\n", chn, "\n\n")
-
-    dyn lexeuse = construit_lexeuse(chn)
-    diffère { détruit_lexeuse(lexeuse) }
-
-    lexeuse.performe_lexage()
-
-    imprime("lexèmes :\n\n")
-
-    pour lexème dans lexeuse.lexèmes {
-        imprime(lexème.type_lexème, " : ", lexème.chn, "\n")
-    }
-
-    imprime("\n")
-
-    dyn syntaxeuse = construit_syntaxeuse(lexeuse.lexèmes)
-    diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
-
-    syntaxeuse.performe_syntaxage()
-
-	racine = syntaxeuse.assembleuse.pile.haut()
-
-	imprime("arbre :\n\n")
-	imprime_arbre(racine, 0)
-	imprime("\n")
-
-    retourne 0
-}

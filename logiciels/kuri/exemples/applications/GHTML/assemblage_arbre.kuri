@@ -37,7 +37,7 @@ fonc ajoute_noeud(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) : rie
 
 fonc lexème(noeud : *NoeudSyntaxique) : TypeLexème
 {
-    retourne noeud.données.lexème
+    retourne noeud.données.type_lexème
 }
 
 ###############################################################################
