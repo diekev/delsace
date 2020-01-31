@@ -1,9 +1,9 @@
 importe Fondation
+importe Tori
 
 charge "assemblage_arbre"
 charge "lexage"
 charge "syntaxage"
-charge "tori"
 
 fonc génère_page(
     noeud: *NoeudSyntaxique,

@@ -43,6 +43,7 @@ set(DOSSIER_MODULES
 	bibliotheques/Kuri
 	bibliotheques/Réseau
 	bibliotheques/SysFichier
+	bibliotheques/Tori
 )
 
 install(
