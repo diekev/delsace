@@ -144,7 +144,6 @@ option(AVEC_KYANBASU "Compiler Kyanbasu" ON)
 option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure" ON)
 option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
 option(AVEC_TESTS "Compiler les tests des bibliothèques internes" ON)
-option(AVEC_TORI "Compiler le compilateur du langage Tori" ON)
 option(AVEC_TORI_V2 "Compiler Tori V2" ON)
 option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
 
@@ -221,7 +220,6 @@ if(SEULEMENT_KURI)
 	set(REQUIERS_QT OFF)
 	set(AVEC_SILVATHEQUE OFF)
 	set(AVEC_TESTS OFF)
-	set(AVEC_TORI OFF)
 	set(AVEC_TORI_V2 OFF)
 	set(AVEC_VULKAN OFF)
 
@@ -328,9 +326,6 @@ active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_OPENGL)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_PATRONS_CONCEPTION)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_TEXTURE)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_VISION)
-
-active_dependances(AVEC_TORI REQUIERS_BIB_LANGAGE)
-active_dependances(AVEC_TORI REQUIERS_BIB_TORI)
 
 active_dependances(AVEC_TORI_V2 REQUIERS_BIB_LANGAGE)
 
