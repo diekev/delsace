@@ -33,7 +33,6 @@ ajoute_sousdossier(AVEC_KURI kuri)
 ajoute_sousdossier(AVEC_KYANBASU kyanbasu)
 ajoute_sousdossier(AVEC_MESURE mesure)
 ajoute_sousdossier(AVEC_SILVATHEQUE silvatheque)
-ajoute_sousdossier(AVEC_TORI_V2 tori_v2)
 ajoute_sousdossier(AVEC_VULKAN vulkan)
 
 set(ICONES
