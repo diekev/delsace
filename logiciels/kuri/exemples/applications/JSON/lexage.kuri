@@ -187,12 +187,32 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 		sinon si (est_nombre_décimal(lexeuse.caractère_courant())) {
 			lexeuse.enregistre_position_mot()
 
-			tantque est_nombre_décimal(lexeuse.caractère_courant()) {
+			# nous savons que nous avons un nombre
+			lexeuse.pousse_caractère()
+			lexeuse.avance(1)
+
+			dyn est_nombre_réel = faux
+
+			tantque !lexeuse.a_fini() {
+				c = lexeuse.caractère_courant()
+
+				si c == '.' {
+					est_nombre_réel = vrai
+				}
+				sinon si !est_nombre_décimal(c) {
+					arrête
+				}
+
 				lexeuse.pousse_caractère()
 				lexeuse.avance(1)
-            }
+			}
 
-			lexeuse.pousse_mot(TypeLexème.NOMBRE_ENTIER)
+			si est_nombre_réel {
+				lexeuse.pousse_mot(TypeLexème.NOMBRE_REEL)
+			}
+			sinon {
+				lexeuse.pousse_mot(TypeLexème.NOMBRE_ENTIER)
+			}
 		}
 		sinon {
 			lexeuse.avance(1)

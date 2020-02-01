@@ -1,3 +1,4 @@
+importe Fondation
 importe Tori
 
 charge "assemblage_objet"
@@ -108,18 +109,16 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 		NOMBRE_ENTIER {
 			syntaxeuse.avance()
 
-			# À FAIRE
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
-			dyn obj_chaine = transtype(obj: *ObjetChaine)
-            obj_chaine.valeur = syntaxeuse.données().chn
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.ENTIER)
+			dyn obj_entier = transtype(obj: *ObjetEntier)
+            obj_entier.valeur = extrait_nombre_entier(syntaxeuse.données().chn)
 		}
 		NOMBRE_REEL {
 			syntaxeuse.avance()
 
-			# À FAIRE
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
-			dyn obj_chaine = transtype(obj: *ObjetChaine)
-            obj_chaine.valeur = syntaxeuse.données().chn
+			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.RÉEL)
+			dyn obj_réel = transtype(obj: *ObjetRéel)
+            obj_réel.valeur = extrait_nombre_réel(syntaxeuse.données().chn)
 		}
 		CHAINE_CARACTERE {
 			syntaxeuse.avance()

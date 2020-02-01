@@ -10,7 +10,7 @@ fonc principale(args : []*z8) : z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-    chn = "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28 }"
+    chn = "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
 
     imprime("script :\n\n", chn, "\n\n")
 
