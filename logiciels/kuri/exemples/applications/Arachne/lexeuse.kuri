@@ -196,11 +196,6 @@ fonc id_digraphe(chn : chaine) : IdentifiantLexème
     retourne IdentifiantLexème.INVALIDE
 }
 
-fonc est_caractère_blanc(c : z8) : bool
-{
-	retourne c == '\t' || c == '\r' || c == '\v' || c == '\f' || c == '\n' || c == ' '
-}
-
 fonc id_mot(chn : chaine) : IdentifiantLexème
 {
 	info = info_de(IdentifiantLexème.INVALIDE)
@@ -226,7 +221,7 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
     tantque !lexeuse.a_fini() {
         dyn c = lexeuse.caractère_courant()
 
-        si est_caractère_blanc(c) {
+        si est_espace_blanc(c) {
 			si lexeuse.taille_mot != 0 {
 				lexeuse.pousse_mot(id_mot(lexeuse.mot()))
 			}

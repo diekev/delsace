@@ -2,18 +2,6 @@ importe Fondation
 
 ###############################################################################
 
-fonc est_espace_blanc(c : z8) : bool
-{
-    retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r'
-}
-
-fonc est_nombre_décimal(c : z8) : bool
-{
-    retourne '0' <= c <= '9'
-}
-
-###############################################################################
-
 énum TypeLexème : z32 {
 	INCONNU
 
