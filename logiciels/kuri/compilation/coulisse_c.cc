@@ -2493,6 +2493,8 @@ void genere_code_C(
 			genere_code_C(expression, generatrice, contexte, true);
 			auto chaine_expr = expression->chaine_calculee();
 
+			auto op = b->op;
+
 			for (auto i = 1l; i < nombre_enfants; ++i) {
 				auto paire = *iter_enfant++;
 				auto enf0 = paire->enfants.front();
@@ -2510,9 +2512,20 @@ void genere_code_C(
 
 					for (auto f : feuilles) {
 						generatrice.os << prefixe;
-						generatrice.os << chaine_expr;
-						generatrice.os << " == ";
-						generatrice.os << f->chaine_calculee();
+
+						if (op->est_basique) {
+							generatrice.os << chaine_expr;
+							generatrice.os << " == ";
+							generatrice.os << f->chaine_calculee();
+						}
+						else {
+							generatrice.os << op->nom_fonction;
+							generatrice.os << "(contexte,";
+							generatrice.os << chaine_expr;
+							generatrice.os << ',';
+							generatrice.os << f->chaine_calculee();
+							generatrice.os << ')';
+						}
 
 						prefixe = " || ";
 					}

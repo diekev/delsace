@@ -2809,11 +2809,18 @@ static void performe_validation_semantique(
 			auto expression = *iter_enfant++;
 
 			performe_validation_semantique(expression, contexte, false);
+			auto index_type = expression->index_type;
 
-			auto const &dt = trouve_donnees_type(contexte, expression);
+			auto dt = trouve_donnees_type(contexte, expression).plage();
 
-			if ((dt.type_base() & 0xff) == TypeLexeme::CHAINE_CARACTERE) {
-				auto id = static_cast<long>(dt.type_base() >> 8);
+			if (dt.front() == TypeLexeme::REFERENCE) {
+				dt.effronte();
+				b->transformation = TypeTransformation::DEREFERENCE;
+				index_type = contexte.typeuse.type_dereference_pour(index_type);
+			}
+
+			if ((dt.front() & 0xff) == TypeLexeme::CHAINE_CARACTERE) {
+				auto id = static_cast<long>(dt.front() >> 8);
 				auto &ds = contexte.donnees_structure(id);
 
 				auto membres_rencontres = dls::ensemble<dls::vue_chaine_compacte>();
@@ -2957,6 +2964,27 @@ static void performe_validation_semantique(
 
 					return;
 				}
+			}
+
+			auto candidats = cherche_candidats_operateurs(contexte, index_type, index_type, TypeLexeme::EGALITE);
+			auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+			auto poids = 0.0;
+
+			for (auto const &candidat : candidats) {
+				if (candidat.poids > poids) {
+					poids = candidat.poids;
+					meilleur_candidat = &candidat;
+				}
+			}
+
+			if (meilleur_candidat == nullptr) {
+				erreur::lance_erreur_type_operation(contexte, b);
+			}
+
+			b->op = meilleur_candidat->op;
+
+			if (!b->op->est_basique && fonction_courante != nullptr) {
+				fonction_courante->fonctions_utilisees.insere(b->op->nom_fonction);
 			}
 
 			for (auto i = 1; i < nombre_enfant; ++i) {
