@@ -1935,6 +1935,10 @@ static void performe_validation_semantique(
 				}
 			}
 
+			if (fonction_courante != nullptr) {
+				fonction_courante->types_utilises.insere(index_type);
+			}
+
 			contexte.empile_nombre_locales();
 
 			auto est_dynamique = peut_etre_assigne(enfant2, contexte, false);
