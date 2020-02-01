@@ -1342,7 +1342,9 @@ void genere_code_C(
 				flux << enfant2->chaine_calculee();
 			}
 			else {
+				/* À FAIRE: gestion du contexte. */
 				flux << op->nom_fonction << '(';
+				flux << "contexte,";
 				flux << enfant1->chaine_calculee();
 				flux << ',';
 				flux << enfant2->chaine_calculee();
