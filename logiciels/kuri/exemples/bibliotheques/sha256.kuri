@@ -245,8 +245,7 @@ fonc final(dyn sha256 : *SHA256, digest: *octet) : rien
 
     longueur_pm = nombre_blocs << 6
 
-    # À FAIRE
-    #memset(@sha256.bloc[sha256.longueur], 0, longueur_pm - sha256.longueur)
+    init_mem(@sha256.bloc[sha256.longueur], '\0', longueur_pm - sha256.longueur)
 	sha256.bloc[sha256.longueur] = transtype(0x80: octet)
 
 	SHA2_UNPACK32(len_b, @sha256.bloc[longueur_pm - 4])
@@ -260,7 +259,7 @@ fonc final(dyn sha256 : *SHA256, digest: *octet) : rien
 
 fonc caractère_base_16(n: octet) : z8
 {
-    retourne "0123456789ABCDEF"[n]
+    retourne "0123456789abcdef"[n]
 }
 
 fonc calcule_empreinte_sha256(entrée : chaine) : chaine
@@ -292,11 +291,16 @@ fonc principale(args : []*z8) : z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-    chn = "examples"
+    chn = "exemples"
+    attendu = "4f0c2d37da8fd2cbc353fe6cf4dbd818423c03a48b631d2e774b9fcaa3825fd3"
 
     rés = calcule_empreinte_sha256(chn)
 
     imprime(rés, "\n")
+
+    si rés != attendu {
+        imprime("Le résultat n'est pas bon... attendu: \n", attendu, "\n")
+    }
 
     déloge rés
 
