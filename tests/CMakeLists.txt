@@ -28,7 +28,6 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	tests
-	base64
 	sha256
 	math
 	types

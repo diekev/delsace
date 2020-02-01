@@ -159,7 +159,6 @@ set(REQUIERS_PATATE OFF)
 set(REQUIERS_VORO OFF)
 
 # Options pour les bibliothèques internes
-set(REQUIERS_BIB_BASE64 ON) # Requis pour les tests
 set(REQUIERS_BIB_BCRYPT OFF)
 set(REQUIERS_BIB_BRUIT OFF)
 set(REQUIERS_BIB_CHISEI OFF)
@@ -231,7 +230,6 @@ if(SEULEMENT_KURI)
 	set(REQUIERS_BIB_TESTS ON)
 
 	# désactivation des bibliothèques internes non-requises
-	set(REQUIERS_BIB_BASE64 OFF)
 	set(REQUIERS_BIB_BCRYPT OFF)
 	set(REQUIERS_BIB_BRUIT OFF)
 	set(REQUIERS_BIB_CHISEI OFF)
@@ -325,7 +323,6 @@ active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_PATRONS_CONCEPTION)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_TEXTURE)
 active_dependances(AVEC_SILVATHEQUE REQUIERS_BIB_VISION)
 
-active_dependances(AVEC_TESTS REQUIERS_BIB_BASE64)
 active_dependances(AVEC_TESTS REQUIERS_BIB_MATH)
 active_dependances(AVEC_TESTS REQUIERS_BIB_SHA256)
 active_dependances(AVEC_TESTS REQUIERS_BIB_SYSTEME_FICHIER)

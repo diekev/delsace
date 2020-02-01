@@ -19,7 +19,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ajoute_sousdossier(REQUIERS_BIB_BASE64 base64)
 ajoute_sousdossier(REQUIERS_BIB_BCRYPT bcrypt)
 ajoute_sousdossier(REQUIERS_BIB_BRUIT bruit)
 ajoute_sousdossier(REQUIERS_BIB_CHISEI chisei)
