@@ -1,0 +1,175 @@
+importe Fondation
+
+fonc est_base64_url(c : z8) : bool
+{
+    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
+}
+
+fonc est_base64(c : z8) : bool
+{
+    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
+}
+
+########################################
+
+fonc encode_impl(chn : chaine, table : chaine) : chaine
+{
+	dyn i = 0
+	dyn char_array_3 : [3]n8
+	dyn char_array_4 : [4]n8
+
+    dyn enchaineuse : Enchaineuse
+
+    dyn longueur = chn.taille
+
+    # À FAIRE: on utilise chn[idx] car c est une référence est la coulisse C ne le gère pas
+    pour c, idx dans chn {
+		char_array_3[i] = transtype(chn[idx]: n8)
+
+        i += 1
+
+		si i == 3 {
+			char_array_4[0] = transtype((char_array_3[0] & 0xfc) >> 2: n8)
+			char_array_4[1] = transtype(((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4): n8)
+			char_array_4[2] = transtype(((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6): n8)
+			char_array_4[3] = transtype(char_array_3[2] & 0x3f: n8)
+
+            pour j dans 0 ... 3 {
+                enchaineuse.pousse(table[char_array_4[j]])
+            }
+
+			i = 0
+		}
+	}
+
+	si i != 0 {
+        pour j dans i ... 2 {
+			char_array_3[j] = transtype('\0': n8)
+        }
+
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
+		char_array_4[1] = transtype(((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4): n8)
+		char_array_4[2] = transtype(((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6): n8)
+		char_array_4[3] = char_array_3[2] & 0x3f
+
+        pour j dans 0 ... i {
+            enchaineuse.pousse(table[char_array_4[j]])
+        }
+
+        tantque i < 3 {
+            enchaineuse.pousse('=')
+            i += 1
+        }
+	}
+
+	retourne enchaineuse.résultat
+}
+
+fonc encode(chn: chaine) : chaine
+{
+    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+	retourne encode_impl(chn, table)
+}
+
+fonc encode_pour_url(chn: chaine) : chaine
+{
+    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	retourne encode_impl(chn, table)
+}
+
+########################################
+
+fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) : chaine
+{
+	dyn i = 0
+	dyn char_array_3 : [3]n8
+	dyn char_array_4 : [4]n8
+    dyn longueur = chn.taille
+    dyn enchaineuse : Enchaineuse
+
+    # À FAIRE: on utilise chn[idx] car c est une référence est la coulisse C ne le gère pas
+    pour c, idx dans chn {
+        si c == '=' || !rappel_est_base64(c) {
+            arrête
+        }
+
+        char_array_4[i] = transtype(chn[idx]: n8)
+        i += 1
+
+        si i == 4 {
+            pour j dans 0 ... 3 {
+                char_array_4[j] = transtype(table.trouve_caractère(transtype(char_array_4[j]: z8), 0): n8)
+            }
+
+			char_array_3[0] = transtype((char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4): n8)
+			char_array_3[1] = transtype(((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2): n8)
+			char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
+
+            pour j dans 0 ... 2 {
+                enchaineuse.pousse(transtype(char_array_3[j]: z8))
+            }
+
+            i = 0
+        }
+    }
+
+	si i != 0 {
+		pour j dans i ... 3 {
+			char_array_4[j] = transtype('\0': n8)
+		}
+
+        pour j dans i ... 3 {
+            char_array_4[j] = transtype(table[char_array_4[j]]: n8)
+        }
+
+		char_array_3[0] = transtype((char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4): n8)
+		char_array_3[1] = transtype(((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2): n8)
+		char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
+
+        pour j dans 0 ... i {
+            enchaineuse.pousse(transtype(table.trouve_caractère(transtype(char_array_3[j]: z8), 0): z8))
+        }
+	}
+
+	retourne enchaineuse.résultat
+}
+
+fonc décode(chn: chaine) : chaine
+{
+    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+	retourne décode_impl(chn, table, est_base64)
+}
+
+fonc décode_pour_url(chn: chaine) : chaine
+{
+    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	retourne décode_impl(chn, table, est_base64_url)
+}
+
+########################################
+
+fonc principale(args : []*z8) : z32
+{
+    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+    chn = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure."
+
+    attendu = "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
+
+    rés = encode(chn)
+
+    imprime("Chaine encodée : ", rés, "\n")
+
+    si rés != attendu {
+        imprime("Le résultat n'est pas le bon")
+    }
+
+    déc = décode(rés)
+
+    imprime("Chaine décodée : ", déc, "\n")
+
+    déloge rés
+    déloge déc
+
+    retourne 0
+}
