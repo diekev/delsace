@@ -300,11 +300,11 @@ fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) : r
 {
     dyn chm = chemin_pour_dirname(dir)
 
-    si compare_chaines(chm.chn, ".") {
+    si chm.chn == "." {
         retourne
     }
 
-    si compare_chaines(chm.chn, "..") {
+    si chm.chn == ".." {
         retourne
     }
 

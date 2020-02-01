@@ -19,7 +19,7 @@ fonc détermine_instruction(chn : chaine) : Instruction
 	info_inst = info_de(Instruction)
 
 	pour nom, idx dans info_inst.noms {
-		si compare_chaines(chn, nom) {
+		si chn == nom {
 			retourne transtype(info_inst.valeurs[idx] : Instruction)
 		}
 	}
@@ -66,7 +66,7 @@ fonc analyse_réponse(réponse : chaine) : rien
 					protocole = construit_chaine(@c, taille_mot)
 					taille_mot = 0
 
-					si !compare_chaines(protocole, "PGF/1.0") {
+					si protocole != "PGF/1.0" {
 						retourne PROTOCOLE_INVALIDE
 					}
 
@@ -203,7 +203,7 @@ fonc crée_système() : Système
 fonc fichier_existe(système : &Système, chn : chaine) : bool
 {
 	pour chemin dans système.chemins {
-		si compare_chaines(chn, chemin) {
+		si chn == chemin {
 			retourne vrai
 		}
 	}

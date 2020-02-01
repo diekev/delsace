@@ -95,3 +95,27 @@ fonc nombre_déallocations() : z64
 {
     retourne __VG_nombre_deallocations__
 }
+
+# Fonctions de bases pour les opérateurs de comparaisons de chaines
+fonc sont_chaines_égales(chn1: chaine, chn2: chaine) : bool
+{
+    si chn1.taille != chn2.taille {
+		retourne faux
+    }
+
+	soit taille = chn1.taille
+	soit début : z64 = 0
+
+    pour i dans début...(taille - 1) {
+        si chn1[i] != chn2[i] {
+			retourne faux
+        }
+    }
+
+	retourne vrai
+}
+
+fonc sont_chaines_inégales(chn1: chaine, chn2: chaine) : bool
+{
+    retourne !sont_chaines_égales(chn1, chn2)
+}

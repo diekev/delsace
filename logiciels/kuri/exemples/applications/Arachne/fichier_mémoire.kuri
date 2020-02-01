@@ -128,7 +128,7 @@ fonc trouve_fichier(
 	chemin : chaine) : *FichierMémoire
 {
 	pour chn, idx dans système.chemin {
-		si compare_chaines(chn, chemin) {
+		si chn == chemin {
 			retourne système.fichiers[idx]
 		}
 	}

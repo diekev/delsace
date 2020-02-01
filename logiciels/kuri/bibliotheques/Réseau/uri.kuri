@@ -148,11 +148,11 @@ fonc somme_controle(uri : &URI) : n64
 fonc port_pour_uri(uri : &URI) : n16
 {
     si uri.port.taille == 0 {
-        si compare_chaines(uri.schéma, "http") {
+        si uri.schéma == "http" {
             retourne transtype(80 : n16)
         }
 
-        si compare_chaines(uri.schéma, "https") {
+        si uri.schéma == "https" {
             retourne transtype(443 : n16)
         }
     }

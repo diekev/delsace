@@ -6,9 +6,9 @@ importe Fondation
 
 fonc type_param_pour_chaine(chn : chaine) : TypeParamètre
 {
-    si compare_chaines(chn, "décimal") { retourne TypeParamètre.DEC }
-    si compare_chaines(chn, "entier")  { retourne TypeParamètre.ENT32 }
-    si compare_chaines(chn, "vecteur") { retourne TypeParamètre.VEC3 }
+    si chn == "décimal" { retourne TypeParamètre.DEC }
+    si chn == "entier"  { retourne TypeParamètre.ENT32 }
+    si chn == "vecteur" { retourne TypeParamètre.VEC3 }
 
     retourne TypeParamètre.INVALIDE
 }
@@ -24,10 +24,10 @@ fonc type_param_pour_chaine(chn : chaine) : TypeParamètre
 
 fonc type_prop_pour_chaine(chn : chaine) : TypeProp
 {
-    si compare_chaines(chn, "max") { retourne TypeProp.PROP_PARAM_MAX }
-    si compare_chaines(chn, "min")  { retourne TypeProp.PROP_PARAM_MIN }
-    si compare_chaines(chn, "nom")  { retourne TypeProp.PROP_PARAM_NOM }
-    si compare_chaines(chn, "valeur") { retourne TypeProp.PROP_PARAM_VALEUR }
+    si chn == "max" { retourne TypeProp.PROP_PARAM_MAX }
+    si chn == "min"  { retourne TypeProp.PROP_PARAM_MIN }
+    si chn == "nom"  { retourne TypeProp.PROP_PARAM_NOM }
+    si chn == "valeur" { retourne TypeProp.PROP_PARAM_VALEUR }
 
     retourne TypeProp.INVALIDE
 }
@@ -756,7 +756,7 @@ fonc analyse_directive(dyn syntaxeuse : &Syntaxeuse) : rien
 {
 	syntaxeuse.avance()
 
-	si (compare_chaines(syntaxeuse.données().chn, "param")) {
+	si syntaxeuse.données().chn == "param" {
 		syntaxeuse.avance()
 
 		type_param = type_param_pour_chaine(syntaxeuse.données().chn)

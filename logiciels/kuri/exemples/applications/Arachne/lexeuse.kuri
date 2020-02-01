@@ -160,15 +160,15 @@ fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
 
 fonc id_digraphe(chn : chaine) : IdentifiantLexème
 {
-    si compare_chaines(chn, "--") {
+    si chn == "--" {
         retourne IdentifiantLexème.RELATION_BIDIR
     }
 
-    si compare_chaines(chn, "-[") {
+    si chn == "-[" {
         retourne IdentifiantLexème.RELATION_DÉBUT
     }
 
-    si compare_chaines(chn, "]-") {
+    si chn == "]-" {
         retourne IdentifiantLexème.RELATION_FIN
     }
 
@@ -177,19 +177,19 @@ fonc id_digraphe(chn : chaine) : IdentifiantLexème
 
 fonc id_digraphe(chn : chaine) : IdentifiantLexème
 {
-    si compare_chaines(chn, "<--") {
+    si chn == "<--" {
         retourne IdentifiantLexème.RELATION_ENTRANTE
     }
 
-    si compare_chaines(chn, "-->") {
+    si chn == "-->" {
         retourne IdentifiantLexème.RELATION_SORTANTE
     }
 
-    si compare_chaines(chn, "<-[") {
+    si chn == "<-[" {
         retourne IdentifiantLexème.RELATION_ENTRANTE_DÉBUT
     }
 
-    si compare_chaines(chn, "]->") {
+    si chn == "]->" {
         retourne IdentifiantLexème.RELATION_SORTANTE_FIN
     }
 
@@ -206,7 +206,7 @@ fonc id_mot(chn : chaine) : IdentifiantLexème
 	info = info_de(IdentifiantLexème.INVALIDE)
 
 	pour nom, idx dans info.noms {
-		si compare_chaines(nom, chn) {
+		si nom == chn {
 			retourne transtype(info.valeurs[idx] : IdentifiantLexème)
 		}
 	}

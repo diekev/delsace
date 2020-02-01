@@ -96,7 +96,7 @@ fonc trouve(table : *TableHachage, clé : chaine) : *NoeudTableHachage
     }
 
     boucle {
-        si compare_chaines(alvéole.clé, clé) {
+        si alvéole.clé == clé {
             retourne alvéole
         }
 

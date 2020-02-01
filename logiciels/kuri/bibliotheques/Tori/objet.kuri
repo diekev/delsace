@@ -68,7 +68,7 @@ fonc pousse(dyn liste : &[]*Objet, valeur : *Objet) : rien
 fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) : rien
 {
 	pour nom, idx dans dico.noms {
-		si !compare_chaines(nom, nom_objet) {
+		si nom != nom_objet {
 			continue
 		}
 
@@ -83,7 +83,7 @@ fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) 
 fonc trouve_objet(dico : *ObjetDictionnaire, nom_objet : chaine) : *Objet
 {
 	pour nom, idx dans dico.noms {
-		si !compare_chaines(nom, nom_objet) {
+		si nom != nom_objet {
 			continue
 		}
 
@@ -99,7 +99,7 @@ fonc trouve_objet(
 	type : TypeObjet) : *Objet
 {
 	pour nom, idx dans dico.noms {
-		si !compare_chaines(nom, nom_objet) {
+		si nom != nom_objet {
 			continue
 		}
 

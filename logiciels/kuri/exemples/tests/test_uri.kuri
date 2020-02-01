@@ -3,7 +3,7 @@ importe Réseau
 
 fonc vérifie_égalité(chaine1 : chaine, chaine2 : chaine) : rien
 {
-    si compare_chaines(chaine1, chaine2) {
+    si chaine1 == chaine2 {
         retourne
     }
 

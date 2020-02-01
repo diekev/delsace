@@ -2,25 +2,6 @@
 
 charge "memoire"
 
-# Retourne vrai si les deux chaines données sont égales.
-fonc compare_chaines(ch1 : chaine, ch2 : chaine) : bool
-{
-    si ch1.taille != ch2.taille {
-		retourne faux
-    }
-
-	soit taille = ch1.taille
-	soit début : z64 = 0
-
-    pour i dans début...(taille - 1) {
-        si ch1[i] != ch2[i] {
-			retourne faux
-        }
-    }
-
-	retourne vrai
-}
-
 # Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 #!nulctx fonc taille_chaine_c(ch : *z8) : z64
 {

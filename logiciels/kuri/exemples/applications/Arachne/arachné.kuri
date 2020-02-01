@@ -52,7 +52,7 @@ fonc redimensionne_schéma(dyn schéma : &Schéma) : rien
 fonc trouve_colonne(dyn schéma : &Schéma, nom : chaine) : *Colonne
 {
 	pour colonne dans schéma.colonnes {
-		si compare_chaines(colonne.nom, nom) {
+		si colonne.nom == nom {
 			retourne @colonne
 		}
 	}
@@ -125,7 +125,7 @@ struct Arachné {
 fonc trouve_schéma(arachné : &Arachné, nom : chaine) : *Schéma
 {
 	pour schéma dans arachné.schémas {
-		si compare_chaines(schéma.nom, nom) {
+		si schéma.nom == nom {
 			retourne @schéma
 		}
 	}
@@ -199,7 +199,7 @@ fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32
 	dyn schéma = noeud.schéma
 
 	pour colonne dans schéma.colonnes {
-		si compare_chaines(nom_colonne, colonne.nom) {
+		si nom_colonne == colonne.nom {
 			colonne.données[noeud.id_ligne] = valeur
 		}
 	}
@@ -212,7 +212,7 @@ fonc trouve_valeur_noeud(noeud : &Noeud, nom_colonne : chaine) : z32
 	schéma = noeud.schéma
 
 	pour colonne dans schéma.colonnes {
-		si compare_chaines(nom_colonne, colonne.nom) {
+		si nom_colonne == colonne.nom {
 			retourne colonne.données[noeud.id_ligne]
 		}
 	}

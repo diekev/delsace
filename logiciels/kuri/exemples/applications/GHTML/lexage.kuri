@@ -42,13 +42,13 @@ fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) : rien
 
 fonc id_identifiant(identifiant : chaine) : TypeLexème
 {
-	si compare_chaines(identifiant, "dans") { retourne TypeLexème.DANS }
-	si compare_chaines(identifiant, "finpour") { retourne TypeLexème.FINPOUR }
-	si compare_chaines(identifiant, "finsi") { retourne TypeLexème.FINSI }
-	si compare_chaines(identifiant, "pour") { retourne TypeLexème.POUR }
-	si compare_chaines(identifiant, "si") { retourne TypeLexème.SI }
-	si compare_chaines(identifiant, "sinon") { retourne TypeLexème.SINON }
-	si compare_chaines(identifiant, "étend") { retourne TypeLexème.ÉTEND }
+	si identifiant == "dans" { retourne TypeLexème.DANS }
+	si identifiant == "finpour" { retourne TypeLexème.FINPOUR }
+	si identifiant == "finsi" { retourne TypeLexème.FINSI }
+	si identifiant == "pour" { retourne TypeLexème.POUR }
+	si identifiant == "si" { retourne TypeLexème.SI }
+	si identifiant == "sinon" { retourne TypeLexème.SINON }
+	si identifiant == "étend" { retourne TypeLexème.ÉTEND }
 
 	retourne TypeLexème.CHAINE_CARACTÈRE
 }
