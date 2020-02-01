@@ -84,7 +84,7 @@ fonc transforme(dyn sha256: *SHA256, message: *octet, nombre_blocs: n32) : rien
 	dyn w: [64]n32
 	dyn wv: [8]n32
 
-    pour i dans 0 ... transtype(nombre_blocs: z32) {
+    pour i dans 0 ... transtype(nombre_blocs: z32) - 1 {
 		sub_block = message + (i << 6)
 
         pour j dans 0 ... 15 {
@@ -213,7 +213,8 @@ fonc ajoute_message(dyn sha256 : *SHA256, message: []octet) : rien
     longueur = message.taille
 	tmp_longueur = TAILLE_BLOC_SHA224_256 - sha256.longueur
 	dyn longueur_restante = min(longueur, tmp_longueur)
-	copie_mem_nonsur(@sha256.bloc[sha256.longueur], @message[0], longueur_restante)
+
+	copie_mem_nonsur(@message[0], @sha256.bloc[sha256.longueur], longueur_restante)
 
 	si (sha256.longueur + longueur) < TAILLE_BLOC_SHA224_256 {
 		sha256.longueur += longueur
@@ -230,7 +231,7 @@ fonc ajoute_message(dyn sha256 : *SHA256, message: []octet) : rien
 
     longueur_restante = nouvelle_longueur % TAILLE_BLOC_SHA224_256
 
-    copie_mem_nonsur(@sha256.bloc[0], @message_décalé[nombre_blocs << 6], longueur_restante)
+    copie_mem_nonsur(@message_décalé[nombre_blocs << 6], @sha256.bloc[0], longueur_restante)
 
 	sha256.longueur = transtype(longueur_restante: z32)
 	sha256.longueur_totale += (nombre_blocs + 1) << 6
@@ -265,8 +266,7 @@ fonc caractère_base_16(n: octet) : z8
 fonc calcule_empreinte_sha256(entrée : chaine) : chaine
 {
     dyn digest : [32]octet
-	# À FAIRE
-	#memset(digest, 0, TAILLE_DIGEST)
+	init_mem(digest, '\0', TAILLE_DIGEST)
 
 	dyn ctx = construit_sha256()
     dyn ptr = @ctx
