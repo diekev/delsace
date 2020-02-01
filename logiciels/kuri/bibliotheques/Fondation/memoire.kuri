@@ -147,8 +147,9 @@
 		t = destination.taille
 	}
 
-    pour o dans destination {
-		o = transtype(valeur : octet)
+    pour o, idx dans destination {
+		# À FAIRE: référence...
+		destination[idx] = transtype(valeur : octet)
 	}
 }
 
