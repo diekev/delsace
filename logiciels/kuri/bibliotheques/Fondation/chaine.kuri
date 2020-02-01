@@ -133,6 +133,42 @@ fonc extrait_nombre_entier(chn : chaine) : z64
 	retourne résultat
 }
 
+fonc en_majuscule(c: z8) : z8
+{
+	si 'a' <= c <= 'z' {
+		retourne c - 'a' + 'A'
+	}
+
+	retourne c
+}
+
+fonc en_minuscule(c: z8) : z8
+{
+	si 'A' <= c <= 'Z' {
+		retourne c - 'A' + 'a'
+	}
+
+	retourne c
+}
+
+fonc en_majuscule(chn : chaine) : chaine
+{
+	pour c dans chn {
+		c = en_majuscule(c)
+	}
+
+	retourne chn
+}
+
+fonc en_minuscule(chn : chaine) : chaine
+{
+	pour c dans chn {
+		c = en_majuscule(c)
+	}
+
+	retourne chn
+}
+
 ################################################################################
 
 struct Enchaineuse {
