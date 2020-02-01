@@ -1,0 +1,304 @@
+importe Fondation
+
+########################################
+
+TAILLE_BLOC_SHA224_256 = 64
+TAILLE_DIGEST = 32
+
+struct SHA256 {
+    longueur_totale = 0
+    longueur = 0
+    bloc : [128]octet
+
+    # À FAIRE: ceux-ci pourraient être des variables globales, il nous
+    # faudrait pouvoir initialiser les globales pour cela
+    h : [8]n32
+    k : [64]n32
+}
+
+#!enligne fonc SHA2_SHFR(x: n32, n: n32) : n32
+{
+    retourne x >> n
+}
+
+#!enligne fonc SHA2_ROTR(x: n32, n: n32) : n32
+{
+    retourne (x >> n) | (x << ((taille_de(n32) << 3) - n))
+}
+
+#!enligne fonc SHA2_ROTL(x: n32, n: n32) : n32
+{
+    retourne (x << n) | (x >> ((taille_de(n32) << 3) - n))
+}
+
+#!enligne fonc SHA2_CH(x: n32, y: n32, z: n32) : n32
+{
+    retourne (x & y) ^ (~x & z)
+}
+
+#!enligne fonc SHA2_MAJ(x: n32, y: n32, z: n32) : n32
+{
+    retourne (x & y) ^ (x & z) ^ (y & z)
+}
+
+#!enligne fonc SHA256_F1(x: n32) : n32
+{
+    retourne SHA2_ROTR(x,  transtype(2: n32)) ^ SHA2_ROTR(x, transtype(13: n32)) ^ SHA2_ROTR(x, transtype(22: n32))
+}
+
+#!enligne fonc SHA256_F2(x: n32) : n32
+{
+    retourne SHA2_ROTR(x,  transtype(6: n32)) ^ SHA2_ROTR(x, transtype(11: n32)) ^ SHA2_ROTR(x, transtype(25: n32))
+}
+
+#!enligne fonc SHA256_F3(x: n32) : n32
+{
+    retourne SHA2_ROTR(x,  transtype(7: n32)) ^ SHA2_ROTR(x, transtype(18: n32)) ^ SHA2_SHFR(x,  transtype(3: n32))
+}
+
+#!enligne fonc SHA256_F4(x: n32) : n32
+{
+    retourne SHA2_ROTR(x, transtype(17: n32)) ^ SHA2_ROTR(x, transtype(19: n32)) ^ SHA2_SHFR(x, transtype(10: n32))
+}
+
+fonc SHA2_UNPACK32(w : n32, dyn s : *octet) : rien
+{
+	s[3] = transtype(w      : octet)
+	s[2] = transtype(w >>  8: octet)
+	s[1] = transtype(w >> 16: octet)
+	s[0] = transtype(w >> 24: octet)
+}
+
+fonc SHA2_PACK32(s: *octet, dyn w: *n32) : rien
+{
+    dyn rés = transtype(s[3]: n32)
+	rés |= transtype(s[2] <<  8: n32)
+	rés |= transtype(s[1] << 16: n32)
+	rés |= transtype(s[0] << 24: n32)
+
+    mémoire(w) = rés
+}
+
+fonc transforme(dyn sha256: *SHA256, message: *octet, nombre_blocs: n32) : rien
+{
+	dyn w: [64]n32
+	dyn wv: [8]n32
+
+    pour i dans 0 ... transtype(nombre_blocs: z32) {
+		sub_block = message + (i << 6)
+
+        pour j dans 0 ... 15 {
+			SHA2_PACK32(@sub_block[j << 2], @w[j])
+		}
+
+        pour j dans 16 ... 63 {
+			w[j] =  SHA256_F4(w[j -  2]) + w[j -  7] + SHA256_F3(w[j - 15]) + w[j - 16]
+		}
+
+        pour j dans 0 ... 7 {
+			wv[j] = sha256.h[j]
+		}
+
+        pour j dans 0 ... 63 {
+			t1 = wv[7] + SHA256_F2(wv[4]) + SHA2_CH(wv[4], wv[5], wv[6])
+				+ sha256.k[j] + w[j]
+			t2 = SHA256_F1(wv[0]) + SHA2_MAJ(wv[0], wv[1], wv[2])
+			wv[7] = wv[6]
+			wv[6] = wv[5]
+			wv[5] = wv[4]
+			wv[4] = wv[3] + t1
+			wv[3] = wv[2]
+			wv[2] = wv[1]
+			wv[1] = wv[0]
+			wv[0] = t1 + t2
+		}
+
+        pour j dans 0 ... 7 {
+			sha256.h[j] += wv[j]
+		}
+	}
+}
+
+fonc construit_sha256() : SHA256
+{
+    dyn sha256 : SHA256
+	sha256.h[0] = transtype(0x6a09e667: n32)
+	sha256.h[1] = transtype(0xbb67ae85: n32)
+	sha256.h[2] = transtype(0x3c6ef372: n32)
+	sha256.h[3] = transtype(0xa54ff53a: n32)
+	sha256.h[4] = transtype(0x510e527f: n32)
+	sha256.h[5] = transtype(0x9b05688c: n32)
+	sha256.h[6] = transtype(0x1f83d9ab: n32)
+	sha256.h[7] = transtype(0x5be0cd19: n32)
+
+    sha256.k[0] = transtype(0x428a2f98: n32)
+    sha256.k[1] = transtype(0x71374491: n32)
+    sha256.k[2] = transtype(0xb5c0fbcf: n32)
+    sha256.k[3] = transtype(0xe9b5dba5: n32)
+    sha256.k[4] = transtype(0x3956c25b: n32)
+    sha256.k[5] = transtype(0x59f111f1: n32)
+    sha256.k[6] = transtype(0x923f82a4: n32)
+    sha256.k[7] = transtype(0xab1c5ed5: n32)
+    sha256.k[8] = transtype(0xd807aa98: n32)
+    sha256.k[9] = transtype(0x12835b01: n32)
+    sha256.k[10] = transtype(0x243185be: n32)
+    sha256.k[11] = transtype(0x550c7dc3: n32)
+    sha256.k[12] = transtype(0x72be5d74: n32)
+    sha256.k[13] = transtype(0x80deb1fe: n32)
+    sha256.k[14] = transtype(0x9bdc06a7: n32)
+    sha256.k[15] = transtype(0xc19bf174: n32)
+    sha256.k[16] = transtype(0xe49b69c1: n32)
+    sha256.k[17] = transtype(0xefbe4786: n32)
+    sha256.k[18] = transtype(0x0fc19dc6: n32)
+    sha256.k[19] = transtype(0x240ca1cc: n32)
+    sha256.k[20] = transtype(0x2de92c6f: n32)
+    sha256.k[21] = transtype(0x4a7484aa: n32)
+    sha256.k[22] = transtype(0x5cb0a9dc: n32)
+    sha256.k[23] = transtype(0x76f988da: n32)
+    sha256.k[24] = transtype(0x983e5152: n32)
+    sha256.k[25] = transtype(0xa831c66d: n32)
+    sha256.k[26] = transtype(0xb00327c8: n32)
+    sha256.k[27] = transtype(0xbf597fc7: n32)
+    sha256.k[28] = transtype(0xc6e00bf3: n32)
+    sha256.k[29] = transtype(0xd5a79147: n32)
+    sha256.k[30] = transtype(0x06ca6351: n32)
+    sha256.k[31] = transtype(0x14292967: n32)
+    sha256.k[32] = transtype(0x27b70a85: n32)
+    sha256.k[33] = transtype(0x2e1b2138: n32)
+    sha256.k[34] = transtype(0x4d2c6dfc: n32)
+    sha256.k[35] = transtype(0x53380d13: n32)
+    sha256.k[36] = transtype(0x650a7354: n32)
+    sha256.k[37] = transtype(0x766a0abb: n32)
+    sha256.k[38] = transtype(0x81c2c92e: n32)
+    sha256.k[39] = transtype(0x92722c85: n32)
+    sha256.k[40] = transtype(0xa2bfe8a1: n32)
+    sha256.k[41] = transtype(0xa81a664b: n32)
+    sha256.k[42] = transtype(0xc24b8b70: n32)
+    sha256.k[43] = transtype(0xc76c51a3: n32)
+    sha256.k[44] = transtype(0xd192e819: n32)
+    sha256.k[45] = transtype(0xd6990624: n32)
+    sha256.k[46] = transtype(0xf40e3585: n32)
+    sha256.k[47] = transtype(0x106aa070: n32)
+    sha256.k[48] = transtype(0x19a4c116: n32)
+    sha256.k[49] = transtype(0x1e376c08: n32)
+    sha256.k[50] = transtype(0x2748774c: n32)
+    sha256.k[51] = transtype(0x34b0bcb5: n32)
+    sha256.k[52] = transtype(0x391c0cb3: n32)
+    sha256.k[53] = transtype(0x4ed8aa4a: n32)
+    sha256.k[54] = transtype(0x5b9cca4f: n32)
+    sha256.k[55] = transtype(0x682e6ff3: n32)
+    sha256.k[56] = transtype(0x748f82ee: n32)
+    sha256.k[57] = transtype(0x78a5636f: n32)
+    sha256.k[58] = transtype(0x84c87814: n32)
+    sha256.k[59] = transtype(0x8cc70208: n32)
+    sha256.k[60] = transtype(0x90befffa: n32)
+    sha256.k[61] = transtype(0xa4506ceb: n32)
+    sha256.k[62] = transtype(0xbef9a3f7: n32)
+    sha256.k[63] = transtype(0xc67178f2: n32)
+
+    retourne sha256
+}
+
+fonc min(a: z64, b: z64) : z64
+{
+    si a <= b {
+        retourne a
+    }
+
+    retourne b
+}
+
+fonc ajoute_message(dyn sha256 : *SHA256, message: []octet) : rien
+{
+    longueur = message.taille
+	tmp_longueur = TAILLE_BLOC_SHA224_256 - sha256.longueur
+	dyn longueur_restante = min(longueur, tmp_longueur)
+	copie_mem_nonsur(@sha256.bloc[sha256.longueur], @message[0], longueur_restante)
+
+	si (sha256.longueur + longueur) < TAILLE_BLOC_SHA224_256 {
+		sha256.longueur += longueur
+		retourne
+	}
+
+	nouvelle_longueur = longueur - longueur_restante
+	nombre_blocs = nouvelle_longueur / TAILLE_BLOC_SHA224_256
+
+    message_décalé = @message[longueur_restante]
+
+    transforme(sha256, @sha256.bloc[0], transtype(1: n32))
+	transforme(sha256, message_décalé, transtype(nombre_blocs: n32))
+
+    longueur_restante = nouvelle_longueur % TAILLE_BLOC_SHA224_256
+
+    copie_mem_nonsur(@sha256.bloc[0], @message_décalé[nombre_blocs << 6], longueur_restante)
+
+	sha256.longueur = transtype(longueur_restante: z32)
+	sha256.longueur_totale += (nombre_blocs + 1) << 6
+}
+
+fonc final(dyn sha256 : *SHA256, digest: *octet) : rien
+{
+	nombre_blocs = (1 + transtype((TAILLE_BLOC_SHA224_256 - 9) < (sha256.longueur % TAILLE_BLOC_SHA224_256): z32))
+
+    len_b = transtype((sha256.longueur_totale + sha256.longueur) << 3: n32)
+
+    longueur_pm = nombre_blocs << 6
+
+    # À FAIRE
+    #memset(@sha256.bloc[sha256.longueur], 0, longueur_pm - sha256.longueur)
+	sha256.bloc[sha256.longueur] = transtype(0x80: octet)
+
+	SHA2_UNPACK32(len_b, @sha256.bloc[longueur_pm - 4])
+
+	transforme(sha256, @sha256.bloc[0], transtype(nombre_blocs: n32))
+
+	pour h, i dans sha256.h {
+		SHA2_UNPACK32(h, @digest[i << 2])
+	}
+}
+
+fonc caractère_base_16(n: octet) : z8
+{
+    retourne "0123456789ABCDEF"[n]
+}
+
+fonc calcule_empreinte_sha256(entrée : chaine) : chaine
+{
+    dyn digest : [32]octet
+	# À FAIRE
+	#memset(digest, 0, TAILLE_DIGEST)
+
+	dyn ctx = construit_sha256()
+    dyn ptr = @ctx
+	ptr.ajoute_message(entrée)
+	ptr.final(@digest[0])
+
+    dyn enchaineuse : Enchaineuse
+    enchaineuse.réserve(TAILLE_DIGEST * 2)
+
+    pour c, idx dans digest {
+        # À FAIRE(coulisse C): référence
+        co = digest[idx]
+        enchaineuse.pousse(caractère_base_16((co >> 4) & 0xf))
+        enchaineuse.pousse(caractère_base_16(co & 0xf))
+	}
+
+	retourne enchaineuse.résultat
+}
+
+########################################
+
+fonc principale(args : []*z8) : z32
+{
+    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+    chn = "examples"
+
+    rés = calcule_empreinte_sha256(chn)
+
+    imprime(rés, "\n")
+
+    déloge rés
+
+    retourne 0
+}
