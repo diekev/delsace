@@ -1544,6 +1544,10 @@ static void performe_validation_semantique(
 				b->op = meilleur_candidat->op;
 				enfant1->transformation = meilleur_candidat->transformation_type1;
 				enfant2->transformation = meilleur_candidat->transformation_type2;
+
+				if (!b->op->est_basique && fonction_courante != nullptr) {
+					fonction_courante->fonctions_utilisees.insere(b->op->nom_fonction);
+				}
 			}
 
 			if (fonction_courante != nullptr) {
