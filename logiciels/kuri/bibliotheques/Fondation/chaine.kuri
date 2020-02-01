@@ -133,6 +133,32 @@ fonc extrait_nombre_entier(chn : chaine) : z64
 	retourne résultat
 }
 
+# Converti une chaine, par exemple "500.5", en un nombre réel
+# La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
+fonc extrait_nombre_réel(chn : chaine) : r64
+{
+    dyn résultat = 0.0
+	dyn mult = 1.0
+	dyn point_trouvé = faux
+
+	pour c dans chn {
+		si c == '.' {
+			point_trouvé = vrai
+			continue
+		}
+
+		si point_trouvé {
+			mult *= 0.1
+        	résultat += transtype(c - '0' : r64) * mult
+		}
+		sinon {
+        	résultat = résultat * 10.0 + transtype(c - '0' : r64)
+		}
+    }
+
+	retourne résultat
+}
+
 fonc en_majuscule(c: z8) : z8
 {
 	si 'a' <= c <= 'z' {
