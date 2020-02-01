@@ -142,7 +142,7 @@ static void applique_transformation(
 						os << nom_broye_type(contexte, index_dt) << ")\n";
 					}
 					else {
-						os << "\t.pointeur = " << nom_courant << ".pointeur,\n";
+						os << "\t.pointeur = " << nom_courant << ",\n";
 						os << "\t.taille = " << taille << " * sizeof(";
 						auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
 						os << nom_broye_type(contexte, index_dt) << ")\n";
