@@ -309,6 +309,7 @@ unsigned alignement(
 	TypeLexeme identifiant = donnees_type.type_base();
 
 	switch (identifiant & 0xff) {
+		case TypeLexeme::OCTET:
 		case TypeLexeme::BOOL:
 		case TypeLexeme::N8:
 		case TypeLexeme::Z8:
