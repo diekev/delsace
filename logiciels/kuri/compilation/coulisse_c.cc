@@ -2735,6 +2735,12 @@ static void traverse_graphe_pour_generation_code(
 			return;
 		}
 
+		auto &dt = contexte.typeuse[noeud->index];
+
+		if (!noeud->typedef_genere) {
+			cree_typedef(contexte, dt, generatrice.os);
+		}
+
 		/* Suppression des avertissements pour les conversions dites
 		 * « imcompatibles » alors qu'elles sont bonnes.
 		 * Elles surviennent dans les assignations des pointeurs, par exemple pour
@@ -2743,7 +2749,6 @@ static void traverse_graphe_pour_generation_code(
 		generatrice.os << "#pragma GCC diagnostic push\n";
 		generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
 
-		auto &dt = contexte.typeuse[noeud->index];
 		cree_info_type_C(contexte, generatrice, generatrice.os, dt);
 
 		generatrice.os << "#pragma GCC diagnostic pop\n";
@@ -2797,6 +2802,13 @@ static void traverse_graphe_pour_typedefs(
 		}
 
 		auto &dt = contexte.typeuse[noeud->index];
+
+		// les tableaux doivent attendre que le type sous jacent eût sa
+		// déclaration pour que C puisse allouer la place nécessaire
+		if (est_type_tableau_fixe(dt.type_base())) {
+			return;
+		}
+
 		cree_typedef(contexte, dt, generatrice.os);
 
 		noeud->typedef_genere = true;
