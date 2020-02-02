@@ -28,6 +28,7 @@ set(INCLUSIONS
 set(BIBLIOTHEQUES
 	tests
 	kuri_compilation
+	kuri_coulisse_llvm
 )
 
 set(SOURCES

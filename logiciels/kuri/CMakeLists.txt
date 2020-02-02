@@ -37,6 +37,10 @@ add_subdirectory(executable)
 add_subdirectory(exemples)
 add_subdirectory(tests)
 
+if(AVEC_LLVM)
+	add_subdirectory(coulisse_llvm)
+endif()
+
 set(DOSSIER_MODULES
 	bibliotheques/Fondation
 	bibliotheques/GlibC

@@ -22,7 +22,7 @@
  *
  */
 
-#include "info_type.hh"
+#include "info_type_llvm.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

@@ -14,69 +14,31 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2020 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE kuri_compilation)
+set(NOM_CIBLE kuri_coulisse_llvm)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
 
 set(BIBLIOTHEQUES
-	stdc++fs
-	langage
-	bib_outils
-	bib_structures
-	memoire
+	kuri_compilation
+	/usr/lib/llvm-6.0/lib/libLLVM.so # À FAIRE
 )
 
 set(SOURCES
-	arbre_syntactic.h
-	assembleuse_arbre.h
-	broyage.hh
-	contexte_generation_code.h
-	conversion_type_c.hh
-	coulisse_c.hh
-	donnees_type.h
-	erreur.h
-	expression.h
-	generatrice_code_c.hh
-	graphe_dependance.hh
-	infos_type_c.hh
-	lexemes.hh
-	lexeuse.hh
-	modules.hh
-	operateurs.hh
-	outils_lexemes.hh
-	syntaxeuse.hh
-	transformation_type.hh
-	typeuse.hh
-	validation_semantique.hh
+	generation_code_llvm.cc
+	info_type_llvm.cc
+	conversion_type_llvm.cc
 
-	arbre_syntactic.cc
-	assembleuse_arbre.cc
-	broyage.cc
-	contexte_generation_code.cc
-	conversion_type_c.cc
-	coulisse_c.cc
-	donnees_type.cc
-	erreur.cc
-	expression.cc
-	generatrice_code_c.cc
-	graphe_dependance.cc
-	infos_type_c.cc
-	lexemes.cc
-	lexeuse.cc
-	modules.cc
-	operateurs.cc
-	outils_lexemes.cc
-	syntaxeuse.cc
-	transformation_type.cc
-	typeuse.cc
-	validation_semantique.cc
+	generation_code_llvm.hh
+	info_type_llvm.hh
+	conversion_type_llvm.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

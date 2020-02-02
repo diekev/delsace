@@ -22,7 +22,7 @@
  *
  */
 
-#include "coulisse_llvm.hh"
+#include "generation_code_llvm.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
@@ -50,7 +50,7 @@ using dls::outils::possede_drapeau;
 #include "contexte_generation_code.h"
 #include "conversion_type_llvm.hh"
 #include "erreur.h"
-#include "info_type.hh"
+#include "info_type_llvm.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
 #include "validation_semantique.hh"

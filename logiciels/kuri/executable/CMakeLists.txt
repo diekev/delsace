@@ -37,6 +37,7 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES
 	kuri_compilation
+	kuri_coulisse_llvm
 	kuri_options
 	stdc++fs
 	bib_outils

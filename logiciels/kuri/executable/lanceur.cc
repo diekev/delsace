@@ -51,7 +51,7 @@
 #include <llvm/Transforms/Scalar/GVN.h>
 #pragma GCC diagnostic pop
 
-#include "compilation/coulisse_llvm.hh"
+#include "coulisse_llvm/generation_code_llvm.hh"
 #endif
 
 #include "compilation/syntaxeuse.hh"
@@ -427,7 +427,7 @@ int main(int argc, char *argv[])
 		}
 
 #ifdef AVEC_LLVM
-		auto coulisse_LLVM = false;
+		auto coulisse_LLVM = true;
 		if (coulisse_LLVM) {
 			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
