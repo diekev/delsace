@@ -215,6 +215,34 @@ enum {
 	return ptr;
 }
 
+[[nodiscard]] static llvm::Value *accede_membre_union(
+		ContexteGenerationCode &contexte,
+		llvm::Value *structure,
+		DonneesStructure const &donnees_structure,
+		dls::vue_chaine_compacte const &nom_membre,
+		bool charge = false)
+{
+	auto ptr = llvm::GetElementPtrInst::CreateInBounds(
+			  structure, {
+				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0),
+				  llvm::ConstantInt::get(llvm::Type::getInt32Ty(contexte.contexte), 0)
+			  },
+			  "",
+			  contexte.bloc_courant());
+
+	auto &dm = donnees_structure.donnees_membres.trouve(nom_membre)->second;
+	auto index_type_membre = donnees_structure.index_types[dm.index_membre];
+	auto type = converti_type_llvm(contexte, contexte.typeuse[index_type_membre]);
+
+	auto ret = llvm::BitCastInst::Create(llvm::Instruction::BitCast, ptr, type->getPointerTo(), "", contexte.bloc_courant());
+
+	if (charge == true) {
+		return new llvm::LoadInst(ret, "", contexte.bloc_courant());
+	}
+
+	return ret;
+}
+
 [[nodiscard]] static llvm::Value *accede_element_tableau(
 		ContexteGenerationCode &contexte,
 		llvm::Value *structure,
@@ -569,7 +597,6 @@ static llvm::Value *genere_code_llvm(
 		case type_noeud::DECLARATION_COROUTINE:
 		case type_noeud::SINON:
 		case type_noeud::OPERATION_COMP_CHAINEE:
-		case type_noeud::ACCES_MEMBRE_UNION:
 		{
 			/* À FAIRE */
 			return nullptr;
@@ -922,12 +949,12 @@ static llvm::Value *genere_code_llvm(
 				return valeur_enum(donnees_structure, nom_membre, builder);
 			}
 
+			auto valeur = genere_code_llvm(structure, contexte, true);
+
 			auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 			auto const &donnees_membres = iter->second;
 			auto const index_membre = donnees_membres.index_membre;
-
-			auto valeur = genere_code_llvm(structure, contexte, true);
 
 			llvm::Value *ret;
 
@@ -950,6 +977,31 @@ static llvm::Value *genere_code_llvm(
 			}
 
 			return ret;
+		}
+		case type_noeud::ACCES_MEMBRE_UNION:
+		{
+			auto structure = b->enfants.front();
+			auto membre = b->enfants.back();
+			auto const &nom_membre = membre->chaine();
+
+			auto const &index_type = structure->index_type;
+			auto type_structure = contexte.typeuse[index_type];
+			auto index_structure = long(type_structure.type_base() >> 8);
+			auto &donnees_structure = contexte.donnees_structure(index_structure);
+
+			auto valeur = genere_code_llvm(structure, contexte, true);
+
+			if (expr_gauche) {
+				auto &dm = donnees_structure.donnees_membres.trouve(nom_membre)->second;
+				auto pointeur_membre_actif = accede_membre_structure(contexte, valeur, 1);
+				auto valeur_active = llvm::ConstantInt::get(
+							llvm::Type::getInt32Ty(contexte.contexte),
+							static_cast<unsigned>(dm.index_membre + 1));
+
+				new llvm::StoreInst(valeur_active, pointeur_membre_actif, contexte.bloc_courant());
+			}
+
+			return accede_membre_union(contexte, valeur, donnees_structure, nom_membre, !expr_gauche);
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
 		{
@@ -2172,6 +2224,7 @@ static llvm::Value *genere_code_llvm(
 			converti_type_llvm(contexte, donnees_structure.index_type);
 			return nullptr;
 		}
+		case type_noeud::DISCR_UNION:
 		case type_noeud::DISCR_ENUM:
 		case type_noeud::DISCR:
 		{
@@ -2188,7 +2241,7 @@ static llvm::Value *genere_code_llvm(
 
 			auto ds = static_cast<DonneesStructure *>(nullptr);
 
-			if (b->type == type_noeud::DISCR_ENUM) {
+			if (b->type != type_noeud::DISCR) {
 				auto const &dt = contexte.typeuse[expression->index_type];
 				auto id = static_cast<long>(dt.type_base() >> 8);
 				ds = &contexte.donnees_structure(id);
@@ -2230,7 +2283,12 @@ static llvm::Value *genere_code_llvm(
 			auto builder = llvm::IRBuilder<>(contexte.contexte);
 			builder.SetInsertPoint(contexte.bloc_courant());
 
-			auto valeur_expression = genere_code_llvm(expression, contexte, false);
+			auto valeur_expression = genere_code_llvm(expression, contexte, b->type == type_noeud::DISCR_UNION);
+			auto ptr_structure = valeur_expression;
+
+			if (b->type == type_noeud::DISCR_UNION) {
+				valeur_expression = accede_membre_structure(contexte, valeur_expression, 1, true);
+			}
 
 			builder.CreateBr(donnees_paires.front().bloc_de_la_condition);
 
@@ -2241,6 +2299,9 @@ static llvm::Value *genere_code_llvm(
 
 				contexte.bloc_courant(donnees.bloc_de_la_condition);
 				builder.SetInsertPoint(contexte.bloc_courant());
+
+				// pour les unions
+				contexte.empile_nombre_locales();
 
 				if (enf0->type != type_noeud::SINON) {
 					auto feuilles = dls::tableau<base *>();
@@ -2254,6 +2315,16 @@ static llvm::Value *genere_code_llvm(
 
 						if (b->type == type_noeud::DISCR_ENUM) {
 							valeur_f = valeur_enum(*ds, f->chaine(), builder);
+						}
+						else if (b->type == type_noeud::DISCR_UNION) {
+							auto iter_dm = ds->donnees_membres.trouve(f->chaine());
+							auto const &dm = iter_dm->second;
+							valeur_f = builder.getInt32(static_cast<unsigned>(dm.index_membre + 1));
+
+							auto dv = DonneesVariable{};
+							dv.valeur = accede_membre_union(contexte, ptr_structure, *ds, f->chaine());
+
+							contexte.pousse_locale(f->chaine(), dv);
 						}
 						else {
 							valeur_f = genere_code_llvm(f, contexte, false);
@@ -2320,15 +2391,13 @@ static llvm::Value *genere_code_llvm(
 
 				enf1->valeur_calculee = bloc_post_discr;
 				genere_code_llvm(enf1, contexte, false);
+
+				// pour les unions
+				contexte.depile_nombre_locales();
 			}
 
 			contexte.bloc_courant(bloc_post_discr);
 
-			return nullptr;
-		}
-		case type_noeud::DISCR_UNION:
-		{
-			/* À FAIRE */
 			return nullptr;
 		}
 		case type_noeud::RETIENS:
