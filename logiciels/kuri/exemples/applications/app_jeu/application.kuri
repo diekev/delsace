@@ -11,28 +11,17 @@ importe Fondation
 
 # Puisqu'on ne peut pas passer de contexte aux méthodes de « file » via les
 # fonctions de rappel, cette structure est spécialisée pour les file d'évènements.
+# Cependant elle est limitée à un certain nombre d'événement
 struct FileÉvènement {
-	tampon : []Évènement
+	tampon : [32]Évènement
 	taille : z64
-}
-
-#!nulctx fonc crée_file() : *FileÉvènement
-{
-    dyn q = loge FileÉvènement
-    retourne q
-}
-
-#!nulctx fonc decrée_file(dyn q : *FileÉvènement) : rien
-{
-	q.taille = 0
-    déloge q.tampon
-    déloge q
 }
 
 #!nulctx fonc enfile(dyn q : *FileÉvènement, évènement : Évènement) : rien
 {
-    si q.taille == q.tampon.taille {
-		reloge q.tampon : [q.tampon.taille + 1]Évènement
+    si q.taille >= 32 {
+        # À FAIRE: erreur?
+        retourne
     }
 
     index = q.taille
@@ -76,7 +65,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
 {
     # À FAIRE : imprime n'a pas de contexte.
     #soit chn = converti_chaine_c(desc);
-    #imprime("Erreur ", erreur, " : ", chn, '\n');
+    #imprime("Erreur ", erreur, " : ", chn, "\n");
 }
 
 #!nulctx fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) : rien
@@ -215,7 +204,7 @@ fonc dessine_fenetre(app : &Application) : rien
 
 fonc traite_évènement(dyn app : &Application, évènement : Évènement) : rien
 {
-    #imprime(évènement, '\n');
+    #imprime(évènement, "\n");
 
     si évènement.type == type_évènement.REDIMENSION {
         app.largeur = transtype(évènement.delta_x : z32)
@@ -316,8 +305,8 @@ fonc boucle_principale(app : &Application) : rien
         # À FAIRE : l'impression de chaines contenant des caractères échappés
         # ont un déborderment de tampon car l'échappement est compté comme un
         # caractère en soi.
-        imprime(app, '\n', '\n')
-        imprime("Mémoire utilisée : ", mémoire_utilisée(), 'o', '\n', '\n')
+        imprime(app, "\n\n")
+        imprime("Mémoire utilisée : ", mémoire_utilisée(), "o\n\n")
 
 	    glfwWaitEvents()
 
@@ -335,8 +324,9 @@ fonc lance_application(dyn app : &Application) : z32
     }
 
     # initialise la file d'évènements
+    dyn file_évènement : FileÉvènement
     nonsûr {
-        VG_file_évènements = crée_file()
+        VG_file_évènements = @file_évènement
     }
 
     dyn largeur : z32 = TAILLE_TUILE * TUILES_X
@@ -349,7 +339,7 @@ fonc lance_application(dyn app : &Application) : z32
     #    hauteur = donnees_moniteur.hauteur;
     #}
 
-    #imprime(mémoire(donnees_moniteur), '\n');
+    #imprime(mémoire(donnees_moniteur), "\n");
 
     soit titre = "Créathèque"
 
@@ -380,8 +370,6 @@ fonc lance_application(dyn app : &Application) : z32
     boucle_principale(app)
 
     issitialise_tampon_dessin()
-
-    decrée_file(VG_file_évènements)
 
     glfwDestroyWindow(fenetre)
 
