@@ -808,7 +808,7 @@ static llvm::Value *genere_code_llvm(
 			auto ret = genere_code_llvm(bloc, contexte, true);
 
 			/* Ajoute une instruction de retour si la dernière n'en est pas une. */
-			if ((ret != nullptr) && !llvm::isa<llvm::ReturnInst>(*ret)) {
+			if (ret == nullptr || !llvm::isa<llvm::ReturnInst>(*ret)) {
 				genere_code_extra_pre_retour(contexte);
 
 				llvm::ReturnInst::Create(
