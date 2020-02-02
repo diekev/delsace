@@ -345,11 +345,15 @@ enum {
 	/* copie le pointeur de la valeur vers le type eini */
 	auto ptr_eini = accede_membre_structure(contexte, alloc_eini, POINTEUR_EINI);
 
-	/* Dans le cas des constantes, nous pouvons directement utiliser la valeur,
-	 * car il s'agit de l'adresse où elle est stockée. */
 	if (llvm::isa<llvm::Constant>(valeur) == false) {
 		auto charge_valeur = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 		valeur = charge_valeur->getPointerOperand();
+	}
+	else {
+		auto type_donnees_llvm = converti_type_llvm(contexte, donnees_type);
+		auto alloc_const = new llvm::AllocaInst(type_donnees_llvm, 0, "", contexte.bloc_courant());
+		new llvm::StoreInst(valeur, alloc_const, contexte.bloc_courant());
+		valeur = alloc_const;
 	}
 
 	auto transtype = new llvm::BitCastInst(
@@ -362,12 +366,12 @@ enum {
 	stocke->setAlignment(8);
 
 	/* copie le pointeur vers les infos du type du eini */
-	auto tpe_eini = accede_membre_structure(contexte, alloc_eini, TYPE_EINI);
+//	auto tpe_eini = accede_membre_structure(contexte, alloc_eini, TYPE_EINI);
 
-	auto ptr_info_type = cree_info_type(contexte, donnees_type);
+//	auto ptr_info_type = cree_info_type(contexte, donnees_type);
 
-	stocke = new llvm::StoreInst(ptr_info_type, tpe_eini, contexte.bloc_courant());
-	stocke->setAlignment(8);
+//	stocke = new llvm::StoreInst(ptr_info_type, tpe_eini, contexte.bloc_courant());
+//	stocke->setAlignment(8);
 
 	/* charge et retourne */
 	if (charge_) {
@@ -384,45 +388,113 @@ enum {
 		base *enfant,
 		bool expr_gauche)
 {
-	// À FAIRE(transformation)
-	//auto conversion = (enfant->drapeaux & MASQUE_CONVERSION) != 0;
-	auto valeur_enfant = genere_code_llvm(enfant, contexte, expr_gauche);
+	return genere_code_llvm(enfant, contexte, expr_gauche);
+}
 
-//	if (conversion) {
-//		auto &dt = contexte.typeuse[enfant->index_type];
+[[nodiscard]] static llvm::Value *applique_transformation(
+		ContexteGenerationCode &contexte,
+		base *b,
+		bool expr_gauche)
+{
+	auto &dt = contexte.typeuse[b->index_type];
+	auto valeur = static_cast<llvm::Value *>(nullptr);
 
-//		if ((enfant->drapeaux & CONVERTI_TABLEAU) != 0) {
-//			valeur_enfant = converti_vers_tableau_dyn(contexte, valeur_enfant, dt, false);
-//		}
+	auto builder = llvm::IRBuilder<>(contexte.contexte);
+	builder.SetInsertPoint(contexte.bloc_courant());
 
-//		if ((enfant->drapeaux & CONVERTI_EINI) != 0) {
-//			valeur_enfant = converti_vers_eini(contexte, valeur_enfant, dt, false);
-//		}
+	switch (b->transformation.type) {
+		default:
+		case TypeTransformation::INUTILE:
+		case TypeTransformation::PREND_PTR_RIEN:
+		{
+			valeur = genere_code_llvm(b, contexte, expr_gauche);
+			break;
+		}
+		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
+		{
+			/* À FAIRE: clarifie le type de destination */
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_EINI:
+		{
+			valeur = genere_code_llvm(b, contexte, true);
+			valeur = converti_vers_eini(contexte, valeur, dt, !expr_gauche);
+			break;
+		}
+		case TypeTransformation::EXTRAIT_EINI:
+		{
+			valeur = genere_code_llvm(b, contexte, true);
+			valeur = accede_membre_structure(contexte, valeur, POINTEUR_EINI, !expr_gauche);
+			// À FAIRE: typage
+			valeur = builder.CreateCast(llvm::Instruction::BitCast, valeur, builder.getInt32Ty()->getPointerTo());
+			valeur = builder.CreateLoad(valeur, "");
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_TABL_OCTET:
+		{
+			auto type_base = dt.type_base();
 
-//		if ((enfant->drapeaux & EXTRAIT_EINI) != 0) {
-//			auto ptr_valeur = accede_membre_structure(contexte, valeur_enfant, POINTEUR_EINI);
+			switch (type_base & 0xff) {
+				default:
+				{
+					break;
+				}
+				case TypeLexeme::POINTEUR:
+				{
+					break;
+				}
+				case TypeLexeme::CHAINE:
+				{
+					break;
+				}
+				case TypeLexeme::TABLEAU:
+				{
+					//auto taille = static_cast<int>(type_base >> 8);
 
-//			/* déréfence ce pointeur */
-//			auto charge = new llvm::LoadInst(ptr_valeur, "", false, contexte.bloc_courant());
-//			charge->setAlignment(8);
+					break;
+				}
+			}
 
-//			/* transtype le pointeur vers le bon type */
-//			auto dt_vers = DonneesTypeFinal{};
-//			dt_vers.pousse(id_morceau::POINTEUR);
-//			dt_vers.pousse(contexte.typeuse[enfant->index_type]);
+			break;
+		}
+		case TypeTransformation::EXTRAIT_TABL_OCTET:
+		{
+			/* À FAIRE */
+			break;
+		}
+		case TypeTransformation::CONVERTI_TABLEAU:
+		{
+			valeur = converti_vers_tableau_dyn(contexte, valeur, dt, !expr_gauche);
+			break;
+		}
+		case TypeTransformation::CONSTRUIT_EINI_TABLEAU:
+		{
+//			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+//			index_dt = contexte.typeuse.type_tableau_pour(index_dt);
 
-//			auto type_llvm = converti_type_llvm(contexte, dt_vers);
-//			valeur_enfant = new llvm::BitCastInst(charge, type_llvm, "", contexte.bloc_courant());
+			break;
+		}
+		case TypeTransformation::FONCTION:
+		{
+			/* À FAIRE : typage */
 
-//			/* déréfence ce pointeur : après la portée */
-//		}
+			break;
+		}
+		case TypeTransformation::PREND_REFERENCE:
+		{
+			break;
+		}
+		case TypeTransformation::DEREFERENCE:
+		{
+			if (!expr_gauche) {
+				valeur = builder.CreateLoad(valeur, "");
+			}
 
-//		auto charge = new llvm::LoadInst(valeur_enfant, "", contexte.bloc_courant());
-//		//charge->setAlignment(8);
-//		valeur_enfant = charge;
-//	}
+			break;
+		}
+	}
 
-	return valeur_enfant;
+	return valeur;
 }
 
 template <typename Conteneur>
@@ -448,7 +520,7 @@ llvm::Value *cree_appel(
 	std::transform(conteneur.debut(), conteneur.fin(), debut,
 				   [&](base *noeud_enfant)
 	{
-		return genere_code_enfant(contexte, noeud_enfant, false);
+		return applique_transformation(contexte, noeud_enfant, false);
 	});
 
 	llvm::ArrayRef<llvm::Value *> args(parametres);
@@ -1029,7 +1101,7 @@ static llvm::Value *genere_code_llvm(
 			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 			 * la variable sur la pile et celle de stockage de la valeur soit côte à
 			 * côte. */
-			auto valeur = genere_code_enfant(contexte, expression, false);
+			auto valeur = applique_transformation(contexte, expression, false);
 
 			auto alloc = genere_code_llvm(variable, contexte, true);
 
