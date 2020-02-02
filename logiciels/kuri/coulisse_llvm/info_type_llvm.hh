@@ -24,13 +24,32 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#pragma GCC diagnostic ignored "-Wuseless-cast"
+#include <llvm/IR/IRBuilder.h>
+#pragma GCC diagnostic pop
+
+#include "biblinternes/structures/vue_chaine_compacte.hh"
+
 namespace llvm {
 class Value;
 }
 
 struct ContexteGenerationCode;
+struct DonneesStructure;
 struct DonneesTypeFinal;
 
 llvm::Value *cree_info_type(
 		ContexteGenerationCode &contexte,
 		DonneesTypeFinal &donnees_type);
+
+llvm::Value *valeur_enum(
+		DonneesStructure const &ds,
+		dls::vue_chaine_compacte const &nom,
+		llvm::IRBuilder<> &builder);

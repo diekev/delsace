@@ -916,6 +916,12 @@ static llvm::Value *genere_code_llvm(
 
 			auto &donnees_structure = contexte.donnees_structure(index_structure);
 
+			if (donnees_structure.est_enum) {
+				auto builder = llvm::IRBuilder<>(contexte.contexte);
+				builder.SetInsertPoint(contexte.bloc_courant());
+				return valeur_enum(donnees_structure, nom_membre, builder);
+			}
+
 			auto const iter = donnees_structure.donnees_membres.trouve(nom_membre);
 
 			auto const &donnees_membres = iter->second;
@@ -2166,6 +2172,7 @@ static llvm::Value *genere_code_llvm(
 			converti_type_llvm(contexte, donnees_structure.index_type);
 			return nullptr;
 		}
+		case type_noeud::DISCR_ENUM:
 		case type_noeud::DISCR:
 		{
 			/* le premier enfant est l'expression, les suivants les paires */
@@ -2177,6 +2184,14 @@ static llvm::Value *genere_code_llvm(
 
 			if (nombre_enfants <= 1) {
 				return nullptr;
+			}
+
+			auto ds = static_cast<DonneesStructure *>(nullptr);
+
+			if (b->type == type_noeud::DISCR_ENUM) {
+				auto const &dt = contexte.typeuse[expression->index_type];
+				auto id = static_cast<long>(dt.type_base() >> 8);
+				ds = &contexte.donnees_structure(id);
 			}
 
 			struct DonneesPaireDiscr {
@@ -2235,9 +2250,17 @@ static llvm::Value *genere_code_llvm(
 					valeurs_conditions.reserve(feuilles.taille());
 
 					for (auto f : feuilles) {
-						auto valeur_f = genere_code_llvm(f, contexte, false);
+						auto valeur_f = static_cast<llvm::Value *>(nullptr);
 
-						if (op->est_basique) {
+						if (b->type == type_noeud::DISCR_ENUM) {
+							valeur_f = valeur_enum(*ds, f->chaine(), builder);
+						}
+						else {
+							valeur_f = genere_code_llvm(f, contexte, false);
+						}
+
+						// op est nul pour les énums
+						if (!op || op->est_basique) {
 							auto condition = llvm::ICmpInst::Create(
 										llvm::Instruction::ICmp,
 										llvm::CmpInst::Predicate::ICMP_EQ,
@@ -2301,11 +2324,6 @@ static llvm::Value *genere_code_llvm(
 
 			contexte.bloc_courant(bloc_post_discr);
 
-			return nullptr;
-		}
-		case type_noeud::DISCR_ENUM:
-		{
-			/* À FAIRE */
 			return nullptr;
 		}
 		case type_noeud::DISCR_UNION:

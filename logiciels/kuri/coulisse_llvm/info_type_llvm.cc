@@ -384,3 +384,19 @@ llvm::Value *cree_info_type(
 
 	return valeur;
 }
+
+llvm::Value *valeur_enum(
+		DonneesStructure const &ds,
+		dls::vue_chaine_compacte const &nom,
+		llvm::IRBuilder<> &builder)
+{
+	auto &dm = ds.donnees_membres.trouve(nom)->second;
+
+	if (dm.resultat_expression.type == type_expression::ENTIER) {
+		return builder.getInt32(static_cast<unsigned>(dm.resultat_expression.entier));
+	}
+
+	return llvm::ConstantFP::get(
+							builder.getDoubleTy(),
+							dm.resultat_expression.reel);
+}
