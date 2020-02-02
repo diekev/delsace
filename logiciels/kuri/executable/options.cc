@@ -42,6 +42,9 @@ R"(kuri [OPTIONS...] FICHIER
 --émet-arbre
 	émet l'arbre syntactic
 
+--llvm
+	utilisation de la coulisse LLVM
+
 -m, --mémoire
 	imprime la mémoire utilisée
 
@@ -143,6 +146,9 @@ OptionsCompilation genere_options_compilation(int argc, char **argv)
 		}
 		else if (std::strcmp(argv[i], "--bit32") == 0) {
 			opts.bit32 = true;
+		}
+		else if (std::strcmp(argv[i], "--llvm") == 0) {
+			opts.coulisse_llvm = true;
 		}
 		else {
 			if (argv[i][0] == '-') {

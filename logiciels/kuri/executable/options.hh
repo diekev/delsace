@@ -46,6 +46,7 @@ struct OptionsCompilation {
 	bool imprime_aide = false;
 	bool erreur = false;
 	bool bit32 = false;
+	bool coulisse_llvm = false;
 
 	NiveauOptimisation optimisation = NiveauOptimisation::Aucun;
 	char pad[6];

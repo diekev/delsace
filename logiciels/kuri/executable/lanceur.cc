@@ -427,8 +427,7 @@ int main(int argc, char *argv[])
 		}
 
 #ifdef AVEC_LLVM
-		auto coulisse_LLVM = true;
-		if (coulisse_LLVM) {
+		if (ops.coulisse_llvm) {
 			auto const triplet_cible = llvm::sys::getDefaultTargetTriple();
 
 			initialise_llvm();
