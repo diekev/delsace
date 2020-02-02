@@ -2280,7 +2280,7 @@ void genere_code_C(
 			contexte.non_sur(false);
 			break;
 		}
-		case type_noeud::TABLEAU:
+		case type_noeud::TABLEAU_ARGS_VARIADIQUES:
 		{
 			/* utilisé principalement pour convertir les listes d'arguments
 			 * variadics en un tableau */

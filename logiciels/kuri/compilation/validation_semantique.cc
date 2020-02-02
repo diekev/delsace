@@ -911,7 +911,7 @@ static void performe_validation_semantique(
 			auto nombre_args_simples = candidate->exprs.taille();
 			auto nombre_args_variadics = nombre_args_simples;
 
-			if (!candidate->exprs.est_vide() && candidate->exprs.back()->type == type_noeud::TABLEAU) {
+			if (!candidate->exprs.est_vide() && candidate->exprs.back()->type == type_noeud::TABLEAU_ARGS_VARIADIQUES) {
 				/* ne compte pas le tableau */
 				nombre_args_simples -= 1;
 				nombre_args_variadics = candidate->transformations.taille();
@@ -2163,7 +2163,7 @@ static void performe_validation_semantique(
 			break;
 		}
 		case type_noeud::DIFFERE:
-		case type_noeud::TABLEAU:
+		case type_noeud::TABLEAU_ARGS_VARIADIQUES:
 		{
 			valides_enfants(b, contexte, true);
 			break;

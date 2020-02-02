@@ -2108,7 +2108,7 @@ static llvm::Value *genere_code_llvm(
 			contexte.non_sur(false);
 			return nullptr;
 		}
-		case type_noeud::TABLEAU:
+		case type_noeud::TABLEAU_ARGS_VARIADIQUES:
 		{
 			auto taille_tableau = b->enfants.taille();
 
