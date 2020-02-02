@@ -383,14 +383,6 @@ enum {
 	return alloc_eini;
 }
 
-[[nodiscard]] static llvm::Value *genere_code_enfant(
-		ContexteGenerationCode &contexte,
-		base *enfant,
-		bool expr_gauche)
-{
-	return genere_code_llvm(enfant, contexte, expr_gauche);
-}
-
 [[nodiscard]] static llvm::Value *applique_transformation(
 		ContexteGenerationCode &contexte,
 		base *b,
@@ -412,7 +404,32 @@ enum {
 		}
 		case TypeTransformation::AUGMENTE_TAILLE_TYPE:
 		{
-			/* À FAIRE: clarifie le type de destination */
+			auto &dt_cible = contexte.typeuse[b->transformation.index_type_cible];
+			auto type_cible = converti_type_llvm(contexte, dt_cible);
+
+			auto inst = llvm::Instruction::CastOps{};
+
+			if (est_type_entier_naturel(dt_cible.type_base())) {
+				inst = llvm::Instruction::ZExt;
+			}
+			else if (est_type_entier_relatif(dt_cible.type_base())) {
+				inst = llvm::Instruction::SExt;
+			}
+			else {
+				inst = llvm::Instruction::FPExt;
+			}
+
+			valeur = genere_code_llvm(b, contexte, true);
+
+			if (llvm::isa<llvm::Constant>(valeur)) {
+				auto type_donnees_llvm = converti_type_llvm(contexte, dt);
+				auto alloc_const = builder.CreateAlloca(type_donnees_llvm, 0u);
+				builder.CreateStore(valeur, alloc_const);
+				valeur = alloc_const;
+			}
+
+			valeur = builder.CreateCast(inst, valeur, type_cible->getPointerTo());
+			valeur = builder.CreateLoad(valeur, "");
 			break;
 		}
 		case TypeTransformation::CONSTRUIT_EINI:
@@ -425,8 +442,9 @@ enum {
 		{
 			valeur = genere_code_llvm(b, contexte, true);
 			valeur = accede_membre_structure(contexte, valeur, POINTEUR_EINI, !expr_gauche);
-			// À FAIRE: typage
-			valeur = builder.CreateCast(llvm::Instruction::BitCast, valeur, builder.getInt32Ty()->getPointerTo());
+			auto &dt_cible = contexte.typeuse[b->transformation.index_type_cible];
+			auto type_cible = converti_type_llvm(contexte, dt_cible);
+			valeur = builder.CreateCast(llvm::Instruction::BitCast, valeur, type_cible->getPointerTo());
 			valeur = builder.CreateLoad(valeur, "");
 			break;
 		}
@@ -464,13 +482,33 @@ enum {
 		}
 		case TypeTransformation::CONVERTI_TABLEAU:
 		{
+			valeur = genere_code_llvm(b, contexte, true);
 			valeur = converti_vers_tableau_dyn(contexte, valeur, dt, !expr_gauche);
 			break;
 		}
 		case TypeTransformation::CONSTRUIT_EINI_TABLEAU:
 		{
-//			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
-//			index_dt = contexte.typeuse.type_tableau_pour(index_dt);
+			/* À FAIRE: LLVM crash à cause de ce code, mais quand nous faisons
+			 * la transformation manuellement, comme ceci :
+			 * tabl_fixe : [3]r32 = ...
+			 * tabl_dyn : []r32 = tabl_fixe
+			 * eini_tabl : eini = tabl_dyn
+			 *
+			 * le crash disparait. Il faudra analyser le code généré, mais le
+			 * crash survient lors de l'impression du code intermédiaire...
+			 */
+			valeur = genere_code_llvm(b, contexte, true);
+
+			/* construit un tableau dynamique */
+			valeur = converti_vers_tableau_dyn(contexte, valeur, dt, true);
+
+			auto deref = dt.dereference();
+			auto dt_tabl_dyn = DonneesTypeFinal{};
+			dt_tabl_dyn.pousse(TypeLexeme::TABLEAU);
+			dt_tabl_dyn.pousse(deref);
+
+			/* converti en un eini */
+			valeur = converti_vers_eini(contexte, valeur, dt_tabl_dyn, !expr_gauche);
 
 			break;
 		}
@@ -1080,23 +1118,6 @@ static llvm::Value *genere_code_llvm(
 
 			auto variable = b->enfants.front();
 			auto expression = b->enfants.back();
-
-			// À FAIRE(transformation)
-
-//			auto compatibilite = std::any_cast<niveau_compat>(b->valeur_calculee);
-
-//			if ((compatibilite & niveau_compat::converti_tableau) != niveau_compat::aucune) {
-//				expression->drapeaux |= CONVERTI_TABLEAU;
-//			}
-
-//			if ((compatibilite & niveau_compat::converti_eini) != niveau_compat::aucune) {
-//				expression->drapeaux |= CONVERTI_EINI;
-//			}
-
-//			if ((compatibilite & niveau_compat::extrait_eini) != niveau_compat::aucune) {
-//				expression->drapeaux |= EXTRAIT_EINI;
-//				expression->index_type = variable->index_type;
-//			}
 
 			/* Génère d'abord le code de l'enfant afin que l'instruction d'allocation de
 			 * la variable sur la pile et celle de stockage de la valeur soit côte à
@@ -2209,7 +2230,7 @@ static llvm::Value *genere_code_llvm(
 			auto index = 0ul;
 
 			for (auto enfant : b->enfants) {
-				auto valeur_enfant = genere_code_enfant(contexte, enfant, false);
+				auto valeur_enfant = applique_transformation(contexte, enfant, false);
 
 				auto index_tableau = accede_element_tableau(
 										 contexte,
@@ -2244,7 +2265,7 @@ static llvm::Value *genere_code_llvm(
 			auto index = 0ul;
 
 			for (auto f : feuilles) {
-				auto valeur = genere_code_enfant(contexte, f, false);
+				auto valeur = applique_transformation(contexte, f, false);
 
 				auto index_tableau = accede_element_tableau(
 										 contexte,
