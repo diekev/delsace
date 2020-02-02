@@ -68,7 +68,6 @@ using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - conversion tableau octet
- * - discr
  * - trace de la mémoire utilisée
  * - coroutine, retiens
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
@@ -590,12 +589,12 @@ static llvm::Value *genere_code_llvm(
 		case type_noeud::PAIRE_DISCR:
 		case type_noeud::RACINE:
 		case type_noeud::RETOUR:
+		case type_noeud::SINON:
 		{
 			/* RÀF pour ces types de noeuds */
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_COROUTINE:
-		case type_noeud::SINON:
 		case type_noeud::OPERATION_COMP_CHAINEE:
 		{
 			/* À FAIRE */
@@ -2424,9 +2423,8 @@ static void traverse_graphe_pour_generation_code(
 			continue;
 		}
 
-		/* À FAIRE : dépendances cycliques :
-		 * - types qui s'incluent indirectement (listes chainées intrusives)
-		 * - fonctions recursives
+		/* évite les boucles infinies dues aux dépendances cycliques de types
+		 * et fonctions recursives
 		 */
 		if (relation.noeud_fin->fut_visite) {
 			continue;

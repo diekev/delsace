@@ -2779,9 +2779,8 @@ static void traverse_graphe_pour_typedefs(
 			continue;
 		}
 
-		/* À FAIRE : dépendances cycliques :
-		 * - types qui s'incluent indirectement (listes chainées intrusives)
-		 * - fonctions recursives
+		/* évite les boucles infinies dues aux dépendances cycliques de types
+		 * et fonctions recursives
 		 */
 		if (relation.noeud_fin->fut_visite) {
 			continue;
