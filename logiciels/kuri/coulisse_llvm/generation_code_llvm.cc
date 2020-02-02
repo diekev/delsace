@@ -2153,9 +2153,8 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::CONSTRUIT_TABLEAU:
 		{
-			/* À FAIRE : le stockage n'a pas l'air de fonctionner. */
 			dls::tableau<base *> feuilles;
-			rassemble_feuilles(b, feuilles);
+			rassemble_feuilles(b->enfants.front(), feuilles);
 
 			/* alloue de la place pour le tableau */
 			auto &dt = contexte.typeuse[b->index_type];
@@ -2185,7 +2184,8 @@ static llvm::Value *genere_code_llvm(
 				stocke->setAlignment(alignement(contexte, dt));
 			}
 
-			return pointeur_tableau;
+			assert(expr_gauche == false);
+			return new llvm::LoadInst(pointeur_tableau, "", false, contexte.bloc_courant());
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
 		{
