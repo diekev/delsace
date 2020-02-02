@@ -2168,7 +2168,139 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::DISCR:
 		{
-			/* À FAIRE */
+			/* le premier enfant est l'expression, les suivants les paires */
+
+			auto nombre_enfants = b->enfants.taille();
+			auto iter_enfant = b->enfants.debut();
+			auto expression = *iter_enfant++;
+			auto op = b->op;
+
+			if (nombre_enfants <= 1) {
+				return nullptr;
+			}
+
+			struct DonneesPaireDiscr {
+				base *paire = nullptr;
+				llvm::BasicBlock *bloc_de_la_condition = nullptr;
+				llvm::BasicBlock *bloc_si_vrai = nullptr;
+				llvm::BasicBlock *bloc_si_faux = nullptr;
+			};
+
+			auto bloc_post_discr = cree_bloc(contexte, "post_discr");
+
+			dls::tableau<DonneesPaireDiscr> donnees_paires;
+			donnees_paires.reserve(nombre_enfants);
+
+			for (auto i = 1l; i < nombre_enfants; ++i) {
+				auto paire = *iter_enfant++;
+				auto enf0 = paire->enfants.front();
+
+				auto donnees = DonneesPaireDiscr();
+				donnees.paire = paire;
+				donnees.bloc_de_la_condition = cree_bloc(contexte, "bloc_de_la_condition");
+
+				if (enf0->type != type_noeud::SINON) {
+					donnees.bloc_si_vrai = cree_bloc(contexte, "bloc_si_vrai");
+				}
+
+				if (!donnees_paires.est_vide()) {
+					donnees_paires.back().bloc_si_faux = donnees.bloc_de_la_condition;
+				}
+
+				donnees_paires.pousse(donnees);
+			}
+
+			donnees_paires.back().bloc_si_faux = bloc_post_discr;
+
+			auto builder = llvm::IRBuilder<>(contexte.contexte);
+			builder.SetInsertPoint(contexte.bloc_courant());
+
+			auto valeur_expression = genere_code_llvm(expression, contexte, false);
+
+			builder.CreateBr(donnees_paires.front().bloc_de_la_condition);
+
+			for (auto &donnees : donnees_paires) {
+				auto paire = donnees.paire;
+				auto enf0 = paire->enfants.front();
+				auto enf1 = paire->enfants.back();
+
+				contexte.bloc_courant(donnees.bloc_de_la_condition);
+				builder.SetInsertPoint(contexte.bloc_courant());
+
+				if (enf0->type != type_noeud::SINON) {
+					auto feuilles = dls::tableau<base *>();
+					rassemble_feuilles(enf0, feuilles);
+
+					auto valeurs_conditions = dls::tableau<llvm::Value *>();
+					valeurs_conditions.reserve(feuilles.taille());
+
+					for (auto f : feuilles) {
+						auto valeur_f = genere_code_llvm(f, contexte, false);
+
+						if (op->est_basique) {
+							auto condition = llvm::ICmpInst::Create(
+										llvm::Instruction::ICmp,
+										llvm::CmpInst::Predicate::ICMP_EQ,
+										valeur_expression,
+										valeur_f,
+										"",
+										contexte.bloc_courant());
+
+							valeurs_conditions.pousse(condition);
+						}
+						else {
+							auto fonction = contexte.module_llvm->getFunction(op->nom_fonction.c_str());
+
+							std::vector<llvm::Value *> parametres(3);
+
+							// À FAIRE : voir si le contexte est nécessaire
+							auto valeur_contexte = contexte.valeur_locale("contexte");
+							parametres[0] = new llvm::LoadInst(valeur_contexte, "", false, contexte.bloc_courant());
+							parametres[1] = valeur_expression;
+							parametres[2] = valeur_f;
+
+							auto valeur_res = builder.CreateCall(fonction, parametres);
+
+							auto condition = llvm::ICmpInst::Create(
+										llvm::Instruction::ICmp,
+										llvm::CmpInst::Predicate::ICMP_EQ,
+										valeur_res,
+										builder.getInt1(true),
+										"",
+										contexte.bloc_courant());
+
+							valeurs_conditions.pousse(condition);
+						}
+					}
+
+					// construit la condition finale
+					auto condition = valeurs_conditions.front();
+
+					for (auto i = 1; i < valeurs_conditions.taille(); ++i) {
+						condition = llvm::BinaryOperator::Create(
+									llvm::Instruction::Or,
+									condition,
+									valeurs_conditions[i],
+									"",
+									contexte.bloc_courant());
+					}
+
+					builder.CreateCondBr(condition, donnees.bloc_si_vrai, donnees.bloc_si_faux);
+				}
+
+				if (donnees.bloc_si_vrai) {
+					contexte.bloc_courant(donnees.bloc_si_vrai);
+				}
+				else {
+					contexte.bloc_courant(donnees.bloc_de_la_condition);
+				}
+
+				enf1->valeur_calculee = bloc_post_discr;
+				genere_code_llvm(enf1, contexte, false);
+			}
+
+			contexte.bloc_courant(bloc_post_discr);
+
 			return nullptr;
 		}
 		case type_noeud::DISCR_ENUM:
