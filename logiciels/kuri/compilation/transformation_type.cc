@@ -84,7 +84,7 @@ TransformationType cherche_transformation(
 
 	if (est_type_entier_relatif(dt_de.type_base()) && est_type_entier_relatif(dt_vers.type_base())) {
 		if (taille_octet_type(contexte, dt_de) < taille_octet_type(contexte, dt_vers)) {
-			return TypeTransformation::AUGMENTE_TAILLE_TYPE;
+			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
@@ -92,7 +92,7 @@ TransformationType cherche_transformation(
 
 	if (est_type_entier_naturel(dt_de.type_base()) && est_type_entier_naturel(dt_vers.type_base())) {
 		if (taille_octet_type(contexte, dt_de) < taille_octet_type(contexte, dt_vers)) {
-			return TypeTransformation::AUGMENTE_TAILLE_TYPE;
+			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
@@ -126,7 +126,7 @@ TransformationType cherche_transformation(
 		}
 
 		if (taille_octet_type(contexte, dt_de) < taille_octet_type(contexte, dt_vers)) {
-			return TypeTransformation::AUGMENTE_TAILLE_TYPE;
+			return { TypeTransformation::AUGMENTE_TAILLE_TYPE, type_vers };
 		}
 
 		return TypeTransformation::IMPOSSIBLE;
@@ -141,7 +141,7 @@ TransformationType cherche_transformation(
 	}
 
 	if (type_de == typeuse[TypeBase::EINI]) {
-		return TypeTransformation::EXTRAIT_EINI;
+		return { TypeTransformation::EXTRAIT_EINI, type_vers };
 	}
 
 	if (dt_vers.type_base() == TypeLexeme::FONC) {

@@ -50,11 +50,17 @@ const char *chaine_transformation(TypeTransformation type);
 struct TransformationType {
 	TypeTransformation type{};
 	dls::vue_chaine_compacte nom_fonction{};
+	long index_type_cible = -1;
 
 	TransformationType() = default;
 
 	TransformationType(TypeTransformation type_)
 		: type(type_)
+	{}
+
+	TransformationType(TypeTransformation type_, long idx_type)
+		: type(type_)
+		, index_type_cible(idx_type)
 	{}
 
 	TransformationType(dls::vue_chaine_compacte nom_fonction_)
