@@ -299,11 +299,7 @@ enum {
 							donnees_type.type_llvm(),
 							0ul);
 
-	auto charge = new llvm::LoadInst(premier_elem, "", contexte.bloc_courant());
-	charge->setAlignment(8);
-	auto addresse = charge->getPointerOperand();
-
-	auto stocke = new llvm::StoreInst(addresse, ptr_valeur, contexte.bloc_courant());
+	auto stocke = new llvm::StoreInst(premier_elem, ptr_valeur, contexte.bloc_courant());
 	stocke->setAlignment(8);
 
 	/* copie la taille du tableau */
@@ -319,7 +315,7 @@ enum {
 	stocke->setAlignment(8);
 
 	if (charge_) {
-		charge = new llvm::LoadInst(alloc, "", contexte.bloc_courant());
+		auto charge = new llvm::LoadInst(alloc, "", contexte.bloc_courant());
 		charge->setAlignment(8);
 		return charge;
 	}
@@ -452,26 +448,90 @@ enum {
 		{
 			auto type_base = dt.type_base();
 
+			auto valeur_pointeur = static_cast<llvm::Value *>(nullptr);
+			auto valeur_taille = static_cast<llvm::Value *>(nullptr);
+
 			switch (type_base & 0xff) {
 				default:
 				{
+					valeur = genere_code_llvm(b, contexte, true);
+
+					if (llvm::isa<llvm::Constant>(valeur)) {
+						auto type_donnees_llvm = converti_type_llvm(contexte, dt);
+						auto alloc_const = builder.CreateAlloca(type_donnees_llvm, 0u);
+						builder.CreateStore(valeur, alloc_const);
+						valeur = alloc_const;
+					}
+
+					auto type_cible = converti_type_llvm(contexte, contexte.typeuse[TypeBase::PTR_OCTET]);
+					valeur = builder.CreateCast(llvm::Instruction::BitCast, valeur, type_cible->getPointerTo());
+					valeur_pointeur = valeur;
+
+					auto taille_type = taille_octet_type(contexte, dt);
+					valeur_taille = builder.getInt64(taille_type);
 					break;
 				}
 				case TypeLexeme::POINTEUR:
 				{
+					valeur = genere_code_llvm(b, contexte, true);
+					valeur_pointeur = valeur;
+					auto taille_type = taille_octet_type(contexte, dt.dereference());
+					valeur_taille = builder.getInt64(taille_type);
 					break;
 				}
 				case TypeLexeme::CHAINE:
 				{
+					auto valeur_chaine = genere_code_llvm(b, contexte, true);
+					valeur_pointeur = accede_membre_structure(contexte, valeur_chaine, POINTEUR_TABLEAU);
+					valeur_pointeur = builder.CreateLoad(valeur_pointeur);
+					valeur_taille = accede_membre_structure(contexte, valeur_chaine, TAILLE_TABLEAU);
+					valeur_taille = builder.CreateLoad(valeur_taille);
 					break;
 				}
 				case TypeLexeme::TABLEAU:
 				{
-					//auto taille = static_cast<int>(type_base >> 8);
+					auto valeur_tableau = genere_code_llvm(b, contexte, true);
+					auto taille = static_cast<int>(type_base >> 8);
+
+					if (taille == 0) {
+						valeur_pointeur = accede_membre_structure(contexte, valeur_tableau, POINTEUR_TABLEAU);
+						valeur_pointeur = builder.CreateLoad(valeur_pointeur);
+						valeur_taille = accede_membre_structure(contexte, valeur_tableau, TAILLE_TABLEAU);
+
+						auto taille_type = taille_octet_type(contexte, dt.dereference());
+						valeur_taille = builder.CreateBinOp(
+									llvm::Instruction::Mul,
+									builder.CreateLoad(valeur_taille),
+									builder.getInt64(taille_type));
+					}
+					else {
+						auto taille_type = taille_octet_type(contexte, dt.dereference());
+						valeur_pointeur = accede_element_tableau(
+									contexte,
+									valeur_tableau,
+									converti_type_llvm(contexte, dt),
+									0ul);
+
+						valeur_taille = builder.getInt64(static_cast<unsigned>(taille) * taille_type);
+					}
 
 					break;
 				}
 			}
+
+			auto type_llvm_tabl_octet = converti_type_llvm(contexte, contexte.typeuse[TypeBase::TABL_OCTET]);
+
+			/* alloue de l'espace pour ce type */
+			auto tabl_octet = builder.CreateAlloca(type_llvm_tabl_octet, 0u);
+			tabl_octet->setAlignment(8);
+
+			auto pointeur_tabl_octet = accede_membre_structure(contexte, tabl_octet, POINTEUR_TABLEAU);
+			builder.CreateStore(valeur_pointeur, pointeur_tabl_octet);
+
+			auto taille_tabl_octet = accede_membre_structure(contexte, tabl_octet, TAILLE_TABLEAU);
+			builder.CreateStore(valeur_taille, taille_tabl_octet);
+
+			valeur = builder.CreateLoad(tabl_octet, "");
 
 			break;
 		}
@@ -514,16 +574,23 @@ enum {
 		}
 		case TypeTransformation::FONCTION:
 		{
-			/* À FAIRE : typage */
-
+			/* À FAIRE */
 			break;
 		}
 		case TypeTransformation::PREND_REFERENCE:
 		{
+			/* la référence est le pointeur sur la pile */
+			valeur = genere_code_llvm(b, contexte, true);
 			break;
 		}
 		case TypeTransformation::DEREFERENCE:
 		{
+			valeur = genere_code_llvm(b, contexte, true);
+
+			/* le déréférencement se fait via un chargement si nous sommes dans
+			 * une expression droite,
+			 * pour une expression gauche le déréférencement se fera lors du
+			 * stockage d'une valeur */
 			if (!expr_gauche) {
 				valeur = builder.CreateLoad(valeur, "");
 			}
