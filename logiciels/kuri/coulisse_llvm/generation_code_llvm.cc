@@ -1055,7 +1055,7 @@ static llvm::Value *genere_code_llvm(
 
 			auto est_pointeur = type_structure.type_base() == TypeLexeme::POINTEUR;
 
-			if (est_pointeur || type_structure.type_base() == TypeLexeme::REFERENCE) {
+			while (type_structure.type_base() == TypeLexeme::POINTEUR || type_structure.type_base() == TypeLexeme::REFERENCE) {
 				type_structure = type_structure.dereference();
 			}
 

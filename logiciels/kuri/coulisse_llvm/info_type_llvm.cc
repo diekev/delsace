@@ -457,8 +457,6 @@ llvm::Value *cree_info_type(
 				break;
 			}
 
-			/* À FAIRE: il y a un bug dans l'accès des membres */
-
 			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
 			auto type_struct_membre = obtiens_type_pour(contexte, "InfoTypeMembreStructure");
 

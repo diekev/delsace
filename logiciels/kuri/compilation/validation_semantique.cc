@@ -1903,7 +1903,9 @@ static void performe_validation_semantique(
 			}
 			else {
 				if ((type.type_base() & 0xff) == TypeLexeme::TABLEAU) {
-					index_type = contexte.typeuse.type_reference_pour(contexte.typeuse.type_dereference_pour(index_type));
+					// À FAIRE: conflit entre la coulisse C et la coulisse LLVM
+					//index_type = contexte.typeuse.type_reference_pour(contexte.typeuse.type_dereference_pour(index_type));
+					index_type = contexte.typeuse.type_dereference_pour(index_type);
 
 					if (requiers_index) {
 						b->aide_generation_code = GENERE_BOUCLE_TABLEAU_INDEX;

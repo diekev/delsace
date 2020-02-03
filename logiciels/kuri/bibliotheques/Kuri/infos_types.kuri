@@ -50,7 +50,7 @@ struct InfoTypeMembreStructure {
 struct InfoTypeStructure {
 	id : id_info # employant InfoType
 	nom : chaine
-	membres : []InfoTypeMembreStructure
+	membres : []*InfoTypeMembreStructure
 }
 
 struct InfoTypeFonction {
