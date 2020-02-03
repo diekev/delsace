@@ -2347,8 +2347,38 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
 		{
-			/* À FAIRE */
-			return nullptr;
+			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
+
+			auto &dt = contexte.typeuse[b->index_type];
+			auto id_struct = static_cast<long>(dt.type_base() >> 8);
+
+			auto &donnees_structure = contexte.donnees_structure(id_struct);
+
+			auto type_struct_llvm = converti_type_llvm(contexte, b->index_type);
+
+			auto builder = llvm::IRBuilder<>(contexte.contexte);
+			builder.SetInsertPoint(contexte.bloc_courant());
+
+			auto alloc = builder.CreateAlloca(type_struct_llvm, 0u);
+
+			auto enfant = b->enfants.debut();
+			auto nom_param = liste_params->debut();
+
+			for (auto i = 0l; i < liste_params->taille(); ++i) {
+				auto &dm = donnees_structure.donnees_membres.trouve(*nom_param)->second;
+				auto idx_membre = dm.index_membre;
+
+				auto ptr = accede_membre_structure(contexte, alloc, static_cast<size_t>(idx_membre));
+
+				auto val = genere_code_llvm(*enfant, contexte, false);
+
+				builder.CreateStore(val, ptr);
+
+				++enfant;
+				++nom_param;
+			}
+
+			return builder.CreateLoad(alloc, "");
 		}
 		case type_noeud::INFO_DE:
 		{
