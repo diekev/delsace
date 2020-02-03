@@ -1436,7 +1436,10 @@ static llvm::Value *genere_code_llvm(
 				case TypeLexeme::EXCLAMATION:
 				{
 					instr = llvm::Instruction::Xor;
-					valeur2 = valeur1;
+					valeur2 = llvm::ConstantInt::get(
+								  llvm::Type::getInt32Ty(contexte.contexte),
+								  static_cast<uint64_t>(1),
+								  false);
 					break;
 				}
 				case TypeLexeme::TILDE:
