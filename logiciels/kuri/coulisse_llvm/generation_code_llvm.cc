@@ -2349,8 +2349,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::INFO_DE:
 		{
-			/* À FAIRE */
-			return nullptr;
+			auto enfant = b->enfants.front();
+			auto &dt = contexte.typeuse[enfant->index_type];
+			return cree_info_type(contexte, dt);
 		}
 		case type_noeud::MEMOIRE:
 		{
