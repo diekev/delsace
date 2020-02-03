@@ -41,6 +41,25 @@
 #include "conversion_type_llvm.hh"
 #include "donnees_type.h"
 
+/* À tenir synchronisé avec l'énum dans info_type.kuri
+ * Nous utilisons ceci lors de la génération du code des infos types car nous ne
+ * générons pas de code (ou symboles) pour les énums, mais prenons directements
+ * leurs valeurs.
+ */
+struct IDInfoType {
+	static constexpr int ENTIER    = 0;
+	static constexpr int REEL      = 1;
+	static constexpr int BOOLEEN   = 2;
+	static constexpr int CHAINE    = 3;
+	static constexpr int POINTEUR  = 4;
+	static constexpr int STRUCTURE = 5;
+	static constexpr int FONCTION  = 6;
+	static constexpr int TABLEAU   = 7;
+	static constexpr int EINI      = 8;
+	static constexpr int RIEN      = 9;
+	static constexpr int ENUM      = 10;
+};
+
 [[nodiscard]] static auto obtiens_type_pour(
 		ContexteGenerationCode &contexte,
 		dls::vue_chaine_compacte const &nom_struct)
@@ -60,18 +79,21 @@
 		ContexteGenerationCode &contexte,
 		uint64_t nombre_bits)
 {
-	auto type_llvm = obtiens_type_pour(contexte, "InfoTypeReel");
+	auto type_llvm = obtiens_type_pour(contexte, "InfoTypeRéel");
 
 	/* { id : e32, nombre_bits : e32 } */
 
-	auto valeur_id = llvm::dyn_cast<llvm::GlobalVariable>(contexte.valeur_globale("TYPE_REEL"));
+	auto valeur_id = llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				IDInfoType::REEL,
+				false);
 
 	auto valeur_nbits = llvm::ConstantInt::get(
 						   llvm::Type::getInt32Ty(contexte.contexte),
 						   nombre_bits,
 						   false);
 
-	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id->getInitializer(), valeur_nbits };
+	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id, valeur_nbits };
 
 	auto constant = llvm::ConstantStruct::get(
 						static_cast<llvm::StructType *>(type_llvm),
@@ -99,7 +121,10 @@
 
 	/* { id : e32, est_signé : bool, nombre_bits : e32 } */
 
-	auto valeur_id = llvm::dyn_cast<llvm::GlobalVariable>(contexte.valeur_globale("TYPE_ENTIER"));
+	auto valeur_id = llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				IDInfoType::ENTIER,
+				false);
 
 	auto valeur_signe = llvm::ConstantInt::get(
 						   llvm::Type::getInt1Ty(contexte.contexte),
@@ -111,7 +136,7 @@
 						   nombre_bits,
 						   false);
 
-	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id->getInitializer(), valeur_signe, valeur_nbits };
+	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id, valeur_signe, valeur_nbits };
 
 	auto constant = llvm::ConstantStruct::get(
 						static_cast<llvm::StructType *>(type_llvm),
@@ -132,15 +157,18 @@
 
 [[nodiscard]] static auto cree_info_type_defaut(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine_compacte const &nom_type)
+		int id_info_type)
 {
 	auto type_llvm = obtiens_type_pour(contexte, "InfoType");
 
 	/* { id : e32 } */
 
-	auto valeur_id = llvm::dyn_cast<llvm::GlobalVariable>(contexte.valeur_globale(nom_type));
+	auto valeur_id = llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				static_cast<unsigned>(id_info_type),
+				false);
 
-	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id->getInitializer() };
+	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id };
 
 	auto constant = llvm::ConstantStruct::get(
 						static_cast<llvm::StructType *>(type_llvm),
@@ -159,24 +187,142 @@
 	return globale;
 }
 
-[[nodiscard]] static auto cree_info_type_pointeur(
+[[nodiscard]] static auto cree_chaine_globale(
 		ContexteGenerationCode &contexte,
-		dls::vue_chaine_compacte const &nom_type,
-		llvm::GlobalVariable *valeur_pointee)
+		dls::chaine const &chaine)
 {
-	auto type_llvm = obtiens_type_pour(contexte, "InfoTypePointeur");
+	auto constante = llvm::ConstantDataArray::getString(
+						 contexte.contexte,
+						chaine.c_str());
 
-	/* { id : e32, *InfoStruct } */
+	auto pointeur_chaine_c = new llvm::GlobalVariable(
+					   *contexte.module_llvm,
+					   converti_type_llvm(contexte, contexte.typeuse[TypeBase::PTR_Z8]),
+					   true,
+					   llvm::GlobalValue::PrivateLinkage,
+					   constante,
+					   ".chn");
 
-	auto valeur_id = llvm::dyn_cast<llvm::GlobalVariable>(contexte.valeur_globale(nom_type));
+	auto valeur_taille = llvm::ConstantInt::get(
+					llvm::Type::getInt32Ty(contexte.contexte),
+					static_cast<uint64_t>(chaine.taille()),
+					false);
+	auto type_chaine = converti_type_llvm(contexte, contexte.typeuse[TypeBase::CHAINE]);
 
-	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id->getInitializer(), valeur_pointee };
+	llvm::ArrayRef<llvm::Constant *> valeurs_chaine{
+		static_cast<llvm::Constant *>(pointeur_chaine_c),
+				valeur_taille };
+
+	auto struct_chaine = llvm::ConstantStruct::get(
+						static_cast<llvm::StructType *>(type_chaine),
+						valeurs_chaine);
+
+	return struct_chaine;
+}
+
+[[nodiscard]] static auto cree_tableau_global(
+		ContexteGenerationCode &contexte,
+		std::vector<llvm::Constant *> const &valeurs_enum_tmp,
+		long idx_type_membre)
+{
+	auto type_valeur_llvm = converti_type_llvm(contexte, idx_type_membre);
+	auto type_tableau_valeur = contexte.typeuse.type_tableau_pour(idx_type_membre);
+
+	auto type_tableau_valeur_llvm = converti_type_llvm(contexte, contexte.typeuse[type_tableau_valeur]);
+
+	llvm::ArrayRef<llvm::Constant *> valeurs_enum{ valeurs_enum_tmp };
+
+	auto type_tableau = llvm::ArrayType::get(type_valeur_llvm, valeurs_enum_tmp.size());
+
+	auto tableau_constant = llvm::ConstantArray::get(type_tableau, valeurs_enum);
+
+	auto pointeur_tableau = new llvm::GlobalVariable(
+					   *contexte.module_llvm,
+					   type_valeur_llvm->getPointerTo(),
+					   true,
+					   llvm::GlobalValue::PrivateLinkage,
+					   tableau_constant,
+					   ".tabl");
+
+	static_cast<void>(tableau_constant);
+	auto valeur_taille = llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				valeurs_enum_tmp.size(),
+				false);
+
+	llvm::ArrayRef<llvm::Constant *> valeurs_tableau_valeur{
+		pointeur_tableau,
+				valeur_taille };
+
+	auto struct_tableau = llvm::ConstantStruct::get(
+						static_cast<llvm::StructType *>(type_tableau_valeur_llvm),
+						valeurs_tableau_valeur);
+
+	return struct_tableau;
+}
+
+[[nodiscard]] static auto cree_info_type_enum(
+		ContexteGenerationCode &contexte,
+		DonneesStructure const &donnees_structure)
+{
+	auto builder = llvm::IRBuilder<>(contexte.contexte);
+
+	auto type_llvm = obtiens_type_pour(contexte, "InfoTypeÉnum");
+
+	/* { id: e32, nom: chaine, valeurs: [], membres: [], est_drapeau: bool } */
+
+	auto valeur_id = llvm::ConstantInt::get(
+				llvm::Type::getInt32Ty(contexte.contexte),
+				IDInfoType::ENUM,
+				false);
+
+	auto est_drapeau = llvm::ConstantInt::get(
+				llvm::Type::getInt1Ty(contexte.contexte),
+				donnees_structure.est_drapeau,
+				false);
+
+	auto noeud_decl = donnees_structure.noeud_decl;
+	auto struct_chaine = cree_chaine_globale(contexte, donnees_structure.noeud_decl->chaine());
+
+	/* création des tableaux de valeurs et de noms */
+
+	std::vector<llvm::Constant *> valeurs_enum;
+	valeurs_enum.reserve(static_cast<size_t>(donnees_structure.donnees_membres.taille()));
+
+	std::vector<llvm::Constant *> noms_enum;
+	noms_enum.reserve(static_cast<size_t>(donnees_structure.donnees_membres.taille()));
+
+	for (auto enfant : noeud_decl->enfants) {
+		auto enf0 = enfant;
+
+		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
+			enf0 = enf0->enfants.front();
+		}
+
+		auto dm = donnees_structure.donnees_membres.trouve(enf0->chaine())->second;
+
+		auto valeur = llvm::ConstantInt::get(
+					llvm::Type::getInt32Ty(contexte.contexte),
+					static_cast<uint64_t>(dm.resultat_expression.entier),
+					false);
+
+		valeurs_enum.push_back(valeur);
+
+		auto chaine_nom = cree_chaine_globale(contexte, enf0->chaine());
+		noms_enum.push_back(chaine_nom);
+	}
+
+	auto tableau_valeurs = cree_tableau_global(contexte, valeurs_enum, contexte.typeuse[TypeBase::Z32]);
+	auto tableau_noms = cree_tableau_global(contexte, noms_enum, contexte.typeuse[TypeBase::CHAINE]);
+
+	/* création de l'info type */
+
+	llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id, struct_chaine, tableau_valeurs, tableau_noms, est_drapeau };
 
 	auto constant = llvm::ConstantStruct::get(
 						static_cast<llvm::StructType *>(type_llvm),
 						valeurs);
 
-	/* Création d'un InfoType globale. */
 	auto globale =  new llvm::GlobalVariable(
 						*contexte.module_llvm,
 						type_llvm,
@@ -203,7 +349,7 @@ llvm::Value *cree_info_type(
 		}
 		case TypeLexeme::BOOL:
 		{
-			valeur = cree_info_type_defaut(contexte, "TYPE_BOOLEEN");
+			valeur = cree_info_type_defaut(contexte, IDInfoType::BOOLEEN);
 			break;
 		}
 		case TypeLexeme::N8:
@@ -261,12 +407,44 @@ llvm::Value *cree_info_type(
 			valeur = cree_info_type_reel(contexte, 64);
 			break;
 		}
+		case TypeLexeme::REFERENCE:
 		case TypeLexeme::POINTEUR:
 		{
-			// À FAIRE
-//			auto deref = donnees_type.dereference();
-//			auto valeur_pointee = cree_info_type(contexte, deref);
-//			valeur = cree_info_type_pointeur(contexte, "TYPE_POINTEUR", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
+			/* { id, type_pointé, est_référence } */
+
+			auto type_pointeur = obtiens_type_pour(contexte, "InfoTypePointeur");
+
+			auto valeur_id = llvm::ConstantInt::get(
+						llvm::Type::getInt32Ty(contexte.contexte),
+						IDInfoType::POINTEUR,
+						false);
+
+			auto idx_type_deref = contexte.typeuse.ajoute_type(donnees_type.dereference());
+			auto &type_deref = contexte.typeuse[idx_type_deref];
+
+			auto valeur_type_pointe = cree_info_type(contexte, type_deref);
+
+			auto est_reference = llvm::ConstantInt::get(
+								   llvm::Type::getInt1Ty(contexte.contexte),
+								   donnees_type.type_base() == TypeLexeme::REFERENCE,
+								   false);
+
+			llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id, static_cast<llvm::Constant *>(valeur_type_pointe), est_reference };
+
+			auto constant = llvm::ConstantStruct::get(
+								static_cast<llvm::StructType *>(type_pointeur),
+								valeurs);
+
+			auto globale =  new llvm::GlobalVariable(
+								*contexte.module_llvm,
+								type_pointeur,
+								true,
+								llvm::GlobalValue::InternalLinkage,
+								constant);
+
+			globale->setConstant(true);
+
+			valeur = globale;
 			break;
 		}
 		case TypeLexeme::CHAINE_CARACTERE:
@@ -274,41 +452,33 @@ llvm::Value *cree_info_type(
 			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
 
-			/* À FAIRE : tableaux. */
+			if (donnees_structure.est_enum) {
+				valeur = cree_info_type_enum(contexte, donnees_structure);
+				break;
+			}
+
+			/* À FAIRE: il y a un bug dans l'accès des membres */
 
 			/* pour chaque membre cree une instance de InfoTypeMembreStructure */
 			auto type_struct_membre = obtiens_type_pour(contexte, "InfoTypeMembreStructure");
 
-			std::vector<llvm::Constant *> structes_membres;
+			std::vector<llvm::Constant *> valeurs_membres;
 
 			for (auto &arg : donnees_structure.donnees_membres) {
-				/* { nom : []z8, info : *InfoType } */
+				/* { nom: chaine, info : *InfoType, décalage } */
 				auto id_dt = donnees_structure.index_types[arg.second.index_membre];
 				auto &ref_membre = contexte.typeuse[id_dt];
 
 				auto info_type = cree_info_type(contexte, ref_membre);
 
-				auto constante = llvm::ConstantDataArray::getString(
-									 contexte.contexte,
-									 dls::chaine(arg.first).c_str());
+				auto valeur_nom = cree_chaine_globale(contexte, arg.first);
 
-				auto dt_nom = DonneesTypeFinal{};
-				dt_nom.pousse(TypeLexeme::TABLEAU | static_cast<TypeLexeme>(arg.first.taille() << 8));
-				dt_nom.pousse(TypeLexeme::Z8);
-				auto type = converti_type_llvm(contexte, dt_nom);
+				auto valeur_decalage = llvm::ConstantInt::get(
+							llvm::Type::getInt64Ty(contexte.contexte),
+							static_cast<uint64_t>(arg.second.decalage),
+							false);
 
-				auto nom = new llvm::GlobalVariable(
-								   *contexte.module_llvm,
-								   type,
-								   true,
-								   llvm::GlobalValue::PrivateLinkage,
-								   constante,
-								   ".chn");
-
-				nom->setAlignment(1);
-				nom->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-
-				llvm::ArrayRef<llvm::Constant *> valeurs{ nom, llvm::dyn_cast<llvm::GlobalVariable>(info_type) };
+				llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_nom, static_cast<llvm::Constant *>(info_type), valeur_decalage };
 
 				auto constant = llvm::ConstantStruct::get(
 									static_cast<llvm::StructType *>(type_struct_membre),
@@ -322,31 +492,29 @@ llvm::Value *cree_info_type(
 									llvm::GlobalValue::InternalLinkage,
 									constant);
 
-				structes_membres.push_back(globale);
+				valeurs_membres.push_back(globale);
 			}
 
-			/* { id : n32, membres : []InfoTypeMembreStructure } */
+			/* { id : n32, nom: chaine, membres : []InfoTypeMembreStructure } */
 
-			auto valeur_id = llvm::dyn_cast<llvm::GlobalVariable>(contexte.valeur_globale("TYPE_STRUCTURE"));
+			auto valeur_id = llvm::ConstantInt::get(
+						llvm::Type::getInt32Ty(contexte.contexte),
+						IDInfoType::STRUCTURE,
+						false);
 
-			auto constante = llvm::ConstantArray::get(llvm::ArrayType::get(type_struct_membre, structes_membres.size()), structes_membres);
+			auto valeur_nom = cree_chaine_globale(contexte, donnees_structure.noeud_decl->chaine());
 
-			auto globale_ = new llvm::GlobalVariable(
-								*contexte.module_llvm,
-								llvm::ArrayType::get(type_struct_membre, structes_membres.size()),
-								true,
-								llvm::GlobalValue::InternalLinkage,
-								constante);
+			auto idx_type_membre = contexte.donnees_structure("InfoTypeMembreStructure").index_type;
+			auto tableau_membre = cree_tableau_global(contexte, valeurs_membres, idx_type_membre);
 
-			llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id->getInitializer(), globale_ };
+			llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id, valeur_nom, tableau_membre };
 
-			auto type_llvm = converti_type_llvm(contexte, donnees_type);
+			auto type_llvm = obtiens_type_pour(contexte, "InfoTypeStructure");
 
 			auto constant = llvm::ConstantStruct::get(
 								static_cast<llvm::StructType *>(type_llvm),
 								valeurs);
 
-			/* Création d'un InfoType globale. */
 			auto globale =  new llvm::GlobalVariable(
 								*contexte.module_llvm,
 								type_llvm,
@@ -359,25 +527,57 @@ llvm::Value *cree_info_type(
 		}
 		case TypeLexeme::TABLEAU:
 		{
-			// À FAIRE
-//			auto deref = donnees_type.dereference();
-//			auto valeur_pointee = cree_info_type(contexte, deref);
-//			valeur = cree_info_type_pointeur(contexte, "TYPE_TABLEAU", llvm::dyn_cast<llvm::GlobalVariable>(valeur_pointee));
+			/* { id, type_pointé } */
+
+			auto type_pointeur = obtiens_type_pour(contexte, "InfoTypeTableau");
+
+			auto valeur_id = llvm::ConstantInt::get(
+						llvm::Type::getInt32Ty(contexte.contexte),
+						IDInfoType::TABLEAU,
+						false);
+
+			auto idx_type_deref = contexte.typeuse.ajoute_type(donnees_type.dereference());
+			auto &type_deref = contexte.typeuse[idx_type_deref];
+
+			auto valeur_type_pointe = cree_info_type(contexte, type_deref);
+
+			llvm::ArrayRef<llvm::Constant *> valeurs{ valeur_id, static_cast<llvm::Constant *>(valeur_type_pointe) };
+
+			auto constant = llvm::ConstantStruct::get(
+								static_cast<llvm::StructType *>(type_pointeur),
+								valeurs);
+
+			auto globale =  new llvm::GlobalVariable(
+								*contexte.module_llvm,
+								type_pointeur,
+								true,
+								llvm::GlobalValue::InternalLinkage,
+								constant);
+
+			globale->setConstant(true);
+
+			valeur = globale;
 			break;
 		}
 		case TypeLexeme::FONC:
 		{
-			valeur = cree_info_type_defaut(contexte, "TYPE_FONCTION");
+			valeur = cree_info_type_defaut(contexte, IDInfoType::FONCTION);
 			break;
 		}
 		case TypeLexeme::EINI:
 		{
-			valeur = cree_info_type_defaut(contexte, "TYPE_EINI");
+			valeur = cree_info_type_defaut(contexte, IDInfoType::EINI);
 			break;
 		}
+		case TypeLexeme::NUL: /* À FAIRE */
 		case TypeLexeme::RIEN:
 		{
-			valeur = cree_info_type_defaut(contexte, "TYPE_RIEN");
+			valeur = cree_info_type_defaut(contexte, IDInfoType::RIEN);
+			break;
+		}
+		case TypeLexeme::CHAINE:
+		{
+			valeur = cree_info_type_defaut(contexte, IDInfoType::CHAINE);
 			break;
 		}
 	}

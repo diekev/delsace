@@ -362,12 +362,12 @@ enum {
 	stocke->setAlignment(8);
 
 	/* copie le pointeur vers les infos du type du eini */
-//	auto tpe_eini = accede_membre_structure(contexte, alloc_eini, TYPE_EINI);
+	auto tpe_eini = accede_membre_structure(contexte, alloc_eini, TYPE_EINI);
 
-//	auto ptr_info_type = cree_info_type(contexte, donnees_type);
+	auto ptr_info_type = cree_info_type(contexte, donnees_type);
 
-//	stocke = new llvm::StoreInst(ptr_info_type, tpe_eini, contexte.bloc_courant());
-//	stocke->setAlignment(8);
+	stocke = new llvm::StoreInst(ptr_info_type, tpe_eini, contexte.bloc_courant());
+	stocke->setAlignment(8);
 
 	/* charge et retourne */
 	if (charge_) {
@@ -1134,9 +1134,7 @@ static llvm::Value *genere_code_llvm(
 
 			llvm::Value *ret;
 
-			/* À FAIRE : le pointeur vers l'InfoType (index = 0) d'un eini n'est pas
-			 * vraiment un pointeur, donc on ne devrait pas le déréférencé. */
-			if (est_pointeur && index_structure != 0) {
+			if (est_pointeur) {
 				/* déréférence le pointeur en le chargeant */
 				auto charge = new llvm::LoadInst(valeur, "", contexte.bloc_courant());
 				charge->setAlignment(8);
@@ -2205,8 +2203,7 @@ static llvm::Value *genere_code_llvm(
 				return cree_instruction<CastOps::PtrToInt>(valeur, type, bloc);
 			}
 
-			/* À FAIRE : BitCast (Type Cast) */
-			return nullptr;
+			return cree_instruction<CastOps::BitCast>(valeur, type, bloc);
 		}
 		case type_noeud::NUL:
 		{
