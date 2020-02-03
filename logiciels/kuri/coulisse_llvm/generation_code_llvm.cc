@@ -753,6 +753,197 @@ static llvm::Value *incremente_pour_type(
 
 /* ************************************************************************** */
 
+static auto genere_code_allocation(
+		ContexteGenerationCode &contexte,
+		DonneesTypeFinal &dt,
+		int mode,
+		base *b,
+		base *variable,
+		base *expression,
+		base *bloc_sinon)
+{
+	auto builder = llvm::IRBuilder<>(contexte.contexte);
+	builder.SetInsertPoint(contexte.bloc_courant());
+
+	auto val_enfant = static_cast<llvm::Value *>(nullptr);
+	auto val_acces_pointeur = static_cast<llvm::Value *>(nullptr);
+	auto val_acces_taille = static_cast<llvm::Value *>(nullptr);
+	auto val_ancienne_taille_octet = static_cast<llvm::Value *>(nullptr);
+	auto val_nouvelle_taille_octet = static_cast<llvm::Value *>(nullptr);
+	auto val_ancien_nombre_element = static_cast<llvm::Value *>(nullptr);
+	auto val_nouvel_nombre_element = static_cast<llvm::Value *>(nullptr);
+
+	/* variable n'est nul que pour les allocations simples */
+	if (variable != nullptr) {
+		assert(mode == 1 || mode == 2);
+		val_enfant = genere_code_llvm(variable, contexte, true);
+	}
+	else {
+		assert(mode == 0);
+		val_enfant = builder.CreateAlloca(converti_type_llvm(contexte, dt));
+	}
+
+	switch (dt.type_base()) {
+		case TypeLexeme::TABLEAU:
+		{
+			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+			auto &dt_deref = contexte.typeuse[index_dt];
+
+			std::cerr << "accède pointeur tableau...\n";
+			val_acces_pointeur = accede_membre_structure(contexte, val_enfant, 0u);
+			std::cerr << "accède taille tableau...\n";
+			val_acces_taille = accede_membre_structure(contexte, val_enfant, 1u);
+
+			auto taille_type = taille_octet_type(contexte, dt_deref);
+
+			val_ancien_nombre_element = builder.CreateLoad(val_acces_taille);
+			val_ancienne_taille_octet = builder.CreateBinOp(
+						llvm::Instruction::Mul,
+						val_ancien_nombre_element,
+						builder.getInt64(taille_type));
+
+			/* allocation ou réallocation */
+			if (!b->type_declare.expressions.est_vide()) {
+				expression = b->type_declare.expressions[0];
+				auto val_expr = genere_code_llvm(expression, contexte, false);
+				val_nouvel_nombre_element = val_expr;
+
+				val_nouvel_nombre_element = val_expr;
+				val_nouvelle_taille_octet = builder.CreateBinOp(
+							llvm::Instruction::Mul,
+							val_nouvel_nombre_element,
+							builder.getInt64(taille_type));
+			}
+			/* désallocation */
+			else {
+				val_nouvel_nombre_element = builder.getInt64(0);
+				val_nouvelle_taille_octet = builder.getInt64(0);
+			}
+
+			break;
+		}
+		case TypeLexeme::CHAINE:
+		{
+			std::cerr << "accède pointeur chaine...\n";
+			val_acces_pointeur = accede_membre_structure(contexte, val_enfant, 0u);
+			std::cerr << "accède taille chaine...\n";
+			val_acces_taille = accede_membre_structure(contexte, val_enfant, 1u);
+			val_ancienne_taille_octet = builder.CreateLoad(val_acces_taille, "");
+
+			/* allocation ou réallocation */
+			if (expression != nullptr) {
+				auto val_expr = genere_code_llvm(expression, contexte, false);
+				val_nouvel_nombre_element = val_expr;
+				val_nouvelle_taille_octet = val_nouvel_nombre_element;
+			}
+			/* désallocation */
+			else {
+				val_nouvel_nombre_element = builder.getInt64(0);
+				val_nouvelle_taille_octet = builder.getInt64(0);
+			}
+
+			break;
+		}
+		default:
+		{
+			val_acces_pointeur = val_enfant;
+
+			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
+			auto &dt_deref = contexte.typeuse[index_dt];
+
+			auto taille_octet = taille_octet_type(contexte, dt_deref);
+			val_ancienne_taille_octet = builder.getInt64(taille_octet);
+
+			/* allocation ou réallocation */
+			val_nouvelle_taille_octet = val_ancienne_taille_octet;
+		}
+	}
+
+	auto ptr_contexte = contexte.valeur_locale("contexte");
+	ptr_contexte = builder.CreateLoad(ptr_contexte);
+
+	// int mode = ...;
+	// long nouvelle_taille_octet = ...;
+	// long ancienne_taille_octet = ...;
+	// void *pointeur = ...;
+	// void *données = contexte->données_allocatrice;
+	// InfoType *info_type = ...;
+	// contexte->allocatrice(mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
+
+	std::cerr << "accède allocatrice...\n";
+	auto arg_ptr_allocatrice = accede_membre_structure(contexte, ptr_contexte, 0u, true);
+	std::cerr << "accède données allocatrice...\n";
+	auto arg_ptr_donnees = accede_membre_structure(contexte, ptr_contexte, 1u, true);
+	auto arg_ptr_info_type = cree_info_type(contexte, dt);
+	auto arg_val_mode = builder.getInt32(static_cast<unsigned>(mode));
+	auto arg_val_ancien_ptr = val_acces_pointeur;
+
+	std::vector<llvm::Value *> parametres;
+	parametres.push_back(ptr_contexte);
+	parametres.push_back(arg_val_mode);
+	parametres.push_back(val_nouvelle_taille_octet);
+	parametres.push_back(val_ancienne_taille_octet);
+	parametres.push_back(arg_val_ancien_ptr);
+	parametres.push_back(arg_ptr_donnees);
+	parametres.push_back(arg_ptr_info_type);
+
+	auto ret_pointeur = builder.CreateCall(arg_ptr_allocatrice, parametres);
+
+	// À FAIRE: ajourne variable globales, vérifie validité pointeur
+
+	switch (mode) {
+		case 0:
+		{
+//			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille << ";\n";
+//			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
+//			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
+
+//			genere_code_echec_logement(
+//						contexte,
+//						generatrice,
+//						expr_pointeur,
+//						b,
+//						bloc_sinon);
+
+			break;
+		}
+		case 1:
+		{
+//			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
+//			   << " - " << nom_ancienne_taille << ";\n";
+//			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
+//			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
+//			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
+
+//			genere_code_echec_logement(
+//						contexte,
+//						generatrice,
+//						expr_pointeur,
+//						b,
+//						bloc_sinon);
+
+			break;
+		}
+		case 2:
+		{
+//			generatrice.os << "__VG_memoire_utilisee__ -= " << expr_ancienne_taille_octet << ";\n";
+//			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
+			break;
+		}
+	}
+
+	builder.CreateStore(ret_pointeur, val_acces_pointeur);
+
+	if (val_acces_taille != nullptr) {
+		builder.CreateStore(val_nouvel_nombre_element, val_acces_taille);
+	}
+
+	std::cerr << "fin genere_code_allocation...\n";
+	return val_enfant;
+}
+
+/* ************************************************************************** */
+
 static llvm::Value *genere_code_llvm(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -2393,17 +2584,70 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::LOGE:
 		{
-			/* À FAIRE */
-			return nullptr;
+			auto &dt = contexte.typeuse[b->index_type];
+			auto iter_enfant = b->enfants.debut();
+			auto nombre_enfant = b->enfants.taille();
+			auto expression = static_cast<base *>(nullptr);
+			auto bloc_sinon = static_cast<base *>(nullptr);
+
+			if (nombre_enfant == 1) {
+				auto enfant = *iter_enfant++;
+
+				if (enfant->type == type_noeud::BLOC) {
+					bloc_sinon = enfant;
+				}
+				else {
+					expression = enfant;
+				}
+			}
+			else if (nombre_enfant == 2) {
+				expression = *iter_enfant++;
+				bloc_sinon = *iter_enfant++;
+			}
+
+			return genere_code_allocation(contexte, dt, 0, b, nullptr, expression, bloc_sinon);
 		}
 		case type_noeud::DELOGE:
 		{
-			/* À FAIRE */
+			auto enfant = b->enfants.front();
+			auto &dt = contexte.typeuse[enfant->index_type];
+
+			genere_code_allocation(contexte, dt, 2, b, enfant, nullptr, nullptr);
+
 			return nullptr;
 		}
 		case type_noeud::RELOGE:
 		{
-			/* À FAIRE */
+			auto &dt = contexte.typeuse[b->index_type];
+			auto iter_enfant = b->enfants.debut();
+			auto nombre_enfant = b->enfants.taille();
+			auto variable = static_cast<base *>(nullptr);
+			auto expression = static_cast<base *>(nullptr);
+			auto bloc_sinon = static_cast<base *>(nullptr);
+
+			if (nombre_enfant == 1) {
+				variable = *iter_enfant;
+			}
+			else if (nombre_enfant == 2) {
+				variable = *iter_enfant++;
+
+				auto enfant = *iter_enfant++;
+
+				if (enfant->type == type_noeud::BLOC) {
+					bloc_sinon = enfant;
+				}
+				else {
+					expression = enfant;
+				}
+			}
+			else if (nombre_enfant == 3) {
+				variable = *iter_enfant++;
+				expression = *iter_enfant++;
+				bloc_sinon = *iter_enfant++;
+			}
+
+			genere_code_allocation(contexte, dt, 1, b, variable, expression, bloc_sinon);
+
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_STRUCTURE:
