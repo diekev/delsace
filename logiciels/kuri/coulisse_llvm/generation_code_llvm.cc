@@ -62,12 +62,10 @@ using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 /* ************************************************************************** */
 
 /* À FAIRE (coulisse LLVM)
- * - infos types
  * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
- * - conversion tableau octet
  * - trace de la mémoire utilisée
  * - coroutine, retiens
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
