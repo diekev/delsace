@@ -73,7 +73,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("saufsi"), TypeLexeme::SAUFSI },
 	dls::paire{ dls::vue_chaine_compacte("si"), TypeLexeme::SI },
 	dls::paire{ dls::vue_chaine_compacte("sinon"), TypeLexeme::SINON },
-	dls::paire{ dls::vue_chaine_compacte("soit"), TypeLexeme::SOIT },
 	dls::paire{ dls::vue_chaine_compacte("struct"), TypeLexeme::STRUCT },
 	dls::paire{ dls::vue_chaine_compacte("taille_de"), TypeLexeme::TAILLE_DE },
 	dls::paire{ dls::vue_chaine_compacte("tantque"), TypeLexeme::TANTQUE },
@@ -337,8 +336,6 @@ const char *chaine_identifiant(TypeLexeme id)
 			return "TypeLexeme::SI";
 		case TypeLexeme::SINON:
 			return "TypeLexeme::SINON";
-		case TypeLexeme::SOIT:
-			return "TypeLexeme::SOIT";
 		case TypeLexeme::STRUCT:
 			return "TypeLexeme::STRUCT";
 		case TypeLexeme::TAILLE_DE:

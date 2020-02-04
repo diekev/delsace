@@ -3,7 +3,6 @@
 import io
 
 mot_cles = [
-	u'soit',
 	u'dyn',
 	u'fonc',
 	u'corout',

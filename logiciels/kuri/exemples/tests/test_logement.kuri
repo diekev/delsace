@@ -162,7 +162,7 @@ fonc principale(args : []*z8) : z32
 
     dyn i := 0;
     pour arg dans args {
-        soit nom_arg = converti_chaine_c(arg);
+        nom_arg := converti_chaine_c(arg);
         imprime("argument ", i,": ", nom_arg, "\n");
         i += 1;
     }

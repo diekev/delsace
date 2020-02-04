@@ -58,16 +58,16 @@ struct externe stat {
 	st_ctime : z64;      # time of last status change
 }
 
-soit _O_TRUNC = 0o1000;
-soit _O_CREAT = 0o100;
-soit _O_EXCL = 0o200;
+_O_TRUNC := 0o1000;
+_O_CREAT := 0o100;
+_O_EXCL := 0o200;
 
-soit _EINVAL = 22;
-soit _EEXIST = 17;
-soit _EAGAIN = 11;
-soit _ENOENT = 2;
+_EINVAL := 22;
+_EEXIST := 17;
+_EAGAIN := 11;
+_ENOENT := 2;
 
-soit _S_IFMT = 0o170000;
+_S_IFMT := 0o170000;
 
 fonc externe open(a : *z8, b : ...z32) : z32;
 fonc externe close(a : z32) : z32;
@@ -81,8 +81,8 @@ fonc externe S_ISFIFO(a : n32) : bool;
 
 ##########################
 
-soit SAFE_OPEN_DEFAULT_MODE = 0600;
-soit SAFE_OPEN_RETRY_MAX = 50;
+SAFE_OPEN_DEFAULT_MODE := 0600;
+SAFE_OPEN_RETRY_MAX := 50;
 
 # À FAIRE : typedefs/alias
 #typedef int (*safe_open_path_warning_callback_type)(const char#fn);
@@ -679,8 +679,8 @@ fonc safe_open_wrapper_follow(fn : *z8, flags : z32, mode : z32) : z32
     retourne safe_open_no_create_follow(fn, flags);
 }
 
-soit _O_RDONLY = 0;
-soit _O_WRONLY = 1;
+_O_RDONLY := 0;
+_O_WRONLY := 1;
 
 struct externe FILE;
 
@@ -695,7 +695,7 @@ fonc perror(chn : chaine) : rien
     perror(chn.pointeur);
 }
 
-soit _stderr = 0;
+_stderr := 0;
 
 fonc principale(args : []*z8) : z32
 {

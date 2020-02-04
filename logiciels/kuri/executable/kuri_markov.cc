@@ -328,9 +328,6 @@ static void imprime_mot(TypeLexeme id, std::ostream &os)
 		case TypeLexeme::SINON:
 			os << "sinon";
 			return;
-		case TypeLexeme::SOIT:
-			os << "soit";
-			return;
 		case TypeLexeme::STRUCT:
 			os << "struct";
 			return;

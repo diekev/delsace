@@ -629,11 +629,6 @@ noeud::base *Syntaxeuse::analyse_expression(
 		auto id_courant = morceau.identifiant;
 
 		switch (id_courant) {
-			case TypeLexeme::SOIT:
-			{
-				drapeaux |= DECLARATION;
-				break;
-			}
 			case TypeLexeme::DYN:
 			{
 				drapeaux |= (DYNAMIC | DECLARATION);

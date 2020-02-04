@@ -10,7 +10,7 @@ fonc possède_membre(arg : eini, nom : chaine) : bool
 		retourne faux
 	}
 
-	soit info_arg = transtype(info : *InfoTypeStructure)
+	info_arg := transtype(info : *InfoTypeStructure)
 
     pour membre dans info_arg.membres {
         si membre.nom == nom {

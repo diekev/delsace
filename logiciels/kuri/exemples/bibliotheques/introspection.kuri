@@ -76,7 +76,7 @@ struct Vecteur3D {
 
 rout invoque(methode : eini, args : ...eini) : eini
 {
-	soit fonc_ptr = methode.pointeur;
+	fonc_ptr := methode.pointeur;
 
 	# il faudrait émuler la manière dont les fonctions sont appelées
 	# sur chaque plateforme...

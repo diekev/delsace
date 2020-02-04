@@ -80,8 +80,8 @@ bool test_decoupage_texte1()
 R"(# Ceci est un commentaire
 « ceci est une chaine française avec espaces »
 «ceci est une chaine française sans espaces»
-soit str='a';
-soit str0='\0';
+str='a';
+str0='\0';
 discr nombre {
 	0...1_000: imprime(1000);
 	11_000...2_0000: imprime(20000);
@@ -95,12 +95,10 @@ Lexeuse lexeuse(str, str + len);
 		{ "\n", TypeLexeme::POINT_VIRGULE },
 		{ "ceci est une chaine française sans espaces", TypeLexeme::CHAINE_LITTERALE },
 		{ "\n", TypeLexeme::POINT_VIRGULE },
-		{ "soit", TypeLexeme::SOIT },
 		{ "str", TypeLexeme::CHAINE_CARACTERE },
 		{ "=", TypeLexeme::EGAL },
 		{ "a", TypeLexeme::CARACTERE },
 		{ ";", TypeLexeme::POINT_VIRGULE },
-		{ "soit", TypeLexeme::SOIT },
 		{ "str0", TypeLexeme::CHAINE_CARACTERE },
 		{ "=", TypeLexeme::EGAL },
 		{ "\\0", TypeLexeme::CARACTERE },

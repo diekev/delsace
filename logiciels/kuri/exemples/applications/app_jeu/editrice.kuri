@@ -59,7 +59,7 @@ fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
 	index := tableau.taille
 
 	pour i dans 0 ... tableau.taille - 1 {
-		soit ed : *Editrice
+		dyn ed : *Editrice
 		valeur_tableau(editrices, i)
 	}
 

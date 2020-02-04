@@ -45,7 +45,7 @@ fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) : *atla
     atlas.profondeur = profondeur
     atlas.id = 0
 
-    soit noeud = ivec3{ x = 1, y = 1, z = largeur - 2 }
+    noeud := ivec3{ x = 1, y = 1, z = largeur - 2 }
     pousse(@atlas.noeuds, noeud)
 
     atlas.donnees = loge []octet (largeur * profondeur * hauteur)
@@ -81,8 +81,8 @@ fonc texture_atlas_set_region(
     # and prevent memcpy's undefined behavior when count is zero
     # assert(hauteur == 0 || (data != NULL && largeur > 0));
 
-    soit depth = atlas->depth
-    soit charsize = sizeof(char)
+    depth := atlas->depth
+    charsize := sizeof(char)
 
     pour i dans 0 ... hauteur - 1 {
         memcpy( atlas->data+((y+i)*atlas->largeur + x ) * charsize * depth,
@@ -133,8 +133,8 @@ fonc texture_atlas_merge(atlas : *atlas_texture) : rien
 	# assert(atlas);
 
 	pour i dans 0 ... atlas.noeuds.taille - 2 {
-		soit noeud = atlas.noeuds[i]
-		soit suiv  = atlas.noeuds[i + 1]
+		noeud := atlas.noeuds[i]
+		suiv  := atlas.noeuds[i + 1]
 
 		si noeud.y == suiv.y {
 			noeud.z += suiv.z
@@ -151,12 +151,12 @@ fonc texture_atlas_get_region(
 {
     # assert( atlas );
 
-    dyn meilleur_hauteur = (1 << 31) # À FAIRE UINT_MAX
-    dyn meilleur_largeur = (1 << 31) # À FAIRE UINT_MAX
-    dyn meilleur_index   = -1
+    dyn meilleur_hauteur := (1 << 31) # À FAIRE UINT_MAX
+    dyn meilleur_largeur := (1 << 31) # À FAIRE UINT_MAX
+    dyn meilleur_index   := -1
 
     pour noeud, i dans atlas.noeuds {
-        soit y = texture_atlas_fit(atlas, i, largeur, hauteur)
+        y := texture_atlas_fit(atlas, i, largeur, hauteur)
 
         si y < 0 {
             continue
@@ -196,7 +196,7 @@ fonc texture_atlas_get_region(
             arrête
         }
 
-        soit shrink = prev.x + prev.z - noeud.x
+        shrink := prev.x + prev.z - noeud.x
         noeud.x += shrink
         noeud.z -= shrink
 
@@ -222,7 +222,7 @@ fonc texture_atlas_clear(atlas : *atlas_texture) : rien
     atlas.utilise = 0
     # We want a one pixel border around the whole atlas to avoid any artefact when
     # sampling texture
-    soit noeud = ivec3{ x = 1, y = 1, z = atlas.largeur - 2 }
+    noeud := ivec3{ x = 1, y = 1, z = atlas.largeur - 2 }
 
     pousse(atlas.noeuds, noeud)
     init_mem( atlas->data, 0, atlas->largeur*atlas->hauteur*atlas->depth )

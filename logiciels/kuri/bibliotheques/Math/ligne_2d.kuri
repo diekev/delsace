@@ -22,7 +22,7 @@ fonc crée_ligne(p1 : Point2D, p2 : Point2D) : Ligne2D
 
 fonc crée_ligne_depuis_coef(coef : r64) : Ligne2D
 {
-	soit variable ligne : Ligne2D
+	dyn ligne : Ligne2D
 	ligne.p1 = crée_point(0.0, 0.0)
 	ligne.p2 = crée_point(1.0, coef)
 

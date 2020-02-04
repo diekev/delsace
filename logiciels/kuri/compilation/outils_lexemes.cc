@@ -225,7 +225,6 @@ bool est_mot_cle(TypeLexeme id)
 		case TypeLexeme::FONC:
 		case TypeLexeme::STRUCT:
 		case TypeLexeme::DYN:
-		case TypeLexeme::SOIT:
 		case TypeLexeme::RETOURNE:
 		case TypeLexeme::ENUM:
 		case TypeLexeme::ENUM_DRAPEAU:

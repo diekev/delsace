@@ -122,7 +122,6 @@ enum class TypeLexeme : unsigned int {
 	SAUFSI,
 	SI,
 	SINON,
-	SOIT,
 	STRUCT,
 	TAILLE_DE,
 	TANTQUE,
