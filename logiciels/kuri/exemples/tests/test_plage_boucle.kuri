@@ -1,6 +1,6 @@
-fonction externe printf(format : *z8, args : ...) : z32;
+fonction externe printf(format : *z8, args : ...) -> z32;
 
-fonction test_plage_typée() : rien
+fonction test_plage_typée() -> rien
 {
 	printf("boucle de caractères :\n");
 
@@ -48,7 +48,7 @@ fonction test_plage_typée() : rien
 	retourne;
 }
 
-fonction test_génération_séquence() : rien
+fonction test_génération_séquence() -> rien
 {
 	dyn debut := 10;
 	dyn fin   := 0;
@@ -89,7 +89,7 @@ fonction test_génération_séquence() : rien
 	retourne;
 }
 
-fonction principale(compte : z32, args : **z8) : z32
+fonction principale(compte : z32, args : **z8) -> z32
 {
 	test_génération_séquence();
 	retourne 0;

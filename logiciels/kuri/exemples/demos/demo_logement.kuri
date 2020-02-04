@@ -1,6 +1,6 @@
 importe "flux"
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
 	diffère {
 	    imprime("Mémoire utilisée : ", mémoire_utilisée(), "\n")

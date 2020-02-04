@@ -16,7 +16,7 @@ importe Fondation
     FE
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     dyn drapeau : Drapeau
 

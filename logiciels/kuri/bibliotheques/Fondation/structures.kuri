@@ -15,14 +15,14 @@ struct pile {
 	tampon : []octet
 }
 
-fonc crée_pile(taille_elem : z64) : *pile
+fonc crée_pile(taille_elem : z64) -> *pile
 {
 	dyn p := loge pile
 	p.taille_elem = taille_elem
 	retourne p
 }
 
-fonc decrée_pile(dyn p : *pile) : rien
+fonc decrée_pile(dyn p : *pile) -> rien
 {
 	p.taille_elem = 0
 	p.taille = 0
@@ -31,7 +31,7 @@ fonc decrée_pile(dyn p : *pile) : rien
 	déloge p
 }
 
-fonc empile(dyn p : *pile, d : *rien) : rien
+fonc empile(dyn p : *pile, d : *rien) -> rien
 {
     si p.taille == p.capacité {
 		reloge p.tampon : [(p.taille + 1) * p.taille_elem]octet
@@ -44,12 +44,12 @@ fonc empile(dyn p : *pile, d : *rien) : rien
 	p.taille += 1
 }
 
-fonc est_vide(p : *pile) : bool
+fonc est_vide(p : *pile) -> bool
 {
 	retourne p.taille == 0
 }
 
-fonc dépile(dyn p : *pile, d : *rien) : rien
+fonc dépile(dyn p : *pile, d : *rien) -> rien
 {
     si est_vide(p) {
 		retourne
@@ -74,14 +74,14 @@ struct file {
 	tampon : []octet
 }
 
-fonc crée_file(taille_elem : z64) : *file
+fonc crée_file(taille_elem : z64) -> *file
 {
 	dyn q := loge file
 	q.taille_elem = taille_elem
 	retourne q
 }
 
-fonc decrée_file(dyn q : *file) : rien
+fonc decrée_file(dyn q : *file) -> rien
 {
 	q.taille_elem = 0
 	q.taille = 0
@@ -90,7 +90,7 @@ fonc decrée_file(dyn q : *file) : rien
 	déloge q
 }
 
-fonc enfile(dyn q : *file, d : *rien) : rien
+fonc enfile(dyn q : *file, d : *rien) -> rien
 {
     si q.taille == q.capacité {
 		reloge q.tampon : [(q.taille + 1) * q.taille_elem]octet
@@ -103,12 +103,12 @@ fonc enfile(dyn q : *file, d : *rien) : rien
 	q.taille += 1
 }
 
-fonc est_vide(q : *file) : bool
+fonc est_vide(q : *file) -> bool
 {
 	retourne q.taille == 0
 }
 
-fonc défile(dyn q : *file, d : *rien) : rien
+fonc défile(dyn q : *file, d : *rien) -> rien
 {
     si est_vide(q) {
 		retourne
@@ -141,14 +141,14 @@ struct tableau {
 	tampon : []octet
 }
 
-fonc crée_tableau(taille_elem : z64) : *tableau
+fonc crée_tableau(taille_elem : z64) -> *tableau
 {
 	dyn t := loge tableau
 	t.taille_elem = taille_elem
 	retourne t
 }
 
-fonc decrée_tableau(dyn t : *tableau) : rien
+fonc decrée_tableau(dyn t : *tableau) -> rien
 {
 	t.taille_elem = 0
 	t.taille = 0
@@ -157,7 +157,7 @@ fonc decrée_tableau(dyn t : *tableau) : rien
 	déloge t
 }
 
-fonc pousse_tableau(dyn t : *tableau, d : *rien) : rien
+fonc pousse_tableau(dyn t : *tableau, d : *rien) -> rien
 {
     si t.taille == t.capacité {
 		reloge t.tampon : [(t.taille + 1) * t.taille_elem]octet
@@ -170,12 +170,12 @@ fonc pousse_tableau(dyn t : *tableau, d : *rien) : rien
 	t.taille += 1
 }
 
-fonc est_vide(t : *tableau) : bool
+fonc est_vide(t : *tableau) -> bool
 {
 	retourne t.taille == 0
 }
 
-fonc début_tableau(t : *tableau) : *rien
+fonc début_tableau(t : *tableau) -> *rien
 {
     si est_vide(t) {
 		retourne nul
@@ -185,7 +185,7 @@ fonc début_tableau(t : *tableau) : *rien
 	retourne transtype(ptr : *rien)
 }
 
-fonc fin_tableau(t : *tableau) : *rien
+fonc fin_tableau(t : *tableau) -> *rien
 {
     si est_vide(t) {
 		retourne nul

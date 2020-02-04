@@ -30,9 +30,9 @@ externe __VG_nombre_deallocations__ : z64
     DÉSALLOUE
 }
 
-fonc externe malloc(taille : z64) : *rien
-fonc externe realloc(ptr : *rien, taille : z64) : *rien
-fonc externe free(ptr : *rien) : rien
+fonc externe malloc(taille : z64) -> *rien
+fonc externe realloc(ptr : *rien, taille : z64) -> *rien
+fonc externe free(ptr : *rien) -> rien
 
 #!nulctx fonc allocatrice_défaut(
     mode : ModeAllocatrice,
@@ -40,7 +40,7 @@ fonc externe free(ptr : *rien) : rien
     ancienne_taille : z64,
     ancien_pointeur : *rien,
     données : *rien,
-    info : *InfoType) : *rien
+    info : *InfoType) -> *rien
 {
     discr mode {
         ALLOUE {
@@ -67,37 +67,37 @@ struct ContexteProgramme {
 }
 
 # Fonction pour accéder à la variable __VG_memoire_utilisee__.
-fonc mémoire_utilisée() : z64
+fonc mémoire_utilisée() -> z64
 {
     retourne __VG_memoire_utilisee__
 }
 
 # Fonction pour accéder à la variable __VG_memoire_utilisee__.
-fonc mémoire_consommée() : z64
+fonc mémoire_consommée() -> z64
 {
     retourne __VG_memoire_consommee__
 }
 
 # Fonction pour accéder à la variable __VG_nombre_allocations__.
-fonc nombre_allocations() : z64
+fonc nombre_allocations() -> z64
 {
     retourne __VG_nombre_allocations__
 }
 
 # Fonction pour accéder à la variable __VG_nombre_reallocations__.
-fonc nombre_réallocations() : z64
+fonc nombre_réallocations() -> z64
 {
     retourne __VG_nombre_reallocations__
 }
 
 # Fonction pour accéder à la variable __VG_nombre_deallocations__.
-fonc nombre_déallocations() : z64
+fonc nombre_déallocations() -> z64
 {
     retourne __VG_nombre_deallocations__
 }
 
 # Fonctions de bases pour les opérateurs de comparaisons de chaines
-fonc sont_chaines_égales(chn1: chaine, chn2: chaine) : bool
+fonc sont_chaines_égales(chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {
 		retourne faux
@@ -115,7 +115,7 @@ fonc sont_chaines_égales(chn1: chaine, chn2: chaine) : bool
 	retourne vrai
 }
 
-fonc sont_chaines_inégales(chn1: chaine, chn2: chaine) : bool
+fonc sont_chaines_inégales(chn1: chaine, chn2: chaine) -> bool
 {
     retourne !sont_chaines_égales(chn1, chn2)
 }

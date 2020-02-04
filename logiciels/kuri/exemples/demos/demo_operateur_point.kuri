@@ -10,7 +10,7 @@ struct TEST2 {
     tests : [2]TEST
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     dyn y : [2]z32
     y[0] = 12389

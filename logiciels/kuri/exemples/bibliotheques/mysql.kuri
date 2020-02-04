@@ -2,7 +2,7 @@
 
 #!bib "mysqlclient"
 
-fonc externe mysql_fetch_row() : ;
+fonc externe mysql_fetch_row() -> ;
 
 corout iter_résultat_requête(resultat)
 {
@@ -17,7 +17,7 @@ corout iter_résultat_requête(resultat)
     }
 }
 
-fonc iter_résultat_requête(resultat, ligne) : chaine
+fonc iter_résultat_requête(resultat, ligne) -> chaine
 {
     longueurs := mysql_fetch_lengths(resultat);
     nombre_champs := mysql_num_fields(resultat);

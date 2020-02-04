@@ -13,18 +13,18 @@ importe Réseau
 struct externe ssl_method_st; # SSL_METHOD dans l'IPA C
 struct externe ssl_st; # SSL dans l'IPA C
 
-fonc externe SSL_library_init() : rien;
-fonc externe OpenSSL_add_ssl_algorithms() : rien;
-fonc externe SSL_load_error_strings() : rien;
-fonc externe SSLv23_client_method() : *ssl_method_st;
-fonc externe SSL_CTX_new(method : *ssl_method_st) : *rien;
-fonc externe SSL_new(ctx_s : *rien) : *ssl_st;
-fonc externe SSL_set_fd(ssl : *ssl_st, prise : z32) : rien;
-fonc externe SSL_connect(ssl : *ssl_st) : z32;
-fonc externe SSL_free(ssl : *ssl_st) : rien;
-fonc externe SSL_get_error(ssl : *ssl_st, erreur : z32) : z32;
-fonc externe SSL_write(ssl : *ssl_st, ptr : *z8, taille : z32) : z32
-fonc externe SSL_read(ssl : *ssl_st, tampon : *z8, max : z32) : z32
+fonc externe SSL_library_init() -> rien;
+fonc externe OpenSSL_add_ssl_algorithms() -> rien;
+fonc externe SSL_load_error_strings() -> rien;
+fonc externe SSLv23_client_method() -> *ssl_method_st;
+fonc externe SSL_CTX_new(method : *ssl_method_st) -> *rien;
+fonc externe SSL_new(ctx_s : *rien) -> *ssl_st;
+fonc externe SSL_set_fd(ssl : *ssl_st, prise : z32) -> rien;
+fonc externe SSL_connect(ssl : *ssl_st) -> z32;
+fonc externe SSL_free(ssl : *ssl_st) -> rien;
+fonc externe SSL_get_error(ssl : *ssl_st, erreur : z32) -> z32;
+fonc externe SSL_write(ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
+fonc externe SSL_read(ssl : *ssl_st, tampon : *z8, max : z32) -> z32
 
 _SSL_ERROR_NONE := 0
 _SSL_ERROR_SSL := 1
@@ -38,15 +38,15 @@ _SSL_ERROR_WANT_ACCEPT := 8
 
 ################################################################################
 
-#!nulctx fonc rappel_erreur(pointeur : *z8, taille : n64, user_data : *rien) : z32
+#!nulctx fonc rappel_erreur(pointeur : *z8, taille : n64, user_data : *rien) -> z32
 {
     write(std_err, pointeur, transtype(taille : z64))
     retourne 0
 }
 
-fonc externe ERR_print_errors_cb(cb : fonc(*z8,n64,*rien)z32, u : *rien) : rien
+fonc externe ERR_print_errors_cb(cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien
 
-fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) : rien
+fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) -> rien
 {
 	imprime(message)
 
@@ -87,7 +87,7 @@ fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile 
 	}
 }
 
-fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
+fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
 {
     dyn réponse : chaine;
 
@@ -134,7 +134,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
 
     #imprime(their_addr, '\n');
 
-    si connect(prise, transtype(@their_addr : *sockaddr), transtype(taille_de(sockaddr) : z64)) == -1 {
+	si connect(prise, transtype(@their_addr : *sockaddr), transtype(taille_de(sockaddr) : z64)) == -1 {
         imprime("Impossible de se connecter à la prise !", '\n');
         retourne réponse, 1;
     }
@@ -142,7 +142,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
     #imprime("Connexion active", '\n');
 
     dyn m_ssl : *ssl_st = nul
-    diffère { si m_ssl != nul { SSL_free(m_ssl); } }
+    diffère { si m_ssl != nul { SSL_free(m_ssl); } }
 
     # initialise connexion SSL
     si port == 443 {
@@ -272,7 +272,7 @@ fonc lance_requête(uri : &URI, requête : chaine) : chaine, z32
     retourne réponse, 0
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     si args.taille != 2 {
         chn := converti_chaine_c(args[0])

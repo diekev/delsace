@@ -51,21 +51,21 @@ struct ObjetDictionnaire {
 	valeurs : []*Objet
 }
 
-fonc pousse(dyn liste : &[]chaine, valeur : chaine) : rien
+fonc pousse(dyn liste : &[]chaine, valeur : chaine) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]chaine
     liste[taille] = valeur
 }
 
-fonc pousse(dyn liste : &[]*Objet, valeur : *Objet) : rien
+fonc pousse(dyn liste : &[]*Objet, valeur : *Objet) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]*Objet
     liste[taille] = valeur
 }
 
-fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) : rien
+fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) -> rien
 {
 	pour nom, idx dans dico.noms {
 		si nom != nom_objet {
@@ -80,7 +80,7 @@ fonc insère(dyn dico : *ObjetDictionnaire, nom_objet : chaine, objet : *Objet) 
 	pousse(dico.valeurs, objet)
 }
 
-fonc trouve_objet(dico : *ObjetDictionnaire, nom_objet : chaine) : *Objet
+fonc trouve_objet(dico : *ObjetDictionnaire, nom_objet : chaine) -> *Objet
 {
 	pour nom, idx dans dico.noms {
 		si nom != nom_objet {
@@ -96,7 +96,7 @@ fonc trouve_objet(dico : *ObjetDictionnaire, nom_objet : chaine) : *Objet
 fonc trouve_objet(
 	dico : *ObjetDictionnaire,
 	nom_objet : chaine,
-	type : TypeObjet) : *Objet
+	type : TypeObjet) -> *Objet
 {
 	pour nom, idx dans dico.noms {
 		si nom != nom_objet {
@@ -113,7 +113,7 @@ fonc trouve_objet(
 	}
 }
 
-fonc trouve_entier(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetEntier
+fonc trouve_entier(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetEntier
 {
 	objet := trouve_objet(dico, nom_objet, TypeObjet.ENTIER)
 
@@ -124,7 +124,7 @@ fonc trouve_entier(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetEntier
 	retourne nul
 }
 
-fonc trouve_réel(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetRéel
+fonc trouve_réel(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetRéel
 {
 	objet := trouve_objet(dico, nom_objet, TypeObjet.RÉEL)
 
@@ -135,7 +135,7 @@ fonc trouve_réel(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetRéel
 	retourne nul
 }
 
-fonc trouve_liste(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetListe
+fonc trouve_liste(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetListe
 {
 	objet := trouve_objet(dico, nom_objet, TypeObjet.LISTE)
 
@@ -146,7 +146,7 @@ fonc trouve_liste(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetListe
 	retourne nul
 }
 
-fonc trouve_chaine(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetChaine
+fonc trouve_chaine(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetChaine
 {
 	objet := trouve_objet(dico, nom_objet, TypeObjet.CHAINE)
 
@@ -157,7 +157,7 @@ fonc trouve_chaine(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetChaine
 	retourne nul
 }
 
-fonc trouve_dico(dico : *ObjetDictionnaire, nom_objet : chaine) : *ObjetDictionnaire
+fonc trouve_dico(dico : *ObjetDictionnaire, nom_objet : chaine) -> *ObjetDictionnaire
 {
 	objet := trouve_objet(dico, nom_objet, TypeObjet.DICTIONNAIRE)
 
@@ -174,13 +174,13 @@ struct GestionnaireObjet {
 	objets : []*Objet
 }
 
-fonc insère(objet : *Objet, dyn liste : &[]*Objet) : rien
+fonc insère(objet : *Objet, dyn liste : &[]*Objet) -> rien
 {
 	reloge liste : [liste.taille + 1]*Objet
 	liste[liste.taille - 1] = objet
 }
 
-fonc crée_dictionnaire(gestionnaire : *GestionnaireObjet) : *ObjetDictionnaire
+fonc crée_dictionnaire(gestionnaire : *GestionnaireObjet) -> *ObjetDictionnaire
 {
 	dyn objet := loge ObjetDictionnaire
 	objet.objet.id = TypeObjet.DICTIONNAIRE
@@ -194,7 +194,7 @@ fonc crée_dictionnaire(gestionnaire : *GestionnaireObjet) : *ObjetDictionnaire
 	retourne objet
 }
 
-fonc crée_liste(gestionnaire : *GestionnaireObjet) : *ObjetListe
+fonc crée_liste(gestionnaire : *GestionnaireObjet) -> *ObjetListe
 {
 	dyn objet := loge ObjetListe
 	objet.objet.id = TypeObjet.LISTE
@@ -206,7 +206,7 @@ fonc crée_liste(gestionnaire : *GestionnaireObjet) : *ObjetListe
 	retourne objet
 }
 
-fonc crée_entier(gestionnaire : *GestionnaireObjet) : *ObjetEntier
+fonc crée_entier(gestionnaire : *GestionnaireObjet) -> *ObjetEntier
 {
 	dyn objet := loge ObjetEntier
 	objet.objet.id = TypeObjet.ENTIER
@@ -217,7 +217,7 @@ fonc crée_entier(gestionnaire : *GestionnaireObjet) : *ObjetEntier
 	retourne objet
 }
 
-fonc crée_réel(gestionnaire : *GestionnaireObjet) : *ObjetRéel
+fonc crée_réel(gestionnaire : *GestionnaireObjet) -> *ObjetRéel
 {
 	dyn objet := loge ObjetRéel
 	objet.objet.id = TypeObjet.RÉEL
@@ -228,7 +228,7 @@ fonc crée_réel(gestionnaire : *GestionnaireObjet) : *ObjetRéel
 	retourne objet
 }
 
-fonc crée_chaine(gestionnaire : *GestionnaireObjet) : *ObjetChaine
+fonc crée_chaine(gestionnaire : *GestionnaireObjet) -> *ObjetChaine
 {
 	dyn objet := loge ObjetChaine
 	objet.objet.id = TypeObjet.CHAINE
@@ -239,7 +239,7 @@ fonc crée_chaine(gestionnaire : *GestionnaireObjet) : *ObjetChaine
 	retourne objet
 }
 
-fonc crée_nul(gestionnaire : *GestionnaireObjet) : *Objet
+fonc crée_nul(gestionnaire : *GestionnaireObjet) -> *Objet
 {
 	dyn objet := loge Objet
 	objet.id = TypeObjet.NUL
@@ -249,7 +249,7 @@ fonc crée_nul(gestionnaire : *GestionnaireObjet) : *Objet
 	retourne objet
 }
 
-fonc détruit_objet(objet : *Objet) : rien
+fonc détruit_objet(objet : *Objet) -> rien
 {
 	discr objet.id {
 		NUL {
@@ -283,7 +283,7 @@ fonc détruit_objet(objet : *Objet) : rien
 	}
 }
 
-fonc détruit(gestionnaire : *GestionnaireObjet) : rien
+fonc détruit(gestionnaire : *GestionnaireObjet) -> rien
 {
 	pour obj dans gestionnaire.objets {
 		détruit_objet(obj)
@@ -292,14 +292,14 @@ fonc détruit(gestionnaire : *GestionnaireObjet) : rien
 	déloge gestionnaire.objets
 }
 
-fonc imprime_tab(n : z32) : rien
+fonc imprime_tab(n : z32) -> rien
 {
 	pour i dans 0 ... n - 1 {
 		imprime("  ")
 	}
 }
 
-fonc imprime_json(objet : *Objet, tab : z32) : rien
+fonc imprime_json(objet : *Objet, tab : z32) -> rien
 {
 	discr objet.id {
 		NUL {
@@ -349,7 +349,7 @@ fonc imprime_json(objet : *Objet, tab : z32) : rien
 	}
 }
 
-fonc test_tori() : rien
+fonc test_tori() -> rien
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

@@ -8,7 +8,7 @@
 # sortie standard.
 
 # Déclaration de la fonc externe printf qui se trouve dans libc.
-fonc externe printf(format : *z8, args : ...) : z32;
+fonc externe printf(format : *z8, args : ...) -> z32;
 
 # Définition de la structure ChaînePascal.
 struct ChaînePascal {
@@ -19,7 +19,7 @@ struct ChaînePascal {
 
 # Retourne la longueur d'une chaîne 'C' terminée par '\0'. Si la chaîne n'est
 # pas terminée par '\0', la fonc restera bloquée dans une boucle infinie.
-fonc longueur(chaîne : *z8) : z64
+fonc longueur(chaîne : *z8) -> z64
 {
 	dyn i : z64 = 0;
 
@@ -43,7 +43,7 @@ fonc longueur(chaîne : *z8) : z64
 # 
 # Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
 # la sortie standard, et la fonc retournera sans rien copier.
-fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
+fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) -> rien
 {
 	si cp == nul {
 		printf("La chaîne pascal est nul !\n");
@@ -68,7 +68,7 @@ fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
 # 
 # Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
 # sortie standard, et la fonc retournera.
-fonc imprime_chaîne_pascal(cp : *ChaînePascal) : rien
+fonc imprime_chaîne_pascal(cp : *ChaînePascal) -> rien
 {
 	si cp == nul {
 		printf("La chaîne pascal est nul !\n");
@@ -83,7 +83,7 @@ fonc imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 }
 
 # Point d'entrée des programmes Kuri.
-fonc principale(compte : z32, arguments : **z8) : z32
+fonc principale(compte : z32, arguments : **z8) -> z32
 {
 	dyn chaîne : ChaînePascal;
 

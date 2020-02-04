@@ -10,16 +10,16 @@ struct Structurée {
     fn_pointée : fonc()rien
 }
 
-fonc fée() : rien
+fonc fée() -> rien
 {
 }
 
-fonc prend_énum(lumière : Énumération) : rien
+fonc prend_énum(lumière : Énumération) -> rien
 {
     imprime("Valeur passée : ", lumière, '\n')
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     début := 0
     fin := 9

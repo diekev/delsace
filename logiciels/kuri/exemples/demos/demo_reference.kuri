@@ -4,24 +4,24 @@ struct FOO {
     a := 123
 }
 
-fonc bar(dyn f : &FOO) : rien
+fonc bar(dyn f : &FOO) -> rien
 {
     f.a = 987
 }
 
-fonc foo(dyn a : &z32) : rien
+fonc foo(dyn a : &z32) -> rien
 {
     a := 7
 }
 
-fonc échange(dyn a : &z32, dyn b : &z32) : rien
+fonc échange(dyn a : &z32, dyn b : &z32) -> rien
 {
     tmp := a
     a = b
     b = tmp
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     dyn a := 5
     imprime("a = ", a, '\n')

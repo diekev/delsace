@@ -52,6 +52,9 @@ static auto id_depuis_idx(int id)
 static void imprime_mot(TypeLexeme id, std::ostream &os)
 {
 	switch (id) {
+		case TypeLexeme::RETOUR_TYPE:
+			os << "->";
+			return;
 		case TypeLexeme::EXCLAMATION:
 			os << "!";
 			return;

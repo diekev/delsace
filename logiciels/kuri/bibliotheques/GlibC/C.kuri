@@ -17,7 +17,7 @@ std_out := 0
 std_err := 1
 std_log := 2
 
-fonc externe sprintf(tmp : *z8, fmt : *z8, args : ...) : z32
+fonc externe sprintf(tmp : *z8, fmt : *z8, args : ...) -> z32
 
 ################################################################################
 
@@ -34,30 +34,30 @@ struct externe timezone {
 	tz_dsttime : z64 # Nonzéro si DST est en effet
 }
 
-fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) : rien
+fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) -> rien
 
 ################################################################################
 
-fonc externe open(chemin : *z8, drapeaux : z32, args : ...) : z32
-fonc externe close(fd : z32) : z32
-fonc externe read(fd : z32, tampon : *z8, taille : n64) : z64
-fonc externe write(fd : z32, tampon : *z8, taille : z64) : z32
-fonc externe stat(chemin : *z8, buf : *rien) : z32
+fonc externe open(chemin : *z8, drapeaux : z32, args : ...) -> z32
+fonc externe close(fd : z32) -> z32
+fonc externe read(fd : z32, tampon : *z8, taille : n64) -> z64
+fonc externe write(fd : z32, tampon : *z8, taille : z64) -> z32
+fonc externe stat(chemin : *z8, buf : *rien) -> z32
 
-fonc externe getcwd(ptr : *z8, taille : z64) : rien
-fonc externe chdir(ptr : *z8) : rien
+fonc externe getcwd(ptr : *z8, taille : z64) -> rien
+fonc externe chdir(ptr : *z8) -> rien
 
-fonc externe rename(orig : *z8, dest : *z8) : z32
-fonc externe remove(chemin : *z8) : z32
+fonc externe rename(orig : *z8, dest : *z8) -> z32
+fonc externe remove(chemin : *z8) -> z32
 
 # Ceci sont des macros
-fonc externe S_ISREG(mode : n32) : bool
-fonc externe S_ISDIR(mode : n32) : bool
-fonc externe S_IFSOCK(mode : n32) : bool
-fonc externe S_IFLNK(mode : n32) : bool
-fonc externe S_IFBLK(mode : n32) : bool
-fonc externe S_IFCHR(mode : n32) : bool
-fonc externe S_IFIFO(mode : n32) : bool
+fonc externe S_ISREG(mode : n32) -> bool
+fonc externe S_ISDIR(mode : n32) -> bool
+fonc externe S_IFSOCK(mode : n32) -> bool
+fonc externe S_IFLNK(mode : n32) -> bool
+fonc externe S_IFBLK(mode : n32) -> bool
+fonc externe S_IFCHR(mode : n32) -> bool
+fonc externe S_IFIFO(mode : n32) -> bool
 
 # Version 64-bit de la structure 'stat' de "sys/stat.h"
 struct externe stat {
@@ -126,9 +126,9 @@ DSYNC	          :=    010000
 # encore les énum. L'expression devrait être (020000000 | 0200000)
 TMPFILE          := 020200000
 
-fonc externe opendir(chemin : *z8) : *DIR
-fonc externe closedir(d : *DIR) : z32
-fonc externe readdir(d : *DIR) : *dirent
+fonc externe opendir(chemin : *z8) -> *DIR
+fonc externe closedir(d : *DIR) -> z32
+fonc externe readdir(d : *DIR) -> *dirent
 
 ################################################################################
 
@@ -160,22 +160,22 @@ struct externe sockaddr_in {
     sin_zero : [8]n8
 }
 
-fonc externe gethostbyname(arg : *z8) : *hostent
+fonc externe gethostbyname(arg : *z8) -> *hostent
 
-fonc externe socket(a : z32, b : z32, c : z32) : z32
+fonc externe socket(a : z32, b : z32, c : z32) -> z32
 
-fonc externe htons(a : n16) : n16
+fonc externe htons(a : n16) -> n16
 
-fonc externe connect(prise : z32, addr : *sockaddr, taille : z64) : z32
+fonc externe connect(prise : z32, addr : *sockaddr, taille : z64) -> z32
 
-fonc externe recv(prise : z32, tampon : *z8, taille : n64, flags : z32) : z64
-fonc externe send(prise : z32, tampon : *rien, taille : n64, flags : z32) : z64
-fonc externe bind(prise : z32, addr : *sockaddr, taille : n64) : z32
-fonc externe listen(prise : z32, connexions : z32) : z32
-fonc externe accept(prise : z32, addr : *sockaddr, taille : *n32) : z32
-fonc externe perror(ptr : *z8) : rien
-fonc externe fork() : z32
-fonc externe exit(id : z32) : rien
-fonc externe waitpid(id : z32, ptr : *z32, options : z32) : z32
-fonc externe send(prise : z32, pointeur : *z8, taille : z64, options : z32) : z32
-fonc externe inet_ntoa(addr : in_addr) : *z8
+fonc externe recv(prise : z32, tampon : *z8, taille : n64, flags : z32) -> z64
+fonc externe send(prise : z32, tampon : *rien, taille : n64, flags : z32) -> z64
+fonc externe bind(prise : z32, addr : *sockaddr, taille : n64) -> z32
+fonc externe listen(prise : z32, connexions : z32) -> z32
+fonc externe accept(prise : z32, addr : *sockaddr, taille : *n32) -> z32
+fonc externe perror(ptr : *z8) -> rien
+fonc externe fork() -> z32
+fonc externe exit(id : z32) -> rien
+fonc externe waitpid(id : z32, ptr : *z32, options : z32) -> z32
+fonc externe send(prise : z32, pointeur : *z8, taille : z64, options : z32) -> z32
+fonc externe inet_ntoa(addr : in_addr) -> *z8

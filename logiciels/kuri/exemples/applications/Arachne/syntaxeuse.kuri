@@ -39,7 +39,7 @@ struct Requête {
 	blocs : []Bloc
 }
 
-fonc détruit_requête(dyn requête : &Requête) : rien
+fonc détruit_requête(dyn requête : &Requête) -> rien
 {
 	pour bloc dans requête.blocs {
 		expression := bloc.expression
@@ -55,7 +55,7 @@ fonc détruit_requête(dyn requête : &Requête) : rien
 	déloge requête.blocs
 }
 
-fonc imprime_requête(dyn requête : &Requête) : rien
+fonc imprime_requête(dyn requête : &Requête) -> rien
 {
 	imprime("Requête :\n")
 
@@ -84,28 +84,28 @@ fonc imprime_requête(dyn requête : &Requête) : rien
 
 # À FAIRE(langage) : gabarits
 
-fonc pousse(dyn liste : &[]Bloc, valeur : Bloc) : rien
+fonc pousse(dyn liste : &[]Bloc, valeur : Bloc) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]Bloc
     liste[taille] = valeur
 }
 
-fonc pousse(dyn liste : &[]Objet, valeur : Objet) : rien
+fonc pousse(dyn liste : &[]Objet, valeur : Objet) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]Objet
     liste[taille] = valeur
 }
 
-fonc pousse(dyn liste : &[]Propriété, valeur : Propriété) : rien
+fonc pousse(dyn liste : &[]Propriété, valeur : Propriété) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]Propriété
     liste[taille] = valeur
 }
 
-fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) : rien
+fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]Étiquette
@@ -121,40 +121,40 @@ struct Syntaxeuse {
 	inst : Instruction
 }
 
-fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) : rien
+fonc initialise(dyn syntaxeuse : &Syntaxeuse, lexèmes : *[]Lexème) -> rien
 {
 	syntaxeuse.position = 0
 	syntaxeuse.lexèmes = lexèmes
 }
 
-fonc a_fini(dyn syntaxeuse : &Syntaxeuse) : bool
+fonc a_fini(dyn syntaxeuse : &Syntaxeuse) -> bool
 {
 	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
 }
 
-fonc lexème_courant(dyn syntaxeuse : &Syntaxeuse) : Lexème
+fonc lexème_courant(dyn syntaxeuse : &Syntaxeuse) -> Lexème
 {
 	# À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
 	lexèmes := mémoire(syntaxeuse.lexèmes)
 	retourne lexèmes[syntaxeuse.position]
 }
 
-fonc est_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+fonc est_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant().id == id
 }
 
-fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc avance(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc recule(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position -= 1
 }
 
-fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : bool
+fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> bool
 {
 	si syntaxeuse.position >= syntaxeuse.lexèmes.taille {
 		retourne faux
@@ -167,7 +167,7 @@ fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : b
 
 ################################################################################
 
-fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) : rien
+fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) -> rien
 {
 	#imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
 	# { chaine : chaine }
@@ -219,7 +219,7 @@ fonc analyse_objet(
 	dyn syntaxeuse : &Syntaxeuse,
 	expression : &Expression,
 	type_objet : TypeObjet,
-	id_final : IdentifiantLexème) : rien
+	id_final : IdentifiantLexème) -> rien
 {
 	#imprime("analyse_objet ", id_final, '\n')
 	# ( chaine : chaine : chaine propriétés )
@@ -271,7 +271,7 @@ fonc analyse_objet(
 	}
 }
 
-fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> Expression
 {
 	dyn expression : Expression
 
@@ -295,7 +295,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : Expression
 	retourne expression
 }
 
-fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
+fonc instruction_pour_lexème(id : IdentifiantLexème) -> Instruction
 {
 	discr id {
 		IdentifiantLexème.CREE     { retourne Instruction.CREE; }
@@ -308,7 +308,7 @@ fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
     retourne Instruction.INVALIDE
 }
 
-fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) : bool
+fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) -> bool
 {
 	lexème := syntaxeuse.lexème_courant()
 	inst := instruction_pour_lexème(lexème.id)
@@ -326,7 +326,7 @@ union Résultat {
 	erreur : Erreur
 }
 
-fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Résultat
+fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) -> Résultat
 {
 	dyn résultat : Résultat
 	dyn requête : Requête
@@ -365,7 +365,7 @@ fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Résultat
 	retourne résultat
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     expressions := [
         "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",

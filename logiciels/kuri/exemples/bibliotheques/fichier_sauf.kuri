@@ -69,15 +69,15 @@ _ENOENT := 2;
 
 _S_IFMT := 0o170000;
 
-fonc externe open(a : *z8, b : ...z32) : z32;
-fonc externe close(a : z32) : z32;
-fonc externe fstat(fd : z32, s : *stat) : z32;
-fonc externe lstat(a : *z8, s : *stat) : z32;
-fonc externe isatty(a : z32) : bool;
-fonc externe unlink(a : *z8) : z32;
-fonc externe ftruncate(a : z32, f : z32) : z32;
-fonc externe S_ISLNK(a : n32) : bool;
-fonc externe S_ISFIFO(a : n32) : bool;
+fonc externe open(a : *z8, b : ...z32) -> z32;
+fonc externe close(a : z32) -> z32;
+fonc externe fstat(fd : z32, s : *stat) -> z32;
+fonc externe lstat(a : *z8, s : *stat) -> z32;
+fonc externe isatty(a : z32) -> bool;
+fonc externe unlink(a : *z8) -> z32;
+fonc externe ftruncate(a : z32, f : z32) -> z32;
+fonc externe S_ISLNK(a : n32) -> bool;
+fonc externe S_ISFIFO(a : n32) -> bool;
 
 ##########################
 
@@ -89,7 +89,7 @@ SAFE_OPEN_RETRY_MAX := 50;
 
 dyn safe_open_path_warning_callback : fonc(*z8)z32 = nul;
 
-fonc safe_open_register_path_warning_callback(f : fonc(*z8)z32) : fonc(*z8)z32
+fonc safe_open_register_path_warning_callback(f : fonc(*z8)z32) -> fonc(*z8)z32
 {
 	old_value = safe_open_path_warning_callback;
 
@@ -101,7 +101,7 @@ fonc safe_open_register_path_warning_callback(f : fonc(*z8)z32) : fonc(*z8)z32
 }
 
 
-fonc safe_open_path_warning(fn : *z8) : z32
+fonc safe_open_path_warning(fn : *z8) -> z32
 {
 	f = safe_open_path_warning_callback;
 
@@ -113,7 +113,7 @@ fonc safe_open_path_warning(fn : *z8) : z32
 }
 
 # open existing file, if the last component of fn is a symbolic link fail
-fonc safe_open_no_create(fn : *z8, dyn flags : z32) : z32
+fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 {
 	saved_errno = errno;		# used to restore errno on success
 	want_trunc = (flags & _O_TRUNC) != 0;
@@ -316,7 +316,7 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) : z32
 
 
 # create file, error if exists, don't follow sym link
-fonc safe_create_fail_if_exists(fn : *z8, flags : z32, mode : z32) : z32
+fonc safe_create_fail_if_exists(fn : *z8, flags : z32, mode : z32) -> z32
 {
 	# check for invalid argument values
 	si (fn == nul) {
@@ -331,7 +331,7 @@ fonc safe_create_fail_if_exists(fn : *z8, flags : z32, mode : z32) : z32
 
 
 # create file if it doesn't exist, keep inode if it does
-fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) : z32
+fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 {
 	dyn f = -1;
 	saved_errno = errno;
@@ -404,7 +404,7 @@ fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) : z32
 
 
 # create file, replace file if exists
-fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) : z32
+fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 {
 	dyn f = -1;
 	saved_errno = errno;
@@ -472,7 +472,7 @@ fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) : z32
 
 
 # open existing file
-fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) : z32
+fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) -> z32
 {
 	want_trunc = (flags & _O_TRUNC) != 0;
 
@@ -542,7 +542,7 @@ fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) : z32
 
 
 # create file if it doesn't exist, keep inode if it does
-fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) : z32
+fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) -> z32
 {
 	dyn f = -1;
 	saved_errno = errno;
@@ -645,7 +645,7 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) : 
 
 
 # Fonction de remplacement pour 'open', échoue si fn est un lien symbolic.
-fonc safe_open_wrapper(fn : *z8, flags : z32, mode : z32) : z32
+fonc safe_open_wrapper(fn : *z8, flags : z32, mode : z32) -> z32
 {
 	si (flags & _O_CREAT) != 0 {
 		# _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
@@ -663,7 +663,7 @@ fonc safe_open_wrapper(fn : *z8, flags : z32, mode : z32) : z32
 
 
 # Fonction de remplacement pour 'open', suit les liens symbolics existants.
-fonc safe_open_wrapper_follow(fn : *z8, flags : z32, mode : z32) : z32
+fonc safe_open_wrapper_follow(fn : *z8, flags : z32, mode : z32) -> z32
 {
 	si (flags & _O_CREAT) != 0 {
 		# _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
@@ -684,20 +684,20 @@ _O_WRONLY := 1;
 
 struct externe FILE;
 
-fonc externe umask(m : z32) : rien;
-fonc externe perror(c : *z8) : rien;
-fonc externe exit(c : z32) : rien;
-fonc externe link(a : *z8, b : *z8) : z32;
-fonc externe write(a : z32, b : *z8, c : z32) : z64;
+fonc externe umask(m : z32) -> rien;
+fonc externe perror(c : *z8) -> rien;
+fonc externe exit(c : z32) -> rien;
+fonc externe link(a : *z8, b : *z8) -> z32;
+fonc externe write(a : z32, b : *z8, c : z32) -> z64;
 
-fonc perror(chn : chaine) : rien
+fonc perror(chn : chaine) -> rien
 {
     perror(chn.pointeur);
 }
 
 _stderr := 0;
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     fn_chn = "test_file";
     fn = fn_chn.pointeur;

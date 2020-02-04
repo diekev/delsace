@@ -2,7 +2,7 @@ importe "chaine"
 importe "flux"
 importe "table_hachage"
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     table := crée_table_hachage()
     diffère { décrée_table_hachage(table); }

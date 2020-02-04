@@ -14,7 +14,7 @@
 	INVALIDE
 }
 
-fonc type_paramètre_opengl(type_param : TypeParamètre) : chaine
+fonc type_paramètre_opengl(type_param : TypeParamètre) -> chaine
 {
     discr type_param {
 		DEC { retourne "float" }
@@ -34,7 +34,7 @@ fonc type_paramètre_opengl(type_param : TypeParamètre) : chaine
     retourne "invalide"
 }
 
-fonc taille_type(type_param : TypeParamètre) : z32
+fonc taille_type(type_param : TypeParamètre) -> z32
 {
 	discr type_param {
 		CHAINE,

@@ -1,4 +1,4 @@
-fonc exemple() : rien
+fonc exemple() -> rien
 {
 	x := 1.5 # Type nombre réel 64-bit
 	y := 2   # Type nombre entier relatif 32-bit

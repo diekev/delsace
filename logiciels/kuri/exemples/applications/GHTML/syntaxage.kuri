@@ -10,7 +10,7 @@ struct Syntaxeuse {
     position := 0
 }
 
-fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) : Syntaxeuse
+fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) -> Syntaxeuse
 {
     dyn syntaxeuse : Syntaxeuse
     syntaxeuse.lexèmes := lexèmes
@@ -19,49 +19,49 @@ fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) : Syntaxeuse
     retourne syntaxeuse
 }
 
-fonc lexème_courant(syntaxeuse : &Syntaxeuse) : TypeLexème
+fonc lexème_courant(syntaxeuse : &Syntaxeuse) -> TypeLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].type_lexème
 }
 
-fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc avance(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc recule(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position -= 1
 }
 
-fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-fonc données(syntaxeuse : &Syntaxeuse) : &DonnéesLexème
+fonc données(syntaxeuse : &Syntaxeuse) -> &DonnéesLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-fonc position(syntaxeuse : &Syntaxeuse) : z32
+fonc position(syntaxeuse : &Syntaxeuse) -> z32
 {
     retourne syntaxeuse.position - 1
 }
 
-fonc fini(syntaxeuse : &Syntaxeuse) : bool
+fonc fini(syntaxeuse : &Syntaxeuse) -> bool
 {
     retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
 }
 
-fonc performe_syntaxage(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc performe_syntaxage(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position = 0
 
@@ -77,7 +77,7 @@ fonc performe_syntaxage(dyn syntaxeuse : &Syntaxeuse) : rien
 	syntaxeuse.assembleuse.attend_type(TypeNoeud.BLOC)
 }
 
-fonc analyse_page(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_page(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	tantque !syntaxeuse.fini() {
 		si (syntaxeuse.est_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
@@ -103,7 +103,7 @@ fonc analyse_page(dyn syntaxeuse : &Syntaxeuse) : rien
 	}
 }
 
-fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DÉBUT_EXPRESSION)) {
 		#lance_erreur("Attendu '{%'")
@@ -158,7 +158,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) : rien
 	}
 }
 
-fonc analyse_si(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
 		#lance_erreur("Attendu 'si'")
@@ -181,7 +181,7 @@ fonc analyse_si(dyn syntaxeuse : &Syntaxeuse) : rien
 	syntaxeuse.analyse_page()
 }
 
-fonc analyse_pour(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_pour(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
 		#lance_erreur("Attendu 'pour'")
@@ -214,7 +214,7 @@ fonc analyse_pour(dyn syntaxeuse : &Syntaxeuse) : rien
 	syntaxeuse.analyse_page()
 }
 
-fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
+fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) -> rien
 {
 	pour i dans 0 ... tab - 1 {
 		imprime("  ")

@@ -3,17 +3,17 @@ struct Automate {
 	pointeur : z32
 }
 
-fonc état(automate : &Automate) : z32
+fonc état(automate : &Automate) -> z32
 {
 	retourne automate.code[automate.pointeur]
 }
 
-fonc avance(dyn automate : &Automate) : rien
+fonc avance(dyn automate : &Automate) -> rien
 {
 	automate.pointeur += 1
 }
 
-fonc reinitialise(dyn automate : &Automate) : rien
+fonc reinitialise(dyn automate : &Automate) -> rien
 {
 	automate.pointeur = 0
 }

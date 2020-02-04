@@ -5,12 +5,12 @@ struct Objet {
     nom := "objet"
 }
 
-fonc execute_noeud(obj1 : &Objet, objs : []&Objet) : z32, *Objet
+fonc execute_noeud(obj1 : &Objet, objs : []&Objet) -> z32, *Objet
 {
     retourne 0, nul
 }
 
-fonc imprime_type(info : *InfoType) : rien
+fonc imprime_type(info : *InfoType) -> rien
 {
     discr info.id {
 	    ENTIER {
@@ -102,7 +102,7 @@ fonc imprime_type(info : *InfoType) : rien
 	}
 }
 
-fonc enregistre_noeud(fonc_exec : eini) : rien
+fonc enregistre_noeud(fonc_exec : eini) -> rien
 {
     info := fonc_exec.info
 
@@ -130,7 +130,7 @@ fonc enregistre_noeud(fonc_exec : eini) : rien
     }
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     enregistre_noeud(execute_noeud)
     retourne 0

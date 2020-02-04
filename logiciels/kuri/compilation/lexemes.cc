@@ -98,6 +98,7 @@ static auto paires_digraphes = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("*="), TypeLexeme::MULTIPLIE_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("+="), TypeLexeme::PLUS_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("-="), TypeLexeme::MOINS_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("->"), TypeLexeme::RETOUR_TYPE },
 	dls::paire{ dls::vue_chaine_compacte("/="), TypeLexeme::DIVISE_EGAL },
 	dls::paire{ dls::vue_chaine_compacte(":="), TypeLexeme::DECLARATION_VARIABLE },
 	dls::paire{ dls::vue_chaine_compacte("<<"), TypeLexeme::DECALAGE_GAUCHE },
@@ -222,6 +223,8 @@ const char *chaine_identifiant(TypeLexeme id)
 			return "TypeLexeme::PLUS_EGAL";
 		case TypeLexeme::MOINS_EGAL:
 			return "TypeLexeme::MOINS_EGAL";
+		case TypeLexeme::RETOUR_TYPE:
+			return "TypeLexeme::RETOUR_TYPE";
 		case TypeLexeme::DIVISE_EGAL:
 			return "TypeLexeme::DIVISE_EGAL";
 		case TypeLexeme::DECLARATION_VARIABLE:

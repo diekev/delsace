@@ -21,13 +21,13 @@ struct atlas_texture {
     donnees : []octet
 }
 
-fonc pousse(dyn tabl : *[]ivec3, val : ivec3) : rien
+fonc pousse(dyn tabl : *[]ivec3, val : ivec3) -> rien
 {
     reloge tabl : []ivec3 (tabl.taille + 1)
     tabl[tabl.taille - 1] = val
 }
 
-fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) : *atlas_texture
+fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) -> *atlas_texture
 {
     dyn atlas = loge atlas_texture
 
@@ -53,7 +53,7 @@ fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) : *atla
     retourne atlas
 }
 
-fonc décree_atlas_texture(atlas : *atlas_texture) : rien
+fonc décree_atlas_texture(atlas : *atlas_texture) -> rien
 {
     déloge atlas.noeuds
     déloge atlas.donnees
@@ -67,7 +67,7 @@ fonc texture_atlas_set_region(
                           const size_t largeur,
                           const size_t hauteur,
                           const unsigned char * data,
-                          const size_t stride ) : rien
+                          const size_t stride ) -> rien
 {
     # assert( atlas );
     # assert( x > 0);
@@ -94,7 +94,7 @@ fonc texture_atlas_fit(
     atlas : *texture_atlas_t,
     index : z32,
     largeur : z32,
-    hauteur : z32) : z32
+    hauteur : z32) -> z32
 {
     # assert( atlas );
 
@@ -128,7 +128,7 @@ fonc texture_atlas_fit(
     retourne y
 }
 
-fonc texture_atlas_merge(atlas : *atlas_texture) : rien
+fonc texture_atlas_merge(atlas : *atlas_texture) -> rien
 {
 	# assert(atlas);
 
@@ -147,7 +147,7 @@ fonc texture_atlas_merge(atlas : *atlas_texture) : rien
 fonc texture_atlas_get_region(
     atlas : *atlas_texture,
     largeur : z32,
-    hauteur : z32) : ivec4
+    hauteur : z32) -> ivec4
 {
     # assert( atlas );
 
@@ -213,7 +213,7 @@ fonc texture_atlas_get_region(
     retourne region
 }
 
-fonc texture_atlas_clear(atlas : *atlas_texture) : rien
+fonc texture_atlas_clear(atlas : *atlas_texture) -> rien
 {
     #assert(atlas);
     #assert(atlas.donnees);

@@ -45,46 +45,46 @@ struct Lexeuse {
 	début_mot : z64 = 0
 }
 
-fonc consomme(dyn lexeuse : &Lexeuse, n : z32) : rien
+fonc consomme(dyn lexeuse : &Lexeuse, n : z32) -> rien
 {
 	lexeuse.pos_mot += n
 }
 
-fonc caractère_courant(dyn lexeuse : &Lexeuse) : z8
+fonc caractère_courant(dyn lexeuse : &Lexeuse) -> z8
 {
 	retourne lexeuse.chn[lexeuse.pos_mot]
 }
 
-fonc a_fini(dyn lexeuse : &Lexeuse) : bool
+fonc a_fini(dyn lexeuse : &Lexeuse) -> bool
 {
 	retourne lexeuse.pos_mot >= lexeuse.chn.taille
 }
 
-fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) : rien
+fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.début_mot = lexeuse.pos_mot
 	lexeuse.taille_mot = 0
 }
 
-fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot += 1
 	lexeuse.consomme(1)
 }
 
-fonc mot(empl lexeuse : &Lexeuse) : chaine
+fonc mot(empl lexeuse : &Lexeuse) -> chaine
 {
 	retourne construit_chaine(@lexeuse.chn[lexeuse.début_mot], lexeuse.taille_mot)
 }
 
-fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) : rien
+fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) -> rien
 {
     taille := lexèmes.taille
     reloge lexèmes : [taille + 1]Lexème
     lexèmes[taille] = lexème
 }
 
-fonc pousse_mot(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) : rien
+fonc pousse_mot(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) -> rien
 {
 	dyn lexème : Lexème
 	lexème.chn = lexeuse.mot()
@@ -95,7 +95,7 @@ fonc pousse_mot(dyn lexeuse : &Lexeuse, id : IdentifiantLexème) : rien
 	lexeuse.taille_mot = 0
 }
 
-fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
+fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) -> bool
 {
     si c == '(' {
         id = IdentifiantLexème.PARENTHÈSE_OUVRANTE
@@ -158,7 +158,7 @@ fonc est_caractère_spéciale(c : z8, dyn id : &IdentifiantLexème) : bool
     retourne faux
 }
 
-fonc id_digraphe(chn : chaine) : IdentifiantLexème
+fonc id_digraphe(chn : chaine) -> IdentifiantLexème
 {
     si chn == "--" {
         retourne IdentifiantLexème.RELATION_BIDIR
@@ -175,7 +175,7 @@ fonc id_digraphe(chn : chaine) : IdentifiantLexème
     retourne IdentifiantLexème.INVALIDE
 }
 
-fonc id_digraphe(chn : chaine) : IdentifiantLexème
+fonc id_digraphe(chn : chaine) -> IdentifiantLexème
 {
     si chn == "<--" {
         retourne IdentifiantLexème.RELATION_ENTRANTE
@@ -196,7 +196,7 @@ fonc id_digraphe(chn : chaine) : IdentifiantLexème
     retourne IdentifiantLexème.INVALIDE
 }
 
-fonc id_mot(chn : chaine) : IdentifiantLexème
+fonc id_mot(chn : chaine) -> IdentifiantLexème
 {
 	info := info_de(IdentifiantLexème.INVALIDE)
 
@@ -209,7 +209,7 @@ fonc id_mot(chn : chaine) : IdentifiantLexème
 	retourne IdentifiantLexème.CHAINE_CARACTÈRE
 }
 
-fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
+fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) -> rien
 {
     lexeuse.chn = chn
     lexeuse.pos_mot = 0
@@ -291,7 +291,7 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 	}
 }
 
-fonc test_lexeuse() : rien
+fonc test_lexeuse() -> rien
 {
     requête := "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->()"
 

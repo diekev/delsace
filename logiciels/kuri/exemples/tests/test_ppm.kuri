@@ -3,7 +3,7 @@ importe "fichier"
 importe "flux"
 importe "chrono"
 
-fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) : z32;
+fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) -> z32;
 
 struct Image {
     tampon : chaine; # À FAIRE : []octet
@@ -13,19 +13,19 @@ struct Image {
     channels : z32;
 }
 
-fonc ecris_fichier(df : z32, chn : chaine) : rien
+fonc ecris_fichier(df : z32, chn : chaine) -> rien
 {
     write(df, chn.pointeur, chn.taille);
 }
 
-fonc imprime_fichier(df : z32, args : ...eini) : rien
+fonc imprime_fichier(df : z32, args : ...eini) -> rien
 {
     pour arg dans args {
 	    imprime_valeur(df, arg.pointeur, arg.info, faux);
 	}
 }
 
-fonc génére_image_damier() : Image
+fonc génére_image_damier() -> Image
 {
     dyn image : Image;
     image.largeur = 1024;
@@ -58,7 +58,7 @@ fonc génére_image_damier() : Image
     retourne image;
 }
 
-fonc génére_image_noire() : Image
+fonc génére_image_noire() -> Image
 {
     dyn image : Image;
     image.largeur = 1024;
@@ -80,7 +80,7 @@ fonc génére_image_noire() : Image
     retourne image;
 }
 
-fonc abs(x : r32) : r32
+fonc abs(x : r32) -> r32
 {
     si x < 0.0 {
         retourne -x;
@@ -89,7 +89,7 @@ fonc abs(x : r32) : r32
     retourne x;
 }
 
-fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) : rien
+fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) -> rien
 {
     dyn tampon := image.tampon;
 
@@ -129,7 +129,7 @@ fonc dessine_triangle(
     x2 : r64,
     y2 : r64,
     x3 : r64,
-    y3 : r64) : rien
+    y3 : r64) -> rien
 {
     ld := transtype(image.largeur - 1 : r64);
     hd := transtype(image.hauteur - 1 : r64);
@@ -153,7 +153,7 @@ struct Vec2 {
     y : r64;
 }
 
-fonc restreint(dyn x : &z32, min : z32, max : z32) : rien
+fonc restreint(dyn x : &z32, min : z32, max : z32) -> rien
 {
     si x <= min {
         x = min;
@@ -163,7 +163,7 @@ fonc restreint(dyn x : &z32, min : z32, max : z32) : rien
     }
 }
 
-fonc min(a : r64, b : r64) : r64
+fonc min(a : r64, b : r64) -> r64
 {
     si a <= b {
         retourne a;
@@ -180,7 +180,7 @@ fonc remplis_triangle_bas_plat(
     dyn image : &Image,
     v1 : Vec2,
     v2 : Vec2,
-    v3 : Vec2) : rien
+    v3 : Vec2) -> rien
 {
     ld := transtype(image.largeur - 1 : r64);
     hd := transtype(image.hauteur - 1 : r64);
@@ -225,7 +225,7 @@ fonc remplis_triangle_haut_plat(
     dyn image : &Image,
     v1 : Vec2,
     v2 : Vec2,
-    v3 : Vec2) : rien
+    v3 : Vec2) -> rien
 {
     ld := transtype(image.largeur - 1 : r64);
     hd := transtype(image.hauteur - 1 : r64);
@@ -261,14 +261,14 @@ fonc remplis_triangle_haut_plat(
     }
 }
 
-fonc échange(dyn a : &r64, dyn b : &r64) : rien
+fonc échange(dyn a : &r64, dyn b : &r64) -> rien
 {
     tmp := a;
     a = b;
     b = tmp;
 }
 
-fonc échange(dyn v1 : &Vec2, dyn v2 : &Vec2) : rien
+fonc échange(dyn v1 : &Vec2, dyn v2 : &Vec2) -> rien
 {
     échange(v1.x, v2.x);
     échange(v1.y, v2.y);
@@ -292,7 +292,7 @@ fonc ratisse_triangle(
     x2 : r64,
     y2 : r64,
     x3 : r64,
-    y3 : r64) : rien
+    y3 : r64) -> rien
 {
     v1 := Vec2{ x = x1, y = y1 };
     v2 := Vec2{ x = x2, y = y2 };
@@ -329,7 +329,7 @@ fonc ratisse_triangle(
     }
 }
 
-fonc écris_ppm(image : Image, chemin : chaine) : rien
+fonc écris_ppm(image : Image, chemin : chaine) -> rien
 {
     df := ouvre_fichier_ecriture(chemin);
     diffère { ferme_fichier(df); }
@@ -374,7 +374,7 @@ fonc écris_ppm(image : Image, chemin : chaine) : rien
     imprime("Temps d'écriture = ", delta, "s", '\n');
 }
 
-fonc écris_pnm(image : Image, chemin : chaine) : rien
+fonc écris_pnm(image : Image, chemin : chaine) -> rien
 {
     df := ouvre_fichier_ecriture(chemin);
     diffère { ferme_fichier(df); }
@@ -429,14 +429,14 @@ fonc écris_pnm(image : Image, chemin : chaine) : rien
 
 #####################
 
-fonc détruit_image(image : *Image) : rien
+fonc détruit_image(image : *Image) -> rien
 {
     déloge image.tampon;
 }
 
 struct externe FILE;
-fonc externe fopen(__filename : *z8, __modes : *z8) : *FILE;
-fonc externe fclose(__file : *FILE) : z32;
+fonc externe fopen(__filename : *z8, __modes : *z8) -> *FILE;
+fonc externe fclose(__file : *FILE) -> z32;
 
 struct externe jpeg_error_mgr;
 struct externe jpeg_memory_mgr;
@@ -620,17 +620,17 @@ struct externe jpeg_decompress_struct {
     cquantize : *jpeg_color_quantizer;
 }
 
-fonc externe jpeg_std_error(err : *jpeg_error_mgr) : *jpeg_error_mgr;
-fonc externe jpeg_create_decompress(info : *jpeg_decompress_struct) : rien;
-fonc externe jpeg_start_decompress(info : *jpeg_decompress_struct) : rien;
-fonc externe jpeg_finish_decompress(info : *jpeg_decompress_struct) : rien;
-fonc externe jpeg_destroy_decompress(info : *jpeg_decompress_struct) : rien;
+fonc externe jpeg_std_error(err : *jpeg_error_mgr) -> *jpeg_error_mgr;
+fonc externe jpeg_create_decompress(info : *jpeg_decompress_struct) -> rien;
+fonc externe jpeg_start_decompress(info : *jpeg_decompress_struct) -> rien;
+fonc externe jpeg_finish_decompress(info : *jpeg_decompress_struct) -> rien;
+fonc externe jpeg_destroy_decompress(info : *jpeg_decompress_struct) -> rien;
 
-fonc externe jpeg_stdio_src(info : *jpeg_decompress_struct, file : *FILE) : rien;
-fonc externe jpeg_save_markers(info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) : rien;
-fonc externe jpeg_read_header(info : *jpeg_decompress_struct, require_image : z32) : rien;
+fonc externe jpeg_stdio_src(info : *jpeg_decompress_struct, file : *FILE) -> rien;
+fonc externe jpeg_save_markers(info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) -> rien;
+fonc externe jpeg_read_header(info : *jpeg_decompress_struct, require_image : z32) -> rien;
 
-fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) : n32;
+fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32;
 
 #soit JPEG_APP0 = 0xE0;
 
@@ -638,7 +638,7 @@ fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z
 
 #!bib "jpeg"
 
-fonc lis_jpeg(chemin : chaine) : Image
+fonc lis_jpeg(chemin : chaine) -> Image
 {
     dyn image : Image;
     # nous devons avoir une chaine terminée par '\0' donc copie dans un
@@ -799,19 +799,19 @@ struct externe jpeg_compress_struct {
     script_space_size : z32;
 }
 
-fonc externe jpeg_create_compress(info : *jpeg_compress_struct) : rien;
-fonc externe jpeg_destroy_compress(info : *jpeg_compress_struct) : rien;
-fonc externe jpeg_finish_compress(info : *jpeg_compress_struct) : rien;
-fonc externe jpeg_set_defaults(info : *jpeg_compress_struct) : rien;
-fonc externe jpeg_stdio_dest(info : *jpeg_compress_struct, file : *FILE) : rien;
-fonc externe jpeg_set_quality(info : *jpeg_compress_struct, quality : z32, v : z32) : rien;
-fonc externe jpeg_start_compress(info : *jpeg_compress_struct, v : z32) : rien;
-fonc externe jpeg_write_scanlines(info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) : n32;
+fonc externe jpeg_create_compress(info : *jpeg_compress_struct) -> rien;
+fonc externe jpeg_destroy_compress(info : *jpeg_compress_struct) -> rien;
+fonc externe jpeg_finish_compress(info : *jpeg_compress_struct) -> rien;
+fonc externe jpeg_set_defaults(info : *jpeg_compress_struct) -> rien;
+fonc externe jpeg_stdio_dest(info : *jpeg_compress_struct, file : *FILE) -> rien;
+fonc externe jpeg_set_quality(info : *jpeg_compress_struct, quality : z32, v : z32) -> rien;
+fonc externe jpeg_start_compress(info : *jpeg_compress_struct, v : z32) -> rien;
+fonc externe jpeg_write_scanlines(info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32;
 
 _JCS_GRAYSCALE := 1;
 _JCS_RGB := 2;
 
-fonc écris_jpeg(image : Image, chemin : chaine) : rien
+fonc écris_jpeg(image : Image, chemin : chaine) -> rien
 {
     # nous devons avoir une chaine terminée par '\0' donc copie dans un
 	# tampon
@@ -860,7 +860,7 @@ fonc écris_jpeg(image : Image, chemin : chaine) : rien
 	jpeg_destroy_compress(@info);
 }
 
-fonc test_jpeg() : rien
+fonc test_jpeg() -> rien
 {
     imprime("Entrée jpeg : mémoire utilisée : ", mémoire_utilisée(), '\n');
 
@@ -878,7 +878,7 @@ fonc test_jpeg() : rien
 
 #####################
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     image := génére_image_noire();
     ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);

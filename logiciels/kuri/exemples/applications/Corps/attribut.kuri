@@ -44,7 +44,7 @@ struct Attribut {
 	nombre_éléments : z64 = 0
 }
 
-fonc est_type_attribut_valide(dyn type : TypeAttribut) : bool
+fonc est_type_attribut_valide(dyn type : TypeAttribut) -> bool
 {
     # enlève le type tableau au cas où
     type &= ~TypeAttribut.TABLEAU
@@ -66,7 +66,7 @@ fonc est_type_attribut_valide(dyn type : TypeAttribut) : bool
     retourne nombre_bits == 1
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
 	diffère { imprime("\nMémoire utilisée : ", mémoire_utilisée(), " o\n") }
 
@@ -114,7 +114,7 @@ fonc principale(args : []*z8) : z32
 	retourne 0
 }
 
-fonc crée_attribut(type : TypeAttribut) : Attribut
+fonc crée_attribut(type : TypeAttribut) -> Attribut
 {
 	dyn attr : Attribut
 	attr.type = type
@@ -123,7 +123,7 @@ fonc crée_attribut(type : TypeAttribut) : Attribut
 	retourne attr
 }
 
-fonc réserve(dyn attr : &Attribut, nombre_éléments : z64) : rien
+fonc réserve(dyn attr : &Attribut, nombre_éléments : z64) -> rien
 {
 	# À FAIRE : copie le tampon si référencé
 	taille := nombre_éléments * taille_octet_type_attribut(attr.type)
@@ -132,12 +132,12 @@ fonc réserve(dyn attr : &Attribut, nombre_éléments : z64) : rien
 	attr.nombre_éléments = nombre_éléments
 }
 
-fonc est_type_tableau(type : TypeAttribut) : bool
+fonc est_type_tableau(type : TypeAttribut) -> bool
 {
 	retourne (type & TypeAttribut.TABLEAU) != transtype(0 : TypeAttribut)
 }
 
-fonc détruit(dyn attr : &Attribut) : rien
+fonc détruit(dyn attr : &Attribut) -> rien
 {
 	# À FAIRE : déloge le tampon que si non référencé
 
@@ -152,7 +152,7 @@ fonc détruit(dyn attr : &Attribut) : rien
 	déloge attr.tampon.données
 }
 
-fonc valeur_z32(dyn attr : &Attribut, index : z64) : *z32
+fonc valeur_z32(dyn attr : &Attribut, index : z64) -> *z32
 {
 	si attr.type != TypeAttribut.Z32 {
 		retourne nul
@@ -163,7 +163,7 @@ fonc valeur_z32(dyn attr : &Attribut, index : z64) : *z32
 	retourne transtype(@attr.tampon.données[décalage] : *z32)
 }
 
-fonc valeur_r32(dyn attr : &Attribut, index : z64) : *r32
+fonc valeur_r32(dyn attr : &Attribut, index : z64) -> *r32
 {
 	si attr.type != TypeAttribut.R32 {
 		retourne nul
@@ -174,7 +174,7 @@ fonc valeur_r32(dyn attr : &Attribut, index : z64) : *r32
 	retourne transtype(@attr.tampon.données[décalage] : *r32)
 }
 
-fonc tableau_r32(dyn attr : &Attribut, index : z64) : *[]r32
+fonc tableau_r32(dyn attr : &Attribut, index : z64) -> *[]r32
 {
 	si attr.type != (TypeAttribut.TABLEAU | TypeAttribut.R32) {
 		retourne nul
@@ -185,7 +185,7 @@ fonc tableau_r32(dyn attr : &Attribut, index : z64) : *[]r32
 	retourne transtype(@attr.tampon.données[décalage] : *[]r32)
 }
 
-fonc taille_octet_type_attribut(type : TypeAttribut) : z64
+fonc taille_octet_type_attribut(type : TypeAttribut) -> z64
 {
 	dyn taille : n32
 
@@ -240,7 +240,7 @@ fonc taille_octet_type_attribut(type : TypeAttribut) : z64
 
 #fonc crée_attribut_groupe(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
-fonc copie_attribut(attr : &Attribut) : Attribut
+fonc copie_attribut(attr : &Attribut) -> Attribut
 {
     dyn nattr : Attribut
     nattr.tampon = attr.tampon

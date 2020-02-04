@@ -10,7 +10,7 @@ importe SysFichier
 # les tests sont inspirés de
 # https://github.com/sal55/langs/blob/master/compilertest.txt
 
-fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
+fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 {
 	chaines = [
 		"fonc principale(args : []*z8) : z32\n",
@@ -56,7 +56,7 @@ fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
 	écris_fichier(fichier, enchaineuse.résultat)
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
 	crée_test(20_000, "/tmp/test_20_000_lignes.kuri")
 	crée_test(100_000, "/tmp/test_100_000_lignes.kuri")

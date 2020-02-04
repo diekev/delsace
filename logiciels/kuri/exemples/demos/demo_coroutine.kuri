@@ -7,7 +7,7 @@ struct Noeud {
     val := 0
 }
 
-corout iter_liste_noeud(noeud : *Noeud) : *Noeud
+corout iter_liste_noeud(noeud : *Noeud) -> *Noeud
 {
     dyn nloc := noeud
 
@@ -17,7 +17,7 @@ corout iter_liste_noeud(noeud : *Noeud) : *Noeud
     }
 }
 
-corout iter_liste_noeud(noeud : *r32) : *r32
+corout iter_liste_noeud(noeud : *r32) -> *r32
 {
     dyn nloc := noeud
 
@@ -27,7 +27,7 @@ corout iter_liste_noeud(noeud : *r32) : *r32
     }
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     pour j, i dans découpe("Texte d'exemple où les mots sont coupés", ' ') {
         imprime("Mot (", i, ") : ", j, '\n')

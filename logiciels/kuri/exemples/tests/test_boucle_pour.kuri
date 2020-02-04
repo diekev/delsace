@@ -1,6 +1,6 @@
 importe "flux"
 
-fonc boucle_avec_plage() : rien
+fonc boucle_avec_plage() -> rien
 {
 	imprime("boucle_avec_plage()\n");
 
@@ -11,7 +11,7 @@ fonc boucle_avec_plage() : rien
 	imprime('\n');
 }
 
-fonc boucle_avec_args_varidics(args : ...z32) : rien
+fonc boucle_avec_args_varidics(args : ...z32) -> rien
 {
 	imprime("boucle_avec_args_varidics()\n");
 
@@ -22,7 +22,7 @@ fonc boucle_avec_args_varidics(args : ...z32) : rien
 	imprime('\n');
 }
 
-fonc boucle_avec_tableau(tableau : [10]z32) : rien
+fonc boucle_avec_tableau(tableau : [10]z32) -> rien
 {
 	imprime("boucle_avec_tableau()\n");
 
@@ -33,7 +33,7 @@ fonc boucle_avec_tableau(tableau : [10]z32) : rien
 	imprime('\n');
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
 	boucle_avec_plage();
 

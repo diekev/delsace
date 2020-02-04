@@ -11,7 +11,7 @@ struct Syntaxeuse {
 	position := 0
 }
 
-fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) : Syntaxeuse
+fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) -> Syntaxeuse
 {
 	dyn syntaxeuse : Syntaxeuse
 	syntaxeuse.lexèmes = lexèmes
@@ -19,39 +19,39 @@ fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) : Syntaxeuse
 	retourne syntaxeuse
 }
 
-fonc détruit(syntaxeuse : &Syntaxeuse) : rien
+fonc détruit(syntaxeuse : &Syntaxeuse) -> rien
 {
     détruit(syntaxeuse.assembleuse)
 }
 
-fonc lexème_courant(syntaxeuse : &Syntaxeuse) : TypeLexème
+fonc lexème_courant(syntaxeuse : &Syntaxeuse) -> TypeLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc avance(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
+fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-fonc données(syntaxeuse : &Syntaxeuse) : &DonneesLexème
+fonc données(syntaxeuse : &Syntaxeuse) -> &DonneesLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
 		#lance_erreur("Attendu une chaine de caractère")
@@ -71,7 +71,7 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) : rien
 	}
 }
 
-fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
+fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 {
 	discr syntaxeuse.lexème_courant() {
 		ACCOLADE_OUVRANTE {
@@ -147,7 +147,7 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 	}
 }
 
-fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) : rien
+fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position = 0
 

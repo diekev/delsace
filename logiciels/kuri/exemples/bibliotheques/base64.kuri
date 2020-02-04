@@ -1,18 +1,18 @@
 importe Fondation
 
-fonc est_base64_url(c : z8) : bool
+fonc est_base64_url(c : z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
 }
 
-fonc est_base64(c : z8) : bool
+fonc est_base64(c : z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
 }
 
 ########################################
 
-fonc encode_impl(chn : chaine, table : chaine) : chaine
+fonc encode_impl(chn : chaine, table : chaine) -> chaine
 {
 	dyn i := 0
 	dyn char_array_3 : [3]n8
@@ -65,13 +65,13 @@ fonc encode_impl(chn : chaine, table : chaine) : chaine
 	retourne enchaineuse.résultat
 }
 
-fonc encode(chn: chaine) : chaine
+fonc encode(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	retourne encode_impl(chn, table)
 }
 
-fonc encode_pour_url(chn: chaine) : chaine
+fonc encode_pour_url(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	retourne encode_impl(chn, table)
@@ -79,7 +79,7 @@ fonc encode_pour_url(chn: chaine) : chaine
 
 ########################################
 
-fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) : chaine
+fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) -> chaine
 {
 	dyn i := 0
 	dyn char_array_3 : [3]n8
@@ -98,7 +98,7 @@ fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool
 
         si i == 4 {
             pour j dans 0 ... 3 {
-                char_array_4[j] = transtype(table.trouve_caractère(transtype(char_array_4[j]: z8), 0): n8)
+				char_array_4[j] = transtype(table.trouve_caractère(transtype(char_array_4[j]: z8), 0): n8)
             }
 
 			char_array_3[0] = transtype((char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4): n8)
@@ -127,20 +127,20 @@ fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool
 		char_array_3[2] = transtype(((char_array_4[2] & 0x3) << 6) + char_array_4[3]: n8)
 
         pour j dans 0 ... i {
-            enchaineuse.pousse(transtype(table.trouve_caractère(transtype(char_array_3[j]: z8), 0): z8))
+			enchaineuse.pousse(transtype(table.trouve_caractère(transtype(char_array_3[j]: z8), 0): z8))
         }
 	}
 
 	retourne enchaineuse.résultat
 }
 
-fonc décode(chn: chaine) : chaine
+fonc décode(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	retourne décode_impl(chn, table, est_base64)
 }
 
-fonc décode_pour_url(chn: chaine) : chaine
+fonc décode_pour_url(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	retourne décode_impl(chn, table, est_base64_url)
@@ -148,7 +148,7 @@ fonc décode_pour_url(chn: chaine) : chaine
 
 ########################################
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

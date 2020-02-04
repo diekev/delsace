@@ -6,21 +6,21 @@ struct TEST {
     fonction : fonc(eini)z32
 }
 
-fonc foo(args : eini) : z32
+fonc foo(args : eini) -> z32
 {
     imprime("appel foo avec eini\n")
     imprime(args, '\n')
     retourne 123
 }
 
-fonc foo(args : chaine) : z32
+fonc foo(args : chaine) -> z32
 {
     imprime("appel foo avec chaine\n")
     imprime(args, '\n')
     retourne 0
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     dyn t : TEST
     t.fonction = foo

@@ -2,7 +2,7 @@
 
 charge "chaine"
 
-fonc possède_membre(arg : eini, nom : chaine) : bool
+fonc possède_membre(arg : eini, nom : chaine) -> bool
 {
 	info := arg.info
 
@@ -21,7 +21,7 @@ fonc possède_membre(arg : eini, nom : chaine) : bool
 	retourne faux
 }
 
-corout membres(arg : eini) : chaine
+corout membres(arg : eini) -> chaine
 {
 	info := arg.info
 

@@ -7,12 +7,12 @@ struct PileObjet {
     curseur := 0
 }
 
-fonc détruit(dyn pile : &PileObjet) : rien
+fonc détruit(dyn pile : &PileObjet) -> rien
 {
     déloge pile.données
 }
 
-fonc empile(dyn pile : &PileObjet, noeud : *Objet) : rien
+fonc empile(dyn pile : &PileObjet, noeud : *Objet) -> rien
 {
     si pile.curseur == pile.données.taille {
         taille := pile.données.taille
@@ -23,24 +23,24 @@ fonc empile(dyn pile : &PileObjet, noeud : *Objet) : rien
     pile.curseur += 1
 }
 
-fonc dépile(dyn pile : &PileObjet) : *Objet
+fonc dépile(dyn pile : &PileObjet) -> *Objet
 {
     ret := pile.haut()
     pile.curseur -= 1
     retourne ret
 }
 
-fonc haut(pile : &PileObjet) : *Objet
+fonc haut(pile : &PileObjet) -> *Objet
 {
     retourne pile.données[pile.curseur - 1]
 }
 
-fonc taille(pile : &PileObjet) : z32
+fonc taille(pile : &PileObjet) -> z32
 {
     retourne pile.curseur
 }
 
-fonc est_vide(pile : &PileObjet) : bool
+fonc est_vide(pile : &PileObjet) -> bool
 {
     retourne pile.curseur == 0
 }
@@ -52,24 +52,24 @@ struct AssembleuseObjet {
     pile : PileObjet
 }
 
-fonc détruit(assembleuse: &AssembleuseObjet) : rien
+fonc détruit(assembleuse: &AssembleuseObjet) -> rien
 {
     détruit(assembleuse.pile)
     détruit(@assembleuse.gestionnaire)
 }
 
-fonc empile_objet(assembleuse: &AssembleuseObjet, objet: *Objet) : rien
+fonc empile_objet(assembleuse: &AssembleuseObjet, objet: *Objet) -> rien
 {
     #assert(objet.type == TypeObjet.DICTIONNAIRE || objet.type == TypeObjet.LISTE)
     assembleuse.pile.empile(objet)
 }
 
-fonc dépile_objet(assembleuse: &AssembleuseObjet) : rien
+fonc dépile_objet(assembleuse: &AssembleuseObjet) -> rien
 {
     assembleuse.pile.dépile()
 }
 
-fonc crée_objet(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: TypeObjet) : *Objet
+fonc crée_objet(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: TypeObjet) -> *Objet
 {
     objet := crée_objet(assembleuse, type)
 
@@ -89,7 +89,7 @@ fonc crée_objet(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: TypeOb
 	retourne objet
 }
 
-fonc crée_objet(assembleuse: &AssembleuseObjet, type: TypeObjet) : *Objet
+fonc crée_objet(assembleuse: &AssembleuseObjet, type: TypeObjet) -> *Objet
 {
     discr type {
         NUL {

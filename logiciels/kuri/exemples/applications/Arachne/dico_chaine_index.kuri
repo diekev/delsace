@@ -13,7 +13,7 @@ struct DicoChaineIndex {
     alvéoles : []*NoeudDicoChaineIndex
 }
 
-fonc crée_table_hachage() : DicoChaineIndex
+fonc crée_table_hachage() -> DicoChaineIndex
 {
     dyn table : DicoChaineIndex
     table.alvéoles = loge [10000]*NoeudDicoChaineIndex
@@ -25,7 +25,7 @@ fonc crée_table_hachage() : DicoChaineIndex
     retourne table
 }
 
-fonc décrée_table_hachage(table : &DicoChaineIndex) : rien
+fonc décrée_table_hachage(table : &DicoChaineIndex) -> rien
 {
     pour noeud dans table.alvéoles {
         dyn n := noeud;
@@ -40,7 +40,7 @@ fonc décrée_table_hachage(table : &DicoChaineIndex) : rien
     déloge table.alvéoles
 }
 
-fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudDicoChaineIndex
+fonc crée_noeud(clé : chaine, valeur : chaine) -> *NoeudDicoChaineIndex
 {
     dyn n := loge NoeudDicoChaineIndex
     n.clé = clé
@@ -49,7 +49,7 @@ fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudDicoChaineIndex
     retourne n
 }
 
-fonc insère(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) : rien
+fonc insère(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) -> rien
 {
     empreinte := calcule_empreinte(clé) % 10000
 
@@ -70,7 +70,7 @@ fonc insère(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) : rien
     }
 }
 
-fonc trouve(table : &DicoChaineIndex, clé : chaine) : *NoeudDicoChaineIndex
+fonc trouve(table : &DicoChaineIndex, clé : chaine) -> *NoeudDicoChaineIndex
 {
     empreinte := calcule_empreinte(clé) % 10000
 
@@ -100,7 +100,7 @@ union RésultatRecherche {
 	erreur : bool
 }
 
-fonc cherche_valeur(table : &DicoChaineIndex, clé : chaine) : RésultatRecherche
+fonc cherche_valeur(table : &DicoChaineIndex, clé : chaine) -> RésultatRecherche
 {
     n := trouve(table, clé)
     dyn résultat : RésultatRecherche
@@ -115,7 +115,7 @@ fonc cherche_valeur(table : &DicoChaineIndex, clé : chaine) : RésultatRecherch
     retourne résultat
 }
 
-corout chaque_noeud(table : &DicoChaineIndex) : *NoeudDicoChaineIndex
+corout chaque_noeud(table : &DicoChaineIndex) -> *NoeudDicoChaineIndex
 {
     pour alvéole dans table.alvéoles {
         dyn n := alvéole

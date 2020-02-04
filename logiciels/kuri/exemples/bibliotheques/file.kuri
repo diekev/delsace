@@ -18,7 +18,7 @@ rout enfile(empl f : *file, val : $T)
 	taille += 1;
 }
 
-rout défile(f : *file) : z32
+rout défile(f : *file) -> z32
 {
 	val := f.ptr[0];
 

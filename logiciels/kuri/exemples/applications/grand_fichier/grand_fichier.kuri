@@ -60,7 +60,7 @@ fonc crée_fichier(chemin : chaine)
 }
 
 # calcul la somme de contrôle dans un ensemble de données
-fonc somme_controle(données : []octet) : n64
+fonc somme_controle(données : []octet) -> n64
 {
 	dyn somme : n64
 
@@ -90,7 +90,7 @@ struct SystèmeFichier {
 
 }
 
-fonc ouvre(système : &SystèmeFichier, chemin : chaine) : Fichier
+fonc ouvre(système : &SystèmeFichier, chemin : chaine) -> Fichier
 {
 	# trouve le fichier pointé par le chemin
 	# lis l'archive pour savoir où se trouve chaque morceau

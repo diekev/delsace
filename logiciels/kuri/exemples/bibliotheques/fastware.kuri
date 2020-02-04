@@ -1,16 +1,16 @@
-fonc optionel(drapeau : bool, valeur : n32) : n32
+fonc optionel(drapeau : bool, valeur : n32) -> n32
 {
 	retourne -transtype(drapeau : n32) & valeur;
 }
 
 # opérateur ternaire sans branche : si drapeau est vrai retourne v1, sinon v2
-fonc ternaire(drapeau : bool, v1 : n32, v2 : n32) : n32
+fonc ternaire(drapeau : bool, v1 : n32, v2 : n32) -> n32
 {
 	retourne (-transtype(drapeau : n32) & v1)
 	         | ((transtype(drapeau : n32) - 1) & v2);
 }
 
-fonc échange(a : *r64, b : *r64) : rien
+fonc échange(a : *r64, b : *r64) -> rien
 {
 	temp := mémoire(a);
 	mémoire(a) = mémoire(b);
@@ -18,7 +18,7 @@ fonc échange(a : *r64, b : *r64) : rien
 }
 
 # retourne les 4 valeurs minimales d'un tableau
-fonc min4(p : []r64) : rien
+fonc min4(p : []r64) -> rien
 {
 	q := p.longueur / 4;
 	q2 := q + q;

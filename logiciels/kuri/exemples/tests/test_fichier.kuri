@@ -2,7 +2,7 @@ importe "chaine"
 
 FILE_MODE := 0600;
 
-fonc crée_fichier(chemin : chaine) : z32
+fonc crée_fichier(chemin : chaine) -> z32
 {
     # Il nous faut une chaine c.
     tampon : [1024]z8;
@@ -16,12 +16,12 @@ fonc crée_fichier(chemin : chaine) : z32
     retourne fd;
 }
 
-fonc ouvre_fichier_append(chemin : chaine) : z32
+fonc ouvre_fichier_append(chemin : chaine) -> z32
 {
 
 }
 
-fonc possède_drapeaux(drapeaux : z32, valeurs : ...z32) : z32
+fonc possède_drapeaux(drapeaux : z32, valeurs : ...z32) -> z32
 {
     pour val dans valeurs {
         si (drapeaux & val) != 0 {
@@ -32,7 +32,7 @@ fonc possède_drapeaux(drapeaux : z32, valeurs : ...z32) : z32
     retourne faux;
 }
 
-fonc ouvre_fichier_sans_créer(chemin : chaine, drapeaux : z32) : z32
+fonc ouvre_fichier_sans_créer(chemin : chaine, drapeaux : z32) -> z32
 {
     si possède_drapeaux(drapeaux, O_CREATE | O_EXCL) {
         retourne -1;
@@ -51,7 +51,7 @@ fonc ouvre_fichier_sans_créer(chemin : chaine, drapeaux : z32) : z32
     retourne -1;
 }
 
-fonc ouvre_fichier(chemin : chaine, drapeaux : z32, mode : z32) : z32
+fonc ouvre_fichier(chemin : chaine, drapeaux : z32, mode : z32) -> z32
 {
     si possède_drapeaux(drapeaux, O_CREAT) {
         si possède_drapeaux(drapeaux, O_EXCL) {

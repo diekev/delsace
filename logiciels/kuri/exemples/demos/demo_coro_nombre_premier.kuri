@@ -1,6 +1,6 @@
 importe "flux"
 
-fonc est_premier(n : z32) : bool
+fonc est_premier(n : z32) -> bool
 {
      si n <= 3 {
         retourne n > 1
@@ -23,7 +23,7 @@ fonc est_premier(n : z32) : bool
      retourne vrai
 }
 
-corout genere_premiers(n : z32) : z32
+corout genere_premiers(n : z32) -> z32
 {
     dyn nombre := 0
     dyn dernier := 0
@@ -44,7 +44,7 @@ corout genere_premiers(n : z32) : z32
     }
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     pour i, j dans genere_premiers(100) {
         imprime(j, " : ", i, '\n')

@@ -12,7 +12,7 @@ dyn colorbuffer := transtype(0 : n32)
 dyn tabl_sommets : *tableau = nul
 dyn tabl_couleur : *tableau = nul
 
-fonc charge_programme() : n32
+fonc charge_programme() -> n32
 {
     source_vertex := "
     #version 330 core
@@ -37,7 +37,7 @@ fonc charge_programme() : n32
     }
     "
 
-    # crée les nuanceurs
+    # crée les nuanceurs
 	VertexShaderID := glCreateShader(OGL.VERTEX_SHADER)
 	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
 
@@ -45,7 +45,7 @@ fonc charge_programme() : n32
 	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
 	glCompileShader(VertexShaderID)
 
-    # verifie la compilation
+    # verifie la compilation
     dyn Result : z32 = 0
     dyn InfoLogLength : z32 = 0
     glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, @Result)
@@ -62,7 +62,7 @@ fonc charge_programme() : n32
 	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
 	glCompileShader(FragmentShaderID)
 
-    # verifie la compilation
+    # verifie la compilation
     Result = 0
     InfoLogLength = 0
     glGetShaderiv(FragmentShaderID, OGL.LINK_STATUS, @Result)
@@ -80,7 +80,7 @@ fonc charge_programme() : n32
 	glAttachShader(ProgramID_, FragmentShaderID)
 	glLinkProgram(ProgramID_)
 
-    # verifie la liaison
+    # verifie la liaison
     Result = 0
     InfoLogLength = 0
     glGetProgramiv(ProgramID_, OGL.COMPILE_STATUS, @Result)
@@ -102,11 +102,11 @@ fonc charge_programme() : n32
     retourne ProgramID_
 }
 
-fonc initialise_tampon_dessin() : rien
+fonc initialise_tampon_dessin() -> rien
 {
     nonsûr {
-        tabl_sommets = crée_tableau(transtype(taille_de(z32) : z64))
-        tabl_couleur = crée_tableau(transtype(taille_de(z32) : z64))
+		tabl_sommets = crée_tableau(transtype(taille_de(z32) : z64))
+		tabl_couleur = crée_tableau(transtype(taille_de(z32) : z64))
         ProgramID = charge_programme()
     }
 
@@ -115,7 +115,7 @@ fonc initialise_tampon_dessin() : rien
     glGenBuffers(1, @colorbuffer)
 }
 
-fonc issitialise_tampon_dessin() : rien
+fonc issitialise_tampon_dessin() -> rien
 {
     glDeleteVertexArrays(1, @VertexArrayID)
     glDeleteBuffers(1, @vertexbuffer)
@@ -125,23 +125,23 @@ fonc issitialise_tampon_dessin() : rien
     glDeleteProgram(ProgramID)
 }
 
-fonc débute_dessin() : rien
+fonc débute_dessin() -> rien
 {
     glBindVertexArray(VertexArrayID)
 }
 
-fonc termine_dessin() : rien
+fonc termine_dessin() -> rien
 {
     glUseProgram(ProgramID)
 
     glEnableVertexAttribArray(transtype(0 : n32))
     glBindBuffer(OGL.ARRAY_BUFFER, vertexbuffer)
-    glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille * taille_de(z32) : n64), tabl_sommets.tampon.pointeur, OGL.STATIC_DRAW)
+	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_sommets.taille * taille_de(z32) : n64), tabl_sommets.tampon.pointeur, OGL.STATIC_DRAW)
     glVertexAttribPointer(transtype(0 : n32), 3, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glEnableVertexAttribArray(transtype(1 : n32))
     glBindBuffer(OGL.ARRAY_BUFFER, colorbuffer)
-    glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille * taille_de(z32) : n64), tabl_couleur.tampon.pointeur, OGL.STATIC_DRAW)
+	glBufferData(OGL.ARRAY_BUFFER, transtype(tabl_couleur.taille * taille_de(z32) : n64), tabl_couleur.tampon.pointeur, OGL.STATIC_DRAW)
     glVertexAttribPointer(transtype(1 : n32), 4, OGL.FLOAT, OGL.FALSE, 0, nul)
 
     glDrawArrays(OGL.TRIANGLES, 0, tabl_sommets.taille / 3)
@@ -157,7 +157,7 @@ fonc termine_dessin() : rien
     glBindVertexArray(transtype(0 : n32))
 }
 
-fonc ajoute_sommet(x : r32, y : r32, z : r32) : rien
+fonc ajoute_sommet(x : r32, y : r32, z : r32) -> rien
 {
     pousse_tableau(tabl_sommets, @x)
     pousse_tableau(tabl_sommets, @y)
@@ -171,7 +171,7 @@ struct Couleur {
     a : r32 = transtype(0.0 : r32)
 }
 
-fonc ajoute_couleur(coul : Couleur) : rien
+fonc ajoute_couleur(coul : Couleur) -> rien
 {
     pousse_tableau(tabl_couleur, @coul.r)
     pousse_tableau(tabl_couleur, @coul.v)
@@ -179,18 +179,18 @@ fonc ajoute_couleur(coul : Couleur) : rien
     pousse_tableau(tabl_couleur, @coul.a)
 }
 
-fonc dessine_triangle() : rien
+fonc dessine_triangle() -> rien
 {
     débute_dessin()
 
-    ajoute_sommet(transtype(-transtype(1.0 : r32) : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
-    ajoute_sommet( transtype(1.0 : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
+	ajoute_sommet(transtype(-transtype(1.0 : r32) : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
+	ajoute_sommet( transtype(1.0 : r32), transtype(-transtype(1.0 : r32) : r32), transtype(0.0 : r32))
     ajoute_sommet( transtype(0.0 : r32),  transtype(1.0 : r32), transtype(0.0 : r32))
 
     termine_dessin()
 }
 
-fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) : rien
+fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) -> rien
 {
     débute_dessin()
 
@@ -216,22 +216,22 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) :
     termine_dessin()
 }
 
-fonc dessine_carré() : rien
+fonc dessine_carré() -> rien
 {
     couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(0.0 : r32), a = transtype(1.0 : r32) }
     dessine_carré_ex(transtype(-0.5 : r32), transtype(-0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32), couleur)
 }
 
-fonc externe cos(a : r32) : r32
-fonc externe sin(a : r32) : r32
+fonc externe cos(a : r32) -> r32
+fonc externe sin(a : r32) -> r32
 
-fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) : rien
+fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
 {
     débute_dessin()
 
     segs := 32
     dyn phi := transtype(0.0 : r32)
-    dyn phi_delta := transtype(2.0 * 3.14159 / transtype(segs : r32) : r32)
+	dyn phi_delta := transtype(2.0 * 3.14159 / transtype(segs : r32) : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := cx + cos(phi) * rx
@@ -250,13 +250,13 @@ fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) : rien
     termine_dessin()
 }
 
-fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32) : rien
+fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32) -> rien
 {
     débute_dessin()
 
     segs := 8
-    dyn phi = transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
-    dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
+	dyn phi = transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
+	dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
 
     pour i dans 0...segs - 1 {
         ca0 := cx + cos(phi) * rx
@@ -275,31 +275,31 @@ fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32
     termine_dessin()
 }
 
-fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) : rien
+fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) -> rien
 {
     rx := arrondis_pixel / largeur
     ry := arrondis_pixel / hauteur
 
-    px : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + rx : r32)
-    py : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + ry : r32)
+	px : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + rx : r32)
+	py : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + ry : r32)
     tx : r32 = transtype(2.0 - 2.0 * rx : r32)
     ty : r32 = transtype(2.0 - 2.0 * ry : r32)
 
     couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
 
-    # dessine centre
+    # dessine centre
     dessine_carré_ex(px, py, tx, ty, couleur)
 
-    # dessine rect gauche
+    # dessine rect gauche
     dessine_carré_ex(px - rx, py, rx, ty, couleur)
 
-    # dessine rect droite
+    # dessine rect droite
     dessine_carré_ex(px + tx, py, rx, ty, couleur)
 
-    # dessine rect dessus
+    # dessine rect dessus
     dessine_carré_ex(px, py + ty, tx, ry, couleur)
 
-    # dessine rect dessous
+    # dessine rect dessous
     dessine_carré_ex(px, py - ry, tx, ry, couleur)
 
     # dessine coin haut-gauche
@@ -315,14 +315,14 @@ fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) : 
     dessine_quart_cercle(px + tx, py, rx, ry, 3)
 }
 
-fonc dessine_bouton() : rien
+fonc dessine_bouton() -> rien
 {
 
 }
 
-fonc dessine_image() : rien
+fonc dessine_image() -> rien
 {
-    # crée texture
+    # crée texture
 
-    # rempli UV
+    # rempli UV
 }

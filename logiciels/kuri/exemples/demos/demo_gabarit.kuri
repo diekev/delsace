@@ -1,11 +1,11 @@
 importe "flux"
 
-fonc ajoute(a : $T, b : $T) : $T
+fonc ajoute(a : $T, b : $T) -> $T
 {
     retourne a + b
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     x := ajoute(12, 27)
     imprime("x = ", x, '\n')

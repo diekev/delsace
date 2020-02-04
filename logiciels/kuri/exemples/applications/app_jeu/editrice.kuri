@@ -22,7 +22,7 @@ struct Editrice {
 	rect_rel : vec2d # rectangle en coordonnées normalisées
 }
 
-fonction cree_editrice(type : type_éditrice) : Editrice
+fonction cree_editrice(type : type_éditrice) -> Editrice
 {
 	dyn éditrice := loge Editrice
 	éditrice.type = type
@@ -42,7 +42,7 @@ fonction cree_editrice(type : type_éditrice) : Editrice
 	retourne éditrice
 }
 
-fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) : Editrice
+fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) -> Editrice
 {
 	dyn editrice := cree_editrice(type)
 
@@ -53,7 +53,7 @@ fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) : Editrice
 	retourne editrice
 }
 
-fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
+fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) -> rien
 {
 	# trouve l'index de l'éditrice dans le tableau
 	index := tableau.taille
@@ -67,7 +67,7 @@ fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
 }
 
 # editrice gauche-droite-haut-bas
-fonction divise_editrice(editrice : *Editrice) : bool
+fonction divise_editrice(editrice : *Editrice) -> bool
 {
 	gauche := editrice.gauche
 	droite := editrice.droite

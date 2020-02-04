@@ -1,6 +1,6 @@
 # Petite bibliothèque de génération de fichier audio Wave.
-# Non-testée.
-# Basée sur https://blogs.msdn.microsoft.com/dawate/2009/06/24/intro-to-audio-programming-part-3-synthesizing-simple-wave-audio-using-c/
+# Non-testée.
+# Basée sur https://blogs.msdn.microsoft.com/dawate/2009/06/24/intro-to-audio-programming-part-3-synthesizing-simple-wave-audio-using-c/
 
 importe "fichier"
 importe "math"
@@ -13,7 +13,7 @@ struct EntêteWave {
     type_riff := "WAVE";
 }
 
-fonc écris(entête : &EntêteWave, fichier : &Fichier) : rien
+fonc écris(entête : &EntêteWave, fichier : &Fichier) -> rien
 {
     fichier.écris(entête.id_groupe);
     fichier.écris(entête.taille_fichier);
@@ -33,7 +33,7 @@ struct ChunkFormatWave {
     bits_moyens_par_secondes : n32 = échantillons_secondes * alignement_bloc;
 }
 
-fonc écris(chunk : &ChunkFormatWave, fichier : &Fichier) : rien
+fonc écris(chunk : &ChunkFormatWave, fichier : &Fichier) -> rien
 {
 	fichier.écris(chunk.id_chunk);
 	fichier.écris(chunk.taille_chunk);
@@ -53,7 +53,7 @@ struct ChunkDonnéesWave {
     données : []z16;
 }
 
-fonc écris(chunk : &ChunkDonnéesWave, fichier : &Fichier) : rien
+fonc écris(chunk : &ChunkDonnéesWave, fichier : &Fichier) -> rien
 {
 	fichier.écris(chunk.id_chunk);
 	fichier.écris(chunk.taille_chunk);
@@ -72,7 +72,7 @@ fonc ajoute_fréquence(
     génératrice : &GénératriceWave,
     fréquence : r64,
     amplitude : z32,
-    longueur : r64) : rien
+    longueur : r64) -> rien
 {
     nombre_échantillons := génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux * longueur;
 
@@ -91,7 +91,7 @@ fonc ajoute_fréquence(
 
     pour i dans taille ... taille + nombre_échantillons - 3 - 1 {
         pour c dans 0 ... génératrice.format.nombre_cannaux - 1 {
-            données[i + c] = transtype(amplitude * math.sin(t * i) : n16);
+			données[i + c] = transtype(amplitude * math.sin(t * i) : n16);
         }
     }
 

@@ -7,7 +7,7 @@ struct NoeudListe {
 	données : *rien = nul
 }
 
-fonc crée_noeud_liste(données : *rien) : *NoeudListe
+fonc crée_noeud_liste(données : *rien) -> *NoeudListe
 {
 	noeud := loge NoeudListe
 	noeud.suivant = nul
@@ -20,7 +20,7 @@ fonc BaseListe {
 	dernier : *NoeudListe = nul
 }
 
-fonc pousse(dyn liste : &BaseListe, données : *rien) : rien
+fonc pousse(dyn liste : &BaseListe, données : *rien) -> rien
 {
 	noeud := crée_noeud_liste(données)
 
@@ -34,7 +34,7 @@ fonc pousse(dyn liste : &BaseListe, données : *rien) : rien
 	}
 }
 
-fonc est_vide(liste : &BaseListe) : bool
+fonc est_vide(liste : &BaseListe) -> bool
 {
 	retourne liste.premier == nul
 }
@@ -63,17 +63,17 @@ struct Étiquette {
 	id_nom : n32 = 0
 }
 
-fonc pousse(dyn liste : &ListeÉtiquette, étq : *Étiquette) : rien
+fonc pousse(dyn liste : &ListeÉtiquette, étq : *Étiquette) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListeÉtiquette) : bool
+fonc est_vide(liste : &ListeÉtiquette) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_étiquette(liste : &ListeÉtiquette) : *Étiquette
+corout chaque_étiquette(liste : &ListeÉtiquette) -> *Étiquette
 {
 	dyn n := liste.premier
 
@@ -94,17 +94,17 @@ struct Noeud {
 	utilise : bool = faux
 }
 
-fonc pousse(dyn liste : &ListeNoeud, n : *Noeud) : rien
+fonc pousse(dyn liste : &ListeNoeud, n : *Noeud) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListeNoeud) : bool
+fonc est_vide(liste : &ListeNoeud) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_noeud(liste : &ListeNoeud) : *Noeud
+corout chaque_noeud(liste : &ListeNoeud) -> *Noeud
 {
 	dyn n := liste.premier
 
@@ -131,17 +131,17 @@ struct Relation {
 	id : n32 = 0
 }
 
-fonc pousse(dyn liste : &ListeRelation, rel : *Relation) : rien
+fonc pousse(dyn liste : &ListeRelation, rel : *Relation) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListeRelation) : bool
+fonc est_vide(liste : &ListeRelation) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_relation(liste : &ListeRelation) : *Relation
+corout chaque_relation(liste : &ListeRelation) -> *Relation
 {
 	dyn n := liste.premier
 
@@ -161,17 +161,17 @@ struct Propriété {
 	valeur : z32
 }
 
-fonc pousse(dyn liste : &ListePropriété, prop : *Propriété) : rien
+fonc pousse(dyn liste : &ListePropriété, prop : *Propriété) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListePropriété) : bool
+fonc est_vide(liste : &ListePropriété) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_propriété(liste : &ListePropriété) : *Propriété
+corout chaque_propriété(liste : &ListePropriété) -> *Propriété
 {
 	dyn n := liste.premier
 
@@ -193,24 +193,24 @@ struct Graphe {
 	types_relations : MagasinChaine
 	noms_étiquettes : MagasinChaine
 
-	# À chaque fois qu'un noeud est ajouté, le compte est incrémenté, et la
-	# valeur incrémentée est assigné au noeud comme identifiant, de sorte que
-	# l'identifiant 0 est réservé pour vérifié les noeuds nuls.
+	# À chaque fois qu'un noeud est ajouté, le compte est incrémenté, et la
+	# valeur incrémentée est assigné au noeud comme identifiant, de sorte que
+	# l'identifiant 0 est réservé pour vérifié les noeuds nuls.
 	nombre_noeuds : n32 = 0
 
-	# À chaque fois qu'une relation est ajoutée, le compte est incrémenté, et
-	# la valeur incrémentée est assigné à la relation comme identifiant, de
-	# sorte que l'identifiant 0 est réservé pour vérifié les relations nulles.
+	# À chaque fois qu'une relation est ajoutée, le compte est incrémenté, et
+	# la valeur incrémentée est assigné à la relation comme identifiant, de
+	# sorte que l'identifiant 0 est réservé pour vérifié les relations nulles.
 	nombre_relations : n32 = 0
 
-	# À chaque fois qu'une propriété est ajoutée, le compte est incrémenté, et
-	# la valeur incrémentée est assigné à la propriété comme identifiant, de
-	# sorte que l'identifiant 0 est réservé pour vérifié les propriétés nulles.
+	# À chaque fois qu'une propriété est ajoutée, le compte est incrémenté, et
+	# la valeur incrémentée est assigné à la propriété comme identifiant, de
+	# sorte que l'identifiant 0 est réservé pour vérifié les propriétés nulles.
 	nombre_proprietes : n32 = 0
 
-	# À chaque fois qu'une étiquette est ajoutée, le compte est incrémenté, et
-	# la valeur incrémentée est assigné à l'étiquette comme identifiant, de
-	# sorte que l'identifiant 0 est réservé pour vérifié les étiquettes nulles.
+	# À chaque fois qu'une étiquette est ajoutée, le compte est incrémenté, et
+	# la valeur incrémentée est assigné à l'étiquette comme identifiant, de
+	# sorte que l'identifiant 0 est réservé pour vérifié les étiquettes nulles.
 	nombre_etiquettes : n32 = 0
 }
 
@@ -236,22 +236,22 @@ fonc supprime_graphe(dyn graphe : &Graphe)
 fonc ajoute_noeud(
 	dyn graphe : &Graphe,
 	nom : chaine,
-	valeur : z32) : *Noeud
+	valeur : z32) -> *Noeud
 {
 	imprime("Création d'un noeud...\n")
 
 	si (nom.est_vide()) {
-		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
 		retourne
 	}
 
 	dyn n := loge noeud sinon {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	n.id = ++graphe.nombre_noeuds
-	# assert(n.id != 0)
+	# assert(n.id != 0)
 
 	ajoute_propriete(n, nom, valeur)
 
@@ -264,22 +264,22 @@ fonc ajoute_propriete(
 	dyn graphe : &Graphe,
 	dyn n : *Noeud,
 	nom : chaine,
-	valeur : z32) : rien
+	valeur : z32) -> rien
 {
 	imprime("Création d'une propriété <", nom, ", ", valeur, "> pour un noeud...\n")
 
 	si (n == nul || n.id == 0) {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	si nom.est_vide() {
-		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
 		retourne
 	}
 
 	dyn p := loge propriete sinon {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
@@ -287,7 +287,7 @@ fonc ajoute_propriete(
 	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
 	p.valeur = valeur
 	p.id = ++graphe.nombre_proprietes
-	# assert(p.id != 0)
+	# assert(p.id != 0)
 
 	graphe.proprietes.pousse(p)
 
@@ -301,29 +301,29 @@ fonc ajoute_propriete(
 fonc ajoute_etiquette(
 	dyn graphe : &Graphe,
 	dyn n : *Noeud,
-	nom : chaine) : rien
+	nom : chaine) -> rien
 {
 	si (n == nul || n.id == 0) {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	si (nom.est_vide()) {
-		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
 		retourne
 	}
 
 	imprime("Création d'une étiquette <", nom,"> pour un noeud...\n")
 
 	dyn e := loge etiquette sinon {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	e.suivante = nul
 	e.id = ++graphe.nombre_etiquettes
 	e.id_nom = static_cast<unsigned>(graphe.nom_etiquettes.ajoute_chaine(nom))
-	# assert(e.id != 0)
+	# assert(e.id != 0)
 
 	graphe.etiquettes.pousse(e)
 
@@ -338,22 +338,22 @@ fonc ajoute_propriete(
 	dyn graphe : &Graphe,
 	dyn r : *Relation,
 	nom : chaine,
-	valeur : z32) : rien
+	valeur : z32) -> rien
 {
 	imprime("Création d'une propriété pour une relation...\n")
 
 	si r == nul || r.id == 0 {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	si (nom.est_vide()) {
-		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
+		# À FAIRE : erreur, une propriété doit avoir un nom pour pouvoir l'identifier
 		retourne
 	}
 
 	dyn p := loge propriete sinon {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
@@ -361,7 +361,7 @@ fonc ajoute_propriete(
 	p.id_nom = transtype(graphe.noms_proprietes.ajoute_chaine(nom) : n32)
 	p.valeur = valeur
 	p.id = ++graphe.nombre_proprietes
-	# assert(p.id != 0)
+	# assert(p.id != 0)
 
 	graphe.proprietes.pousse(p)
 
@@ -376,22 +376,22 @@ fonc ajoute_relation(
 	dyn graphe : &Graphe,
 	debut : *Noeud,
 	fin : *Noeud,
-	nom : chaine) : rien
+	nom : chaine) -> rien
 {
 	si (debut == nul || fin == nul) {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	si (debut == fin || debut.id == fin.id) {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
 	imprime("Création d'une relation entre les noeuds ", debut.id, " et ", fin.id, "...\n")
 
 	dyn r := loge relation sinon {
-		# À FAIRE : erreur
+		# À FAIRE : erreur
 		retourne
 	}
 
@@ -403,7 +403,7 @@ fonc ajoute_relation(
 	r.rel_suiv_debut = nul
 	r.rel_prev_fin = nul
 	r.rel_suiv_fin = nul
-	# assert(r.id != 0)
+	# assert(r.id != 0)
 
 	si (!debut.relations.est_vide()) {
 		r.rel_prev_debut = debut.relations.back()
@@ -423,23 +423,23 @@ fonc ajoute_relation(
 
 #################################################################################
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
 	dyn graphe : Graphe
-	diffère { supprime_graphe(graphe); }
+	diffère { supprime_graphe(graphe); }
 
 	n1 := graphe.crée_noeud("nom", 1)
 	n2 := graphe.crée_noeud("nom", 2)
 
 	graphe.ajoute_relation(n1, n2, "CONNECTÉ")
 
-	# "(n1:{nom:1})-[:CONNECTÉ_AMONT]->(n2:{nom:2})"
+	# "(n1:{nom:1})-[:CONNECTÉ_AMONT]->(n2:{nom:2})"
 	# graphe.imprime_relation()
 
 	#####
 
-	# "(n1:{nom:1})-[:CONNECTÉ_AMONT]->(n2:{nom:2})"
-	# graphe.cherche_noeud(recherche)
+	# "(n1:{nom:1})-[:CONNECTÉ_AMONT]->(n2:{nom:2})"
+	# graphe.cherche_noeud(recherche)
 
 	# cherche_noeud
 	# propriétés...
@@ -449,19 +449,19 @@ fonc principale(args : []*z8) : z32
 	# propriétés...
 	# étiquettes...
 
-	# "(n1:{nom:1})-[label:CONVERTI { ratio : 1.34 }]->(n2:{nom:2})"
-	# "(n1:{nom:1})<-[label:CONVERTI { ratio : 0.75 }]-(n2:{nom:2})"
+	# "(n1:{nom:1})-[label:CONVERTI { ratio : 1.34 }]->(n2:{nom:2})"
+	# "(n1:{nom:1})<-[label:CONVERTI { ratio : 0.75 }]-(n2:{nom:2})"
 
-	# Jorjala
+	# Jorjala
 	# crée un noeud
-	# "(:OBJET {nom:"cube"})"
-	# "(:COMPOSITE {nom:"composite"]})"
-	# "(:OPÉRATRICE {nom:""})
-	# crée un graphe
-	# "(:OBJET {nom:"cube"})-[:EST_GRAPHE]->(noeud_graphe:GRAPHE)"
+	# "(:OBJET {nom:"cube"})"
+	# "(:COMPOSITE {nom:"composite"]})"
+	# "(:OPÉRATRICE {nom:""})
+	# crée un graphe
+	# "(:OBJET {nom:"cube"})-[:EST_GRAPHE]->(noeud_graphe:GRAPHE)"
 	# cherche le graphe d'un noeud
-	# "(:OBJET {nom:"cube"})-[:EST_GRAPHE]->(noeud_graphe:GRAPHE)"
-	# "(noeud_graphe)-[:DANS_GRAPHE]->(noeud)"
+	# "(:OBJET {nom:"cube"})-[:EST_GRAPHE]->(noeud_graphe:GRAPHE)"
+	# "(noeud_graphe)-[:DANS_GRAPHE]->(noeud)"
 
 	retourne 0
 }

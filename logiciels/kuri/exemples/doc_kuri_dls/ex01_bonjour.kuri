@@ -1,7 +1,7 @@
 importe "chaine"
 importe "flux"
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     imprime("Bonjour, tout le monde !\n")
     imprime("Nous allons imprimer les arguments :\n")

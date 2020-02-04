@@ -1,11 +1,11 @@
 importe "flux"
 
-fonc ajoute(a : z32, b : z32) : z32
+fonc ajoute(a : z32, b : z32) -> z32
 {
     retourne a + b
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     x := 1
     y := 2

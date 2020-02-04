@@ -2,7 +2,7 @@
 # fractions, afin d'être plus précis que des nombres à point flottant.
 # https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
-fonc externe printf(fmt: *z8, args: ...) : z32
+fonc externe printf(fmt: *z8, args: ...) -> z32
 
 struct NombreRationnel {
     N: n32
@@ -10,7 +10,7 @@ struct NombreRationnel {
     s: bool
 }
 
-fonc construit_nombre_rationnel(n: n32, d: n32, positif: bool) : NombreRationnel
+fonc construit_nombre_rationnel(n: n32, d: n32, positif: bool) -> NombreRationnel
 {
     dyn r : NombreRationnel
     r.N = n
@@ -20,7 +20,7 @@ fonc construit_nombre_rationnel(n: n32, d: n32, positif: bool) : NombreRationnel
     retourne r
 }
 
-fonc ajoute(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
+fonc ajoute(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     # augmente la taille des types pour éviter les problèmes de surflot
     a_n := transtype(a.N: n64)
@@ -50,7 +50,7 @@ fonc ajoute(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
     dyn r_D : n64 = a_d * b_d
 
     # réduit la fraction selon le plus grand dénominateur commun,
-    # afin d'éviter des problèmes de surflot
+    # afin d'éviter des problèmes de surflot
     dc := pgdc(r_N, r_D)
 
     r_N = r_N / dc
@@ -78,7 +78,7 @@ fonc ajoute(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
     retourne r
 }
 
-fonc soustrait(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
+fonc soustrait(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     dyn tmp := b
     tmp.s = vrai
@@ -86,7 +86,7 @@ fonc soustrait(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
     retourne ajoute(a, tmp)
 }
 
-fonc multiplie(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
+fonc multiplie(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     # augmente la taille des types pour éviter les problèmes de surflot
     a_n := transtype(a.N: n64)
@@ -98,7 +98,7 @@ fonc multiplie(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
     dyn r_D := a_d * b_d
 
     # réduit la fraction selon le plus grand dénominateur commun,
-    # afin d'éviter des problèmes de surflot
+    # afin d'éviter des problèmes de surflot
     dc := pgdc(r_N, r_D)
 
     r_N := r_N / dc
@@ -128,7 +128,7 @@ fonc multiplie(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
     retourne r
 }
 
-fonc divise(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
+fonc divise(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     dyn tmp := b
     tmp.N = b.D
@@ -137,7 +137,7 @@ fonc divise(a: NombreRationnel, b: NombreRationnel) : NombreRationnel
     retourne multiplie(a, tmp)
 }
 
-fonc imprime_nombre_rationnel(a: NombreRationnel) : rien
+fonc imprime_nombre_rationnel(a: NombreRationnel) -> rien
 {
     si a.s {
         printf("- %u / %u\n".pointeur, a.N, a.D)
@@ -148,7 +148,7 @@ fonc imprime_nombre_rationnel(a: NombreRationnel) : rien
 }
 
 # https://en.wikipedia.org/wiki/Binary_GCD_algorithm
-fonc pgdc_récursif(u: n64, v: n64) : n64
+fonc pgdc_récursif(u: n64, v: n64) -> n64
 {
     # cas simples (terminaison)
     si u == v {
@@ -184,7 +184,7 @@ fonc pgdc_récursif(u: n64, v: n64) : n64
     retourne pgdc_récursif((v - u) >> 1, u)
 }
 
-fonc pgdc(dyn u: n64, dyn v: n64) : n64
+fonc pgdc(dyn u: n64, dyn v: n64) -> n64
 {
     si u == v {
         retourne u
@@ -238,7 +238,7 @@ fonc pgdc(dyn u: n64, dyn v: n64) : n64
     retourne u << shift
 }
 
-fonc nombre_de_bits_zéro_en_fin(dyn i: n64) : n32
+fonc nombre_de_bits_zéro_en_fin(dyn i: n64) -> n32
 {
     si i == 0 {
         retourne transtype(64: n32)
@@ -253,10 +253,10 @@ fonc nombre_de_bits_zéro_en_fin(dyn i: n64) : n32
     y = i <<  4; si y != 0 { n = n -  4; i = y; }
     y = i <<  2; si y != 0 { n = n -  2; i = y; }
 
-    retourne transtype(n - ((i << 1) >> 63): n32)
+	retourne transtype(n - ((i << 1) >> 63): n32)
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     a := construit_nombre_rationnel(transtype(765: n32), transtype(455: n32), faux)
     b := construit_nombre_rationnel(transtype(455: n32), transtype(35: n32), vrai)

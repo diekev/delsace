@@ -26,7 +26,7 @@ struct DonneesLexème {
 	lexème : TypeLexème
 }
 
-fonc est_caractère_spécial(c : z8) : bool, TypeLexème
+fonc est_caractère_spécial(c : z8) -> bool, TypeLexème
 {
     discr c {
         '(' { retourne vrai, TypeLexème.PARENTHESE_OUVRANTE }
@@ -56,14 +56,14 @@ struct Lexeuse {
     pos_mot := 0
 }
 
-fonc pousse(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) : rien
+fonc pousse(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]DonneesLexème
     liste[taille] = valeur
 }
 
-fonc construit_lexeuse(chn : chaine) : Lexeuse
+fonc construit_lexeuse(chn : chaine) -> Lexeuse
 {
     dyn lexeuse : Lexeuse
     lexeuse.tampon = chn
@@ -74,27 +74,27 @@ fonc construit_lexeuse(chn : chaine) : Lexeuse
     retourne lexeuse
 }
 
-fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) : rien
+fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) -> rien
 {
     déloge lexeuse.lexèmes
 }
 
-fonc a_fini(dyn lexeuse : &Lexeuse) : bool
+fonc a_fini(dyn lexeuse : &Lexeuse) -> bool
 {
 	retourne lexeuse.début >= lexeuse.fin
 }
 
-fonc caractère_courant(dyn lexeuse : &Lexeuse) : z8
+fonc caractère_courant(dyn lexeuse : &Lexeuse) -> z8
 {
     retourne mémoire(lexeuse.début)
 }
 
-fonc caractère_courant(dyn lexeuse : &Lexeuse, n : z32) : z8
+fonc caractère_courant(dyn lexeuse : &Lexeuse, n : z32) -> z8
 {
     retourne mémoire(lexeuse.début + n)
 }
 
-fonc avance(dyn lexeuse : &Lexeuse, n : z32) : rien
+fonc avance(dyn lexeuse : &Lexeuse, n : z32) -> rien
 {
 	pour i dans 0 ... n - 1 {
 		si (lexeuse.caractère_courant() == '\n') {
@@ -109,17 +109,17 @@ fonc avance(dyn lexeuse : &Lexeuse, n : z32) : rien
 	}
 }
 
-fonc pousse_caractère(dyn lexeuse : &Lexeuse) : rien
+fonc pousse_caractère(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot_courant += 1
 }
 
-fonc mot_courant(dyn lexeuse : &Lexeuse) : chaine
+fonc mot_courant(dyn lexeuse : &Lexeuse) -> chaine
 {
 	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
 }
 
-fonc pousse_mot(dyn lexeuse : &Lexeuse, lexème : TypeLexème) : rien
+fonc pousse_mot(dyn lexeuse : &Lexeuse, lexème : TypeLexème) -> rien
 {
     dyn données : DonneesLexème
     données.lexème = lexème
@@ -131,13 +131,13 @@ fonc pousse_mot(dyn lexeuse : &Lexeuse, lexème : TypeLexème) : rien
 	lexeuse.début_mot = nul
 }
 
-fonc enregistre_position_mot(dyn lexeuse : &Lexeuse) : rien
+fonc enregistre_position_mot(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.pos_mot = lexeuse.position_ligne
 	lexeuse.début_mot = lexeuse.début
 }
 
-fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
+fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
 {
     tantque !lexeuse.a_fini() {
         est_spécial, lexème := est_caractère_spécial(lexeuse.caractère_courant())

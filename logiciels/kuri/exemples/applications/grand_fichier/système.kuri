@@ -14,7 +14,7 @@
 	INVALIDE,
 }
 
-fonc détermine_instruction(chn : chaine) : Instruction
+fonc détermine_instruction(chn : chaine) -> Instruction
 {
 	info_inst = info_de(Instruction)
 
@@ -30,7 +30,7 @@ fonc détermine_instruction(chn : chaine) : Instruction
 # CHERCHE /arachne/noeuds.base PGF/1.0\r\n
 # CRÉE /arachne/noeuds.base PGF/1.0\r\n
 # AJOURNE /arachne/noeuds.base PGF/1.0\r\n
-fonc analyse_réponse(réponse : chaine) : rien
+fonc analyse_réponse(réponse : chaine) -> rien
 {
 	dyn début_mot = 0
 	dyn taille_mot = 0
@@ -97,7 +97,7 @@ struct Noeud {
 	nom : chaine
 }
 
-fonc trouve(noeud : *Noeud, nom : chaine) : *Noeud
+fonc trouve(noeud : *Noeud, nom : chaine) -> *Noeud
 {
 	pour enfant dans noeud.enfants {
 		si compare_chaine(enfant.nom, nom) {
@@ -113,14 +113,14 @@ struct Arbre {
 	noeuds : []*Noeud
 }
 
-fonc décrée_arbre(arbre : &Arbre) : rien
+fonc décrée_arbre(arbre : &Arbre) -> rien
 {
 	pour noeud dans noeuds {
 		déloge noeud
 	}
 }
 
-fonc cherche_fichier(arbre : &Arbre, chemin : chaine) : chaine
+fonc cherche_fichier(arbre : &Arbre, chemin : chaine) -> chaine
 {
 	dyn noeud = arbre.noeud_racine
 
@@ -143,14 +143,14 @@ struct Journal {
 	requêtes : []Requête
 }
 
-fonc pousse_requête(dyn journal : &Journal, requête : Requête) : rien
+fonc pousse_requête(dyn journal : &Journal, requête : Requête) -> rien
 {
 	taille = journal.requêtes.taille
 	reloge journal.requêtes : [taille + 1]Requête
 	journal.requête[taille] = requête
 }
 
-fonc crée_journal() : Journal
+fonc crée_journal() -> Journal
 {
 	dyn journal : Journal
 
@@ -165,7 +165,7 @@ fonc crée_journal() : Journal
 	retourne journal
 }
 
-fonc charge_journal(chemin : chaine) : Journal
+fonc charge_journal(chemin : chaine) -> Journal
 {
 	contenu = contenu_fichier_texte(chemin)
 	diffère { déloge contenu; }
@@ -178,7 +178,7 @@ struct Système {
 	journal : Journal
 }
 
-fonc crée_système() : Système
+fonc crée_système() -> Système
 {
 	dyn système : Système
 
@@ -200,7 +200,7 @@ fonc crée_système() : Système
 	système
 }
 
-fonc fichier_existe(système : &Système, chn : chaine) : bool
+fonc fichier_existe(système : &Système, chn : chaine) -> bool
 {
 	pour chemin dans système.chemins {
 		si chn == chemin {
@@ -227,7 +227,7 @@ struct Requête {
 # FICHIER_ÉCRIS
 # DESTRUCTION_IMPOSSIBLE
 # FICHIER_DÉTRUIT
-fonc répond(système : &Système, requête : &Requête) : chaine
+fonc répond(système : &Système, requête : &Requête) -> chaine
 {
 	dyn enchaineuse = crée_constructrice_chaine()
 

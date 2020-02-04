@@ -1,6 +1,6 @@
 importe "flux"
 
-fonc imprime_tableau(tabl : []r64) : rien
+fonc imprime_tableau(tabl : []r64) -> rien
 {
     imprime("imprime_tableau...\n");
     imprime("tabl.taille = ", tabl.taille, "\n");
@@ -21,7 +21,7 @@ struct Vecteur {
     z : r64;
 }
 
-fonc test() : rien
+fonc test() -> rien
 {
     imprime("=========================================\n");
     imprime("                 tableau                 \n");
@@ -71,7 +71,7 @@ fonc test() : rien
     }
 }
 
-fonc logement_tableau() : rien
+fonc logement_tableau() -> rien
 {
     imprime("=========================================\n");
     imprime("            logements tableau            \n");
@@ -99,7 +99,7 @@ fonc logement_tableau() : rien
 }
 
 
-fonc logement_chaine() : rien
+fonc logement_chaine() -> rien
 {
     imprime("=========================================\n");
     imprime("            logements chaine             \n");
@@ -117,7 +117,7 @@ fonc logement_chaine() : rien
     imprime("Taille chaîne  : ", chnr.taille, '\n');
 }
 
-fonc test_fichier() : rien
+fonc test_fichier() -> rien
 {
     imprime("=========================================\n");
     imprime("                 fichier                 \n");
@@ -152,7 +152,7 @@ fonc test_fichier() : rien
     }
 }
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
     imprime("=========================================\n");
     imprime("                arguments                \n");

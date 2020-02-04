@@ -1,4 +1,4 @@
-rout crée_manipulable(valeur : eini) : &Manipulable
+rout crée_manipulable(valeur : eini) -> &Manipulable
 {
 	si valeur.info.id != id_type.STRUCTURE {
 		retourne nul;
@@ -30,7 +30,7 @@ rout crée_manipulable(valeur : eini) : &Manipulable
 rout ajourne_valeur(
 	objet : &dyn eini,
 	nom_prop : &chaine,
-	valeur : eini) : rien
+	valeur : eini) -> rien
 {
 	garde objet.info.id == TYPE_STRUCTURE sinon {
 		# À FAIRE : erreur
@@ -74,7 +74,7 @@ struct Vecteur3D {
 	z : z32 = 7;
 }
 
-rout invoque(methode : eini, args : ...eini) : eini
+rout invoque(methode : eini, args : ...eini) -> eini
 {
 	fonc_ptr := methode.pointeur;
 
@@ -84,7 +84,7 @@ rout invoque(methode : eini, args : ...eini) : eini
 	fonct_ptr(args...);
 }
 
-rout test_introspection() : rien
+rout test_introspection() -> rien
 {
 	dyn vec : Vecteur3D;
 
@@ -105,7 +105,7 @@ rout test_introspection() : rien
 	retourne;
 }
 
-rout loge_concat(args... : []z32) : []z32
+rout loge_concat(args... : []z32) -> []z32
 {
 	dyn taille : n64 = 0;
 

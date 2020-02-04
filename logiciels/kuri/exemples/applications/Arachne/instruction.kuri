@@ -8,7 +8,7 @@ importe Fondation
     INVALIDE
 }
 
-fonc détermine_instruction(chn : chaine) : Instruction
+fonc détermine_instruction(chn : chaine) -> Instruction
 {
     info := info_de(Instruction.CREE)
 

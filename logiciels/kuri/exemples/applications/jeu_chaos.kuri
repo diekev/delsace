@@ -20,7 +20,7 @@ struct MondeVersEcran {
 	D := 0.0;
 }
 
-fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) : MondeVersEcran
+fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) -> MondeVersEcran
 {
 	dyn mve : MondeVersEcran;
 
@@ -32,7 +32,7 @@ fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) : MondeVersEcr
 	retourne mve;
 }
 
-fonc mappage(mve : &MondeVersEcran, x : r64, y : r64) : Point2D
+fonc mappage(mve : &MondeVersEcran, x : r64, y : r64) -> Point2D
 {
 	dyn pos_ecran : Point2D;
 
@@ -42,7 +42,7 @@ fonc mappage(mve : &MondeVersEcran, x : r64, y : r64) : Point2D
 	retourne pos_ecran;
 }
 
-fonc mappage(mve : &MondeVersEcran, p : &Point2D) : Point2D
+fonc mappage(mve : &MondeVersEcran, p : &Point2D) -> Point2D
 {
 	retourne mappage(mve, p.x, p.y);
 }
@@ -54,7 +54,7 @@ fonc dessine_point_rayon(
 	hauteur : z32,
 	largeur : z32,
 	p : &Point2D,
-	rayon_point : z32) : rien
+	rayon_point : z32) -> rien
 {
 
 }
@@ -64,7 +64,7 @@ fonc dessine_point_rayon(
 	hauteur : z32,
 	largeur : z32,
 	p : &Point2D,
-	rayon_point : z32) : rien
+	rayon_point : z32) -> rien
 {
 
 }
@@ -76,7 +76,7 @@ fonc dessine_bmp(
 	monde : &Rectangle2D,
 	ecran : &Rectangle2D,
 	points : []Points2D,
-	rayon_point : z32) : rien
+	rayon_point : z32) -> rien
 {
 	cannevas := loge : [hauteur * largeur * 4]z8;
 	diffère { déloge cannevas; }
@@ -108,7 +108,7 @@ fonc dessine_bmp(
 
 ########################################################################
 
-fonc principale(args : []*z8) : z32
+fonc principale(args : []*z8) -> z32
 {
 	monde := Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
 

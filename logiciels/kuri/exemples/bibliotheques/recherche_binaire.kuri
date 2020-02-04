@@ -1,6 +1,6 @@
-fonction externe printf(format : *z8, args : ...) : z32;
+fonction externe printf(format : *z8, args : ...) -> z32;
 
-fonction recherche_binaire(x : []z32, n : z32, v : z32) : z32
+fonction recherche_binaire(x : []z32, n : z32, v : z32) -> z32
 {
 	variable l := 0;
 	variable u := n;
@@ -26,17 +26,17 @@ fonction recherche_binaire(x : []z32, n : z32, v : z32) : z32
 	retourne -1;
 }
 
-fonction distance(ptr1 : *z32, ptr2 : *z32) : z32
+fonction distance(ptr1 : *z32, ptr2 : *z32) -> z32
 {
 	retourne transtype(ptr2 - ptr1)(z32) / taille_de(z32);
 }
 
-fonction suivant(ptr : *z32, n : z32) : *z32
+fonction suivant(ptr : *z32, n : z32) -> *z32
 {
 	retourne ptr + transtype(n * taille_de(z32))(*z32);
 }
 
-fonction limite_basse(f : *z32, l : *z32, v : z32) : *z32
+fonction limite_basse(f : *z32, l : *z32, v : z32) -> *z32
 {
 	variable fl := f;
 	variable ll := l;
@@ -59,7 +59,7 @@ fonction limite_basse(f : *z32, l : *z32, v : z32) : *z32
 	retourne fl;
 }
 
-fonction principale(compte : z32, arguments : **z8) : z32
+fonction principale(compte : z32, arguments : **z8) -> z32
 {
 	dyn tableau : [32]z32;
 
