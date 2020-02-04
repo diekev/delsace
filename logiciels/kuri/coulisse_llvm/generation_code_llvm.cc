@@ -879,7 +879,6 @@ static auto genere_code_allocation(
 	auto arg_val_ancien_ptr = val_acces_pointeur;
 
 	std::vector<llvm::Value *> parametres;
-	parametres.push_back(ptr_contexte);
 	parametres.push_back(arg_val_mode);
 	parametres.push_back(val_nouvelle_taille_octet);
 	parametres.push_back(val_ancienne_taille_octet);
