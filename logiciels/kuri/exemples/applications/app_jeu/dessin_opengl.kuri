@@ -5,16 +5,16 @@ charge "glew"
 
 importe "Fondation"
 
-dyn VertexArrayID = transtype(0 : n32)
-dyn ProgramID = transtype(0 : n32)
-dyn vertexbuffer = transtype(0 : n32)
-dyn colorbuffer = transtype(0 : n32)
+dyn VertexArrayID := transtype(0 : n32)
+dyn ProgramID := transtype(0 : n32)
+dyn vertexbuffer := transtype(0 : n32)
+dyn colorbuffer := transtype(0 : n32)
 dyn tabl_sommets : *tableau = nul
 dyn tabl_couleur : *tableau = nul
 
 fonc charge_programme() : n32
 {
-    soit source_vertex = "
+    source_vertex := "
     #version 330 core
     layout(location = 0) in vec3 sommet;
     layout(location = 1) in vec4 couleurs;
@@ -27,7 +27,7 @@ fonc charge_programme() : n32
     }
     "
 
-    soit source_fragment = "
+    source_fragment := "
     #version 330 core
     out vec4 couleur_fragment;
     smooth in vec4 couleur;
@@ -38,10 +38,10 @@ fonc charge_programme() : n32
     "
 
     # crée les nuanceurs
-	soit VertexShaderID = glCreateShader(OGL.VERTEX_SHADER)
-	soit FragmentShaderID = glCreateShader(OGL.FRAGMENT_SHADER)
+	VertexShaderID := glCreateShader(OGL.VERTEX_SHADER)
+	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
 
-    soit taille_src_vertex = transtype(source_vertex.taille : z32)
+    taille_src_vertex := transtype(source_vertex.taille : z32)
 	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
 	glCompileShader(VertexShaderID)
 
@@ -52,13 +52,13 @@ fonc charge_programme() : n32
 	glGetShaderiv(VertexShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
     si InfoLogLength > 0 {
-		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
+		ProgramErrorMessage := loge chaine(InfoLogLength+1)
 		glGetShaderInfoLog(VertexShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur compilation : VertexShaderID", ProgramErrorMessage, '\n')
         déloge ProgramErrorMessage
 	}
 
-    soit taille_src_fragment = transtype(source_fragment.taille : z32)
+    taille_src_fragment := transtype(source_fragment.taille : z32)
 	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
 	glCompileShader(FragmentShaderID)
 
@@ -69,13 +69,13 @@ fonc charge_programme() : n32
 	glGetShaderiv(FragmentShaderID, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
     si InfoLogLength > 0 {
-		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
+		ProgramErrorMessage := loge chaine(InfoLogLength+1)
 		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur compilation : FragmentShaderID", ProgramErrorMessage, '\n')
         déloge ProgramErrorMessage
 	}
 
-    soit ProgramID_ = glCreateProgram()
+    ProgramID_ := glCreateProgram()
 	glAttachShader(ProgramID_, VertexShaderID)
 	glAttachShader(ProgramID_, FragmentShaderID)
 	glLinkProgram(ProgramID_)
@@ -87,7 +87,7 @@ fonc charge_programme() : n32
 	glGetProgramiv(ProgramID_, OGL.INFO_LOG_LENGTH, @InfoLogLength)
 
     si InfoLogLength > 0 {
-		soit ProgramErrorMessage = loge chaine(InfoLogLength+1)
+		ProgramErrorMessage := loge chaine(InfoLogLength+1)
 		glGetProgramInfoLog(ProgramID_, InfoLogLength, nul, ProgramErrorMessage.pointeur)
 		imprime("!!!!! Erreur liaison : ProgramID", ProgramErrorMessage, '\n')
         déloge ProgramErrorMessage
@@ -194,10 +194,10 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) :
 {
     débute_dessin()
 
-    soit min_x = px
-    soit min_y = py
-    soit max_x = px + tx
-    soit max_y = py + ty
+    min_x := px
+    min_y := py
+    max_x := px + tx
+    max_y := py + ty
 
     ajoute_sommet(min_x, min_y, transtype(0.0 : r32))
     ajoute_couleur(coul)
@@ -218,7 +218,7 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) :
 
 fonc dessine_carré() : rien
 {
-    soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(0.0 : r32), a = transtype(1.0 : r32) }
+    couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(0.0 : r32), a = transtype(1.0 : r32) }
     dessine_carré_ex(transtype(-0.5 : r32), transtype(-0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32), couleur)
 }
 
@@ -229,16 +229,16 @@ fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) : rien
 {
     débute_dessin()
 
-    soit segs = 32
-    dyn phi = transtype(0.0 : r32)
-    dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs : r32) : r32)
+    segs := 32
+    dyn phi := transtype(0.0 : r32)
+    dyn phi_delta := transtype(2.0 * 3.14159 / transtype(segs : r32) : r32)
 
     pour i dans 0...segs - 1 {
-        soit ca0 = cx + cos(phi) * rx
-        soit sa0 = cy + sin(phi) * ry
+        ca0 := cx + cos(phi) * rx
+        sa0 := cy + sin(phi) * ry
 
-        soit ca1 = cx + cos(phi + phi_delta) * rx
-        soit sa1 = cy + sin(phi + phi_delta) * ry
+        ca1 := cx + cos(phi + phi_delta) * rx
+        sa1 := cy + sin(phi + phi_delta) * ry
 
         ajoute_sommet(cx, cy, transtype(0.0 : r32))
         ajoute_sommet(ca0, sa0, transtype(0.0 : r32))
@@ -254,16 +254,16 @@ fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32
 {
     débute_dessin()
 
-    soit segs = 8
+    segs := 8
     dyn phi = transtype(quadrant : r32) * transtype((3.14159 / 2.0) : r32)
     dyn phi_delta = transtype(2.0 * 3.14159 / transtype(segs * 4 : r32) : r32)
 
     pour i dans 0...segs - 1 {
-        soit ca0 = cx + cos(phi) * rx
-        soit sa0 = cy + sin(phi) * ry
+        ca0 := cx + cos(phi) * rx
+        sa0 := cy + sin(phi) * ry
 
-        soit ca1 = cx + cos(phi + phi_delta) * rx
-        soit sa1 = cy + sin(phi + phi_delta) * ry
+        ca1 := cx + cos(phi + phi_delta) * rx
+        sa1 := cy + sin(phi + phi_delta) * ry
 
         ajoute_sommet(cx, cy, transtype(0.0 : r32))
         ajoute_sommet(ca0, sa0, transtype(0.0 : r32))
@@ -277,15 +277,15 @@ fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32
 
 fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) : rien
 {
-    soit rx = arrondis_pixel / largeur
-    soit ry = arrondis_pixel / hauteur
+    rx := arrondis_pixel / largeur
+    ry := arrondis_pixel / hauteur
 
-    soit px : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + rx : r32)
-    soit py : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + ry : r32)
-    soit tx : r32 = transtype(2.0 - 2.0 * rx : r32)
-    soit ty : r32 = transtype(2.0 - 2.0 * ry : r32)
+    px : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + rx : r32)
+    py : r32 = transtype(transtype(-transtype(1.0 : r32) : r32) + ry : r32)
+    tx : r32 = transtype(2.0 - 2.0 * rx : r32)
+    ty : r32 = transtype(2.0 - 2.0 * ry : r32)
 
-    soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
+    couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
 
     # dessine centre
     dessine_carré_ex(px, py, tx, ty, couleur)

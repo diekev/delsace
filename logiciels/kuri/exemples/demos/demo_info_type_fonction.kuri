@@ -2,7 +2,7 @@ importe "info_type"
 importe "flux"
 
 struct Objet {
-    nom = "objet"
+    nom := "objet"
 }
 
 fonc execute_noeud(obj1 : &Objet, objs : []&Objet) : z32, *Objet
@@ -14,7 +14,7 @@ fonc imprime_type(info : *InfoType) : rien
 {
     discr info.id {
 	    ENTIER {
-		    soit info_arg = transtype(info : *InfoTypeEntier)
+		    info_arg := transtype(info : *InfoTypeEntier)
 
             si info_arg.est_signé {
 			    si info_arg.taille_en_octet == 8 {
@@ -46,7 +46,7 @@ fonc imprime_type(info : *InfoType) : rien
 			}
 		}
 		RÉEL {
-		    soit info_arg = transtype(info : *InfoTypeRéel)
+		    info_arg := transtype(info : *InfoTypeRéel)
 
             si info_arg.taille_en_octet == 16 {
 			    imprime("r16")
@@ -65,11 +65,11 @@ fonc imprime_type(info : *InfoType) : rien
 			imprime("chaine")
 		}
 		STRUCTURE {
-		    soit info_arg = transtype(info : *InfoTypeStructure)
+		    info_arg := transtype(info : *InfoTypeStructure)
 			imprime(info_arg.nom)
 		}
 		POINTEUR {
-		    soit info_arg = transtype(info : *InfoTypePointeur)
+		    info_arg := transtype(info : *InfoTypePointeur)
 
 		    si info_arg.est_référence {
 			    imprime('&')
@@ -91,12 +91,12 @@ fonc imprime_type(info : *InfoType) : rien
 			imprime("rien")
 		}
 		TABLEAU {
-		    soit info_arg = transtype(info : *InfoTypeTableau)
+		    info_arg := transtype(info : *InfoTypeTableau)
 			imprime("[]")
 			imprime_type(info_arg.type_pointé)
 		}
 		ÉNUM {
-		    soit info_arg = transtype(info : *InfoTypeÉnum)
+		    info_arg := transtype(info : *InfoTypeÉnum)
 			imprime(info_arg.nom)
 		}
 	}
@@ -104,14 +104,14 @@ fonc imprime_type(info : *InfoType) : rien
 
 fonc enregistre_noeud(fonc_exec : eini) : rien
 {
-    info = fonc_exec.info
+    info := fonc_exec.info
 
     si info.id != id_info.FONCTION {
         imprime("Obtenu autre chose qu'une fonction !", '\n')
         retourne
     }
 
-    info_fonc = transtype(info : *InfoTypeFonction)
+    info_fonc := transtype(info : *InfoTypeFonction)
 
     imprime("Les types d'entrée sont : ", '\n')
 

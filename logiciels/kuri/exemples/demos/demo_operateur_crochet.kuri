@@ -1,7 +1,7 @@
 importe "flux"
 
 struct TEST {
-    m = "Membre de la structure"
+    m := "Membre de la structure"
     tabl : [2]z32
     mat4x4 : [4][4]z32
 }
@@ -23,7 +23,7 @@ fonc principale(args : []*z8) : z32
     dyn t : TEST
     t.tabl[0] = 127
 
-    soit z = [0, 1]
+    z := [0, 1]
 
     #z[0] = 3;
 
@@ -33,8 +33,8 @@ fonc principale(args : []*z8) : z32
 
 	t2 : TEST2
 
-	x = @t2.tests[0].tabl[0]
-	y0 = t2.tests[1].mat4x4[0][1]
+	x := @t2.tests[0].tabl[0]
+	y0 := t2.tests[1].mat4x4[0][1]
 
 	dyn w : [3]z32
 	w[ytaille] = 0

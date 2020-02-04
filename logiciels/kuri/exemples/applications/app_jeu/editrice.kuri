@@ -1,7 +1,7 @@
 énum type_éditrice {
-	NULLE     = 0
-	PROPRIETE = 1
-	TEMPS     = 2
+	NULLE     := 0
+	PROPRIETE := 1
+	TEMPS     := 2
 }
 
 struct vec2d {
@@ -24,7 +24,7 @@ struct Editrice {
 
 fonction cree_editrice(type : type_éditrice) : Editrice
 {
-	dyn éditrice = loge Editrice
+	dyn éditrice := loge Editrice
 	éditrice.type = type
 
 	discr type {
@@ -44,7 +44,7 @@ fonction cree_editrice(type : type_éditrice) : Editrice
 
 fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) : Editrice
 {
-	dyn editrice = cree_editrice(type)
+	dyn editrice := cree_editrice(type)
 
 	pousse_tableau(editrices, editrice)
 
@@ -56,7 +56,7 @@ fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) : Editrice
 fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
 {
 	# trouve l'index de l'éditrice dans le tableau
-	soit index = tableau.taille
+	index := tableau.taille
 
 	pour i dans 0 ... tableau.taille - 1 {
 		soit ed : *Editrice
@@ -69,10 +69,10 @@ fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) : rien
 # editrice gauche-droite-haut-bas
 fonction divise_editrice(editrice : *Editrice) : bool
 {
-	soit gauche = editrice.gauche
-	soit droite = editrice.droite
-	soit haut   = editrice.haut
-	soit bas    = editrice.bas
+	gauche := editrice.gauche
+	droite := editrice.droite
+	haut   := editrice.haut
+	bas    := editrice.bas
 
 	si gauche == droite == haut == bas == nul {
 		retourne vrai

@@ -3,7 +3,7 @@ importe Fondation
 fonc test_alloc_scalaire() : rien
 {
     imprime("test_alloc_scalaire\n")
-    dyn a = loge z32
+    dyn a := loge z32
     imprime("scalaire logée : ", a, '\n')
 
     mémoire(a) = 5
@@ -19,7 +19,7 @@ fonc test_alloc_scalaire() : rien
 fonc test_alloc_chaine() : rien
 {
     imprime("test_alloc_chaine\n")
-    dyn chn = loge chaine(1024)
+    dyn chn := loge chaine(1024)
     imprime("chaine logée : ", chn.pointeur, '\n')
     reloge chn : chaine(2048)
     imprime("chaine relogée : ", chn.pointeur, '\n')
@@ -29,7 +29,7 @@ fonc test_alloc_chaine() : rien
 
 fonc pousse(dyn tabl : &[]z32, valeur : z32) : rien
 {
-    taille = tabl.taille
+    taille := tabl.taille
     reloge tabl: [taille + 1]z32
     tabl[taille] = valeur
 }
@@ -37,7 +37,7 @@ fonc pousse(dyn tabl : &[]z32, valeur : z32) : rien
 fonc test_alloc_tableau() : rien
 {
     imprime("test_alloc_tableau\n")
-    dyn tabl = loge [1024]z32
+    dyn tabl := loge [1024]z32
     imprime("tableau logé : ", tabl.pointeur, '\n')
 
     imprime("taille tableau : ", tabl.taille, '\n')

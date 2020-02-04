@@ -28,7 +28,7 @@ fonc test_fonction_ret_simple() : rien
     imprime("---------------------------", '\n')
     imprime("fonc ret simple", '\n')
 
-    a = indirection_simple()
+    a := indirection_simple()
 
     imprime("a = ", a, '\n')
 }
@@ -38,9 +38,9 @@ fonc test_ptr_fonction_ret_simple() : rien
     imprime("---------------------------", '\n')
     imprime("pointeur ret fonc simple", '\n')
 
-    ptr = indirection_simple
+    ptr := indirection_simple
 
-    a = ptr()
+    a := ptr()
 
     imprime("a = ", a, '\n')
 }
@@ -81,7 +81,7 @@ fonc test_fonction_ret_moult() : rien
     imprime("---------------------------", '\n')
     imprime("fonc ret multiple", '\n')
 
-    a, b = indirection()
+    a, b := indirection()
 
     imprime("a = ", a, ", b = ", b, '\n')
 
@@ -114,7 +114,7 @@ fonc test_ptr_fonction_ret_moult() : rien
 
     test___(x, y, z, 90)
 
-    a, b = appel_ptr_moult_ret()
+    a, b := appel_ptr_moult_ret()
 
     imprime("a = ", a, ", b = ", b, '\n')
 }

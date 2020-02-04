@@ -18,7 +18,7 @@ struct TableHachage {
 
 fonc crée_table_hachage() : *TableHachage
 {
-    dyn table = loge TableHachage
+    dyn table := loge TableHachage
     table.alvéoles = loge [10000]*NoeudTableHachage
 
     pour i dans 0 ... 9999 {
@@ -31,10 +31,10 @@ fonc crée_table_hachage() : *TableHachage
 fonc décrée_table_hachage(table : *TableHachage) : rien
 {
     pour noeud dans table.alvéoles {
-        dyn n = noeud;
+        dyn n := noeud;
 
         tantque n != nul {
-            dyn ns = n.suivant
+            dyn ns := n.suivant
             déloge n
             n = ns
         }
@@ -46,7 +46,7 @@ fonc décrée_table_hachage(table : *TableHachage) : rien
 
 fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudTableHachage
 {
-    dyn n = loge NoeudTableHachage
+    dyn n := loge NoeudTableHachage
     n.clé = clé
     n.valeur = valeur
     n.suivant = nul
@@ -55,7 +55,7 @@ fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudTableHachage
 
 fonc calcule_empreinte(chn : chaine) : n64
 {
-    dyn empreinte : n64 = transtype(5381 : n64)
+    dyn empreinte := transtype(5381 : n64)
 
     pour c dans chn {
         empreinte = ((empreinte << transtype(5 : n64)) + empreinte) + transtype(c : n64)
@@ -66,9 +66,9 @@ fonc calcule_empreinte(chn : chaine) : n64
 
 fonc insère(dyn table : *TableHachage, clé : chaine, valeur : chaine) : rien
 {
-    empreinte = calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole = table.alvéoles[empreinte]
+    dyn alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         table.alvéoles[empreinte] = crée_noeud(clé, valeur)
@@ -87,9 +87,9 @@ fonc insère(dyn table : *TableHachage, clé : chaine, valeur : chaine) : rien
 
 fonc trouve(table : *TableHachage, clé : chaine) : *NoeudTableHachage
 {
-    empreinte = calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole = table.alvéoles[empreinte]
+    dyn alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         retourne nul
@@ -112,7 +112,7 @@ fonc trouve(table : *TableHachage, clé : chaine) : *NoeudTableHachage
 
 fonc cherche_noeud(table : *TableHachage, clé : chaine) : rien
 {
-    n = trouve(table, clé)
+    n := trouve(table, clé)
 
     si n == nul {
         imprime("Impossible de trouver le noeud dans la table !\n")
@@ -125,7 +125,7 @@ fonc cherche_noeud(table : *TableHachage, clé : chaine) : rien
 corout chaque_noeud(table : *TableHachage) : *NoeudTableHachage
 {
     pour alvéole dans table.alvéoles {
-        dyn n = alvéole
+        dyn n := alvéole
 
         tantque n != nul {
             retiens n

@@ -51,7 +51,7 @@ fonc foo()
 				si automate.état() == POSSÈDE_PROPRIÉTÉ {
 					automate.avance()
 
-					id_prop = automate.état()
+					id_prop := automate.état()
 
 					pour prop dans noeud.props {
 						si prop.id == id_prop {
@@ -68,7 +68,7 @@ fonc foo()
 				si automate.état() == POSSÈDE_ÉTIQUETTE {
 					automate.avance()
 
-					id_étiquette = automate.état()
+					id_étiquette := automate.état()
 
 					pour étiquette dans noeud.étiquettes {
 						si étiquette.id == id_étiquette {

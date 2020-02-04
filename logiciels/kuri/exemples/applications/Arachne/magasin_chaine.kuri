@@ -9,7 +9,7 @@ struct MagasinChaine {
 
 fonc index_chaine(dyn magasin : &MagasinChaine, chn : chaine) : z64
 {
-	résultat = magasin.dico.trouve(chn)
+	résultat := magasin.dico.trouve(chn)
 
 	discr résultat {
 		valeur {
@@ -38,10 +38,10 @@ fonc insère_chn_index(
 
 fonc ajoute_chaine(dyn magasin : &MagasinChaine, chn : chaine) : z64
 {
-	index = index_chaine(magasin, chn)
+	index := index_chaine(magasin, chn)
 
 	si index == 0 {
-		copie = duplique(chn)
+		copie := duplique(chn)
 		magasin.insère_chn_index(copie, magasin.nombre_chaines)
 		retourne magasin.nombre_chaines
 	}
@@ -62,7 +62,7 @@ fonc écris_magasin(
 	dyn magasin : &Magasin,
 	dyn système : &SystèmeFichierMémoire) : rien
 {
-	dyn fichier = système.ouvre_pour_lecture(chemin)
+	dyn fichier := système.ouvre_pour_lecture(chemin)
 
 	si fichier == nul {
 		retourne
@@ -70,18 +70,18 @@ fonc écris_magasin(
 
 	# on réserve 12 octets par chaine :
 	# 4 pour l'index et 8 pour la taille
-	taille = magasin.nombre_chaines * 12 + magasin.taille_chaines
+	taille := magasin.nombre_chaines * 12 + magasin.taille_chaines
 
-	dyn tampon = loge [taille]octet
+	dyn tampon := loge [taille]octet
 	diffère { déloge tampon; }
 
-	dyn décalage = 0
+	dyn décalage := 0
 
 	pour noeud dans chaque_noeud(magasin.dico) {
-		index_chaine = transtype(noeud.valeur : z32)
-		taille_chaine = noeud.chn.taille
+		index_chaine := transtype(noeud.valeur : z32)
+		taille_chaine := noeud.chn.taille
 
-		dyn sous_tampon = sous_tableau(tampon, décalage, taille_de(z32))
+		dyn sous_tampon := sous_tableau(tampon, décalage, taille_de(z32))
 		copie_mem(sous_tampon, index_chaine)
 
 		sous_tampon = sous_tableau(tampon, décalage + 4, taille_de(z64))
@@ -103,7 +103,7 @@ fonc lis_magasin(
 	# À FAIRE : réinitialise magasin
 
 	dyn fichier : Fichier
-	fichier = système.ouvre_pour_lecture(chemin)
+	fichier := système.ouvre_pour_lecture(chemin)
 
 	si fichier == nul {
 		retourne
@@ -111,7 +111,7 @@ fonc lis_magasin(
 
 	diffère { système.ferme_fichier(fichier); }
 
-	taille = fichier.taille
+	taille := fichier.taille
 
 	tantque taille != 0 {
 		# lis l'index
@@ -123,7 +123,7 @@ fonc lis_magasin(
 		fichier.lis(taille_chaine)
 
 		# lis la chaine
-		chn = loge chaine(taille_chaine)
+		chn := loge chaine(taille_chaine)
 		fichier.lis(chn)
 
 		magasin.insère_chn_index(chn, index)

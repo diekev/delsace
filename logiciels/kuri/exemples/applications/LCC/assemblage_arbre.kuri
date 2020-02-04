@@ -38,7 +38,7 @@ fonc détruit_noeud(dyn noeud : *NoeudSyntaxique) : rien
 
 fonc pousse(dyn liste : &[]*NoeudSyntaxique, valeur : *NoeudSyntaxique) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]*NoeudSyntaxique
     liste[taille] = valeur
 }
@@ -57,7 +57,7 @@ fonc lexème(noeud : *NoeudSyntaxique) : TypeLexème
 
 struct PileNoeud {
     données : []*NoeudSyntaxique
-    curseur = 0
+    curseur := 0
 }
 
 fonc détruit(dyn pile : &PileNoeud) : rien
@@ -68,7 +68,7 @@ fonc détruit(dyn pile : &PileNoeud) : rien
 fonc empile(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) : rien
 {
     si pile.curseur == pile.données.taille {
-        taille = pile.données.taille
+        taille := pile.données.taille
         reloge pile.données : [taille + 1]*NoeudSyntaxique
     }
 
@@ -78,7 +78,7 @@ fonc empile(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) : rien
 
 fonc dépile(dyn pile : &PileNoeud) : *NoeudSyntaxique
 {
-    ret = pile.haut()
+    ret := pile.haut()
     pile.curseur -= 1
     retourne ret
 }
@@ -133,7 +133,7 @@ fonc empile_noeud(
     données : &DonnéesLexème,
     ajoute : bool) : *NoeudSyntaxique
 {
-	noeud = assembleuse.crée_noeud(type_noeud, données)
+	noeud := assembleuse.crée_noeud(type_noeud, données)
 
 	si (!assembleuse.pile.est_vide() && ajoute) {
 		assembleuse.ajoute_noeud(noeud)
@@ -156,7 +156,7 @@ fonc crée_noeud(
     type_noeud : TypeNoeud,
     données : &DonnéesLexème) : *NoeudSyntaxique
 {
-	dyn noeud = loge NoeudSyntaxique
+	dyn noeud := loge NoeudSyntaxique
     noeud.type = type_noeud
     noeud.données = données
     noeud.enfants.taille = 0

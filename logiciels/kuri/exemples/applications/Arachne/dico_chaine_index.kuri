@@ -28,10 +28,10 @@ fonc crée_table_hachage() : DicoChaineIndex
 fonc décrée_table_hachage(table : &DicoChaineIndex) : rien
 {
     pour noeud dans table.alvéoles {
-        dyn n = noeud;
+        dyn n := noeud;
 
         tantque n != nul {
-            dyn ns = n.suivant
+            dyn ns := n.suivant
             déloge n
             n = ns
         }
@@ -42,7 +42,7 @@ fonc décrée_table_hachage(table : &DicoChaineIndex) : rien
 
 fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudDicoChaineIndex
 {
-    dyn n = loge NoeudDicoChaineIndex
+    dyn n := loge NoeudDicoChaineIndex
     n.clé = clé
     n.valeur = valeur
     n.suivant = nul
@@ -51,9 +51,9 @@ fonc crée_noeud(clé : chaine, valeur : chaine) : *NoeudDicoChaineIndex
 
 fonc insère(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) : rien
 {
-    empreinte = calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole = table.alvéoles[empreinte]
+    dyn alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         table.alvéoles[empreinte] = crée_noeud(clé, valeur)
@@ -72,9 +72,9 @@ fonc insère(dyn table : &DicoChaineIndex, clé : chaine, valeur : z64) : rien
 
 fonc trouve(table : &DicoChaineIndex, clé : chaine) : *NoeudDicoChaineIndex
 {
-    empreinte = calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % 10000
 
-    dyn alvéole = table.alvéoles[empreinte]
+    dyn alvéole := table.alvéoles[empreinte]
 
     si alvéole == nul {
         retourne nul
@@ -102,7 +102,7 @@ union RésultatRecherche {
 
 fonc cherche_valeur(table : &DicoChaineIndex, clé : chaine) : RésultatRecherche
 {
-    n = trouve(table, clé)
+    n := trouve(table, clé)
     dyn résultat : RésultatRecherche
 
     si n == nul {
@@ -118,7 +118,7 @@ fonc cherche_valeur(table : &DicoChaineIndex, clé : chaine) : RésultatRecherch
 corout chaque_noeud(table : &DicoChaineIndex) : *NoeudDicoChaineIndex
 {
     pour alvéole dans table.alvéoles {
-        dyn n = alvéole
+        dyn n := alvéole
 
         tantque n != nul {
             retiens n

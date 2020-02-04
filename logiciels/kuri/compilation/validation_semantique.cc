@@ -683,6 +683,27 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 	contexte.graphe_dependance.cree_noeud_fonction(donnees_fonction->nom_broye, b);
 }
 
+enum {
+	SYMBOLE_VARIABLE_LOCALE,
+	SYMBOLE_VARIABLE_GLOBALE,
+	SYMBOLE_INCONNU,
+};
+
+static auto cherche_symbole(
+		ContexteGenerationCode &contexte,
+		dls::vue_chaine_compacte const &nom)
+{
+	if (contexte.locale_existe(nom)) {
+		return SYMBOLE_VARIABLE_LOCALE;
+	}
+
+	if (contexte.globale_existe(nom)) {
+		return SYMBOLE_VARIABLE_GLOBALE;
+	}
+
+	return SYMBOLE_INCONNU;
+}
+
 static void performe_validation_semantique(
 		base *b,
 		ContexteGenerationCode &contexte,
@@ -987,90 +1008,12 @@ static void performe_validation_semantique(
 		}
 		case type_noeud::VARIABLE:
 		{
-			/* Logique pour déclarer sans mot-clé.
-			 * x = 5; # déclaration car n'existe pas
-			 * x = 6; # illégale car non dynamique
-			 *
-			 * soit x = 5; # déclaration car taggé
-			 * x = 6; # illégal car non dynamique
-			 *
-			 * soit x = 5; # déclaration car taggé
-			 * x = 6; # illégal car non dynamique
-			 */
-
 			b->type_valeur = TypeValeur::TRANSCENDANTALE;
 
-			auto declare_variable = [&b, &contexte, &fonction_courante, &graphe]()
-			{
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_externe = (b->drapeaux & EST_EXTERNE) != 0;
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.index_type = b->index_type;
+			auto type_symbole = cherche_symbole(contexte, b->chaine());
 
-				if (donnees_var.est_externe && b->aide_generation_code == GAUCHE_ASSIGNATION) {
-					erreur::lance_erreur(
-								"Ne peut pas assigner une variable globale externe dans sa déclaration",
-								contexte,
-								b->morceau);
-				}
-
-				if (fonction_courante == nullptr) {
-					contexte.pousse_globale(b->morceau.chaine, donnees_var);
-					graphe.cree_noeud_globale(b->morceau.chaine, b);
-					b->aide_generation_code = GENERE_CODE_DECL_VAR_GLOBALE;
-				}
-				else {
-					contexte.pousse_locale(b->morceau.chaine, donnees_var);
-					b->aide_generation_code = GENERE_CODE_DECL_VAR;
-				}
-
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(b->index_type);
-				}
-			};
-
-			if (dls::outils::possede_drapeau(b->drapeaux, DECLARATION)) {
-				auto existe = contexte.locale_existe(b->morceau.chaine);
-
-				if (existe) {
-					erreur::lance_erreur(
-								"Redéfinition de la variable locale",
-								contexte,
-								b->morceau,
-								erreur::type_erreur::VARIABLE_REDEFINIE);
-				}
-				else {
-					existe = contexte.globale_existe(b->morceau.chaine);
-
-					if (existe) {
-						erreur::lance_erreur(
-									"Redéfinition de la variable globale",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::VARIABLE_REDEFINIE);
-					}
-				}
-
-				if (b->index_type == -1l) {
-					b->index_type = resoud_type_final(contexte, b->type_declare);
-
-					if (b->index_type == -1l) {
-						erreur::lance_erreur(
-									"Aucun type précisé pour la déclaration",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_INCONNU);
-					}
-				}
-
-				declare_variable();
-				return;
-			}
-
-			auto const &iter_locale = contexte.iter_locale(b->morceau.chaine);
-
-			if (iter_locale != contexte.fin_locales()) {
-				b->aide_generation_code = GENERE_CODE_ACCES_VAR;
+			if (type_symbole == SYMBOLE_VARIABLE_LOCALE) {
+				auto const &iter_locale = contexte.iter_locale(b->morceau.chaine);
 				b->index_type = iter_locale->second.index_type;
 
 				if (fonction_courante != nullptr) {
@@ -1080,11 +1023,9 @@ static void performe_validation_semantique(
 				return;
 			}
 
-			auto const &iter_globale = contexte.iter_globale(b->morceau.chaine);
-
-			if (iter_globale != contexte.fin_globales()) {
-				b->aide_generation_code = GENERE_CODE_ACCES_VAR;
-				b->index_type = iter_globale->second.index_type;
+			if (type_symbole == SYMBOLE_VARIABLE_GLOBALE) {
+				auto const &iter_locale = contexte.iter_globale(b->morceau.chaine);
+				b->index_type = iter_locale->second.index_type;
 
 				if (fonction_courante != nullptr) {
 					fonction_courante->types_utilises.insere(b->index_type);
@@ -1093,25 +1034,6 @@ static void performe_validation_semantique(
 
 				return;
 			}
-
-			if (b->aide_generation_code == GAUCHE_ASSIGNATION) {
-				if (b->index_type == -1l) {
-					b->index_type = resoud_type_final(contexte, b->type_declare);
-
-					if (b->index_type == -1l) {
-						erreur::lance_erreur(
-									"Aucun type précisé pour l'assignation déclarative",
-									contexte,
-									b->morceau,
-									erreur::type_erreur::TYPE_INCONNU);
-					}
-				}
-
-				declare_variable();
-				return;
-			}
-
-			b->aide_generation_code = GENERE_CODE_ACCES_VAR;
 
 			/* Vérifie si c'est une fonction. */
 			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
@@ -1143,14 +1065,6 @@ static void performe_validation_semantique(
 
 					return;
 				}
-			}
-
-			/* déclare la variable */
-			b->index_type = resoud_type_final(contexte, b->type_declare);
-
-			if (b->index_type != -1l) {
-				declare_variable();
-				return;
 			}
 
 			erreur::lance_erreur(
@@ -1213,9 +1127,7 @@ static void performe_validation_semantique(
 
 			performe_validation_semantique(expression, contexte, false);
 
-			b->index_type = expression->index_type;
-
-			if (b->index_type == -1l) {
+			if (expression->index_type == -1l) {
 				erreur::lance_erreur(
 							"Impossible de définir le type de la variable !",
 							contexte,
@@ -1226,7 +1138,7 @@ static void performe_validation_semantique(
 			/* NOTE : l'appel à performe_validation_semantique plus bas peut
 			 * changer le vecteur et invalider une référence ou un pointeur,
 			 * donc nous faisons une copie... */
-			auto const dt = trouve_donnees_type(contexte, b);
+			auto const dt = trouve_donnees_type(contexte, expression);
 
 			if (dt.type_base() == TypeLexeme::RIEN) {
 				erreur::lance_erreur(
@@ -1282,30 +1194,7 @@ static void performe_validation_semantique(
 				return;
 			}
 
-			/* Ajourne les données du premier enfant si elles sont invalides, dans le
-			 * cas d'une déclaration de variable. */
-			variable->index_type = resoud_type_final(contexte, variable->type_declare);
-
-			if (variable->index_type == -1l) {
-				variable->index_type = b->index_type;
-			}
-
-			variable->aide_generation_code = GAUCHE_ASSIGNATION;
 			performe_validation_semantique(variable, contexte, true);
-
-			if (variable->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-				/* ajourne le noeud, car il nous faut la racine de l'expression
-				 * pour générer proprement le code */
-				auto noeud_dep = graphe.cherche_noeud_globale(variable->chaine());
-				noeud_dep->noeud_syntactique = b;
-			}
-
-			/* À cause du mélange des opérateurs "[]" et "de", il faut attendre
-			 * que toutes les validations sémantiques soient faites pour pouvoir
-			 * calculer la validité de l'assignation, car la validation de
-			 * l'opérateur '[]' met les noeuds dans l'ordre. */
-			auto est_declaration = variable->aide_generation_code == GENERE_CODE_DECL_VAR;
-			est_declaration |= variable->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE;
 
 			if (!est_valeur_gauche(variable->type_valeur)) {
 				erreur::lance_erreur(
@@ -1315,32 +1204,12 @@ static void performe_validation_semantique(
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
 			}
 
-			if (!est_declaration && !peut_etre_assigne(variable, contexte)) {
+			if (!peut_etre_assigne(variable, contexte)) {
 				erreur::lance_erreur(
 							"Impossible d'assigner l'expression à la variable !",
 							contexte,
 							b->morceau,
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
-			}
-
-			if (variable->index_type != expression->index_type) {
-				auto candidats = cherche_candidats_operateurs(contexte, variable->index_type, expression->index_type, TypeLexeme::EGAL);
-				auto op = static_cast<DonneesOperateur const *>(nullptr);
-				auto poids = 0.0;
-
-				for (auto const &candidat : candidats) {
-					if (candidat.poids > poids) {
-						poids = candidat.poids;
-						op = candidat.op;
-					}
-				}
-
-				if (op != nullptr) {
-					//erreur::lance_erreur_type_operation(contexte, b);
-					b->index_type = op->index_resultat;
-					b->op = op;
-					return;
-				}
 			}
 
 			auto transformation = cherche_transformation(
@@ -1357,6 +1226,119 @@ static void performe_validation_semantique(
 			}
 
 			expression->transformation = transformation;
+
+			break;
+		}
+		case type_noeud::DECLARATION_VARIABLE:
+		{
+			if (b->enfants.taille() == 0) {
+				auto variable = b;
+				variable->index_type = resoud_type_final(contexte, variable->type_declare);
+
+				if (variable->index_type == -1) {
+					erreur::lance_erreur("variable déclarée sans type", contexte, variable->morceau);
+				}
+
+				auto type_symbole = cherche_symbole(contexte, variable->chaine());
+
+				if (type_symbole != SYMBOLE_INCONNU) {
+					erreur::lance_erreur(
+								"Redéfinition du symbole !",
+								contexte,
+								variable->morceau,
+								erreur::type_erreur::VARIABLE_REDEFINIE);
+				}
+
+				auto donnees_var = DonneesVariable{};
+				donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
+				donnees_var.est_dynamique = (variable->drapeaux & DYNAMIC) != 0;
+				donnees_var.index_type = variable->index_type;
+
+				if (fonction_courante == nullptr) {
+					contexte.pousse_globale(variable->morceau.chaine, donnees_var);
+					graphe.cree_noeud_globale(variable->morceau.chaine, b);
+				}
+				else {
+					contexte.pousse_locale(variable->morceau.chaine, donnees_var);
+				}
+
+				if (fonction_courante != nullptr) {
+					fonction_courante->types_utilises.insere(variable->index_type);
+				}
+
+				return;
+			}
+
+			auto variable = b->enfants.front();
+			auto expression = b->enfants.back();
+
+			performe_validation_semantique(expression, contexte, false);
+
+			if (expression->index_type == -1l) {
+				erreur::lance_erreur(
+							"Impossible de définir le type de l'expression !",
+							contexte,
+							expression->morceau,
+							erreur::type_erreur::TYPE_INCONNU);
+			}
+
+			auto nom_variable = variable->chaine();
+
+			auto type_symbole = cherche_symbole(contexte, nom_variable);
+
+			if (type_symbole != SYMBOLE_INCONNU) {
+				erreur::lance_erreur(
+							"Redéfinition du symbole !",
+							contexte,
+							variable->morceau,
+							erreur::type_erreur::VARIABLE_REDEFINIE);
+			}
+
+			variable->index_type = resoud_type_final(contexte, variable->type_declare);
+
+			if (variable->index_type == -1) {
+				variable->index_type = expression->index_type;
+			}
+			else {
+				auto transformation = cherche_transformation(
+							contexte,
+							expression->index_type,
+							variable->index_type);
+
+				if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+					erreur::lance_erreur_assignation_type_differents(
+								contexte.typeuse[variable->index_type],
+								contexte.typeuse[expression->index_type],
+								contexte,
+								b->morceau);
+				}
+
+				expression->transformation = transformation;
+			}
+
+			auto donnees_var = DonneesVariable{};
+			donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
+			donnees_var.est_dynamique = (variable->drapeaux & DYNAMIC) != 0;
+			donnees_var.index_type = variable->index_type;
+
+			if (donnees_var.est_externe) {
+				erreur::lance_erreur(
+							"Ne peut pas assigner une variable globale externe dans sa déclaration",
+							contexte,
+							b->morceau);
+			}
+
+			if (fonction_courante == nullptr) {
+				contexte.pousse_globale(variable->morceau.chaine, donnees_var);
+				graphe.cree_noeud_globale(variable->morceau.chaine, b);
+			}
+			else {
+				contexte.pousse_locale(variable->morceau.chaine, donnees_var);
+			}
+
+			if (fonction_courante != nullptr) {
+				fonction_courante->types_utilises.insere(variable->index_type);
+			}
 
 			break;
 		}
@@ -2636,15 +2618,15 @@ static void performe_validation_semantique(
 			}
 
 			for (auto enfant : b->enfants) {
-				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
-					if (enfant->morceau.identifiant != TypeLexeme::EGAL) {
-						erreur::lance_erreur(
-									"Déclaration impossible dans la déclaration du membre",
-									contexte,
-									enfant->morceau,
-									erreur::type_erreur::NORMAL);
-					}
+				if (enfant->type != type_noeud::DECLARATION_VARIABLE) {
+					erreur::lance_erreur(
+								"Déclaration inattendue dans la structure",
+								contexte,
+								enfant->morceau,
+								erreur::type_erreur::NORMAL);
+				}
 
+				if (enfant->enfants.taille() == 2) {
 					auto decl_membre = enfant->enfants.front();
 					auto decl_expr = enfant->enfants.back();
 
@@ -2681,7 +2663,7 @@ static void performe_validation_semantique(
 
 					ajoute_donnees_membre(decl_membre, decl_expr);
 				}
-				else if (enfant->type == type_noeud::VARIABLE) {
+				else {
 					enfant->index_type = resoud_type_final(contexte, enfant->type_declare);
 
 					verifie_redefinition_membre(enfant);
@@ -2717,21 +2699,22 @@ static void performe_validation_semantique(
 			contexte.empile_nombre_locales();
 
 			for (auto enfant : b->enfants) {
-				auto var = static_cast<base *>(nullptr);
-				auto expr = static_cast<base *>(nullptr);
-
-				if (enfant->type == type_noeud::ASSIGNATION_VARIABLE) {
-					var = enfant->enfants.front();
-					expr = enfant->enfants.back();
-				}
-				else if (enfant->type == type_noeud::VARIABLE) {
-					var = enfant;
-				}
-				else {
+				if (enfant->type != type_noeud::DECLARATION_VARIABLE) {
 					erreur::lance_erreur(
 								"Type d'expression inattendu dans l'énum",
 								contexte,
 								enfant->morceau);
+				}
+
+				auto var = static_cast<base *>(nullptr);
+				auto expr = static_cast<base *>(nullptr);
+
+				if (enfant->enfants.taille() == 2) {
+					var = enfant->enfants.front();
+					expr = enfant->enfants.back();
+				}
+				else {
+					var = enfant;
 				}
 
 				auto nom = var->chaine();

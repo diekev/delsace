@@ -1,17 +1,17 @@
 importe "chaine"
 
-FILE_MODE = 0600;
+FILE_MODE := 0600;
 
 fonc crée_fichier(chemin : chaine) : z32
 {
     # Il nous faut une chaine c.
     tampon : [1024]z8;
-    ptr_chaine_c = copie_chaine_c_tampon(tampon, chemin);
+    ptr_chaine_c := copie_chaine_c_tampon(tampon, chemin);
 
     # Supprime les liens symbolics potentiels, pour éviter les attaques.
     unlink(ptr_chaine_c);
 
-    fd = open(ptr_chaine_c, O_WRONLY|O_CREAT|O_EXCL, FILE_MODE);
+    fd := open(ptr_chaine_c, O_WRONLY|O_CREAT|O_EXCL, FILE_MODE);
 
     retourne fd;
 }
@@ -41,7 +41,7 @@ fonc ouvre_fichier_sans_créer(chemin : chaine, drapeaux : z32) : z32
     boucle {
         drapeaux &= ~O_TRUNC;
 
-        fd = open(chemin, drapeaux);
+        fd := open(chemin, drapeaux);
         lstat(chemin);
         fstat(fd);
 

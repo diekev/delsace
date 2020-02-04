@@ -81,8 +81,8 @@ fonc associativité(type_lexème : TypeLexème) : DirAssociativité, z32
 
 fonc précédence_faible(lexème1 : TypeLexème, lexème2 : TypeLexème) : bool
 {
-	dir1, prio1 = associativité(lexème1)
-	dir2, prio2 = associativité(lexème2)
+	dir1, prio1 := associativité(lexème1)
+	dir2, prio2 := associativité(lexème2)
 
 	retourne (dir1 == DirAssociativité.GAUCHE && prio1 <= prio2) || ((dir2 == DirAssociativité.DROITE) && (prio1 < prio2))
 }

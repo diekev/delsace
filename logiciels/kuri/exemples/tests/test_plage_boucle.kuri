@@ -17,18 +17,18 @@ fonction test_plage_typée() : rien
 	}
 
 	printf("\n");
-	
+
 	printf("boucle de nombres entier n32 :\n");
 
-	soit debutn32 : n32 = 0;
-	soit finn32 : n32 = 10;
+	debutn32 : n32 = 0;
+	finn32 : n32 = 10;
 
 	pour i dans debutn32 ... finn32 {
 		printf("%d\n", i);
 	}
 
 	printf("\n");
-	
+
 	printf("boucle de nombres réels r64 :\n");
 
 	pour i dans 0.5...25.5 {
@@ -36,8 +36,8 @@ fonction test_plage_typée() : rien
 	}
 	printf("\n");
 
-	soit debut = transtype(0.5)(r32);
-	soit fin   = transtype(9.5)(r32);
+	debut := transtype(0.5)(r32);
+	fin   := transtype(9.5)(r32);
 
 	printf("boucle de nombres réels r32 [%f, %f]:\n", debut, fin);
 	pour i dans debut...fin {
@@ -50,8 +50,8 @@ fonction test_plage_typée() : rien
 
 fonction test_génération_séquence() : rien
 {
-	soit variable debut = 10;
-	soit variable fin   = 0;
+	dyn debut := 10;
+	dyn fin   := 0;
 
 	printf(format="Plage de %d à %d\n", args=debut, fin);
 
@@ -75,8 +75,8 @@ fonction test_génération_séquence() : rien
 	debut = 0;
 	fin   = 10;
 
-	soit plage = (fin - debut);
-	soit demi_plage = plage / 2;
+	plage := (fin - debut);
+	demi_plage = plage / 2;
 
 	printf(args=-demi_plage, demi_plage, format="Plage de %d à %d\n");
 

@@ -51,8 +51,8 @@ fonc crée_test(nombre_de_ligne : z32, chemin_fichier : chaine) : rien
 	enchaineuse.pousse(chaines[8])
 
 	# écris le fichier
-	chemin = construit_chemin(chemin_fichier)
-	fichier = ouvre_fichier_ecriture(chemin)
+	chemin := construit_chemin(chemin_fichier)
+	fichier := ouvre_fichier_ecriture(chemin)
 	écris_fichier(fichier, enchaineuse.résultat)
 }
 

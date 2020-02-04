@@ -1263,30 +1263,6 @@ void genere_code_C(
 				return;
 			}
 
-			if (b->op != nullptr) {
-				genere_code_C(expression, generatrice, contexte, false);
-
-				variable->drapeaux |= POUR_ASSIGNATION;
-				genere_code_C(variable, generatrice, contexte, true);
-
-				generatrice.os << variable->chaine_calculee();
-				generatrice.os << " = ";
-
-				if (b->op->est_basique) {
-					generatrice.os << expression->chaine_calculee();
-				}
-				else {
-					generatrice.os << b->op->nom_fonction << "(";
-					generatrice.os << expression->chaine_calculee();
-					generatrice.os << ")";
-				}
-
-				/* pour les globales */
-				generatrice.os << ";\n";
-
-				return;
-			}
-
 			applique_transformation(expression, generatrice, contexte, expr_gauche);
 
 			variable->drapeaux |= POUR_ASSIGNATION;
@@ -1299,6 +1275,11 @@ void genere_code_C(
 			/* pour les globales */
 			generatrice.os << ";\n";
 
+			break;
+		}
+		case type_noeud::DECLARATION_VARIABLE:
+		{
+			/* À FAIRE */
 			break;
 		}
 		case type_noeud::NOMBRE_REEL:

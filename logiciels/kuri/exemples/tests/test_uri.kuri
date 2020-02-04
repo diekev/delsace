@@ -23,7 +23,7 @@ fonc vérifie_égalité(a : bool, b : bool) : rien
 fonc principale(args : []*z8) : z32
 {
 	{
-		uri = construit_uri("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top")
+		uri := construit_uri("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top")
 
 		vérifie_égalité(uri.schéma, "https")
 		vérifie_égalité(uri.autorité, "//john.doe@www.example.com:123")
@@ -36,7 +36,7 @@ fonc principale(args : []*z8) : z32
 		vérifie_égalité(est_valide(uri), vrai)
 	}
 	{
-		uri = construit_uri("ldap://[2001:db8::7]/c=GB?objectClass?one")
+		uri := construit_uri("ldap://[2001:db8::7]/c=GB?objectClass?one")
 
 		vérifie_égalité(uri.schéma, "ldap")
 		vérifie_égalité(uri.autorité, "//[2001:db8::7]")
@@ -49,7 +49,7 @@ fonc principale(args : []*z8) : z32
 		vérifie_égalité(est_valide(uri), vrai)
 	}
 	{
-		uri = construit_uri("mailto:John.Doe@example.com")
+		uri := construit_uri("mailto:John.Doe@example.com")
 
 		vérifie_égalité(uri.schéma, "mailto")
 		vérifie_égalité(uri.autorité, "")
@@ -62,7 +62,7 @@ fonc principale(args : []*z8) : z32
 		vérifie_égalité(est_valide(uri), vrai)
 	}
 	{
-		uri = construit_uri("news:comp.infosystems.www.servers.unix")
+		uri := construit_uri("news:comp.infosystems.www.servers.unix")
 
 		vérifie_égalité(uri.schéma, "news")
 		vérifie_égalité(uri.autorité, "")
@@ -75,7 +75,7 @@ fonc principale(args : []*z8) : z32
 		vérifie_égalité(est_valide(uri), vrai)
 	}
 	{
-		uri = construit_uri("tel:+1-816-555-1212")
+		uri := construit_uri("tel:+1-816-555-1212")
 
 		vérifie_égalité(uri.schéma, "tel")
 		vérifie_égalité(uri.autorité, "")
@@ -88,7 +88,7 @@ fonc principale(args : []*z8) : z32
 		vérifie_égalité(est_valide(uri), vrai)
 	}
 	{
-		uri = construit_uri("telnet://192.0.2.16:80/")
+		uri := construit_uri("telnet://192.0.2.16:80/")
 
 		vérifie_égalité(uri.schéma, "telnet")
 		vérifie_égalité(uri.autorité, "//192.0.2.16:80")
@@ -101,7 +101,7 @@ fonc principale(args : []*z8) : z32
 		vérifie_égalité(est_valide(uri), vrai)
 	}
 	{
-		uri = construit_uri("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")
+		uri := construit_uri("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")
 
 		vérifie_égalité(uri.schéma, "urn")
 		vérifie_égalité(uri.autorité, "")

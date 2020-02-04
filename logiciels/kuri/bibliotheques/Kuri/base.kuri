@@ -62,7 +62,7 @@ fonc externe free(ptr : *rien) : rien
 # À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
 # cette structure.
 struct ContexteProgramme {
-    allocatrice = allocatrice_défaut
+    allocatrice := allocatrice_défaut
     données_allocatrice : *rien = nul
 }
 
@@ -103,8 +103,8 @@ fonc sont_chaines_égales(chn1: chaine, chn2: chaine) : bool
 		retourne faux
     }
 
-	soit taille = chn1.taille
-	soit début : z64 = 0
+	taille := chn1.taille
+	début : z64 = 0
 
     pour i dans début...(taille - 1) {
         si chn1[i] != chn2[i] {

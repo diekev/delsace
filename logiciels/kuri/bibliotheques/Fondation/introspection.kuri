@@ -4,7 +4,7 @@ charge "chaine"
 
 fonc possède_membre(arg : eini, nom : chaine) : bool
 {
-	info = arg.info
+	info := arg.info
 
     si info.id != id_info.STRUCTURE {
 		retourne faux
@@ -23,13 +23,13 @@ fonc possède_membre(arg : eini, nom : chaine) : bool
 
 corout membres(arg : eini) : chaine
 {
-	info = arg.info
+	info := arg.info
 
     si info.id != id_info.STRUCTURE {
 		retourne
 	}
 
-	info_arg = transtype(info : *InfoTypeStructure)
+	info_arg := transtype(info : *InfoTypeStructure)
 
     pour membre dans info_arg.membres {
 		retiens membre.nom

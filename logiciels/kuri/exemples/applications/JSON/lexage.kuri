@@ -50,15 +50,15 @@ struct Lexeuse {
 
     lexèmes : []DonneesLexème
 
-    taille_mot_courant = 0
-    compte_ligne = 0
-    position_ligne = 0
-    pos_mot = 0
+    taille_mot_courant := 0
+    compte_ligne := 0
+    position_ligne := 0
+    pos_mot := 0
 }
 
 fonc pousse(dyn liste : &[]DonneesLexème, valeur : DonneesLexème) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]DonneesLexème
     liste[taille] = valeur
 }
@@ -140,7 +140,7 @@ fonc enregistre_position_mot(dyn lexeuse : &Lexeuse) : rien
 fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 {
     tantque !lexeuse.a_fini() {
-        est_spécial, lexème = est_caractère_spécial(lexeuse.caractère_courant())
+        est_spécial, lexème := est_caractère_spécial(lexeuse.caractère_courant())
 
         si (est_spécial) {
 			lexeuse.enregistre_position_mot()
@@ -156,7 +156,7 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 
 			lexeuse.enregistre_position_mot()
 
-			dyn dernier_caractère = lexeuse.caractère_courant()
+			dyn dernier_caractère := lexeuse.caractère_courant()
 
 			boucle {
 				si (lexeuse.caractère_courant() == '"' && dernier_caractère != '\\') {
@@ -179,10 +179,10 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 			lexeuse.pousse_caractère()
 			lexeuse.avance(1)
 
-			dyn est_nombre_réel = faux
+			dyn est_nombre_réel := faux
 
 			tantque !lexeuse.a_fini() {
-				c = lexeuse.caractère_courant()
+				c := lexeuse.caractère_courant()
 
 				si c == '.' {
 					est_nombre_réel = vrai

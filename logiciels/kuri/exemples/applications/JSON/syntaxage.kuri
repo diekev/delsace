@@ -8,7 +8,7 @@ struct Syntaxeuse {
 	lexèmes : []DonneesLexème
     assembleuse : AssembleuseObjet
 
-	position = 0
+	position := 0
 }
 
 fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) : Syntaxeuse
@@ -36,7 +36,7 @@ fonc avance(dyn syntaxeuse : &Syntaxeuse) : rien
 
 fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
 {
-	t = syntaxeuse.lexème_courant()
+	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
@@ -57,7 +57,7 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) : rien
 		#lance_erreur("Attendu une chaine de caractère")
 	}
 
-	nom_objet = syntaxeuse.données().chn
+	nom_objet := syntaxeuse.données().chn
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DOUBLE_POINTS)) {
 		#lance_erreur("Attendu un double-point ':'")
@@ -77,7 +77,7 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 		ACCOLADE_OUVRANTE {
 			syntaxeuse.avance()
 
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.DICTIONNAIRE)
+			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.DICTIONNAIRE)
 			syntaxeuse.assembleuse.empile_objet(obj)
 
 			syntaxeuse.analyse_objet()
@@ -91,7 +91,7 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 		CROCHET_OUVRANT {
 			syntaxeuse.avance()
 
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.LISTE)
+			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.LISTE)
 			syntaxeuse.assembleuse.empile_objet(obj)
 
 			tantque !syntaxeuse.est_lexème(TypeLexème.CROCHET_FERMANT) {
@@ -109,22 +109,22 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) : rien
 		NOMBRE_ENTIER {
 			syntaxeuse.avance()
 
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.ENTIER)
-			dyn obj_entier = transtype(obj: *ObjetEntier)
+			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.ENTIER)
+			dyn obj_entier := transtype(obj: *ObjetEntier)
             obj_entier.valeur = extrait_nombre_entier(syntaxeuse.données().chn)
 		}
 		NOMBRE_REEL {
 			syntaxeuse.avance()
 
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.RÉEL)
+			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.RÉEL)
 			dyn obj_réel = transtype(obj: *ObjetRéel)
             obj_réel.valeur = extrait_nombre_réel(syntaxeuse.données().chn)
 		}
 		CHAINE_CARACTERE {
 			syntaxeuse.avance()
 
-			obj = syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
-			dyn obj_chaine = transtype(obj: *ObjetChaine)
+			obj := syntaxeuse.assembleuse.crée_objet(nom_objet, TypeObjet.CHAINE)
+			dyn obj_chaine := transtype(obj: *ObjetChaine)
             obj_chaine.valeur = syntaxeuse.données().chn
 
 			# À FAIRE: gestion des chaines allouées dynamiquement
@@ -159,7 +159,7 @@ fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) : rien
 		#lance_erreur("Attendu une accolade ouvrante '{' au début du script")
 	}
 
-    obj = syntaxeuse.assembleuse.crée_objet("", TypeObjet.DICTIONNAIRE)
+    obj := syntaxeuse.assembleuse.crée_objet("", TypeObjet.DICTIONNAIRE)
 	syntaxeuse.assembleuse.empile_objet(obj)
 
 	syntaxeuse.analyse_objet()

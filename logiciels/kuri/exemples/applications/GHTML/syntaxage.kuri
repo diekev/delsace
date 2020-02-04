@@ -7,14 +7,14 @@ struct Syntaxeuse {
     lexèmes : []DonnéesLexème
     assembleuse : AssembleuseArbre
 
-    position = 0
+    position := 0
 }
 
 fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) : Syntaxeuse
 {
     dyn syntaxeuse : Syntaxeuse
-    syntaxeuse.lexèmes = lexèmes
-	syntaxeuse.assembleuse = construit_assembleuse()
+    syntaxeuse.lexèmes := lexèmes
+	syntaxeuse.assembleuse := construit_assembleuse()
 
     retourne syntaxeuse
 }
@@ -36,7 +36,7 @@ fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
 
 fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
 {
-	t = syntaxeuse.lexème_courant()
+	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }

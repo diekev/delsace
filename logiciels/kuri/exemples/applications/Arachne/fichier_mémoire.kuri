@@ -7,7 +7,7 @@ struct PageMémoire {
 
 fonc pousse(dyn pages : &[]PageMémoire, page : PageMémoire) : rien
 {
-    taille = pages.taille
+    taille := pages.taille
     reloge pages : [taille + 1]PageMémoire
     pages[taille] = page
 }
@@ -20,7 +20,7 @@ struct FichierMémoire {
 
 fonc ajoute_page(dyn fichier : &FichierMémoire) : rien
 {
-	dyn page = PageMémoire
+	dyn page := PageMémoire
 	page.données = loge [64 * 1024]octet
 
 	pousse(fichier.pages, page)
@@ -37,7 +37,7 @@ fonc supprime_fichier(dyn fichier : &FichierMémoire) : rien
 
 fonc écris(dyn fichier : &FichierMémoire, données : []octet, position : z64) : rien
 {
-	page_courante = fichier.pages[fichier.page_courante]
+	page_courante := fichier.pages[fichier.page_courante]
 
 	si position + données.taille >= page_courante.données.taille {
 		# À FAIRE : alloue une nouvelle page
@@ -51,8 +51,8 @@ fonc écris(dyn fichier : &FichierMémoire, données : []octet, position : z64) 
 
 fonc écris(dyn fichier : &FichierMémoire, données : []octet) : rien
 {
-	page_courante = @fichier.pages[fichier.page_courante]
-	position = page_courante.position
+	page_courante := @fichier.pages[fichier.page_courante]
+	position := page_courante.position
 
 	si position + données.taille >= page_courante.données.taille {
 		# À FAIRE : alloue une nouvelle page
@@ -68,8 +68,8 @@ fonc écris(dyn fichier : &FichierMémoire, données : []octet) : rien
 
 fonc lis(dyn fichier : &FichierMémoire, données : []octet) : rien
 {
-	page_courante = @fichier.pages[fichier.page_courante]
-	position = page_courante.position
+	page_courante := @fichier.pages[fichier.page_courante]
+	position := page_courante.position
 
 	si position + données.taille >= page_courante.données.taille {
 		# À FAIRE : lis jusqu'à la fin du fichier, et charge la page suivante
@@ -91,21 +91,21 @@ struct Enregistrement {
 
 fonc duplique(chn : chaine) : chaine
 {
-	dyn rés = loge chaine(chn.taille)
+	dyn rés := loge chaine(chn.taille)
 	copie_mem_nonsur(chn.pointeur, rés.pointeur, chn.taille)
 	retourne rés
 }
 
 fonc pousse(dyn liste : &[]chaine, valeur : chaine) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]chaine
     liste[taille] = valeur
 }
 
 fonc pousse(dyn liste : &[]*FichierMémoire, valeur : *FichierMémoire) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]*FichierMémoire
     liste[taille] = valeur
 }
@@ -140,13 +140,13 @@ fonc ouvre_pour_écriture(
 	dyn système : &SystèmeFichierMémoire,
 	chemin : chaine) : *FichierMémoire
 {
-	dyn fichier = système.trouve_fichier(chemin)
+	dyn fichier := système.trouve_fichier(chemin)
 
 	# À FAIRE : note que le fichier est occupé
 	si fichier == nul {
 		# crée fichier
-		copie_chemin = duplique(chemin)
-		fichier = loge FichierMémoire
+		copie_chemin := duplique(chemin)
+		fichier := loge FichierMémoire
 
 		système.fichiers.pousse(fichier)
 		système.chemins.pousse(copie_chemin)
@@ -159,7 +159,7 @@ fonc ouvre_pour_lecture(
 	dyn système : &SystèmeFichierMémoire,
 	chemin : chaine) : *FichierMémoire
 {
-	dyn fichier = système.trouve_fichier(chemin)
+	dyn fichier := système.trouve_fichier(chemin)
 
 	# À FAIRE : note que le fichier est occupé
 	retourne fichier

@@ -15,7 +15,7 @@
 	}
 
     pour i dans transtype(0 : z64)...taille - 1 {
-		soit v = a[i] - b[i]
+		v := a[i] - b[i]
 
         si v != 0 {
 			retourne transtype(v : z32)
@@ -70,16 +70,16 @@
 
     # vérifie si surposition
 
-	ptr_deb_src = @src[0]
-	ptr_fin_src = @src[src.taille - 1]
-	ptr_deb_dst = @dst[0]
+	ptr_deb_src := @src[0]
+	ptr_fin_src := @src[src.taille - 1]
+	ptr_deb_dst := @dst[0]
 
     # src |---------------|
 	# dst       |---------------|
 	# Copie à partir de la fin.
 	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {
 	    pour i dans transtype(0 : z64)...taille - 1 {
-			idx = taille - i - 1
+			idx := taille - i - 1
 			dst[idx] = src[idx]
 		}
 	}
@@ -106,19 +106,19 @@
 {
 	dyn tmp : [128]octet
 
-	dyn taille = a.taille
+	dyn taille := a.taille
 
     si a.taille > b.taille {
 	   taille = b.taille
 	}
 
-	dyn debut = 0
+	dyn debut := 0
 
     tantque debut < taille {
-		dyn source = @a[debut]
-		dyn destination = @tmp[0]
+		dyn source := @a[debut]
+		dyn destination := @tmp[0]
 
-		dyn taille_tmp = taille - debut
+		dyn taille_tmp := taille - debut
 
         si taille_tmp > 128 {
 		    taille_tmp = 128
@@ -142,7 +142,7 @@
 
 #!nulctx fonc init_mem(dyn destination : []octet, valeur : z8, taille : z64) : rien
 {
-	dyn t = taille
+	dyn t := taille
 	si destination.taille < taille {
 		t = destination.taille
 	}
@@ -155,7 +155,7 @@
 
 #!nulctx fonc cherche_mem(source : []octet, valeur : z8, taille : z64) : []octet
 {
-	dyn t = taille
+	dyn t := taille
 	si source.taille < taille {
 		t = source.taille
 	}

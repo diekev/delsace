@@ -2,7 +2,7 @@ importe "flux"
 
 # Ceci est un commentaire.
 énum Énumération : z32 {
-    LUMIÈRE = 0
+    LUMIÈRE := 0
 }
 
 struct Structurée {
@@ -21,8 +21,8 @@ fonc prend_énum(lumière : Énumération) : rien
 
 fonc principale(args : []*z8) : z32
 {
-    soit début = 0
-    soit fin = 9
+    début := 0
+    fin := 9
 
     pour à, è dans début ... fin {
         prend_énum(Énumération.LUMIÈRE)
@@ -31,14 +31,14 @@ fonc principale(args : []*z8) : z32
     dyn structurée0 : Structurée
     structurée0.membrée = 68
     structurée0.fn_pointée = fée
-    soit structurée1 = Structurée{ membrée = 123 }
+    structurée1 := Structurée{ membrée = 123 }
 
-    soit x = structurée1.membrée
-    soit y = Énumération.LUMIÈRE
+    x := structurée1.membrée
+    y := Énumération.LUMIÈRE
 
-    soit car = '\n'
+    car := '\n'
 
-    soit chaine_française = « chaine frainçaise »
+    chaine_française := « chaine frainçaise »
 
     imprime("structurée1 : ", structurée1, '\n')
 

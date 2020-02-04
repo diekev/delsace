@@ -6,13 +6,13 @@ fonc principale(args : []*z8) : z32
 	    imprime("Mémoire utilisée : ", mémoire_utilisée(), "\n")
 	}
 
-	dyn x = loge chaine(256) sinon {
+	dyn x := loge chaine(256) sinon {
 	    retourne 1
 	}
 
 	diffère { déloge x }
 
-	dyn y = loge r64 sinon {
+	dyn y := loge r64 sinon {
 	    retourne 1
 	}
 

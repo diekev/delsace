@@ -2,7 +2,7 @@ fonc exemple() : rien
 {
 	# Déclaration d'un tableau de 12 nombre entier relatif 32-bit
 	dyn tabl : [12]z32
-	dyn début = 1
+	dyn début := 1
 
 	# Remplis le tableau avec des puissances de 2, de 1 à 4096
 	# La boucle ne va jamais plus loin que les limites du tableau

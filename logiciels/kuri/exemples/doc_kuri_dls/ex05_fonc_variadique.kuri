@@ -1,6 +1,6 @@
 fonc exemple(args : ...r64) : r64
 {
-	dyn résultat = 0.0
+	dyn résultat := 0.0
 
 	pour x dans args {
 		pour y dans args {

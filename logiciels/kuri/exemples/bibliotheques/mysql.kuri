@@ -7,7 +7,7 @@ fonc externe mysql_fetch_row() : ;
 corout iter_résultat_requête(resultat)
 {
     boucle {
-        soit ligne = mysql_fetch_row(resultat);
+        ligne := mysql_fetch_row(resultat);
 
         si ligne == nul {
             arrête;
@@ -19,8 +19,8 @@ corout iter_résultat_requête(resultat)
 
 fonc iter_résultat_requête(resultat, ligne) : chaine
 {
-    soit longueurs = mysql_fetch_lengths(resultat);
-    soit nombre_champs = mysql_num_fields(resultat);
+    longueurs := mysql_fetch_lengths(resultat);
+    nombre_champs := mysql_num_fields(resultat);
 
     pour i dans 0 ... nombre_champs - 1 {
         dyn champ : chaine;

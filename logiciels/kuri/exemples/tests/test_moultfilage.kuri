@@ -54,8 +54,8 @@ fonc externe strerror(args : z32) : *z8
 
 # Structure stockant les informations des threads clients et du magasin.
 struct store_t {
-   stock = 20
- 
+   stock := 20
+
    thread_store : n64
    thread_clients : [5]n64
 
@@ -77,7 +77,7 @@ struct store_t {
 # Fonction pour le thread du magasin.
 #!nulctx fonc fn_store(p_data : *rien) : *rien
 {
-    dyn store = transtype(p_data : *store_t)
+    dyn store := transtype(p_data : *store_t)
 
 	boucle {
         pthread_mutex_lock(store.mutex)
@@ -96,7 +96,7 @@ struct store_t {
 # Fonction pour les threads des clients.
 #!nulctx fonc fn_clients(p_data : *rien) : *rien
 {
-    dyn store = transtype(p_data : *store_t)
+    dyn store := transtype(p_data : *store_t)
 	nb : z32 = transtype(p_data : z32)
 
 	boucle {
@@ -122,7 +122,7 @@ struct store_t {
 
 fonc principale(args : []*z8) : z32
 {
-    dyn store = store_t{ stock = 20, mutex = loge pthread_mutex_t, cond_clients = loge pthread_cond_t, cond_store = loge pthread_cond_t }
+    dyn store := store_t{ stock = 20, mutex = loge pthread_mutex_t, cond_clients = loge pthread_cond_t, cond_store = loge pthread_cond_t }
 
     # À FAIRE : la mémoire n'est pas délogée car nous avons des boucles infinies et il nous faut avorter le programme manuellement
     diffère {
@@ -158,4 +158,4 @@ fonc principale(args : []*z8) : z32
 
 	retourne 0
 }
- 
+

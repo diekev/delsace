@@ -3,7 +3,7 @@ fonc partition(tableau : []z32, premier : z32, dernier : z32, pivot : z32) : z32
 {
 	échange(@tableau[premier], @tableau[dernier]);
 
-	soit variable j = premier;
+	variable j := premier;
 
 	pour i dans premier...dernier - 1 {
 		si tableau[i] <= tableau[dernier] {
@@ -19,7 +19,7 @@ fonc partition(tableau : []z32, premier : z32, dernier : z32, pivot : z32) : z32
 fonc tri_rapide(tableau : []z32, premier : z32, dernier : z32) : rien
 {
 	si premier < dernier {
-		soit variable pivot = choix_pivot(tableau, premier, dernier);
+		dyn pivot := choix_pivot(tableau, premier, dernier);
 		pivot = partition(tableau, premier, dernier, pivot);
 
 		tri_rapide(tableau, premier, pivot - 1);
@@ -40,14 +40,14 @@ fonc choix_pivot(plage : *Plage) : *z32
 fonc tri_rapide(plage : *Plage) : rien
 {
 	si plage.premier < plage.dernier {
-		soit variable pivot = choix_pivot(plage);
+		dyn pivot := choix_pivot(plage);
 		pivot = partition(plage, pivot);
 
-		soit variable plage1;
+		dyn plage1;
 		plage1.premier = plage.premier;
 		plage1.dernier = pivot - taille_de(z32);
 
-		soit variable plage2;
+		dyn plage2;
 		plage2.premier = pivot + taille_de(z32);
 		plage2.dernier = plage.dernier;
 
@@ -63,7 +63,7 @@ struct GNASimple {
 
 fonc construit_gna(graine : z32) : GNASimple
 {
-	soit variable gna_simple : GNASimple;
+	dyn gna_simple : GNASimple;
 	gna_simple.z = graine;
 	gna_simple.w = graine + 1;
 	retourne gna_simple;
@@ -78,15 +78,15 @@ fonc nombre_aléatoire(variable gna_simple : *GNASimple) : z32
 
 fonc principale(compte : z32, arguments : **z8) : z32
 {
-	soit variable tableau : [1024]z32;
+	dyn tableau : [1024]z32;
 
-	soit gna_simple = construit_gna(5);
+	gna_simple := construit_gna(5);
 
 	pour i dans 0...1023 {
 		tableau[i] = nombre_aléatoire(@gna_simple);
 	}
 
-	soit variable plage : Plage;
+	dyn plage : Plage;
 	plage.premier = @tableau[0];
 	plage.dernier = @tableau[1023];
 

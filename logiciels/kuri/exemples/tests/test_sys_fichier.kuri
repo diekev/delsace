@@ -5,7 +5,7 @@ importe "sys_fichier"
 
 fonc test_chemin_courant() : rien
 {
-    dyn chemin = chemin_courant()
+    dyn chemin := chemin_courant()
 
     imprime("chemin courant : ", chemin.chn, '\n')
     déloge chemin.chn
@@ -21,7 +21,7 @@ fonc test_chemin_courant() : rien
 
 fonc test_itération_dossier() : rien
 {
-    chemin = construit_chemin("/home/kevin/")
+    chemin := construit_chemin("/home/kevin/")
 
     pour entrée dans chaque_chemin(chemin) {
         imprime(entrée.chn, '\n')
@@ -40,12 +40,12 @@ fonc test_itération_dossier() : rien
 
 fonc principale(args : []*z8) : z32
 {
-    chm = construit_chemin("/home/kevin/test_parcer.cc")
-    contenu = contenu_fichier_texte(chm)
+    chm := construit_chemin("/home/kevin/test_parcer.cc")
+    contenu := contenu_fichier_texte(chm)
 
-    chm_sortie = construit_chemin("/home/kevin/SORITE_test_parcer.cc")
+    chm_sortie := construit_chemin("/home/kevin/SORITE_test_parcer.cc")
 
-    fd = ouvre_fichier_ecriture(chm_sortie)
+    fd := ouvre_fichier_ecriture(chm_sortie)
     diffère { ferme_fichier(fd) }
 
     écris_fichier(fd, contenu)

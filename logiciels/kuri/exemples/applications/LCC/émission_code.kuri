@@ -7,7 +7,7 @@ int ajoute_conversion(
 {
 	cm.ajoute_instruction(code_inst_conversion(type1, type2))
 	cm.ajoute_instruction(decalage_pile)
-	ptr = cm.donnees().loge_donnees(taille_type(type2))
+	ptr := cm.donnees().loge_donnees(taille_type(type2))
 	cm.ajoute_instruction(ptr)
 	retourne ptr
 }
@@ -45,9 +45,9 @@ fonc extrait_entier(chn : chaine) : z32
 
 fonc extrait_decimal(chn : chaine) : r32
 {
-    dyn résultat = 0.0
-    dyn point_trouvé = faux
-    dyn dividende = 0.0
+    dyn résultat := 0.0
+    dyn point_trouvé := faux
+    dyn dividende := 0.0
 
     pour c dans chn {
         si c == '.' {
@@ -126,13 +126,13 @@ struct CodeMachine {
 
 fonc ajoute_instruction(inst : CodeInst) : rien
 {
-    ptr = agrandi(cm.pile, taille_de(CodeInst))
+    ptr := agrandi(cm.pile, taille_de(CodeInst))
     copie_mem_nonsûr(ptr, @inst, taille_de(CodeInst))
 }
 
 fonc agrandi(dyn tabl : &[]octet, taille : n32) : *octet
 {
-    taille_tabl = tabl.taille
+    taille_tabl := tabl.taille
     reloge tabl : [taille_tabl + taille]octet
     retourne @tabl[taille_tabl]
 }
@@ -155,8 +155,8 @@ fonc genere_code(
 		}
 		TypeNoeud.PROPRIETE,
 		TypeNoeud.ATTRIBUT {
-			&gest_attrs = contexte_generation.gest_attrs
-			donnees = gest_attrs.donnees_pour_propriete(b.chaine())
+			&gest_attrs := contexte_generation.gest_attrs
+			donnees := gest_attrs.donnees_pour_propriete(b.chaine())
 
 			si donnees == nul {
 				si expr_gauche {
@@ -227,13 +227,13 @@ fonc genere_code(
 				TypeParamètre.VEC4,
 				TypeParamètre.MAT3,
 				TypeParamètre.MAT4 {
-					taille = taille_type(b.donnees_type)
+					taille := taille_type(b.donnees_type)
 
 					si (b.enfants.est_vide()) {
 						b.pointeur_donnees = cm.donnees().loge_donnees(taille)
 					}
 					sinon {
-						feuilles = dls::tableau<base *>()
+						feuilles := dls::tableau<base *>()
 						rassemble_feuilles(b, feuilles)
 
 						# À FAIRE :
@@ -243,7 +243,7 @@ fonc genere_code(
 
 						b.pointeur_donnees = cm.donnees().loge_donnees(taille)
 
-						decalage = b.pointeur_donnees
+						decalage := b.pointeur_donnees
 
 						for (const &feuille : feuilles) {
 							cm.donnees().stocke(decalage, extrait_decimal(feuille.chaine()))
@@ -255,11 +255,11 @@ fonc genere_code(
 					}
 				}
 				TypeParamètre.TABLEAU {
-					feuilles = dls::tableau<base *>()
+					feuilles := dls::tableau<base *>()
 					rassemble_feuilles(b, feuilles)
 
 					# À FAIRE : erreur si tableau vide, INFÉRENCE TYPE
-					type_feuille = type_var{}
+					type_feuille := type_var{}
 
 					for (feuille : feuilles) {
 						genere_code(feuille, contexte_generation, cm, expr_gauche)
@@ -282,7 +282,7 @@ fonc genere_code(
 				TypeParamètre.CHAINE {
 					# là où se trouve l'index de la chaine
 					b.pointeur_donnees = cm.donnees().loge_donnees(1)
-					ptr = b.pointeur_donnees
+					ptr := b.pointeur_donnees
 					cm.donnees().stocke(ptr, static_cast<int>(contexte_generation.chaines.taille()))
 					contexte_generation.chaines.pousse(b.chaine())
 				}
@@ -294,14 +294,14 @@ fonc genere_code(
 		}
 		TypeNoeud.FONCTION {
 			# génére le code des enfants pour avoir les données sur leurs types
-			types_params = types_entrees{}
+			types_params := types_entrees{}
 
 			for (enfant : b.enfants) {
 				genere_code(enfant, contexte_generation, cm, expr_gauche)
 				types_params.types.pousse(enfant.donnees_type)
 			}
 
-			donnees_fonc = contexte_generation.fonctions.meilleure_candidate(
+			donnees_fonc := contexte_generation.fonctions.meilleure_candidate(
 						b.chn(),
 						types_params)
 
@@ -311,24 +311,24 @@ fonc genere_code(
 				throw std::runtime_error(ss.chn().c_str())
 			}
 
-			type_instance = donnees_fonc.type
+			type_instance := donnees_fonc.type
 
 			contexte_generation.requetes.insere(donnees_fonc.donnees.requete)
 
 			# rassemble les pointeurs et crée les conversions au besoin
 			dls::tableau<int> pointeurs
-			taille = donnees_fonc.entrees.types.taille()
-			enfant = b.enfants.debut()
+			taille := donnees_fonc.entrees.types.taille()
+			enfant := b.enfants.debut()
 
 			for (i = 0 i < taille ++i) {
-				type_entree = donnees_fonc.entrees.types[i]
+				type_entree := donnees_fonc.entrees.types[i]
 
 				si ((*enfant).donnees_type == type_entree) {
 					pointeurs.pousse((*enfant).pointeur_donnees)
 				}
 				sinon {
 					# À FAIRE : erreur si conversion impossible.
-					ptr = ajoute_conversion(
+					ptr := ajoute_conversion(
 								cm,
 								(*enfant).donnees_type,
 								type_entree,
@@ -357,7 +357,7 @@ fonc genere_code(
 
 			# pour chaque sortie, nous réservons de la place sur la pile de données
 			for (const &type_seing : donnees_fonc.sorties.types) {
-				pointeur = cm.donnees().loge_donnees(taille_type(type_seing))
+				pointeur := cm.donnees().loge_donnees(taille_type(type_seing))
 
 				# le pointeur sur la pile est celui du premier paramètre
 				si (b.pointeur_donnees == 0) {
@@ -375,14 +375,14 @@ fonc genere_code(
 			b.valeur_calculee = donnees_fonc
 		}
 		TypeNoeud.OPERATION_UNAIRE {
-			enfant = b.enfants.front()
-			pointeur = genere_code(enfant, contexte_generation, cm, expr_gauche)
+			enfant := b.enfants.front()
+			pointeur := genere_code(enfant, contexte_generation, cm, expr_gauche)
 
 			b.donnees_type = enfant.donnees_type
 
 			discr b.lexème() {
 				TypeLexème.MOINS_UNAIRE {
-					taille = taille_type(b.donnees_type)
+					taille := taille_type(b.donnees_type)
 					cm.ajoute_instruction(CodeInst.NIE)
 					cm.ajoute_instruction(b.donnees_type)
 					cm.ajoute_instruction(pointeur)
@@ -400,14 +400,14 @@ fonc genere_code(
 		TypeNoeud.OPERATION_BINAIRE {
 			# À FAIRE : type booléen pour le retour des opérateurs de comparaison.
 
-			enfant1 = b.enfants.front()
-			enfant2 = b.enfants.back()
+			enfant1 := b.enfants.front()
+			enfant2 := b.enfants.back()
 
 			genere_code(enfant1, contexte_generation, cm, expr_gauche)
 			genere_code(enfant2, contexte_generation, cm, expr_gauche)
 
-			decalage1 = enfant1.pointeur_donnees
-			decalage2 = enfant2.pointeur_donnees
+			dyn decalage1 := enfant1.pointeur_donnees
+			dyn decalage2 := enfant2.pointeur_donnees
 
 			# À FAIRE : multiplication mat/vec, etc.
 
@@ -431,7 +431,7 @@ fonc genere_code(
 				decalage2 = enfant1.pointeur_donnees
 			}
 			sinon {
-				conversion = calcul_conversion(enfant1.donnees_type, enfant2.donnees_type)
+				conversion := calcul_conversion(enfant1.donnees_type, enfant2.donnees_type)
 
 				si (conversion == conv_op::aucune) {
 					b.donnees_type = enfant1.donnees_type
@@ -476,7 +476,7 @@ fonc genere_code(
 				retourne b.pointeur_donnees
 			}
 
-			dyn requiers_inst_type = true
+			dyn requiers_inst_type := true
 
 			discr b.lexème() {
 				TypeLexème.PLUS {
@@ -573,21 +573,21 @@ fonc genere_code(
 			break
 		}
 		TypeNoeud.ASSIGNATION {
-			enfant_gauche = b.enfants.front()
-			enfant_droite = b.enfants.back()
+			enfant_gauche := b.enfants.front()
+			enfant_droite := b.enfants.back()
 
 			# l'idée est que les sorties des fonctions sont des pointeurs vers la où se trouve les valeurs
-			pointeur = genere_code(enfant_droite, contexte_generation, cm, false)
+			pointeur := genere_code(enfant_droite, contexte_generation, cm, false)
 
 			si (enfant_gauche.identifiant() == TypeLexème.VIRGULE) {
-				feuilles = dls::tableau<base *>()
+				feuilles := dls::tableau<base *>()
 
 				rassemble_feuilles(enfant_gauche, feuilles)
 
-				donnees_fonc = donnees_fonction_generation{}
+				donnees_fonc := donnees_fonction_generation{}
 
 				si (enfant_droite.type == TypeNoeud.ACCES_MEMBRE_POINT) {
-					noeud_fonc = enfant_droite.enfants.back()
+					noeud_fonc := enfant_droite.enfants.back()
 
 					donnees_fonc = std::any_cast<donnees_fonction_generation>(
 										noeud_fonc.valeur_calculee)
@@ -601,10 +601,10 @@ fonc genere_code(
 				}
 
 				for (i = 0 i < feuilles.taille() ++i) {
-					feuille = feuilles[i]
+					feuille := feuilles[i]
 
-					ptr = pointeur
-					dt = donnees_fonc.sorties.types[i]
+					ptr := pointeur
+					dt := donnees_fonc.sorties.types[i]
 
 					si (i > 0) {
 						type_sortie = donnees_fonc.sorties.types[i - 1]
@@ -633,8 +633,8 @@ fonc genere_code(
 			}
 		}
 		TypeNoeud.ACCES_MEMBRE_POINT {
-			enfant_gauche = b.enfants.front()
-			enfant_droite = b.enfants.back()
+			enfant_gauche := b.enfants.front()
+			enfant_droite := b.enfants.back()
 
 			si (enfant_droite.type == TypeNoeud.FONCTION) {
 				# le premier paramètre doit être la 'structure' que l'on accède
@@ -751,22 +751,22 @@ fonc genere_code(
 			}
 		}
 		TypeNoeud.SI {
-			iter_enfant = b.enfants.debut()
-			enfant1 = *iter_enfant++
-			enfant2 = *iter_enfant++
-			enfant3 = (b.enfants.taille() == 3) ? *iter_enfant++ : nul
+			iter_enfant := b.enfants.debut()
+			enfant1 := *iter_enfant++
+			enfant2 := *iter_enfant++
+			enfant3 := (b.enfants.taille() == 3) ? *iter_enfant++ : nul
 
 			# génère le code de l'expression
 			genere_code(enfant1, contexte_generation, cm, expr_gauche)
 
 			# instructions : inst_branche ptr_comp bloc_si_vrai bloc_si_faux
-			&instructions = cm.instructions()
+			&instructions := cm.instructions()
 
 			cm.ajoute_instruction(CodeInst.IN_BRANCHE_CONDITION)
 			cm.ajoute_instruction(enfant1.pointeur_donnees)
-			decalage_branche_si_vrai = static_cast<int>(instructions.taille())
+			decalage_branche_si_vrai := static_cast<int>(instructions.taille())
 			cm.ajoute_instruction(0)
-			decalage_branche_si_faux = static_cast<int>(instructions.taille())
+			decalage_branche_si_faux := static_cast<int>(instructions.taille())
 			cm.ajoute_instruction(0)
 
 			# si la condition est vraie, le bloc est normalement juste après, donc
@@ -780,7 +780,7 @@ fonc genere_code(
 			si (enfant3 != nul) {
 				# ajout d'une branche pour sauter le code si la condition était vraie
 				cm.ajoute_instruction(CodeInst.IN_BRANCHE)
-				decalage_branche = static_cast<int>(instructions.taille())
+				decalage_branche := static_cast<int>(instructions.taille())
 				cm.ajoute_instruction(0)
 
 				# prend en compte la branche ajoutée
@@ -801,15 +801,15 @@ fonc genere_code(
 		}
 		TypeNoeud.POUR {
 			# 3 enfants : var plage bloc
-			iter_enfant = b.enfants.debut()
-			enfant1 = *iter_enfant++
-			enfant2 = *iter_enfant++
-			enfant3 = *iter_enfant++
+			iter_enfant := b.enfants.debut()
+			enfant1 := *iter_enfant++
+			enfant2 := *iter_enfant++
+			enfant3 := *iter_enfant++
 
 			# génère le code de l'expresion pour avoir le type de la variable
 			genere_code(enfant2, contexte_generation, cm, expr_gauche)
-			variable_debut = enfant2.enfants.front().pointeur_donnees
-			variable_fin = enfant2.enfants.back().pointeur_donnees
+			variable_debut := enfant2.enfants.front().pointeur_donnees
+			variable_fin := enfant2.enfants.back().pointeur_donnees
 
 			# alloue la variable, À FAIRE : portée variables
 			enfant1.donnees_type = enfant2.enfants.front().donnees_type
@@ -821,8 +821,8 @@ fonc genere_code(
 			cm.ajoute_instruction(enfant1.pointeur_donnees)
 
 			# entrée de la boucle
-			&instructions = cm.instructions()
-			ptr_debut_boucle = instructions.taille()
+			&instructions := cm.instructions()
+			ptr_debut_boucle := instructions.taille()
 
 			# test de la variable
 
@@ -831,15 +831,15 @@ fonc genere_code(
 			cm.ajoute_instruction(enfant1.donnees_type)
 			cm.ajoute_instruction(enfant1.pointeur_donnees)
 			cm.ajoute_instruction(variable_fin)
-			ptr_comp = cm.donnees().loge_donnees(taille_type(enfant1.donnees_type))
+			ptr_comp := cm.donnees().loge_donnees(taille_type(enfant1.donnees_type))
 			cm.ajoute_instruction(ptr_comp)
 
 			# 2. branche si vrai
 			cm.ajoute_instruction(CodeInst.IN_BRANCHE_CONDITION)
 			cm.ajoute_instruction(ptr_comp)
-			decalage_branche_si_vrai = static_cast<int>(instructions.taille())
+			decalage_branche_si_vrai := static_cast<int>(instructions.taille())
 			cm.ajoute_instruction(0)
-			decalage_branche_si_faux = static_cast<int>(instructions.taille())
+			decalage_branche_si_faux := static_cast<int>(instructions.taille())
 			cm.ajoute_instruction(0)
 
 			# si la condition est vraie, le bloc est normalement juste après, donc
@@ -847,7 +847,7 @@ fonc genere_code(
 			instructions.stocke(decalage_branche_si_vrai, static_cast<int>(instructions.taille()))
 
 			# données pour cette boucle
-			db = donnees_boucles{}
+			db := donnees_boucles{}
 			contexte_generation.boucles.empile(&db)
 
 			# génère le code du bloc
@@ -855,7 +855,7 @@ fonc genere_code(
 
 			# on « continue » après le bloc, mais avant d'incrémenter la
 			# variable bouclée
-			ptr_inst_continue = static_cast<int>(instructions.taille())
+			ptr_inst_continue := static_cast<int>(instructions.taille())
 
 			# incrémente la variable
 			cm.ajoute_instruction(CodeInst.IN_INCREMENTE)
@@ -866,7 +866,7 @@ fonc genere_code(
 			cm.ajoute_instruction(CodeInst.IN_BRANCHE)
 			cm.ajoute_instruction(static_cast<int>(ptr_debut_boucle))
 
-			ptr_fin_boucle = static_cast<int>(instructions.taille())
+			ptr_fin_boucle := static_cast<int>(instructions.taille())
 
 			instructions.stocke(decalage_branche_si_faux, ptr_fin_boucle)
 
@@ -886,22 +886,22 @@ fonc genere_code(
 			}
 		}
 		TypeNoeud.ARRETE: {
-			&instructions = cm.instructions()
+			&instructions := cm.instructions()
 
 			cm.ajoute_instruction(CodeInst.IN_BRANCHE)
-			decalage_inst = static_cast<int>(instructions.taille())
+			decalage_inst := static_cast<int>(instructions.taille())
 			cm.ajoute_instruction(0)
 
-			donnees_boucle = contexte_generation.boucles.haut()
+			donnees_boucle := contexte_generation.boucles.haut()
 			donnees_boucle.arretes.pousse(decalage_inst)
 		}
 		TypeNoeud.CONTINUE {
-			&instructions = cm.instructions()
+			&instructions := cm.instructions()
 			cm.ajoute_instruction(CodeInst.IN_BRANCHE)
-			decalage_inst = static_cast<int>(instructions.taille())
+			decalage_inst := static_cast<int>(instructions.taille())
 			cm.ajoute_instruction(0)
 
-			donnees_boucle = contexte_generation.boucles.haut()
+			donnees_boucle := contexte_generation.boucles.haut()
 			donnees_boucle.continues.pousse(decalage_inst)
 		}
 		TypeNoeud.RETOURNE {

@@ -42,7 +42,7 @@ struct Requête {
 fonc détruit_requête(dyn requête : &Requête) : rien
 {
 	pour bloc dans requête.blocs {
-		expression = bloc.expression
+		expression := bloc.expression
 
 		pour objet dans expression.objets {
 			déloge objet.propriétés
@@ -86,28 +86,28 @@ fonc imprime_requête(dyn requête : &Requête) : rien
 
 fonc pousse(dyn liste : &[]Bloc, valeur : Bloc) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]Bloc
     liste[taille] = valeur
 }
 
 fonc pousse(dyn liste : &[]Objet, valeur : Objet) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]Objet
     liste[taille] = valeur
 }
 
 fonc pousse(dyn liste : &[]Propriété, valeur : Propriété) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]Propriété
     liste[taille] = valeur
 }
 
 fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]Étiquette
     liste[taille] = valeur
 }
@@ -135,7 +135,7 @@ fonc a_fini(dyn syntaxeuse : &Syntaxeuse) : bool
 fonc lexème_courant(dyn syntaxeuse : &Syntaxeuse) : Lexème
 {
 	# À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
-	lexèmes = mémoire(syntaxeuse.lexèmes)
+	lexèmes := mémoire(syntaxeuse.lexèmes)
 	retourne lexèmes[syntaxeuse.position]
 }
 
@@ -160,7 +160,7 @@ fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) : b
 		retourne faux
 	}
 
-	est_bon = syntaxeuse.est_lexème(id)
+	est_bon := syntaxeuse.est_lexème(id)
 	syntaxeuse.avance()
 	retourne est_bon
 }
@@ -310,8 +310,8 @@ fonc instruction_pour_lexème(id : IdentifiantLexème) : Instruction
 
 fonc est_instruction(dyn syntaxeuse : &Syntaxeuse) : bool
 {
-	lexème = syntaxeuse.lexème_courant()
-	inst = instruction_pour_lexème(lexème.id)
+	lexème := syntaxeuse.lexème_courant()
+	inst := instruction_pour_lexème(lexème.id)
 	syntaxeuse.inst = inst
 
 	retourne inst != Instruction.INVALIDE
@@ -367,7 +367,7 @@ fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) : Résultat
 
 fonc principale(args : []*z8) : z32
 {
-    expressions = [
+    expressions := [
         "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",
         "( noeud : Personne :Acteur )-[ : LABEL { nom : \"bibi\" } ]->( noeud : LABEL { nom : 8, id : 56, voiture : 789 } )",
         # N'importe quel noeud
@@ -397,7 +397,7 @@ fonc principale(args : []*z8) : z32
     # CREE (moi) -[:AIME]-> (quelquechose)
     # RETOURNE moi, quelquechose
 
-    requêtes = [
+    requêtes := [
         "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",
         "TROUVE (:Type { index : 1 }) -[opérateur:Opérateur { nom : '+' }]-> (:Type { index : 5 })\nRETOURNE opérateur.id\n"
     ]
@@ -410,7 +410,7 @@ fonc principale(args : []*z8) : z32
 		imprime("Nombre de déallocations : ", nombre_déallocations(), "\n")
 	}
 
-    chaine_requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
+    chaine_requête := "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->(profil : UTILISATEUR { nom: \"marie\", âge : 28 })"
 
     dyn lexeuse : Lexeuse
     lexeuse.analyse_texte(chaine_requête)
@@ -419,7 +419,7 @@ fonc principale(args : []*z8) : z32
 
 	dyn syntaxeuse : Syntaxeuse
 	syntaxeuse.initialise(@lexeuse.lexèmes)
-	résultat = syntaxeuse.analyse_requête()
+	résultat := syntaxeuse.analyse_requête()
 
 	discr résultat {
 		requête {
@@ -431,7 +431,7 @@ fonc principale(args : []*z8) : z32
 		}
 	}
 
-	requête = faux
+	requête := faux
 
 	retourne 0
 }

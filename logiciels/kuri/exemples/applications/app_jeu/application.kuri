@@ -24,7 +24,7 @@ struct FileÉvènement {
         retourne
     }
 
-    index = q.taille
+    index := q.taille
     q.tampon[index] = évènement
     q.taille += 1
 }
@@ -42,13 +42,13 @@ struct FileÉvènement {
         retourne évènement
     }
 
-    évènement = q.tampon[0]
+    évènement := q.tampon[0]
 
     # réajuste la file en décalant les données
 
     si q.taille > 1 {
-	    soit ptr_dst = @q.tampon[0]
-		soit ptr_src = @q.tampon[1]
+	    ptr_dst := @q.tampon[0]
+		ptr_src := @q.tampon[1]
         copie_mem_nonsur(ptr_src, ptr_dst, transtype(taille_de(Évènement) : z64) * (q.taille - 1))
     }
 
@@ -140,23 +140,23 @@ dyn VG_file_évènements : *FileÉvènement = nul
 
 ################################################################################
 
-soit TAILLE_TUILE = 32
-soit TUILES_X = 20
-soit TUILES_Y = 15
+TAILLE_TUILE := 32
+TUILES_X := 20
+TUILES_Y := 15
 
 struct Entite {
-    pos_x = TAILLE_TUILE * 10
-    pos_y = TAILLE_TUILE * 7
+    pos_x := TAILLE_TUILE * 10
+    pos_y := TAILLE_TUILE * 7
 }
 
 ################################################################################
 
 struct Application {
-    fenetre : *GLFWwindow = nul
+    fenetre : *GLFWwindow := nul
     hauteur : z32 = 0
     largeur : z32 = 0
-    souris_x = 0.0
-    souris_y = 0.0
+    souris_x := 0.0
+    souris_y := 0.0
     dernier_évènement : type_évènement = type_évènement.NUL
     temps_double_clic : z64
 
@@ -167,7 +167,7 @@ fonc initialise_opengl(app : &Application) : rien
 {
     glfwMakeContextCurrent(app.fenetre)
 
-    soit erreur = glewInit()
+    erreur := glewInit()
 
     si erreur != 0 {
         imprime("Erreur lors de l'initilisation de GLEW !\n")
@@ -184,18 +184,18 @@ fonc dessine_fenetre(app : &Application) : rien
 
 	glClearColor(transtype(0.5 : r32), transtype(0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32))
 
-	soit l = transtype(app.largeur : r32)
-	soit h = transtype(app.hauteur : r32)
+	l := transtype(app.largeur : r32)
+	h := transtype(app.hauteur : r32)
 
     # dessine l'arrière plan
 
     # dessine les personnages
-	soit taille_x = transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
-	soit taille_y = transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
-	soit pos_x = transtype(app.personnage.pos_x : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
-	soit pos_y = transtype(app.personnage.pos_y : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
+	taille_x := transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
+	taille_y := transtype(TAILLE_TUILE : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
+	pos_x := transtype(app.personnage.pos_x : r32) / transtype(TAILLE_TUILE * TUILES_X : r32)
+	pos_y := transtype(app.personnage.pos_y : r32) / transtype(TAILLE_TUILE * TUILES_Y : r32)
 
-	soit couleur = Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(1.0 : r32), a = transtype(1.0 : r32) }
+	couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(1.0 : r32), a = transtype(1.0 : r32) }
 
 	dessine_carré_ex(pos_x, pos_y, taille_x, taille_y, couleur)
 
@@ -341,11 +341,11 @@ fonc lance_application(dyn app : &Application) : z32
 
     #imprime(mémoire(donnees_moniteur), "\n");
 
-    soit titre = "Créathèque"
+    titre := "Créathèque"
 
     glfwWindowHint(CONTEXT_GLFW_VERSION_MAJOR, 4)
     glfwWindowHint(CONTEXT_GLFW_VERSION_MINOR, 0)
-    soit fenetre = glfwCreateWindow(largeur, hauteur, titre.pointeur, nul, nul)
+    fenetre := glfwCreateWindow(largeur, hauteur, titre.pointeur, nul, nul)
 
     si fenetre == nul {
         imprime("Impossible d'initialiser la fenêtre !\n")

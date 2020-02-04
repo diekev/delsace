@@ -20,7 +20,7 @@ rout enfile(empl f : *file, val : $T)
 
 rout défile(f : *file) : z32
 {
-	val = f.ptr[0];
+	val := f.ptr[0];
 
 	rotate(ptr, ptr + 1, ptr + taille);
 

@@ -2,22 +2,22 @@
 # https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
 
 struct Point2D {
-	x = 0.0;
-	y = 0.0;
+	x := 0.0;
+	y := 0.0;
 }
 
 struct Rectangle2D {
-	gauche = 0.0;
-	bas = 0.0;
-	droite = 0.0;
-	haut = 0.0;
+	gauche := 0.0;
+	bas := 0.0;
+	droite := 0.0;
+	haut := 0.0;
 }
 
 struct MondeVersEcran {
-	A = 0.0;
-	B = 0.0;
-	C = 0.0;
-	D = 0.0;
+	A := 0.0;
+	B := 0.0;
+	C := 0.0;
+	D := 0.0;
 }
 
 fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) : MondeVersEcran
@@ -78,19 +78,19 @@ fonc dessine_bmp(
 	points : []Points2D,
 	rayon_point : z32) : rien
 {
-	cannevas = loge : [hauteur * largeur * 4]z8;
+	cannevas := loge : [hauteur * largeur * 4]z8;
 	diffère { déloge cannevas; }
 
 	pour v dans cannevas {
 		v = 255;
 	}
 
-	points_ecran = points_vers_ecran(hauteur, largeur, monde, ecran, points);
+	points_ecran := points_vers_ecran(hauteur, largeur, monde, ecran, points);
 	diffère { déloge points_ecran; }
 
 	si rayon_point == 0 {
 		pour p dans points_ecran {
-			idx = index_point(p.x, p.y);
+			idx := index_point(p.x, p.y);
 			cannevas[idx    ] = 0;
 			cannevas[idx + 1] = 0;
 			cannevas[idx + 2] = 0;
@@ -110,10 +110,10 @@ fonc dessine_bmp(
 
 fonc principale(args : []*z8) : z32
 {
-	monde = Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
+	monde := Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
 
 	# À FAIRE(compilation) : construction de structure dans un tableau
-	points = [
+	points := [
 		Point2D{x =   0.0, y =  0.0},
 		Point2D{x =  10.0, y =  10.0},
 		Point2D{x =  20.0, y =  20.0},
@@ -127,7 +127,7 @@ fonc principale(args : []*z8) : z32
 		Point2D{x = 799.0, y = 799.0}
 	];
 
-	espace_écran = Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 799.0, droite = 799.0 };
+	espace_écran := Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 799.0, droite = 799.0 };
 	dessine_bmp("chaos.bmp", hauteur, largeur, monde, espace_écran, points, 5);
 
 	retourne 0;

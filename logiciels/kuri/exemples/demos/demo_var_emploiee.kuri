@@ -1,9 +1,9 @@
 importe "flux"
 
 struct TEST {
-    x = 5
-    y = "une chaine au hasard"
-    z = 0.35
+    x := 5
+    y := "une chaine au hasard"
+    z := 0.35
 }
 
 fonc imprime_test(empl test : TEST) : rien

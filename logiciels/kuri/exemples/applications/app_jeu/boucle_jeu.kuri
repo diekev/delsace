@@ -21,19 +21,19 @@ rout rend(entités : &[]entités)
 	}
 }
 
-MS_PAR_IMAGE = 16
+MS_PAR_IMAGE := 16
 
 rout lance_jeu()
 {
 	entités : []Entité
 
-	dyn temps_précédent = temps_courant()
-	dyn lag = 0
+	dyn temps_précédent := temps_courant()
+	dyn lag := 0
 
 	boucle {
-		temps_courant = temps_courant()
-		temps_passé = temps_courant - temps_précédent
-		temps_précédent = temps_courant
+		temps_courant := temps_courant()
+		temps_passé := temps_courant - temps_précédent
+		temps_précédent := temps_courant
 		lag += temps_passé
 
 		processInput()

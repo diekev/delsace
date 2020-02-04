@@ -40,7 +40,7 @@ struct Attribut {
     type : TypeAttribut
     portée : PortéeAttribut
 	# À FAIRE : utilisation de la dimension
-    dimensions = 1
+    dimensions := 1
 	nombre_éléments : z64 = 0
 }
 
@@ -53,13 +53,13 @@ fonc est_type_attribut_valide(dyn type : TypeAttribut) : bool
         retourne faux
     }
 
-    info = info_de(type)
+    info := info_de(type)
 
-    dyn nombre_bits = 0
+    dyn nombre_bits := 0
 
     pour valeur dans info.valeurs {
 		# À FAIRE : typage des valeurs des énums
-		type_ = transtype(type : z32)
+		type_ := transtype(type : z32)
 		nombre_bits += transtype((type_ & valeur) != 0 : z32)
     }
 
@@ -72,7 +72,7 @@ fonc principale(args : []*z8) : z32
 
 	imprime("Validation d'attributs...\n\n")
 
-	dyn type = TypeAttribut.Z16
+	dyn type := TypeAttribut.Z16
 	imprime("est_type_valide : ", type, " ===> ", est_type_attribut_valide(type), "\n")
 
 	type = TypeAttribut.TABLEAU | TypeAttribut.Z16
@@ -89,14 +89,14 @@ fonc principale(args : []*z8) : z32
 	imprime("Création d'attributs...\n\n")
 
 	type = TypeAttribut.R32 | TypeAttribut.TABLEAU
-	attr = crée_attribut(type)
+	attr := crée_attribut(type)
 	attr.réserve(10)
 
 	imprime(attr, "\n")
 	imprime("\nIntialise valeurs...\n")
 
 	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
-		dyn ptr = attr.tableau_r32(i)
+		dyn ptr := attr.tableau_r32(i)
 		ptr.taille = 0
 		ptr.pointeur = nul
 	}
@@ -104,7 +104,7 @@ fonc principale(args : []*z8) : z32
 	imprime("\nValeurs :\n")
 
 	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
-		dyn ptr = attr.tableau_r32(i)
+		dyn ptr := attr.tableau_r32(i)
 
 		imprime("Valeur ", i, " = ", mémoire(ptr), "\n")
 	}
@@ -126,7 +126,7 @@ fonc crée_attribut(type : TypeAttribut) : Attribut
 fonc réserve(dyn attr : &Attribut, nombre_éléments : z64) : rien
 {
 	# À FAIRE : copie le tampon si référencé
-	taille = nombre_éléments * taille_octet_type_attribut(attr.type)
+	taille := nombre_éléments * taille_octet_type_attribut(attr.type)
 	reloge attr.tampon.données : [taille]octet
 
 	attr.nombre_éléments = nombre_éléments
@@ -144,7 +144,7 @@ fonc détruit(dyn attr : &Attribut) : rien
 	si est_type_tableau(attr.type) {
 		pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
 			# À FAIRE : types des données
-			#ptr = attr.tableau_r32(i)
+			#ptr := attr.tableau_r32(i)
 			#déloge mémoire(ptr)
 		}
 	}
@@ -158,7 +158,7 @@ fonc valeur_z32(dyn attr : &Attribut, index : z64) : *z32
 		retourne nul
 	}
 
-	décalage = index * taille_octet_type_attribut(attr.type)
+	décalage := index * taille_octet_type_attribut(attr.type)
 
 	retourne transtype(@attr.tampon.données[décalage] : *z32)
 }
@@ -169,7 +169,7 @@ fonc valeur_r32(dyn attr : &Attribut, index : z64) : *r32
 		retourne nul
 	}
 
-	décalage = index * taille_octet_type_attribut(attr.type)
+	décalage := index * taille_octet_type_attribut(attr.type)
 
 	retourne transtype(@attr.tampon.données[décalage] : *r32)
 }
@@ -180,7 +180,7 @@ fonc tableau_r32(dyn attr : &Attribut, index : z64) : *[]r32
 		retourne nul
 	}
 
-	décalage = index * taille_octet_type_attribut(attr.type)
+	décalage := index * taille_octet_type_attribut(attr.type)
 
 	retourne transtype(@attr.tampon.données[décalage] : *[]r32)
 }

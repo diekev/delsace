@@ -50,7 +50,7 @@ fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) : rien
 		retourne;
 	}
 
-	soit l = longueur(chaîne);
+	l := longueur(chaîne);
 
 	si l > 255 {
 		printf("Impossible d'assigner une chaîne de %d caractère à une ChaînePascal !\n", l);
@@ -75,7 +75,7 @@ fonc imprime_chaîne_pascal(cp : *ChaînePascal) : rien
 		retourne;
 	}
 
-	soit taille = cp.données[0];
+	taille := cp.données[0];
 
 	pour i dans 0 ... transtype(taille : z32) {
 		printf("%c", cp.données[i + 1]);

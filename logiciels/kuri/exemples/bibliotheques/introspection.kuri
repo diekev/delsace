@@ -4,9 +4,9 @@ rout crée_manipulable(valeur : eini) : &Manipulable
 		retourne nul;
 	}
 
-	soit info = transtype(valeur.info : &InfoTypeStructure);
+	info := transtype(valeur.info : &InfoTypeStructure);
 
-	dyn manipulable = loge Manipulable sinon {
+	dyn manipulable := loge Manipulable sinon {
 		# À FAIRE : erreur
 		retourne nul;
 	}
@@ -37,7 +37,7 @@ rout ajourne_valeur(
 		retourne;
 	}
 
-	soit info = transtype(objet.info : &TypeInfoStructure);
+	info := transtype(objet.info : &TypeInfoStructure);
 
 	iter membre dans info.membres {
 		si membre.nom == nom_prop {
@@ -56,12 +56,12 @@ rout ajourne_valeur(
 		}
 
 		# Trouve le décalage
-		soit décalage = membre.info.décalage;
+		décalage := membre.info.décalage;
 
 		# Écris la valeur
 		nonsûr {
-			soit ptr_début = valeur.pointeur;
-			soit ptr_valeur = ptr_début + décalage
+			ptr_début := valeur.pointeur;
+			ptr_valeur := ptr_début + décalage
 
 			mémoire(ptr_valeur) = mémoire(ptr_début);
 		}
@@ -113,7 +113,7 @@ rout loge_concat(args... : []z32) : []z32
 		taille = taille + tabl.taille;
 	}
 
-	soit res = loge [taille]z32 sinon {
+	res := loge [taille]z32 sinon {
 		erreur;
 	}
 

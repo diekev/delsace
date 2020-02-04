@@ -7,10 +7,10 @@ fonc ajoute(a : z32, b : z32) : z32
 
 fonc principale(args : []*z8) : z32
 {
-    x = 1
-    y = 2
+    x := 1
+    y := 2
 
-    z = ajoute(x, y).ajoute(x)
+    z := ajoute(x, y).ajoute(x)
 
     imprime(z, '\n')
 

@@ -399,6 +399,7 @@ bool est_operateur_binaire(TypeLexeme identifiant)
 		case TypeLexeme::TROIS_POINTS:
 		case TypeLexeme::VIRGULE:
 		case TypeLexeme::CROCHET_OUVRANT:
+		case TypeLexeme::DECLARATION_VARIABLE:
 			return true;
 		default:
 			return false;

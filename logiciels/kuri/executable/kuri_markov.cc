@@ -100,6 +100,9 @@ static void imprime_mot(TypeLexeme id, std::ostream &os)
 		case TypeLexeme::DOUBLE_POINTS:
 			os << ":";
 			return;
+		case TypeLexeme::DECLARATION_VARIABLE:
+			os << ":=";
+			return;
 		case TypeLexeme::POINT_VIRGULE:
 			os << ";";
 			return;

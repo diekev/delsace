@@ -10,7 +10,7 @@ fonc min(a : z32, b : z32) : z32
 
 fonc min(args : ...z32) : z32
 {
-	dyn vmin = args[0]
+	dyn vmin := args[0]
 
 	pour v, index dans 1 ... args.taille - 1 {
 		vmin = min(vmin, v)
@@ -26,7 +26,7 @@ fonc max(a : z32, b : z32) : z32
 
 fonc max(args : ...z32) : z32
 {
-	dyn vmax = args[0]
+	dyn vmax := args[0]
 
 	pour v, index dans 1 ... args.taille - 1 {
 		vmax = max(vmin, v)
@@ -38,8 +38,8 @@ fonc max(args : ...z32) : z32
 # Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
 fonc pgcd(a : z32, b : z32) : z32
 {
-	x = a
-	y = b
+	dyn x := a
+	dyn y := b
 
 	tantque y > 1 {
 		x = y

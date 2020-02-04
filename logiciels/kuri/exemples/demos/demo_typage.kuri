@@ -1,9 +1,9 @@
 importe "flux"
 
-N = 5
+N := 5
 
 struct XYZ {
-    a = 128.0
+    a := 128.0
     b : type_de(a)
 }
 
@@ -28,22 +28,22 @@ fonc ajoute(a : $T, b : $T) : $T
 
 fonc principale(args : []*z8) : type_de(N)
 {
-    x = 5.0
+    x := 5.0
     dyn y : type_de(x)
 
-    infos = info_de(y)
+    infos := info_de(y)
 
     imprime(mémoire(infos), '\n')
 
     imprime("N = ", N, '\n')
 
-    z = faux
+    z := faux
 
     w : type_de(z) = vrai
 
-    a = 0
+    a := 0
 
-    b = transtype(a : type_de(w))
+    b := transtype(a : type_de(w))
 
     retourne 0
 }

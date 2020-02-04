@@ -19,7 +19,7 @@ fonc encode_adn(valeurs : []octet) : chaine
 		retourne chn
     }
 
-	codes = ['a', 'c', 'g', 't']
+	codes := ['a', 'c', 'g', 't']
 	reloge chn : chaine(valeurs.taille * 4)
 
     pour v, i dans valeurs {
@@ -41,7 +41,7 @@ fonc encode_adn(valeurs : []octet) : chaine
 fonc décode_adn(valeurs : []octet) : chaine
 {
 	dyn chn : chaine
-	taille = valeurs.taille
+	taille := valeurs.taille
 
     si taille == 0 {
 		retourne chn
@@ -51,8 +51,8 @@ fonc décode_adn(valeurs : []octet) : chaine
 	dyn val : z8 = 0
 
     pour v, i dans valeurs {
-		idx = i % 4
-		décalage = (3 - idx) * 2
+		idx := i % 4
+		décalage := (3 - idx) * 2
 
         discr v {
 			'a' { val |= (0b00 << décalage) }

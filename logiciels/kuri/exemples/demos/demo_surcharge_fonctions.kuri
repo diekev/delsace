@@ -25,11 +25,11 @@ fonc principale(args : []*z8) : z32
     dyn t : TEST
     t.fonction = foo
 
-    soit x = t.fonction("je ne sais pas")
+    x := t.fonction("je ne sais pas")
 
     imprime("résultat : ", x, '\n')
 
-    soit ptr = foo
+    ptr := foo
 
     ptr("je ne sais pas")
 

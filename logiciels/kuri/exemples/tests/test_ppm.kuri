@@ -34,13 +34,13 @@ fonc génére_image_damier() : Image
 
     nombre_caracteres = image.largeur * image.hauteur;
 
-    dyn tampon = loge chaine(nombre_caracteres);
+    dyn tampon := loge chaine(nombre_caracteres);
 
-    taille_case = image.largeur / 8;
+    taille_case := image.largeur / 8;
 
     image.tampon = tampon;
 
-    dyn idx = 0;
+    dyn idx := 0;
 
     pour i dans 0...image.largeur - 1 {
         pour j dans 0...image.hauteur - 1 {
@@ -65,11 +65,11 @@ fonc génére_image_noire() : Image
     image.hauteur = 1024;
     image.channels = 1;
 
-    nombre_caracteres = image.largeur * image.hauteur;
+    nombre_caracteres := image.largeur * image.hauteur;
 
-    dyn tampon = loge chaine(nombre_caracteres);
+    dyn tampon := loge chaine(nombre_caracteres);
 
-    taille_case = image.largeur / 8;
+    taille_case := image.largeur / 8;
 
     image.tampon = tampon;
 
@@ -91,10 +91,10 @@ fonc abs(x : r32) : r32
 
 fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) : rien
 {
-    dyn tampon = image.tampon;
+    dyn tampon := image.tampon;
 
-    dyn dx = transtype(x2 - x1 : r32);
-    dyn dy = transtype(y2 - y1 : r32);
+    dyn dx := transtype(x2 - x1 : r32);
+    dyn dy := transtype(y2 - y1 : r32);
     dyn pas : r32;
 
     si abs(dx) >= abs(dy) {
@@ -106,13 +106,13 @@ fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) :
 
     dx /= pas;
     dy /= pas;
-    dyn x = transtype(x1 : r32);
-    dyn y = transtype(y1 : r32);
+    dyn x := transtype(x1 : r32);
+    dyn y := transtype(y1 : r32);
     dyn i : r32 = 1.0;
 
     tantque i <= pas {
-        xi = transtype(x : z32);
-        yi = transtype(y : z32);
+        xi := transtype(x : z32);
+        yi := transtype(y : z32);
         index = xi + yi * image.largeur;
         tampon[index] = 1;
 
@@ -131,16 +131,16 @@ fonc dessine_triangle(
     x3 : r64,
     y3 : r64) : rien
 {
-    ld = transtype(image.largeur - 1 : r64);
-    hd = transtype(image.hauteur - 1 : r64);
+    ld := transtype(image.largeur - 1 : r64);
+    hd := transtype(image.hauteur - 1 : r64);
 
-    x1i = transtype(ld * x1 : z32);
-    x2i = transtype(ld * x2 : z32);
-    x3i = transtype(ld * x3 : z32);
+    x1i := transtype(ld * x1 : z32);
+    x2i := transtype(ld * x2 : z32);
+    x3i := transtype(ld * x3 : z32);
 
-    y1i = transtype(hd * y1 : z32);
-    y2i = transtype(hd * y2 : z32);
-    y3i = transtype(hd * y3 : z32);
+    y1i := transtype(hd * y1 : z32);
+    y2i := transtype(hd * y2 : z32);
+    y3i := transtype(hd * y3 : z32);
 
     dessine_ligne(image, x1i, y1i, x2i, y2i);
     dessine_ligne(image, x2i, y2i, x3i, y3i);
@@ -182,28 +182,28 @@ fonc remplis_triangle_bas_plat(
     v2 : Vec2,
     v3 : Vec2) : rien
 {
-    ld = transtype(image.largeur - 1 : r64);
-    hd = transtype(image.hauteur - 1 : r64);
+    ld := transtype(image.largeur - 1 : r64);
+    hd := transtype(image.hauteur - 1 : r64);
 
-    taille_pixel = 1.0 / min(ld, hd);
+    taille_pixel := 1.0 / min(ld, hd);
 
-    cd1_inv = (v2.x - v1.x) / (v2.y - v1.y) * taille_pixel;
-    cd2_inv = (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
+    cd1_inv := (v2.x - v1.x) / (v2.y - v1.y) * taille_pixel;
+    cd2_inv := (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
 
-    dyn cur_x1 = v1.x;
-    dyn cur_x2 = v1.x;
+    dyn cur_x1 := v1.x;
+    dyn cur_x2 := v1.x;
 
-    y1 = transtype(v1.y * hd : z32);
-    y2 = transtype(v2.y * hd : z32);
+    y1 := transtype(v1.y * hd : z32);
+    y2 := transtype(v2.y * hd : z32);
 
     restreint(y1, 0, image.hauteur - 1);
     restreint(y2, 0, image.hauteur - 1);
 
-    dyn scanlineY = y1;
+    dyn scanlineY := y1;
 
     tantque scanlineY <= y2 {
-        x1i = transtype(cur_x1 * ld : z32);
-        x2i = transtype(cur_x2 * ld : z32);
+        x1i := transtype(cur_x1 * ld : z32);
+        x2i := transtype(cur_x2 * ld : z32);
 
         restreint(x1i, 0, image.largeur - 1);
         restreint(x2i, 0, image.largeur - 1);
@@ -227,28 +227,28 @@ fonc remplis_triangle_haut_plat(
     v2 : Vec2,
     v3 : Vec2) : rien
 {
-    ld = transtype(image.largeur - 1 : r64);
-    hd = transtype(image.hauteur - 1 : r64);
+    ld := transtype(image.largeur - 1 : r64);
+    hd := transtype(image.hauteur - 1 : r64);
 
-    taille_pixel = 1.0 / ld;
+    taille_pixel := 1.0 / ld;
 
-    cd1_inv = (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
-    cd2_inv = (v3.x - v2.x) / (v3.y - v2.y) * taille_pixel;
+    cd1_inv := (v3.x - v1.x) / (v3.y - v1.y) * taille_pixel;
+    cd2_inv := (v3.x - v2.x) / (v3.y - v2.y) * taille_pixel;
 
-    dyn cur_x1 = v3.x;
-    dyn cur_x2 = v3.x;
+    dyn cur_x1 := v3.x;
+    dyn cur_x2 := v3.x;
 
-    y1 = transtype(v1.y * hd : z32);
-    y3 = transtype(v3.y * hd : z32);
+    y1 := transtype(v1.y * hd : z32);
+    y3 := transtype(v3.y * hd : z32);
 
     restreint(y1, 0, image.hauteur - 1);
     restreint(y3, 0, image.hauteur - 1);
 
-    dyn scanlineY = y3;
+    dyn scanlineY := y3;
 
     tantque scanlineY > y1 {
-        x1i = transtype(cur_x1 * ld : z32);
-        x2i = transtype(cur_x2 * ld : z32);
+        x1i := transtype(cur_x1 * ld : z32);
+        x2i := transtype(cur_x2 * ld : z32);
 
         restreint(x1i, 0, image.largeur - 1);
         restreint(x2i, 0, image.largeur - 1);
@@ -263,7 +263,7 @@ fonc remplis_triangle_haut_plat(
 
 fonc échange(dyn a : &r64, dyn b : &r64) : rien
 {
-    tmp = a;
+    tmp := a;
     a = b;
     b = tmp;
 }
@@ -294,9 +294,9 @@ fonc ratisse_triangle(
     x3 : r64,
     y3 : r64) : rien
 {
-    v1 = Vec2{ x = x1, y = y1 };
-    v2 = Vec2{ x = x2, y = y2 };
-    v3 = Vec2{ x = x3, y = y3 };
+    v1 := Vec2{ x = x1, y = y1 };
+    v2 := Vec2{ x = x2, y = y2 };
+    v3 := Vec2{ x = x3, y = y3 };
 
     boucle {
         si (v1.y) <= (v2.y) <= (v3.y) {
@@ -319,10 +319,10 @@ fonc ratisse_triangle(
         remplis_triangle_haut_plat(image, v1, v2, v3);
     }
     sinon {
-        x4 = v1.x + ((v2.y - v1.y) / (v3.y - v1.y)) * (v3.x - v1.x);
-        y4 = v2.y;
+        x4 := v1.x + ((v2.y - v1.y) / (v3.y - v1.y)) * (v3.x - v1.x);
+        y4 := v2.y;
 
-        v4 = Vec2{ x = x4, y = y4 };
+        v4 := Vec2{ x = x4, y = y4 };
 
         remplis_triangle_bas_plat(image, v1, v2, v4);
         remplis_triangle_haut_plat(image, v2, v4, v3);
@@ -331,7 +331,7 @@ fonc ratisse_triangle(
 
 fonc écris_ppm(image : Image, chemin : chaine) : rien
 {
-    df = ouvre_fichier_ecriture(chemin);
+    df := ouvre_fichier_ecriture(chemin);
     diffère { ferme_fichier(df); }
 
     si df == -1 {
@@ -341,20 +341,20 @@ fonc écris_ppm(image : Image, chemin : chaine) : rien
 
     imprime("Descripteur fichier : ", df, '\n');
 
-    entete = "P1";
-    taille_x = image.largeur;
-    taille_y = image.hauteur;
-    taille_case = taille_x / 8;
+    entete := "P1";
+    taille_x := image.largeur;
+    taille_y := image.hauteur;
+    taille_case := taille_x / 8;
 
     imprime_fichier(df, entete, ' ', taille_x, ' ', taille_y, ' ');
 
-    nombre_caracteres = taille_x * taille_y * 2;
+    nombre_caracteres := taille_x * taille_y * 2;
 
-    dyn tampon = loge chaine(nombre_caracteres);
+    dyn tampon := loge chaine(nombre_caracteres);
     diffère { déloge tampon; }
 
-    dyn idx = 0;
-    dyn idx_image = 0;
+    dyn idx := 0;
+    dyn idx_image := 0;
 
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
@@ -365,18 +365,18 @@ fonc écris_ppm(image : Image, chemin : chaine) : rien
         }
     }
 
-    debut = maintenant_sec();
+    debut := maintenant_sec();
 
     imprime_fichier(df, tampon);
 
-    delta = delta_sec(debut);
+    delta := delta_sec(debut);
 
     imprime("Temps d'écriture = ", delta, "s", '\n');
 }
 
 fonc écris_pnm(image : Image, chemin : chaine) : rien
 {
-    df = ouvre_fichier_ecriture(chemin);
+    df := ouvre_fichier_ecriture(chemin);
     diffère { ferme_fichier(df); }
 
     si df == -1 {
@@ -393,19 +393,19 @@ fonc écris_pnm(image : Image, chemin : chaine) : rien
         3 { entete = "P6"; }
     }
 
-    taille_x = image.largeur;
-    taille_y = image.hauteur;
-    tampon_image = image.tampon;
+    taille_x := image.largeur;
+    taille_y := image.hauteur;
+    tampon_image := image.tampon;
 
     imprime_fichier(df, entete, ' ', taille_x, ' ', taille_y, ' ', 255, ' ');
 
-    nombre_caracteres = taille_x * taille_y * image.channels;
+    nombre_caracteres := taille_x * taille_y * image.channels;
 
-    dyn tampon = loge chaine(nombre_caracteres);
+    dyn tampon := loge chaine(nombre_caracteres);
     diffère { déloge tampon; }
 
-    dyn idx = 0;
-    dyn idx_image = 0;
+    dyn idx := 0;
+    dyn idx_image := 0;
 
     pour i dans 0...taille_x - 1 {
         pour j dans 0...taille_y - 1 {
@@ -418,11 +418,11 @@ fonc écris_pnm(image : Image, chemin : chaine) : rien
         }
     }
 
-    debut = maintenant_sec();
+    debut := maintenant_sec();
 
     imprime_fichier(df, tampon);
 
-    delta = delta_sec(debut);
+    delta := delta_sec(debut);
 
     imprime("Temps d'écriture PNM = ", delta, "s", '\n');
 }
@@ -644,11 +644,11 @@ fonc lis_jpeg(chemin : chaine) : Image
     # nous devons avoir une chaine terminée par '\0' donc copie dans un
 	# tampon
 	dyn tampon : [1024]z8;
-	ptr_tampon = copie_chaine_c_tampon(tampon, chemin);
+	ptr_tampon := copie_chaine_c_tampon(tampon, chemin);
 
-    modes = "rb";
+    modes := "rb";
 
-    file = fopen(@tampon[0], modes.pointeur);
+    file := fopen(@tampon[0], modes.pointeur);
     diffère { fclose(file); }
 
     si file == nul {
@@ -670,9 +670,9 @@ fonc lis_jpeg(chemin : chaine) : Image
 
 	jpeg_start_decompress(@info);
 
-    largeur = transtype(info.output_width : z32);
-	hauteur = transtype(info.output_height : z32);
-	channels = transtype(info.output_components : z32);
+    largeur := transtype(info.output_width : z32);
+	hauteur := transtype(info.output_height : z32);
+	channels := transtype(info.output_components : z32);
 
 	image.largeur = largeur;
 	image.hauteur = hauteur;
@@ -681,13 +681,13 @@ fonc lis_jpeg(chemin : chaine) : Image
 
 	image.tampon = loge chaine(largeur * hauteur * channels);
 
-	stride = largeur * channels;
+	stride := largeur * channels;
 
     imprime("Hauteur = ", hauteur, '\n');
     imprime("Largeur = ", largeur, '\n');
 
 	pour xi dans 0...hauteur - 1 {
-        buffer = @image.tampon[xi * stride]
+        buffer := @image.tampon[xi * stride]
 		jpeg_read_scanlines(@info, @buffer, 1);
 	}
 
@@ -808,19 +808,19 @@ fonc externe jpeg_set_quality(info : *jpeg_compress_struct, quality : z32, v : z
 fonc externe jpeg_start_compress(info : *jpeg_compress_struct, v : z32) : rien;
 fonc externe jpeg_write_scanlines(info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) : n32;
 
-soit _JCS_GRAYSCALE = 1;
-soit _JCS_RGB = 2;
+_JCS_GRAYSCALE := 1;
+_JCS_RGB := 2;
 
 fonc écris_jpeg(image : Image, chemin : chaine) : rien
 {
     # nous devons avoir une chaine terminée par '\0' donc copie dans un
 	# tampon
 	dyn tampon : [1024]z8;
-	ptr_tampon = copie_chaine_c_tampon(tampon, chemin);
+	ptr_tampon := copie_chaine_c_tampon(tampon, chemin);
 
-    modes = "wb";
+    modes := "wb";
 
-    file = fopen(@tampon[0], modes.pointeur);
+    file := fopen(@tampon[0], modes.pointeur);
     diffère { fclose(file); }
 
 	#fseek(file, 0L, SEEK_SET);
@@ -849,10 +849,10 @@ fonc écris_jpeg(image : Image, chemin : chaine) : rien
 	jpeg_set_quality(@info, 95, 0);
     jpeg_start_compress(@info, 1);
 
-	stride = image.largeur * image.channels;
+	stride := image.largeur * image.channels;
 
 	pour x dans 0...image.hauteur - 1 {
-        buffer = @image.tampon[x * stride]
+        buffer := @image.tampon[x * stride]
 		jpeg_write_scanlines(@info, @buffer, 1);
 	}
 
@@ -864,9 +864,9 @@ fonc test_jpeg() : rien
 {
     imprime("Entrée jpeg : mémoire utilisée : ", mémoire_utilisée(), '\n');
 
-    image = lis_jpeg("/home/kevin/Images/59446046_185101052475540_1803696242081923072_n.jpg");
+    image := lis_jpeg("/home/kevin/Images/59446046_185101052475540_1803696242081923072_n.jpg");
 
-    chemin = "/home/kevin/test.pnm";
+    chemin := "/home/kevin/test.pnm";
     écris_pnm(image, chemin);
 
     #imprime(image, '\n');
@@ -880,7 +880,7 @@ fonc test_jpeg() : rien
 
 fonc principale(args : []*z8) : z32
 {
-    image = génére_image_noire();
+    image := génére_image_noire();
     ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
  #  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 

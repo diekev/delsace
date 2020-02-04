@@ -8,7 +8,7 @@ fonc test_pile() : rien
 {
     imprime("==========================================\n")
 
-    dyn p = crée_pile(transtype(taille_de(z32) : z64))
+    dyn p := crée_pile(transtype(taille_de(z32) : z64))
     diffère { 
         decrée_pile(p)
         imprime("pile décréée !\n")
@@ -17,7 +17,7 @@ fonc test_pile() : rien
     imprime(" ----------- remplissage de la pile\n")
 
     pour i dans 0...9 {
-        soit v = i * 2
+        v := i * 2
         empile(p, @v)
         imprime("empile : ", v, " -> ", mémoire(p), '\n')
     }
@@ -35,7 +35,7 @@ fonc test_file() : rien
 {
     imprime("==========================================\n")
 
-    dyn p = crée_file(transtype(taille_de(z32) : z64))
+    dyn p := crée_file(transtype(taille_de(z32) : z64))
     diffère { 
         decrée_file(p)
         imprime("file décréée !\n")
@@ -44,7 +44,7 @@ fonc test_file() : rien
     imprime(" ----------- remplissage de la file\n")
 
     pour i dans 0...9 {
-        soit v = i * 2
+        v := i * 2
         enfile(p, @v)  # À FAIRE : transtypage automatique
         imprime("enfile : ", v, " -> ", mémoire(p), '\n')
     }
@@ -62,7 +62,7 @@ fonc test_tableau() : rien
 {
     imprime("==========================================\n")
 
-    dyn t = crée_tableau(transtype(taille_de(z32) : z64))
+    dyn t := crée_tableau(transtype(taille_de(z32) : z64))
     diffère { 
         decrée_tableau(t)
         imprime("tableau décréé !\n")
@@ -71,20 +71,20 @@ fonc test_tableau() : rien
     imprime(" ----------- remplissage du tableau\n")
 
     pour i dans 0...9 {
-        soit v = i * 2
+        v := i * 2
         pousse_tableau(t, @v)
         imprime("pousse : ", v, " -> ", mémoire(t), '\n')
     }
 
     imprime(" ----------- itération du tableau\n")
 
-    soit debut = transtype(début_tableau(t) : *z32)
-    soit fin   = transtype(fin_tableau(t) : *z32)
+    debut := transtype(début_tableau(t) : *z32)
+    fin   := transtype(fin_tableau(t) : *z32)
 
     imprime("plage tableau : ", debut, " -> ", fin, '\n')
 
     pour v dans debut...fin {
-        soit x = mémoire(v)
+        x := mémoire(v)
         imprime("iter : ", x, " -> ", mémoire(t), '\n')
     }
 }
@@ -94,7 +94,7 @@ fonc principale(args : []*z8) : z32
     imprime("Il y a ", args.taille, " arguments :\n")
 
     pour arg dans args {
-        soit chn = converti_chaine_c(arg)
+        chn := converti_chaine_c(arg)
         imprime('\t', chn, '\n')
     }
 

@@ -14,13 +14,13 @@ fonc est_base64(c : z8) : bool
 
 fonc encode_impl(chn : chaine, table : chaine) : chaine
 {
-	dyn i = 0
+	dyn i := 0
 	dyn char_array_3 : [3]n8
 	dyn char_array_4 : [4]n8
 
     dyn enchaineuse : Enchaineuse
 
-    dyn longueur = chn.taille
+    dyn longueur := chn.taille
 
     # À FAIRE: on utilise chn[idx] car c est une référence est la coulisse C ne le gère pas
     pour c, idx dans chn {
@@ -67,13 +67,13 @@ fonc encode_impl(chn : chaine, table : chaine) : chaine
 
 fonc encode(chn: chaine) : chaine
 {
-    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	retourne encode_impl(chn, table)
 }
 
 fonc encode_pour_url(chn: chaine) : chaine
 {
-    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	retourne encode_impl(chn, table)
 }
 
@@ -81,10 +81,10 @@ fonc encode_pour_url(chn: chaine) : chaine
 
 fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) : chaine
 {
-	dyn i = 0
+	dyn i := 0
 	dyn char_array_3 : [3]n8
 	dyn char_array_4 : [4]n8
-    dyn longueur = chn.taille
+    dyn longueur := chn.taille
     dyn enchaineuse : Enchaineuse
 
     # À FAIRE: on utilise chn[idx] car c est une référence est la coulisse C ne le gère pas
@@ -136,13 +136,13 @@ fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool
 
 fonc décode(chn: chaine) : chaine
 {
-    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	retourne décode_impl(chn, table, est_base64)
 }
 
 fonc décode_pour_url(chn: chaine) : chaine
 {
-    table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	retourne décode_impl(chn, table, est_base64_url)
 }
 
@@ -152,11 +152,11 @@ fonc principale(args : []*z8) : z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-    chn = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure."
+    chn := "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure."
 
-    attendu = "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
+    attendu := "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4="
 
-    rés = encode(chn)
+    rés := encode(chn)
 
     imprime("Chaine encodée : ", rés, "\n")
 
@@ -164,7 +164,7 @@ fonc principale(args : []*z8) : z32
         imprime("Le résultat n'est pas le bon")
     }
 
-    déc = décode(rés)
+    déc := décode(rés)
 
     imprime("Chaine décodée : ", déc, "\n")
 

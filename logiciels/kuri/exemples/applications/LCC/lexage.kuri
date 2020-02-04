@@ -4,29 +4,29 @@ importe Fondation
 
 énum TypeRune : z32 {
     # espaces
-	ESPACE_INSECABLE             = 0x00A0
-	ESPACE_D_OGAM                = 0x1680
-	SEPARATEUR_VOYELLES_MONGOL   = 0x180E
-	DEMI_CADRATIN                = 0x2000
-	CADRATIN                     = 0x2001
-	ESPACE_DEMI_CADRATIN         = 0x2002
-	ESPACE_CADRATIN              = 0x2003
-	TIERS_DE_CADRATIN            = 0x2004
-	QUART_DE_CADRATIN            = 0x2005
-	SIXIEME_DE_CADRATIN          = 0x2006
-	ESPACE_TABULAIRE             = 0x2007
-	ESPACE_PONCTUATION           = 0x2008
-	ESPACE_FINE                  = 0x2009
-	ESPACE_ULTRAFINE             = 0x200A
-	ESPACE_SANS_CHASSE           = 0x200B
-	ESPACE_INSECABLE_ETROITE     = 0x202F
-	ESPACE_MOYENNE_MATHEMATIQUE  = 0x205F
-	ESPACE_IDEOGRAPHIQUE         = 0x3000
-	ESPACE_INSECABLE_SANS_CHASSE = 0xFEFF
+	ESPACE_INSECABLE             := 0x00A0
+	ESPACE_D_OGAM                := 0x1680
+	SEPARATEUR_VOYELLES_MONGOL   := 0x180E
+	DEMI_CADRATIN                := 0x2000
+	CADRATIN                     := 0x2001
+	ESPACE_DEMI_CADRATIN         := 0x2002
+	ESPACE_CADRATIN              := 0x2003
+	TIERS_DE_CADRATIN            := 0x2004
+	QUART_DE_CADRATIN            := 0x2005
+	SIXIEME_DE_CADRATIN          := 0x2006
+	ESPACE_TABULAIRE             := 0x2007
+	ESPACE_PONCTUATION           := 0x2008
+	ESPACE_FINE                  := 0x2009
+	ESPACE_ULTRAFINE             := 0x200A
+	ESPACE_SANS_CHASSE           := 0x200B
+	ESPACE_INSECABLE_ETROITE     := 0x202F
+	ESPACE_MOYENNE_MATHEMATIQUE  := 0x205F
+	ESPACE_IDEOGRAPHIQUE         := 0x3000
+	ESPACE_INSECABLE_SANS_CHASSE := 0xFEFF
 
     # guillemets
-	GUILLEMET_OUVRANT = 0x00AB  # «
-	GUILLEMET_FERMANT = 0x00BB  # »
+	GUILLEMET_OUVRANT := 0x00AB  # «
+	GUILLEMET_FERMANT := 0x00BB  # »
 }
 
 ###############################################################################
@@ -115,7 +115,7 @@ struct DonnéesLexème {
 
 fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]DonnéesLexème
     liste[taille] = valeur
 }
@@ -213,10 +213,10 @@ struct Lexeuse {
 
     lexèmes : []DonnéesLexème
 
-    taille_mot_courant = 0
-	compte_ligne = 0
-	position_ligne = 0
-	pos_mot = 0
+    taille_mot_courant := 0
+	compte_ligne := 0
+	position_ligne := 0
+	pos_mot := 0
 }
 
 fonc construit_lexeuse(chn : chaine) : Lexeuse
@@ -237,10 +237,10 @@ fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) : rien
 
 fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 {
-	lexeuse.taille_mot_courant = 0
+	lexeuse.taille_mot_courant := 0
 
 	tantque (!lexeuse.fini()) {
-		dyn nombre_octet = nombre_octets_utf8(lexeuse.début)
+		dyn nombre_octet := nombre_octets_utf8(lexeuse.début)
 
 		discr (nombre_octet) {
 			1 {
@@ -253,7 +253,7 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 					lexeuse.enregistre_pos_mot()
 				}
 
-				dyn c = converti_utf8_utf32(lexeuse.début, nombre_octet)
+				dyn c := converti_utf8_utf32(lexeuse.début, nombre_octet)
 
 				discr transtype(c : TypeRune) {
 					ESPACE_INSECABLE,
@@ -372,7 +372,7 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) : rien
         retourne
 	}
 
-    est_spécial, idc = est_caractère_spécial(lexeuse.caractère_courant())
+    est_spécial, idc := est_caractère_spécial(lexeuse.caractère_courant())
 
 	si (est_spécial) {
 		si (lexeuse.taille_mot_courant != 0) {
@@ -381,7 +381,7 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) : rien
 
 		lexeuse.enregistre_pos_mot()
 
-		dyn id = id_digraphe(construit_chaine(lexeuse.début, 2))
+		dyn id := id_digraphe(construit_chaine(lexeuse.début, 2))
 
 		si (id != TypeLexème.INCONNU) {
 			lexeuse.pousse_caractère()

@@ -7,7 +7,7 @@ importe GlibC
 # Algorithme d'impression de nombre décimaux sur 32-bits tiré de
 # https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
 
-décalage_mot = 32
+décalage_mot := 32
 
 # This class represents a very limited high-precision number with 'count' 32-bit
 # unsigned elements. */
@@ -63,8 +63,8 @@ fonc insert_low_bits(
 
 	# Use an unsigned type so that negative numbers will become large,
 	# which makes the range checking below simpler. */
-	count = 5
-	high_index = count - 1 - big_shift;
+	count := 5
+	high_index := count - 1 - big_shift;
 
 	# Write the results to the data array. If the index is too large then
 	# that means that the data was shifted off the edge. */
@@ -88,7 +88,7 @@ fonc insert_top_bits(
 	valeur : n32,
 	quantité_décalage : z32) : rien
 {
-	count = 5
+	count := 5
 	insert_low_bits(n, valeur, (count + 1) * décalage_mot - quantité_décalage);
 }
 
@@ -107,12 +107,12 @@ fonc is_zero(n : &haute_précision) : bool
 # Divide by div and return the remainder, from 0 to div-1.
 fonc remainder(dyn n : &haute_précision, divisor : n32) : n32
 {
-	dyn remain = transtype(0 : n32)
+	dyn remain := transtype(0 : n32)
 
 	# Standard long-division algorithm.
 	pour i dans 0 ... 4 {
-		dividend = (transtype(remain : n64) << décalage_mot) + n.pointeur[i]
-		result = dividend / divisor
+		dividend := (transtype(remain : n64) << décalage_mot) + n.pointeur[i]
+		result := dividend / divisor
 		remain = transtype(dividend % divisor : n32)
 		n.pointeur[i] = transtype(result : n32)
 	}
@@ -123,12 +123,12 @@ fonc remainder(dyn n : &haute_précision, divisor : n32) : n32
 # Multiply by mul and return the overflow, from 0 to mul - 1
 fonc overflow(dyn n : &haute_précision, mul : n32) : n32
 {
-	dyn over = transtype(0 : n32)
+	dyn over := transtype(0 : n32)
 
 	pour j dans 0 ... 4 {
 		i = 4 - j
 
-		result = transtype(mul : n64) * n.pointeur[i] + over;
+		result := transtype(mul : n64) * n.pointeur[i] + over;
 
 		# Put the bottom bits of the results back.
 		n.pointeur[i] = transtype(result : n32)
@@ -173,7 +173,7 @@ fonc exposant_cru(n : &NombreDécimal) : z32
 fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f : r32) : rien
 {
 	# Mets le nombre dans notre union magique afin d'extraire les composants
-	num = construit_nombre_décimal(f)
+	num := construit_nombre_décimal(f)
 
 	# Défini le caractère pour le signe
 	si num.est_négatif() {
@@ -194,10 +194,10 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 	}
 
 	# Ajustement pour le biais de l'exposant.
-	dyn valeur_exposant = num.exposant_cru() - 127
+	dyn valeur_exposant := num.exposant_cru() - 127
 
 	# Ajoute celui impliqué à la mantisse.
-	dyn valeur_mantisse = (1 << 23) + num.mantisse_crue()
+	dyn valeur_mantisse := (1 << 23) + num.mantisse_crue()
 
 	# Cas spécial pour les dénormales - pas de valeur spéciale d'exposant et pas d'impliquée
 	si num.exposant_cru() == 0 {
@@ -208,7 +208,7 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 	# Le premier bit de la mantisse a une valeur implicite de 1 et ceci peut
 	# être décalé de 127 positions vers la gauche, donc de 125 bits vers la gauche
 	# du point binaire, ou 4 mots pour la part entière.
-	dyn part_entière = construit_nombre_haute_précision() # haute_précision<4>
+	dyn part_entière := construit_nombre_haute_précision() # haute_précision<4>
 
 	# Quand notre valeur_exposant est 0 (un nombre entre 1.0 et 2.0),
 	# nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
@@ -220,7 +220,7 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 
 	# Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
-		remainder = part_entière.remainder(transtype(10 : n32))
+		remainder := part_entière.remainder(transtype(10 : n32))
 		enchaineuse.pousse(transtype('0' + remainder : z8))
 	} tantque !part_entière.is_zero()
 
@@ -233,14 +233,14 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 	# Nous avons une mantisse de 23-bits à droite du point binaire et ceci
 	# peut être décalé de 126 positions vers la droite, donc 149 bits, ou
 	# 5 mots de 32-bits.
-	dyn frac = construit_nombre_haute_précision() # haute_précision<5>
+	dyn frac := construit_nombre_haute_précision() # haute_précision<5>
 
 	# Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
 	# la part fractionnelle.
 	frac.insert_top_bits(transtype(valeur_mantisse : n32), 23 - valeur_exposant);
 
 	tantque !frac.is_zero() {
-		overflow = frac.overflow(transtype(10 : n32))
+		overflow := frac.overflow(transtype(10 : n32))
 		enchaineuse.pousse(transtype('0' + overflow : z8))
 	}
 }
@@ -259,10 +259,10 @@ fonc imprime_valeur_entier_naturel(
 	chiffres = "0123456789"
 
 	dyn résultat : [20]z8
-	dyn taille_résultat = 0
+	dyn taille_résultat := 0
 
 	tantque valeur != 0 {
-		chiffre = valeur % 10
+		chiffre := valeur % 10
 		résultat[taille_résultat] = chiffres[chiffre]
 		valeur /= 10
 		taille_résultat += 1
@@ -287,13 +287,13 @@ fonc imprime_valeur_entier_relatif(
 		valeur = -valeur
 	}
 
-	chiffres = "0123456789"
+	chiffres := "0123456789"
 
 	dyn résultat : [20]z8
-	dyn taille_résultat = 0
+	dyn taille_résultat := 0
 
 	tantque valeur != 0 {
-		chiffre = valeur % 10
+		chiffre := valeur % 10
 		résultat[taille_résultat] = chiffres[chiffre]
 		valeur /= 10
 		taille_résultat += 1
@@ -350,7 +350,7 @@ fonc imprime_valeur_entière(
 fonc imprime_nombre_décimal(dyn enchaineuse : &Enchaineuse, f : r32) : rien
 {
 	# Mets le nombre dans notre union magique afin d'extraire les composants
-	num = construit_nombre_décimal(f)
+	num := construit_nombre_décimal(f)
 
 	# Défini le caractère pour le signe
 	si num.est_négatif() {
@@ -375,25 +375,25 @@ fonc imprime_nombre_décimal(dyn enchaineuse : &Enchaineuse, f : r32) : rien
 		retourne
 	}
 
-	dyn x = f
+	dyn x := f
 
 	si f < 0.0 {
 		x = -x
 	}
 
-	dyn part_entière = transtype(x : z64)
+	dyn part_entière := transtype(x : z64)
 
 	imprime_valeur_entier_relatif(enchaineuse, part_entière)
 
 	enchaineuse.pousse('.')
 
-	dyn frac = x - transtype(part_entière : r32)
+	dyn frac := x - transtype(part_entière : r32)
 
-	chiffres = "0123456789"
+	chiffres := "0123456789"
 
 	répète {
 		frac *= 10.0
-		chiffre = transtype(frac : z64)
+		chiffre := transtype(frac : z64)
 
 		enchaineuse.pousse(chiffres[chiffre])
 
@@ -410,16 +410,16 @@ fonc imprime_pointeur(
         retourne
     }
 
-    valeur = transtype(pointeur : n64)
+    valeur := transtype(pointeur : n64)
 
     enchaineuse.pousse("0x")
 
-    chiffres_hex = "0123456789ABCDEF"
+    chiffres_hex := "0123456789ABCDEF"
 
-    dyn décalage = 60
+    dyn décalage := 60
 
     pour i dans 0 ... 15 {
-        chiffre = (valeur >> décalage) & 0x0F
+        chiffre := (valeur >> décalage) & 0x0F
         enchaineuse.pousse(chiffres_hex[chiffre])
         décalage -= 4
     }
@@ -433,7 +433,7 @@ fonc imprime_valeur(
 {
     discr info.id {
 		ENTIER {
-			info_arg = transtype(info : *InfoTypeEntier)
+			info_arg := transtype(info : *InfoTypeEntier)
             imprime_valeur_entière(enchaineuse, pointeur, info_arg)
 		}
 		RÉEL {
@@ -441,21 +441,21 @@ fonc imprime_valeur(
 			dyn y : r32
 
             si info_arg.taille_en_octet == 16 {
-				soit x = mémoire(transtype(pointeur : *r16))
+				x := mémoire(transtype(pointeur : *r16))
 				y = x
 			}
 			sinon si info_arg.taille_en_octet == 32 {
 				y = mémoire(transtype(pointeur : *r32))
 			}
 			sinon si info_arg.taille_en_octet == 64 {
-				x = mémoire(transtype(pointeur : *r64))
+				x := mémoire(transtype(pointeur : *r64))
 				y = transtype(x : r32)
 			}
 
 			imprime_nombre_décimal(enchaineuse, y)
 		}
 		BOOLÉEN {
-			x = mémoire(transtype(pointeur : *bool))
+			x := mémoire(transtype(pointeur : *bool))
 
             si x {
 				enchaineuse.pousse("vrai")
@@ -465,7 +465,7 @@ fonc imprime_valeur(
 			}
 		}
 		CHAINE {
-			x = mémoire(transtype(pointeur : *chaine))
+			x := mémoire(transtype(pointeur : *chaine))
 
             si échappe_chn {
 				enchaineuse.pousse('"')
@@ -478,15 +478,15 @@ fonc imprime_valeur(
 			}
 		}
 		STRUCTURE {
-			info_arg = transtype(info : *InfoTypeStructure)
+			info_arg := transtype(info : *InfoTypeStructure)
 
             enchaineuse.pousse(info_arg.nom)
             enchaineuse.pousse(" {")
 
             pour membre, idx dans info_arg.membres {
-				nom = membre.nom
-                décalage = membre.décalage
-				id = membre.id
+				nom := membre.nom
+                décalage := membre.décalage
+				id := membre.id
 
                 si idx != 0 {
                     enchaineuse.pousse(',')
@@ -501,10 +501,10 @@ fonc imprime_valeur(
             enchaineuse.pousse(" }")
 		}
 		POINTEUR {
-			info_arg = transtype(info : *InfoTypePointeur)
+			info_arg := transtype(info : *InfoTypePointeur)
 
 		    # Ne pas oublier qu'il y a un niveau d'indirection.
-			x = mémoire(transtype(pointeur : **z8))
+			x := mémoire(transtype(pointeur : **z8))
 
 			si info_arg.est_référence {
 				imprime_valeur(enchaineuse, x, info_arg.type_pointé, vrai)
@@ -518,7 +518,7 @@ fonc imprime_valeur(
             enchaineuse.pousse("fonction()")
 		}
 		EINI {
-			x = mémoire(transtype(pointeur : *eini))
+			x := mémoire(transtype(pointeur : *eini))
 
             enchaineuse.pousse("eini { ptr = ")
             imprime_pointeur(enchaineuse, x.pointeur)
@@ -539,11 +539,11 @@ fonc imprime_valeur(
             enchaineuse.pousse(" }")
 		}
 		ÉNUM {
-			info_arg = transtype(info : *InfoTypeÉnum)
+			info_arg := transtype(info : *InfoTypeÉnum)
 
 			# À FAIRE : typage selon énum
-			valeur = mémoire(transtype(pointeur : *z32))
-			noms = info_arg.noms
+			valeur := mémoire(transtype(pointeur : *z32))
+			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
 				dyn valeur_trouvée = faux

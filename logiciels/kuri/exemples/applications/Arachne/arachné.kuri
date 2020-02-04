@@ -17,7 +17,7 @@ struct Colonne {
 
 fonc pousse(dyn liste : &[]Colonne, valeur : Colonne) : rien
 {
-	taille = liste.taille
+	taille := liste.taille
 	reloge liste : [taille + 1]Colonne
 	liste[taille] = valeur
 }
@@ -35,7 +35,7 @@ struct Schéma {
 
 fonc pousse(dyn liste : &[]Schéma, valeur : Schéma) : rien
 {
-	taille = liste.taille
+	taille := liste.taille
 	reloge liste : [taille + 1]Schéma
 	liste[taille] = valeur
 }
@@ -62,13 +62,13 @@ fonc trouve_colonne(dyn schéma : &Schéma, nom : chaine) : *Colonne
 
 fonc ajoute_colonne(dyn schéma : &Schéma, nom : chaine, type : TypeDonnées) : rien
 {
-	colonne_existante = schéma.trouve_colonne(nom)
+	colonne_existante := schéma.trouve_colonne(nom)
 
 	si colonne_existante != nul {
 		retourne
 	}
 
-	colonne = Colonne{ nom = nom, type = type }
+	colonne := Colonne{ nom = nom, type = type }
 	schéma.colonnes.pousse(colonne)
 }
 
@@ -85,7 +85,7 @@ struct Noeud {
 
 fonc pousse(dyn liste : &[]Noeud, valeur : Noeud) : rien
 {
-	taille = liste.taille
+	taille := liste.taille
 	reloge liste : [taille + 1]Noeud
 	liste[taille] = valeur
 }
@@ -105,7 +105,7 @@ struct Relation {
 
 fonc pousse(dyn liste : &[]Relation, valeur : Relation) : rien
 {
-	taille = liste.taille
+	taille := liste.taille
 	reloge liste : [taille + 1]Relation
 	liste[taille] = valeur
 }
@@ -135,13 +135,13 @@ fonc trouve_schéma(arachné : &Arachné, nom : chaine) : *Schéma
 
 fonc crée_schéma(arachné : &Arachné, nom : chaine, colonnes : []Colonne) : TypeErreur
 {
-	schéma_existant = arachné.trouve_schéma(nom)
+	schéma_existant := arachné.trouve_schéma(nom)
 
 	si schéma_existant != nul {
 		retourne TypeErreur.SCHÉMA_EXISTANT
 	}
 
-	schéma = Schéma{ nom = nom, colonnes = colonnes }
+	schéma := Schéma{ nom = nom, colonnes = colonnes }
 	arachné.schémas.pousse(schéma)
 
 	retourne TypeErreur.AUCUNE
@@ -149,16 +149,16 @@ fonc crée_schéma(arachné : &Arachné, nom : chaine, colonnes : []Colonne) : T
 
 fonc crée_noeud(dyn arachné : &Arachné, nom_schéma : chaine) : TypeErreur
 {
-	schéma = arachné.trouve_schéma(nom_schéma)
+	schéma := arachné.trouve_schéma(nom_schéma)
 
 	si schéma == nul {
 		retourne TypeErreur.SCHÉMA_INEXISTANT
 	}
 
-	noeud = Noeud{ schéma = schéma, id = arachné.noeuds.taille, id_ligne = schéma.lignes }
+	noeud := Noeud{ schéma = schéma, id = arachné.noeuds.taille, id_ligne = schéma.lignes }
 	arachné.noeuds.pousse(noeud)
 
-	réf = mémoire(schéma)
+	réf := mémoire(schéma)
 	redimensionne_schéma(réf)
 
 	retourne TypeErreur.AUCUNE
@@ -166,16 +166,16 @@ fonc crée_noeud(dyn arachné : &Arachné, nom_schéma : chaine) : TypeErreur
 
 fonc crée_relation(dyn arachné : &Arachné, nom_schéma : chaine) : TypeErreur
 {
-	schéma = arachné.trouve_schéma(nom_schéma)
+	schéma := arachné.trouve_schéma(nom_schéma)
 
 	si schéma == nul {
 		retourne TypeErreur.SCHÉMA_INEXISTANT
 	}
 
-	relation = Relation{ schéma = schéma, id = arachné.relations.taille, id_ligne = schéma.lignes }
+	relation := Relation{ schéma = schéma, id = arachné.relations.taille, id_ligne = schéma.lignes }
 	arachné.relations.pousse(relation)
 
-	réf = mémoire(schéma)
+	réf := mémoire(schéma)
 	redimensionne_schéma(réf)
 
 	retourne TypeErreur.AUCUNE
@@ -196,7 +196,7 @@ fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32
 	# trouve la colonne à modifier
 	# trouve la place où insérer la valeur
 
-	dyn schéma = noeud.schéma
+	dyn schéma := noeud.schéma
 
 	pour colonne dans schéma.colonnes {
 		si nom_colonne == colonne.nom {
@@ -209,7 +209,7 @@ fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32
 
 fonc trouve_valeur_noeud(noeud : &Noeud, nom_colonne : chaine) : z32
 {
-	schéma = noeud.schéma
+	schéma := noeud.schéma
 
 	pour colonne dans schéma.colonnes {
 		si nom_colonne == colonne.nom {
@@ -232,11 +232,11 @@ fonc principale(args : []*z8) : z32
 {
 	dyn arachné : Arachné
 
-	colonne = Colonne{ nom="nom", type = TypeDonnées.NOMBRE_ENTIER }
-	colonnes = [colonne]
+	colonne := Colonne{ nom="nom", type = TypeDonnées.NOMBRE_ENTIER }
+	colonnes := [colonne]
 	arachné.crée_schéma("FONCTION", colonnes)
 
-	schéma = arachné.trouve_schéma("FONCTION")
+	schéma := arachné.trouve_schéma("FONCTION")
 	#schéma.ajoute_colonne("nom", TypeDonnées.NOMBRE_ENTIER)
 
 	#arachné.montre_schémas()
@@ -245,7 +245,7 @@ fonc principale(args : []*z8) : z32
 
 	#arachné.montre_noeuds("FONCTION")
 
-	#noeud = arachné.trouve_noeud("FONCTION", "nom", 5)
+	#noeud := arachné.trouve_noeud("FONCTION", "nom", 5)
 
 	retourne 0
 }

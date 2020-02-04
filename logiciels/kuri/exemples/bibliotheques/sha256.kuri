@@ -2,12 +2,12 @@ importe Fondation
 
 ########################################
 
-TAILLE_BLOC_SHA224_256 = 64
-TAILLE_DIGEST = 32
+TAILLE_BLOC_SHA224_256 := 64
+TAILLE_DIGEST := 32
 
 struct SHA256 {
-    longueur_totale = 0
-    longueur = 0
+    longueur_totale := 0
+    longueur := 0
     bloc : [128]octet
 
     # À FAIRE: ceux-ci pourraient être des variables globales, il nous
@@ -71,7 +71,7 @@ fonc SHA2_UNPACK32(w : n32, dyn s : *octet) : rien
 
 fonc SHA2_PACK32(s: *octet, dyn w: *n32) : rien
 {
-    dyn rés = transtype(s[3]: n32)
+    dyn rés := transtype(s[3]: n32)
 	rés |= transtype(s[2] <<  8: n32)
 	rés |= transtype(s[1] << 16: n32)
 	rés |= transtype(s[0] << 24: n32)
@@ -85,7 +85,7 @@ fonc transforme(dyn sha256: *SHA256, message: *octet, nombre_blocs: n32) : rien
 	dyn wv: [8]n32
 
     pour i dans 0 ... transtype(nombre_blocs: z32) - 1 {
-		sub_block = message + (i << 6)
+		sub_block := message + (i << 6)
 
         pour j dans 0 ... 15 {
 			SHA2_PACK32(@sub_block[j << 2], @w[j])
@@ -100,9 +100,9 @@ fonc transforme(dyn sha256: *SHA256, message: *octet, nombre_blocs: n32) : rien
 		}
 
         pour j dans 0 ... 63 {
-			t1 = wv[7] + SHA256_F2(wv[4]) + SHA2_CH(wv[4], wv[5], wv[6])
+			t1 := wv[7] + SHA256_F2(wv[4]) + SHA2_CH(wv[4], wv[5], wv[6])
 				+ sha256.k[j] + w[j]
-			t2 = SHA256_F1(wv[0]) + SHA2_MAJ(wv[0], wv[1], wv[2])
+			t2 := SHA256_F1(wv[0]) + SHA2_MAJ(wv[0], wv[1], wv[2])
 			wv[7] = wv[6]
 			wv[6] = wv[5]
 			wv[5] = wv[4]
@@ -210,9 +210,9 @@ fonc min(a: z64, b: z64) : z64
 
 fonc ajoute_message(dyn sha256 : *SHA256, message: []octet) : rien
 {
-    longueur = message.taille
-	tmp_longueur = TAILLE_BLOC_SHA224_256 - sha256.longueur
-	dyn longueur_restante = min(longueur, tmp_longueur)
+    longueur := message.taille
+	tmp_longueur := TAILLE_BLOC_SHA224_256 - sha256.longueur
+	dyn longueur_restante := min(longueur, tmp_longueur)
 
 	copie_mem_nonsur(@message[0], @sha256.bloc[sha256.longueur], longueur_restante)
 
@@ -221,10 +221,10 @@ fonc ajoute_message(dyn sha256 : *SHA256, message: []octet) : rien
 		retourne
 	}
 
-	nouvelle_longueur = longueur - longueur_restante
-	nombre_blocs = nouvelle_longueur / TAILLE_BLOC_SHA224_256
+	nouvelle_longueur := longueur - longueur_restante
+	nombre_blocs := nouvelle_longueur / TAILLE_BLOC_SHA224_256
 
-    message_décalé = @message[longueur_restante]
+    message_décalé := @message[longueur_restante]
 
     transforme(sha256, @sha256.bloc[0], transtype(1: n32))
 	transforme(sha256, message_décalé, transtype(nombre_blocs: n32))
@@ -239,11 +239,11 @@ fonc ajoute_message(dyn sha256 : *SHA256, message: []octet) : rien
 
 fonc final(dyn sha256 : *SHA256, digest: *octet) : rien
 {
-	nombre_blocs = (1 + transtype((TAILLE_BLOC_SHA224_256 - 9) < (sha256.longueur % TAILLE_BLOC_SHA224_256): z32))
+	nombre_blocs := (1 + transtype((TAILLE_BLOC_SHA224_256 - 9) < (sha256.longueur % TAILLE_BLOC_SHA224_256): z32))
 
-    len_b = transtype((sha256.longueur_totale + sha256.longueur) << 3: n32)
+    len_b := transtype((sha256.longueur_totale + sha256.longueur) << 3: n32)
 
-    longueur_pm = nombre_blocs << 6
+    longueur_pm := nombre_blocs << 6
 
     init_mem(@sha256.bloc[sha256.longueur], '\0', longueur_pm - sha256.longueur)
 	sha256.bloc[sha256.longueur] = transtype(0x80: octet)
@@ -267,8 +267,8 @@ fonc calcule_empreinte_sha256(entrée : chaine) : chaine
     dyn digest : [32]octet
 	init_mem(digest, '\0', TAILLE_DIGEST)
 
-	dyn ctx = construit_sha256()
-    dyn ptr = @ctx
+	dyn ctx := construit_sha256()
+    dyn ptr := @ctx
 	ptr.ajoute_message(entrée)
 	ptr.final(@digest[0])
 
@@ -277,7 +277,7 @@ fonc calcule_empreinte_sha256(entrée : chaine) : chaine
 
     pour c, idx dans digest {
         # À FAIRE(coulisse C): référence
-        co = digest[idx]
+        co := digest[idx]
         enchaineuse.pousse(caractère_base_16((co >> 4) & 0xf))
         enchaineuse.pousse(caractère_base_16(co & 0xf))
 	}
@@ -291,10 +291,10 @@ fonc principale(args : []*z8) : z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-    chn = "exemples"
-    attendu = "4f0c2d37da8fd2cbc353fe6cf4dbd818423c03a48b631d2e774b9fcaa3825fd3"
+    chn := "exemples"
+    attendu := "4f0c2d37da8fd2cbc353fe6cf4dbd818423c03a48b631d2e774b9fcaa3825fd3"
 
-    rés = calcule_empreinte_sha256(chn)
+    rés := calcule_empreinte_sha256(chn)
 
     imprime(rés, "\n")
 

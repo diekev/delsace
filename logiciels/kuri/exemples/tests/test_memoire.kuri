@@ -5,7 +5,7 @@ fonc test_echange_memoire() : rien
 {
     # test superposition
 
-    chn = "0123456789";
+    chn := "0123456789";
 
     dyn a : []octet;
     dyn b : []octet;
@@ -17,7 +17,7 @@ fonc test_bouge_memoire() : rien
 {
     # test superposition
 
-    chn = "0123456789";
+    chn := "0123456789";
 
     dyn a : []octet;
     dyn b : []octet;
@@ -37,15 +37,15 @@ fonc copie_mem2(src : []octet, dyn dst : []octet, taille : z64) : rien
 
 	# vérifie si superposition
 
-	ptr_deb_src = @src[0];
-	ptr_fin_src = @src[src.taille - 1];
-	ptr_deb_dst = @dst[0];
+	ptr_deb_src := @src[0];
+	ptr_fin_src := @src[src.taille - 1];
+	ptr_deb_dst := @dst[0];
 
 	# src |---------------|
 	# dst       |---------------|
 	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {
         pour i dans transtype(0 : z64)...taille - 1 {
-            idx = taille - i - 1;
+            idx := taille - i - 1;
 	        dst[idx] = src[idx];
 	    }
 	}
@@ -66,8 +66,8 @@ fonc test_copie_mem() : rien
     # 3456789789
 
     # Les chaines statiques ne peuvent être modifiées.
-    chn_stat = "0123456789";
-    dyn chn = loge chaine(chn_stat.taille);
+    chn_stat := "0123456789";
+    dyn chn := loge chaine(chn_stat.taille);
     diffère { déloge chn; }
 
     pour c, i dans chn_stat {

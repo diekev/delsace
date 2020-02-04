@@ -23,7 +23,7 @@ struct DonnéesLexème {
 
 fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) : rien
 {
-    taille = liste.taille
+    taille := liste.taille
     reloge liste : [taille + 1]DonnéesLexème
     liste[taille] = valeur
 }
@@ -61,10 +61,10 @@ struct Lexeuse {
 
     lexèmes : []DonnéesLexème
 
-    position_ligne = 0
-    compte_ligne = 0
-    pos_mot = 0
-    taille_mot_courant = 0
+    position_ligne := 0
+    compte_ligne := 0
+    pos_mot := 0
+    taille_mot_courant := 0
 }
 
 fonc construit_lexeuse(chn : chaine) : Lexeuse
@@ -85,10 +85,10 @@ fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) : rien
 
 fonc performe_lexage(dyn lexeuse : &Lexeuse) : rien
 {
-    ÉTAT_HTML = 0
-    ÉTAT_SCRIPT = 1
+    ÉTAT_HTML := 0
+    ÉTAT_SCRIPT := 1
 
-	dyn état = ÉTAT_HTML
+	dyn état := ÉTAT_HTML
 
 	tantque !lexeuse.fini() {
 		si (lexeuse.caractère_courant() == '{') {

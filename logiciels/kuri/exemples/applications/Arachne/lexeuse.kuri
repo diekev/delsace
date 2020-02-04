@@ -79,7 +79,7 @@ fonc mot(empl lexeuse : &Lexeuse) : chaine
 
 fonc pousse(dyn lexèmes : &[]Lexème, lexème : Lexème) : rien
 {
-    taille = lexèmes.taille
+    taille := lexèmes.taille
     reloge lexèmes : [taille + 1]Lexème
     lexèmes[taille] = lexème
 }
@@ -198,7 +198,7 @@ fonc id_digraphe(chn : chaine) : IdentifiantLexème
 
 fonc id_mot(chn : chaine) : IdentifiantLexème
 {
-	info = info_de(IdentifiantLexème.INVALIDE)
+	info := info_de(IdentifiantLexème.INVALIDE)
 
 	pour nom, idx dans info.noms {
 		si nom == chn {
@@ -219,7 +219,7 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
     dyn idc : IdentifiantLexème
 
     tantque !lexeuse.a_fini() {
-        dyn c = lexeuse.caractère_courant()
+        dyn c := lexeuse.caractère_courant()
 
         si est_espace_blanc(c) {
 			si lexeuse.taille_mot != 0 {
@@ -235,8 +235,8 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 
             lexeuse.enregistre_pos_mot()
 
-            dyn trigraphe = construit_chaine(@chn[lexeuse.pos_mot], 3)
-            dyn id = id_trigraphe(trigraphe)
+            dyn trigraphe := construit_chaine(@chn[lexeuse.pos_mot], 3)
+            dyn id := id_trigraphe(trigraphe)
 
             si id != IdentifiantLexème.INVALIDE {
 				lexeuse.pousse_caractère()
@@ -246,7 +246,7 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 				continue
             }
 
-            dyn digraphe = construit_chaine(@chn[lexeuse.pos_mot], 2)
+            dyn digraphe := construit_chaine(@chn[lexeuse.pos_mot], 2)
             id = id_digraphe(digraphe)
 
             si id != IdentifiantLexème.INVALIDE {
@@ -293,7 +293,7 @@ fonc analyse_texte(dyn lexeuse : &Lexeuse, chn : chaine) : rien
 
 fonc test_lexeuse() : rien
 {
-    requête = "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->()"
+    requête := "TROUVE (profil : UTILISATEUR { nom: \"kévin\", âge : 28 })-[]->()"
 
     dyn lexeuse : Lexeuse
     lexeuse.analyse_texte(requête)

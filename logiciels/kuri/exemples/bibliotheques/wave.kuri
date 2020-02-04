@@ -8,9 +8,9 @@ importe "math"
 ################################################################################
 
 struct EntêteWave {
-    id_groupe = "RIFF";
-    taille_fichier = 0;
-    type_riff = "WAVE";
+    id_groupe := "RIFF";
+    taille_fichier := 0;
+    type_riff := "WAVE";
 }
 
 fonc écris(entête : &EntêteWave, fichier : &Fichier) : rien
@@ -23,7 +23,7 @@ fonc écris(entête : &EntêteWave, fichier : &Fichier) : rien
 ################################################################################
 
 struct ChunkFormatWave {
-    id_chunk = "fmt ";
+    id_chunk := "fmt ";
     taille_chunk : n32 = 16;
     tag_format : n16 = 1;
     nombre_cannaux : n16 = 2;
@@ -48,7 +48,7 @@ fonc écris(chunk : &ChunkFormatWave, fichier : &Fichier) : rien
 ################################################################################
 
 struct ChunkDonnéesWave {
-    id_chunk = "data";
+    id_chunk := "data";
     taille_chunk : n32 = 0;
     données : []z16;
 }
@@ -74,20 +74,20 @@ fonc ajoute_fréquence(
     amplitude : z32,
     longueur : r64) : rien
 {
-    nombre_échantillons = génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux * longueur;
+    nombre_échantillons := génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux * longueur;
 
     si nombre_échantillons == 0 {
         retourne;
     }
 
-    données = génératice.données.données;
-    taille = données.taille;
+    données := génératice.données.données;
+    taille := données.taille;
 
     données.redimensionne(taille + nombre_échantillons - 1);
 
     #assert(taille != 0);
 
-    t = (math.TAU * fréquence) / (génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux);
+    t := (math.TAU * fréquence) / (génératrice.format.échantillons_secondes * génératrice.format.nombre_cannaux);
 
     pour i dans taille ... taille + nombre_échantillons - 3 - 1 {
         pour c dans 0 ... génératrice.format.nombre_cannaux - 1 {
@@ -104,7 +104,7 @@ fonc ajoute_fréquence(
 
 fonc sauvegarde(génératrice : &GénératriceWave, chemin : chaine)
 {
-    fichier = fichier.ouvre(chemin);
+    fichier := fichier.ouvre(chemin);
     écris(génératrice.entête, fichier);
     écris(génératrice.format, fichier);
     écris(génératrice.données, fichier);

@@ -17,7 +17,7 @@ struct pile {
 
 fonc crée_pile(taille_elem : z64) : *pile
 {
-	dyn p = loge pile
+	dyn p := loge pile
 	p.taille_elem = taille_elem
 	retourne p
 }
@@ -38,7 +38,7 @@ fonc empile(dyn p : *pile, d : *rien) : rien
 		p.capacité += 1
     }
 
-	soit ptr = @p.tampon[p.taille * p.taille_elem]
+	ptr := @p.tampon[p.taille * p.taille_elem]
 	copie_mem_nonsur(d, ptr, p.taille_elem)
 
 	p.taille += 1
@@ -56,7 +56,7 @@ fonc dépile(dyn p : *pile, d : *rien) : rien
     }
 
     si d != nul {
-		soit ptr = @p.tampon[(p.taille - 1) * p.taille_elem]
+		ptr := @p.tampon[(p.taille - 1) * p.taille_elem]
 		copie_mem_nonsur(ptr, d, p.taille_elem)
     }
 
@@ -76,7 +76,7 @@ struct file {
 
 fonc crée_file(taille_elem : z64) : *file
 {
-	dyn q = loge file
+	dyn q := loge file
 	q.taille_elem = taille_elem
 	retourne q
 }
@@ -97,7 +97,7 @@ fonc enfile(dyn q : *file, d : *rien) : rien
 		q.capacité += 1
     }
 
-	soit ptr = @q.tampon[q.taille * q.taille_elem]
+	ptr := @q.tampon[q.taille * q.taille_elem]
 	copie_mem_nonsur(d, ptr, q.taille_elem)
 
 	q.taille += 1
@@ -115,15 +115,15 @@ fonc défile(dyn q : *file, d : *rien) : rien
     }
 
     si d != nul {
-		soit ptr = @q.tampon[0]
+		ptr := @q.tampon[0]
 		copie_mem_nonsur(ptr, d, q.taille_elem)
     }
 
     # réajuste la file en décalant les données
 
     si q.taille > 1 {
-		soit ptr_dst = @q.tampon[0]
-		soit ptr_src = @q.tampon[q.taille_elem]
+		ptr_dst := @q.tampon[0]
+		ptr_src := @q.tampon[q.taille_elem]
 		copie_mem_nonsur(ptr_src, ptr_dst, q.taille_elem * (q.taille - 1))
     }
 
@@ -143,7 +143,7 @@ struct tableau {
 
 fonc crée_tableau(taille_elem : z64) : *tableau
 {
-	dyn t = loge tableau
+	dyn t := loge tableau
 	t.taille_elem = taille_elem
 	retourne t
 }
@@ -164,7 +164,7 @@ fonc pousse_tableau(dyn t : *tableau, d : *rien) : rien
 		t.capacité += 1
     }
 
-	soit ptr = @t.tampon[t.taille * t.taille_elem]
+	ptr := @t.tampon[t.taille * t.taille_elem]
 	copie_mem_nonsur(d, ptr, t.taille_elem)
 
 	t.taille += 1
@@ -181,7 +181,7 @@ fonc début_tableau(t : *tableau) : *rien
 		retourne nul
     }
 
-	soit ptr = @t.tampon[0]
+	ptr := @t.tampon[0]
 	retourne transtype(ptr : *rien)
 }
 
@@ -194,6 +194,6 @@ fonc fin_tableau(t : *tableau) : *rien
     # NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
     # mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
     # élément (<=)
-	soit ptr = @t.tampon[(t.taille - 1) * t.taille_elem]
+	ptr := @t.tampon[(t.taille - 1) * t.taille_elem]
 	retourne transtype(ptr : *rien)
 }

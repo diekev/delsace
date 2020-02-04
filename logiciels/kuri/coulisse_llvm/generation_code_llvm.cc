@@ -1141,76 +1141,6 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::VARIABLE:
 		{
-			if (b->aide_generation_code == GENERE_CODE_DECL_VAR || b->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-				auto &type = contexte.typeuse[b->index_type];
-				auto type_llvm = converti_type_llvm(contexte, type);
-
-				if (contexte.fonction == nullptr) {
-					auto valeur = new llvm::GlobalVariable(
-									  *contexte.module_llvm,
-									  type_llvm,
-									  !possede_drapeau(b->drapeaux, DYNAMIC),
-									  llvm::GlobalValue::InternalLinkage,
-									  nullptr);
-
-					valeur->setConstant((b->drapeaux & DYNAMIC) == 0);
-					valeur->setAlignment(alignement(contexte, type));
-
-					auto donnees_var = DonneesVariable{};
-					donnees_var.valeur = valeur;
-					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-					donnees_var.index_type = b->index_type;
-
-					contexte.pousse_globale(b->chaine(), donnees_var);
-					return valeur;
-				}
-
-				auto alloc = new llvm::AllocaInst(
-								 type_llvm,
-								 0,
-			#ifdef NOMME_IR
-								 std::string(b->morceau.chaine),
-			#else
-								 "",
-			#endif
-								 contexte.bloc_courant());
-
-				alloc->setAlignment(alignement(contexte, type));
-
-				/* Mets à zéro les valeurs des tableaux dynamics. */
-				if (type.type_base() == TypeLexeme::TABLEAU) {
-					auto pointeur = accede_membre_structure(contexte, alloc, POINTEUR_TABLEAU);
-
-					auto stocke = new llvm::StoreInst(
-									  llvm::ConstantInt::get(
-										  llvm::Type::getInt64Ty(contexte.contexte),
-										  static_cast<uint64_t>(0),
-										  false),
-									  pointeur,
-									  contexte.bloc_courant());
-					stocke->setAlignment(8);
-
-					auto taille = accede_membre_structure(contexte, alloc, TAILLE_TABLEAU);
-					stocke = new llvm::StoreInst(
-								 llvm::ConstantInt::get(
-									 llvm::Type::getInt64Ty(contexte.contexte),
-									 static_cast<uint64_t>(0),
-									 false),
-								 taille,
-								 contexte.bloc_courant());
-					stocke->setAlignment(8);
-				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.valeur = alloc;
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.index_type = b->index_type;
-
-				contexte.pousse_locale(b->morceau.chaine, donnees_var);
-
-				return alloc;
-			}
-
 			auto valeur = contexte.valeur_locale(b->morceau.chaine);
 
 			if (valeur == nullptr) {
@@ -1380,19 +1310,72 @@ static llvm::Value *genere_code_llvm(
 
 			auto alloc = genere_code_llvm(variable, contexte, true);
 
-			if (variable->aide_generation_code == GENERE_CODE_DECL_VAR && contexte.fonction == nullptr) {
-				//assert(est_constant(expression));
-				auto vg = llvm::dyn_cast<llvm::GlobalVariable>(alloc);
-				vg->setInitializer(llvm::dyn_cast<llvm::Constant>(valeur));
-				return vg;
-			}
-
 			auto store = new llvm::StoreInst(valeur, alloc, false, contexte.bloc_courant());
 
 			auto const &dt = contexte.typeuse[expression->index_type];
 			store->setAlignment(alignement(contexte, dt));
 
 			return store;
+		}
+		case type_noeud::DECLARATION_VARIABLE:
+		{
+			auto variable = static_cast<noeud::base *>(nullptr);
+			auto expression = static_cast<noeud::base *>(nullptr);
+
+			if (b->enfants.taille() == 2) {
+				variable = b->enfants.front();
+				expression = b->enfants.back();
+			}
+			else {
+				variable = b;
+			}
+
+			auto &type = contexte.typeuse[variable->index_type];
+			auto type_llvm = converti_type_llvm(contexte, type);
+
+			/* À FAIRE: variable externe */
+			if (contexte.fonction == nullptr) {
+				auto vg = new llvm::GlobalVariable(
+								  *contexte.module_llvm,
+								  type_llvm,
+								  !possede_drapeau(variable->drapeaux, DYNAMIC),
+								  llvm::GlobalValue::InternalLinkage,
+								  nullptr);
+
+				vg->setConstant((b->drapeaux & DYNAMIC) == 0);
+				vg->setAlignment(alignement(contexte, type));
+
+				auto donnees_var = DonneesVariable{};
+				donnees_var.valeur = vg;
+
+				contexte.pousse_globale(variable->chaine(), donnees_var);
+
+				if (expression != nullptr) {
+					auto valeur = applique_transformation(contexte, expression, false);
+					vg->setInitializer(llvm::dyn_cast<llvm::Constant>(valeur));
+				}
+
+				return vg;
+			}
+
+			auto builder = llvm::IRBuilder<>(contexte.contexte);
+			builder.SetInsertPoint(contexte.bloc_courant());
+
+			auto alloc = builder.CreateAlloca(type_llvm, 0u);
+
+			if (expression != nullptr) {
+				auto valeur = applique_transformation(contexte, expression, false);
+				builder.CreateStore(valeur, alloc);
+			}
+
+			/* À FAIRE: si pas d'expression, initialise la variable */
+
+			auto donnees_var = DonneesVariable{};
+			donnees_var.valeur = alloc;
+
+			contexte.pousse_locale(variable->chaine(), donnees_var);
+
+			return alloc;
 		}
 		case type_noeud::NOMBRE_REEL:
 		{

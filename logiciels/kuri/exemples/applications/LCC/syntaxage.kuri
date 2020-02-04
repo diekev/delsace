@@ -156,7 +156,7 @@ struct Syntaxeuse {
     assembleuse : AssembleuseArbre
     lexèmes : []DonnéesLexème
 
-    position = 0
+    position := 0
 }
 
 fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) : Syntaxeuse
@@ -298,7 +298,7 @@ fonc analyse_controle_pour(dyn syntaxeuse : &Syntaxeuse) : rien
 
 	# enfant 1 : déclaration variable
 
-	noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+	noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 	syntaxeuse.assembleuse.ajoute_noeud(noeud)
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DANS)) {
@@ -336,7 +336,7 @@ fonc dernier(tabl : &[]*NoeudSyntaxique) : *NoeudSyntaxique
 
 fonc pop_dernier(dyn tabl : &[]*NoeudSyntaxique) : rien
 {
-    taille = tabl.taille
+    taille := tabl.taille
 
 	si taille == 1 {
 		tabl.taille = 0
@@ -363,7 +363,7 @@ fonc recule(dyn syntaxeuse : &Syntaxeuse) : rien
 
 fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) : bool
 {
-	t = syntaxeuse.lexème_courant()
+	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
@@ -425,7 +425,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			arrête
 		}
 
-		dyn morceau = syntaxeuse.lexèmes[position(syntaxeuse)]
+		dyn morceau := syntaxeuse.lexèmes[position(syntaxeuse)]
 
 		discr (morceau.lexème) {
 			CHAINE_CARACTERE {
@@ -433,7 +433,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
 					syntaxeuse.avance()
 
-					noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.FONCTION, morceau, faux)
+					noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.FONCTION, morceau, faux)
 
 					syntaxeuse.analyse_appel_fonction()
 
@@ -443,19 +443,19 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				}
 				# variable : chaine
 				sinon {
-					noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, morceau)
+					noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, morceau)
 					expression.pousse(noeud)
 				}
 			}
 			NOMBRE_REEL {
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
 			}
 			NOMBRE_BINAIRE,
 			NOMBRE_ENTIER,
 			NOMBRE_HEXADECIMAL,
 			NOMBRE_OCTAL {
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
 			}
 			VEC2,
@@ -463,7 +463,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			VEC4,
 			MAT3,
 			MAT4 {
-				noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
+				noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
 
 				si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
 					#lance_erreur("Attendu une paranthèse ouvrante après la déclaration du constructeur")
@@ -480,26 +480,26 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				expression.pousse(noeud)
 			}
 			CHAINE_LITTERALE {
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
 			}
 			CARACTERE {
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
 			}
 			NUL {
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
 			}
 			VRAI,
 			FAUX {
 				# remplace l'lexème par TypeLexème.BOOL
 				morceau.lexème = TypeLexème.BOOL
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
 			}
 			PARENTHESE_OUVRANTE {
-				noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.EXPRESSION_PARENTHESE, morceau, faux)
+				noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.EXPRESSION_PARENTHESE, morceau, faux)
 
 				syntaxeuse.analyse_expression(TypeLexème.PARENTHESE_FERMANTE)
 
@@ -523,7 +523,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			# opérations binaire
 			PLUS,
 			MOINS {
-				dyn lexème_op = morceau.lexème
+				dyn lexème_op := morceau.lexème
 				dyn noeud : *NoeudSyntaxique = nul
 
 				si (precede_unaire_valide(dernier_lexème)) {
@@ -572,13 +572,13 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				}
 
 				vide_pile_operateur(expression, pile, morceau.lexème)
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_BINAIRE, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_BINAIRE, morceau)
 				pile.pousse(noeud)
 			}
 			EGAL {
 				vide_pile_operateur(expression, pile, morceau.lexème)
 
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ASSIGNATION, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ASSIGNATION, morceau)
 				pile.pousse(noeud)
 			}
 			CROCHET_OUVRANT {
@@ -586,7 +586,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				si (dernier_lexème == TypeLexème.CHAINE_CARACTERE) {
 					vide_pile_operateur(expression, pile, morceau.lexème)
 
-					noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.OPERATION_BINAIRE, morceau, faux)
+					noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.OPERATION_BINAIRE, morceau, faux)
 					pile.pousse(noeud)
 
 					syntaxeuse.analyse_expression(TypeLexème.CROCHET_FERMANT)
@@ -595,7 +595,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				}
 				sinon {
 					morceau.lexème = TypeLexème.TABLEAU
-					noeud = syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
+					noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
 					pile.pousse(noeud)
 
 					syntaxeuse.analyse_expression(TypeLexème.CROCHET_FERMANT)
@@ -609,7 +609,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			PLUS_UNAIRE,
 			MOINS_UNAIRE {
 				vide_pile_operateur(expression, pile, morceau.lexème)
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_UNAIRE, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.OPERATION_UNAIRE, morceau)
 				pile.pousse(noeud)
 			}
 			DOLLAR {
@@ -619,7 +619,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 					#lance_erreur("Attendu un nom après '$'")
 				}
 
-				noeud = syntaxeuse.assembleuse.crée_noeud(
+				noeud := syntaxeuse.assembleuse.crée_noeud(
 							TypeNoeud.PROPRIETE,
 							syntaxeuse.lexèmes[position(syntaxeuse)])
 
@@ -632,7 +632,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 					#lance_erreur("Attendu un nom après '@'")
 				}
 
-				noeud = syntaxeuse.assembleuse.crée_noeud(
+				noeud := syntaxeuse.assembleuse.crée_noeud(
 							TypeNoeud.ATTRIBUT,
 							syntaxeuse.lexèmes[position(syntaxeuse)])
 
@@ -640,12 +640,12 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			}
 			POINT {
 				vide_pile_operateur(expression, pile, morceau.lexème)
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCES_MEMBRE_POINT, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCES_MEMBRE_POINT, morceau)
 				pile.pousse(noeud)
 			}
 			TROIS_POINTS {
 				vide_pile_operateur(expression, pile, morceau.lexème)
-				noeud = syntaxeuse.assembleuse.crée_noeud(TypeNoeud.PLAGE, morceau)
+				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.PLAGE, morceau)
 				pile.pousse(noeud)
 			}
 			sinon {
@@ -678,10 +678,10 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				#			erreur::type_erreur::NORMAL)
 			}
 
-			n2 = pile.dernier()
+			n2 := pile.dernier()
 			pile.pop_dernier()
 
-			n1 = pile.dernier()
+			n1 := pile.dernier()
 			pile.pop_dernier()
 
 			noeud.ajoute_noeud(n1)
@@ -690,7 +690,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			pile.pousse(noeud)
 		}
 		sinon si (est_operateur_unaire(noeud.lexème())) {
-			n1 = pile.dernier()
+			n1 := pile.dernier()
 			pile.pop_dernier()
 
 			noeud.ajoute_noeud(n1)
@@ -759,7 +759,7 @@ fonc analyse_directive(dyn syntaxeuse : &Syntaxeuse) : rien
 	si syntaxeuse.données().chn == "param" {
 		syntaxeuse.avance()
 
-		type_param = type_param_pour_chaine(syntaxeuse.données().chn)
+		type_param := type_param_pour_chaine(syntaxeuse.données().chn)
 		syntaxeuse.analyse_parametre(type_param)
 	}
 	sinon {
@@ -797,7 +797,7 @@ fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre
 
 		syntaxeuse.avance()
 
-		type_prop = type_prop_pour_chaine(syntaxeuse.données().chn)
+		type_prop := type_prop_pour_chaine(syntaxeuse.données().chn)
 
 		discr type_prop {
 			PROP_PARAM_MAX {
@@ -858,11 +858,11 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) : rien
 fonc principale(args : []*z8) : z32
 {
 	diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
-    script = "a = ((5 + 8) * 12) * foo(3);"
+    script := "a = ((5 + 8) * 12) * foo(3);"
 
 	imprime("script :\n\n", script, "\n\n")
 
-    lexeuse = construit_lexeuse(script)
+    lexeuse := construit_lexeuse(script)
     diffère { détruit_lexeuse(lexeuse) }
 
     lexeuse.performe_lexage()
@@ -874,10 +874,10 @@ fonc principale(args : []*z8) : z32
 
 	imprime("\n")
 
-    dyn syntaxeuse = construit_syntaxeuse(lexeuse.lexèmes)
+    dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
     syntaxeuse.lance_analyse()
 
-	racine = syntaxeuse.assembleuse.pile.haut()
+	racine := syntaxeuse.assembleuse.pile.haut()
 
 	imprime("arbre :\n\n")
 	imprime_arbre(racine, 0)

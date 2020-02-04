@@ -1,13 +1,13 @@
 #!si faux
 struct NoeudMatrice<$T> {
-	colonne = 0
-	valeur : $T = 0.0
-	suivant : *NoeudMatrice = nul
+	colonne := 0
+	valeur : $T := 0.0
+	suivant : *NoeudMatrice := nul
 }
 
 fonc crée_noeud(colonne : z32, valeur : $T) : *NoeudMatrice
 {
-	dyn noeud = loge NoeudMatrice
+	dyn noeud := loge NoeudMatrice
 	noeud.colonne = colonne
 	noeud.valeur = valeur
 	retourne noeud
@@ -25,7 +25,7 @@ fonc copie<$T, N : z32>(a : [N]$T, b : [N]$T) : rien
 }
 
 struct MatriceÉparse<$T> {
-	lignes = []*NoeudMatrice<$T>
+	lignes := []*NoeudMatrice<$T>
 }
 
 fonc construit_matrice_éparse(nombre_lignes : z32) : MatriceÉparse<$T>
@@ -37,7 +37,7 @@ fonc construit_matrice_éparse(nombre_lignes : z32) : MatriceÉparse<$T>
 
 fonc insère(matrice : &MatriceÉparse<$T>, idx_ligne : z32, idx_colonne : z32, valeur : $T) : rien
 {
-	noeud = matrice.lignes[idx_ligne]
+	noeud := matrice.lignes[idx_ligne]
 
 	si noeud == nul {
 		matrice.lignes[idx_ligne] = crée_noeud(idx_colonne, valeur)

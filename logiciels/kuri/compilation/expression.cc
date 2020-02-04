@@ -49,6 +49,7 @@ static DonneesPrecedence associativite(TypeLexeme identifiant)
 		case TypeLexeme::TROIS_POINTS:
 			return { dir_associativite::GAUCHE, 0 };
 		case TypeLexeme::EGAL:
+		case TypeLexeme::DECLARATION_VARIABLE:
 		case TypeLexeme::PLUS_EGAL:
 		case TypeLexeme::MOINS_EGAL:
 		case TypeLexeme::DIVISE_EGAL:

@@ -5,7 +5,7 @@ charge "memoire"
 # Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 #!nulctx fonc taille_chaine_c(ch : *z8) : z64
 {
-	dyn index : z64 = 0
+	dyn index : z64 := 0
 
     tantque ch[index] != '\0' {
 		index += 1
@@ -85,8 +85,8 @@ fonc est_vide(chn : chaine) : bool
 
 fonc trouve_caractère(chn : chaine, carac : z8, pos : z64) : z64
 {
-	soit début = pos
-	soit fin   = chn.taille
+	début := pos
+	fin   := chn.taille
 
     pour i dans début ... fin - 1 {
 	    si chn[i] == carac {
@@ -124,7 +124,7 @@ corout découpe(texte : chaine, sep : z8) : chaine
 # La fonction présume que la chaine est entièrement composée de caractères numériques
 fonc extrait_nombre_entier(chn : chaine) : z64
 {
-    dyn résultat : z64 = 0
+    dyn résultat : z64 := 0
 
 	pour c dans chn {
         résultat = résultat * 10 + transtype(c - '0' : z64)
@@ -137,9 +137,9 @@ fonc extrait_nombre_entier(chn : chaine) : z64
 # La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
 fonc extrait_nombre_réel(chn : chaine) : r64
 {
-    dyn résultat = 0.0
-	dyn mult = 1.0
-	dyn point_trouvé = faux
+    dyn résultat := 0.0
+	dyn mult := 1.0
+	dyn point_trouvé := faux
 
 	pour c dans chn {
 		si c == '.' {
@@ -255,9 +255,9 @@ fonc réserve(dyn enchaineuse : &Enchaineuse, taille : z64) : rien
 
 fonc appends(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
 {
-	src = chn.pointeur
-	dst = @enchaineuse.résultat[enchaineuse.taille]
-	taille = chn.taille
+	src := chn.pointeur
+	dst := @enchaineuse.résultat[enchaineuse.taille]
+	taille := chn.taille
 
     copie_mem_nonsur(src=src, dst=dst, taille=taille)
     enchaineuse.taille += taille
@@ -265,8 +265,8 @@ fonc appends(dyn enchaineuse : &Enchaineuse, chn : chaine) : rien
 
 fonc pousse(dyn enchaineuse : &Enchaineuse, lettre : z8) : rien
 {
-	ancienne_taille = enchaineuse.résultat.taille
-	nouvelle_taille = ancienne_taille + 1
+	ancienne_taille := enchaineuse.résultat.taille
+	nouvelle_taille := ancienne_taille + 1
 	enchaineuse.réserve(nouvelle_taille)
 	enchaineuse.résultat[enchaineuse.taille] = lettre
 	enchaineuse.taille += 1

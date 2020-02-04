@@ -184,7 +184,11 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 			default:
 			{
 				m_global = true;
-				analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
+				auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
+
+				if (noeud && noeud->type == type_noeud::VARIABLE) {
+					noeud->type = type_noeud::DECLARATION_VARIABLE;
+				}
 				m_global = false;
 				break;
 			}
@@ -544,7 +548,11 @@ void Syntaxeuse::analyse_corps_fonction()
 			analyse_bloc();
 		}
 		else {
-			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+			auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+
+			if (noeud && noeud->type == type_noeud::VARIABLE) {
+				noeud->type = type_noeud::DECLARATION_VARIABLE;
+			}
 		}
 
 		/* Dans les fuzz-tests, c'est possible d'être bloqué dans une boucle
@@ -680,6 +688,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					/* nous avons la déclaration d'un type dans la structure */
 					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(TypeLexeme::DOUBLE_POINTS)) {
 						noeud->type_declare = analyse_declaration_type();
+						drapeaux |= DECLARATION;
 					}
 				}
 
@@ -900,7 +909,30 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				vide_pile_operateur(morceau.identifiant);
 
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ASSIGNATION_VARIABLE, m_contexte, morceau);
+				type_noeud tn;
+
+				if ((drapeaux & DECLARATION) != 0) {
+					tn = type_noeud::DECLARATION_VARIABLE;
+				}
+				else {
+					tn = type_noeud::ASSIGNATION_VARIABLE;
+				}
+
+				auto noeud = m_assembleuse->cree_noeud(tn, m_contexte, morceau);
+				pile.pousse(noeud);
+				break;
+			}
+			case TypeLexeme::DECLARATION_VARIABLE:
+			{
+				if (assignation) {
+					lance_erreur("Ne peut faire de déclaration dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
+				}
+
+				assignation = true;
+
+				vide_pile_operateur(morceau.identifiant);
+
+				auto noeud = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
 			}
@@ -1346,7 +1378,11 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
 		while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-			analyse_expression(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
+			auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
+
+			if (noeud->type == type_noeud::VARIABLE) {
+				noeud->type = type_noeud::DECLARATION_VARIABLE;
+			}
 		}
 
 		consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
@@ -1374,7 +1410,11 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 	consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
 	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-		analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+		auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+
+		if (noeud->type == type_noeud::VARIABLE) {
+			noeud->type = type_noeud::DECLARATION_VARIABLE;
+		}
 	}
 
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");

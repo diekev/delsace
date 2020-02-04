@@ -4,7 +4,7 @@ importe Tori
 
 struct PileObjet {
     données : []*Objet
-    curseur = 0
+    curseur := 0
 }
 
 fonc détruit(dyn pile : &PileObjet) : rien
@@ -15,7 +15,7 @@ fonc détruit(dyn pile : &PileObjet) : rien
 fonc empile(dyn pile : &PileObjet, noeud : *Objet) : rien
 {
     si pile.curseur == pile.données.taille {
-        taille = pile.données.taille
+        taille := pile.données.taille
         reloge pile.données : [taille + 1]*Objet
     }
 
@@ -25,7 +25,7 @@ fonc empile(dyn pile : &PileObjet, noeud : *Objet) : rien
 
 fonc dépile(dyn pile : &PileObjet) : *Objet
 {
-    ret = pile.haut()
+    ret := pile.haut()
     pile.curseur -= 1
     retourne ret
 }
@@ -71,17 +71,17 @@ fonc dépile_objet(assembleuse: &AssembleuseObjet) : rien
 
 fonc crée_objet(assembleuse: &AssembleuseObjet, nom_objet: chaine, type: TypeObjet) : *Objet
 {
-    objet = crée_objet(assembleuse, type)
+    objet := crée_objet(assembleuse, type)
 
     si !assembleuse.pile.est_vide() {
-		dyn objet_haut = assembleuse.pile.haut()
+		dyn objet_haut := assembleuse.pile.haut()
 
 		si objet_haut.id == TypeObjet.DICTIONNAIRE {
-			dyn dico = transtype(objet_haut: *ObjetDictionnaire)
+			dyn dico := transtype(objet_haut: *ObjetDictionnaire)
 			dico.insère(nom_objet, objet)
 		}
 		sinon {
-			dyn tabl = transtype(objet_haut: *ObjetListe)
+			dyn tabl := transtype(objet_haut: *ObjetListe)
 			tabl.valeur.pousse(objet)
 		}
 	}
@@ -93,27 +93,27 @@ fonc crée_objet(assembleuse: &AssembleuseObjet, type: TypeObjet) : *Objet
 {
     discr type {
         NUL {
-            obj = crée_nul(@assembleuse.gestionnaire)
+            obj := crée_nul(@assembleuse.gestionnaire)
             retourne transtype(obj : *Objet)
         }
         DICTIONNAIRE {
-            obj = crée_dictionnaire(@assembleuse.gestionnaire)
+            obj := crée_dictionnaire(@assembleuse.gestionnaire)
             retourne transtype(obj : *Objet)
         }
         ENTIER {
-            obj = crée_entier(@assembleuse.gestionnaire)
+            obj := crée_entier(@assembleuse.gestionnaire)
             retourne transtype(obj : *Objet)
         }
         RÉEL {
-            obj = crée_réel(@assembleuse.gestionnaire)
+            obj := crée_réel(@assembleuse.gestionnaire)
             retourne transtype(obj : *Objet)
         }
         CHAINE {
-            obj = crée_chaine(@assembleuse.gestionnaire)
+            obj := crée_chaine(@assembleuse.gestionnaire)
             retourne transtype(obj : *Objet)
         }
         LISTE {
-            obj = crée_liste(@assembleuse.gestionnaire)
+            obj := crée_liste(@assembleuse.gestionnaire)
             retourne transtype(obj : *Objet)
         }
     }

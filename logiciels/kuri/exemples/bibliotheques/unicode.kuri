@@ -65,11 +65,11 @@ fonc nombre_octets_unicode(sequence : *n8)
 # portée explicite
 fonc decoupe_texte(debut : *n8)
 {
-    dyn pos = 0;
-    dyn copie = debut;
+    dyn pos := 0;
+    dyn copie := debut;
 
     boucle (*copie != '\0') {
-        soit nombre_octet = nombre_octets_unicode(copie);
+        nombre_octet := nombre_octets_unicode(copie);
 
         discr nombre_octet {
             1: {

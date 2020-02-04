@@ -10,14 +10,14 @@ fonc principale(args : []*z8) : z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-    chn = "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
+    chn := "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
 
     imprime("script :\n\n", chn, "\n\n")
 
     #######################################################
     # Lexage du script
 
-    dyn lexeuse = construit_lexeuse(chn)
+    dyn lexeuse := construit_lexeuse(chn)
     diffère { détruit_lexeuse(lexeuse); }
 
     lexeuse.performe_lexage()
@@ -45,7 +45,7 @@ fonc principale(args : []*z8) : z32
         imprime("La pile est vide...\n")
     }
     sinon {
-        racine = syntaxeuse.assembleuse.pile.haut()
+        racine := syntaxeuse.assembleuse.pile.haut()
         imprime_json(racine, 0)
     }
 

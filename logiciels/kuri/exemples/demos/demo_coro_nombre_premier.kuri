@@ -10,7 +10,7 @@ fonc est_premier(n : z32) : bool
         retourne faux
      }
 
-     dyn i = 5
+     dyn i := 5
 
      tantque i * i <= n {
         si (n % i == 0) || (n % (i + 2) == 0) {
@@ -25,8 +25,8 @@ fonc est_premier(n : z32) : bool
 
 corout genere_premiers(n : z32) : z32
 {
-    dyn nombre = 0
-    dyn dernier = 0
+    dyn nombre := 0
+    dyn dernier := 0
 
     tantque nombre < n {
         boucle {

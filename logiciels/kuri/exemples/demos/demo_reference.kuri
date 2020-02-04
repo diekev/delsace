@@ -1,7 +1,7 @@
 importe "flux"
 
 struct FOO {
-    a = 123
+    a := 123
 }
 
 fonc bar(dyn f : &FOO) : rien
@@ -11,19 +11,19 @@ fonc bar(dyn f : &FOO) : rien
 
 fonc foo(dyn a : &z32) : rien
 {
-    a = 7
+    a := 7
 }
 
 fonc échange(dyn a : &z32, dyn b : &z32) : rien
 {
-    tmp = a
+    tmp := a
     a = b
     b = tmp
 }
 
 fonc principale(args : []*z8) : z32
 {
-    dyn a = 5
+    dyn a := 5
     imprime("a = ", a, '\n')
 
     foo(a)
@@ -42,8 +42,8 @@ fonc principale(args : []*z8) : z32
 
     ######################
 
-    x = 123
-    y = 456
+    x := 123
+    y := 456
     imprime("x = ", x, ", y = ", y, '\n')
 
     échange(x, y)
@@ -51,12 +51,12 @@ fonc principale(args : []*z8) : z32
 
     ######################
 
-    z = 5
+    z := 5
     dyn w : &z32 = z
 
     imprime("z = ", z, '\n')
 
-    w = 10
+    w := 10
 
     imprime("z = ", z, '\n')
 

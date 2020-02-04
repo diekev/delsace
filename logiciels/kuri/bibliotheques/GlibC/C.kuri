@@ -13,9 +13,9 @@
 ################################################################################
 
 # Valeur des descripteurs fichiers pour les flux standards.
-soit std_out = 0
-soit std_err = 1
-soit std_log = 2
+std_out := 0
+std_err := 1
+std_log := 2
 
 fonc externe sprintf(tmp : *z8, fmt : *z8, args : ...) : z32
 
@@ -88,43 +88,43 @@ struct externe dirent {
 }
 
 # duplique un énum
-soit _DT_UNKNOWN = 0
-soit _DT_FIFO = 1
-soit _DT_CHR = 2
-soit _DT_DIR = 4
-soit _DT_BLK = 6
-soit _DT_REG = 8
-soit _DT_LNK = 10
-soit _DT_SOCK = 12
-soit _DT_WHT = 14
+_DT_UNKNOWN := 0
+_DT_FIFO := 1
+_DT_CHR := 2
+_DT_DIR := 4
+_DT_BLK := 6
+_DT_REG := 8
+_DT_LNK := 10
+_DT_SOCK := 12
+_DT_WHT := 14
 
 # open/fnctl
-soit MODE_ACCÈS       =      0003
-soit LECTURE_SEULE    =        00
-soit ÉCRITURE_SEULE   =        01
-soit LECTURE_ÉCRITURE =        02
-soit CREATION         =      0100
-soit EXCLUSION        =      0200
-soit NOCTTY           =      0400
-soit TRONCAGE         =     01000
-soit APPEND           =     02000
-soit NONBLOCK         =     04000
-soit NDELAY           =     04000
-soit SYNC             =  04010000
-soit FSYNC            =  04010000
-soit ASYNC            =    020000
-soit LARGEFILE        =   0100000
-soit DIRECTORY	      =   0200000
-soit NOFOLLOW	      =   0400000
-soit CLOEXEC          =  02000000
-soit DIRECT	          =    040000
-soit NOATIME          =  01000000
-soit PATH             = 010000000
-soit DSYNC	          =    010000
+MODE_ACCÈS       :=      0003
+LECTURE_SEULE    :=        00
+ÉCRITURE_SEULE   :=        01
+LECTURE_ÉCRITURE :=        02
+CREATION         :=      0100
+EXCLUSION        :=      0200
+NOCTTY           :=      0400
+TRONCAGE         :=     01000
+APPEND           :=     02000
+NONBLOCK         :=     04000
+NDELAY           :=     04000
+SYNC             :=  04010000
+FSYNC            :=  04010000
+ASYNC            :=    020000
+LARGEFILE        :=   0100000
+DIRECTORY	      :=   0200000
+NOFOLLOW	      :=   0400000
+CLOEXEC          :=  02000000
+DIRECT	          :=    040000
+NOATIME          :=  01000000
+PATH             := 010000000
+DSYNC	          :=    010000
 # À FAIRE : les expressions utilisent des variables temporaires lors de la
 # génération du code, ce qui n'est pas possible pour les variables globales ou
 # encore les énum. L'expression devrait être (020000000 | 0200000)
-soit TMPFILE          = 020200000
+TMPFILE          := 020200000
 
 fonc externe opendir(chemin : *z8) : *DIR
 fonc externe closedir(d : *DIR) : z32
@@ -132,9 +132,9 @@ fonc externe readdir(d : *DIR) : *dirent
 
 ################################################################################
 
-soit _AF_INET = 2
-soit _SOCK_STREAM = 1
-soit _WNOHANG = 1
+_AF_INET := 2
+_SOCK_STREAM := 1
+_WNOHANG := 1
 
 struct externe hostent {
     h_name : *z8

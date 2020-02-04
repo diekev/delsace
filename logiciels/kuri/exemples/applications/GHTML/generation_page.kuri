@@ -21,8 +21,8 @@ fonc génère_page(
             enchaineuse.pousse(noeud.données.chn)
         }
         VARIABLE {
-            variable = noeud.données.chn
-            objet_variable = dico.trouve_objet(variable)
+            variable := noeud.données.chn
+            objet_variable := dico.trouve_objet(variable)
 
             si objet_variable == nul {
                 retourne
@@ -33,17 +33,17 @@ fonc génère_page(
                     enchaineuse.pousse("nul")
                 }
                 CHAINE {
-                    objet_chaine = transtype(objet_variable : *ObjetChaine)
+                    objet_chaine := transtype(objet_variable : *ObjetChaine)
                     enchaineuse.pousse(objet_chaine.valeur)
                 }
                 ENTIER {
-                    objet_nombre = transtype(objet_variable : *ObjetEntier)
+                    objet_nombre := transtype(objet_variable : *ObjetEntier)
                     # À FAIRE
                     #tampon += std::to_string(nombre.valeur)
                     enchaineuse.pousse("nombre entier non supporté")
                 }
                 RÉEL {
-                    objet_nombre = transtype(objet_variable : *ObjetRéel)
+                    objet_nombre := transtype(objet_variable : *ObjetRéel)
                     # À FAIRE
                     #tampon += std::to_string(nombre.valeur)
                     enchaineuse.pousse("nombre réel non supporté")
@@ -56,14 +56,14 @@ fonc génère_page(
             }
         }
         POUR {
-            propriete = noeud.enfants[1].données.chn
-            objet_iter = dico.trouve_objet(propriete)
+            propriete := noeud.enfants[1].données.chn
+            objet_iter := dico.trouve_objet(propriete)
 
             si objet_iter == nul {
                 retourne
             }
 
-            variable = noeud.enfants[0].données.chn
+            variable := noeud.enfants[0].données.chn
 
             discr objet_iter.id {
                 NUL {
@@ -83,7 +83,7 @@ fonc génère_page(
                     enchaineuse.pousse("Objet nombre réel n'est pas itérable !")
                 }
                 LISTE {
-                    liste = transtype(objet_iter : *ObjetListe)
+                    liste := transtype(objet_iter : *ObjetListe)
 
                     pour objet dans liste.valeur {
                         dico.insère(variable, objet)
@@ -91,10 +91,10 @@ fonc génère_page(
                     }
                 }
                 DICTIONNAIRE {
-                    dictionnaire = transtype(objet_iter : *ObjetDictionnaire)
+                    dictionnaire := transtype(objet_iter : *ObjetDictionnaire)
 
                     pour nom, idx dans dictionnaire.noms {
-                        dyn objet_nom = gestionnaire.crée_chaine()
+                        dyn objet_nom := gestionnaire.crée_chaine()
                         objet_nom.valeur = nom
 
                         dico.insère(variable, transtype(objet_nom : *Objet))
@@ -104,8 +104,8 @@ fonc génère_page(
             }
         }
         SI {
-            variable = noeud.enfants[0].données.chn
-            objet_valeur = dico.trouve_objet(variable)
+            variable := noeud.enfants[0].données.chn
+            objet_valeur := dico.trouve_objet(variable)
 
             si objet_valeur != nul {
                 génère_page(noeud.enfants[1], gestionnaire, dico, enchaineuse)
@@ -121,14 +121,14 @@ fonc principale(args : []*z8) : z32
 {
     diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
-    chn = "{%pour x dans evenements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
+    chn := "{%pour x dans evenements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
 
     imprime("script :\n\n", chn, "\n\n")
 
     #######################################################
     # Lexage du script
 
-    dyn lexeuse = construit_lexeuse(chn)
+    dyn lexeuse := construit_lexeuse(chn)
     diffère { détruit_lexeuse(lexeuse) }
 
     lexeuse.performe_lexage()
@@ -144,12 +144,12 @@ fonc principale(args : []*z8) : z32
     #######################################################
     # Syntaxage du script
 
-    dyn syntaxeuse = construit_syntaxeuse(lexeuse.lexèmes)
+    dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
     diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
 
     syntaxeuse.performe_syntaxage()
 
-	racine = syntaxeuse.assembleuse.pile.haut()
+	racine := syntaxeuse.assembleuse.pile.haut()
 
 	imprime("arbre :\n\n")
 	imprime_arbre(racine, 0)
@@ -161,15 +161,15 @@ fonc principale(args : []*z8) : z32
 	dyn gestionnaire : GestionnaireObjet
 	diffère { détruit(@gestionnaire) }
 
-    dyn dico = crée_dictionnaire(@gestionnaire)
+    dyn dico := crée_dictionnaire(@gestionnaire)
 
     # À FAIRE: simplifie la création d'objet en passant les paramètres
-    dyn liste = crée_liste(@gestionnaire)
-    dyn obj1 = crée_entier(@gestionnaire)
+    dyn liste := crée_liste(@gestionnaire)
+    dyn obj1 := crée_entier(@gestionnaire)
     obj1.valeur = 127
-    dyn obj2 = crée_réel(@gestionnaire)
+    dyn obj2 := crée_réel(@gestionnaire)
     obj2.valeur = 36.0
-    dyn obj3 = crée_chaine(@gestionnaire)
+    dyn obj3 := crée_chaine(@gestionnaire)
     obj3.valeur = "chaine test"
 
     liste.valeur.pousse(transtype(obj1: *Objet))
@@ -178,12 +178,12 @@ fonc principale(args : []*z8) : z32
 
 	dico.insère("evenements", transtype(liste: *Objet))
 
-	dyn chaine1 = crée_chaine(@gestionnaire)
+	dyn chaine1 := crée_chaine(@gestionnaire)
     chaine1.valeur = "http://aaa"
 
     dico.insère("lien", transtype(chaine1: *Objet))
 
-    chaine1 = crée_chaine(@gestionnaire)
+    chaine1 := crée_chaine(@gestionnaire)
     chaine1.valeur = "eh ouais..."
 
     dico.insère("variable", transtype(chaine1: *Objet))

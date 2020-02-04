@@ -48,5 +48,5 @@ fonc externe glfwSetWindowSizeCallback(fenetre : *GLFWwindow, cbfun : #!nulctx f
 fonc externe glfwSetWindowShouldClose(fenetre : *GLFWwindow, v : z32) : rien
 
 # on ne peut pas redéfinir les variables puisque nous incluons le fichier
-soit CONTEXT_GLFW_VERSION_MAJOR : z32 = 0x00022002
-soit CONTEXT_GLFW_VERSION_MINOR : z32 = 0x00022003
+CONTEXT_GLFW_VERSION_MAJOR : z32 = 0x00022002
+CONTEXT_GLFW_VERSION_MINOR : z32 = 0x00022003

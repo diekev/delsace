@@ -119,6 +119,7 @@ digraphes = [
 	[u'|=', u'OU_EGAL'],
 	[u'^=', u'OUX_EGAL'],
 	[u'#!', u'DIRECTIVE'],
+	[u':=', u'DECLARATION_VARIABLE'],
 ]
 
 digraphes = sorted(digraphes)
