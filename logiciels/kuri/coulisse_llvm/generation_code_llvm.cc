@@ -1322,7 +1322,6 @@ static llvm::Value *genere_code_llvm(
 							llvm::GlobalValue::InternalLinkage,
 							nullptr);
 
-				vg->setConstant((b->drapeaux & DYNAMIC) == 0);
 				vg->setAlignment(alignement(contexte, type));
 
 				auto donnees_var = DonneesVariable{};
