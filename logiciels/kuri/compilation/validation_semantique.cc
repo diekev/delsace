@@ -1354,9 +1354,33 @@ static void performe_validation_semantique(
 
 			/* détecte a comp b comp c */
 			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {
-				/* À FAIRE : trouve l'opérateur */
 				b->type = type_noeud::OPERATION_COMP_CHAINEE;
 				b->index_type = contexte.typeuse[TypeBase::BOOL];
+
+				auto type_op = b->morceau.identifiant;
+
+				index_type1 = enfant1->enfants.back()->index_type;
+
+				auto candidats = cherche_candidats_operateurs(contexte, index_type1, index_type2, type_op);
+				auto meilleur_candidat = static_cast<OperateurCandidat const *>(nullptr);
+				auto poids = 0.0;
+
+				for (auto const &candidat : candidats) {
+					if (candidat.poids > poids) {
+						poids = candidat.poids;
+						meilleur_candidat = &candidat;
+					}
+				}
+
+				if (meilleur_candidat == nullptr) {
+					erreur::lance_erreur_type_operation(contexte, b);
+				}
+
+				b->op = meilleur_candidat->op;
+
+				if (!b->op->est_basique) {
+					donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
+				}
 			}
 			else if (b->morceau.identifiant == TypeLexeme::CROCHET_OUVRANT) {
 				b->type = type_noeud::ACCES_TABLEAU;
