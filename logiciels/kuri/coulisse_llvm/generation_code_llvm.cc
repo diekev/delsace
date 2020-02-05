@@ -1654,7 +1654,11 @@ static llvm::Value *genere_code_llvm(
 			auto condition = genere_code_llvm(enfant1, contexte, false);
 
 			if (b->type == type_noeud::SAUFSI) {
-				condition = llvm::BinaryOperator::Create(llvm::Instruction::Xor, condition, condition, "", contexte.bloc_courant());
+				auto valeur2 = llvm::ConstantInt::get(
+							llvm::Type::getInt32Ty(contexte.contexte),
+							static_cast<uint64_t>(1),
+							false);
+				condition = llvm::BinaryOperator::Create(llvm::Instruction::Xor, condition, valeur2, "", contexte.bloc_courant());
 			}
 
 			auto bloc_alors = cree_bloc(contexte, "alors");
