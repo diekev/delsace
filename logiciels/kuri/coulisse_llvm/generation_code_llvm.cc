@@ -1016,7 +1016,7 @@ static llvm::Value *genere_code_llvm(
 			/* Crée code pour les arguments */
 			auto valeurs_args = fonction->arg_begin();
 
-			if (!donnees_fonction->est_externe) {
+			if (!donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
 				auto valeur = &(*valeurs_args++);
 				valeur->setName("contexte");
 
