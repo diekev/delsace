@@ -10,19 +10,19 @@ charge "infos_types"
 # Tenant trace de la mémoire utilisée par le programme, cette variable est
 # augmentée par le compilateur à chaque instruction « loge » ou « reloge »,
 # et diminuée à chaque « déloge ».
-externe __VG_memoire_utilisee__ : z64
+dyn __VG_memoire_utilisee__ : z64 = 0
 
 # Contient trace de la quantité maximale de mémoire consomée.
-externe __VG_memoire_consommee__ : z64
+dyn __VG_memoire_consommee__ : z64 = 0
 
 # Contient le nombre de fois que « loge » et « reloge » ont été appelés.
-externe __VG_nombre_allocations__ : z64
+dyn __VG_nombre_allocations__ : z64 = 0
 
 # Contient le nombre de fois que « reloge » a été appelé.
-externe __VG_nombre_reallocations__ : z64
+dyn __VG_nombre_reallocations__ : z64 = 0
 
 # Contient le nombre de fois que « déloge » a été appelé.
-externe __VG_nombre_deallocations__ : z64
+dyn __VG_nombre_deallocations__ : z64 = 0
 
 énum ModeAllocatrice : z32 {
     ALLOUE
@@ -44,12 +44,41 @@ fonc externe free(ptr : *rien) -> rien
 {
     discr mode {
         ALLOUE {
+            # À FAIRE: crash lors de l'exécution quand ce code est activé
+            #nonsûr {
+            #    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ + nouvelle_taille
+
+            #    si __VG_memoire_consommee__ < __VG_memoire_utilisee__ {
+            #        __VG_memoire_consommee__ = __VG_memoire_utilisee__
+            #    }
+
+            #    __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
+            #}
+
             retourne malloc(nouvelle_taille)
         }
         RÉALLOUE {
+            # À FAIRE: crash lors de l'exécution quand ce code est activé
+            #nonsûr {
+            #    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ + nouvelle_taille - ancienne_taille
+
+            #    si __VG_memoire_consommee__ < __VG_memoire_utilisee__ {
+            #        __VG_memoire_consommee__ = __VG_memoire_utilisee__
+            #    }
+
+            #    __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
+            #    __VG_nombre_reallocations__ = __VG_nombre_allocations__ + 1
+            #}
+
             retourne realloc(ancien_pointeur, nouvelle_taille)
         }
         DÉSALLOUE {
+            # À FAIRE: crash lors de l'exécution quand ce code est activé
+            #nonsûr {
+            #    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ - ancienne_taille
+            #    __VG_nombre_deallocations__ = __VG_nombre_allocations__ + 1
+            #}
+
             free(ancien_pointeur)
             retourne nul
         }
