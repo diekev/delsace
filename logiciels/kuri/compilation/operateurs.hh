@@ -29,10 +29,23 @@
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/tableau.hh"
 
+#include <llvm/IR/InstrTypes.h>
+
 #include "transformation_type.hh"
 
 enum class TypeLexeme : unsigned int;
 struct ContexteGenerationCode;
+
+enum class IndiceTypeOp {
+	ENTIER_NATUREL,
+	ENTIER_RELATIF,
+	REEL,
+};
+
+enum class RaisonOp {
+	POUR_COMPARAISON,
+	POUR_ARITHMETIQUE,
+};
 
 struct DonneesOperateur {
 	long index_type1{};
@@ -48,6 +61,12 @@ struct DonneesOperateur {
 	/* faux pour les opérateurs définis par l'utilisateur */
 	bool est_basique = true;
 
+	bool est_comp_entier = false;
+	bool est_comp_reel = false;
+
+	llvm::Instruction::BinaryOps instr_llvm{};
+	llvm::CmpInst::Predicate predicat_llvm{};
+
 	dls::chaine nom_fonction = "";
 };
 
@@ -62,8 +81,8 @@ struct Operateurs {
 
 	type_conteneur const &trouve(TypeLexeme id) const;
 
-	void ajoute_basique(TypeLexeme id, long index_type, long index_type_resultat);
-	void ajoute_basique(TypeLexeme id, long index_type1, long index_type2, long index_type_resultat);
+	void ajoute_basique(TypeLexeme id, long index_type, long index_type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
+	void ajoute_basique(TypeLexeme id, long index_type1, long index_type2, long index_type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
 
 	void ajoute_basique_unaire(TypeLexeme id, long index_type, long index_type_resultat);
 

@@ -1476,6 +1476,7 @@ static void performe_validation_semantique(
 					}
 
 					type_op = operateur_pour_assignation_operee(type_op);
+					b->drapeaux |= EST_ASSIGNATION_OPEREE;
 				}
 
 				auto candidats = cherche_candidats_operateurs(contexte, index_type1, index_type2, type_op);

@@ -1377,198 +1377,43 @@ static llvm::Value *genere_code_llvm(
 		}
 		case type_noeud::OPERATION_BINAIRE:
 		{
-			auto instr = llvm::Instruction::Add;
-			auto predicat = llvm::CmpInst::Predicate::FCMP_FALSE;
-			auto est_comp_entier = false;
-			auto est_comp_reel = false;
-
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
 
-			auto const index_type1 = enfant1->index_type;
-			auto const index_type2 = enfant2->index_type;
+			auto op = b->op;
 
-			auto const &type1 = contexte.typeuse[index_type1];
-			auto &type2 = contexte.typeuse[index_type2];
+			if ((b->drapeaux & EST_ASSIGNATION_OPEREE) != 0) {
+				auto ptr_valeur1 = genere_code_llvm(enfant1, contexte, true);
+				auto valeur1 = new llvm::LoadInst(ptr_valeur1, "", false, contexte.bloc_courant());
+				auto valeur2 = genere_code_llvm(enfant2, contexte, false);
 
-			/* À FAIRE : typage */
+				if (op->est_basique) {
+					auto val_resultat = llvm::BinaryOperator::Create(op->instr_llvm, valeur1, valeur2, "", contexte.bloc_courant());
+					new llvm::StoreInst(val_resultat, ptr_valeur1, contexte.bloc_courant());
+					return nullptr;
+				}
 
-			/* Ne crée pas d'instruction de chargement si nous avons un tableau. */
-			auto const valeur2_brut = ((type2.type_base() & 0xff) == TypeLexeme::TABLEAU);
+				// À FAIRE: appel fonction (attendre la surcharge d'opérateur)
+				return nullptr;
+			}
 
 			auto valeur1 = genere_code_llvm(enfant1, contexte, false);
-			auto valeur2 = genere_code_llvm(enfant2, contexte, valeur2_brut);
+			auto valeur2 = genere_code_llvm(enfant2, contexte, false);
 
-			switch (b->morceau.identifiant) {
-				case TypeLexeme::PLUS:
-					if (est_type_entier(type1.type_base())) {
-						instr = llvm::Instruction::Add;
-					}
-					else {
-						instr = llvm::Instruction::FAdd;
-					}
+			if (op->est_basique) {
+				if (op->est_comp_entier) {
+					return llvm::ICmpInst::Create(llvm::Instruction::ICmp, op->predicat_llvm, valeur1, valeur2, "", contexte.bloc_courant());
+				}
 
-					break;
-				case TypeLexeme::MOINS:
-					if (est_type_entier(type1.type_base())) {
-						instr = llvm::Instruction::Sub;
-					}
-					else {
-						instr = llvm::Instruction::FSub;
-					}
+				if (op->est_comp_reel) {
+					return llvm::FCmpInst::Create(llvm::Instruction::FCmp, op->predicat_llvm, valeur1, valeur2, "", contexte.bloc_courant());
+				}
 
-					break;
-				case TypeLexeme::FOIS:
-					if (est_type_entier(type1.type_base())) {
-						instr = llvm::Instruction::Mul;
-					}
-					else {
-						instr = llvm::Instruction::FMul;
-					}
-
-					break;
-				case TypeLexeme::DIVISE:
-					if (est_type_entier_naturel(type1.type_base())) {
-						instr = llvm::Instruction::UDiv;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						instr = llvm::Instruction::SDiv;
-					}
-					else {
-						instr = llvm::Instruction::FDiv;
-					}
-
-					break;
-				case TypeLexeme::POURCENT:
-					if (est_type_entier_naturel(type1.type_base())) {
-						instr = llvm::Instruction::URem;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						instr = llvm::Instruction::SRem;
-					}
-					else {
-						instr = llvm::Instruction::FRem;
-					}
-
-					break;
-				case TypeLexeme::DECALAGE_DROITE:
-					if (est_type_entier_naturel(type1.type_base())) {
-						instr = llvm::Instruction::LShr;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						instr = llvm::Instruction::AShr;
-					}
-					break;
-				case TypeLexeme::DECALAGE_GAUCHE:
-					instr = llvm::Instruction::Shl;
-					break;
-				case TypeLexeme::ESPERLUETTE:
-				case TypeLexeme::ESP_ESP:
-					instr = llvm::Instruction::And;
-					break;
-				case TypeLexeme::BARRE:
-				case TypeLexeme::BARRE_BARRE:
-					instr = llvm::Instruction::Or;
-					break;
-				case TypeLexeme::CHAPEAU:
-					instr = llvm::Instruction::Xor;
-					break;
-					/* À FAIRE. */
-				case TypeLexeme::INFERIEUR:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_ULT;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SLT;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OLT;
-					}
-
-					break;
-				case TypeLexeme::INFERIEUR_EGAL:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_ULE;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SLE;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OLE;
-					}
-
-					break;
-				case TypeLexeme::SUPERIEUR:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_UGT;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SGT;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OGT;
-					}
-
-					break;
-				case TypeLexeme::SUPERIEUR_EGAL:
-					if (est_type_entier_naturel(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_UGE;
-					}
-					else if (est_type_entier_relatif(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_SGE;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OGE;
-					}
-
-					break;
-				case TypeLexeme::EGALITE:
-					if (est_type_entier(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_EQ;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_OEQ;
-					}
-
-					break;
-				case TypeLexeme::DIFFERENCE:
-					if (est_type_entier(type1.type_base())) {
-						est_comp_entier = true;
-						predicat = llvm::CmpInst::Predicate::ICMP_NE;
-					}
-					else {
-						est_comp_reel = true;
-						predicat = llvm::CmpInst::Predicate::FCMP_ONE;
-					}
-
-					break;
-				default:
-					return nullptr;
+				return llvm::BinaryOperator::Create(op->instr_llvm, valeur1, valeur2, "", contexte.bloc_courant());
 			}
 
-			if (est_comp_entier) {
-				return llvm::ICmpInst::Create(llvm::Instruction::ICmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
-			}
-
-			if (est_comp_reel) {
-				return llvm::FCmpInst::Create(llvm::Instruction::FCmp, predicat, valeur1, valeur2, "", contexte.bloc_courant());
-			}
-
-			return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
+			// À FAIRE: appel fonction
+			return nullptr;
 		}
 		case type_noeud::OPERATION_UNAIRE:
 		{

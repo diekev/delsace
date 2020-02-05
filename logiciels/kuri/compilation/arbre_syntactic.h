@@ -185,6 +185,7 @@ enum drapeaux_noeud : unsigned short {
 	FORCE_ENLIGNE          = (1 << 7),
 	FORCE_HORSLIGNE        = (1 << 8),
 	FORCE_NULCTX           = (1 << 9),
+	EST_ASSIGNATION_OPEREE = (1 << 10),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)

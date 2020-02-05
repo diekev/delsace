@@ -293,12 +293,16 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 		graphe.connecte_type_type(i, idx_deref, TypeRelation::TYPE_DEREFERENCE);
 
 		/* À FAIRE : considération de la taille en octet des types */
-		std::array<long, 10> const types_entiers = {
+
+		static long types_entiers_naturels[] = {
 			indexeuse[TypeBase::N8],
 			indexeuse[TypeBase::N16],
 			indexeuse[TypeBase::N32],
 			indexeuse[TypeBase::N64],
 			indexeuse[TypeBase::N128],
+		};
+
+		static long types_entiers_relatifs[] = {
 			indexeuse[TypeBase::Z8],
 			indexeuse[TypeBase::Z16],
 			indexeuse[TypeBase::Z32],
@@ -306,18 +310,32 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 			indexeuse[TypeBase::Z128],
 		};
 
-		operateurs.ajoute_basique(TypeLexeme::EGALITE, i, idx_dt_ptr_nul, idx_dt_bool);
-		operateurs.ajoute_basique(TypeLexeme::DIFFERENCE, i, idx_dt_ptr_nul, idx_dt_bool);
-		operateurs.ajoute_basique(TypeLexeme::INFERIEUR, i, idx_dt_bool);
-		operateurs.ajoute_basique(TypeLexeme::INFERIEUR_EGAL, i, idx_dt_bool);
-		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR, i, idx_dt_bool);
-		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR_EGAL, i, idx_dt_bool);
+		auto indice = IndiceTypeOp::ENTIER_RELATIF;
+		auto raison = RaisonOp::POUR_COMPARAISON;
 
-		for (auto idx_type_entier : types_entiers) {
-			operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i);
-			operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i);
-			operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i);
-			operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i);
+		operateurs.ajoute_basique(TypeLexeme::EGALITE, i, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::DIFFERENCE, i, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::INFERIEUR, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::INFERIEUR_EGAL, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR_EGAL, i, idx_dt_bool, indice, raison);
+
+		raison = RaisonOp::POUR_ARITHMETIQUE;
+
+		for (auto idx_type_entier : types_entiers_relatifs) {
+			operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
+			operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+			operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
+			operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
+		}
+
+		indice = IndiceTypeOp::ENTIER_NATUREL;
+
+		for (auto idx_type_entier : types_entiers_naturels) {
+			operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
+			operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+			operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
+			operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
 		}
 	}
 }

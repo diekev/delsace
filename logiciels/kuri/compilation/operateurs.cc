@@ -26,6 +26,170 @@
 
 #include "biblinternes/structures/dico_fixe.hh"
 
+#include "lexemes.hh"
+
+static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
+		TypeLexeme id_operateur,
+		IndiceTypeOp type_operandes)
+{
+	switch (id_operateur) {
+		case TypeLexeme::PLUS:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::Instruction::FAdd;
+			}
+
+			return llvm::Instruction::Add;
+		}
+		case TypeLexeme::MOINS:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::Instruction::FSub;
+			}
+
+			return llvm::Instruction::Sub;
+		}
+		case TypeLexeme::FOIS:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::Instruction::FMul;
+			}
+
+			return llvm::Instruction::Mul;
+		}
+		case TypeLexeme::DIVISE:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::Instruction::FDiv;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::Instruction::UDiv;
+			}
+
+			return llvm::Instruction::SDiv;
+		}
+		case TypeLexeme::POURCENT:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::Instruction::FRem;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::Instruction::URem;
+			}
+
+			return llvm::Instruction::SRem;
+		}
+		case TypeLexeme::DECALAGE_DROITE:
+		{
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::Instruction::LShr;
+			}
+
+			return llvm::Instruction::AShr;
+		}
+		case TypeLexeme::DECALAGE_GAUCHE:
+		{
+			return llvm::Instruction::Shl;
+		}
+		case TypeLexeme::ESPERLUETTE:
+		case TypeLexeme::ESP_ESP:
+		{
+			return llvm::Instruction::And;
+		}
+		case TypeLexeme::BARRE:
+		case TypeLexeme::BARRE_BARRE:
+		{
+			return llvm::Instruction::Or;
+		}
+		case TypeLexeme::CHAPEAU:
+		{
+			return llvm::Instruction::Xor;
+		}
+		default:
+		{
+			return static_cast<llvm::Instruction::BinaryOps>(0);
+		}
+	}
+}
+
+static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
+		TypeLexeme id_operateur,
+		IndiceTypeOp type_operandes)
+{
+	switch (id_operateur) {
+		case TypeLexeme::INFERIEUR:
+		{
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::CmpInst::Predicate::ICMP_ULT;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
+				return llvm::CmpInst::Predicate::ICMP_SLT;
+			}
+
+			return llvm::CmpInst::Predicate::FCMP_OLT;
+		}
+		case TypeLexeme::INFERIEUR_EGAL:
+		{
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::CmpInst::Predicate::ICMP_ULE;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
+				return llvm::CmpInst::Predicate::ICMP_SLE;
+			}
+
+			return llvm::CmpInst::Predicate::FCMP_OLE;
+		}
+		case TypeLexeme::SUPERIEUR:
+		{
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::CmpInst::Predicate::ICMP_UGT;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
+				return llvm::CmpInst::Predicate::ICMP_SGT;
+			}
+
+			return llvm::CmpInst::Predicate::FCMP_OGT;
+		}
+		case TypeLexeme::SUPERIEUR_EGAL:
+		{
+			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
+				return llvm::CmpInst::Predicate::ICMP_UGE;
+			}
+
+			if (type_operandes == IndiceTypeOp::ENTIER_RELATIF) {
+				return llvm::CmpInst::Predicate::ICMP_SGE;
+			}
+
+			return llvm::CmpInst::Predicate::FCMP_OGE;
+		}
+		case TypeLexeme::EGALITE:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::CmpInst::Predicate::FCMP_OEQ;
+			}
+
+			return llvm::CmpInst::Predicate::ICMP_EQ;
+		}
+		case TypeLexeme::DIFFERENCE:
+		{
+			if (type_operandes == IndiceTypeOp::REEL) {
+				return llvm::CmpInst::Predicate::FCMP_ONE;
+			}
+
+			return llvm::CmpInst::Predicate::ICMP_NE;
+		}
+		default:
+		{
+			return static_cast<llvm::CmpInst::Predicate>(0);
+		}
+	}
+}
+
 #include "contexte_generation_code.h"
 
 // types comparaisons :
@@ -91,12 +255,23 @@ const Operateurs::type_conteneur &Operateurs::trouve(TypeLexeme id) const
 	return donnees_operateurs.trouve(id)->second;
 }
 
-void Operateurs::ajoute_basique(TypeLexeme id, long index_type, long index_type_resultat)
+void Operateurs::ajoute_basique(
+		TypeLexeme id,
+		long index_type,
+		long index_type_resultat,
+		IndiceTypeOp indice_type,
+		RaisonOp raison)
 {
-	ajoute_basique(id, index_type, index_type, index_type_resultat);
+	ajoute_basique(id, index_type, index_type, index_type_resultat, indice_type, raison);
 }
 
-void Operateurs::ajoute_basique(TypeLexeme id, long index_type1, long index_type2, long index_type_resultat)
+void Operateurs::ajoute_basique(
+		TypeLexeme id,
+		long index_type1,
+		long index_type2,
+		long index_type_resultat,
+		IndiceTypeOp indice_type,
+		RaisonOp raison)
 {
 	auto op = memoire::loge<DonneesOperateur>("DonneesOpérateur");
 	op->index_type1 = index_type1;
@@ -106,11 +281,20 @@ void Operateurs::ajoute_basique(TypeLexeme id, long index_type1, long index_type
 	op->est_basique = true;
 
 	donnees_operateurs[id].pousse(op);
+
+	if (raison == RaisonOp::POUR_COMPARAISON) {
+		op->est_comp_reel = indice_type == IndiceTypeOp::REEL;
+		op->est_comp_entier = !op->est_comp_reel;
+		op->predicat_llvm = predicat_llvm_pour_operateur(id, indice_type);
+	}
+	else if (raison == RaisonOp::POUR_ARITHMETIQUE) {
+		op->instr_llvm = instruction_llvm_pour_operateur(id, indice_type);
+	}
 }
 
 void Operateurs::ajoute_basique_unaire(TypeLexeme id, long index_type, long index_type_resultat)
 {
-	ajoute_basique(id, index_type, index_type, index_type_resultat);
+	ajoute_basique(id, index_type, index_type, index_type_resultat, static_cast<IndiceTypeOp>(-1), static_cast<RaisonOp>(-1));
 }
 
 void Operateurs::ajoute_perso(
@@ -150,11 +334,13 @@ void Operateurs::ajoute_perso_unaire(
 void Operateurs::ajoute_operateur_basique_enum(long index_type)
 {
 	for (auto op : operateurs_comparaisons) {
-		this->ajoute_basique(op, index_type, type_bool);
+		/* À FAIRE: typage exacte de l'énumération */
+		this->ajoute_basique(op, index_type, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
 	}
 
 	for (auto op : operateurs_entiers) {
-		this->ajoute_basique(op, index_type, index_type);
+		/* À FAIRE: typage exacte de l'énumération */
+		this->ajoute_basique(op, index_type, index_type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 }
 
@@ -263,12 +449,15 @@ void enregistre_operateurs_basiques(
 		ContexteGenerationCode &contexte,
 		Operateurs &operateurs)
 {
-	static long types_entiers[] = {
+	static long types_entiers_naturels[] = {
 		contexte.typeuse[TypeBase::N8],
 		contexte.typeuse[TypeBase::N16],
 		contexte.typeuse[TypeBase::N32],
 		contexte.typeuse[TypeBase::N64],
 		contexte.typeuse[TypeBase::N128],
+	};
+
+	static long types_entiers_relatifs[] = {
 		contexte.typeuse[TypeBase::Z8],
 		contexte.typeuse[TypeBase::Z16],
 		contexte.typeuse[TypeBase::Z32],
@@ -290,51 +479,70 @@ void enregistre_operateurs_basiques(
 	operateurs.type_bool = type_bool;
 
 	for (auto op : operateurs_entiers_reels) {
-		for (auto type : types_entiers) {
-			operateurs.ajoute_basique(op, type, type);
+		for (auto type : types_entiers_relatifs) {
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+
+			operateurs.ajoute_basique(op, type, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type_pointeur, type, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		}
+
+		for (auto type : types_entiers_naturels) {
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+
+			operateurs.ajoute_basique(op, type, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+			operateurs.ajoute_basique(op, type_pointeur, type, type_pointeur, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 		}
 
 		for (auto type : types_reels) {
-			operateurs.ajoute_basique(op, type, type);
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::REEL, RaisonOp::POUR_ARITHMETIQUE);
 		}
 
-		for (auto type : types_entiers) {
-			operateurs.ajoute_basique(op, type, type_pointeur, type_pointeur);
-			operateurs.ajoute_basique(op, type_pointeur, type, type_pointeur);
-		}
-
-		operateurs.ajoute_basique(op, type_octet, type_octet);
-		operateurs.ajoute_basique(op, type_pointeur, type_pointeur);
+		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		operateurs.ajoute_basique(op, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	for (auto op : operateurs_comparaisons) {
-		for (auto type : types_entiers) {
-			operateurs.ajoute_basique(op, type, type_bool);
+		for (auto type : types_entiers_relatifs) {
+			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
+		}
+
+		for (auto type : types_entiers_naturels) {
+			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_COMPARAISON);
 		}
 
 		for (auto type : types_reels) {
-			operateurs.ajoute_basique(op, type, type_bool);
+			operateurs.ajoute_basique(op, type, type_bool, IndiceTypeOp::REEL, RaisonOp::POUR_COMPARAISON);
 		}
 
-		operateurs.ajoute_basique(op, type_octet, type_bool);
-		operateurs.ajoute_basique(op, type_pointeur, type_bool);
+		operateurs.ajoute_basique(op, type_octet, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
+		operateurs.ajoute_basique(op, type_pointeur, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
 	}
 
 	for (auto op : operateurs_entiers) {
-		for (auto type : types_entiers) {
-			operateurs.ajoute_basique(op, type, type);
+		for (auto type : types_entiers_relatifs) {
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 		}
 
-		operateurs.ajoute_basique(op, type_octet, type_octet);
-		operateurs.ajoute_basique(op, type_pointeur, type_pointeur);
+		for (auto type : types_entiers_naturels) {
+			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+		}
+
+		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
+		operateurs.ajoute_basique(op, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	// operateurs booléens && ||
-	operateurs.ajoute_basique(TypeLexeme::ESP_ESP, type_bool, type_bool);
-	operateurs.ajoute_basique(TypeLexeme::BARRE_BARRE, type_bool, type_bool);
+	operateurs.ajoute_basique(TypeLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(TypeLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 
 	// opérateurs unaires + - ~
-	for (auto type : types_entiers) {
+	for (auto type : types_entiers_naturels) {
+		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(TypeLexeme::TILDE, type, type);
+	}
+
+	for (auto type : types_entiers_relatifs) {
 		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
 		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
 		operateurs.ajoute_basique_unaire(TypeLexeme::TILDE, type, type);
