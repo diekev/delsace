@@ -148,12 +148,13 @@ static llvm::FunctionType *obtiens_type_fonction(
 		ContexteGenerationCode &contexte,
 		DonneesFonction const &donnees_fonction,
 		DonneesTypeFinal &donnees_retour,
-		bool est_variadique)
+		bool est_variadique,
+		bool requiers_contexte)
 {
 	std::vector<llvm::Type *> parametres;
 	parametres.reserve(static_cast<size_t>(donnees_fonction.args.taille()));
 
-	if (!donnees_fonction.est_externe) {
+	if (requiers_contexte) {
 		parametres.push_back(converti_type_llvm(contexte, contexte.index_type_contexte));
 	}
 
@@ -984,13 +985,16 @@ static llvm::Value *genere_code_llvm(
 			 * Nos tableaux, quant à eux, sont portables.
 			 */
 
+			auto requiers_contexte = !donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX);
+
 			/* Crée le type de la fonction */
 			auto &this_dt = contexte.typeuse[b->index_type];
 			auto type_fonction = obtiens_type_fonction(
-									 contexte,
-									 *donnees_fonction,
-									 this_dt,
-									 donnees_fonction->est_variadique);
+						contexte,
+						*donnees_fonction,
+						this_dt,
+						donnees_fonction->est_variadique,
+						requiers_contexte);
 
 			contexte.typeuse[donnees_fonction->index_type].type_llvm(type_fonction);
 
@@ -1016,7 +1020,7 @@ static llvm::Value *genere_code_llvm(
 			/* Crée code pour les arguments */
 			auto valeurs_args = fonction->arg_begin();
 
-			if (!donnees_fonction->est_externe && !possede_drapeau(b->drapeaux, FORCE_NULCTX)) {
+			if (requiers_contexte) {
 				auto valeur = &(*valeurs_args++);
 				valeur->setName("contexte");
 
