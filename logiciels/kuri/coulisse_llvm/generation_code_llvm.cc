@@ -888,10 +888,6 @@ static auto genere_code_allocation(
 	switch (mode) {
 		case 0:
 		{
-//			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille << ";\n";
-//			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-//			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-
 //			genere_code_echec_logement(
 //						contexte,
 //						generatrice,
@@ -903,12 +899,6 @@ static auto genere_code_allocation(
 		}
 		case 1:
 		{
-//			generatrice.os << "__VG_memoire_utilisee__ += " << nom_nouvelle_taille
-//			   << " - " << nom_ancienne_taille << ";\n";
-//			generatrice.os << "__VG_memoire_consommee__ = (__VG_memoire_consommee__ >= __VG_memoire_utilisee__) ? __VG_memoire_consommee__ : __VG_memoire_utilisee__;\n";
-//			generatrice.os << "__VG_nombre_allocations__ += 1;\n";
-//			generatrice.os << "__VG_nombre_reallocations__ += 1;\n";
-
 //			genere_code_echec_logement(
 //						contexte,
 //						generatrice,
@@ -916,12 +906,6 @@ static auto genere_code_allocation(
 //						b,
 //						bloc_sinon);
 
-			break;
-		}
-		case 2:
-		{
-//			generatrice.os << "__VG_memoire_utilisee__ -= " << expr_ancienne_taille_octet << ";\n";
-//			generatrice.os << "__VG_nombre_deallocations__ += 1;\n";
 			break;
 		}
 	}
