@@ -62,11 +62,9 @@ using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 /* ************************************************************************** */
 
 /* À FAIRE (coulisse LLVM)
- * - loge, déloge, reloge
  * - opérateurs : +=, -=, etc..
  * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
- * - trace de la mémoire utilisée
  * - coroutine, retiens
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
  */
@@ -1022,15 +1020,11 @@ static llvm::Value *genere_code_llvm(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.valeur = alloc;
-				donnees_var.est_dynamique = true;
-				donnees_var.est_variadic = false;
-				donnees_var.index_type = contexte.index_type_contexte;
 
 				contexte.pousse_locale("contexte", donnees_var);
 			}
 
 			for (auto const &argument : donnees_fonction->args) {
-				auto index_type = argument.index_type;
 				auto align = unsigned{0};
 				auto type = static_cast<llvm::Type *>(nullptr);
 
@@ -1069,9 +1063,6 @@ static llvm::Value *genere_code_llvm(
 
 				auto donnees_var = DonneesVariable{};
 				donnees_var.valeur = alloc;
-				donnees_var.est_dynamique = argument.est_dynamic;
-				donnees_var.est_variadic = argument.est_variadic;
-				donnees_var.index_type = index_type;
 
 				contexte.pousse_locale(argument.nom, donnees_var);
 			}
@@ -1992,17 +1983,14 @@ static llvm::Value *genere_code_llvm(
 						auto donnees_var = DonneesVariable{};
 
 						donnees_var.valeur = noeud_phi;
-						donnees_var.index_type = var->index_type;
 						contexte.pousse_locale(var->chaine(), donnees_var);
 
 						donnees_var.valeur = valeur_idx;
-						donnees_var.index_type = idx->index_type;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
 						auto donnees_var = DonneesVariable{};
 						donnees_var.valeur = noeud_phi;
-						donnees_var.index_type = index_type;
 						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
@@ -2114,7 +2102,6 @@ static llvm::Value *genere_code_llvm(
 						auto donnees_var = DonneesVariable{};
 
 						donnees_var.valeur = valeur_arg;
-						donnees_var.index_type = index_type;
 						contexte.pousse_locale(var->chaine(), donnees_var);
 
 						donnees_var.valeur = noeud_phi;
@@ -2124,7 +2111,6 @@ static llvm::Value *genere_code_llvm(
 					else {
 						auto donnees_var = DonneesVariable{};
 						donnees_var.valeur = valeur_arg;
-						donnees_var.index_type = index_type;
 						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
@@ -2394,7 +2380,6 @@ static llvm::Value *genere_code_llvm(
 
 			auto donnees_var = DonneesVariable{};
 			donnees_var.valeur = valeur_debut;
-			donnees_var.index_type = b->index_type;
 
 			contexte.pousse_locale("__debut", donnees_var);
 
