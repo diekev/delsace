@@ -40,7 +40,7 @@ struct DonneesOperateur {
 	long index_resultat{};
 
 	/* vrai si l'on peut sainement inverser les paramètres,
-	 * vrai pour : +, -, !=, == */
+	 * vrai pour : +, *, !=, == */
 	bool est_commutatif = false;
 
 	bool inverse_parametres = false;

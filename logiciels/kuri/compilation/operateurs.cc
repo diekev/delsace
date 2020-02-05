@@ -68,7 +68,7 @@ static bool est_commutatif(TypeLexeme id)
 			return false;
 		}
 		case TypeLexeme::PLUS:
-		case TypeLexeme::MOINS:
+		case TypeLexeme::FOIS:
 		case TypeLexeme::EGALITE:
 		case TypeLexeme::DIFFERENCE:
 		{
