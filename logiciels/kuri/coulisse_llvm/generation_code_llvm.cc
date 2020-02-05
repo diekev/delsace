@@ -870,7 +870,7 @@ static auto genere_code_allocation(
 	auto arg_ptr_donnees = accede_membre_structure(contexte, ptr_contexte, 1u, true);
 	auto arg_ptr_info_type = cree_info_type(contexte, dt);
 	auto arg_val_mode = builder.getInt32(static_cast<unsigned>(mode));
-	auto arg_val_ancien_ptr = val_acces_pointeur;
+	auto arg_val_ancien_ptr = builder.CreateLoad(val_acces_pointeur, "");
 
 	std::vector<llvm::Value *> parametres;
 	parametres.push_back(arg_val_mode);
@@ -931,7 +931,7 @@ static auto genere_code_allocation(
 		builder.CreateStore(val_nouvel_nombre_element, val_acces_taille);
 	}
 
-	return val_enfant;
+	return builder.CreateLoad(val_acces_pointeur, "");
 }
 
 /* ************************************************************************** */
