@@ -936,7 +936,6 @@ static llvm::Value *genere_code_llvm(
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_COROUTINE:
-		case type_noeud::OPERATION_COMP_CHAINEE:
 		{
 			/* À FAIRE */
 			return nullptr;
@@ -1484,6 +1483,37 @@ static llvm::Value *genere_code_llvm(
 			}
 
 			return llvm::BinaryOperator::Create(instr, valeur1, valeur2, "", contexte.bloc_courant());
+		}
+		case type_noeud::OPERATION_COMP_CHAINEE:
+		{
+			auto enfant1 = b->enfants.front();
+			auto enfant2 = b->enfants.back();
+
+			auto a_comp_b = genere_code_llvm(enfant1, contexte, expr_gauche);
+			auto val_c = genere_code_llvm(enfant2, contexte, expr_gauche);
+			auto val_b = genere_code_llvm(enfant1->enfants.back(), contexte, expr_gauche);
+
+			auto op = b->op;
+
+			auto b_comp_c = static_cast<llvm::Value *>(nullptr);
+
+			if (op->est_basique) {
+				if (op->est_comp_entier) {
+					b_comp_c = llvm::ICmpInst::Create(llvm::Instruction::ICmp, op->predicat_llvm, val_b, val_c, "", contexte.bloc_courant());
+				}
+				else if (op->est_comp_reel) {
+					b_comp_c = llvm::FCmpInst::Create(llvm::Instruction::FCmp, op->predicat_llvm, val_b, val_c, "", contexte.bloc_courant());
+				}
+				else {
+					b_comp_c = llvm::BinaryOperator::Create(op->instr_llvm, val_b, val_c, "", contexte.bloc_courant());
+				}
+			}
+			else {
+				// À FAIRE: appel fonction
+				return nullptr;
+			}
+
+			return llvm::BinaryOperator::Create(llvm::BinaryOperator::BinaryOps::And, a_comp_b, b_comp_c, "", contexte.bloc_courant());
 		}
 		case type_noeud::ACCES_TABLEAU:
 		{
