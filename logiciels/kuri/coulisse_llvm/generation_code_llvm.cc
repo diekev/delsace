@@ -789,9 +789,7 @@ static auto genere_code_allocation(
 			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
 			auto &dt_deref = contexte.typeuse[index_dt];
 
-			std::cerr << "accède pointeur tableau...\n";
 			val_acces_pointeur = accede_membre_structure(contexte, val_enfant, 0u);
-			std::cerr << "accède taille tableau...\n";
 			val_acces_taille = accede_membre_structure(contexte, val_enfant, 1u);
 
 			auto taille_type = taille_octet_type(contexte, dt_deref);
@@ -824,9 +822,7 @@ static auto genere_code_allocation(
 		}
 		case TypeLexeme::CHAINE:
 		{
-			std::cerr << "accède pointeur chaine...\n";
 			val_acces_pointeur = accede_membre_structure(contexte, val_enfant, 0u);
-			std::cerr << "accède taille chaine...\n";
 			val_acces_taille = accede_membre_structure(contexte, val_enfant, 1u);
 			val_ancienne_taille_octet = builder.CreateLoad(val_acces_taille, "");
 
@@ -870,9 +866,7 @@ static auto genere_code_allocation(
 	// InfoType *info_type = ...;
 	// contexte->allocatrice(mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
 
-	std::cerr << "accède allocatrice...\n";
 	auto arg_ptr_allocatrice = accede_membre_structure(contexte, ptr_contexte, 0u, true);
-	std::cerr << "accède données allocatrice...\n";
 	auto arg_ptr_donnees = accede_membre_structure(contexte, ptr_contexte, 1u, true);
 	auto arg_ptr_info_type = cree_info_type(contexte, dt);
 	auto arg_val_mode = builder.getInt32(static_cast<unsigned>(mode));
@@ -937,7 +931,6 @@ static auto genere_code_allocation(
 		builder.CreateStore(val_nouvel_nombre_element, val_acces_taille);
 	}
 
-	std::cerr << "fin genere_code_allocation...\n";
 	return val_enfant;
 }
 
