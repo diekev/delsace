@@ -1351,48 +1351,6 @@ static void performe_validation_semantique(
 			auto index_type2 = enfant2->index_type;
 
 			auto type1 = contexte.typeuse[index_type1];
-			auto const &type2 = contexte.typeuse[index_type2];
-
-			/* tentative de faire fonctionner les expressions de type : a - 1, où
-			 * a n'est pas z32. Il faudrait peut-être donner des indices aux
-			 * noeuds de nombre littéraux afin de mieux leur attribuer un type */
-			if (est_type_entier(type1.type_base()) && est_type_entier(type2.type_base())) {
-				if (index_type1 != index_type2) {
-					if (enfant1->type == type_noeud::NOMBRE_ENTIER) {
-						index_type1 = index_type2;
-					}
-					else if (enfant2->type == type_noeud::NOMBRE_ENTIER) {
-						index_type2 = index_type1;
-					}
-					else {
-						if (taille_octet_type(contexte, type1) >= taille_octet_type(contexte, type2)) {
-							index_type2 = index_type1;
-						}
-						else {
-							index_type1 = index_type2;
-						}
-					}
-				}
-			}
-
-			if (est_type_reel(type1.type_base()) && est_type_reel(type2.type_base())) {
-				if (index_type1 != index_type2) {
-					if (enfant1->type == type_noeud::NOMBRE_REEL) {
-						index_type1 = index_type2;
-					}
-					else if (enfant2->type == type_noeud::NOMBRE_REEL) {
-						index_type2 = index_type1;
-					}
-					else {
-						if (taille_octet_type(contexte, type1) >= taille_octet_type(contexte, type2)) {
-							index_type2 = index_type1;
-						}
-						else {
-							index_type1 = index_type2;
-						}
-					}
-				}
-			}
 
 			/* détecte a comp b comp c */
 			if (est_operateur_comp(b->morceau.identifiant) && est_operateur_comp(enfant1->morceau.identifiant)) {
