@@ -932,7 +932,7 @@ static auto genere_code_allocation(
 		builder.CreateStore(val_nouvel_nombre_element, val_acces_taille);
 	}
 
-	return builder.CreateLoad(val_acces_pointeur, "");
+	return builder.CreateLoad(val_enfant, "");
 }
 
 /* ************************************************************************** */
