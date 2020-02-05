@@ -2929,6 +2929,16 @@ static void genere_fonction_vraie_principale(ContexteGenerationCode &contexte)
 	auto alloc_contexte = builder.CreateAlloca(type_contexte, 0u, nullptr, "contexte");
 	alloc_contexte->setAlignment(8);
 
+	// assigne l'allocatrice défaut
+	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
+	auto ptr_fonc_alloc = contexte.module_llvm->getFunction(df_fonc_alloc.nom_broye.c_str());
+	auto ptr_alloc = accede_membre_structure(contexte, alloc_contexte, 0u);
+	builder.CreateStore(ptr_fonc_alloc, ptr_alloc);
+
+	// assigne les données défaut comme étant nulles
+	auto ptr_donnees = accede_membre_structure(contexte, alloc_contexte, 1u);
+	builder.CreateStore(builder.getInt64(0), ptr_donnees);
+
 	// appel notre fonction principale en passant le contexte et le tableau
 	auto fonc_princ = contexte.module_llvm->getFunction("principale");
 
