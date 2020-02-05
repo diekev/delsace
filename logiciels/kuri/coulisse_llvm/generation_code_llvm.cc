@@ -1332,11 +1332,11 @@ static llvm::Value *genere_code_llvm(
 			/* À FAIRE: variable externe */
 			if (contexte.fonction == nullptr) {
 				auto vg = new llvm::GlobalVariable(
-								  *contexte.module_llvm,
-								  type_llvm,
-								  !possede_drapeau(variable->drapeaux, DYNAMIC),
-								  llvm::GlobalValue::InternalLinkage,
-								  nullptr);
+							*contexte.module_llvm,
+							type_llvm,
+							!possede_drapeau(variable->drapeaux, DYNAMIC),
+							llvm::GlobalValue::InternalLinkage,
+							nullptr);
 
 				vg->setConstant((b->drapeaux & DYNAMIC) == 0);
 				vg->setAlignment(alignement(contexte, type));
@@ -1347,7 +1347,10 @@ static llvm::Value *genere_code_llvm(
 				contexte.pousse_globale(variable->chaine(), donnees_var);
 
 				if (expression != nullptr) {
-					auto valeur = applique_transformation(contexte, expression, false);
+					/* À FAIRE: pour une variable globale, nous devons précaculer
+					 * nous-même la valeur et passer le résultat à LLVM sous forme
+					 * d'une constante */
+					auto valeur = genere_code_llvm(expression, contexte, false);
 					vg->setInitializer(llvm::dyn_cast<llvm::Constant>(valeur));
 				}
 
