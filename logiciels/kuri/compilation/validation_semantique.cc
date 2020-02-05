@@ -659,12 +659,12 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 
 	b->index_type = resoud_type_final(contexte, b->type_declare);
 
-	donnees_fonction->types_utilises.insere(b->index_type);
+	contexte.donnees_dependance.types_utilises.insere(b->index_type);
 
 	for (auto i = 0; i < donnees_fonction->types_retours_decl.taille(); ++i) {
 		auto idx_type = resoud_type_final(contexte, donnees_fonction->types_retours_decl[i]);
 		donnees_fonction->idx_types_retours.pousse(idx_type);
-		donnees_fonction->types_utilises.insere(idx_type);
+		contexte.donnees_dependance.types_utilises.insere(idx_type);
 	}
 
 	for (auto &argument : donnees_fonction->args) {
@@ -710,6 +710,7 @@ static void performe_validation_semantique(
 		bool expr_gauche)
 {
 	auto &graphe = contexte.graphe_dependance;
+	auto &donnees_dependance = contexte.donnees_dependance;
 	auto fonction_courante = contexte.donnees_fonction;
 
 	switch (b->type) {
@@ -757,11 +758,11 @@ static void performe_validation_semantique(
 			if (est_externe) {
 				for (auto &argument : donnees_fonction->args) {
 					argument.index_type = resoud_type_final(contexte, argument.type_declare);
-					donnees_fonction->types_utilises.insere(argument.index_type);
+					donnees_dependance.types_utilises.insere(argument.index_type);
 				}
 
 				auto noeud_dep = graphe.cree_noeud_fonction(nom_fonction, b);
-				graphe.ajoute_connexions_fonction(*noeud_dep, *donnees_fonction);
+				graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 				return;
 			}
@@ -777,12 +778,12 @@ static void performe_validation_semantique(
 				donnees_var.est_argument = true;
 
 				contexte.pousse_locale("contexte", donnees_var);
-				donnees_fonction->types_utilises.insere(contexte.index_type_contexte);
+				donnees_dependance.types_utilises.insere(contexte.index_type_contexte);
 			}
 
 			/* Pousse les paramètres sur la pile. */
 			for (auto &argument : donnees_fonction->args) {
-				donnees_fonction->types_utilises.insere(argument.index_type);
+				donnees_dependance.types_utilises.insere(argument.index_type);
 
 				auto index_dt = argument.index_type;
 
@@ -845,7 +846,7 @@ static void performe_validation_semantique(
 				b->aide_generation_code = REQUIERS_CODE_EXTRA_RETOUR;
 			}
 
-			graphe.ajoute_connexions_fonction(*noeud_dep, *donnees_fonction);
+			graphe.ajoute_dependances(*noeud_dep, donnees_dependance);
 
 			contexte.termine_fonction();
 			break;
@@ -947,10 +948,7 @@ static void performe_validation_semantique(
 				dt_tfixe.pousse(type_tabl);
 
 				auto idx_dt_tfixe = contexte.typeuse.ajoute_type(dt_tfixe);
-
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(idx_dt_tfixe);
-				}
+				donnees_dependance.types_utilises.insere(idx_dt_tfixe);
 			}
 
 			auto i = 0l;
@@ -992,16 +990,14 @@ static void performe_validation_semantique(
 				b->nom_fonction_appel = donnees_fonction->nom_broye;
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->fonctions_utilisees.insere(donnees_fonction->nom_broye);
+			donnees_dependance.fonctions_utilisees.insere(donnees_fonction->nom_broye);
 
-				for (auto &argument : donnees_fonction->args) {
-					fonction_courante->types_utilises.insere(argument.index_type);
-				}
+			for (auto &argument : donnees_fonction->args) {
+				donnees_dependance.types_utilises.insere(argument.index_type);
+			}
 
-				for (auto idx : donnees_fonction->idx_types_retours) {
-					fonction_courante->types_utilises.insere(idx);
-				}
+			for (auto idx : donnees_fonction->idx_types_retours) {
+				donnees_dependance.types_utilises.insere(idx);
 			}
 
 			break;
@@ -1016,10 +1012,7 @@ static void performe_validation_semantique(
 				auto const &iter_locale = contexte.iter_locale(b->morceau.chaine);
 				b->index_type = iter_locale->second.index_type;
 
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(b->index_type);
-				}
-
+				donnees_dependance.types_utilises.insere(b->index_type);
 				return;
 			}
 
@@ -1027,11 +1020,8 @@ static void performe_validation_semantique(
 				auto const &iter_locale = contexte.iter_globale(b->morceau.chaine);
 				b->index_type = iter_locale->second.index_type;
 
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(b->index_type);
-					fonction_courante->globales_utilisees.insere(b->morceau.chaine);
-				}
-
+				donnees_dependance.types_utilises.insere(b->index_type);
+				donnees_dependance.globales_utilisees.insere(b->morceau.chaine);
 				return;
 			}
 
@@ -1044,11 +1034,8 @@ static void performe_validation_semantique(
 				b->index_type = donnees_fonction.front().index_type;
 				b->nom_fonction_appel = donnees_fonction.front().nom_broye;
 
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(b->index_type);
-					fonction_courante->fonctions_utilisees.insere(b->nom_fonction_appel);
-				}
-
+				donnees_dependance.types_utilises.insere(b->index_type);
+				donnees_dependance.fonctions_utilisees.insere(b->nom_fonction_appel);
 				return;
 			}
 
@@ -1058,11 +1045,7 @@ static void performe_validation_semantique(
 
 				if (donnees_structure.est_enum) {
 					b->index_type = donnees_structure.index_type;
-
-					if (fonction_courante != nullptr) {
-						fonction_courante->types_utilises.insere(b->index_type);
-					}
-
+					donnees_dependance.types_utilises.insere(b->index_type);
 					return;
 				}
 			}
@@ -1262,10 +1245,7 @@ static void performe_validation_semantique(
 					contexte.pousse_locale(variable->morceau.chaine, donnees_var);
 				}
 
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(variable->index_type);
-				}
-
+				donnees_dependance.types_utilises.insere(variable->index_type);
 				return;
 			}
 
@@ -1336,10 +1316,7 @@ static void performe_validation_semantique(
 				contexte.pousse_locale(variable->morceau.chaine, donnees_var);
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(variable->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(variable->index_type);
 			break;
 		}
 		case type_noeud::NOMBRE_REEL:
@@ -1347,10 +1324,7 @@ static void performe_validation_semantique(
 			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::R64];
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::NOMBRE_ENTIER:
@@ -1358,10 +1332,7 @@ static void performe_validation_semantique(
 			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::Z32];
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::OPERATION_BINAIRE:
@@ -1527,15 +1498,12 @@ static void performe_validation_semantique(
 				enfant1->transformation = meilleur_candidat->transformation_type1;
 				enfant2->transformation = meilleur_candidat->transformation_type2;
 
-				if (!b->op->est_basique && fonction_courante != nullptr) {
-					fonction_courante->fonctions_utilisees.insere(b->op->nom_fonction);
+				if (!b->op->est_basique) {
+					donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
 				}
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::OPERATION_UNAIRE:
@@ -1578,10 +1546,7 @@ static void performe_validation_semantique(
 				}
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::RETOUR:
@@ -1598,10 +1563,7 @@ static void performe_validation_semantique(
 								b->morceau);
 				}
 
-				if (fonction_courante != nullptr) {
-					fonction_courante->types_utilises.insere(b->index_type);
-				}
-
+				donnees_dependance.types_utilises.insere(b->index_type);
 				return;
 			}
 
@@ -1642,9 +1604,7 @@ static void performe_validation_semantique(
 
 						f->transformation = transformation;
 
-						if (fonction_courante != nullptr) {
-							fonction_courante->types_utilises.insere(f->index_type);
-						}
+						donnees_dependance.types_utilises.insere(f->index_type);
 					}
 
 					/* À FAIRE : multiples types de retour */
@@ -1687,10 +1647,7 @@ static void performe_validation_semantique(
 				enfant->transformation = transformation;
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::CHAINE_LITTERALE:
@@ -1718,10 +1675,7 @@ static void performe_validation_semantique(
 			b->index_type = contexte.typeuse[TypeBase::CHAINE];
 			b->type_valeur = TypeValeur::DROITE;
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::BOOLEEN:
@@ -1729,10 +1683,7 @@ static void performe_validation_semantique(
 			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::BOOL];
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::CARACTERE:
@@ -1740,10 +1691,7 @@ static void performe_validation_semantique(
 			b->type_valeur = TypeValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::Z8];
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case type_noeud::SAUFSI:
@@ -1919,9 +1867,7 @@ static void performe_validation_semantique(
 				}
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(index_type);
-			}
+			donnees_dependance.types_utilises.insere(index_type);
 
 			contexte.empile_nombre_locales();
 
@@ -1998,9 +1944,7 @@ static void performe_validation_semantique(
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-			}
+			donnees_dependance.types_utilises.insere(b->index_type);
 
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte, false);
@@ -2240,11 +2184,8 @@ static void performe_validation_semantique(
 
 			auto index_type_ptr = contexte.typeuse.ajoute_type(dt);
 
-			if (fonction_courante != nullptr) {
-				fonction_courante->types_utilises.insere(b->index_type);
-				fonction_courante->types_utilises.insere(index_type_ptr);
-			}
-
+			donnees_dependance.types_utilises.insere(b->index_type);
+			donnees_dependance.types_utilises.insere(index_type_ptr);
 			break;
 		}
 		case type_noeud::CONSTRUIT_STRUCTURE:
@@ -2561,7 +2502,7 @@ static void performe_validation_semantique(
 			auto decalage = 0u;
 			auto max_alignement = 0u;
 
-			auto ajoute_donnees_membre = [&contexte, &decalage, &ds, &max_alignement, &graphe, &noeud_dependance](base *enfant, base *expression)
+			auto ajoute_donnees_membre = [&contexte, &decalage, &ds, &max_alignement, &donnees_dependance](base *enfant, base *expression)
 			{
 				auto &dt_membre = trouve_donnees_type(contexte, enfant);
 				auto align_type = alignement(contexte, dt_membre);
@@ -2572,8 +2513,7 @@ static void performe_validation_semantique(
 				ds.donnees_membres.insere({enfant->chaine(), { ds.index_types.taille(), expression, decalage }});
 				ds.index_types.pousse(enfant->index_type);
 
-				auto noeud_type = graphe.cree_noeud_type(enfant->index_type);
-				graphe.connecte_type_type(*noeud_dependance, *noeud_type);
+				donnees_dependance.types_utilises.insere(enfant->index_type);
 
 				decalage += taille_octet_type(contexte, dt_membre);
 			};
@@ -2614,6 +2554,7 @@ static void performe_validation_semantique(
 
 				ds.taille_octet = taille_union;
 
+				graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 				return;
 			}
 
@@ -2677,6 +2618,7 @@ static void performe_validation_semantique(
 			decalage += padding;
 			ds.taille_octet = decalage;
 
+			graphe.ajoute_dependances(*noeud_dependance, donnees_dependance);
 			break;
 		}
 		case type_noeud::DECLARATION_ENUM:
@@ -2972,8 +2914,8 @@ static void performe_validation_semantique(
 
 			b->op = meilleur_candidat->op;
 
-			if (!b->op->est_basique && fonction_courante != nullptr) {
-				fonction_courante->fonctions_utilisees.insere(b->op->nom_fonction);
+			if (!b->op->est_basique) {
+				donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
 			}
 
 			for (auto i = 1; i < nombre_enfant; ++i) {

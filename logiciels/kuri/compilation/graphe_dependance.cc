@@ -237,23 +237,37 @@ long GrapheDependance::trouve_index_type(long index_racine, TypeRelation type) c
 	return -1;
 }
 
-void GrapheDependance::ajoute_connexions_fonction(
+void GrapheDependance::connecte_noeuds(
+		NoeudDependance &noeud1,
+		NoeudDependance &noeud2,
+		TypeRelation type_relation)
+{
+	for (auto const &relation : noeud1.relations) {
+		if (relation.type == type_relation && relation.noeud_fin == &noeud2) {
+			return;
+		}
+	}
+
+	noeud1.relations.pousse({ type_relation, &noeud1, &noeud2 });
+}
+
+void GrapheDependance::ajoute_dependances(
 		NoeudDependance &noeud,
-		DonneesFonction &donnees)
+		DonneesDependance &donnees)
 {
 	for (auto index_type : donnees.types_utilises) {
 		auto noeud_type = cree_noeud_type(index_type);
-		connecte_fonction_type(noeud, *noeud_type);
+		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
 	}
 
 	for (auto fonction_utilisee : donnees.fonctions_utilisees) {
 		auto noeud_type = cherche_noeud_fonction(fonction_utilisee);
-		connecte_fonction_fonction(noeud, *noeud_type);
+		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
 	}
 
 	for (auto globale_utilisee : donnees.globales_utilisees) {
 		auto noeud_type = cherche_noeud_globale(globale_utilisee);
-		connecte_fonction_globale(noeud, *noeud_type);
+		connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
 	}
 
 	/* libère la mémoire */

@@ -165,6 +165,10 @@ struct ContexteGenerationCode {
 
 	DonneesFonction *donnees_fonction = nullptr;
 
+	/* Les données des dépendances d'un noeud syntaxique, utilisée lors de la
+	 * validation sémantique. */
+	DonneesDependance donnees_dependance{};
+
 	long index_type_contexte = -1;
 
 	bool bit32 = false;

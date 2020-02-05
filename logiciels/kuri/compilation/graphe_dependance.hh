@@ -28,6 +28,7 @@
 #include "biblinternes/outils/definitions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico.hh"
+#include "biblinternes/structures/ensemble.hh"
 #include "biblinternes/structures/tableau.hh"
 
 #include "arbre_syntactic.h"
@@ -96,6 +97,12 @@ struct NoeudDependance {
 	char drapeaux = 0;
 };
 
+struct DonneesDependance {
+	dls::ensemble<dls::vue_chaine_compacte> fonctions_utilisees{};
+	dls::ensemble<dls::vue_chaine_compacte> globales_utilisees{};
+	dls::ensemble<long> types_utilises{};
+};
+
 struct GrapheDependance {
 	dls::tableau<NoeudDependance *> noeuds{};
 
@@ -147,9 +154,11 @@ struct GrapheDependance {
 
 	void connecte_type_type(long type1, long type2, TypeRelation type_rel = TypeRelation::UTILISE_TYPE);
 
-	void ajoute_connexions_fonction(NoeudDependance &noeud, DonneesFonction &donnees);
+	void ajoute_dependances(NoeudDependance &noeud, DonneesDependance &donnees);
 
 	long trouve_index_type(long index_racine, TypeRelation type) const;
+
+	void connecte_noeuds(NoeudDependance &noeud1, NoeudDependance &noeud2, TypeRelation type_relation);
 };
 
 void imprime_fonctions_inutilisees(GrapheDependance &graphe_dependance);

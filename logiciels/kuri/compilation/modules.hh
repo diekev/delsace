@@ -66,11 +66,6 @@ struct DonneesFonction {
 	bool est_sans_contexte = false;
 	char pad[4];
 
-	/* pour la construction du graphe de dépendances */
-	dls::ensemble<dls::vue_chaine_compacte> fonctions_utilisees{};
-	dls::ensemble<dls::vue_chaine_compacte> globales_utilisees{};
-	dls::ensemble<long> types_utilises{};
-
 	using iteratrice_arg = dls::tableau<DonneesArgument>::iteratrice;
 
 	iteratrice_arg trouve(dls::vue_chaine_compacte const &nom);
