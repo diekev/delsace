@@ -1304,13 +1304,14 @@ static llvm::Value *genere_code_llvm(
 			auto &type = contexte.typeuse[variable->index_type];
 			auto type_llvm = converti_type_llvm(contexte, type);
 
-			/* À FAIRE: variable externe */
 			if (contexte.fonction == nullptr) {
+				auto est_externe = possede_drapeau(variable->drapeaux, EST_EXTERNE);
+
 				auto vg = new llvm::GlobalVariable(
 							*contexte.module_llvm,
 							type_llvm,
 							!possede_drapeau(variable->drapeaux, DYNAMIC),
-							llvm::GlobalValue::InternalLinkage,
+							est_externe ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::InternalLinkage,
 							nullptr);
 
 				vg->setAlignment(alignement(contexte, type));
