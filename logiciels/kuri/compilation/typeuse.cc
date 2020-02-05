@@ -292,24 +292,6 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 		graphe.connecte_type_type(idx_deref, i, TypeRelation::TYPE_POINTEUR);
 		graphe.connecte_type_type(i, idx_deref, TypeRelation::TYPE_DEREFERENCE);
 
-		/* À FAIRE : considération de la taille en octet des types */
-
-		static long types_entiers_naturels[] = {
-			indexeuse[TypeBase::N8],
-			indexeuse[TypeBase::N16],
-			indexeuse[TypeBase::N32],
-			indexeuse[TypeBase::N64],
-			indexeuse[TypeBase::N128],
-		};
-
-		static long types_entiers_relatifs[] = {
-			indexeuse[TypeBase::Z8],
-			indexeuse[TypeBase::Z16],
-			indexeuse[TypeBase::Z32],
-			indexeuse[TypeBase::Z64],
-			indexeuse[TypeBase::Z128],
-		};
-
 		auto indice = IndiceTypeOp::ENTIER_RELATIF;
 		auto raison = RaisonOp::POUR_COMPARAISON;
 
@@ -320,23 +302,24 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR, i, idx_dt_bool, indice, raison);
 		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR_EGAL, i, idx_dt_bool, indice, raison);
 
+		/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
+		 * gros, la résolution de l'opérateur ajoutera une transformation afin
+		 * que le type plus petit soit transtyper à la bonne taille. */
+		auto idx_type_entier = indexeuse[TypeBase::Z64];
 		raison = RaisonOp::POUR_ARITHMETIQUE;
 
-		for (auto idx_type_entier : types_entiers_relatifs) {
-			operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
-			operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
-			operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
-			operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
-		}
+		operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
 
+		idx_type_entier = indexeuse[TypeBase::N64];
 		indice = IndiceTypeOp::ENTIER_NATUREL;
 
-		for (auto idx_type_entier : types_entiers_naturels) {
-			operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
-			operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
-			operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
-			operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
-		}
+		operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
 	}
 }
 

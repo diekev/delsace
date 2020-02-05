@@ -1385,7 +1385,7 @@ static llvm::Value *genere_code_llvm(
 			if ((b->drapeaux & EST_ASSIGNATION_OPEREE) != 0) {
 				auto ptr_valeur1 = genere_code_llvm(enfant1, contexte, true);
 				auto valeur1 = new llvm::LoadInst(ptr_valeur1, "", false, contexte.bloc_courant());
-				auto valeur2 = genere_code_llvm(enfant2, contexte, false);
+				auto valeur2 = applique_transformation(contexte, enfant2, false);
 
 				if (op->est_basique) {
 					auto val_resultat = llvm::BinaryOperator::Create(op->instr_llvm, valeur1, valeur2, "", contexte.bloc_courant());
@@ -1397,8 +1397,8 @@ static llvm::Value *genere_code_llvm(
 				return nullptr;
 			}
 
-			auto valeur1 = genere_code_llvm(enfant1, contexte, false);
-			auto valeur2 = genere_code_llvm(enfant2, contexte, false);
+			auto valeur1 = applique_transformation(contexte, enfant1, false);
+			auto valeur2 = applique_transformation(contexte, enfant2, false);
 
 			if (op->est_basique) {
 				if (op->est_comp_entier) {
