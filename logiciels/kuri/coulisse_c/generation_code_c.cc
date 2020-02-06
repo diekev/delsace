@@ -196,9 +196,10 @@ static void applique_transformation(
 		}
 		case TypeTransformation::FONCTION:
 		{
-			/* À FAIRE : typage */
+			auto &dt_vers = contexte.typeuse[b->transformation.index_type_cible];
+			os << nom_broye_type(contexte, dt_vers) << ' ';
 			os << nom_var_temp << " = " << b->transformation.nom_fonction << '(';
-			os << nom_courant << ");n\n";
+			os << nom_courant << ");\n";
 
 			break;
 		}

@@ -67,6 +67,12 @@ struct TransformationType {
 		, nom_fonction(nom_fonction_)
 	{}
 
+	TransformationType(dls::vue_chaine_compacte nom_fonction_, long idx_type)
+		: type(TypeTransformation::FONCTION)
+		, nom_fonction(nom_fonction_)
+		, index_type_cible(idx_type)
+	{}
+
 	TransformationType(const char *nom_fonction_)
 		: type(TypeTransformation::FONCTION)
 		, nom_fonction(nom_fonction_)

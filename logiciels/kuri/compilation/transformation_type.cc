@@ -101,11 +101,11 @@ TransformationType cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (dt_de.type_base() == TypeLexeme::R16) {
 			if (dt_vers.type_base() == TypeLexeme::R32) {
-				return "DLS_vers_r32";
+				return { "DLS_vers_r32", type_vers };
 			}
 
 			if (dt_vers.type_base() == TypeLexeme::R64) {
-				return "DLS_vers_r64";
+				return { "DLS_vers_r64", type_vers };
 			}
 
 			return TypeTransformation::IMPOSSIBLE;
@@ -114,11 +114,11 @@ TransformationType cherche_transformation(
 		/* cas spéciaux pour R16 */
 		if (dt_vers.type_base() == TypeLexeme::R16) {
 			if (dt_de.type_base() == TypeLexeme::R32) {
-				return "DLS_depuis_r32";
+				return { "DLS_depuis_r32", type_vers };
 			}
 
 			if (dt_de.type_base() == TypeLexeme::R64) {
-				return "DLS_depuis_r64";
+				return { "DLS_depuis_r64", type_vers };
 			}
 
 			return TypeTransformation::IMPOSSIBLE;
