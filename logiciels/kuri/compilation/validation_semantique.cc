@@ -2360,7 +2360,13 @@ static void performe_validation_semantique(
 				b->drapeaux |= EST_CALCULE;
 				b->valeur_calculee = taille;
 
-				b->index_type = contexte.typeuse.type_tableau_pour(contexte.typeuse.type_dereference_pour(b->index_type));
+				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->index_type);
+
+				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
+				auto idx_type_pointeur = contexte.typeuse.type_pointeur_pour(idx_type_deref);
+				donnees_dependance.types_utilises.insere(idx_type_pointeur);
+
+				b->index_type = contexte.typeuse.type_tableau_pour(idx_type_deref);
 			}
 			else if (dt.type_base() == TypeLexeme::CHAINE) {
 				performe_validation_semantique(*enfant++, contexte, false);
@@ -2373,6 +2379,8 @@ static void performe_validation_semantique(
 			if (nombre_enfant == 1) {
 				performe_validation_semantique(*enfant++, contexte, true);
 			}
+
+			donnees_dependance.types_utilises.insere(b->index_type);
 
 			break;
 		}
@@ -2390,6 +2398,11 @@ static void performe_validation_semantique(
 			if ((dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
 				auto expr = b->type_declare.expressions[0];
 				performe_validation_semantique(expr, contexte, false);
+
+				// pour la coulisse C, ajout d'une dépendance vers le type du pointeur du tableau
+				auto idx_type_deref = contexte.typeuse.type_dereference_pour(b->index_type);
+				auto idx_type_pointeur = contexte.typeuse.type_pointeur_pour(idx_type_deref);
+				donnees_dependance.types_utilises.insere(idx_type_pointeur);
 			}
 			else if (dt.type_base() == TypeLexeme::CHAINE) {
 				performe_validation_semantique(*enfant++, contexte, false);
@@ -2417,6 +2430,8 @@ static void performe_validation_semantique(
 			if (nombre_enfant == 2) {
 				performe_validation_semantique(*enfant++, contexte, true);
 			}
+
+			donnees_dependance.types_utilises.insere(b->index_type);
 
 			break;
 		}
