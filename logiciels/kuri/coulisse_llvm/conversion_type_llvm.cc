@@ -39,10 +39,6 @@
 
 #include "donnees_type.h"
 
-// À FAIRE :
-// - unions (utilisation d'une structure avec un seul élément suffisament grand)
-//   voir https://stackoverflow.com/questions/19549942/extracting-a-value-from-an-union
-
 static llvm::Type *converti_type(
 		ContexteGenerationCode &contexte,
 		DonneesTypeFinal &donnees_type)

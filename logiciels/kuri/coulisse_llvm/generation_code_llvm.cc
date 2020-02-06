@@ -62,8 +62,6 @@ using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
 /* ************************************************************************** */
 
 /* À FAIRE (coulisse LLVM)
- * - opérateurs : +=, -=, etc..
- * - raccourci opérateurs comparaisons (a <= b <= c au lieu de a <= b && b <= c)
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - coroutine, retiens
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
@@ -936,8 +934,9 @@ static llvm::Value *genere_code_llvm(
 			return nullptr;
 		}
 		case type_noeud::DECLARATION_COROUTINE:
+		case type_noeud::RETIENS:
 		{
-			/* À FAIRE */
+			/* À FAIRE(coroutine) */
 			return nullptr;
 		}
 		case type_noeud::EXPRESSION_PARENTHESE:
@@ -2660,11 +2659,6 @@ static llvm::Value *genere_code_llvm(
 
 			contexte.bloc_courant(bloc_post_discr);
 
-			return nullptr;
-		}
-		case type_noeud::RETIENS:
-		{
-			/* À FAIRE */
 			return nullptr;
 		}
 	}
