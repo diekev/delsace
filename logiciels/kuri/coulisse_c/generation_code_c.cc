@@ -1263,14 +1263,18 @@ void genere_code_C(
 			auto flux = dls::flux_chaine();
 			auto dt = contexte.typeuse[variable->index_type];
 
-			/* pour les assignations de tableaux fixes, remplace les crochets
-			 * par des pointeurs pour la déclaration */
-			if (dt.type_base() != TypeLexeme::TABLEAU && (dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
-				auto ndt = DonneesTypeFinal{};
-				ndt.pousse(TypeLexeme::POINTEUR);
-				ndt.pousse(dt.dereference());
+			if (expression != nullptr) {
+				auto &dt_expr = contexte.typeuse[expression->index_type];
 
-				dt = ndt;
+				/* pour les assignations de tableaux fixes, remplace les crochets
+				 * par des pointeurs pour la déclaration */
+				if (est_type_tableau_fixe(dt_expr)) {
+					auto ndt = DonneesTypeFinal{};
+					ndt.pousse(TypeLexeme::POINTEUR);
+					ndt.pousse(dt.dereference());
+
+					dt = ndt;
+				}
 			}
 
 			auto nom_broye = broye_chaine(variable);
