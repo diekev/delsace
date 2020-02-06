@@ -144,7 +144,7 @@ static auto cree_info_type_structure_C(
 
 	/* crée le tableau des données des membres */
 	auto const nom_tableau_membre = "__info_type_membres" + nom_info_type;
-	os_decl << "static const InfoTypeMembreStructure " << nom_tableau_membre << "[] = {\n";
+	auto pointeurs = dls::tableau<dls::chaine>();
 
 	for (auto i = 0l; i < nombre_membres; ++i) {
 		auto index_dt = donnees_structure.index_types[i];
@@ -158,16 +158,23 @@ static auto cree_info_type_structure_C(
 			auto idx = contexte.typeuse.ajoute_type(dt_membre);
 			auto &rderef = contexte.typeuse[idx];
 
-			os_decl << "\t{\n";
-			os_decl << "\t\t.nom = { .pointeur = \"" << paire_idx_mb.first << "\", .taille = " << paire_idx_mb.first.taille() << " },\n";
-			os_decl << "\t\t" << broye_nom_simple(".décalage = ") << paire_idx_mb.second.decalage << ",\n";
-			os_decl << "\t\t.id = (InfoType *)(&" << rderef.ptr_info_type << ")\n";
-			os_decl << "\t},\n";
+			auto nom_info_type_membre = "__info_type_membre" + dls::vers_chaine(index_info_type++);
+			pointeurs.pousse(nom_info_type_membre);
+
+			os_decl << "static const InfoTypeMembreStructure " << nom_info_type_membre << " = {\n";
+			os_decl << "\t.nom = { .pointeur = \"" << paire_idx_mb.first << "\", .taille = " << paire_idx_mb.first.taille() << " },\n";
+			os_decl << "\t" << broye_nom_simple(".décalage = ") << paire_idx_mb.second.decalage << ",\n";
+			os_decl << "\t.id = (InfoType *)(&" << rderef.ptr_info_type << ")\n";
+			os_decl << "};\n";
 
 			break;
 		}
 	}
 
+	os_decl << "static const InfoTypeMembreStructure *" << nom_tableau_membre << "[] = {\n";
+	for (auto &pointeur : pointeurs) {
+		os_decl << "&" << pointeur << ",";
+	}
 	os_decl << "};\n";
 
 	/* crée l'info pour la structure */
