@@ -2761,23 +2761,23 @@ static void traverse_graphe_pour_generation_code(
 			genere_code_C(noeud->noeud_syntactique, generatrice, contexte, false);
 		}
 
-		if (noeud->index == -1 || !genere_info_type) {
-			return;
-		}
+//		if (noeud->index == -1 || !genere_info_type) {
+//			return;
+//		}
 
-		auto &dt = contexte.typeuse[noeud->index];
+//		auto &dt = contexte.typeuse[noeud->index];
 
-		/* Suppression des avertissements pour les conversions dites
-		 * « imcompatibles » alors qu'elles sont bonnes.
-		 * Elles surviennent dans les assignations des pointeurs, par exemple pour
-		 * ceux des tableaux des membres des fonctions.
-		 */
-		generatrice.os << "#pragma GCC diagnostic push\n";
-		generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
+//		/* Suppression des avertissements pour les conversions dites
+//		 * « imcompatibles » alors qu'elles sont bonnes.
+//		 * Elles surviennent dans les assignations des pointeurs, par exemple pour
+//		 * ceux des tableaux des membres des fonctions.
+//		 */
+//		generatrice.os << "#pragma GCC diagnostic push\n";
+//		generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
 
-		cree_info_type_C(contexte, generatrice, generatrice.os, dt);
+//		cree_info_type_C(contexte, generatrice, generatrice.os, dt);
 
-		generatrice.os << "#pragma GCC diagnostic pop\n";
+//		generatrice.os << "#pragma GCC diagnostic pop\n";
 	}
 	else {
 		if (noeud->type == TypeNoeudDependance::FONCTION && !genere_fonctions) {
@@ -2841,10 +2841,38 @@ static void genere_typedefs_pour_tous_les_types(
 		if (drapeaux[i] != 0) {
 			continue;
 		}
+
 		auto &dt = contexte.typeuse[i];
 
 		genere_typedefs_recursifs(contexte, dt, i, drapeaux, os);
 	}
+}
+
+static void genere_infos_pour_tous_les_types(
+		ContexteGenerationCode &contexte,
+		GeneratriceCodeC &generatrice)
+{
+	auto nombre_de_types = contexte.typeuse.nombre_de_types();
+
+	/* Suppression des avertissements pour les conversions dites
+	 * « imcompatibles » alors qu'elles sont bonnes.
+	 * Elles surviennent dans les assignations des pointeurs, par exemple pour
+	 * ceux des tableaux des membres des fonctions.
+	 */
+	generatrice.os << "#pragma GCC diagnostic push\n";
+	generatrice.os << "#pragma GCC diagnostic ignored \"-Wincompatible-pointer-types\"\n";
+
+	for (auto i = 0; i < nombre_de_types; ++i) {
+		auto &dt = contexte.typeuse[i];
+
+		if (dt.type_base() == TypeLexeme::TROIS_POINTS && est_invalide(dt.dereference())) {
+			continue;
+		}
+
+		cree_info_type_C(contexte, generatrice, generatrice.os, dt);
+	}
+
+	generatrice.os << "#pragma GCC diagnostic pop\n";
 }
 
 void genere_code_C(
@@ -2998,15 +3026,17 @@ void KR__acces_membre_union(
 		noeud->fut_visite = false;
 	}
 
-	for (auto nom_struct : noms_structs_infos_types) {
-		auto const &ds = contexte.donnees_structure(nom_struct);
-		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
-		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, true);
-	}
+//	for (auto nom_struct : noms_structs_infos_types) {
+//		auto const &ds = contexte.donnees_structure(nom_struct);
+//		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+//		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, true);
+//	}
 
 	temps_generation += debut_generation.temps();
 
 	reduction_transitive(graphe_dependance);
+
+	genere_infos_pour_tous_les_types(contexte, generatrice);
 
 	debut_generation.commence();
 
