@@ -573,4 +573,7 @@ public:
 	/* À FAIRE : bouge ça d'ici. */
 	double temps_validation = 0.0;
 	double temps_generation = 0.0;
+
+	// pour les variables des boucles
+	bool est_coulisse_llvm = false;
 };

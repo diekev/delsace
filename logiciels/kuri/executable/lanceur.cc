@@ -409,6 +409,7 @@ int main(int argc, char *argv[])
 
 		auto contexte_generation = ContexteGenerationCode{};
 		contexte_generation.bit32 = ops.bit32;
+		contexte_generation.est_coulisse_llvm = ops.coulisse_llvm;
 		auto assembleuse = assembleuse_arbre(contexte_generation);
 
 		os << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'..." << std::endl;
