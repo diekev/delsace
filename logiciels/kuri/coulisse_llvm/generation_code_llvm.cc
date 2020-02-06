@@ -564,7 +564,7 @@ enum {
 		}
 		case TypeTransformation::FONCTION:
 		{
-			/* À FAIRE */
+			/* À FAIRE: appel fonction */
 			break;
 		}
 		case TypeTransformation::PREND_REFERENCE:
@@ -2011,7 +2011,7 @@ static llvm::Value *genere_code_llvm(
 				case GENERE_BOUCLE_COROUTINE:
 				case GENERE_BOUCLE_COROUTINE_INDEX:
 				{
-					/* À FAIRE */
+					/* À FAIRE(coroutine) */
 					break;
 				}
 			}
