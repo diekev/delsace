@@ -504,6 +504,9 @@ int main(int argc, char *argv[])
 			 * on passe des variables générés temporairement par la coulisse à
 			 * des fonctions qui dont les paramètres ne sont pas constants */
 			commande += "-Wno-discarded-qualifiers ";
+			/* désactivation des avertissements de passage d'une variable au
+			 * lieu d'une chaine littérale à printf et al. */
+			commande += "-Wno-format-security ";
 
 			switch (ops.optimisation) {
 				case NiveauOptimisation::Aucun:
