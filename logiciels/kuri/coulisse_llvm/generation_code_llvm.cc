@@ -1406,8 +1406,15 @@ static llvm::Value *genere_code_llvm(
 				return llvm::BinaryOperator::Create(op->instr_llvm, valeur1, valeur2, "", contexte.bloc_courant());
 			}
 
-			// À FAIRE: appel fonction
-			return nullptr;
+			auto parametres = std::vector<llvm::Value *>(3);
+			// À FAIRE : voir si le contexte est nécessaire
+			auto valeur_contexte = contexte.valeur_locale("contexte");
+			parametres[0] = new llvm::LoadInst(valeur_contexte, "", false, contexte.bloc_courant());
+			parametres[1] = valeur1;
+			parametres[2] = valeur2;
+
+			auto fonction = contexte.module_llvm->getFunction(op->nom_fonction.c_str());
+			return llvm::CallInst::Create(fonction, parametres, "", contexte.bloc_courant());
 		}
 		case type_noeud::OPERATION_UNAIRE:
 		{
