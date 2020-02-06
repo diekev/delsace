@@ -2610,6 +2610,8 @@ void genere_code_C(
 				auto expr_paire = enfant->enfants.front();
 				auto bloc_paire = enfant->enfants.back();
 
+				contexte.empile_nombre_locales();
+
 				if (expr_paire->type == type_noeud::SINON) {
 					generatrice.os << "default";
 				}
@@ -2617,18 +2619,17 @@ void genere_code_C(
 					auto iter_dm = ds.donnees_membres.trouve(expr_paire->chaine());
 					auto const &dm = iter_dm->second;
 					generatrice.os << "case " << dm.index_membre + 1;
+
+					auto iter_membre = ds.donnees_membres.trouve(expr_paire->chaine());
+
+					auto dv = DonneesVariable{};
+					dv.index_type = ds.index_types[iter_membre->second.index_membre];
+					dv.est_argument = true;
+					dv.est_membre_emploie = true;
+					dv.structure = chaine_calculee;
+
+					contexte.pousse_locale(iter_membre->first, dv);
 				}
-
-				auto iter_membre = ds.donnees_membres.trouve(expr_paire->chaine());
-
-				auto dv = DonneesVariable{};
-				dv.index_type = ds.index_types[iter_membre->second.index_membre];
-				dv.est_argument = true;
-				dv.est_membre_emploie = true;
-				dv.structure = chaine_calculee;
-
-				contexte.empile_nombre_locales();
-				contexte.pousse_locale(iter_membre->first, dv);
 
 				generatrice.os << ": {\n";
 				genere_code_C(bloc_paire, generatrice, contexte, true);
