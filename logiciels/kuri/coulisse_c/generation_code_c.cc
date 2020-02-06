@@ -2911,11 +2911,6 @@ void genere_code_C(
 	os << "\n";
 
 	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
-	os << "static long __VG_memoire_utilisee__ = 0;\n";
-	os << "static long __VG_memoire_consommee__ = 0;\n";
-	os << "static long __VG_nombre_allocations__ = 0;\n";
-	os << "static long __VG_nombre_reallocations__ = 0;\n";
-	os << "static long __VG_nombre_deallocations__ = 0;\n";
 
 	auto depassement_limites_tableau =
 R"(
@@ -2984,6 +2979,20 @@ void KR__acces_membre_union(
 	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
 	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
 	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
+
+	/* ceci ne sont peut-être pas dans le graphe */
+	const char *symboles_globaux[] = {
+		"__VG_memoire_utilisee__",
+		"__VG_memoire_consommee__",
+		"__VG_nombre_allocations__",
+		"__VG_nombre_reallocations__",
+		"__VG_nombre_deallocations__",
+	};
+
+	for (auto symbole : symboles_globaux) {
+		auto noeud = graphe_dependance.cherche_noeud_globale(symbole);
+		graphe_dependance.connecte_fonction_globale(*noeud_fonction_principale, *noeud);
+	}
 
 	/* déclaration des types de bases */
 	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
