@@ -91,7 +91,6 @@ struct NoeudDependance {
 
 	bool fut_visite = false;
 	bool deja_genere = false;
-	bool typedef_genere = false;
 
 	/* pour certains algorithmes de travail sur le graphe */
 	char drapeaux = 0;

@@ -149,6 +149,11 @@ struct Typeuse {
 
 	long type_pointeur_pour(long index_type);
 
+	inline long nombre_de_types() const
+	{
+		return indexeuse.donnees_types.taille();
+	}
+
 	inline long operator[](TypeBase type_base) const
 	{
 		return indexeuse[type_base];

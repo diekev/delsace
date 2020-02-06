@@ -2756,10 +2756,6 @@ static void traverse_graphe_pour_generation_code(
 
 		auto &dt = contexte.typeuse[noeud->index];
 
-		if (!noeud->typedef_genere) {
-			cree_typedef(contexte, dt, generatrice.os);
-		}
-
 		/* Suppression des avertissements pour les conversions dites
 		 * « imcompatibles » alors qu'elles sont bonnes.
 		 * Elles surviennent dans les assignations des pointeurs, par exemple pour
@@ -2783,54 +2779,60 @@ static void traverse_graphe_pour_generation_code(
 	}
 }
 
-static void traverse_graphe_pour_typedefs(
+static void genere_typedefs_recursifs(
 		ContexteGenerationCode &contexte,
-		GeneratriceCodeC &generatrice,
-		NoeudDependance *noeud)
+		DonneesTypeFinal &dt,
+		long index_type,
+		dls::tableau<char> &drapeaux,
+		dls::flux_chaine &os)
 {
-	noeud->fut_visite = true;
+	if (peut_etre_dereference(dt.type_base())) {
+		auto idx_type_deref = contexte.typeuse.indexeuse.trouve_index(dt.dereference());
 
-	if (noeud->typedef_genere) {
-		return;
-	}
-
-	for (auto const &relation : noeud->relations) {
-		auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
-		accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
-		accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
-
-		if (!accepte) {
-			continue;
-		}
-
-		/* évite les boucles infinies dues aux dépendances cycliques de types
-		 * et fonctions recursives
-		 */
-		if (relation.noeud_fin->fut_visite) {
-			continue;
-		}
-
-		traverse_graphe_pour_typedefs(contexte, generatrice, relation.noeud_fin);
-	}
-
-	if (noeud->type == TypeNoeudDependance::TYPE) {
-		if (noeud->index == -1) {
-			/* les fonctions externes ayant des arguments variadiques non-typés
-			 * n'ont pas de type valide */
+		/* argument variadique fonction externe */
+		if (idx_type_deref == -1) {
 			return;
 		}
 
-		auto &dt = contexte.typeuse[noeud->index];
-
-		// les tableaux doivent attendre que le type sous jacent eût sa
-		// déclaration pour que C puisse allouer la place nécessaire
-		if (est_type_tableau_fixe(dt.type_base())) {
-			return;
+		if (drapeaux[idx_type_deref] == 0) {
+			auto &dt_deref = contexte.typeuse[idx_type_deref];
+			genere_typedefs_recursifs(contexte, dt_deref, idx_type_deref, drapeaux, os);
 		}
 
-		cree_typedef(contexte, dt, generatrice.os);
+		drapeaux[idx_type_deref] = 1;
+	}
+	/* ajoute les types des paramètres et de retour des fonctions */
+	else if (dt.type_base() == TypeLexeme::FONC || dt.type_base() == TypeLexeme::COROUT) {
+		long nombre_type_retour = 0;
+		auto index_params = donnees_types_parametres(contexte.typeuse, dt, nombre_type_retour);
 
-		noeud->typedef_genere = true;
+		for (auto idx_param : index_params) {
+			if (drapeaux[idx_param] == 0) {
+				genere_typedefs_recursifs(contexte, contexte.typeuse[idx_param], idx_param, drapeaux, os);
+			}
+
+			drapeaux[idx_param] = 1;
+		}
+	}
+
+	cree_typedef(contexte, dt, os);
+	drapeaux[index_type] = 1;
+}
+
+static void genere_typedefs_pour_tous_les_types(
+		ContexteGenerationCode &contexte,
+		dls::flux_chaine &os)
+{
+	auto nombre_de_types = contexte.typeuse.nombre_de_types();
+	dls::tableau<char> drapeaux(nombre_de_types, 0);
+
+	for (auto i = 0; i < nombre_de_types; ++i) {
+		if (drapeaux[i] != 0) {
+			continue;
+		}
+		auto &dt = contexte.typeuse[i];
+
+		genere_typedefs_recursifs(contexte, dt, i, drapeaux, os);
 	}
 }
 
@@ -2959,12 +2961,9 @@ void KR__acces_membre_union(
 	auto debut_generation = dls::chrono::compte_seconde();
 
 	/* création primordiale des typedefs pour éviter les problèmes liés aux
-	 * types récursifs */
-	traverse_graphe_pour_typedefs(contexte, generatrice, noeud_fonction_principale);
-
-	for (auto noeud : graphe_dependance.noeuds) {
-		noeud->fut_visite = false;
-	}
+	 * types récursifs, inclus tous les types car dans certains cas il manque
+	 * des connexions entre types... */
+	genere_typedefs_pour_tous_les_types(contexte, os);
 
 	/* il faut d'abord créer le code pour les structures InfoType */
 	const char *noms_structs_infos_types[] = {
@@ -2982,10 +2981,6 @@ void KR__acces_membre_union(
 	for (auto nom_struct : noms_structs_infos_types) {
 		auto const &ds = contexte.donnees_structure(nom_struct);
 		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
-
-		/* puisque les structures d'info types ne sont pas forcément connectés,
-		 * il est possible que certains typedefs ne furent pas générés */
-		traverse_graphe_pour_typedefs(contexte, generatrice, noeud);
 
 		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, false);
 		/* restaure le drapeaux pour la génération des infos des types */
