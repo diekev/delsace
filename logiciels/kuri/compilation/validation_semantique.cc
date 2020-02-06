@@ -355,12 +355,13 @@ static void valide_acces_membre(
 {
 	performe_validation_semantique(structure, contexte, expr_gauche);
 
-	auto const &index_type = structure->index_type;
+	auto index_type = structure->index_type;
 	auto type_structure = contexte.typeuse[index_type];
 
 	/* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
 	while (type_structure.type_base() == TypeLexeme::POINTEUR || type_structure.type_base() == TypeLexeme::REFERENCE) {
 		type_structure = type_structure.dereference();
+		index_type = contexte.typeuse.ajoute_type(type_structure);
 	}
 
 	auto est_structure = (type_structure.type_base() & 0xff) == TypeLexeme::CHAINE_CARACTERE;
