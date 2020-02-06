@@ -100,8 +100,9 @@ static void applique_transformation(
 		}
 		case TypeTransformation::EXTRAIT_EINI:
 		{
-			os << nom_broye_type(contexte, dt) << " " << nom_var_temp << " = *(";
-			os << nom_broye_type(contexte, dt) << " *)(" << nom_courant << ".pointeur);\n";
+			auto &dt_vers = contexte.typeuse[b->transformation.index_type_cible];
+			os << nom_broye_type(contexte, dt_vers) << " " << nom_var_temp << " = *(";
+			os << nom_broye_type(contexte, dt_vers) << " *)(" << nom_courant << ".pointeur);\n";
 			break;
 		}
 		case TypeTransformation::CONSTRUIT_TABL_OCTET:
