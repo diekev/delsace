@@ -1271,11 +1271,9 @@ void genere_code_C(
 			auto dt = contexte.typeuse[variable->index_type];
 
 			if (expression != nullptr) {
-				auto &dt_expr = contexte.typeuse[expression->index_type];
-
 				/* pour les assignations de tableaux fixes, remplace les crochets
 				 * par des pointeurs pour la déclaration */
-				if (est_type_tableau_fixe(dt_expr)) {
+				if (expression->type == type_noeud::CONSTRUIT_TABLEAU) {
 					auto ndt = DonneesTypeFinal{};
 					ndt.pousse(TypeLexeme::POINTEUR);
 					ndt.pousse(dt.dereference());
