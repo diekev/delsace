@@ -95,7 +95,8 @@ struct DonneesVariable {
 	bool est_argument = false;
 	bool est_membre_emploie = false;
 	bool est_externe = false;
-	char pad[3] = {};
+	bool est_var_boucle = false;
+	char pad[2] = {};
 
 	/* nom de la structure pour l'accès des variables employées */
 	dls::chaine structure = "";

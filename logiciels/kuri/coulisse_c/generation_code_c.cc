@@ -1144,7 +1144,15 @@ void genere_code_C(
 						flux << dv.structure;
 					}
 
+					if (dv.est_var_boucle) {
+						flux << "(*";
+					}
+
 					flux << broye_chaine(b);
+
+					if (dv.est_var_boucle) {
+						flux << ")";
+					}
 				}
 
 				b->valeur_calculee = dls::chaine(flux.chn());
@@ -1870,7 +1878,7 @@ void genere_code_C(
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".taille - 1; ++"<< nom_var <<") {\n";
 				os_loc << nom_broye_type(contexte_loc, dt);
-				os_loc << " " << broye_chaine(var) << " = &";
+				os_loc << " *" << broye_chaine(var) << " = &";
 				os_loc << enfant_2->chaine_calculee();
 				os_loc << ".pointeur["<< nom_var <<"];\n";
 
@@ -1978,8 +1986,7 @@ void genere_code_C(
 						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
 
 						auto idx_type_deref = contexte.typeuse.type_dereference_pour(index_type);
-						auto idx_type_ref = contexte.typeuse.type_reference_pour(idx_type_deref);
-						auto &type_deref = contexte.typeuse[idx_type_ref];
+						auto &type_deref = contexte.typeuse[idx_type_deref];
 
 						if (taille_tableau != 0) {
 							genere_code_tableau_fixe(generatrice.os, contexte, enfant1, enfant2, type_deref, nom_var, taille_tableau);
@@ -1989,7 +1996,7 @@ void genere_code_C(
 						}
 					}
 					else if (type == TypeLexeme::CHAINE) {
-						index_type = contexte.typeuse[TypeBase::REF_Z8];
+						index_type = contexte.typeuse[TypeBase::Z8];
 						auto &dt = contexte.typeuse[index_type];
 						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt, nom_var);
 					}
@@ -1999,13 +2006,16 @@ void genere_code_C(
 						auto idx = enfant1->enfants.back();
 
 						donnees_var.index_type = index_type;
+						donnees_var.est_var_boucle = true;
 						contexte.pousse_locale(var->chaine(), donnees_var);
 
 						donnees_var.index_type = idx->index_type;
+						donnees_var.est_var_boucle = false;
 						contexte.pousse_locale(idx->chaine(), donnees_var);
 					}
 					else {
 						donnees_var.index_type = index_type;
+						donnees_var.est_var_boucle = true;
 						contexte.pousse_locale(enfant1->chaine(), donnees_var);
 					}
 
