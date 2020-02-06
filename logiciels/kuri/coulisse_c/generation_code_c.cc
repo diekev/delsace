@@ -1264,7 +1264,7 @@ void genere_code_C(
 							generatrice.os);
 			}
 			else {
-				genere_code_C(expression, generatrice, contexte, false);
+				applique_transformation(expression, generatrice, contexte, false);
 				generatrice.os << flux.chn();
 				generatrice.os << " = ";
 				generatrice.os << expression->chaine_calculee();
