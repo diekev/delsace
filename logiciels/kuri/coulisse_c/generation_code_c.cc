@@ -156,11 +156,6 @@ static void applique_transformation(
 
 			break;
 		}
-		case TypeTransformation::EXTRAIT_TABL_OCTET:
-		{
-			/* À FAIRE */
-			break;
-		}
 		case TypeTransformation::CONVERTI_TABLEAU:
 		{
 			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());

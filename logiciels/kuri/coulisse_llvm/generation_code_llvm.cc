@@ -530,11 +530,6 @@ enum {
 
 			break;
 		}
-		case TypeTransformation::EXTRAIT_TABL_OCTET:
-		{
-			/* À FAIRE */
-			break;
-		}
 		case TypeTransformation::CONVERTI_TABLEAU:
 		{
 			valeur = genere_code_llvm(b, contexte, true);
