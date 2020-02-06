@@ -1107,6 +1107,8 @@ static void performe_validation_semantique(
 
 			valide_acces_membre(contexte, b, enfant1, enfant2, expr_gauche);
 
+			donnees_dependance.types_utilises.insere(b->index_type);
+
 			break;
 		}
 		case type_noeud::ASSIGNATION_VARIABLE:
