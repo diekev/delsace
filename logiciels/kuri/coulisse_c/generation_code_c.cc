@@ -433,7 +433,13 @@ static void genere_code_acces_membre(
 	else {
 		auto const &index_type = structure->index_type;
 		auto type_structure = contexte.typeuse[index_type].plage();
-		auto est_pointeur = type_structure.front() == TypeLexeme::POINTEUR || type_structure.front() == TypeLexeme::REFERENCE;
+		auto est_reference = type_structure.front() == TypeLexeme::REFERENCE;
+
+		if (est_reference) {
+			type_structure.effronte();
+		}
+
+		auto est_pointeur = type_structure.front() == TypeLexeme::POINTEUR;
 
 		if (est_pointeur) {
 			type_structure.effronte();
@@ -453,7 +459,13 @@ static void genere_code_acces_membre(
 					genere_code_C(membre, generatrice, contexte, expr_gauche);
 				}
 
-				flux << structure->chaine_calculee();
+				if (est_reference) {
+					flux << "(*" << structure->chaine_calculee() << ')';
+				}
+				else {
+					flux << structure->chaine_calculee();
+				}
+
 				flux << ((est_pointeur) ? "->" : ".");
 				flux << broye_chaine(membre);
 			}
@@ -479,7 +491,13 @@ static void genere_code_acces_membre(
 					genere_code_C(membre, generatrice, contexte, expr_gauche);
 				}
 
-				flux << structure->chaine_calculee();
+				if (est_reference) {
+					flux << "(*" << structure->chaine_calculee() << ')';
+				}
+				else {
+					flux << structure->chaine_calculee();
+				}
+
 				flux << ((est_pointeur) ? "->" : ".");
 				flux << broye_chaine(membre);
 			}
@@ -491,7 +509,13 @@ static void genere_code_acces_membre(
 				genere_code_C(membre, generatrice, contexte, expr_gauche);
 			}
 
-			flux << structure->chaine_calculee();
+			if (est_reference) {
+				flux << "(*" << structure->chaine_calculee() << ')';
+			}
+			else {
+				flux << structure->chaine_calculee();
+			}
+
 			flux << ((est_pointeur) ? "->" : ".");
 			flux << broye_chaine(membre);
 		}
