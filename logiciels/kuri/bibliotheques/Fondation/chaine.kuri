@@ -41,7 +41,7 @@ fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) -> *z8
 		retourne @tampon[0]
 	}
 
-	taille = chn.taille
+	taille := chn.taille
 
     copie_mem_nonsur(
 	    src=chn.pointeur,
@@ -63,7 +63,7 @@ fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, ein
 		taille_chaine += 1
 
         si c == '\n' {
-			ligne = construit_chaine(@texte[début_chaine], taille_chaine)
+			ligne := construit_chaine(@texte[début_chaine], taille_chaine)
 			rappel(ligne, donnees)
 
 			début_chaine = transtype(i + 1 : z64)
@@ -73,7 +73,7 @@ fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, ein
 
     # La dernière ligne n'a pas de retour...
 	si taille_chaine != 0 {
-		ligne = construit_chaine(@texte[début_chaine], taille_chaine)
+		ligne := construit_chaine(@texte[début_chaine], taille_chaine)
 		rappel(ligne, donnees)
 	}
 }
@@ -278,7 +278,7 @@ fonc pousse(dyn enchaineuse : &Enchaineuse, chn : chaine) -> rien
 		retourne
 	}
 
-	nouvelle_taille = enchaineuse.résultat.taille + chn.taille
+	nouvelle_taille := enchaineuse.résultat.taille + chn.taille
 	enchaineuse.réserve(nouvelle_taille)
 	enchaineuse.appends(chn)
 }

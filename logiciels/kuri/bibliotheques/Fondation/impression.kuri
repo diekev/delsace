@@ -55,16 +55,16 @@ fonc insert_low_bits(
 		retourne
 	}
 
-	sub_shift = quantité_décalage & (décalage_mot - 1)
-	big_shift = quantité_décalage / décalage_mot
-	result = transtype(valeur : n64) << sub_shift
-	result_low = transtype(result : n32)
-	result_high = result >> décalage_mot
+	sub_shift := transtype(quantité_décalage & (décalage_mot - 1): n32)
+	big_shift := transtype(quantité_décalage / décalage_mot: n32)
+	result := transtype(valeur : n64) << sub_shift
+	result_low := transtype(result : n32)
+	result_high := result >> transtype(décalage_mot : n64)
 
 	# Use an unsigned type so that negative numbers will become large,
 	# which makes the range checking below simpler. */
-	count := 5
-	high_index := count - 1 - big_shift;
+	count := transtype(5: n32)
+	high_index := count - transtype(1: n32) - big_shift;
 
 	# Write the results to the data array. If the index is too large then
 	# that means that the data was shifted off the edge. */
@@ -72,8 +72,8 @@ fonc insert_low_bits(
 		n.pointeur[high_index] |= result_high;
 	}
 
-	si high_index + 1 < count {
-		n.pointeur[high_index + 1] |= result_low;
+	si high_index + transtype(1: n32) < count {
+		n.pointeur[high_index + transtype(1: n32)] |= result_low;
 	}
 }
 
@@ -96,7 +96,7 @@ fonc insert_top_bits(
 fonc is_zero(n : &haute_précision) -> bool
 {
 	pour i dans 0 ... 4 {
-		si n.pointeur[i] != 0 {
+		si n.pointeur[i] != transtype(0 : n32) {
 			retourne faux
 		}
 	}
@@ -111,7 +111,7 @@ fonc remainder(dyn n : &haute_précision, divisor : n32) -> n32
 
 	# Standard long-division algorithm.
 	pour i dans 0 ... 4 {
-		dividend := (transtype(remain : n64) << décalage_mot) + n.pointeur[i]
+		dividend := (transtype(remain : n64) << transtype(décalage_mot: n64)) + n.pointeur[i]
 		result := dividend / divisor
 		remain = transtype(dividend % divisor : n32)
 		n.pointeur[i] = transtype(result : n32)
@@ -126,13 +126,13 @@ fonc overflow(dyn n : &haute_précision, mul : n32) -> n32
 	dyn over := transtype(0 : n32)
 
 	pour j dans 0 ... 4 {
-		i = 4 - j
+		i := 4 - j
 
 		result := transtype(mul : n64) * n.pointeur[i] + over;
 
 		# Put the bottom bits of the results back.
 		n.pointeur[i] = transtype(result : n32)
-		over = transtype(result >> décalage_mot : n32)
+		over = transtype(result >> transtype(décalage_mot: n64) : n32)
 	}
 
 	retourne over;
@@ -221,7 +221,7 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 	# Perfome toujours au moins une itération, afin d'avoir un zéro au début.
 	répète {
 		remainder := part_entière.remainder(transtype(10 : n32))
-		enchaineuse.pousse(transtype('0' + remainder : z8))
+		enchaineuse.pousse('0' + transtype(remainder : z8))
 	} tantque !part_entière.is_zero()
 
 	# À FAIRE : réordonne les chiffres.
@@ -241,7 +241,7 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 
 	tantque !frac.is_zero() {
 		overflow := frac.overflow(transtype(10 : n32))
-		enchaineuse.pousse(transtype('0' + overflow : z8))
+		enchaineuse.pousse('0' + transtype(overflow : z8))
 	}
 }
 
@@ -251,20 +251,20 @@ fonc imprime_valeur_entier_naturel(
 	dyn enchaineuse : &Enchaineuse,
 	dyn valeur : n64) -> rien
 {
-	si valeur == 0 {
+	si valeur == transtype(0: n64) {
 		enchaineuse.pousse("0")
 		retourne
 	}
 
-	chiffres = "0123456789"
+	chiffres := "0123456789"
 
 	dyn résultat : [20]z8
 	dyn taille_résultat := 0
 
-	tantque valeur != 0 {
-		chiffre := valeur % 10
+	tantque valeur != transtype(0: n64) {
+		chiffre := valeur % transtype(10: n64)
 		résultat[taille_résultat] = chiffres[chiffre]
-		valeur /= 10
+		valeur /= transtype(10: n64)
 		taille_résultat += 1
 	}
 
@@ -312,16 +312,16 @@ fonc imprime_valeur_entière(
 	si info.est_signé {
 		dyn x : z64
 
-		si info.taille_en_octet == 8 {
+		si info.taille_en_octet == transtype(8: n32) {
 			x = mémoire(transtype(pointeur : *z8))
 		}
-		sinon si info.taille_en_octet == 16 {
+		sinon si info.taille_en_octet == transtype(16: n32) {
 			x = mémoire(transtype(pointeur : *z16))
 		}
-		sinon si info.taille_en_octet == 32 {
+		sinon si info.taille_en_octet == transtype(32: n32) {
 			x = mémoire(transtype(pointeur : *z32))
 		}
-		sinon si info.taille_en_octet == 64 {
+		sinon si info.taille_en_octet == transtype(64: n32) {
 			x = mémoire(transtype(pointeur : *z64))
 		}
 
@@ -330,16 +330,16 @@ fonc imprime_valeur_entière(
 	sinon {
 		dyn x : n64
 
-		si info.taille_en_octet == 8 {
+		si info.taille_en_octet == transtype(8: n32) {
 			x = mémoire(transtype(pointeur : *n8))
 		}
-		sinon si info.taille_en_octet == 16 {
+		sinon si info.taille_en_octet == transtype(16: n32) {
 			x = mémoire(transtype(pointeur : *n16))
 		}
-		sinon si info.taille_en_octet == 32 {
+		sinon si info.taille_en_octet == transtype(32: n32) {
 			x = mémoire(transtype(pointeur : *n32))
 		}
-		sinon si info.taille_en_octet == 64 {
+		sinon si info.taille_en_octet == transtype(64: n32) {
 			x = mémoire(transtype(pointeur : *n64))
 		}
 
@@ -416,12 +416,12 @@ fonc imprime_pointeur(
 
     chiffres_hex := "0123456789ABCDEF"
 
-    dyn décalage := 60
+    dyn décalage := transtype(60 : n64)
 
     pour i dans 0 ... 15 {
-        chiffre := (valeur >> décalage) & 0x0F
+        chiffre := (valeur >> décalage) & transtype(0x0F : n64)
         enchaineuse.pousse(chiffres_hex[chiffre])
-        décalage -= 4
+        décalage -= transtype(4 : n64)
     }
 }
 
@@ -437,17 +437,17 @@ fonc imprime_valeur(
             imprime_valeur_entière(enchaineuse, pointeur, info_arg)
 		}
 		RÉEL {
-			info_arg = transtype(info : *InfoTypeRéel)
+			info_arg := transtype(info : *InfoTypeRéel)
 			dyn y : r32
 
-            si info_arg.taille_en_octet == 16 {
+            si info_arg.taille_en_octet == transtype(16: n32) {
 				x := mémoire(transtype(pointeur : *r16))
 				y = x
 			}
-			sinon si info_arg.taille_en_octet == 32 {
+			sinon si info_arg.taille_en_octet == transtype(32: n32) {
 				y = mémoire(transtype(pointeur : *r32))
 			}
-			sinon si info_arg.taille_en_octet == 64 {
+			sinon si info_arg.taille_en_octet == transtype(64: n32) {
 				x := mémoire(transtype(pointeur : *r64))
 				y = transtype(x : r32)
 			}
@@ -530,7 +530,7 @@ fonc imprime_valeur(
             enchaineuse.pousse("rien")
 		}
 		TABLEAU {
-			x = mémoire(transtype(pointeur : *[]z8))
+			x := mémoire(transtype(pointeur : *[]z8))
 
             enchaineuse.pousse("tableau { ptr = ")
             imprime_pointeur(enchaineuse, x.pointeur)
@@ -546,7 +546,7 @@ fonc imprime_valeur(
 			noms := info_arg.noms
 
 			si info_arg.est_drapeau {
-				dyn valeur_trouvée = faux
+				dyn valeur_trouvée := faux
 
 				pour v, i dans info_arg.valeurs {
 					si (v & valeur) != 0 {
@@ -577,7 +577,7 @@ fonc imprime_valeur(
 
 fonc imprime(args : ...eini) -> rien
 {
-    dyn enchaineuse = crée_enchaineuse()
+    dyn enchaineuse := crée_enchaineuse()
     diffère { détruit(enchaineuse); }
 
     pour arg dans args {
@@ -589,7 +589,7 @@ fonc imprime(args : ...eini) -> rien
 
 fonc imprime_err(args : ...eini) -> rien
 {
-    dyn enchaineuse = crée_enchaineuse()
+    dyn enchaineuse := crée_enchaineuse()
     diffère { détruit(enchaineuse); }
 
     pour arg dans args {

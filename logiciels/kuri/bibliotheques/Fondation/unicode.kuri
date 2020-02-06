@@ -12,64 +12,64 @@ fonc nombre_octets_utf8(caractère : *z8) -> z32
 
 	s0 := transtype(caractère[0] : n8)
 
-	si 0x00 <= s0 <= 0x7F {
+	si transtype(0x00: n8) <= s0 <= transtype(0x7F: n8) {
 		retourne 1
 	}
 
 	s1 := transtype(caractère[1] : n8)
 
-	si 0xC2 <= s0 <= 0xDF {
-		si !(0x80 <= s1 <= 0xBF) {
+	si transtype(0xC2: n8) <= s0 <= transtype(0xDF: n8) {
+		si !(transtype(0x80: n8) <= s1 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
 		retourne 2
 	}
 
-	si 0xE0 <= s0 <= 0xEF {
-		si s0 == 0xE0 && !(0xA0 <= s1 <= 0xBF) {
+	si transtype(0xE0: n8) <= s0 <= transtype(0xEF: n8) {
+		si s0 == transtype(0xE0: n8) && !(transtype(0xA0: n8) <= s1 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
-		si s0 == 0xED && !(0x80 <= s1 <= 0x9F) {
+		si s0 == transtype(0xED: n8) && !(transtype(0x80: n8) <= s1 <= transtype(0x9F: n8)) {
 			retourne 0
 		}
 
-		si !(0x80 <= s1 <= 0xBF) {
+		si !(transtype(0x80: n8) <= s1 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
 		s2 := transtype(caractère[2] : n8)
 
-		si !(0x80 <= s2 <= 0xBF) {
+		si !(transtype(0x80: n8) <= s2 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
 		retourne 3
 	}
 
-	si 0xF0 <= s0 <= 0xF4 {
-		si s0 == 0xF0 && !(0x90 <= s1 <= 0xBF) {
+	si transtype(0xF0: n8) <= s0 <= transtype(0xF4: n8) {
+		si s0 == transtype(0xF0: n8) && !(transtype(0x90: n8) <= s1 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
-		si s0 == 0xF4 && !(0x80 <= s1 <= 0x8F) {
+		si s0 == transtype(0xF4: n8) && !(transtype(0x80: n8) <= s1 <= transtype(0x8F: n8)) {
 			retourne 0
 		}
 
-		si !(0x80 <= s1 <= 0xBF) {
+		si !(transtype(0x80: n8) <= s1 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
 		s2 := transtype(caractère[2] : n8)
 
-		si !(0x80 <= s2 <= 0xBF) {
+		si !(transtype(0x80: n8) <= s2 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
 		s3 := transtype(caractère[3] : n8)
 
-		si !(0x80 <= s3 <= 0xBF) {
+		si !(transtype(0x80: n8) <= s3 <= transtype(0xBF: n8)) {
 			retourne 0
 		}
 
@@ -147,21 +147,21 @@ fonc converti_utf8_utf32(caractère : *z8, n : z64) -> z32
 	s1 := transtype(caractère[1] : n8)
 
 	si (n == 2) {
-        v := (s0 & 0b00011111) << 6 | (s1 & 0b00111111)
+        v := (s0 & transtype(0b00011111: n8)) << transtype(6: n8) | (s1 & transtype(0b00111111: n8))
 		retourne transtype(v : z32)
 	}
 
 	s2 := transtype(caractère[2] : n8)
 
 	si (n == 3) {
-		v := (s0 & 0b00001111) << 12 | (s1 & 0b00111111) << 6 | (s2 & 0b00111111)
+		v := (s0 & transtype(0b00001111: n8)) << transtype(12: n8) | (s1 & transtype(0b00111111: n8)) << transtype(6: n8) | (s2 & transtype(0b00111111: n8))
 		retourne transtype(v : z32)
 	}
 
 	s3 := transtype(caractère[3] : n8)
 
 	si (n == 4) {
-		v := (s0 & 0b00000111) << 18 | (s1 & 0b00111111) << 12 | (s2 & 0b00111111) << 6 | (s3 & 0b00111111)
+		v := (s0 & transtype(0b00000111: n8)) << transtype(18: n8) | (s1 & transtype(0b00111111: n8)) << transtype(12: n8) | (s2 & transtype(0b00111111: n8)) << transtype(6: n8) | (s3 & transtype(0b00111111: n8))
 		retourne transtype(v : z32)
 	}
 

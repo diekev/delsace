@@ -66,7 +66,7 @@ fonc calcule_empreinte(chn : chaine) -> n64
 
 fonc insère(dyn table : *TableHachage, clé : chaine, valeur : chaine) -> rien
 {
-    empreinte := calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % transtype(10000 : n64)
 
     dyn alvéole := table.alvéoles[empreinte]
 
@@ -87,7 +87,7 @@ fonc insère(dyn table : *TableHachage, clé : chaine, valeur : chaine) -> rien
 
 fonc trouve(table : *TableHachage, clé : chaine) -> *NoeudTableHachage
 {
-    empreinte := calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % transtype(10000 : n64)
 
     dyn alvéole := table.alvéoles[empreinte]
 

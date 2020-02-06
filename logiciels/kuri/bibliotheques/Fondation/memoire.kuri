@@ -17,7 +17,7 @@
     pour i dans transtype(0 : z64)...taille - 1 {
 		v := a[i] - b[i]
 
-        si v != 0 {
+        si v != transtype(0: octet) {
 			retourne transtype(v : z32)
 		}
 	}
@@ -165,7 +165,7 @@
 	ret.taille = 0
 
     pour i dans transtype(0 : z64)...t - 1 {
-	    si source[i] == valeur {
+	    si source[i] == transtype(valeur : octet) {
 			ret.pointeur = @source[i]
 			ret.taille = t - i
 			arrête
