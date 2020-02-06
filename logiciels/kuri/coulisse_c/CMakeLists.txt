@@ -14,61 +14,32 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2018 Kévin Dietrich.
+# The Original Code is Copyright (C) 2020 Kévin Dietrich.
 # All rights reserved.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(NOM_CIBLE kuri_compilation)
+set(NOM_CIBLE kuri_coulisse_c)
 
 set(INCLUSIONS
+	${CMAKE_CURRENT_SOURCE_DIR}/../compilation/
 	${CMAKE_CURRENT_SOURCE_DIR}/../../../../
 )
 
 set(BIBLIOTHEQUES
-	stdc++fs
-	langage
-	bib_outils
-	bib_structures
-	memoire
+	kuri_compilation
 )
 
 set(SOURCES
-	arbre_syntactic.h
-	assembleuse_arbre.h
-	broyage.hh
-	contexte_generation_code.h
-	donnees_type.h
-	erreur.h
-	expression.h
-	graphe_dependance.hh
-	lexemes.hh
-	lexeuse.hh
-	modules.hh
-	operateurs.hh
-	outils_lexemes.hh
-	syntaxeuse.hh
-	transformation_type.hh
-	typeuse.hh
-	validation_semantique.hh
+	generation_code_c.cc
+	generatrice_code_c.cc
+	info_type_c.cc
+	conversion_type_c.cc
 
-	arbre_syntactic.cc
-	assembleuse_arbre.cc
-	broyage.cc
-	contexte_generation_code.cc
-	donnees_type.cc
-	erreur.cc
-	expression.cc
-	graphe_dependance.cc
-	lexemes.cc
-	lexeuse.cc
-	modules.cc
-	operateurs.cc
-	outils_lexemes.cc
-	syntaxeuse.cc
-	transformation_type.cc
-	typeuse.cc
-	validation_semantique.cc
+	generation_code_c.hh
+	generation_code_c.cc
+	info_type_c.hh
+	conversion_type_c.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

@@ -22,7 +22,7 @@
  *
  */
 
-#include "infos_type_c.hh"
+#include "info_type_c.hh"
 
 #include "arbre_syntactic.h"
 #include "broyage.hh"

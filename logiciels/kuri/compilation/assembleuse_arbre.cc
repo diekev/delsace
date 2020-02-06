@@ -25,7 +25,6 @@
 #include "assembleuse_arbre.h"
 
 #include "contexte_generation_code.h"
-#include "coulisse_c.hh"
 
 #include "modules.hh"
 

@@ -29,10 +29,11 @@
 #include "compilation/syntaxeuse.hh"
 #include "compilation/assembleuse_arbre.h"
 #include "compilation/contexte_generation_code.h"
-#include "compilation/coulisse_c.hh"
 #include "compilation/lexeuse.hh"
 #include "compilation/modules.hh"
 #include "compilation/validation_semantique.hh"
+
+#include "coulisse_c/generation_code_c.hh"
 
 std::pair<bool, bool> retourne_erreur_lancee(
 		const char *texte,

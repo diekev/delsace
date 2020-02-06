@@ -22,7 +22,7 @@
  *
  */
 
-#include "coulisse_c.hh"
+#include "generation_code_c.hh"
 
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/langage/nombres.hh"
@@ -35,7 +35,7 @@
 #include "conversion_type_c.hh"
 #include "erreur.h"
 #include "generatrice_code_c.hh"
-#include "infos_type_c.hh"
+#include "info_type_c.hh"
 #include "modules.hh"
 #include "outils_lexemes.hh"
 #include "typeuse.hh"
