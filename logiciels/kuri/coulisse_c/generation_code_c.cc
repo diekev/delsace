@@ -1101,56 +1101,7 @@ void genere_code_C(
 		{
 			auto flux = dls::flux_chaine();
 
-			if (b->aide_generation_code == GENERE_CODE_DECL_VAR || b->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-				auto dt = contexte.typeuse[b->index_type];
-
-				/* pour les assignations de tableaux fixes, remplace les crochets
-				 * par des pointeurs pour la déclaration */
-				if (dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
-					if (dt.type_base() != TypeLexeme::TABLEAU && (dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
-						auto ndt = DonneesTypeFinal{};
-						ndt.pousse(TypeLexeme::POINTEUR);
-						ndt.pousse(dt.dereference());
-
-						dt = ndt;
-					}
-				}
-
-				auto nom_broye = broye_chaine(b);				
-				flux << nom_broye_type(contexte, dt) << ' ' << nom_broye;
-				b->valeur_calculee = dls::chaine(flux.chn());
-
-				if (contexte.donnees_fonction == nullptr) {
-					auto donnees_var = DonneesVariable{};
-					donnees_var.est_externe = (b->drapeaux & EST_EXTERNE) != 0;
-					donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-					donnees_var.index_type = b->index_type;
-
-					contexte.pousse_globale(b->chaine(), donnees_var);
-					return;
-				}
-
-				/* nous avons une déclaration, initialise à zéro */
-				if (!dls::outils::possede_drapeau(b->drapeaux, POUR_ASSIGNATION)) {
-					generatrice.os << flux.chn() << ";\n";
-					cree_initialisation(
-								contexte,
-								generatrice,
-								dt.plage(),
-								nom_broye,
-								".",
-								generatrice.os);
-				}
-
-				auto donnees_var = DonneesVariable{};
-				donnees_var.est_dynamique = (b->drapeaux & DYNAMIC) != 0;
-				donnees_var.index_type = b->index_type;
-
-				contexte.pousse_locale(b->chaine(), donnees_var);
-			}
-			/* désactive la vérification car les variables dans les
-			 * constructions de structures n'ont pas cette aide */
-			else /*if (b->aide_generation_code == GENERE_CODE_ACCES_VAR)*/ {
+			/*if (b->aide_generation_code == GENERE_CODE_ACCES_VAR)*/ {
 				if (b->nom_fonction_appel != "") {
 					flux << b->nom_fonction_appel;
 				}
@@ -1274,7 +1225,64 @@ void genere_code_C(
 		}
 		case type_noeud::DECLARATION_VARIABLE:
 		{
-			/* À FAIRE */
+			auto variable = static_cast<noeud::base *>(nullptr);
+			auto expression = static_cast<noeud::base *>(nullptr);
+
+			if (b->enfants.taille() == 2) {
+				variable = b->enfants.front();
+				expression = b->enfants.back();
+			}
+			else {
+				variable = b;
+			}
+
+			auto flux = dls::flux_chaine();
+			auto dt = contexte.typeuse[variable->index_type];
+
+			/* pour les assignations de tableaux fixes, remplace les crochets
+			 * par des pointeurs pour la déclaration */
+			if (dt.type_base() != TypeLexeme::TABLEAU && (dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
+				auto ndt = DonneesTypeFinal{};
+				ndt.pousse(TypeLexeme::POINTEUR);
+				ndt.pousse(dt.dereference());
+
+				dt = ndt;
+			}
+
+			auto nom_broye = broye_chaine(variable);
+			flux << nom_broye_type(contexte, dt) << ' ' << nom_broye;
+
+			/* nous avons une déclaration, initialise à zéro */
+			if (expression == nullptr) {
+				generatrice.os << flux.chn() << ";\n";
+				cree_initialisation(
+							contexte,
+							generatrice,
+							dt.plage(),
+							nom_broye,
+							".",
+							generatrice.os);
+			}
+			else {
+				genere_code_C(expression, generatrice, contexte, false);
+				generatrice.os << flux.chn();
+				generatrice.os << " = ";
+				generatrice.os << expression->chaine_calculee();
+				generatrice.os << ";\n";
+			}
+
+			auto donnees_var = DonneesVariable{};
+			donnees_var.est_externe = (variable->drapeaux & EST_EXTERNE) != 0;
+			donnees_var.est_dynamique = (variable->drapeaux & DYNAMIC) != 0;
+			donnees_var.index_type = variable->index_type;
+
+			if (contexte.donnees_fonction == nullptr) {
+				contexte.pousse_globale(variable->chaine(), donnees_var);
+			}
+			else {
+				contexte.pousse_locale(variable->chaine(), donnees_var);
+			}
+
 			break;
 		}
 		case type_noeud::NOMBRE_REEL:

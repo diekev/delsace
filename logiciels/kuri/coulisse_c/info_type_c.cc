@@ -197,7 +197,7 @@ static auto cree_info_type_enum_C(
 	for (auto enfant : noeud_decl->enfants) {
 		auto enf0 = enfant;
 
-		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
+		if (enfant->enfants.taille() == 2) {
 			enf0 = enf0->enfants.front();
 		}
 
@@ -213,7 +213,7 @@ static auto cree_info_type_enum_C(
 	for (auto enfant : noeud_decl->enfants) {
 		auto enf0 = enfant;
 
-		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
+		if (enfant->enfants.taille() == 2) {
 			enf0 = enf0->enfants.front();
 		}
 
