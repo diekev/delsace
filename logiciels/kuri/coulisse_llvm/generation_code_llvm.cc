@@ -1701,7 +1701,7 @@ static llvm::Value *genere_code_llvm(
 				valeur = genere_code_llvm(enfant, contexte, true);
 
 				/* nul besoin de continuer à générer du code pour des expressions qui ne
-				 * seront jamais executées. À FAIRE : erreur de compilation ? */
+				 * seront jamais executées. */
 				if (est_branche_ou_retour(valeur) && bloc_entree == contexte.bloc_courant()) {
 					break;
 				}

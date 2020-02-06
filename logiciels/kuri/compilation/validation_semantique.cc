@@ -240,6 +240,12 @@ static auto valides_enfants(base *b, ContexteGenerationCode &contexte, bool expr
 {
 	for (auto enfant : b->enfants) {
 		performe_validation_semantique(enfant, contexte, expr_gauche);
+
+		/* inutile de continuer à valider du code qui ne sera pas exécuté
+		 * À FAIRE(retour précoce) : ajout d'un avertissement de compilation. */
+		if (enfant->type == type_noeud::RETOUR) {
+			break;
+		}
 	}
 }
 
