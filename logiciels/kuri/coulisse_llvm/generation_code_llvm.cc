@@ -1428,6 +1428,13 @@ static llvm::Value *genere_code_llvm(
 			switch (b->morceau.identifiant) {
 				case TypeLexeme::EXCLAMATION:
 				{
+					valeur2 = llvm::ConstantInt::get(
+								  llvm::Type::getInt1Ty(contexte.contexte),
+								  static_cast<uint64_t>(0),
+								  false);
+
+					valeur1 = llvm::ICmpInst::Create(llvm::Instruction::ICmp, llvm::CmpInst::Predicate::ICMP_EQ, valeur1, valeur2, "", contexte.bloc_courant());
+
 					instr = llvm::Instruction::Xor;
 					valeur2 = llvm::ConstantInt::get(
 								  llvm::Type::getInt32Ty(contexte.contexte),
@@ -1656,10 +1663,17 @@ static llvm::Value *genere_code_llvm(
 
 			if (b->type == type_noeud::SAUFSI) {
 				auto valeur2 = llvm::ConstantInt::get(
-							llvm::Type::getInt32Ty(contexte.contexte),
-							static_cast<uint64_t>(1),
-							false);
-				condition = llvm::BinaryOperator::Create(llvm::Instruction::Xor, condition, valeur2, "", contexte.bloc_courant());
+							  llvm::Type::getInt32Ty(contexte.contexte),
+							  static_cast<uint64_t>(0),
+							  false);
+
+				condition = llvm::ICmpInst::Create(
+							llvm::Instruction::ICmp,
+							llvm::CmpInst::Predicate::ICMP_EQ,
+							condition,
+							valeur2,
+							"",
+							contexte.bloc_courant());
 			}
 
 			auto bloc_alors = cree_bloc(contexte, "alors");
