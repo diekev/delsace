@@ -181,12 +181,11 @@ enum drapeaux_noeud : unsigned short {
 	DECLARATION            = (1 << 2),
 	EST_EXTERNE            = (1 << 3),
 	EST_CALCULE            = (1 << 4),
-	POUR_ASSIGNATION       = (1 << 5),
-	IGNORE_OPERATEUR       = (1 << 6),
-	FORCE_ENLIGNE          = (1 << 7),
-	FORCE_HORSLIGNE        = (1 << 8),
-	FORCE_NULCTX           = (1 << 9),
-	EST_ASSIGNATION_OPEREE = (1 << 10),
+	IGNORE_OPERATEUR       = (1 << 5),
+	FORCE_ENLIGNE          = (1 << 6),
+	FORCE_HORSLIGNE        = (1 << 7),
+	FORCE_NULCTX           = (1 << 8),
+	EST_ASSIGNATION_OPEREE = (1 << 9),
 };
 
 DEFINIE_OPERATEURS_DRAPEAU(drapeaux_noeud, unsigned short)
@@ -201,11 +200,6 @@ enum {
 	GENERE_BOUCLE_COROUTINE_INDEX,
 
 	GENERE_CODE_PTR_FONC_MEMBRE,
-
-	GAUCHE_ASSIGNATION,
-	GENERE_CODE_DECL_VAR,
-	GENERE_CODE_DECL_VAR_GLOBALE,
-	GENERE_CODE_ACCES_VAR,
 
 	APPEL_POINTEUR_FONCTION,
 

@@ -1187,7 +1187,6 @@ static void performe_validation_semantique(
 						f->index_type = dt_params[decalage + i];
 					}
 
-					f->aide_generation_code = GAUCHE_ASSIGNATION;
 					performe_validation_semantique(f, contexte, true);
 				}
 

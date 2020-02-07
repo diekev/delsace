@@ -1236,17 +1236,6 @@ void genere_code_C(
 				dls::liste<base *> noeuds;
 
 				for (auto f : feuilles) {
-					f->drapeaux |= POUR_ASSIGNATION;
-
-					/* déclare au besoin */
-					if (f->aide_generation_code == GENERE_CODE_DECL_VAR || f->aide_generation_code == GENERE_CODE_DECL_VAR_GLOBALE) {
-						genere_code_C(f, generatrice, contexte, true);
-						generatrice.os << f->chaine_calculee();
-						generatrice.os << ';' << '\n';
-					}
-
-					f->drapeaux &= ~POUR_ASSIGNATION;
-					f->aide_generation_code = 0;
 					noeuds.pousse(f);
 				}
 
@@ -1262,7 +1251,6 @@ void genere_code_C(
 
 			applique_transformation(expression, generatrice, contexte, expr_gauche);
 
-			variable->drapeaux |= POUR_ASSIGNATION;
 			genere_code_C(variable, generatrice, contexte, true);
 
 			generatrice.os << variable->chaine_calculee();
