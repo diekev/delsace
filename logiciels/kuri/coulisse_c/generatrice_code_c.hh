@@ -33,9 +33,53 @@
 
 struct ContexteGenerationCode;
 
+#undef UTILISE_ENCHAINEUSE
+
+#ifdef UTILISE_ENCHAINEUSE
+struct Enchaineuse {
+	static constexpr auto TAILLE_TAMPON = 16 * 1024;
+
+	using type_tampon = dls::tableau<char>;
+
+	dls::tableau<type_tampon> m_tampons;
+	long tampon_courant = 0;
+
+	Enchaineuse()
+	{
+		ajoute_tampon();
+	}
+
+	void pousse(dls::vue_chaine const &chn)
+	{
+		auto &tampon = m_tampons[tampon_courant];
+
+		for (auto c : chn) {
+			tampon.pousse(c);
+
+			if (tampon.taille() == TAILLE_TAMPON) {
+				ajoute_tampon();
+				tampon = m_tampons[tampon_courant];
+			}
+		}
+	}
+
+private:
+	void ajoute_tampon()
+	{
+		m_tampons.pousse(type_tampon());
+		m_tampons.back().reserve(TAILLE_TAMPON);
+		tampon_courant = m_tampons.taille() - 1;
+	}
+};
+#endif
+
 struct GeneratriceCodeC {
 	ContexteGenerationCode &contexte;
 	dls::flux_chaine &os;
+
+#ifdef UTILISE_ENCHAINEUSE
+	Enchaineuse m_enchaineuse{};
+#endif
 
 	GeneratriceCodeC(ContexteGenerationCode &ctx, dls::flux_chaine &flux)
 		: contexte(ctx)
@@ -56,12 +100,33 @@ struct GeneratriceCodeC {
 		}
 
 		os << ";\n";
+
+#ifdef UTILISE_ENCHAINEUSE
+		m_enchaineuse.pousse(nom_broye_type(contexte, type));
+		m_enchaineuse.pousse(" ");
+		m_enchaineuse.pousse(nom);
+
+		if (!expr.est_vide()) {
+			m_enchaineuse.pousse(" = ");
+			m_enchaineuse.pousse(expr);
+		}
+
+		m_enchaineuse.pousse(";\n");
+#endif
 	}
 
 	dls::chaine declare_variable_temp(DonneesTypeFinal &type, int index_var)
 	{
 		auto nom_temp = "__var_temp" + dls::vers_chaine(index_var);
 		os << nom_broye_type(contexte, type) << " " << nom_temp << ";\n";
+
+#ifdef UTILISE_ENCHAINEUSE
+		m_enchaineuse.pousse(nom_broye_type(contexte, type));
+		m_enchaineuse.pousse(" ");
+		m_enchaineuse.pousse(nom_temp);
+		m_enchaineuse.pousse(";\n");
+#endif
+
 		return nom_temp;
 	}
 
