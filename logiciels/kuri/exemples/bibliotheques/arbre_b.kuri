@@ -1,0 +1,823 @@
+# Implémentation d'un arbre B suivant celle de :
+# https://www.geeksforgeeks.org/introduction-of-b-tree-2/
+
+importe Fondation
+
+struct NoeudArbreB {
+    clés : []z32
+
+    # Degré minimum pour définir la plage pour le nombre de clés
+    t : z32
+
+    # nombre de clé (À FAIRE(langage) : ajout d'une propriété « capacité » aux tableaux)
+    n : z32
+
+    enfants : []*NoeudArbreB
+
+    est_feuille : bool
+}
+
+struct ArbreB {
+    noeuds: []*NoeudArbreB
+
+    racine: *NoeudArbreB
+
+    # degré minimum
+    t: z32
+}
+
+fonc construit_noeud(t : z32, est_feuille : bool) -> *NoeudArbreB
+{
+    dyn noeud := loge NoeudArbreB
+    noeud.t = t
+    noeud.est_feuille = est_feuille
+    noeud.n = 0
+    noeud.clés = loge [2 * t - 1]z32
+    noeud.enfants = loge [2 * t]*NoeudArbreB
+
+    retourne noeud
+}
+
+fonc détruit_noeud(noeud : *NoeudArbreB) -> rien
+{
+    imprime("détruit_noeud\n")
+    déloge noeud.clés
+    déloge noeud.enfants
+    déloge noeud
+}
+
+fonc traverse(noeud: *NoeudArbreB) -> rien
+{
+    # il y a n clés et n + 1 enfants, traverse les n clés, et n premier enfants
+    pour i dans 0 ... noeud.n - 1 {
+        # traverse si le noeud n'est pas une feuille
+
+        si !noeud.est_feuille {
+            traverse(noeud.enfants[i])
+        }
+
+        imprime(" ", noeud.clés[i])
+    }
+
+    # traverse le dernier enfant si nécessaire
+    si !noeud.est_feuille {
+        traverse(noeud.enfants[noeud.n])
+    }
+}
+
+# Recherche une clé dans le sous-arbre du noeud. Retourne nul si la clé k n'est pas trouvée.
+fonc recherche(noeud: *NoeudArbreB, k: z32) -> *NoeudArbreB
+{
+    dyn i := 0
+
+    tantque (i < noeud.n) && (k > noeud.clés[i]) {
+        i += 1
+    }
+
+    si noeud.clés[i] == k {
+        retourne noeud
+    }
+
+    si noeud.est_feuille {
+        retourne nul
+    }
+
+    retourne recherche(noeud.enfants[i], k)
+}
+
+# Auxilliare pour unsérer une nouvelle clé dans ce noeud.
+# La présomption est que le noeud est non-plein quand cette fonction est appelée.
+fonc insère_non_plein(
+    dyn arbre: *ArbreB,
+    dyn noeud: *NoeudArbreB,
+    k: z32) -> rien
+{
+    # Initialize index as index of rightmost element
+    dyn i := noeud.n - 1
+
+    si noeud.est_feuille {
+        # La boucle suivante fait deux choses
+        # a) trouver la position de la nouvelle à être insérée
+        # b) avancer d'une position les clés plus grandes
+
+        tantque (i >= 0) {
+            si (noeud.clés[i] <= k) {
+                arrête
+            }
+
+            noeud.clés[i + 1] = noeud.clés[i]
+            i -= 1
+        }
+
+        # Insère la nouvelle clé à la position trouvée
+        noeud.clés[i + 1] = k
+        noeud.n += 1
+
+        retourne
+    }
+
+    # Trouve l'enfant qui aura la nouvelle clé
+    tantque (i >= 0) {
+        si (noeud.clés[i] <= k) {
+            arrête
+        }
+
+        i -= 1
+    }
+
+    # Si l'enfant est plein, divise-le.
+    si noeud.enfants[i + 1].n == (2 * noeud.t - 1) {
+        divise_enfant(arbre, noeud, i + 1, noeud.enfants[i + 1])
+
+        # Après la division, la clé du milieu de enfant[i] monte et
+        # enfant[i] est divisé. Trouve celui qui aura qui aura la
+        # nouvelle clé.
+        si (noeud.clés[i + 1] < k) {
+            i += 1
+        }
+    }
+
+    insère_non_plein(arbre, noeud.enfants[i + 1], k)
+}
+
+# Auxilliaire pour diviser l'enfant y de ce noeud.
+# y doit être plein quand cet fonction est appelée.
+fonc divise_enfant(
+    dyn arbre: *ArbreB,
+    dyn noeud: *NoeudArbreB,
+    i: z32,
+    dyn y: *NoeudArbreB) -> rien
+{
+    # construit un noeud qui stockera t - 1 clés de y
+    dyn z := construit_noeud(y.t, y.est_feuille)
+    pousse(arbre.noeuds, z)
+    z.n = noeud.t - 1
+
+    pour j dans 0 ... noeud.t - 2 {
+        z.clés[j] = y.clés[j + noeud.t]
+    }
+
+    si !y.est_feuille {
+        pour j dans 0 ... noeud.t - 1 {
+            z.enfants[j] = y.enfants[j + noeud.t]
+        }
+    }
+
+    y.n = noeud.t - 1
+
+    # À FAIRE: for (int j = n j >= i+1 j--)
+    dyn j := noeud.n
+    tantque j >= i + 1 {
+        noeud.enfants[j + 1] = noeud.enfants[j]
+        j -= 1
+    }
+
+    noeud.enfants[i + 1] = z
+
+    j = noeud.n - 1
+    tantque j >= i {
+        noeud.clés[j + 1] = noeud.clés[j]
+        j -= 1
+    }
+
+    noeud.clés[i] = y.clés[noeud.t - 1]
+
+    noeud.n += 1
+}
+
+# Auxiliaire pour trouver l'index de la première clé qui est supérieure ou égale à k
+fonc trouve_clé(noeud: *NoeudArbreB, k: z32) -> z32
+{
+    dyn idx := 0
+
+    boucle {
+        si idx >= noeud.n {
+            arrête
+        }
+
+        si noeud.clés[idx] >= k {
+            arrête
+        }
+
+        idx += 1
+    }
+
+    retourne idx
+}
+
+fonc supprime(dyn noeud: *NoeudArbreB, k: z32) -> rien
+{
+    dyn idx := trouve_clé(noeud, k)
+
+    # La clé à supprimer est dans ce noeud
+    si idx < noeud.n && noeud.clés[idx] == k {
+        si noeud.est_feuille {
+            supprime_depuis_feuille(noeud, idx)
+        }
+        sinon {
+            supprime_depuis_branche(noeud, idx)
+        }
+    }
+    sinon {
+        # Si le noeud est une feuille, la clé n'est pas dans l'arbre
+        si noeud.est_feuille {
+            retourne
+        }
+
+        est_clé_dans_le_dernier_enfant := idx == noeud.n
+
+        si noeud.enfants[idx].n < noeud.t {
+            remplis(noeud, idx)
+        }
+
+        # NOTE: noeud.n à pu être changé dans « remplis » plus haut
+        si est_clé_dans_le_dernier_enfant && idx > noeud.n {
+            idx -= 1
+        }
+
+        supprime(noeud.enfants[idx], k)
+    }
+}
+
+fonc supprime_depuis_feuille(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+{
+    pour i dans idx + 1 ... noeud.n - 1 {
+        noeud.clés[i-1] = noeud.clés[i]
+    }
+
+    noeud.n -= 1
+}
+
+fonc supprime_depuis_branche(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+{
+    k := noeud.clés[idx]
+
+    si noeud.enfants[idx].n >= noeud.t {
+        pred := clé_précédente(noeud, idx)
+        noeud.clés[idx] = pred
+        supprime(noeud.enfants[idx], pred)
+    }
+    sinon si noeud.enfants[idx+1].n >= noeud.t {
+        succ := clé_suivante(noeud, idx)
+        noeud.clés[idx] = succ
+        supprime(noeud.enfants[idx + 1], succ)
+    }
+    sinon {
+        fusionne_suivant(noeud, idx)
+        supprime(noeud.enfants[idx], k)
+    }
+}
+
+fonc clé_précédente(dyn noeud: *NoeudArbreB, idx: z32) -> z32
+{
+    dyn courant := noeud.enfants[idx]
+
+    tantque !courant.est_feuille {
+        courant = courant.enfants[courant.n]
+    }
+
+    retourne courant.clés[courant.n - 1]
+}
+
+fonc clé_suivante(dyn noeud: *NoeudArbreB, idx: z32) -> z32
+{
+    dyn courant := noeud.enfants[idx + 1]
+
+    tantque !courant.est_feuille {
+        courant = courant.enfants[0]
+    }
+
+    retourne courant.clés[0]
+}
+
+fonc remplis(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+{
+    si idx != 0 {
+        si noeud.enfants[idx - 1].n >= noeud.t {
+            emprunte_du_précédent(noeud, idx)
+            retourne
+        }
+    }
+
+    si idx != noeud.n {
+        si noeud.enfants[idx + 1].n >= noeud.t {
+            emprunte_du_suivant(noeud, idx)
+            retourne
+        }
+    }
+
+    si (idx != noeud.n) {
+        fusionne_suivant(noeud, idx)
+    }
+    sinon {
+        fusionne_suivant(noeud, idx-1)
+    }
+}
+
+fonc emprunte_du_précédent(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+{
+    dyn child := noeud.enfants[idx]
+    dyn sibling := noeud.enfants[idx - 1]
+
+    dyn i := child.n - 1
+    tantque i >= 0 {
+        child.clés[i + 1] = child.clés[i]
+        i -= 1
+    }
+
+    si !child.est_feuille {
+        i = child.n
+        tantque i >= 0 {
+            child.enfants[i + 1] = child.enfants[i]
+            i -= 1
+        }
+    }
+
+    child.clés[0] = noeud.clés[idx - 1]
+
+    si !child.est_feuille {
+        child.enfants[0] = sibling.enfants[sibling.n]
+    }
+
+    noeud.clés[idx - 1] = sibling.clés[sibling.n - 1]
+
+    child.n += 1
+    sibling.n -= 1
+}
+
+fonc emprunte_du_suivant(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+{
+    dyn child := noeud.enfants[idx]
+    dyn sibling := noeud.enfants[idx + 1]
+
+    child.clés[child.n] = noeud.clés[idx]
+
+    si !child.est_feuille {
+        child.enfants[child.n + 1] = sibling.enfants[0]
+    }
+
+    noeud.clés[idx] = sibling.clés[0]
+
+    pour i dans 1 ... sibling.n - 1 {
+        sibling.clés[i - 1] = sibling.clés[i]
+    }
+
+    si !sibling.est_feuille {
+        pour i dans 1 ... sibling.n {
+            sibling.enfants[i - 1] = sibling.enfants[i]
+        }
+    }
+
+    child.n += 1
+    sibling.n -= 1
+}
+
+fonc fusionne_suivant(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+{
+    dyn child := noeud.enfants[idx]
+    dyn sibling := noeud.enfants[idx + 1]
+
+    child.clés[noeud.t - 1] = noeud.clés[idx]
+
+    pour i dans 0 ... sibling.n - 1 {
+        child.clés[i + noeud.t] = sibling.clés[i]
+    }
+
+    si !child.est_feuille {
+        pour i dans 0 ... sibling.n {
+            child.enfants[i + noeud.t] = sibling.enfants[i]
+        }
+    }
+
+    pour i dans idx + 1 ... noeud.n - 1 {
+        noeud.clés[i - 1] = noeud.clés[i]
+    }
+
+    pour i dans idx + 2 ... noeud.n {
+        noeud.enfants[i - 1] = noeud.enfants[i]
+    }
+
+    child.n += sibling.n + 1
+    noeud.n -= 1
+
+    # À FAIRE: système de ramasse-miettes, nous ne pouvons supprimer le noeud tout de suite
+    # car les noeuds sont supprimer dans leur ensemble lors de la destruction de l'arbre
+    #détruit_noeud(sibling)
+}
+
+########################################
+
+fonc pousse(dyn liste: &[]*NoeudArbreB, valeur: *NoeudArbreB) -> rien
+{
+    taille := liste.taille
+    reloge liste: [taille + 1]*NoeudArbreB
+    liste[taille] = valeur
+}
+
+fonc construit_arbre(t: z32) -> ArbreB
+{
+    dyn arbre : ArbreB
+    arbre.racine = nul
+    arbre.t = t
+
+    retourne arbre
+}
+
+fonc détruit_arbre(arbre: *ArbreB) -> rien
+{
+    imprime("détruit_arbre...\n")
+    pour noeud dans arbre.noeuds {
+        détruit_noeud(noeud)
+    }
+
+    déloge arbre.noeuds
+}
+
+fonc traverse(arbre: *ArbreB) -> rien
+{
+    si arbre.racine == nul {
+        retourne
+    }
+
+    traverse(arbre.racine)
+}
+
+# Recherche une clé dans le sous-arbre du noeud. Retourne nul si la clé k n'est pas trouvée.
+fonc recherche(dyn arbre: *ArbreB, k: z32) -> *NoeudArbreB
+{
+    si arbre.racine == nul {
+        retourne nul
+    }
+
+    retourne recherche(arbre.racine, k)
+}
+
+fonc insère(dyn arbre: *ArbreB, k: z32) -> rien
+{
+    si arbre.racine == nul {
+        arbre.racine = construit_noeud(arbre.t, vrai)
+        pousse(arbre.noeuds, arbre.racine)
+        arbre.racine.clés[0] = k
+        arbre.racine.n = 1
+
+        retourne
+    }
+
+    # si la racine est pleine, croît l'arbre
+    si arbre.racine.n == (2 * arbre.t - 1) {
+        dyn s := construit_noeud(arbre.t, faux)
+        pousse(arbre.noeuds, s)
+
+        s.enfants[0] = arbre.racine
+
+        divise_enfant(arbre, s, 0, arbre.racine)
+
+        # la nouvelle racine a deux enfants désormais
+        # décide lequel des deux aura la nouvelle clé
+        idx := transtype(s.clés[0] < k: z32)
+        insère_non_plein(arbre, s.enfants[idx], k)
+
+        arbre.racine = s
+        retourne
+    }
+
+    insère_non_plein(arbre, arbre.racine, k)
+}
+
+fonc supprime(dyn arbre: *ArbreB, k: z32) -> rien
+{
+    si arbre.racine == nul {
+        retourne
+    }
+
+    supprime(arbre.racine, k)
+
+    si arbre.racine.n == 0 {
+        tmp := arbre.racine
+
+        si arbre.racine.est_feuille {
+            arbre.racine = nul
+        }
+        sinon {
+            arbre.racine = arbre.racine.enfants[0]
+        }
+
+        # À FAIRE: système de ramasse-miettes, nous ne pouvons supprimer le noeud tout de suite
+        # car les noeuds sont supprimer dans leur ensemble lors de la destruction de l'arbre
+        #détruit_noeud(tmp)
+    }
+}
+
+#######################################
+
+# Cache « moins récemment utilisé »
+# https://www.geeksforgeeks.org/lru-cache-implementation/
+
+struct NoeudFile {
+    suivant: *NoeudFile
+    précédent: *NoeudFile
+    numéro_page: z32
+}
+
+fonc crée_noeud(numéro_page: z32) -> *NoeudFile
+{
+    dyn n := loge NoeudFile
+    n.numéro_page = numéro_page
+    n.suivant = nul
+    n.précédent = nul
+
+    retourne n
+}
+
+struct File {
+    nombre_de_pages := 0
+    nombre_de_pages_remplies := 0
+
+    front: *NoeudFile := nul
+    cul: *NoeudFile := nul
+}
+
+fonc crée_file(nombre_de_pages: z32) -> *File
+{
+    dyn f := loge File
+    f.nombre_de_pages = nombre_de_pages
+    f.nombre_de_pages_remplies = 0
+    f.front = nul
+    f.cul = nul
+
+    retourne f
+}
+
+fonc sont_toutes_les_pages_pleines(file: *File) -> bool
+{
+    retourne file.nombre_de_pages_remplies == file.nombre_de_pages
+}
+
+fonc est_vide(file: *File) -> bool
+{
+    retourne file.cul == nul
+}
+
+fonc défile(dyn file: *File) -> rien
+{
+    si file.est_vide() {
+        retourne
+    }
+
+    si file.front == file.cul {
+        file.front = nul
+    }
+
+    dyn temp := file.cul
+    file.cul = file.cul.précédent
+
+    si file.cul != nul {
+        file.cul.suivant = nul
+    }
+
+    déloge temp
+
+    file.nombre_de_pages_remplies -= 1
+}
+
+struct Hash {
+    noeuds: []*NoeudFile
+    capacité := 0
+}
+
+fonc crée_hash(capacité: z32) -> *Hash
+{
+    dyn h := loge Hash
+    h.capacité = 0
+
+    reloge h.noeuds: [capacité]*NoeudFile
+
+    pour noeud dans h.noeuds {
+        noeud = nul
+    }
+
+    retourne h
+}
+
+fonc enfile(dyn file: *File, dyn hash: *Hash, numéro_page: z32) -> rien
+{
+    si sont_toutes_les_pages_pleines(file) {
+        hash.noeuds[file.cul.numéro_page] = nul
+        défile(file)
+    }
+
+    dyn temp := crée_noeud(numéro_page)
+    temp.suivant = file.front
+
+    si file.est_vide() {
+        file.cul = temp
+        file.front = temp
+    }
+    sinon {
+        file.front.précédent = temp
+        file.front = temp
+    }
+
+    hash.noeuds[numéro_page] = temp
+
+    file.nombre_de_pages_remplies += 1
+}
+
+fonc référence_page(dyn file: *File, hash: *Hash, numéro_page: z32) -> rien
+{
+    dyn page_requise := hash.noeuds[numéro_page]
+
+    si page_requise == nul {
+        enfile(file, hash, numéro_page)
+    }
+    sinon si (page_requise != file.front) {
+        # Délie la page requise de sa position dans la file
+        page_requise.précédent.suivant = page_requise.suivant
+
+        si page_requise.suivant != nul {
+            page_requise.suivant.précédent = page_requise.précédent
+        }
+
+        si page_requise == file.cul {
+            file.cul = page_requise.précédent
+            file.cul.suivant = nul
+        }
+
+        page_requise.suivant = file.front
+        page_requise.précédent = nul
+
+        page_requise.suivant.précédent = page_requise
+
+        file.front = page_requise
+    }
+}
+
+#######################################
+
+struct CacheMRU {
+    arbre: *ArbreB = nul
+    file: *File = nul
+    capacité: z32 = 0
+}
+
+fonc construit_cache(capacité: z32) -> *CacheMRU
+{
+    dyn cache := loge CacheMRU
+    cache.arbre = loge ArbreB
+    cache.arbre.t = 3
+    cache.arbre.racine = nul
+    cache.file = crée_file(capacité)
+
+    retourne cache
+}
+
+fonc détruit_cache(dyn cache: *CacheMRU) -> rien
+{
+    détruit_file(capacité)
+    détruit_arbre(arbre)
+    déloge arbre
+    déloge cache
+}
+
+fonc référence_page(dyn cache: *CacheMRU, x: z32) -> rien
+{
+    dyn noeud := cache.arbre.recherche(x)
+
+    si noeud == nul {
+        si cache.file.sont_toutes_les_pages_pleines() {
+            dernière := cache.file.cul
+            cache.arbre.supprime(dernière.numéro_page)
+            dernière.précédent.suivant = nul
+            déloge dernière
+        }
+    }
+    sinon {
+        # À FAIRE: l'arbre devrait stocker les noeuds de la file
+    }
+}
+
+#######################################
+
+fonc imprime_file(file: *File) -> rien
+{
+    dyn ptr := file.front
+
+    tantque ptr != nul {
+        imprime("page: ", ptr.numéro_page, "\n")
+        ptr = ptr.suivant
+    }
+}
+
+fonc détruit_file(file: *File) -> rien
+{
+    dyn ptr := file.front
+
+    tantque ptr != nul {
+        temp := ptr.suivant
+        déloge ptr
+        ptr = temp
+    }
+
+    déloge file
+}
+
+fonc détruit_hash(hash: *Hash) -> rien
+{
+    déloge hash.noeuds
+    déloge hash
+}
+
+fonc cherche_clé(arbre: *ArbreB, clé: z32) -> rien
+{
+    noeud := recherche(arbre, clé)
+
+    si noeud == nul {
+        imprime("La clé ", clé, " n'est pas dans l'arbre\n")
+    }
+    sinon {
+        imprime("La clé ", clé, " est dans l'arbre\n")
+    }
+}
+
+fonc supprime_et_traverse(arbre: *ArbreB, clé: z32) -> rien
+{
+    arbre.supprime(clé)
+    imprime("Traverse de l'arbre après la suppression de ", clé, " :\n")
+    arbre.traverse()
+    imprime("\n")
+}
+
+fonc principale(args : []*z8) : z32
+{
+    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+
+    imprime("Test cache MRU :\n")
+    dyn file := crée_file(4)
+    diffère { détruit_file(file) }
+
+    dyn hash := crée_hash(10)
+    diffère { détruit_hash(hash) }
+
+    file.référence_page(hash, 1)
+    file.référence_page(hash, 2)
+    file.référence_page(hash, 3)
+    file.référence_page(hash, 1)
+    file.référence_page(hash, 4)
+    file.référence_page(hash, 5)
+
+    imprime_file(file)
+
+    imprime("\n")
+
+    imprime("Test arbre B :\n")
+
+    dyn arbre := construit_arbre(3)
+    diffère { détruit_arbre(@arbre) }
+
+    insère(@arbre, 1)
+    insère(@arbre, 3)
+    insère(@arbre, 7)
+    insère(@arbre, 10)
+    insère(@arbre, 11)
+    insère(@arbre, 13)
+    insère(@arbre, 14)
+    insère(@arbre, 15)
+    insère(@arbre, 18)
+    insère(@arbre, 16)
+    insère(@arbre, 19)
+    insère(@arbre, 24)
+    insère(@arbre, 25)
+    insère(@arbre, 26)
+    insère(@arbre, 21)
+    insère(@arbre, 4)
+    insère(@arbre, 5)
+    insère(@arbre, 20)
+    insère(@arbre, 22)
+    insère(@arbre, 2)
+    insère(@arbre, 17)
+    insère(@arbre, 12)
+    insère(@arbre, 6)
+
+    imprime("Traverse de l'arbre :\n")
+    traverse(@arbre)
+    imprime("\n")
+
+    imprime("Recherche dans l'arbre :\n")
+    cherche_clé(@arbre, 8)
+    cherche_clé(@arbre, 15)
+    imprime("\n")
+
+    imprime("Suppression de valeurs :\n")
+    supprime_et_traverse(@arbre, 6)
+    supprime_et_traverse(@arbre, 13)
+    supprime_et_traverse(@arbre, 7)
+    supprime_et_traverse(@arbre, 4)
+    supprime_et_traverse(@arbre, 2)
+    supprime_et_traverse(@arbre, 16)
+
+    imprime("\n")
+
+    imprime("\n")
+
+    retourne 0
+}
