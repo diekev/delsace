@@ -95,6 +95,7 @@ const char *chaine_type_noeud(type_noeud type)
 		CAS_TYPE(type_noeud::ACCES_MEMBRE_UNION)
 		CAS_TYPE(type_noeud::SINON)
 		CAS_TYPE(type_noeud::EXPRESSION_PARENTHESE)
+		CAS_TYPE(type_noeud::DIRECTIVE_EXECUTION)
 	}
 
 	return "erreur : type_noeud inconnu";

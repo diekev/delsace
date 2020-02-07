@@ -991,6 +991,7 @@ void genere_code_C(
 		bool expr_gauche)
 {
 	switch (b->type) {
+		case type_noeud::DIRECTIVE_EXECUTION:
 		case type_noeud::SINON:
 		case type_noeud::RACINE:
 		{
@@ -3101,6 +3102,223 @@ R"(
 	contexte.temps_generation = temps_generation;
 
 	fichier_sortie << os.chn();
+}
+
+void genere_code_C_pour_execution(
+		assembleuse_arbre const &arbre,
+		noeud::base *noeud_appel,
+		ContexteGenerationCode &contexte,
+		dls::chaine const &racine_kuri,
+		std::ostream &fichier_sortie)
+{
+	auto df = noeud_appel->df;
+
+	dls::flux_chaine os;
+
+	auto generatrice = GeneratriceCodeC(contexte, os);
+
+	auto temps_generation = 0.0;
+
+	auto &graphe_dependance = contexte.graphe_dependance;
+
+	auto noeud_fonction_principale = graphe_dependance.cherche_noeud_fonction(df->nom_broye);
+	if (noeud_fonction_principale == nullptr) {
+		erreur::fonction_principale_manquante();
+	}
+
+	for (auto const &inc : arbre.inclusions) {
+		os << "#include <" << inc << ">\n";
+	}
+
+	os << "\n";
+
+	os << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
+
+	auto depassement_limites_tableau =
+R"(
+void KR__depassement_limites_tableau(
+	const char *fichier,
+	long ligne,
+	long taille,
+	long index)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Dépassement des limites du tableau !\n");
+	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
+	abort();
+}
+)";
+
+	os << depassement_limites_tableau;
+
+	auto depassement_limites_chaine =
+R"(
+void KR__depassement_limites_chaine(
+	const char *fichier,
+	long ligne,
+	long taille,
+	long index)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Dépassement des limites de la chaine !\n");
+	fprintf(stderr, "La taille est de %ld mais l'index est de %ld !\n", taille, index);
+	abort();
+}
+)";
+
+	os << depassement_limites_chaine;
+
+	auto hors_memoire =
+R"(
+void KR__hors_memoire(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'allouer de la mémoire !\n");
+	abort();
+}
+)";
+
+	os << hors_memoire;
+
+	/* À FAIRE : renseigner le membre actif */
+	auto acces_membre_union =
+R"(
+void KR__acces_membre_union(
+	const char *fichier,
+	long ligne)
+{
+	fprintf(stderr, "%s:%ld\n", fichier, ligne);
+	fprintf(stderr, "Impossible d'accèder au membre de l'union car il n'est pas actif !\n");
+	abort();
+}
+)";
+
+	os << acces_membre_union;
+
+	/* met en place la dépendance sur la fonction d'allocation par défaut */
+	auto &df_fonc_alloc = contexte.module("Kuri")->donnees_fonction("allocatrice_défaut").front();
+	auto noeud_alloc = graphe_dependance.cree_noeud_fonction(df_fonc_alloc.nom_broye, df_fonc_alloc.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_alloc);
+
+	auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
+	auto noeud_init = graphe_dependance.cree_noeud_fonction(df_fonc_init.nom_broye, df_fonc_init.noeud_decl);
+	graphe_dependance.connecte_fonction_fonction(*noeud_fonction_principale, *noeud_init);
+
+	/* ceci ne sont peut-être pas dans le graphe */
+	const char *symboles_globaux[] = {
+		"__VG_memoire_utilisee__",
+		"__VG_memoire_consommee__",
+		"__VG_nombre_allocations__",
+		"__VG_nombre_reallocations__",
+		"__VG_nombre_deallocations__",
+	};
+
+	for (auto symbole : symboles_globaux) {
+		auto noeud = graphe_dependance.cherche_noeud_globale(symbole);
+		graphe_dependance.connecte_fonction_globale(*noeud_fonction_principale, *noeud);
+	}
+
+	/* déclaration des types de bases */
+	os << "typedef struct chaine { char *pointeur; long taille; } chaine;\n";
+	os << "typedef struct eini { void *pointeur; struct InfoType *info; } eini;\n";
+	os << "typedef unsigned char bool;\n";
+	os << "typedef unsigned char octet;\n";
+	os << "typedef void Ksnul;\n";
+	os << "typedef struct ContexteProgramme KsContexteProgramme;\n";
+	/* À FAIRE : pas beau, mais un pointeur de fonction peut être un pointeur
+	 * vers une fonction de LibC dont les arguments variadiques ne sont pas
+	 * typés */
+	os << "#define Kv ...\n";
+
+	auto debut_generation = dls::chrono::compte_seconde();
+
+	/* création primordiale des typedefs pour éviter les problèmes liés aux
+	 * types récursifs, inclus tous les types car dans certains cas il manque
+	 * des connexions entre types... */
+	genere_typedefs_pour_tous_les_types(contexte, os);
+
+	/* il faut d'abord créer le code pour les structures InfoType */
+	const char *noms_structs_infos_types[] = {
+		"InfoType",
+		"InfoTypeEntier",
+		"InfoTypeRéel",
+		"InfoTypePointeur",
+		"InfoTypeÉnum",
+		"InfoTypeStructure",
+		"InfoTypeTableau",
+		"InfoTypeFonction",
+		"InfoTypeMembreStructure",
+		"ContexteProgramme",
+	};
+
+	for (auto nom_struct : noms_structs_infos_types) {
+		auto const &ds = contexte.donnees_structure(nom_struct);
+		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+
+		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, false);
+		/* restaure le drapeaux pour la génération des infos des types */
+		noeud->fut_visite = false;
+	}
+
+//	for (auto nom_struct : noms_structs_infos_types) {
+//		auto const &ds = contexte.donnees_structure(nom_struct);
+//		auto noeud = graphe_dependance.cherche_noeud_type(ds.index_type);
+//		traverse_graphe_pour_generation_code(contexte, generatrice, noeud, false, true);
+//	}
+
+	temps_generation += debut_generation.temps();
+
+	//reduction_transitive(graphe_dependance);
+
+	genere_infos_pour_tous_les_types(contexte, generatrice);
+
+	debut_generation.commence();
+
+	/* génère d'abord les déclarations des fonctions et les types */
+	traverse_graphe_pour_generation_code(contexte, generatrice, noeud_fonction_principale, false, true);
+
+	/* génère ensuite les fonctions */
+	for (auto noeud_dep : graphe_dependance.noeuds) {
+		if (noeud_dep->type == TypeNoeudDependance::FONCTION) {
+			noeud_dep->fut_visite = false;
+		}
+	}
+
+	traverse_graphe_pour_generation_code(contexte, generatrice, noeud_fonction_principale, true, false);
+
+	auto debut_main =
+R"(
+void lance_execution()
+{
+	KsContexteProgramme ctx;
+	KsContexteProgramme *contexte = &ctx;
+)";
+
+	os << debut_main;
+	os << "contexte->allocatrice = " << df_fonc_alloc.nom_broye << ";\n";
+	os << broye_nom_simple("contexte->données_allocatrice") << " = 0;\n";
+
+	genere_code_C(noeud_appel, generatrice, contexte, true);
+
+	auto fin_main =
+R"(
+	return;
+}
+)";
+	os << fin_main;
+
+	temps_generation += debut_generation.temps();
+
+	contexte.temps_generation = temps_generation;
+
+	fichier_sortie << os.chn();
+
+	for (auto noeud_dep : graphe_dependance.noeuds) {
+		noeud_dep->fut_visite = false;
+		noeud_dep->deja_genere = false;
+	}
 }
 
 }  /* namespace noeud */

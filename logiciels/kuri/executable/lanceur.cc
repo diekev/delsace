@@ -69,6 +69,7 @@
 #include "biblinternes/chrono/chronometrage.hh"
 #include "biblinternes/outils/format.hh"
 #include "biblinternes/outils/tableau_donnees.hh"
+#include "biblinternes/systeme_fichier/shared_library.h"
 
 #ifdef AVEC_LLVM
 static void initialise_llvm()
@@ -352,6 +353,66 @@ static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri
 	std::cout << "Compilation réussie !" << std::endl;
 }
 
+struct chaine {
+	const char *pointeur;
+	long taille;
+};
+
+void ajoute_chaine_compilation(chaine c)
+{
+	std::cerr << "Chaine ajoutée à la compilation :\n";
+
+	auto vue = dls::vue_chaine(c.pointeur, c.taille);
+	std::cerr << "-- " << vue << '\n';
+}
+
+void ajoute_fichier_compilation(chaine c)
+{
+	std::cerr << "Fichier ajouté à la compilation :\n";
+
+	auto vue = dls::vue_chaine(c.pointeur, c.taille);
+	std::cerr << "-- " << vue << '\n';
+}
+
+static bool lance_execution(ContexteGenerationCode &contexte)
+{
+	// crée un fichier objet
+	auto commande = "gcc -Wno-discarded-qualifiers -Wno-format-security -shared -fPIC -o /tmp/test_execution.so /tmp/execution_kuri.c";
+
+	auto err = system(commande);
+
+	if (err != 0) {
+		std::cerr << "Impossible de compiler la bibliothèque !\n";
+		return 1;
+	}
+
+	// charge le fichier
+	auto so = dls::systeme_fichier::shared_library("/tmp/test_execution.so");
+
+	auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
+	auto symbole_init = so(df_fonc_init.nom_broye);
+	auto fonc_init = dls::systeme_fichier::dso_function<void(void(*)(chaine), void(*)(chaine))>(symbole_init);
+
+	if (!fonc_init) {
+		std::cerr << "Impossible de trouver le symbole de la fonction d'initialisation !\n";
+		return 1;
+	}
+
+	fonc_init(ajoute_chaine_compilation, ajoute_fichier_compilation);
+
+	auto dso = so("lance_execution");
+
+	auto fonc = dls::systeme_fichier::dso_function<void()>(dso);
+
+	if (!fonc) {
+		std::cerr << "Impossible de trouver le symbole !\n";
+	}
+
+	fonc();
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
@@ -487,11 +548,20 @@ int main(int argc, char *argv[])
 		else
 #endif
 		{
-			std::ofstream of;
-			of.open("/tmp/compilation_kuri.c");
-
 			os << "Validation sémantique du code..." << std::endl;
 			noeud::performe_validation_semantique(assembleuse, contexte_generation);
+
+#if 0
+			for (auto noeud: contexte_generation.noeuds_a_executer) {
+				std::ofstream of;
+				of.open("/tmp/execution_kuri.c");
+
+				noeud::genere_code_C_pour_execution(assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
+				lance_execution(contexte_generation);
+			}
+#else
+			std::ofstream of;
+			of.open("/tmp/compilation_kuri.c");
 
 			os << "Génération du code..." << std::endl;
 			noeud::genere_code_C(assembleuse, contexte_generation, chemin_racine_kuri, of);
@@ -583,6 +653,7 @@ int main(int argc, char *argv[])
 
 				temps_executable = debut_executable.temps();
 			}
+#endif
 		}
 
 		/* restore le dossier d'origine */

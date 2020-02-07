@@ -42,6 +42,8 @@ set(BIBLIOTHEQUES
 	kuri_options
 	stdc++fs
 	bib_outils
+	systeme_fichier
+	dl
 )
 
 add_executable(kuri

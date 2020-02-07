@@ -1129,6 +1129,15 @@ noeud::base *Syntaxeuse::analyse_expression(
 						auto chaine = donnees().chaine;
 						m_assembleuse->definitions.pousse(chaine);
 					}
+					else if (directive == "exécute") {
+						m_assembleuse->empile_noeud(type_noeud::DIRECTIVE_EXECUTION, m_contexte, morceau);
+
+						auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
+
+						m_assembleuse->depile_noeud(type_noeud::DIRECTIVE_EXECUTION);
+
+						m_contexte.noeuds_a_executer.pousse(noeud);
+					}
 					else if (directive == "finsi") {
 						// dépile la dernière directive si, erreur si aucune
 					}

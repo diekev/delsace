@@ -918,6 +918,7 @@ static llvm::Value *genere_code_llvm(
 		const bool expr_gauche)
 {
 	switch (b->type) {
+		case type_noeud::DIRECTIVE_EXECUTION:
 		case type_noeud::DECLARATION_ENUM:
 		case type_noeud::LISTE_PARAMETRES_FONCTION:
 		case type_noeud::PAIRE_DISCR:

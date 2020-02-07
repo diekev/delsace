@@ -81,6 +81,7 @@ enum class type_noeud : char {
 	SAUFSI,
 	RETIENS,
 	EXPRESSION_PARENTHESE,
+	DIRECTIVE_EXECUTION,
 
 	/* mis en place dans la validation sémantique pour simplifier la génération
 	 * du code */

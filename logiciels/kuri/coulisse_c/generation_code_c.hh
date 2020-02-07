@@ -43,4 +43,11 @@ void genere_code_C(
 		dls::chaine const &racine_kuri,
 		std::ostream &fichier_sortie);
 
+void genere_code_C_pour_execution(
+		assembleuse_arbre const &arbre,
+		noeud::base *noeud_appel,
+		ContexteGenerationCode &contexte,
+		dls::chaine const &racine_kuri,
+		std::ostream &fichier_sortie);
+
 }  /* namespace noeud */

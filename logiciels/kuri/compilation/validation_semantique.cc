@@ -920,18 +920,21 @@ static void performe_validation_semantique(
 
 			donnees_fonction = candidate->df;
 
-			using dls::outils::possede_drapeau;
-			auto decl_fonc = fonction_courante->noeud_decl;
+			/* pour les directives d'exécution, la fonction courante est nulle */
+			if (fonction_courante != nullptr) {
+				using dls::outils::possede_drapeau;
+				auto decl_fonc = fonction_courante->noeud_decl;
 
-			if (possede_drapeau(decl_fonc->drapeaux, FORCE_NULCTX)) {
-				auto decl_appel = donnees_fonction->noeud_decl;
+				if (possede_drapeau(decl_fonc->drapeaux, FORCE_NULCTX)) {
+					auto decl_appel = donnees_fonction->noeud_decl;
 
-				if (!donnees_fonction->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
-					erreur::lance_erreur_fonction_nulctx(
-								contexte,
-								b,
-								decl_fonc,
-								decl_appel);
+					if (!donnees_fonction->est_externe && !possede_drapeau(decl_appel->drapeaux, FORCE_NULCTX)) {
+						erreur::lance_erreur_fonction_nulctx(
+									contexte,
+									b,
+									decl_fonc,
+									decl_appel);
+					}
 				}
 			}
 
@@ -1007,6 +1010,11 @@ static void performe_validation_semantique(
 				donnees_dependance.types_utilises.insere(idx);
 			}
 
+			break;
+		}
+		case type_noeud::DIRECTIVE_EXECUTION:
+		{
+			valides_enfants(b, contexte, true);
 			break;
 		}
 		case type_noeud::VARIABLE:

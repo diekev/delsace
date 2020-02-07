@@ -174,6 +174,8 @@ struct ContexteGenerationCode {
 
 	bool bit32 = false;
 
+	dls::tableau<noeud::base *> noeuds_a_executer{};
+
 	ContexteGenerationCode();
 
 	~ContexteGenerationCode();
