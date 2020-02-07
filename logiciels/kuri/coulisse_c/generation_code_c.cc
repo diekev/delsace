@@ -1297,14 +1297,17 @@ void genere_code_C(
 
 			/* nous avons une déclaration, initialise à zéro */
 			if (expression == nullptr) {
-				generatrice.os << flux.chn() << ";\n";
-				cree_initialisation(
-							contexte,
-							generatrice,
-							dt.plage(),
-							nom_broye,
-							".",
-							generatrice.os);
+				/* À FAIRE: initialisation pour les variables globales */
+				if (contexte.donnees_fonction != nullptr) {
+					generatrice.os << flux.chn() << ";\n";
+					cree_initialisation(
+								contexte,
+								generatrice,
+								dt.plage(),
+								nom_broye,
+								".",
+								generatrice.os);
+				}
 			}
 			else {
 				applique_transformation(expression, generatrice, contexte, false);
