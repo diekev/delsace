@@ -37,7 +37,7 @@ set(SOURCES
 	conversion_type_c.cc
 
 	generation_code_c.hh
-	generation_code_c.cc
+	generatrice_code_c.hh
 	info_type_c.hh
 	conversion_type_c.hh
 )
