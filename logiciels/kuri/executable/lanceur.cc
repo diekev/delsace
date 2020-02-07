@@ -551,7 +551,6 @@ int main(int argc, char *argv[])
 			os << "Validation sémantique du code..." << std::endl;
 			noeud::performe_validation_semantique(assembleuse, contexte_generation);
 
-#if 0
 			for (auto noeud: contexte_generation.noeuds_a_executer) {
 				std::ofstream of;
 				of.open("/tmp/execution_kuri.c");
@@ -559,7 +558,7 @@ int main(int argc, char *argv[])
 				noeud::genere_code_C_pour_execution(assembleuse, noeud, contexte_generation, chemin_racine_kuri, of);
 				lance_execution(contexte_generation);
 			}
-#else
+
 			std::ofstream of;
 			of.open("/tmp/compilation_kuri.c");
 
@@ -653,7 +652,6 @@ int main(int argc, char *argv[])
 
 				temps_executable = debut_executable.temps();
 			}
-#endif
 		}
 
 		/* restore le dossier d'origine */

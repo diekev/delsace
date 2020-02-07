@@ -3303,9 +3303,19 @@ R"(
 
 	fichier_sortie << os.chn();
 
+	/* réinitialise les données pour la génération du code finale
+	 * À FAIRE: sauvegarde les tampons sources */
 	for (auto noeud_dep : graphe_dependance.noeuds) {
 		noeud_dep->fut_visite = false;
 		noeud_dep->deja_genere = false;
+	}
+
+	for (auto &ds : contexte.structures) {
+		ds.second.deja_genere = false;
+	}
+
+	for (auto &dt : contexte.typeuse.indexeuse.donnees_types) {
+		dt.ptr_info_type = "";
 	}
 }
 
