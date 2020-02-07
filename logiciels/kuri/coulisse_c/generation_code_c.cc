@@ -1306,9 +1306,10 @@ void genere_code_C(
 
 			/* nous avons une déclaration, initialise à zéro */
 			if (expression == nullptr) {
+				generatrice.os << flux.chn() << ";\n";
+
 				/* À FAIRE: initialisation pour les variables globales */
 				if (contexte.donnees_fonction != nullptr) {
-					generatrice.os << flux.chn() << ";\n";
 					cree_initialisation(
 								contexte,
 								generatrice,
