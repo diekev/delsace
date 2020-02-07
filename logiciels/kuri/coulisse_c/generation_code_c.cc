@@ -496,10 +496,6 @@ static void genere_code_acces_membre(
 			else {
 				genere_code_C(structure, generatrice, contexte, expr_gauche);
 
-				if (membre->type != type_noeud::VARIABLE) {
-					genere_code_C(membre, generatrice, contexte, expr_gauche);
-				}
-
 				if (est_reference) {
 					flux << "(*" << structure->chaine_calculee() << ')';
 				}
@@ -508,7 +504,20 @@ static void genere_code_acces_membre(
 				}
 
 				flux << ((est_pointeur) ? "->" : ".");
-				flux << broye_chaine(membre);
+
+				/* À FAIRE: variable de retour pour les appels de pointeur de fonction */
+				if (membre->type == type_noeud::APPEL_FONCTION) {
+					generatrice.os << flux.chn();
+					membre->nom_fonction_appel = broye_chaine(membre);
+					genere_code_C(membre, generatrice, contexte, false);
+				}
+				else {
+					if (membre->type != type_noeud::VARIABLE) {
+						genere_code_C(membre, generatrice, contexte, expr_gauche);
+					}
+
+					flux << broye_chaine(membre);
+				}
 			}
 		}
 		else {
