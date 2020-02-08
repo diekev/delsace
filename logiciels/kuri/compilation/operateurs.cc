@@ -531,9 +531,11 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_basique(op, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
-	// operateurs booléens && ||
+	// operateurs booléens && || == !=
 	operateurs.ajoute_basique(TypeLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 	operateurs.ajoute_basique(TypeLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(TypeLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(TypeLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 
 	// opérateurs unaires + - ~
 	for (auto type : types_entiers_naturels) {
