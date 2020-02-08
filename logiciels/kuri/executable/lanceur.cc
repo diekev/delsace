@@ -60,6 +60,7 @@
 #include "compilation/lexeuse.hh"
 #include "compilation/erreur.h"
 #include "compilation/modules.hh"
+#include "compilation/structures.hh"
 #include "compilation/validation_semantique.hh"
 
 #include "coulisse_c/generation_code_c.hh"
@@ -353,12 +354,7 @@ static void precompile_objet_r16(std::filesystem::path const &chemin_racine_kuri
 	std::cout << "Compilation réussie !" << std::endl;
 }
 
-struct chaine {
-	const char *pointeur;
-	long taille;
-};
-
-void ajoute_chaine_compilation(chaine c)
+void ajoute_chaine_compilation(kuri::chaine c)
 {
 	std::cerr << "Chaine ajoutée à la compilation :\n";
 
@@ -366,7 +362,7 @@ void ajoute_chaine_compilation(chaine c)
 	std::cerr << "-- " << vue << '\n';
 }
 
-void ajoute_fichier_compilation(chaine c)
+void ajoute_fichier_compilation(kuri::chaine c)
 {
 	std::cerr << "Fichier ajouté à la compilation :\n";
 
@@ -391,7 +387,7 @@ static bool lance_execution(ContexteGenerationCode &contexte)
 
 	auto &df_fonc_init = contexte.module("Kuri")->donnees_fonction("initialise_RC").front();
 	auto symbole_init = so(df_fonc_init.nom_broye);
-	auto fonc_init = dls::systeme_fichier::dso_function<void(void(*)(chaine), void(*)(chaine))>(symbole_init);
+	auto fonc_init = dls::systeme_fichier::dso_function<void(void(*)(kuri::chaine), void(*)(kuri::chaine))>(symbole_init);
 
 	if (!fonc_init) {
 		std::cerr << "Impossible de trouver le symbole de la fonction d'initialisation !\n";
