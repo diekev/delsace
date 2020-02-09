@@ -390,7 +390,7 @@ static void valide_acces_membre(
 
 					/* le type de l'accès est celui du retour de la fonction */
 					b->index_type = membre->index_type;
-					b->type_valeur = TypeValeur::DROITE;
+					b->genre_valeur = GenreValeur::DROITE;
 					return;
 				}
 			}
@@ -413,7 +413,7 @@ static void valide_acces_membre(
 		b->nom_fonction_appel = membre->nom_fonction_appel;
 		b->df = membre->df;
 		b->enfants = membre->enfants;
-		b->type_valeur = TypeValeur::DROITE;
+		b->genre_valeur = GenreValeur::DROITE;
 
 		return;
 	}
@@ -485,7 +485,7 @@ static void valide_acces_membre(
 			}
 
 			b->index_type = donnees_structure.index_type;
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			return;
 		}
 
@@ -868,7 +868,7 @@ static void performe_validation_semantique(
 			auto const nom_fonction = dls::chaine(b->morceau.chaine);
 			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			if (b->nom_fonction_appel != "") {
 				/* Nous avons déjà validé ce noeud, sans doute via une syntaxe
@@ -1019,7 +1019,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			b->type_valeur = TypeValeur::TRANSCENDANTALE;
+			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			auto type_symbole = cherche_symbole(contexte, b->chaine());
 
@@ -1075,7 +1075,7 @@ static void performe_validation_semantique(
 		{
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
-			b->type_valeur = TypeValeur::TRANSCENDANTALE;
+			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 			auto const nom_symbole = enfant1->chaine();
 
@@ -1195,7 +1195,7 @@ static void performe_validation_semantique(
 
 			performe_validation_semantique(variable, contexte, true);
 
-			if (!est_valeur_gauche(variable->type_valeur)) {
+			if (!est_valeur_gauche(variable->genre_valeur)) {
 				erreur::lance_erreur(
 							"Impossible d'assigner une expression à une valeur-droite !",
 							contexte,
@@ -1337,7 +1337,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::R64];
 
 			donnees_dependance.types_utilises.insere(b->index_type);
@@ -1345,7 +1345,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::Z32];
 
 			donnees_dependance.types_utilises.insere(b->index_type);
@@ -1353,7 +1353,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			auto enfant1 = b->enfants.front();
 			auto enfant2 = b->enfants.back();
@@ -1400,7 +1400,7 @@ static void performe_validation_semantique(
 			}
 			else if (b->morceau.identifiant == TypeLexeme::CROCHET_OUVRANT) {
 				b->genre = GenreNoeud::EXPRESSION_INDICE;
-				b->type_valeur = TypeValeur::TRANSCENDANTALE;
+				b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
 				if (type1.type_base() == TypeLexeme::REFERENCE) {
 					enfant1->transformation = TypeTransformation::DEREFERENCE;
@@ -1507,7 +1507,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			auto enfant = b->enfants.front();
 			performe_validation_semantique(enfant, contexte, expr_gauche);
@@ -1523,7 +1523,7 @@ static void performe_validation_semantique(
 
 			if (b->index_type == -1l) {
 				if (b->identifiant() == TypeLexeme::AROBASE) {
-					if (!est_valeur_gauche(enfant->type_valeur)) {
+					if (!est_valeur_gauche(enfant->genre_valeur)) {
 						erreur::lance_erreur(
 									"Ne peut pas prendre l'adresse d'une valeur-droite.",
 									contexte,
@@ -1550,7 +1550,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::INSTRUCTION_RETOUR:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			if (b->enfants.est_vide()) {
 				b->index_type = contexte.typeuse[TypeBase::RIEN];
@@ -1672,14 +1672,14 @@ static void performe_validation_semantique(
 			 * où la valeur calculee est redéfinie. */
 			b->valeur_calculee = corrigee;
 			b->index_type = contexte.typeuse[TypeBase::CHAINE];
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			donnees_dependance.types_utilises.insere(b->index_type);
 			break;
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::BOOL];
 
 			donnees_dependance.types_utilises.insere(b->index_type);
@@ -1687,7 +1687,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::Z8];
 
 			donnees_dependance.types_utilises.insere(b->index_type);
@@ -1928,7 +1928,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_TRANSTYPE:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = resoud_type_final(contexte, b->type_declare);
 
 			/* À FAIRE : vérifie compatibilité */
@@ -1958,7 +1958,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_NUL:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::PTR_NUL];
 			break;
 		}
@@ -1966,7 +1966,7 @@ static void performe_validation_semantique(
 		{
 			auto type_declare = std::any_cast<DonneesTypeDeclare>(b->valeur_calculee);
 			b->valeur_calculee = resoud_type_final(contexte, type_declare);
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse[TypeBase::N32];
 			valides_enfants(b, contexte, false);
 			break;
@@ -2137,7 +2137,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			dls::tableau<base *> feuilles;
 			rassemble_feuilles(b->enfants.front(), feuilles);
@@ -2187,7 +2187,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
 		{
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 
 			/* cherche la structure dans le tableau de structure */
 			if (!contexte.structure_existe(b->chaine())) {
@@ -2325,7 +2325,7 @@ static void performe_validation_semantique(
 			}
 
 			auto &ds = contexte.donnees_structure(nom_struct);
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = contexte.typeuse.type_pointeur_pour(ds.index_type);
 
 			break;
@@ -2336,7 +2336,7 @@ static void performe_validation_semantique(
 			performe_validation_semantique(enfant, contexte, false);
 
 			auto &dt_enfant = trouve_donnees_type(contexte, enfant);
-			b->type_valeur = TypeValeur::TRANSCENDANTALE;
+			b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 			b->index_type = contexte.typeuse.ajoute_type(dt_enfant.dereference());
 
 			if (dt_enfant.type_base() != TypeLexeme::POINTEUR) {
@@ -2354,7 +2354,7 @@ static void performe_validation_semantique(
 			auto nombre_enfant = b->enfants.taille();
 			auto enfant = b->enfants.debut();
 
-			b->type_valeur = TypeValeur::DROITE;
+			b->genre_valeur = GenreValeur::DROITE;
 			b->index_type = resoud_type_final(contexte, b->type_declare, false, false);
 
 			auto &dt = trouve_donnees_type(contexte, b);
@@ -3003,7 +3003,7 @@ static void performe_validation_semantique(
 		{
 			valides_enfants(b, contexte, expr_gauche);
 			b->index_type = b->enfants.front()->index_type;
-			b->type_valeur = b->enfants.front()->type_valeur;
+			b->genre_valeur = b->enfants.front()->genre_valeur;
 			break;
 		}
 	}

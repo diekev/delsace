@@ -108,7 +108,7 @@ static void applique_transformation(
 		case TypeTransformation::CONSTRUIT_TABL_OCTET:
 		{
 			/* dans le cas d'un nombre ou d'un tableau, etc. */
-			if (!est_valeur_gauche(b->type_valeur)) {
+			if (!est_valeur_gauche(b->genre_valeur)) {
 				generatrice.declare_variable(dt, nom_var_temp, b->chaine_calculee());
 				nom_courant = nom_var_temp;
 				nom_var_temp = "__var_temp_eini" + dls::vers_chaine(index++);

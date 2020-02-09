@@ -213,7 +213,7 @@ enum {
 	REQUIERS_CODE_EXTRA_RETOUR,
 };
 
-/* Le type d'une valeur, gauche, droite, ou transcendantale.
+/* Le genre d'une valeur, gauche, droite, ou transcendantale.
  *
  * Une valeur gauche est une valeur qui peut être assignée, donc à
  * gauche de '=', et comprend :
@@ -235,23 +235,23 @@ enum {
  * Une valeur transcendantale est une valeur droite qui peut aussi être
  * une valeur gauche (l'intersection des deux ensembles).
  */
-enum TypeValeur : char {
+enum GenreValeur : char {
 	INVALIDE = 0,
 	GAUCHE = (1 << 1),
 	DROITE = (1 << 2),
 	TRANSCENDANTALE = GAUCHE | DROITE,
 };
 
-DEFINIE_OPERATEURS_DRAPEAU(TypeValeur, char)
+DEFINIE_OPERATEURS_DRAPEAU(GenreValeur, char)
 
-inline bool est_valeur_gauche(TypeValeur type_valeur)
+inline bool est_valeur_gauche(GenreValeur type_valeur)
 {
-	return (type_valeur & TypeValeur::GAUCHE) != TypeValeur::INVALIDE;
+	return (type_valeur & GenreValeur::GAUCHE) != GenreValeur::INVALIDE;
 }
 
-inline bool est_valeur_droite(TypeValeur type_valeur)
+inline bool est_valeur_droite(GenreValeur type_valeur)
 {
-	return (type_valeur & TypeValeur::DROITE) != TypeValeur::INVALIDE;
+	return (type_valeur & GenreValeur::DROITE) != GenreValeur::INVALIDE;
 }
 
 struct DonneesFonction;
@@ -287,7 +287,7 @@ struct base {
 
 	DonneesTypeDeclare type_declare{};
 
-	TypeValeur type_valeur = TypeValeur::INVALIDE;
+	GenreValeur genre_valeur = GenreValeur::INVALIDE;
 
 	TransformationType transformation{};
 

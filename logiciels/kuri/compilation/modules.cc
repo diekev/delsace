@@ -276,7 +276,7 @@ static double verifie_compatibilite(
 	}
 
 	if (transformation.type == TypeTransformation::PREND_REFERENCE) {
-		return est_valeur_gauche(enfant->type_valeur) ? 1.0 : 0.0;
+		return est_valeur_gauche(enfant->genre_valeur) ? 1.0 : 0.0;
 	}
 
 	/* nous savons que nous devons transformer la valeur (par ex. eini), donc
