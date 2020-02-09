@@ -429,7 +429,7 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 	os << "ERREUR";
 }
 
-void test_markov_id_simple(dls::tableau<DonneesLexeme> const &morceaux)
+void test_markov_id_simple(dls::tableau<DonneesLexeme> const &lexemes)
 {
 	static constexpr auto _0 = static_cast<type_scalaire>(0);
 	static constexpr auto _1 = static_cast<type_scalaire>(1);
@@ -438,9 +438,9 @@ void test_markov_id_simple(dls::tableau<DonneesLexeme> const &morceaux)
 	auto nombre_id = static_cast<int>(GenreLexeme::COMMENTAIRE) + 1;
 	auto matrice = type_matrice_ep(type_ligne(nombre_id), type_colonne(nombre_id));
 
-	for (auto i = 0; i < morceaux.taille() - 1; ++i) {
-		auto idx0 = idx_depuis_id(morceaux[i].genre);
-		auto idx1 = idx_depuis_id(morceaux[i + 1].genre);
+	for (auto i = 0; i < lexemes.taille() - 1; ++i) {
+		auto idx0 = idx_depuis_id(lexemes[i].genre);
+		auto idx1 = idx_depuis_id(lexemes[i + 1].genre);
 
 		matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 	}
@@ -526,7 +526,7 @@ int main(int argc, char **argv)
 		auto lexeuse = Lexeuse(fichier);
 		lexeuse.performe_lexage();
 
-		test_markov_id_simple(fichier->morceaux);
+		test_markov_id_simple(fichier->lexemes);
 	}
 	catch (const erreur::frappe &erreur_frappe) {
 		std::cerr << erreur_frappe.message() << '\n';

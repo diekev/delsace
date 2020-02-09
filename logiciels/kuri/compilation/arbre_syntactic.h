@@ -264,7 +264,7 @@ namespace noeud {
  */
 struct base {
 	dls::liste<base *> enfants{};
-	DonneesLexeme const &morceau;
+	DonneesLexeme const &lexeme;
 
 	std::any valeur_calculee{};
 
@@ -291,7 +291,7 @@ struct base {
 
 	TransformationType transformation{};
 
-	explicit base(DonneesLexeme const &morceau);
+	explicit base(DonneesLexeme const &lexeme);
 
 	base(base const &) = default;
 	base &operator=(base const &) = default;
@@ -309,19 +309,19 @@ struct base {
 	void imprime_code(std::ostream &os, int tab);
 
 	/**
-	 * Retourne l'identifiant du morceau de ce noeud.
+	 * Retourne l'identifiant du lexeme de ce noeud.
 	 */
 	GenreLexeme identifiant() const;
 
 	/**
-	 * Retourne une référence constante vers la chaine du morceau de ce noeud.
+	 * Retourne une référence constante vers la chaine du lexeme de ce noeud.
 	 */
 	dls::vue_chaine_compacte const &chaine() const;
 
 	/**
-	 * Retourne une référence constante vers les données du morceau de ce neoud.
+	 * Retourne une référence constante vers les données du lexeme de ce neoud.
 	 */
-	DonneesLexeme const &donnees_morceau() const;
+	DonneesLexeme const &donnees_lexeme() const;
 
 	/**
 	 * Retourne un pointeur vers le dernier enfant de ce noeud. Si le noeud n'a

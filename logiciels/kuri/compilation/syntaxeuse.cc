@@ -85,7 +85,7 @@ Syntaxeuse::Syntaxeuse(
 		ContexteGenerationCode &contexte,
 		Fichier *fichier,
 		dls::chaine const &racine_kuri)
-	: lng::analyseuse<DonneesLexeme>(fichier->morceaux)
+	: lng::analyseuse<DonneesLexeme>(fichier->lexemes)
 	, m_contexte(contexte)
 	, m_assembleuse(contexte.assembleuse)
 	, m_paires_vecteurs(PROFONDEUR_EXPRESSION_MAX)
@@ -622,11 +622,11 @@ noeud::base *Syntaxeuse::analyse_expression(
 	DEB_LOG_EXPRESSION << tabulations[profondeur] << "Vecteur :" << FIN_LOG_EXPRESSION;
 
 	while (!requiers_identifiant(identifiant_final)) {
-		auto &morceau = donnees();
+		auto &lexeme = donnees();
 
-		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.genre) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(lexeme.genre) << FIN_LOG_EXPRESSION;
 
-		auto genre_courant = morceau.genre;
+		auto genre_courant = lexeme.genre;
 
 		switch (genre_courant) {
 			case GenreLexeme::DYN:
@@ -650,7 +650,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				if (est_identifiant(GenreLexeme::PARENTHESE_OUVRANTE)) {
 					avance();
 
-					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION, lexeme, false);
 
 					analyse_appel_fonction(noeud);
 
@@ -660,7 +660,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				}
 				/* construction structure : chaine + { */
 				else if ((racine_expr == GenreLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE)) {
-					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, lexeme, false);
 
 					avance();
 
@@ -674,7 +674,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				}
 				/* variable : chaine */
 				else {
-					auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, morceau);
+					auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, lexeme);
 					expression.pousse(noeud);
 
 					noeud->drapeaux |= drapeaux;
@@ -691,7 +691,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case GenreLexeme::NOMBRE_REEL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, lexeme);
 				expression.pousse(noeud);
 				break;
 			}
@@ -700,25 +700,25 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case GenreLexeme::NOMBRE_HEXADECIMAL:
 			case GenreLexeme::NOMBRE_OCTAL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, lexeme);
 				expression.pousse(noeud);
 				break;
 			}
 			case GenreLexeme::CHAINE_LITTERALE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, lexeme);
 				expression.pousse(noeud);
 				break;
 			}
 			case GenreLexeme::CARACTERE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, lexeme);
 				expression.pousse(noeud);
 				break;
 			}
 			case GenreLexeme::NUL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, lexeme);
 				expression.pousse(noeud);
 				break;
 			}
@@ -726,7 +726,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_TAILLE_DE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_TAILLE_DE, lexeme);
 				noeud->valeur_calculee = analyse_declaration_type(false);
 
 				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
@@ -738,7 +738,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
-				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_INFO_DE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_INFO_DE, lexeme, false);
 
 				analyse_expression(GenreLexeme::INCONNU, GenreLexeme::INFO_DE);
 
@@ -753,9 +753,9 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case GenreLexeme::VRAI:
 			case GenreLexeme::FAUX:
 			{
-				/* remplace l'identifiant par id_morceau::BOOL */
-				morceau.genre = GenreLexeme::BOOL;
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, morceau);
+				/* remplace l'identifiant par id_lexeme::BOOL */
+				lexeme.genre = GenreLexeme::BOOL;
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, lexeme);
 				expression.pousse(noeud);
 				break;
 			}
@@ -763,7 +763,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
 
-				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_TRANSTYPE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_TRANSTYPE, lexeme, false);
 
 				analyse_expression(GenreLexeme::DOUBLE_POINTS, GenreLexeme::TRANSTYPE);
 
@@ -779,7 +779,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
-				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_MEMOIRE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_MEMOIRE, lexeme, false);
 
 				analyse_expression(GenreLexeme::INCONNU, GenreLexeme::MEMOIRE);
 
@@ -791,7 +791,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case GenreLexeme::PARENTHESE_OUVRANTE:
 			{
-				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_PARENTHESE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_PARENTHESE, lexeme, false);
 
 				analyse_expression(GenreLexeme::PARENTHESE_FERMANTE, GenreLexeme::PARENTHESE_OUVRANTE);
 
@@ -817,7 +817,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case GenreLexeme::PLUS:
 			case GenreLexeme::MOINS:
 			{
-				auto id_operateur = morceau.genre;
+				auto id_operateur = lexeme.genre;
 				auto noeud = static_cast<noeud::base *>(nullptr);
 
 				if (precede_unaire_valide(genre_dernier_lexeme)) {
@@ -828,11 +828,11 @@ noeud::base *Syntaxeuse::analyse_expression(
 						id_operateur = GenreLexeme::MOINS_UNAIRE;
 					}
 
-					morceau.genre = id_operateur;
-					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, morceau);
+					lexeme.genre = id_operateur;
+					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, lexeme);
 				}
 				else {
-					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau);
+					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, lexeme);
 				}
 
 				vide_pile_operateur(id_operateur);
@@ -870,27 +870,27 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case GenreLexeme::VIRGULE:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
-				if (expression.est_vide() && est_operateur_binaire(morceau.genre)) {
+				if (expression.est_vide() && est_operateur_binaire(lexeme.genre)) {
 					lance_erreur("Opérateur binaire utilisé en début d'expression");
 				}
 
-				vide_pile_operateur(morceau.genre);
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau);
+				vide_pile_operateur(lexeme.genre);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, lexeme);
 				pile.pousse(noeud);
 
 				break;
 			}
 			case GenreLexeme::TROIS_POINTS:
 			{
-				vide_pile_operateur(morceau.genre);
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_PLAGE, morceau);
+				vide_pile_operateur(lexeme.genre);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_PLAGE, lexeme);
 				pile.pousse(noeud);
 				break;
 			}
 			case GenreLexeme::POINT:
 			{
-				vide_pile_operateur(morceau.genre);
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, morceau);
+				vide_pile_operateur(lexeme.genre);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, lexeme);
 				pile.pousse(noeud);
 				break;
 			}
@@ -902,7 +902,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				assignation = true;
 
-				vide_pile_operateur(morceau.genre);
+				vide_pile_operateur(lexeme.genre);
 
 				GenreNoeud tn;
 
@@ -913,7 +913,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					tn = GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE;
 				}
 
-				auto noeud = m_assembleuse->cree_noeud(tn, morceau);
+				auto noeud = m_assembleuse->cree_noeud(tn, lexeme);
 				pile.pousse(noeud);
 				break;
 			}
@@ -925,9 +925,9 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				assignation = true;
 
-				vide_pile_operateur(morceau.genre);
+				vide_pile_operateur(lexeme.genre);
 
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, lexeme);
 				pile.pousse(noeud);
 				break;
 			}
@@ -937,9 +937,9 @@ noeud::base *Syntaxeuse::analyse_expression(
 				if (genre_dernier_lexeme == GenreLexeme::CHAINE_CARACTERE
 						|| genre_dernier_lexeme == GenreLexeme::CHAINE_LITTERALE
 						 || genre_dernier_lexeme == GenreLexeme::CROCHET_OUVRANT) {
-					vide_pile_operateur(morceau.genre);
+					vide_pile_operateur(lexeme.genre);
 
-					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::OPERATEUR_BINAIRE, lexeme, false);
 					pile.pousse(noeud);
 
 					analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT);
@@ -960,8 +960,8 @@ noeud::base *Syntaxeuse::analyse_expression(
 				}
 				else {
 					/* change l'identifiant pour ne pas le confondre avec l'opérateur binaire [] */
-					morceau.genre = GenreLexeme::TABLEAU;
-					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, morceau, false);
+					lexeme.genre = GenreLexeme::TABLEAU;
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, lexeme, false);
 
 					analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT);
 
@@ -986,8 +986,8 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case GenreLexeme::PLUS_UNAIRE:
 			case GenreLexeme::MOINS_UNAIRE:
 			{
-				vide_pile_operateur(morceau.genre);
-				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, morceau);
+				vide_pile_operateur(lexeme.genre);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, lexeme);
 				pile.pousse(noeud);
 				break;
 			}
@@ -1005,7 +1005,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				auto noeud = m_assembleuse->empile_noeud(
 							GenreNoeud::EXPRESSION_LOGE,
-							morceau,
+							lexeme,
 							false);
 
 				if (est_identifiant(GenreLexeme::CHAINE)) {
@@ -1045,7 +1045,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				/* reloge nom : type; */
 				auto noeud_reloge = m_assembleuse->empile_noeud(
 							GenreNoeud::EXPRESSION_RELOGE,
-							morceau,
+							lexeme,
 							false);
 
 				analyse_expression(type_id::DOUBLE_POINTS, type_id::RELOGE);
@@ -1086,7 +1086,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				auto noeud = m_assembleuse->empile_noeud(
 							GenreNoeud::EXPRESSION_DELOGE,
-							morceau,
+							lexeme,
 							false);
 
 				analyse_expression(type_id::POINT_VIRGULE, type_id::DELOGE);
@@ -1127,7 +1127,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 						m_assembleuse->definitions.pousse(chaine);
 					}
 					else if (directive == "exécute") {
-						m_assembleuse->empile_noeud(GenreNoeud::DIRECTIVE_EXECUTION, morceau);
+						m_assembleuse->empile_noeud(GenreNoeud::DIRECTIVE_EXECUTION, lexeme);
 
 						auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
 
@@ -1236,7 +1236,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				erreur::lance_erreur(
 							"Expression malformée pour opérateur binaire",
 							m_contexte,
-							noeud->donnees_morceau(),
+							noeud->donnees_lexeme(),
 							erreur::type_erreur::NORMAL);
 			}
 
@@ -1272,14 +1272,14 @@ noeud::base *Syntaxeuse::analyse_expression(
 		auto dernier_noeud = premier_noeud;
 		pile.pop_back();
 
-		auto pos_premier = premier_noeud->donnees_morceau().chaine.pointeur();
+		auto pos_premier = premier_noeud->donnees_lexeme().chaine.pointeur();
 		auto pos_dernier = pos_premier;
 
 		while (!pile.est_vide()) {
 			auto n = pile.back();
 			pile.pop_back();
 
-			auto pos_n = n->donnees_morceau().chaine.pointeur();
+			auto pos_n = n->donnees_lexeme().chaine.pointeur();
 
 			if (pos_n < pos_premier) {
 				premier_noeud = n;
@@ -1292,8 +1292,8 @@ noeud::base *Syntaxeuse::analyse_expression(
 		erreur::lance_erreur_plage(
 					"Expression malformée, il est possible qu'il manque un opérateur",
 					m_contexte,
-					premier_noeud->donnees_morceau(),
-					dernier_noeud->donnees_morceau());
+					premier_noeud->donnees_lexeme(),
+					dernier_noeud->donnees_lexeme());
 	}
 
 	--m_profondeur;
@@ -1397,7 +1397,7 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_ENUM, donnees());
-	auto nom = noeud_decl->morceau.chaine;
+	auto nom = noeud_decl->lexeme.chaine;
 
 	auto donnees_structure = DonneesStructure{};
 	donnees_structure.est_enum = true;

@@ -362,7 +362,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			auto chaine_chiffre = dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille());
 
-			switch (b->morceau.genre) {
+			switch (b->lexeme.genre) {
 				case GenreLexeme::NOMBRE_ENTIER:
 				{
 					res.entier = lng::converti_nombre_entier(chaine_chiffre);

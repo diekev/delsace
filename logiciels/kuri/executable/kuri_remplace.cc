@@ -143,16 +143,16 @@ static void reecris_fichier(
 
 		auto os = std::ofstream(chemin);
 
-		for (auto const &morceau : fichier->morceaux) {
-			if (!est_mot_cle(morceau.genre)) {
-				os << morceau.chaine;
+		for (auto const &lexeme : fichier->lexemes) {
+			if (!est_mot_cle(lexeme.genre)) {
+				os << lexeme.chaine;
 				continue;
 			}
 
 			auto trouve = false;
 
 			for (auto const &paire : config.mots_cles) {
-				if (paire.first != dls::chaine(morceau.chaine)) {
+				if (paire.first != dls::chaine(lexeme.chaine)) {
 					continue;
 				}
 
@@ -163,7 +163,7 @@ static void reecris_fichier(
 			}
 
 			if (!trouve) {
-				os << morceau.chaine;
+				os << lexeme.chaine;
 			}
 		}
 	}

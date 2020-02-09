@@ -226,15 +226,15 @@ void Lexeuse::performe_lexage()
 	}
 }
 
-size_t Lexeuse::memoire_morceaux() const
+size_t Lexeuse::memoire_lexemes() const
 {
-	return static_cast<size_t>(m_fichier->morceaux.taille()) * sizeof(DonneesLexeme);
+	return static_cast<size_t>(m_fichier->lexemes.taille()) * sizeof(DonneesLexeme);
 }
 
-void Lexeuse::imprime_morceaux(std::ostream &os)
+void Lexeuse::imprime_lexemes(std::ostream &os)
 {
-	for (auto const &morceau : m_fichier->morceaux) {
-		os << chaine_identifiant(morceau.genre) << '\n';
+	for (auto const &lexeme : m_fichier->lexemes) {
+		os << chaine_identifiant(lexeme.genre) << '\n';
 	}
 }
 
@@ -510,7 +510,7 @@ void Lexeuse::pousse_caractere(int n)
 
 void Lexeuse::pousse_mot(GenreLexeme identifiant)
 {
-	m_fichier->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
+	m_fichier->lexemes.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
 	m_taille_mot_courant = 0;
 	m_dernier_id = identifiant;
 }

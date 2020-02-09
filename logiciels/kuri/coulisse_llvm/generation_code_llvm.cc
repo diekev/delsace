@@ -941,9 +941,9 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::DECLARATION_FONCTION:
 		{
-			auto fichier = contexte.fichier(static_cast<size_t>(b->morceau.fichier));
+			auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
 			auto module = fichier->module;
-			auto &vdf = module->donnees_fonction(b->morceau.chaine);
+			auto &vdf = module->donnees_fonction(b->lexeme.chaine);
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
 
 			for (auto &df : vdf) {
@@ -1087,10 +1087,10 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			auto est_pointeur_fonction = contexte.locale_existe(b->morceau.chaine);
+			auto est_pointeur_fonction = contexte.locale_existe(b->lexeme.chaine);
 
 			if (est_pointeur_fonction) {
-				auto valeur = contexte.valeur_locale(b->morceau.chaine);
+				auto valeur = contexte.valeur_locale(b->lexeme.chaine);
 
 				auto charge = new llvm::LoadInst(valeur, "", false, contexte.bloc_courant());
 				/* À FAIRE : alignement pointeur. */
@@ -1106,10 +1106,10 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			auto valeur = contexte.valeur_locale(b->morceau.chaine);
+			auto valeur = contexte.valeur_locale(b->lexeme.chaine);
 
 			if (valeur == nullptr) {
-				valeur = contexte.valeur_globale(b->morceau.chaine);
+				valeur = contexte.valeur_globale(b->lexeme.chaine);
 
 				if (valeur == nullptr && b->nom_fonction_appel != "") {
 					valeur = contexte.module_llvm->getFunction(b->nom_fonction_appel.c_str());
@@ -1350,8 +1350,8 @@ static llvm::Value *genere_code_llvm(
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 												denombreuse::converti_chaine_nombre_reel(
-													b->morceau.chaine,
-													b->morceau.genre);
+													b->lexeme.chaine,
+													b->lexeme.genre);
 
 			return llvm::ConstantFP::get(
 						llvm::Type::getDoubleTy(contexte.contexte),
@@ -1362,8 +1362,8 @@ static llvm::Value *genere_code_llvm(
 			auto const est_calcule = possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 												denombreuse::converti_chaine_nombre_entier(
-													b->morceau.chaine,
-													b->morceau.genre);
+													b->lexeme.chaine,
+													b->lexeme.genre);
 
 			return llvm::ConstantInt::get(
 						llvm::Type::getInt32Ty(contexte.contexte),
@@ -1426,7 +1426,7 @@ static llvm::Value *genere_code_llvm(
 			auto valeur1 = genere_code_llvm(enfant, contexte, false);
 			auto valeur2 = static_cast<llvm::Value *>(nullptr);
 
-			switch (b->morceau.genre) {
+			switch (b->lexeme.genre) {
 				case GenreLexeme::EXCLAMATION:
 				{
 					valeur2 = llvm::ConstantInt::get(
@@ -1644,7 +1644,7 @@ static llvm::Value *genere_code_llvm(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
-			auto valeur = dls::caractere_echappe(&b->morceau.chaine[0]);
+			auto valeur = dls::caractere_echappe(&b->lexeme.chaine[0]);
 
 			return llvm::ConstantInt::get(
 						llvm::Type::getInt8Ty(contexte.contexte),
@@ -1845,7 +1845,7 @@ static llvm::Value *genere_code_llvm(
 					auto idx = static_cast<noeud::base *>(nullptr);
 					auto valeur_idx = static_cast<llvm::PHINode *>(nullptr);
 
-					if (enfant1->morceau.genre == GenreLexeme::VIRGULE) {
+					if (enfant1->lexeme.genre == GenreLexeme::VIRGULE) {
 						var = enfant1->enfants.front();
 						idx = enfant1->enfants.back();
 					}
@@ -2065,7 +2065,7 @@ static llvm::Value *genere_code_llvm(
 		{
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
-			auto bloc = (b->morceau.genre == GenreLexeme::CONTINUE)
+			auto bloc = (b->lexeme.genre == GenreLexeme::CONTINUE)
 						? contexte.bloc_continue(chaine_var)
 						: contexte.bloc_arrete(chaine_var);
 

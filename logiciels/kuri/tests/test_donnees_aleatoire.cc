@@ -325,10 +325,10 @@ struct arbre {
 static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_morceaux = taille_tampon / sizeof(DonneesLexeme);
+	auto const max_lexemes = taille_tampon / sizeof(DonneesLexeme);
 
-	dls::tableau<DonneesLexeme> morceaux;
-	morceaux.reserve(max_morceaux);
+	dls::tableau<DonneesLexeme> lexemes;
+	lexemes.reserve(max_lexemes);
 
 	auto dm = DonneesLexeme{};
 	dm.chaine = "texte_test";
@@ -336,79 +336,79 @@ static void rempli_tampon(u_char *donnees, size_t taille_tampon)
 
 	for (auto id : sequence_declaration_fonction) {
 		dm.genre = id;
-		morceaux.pousse(dm);
+		lexemes.pousse(dm);
 	}
 
-	for (auto n = morceaux.taille(); n < max_morceaux - 1; ++n) {
+	for (auto n = lexemes.taille(); n < max_lexemes - 1; ++n) {
 		auto arbre = arbre_expression::arbre{};
 		arbre.construit_expression();
 
-		auto visiteur = [&](id_morceau id)
+		auto visiteur = [&](id_lexeme id)
 		{
-			dm.genre = static_cast<id_morceau>(id);
-			morceaux.pousse(dm);
+			dm.genre = static_cast<id_lexeme>(id);
+			lexemes.pousse(dm);
 		};
 
 		arbre.visite(visiteur);
 
-		dm.genre = id_morceau::POINT_VIRGULE;
-		morceaux.pousse(dm);
+		dm.genre = id_lexeme::POINT_VIRGULE;
+		lexemes.pousse(dm);
 
 		n += arbre.noeuds.taille();
 	}
 
-	dm.genre = id_morceau::ACCOLADE_FERMANTE;
-	morceaux.pousse(dm);
+	dm.genre = id_lexeme::ACCOLADE_FERMANTE;
+	lexemes.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * morceaux.taille();
+	auto const taille_octet = sizeof(DonneesLexeme) * lexemes.taille();
 
-	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #else
-	auto const max_morceaux = taille_tampon / sizeof(GenreLexeme);
+	auto const max_lexemes = taille_tampon / sizeof(GenreLexeme);
 
-	dls::tableau<GenreLexeme> morceaux;
-	morceaux.reserve(static_cast<long>(max_morceaux));
+	dls::tableau<GenreLexeme> lexemes;
+	lexemes.reserve(static_cast<long>(max_lexemes));
 
 	for (auto id : sequence_declaration_fonction) {
-		morceaux.pousse(id);
+		lexemes.pousse(id);
 	}
 
-	for (auto n = morceaux.taille(); n < static_cast<long>(max_morceaux) - 1; ++n) {
+	for (auto n = lexemes.taille(); n < static_cast<long>(max_lexemes) - 1; ++n) {
 		auto arbre = arbre_expression::arbre{};
 		arbre.construit_expression();
 
 		auto visiteur = [&](GenreLexeme id)
 		{
-			morceaux.pousse(id);
+			lexemes.pousse(id);
 		};
 
 		arbre.visite(visiteur);
 
-		morceaux.pousse(GenreLexeme::POINT_VIRGULE);
+		lexemes.pousse(GenreLexeme::POINT_VIRGULE);
 
 		n += arbre.noeuds.taille();
 	}
 
-	morceaux.pousse(GenreLexeme::ACCOLADE_FERMANTE);
+	lexemes.pousse(GenreLexeme::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(morceaux.taille());
+	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(lexemes.taille());
 
-	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #endif
 }
 
 static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 {
 #if 0
-	auto const max_morceaux = taille_tampon / sizeof(DonneesLexeme);
+	auto const max_lexemes = taille_tampon / sizeof(DonneesLexeme);
 
-	dls::tableau<DonneesLexeme> morceaux;
-	morceaux.reserve(max_morceaux);
+	dls::tableau<DonneesLexeme> lexemes;
+	lexemes.reserve(max_lexemes);
 
 	std::random_device device{};
 	std::uniform_int_distribution<u_char> rng{
-		static_cast<int>(id_morceau::EXCLAMATION),
-		static_cast<int>(id_morceau::INCONNU)
+		static_cast<int>(id_lexeme::EXCLAMATION),
+		static_cast<int>(id_lexeme::INCONNU)
 	};
 
 	auto dm = DonneesLexeme{};
@@ -417,22 +417,22 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 
 	for (auto id : sequence_declaration_fonction) {
 		dm.genre = id;
-		morceaux.pousse(dm);
+		lexemes.pousse(dm);
 	}
 
-	for (auto n = morceaux.taille(); n < max_morceaux - 1; ++n) {
-		dm.genre = static_cast<id_morceau>(rng(device));
-		morceaux.pousse(dm);
+	for (auto n = lexemes.taille(); n < max_lexemes - 1; ++n) {
+		dm.genre = static_cast<id_lexeme>(rng(device));
+		lexemes.pousse(dm);
 	}
 
-	dm.genre = id_morceau::ACCOLADE_FERMANTE;
-	morceaux.pousse(dm);
+	dm.genre = id_lexeme::ACCOLADE_FERMANTE;
+	lexemes.pousse(dm);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * morceaux.taille();
+	auto const taille_octet = sizeof(DonneesLexeme) * lexemes.taille();
 
-	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #else
-	auto const max_morceaux = taille_tampon / sizeof(GenreLexeme);
+	auto const max_lexemes = taille_tampon / sizeof(GenreLexeme);
 
 	std::random_device device{};
 	std::uniform_int_distribution<u_char> rng{
@@ -440,47 +440,47 @@ static void rempli_tampon_aleatoire(u_char *donnees, size_t taille_tampon)
 		static_cast<int>(GenreLexeme::INCONNU)
 	};
 
-	dls::tableau<GenreLexeme> morceaux;
-	morceaux.reserve(static_cast<long>(max_morceaux));
+	dls::tableau<GenreLexeme> lexemes;
+	lexemes.reserve(static_cast<long>(max_lexemes));
 
 	for (auto id : sequence_declaration_fonction) {
-		morceaux.pousse(id);
+		lexemes.pousse(id);
 	}
 
-	for (auto n = morceaux.taille(); n < static_cast<long>(max_morceaux) - 1; ++n) {
-		morceaux.pousse(static_cast<GenreLexeme>(rng(device)));
+	for (auto n = lexemes.taille(); n < static_cast<long>(max_lexemes) - 1; ++n) {
+		lexemes.pousse(static_cast<GenreLexeme>(rng(device)));
 	}
 
-	morceaux.pousse(GenreLexeme::ACCOLADE_FERMANTE);
+	lexemes.pousse(GenreLexeme::ACCOLADE_FERMANTE);
 
-	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(morceaux.taille());
+	auto const taille_octet = sizeof(DonneesLexeme) * static_cast<size_t>(lexemes.taille());
 
-	memcpy(donnees, morceaux.donnees(), std::min(taille_tampon, taille_octet));
+	memcpy(donnees, lexemes.donnees(), std::min(taille_tampon, taille_octet));
 #endif
 }
 
 static int test_entree_aleatoire(const u_char *donnees, size_t taille)
 {
-	auto donnees_morceaux = reinterpret_cast<const GenreLexeme *>(donnees);
-	auto nombre_morceaux = taille / sizeof(GenreLexeme);
+	auto donnees_lexemes = reinterpret_cast<const GenreLexeme *>(donnees);
+	auto nombre_lexemes = taille / sizeof(GenreLexeme);
 
-	dls::tableau<DonneesLexeme> morceaux;
-	morceaux.reserve(static_cast<long>(nombre_morceaux));
+	dls::tableau<DonneesLexeme> lexemes;
+	lexemes.reserve(static_cast<long>(nombre_lexemes));
 
 	auto dm = DonneesLexeme{};
 	dm.chaine = "texte_test";
 	dm.fichier = 0;
 
-	for (size_t i = 0; i < nombre_morceaux; ++i) {
-		dm.genre = donnees_morceaux[i];
-		morceaux.pousse(dm);
+	for (size_t i = 0; i < nombre_lexemes; ++i) {
+		dm.genre = donnees_lexemes[i];
+		lexemes.pousse(dm);
 	}
 
 	try {
 		auto contexte = ContexteGenerationCode{};
 		auto fichier = contexte.cree_fichier("", "");
 		fichier->tampon = lng::tampon_source("texte_test");
-		fichier->morceaux = morceaux;
+		fichier->lexemes = lexemes;
 		auto assembleuse = assembleuse_arbre(contexte);
 		contexte.assembleuse = &assembleuse;
 		auto analyseuse = Syntaxeuse(contexte, fichier, "");

@@ -268,7 +268,7 @@ static void imprime_stats(
 	};
 
 	auto const mem_totale = metriques.memoire_tampons
-							+ metriques.memoire_morceaux
+							+ metriques.memoire_lexemes
 							+ metriques.memoire_arbre
 							+ metriques.memoire_contexte;
 
@@ -294,14 +294,14 @@ static void imprime_stats(
 	tableau.ajoute_ligne({ "Débit par seconde", formatte_nombre(debit_seconde), "o/s" });
 
 	tableau.ajoute_ligne({ "Arbre Syntaxique", "", "" });
-	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_morceaux), "" });
+	tableau.ajoute_ligne({ "- Nombre Morceaux", formatte_nombre(metriques.nombre_lexemes), "" });
 	tableau.ajoute_ligne({ "- Nombre Noeuds", formatte_nombre(metriques.nombre_noeuds), "" });
 
 	tableau.ajoute_ligne({ "Mémoire", "", "" });
 	tableau.ajoute_ligne({ "- Suivie", formatte_nombre(mem_totale), "o" });
 	tableau.ajoute_ligne({ "- Effective", formatte_nombre(memoire_consommee), "o" });
 	tableau.ajoute_ligne({ "- Tampon", formatte_nombre(metriques.memoire_tampons), "o" });
-	tableau.ajoute_ligne({ "- Morceaux", formatte_nombre(metriques.memoire_morceaux), "o" });
+	tableau.ajoute_ligne({ "- Lexèmes", formatte_nombre(metriques.memoire_lexemes), "o" });
 	tableau.ajoute_ligne({ "- Arbre", formatte_nombre(metriques.memoire_arbre), "o" });
 	tableau.ajoute_ligne({ "- Contexte", formatte_nombre(metriques.memoire_contexte), "o" });
 

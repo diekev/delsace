@@ -81,7 +81,7 @@ struct Fichier {
 
 	lng::tampon_source tampon{""};
 
-	dls::tableau<DonneesLexeme> morceaux{};
+	dls::tableau<DonneesLexeme> lexemes{};
 
 	dls::ensemble<dls::vue_chaine_compacte> modules_importes{};
 
@@ -151,14 +151,14 @@ private:
 dls::chaine charge_fichier(
 		dls::chaine const &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau);
+		DonneesLexeme const &lexeme);
 
 void charge_fichier(std::ostream &os,
 		DonneesModule *module,
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau);
+		DonneesLexeme const &lexeme);
 
 /**
  * Charge le module dont le nom est spécifié.
@@ -184,7 +184,7 @@ void importe_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau);
+		DonneesLexeme const &lexeme);
 
 /* ************************************************************************** */
 
@@ -236,4 +236,4 @@ struct PositionMorceau {
 	long pos = 0;
 };
 
-PositionMorceau trouve_position(DonneesLexeme const &morceau, Fichier *fichier);
+PositionMorceau trouve_position(DonneesLexeme const &lexeme, Fichier *fichier);

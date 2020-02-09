@@ -213,11 +213,11 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		Lexeuse lexeuse(&fichier);
 		lexeuse.performe_lexage();
 
-		auto const &morceaux = fichier.morceaux;
+		auto const &lexemes = fichier.lexemes;
 
-		CU_VERIFIE_CONDITION(controleuse, morceaux.taille() == 1);
-		CU_VERIFIE_CONDITION(controleuse, morceaux[0].genre == GenreLexeme::NOMBRE_HEXADECIMAL);
-		CU_VERIFIE_EGALITE(controleuse, morceaux[0].chaine, dls::vue_chaine_compacte("0xff38ce"));
+		CU_VERIFIE_CONDITION(controleuse, lexemes.taille() == 1);
+		CU_VERIFIE_CONDITION(controleuse, lexemes[0].genre == GenreLexeme::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_EGALITE(controleuse, lexemes[0].chaine, dls::vue_chaine_compacte("0xff38ce"));
 	}
 }
 

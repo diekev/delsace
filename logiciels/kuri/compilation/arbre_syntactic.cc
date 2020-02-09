@@ -106,18 +106,18 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 
 namespace noeud {
 
-base::base(DonneesLexeme const &morceau_)
-	: morceau{morceau_}
+base::base(DonneesLexeme const &lexeme_)
+	: lexeme{lexeme_}
 {}
 
 dls::vue_chaine_compacte const &base::chaine() const
 {
-	return morceau.chaine;
+	return lexeme.chaine;
 }
 
-DonneesLexeme const &base::donnees_morceau() const
+DonneesLexeme const &base::donnees_lexeme() const
 {
-	return morceau;
+	return lexeme;
 }
 
 base *base::dernier_enfant() const
@@ -161,7 +161,7 @@ void base::imprime_code(std::ostream &os, int tab)
 		os << this->index_type;
 	}
 	else if (this->genre != GenreNoeud::RACINE) {
-		os << morceau.chaine;
+		os << lexeme.chaine;
 	}
 
 	os << ":\n";
@@ -178,7 +178,7 @@ dls::chaine base::chaine_calculee() const
 
 GenreLexeme base::identifiant() const
 {
-	return morceau.genre;
+	return lexeme.genre;
 }
 
 /* ************************************************************************** */

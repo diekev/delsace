@@ -53,9 +53,9 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-noeud::base *assembleuse_arbre::empile_noeud(GenreNoeud type, DonneesLexeme const &morceau, bool ajoute)
+noeud::base *assembleuse_arbre::empile_noeud(GenreNoeud type, DonneesLexeme const &lexeme, bool ajoute)
 {
-	auto noeud = cree_noeud(type, morceau);
+	auto noeud = cree_noeud(type, lexeme);
 
 	if (!m_pile.est_vide() && ajoute) {
 		this->ajoute_noeud(noeud);
@@ -71,9 +71,9 @@ void assembleuse_arbre::ajoute_noeud(noeud::base *noeud)
 	m_pile.haut()->ajoute_noeud(noeud);
 }
 
-noeud::base *assembleuse_arbre::cree_noeud(GenreNoeud type, DonneesLexeme const &morceau)
+noeud::base *assembleuse_arbre::cree_noeud(GenreNoeud type, DonneesLexeme const &lexeme)
 {
-	auto noeud = memoire::loge<noeud::base>("noeud_base", morceau);
+	auto noeud = memoire::loge<noeud::base>("noeud_base", lexeme);
 	m_memoire_utilisee += sizeof(noeud::base);
 
 	/* À FAIRE : réutilise la mémoire des noeuds libérés. */
@@ -88,7 +88,7 @@ noeud::base *assembleuse_arbre::cree_noeud(GenreNoeud type, DonneesLexeme const 
 
 			/* requis pour déterminer le module dans le noeud d'accès point
 			 * À FAIRE : trouver mieux pour accéder à cette information */
-			noeud->module_appel = noeud->morceau.fichier;
+			noeud->module_appel = noeud->lexeme.fichier;
 		}
 
 		m_noeuds.pousse(noeud);

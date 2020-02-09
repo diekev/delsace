@@ -114,21 +114,21 @@ static long resoud_type_final(
 					erreur::lance_erreur(
 								res.message_erreur,
 								contexte,
-								expr->morceau);
+								expr->lexeme);
 				}
 
 				if (res.type != type_expression::ENTIER) {
 					erreur::lance_erreur(
 								"Attendu un type entier pour l'expression du tableau",
 								contexte,
-								expr->morceau);
+								expr->lexeme);
 				}
 
 				if (res.entier == 0) {
 					erreur::lance_erreur(
 								"L'expression évalue à zéro",
 								contexte,
-								expr->morceau);
+								expr->lexeme);
 				}
 
 				type = type | (static_cast<int>(res.entier) << 8);
@@ -155,7 +155,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
-			auto iter_local = contexte.iter_locale(b->morceau.chaine);
+			auto iter_local = contexte.iter_locale(b->lexeme.chaine);
 
 			if (iter_local != contexte.fin_locales()) {
 				if (!iter_local->second.est_dynamique) {
@@ -163,7 +163,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 						erreur::lance_erreur(
 									"Ne peut pas assigner une variable locale non-dynamique",
 									contexte,
-									b->donnees_morceau(),
+									b->donnees_lexeme(),
 									erreur::type_erreur::ASSIGNATION_INVALIDE);
 					}
 
@@ -173,7 +173,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 				return true;
 			}
 
-			auto iter_globale = contexte.iter_globale(b->morceau.chaine);
+			auto iter_globale = contexte.iter_globale(b->lexeme.chaine);
 
 			if (iter_globale != contexte.fin_globales()) {
 				if (!contexte.non_sur()) {
@@ -181,7 +181,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 						erreur::lance_erreur(
 									"Ne peut pas assigner une variable globale en dehors d'un bloc 'nonsûr'",
 									contexte,
-									b->donnees_morceau(),
+									b->donnees_lexeme(),
 									erreur::type_erreur::ASSIGNATION_INVALIDE);
 					}
 
@@ -193,7 +193,7 @@ static bool peut_etre_assigne(base *b, ContexteGenerationCode &contexte, bool em
 						erreur::lance_erreur(
 									"Ne peut pas assigner une variable globale non-dynamique",
 									contexte,
-									b->donnees_morceau(),
+									b->donnees_lexeme(),
 									erreur::type_erreur::ASSIGNATION_INVALIDE);
 					}
 
@@ -260,17 +260,17 @@ static auto valide_appel_pointeur_fonction(
 			continue;
 		}
 
-		/* À FAIRE : trouve les données morceaux des arguments. */
+		/* À FAIRE : trouve les données lexemes des arguments. */
 		erreur::lance_erreur(
 					"Les arguments d'un pointeur fonction ne peuvent être nommés",
 					contexte,
-					b->donnees_morceau(),
+					b->donnees_lexeme(),
 					erreur::type_erreur::ARGUMENT_INCONNU);
 	}
 
 	auto index_type = (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE)
 			? b->index_type
-			: contexte.type_locale(b->morceau.chaine);
+			: contexte.type_locale(b->lexeme.chaine);
 	auto &dt_fonc = contexte.typeuse[index_type];
 
 	/* À FAIRE : bouge ça, trouve le type retour du pointeur de fonction. */
@@ -279,7 +279,7 @@ static auto valide_appel_pointeur_fonction(
 		erreur::lance_erreur(
 					"La variable doit être un pointeur vers une fonction",
 					contexte,
-					b->donnees_morceau(),
+					b->donnees_lexeme(),
 					erreur::type_erreur::FONCTION_INCONNUE);
 	}
 
@@ -331,8 +331,8 @@ static auto valide_appel_pointeur_fonction(
 						type_prm,
 						type_enf,
 						contexte,
-						(*enfant)->morceau,
-						b->morceau);
+						(*enfant)->lexeme,
+						b->lexeme);
 		}
 
 		(*enfant)->transformation = transformation;
@@ -453,7 +453,7 @@ static void valide_acces_membre(
 			erreur::lance_erreur(
 						"Modification des membres du tableau hors d'un bloc 'nonsûr' interdite",
 						contexte,
-						b->morceau,
+						b->lexeme,
 						erreur::type_erreur::ASSIGNATION_INVALIDE);
 		}
 #endif
@@ -528,7 +528,7 @@ static void valide_acces_membre(
 	erreur::lance_erreur(
 				flux.chn(),
 				contexte,
-				structure->donnees_morceau(),
+				structure->donnees_lexeme(),
 				erreur::type_erreur::TYPE_DIFFERENTS);
 }
 
@@ -541,8 +541,8 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 
 	using dls::outils::possede_drapeau;
 
-	auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
-	auto nom_fonction = b->morceau.chaine;
+	auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
+	auto nom_fonction = b->lexeme.chaine;
 	auto &vdf = module->donnees_fonction(nom_fonction);
 	auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
 
@@ -588,7 +588,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 			erreur::lance_erreur(
 						"Redéfinition de l'argument",
 						contexte,
-						feuille->morceau,
+						feuille->lexeme,
 						erreur::type_erreur::ARGUMENT_REDEFINI);
 		}
 
@@ -596,7 +596,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 			erreur::lance_erreur(
 						"Argument déclaré après un argument variadic",
 						contexte,
-						feuille->morceau,
+						feuille->lexeme,
 						erreur::type_erreur::NORMAL);
 		}
 
@@ -627,7 +627,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 							"La déclaration de fonction variadique sans type n'est"
 							 " implémentée que pour les fonctions externes",
 							contexte,
-							feuille->morceau);
+							feuille->lexeme);
 			}
 		}
 	}
@@ -656,7 +656,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 				erreur::lance_erreur(
 							"Redéfinition de la fonction",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::FONCTION_REDEFINIE);
 			}
 		}
@@ -743,8 +743,8 @@ static void performe_validation_semantique(
 			using dls::outils::possede_drapeau;
 			auto const est_externe = possede_drapeau(b->drapeaux, EST_EXTERNE);
 
-			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
-			auto nom_fonction = b->morceau.chaine;
+			auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
+			auto nom_fonction = b->lexeme.chaine;
 			auto &vdf = module->donnees_fonction(nom_fonction);
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
 
@@ -846,7 +846,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Instruction de retour manquante",
 								contexte,
-								b->morceau,
+								b->lexeme,
 								erreur::type_erreur::TYPE_DIFFERENTS);
 				}
 
@@ -865,7 +865,7 @@ static void performe_validation_semantique(
 		}
 		case GenreNoeud::EXPRESSION_APPEL_FONCTION:
 		{
-			auto const nom_fonction = dls::chaine(b->morceau.chaine);
+			auto const nom_fonction = dls::chaine(b->lexeme.chaine);
 			auto noms_arguments = std::any_cast<dls::liste<dls::vue_chaine_compacte>>(&b->valeur_calculee);
 
 			b->genre_valeur = GenreValeur::DROITE;
@@ -878,7 +878,7 @@ static void performe_validation_semantique(
 
 			/* Nous avons un pointeur vers une fonction. */
 			if (b->aide_generation_code == GENERE_CODE_PTR_FONC_MEMBRE
-					|| contexte.locale_existe(b->morceau.chaine))
+					|| contexte.locale_existe(b->lexeme.chaine))
 			{
 				valide_appel_pointeur_fonction(b, contexte, *noms_arguments, nom_fonction);
 				return;
@@ -893,7 +893,7 @@ static void performe_validation_semantique(
 						nom_fonction,
 						*noms_arguments,
 						b->enfants,
-						static_cast<size_t>(b->morceau.fichier),
+						static_cast<size_t>(b->lexeme.fichier),
 						static_cast<size_t>(b->module_appel));
 
 			auto donnees_fonction = static_cast<DonneesFonction *>(nullptr);
@@ -1024,7 +1024,7 @@ static void performe_validation_semantique(
 			auto type_symbole = cherche_symbole(contexte, b->chaine());
 
 			if (type_symbole == SYMBOLE_VARIABLE_LOCALE) {
-				auto const &iter_locale = contexte.iter_locale(b->morceau.chaine);
+				auto const &iter_locale = contexte.iter_locale(b->lexeme.chaine);
 				b->index_type = iter_locale->second.index_type;
 
 				donnees_dependance.types_utilises.insere(b->index_type);
@@ -1032,20 +1032,20 @@ static void performe_validation_semantique(
 			}
 
 			if (type_symbole == SYMBOLE_VARIABLE_GLOBALE) {
-				auto const &iter_locale = contexte.iter_globale(b->morceau.chaine);
+				auto const &iter_locale = contexte.iter_globale(b->lexeme.chaine);
 				b->index_type = iter_locale->second.index_type;
 
 				donnees_dependance.types_utilises.insere(b->index_type);
-				donnees_dependance.globales_utilisees.insere(b->morceau.chaine);
+				donnees_dependance.globales_utilisees.insere(b->lexeme.chaine);
 				return;
 			}
 
 			/* Vérifie si c'est une fonction. */
-			auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
+			auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
 
 			/* À FAIRE : trouve la fonction selon le type */
-			if (module->fonction_existe(b->morceau.chaine)) {
-				auto &donnees_fonction = module->donnees_fonction(b->morceau.chaine);
+			if (module->fonction_existe(b->lexeme.chaine)) {
+				auto &donnees_fonction = module->donnees_fonction(b->lexeme.chaine);
 				b->index_type = donnees_fonction.front().index_type;
 				b->nom_fonction_appel = donnees_fonction.front().nom_broye;
 
@@ -1055,8 +1055,8 @@ static void performe_validation_semantique(
 			}
 
 			/* Nous avons peut-être une énumération. */
-			if (contexte.structure_existe(b->morceau.chaine)) {
-				auto &donnees_structure = contexte.donnees_structure(b->morceau.chaine);
+			if (contexte.structure_existe(b->lexeme.chaine)) {
+				auto &donnees_structure = contexte.donnees_structure(b->lexeme.chaine);
 
 				if (donnees_structure.est_enum) {
 					b->index_type = donnees_structure.index_type;
@@ -1068,7 +1068,7 @@ static void performe_validation_semantique(
 			erreur::lance_erreur(
 						"Variable inconnue",
 						contexte,
-						b->morceau,
+						b->lexeme,
 						erreur::type_erreur::VARIABLE_INCONNUE);
 		}
 		case GenreNoeud::EXPRESSION_REFERENCE_MEMBRE:
@@ -1080,7 +1080,7 @@ static void performe_validation_semantique(
 			auto const nom_symbole = enfant1->chaine();
 
 			if (enfant1->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
-				auto fichier = contexte.fichier(static_cast<size_t>(b->morceau.fichier));
+				auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
 
 				if (fichier->importe_module(nom_symbole)) {
 					auto module_importe = contexte.module(nom_symbole);
@@ -1089,7 +1089,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									"module inconnu",
 									contexte,
-									enfant1->donnees_morceau(),
+									enfant1->donnees_lexeme(),
 									erreur::type_erreur::MODULE_INCONNU);
 					}
 
@@ -1099,7 +1099,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									"Le module ne possède pas la fonction",
 									contexte,
-									enfant2->donnees_morceau(),
+									enfant2->donnees_lexeme(),
 									erreur::type_erreur::FONCTION_INCONNUE);
 					}
 
@@ -1131,7 +1131,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Impossible de définir le type de la variable !",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -1144,7 +1144,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Impossible d'assigner une expression de type 'rien' à une variable !",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::ASSIGNATION_RIEN);
 			}
 
@@ -1154,7 +1154,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Une virgule ne peut se trouver qu'à gauche d'un appel de fonction.",
 								contexte,
-								variable->morceau,
+								variable->lexeme,
 								erreur::type_erreur::NORMAL);
 				}
 
@@ -1174,7 +1174,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"L'ignorance d'une valeur de retour non implémentée.",
 								contexte,
-								variable->morceau,
+								variable->lexeme,
 								erreur::type_erreur::NORMAL);
 				}
 
@@ -1199,7 +1199,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Impossible d'assigner une expression à une valeur-droite !",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
 			}
 
@@ -1207,7 +1207,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Impossible d'assigner l'expression à la variable !",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::ASSIGNATION_INVALIDE);
 			}
 
@@ -1221,7 +1221,7 @@ static void performe_validation_semantique(
 							contexte.typeuse[variable->index_type],
 							contexte.typeuse[expression->index_type],
 							contexte,
-							b->morceau);
+							b->lexeme);
 			}
 
 			expression->transformation = transformation;
@@ -1235,7 +1235,7 @@ static void performe_validation_semantique(
 				variable->index_type = resoud_type_final(contexte, variable->type_declare);
 
 				if (variable->index_type == -1) {
-					erreur::lance_erreur("variable déclarée sans type", contexte, variable->morceau);
+					erreur::lance_erreur("variable déclarée sans type", contexte, variable->lexeme);
 				}
 
 				auto type_symbole = cherche_symbole(contexte, variable->chaine());
@@ -1244,7 +1244,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Redéfinition du symbole !",
 								contexte,
-								variable->morceau,
+								variable->lexeme,
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 
@@ -1254,11 +1254,11 @@ static void performe_validation_semantique(
 				donnees_var.index_type = variable->index_type;
 
 				if (fonction_courante == nullptr) {
-					contexte.pousse_globale(variable->morceau.chaine, donnees_var);
-					graphe.cree_noeud_globale(variable->morceau.chaine, b);
+					contexte.pousse_globale(variable->lexeme.chaine, donnees_var);
+					graphe.cree_noeud_globale(variable->lexeme.chaine, b);
 				}
 				else {
-					contexte.pousse_locale(variable->morceau.chaine, donnees_var);
+					contexte.pousse_locale(variable->lexeme.chaine, donnees_var);
 				}
 
 				donnees_dependance.types_utilises.insere(variable->index_type);
@@ -1274,7 +1274,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Impossible de définir le type de l'expression !",
 							contexte,
-							expression->morceau,
+							expression->lexeme,
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -1286,7 +1286,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Redéfinition du symbole !",
 							contexte,
-							variable->morceau,
+							variable->lexeme,
 							erreur::type_erreur::VARIABLE_REDEFINIE);
 			}
 
@@ -1306,7 +1306,7 @@ static void performe_validation_semantique(
 								contexte.typeuse[variable->index_type],
 								contexte.typeuse[expression->index_type],
 								contexte,
-								b->morceau);
+								b->lexeme);
 				}
 
 				expression->transformation = transformation;
@@ -1321,15 +1321,15 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Ne peut pas assigner une variable globale externe dans sa déclaration",
 							contexte,
-							b->morceau);
+							b->lexeme);
 			}
 
 			if (fonction_courante == nullptr) {
-				contexte.pousse_globale(variable->morceau.chaine, donnees_var);
-				graphe.cree_noeud_globale(variable->morceau.chaine, b);
+				contexte.pousse_globale(variable->lexeme.chaine, donnees_var);
+				graphe.cree_noeud_globale(variable->lexeme.chaine, b);
 			}
 			else {
-				contexte.pousse_locale(variable->morceau.chaine, donnees_var);
+				contexte.pousse_locale(variable->lexeme.chaine, donnees_var);
 			}
 
 			donnees_dependance.types_utilises.insere(variable->index_type);
@@ -1369,11 +1369,11 @@ static void performe_validation_semantique(
 			auto type1 = contexte.typeuse[index_type1];
 
 			/* détecte a comp b comp c */
-			if (est_operateur_comp(b->morceau.genre) && est_operateur_comp(enfant1->morceau.genre)) {
+			if (est_operateur_comp(b->lexeme.genre) && est_operateur_comp(enfant1->lexeme.genre)) {
 				b->genre = GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE;
 				b->index_type = contexte.typeuse[TypeBase::BOOL];
 
-				auto type_op = b->morceau.genre;
+				auto type_op = b->lexeme.genre;
 
 				index_type1 = enfant1->enfants.back()->index_type;
 
@@ -1398,7 +1398,7 @@ static void performe_validation_semantique(
 					donnees_dependance.fonctions_utilisees.insere(b->op->nom_fonction);
 				}
 			}
-			else if (b->morceau.genre == GenreLexeme::CROCHET_OUVRANT) {
+			else if (b->lexeme.genre == GenreLexeme::CROCHET_OUVRANT) {
 				b->genre = GenreNoeud::EXPRESSION_INDICE;
 				b->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
@@ -1456,20 +1456,20 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									ss.chn(),
 									contexte,
-									b->morceau,
+									b->lexeme,
 									erreur::type_erreur::TYPE_DIFFERENTS);
 					}
 				}
 			}
 			else {
-				auto type_op = b->morceau.genre;
+				auto type_op = b->lexeme.genre;
 
 				if (est_assignation_operee(type_op)) {
 					if (!peut_etre_assigne(enfant1, contexte)) {
 						erreur::lance_erreur(
 									"Impossible d'assigner l'expression à la variable !",
 									contexte,
-									b->morceau,
+									b->lexeme,
 									erreur::type_erreur::ASSIGNATION_INVALIDE);
 					}
 
@@ -1527,7 +1527,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									"Ne peut pas prendre l'adresse d'une valeur-droite.",
 									contexte,
-									enfant->morceau);
+									enfant->lexeme);
 					}
 
 
@@ -1559,7 +1559,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Expression de retour manquante",
 								contexte,
-								b->morceau);
+								b->lexeme);
 				}
 
 				donnees_dependance.types_utilises.insere(b->index_type);
@@ -1580,7 +1580,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									"Le compte d'expression de retour est invalide",
 									contexte,
-									b->morceau);
+									b->lexeme);
 					}
 
 					for (auto i = 0l; i < feuilles.taille(); ++i) {
@@ -1597,8 +1597,8 @@ static void performe_validation_semantique(
 										contexte.typeuse[fonction_courante->idx_types_retours[0]],
 										contexte.typeuse[f->index_type],
 										contexte,
-										enfant->morceau,
-										b->morceau);
+										enfant->lexeme,
+										b->lexeme);
 						}
 
 						f->transformation = transformation;
@@ -1621,7 +1621,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Le compte d'expression de retour est invalide",
 								contexte,
-								b->morceau);
+								b->lexeme);
 				}
 			}
 			else {
@@ -1639,8 +1639,8 @@ static void performe_validation_semantique(
 								contexte.typeuse[fonction_courante->idx_types_retours[0]],
 								contexte.typeuse[enfant->index_type],
 								contexte,
-								enfant->morceau,
-								b->morceau);
+								enfant->lexeme,
+								b->lexeme);
 				}
 
 				enfant->transformation = transformation;
@@ -1655,13 +1655,13 @@ static void performe_validation_semantique(
 			 * comme deux caractères distincts, ce qui ne peut se faire avec la
 			 * dls::vue_chaine */
 			dls::chaine corrigee;
-			corrigee.reserve(b->morceau.chaine.taille());
+			corrigee.reserve(b->lexeme.chaine.taille());
 
-			for (auto i = 0l; i < b->morceau.chaine.taille(); ++i) {
-				auto c = b->morceau.chaine[i];
+			for (auto i = 0l; i < b->lexeme.chaine.taille(); ++i) {
+				auto c = b->lexeme.chaine[i];
 
 				if (c == '\\') {
-					c = dls::caractere_echappe(&b->morceau.chaine[i]);
+					c = dls::caractere_echappe(&b->lexeme.chaine[i]);
 					++i;
 				}
 
@@ -1709,7 +1709,7 @@ static void performe_validation_semantique(
 			if (type_condition.type_base() != GenreLexeme::BOOL) {
 				erreur::lance_erreur("Attendu un type booléen pour l'expression 'si'",
 									 contexte,
-									 enfant1->donnees_morceau(),
+									 enfant1->donnees_lexeme(),
 									 erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
@@ -1767,7 +1767,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"(Boucle pour) rédéfinition de la variable",
 								contexte_loc,
-								b_local->donnees_morceau(),
+								b_local->donnees_lexeme(),
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 
@@ -1775,7 +1775,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"(Boucle pour) rédéfinition de la variable globale",
 								contexte_loc,
-								b_local->donnees_morceau(),
+								b_local->donnees_lexeme(),
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 			};
@@ -1827,7 +1827,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Mauvais compte d'arguments à déployer",
 								contexte,
-								enfant1->morceau);
+								enfant1->lexeme);
 				}
 			}
 			else {
@@ -1859,7 +1859,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									"La variable n'est ni un argument variadic, ni un tableau",
 									contexte,
-									enfant2->donnees_morceau());
+									enfant2->donnees_lexeme());
 					}
 				}
 			}
@@ -1937,7 +1937,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Ne peut transtyper vers un type invalide",
 							contexte,
-							b->donnees_morceau(),
+							b->donnees_lexeme(),
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -1950,7 +1950,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Ne peut calculer le type d'origine",
 							contexte,
-							enfant->donnees_morceau(),
+							enfant->donnees_lexeme(),
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -1988,7 +1988,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Les types de l'expression sont invalides !",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -1999,7 +1999,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Les types de l'expression sont invalides !",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::TYPE_INCONNU);
 			}
 
@@ -2008,7 +2008,7 @@ static void performe_validation_semantique(
 							type_debut,
 							type_fin,
 							contexte,
-							b->morceau);
+							b->lexeme);
 			}
 
 			auto const type = type_debut.type_base();
@@ -2017,7 +2017,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Attendu des types réguliers dans la plage de la boucle 'pour'",
 							contexte,
-							b->donnees_morceau(),
+							b->donnees_lexeme(),
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
@@ -2031,7 +2031,7 @@ static void performe_validation_semantique(
 
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
-			auto label_goto = (b->morceau.genre == GenreLexeme::CONTINUE)
+			auto label_goto = (b->lexeme.genre == GenreLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
@@ -2040,14 +2040,14 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"'continue' ou 'arrête' en dehors d'une boucle",
 								contexte,
-								b->morceau,
+								b->lexeme,
 								erreur::type_erreur::CONTROLE_INVALIDE);
 				}
 				else {
 					erreur::lance_erreur(
 								"Variable inconnue",
 								contexte,
-								b->enfants.front()->donnees_morceau(),
+								b->enfants.front()->donnees_lexeme(),
 								erreur::type_erreur::VARIABLE_INCONNUE);
 				}
 			}
@@ -2121,7 +2121,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Une expression booléenne est requise pour la boucle 'tantque'",
 							contexte,
-							enfant1->morceau,
+							enfant1->lexeme,
 							erreur::type_erreur::TYPE_ARGUMENT);
 			}
 
@@ -2164,7 +2164,7 @@ static void performe_validation_semantique(
 								dt_feuille0,
 								dt_feuille1,
 								contexte,
-								f->morceau);
+								f->lexeme);
 				}
 			}
 
@@ -2194,7 +2194,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Structure inconnue",
 							contexte,
-							b->morceau,
+							b->lexeme,
 							erreur::type_erreur::STRUCTURE_INCONNUE);
 			}
 
@@ -2205,7 +2205,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Ne peut pas construire une énumération",
 							contexte,
-							b->morceau);
+							b->lexeme);
 			}
 
 			auto liste_params = std::any_cast<dls::tableau<dls::vue_chaine_compacte>>(&b->valeur_calculee);
@@ -2219,7 +2219,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Redéfinition de l'initialisation du membre",
 								contexte,
-								b->morceau);
+								b->lexeme);
 				}
 
 				noms_rencontres.insere(nom);
@@ -2230,13 +2230,13 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"On ne peut initialiser qu'un seul membre d'une union à la fois",
 								contexte,
-								b->morceau);
+								b->lexeme);
 				}
 				else if (liste_params->taille() == 0) {
 					erreur::lance_erreur(
 								"On doit initialiser au moins un membre de l'union",
 								contexte,
-								b->morceau);
+								b->lexeme);
 				}
 			}
 
@@ -2343,7 +2343,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"Un pointeur est requis pour le déréférencement via 'mémoire'",
 							contexte,
-							enfant->donnees_morceau(),
+							enfant->donnees_lexeme(),
 							erreur::type_erreur::TYPE_DIFFERENTS);
 			}
 
@@ -2429,8 +2429,8 @@ static void performe_validation_semantique(
 							dt,
 							dt_enf,
 							contexte,
-							b->morceau,
-							enfant1->morceau);
+							b->lexeme,
+							enfant1->lexeme);
 			}
 
 			enfant1->transformation = transformation;
@@ -2457,7 +2457,7 @@ static void performe_validation_semantique(
 			}
 
 			if (plg_dt.front() != GenreLexeme::POINTEUR && (plg_dt.front() & 0xff) != GenreLexeme::TABLEAU && plg_dt.front() != GenreLexeme::CHAINE) {
-				erreur::lance_erreur("Le type n'est pas délogeable", contexte, b->morceau);
+				erreur::lance_erreur("Le type n'est pas délogeable", contexte, b->lexeme);
 			}
 
 			break;
@@ -2479,7 +2479,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Ne peut inclure la structure dans elle-même par valeur",
 								contexte,
-								enf->morceau,
+								enf->lexeme,
 								erreur::type_erreur::TYPE_ARGUMENT);
 				}
 				else {
@@ -2493,7 +2493,7 @@ static void performe_validation_semantique(
 							erreur::lance_erreur(
 										"Ne peut inclure la structure dans elle-même par valeur",
 										contexte,
-										enf->morceau,
+										enf->lexeme,
 										erreur::type_erreur::TYPE_ARGUMENT);
 						}
 					}
@@ -2506,7 +2506,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Redéfinition du membre",
 								contexte,
-								enf->morceau,
+								enf->lexeme,
 								erreur::type_erreur::MEMBRE_REDEFINI);
 				}
 			};
@@ -2575,7 +2575,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Déclaration inattendue dans la structure",
 								contexte,
-								enfant->morceau,
+								enfant->lexeme,
 								erreur::type_erreur::NORMAL);
 				}
 
@@ -2604,8 +2604,8 @@ static void performe_validation_semantique(
 											contexte.typeuse[decl_membre->index_type],
 											contexte.typeuse[decl_expr->index_type],
 											contexte,
-											decl_membre->morceau,
-											decl_expr->morceau);
+											decl_membre->lexeme,
+											decl_expr->lexeme);
 							}
 
 							decl_expr->transformation = transformation;
@@ -2657,7 +2657,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Type d'expression inattendu dans l'énum",
 								contexte,
-								enfant->morceau);
+								enfant->lexeme);
 				}
 
 				auto var = static_cast<base *>(nullptr);
@@ -2677,7 +2677,7 @@ static void performe_validation_semantique(
 					erreur::lance_erreur(
 								"Rédéfinition de la valeur de l'énum",
 								contexte,
-								var->morceau,
+								var->lexeme,
 								erreur::type_erreur::VARIABLE_REDEFINIE);
 				}
 
@@ -2698,7 +2698,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									res.message_erreur,
 									contexte,
-									res.noeud_erreur->morceau,
+									res.noeud_erreur->lexeme,
 									erreur::type_erreur::VARIABLE_REDEFINIE);
 					}
 				}
@@ -2787,7 +2787,7 @@ static void performe_validation_semantique(
 						erreur::lance_erreur(
 									"« discr » ne peut prendre une union nonsûre",
 									contexte,
-									expression->morceau);
+									expression->lexeme);
 					}
 
 					b->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
@@ -2810,7 +2810,7 @@ static void performe_validation_semantique(
 							erreur::lance_erreur(
 										"Attendu une variable membre de l'union nonsûre",
 										contexte,
-										expr_paire->morceau);
+										expr_paire->lexeme);
 						}
 
 						auto nom_membre = expr_paire->chaine();
@@ -2819,7 +2819,7 @@ static void performe_validation_semantique(
 							erreur::lance_erreur(
 										"Redéfinition de l'expression",
 										contexte,
-										expr_paire->morceau);
+										expr_paire->lexeme);
 						}
 
 						membres_rencontres.insere(nom_membre);
@@ -2837,7 +2837,7 @@ static void performe_validation_semantique(
 							erreur::lance_erreur(
 										"Ne peut pas utiliser implicitement le membre car une variable de ce nom existe déjà",
 										contexte,
-										expr_paire->morceau);
+										expr_paire->lexeme);
 						}
 
 						auto donnees_var = DonneesVariable{};
@@ -2892,7 +2892,7 @@ static void performe_validation_semantique(
 								erreur::lance_erreur(
 											"Redéfinition de l'expression",
 											contexte,
-											f->morceau);
+											f->lexeme);
 							}
 
 							membres_rencontres.insere(nom_membre);
@@ -2954,8 +2954,8 @@ static void performe_validation_semantique(
 									contexte.typeuse[expression->index_type],
 								contexte.typeuse[f->index_type],
 								contexte,
-								f->morceau,
-								expression->morceau);
+								f->lexeme,
+								expression->lexeme);
 					}
 				}
 			}
@@ -2973,7 +2973,7 @@ static void performe_validation_semantique(
 				erreur::lance_erreur(
 							"'retiens' hors d'une coroutine",
 							contexte,
-							b->morceau);
+							b->lexeme);
 			}
 
 			valides_enfants(b, contexte, false);
@@ -2991,8 +2991,8 @@ static void performe_validation_semantique(
 							dt_arg,
 							dt_enf,
 							contexte,
-							enfant->morceau,
-							b->morceau);
+							enfant->lexeme,
+							b->lexeme);
 			}
 
 			enfant->transformation = transformation;

@@ -53,11 +53,11 @@ public:
 	void performe_lexage();
 
 	/**
-	 * Retourne la taille en octets de la mémoire utilisée par les morceaux.
+	 * Retourne la taille en octets de la mémoire utilisée par les lexemes.
 	 */
-	size_t memoire_morceaux() const;
+	size_t memoire_lexemes() const;
 
-	void imprime_morceaux(std::ostream &os);
+	void imprime_lexemes(std::ostream &os);
 
 private:
 	bool fini() const;

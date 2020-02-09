@@ -109,7 +109,7 @@ size_t DonneesModule::memoire_utilisee() const noexcept
 dls::chaine charge_fichier(
 		const dls::chaine &chemin,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau)
+		DonneesLexeme const &lexeme)
 {
 	std::ifstream fichier;
 	fichier.open(chemin.c_str());
@@ -118,7 +118,7 @@ dls::chaine charge_fichier(
 		erreur::lance_erreur(
 					"Impossible d'ouvrir le fichier correspondant au module",
 					contexte,
-					morceau,
+					lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -144,7 +144,7 @@ void charge_fichier(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau)
+		DonneesLexeme const &lexeme)
 {
 	auto chemin = module->chemin + nom + ".kuri";
 
@@ -152,7 +152,7 @@ void charge_fichier(
 		erreur::lance_erreur(
 					"Impossible de trouver le fichier correspondant au module",
 					contexte,
-					morceau,
+					lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -160,7 +160,7 @@ void charge_fichier(
 		erreur::lance_erreur(
 					"Le nom du fichier ne pointe pas vers un fichier régulier",
 					contexte,
-					morceau,
+					lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -179,7 +179,7 @@ void charge_fichier(
 	fichier->module = module;
 
 	auto debut_chargement = dls::chrono::compte_seconde();
-	auto tampon = charge_fichier(chemin, contexte, morceau);
+	auto tampon = charge_fichier(chemin, contexte, lexeme);
 	fichier->temps_chargement = debut_chargement.temps();
 
 	auto debut_tampon = dls::chrono::compte_seconde();
@@ -204,7 +204,7 @@ void importe_module(
 		dls::chaine const &racine_kuri,
 		dls::chaine const &nom,
 		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau)
+		DonneesLexeme const &lexeme)
 {
 	auto chemin = nom;
 
@@ -216,7 +216,7 @@ void importe_module(
 			erreur::lance_erreur(
 						"Impossible de trouver le dossier correspondant au module",
 						contexte,
-						morceau,
+						lexeme,
 						erreur::type_erreur::MODULE_INCONNU);
 		}
 	}
@@ -225,7 +225,7 @@ void importe_module(
 		erreur::lance_erreur(
 					"Le nom du module ne pointe pas vers un dossier",
 					contexte,
-					morceau,
+					lexeme,
 					erreur::type_erreur::MODULE_INCONNU);
 	}
 
@@ -346,7 +346,7 @@ static DonneesCandidate verifie_donnees_fonction(
 #ifdef NONSUR
 			auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
 
-			if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
+			if (dt.type_base() == id_lexeme::POINTEUR && !contexte.non_sur()) {
 				res.arg_pointeur = true;
 			}
 #endif
@@ -377,7 +377,7 @@ static DonneesCandidate verifie_donnees_fonction(
 				if (donnees.donnees_type != -1ul) {
 					auto &dt = contexte.magasin_types.donnees_types[donnees.donnees_type];
 
-					if (dt.type_base() == id_morceau::POINTEUR && !contexte.non_sur()) {
+					if (dt.type_base() == id_lexeme::POINTEUR && !contexte.non_sur()) {
 						res.arg_pointeur = true;
 					}
 				}
@@ -419,7 +419,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		auto index_premier_var_arg = nombre_args - 1;
 
 		noeud_tableau = contexte.assembleuse->cree_noeud(
-					GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, (*enfant)->morceau);
+					GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES, (*enfant)->lexeme);
 		noeud_tableau->valeur_calculee = nombre_args_var;
 		noeud_tableau->drapeaux |= EST_CALCULE;
 
@@ -576,9 +576,9 @@ ResultatRecherche cherche_donnees_fonction(
 	return res;
 }
 
-PositionMorceau trouve_position(const DonneesLexeme &morceau, Fichier *fichier)
+PositionMorceau trouve_position(const DonneesLexeme &lexeme, Fichier *fichier)
 {
-	auto ptr = morceau.chaine.pointeur();
+	auto ptr = lexeme.chaine.pointeur();
 	auto pos = PositionMorceau{};
 
 	for (auto i = 0ul; i < fichier->tampon.nombre_lignes() - 1; ++i) {

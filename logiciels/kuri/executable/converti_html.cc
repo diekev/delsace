@@ -80,18 +80,18 @@ int main(int argc, char **argv)
 		auto lexeuse = Lexeuse(fichier, INCLUS_CARACTERES_BLANC | INCLUS_COMMENTAIRES);
 		lexeuse.performe_lexage();
 
-		for (auto const &morceau : fichier->morceaux) {
-			if (est_mot_cle(morceau.genre)) {
-				os << "<span class=mot-cle>" << morceau.chaine << "</span>";
+		for (auto const &lexeme : fichier->lexemes) {
+			if (est_mot_cle(lexeme.genre)) {
+				os << "<span class=mot-cle>" << lexeme.chaine << "</span>";
 			}
-			else if (est_chaine_litterale(morceau.genre)) {
-				os << "<span class=chn-lit>" << morceau.chaine << "</span>";
+			else if (est_chaine_litterale(lexeme.genre)) {
+				os << "<span class=chn-lit>" << lexeme.chaine << "</span>";
 			}
-			else if (morceau.genre == GenreLexeme::COMMENTAIRE) {
-				os << "<span class=comment>" << morceau.chaine << "</span>";
+			else if (lexeme.genre == GenreLexeme::COMMENTAIRE) {
+				os << "<span class=comment>" << lexeme.chaine << "</span>";
 			}
 			else {
-				os << morceau.chaine;
+				os << lexeme.chaine;
 			}
 		}
 	}

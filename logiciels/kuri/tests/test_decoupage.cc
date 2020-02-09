@@ -33,7 +33,7 @@
 #undef DEBOGUE_MORCEAUX
 
 template <typename I1, typename I2>
-bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
+bool verifie_lexemes(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 {
 	auto const dist1 = std::distance(debut1, fin1);
 	auto const dist2 = std::distance(debut2, fin2);
@@ -90,7 +90,7 @@ discr nombre {
 Lexeuse lexeuse(str, str + len);
 )";
 
-	const DonneesLexeme donnees_morceaux[] = {
+	const DonneesLexeme donnees_lexemes[] = {
 		{ " ceci est une chaine française avec espaces ", GenreLexeme::CHAINE_LITTERALE },
 		{ "\n", GenreLexeme::POINT_VIRGULE },
 		{ "ceci est une chaine française sans espaces", GenreLexeme::CHAINE_LITTERALE },
@@ -150,10 +150,10 @@ Lexeuse lexeuse(str, str + len);
 	Lexeuse lexeuse(&fichier);
 	lexeuse.performe_lexage();
 
-	return verifie_morceaux(fichier.morceaux.debut(),
-							fichier.morceaux.fin(),
-							std::begin(donnees_morceaux),
-							std::end(donnees_morceaux));
+	return verifie_lexemes(fichier.lexemes.debut(),
+							fichier.lexemes.fin(),
+							std::begin(donnees_lexemes),
+							std::end(donnees_lexemes));
 }
 
 void test_decoupage(dls::test_unitaire::Controleuse &controleuse)

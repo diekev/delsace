@@ -673,8 +673,8 @@ Metriques ContexteGenerationCode::rassemble_metriques() const
 	for (auto fichier : fichiers) {
 		metriques.nombre_lignes += fichier->tampon.nombre_lignes();
 		metriques.memoire_tampons += fichier->tampon.taille_donnees();
-		metriques.memoire_morceaux += static_cast<size_t>(fichier->morceaux.taille()) * sizeof(DonneesLexeme);
-		metriques.nombre_morceaux += static_cast<size_t>(fichier->morceaux.taille());
+		metriques.memoire_lexemes += static_cast<size_t>(fichier->lexemes.taille()) * sizeof(DonneesLexeme);
+		metriques.nombre_lexemes += static_cast<size_t>(fichier->lexemes.taille());
 		metriques.temps_analyse += fichier->temps_analyse;
 		metriques.temps_chargement += fichier->temps_chargement;
 		metriques.temps_tampon += fichier->temps_tampon;

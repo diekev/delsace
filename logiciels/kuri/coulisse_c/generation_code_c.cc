@@ -575,9 +575,9 @@ static void genere_code_echec_logement(
 		genere_code_C(bloc, generatrice, contexte, true);
 	}
 	else {
-		auto const &morceau = b->morceau;
-		auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-		auto pos = trouve_position(morceau, module);
+		auto const &lexeme = b->lexeme;
+		auto module = contexte.fichier(static_cast<size_t>(lexeme.fichier));
+		auto pos = trouve_position(lexeme, module);
 
 		generatrice.os << " {\n";
 		generatrice.os << "KR__hors_memoire(";
@@ -592,8 +592,8 @@ static DonneesFonction *cherche_donnees_fonction(
 		ContexteGenerationCode &contexte,
 		base *b)
 {
-	auto module = contexte.fichier(static_cast<size_t>(b->morceau.fichier))->module;
-	auto &vdf = module->donnees_fonction(b->morceau.chaine);
+	auto module = contexte.fichier(static_cast<size_t>(b->lexeme.fichier))->module;
+	auto &vdf = module->donnees_fonction(b->lexeme.chaine);
 
 	for (auto &df : vdf) {
 		if (df.noeud_decl == b) {
@@ -1149,7 +1149,7 @@ void genere_code_C(
 					flux << b->nom_fonction_appel;
 				}
 				else {
-					auto dv = contexte.donnees_variable(b->morceau.chaine);
+					auto dv = contexte.donnees_variable(b->lexeme.chaine);
 
 					if (dv.est_membre_emploie) {
 						flux << dv.structure;
@@ -1204,9 +1204,9 @@ void genere_code_C(
 			}
 			else {
 				if (b->aide_generation_code != IGNORE_VERIFICATION) {
-					auto const &morceau = b->morceau;
-					auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-					auto pos = trouve_position(morceau, module);
+					auto const &lexeme = b->lexeme;
+					auto module = contexte.fichier(static_cast<size_t>(lexeme.fichier));
+					auto pos = trouve_position(lexeme, module);
 
 					generatrice.os << "if (" << expr_membre << " != " << index_membre + 1 << ") {\n";
 					generatrice.os << "KR__acces_membre_union(";
@@ -1335,8 +1335,8 @@ void genere_code_C(
 			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_reel(
-												 b->morceau.chaine,
-												 b->morceau.genre);
+												 b->lexeme.chaine,
+												 b->lexeme.genre);
 
 			b->valeur_calculee = dls::vers_chaine(valeur);
 			break;
@@ -1346,8 +1346,8 @@ void genere_code_C(
 			auto const est_calcule = dls::outils::possede_drapeau(b->drapeaux, EST_CALCULE);
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_entier(
-												 b->morceau.chaine,
-												 b->morceau.genre);
+												 b->lexeme.chaine,
+												 b->lexeme.genre);
 
 			b->valeur_calculee = dls::vers_chaine(valeur);
 			break;
@@ -1367,7 +1367,7 @@ void genere_code_C(
 
 			if (op->est_basique) {
 				flux << enfant1->chaine_calculee();
-				flux << b->morceau.chaine;
+				flux << b->lexeme.chaine;
 				flux << enfant2->chaine_calculee();
 			}
 			else {
@@ -1415,7 +1415,7 @@ void genere_code_C(
 			/* (b comp c) */
 			flux << '(';
 			flux << enfant1->enfants.back()->chaine_calculee();
-			flux << b->morceau.chaine;
+			flux << b->lexeme.chaine;
 			flux << enfant2->chaine_calculee();
 			flux << ')';
 
@@ -1459,9 +1459,9 @@ void genere_code_C(
 			 *      x[0] = 8;
 			 */
 
-			auto const &morceau = b->morceau;
-			auto module = contexte.fichier(static_cast<size_t>(morceau.fichier));
-			auto pos = trouve_position(morceau, module);
+			auto const &lexeme = b->lexeme;
+			auto module = contexte.fichier(static_cast<size_t>(lexeme.fichier));
+			auto pos = trouve_position(lexeme, module);
 
 			switch (type_base & 0xff) {
 				case GenreLexeme::POINTEUR:
@@ -1574,10 +1574,10 @@ void genere_code_C(
 			/* force une expression si l'opérateur est @, pour que les
 			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
 			 * pointeur de la variable temporaire du code généré */
-			expr_gauche |= b->morceau.genre == GenreLexeme::AROBASE;
+			expr_gauche |= b->lexeme.genre == GenreLexeme::AROBASE;
 			applique_transformation(enfant, generatrice, contexte, expr_gauche);
 
-			if (b->morceau.genre == GenreLexeme::AROBASE) {
+			if (b->lexeme.genre == GenreLexeme::AROBASE) {
 				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
 			}
 			else {
@@ -1585,7 +1585,7 @@ void genere_code_C(
 				auto op = b->op;
 
 				if (op->est_basique) {
-					flux << b->morceau.chaine;
+					flux << b->lexeme.chaine;
 				}
 				else {
 					flux << b->op->nom_fonction;
@@ -1667,7 +1667,7 @@ void genere_code_C(
 		{
 			/* Note : dû à la possibilité de différer le code, nous devons
 			 * utiliser la chaine originale. */
-			auto chaine = b->morceau.chaine;
+			auto chaine = b->lexeme.chaine;
 
 			auto nom_chaine = "__chaine_tmp" + dls::vers_chaine(b);
 
@@ -1704,13 +1704,13 @@ void genere_code_C(
 		}
 		case GenreNoeud::EXPRESSION_LITTERALE_CARACTERE:
 		{
-			auto c = b->morceau.chaine[0];
+			auto c = b->lexeme.chaine[0];
 
 			auto flux = dls::flux_chaine();
 
 			flux << '\'';
 			if (c == '\\') {
-				flux << c << b->morceau.chaine[1];
+				flux << c << b->lexeme.chaine[1];
 			}
 			else {
 				flux << c;
@@ -1868,7 +1868,7 @@ void genere_code_C(
 				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
 
-				if (enfant_1->morceau.genre == GenreLexeme::VIRGULE) {
+				if (enfant_1->lexeme.genre == GenreLexeme::VIRGULE) {
 					var = enfant_1->enfants.front();
 					idx = enfant_1->enfants.back();
 				}
@@ -1902,7 +1902,7 @@ void genere_code_C(
 				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
 
-				if (enfant_1->morceau.genre == GenreLexeme::VIRGULE) {
+				if (enfant_1->lexeme.genre == GenreLexeme::VIRGULE) {
 					var = enfant_1->enfants.front();
 					idx = enfant_1->enfants.back();
 				}
@@ -1930,7 +1930,7 @@ void genere_code_C(
 					auto var = enfant1;
 					auto idx = static_cast<noeud::base *>(nullptr);
 
-					if (enfant1->morceau.genre == GenreLexeme::VIRGULE) {
+					if (enfant1->lexeme.genre == GenreLexeme::VIRGULE) {
 						var = enfant1->enfants.front();
 						idx = enfant1->enfants.back();
 					}
@@ -2148,7 +2148,7 @@ void genere_code_C(
 		{
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
-			auto label_goto = (b->morceau.genre == GenreLexeme::CONTINUE)
+			auto label_goto = (b->lexeme.genre == GenreLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
