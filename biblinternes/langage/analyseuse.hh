@@ -141,8 +141,8 @@ protected:
 		m_tableau_identifiant[id2]++;
 #endif
 
-		return m_identifiants[m_position].identifiant == id1
-				&& m_identifiants[m_position + 1].identifiant == id2;
+		return m_identifiants[m_position].genre == id1
+				&& m_identifiants[m_position + 1].genre == id2;
 	}
 
 	/**
@@ -161,9 +161,9 @@ protected:
 		m_tableau_identifiant[id3]++;
 #endif
 
-		return m_identifiants[m_position].identifiant == id1
-				&& m_identifiants[m_position + 1].identifiant == id2
-				&& m_identifiants[m_position + 2].identifiant == id3;
+		return m_identifiants[m_position].genre == id1
+				&& m_identifiants[m_position + 1].genre == id2
+				&& m_identifiants[m_position + 2].genre == id3;
 	}
 
 	/**
@@ -175,7 +175,7 @@ protected:
 			return TypeIdentifiant::INCONNU;
 		}
 
-		return m_identifiants[m_position].identifiant;
+		return m_identifiants[m_position].genre;
 	}
 
 	bool fini() const

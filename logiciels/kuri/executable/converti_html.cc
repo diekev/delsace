@@ -81,13 +81,13 @@ int main(int argc, char **argv)
 		lexeuse.performe_lexage();
 
 		for (auto const &morceau : fichier->morceaux) {
-			if (est_mot_cle(morceau.identifiant)) {
+			if (est_mot_cle(morceau.genre)) {
 				os << "<span class=mot-cle>" << morceau.chaine << "</span>";
 			}
-			else if (est_chaine_litterale(morceau.identifiant)) {
+			else if (est_chaine_litterale(morceau.genre)) {
 				os << "<span class=chn-lit>" << morceau.chaine << "</span>";
 			}
-			else if (morceau.identifiant == TypeLexeme::COMMENTAIRE) {
+			else if (morceau.genre == GenreLexeme::COMMENTAIRE) {
 				os << "<span class=comment>" << morceau.chaine << "</span>";
 			}
 			else {

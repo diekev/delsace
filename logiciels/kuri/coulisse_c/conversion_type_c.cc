@@ -34,7 +34,7 @@ void cree_typedef(
 {
 	auto const &nom_broye = nom_broye_type(contexte, donnees);
 
-	if (donnees.type_base() == TypeLexeme::TABLEAU || donnees.type_base() == TypeLexeme::TROIS_POINTS) {
+	if (donnees.type_base() == GenreLexeme::TABLEAU || donnees.type_base() == GenreLexeme::TROIS_POINTS) {
 		if (est_invalide(donnees.dereference())) {
 			return;
 		}
@@ -47,17 +47,17 @@ void cree_typedef(
 
 		os << " *pointeur;\n\tlong taille;\n} " << nom_broye << ";\n\n";
 	}
-	else if ((donnees.type_base() & 0xff) == TypeLexeme::TABLEAU) {
+	else if ((donnees.type_base() & 0xff) == GenreLexeme::TABLEAU) {
 		os << "typedef ";
 		converti_type_C(contexte, "", donnees.dereference(), os, false, true);
 		os << ' ' << nom_broye;
 		os << '[' << static_cast<size_t>(donnees.type_base() >> 8) << ']';
 		os << ";\n\n";
 	}
-	else if (donnees.type_base() == TypeLexeme::COROUT) {
+	else if (donnees.type_base() == GenreLexeme::COROUT) {
 		/* ne peut prendre un pointeur vers une coroutine pour le moment */
 	}
-	else if (donnees.type_base() == TypeLexeme::FONC) {
+	else if (donnees.type_base() == GenreLexeme::FONC) {
 		auto nombre_types_retour = 0l;
 		auto type_parametres = donnees_types_parametres(contexte.typeuse, donnees, nombre_types_retour);
 
@@ -118,7 +118,7 @@ void cree_typedef(
 		os << "typedef " << nouveau_nom_broye << ";\n\n";
 	}
 	/* cas spécial pour les types complexes : &[]z8 */
-	else if (donnees.type_base() == TypeLexeme::POINTEUR || donnees.type_base() == TypeLexeme::REFERENCE) {
+	else if (donnees.type_base() == GenreLexeme::POINTEUR || donnees.type_base() == GenreLexeme::REFERENCE) {
 		auto index = contexte.typeuse.ajoute_type(donnees.dereference());
 		auto &dt_deref = contexte.typeuse[index];
 
@@ -136,13 +136,13 @@ void cree_typedef(
 static auto converti_type_simple_C(
 		ContexteGenerationCode &contexte,
 		dls::flux_chaine &os,
-		TypeLexeme id,
+		GenreLexeme id,
 		bool echappe,
 		bool echappe_struct,
 		bool echappe_tableau_fixe)
 {
 	switch (id & 0xff) {
-		case TypeLexeme::POINTEUR:
+		case GenreLexeme::POINTEUR:
 		{
 			if (echappe) {
 				os << "_ptr_";
@@ -153,7 +153,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::REFERENCE:
+		case GenreLexeme::REFERENCE:
 		{
 			if (echappe) {
 				os << "_ref_";
@@ -164,7 +164,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 		{
 			if (echappe_tableau_fixe) {
 				os << '*';
@@ -176,17 +176,17 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::OCTET:
+		case GenreLexeme::OCTET:
 		{
 			os << "octet";
 			break;
 		}
-		case TypeLexeme::BOOL:
+		case GenreLexeme::BOOL:
 		{
 			os << "bool";
 			break;
 		}
-		case TypeLexeme::N8:
+		case GenreLexeme::N8:
 		{
 			if (echappe) {
 				os << "unsigned_char";
@@ -197,7 +197,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::N16:
+		case GenreLexeme::N16:
 		{
 			if (echappe) {
 				os << "unsigned_short";
@@ -208,7 +208,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::N32:
+		case GenreLexeme::N32:
 		{
 			if (echappe) {
 				os << "unsigned_int";
@@ -219,7 +219,7 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::N64:
+		case GenreLexeme::N64:
 		{
 			if (echappe) {
 				os << "unsigned_long";
@@ -230,88 +230,88 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::N128:
+		case GenreLexeme::N128:
 		{
 			os << ((echappe) ? "unsigned_long_long" : "unsigned long long");
 			break;
 		}
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 		{
 			os << "r16";
 			break;
 		}
-		case TypeLexeme::R32:
+		case GenreLexeme::R32:
 		{
 			os << "float";
 			break;
 		}
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 		{
 			os << "double";
 			break;
 		}
-		case TypeLexeme::R128:
+		case GenreLexeme::R128:
 		{
 			os << ((echappe) ? "long_double" : "long double");
 			break;
 		}
-		case TypeLexeme::Z8:
+		case GenreLexeme::Z8:
 		{
 			os << "char";
 			break;
 		}
-		case TypeLexeme::Z16:
+		case GenreLexeme::Z16:
 		{
 			os << "short";
 			break;
 		}
-		case TypeLexeme::Z32:
+		case GenreLexeme::Z32:
 		{
 			os << "int";
 			break;
 		}
-		case TypeLexeme::Z64:
+		case GenreLexeme::Z64:
 		{
 			os << "long";
 			break;
 		}
-		case TypeLexeme::Z128:
+		case GenreLexeme::Z128:
 		{
 			os << ((echappe) ? "long_long" : "long long");
 			break;
 		}
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 		{
 			os << "chaine";
 			break;
 		}
-		case TypeLexeme::COROUT:
-		case TypeLexeme::FONC:
+		case GenreLexeme::COROUT:
+		case GenreLexeme::FONC:
 		{
 			break;
 		}
-		case TypeLexeme::PARENTHESE_OUVRANTE:
+		case GenreLexeme::PARENTHESE_OUVRANTE:
 		{
 			os << '(';
 			break;
 		}
-		case TypeLexeme::PARENTHESE_FERMANTE:
+		case GenreLexeme::PARENTHESE_FERMANTE:
 		{
 			os << ')';
 			break;
 		}
-		case TypeLexeme::VIRGULE:
+		case GenreLexeme::VIRGULE:
 		{
 			os << ',';
 			break;
 		}
-		case TypeLexeme::NUL: /* pour par exemple quand on retourne nul */
-		case TypeLexeme::RIEN:
+		case GenreLexeme::NUL: /* pour par exemple quand on retourne nul */
+		case GenreLexeme::RIEN:
 		{
 			os << "void";
 			break;
 		}
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			auto id_struct = static_cast<long>(id >> 8);
 			auto &donnees_struct = contexte.donnees_structure(id_struct);
@@ -334,12 +334,12 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case TypeLexeme::EINI:
+		case GenreLexeme::EINI:
 		{
 			os << "eini";
 			break;
 		}
-		case TypeLexeme::TYPE_DE:
+		case GenreLexeme::TYPE_DE:
 		{
 			assert(false && "type_de aurait dû être résolu");
 			break;
@@ -378,7 +378,7 @@ void converti_type_C(
 		return;
 	}
 
-	if (donnees.front() == TypeLexeme::TABLEAU || donnees.front() == TypeLexeme::TROIS_POINTS) {
+	if (donnees.front() == GenreLexeme::TABLEAU || donnees.front() == GenreLexeme::TROIS_POINTS) {
 		if (echappe_struct) {
 			os << "struct ";
 		}
@@ -390,7 +390,7 @@ void converti_type_C(
 	}
 
 	/* cas spécial pour convertir les types complexes comme *[]z8 */
-	if (donnees.front() == TypeLexeme::POINTEUR || donnees.front() == TypeLexeme::REFERENCE) {
+	if (donnees.front() == GenreLexeme::POINTEUR || donnees.front() == GenreLexeme::REFERENCE) {
 		donnees.effronte();
 		converti_type_C(contexte, "", donnees, os, echappe, echappe_struct);
 
@@ -408,8 +408,8 @@ void converti_type_C(
 		return;
 	}
 
-	if (donnees.front() == TypeLexeme::FONC || donnees.front() == TypeLexeme::COROUT) {
-		dls::tableau<dls::pile<TypeLexeme>> liste_pile_type;
+	if (donnees.front() == GenreLexeme::FONC || donnees.front() == GenreLexeme::COROUT) {
+		dls::tableau<dls::pile<GenreLexeme>> liste_pile_type;
 
 		auto nombre_types_retour = 0l;
 		auto parametres_finis = false;
@@ -417,22 +417,22 @@ void converti_type_C(
 		/* saute l'id fonction */
 		donnees.effronte();
 
-		dls::pile<TypeLexeme> pile;
+		dls::pile<GenreLexeme> pile;
 
 		while (!donnees.est_finie()) {
 			auto donnee = donnees.front();
 			donnees.effronte();
 
-			if (donnee == TypeLexeme::PARENTHESE_OUVRANTE) {
+			if (donnee == GenreLexeme::PARENTHESE_OUVRANTE) {
 				/* RAF */
 			}
-			else if (donnee == TypeLexeme::PARENTHESE_FERMANTE) {
+			else if (donnee == GenreLexeme::PARENTHESE_FERMANTE) {
 				/* évite d'empiler s'il n'y a pas de paramètre, càd 'foo()' */
 				if (!pile.est_vide()) {
 					liste_pile_type.pousse(pile);
 				}
 
-				pile = dls::pile<TypeLexeme>{};
+				pile = dls::pile<GenreLexeme>{};
 
 				if (parametres_finis) {
 					++nombre_types_retour;
@@ -440,9 +440,9 @@ void converti_type_C(
 
 				parametres_finis = true;
 			}
-			else if (donnee == TypeLexeme::VIRGULE) {
+			else if (donnee == GenreLexeme::VIRGULE) {
 				liste_pile_type.pousse(pile);
-				pile = dls::pile<TypeLexeme>{};
+				pile = dls::pile<GenreLexeme>{};
 
 				if (parametres_finis) {
 					++nombre_types_retour;

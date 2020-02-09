@@ -49,12 +49,12 @@ bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 	}
 
 	while (debut1 != fin1 && debut2 != fin2) {
-		if ((*debut1).identifiant != (*debut2).identifiant) {
+		if ((*debut1).genre != (*debut2).genre) {
 #ifdef DEBOGUE_MORCEAUX
 			std::cerr << "Les identifiants ne sont pas égaux : "
-					  << danjo::chaine_identifiant((*debut1).identifiant)
+					  << danjo::chaine_identifiant((*debut1).genre)
 					  << " != "
-					  << danjo::chaine_identifiant((*debut2).identifiant)
+					  << danjo::chaine_identifiant((*debut2).genre)
 					  << '\n';
 #endif
 			return false;

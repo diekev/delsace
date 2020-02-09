@@ -256,84 +256,84 @@ dls::chaine cree_info_type_C(
 			assert(false);
 			break;
 		}
-		case TypeLexeme::BOOL:
+		case GenreLexeme::BOOL:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN, nom_info_type);
 			break;
 		}
-		case TypeLexeme::N8:
+		case GenreLexeme::N8:
 		{
 			cree_info_type_entier_C(os_decl, 8, false, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::OCTET:
-		case TypeLexeme::Z8:
+		case GenreLexeme::OCTET:
+		case GenreLexeme::Z8:
 		{
 			cree_info_type_entier_C(os_decl, 8, true, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::N16:
+		case GenreLexeme::N16:
 		{
 			cree_info_type_entier_C(os_decl, 16, false, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::Z16:
+		case GenreLexeme::Z16:
 		{
 			cree_info_type_entier_C(os_decl, 16, true, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::N32:
+		case GenreLexeme::N32:
 		{
 			cree_info_type_entier_C(os_decl, 32, false, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::Z32:
+		case GenreLexeme::Z32:
 		{
 			cree_info_type_entier_C(os_decl, 32, true, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::N64:
+		case GenreLexeme::N64:
 		{
 			cree_info_type_entier_C(os_decl, 64, false, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::N128:
+		case GenreLexeme::N128:
 		{
 			cree_info_type_entier_C(os_decl, 128, false, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::Z64:
+		case GenreLexeme::Z64:
 		{
 			cree_info_type_entier_C(os_decl, 64, true, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::Z128:
+		case GenreLexeme::Z128:
 		{
 			cree_info_type_entier_C(os_decl, 128, true, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 		{
 			cree_info_type_reel_C(os_decl, 16, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::R32:
+		case GenreLexeme::R32:
 		{
 			cree_info_type_reel_C(os_decl, 32, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 		{
 			cree_info_type_reel_C(os_decl, 64, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::R128:
+		case GenreLexeme::R128:
 		{
 			cree_info_type_reel_C(os_decl, 128, id_info_type, nom_info_type);
 			break;
 		}
-		case TypeLexeme::REFERENCE:
-		case TypeLexeme::POINTEUR:
+		case GenreLexeme::REFERENCE:
+		case GenreLexeme::POINTEUR:
 		{
 			auto deref = donnees_type.dereference();
 
@@ -348,12 +348,12 @@ dls::chaine cree_info_type_C(
 			os_decl << ".id = " << id_info_type.POINTEUR << ",\n";
 			os_decl << '\t' << broye_nom_simple(".type_pointé") << " = (InfoType *)(&" << rderef.ptr_info_type << "),\n";
 			os_decl << '\t' << broye_nom_simple(".est_référence = ")
-					<< (donnees_type.type_base() == TypeLexeme::REFERENCE) << ",\n";
+					<< (donnees_type.type_base() == GenreLexeme::REFERENCE) << ",\n";
 			os_decl << "};\n";
 
 			break;
 		}
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
@@ -381,8 +381,8 @@ dls::chaine cree_info_type_C(
 
 			break;
 		}
-		case TypeLexeme::TROIS_POINTS:
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TROIS_POINTS:
+		case GenreLexeme::TABLEAU:
 		{
 			auto deref = donnees_type.dereference();
 
@@ -409,8 +409,8 @@ dls::chaine cree_info_type_C(
 
 			break;
 		}
-		case TypeLexeme::COROUT:
-		case TypeLexeme::FONC:
+		case GenreLexeme::COROUT:
+		case GenreLexeme::FONC:
 		{
 			donnees_type.ptr_info_type = nom_info_type;
 
@@ -455,7 +455,7 @@ dls::chaine cree_info_type_C(
 			/* crée l'info type pour la fonction */
 			os_decl << "static const InfoTypeFonction " << nom_info_type << " = {\n";
 			os_decl << "\t.id = " << id_info_type.FONCTION << ",\n";
-			os_decl << "\t.est_coroutine = " << (donnees_type.type_base() == TypeLexeme::COROUT) << ",\n";
+			os_decl << "\t.est_coroutine = " << (donnees_type.type_base() == GenreLexeme::COROUT) << ",\n";
 			os_decl << broye_nom_simple("\t.types_entrée = { .pointeur = ") << nom_tableau_entrees;
 			os_decl << ", .taille = " << nombre_types_entree << " },\n";
 			os_decl << broye_nom_simple("\t.types_sortie = { .pointeur = ") << nom_tableau_sorties;
@@ -464,18 +464,18 @@ dls::chaine cree_info_type_C(
 
 			break;
 		}
-		case TypeLexeme::EINI:
+		case GenreLexeme::EINI:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.EINI, nom_info_type);
 			break;
 		}
-		case TypeLexeme::NUL: /* À FAIRE */
-		case TypeLexeme::RIEN:
+		case GenreLexeme::NUL: /* À FAIRE */
+		case GenreLexeme::RIEN:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.RIEN, nom_info_type);
 			break;
 		}
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 		{
 			cree_info_type_defaul_C(os_decl, id_info_type.CHAINE, nom_info_type);
 			break;

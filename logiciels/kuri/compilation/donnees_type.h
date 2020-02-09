@@ -59,25 +59,25 @@ struct base;
 
 struct ContexteGenerationCode;
 
-using type_plage_donnees_type = dls::plage_continue<const TypeLexeme>;
+using type_plage_donnees_type = dls::plage_continue<const GenreLexeme>;
 
 /* ************************************************************************** */
 
 struct DonneesTypeDeclare {
-	dls::tableau_simple_compact<TypeLexeme> donnees{};
+	dls::tableau_simple_compact<GenreLexeme> donnees{};
 	dls::tableau_simple_compact<noeud::base *> expressions{};
 
 	dls::vue_chaine nom_gabarit = "";
 
 	using type_plage = type_plage_donnees_type;
 
-	TypeLexeme type_base() const;
+	GenreLexeme type_base() const;
 
 	long taille() const;
 
-	TypeLexeme operator[](long idx) const;
+	GenreLexeme operator[](long idx) const;
 
-	void pousse(TypeLexeme id);
+	void pousse(GenreLexeme id);
 
 	void pousse(DonneesTypeDeclare const &dtd);
 
@@ -109,7 +109,7 @@ class Type;
 struct DonneesTypeFinal {
 private:
 	/* À FAIRE : type similaire à llvm::SmallVector. */
-	dls::tableau<TypeLexeme> m_donnees{};
+	dls::tableau<GenreLexeme> m_donnees{};
 
 #ifdef AVEC_LLVM
 	llvm::Type *m_type{nullptr};
@@ -121,13 +121,13 @@ public:
 	dls::chaine ptr_info_type{};
 	dls::chaine nom_broye{};
 
-	using iterateur_const = dls::tableau<TypeLexeme>::const_iteratrice_inverse;
+	using iterateur_const = dls::tableau<GenreLexeme>::const_iteratrice_inverse;
 
 	DonneesTypeFinal() = default;
 
-	explicit DonneesTypeFinal(TypeLexeme i0);
+	explicit DonneesTypeFinal(GenreLexeme i0);
 
-	DonneesTypeFinal(TypeLexeme i0, TypeLexeme i1);
+	DonneesTypeFinal(GenreLexeme i0, GenreLexeme i1);
 
 	DonneesTypeFinal(type_plage autre);
 
@@ -139,7 +139,7 @@ public:
 	 * l'identifiant poussé, donc il vaut mieux faire en sorte de pousser des
 	 * données correctes dans un ordre correcte.
 	 */
-	void pousse(TypeLexeme identifiant);
+	void pousse(GenreLexeme identifiant);
 
 	/**
 	 * Pousse les identifiants d'un autre vecteur de données dans celui-ci.
@@ -167,7 +167,7 @@ public:
 	 * Cette fonction ne vérifie pas que les données sont valide, donc l'appeler
 	 * sur des données invalide (vide) crashera le programme.
 	 */
-	TypeLexeme type_base() const;
+	GenreLexeme type_base() const;
 
 	/**
 	 * Retourne vrai si les données sont vides, ou si le dernier élément du
@@ -284,9 +284,9 @@ public:
 
 dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGenerationCode const &contexte);
 
-inline bool est_type_tableau_fixe(TypeLexeme id)
+inline bool est_type_tableau_fixe(GenreLexeme id)
 {
-	return (id != TypeLexeme::TABLEAU) && ((id & 0xff) == TypeLexeme::TABLEAU);
+	return (id != GenreLexeme::TABLEAU) && ((id & 0xff) == GenreLexeme::TABLEAU);
 }
 
 inline bool est_type_tableau_fixe(DonneesTypeFinal const &dt)

@@ -59,7 +59,7 @@ void lance_erreur(
 	auto fichier = contexte.fichier(static_cast<size_t>(morceau.fichier));
 	auto pos = trouve_position(morceau, fichier);
 	auto const pos_mot = pos.pos;
-	auto const identifiant = morceau.identifiant;
+	auto const identifiant = morceau.genre;
 	auto const &chaine = morceau.chaine;
 
 	auto ligne_courante = fichier->tampon[pos.index_ligne];

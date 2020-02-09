@@ -150,7 +150,7 @@ def construit_structures():
 	structures += u'\tstatic constexpr type INCONNU = id_morceau::INCONNU;\n\n'
 	structures += u'\tdls::vue_chaine chaine;\n'
 	structures += u'\tunsigned long ligne_pos;\n'
-	structures += u'\tid_morceau identifiant;\n'
+	structures += u'\tid_morceau genre;\n'
 	structures += u'\tint pad = 0;\n'
 	structures += u'};\n'
 

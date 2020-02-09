@@ -127,7 +127,7 @@ const DonneesMorceaux &base::donnees_morceau() const
 
 id_morceau base::identifiant() const
 {
-	return donnees.identifiant;
+	return donnees.genre;
 }
 
 dls::vue_chaine base::chaine() const

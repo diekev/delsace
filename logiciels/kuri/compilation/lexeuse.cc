@@ -42,7 +42,7 @@
  * - une des instructions de controle de flux suivantes : retourne, arrête, continue
  * - une parenthèse ou en un crochet fermant
  */
-static bool doit_ajouter_point_virgule(TypeLexeme dernier_id)
+static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 {
 	switch (dernier_id) {
 		default:
@@ -50,44 +50,44 @@ static bool doit_ajouter_point_virgule(TypeLexeme dernier_id)
 			return false;
 		}
 		/* types */
-		case TypeLexeme::N8:
-		case TypeLexeme::N16:
-		case TypeLexeme::N32:
-		case TypeLexeme::N64:
-		case TypeLexeme::N128:
-		case TypeLexeme::R16:
-		case TypeLexeme::R32:
-		case TypeLexeme::R64:
-		case TypeLexeme::R128:
-		case TypeLexeme::Z8:
-		case TypeLexeme::Z16:
-		case TypeLexeme::Z32:
-		case TypeLexeme::Z64:
-		case TypeLexeme::Z128:
-		case TypeLexeme::BOOL:
-		case TypeLexeme::RIEN:
-		case TypeLexeme::EINI:
-		case TypeLexeme::CHAINE:
-		case TypeLexeme::OCTET:
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::N8:
+		case GenreLexeme::N16:
+		case GenreLexeme::N32:
+		case GenreLexeme::N64:
+		case GenreLexeme::N128:
+		case GenreLexeme::R16:
+		case GenreLexeme::R32:
+		case GenreLexeme::R64:
+		case GenreLexeme::R128:
+		case GenreLexeme::Z8:
+		case GenreLexeme::Z16:
+		case GenreLexeme::Z32:
+		case GenreLexeme::Z64:
+		case GenreLexeme::Z128:
+		case GenreLexeme::BOOL:
+		case GenreLexeme::RIEN:
+		case GenreLexeme::EINI:
+		case GenreLexeme::CHAINE:
+		case GenreLexeme::OCTET:
+		case GenreLexeme::CHAINE_CARACTERE:
 		/* littérales */
-		case TypeLexeme::CHAINE_LITTERALE:
-		case TypeLexeme::NOMBRE_REEL:
-		case TypeLexeme::NOMBRE_ENTIER:
-		case TypeLexeme::NOMBRE_OCTAL:
-		case TypeLexeme::NOMBRE_HEXADECIMAL:
-		case TypeLexeme::NOMBRE_BINAIRE:
-		case TypeLexeme::CARACTERE:
-		case TypeLexeme::VRAI:
-		case TypeLexeme::FAUX:
-		case TypeLexeme::NUL:
+		case GenreLexeme::CHAINE_LITTERALE:
+		case GenreLexeme::NOMBRE_REEL:
+		case GenreLexeme::NOMBRE_ENTIER:
+		case GenreLexeme::NOMBRE_OCTAL:
+		case GenreLexeme::NOMBRE_HEXADECIMAL:
+		case GenreLexeme::NOMBRE_BINAIRE:
+		case GenreLexeme::CARACTERE:
+		case GenreLexeme::VRAI:
+		case GenreLexeme::FAUX:
+		case GenreLexeme::NUL:
 		/* instructions */
-		case TypeLexeme::ARRETE:
-		case TypeLexeme::CONTINUE:
-		case TypeLexeme::RETOURNE:
+		case GenreLexeme::ARRETE:
+		case GenreLexeme::CONTINUE:
+		case GenreLexeme::RETOURNE:
 		/* fermeture */
-		case TypeLexeme::PARENTHESE_FERMANTE:
-		case TypeLexeme::CROCHET_FERMANT:
+		case GenreLexeme::PARENTHESE_FERMANTE:
+		case GenreLexeme::CROCHET_FERMANT:
 		{
 			return true;
 		}
@@ -157,7 +157,7 @@ void Lexeuse::performe_lexage()
 						if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 							this->enregistre_pos_mot();
 							this->pousse_caractere(nombre_octet);
-							this->pousse_mot(TypeLexeme::CARACTERE_BLANC);
+							this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
 						}
 
 						this->avance(nombre_octet);
@@ -200,7 +200,7 @@ void Lexeuse::performe_lexage()
 
 						this->avance(nombre_octet);
 
-						this->pousse_mot(TypeLexeme::CHAINE_LITTERALE);
+						this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
 						break;
 					}
 					default:
@@ -234,7 +234,7 @@ size_t Lexeuse::memoire_morceaux() const
 void Lexeuse::imprime_morceaux(std::ostream &os)
 {
 	for (auto const &morceau : m_fichier->morceaux) {
-		os << chaine_identifiant(morceau.identifiant) << '\n';
+		os << chaine_identifiant(morceau.genre) << '\n';
 	}
 }
 
@@ -323,7 +323,7 @@ void Lexeuse::lance_erreur(const dls::chaine &quoi) const
 //    ajoute caractere mot courant
 void Lexeuse::analyse_caractere_simple()
 {
-	auto idc = TypeLexeme::INCONNU;
+	auto idc = GenreLexeme::INCONNU;
 
 	if (lng::est_espace_blanc(this->caractere_courant())) {
 		if (m_taille_mot_courant != 0) {
@@ -333,14 +333,14 @@ void Lexeuse::analyse_caractere_simple()
 		if ((m_drapeaux & INCLUS_CARACTERES_BLANC) != 0) {
 			this->enregistre_pos_mot();
 			this->pousse_caractere();
-			this->pousse_mot(TypeLexeme::CARACTERE_BLANC);
+			this->pousse_mot(GenreLexeme::CARACTERE_BLANC);
 		}
 
 		if (this->caractere_courant() == '\n') {
 			if (doit_ajouter_point_virgule(m_dernier_id)) {
 				this->enregistre_pos_mot();
 				this->pousse_caractere();
-				this->pousse_mot(TypeLexeme::POINT_VIRGULE);
+				this->pousse_mot(GenreLexeme::POINT_VIRGULE);
 			}
 		}
 
@@ -355,7 +355,7 @@ void Lexeuse::analyse_caractere_simple()
 
 		auto id = id_trigraphe(dls::vue_chaine_compacte(m_debut, 3));
 
-		if (id != TypeLexeme::INCONNU) {
+		if (id != GenreLexeme::INCONNU) {
 			this->pousse_caractere(3);
 			this->pousse_mot(id);
 			this->avance(3);
@@ -364,7 +364,7 @@ void Lexeuse::analyse_caractere_simple()
 
 		id = id_digraphe(dls::vue_chaine_compacte(m_debut, 2));
 
-		if (id != TypeLexeme::INCONNU) {
+		if (id != GenreLexeme::INCONNU) {
 			this->pousse_caractere(2);
 			this->pousse_mot(id);
 			this->avance(2);
@@ -375,7 +375,7 @@ void Lexeuse::analyse_caractere_simple()
 			case '.':
 			{
 				this->pousse_caractere();
-				this->pousse_mot(TypeLexeme::POINT);
+				this->pousse_mot(GenreLexeme::POINT);
 				this->avance();
 				break;
 			}
@@ -408,7 +408,7 @@ void Lexeuse::analyse_caractere_simple()
 
 				this->avance();
 
-				this->pousse_mot(TypeLexeme::CHAINE_LITTERALE);
+				this->pousse_mot(GenreLexeme::CHAINE_LITTERALE);
 				break;
 			}
 			case '\'':
@@ -442,7 +442,7 @@ void Lexeuse::analyse_caractere_simple()
 				}
 
 				this->avance();
-				this->pousse_mot(TypeLexeme::CARACTERE);
+				this->pousse_mot(GenreLexeme::CARACTERE);
 				break;
 			}
 			case '#':
@@ -458,7 +458,7 @@ void Lexeuse::analyse_caractere_simple()
 				}
 
 				if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-					this->pousse_mot(TypeLexeme::COMMENTAIRE);
+					this->pousse_mot(GenreLexeme::COMMENTAIRE);
 				}
 
 				/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
@@ -479,8 +479,8 @@ void Lexeuse::analyse_caractere_simple()
 	else if (m_taille_mot_courant == 0 && lng::est_nombre_decimal(this->caractere_courant())) {
 		this->enregistre_pos_mot();
 
-		using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
-		TypeLexeme id_nombre;
+		using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
+		GenreLexeme id_nombre;
 
 		/* NOTE : on utilise une variable temporaire pour stocker le compte au
 		 * lieu d'utiliser m_taille_mot_courant directement, car
@@ -508,7 +508,7 @@ void Lexeuse::pousse_caractere(int n)
 	m_taille_mot_courant += n;
 }
 
-void Lexeuse::pousse_mot(TypeLexeme identifiant)
+void Lexeuse::pousse_mot(GenreLexeme identifiant)
 {
 	m_fichier->morceaux.pousse({ mot_courant(), identifiant, static_cast<int>(m_fichier->id) });
 	m_taille_mot_courant = 0;

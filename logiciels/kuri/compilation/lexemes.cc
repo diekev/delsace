@@ -29,375 +29,375 @@
 #include "biblinternes/structures/dico_fixe.hh"
 
 static auto paires_mots_cles = dls::cree_dico(
-	dls::paire{ dls::vue_chaine_compacte("arrête"), TypeLexeme::ARRETE },
-	dls::paire{ dls::vue_chaine_compacte("bool"), TypeLexeme::BOOL },
-	dls::paire{ dls::vue_chaine_compacte("boucle"), TypeLexeme::BOUCLE },
-	dls::paire{ dls::vue_chaine_compacte("chaine"), TypeLexeme::CHAINE },
-	dls::paire{ dls::vue_chaine_compacte("charge"), TypeLexeme::CHARGE },
-	dls::paire{ dls::vue_chaine_compacte("continue"), TypeLexeme::CONTINUE },
-	dls::paire{ dls::vue_chaine_compacte("corout"), TypeLexeme::COROUT },
-	dls::paire{ dls::vue_chaine_compacte("dans"), TypeLexeme::DANS },
-	dls::paire{ dls::vue_chaine_compacte("diffère"), TypeLexeme::DIFFERE },
-	dls::paire{ dls::vue_chaine_compacte("discr"), TypeLexeme::DISCR },
-	dls::paire{ dls::vue_chaine_compacte("dyn"), TypeLexeme::DYN },
-	dls::paire{ dls::vue_chaine_compacte("déloge"), TypeLexeme::DELOGE },
-	dls::paire{ dls::vue_chaine_compacte("eini"), TypeLexeme::EINI },
-	dls::paire{ dls::vue_chaine_compacte("empl"), TypeLexeme::EMPL },
-	dls::paire{ dls::vue_chaine_compacte("externe"), TypeLexeme::EXTERNE },
-	dls::paire{ dls::vue_chaine_compacte("faux"), TypeLexeme::FAUX },
-	dls::paire{ dls::vue_chaine_compacte("fonc"), TypeLexeme::FONC },
-	dls::paire{ dls::vue_chaine_compacte("garde"), TypeLexeme::GARDE },
-	dls::paire{ dls::vue_chaine_compacte("importe"), TypeLexeme::IMPORTE },
-	dls::paire{ dls::vue_chaine_compacte("info_de"), TypeLexeme::INFO_DE },
-	dls::paire{ dls::vue_chaine_compacte("loge"), TypeLexeme::LOGE },
-	dls::paire{ dls::vue_chaine_compacte("mémoire"), TypeLexeme::MEMOIRE },
-	dls::paire{ dls::vue_chaine_compacte("n128"), TypeLexeme::N128 },
-	dls::paire{ dls::vue_chaine_compacte("n16"), TypeLexeme::N16 },
-	dls::paire{ dls::vue_chaine_compacte("n32"), TypeLexeme::N32 },
-	dls::paire{ dls::vue_chaine_compacte("n64"), TypeLexeme::N64 },
-	dls::paire{ dls::vue_chaine_compacte("n8"), TypeLexeme::N8 },
-	dls::paire{ dls::vue_chaine_compacte("nonsûr"), TypeLexeme::NONSUR },
-	dls::paire{ dls::vue_chaine_compacte("nul"), TypeLexeme::NUL },
-	dls::paire{ dls::vue_chaine_compacte("octet"), TypeLexeme::OCTET },
-	dls::paire{ dls::vue_chaine_compacte("pour"), TypeLexeme::POUR },
-	dls::paire{ dls::vue_chaine_compacte("r128"), TypeLexeme::R128 },
-	dls::paire{ dls::vue_chaine_compacte("r16"), TypeLexeme::R16 },
-	dls::paire{ dls::vue_chaine_compacte("r32"), TypeLexeme::R32 },
-	dls::paire{ dls::vue_chaine_compacte("r64"), TypeLexeme::R64 },
-	dls::paire{ dls::vue_chaine_compacte("reloge"), TypeLexeme::RELOGE },
-	dls::paire{ dls::vue_chaine_compacte("retiens"), TypeLexeme::RETIENS },
-	dls::paire{ dls::vue_chaine_compacte("retourne"), TypeLexeme::RETOURNE },
-	dls::paire{ dls::vue_chaine_compacte("rien"), TypeLexeme::RIEN },
-	dls::paire{ dls::vue_chaine_compacte("répète"), TypeLexeme::REPETE },
-	dls::paire{ dls::vue_chaine_compacte("sansarrêt"), TypeLexeme::SANSARRET },
-	dls::paire{ dls::vue_chaine_compacte("saufsi"), TypeLexeme::SAUFSI },
-	dls::paire{ dls::vue_chaine_compacte("si"), TypeLexeme::SI },
-	dls::paire{ dls::vue_chaine_compacte("sinon"), TypeLexeme::SINON },
-	dls::paire{ dls::vue_chaine_compacte("struct"), TypeLexeme::STRUCT },
-	dls::paire{ dls::vue_chaine_compacte("taille_de"), TypeLexeme::TAILLE_DE },
-	dls::paire{ dls::vue_chaine_compacte("tantque"), TypeLexeme::TANTQUE },
-	dls::paire{ dls::vue_chaine_compacte("transtype"), TypeLexeme::TRANSTYPE },
-	dls::paire{ dls::vue_chaine_compacte("type_de"), TypeLexeme::TYPE_DE },
-	dls::paire{ dls::vue_chaine_compacte("union"), TypeLexeme::UNION },
-	dls::paire{ dls::vue_chaine_compacte("vrai"), TypeLexeme::VRAI },
-	dls::paire{ dls::vue_chaine_compacte("z128"), TypeLexeme::Z128 },
-	dls::paire{ dls::vue_chaine_compacte("z16"), TypeLexeme::Z16 },
-	dls::paire{ dls::vue_chaine_compacte("z32"), TypeLexeme::Z32 },
-	dls::paire{ dls::vue_chaine_compacte("z64"), TypeLexeme::Z64 },
-	dls::paire{ dls::vue_chaine_compacte("z8"), TypeLexeme::Z8 },
-	dls::paire{ dls::vue_chaine_compacte("énum"), TypeLexeme::ENUM },
-	dls::paire{ dls::vue_chaine_compacte("énum_drapeau"), TypeLexeme::ENUM_DRAPEAU }
+	dls::paire{ dls::vue_chaine_compacte("arrête"), GenreLexeme::ARRETE },
+	dls::paire{ dls::vue_chaine_compacte("bool"), GenreLexeme::BOOL },
+	dls::paire{ dls::vue_chaine_compacte("boucle"), GenreLexeme::BOUCLE },
+	dls::paire{ dls::vue_chaine_compacte("chaine"), GenreLexeme::CHAINE },
+	dls::paire{ dls::vue_chaine_compacte("charge"), GenreLexeme::CHARGE },
+	dls::paire{ dls::vue_chaine_compacte("continue"), GenreLexeme::CONTINUE },
+	dls::paire{ dls::vue_chaine_compacte("corout"), GenreLexeme::COROUT },
+	dls::paire{ dls::vue_chaine_compacte("dans"), GenreLexeme::DANS },
+	dls::paire{ dls::vue_chaine_compacte("diffère"), GenreLexeme::DIFFERE },
+	dls::paire{ dls::vue_chaine_compacte("discr"), GenreLexeme::DISCR },
+	dls::paire{ dls::vue_chaine_compacte("dyn"), GenreLexeme::DYN },
+	dls::paire{ dls::vue_chaine_compacte("déloge"), GenreLexeme::DELOGE },
+	dls::paire{ dls::vue_chaine_compacte("eini"), GenreLexeme::EINI },
+	dls::paire{ dls::vue_chaine_compacte("empl"), GenreLexeme::EMPL },
+	dls::paire{ dls::vue_chaine_compacte("externe"), GenreLexeme::EXTERNE },
+	dls::paire{ dls::vue_chaine_compacte("faux"), GenreLexeme::FAUX },
+	dls::paire{ dls::vue_chaine_compacte("fonc"), GenreLexeme::FONC },
+	dls::paire{ dls::vue_chaine_compacte("garde"), GenreLexeme::GARDE },
+	dls::paire{ dls::vue_chaine_compacte("importe"), GenreLexeme::IMPORTE },
+	dls::paire{ dls::vue_chaine_compacte("info_de"), GenreLexeme::INFO_DE },
+	dls::paire{ dls::vue_chaine_compacte("loge"), GenreLexeme::LOGE },
+	dls::paire{ dls::vue_chaine_compacte("mémoire"), GenreLexeme::MEMOIRE },
+	dls::paire{ dls::vue_chaine_compacte("n128"), GenreLexeme::N128 },
+	dls::paire{ dls::vue_chaine_compacte("n16"), GenreLexeme::N16 },
+	dls::paire{ dls::vue_chaine_compacte("n32"), GenreLexeme::N32 },
+	dls::paire{ dls::vue_chaine_compacte("n64"), GenreLexeme::N64 },
+	dls::paire{ dls::vue_chaine_compacte("n8"), GenreLexeme::N8 },
+	dls::paire{ dls::vue_chaine_compacte("nonsûr"), GenreLexeme::NONSUR },
+	dls::paire{ dls::vue_chaine_compacte("nul"), GenreLexeme::NUL },
+	dls::paire{ dls::vue_chaine_compacte("octet"), GenreLexeme::OCTET },
+	dls::paire{ dls::vue_chaine_compacte("pour"), GenreLexeme::POUR },
+	dls::paire{ dls::vue_chaine_compacte("r128"), GenreLexeme::R128 },
+	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
+	dls::paire{ dls::vue_chaine_compacte("r32"), GenreLexeme::R32 },
+	dls::paire{ dls::vue_chaine_compacte("r64"), GenreLexeme::R64 },
+	dls::paire{ dls::vue_chaine_compacte("reloge"), GenreLexeme::RELOGE },
+	dls::paire{ dls::vue_chaine_compacte("retiens"), GenreLexeme::RETIENS },
+	dls::paire{ dls::vue_chaine_compacte("retourne"), GenreLexeme::RETOURNE },
+	dls::paire{ dls::vue_chaine_compacte("rien"), GenreLexeme::RIEN },
+	dls::paire{ dls::vue_chaine_compacte("répète"), GenreLexeme::REPETE },
+	dls::paire{ dls::vue_chaine_compacte("sansarrêt"), GenreLexeme::SANSARRET },
+	dls::paire{ dls::vue_chaine_compacte("saufsi"), GenreLexeme::SAUFSI },
+	dls::paire{ dls::vue_chaine_compacte("si"), GenreLexeme::SI },
+	dls::paire{ dls::vue_chaine_compacte("sinon"), GenreLexeme::SINON },
+	dls::paire{ dls::vue_chaine_compacte("struct"), GenreLexeme::STRUCT },
+	dls::paire{ dls::vue_chaine_compacte("taille_de"), GenreLexeme::TAILLE_DE },
+	dls::paire{ dls::vue_chaine_compacte("tantque"), GenreLexeme::TANTQUE },
+	dls::paire{ dls::vue_chaine_compacte("transtype"), GenreLexeme::TRANSTYPE },
+	dls::paire{ dls::vue_chaine_compacte("type_de"), GenreLexeme::TYPE_DE },
+	dls::paire{ dls::vue_chaine_compacte("union"), GenreLexeme::UNION },
+	dls::paire{ dls::vue_chaine_compacte("vrai"), GenreLexeme::VRAI },
+	dls::paire{ dls::vue_chaine_compacte("z128"), GenreLexeme::Z128 },
+	dls::paire{ dls::vue_chaine_compacte("z16"), GenreLexeme::Z16 },
+	dls::paire{ dls::vue_chaine_compacte("z32"), GenreLexeme::Z32 },
+	dls::paire{ dls::vue_chaine_compacte("z64"), GenreLexeme::Z64 },
+	dls::paire{ dls::vue_chaine_compacte("z8"), GenreLexeme::Z8 },
+	dls::paire{ dls::vue_chaine_compacte("énum"), GenreLexeme::ENUM },
+	dls::paire{ dls::vue_chaine_compacte("énum_drapeau"), GenreLexeme::ENUM_DRAPEAU }
 );
 
 static auto paires_digraphes = dls::cree_dico(
-	dls::paire{ dls::vue_chaine_compacte("!="), TypeLexeme::DIFFERENCE },
-	dls::paire{ dls::vue_chaine_compacte("#!"), TypeLexeme::DIRECTIVE },
-	dls::paire{ dls::vue_chaine_compacte("%="), TypeLexeme::MODULO_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("&&"), TypeLexeme::ESP_ESP },
-	dls::paire{ dls::vue_chaine_compacte("&="), TypeLexeme::ET_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("*="), TypeLexeme::MULTIPLIE_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("+="), TypeLexeme::PLUS_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("-="), TypeLexeme::MOINS_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("->"), TypeLexeme::RETOUR_TYPE },
-	dls::paire{ dls::vue_chaine_compacte("/="), TypeLexeme::DIVISE_EGAL },
-	dls::paire{ dls::vue_chaine_compacte(":="), TypeLexeme::DECLARATION_VARIABLE },
-	dls::paire{ dls::vue_chaine_compacte("<<"), TypeLexeme::DECALAGE_GAUCHE },
-	dls::paire{ dls::vue_chaine_compacte("<="), TypeLexeme::INFERIEUR_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("=="), TypeLexeme::EGALITE },
-	dls::paire{ dls::vue_chaine_compacte(">="), TypeLexeme::SUPERIEUR_EGAL },
-	dls::paire{ dls::vue_chaine_compacte(">>"), TypeLexeme::DECALAGE_DROITE },
-	dls::paire{ dls::vue_chaine_compacte("^="), TypeLexeme::OUX_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("|="), TypeLexeme::OU_EGAL },
-	dls::paire{ dls::vue_chaine_compacte("||"), TypeLexeme::BARRE_BARRE }
+	dls::paire{ dls::vue_chaine_compacte("!="), GenreLexeme::DIFFERENCE },
+	dls::paire{ dls::vue_chaine_compacte("#!"), GenreLexeme::DIRECTIVE },
+	dls::paire{ dls::vue_chaine_compacte("%="), GenreLexeme::MODULO_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("&&"), GenreLexeme::ESP_ESP },
+	dls::paire{ dls::vue_chaine_compacte("&="), GenreLexeme::ET_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("*="), GenreLexeme::MULTIPLIE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("+="), GenreLexeme::PLUS_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("-="), GenreLexeme::MOINS_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("->"), GenreLexeme::RETOUR_TYPE },
+	dls::paire{ dls::vue_chaine_compacte("/="), GenreLexeme::DIVISE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte(":="), GenreLexeme::DECLARATION_VARIABLE },
+	dls::paire{ dls::vue_chaine_compacte("<<"), GenreLexeme::DECALAGE_GAUCHE },
+	dls::paire{ dls::vue_chaine_compacte("<="), GenreLexeme::INFERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("=="), GenreLexeme::EGALITE },
+	dls::paire{ dls::vue_chaine_compacte(">="), GenreLexeme::SUPERIEUR_EGAL },
+	dls::paire{ dls::vue_chaine_compacte(">>"), GenreLexeme::DECALAGE_DROITE },
+	dls::paire{ dls::vue_chaine_compacte("^="), GenreLexeme::OUX_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("|="), GenreLexeme::OU_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("||"), GenreLexeme::BARRE_BARRE }
 );
 
 static auto paires_trigraphes = dls::cree_dico(
-	dls::paire{ dls::vue_chaine_compacte("..."), TypeLexeme::TROIS_POINTS },
-	dls::paire{ dls::vue_chaine_compacte("<<="), TypeLexeme::DEC_GAUCHE_EGAL },
-	dls::paire{ dls::vue_chaine_compacte(">>="), TypeLexeme::DEC_DROITE_EGAL }
+	dls::paire{ dls::vue_chaine_compacte("..."), GenreLexeme::TROIS_POINTS },
+	dls::paire{ dls::vue_chaine_compacte("<<="), GenreLexeme::DEC_GAUCHE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte(">>="), GenreLexeme::DEC_DROITE_EGAL }
 );
 
 static auto paires_caracteres_speciaux = dls::cree_dico(
-	dls::paire{ '!', TypeLexeme::EXCLAMATION },
-	dls::paire{ '"', TypeLexeme::GUILLEMET },
-	dls::paire{ '#', TypeLexeme::DIESE },
-	dls::paire{ '$', TypeLexeme::DOLLAR },
-	dls::paire{ '%', TypeLexeme::POURCENT },
-	dls::paire{ '&', TypeLexeme::ESPERLUETTE },
-	dls::paire{ '\'', TypeLexeme::APOSTROPHE },
-	dls::paire{ '(', TypeLexeme::PARENTHESE_OUVRANTE },
-	dls::paire{ ')', TypeLexeme::PARENTHESE_FERMANTE },
-	dls::paire{ '*', TypeLexeme::FOIS },
-	dls::paire{ '+', TypeLexeme::PLUS },
-	dls::paire{ ',', TypeLexeme::VIRGULE },
-	dls::paire{ '-', TypeLexeme::MOINS },
-	dls::paire{ '.', TypeLexeme::POINT },
-	dls::paire{ '/', TypeLexeme::DIVISE },
-	dls::paire{ ':', TypeLexeme::DOUBLE_POINTS },
-	dls::paire{ ';', TypeLexeme::POINT_VIRGULE },
-	dls::paire{ '<', TypeLexeme::INFERIEUR },
-	dls::paire{ '=', TypeLexeme::EGAL },
-	dls::paire{ '>', TypeLexeme::SUPERIEUR },
-	dls::paire{ '@', TypeLexeme::AROBASE },
-	dls::paire{ '[', TypeLexeme::CROCHET_OUVRANT },
-	dls::paire{ ']', TypeLexeme::CROCHET_FERMANT },
-	dls::paire{ '^', TypeLexeme::CHAPEAU },
-	dls::paire{ '{', TypeLexeme::ACCOLADE_OUVRANTE },
-	dls::paire{ '|', TypeLexeme::BARRE },
-	dls::paire{ '}', TypeLexeme::ACCOLADE_FERMANTE },
-	dls::paire{ '~', TypeLexeme::TILDE }
+	dls::paire{ '!', GenreLexeme::EXCLAMATION },
+	dls::paire{ '"', GenreLexeme::GUILLEMET },
+	dls::paire{ '#', GenreLexeme::DIESE },
+	dls::paire{ '$', GenreLexeme::DOLLAR },
+	dls::paire{ '%', GenreLexeme::POURCENT },
+	dls::paire{ '&', GenreLexeme::ESPERLUETTE },
+	dls::paire{ '\'', GenreLexeme::APOSTROPHE },
+	dls::paire{ '(', GenreLexeme::PARENTHESE_OUVRANTE },
+	dls::paire{ ')', GenreLexeme::PARENTHESE_FERMANTE },
+	dls::paire{ '*', GenreLexeme::FOIS },
+	dls::paire{ '+', GenreLexeme::PLUS },
+	dls::paire{ ',', GenreLexeme::VIRGULE },
+	dls::paire{ '-', GenreLexeme::MOINS },
+	dls::paire{ '.', GenreLexeme::POINT },
+	dls::paire{ '/', GenreLexeme::DIVISE },
+	dls::paire{ ':', GenreLexeme::DOUBLE_POINTS },
+	dls::paire{ ';', GenreLexeme::POINT_VIRGULE },
+	dls::paire{ '<', GenreLexeme::INFERIEUR },
+	dls::paire{ '=', GenreLexeme::EGAL },
+	dls::paire{ '>', GenreLexeme::SUPERIEUR },
+	dls::paire{ '@', GenreLexeme::AROBASE },
+	dls::paire{ '[', GenreLexeme::CROCHET_OUVRANT },
+	dls::paire{ ']', GenreLexeme::CROCHET_FERMANT },
+	dls::paire{ '^', GenreLexeme::CHAPEAU },
+	dls::paire{ '{', GenreLexeme::ACCOLADE_OUVRANTE },
+	dls::paire{ '|', GenreLexeme::BARRE },
+	dls::paire{ '}', GenreLexeme::ACCOLADE_FERMANTE },
+	dls::paire{ '~', GenreLexeme::TILDE }
 );
 
-const char *chaine_identifiant(TypeLexeme id)
+const char *chaine_identifiant(GenreLexeme id)
 {
 	switch (id) {
-		case TypeLexeme::EXCLAMATION:
+		case GenreLexeme::EXCLAMATION:
 			return "TypeLexeme::EXCLAMATION";
-		case TypeLexeme::GUILLEMET:
+		case GenreLexeme::GUILLEMET:
 			return "TypeLexeme::GUILLEMET";
-		case TypeLexeme::DIESE:
+		case GenreLexeme::DIESE:
 			return "TypeLexeme::DIESE";
-		case TypeLexeme::DOLLAR:
+		case GenreLexeme::DOLLAR:
 			return "TypeLexeme::DOLLAR";
-		case TypeLexeme::POURCENT:
+		case GenreLexeme::POURCENT:
 			return "TypeLexeme::POURCENT";
-		case TypeLexeme::ESPERLUETTE:
+		case GenreLexeme::ESPERLUETTE:
 			return "TypeLexeme::ESPERLUETTE";
-		case TypeLexeme::APOSTROPHE:
+		case GenreLexeme::APOSTROPHE:
 			return "TypeLexeme::APOSTROPHE";
-		case TypeLexeme::PARENTHESE_OUVRANTE:
+		case GenreLexeme::PARENTHESE_OUVRANTE:
 			return "TypeLexeme::PARENTHESE_OUVRANTE";
-		case TypeLexeme::PARENTHESE_FERMANTE:
+		case GenreLexeme::PARENTHESE_FERMANTE:
 			return "TypeLexeme::PARENTHESE_FERMANTE";
-		case TypeLexeme::FOIS:
+		case GenreLexeme::FOIS:
 			return "TypeLexeme::FOIS";
-		case TypeLexeme::PLUS:
+		case GenreLexeme::PLUS:
 			return "TypeLexeme::PLUS";
-		case TypeLexeme::VIRGULE:
+		case GenreLexeme::VIRGULE:
 			return "TypeLexeme::VIRGULE";
-		case TypeLexeme::MOINS:
+		case GenreLexeme::MOINS:
 			return "TypeLexeme::MOINS";
-		case TypeLexeme::POINT:
+		case GenreLexeme::POINT:
 			return "TypeLexeme::POINT";
-		case TypeLexeme::DIVISE:
+		case GenreLexeme::DIVISE:
 			return "TypeLexeme::DIVISE";
-		case TypeLexeme::DOUBLE_POINTS:
+		case GenreLexeme::DOUBLE_POINTS:
 			return "TypeLexeme::DOUBLE_POINTS";
-		case TypeLexeme::POINT_VIRGULE:
+		case GenreLexeme::POINT_VIRGULE:
 			return "TypeLexeme::POINT_VIRGULE";
-		case TypeLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR:
 			return "TypeLexeme::INFERIEUR";
-		case TypeLexeme::EGAL:
+		case GenreLexeme::EGAL:
 			return "TypeLexeme::EGAL";
-		case TypeLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR:
 			return "TypeLexeme::SUPERIEUR";
-		case TypeLexeme::AROBASE:
+		case GenreLexeme::AROBASE:
 			return "TypeLexeme::AROBASE";
-		case TypeLexeme::CROCHET_OUVRANT:
+		case GenreLexeme::CROCHET_OUVRANT:
 			return "TypeLexeme::CROCHET_OUVRANT";
-		case TypeLexeme::CROCHET_FERMANT:
+		case GenreLexeme::CROCHET_FERMANT:
 			return "TypeLexeme::CROCHET_FERMANT";
-		case TypeLexeme::CHAPEAU:
+		case GenreLexeme::CHAPEAU:
 			return "TypeLexeme::CHAPEAU";
-		case TypeLexeme::ACCOLADE_OUVRANTE:
+		case GenreLexeme::ACCOLADE_OUVRANTE:
 			return "TypeLexeme::ACCOLADE_OUVRANTE";
-		case TypeLexeme::BARRE:
+		case GenreLexeme::BARRE:
 			return "TypeLexeme::BARRE";
-		case TypeLexeme::ACCOLADE_FERMANTE:
+		case GenreLexeme::ACCOLADE_FERMANTE:
 			return "TypeLexeme::ACCOLADE_FERMANTE";
-		case TypeLexeme::TILDE:
+		case GenreLexeme::TILDE:
 			return "TypeLexeme::TILDE";
-		case TypeLexeme::DIFFERENCE:
+		case GenreLexeme::DIFFERENCE:
 			return "TypeLexeme::DIFFERENCE";
-		case TypeLexeme::DIRECTIVE:
+		case GenreLexeme::DIRECTIVE:
 			return "TypeLexeme::DIRECTIVE";
-		case TypeLexeme::MODULO_EGAL:
+		case GenreLexeme::MODULO_EGAL:
 			return "TypeLexeme::MODULO_EGAL";
-		case TypeLexeme::ESP_ESP:
+		case GenreLexeme::ESP_ESP:
 			return "TypeLexeme::ESP_ESP";
-		case TypeLexeme::ET_EGAL:
+		case GenreLexeme::ET_EGAL:
 			return "TypeLexeme::ET_EGAL";
-		case TypeLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::MULTIPLIE_EGAL:
 			return "TypeLexeme::MULTIPLIE_EGAL";
-		case TypeLexeme::PLUS_EGAL:
+		case GenreLexeme::PLUS_EGAL:
 			return "TypeLexeme::PLUS_EGAL";
-		case TypeLexeme::MOINS_EGAL:
+		case GenreLexeme::MOINS_EGAL:
 			return "TypeLexeme::MOINS_EGAL";
-		case TypeLexeme::RETOUR_TYPE:
+		case GenreLexeme::RETOUR_TYPE:
 			return "TypeLexeme::RETOUR_TYPE";
-		case TypeLexeme::DIVISE_EGAL:
+		case GenreLexeme::DIVISE_EGAL:
 			return "TypeLexeme::DIVISE_EGAL";
-		case TypeLexeme::DECLARATION_VARIABLE:
+		case GenreLexeme::DECLARATION_VARIABLE:
 			return "TypeLexeme::DECLARATION_VARIABLE";
-		case TypeLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DECALAGE_GAUCHE:
 			return "TypeLexeme::DECALAGE_GAUCHE";
-		case TypeLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::INFERIEUR_EGAL:
 			return "TypeLexeme::INFERIEUR_EGAL";
-		case TypeLexeme::EGALITE:
+		case GenreLexeme::EGALITE:
 			return "TypeLexeme::EGALITE";
-		case TypeLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR_EGAL:
 			return "TypeLexeme::SUPERIEUR_EGAL";
-		case TypeLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DECALAGE_DROITE:
 			return "TypeLexeme::DECALAGE_DROITE";
-		case TypeLexeme::OUX_EGAL:
+		case GenreLexeme::OUX_EGAL:
 			return "TypeLexeme::OUX_EGAL";
-		case TypeLexeme::OU_EGAL:
+		case GenreLexeme::OU_EGAL:
 			return "TypeLexeme::OU_EGAL";
-		case TypeLexeme::BARRE_BARRE:
+		case GenreLexeme::BARRE_BARRE:
 			return "TypeLexeme::BARRE_BARRE";
-		case TypeLexeme::TROIS_POINTS:
+		case GenreLexeme::TROIS_POINTS:
 			return "TypeLexeme::TROIS_POINTS";
-		case TypeLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 			return "TypeLexeme::DEC_GAUCHE_EGAL";
-		case TypeLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DEC_DROITE_EGAL:
 			return "TypeLexeme::DEC_DROITE_EGAL";
-		case TypeLexeme::ARRETE:
+		case GenreLexeme::ARRETE:
 			return "TypeLexeme::ARRETE";
-		case TypeLexeme::BOOL:
+		case GenreLexeme::BOOL:
 			return "TypeLexeme::BOOL";
-		case TypeLexeme::BOUCLE:
+		case GenreLexeme::BOUCLE:
 			return "TypeLexeme::BOUCLE";
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 			return "TypeLexeme::CHAINE";
-		case TypeLexeme::CHARGE:
+		case GenreLexeme::CHARGE:
 			return "TypeLexeme::CHARGE";
-		case TypeLexeme::CONTINUE:
+		case GenreLexeme::CONTINUE:
 			return "TypeLexeme::CONTINUE";
-		case TypeLexeme::COROUT:
+		case GenreLexeme::COROUT:
 			return "TypeLexeme::COROUT";
-		case TypeLexeme::DANS:
+		case GenreLexeme::DANS:
 			return "TypeLexeme::DANS";
-		case TypeLexeme::DIFFERE:
+		case GenreLexeme::DIFFERE:
 			return "TypeLexeme::DIFFERE";
-		case TypeLexeme::DISCR:
+		case GenreLexeme::DISCR:
 			return "TypeLexeme::DISCR";
-		case TypeLexeme::DYN:
+		case GenreLexeme::DYN:
 			return "TypeLexeme::DYN";
-		case TypeLexeme::DELOGE:
+		case GenreLexeme::DELOGE:
 			return "TypeLexeme::DELOGE";
-		case TypeLexeme::EINI:
+		case GenreLexeme::EINI:
 			return "TypeLexeme::EINI";
-		case TypeLexeme::EMPL:
+		case GenreLexeme::EMPL:
 			return "TypeLexeme::EMPL";
-		case TypeLexeme::EXTERNE:
+		case GenreLexeme::EXTERNE:
 			return "TypeLexeme::EXTERNE";
-		case TypeLexeme::FAUX:
+		case GenreLexeme::FAUX:
 			return "TypeLexeme::FAUX";
-		case TypeLexeme::FONC:
+		case GenreLexeme::FONC:
 			return "TypeLexeme::FONC";
-		case TypeLexeme::GARDE:
+		case GenreLexeme::GARDE:
 			return "TypeLexeme::GARDE";
-		case TypeLexeme::IMPORTE:
+		case GenreLexeme::IMPORTE:
 			return "TypeLexeme::IMPORTE";
-		case TypeLexeme::INFO_DE:
+		case GenreLexeme::INFO_DE:
 			return "TypeLexeme::INFO_DE";
-		case TypeLexeme::LOGE:
+		case GenreLexeme::LOGE:
 			return "TypeLexeme::LOGE";
-		case TypeLexeme::MEMOIRE:
+		case GenreLexeme::MEMOIRE:
 			return "TypeLexeme::MEMOIRE";
-		case TypeLexeme::N128:
+		case GenreLexeme::N128:
 			return "TypeLexeme::N128";
-		case TypeLexeme::N16:
+		case GenreLexeme::N16:
 			return "TypeLexeme::N16";
-		case TypeLexeme::N32:
+		case GenreLexeme::N32:
 			return "TypeLexeme::N32";
-		case TypeLexeme::N64:
+		case GenreLexeme::N64:
 			return "TypeLexeme::N64";
-		case TypeLexeme::N8:
+		case GenreLexeme::N8:
 			return "TypeLexeme::N8";
-		case TypeLexeme::NONSUR:
+		case GenreLexeme::NONSUR:
 			return "TypeLexeme::NONSUR";
-		case TypeLexeme::NUL:
+		case GenreLexeme::NUL:
 			return "TypeLexeme::NUL";
-		case TypeLexeme::OCTET:
+		case GenreLexeme::OCTET:
 			return "TypeLexeme::OCTET";
-		case TypeLexeme::POUR:
+		case GenreLexeme::POUR:
 			return "TypeLexeme::POUR";
-		case TypeLexeme::R128:
+		case GenreLexeme::R128:
 			return "TypeLexeme::R128";
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 			return "TypeLexeme::R16";
-		case TypeLexeme::R32:
+		case GenreLexeme::R32:
 			return "TypeLexeme::R32";
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 			return "TypeLexeme::R64";
-		case TypeLexeme::RELOGE:
+		case GenreLexeme::RELOGE:
 			return "TypeLexeme::RELOGE";
-		case TypeLexeme::RETIENS:
+		case GenreLexeme::RETIENS:
 			return "TypeLexeme::RETIENS";
-		case TypeLexeme::RETOURNE:
+		case GenreLexeme::RETOURNE:
 			return "TypeLexeme::RETOURNE";
-		case TypeLexeme::RIEN:
+		case GenreLexeme::RIEN:
 			return "TypeLexeme::RIEN";
-		case TypeLexeme::REPETE:
+		case GenreLexeme::REPETE:
 			return "TypeLexeme::REPETE";
-		case TypeLexeme::SANSARRET:
+		case GenreLexeme::SANSARRET:
 			return "TypeLexeme::SANSARRET";
-		case TypeLexeme::SAUFSI:
+		case GenreLexeme::SAUFSI:
 			return "TypeLexeme::SAUFSI";
-		case TypeLexeme::SI:
+		case GenreLexeme::SI:
 			return "TypeLexeme::SI";
-		case TypeLexeme::SINON:
+		case GenreLexeme::SINON:
 			return "TypeLexeme::SINON";
-		case TypeLexeme::STRUCT:
+		case GenreLexeme::STRUCT:
 			return "TypeLexeme::STRUCT";
-		case TypeLexeme::TAILLE_DE:
+		case GenreLexeme::TAILLE_DE:
 			return "TypeLexeme::TAILLE_DE";
-		case TypeLexeme::TANTQUE:
+		case GenreLexeme::TANTQUE:
 			return "TypeLexeme::TANTQUE";
-		case TypeLexeme::TRANSTYPE:
+		case GenreLexeme::TRANSTYPE:
 			return "TypeLexeme::TRANSTYPE";
-		case TypeLexeme::TYPE_DE:
+		case GenreLexeme::TYPE_DE:
 			return "TypeLexeme::TYPE_DE";
-		case TypeLexeme::UNION:
+		case GenreLexeme::UNION:
 			return "TypeLexeme::UNION";
-		case TypeLexeme::VRAI:
+		case GenreLexeme::VRAI:
 			return "TypeLexeme::VRAI";
-		case TypeLexeme::Z128:
+		case GenreLexeme::Z128:
 			return "TypeLexeme::Z128";
-		case TypeLexeme::Z16:
+		case GenreLexeme::Z16:
 			return "TypeLexeme::Z16";
-		case TypeLexeme::Z32:
+		case GenreLexeme::Z32:
 			return "TypeLexeme::Z32";
-		case TypeLexeme::Z64:
+		case GenreLexeme::Z64:
 			return "TypeLexeme::Z64";
-		case TypeLexeme::Z8:
+		case GenreLexeme::Z8:
 			return "TypeLexeme::Z8";
-		case TypeLexeme::ENUM:
+		case GenreLexeme::ENUM:
 			return "TypeLexeme::ENUM";
-		case TypeLexeme::ENUM_DRAPEAU:
+		case GenreLexeme::ENUM_DRAPEAU:
 			return "TypeLexeme::ENUM_DRAPEAU";
-		case TypeLexeme::NOMBRE_REEL:
+		case GenreLexeme::NOMBRE_REEL:
 			return "TypeLexeme::NOMBRE_REEL";
-		case TypeLexeme::NOMBRE_ENTIER:
+		case GenreLexeme::NOMBRE_ENTIER:
 			return "TypeLexeme::NOMBRE_ENTIER";
-		case TypeLexeme::NOMBRE_HEXADECIMAL:
+		case GenreLexeme::NOMBRE_HEXADECIMAL:
 			return "TypeLexeme::NOMBRE_HEXADECIMAL";
-		case TypeLexeme::NOMBRE_OCTAL:
+		case GenreLexeme::NOMBRE_OCTAL:
 			return "TypeLexeme::NOMBRE_OCTAL";
-		case TypeLexeme::NOMBRE_BINAIRE:
+		case GenreLexeme::NOMBRE_BINAIRE:
 			return "TypeLexeme::NOMBRE_BINAIRE";
-		case TypeLexeme::PLUS_UNAIRE:
+		case GenreLexeme::PLUS_UNAIRE:
 			return "TypeLexeme::PLUS_UNAIRE";
-		case TypeLexeme::MOINS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
 			return "TypeLexeme::MOINS_UNAIRE";
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 			return "TypeLexeme::CHAINE_CARACTERE";
-		case TypeLexeme::CHAINE_LITTERALE:
+		case GenreLexeme::CHAINE_LITTERALE:
 			return "TypeLexeme::CHAINE_LITTERALE";
-		case TypeLexeme::CARACTERE:
+		case GenreLexeme::CARACTERE:
 			return "TypeLexeme::CARACTERE";
-		case TypeLexeme::POINTEUR:
+		case GenreLexeme::POINTEUR:
 			return "TypeLexeme::POINTEUR";
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 			return "TypeLexeme::TABLEAU";
-		case TypeLexeme::REFERENCE:
+		case GenreLexeme::REFERENCE:
 			return "TypeLexeme::REFERENCE";
-		case TypeLexeme::INCONNU:
+		case GenreLexeme::INCONNU:
 			return "TypeLexeme::INCONNU";
-		case TypeLexeme::CARACTERE_BLANC:
+		case GenreLexeme::CARACTERE_BLANC:
 			return "TypeLexeme::CARACTERE_BLANC";
-		case TypeLexeme::COMMENTAIRE:
+		case GenreLexeme::COMMENTAIRE:
 			return "TypeLexeme::COMMENTAIRE";
 	};
 
@@ -407,7 +407,7 @@ const char *chaine_identifiant(TypeLexeme id)
 static constexpr auto TAILLE_MAX_MOT_CLE = 13;
 
 static bool tables_caracteres[256] = {};
-static TypeLexeme tables_identifiants[256] = {};
+static GenreLexeme tables_identifiants[256] = {};
 static bool tables_digraphes[256] = {};
 static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
@@ -419,7 +419,7 @@ void construit_tables_caractere_speciaux()
 		tables_digraphes[i] = false;
 		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = TypeLexeme::INCONNU;
+		tables_identifiants[i] = GenreLexeme::INCONNU;
 	}
 
     {
@@ -460,7 +460,7 @@ void construit_tables_caractere_speciaux()
 	}
 }
 
-bool est_caractere_special(char c, TypeLexeme &i)
+bool est_caractere_special(char c, GenreLexeme &i)
 {
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
@@ -470,10 +470,10 @@ bool est_caractere_special(char c, TypeLexeme &i)
 	return true;
 }
 
-TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
+GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
-		return TypeLexeme::INCONNU;
+		return GenreLexeme::INCONNU;
 	}
 
 	auto iterateur = paires_digraphes.trouve_binaire(chaine);
@@ -482,13 +482,13 @@ TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return TypeLexeme::INCONNU;
+	return GenreLexeme::INCONNU;
 }
 
-TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
+GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
-		return TypeLexeme::INCONNU;
+		return GenreLexeme::INCONNU;
 	}
 
 	auto iterateur = paires_trigraphes.trouve_binaire(chaine);
@@ -497,17 +497,17 @@ TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return TypeLexeme::INCONNU;
+	return GenreLexeme::INCONNU;
 }
 
-TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
+GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
-		return TypeLexeme::CHAINE_CARACTERE;
+		return GenreLexeme::CHAINE_CARACTERE;
 	}
 
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return TypeLexeme::CHAINE_CARACTERE;
+		return GenreLexeme::CHAINE_CARACTERE;
 	}
 
 	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
@@ -516,5 +516,5 @@ TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return TypeLexeme::CHAINE_CARACTERE;
+	return GenreLexeme::CHAINE_CARACTERE;
 }

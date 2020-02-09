@@ -47,12 +47,12 @@ bool verifie_morceaux(I1 debut1, I1 fin1, I2 debut2, I2 fin2)
 	}
 
 	while (debut1 != fin1 && debut2 != fin2) {
-		if ((*debut1).identifiant != (*debut2).identifiant) {
+		if ((*debut1).genre != (*debut2).genre) {
 #ifdef DEBOGUE_MORCEAUX
 			std::cerr << "Les identifiants ne correspondent pas : "
-					  << chaine_identifiant((*debut1).identifiant)
+					  << chaine_identifiant((*debut1).genre)
 					  << " vs "
-					  << chaine_identifiant((*debut2).identifiant) << '\n';
+					  << chaine_identifiant((*debut2).genre) << '\n';
 #endif
 			return false;
 		}
@@ -91,57 +91,57 @@ Lexeuse lexeuse(str, str + len);
 )";
 
 	const DonneesLexeme donnees_morceaux[] = {
-		{ " ceci est une chaine française avec espaces ", TypeLexeme::CHAINE_LITTERALE },
-		{ "\n", TypeLexeme::POINT_VIRGULE },
-		{ "ceci est une chaine française sans espaces", TypeLexeme::CHAINE_LITTERALE },
-		{ "\n", TypeLexeme::POINT_VIRGULE },
-		{ "str", TypeLexeme::CHAINE_CARACTERE },
-		{ "=", TypeLexeme::EGAL },
-		{ "a", TypeLexeme::CARACTERE },
-		{ ";", TypeLexeme::POINT_VIRGULE },
-		{ "str0", TypeLexeme::CHAINE_CARACTERE },
-		{ "=", TypeLexeme::EGAL },
-		{ "\\0", TypeLexeme::CARACTERE },
-		{ ";", TypeLexeme::POINT_VIRGULE },
-		{ "discr", TypeLexeme::DISCR },
-		{ "nombre", TypeLexeme::CHAINE_CARACTERE },
-		{ "{", TypeLexeme::ACCOLADE_OUVRANTE },
-		{ "0", TypeLexeme::NOMBRE_ENTIER },
-		{ "...", TypeLexeme::TROIS_POINTS },
-		{ "1_000", TypeLexeme::NOMBRE_ENTIER },
-		{ ":", TypeLexeme::DOUBLE_POINTS },
-		{ "imprime", TypeLexeme::CHAINE_CARACTERE },
-		{ "(", TypeLexeme::PARENTHESE_OUVRANTE },
-		{ "1000", TypeLexeme::NOMBRE_ENTIER },
-		{ ")", TypeLexeme::PARENTHESE_FERMANTE },
-		{ ";", TypeLexeme::POINT_VIRGULE },
-		{ "11_000", TypeLexeme::NOMBRE_ENTIER },
-		{ "...", TypeLexeme::TROIS_POINTS },
-		{ "2_0000", TypeLexeme::NOMBRE_ENTIER },
-		{ ":", TypeLexeme::DOUBLE_POINTS },
-		{ "imprime", TypeLexeme::CHAINE_CARACTERE },
-		{ "(", TypeLexeme::PARENTHESE_OUVRANTE },
-		{ "20000", TypeLexeme::NOMBRE_ENTIER },
-		{ ")", TypeLexeme::PARENTHESE_FERMANTE },
-		{ ";", TypeLexeme::POINT_VIRGULE },
-		{ "sinon", TypeLexeme::SINON },
-		{ ":", TypeLexeme::DOUBLE_POINTS },
-		{ "imprime", TypeLexeme::CHAINE_CARACTERE },
-		{ "(", TypeLexeme::PARENTHESE_OUVRANTE },
-		{ "inconnu", TypeLexeme::CHAINE_CARACTERE },
-		{ ")", TypeLexeme::PARENTHESE_FERMANTE },
-		{ ";", TypeLexeme::POINT_VIRGULE },
-		{ "}", TypeLexeme::ACCOLADE_FERMANTE },
-		{ "lexeuse_texte", TypeLexeme::CHAINE_CARACTERE },
-		{ "lexeuse", TypeLexeme::CHAINE_CARACTERE },
-		{ "(", TypeLexeme::PARENTHESE_OUVRANTE },
-		{ "str", TypeLexeme::CHAINE_CARACTERE },
-		{ ",", TypeLexeme::VIRGULE },
-		{ "str", TypeLexeme::CHAINE_CARACTERE },
-		{ "+", TypeLexeme::PLUS },
-		{ "len", TypeLexeme::CHAINE_CARACTERE },
-		{ ")", TypeLexeme::PARENTHESE_FERMANTE },
-		{ ";", TypeLexeme::POINT_VIRGULE }
+		{ " ceci est une chaine française avec espaces ", GenreLexeme::CHAINE_LITTERALE },
+		{ "\n", GenreLexeme::POINT_VIRGULE },
+		{ "ceci est une chaine française sans espaces", GenreLexeme::CHAINE_LITTERALE },
+		{ "\n", GenreLexeme::POINT_VIRGULE },
+		{ "str", GenreLexeme::CHAINE_CARACTERE },
+		{ "=", GenreLexeme::EGAL },
+		{ "a", GenreLexeme::CARACTERE },
+		{ ";", GenreLexeme::POINT_VIRGULE },
+		{ "str0", GenreLexeme::CHAINE_CARACTERE },
+		{ "=", GenreLexeme::EGAL },
+		{ "\\0", GenreLexeme::CARACTERE },
+		{ ";", GenreLexeme::POINT_VIRGULE },
+		{ "discr", GenreLexeme::DISCR },
+		{ "nombre", GenreLexeme::CHAINE_CARACTERE },
+		{ "{", GenreLexeme::ACCOLADE_OUVRANTE },
+		{ "0", GenreLexeme::NOMBRE_ENTIER },
+		{ "...", GenreLexeme::TROIS_POINTS },
+		{ "1_000", GenreLexeme::NOMBRE_ENTIER },
+		{ ":", GenreLexeme::DOUBLE_POINTS },
+		{ "imprime", GenreLexeme::CHAINE_CARACTERE },
+		{ "(", GenreLexeme::PARENTHESE_OUVRANTE },
+		{ "1000", GenreLexeme::NOMBRE_ENTIER },
+		{ ")", GenreLexeme::PARENTHESE_FERMANTE },
+		{ ";", GenreLexeme::POINT_VIRGULE },
+		{ "11_000", GenreLexeme::NOMBRE_ENTIER },
+		{ "...", GenreLexeme::TROIS_POINTS },
+		{ "2_0000", GenreLexeme::NOMBRE_ENTIER },
+		{ ":", GenreLexeme::DOUBLE_POINTS },
+		{ "imprime", GenreLexeme::CHAINE_CARACTERE },
+		{ "(", GenreLexeme::PARENTHESE_OUVRANTE },
+		{ "20000", GenreLexeme::NOMBRE_ENTIER },
+		{ ")", GenreLexeme::PARENTHESE_FERMANTE },
+		{ ";", GenreLexeme::POINT_VIRGULE },
+		{ "sinon", GenreLexeme::SINON },
+		{ ":", GenreLexeme::DOUBLE_POINTS },
+		{ "imprime", GenreLexeme::CHAINE_CARACTERE },
+		{ "(", GenreLexeme::PARENTHESE_OUVRANTE },
+		{ "inconnu", GenreLexeme::CHAINE_CARACTERE },
+		{ ")", GenreLexeme::PARENTHESE_FERMANTE },
+		{ ";", GenreLexeme::POINT_VIRGULE },
+		{ "}", GenreLexeme::ACCOLADE_FERMANTE },
+		{ "lexeuse_texte", GenreLexeme::CHAINE_CARACTERE },
+		{ "lexeuse", GenreLexeme::CHAINE_CARACTERE },
+		{ "(", GenreLexeme::PARENTHESE_OUVRANTE },
+		{ "str", GenreLexeme::CHAINE_CARACTERE },
+		{ ",", GenreLexeme::VIRGULE },
+		{ "str", GenreLexeme::CHAINE_CARACTERE },
+		{ "+", GenreLexeme::PLUS },
+		{ "len", GenreLexeme::CHAINE_CARACTERE },
+		{ ")", GenreLexeme::PARENTHESE_FERMANTE },
+		{ ";", GenreLexeme::POINT_VIRGULE }
 	};
 
 	auto fichier = Fichier{};

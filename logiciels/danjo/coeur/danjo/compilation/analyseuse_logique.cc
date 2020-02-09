@@ -198,7 +198,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 	dls::chaine valeur;
 
 	while (!est_identifiant(id_morceau::POINT_VIRGULE)) {
-		symbole.identifiant = identifiant_courant();
+		symbole.genre = identifiant_courant();
 		valeur = m_identifiants[position() + 1].chaine;
 
 		if (est_identifiant(id_morceau::NOMBRE_ENTIER)) {
@@ -211,7 +211,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 		}
 		else if (est_identifiant(id_morceau::VRAI) || est_identifiant(id_morceau::FAUX)) {
 			symbole.valeur = (valeur == "vrai");
-			symbole.identifiant = id_morceau::BOOL;
+			symbole.genre = id_morceau::BOOL;
 			expression.pousse(symbole);
 		}
 		else if (est_identifiant(id_morceau::COULEUR)) {
@@ -239,10 +239,10 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 			symbole.valeur = std::any(valeur);
 			expression.pousse(symbole);
 		}
-		else if (est_operateur(symbole.identifiant)) {
+		else if (est_operateur(symbole.genre)) {
 			while (!pile.est_vide()
-				   && est_operateur(pile.haut().identifiant)
-				   && (precedence_faible(symbole.identifiant, pile.haut().identifiant)))
+				   && est_operateur(pile.haut().genre)
+				   && (precedence_faible(symbole.genre, pile.haut().genre)))
 			{
 				expression.pousse(pile.depile());
 			}
@@ -258,12 +258,12 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 				lance_erreur("Il manque une paranthèse dans l'expression !");
 			}
 
-			while (pile.haut().identifiant != id_morceau::PARENTHESE_OUVRANTE) {
+			while (pile.haut().genre != id_morceau::PARENTHESE_OUVRANTE) {
 				expression.pousse(pile.depile());
 			}
 
 			/* Enlève la parenthèse restante de la pile. */
-			if (pile.haut().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
+			if (pile.haut().genre == id_morceau::PARENTHESE_OUVRANTE) {
 				pile.depile();
 			}
 		}
@@ -272,7 +272,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 	}
 
 	while (!pile.est_vide()) {
-		if (pile.haut().identifiant == id_morceau::PARENTHESE_OUVRANTE) {
+		if (pile.haut().genre == id_morceau::PARENTHESE_OUVRANTE) {
 			lance_erreur("Il manque une paranthèse dans l'expression !");
 		}
 
@@ -294,7 +294,7 @@ void AnalyseuseLogique::analyse_expression(const dls::chaine &nom, const int typ
 	if (type == EXPRESSION_ENTREE || type == EXPRESSION_INTERFACE) {
 		auto resultat = evalue_expression(expression, m_manipulable);
 
-		switch (resultat.identifiant) {
+		switch (resultat.genre) {
 			default:
 				break;
 			case id_morceau::NOMBRE_ENTIER:

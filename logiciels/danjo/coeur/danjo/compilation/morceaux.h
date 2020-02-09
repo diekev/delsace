@@ -172,7 +172,7 @@ struct DonneesMorceaux {
 
 	dls::vue_chaine chaine;
 	unsigned long ligne_pos;
-	id_morceau identifiant;
+	id_morceau genre;
 	int pad = 0;
 };
 

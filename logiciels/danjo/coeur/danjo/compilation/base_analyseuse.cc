@@ -42,7 +42,7 @@ void base_analyseuse::lance_erreur(const dls::chaine &quoi)
 	const auto ligne = m_tampon[numero_ligne];
 	const auto contenu = donnees().chaine;
 
-	throw ErreurSyntactique(ligne, numero_ligne + 1, position_ligne, quoi, contenu, donnees().identifiant);
+	throw ErreurSyntactique(ligne, numero_ligne + 1, position_ligne, quoi, contenu, donnees().genre);
 }
 
 }  /* namespace danjo */

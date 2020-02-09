@@ -91,11 +91,11 @@ enum class GenreNoeud : char {
 	OPERATEUR_UNAIRE,
 };
 
-const char *chaine_genre_noeud(GenreNoeud type);
+const char *chaine_genre_noeud(GenreNoeud genre);
 
-inline bool est_instruction_retour(GenreNoeud type)
+inline bool est_instruction_retour(GenreNoeud genre)
 {
-	return type == GenreNoeud::INSTRUCTION_RETOUR || type == GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE || type == GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
+	return genre == GenreNoeud::INSTRUCTION_RETOUR || genre == GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE || genre == GenreNoeud::INSTRUCTION_RETOUR_SIMPLE;
 }
 
 /* ************************************************************************** */
@@ -311,7 +311,7 @@ struct base {
 	/**
 	 * Retourne l'identifiant du morceau de ce noeud.
 	 */
-	TypeLexeme identifiant() const;
+	GenreLexeme identifiant() const;
 
 	/**
 	 * Retourne une référence constante vers la chaine du morceau de ce noeud.

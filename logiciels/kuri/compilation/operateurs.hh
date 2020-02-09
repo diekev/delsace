@@ -42,7 +42,7 @@
 
 #include "transformation_type.hh"
 
-enum class TypeLexeme : unsigned int;
+enum class GenreLexeme : unsigned int;
 struct ContexteGenerationCode;
 
 enum class IndiceTypeOp {
@@ -82,22 +82,22 @@ struct DonneesOperateur {
 struct Operateurs {
 	using type_conteneur = dls::tableau<DonneesOperateur *>;
 
-	dls::dico_desordonne<TypeLexeme, type_conteneur> donnees_operateurs;
+	dls::dico_desordonne<GenreLexeme, type_conteneur> donnees_operateurs;
 
 	long type_bool = 0;
 
 	~Operateurs();
 
-	type_conteneur const &trouve(TypeLexeme id) const;
+	type_conteneur const &trouve(GenreLexeme id) const;
 
-	void ajoute_basique(TypeLexeme id, long index_type, long index_type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
-	void ajoute_basique(TypeLexeme id, long index_type1, long index_type2, long index_type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
+	void ajoute_basique(GenreLexeme id, long index_type, long index_type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
+	void ajoute_basique(GenreLexeme id, long index_type1, long index_type2, long index_type_resultat, IndiceTypeOp indice_type, RaisonOp raison);
 
-	void ajoute_basique_unaire(TypeLexeme id, long index_type, long index_type_resultat);
+	void ajoute_basique_unaire(GenreLexeme id, long index_type, long index_type_resultat);
 
-	void ajoute_perso(TypeLexeme id, long index_type1, long index_type2, long index_type_resultat, dls::chaine const &nom_fonction);
+	void ajoute_perso(GenreLexeme id, long index_type1, long index_type2, long index_type_resultat, dls::chaine const &nom_fonction);
 
-	void ajoute_perso_unaire(TypeLexeme id, long index_type, long index_type_resultat, dls::chaine const &nom_fonction);
+	void ajoute_perso_unaire(GenreLexeme id, long index_type, long index_type_resultat, dls::chaine const &nom_fonction);
 
 	void ajoute_operateur_basique_enum(long index_type);
 };
@@ -105,7 +105,7 @@ struct Operateurs {
 DonneesOperateur const *cherche_operateur_unaire(
 		Operateurs const &operateurs,
 		long index_type1,
-		TypeLexeme type_op);
+		GenreLexeme type_op);
 
 void enregistre_operateurs_basiques(
 	ContexteGenerationCode &contexte,
@@ -125,4 +125,4 @@ dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
 		ContexteGenerationCode const &contexte,
 		long index_type1,
 		long index_type2,
-		TypeLexeme type_op);
+		GenreLexeme type_op);

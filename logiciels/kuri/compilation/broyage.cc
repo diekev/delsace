@@ -104,17 +104,17 @@ dls::chaine const &nom_broye_type(
 			plage.effronte();
 
 			switch (donnee & 0xff) {
-				case TypeLexeme::TROIS_POINTS:
+				case GenreLexeme::TROIS_POINTS:
 				{
 					flux << "Kv";
 					break;
 				}
-				case TypeLexeme::POINTEUR:
+				case GenreLexeme::POINTEUR:
 				{
 					flux << "KP";
 					break;
 				}
-				case TypeLexeme::TABLEAU:
+				case GenreLexeme::TABLEAU:
 				{
 					if (static_cast<size_t>(donnee >> 8) != 0) {
 						flux << "KT" << static_cast<size_t>(donnee >> 8);
@@ -125,126 +125,126 @@ dls::chaine const &nom_broye_type(
 
 					break;
 				}
-				case TypeLexeme::N8:
+				case GenreLexeme::N8:
 				{
 					flux << "Ksn8";
 					break;
 				}
-				case TypeLexeme::N16:
+				case GenreLexeme::N16:
 				{
 					flux << "Ksn16";
 					break;
 				}
-				case TypeLexeme::N32:
+				case GenreLexeme::N32:
 				{
 					flux << "Ksn32";
 					break;
 				}
-				case TypeLexeme::N64:
+				case GenreLexeme::N64:
 				{
 					flux << "Ksn64";
 					break;
 				}
-				case TypeLexeme::N128:
+				case GenreLexeme::N128:
 				{
 					flux << "Ksn128";
 					break;
 				}
-				case TypeLexeme::R16:
+				case GenreLexeme::R16:
 				{
 					flux << "Ksr16";
 					break;
 				}
-				case TypeLexeme::R32:
+				case GenreLexeme::R32:
 				{
 					flux << "Ksr32";
 					break;
 				}
-				case TypeLexeme::R64:
+				case GenreLexeme::R64:
 				{
 					flux << "Ksr64";
 					break;
 				}
-				case TypeLexeme::R128:
+				case GenreLexeme::R128:
 				{
 					flux << "Ksr128";
 					break;
 				}
-				case TypeLexeme::Z8:
+				case GenreLexeme::Z8:
 				{
 					flux << "Ksz8";
 					break;
 				}
-				case TypeLexeme::Z16:
+				case GenreLexeme::Z16:
 				{
 					flux << "Ksz16";
 					break;
 				}
-				case TypeLexeme::Z32:
+				case GenreLexeme::Z32:
 				{
 					flux << "Ksz32";
 					break;
 				}
-				case TypeLexeme::Z64:
+				case GenreLexeme::Z64:
 				{
 					flux << "Ksz64";
 					break;
 				}
-				case TypeLexeme::Z128:
+				case GenreLexeme::Z128:
 				{
 					flux << "Ksz128";
 					break;
 				}
-				case TypeLexeme::BOOL:
+				case GenreLexeme::BOOL:
 				{
 					flux << "Ksbool";
 					break;
 				}
-				case TypeLexeme::CHAINE:
+				case GenreLexeme::CHAINE:
 				{
 					flux << "Kschaine";
 					break;
 				}
-				case TypeLexeme::FONC:
+				case GenreLexeme::FONC:
 				{
 					/* À FAIRE gestion des paramètres */
 					flux << "Kf";
 					break;
 				}
-				case TypeLexeme::COROUT:
+				case GenreLexeme::COROUT:
 				{
 					flux << "Kc";
 					break;
 				}
-				case TypeLexeme::PARENTHESE_OUVRANTE:
-				case TypeLexeme::PARENTHESE_FERMANTE:
-				case TypeLexeme::VIRGULE:
-				case TypeLexeme::EINI:
+				case GenreLexeme::PARENTHESE_OUVRANTE:
+				case GenreLexeme::PARENTHESE_FERMANTE:
+				case GenreLexeme::VIRGULE:
+				case GenreLexeme::EINI:
 				{
 					flux << "Kseini";
 					break;
 				}
-				case TypeLexeme::RIEN:
+				case GenreLexeme::RIEN:
 				{
 					flux << "Ksrien";
 					break;
 				}
-				case TypeLexeme::OCTET:
+				case GenreLexeme::OCTET:
 				{
 					flux << "Ksoctet";
 					break;
 				}
-				case TypeLexeme::NUL:
+				case GenreLexeme::NUL:
 				{
 					flux << "Ksnul";
 					break;
 				}
-				case TypeLexeme::REFERENCE:
+				case GenreLexeme::REFERENCE:
 				{
 					flux << "KR";
 					break;
 				}
-				case TypeLexeme::CHAINE_CARACTERE:
+				case GenreLexeme::CHAINE_CARACTERE:
 				{
 					auto id = static_cast<long>(donnee >> 8);
 					flux << "Ks";

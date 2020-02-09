@@ -43,5 +43,5 @@ class Type;
 
 [[nodiscard]] llvm::Type *converti_type_simple_llvm(
 		ContexteGenerationCode &contexte,
-		const TypeLexeme &identifiant,
+		const GenreLexeme &identifiant,
 		llvm::Type *type_entree);

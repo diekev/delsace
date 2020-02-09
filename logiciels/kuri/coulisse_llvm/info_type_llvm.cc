@@ -67,7 +67,7 @@ struct IDInfoType {
 	auto index_struct_info = contexte.donnees_structure(nom_struct).id;
 
 	auto dt_info = DonneesTypeFinal{};
-	dt_info.pousse(TypeLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
+	dt_info.pousse(GenreLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
 
 	index_struct_info = contexte.typeuse.ajoute_type(dt_info);
 	auto &ref_dt_info = contexte.typeuse[index_struct_info];
@@ -331,68 +331,68 @@ llvm::Value *cree_info_type(
 			assert(false);
 			break;
 		}
-		case TypeLexeme::BOOL:
+		case GenreLexeme::BOOL:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::BOOLEEN);
 			break;
 		}
-		case TypeLexeme::N8:
+		case GenreLexeme::N8:
 		{
 			valeur = cree_info_type_entier(contexte, 8, false);
 			break;
 		}
-		case TypeLexeme::Z8:
+		case GenreLexeme::Z8:
 		{
 			valeur = cree_info_type_entier(contexte, 8, true);
 			break;
 		}
-		case TypeLexeme::N16:
+		case GenreLexeme::N16:
 		{
 			valeur = cree_info_type_entier(contexte, 16, false);
 			break;
 		}
-		case TypeLexeme::Z16:
+		case GenreLexeme::Z16:
 		{
 			valeur = cree_info_type_entier(contexte, 16, true);
 			break;
 		}
-		case TypeLexeme::N32:
+		case GenreLexeme::N32:
 		{
 			valeur = cree_info_type_entier(contexte, 32, false);
 			break;
 		}
-		case TypeLexeme::Z32:
+		case GenreLexeme::Z32:
 		{
 			valeur = cree_info_type_entier(contexte, 32, true);
 			break;
 		}
-		case TypeLexeme::N64:
+		case GenreLexeme::N64:
 		{
 			valeur = cree_info_type_entier(contexte, 64, false);
 			break;
 		}
-		case TypeLexeme::Z64:
+		case GenreLexeme::Z64:
 		{
 			valeur = cree_info_type_entier(contexte, 64, true);
 			break;
 		}
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 		{
 			valeur = cree_info_type_reel(contexte, 16);
 			break;
 		}
-		case TypeLexeme::R32:
+		case GenreLexeme::R32:
 		{
 			valeur = cree_info_type_reel(contexte, 32);
 			break;
 		}
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 		{
 			valeur = cree_info_type_reel(contexte, 64);
 			break;
 		}
-		case TypeLexeme::REFERENCE:
-		case TypeLexeme::POINTEUR:
+		case GenreLexeme::REFERENCE:
+		case GenreLexeme::POINTEUR:
 		{
 			/* { id, type_pointé, est_référence } */
 
@@ -410,7 +410,7 @@ llvm::Value *cree_info_type(
 
 			auto est_reference = llvm::ConstantInt::get(
 								   llvm::Type::getInt1Ty(contexte.contexte),
-								   donnees_type.type_base() == TypeLexeme::REFERENCE,
+								   donnees_type.type_base() == GenreLexeme::REFERENCE,
 								   false);
 
 			auto constant = llvm::ConstantStruct::get(
@@ -429,7 +429,7 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			auto id_structure = static_cast<long>(donnees_type.type_base() >> 8);
 			auto donnees_structure = contexte.donnees_structure(id_structure);
@@ -501,7 +501,7 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 		{
 			/* { id, type_pointé } */
 
@@ -533,23 +533,23 @@ llvm::Value *cree_info_type(
 			valeur = globale;
 			break;
 		}
-		case TypeLexeme::FONC:
+		case GenreLexeme::FONC:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::FONCTION);
 			break;
 		}
-		case TypeLexeme::EINI:
+		case GenreLexeme::EINI:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::EINI);
 			break;
 		}
-		case TypeLexeme::NUL: /* À FAIRE */
-		case TypeLexeme::RIEN:
+		case GenreLexeme::NUL: /* À FAIRE */
+		case GenreLexeme::RIEN:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::RIEN);
 			break;
 		}
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::CHAINE);
 			break;

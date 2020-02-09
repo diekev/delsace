@@ -39,389 +39,389 @@
 using type_scalaire = double;
 using type_matrice_ep = matrice_colonne_eparse<double>;
 
-static auto idx_depuis_id(TypeLexeme id)
+static auto idx_depuis_id(GenreLexeme id)
 {
 	return static_cast<int>(id);
 }
 
 static auto id_depuis_idx(int id)
 {
-	return static_cast<TypeLexeme>(id);
+	return static_cast<GenreLexeme>(id);
 }
 
-static void imprime_mot(TypeLexeme id, std::ostream &os)
+static void imprime_mot(GenreLexeme id, std::ostream &os)
 {
 	switch (id) {
-		case TypeLexeme::RETOUR_TYPE:
+		case GenreLexeme::RETOUR_TYPE:
 			os << "->";
 			return;
-		case TypeLexeme::EXCLAMATION:
+		case GenreLexeme::EXCLAMATION:
 			os << "!";
 			return;
-		case TypeLexeme::GUILLEMET:
+		case GenreLexeme::GUILLEMET:
 			os << "\"";
 			return;
-		case TypeLexeme::DIESE:
+		case GenreLexeme::DIESE:
 			os << "#";
 			return;
-		case TypeLexeme::DOLLAR:
+		case GenreLexeme::DOLLAR:
 			os << "$";
 			return;
-		case TypeLexeme::POURCENT:
+		case GenreLexeme::POURCENT:
 			os << "%";
 			return;
-		case TypeLexeme::ESPERLUETTE:
+		case GenreLexeme::ESPERLUETTE:
 			os << "&";
 			return;
-		case TypeLexeme::APOSTROPHE:
+		case GenreLexeme::APOSTROPHE:
 			os << "'";
 			return;
-		case TypeLexeme::PARENTHESE_OUVRANTE:
+		case GenreLexeme::PARENTHESE_OUVRANTE:
 			os << "(";
 			return;
-		case TypeLexeme::PARENTHESE_FERMANTE:
+		case GenreLexeme::PARENTHESE_FERMANTE:
 			os << ")";
 			return;
-		case TypeLexeme::FOIS:
+		case GenreLexeme::FOIS:
 			os << "*";
 			return;
-		case TypeLexeme::PLUS:
+		case GenreLexeme::PLUS:
 			os << "+";
 			return;
-		case TypeLexeme::VIRGULE:
+		case GenreLexeme::VIRGULE:
 			os << ",";
 			return;
-		case TypeLexeme::MOINS:
+		case GenreLexeme::MOINS:
 			os << "-";
 			return;
-		case TypeLexeme::POINT:
+		case GenreLexeme::POINT:
 			os << ".";
 			return;
-		case TypeLexeme::DIVISE:
+		case GenreLexeme::DIVISE:
 			os << "/";
 			return;
-		case TypeLexeme::DOUBLE_POINTS:
+		case GenreLexeme::DOUBLE_POINTS:
 			os << ":";
 			return;
-		case TypeLexeme::DECLARATION_VARIABLE:
+		case GenreLexeme::DECLARATION_VARIABLE:
 			os << ":=";
 			return;
-		case TypeLexeme::POINT_VIRGULE:
+		case GenreLexeme::POINT_VIRGULE:
 			os << ";";
 			return;
-		case TypeLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR:
 			os << "<";
 			return;
-		case TypeLexeme::EGAL:
+		case GenreLexeme::EGAL:
 			os << "=";
 			return;
-		case TypeLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR:
 			os << ">";
 			return;
-		case TypeLexeme::AROBASE:
+		case GenreLexeme::AROBASE:
 			os << "@";
 			return;
-		case TypeLexeme::CROCHET_OUVRANT:
+		case GenreLexeme::CROCHET_OUVRANT:
 			os << "[";
 			return;
-		case TypeLexeme::CROCHET_FERMANT:
+		case GenreLexeme::CROCHET_FERMANT:
 			os << "]";
 			return;
-		case TypeLexeme::CHAPEAU:
+		case GenreLexeme::CHAPEAU:
 			os << "^";
 			return;
-		case TypeLexeme::ACCOLADE_OUVRANTE:
+		case GenreLexeme::ACCOLADE_OUVRANTE:
 			os << "{";
 			return;
-		case TypeLexeme::BARRE:
+		case GenreLexeme::BARRE:
 			os << "|";
 			return;
-		case TypeLexeme::ACCOLADE_FERMANTE:
+		case GenreLexeme::ACCOLADE_FERMANTE:
 			os << "}";
 			return;
-		case TypeLexeme::TILDE:
+		case GenreLexeme::TILDE:
 			os << "~";
 			return;
-		case TypeLexeme::DIFFERENCE:
+		case GenreLexeme::DIFFERENCE:
 			os << "!=";
 			return;
-		case TypeLexeme::DIRECTIVE:
+		case GenreLexeme::DIRECTIVE:
 			os << "#!";
 			return;
-		case TypeLexeme::MODULO_EGAL:
+		case GenreLexeme::MODULO_EGAL:
 			os << "%=";
 			return;
-		case TypeLexeme::ESP_ESP:
+		case GenreLexeme::ESP_ESP:
 			os << "&&";
 			return;
-		case TypeLexeme::ET_EGAL:
+		case GenreLexeme::ET_EGAL:
 			os << "&=";
 			return;
-		case TypeLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::MULTIPLIE_EGAL:
 			os << "*=";
 			return;
-		case TypeLexeme::PLUS_EGAL:
+		case GenreLexeme::PLUS_EGAL:
 			os << "+=";
 			return;
-		case TypeLexeme::MOINS_EGAL:
+		case GenreLexeme::MOINS_EGAL:
 			os << "-=";
 			return;
-		case TypeLexeme::DIVISE_EGAL:
+		case GenreLexeme::DIVISE_EGAL:
 			os << "/=";
 			return;
-		case TypeLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DECALAGE_GAUCHE:
 			os << "<<";
 			return;
-		case TypeLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::INFERIEUR_EGAL:
 			os << "<=";
 			return;
-		case TypeLexeme::EGALITE:
+		case GenreLexeme::EGALITE:
 			os << "==";
 			return;
-		case TypeLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR_EGAL:
 			os << ">=";
 			return;
-		case TypeLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DECALAGE_DROITE:
 			os << ">>=";
 			return;
-		case TypeLexeme::OUX_EGAL:
+		case GenreLexeme::OUX_EGAL:
 			os << "^=";
 			return;
-		case TypeLexeme::OU_EGAL:
+		case GenreLexeme::OU_EGAL:
 			os << "|=";
 			return;
-		case TypeLexeme::BARRE_BARRE:
+		case GenreLexeme::BARRE_BARRE:
 			os << "||";
 			return;
-		case TypeLexeme::TROIS_POINTS:
+		case GenreLexeme::TROIS_POINTS:
 			os << "...";
 			return;
-		case TypeLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 			os << "<<=";
 			return;
-		case TypeLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DEC_DROITE_EGAL:
 			os << ">>";
 			return;
-		case TypeLexeme::ARRETE:
+		case GenreLexeme::ARRETE:
 			os << "arrête";
 			return;
-		case TypeLexeme::DISCR:
+		case GenreLexeme::DISCR:
 			os << "discr";
 			return;
-		case TypeLexeme::BOOL:
+		case GenreLexeme::BOOL:
 			os << "bool";
 			return;
-		case TypeLexeme::BOUCLE:
+		case GenreLexeme::BOUCLE:
 			os << "boucle";
 			return;
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 			os << "chaine";
 			return;
-		case TypeLexeme::CONTINUE:
+		case GenreLexeme::CONTINUE:
 			os << "continue";
 			return;
-		case TypeLexeme::COROUT:
+		case GenreLexeme::COROUT:
 			os << "corout";
 			return;
-		case TypeLexeme::DANS:
+		case GenreLexeme::DANS:
 			os << "dans";
 			return;
-		case TypeLexeme::DIFFERE:
+		case GenreLexeme::DIFFERE:
 			os << "diffère";
 			return;
-		case TypeLexeme::DYN:
+		case GenreLexeme::DYN:
 			os << "dyn";
 			return;
-		case TypeLexeme::DELOGE:
+		case GenreLexeme::DELOGE:
 			os << "déloge";
 			return;
-		case TypeLexeme::EINI:
+		case GenreLexeme::EINI:
 			os << "eini";
 			return;
-		case TypeLexeme::EMPL:
+		case GenreLexeme::EMPL:
 			os << "empl";
 			return;
-		case TypeLexeme::EXTERNE:
+		case GenreLexeme::EXTERNE:
 			os << "externe";
 			return;
-		case TypeLexeme::FAUX:
+		case GenreLexeme::FAUX:
 			os << "faux";
 			return;
-		case TypeLexeme::FONC:
+		case GenreLexeme::FONC:
 			os << "fonc";
 			return;
-		case TypeLexeme::GARDE:
+		case GenreLexeme::GARDE:
 			os << "garde";
 			return;
-		case TypeLexeme::IMPORTE:
+		case GenreLexeme::IMPORTE:
 			os << "importe";
 			return;
-		case TypeLexeme::INFO_DE:
+		case GenreLexeme::INFO_DE:
 			os << "info_de";
 			return;
-		case TypeLexeme::LOGE:
+		case GenreLexeme::LOGE:
 			os << "loge";
 			return;
-		case TypeLexeme::MEMOIRE:
+		case GenreLexeme::MEMOIRE:
 			os << "mémoire";
 			return;
-		case TypeLexeme::N128:
+		case GenreLexeme::N128:
 			os << "n128";
 			return;
-		case TypeLexeme::N16:
+		case GenreLexeme::N16:
 			os << "n16";
 			return;
-		case TypeLexeme::N32:
+		case GenreLexeme::N32:
 			os << "n32";
 			return;
-		case TypeLexeme::N64:
+		case GenreLexeme::N64:
 			os << "n64";
 			return;
-		case TypeLexeme::N8:
+		case GenreLexeme::N8:
 			os << "n8";
 			return;
-		case TypeLexeme::NONSUR:
+		case GenreLexeme::NONSUR:
 			os << "nonsûr";
 			return;
-		case TypeLexeme::NUL:
+		case GenreLexeme::NUL:
 			os << "nul";
 			return;
-		case TypeLexeme::OCTET:
+		case GenreLexeme::OCTET:
 			os << "octet";
 			return;
-		case TypeLexeme::POUR:
+		case GenreLexeme::POUR:
 			os << "pour";
 			return;
-		case TypeLexeme::R128:
+		case GenreLexeme::R128:
 			os << "r128";
 			return;
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 			os << "r16";
 			return;
-		case TypeLexeme::R32:
+		case GenreLexeme::R32:
 			os << "r32";
 			return;
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 			os << "r64";
 			return;
-		case TypeLexeme::RELOGE:
+		case GenreLexeme::RELOGE:
 			os << "reloge";
 			return;
-		case TypeLexeme::REPETE:
+		case GenreLexeme::REPETE:
 			os << "répète";
 			return;
-		case TypeLexeme::RETIENS:
+		case GenreLexeme::RETIENS:
 			os << "retiens";
 			return;
-		case TypeLexeme::RETOURNE:
+		case GenreLexeme::RETOURNE:
 			os << "retourne";
 			return;
-		case TypeLexeme::RIEN:
+		case GenreLexeme::RIEN:
 			os << "rien";
 			return;
-		case TypeLexeme::SANSARRET:
+		case GenreLexeme::SANSARRET:
 			os << "sansarrêt";
 			return;
-		case TypeLexeme::SAUFSI:
+		case GenreLexeme::SAUFSI:
 			os << "saufsi";
 			return;
-		case TypeLexeme::SI:
+		case GenreLexeme::SI:
 			os << "si";
 			return;
-		case TypeLexeme::SINON:
+		case GenreLexeme::SINON:
 			os << "sinon";
 			return;
-		case TypeLexeme::STRUCT:
+		case GenreLexeme::STRUCT:
 			os << "struct";
 			return;
-		case TypeLexeme::TAILLE_DE:
+		case GenreLexeme::TAILLE_DE:
 			os << "taille_de";
 			return;
-		case TypeLexeme::TANTQUE:
+		case GenreLexeme::TANTQUE:
 			os << "tantque";
 			return;
-		case TypeLexeme::TRANSTYPE:
+		case GenreLexeme::TRANSTYPE:
 			os << "transtype";
 			return;
-		case TypeLexeme::TYPE_DE:
+		case GenreLexeme::TYPE_DE:
 			os << "type_de";
 			return;
-		case TypeLexeme::UNION:
+		case GenreLexeme::UNION:
 			os << "union";
 			return;
-		case TypeLexeme::VRAI:
+		case GenreLexeme::VRAI:
 			os << "vrai";
 			return;
-		case TypeLexeme::Z128:
+		case GenreLexeme::Z128:
 			os << "z128";
 			return;
-		case TypeLexeme::Z16:
+		case GenreLexeme::Z16:
 			os << "z16";
 			return;
-		case TypeLexeme::Z32:
+		case GenreLexeme::Z32:
 			os << "z32";
 			return;
-		case TypeLexeme::Z64:
+		case GenreLexeme::Z64:
 			os << "z64";
 			return;
-		case TypeLexeme::Z8:
+		case GenreLexeme::Z8:
 			os << "z8";
 			return;
-		case TypeLexeme::ENUM:
+		case GenreLexeme::ENUM:
 			os << "énum";
 			return;
-		case TypeLexeme::ENUM_DRAPEAU:
+		case GenreLexeme::ENUM_DRAPEAU:
 			os << "énum_drapeau";
 			return;
-		case TypeLexeme::NOMBRE_REEL:
+		case GenreLexeme::NOMBRE_REEL:
 			os << "0.0";
 			return;
-		case TypeLexeme::NOMBRE_ENTIER:
+		case GenreLexeme::NOMBRE_ENTIER:
 			os << "0";
 			return;
-		case TypeLexeme::NOMBRE_HEXADECIMAL:
+		case GenreLexeme::NOMBRE_HEXADECIMAL:
 			os << "0x0";
 			return;
-		case TypeLexeme::NOMBRE_OCTAL:
+		case GenreLexeme::NOMBRE_OCTAL:
 			os << "0o0";
 			return;
-		case TypeLexeme::NOMBRE_BINAIRE:
+		case GenreLexeme::NOMBRE_BINAIRE:
 			os << "0b0";
 			return;
-		case TypeLexeme::PLUS_UNAIRE:
+		case GenreLexeme::PLUS_UNAIRE:
 			os << "+";
 			return;
-		case TypeLexeme::MOINS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
 			os << "-";
 			return;
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 			os << "chaine_de_caractère";
 			return;
-		case TypeLexeme::CHAINE_LITTERALE:
+		case GenreLexeme::CHAINE_LITTERALE:
 			os << "\"chaine littérale\"";
 			return;
-		case TypeLexeme::CARACTERE:
+		case GenreLexeme::CARACTERE:
 			os << "'a'";
 			return;
-		case TypeLexeme::POINTEUR:
+		case GenreLexeme::POINTEUR:
 			os << "*";
 			return;
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 			os << "[]";
 			return;
-		case TypeLexeme::REFERENCE:
+		case GenreLexeme::REFERENCE:
 			os << "&";
 			return;
-		case TypeLexeme::CHARGE:
+		case GenreLexeme::CHARGE:
 			os << "charge";
 			return;
-		case TypeLexeme::INCONNU:
+		case GenreLexeme::INCONNU:
 			os << "inconnu";
 			return;
-		case TypeLexeme::CARACTERE_BLANC:
+		case GenreLexeme::CARACTERE_BLANC:
 			os << " ";
 			return;
-		case TypeLexeme::COMMENTAIRE:
+		case GenreLexeme::COMMENTAIRE:
 			os << "# commentaire\n";
 			return;
 	};
@@ -435,12 +435,12 @@ void test_markov_id_simple(dls::tableau<DonneesLexeme> const &morceaux)
 	static constexpr auto _1 = static_cast<type_scalaire>(1);
 
 	/* construction de la matrice */
-	auto nombre_id = static_cast<int>(TypeLexeme::COMMENTAIRE) + 1;
+	auto nombre_id = static_cast<int>(GenreLexeme::COMMENTAIRE) + 1;
 	auto matrice = type_matrice_ep(type_ligne(nombre_id), type_colonne(nombre_id));
 
 	for (auto i = 0; i < morceaux.taille() - 1; ++i) {
-		auto idx0 = idx_depuis_id(morceaux[i].identifiant);
-		auto idx1 = idx_depuis_id(morceaux[i + 1].identifiant);
+		auto idx0 = idx_depuis_id(morceaux[i].genre);
+		auto idx1 = idx_depuis_id(morceaux[i + 1].genre);
 
 		matrice(type_ligne(idx0), type_colonne(idx1)) += _1;
 	}
@@ -449,7 +449,7 @@ void test_markov_id_simple(dls::tableau<DonneesLexeme> const &morceaux)
 	converti_fonction_repartition(matrice);
 
 	auto gna = GNA();
-	auto mot_courant = TypeLexeme::STRUCT;
+	auto mot_courant = GenreLexeme::STRUCT;
 	auto nombre_phrases = 5;
 
 	while (nombre_phrases > 0) {
@@ -459,7 +459,7 @@ void test_markov_id_simple(dls::tableau<DonneesLexeme> const &morceaux)
 			std::cerr << ' ';
 		}
 
-		if (mot_courant == TypeLexeme::ACCOLADE_FERMANTE) {
+		if (mot_courant == GenreLexeme::ACCOLADE_FERMANTE) {
 			std::cerr << '\n';
 			nombre_phrases--;
 		}

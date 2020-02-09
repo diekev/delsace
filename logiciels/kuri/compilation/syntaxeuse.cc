@@ -35,23 +35,23 @@
 #include "expression.h"
 #include "outils_lexemes.hh"
 
-using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
+using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 /**
  * Retourne vrai si l'identifiant passé en paramètre peut-être un identifiant
  * valide pour précèder un opérateur unaire '+' ou '-'.
  */
-static bool precede_unaire_valide(TypeLexeme dernier_identifiant)
+static bool precede_unaire_valide(GenreLexeme dernier_identifiant)
 {
-	if (dernier_identifiant == TypeLexeme::PARENTHESE_FERMANTE) {
+	if (dernier_identifiant == GenreLexeme::PARENTHESE_FERMANTE) {
 		return false;
 	}
 
-	if (dernier_identifiant == TypeLexeme::CROCHET_FERMANT) {
+	if (dernier_identifiant == GenreLexeme::CROCHET_FERMANT) {
 		return false;
 	}
 
-	if (dernier_identifiant == TypeLexeme::CHAINE_CARACTERE) {
+	if (dernier_identifiant == GenreLexeme::CHAINE_CARACTERE) {
 		return false;
 	}
 
@@ -60,19 +60,19 @@ static bool precede_unaire_valide(TypeLexeme dernier_identifiant)
 	}
 
 	/* À FAIRE : ceci mélange a[-i] et a[i] - b[i] */
-	if (dernier_identifiant == TypeLexeme::CROCHET_OUVRANT) {
+	if (dernier_identifiant == GenreLexeme::CROCHET_OUVRANT) {
 		return false;
 	}
 
-	if (dernier_identifiant == TypeLexeme::CARACTERE) {
+	if (dernier_identifiant == GenreLexeme::CARACTERE) {
 		return false;
 	}
 
-	if (dernier_identifiant == TypeLexeme::TRANSTYPE) {
+	if (dernier_identifiant == GenreLexeme::TRANSTYPE) {
 		return false;
 	}
 
-	if (dernier_identifiant == TypeLexeme::MEMOIRE) {
+	if (dernier_identifiant == GenreLexeme::MEMOIRE) {
 		return false;
 	}
 
@@ -113,37 +113,37 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 		auto id = this->identifiant_courant();
 
 		switch (id) {
-			case TypeLexeme::FONC:
-			case TypeLexeme::COROUT:
+			case GenreLexeme::FONC:
+			case GenreLexeme::COROUT:
 			{
 				avance();
 				analyse_declaration_fonction(id);
 				break;
 			}
-			case TypeLexeme::STRUCT:
-			case TypeLexeme::UNION:
+			case GenreLexeme::STRUCT:
+			case GenreLexeme::UNION:
 			{
 				avance();
 				analyse_declaration_structure(id);
 				break;
 			}
-			case TypeLexeme::ENUM:
+			case GenreLexeme::ENUM:
 			{
 				avance();
 				analyse_declaration_enum(false);
 				break;
 			}
-			case TypeLexeme::ENUM_DRAPEAU:
+			case GenreLexeme::ENUM_DRAPEAU:
 			{
 				avance();
 				analyse_declaration_enum(true);
 				break;
 			}
-			case TypeLexeme::IMPORTE:
+			case GenreLexeme::IMPORTE:
 			{
 				avance();
 
-				if (!est_identifiant(TypeLexeme::CHAINE_LITTERALE) && !est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
+				if (!est_identifiant(GenreLexeme::CHAINE_LITTERALE) && !est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu une chaine littérale après 'importe'");
 				}
 
@@ -160,11 +160,11 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 				m_chrono_analyse.reprend();
 				break;
 			}
-			case TypeLexeme::CHARGE:
+			case GenreLexeme::CHARGE:
 			{
 				avance();
 
-				if (!est_identifiant(TypeLexeme::CHAINE_LITTERALE) && !est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
+				if (!est_identifiant(GenreLexeme::CHAINE_LITTERALE) && !est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu une chaine littérale après 'charge'");
 				}
 
@@ -184,7 +184,7 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 			default:
 			{
 				m_global = true;
-				auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
+				auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
 
 				if (noeud && noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 					noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
@@ -196,20 +196,20 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 	}
 }
 
-void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
+void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id)
 {
 	auto externe = false;
 
-	if (est_identifiant(TypeLexeme::EXTERNE)) {
+	if (est_identifiant(GenreLexeme::EXTERNE)) {
 		avance();
 		externe = true;
 
-		if (id == TypeLexeme::COROUT && externe) {
+		if (id == GenreLexeme::COROUT && externe) {
 			lance_erreur("Une coroutine ne peut pas être externe");
 		}
 	}
 
-	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu la déclaration du nom de la fonction");
+	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu la déclaration du nom de la fonction");
 
 	auto const nom_fonction = donnees().chaine;
 	m_fichier->module->fonctions_exportees.insere(nom_fonction);
@@ -234,17 +234,17 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 		m_etiquette_nulctx = false;
 	}
 
-	consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
+	consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après le nom de la fonction");
 
 	auto donnees_fonctions = DonneesFonction{};
-	donnees_fonctions.est_coroutine = (id == TypeLexeme::COROUT);
+	donnees_fonctions.est_coroutine = (id == GenreLexeme::COROUT);
 	donnees_fonctions.est_externe = externe;
 	donnees_fonctions.noeud_decl = noeud;
 
 	/* analyse les paramètres de la fonction */
 	m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_PARAMETRES_FONCTION, donnees());
 
-	analyse_expression(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
+	analyse_expression(GenreLexeme::PARENTHESE_FERMANTE, GenreLexeme::PARENTHESE_OUVRANTE);
 
 	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
 
@@ -273,7 +273,7 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 	m_fichier->module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
 
 	if (externe) {
-		consomme(TypeLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
+		consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
 
 		if (donnees_fonctions.idx_types_retours.taille() > 1) {
 			lance_erreur("Ne peut avoir plusieurs valeur de retour pour une fonction externe");
@@ -281,11 +281,11 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 	}
 	else {
 		/* ignore les points-virgules implicites */
-		if (est_identifiant(TypeLexeme::POINT_VIRGULE)) {
+		if (est_identifiant(GenreLexeme::POINT_VIRGULE)) {
 			avance();
 		}
 
-		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
+		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après la liste des paramètres de la fonction");
 
 		analyse_bloc();
 	}
@@ -297,11 +297,11 @@ void Syntaxeuse::analyse_controle_si(GenreNoeud tn)
 {
 	m_assembleuse->empile_noeud(tn, donnees());
 
-	analyse_expression(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::SI);
+	analyse_expression(GenreLexeme::ACCOLADE_OUVRANTE, GenreLexeme::SI);
 
 	analyse_bloc();
 
-	if (est_identifiant(TypeLexeme::SINON)) {
+	if (est_identifiant(GenreLexeme::SINON)) {
 		avance();
 
 		/* Peu importe que le 'sinon' contient un 'si' ou non, nous ajoutons un
@@ -315,20 +315,20 @@ void Syntaxeuse::analyse_controle_si(GenreNoeud tn)
 		 * branchements redondants. */
 		m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, donnees());
 
-		if (est_identifiant(TypeLexeme::SI)) {
+		if (est_identifiant(GenreLexeme::SI)) {
 			avance();
 			analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
 		}
-		else if (est_identifiant(TypeLexeme::SAUFSI)) {
+		else if (est_identifiant(GenreLexeme::SAUFSI)) {
 			avance();
 			analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
 		}
 		else {
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
 
 			analyse_corps_fonction();
 
-			consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin du contrôle 'sinon'");
+			consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 
 		m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE);
@@ -351,33 +351,33 @@ void Syntaxeuse::analyse_controle_pour()
 
 	/* enfant 1 : déclaration variable */
 
-	analyse_expression(TypeLexeme::DANS, TypeLexeme::POUR);
+	analyse_expression(GenreLexeme::DANS, GenreLexeme::POUR);
 
 	/* enfant 2 : expr */
 
-	analyse_expression(TypeLexeme::ACCOLADE_OUVRANTE, TypeLexeme::DANS);
+	analyse_expression(GenreLexeme::ACCOLADE_OUVRANTE, GenreLexeme::DANS);
 
 	recule();
 
-	consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
+	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'pour'");
 
 	/* enfant 3 : bloc */
 	analyse_bloc();
 
 	/* enfant 4 : bloc sansarrêt (optionel) */
-	if (est_identifiant(TypeLexeme::SANSARRET)) {
+	if (est_identifiant(GenreLexeme::SANSARRET)) {
 		avance();
 
-		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
+		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sansarrêt'");
 
 		analyse_bloc();
 	}
 
 	/* enfant 4 ou 5 : bloc sinon (optionel) */
-	if (est_identifiant(TypeLexeme::SINON)) {
+	if (est_identifiant(GenreLexeme::SINON)) {
 		avance();
 
-		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
+		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' au début du bloc de 'sinon'");
 
 		analyse_bloc();
 	}
@@ -389,16 +389,16 @@ void Syntaxeuse::analyse_corps_fonction()
 {
 	/* Il est possible qu'une fonction soit vide, donc vérifie d'abord que
 	 * l'on n'ait pas terminé. */
-	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
+	while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
 		auto const pos = position();
 
-		if (est_identifiant(TypeLexeme::RETOURNE)) {
+		if (est_identifiant(GenreLexeme::RETOURNE)) {
 			avance();
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_RETOUR, donnees());
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
-			if (!est_identifiant(TypeLexeme::POINT_VIRGULE)) {
-				analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
+			if (!est_identifiant(GenreLexeme::POINT_VIRGULE)) {
+				analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
 			}
 			else {
 				avance();
@@ -406,22 +406,22 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_RETOUR);
 		}
-		else if (est_identifiant(TypeLexeme::RETIENS)) {
+		else if (est_identifiant(GenreLexeme::RETIENS)) {
 			avance();
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_RETIENS, donnees());
 
-			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
+			analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::RETOURNE);
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_RETIENS);
 		}
-		else if (est_identifiant(TypeLexeme::POUR)) {
+		else if (est_identifiant(GenreLexeme::POUR)) {
 			avance();
 			analyse_controle_pour();
 		}
-		else if (est_identifiant(TypeLexeme::BOUCLE)) {
+		else if (est_identifiant(GenreLexeme::BOUCLE)) {
 			avance();
 
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
 
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_BOUCLE, donnees());
 
@@ -429,22 +429,22 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_BOUCLE);
 		}
-		else if (est_identifiant(TypeLexeme::REPETE)) {
+		else if (est_identifiant(GenreLexeme::REPETE)) {
 			avance();
 
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
 
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_REPETE, donnees());
 
 			analyse_bloc();
 
-			consomme(TypeLexeme::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
+			consomme(GenreLexeme::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
 
-			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::TANTQUE);
+			analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::TANTQUE);
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_REPETE);
 		}
-		else if (est_identifiant(TypeLexeme::TANTQUE)) {
+		else if (est_identifiant(GenreLexeme::TANTQUE)) {
 			avance();
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_TANTQUE, donnees());
 
@@ -453,18 +453,18 @@ void Syntaxeuse::analyse_corps_fonction()
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de 'tanque'");
 
 			analyse_bloc();
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_TANTQUE);
 		}
-		else if (est_identifiant(TypeLexeme::ARRETE) || est_identifiant(TypeLexeme::CONTINUE)) {
+		else if (est_identifiant(GenreLexeme::ARRETE) || est_identifiant(GenreLexeme::CONTINUE)) {
 			avance();
 
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, donnees());
 
-			if (est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
+			if (est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
 				avance();
 				m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, donnees());
 				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION);
@@ -472,31 +472,31 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE);
 
-			consomme(TypeLexeme::POINT_VIRGULE, "Attendu un point virgule ';'");
+			consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point virgule ';'");
 		}
-		else if (est_identifiant(TypeLexeme::DIFFERE)) {
+		else if (est_identifiant(GenreLexeme::DIFFERE)) {
 			avance();
 
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_DIFFERE, donnees());
 
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
 
 			analyse_bloc();
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_DIFFERE);
 		}
-		else if (est_identifiant(TypeLexeme::NONSUR)) {
+		else if (est_identifiant(GenreLexeme::NONSUR)) {
 			avance();
 
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_NONSUR, donnees());
 
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
 
 			analyse_bloc();
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_NONSUR);
 		}
-		else if (est_identifiant(TypeLexeme::DISCR)) {
+		else if (est_identifiant(GenreLexeme::DISCR)) {
 			avance();
 
 			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_DISCR, donnees());
@@ -506,14 +506,14 @@ void Syntaxeuse::analyse_corps_fonction()
 			/* recule pour être de nouveau synchronisé */
 			recule();
 
-			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+			consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 			auto sinon_rencontre = false;
 
-			while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
+			while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
 				m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_PAIRE_DISCR, donnees());
 
-				if (est_identifiant(TypeLexeme::SINON)) {
+				if (est_identifiant(GenreLexeme::SINON)) {
 					avance();
 
 					if (sinon_rencontre) {
@@ -532,14 +532,14 @@ void Syntaxeuse::analyse_corps_fonction()
 					recule();
 				}
 
-				consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
+				consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après l'expression de « discr »");
 
 				analyse_bloc();
 
 				m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_PAIRE_DISCR);
 			}
 
-			consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
+			consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
 			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_DISCR);
 		}
@@ -548,7 +548,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			analyse_bloc();
 		}
 		else {
-			auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+			auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
 
 			if (noeud && noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 				noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
@@ -578,12 +578,12 @@ void Syntaxeuse::analyse_bloc()
 	analyse_corps_fonction();
 	m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE);
 
-	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
+	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
 }
 
 noeud::base *Syntaxeuse::analyse_expression(
-		TypeLexeme identifiant_final,
-		TypeLexeme racine_expr,
+		GenreLexeme identifiant_final,
+		GenreLexeme racine_expr,
 		bool ajoute_noeud)
 {
 	/* Algorithme de Dijkstra pour générer une notation polonaise inversée. */
@@ -599,7 +599,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 	auto &pile = m_paires_vecteurs[profondeur].second;
 	pile.efface();
 
-	auto vide_pile_operateur = [&](TypeLexeme id_operateur)
+	auto vide_pile_operateur = [&](GenreLexeme id_operateur)
 	{
 		while (!pile.est_vide()
 			   && (precedence_faible(id_operateur, pile.back()->identifiant())))
@@ -609,7 +609,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 		}
 	};
 
-	auto dernier_identifiant = (m_position == 0) ? TypeLexeme::INCONNU : donnees().identifiant;
+	auto genre_dernier_lexeme = (m_position == 0) ? GenreLexeme::INCONNU : donnees().genre;
 
 	/* utilisé pour terminer la boucle quand elle nous atteignons une parenthèse
 	 * fermante */
@@ -624,30 +624,30 @@ noeud::base *Syntaxeuse::analyse_expression(
 	while (!requiers_identifiant(identifiant_final)) {
 		auto &morceau = donnees();
 
-		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.genre) << FIN_LOG_EXPRESSION;
 
-		auto id_courant = morceau.identifiant;
+		auto genre_courant = morceau.genre;
 
-		switch (id_courant) {
-			case TypeLexeme::DYN:
+		switch (genre_courant) {
+			case GenreLexeme::DYN:
 			{
 				drapeaux |= (DYNAMIC | DECLARATION);
 				break;
 			}
-			case TypeLexeme::EMPL:
+			case GenreLexeme::EMPL:
 			{
 				drapeaux |= EMPLOYE;
 				break;
 			}
-			case TypeLexeme::EXTERNE:
+			case GenreLexeme::EXTERNE:
 			{
 				drapeaux |= (EST_EXTERNE | DECLARATION);
 				break;
 			}
-			case TypeLexeme::CHAINE_CARACTERE:
+			case GenreLexeme::CHAINE_CARACTERE:
 			{
 				/* appel fonction : chaine + ( */
-				if (est_identifiant(TypeLexeme::PARENTHESE_OUVRANTE)) {
+				if (est_identifiant(GenreLexeme::PARENTHESE_OUVRANTE)) {
 					avance();
 
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION, morceau, false);
@@ -659,7 +659,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
-				else if ((racine_expr == TypeLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(TypeLexeme::ACCOLADE_OUVRANTE)) {
+				else if ((racine_expr == GenreLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE)) {
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, morceau, false);
 
 					avance();
@@ -681,7 +681,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					drapeaux = drapeaux_noeud::AUCUN;
 
 					/* nous avons la déclaration d'un type dans la structure */
-					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(TypeLexeme::DOUBLE_POINTS)) {
+					if ((racine_expr != type_id::TRANSTYPE && racine_expr != type_id::LOGE && racine_expr != type_id::RELOGE) && est_identifiant(GenreLexeme::DOUBLE_POINTS)) {
 						noeud->type_declare = analyse_declaration_type();
 						drapeaux |= DECLARATION;
 					}
@@ -689,111 +689,111 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				break;
 			}
-			case TypeLexeme::NOMBRE_REEL:
+			case GenreLexeme::NOMBRE_REEL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::NOMBRE_BINAIRE:
-			case TypeLexeme::NOMBRE_ENTIER:
-			case TypeLexeme::NOMBRE_HEXADECIMAL:
-			case TypeLexeme::NOMBRE_OCTAL:
+			case GenreLexeme::NOMBRE_BINAIRE:
+			case GenreLexeme::NOMBRE_ENTIER:
+			case GenreLexeme::NOMBRE_HEXADECIMAL:
+			case GenreLexeme::NOMBRE_OCTAL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::CHAINE_LITTERALE:
+			case GenreLexeme::CHAINE_LITTERALE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::CARACTERE:
+			case GenreLexeme::CARACTERE:
 			{
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::NUL:
+			case GenreLexeme::NUL:
 			{
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::TAILLE_DE:
+			case GenreLexeme::TAILLE_DE:
 			{
-				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
+				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_TAILLE_DE, morceau);
 				noeud->valeur_calculee = analyse_declaration_type(false);
 
-				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
+				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
 
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::INFO_DE:
+			case GenreLexeme::INFO_DE:
 			{
-				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
+				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
 				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_INFO_DE, morceau, false);
 
-				analyse_expression(TypeLexeme::INCONNU, TypeLexeme::INFO_DE);
+				analyse_expression(GenreLexeme::INCONNU, GenreLexeme::INFO_DE);
 
 				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_INFO_DE);
 
 				/* vérifie mais n'avance pas */
-				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
+				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
 
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::VRAI:
-			case TypeLexeme::FAUX:
+			case GenreLexeme::VRAI:
+			case GenreLexeme::FAUX:
 			{
 				/* remplace l'identifiant par id_morceau::BOOL */
-				morceau.identifiant = TypeLexeme::BOOL;
+				morceau.genre = GenreLexeme::BOOL;
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, morceau);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::TRANSTYPE:
+			case GenreLexeme::TRANSTYPE:
 			{
-				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
+				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
 
 				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_TRANSTYPE, morceau, false);
 
-				analyse_expression(TypeLexeme::DOUBLE_POINTS, TypeLexeme::TRANSTYPE);
+				analyse_expression(GenreLexeme::DOUBLE_POINTS, GenreLexeme::TRANSTYPE);
 
 				noeud->type_declare = analyse_declaration_type(false);
 
-				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après la déclaration du type");
+				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après la déclaration du type");
 
 				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_TRANSTYPE);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::MEMOIRE:
+			case GenreLexeme::MEMOIRE:
 			{
-				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
+				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
 				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_MEMOIRE, morceau, false);
 
-				analyse_expression(TypeLexeme::INCONNU, TypeLexeme::MEMOIRE);
+				analyse_expression(GenreLexeme::INCONNU, GenreLexeme::MEMOIRE);
 
-				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
+				consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
 
 				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_MEMOIRE);
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::PARENTHESE_OUVRANTE:
+			case GenreLexeme::PARENTHESE_OUVRANTE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_PARENTHESE, morceau, false);
 
-				analyse_expression(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
+				analyse_expression(GenreLexeme::PARENTHESE_FERMANTE, GenreLexeme::PARENTHESE_OUVRANTE);
 
 				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_PARENTHESE);
 
@@ -802,11 +802,11 @@ noeud::base *Syntaxeuse::analyse_expression(
 				/* ajourne id_courant avec une parenthèse fermante, car étant
 				 * une parenthèse ouvrante, il ferait échouer le test de
 				 * détermination d'un opérateur unaire */
-				id_courant = TypeLexeme::PARENTHESE_FERMANTE;
+				genre_courant = GenreLexeme::PARENTHESE_FERMANTE;
 
 				break;
 			}
-			case TypeLexeme::PARENTHESE_FERMANTE:
+			case GenreLexeme::PARENTHESE_FERMANTE:
 			{
 				/* recule pour être synchronisé avec les différentes sorties */
 				recule();
@@ -814,21 +814,21 @@ noeud::base *Syntaxeuse::analyse_expression(
 				break;
 			}
 			/* opérations binaire */
-			case TypeLexeme::PLUS:
-			case TypeLexeme::MOINS:
+			case GenreLexeme::PLUS:
+			case GenreLexeme::MOINS:
 			{
-				auto id_operateur = morceau.identifiant;
+				auto id_operateur = morceau.genre;
 				auto noeud = static_cast<noeud::base *>(nullptr);
 
-				if (precede_unaire_valide(dernier_identifiant)) {
-					if (id_operateur == TypeLexeme::PLUS) {
-						id_operateur = TypeLexeme::PLUS_UNAIRE;
+				if (precede_unaire_valide(genre_dernier_lexeme)) {
+					if (id_operateur == GenreLexeme::PLUS) {
+						id_operateur = GenreLexeme::PLUS_UNAIRE;
 					}
-					else if (id_operateur == TypeLexeme::MOINS) {
-						id_operateur = TypeLexeme::MOINS_UNAIRE;
+					else if (id_operateur == GenreLexeme::MOINS) {
+						id_operateur = GenreLexeme::MOINS_UNAIRE;
 					}
 
-					morceau.identifiant = id_operateur;
+					morceau.genre = id_operateur;
 					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, morceau);
 				}
 				else {
@@ -841,60 +841,60 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				break;
 			}
-			case TypeLexeme::FOIS:
-			case TypeLexeme::DIVISE:
-			case TypeLexeme::ESPERLUETTE:
-			case TypeLexeme::POURCENT:
-			case TypeLexeme::INFERIEUR:
-			case TypeLexeme::INFERIEUR_EGAL:
-			case TypeLexeme::SUPERIEUR:
-			case TypeLexeme::SUPERIEUR_EGAL:
-			case TypeLexeme::DECALAGE_DROITE:
-			case TypeLexeme::DECALAGE_GAUCHE:
-			case TypeLexeme::DIFFERENCE:
-			case TypeLexeme::ESP_ESP:
-			case TypeLexeme::EGALITE:
-			case TypeLexeme::BARRE_BARRE:
-			case TypeLexeme::BARRE:
-			case TypeLexeme::CHAPEAU:
-			case TypeLexeme::PLUS_EGAL:
-			case TypeLexeme::MOINS_EGAL:
-			case TypeLexeme::DIVISE_EGAL:
-			case TypeLexeme::MULTIPLIE_EGAL:
-			case TypeLexeme::MODULO_EGAL:
-			case TypeLexeme::ET_EGAL:
-			case TypeLexeme::OU_EGAL:
-			case TypeLexeme::OUX_EGAL:
-			case TypeLexeme::DEC_DROITE_EGAL:
-			case TypeLexeme::DEC_GAUCHE_EGAL:
-			case TypeLexeme::VIRGULE:
+			case GenreLexeme::FOIS:
+			case GenreLexeme::DIVISE:
+			case GenreLexeme::ESPERLUETTE:
+			case GenreLexeme::POURCENT:
+			case GenreLexeme::INFERIEUR:
+			case GenreLexeme::INFERIEUR_EGAL:
+			case GenreLexeme::SUPERIEUR:
+			case GenreLexeme::SUPERIEUR_EGAL:
+			case GenreLexeme::DECALAGE_DROITE:
+			case GenreLexeme::DECALAGE_GAUCHE:
+			case GenreLexeme::DIFFERENCE:
+			case GenreLexeme::ESP_ESP:
+			case GenreLexeme::EGALITE:
+			case GenreLexeme::BARRE_BARRE:
+			case GenreLexeme::BARRE:
+			case GenreLexeme::CHAPEAU:
+			case GenreLexeme::PLUS_EGAL:
+			case GenreLexeme::MOINS_EGAL:
+			case GenreLexeme::DIVISE_EGAL:
+			case GenreLexeme::MULTIPLIE_EGAL:
+			case GenreLexeme::MODULO_EGAL:
+			case GenreLexeme::ET_EGAL:
+			case GenreLexeme::OU_EGAL:
+			case GenreLexeme::OUX_EGAL:
+			case GenreLexeme::DEC_DROITE_EGAL:
+			case GenreLexeme::DEC_GAUCHE_EGAL:
+			case GenreLexeme::VIRGULE:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
-				if (expression.est_vide() && est_operateur_binaire(morceau.identifiant)) {
+				if (expression.est_vide() && est_operateur_binaire(morceau.genre)) {
 					lance_erreur("Opérateur binaire utilisé en début d'expression");
 				}
 
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau);
 				pile.pousse(noeud);
 
 				break;
 			}
-			case TypeLexeme::TROIS_POINTS:
+			case GenreLexeme::TROIS_POINTS:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_PLAGE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::POINT:
+			case GenreLexeme::POINT:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::EGAL:
+			case GenreLexeme::EGAL:
 			{
 				if (assignation) {
 					lance_erreur("Ne peut faire d'assignation dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
@@ -902,7 +902,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				assignation = true;
 
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 
 				GenreNoeud tn;
 
@@ -917,7 +917,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				pile.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::DECLARATION_VARIABLE:
+			case GenreLexeme::DECLARATION_VARIABLE:
 			{
 				if (assignation) {
 					lance_erreur("Ne peut faire de déclaration dans une expression droite", erreur::type_erreur::ASSIGNATION_INVALIDE);
@@ -925,24 +925,24 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				assignation = true;
 
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::CROCHET_OUVRANT:
+			case GenreLexeme::CROCHET_OUVRANT:
 			{
 				/* l'accès à un élément d'un tableau est chaine[index] */
-				if (dernier_identifiant == TypeLexeme::CHAINE_CARACTERE
-						|| dernier_identifiant == TypeLexeme::CHAINE_LITTERALE
-						 || dernier_identifiant == TypeLexeme::CROCHET_OUVRANT) {
-					vide_pile_operateur(morceau.identifiant);
+				if (genre_dernier_lexeme == GenreLexeme::CHAINE_CARACTERE
+						|| genre_dernier_lexeme == GenreLexeme::CHAINE_LITTERALE
+						 || genre_dernier_lexeme == GenreLexeme::CROCHET_OUVRANT) {
+					vide_pile_operateur(morceau.genre);
 
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau, false);
 					pile.pousse(noeud);
 
-					analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
+					analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT);
 
 					/* Extrait le noeud enfant, il sera de nouveau ajouté dans
 					 * la compilation de l'expression à la fin de la fonction. */
@@ -960,15 +960,15 @@ noeud::base *Syntaxeuse::analyse_expression(
 				}
 				else {
 					/* change l'identifiant pour ne pas le confondre avec l'opérateur binaire [] */
-					morceau.identifiant = TypeLexeme::TABLEAU;
+					morceau.genre = GenreLexeme::TABLEAU;
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, morceau, false);
 
-					analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
+					analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT);
 
 					/* il est possible que le crochet n'ait pas été consommé,
 					 * par exemple dans le cas où nous avons un point-virgule
 					 * implicite dans la construction */
-					if (est_identifiant(TypeLexeme::CROCHET_FERMANT)) {
+					if (est_identifiant(GenreLexeme::CROCHET_FERMANT)) {
 						avance();
 					}
 
@@ -980,18 +980,18 @@ noeud::base *Syntaxeuse::analyse_expression(
 				break;
 			}
 			/* opérations unaire */
-			case TypeLexeme::AROBASE:
-			case TypeLexeme::EXCLAMATION:
-			case TypeLexeme::TILDE:
-			case TypeLexeme::PLUS_UNAIRE:
-			case TypeLexeme::MOINS_UNAIRE:
+			case GenreLexeme::AROBASE:
+			case GenreLexeme::EXCLAMATION:
+			case GenreLexeme::TILDE:
+			case GenreLexeme::PLUS_UNAIRE:
+			case GenreLexeme::MOINS_UNAIRE:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::ACCOLADE_FERMANTE:
+			case GenreLexeme::ACCOLADE_FERMANTE:
 			{
 				/* une accolade fermante marque généralement la fin de la
 				 * construction d'une structure */
@@ -1001,14 +1001,14 @@ noeud::base *Syntaxeuse::analyse_expression(
 				recule();
 				break;
 			}
-			case TypeLexeme::LOGE:
+			case GenreLexeme::LOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(
 							GenreNoeud::EXPRESSION_LOGE,
 							morceau,
 							false);
 
-				if (est_identifiant(TypeLexeme::CHAINE)) {
+				if (est_identifiant(GenreLexeme::CHAINE)) {
 					noeud->type_declare = analyse_declaration_type(false);
 
 					avance();
@@ -1040,7 +1040,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				expression.pousse(noeud);
 				break;
 			}
-			case TypeLexeme::RELOGE:
+			case GenreLexeme::RELOGE:
 			{
 				/* reloge nom : type; */
 				auto noeud_reloge = m_assembleuse->empile_noeud(
@@ -1082,7 +1082,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				expression.pousse(noeud_reloge);
 				break;
 			}
-			case TypeLexeme::DELOGE:
+			case GenreLexeme::DELOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(
 							GenreNoeud::EXPRESSION_DELOGE,
@@ -1101,27 +1101,27 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				break;
 			}
-			case TypeLexeme::DIRECTIVE:
+			case GenreLexeme::DIRECTIVE:
 			{
-				if (est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
+				if (est_identifiant(GenreLexeme::CHAINE_CARACTERE)) {
 					avance();
 
 					auto directive = donnees().chaine;
 
 					if (directive == "inclus") {
-						consomme(TypeLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->ajoute_inclusion(chaine);
 					}
 					else if (directive == "bib") {
-						consomme(TypeLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->bibliotheques.pousse(chaine);
 					}
 					else if (directive == "def") {
-						consomme(TypeLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
+						consomme(GenreLexeme::CHAINE_LITTERALE, "Attendu une chaine littérale après la directive");
 
 						auto chaine = donnees().chaine;
 						m_assembleuse->definitions.pousse(chaine);
@@ -1129,7 +1129,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					else if (directive == "exécute") {
 						m_assembleuse->empile_noeud(GenreNoeud::DIRECTIVE_EXECUTION, morceau);
 
-						auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
+						auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
 
 						m_assembleuse->depile_noeud(GenreNoeud::DIRECTIVE_EXECUTION);
 
@@ -1163,13 +1163,13 @@ noeud::base *Syntaxeuse::analyse_expression(
 						lance_erreur("Directive inconnue");
 					}
 				}
-				else if (est_identifiant(TypeLexeme::SI)) {
+				else if (est_identifiant(GenreLexeme::SI)) {
 					analyse_directive_si();
 				}
-				else if (est_identifiant(TypeLexeme::SINON)) {
+				else if (est_identifiant(GenreLexeme::SINON)) {
 					avance();
 
-					if (est_identifiant(TypeLexeme::SI)) {
+					if (est_identifiant(GenreLexeme::SI)) {
 						analyse_directive_si();
 					}
 
@@ -1182,19 +1182,19 @@ noeud::base *Syntaxeuse::analyse_expression(
 				termine_boucle = true;
 				break;
 			}
-			case TypeLexeme::SI:
+			case GenreLexeme::SI:
 			{
 				analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
 				termine_boucle = true;
 				break;
 			}
-			case TypeLexeme::SAUFSI:
+			case GenreLexeme::SAUFSI:
 			{
 				analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
 				termine_boucle = true;
 				break;
 			}
-			case TypeLexeme::POINT_VIRGULE:
+			case GenreLexeme::POINT_VIRGULE:
 			{
 				termine_boucle = true;
 				break;
@@ -1209,7 +1209,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			break;
 		}
 
-		dernier_identifiant = id_courant;
+		genre_dernier_lexeme = genre_courant;
 	}
 
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
@@ -1304,8 +1304,8 @@ noeud::base *Syntaxeuse::analyse_expression(
 void Syntaxeuse::analyse_appel_fonction(noeud::base *noeud)
 {
 	/* ici nous devons être au niveau du premier paramètre */
-	while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
-		if (sont_2_identifiants(TypeLexeme::CHAINE_CARACTERE, TypeLexeme::EGAL)) {
+	while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
+		if (sont_2_identifiants(GenreLexeme::CHAINE_CARACTERE, GenreLexeme::EGAL)) {
 			avance();
 
 			auto nom_argument = donnees().chaine;
@@ -1320,13 +1320,13 @@ void Syntaxeuse::analyse_appel_fonction(noeud::base *noeud)
 		/* À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
 		 * si identifiant final == ')', alors l'algorithme s'arrête quand une
 		 * paranthèse fermante est trouvé et que la pile est vide */
-		analyse_expression(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
+		analyse_expression(GenreLexeme::VIRGULE, GenreLexeme::EGAL);
 	}
 
-	consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
+	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
 }
 
-void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
+void Syntaxeuse::analyse_declaration_structure(GenreLexeme id)
 {
 	auto est_externe = false;
 	auto est_nonsur = false;
@@ -1336,7 +1336,7 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 		avance();
 	}
 
-	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
+	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_STRUCTURE, donnees());
 	auto nom_structure = donnees().chaine;
@@ -1354,14 +1354,14 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 	donnees_structure.noeud_decl = noeud_decl;
 	donnees_structure.est_enum = false;
 	donnees_structure.est_externe = est_externe;
-	donnees_structure.est_union = (id == TypeLexeme::UNION);
+	donnees_structure.est_union = (id == GenreLexeme::UNION);
 	donnees_structure.est_nonsur = est_nonsur;
 
 	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
 
 	if (nom_structure == "ContexteProgramme") {
 		auto dt = DonneesTypeFinal();
-		dt.pousse(TypeLexeme::POINTEUR);
+		dt.pousse(GenreLexeme::POINTEUR);
 		dt.pousse(m_contexte.typeuse[donnees_structure.index_type]);
 		m_contexte.index_type_contexte = m_contexte.typeuse.ajoute_type(dt);
 	}
@@ -1376,17 +1376,17 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 	}
 
 	if (analyse_membres) {
-		consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
+		consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
 
-		while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-			auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
+		while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
+			auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, type_id::STRUCT);
 
 			if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 				noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
 			}
 		}
 
-		consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
+		consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 	}
 
 	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_STRUCTURE);
@@ -1394,7 +1394,7 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 
 void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 {
-	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
+	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
 	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_ENUM, donnees());
 	auto nom = noeud_decl->morceau.chaine;
@@ -1408,30 +1408,30 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 
 	noeud_decl->type_declare = analyse_declaration_type();
 
-	consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
+	consomme(GenreLexeme::ACCOLADE_OUVRANTE, "Attendu '{' après 'énum'");
 
-	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-		auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
+	while (!est_identifiant(GenreLexeme::ACCOLADE_FERMANTE)) {
+		auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
 
 		if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
 			noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
 		}
 	}
 
-	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
+	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
 	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_ENUM);
 }
 
 DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 {
-	if (double_point && !requiers_identifiant(TypeLexeme::DOUBLE_POINTS)) {
+	if (double_point && !requiers_identifiant(GenreLexeme::DOUBLE_POINTS)) {
 		lance_erreur("Attendu ':'");
 	}
 
 	auto nulctx = false;
 
-	if (est_identifiant(TypeLexeme::DIRECTIVE)) {
+	if (est_identifiant(GenreLexeme::DIRECTIVE)) {
 		avance();
 		avance();
 
@@ -1445,67 +1445,67 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 	}
 
 	/* Vérifie si l'on a un pointeur vers une fonction. */
-	if (est_identifiant(TypeLexeme::FONC) || est_identifiant(TypeLexeme::COROUT)) {
+	if (est_identifiant(GenreLexeme::FONC) || est_identifiant(GenreLexeme::COROUT)) {
 		avance();
 
 		auto dt = DonneesTypeDeclare{};
-		dt.pousse(donnees().identifiant);
+		dt.pousse(donnees().genre);
 
-		consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
+		consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'fonction'");
 
-		dt.pousse(TypeLexeme::PARENTHESE_OUVRANTE);
+		dt.pousse(GenreLexeme::PARENTHESE_OUVRANTE);
 
 		if (!nulctx) {
 			ajoute_contexte_programme(m_contexte, dt);
 
-			if (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
-				dt.pousse(TypeLexeme::VIRGULE);
+			if (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
+				dt.pousse(GenreLexeme::VIRGULE);
 			}
 		}
 
-		while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
+		while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
 			dt.pousse(dtd);
 
-			if (!est_identifiant(TypeLexeme::VIRGULE)) {
+			if (!est_identifiant(GenreLexeme::VIRGULE)) {
 				break;
 			}
 
 			avance();
-			dt.pousse(TypeLexeme::VIRGULE);
+			dt.pousse(GenreLexeme::VIRGULE);
 		}
 
 		avance();
-		dt.pousse(TypeLexeme::PARENTHESE_FERMANTE);
+		dt.pousse(GenreLexeme::PARENTHESE_FERMANTE);
 
 		bool eu_paren_ouvrante = false;
 
-		if (est_identifiant(TypeLexeme::PARENTHESE_OUVRANTE)) {
+		if (est_identifiant(GenreLexeme::PARENTHESE_OUVRANTE)) {
 			avance();
 			eu_paren_ouvrante = true;
 		}
 
-		dt.pousse(TypeLexeme::PARENTHESE_OUVRANTE);
+		dt.pousse(GenreLexeme::PARENTHESE_OUVRANTE);
 
-		while (!est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
+		while (!est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			auto dtd = analyse_declaration_type(false);
 			dt.pousse(dtd);
 
-			auto est_virgule = est_identifiant(TypeLexeme::VIRGULE);
+			auto est_virgule = est_identifiant(GenreLexeme::VIRGULE);
 
 			if ((est_virgule && !eu_paren_ouvrante) || !est_virgule) {
 				break;
 			}
 
 			avance();
-			dt.pousse(TypeLexeme::VIRGULE);
+			dt.pousse(GenreLexeme::VIRGULE);
 		}
 
-		if (eu_paren_ouvrante && est_identifiant(TypeLexeme::PARENTHESE_FERMANTE)) {
+		if (eu_paren_ouvrante && est_identifiant(GenreLexeme::PARENTHESE_FERMANTE)) {
 			avance();
 		}
 
-		dt.pousse(TypeLexeme::PARENTHESE_FERMANTE);
+		dt.pousse(GenreLexeme::PARENTHESE_FERMANTE);
 
 		return dt;
 	}
@@ -1515,7 +1515,7 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)
 
 DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 {
-	auto dernier_id = TypeLexeme{};
+	auto dernier_id = GenreLexeme{};
 	auto donnees_type = DonneesTypeDeclare{};
 
 	while (est_specifiant_type(identifiant_courant())) {
@@ -1527,14 +1527,14 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 			{
 				auto expr = static_cast<noeud::base *>(nullptr);
 
-				if (this->identifiant_courant() != TypeLexeme::CROCHET_FERMANT) {
-					expr = analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT, false);
+				if (this->identifiant_courant() != GenreLexeme::CROCHET_FERMANT) {
+					expr = analyse_expression(GenreLexeme::CROCHET_FERMANT, GenreLexeme::CROCHET_OUVRANT, false);
 				}
 				else {
 					avance();
 				}
 
-				donnees_type.pousse(TypeLexeme::TABLEAU);
+				donnees_type.pousse(GenreLexeme::TABLEAU);
 				donnees_type.expressions.pousse(expr);
 
 				break;
@@ -1546,24 +1546,24 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 			}
 			case type_id::FOIS:
 			{
-				donnees_type.pousse(TypeLexeme::POINTEUR);
+				donnees_type.pousse(GenreLexeme::POINTEUR);
 				break;
 			}
 			case type_id::ESPERLUETTE:
 			{
-				donnees_type.pousse(TypeLexeme::REFERENCE);
+				donnees_type.pousse(GenreLexeme::REFERENCE);
 				break;
 			}
 			case type_id::TYPE_DE:
 			{
-				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'type_de'");
+				consomme(GenreLexeme::PARENTHESE_OUVRANTE, "Attendu un '(' après 'type_de'");
 
 				auto expr = analyse_expression(
-							TypeLexeme::PARENTHESE_FERMANTE,
-							TypeLexeme::TYPE_DE,
+							GenreLexeme::PARENTHESE_FERMANTE,
+							GenreLexeme::TYPE_DE,
 							false);
 
-				donnees_type.pousse(TypeLexeme::TYPE_DE);
+				donnees_type.pousse(GenreLexeme::TYPE_DE);
 				donnees_type.expressions.pousse(expr);
 
 				break;
@@ -1579,21 +1579,21 @@ DonneesTypeDeclare Syntaxeuse::analyse_declaration_type_ex()
 
 	auto type_attendu = true;
 
-	if (dernier_id == TypeLexeme::TYPE_DE) {
+	if (dernier_id == GenreLexeme::TYPE_DE) {
 		type_attendu = false;
 	}
 
 	/* Soutiens pour les types des fonctions variadiques externes. */
-	if (dernier_id == TypeLexeme::TROIS_POINTS && est_identifiant(type_id::PARENTHESE_FERMANTE)) {
+	if (dernier_id == GenreLexeme::TROIS_POINTS && est_identifiant(type_id::PARENTHESE_FERMANTE)) {
 		type_attendu = false;
 	}
 
 	if (type_attendu) {
 		consomme_type("Attendu la déclaration d'un type");
 
-		auto identifiant = donnees().identifiant;
+		auto identifiant = donnees().genre;
 
-		if (identifiant == TypeLexeme::CHAINE_CARACTERE) {
+		if (identifiant == GenreLexeme::CHAINE_CARACTERE) {
 			auto const nom_type = donnees().chaine;
 
 			if (!m_contexte.structure_existe(nom_type)) {
@@ -1629,10 +1629,10 @@ void Syntaxeuse::analyse_construction_structure(noeud::base *noeud)
 
 		avance();
 
-		analyse_expression(TypeLexeme::VIRGULE, TypeLexeme::EGAL);
+		analyse_expression(GenreLexeme::VIRGULE, GenreLexeme::EGAL);
 	}
 
-	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
+	consomme(GenreLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la construction de la structure");
 
 	noeud->drapeaux |= EST_CALCULE;
 	noeud->valeur_calculee = liste_param;
@@ -1674,7 +1674,7 @@ void Syntaxeuse::analyse_directive_si()
 	}
 }
 
-void Syntaxeuse::consomme(TypeLexeme id, const char *message)
+void Syntaxeuse::consomme(GenreLexeme id, const char *message)
 {
 	if (!requiers_identifiant(id)) {
 		lance_erreur(message);

@@ -155,7 +155,7 @@ size_t decoupeuse_texte::memoire_morceaux() const
 void decoupeuse_texte::imprime_morceaux(std::ostream &os)
 {
 	for (auto const &morceau : m_module->morceaux) {
-		os << chaine_identifiant(morceau.identifiant) << '\n';
+		os << chaine_identifiant(morceau.genre) << '\n';
 	}
 }
 

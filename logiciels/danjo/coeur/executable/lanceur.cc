@@ -38,7 +38,7 @@
 static void imprime_morceaux(danjo::Decoupeuse::iterateur debut, danjo::Decoupeuse::iterateur fin)
 {
 	while (debut != fin) {
-		std::cerr << chaine_identifiant(debut->identifiant) << " : " << debut->chaine << '\n';
+		std::cerr << chaine_identifiant(debut->genre) << " : " << debut->chaine << '\n';
 		++debut;
 	}
 }
@@ -55,7 +55,7 @@ static void cree_fichier_dan(const std::filesystem::path &chemin)
 		auto debut = decoupeuse.morceaux().debut();
 		auto fin = decoupeuse.morceaux().fin();
 
-		if (debut->identifiant != danjo::id_morceau::DISPOSITION) {
+		if (debut->genre != danjo::id_morceau::DISPOSITION) {
 			return;
 		}
 
@@ -78,27 +78,27 @@ static void cree_fichier_dan(const std::filesystem::path &chemin)
 		auto valeur_propriete = dls::chaine("");
 
 		while (debut++ != fin) {
-			if (!danjo::est_identifiant_controle(debut->identifiant)) {
+			if (!danjo::est_identifiant_controle(debut->genre)) {
 				continue;
 			}
 
-			if (debut->identifiant == danjo::id_morceau::ETIQUETTE) {
+			if (debut->genre == danjo::id_morceau::ETIQUETTE) {
 				continue;
 			}
 
-			auto identifiant = debut->identifiant;
+			auto identifiant = debut->genre;
 
 			nom_propriete.efface();
 			valeur_propriete.efface();
 
-			while (debut->identifiant != danjo::id_morceau::PARENTHESE_FERMANTE) {
-				if (debut->identifiant == danjo::id_morceau::VALEUR) {
+			while (debut->genre != danjo::id_morceau::PARENTHESE_FERMANTE) {
+				if (debut->genre == danjo::id_morceau::VALEUR) {
 					++debut;
 					++debut;
 
 					valeur_propriete = debut->chaine;
 				}
-				else if (debut->identifiant == danjo::id_morceau::ATTACHE) {
+				else if (debut->genre == danjo::id_morceau::ATTACHE) {
 					++debut;
 					++debut;
 

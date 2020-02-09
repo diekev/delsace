@@ -36,7 +36,7 @@ void lance_erreur(const dls::chaine &quoi, lng::tampon_source const &tampon, con
 {
 	const auto ligne = static_cast<long>(morceau.ligne_pos >> 32);
 	const auto pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	const auto identifiant = morceau.identifiant;
+	const auto identifiant = morceau.genre;
 	const auto &chaine = morceau.chaine;
 
 	auto ligne_courante = tampon[ligne];

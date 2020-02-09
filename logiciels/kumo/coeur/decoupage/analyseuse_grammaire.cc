@@ -170,7 +170,7 @@ void analyseuse_grammaire::analyse_declaration_colonne(Table &table)
 		lance_erreur("Attendu la déclaration d'un type après ':");
 	}
 
-	colonne.type = donnees().identifiant;
+	colonne.type = donnees().genre;
 	initialise_colonne(colonne);
 
 	if (!requiers_identifiant(id_morceau::PARENTHESE_OUVRANTE)) {
@@ -219,17 +219,17 @@ static void initialise_propriete(
 {
 	switch (id_propriete) {
 		case id_morceau::SIGNE:
-			colonne.signee = (donnees.identifiant == id_morceau::VRAI);
+			colonne.signee = (donnees.genre == id_morceau::VRAI);
 			break;
 		case id_morceau::SUPPRIME:
-			colonne.suppression = donnees.identifiant;
+			colonne.suppression = donnees.genre;
 			break;
 		case id_morceau::NUL:
-			colonne.peut_etre_nulle = (donnees.identifiant == id_morceau::VRAI);
+			colonne.peut_etre_nulle = (donnees.genre == id_morceau::VRAI);
 			break;
 		case id_morceau::DEFAUT:
 			colonne.a_valeur_defaut = true;
-			colonne.id_valeur_defaut = donnees.identifiant;
+			colonne.id_valeur_defaut = donnees.genre;
 			colonne.defaut = donnees.chaine;
 			break;
 		case id_morceau::TAILLE:
@@ -273,7 +273,7 @@ void analyseuse_grammaire::analyse_propriete_colonne(Colonne &colonne)
 			lance_erreur("Attendu la déclaration d'une propriété");
 		}
 
-		auto id_propriete = donnees().identifiant;
+		auto id_propriete = donnees().genre;
 
 		if (!requiers_identifiant(id_morceau::DOUBLE_POINTS)) {
 			lance_erreur("Attendu un double point ':' après la propriété");

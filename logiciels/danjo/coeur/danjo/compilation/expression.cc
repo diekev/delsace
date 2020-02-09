@@ -81,7 +81,7 @@ static id_morceau promeut(id_morceau id1, id_morceau id2)
 		Symbole ret; \
 		ret.valeur = std::any_cast<T1>(s1.valeur) \
 					  __op static_cast<T1>(std::any_cast<T2>(s2.valeur)); \
-		ret.identifiant = promeut(s1.identifiant, s2.identifiant); \
+		ret.genre = promeut(s1.genre, s2.genre); \
 		return ret; \
 	}
 
@@ -101,30 +101,30 @@ DEFINI_FONCTION(octet_oux, ^)
 
 #define DEFINI_CAS_SIMPLE(__id, __fonction) \
 	case __id: \
-		if (s1.identifiant == id_morceau::NOMBRE_ENTIER) { \
+		if (s1.genre == id_morceau::NOMBRE_ENTIER) { \
 			return __fonction<int>(s1, s2); \
 		} \
-		if (s1.identifiant == id_morceau::NOMBRE_REEL) { \
+		if (s1.genre == id_morceau::NOMBRE_REEL) { \
 			return __fonction<float>(s1, s2); \
 		} \
-		if (s1.identifiant == id_morceau::BOOL) { \
+		if (s1.genre == id_morceau::BOOL) { \
 			return __fonction<bool>(s1, s2); \
 		} \
 		break;
 
 #define DEFINI_CAS_DOUBLE(__id, __fonction) \
 	case __id: \
-		if (s1.identifiant == id_morceau::NOMBRE_ENTIER && s2.identifiant == id_morceau::NOMBRE_REEL) { \
+		if (s1.genre == id_morceau::NOMBRE_ENTIER && s2.genre == id_morceau::NOMBRE_REEL) { \
 			return __fonction<int, float>(s1, s2); \
 		} \
-		if (s1.identifiant == id_morceau::NOMBRE_REEL && s2.identifiant == id_morceau::NOMBRE_ENTIER) { \
+		if (s1.genre == id_morceau::NOMBRE_REEL && s2.genre == id_morceau::NOMBRE_ENTIER) { \
 			return __fonction<float, int>(s1, s2); \
 		} \
 		break;
 
 Symbole evalue_operation(const Symbole &s1, const Symbole &s2, id_morceau operation)
 {
-	if (s1.identifiant == s2.identifiant) {
+	if (s1.genre == s2.genre) {
 		switch (operation) {
 			default:
 				break;
@@ -163,7 +163,7 @@ Symbole evalue_operation(const Symbole &s1, const Symbole &s2, id_morceau operat
 auto evalue_operation_logique(const Symbole &s1, id_morceau identifiant)
 {
 	Symbole resultat;
-	resultat.identifiant = id_morceau::NOMBRE_ENTIER;
+	resultat.genre = id_morceau::NOMBRE_ENTIER;
 	resultat.valeur = 0;
 
 	auto op1 = std::any_cast<int>(s1.valeur);
@@ -223,21 +223,21 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 	pile.empile({std::any(0), id_morceau::NOMBRE_ENTIER});
 
 	for (const Symbole &symbole : expression) {
-		if (est_operateur(symbole.identifiant)) {
+		if (est_operateur(symbole.genre)) {
 			auto s2 = pile.depile();
 			auto s1 = pile.depile();
 
-			auto resultat = evalue_operation(s1, s2, symbole.identifiant);
+			auto resultat = evalue_operation(s1, s2, symbole.genre);
 			pile.empile(resultat);
 		}
-		else if (est_operateur_logique(symbole.identifiant)) {
+		else if (est_operateur_logique(symbole.genre)) {
 			auto s1 = pile.depile();
 
-			auto resultat = evalue_operation_logique(s1, symbole.identifiant);
+			auto resultat = evalue_operation_logique(s1, symbole.genre);
 			pile.empile(resultat);
 		}
 		else {
-			switch (symbole.identifiant) {
+			switch (symbole.genre) {
 				default:
 					break;
 				case id_morceau::BOOL:
@@ -260,31 +260,31 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 						case TypePropriete::ENTIER:
 						{
 							tmp.valeur = manipulable->evalue_entier(nom);
-							tmp.identifiant = id_morceau::NOMBRE_ENTIER;
+							tmp.genre = id_morceau::NOMBRE_ENTIER;
 							break;
 						}
 						case TypePropriete::DECIMAL:
 						{
 							tmp.valeur = manipulable->evalue_decimal(nom);
-							tmp.identifiant = id_morceau::NOMBRE_REEL;
+							tmp.genre = id_morceau::NOMBRE_REEL;
 							break;
 						}
 						case TypePropriete::BOOL:
 						{
 							tmp.valeur = manipulable->evalue_bool(nom);
-							tmp.identifiant = id_morceau::BOOL;
+							tmp.genre = id_morceau::BOOL;
 							break;
 						}
 						case TypePropriete::COULEUR:
 						{
 							tmp.valeur = manipulable->evalue_couleur(nom);
-							tmp.identifiant = id_morceau::COULEUR;
+							tmp.genre = id_morceau::COULEUR;
 							break;
 						}
 						case TypePropriete::VECTEUR:
 						{
 							tmp.valeur = manipulable->evalue_vecteur(nom);
-							tmp.identifiant = id_morceau::VECTEUR;
+							tmp.genre = id_morceau::VECTEUR;
 							break;
 						}
 						case TypePropriete::ENUM:
@@ -293,7 +293,7 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 						case TypePropriete::CHAINE_CARACTERE:
 						{
 							tmp.valeur = manipulable->evalue_chaine(nom);
-							tmp.identifiant = id_morceau::CHAINE_LITTERALE;
+							tmp.genre = id_morceau::CHAINE_LITTERALE;
 							break;
 						}
 						default:
@@ -315,7 +315,7 @@ Symbole evalue_expression(const dls::tableau<Symbole> &expression, Manipulable *
 
 void imprime_valeur_symbole(Symbole symbole, std::ostream &os)
 {
-	switch (symbole.identifiant) {
+	switch (symbole.genre) {
 		case id_morceau::NOMBRE_ENTIER:
 			os << std::any_cast<int>(symbole.valeur) << ' ';
 			break;

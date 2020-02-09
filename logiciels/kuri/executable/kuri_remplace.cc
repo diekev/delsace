@@ -144,7 +144,7 @@ static void reecris_fichier(
 		auto os = std::ofstream(chemin);
 
 		for (auto const &morceau : fichier->morceaux) {
-			if (!est_mot_cle(morceau.identifiant)) {
+			if (!est_mot_cle(morceau.genre)) {
 				os << morceau.chaine;
 				continue;
 			}

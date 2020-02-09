@@ -29,11 +29,11 @@
 #include "lexemes.hh"
 
 static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
-		TypeLexeme id_operateur,
+		GenreLexeme id_operateur,
 		IndiceTypeOp type_operandes)
 {
 	switch (id_operateur) {
-		case TypeLexeme::PLUS:
+		case GenreLexeme::PLUS:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::Instruction::FAdd;
@@ -41,7 +41,7 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 
 			return llvm::Instruction::Add;
 		}
-		case TypeLexeme::MOINS:
+		case GenreLexeme::MOINS:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::Instruction::FSub;
@@ -49,7 +49,7 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 
 			return llvm::Instruction::Sub;
 		}
-		case TypeLexeme::FOIS:
+		case GenreLexeme::FOIS:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::Instruction::FMul;
@@ -57,7 +57,7 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 
 			return llvm::Instruction::Mul;
 		}
-		case TypeLexeme::DIVISE:
+		case GenreLexeme::DIVISE:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::Instruction::FDiv;
@@ -69,7 +69,7 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 
 			return llvm::Instruction::SDiv;
 		}
-		case TypeLexeme::POURCENT:
+		case GenreLexeme::POURCENT:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::Instruction::FRem;
@@ -81,7 +81,7 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 
 			return llvm::Instruction::SRem;
 		}
-		case TypeLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DECALAGE_DROITE:
 		{
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return llvm::Instruction::LShr;
@@ -89,21 +89,21 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 
 			return llvm::Instruction::AShr;
 		}
-		case TypeLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DECALAGE_GAUCHE:
 		{
 			return llvm::Instruction::Shl;
 		}
-		case TypeLexeme::ESPERLUETTE:
-		case TypeLexeme::ESP_ESP:
+		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::ESP_ESP:
 		{
 			return llvm::Instruction::And;
 		}
-		case TypeLexeme::BARRE:
-		case TypeLexeme::BARRE_BARRE:
+		case GenreLexeme::BARRE:
+		case GenreLexeme::BARRE_BARRE:
 		{
 			return llvm::Instruction::Or;
 		}
-		case TypeLexeme::CHAPEAU:
+		case GenreLexeme::CHAPEAU:
 		{
 			return llvm::Instruction::Xor;
 		}
@@ -115,11 +115,11 @@ static llvm::Instruction::BinaryOps instruction_llvm_pour_operateur(
 }
 
 static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
-		TypeLexeme id_operateur,
+		GenreLexeme id_operateur,
 		IndiceTypeOp type_operandes)
 {
 	switch (id_operateur) {
-		case TypeLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR:
 		{
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return llvm::CmpInst::Predicate::ICMP_ULT;
@@ -131,7 +131,7 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 
 			return llvm::CmpInst::Predicate::FCMP_OLT;
 		}
-		case TypeLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::INFERIEUR_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return llvm::CmpInst::Predicate::ICMP_ULE;
@@ -143,7 +143,7 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 
 			return llvm::CmpInst::Predicate::FCMP_OLE;
 		}
-		case TypeLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR:
 		{
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return llvm::CmpInst::Predicate::ICMP_UGT;
@@ -155,7 +155,7 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 
 			return llvm::CmpInst::Predicate::FCMP_OGT;
 		}
-		case TypeLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR_EGAL:
 		{
 			if (type_operandes == IndiceTypeOp::ENTIER_NATUREL) {
 				return llvm::CmpInst::Predicate::ICMP_UGE;
@@ -167,7 +167,7 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 
 			return llvm::CmpInst::Predicate::FCMP_OGE;
 		}
-		case TypeLexeme::EGALITE:
+		case GenreLexeme::EGALITE:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::CmpInst::Predicate::FCMP_OEQ;
@@ -175,7 +175,7 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 
 			return llvm::CmpInst::Predicate::ICMP_EQ;
 		}
-		case TypeLexeme::DIFFERENCE:
+		case GenreLexeme::DIFFERENCE:
 		{
 			if (type_operandes == IndiceTypeOp::REEL) {
 				return llvm::CmpInst::Predicate::FCMP_ONE;
@@ -194,47 +194,47 @@ static llvm::CmpInst::Predicate predicat_llvm_pour_operateur(
 
 // types comparaisons :
 // ==, !=, <, >, <=, =>
-static TypeLexeme operateurs_comparaisons[] = {
-	TypeLexeme::EGALITE,
-	TypeLexeme::DIFFERENCE,
-	TypeLexeme::INFERIEUR,
-	TypeLexeme::SUPERIEUR,
-	TypeLexeme::INFERIEUR_EGAL,
-	TypeLexeme::SUPERIEUR_EGAL
+static GenreLexeme operateurs_comparaisons[] = {
+	GenreLexeme::EGALITE,
+	GenreLexeme::DIFFERENCE,
+	GenreLexeme::INFERIEUR,
+	GenreLexeme::SUPERIEUR,
+	GenreLexeme::INFERIEUR_EGAL,
+	GenreLexeme::SUPERIEUR_EGAL
 };
 
 // types entiers et réels :
 // +, -, *, / (assignés +=, -=, /=, *=)
-static TypeLexeme operateurs_entiers_reels[] = {
-	TypeLexeme::PLUS,
-	TypeLexeme::MOINS,
-	TypeLexeme::FOIS,
-	TypeLexeme::DIVISE,
+static GenreLexeme operateurs_entiers_reels[] = {
+	GenreLexeme::PLUS,
+	GenreLexeme::MOINS,
+	GenreLexeme::FOIS,
+	GenreLexeme::DIVISE,
 };
 
 // types entiers :
 // %, <<, >>, &, |, ^ (assignés %=, <<=, >>=, &, |, ^)
-static TypeLexeme operateurs_entiers[] = {
-	TypeLexeme::POURCENT,
-	TypeLexeme::DECALAGE_GAUCHE,
-	TypeLexeme::DECALAGE_DROITE,
-	TypeLexeme::ESPERLUETTE,
-	TypeLexeme::BARRE,
-	TypeLexeme::CHAPEAU,
-	TypeLexeme::TILDE
+static GenreLexeme operateurs_entiers[] = {
+	GenreLexeme::POURCENT,
+	GenreLexeme::DECALAGE_GAUCHE,
+	GenreLexeme::DECALAGE_DROITE,
+	GenreLexeme::ESPERLUETTE,
+	GenreLexeme::BARRE,
+	GenreLexeme::CHAPEAU,
+	GenreLexeme::TILDE
 };
 
-static bool est_commutatif(TypeLexeme id)
+static bool est_commutatif(GenreLexeme id)
 {
 	switch (id) {
 		default:
 		{
 			return false;
 		}
-		case TypeLexeme::PLUS:
-		case TypeLexeme::FOIS:
-		case TypeLexeme::EGALITE:
-		case TypeLexeme::DIFFERENCE:
+		case GenreLexeme::PLUS:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::EGALITE:
+		case GenreLexeme::DIFFERENCE:
 		{
 			return true;
 		}
@@ -250,13 +250,13 @@ Operateurs::~Operateurs()
 	}
 }
 
-const Operateurs::type_conteneur &Operateurs::trouve(TypeLexeme id) const
+const Operateurs::type_conteneur &Operateurs::trouve(GenreLexeme id) const
 {
 	return donnees_operateurs.trouve(id)->second;
 }
 
 void Operateurs::ajoute_basique(
-		TypeLexeme id,
+		GenreLexeme id,
 		long index_type,
 		long index_type_resultat,
 		IndiceTypeOp indice_type,
@@ -266,7 +266,7 @@ void Operateurs::ajoute_basique(
 }
 
 void Operateurs::ajoute_basique(
-		TypeLexeme id,
+		GenreLexeme id,
 		long index_type1,
 		long index_type2,
 		long index_type_resultat,
@@ -292,13 +292,13 @@ void Operateurs::ajoute_basique(
 	}
 }
 
-void Operateurs::ajoute_basique_unaire(TypeLexeme id, long index_type, long index_type_resultat)
+void Operateurs::ajoute_basique_unaire(GenreLexeme id, long index_type, long index_type_resultat)
 {
 	ajoute_basique(id, index_type, index_type, index_type_resultat, static_cast<IndiceTypeOp>(-1), static_cast<RaisonOp>(-1));
 }
 
 void Operateurs::ajoute_perso(
-		TypeLexeme id,
+		GenreLexeme id,
 		long index_type1,
 		long index_type2,
 		long index_type_resultat,
@@ -316,7 +316,7 @@ void Operateurs::ajoute_perso(
 }
 
 void Operateurs::ajoute_perso_unaire(
-		TypeLexeme id,
+		GenreLexeme id,
 		long index_type,
 		long index_type_resultat,
 		const dls::chaine &nom_fonction)
@@ -369,7 +369,7 @@ dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
 		ContexteGenerationCode const &contexte,
 		long index_type1,
 		long index_type2,
-		TypeLexeme type_op)
+		GenreLexeme type_op)
 {
 	auto op_candidats = dls::tableau<DonneesOperateur const *>();
 
@@ -434,7 +434,7 @@ dls::tableau<OperateurCandidat> cherche_candidats_operateurs(
 DonneesOperateur const *cherche_operateur_unaire(
 		Operateurs const &operateurs,
 		long index_type1,
-		TypeLexeme type_op)
+		GenreLexeme type_op)
 {
 	for (auto const &op : operateurs.trouve(type_op)) {
 		if (op->index_type1 == index_type1) {
@@ -532,50 +532,50 @@ void enregistre_operateurs_basiques(
 	}
 
 	// operateurs booléens && || == !=
-	operateurs.ajoute_basique(TypeLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(TypeLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(TypeLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-	operateurs.ajoute_basique(TypeLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(GenreLexeme::ESP_ESP, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(GenreLexeme::BARRE_BARRE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(GenreLexeme::EGALITE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
+	operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 
 	// opérateurs unaires + - ~
 	for (auto type : types_entiers_naturels) {
-		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(TypeLexeme::TILDE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 	}
 
 	for (auto type : types_entiers_relatifs) {
-		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(TypeLexeme::TILDE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::TILDE, type, type);
 	}
 
 	for (auto type : types_reels) {
-		operateurs.ajoute_basique_unaire(TypeLexeme::PLUS_UNAIRE, type, type);
-		operateurs.ajoute_basique_unaire(TypeLexeme::MOINS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::PLUS_UNAIRE, type, type);
+		operateurs.ajoute_basique_unaire(GenreLexeme::MOINS_UNAIRE, type, type);
 	}
 
 	// opérateurs unaires booléens !
-	operateurs.ajoute_basique_unaire(TypeLexeme::EXCLAMATION, type_bool, type_bool);
+	operateurs.ajoute_basique_unaire(GenreLexeme::EXCLAMATION, type_bool, type_bool);
 
 	// type r16
 
 	// r16 + r32 => DLS_ajoute_r16r32
 
-	static dls::paire<TypeLexeme, dls::vue_chaine> op_r16[] = {
-		dls::paire{ TypeLexeme::PLUS, dls::vue_chaine("DLS_ajoute_") },
-		dls::paire{ TypeLexeme::MOINS, dls::vue_chaine("DLS_soustrait_") },
-		dls::paire{ TypeLexeme::FOIS, dls::vue_chaine("DLS_multiplie_") },
-		dls::paire{ TypeLexeme::DIVISE, dls::vue_chaine("DLS_divise_") },
+	static dls::paire<GenreLexeme, dls::vue_chaine> op_r16[] = {
+		dls::paire{ GenreLexeme::PLUS, dls::vue_chaine("DLS_ajoute_") },
+		dls::paire{ GenreLexeme::MOINS, dls::vue_chaine("DLS_soustrait_") },
+		dls::paire{ GenreLexeme::FOIS, dls::vue_chaine("DLS_multiplie_") },
+		dls::paire{ GenreLexeme::DIVISE, dls::vue_chaine("DLS_divise_") },
 	};
 
-	static dls::paire<TypeLexeme, dls::vue_chaine> op_comp_r16[] = {
-		dls::paire{ TypeLexeme::EGALITE, dls::vue_chaine("DLS_compare_egl_") },
-		dls::paire{ TypeLexeme::DIFFERENCE, dls::vue_chaine("DLS_compare_non_egl_") },
-		dls::paire{ TypeLexeme::INFERIEUR, dls::vue_chaine("DLS_compare_inf_") },
-		dls::paire{ TypeLexeme::SUPERIEUR, dls::vue_chaine("DLS_compare_sup_") },
-		dls::paire{ TypeLexeme::INFERIEUR_EGAL, dls::vue_chaine("DLS_compare_inf_egl_") },
-		dls::paire{ TypeLexeme::SUPERIEUR_EGAL, dls::vue_chaine("DLS_compare_sup_egl_") },
+	static dls::paire<GenreLexeme, dls::vue_chaine> op_comp_r16[] = {
+		dls::paire{ GenreLexeme::EGALITE, dls::vue_chaine("DLS_compare_egl_") },
+		dls::paire{ GenreLexeme::DIFFERENCE, dls::vue_chaine("DLS_compare_non_egl_") },
+		dls::paire{ GenreLexeme::INFERIEUR, dls::vue_chaine("DLS_compare_inf_") },
+		dls::paire{ GenreLexeme::SUPERIEUR, dls::vue_chaine("DLS_compare_sup_") },
+		dls::paire{ GenreLexeme::INFERIEUR_EGAL, dls::vue_chaine("DLS_compare_inf_egl_") },
+		dls::paire{ GenreLexeme::SUPERIEUR_EGAL, dls::vue_chaine("DLS_compare_sup_egl_") },
 	};
 
 	for (auto paire_op : op_r16) {
@@ -600,20 +600,20 @@ void enregistre_operateurs_basiques(
 		operateurs.ajoute_perso(op, type_r64, type_r16, type_bool, chaine + "r64r16");
 	}
 
-	operateurs.ajoute_perso_unaire(TypeLexeme::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
-	operateurs.ajoute_perso_unaire(TypeLexeme::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
+	operateurs.ajoute_perso_unaire(GenreLexeme::PLUS_UNAIRE, type_r16, type_r16, "DLS_plus_r16");
+	operateurs.ajoute_perso_unaire(GenreLexeme::MOINS_UNAIRE, type_r16, type_r16, "DLS_moins_r16");
 
-	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
-	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
+	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r16, type_r32, type_r16, "DLS_depuis_r32");
+	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r16, type_r64, type_r16, "DLS_depuis_r64");
 
-	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
-	operateurs.ajoute_perso(TypeLexeme::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
+	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r32, type_r16, type_r32, "DLS_vers_r32");
+	operateurs.ajoute_perso(GenreLexeme::EGAL, type_r64, type_r16, type_r64, "DLS_vers_r64");
 
 	// compairaisons de chaines
 	auto type_chaine = contexte.typeuse[TypeBase::CHAINE];
 
 	// À FAIRE: le nom de la fonction doit être le nom broyé, le coder en dur
 	// n'est pas souhaitable
-	operateurs.ajoute_perso(TypeLexeme::EGALITE, type_chaine, type_chaine, type_bool, "_KF4Kuri24sont_chaines_xC3xA9gales_E2_4chn18Kschaine4chn28Kschaine_S1_6Ksbool");
-	operateurs.ajoute_perso(TypeLexeme::DIFFERENCE, type_chaine, type_chaine, type_bool, "_KF4Kuri26sont_chaines_inxC3xA9gales_E2_4chn18Kschaine4chn28Kschaine_S1_6Ksbool");
+	operateurs.ajoute_perso(GenreLexeme::EGALITE, type_chaine, type_chaine, type_bool, "_KF4Kuri24sont_chaines_xC3xA9gales_E2_4chn18Kschaine4chn28Kschaine_S1_6Ksbool");
+	operateurs.ajoute_perso(GenreLexeme::DIFFERENCE, type_chaine, type_chaine, type_bool, "_KF4Kuri26sont_chaines_inxC3xA9gales_E2_4chn18Kschaine4chn28Kschaine_S1_6Ksbool");
 }

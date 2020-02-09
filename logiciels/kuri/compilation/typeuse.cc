@@ -58,85 +58,85 @@ struct DonneesTypeCommun {
 };
 
 static const DonneesTypeCommun donnees_types_communs[] = {
-	{ TypeBase::N8, DonneesTypeFinal(TypeLexeme::N8) },
-	{ TypeBase::N16, DonneesTypeFinal(TypeLexeme::N16) },
-	{ TypeBase::N32, DonneesTypeFinal(TypeLexeme::N32) },
-	{ TypeBase::N64, DonneesTypeFinal(TypeLexeme::N64) },
-	{ TypeBase::N128, DonneesTypeFinal(TypeLexeme::N128) },
-	{ TypeBase::Z8, DonneesTypeFinal(TypeLexeme::Z8) },
-	{ TypeBase::Z16, DonneesTypeFinal(TypeLexeme::Z16) },
-	{ TypeBase::Z32, DonneesTypeFinal(TypeLexeme::Z32) },
-	{ TypeBase::Z64, DonneesTypeFinal(TypeLexeme::Z64) },
-	{ TypeBase::Z128, DonneesTypeFinal(TypeLexeme::Z128) },
-	{ TypeBase::R16, DonneesTypeFinal(TypeLexeme::R16) },
-	{ TypeBase::R32, DonneesTypeFinal(TypeLexeme::R32) },
-	{ TypeBase::R64, DonneesTypeFinal(TypeLexeme::R64) },
-	{ TypeBase::R128, DonneesTypeFinal(TypeLexeme::R128) },
-	{ TypeBase::EINI, DonneesTypeFinal(TypeLexeme::EINI) },
-	{ TypeBase::CHAINE, DonneesTypeFinal(TypeLexeme::CHAINE) },
-	{ TypeBase::RIEN, DonneesTypeFinal(TypeLexeme::RIEN) },
-	{ TypeBase::BOOL, DonneesTypeFinal(TypeLexeme::BOOL) },
-	{ TypeBase::OCTET, DonneesTypeFinal(TypeLexeme::OCTET) },
+	{ TypeBase::N8, DonneesTypeFinal(GenreLexeme::N8) },
+	{ TypeBase::N16, DonneesTypeFinal(GenreLexeme::N16) },
+	{ TypeBase::N32, DonneesTypeFinal(GenreLexeme::N32) },
+	{ TypeBase::N64, DonneesTypeFinal(GenreLexeme::N64) },
+	{ TypeBase::N128, DonneesTypeFinal(GenreLexeme::N128) },
+	{ TypeBase::Z8, DonneesTypeFinal(GenreLexeme::Z8) },
+	{ TypeBase::Z16, DonneesTypeFinal(GenreLexeme::Z16) },
+	{ TypeBase::Z32, DonneesTypeFinal(GenreLexeme::Z32) },
+	{ TypeBase::Z64, DonneesTypeFinal(GenreLexeme::Z64) },
+	{ TypeBase::Z128, DonneesTypeFinal(GenreLexeme::Z128) },
+	{ TypeBase::R16, DonneesTypeFinal(GenreLexeme::R16) },
+	{ TypeBase::R32, DonneesTypeFinal(GenreLexeme::R32) },
+	{ TypeBase::R64, DonneesTypeFinal(GenreLexeme::R64) },
+	{ TypeBase::R128, DonneesTypeFinal(GenreLexeme::R128) },
+	{ TypeBase::EINI, DonneesTypeFinal(GenreLexeme::EINI) },
+	{ TypeBase::CHAINE, DonneesTypeFinal(GenreLexeme::CHAINE) },
+	{ TypeBase::RIEN, DonneesTypeFinal(GenreLexeme::RIEN) },
+	{ TypeBase::BOOL, DonneesTypeFinal(GenreLexeme::BOOL) },
+	{ TypeBase::OCTET, DonneesTypeFinal(GenreLexeme::OCTET) },
 
-	{ TypeBase::PTR_N8, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::N8) },
-	{ TypeBase::PTR_N16, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::N16) },
-	{ TypeBase::PTR_N32, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::N32) },
-	{ TypeBase::PTR_N64, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::N64) },
-	{ TypeBase::PTR_N128, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::N128) },
-	{ TypeBase::PTR_Z8, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::Z8) },
-	{ TypeBase::PTR_Z16, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::Z16) },
-	{ TypeBase::PTR_Z32, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::Z32) },
-	{ TypeBase::PTR_Z64, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::Z64) },
-	{ TypeBase::PTR_Z128, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::Z128) },
-	{ TypeBase::PTR_R16, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::R16) },
-	{ TypeBase::PTR_R32, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::R32) },
-	{ TypeBase::PTR_R64, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::R64) },
-	{ TypeBase::PTR_R128, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::R128) },
-	{ TypeBase::PTR_EINI, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::EINI) },
-	{ TypeBase::PTR_CHAINE, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::CHAINE) },
-	{ TypeBase::PTR_RIEN, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::RIEN) },
-	{ TypeBase::PTR_NUL, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::NUL) },
-	{ TypeBase::PTR_BOOL, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::BOOL) },
-	{ TypeBase::PTR_OCTET, DonneesTypeFinal(TypeLexeme::POINTEUR, TypeLexeme::OCTET) },
+	{ TypeBase::PTR_N8, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::N8) },
+	{ TypeBase::PTR_N16, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::N16) },
+	{ TypeBase::PTR_N32, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::N32) },
+	{ TypeBase::PTR_N64, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::N64) },
+	{ TypeBase::PTR_N128, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::N128) },
+	{ TypeBase::PTR_Z8, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::Z8) },
+	{ TypeBase::PTR_Z16, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::Z16) },
+	{ TypeBase::PTR_Z32, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::Z32) },
+	{ TypeBase::PTR_Z64, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::Z64) },
+	{ TypeBase::PTR_Z128, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::Z128) },
+	{ TypeBase::PTR_R16, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::R16) },
+	{ TypeBase::PTR_R32, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::R32) },
+	{ TypeBase::PTR_R64, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::R64) },
+	{ TypeBase::PTR_R128, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::R128) },
+	{ TypeBase::PTR_EINI, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::EINI) },
+	{ TypeBase::PTR_CHAINE, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::CHAINE) },
+	{ TypeBase::PTR_RIEN, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::RIEN) },
+	{ TypeBase::PTR_NUL, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::NUL) },
+	{ TypeBase::PTR_BOOL, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::BOOL) },
+	{ TypeBase::PTR_OCTET, DonneesTypeFinal(GenreLexeme::POINTEUR, GenreLexeme::OCTET) },
 
-	{ TypeBase::REF_N8, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::N8) },
-	{ TypeBase::REF_N16, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::N16) },
-	{ TypeBase::REF_N32, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::N32) },
-	{ TypeBase::REF_N64, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::N64) },
-	{ TypeBase::REF_N128, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::N128) },
-	{ TypeBase::REF_Z8, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::Z8) },
-	{ TypeBase::REF_Z16, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::Z16) },
-	{ TypeBase::REF_Z32, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::Z32) },
-	{ TypeBase::REF_Z64, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::Z64) },
-	{ TypeBase::REF_Z128, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::Z128) },
-	{ TypeBase::REF_R16, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::R16) },
-	{ TypeBase::REF_R32, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::R32) },
-	{ TypeBase::REF_R64, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::R64) },
-	{ TypeBase::REF_R128, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::R128) },
-	{ TypeBase::REF_EINI, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::EINI) },
-	{ TypeBase::REF_CHAINE, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::CHAINE) },
-	{ TypeBase::REF_RIEN, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::RIEN) },
-	{ TypeBase::REF_NUL, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::NUL) },
-	{ TypeBase::REF_BOOL, DonneesTypeFinal(TypeLexeme::REFERENCE, TypeLexeme::BOOL) },
+	{ TypeBase::REF_N8, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::N8) },
+	{ TypeBase::REF_N16, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::N16) },
+	{ TypeBase::REF_N32, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::N32) },
+	{ TypeBase::REF_N64, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::N64) },
+	{ TypeBase::REF_N128, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::N128) },
+	{ TypeBase::REF_Z8, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::Z8) },
+	{ TypeBase::REF_Z16, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::Z16) },
+	{ TypeBase::REF_Z32, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::Z32) },
+	{ TypeBase::REF_Z64, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::Z64) },
+	{ TypeBase::REF_Z128, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::Z128) },
+	{ TypeBase::REF_R16, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::R16) },
+	{ TypeBase::REF_R32, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::R32) },
+	{ TypeBase::REF_R64, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::R64) },
+	{ TypeBase::REF_R128, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::R128) },
+	{ TypeBase::REF_EINI, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::EINI) },
+	{ TypeBase::REF_CHAINE, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::CHAINE) },
+	{ TypeBase::REF_RIEN, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::RIEN) },
+	{ TypeBase::REF_NUL, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::NUL) },
+	{ TypeBase::REF_BOOL, DonneesTypeFinal(GenreLexeme::REFERENCE, GenreLexeme::BOOL) },
 
-	{ TypeBase::TABL_N8, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::N8) },
-	{ TypeBase::TABL_N16, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::N16) },
-	{ TypeBase::TABL_N32, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::N32) },
-	{ TypeBase::TABL_N64, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::N64) },
-	{ TypeBase::TABL_N128, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::N128) },
-	{ TypeBase::TABL_Z8, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::Z8) },
-	{ TypeBase::TABL_Z16, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::Z16) },
-	{ TypeBase::TABL_Z32, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::Z32) },
-	{ TypeBase::TABL_Z64, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::Z64) },
-	{ TypeBase::TABL_Z128, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::Z128) },
-	{ TypeBase::TABL_R16, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::R16) },
-	{ TypeBase::TABL_R32, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::R32) },
-	{ TypeBase::TABL_R64, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::R64) },
-	{ TypeBase::TABL_R128, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::R128) },
-	{ TypeBase::TABL_EINI, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::EINI) },
-	{ TypeBase::TABL_CHAINE, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::CHAINE) },
-	{ TypeBase::TABL_BOOL, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::BOOL) },
-	{ TypeBase::TABL_OCTET, DonneesTypeFinal(TypeLexeme::TABLEAU, TypeLexeme::OCTET) },
+	{ TypeBase::TABL_N8, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::N8) },
+	{ TypeBase::TABL_N16, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::N16) },
+	{ TypeBase::TABL_N32, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::N32) },
+	{ TypeBase::TABL_N64, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::N64) },
+	{ TypeBase::TABL_N128, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::N128) },
+	{ TypeBase::TABL_Z8, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::Z8) },
+	{ TypeBase::TABL_Z16, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::Z16) },
+	{ TypeBase::TABL_Z32, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::Z32) },
+	{ TypeBase::TABL_Z64, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::Z64) },
+	{ TypeBase::TABL_Z128, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::Z128) },
+	{ TypeBase::TABL_R16, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::R16) },
+	{ TypeBase::TABL_R32, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::R32) },
+	{ TypeBase::TABL_R64, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::R64) },
+	{ TypeBase::TABL_R128, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::R128) },
+	{ TypeBase::TABL_EINI, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::EINI) },
+	{ TypeBase::TABL_CHAINE, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::CHAINE) },
+	{ TypeBase::TABL_BOOL, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::BOOL) },
+	{ TypeBase::TABL_OCTET, DonneesTypeFinal(GenreLexeme::TABLEAU, GenreLexeme::OCTET) },
 };
 
 /* ************************************************************************** */
@@ -189,7 +189,7 @@ long Typeuse::ajoute_type_sans_relations(const DonneesTypeFinal &donnees)
 	auto index_params = dls::tableau<long>();
 
 	/* ajoute les types des paramètres et de retour des fonctions */
-	if (donnees.type_base() == TypeLexeme::FONC || donnees.type_base() == TypeLexeme::COROUT) {
+	if (donnees.type_base() == GenreLexeme::FONC || donnees.type_base() == GenreLexeme::COROUT) {
 		long nombre_type_retour = 0;
 		index_params = donnees_types_parametres(*this, donnees, nombre_type_retour);
 	}
@@ -209,7 +209,7 @@ long Typeuse::type_tableau_pour(long index_type)
 
 	if (idx == -1l) {
 		auto dt = DonneesTypeFinal();
-		dt.pousse(TypeLexeme::TABLEAU);
+		dt.pousse(GenreLexeme::TABLEAU);
 		dt.pousse(indexeuse.donnees_types[index_type]);
 
 		idx = ajoute_type(dt);
@@ -224,7 +224,7 @@ long Typeuse::type_reference_pour(long index_type)
 
 	if (idx == -1l) {
 		auto dt = DonneesTypeFinal();
-		dt.pousse(TypeLexeme::REFERENCE);
+		dt.pousse(GenreLexeme::REFERENCE);
 		dt.pousse(indexeuse.donnees_types[index_type]);
 
 		idx = ajoute_type(dt);
@@ -244,7 +244,7 @@ long Typeuse::type_pointeur_pour(long index_type)
 
 	if (idx == -1l) {
 		auto dt = DonneesTypeFinal();
-		dt.pousse(TypeLexeme::POINTEUR);
+		dt.pousse(GenreLexeme::POINTEUR);
 		dt.pousse(indexeuse.donnees_types[index_type]);
 
 		idx = ajoute_type(dt);
@@ -272,14 +272,14 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 
 	graphe.connecte_type_type(i, idx_deref);
 
-	if (dt.type_base() == TypeLexeme::REFERENCE) {
+	if (dt.type_base() == GenreLexeme::REFERENCE) {
 		graphe.connecte_type_type(idx_deref, i, TypeRelation::TYPE_REFERENCE);
 		graphe.connecte_type_type(i, idx_deref, TypeRelation::TYPE_DEREFERENCE);
 	}
-	else if ((dt.type_base() & 0xff) == TypeLexeme::TABLEAU) {
+	else if ((dt.type_base() & 0xff) == GenreLexeme::TABLEAU) {
 		if (est_type_tableau_fixe(dt.plage())) {
 			auto dt_tableau = DonneesTypeFinal();
-			dt_tableau.pousse(TypeLexeme::TABLEAU);
+			dt_tableau.pousse(GenreLexeme::TABLEAU);
 			dt_tableau.pousse(dt.dereference());
 
 			this->ajoute_type(dt_tableau);
@@ -288,19 +288,19 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 		graphe.connecte_type_type(idx_deref, i, TypeRelation::TYPE_TABLEAU);
 		graphe.connecte_type_type(i, idx_deref, TypeRelation::TYPE_DEREFERENCE);
 	}
-	else if (dt.type_base() == TypeLexeme::POINTEUR) {
+	else if (dt.type_base() == GenreLexeme::POINTEUR) {
 		graphe.connecte_type_type(idx_deref, i, TypeRelation::TYPE_POINTEUR);
 		graphe.connecte_type_type(i, idx_deref, TypeRelation::TYPE_DEREFERENCE);
 
 		auto indice = IndiceTypeOp::ENTIER_RELATIF;
 		auto raison = RaisonOp::POUR_COMPARAISON;
 
-		operateurs.ajoute_basique(TypeLexeme::EGALITE, i, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::DIFFERENCE, i, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::INFERIEUR, i, idx_dt_bool, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::INFERIEUR_EGAL, i, idx_dt_bool, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR, i, idx_dt_bool, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::SUPERIEUR_EGAL, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::EGALITE, i, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::DIFFERENCE, i, idx_dt_ptr_nul, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::INFERIEUR, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::INFERIEUR_EGAL, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::SUPERIEUR, i, idx_dt_bool, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::SUPERIEUR_EGAL, i, idx_dt_bool, indice, raison);
 
 		/* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
 		 * gros, la résolution de l'opérateur ajoutera une transformation afin
@@ -308,18 +308,18 @@ void Typeuse::initialise_relations_pour_type(const DonneesTypeFinal &dt, long i)
 		auto idx_type_entier = indexeuse[TypeBase::Z64];
 		raison = RaisonOp::POUR_ARITHMETIQUE;
 
-		operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::PLUS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
 
 		idx_type_entier = indexeuse[TypeBase::N64];
 		indice = IndiceTypeOp::ENTIER_NATUREL;
 
-		operateurs.ajoute_basique(TypeLexeme::PLUS, i, idx_type_entier, i, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::MOINS, i, idx_type_entier, i, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
-		operateurs.ajoute_basique(TypeLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::PLUS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::MOINS, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::PLUS_EGAL, i, idx_type_entier, i, indice, raison);
+		operateurs.ajoute_basique(GenreLexeme::MOINS_EGAL, i, idx_type_entier, i, indice, raison);
 	}
 }
 
@@ -331,13 +331,13 @@ static DonneesTypeFinal analyse_type(
 {
 	auto dt = DonneesTypeFinal{};
 
-	if (*debut == TypeLexeme::FONC || *debut == TypeLexeme::COROUT) {
+	if (*debut == GenreLexeme::FONC || *debut == GenreLexeme::COROUT) {
 		/* fonc ou corout */
 		dt.pousse(*debut--);
 
 		/* ( */
 		dt.pousse(*debut--);
-		while (*debut != TypeLexeme::PARENTHESE_FERMANTE) {
+		while (*debut != GenreLexeme::PARENTHESE_FERMANTE) {
 			dt.pousse(analyse_type(debut, true));
 		}
 		/* ) */
@@ -345,21 +345,21 @@ static DonneesTypeFinal analyse_type(
 
 		/* ( */
 		dt.pousse(*debut--);
-		while (*debut != TypeLexeme::PARENTHESE_FERMANTE) {
+		while (*debut != GenreLexeme::PARENTHESE_FERMANTE) {
 			dt.pousse(analyse_type(debut, true));
 		}
 		/* ) */
 		dt.pousse(*debut--);
 
-		if (*debut == TypeLexeme::VIRGULE) {
+		if (*debut == GenreLexeme::VIRGULE) {
 			--debut;
 		}
 	}
 	else {
-		while (*debut != TypeLexeme::PARENTHESE_FERMANTE) {
+		while (*debut != GenreLexeme::PARENTHESE_FERMANTE) {
 			dt.pousse(*debut--);
 
-			if (*debut == TypeLexeme::VIRGULE) {
+			if (*debut == GenreLexeme::VIRGULE) {
 				if (pousse_virgule) {
 					dt.pousse(*debut);
 				}
@@ -384,7 +384,7 @@ static DonneesTypeFinal analyse_type(
 		DonneesTypeFinal const &donnees_type,
 		long &nombre_types_retour) noexcept(false) -> dls::tableau<long>
 {
-	if (donnees_type.type_base() != TypeLexeme::FONC && donnees_type.type_base() != TypeLexeme::COROUT) {
+	if (donnees_type.type_base() != GenreLexeme::FONC && donnees_type.type_base() != GenreLexeme::COROUT) {
 		return {};
 	}
 
@@ -396,7 +396,7 @@ static DonneesTypeFinal analyse_type(
 	--debut; /* ( */
 
 	/* type paramètres */
-	while (*debut != TypeLexeme::PARENTHESE_FERMANTE) {
+	while (*debut != GenreLexeme::PARENTHESE_FERMANTE) {
 		auto dt = analyse_type(debut);
 		donnees_types.pousse(typeuse.ajoute_type(dt));
 	}
@@ -406,7 +406,7 @@ static DonneesTypeFinal analyse_type(
 	--debut; /* ( */
 
 	/* type retour */
-	while (*debut != TypeLexeme::PARENTHESE_FERMANTE) {
+	while (*debut != GenreLexeme::PARENTHESE_FERMANTE) {
 		auto dt = analyse_type(debut);
 		donnees_types.pousse(typeuse.ajoute_type(dt));
 		++nombre_types_retour;

@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
 	for (auto i = 0; i < nombre_morceaux; ++i) {
 		auto dm = DonneesLexeme{};
-		dm.identifiant = donnees_morceaux[i];
+		dm.genre = donnees_morceaux[i];
 		/* rétabli une chaine car nous une décharge de la mémoire, donc les
 		 * pointeurs sont mauvais. */
 		dm.chaine = "texte_test";

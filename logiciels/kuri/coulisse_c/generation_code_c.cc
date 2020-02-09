@@ -40,7 +40,7 @@
 #include "outils_lexemes.hh"
 #include "typeuse.hh"
 
-using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
+using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 namespace noeud {
 
@@ -125,7 +125,7 @@ static void applique_transformation(
 					os << "\t.taille = sizeof(" << nom_broye_type(contexte, dt) << ")\n";
 					break;
 				}
-				case TypeLexeme::POINTEUR:
+				case GenreLexeme::POINTEUR:
 				{
 					os << "\t.pointeur = (unsigned char *)(" << nom_courant << "),\n";
 					os << "\t.taille = sizeof(";
@@ -133,13 +133,13 @@ static void applique_transformation(
 					os << nom_broye_type(contexte, index_dt) << ")\n";
 					break;
 				}
-				case TypeLexeme::CHAINE:
+				case GenreLexeme::CHAINE:
 				{
 					os << "\t.pointeur = " << nom_courant << ".pointeur,\n";
 					os << "\t.taille = " << nom_courant << ".taille,\n";
 					break;
 				}
-				case TypeLexeme::TABLEAU:
+				case GenreLexeme::TABLEAU:
 				{
 					auto taille = static_cast<int>(type_base >> 8);
 
@@ -294,7 +294,7 @@ static void cree_appel(
 		/* la valeur calculée doit être toujours valide. */
 		b->valeur_calculee = dls::chaine("");
 	}
-	else if (dt.type_base() != TypeLexeme::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
+	else if (dt.type_base() != GenreLexeme::RIEN && (b->aide_generation_code == APPEL_POINTEUR_FONCTION || ((b->df != nullptr) && !b->df->est_coroutine))) {
 		auto nom_indirection = "__ret" + dls::vers_chaine(b);		
 		os << nom_broye_type(contexte, dt) << ' ' << nom_indirection << " = ";
 		b->valeur_calculee = nom_indirection;
@@ -364,11 +364,11 @@ static void cree_initialisation(
 		dls::vue_chaine_compacte const &accesseur,
 		dls::flux_chaine &os)
 {
-	if (dt_parent.front() == TypeLexeme::CHAINE || dt_parent.front() == TypeLexeme::TABLEAU) {
+	if (dt_parent.front() == GenreLexeme::CHAINE || dt_parent.front() == GenreLexeme::TABLEAU) {
 		os << chaine_parent << accesseur << "pointeur = 0;\n";
 		os << chaine_parent << accesseur << "taille = 0;\n";
 	}
-	else if ((dt_parent.front() & 0xff) == TypeLexeme::CHAINE_CARACTERE) {
+	else if ((dt_parent.front() & 0xff) == GenreLexeme::CHAINE_CARACTERE) {
 		auto const index_structure = static_cast<long>(dt_parent.front() >> 8);
 		auto const &ds = contexte.donnees_structure(index_structure);
 
@@ -414,7 +414,7 @@ static void cree_initialisation(
 			os << chaine_parent << dls::chaine(accesseur) << "membre_actif = 0;\n";
 		}
 	}
-	else if ((dt_parent.front() & 0xff) == TypeLexeme::TABLEAU) {
+	else if ((dt_parent.front() & 0xff) == GenreLexeme::TABLEAU) {
 		/* À FAIRE */
 	}
 	else {
@@ -442,19 +442,19 @@ static void genere_code_acces_membre(
 	else {
 		auto const &index_type = structure->index_type;
 		auto type_structure = contexte.typeuse[index_type].plage();
-		auto est_reference = type_structure.front() == TypeLexeme::REFERENCE;
+		auto est_reference = type_structure.front() == GenreLexeme::REFERENCE;
 
 		if (est_reference) {
 			type_structure.effronte();
 		}
 
-		auto est_pointeur = type_structure.front() == TypeLexeme::POINTEUR;
+		auto est_pointeur = type_structure.front() == GenreLexeme::POINTEUR;
 
 		if (est_pointeur) {
 			type_structure.effronte();
 		}
 
-		if ((type_structure.front() & 0xff) == TypeLexeme::TABLEAU) {
+		if ((type_structure.front() & 0xff) == GenreLexeme::TABLEAU) {
 			auto taille = static_cast<size_t>(type_structure.front() >> 8);
 
 			if (taille != 0) {
@@ -484,7 +484,7 @@ static void genere_code_acces_membre(
 			generatrice.os << "long " << nom_acces << " = " << taille_tableau << ";\n";
 			flux << nom_acces;
 		}
-		else if ((type_structure.front() & 0xff) == TypeLexeme::CHAINE_CARACTERE) {
+		else if ((type_structure.front() & 0xff) == GenreLexeme::CHAINE_CARACTERE) {
 			auto id = static_cast<long>(type_structure.front() >> 8);
 
 			/* vérifie si nous avons une énumération */
@@ -622,7 +622,7 @@ static void pousse_argument_fonction_pile(
 		auto id_structure = 0l;
 		auto est_pointeur = false;
 
-		if (dt_var.type_base() == TypeLexeme::POINTEUR) {
+		if (dt_var.type_base() == GenreLexeme::POINTEUR) {
 			est_pointeur = true;
 			id_structure = static_cast<long>(dt_var.dereference().front() >> 8);
 		}
@@ -730,7 +730,7 @@ static void genere_code_allocation(
 	}
 
 	switch (dt.type_base()) {
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 		{
 			auto index_dt = contexte.typeuse.ajoute_type(dt.dereference());
 			auto &dt_deref = contexte.typeuse[index_dt];
@@ -756,7 +756,7 @@ static void genere_code_allocation(
 
 			break;
 		}
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 		{
 			expr_pointeur = chn_enfant + ".pointeur";
 			expr_acces_taille = chn_enfant + ".taille";
@@ -1186,8 +1186,8 @@ void genere_code_C(
 			auto index_membre = std::any_cast<long>(b->valeur_calculee);
 			auto &dt = contexte.typeuse[structure->index_type];
 
-			auto est_pointeur = (dt.type_base() == TypeLexeme::POINTEUR);
-			est_pointeur |= (dt.type_base() == TypeLexeme::REFERENCE);
+			auto est_pointeur = (dt.type_base() == GenreLexeme::POINTEUR);
+			est_pointeur |= (dt.type_base() == GenreLexeme::REFERENCE);
 
 			auto flux = dls::flux_chaine();
 			flux << broye_chaine(structure);
@@ -1229,7 +1229,7 @@ void genere_code_C(
 			auto expression = b->enfants.back();
 
 			/* a, b = foo(); -> foo(&a, &b); */
-			if (variable->identifiant() == TypeLexeme::VIRGULE) {
+			if (variable->identifiant() == GenreLexeme::VIRGULE) {
 				dls::tableau<base *> feuilles;
 				rassemble_feuilles(variable, feuilles);
 
@@ -1283,7 +1283,7 @@ void genere_code_C(
 				 * par des pointeurs pour la déclaration */
 				if (expression->genre == GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU) {
 					auto ndt = DonneesTypeFinal{};
-					ndt.pousse(TypeLexeme::POINTEUR);
+					ndt.pousse(GenreLexeme::POINTEUR);
 					ndt.pousse(dt.dereference());
 
 					dt = ndt;
@@ -1336,7 +1336,7 @@ void genere_code_C(
 			auto const valeur = est_calcule ? std::any_cast<double>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_reel(
 												 b->morceau.chaine,
-												 b->morceau.identifiant);
+												 b->morceau.genre);
 
 			b->valeur_calculee = dls::vers_chaine(valeur);
 			break;
@@ -1347,7 +1347,7 @@ void genere_code_C(
 			auto const valeur = est_calcule ? std::any_cast<long>(b->valeur_calculee) :
 											 denombreuse::converti_chaine_nombre_entier(
 												 b->morceau.chaine,
-												 b->morceau.identifiant);
+												 b->morceau.genre);
 
 			b->valeur_calculee = dls::vers_chaine(valeur);
 			break;
@@ -1434,7 +1434,7 @@ void genere_code_C(
 			auto const index_type1 = enfant1->index_type;
 			auto type1 = contexte.typeuse[index_type1];
 
-			if (type1.type_base() == TypeLexeme::REFERENCE) {
+			if (type1.type_base() == GenreLexeme::REFERENCE) {
 				type1 = type1.dereference();
 			}
 
@@ -1464,7 +1464,7 @@ void genere_code_C(
 			auto pos = trouve_position(morceau, module);
 
 			switch (type_base & 0xff) {
-				case TypeLexeme::POINTEUR:
+				case GenreLexeme::POINTEUR:
 				{
 					flux << enfant1->chaine_calculee();
 					flux << '[';
@@ -1472,7 +1472,7 @@ void genere_code_C(
 					flux << ']';
 					break;
 				}
-				case TypeLexeme::CHAINE:
+				case GenreLexeme::CHAINE:
 				{
 					generatrice.os << "if (";
 					generatrice.os << enfant2->chaine_calculee();
@@ -1497,7 +1497,7 @@ void genere_code_C(
 
 					break;
 				}
-				case TypeLexeme::TABLEAU:
+				case GenreLexeme::TABLEAU:
 				{
 					auto taille_tableau = static_cast<int>(type_base >> 8);
 
@@ -1574,10 +1574,10 @@ void genere_code_C(
 			/* force une expression si l'opérateur est @, pour que les
 			 * expressions du type @a[0] retourne le pointeur à a + 0 et non le
 			 * pointeur de la variable temporaire du code généré */
-			expr_gauche |= b->morceau.identifiant == TypeLexeme::AROBASE;
+			expr_gauche |= b->morceau.genre == GenreLexeme::AROBASE;
 			applique_transformation(enfant, generatrice, contexte, expr_gauche);
 
-			if (b->morceau.identifiant == TypeLexeme::AROBASE) {
+			if (b->morceau.genre == GenreLexeme::AROBASE) {
 				b->valeur_calculee = "&(" + enfant->chaine_calculee() + ")";
 			}
 			else {
@@ -1641,7 +1641,7 @@ void genere_code_C(
 				enfant->valeur_calculee = df->noms_retours;
 				genere_code_C(enfant, generatrice, contexte, false);
 			}
-			else if (enfant->identifiant() == TypeLexeme::VIRGULE) {
+			else if (enfant->identifiant() == GenreLexeme::VIRGULE) {
 				/* retourne a, b; -> *__ret1 = a; *__ret2 = b; return; */
 				dls::tableau<base *> feuilles;
 				rassemble_feuilles(enfant, feuilles);
@@ -1868,7 +1868,7 @@ void genere_code_C(
 				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
 
-				if (enfant_1->morceau.identifiant == TypeLexeme::VIRGULE) {
+				if (enfant_1->morceau.genre == GenreLexeme::VIRGULE) {
 					var = enfant_1->enfants.front();
 					idx = enfant_1->enfants.back();
 				}
@@ -1902,7 +1902,7 @@ void genere_code_C(
 				auto var = enfant_1;
 				auto idx = static_cast<noeud::base *>(nullptr);
 
-				if (enfant_1->morceau.identifiant == TypeLexeme::VIRGULE) {
+				if (enfant_1->morceau.genre == GenreLexeme::VIRGULE) {
 					var = enfant_1->enfants.front();
 					idx = enfant_1->enfants.back();
 				}
@@ -1930,7 +1930,7 @@ void genere_code_C(
 					auto var = enfant1;
 					auto idx = static_cast<noeud::base *>(nullptr);
 
-					if (enfant1->morceau.identifiant == TypeLexeme::VIRGULE) {
+					if (enfant1->morceau.genre == GenreLexeme::VIRGULE) {
 						var = enfant1->enfants.front();
 						idx = enfant1->enfants.back();
 					}
@@ -1985,7 +1985,7 @@ void genere_code_C(
 
 					auto donnees_var = DonneesVariable{};
 
-					if ((type & 0xff) == TypeLexeme::TABLEAU) {
+					if ((type & 0xff) == GenreLexeme::TABLEAU) {
 						auto const taille_tableau = static_cast<uint64_t>(type >> 8);
 
 						auto idx_type_deref = contexte.typeuse.type_dereference_pour(index_type);
@@ -1998,7 +1998,7 @@ void genere_code_C(
 							genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, type_deref, nom_var);
 						}
 					}
-					else if (type == TypeLexeme::CHAINE) {
+					else if (type == GenreLexeme::CHAINE) {
 						index_type = contexte.typeuse[TypeBase::Z8];
 						auto &dt = contexte.typeuse[index_type];
 						genere_code_tableau_chaine(generatrice.os, contexte, enfant1, enfant2, dt, nom_var);
@@ -2148,7 +2148,7 @@ void genere_code_C(
 		{
 			auto chaine_var = b->enfants.est_vide() ? dls::vue_chaine_compacte{""} : b->enfants.front()->chaine();
 
-			auto label_goto = (b->morceau.identifiant == TypeLexeme::CONTINUE)
+			auto label_goto = (b->morceau.genre == GenreLexeme::CONTINUE)
 					? contexte.goto_continue(chaine_var)
 					: contexte.goto_arrete(chaine_var);
 
@@ -2326,7 +2326,7 @@ void genere_code_C(
 
 			/* alloue un tableau fixe */
 			auto dt_tfixe = DonneesTypeFinal{};
-			dt_tfixe.pousse(TypeLexeme::TABLEAU | static_cast<int>(taille_tableau << 8));
+			dt_tfixe.pousse(GenreLexeme::TABLEAU | static_cast<int>(taille_tableau << 8));
 			dt_tfixe.pousse(type);
 
 			auto nom_tableau_fixe = dls::chaine("__tabl_fix")
@@ -2347,7 +2347,7 @@ void genere_code_C(
 
 			/* alloue un tableau dynamique */
 			auto dt_tdyn = DonneesTypeFinal{};
-			dt_tdyn.pousse(TypeLexeme::TABLEAU);
+			dt_tdyn.pousse(GenreLexeme::TABLEAU);
 			dt_tdyn.pousse(type);
 
 			auto nom_tableau_dyn = dls::chaine("__tabl_dyn")
@@ -2642,7 +2642,7 @@ void genere_code_C(
 			auto expression = *iter_enfant++;
 
 			auto const &dt = contexte.typeuse[expression->index_type];
-			auto const est_pointeur = dt.type_base() == TypeLexeme::POINTEUR;
+			auto const est_pointeur = dt.type_base() == GenreLexeme::POINTEUR;
 			auto id = static_cast<long>(dt.type_base() >> 8);
 			auto &ds = contexte.donnees_structure(id);
 
@@ -2815,7 +2815,7 @@ static void genere_typedefs_recursifs(
 		drapeaux[idx_type_deref] = 1;
 	}
 	/* ajoute les types des paramètres et de retour des fonctions */
-	else if (dt.type_base() == TypeLexeme::FONC || dt.type_base() == TypeLexeme::COROUT) {
+	else if (dt.type_base() == GenreLexeme::FONC || dt.type_base() == GenreLexeme::COROUT) {
 		long nombre_type_retour = 0;
 		auto index_params = donnees_types_parametres(contexte.typeuse, dt, nombre_type_retour);
 
@@ -2867,7 +2867,7 @@ static void genere_infos_pour_tous_les_types(
 	for (auto i = 0; i < nombre_de_types; ++i) {
 		auto &dt = contexte.typeuse[i];
 
-		if (dt.type_base() == TypeLexeme::TROIS_POINTS && est_invalide(dt.dereference())) {
+		if (dt.type_base() == GenreLexeme::TROIS_POINTS && est_invalide(dt.dereference())) {
 			continue;
 		}
 

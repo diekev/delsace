@@ -31,10 +31,10 @@
 
 /* ************************************************************************** */
 
-TypeLexeme DonneesTypeDeclare::type_base() const
+GenreLexeme DonneesTypeDeclare::type_base() const
 {
 	if (donnees.est_vide()) {
-		return TypeLexeme::INCONNU;
+		return GenreLexeme::INCONNU;
 	}
 
 	return donnees[0];
@@ -45,12 +45,12 @@ long DonneesTypeDeclare::taille() const
 	return donnees.taille();
 }
 
-TypeLexeme DonneesTypeDeclare::operator[](long idx) const
+GenreLexeme DonneesTypeDeclare::operator[](long idx) const
 {
 	return donnees[idx];
 }
 
-void DonneesTypeDeclare::pousse(TypeLexeme id)
+void DonneesTypeDeclare::pousse(GenreLexeme id)
 {
 	donnees.pousse(id);
 }
@@ -80,12 +80,12 @@ DonneesTypeDeclare::type_plage DonneesTypeDeclare::dereference() const
 
 /* ************************************************************************** */
 
-DonneesTypeFinal::DonneesTypeFinal(TypeLexeme i0)
+DonneesTypeFinal::DonneesTypeFinal(GenreLexeme i0)
 {
 	m_donnees.pousse(i0);
 }
 
-DonneesTypeFinal::DonneesTypeFinal(TypeLexeme i0, TypeLexeme i1)
+DonneesTypeFinal::DonneesTypeFinal(GenreLexeme i0, GenreLexeme i1)
 {
 	m_donnees.pousse(i0);
 	m_donnees.pousse(i1);
@@ -96,7 +96,7 @@ DonneesTypeFinal::DonneesTypeFinal(type_plage_donnees_type autre)
 	pousse(autre);
 }
 
-void DonneesTypeFinal::pousse(TypeLexeme identifiant)
+void DonneesTypeFinal::pousse(GenreLexeme identifiant)
 {
 	m_donnees.pousse(identifiant);
 }
@@ -119,7 +119,7 @@ void DonneesTypeFinal::pousse(type_plage_donnees_type autre)
 	}
 }
 
-TypeLexeme DonneesTypeFinal::type_base() const
+GenreLexeme DonneesTypeFinal::type_base() const
 {
 	return m_donnees.front();
 }
@@ -131,9 +131,9 @@ bool DonneesTypeFinal::est_invalide() const
 	}
 
 	switch (m_donnees.back()) {
-		case TypeLexeme::POINTEUR:
-		case TypeLexeme::REFERENCE:
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::POINTEUR:
+		case GenreLexeme::REFERENCE:
+		case GenreLexeme::TABLEAU:
 			return true;
 		default:
 			return false;
@@ -185,15 +185,15 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 			plage.effronte();
 
 			switch (donnee & 0xff) {
-				case TypeLexeme::TROIS_POINTS:
+				case GenreLexeme::TROIS_POINTS:
 				{
 					os << "...";
 					break;
 				}
-				case TypeLexeme::POINTEUR:
+				case GenreLexeme::POINTEUR:
 					os << '*';
 					break;
-				case TypeLexeme::TABLEAU:
+				case GenreLexeme::TABLEAU:
 					os << '[';
 
 					if (static_cast<size_t>(donnee >> 8) != 0) {
@@ -202,87 +202,87 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 
 					os << ']';
 					break;
-				case TypeLexeme::N8:
+				case GenreLexeme::N8:
 					os << "n8";
 					break;
-				case TypeLexeme::N16:
+				case GenreLexeme::N16:
 					os << "n16";
 					break;
-				case TypeLexeme::N32:
+				case GenreLexeme::N32:
 					os << "n32";
 					break;
-				case TypeLexeme::N64:
+				case GenreLexeme::N64:
 					os << "n64";
 					break;
-				case TypeLexeme::N128:
+				case GenreLexeme::N128:
 					os << "n128";
 					break;
-				case TypeLexeme::R16:
+				case GenreLexeme::R16:
 					os << "r16";
 					break;
-				case TypeLexeme::R32:
+				case GenreLexeme::R32:
 					os << "r32";
 					break;
-				case TypeLexeme::R64:
+				case GenreLexeme::R64:
 					os << "r64";
 					break;
-				case TypeLexeme::R128:
+				case GenreLexeme::R128:
 					os << "r128";
 					break;
-				case TypeLexeme::Z8:
+				case GenreLexeme::Z8:
 					os << "z8";
 					break;
-				case TypeLexeme::Z16:
+				case GenreLexeme::Z16:
 					os << "z16";
 					break;
-				case TypeLexeme::Z32:
+				case GenreLexeme::Z32:
 					os << "z32";
 					break;
-				case TypeLexeme::Z64:
+				case GenreLexeme::Z64:
 					os << "z64";
 					break;
-				case TypeLexeme::Z128:
+				case GenreLexeme::Z128:
 					os << "z128";
 					break;
-				case TypeLexeme::BOOL:
+				case GenreLexeme::BOOL:
 					os << "bool";
 					break;
-				case TypeLexeme::CHAINE:
+				case GenreLexeme::CHAINE:
 					os << "chaine";
 					break;
-				case TypeLexeme::FONC:
+				case GenreLexeme::FONC:
 					os << "fonc";
 					break;
-				case TypeLexeme::COROUT:
+				case GenreLexeme::COROUT:
 					os << "corout";
 					break;
-				case TypeLexeme::PARENTHESE_OUVRANTE:
+				case GenreLexeme::PARENTHESE_OUVRANTE:
 					os << '(';
 					break;
-				case TypeLexeme::PARENTHESE_FERMANTE:
+				case GenreLexeme::PARENTHESE_FERMANTE:
 					os << ')';
 					break;
-				case TypeLexeme::VIRGULE:
+				case GenreLexeme::VIRGULE:
 					os << ',';
 					break;
-				case TypeLexeme::EINI:
+				case GenreLexeme::EINI:
 					os << "eini";
 					break;
-				case TypeLexeme::RIEN:
+				case GenreLexeme::RIEN:
 					os << "rien";
 					break;
-				case TypeLexeme::OCTET:
+				case GenreLexeme::OCTET:
 					os << "octet";
 					break;
-				case TypeLexeme::NUL:
+				case GenreLexeme::NUL:
 					os << "nul";
 					break;
-				case TypeLexeme::REFERENCE:
+				case GenreLexeme::REFERENCE:
 				{
 					os << "&";
 					break;
 				}
-				case TypeLexeme::CHAINE_CARACTERE:
+				case GenreLexeme::CHAINE_CARACTERE:
 				{
 					auto id = static_cast<long>(donnee >> 8);
 					os << contexte.nom_struct(id);
@@ -306,23 +306,23 @@ unsigned alignement(
 		ContexteGenerationCode &contexte,
 		const DonneesTypeFinal &donnees_type)
 {
-	TypeLexeme identifiant = donnees_type.type_base();
+	GenreLexeme identifiant = donnees_type.type_base();
 
 	switch (identifiant & 0xff) {
-		case TypeLexeme::OCTET:
-		case TypeLexeme::BOOL:
-		case TypeLexeme::N8:
-		case TypeLexeme::Z8:
+		case GenreLexeme::OCTET:
+		case GenreLexeme::BOOL:
+		case GenreLexeme::N8:
+		case GenreLexeme::Z8:
 			return 1;
-		case TypeLexeme::R16:
-		case TypeLexeme::N16:
-		case TypeLexeme::Z16:
+		case GenreLexeme::R16:
+		case GenreLexeme::N16:
+		case GenreLexeme::Z16:
 			return 2;
-		case TypeLexeme::R32:
-		case TypeLexeme::N32:
-		case TypeLexeme::Z32:
+		case GenreLexeme::R32:
+		case GenreLexeme::N32:
+		case GenreLexeme::Z32:
 			return 4;
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 		{
 			if (size_t(identifiant >> 8) == 0) {
 				return 8;
@@ -330,19 +330,19 @@ unsigned alignement(
 
 			return alignement(contexte, donnees_type.dereference());
 		}
-		case TypeLexeme::FONC:
-		case TypeLexeme::POINTEUR:
-		case TypeLexeme::REFERENCE:
-		case TypeLexeme::EINI:
-		case TypeLexeme::R64:
-		case TypeLexeme::N64:
-		case TypeLexeme::Z64:
-		case TypeLexeme::N128:
-		case TypeLexeme::Z128:
-		case TypeLexeme::R128:
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::FONC:
+		case GenreLexeme::POINTEUR:
+		case GenreLexeme::REFERENCE:
+		case GenreLexeme::EINI:
+		case GenreLexeme::R64:
+		case GenreLexeme::N64:
+		case GenreLexeme::Z64:
+		case GenreLexeme::N128:
+		case GenreLexeme::Z128:
+		case GenreLexeme::R128:
+		case GenreLexeme::CHAINE:
 			return 8;
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			auto const &id_structure = (static_cast<long>(identifiant) & 0xffffff00) >> 8;
 			auto &ds = contexte.donnees_structure(id_structure);
@@ -382,30 +382,30 @@ unsigned int taille_octet_type(
 			assert(false);
 			break;
 		}
-		case TypeLexeme::OCTET:
-		case TypeLexeme::BOOL:
-		case TypeLexeme::N8:
-		case TypeLexeme::Z8:
+		case GenreLexeme::OCTET:
+		case GenreLexeme::BOOL:
+		case GenreLexeme::N8:
+		case GenreLexeme::Z8:
 		{
 			return 1;
 		}
-		case TypeLexeme::N16:
-		case TypeLexeme::Z16:
+		case GenreLexeme::N16:
+		case GenreLexeme::Z16:
 		{
 			return 2;
 		}
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 		{
 			return 2;
 		}
-		case TypeLexeme::N32:
-		case TypeLexeme::Z32:
-		case TypeLexeme::R32:
+		case GenreLexeme::N32:
+		case GenreLexeme::Z32:
+		case GenreLexeme::R32:
 		{
 			return 4;
 		}
-		case TypeLexeme::N64:
-		case TypeLexeme::Z64:
+		case GenreLexeme::N64:
+		case GenreLexeme::Z64:
 		{
 			if (contexte.bit32) {
 				return 4;
@@ -413,17 +413,17 @@ unsigned int taille_octet_type(
 
 			return 8;
 		}
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 		{
 			return 8;
 		}
-		case TypeLexeme::N128:
-		case TypeLexeme::Z128:
-		case TypeLexeme::R128:
+		case GenreLexeme::N128:
+		case GenreLexeme::Z128:
+		case GenreLexeme::R128:
 		{
 			return 16;
 		}
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			auto index_struct = static_cast<long>(type_base >> 8);
 			auto &ds = contexte.donnees_structure(index_struct);
@@ -435,8 +435,8 @@ unsigned int taille_octet_type(
 
 			return ds.taille_octet;
 		}
-		case TypeLexeme::POINTEUR:
-		case TypeLexeme::FONC:
+		case GenreLexeme::POINTEUR:
+		case GenreLexeme::FONC:
 		{
 			if (contexte.bit32) {
 				return 4;
@@ -444,9 +444,9 @@ unsigned int taille_octet_type(
 
 			return 8;
 		}
-		case TypeLexeme::TABLEAU:
-		case TypeLexeme::EINI:
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::TABLEAU:
+		case GenreLexeme::EINI:
+		case GenreLexeme::CHAINE:
 		{
 			if (contexte.bit32) {
 				return 8;
@@ -454,7 +454,7 @@ unsigned int taille_octet_type(
 
 			return 16;
 		}
-		case TypeLexeme::RIEN:
+		case GenreLexeme::RIEN:
 		{
 			return 0;
 		}
@@ -474,6 +474,6 @@ void ajoute_contexte_programme(ContexteGenerationCode &contexte, DonneesTypeDecl
 		contexte.ajoute_donnees_structure("ContexteProgramme", ds);
 	}
 
-	dt.pousse(TypeLexeme::POINTEUR);
-	dt.pousse(TypeLexeme::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
+	dt.pousse(GenreLexeme::POINTEUR);
+	dt.pousse(GenreLexeme::CHAINE_CARACTERE | static_cast<int>(ds.id << 8));
 }

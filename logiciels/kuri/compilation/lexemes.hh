@@ -28,7 +28,7 @@
 
 #include "biblinternes/structures/chaine.hh"
 
-enum class TypeLexeme : unsigned int {
+enum class GenreLexeme : unsigned int {
 	EXCLAMATION,
 	GUILLEMET,
 	DIESE,
@@ -155,47 +155,47 @@ enum class TypeLexeme : unsigned int {
 	COMMENTAIRE,
 };
 
-inline TypeLexeme operator&(TypeLexeme id1, int id2)
+inline GenreLexeme operator&(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) & id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) & id2);
 }
 
-inline TypeLexeme operator|(TypeLexeme id1, int id2)
+inline GenreLexeme operator|(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) | id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) | id2);
 }
 
-inline TypeLexeme operator|(TypeLexeme id1, TypeLexeme id2)
+inline GenreLexeme operator|(GenreLexeme id1, GenreLexeme id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
+	return static_cast<GenreLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
 }
 
-inline TypeLexeme operator<<(TypeLexeme id1, int id2)
+inline GenreLexeme operator<<(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) << id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) << id2);
 }
 
-inline TypeLexeme operator>>(TypeLexeme id1, int id2)
+inline GenreLexeme operator>>(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) >> id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) >> id2);
 }
 
 struct DonneesLexeme {
-	using type = TypeLexeme;
-	static constexpr type INCONNU = TypeLexeme::INCONNU;
+	using type = GenreLexeme;
+	static constexpr type INCONNU = GenreLexeme::INCONNU;
 	dls::vue_chaine_compacte chaine;
-	TypeLexeme identifiant;
+	GenreLexeme genre;
 	int fichier = 0;
 };
 
-const char *chaine_identifiant(TypeLexeme id);
+const char *chaine_identifiant(GenreLexeme id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, TypeLexeme &i);
+bool est_caractere_special(char c, GenreLexeme &i);
 
-TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
+GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
 
-TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
+GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
-TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
+GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);

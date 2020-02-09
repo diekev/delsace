@@ -45,7 +45,7 @@ static llvm::Type *converti_type(
 {
 	/* Pointeur vers une fonction, seulement valide lors d'assignement, ou en
 	 * paramètre de fonction. */
-	if (donnees_type.type_base() == TypeLexeme::FONC) {
+	if (donnees_type.type_base() == GenreLexeme::FONC) {
 		if (donnees_type.type_llvm() != nullptr) {
 			return llvm::PointerType::get(donnees_type.type_llvm(), 0);
 		}
@@ -79,7 +79,7 @@ static llvm::Type *converti_type(
 
 	llvm::Type *type = nullptr;
 
-	for (TypeLexeme identifiant : donnees_type) {
+	for (GenreLexeme identifiant : donnees_type) {
 		type = converti_type_simple_llvm(contexte, identifiant, type);
 	}
 
@@ -107,69 +107,69 @@ llvm::Type *converti_type_llvm(
 
 llvm::Type *converti_type_simple_llvm(
 		ContexteGenerationCode &contexte,
-		const TypeLexeme &identifiant,
+		const GenreLexeme &identifiant,
 		llvm::Type *type_entree)
 {
 	llvm::Type *type = nullptr;
 
 	switch (identifiant & 0xff) {
-		case TypeLexeme::BOOL:
+		case GenreLexeme::BOOL:
 		{
 			type = llvm::Type::getInt1Ty(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::OCTET:
-		case TypeLexeme::N8:
-		case TypeLexeme::Z8:
+		case GenreLexeme::OCTET:
+		case GenreLexeme::N8:
+		case GenreLexeme::Z8:
 		{
 			type = llvm::Type::getInt8Ty(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::N16:
-		case TypeLexeme::Z16:
+		case GenreLexeme::N16:
+		case GenreLexeme::Z16:
 		{
 			type = llvm::Type::getInt16Ty(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::N32:
-		case TypeLexeme::Z32:
+		case GenreLexeme::N32:
+		case GenreLexeme::Z32:
 		{
 			type = llvm::Type::getInt32Ty(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::N64:
-		case TypeLexeme::Z64:
+		case GenreLexeme::N64:
+		case GenreLexeme::Z64:
 		{
 			type = llvm::Type::getInt64Ty(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::R16:
+		case GenreLexeme::R16:
 		{
 			type = llvm::Type::getInt16Ty(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::R32:
+		case GenreLexeme::R32:
 		{
 			type = llvm::Type::getFloatTy(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::R64:
+		case GenreLexeme::R64:
 		{
 			type = llvm::Type::getDoubleTy(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::RIEN:
+		case GenreLexeme::RIEN:
 		{
 			type = llvm::Type::getVoidTy(contexte.contexte);
 			break;
 		}
-		case TypeLexeme::REFERENCE:
-		case TypeLexeme::POINTEUR:
+		case GenreLexeme::REFERENCE:
+		case GenreLexeme::POINTEUR:
 		{
 			type = llvm::PointerType::get(type_entree, 0);
 			break;
 		}
-		case TypeLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::CHAINE_CARACTERE:
 		{
 			auto const &id_structure = (static_cast<long>(identifiant) & 0xffffff00) >> 8;
 			auto &donnees_structure = contexte.donnees_structure(id_structure);
@@ -234,7 +234,7 @@ llvm::Type *converti_type_simple_llvm(
 			type = donnees_structure.type_llvm;
 			break;
 		}
-		case TypeLexeme::TABLEAU:
+		case GenreLexeme::TABLEAU:
 		{
 			auto const taille = (static_cast<uint64_t>(identifiant) & 0xffffff00) >> 8;
 
@@ -256,10 +256,10 @@ llvm::Type *converti_type_simple_llvm(
 
 			break;
 		}
-		case TypeLexeme::EINI:
+		case GenreLexeme::EINI:
 		{
 			auto dt = DonneesTypeFinal{};
-			dt.pousse(TypeLexeme::EINI);
+			dt.pousse(GenreLexeme::EINI);
 
 			auto index_eini = contexte.typeuse.ajoute_type(dt);
 			auto &type_eini = contexte.typeuse[index_eini];
@@ -270,8 +270,8 @@ llvm::Type *converti_type_simple_llvm(
 				auto index_struct_info = contexte.donnees_structure("InfoType").id;
 
 				auto dt_info = DonneesTypeFinal{};
-				dt_info.pousse(TypeLexeme::POINTEUR);
-				dt_info.pousse(TypeLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
+				dt_info.pousse(GenreLexeme::POINTEUR);
+				dt_info.pousse(GenreLexeme::CHAINE_CARACTERE | (static_cast<int>(index_struct_info << 8)));
 
 				index_struct_info = contexte.typeuse.ajoute_type(dt_info);
 				auto &ref_dt_info = contexte.typeuse[index_struct_info];
@@ -294,7 +294,7 @@ llvm::Type *converti_type_simple_llvm(
 			type = type_eini.type_llvm();
 			break;
 		}
-		case TypeLexeme::CHAINE:
+		case GenreLexeme::CHAINE:
 		{
 			auto index_chaine = contexte.typeuse[TypeBase::CHAINE];
 			auto &type_chaine = contexte.typeuse[index_chaine];
@@ -317,7 +317,7 @@ llvm::Type *converti_type_simple_llvm(
 			type = type_chaine.type_llvm();
 			break;
 		}
-		case TypeLexeme::TYPE_DE:
+		case GenreLexeme::TYPE_DE:
 		{
 			assert(false && "type_de aurait dû être résolu");
 			break;

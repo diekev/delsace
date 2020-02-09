@@ -552,7 +552,7 @@ long ContexteGenerationCode::ajoute_donnees_structure(const dls::vue_chaine_comp
 #endif
 
 	auto dt = DonneesTypeFinal{};
-	dt.pousse(TypeLexeme::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
+	dt.pousse(GenreLexeme::CHAINE_CARACTERE | static_cast<int>(donnees.id << 8));
 
 	donnees.index_type = typeuse.ajoute_type(dt);
 

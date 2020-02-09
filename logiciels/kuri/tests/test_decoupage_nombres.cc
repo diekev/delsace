@@ -34,19 +34,19 @@
 #include "compilation/modules.hh"
 #include "compilation/lexemes.hh"
 
-using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
+using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		auto const tampon = "0.5 ";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 3);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_REEL);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_REEL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0.5"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_reel(chaine, id_nombre);
@@ -56,13 +56,13 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 
 	{
 		auto const tampon = "0.559_57";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 8);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_REEL);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_REEL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0.559_57"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_reel(chaine, id_nombre);
@@ -72,13 +72,13 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 
 	{
 		auto const tampon = "100000+";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 6);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_ENTIER);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_ENTIER);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("100000"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -88,13 +88,13 @@ void test_decoupage_nombre_decimal(dls::test_unitaire::Controleuse &controleuse)
 
 	{
 		auto const tampon = "1_234_567_890 ";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 13);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_ENTIER);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_ENTIER);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("1_234_567_890"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -107,13 +107,13 @@ void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		auto const tampon = "0b1001100+";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 9);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_BINAIRE);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_BINAIRE);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0b1001100"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -123,13 +123,13 @@ void test_decoupage_nombre_binaire(dls::test_unitaire::Controleuse &controleuse)
 
 	{
 		auto const tampon = "0B1001_1011 ";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 11);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_BINAIRE);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_BINAIRE);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0B1001_1011"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -142,13 +142,13 @@ void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 {
 	{
 		auto const tampon = "0o1234567+";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 9);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_OCTAL);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_OCTAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0o1234567"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -158,13 +158,13 @@ void test_decoupage_nombre_octal(dls::test_unitaire::Controleuse &controleuse)
 
 	{
 		auto const tampon = "0O01_23_45_67 ";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 13);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_OCTAL);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_OCTAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0O01_23_45_67"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -177,13 +177,13 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 {
 	{
 		auto const tampon = "0xff38ce+";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 8);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_HEXADECIMAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0xff38ce"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -193,13 +193,13 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 
 	{
 		auto const tampon = "0XFF_c9_45_AB ";
-		TypeLexeme id_nombre;
+		GenreLexeme id_nombre;
 
 		auto compte = denombreuse::extrait_nombre(tampon, tampon + std::strlen(tampon), id_nombre);
 		auto chaine = dls::vue_chaine_compacte{ tampon, static_cast<long>(compte) };
 
 		CU_VERIFIE_CONDITION(controleuse, compte == 13);
-		CU_VERIFIE_CONDITION(controleuse, id_nombre == TypeLexeme::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_CONDITION(controleuse, id_nombre == GenreLexeme::NOMBRE_HEXADECIMAL);
 		CU_VERIFIE_EGALITE(controleuse, chaine, dls::vue_chaine_compacte("0XFF_c9_45_AB"));
 
 		auto nombre = denombreuse::converti_chaine_nombre_entier(chaine, id_nombre);
@@ -216,7 +216,7 @@ void test_decoupage_nombre_hexadecimal(dls::test_unitaire::Controleuse &controle
 		auto const &morceaux = fichier.morceaux;
 
 		CU_VERIFIE_CONDITION(controleuse, morceaux.taille() == 1);
-		CU_VERIFIE_CONDITION(controleuse, morceaux[0].identifiant == TypeLexeme::NOMBRE_HEXADECIMAL);
+		CU_VERIFIE_CONDITION(controleuse, morceaux[0].genre == GenreLexeme::NOMBRE_HEXADECIMAL);
 		CU_VERIFIE_EGALITE(controleuse, morceaux[0].chaine, dls::vue_chaine_compacte("0xff38ce"));
 	}
 }
@@ -226,27 +226,27 @@ void test_surchage_binaire(dls::test_unitaire::Controleuse &controleuse)
 	{
 		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  dls::vue_chaine_compacte("0b10000000000000000000000000000000000000000000000000000000000000000"),
-						  TypeLexeme::NOMBRE_BINAIRE);
+						  GenreLexeme::NOMBRE_BINAIRE);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
 		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  dls::vue_chaine_compacte("0o2777777777777777777777"),
-						  TypeLexeme::NOMBRE_OCTAL);
+						  GenreLexeme::NOMBRE_OCTAL);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 
 		nombre = denombreuse::converti_chaine_nombre_entier(
 					 dls::vue_chaine_compacte("0o17777777777777777777777"),
-					 TypeLexeme::NOMBRE_OCTAL);
+					 GenreLexeme::NOMBRE_OCTAL);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
 		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  dls::vue_chaine_compacte("9223372036854775808"),
-						  TypeLexeme::NOMBRE_ENTIER);
+						  GenreLexeme::NOMBRE_ENTIER);
 
 		/* Dans ce cas-ci, les bits débordent, et nous nous retrouvons avec une
 		 * valeur négative. */
@@ -254,14 +254,14 @@ void test_surchage_binaire(dls::test_unitaire::Controleuse &controleuse)
 
 		nombre = denombreuse::converti_chaine_nombre_entier(
 					 dls::vue_chaine_compacte("9223372036854775807456"),
-					 TypeLexeme::NOMBRE_ENTIER);
+					 GenreLexeme::NOMBRE_ENTIER);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}
 	{
 		auto nombre = denombreuse::converti_chaine_nombre_entier(
 						  dls::vue_chaine_compacte("0x1ffffffffffffffff"),
-						  TypeLexeme::NOMBRE_HEXADECIMAL);
+						  GenreLexeme::NOMBRE_HEXADECIMAL);
 
 		CU_VERIFIE_EGALITE(controleuse, nombre, std::numeric_limits<long>::max());
 	}

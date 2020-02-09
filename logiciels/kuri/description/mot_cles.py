@@ -170,7 +170,7 @@ def construit_structures():
 	structures += u'\tusing type = TypeLexeme;\n'
 	structures += u'\tstatic constexpr type INCONNU = TypeLexeme::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
-	structures += u'\tTypeLexeme identifiant;\n'
+	structures += u'\tGenreLexeme genre;\n'
 	structures += u'\tint fichier = 0;\n'
 	structures += u'};\n'
 

@@ -36,7 +36,7 @@ class Manipulable;
 
 struct Symbole {
 	std::any valeur{};
-	id_morceau identifiant{};
+	id_morceau genre{};
 };
 
 bool est_operateur(id_morceau identifiant);

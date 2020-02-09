@@ -61,7 +61,7 @@ int test(const u_char *tampon, size_t taille)
 	for (size_t i = 0ul; i < nombre_morceaux_max; ++i) {
 		auto dm = danjo::DonneesMorceaux{};
 		dm.chaine = "analyse_aleatoire";
-		dm.identifiant = *ptr_morceaux++;
+		dm.genre = *ptr_morceaux++;
 	}
 
 	auto tampon_donnees = lng::tampon_source{"analyse_aleatoire"};

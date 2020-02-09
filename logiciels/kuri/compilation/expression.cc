@@ -31,7 +31,7 @@
 #include "contexte_generation_code.h"
 #include "outils_lexemes.hh"
 
-using denombreuse = lng::decoupeuse_nombre<TypeLexeme>;
+using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
 
 enum class dir_associativite : int {
 	GAUCHE,
@@ -43,62 +43,62 @@ struct DonneesPrecedence {
 	int priorite;
 };
 
-static DonneesPrecedence associativite(TypeLexeme identifiant)
+static DonneesPrecedence associativite(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case TypeLexeme::TROIS_POINTS:
+		case GenreLexeme::TROIS_POINTS:
 			return { dir_associativite::GAUCHE, 0 };
-		case TypeLexeme::EGAL:
-		case TypeLexeme::DECLARATION_VARIABLE:
-		case TypeLexeme::PLUS_EGAL:
-		case TypeLexeme::MOINS_EGAL:
-		case TypeLexeme::DIVISE_EGAL:
-		case TypeLexeme::MULTIPLIE_EGAL:
-		case TypeLexeme::MODULO_EGAL:
-		case TypeLexeme::ET_EGAL:
-		case TypeLexeme::OU_EGAL:
-		case TypeLexeme::OUX_EGAL:
-		case TypeLexeme::DEC_DROITE_EGAL:
-		case TypeLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::EGAL:
+		case GenreLexeme::DECLARATION_VARIABLE:
+		case GenreLexeme::PLUS_EGAL:
+		case GenreLexeme::MOINS_EGAL:
+		case GenreLexeme::DIVISE_EGAL:
+		case GenreLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::MODULO_EGAL:
+		case GenreLexeme::ET_EGAL:
+		case GenreLexeme::OU_EGAL:
+		case GenreLexeme::OUX_EGAL:
+		case GenreLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 			return { dir_associativite::GAUCHE, 1 };
-		case TypeLexeme::VIRGULE:
+		case GenreLexeme::VIRGULE:
 			return { dir_associativite::GAUCHE, 2 };
-		case TypeLexeme::BARRE_BARRE:
+		case GenreLexeme::BARRE_BARRE:
 			return { dir_associativite::GAUCHE, 3 };
-		case TypeLexeme::ESP_ESP:
+		case GenreLexeme::ESP_ESP:
 			return { dir_associativite::GAUCHE, 4 };
-		case TypeLexeme::BARRE:
+		case GenreLexeme::BARRE:
 			return { dir_associativite::GAUCHE, 5 };
-		case TypeLexeme::CHAPEAU:
+		case GenreLexeme::CHAPEAU:
 			return { dir_associativite::GAUCHE, 6 };
-		case TypeLexeme::ESPERLUETTE:
+		case GenreLexeme::ESPERLUETTE:
 			return { dir_associativite::GAUCHE, 7 };
-		case TypeLexeme::DIFFERENCE:
-		case TypeLexeme::EGALITE:
+		case GenreLexeme::DIFFERENCE:
+		case GenreLexeme::EGALITE:
 			return { dir_associativite::GAUCHE, 8 };
-		case TypeLexeme::INFERIEUR:
-		case TypeLexeme::INFERIEUR_EGAL:
-		case TypeLexeme::SUPERIEUR:
-		case TypeLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR_EGAL:
 			return { dir_associativite::GAUCHE, 9 };
-		case TypeLexeme::DECALAGE_GAUCHE:
-		case TypeLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DECALAGE_DROITE:
 			return { dir_associativite::GAUCHE, 10 };
-		case TypeLexeme::PLUS:
-		case TypeLexeme::MOINS:
+		case GenreLexeme::PLUS:
+		case GenreLexeme::MOINS:
 			return { dir_associativite::GAUCHE, 11 };
-		case TypeLexeme::FOIS:
-		case TypeLexeme::DIVISE:
-		case TypeLexeme::POURCENT:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::DIVISE:
+		case GenreLexeme::POURCENT:
 			return { dir_associativite::GAUCHE, 12 };
-		case TypeLexeme::EXCLAMATION:
-		case TypeLexeme::TILDE:
-		case TypeLexeme::AROBASE:
-		case TypeLexeme::PLUS_UNAIRE:
-		case TypeLexeme::MOINS_UNAIRE:
+		case GenreLexeme::EXCLAMATION:
+		case GenreLexeme::TILDE:
+		case GenreLexeme::AROBASE:
+		case GenreLexeme::PLUS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
 			return { dir_associativite::DROITE, 13 };
-		case TypeLexeme::POINT:
-		case TypeLexeme::CROCHET_OUVRANT:
+		case GenreLexeme::POINT:
+		case GenreLexeme::CROCHET_OUVRANT:
 			return { dir_associativite::GAUCHE, 14 };
 		default:
 			assert(false);
@@ -106,7 +106,7 @@ static DonneesPrecedence associativite(TypeLexeme identifiant)
 	}
 }
 
-bool precedence_faible(TypeLexeme identifiant1, TypeLexeme identifiant2)
+bool precedence_faible(GenreLexeme identifiant1, GenreLexeme identifiant2)
 {
 	auto p1 = associativite(identifiant1);
 	auto p2 = associativite(identifiant2);
@@ -118,24 +118,24 @@ bool precedence_faible(TypeLexeme identifiant1, TypeLexeme identifiant2)
 /* ************************************************************************** */
 
 template <typename T>
-static auto applique_operateur_unaire(TypeLexeme id, T &a)
+static auto applique_operateur_unaire(GenreLexeme id, T &a)
 {
 	switch (id) {
-		case TypeLexeme::EXCLAMATION:
+		case GenreLexeme::EXCLAMATION:
 		{
 			a = !a;
 			break;
 		}
-		case TypeLexeme::TILDE:
+		case GenreLexeme::TILDE:
 		{
 			a = ~a;
 			break;
 		}
-		case TypeLexeme::PLUS_UNAIRE:
+		case GenreLexeme::PLUS_UNAIRE:
 		{
 			break;
 		}
-		case TypeLexeme::MOINS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
 		{
 			a = -a;
 			break;
@@ -148,14 +148,14 @@ static auto applique_operateur_unaire(TypeLexeme id, T &a)
 	}
 }
 
-static auto applique_operateur_unaire(TypeLexeme id, double &a)
+static auto applique_operateur_unaire(GenreLexeme id, double &a)
 {
 	switch (id) {
-		case TypeLexeme::PLUS_UNAIRE:
+		case GenreLexeme::PLUS_UNAIRE:
 		{
 			break;
 		}
-		case TypeLexeme::MOINS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
 		{
 			a = -a;
 			break;
@@ -169,56 +169,56 @@ static auto applique_operateur_unaire(TypeLexeme id, double &a)
 }
 
 template <typename T>
-static auto applique_operateur_binaire(TypeLexeme id, T a, T b)
+static auto applique_operateur_binaire(GenreLexeme id, T a, T b)
 {
 	switch (id) {
-		case TypeLexeme::PLUS:
-		case TypeLexeme::PLUS_EGAL:
+		case GenreLexeme::PLUS:
+		case GenreLexeme::PLUS_EGAL:
 		{
 			return a + b;
 		}
-		case TypeLexeme::MOINS:
-		case TypeLexeme::MOINS_EGAL:
+		case GenreLexeme::MOINS:
+		case GenreLexeme::MOINS_EGAL:
 		{
 			return a - b;
 		}
-		case TypeLexeme::FOIS:
-		case TypeLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::MULTIPLIE_EGAL:
 		{
 			return a * b;
 		}
-		case TypeLexeme::DIVISE:
-		case TypeLexeme::DIVISE_EGAL:
+		case GenreLexeme::DIVISE:
+		case GenreLexeme::DIVISE_EGAL:
 		{
 			return a / b;
 		}
-		case TypeLexeme::POURCENT:
-		case TypeLexeme::MODULO_EGAL:
+		case GenreLexeme::POURCENT:
+		case GenreLexeme::MODULO_EGAL:
 		{
 			return a % b;
 		}
-		case TypeLexeme::ESPERLUETTE:
-		case TypeLexeme::ET_EGAL:
+		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::ET_EGAL:
 		{
 			return a & b;
 		}
-		case TypeLexeme::OU_EGAL:
-		case TypeLexeme::BARRE:
+		case GenreLexeme::OU_EGAL:
+		case GenreLexeme::BARRE:
 		{
 			return a | b;
 		}
-		case TypeLexeme::CHAPEAU:
-		case TypeLexeme::OUX_EGAL:
+		case GenreLexeme::CHAPEAU:
+		case GenreLexeme::OUX_EGAL:
 		{
 			return a ^ b;
 		}
-		case TypeLexeme::DECALAGE_DROITE:
-		case TypeLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DEC_DROITE_EGAL:
 		{
 			return a >> b;
 		}
-		case TypeLexeme::DECALAGE_GAUCHE:
-		case TypeLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 		{
 			return a << b;
 		}
@@ -229,26 +229,26 @@ static auto applique_operateur_binaire(TypeLexeme id, T a, T b)
 	}
 }
 
-static auto applique_operateur_binaire(TypeLexeme id, double a, double b)
+static auto applique_operateur_binaire(GenreLexeme id, double a, double b)
 {
 	switch (id) {
-		case TypeLexeme::PLUS:
-		case TypeLexeme::PLUS_EGAL:
+		case GenreLexeme::PLUS:
+		case GenreLexeme::PLUS_EGAL:
 		{
 			return a + b;
 		}
-		case TypeLexeme::MOINS:
-		case TypeLexeme::MOINS_EGAL:
+		case GenreLexeme::MOINS:
+		case GenreLexeme::MOINS_EGAL:
 		{
 			return a - b;
 		}
-		case TypeLexeme::FOIS:
-		case TypeLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::MULTIPLIE_EGAL:
 		{
 			return a * b;
 		}
-		case TypeLexeme::DIVISE:
-		case TypeLexeme::DIVISE_EGAL:
+		case GenreLexeme::DIVISE:
+		case GenreLexeme::DIVISE_EGAL:
 		{
 			return a / b;
 		}
@@ -260,32 +260,32 @@ static auto applique_operateur_binaire(TypeLexeme id, double a, double b)
 }
 
 template <typename T>
-static auto applique_operateur_binaire_comp(TypeLexeme id, T a, T b)
+static auto applique_operateur_binaire_comp(GenreLexeme id, T a, T b)
 {
 	switch (id) {
-		case TypeLexeme::INFERIEUR:
-		case TypeLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR_EGAL:
 		{
 			return a < b;
 		}
-		case TypeLexeme::SUPERIEUR:
-		case TypeLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR_EGAL:
 		{
 			return a > b;
 		}
-		case TypeLexeme::DIFFERENCE:
+		case GenreLexeme::DIFFERENCE:
 		{
 			return a != b;
 		}
-		case TypeLexeme::ESP_ESP:
+		case GenreLexeme::ESP_ESP:
 		{
 			return a && b;
 		}
-		case TypeLexeme::EGALITE:
+		case GenreLexeme::EGALITE:
 		{
 			return a == b;
 		}
-		case TypeLexeme::BARRE_BARRE:
+		case GenreLexeme::BARRE_BARRE:
 		{
 			return a || b;
 		}
@@ -362,23 +362,23 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			auto chaine_chiffre = dls::vue_chaine(b->chaine().pointeur(), b->chaine().taille());
 
-			switch (b->morceau.identifiant) {
-				case TypeLexeme::NOMBRE_ENTIER:
+			switch (b->morceau.genre) {
+				case GenreLexeme::NOMBRE_ENTIER:
 				{
 					res.entier = lng::converti_nombre_entier(chaine_chiffre);
 					break;
 				}
-				case TypeLexeme::NOMBRE_HEXADECIMAL:
+				case GenreLexeme::NOMBRE_HEXADECIMAL:
 				{
 					res.entier = lng::converti_chaine_nombre_hexadecimal(chaine_chiffre);
 					break;
 				}
-				case TypeLexeme::NOMBRE_OCTAL:
+				case GenreLexeme::NOMBRE_OCTAL:
 				{
 					res.entier = lng::converti_chaine_nombre_octal(chaine_chiffre);
 					break;
 				}
-				case TypeLexeme::NOMBRE_BINAIRE:
+				case GenreLexeme::NOMBRE_BINAIRE:
 				{
 					res.entier = lng::converti_chaine_nombre_binaire(chaine_chiffre);
 					break;

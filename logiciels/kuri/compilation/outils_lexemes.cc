@@ -26,80 +26,80 @@
 
 #include "lexemes.hh"
 
-bool est_type_entier(TypeLexeme type)
+bool est_type_entier(GenreLexeme type)
 {
 	switch (type) {
-		case TypeLexeme::BOOL:
-		case TypeLexeme::N8:
-		case TypeLexeme::N16:
-		case TypeLexeme::N32:
-		case TypeLexeme::N64:
-		case TypeLexeme::N128:
-		case TypeLexeme::Z8:
-		case TypeLexeme::Z16:
-		case TypeLexeme::Z32:
-		case TypeLexeme::Z64:
-		case TypeLexeme::Z128:
-		case TypeLexeme::OCTET:
+		case GenreLexeme::BOOL:
+		case GenreLexeme::N8:
+		case GenreLexeme::N16:
+		case GenreLexeme::N32:
+		case GenreLexeme::N64:
+		case GenreLexeme::N128:
+		case GenreLexeme::Z8:
+		case GenreLexeme::Z16:
+		case GenreLexeme::Z32:
+		case GenreLexeme::Z64:
+		case GenreLexeme::Z128:
+		case GenreLexeme::OCTET:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_type_entier_naturel(TypeLexeme type)
+bool est_type_entier_naturel(GenreLexeme type)
 {
 	switch (type) {
-		case TypeLexeme::N8:
-		case TypeLexeme::N16:
-		case TypeLexeme::N32:
-		case TypeLexeme::N64:
-		case TypeLexeme::N128:
+		case GenreLexeme::N8:
+		case GenreLexeme::N16:
+		case GenreLexeme::N32:
+		case GenreLexeme::N64:
+		case GenreLexeme::N128:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_type_entier_relatif(TypeLexeme type)
+bool est_type_entier_relatif(GenreLexeme type)
 {
 	switch (type) {
-		case TypeLexeme::Z8:
-		case TypeLexeme::Z16:
-		case TypeLexeme::Z32:
-		case TypeLexeme::Z64:
-		case TypeLexeme::Z128:
+		case GenreLexeme::Z8:
+		case GenreLexeme::Z16:
+		case GenreLexeme::Z32:
+		case GenreLexeme::Z64:
+		case GenreLexeme::Z128:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_type_reel(TypeLexeme type)
+bool est_type_reel(GenreLexeme type)
 {
 	switch (type) {
-		case TypeLexeme::R16:
-		case TypeLexeme::R32:
-		case TypeLexeme::R64:
-		case TypeLexeme::R128:
+		case GenreLexeme::R16:
+		case GenreLexeme::R32:
+		case GenreLexeme::R64:
+		case GenreLexeme::R128:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_operateur_bool(TypeLexeme type)
+bool est_operateur_bool(GenreLexeme type)
 {
 	switch (type) {
-		case TypeLexeme::EXCLAMATION:
-		case TypeLexeme::INFERIEUR:
-		case TypeLexeme::INFERIEUR_EGAL:
-		case TypeLexeme::SUPERIEUR:
-		case TypeLexeme::SUPERIEUR_EGAL:
-		case TypeLexeme::DIFFERENCE:
-		case TypeLexeme::ESP_ESP:
-		case TypeLexeme::EGALITE:
-		case TypeLexeme::BARRE_BARRE:
+		case GenreLexeme::EXCLAMATION:
+		case GenreLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::DIFFERENCE:
+		case GenreLexeme::ESP_ESP:
+		case GenreLexeme::EGALITE:
+		case GenreLexeme::BARRE_BARRE:
 		{
 			return true;
 		}
@@ -110,295 +110,295 @@ bool est_operateur_bool(TypeLexeme type)
 	}
 }
 
-bool est_assignation_operee(TypeLexeme type)
+bool est_assignation_operee(GenreLexeme type)
 {
 	switch (type) {
 		default:
 		{
 			return false;
 		}
-		case TypeLexeme::MOINS_EGAL:
-		case TypeLexeme::PLUS_EGAL:
-		case TypeLexeme::MULTIPLIE_EGAL:
-		case TypeLexeme::DIVISE_EGAL:
-		case TypeLexeme::MODULO_EGAL:
-		case TypeLexeme::ET_EGAL:
-		case TypeLexeme::OU_EGAL:
-		case TypeLexeme::OUX_EGAL:
-		case TypeLexeme::DEC_DROITE_EGAL:
-		case TypeLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::MOINS_EGAL:
+		case GenreLexeme::PLUS_EGAL:
+		case GenreLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::DIVISE_EGAL:
+		case GenreLexeme::MODULO_EGAL:
+		case GenreLexeme::ET_EGAL:
+		case GenreLexeme::OU_EGAL:
+		case GenreLexeme::OUX_EGAL:
+		case GenreLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 		{
 			return true;
 		}
 	}
 }
 
-TypeLexeme operateur_pour_assignation_operee(TypeLexeme type)
+GenreLexeme operateur_pour_assignation_operee(GenreLexeme type)
 {
 	switch (type) {
 		default:
 		{
 			return type;
 		}
-		case TypeLexeme::MOINS_EGAL:
+		case GenreLexeme::MOINS_EGAL:
 		{
-			return TypeLexeme::MOINS;
+			return GenreLexeme::MOINS;
 		}
-		case TypeLexeme::PLUS_EGAL:
+		case GenreLexeme::PLUS_EGAL:
 		{
-			return TypeLexeme::PLUS;
+			return GenreLexeme::PLUS;
 		}
-		case TypeLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::MULTIPLIE_EGAL:
 		{
-			return TypeLexeme::FOIS;
+			return GenreLexeme::FOIS;
 		}
-		case TypeLexeme::DIVISE_EGAL:
+		case GenreLexeme::DIVISE_EGAL:
 		{
-			return TypeLexeme::DIVISE;
+			return GenreLexeme::DIVISE;
 		}
-		case TypeLexeme::MODULO_EGAL:
+		case GenreLexeme::MODULO_EGAL:
 		{
-			return TypeLexeme::POURCENT;
+			return GenreLexeme::POURCENT;
 		}
-		case TypeLexeme::ET_EGAL:
+		case GenreLexeme::ET_EGAL:
 		{
-			return TypeLexeme::ESPERLUETTE;
+			return GenreLexeme::ESPERLUETTE;
 		}
-		case TypeLexeme::OU_EGAL:
+		case GenreLexeme::OU_EGAL:
 		{
-			return TypeLexeme::BARRE;
+			return GenreLexeme::BARRE;
 		}
-		case TypeLexeme::OUX_EGAL:
+		case GenreLexeme::OUX_EGAL:
 		{
-			return TypeLexeme::CHAPEAU;
+			return GenreLexeme::CHAPEAU;
 		}
-		case TypeLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DEC_DROITE_EGAL:
 		{
-			return TypeLexeme::DECALAGE_DROITE;
+			return GenreLexeme::DECALAGE_DROITE;
 		}
-		case TypeLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
 		{
-			return TypeLexeme::DECALAGE_GAUCHE;
+			return GenreLexeme::DECALAGE_GAUCHE;
 		}
 	}
 }
 
-bool est_operateur_comp(TypeLexeme type)
+bool est_operateur_comp(GenreLexeme type)
 {
 	switch (type) {
 		default:
 		{
 			return false;
 		}
-		case TypeLexeme::INFERIEUR:
-		case TypeLexeme::INFERIEUR_EGAL:
-		case TypeLexeme::SUPERIEUR:
-		case TypeLexeme::SUPERIEUR_EGAL:
-		case TypeLexeme::EGALITE:
-		case TypeLexeme::DIFFERENCE:
+		case GenreLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::EGALITE:
+		case GenreLexeme::DIFFERENCE:
 		{
 			return true;
 		}
 	}
 }
 
-bool peut_etre_dereference(TypeLexeme id)
+bool peut_etre_dereference(GenreLexeme id)
 {
 	switch (id & 0xff) {
 		default:
 			return false;
-		case TypeLexeme::POINTEUR:
-		case TypeLexeme::REFERENCE:
-		case TypeLexeme::TABLEAU:
-		case TypeLexeme::TROIS_POINTS:
+		case GenreLexeme::POINTEUR:
+		case GenreLexeme::REFERENCE:
+		case GenreLexeme::TABLEAU:
+		case GenreLexeme::TROIS_POINTS:
 			return true;
 	}
 }
 
-bool est_mot_cle(TypeLexeme id)
+bool est_mot_cle(GenreLexeme id)
 {
 	switch (id) {
 		default:
 		{
 			return false;
 		}
-		case TypeLexeme::FONC:
-		case TypeLexeme::STRUCT:
-		case TypeLexeme::DYN:
-		case TypeLexeme::RETOURNE:
-		case TypeLexeme::ENUM:
-		case TypeLexeme::ENUM_DRAPEAU:
-		case TypeLexeme::RETIENS:
-		case TypeLexeme::EXTERNE:
-		case TypeLexeme::IMPORTE:
-		case TypeLexeme::POUR:
-		case TypeLexeme::DANS:
-		case TypeLexeme::BOUCLE:
-		case TypeLexeme::TANTQUE:
-		case TypeLexeme::REPETE:
-		case TypeLexeme::SINON:
-		case TypeLexeme::SI:
-		case TypeLexeme::SAUFSI:
-		case TypeLexeme::LOGE:
-		case TypeLexeme::DELOGE:
-		case TypeLexeme::RELOGE:
-		case TypeLexeme::DISCR:
-		case TypeLexeme::Z8:
-		case TypeLexeme::Z16:
-		case TypeLexeme::Z32:
-		case TypeLexeme::Z64:
-		case TypeLexeme::Z128:
-		case TypeLexeme::N8:
-		case TypeLexeme::N16:
-		case TypeLexeme::N32:
-		case TypeLexeme::N64:
-		case TypeLexeme::N128:
-		case TypeLexeme::R16:
-		case TypeLexeme::R32:
-		case TypeLexeme::R64:
-		case TypeLexeme::R128:
-		case TypeLexeme::EINI:
-		case TypeLexeme::BOOL:
-		case TypeLexeme::RIEN:
-		case TypeLexeme::CHAINE:
-		case TypeLexeme::OCTET:
-		case TypeLexeme::UNION:
-		case TypeLexeme::COROUT:
-		case TypeLexeme::CHARGE:
+		case GenreLexeme::FONC:
+		case GenreLexeme::STRUCT:
+		case GenreLexeme::DYN:
+		case GenreLexeme::RETOURNE:
+		case GenreLexeme::ENUM:
+		case GenreLexeme::ENUM_DRAPEAU:
+		case GenreLexeme::RETIENS:
+		case GenreLexeme::EXTERNE:
+		case GenreLexeme::IMPORTE:
+		case GenreLexeme::POUR:
+		case GenreLexeme::DANS:
+		case GenreLexeme::BOUCLE:
+		case GenreLexeme::TANTQUE:
+		case GenreLexeme::REPETE:
+		case GenreLexeme::SINON:
+		case GenreLexeme::SI:
+		case GenreLexeme::SAUFSI:
+		case GenreLexeme::LOGE:
+		case GenreLexeme::DELOGE:
+		case GenreLexeme::RELOGE:
+		case GenreLexeme::DISCR:
+		case GenreLexeme::Z8:
+		case GenreLexeme::Z16:
+		case GenreLexeme::Z32:
+		case GenreLexeme::Z64:
+		case GenreLexeme::Z128:
+		case GenreLexeme::N8:
+		case GenreLexeme::N16:
+		case GenreLexeme::N32:
+		case GenreLexeme::N64:
+		case GenreLexeme::N128:
+		case GenreLexeme::R16:
+		case GenreLexeme::R32:
+		case GenreLexeme::R64:
+		case GenreLexeme::R128:
+		case GenreLexeme::EINI:
+		case GenreLexeme::BOOL:
+		case GenreLexeme::RIEN:
+		case GenreLexeme::CHAINE:
+		case GenreLexeme::OCTET:
+		case GenreLexeme::UNION:
+		case GenreLexeme::COROUT:
+		case GenreLexeme::CHARGE:
 		{
 			return true;
 		}
 	}
 }
 
-bool est_chaine_litterale(TypeLexeme id)
+bool est_chaine_litterale(GenreLexeme id)
 {
 	switch (id) {
 		default:
 		{
 			return false;
 		}
-		case TypeLexeme::CHAINE_LITTERALE:
-		case TypeLexeme::CARACTERE:
+		case GenreLexeme::CHAINE_LITTERALE:
+		case GenreLexeme::CARACTERE:
 		{
 			return true;
 		}
 	}
 }
 
-bool est_specifiant_type(TypeLexeme identifiant)
+bool est_specifiant_type(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case TypeLexeme::FOIS:
-		case TypeLexeme::ESPERLUETTE:
-		case TypeLexeme::CROCHET_OUVRANT:
-		case TypeLexeme::TROIS_POINTS:
-		case TypeLexeme::TYPE_DE:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::CROCHET_OUVRANT:
+		case GenreLexeme::TROIS_POINTS:
+		case GenreLexeme::TYPE_DE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_identifiant_type(TypeLexeme identifiant)
+bool est_identifiant_type(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case TypeLexeme::N8:
-		case TypeLexeme::N16:
-		case TypeLexeme::N32:
-		case TypeLexeme::N64:
-		case TypeLexeme::N128:
-		case TypeLexeme::R16:
-		case TypeLexeme::R32:
-		case TypeLexeme::R64:
-		case TypeLexeme::R128:
-		case TypeLexeme::Z8:
-		case TypeLexeme::Z16:
-		case TypeLexeme::Z32:
-		case TypeLexeme::Z64:
-		case TypeLexeme::Z128:
-		case TypeLexeme::BOOL:
-		case TypeLexeme::RIEN:
-		case TypeLexeme::EINI:
-		case TypeLexeme::CHAINE:
-		case TypeLexeme::CHAINE_CARACTERE:
-		case TypeLexeme::OCTET:
+		case GenreLexeme::N8:
+		case GenreLexeme::N16:
+		case GenreLexeme::N32:
+		case GenreLexeme::N64:
+		case GenreLexeme::N128:
+		case GenreLexeme::R16:
+		case GenreLexeme::R32:
+		case GenreLexeme::R64:
+		case GenreLexeme::R128:
+		case GenreLexeme::Z8:
+		case GenreLexeme::Z16:
+		case GenreLexeme::Z32:
+		case GenreLexeme::Z64:
+		case GenreLexeme::Z128:
+		case GenreLexeme::BOOL:
+		case GenreLexeme::RIEN:
+		case GenreLexeme::EINI:
+		case GenreLexeme::CHAINE:
+		case GenreLexeme::CHAINE_CARACTERE:
+		case GenreLexeme::OCTET:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_nombre_entier(TypeLexeme identifiant)
+bool est_nombre_entier(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case TypeLexeme::NOMBRE_BINAIRE:
-		case TypeLexeme::NOMBRE_ENTIER:
-		case TypeLexeme::NOMBRE_HEXADECIMAL:
-		case TypeLexeme::NOMBRE_OCTAL:
+		case GenreLexeme::NOMBRE_BINAIRE:
+		case GenreLexeme::NOMBRE_ENTIER:
+		case GenreLexeme::NOMBRE_HEXADECIMAL:
+		case GenreLexeme::NOMBRE_OCTAL:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_nombre(TypeLexeme identifiant)
+bool est_nombre(GenreLexeme identifiant)
 {
-	return est_nombre_entier(identifiant) || (identifiant == TypeLexeme::NOMBRE_REEL);
+	return est_nombre_entier(identifiant) || (identifiant == GenreLexeme::NOMBRE_REEL);
 }
 
-bool est_operateur_unaire(TypeLexeme identifiant)
+bool est_operateur_unaire(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case TypeLexeme::AROBASE:
-		case TypeLexeme::EXCLAMATION:
-		case TypeLexeme::TILDE:
-		case TypeLexeme::CROCHET_OUVRANT:
-		case TypeLexeme::PLUS_UNAIRE:
-		case TypeLexeme::MOINS_UNAIRE:
+		case GenreLexeme::AROBASE:
+		case GenreLexeme::EXCLAMATION:
+		case GenreLexeme::TILDE:
+		case GenreLexeme::CROCHET_OUVRANT:
+		case GenreLexeme::PLUS_UNAIRE:
+		case GenreLexeme::MOINS_UNAIRE:
 			return true;
 		default:
 			return false;
 	}
 }
 
-bool est_operateur_binaire(TypeLexeme identifiant)
+bool est_operateur_binaire(GenreLexeme identifiant)
 {
 	switch (identifiant) {
-		case TypeLexeme::PLUS:
-		case TypeLexeme::MOINS:
-		case TypeLexeme::FOIS:
-		case TypeLexeme::DIVISE:
-		case TypeLexeme::PLUS_EGAL:
-		case TypeLexeme::MOINS_EGAL:
-		case TypeLexeme::DIVISE_EGAL:
-		case TypeLexeme::MULTIPLIE_EGAL:
-		case TypeLexeme::MODULO_EGAL:
-		case TypeLexeme::ET_EGAL:
-		case TypeLexeme::OU_EGAL:
-		case TypeLexeme::OUX_EGAL:
-		case TypeLexeme::DEC_DROITE_EGAL:
-		case TypeLexeme::DEC_GAUCHE_EGAL:
-		case TypeLexeme::ESPERLUETTE:
-		case TypeLexeme::POURCENT:
-		case TypeLexeme::INFERIEUR:
-		case TypeLexeme::INFERIEUR_EGAL:
-		case TypeLexeme::SUPERIEUR:
-		case TypeLexeme::SUPERIEUR_EGAL:
-		case TypeLexeme::DECALAGE_DROITE:
-		case TypeLexeme::DECALAGE_GAUCHE:
-		case TypeLexeme::DIFFERENCE:
-		case TypeLexeme::ESP_ESP:
-		case TypeLexeme::EGALITE:
-		case TypeLexeme::BARRE_BARRE:
-		case TypeLexeme::BARRE:
-		case TypeLexeme::CHAPEAU:
-		case TypeLexeme::POINT:
-		case TypeLexeme::EGAL:
-		case TypeLexeme::TROIS_POINTS:
-		case TypeLexeme::VIRGULE:
-		case TypeLexeme::CROCHET_OUVRANT:
-		case TypeLexeme::DECLARATION_VARIABLE:
+		case GenreLexeme::PLUS:
+		case GenreLexeme::MOINS:
+		case GenreLexeme::FOIS:
+		case GenreLexeme::DIVISE:
+		case GenreLexeme::PLUS_EGAL:
+		case GenreLexeme::MOINS_EGAL:
+		case GenreLexeme::DIVISE_EGAL:
+		case GenreLexeme::MULTIPLIE_EGAL:
+		case GenreLexeme::MODULO_EGAL:
+		case GenreLexeme::ET_EGAL:
+		case GenreLexeme::OU_EGAL:
+		case GenreLexeme::OUX_EGAL:
+		case GenreLexeme::DEC_DROITE_EGAL:
+		case GenreLexeme::DEC_GAUCHE_EGAL:
+		case GenreLexeme::ESPERLUETTE:
+		case GenreLexeme::POURCENT:
+		case GenreLexeme::INFERIEUR:
+		case GenreLexeme::INFERIEUR_EGAL:
+		case GenreLexeme::SUPERIEUR:
+		case GenreLexeme::SUPERIEUR_EGAL:
+		case GenreLexeme::DECALAGE_DROITE:
+		case GenreLexeme::DECALAGE_GAUCHE:
+		case GenreLexeme::DIFFERENCE:
+		case GenreLexeme::ESP_ESP:
+		case GenreLexeme::EGALITE:
+		case GenreLexeme::BARRE_BARRE:
+		case GenreLexeme::BARRE:
+		case GenreLexeme::CHAPEAU:
+		case GenreLexeme::POINT:
+		case GenreLexeme::EGAL:
+		case GenreLexeme::TROIS_POINTS:
+		case GenreLexeme::VIRGULE:
+		case GenreLexeme::CROCHET_OUVRANT:
+		case GenreLexeme::DECLARATION_VARIABLE:
 			return true;
 		default:
 			return false;

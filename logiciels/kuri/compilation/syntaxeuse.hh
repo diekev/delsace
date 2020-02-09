@@ -85,12 +85,12 @@ private:
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
 	void analyse_corps(std::ostream &os);
-	void analyse_declaration_fonction(TypeLexeme id);
+	void analyse_declaration_fonction(GenreLexeme id);
 	void analyse_corps_fonction();
 	void analyse_bloc();
-	noeud::base *analyse_expression(TypeLexeme identifiant_final, TypeLexeme racine_expr, bool ajoute_noeud = true);
+	noeud::base *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
-	void analyse_declaration_structure(TypeLexeme id);
+	void analyse_declaration_structure(GenreLexeme id);
 	void analyse_declaration_enum(bool est_drapeau);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
@@ -99,6 +99,6 @@ private:
 	void analyse_construction_structure(noeud::base *noeud);
 	void analyse_directive_si();
 
-	void consomme(TypeLexeme id, const char *message);
+	void consomme(GenreLexeme id, const char *message);
 	void consomme_type(const char *message);
 };

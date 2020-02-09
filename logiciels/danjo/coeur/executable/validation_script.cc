@@ -54,11 +54,11 @@ static auto verifie_fichier(std::filesystem::path const &chemin)
 		auto valideuse = danjo::valideuse_propriete{};
 
 		while (debut++ != fin) {
-			if (!danjo::est_identifiant_controle(debut->identifiant)) {
+			if (!danjo::est_identifiant_controle(debut->genre)) {
 				continue;
 			}
 
-			auto id_controle = debut->identifiant;
+			auto id_controle = debut->genre;
 
 			if (!valideuse.cherche_magasin(id_controle)) {
 				std::cerr << "Impossible de trouver le magasin pour '"
@@ -71,15 +71,15 @@ static auto verifie_fichier(std::filesystem::path const &chemin)
 			++debut;
 
 			while (debut++ != fin) {
-				if (debut->identifiant == danjo::id_morceau::PARENTHESE_FERMANTE) {
+				if (debut->genre == danjo::id_morceau::PARENTHESE_FERMANTE) {
 					break;
 				}
 
-				if (!danjo::est_identifiant_propriete(debut->identifiant)) {
+				if (!danjo::est_identifiant_propriete(debut->genre)) {
 					continue;
 				}
 
-				auto id_propriete = debut->identifiant;
+				auto id_propriete = debut->genre;
 
 				if (!valideuse.est_propriete_valide(id_propriete)) {
 					std::cerr << "'Attention : propriété '"

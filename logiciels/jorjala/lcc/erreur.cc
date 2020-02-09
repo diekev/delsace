@@ -39,7 +39,7 @@ void lance_erreur(
 {
 	auto const ligne = static_cast<long>(morceau.ligne_pos >> 32);
 	auto const pos_mot = static_cast<long>(morceau.ligne_pos & 0xffffffff);
-	auto const identifiant = morceau.identifiant;
+	auto const identifiant = morceau.genre;
 	auto const &chaine = morceau.chaine;
 
 	auto module = contexte.module(static_cast<size_t>(morceau.module));

@@ -431,7 +431,7 @@ void analyseuse_grammaire::analyse_expression(
 	 * cas d'analyse d'une expression en dernier paramètre d'un appel de
 	 * fontion. */
 	auto paren = 0;
-	auto dernier_identifiant = m_identifiants[m_position == 0 ? m_position : position()].identifiant; // XXX - À FAIRE
+	auto dernier_identifiant = m_identifiants[m_position == 0 ? m_position : position()].genre; // XXX - À FAIRE
 
 	/* utilisé pour terminer la boucle quand elle nous atteignons une parenthèse
 	 * fermante */
@@ -442,9 +442,9 @@ void analyseuse_grammaire::analyse_expression(
 	while (!requiers_identifiant(identifiant_final)) {
 		auto &morceau = m_identifiants[position()];
 
-		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.identifiant) << FIN_LOG_EXPRESSION;
+		DEB_LOG_EXPRESSION << tabulations[profondeur] << '\t' << chaine_identifiant(morceau.genre) << FIN_LOG_EXPRESSION;
 
-		switch (morceau.identifiant) {
+		switch (morceau.genre) {
 			case id_morceau::CHAINE_CARACTERE:
 			{
 				/* appel fonction : chaine + ( */
@@ -527,7 +527,7 @@ void analyseuse_grammaire::analyse_expression(
 			case id_morceau::FAUX:
 			{
 				/* remplace l'identifiant par id_morceau::BOOL */
-				morceau.identifiant = id_morceau::BOOL;
+				morceau.genre = id_morceau::BOOL;
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau);
 				expression.pousse(noeud);
 				break;
@@ -570,7 +570,7 @@ void analyseuse_grammaire::analyse_expression(
 			case id_morceau::PLUS:
 			case id_morceau::MOINS:
 			{
-				auto id_operateur = morceau.identifiant;
+				auto id_operateur = morceau.genre;
 				auto noeud = static_cast<lcc::noeud::base *>(nullptr);
 
 				if (precede_unaire_valide(dernier_identifiant)) {
@@ -581,7 +581,7 @@ void analyseuse_grammaire::analyse_expression(
 						id_operateur = id_morceau::MOINS_UNAIRE;
 					}
 
-					morceau.identifiant = id_operateur;
+					morceau.genre = id_operateur;
 					noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
 				}
 				else {
@@ -617,11 +617,11 @@ void analyseuse_grammaire::analyse_expression(
 			case id_morceau::FOIS_EGAL:
 			{
 				/* Correction de crash d'aléatest, improbable dans la vrai vie. */
-				if (expression.est_vide() && est_operateur_binaire(morceau.identifiant)) {
+				if (expression.est_vide() && est_operateur_binaire(morceau.genre)) {
 					lance_erreur("Opérateur binaire utilisé en début d'expression");
 				}
 
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE, m_contexte, morceau);
 				pile.pousse(noeud);
 
@@ -629,7 +629,7 @@ void analyseuse_grammaire::analyse_expression(
 			}
 			case id_morceau::EGAL:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::ASSIGNATION, m_contexte, morceau);
 				pile.pousse(noeud);
@@ -639,7 +639,7 @@ void analyseuse_grammaire::analyse_expression(
 			{
 				/* l'accès à un élément d'un tableau est chaine[index] */
 				if (dernier_identifiant == id_morceau::CHAINE_CARACTERE) {
-					vide_pile_operateur(morceau.identifiant);
+					vide_pile_operateur(morceau.genre);
 
 					auto noeud = m_assembleuse->empile_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE, m_contexte, morceau, false);
 					pile.pousse(noeud);
@@ -649,7 +649,7 @@ void analyseuse_grammaire::analyse_expression(
 					m_assembleuse->depile_noeud(lcc::noeud::type_noeud::OPERATION_BINAIRE);
 				}
 				else {
-					morceau.identifiant = id_morceau::TABLEAU;
+					morceau.genre = id_morceau::TABLEAU;
 					auto noeud = m_assembleuse->empile_noeud(lcc::noeud::type_noeud::VALEUR, m_contexte, morceau, false);
 					pile.pousse(noeud);
 
@@ -666,14 +666,14 @@ void analyseuse_grammaire::analyse_expression(
 			case id_morceau::PLUS_UNAIRE:
 			case id_morceau::MOINS_UNAIRE:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::OPERATION_UNAIRE, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
 			}
 			case id_morceau::DOLLAR:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 
 				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu un nom après '$'");
@@ -690,7 +690,7 @@ void analyseuse_grammaire::analyse_expression(
 			}
 			case id_morceau::AROBASE:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 
 				if (!requiers_identifiant(id_morceau::CHAINE_CARACTERE)) {
 					lance_erreur("Attendu un nom après '@'");
@@ -707,14 +707,14 @@ void analyseuse_grammaire::analyse_expression(
 			}
 			case id_morceau::POINT:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::ACCES_MEMBRE_POINT, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
 			}
 			case id_morceau::TROIS_POINTS:
 			{
-				vide_pile_operateur(morceau.identifiant);
+				vide_pile_operateur(morceau.genre);
 				auto noeud = m_assembleuse->cree_noeud(lcc::noeud::type_noeud::PLAGE, m_contexte, morceau);
 				pile.pousse(noeud);
 				break;
@@ -729,7 +729,7 @@ void analyseuse_grammaire::analyse_expression(
 			break;
 		}
 
-		dernier_identifiant = morceau.identifiant;
+		dernier_identifiant = morceau.genre;
 	}
 
 	/* Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
@@ -904,7 +904,7 @@ void analyseuse_grammaire::analyse_parametre(lcc::type_var type_param)
 			case PROP_PARAM_MAX:
 			{
 				avance();
-				if (!est_nombre(donnees().identifiant)) {
+				if (!est_nombre(donnees().genre)) {
 					lance_erreur("Attendu un nombre pour « max »");
 				}
 
@@ -913,7 +913,7 @@ void analyseuse_grammaire::analyse_parametre(lcc::type_var type_param)
 			case PROP_PARAM_MIN:
 			{
 				avance();
-				if (!est_nombre(donnees().identifiant)) {
+				if (!est_nombre(donnees().genre)) {
 					lance_erreur("Attendu un nombre pour « min »");
 				}
 
@@ -939,7 +939,7 @@ void analyseuse_grammaire::analyse_parametre(lcc::type_var type_param)
 					}
 				}
 				else {
-					if (!est_nombre(donnees().identifiant)) {
+					if (!est_nombre(donnees().genre)) {
 						lance_erreur("Attendu un nombre pour « valeur »");
 					}
 				}

@@ -45,7 +45,7 @@ class Lexeuse {
 	long m_taille_mot_courant = 0;
 
 	int m_drapeaux = 0;
-	TypeLexeme m_dernier_id = TypeLexeme::INCONNU;
+	GenreLexeme m_dernier_id = GenreLexeme::INCONNU;
 
 public:
 	explicit Lexeuse(Fichier *fichier, int drapeaux = 0);
@@ -76,7 +76,7 @@ private:
 
 	void pousse_caractere(int n = 1);
 
-	void pousse_mot(TypeLexeme identifiant);
+	void pousse_mot(GenreLexeme identifiant);
 
 	void enregistre_pos_mot();
 };

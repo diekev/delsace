@@ -24,38 +24,38 @@
 
 #pragma once
 
-enum class TypeLexeme : unsigned int;
+enum class GenreLexeme : unsigned int;
 
-bool est_type_entier(TypeLexeme type);
+bool est_type_entier(GenreLexeme type);
 
-bool est_type_entier_naturel(TypeLexeme type);
+bool est_type_entier_naturel(GenreLexeme type);
 
-bool est_type_entier_relatif(TypeLexeme type);
+bool est_type_entier_relatif(GenreLexeme type);
 
-bool est_type_reel(TypeLexeme type);
+bool est_type_reel(GenreLexeme type);
 
-bool est_operateur_bool(TypeLexeme type);
+bool est_operateur_bool(GenreLexeme type);
 
-bool est_assignation_operee(TypeLexeme type);
+bool est_assignation_operee(GenreLexeme type);
 
-TypeLexeme operateur_pour_assignation_operee(TypeLexeme type);
+GenreLexeme operateur_pour_assignation_operee(GenreLexeme type);
 
-bool est_operateur_comp(TypeLexeme type);
+bool est_operateur_comp(GenreLexeme type);
 
-bool peut_etre_dereference(TypeLexeme id);
+bool peut_etre_dereference(GenreLexeme id);
 
-bool est_mot_cle(TypeLexeme id);
+bool est_mot_cle(GenreLexeme id);
 
-bool est_chaine_litterale(TypeLexeme id);
+bool est_chaine_litterale(GenreLexeme id);
 
-bool est_specifiant_type(TypeLexeme identifiant);
+bool est_specifiant_type(GenreLexeme identifiant);
 
-bool est_identifiant_type(TypeLexeme identifiant);
+bool est_identifiant_type(GenreLexeme identifiant);
 
-bool est_nombre_entier(TypeLexeme identifiant);
+bool est_nombre_entier(GenreLexeme identifiant);
 
-bool est_nombre(TypeLexeme identifiant);
+bool est_nombre(GenreLexeme identifiant);
 
-bool est_operateur_unaire(TypeLexeme identifiant);
+bool est_operateur_unaire(GenreLexeme identifiant);
 
-bool est_operateur_binaire(TypeLexeme identifiant);
+bool est_operateur_binaire(GenreLexeme identifiant);
