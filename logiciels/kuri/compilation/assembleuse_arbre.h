@@ -65,7 +65,7 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouté.
 	 */
-	noeud::base *empile_noeud(type_noeud type, DonneesLexeme const &morceau, bool ajoute = true);
+	noeud::base *empile_noeud(GenreNoeud type, DonneesLexeme const &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -76,13 +76,13 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	noeud::base *cree_noeud(type_noeud type, DonneesLexeme const &morceau);
+	noeud::base *cree_noeud(GenreNoeud type, DonneesLexeme const &morceau);
 
 	/**
 	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et
 	 * bien le type passé en paramètre.
 	 */
-	void depile_noeud(type_noeud type);
+	void depile_noeud(GenreNoeud type);
 
 	/**
 	 * Visite les enfants du noeud racine et demande à chacun d'eux d'imprimer

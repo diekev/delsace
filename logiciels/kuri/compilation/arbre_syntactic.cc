@@ -37,68 +37,68 @@ static void imprime_tab(std::ostream &os, int tab)
 
 /* ************************************************************************** */
 
-const char *chaine_type_noeud(type_noeud type)
+const char *chaine_genre_noeud(GenreNoeud type)
 {
 #define CAS_TYPE(x) case x: return #x;
 
 	switch (type) {
-		CAS_TYPE(type_noeud::RACINE)
-		CAS_TYPE(type_noeud::DECLARATION_FONCTION)
-		CAS_TYPE(type_noeud::DECLARATION_COROUTINE)
-		CAS_TYPE(type_noeud::LISTE_PARAMETRES_FONCTION)
-		CAS_TYPE(type_noeud::APPEL_FONCTION)
-		CAS_TYPE(type_noeud::VARIABLE)
-		CAS_TYPE(type_noeud::ACCES_MEMBRE_POINT)
-		CAS_TYPE(type_noeud::ASSIGNATION_VARIABLE)
-		CAS_TYPE(type_noeud::DECLARATION_VARIABLE)
-		CAS_TYPE(type_noeud::NOMBRE_REEL)
-		CAS_TYPE(type_noeud::NOMBRE_ENTIER)
-		CAS_TYPE(type_noeud::OPERATION_BINAIRE)
-		CAS_TYPE(type_noeud::OPERATION_UNAIRE)
-		CAS_TYPE(type_noeud::RETOUR)
-		CAS_TYPE(type_noeud::RETOUR_MULTIPLE)
-		CAS_TYPE(type_noeud::RETOUR_SIMPLE)
-		CAS_TYPE(type_noeud::CHAINE_LITTERALE)
-		CAS_TYPE(type_noeud::BOOLEEN)
-		CAS_TYPE(type_noeud::CARACTERE)
-		CAS_TYPE(type_noeud::SI)
-		CAS_TYPE(type_noeud::BLOC)
-		CAS_TYPE(type_noeud::POUR)
-		CAS_TYPE(type_noeud::CONTINUE_ARRETE)
-		CAS_TYPE(type_noeud::BOUCLE)
-		CAS_TYPE(type_noeud::REPETE)
-		CAS_TYPE(type_noeud::TANTQUE)
-		CAS_TYPE(type_noeud::TRANSTYPE)
-		CAS_TYPE(type_noeud::MEMOIRE)
-		CAS_TYPE(type_noeud::NUL)
-		CAS_TYPE(type_noeud::TAILLE_DE)
-		CAS_TYPE(type_noeud::PLAGE)
-		CAS_TYPE(type_noeud::DIFFERE)
-		CAS_TYPE(type_noeud::NONSUR)
-		CAS_TYPE(type_noeud::TABLEAU_ARGS_VARIADIQUES)
-		CAS_TYPE(type_noeud::CONSTRUIT_TABLEAU)
-		CAS_TYPE(type_noeud::CONSTRUIT_STRUCTURE)
-		CAS_TYPE(type_noeud::INFO_DE)
-		CAS_TYPE(type_noeud::LOGE)
-		CAS_TYPE(type_noeud::DELOGE)
-		CAS_TYPE(type_noeud::RELOGE)
-		CAS_TYPE(type_noeud::DECLARATION_STRUCTURE)
-		CAS_TYPE(type_noeud::DECLARATION_ENUM)
-		CAS_TYPE(type_noeud::DISCR)
-		CAS_TYPE(type_noeud::PAIRE_DISCR)
-		CAS_TYPE(type_noeud::SAUFSI)
-		CAS_TYPE(type_noeud::RETIENS)
-		CAS_TYPE(type_noeud::ACCES_TABLEAU)
-		CAS_TYPE(type_noeud::OPERATION_COMP_CHAINEE)
-		CAS_TYPE(type_noeud::DISCR_ENUM)
-		CAS_TYPE(type_noeud::DISCR_UNION)
-		CAS_TYPE(type_noeud::ACCES_MEMBRE_UNION)
-		CAS_TYPE(type_noeud::SINON)
-		CAS_TYPE(type_noeud::EXPRESSION_PARENTHESE)
-		CAS_TYPE(type_noeud::DIRECTIVE_EXECUTION)
+		CAS_TYPE(GenreNoeud::RACINE)
+		CAS_TYPE(GenreNoeud::DECLARATION_FONCTION)
+		CAS_TYPE(GenreNoeud::DECLARATION_COROUTINE)
+		CAS_TYPE(GenreNoeud::DECLARATION_PARAMETRES_FONCTION)
+		CAS_TYPE(GenreNoeud::EXPRESSION_APPEL_FONCTION)
+		CAS_TYPE(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION)
+		CAS_TYPE(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE)
+		CAS_TYPE(GenreNoeud::DECLARATION_VARIABLE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER)
+		CAS_TYPE(GenreNoeud::OPERATEUR_BINAIRE)
+		CAS_TYPE(GenreNoeud::OPERATEUR_UNAIRE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_RETOUR)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_RETOUR_SIMPLE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LITTERALE_CHAINE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_SI)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_COMPOSEE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_POUR)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_BOUCLE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_REPETE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_TANTQUE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_TRANSTYPE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_MEMOIRE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LITTERALE_NUL)
+		CAS_TYPE(GenreNoeud::EXPRESSION_TAILLE_DE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_PLAGE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_DIFFERE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_NONSUR)
+		CAS_TYPE(GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES)
+		CAS_TYPE(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU)
+		CAS_TYPE(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_INFO_DE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_LOGE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_DELOGE)
+		CAS_TYPE(GenreNoeud::EXPRESSION_RELOGE)
+		CAS_TYPE(GenreNoeud::DECLARATION_STRUCTURE)
+		CAS_TYPE(GenreNoeud::DECLARATION_ENUM)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_DISCR)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_PAIRE_DISCR)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_SAUFSI)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_RETIENS)
+		CAS_TYPE(GenreNoeud::EXPRESSION_INDICE)
+		CAS_TYPE(GenreNoeud::OPERATEUR_COMPARAISON_CHAINEE)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_DISCR_ENUM)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_DISCR_UNION)
+		CAS_TYPE(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE_UNION)
+		CAS_TYPE(GenreNoeud::INSTRUCTION_SINON)
+		CAS_TYPE(GenreNoeud::EXPRESSION_PARENTHESE)
+		CAS_TYPE(GenreNoeud::DIRECTIVE_EXECUTION)
 	}
 
-	return "erreur : type_noeud inconnu";
+	return "erreur : GenreNoeud inconnu";
 #undef CAS_TYPE
 }
 
@@ -138,29 +138,29 @@ void base::imprime_code(std::ostream &os, int tab)
 {
 	imprime_tab(os, tab);
 
-	os << chaine_type_noeud(this->type) << ' ';
+	os << chaine_genre_noeud(this->genre) << ' ';
 
 	if (dls::outils::possede_drapeau(this->drapeaux, EST_CALCULE)) {
-		if (this->type == type_noeud::NOMBRE_ENTIER) {
+		if (this->genre == GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER) {
 			os << std::any_cast<long>(this->valeur_calculee);
 		}
-		else if (this->type == type_noeud::NOMBRE_REEL) {
+		else if (this->genre == GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL) {
 			os << std::any_cast<double>(this->valeur_calculee);
 		}
-		else if (this->type == type_noeud::BOOLEEN) {
+		else if (this->genre == GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN) {
 			os << ((std::any_cast<bool>(this->valeur_calculee)) ? "vrai" : "faux");
 		}
-		else if (this->type == type_noeud::CHAINE_LITTERALE) {
+		else if (this->genre == GenreNoeud::EXPRESSION_LITTERALE_CHAINE) {
 			os << this->chaine_calculee();
 		}
 	}
-	else if (this->type == type_noeud::TRANSTYPE) {
+	else if (this->genre == GenreNoeud::EXPRESSION_TRANSTYPE) {
 		os << this->index_type;
 	}
-	else if (this->type == type_noeud::TAILLE_DE) {
+	else if (this->genre == GenreNoeud::EXPRESSION_TAILLE_DE) {
 		os << this->index_type;
 	}
-	else if (this->type != type_noeud::RACINE) {
+	else if (this->genre != GenreNoeud::RACINE) {
 		os << morceau.chaine;
 	}
 

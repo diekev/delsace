@@ -281,7 +281,7 @@ struct IDInfoType {
 	for (auto enfant : noeud_decl->enfants) {
 		auto enf0 = enfant;
 
-		if (enf0->type == type_noeud::ASSIGNATION_VARIABLE) {
+		if (enf0->genre == GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE) {
 			enf0 = enf0->enfants.front();
 		}
 

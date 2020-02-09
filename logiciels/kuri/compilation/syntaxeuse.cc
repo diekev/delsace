@@ -186,8 +186,8 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 				m_global = true;
 				auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
 
-				if (noeud && noeud->type == type_noeud::VARIABLE) {
-					noeud->type = type_noeud::DECLARATION_VARIABLE;
+				if (noeud && noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+					noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
 				}
 				m_global = false;
 				break;
@@ -214,7 +214,7 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 	auto const nom_fonction = donnees().chaine;
 	m_fichier->module->fonctions_exportees.insere(nom_fonction);
 
-	auto noeud = m_assembleuse->empile_noeud(type_noeud::DECLARATION_FONCTION, donnees());
+	auto noeud = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_FONCTION, donnees());
 
 	if (externe) {
 		noeud->drapeaux |= EST_EXTERNE;
@@ -242,11 +242,11 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 	donnees_fonctions.noeud_decl = noeud;
 
 	/* analyse les paramètres de la fonction */
-	m_assembleuse->empile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION, donnees());
+	m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_PARAMETRES_FONCTION, donnees());
 
 	analyse_expression(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
 
-	m_assembleuse->depile_noeud(type_noeud::LISTE_PARAMETRES_FONCTION);
+	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
 
 	/* analyse les types de retour de la fonction, À FAIRE : inférence */
 
@@ -290,10 +290,10 @@ void Syntaxeuse::analyse_declaration_fonction(TypeLexeme id)
 		analyse_bloc();
 	}
 
-	m_assembleuse->depile_noeud(type_noeud::DECLARATION_FONCTION);
+	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_FONCTION);
 }
 
-void Syntaxeuse::analyse_controle_si(type_noeud tn)
+void Syntaxeuse::analyse_controle_si(GenreNoeud tn)
 {
 	m_assembleuse->empile_noeud(tn, donnees());
 
@@ -313,15 +313,15 @@ void Syntaxeuse::analyse_controle_si(type_noeud tn)
 		 * correctement traiter ce cas sans l'indirection semble être complexe.
 		 * LLVM devrait pouvoir effacer cette indirection en enlevant les
 		 * branchements redondants. */
-		m_assembleuse->empile_noeud(type_noeud::BLOC, donnees());
+		m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, donnees());
 
 		if (est_identifiant(TypeLexeme::SI)) {
 			avance();
-			analyse_controle_si(type_noeud::SI);
+			analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
 		}
 		else if (est_identifiant(TypeLexeme::SAUFSI)) {
 			avance();
-			analyse_controle_si(type_noeud::SAUFSI);
+			analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
 		}
 		else {
 			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante après 'sinon'");
@@ -331,7 +331,7 @@ void Syntaxeuse::analyse_controle_si(type_noeud tn)
 			consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante à la fin du contrôle 'sinon'");
 		}
 
-		m_assembleuse->depile_noeud(type_noeud::BLOC);
+		m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE);
 	}
 
 	m_assembleuse->depile_noeud(tn);
@@ -347,7 +347,7 @@ void Syntaxeuse::analyse_controle_si(type_noeud tn)
  */
 void Syntaxeuse::analyse_controle_pour()
 {
-	m_assembleuse->empile_noeud(type_noeud::POUR, donnees());
+	m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_POUR, donnees());
 
 	/* enfant 1 : déclaration variable */
 
@@ -382,7 +382,7 @@ void Syntaxeuse::analyse_controle_pour()
 		analyse_bloc();
 	}
 
-	m_assembleuse->depile_noeud(type_noeud::POUR);
+	m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_POUR);
 }
 
 void Syntaxeuse::analyse_corps_fonction()
@@ -394,7 +394,7 @@ void Syntaxeuse::analyse_corps_fonction()
 
 		if (est_identifiant(TypeLexeme::RETOURNE)) {
 			avance();
-			m_assembleuse->empile_noeud(type_noeud::RETOUR, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_RETOUR, donnees());
 
 			/* Considération du cas où l'on ne retourne rien 'retourne;'. */
 			if (!est_identifiant(TypeLexeme::POINT_VIRGULE)) {
@@ -404,15 +404,15 @@ void Syntaxeuse::analyse_corps_fonction()
 				avance();
 			}
 
-			m_assembleuse->depile_noeud(type_noeud::RETOUR);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_RETOUR);
 		}
 		else if (est_identifiant(TypeLexeme::RETIENS)) {
 			avance();
-			m_assembleuse->empile_noeud(type_noeud::RETIENS, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_RETIENS, donnees());
 
 			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::RETOURNE);
 
-			m_assembleuse->depile_noeud(type_noeud::RETIENS);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_RETIENS);
 		}
 		else if (est_identifiant(TypeLexeme::POUR)) {
 			avance();
@@ -423,18 +423,18 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'boucle'");
 
-			m_assembleuse->empile_noeud(type_noeud::BOUCLE, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_BOUCLE, donnees());
 
 			analyse_bloc();
 
-			m_assembleuse->depile_noeud(type_noeud::BOUCLE);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_BOUCLE);
 		}
 		else if (est_identifiant(TypeLexeme::REPETE)) {
 			avance();
 
 			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'répète'");
 
-			m_assembleuse->empile_noeud(type_noeud::REPETE, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_REPETE, donnees());
 
 			analyse_bloc();
 
@@ -442,11 +442,11 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::TANTQUE);
 
-			m_assembleuse->depile_noeud(type_noeud::REPETE);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_REPETE);
 		}
 		else if (est_identifiant(TypeLexeme::TANTQUE)) {
 			avance();
-			m_assembleuse->empile_noeud(type_noeud::TANTQUE, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_TANTQUE, donnees());
 
 			analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::TANTQUE);
 
@@ -457,49 +457,49 @@ void Syntaxeuse::analyse_corps_fonction()
 
 			analyse_bloc();
 
-			m_assembleuse->depile_noeud(type_noeud::TANTQUE);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_TANTQUE);
 		}
 		else if (est_identifiant(TypeLexeme::ARRETE) || est_identifiant(TypeLexeme::CONTINUE)) {
 			avance();
 
-			m_assembleuse->empile_noeud(type_noeud::CONTINUE_ARRETE, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE, donnees());
 
 			if (est_identifiant(TypeLexeme::CHAINE_CARACTERE)) {
 				avance();
-				m_assembleuse->empile_noeud(type_noeud::VARIABLE, donnees());
-				m_assembleuse->depile_noeud(type_noeud::VARIABLE);
+				m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, donnees());
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION);
 			}
 
-			m_assembleuse->depile_noeud(type_noeud::CONTINUE_ARRETE);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_CONTINUE_ARRETE);
 
 			consomme(TypeLexeme::POINT_VIRGULE, "Attendu un point virgule ';'");
 		}
 		else if (est_identifiant(TypeLexeme::DIFFERE)) {
 			avance();
 
-			m_assembleuse->empile_noeud(type_noeud::DIFFERE, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_DIFFERE, donnees());
 
 			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'diffère'");
 
 			analyse_bloc();
 
-			m_assembleuse->depile_noeud(type_noeud::DIFFERE);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_DIFFERE);
 		}
 		else if (est_identifiant(TypeLexeme::NONSUR)) {
 			avance();
 
-			m_assembleuse->empile_noeud(type_noeud::NONSUR, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_NONSUR, donnees());
 
 			consomme(TypeLexeme::ACCOLADE_OUVRANTE, "Attendu une accolade ouvrante '{' après 'nonsûr'");
 
 			analyse_bloc();
 
-			m_assembleuse->depile_noeud(type_noeud::NONSUR);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_NONSUR);
 		}
 		else if (est_identifiant(TypeLexeme::DISCR)) {
 			avance();
 
-			m_assembleuse->empile_noeud(type_noeud::DISCR, donnees());
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_DISCR, donnees());
 
 			analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::DISCR);
 
@@ -511,7 +511,7 @@ void Syntaxeuse::analyse_corps_fonction()
 			auto sinon_rencontre = false;
 
 			while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
-				m_assembleuse->empile_noeud(type_noeud::PAIRE_DISCR, donnees());
+				m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_PAIRE_DISCR, donnees());
 
 				if (est_identifiant(TypeLexeme::SINON)) {
 					avance();
@@ -520,7 +520,7 @@ void Syntaxeuse::analyse_corps_fonction()
 						lance_erreur("Redéfinition d'un bloc sinon");
 					}
 
-					auto noeud = m_assembleuse->cree_noeud(type_noeud::SINON, donnees());
+					auto noeud = m_assembleuse->cree_noeud(GenreNoeud::INSTRUCTION_SINON, donnees());
 					m_assembleuse->ajoute_noeud(noeud);
 
 					sinon_rencontre = true;
@@ -536,12 +536,12 @@ void Syntaxeuse::analyse_corps_fonction()
 
 				analyse_bloc();
 
-				m_assembleuse->depile_noeud(type_noeud::PAIRE_DISCR);
+				m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_PAIRE_DISCR);
 			}
 
 			consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc de « discr »");
 
-			m_assembleuse->depile_noeud(type_noeud::DISCR);
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_DISCR);
 		}
 		else if (est_identifiant(type_id::ACCOLADE_OUVRANTE)) {
 			avance();
@@ -550,8 +550,8 @@ void Syntaxeuse::analyse_corps_fonction()
 		else {
 			auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
 
-			if (noeud && noeud->type == type_noeud::VARIABLE) {
-				noeud->type = type_noeud::DECLARATION_VARIABLE;
+			if (noeud && noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+				noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
 			}
 		}
 
@@ -574,9 +574,9 @@ void Syntaxeuse::analyse_corps_fonction()
 
 void Syntaxeuse::analyse_bloc()
 {
-	m_assembleuse->empile_noeud(type_noeud::BLOC, donnees());
+	m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE, donnees());
 	analyse_corps_fonction();
-	m_assembleuse->depile_noeud(type_noeud::BLOC);
+	m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_COMPOSEE);
 
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}' à la fin du bloc");
 }
@@ -650,23 +650,23 @@ noeud::base *Syntaxeuse::analyse_expression(
 				if (est_identifiant(TypeLexeme::PARENTHESE_OUVRANTE)) {
 					avance();
 
-					auto noeud = m_assembleuse->empile_noeud(type_noeud::APPEL_FONCTION, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION, morceau, false);
 
 					analyse_appel_fonction(noeud);
 
-					m_assembleuse->depile_noeud(type_noeud::APPEL_FONCTION);
+					m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_APPEL_FONCTION);
 
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
 				else if ((racine_expr == TypeLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(TypeLexeme::ACCOLADE_OUVRANTE)) {
-					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_STRUCTURE, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, morceau, false);
 
 					avance();
 
 					analyse_construction_structure(noeud);
 
-					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_STRUCTURE);
+					m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE);
 
 					expression.pousse(noeud);
 
@@ -674,7 +674,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				}
 				/* variable : chaine */
 				else {
-					auto noeud = m_assembleuse->cree_noeud(type_noeud::VARIABLE, morceau);
+					auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_DECLARATION, morceau);
 					expression.pousse(noeud);
 
 					noeud->drapeaux |= drapeaux;
@@ -691,7 +691,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case TypeLexeme::NOMBRE_REEL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_REEL, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL, morceau);
 				expression.pousse(noeud);
 				break;
 			}
@@ -700,25 +700,25 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case TypeLexeme::NOMBRE_HEXADECIMAL:
 			case TypeLexeme::NOMBRE_OCTAL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::NOMBRE_ENTIER, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER, morceau);
 				expression.pousse(noeud);
 				break;
 			}
 			case TypeLexeme::CHAINE_LITTERALE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::CHAINE_LITTERALE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CHAINE, morceau);
 				expression.pousse(noeud);
 				break;
 			}
 			case TypeLexeme::CARACTERE:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::CARACTERE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_CARACTERE, morceau);
 				expression.pousse(noeud);
 				break;
 			}
 			case TypeLexeme::NUL:
 			{
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::NUL, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_NUL, morceau);
 				expression.pousse(noeud);
 				break;
 			}
@@ -726,7 +726,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'taille_de'");
 
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::TAILLE_DE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_TAILLE_DE, morceau);
 				noeud->valeur_calculee = analyse_declaration_type(false);
 
 				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après le type de 'taille_de'");
@@ -738,11 +738,11 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'info_de'");
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::INFO_DE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_INFO_DE, morceau, false);
 
 				analyse_expression(TypeLexeme::INCONNU, TypeLexeme::INFO_DE);
 
-				m_assembleuse->depile_noeud(type_noeud::INFO_DE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_INFO_DE);
 
 				/* vérifie mais n'avance pas */
 				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression de 'taille_de'");
@@ -755,7 +755,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				/* remplace l'identifiant par id_morceau::BOOL */
 				morceau.identifiant = TypeLexeme::BOOL;
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::BOOLEEN, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN, morceau);
 				expression.pousse(noeud);
 				break;
 			}
@@ -763,7 +763,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'transtype'");
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::TRANSTYPE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_TRANSTYPE, morceau, false);
 
 				analyse_expression(TypeLexeme::DOUBLE_POINTS, TypeLexeme::TRANSTYPE);
 
@@ -771,7 +771,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après la déclaration du type");
 
-				m_assembleuse->depile_noeud(type_noeud::TRANSTYPE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_TRANSTYPE);
 				expression.pousse(noeud);
 				break;
 			}
@@ -779,23 +779,23 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				consomme(TypeLexeme::PARENTHESE_OUVRANTE, "Attendu '(' après 'mémoire'");
 
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::MEMOIRE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_MEMOIRE, morceau, false);
 
 				analyse_expression(TypeLexeme::INCONNU, TypeLexeme::MEMOIRE);
 
 				consomme(TypeLexeme::PARENTHESE_FERMANTE, "Attendu ')' après l'expression");
 
-				m_assembleuse->depile_noeud(type_noeud::MEMOIRE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_MEMOIRE);
 				expression.pousse(noeud);
 				break;
 			}
 			case TypeLexeme::PARENTHESE_OUVRANTE:
 			{
-				auto noeud = m_assembleuse->empile_noeud(type_noeud::EXPRESSION_PARENTHESE, morceau, false);
+				auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_PARENTHESE, morceau, false);
 
 				analyse_expression(TypeLexeme::PARENTHESE_FERMANTE, TypeLexeme::PARENTHESE_OUVRANTE);
 
-				m_assembleuse->depile_noeud(type_noeud::EXPRESSION_PARENTHESE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_PARENTHESE);
 
 				expression.pousse(noeud);
 
@@ -829,10 +829,10 @@ noeud::base *Syntaxeuse::analyse_expression(
 					}
 
 					morceau.identifiant = id_operateur;
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau);
+					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, morceau);
 				}
 				else {
-					noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+					noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau);
 				}
 
 				vide_pile_operateur(id_operateur);
@@ -875,7 +875,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				}
 
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_BINAIRE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau);
 				pile.pousse(noeud);
 
 				break;
@@ -883,14 +883,14 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case TypeLexeme::TROIS_POINTS:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::PLAGE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_PLAGE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
 			case TypeLexeme::POINT:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::ACCES_MEMBRE_POINT, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::EXPRESSION_REFERENCE_MEMBRE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
@@ -904,13 +904,13 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				vide_pile_operateur(morceau.identifiant);
 
-				type_noeud tn;
+				GenreNoeud tn;
 
 				if ((drapeaux & DECLARATION) != 0) {
-					tn = type_noeud::DECLARATION_VARIABLE;
+					tn = GenreNoeud::DECLARATION_VARIABLE;
 				}
 				else {
-					tn = type_noeud::ASSIGNATION_VARIABLE;
+					tn = GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE;
 				}
 
 				auto noeud = m_assembleuse->cree_noeud(tn, morceau);
@@ -927,7 +927,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 				vide_pile_operateur(morceau.identifiant);
 
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::DECLARATION_VARIABLE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::DECLARATION_VARIABLE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
@@ -939,7 +939,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 						 || dernier_identifiant == TypeLexeme::CROCHET_OUVRANT) {
 					vide_pile_operateur(morceau.identifiant);
 
-					auto noeud = m_assembleuse->empile_noeud(type_noeud::OPERATION_BINAIRE, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::OPERATEUR_BINAIRE, morceau, false);
 					pile.pousse(noeud);
 
 					analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
@@ -956,12 +956,12 @@ noeud::base *Syntaxeuse::analyse_expression(
 
 					expression.pousse(noeud_expr);
 
-					m_assembleuse->depile_noeud(type_noeud::OPERATION_BINAIRE);
+					m_assembleuse->depile_noeud(GenreNoeud::OPERATEUR_BINAIRE);
 				}
 				else {
 					/* change l'identifiant pour ne pas le confondre avec l'opérateur binaire [] */
 					morceau.identifiant = TypeLexeme::TABLEAU;
-					auto noeud = m_assembleuse->empile_noeud(type_noeud::CONSTRUIT_TABLEAU, morceau, false);
+					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU, morceau, false);
 
 					analyse_expression(TypeLexeme::CROCHET_FERMANT, TypeLexeme::CROCHET_OUVRANT);
 
@@ -972,7 +972,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 						avance();
 					}
 
-					m_assembleuse->depile_noeud(type_noeud::CONSTRUIT_TABLEAU);
+					m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU);
 
 					expression.pousse(noeud);
 				}
@@ -987,7 +987,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case TypeLexeme::MOINS_UNAIRE:
 			{
 				vide_pile_operateur(morceau.identifiant);
-				auto noeud = m_assembleuse->cree_noeud(type_noeud::OPERATION_UNAIRE, morceau);
+				auto noeud = m_assembleuse->cree_noeud(GenreNoeud::OPERATEUR_UNAIRE, morceau);
 				pile.pousse(noeud);
 				break;
 			}
@@ -1004,7 +1004,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case TypeLexeme::LOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(
-							type_noeud::LOGE,
+							GenreNoeud::EXPRESSION_LOGE,
 							morceau,
 							false);
 
@@ -1035,7 +1035,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					termine_boucle = true;
 				}
 
-				m_assembleuse->depile_noeud(type_noeud::LOGE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_LOGE);
 
 				expression.pousse(noeud);
 				break;
@@ -1044,7 +1044,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			{
 				/* reloge nom : type; */
 				auto noeud_reloge = m_assembleuse->empile_noeud(
-							type_noeud::RELOGE,
+							GenreNoeud::EXPRESSION_RELOGE,
 							morceau,
 							false);
 
@@ -1077,7 +1077,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 					termine_boucle = true;
 				}
 
-				m_assembleuse->depile_noeud(type_noeud::RELOGE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_RELOGE);
 
 				expression.pousse(noeud_reloge);
 				break;
@@ -1085,7 +1085,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 			case TypeLexeme::DELOGE:
 			{
 				auto noeud = m_assembleuse->empile_noeud(
-							type_noeud::DELOGE,
+							GenreNoeud::EXPRESSION_DELOGE,
 							morceau,
 							false);
 
@@ -1095,7 +1095,7 @@ noeud::base *Syntaxeuse::analyse_expression(
 				 * qui nous fait absorber le code de l'expression suivante */
 				recule();
 
-				m_assembleuse->depile_noeud(type_noeud::DELOGE);
+				m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_DELOGE);
 
 				expression.pousse(noeud);
 
@@ -1127,11 +1127,11 @@ noeud::base *Syntaxeuse::analyse_expression(
 						m_assembleuse->definitions.pousse(chaine);
 					}
 					else if (directive == "exécute") {
-						m_assembleuse->empile_noeud(type_noeud::DIRECTIVE_EXECUTION, morceau);
+						m_assembleuse->empile_noeud(GenreNoeud::DIRECTIVE_EXECUTION, morceau);
 
 						auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::INCONNU);
 
-						m_assembleuse->depile_noeud(type_noeud::DIRECTIVE_EXECUTION);
+						m_assembleuse->depile_noeud(GenreNoeud::DIRECTIVE_EXECUTION);
 
 						m_contexte.noeuds_a_executer.pousse(noeud);
 					}
@@ -1184,13 +1184,13 @@ noeud::base *Syntaxeuse::analyse_expression(
 			}
 			case TypeLexeme::SI:
 			{
-				analyse_controle_si(type_noeud::SI);
+				analyse_controle_si(GenreNoeud::INSTRUCTION_SI);
 				termine_boucle = true;
 				break;
 			}
 			case TypeLexeme::SAUFSI:
 			{
-				analyse_controle_si(type_noeud::SAUFSI);
+				analyse_controle_si(GenreNoeud::INSTRUCTION_SAUFSI);
 				termine_boucle = true;
 				break;
 			}
@@ -1338,7 +1338,7 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 
 	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
 
-	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_STRUCTURE, donnees());
+	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_STRUCTURE, donnees());
 	auto nom_structure = donnees().chaine;
 
 	if (est_identifiant(type_id::NONSUR)) {
@@ -1381,22 +1381,22 @@ void Syntaxeuse::analyse_declaration_structure(TypeLexeme id)
 		while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
 			auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, type_id::STRUCT);
 
-			if (noeud->type == type_noeud::VARIABLE) {
-				noeud->type = type_noeud::DECLARATION_VARIABLE;
+			if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+				noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
 			}
 		}
 
 		consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de la structure");
 	}
 
-	m_assembleuse->depile_noeud(type_noeud::DECLARATION_STRUCTURE);
+	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_STRUCTURE);
 }
 
 void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 {
 	consomme(TypeLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
 
-	auto noeud_decl = m_assembleuse->empile_noeud(type_noeud::DECLARATION_ENUM, donnees());
+	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_ENUM, donnees());
 	auto nom = noeud_decl->morceau.chaine;
 
 	auto donnees_structure = DonneesStructure{};
@@ -1413,14 +1413,14 @@ void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
 	while (!est_identifiant(TypeLexeme::ACCOLADE_FERMANTE)) {
 		auto noeud = analyse_expression(TypeLexeme::POINT_VIRGULE, TypeLexeme::EGAL);
 
-		if (noeud->type == type_noeud::VARIABLE) {
-			noeud->type = type_noeud::DECLARATION_VARIABLE;
+		if (noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+			noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
 		}
 	}
 
 	consomme(TypeLexeme::ACCOLADE_FERMANTE, "Attendu '}' à la fin de la déclaration de l'énum");
 
-	m_assembleuse->depile_noeud(type_noeud::DECLARATION_ENUM);
+	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_ENUM);
 }
 
 DonneesTypeDeclare Syntaxeuse::analyse_declaration_type(bool double_point)

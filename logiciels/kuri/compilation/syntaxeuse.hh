@@ -94,7 +94,7 @@ private:
 	void analyse_declaration_enum(bool est_drapeau);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
-	void analyse_controle_si(type_noeud tn);
+	void analyse_controle_si(GenreNoeud tn);
 	void analyse_controle_pour();
 	void analyse_construction_structure(noeud::base *noeud);
 	void analyse_directive_si();

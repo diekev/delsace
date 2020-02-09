@@ -32,7 +32,7 @@ assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
 	: m_contexte(contexte)
 {
 	contexte.assembleuse = this;
-	this->empile_noeud(type_noeud::RACINE, {});
+	this->empile_noeud(GenreNoeud::RACINE, {});
 
 	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
 	this->ajoute_inclusion("stdio.h");
@@ -53,7 +53,7 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-noeud::base *assembleuse_arbre::empile_noeud(type_noeud type, DonneesLexeme const &morceau, bool ajoute)
+noeud::base *assembleuse_arbre::empile_noeud(GenreNoeud type, DonneesLexeme const &morceau, bool ajoute)
 {
 	auto noeud = cree_noeud(type, morceau);
 
@@ -71,7 +71,7 @@ void assembleuse_arbre::ajoute_noeud(noeud::base *noeud)
 	m_pile.haut()->ajoute_noeud(noeud);
 }
 
-noeud::base *assembleuse_arbre::cree_noeud(type_noeud type, DonneesLexeme const &morceau)
+noeud::base *assembleuse_arbre::cree_noeud(GenreNoeud type, DonneesLexeme const &morceau)
 {
 	auto noeud = memoire::loge<noeud::base>("noeud_base", m_contexte, morceau);
 	m_memoire_utilisee += sizeof(noeud::base);
@@ -79,9 +79,9 @@ noeud::base *assembleuse_arbre::cree_noeud(type_noeud type, DonneesLexeme const 
 	/* À FAIRE : réutilise la mémoire des noeuds libérés. */
 
 	if (noeud != nullptr) {
-		noeud->type = type;
+		noeud->genre = type;
 
-		if (type == type_noeud::APPEL_FONCTION) {
+		if (type == GenreNoeud::EXPRESSION_APPEL_FONCTION) {
 			/* requis pour pouvoir renseigner le noms de arguments depuis
 			 * l'analyse. */
 			noeud->valeur_calculee = dls::liste<dls::vue_chaine_compacte>{};
@@ -97,7 +97,7 @@ noeud::base *assembleuse_arbre::cree_noeud(type_noeud type, DonneesLexeme const 
 	return noeud;
 }
 
-void assembleuse_arbre::depile_noeud(type_noeud type)
+void assembleuse_arbre::depile_noeud(GenreNoeud type)
 {
 	assert(m_pile.haut()->type == type);
 	m_pile.depile();

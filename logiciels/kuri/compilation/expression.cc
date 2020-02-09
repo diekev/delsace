@@ -307,7 +307,7 @@ static auto applique_operateur_binaire_comp(TypeLexeme id, T a, T b)
  */
 ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::base *b)
 {
-	switch (b->type) {
+	switch (b->genre) {
 		default:
 		{
 			auto res = ResultatExpression();
@@ -317,7 +317,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::VARIABLE:
+		case GenreNoeud::EXPRESSION_REFERENCE_DECLARATION:
 		{
 			auto res = ResultatExpression();
 
@@ -336,7 +336,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::TAILLE_DE:
+		case GenreNoeud::EXPRESSION_TAILLE_DE:
 		{
 			auto index_dt = std::any_cast<long>(b->valeur_calculee);
 			auto const &donnees = contexte.typeuse[index_dt];
@@ -347,7 +347,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::BOOLEEN:
+		case GenreNoeud::EXPRESSION_LITTERALE_BOOLEEN:
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
@@ -355,7 +355,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::NOMBRE_ENTIER:
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_ENTIER:
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::ENTIER;
@@ -391,7 +391,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::NOMBRE_REEL:
+		case GenreNoeud::EXPRESSION_LITTERALE_NOMBRE_REEL:
 		{
 			auto res = ResultatExpression();
 			res.type = type_expression::REEL;
@@ -399,8 +399,8 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::SAUFSI:
-		case type_noeud::SI:
+		case GenreNoeud::INSTRUCTION_SAUFSI:
+		case GenreNoeud::INSTRUCTION_SI:
 		{
 			auto const nombre_enfants = b->enfants.taille();
 			auto iter_enfant = b->enfants.debut();
@@ -422,7 +422,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			auto enfant2 = *iter_enfant++;
 
-			if (res.condition == (b->type == type_noeud::SI)) {
+			if (res.condition == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
 				res = evalue_expression(contexte, enfant2);
 			}
 			else {
@@ -434,7 +434,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::OPERATION_UNAIRE:
+		case GenreNoeud::OPERATEUR_UNAIRE:
 		{
 			auto res = evalue_expression(contexte, b->enfants.front());
 
@@ -451,7 +451,7 @@ ResultatExpression evalue_expression(ContexteGenerationCode &contexte, noeud::ba
 
 			return res;
 		}
-		case type_noeud::OPERATION_BINAIRE:
+		case GenreNoeud::OPERATEUR_BINAIRE:
 		{
 			auto res1 = evalue_expression(contexte, b->enfants.front());
 
