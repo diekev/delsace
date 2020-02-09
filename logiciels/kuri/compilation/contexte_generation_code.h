@@ -140,6 +140,35 @@ struct DonneesStructure {
 	REMBOURRE(7);
 };
 
+/* petite ébauche pour un réusinage */
+//#include "structures.hh"
+
+//struct MembreStructure {
+//	kuri::chaine nom;
+//	/* le décalage en octets dans la struct */
+//	int decalage = 0;
+//	long index_type = -1;
+//};
+
+//struct DescriptionStructure {
+//	kuri::tableau<MembreStructure> membres;
+//	unsigned int taille_octet;
+//	bool est_union;
+//	bool est_nonsure;
+//	bool est_externe;
+//	/* pour la prédéclaration des InfoType* */
+//	bool deja_genere;
+//};
+
+//struct DescriptionEnum {
+//	kuri::tableau<kuri::chaine> noms;
+//	kuri::tableau<int> valeurs;
+//	long index_type;
+//	bool est_drapeau;
+//	/* pour la prédéclaration des InfoType* */
+//	bool deja_genere;
+//};
+
 struct DonneesFonction;
 
 using conteneur_globales = dls::dico_desordonne<dls::vue_chaine_compacte, DonneesVariable>;
