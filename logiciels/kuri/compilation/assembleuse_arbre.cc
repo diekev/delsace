@@ -73,7 +73,7 @@ void assembleuse_arbre::ajoute_noeud(noeud::base *noeud)
 
 noeud::base *assembleuse_arbre::cree_noeud(GenreNoeud type, DonneesLexeme const &morceau)
 {
-	auto noeud = memoire::loge<noeud::base>("noeud_base", m_contexte, morceau);
+	auto noeud = memoire::loge<noeud::base>("noeud_base", morceau);
 	m_memoire_utilisee += sizeof(noeud::base);
 
 	/* À FAIRE : réutilise la mémoire des noeuds libérés. */

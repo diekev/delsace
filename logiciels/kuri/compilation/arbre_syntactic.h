@@ -291,7 +291,7 @@ struct base {
 
 	TransformationType transformation{};
 
-	explicit base(ContexteGenerationCode &contexte, DonneesLexeme const &morceau);
+	explicit base(DonneesLexeme const &morceau);
 
 	base(base const &) = default;
 	base &operator=(base const &) = default;

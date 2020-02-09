@@ -106,7 +106,7 @@ const char *chaine_genre_noeud(GenreNoeud type)
 
 namespace noeud {
 
-base::base(ContexteGenerationCode &/*contexte*/, DonneesLexeme const &morceau_)
+base::base(DonneesLexeme const &morceau_)
 	: morceau{morceau_}
 {}
 
