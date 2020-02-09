@@ -38,6 +38,8 @@ class assembleuse_arbre {
 	dls::tableau<noeud::base *> m_noeuds{};
 	dls::liste<noeud::base *> noeuds_libres{};
 
+	ContexteGenerationCode &m_contexte;
+
 	size_t m_memoire_utilisee = 0;
 
 public:
@@ -63,7 +65,7 @@ public:
 	 *
 	 * Retourne un pointeur vers le noeud ajouté.
 	 */
-	noeud::base *empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesLexeme const &morceau, bool ajoute = true);
+	noeud::base *empile_noeud(type_noeud type, DonneesLexeme const &morceau, bool ajoute = true);
 
 	/**
 	 * Ajoute le noeud spécifié au noeud courant.
@@ -74,7 +76,7 @@ public:
 	 * Crée un noeud sans le désigner comme noeud courant, et retourne un
 	 * pointeur vers celui-ci.
 	 */
-	noeud::base *cree_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesLexeme const &morceau);
+	noeud::base *cree_noeud(type_noeud type, DonneesLexeme const &morceau);
 
 	/**
 	 * Dépile le noeud courant en vérifiant que le type de ce noeud est bel et

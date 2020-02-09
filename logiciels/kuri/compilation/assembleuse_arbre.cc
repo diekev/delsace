@@ -29,9 +29,10 @@
 #include "modules.hh"
 
 assembleuse_arbre::assembleuse_arbre(ContexteGenerationCode &contexte)
+	: m_contexte(contexte)
 {
 	contexte.assembleuse = this;
-	this->empile_noeud(type_noeud::RACINE, contexte, {});
+	this->empile_noeud(type_noeud::RACINE, {});
 
 	/* Pour fprintf dans les messages d'erreurs, nous incluons toujours "stdio.h". */
 	this->ajoute_inclusion("stdio.h");
@@ -52,9 +53,9 @@ assembleuse_arbre::~assembleuse_arbre()
 	}
 }
 
-noeud::base *assembleuse_arbre::empile_noeud(type_noeud type, ContexteGenerationCode &contexte, DonneesLexeme const &morceau, bool ajoute)
+noeud::base *assembleuse_arbre::empile_noeud(type_noeud type, DonneesLexeme const &morceau, bool ajoute)
 {
-	auto noeud = cree_noeud(type, contexte, morceau);
+	auto noeud = cree_noeud(type, morceau);
 
 	if (!m_pile.est_vide() && ajoute) {
 		this->ajoute_noeud(noeud);
@@ -70,12 +71,9 @@ void assembleuse_arbre::ajoute_noeud(noeud::base *noeud)
 	m_pile.haut()->ajoute_noeud(noeud);
 }
 
-noeud::base *assembleuse_arbre::cree_noeud(
-		type_noeud type,
-		ContexteGenerationCode &contexte,
-		DonneesLexeme const &morceau)
+noeud::base *assembleuse_arbre::cree_noeud(type_noeud type, DonneesLexeme const &morceau)
 {
-	auto noeud = memoire::loge<noeud::base>("noeud_base", contexte, morceau);
+	auto noeud = memoire::loge<noeud::base>("noeud_base", m_contexte, morceau);
 	m_memoire_utilisee += sizeof(noeud::base);
 
 	/* À FAIRE : réutilise la mémoire des noeuds libérés. */

@@ -419,7 +419,7 @@ static DonneesCandidate verifie_donnees_fonction(
 		auto index_premier_var_arg = nombre_args - 1;
 
 		noeud_tableau = contexte.assembleuse->cree_noeud(
-					type_noeud::TABLEAU_ARGS_VARIADIQUES, contexte, (*enfant)->morceau);
+					type_noeud::TABLEAU_ARGS_VARIADIQUES, (*enfant)->morceau);
 		noeud_tableau->valeur_calculee = nombre_args_var;
 		noeud_tableau->drapeaux |= EST_CALCULE;
 
