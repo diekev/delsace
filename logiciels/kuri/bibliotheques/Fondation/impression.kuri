@@ -434,12 +434,12 @@ fonc imprime_valeur(
     discr info.id {
 		OCTET {
 			x := mémoire(transtype(pointeur : *octet))
-            chiffres := "0123456789ABCDEF"
+            chiffres_hex := "0123456789ABCDEF"
 
-			dyn chiffre := (valeur >> transtype(4 : octet)) & transtype(0x0F : octet)
+			dyn chiffre := (x >> transtype(4 : octet)) & transtype(0x0F : octet)
 			enchaineuse.pousse(chiffres_hex[chiffre])
 
-			chiffre = valeur & transtype(0x0F : octet)
+			chiffre = x & transtype(0x0F : octet)
 			enchaineuse.pousse(chiffres_hex[chiffre])
 		}
 		ENTIER {
