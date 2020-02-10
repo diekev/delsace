@@ -50,6 +50,7 @@ struct IDInfoType {
 	dls::chaine EINI      = "8";
 	dls::chaine RIEN      = "9";
 	dls::chaine ENUM      = "10";
+	dls::chaine OCTET     = "11";
 };
 
 static auto cree_info_type_defaul_C(
@@ -261,12 +262,16 @@ dls::chaine cree_info_type_C(
 			cree_info_type_defaul_C(os_decl, id_info_type.BOOLEEN, nom_info_type);
 			break;
 		}
+		case GenreLexeme::OCTET:
+		{
+			cree_info_type_defaul_C(os_decl, id_info_type.OCTET, nom_info_type);
+			break;
+		}
 		case GenreLexeme::N8:
 		{
 			cree_info_type_entier_C(os_decl, 8, false, id_info_type, nom_info_type);
 			break;
 		}
-		case GenreLexeme::OCTET:
 		case GenreLexeme::Z8:
 		{
 			cree_info_type_entier_C(os_decl, 8, true, id_info_type, nom_info_type);

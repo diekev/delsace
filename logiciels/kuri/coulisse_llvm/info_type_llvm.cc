@@ -58,6 +58,7 @@ struct IDInfoType {
 	static constexpr int EINI      = 8;
 	static constexpr int RIEN      = 9;
 	static constexpr int ENUM      = 10;
+	static constexpr int OCTET     = 11;
 };
 
 [[nodiscard]] static auto obtiens_type_pour(
@@ -334,6 +335,11 @@ llvm::Value *cree_info_type(
 		case GenreLexeme::BOOL:
 		{
 			valeur = cree_info_type_defaut(contexte, IDInfoType::BOOLEEN);
+			break;
+		}
+		case GenreLexeme::OCTET:
+		{
+			valeur = cree_info_type_defaut(contexte, IDInfoType::OCTET);
 			break;
 		}
 		case GenreLexeme::N8:

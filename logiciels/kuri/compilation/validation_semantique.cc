@@ -2266,7 +2266,6 @@ static void performe_validation_semantique(
 					break;
 				}
 				case GenreLexeme::N8:
-				case GenreLexeme::OCTET:
 				case GenreLexeme::Z8:
 				case GenreLexeme::N16:
 				case GenreLexeme::Z16:

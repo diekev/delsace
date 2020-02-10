@@ -12,6 +12,7 @@
 	EINI      := 8
 	RIEN      := 9
 	ÉNUM      := 10
+	OCTET     := 11
 }
 
 struct InfoType {
