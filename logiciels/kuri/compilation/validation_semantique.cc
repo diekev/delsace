@@ -2265,7 +2265,6 @@ static void performe_validation_semantique(
 				{
 					break;
 				}
-				case GenreLexeme::BOOL:
 				case GenreLexeme::N8:
 				case GenreLexeme::OCTET:
 				case GenreLexeme::Z8:
