@@ -99,7 +99,7 @@ noeud::base *assembleuse_arbre::cree_noeud(GenreNoeud type, DonneesLexeme const 
 
 void assembleuse_arbre::depile_noeud(GenreNoeud type)
 {
-	assert(m_pile.haut()->type == type);
+	assert(m_pile.haut()->genre == type);
 	m_pile.depile();
 	static_cast<void>(type);
 }

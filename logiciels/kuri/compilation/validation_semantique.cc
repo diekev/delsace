@@ -555,7 +555,7 @@ static void valide_type_fonction(base *b, ContexteGenerationCode &contexte)
 
 	auto iter_enfant = b->enfants.debut();
 	auto enfant = *iter_enfant++;
-	assert(enfant->type == GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
+	assert(enfant->genre == GenreNoeud::DECLARATION_PARAMETRES_FONCTION);
 
 	auto feuilles = dls::tableau<noeud::base *>();
 
@@ -2930,7 +2930,7 @@ static void performe_validation_semantique(
 
 			for (auto i = 1; i < nombre_enfant; ++i) {
 				auto enfant = *iter_enfant++;
-				assert(enfant->type == GenreNoeud::INSTRUCTION_PAIRE_DISCR);
+				assert(enfant->genre == GenreNoeud::INSTRUCTION_PAIRE_DISCR);
 
 				auto expr_paire = enfant->enfants.front();
 				auto bloc_paire = enfant->enfants.back();
