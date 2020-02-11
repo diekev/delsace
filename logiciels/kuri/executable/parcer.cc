@@ -978,9 +978,8 @@ struct Convertisseuse {
 
 					auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 					imprime_tab(flux_sortie);
-					flux_sortie << "struct ";
 					flux_sortie << nom;
-					flux_sortie << " {\n";
+					flux_sortie << " :: struct {\n";
 
 					noms_structure.empile(nom);
 
@@ -998,9 +997,8 @@ struct Convertisseuse {
 			{
 				imprime_commentaire(cursor, flux_sortie);
 				imprime_tab(flux_sortie);
-				flux_sortie << "union ";
 				flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-				flux_sortie << " nonsûr {\n";
+				flux_sortie << " :: union nonsûr {\n";
 				converti_enfants(cursor, trans_unit, flux_sortie);
 
 				imprime_tab(flux_sortie);
@@ -1022,11 +1020,10 @@ struct Convertisseuse {
 			{
 				imprime_commentaire(cursor, flux_sortie);
 				imprime_tab(flux_sortie);
-				flux_sortie << "énum ";
 				flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
 
 				auto type = clang_getEnumDeclIntegerType(cursor);
-				flux_sortie << " : " << converti_type(type, typedefs);
+				flux_sortie << " :: énum : " << converti_type(type, typedefs);
 
 				flux_sortie << " {\n";
 				converti_enfants(cursor, trans_unit, flux_sortie);
@@ -1045,7 +1042,7 @@ struct Convertisseuse {
 				auto enfants = rassemble_enfants(cursor);
 
 				if (!enfants.est_vide()) {
-					flux_sortie << " = ";
+					flux_sortie << " := ";
 					converti_enfants(enfants, trans_unit, flux_sortie);
 				}
 
@@ -1816,8 +1813,8 @@ struct Convertisseuse {
 			flux_sortie << "#!enligne ";
 		}
 
-		flux_sortie << "fonc ";
 		flux_sortie << clang_getCursorSpelling(cursor);
+		flux_sortie << " :: fonc ";
 
 		auto virgule = "(";
 
@@ -1856,7 +1853,7 @@ struct Convertisseuse {
 			flux_sortie << '(';
 		}
 
-		flux_sortie << ") : " << converti_type(cursor, typedefs, true) << '\n';
+		flux_sortie << ") -> " << converti_type(cursor, typedefs, true) << '\n';
 
 		if (est_declaration) {
 			/* Nous avons une déclaration */
