@@ -289,7 +289,7 @@ fonc calcule_empreinte_sha256(entrée : chaine) -> chaine
 
 fonc principale(args : []*z8) -> z32
 {
-    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
     chn := "exemples"
     attendu := "4f0c2d37da8fd2cbc353fe6cf4dbd818423c03a48b631d2e774b9fcaa3825fd3"
@@ -299,7 +299,7 @@ fonc principale(args : []*z8) -> z32
     imprime(rés, "\n")
 
     si rés != attendu {
-        imprime("Le résultat n'est pas bon... attendu: \n", attendu, "\n")
+        imprime_sans_format("Le résultat n'est pas bon... attendu: \n", attendu, "\n")
     }
 
     déloge rés

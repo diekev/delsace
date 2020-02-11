@@ -2,15 +2,15 @@ importe "flux"
 
 fonc imprime_tableau(tabl : []r64) -> rien
 {
-    imprime("imprime_tableau...\n");
-    imprime("tabl.taille = ", tabl.taille, "\n");
-    imprime("tabl.pointeur = ", tabl.pointeur, "\n");
+    imprime_sans_format("imprime_tableau...\n");
+    imprime_sans_format("tabl.taille = ", tabl.taille, "\n");
+    imprime_sans_format("tabl.pointeur = ", tabl.pointeur, "\n");
 
     dyn index = 0;
     pour v dans tabl {
         // À FAIRE : besoin_dérèf
         x := v;
-        imprime("tabl[", index, "] = ", x, "\n");
+        imprime_sans_format("tabl[", index, "] = ", x, "\n");
         index = index + 1;
     }
 }
@@ -23,23 +23,23 @@ struct Vecteur {
 
 fonc test() -> rien
 {
-    imprime("=========================================\n");
-    imprime("                 tableau                 \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("                 tableau                 \n");
 
     dyn tabl := [1.0, 2.0, 4.0, 8.0, 16.0];
 
     imprime_tableau(tabl);
 
-    imprime("=========================================\n");
-    imprime("                 tailles                 \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("                 tailles                 \n");
 
-    imprime("taille_de(z32) = ", taille_de(z32), "\n");
-    imprime("taille_de([]z32) = ", taille_de([]z32), "\n");
-    imprime("taille_de([]r64) = ", taille_de([]r64), "\n");
-    imprime("taille_de(eini) = ", taille_de(eini), "\n");
+    imprime_sans_format("taille_de(z32) = ", taille_de(z32), "\n");
+    imprime_sans_format("taille_de([]z32) = ", taille_de([]z32), "\n");
+    imprime_sans_format("taille_de([]r64) = ", taille_de([]r64), "\n");
+    imprime_sans_format("taille_de(eini) = ", taille_de(eini), "\n");
 
-    imprime("=========================================\n");
-    imprime("                 vecteur                 \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("                 vecteur                 \n");
 
     dyn vec2 : Vecteur;
     vec1 := Vecteur{x = 1.0, y = 4.0, z = 16.0};
@@ -53,10 +53,10 @@ fonc test() -> rien
     dyn ok := possede_membre(vec1, nom);
 
     si ok {
-        imprime("Le vecteur possède le membre 'x' !\n");
+        imprime_sans_format("Le vecteur possède le membre 'x' !\n");
     }
     sinon {
-        imprime("Le vecteur ne possède pas le membre 'x' !\n");
+        imprime_sans_format("Le vecteur ne possède pas le membre 'x' !\n");
     }
 
     // À FAIRE : réassignement
@@ -64,22 +64,22 @@ fonc test() -> rien
     ok = possede_membre(vec1, nom1);
 
     si ok {
-        imprime("Le vecteur possède le membre 'non' !\n");
+        imprime_sans_format("Le vecteur possède le membre 'non' !\n");
     }
     sinon {
-        imprime("Le vecteur ne possède pas le membre 'non' !\n");
+        imprime_sans_format("Le vecteur ne possède pas le membre 'non' !\n");
     }
 }
 
 fonc logement_tableau() -> rien
 {
-    imprime("=========================================\n");
-    imprime("            logements tableau            \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("            logements tableau            \n");
 
     dyn tabl := loge [32]r64;
 
-    imprime("Tableau logé à l'addresse : ", tabl.pointeur, '\n');
-    imprime("Taille tableau : ", tabl.taille, '\n');
+    imprime_sans_format("Tableau logé à l'addresse : ", tabl.pointeur, '\n');
+    imprime_sans_format("Taille tableau : ", tabl.taille, '\n');
 
     dyn debut := 1.0;
 
@@ -101,26 +101,26 @@ fonc logement_tableau() -> rien
 
 fonc logement_chaine() -> rien
 {
-    imprime("=========================================\n");
-    imprime("            logements chaine             \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("            logements chaine             \n");
 
     chn1 := "Kévin";
     chn2 := "Dietrich";
 
     dyn chnr = concatene(chn1, chn2);
 
-    imprime("Résultat : ", chnr, '\n');
+    imprime_sans_format("Résultat : ", chnr, '\n');
 
     déloge chnr;
 
-    imprime("Chaîne délogée : ", chnr.pointeur, '\n');
-    imprime("Taille chaîne  : ", chnr.taille, '\n');
+    imprime_sans_format("Chaîne délogée : ", chnr.pointeur, '\n');
+    imprime_sans_format("Taille chaîne  : ", chnr.taille, '\n');
 }
 
 fonc test_fichier() -> rien
 {
-    imprime("=========================================\n");
-    imprime("                 fichier                 \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("                 fichier                 \n");
 
     chemin := "/home/kevin/test.kuri";
 
@@ -128,7 +128,7 @@ fonc test_fichier() -> rien
         dyn res := open(chemin, 0);
 
         si res == -1 {
-            imprime("Erreur lors de l'ouverture du fichier !\n");
+            imprime_sans_format("Erreur lors de l'ouverture du fichier !\n");
             retourne;
         }
 
@@ -146,7 +146,7 @@ fonc test_fichier() -> rien
         res = close(res);
 
         si res == -1 {
-            imprime("Erreur lors de la fermeture du fichier !\n");
+            imprime_sans_format("Erreur lors de la fermeture du fichier !\n");
             retourne;
         }
     }
@@ -154,16 +154,16 @@ fonc test_fichier() -> rien
 
 fonc principale(args : []*z8) -> z32
 {
-    imprime("=========================================\n");
-    imprime("                arguments                \n");
+    imprime_sans_format("=========================================\n");
+    imprime_sans_format("                arguments                \n");
 
     str := "nombre d'arguments = ";
-    imprime(str, argc, "\n");
+    imprime_sans_format(str, argc, "\n");
 
     dyn i := 0;
     pour arg dans args {
         nom_arg := converti_chaine_c(arg);
-        imprime("argument ", i,": ", nom_arg, "\n");
+        imprime_sans_format("argument ", i,": ", nom_arg, "\n");
         i += 1;
     }
 

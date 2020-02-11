@@ -5,22 +5,22 @@ fonc imprime_type_args(args : ...eini) -> rien
 	pour arg dans args {
 	    discr arg.info.id {
 		    RÉEL {
-			    imprime("Nous avons un nombre réel\n")
+			    imprime_sans_format("Nous avons un nombre réel\n")
 		    }
 		    ENTIER {
-			    imprime("Nous avons un nombre entier\n")
+			    imprime_sans_format("Nous avons un nombre entier\n")
 		    }
 		    STRUCTURE {
-			    imprime("Nous avons une structure\n")
+			    imprime_sans_format("Nous avons une structure\n")
 		    }
 		    FONCTION {
-			    imprime("Nous avons une fonction\n")
+			    imprime_sans_format("Nous avons une fonction\n")
 		    }
 		    POINTEUR {
-			    imprime("Nous avons un pointeur\n")
+			    imprime_sans_format("Nous avons un pointeur\n")
 		    }
 		    CHAINE {
-			    imprime("Nous avons une chaine\n")
+			    imprime_sans_format("Nous avons une chaine\n")
 		    }
 	    }
 	}

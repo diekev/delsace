@@ -47,7 +47,7 @@ corout genere_premiers(n : z32) -> z32
 fonc principale(args : []*z8) -> z32
 {
     pour i, j dans genere_premiers(100) {
-        imprime(j, " : ", i, '\n')
+        imprime_sans_format(j, " : ", i, '\n')
     }
 
     retourne 0

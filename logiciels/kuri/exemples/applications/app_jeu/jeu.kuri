@@ -7,7 +7,7 @@ importe Fondation
 fonc principale(args : []*z8) -> z32
 {
 	diffère {
-	    imprime("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
+	    imprime_sans_format("Fin du programme, mémoire utilisée : ", mémoire_utilisée(), "o\n")
 	}
 
     dyn app : Application

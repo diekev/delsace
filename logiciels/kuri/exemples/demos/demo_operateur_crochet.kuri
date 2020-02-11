@@ -28,7 +28,7 @@ fonc principale(args : []*z8) -> z32
     //z[0] = 3;
 
 	pour i dans 0 ... 15 {
-	    imprime("Hex : ", i, " = ", hex_depuis_char(transtype(i : z8)), '\n')
+	    imprime_sans_format("Hex : ", i, " = ", hex_depuis_char(transtype(i : z8)), '\n')
 	}
 
 	t2 : TEST2

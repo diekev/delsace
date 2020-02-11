@@ -8,7 +8,7 @@ charge "syntaxage"
 
 fonc principale(args : []*z8) -> z32
 {
-    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
     chn := "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
 
@@ -25,7 +25,7 @@ fonc principale(args : []*z8) -> z32
     imprime("lexèmes :\n\n")
 
     pour données dans lexeuse.lexèmes {
-        imprime(données.lexème, "\n")
+        imprime_sans_format(données.lexème, "\n")
     }
 
     imprime("\n")
@@ -42,7 +42,7 @@ fonc principale(args : []*z8) -> z32
 	imprime("JSON :\n\n")
 
     si syntaxeuse.assembleuse.pile.est_vide() {
-        imprime("La pile est vide...\n")
+        imprime_sans_format("La pile est vide...\n")
     }
     sinon {
         racine := syntaxeuse.assembleuse.pile.haut()

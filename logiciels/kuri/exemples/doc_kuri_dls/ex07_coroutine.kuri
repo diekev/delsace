@@ -16,7 +16,7 @@ corout plage(début : z32, fin : z32, pas : z32) -> z32
 fonc principale(args : []*z8) -> z32
 {
     pour i dans plage(0, 10, 1) {
-        imprime("Valeur = ", i, '\n')
+        imprime_sans_format("Valeur = ", i, '\n')
     }
 
     retourne 0

@@ -6,12 +6,12 @@ importe "structures"
 
 fonc test_pile() -> rien
 {
-    imprime("==========================================\n")
+    imprime_sans_format("==========================================\n")
 
 	dyn p := crée_pile(transtype(taille_de(z32) : z64))
     diffère { 
         decrée_pile(p)
-        imprime("pile décréée !\n")
+        imprime_sans_format("pile décréée !\n")
     }
 
     imprime(" ----------- remplissage de la pile\n")
@@ -19,7 +19,7 @@ fonc test_pile() -> rien
     pour i dans 0...9 {
         v := i * 2
         empile(p, @v)
-        imprime("empile : ", v, " -> ", mémoire(p), '\n')
+        imprime_sans_format("empile : ", v, " -> ", mémoire(p), '\n')
     }
 
     imprime(" ----------- vidage de la pile\n")
@@ -27,18 +27,18 @@ fonc test_pile() -> rien
     tantque !est_vide(p) {
         dyn v : z32
         dépile(p, @v)
-        imprime("dépile : ", v, " -> ", mémoire(p), '\n')
+        imprime_sans_format("dépile : ", v, " -> ", mémoire(p), '\n')
     }
 }
 
 fonc test_file() -> rien
 {
-    imprime("==========================================\n")
+    imprime_sans_format("==========================================\n")
 
 	dyn p := crée_file(transtype(taille_de(z32) : z64))
     diffère { 
         decrée_file(p)
-        imprime("file décréée !\n")
+        imprime_sans_format("file décréée !\n")
     }
 
     imprime(" ----------- remplissage de la file\n")
@@ -46,7 +46,7 @@ fonc test_file() -> rien
     pour i dans 0...9 {
         v := i * 2
         enfile(p, @v)  // À FAIRE : transtypage automatique
-        imprime("enfile : ", v, " -> ", mémoire(p), '\n')
+        imprime_sans_format("enfile : ", v, " -> ", mémoire(p), '\n')
     }
 
     imprime(" ----------- vidage de la file\n")
@@ -54,18 +54,18 @@ fonc test_file() -> rien
     tantque !est_vide(p) {
         dyn v : z32
         défile(p, @v)
-        imprime("défile : ", v, " -> ", mémoire(p), '\n')
+        imprime_sans_format("défile : ", v, " -> ", mémoire(p), '\n')
     }
 }
 
 fonc test_tableau() -> rien
 {
-    imprime("==========================================\n")
+    imprime_sans_format("==========================================\n")
 
 	dyn t := crée_tableau(transtype(taille_de(z32) : z64))
     diffère { 
         decrée_tableau(t)
-        imprime("tableau décréé !\n")
+        imprime_sans_format("tableau décréé !\n")
     }
 
     imprime(" ----------- remplissage du tableau\n")
@@ -73,7 +73,7 @@ fonc test_tableau() -> rien
     pour i dans 0...9 {
         v := i * 2
         pousse_tableau(t, @v)
-        imprime("pousse : ", v, " -> ", mémoire(t), '\n')
+        imprime_sans_format("pousse : ", v, " -> ", mémoire(t), '\n')
     }
 
     imprime(" ----------- itération du tableau\n")
@@ -85,17 +85,17 @@ fonc test_tableau() -> rien
 
     pour v dans debut...fin {
         x := mémoire(v)
-        imprime("iter : ", x, " -> ", mémoire(t), '\n')
+        imprime_sans_format("iter : ", x, " -> ", mémoire(t), '\n')
     }
 }
 
 fonc principale(args : []*z8) -> z32
 {
-    imprime("Il y a ", args.taille, " arguments :\n")
+    imprime_sans_format("Il y a ", args.taille, " arguments :\n")
 
     pour arg dans args {
         chn := converti_chaine_c(arg)
-        imprime('\t', chn, '\n')
+        imprime_sans_format('\t', chn, '\n')
     }
 
     test_pile()

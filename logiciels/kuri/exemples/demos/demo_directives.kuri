@@ -15,6 +15,6 @@ importe "flux"
 
 fonc principale(args : []*z8) -> z32
 {
-    imprime("Système d'exploitation : ", sysexp(), '\n')
+    imprime_sans_format("Système d'exploitation : ", sysexp(), '\n')
     retourne 0
 }

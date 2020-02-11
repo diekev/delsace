@@ -150,7 +150,7 @@ fonc décode_pour_url(chn: chaine) -> chaine
 
 fonc principale(args : []*z8) -> z32
 {
-    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
     chn := "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure."
 
@@ -161,7 +161,7 @@ fonc principale(args : []*z8) -> z32
     imprime("Chaine encodée : ", rés, "\n")
 
     si rés != attendu {
-        imprime("Le résultat n'est pas le bon")
+        imprime_sans_format("Le résultat n'est pas le bon")
     }
 
     déc := décode(rés)

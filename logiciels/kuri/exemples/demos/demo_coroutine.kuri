@@ -30,11 +30,11 @@ corout iter_liste_noeud(noeud : *r32) -> *r32
 fonc principale(args : []*z8) -> z32
 {
     pour j, i dans découpe("Texte d'exemple où les mots sont coupés", ' ') {
-        imprime("Mot (", i, ") : ", j, '\n')
+        imprime_sans_format("Mot (", i, ") : ", j, '\n')
     }
 
     pour j, i dans plage(0, 11, 1) {
-        imprime("Valeur (", i, ") : ", j, '\n')
+        imprime_sans_format("Valeur (", i, ") : ", j, '\n')
     }
 
     dyn n3 := Noeud{ suiv = nul, val = 789 }
@@ -42,7 +42,7 @@ fonc principale(args : []*z8) -> z32
     dyn n1 := Noeud{ suiv = @n2, val = 123 }
 
     pour n, i dans iter_liste_noeud(@n1) {
-        imprime("Valeur (", i, ") : ", n.val, '\n')
+        imprime_sans_format("Valeur (", i, ") : ", n.val, '\n')
     }
 
     pour c, i dans accumule([1, 2, 3, 4, 5, 6, 7, 8]) {

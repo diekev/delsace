@@ -17,8 +17,8 @@ fonc principale(args : []*z8) -> z32
     //cherche_noeud(table, "Quelque Chose")
 
     pour noeud dans chaque_noeud(table) {
-        imprime("noeud : ", noeud, '\n')
-        imprime(noeud.clé, ": ", noeud.valeur, "\r\n")
+        imprime_sans_format("noeud : ", noeud, '\n')
+        imprime_sans_format(noeud.clé, ": ", noeud.valeur, "\r\n")
     }
 
     retourne 0

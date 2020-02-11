@@ -335,7 +335,7 @@ fonc écris_ppm(image : Image, chemin : chaine) -> rien
     diffère { ferme_fichier(df); }
 
     si df == -1 {
-        imprime("Le fichier '", chemin, "' ne peut être ouvert", '\n');
+        imprime_sans_format("Le fichier '", chemin, "' ne peut être ouvert", '\n');
         retourne;
     }
 
@@ -380,7 +380,7 @@ fonc écris_pnm(image : Image, chemin : chaine) -> rien
     diffère { ferme_fichier(df); }
 
     si df == -1 {
-        imprime("Le fichier '", chemin,"' ne peut être ouvert", '\n');
+        imprime_sans_format("Le fichier '", chemin,"' ne peut être ouvert", '\n');
         retourne;
     }
 
@@ -652,7 +652,7 @@ fonc lis_jpeg(chemin : chaine) -> Image
     diffère { fclose(file); }
 
     si file == nul {
-        imprime("Ne peut ouvrir le fichier image...", '\n');
+        imprime_sans_format("Ne peut ouvrir le fichier image...", '\n');
         retourne image;
     }
 
@@ -862,7 +862,7 @@ fonc écris_jpeg(image : Image, chemin : chaine) -> rien
 
 fonc test_jpeg() -> rien
 {
-    imprime("Entrée jpeg : mémoire utilisée : ", mémoire_utilisée(), '\n');
+    imprime_sans_format("Entrée jpeg : mémoire utilisée : ", mémoire_utilisée(), '\n');
 
     image := lis_jpeg("/home/kevin/Images/59446046_185101052475540_1803696242081923072_n.jpg");
 
@@ -871,7 +871,7 @@ fonc test_jpeg() -> rien
 
     //imprime(image, '\n');
 
-    imprime("Mémoire utilisée : ", mémoire_utilisée(), '\n');
+    imprime_sans_format("Mémoire utilisée : ", mémoire_utilisée(), '\n');
 
     détruit_image(@image);
 }
@@ -890,7 +890,7 @@ fonc principale(args : []*z8) -> z32
 
     //test_jpeg();
 
-    diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), '\n'); }
+    diffère { imprime_sans_format("Mémoire utilisée : ", mémoire_utilisée(), '\n'); }
 
     retourne 0;
 }

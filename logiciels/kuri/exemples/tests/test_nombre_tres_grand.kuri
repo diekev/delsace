@@ -16,6 +16,6 @@ fonc principale(args : []*z8) -> z32
 	x := transtype(18014398509481984 : n64);
 	y := ajoute(x, x);
 
-	imprime(x, " + ", x, " = ", y, '\n');
+	imprime_sans_format(x, " + ", x, " = ", y, '\n');
 	retourne 0;
 }

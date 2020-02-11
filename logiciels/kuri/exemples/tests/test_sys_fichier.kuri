@@ -7,7 +7,7 @@ fonc test_chemin_courant() -> rien
 {
     dyn chemin := chemin_courant()
 
-    imprime("chemin courant : ", chemin.chn, '\n')
+    imprime_sans_format("chemin courant : ", chemin.chn, '\n')
     déloge chemin.chn
 
     chemin = construit_chemin("/home/kevin/src/")
@@ -15,7 +15,7 @@ fonc test_chemin_courant() -> rien
 
     chemin = chemin_courant()
 
-    imprime("chemin courant : ", chemin.chn, '\n')
+    imprime_sans_format("chemin courant : ", chemin.chn, '\n')
     déloge chemin.chn
 }
 
@@ -24,16 +24,16 @@ fonc test_itération_dossier() -> rien
     chemin := construit_chemin("/home/kevin/")
 
     pour entrée dans chaque_chemin(chemin) {
-        imprime(entrée.chn, '\n')
+        imprime_sans_format(entrée.chn, '\n')
 
         si est_dossier(entrée) {
-            imprime("---- dossier\n")
+            imprime_sans_format("---- dossier\n")
         }
         sinon si est_fichier_régulier(entrée) {
-            imprime("---- fichier\n")
+            imprime_sans_format("---- fichier\n")
         }
         sinon si !fichier_existe(entrée) {
-            imprime("---- le fichier n'existe pas\n")
+            imprime_sans_format("---- le fichier n'existe pas\n")
         }
     }
 }

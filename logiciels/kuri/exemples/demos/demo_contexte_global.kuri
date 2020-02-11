@@ -2,7 +2,7 @@ importe "flux"
 
 fonc imprime_compteur() -> rien
 {
-    imprime("Compteur = ", ctx.compteur, '\n')
+    imprime_sans_format("Compteur = ", ctx.compteur, '\n')
 }
 
 fonc incrémente_compteur() -> rien

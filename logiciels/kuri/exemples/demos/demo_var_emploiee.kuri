@@ -8,9 +8,9 @@ struct TEST {
 
 fonc imprime_test(empl test : TEST) -> rien
 {
-    imprime("x = ", x, '\n')
-    imprime("y = ", y, '\n')
-    imprime("z = ", z, '\n')
+    imprime_sans_format("x = ", x, '\n')
+    imprime_sans_format("y = ", y, '\n')
+    imprime_sans_format("z = ", z, '\n')
 }
 
 fonc modifie_test(dyn empl test : *TEST) -> rien

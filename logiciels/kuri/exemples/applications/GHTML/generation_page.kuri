@@ -119,7 +119,7 @@ fonc génère_page(
 
 fonc principale(args : []*z8) -> z32
 {
-    diffère { imprime("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
+    diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 
     chn := "{%pour x dans evenements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
 
@@ -136,7 +136,7 @@ fonc principale(args : []*z8) -> z32
     imprime("lexèmes :\n\n")
 
     pour lexème dans lexeuse.lexèmes {
-        imprime(lexème.type_lexème, " : ", lexème.chn, "\n")
+        imprime_sans_format(lexème.type_lexème, " : ", lexème.chn, "\n")
     }
 
     imprime("\n")

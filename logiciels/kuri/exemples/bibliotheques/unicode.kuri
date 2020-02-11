@@ -76,20 +76,20 @@ fonc decoupe_texte(debut : *n8)
                 // vérifie caractère simple
                 ++copie;
                 ++pos;
-                imprime(sortie, "Caractère de 1 octet !\n");
+                imprime_sans_format(sortie, "Caractère de 1 octet !\n");
             }
             2...4: {
                 // ajoute caractère au mot courant
                 copie += nombre_octet;
                 pos += nombre_octet;
-                imprime(sortie, "Caractère de {n32} octets !\n", nombre_octet);
+                imprime_sans_format(sortie, "Caractère de {n32} octets !\n", nombre_octet);
             }
             sinon: {
                 // codec unicode ne peut comprendre le caractère
-                imprime(sortie, "{*n8}\n", copie);
+                imprime_sans_format(sortie, "{*n8}\n", copie);
 
                 pour i dans 0...(pos - 1) {
-                    imprime(sortie, " ");
+                    imprime_sans_format(sortie, " ");
                 }
 
                 imprime(sortie, "^~~~\n");

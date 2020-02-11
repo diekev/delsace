@@ -8,15 +8,15 @@ struct TEST {
 
 fonc foo(args : eini) -> z32
 {
-    imprime("appel foo avec eini\n")
-    imprime(args, '\n')
+    imprime_sans_format("appel foo avec eini\n")
+    imprime_sans_format(args, '\n')
     retourne 123
 }
 
 fonc foo(args : chaine) -> z32
 {
-    imprime("appel foo avec chaine\n")
-    imprime(args, '\n')
+    imprime_sans_format("appel foo avec chaine\n")
+    imprime_sans_format(args, '\n')
     retourne 0
 }
 
@@ -27,7 +27,7 @@ fonc principale(args : []*z8) -> z32
 
     x := t.fonction("je ne sais pas")
 
-    imprime("résultat : ", x, '\n')
+    imprime_sans_format("résultat : ", x, '\n')
 
     ptr := foo
 

@@ -301,6 +301,6 @@ fonc test_lexeuse() -> rien
     diffère { déloge lexeuse.lexèmes; }
 
     pour lexème dans lexeuse.lexèmes {
-        imprime(lexème, '\n')
+        imprime_sans_format(lexème, '\n')
     }
 }

@@ -333,7 +333,7 @@ fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> 
 corout chaque_chemin_récursif(chemin : &CheminFichier) -> CheminFichier
 {
     si !est_dossier(chemin) {
-        imprime("Le chemin n'est pas un dossier")
+        imprime_sans_format("Le chemin n'est pas un dossier")
         retourne
     }
 

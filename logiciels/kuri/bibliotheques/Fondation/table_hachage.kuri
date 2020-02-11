@@ -115,10 +115,10 @@ fonc cherche_noeud(table : *TableHachage, clé : chaine) -> rien
     n := trouve(table, clé)
 
     si n == nul {
-        imprime("Impossible de trouver le noeud dans la table !\n")
+        imprime_sans_format("Impossible de trouver le noeud dans la table !\n")
     }
     sinon {
-        imprime("Trouvé noeud, valeur : ", n.valeur, "\n")
+        imprime_sans_format("Trouvé noeud, valeur : ", n.valeur, "\n")
     }
 }
 

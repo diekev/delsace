@@ -8,10 +8,10 @@ fonc ajoute(a : $T, b : $T) -> $T
 fonc principale(args : []*z8) -> z32
 {
     x := ajoute(12, 27)
-    imprime("x = ", x, '\n')
+    imprime_sans_format("x = ", x, '\n')
 
     y := ajoute(12.5, 87.9)
-    imprime("y = ", y, '\n')
+    imprime_sans_format("y = ", y, '\n')
 
     retourne 0
 }

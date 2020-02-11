@@ -130,13 +130,13 @@ fonc analyse_entêtes(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
 
 fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
 {
-    imprime("requête :\n", requête, "\n")
+    imprime_sans_format("requête :\n", requête, "\n")
 
     analyseuse.requête = requête
 
     dyn ligne_requête := analyse_ligne_requête(analyseuse)
 
-    imprime("Ligne requête : ", ligne_requête, "\n")
+    imprime_sans_format("Ligne requête : ", ligne_requête, "\n")
 
     dyn table := analyse_entêtes(analyseuse)
     diffère { décrée_table_hachage(table); }
@@ -150,7 +150,7 @@ fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> 
         dyn n := alvéole
 
         tantque n != nul {
-            imprime("--- ", n.clé, ": ", n.valeur, "\n")
+            imprime_sans_format("--- ", n.clé, ": ", n.valeur, "\n")
             n = n.suivant
         }
     }

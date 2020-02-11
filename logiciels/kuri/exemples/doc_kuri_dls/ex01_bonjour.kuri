@@ -3,12 +3,12 @@ importe "flux"
 
 fonc principale(args : []*z8) -> z32
 {
-    imprime("Bonjour, tout le monde !\n")
-    imprime("Nous allons imprimer les arguments :\n")
+    imprime_sans_format("Bonjour, tout le monde !\n")
+    imprime_sans_format("Nous allons imprimer les arguments :\n")
 
     pour arg, index dans args {
         chn := converti_chaine_c(arg)
-        imprime("Argument ", index, " = ", chn, '\n')
+        imprime_sans_format("Argument ", index, " = ", chn, '\n')
     }
 
     retourne 0

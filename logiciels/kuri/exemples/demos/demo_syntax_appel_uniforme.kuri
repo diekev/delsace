@@ -12,7 +12,7 @@ fonc principale(args : []*z8) -> z32
 
     z := ajoute(x, y).ajoute(x)
 
-    imprime(z, '\n')
+    imprime_sans_format(z, '\n')
 
     retourne 0
 }

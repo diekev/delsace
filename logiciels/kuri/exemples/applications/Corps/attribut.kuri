@@ -68,7 +68,7 @@ fonc est_type_attribut_valide(dyn type : TypeAttribut) -> bool
 
 fonc principale(args : []*z8) -> z32
 {
-	diffère { imprime("\nMémoire utilisée : ", mémoire_utilisée(), " o\n") }
+	diffère { imprime_sans_format("\nMémoire utilisée : ", mémoire_utilisée(), " o\n") }
 
 	imprime("Validation d'attributs...\n\n")
 
@@ -106,7 +106,7 @@ fonc principale(args : []*z8) -> z32
 	pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
 		dyn ptr := attr.tableau_r32(i)
 
-		imprime("Valeur ", i, " = ", mémoire(ptr), "\n")
+		imprime_sans_format("Valeur ", i, " = ", mémoire(ptr), "\n")
 	}
 
 	détruit(attr)
