@@ -12,16 +12,16 @@ importe SysFichier
 
 crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 {
-	chaines = [
-		"fonc principale(args : []*z8) : z32\n",
+	chaines := [
+		"principale :: fonc(args : []*z8) -> z32\n",
 		"{\n",
-		"\tdyn a = 1\n",
-		"\tdyn b = 2\n",
-		"\tdyn c = 3\n",
-		"\tdyn d = 4\n",
+		"\tdyn a := 1\n",
+		"\tdyn b := 2\n",
+		"\tdyn c := 3\n",
+		"\tdyn d := 4\n",
 		"\ta = b + c * d\n",
 		"\tretourne 0\n",
-		"}"
+		"}\n"
 	]
 
 	// calcule l'espace nécessaire
@@ -31,12 +31,15 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 		taille += chn.taille
 	}
 
-	taille += chaines[6].taille * nombre_de_ligne - 1
+	taille += chaines[6].taille * (nombre_de_ligne - 1)
+
+	imprime("taille réservée : %\n", taille)
 
 	// génère le code du test
 	dyn enchaineuse : Enchaineuse
 	diffère { enchaineuse.détruit(); }
 
+	// À FAIRE: ajout d'une propriété "alloué" car "taille" utilisée pour écrire dans le fichier peut être plus grande que le résultat final et contenir des données aléatoires
 	enchaineuse.réserve(taille)
 
 	pour i dans 0 ... 5 {
@@ -54,6 +57,8 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 	chemin := construit_chemin(chemin_fichier)
 	fichier := ouvre_fichier_ecriture(chemin)
 	écris_fichier(fichier, enchaineuse.résultat)
+
+	imprime("taille finale : %\n", enchaineuse.résultat.taille)
 }
 
 principale :: fonc(args : []*z8) -> z32
