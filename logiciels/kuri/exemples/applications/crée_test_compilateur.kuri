@@ -33,8 +33,6 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 
 	taille += chaines[6].taille * (nombre_de_ligne - 1)
 
-	imprime("taille réservée : %\n", taille)
-
 	// génère le code du test
 	dyn enchaineuse : Enchaineuse
 	diffère { enchaineuse.détruit(); }
@@ -57,8 +55,6 @@ crée_test :: fonc(nombre_de_ligne : z32, chemin_fichier : chaine) -> rien
 	chemin := construit_chemin(chemin_fichier)
 	fichier := ouvre_fichier_ecriture(chemin)
 	écris_fichier(fichier, enchaineuse.résultat)
-
-	imprime("taille finale : %\n", enchaineuse.résultat.taille)
 }
 
 principale :: fonc(args : []*z8) -> z32
