@@ -152,253 +152,253 @@ const char *chaine_identifiant(GenreLexeme id)
 {
 	switch (id) {
 		case GenreLexeme::EXCLAMATION:
-			return "TypeLexeme::EXCLAMATION";
+			return "GenreLexeme::EXCLAMATION";
 		case GenreLexeme::GUILLEMET:
-			return "TypeLexeme::GUILLEMET";
+			return "GenreLexeme::GUILLEMET";
 		case GenreLexeme::DIESE:
-			return "TypeLexeme::DIESE";
+			return "GenreLexeme::DIESE";
 		case GenreLexeme::DOLLAR:
-			return "TypeLexeme::DOLLAR";
+			return "GenreLexeme::DOLLAR";
 		case GenreLexeme::POURCENT:
-			return "TypeLexeme::POURCENT";
+			return "GenreLexeme::POURCENT";
 		case GenreLexeme::ESPERLUETTE:
-			return "TypeLexeme::ESPERLUETTE";
+			return "GenreLexeme::ESPERLUETTE";
 		case GenreLexeme::APOSTROPHE:
-			return "TypeLexeme::APOSTROPHE";
+			return "GenreLexeme::APOSTROPHE";
 		case GenreLexeme::PARENTHESE_OUVRANTE:
-			return "TypeLexeme::PARENTHESE_OUVRANTE";
+			return "GenreLexeme::PARENTHESE_OUVRANTE";
 		case GenreLexeme::PARENTHESE_FERMANTE:
-			return "TypeLexeme::PARENTHESE_FERMANTE";
+			return "GenreLexeme::PARENTHESE_FERMANTE";
 		case GenreLexeme::FOIS:
-			return "TypeLexeme::FOIS";
+			return "GenreLexeme::FOIS";
 		case GenreLexeme::PLUS:
-			return "TypeLexeme::PLUS";
+			return "GenreLexeme::PLUS";
 		case GenreLexeme::VIRGULE:
-			return "TypeLexeme::VIRGULE";
+			return "GenreLexeme::VIRGULE";
 		case GenreLexeme::MOINS:
-			return "TypeLexeme::MOINS";
+			return "GenreLexeme::MOINS";
 		case GenreLexeme::POINT:
-			return "TypeLexeme::POINT";
+			return "GenreLexeme::POINT";
 		case GenreLexeme::DIVISE:
-			return "TypeLexeme::DIVISE";
+			return "GenreLexeme::DIVISE";
 		case GenreLexeme::DOUBLE_POINTS:
-			return "TypeLexeme::DOUBLE_POINTS";
+			return "GenreLexeme::DOUBLE_POINTS";
 		case GenreLexeme::POINT_VIRGULE:
-			return "TypeLexeme::POINT_VIRGULE";
+			return "GenreLexeme::POINT_VIRGULE";
 		case GenreLexeme::INFERIEUR:
-			return "TypeLexeme::INFERIEUR";
+			return "GenreLexeme::INFERIEUR";
 		case GenreLexeme::EGAL:
-			return "TypeLexeme::EGAL";
+			return "GenreLexeme::EGAL";
 		case GenreLexeme::SUPERIEUR:
-			return "TypeLexeme::SUPERIEUR";
+			return "GenreLexeme::SUPERIEUR";
 		case GenreLexeme::AROBASE:
-			return "TypeLexeme::AROBASE";
+			return "GenreLexeme::AROBASE";
 		case GenreLexeme::CROCHET_OUVRANT:
-			return "TypeLexeme::CROCHET_OUVRANT";
+			return "GenreLexeme::CROCHET_OUVRANT";
 		case GenreLexeme::CROCHET_FERMANT:
-			return "TypeLexeme::CROCHET_FERMANT";
+			return "GenreLexeme::CROCHET_FERMANT";
 		case GenreLexeme::CHAPEAU:
-			return "TypeLexeme::CHAPEAU";
+			return "GenreLexeme::CHAPEAU";
 		case GenreLexeme::ACCOLADE_OUVRANTE:
-			return "TypeLexeme::ACCOLADE_OUVRANTE";
+			return "GenreLexeme::ACCOLADE_OUVRANTE";
 		case GenreLexeme::BARRE:
-			return "TypeLexeme::BARRE";
+			return "GenreLexeme::BARRE";
 		case GenreLexeme::ACCOLADE_FERMANTE:
-			return "TypeLexeme::ACCOLADE_FERMANTE";
+			return "GenreLexeme::ACCOLADE_FERMANTE";
 		case GenreLexeme::TILDE:
-			return "TypeLexeme::TILDE";
+			return "GenreLexeme::TILDE";
 		case GenreLexeme::DIFFERENCE:
-			return "TypeLexeme::DIFFERENCE";
+			return "GenreLexeme::DIFFERENCE";
 		case GenreLexeme::DIRECTIVE:
-			return "TypeLexeme::DIRECTIVE";
+			return "GenreLexeme::DIRECTIVE";
 		case GenreLexeme::MODULO_EGAL:
-			return "TypeLexeme::MODULO_EGAL";
+			return "GenreLexeme::MODULO_EGAL";
 		case GenreLexeme::ESP_ESP:
-			return "TypeLexeme::ESP_ESP";
+			return "GenreLexeme::ESP_ESP";
 		case GenreLexeme::ET_EGAL:
-			return "TypeLexeme::ET_EGAL";
+			return "GenreLexeme::ET_EGAL";
 		case GenreLexeme::MULTIPLIE_EGAL:
-			return "TypeLexeme::MULTIPLIE_EGAL";
+			return "GenreLexeme::MULTIPLIE_EGAL";
 		case GenreLexeme::PLUS_EGAL:
-			return "TypeLexeme::PLUS_EGAL";
+			return "GenreLexeme::PLUS_EGAL";
 		case GenreLexeme::MOINS_EGAL:
-			return "TypeLexeme::MOINS_EGAL";
+			return "GenreLexeme::MOINS_EGAL";
 		case GenreLexeme::RETOUR_TYPE:
-			return "TypeLexeme::RETOUR_TYPE";
+			return "GenreLexeme::RETOUR_TYPE";
 		case GenreLexeme::DIVISE_EGAL:
-			return "TypeLexeme::DIVISE_EGAL";
+			return "GenreLexeme::DIVISE_EGAL";
 		case GenreLexeme::DECLARATION_VARIABLE:
-			return "TypeLexeme::DECLARATION_VARIABLE";
+			return "GenreLexeme::DECLARATION_VARIABLE";
 		case GenreLexeme::DECALAGE_GAUCHE:
-			return "TypeLexeme::DECALAGE_GAUCHE";
+			return "GenreLexeme::DECALAGE_GAUCHE";
 		case GenreLexeme::INFERIEUR_EGAL:
-			return "TypeLexeme::INFERIEUR_EGAL";
+			return "GenreLexeme::INFERIEUR_EGAL";
 		case GenreLexeme::EGALITE:
-			return "TypeLexeme::EGALITE";
+			return "GenreLexeme::EGALITE";
 		case GenreLexeme::SUPERIEUR_EGAL:
-			return "TypeLexeme::SUPERIEUR_EGAL";
+			return "GenreLexeme::SUPERIEUR_EGAL";
 		case GenreLexeme::DECALAGE_DROITE:
-			return "TypeLexeme::DECALAGE_DROITE";
+			return "GenreLexeme::DECALAGE_DROITE";
 		case GenreLexeme::OUX_EGAL:
-			return "TypeLexeme::OUX_EGAL";
+			return "GenreLexeme::OUX_EGAL";
 		case GenreLexeme::OU_EGAL:
-			return "TypeLexeme::OU_EGAL";
+			return "GenreLexeme::OU_EGAL";
 		case GenreLexeme::BARRE_BARRE:
-			return "TypeLexeme::BARRE_BARRE";
+			return "GenreLexeme::BARRE_BARRE";
 		case GenreLexeme::TROIS_POINTS:
-			return "TypeLexeme::TROIS_POINTS";
+			return "GenreLexeme::TROIS_POINTS";
 		case GenreLexeme::DEC_GAUCHE_EGAL:
-			return "TypeLexeme::DEC_GAUCHE_EGAL";
+			return "GenreLexeme::DEC_GAUCHE_EGAL";
 		case GenreLexeme::DEC_DROITE_EGAL:
-			return "TypeLexeme::DEC_DROITE_EGAL";
+			return "GenreLexeme::DEC_DROITE_EGAL";
 		case GenreLexeme::ARRETE:
-			return "TypeLexeme::ARRETE";
+			return "GenreLexeme::ARRETE";
 		case GenreLexeme::BOOL:
-			return "TypeLexeme::BOOL";
+			return "GenreLexeme::BOOL";
 		case GenreLexeme::BOUCLE:
-			return "TypeLexeme::BOUCLE";
+			return "GenreLexeme::BOUCLE";
 		case GenreLexeme::CHAINE:
-			return "TypeLexeme::CHAINE";
+			return "GenreLexeme::CHAINE";
 		case GenreLexeme::CHARGE:
-			return "TypeLexeme::CHARGE";
+			return "GenreLexeme::CHARGE";
 		case GenreLexeme::CONTINUE:
-			return "TypeLexeme::CONTINUE";
+			return "GenreLexeme::CONTINUE";
 		case GenreLexeme::COROUT:
-			return "TypeLexeme::COROUT";
+			return "GenreLexeme::COROUT";
 		case GenreLexeme::DANS:
-			return "TypeLexeme::DANS";
+			return "GenreLexeme::DANS";
 		case GenreLexeme::DIFFERE:
-			return "TypeLexeme::DIFFERE";
+			return "GenreLexeme::DIFFERE";
 		case GenreLexeme::DISCR:
-			return "TypeLexeme::DISCR";
+			return "GenreLexeme::DISCR";
 		case GenreLexeme::DYN:
-			return "TypeLexeme::DYN";
+			return "GenreLexeme::DYN";
 		case GenreLexeme::DELOGE:
-			return "TypeLexeme::DELOGE";
+			return "GenreLexeme::DELOGE";
 		case GenreLexeme::EINI:
-			return "TypeLexeme::EINI";
+			return "GenreLexeme::EINI";
 		case GenreLexeme::EMPL:
-			return "TypeLexeme::EMPL";
+			return "GenreLexeme::EMPL";
 		case GenreLexeme::EXTERNE:
-			return "TypeLexeme::EXTERNE";
+			return "GenreLexeme::EXTERNE";
 		case GenreLexeme::FAUX:
-			return "TypeLexeme::FAUX";
+			return "GenreLexeme::FAUX";
 		case GenreLexeme::FONC:
-			return "TypeLexeme::FONC";
+			return "GenreLexeme::FONC";
 		case GenreLexeme::GARDE:
-			return "TypeLexeme::GARDE";
+			return "GenreLexeme::GARDE";
 		case GenreLexeme::IMPORTE:
-			return "TypeLexeme::IMPORTE";
+			return "GenreLexeme::IMPORTE";
 		case GenreLexeme::INFO_DE:
-			return "TypeLexeme::INFO_DE";
+			return "GenreLexeme::INFO_DE";
 		case GenreLexeme::LOGE:
-			return "TypeLexeme::LOGE";
+			return "GenreLexeme::LOGE";
 		case GenreLexeme::MEMOIRE:
-			return "TypeLexeme::MEMOIRE";
+			return "GenreLexeme::MEMOIRE";
 		case GenreLexeme::N128:
-			return "TypeLexeme::N128";
+			return "GenreLexeme::N128";
 		case GenreLexeme::N16:
-			return "TypeLexeme::N16";
+			return "GenreLexeme::N16";
 		case GenreLexeme::N32:
-			return "TypeLexeme::N32";
+			return "GenreLexeme::N32";
 		case GenreLexeme::N64:
-			return "TypeLexeme::N64";
+			return "GenreLexeme::N64";
 		case GenreLexeme::N8:
-			return "TypeLexeme::N8";
+			return "GenreLexeme::N8";
 		case GenreLexeme::NONSUR:
-			return "TypeLexeme::NONSUR";
+			return "GenreLexeme::NONSUR";
 		case GenreLexeme::NUL:
-			return "TypeLexeme::NUL";
+			return "GenreLexeme::NUL";
 		case GenreLexeme::OCTET:
-			return "TypeLexeme::OCTET";
+			return "GenreLexeme::OCTET";
 		case GenreLexeme::POUR:
-			return "TypeLexeme::POUR";
+			return "GenreLexeme::POUR";
 		case GenreLexeme::R128:
-			return "TypeLexeme::R128";
+			return "GenreLexeme::R128";
 		case GenreLexeme::R16:
-			return "TypeLexeme::R16";
+			return "GenreLexeme::R16";
 		case GenreLexeme::R32:
-			return "TypeLexeme::R32";
+			return "GenreLexeme::R32";
 		case GenreLexeme::R64:
-			return "TypeLexeme::R64";
+			return "GenreLexeme::R64";
 		case GenreLexeme::RELOGE:
-			return "TypeLexeme::RELOGE";
+			return "GenreLexeme::RELOGE";
 		case GenreLexeme::RETIENS:
-			return "TypeLexeme::RETIENS";
+			return "GenreLexeme::RETIENS";
 		case GenreLexeme::RETOURNE:
-			return "TypeLexeme::RETOURNE";
+			return "GenreLexeme::RETOURNE";
 		case GenreLexeme::RIEN:
-			return "TypeLexeme::RIEN";
+			return "GenreLexeme::RIEN";
 		case GenreLexeme::REPETE:
-			return "TypeLexeme::REPETE";
+			return "GenreLexeme::REPETE";
 		case GenreLexeme::SANSARRET:
-			return "TypeLexeme::SANSARRET";
+			return "GenreLexeme::SANSARRET";
 		case GenreLexeme::SAUFSI:
-			return "TypeLexeme::SAUFSI";
+			return "GenreLexeme::SAUFSI";
 		case GenreLexeme::SI:
-			return "TypeLexeme::SI";
+			return "GenreLexeme::SI";
 		case GenreLexeme::SINON:
-			return "TypeLexeme::SINON";
+			return "GenreLexeme::SINON";
 		case GenreLexeme::STRUCT:
-			return "TypeLexeme::STRUCT";
+			return "GenreLexeme::STRUCT";
 		case GenreLexeme::TAILLE_DE:
-			return "TypeLexeme::TAILLE_DE";
+			return "GenreLexeme::TAILLE_DE";
 		case GenreLexeme::TANTQUE:
-			return "TypeLexeme::TANTQUE";
+			return "GenreLexeme::TANTQUE";
 		case GenreLexeme::TRANSTYPE:
-			return "TypeLexeme::TRANSTYPE";
+			return "GenreLexeme::TRANSTYPE";
 		case GenreLexeme::TYPE_DE:
-			return "TypeLexeme::TYPE_DE";
+			return "GenreLexeme::TYPE_DE";
 		case GenreLexeme::UNION:
-			return "TypeLexeme::UNION";
+			return "GenreLexeme::UNION";
 		case GenreLexeme::VRAI:
-			return "TypeLexeme::VRAI";
+			return "GenreLexeme::VRAI";
 		case GenreLexeme::Z128:
-			return "TypeLexeme::Z128";
+			return "GenreLexeme::Z128";
 		case GenreLexeme::Z16:
-			return "TypeLexeme::Z16";
+			return "GenreLexeme::Z16";
 		case GenreLexeme::Z32:
-			return "TypeLexeme::Z32";
+			return "GenreLexeme::Z32";
 		case GenreLexeme::Z64:
-			return "TypeLexeme::Z64";
+			return "GenreLexeme::Z64";
 		case GenreLexeme::Z8:
-			return "TypeLexeme::Z8";
+			return "GenreLexeme::Z8";
 		case GenreLexeme::ENUM:
-			return "TypeLexeme::ENUM";
+			return "GenreLexeme::ENUM";
 		case GenreLexeme::ENUM_DRAPEAU:
-			return "TypeLexeme::ENUM_DRAPEAU";
+			return "GenreLexeme::ENUM_DRAPEAU";
 		case GenreLexeme::NOMBRE_REEL:
-			return "TypeLexeme::NOMBRE_REEL";
+			return "GenreLexeme::NOMBRE_REEL";
 		case GenreLexeme::NOMBRE_ENTIER:
-			return "TypeLexeme::NOMBRE_ENTIER";
+			return "GenreLexeme::NOMBRE_ENTIER";
 		case GenreLexeme::NOMBRE_HEXADECIMAL:
-			return "TypeLexeme::NOMBRE_HEXADECIMAL";
+			return "GenreLexeme::NOMBRE_HEXADECIMAL";
 		case GenreLexeme::NOMBRE_OCTAL:
-			return "TypeLexeme::NOMBRE_OCTAL";
+			return "GenreLexeme::NOMBRE_OCTAL";
 		case GenreLexeme::NOMBRE_BINAIRE:
-			return "TypeLexeme::NOMBRE_BINAIRE";
+			return "GenreLexeme::NOMBRE_BINAIRE";
 		case GenreLexeme::PLUS_UNAIRE:
-			return "TypeLexeme::PLUS_UNAIRE";
+			return "GenreLexeme::PLUS_UNAIRE";
 		case GenreLexeme::MOINS_UNAIRE:
-			return "TypeLexeme::MOINS_UNAIRE";
+			return "GenreLexeme::MOINS_UNAIRE";
 		case GenreLexeme::CHAINE_CARACTERE:
-			return "TypeLexeme::CHAINE_CARACTERE";
+			return "GenreLexeme::CHAINE_CARACTERE";
 		case GenreLexeme::CHAINE_LITTERALE:
-			return "TypeLexeme::CHAINE_LITTERALE";
+			return "GenreLexeme::CHAINE_LITTERALE";
 		case GenreLexeme::CARACTERE:
-			return "TypeLexeme::CARACTERE";
+			return "GenreLexeme::CARACTERE";
 		case GenreLexeme::POINTEUR:
-			return "TypeLexeme::POINTEUR";
+			return "GenreLexeme::POINTEUR";
 		case GenreLexeme::TABLEAU:
-			return "TypeLexeme::TABLEAU";
+			return "GenreLexeme::TABLEAU";
 		case GenreLexeme::REFERENCE:
-			return "TypeLexeme::REFERENCE";
+			return "GenreLexeme::REFERENCE";
 		case GenreLexeme::INCONNU:
-			return "TypeLexeme::INCONNU";
+			return "GenreLexeme::INCONNU";
 		case GenreLexeme::CARACTERE_BLANC:
-			return "TypeLexeme::CARACTERE_BLANC";
+			return "GenreLexeme::CARACTERE_BLANC";
 		case GenreLexeme::COMMENTAIRE:
-			return "TypeLexeme::COMMENTAIRE";
+			return "GenreLexeme::COMMENTAIRE";
 	};
 
 	return "ERREUR";

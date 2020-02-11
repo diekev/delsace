@@ -167,8 +167,8 @@ def enleve_accent(mot):
 def construit_structures():
 	structures = u''
 	structures += u'\nstruct DonneesLexeme {\n'
-	structures += u'\tusing type = TypeLexeme;\n'
-	structures += u'\tstatic constexpr type INCONNU = TypeLexeme::INCONNU;\n'
+	structures += u'\tusing type = GenreLexeme;\n'
+	structures += u'\tstatic constexpr type INCONNU = GenreLexeme::INCONNU;\n'
 	structures += u'\tdls::vue_chaine_compacte chaine;\n'
 	structures += u'\tGenreLexeme genre;\n'
 	structures += u'\tint fichier = 0;\n'
@@ -188,7 +188,7 @@ def construit_tableaux():
 		tableaux += virgule
 		m = enleve_accent(mot)
 		m = m.upper()
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), TypeLexeme::{} }}'.format(mot, m)
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), GenreLexeme::{} }}'.format(mot, m)
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -199,7 +199,7 @@ def construit_tableaux():
 
 	for c in digraphes:
 		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), TypeLexeme::{} }}'.format(c[0], c[1])
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), GenreLexeme::{} }}'.format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -210,7 +210,7 @@ def construit_tableaux():
 
 	for c in trigraphes:
 		tableaux += virgule
-		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), TypeLexeme::{} }}'.format(c[0], c[1])
+		tableaux += u'\tdls::paire{{ dls::vue_chaine_compacte("{}"), GenreLexeme::{} }}'.format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -224,7 +224,7 @@ def construit_tableaux():
 		if c[0] == "'":
 			c[0] = "\\'"
 
-		tableaux += u"\tdls::paire{{ '{}', TypeLexeme::{} }}".format(c[0], c[1])
+		tableaux += u"\tdls::paire{{ '{}', GenreLexeme::{} }}".format(c[0], c[1])
 		virgule = ',\n'
 
 	tableaux += u'\n);\n\n'
@@ -233,7 +233,7 @@ def construit_tableaux():
 
 
 def constuit_enumeration():
-	enumeration = u'enum class TypeLexeme : unsigned int {\n'
+	enumeration = u'enum class GenreLexeme : unsigned int {\n'
 
 	for car in caracteres_simple:
 		enumeration += u'\t{},\n'.format(car[1])
@@ -256,27 +256,27 @@ def constuit_enumeration():
 
 
 def construit_fonction_chaine_identifiant():
-	fonction = u'const char *chaine_identifiant(TypeLexeme id)\n{\n'
+	fonction = u'const char *chaine_identifiant(GenreLexeme id)\n{\n'
 	fonction += u'\tswitch (id) {\n'
 
 	for car in caracteres_simple:
-		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(car[1])
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
 	for car in digraphes:
-		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(car[1])
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
 	for car in trigraphes:
-		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(car[1])
-		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(car[1])
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(car[1])
+		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(car[1])
 
 	for mot in mot_cles + id_extra:
 		m = enleve_accent(mot)
 		m = m.upper()
 
-		fonction += u'\t\tcase TypeLexeme::{}:\n'.format(m)
-		fonction += u'\t\t\treturn "TypeLexeme::{}";\n'.format(m)
+		fonction += u'\t\tcase GenreLexeme::{}:\n'.format(m)
+		fonction += u'\t\t\treturn "GenreLexeme::{}";\n'.format(m)
 
 	fonction += u'\t};\n'
 	fonction += u'\n\treturn "ERREUR";\n'
@@ -319,7 +319,7 @@ tableaux = construit_tableaux()
 
 fonctions = u"""
 static bool tables_caracteres[256] = {};
-static TypeLexeme tables_identifiants[256] = {};
+static GenreLexeme tables_identifiants[256] = {};
 static bool tables_digraphes[256] = {};
 static bool tables_trigraphes[256] = {};
 static bool tables_mots_cles[256] = {};
@@ -331,7 +331,7 @@ void construit_tables_caractere_speciaux()
 		tables_digraphes[i] = false;
 		tables_trigraphes[i] = false;
 		tables_mots_cles[i] = false;
-		tables_identifiants[i] = TypeLexeme::INCONNU;
+		tables_identifiants[i] = GenreLexeme::INCONNU;
 	}
 
     {
@@ -372,7 +372,7 @@ void construit_tables_caractere_speciaux()
 	}
 }
 
-bool est_caractere_special(char c, TypeLexeme &i)
+bool est_caractere_special(char c, GenreLexeme &i)
 {
 	if (!tables_caracteres[static_cast<int>(c)]) {
 		return false;
@@ -382,10 +382,10 @@ bool est_caractere_special(char c, TypeLexeme &i)
 	return true;
 }
 
-TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
+GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_digraphes[int(chaine[0])]) {
-		return TypeLexeme::INCONNU;
+		return GenreLexeme::INCONNU;
 	}
 
 	auto iterateur = paires_digraphes.trouve_binaire(chaine);
@@ -394,13 +394,13 @@ TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return TypeLexeme::INCONNU;
+	return GenreLexeme::INCONNU;
 }
 
-TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
+GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 {
 	if (!tables_trigraphes[int(chaine[0])]) {
-		return TypeLexeme::INCONNU;
+		return GenreLexeme::INCONNU;
 	}
 
 	auto iterateur = paires_trigraphes.trouve_binaire(chaine);
@@ -409,17 +409,17 @@ TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return TypeLexeme::INCONNU;
+	return GenreLexeme::INCONNU;
 }
 
-TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
+GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 {
 	if (chaine.taille() == 1 || chaine.taille() > TAILLE_MAX_MOT_CLE) {
-		return TypeLexeme::CHAINE_CARACTERE;
+		return GenreLexeme::CHAINE_CARACTERE;
 	}
 
 	if (!tables_mots_cles[static_cast<unsigned char>(chaine[0])]) {
-		return TypeLexeme::CHAINE_CARACTERE;
+		return GenreLexeme::CHAINE_CARACTERE;
 	}
 
 	auto iterateur = paires_mots_cles.trouve_binaire(chaine);
@@ -428,49 +428,49 @@ TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine)
 		return iterateur.front().second;
 	}
 
-	return TypeLexeme::CHAINE_CARACTERE;
+	return GenreLexeme::CHAINE_CARACTERE;
 }
 """
 
 fonctions_enumeration = u"""
-inline TypeLexeme operator&(TypeLexeme id1, int id2)
+inline GenreLexeme operator&(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) & id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) & id2);
 }
 
-inline TypeLexeme operator|(TypeLexeme id1, int id2)
+inline GenreLexeme operator|(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) | id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) | id2);
 }
 
-inline TypeLexeme operator|(TypeLexeme id1, TypeLexeme id2)
+inline GenreLexeme operator|(GenreLexeme id1, GenreLexeme id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
+	return static_cast<GenreLexeme>(static_cast<int>(id1) | static_cast<int>(id2));
 }
 
-inline TypeLexeme operator<<(TypeLexeme id1, int id2)
+inline GenreLexeme operator<<(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) << id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) << id2);
 }
 
-inline TypeLexeme operator>>(TypeLexeme id1, int id2)
+inline GenreLexeme operator>>(GenreLexeme id1, int id2)
 {
-	return static_cast<TypeLexeme>(static_cast<int>(id1) >> id2);
+	return static_cast<GenreLexeme>(static_cast<int>(id1) >> id2);
 }
 """
 
 declaration_fonctions = u"""
-const char *chaine_identifiant(TypeLexeme id);
+const char *chaine_identifiant(GenreLexeme id);
 
 void construit_tables_caractere_speciaux();
 
-bool est_caractere_special(char c, TypeLexeme &i);
+bool est_caractere_special(char c, GenreLexeme &i);
 
-TypeLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
+GenreLexeme id_digraphe(const dls::vue_chaine_compacte &chaine);
 
-TypeLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
+GenreLexeme id_trigraphe(const dls::vue_chaine_compacte &chaine);
 
-TypeLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
+GenreLexeme id_chaine(const dls::vue_chaine_compacte &chaine);
 """
 
 with io.open(u"../compilation/lexemes.hh", u'w') as entete:
