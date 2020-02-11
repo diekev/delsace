@@ -157,5 +157,5 @@ fonc port_pour_uri(uri : &URI) -> n16
         }
     }
 
-    retourne transtype(extrait_nombre_entier(uri.port) -> n16)
+    retourne transtype(extrait_nombre_entier(uri.port) : n16)
 }
