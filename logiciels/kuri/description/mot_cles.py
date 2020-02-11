@@ -61,6 +61,7 @@ mot_cles = [
 	u'répète',
 	u'union',
 	u'charge',
+	u'opérateur',
 ]
 
 taille_max_mot_cles = max(len(m.encode('utf8')) for m in mot_cles)
@@ -120,6 +121,10 @@ digraphes = [
 	[u'#!', u'DIRECTIVE'],
 	[u':=', u'DECLARATION_VARIABLE'],
 	[u'->', u'RETOUR_TYPE'],
+	[u'::', u'DECLARATION_CONSTANTE'],
+	[u'//', u'DEBUT_LIGNE_COMMENTAIRE'],
+	[u'/*', u'DEBUT_BLOC_COMMENTAIRE'],
+	[u'*/', u'FIN_BLOC_COMMENTAIRE'],
 ]
 
 digraphes = sorted(digraphes)

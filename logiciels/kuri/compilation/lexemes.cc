@@ -59,6 +59,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("nonsûr"), GenreLexeme::NONSUR },
 	dls::paire{ dls::vue_chaine_compacte("nul"), GenreLexeme::NUL },
 	dls::paire{ dls::vue_chaine_compacte("octet"), GenreLexeme::OCTET },
+	dls::paire{ dls::vue_chaine_compacte("opérateur"), GenreLexeme::OPERATEUR },
 	dls::paire{ dls::vue_chaine_compacte("pour"), GenreLexeme::POUR },
 	dls::paire{ dls::vue_chaine_compacte("r128"), GenreLexeme::R128 },
 	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
@@ -95,11 +96,15 @@ static auto paires_digraphes = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("%="), GenreLexeme::MODULO_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("&&"), GenreLexeme::ESP_ESP },
 	dls::paire{ dls::vue_chaine_compacte("&="), GenreLexeme::ET_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("*/"), GenreLexeme::FIN_BLOC_COMMENTAIRE },
 	dls::paire{ dls::vue_chaine_compacte("*="), GenreLexeme::MULTIPLIE_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("+="), GenreLexeme::PLUS_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("-="), GenreLexeme::MOINS_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("->"), GenreLexeme::RETOUR_TYPE },
+	dls::paire{ dls::vue_chaine_compacte("/*"), GenreLexeme::DEBUT_BLOC_COMMENTAIRE },
+	dls::paire{ dls::vue_chaine_compacte("//"), GenreLexeme::DEBUT_LIGNE_COMMENTAIRE },
 	dls::paire{ dls::vue_chaine_compacte("/="), GenreLexeme::DIVISE_EGAL },
+	dls::paire{ dls::vue_chaine_compacte("::"), GenreLexeme::DECLARATION_CONSTANTE },
 	dls::paire{ dls::vue_chaine_compacte(":="), GenreLexeme::DECLARATION_VARIABLE },
 	dls::paire{ dls::vue_chaine_compacte("<<"), GenreLexeme::DECALAGE_GAUCHE },
 	dls::paire{ dls::vue_chaine_compacte("<="), GenreLexeme::INFERIEUR_EGAL },
@@ -217,6 +222,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::ESP_ESP";
 		case GenreLexeme::ET_EGAL:
 			return "GenreLexeme::ET_EGAL";
+		case GenreLexeme::FIN_BLOC_COMMENTAIRE:
+			return "GenreLexeme::FIN_BLOC_COMMENTAIRE";
 		case GenreLexeme::MULTIPLIE_EGAL:
 			return "GenreLexeme::MULTIPLIE_EGAL";
 		case GenreLexeme::PLUS_EGAL:
@@ -225,8 +232,14 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::MOINS_EGAL";
 		case GenreLexeme::RETOUR_TYPE:
 			return "GenreLexeme::RETOUR_TYPE";
+		case GenreLexeme::DEBUT_BLOC_COMMENTAIRE:
+			return "GenreLexeme::DEBUT_BLOC_COMMENTAIRE";
+		case GenreLexeme::DEBUT_LIGNE_COMMENTAIRE:
+			return "GenreLexeme::DEBUT_LIGNE_COMMENTAIRE";
 		case GenreLexeme::DIVISE_EGAL:
 			return "GenreLexeme::DIVISE_EGAL";
+		case GenreLexeme::DECLARATION_CONSTANTE:
+			return "GenreLexeme::DECLARATION_CONSTANTE";
 		case GenreLexeme::DECLARATION_VARIABLE:
 			return "GenreLexeme::DECLARATION_VARIABLE";
 		case GenreLexeme::DECALAGE_GAUCHE:
@@ -311,6 +324,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::NUL";
 		case GenreLexeme::OCTET:
 			return "GenreLexeme::OCTET";
+		case GenreLexeme::OPERATEUR:
+			return "GenreLexeme::OPERATEUR";
 		case GenreLexeme::POUR:
 			return "GenreLexeme::POUR";
 		case GenreLexeme::R128:

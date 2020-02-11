@@ -424,6 +424,31 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 		case GenreLexeme::COMMENTAIRE:
 			os << "# commentaire\n";
 			return;
+		case GenreLexeme::OPERATEUR:
+		{
+			os << "opérateur";
+			return;
+		}
+		case GenreLexeme::DEBUT_BLOC_COMMENTAIRE:
+		{
+			os << "/*";
+			return;
+		}
+		case GenreLexeme::FIN_BLOC_COMMENTAIRE:
+		{
+			os << "*/";
+			return;
+		}
+		case GenreLexeme::DEBUT_LIGNE_COMMENTAIRE:
+		{
+			os << "//";
+			return;
+		}
+		case GenreLexeme::DECLARATION_CONSTANTE:
+		{
+			os << "::";
+			return;
+		}
 	};
 
 	os << "ERREUR";
