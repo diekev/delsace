@@ -265,7 +265,7 @@ appends :: fonc(dyn enchaineuse : &Enchaineuse, chn : chaine) -> rien
 
 pousse :: fonc(dyn enchaineuse : &Enchaineuse, lettre : z8) -> rien
 {
-	ancienne_taille := enchaineuse.résultat.taille
+	ancienne_taille := enchaineuse.taille
 	nouvelle_taille := ancienne_taille + 1
 	enchaineuse.réserve(nouvelle_taille)
 	enchaineuse.résultat[enchaineuse.taille] = lettre
@@ -278,7 +278,7 @@ pousse :: fonc(dyn enchaineuse : &Enchaineuse, chn : chaine) -> rien
 		retourne
 	}
 
-	nouvelle_taille := enchaineuse.résultat.taille + chn.taille
+	nouvelle_taille := enchaineuse.taille + chn.taille
 	enchaineuse.réserve(nouvelle_taille)
 	enchaineuse.appends(chn)
 }
