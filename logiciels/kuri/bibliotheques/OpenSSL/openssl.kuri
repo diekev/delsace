@@ -1,0 +1,76 @@
+# Interface pour la bibliothèque OpenSSL
+
+#!inclus "openssl/err.h"
+#!inclus "openssl/ssl.h"
+
+#!bib "ssl"
+#!bib "crypto"
+
+################################################################################
+
+struct externe ssl_method_st # SSL_METHOD dans l'IPA C
+struct externe ssl_st # SSL dans l'IPA C
+
+struct externe X509
+struct externe X509_NAME
+struct externe X509_REQ
+struct externe X509_CRL
+
+fonc externe SSL_library_init() -> rien
+fonc externe OpenSSL_add_all_algorithms() -> rien
+fonc externe OpenSSL_add_ssl_algorithms() -> rien
+fonc externe TLSv1_2_server_method() -> *ssl_method_st
+fonc externe SSL_load_error_strings() -> rien
+fonc externe SSLv23_client_method() -> *ssl_method_st
+fonc externe SSL_CTX_new(method : *ssl_method_st) -> *rien
+fonc externe SSL_new(ctx_s : *rien) -> *ssl_st
+fonc externe SSL_set_fd(ssl : *ssl_st, prise : z32) -> rien
+fonc externe SSL_connect(ssl : *ssl_st) -> z32
+fonc externe SSL_free(ssl : *ssl_st) -> rien
+fonc externe SSL_get_error(ssl : *ssl_st, erreur : z32) -> z32
+fonc externe SSL_write(ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
+fonc externe SSL_read(ssl : *ssl_st, tampon : *z8, max : z32) -> z32
+
+_SSL_ERROR_NONE := 0
+_SSL_ERROR_SSL := 1
+_SSL_ERROR_WANT_READ := 2
+_SSL_ERROR_WANT_WRITE := 3
+_SSL_ERROR_WANT_X509_LOOKUP := 4
+_SSL_ERROR_SYSCALL := 5
+_SSL_ERROR_ZERO_RETURN := 6
+_SSL_ERROR_WANT_CONNECT := 7
+_SSL_ERROR_WANT_ACCEPT := 8
+
+fonc externe SSL_CTX_free(ssl: *ssl_st) -> rien
+fonc externe SSL_accept(ssl: *ssl_st) -> z32
+fonc externe SSL_get_fd(ssl: *ssl_st) -> z32
+
+fonc externe SSL_get_peer_certificate(ssl: *ssl_st) -> *X509
+fonc externe X509_free(x509: *X509) -> rien
+
+fonc externe X509_get_subject_name(x: *X509) -> *X509_NAME
+fonc externe X509_set_subject_name(x: *X509, nom: *X509_NAME) -> z32
+
+fonc externe X509_get_issuer_name(x: *X509) -> *X509_NAME
+fonc externe X509_set_issuer_name(x: *X509, nom: *X509_NAME) -> z32
+
+fonc externe X509_REQ_get_subject_name(req: *X509_REQ) -> *X509_NAME
+fonc externe X509_REQ_set_subject_name(req: *X509_REQ, nom: *X509_NAME) -> z32
+
+fonc externe X509_CRL_get_issuer(crl: *X509_CRL) -> *X509_NAME
+fonc externe X509_CRL_set_issuer_name(crl: *X509_CRL, nom: *X509_NAME) -> z32
+
+fonc externe X509_NAME_oneline(a: *X509_NAME, buf: *z8, size: z32) -> *z8
+
+fonc externe SSL_CTX_use_certificate_file(ctx: *ssl_st, CertFile: *z8, x: z32) -> z32
+fonc externe SSL_CTX_use_PrivateKey_file(ctx: *ssl_st, KeyFile: *z8, x: z32) -> z32
+fonc externe SSL_CTX_check_private_key(ctx: *ssl_st) -> z32
+
+_X509_FILETYPE_PEM     := 1
+_X509_FILETYPE_ASN1    := 2
+_X509_FILETYPE_DEFAULT := 3
+
+_SSL_FILETYPE_ASN1 := 2 # À FAIRE(bug compilateur)_X509_FILETYPE_ASN1
+_SSL_FILETYPE_PEM  := 1 # À FAIRE(bug compilateur) _X509_FILETYPE_PEM
+
+fonc externe ERR_print_errors_cb(cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien

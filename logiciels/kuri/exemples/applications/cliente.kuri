@@ -1,40 +1,7 @@
 importe Fondation
 importe GlibC
+importe OpenSSL
 importe Réseau
-
-################################################################################
-
-#!inclus "openssl/err.h"
-#!inclus "openssl/ssl.h"
-
-#!bib "ssl"
-#!bib "crypto"
-
-struct externe ssl_method_st; # SSL_METHOD dans l'IPA C
-struct externe ssl_st; # SSL dans l'IPA C
-
-fonc externe SSL_library_init() -> rien;
-fonc externe OpenSSL_add_ssl_algorithms() -> rien;
-fonc externe SSL_load_error_strings() -> rien;
-fonc externe SSLv23_client_method() -> *ssl_method_st;
-fonc externe SSL_CTX_new(method : *ssl_method_st) -> *rien;
-fonc externe SSL_new(ctx_s : *rien) -> *ssl_st;
-fonc externe SSL_set_fd(ssl : *ssl_st, prise : z32) -> rien;
-fonc externe SSL_connect(ssl : *ssl_st) -> z32;
-fonc externe SSL_free(ssl : *ssl_st) -> rien;
-fonc externe SSL_get_error(ssl : *ssl_st, erreur : z32) -> z32;
-fonc externe SSL_write(ssl : *ssl_st, ptr : *z8, taille : z32) -> z32
-fonc externe SSL_read(ssl : *ssl_st, tampon : *z8, max : z32) -> z32
-
-_SSL_ERROR_NONE := 0
-_SSL_ERROR_SSL := 1
-_SSL_ERROR_WANT_READ := 2
-_SSL_ERROR_WANT_WRITE := 3
-_SSL_ERROR_WANT_X509_LOOKUP := 4
-_SSL_ERROR_SYSCALL := 5
-_SSL_ERROR_ZERO_RETURN := 6
-_SSL_ERROR_WANT_CONNECT := 7
-_SSL_ERROR_WANT_ACCEPT := 8
 
 ################################################################################
 
@@ -43,8 +10,6 @@ _SSL_ERROR_WANT_ACCEPT := 8
     write(std_err, pointeur, transtype(taille : z64))
     retourne 0
 }
-
-fonc externe ERR_print_errors_cb(cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien
 
 fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) -> rien
 {

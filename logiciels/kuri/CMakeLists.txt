@@ -46,6 +46,7 @@ set(DOSSIER_MODULES
 	bibliotheques/Fondation
 	bibliotheques/GlibC
 	bibliotheques/Kuri
+	bibliotheques/OpenSSL
 	bibliotheques/Réseau
 	bibliotheques/SysFichier
 	bibliotheques/Tori
