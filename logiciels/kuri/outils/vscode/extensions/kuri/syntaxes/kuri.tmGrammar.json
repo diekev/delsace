@@ -47,7 +47,7 @@
         },
         "integer": {
             "name": "constant.numeric.kuri",
-            "match": "\\b(0[xXbBoO][0-9A-Fa-f]+|[0-9]+)(_[a-z]+)?\\b"
+            "match": "\\b(0[xXbBoO][0-9A-Fa-f_]+)|([0-9_]+)\\b"
         },
         "boolean": {
             "name": "constant.language.kuri",
