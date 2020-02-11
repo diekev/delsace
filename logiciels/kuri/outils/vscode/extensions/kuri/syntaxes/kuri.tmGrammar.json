@@ -2,6 +2,8 @@
     "scopeName": "source.kuri",
     "patterns": [
         { "include": "#comment" },
+        { "include": "#comment-slash" },
+        { "include": "#comment-bloc" },
         { "include": "#directive" },
         { "include": "#control-keyword" },
         { "include": "#other-keyword" },
@@ -16,7 +18,17 @@
         "comment": {
             "name": "comment.kuri",
             "begin": "#[^!]",
-            "end": "\\n"
+            "end": "$"
+        },
+        "comment-slash": {
+            "name": "comment.kuri",
+            "begin": "//",
+            "end": "$"
+        },
+        "comment-bloc": {
+            "name": "comment.kuri",
+            "begin": "/\\*",
+            "end": "\\*/"
         },
         "directive": {
             "name": "comment.kuri",
@@ -29,7 +41,7 @@
         },
         "other-keyword": {
             "name": "keyword.other.kuri",
-            "match": "\\b(loge|déloge|reloge|struct|énum|énum_drapeau|importe|charge|fonc|corout|transtype|soit|dyn|empl|union|nonsûr|externe|mémoire|info_de|type_de|taille_de)\\b"
+            "match": "\\b(loge|déloge|reloge|struct|énum|énum_drapeau|importe|charge|fonc|corout|transtype|dyn|empl|union|nonsûr|externe|mémoire|info_de|type_de|taille_de|opérateur)\\b"
         },
         "string": {
             "name": "string.quoted.double.kuri",
@@ -53,7 +65,7 @@
         },
         "typename": {
             "name": "support.type.kuri",
-            "match": "\\b(rien|octet|n8|n16|n32|n64|n128|z8|z16|z32|z64|z128|r16|r32|r64|r128|bool|chaine|eini)\\b"
+            "match": "\\b(rien|octet|n8|n16|n32|n64|z8|z16|z32|z64|r16|r32|r64|bool|chaine|eini)\\b"
         }
     }
 }
