@@ -1,0 +1,229 @@
+importe Fondation
+
+énum ÉtatLigneRequête : z32 {
+    INVALIDE
+    MÉTHODE
+    CHEMIN
+    PROTOCOLE
+    FINI
+}
+
+struct LigneRequête {
+    méthode: chaine
+    chemin: chaine
+    protocole: chaine
+}
+
+fonc ajoute_chaine(dyn ligne: *LigneRequête, état: ÉtatLigneRequête, chn: chaine) -> ÉtatLigneRequête
+{
+    discr état {
+        MÉTHODE   { ligne.méthode = chn; retourne ÉtatLigneRequête.CHEMIN; }
+        CHEMIN    { ligne.chemin = chn; retourne ÉtatLigneRequête.PROTOCOLE; }
+        PROTOCOLE { ligne.protocole = chn; retourne ÉtatLigneRequête.FINI; }
+        INVALIDE, FINI { retourne état }
+    }
+
+    retourne ÉtatLigneRequête.INVALIDE
+}
+
+fonc est_méthode_valide(chn: chaine) -> bool
+{
+    méthodes_http := ["GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH"]
+
+    pour méthode dans méthodes_http {
+        si méthode == chn {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+fonc est_requête_valide(dyn ligne: *LigneRequête) -> bool
+{
+    si !est_méthode_valide(ligne.méthode) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+struct AnalyseuseRequête {
+    requête: chaine
+    position := 0
+    pointeur := 0
+    taille_mot := 0
+}
+
+fonc analyse_finie(dyn analyseuse: *AnalyseuseRequête) -> bool
+{
+    retourne analyseuse.position >= analyseuse.requête.taille
+}
+
+fonc caractère_courant(analyseuse: *AnalyseuseRequête) -> z8
+{
+    retourne analyseuse.requête[analyseuse.position]
+}
+
+fonc analyse_entêtes(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
+{
+    dyn table := crée_table_hachage()
+
+    analyseuse.taille_mot = 0
+
+    tantque !analyse_finie(analyseuse) {
+        si analyseuse.caractère_courant() == '\n' {
+            arrête
+        }
+
+        tantque analyseuse.caractère_courant() == ' ' {
+            analyseuse.position += 1
+        }
+
+        analyseuse.pointeur = analyseuse.position
+        analyseuse.taille_mot = 0
+
+        tantque !analyse_finie(analyseuse) {
+            si analyseuse.caractère_courant() == ':' {
+                arrête
+            }
+
+            analyseuse.taille_mot += 1
+            analyseuse.position += 1
+        }
+
+        entête := analyseuse.mot_courant()
+
+        analyseuse.position += 1
+
+        tantque analyseuse.caractère_courant() == ' ' {
+            analyseuse.position += 1
+        }
+
+        analyseuse.pointeur = analyseuse.position
+        analyseuse.taille_mot = 0
+
+        tantque !analyse_finie(analyseuse) {
+            si analyseuse.caractère_courant() == '\r' {
+                analyseuse.position += 1
+                continue
+            }
+
+            si analyseuse.caractère_courant() == '\n' {
+                analyseuse.position += 1
+                arrête
+            }
+
+            analyseuse.taille_mot += 1
+            analyseuse.position += 1
+        }
+
+        valeur := analyseuse.mot_courant()
+
+        insère(table, entête, valeur)
+
+        #imprime("--- ", entête, ": ", valeur, "\n")
+    }
+
+    retourne table
+}
+
+fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
+{
+    imprime("requête :\n", requête, "\n")
+
+    analyseuse.requête = requête
+
+    dyn ligne_requête := analyse_ligne_requête(analyseuse)
+
+    imprime("Ligne requête : ", ligne_requête, "\n")
+
+    dyn table := analyse_entêtes(analyseuse)
+    diffère { décrée_table_hachage(table); }
+
+    # À FAIRE(bug compilateur) : l'index type de la coroutine est négatif
+    #pour n dans chaque_noeud(table) {
+    #    imprime("--- ", n.clé, ": ", n.valeur, "\n")
+    #}
+
+    pour alvéole dans table.alvéoles {
+        dyn n := alvéole
+
+        tantque n != nul {
+            imprime("--- ", n.clé, ": ", n.valeur, "\n")
+            n = n.suivant
+        }
+    }
+
+    # analyse_contenu (pour une réponse)
+}
+
+fonc mot_courant(analyseuse: *AnalyseuseRequête) -> chaine
+{
+    retourne construit_chaine(@analyseuse.requête[analyseuse.pointeur], analyseuse.taille_mot)
+}
+
+fonc analyse_ligne_requête(dyn analyseuse: *AnalyseuseRequête) -> LigneRequête
+{
+    dyn ligne_requête : LigneRequête
+    dyn état := ÉtatLigneRequête.MÉTHODE
+
+    tantque !analyse_finie(analyseuse) {
+        c := analyseuse.caractère_courant()
+
+        si c == ' ' {
+            si analyseuse.taille_mot != 0 {
+                chn := analyseuse.mot_courant()
+                état = ajoute_chaine(@ligne_requête, état, chn)
+                analyseuse.taille_mot = 0
+            }
+        }
+        sinon si c == '\r' {
+            analyseuse.position += 1
+            continue
+        }
+        sinon si c == '\n' {
+            si analyseuse.taille_mot != 0 {
+                chn := analyseuse.mot_courant()
+                état = ajoute_chaine(@ligne_requête, état, chn)
+                analyseuse.taille_mot = 0
+            }
+
+            analyseuse.position += 1
+            arrête
+        }
+        sinon {
+            si analyseuse.taille_mot == 0 {
+                analyseuse.pointeur = analyseuse.position
+            }
+
+            analyseuse.taille_mot += 1
+        }
+
+        analyseuse.position += 1
+    }
+
+    retourne ligne_requête
+}
+
+fonc principale(args : []*z8) : z32
+{
+    entête := "GET / HTTP/1.1
+Host: localhost:5005
+Connection: keep-alive
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36
+Sec-Fetch-Dest: document
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: cross-site
+Sec-Fetch-Mode: navigate
+Accept-Encoding: gzip, deflate, br
+Accept-Language: fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6
+"
+
+    dyn analyseuse : AnalyseuseRequête
+    analyse_requête(@analyseuse, entête)
+
+    retourne 0
+}
