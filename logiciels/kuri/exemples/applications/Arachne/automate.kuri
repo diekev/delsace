@@ -60,7 +60,7 @@ fonc foo()
 						}
 					}
 
-					# le noeud n'a pas la propriété
+					// le noeud n'a pas la propriété
 					automate.rembobine()
 					arrête
 				}
@@ -77,19 +77,19 @@ fonc foo()
 						}
 					}
 
-					# le noeud n'a pas l'étiquette
+					// le noeud n'a pas l'étiquette
 					automate.rembobine()
 					arrête
 				}
 
-				# le noeud est bon
+				// le noeud est bon
 				résultat.pousse(nom_var, noeud)
 				arrête
 			}
 		}
 
 		si automate.état() == CHERCHE_RELATION {
-			# accepte le noeud
+			// accepte le noeud
 		}
 	}
 }

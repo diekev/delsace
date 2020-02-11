@@ -81,7 +81,7 @@ fonc imprime_type(info : *InfoType) -> rien
 			imprime_type(info_arg.type_pointé)
 		}
 		FONCTION {
-		    # À FAIRE : types paramètres
+		    // À FAIRE : types paramètres
 			imprime("fonction()")
 		}
 		EINI {

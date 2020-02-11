@@ -1,5 +1,5 @@
-# Implémentation spécialisée de la table de hachage du module Fondation
-# pour avoir une clé de type chaine et une valeur de type z64
+// Implémentation spécialisée de la table de hachage du module Fondation
+// pour avoir une clé de type chaine et une valeur de type z64
 
 importe Fondation
 

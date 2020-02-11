@@ -122,7 +122,7 @@ fonc analyse_entêtes(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
 
         insère(table, entête, valeur)
 
-        #imprime("--- ", entête, ": ", valeur, "\n")
+        //imprime("--- ", entête, ": ", valeur, "\n")
     }
 
     retourne table
@@ -141,10 +141,10 @@ fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> 
     dyn table := analyse_entêtes(analyseuse)
     diffère { décrée_table_hachage(table); }
 
-    # À FAIRE(bug compilateur) : l'index type de la coroutine est négatif
-    #pour n dans chaque_noeud(table) {
-    #    imprime("--- ", n.clé, ": ", n.valeur, "\n")
-    #}
+    // À FAIRE(bug compilateur) : l'index type de la coroutine est négatif
+    //pour n dans chaque_noeud(table) {
+    //    imprime("--- ", n.clé, ": ", n.valeur, "\n")
+    //}
 
     pour alvéole dans table.alvéoles {
         dyn n := alvéole
@@ -155,7 +155,7 @@ fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> 
         }
     }
 
-    # analyse_contenu (pour une réponse)
+    // analyse_contenu (pour une réponse)
 }
 
 fonc mot_courant(analyseuse: *AnalyseuseRequête) -> chaine

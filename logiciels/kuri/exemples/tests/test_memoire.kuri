@@ -3,7 +3,7 @@ importe "flux"
 
 fonc test_echange_memoire() -> rien
 {
-    # test superposition
+    // test superposition
 
     chn := "0123456789";
 
@@ -15,7 +15,7 @@ fonc test_echange_memoire() -> rien
 
 fonc test_bouge_memoire() -> rien
 {
-    # test superposition
+    // test superposition
 
     chn := "0123456789";
 
@@ -35,14 +35,14 @@ fonc copie_mem2(src : []octet, dyn dst : []octet, taille : z64) -> rien
 	    retourne;
 	}
 
-	# vérifie si superposition
+	// vérifie si superposition
 
 	ptr_deb_src := @src[0];
 	ptr_fin_src := @src[src.taille - 1];
 	ptr_deb_dst := @dst[0];
 
-	# src |---------------|
-	# dst       |---------------|
+	// src |---------------|
+	// dst       |---------------|
 	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {
         pour i dans transtype(0 : z64)...taille - 1 {
             idx := taille - i - 1;
@@ -58,14 +58,14 @@ fonc copie_mem2(src : []octet, dyn dst : []octet, taille : z64) -> rien
 
 fonc test_copie_mem() -> rien
 {
-    # test superposition
-    # 0123456789
-    # 0120123456
+    // test superposition
+    // 0123456789
+    // 0120123456
 
-    # 0123456789
-    # 3456789789
+    // 0123456789
+    // 3456789789
 
-    # Les chaines statiques ne peuvent être modifiées.
+    // Les chaines statiques ne peuvent être modifiées.
     chn_stat := "0123456789";
     dyn chn := loge chaine(chn_stat.taille);
     diffère { déloge chn; }

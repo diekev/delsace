@@ -32,7 +32,7 @@ fonc type_prop_pour_chaine(chn : chaine) -> TypeProp
     retourne TypeProp.INVALIDE
 }
 
-###############################################################################
+//##############################################################################
 
 fonc est_nombre_entier(lexème : TypeLexème) -> bool
 {
@@ -115,8 +115,8 @@ fonc est_operateur_binaire(lexème : TypeLexème) -> bool
     retourne faux
 }
 
-# Retourne vrai si l'lexème passé en paramètre peut-être un lexème
-# valide pour précèder un opérateur unaire '+' ou '-'.
+// Retourne vrai si l'lexème passé en paramètre peut-être un lexème
+// valide pour précèder un opérateur unaire '+' ou '-'.
 fonc precede_unaire_valide(dernier_lexème : TypeLexème) -> bool
 {
 	si (dernier_lexème == TypeLexème.PARENTHESE_FERMANTE) {
@@ -150,7 +150,7 @@ fonc precede_unaire_valide(dernier_lexème : TypeLexème) -> bool
 	retourne vrai
 }
 
-###############################################################################
+//##############################################################################
 
 struct Syntaxeuse {
     assembleuse : AssembleuseArbre
@@ -199,7 +199,7 @@ fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) -> rien
 			syntaxeuse.assembleuse.empile_noeud(TypeNoeud.ARRETE, syntaxeuse.données(), vrai)
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.POINT_VIRGULE)) {
-				#lance_erreur("Attendu un point-virgule '' après « arrête »")
+				//lance_erreur("Attendu un point-virgule '' après « arrête »")
 			}
 
 			syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.ARRETE)
@@ -209,7 +209,7 @@ fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) -> rien
 			syntaxeuse.assembleuse.empile_noeud(TypeNoeud.CONTINUE, syntaxeuse.données(), vrai)
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.POINT_VIRGULE)) {
-				#lance_erreur("Attendu un point-virgule '' après « continue »")
+				//lance_erreur("Attendu un point-virgule '' après « continue »")
 			}
 
 			syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.CONTINUE)
@@ -219,7 +219,7 @@ fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) -> rien
 			syntaxeuse.assembleuse.empile_noeud(TypeNoeud.RETOURNE, syntaxeuse.données(), vrai)
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.POINT_VIRGULE)) {
-				#lance_erreur("Attendu un point-virgule '' après « retourne »")
+				//lance_erreur("Attendu un point-virgule '' après « retourne »")
 			}
 
 			syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.RETOURNE)
@@ -237,7 +237,7 @@ fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) -> rien
 fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
-		#lance_erreur("Attendu la déclaration 'si'")
+		//lance_erreur("Attendu la déclaration 'si'")
 	}
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données(), vrai)
@@ -251,16 +251,16 @@ fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
-		#lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'")
+		//lance_erreur("Attendu une accolade fermante à la fin du contrôle 'si'")
 	}
 
 	si (syntaxeuse.est_lexème(TypeLexème.SINON)) {
 		syntaxeuse.avance()
 
-		# Peu importe que le 'sinon' contient un 'si' ou non, nous ajoutons un
-		# bloc pour créer un niveau d'indirection, afin d'éviter les problèmes
-		# de branchages.
-		# Originellement, cela vient du code de 'kuri'.
+		// Peu importe que le 'sinon' contient un 'si' ou non, nous ajoutons un
+		// bloc pour créer un niveau d'indirection, afin d'éviter les problèmes
+		// de branchages.
+		// Originellement, cela vient du code de 'kuri'.
 		syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données(), vrai)
 
 		si (syntaxeuse.est_lexème(TypeLexème.SI)) {
@@ -268,13 +268,13 @@ fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 		}
 		sinon {
 			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_OUVRANTE)) {
-				#lance_erreur("Attendu une accolade ouvrante après 'sinon'")
+				//lance_erreur("Attendu une accolade ouvrante après 'sinon'")
 			}
 
 			syntaxeuse.analyse_bloc()
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
-				#lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'")
+				//lance_erreur("Attendu une accolade fermante à la fin du contrôle 'sinon'")
 			}
 		}
 
@@ -287,29 +287,29 @@ fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 fonc analyse_controle_pour(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
-		#lance_erreur("Attendu la déclaration 'pour'")
+		//lance_erreur("Attendu la déclaration 'pour'")
 	}
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données(), vrai)
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
-		#lance_erreur("Attendu une chaîne de caractère après 'pour'")
+		//lance_erreur("Attendu une chaîne de caractère après 'pour'")
 	}
 
-	# enfant 1 : déclaration variable
+	// enfant 1 : déclaration variable
 
 	noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 	syntaxeuse.assembleuse.ajoute_noeud(noeud)
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DANS)) {
-		#lance_erreur("Attendu le mot 'dans' après la chaîne de caractère")
+		//lance_erreur("Attendu le mot 'dans' après la chaîne de caractère")
 	}
 
-	# enfant 2 : expr
+	// enfant 2 : expr
 
 	syntaxeuse.analyse_expression(TypeLexème.ACCOLADE_OUVRANTE)
 
-	# enfant 3 : bloc
+	// enfant 3 : bloc
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données(), vrai)
 
@@ -318,7 +318,7 @@ fonc analyse_controle_pour(dyn syntaxeuse : &Syntaxeuse) -> rien
 	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
-		#lance_erreur("Attendu une accolade fermante '}' à la fin du contrôle 'pour'")
+		//lance_erreur("Attendu une accolade fermante '}' à la fin du contrôle 'pour'")
 	}
 
 	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
@@ -405,14 +405,14 @@ fonc a_fini(syntaxeuse : &Syntaxeuse) -> bool
 
 fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) -> rien
 {
-	# Algorithme de Dijkstra pour générer une notation polonaise inversée.
+	// Algorithme de Dijkstra pour générer une notation polonaise inversée.
 	dyn expression : []*NoeudSyntaxique
 	dyn pile : []*NoeudSyntaxique
 	diffère { déloge pile; déloge expression; }
 
     dyn dernier_lexème : TypeLexème
 
-    # XXX - À FAIRE
+    // XXX - À FAIRE
     si syntaxeuse.position == 0 {
         dernier_lexème = syntaxeuse.lexèmes[syntaxeuse.position].lexème
     }
@@ -429,7 +429,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 
 		discr (morceau.lexème) {
 			CHAINE_CARACTERE {
-				# appel fonction : chaine + (
+				// appel fonction : chaine + (
 				si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
 					syntaxeuse.avance()
 
@@ -441,7 +441,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 
 					expression.pousse(noeud)
 				}
-				# variable : chaine
+				// variable : chaine
 				sinon {
 					noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, morceau)
 					expression.pousse(noeud)
@@ -466,13 +466,13 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.VALEUR, morceau, faux)
 
 				si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
-					#lance_erreur("Attendu une paranthèse ouvrante après la déclaration du constructeur")
+					//lance_erreur("Attendu une paranthèse ouvrante après la déclaration du constructeur")
 				}
 
 				syntaxeuse.analyse_expression(TypeLexème.POINT_VIRGULE)
 
 				si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_FERMANTE)) {
-					#lance_erreur("Attendu une paranthèse fermante après la déclaration du constructeur")
+					//lance_erreur("Attendu une paranthèse fermante après la déclaration du constructeur")
 				}
 
 				syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.VALEUR)
@@ -493,7 +493,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			}
 			VRAI,
 			FAUX {
-				# remplace l'lexème par TypeLexème.BOOL
+				// remplace l'lexème par TypeLexème.BOOL
 				morceau.lexème = TypeLexème.BOOL
 				noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VALEUR, morceau)
 				expression.pousse(noeud)
@@ -509,18 +509,18 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 
 				dernier_lexème = TypeLexème.PARENTHESE_FERMANTE
 
-				# À FAIRE : morceau.lexème est la parenthèse ouvrante, donc dernier_lexème
-				# plus bas est ajourner avec PARENTHSE_OUVRANTE et non PARANTHESE_FERMANTE,
-				# ce qui fait échouer la logique de détermination d'un opérateur unaire
+				// À FAIRE : morceau.lexème est la parenthèse ouvrante, donc dernier_lexème
+				// plus bas est ajourner avec PARENTHSE_OUVRANTE et non PARANTHESE_FERMANTE,
+				// ce qui fait échouer la logique de détermination d'un opérateur unaire
 				continue
 			}
 			PARENTHESE_FERMANTE {
-				# À FAIRE : vérification de l'oubli de parenthèse fermante
-				# recule pour être synchronisé avec les différents points de sorties
+				// À FAIRE : vérification de l'oubli de parenthèse fermante
+				// recule pour être synchronisé avec les différents points de sorties
 				syntaxeuse.recule()
 				arrête
 			}
-			# opérations binaire
+			// opérations binaire
 			PLUS,
 			MOINS {
 				dyn lexème_op := morceau.lexème
@@ -566,9 +566,9 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 			MOINS_EGAL,
 			DIVISE_EGAL,
 			FOIS_EGAL {
-				# Correction de crash d'aléatest, improbable dans la vrai vie.
+				// Correction de crash d'aléatest, improbable dans la vrai vie.
 				si (expression.est_vide() && est_operateur_binaire(morceau.lexème)) {
-					#lance_erreur("Opérateur binaire utilisé en début d'expression")
+					//lance_erreur("Opérateur binaire utilisé en début d'expression")
 				}
 
 				vide_pile_operateur(expression, pile, morceau.lexème)
@@ -582,7 +582,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				pile.pousse(noeud)
 			}
 			CROCHET_OUVRANT {
-				# l'accès à un élément d'un tableau est chaine[index]
+				// l'accès à un élément d'un tableau est chaine[index]
 				si (dernier_lexème == TypeLexème.CHAINE_CARACTERE) {
 					vide_pile_operateur(expression, pile, morceau.lexème)
 
@@ -603,7 +603,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 					syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.VALEUR)
 				}
 			}
-			# opérations unaire
+			// opérations unaire
 			EXCLAMATION,
 			TILDE,
 			PLUS_UNAIRE,
@@ -616,7 +616,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				vide_pile_operateur(expression, pile, morceau.lexème)
 
 				si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
-					#lance_erreur("Attendu un nom après '$'")
+					//lance_erreur("Attendu un nom après '$'")
 				}
 
 				noeud := syntaxeuse.assembleuse.crée_noeud(
@@ -629,7 +629,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				vide_pile_operateur(expression, pile, morceau.lexème)
 
 				si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
-					#lance_erreur("Attendu un nom après '@'")
+					//lance_erreur("Attendu un nom après '@'")
 				}
 
 				noeud := syntaxeuse.assembleuse.crée_noeud(
@@ -649,15 +649,15 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 				pile.pousse(noeud)
 			}
 			sinon {
-				#lance_erreur("Identifiant inattendu dans l'expression")
+				//lance_erreur("Identifiant inattendu dans l'expression")
 			}
 		}
 
 		dernier_lexème = morceau.lexème
 	}
 
-	# Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
-	# éviter de crasher lors des fuzz-tests.
+	// Retourne s'il n'y a rien dans l'expression, ceci est principalement pour
+	// éviter de crasher lors des fuzz-tests.
 	si (expression.est_vide()) {
 		retourne
 	}
@@ -667,15 +667,15 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 		pile.pop_dernier()
 	}
 
-	#pile.réserve(expression.taille)
+	//pile.réserve(expression.taille)
 
 	pour noeud dans expression {
 		si (est_operateur_binaire(noeud.lexème())) {
 			si (pile.taille < 2) {
-				#erreur::lance_erreur(
-				#			"Expression malformée",
-				#			noeud.donnees_morceau(),
-				#			erreur::type_erreur::NORMAL)
+				//erreur::lance_erreur(
+				//			"Expression malformée",
+				//			noeud.donnees_morceau(),
+				//			erreur::type_erreur::NORMAL)
 			}
 
 			n2 := pile.dernier()
@@ -706,48 +706,48 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 	pile.pop_dernier()
 
 	si (pile.taille != 0) {
-		#premier_noeud = pile.dernier()
-		#dernier_noeud = premier_noeud
-		#pile.pop_dernier()
+		//premier_noeud = pile.dernier()
+		//dernier_noeud = premier_noeud
+		//pile.pop_dernier()
 
-		#pos_premier = premier_noeud.donnees_morceau().ligne_pos & 0xffffffff
-		#pos_dernier = pos_premier
+		//pos_premier = premier_noeud.donnees_morceau().ligne_pos & 0xffffffff
+		//pos_dernier = pos_premier
 
-		#tantque (!pile.est_vide()) {
-		#	n = pile.dernier()
-		#	pile.pop_dernier()
+		//tantque (!pile.est_vide()) {
+		//	n = pile.dernier()
+		//	pile.pop_dernier()
 
-		#	pos_n = n.donnees_morceau().ligne_pos & 0xffffffff
+		//	pos_n = n.donnees_morceau().ligne_pos & 0xffffffff
 
-		#	si (pos_n < pos_premier) {
-		#		premier_noeud = n
-		#	}
-		#	si (pos_n > pos_dernier) {
-		#		dernier_noeud = n
-		#	}
-		#}
+		//	si (pos_n < pos_premier) {
+		//		premier_noeud = n
+		//	}
+		//	si (pos_n > pos_dernier) {
+		//		dernier_noeud = n
+		//	}
+		//}
 
-		#erreur::lance_erreur_plage(
-		#			"Expression malformée, il est possible qu'il manque un opérateur",
-		#			premier_noeud.donnees_morceau(),
-		#			dernier_noeud.donnees_morceau())
+		//erreur::lance_erreur_plage(
+		//			"Expression malformée, il est possible qu'il manque un opérateur",
+		//			premier_noeud.donnees_morceau(),
+		//			dernier_noeud.donnees_morceau())
 	}
 }
 
 fonc analyse_appel_fonction(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
-	# ici nous devons être au niveau du premier paramètre
+	// ici nous devons être au niveau du premier paramètre
 
 	boucle {
-		# aucun paramètre, ou la liste de paramètre est vide
+		// aucun paramètre, ou la liste de paramètre est vide
 		si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_FERMANTE)) {
 			syntaxeuse.avance()
 			retourne
 		}
 
-		# À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
-		# si lexème final == ')', alors l'algorithme s'arrête quand une
-		# paranthèse fermante est trouvé et que la pile est vide
+		// À FAIRE : le dernier paramètre s'arrête à une parenthèse fermante.
+		// si lexème final == ')', alors l'algorithme s'arrête quand une
+		// paranthèse fermante est trouvé et que la pile est vide
 		syntaxeuse.analyse_expression(TypeLexème.VIRGULE)
 	}
 }
@@ -763,7 +763,7 @@ fonc analyse_directive(dyn syntaxeuse : &Syntaxeuse) -> rien
 		syntaxeuse.analyse_parametre(type_param)
 	}
 	sinon {
-		#lance_erreur("Directive inconnue")
+		//lance_erreur("Directive inconnue")
 	}
 }
 
@@ -775,22 +775,22 @@ struct DonneesDeclarationParam {
 fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
-		#lance_erreur("Attendu une parenthèse ouvrante '(' après la déclaration du paramètre")
+		//lance_erreur("Attendu une parenthèse ouvrante '(' après la déclaration du paramètre")
 	}
 
 	dyn param : DonneesDeclarationParam
 	param.type = type_param
 
 	boucle {
-		# aucun paramètre, ou la liste de paramètre est vide
+		// aucun paramètre, ou la liste de paramètre est vide
 		si (syntaxeuse.est_lexème(TypeLexème.PARENTHESE_FERMANTE)) {
 			syntaxeuse.avance()
 
 			si (param.nom.taille == 0) {
-				#lance_erreur("Le paramètre n'a pas de nom !")
+				//lance_erreur("Le paramètre n'a pas de nom !")
 			}
 
-			#syntaxeuse.contexte.params_declare.pousse(param)
+			//syntaxeuse.contexte.params_declare.pousse(param)
 
 			retourne
 		}
@@ -803,18 +803,18 @@ fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre
 			PROP_PARAM_MAX {
 				syntaxeuse.avance()
 				si (!est_nombre(syntaxeuse.données().lexème)) {
-					#lance_erreur("Attendu un nombre pour « max »")
+					//lance_erreur("Attendu un nombre pour « max »")
 				}
 			}
 			PROP_PARAM_MIN {
 				syntaxeuse.avance()
 				si (!est_nombre(syntaxeuse.données().lexème)) {
-					#lance_erreur("Attendu un nombre pour « min »")
+					//lance_erreur("Attendu un nombre pour « min »")
 				}
 			}
 			PROP_PARAM_NOM {
 				si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_LITTERALE)) {
-					#lance_erreur("Attendu une chaine littérale pour « nom »")
+					//lance_erreur("Attendu une chaine littérale pour « nom »")
 				}
 
 				param.nom = syntaxeuse.données().chn
@@ -824,23 +824,23 @@ fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre
 
 				si (type_param == TypeParamètre.VEC3) {
 					si (!syntaxeuse.est_lexème(TypeLexème.CHAINE_LITTERALE)) {
-						#lance_erreur("Attendu une chaine littérale pour « valeur »")
+						//lance_erreur("Attendu une chaine littérale pour « valeur »")
 					}
 				}
 				sinon {
 					si (!est_nombre(syntaxeuse.données().lexème)) {
-						#lance_erreur("Attendu un nombre pour « valeur »")
+						//lance_erreur("Attendu un nombre pour « valeur »")
 					}
 				}
 			}
             INVALIDE {
-                #lance_erreur("Type de propriété invalide")
+                //lance_erreur("Type de propriété invalide")
             }
 		}
 	}
 }
 
-###############################################################################
+//##############################################################################
 
 fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) -> rien
 {

@@ -1,24 +1,24 @@
-# Exemple de création, d'assignation, et d'impression d'une chaîne 'pascal' en
-# Kuri. Une chaîne 'pascal' est une chaîne dont le premier caractère est la
-# longueur de celle-ci, ce qui implique qu'elle ne pourra avoir qu'au maximum
-# 255 caractères.
-#
-# Si l'exemple a été compilé correctement, les chaînes "chaîne pascal\n" et
-# "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
-# sortie standard.
+// Exemple de création, d'assignation, et d'impression d'une chaîne 'pascal' en
+// Kuri. Une chaîne 'pascal' est une chaîne dont le premier caractère est la
+// longueur de celle-ci, ce qui implique qu'elle ne pourra avoir qu'au maximum
+// 255 caractères.
+//
+// Si l'exemple a été compilé correctement, les chaînes "chaîne pascal\n" et
+// "chaîne pascal arguments nommés et désordonnés\n" seront imprimées dans la
+// sortie standard.
 
-# Déclaration de la fonc externe printf qui se trouve dans libc.
+// Déclaration de la fonc externe printf qui se trouve dans libc.
 fonc externe printf(format : *z8, args : ...) -> z32;
 
-# Définition de la structure ChaînePascal.
+// Définition de la structure ChaînePascal.
 struct ChaînePascal {
-	# Les données sont un tableau de 256 z8, à savoir taille + 255 caractères
-	# ascii.
+	// Les données sont un tableau de 256 z8, à savoir taille + 255 caractères
+	// ascii.
 	données : [256]z8;
 }
 
-# Retourne la longueur d'une chaîne 'C' terminée par '\0'. Si la chaîne n'est
-# pas terminée par '\0', la fonc restera bloquée dans une boucle infinie.
+// Retourne la longueur d'une chaîne 'C' terminée par '\0'. Si la chaîne n'est
+// pas terminée par '\0', la fonc restera bloquée dans une boucle infinie.
 fonc longueur(chaîne : *z8) -> z64
 {
 	dyn i : z64 = 0;
@@ -34,15 +34,15 @@ fonc longueur(chaîne : *z8) -> z64
 	retourne i;
 }
 
-# Assigne une chaîne 'C' terminée par '\0' à une ChaînePascal. La longueur de la
-# chaîne 'C' sera stockée dans le premier caractère des données de la
-# ChaînePascal ; les caractères suivants contiendront la chaîne elle-même.
-# 
-# Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
-# sortie standard, et la fonc retournera.
-# 
-# Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
-# la sortie standard, et la fonc retournera sans rien copier.
+// Assigne une chaîne 'C' terminée par '\0' à une ChaînePascal. La longueur de la
+// chaîne 'C' sera stockée dans le premier caractère des données de la
+// ChaînePascal ; les caractères suivants contiendront la chaîne elle-même.
+// 
+// Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
+// sortie standard, et la fonc retournera.
+// 
+// Si la chaîne 'C' mesure plus que 255 caractères, une erreur sera imprimée dans
+// la sortie standard, et la fonc retournera sans rien copier.
 fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) -> rien
 {
 	si cp == nul {
@@ -64,10 +64,10 @@ fonc assigne_chaîne_pascal(dyn cp : *ChaînePascal,  chaîne : *z8) -> rien
 	}
 }
 
-# Imprime une ChaînePascal dans la sortie standard.
-# 
-# Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
-# sortie standard, et la fonc retournera.
+// Imprime une ChaînePascal dans la sortie standard.
+// 
+// Si le pointeur vers la ChaînePascal est nul, une erreur sera imprimée dans la
+// sortie standard, et la fonc retournera.
 fonc imprime_chaîne_pascal(cp : *ChaînePascal) -> rien
 {
 	si cp == nul {
@@ -82,7 +82,7 @@ fonc imprime_chaîne_pascal(cp : *ChaînePascal) -> rien
 	}
 }
 
-# Point d'entrée des programmes Kuri.
+// Point d'entrée des programmes Kuri.
 fonc principale(compte : z32, arguments : **z8) -> z32
 {
 	dyn chaîne : ChaînePascal;
@@ -90,8 +90,8 @@ fonc principale(compte : z32, arguments : **z8) -> z32
 	assigne_chaîne_pascal(@chaîne, "chaîne pascal\n");
 	imprime_chaîne_pascal(@chaîne);
 
-	# Il est possible de nommer les paramètres des foncs et ainsi de les
-	# donner dans le désordre.
+	// Il est possible de nommer les paramètres des foncs et ainsi de les
+	// donner dans le désordre.
 	assigne_chaîne_pascal(
 	    chaîne="chaîne pascal arguments nommés et désordonnés\n",
 	    cp=@chaîne);

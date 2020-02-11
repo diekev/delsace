@@ -1,4 +1,4 @@
-# Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
+// Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
 
 charge "base"
 
@@ -7,8 +7,8 @@ struct RappelCompilateur {
     rappel_ajout_fichier_à_la_compilation : #!nulctx fonc(chaine)(rien)
 }
 
-# Il nous faudrait un système pour définir un symbole interne à un module
-# afin d'éviter que les gens manipulent ceci
+// Il nous faudrait un système pour définir un symbole interne à un module
+// afin d'éviter que les gens manipulent ceci
 dyn _RC : RappelCompilateur
 
 #!nulctx fonc initialise_RC(

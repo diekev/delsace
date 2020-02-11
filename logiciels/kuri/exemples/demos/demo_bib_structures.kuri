@@ -2,7 +2,7 @@ importe "flux"
 importe "chaine"
 importe "structures"
 
-#################################################################
+//################################################################
 
 fonc test_pile() -> rien
 {
@@ -45,7 +45,7 @@ fonc test_file() -> rien
 
     pour i dans 0...9 {
         v := i * 2
-        enfile(p, @v)  # À FAIRE : transtypage automatique
+        enfile(p, @v)  // À FAIRE : transtypage automatique
         imprime("enfile : ", v, " -> ", mémoire(p), '\n')
     }
 

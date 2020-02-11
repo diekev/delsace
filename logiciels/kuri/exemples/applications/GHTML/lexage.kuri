@@ -28,7 +28,7 @@ fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) -> rien
     liste[taille] = valeur
 }
 
-#######################################
+//######################################
 
 fonc id_identifiant(identifiant : chaine) -> TypeLexème
 {
@@ -43,13 +43,13 @@ fonc id_identifiant(identifiant : chaine) -> TypeLexème
 	retourne TypeLexème.CHAINE_CARACTÈRE
 }
 
-#######################################
+//######################################
 
-# À FAIRE(compilateur) : l'énumération n'est pas dans le graphe de symboles
+// À FAIRE(compilateur) : l'énumération n'est pas dans le graphe de symboles
 énum ÉtatLexage : z32 {
-    # L'état quand nous sommes dans un script de contrôle du gabarit
+    // L'état quand nous sommes dans un script de contrôle du gabarit
 	SCRIPT
-    # L'état quand nous sommes dans du code HTML
+    // L'état quand nous sommes dans du code HTML
 	HTML
 }
 

@@ -1,10 +1,10 @@
-# Bibliothèque contenant des outils pour les boucles et autres itérations.
+// Bibliothèque contenant des outils pour les boucles et autres itérations.
 
-# Itérateurs infinis.
+// Itérateurs infinis.
 
-# À FAIRE : cycle avec des tableaux
+// À FAIRE : cycle avec des tableaux
 
-# Itère sur les caractères de la chaine précisé, et recommence une fois fini.
+// Itère sur les caractères de la chaine précisé, et recommence une fois fini.
 corout cycle(chn : chaine) -> z8
 {
     boucle {
@@ -14,8 +14,8 @@ corout cycle(chn : chaine) -> z8
 	}
 }
 
-# Itère sur une plage allant de 'début' à 'fin' selon le 'pas', et recommence
-# une fois fini.
+// Itère sur une plage allant de 'début' à 'fin' selon le 'pas', et recommence
+// une fois fini.
 corout cycle(début : z32, fin : z32, pas : z32) -> z32
 {
     boucle {
@@ -25,8 +25,8 @@ corout cycle(début : z32, fin : z32, pas : z32) -> z32
 	}
 }
 
-# Compte à partir de 'début' selon le 'pas' donné. Le pas peut-être positif ou
-# négatif.
+// Compte à partir de 'début' selon le 'pas' donné. Le pas peut-être positif ou
+// négatif.
 corout compte(début : z32, pas : z32) -> z32
 {
 	dyn val := début
@@ -36,7 +36,7 @@ corout compte(début : z32, pas : z32) -> z32
 	}
 }
 
-# Répète la 'valeur' précisée indéfiniment.
+// Répète la 'valeur' précisée indéfiniment.
 corout réitère(valeur : z32) -> z32
 {
     boucle {
@@ -44,9 +44,9 @@ corout réitère(valeur : z32) -> z32
 	}
 }
 
-# Itérateurs finis.
+// Itérateurs finis.
 
-# Répète la 'valeur' précisée selon le 'nombre' défini de fois.
+// Répète la 'valeur' précisée selon le 'nombre' défini de fois.
 corout réitère(valeur : z32, nombre : z32) -> z32
 {
     pour i dans 0 ... nombre - 1 {
@@ -54,8 +54,8 @@ corout réitère(valeur : z32, nombre : z32) -> z32
 	}
 }
 
-# Accumule les valeurs du tableau et retiens le résultat à chaque itération.
-# Par exemple accumule([1, 2, 3, 4, 5]) donne la séquence 1, 3, 6, 10, 15
+// Accumule les valeurs du tableau et retiens le résultat à chaque itération.
+// Par exemple accumule([1, 2, 3, 4, 5]) donne la séquence 1, 3, 6, 10, 15
 corout accumule(tabl : []z32) -> z32
 {
 	dyn val := 0
@@ -66,7 +66,7 @@ corout accumule(tabl : []z32) -> z32
 	}
 }
 
-# Génére les index d'une plage allant de 'début' à 'fin' avec le 'pas' donné.
+// Génére les index d'une plage allant de 'début' à 'fin' avec le 'pas' donné.
 corout plage(debut : z32, fin : z32, pas : z32) -> z32
 {
 	taille := (fin - debut) / pas

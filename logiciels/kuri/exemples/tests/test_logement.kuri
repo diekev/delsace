@@ -8,7 +8,7 @@ fonc imprime_tableau(tabl : []r64) -> rien
 
     dyn index = 0;
     pour v dans tabl {
-        # À FAIRE : besoin_dérèf
+        // À FAIRE : besoin_dérèf
         x := v;
         imprime("tabl[", index, "] = ", x, "\n");
         index = index + 1;
@@ -47,7 +47,7 @@ fonc test() -> rien
     imprime("Vecteur initiliasé : ", vec1, '\n');
     imprime("Vecteur non-initiliasé : ", vec2, '\n');
 
-    # À FAIRE : appel foncs ne foncne pas s'il faut transformer les arguments
+    // À FAIRE : appel foncs ne foncne pas s'il faut transformer les arguments
     dyn nom := "x";
 
     dyn ok := possede_membre(vec1, nom);
@@ -59,7 +59,7 @@ fonc test() -> rien
         imprime("Le vecteur ne possède pas le membre 'x' !\n");
     }
 
-    # À FAIRE : réassignement
+    // À FAIRE : réassignement
     dyn nom1 := "non";
     ok = possede_membre(vec1, nom1);
 
@@ -138,7 +138,7 @@ fonc test_fichier() -> rien
         imprime("Lu ", nread, " octets\n");
 
         dyn chn : chaîne;
-        chn.pointeur = @tpn[0]; # À FAIRE : prend pointeur automatiquement
+        chn.pointeur = @tpn[0]; // À FAIRE : prend pointeur automatiquement
         chn.taille = transtype(nread : z64);
 
         imprime(chn, '\n');
@@ -169,7 +169,7 @@ fonc principale(args : []*z8) -> z32
 
     logement_tableau();
     logement_chaine();
-    #test_fichier();
+    //test_fichier();
     test();
 
     retourne 0;

@@ -1,19 +1,19 @@
-#
-# safefile package    http://www.cs.wisc.edu/~kupsch/safefile
-#
-# Copyright 2007-2008, 2010-2011 James A. Kupsch
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+//
+// safefile package    http://www.cs.wisc.edu/~kupsch/safefile
+//
+// Copyright 2007-2008, 2010-2011 James A. Kupsch
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #!inclus "sys/types.h"
 #!inclus "sys/stat.h"
@@ -22,40 +22,40 @@
 #!inclus "errno.h"
 #!inclus "stdio.h"
 
-# Replacement functions for open.  These functions differ in the following
-# ways:
-#
-# 1) file creation is always done safely and the semantics are determined by
-#    which of the 6 functions is used.
-# 2) passing _O_CREAT or _O_EXCL to the safe_create* functions is optional
-# 3) passing _O_CREAT or _O_EXCL to the safe_open_no_create is an error.
-# 4) file creation permissions have a default of 0644.  umask still applies.
-#    (should not pass unless something sinon is needed)
-# 5) all other flags are passed to open
-# 6) _EINVAL is returned if the filename is NULL
-# 7) _EEXISTS is returned if the final component is a symbolic link when
-#    creating a file
-# 8) _EEXISTS is returned if the final component is a symbolic link when
-#    opening an existing file unless the#_follow() version is used
-# 9) errno is only modified on failure
+// Replacement functions for open.  These functions differ in the following
+// ways:
+//
+// 1) file creation is always done safely and the semantics are determined by
+//    which of the 6 functions is used.
+// 2) passing _O_CREAT or _O_EXCL to the safe_create* functions is optional
+// 3) passing _O_CREAT or _O_EXCL to the safe_open_no_create is an error.
+// 4) file creation permissions have a default of 0644.  umask still applies.
+//    (should not pass unless something sinon is needed)
+// 5) all other flags are passed to open
+// 6) _EINVAL is returned if the filename is NULL
+// 7) _EEXISTS is returned if the final component is a symbolic link when
+//    creating a file
+// 8) _EEXISTS is returned if the final component is a symbolic link when
+//    opening an existing file unless the#_follow() version is used
+// 9) errno is only modified on failure
 
-##########################
+//#########################
 
 struct externe stat {
-    st_dev : n64;         # ID of device containing file
-	st_ino : n64;         # inode number
-	st_nlink : n64;     # number of hard links
-	st_mode : n32;       # protection
-	st_uid : n32;         # user ID of owner
-	st_gid : n32;         # group ID of owner
-	__pad0 : n32;         # padding pour la version 64-bit
-	st_rdev : n64;        # device ID (if special file)
-	st_size : z64;        # total size, in bytes
-	st_blksize : z64; # blocksize for file system I/O
+    st_dev : n64;         // ID of device containing file
+	st_ino : n64;         // inode number
+	st_nlink : n64;     // number of hard links
+	st_mode : n32;       // protection
+	st_uid : n32;         // user ID of owner
+	st_gid : n32;         // group ID of owner
+	__pad0 : n32;         // padding pour la version 64-bit
+	st_rdev : n64;        // device ID (if special file)
+	st_size : z64;        // total size, in bytes
+	st_blksize : z64; // blocksize for file system I/O
 	st_blocks : z64;
-	st_atime : z64;      # time of last access
-	st_mtime : z64;      # time of last modification
-	st_ctime : z64;      # time of last status change
+	st_atime : z64;      // time of last access
+	st_mtime : z64;      // time of last modification
+	st_ctime : z64;      // time of last status change
 }
 
 _O_TRUNC := 0o1000;
@@ -79,13 +79,13 @@ fonc externe ftruncate(a : z32, f : z32) -> z32;
 fonc externe S_ISLNK(a : n32) -> bool;
 fonc externe S_ISFIFO(a : n32) -> bool;
 
-##########################
+//#########################
 
 SAFE_OPEN_DEFAULT_MODE := 0600;
 SAFE_OPEN_RETRY_MAX := 50;
 
-# À FAIRE : typedefs/alias
-#typedef int (*safe_open_path_warning_callback_type)(const char#fn);
+// À FAIRE : typedefs/alias
+//typedef int (*safe_open_path_warning_callback_type)(const char#fn);
 
 dyn safe_open_path_warning_callback : fonc(*z8)z32 = nul;
 
@@ -112,16 +112,16 @@ fonc safe_open_path_warning(fn : *z8) -> z32
 	retourne f(fn);
 }
 
-# open existing file, if the last component of fn is a symbolic link fail
+// open existing file, if the last component of fn is a symbolic link fail
 fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 {
-	saved_errno = errno;		# used to restore errno on success
+	saved_errno = errno;		// used to restore errno on success
 	want_trunc = (flags & _O_TRUNC) != 0;
 	dyn lstat_buf : stat;
 	dyn fstat_buf : stat;
 	dyn num_tries = 0;
 
-	# check for invalid argument values
+	// check for invalid argument values
 	si (fn == nul || (flags & (_O_CREAT | _O_EXCL))) {
 	    nonsûr {
 		    errno = _EINVAL;
@@ -129,27 +129,27 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 		retourne -1;
 	}
 
-	# do open without _O_TRUNC and perform with ftruncate after the open
+	// do open without _O_TRUNC and perform with ftruncate after the open
 	si (want_trunc) {
 		flags &= ~_O_TRUNC;
 	}
 
-	# Try and open the file and check for symbolic links.  These steps may
-	# need to be performed multiple time if the directory entry changes
-	# between the open and the lstat.  It will eventually complete unless an
-	# attacker can stay perfectly synchronized in changing the directory entry
-	# between the open and the lstat
+	// Try and open the file and check for symbolic links.  These steps may
+	// need to be performed multiple time if the directory entry changes
+	// between the open and the lstat.  It will eventually complete unless an
+	// attacker can stay perfectly synchronized in changing the directory entry
+	// between the open and the lstat
 
     dyn f : z32;
 
     boucle {
-	    # If this is the second or subsequent attempt, then someone is
-	    # manipulating the file system object referred to by fn.  Call the user
-	    # defined callback if registered, and fail if it returns a non-zero value.
+	    // If this is the second or subsequent attempt, then someone is
+	    // manipulating the file system object referred to by fn.  Call the user
+	    // defined callback if registered, and fail if it returns a non-zero value.
 
         num_tries += 1;
 	    si (num_tries > 1) {
-		    # the default error is _EAGAIN, the callback function may change this
+		    // the default error is _EAGAIN, the callback function may change this
 		    nonsûr {
 		        errno = _EAGAIN;
 		    }
@@ -158,26 +158,26 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 			    retourne -1;
 		    }
 
-		    # check if we tried too many times
+		    // check if we tried too many times
 		    si (num_tries > SAFE_OPEN_RETRY_MAX) {
-			    # let the user decide what to do
+			    // let the user decide what to do
 			    retourne -1;
 		    }
 	    }
 
-	    # If the same file directory entry is accessed by both the lstat and the
-	    # open, he errors from open should be strictly a superset of those from
-	    # lstat, i.e. if lstat returns an error open should retourne the same error.
-	    #
-	    # WARNING: the open must occur before the lstat to prevent cryogenic sleep
-	    # attack (see Olaf Kirch message to BugTraq at
-	    # http://seclists.org/bugtraq/2000/Jan/0063.html). If the open occurs
-	    # first and succeeds, the device and inode pair cannot be reused before
-	    # the lstat.  If they are done the other way around an attacker can stop
-	    # or slow the process and wait for the lstat'd file to be deleted, then a
-	    # file with the same device and inode is created by the attacker or a
-	    # victim and a symbolic at the filename can point to the new file and it
-	    # will appear to match and not be a symbolic link.
+	    // If the same file directory entry is accessed by both the lstat and the
+	    // open, he errors from open should be strictly a superset of those from
+	    // lstat, i.e. if lstat returns an error open should retourne the same error.
+	    //
+	    // WARNING: the open must occur before the lstat to prevent cryogenic sleep
+	    // attack (see Olaf Kirch message to BugTraq at
+	    // http://seclists.org/bugtraq/2000/Jan/0063.html). If the open occurs
+	    // first and succeeds, the device and inode pair cannot be reused before
+	    // the lstat.  If they are done the other way around an attacker can stop
+	    // or slow the process and wait for the lstat'd file to be deleted, then a
+	    // file with the same device and inode is created by the attacker or a
+	    // victim and a symbolic at the filename can point to the new file and it
+	    // will appear to match and not be a symbolic link.
 
 	    f = open(fn, flags);
 	    open_errno = errno;
@@ -185,25 +185,25 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 	    dyn r = lstat(fn, @lstat_buf);
 
 
-	    # handle the case of the lstat failing first
+	    // handle the case of the lstat failing first
 	    si (r == -1) {
-		    # check if open also failed
+		    // check if open also failed
 		    si (f == -1) {
-			    # open and lstat failed, retourne the current errno from lstat
+			    // open and lstat failed, retourne the current errno from lstat
 
 			    retourne -1;
 		    }
 
-		    # open worked, lstat failed.  Directory entry changed after open, try
-	        # again to get a consistent view of the file.
+		    // open worked, lstat failed.  Directory entry changed after open, try
+	        // again to get a consistent view of the file.
 
 		    close(f);
 
 		    continue;
 	    }
 
-	    # Check if lstat fn is a symbolic link.  This is an error no matter what
-	    # the result of the open was.  Return an error of _EEXIST.
+	    // Check if lstat fn is a symbolic link.  This is an error no matter what
+	    // the result of the open was.  Return an error of _EEXIST.
 
 	    si (S_ISLNK(lstat_buf.st_mode)) {
 		    si (f != -1) {
@@ -216,21 +216,21 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 		    retourne -1;
 	    }
 
-	    # check if the open failed
+	    // check if the open failed
 	    si (f == -1) {
-		    # open failed, lstat worked
+		    // open failed, lstat worked
 
 		    si (open_errno == _ENOENT) {
-			    # Since this is not a symbolic link, the only way this could have
-		        # happened is if during the open the entry was a dangling symbolic
-		        # link or didn't exist, and during the lstat it exists and is not
-		        # a symbolic link.  Try again to get a consistent open/lstat.
+			    // Since this is not a symbolic link, the only way this could have
+		        // happened is if during the open the entry was a dangling symbolic
+		        // link or didn't exist, and during the lstat it exists and is not
+		        // a symbolic link.  Try again to get a consistent open/lstat.
 
 		        continue;
 		    }
 		    sinon {
-			    # open could have failed due to a symlink, but there is no way to
-		        # tell, so fail and retourne the open errno
+			    // open could have failed due to a symlink, but there is no way to
+		        // tell, so fail and retourne the open errno
 
 	            nonsûr {
 		            errno = open_errno;
@@ -239,14 +239,14 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 		    }
 	    }
 
-	    # At this point, we know that both the open and lstat worked, and that we
-	    # do not have a symbolic link.
+	    // At this point, we know that both the open and lstat worked, and that we
+	    // do not have a symbolic link.
 
-	    # Get the properties of the opened file descriptor
+	    // Get the properties of the opened file descriptor
 	    r = fstat(f, @fstat_buf);
 	    si (r == -1) {
-		    # fstat failed.  This should never happen if 'f' is a valid open file
-	        # descriptor.  Return the error from fstat.
+		    // fstat failed.  This should never happen if 'f' is a valid open file
+	        // descriptor.  Return the error from fstat.
 
 		    fstat_errno = errno;
 		    close(f);
@@ -258,43 +258,43 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 		    retourne -1;
 	    }
 
-	    # Check if the immutable properties (device, inode and type) of the file
-	    # system object opened match (fstat_buf) those of the directory entry
-	    # (lstat_buf).
+	    // Check if the immutable properties (device, inode and type) of the file
+	    // system object opened match (fstat_buf) those of the directory entry
+	    // (lstat_buf).
 	    si (   lstat_buf.st_dev !=  fstat_buf.st_dev
 	            || lstat_buf.st_ino != fstat_buf.st_ino
 	            || (_S_IFMT & lstat_buf.st_mode) != (_S_IFMT & fstat_buf.st_mode)) {
-		    # Since the lstat was not a symbolic link, and the file opened does
-	        # not match the one in the directory, it must have been replaced
-	        # between the open and the lstat, so try again.
+		    // Since the lstat was not a symbolic link, and the file opened does
+	        // not match the one in the directory, it must have been replaced
+	        // between the open and the lstat, so try again.
 
 		    close(f);
 
 		    continue;
 	    }
 
-	    # Le code C original utilise des goto dont le dernier est celui au-dessus.
+	    // Le code C original utilise des goto dont le dernier est celui au-dessus.
 	    arrête;
 	}
 
-	# At this point, we have successfully opened the file, and are sure it is
-	# the correct file and that the last component is not a symbolic link.
+	// At this point, we have successfully opened the file, and are sure it is
+	// the correct file and that the last component is not a symbolic link.
 
-	# Check if we still need to truncate the file.  POSIX says to ignore the
-	# truncate flag if the file type is a fifo or it is a tty.  Otherwise if
-	# it is not a regular file, POSIX says the behavior is implementation
-	# defined.
-	#
-	# Do not do the truncate if the file is already 0 in size.  This also
-	# prevents some unspecified behavior in truncate file types which are not
-	# regular, fifo's or tty's, such as device files like /dev/null.  On some
-	# platforms _O_CREAT|O_WRONLY|_O_TRUNC works properly on /dev/null, but
-	# _O_WRONLY|_O_TRUNC fails.
+	// Check if we still need to truncate the file.  POSIX says to ignore the
+	// truncate flag if the file type is a fifo or it is a tty.  Otherwise if
+	// it is not a regular file, POSIX says the behavior is implementation
+	// defined.
+	//
+	// Do not do the truncate if the file is already 0 in size.  This also
+	// prevents some unspecified behavior in truncate file types which are not
+	// regular, fifo's or tty's, such as device files like /dev/null.  On some
+	// platforms _O_CREAT|O_WRONLY|_O_TRUNC works properly on /dev/null, but
+	// _O_WRONLY|_O_TRUNC fails.
 	si (want_trunc && !isatty(f) && !S_ISFIFO(fstat_buf.st_mode)
 	        && fstat_buf.st_size != 0) {
 		r = ftruncate(f, 0);
 		si (r == -1) {
-			# truncate failed, so fail with the errno from ftruncate
+			// truncate failed, so fail with the errno from ftruncate
 			ftruncate_errno = errno;
 			close(f);
 
@@ -306,7 +306,7 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 		}
 	}
 
-	# Success, restore the errno in case we had recoverable failures
+	// Success, restore the errno in case we had recoverable failures
     nonsûr {
         errno = saved_errno;
     }
@@ -315,10 +315,10 @@ fonc safe_open_no_create(fn : *z8, dyn flags : z32) -> z32
 }
 
 
-# create file, error if exists, don't follow sym link
+// create file, error if exists, don't follow sym link
 fonc safe_create_fail_if_exists(fn : *z8, flags : z32, mode : z32) -> z32
 {
-	# check for invalid argument values
+	// check for invalid argument values
 	si (fn == nul) {
 	    nonsûr {
             errno = _EINVAL;
@@ -330,14 +330,14 @@ fonc safe_create_fail_if_exists(fn : *z8, flags : z32, mode : z32) -> z32
 }
 
 
-# create file if it doesn't exist, keep inode if it does
+// create file if it doesn't exist, keep inode if it does
 fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 {
 	dyn f = -1;
 	saved_errno = errno;
 	dyn num_tries = 0;
 
-	# check for invalid argument values
+	// check for invalid argument values
 	si (fn == nul) {
 	    nonsûr {
             errno = _EINVAL;
@@ -345,21 +345,21 @@ fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 		retourne -1;
 	}
 
-	# Remove _O_CREATE and _O_EXCL from the flags, the safe_open_no_create()
-	# requires them to not be inclusd and safe_creat_fail_if_exists() adds
-	# them implicitly.
+	// Remove _O_CREATE and _O_EXCL from the flags, the safe_open_no_create()
+	// requires them to not be inclusd and safe_creat_fail_if_exists() adds
+	// them implicitly.
 	flags &= ~_O_CREAT & ~_O_EXCL;
 
-	# Loop alternating between creating the file (and failing if it exists)
-	# and opening an existing file.  Return an error if any error occurs other
-	# than an indication that the other open method should work.
+	// Loop alternating between creating the file (and failing if it exists)
+	// and opening an existing file.  Return an error if any error occurs other
+	// than an indication that the other open method should work.
 	tantque (f == -1) {
-		# If this is the second or subsequent attempt, then someone is
-	    # manipulating the file system object referred to by fn.  Call the user
-	    # defined callback if registered, and fail if it returns a non-zero value.
+		// If this is the second or subsequent attempt, then someone is
+	    // manipulating the file system object referred to by fn.  Call the user
+	    // defined callback if registered, and fail if it returns a non-zero value.
 	    num_tries += 1;
 		si (num_tries > 1) {
-			# the default error is _EAGAIN, the callback function may change this
+			// the default error is _EAGAIN, the callback function may change this
 		    nonsûr {
                 errno = _EAGAIN;
             }
@@ -367,34 +367,34 @@ fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 				retourne -1;
 			}
 
-			# check if we tried too many times
+			// check if we tried too many times
 			si (num_tries > SAFE_OPEN_RETRY_MAX) {
-				# let the user decide what to do
+				// let the user decide what to do
 				retourne -1;
 			}
 		}
 
 		f = safe_open_no_create(fn, flags);
 
-		# check for error
+		// check for error
 		si (f == -1) {
 			si (errno != _ENOENT) {
 				retourne -1;
 			}
 
-			# previous function said the file exists, so this should work
+			// previous function said the file exists, so this should work
 			f = safe_create_fail_if_exists(fn, flags, mode);
 			si (f == -1 && errno != _EEXIST) {
 				retourne -1;
 			}
 
-			# At this point, safe_open_no_create either worked in which case
-		    # we are done, or it failed saying the file does not exist in which
-		    # case we'll take another spin in the loop.
+			// At this point, safe_open_no_create either worked in which case
+		    // we are done, or it failed saying the file does not exist in which
+		    // case we'll take another spin in the loop.
 		}
 	}
 
-	# no error, restore errno in case we had recoverable failures
+	// no error, restore errno in case we had recoverable failures
     nonsûr {
         errno = saved_errno;
     }
@@ -403,14 +403,14 @@ fonc safe_create_keep_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 }
 
 
-# create file, replace file if exists
+// create file, replace file if exists
 fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 {
 	dyn f = -1;
 	saved_errno = errno;
 	dyn num_tries = 0;
 
-	# check for invalid argument values
+	// check for invalid argument values
 	si (fn == nul) {
 		nonsûr {
             errno = _EINVAL;
@@ -418,16 +418,16 @@ fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 		retourne -1;
 	}
 
-	# Loop alternating between trying to remove the file and creating the file
-	# only if it does not exist.  Return an error if any error occurs other
-	# than an indication that the other function should work.
+	// Loop alternating between trying to remove the file and creating the file
+	// only if it does not exist.  Return an error if any error occurs other
+	// than an indication that the other function should work.
 	tantque (f == -1) {
-		# If this is the second or subsequent attempt, then someone is
-	    # manipulating the file system object referred to by fn.  Call the user
-	    # defined callback if registered, and fail if it returns a non-zero value.
+		// If this is the second or subsequent attempt, then someone is
+	    // manipulating the file system object referred to by fn.  Call the user
+	    // defined callback if registered, and fail if it returns a non-zero value.
 		num_tries += 1;
 		si (num_tries > 1) {
-			# the default error is _EAGAIN, the callback function may change this
+			// the default error is _EAGAIN, the callback function may change this
 		    nonsûr {
                 errno = _EAGAIN;
             }
@@ -436,33 +436,33 @@ fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 				retourne -1;
 			}
 
-			# check if we tried too many times
+			// check if we tried too many times
 			si (num_tries > SAFE_OPEN_RETRY_MAX) {
-				# let the user decide what to do
+				// let the user decide what to do
 				retourne -1;
 			}
 		}
 
 		r = unlink(fn);
 
-		# check if unlink failed, other than the file not existing
+		// check if unlink failed, other than the file not existing
 		si (r == -1 && errno != _ENOENT) {
 			retourne -1;
 		}
 
-		# At this point, the file does not exist, try to create
+		// At this point, the file does not exist, try to create
 		f = safe_create_fail_if_exists(fn, flags, mode);
 
 		si (f == -1 && errno != _EEXIST) {
 			retourne -1;
 		}
 
-		# At this point, safe_create_fail_if_exists either worked in which
-	    # case we are done, or if failed saying the file exists in which
-	    # case we'll take another spin in the loop
+		// At this point, safe_create_fail_if_exists either worked in which
+	    // case we are done, or if failed saying the file exists in which
+	    // case we'll take another spin in the loop
 	}
 
-	# no error, restore errno in case we had recoverable failures
+	// no error, restore errno in case we had recoverable failures
     nonsûr {
         errno = saved_errno;
     }
@@ -471,12 +471,12 @@ fonc safe_create_replace_if_exists(fn : *z8, dyn flags : z32, mode : z32) -> z32
 }
 
 
-# open existing file
+// open existing file
 fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) -> z32
 {
 	want_trunc = (flags & _O_TRUNC) != 0;
 
-	# check for invalid argument values
+	// check for invalid argument values
 	si (fn == nul || ((flags & (_O_CREAT | _O_EXCL)) != 0)) {
 		nonsûr {
             errno = _EINVAL;
@@ -484,7 +484,7 @@ fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) -> z32
 		retourne -1;
 	}
 
-	# do open without _O_TRUNC and perform with ftruncate after the open
+	// do open without _O_TRUNC and perform with ftruncate after the open
 	si (want_trunc) {
 		flags &= ~_O_TRUNC;
 	}
@@ -494,16 +494,16 @@ fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) -> z32
 		retourne -1;
 	}
 
-	# At this point the file was opened successfully
+	// At this point the file was opened successfully
 
-	# check if we need to still truncate the file
+	// check if we need to still truncate the file
 	si (want_trunc) {
 		dyn fstat_buf : stat;
 
 		dyn r = fstat(f, @fstat_buf);
 		si (r == -1) {
-			# fstat failed.  This should never happen if 'f' is a valid open
-		    # file descriptor.  Return the error from fstat.
+			// fstat failed.  This should never happen if 'f' is a valid open
+		    // file descriptor.  Return the error from fstat.
 			fstat_errno = errno;
 			close(f);
 	        nonsûr {
@@ -512,21 +512,21 @@ fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) -> z32
 			retourne -1;
 		}
 
-		# Check if we still need to truncate the file.  POSIX says to ignore
-	    # the truncate flag if the file type is a fifo or it is a tty.
-	    # Otherwise if it is not a regular file, POSIX says the behavior is
-	    # implementation defined.
-	    #
-	    # Do not do the truncate if the file is already 0 in size.  This also
-	    # prevents some unspecified behavior in truncate file types which are
-	    # not regular, fifo's or tty's, such as device files like /dev/null.
-	    # on some platforms _O_CREAT|O_WRONLY|_O_TRUNC works properly on
-	    # /dev/null, but _O_WRONLY|_O_TRUNC fails.
+		// Check if we still need to truncate the file.  POSIX says to ignore
+	    // the truncate flag if the file type is a fifo or it is a tty.
+	    // Otherwise if it is not a regular file, POSIX says the behavior is
+	    // implementation defined.
+	    //
+	    // Do not do the truncate if the file is already 0 in size.  This also
+	    // prevents some unspecified behavior in truncate file types which are
+	    // not regular, fifo's or tty's, such as device files like /dev/null.
+	    // on some platforms _O_CREAT|O_WRONLY|_O_TRUNC works properly on
+	    // /dev/null, but _O_WRONLY|_O_TRUNC fails.
 		si (!isatty(f) && !S_ISFIFO(fstat_buf.st_mode)
 		        && fstat_buf.st_size != 0) {
 			r = ftruncate(f, 0);
 			si (r == -1) {
-				# fail if the ftruncate failed
+				// fail if the ftruncate failed
 				ftruncate_errno = errno;
 				close(f);
 				nonsûr {
@@ -541,7 +541,7 @@ fonc safe_open_no_create_follow(fn : *z8, dyn flags : z32) -> z32
 }
 
 
-# create file if it doesn't exist, keep inode if it does
+// create file if it doesn't exist, keep inode if it does
 fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) -> z32
 {
 	dyn f = -1;
@@ -549,7 +549,7 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) ->
 	dyn lstat_buf : stat;
 	dyn num_tries = 0;
 
-	# check for invalid argument values
+	// check for invalid argument values
 	si (fn == nul) {
 		nonsûr {
             errno = _EINVAL;
@@ -557,21 +557,21 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) ->
 		retourne -1;
 	}
 
-	# Remove _O_CREATE and _O_EXCL from the flags, the safe_open_no_create()
-	# requires them to not be inclusd and safe_creat_fail_if_exists() adds
-	# them implicitly.
+	// Remove _O_CREATE and _O_EXCL from the flags, the safe_open_no_create()
+	// requires them to not be inclusd and safe_creat_fail_if_exists() adds
+	// them implicitly.
 	flags &= ~_O_CREAT & ~_O_EXCL;
 
-	# Loop alternating between creating the file (and failing if it exists)
-	# and opening an existing file.  Return an error if any error occurs other
-	# than an indication that the other function should work.
+	// Loop alternating between creating the file (and failing if it exists)
+	// and opening an existing file.  Return an error if any error occurs other
+	// than an indication that the other function should work.
 	tantque (f == -1) {
-		# If this is the second or subsequent attempt, then someone is
-	    # manipulating the file system object referred to by fn.  Call the user
-	    # defined callback if registered, and fail if it returns a non-zero value.
+		// If this is the second or subsequent attempt, then someone is
+	    // manipulating the file system object referred to by fn.  Call the user
+	    // defined callback if registered, and fail if it returns a non-zero value.
 	    num_tries += 1;
 		si (num_tries > 1) {
-			# the default error is _EAGAIN, the callback function may change this
+			// the default error is _EAGAIN, the callback function may change this
 			nonsûr {
                 errno = _EAGAIN;
             }
@@ -579,9 +579,9 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) ->
 				retourne -1;
 			}
 
-			# check if we tried too many times
+			// check if we tried too many times
 			si (num_tries > SAFE_OPEN_RETRY_MAX) {
-				# let the user decide what to do
+				// let the user decide what to do
 				retourne -1;
 			}
 		}
@@ -593,30 +593,30 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) ->
 				retourne -1;
 			}
 
-			# file exists, so use safe_open_no_create_follow to open
+			// file exists, so use safe_open_no_create_follow to open
 			f = safe_create_fail_if_exists(fn, flags, mode);
 
 			si (f == -1) {
-				# check if an error other than the file not existing occurred
-		        # and if so retourne that error
+				// check if an error other than the file not existing occurred
+		        // and if so retourne that error
 				si (errno != _EEXIST) {
 					retourne -1;
 				}
 
-				# At this point, creating the file returned _EEXIST and opening
-		        # the file returned _ENOENT.  Either the file did exist during
-		        # the attempt to create the file and was removed before the
-		        # open, or the file was dangling symbolic link.  If it is a
-		        # dangling symbolic link we want to retourne _ENOENT and if not
-		        # we should retry.
+				// At this point, creating the file returned _EEXIST and opening
+		        // the file returned _ENOENT.  Either the file did exist during
+		        // the attempt to create the file and was removed before the
+		        // open, or the file was dangling symbolic link.  If it is a
+		        // dangling symbolic link we want to retourne _ENOENT and if not
+		        // we should retry.
 
 				r = lstat(fn, @lstat_buf);
 				si (r == -1) {
 					retourne -1;
 				}
 
-				# lstat succeeded check if directory entry is a symbolic
-		        # link.
+				// lstat succeeded check if directory entry is a symbolic
+		        // link.
 				si (S_ISLNK(lstat_buf.st_mode)) {
 					nonsûr {
                         errno = _ENOENT;
@@ -624,14 +624,14 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) ->
 					retourne -1;
 				}
 
-				# At this point, the file was in the directory when the create
-		        # was tried, but wasn't when the attempt to just open the file
-		        # was made, so retry
+				// At this point, the file was in the directory when the create
+		        // was tried, but wasn't when the attempt to just open the file
+		        // was made, so retry
 			}
 		}
 	}
 
-	# no error, restore errno in case we had recoverable failures
+	// no error, restore errno in case we had recoverable failures
 	nonsûr {
         errno = saved_errno;
     }
@@ -639,16 +639,16 @@ fonc safe_create_keep_if_exists_follow(fn : *z8, dyn flags : z32, mode : z32) ->
 	retourne f;
 }
 
-# Wrapper functions that can be used as replacements for standard open and
-# fopen functions.  In C the initial permissions of the created file (mode)
-# will need to be added if missing.
+// Wrapper functions that can be used as replacements for standard open and
+// fopen functions.  In C the initial permissions of the created file (mode)
+// will need to be added if missing.
 
 
-# Fonction de remplacement pour 'open', échoue si fn est un lien symbolic.
+// Fonction de remplacement pour 'open', échoue si fn est un lien symbolic.
 fonc safe_open_wrapper(fn : *z8, flags : z32, mode : z32) -> z32
 {
 	si (flags & _O_CREAT) != 0 {
-		# _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
+		// _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
 
 		si (flags & _O_EXCL) != 0 {
 			retourne safe_create_fail_if_exists(fn, flags, mode);
@@ -657,16 +657,16 @@ fonc safe_open_wrapper(fn : *z8, flags : z32, mode : z32) -> z32
 	    retourne safe_create_keep_if_exists(fn, flags, mode);
 	}
 
-	# _O_CREAT non-spécifié
+	// _O_CREAT non-spécifié
 	retourne safe_open_no_create(fn, flags);
 }
 
 
-# Fonction de remplacement pour 'open', suit les liens symbolics existants.
+// Fonction de remplacement pour 'open', suit les liens symbolics existants.
 fonc safe_open_wrapper_follow(fn : *z8, flags : z32, mode : z32) -> z32
 {
 	si (flags & _O_CREAT) != 0 {
-		# _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
+		// _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
 
 		si (flags & _O_EXCL) != 0 {
 			retourne safe_create_fail_if_exists(fn, flags, mode);
@@ -675,7 +675,7 @@ fonc safe_open_wrapper_follow(fn : *z8, flags : z32, mode : z32) -> z32
 		retourne safe_create_keep_if_exists_follow(fn, flags, mode);
 	}
 
-	# _O_CREAT non-spécifié
+	// _O_CREAT non-spécifié
     retourne safe_open_no_create_follow(fn, flags);
 }
 
@@ -705,8 +705,8 @@ fonc principale(args : []*z8) -> z32
     linkFn_chn = "test_file.link";
     linkFn = linkFn_chn.pointeur;
 
-    dyn r : z32; # result codes
-    dyn f : z32; # file descriptor
+    dyn r : z32; // result codes
+    dyn f : z32; // file descriptor
 
     dyn F : *FILE;
 
@@ -724,11 +724,11 @@ fonc principale(args : []*z8) -> z32
     data = data_chn.pointeur;
     dyn n : z64;
 
-    # no umask
+    // no umask
     umask(myUmask);
 
-    #************************************************************************
-    # remove file if it exists
+    //************************************************************************
+    // remove file if it exists
 
     r = unlink(fn);
     si (r == -1 && errno != _ENOENT)  {
@@ -737,8 +737,8 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test safe_create_fail_if_exists with no prior file
+    //************************************************************************
+    // test safe_create_fail_if_exists with no prior file
 
 
     f = safe_create_fail_if_exists(fn, _O_WRONLY, allMask);
@@ -757,7 +757,7 @@ fonc principale(args : []*z8) -> z32
     curMask = curStat.st_mode & allMask;
     correctMask = transtype(allMask & ~myUmask : n32);
     si (curMask != correctMask)  {
-	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
+	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(4);
     }
 
@@ -770,19 +770,19 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test safe_create_fail_if_exists with prior file
+    //************************************************************************
+    // test safe_create_fail_if_exists with prior file
 
 
     f = safe_create_fail_if_exists(fn, _O_WRONLY, allMask);
     si (f != -1)  {
-	##fputs("safe_create_fail_if_exists success and it should not", _stderr);
+	//#fputs("safe_create_fail_if_exists success and it should not", _stderr);
 	exit(10);
     }
 
 
-    #************************************************************************
-    # test safe_create_replace_file_if_exists with prior file
+    //************************************************************************
+    // test safe_create_replace_file_if_exists with prior file
 
 
     r = link(fn, linkFn);
@@ -797,13 +797,13 @@ fonc principale(args : []*z8) -> z32
 	exit(21);
     }
 
-    n = write(f, data, 10); # 10 = sizeof(data);
+    n = write(f, data, 10); // 10 = sizeof(data);
     si (n != 10)  {
 	si (n == -1)  {
 	    perror("write");
 	    exit(22);
 	}  sinon  {
-	    ##fputs("partial write", _stderr);
+	    //#fputs("partial write", _stderr);
 	    exit(23);
 	}
     }
@@ -816,15 +816,15 @@ fonc principale(args : []*z8) -> z32
     }
 
     si (curStat.st_dev == prevStat.st_dev && curStat.st_ino == prevStat.st_ino)  {
-	##fputs("inode not different\n", _stderr);
+	//#fputs("inode not different\n", _stderr);
 	exit(25);
     }
 
-    # perms should have changed
+    // perms should have changed
     curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
-	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
+	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(26);
     }
 
@@ -843,8 +843,8 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test_safe_create_keep_if_exists with prior file
+    //************************************************************************
+    // test_safe_create_keep_if_exists with prior file
 
 
     f = safe_create_keep_if_exists(fn, _O_WRONLY, allMask);
@@ -861,20 +861,20 @@ fonc principale(args : []*z8) -> z32
     }
 
     si (curStat.st_dev != prevStat.st_dev || curStat.st_ino != prevStat.st_ino)  {
-	##fputs("inode different\n", _stderr);
+	//#fputs("inode different\n", _stderr);
 	exit(32);
     }
 
     si (curStat.st_size != prevStat.st_size)  {
-	##fputs("file contents are changed", _stderr);
+	//#fputs("file contents are changed", _stderr);
 	exit(33);
     }
 
-    # perms should not have changed
+    // perms should not have changed
     curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
-	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
+	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(34);
     }
 
@@ -887,8 +887,8 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test_safe_open_no_create with prior file
+    //************************************************************************
+    // test_safe_open_no_create with prior file
 
 
     f = safe_open_no_create(fn, _O_RDONLY);
@@ -905,20 +905,20 @@ fonc principale(args : []*z8) -> z32
     }
 
     si (curStat.st_dev != prevStat.st_dev || curStat.st_ino != prevStat.st_ino)  {
-	#fputs("inode different\n", _stderr);
+	//fputs("inode different\n", _stderr);
 	exit(42);
     }
 
     si (curStat.st_size != prevStat.st_size)  {
-	#fputs("file contents are changed", _stderr);
+	//fputs("file contents are changed", _stderr);
 	exit(43);
     }
 
-    # perms should not have changed
+    // perms should not have changed
     curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
-	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
+	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(44);
     }
 
@@ -931,8 +931,8 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test_safe_create_replace_if_exists with no prior file
+    //************************************************************************
+    // test_safe_create_replace_if_exists with no prior file
 
 
     r = unlink(fn);
@@ -954,11 +954,11 @@ fonc principale(args : []*z8) -> z32
 	exit(62);
     }
 
-    # perms should not have changed
+    // perms should not have changed
     curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
-	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
+	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(63);
     }
 
@@ -971,8 +971,8 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test_safe_create_keep_if_exists with no prior file
+    //************************************************************************
+    // test_safe_create_keep_if_exists with no prior file
 
 
     r = unlink(fn);
@@ -994,11 +994,11 @@ fonc principale(args : []*z8) -> z32
 	exit(72);
     }
 
-    # perms should not have changed
+    // perms should not have changed
     curMask = curStat.st_mode & allMask;
     correctMask = transtype(userMask & ~myUmask : n32);
     si (curMask != correctMask)  {
-	#fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
+	//fprintf(_stderr, "bad permissions (%04lo) not %04lo\n", curMask, correctMask);
 	exit(73);
     }
 
@@ -1011,8 +1011,8 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test_safe_open_no_create with no prior file
+    //************************************************************************
+    // test_safe_open_no_create with no prior file
 
 
     r = unlink(fn);
@@ -1024,7 +1024,7 @@ fonc principale(args : []*z8) -> z32
     f = safe_open_no_create(fn, _O_RDONLY);
     si (f != -1 && errno != _ENOENT)  {
 	si (f != 0)  {
-	    #fputs("safe_open_no_create", _stderr);
+	    //fputs("safe_open_no_create", _stderr);
 	    exit(81);
 	}  sinon  {
 	    perror("safe_open_no_create should have failed with ENOENT");
@@ -1033,13 +1033,13 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # test_safe_open_no_create with _O_CREAT flag, should fail
+    //************************************************************************
+    // test_safe_open_no_create with _O_CREAT flag, should fail
 
 
     f = safe_open_no_create(fn, _O_RDONLY | _O_CREAT);
     si (f != -1)  {
-	#fputs("safe_open_no_create", _stderr);
+	//fputs("safe_open_no_create", _stderr);
 	exit(80);
     }
 
@@ -1049,29 +1049,29 @@ fonc principale(args : []*z8) -> z32
     }
 
 
-    #************************************************************************
-    # final cleanup
+    //************************************************************************
+    // final cleanup
 
 
     unlink(fn);
     unlink(linkFn);
 
 
-    #************************************************************************
-    # test fopen on /dev/null
+    //************************************************************************
+    // test fopen on /dev/null
 
 
-    #F = safe_fopen_wrapper_follow("/dev/null", "w", 0o666);
-    #si (F == NULL)  {
-	#perror("safe_fopen_wrapper failed");
-	#exit(90);
-    #}  sinon  {
-	#fclose(F);
-    #}
+    //F = safe_fopen_wrapper_follow("/dev/null", "w", 0o666);
+    //si (F == NULL)  {
+	//perror("safe_fopen_wrapper failed");
+	//exit(90);
+    //}  sinon  {
+	//fclose(F);
+    //}
 
 
-    #************************************************************************
-    # success
+    //************************************************************************
+    // success
 
 
     retourne 0;

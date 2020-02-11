@@ -1,4 +1,4 @@
-# écrire dans un fichier ou dans une page mémoire
+// écrire dans un fichier ou dans une page mémoire
 
 struct PageMémoire {
 	données : []octet
@@ -40,7 +40,7 @@ fonc écris(dyn fichier : &FichierMémoire, données : []octet, position : z64) 
 	page_courante := fichier.pages[fichier.page_courante]
 
 	si position + données.taille >= page_courante.données.taille {
-		# À FAIRE : alloue une nouvelle page
+		// À FAIRE : alloue une nouvelle page
 		retourne
 	}
 
@@ -55,7 +55,7 @@ fonc écris(dyn fichier : &FichierMémoire, données : []octet) -> rien
 	position := page_courante.position
 
 	si position + données.taille >= page_courante.données.taille {
-		# À FAIRE : alloue une nouvelle page
+		// À FAIRE : alloue une nouvelle page
 		retourne
 	}
 
@@ -72,8 +72,8 @@ fonc lis(dyn fichier : &FichierMémoire, données : []octet) -> rien
 	position := page_courante.position
 
 	si position + données.taille >= page_courante.données.taille {
-		# À FAIRE : lis jusqu'à la fin du fichier, et charge la page suivante
-		# À FAIRE : si la page_courante est la dernière, que faire ?
+		// À FAIRE : lis jusqu'à la fin du fichier, et charge la page suivante
+		// À FAIRE : si la page_courante est la dernière, que faire ?
 		retourne
 	}
 
@@ -142,9 +142,9 @@ fonc ouvre_pour_écriture(
 {
 	dyn fichier := système.trouve_fichier(chemin)
 
-	# À FAIRE : note que le fichier est occupé
+	// À FAIRE : note que le fichier est occupé
 	si fichier == nul {
-		# crée fichier
+		// crée fichier
 		copie_chemin := duplique(chemin)
 		fichier := loge FichierMémoire
 
@@ -161,7 +161,7 @@ fonc ouvre_pour_lecture(
 {
 	dyn fichier := système.trouve_fichier(chemin)
 
-	# À FAIRE : note que le fichier est occupé
+	// À FAIRE : note que le fichier est occupé
 	retourne fichier
 }
 

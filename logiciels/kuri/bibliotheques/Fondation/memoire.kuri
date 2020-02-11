@@ -1,8 +1,8 @@
-# Bibliothèque de manipulation de la mémoire contenue dans des tampon
-# Ces fonctions sont leurs pendantes de celles de la bibliothèque standard de C
-# (memcmp, memcpy, memmove, memchr), à la différence que nous utilisons des
-# tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
-# blocs de mémoires à manipuler.
+// Bibliothèque de manipulation de la mémoire contenue dans des tampon
+// Ces fonctions sont leurs pendantes de celles de la bibliothèque standard de C
+// (memcmp, memcpy, memmove, memchr), à la différence que nous utilisons des
+// tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
+// blocs de mémoires à manipuler.
 
 #!nulctx fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) -> z32
 {
@@ -55,9 +55,9 @@
 	}
 }
 
-# Copie 'taille' octets depuis la source vers la destination
-# La copie se fait comme si un tampon intermédiaire a été utilisé,
-# permettant à la source et à la destination de se surposer.
+// Copie 'taille' octets depuis la source vers la destination
+// La copie se fait comme si un tampon intermédiaire a été utilisé,
+// permettant à la source et à la destination de se surposer.
 #!nulctx fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) -> rien
 {
     si src.taille < taille {
@@ -68,15 +68,15 @@
 		retourne
 	}
 
-    # vérifie si surposition
+    // vérifie si surposition
 
 	ptr_deb_src := @src[0]
 	ptr_fin_src := @src[src.taille - 1]
 	ptr_deb_dst := @dst[0]
 
-    # src |---------------|
-	# dst       |---------------|
-	# Copie à partir de la fin.
+    // src |---------------|
+	// dst       |---------------|
+	// Copie à partir de la fin.
 	si ptr_deb_src <= ptr_deb_dst <= ptr_fin_src {
 	    pour i dans transtype(0 : z64)...taille - 1 {
 			idx := taille - i - 1
@@ -90,18 +90,18 @@
 	}
 }
 
-# Similaire à copie_mem. La bibliothèque C possède memcpy et memmove, la
-# différence étant que memcpy ne peut recevoir de blocs se surposant, alors que
-# memmove peut  mais aucune vérification n'est faite dans memcpy, menant à des
-# vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
-# Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
-# qu'autre chose.
+// Similaire à copie_mem. La bibliothèque C possède memcpy et memmove, la
+// différence étant que memcpy ne peut recevoir de blocs se surposant, alors que
+// memmove peut  mais aucune vérification n'est faite dans memcpy, menant à des
+// vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
+// Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
+// qu'autre chose.
 #!nulctx fonc bouge_mem(source : []octet, dyn destination : []octet, taille : z64) -> rien
 {
 	copie_mem(source, destination, taille)
 }
 
-# À FAIRE : considération pour la surposition de blocs.
+// À FAIRE : considération pour la surposition de blocs.
 #!nulctx fonc echange_mem(a : []octet, b : []octet) -> rien
 {
 	dyn tmp : [128]octet
@@ -148,7 +148,7 @@
 	}
 
     pour o, idx dans destination {
-		# À FAIRE: référence...
+		// À FAIRE: référence...
 		destination[idx] = transtype(valeur : octet)
 	}
 }

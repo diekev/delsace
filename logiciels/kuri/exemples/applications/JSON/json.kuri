@@ -1,10 +1,10 @@
 importe Fondation
-importe Tori # pour imprime_json
+importe Tori // pour imprime_json
 
 charge "lexage"
 charge "syntaxage"
 
-###############################################################################
+//##############################################################################
 
 fonc principale(args : []*z8) -> z32
 {
@@ -14,8 +14,8 @@ fonc principale(args : []*z8) -> z32
 
     imprime("script :\n\n", chn, "\n\n")
 
-    #######################################################
-    # Lexage du script
+    //######################################################
+    // Lexage du script
 
     dyn lexeuse := construit_lexeuse(chn)
     diffère { détruit_lexeuse(lexeuse); }
@@ -30,8 +30,8 @@ fonc principale(args : []*z8) -> z32
 
     imprime("\n")
 
-    #######################################################
-    # Syntaxage du script, création de l'objet
+    //######################################################
+    // Syntaxage du script, création de l'objet
 
 	dyn syntaxeuse : Syntaxeuse
 	syntaxeuse.lexèmes = lexeuse.lexèmes

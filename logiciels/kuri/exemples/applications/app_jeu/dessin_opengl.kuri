@@ -37,7 +37,7 @@ fonc charge_programme() -> n32
     }
     "
 
-    # crée les nuanceurs
+    // crée les nuanceurs
 	VertexShaderID := glCreateShader(OGL.VERTEX_SHADER)
 	FragmentShaderID := glCreateShader(OGL.FRAGMENT_SHADER)
 
@@ -45,7 +45,7 @@ fonc charge_programme() -> n32
 	glShaderSource(VertexShaderID, 1, @source_vertex.pointeur , @taille_src_vertex)
 	glCompileShader(VertexShaderID)
 
-    # verifie la compilation
+    // verifie la compilation
     dyn Result : z32 = 0
     dyn InfoLogLength : z32 = 0
     glGetShaderiv(VertexShaderID, OGL.LINK_STATUS, @Result)
@@ -62,7 +62,7 @@ fonc charge_programme() -> n32
 	glShaderSource(FragmentShaderID, 1, @source_fragment.pointeur , @taille_src_fragment)
 	glCompileShader(FragmentShaderID)
 
-    # verifie la compilation
+    // verifie la compilation
     Result = 0
     InfoLogLength = 0
     glGetShaderiv(FragmentShaderID, OGL.LINK_STATUS, @Result)
@@ -80,7 +80,7 @@ fonc charge_programme() -> n32
 	glAttachShader(ProgramID_, FragmentShaderID)
 	glLinkProgram(ProgramID_)
 
-    # verifie la liaison
+    // verifie la liaison
     Result = 0
     InfoLogLength = 0
     glGetProgramiv(ProgramID_, OGL.COMPILE_STATUS, @Result)
@@ -287,31 +287,31 @@ fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) ->
 
     couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = 0.0, a = transtype(1.0 : r32) }
 
-    # dessine centre
+    // dessine centre
     dessine_carré_ex(px, py, tx, ty, couleur)
 
-    # dessine rect gauche
+    // dessine rect gauche
     dessine_carré_ex(px - rx, py, rx, ty, couleur)
 
-    # dessine rect droite
+    // dessine rect droite
     dessine_carré_ex(px + tx, py, rx, ty, couleur)
 
-    # dessine rect dessus
+    // dessine rect dessus
     dessine_carré_ex(px, py + ty, tx, ry, couleur)
 
-    # dessine rect dessous
+    // dessine rect dessous
     dessine_carré_ex(px, py - ry, tx, ry, couleur)
 
-    # dessine coin haut-gauche
+    // dessine coin haut-gauche
     dessine_quart_cercle(px, py + ty, rx, ry, 1)
 
-    # dessine coin haut-droite
+    // dessine coin haut-droite
     dessine_quart_cercle(px + tx, py + ty, rx, ry, 0)
 
-    # dessine coin bas-gauche
+    // dessine coin bas-gauche
     dessine_quart_cercle(px, py, rx, ry, 2)
 
-    # dessine coin bas-droite
+    // dessine coin bas-droite
     dessine_quart_cercle(px + tx, py, rx, ry, 3)
 }
 
@@ -322,7 +322,7 @@ fonc dessine_bouton() -> rien
 
 fonc dessine_image() -> rien
 {
-    # crée texture
+    // crée texture
 
-    # rempli UV
+    // rempli UV
 }

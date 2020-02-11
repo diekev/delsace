@@ -1,5 +1,5 @@
 énum CodeInst : z32 {
-    # constructions de types natifs
+    // constructions de types natifs
 	CONSTRUIT_TABLEAU
 
 	IN_INSERT_TABLEAU
@@ -10,12 +10,12 @@
 	IN_BRANCHE_CONDITION
 	IN_INCREMENTE
 
-	# chaines
+	// chaines
 	FN_TAILLE_CHAINE
 	FN_MORCELLE_CHAINE
 	FN_CHAINE_VERS_DECIMAL
 
-	# opérateurs
+	// opérateurs
 	ASSIGNATION
 	NIE
 	FN_AJOUTE
@@ -34,7 +34,7 @@
 	FN_COMP_ET
 	FN_COMP_OUX
 
-	# fonctions
+	// fonctions
 	FN_BASE_ORTHONORMALE
 	FN_COMBINE_VEC2
 	FN_COMBINE_VEC3
@@ -62,7 +62,7 @@
 	FN_HERMITE5
 	FN_HERMITE6
 
-	# fonctions mathématiques paramètre simple
+	// fonctions mathématiques paramètre simple
 	FN_COSINUS
 	FN_SINUS
 	FN_TANGEANTE
@@ -79,7 +79,7 @@
 	FN_ARRONDIS
 	FN_INVERSE
 
-	# fonctions mathématiques paramètres doubles
+	// fonctions mathématiques paramètres doubles
 	FN_ARCTAN2
 	FN_MAX
 	FN_MIN
@@ -87,14 +87,14 @@
 	FN_PLUS_PETIT_QUE
 	FN_PUISSANCE
 
-	# fonctions colorimétriques
+	// fonctions colorimétriques
 	FN_SATURE
 	FN_LUMINANCE
 	FN_CONTRASTE
 	FN_CORPS_NOIR
 	FN_LONGUEUR_ONDE
 
-	# conversion
+	// conversion
 	ENT_VERS_DEC
 	DEC_VERS_ENT
 	ENT_VERS_VEC2
@@ -107,7 +107,7 @@
 	VEC3_VERS_COULEUR
 	COULEUR_VERS_VEC3
 
-	# fonctions topologiques
+	// fonctions topologiques
 	FN_AJOUTE_POINT
 	FN_AJOUTE_PRIMITIVE
 	FN_AJOUTE_PRIMITIVE_SOMMETS
@@ -118,10 +118,10 @@
 	FN_POINTS_VOISINS_RAYON
 	FN_POINT
 
-	# fonctions attributs
+	// fonctions attributs
 	FN_ATTRIBUT_DECIMAL
 
-	# fonctions bruit
+	// fonctions bruit
 	FN_BRUIT_CELLULE
 	FN_BRUIT_FLUX
 	FN_BRUIT_FOURIER
@@ -138,7 +138,7 @@
 	FN_EVALUE_BRUIT
 	FN_EVALUE_BRUIT_TURBULENCE
 
-	# fonctions images
+	// fonctions images
 	FN_ECHANTILLONE_IMAGE
 	FN_ECHANTILLONE_TRIPLAN
 	FN_PROJECTION_SPHERIQUE
@@ -149,7 +149,7 @@
 	FN_EVALUE_COURBE_COULEUR
 	FN_EVALUE_RAMPE_COULEUR
 
-	# autres
+	// autres
 	TERMINE
 }
 

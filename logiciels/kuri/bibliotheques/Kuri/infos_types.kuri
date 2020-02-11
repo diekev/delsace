@@ -1,4 +1,4 @@
-# Structures de bases pour contenir les informations d'un type.
+// Structures de bases pour contenir les informations d'un type.
 
 énum id_info : z32 {
     ENTIER    := 0
@@ -20,51 +20,51 @@ struct InfoType {
 }
 
 struct InfoTypeEntier {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	est_signé : bool
 	taille_en_octet : n32
 }
 
 struct InfoTypeRéel {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	taille_en_octet : n32
 }
 
 struct InfoTypePointeur {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	type_pointé : *InfoType
 	est_référence : bool
 }
 
 struct InfoTypeTableau {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	type_pointé : *InfoType
 }
 
 struct InfoTypeMembreStructure {
 	nom : chaine
 	id : *InfoType
-	décalage : z64 # décalage en octets dans la structure
-	#drapeaux : n32
+	décalage : z64 // décalage en octets dans la structure
+	//drapeaux : n32
 }
 
 struct InfoTypeStructure {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
 }
 
 struct InfoTypeFonction {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	types_entrée : []*InfoType
 	types_sortie : []*InfoType
 	est_coroutine : bool
 }
 
 struct InfoTypeÉnum {
-	id : id_info # employant InfoType
+	id : id_info // employant InfoType
 	nom : chaine
-	valeurs : []z32 # À FAIRE typage selon énum
+	valeurs : []z32 // À FAIRE typage selon énum
 	noms : []chaine
 	est_drapeau : bool
 }

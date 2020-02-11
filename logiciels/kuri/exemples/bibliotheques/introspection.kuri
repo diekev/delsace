@@ -7,7 +7,7 @@ rout crée_manipulable(valeur : eini) -> &Manipulable
 	info := transtype(valeur.info : &InfoTypeStructure);
 
 	dyn manipulable := loge Manipulable sinon {
-		# À FAIRE : erreur
+		// À FAIRE : erreur
 		retourne nul;
 	}
 
@@ -33,7 +33,7 @@ rout ajourne_valeur(
 	valeur : eini) -> rien
 {
 	garde objet.info.id == TYPE_STRUCTURE sinon {
-		# À FAIRE : erreur
+		// À FAIRE : erreur
 		retourne;
 	}
 
@@ -45,20 +45,20 @@ rout ajourne_valeur(
 		}
 	}
 	sansarrêt {
-		# À FAIRE : erreur
+		// À FAIRE : erreur
 		retourne;
 	}
 	sinon {
-		# Trouve le type de membre
+		// Trouve le type de membre
 		si membre.info.id != valeur.info.id {
-			# À FAIRE : erreur
+			// À FAIRE : erreur
 			retourne
 		}
 
-		# Trouve le décalage
+		// Trouve le décalage
 		décalage := membre.info.décalage;
 
-		# Écris la valeur
+		// Écris la valeur
 		nonsûr {
 			ptr_début := valeur.pointeur;
 			ptr_valeur := ptr_début + décalage
@@ -78,8 +78,8 @@ rout invoque(methode : eini, args : ...eini) -> eini
 {
 	fonc_ptr := methode.pointeur;
 
-	# il faudrait émuler la manière dont les fonctions sont appelées
-	# sur chaque plateforme...
+	// il faudrait émuler la manière dont les fonctions sont appelées
+	// sur chaque plateforme...
 
 	fonct_ptr(args...);
 }

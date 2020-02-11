@@ -38,19 +38,19 @@ fonc génère_page(
                 }
                 ENTIER {
                     objet_nombre := transtype(objet_variable : *ObjetEntier)
-                    # À FAIRE
-                    #tampon += std::to_string(nombre.valeur)
+                    // À FAIRE
+                    //tampon += std::to_string(nombre.valeur)
                     enchaineuse.pousse("nombre entier non supporté")
                 }
                 RÉEL {
                     objet_nombre := transtype(objet_variable : *ObjetRéel)
-                    # À FAIRE
-                    #tampon += std::to_string(nombre.valeur)
+                    // À FAIRE
+                    //tampon += std::to_string(nombre.valeur)
                     enchaineuse.pousse("nombre réel non supporté")
                 }
                 LISTE,
                 DICTIONNAIRE {
-                    # À FAIRE: imprime pointeur
+                    // À FAIRE: imprime pointeur
                     enchaineuse.pousse("objet à ")
                 }
             }
@@ -67,19 +67,19 @@ fonc génère_page(
 
             discr objet_iter.id {
                 NUL {
-                    # À FAIRE: erreur
+                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet nul n'est pas itérable !")
                 }
                 CHAINE {
-                    # À FAIRE: erreur
+                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet chaine n'est pas itérable !")
                 }
                 ENTIER {
-                    # À FAIRE: erreur
+                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet nombre entier n'est pas itérable !")
                 }
                 RÉEL {
-                    # À FAIRE: erreur
+                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet nombre réel n'est pas itérable !")
                 }
                 LISTE {
@@ -125,8 +125,8 @@ fonc principale(args : []*z8) -> z32
 
     imprime("script :\n\n", chn, "\n\n")
 
-    #######################################################
-    # Lexage du script
+    //######################################################
+    // Lexage du script
 
     dyn lexeuse := construit_lexeuse(chn)
     diffère { détruit_lexeuse(lexeuse) }
@@ -141,8 +141,8 @@ fonc principale(args : []*z8) -> z32
 
     imprime("\n")
 
-    #######################################################
-    # Syntaxage du script
+    //######################################################
+    // Syntaxage du script
 
     dyn syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
     diffère { détruit_assembleuse(syntaxeuse.assembleuse) }
@@ -155,15 +155,15 @@ fonc principale(args : []*z8) -> z32
 	imprime_arbre(racine, 0)
 	imprime("\n")
 
-    #######################################################
-    # Génération de la page
+    //######################################################
+    // Génération de la page
 
 	dyn gestionnaire : GestionnaireObjet
 	diffère { détruit(@gestionnaire) }
 
     dyn dico := crée_dictionnaire(@gestionnaire)
 
-    # À FAIRE: simplifie la création d'objet en passant les paramètres
+    // À FAIRE: simplifie la création d'objet en passant les paramètres
     dyn liste := crée_liste(@gestionnaire)
     dyn obj1 := crée_entier(@gestionnaire)
     obj1.valeur = 127

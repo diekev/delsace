@@ -14,13 +14,13 @@ fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) -> rien
     }
 }
 
-# tag fonction comme étant un gabarit
-# - rassemble les types gabarit
-# lors de l'appel :
-# - détermine les types
-# - validation sémantique avec contexte des types si non validée pour ces types
-# - tag pour génération avec types
-# lors de la génération
+// tag fonction comme étant un gabarit
+// - rassemble les types gabarit
+// lors de l'appel :
+// - détermine les types
+// - validation sémantique avec contexte des types si non validée pour ces types
+// - tag pour génération avec types
+// lors de la génération
 fonc ajoute(a : $T, b : $T) -> $T
 {
     retourne a + b

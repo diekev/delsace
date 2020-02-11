@@ -1,6 +1,6 @@
 importe Tori
 
-###############################################################################
+//##############################################################################
 
 struct PileObjet {
     données : []*Objet
@@ -45,7 +45,7 @@ fonc est_vide(pile : &PileObjet) -> bool
     retourne pile.curseur == 0
 }
 
-###############################################################################
+//##############################################################################
 
 struct AssembleuseObjet {
     gestionnaire : GestionnaireObjet
@@ -60,7 +60,7 @@ fonc détruit(assembleuse: &AssembleuseObjet) -> rien
 
 fonc empile_objet(assembleuse: &AssembleuseObjet, objet: *Objet) -> rien
 {
-    #assert(objet.type == TypeObjet.DICTIONNAIRE || objet.type == TypeObjet.LISTE)
+    //assert(objet.type == TypeObjet.DICTIONNAIRE || objet.type == TypeObjet.LISTE)
     assembleuse.pile.empile(objet)
 }
 

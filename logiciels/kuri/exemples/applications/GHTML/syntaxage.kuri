@@ -91,13 +91,13 @@ fonc analyse_page(dyn syntaxeuse : &Syntaxeuse) -> rien
 			syntaxeuse.avance()
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
-				#lance_erreur("Attendu identsiiant de la variable après '{{'")
+				//lance_erreur("Attendu identsiiant de la variable après '{{'")
 			}
 
 			syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_VARIABLE)) {
-				#lance_erreur("Attendu '}}' à la fin de la déclaration d'une variable")
+				//lance_erreur("Attendu '}}' à la fin de la déclaration d'une variable")
 			}
 		}
 	}
@@ -106,7 +106,7 @@ fonc analyse_page(dyn syntaxeuse : &Syntaxeuse) -> rien
 fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DÉBUT_EXPRESSION)) {
-		#lance_erreur("Attendu '{%'")
+		//lance_erreur("Attendu '{%'")
 	}
 
 	si (syntaxeuse.est_lexème(TypeLexème.SI)) {
@@ -116,11 +116,11 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> rien
 		syntaxeuse.analyse_pour()
 	}
 	sinon si (syntaxeuse.est_lexème(TypeLexème.SINON)) {
-		# assert(syntaxeuse.assembleuse.noued_courant() == 'SI')
+		// assert(syntaxeuse.assembleuse.noued_courant() == 'SI')
 		syntaxeuse.avance()
 
 		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
-			#lance_erreur("Attendu '%}'")
+			//lance_erreur("Attendu '%}'")
 		}
 
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
@@ -139,7 +139,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> rien
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
 
 		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
-			#lance_erreur("Attendu '%}'")
+			//lance_erreur("Attendu '%}'")
 		}
 	}
 	sinon si (syntaxeuse.est_lexème(TypeLexème.FINPOUR)) {
@@ -150,30 +150,30 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> rien
 		syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
 
 		si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
-			#lance_erreur("Attendu '%}'")
+			//lance_erreur("Attendu '%}'")
 		}
 	}
 	sinon {
-		#lance_erreur("Identsiiant inconnu")
+		//lance_erreur("Identsiiant inconnu")
 	}
 }
 
 fonc analyse_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
-		#lance_erreur("Attendu 'si'")
+		//lance_erreur("Attendu 'si'")
 	}
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
-		#lance_erreur("Attendu une chaîne de caractère après 'si'")
+		//lance_erreur("Attendu une chaîne de caractère après 'si'")
 	}
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
-		#lance_erreur("Attendu '%}'")
+		//lance_erreur("Attendu '%}'")
 	}
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
@@ -184,29 +184,29 @@ fonc analyse_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 fonc analyse_pour(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
-		#lance_erreur("Attendu 'pour'")
+		//lance_erreur("Attendu 'pour'")
 	}
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
-		#lance_erreur("Attendu une chaîne de caractère après 'pour'")
+		//lance_erreur("Attendu une chaîne de caractère après 'pour'")
 	}
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DANS)) {
-		#lance_erreur("Attendu 'dans'")
+		//lance_erreur("Attendu 'dans'")
 	}
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTÈRE)) {
-		#lance_erreur("Attendu une chaîne de caractère après 'dans'")
+		//lance_erreur("Attendu une chaîne de caractère après 'dans'")
 	}
 
 	syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.FIN_EXPRESSION)) {
-		#lance_erreur("Attendu '%}'")
+		//lance_erreur("Attendu '%}'")
 	}
 
 	syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())

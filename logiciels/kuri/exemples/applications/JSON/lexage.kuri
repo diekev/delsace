@@ -1,6 +1,6 @@
 importe Fondation
 
-###############################################################################
+//##############################################################################
 
 énum TypeLexème : z32 {
 	INCONNU
@@ -175,7 +175,7 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
 		sinon si (est_nombre_décimal(lexeuse.caractère_courant())) {
 			lexeuse.enregistre_position_mot()
 
-			# nous savons que nous avons un nombre
+			// nous savons que nous avons un nombre
 			lexeuse.pousse_caractère()
 			lexeuse.avance(1)
 

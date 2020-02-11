@@ -1,27 +1,27 @@
 charge "infos_types"
 
-# Ce fichier est utiliser pour définir des variables et fonctions de
-# bases (« connus par le compilateur ») que tous les modules doivent importer.
-# Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
-# code du compilateur.
-# Par contre, ce fichier ne devrait pas pouvoir être modifié par les
-# utilisateurs du langage.
+// Ce fichier est utiliser pour définir des variables et fonctions de
+// bases (« connus par le compilateur ») que tous les modules doivent importer.
+// Ceci nous évite d'avoir à manuellement spécifier ces choses dans le
+// code du compilateur.
+// Par contre, ce fichier ne devrait pas pouvoir être modifié par les
+// utilisateurs du langage.
 
-# Tenant trace de la mémoire utilisée par le programme, cette variable est
-# augmentée par le compilateur à chaque instruction « loge » ou « reloge »,
-# et diminuée à chaque « déloge ».
+// Tenant trace de la mémoire utilisée par le programme, cette variable est
+// augmentée par le compilateur à chaque instruction « loge » ou « reloge »,
+// et diminuée à chaque « déloge ».
 dyn __VG_memoire_utilisee__ : z64 = 0
 
-# Contient trace de la quantité maximale de mémoire consomée.
+// Contient trace de la quantité maximale de mémoire consomée.
 dyn __VG_memoire_consommee__ : z64 = 0
 
-# Contient le nombre de fois que « loge » et « reloge » ont été appelés.
+// Contient le nombre de fois que « loge » et « reloge » ont été appelés.
 dyn __VG_nombre_allocations__ : z64 = 0
 
-# Contient le nombre de fois que « reloge » a été appelé.
+// Contient le nombre de fois que « reloge » a été appelé.
 dyn __VG_nombre_reallocations__ : z64 = 0
 
-# Contient le nombre de fois que « déloge » a été appelé.
+// Contient le nombre de fois que « déloge » a été appelé.
 dyn __VG_nombre_deallocations__ : z64 = 0
 
 énum ModeAllocatrice : z32 {
@@ -44,40 +44,40 @@ fonc externe free(ptr : *rien) -> rien
 {
     discr mode {
         ALLOUE {
-            # À FAIRE: crash lors de l'exécution quand ce code est activé
-            #nonsûr {
-            #    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ + nouvelle_taille
+            // À FAIRE: crash lors de l'exécution quand ce code est activé
+            //nonsûr {
+            //    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ + nouvelle_taille
 
-            #    si __VG_memoire_consommee__ < __VG_memoire_utilisee__ {
-            #        __VG_memoire_consommee__ = __VG_memoire_utilisee__
-            #    }
+            //    si __VG_memoire_consommee__ < __VG_memoire_utilisee__ {
+            //        __VG_memoire_consommee__ = __VG_memoire_utilisee__
+            //    }
 
-            #    __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
-            #}
+            //    __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
+            //}
 
             retourne malloc(nouvelle_taille)
         }
         RÉALLOUE {
-            # À FAIRE: crash lors de l'exécution quand ce code est activé
-            #nonsûr {
-            #    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ + nouvelle_taille - ancienne_taille
+            // À FAIRE: crash lors de l'exécution quand ce code est activé
+            //nonsûr {
+            //    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ + nouvelle_taille - ancienne_taille
 
-            #    si __VG_memoire_consommee__ < __VG_memoire_utilisee__ {
-            #        __VG_memoire_consommee__ = __VG_memoire_utilisee__
-            #    }
+            //    si __VG_memoire_consommee__ < __VG_memoire_utilisee__ {
+            //        __VG_memoire_consommee__ = __VG_memoire_utilisee__
+            //    }
 
-            #    __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
-            #    __VG_nombre_reallocations__ = __VG_nombre_allocations__ + 1
-            #}
+            //    __VG_nombre_allocations__ = __VG_nombre_allocations__ + 1
+            //    __VG_nombre_reallocations__ = __VG_nombre_allocations__ + 1
+            //}
 
             retourne realloc(ancien_pointeur, nouvelle_taille)
         }
         DÉSALLOUE {
-            # À FAIRE: crash lors de l'exécution quand ce code est activé
-            #nonsûr {
-            #    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ - ancienne_taille
-            #    __VG_nombre_deallocations__ = __VG_nombre_allocations__ + 1
-            #}
+            // À FAIRE: crash lors de l'exécution quand ce code est activé
+            //nonsûr {
+            //    __VG_memoire_utilisee__ = __VG_memoire_utilisee__ - ancienne_taille
+            //    __VG_nombre_deallocations__ = __VG_nombre_allocations__ + 1
+            //}
 
             free(ancien_pointeur)
             retourne nul
@@ -87,45 +87,45 @@ fonc externe free(ptr : *rien) -> rien
     retourne nul
 }
 
-# Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
-# À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
-# cette structure.
+// Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
+// À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
+// cette structure.
 struct ContexteProgramme {
     allocatrice := allocatrice_défaut
     données_allocatrice : *rien = nul
 }
 
-# Fonction pour accéder à la variable __VG_memoire_utilisee__.
+// Fonction pour accéder à la variable __VG_memoire_utilisee__.
 fonc mémoire_utilisée() -> z64
 {
     retourne __VG_memoire_utilisee__
 }
 
-# Fonction pour accéder à la variable __VG_memoire_utilisee__.
+// Fonction pour accéder à la variable __VG_memoire_utilisee__.
 fonc mémoire_consommée() -> z64
 {
     retourne __VG_memoire_consommee__
 }
 
-# Fonction pour accéder à la variable __VG_nombre_allocations__.
+// Fonction pour accéder à la variable __VG_nombre_allocations__.
 fonc nombre_allocations() -> z64
 {
     retourne __VG_nombre_allocations__
 }
 
-# Fonction pour accéder à la variable __VG_nombre_reallocations__.
+// Fonction pour accéder à la variable __VG_nombre_reallocations__.
 fonc nombre_réallocations() -> z64
 {
     retourne __VG_nombre_reallocations__
 }
 
-# Fonction pour accéder à la variable __VG_nombre_deallocations__.
+// Fonction pour accéder à la variable __VG_nombre_deallocations__.
 fonc nombre_déallocations() -> z64
 {
     retourne __VG_nombre_deallocations__
 }
 
-# Fonctions de bases pour les opérateurs de comparaisons de chaines
+// Fonctions de bases pour les opérateurs de comparaisons de chaines
 fonc sont_chaines_égales(chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {

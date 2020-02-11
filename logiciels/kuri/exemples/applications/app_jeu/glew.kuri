@@ -23,24 +23,24 @@ fonc externe glClearColor(r : r32, g : r32, b : r32, a : r32) -> rien
 
 fonc externe glViewport(px : z32, py : z32, tx : z32, ty : z32) -> rien
 
-## foncs de VAO
+//# foncs de VAO
 fonc externe glGenVertexArrays(n : z32, ptr : *n32) -> rien
 fonc externe glDeleteVertexArrays(n : z32, ptr : *n32) -> rien
 fonc externe glBindVertexArray(id : n32) -> rien
 
-## foncs de VBO
+//# foncs de VBO
 fonc externe glGenBuffers(n : z32, ptr : *n32) -> rien
 fonc externe glDeleteBuffers(n : z32, ptr : *n32) -> rien
 fonc externe glBindBuffer(target : OGL, id : n32) -> rien
 fonc externe glBufferData(target : OGL, size : n64, data : *rien, usage : OGL) -> rien
 
-## foncs Arrays
+//# foncs Arrays
 fonc externe glEnableVertexAttribArray(id : n32) -> rien
 fonc externe glDisableVertexAttribArray(id : n32) -> rien
 fonc externe glVertexAttribPointer(index : n32, size : z32, type_ : OGL, normalized : OGL, stride : z32, pointer : *rien) -> rien
 fonc externe glDrawArrays(mode : OGL, first : z32, count : z64) -> rien
 
-## foncs de nuanceurs/programmes
+//# foncs de nuanceurs/programmes
 fonc externe glShaderSource(shader : n32, count : z64, string : **z8, length : *z32) -> rien
 fonc externe glCreateShader(shaderType : OGL) -> n32
 fonc externe glCompileShader(shader : n32) -> rien

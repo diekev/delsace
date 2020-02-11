@@ -1,6 +1,6 @@
 rout processInput()
 {
-	# travail les entrées depuis le dernier appel
+	// travail les entrées depuis le dernier appel
 
 	pour entrée dans entrées {
 

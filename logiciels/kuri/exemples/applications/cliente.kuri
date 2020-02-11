@@ -3,7 +3,7 @@ importe GlibC
 importe OpenSSL
 importe Réseau
 
-################################################################################
+//###############################################################################
 
 #!nulctx fonc rappel_erreur(pointeur : *z8, taille : n64, user_data : *rien) -> z32
 {
@@ -48,7 +48,7 @@ fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile 
 	}
 
 	si (pile) {
-		#ERR_print_errors_cb(rappel_erreur, nul)
+		//ERR_print_errors_cb(rappel_erreur, nul)
 	}
 }
 
@@ -97,19 +97,19 @@ fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
     x := he.h_addr_list[0];
     their_addr.sin_addr = mémoire(transtype(x : *in_addr));
 
-    #imprime(their_addr, '\n');
+    //imprime(their_addr, '\n');
 
 	si connect(prise, transtype(@their_addr : *sockaddr), transtype(taille_de(sockaddr) : z64)) == -1 {
         imprime("Impossible de se connecter à la prise !", '\n');
         retourne réponse, 1;
     }
 
-    #imprime("Connexion active", '\n');
+    //imprime("Connexion active", '\n');
 
     dyn m_ssl : *ssl_st = nul
     diffère { si m_ssl != nul { SSL_free(m_ssl); } }
 
-    # initialise connexion SSL
+    // initialise connexion SSL
     si port == 443 {
         SSL_library_init()
         OpenSSL_add_ssl_algorithms()
@@ -146,7 +146,7 @@ fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
         }
     }
 
-    # envoie la requête
+    // envoie la requête
     si port == 443 {
         taille := SSL_write(m_ssl, requête.pointeur, transtype(requête.taille : z32))
 
@@ -162,7 +162,7 @@ fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
         }
     }
 
-    # obtiens les données
+    // obtiens les données
     taille_max_données := 1024;
 
     si port == 443 {
@@ -218,7 +218,7 @@ fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
     sinon {
         boucle {
             taille_reçue := recv(prise, @tampon[0], transtype(taille_max_données : n64), 0);
-            #imprime("Reçu paquet de taille ", taille_reçue, '\n');
+            //imprime("Reçu paquet de taille ", taille_reçue, '\n');
 
             si taille_reçue > 0 {
                 ancienne_taille := réponse.taille;
@@ -245,7 +245,7 @@ fonc principale(args : []*z8) -> z32
         retourne 1
     }
 
-    # connecte vers la page
+    // connecte vers la page
     chn := converti_chaine_c(args[1])
     uri := construit_uri(chn);
 
@@ -254,7 +254,7 @@ fonc principale(args : []*z8) -> z32
         retourne 1;
     }
 
-    #imprime(uri, '\n', '\n');
+    //imprime(uri, '\n', '\n');
 
     enchaineuse := crée_enchaineuse()
     diffère { enchaineuse.détruit(); }

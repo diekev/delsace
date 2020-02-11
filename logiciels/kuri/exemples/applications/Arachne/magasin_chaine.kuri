@@ -20,9 +20,9 @@ fonc index_chaine(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 		}
 	}
 
-	# À FAIRE(langage) : permet de ne pas avoir un retour si la dernière
-	# instruction est celle d'une discrimination qui retourne de toute
-	# manière
+	// À FAIRE(langage) : permet de ne pas avoir un retour si la dernière
+	// instruction est celle d'une discrimination qui retourne de toute
+	// manière
 	retourne 0
 }
 
@@ -68,8 +68,8 @@ fonc écris_magasin(
 		retourne
 	}
 
-	# on réserve 12 octets par chaine :
-	# 4 pour l'index et 8 pour la taille
+	// on réserve 12 octets par chaine :
+	// 4 pour l'index et 8 pour la taille
 	taille := magasin.nombre_chaines * 12 + magasin.taille_chaines
 
 	dyn tampon := loge [taille]octet
@@ -100,7 +100,7 @@ fonc lis_magasin(
 	dyn magasin : &Magasin,
 	dyn système : &SystèmeFichierMémoire) -> rien
 {
-	# À FAIRE : réinitialise magasin
+	// À FAIRE : réinitialise magasin
 
 	dyn fichier : Fichier
 	fichier := système.ouvre_pour_lecture(chemin)
@@ -114,15 +114,15 @@ fonc lis_magasin(
 	taille := fichier.taille
 
 	tantque taille != 0 {
-		# lis l'index
+		// lis l'index
 		dyn index : z32
 		fichier.lis(index)
 
-		# lis la taille
+		// lis la taille
 		dyn taille_chaine : z64
 		fichier.lis(taille_chaine)
 
-		# lis la chaine
+		// lis la chaine
 		chn := loge chaine(taille_chaine)
 		fichier.lis(chn)
 

@@ -3,7 +3,7 @@ importe Fondation
 charge instruction
 charge lexeuse
 
-################################################################################
+//###############################################################################
 
 énum TypeObjet : z32 {
 	NOEUD
@@ -80,9 +80,9 @@ fonc imprime_requête(dyn requête : &Requête) -> rien
 	}
 }
 
-################################################################################
+//###############################################################################
 
-# À FAIRE(langage) : gabarits
+// À FAIRE(langage) : gabarits
 
 fonc pousse(dyn liste : &[]Bloc, valeur : Bloc) -> rien
 {
@@ -112,12 +112,12 @@ fonc pousse(dyn liste : &[]Étiquette, valeur : Étiquette) -> rien
     liste[taille] = valeur
 }
 
-################################################################################
+//###############################################################################
 
 struct Syntaxeuse {
 	lexèmes : *[]Lexème
 	position : z64 = 0
-	# L'instruction si le lexème courant est celui d'une instruction
+	// L'instruction si le lexème courant est celui d'une instruction
 	inst : Instruction
 }
 
@@ -134,7 +134,7 @@ fonc a_fini(dyn syntaxeuse : &Syntaxeuse) -> bool
 
 fonc lexème_courant(dyn syntaxeuse : &Syntaxeuse) -> Lexème
 {
-	# À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
+	// À FAIRE(langage) : l'opérateur [] ne déréférence pas les pointeurs vers les tableaux ou chaines
 	lexèmes := mémoire(syntaxeuse.lexèmes)
 	retourne lexèmes[syntaxeuse.position]
 }
@@ -165,14 +165,14 @@ fonc requiers_lexème(dyn syntaxeuse : &Syntaxeuse, id : IdentifiantLexème) -> 
 	retourne est_bon
 }
 
-################################################################################
+//###############################################################################
 
 fonc analyse_propriétés(dyn syntaxeuse : &Syntaxeuse, dyn objet : &Objet) -> rien
 {
-	#imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
-	# { chaine : chaine }
+	//imprime("analyse_propriétés (", syntaxeuse.lexème_courant(), ")\n")
+	// { chaine : chaine }
 	boucle {
-		#imprime("-- boucle analyse_propriétés\n")
+		//imprime("-- boucle analyse_propriétés\n")
 		si syntaxeuse.est_lexème(IdentifiantLexème.ACCOLADE_FERMANTE) {
 			syntaxeuse.avance()
 			arrête
@@ -221,23 +221,23 @@ fonc analyse_objet(
 	type_objet : TypeObjet,
 	id_final : IdentifiantLexème) -> rien
 {
-	#imprime("analyse_objet ", id_final, '\n')
-	# ( chaine : chaine : chaine propriétés )
-	# [ chaine : chaine : chaine propriétés ]
-	# <- -- ->
+	//imprime("analyse_objet ", id_final, '\n')
+	// ( chaine : chaine : chaine propriétés )
+	// [ chaine : chaine : chaine propriétés ]
+	// <- -- ->
 
 	dyn objet : Objet
 	objet.type = type_objet
 
 	si syntaxeuse.est_lexème(id_final) {
-		#imprime("Objet vide\n")
-		# Nous avons un objet vide
+		//imprime("Objet vide\n")
+		// Nous avons un objet vide
 		syntaxeuse.avance()
 		retourne
 	}
 
 	si syntaxeuse.est_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
-		# nom_objet
+		// nom_objet
 		objet.nom = syntaxeuse.lexème_courant().chn
 		syntaxeuse.avance()
 	}
@@ -246,7 +246,7 @@ fonc analyse_objet(
 		syntaxeuse.avance()
 
 		si !syntaxeuse.requiers_lexème(IdentifiantLexème.CHAINE_CARACTÈRE) {
-			# nom_étiquette
+			// nom_étiquette
 			retourne
 		}
 
@@ -266,7 +266,7 @@ fonc analyse_objet(
 	expression.objets.pousse(objet)
 
 	si !syntaxeuse.requiers_lexème(id_final) {
-		#imprime("ERREUR : attendu l'identifiant final de l'objet\n")
+		//imprime("ERREUR : attendu l'identifiant final de l'objet\n")
 		retourne
 	}
 }
@@ -276,7 +276,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> Expression
 	dyn expression : Expression
 
 	tantque !syntaxeuse.a_fini() {
-		#imprime("-- boucle analyse_expression\n")
+		//imprime("-- boucle analyse_expression\n")
 
 		si syntaxeuse.est_lexème(IdentifiantLexème.PARENTHÈSE_OUVRANTE) {
 			syntaxeuse.avance()
@@ -287,7 +287,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse) -> Expression
 			syntaxeuse.analyse_objet(expression, TypeObjet.RELATION, IdentifiantLexème.RELATION_FIN)
 		}
 		sinon {
-			#imprime("ignore lexème ", syntaxeuse.lexème_courant(), '\n')
+			//imprime("ignore lexème ", syntaxeuse.lexème_courant(), '\n')
 			syntaxeuse.avance()
 		}
 	}
@@ -331,9 +331,9 @@ fonc analyse_requête(dyn syntaxeuse : &Syntaxeuse) -> Résultat
 	dyn résultat : Résultat
 	dyn requête : Requête
 
-	#imprime("analyse_requête ", '\n')
+	//imprime("analyse_requête ", '\n')
 	tantque !syntaxeuse.a_fini() {
-		#imprime("-- boucle analyse_requête\n")
+		//imprime("-- boucle analyse_requête\n")
 		si syntaxeuse.est_instruction() {
 			syntaxeuse.avance()
 
@@ -370,32 +370,32 @@ fonc principale(args : []*z8) -> z32
     expressions := [
         "(moi) -[:AMI]-> (mesAmis) -[:AMI]-> (amisDeMesAmis)",
         "( noeud : Personne :Acteur )-[ : LABEL { nom : \"bibi\" } ]->( noeud : LABEL { nom : 8, id : 56, voiture : 789 } )",
-        # N'importe quel noeud
+        // N'importe quel noeud
         "()",
-        # Un noeud avec l'étiquette "Personne"
+        // Un noeud avec l'étiquette "Personne"
         "(:Personne)",
-        # Un noeud identifié avec la variable "n" et avec l'étiquette "Personne"
+        // Un noeud identifié avec la variable "n" et avec l'étiquette "Personne"
         "(n:Personne)",
-        # Un noeud identifié avec la variable "n" et avec les étiquettes "Personne" et "Acteur"
+        // Un noeud identifié avec la variable "n" et avec les étiquettes "Personne" et "Acteur"
         "(n:Personne:Acteur)",
-        # N'importe quelle relation entre "a" et "b", peu importe la direction
+        // N'importe quelle relation entre "a" et "b", peu importe la direction
         "(a)--(b)",
-        # relation de type "AMI" depuis le nœud "a" vers le nœud "b"
+        // relation de type "AMI" depuis le nœud "a" vers le nœud "b"
         "(a)-[:AMI]->(b)",
-        # relation de type "AMI" ou "CONNAIT" depuis le nœud "a" vers le nœud "b"
+        // relation de type "AMI" ou "CONNAIT" depuis le nœud "a" vers le nœud "b"
         "(a)-[:AMI|CONNAIT]->(b)"
     ]
 
-    #pour expression dans expressions {
-    #    compileuse.analyse_expression(expression)
-    #}
+    //pour expression dans expressions {
+    //    compileuse.analyse_expression(expression)
+    //}
 
-    # CREE (moi : { nom : "bibi" })
-    # RETOURNE moi
+    // CREE (moi : { nom : "bibi" })
+    // RETOURNE moi
 
-    # TROUVE (moi : { nom : "bibi" })
-    # CREE (moi) -[:AIME]-> (quelquechose)
-    # RETOURNE moi, quelquechose
+    // TROUVE (moi : { nom : "bibi" })
+    // CREE (moi) -[:AIME]-> (quelquechose)
+    // RETOURNE moi, quelquechose
 
     requêtes := [
         "CREE (moi : LABEL { nom : \"bibi\" })\nRETOURNE moi\n",

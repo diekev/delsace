@@ -30,7 +30,7 @@ fonc principale(args : []*z8) -> z32
 
     imprime("a = ", a, '\n')
 
-    ######################
+    //#####################
 
     dyn foo : FOO
 
@@ -40,7 +40,7 @@ fonc principale(args : []*z8) -> z32
 
     imprime(foo, '\n')
 
-    ######################
+    //#####################
 
     x := 123
     y := 456
@@ -49,7 +49,7 @@ fonc principale(args : []*z8) -> z32
     échange(x, y)
     imprime("x = ", x, ", y = ", y, '\n')
 
-    ######################
+    //#####################
 
     z := 5
     dyn w : &z32 = z
@@ -60,7 +60,7 @@ fonc principale(args : []*z8) -> z32
 
     imprime("z = ", z, '\n')
 
-    ######################
+    //#####################
 
     retourne 0
 }

@@ -6,7 +6,7 @@ importe "chrono"
 fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) -> z32;
 
 struct Image {
-    tampon : chaine; # À FAIRE : []octet
+    tampon : chaine; // À FAIRE : []octet
     chemin : chaine;
     hauteur : z32;
     largeur : z32;
@@ -147,7 +147,7 @@ fonc dessine_triangle(
     dessine_ligne(image, x3i, y3i, x1i, y1i);
 }
 
-# http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
 struct Vec2 {
     x : r64;
     y : r64;
@@ -172,10 +172,10 @@ fonc min(a : r64, b : r64) -> r64
     retourne b;
 }
 
-# Remplis un triangle qui pointe vers le haut avec une base horizontale :
-#      /\
-#     /  \
-#     ----
+// Remplis un triangle qui pointe vers le haut avec une base horizontale :
+//      /\
+//     /  \
+//     ----
 fonc remplis_triangle_bas_plat(
     dyn image : &Image,
     v1 : Vec2,
@@ -217,10 +217,10 @@ fonc remplis_triangle_bas_plat(
     }
 }
 
-# Remplis un triangle qui pointe vers le bas avec une base horizontale :
-#     ----
-#     \  /
-#      \/
+// Remplis un triangle qui pointe vers le bas avec une base horizontale :
+//     ----
+//     \  /
+//      \/
 fonc remplis_triangle_haut_plat(
     dyn image : &Image,
     v1 : Vec2,
@@ -274,17 +274,17 @@ fonc échange(dyn v1 : &Vec2, dyn v2 : &Vec2) -> rien
     échange(v1.y, v2.y);
 }
 
-# Pour dessiner par ratissage un triangle quelconque, nous le divisons au besoin
-# en deux triangles avec bases horizontales dont un pointe vers le haut et
-# l'autre le bas :
-#
-#   /|
-#  / |
-# /__|
-# \  |
-#  \ |
-#   \|
-#
+// Pour dessiner par ratissage un triangle quelconque, nous le divisons au besoin
+// en deux triangles avec bases horizontales dont un pointe vers le haut et
+// l'autre le bas :
+//
+//   /|
+//  / |
+// /__|
+// \  |
+//  \ |
+//   \|
+//
 fonc ratisse_triangle(
     dyn image : &Image,
     x1 : r64,
@@ -427,7 +427,7 @@ fonc écris_pnm(image : Image, chemin : chaine) -> rien
     imprime("Temps d'écriture PNM = ", delta, "s", '\n');
 }
 
-#####################
+//####################
 
 fonc détruit_image(image : *Image) -> rien
 {
@@ -632,7 +632,7 @@ fonc externe jpeg_read_header(info : *jpeg_decompress_struct, require_image : z3
 
 fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32;
 
-#soit JPEG_APP0 = 0xE0;
+//soit JPEG_APP0 = 0xE0;
 
 #!inclus "jpeglib.h"
 
@@ -641,8 +641,8 @@ fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z
 fonc lis_jpeg(chemin : chaine) -> Image
 {
     dyn image : Image;
-    # nous devons avoir une chaine terminée par '\0' donc copie dans un
-	# tampon
+    // nous devons avoir une chaine terminée par '\0' donc copie dans un
+	// tampon
 	dyn tampon : [1024]z8;
 	ptr_tampon := copie_chaine_c_tampon(tampon, chemin);
 
@@ -813,8 +813,8 @@ _JCS_RGB := 2;
 
 fonc écris_jpeg(image : Image, chemin : chaine) -> rien
 {
-    # nous devons avoir une chaine terminée par '\0' donc copie dans un
-	# tampon
+    // nous devons avoir une chaine terminée par '\0' donc copie dans un
+	// tampon
 	dyn tampon : [1024]z8;
 	ptr_tampon := copie_chaine_c_tampon(tampon, chemin);
 
@@ -823,7 +823,7 @@ fonc écris_jpeg(image : Image, chemin : chaine) -> rien
     file := fopen(@tampon[0], modes.pointeur);
     diffère { fclose(file); }
 
-	#fseek(file, 0L, SEEK_SET);
+	//fseek(file, 0L, SEEK_SET);
 
 	dyn info : jpeg_compress_struct;
 	dyn jerr : jpeg_error_mgr;
@@ -869,26 +869,26 @@ fonc test_jpeg() -> rien
     chemin := "/home/kevin/test.pnm";
     écris_pnm(image, chemin);
 
-    #imprime(image, '\n');
+    //imprime(image, '\n');
 
     imprime("Mémoire utilisée : ", mémoire_utilisée(), '\n');
 
     détruit_image(@image);
 }
 
-#####################
+//####################
 
 fonc principale(args : []*z8) -> z32
 {
     image := génére_image_noire();
     ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
- #  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
+ //  dessine_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
 
     écris_ppm(image, "/home/kevin/test.ppm");
 
     détruit_image(@image);
 
-    #test_jpeg();
+    //test_jpeg();
 
     diffère { imprime("Mémoire utilisée : ", mémoire_utilisée(), '\n'); }
 

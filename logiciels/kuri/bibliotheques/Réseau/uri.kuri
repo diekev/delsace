@@ -1,9 +1,9 @@
-# Bibliothèque de manipulation d'uri.
+// Bibliothèque de manipulation d'uri.
 
 importe Fondation
 
-# URI = schéma:[//autorité]chemin[?requête][#fragment]
-# autorité = [info_usager@]hôte[:port]
+// URI = schéma:[//autorité]chemin[?requête][#fragment]
+// autorité = [info_usager@]hôte[:port]
 struct URI {
 	uri : chaine
 	schéma : chaine
@@ -36,7 +36,7 @@ fonc construit_uri(chn : chaine) -> URI
 	dyn uri : URI
 	uri.uri = chn
 
-	# le schéma se trouve entre le début et ':'
+	// le schéma se trouve entre le début et ':'
 	dyn pos := trouve_caractère(chn, ':', 0)
 
 	si pos != -1 {
@@ -59,14 +59,14 @@ fonc construit_uri(chn : chaine) -> URI
 
 		dyn fin_user_info := trouve_caractère(chn, '@', pos)
 
-		# il est possible d'avoir un mot de passe : username:motdepasse
+		// il est possible d'avoir un mot de passe : username:motdepasse
 		si (fin_user_info != -1) {
 			uri.info_usager = construit_chaine(@chn[pos], fin_user_info - (pos))
 
 			pos = fin_user_info + 1
 		}
 
-		# il est possible d'avoir des addresse IPv6 entre []
+		// il est possible d'avoir des addresse IPv6 entre []
 
 		si (chn[pos] == '[') {
 			dyn fin_adresse := trouve_caractère(chn, ']', 0)
@@ -119,11 +119,11 @@ fonc construit_uri(chn : chaine) -> URI
 	retourne uri
 }
 
-# Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
-# https://en.wikipedia.org/wiki/Fletcher%27s_checksum
+// Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
+// https://en.wikipedia.org/wiki/Fletcher%27s_checksum
 fonc somme_controle(uri : &URI) -> n64
 {
-    # nous ne considérons que l'autorité, le chemin et la requête
+    // nous ne considérons que l'autorité, le chemin et la requête
     dyn somme1 = 0;
     dyn somme2 = 0;
 

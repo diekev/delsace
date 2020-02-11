@@ -79,7 +79,7 @@ struct Noeud {
 
 	id : z64
 
-	# première relation du noeud
+	// première relation du noeud
 	relation : z64
 }
 
@@ -99,7 +99,7 @@ struct Relation {
 	noeud_de : z64
 	noeud_vers : z64
 
-	# relation suivante
+	// relation suivante
 	relation_suivante : z64
 }
 
@@ -186,15 +186,15 @@ fonc connecte_relation(arachné : &Arachné, dyn relation : &Relation, noeud1 : 
 	relation.noeud_de = noeud1.id
 	relation.noeud_vers = noeud2.id
 
-	# connecte les relations
-	#noeud1.relation_finale.relation_suivante = relation.id
+	// connecte les relations
+	//noeud1.relation_finale.relation_suivante = relation.id
 }
 
 fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32) -> rien
 {
-	# trouve le noeud
-	# trouve la colonne à modifier
-	# trouve la place où insérer la valeur
+	// trouve le noeud
+	// trouve la colonne à modifier
+	// trouve la place où insérer la valeur
 
 	dyn schéma := noeud.schéma
 
@@ -225,9 +225,9 @@ fonc trouve_noeud(arachné : &Arachné, nom_colonne : chaine, valeur : z32) -> *
 	retourne nul
 }
 
-# CRÉE TYPE nom ()
-# CHERCHE (n : TYPE {})
-# CRÉE NOEUD
+// CRÉE TYPE nom ()
+// CHERCHE (n : TYPE {})
+// CRÉE NOEUD
 fonc principale(args : []*z8) -> z32
 {
 	dyn arachné : Arachné
@@ -237,15 +237,15 @@ fonc principale(args : []*z8) -> z32
 	arachné.crée_schéma("FONCTION", colonnes)
 
 	schéma := arachné.trouve_schéma("FONCTION")
-	#schéma.ajoute_colonne("nom", TypeDonnées.NOMBRE_ENTIER)
+	//schéma.ajoute_colonne("nom", TypeDonnées.NOMBRE_ENTIER)
 
-	#arachné.montre_schémas()
+	//arachné.montre_schémas()
 
 	arachné.crée_noeud("FONCTION")
 
-	#arachné.montre_noeuds("FONCTION")
+	//arachné.montre_noeuds("FONCTION")
 
-	#noeud := arachné.trouve_noeud("FONCTION", "nom", 5)
+	//noeud := arachné.trouve_noeud("FONCTION", "nom", 5)
 
 	retourne 0
 }

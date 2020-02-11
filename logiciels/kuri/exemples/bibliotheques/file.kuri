@@ -1,4 +1,4 @@
-# référence : https://fr.wikipedia.org/wiki/File_(structure_de_donn%C3%A9es)
+// référence : https://fr.wikipedia.org/wiki/File_(structure_de_donn%C3%A9es)
 
 struct file {
 	ptr : []$T;
@@ -6,7 +6,7 @@ struct file {
 	capacité : z32 = 0;
 }
 
-# comment déclarer des structures avec des paramètres-types
+// comment déclarer des structures avec des paramètres-types
 rout enfile(empl f : *file, val : $T)
 {
 	si taille == capacité {

@@ -1,16 +1,16 @@
-# Bibliothèque de conversion entre des flux binaires et les 'bases azotées'
-# de l'acide désoxyribonucléique.
+// Bibliothèque de conversion entre des flux binaires et les 'bases azotées'
+// de l'acide désoxyribonucléique.
 
-# Converti un flux d'octets binaire en une chaine d'ADN composée de 'a', 'c',
-# 'g', ou 't'. La conversion s'effectue en coupant chac octet en quatre groupes
-# de deux bits. La valeur de chac duobit définie ensuite la base azotée
-# correspondante selon l'appariement suivant :
-# 0b00 = 'a'
-# 0b01 = 'c'
-# 0b10 = 'g'
-# 0b11 = 't'
-#
-# La chaine retourner a été logée, et doit donc être délogée par l'appelante.
+// Converti un flux d'octets binaire en une chaine d'ADN composée de 'a', 'c',
+// 'g', ou 't'. La conversion s'effectue en coupant chac octet en quatre groupes
+// de deux bits. La valeur de chac duobit définie ensuite la base azotée
+// correspondante selon l'appariement suivant :
+// 0b00 = 'a'
+// 0b01 = 'c'
+// 0b10 = 'g'
+// 0b11 = 't'
+//
+// La chaine retourner a été logée, et doit donc être délogée par l'appelante.
 fonc encode_adn(valeurs : []octet) -> chaine
 {
 	dyn chn : chaine
@@ -32,12 +32,12 @@ fonc encode_adn(valeurs : []octet) -> chaine
 	retourne chn
 }
 
-# Converti un flux d'octets représantant une chaine d'ADN en un flux binaire. La
-# conversion est l'opposée de celle effectuée dans encode_adn : chaque octet est
-# considéré comme une base azotée définissant sa valeur (00, 01, 10, 11). Les
-# bases sont groupées en quatre pour former un octet final.
-#
-# La chaine retourner a été logée, et doit donc être délogée par l'appelante.
+// Converti un flux d'octets représantant une chaine d'ADN en un flux binaire. La
+// conversion est l'opposée de celle effectuée dans encode_adn : chaque octet est
+// considéré comme une base azotée définissant sa valeur (00, 01, 10, 11). Les
+// bases sont groupées en quatre pour former un octet final.
+//
+// La chaine retourner a été logée, et doit donc être délogée par l'appelante.
 fonc décode_adn(valeurs : []octet) -> chaine
 {
 	dyn chn : chaine
@@ -70,8 +70,8 @@ fonc décode_adn(valeurs : []octet) -> chaine
 	retourne chn
 }
 
-# Change directement la chaine passée en paramètre de sorte que chaque base est
-# remplacée par sa paire.
+// Change directement la chaine passée en paramètre de sorte que chaque base est
+// remplacée par sa paire.
 fonc appariement(dyn chn : []octet) -> rien
 {
     pour v dans chn {

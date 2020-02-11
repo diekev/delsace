@@ -1,6 +1,6 @@
 importe "flux"
 
-# Ceci est un commentaire.
+// Ceci est un commentaire.
 énum Énumération : z32 {
     LUMIÈRE := 0
 }

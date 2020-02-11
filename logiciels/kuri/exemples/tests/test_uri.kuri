@@ -7,7 +7,7 @@ fonc vérifie_égalité(chaine1 : chaine, chaine2 : chaine) -> rien
         retourne
     }
 
-    # À FAIRE : il nous la ligne et le fichier pour imprimer où se trouve l'erreur
+    // À FAIRE : il nous la ligne et le fichier pour imprimer où se trouve l'erreur
     imprime("Les chaines ne sont pas égales '", chaine1, "' et '", chaine2, "'\n")
 }
 

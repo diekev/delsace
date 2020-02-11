@@ -18,8 +18,8 @@ struct Editrice {
 	nom : chaîne
 	type : type_éditrice
 
-	rect_abs : vec2d # rectangle en coordonnées pixel
-	rect_rel : vec2d # rectangle en coordonnées normalisées
+	rect_abs : vec2d // rectangle en coordonnées pixel
+	rect_rel : vec2d // rectangle en coordonnées normalisées
 }
 
 fonction cree_editrice(type : type_éditrice) -> Editrice
@@ -48,14 +48,14 @@ fonction ajoute_editrice(editrices : *tableau, type : type_éditrice) -> Editric
 
 	pousse_tableau(editrices, editrice)
 
-	# initialise la taille de l'éditrice selon sa position
+	// initialise la taille de l'éditrice selon sa position
 
 	retourne editrice
 }
 
 fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) -> rien
 {
-	# trouve l'index de l'éditrice dans le tableau
+	// trouve l'index de l'éditrice dans le tableau
 	index := tableau.taille
 
 	pour i dans 0 ... tableau.taille - 1 {
@@ -63,10 +63,10 @@ fonction enlève_editrice(editrices : *tableau, editrice : *Editrice) -> rien
 		valeur_tableau(editrices, i)
 	}
 
-	# supprime à l'index
+	// supprime à l'index
 }
 
-# editrice gauche-droite-haut-bas
+// editrice gauche-droite-haut-bas
 fonction divise_editrice(editrice : *Editrice) -> bool
 {
 	gauche := editrice.gauche
@@ -78,7 +78,7 @@ fonction divise_editrice(editrice : *Editrice) -> bool
 		retourne vrai
 	}
 
-	# trouve s'il est possible de diviser l'éditrice
+	// trouve s'il est possible de diviser l'éditrice
 
 	retourne vrai
 }

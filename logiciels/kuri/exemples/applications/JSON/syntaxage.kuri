@@ -54,13 +54,13 @@ fonc données(syntaxeuse : &Syntaxeuse) -> &DonneesLexème
 fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
-		#lance_erreur("Attendu une chaine de caractère")
+		//lance_erreur("Attendu une chaine de caractère")
 	}
 
 	nom_objet := syntaxeuse.données().chn
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.DOUBLE_POINTS)) {
-		#lance_erreur("Attendu un double-point ':'")
+		//lance_erreur("Attendu un double-point ':'")
 	}
 
 	syntaxeuse.analyse_valeur(nom_objet)
@@ -85,7 +85,7 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 			syntaxeuse.assembleuse.dépile_objet()
 
 			si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
-				#lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
+				//lance_erreur("Attendu une accolade fermante '}' à la fin de l'objet")
 			}
 		}
 		CROCHET_OUVRANT {
@@ -127,22 +127,22 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 			dyn obj_chaine := transtype(obj: *ObjetChaine)
             obj_chaine.valeur = syntaxeuse.données().chn
 
-			# À FAIRE: gestion des chaines allouées dynamiquement
-			#res = dls::chaine()
+			// À FAIRE: gestion des chaines allouées dynamiquement
+			//res = dls::chaine()
 
-			#for (i = 0 i < donnees().chaine.taille() ++i) {
-			#	c = donnees().chaine[i]
+			//for (i = 0 i < donnees().chaine.taille() ++i) {
+			//	c = donnees().chaine[i]
 
-			#	si (c == '\\') {
-			#		continue
-			#	}
+			//	si (c == '\\') {
+			//		continue
+			//	}
 
-			#	res += c
-			#}
+			//	res += c
+			//}
 		}
 		sinon {
 			syntaxeuse.avance()
-			# À FAIRE : lance_erreur("Élément inattendu")
+			// À FAIRE : lance_erreur("Élément inattendu")
 		}
 	}
 }
@@ -156,7 +156,7 @@ fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_OUVRANTE)) {
-		#lance_erreur("Attendu une accolade ouvrante '{' au début du script")
+		//lance_erreur("Attendu une accolade ouvrante '{' au début du script")
 	}
 
     obj := syntaxeuse.assembleuse.crée_objet("", TypeObjet.DICTIONNAIRE)
@@ -164,11 +164,11 @@ fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) -> rien
 
 	syntaxeuse.analyse_objet()
 
-    # Ne dépile pas le dictionnaire, car il est la racine
+    // Ne dépile pas le dictionnaire, car il est la racine
 
 	si (!syntaxeuse.requiers_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
-		#lance_erreur("Attendu une accolade fermante '}' à la fin du script")
+		//lance_erreur("Attendu une accolade fermante '}' à la fin du script")
 	}
 
-	#imprime_arbre(syntaxeuse.assembleuse.racine.get(), 0, std::cerr)
+	//imprime_arbre(syntaxeuse.assembleuse.racine.get(), 0, std::cerr)
 }

@@ -1,12 +1,12 @@
-# Bibliothèque de structures de données.
-# Les structures utilisent des pointeurs vers 'rien', et la taille des données
-# en octet pour avoir un semblant de généricité.
+// Bibliothèque de structures de données.
+// Les structures utilisent des pointeurs vers 'rien', et la taille des données
+// en octet pour avoir un semblant de généricité.
 
 charge "memoire"
 
-#################################################################
+//################################################################
 
-# Une pile où les premiers éléments ajoutés sont les derniers retirés.
+// Une pile où les premiers éléments ajoutés sont les derniers retirés.
 
 struct pile {
 	taille_elem : z64
@@ -63,9 +63,9 @@ fonc dépile(dyn p : *pile, d : *rien) -> rien
 	p.taille -= 1
 }
 
-#################################################################
+//################################################################
 
-# Une file où les premiers éléments ajoutés sont les premiers retirés.
+// Une file où les premiers éléments ajoutés sont les premiers retirés.
 
 struct file {
 	taille_elem : z64
@@ -119,7 +119,7 @@ fonc défile(dyn q : *file, d : *rien) -> rien
 		copie_mem_nonsur(ptr, d, q.taille_elem)
     }
 
-    # réajuste la file en décalant les données
+    // réajuste la file en décalant les données
 
     si q.taille > 1 {
 		ptr_dst := @q.tampon[0]
@@ -130,9 +130,9 @@ fonc défile(dyn q : *file, d : *rien) -> rien
 	q.taille -= 1
 }
 
-#################################################################
+//################################################################
 
-# Une tableau où les données sont stockées de manière séquentielle.
+// Une tableau où les données sont stockées de manière séquentielle.
 
 struct tableau {
 	taille_elem : z64
@@ -191,9 +191,9 @@ fonc fin_tableau(t : *tableau) -> *rien
 		retourne nul
     }
 
-    # NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
-    # mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
-    # élément (<=)
+    // NOTE : contrairement à C++, nous ne retournons pas un pointeur après la fin,
+    // mais la fin elle-même car les boucles utilisant des plages vont jusqu'au dernier
+    // élément (<=)
 	ptr := @t.tampon[(t.taille - 1) * t.taille_elem]
 	retourne transtype(ptr : *rien)
 }

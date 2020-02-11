@@ -1,65 +1,65 @@
-# grandfichier
-# -- fichiers découpés en morceau de 64 Mo
-# -- chaque morceau peut se trouver sur différents disque dur
-# vocabulaire :
-# - cluster
-# - node
-# - chunk
+// grandfichier
+// -- fichiers découpés en morceau de 64 Mo
+// -- chaque morceau peut se trouver sur différents disque dur
+// vocabulaire :
+// - cluster
+// - node
+// - chunk
 
-# https://storage.googleapis.com/pub-tools-public-publication-data/pdf/035fc972c796d33122033a0614bc94cff1527999.pdf
-# https://en.wikipedia.org/wiki/Google_File_System
+// https://storage.googleapis.com/pub-tools-public-publication-data/pdf/035fc972c796d33122033a0614bc94cff1527999.pdf
+// https://en.wikipedia.org/wiki/Google_File_System
 
-# Les programmes accède les morceaux d'abord en s'enquêrant auprès du Maître serveur de la situation des morceaux désirés, et si les chunks ne sont pas en opérations (p.e. en écriture), le serveur renvoie les endroits où ils se trouvent
+// Les programmes accède les morceaux d'abord en s'enquêrant auprès du Maître serveur de la situation des morceaux désirés, et si les chunks ne sont pas en opérations (p.e. en écriture), le serveur renvoie les endroits où ils se trouvent
 
-# Master :
-# - doit savoir si un chunk est en cours d'opération
-# - connaît la liste de tous les chunks
-# - crée les chunks et leurs assignent un nombre unique
-# - crée les fichiers
-# - donnes des permissions, baux, pour modifier les données, pour une période limitée
-# - sauvegarde disque de toutes les métadonnées
-# - au fur et à mesure que l'on ajoute des serveurs, il est contacté par ceux-ci pour s'ajouter à sa liste de serveurs de stockage
-#
-# Chunk Serveur
-# - quand un chunk est modifié, il envoie les modifications à faire aux serveurs de copies
-# - le changement n'est enregistré que quand tous les serveurs reconnnaissent avoir les copies
-# - découpe les chunks en plus petit chinks de 64Ko, avec chacun sa somme de contrôle
-# - doit avoir la liste de tous les chunks stockés sur le DD
-# - doit savoir la quantité de stockage disponible
-# - sauvegarde disque de toutes les métadonnées
+// Master :
+// - doit savoir si un chunk est en cours d'opération
+// - connaît la liste de tous les chunks
+// - crée les chunks et leurs assignent un nombre unique
+// - crée les fichiers
+// - donnes des permissions, baux, pour modifier les données, pour une période limitée
+// - sauvegarde disque de toutes les métadonnées
+// - au fur et à mesure que l'on ajoute des serveurs, il est contacté par ceux-ci pour s'ajouter à sa liste de serveurs de stockage
+//
+// Chunk Serveur
+// - quand un chunk est modifié, il envoie les modifications à faire aux serveurs de copies
+// - le changement n'est enregistré que quand tous les serveurs reconnnaissent avoir les copies
+// - découpe les chunks en plus petit chinks de 64Ko, avec chacun sa somme de contrôle
+// - doit avoir la liste de tous les chunks stockés sur le DD
+// - doit savoir la quantité de stockage disponible
+// - sauvegarde disque de toutes les métadonnées
 
-# Log Master
-# CRÉÉ FICHIER /opt/bin id
-# AJOUTE CHUNK FICHIER /opt/bin id
-# AJOUTE SERVEUR CHUNK IP
+// Log Master
+// CRÉÉ FICHIER /opt/bin id
+// AJOUTE CHUNK FICHIER /opt/bin id
+// AJOUTE SERVEUR CHUNK IP
 
 fonc cherche_fichier(chemin : chaine)
 {
-	# contacte le serveur maitre
-	# requête :
-	# CHERCHE chemin id_chunk\r\n
+	// contacte le serveur maitre
+	// requête :
+	// CHERCHE chemin id_chunk\r\n
 
-	# réponse :
-	#
-	# 200 OK
-	# Longeur : 1245
-	# { "serveurs" : [uri...] }
+	// réponse :
+	//
+	// 200 OK
+	// Longeur : 1245
+	// { "serveurs" : [uri...] }
 
-	# contacte les serveurs pour chercher les données
+	// contacte les serveurs pour chercher les données
 }
 
 fonc crée_fichier(chemin : chaine)
 {
-	# CREE chemin\r\n
-	# réponses possible :
-	# ok
-	# nonautorisé
-	# fichier existe déjà
-	# fichier créé
-	# impossible de créer le fichier
+	// CREE chemin\r\n
+	// réponses possible :
+	// ok
+	// nonautorisé
+	// fichier existe déjà
+	// fichier créé
+	// impossible de créer le fichier
 }
 
-# calcul la somme de contrôle dans un ensemble de données
+// calcul la somme de contrôle dans un ensemble de données
 fonc somme_controle(données : []octet) -> n64
 {
 	dyn somme : n64
@@ -72,13 +72,13 @@ fonc somme_controle(données : []octet) -> n64
 }
 
 struct Morceau {
-	# identifiant unique pour chaque morceau
+	// identifiant unique pour chaque morceau
 	id : n64
 
-	# identifiant unique pour chaque bloc de 64ko du morceau, somme de contrôle
+	// identifiant unique pour chaque bloc de 64ko du morceau, somme de contrôle
 	somme : [1024]n64
 
-	# numéro de version, afin de détecter les incohérences de données
+	// numéro de version, afin de détecter les incohérences de données
 	version : n64
 }
 
@@ -92,14 +92,14 @@ struct SystèmeFichier {
 
 fonc ouvre(système : &SystèmeFichier, chemin : chaine) -> Fichier
 {
-	# trouve le fichier pointé par le chemin
-	# lis l'archive pour savoir où se trouve chaque morceau
+	// trouve le fichier pointé par le chemin
+	// lis l'archive pour savoir où se trouve chaque morceau
 }
 
-# calcul du chunk nécessaire
+// calcul du chunk nécessaire
 fonc cherche_dans_fichier(décalage : n64)
 {
-	# chaque chunk fait 64Mo
+	// chaque chunk fait 64Mo
 	diviseur : n64 = 64 * 1024 * 1024
 
 	chunk = décalage / diviseur
@@ -108,6 +108,6 @@ fonc cherche_dans_fichier(décalage : n64)
 
 	données = serveur_chunk.cherche_sous_chunk(fichier, chunk, sous_chunk)
 
-	# lis les données
+	// lis les données
 
 }

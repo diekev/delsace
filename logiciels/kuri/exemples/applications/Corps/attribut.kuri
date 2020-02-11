@@ -17,15 +17,15 @@ importe Fondation
 }
 
 énum PortéeAttribut : z8 {
-	# l'attribut varie pour chaque point
+	// l'attribut varie pour chaque point
 	POINT
-	# l'attribut varie pour chaque primitive
+	// l'attribut varie pour chaque primitive
 	PRIMITIVE
-	# l'attribut varie pour chaque vertex de chaque primitive
+	// l'attribut varie pour chaque vertex de chaque primitive
 	VERTEX
-	# l'attribut est unique pour le corps
+	// l'attribut est unique pour le corps
 	CORPS
-	# l'attribut varie pour chaque groupe
+	// l'attribut varie pour chaque groupe
 	GROUPE
 }
 
@@ -39,14 +39,14 @@ struct Attribut {
     nom : chaine
     type : TypeAttribut
     portée : PortéeAttribut
-	# À FAIRE : utilisation de la dimension
+	// À FAIRE : utilisation de la dimension
     dimensions := 1
 	nombre_éléments : z64 = 0
 }
 
 fonc est_type_attribut_valide(dyn type : TypeAttribut) -> bool
 {
-    # enlève le type tableau au cas où
+    // enlève le type tableau au cas où
     type &= ~TypeAttribut.TABLEAU
 
     si type == transtype(0 : TypeAttribut) {
@@ -58,7 +58,7 @@ fonc est_type_attribut_valide(dyn type : TypeAttribut) -> bool
     dyn nombre_bits := 0
 
     pour valeur dans info.valeurs {
-		# À FAIRE : typage des valeurs des énums
+		// À FAIRE : typage des valeurs des énums
 		type_ := transtype(type : z32)
 		nombre_bits += transtype((type_ & valeur) != 0 : z32)
     }
@@ -125,7 +125,7 @@ fonc crée_attribut(type : TypeAttribut) -> Attribut
 
 fonc réserve(dyn attr : &Attribut, nombre_éléments : z64) -> rien
 {
-	# À FAIRE : copie le tampon si référencé
+	// À FAIRE : copie le tampon si référencé
 	taille := nombre_éléments * taille_octet_type_attribut(attr.type)
 	reloge attr.tampon.données : [taille]octet
 
@@ -139,13 +139,13 @@ fonc est_type_tableau(type : TypeAttribut) -> bool
 
 fonc détruit(dyn attr : &Attribut) -> rien
 {
-	# À FAIRE : déloge le tampon que si non référencé
+	// À FAIRE : déloge le tampon que si non référencé
 
 	si est_type_tableau(attr.type) {
 		pour i dans transtype(0 : z64) ... attr.nombre_éléments - 1 {
-			# À FAIRE : types des données
-			#ptr := attr.tableau_r32(i)
-			#déloge mémoire(ptr)
+			// À FAIRE : types des données
+			//ptr := attr.tableau_r32(i)
+			//déloge mémoire(ptr)
 		}
 	}
 
@@ -219,9 +219,9 @@ fonc taille_octet_type_attribut(type : TypeAttribut) -> z64
 			taille = taille_de(chaine)
         }
 		sinon {
-			# À FAIRE : est_type_tableau échoue ici...
+			// À FAIRE : est_type_tableau échoue ici...
             si (type & TypeAttribut.TABLEAU) != transtype(0 : TypeAttribut) {
-                # Tous les types de tableaux ont la même taille.
+                // Tous les types de tableaux ont la même taille.
                 taille = taille_de([]octet)
             }
         }
@@ -230,15 +230,15 @@ fonc taille_octet_type_attribut(type : TypeAttribut) -> z64
 	retourne transtype(taille : z64)
 }
 
-#fonc crée_attribut_point(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+//fonc crée_attribut_point(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
-#fonc crée_attribut_primitive(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+//fonc crée_attribut_primitive(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
-#fonc crée_attribut_vertex(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+//fonc crée_attribut_vertex(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
-#fonc crée_attribut_corps(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+//fonc crée_attribut_corps(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
-#fonc crée_attribut_groupe(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
+//fonc crée_attribut_groupe(nom : chaine, type : TypeAttribut, dimensions : z32) : Attribut
 
 fonc copie_attribut(attr : &Attribut) -> Attribut
 {
@@ -253,29 +253,29 @@ fonc copie_attribut(attr : &Attribut) -> Attribut
     retourne nattr
 }
 
-# À FAIRE : définir une bonne interface pour accéder aux valeurs sans gabarits
-#
-# Idée tirée de JAI :
-#
-# déclaration d'un type gabarit    => x : $T
-# déclaration d'une valeur gabarit => $x : T
-# La valeur gabarit est l'équivalent des valeurs littérales des templates en C++
-# template <int N>, mais en plus flexible
-#
-# Une instruction #bake sers à instantier les fonctions selon les valeurs gabarits
-# par exemple (avec notre syntaxe)
-#
-# fonc nouveau_tableau_fixe($N : Type_de_N, x : $Type_du_tableau) : [N]$Type_du_tableau
-# crée_tableau_dix_éléments = #cuis nouveau_tableau_fixe($N = 10)
-#
-# On peut alors appeler : crée_tableau_dix_éléments(z32) pour créer un [10]z32
-#
-# Pour les attributs nous pourrions avoir un système similaire
-#
-# fonc valeur(attr : &Attribut, index : z64, $Type_de_valeur : Type, $T : TypeAttribut)
-#
-# valeur_z32 = #cuis valeur(Type_de_valeur = z32, T = TypeAttribut.Z32)
-# valeur_r32 = #cuis valeur(Type_de_valeur = r32, T = TypeAttribut.R32)
-# ....
-#
-# Ceci pourrait aisément remplacer le combo template + macro utilisé en C++
+// À FAIRE : définir une bonne interface pour accéder aux valeurs sans gabarits
+//
+// Idée tirée de JAI :
+//
+// déclaration d'un type gabarit    => x : $T
+// déclaration d'une valeur gabarit => $x : T
+// La valeur gabarit est l'équivalent des valeurs littérales des templates en C++
+// template <int N>, mais en plus flexible
+//
+// Une instruction #bake sers à instantier les fonctions selon les valeurs gabarits
+// par exemple (avec notre syntaxe)
+//
+// fonc nouveau_tableau_fixe($N : Type_de_N, x : $Type_du_tableau) : [N]$Type_du_tableau
+// crée_tableau_dix_éléments = #cuis nouveau_tableau_fixe($N = 10)
+//
+// On peut alors appeler : crée_tableau_dix_éléments(z32) pour créer un [10]z32
+//
+// Pour les attributs nous pourrions avoir un système similaire
+//
+// fonc valeur(attr : &Attribut, index : z64, $Type_de_valeur : Type, $T : TypeAttribut)
+//
+// valeur_z32 = #cuis valeur(Type_de_valeur = z32, T = TypeAttribut.Z32)
+// valeur_r32 = #cuis valeur(Type_de_valeur = r32, T = TypeAttribut.R32)
+// ....
+//
+// Ceci pourrait aisément remplacer le combo template + macro utilisé en C++

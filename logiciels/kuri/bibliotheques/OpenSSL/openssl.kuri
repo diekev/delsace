@@ -1,4 +1,4 @@
-# Interface pour la bibliothèque OpenSSL
+// Interface pour la bibliothèque OpenSSL
 
 #!inclus "openssl/err.h"
 #!inclus "openssl/ssl.h"
@@ -6,10 +6,10 @@
 #!bib "ssl"
 #!bib "crypto"
 
-################################################################################
+//###############################################################################
 
-struct externe ssl_method_st # SSL_METHOD dans l'IPA C
-struct externe ssl_st # SSL dans l'IPA C
+struct externe ssl_method_st // SSL_METHOD dans l'IPA C
+struct externe ssl_st // SSL dans l'IPA C
 
 struct externe X509
 struct externe X509_NAME
@@ -70,7 +70,7 @@ _X509_FILETYPE_PEM     := 1
 _X509_FILETYPE_ASN1    := 2
 _X509_FILETYPE_DEFAULT := 3
 
-_SSL_FILETYPE_ASN1 := 2 # À FAIRE(bug compilateur)_X509_FILETYPE_ASN1
-_SSL_FILETYPE_PEM  := 1 # À FAIRE(bug compilateur) _X509_FILETYPE_PEM
+_SSL_FILETYPE_ASN1 := 2 // À FAIRE(bug compilateur)_X509_FILETYPE_ASN1
+_SSL_FILETYPE_PEM  := 1 // À FAIRE(bug compilateur) _X509_FILETYPE_PEM
 
 fonc externe ERR_print_errors_cb(cb : fonc(*z8,n64,*rien)z32, u : *rien) -> rien

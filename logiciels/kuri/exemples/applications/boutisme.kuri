@@ -1,4 +1,4 @@
-# Bibliothèque de travail sur le boutisme des nombres binaires.
+// Bibliothèque de travail sur le boutisme des nombres binaires.
 
 #!enligne fonc commute_boutisme(dyn val : &n8) -> rien
 {

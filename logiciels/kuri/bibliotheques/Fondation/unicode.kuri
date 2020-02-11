@@ -1,9 +1,9 @@
-# Bibliothèque de travail sur des chaines de caractères encodées en utilisant le
-# standard Unicode
+// Bibliothèque de travail sur des chaines de caractères encodées en utilisant le
+// standard Unicode
 
 importe Fondation
 
-# Retourne le nombre d'octets du caractère en début de la séquence encodée en Unicode
+// Retourne le nombre d'octets du caractère en début de la séquence encodée en Unicode
 fonc nombre_octets_utf8(caractère : *z8) -> z32
 {
     si caractère == nul {
@@ -79,7 +79,7 @@ fonc nombre_octets_utf8(caractère : *z8) -> z32
 	retourne 0
 }
 
-# Similaire à celle au dessus, avec moins de comparaisons
+// Similaire à celle au dessus, avec moins de comparaisons
 fonc nombre_octets_utf8_rapide(caractère : *z8) -> z64
 {
 	si caractère == nul {
@@ -117,9 +117,9 @@ fonc décalage_pour_caractère(chn : chaine, i : z64) -> z32
 	retourne décalage
 }
 
-# Structure similaire à ce que Go possède pour les caractères Unicode
-# Toutefois, dans Go c'est un type entier sur 32-bit
-# Peut-être en aurons nous un dans le future, notamment pour les impressions
+// Structure similaire à ce que Go possède pour les caractères Unicode
+// Toutefois, dans Go c'est un type entier sur 32-bit
+// Peut-être en aurons nous un dans le future, notamment pour les impressions
 struct Rune {
     pointeur : *z8
     taille : z64
@@ -135,7 +135,7 @@ fonc construit_rune(pointeur : *z8, taille : z64) -> Rune
     retourne Rune{ pointeur = pointeur, taille = taille }
 }
 
-# Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
+// Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
 fonc converti_utf8_utf32(caractère : *z8, n : z64) -> z32
 {
 	s0 := transtype(caractère[0] : n8)
@@ -217,7 +217,7 @@ fonc converti_utf8_utf32(caractère : *z8) -> z32
     retourne résultat
 }
 
-# Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
+// Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
 fonc taille_unicode(chn : chaine) -> z64
 {
     dyn taille : z64 := 0

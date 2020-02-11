@@ -73,7 +73,7 @@ fonc associativité(type_lexème : TypeLexème) -> DirAssociativité, z32
 			retourne DirAssociativité.GAUCHE, 14
         }
 		sinon {
-			#assert(false)
+			//assert(false)
 			retourne DirAssociativité.INVALIDE, -1
         }
 	}

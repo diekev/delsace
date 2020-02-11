@@ -35,7 +35,7 @@ fonc max(args : ...z32) -> z32
 	retourne vmax
 }
 
-# Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
+// Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
 fonc pgcd(a : z32, b : z32) -> z32
 {
 	dyn x := a
@@ -49,7 +49,7 @@ fonc pgcd(a : z32, b : z32) -> z32
 	retourne x
 }
 
-# Trouve le plus petit commun multiple
+// Trouve le plus petit commun multiple
 fonc ppmc(a : z32, b : z32) -> z32
 {
 	si a == 0 || b == 0 {

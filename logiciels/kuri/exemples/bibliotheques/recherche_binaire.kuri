@@ -10,16 +10,16 @@ fonction recherche_binaire(x : []z32, n : z32, v : z32) -> z32
 			retourne -1;
 		}
 
-		m := (l + u) / 2; # possible qu'il y est surcharge
+		m := (l + u) / 2; // possible qu'il y est surcharge
 
 		si x[m] < v {
 			l = m + 1;
 		}
-		sinon si x[m] == v { # trop de comparaison
+		sinon si x[m] == v { // trop de comparaison
 			retourne m;
 		}
-		sinon { # x[m] > v
-			u = m - 1; # possible qu'il y est souscharge -1
+		sinon { // x[m] > v
+			u = m - 1; // possible qu'il y est souscharge -1
 		}
 	}
 

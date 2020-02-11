@@ -2,7 +2,7 @@ charge "lexage"
 
 importe Fondation
 
-# À FAIRE : les énums dont les valeurs sont autres que z32 ne sont pas imprimées (introspection)
+// À FAIRE : les énums dont les valeurs sont autres que z32 ne sont pas imprimées (introspection)
 énum TypeNoeud : z32 {
 	CHAINE_CARACTÈRE
 	VARIABLE
@@ -40,7 +40,7 @@ fonc lexème(noeud : *NoeudSyntaxique) -> TypeLexème
     retourne noeud.données.type_lexème
 }
 
-###############################################################################
+//##############################################################################
 
 struct PileNoeud {
     données : []*NoeudSyntaxique
@@ -85,7 +85,7 @@ fonc est_vide(pile : &PileNoeud) -> bool
     retourne pile.curseur == 0
 }
 
-###############################################################################
+//##############################################################################
 
 struct AssembleuseArbre {
     noeuds : []*NoeudSyntaxique
@@ -101,7 +101,7 @@ fonc construit_assembleuse() -> AssembleuseArbre
 fonc détruit_assembleuse(dyn assembleuse : &AssembleuseArbre) -> rien
 {
     pour noeud dans assembleuse.noeuds {
-        # À FAIRE : accès à des références de pointeurs....
+        // À FAIRE : accès à des références de pointeurs....
         détruit_noeud(noeud)
     }
 
@@ -159,5 +159,5 @@ fonc dépile_noeud(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) 
 
 fonc attend_type(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
-	# assert(assembleuse.pile.haut().type == type_noeud)
+	// assert(assembleuse.pile.haut().type == type_noeud)
 }

@@ -1,9 +1,9 @@
 importe Fondation
 
-###############################################################################
+//##############################################################################
 
 énum TypeRune : z32 {
-    # espaces
+    // espaces
 	ESPACE_INSECABLE             := 0x00A0
 	ESPACE_D_OGAM                := 0x1680
 	SEPARATEUR_VOYELLES_MONGOL   := 0x180E
@@ -24,12 +24,12 @@ importe Fondation
 	ESPACE_IDEOGRAPHIQUE         := 0x3000
 	ESPACE_INSECABLE_SANS_CHASSE := 0xFEFF
 
-    # guillemets
-	GUILLEMET_OUVRANT := 0x00AB  # «
-	GUILLEMET_FERMANT := 0x00BB  # »
+    // guillemets
+	GUILLEMET_OUVRANT := 0x00AB  // «
+	GUILLEMET_FERMANT := 0x00BB  // »
 }
 
-###############################################################################
+//##############################################################################
 
 énum TypeLexème : n32 {
 	INCONNU
@@ -120,7 +120,7 @@ fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) -> rien
     liste[taille] = valeur
 }
 
-###############################################################################
+//##############################################################################
 
 fonc est_caractère_spécial(c : z8) -> bool, TypeLexème
 {
@@ -202,7 +202,7 @@ fonc id_identifiant(identifiant : chaine) -> TypeLexème
 	retourne TypeLexème.CHAINE_CARACTERE
 }
 
-###############################################################################
+//##############################################################################
 
 struct Lexeuse {
     chn : chaine
@@ -286,7 +286,7 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
 							lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
 						}
 
-						# Saute le premier guillemet.
+						// Saute le premier guillemet.
 						lexeuse.avance(nombre_octet)
 						lexeuse.enregistre_pos_mot()
 
@@ -302,7 +302,7 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
 							lexeuse.avance(nombre_octet)
 						}
 
-						# Saute le dernier guillemet.
+						// Saute le dernier guillemet.
 						lexeuse.avance(nombre_octet)
 
 						lexeuse.pousse_mot(TypeLexème.CHAINE_LITTERALE)
@@ -314,14 +314,14 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
 				}
 			}
 			sinon {
-				# Le caractère (octet) courant est invalide dans le codec unicode.
-				#lance_erreur("Le codec Unicode ne peut comprendre le caractère !")
+				// Le caractère (octet) courant est invalide dans le codec unicode.
+				//lance_erreur("Le codec Unicode ne peut comprendre le caractère !")
 			}
 		}
 	}
 
 	si (lexeuse.taille_mot_courant != 0) {
-		#lance_erreur("Des caractères en trop se trouvent à la fin du texte !")
+		//lance_erreur("Des caractères en trop se trouvent à la fin du texte !")
 	}
 }
 
@@ -401,7 +401,7 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
 				}
 
 				si (lexeuse.caractère_voisin(2) != '.') {
-					#lance_erreur("Un point est manquant ou un point est en trop !\n")
+					//lance_erreur("Un point est manquant ou un point est en trop !\n")
 				}
 
 				lexeuse.pousse_caractère()
@@ -412,7 +412,7 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
 				lexeuse.avance(3)
 			}
 			'"' {
-				# Saute le premier guillemet.
+				// Saute le premier guillemet.
 				lexeuse.avance(1)
 				lexeuse.enregistre_pos_mot()
 
@@ -425,13 +425,13 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
 					lexeuse.avance(1)
 				}
 
-				# Saute le dernier guillemet.
+				// Saute le dernier guillemet.
 				lexeuse.avance(1)
 
 				lexeuse.pousse_mot(TypeLexème.CHAINE_LITTERALE)
 			}
 			'\'' {
-				# Saute la première apostrophe.
+				// Saute la première apostrophe.
 				lexeuse.avance(1)
 
 				lexeuse.enregistre_pos_mot()
@@ -446,15 +446,15 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
 
 				lexeuse.avance(1)
 
-				# Saute la dernière apostrophe.
+				// Saute la dernière apostrophe.
 				si (lexeuse.caractère_courant() != '\'') {
-					#lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n")
+					//lance_erreur("Plusieurs caractères détectés dans un caractère simple !\n")
 				}
 
 				lexeuse.avance(1)
 			}
 			'#' {
-				# ignore commentaire
+				// ignore commentaire
 				tantque (lexeuse.caractère_courant() != '\n') {
 					lexeuse.avance(1)
 				}
@@ -469,11 +469,11 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
 	sinon si (lexeuse.taille_mot_courant == 0 && est_nombre_décimal(lexeuse.caractère_courant())) {
 		lexeuse.enregistre_pos_mot()
 
-		# nous savons que nous avons un chiffre, pousse et avance
+		// nous savons que nous avons un chiffre, pousse et avance
 		lexeuse.pousse_caractère()
 		lexeuse.avance(1)
 
-		# À FAIRE : nombre à virgule, hexadécimal, octal, binaire....
+		// À FAIRE : nombre à virgule, hexadécimal, octal, binaire....
 		tantque est_nombre_décimal(lexeuse.caractère_courant()) {
 			lexeuse.pousse_caractère()
 			lexeuse.avance(1)

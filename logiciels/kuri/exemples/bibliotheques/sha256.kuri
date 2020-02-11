@@ -1,6 +1,6 @@
 importe Fondation
 
-########################################
+//#######################################
 
 TAILLE_BLOC_SHA224_256 := 64
 TAILLE_DIGEST := 32
@@ -10,8 +10,8 @@ struct SHA256 {
     longueur := 0
     bloc : [128]octet
 
-    # À FAIRE: ceux-ci pourraient être des variables globales, il nous
-    # faudrait pouvoir initialiser les globales pour cela
+    // À FAIRE: ceux-ci pourraient être des variables globales, il nous
+    // faudrait pouvoir initialiser les globales pour cela
     h : [8]n32
     k : [64]n32
 }
@@ -276,7 +276,7 @@ fonc calcule_empreinte_sha256(entrée : chaine) -> chaine
     enchaineuse.réserve(TAILLE_DIGEST * 2)
 
     pour c, idx dans digest {
-        # À FAIRE(coulisse C): référence
+        // À FAIRE(coulisse C): référence
         co := digest[idx]
         enchaineuse.pousse(caractère_base_16((co >> 4) & 0xf))
         enchaineuse.pousse(caractère_base_16(co & 0xf))
@@ -285,7 +285,7 @@ fonc calcule_empreinte_sha256(entrée : chaine) -> chaine
 	retourne enchaineuse.résultat
 }
 
-########################################
+//#######################################
 
 fonc principale(args : []*z8) -> z32
 {

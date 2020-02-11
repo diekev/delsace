@@ -11,11 +11,11 @@ fonc racine_carré(x : n32) -> n32
 	dyn num := x;
 	dyn res := 0;
 
-	# Le second bit est mis en place
-	# n8  : 1 << 6
-	# n16 : 1 << 14
-	# n32 : 1 << 30
-	# n64 : 1 << 62
+	// Le second bit est mis en place
+	// n8  : 1 << 6
+	// n16 : 1 << 14
+	// n32 : 1 << 30
+	// n64 : 1 << 62
 	dyn bit := 1 << 30;
 
 	boucle {

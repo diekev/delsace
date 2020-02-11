@@ -31,11 +31,11 @@ fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) -> *atl
 {
     dyn atlas = loge atlas_texture
 
-    # À FAIRE : assertion
-    # assert((profondeur == 1) || (profondeur == 3) || (profondeur == 4));
+    // À FAIRE : assertion
+    // assert((profondeur == 1) || (profondeur == 3) || (profondeur == 4));
 
     si atlas == nul {
-        # À FAIRE : erreur
+        // À FAIRE : erreur
         retourne nul
     }
 
@@ -69,17 +69,17 @@ fonc texture_atlas_set_region(
                           const unsigned char * data,
                           const size_t stride ) -> rien
 {
-    # assert( atlas );
-    # assert( x > 0);
-    # assert( y > 0);
-    # assert( x < (atlas->largeur-1));
-    # assert( (x + largeur) <= (atlas->largeur-1));
-    # assert( y < (atlas->hauteur-1));
-    # assert( (y + hauteur) <= (atlas->hauteur-1));
+    // assert( atlas );
+    // assert( x > 0);
+    // assert( y > 0);
+    // assert( x < (atlas->largeur-1));
+    // assert( (x + largeur) <= (atlas->largeur-1));
+    // assert( y < (atlas->hauteur-1));
+    // assert( (y + hauteur) <= (atlas->hauteur-1));
 
-    # prevent copying data from undefined position
-    # and prevent memcpy's undefined behavior when count is zero
-    # assert(hauteur == 0 || (data != NULL && largeur > 0));
+    // prevent copying data from undefined position
+    // and prevent memcpy's undefined behavior when count is zero
+    // assert(hauteur == 0 || (data != NULL && largeur > 0));
 
     depth := atlas->depth
     charsize := sizeof(char)
@@ -96,7 +96,7 @@ fonc texture_atlas_fit(
     largeur : z32,
     hauteur : z32) -> z32
 {
-    # assert( atlas );
+    // assert( atlas );
 
     dyn noeud = atlas.noeuds[index]
     dyn x = noeud.x
@@ -130,7 +130,7 @@ fonc texture_atlas_fit(
 
 fonc texture_atlas_merge(atlas : *atlas_texture) -> rien
 {
-	# assert(atlas);
+	// assert(atlas);
 
 	pour i dans 0 ... atlas.noeuds.taille - 2 {
 		noeud := atlas.noeuds[i]
@@ -138,7 +138,7 @@ fonc texture_atlas_merge(atlas : *atlas_texture) -> rien
 
 		si noeud.y == suiv.y {
 			noeud.z += suiv.z
-			tableau_efface(atlas.noeuds, i + 1) # À FAIRE
+			tableau_efface(atlas.noeuds, i + 1) // À FAIRE
 			i -= 1
 		}
 	}
@@ -149,10 +149,10 @@ fonc texture_atlas_get_region(
     largeur : z32,
     hauteur : z32) -> ivec4
 {
-    # assert( atlas );
+    // assert( atlas );
 
-    dyn meilleur_hauteur := (1 << 31) # À FAIRE UINT_MAX
-    dyn meilleur_largeur := (1 << 31) # À FAIRE UINT_MAX
+    dyn meilleur_hauteur := (1 << 31) // À FAIRE UINT_MAX
+    dyn meilleur_largeur := (1 << 31) // À FAIRE UINT_MAX
     dyn meilleur_index   := -1
 
     pour noeud, i dans atlas.noeuds {
@@ -186,7 +186,7 @@ fonc texture_atlas_get_region(
     noeud.x = region.x
     noeud.y = region.y + hauteur
     noeud.z = largeur
-    vector_insert( atlas->noeuds, meilleur_index, noeud ) # À FAIRE
+    vector_insert( atlas->noeuds, meilleur_index, noeud ) // À FAIRE
 
     pour i dans meilleur_index + 1 ... atlas.noeuds.taille  - 1 {
         noeud = atlas.noeuds[i]
@@ -215,13 +215,13 @@ fonc texture_atlas_get_region(
 
 fonc texture_atlas_clear(atlas : *atlas_texture) -> rien
 {
-    #assert(atlas);
-    #assert(atlas.donnees);
+    //assert(atlas);
+    //assert(atlas.donnees);
 
-    vector_clear(atlas->noeuds) # À FAIRE
+    vector_clear(atlas->noeuds) // À FAIRE
     atlas.utilise = 0
-    # We want a one pixel border around the whole atlas to avoid any artefact when
-    # sampling texture
+    // We want a one pixel border around the whole atlas to avoid any artefact when
+    // sampling texture
     noeud := ivec3{ x = 1, y = 1, z = atlas.largeur - 2 }
 
     pousse(atlas.noeuds, noeud)

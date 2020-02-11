@@ -154,7 +154,7 @@ fonc contenu_fichier_binaire(chemin : &CheminFichier) -> []octet
 	dyn tampon : [1024]z8
 
     boucle {
-	    # À FAIRE : prend pointeur automatiquement
+	    // À FAIRE : prend pointeur automatiquement
 		dyn lu := read(fd, @tampon[0], 1024)
 
 		si lu == 0 {
@@ -162,7 +162,7 @@ fonc contenu_fichier_binaire(chemin : &CheminFichier) -> []octet
 		}
 
 		si lu == -1 {
-			# À FAIRE : erreur
+			// À FAIRE : erreur
 			déloge contenu
 			arrête
 		}
@@ -239,9 +239,9 @@ corout chaque_chemin(chemin : &CheminFichier) -> CheminFichier
     closedir(d)
 }
 
-################################################################################
+//###############################################################################
 
-# File spécialisé pour les DIR.
+// File spécialisé pour les DIR.
 struct FileDir {
 	taille : z64
 	capacité : z64
@@ -294,7 +294,7 @@ fonc défile(dyn q : *FileDir) -> *DIR
     retourne ret
 }
 
-################################################################################
+//###############################################################################
 
 fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> rien
 {
@@ -308,7 +308,7 @@ fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> 
         retourne
     }
 
-    # Trouve le chemin absolu.
+    // Trouve le chemin absolu.
     dyn chn : chaine
     diffère { déloge chn; }
 
@@ -370,7 +370,7 @@ corout chaque_chemin_récursif(chemin : &CheminFichier) -> CheminFichier
     decrée_file(file)
 }
 
-################################################################################
+//###############################################################################
 
 fonc chemin_courant() -> CheminFichier
 {
@@ -386,9 +386,9 @@ fonc chemin_courant(chemin : CheminFichier) -> rien
     chdir(ptr_chemin)
 }
 
-# À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
+// À FAIRE : créer fichier, dossier (récurisevement), mettre à la corbeille, trouver le chemin vers HOME/TMP, copier, opérations sur les chemins
 
-################################################################################
+//###############################################################################
 
 fonc renomme(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {

@@ -43,7 +43,7 @@ fonc principale(args : []*z8) -> z32
 
     imprime("normal = ", normal, "\n")
 
-    # À définir si ceci est possible ou non
+    // À définir si ceci est possible ou non
     normal |= Normal.FB
     normal |= Normal.FC
 

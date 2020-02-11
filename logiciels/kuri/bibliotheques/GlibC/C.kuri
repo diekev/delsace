@@ -1,4 +1,4 @@
-# définitions des interfaces de la bibliothèques C pour GNU/Linux
+// définitions des interfaces de la bibliothèques C pour GNU/Linux
 
 #!inclus "arpa/inet.h"
 #!inclus "dirent.h"
@@ -10,33 +10,33 @@
 #!inclus "sys/wait.h"
 #!inclus "unistd.h"
 
-################################################################################
+//###############################################################################
 
-# Valeur des descripteurs fichiers pour les flux standards.
+// Valeur des descripteurs fichiers pour les flux standards.
 std_out := 0
 std_err := 1
 std_log := 2
 
 fonc externe sprintf(tmp : *z8, fmt : *z8, args : ...) -> z32
 
-################################################################################
+//###############################################################################
 
-# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
+// ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
 struct externe timeval {
 	tv_sec : z64
 	tv_usec : z64
 }
 
-# ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
-# À FAIRE : déprécié
+// ATTENTION : à tenir synchronisée avec celle de la bibliothèque C.
+// À FAIRE : déprécié
 struct externe timezone {
-	tz_minuteswest : z64 # Minutes à l'ouest de GMT
-	tz_dsttime : z64 # Nonzéro si DST est en effet
+	tz_minuteswest : z64 // Minutes à l'ouest de GMT
+	tz_dsttime : z64 // Nonzéro si DST est en effet
 }
 
 fonc externe gettimeofday(val_temps : *rien, zone_temps : *rien) -> rien
 
-################################################################################
+//###############################################################################
 
 fonc externe open(chemin : *z8, drapeaux : z32, args : ...) -> z32
 fonc externe close(fd : z32) -> z32
@@ -53,7 +53,7 @@ fonc externe getuid() -> z32
 fonc externe rename(orig : *z8, dest : *z8) -> z32
 fonc externe remove(chemin : *z8) -> z32
 
-# Ceci sont des macros
+// Ceci sont des macros
 fonc externe S_ISREG(mode : n32) -> bool
 fonc externe S_ISDIR(mode : n32) -> bool
 fonc externe S_IFSOCK(mode : n32) -> bool
@@ -62,22 +62,22 @@ fonc externe S_IFBLK(mode : n32) -> bool
 fonc externe S_IFCHR(mode : n32) -> bool
 fonc externe S_IFIFO(mode : n32) -> bool
 
-# Version 64-bit de la structure 'stat' de "sys/stat.h"
+// Version 64-bit de la structure 'stat' de "sys/stat.h"
 struct externe stat {
-    st_dev : n64         # ID of device containing file
-	st_ino : n64         # inode number
-	st_nlink : n64     # number of hard links
-	st_mode : n32       # protection
-	st_uid : n32         # user ID of owner
-	st_gid : n32         # group ID of owner
-	__pad0 : n32         # padding pour la version 64-bit
-	st_rdev : n64        # device ID (if special file)
-	st_size : z64        # total size, in bytes
-	st_blksize : z64 # blocksize for file system I/O
+    st_dev : n64         // ID of device containing file
+	st_ino : n64         // inode number
+	st_nlink : n64     // number of hard links
+	st_mode : n32       // protection
+	st_uid : n32         // user ID of owner
+	st_gid : n32         // group ID of owner
+	__pad0 : n32         // padding pour la version 64-bit
+	st_rdev : n64        // device ID (if special file)
+	st_size : z64        // total size, in bytes
+	st_blksize : z64 // blocksize for file system I/O
 	st_blocks : z64
-	st_atime : z64      # time of last access
-	st_mtime : z64      # time of last modification
-	st_ctime : z64      # time of last status change
+	st_atime : z64      // time of last access
+	st_mtime : z64      // time of last modification
+	st_ctime : z64      // time of last status change
 }
 
 struct externe DIR
@@ -90,7 +90,7 @@ struct externe dirent {
     d_name : *z8
 }
 
-# duplique un énum
+// duplique un énum
 _DT_UNKNOWN := 0
 _DT_FIFO := 1
 _DT_CHR := 2
@@ -101,7 +101,7 @@ _DT_LNK := 10
 _DT_SOCK := 12
 _DT_WHT := 14
 
-# open/fnctl
+// open/fnctl
 MODE_ACCÈS       :=      0003
 LECTURE_SEULE    :=        00
 ÉCRITURE_SEULE   :=        01
@@ -124,19 +124,19 @@ DIRECT	          :=    040000
 NOATIME          :=  01000000
 PATH             := 010000000
 DSYNC	          :=    010000
-# À FAIRE : les expressions utilisent des variables temporaires lors de la
-# génération du code, ce qui n'est pas possible pour les variables globales ou
-# encore les énum. L'expression devrait être (020000000 | 0200000)
+// À FAIRE : les expressions utilisent des variables temporaires lors de la
+// génération du code, ce qui n'est pas possible pour les variables globales ou
+// encore les énum. L'expression devrait être (020000000 | 0200000)
 TMPFILE          := 020200000
 
 fonc externe opendir(chemin : *z8) -> *DIR
 fonc externe closedir(d : *DIR) -> z32
 fonc externe readdir(d : *DIR) -> *dirent
 
-################################################################################
+//###############################################################################
 
 _PF_INET := 2
-_AF_INET := 2 # À FAIRE (bug compileur) _PF_INET
+_AF_INET := 2 // À FAIRE (bug compileur) _PF_INET
 _SOCK_STREAM := 1
 _WNOHANG := 1
 _INADDR_ANY := transtype(0 : n32)

@@ -1,5 +1,5 @@
-# Bibliothèque de chronométrage.
-# À FAIRE : regarde les bibliothèques de temps/date des différents langages
+// Bibliothèque de chronométrage.
+// À FAIRE : regarde les bibliothèques de temps/date des différents langages
 
 importe GlibC
 
@@ -10,7 +10,7 @@ fonc maintenant_sec() -> r64
 
 	s := transtype(heure.tv_sec : r64)
 
-    # À FAIRE : 1e-6
+    // À FAIRE : 1e-6
 	retourne s + transtype(heure.tv_usec : r64) * 0.000001
 }
 
@@ -23,7 +23,7 @@ fonc maintenant_local() -> r64
 	dyn s := transtype(heure.tv_sec : r64)
 	s += transtype(fuseau.tz_minuteswest : r64) * 60.0
 
-    # À FAIRE : 1e-6
+    // À FAIRE : 1e-6
 	retourne s + transtype(heure.tv_usec : r64) * 0.000001
 }
 

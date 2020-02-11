@@ -1,5 +1,5 @@
-########################################################################
-# https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
+//#######################################################################
+// https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
 
 struct Point2D {
 	x := 0.0;
@@ -47,7 +47,7 @@ fonc mappage(mve : &MondeVersEcran, p : &Point2D) -> Point2D
 	retourne mappage(mve, p.x, p.y);
 }
 
-########################################################################
+//#######################################################################
 
 fonc dessine_point_rayon(
 	cannevas : []z8,
@@ -106,13 +106,13 @@ fonc dessine_bmp(
 	écris_cannevas(chemin, cannevas);
 }
 
-########################################################################
+//#######################################################################
 
 fonc principale(args : []*z8) -> z32
 {
 	monde := Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
 
-	# À FAIRE(compilation) : construction de structure dans un tableau
+	// À FAIRE(compilation) : construction de structure dans un tableau
 	points := [
 		Point2D{x =   0.0, y =  0.0},
 		Point2D{x =  10.0, y =  10.0},

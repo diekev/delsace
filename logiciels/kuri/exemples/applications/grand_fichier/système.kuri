@@ -27,9 +27,9 @@ fonc détermine_instruction(chn : chaine) -> Instruction
 	retourne Instruction.INVALIDE
 }
 
-# CHERCHE /arachne/noeuds.base PGF/1.0\r\n
-# CRÉE /arachne/noeuds.base PGF/1.0\r\n
-# AJOURNE /arachne/noeuds.base PGF/1.0\r\n
+// CHERCHE /arachne/noeuds.base PGF/1.0\r\n
+// CRÉE /arachne/noeuds.base PGF/1.0\r\n
+// AJOURNE /arachne/noeuds.base PGF/1.0\r\n
 fonc analyse_réponse(réponse : chaine) -> rien
 {
 	dyn début_mot = 0
@@ -73,7 +73,7 @@ fonc analyse_réponse(réponse : chaine) -> rien
 					état = État.FINI
 				}
 				sinon si état == État.FINI {
-					# OK
+					// OK
 				}
 			}
 			sinon {
@@ -182,7 +182,7 @@ fonc crée_système() -> Système
 {
 	dyn système : Système
 
-	# charge le fichier journal ou crée le si inexistant
+	// charge le fichier journal ou crée le si inexistant
 	dyn journal : Journal
 
 	si fichier_existe("journal_requête") {
@@ -192,7 +192,7 @@ fonc crée_système() -> Système
 		journal = ouvre_journal("")
 	}
 
-	# rejoue chaque requête dans le journal
+	// rejoue chaque requête dans le journal
 	pour requête dans rejoue(journal) {
 		répond_requête(système, requête)
 	}
@@ -217,16 +217,16 @@ struct Requête {
 	protocole : chaine
 }
 
-# ÉCRITURE_IMPOSSIBLE
-# FICHIER_INTROUVABLE
-# FICHIER_EXISTE
-# FICHIER_CRÉE
-# AJOURNEMENT_IMPOSSIBLE
-# AJOURNEMENT_FAIT
-# CRÉATION_IMPOSSIBLE
-# FICHIER_ÉCRIS
-# DESTRUCTION_IMPOSSIBLE
-# FICHIER_DÉTRUIT
+// ÉCRITURE_IMPOSSIBLE
+// FICHIER_INTROUVABLE
+// FICHIER_EXISTE
+// FICHIER_CRÉE
+// AJOURNEMENT_IMPOSSIBLE
+// AJOURNEMENT_FAIT
+// CRÉATION_IMPOSSIBLE
+// FICHIER_ÉCRIS
+// DESTRUCTION_IMPOSSIBLE
+// FICHIER_DÉTRUIT
 fonc répond(système : &Système, requête : &Requête) -> chaine
 {
 	dyn enchaineuse = crée_constructrice_chaine()

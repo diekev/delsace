@@ -1,11 +1,11 @@
-# exemple de serveur sécurisé tiré de
-# https://simplestcodings.blogspot.com/2010/08/secure-server-client-using-openssl-in-c.html
+// exemple de serveur sécurisé tiré de
+// https://simplestcodings.blogspot.com/2010/08/secure-server-client-using-openssl-in-c.html
 
 importe Fondation
 importe GlibC
 importe OpenSSL
 
-################################################################################
+//###############################################################################
 
 fonc OpenListener(port : n16) -> z32
 {
@@ -57,13 +57,13 @@ fonc InitServerCTX() -> *ssl_st
 
     method := TLSv1_2_server_method()
 
-    # Crée un nouveau contexte depuis la méthode
+    // Crée un nouveau contexte depuis la méthode
     ctx := SSL_CTX_new(method)
 
     si ctx == nul {
-        # À FAIRE
+        // À FAIRE
         imprime("impossible d'initialiser le contexte SSL")
-        #ERR_print_errors_fp(stderr)
+        //ERR_print_errors_fp(stderr)
         abort()
     }
 
@@ -72,21 +72,21 @@ fonc InitServerCTX() -> *ssl_st
 
 fonc LoadCertificates(ctx: *ssl_st, CertFile: chaine, KeyFile: chaine) -> rien
 {
-    # set the local certificate from CertFile */
+    // set the local certificate from CertFile */
     si SSL_CTX_use_certificate_file(ctx, CertFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
-        #ERR_print_errors_fp(stderr)
+        //ERR_print_errors_fp(stderr)
         imprime("Impossible d'utiliser CertFile")
         abort()
     }
 
-    # set the private key from KeyFile (may be the same as CertFile) */
+    // set the private key from KeyFile (may be the same as CertFile) */
     si SSL_CTX_use_PrivateKey_file(ctx, KeyFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
-        #ERR_print_errors_fp(stderr)
+        //ERR_print_errors_fp(stderr)
         imprime("Impossible d'utiliser KeyFile")
         abort()
     }
 
-    # verify private key
+    // verify private key
     si SSL_CTX_check_private_key(ctx) == 0 {
         imprime("Private key does not match the public certificate\n")
         abort()
@@ -112,7 +112,7 @@ fonc ShowCerts(ssl: *ssl_st) -> rien
     X509_free(cert)
 }
 
-# Sers la connextion -- moultfilable
+// Sers la connextion -- moultfilable
 fonc Servlet(ssl: *ssl_st) -> rien
 {
     dyn buf : [1024]z8
@@ -121,7 +121,7 @@ fonc Servlet(ssl: *ssl_st) -> rien
 
     si SSL_accept(ssl) == -1 {
         imprime("SSL_accept a échoué !\n")
-        #ERR_print_errors_fp(stderr)
+        //ERR_print_errors_fp(stderr)
     }
     sinon {
         ShowCerts(ssl)
@@ -135,7 +135,7 @@ fonc Servlet(ssl: *ssl_st) -> rien
         }
         sinon {
             imprime("SSL_read a échoué !\n")
-            #ERR_print_errors_fp(stderr)
+            //ERR_print_errors_fp(stderr)
         }
     }
 
@@ -144,7 +144,7 @@ fonc Servlet(ssl: *ssl_st) -> rien
     close(sd)
 }
 
-################################################################################
+//###############################################################################
 
 fonc principale(args : []*z8) -> z32
 {
@@ -160,7 +160,7 @@ fonc principale(args : []*z8) -> z32
 
     SSL_library_init()
 
-    #portnum := strings[1]
+    //portnum := strings[1]
     ctx := InitServerCTX()
 
     LoadCertificates(ctx, "mycert.pem", "mycert.pem")
@@ -168,7 +168,7 @@ fonc principale(args : []*z8) -> z32
     server := OpenListener(transtype(5005: n16))
 
     boucle {
-        dyn addr : sockaddr_in # Adresse du connecté
+        dyn addr : sockaddr_in // Adresse du connecté
 	    len := transtype(taille_de(sockaddr_in) : n32)
 
         client := accept(server, transtype(@addr : *sockaddr), @len)

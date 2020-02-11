@@ -1,7 +1,7 @@
 importe Fondation
 
 énum IdentifiantLexème : z32 {
-	# Ponctuations
+	// Ponctuations
     PARENTHÈSE_OUVRANTE
     PARENTHÈSE_FERMANTE
     CROCHET_OUVRANT
@@ -14,7 +14,7 @@ importe Fondation
     DOUBLE_POINTS
     VIRGULE
 
-    # Relations
+    // Relations
     RELATION_BIDIR
     RELATION_ENTRANTE
     RELATION_SORTANTE
@@ -23,7 +23,7 @@ importe Fondation
     RELATION_FIN
     RELATION_DEBUT
 
-    # Instructions
+    // Instructions
     CREE
     SUPPRIME
     TROUVE

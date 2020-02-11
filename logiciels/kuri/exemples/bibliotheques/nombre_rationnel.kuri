@@ -1,6 +1,6 @@
-# Nombre fractionnel nous permettant de faire des calculs sur des
-# fractions, afin d'être plus précis que des nombres à point flottant.
-# https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
+// Nombre fractionnel nous permettant de faire des calculs sur des
+// fractions, afin d'être plus précis que des nombres à point flottant.
+// https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
 fonc externe printf(fmt: *z8, args: ...) -> z32
 
@@ -22,7 +22,7 @@ fonc construit_nombre_rationnel(n: n32, d: n32, positif: bool) -> NombreRationne
 
 fonc ajoute(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
-    # augmente la taille des types pour éviter les problèmes de surflot
+    // augmente la taille des types pour éviter les problèmes de surflot
     a_n := transtype(a.N: n64)
     a_d := transtype(a.D: n64)
     b_n := transtype(b.N: n64)
@@ -49,14 +49,14 @@ fonc ajoute(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
     dyn r_D : n64 = a_d * b_d
 
-    # réduit la fraction selon le plus grand dénominateur commun,
-    # afin d'éviter des problèmes de surflot
+    // réduit la fraction selon le plus grand dénominateur commun,
+    // afin d'éviter des problèmes de surflot
     dc := pgdc(r_N, r_D)
 
     r_N = r_N / dc
     r_D = r_D / dc
 
-    # normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
+    // normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
     nb_N = nombre_de_bits_zéro_en_fin(r_N)
     nb_D = nombre_de_bits_zéro_en_fin(r_D)
 
@@ -71,7 +71,7 @@ fonc ajoute(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
         }
     }
 
-    # restaure la précision
+    // restaure la précision
     r.N = transtype(r_N: n32)
     r.D = transtype(r_D: n32)
 
@@ -88,7 +88,7 @@ fonc soustrait(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
 fonc multiplie(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
-    # augmente la taille des types pour éviter les problèmes de surflot
+    // augmente la taille des types pour éviter les problèmes de surflot
     a_n := transtype(a.N: n64)
     a_d := transtype(a.D: n64)
     b_n := transtype(b.N: n64)
@@ -97,14 +97,14 @@ fonc multiplie(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     dyn r_N := a_n * b_n
     dyn r_D := a_d * b_d
 
-    # réduit la fraction selon le plus grand dénominateur commun,
-    # afin d'éviter des problèmes de surflot
+    // réduit la fraction selon le plus grand dénominateur commun,
+    // afin d'éviter des problèmes de surflot
     dc := pgdc(r_N, r_D)
 
     r_N := r_N / dc
     r_D := r_D / dc
 
-    # normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
+    // normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
     nb_N := nombre_de_bits_zéro_en_fin(r_N)
     nb_D := nombre_de_bits_zéro_en_fin(r_D)
 
@@ -120,7 +120,7 @@ fonc multiplie(a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     }
 
     dyn r : NombreRationnel
-    # restaure la précision
+    // restaure la précision
     r.N = transtype(r_N: n32)
     r.D = transtype(r_D: n32)
     r.s = (a.s || b.s) && !(a.s && b.s)
@@ -147,10 +147,10 @@ fonc imprime_nombre_rationnel(a: NombreRationnel) -> rien
     }
 }
 
-# https://en.wikipedia.org/wiki/Binary_GCD_algorithm
+// https://en.wikipedia.org/wiki/Binary_GCD_algorithm
 fonc pgdc_récursif(u: n64, v: n64) -> n64
 {
-    # cas simples (terminaison)
+    // cas simples (terminaison)
     si u == v {
         retourne u
     }
@@ -163,20 +163,20 @@ fonc pgdc_récursif(u: n64, v: n64) -> n64
         retourne u
     }
 
-    # cherche des facteurs de 2
-    si (~u & 1) != 0 { # u est pair
-        si (v & 1) != 0 { # v est impair
+    // cherche des facteurs de 2
+    si (~u & 1) != 0 { // u est pair
+        si (v & 1) != 0 { // v est impair
             retourne pgdc_récursif(u >> 1, v)
         }
 
         retourne pgdc_récursif(u >> 1, v >> 1) << 1
     }
 
-    si (~v & 1) != 0 { # u est impair, v est pair
+    si (~v & 1) != 0 { // u est impair, v est pair
         retourne pgdc_récursif(u, v >> 1)
     }
 
-    # réduis l'argument le plus grand
+    // réduis l'argument le plus grand
     si (u > v) {
         retourne pgdc_récursif((u - v) >> 1, v)
     }
@@ -190,7 +190,7 @@ fonc pgdc(dyn u: n64, dyn v: n64) -> n64
         retourne u
     }
 
-    # GCD(0,v) == v GCD(u,0) == u, GCD(0,0) == 0
+    // GCD(0,v) == v GCD(u,0) == u, GCD(0,0) == 0
     si u == 0 {
         retourne v
     }
@@ -201,8 +201,8 @@ fonc pgdc(dyn u: n64, dyn v: n64) -> n64
 
     dyn shift : n64 = transtype(0: n64)
 
-    #Let shift := lg K, where K is the greatest power of 2
-    # dividing both u and v.
+    //Let shift := lg K, where K is the greatest power of 2
+    // dividing both u and v.
     tantque (((u | v) & 1) == 0) {
         shift = shift + 1
         u = u >> 1
@@ -213,28 +213,28 @@ fonc pgdc(dyn u: n64, dyn v: n64) -> n64
         u = u >> 1
     }
 
-    # From here on, u is always odd. */
+    // From here on, u is always odd. */
     répète {
-        # remove all factors of 2 in v -- they are not common */
-        #   note: v is not zero, so while will terminate */
+        // remove all factors of 2 in v -- they are not common */
+        //   note: v is not zero, so while will terminate */
         tantque ((v & 1) == 0) {
             v = v >> 1
         }
 
-        # Now u and v are both odd. Swap if necessary so u <= v,
-        #    then set v = v - u (which is even). For bignums, the
-        #     swapping is just pointer movement, and the subtraction
-        #      can be done in-place. */
+        // Now u and v are both odd. Swap if necessary so u <= v,
+        //    then set v = v - u (which is even). For bignums, the
+        //     swapping is just pointer movement, and the subtraction
+        //      can be done in-place. */
         si u > v {
             t = v
             v = u
             u = t
         }
 
-        v = v - u # Here v >= u.
+        v = v - u // Here v >= u.
     } tantque (v != 0)
 
-    # restore common factors of 2 */
+    // restore common factors of 2 */
     retourne u << shift
 }
 

@@ -1,6 +1,6 @@
-#module sys
+//module sys
 
-# Retourne une chaîne de caractère contenant le nom du système d'exploitation.
+// Retourne une chaîne de caractère contenant le nom du système d'exploitation.
 fonc sysexp() -> chaine
 {
 #!si linux
@@ -14,7 +14,7 @@ fonc sysexp() -> chaine
 #!finsi
 }
 
-# Retourne le nombre de bit de l'adressage de la machine.
+// Retourne le nombre de bit de l'adressage de la machine.
 fonc adressage() -> z32
 {
 #!si arch32

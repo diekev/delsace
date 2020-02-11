@@ -11,10 +11,10 @@ fonc principale(args : []*z8) -> z32
     insère(table, "Accept-Charset", "utf-8, iso-8859-1;q=0.5")
     insère(table, "Accept-Encoding", "identity")
 
-    #cherche_noeud(table, "Accept")
-    #cherche_noeud(table, "Accept-Charset")
-    #cherche_noeud(table, "Accept-Encoding")
-    #cherche_noeud(table, "Quelque Chose")
+    //cherche_noeud(table, "Accept")
+    //cherche_noeud(table, "Accept-Charset")
+    //cherche_noeud(table, "Accept-Encoding")
+    //cherche_noeud(table, "Quelque Chose")
 
     pour noeud dans chaque_noeud(table) {
         imprime("noeud : ", noeud, '\n')

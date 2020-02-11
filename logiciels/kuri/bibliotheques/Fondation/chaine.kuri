@@ -1,8 +1,8 @@
-# Fonctions de manipulation de chaines.
+// Fonctions de manipulation de chaines.
 
 charge "memoire"
 
-# Retourne la taille d'une chaine C, c'est à dire nul-terminé.
+// Retourne la taille d'une chaine C, c'est à dire nul-terminé.
 #!nulctx fonc taille_chaine_c(ch : *z8) -> z64
 {
 	dyn index : z64 := 0
@@ -22,14 +22,14 @@ charge "memoire"
 	retourne ret
 }
 
-# Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
+// Converti une chaine C, c'est à dire nul-terminé, en une chaine native.
 #!nulctx fonc converti_chaine_c(chaine_c : *z8) -> chaine
 {
 	retourne construit_chaine(chaine_c, taille_chaine_c(chaine_c))
 }
 
-# Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
-# par un '\0' et l'utiliser dans les fonctions C.
+// Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
+// par un '\0' et l'utiliser dans les fonctions C.
 fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) -> *z8
 {
     si tampon.taille == 0 {
@@ -53,7 +53,7 @@ fonc copie_chaine_c_tampon(dyn tampon : []z8, chn : chaine) -> *z8
 	retourne @tampon[0]
 }
 
-# execute une fonction pour chaque ligne du texte d'entrée
+// execute une fonction pour chaque ligne du texte d'entrée
 fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, eini)rien) -> rien
 {
 	dyn taille_chaine : z64 = 0
@@ -71,7 +71,7 @@ fonc pour_chaque_ligne(texte : chaine, donnees : eini, rappel : fonc(chaine, ein
 		}
 	}
 
-    # La dernière ligne n'a pas de retour...
+    // La dernière ligne n'a pas de retour...
 	si taille_chaine != 0 {
 		ligne := construit_chaine(@texte[début_chaine], taille_chaine)
 		rappel(ligne, donnees)
@@ -120,8 +120,8 @@ corout découpe(texte : chaine, sep : z8) -> chaine
 	}
 }
 
-# Converti une chaine, par exemple "5005", en un nombre entier
-# La fonction présume que la chaine est entièrement composée de caractères numériques
+// Converti une chaine, par exemple "5005", en un nombre entier
+// La fonction présume que la chaine est entièrement composée de caractères numériques
 fonc extrait_nombre_entier(chn : chaine) -> z64
 {
     dyn résultat : z64 := 0
@@ -133,8 +133,8 @@ fonc extrait_nombre_entier(chn : chaine) -> z64
 	retourne résultat
 }
 
-# Converti une chaine, par exemple "500.5", en un nombre réel
-# La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
+// Converti une chaine, par exemple "500.5", en un nombre réel
+// La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
 fonc extrait_nombre_réel(chn : chaine) -> r64
 {
     dyn résultat := 0.0
@@ -220,7 +220,7 @@ fonc en_minuscule(dyn chn : chaine) -> chaine
 	retourne chn
 }
 
-################################################################################
+//###############################################################################
 
 struct Enchaineuse {
     résultat : chaine
@@ -242,7 +242,7 @@ fonc détruit(dyn enchaineuse : &Enchaineuse) -> rien
 fonc réserve(dyn enchaineuse : &Enchaineuse, taille : z64) -> rien
 {
 	si taille < 0 {
-		# Erreur ?
+		// Erreur ?
 		retourne
 	}
 
@@ -298,16 +298,16 @@ fonc pousse(dyn enchaineuse : &Enchaineuse, chns : ...chaine) -> rien
 	}
 }
 
-# Retourne une chaine correspondant à l'enchainement de toutes les chaines
-# spécifiées. La chaine retournée a été logé et doit être délogée par
-# l'appelante.
+// Retourne une chaine correspondant à l'enchainement de toutes les chaines
+// spécifiées. La chaine retournée a été logé et doit être délogée par
+// l'appelante.
 fonc enchaine(chns : ...chaine) -> chaine
 {
 	dyn enchaineuse : Enchaineuse
 	dyn taille : z64
 
-	# À FAIRE : trouve comment passer des arguments variadiques à
-	# d'autres fonctions
+	// À FAIRE : trouve comment passer des arguments variadiques à
+	// d'autres fonctions
 	pour chn dans chns {
 		taille += chn.taille
 	}

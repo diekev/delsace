@@ -1,9 +1,9 @@
-# À FAIRE : ne peut avoir une structure externe sans définition comme champs dans une structure (hors pointeur)
-# À FAIRE : initialisation des structures
-# À FAIRE : déclaration de variables externes (notamment pour les globales)
-# À FAIRE : permet de préciser le ctx pour les fonctions avec contexte appelée dans des fonctions sans
+// À FAIRE : ne peut avoir une structure externe sans définition comme champs dans une structure (hors pointeur)
+// À FAIRE : initialisation des structures
+// À FAIRE : déclaration de variables externes (notamment pour les globales)
+// À FAIRE : permet de préciser le ctx pour les fonctions avec contexte appelée dans des fonctions sans
 
-# https://franckh.developpez.com/tutoriels/posix/pthreads/
+// https://franckh.developpez.com/tutoriels/posix/pthreads/
 
 importe GlibC
 
@@ -17,13 +17,13 @@ struct externe pthread_attr_t
 
 fonc externe pthread_create(thread : *n64, attr : *pthread_attr_t,  start_routine : fonc(*rien)*rien, arg : *rien) -> z32
 
-# Pour arrêter le fil courant
+// Pour arrêter le fil courant
 fonc externe pthread_exit(retval : *rien) -> rien
 
-# Annule l'exécution du fil donné
+// Annule l'exécution du fil donné
 fonc externe pthread_cancel(thread : n64) -> z32
 
-# Cette fonction permet de changer le comportement du thread appelant par rapport aux requêtes d'annulations
+// Cette fonction permet de changer le comportement du thread appelant par rapport aux requêtes d'annulations
 fonc externe pthread_setcancelstate (state : z32, etat_pred : *z32) -> z32
 
 fonc externe pthread_join (thread : n64, thread_return : **rien) -> z32
@@ -42,7 +42,7 @@ fonc externe pthread_cond_signal(cond : *pthread_cond_t) -> z32
 
 fonc externe pthread_cond_broadcast(cond : *pthread_cond_t) -> z32
 
-######################################################################################
+//#####################################################################################
 
 fonc externe rand() -> r64
 
@@ -50,9 +50,9 @@ fonc externe sleep(temps : z32) -> rien
 
 fonc externe strerror(args : z32) -> *z8
 
-######################################################################################
+//#####################################################################################
 
-# Structure stockant les informations des threads clients et du magasin.
+// Structure stockant les informations des threads clients et du magasin.
 struct store_t {
    stock := 20
 
@@ -64,7 +64,7 @@ struct store_t {
    cond_store : *pthread_cond_t
 }
 
-# Fonction pour tirer un nombre au sort entre 0 et max.
+// Fonction pour tirer un nombre au sort entre 0 et max.
 #!nulctx fonc get_random(max : z32) -> z32
 {
 	dyn val : r64
@@ -74,7 +74,7 @@ struct store_t {
 	retourne (transtype(val : z32))
 }
 
-# Fonction pour le thread du magasin.
+// Fonction pour le thread du magasin.
 #!nulctx fonc fn_store(p_data : *rien) -> *rien
 {
     dyn store := transtype(p_data : *store_t)
@@ -93,7 +93,7 @@ struct store_t {
 	retourne nul
 }
 
-# Fonction pour les threads des clients.
+// Fonction pour les threads des clients.
 #!nulctx fonc fn_clients(p_data : *rien) -> *rien
 {
     dyn store := transtype(p_data : *store_t)
@@ -124,7 +124,7 @@ fonc principale(args : []*z8) -> z32
 {
     dyn store := store_t{ stock = 20, mutex = loge pthread_mutex_t, cond_clients = loge pthread_cond_t, cond_store = loge pthread_cond_t }
 
-    # À FAIRE : la mémoire n'est pas délogée car nous avons des boucles infinies et il nous faut avorter le programme manuellement
+    // À FAIRE : la mémoire n'est pas délogée car nous avons des boucles infinies et il nous faut avorter le programme manuellement
     diffère {
         déloge store.mutex
         déloge store.cond_clients
