@@ -25,7 +25,7 @@ obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 	ok := stat(ptr_chemin, @st)
 
 	si ok == -1 {
-		retourne 0xffffffff
+		retourne transtype(0xffffffff: n32)
 	}
 
 	retourne st.st_mode
@@ -33,14 +33,14 @@ obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 
 fichier_existe :: fonc(chemin : &CheminFichier) -> bool
 {
-    retourne obtiens_stmode(chemin) != 0xffffffff
+    retourne obtiens_stmode(chemin) != transtype(0xffffffff: n32)
 }
 
 est_dossier :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -51,7 +51,7 @@ est_fichier_régulier :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -62,7 +62,7 @@ est_prise :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -73,7 +73,7 @@ est_lien_symbolique :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -84,7 +84,7 @@ est_fichier_périphérique :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -95,7 +95,7 @@ est_fichier_caractère :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -106,7 +106,7 @@ est_pipe :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
-	si mode == 0xffffffff {
+	si mode == transtype(0xffffffff: n32) {
 		retourne faux
 	}
 
@@ -130,7 +130,7 @@ ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
 	dyn tampon : [1024]z8
 	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
 
-	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0777)
+	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0o777)
 }
 
 ferme_fichier :: fonc(desc : z32) -> rien
@@ -155,7 +155,7 @@ contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 
     boucle {
 	    // À FAIRE : prend pointeur automatiquement
-		dyn lu := read(fd, @tampon[0], 1024)
+		dyn lu := read(fd, @tampon[0], transtype(1024: n64))
 
 		si lu == 0 {
 			arrête

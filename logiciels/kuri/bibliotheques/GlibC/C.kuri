@@ -80,7 +80,7 @@ stat :: struct externe  {
 	st_ctime : z64      // time of last status change
 }
 
-DIR :: struct externe 
+DIR :: struct externe
 
 dirent :: struct externe  {
     d_ino : n64
@@ -102,32 +102,32 @@ _DT_SOCK := 12
 _DT_WHT := 14
 
 // open/fnctl
-MODE_ACCÈS       :=      0003
-LECTURE_SEULE    :=        00
-ÉCRITURE_SEULE   :=        01
-LECTURE_ÉCRITURE :=        02
-CREATION         :=      0100
-EXCLUSION        :=      0200
-NOCTTY           :=      0400
-TRONCAGE         :=     01000
-APPEND           :=     02000
-NONBLOCK         :=     04000
-NDELAY           :=     04000
-SYNC             :=  04010000
-FSYNC            :=  04010000
-ASYNC            :=    020000
-LARGEFILE        :=   0100000
-DIRECTORY	      :=   0200000
-NOFOLLOW	      :=   0400000
-CLOEXEC          :=  02000000
-DIRECT	          :=    040000
-NOATIME          :=  01000000
-PATH             := 010000000
-DSYNC	          :=    010000
+MODE_ACCÈS       :=      0o003
+LECTURE_SEULE    :=        0o0
+ÉCRITURE_SEULE   :=        0o1
+LECTURE_ÉCRITURE :=        0o2
+CREATION         :=      0o100
+EXCLUSION        :=      0o200
+NOCTTY           :=      0o400
+TRONCAGE         :=     0o1000
+APPEND           :=     0o2000
+NONBLOCK         :=     0o4000
+NDELAY           :=     0o4000
+SYNC             :=  0o4010000
+FSYNC            :=  0o4010000
+ASYNC            :=    0o20000
+LARGEFILE        :=   0o100000
+DIRECTORY	     :=   0o200000
+NOFOLLOW	     :=   0o400000
+CLOEXEC          :=  0o2000000
+DIRECT	         :=    0o40000
+NOATIME          :=  0o1000000
+PATH             := 0o10000000
+DSYNC	         :=    0o10000
 // À FAIRE : les expressions utilisent des variables temporaires lors de la
 // génération du code, ce qui n'est pas possible pour les variables globales ou
-// encore les énum. L'expression devrait être (020000000 | 0200000)
-TMPFILE          := 020200000
+// encore les énum. L'expression devrait être (0o20000000 | 0o200000)
+TMPFILE          := 0o20200000
 
 opendir :: fonc externe (chemin : *z8) -> *DIR
 closedir :: fonc externe (d : *DIR) -> z32
