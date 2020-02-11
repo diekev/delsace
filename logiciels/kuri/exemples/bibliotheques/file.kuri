@@ -1,6 +1,6 @@
 // référence : https://fr.wikipedia.org/wiki/File_(structure_de_donn%C3%A9es)
 
-struct file {
+file :: struct {
 	ptr : []$T;
 	taille : z32 = 0;
 	capacité : z32 = 0;

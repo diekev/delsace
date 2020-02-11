@@ -2,7 +2,7 @@ importe Fondation
 
 //##############################################################################
 
-énum TypeRune : z32 {
+TypeRune :: énum : z32 {
     // espaces
 	ESPACE_INSECABLE             := 0x00A0
 	ESPACE_D_OGAM                := 0x1680
@@ -31,7 +31,7 @@ importe Fondation
 
 //##############################################################################
 
-énum TypeLexème : n32 {
+TypeLexème :: énum : n32 {
 	INCONNU
 
 	EXCLAMATION
@@ -108,12 +108,12 @@ importe Fondation
 	TABLEAU
 }
 
-struct DonnéesLexème {
+DonnéesLexème :: struct {
 	chn : chaine
 	lexème : TypeLexème
 }
 
-fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) -> rien
+pousse :: fonc(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]DonnéesLexème
@@ -122,7 +122,7 @@ fonc pousse(dyn liste : &[]DonnéesLexème, valeur : DonnéesLexème) -> rien
 
 //##############################################################################
 
-fonc est_caractère_spécial(c : z8) -> bool, TypeLexème
+est_caractère_spécial :: fonc(c : z8) -> bool, TypeLexème
 {
 	discr c {
 		'!' { retourne vrai, TypeLexème.EXCLAMATION }
@@ -158,7 +158,7 @@ fonc est_caractère_spécial(c : z8) -> bool, TypeLexème
 	retourne faux, TypeLexème.INCONNU
 }
 
-fonc id_digraphe(digraphe : chaine) -> TypeLexème
+id_digraphe :: fonc(digraphe : chaine) -> TypeLexème
 {
 	si digraphe == "!=" { retourne TypeLexème.DIFFERENCE }
 	si digraphe == "#!" { retourne TypeLexème.DIRECTIVE }
@@ -177,7 +177,7 @@ fonc id_digraphe(digraphe : chaine) -> TypeLexème
     retourne TypeLexème.INCONNU
 }
 
-fonc id_identifiant(identifiant : chaine) -> TypeLexème
+id_identifiant :: fonc(identifiant : chaine) -> TypeLexème
 {
 	si identifiant == "arrête" { retourne TypeLexème.ARRETE }
 	si identifiant == "bool" { retourne TypeLexème.BOOL }
@@ -204,7 +204,7 @@ fonc id_identifiant(identifiant : chaine) -> TypeLexème
 
 //##############################################################################
 
-struct Lexeuse {
+Lexeuse :: struct {
     chn : chaine
 
     début : *z8
@@ -219,7 +219,7 @@ struct Lexeuse {
 	pos_mot := 0
 }
 
-fonc construit_lexeuse(chn : chaine) -> Lexeuse
+construit_lexeuse :: fonc(chn : chaine) -> Lexeuse
 {
     dyn lexeuse : Lexeuse
     lexeuse.chn = chn
@@ -230,12 +230,12 @@ fonc construit_lexeuse(chn : chaine) -> Lexeuse
     retourne lexeuse
 }
 
-fonc détruit_lexeuse(dyn lexeuse : &Lexeuse) -> rien
+détruit_lexeuse :: fonc(dyn lexeuse : &Lexeuse) -> rien
 {
 	déloge lexeuse.lexèmes
 }
 
-fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
+performe_lexage :: fonc(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot_courant := 0
 
@@ -325,12 +325,12 @@ fonc performe_lexage(dyn lexeuse : &Lexeuse) -> rien
 	}
 }
 
-fonc fini(lexeuse : &Lexeuse) -> bool
+fini :: fonc(lexeuse : &Lexeuse) -> bool
 {
 	retourne lexeuse.début >= lexeuse.fin
 }
 
-fonc avance(dyn lexeuse : &Lexeuse, n : z32) -> rien
+avance :: fonc(dyn lexeuse : &Lexeuse, n : z32) -> rien
 {
 	pour i dans 0 ... n - 1 {
 		si (lexeuse.caractère_courant() == '\n') {
@@ -345,22 +345,22 @@ fonc avance(dyn lexeuse : &Lexeuse, n : z32) -> rien
 	}
 }
 
-fonc caractère_courant(lexeuse : &Lexeuse) -> z8
+caractère_courant :: fonc(lexeuse : &Lexeuse) -> z8
 {
 	retourne mémoire(lexeuse.début)
 }
 
-fonc caractère_voisin(lexeuse : &Lexeuse, n : z32) -> z8
+caractère_voisin :: fonc(lexeuse : &Lexeuse, n : z32) -> z8
 {
 	retourne mémoire(lexeuse.début + n)
 }
 
-fonc mot_courant(lexeuse : &Lexeuse) -> chaine
+mot_courant :: fonc(lexeuse : &Lexeuse) -> chaine
 {
 	retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
 }
 
-fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
+analyse_caractère_simple :: fonc(dyn lexeuse : &Lexeuse) -> rien
 {
 	si (est_espace_blanc(lexeuse.caractère_courant())) {
 		si (lexeuse.taille_mot_courant != 0) {
@@ -491,12 +491,12 @@ fonc analyse_caractère_simple(dyn lexeuse : &Lexeuse) -> rien
 	}
 }
 
-fonc pousse_caractère(dyn lexeuse : &Lexeuse) -> rien
+pousse_caractère :: fonc(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.taille_mot_courant += 1
 }
 
-fonc pousse_mot(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
+pousse_mot :: fonc(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
 {
     dyn données : DonnéesLexème
     données.lexème = type_lexème
@@ -507,7 +507,7 @@ fonc pousse_mot(dyn lexeuse : &Lexeuse, type_lexème : TypeLexème) -> rien
     lexeuse.taille_mot_courant = 0
 }
 
-fonc enregistre_pos_mot(dyn lexeuse : &Lexeuse) -> rien
+enregistre_pos_mot :: fonc(dyn lexeuse : &Lexeuse) -> rien
 {
 	lexeuse.pos_mot = lexeuse.position_ligne
 	lexeuse.début_mot = lexeuse.début

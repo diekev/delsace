@@ -1,95 +1,95 @@
 // Bibliothèque de travail sur le boutisme des nombres binaires.
 
-#enligne fonc commute_boutisme(dyn val : &n8) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &n8) -> rien
 {
     val = (val >> 8) | (val << 8)
 }
 
-#enligne fonc commute_boutisme(dyn val : &n16) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &n16) -> rien
 {
 
 }
 
-#enligne fonc commute_boutisme(dyn val : &n32) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &n32) -> rien
 {
 
 }
 
-#enligne fonc commute_boutisme(dyn val : &n64) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &n64) -> rien
 {
 
 }
 
-#enligne fonc commute_boutisme(dyn val : &z8) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &z8) -> rien
 {
     val = (val >> 8) | (val << 8)
 }
 
-#enligne fonc commute_boutisme(dyn val : &z16) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &z16) -> rien
 {
 
 }
 
-#enligne fonc commute_boutisme(dyn val : &z32) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &z32) -> rien
 {
 
 }
 
-#enligne fonc commute_boutisme(dyn val : &z64) -> rien
+#enligne commute_boutisme :: fonc(dyn val : &z64) -> rien
 {
 
 }
 
-fonc commute_boutisme(dyn tabl : &[]n8) -> rien
-{
-    pour val dans tabl {
-        commute_boutisme(val)
-    }
-}
-
-fonc commute_boutisme(dyn tabl : &[]n16) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]n8) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)
     }
 }
 
-fonc commute_boutisme(dyn tabl : &[]n32) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]n16) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)
     }
 }
 
-fonc commute_boutisme(dyn tabl : &[]n64) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]n32) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)
     }
 }
 
-fonc commute_boutisme(dyn tabl : &[]z8) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]n64) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)
     }
 }
 
-fonc commute_boutisme(dyn tabl : &[]z16) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]z8) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)
     }
 }
 
-fonc commute_boutisme(dyn tabl : &[]z32) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]z16) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)
     }
 }
 
-fonc commute_boutisme(dyn tabl : &[]z64) -> rien
+commute_boutisme :: fonc(dyn tabl : &[]z32) -> rien
+{
+    pour val dans tabl {
+        commute_boutisme(val)
+    }
+}
+
+commute_boutisme :: fonc(dyn tabl : &[]z64) -> rien
 {
     pour val dans tabl {
         commute_boutisme(val)

@@ -1,18 +1,18 @@
 importe Fondation
 
-fonc est_base64_url(c : z8) -> bool
+est_base64_url :: fonc(c : z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
 }
 
-fonc est_base64(c : z8) -> bool
+est_base64 :: fonc(c : z8) -> bool
 {
     retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
 }
 
 //#######################################
 
-fonc encode_impl(chn : chaine, table : chaine) -> chaine
+encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 {
 	dyn i := 0
 	dyn char_array_3 : [3]n8
@@ -65,13 +65,13 @@ fonc encode_impl(chn : chaine, table : chaine) -> chaine
 	retourne enchaineuse.résultat
 }
 
-fonc encode(chn: chaine) -> chaine
+encode :: fonc(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	retourne encode_impl(chn, table)
 }
 
-fonc encode_pour_url(chn: chaine) -> chaine
+encode_pour_url :: fonc(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	retourne encode_impl(chn, table)
@@ -79,7 +79,7 @@ fonc encode_pour_url(chn: chaine) -> chaine
 
 //#######################################
 
-fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) -> chaine
+décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool)) -> chaine
 {
 	dyn i := 0
 	dyn char_array_3 : [3]n8
@@ -134,13 +134,13 @@ fonc décode_impl(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(bool
 	retourne enchaineuse.résultat
 }
 
-fonc décode(chn: chaine) -> chaine
+décode :: fonc(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 	retourne décode_impl(chn, table, est_base64)
 }
 
-fonc décode_pour_url(chn: chaine) -> chaine
+décode_pour_url :: fonc(chn: chaine) -> chaine
 {
     table := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 	retourne décode_impl(chn, table, est_base64_url)
@@ -148,7 +148,7 @@ fonc décode_pour_url(chn: chaine) -> chaine
 
 //#######################################
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

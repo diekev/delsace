@@ -1,6 +1,6 @@
 importe Fondation
 
-énum Instruction : z32 {
+Instruction :: énum : z32 {
     CREE
     SUPPRIME
     TROUVE
@@ -8,7 +8,7 @@ importe Fondation
     INVALIDE
 }
 
-fonc détermine_instruction(chn : chaine) -> Instruction
+détermine_instruction :: fonc(chn : chaine) -> Instruction
 {
     info := info_de(Instruction.CREE)
 

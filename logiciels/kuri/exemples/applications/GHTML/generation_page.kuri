@@ -5,7 +5,7 @@ charge "assemblage_arbre"
 charge "lexage"
 charge "syntaxage"
 
-fonc génère_page(
+génère_page :: fonc(
     noeud: *NoeudSyntaxique,
     dyn gestionnaire: *GestionnaireObjet,
     dyn dico: *ObjetDictionnaire,
@@ -117,7 +117,7 @@ fonc génère_page(
     }
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

@@ -3,7 +3,7 @@
 
 importe GlibC
 
-fonc maintenant_sec() -> r64
+maintenant_sec :: fonc() -> r64
 {
 	dyn heure : timeval
 	gettimeofday(@heure, nul)
@@ -14,7 +14,7 @@ fonc maintenant_sec() -> r64
 	retourne s + transtype(heure.tv_usec : r64) * 0.000001
 }
 
-fonc maintenant_local() -> r64
+maintenant_local :: fonc() -> r64
 {
 	dyn heure : timeval
 	dyn fuseau : timezone
@@ -27,25 +27,25 @@ fonc maintenant_local() -> r64
 	retourne s + transtype(heure.tv_usec : r64) * 0.000001
 }
 
-fonc delta_sec(temps : r64) -> r64
+delta_sec :: fonc(temps : r64) -> r64
 {
 	retourne maintenant_sec() - temps
 }
 
-fonc compte_ticks_ms() -> z64
+compte_ticks_ms :: fonc() -> z64
 {
 	dyn heure : timeval
 	gettimeofday(@heure, nul)
 	retourne heure.tv_sec * 1000 + heure.tv_usec / 1000
 }
 
-struct DonnéesTemps {
+DonnéesTemps :: struct {
 	heures : z32
 	minutes : z32
 	secondes : z32
 }
 
-fonc calcule_temps() -> DonnéesTemps
+calcule_temps :: fonc() -> DonnéesTemps
 {
 	dyn maint := maintenant_local()
 

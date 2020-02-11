@@ -1,16 +1,16 @@
 importe "flux"
 
-struct TEST {
+TEST :: struct {
     m := "Membre de la structure"
     tabl : [2]z32
     mat4x4 : [4][4]z32
 }
 
-struct TEST2 {
+TEST2 :: struct {
     tests : [2]TEST
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     dyn y : [2]z32
     y[0] = 12389

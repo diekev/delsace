@@ -4,7 +4,7 @@ charge "précédence"
 
 importe Fondation
 
-fonc type_param_pour_chaine(chn : chaine) -> TypeParamètre
+type_param_pour_chaine :: fonc(chn : chaine) -> TypeParamètre
 {
     si chn == "décimal" { retourne TypeParamètre.DEC }
     si chn == "entier"  { retourne TypeParamètre.ENT32 }
@@ -13,7 +13,7 @@ fonc type_param_pour_chaine(chn : chaine) -> TypeParamètre
     retourne TypeParamètre.INVALIDE
 }
 
-énum TypeProp : z32 {
+TypeProp :: énum : z32 {
 	PROP_PARAM_MAX
 	PROP_PARAM_MIN
 	PROP_PARAM_NOM
@@ -22,7 +22,7 @@ fonc type_param_pour_chaine(chn : chaine) -> TypeParamètre
     INVALIDE
 }
 
-fonc type_prop_pour_chaine(chn : chaine) -> TypeProp
+type_prop_pour_chaine :: fonc(chn : chaine) -> TypeProp
 {
     si chn == "max" { retourne TypeProp.PROP_PARAM_MAX }
     si chn == "min"  { retourne TypeProp.PROP_PARAM_MIN }
@@ -34,7 +34,7 @@ fonc type_prop_pour_chaine(chn : chaine) -> TypeProp
 
 //##############################################################################
 
-fonc est_nombre_entier(lexème : TypeLexème) -> bool
+est_nombre_entier :: fonc(lexème : TypeLexème) -> bool
 {
 	discr lexème {
 		NOMBRE_BINAIRE,
@@ -51,12 +51,12 @@ fonc est_nombre_entier(lexème : TypeLexème) -> bool
     retourne faux
 }
 
-fonc est_nombre(lexème : TypeLexème) -> bool
+est_nombre :: fonc(lexème : TypeLexème) -> bool
 {
 	retourne est_nombre_entier(lexème) || (lexème == TypeLexème.NOMBRE_REEL)
 }
 
-fonc est_operateur_unaire(lexème : TypeLexème) -> bool
+est_operateur_unaire :: fonc(lexème : TypeLexème) -> bool
 {
 	discr lexème {
 		AROBASE,
@@ -76,7 +76,7 @@ fonc est_operateur_unaire(lexème : TypeLexème) -> bool
     retourne faux
 }
 
-fonc est_operateur_binaire(lexème : TypeLexème) -> bool
+est_operateur_binaire :: fonc(lexème : TypeLexème) -> bool
 {
 	discr lexème {
 		PLUS,
@@ -117,7 +117,7 @@ fonc est_operateur_binaire(lexème : TypeLexème) -> bool
 
 // Retourne vrai si l'lexème passé en paramètre peut-être un lexème
 // valide pour précèder un opérateur unaire '+' ou '-'.
-fonc precede_unaire_valide(dernier_lexème : TypeLexème) -> bool
+precede_unaire_valide :: fonc(dernier_lexème : TypeLexème) -> bool
 {
 	si (dernier_lexème == TypeLexème.PARENTHESE_FERMANTE) {
 		retourne faux
@@ -152,14 +152,14 @@ fonc precede_unaire_valide(dernier_lexème : TypeLexème) -> bool
 
 //##############################################################################
 
-struct Syntaxeuse {
+Syntaxeuse :: struct {
     assembleuse : AssembleuseArbre
     lexèmes : []DonnéesLexème
 
     position := 0
 }
 
-fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) -> Syntaxeuse
+construit_syntaxeuse :: fonc(lexèmes : &[]DonnéesLexème) -> Syntaxeuse
 {
     dyn syntaxeuse : Syntaxeuse
     syntaxeuse.lexèmes = lexèmes
@@ -168,7 +168,7 @@ fonc construit_syntaxeuse(lexèmes : &[]DonnéesLexème) -> Syntaxeuse
     retourne syntaxeuse
 }
 
-fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) -> rien
+lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position = 0
 
@@ -181,7 +181,7 @@ fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_bloc :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	tantque !syntaxeuse.a_fini() {
 		si (syntaxeuse.est_lexème(TypeLexème.ACCOLADE_FERMANTE)) {
@@ -234,7 +234,7 @@ fonc analyse_bloc(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_controle_si :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.SI)) {
 		//lance_erreur("Attendu la déclaration 'si'")
@@ -284,7 +284,7 @@ fonc analyse_controle_si(dyn syntaxeuse : &Syntaxeuse) -> rien
 	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
 }
 
-fonc analyse_controle_pour(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_controle_pour :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.POUR)) {
 		//lance_erreur("Attendu la déclaration 'pour'")
@@ -324,17 +324,17 @@ fonc analyse_controle_pour(dyn syntaxeuse : &Syntaxeuse) -> rien
 	syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
 }
 
-fonc est_vide(tabl : &[]*NoeudSyntaxique) -> bool
+est_vide :: fonc(tabl : &[]*NoeudSyntaxique) -> bool
 {
     retourne tabl.taille == 0
 }
 
-fonc dernier(tabl : &[]*NoeudSyntaxique) -> *NoeudSyntaxique
+dernier :: fonc(tabl : &[]*NoeudSyntaxique) -> *NoeudSyntaxique
 {
     retourne tabl[tabl.taille - 1]
 }
 
-fonc pop_dernier(dyn tabl : &[]*NoeudSyntaxique) -> rien
+pop_dernier :: fonc(dyn tabl : &[]*NoeudSyntaxique) -> rien
 {
     taille := tabl.taille
 
@@ -346,44 +346,44 @@ fonc pop_dernier(dyn tabl : &[]*NoeudSyntaxique) -> rien
     reloge tabl : [taille - 1]*NoeudSyntaxique
 }
 
-fonc lexème_courant(syntaxeuse : &Syntaxeuse) -> TypeLexème
+lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> TypeLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-fonc avance(dyn syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-fonc recule(dyn syntaxeuse : &Syntaxeuse) -> rien
+recule :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position -= 1
 }
 
-fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+requiers_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+est_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-fonc données(syntaxeuse : &Syntaxeuse) -> &DonnéesLexème
+données :: fonc(syntaxeuse : &Syntaxeuse) -> &DonnéesLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position]
 }
 
-fonc position(syntaxeuse : &Syntaxeuse) -> z32
+position :: fonc(syntaxeuse : &Syntaxeuse) -> z32
 {
     retourne syntaxeuse.position - 1
 }
 
-fonc vide_pile_operateur(
+vide_pile_operateur :: fonc(
     expression : &[]*NoeudSyntaxique,
     pile : &[]*NoeudSyntaxique,
     lexème_op : TypeLexème) -> rien
@@ -398,12 +398,12 @@ fonc vide_pile_operateur(
     }
 }
 
-fonc a_fini(syntaxeuse : &Syntaxeuse) -> bool
+a_fini :: fonc(syntaxeuse : &Syntaxeuse) -> bool
 {
 	retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille
 }
 
-fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) -> rien
+analyse_expression :: fonc(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexème) -> rien
 {
 	// Algorithme de Dijkstra pour générer une notation polonaise inversée.
 	dyn expression : []*NoeudSyntaxique
@@ -734,7 +734,7 @@ fonc analyse_expression(dyn syntaxeuse : &Syntaxeuse, lexème_final : TypeLexèm
 	}
 }
 
-fonc analyse_appel_fonction(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_appel_fonction :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	// ici nous devons être au niveau du premier paramètre
 
@@ -752,7 +752,7 @@ fonc analyse_appel_fonction(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-fonc analyse_directive(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_directive :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.avance()
 
@@ -767,12 +767,12 @@ fonc analyse_directive(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-struct DonneesDeclarationParam {
+DonneesDeclarationParam :: struct {
     type : TypeParamètre
     nom : chaine
 }
 
-fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre) -> rien
+analyse_parametre :: fonc(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.PARENTHESE_OUVRANTE)) {
 		//lance_erreur("Attendu une parenthèse ouvrante '(' après la déclaration du paramètre")
@@ -842,7 +842,7 @@ fonc analyse_parametre(dyn syntaxeuse : &Syntaxeuse, type_param : TypeParamètre
 
 //##############################################################################
 
-fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) -> rien
+imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
 {
 	pour i dans 0 ... tab - 1 {
 		imprime_sans_format("  ")
@@ -855,7 +855,7 @@ fonc imprime_arbre(racine : *NoeudSyntaxique, tab : z32) -> rien
 	}
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
 	diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), " o\n") }
     script := "a = ((5 + 8) * 12) * foo(3);"

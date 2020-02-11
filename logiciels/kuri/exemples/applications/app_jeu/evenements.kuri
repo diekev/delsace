@@ -1,4 +1,4 @@
-énum type_évènement : z32 {
+type_évènement :: énum : z32 {
     NUL := 0
 	SOURIS_BOUGEE := 1
 	SOURIS_PRESSEE := 2
@@ -11,7 +11,7 @@
 	REDIMENSION := 9
 }
 
-énum type_cle : z32 {
+type_cle :: énum : z32 {
 	INCONNU       := -1
 	ESPACE        := 32
 	APOSTROPHE    := 39  // '
@@ -137,7 +137,7 @@
 	MENU          := 348
 }
 
-énum bouton_souris : z32 {
+bouton_souris :: énum : z32 {
 	// À FAIRE : utilise les valeurs des énums prédéfinis
 	DERNIER := 7
 	GAUCHE  := 0
@@ -156,7 +156,7 @@
 	AUCUN   := 9
 }
 
-énum type_mod : z32 {
+type_mod :: énum : z32 {
 	AUCUN   := 0x0000
 	SHIFT   := 0x0001
 	CONTROL := 0x0002
@@ -164,7 +164,7 @@
 	SUPER   := 0x0008
 }
 
-struct Évènement {
+Évènement :: struct {
     type : type_évènement := type_évènement.NUL
 	mods : type_mod := type_mod.AUCUN
 	cle : type_cle := type_cle.INCONNU

@@ -1,13 +1,13 @@
 charge dico_chaine_index
 charge fichier_mémoire
 
-struct MagasinChaine {
+MagasinChaine :: struct {
 	dico : DicoChaineIndex
 	nombre_chaines : z64 = 0
 	taille_chaines : z64 = 0
 }
 
-fonc index_chaine(dyn magasin : &MagasinChaine, chn : chaine) -> z64
+index_chaine :: fonc(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 {
 	résultat := magasin.dico.trouve(chn)
 
@@ -26,7 +26,7 @@ fonc index_chaine(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 	retourne 0
 }
 
-fonc insère_chn_index(
+insère_chn_index :: fonc(
 	dyn magasin : &MagasinChaine,
 	chn : chaine,
 	index : z64) -> z64
@@ -36,7 +36,7 @@ fonc insère_chn_index(
 	magasin.nombre_chaines += 1
 }
 
-fonc ajoute_chaine(dyn magasin : &MagasinChaine, chn : chaine) -> z64
+ajoute_chaine :: fonc(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 {
 	index := index_chaine(magasin, chn)
 
@@ -49,7 +49,7 @@ fonc ajoute_chaine(dyn magasin : &MagasinChaine, chn : chaine) -> z64
 	retourne index
 }
 
-fonc sous_tableau(tabl : []octet, index : z64, taille : z64) -> []octet
+sous_tableau :: fonc(tabl : []octet, index : z64, taille : z64) -> []octet
 {
 	dyn tmp : []octet
 	tmp.pointeur = @tabl[index]
@@ -58,7 +58,7 @@ fonc sous_tableau(tabl : []octet, index : z64, taille : z64) -> []octet
 	retourne tmp
 }
 
-fonc écris_magasin(
+écris_magasin :: fonc(
 	dyn magasin : &Magasin,
 	dyn système : &SystèmeFichierMémoire) -> rien
 {
@@ -96,7 +96,7 @@ fonc écris_magasin(
 	fichier.écris(tampon)
 }
 
-fonc lis_magasin(
+lis_magasin :: fonc(
 	dyn magasin : &Magasin,
 	dyn système : &SystèmeFichierMémoire) -> rien
 {

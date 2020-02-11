@@ -1,22 +1,22 @@
 importe Fondation
 importe GlibC
 
-struct CheminFichier {
+CheminFichier :: struct {
     chn : chaine
 }
 
-fonc construit_chemin(chn : chaine) -> CheminFichier
+construit_chemin :: fonc(chn : chaine) -> CheminFichier
 {
     chemin := CheminFichier{ chn = chn }
     retourne chemin
 }
 
-struct Fichier {
+Fichier :: struct {
     chemin : CheminFichier
     fd : z32
 }
 
-fonc obtiens_stmode(chemin : &CheminFichier) -> n32
+obtiens_stmode :: fonc(chemin : &CheminFichier) -> n32
 {
     dyn tampon : [1024]z8
 	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
@@ -31,12 +31,12 @@ fonc obtiens_stmode(chemin : &CheminFichier) -> n32
 	retourne st.st_mode
 }
 
-fonc fichier_existe(chemin : &CheminFichier) -> bool
+fichier_existe :: fonc(chemin : &CheminFichier) -> bool
 {
     retourne obtiens_stmode(chemin) != 0xffffffff
 }
 
-fonc est_dossier(chemin : &CheminFichier) -> bool
+est_dossier :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -47,7 +47,7 @@ fonc est_dossier(chemin : &CheminFichier) -> bool
     retourne S_ISDIR(mode)
 }
 
-fonc est_fichier_régulier(chemin : &CheminFichier) -> bool
+est_fichier_régulier :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -58,7 +58,7 @@ fonc est_fichier_régulier(chemin : &CheminFichier) -> bool
     retourne S_ISREG(mode)
 }
 
-fonc est_prise(chemin : &CheminFichier) -> bool
+est_prise :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -69,7 +69,7 @@ fonc est_prise(chemin : &CheminFichier) -> bool
     retourne S_IFSOCK(mode)
 }
 
-fonc est_lien_symbolique(chemin : &CheminFichier) -> bool
+est_lien_symbolique :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -80,7 +80,7 @@ fonc est_lien_symbolique(chemin : &CheminFichier) -> bool
     retourne S_IFLNK(mode)
 }
 
-fonc est_fichier_périphérique(chemin : &CheminFichier) -> bool
+est_fichier_périphérique :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -91,7 +91,7 @@ fonc est_fichier_périphérique(chemin : &CheminFichier) -> bool
     retourne S_IFBLK(mode)
 }
 
-fonc est_fichier_caractère(chemin : &CheminFichier) -> bool
+est_fichier_caractère :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -102,7 +102,7 @@ fonc est_fichier_caractère(chemin : &CheminFichier) -> bool
     retourne S_IFCHR(mode)
 }
 
-fonc est_pipe(chemin : &CheminFichier) -> bool
+est_pipe :: fonc(chemin : &CheminFichier) -> bool
 {
     mode := obtiens_stmode(chemin)
 
@@ -113,7 +113,7 @@ fonc est_pipe(chemin : &CheminFichier) -> bool
     retourne S_IFIFO(mode)
 }
 
-fonc ouvre_fichier(chemin : &CheminFichier) -> z32
+ouvre_fichier :: fonc(chemin : &CheminFichier) -> z32
 {
 	si !fichier_existe(chemin) {
 		retourne -1
@@ -125,7 +125,7 @@ fonc ouvre_fichier(chemin : &CheminFichier) -> z32
 	retourne open(ptr_chemin, LECTURE_SEULE)
 }
 
-fonc ouvre_fichier_ecriture(chemin : &CheminFichier) -> z32
+ouvre_fichier_ecriture :: fonc(chemin : &CheminFichier) -> z32
 {
 	dyn tampon : [1024]z8
 	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
@@ -133,14 +133,14 @@ fonc ouvre_fichier_ecriture(chemin : &CheminFichier) -> z32
 	retourne open(ptr_chemin, CREATION | ÉCRITURE_SEULE, 0777)
 }
 
-fonc ferme_fichier(desc : z32) -> rien
+ferme_fichier :: fonc(desc : z32) -> rien
 {
 	si desc != -1 {
 		close(desc)
 	}
 }
 
-fonc contenu_fichier_binaire(chemin : &CheminFichier) -> []octet
+contenu_fichier_binaire :: fonc(chemin : &CheminFichier) -> []octet
 {
     dyn contenu : []octet
 
@@ -180,7 +180,7 @@ fonc contenu_fichier_binaire(chemin : &CheminFichier) -> []octet
     retourne contenu
 }
 
-fonc contenu_fichier_texte(chemin : &CheminFichier) -> chaine
+contenu_fichier_texte :: fonc(chemin : &CheminFichier) -> chaine
 {
     contenu := contenu_fichier_binaire(chemin)
     dyn chn : chaine;
@@ -193,12 +193,12 @@ fonc contenu_fichier_texte(chemin : &CheminFichier) -> chaine
     retourne chn
 }
 
-fonc écris_fichier(fd : z32, contenu : chaine) -> rien
+écris_fichier :: fonc(fd : z32, contenu : chaine) -> rien
 {
     write(fd, contenu.pointeur, contenu.taille)
 }
 
-fonc ouvre_dossier(chemin : &CheminFichier) -> *DIR
+ouvre_dossier :: fonc(chemin : &CheminFichier) -> *DIR
 {
     dyn tampon : [1024]z8
 	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
@@ -206,7 +206,7 @@ fonc ouvre_dossier(chemin : &CheminFichier) -> *DIR
     retourne opendir(ptr_chemin)
 }
 
-fonc chemin_pour_dirname(dir : *dirent) -> CheminFichier
+chemin_pour_dirname :: fonc(dir : *dirent) -> CheminFichier
 {
     taille := taille_chaine_c(dir.d_name)
     chn := construit_chaine(dir.d_name, taille)
@@ -214,7 +214,7 @@ fonc chemin_pour_dirname(dir : *dirent) -> CheminFichier
     retourne construit_chemin(chn)
 }
 
-corout chaque_chemin(chemin : &CheminFichier) -> CheminFichier
+chaque_chemin :: corout(chemin : &CheminFichier) -> CheminFichier
 {
     si !est_dossier(chemin) {
         retourne
@@ -242,19 +242,19 @@ corout chaque_chemin(chemin : &CheminFichier) -> CheminFichier
 //###############################################################################
 
 // File spécialisé pour les DIR.
-struct FileDir {
+FileDir :: struct {
 	taille : z64
 	capacité : z64
 	tampon : []*DIR
 }
 
-fonc crée_file_dir() -> *FileDir
+crée_file_dir :: fonc() -> *FileDir
 {
 	dyn q := loge FileDir
 	retourne q
 }
 
-fonc decrée_file(dyn q : *FileDir) -> rien
+decrée_file :: fonc(dyn q : *FileDir) -> rien
 {
 	q.taille = 0
 	q.capacité = 0
@@ -262,7 +262,7 @@ fonc decrée_file(dyn q : *FileDir) -> rien
 	déloge q
 }
 
-fonc enfile(dyn q : *FileDir, d : *DIR) -> rien
+enfile :: fonc(dyn q : *FileDir, d : *DIR) -> rien
 {
     si q.taille == q.capacité {
 		reloge q.tampon : [(q.taille + 1)]*DIR
@@ -273,12 +273,12 @@ fonc enfile(dyn q : *FileDir, d : *DIR) -> rien
 	q.taille += 1
 }
 
-fonc est_vide(q : *FileDir) -> bool
+est_vide :: fonc(q : *FileDir) -> bool
 {
 	retourne q.taille == 0
 }
 
-fonc défile(dyn q : *FileDir) -> *DIR
+défile :: fonc(dyn q : *FileDir) -> *DIR
 {
     si est_vide(q) {
 		retourne nul
@@ -296,7 +296,7 @@ fonc défile(dyn q : *FileDir) -> *DIR
 
 //###############################################################################
 
-fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> rien
+enfile_dossier :: fonc(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> rien
 {
     dyn chm := chemin_pour_dirname(dir)
 
@@ -330,7 +330,7 @@ fonc enfile_dossier(file : *FileDir, dir : *dirent, chemin : &CheminFichier) -> 
     enfile(file, nd)
 }
 
-corout chaque_chemin_récursif(chemin : &CheminFichier) -> CheminFichier
+chaque_chemin_récursif :: corout(chemin : &CheminFichier) -> CheminFichier
 {
     si !est_dossier(chemin) {
         imprime_sans_format("Le chemin n'est pas un dossier")
@@ -372,14 +372,14 @@ corout chaque_chemin_récursif(chemin : &CheminFichier) -> CheminFichier
 
 //###############################################################################
 
-fonc chemin_courant() -> CheminFichier
+chemin_courant :: fonc() -> CheminFichier
 {
     dyn ret := loge chaine(1024)
     getcwd(ret.pointeur, ret.taille)
     retourne construit_chemin(ret)
 }
 
-fonc chemin_courant(chemin : CheminFichier) -> rien
+chemin_courant :: fonc(chemin : CheminFichier) -> rien
 {
     dyn tampon : [1024]z8
 	ptr_chemin := copie_chaine_c_tampon(tampon, chemin.chn)
@@ -390,7 +390,7 @@ fonc chemin_courant(chemin : CheminFichier) -> rien
 
 //###############################################################################
 
-fonc renomme(orig : &CheminFichier, dest : &CheminFichier) -> z32
+renomme :: fonc(orig : &CheminFichier, dest : &CheminFichier) -> z32
 {
     dyn tampon_orig : [1024]z8
 	ptr_chemin_orig := copie_chaine_c_tampon(tampon_orig, orig.chn)
@@ -401,7 +401,7 @@ fonc renomme(orig : &CheminFichier, dest : &CheminFichier) -> z32
 	retourne rename(ptr_chemin_orig, ptr_chemin_dest)
 }
 
-fonc supprime(chm : &CheminFichier) -> z32
+supprime :: fonc(chm : &CheminFichier) -> z32
 {
     dyn tampon : [1024]z8
 	ptr_chemin := copie_chaine_c_tampon(tampon, chm.chn)

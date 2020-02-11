@@ -6,11 +6,11 @@ importe Réseau
 
 CONNEXIONS_MAX := 1000
 
-struct Serveuse {
+Serveuse :: struct {
     prise := -1
 }
 
-fonc construit_serveuse(dyn serveuse : &Serveuse, port : n16) -> chaine
+construit_serveuse :: fonc(dyn serveuse : &Serveuse, port : n16) -> chaine
 {
     serveuse.prise = socket(_AF_INET, _SOCK_STREAM, 0)
 
@@ -47,7 +47,7 @@ fonc construit_serveuse(dyn serveuse : &Serveuse, port : n16) -> chaine
     retourne ""
 }
 
-fonc détruit_serveuse(dyn serveuse : &Serveuse) -> rien
+détruit_serveuse :: fonc(dyn serveuse : &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
@@ -56,7 +56,7 @@ fonc détruit_serveuse(dyn serveuse : &Serveuse) -> rien
     close(serveuse.prise)
 }
 
-fonc charge_donnees_requete(prise : z32, mon_addresse : &sockaddr_in) -> chaine
+charge_donnees_requete :: fonc(prise : z32, mon_addresse : &sockaddr_in) -> chaine
 {
     //ip = converti_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
@@ -91,7 +91,7 @@ fonc charge_donnees_requete(prise : z32, mon_addresse : &sockaddr_in) -> chaine
     retourne requete
 }
 
-fonc démarre(dyn serveuse : &Serveuse) -> rien
+démarre :: fonc(dyn serveuse : &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne
@@ -149,7 +149,7 @@ fonc démarre(dyn serveuse : &Serveuse) -> rien
 //###############################################################################
 
 // commentaire
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     dyn serveuse : Serveuse
     construit_serveuse(serveuse, transtype(5009 : n16))

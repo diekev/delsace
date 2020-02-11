@@ -1,4 +1,4 @@
-fonc exemple(args : ...r64) -> r64
+exemple :: fonc(args : ...r64) -> r64
 {
 	dyn résultat := 0.0
 

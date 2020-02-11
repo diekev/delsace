@@ -7,7 +7,7 @@ importe OpenSSL
 
 //###############################################################################
 
-fonc OpenListener(port : n16) -> z32
+OpenListener :: fonc(port : n16) -> z32
 {
     prise := socket(_PF_INET, _SOCK_STREAM, 0)
 
@@ -42,15 +42,15 @@ fonc OpenListener(port : n16) -> z32
     retourne prise
 }
 
-fonc externe printf(fmt: *z8, args: ...) -> z32
-fonc externe sprintf(buf: *z8, fmt: *z8, s: z32) -> rien
+printf :: fonc externe (fmt: *z8, args: ...) -> z32
+sprintf :: fonc externe (buf: *z8, fmt: *z8, s: z32) -> rien
 
-fonc isRoot() -> bool
+isRoot :: fonc() -> bool
 {
     retourne getuid() == 0
 }
 
-fonc InitServerCTX() -> *ssl_st
+InitServerCTX :: fonc() -> *ssl_st
 {
     OpenSSL_add_all_algorithms()
     SSL_load_error_strings()
@@ -70,7 +70,7 @@ fonc InitServerCTX() -> *ssl_st
     retourne ctx
 }
 
-fonc LoadCertificates(ctx: *ssl_st, CertFile: chaine, KeyFile: chaine) -> rien
+LoadCertificates :: fonc(ctx: *ssl_st, CertFile: chaine, KeyFile: chaine) -> rien
 {
     // set the local certificate from CertFile */
     si SSL_CTX_use_certificate_file(ctx, CertFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
@@ -93,7 +93,7 @@ fonc LoadCertificates(ctx: *ssl_st, CertFile: chaine, KeyFile: chaine) -> rien
     }
 }
 
-fonc ShowCerts(ssl: *ssl_st) -> rien
+ShowCerts :: fonc(ssl: *ssl_st) -> rien
 {
     cert := SSL_get_peer_certificate(ssl)
 
@@ -113,7 +113,7 @@ fonc ShowCerts(ssl: *ssl_st) -> rien
 }
 
 // Sers la connextion -- moultfilable
-fonc Servlet(ssl: *ssl_st) -> rien
+Servlet :: fonc(ssl: *ssl_st) -> rien
 {
     dyn buf : [1024]z8
     dyn reply : [1024]z8
@@ -146,7 +146,7 @@ fonc Servlet(ssl: *ssl_st) -> rien
 
 //###############################################################################
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     si !isRoot() {
         imprime_sans_format("This program must be run as root/sudo user!!\n")

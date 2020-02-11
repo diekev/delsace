@@ -1,6 +1,6 @@
 importe "flux"
 
-corout plage(début : z32, fin : z32, pas : z32) -> z32
+plage :: corout(début : z32, fin : z32, pas : z32) -> z32
 {
     taille := (fin - début) / pas
     dyn val := début
@@ -13,7 +13,7 @@ corout plage(début : z32, fin : z32, pas : z32) -> z32
     imprime("Fin coroutine\n")
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     pour i dans plage(0, 10, 1) {
         imprime_sans_format("Valeur = ", i, '\n')

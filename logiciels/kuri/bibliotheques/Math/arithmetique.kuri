@@ -1,14 +1,14 @@
-fonc abs(a : z32) -> z32
+abs :: fonc(a : z32) -> z32
 {
 	retourne si a < 0 { -a } sinon { a }
 }
 
-fonc min(a : z32, b : z32) -> z32
+min :: fonc(a : z32, b : z32) -> z32
 {
 	retourne si a < b { a } sinon { b }
 }
 
-fonc min(args : ...z32) -> z32
+min :: fonc(args : ...z32) -> z32
 {
 	dyn vmin := args[0]
 
@@ -19,12 +19,12 @@ fonc min(args : ...z32) -> z32
 	retourne vmin
 }
 
-fonc max(a : z32, b : z32) -> z32
+max :: fonc(a : z32, b : z32) -> z32
 {
 	retourne si a > b { a } sinon { b }
 }
 
-fonc max(args : ...z32) -> z32
+max :: fonc(args : ...z32) -> z32
 {
 	dyn vmax := args[0]
 
@@ -36,7 +36,7 @@ fonc max(args : ...z32) -> z32
 }
 
 // Trouve le plus grand commun diviseur selon l'algorithme d'Euclide
-fonc pgcd(a : z32, b : z32) -> z32
+pgcd :: fonc(a : z32, b : z32) -> z32
 {
 	dyn x := a
 	dyn y := b
@@ -50,7 +50,7 @@ fonc pgcd(a : z32, b : z32) -> z32
 }
 
 // Trouve le plus petit commun multiple
-fonc ppmc(a : z32, b : z32) -> z32
+ppmc :: fonc(a : z32, b : z32) -> z32
 {
 	si a == 0 || b == 0 {
 		retourne 0

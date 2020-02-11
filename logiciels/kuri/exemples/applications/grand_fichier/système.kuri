@@ -1,4 +1,4 @@
-énum État : z32 {
+État :: énum : z32 {
 	DÉBUT
 	INSTRUCTION
 	CHEMIN
@@ -14,7 +14,7 @@
 	INVALIDE,
 }
 
-fonc détermine_instruction(chn : chaine) -> Instruction
+détermine_instruction :: fonc(chn : chaine) -> Instruction
 {
 	info_inst = info_de(Instruction)
 
@@ -30,7 +30,7 @@ fonc détermine_instruction(chn : chaine) -> Instruction
 // CHERCHE /arachne/noeuds.base PGF/1.0\r\n
 // CRÉE /arachne/noeuds.base PGF/1.0\r\n
 // AJOURNE /arachne/noeuds.base PGF/1.0\r\n
-fonc analyse_réponse(réponse : chaine) -> rien
+analyse_réponse :: fonc(réponse : chaine) -> rien
 {
 	dyn début_mot = 0
 	dyn taille_mot = 0
@@ -87,17 +87,17 @@ fonc analyse_réponse(réponse : chaine) -> rien
 	}
 }
 
-énum TypeNoeud : z32 {
+TypeNoeud :: énum : z32 {
 	DOSSIER
 	FEUILLE
 }
 
-struct Noeud {
+Noeud :: struct {
 	enfants : []*Noeud
 	nom : chaine
 }
 
-fonc trouve(noeud : *Noeud, nom : chaine) -> *Noeud
+trouve :: fonc(noeud : *Noeud, nom : chaine) -> *Noeud
 {
 	pour enfant dans noeud.enfants {
 		si compare_chaine(enfant.nom, nom) {
@@ -108,19 +108,19 @@ fonc trouve(noeud : *Noeud, nom : chaine) -> *Noeud
 	retourne nul
 }
 
-struct Arbre {
+Arbre :: struct {
 	racine : *Noeud
 	noeuds : []*Noeud
 }
 
-fonc décrée_arbre(arbre : &Arbre) -> rien
+décrée_arbre :: fonc(arbre : &Arbre) -> rien
 {
 	pour noeud dans noeuds {
 		déloge noeud
 	}
 }
 
-fonc cherche_fichier(arbre : &Arbre, chemin : chaine) -> chaine
+cherche_fichier :: fonc(arbre : &Arbre, chemin : chaine) -> chaine
 {
 	dyn noeud = arbre.noeud_racine
 
@@ -139,18 +139,18 @@ fonc cherche_fichier(arbre : &Arbre, chemin : chaine) -> chaine
 	retourne noeud
 }
 
-struct Journal {
+Journal :: struct {
 	requêtes : []Requête
 }
 
-fonc pousse_requête(dyn journal : &Journal, requête : Requête) -> rien
+pousse_requête :: fonc(dyn journal : &Journal, requête : Requête) -> rien
 {
 	taille = journal.requêtes.taille
 	reloge journal.requêtes : [taille + 1]Requête
 	journal.requête[taille] = requête
 }
 
-fonc crée_journal() -> Journal
+crée_journal :: fonc() -> Journal
 {
 	dyn journal : Journal
 
@@ -165,7 +165,7 @@ fonc crée_journal() -> Journal
 	retourne journal
 }
 
-fonc charge_journal(chemin : chaine) -> Journal
+charge_journal :: fonc(chemin : chaine) -> Journal
 {
 	contenu = contenu_fichier_texte(chemin)
 	diffère { déloge contenu; }
@@ -173,12 +173,12 @@ fonc charge_journal(chemin : chaine) -> Journal
 	analyse_requête(contenu)
 }
 
-struct Système {
+Système :: struct {
 	chemins : []chemin
 	journal : Journal
 }
 
-fonc crée_système() -> Système
+crée_système :: fonc() -> Système
 {
 	dyn système : Système
 
@@ -200,7 +200,7 @@ fonc crée_système() -> Système
 	système
 }
 
-fonc fichier_existe(système : &Système, chn : chaine) -> bool
+fichier_existe :: fonc(système : &Système, chn : chaine) -> bool
 {
 	pour chemin dans système.chemins {
 		si chn == chemin {
@@ -211,7 +211,7 @@ fonc fichier_existe(système : &Système, chn : chaine) -> bool
 	retourne faux
 }
 
-struct Requête {
+Requête :: struct {
 	inst : Instruction
 	chemin : chaine
 	protocole : chaine
@@ -227,7 +227,7 @@ struct Requête {
 // FICHIER_ÉCRIS
 // DESTRUCTION_IMPOSSIBLE
 // FICHIER_DÉTRUIT
-fonc répond(système : &Système, requête : &Requête) -> chaine
+répond :: fonc(système : &Système, requête : &Requête) -> chaine
 {
 	dyn enchaineuse = crée_constructrice_chaine()
 

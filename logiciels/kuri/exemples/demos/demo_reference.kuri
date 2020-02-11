@@ -1,27 +1,27 @@
 importe "flux"
 
-struct FOO {
+FOO :: struct {
     a := 123
 }
 
-fonc bar(dyn f : &FOO) -> rien
+bar :: fonc(dyn f : &FOO) -> rien
 {
     f.a = 987
 }
 
-fonc foo(dyn a : &z32) -> rien
+foo :: fonc(dyn a : &z32) -> rien
 {
     a := 7
 }
 
-fonc échange(dyn a : &z32, dyn b : &z32) -> rien
+échange :: fonc(dyn a : &z32, dyn b : &z32) -> rien
 {
     tmp := a
     a = b
     b = tmp
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     dyn a := 5
     imprime_sans_format("a = ", a, '\n')

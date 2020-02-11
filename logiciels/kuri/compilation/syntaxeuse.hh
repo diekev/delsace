@@ -85,13 +85,13 @@ private:
 			erreur::type_erreur type = erreur::type_erreur::NORMAL);
 
 	void analyse_corps(std::ostream &os);
-	void analyse_declaration_fonction(GenreLexeme id);
+	void analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme);
 	void analyse_corps_fonction();
 	void analyse_bloc();
 	noeud::base *analyse_expression(GenreLexeme identifiant_final, GenreLexeme racine_expr, bool ajoute_noeud = true);
 	void analyse_appel_fonction(noeud::base *noeud);
-	void analyse_declaration_structure(GenreLexeme id);
-	void analyse_declaration_enum(bool est_drapeau);
+	void analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme);
+	void analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme);
 	DonneesTypeDeclare analyse_declaration_type(bool double_point = true);
 	DonneesTypeDeclare analyse_declaration_type_ex();
 	void analyse_controle_si(GenreNoeud tn);

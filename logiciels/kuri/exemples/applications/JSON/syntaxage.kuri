@@ -4,14 +4,14 @@ importe Tori
 charge "assemblage_objet"
 charge "lexage"
 
-struct Syntaxeuse {
+Syntaxeuse :: struct {
 	lexèmes : []DonneesLexème
     assembleuse : AssembleuseObjet
 
 	position := 0
 }
 
-fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) -> Syntaxeuse
+construit_syntaxeuse :: fonc(lexèmes : &[]DonneesLexème) -> Syntaxeuse
 {
 	dyn syntaxeuse : Syntaxeuse
 	syntaxeuse.lexèmes = lexèmes
@@ -19,39 +19,39 @@ fonc construit_syntaxeuse(lexèmes : &[]DonneesLexème) -> Syntaxeuse
 	retourne syntaxeuse
 }
 
-fonc détruit(syntaxeuse : &Syntaxeuse) -> rien
+détruit :: fonc(syntaxeuse : &Syntaxeuse) -> rien
 {
     détruit(syntaxeuse.assembleuse)
 }
 
-fonc lexème_courant(syntaxeuse : &Syntaxeuse) -> TypeLexème
+lexème_courant :: fonc(syntaxeuse : &Syntaxeuse) -> TypeLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position].lexème
 }
 
-fonc avance(dyn syntaxeuse : &Syntaxeuse) -> rien
+avance :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position += 1
 }
 
-fonc requiers_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+requiers_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	t := syntaxeuse.lexème_courant()
 	syntaxeuse.avance()
 	retourne t == type
 }
 
-fonc est_lexème(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
+est_lexème :: fonc(syntaxeuse : &Syntaxeuse, type : TypeLexème) -> bool
 {
 	retourne syntaxeuse.lexème_courant() == type
 }
 
-fonc données(syntaxeuse : &Syntaxeuse) -> &DonneesLexème
+données :: fonc(syntaxeuse : &Syntaxeuse) -> &DonneesLexème
 {
 	retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
 }
 
-fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) -> rien
+analyse_objet :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	si (!syntaxeuse.requiers_lexème(TypeLexème.CHAINE_CARACTERE)) {
 		//lance_erreur("Attendu une chaine de caractère")
@@ -71,7 +71,7 @@ fonc analyse_objet(dyn syntaxeuse : &Syntaxeuse) -> rien
 	}
 }
 
-fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
+analyse_valeur :: fonc(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 {
 	discr syntaxeuse.lexème_courant() {
 		ACCOLADE_OUVRANTE {
@@ -147,7 +147,7 @@ fonc analyse_valeur(dyn syntaxeuse : &Syntaxeuse, nom_objet : chaine) -> rien
 	}
 }
 
-fonc lance_analyse(dyn syntaxeuse : &Syntaxeuse) -> rien
+lance_analyse :: fonc(dyn syntaxeuse : &Syntaxeuse) -> rien
 {
 	syntaxeuse.position = 0
 

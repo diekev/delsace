@@ -1,30 +1,30 @@
-struct Automate {
+Automate :: struct {
 	code : []z32
 	pointeur : z32
 }
 
-fonc état(automate : &Automate) -> z32
+état :: fonc(automate : &Automate) -> z32
 {
 	retourne automate.code[automate.pointeur]
 }
 
-fonc avance(dyn automate : &Automate) -> rien
+avance :: fonc(dyn automate : &Automate) -> rien
 {
 	automate.pointeur += 1
 }
 
-fonc reinitialise(dyn automate : &Automate) -> rien
+reinitialise :: fonc(dyn automate : &Automate) -> rien
 {
 	automate.pointeur = 0
 }
 
-struct DonnéesRecherche {
+DonnéesRecherche :: struct {
 	inst : Intruction
 
 	sequence : []z32
 }
 
-fonc foo()
+foo :: fonc()
 {
 	si état est compatible avec état automate
 

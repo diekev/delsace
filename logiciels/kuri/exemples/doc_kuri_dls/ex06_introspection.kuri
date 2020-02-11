@@ -1,6 +1,6 @@
 importe "flux"
 
-fonc imprime_type_args(args : ...eini) -> rien
+imprime_type_args :: fonc(args : ...eini) -> rien
 {
 	pour arg dans args {
 	    discr arg.info.id {
@@ -26,7 +26,7 @@ fonc imprime_type_args(args : ...eini) -> rien
 	}
 }
 
-fonc exemple() -> rien
+exemple :: fonc() -> rien
 {
     // Passe différents types, bien que la fonction espère des types 'eini'.
 	// Le dernier argument est un pointeur vers la fonction 'exemple'.

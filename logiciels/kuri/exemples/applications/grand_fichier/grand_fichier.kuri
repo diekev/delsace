@@ -33,7 +33,7 @@
 // AJOUTE CHUNK FICHIER /opt/bin id
 // AJOUTE SERVEUR CHUNK IP
 
-fonc cherche_fichier(chemin : chaine)
+cherche_fichier :: fonc(chemin : chaine)
 {
 	// contacte le serveur maitre
 	// requête :
@@ -48,7 +48,7 @@ fonc cherche_fichier(chemin : chaine)
 	// contacte les serveurs pour chercher les données
 }
 
-fonc crée_fichier(chemin : chaine)
+crée_fichier :: fonc(chemin : chaine)
 {
 	// CREE chemin\r\n
 	// réponses possible :
@@ -60,7 +60,7 @@ fonc crée_fichier(chemin : chaine)
 }
 
 // calcul la somme de contrôle dans un ensemble de données
-fonc somme_controle(données : []octet) -> n64
+somme_controle :: fonc(données : []octet) -> n64
 {
 	dyn somme : n64
 
@@ -71,7 +71,7 @@ fonc somme_controle(données : []octet) -> n64
 	retourne somme
 }
 
-struct Morceau {
+Morceau :: struct {
 	// identifiant unique pour chaque morceau
 	id : n64
 
@@ -82,22 +82,22 @@ struct Morceau {
 	version : n64
 }
 
-struct Fichier {
+Fichier :: struct {
 	morceau : []Morceau
 }
 
-struct SystèmeFichier {
+SystèmeFichier :: struct {
 
 }
 
-fonc ouvre(système : &SystèmeFichier, chemin : chaine) -> Fichier
+ouvre :: fonc(système : &SystèmeFichier, chemin : chaine) -> Fichier
 {
 	// trouve le fichier pointé par le chemin
 	// lis l'archive pour savoir où se trouve chaque morceau
 }
 
 // calcul du chunk nécessaire
-fonc cherche_dans_fichier(décalage : n64)
+cherche_dans_fichier :: fonc(décalage : n64)
 {
 	// chaque chunk fait 64Mo
 	diviseur : n64 = 64 * 1024 * 1024

@@ -2,12 +2,12 @@ charge magasin_chaine
 
 //################################################################################
 
-struct NoeudListe {
+NoeudListe :: struct {
 	suivant : *NoeudListe = nul
 	données : *rien = nul
 }
 
-fonc crée_noeud_liste(données : *rien) -> *NoeudListe
+crée_noeud_liste :: fonc(données : *rien) -> *NoeudListe
 {
 	noeud := loge NoeudListe
 	noeud.suivant = nul
@@ -15,12 +15,12 @@ fonc crée_noeud_liste(données : *rien) -> *NoeudListe
 	retourne noeud
 }
 
-fonc BaseListe {
+BaseListe :: fonc {
 	premier : *NoeudListe = nul
 	dernier : *NoeudListe = nul
 }
 
-fonc pousse(dyn liste : &BaseListe, données : *rien) -> rien
+pousse :: fonc(dyn liste : &BaseListe, données : *rien) -> rien
 {
 	noeud := crée_noeud_liste(données)
 
@@ -34,46 +34,46 @@ fonc pousse(dyn liste : &BaseListe, données : *rien) -> rien
 	}
 }
 
-fonc est_vide(liste : &BaseListe) -> bool
+est_vide :: fonc(liste : &BaseListe) -> bool
 {
 	retourne liste.premier == nul
 }
 
-struct ListePropriété {
+ListePropriété :: struct {
 	base : BaseListe
 }
 
-struct ListeRelation {
+ListeRelation :: struct {
 	base : BaseListe
 }
 
-struct ListeNoeud {
+ListeNoeud :: struct {
 	base : BaseListe
 }
 
-struct ListeÉtiquette {
+ListeÉtiquette :: struct {
 	base : BaseListe
 }
 
 //################################################################################
 
-struct Étiquette {
+Étiquette :: struct {
 	suivante : *Étiquette = nul
 	id : n32 = 0
 	id_nom : n32 = 0
 }
 
-fonc pousse(dyn liste : &ListeÉtiquette, étq : *Étiquette) -> rien
+pousse :: fonc(dyn liste : &ListeÉtiquette, étq : *Étiquette) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListeÉtiquette) -> bool
+est_vide :: fonc(liste : &ListeÉtiquette) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_étiquette(liste : &ListeÉtiquette) -> *Étiquette
+chaque_étiquette :: corout(liste : &ListeÉtiquette) -> *Étiquette
 {
 	dyn n := liste.premier
 
@@ -85,7 +85,7 @@ corout chaque_étiquette(liste : &ListeÉtiquette) -> *Étiquette
 
 //################################################################################
 
-struct Noeud {
+Noeud :: struct {
 	proprietes : ListePropriété
 	relations : ListeRelation
 	etiquettes : ListeÉtiquette
@@ -94,17 +94,17 @@ struct Noeud {
 	utilise : bool = faux
 }
 
-fonc pousse(dyn liste : &ListeNoeud, n : *Noeud) -> rien
+pousse :: fonc(dyn liste : &ListeNoeud, n : *Noeud) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListeNoeud) -> bool
+est_vide :: fonc(liste : &ListeNoeud) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_noeud(liste : &ListeNoeud) -> *Noeud
+chaque_noeud :: corout(liste : &ListeNoeud) -> *Noeud
 {
 	dyn n := liste.premier
 
@@ -116,7 +116,7 @@ corout chaque_noeud(liste : &ListeNoeud) -> *Noeud
 
 //################################################################################
 
-struct Relation {
+Relation :: struct {
 	début : *Noeud
 	fin : *Noeud
 
@@ -131,17 +131,17 @@ struct Relation {
 	id : n32 = 0
 }
 
-fonc pousse(dyn liste : &ListeRelation, rel : *Relation) -> rien
+pousse :: fonc(dyn liste : &ListeRelation, rel : *Relation) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListeRelation) -> bool
+est_vide :: fonc(liste : &ListeRelation) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_relation(liste : &ListeRelation) -> *Relation
+chaque_relation :: corout(liste : &ListeRelation) -> *Relation
 {
 	dyn n := liste.premier
 
@@ -153,7 +153,7 @@ corout chaque_relation(liste : &ListeRelation) -> *Relation
 
 //################################################################################
 
-struct Propriété {
+Propriété :: struct {
 	suivante : *Propriété
 
 	id : n32 = 0
@@ -161,17 +161,17 @@ struct Propriété {
 	valeur : z32
 }
 
-fonc pousse(dyn liste : &ListePropriété, prop : *Propriété) -> rien
+pousse :: fonc(dyn liste : &ListePropriété, prop : *Propriété) -> rien
 {
 	pousse(liste.base, prop)
 }
 
-fonc est_vide(liste : &ListePropriété) -> bool
+est_vide :: fonc(liste : &ListePropriété) -> bool
 {
 	retourne est_vide(liste.base)
 }
 
-corout chaque_propriété(liste : &ListePropriété) -> *Propriété
+chaque_propriété :: corout(liste : &ListePropriété) -> *Propriété
 {
 	dyn n := liste.premier
 
@@ -183,7 +183,7 @@ corout chaque_propriété(liste : &ListePropriété) -> *Propriété
 
 //################################################################################
 
-struct Graphe {
+Graphe :: struct {
 	noeuds : ListeNoeud
 	relations : ListeRelation
 	proprietes : ListePropriété
@@ -214,7 +214,7 @@ struct Graphe {
 	nombre_etiquettes : n32 = 0
 }
 
-fonc supprime_graphe(dyn graphe : &Graphe)
+supprime_graphe :: fonc(dyn graphe : &Graphe)
 {
 	pour noeud dans chaque_noeud(graphe.noeuds) {
 		déloge noeud
@@ -233,7 +233,7 @@ fonc supprime_graphe(dyn graphe : &Graphe)
 	}
 }
 
-fonc ajoute_noeud(
+ajoute_noeud :: fonc(
 	dyn graphe : &Graphe,
 	nom : chaine,
 	valeur : z32) -> *Noeud
@@ -260,7 +260,7 @@ fonc ajoute_noeud(
 	retourne n
 }
 
-fonc ajoute_propriete(
+ajoute_propriete :: fonc(
 	dyn graphe : &Graphe,
 	dyn n : *Noeud,
 	nom : chaine,
@@ -298,7 +298,7 @@ fonc ajoute_propriete(
 	n.proprietes.pousse(p)
 }
 
-fonc ajoute_etiquette(
+ajoute_etiquette :: fonc(
 	dyn graphe : &Graphe,
 	dyn n : *Noeud,
 	nom : chaine) -> rien
@@ -334,7 +334,7 @@ fonc ajoute_etiquette(
 	n.etiquettes.pousse(e)
 }
 
-fonc ajoute_propriete(
+ajoute_propriete :: fonc(
 	dyn graphe : &Graphe,
 	dyn r : *Relation,
 	nom : chaine,
@@ -372,7 +372,7 @@ fonc ajoute_propriete(
 	r.proprietes.pousse(p)
 }
 
-fonc ajoute_relation(
+ajoute_relation :: fonc(
 	dyn graphe : &Graphe,
 	debut : *Noeud,
 	fin : *Noeud,
@@ -423,7 +423,7 @@ fonc ajoute_relation(
 
 //################################################################################
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
 	dyn graphe : Graphe
 	diffère { supprime_graphe(graphe); }

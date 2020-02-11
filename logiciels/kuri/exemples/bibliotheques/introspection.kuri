@@ -68,7 +68,7 @@ rout ajourne_valeur(
 	}
 }
 
-struct Vecteur3D {
+Vecteur3D :: struct {
 	x : z32 = 5;
 	y : z32 = 6;
 	z : z32 = 7;

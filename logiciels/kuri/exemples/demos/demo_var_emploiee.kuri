@@ -1,26 +1,26 @@
 importe "flux"
 
-struct TEST {
+TEST :: struct {
     x := 5
     y := "une chaine au hasard"
     z := 0.35
 }
 
-fonc imprime_test(empl test : TEST) -> rien
+imprime_test :: fonc(empl test : TEST) -> rien
 {
     imprime_sans_format("x = ", x, '\n')
     imprime_sans_format("y = ", y, '\n')
     imprime_sans_format("z = ", z, '\n')
 }
 
-fonc modifie_test(dyn empl test : *TEST) -> rien
+modifie_test :: fonc(dyn empl test : *TEST) -> rien
 {
     x = 7
     y = "chaine modifiée"
     z = 135.75
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     test : TEST
     imprime_test(test)

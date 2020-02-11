@@ -1,24 +1,24 @@
 // écrire dans un fichier ou dans une page mémoire
 
-struct PageMémoire {
+PageMémoire :: struct {
 	données : []octet
 	position : z64
 }
 
-fonc pousse(dyn pages : &[]PageMémoire, page : PageMémoire) -> rien
+pousse :: fonc(dyn pages : &[]PageMémoire, page : PageMémoire) -> rien
 {
     taille := pages.taille
     reloge pages : [taille + 1]PageMémoire
     pages[taille] = page
 }
 
-struct FichierMémoire {
+FichierMémoire :: struct {
 	pages : []PageMémoire
 	page_courante : z32
 	taille_totale : z64
 }
 
-fonc ajoute_page(dyn fichier : &FichierMémoire) -> rien
+ajoute_page :: fonc(dyn fichier : &FichierMémoire) -> rien
 {
 	dyn page := PageMémoire
 	page.données = loge [64 * 1024]octet
@@ -26,7 +26,7 @@ fonc ajoute_page(dyn fichier : &FichierMémoire) -> rien
 	pousse(fichier.pages, page)
 }
 
-fonc supprime_fichier(dyn fichier : &FichierMémoire) -> rien
+supprime_fichier :: fonc(dyn fichier : &FichierMémoire) -> rien
 {
 	pour page dans fichier.pages {
 		déloge page.données
@@ -35,7 +35,7 @@ fonc supprime_fichier(dyn fichier : &FichierMémoire) -> rien
 	déloge fichier.pages
 }
 
-fonc écris(dyn fichier : &FichierMémoire, données : []octet, position : z64) -> rien
+écris :: fonc(dyn fichier : &FichierMémoire, données : []octet, position : z64) -> rien
 {
 	page_courante := fichier.pages[fichier.page_courante]
 
@@ -49,7 +49,7 @@ fonc écris(dyn fichier : &FichierMémoire, données : []octet, position : z64) 
 	}
 }
 
-fonc écris(dyn fichier : &FichierMémoire, données : []octet) -> rien
+écris :: fonc(dyn fichier : &FichierMémoire, données : []octet) -> rien
 {
 	page_courante := @fichier.pages[fichier.page_courante]
 	position := page_courante.position
@@ -66,7 +66,7 @@ fonc écris(dyn fichier : &FichierMémoire, données : []octet) -> rien
 	page_courante.position += données.taille
 }
 
-fonc lis(dyn fichier : &FichierMémoire, données : []octet) -> rien
+lis :: fonc(dyn fichier : &FichierMémoire, données : []octet) -> rien
 {
 	page_courante := @fichier.pages[fichier.page_courante]
 	position := page_courante.position
@@ -84,38 +84,38 @@ fonc lis(dyn fichier : &FichierMémoire, données : []octet) -> rien
 	page_courante.position += données.taille
 }
 
-struct Enregistrement {
+Enregistrement :: struct {
 	ptr : *octet
 	position : z64
 }
 
-fonc duplique(chn : chaine) -> chaine
+duplique :: fonc(chn : chaine) -> chaine
 {
 	dyn rés := loge chaine(chn.taille)
 	copie_mem_nonsur(chn.pointeur, rés.pointeur, chn.taille)
 	retourne rés
 }
 
-fonc pousse(dyn liste : &[]chaine, valeur : chaine) -> rien
+pousse :: fonc(dyn liste : &[]chaine, valeur : chaine) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]chaine
     liste[taille] = valeur
 }
 
-fonc pousse(dyn liste : &[]*FichierMémoire, valeur : *FichierMémoire) -> rien
+pousse :: fonc(dyn liste : &[]*FichierMémoire, valeur : *FichierMémoire) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]*FichierMémoire
     liste[taille] = valeur
 }
 
-struct SystèmeFichierMémoire {
+SystèmeFichierMémoire :: struct {
 	fichiers : []*FichierMémoire
 	chemins : []chaine
 }
 
-fonc détruit(dyn système : &SystèmeFichierMémoire) -> rien
+détruit :: fonc(dyn système : &SystèmeFichierMémoire) -> rien
 {
 	pour chemin dans système.chemins {
 		déloge FichierMémoire
@@ -123,7 +123,7 @@ fonc détruit(dyn système : &SystèmeFichierMémoire) -> rien
 	}
 }
 
-fonc trouve_fichier(
+trouve_fichier :: fonc(
 	dyn système : &SystèmeFichierMémoire,
 	chemin : chaine) -> *FichierMémoire
 {
@@ -136,7 +136,7 @@ fonc trouve_fichier(
 	retourne nul
 }
 
-fonc ouvre_pour_écriture(
+ouvre_pour_écriture :: fonc(
 	dyn système : &SystèmeFichierMémoire,
 	chemin : chaine) -> *FichierMémoire
 {
@@ -155,7 +155,7 @@ fonc ouvre_pour_écriture(
 	retourne fichier
 }
 
-fonc ouvre_pour_lecture(
+ouvre_pour_lecture :: fonc(
 	dyn système : &SystèmeFichierMémoire,
 	chemin : chaine) -> *FichierMémoire
 {
@@ -165,7 +165,7 @@ fonc ouvre_pour_lecture(
 	retourne fichier
 }
 
-fonc ferme_fichier(
+ferme_fichier :: fonc(
 	dyn système : &SystèmeFichierMémoire,
 	fichier : *FichierMémoire) -> rien
 {

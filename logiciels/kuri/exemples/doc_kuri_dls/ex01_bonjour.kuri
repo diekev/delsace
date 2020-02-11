@@ -1,7 +1,7 @@
 importe "chaine"
 importe "flux"
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     imprime_sans_format("Bonjour, tout le monde !\n")
     imprime_sans_format("Nous allons imprimer les arguments :\n")

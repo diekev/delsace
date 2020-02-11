@@ -11,27 +11,27 @@
 
 //###############################################################################
 
-#enligne fonc hiBit(u : n32) -> n32
+#enligne hiBit :: fonc(u : n32) -> n32
 {
     retourne u & 0x80000000UL;
 }
 
-#enligne fonc loBit(u : n32) -> n32
+#enligne loBit :: fonc(u : n32) -> n32
 {
     retourne u & 0x00000001UL;
 }
 
-#enligne fonc loBits(u : n32) -> n32
+#enligne loBits :: fonc(u : n32) -> n32
 {
     retourne u & 0x7fffffffUL;
 }
 
-#enligne fonc mixBits(u : n32, const uint32& v) -> n32
+#enligne mixBits :: fonc(u : n32, const uint32& v) -> n32
 {
     retourne hiBit(u) | loBits(v);
 }
 
-#enligne fonc twist(m : n32, s0 : n32, s1 : n32) const
+#enligne twist :: fonc(m : n32, s0 : n32, s1 : n32) const
 {
     retourne m ^ (mixBits(s0, s1) >> 1) ^ ((~loBit(s1) + 1) & 0x9908b0dfUL);
 }
@@ -49,7 +49,7 @@ SAVE = N + 1;
 // Paramètre de période.
 M = 397;
 
-struct MTRand {
+MTRand :: struct {
     // État interne.
     state : [624]n32;
 
@@ -60,7 +60,7 @@ struct MTRand {
     restantes : z32;
 }
 
-#enligne fonc initialize(empl mers : &MTRand, seed : n32) -> n32
+#enligne initialize :: fonc(empl mers : &MTRand, seed : n32) -> n32
 {
 	// Initialize generator state with seed
 	// See Knuth TAOCP Vol 2, 3rd Ed, p.106 for multiplier.
@@ -96,7 +96,7 @@ struct MTRand {
 }
 
 // Initialise avec une graine simple.
-#enligne fonc init(mers : &MTRand, graine : n32) -> rien
+#enligne init :: fonc(mers : &MTRand, graine : n32) -> rien
 {
 	// Seed the generator with a simple uint32
 	initialize(mers, oneSeed);
@@ -104,7 +104,7 @@ struct MTRand {
 }
 
 // Initialise avec "/dev/urandom" ou time() et clock().
-#enligne fonc init(mers : &MTRand) -> rien
+#enligne init :: fonc(mers : &MTRand) -> rien
 {
     // seed deterministically to produce reproducible runs
     init(mers, 123456);
@@ -132,7 +132,7 @@ struct MTRand {
 }
 
 // Initialise avec un tableau de graines.
-#enligne fonc init(mers : &MTRand, graines : []n32) -> rien
+#enligne init :: fonc(mers : &MTRand, graines : []n32) -> rien
 {
     seedLength = graines.taille;
     bigSeed = graines.pointeur;

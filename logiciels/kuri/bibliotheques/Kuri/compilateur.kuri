@@ -2,7 +2,7 @@
 
 charge "base"
 
-struct RappelCompilateur {
+RappelCompilateur :: struct {
     rappel_ajout_chaine_à_la_compilation : #nulctx fonc(chaine)(rien)
     rappel_ajout_fichier_à_la_compilation : #nulctx fonc(chaine)(rien)
 }
@@ -11,7 +11,7 @@ struct RappelCompilateur {
 // afin d'éviter que les gens manipulent ceci
 dyn _RC : RappelCompilateur
 
-#nulctx fonc initialise_RC(
+#nulctx initialise_RC :: fonc(
     rappel_ajoute_chaine: #nulctx fonc(chaine)(rien),
     rappel_ajoute_fichier: #nulctx fonc(chaine)(rien)) -> rien
 {
@@ -21,12 +21,12 @@ dyn _RC : RappelCompilateur
     }
 }
 
-#nulctx fonc ajoute_chaine_à_la_compilation(c: chaine) -> rien
+#nulctx ajoute_chaine_à_la_compilation :: fonc(c: chaine) -> rien
 {
     _RC.rappel_ajout_chaine_à_la_compilation(c)
 }
 
-#nulctx fonc ajoute_fichier_à_la_compilation(c: chaine) -> rien
+#nulctx ajoute_fichier_à_la_compilation :: fonc(c: chaine) -> rien
 {
     _RC.rappel_ajout_fichier_à_la_compilation(c)
 }

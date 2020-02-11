@@ -4,7 +4,7 @@ importe "structures"
 
 //################################################################
 
-fonc test_pile() -> rien
+test_pile :: fonc() -> rien
 {
     imprime_sans_format("==========================================\n")
 
@@ -31,7 +31,7 @@ fonc test_pile() -> rien
     }
 }
 
-fonc test_file() -> rien
+test_file :: fonc() -> rien
 {
     imprime_sans_format("==========================================\n")
 
@@ -58,7 +58,7 @@ fonc test_file() -> rien
     }
 }
 
-fonc test_tableau() -> rien
+test_tableau :: fonc() -> rien
 {
     imprime_sans_format("==========================================\n")
 
@@ -89,7 +89,7 @@ fonc test_tableau() -> rien
     }
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     imprime_sans_format("Il y a ", args.taille, " arguments :\n")
 

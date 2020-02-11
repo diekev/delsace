@@ -1,6 +1,6 @@
 importe Fondation
 
-énum ÉtatLigneRequête : z32 {
+ÉtatLigneRequête :: énum : z32 {
     INVALIDE
     MÉTHODE
     CHEMIN
@@ -8,13 +8,13 @@ importe Fondation
     FINI
 }
 
-struct LigneRequête {
+LigneRequête :: struct {
     méthode: chaine
     chemin: chaine
     protocole: chaine
 }
 
-fonc ajoute_chaine(dyn ligne: *LigneRequête, état: ÉtatLigneRequête, chn: chaine) -> ÉtatLigneRequête
+ajoute_chaine :: fonc(dyn ligne: *LigneRequête, état: ÉtatLigneRequête, chn: chaine) -> ÉtatLigneRequête
 {
     discr état {
         MÉTHODE   { ligne.méthode = chn; retourne ÉtatLigneRequête.CHEMIN; }
@@ -26,7 +26,7 @@ fonc ajoute_chaine(dyn ligne: *LigneRequête, état: ÉtatLigneRequête, chn: ch
     retourne ÉtatLigneRequête.INVALIDE
 }
 
-fonc est_méthode_valide(chn: chaine) -> bool
+est_méthode_valide :: fonc(chn: chaine) -> bool
 {
     méthodes_http := ["GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH"]
 
@@ -39,7 +39,7 @@ fonc est_méthode_valide(chn: chaine) -> bool
     retourne faux
 }
 
-fonc est_requête_valide(dyn ligne: *LigneRequête) -> bool
+est_requête_valide :: fonc(dyn ligne: *LigneRequête) -> bool
 {
     si !est_méthode_valide(ligne.méthode) {
         retourne faux
@@ -48,24 +48,24 @@ fonc est_requête_valide(dyn ligne: *LigneRequête) -> bool
     retourne vrai
 }
 
-struct AnalyseuseRequête {
+AnalyseuseRequête :: struct {
     requête: chaine
     position := 0
     pointeur := 0
     taille_mot := 0
 }
 
-fonc analyse_finie(dyn analyseuse: *AnalyseuseRequête) -> bool
+analyse_finie :: fonc(dyn analyseuse: *AnalyseuseRequête) -> bool
 {
     retourne analyseuse.position >= analyseuse.requête.taille
 }
 
-fonc caractère_courant(analyseuse: *AnalyseuseRequête) -> z8
+caractère_courant :: fonc(analyseuse: *AnalyseuseRequête) -> z8
 {
     retourne analyseuse.requête[analyseuse.position]
 }
 
-fonc analyse_entêtes(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
+analyse_entêtes :: fonc(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
 {
     dyn table := crée_table_hachage()
 
@@ -128,7 +128,7 @@ fonc analyse_entêtes(dyn analyseuse: *AnalyseuseRequête) -> *TableHachage
     retourne table
 }
 
-fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
+analyse_requête :: fonc(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> rien
 {
     imprime_sans_format("requête :\n", requête, "\n")
 
@@ -158,12 +158,12 @@ fonc analyse_requête(dyn analyseuse: *AnalyseuseRequête, requête: chaine) -> 
     // analyse_contenu (pour une réponse)
 }
 
-fonc mot_courant(analyseuse: *AnalyseuseRequête) -> chaine
+mot_courant :: fonc(analyseuse: *AnalyseuseRequête) -> chaine
 {
     retourne construit_chaine(@analyseuse.requête[analyseuse.pointeur], analyseuse.taille_mot)
 }
 
-fonc analyse_ligne_requête(dyn analyseuse: *AnalyseuseRequête) -> LigneRequête
+analyse_ligne_requête :: fonc(dyn analyseuse: *AnalyseuseRequête) -> LigneRequête
 {
     dyn ligne_requête : LigneRequête
     dyn état := ÉtatLigneRequête.MÉTHODE
@@ -206,7 +206,7 @@ fonc analyse_ligne_requête(dyn analyseuse: *AnalyseuseRequête) -> LigneRequêt
     retourne ligne_requête
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc(args : []*z8) : z32
 {
     entête := "GET / HTTP/1.1
 Host: localhost:5005

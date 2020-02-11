@@ -12,7 +12,7 @@ décalage_mot := 32
 // This class represents a very limited high-precision number with 'count' 32-bit
 // unsigned elements. */
 // template <size_t count>
-struct haute_précision {
+haute_précision :: struct {
 	// type type_valeur n32
 	// type type_produit n64
 
@@ -27,7 +27,7 @@ struct haute_précision {
 	pointeur : *n32
 }
 
-fonc construit_nombre_haute_précision() -> haute_précision
+construit_nombre_haute_précision :: fonc() -> haute_précision
 {
 	dyn n : haute_précision
 
@@ -46,7 +46,7 @@ fonc construit_nombre_haute_précision() -> haute_précision
 // the high bit of value will be in the bottom of the last element of m_data -
 // the least significant bit. A shift of kWordShift means that value will be
 // in the least significant element of m_data, and so on.
-fonc insert_low_bits(
+insert_low_bits :: fonc(
 	dyn n : &haute_précision,
 	valeur : n32,
 	quantité_décalage : z32) -> rien
@@ -83,7 +83,7 @@ fonc insert_low_bits(
 // the low bit of value will be in the top of the first element of m_data -
 // the most significant bit. A shift of kWordShift means that value will be
 // in the most significant element of m_data, and so on.
-fonc insert_top_bits(
+insert_top_bits :: fonc(
 	dyn n : &haute_précision,
 	valeur : n32,
 	quantité_décalage : z32) -> rien
@@ -93,7 +93,7 @@ fonc insert_top_bits(
 }
 
 // Return true if all elements of m_data are zero.
-fonc is_zero(n : &haute_précision) -> bool
+is_zero :: fonc(n : &haute_précision) -> bool
 {
 	pour i dans 0 ... 4 {
 		si n.pointeur[i] != transtype(0 : n32) {
@@ -105,7 +105,7 @@ fonc is_zero(n : &haute_précision) -> bool
 }
 
 // Divide by div and return the remainder, from 0 to div-1.
-fonc remainder(dyn n : &haute_précision, divisor : n32) -> n32
+remainder :: fonc(dyn n : &haute_précision, divisor : n32) -> n32
 {
 	dyn remain := transtype(0 : n32)
 
@@ -121,7 +121,7 @@ fonc remainder(dyn n : &haute_précision, divisor : n32) -> n32
 }
 
 // Multiply by mul and return the overflow, from 0 to mul - 1
-fonc overflow(dyn n : &haute_précision, mul : n32) -> n32
+overflow :: fonc(dyn n : &haute_précision, mul : n32) -> n32
 {
 	dyn over := transtype(0 : n32)
 
@@ -140,28 +140,28 @@ fonc overflow(dyn n : &haute_précision, mul : n32) -> n32
 
 //###################################################################################
 
-union NombreDécimal nonsûr {
+NombreDécimal :: union nonsûr {
 	i : z32
 	f : r32
 }
 
-fonc construit_nombre_décimal(f : r32) -> NombreDécimal
+construit_nombre_décimal :: fonc(f : r32) -> NombreDécimal
 {
 	retourne NombreDécimal{ f = f }
 }
 
 // Extraction portable des composants
-fonc est_négatif(n : &NombreDécimal) -> bool
+est_négatif :: fonc(n : &NombreDécimal) -> bool
 {
 	retourne (n.i >> 31) != 0
 }
 
-fonc mantisse_crue(n : &NombreDécimal) -> z32
+mantisse_crue :: fonc(n : &NombreDécimal) -> z32
 {
 	retourne n.i & ((1 << 23) - 1)
 }
 
-fonc exposant_cru(n : &NombreDécimal) -> z32
+exposant_cru :: fonc(n : &NombreDécimal) -> z32
 {
 	retourne (n.i >> 23) & 0xFF
 }
@@ -170,7 +170,7 @@ fonc exposant_cru(n : &NombreDécimal) -> z32
 // mieux cerner la valeur exacte du décimal.
 // À FAIRE : il y a un bug où les données du haute_précision sont corrompues quand on les
 // passe à une fonction il semblerait.
-fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
+imprime_nombre_décimal_haute_précision :: fonc(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
 {
 	// Mets le nombre dans notre union magique afin d'extraire les composants
 	num := construit_nombre_décimal(f)
@@ -247,7 +247,7 @@ fonc imprime_nombre_décimal_haute_précision(dyn enchaineuse : &Enchaineuse, f 
 
 //###################################################################################
 
-fonc imprime_valeur_entier_naturel(
+imprime_valeur_entier_naturel :: fonc(
 	dyn enchaineuse : &Enchaineuse,
 	dyn valeur : n64) -> rien
 {
@@ -273,7 +273,7 @@ fonc imprime_valeur_entier_naturel(
 	}
 }
 
-fonc imprime_valeur_entier_relatif(
+imprime_valeur_entier_relatif :: fonc(
 	dyn enchaineuse : &Enchaineuse,
 	dyn valeur : z64) -> rien
 {
@@ -304,7 +304,7 @@ fonc imprime_valeur_entier_relatif(
 	}
 }
 
-fonc imprime_valeur_entière(
+imprime_valeur_entière :: fonc(
 	dyn enchaineuse : &Enchaineuse,
 	pointeur : *z8,
 	info : *InfoTypeEntier) -> rien
@@ -347,7 +347,7 @@ fonc imprime_valeur_entière(
 	}
 }
 
-fonc imprime_nombre_décimal(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
+imprime_nombre_décimal :: fonc(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
 {
 	// Mets le nombre dans notre union magique afin d'extraire les composants
 	num := construit_nombre_décimal(f)
@@ -401,7 +401,7 @@ fonc imprime_nombre_décimal(dyn enchaineuse : &Enchaineuse, f : r32) -> rien
 	} tantque frac < 1.0 && frac != 0.0
 }
 
-fonc imprime_pointeur(
+imprime_pointeur :: fonc(
 	dyn enchaineuse : &Enchaineuse,
 	pointeur : *rien) -> rien
 {
@@ -425,7 +425,7 @@ fonc imprime_pointeur(
     }
 }
 
-fonc imprime_valeur(
+imprime_valeur :: fonc(
 	dyn enchaineuse : &Enchaineuse,
 	pointeur : *z8,
 	info : *InfoType,
@@ -585,7 +585,7 @@ fonc imprime_valeur(
 	}
 }
 
-fonc imprime(format: chaine, args: ...eini) -> rien
+imprime :: fonc(format: chaine, args: ...eini) -> rien
 {
     dyn enchaineuse := crée_enchaineuse()
     diffère { détruit(enchaineuse); }
@@ -606,7 +606,7 @@ fonc imprime(format: chaine, args: ...eini) -> rien
 	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
 }
 
-fonc imprime_sans_format(args : ...eini) -> rien
+imprime_sans_format :: fonc(args : ...eini) -> rien
 {
     dyn enchaineuse := crée_enchaineuse()
     diffère { détruit(enchaineuse); }
@@ -618,7 +618,7 @@ fonc imprime_sans_format(args : ...eini) -> rien
 	write(std_out, enchaineuse.résultat.pointeur, enchaineuse.résultat.taille)
 }
 
-fonc imprime_sans_format_err(args : ...eini) -> rien
+imprime_sans_format_err :: fonc(args : ...eini) -> rien
 {
     dyn enchaineuse := crée_enchaineuse()
     diffère { détruit(enchaineuse); }

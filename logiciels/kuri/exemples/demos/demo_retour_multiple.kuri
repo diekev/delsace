@@ -4,11 +4,11 @@ importe "structures"
 
 // Problème : les fonctions chainées via '.' vont colésées avec les multiples types retours.
 
-fonc externe ext_indirection1() -> z32
+ext_indirection1 :: fonc externe () -> z32
 
 //##############################################################################
 
-fonc ret_simple() -> z32
+ret_simple :: fonc() -> z32
 {
     si vrai {
         retourne 12987
@@ -18,12 +18,12 @@ fonc ret_simple() -> z32
     }
 }
 
-fonc indirection_simple() -> z32
+indirection_simple :: fonc() -> z32
 {
     retourne ret_simple()
 }
 
-fonc test_fonction_ret_simple() -> rien
+test_fonction_ret_simple :: fonc() -> rien
 {
     imprime_sans_format("---------------------------", '\n')
     imprime_sans_format("fonc ret simple", '\n')
@@ -33,7 +33,7 @@ fonc test_fonction_ret_simple() -> rien
     imprime_sans_format("a = ", a, '\n')
 }
 
-fonc test_ptr_fonction_ret_simple() -> rien
+test_ptr_fonction_ret_simple :: fonc() -> rien
 {
     imprime_sans_format("---------------------------", '\n')
     imprime_sans_format("pointeur ret fonc simple", '\n')
@@ -45,14 +45,14 @@ fonc test_ptr_fonction_ret_simple() -> rien
     imprime_sans_format("a = ", a, '\n')
 }
 
-corout coro_simple() -> z32
+coro_simple :: corout() -> z32
 {
     pour i dans 0...10 {
         retiens i
     }
 }
 
-fonc test_coro_simple() -> rien
+test_coro_simple :: fonc() -> rien
 {
     imprime_sans_format("---------------------------", '\n')
     imprime_sans_format("coro simple", '\n')
@@ -66,17 +66,17 @@ fonc test_coro_simple() -> rien
 
 //##############################################################################
 
-fonc ret_multiple() -> z32, bool
+ret_multiple :: fonc() -> z32, bool
 {
     retourne 1237, faux
 }
 
-fonc indirection() -> z32, bool
+indirection :: fonc() -> z32, bool
 {
     retourne ret_multiple()
 }
 
-fonc test_fonction_ret_moult() -> rien
+test_fonction_ret_moult :: fonc() -> rien
 {
     imprime_sans_format("---------------------------", '\n')
     imprime_sans_format("fonc ret multiple", '\n')
@@ -92,18 +92,18 @@ fonc test_fonction_ret_moult() -> rien
     // imprime("c = ", c, '\n');
 }
 
-fonc appel_ptr_moult_ret() -> z32, bool
+appel_ptr_moult_ret :: fonc() -> z32, bool
 {
     ptr = indirection
 
     retourne ptr()
 }
 
-fonc test___(x : fonc(z32)z32, y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w : z32) -> rien
+test___ :: fonc(x : fonc(z32)z32, y : fonc(z32)(z32),z : fonc(z32)(z32,z32), w : z32) -> rien
 {
 }
 
-fonc test_ptr_fonction_ret_moult() -> rien
+test_ptr_fonction_ret_moult :: fonc() -> rien
 {
     imprime_sans_format("---------------------------", '\n')
     imprime_sans_format("pointeur fonc ret multiple", '\n')
@@ -121,7 +121,7 @@ fonc test_ptr_fonction_ret_moult() -> rien
 
 //##############################################################################
 
-corout coro_multiple() -> z32, bool
+coro_multiple :: corout() -> z32, bool
 {
     pour i dans 0 ... 10 {
         retiens i * 3, (i % 3) == 0
@@ -134,7 +134,7 @@ corout coro_multiple() -> z32, bool
 //    retourne coro_multiple();
 //}
 
-fonc test_coro_ret_moult() -> rien
+test_coro_ret_moult :: fonc() -> rien
 {
     imprime_sans_format("---------------------------", '\n')
     imprime_sans_format("coro ret multiple", '\n')
@@ -152,7 +152,7 @@ fonc test_coro_ret_moult() -> rien
 
 //##############################################################################
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     test_fonction_ret_simple()
     test_ptr_fonction_ret_simple()

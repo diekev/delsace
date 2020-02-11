@@ -1,17 +1,17 @@
-struct ivec3 {
+ivec3 :: struct {
     x : z32
     y : z32
     z : z32
 }
 
-struct ivec4 {
+ivec4 :: struct {
     x : z32
     y : z32
     z : z32
     w : z32
 }
 
-struct atlas_texture {
+atlas_texture :: struct {
     noeuds : []ivec3
     utilise : z32
     largeur : z32
@@ -21,13 +21,13 @@ struct atlas_texture {
     donnees : []octet
 }
 
-fonc pousse(dyn tabl : *[]ivec3, val : ivec3) -> rien
+pousse :: fonc(dyn tabl : *[]ivec3, val : ivec3) -> rien
 {
     reloge tabl : []ivec3 (tabl.taille + 1)
     tabl[tabl.taille - 1] = val
 }
 
-fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) -> *atlas_texture
+crée_atlas_texture :: fonc(largeur : z32, hauteur : z32, profondeur : z32) -> *atlas_texture
 {
     dyn atlas = loge atlas_texture
 
@@ -53,14 +53,14 @@ fonc crée_atlas_texture(largeur : z32, hauteur : z32, profondeur : z32) -> *atl
     retourne atlas
 }
 
-fonc décree_atlas_texture(atlas : *atlas_texture) -> rien
+décree_atlas_texture :: fonc(atlas : *atlas_texture) -> rien
 {
     déloge atlas.noeuds
     déloge atlas.donnees
     déloge atlas
 }
 
-fonc texture_atlas_set_region(
+texture_atlas_set_region :: fonc(
     texture_atlas_t * atlas,
                           const size_t x,
                           const size_t y,
@@ -90,7 +90,7 @@ fonc texture_atlas_set_region(
     }
 }
 
-fonc texture_atlas_fit(
+texture_atlas_fit :: fonc(
     atlas : *texture_atlas_t,
     index : z32,
     largeur : z32,
@@ -128,7 +128,7 @@ fonc texture_atlas_fit(
     retourne y
 }
 
-fonc texture_atlas_merge(atlas : *atlas_texture) -> rien
+texture_atlas_merge :: fonc(atlas : *atlas_texture) -> rien
 {
 	// assert(atlas);
 
@@ -144,7 +144,7 @@ fonc texture_atlas_merge(atlas : *atlas_texture) -> rien
 	}
 }
 
-fonc texture_atlas_get_region(
+texture_atlas_get_region :: fonc(
     atlas : *atlas_texture,
     largeur : z32,
     hauteur : z32) -> ivec4
@@ -213,7 +213,7 @@ fonc texture_atlas_get_region(
     retourne region
 }
 
-fonc texture_atlas_clear(atlas : *atlas_texture) -> rien
+texture_atlas_clear :: fonc(atlas : *atlas_texture) -> rien
 {
     //assert(atlas);
     //assert(atlas.donnees);

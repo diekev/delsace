@@ -1,16 +1,16 @@
 importe "flux"
 
-fonc imprime_compteur() -> rien
+imprime_compteur :: fonc() -> rien
 {
     imprime_sans_format("Compteur = ", ctx.compteur, '\n')
 }
 
-fonc incrémente_compteur() -> rien
+incrémente_compteur :: fonc() -> rien
 {
     ctx.compteur += 1
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     imprime_compteur()
     incrémente_compteur()

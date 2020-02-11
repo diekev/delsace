@@ -4,7 +4,7 @@
 // tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
 // blocs de mémoires à manipuler.
 
-#nulctx fonc comp_mem_ordre(a : []octet, b : []octet, taille : z64) -> z32
+#nulctx comp_mem_ordre :: fonc(a : []octet, b : []octet, taille : z64) -> z32
 {
     si a.taille < taille {
 		retourne -1
@@ -25,7 +25,7 @@
 	retourne 0
 }
 
-#nulctx fonc comp_mem(a : []octet, b : []octet, taille : z64) -> bool
+#nulctx comp_mem :: fonc(a : []octet, b : []octet, taille : z64) -> bool
 {
     si a.taille < taille {
 		retourne faux
@@ -48,7 +48,7 @@
 	retourne vrai
 }
 
-#nulctx fonc copie_mem_nonsur(src : *octet, dyn dst : *octet, taille : z64) -> rien
+#nulctx copie_mem_nonsur :: fonc(src : *octet, dyn dst : *octet, taille : z64) -> rien
 {
     pour i dans transtype(0 : z64)...taille - 1 {
 		dst[i] = src[i]
@@ -58,7 +58,7 @@
 // Copie 'taille' octets depuis la source vers la destination
 // La copie se fait comme si un tampon intermédiaire a été utilisé,
 // permettant à la source et à la destination de se surposer.
-#nulctx fonc copie_mem(src : []octet, dyn dst : []octet, taille : z64) -> rien
+#nulctx copie_mem :: fonc(src : []octet, dyn dst : []octet, taille : z64) -> rien
 {
     si src.taille < taille {
 		retourne
@@ -96,13 +96,13 @@
 // vulnérabilités ! Nous faisons une vérification dans notre version 'copie_mem'.
 // Cette fonction est plus ici pour avoir une symétrie avec la bibliothèque C
 // qu'autre chose.
-#nulctx fonc bouge_mem(source : []octet, dyn destination : []octet, taille : z64) -> rien
+#nulctx bouge_mem :: fonc(source : []octet, dyn destination : []octet, taille : z64) -> rien
 {
 	copie_mem(source, destination, taille)
 }
 
 // À FAIRE : considération pour la surposition de blocs.
-#nulctx fonc echange_mem(a : []octet, b : []octet) -> rien
+#nulctx echange_mem :: fonc(a : []octet, b : []octet) -> rien
 {
 	dyn tmp : [128]octet
 
@@ -140,7 +140,7 @@
 	}
 }
 
-#nulctx fonc init_mem(dyn destination : []octet, valeur : z8, taille : z64) -> rien
+#nulctx init_mem :: fonc(dyn destination : []octet, valeur : z8, taille : z64) -> rien
 {
 	dyn t := taille
 	si destination.taille < taille {
@@ -153,7 +153,7 @@
 	}
 }
 
-#nulctx fonc cherche_mem(source : []octet, valeur : z8, taille : z64) -> []octet
+#nulctx cherche_mem :: fonc(source : []octet, valeur : z8, taille : z64) -> []octet
 {
 	dyn t := taille
 	si source.taille < taille {

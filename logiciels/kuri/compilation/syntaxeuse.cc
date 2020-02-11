@@ -113,30 +113,72 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 		auto id = this->identifiant_courant();
 
 		switch (id) {
-			case GenreLexeme::FONC:
-			case GenreLexeme::COROUT:
+			case GenreLexeme::CHAINE_CARACTERE:
 			{
 				avance();
-				analyse_declaration_fonction(id);
-				break;
-			}
-			case GenreLexeme::STRUCT:
-			case GenreLexeme::UNION:
-			{
-				avance();
-				analyse_declaration_structure(id);
-				break;
-			}
-			case GenreLexeme::ENUM:
-			{
-				avance();
-				analyse_declaration_enum(false);
-				break;
-			}
-			case GenreLexeme::ENUM_DRAPEAU:
-			{
-				avance();
-				analyse_declaration_enum(true);
+
+				auto &lexeme = donnees();
+
+				if (this->identifiant_courant() == GenreLexeme::DECLARATION_CONSTANTE) {
+					avance();
+
+					id = this->identifiant_courant();
+
+					switch (id) {
+						case GenreLexeme::FONC:
+						case GenreLexeme::COROUT:
+						{
+							avance();
+							analyse_declaration_fonction(id, lexeme);
+							break;
+						}
+						case GenreLexeme::STRUCT:
+						case GenreLexeme::UNION:
+						{
+							avance();
+							analyse_declaration_structure(id, lexeme);
+							break;
+						}
+						case GenreLexeme::ENUM:
+						{
+							avance();
+							analyse_declaration_enum(false, lexeme);
+							break;
+						}
+						case GenreLexeme::ENUM_DRAPEAU:
+						{
+							avance();
+							analyse_declaration_enum(true, lexeme);
+							break;
+						}
+						default:
+						{
+							recule();
+							recule();
+
+							m_global = true;
+							auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
+
+							if (noeud && noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+								noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
+							}
+							m_global = false;
+
+							break;
+						}
+					}
+				}
+				else {
+					recule();
+					m_global = true;
+					auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
+
+					if (noeud && noeud->genre == GenreNoeud::EXPRESSION_REFERENCE_DECLARATION) {
+						noeud->genre = GenreNoeud::DECLARATION_VARIABLE;
+					}
+					m_global = false;
+				}
+
 				break;
 			}
 			case GenreLexeme::IMPORTE:
@@ -183,6 +225,7 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 			}
 			default:
 			{
+				// dans le cas des expressions commençant par « dyn »
 				m_global = true;
 				auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::INCONNU);
 
@@ -196,7 +239,7 @@ void Syntaxeuse::analyse_corps(std::ostream &os)
 	}
 }
 
-void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id)
+void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id, DonneesLexeme &lexeme)
 {
 	auto externe = false;
 
@@ -209,12 +252,9 @@ void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id)
 		}
 	}
 
-	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu la déclaration du nom de la fonction");
+	m_fichier->module->fonctions_exportees.insere(lexeme.chaine);
 
-	auto const nom_fonction = donnees().chaine;
-	m_fichier->module->fonctions_exportees.insere(nom_fonction);
-
-	auto noeud = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_FONCTION, donnees());
+	auto noeud = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_FONCTION, lexeme);
 
 	if (externe) {
 		noeud->drapeaux |= EST_EXTERNE;
@@ -270,7 +310,7 @@ void Syntaxeuse::analyse_declaration_fonction(GenreLexeme id)
 
 	noeud->type_declare = donnees_fonctions.types_retours_decl[0];
 
-	m_fichier->module->ajoute_donnees_fonctions(nom_fonction, donnees_fonctions);
+	m_fichier->module->ajoute_donnees_fonctions(lexeme.chaine, donnees_fonctions);
 
 	if (externe) {
 		consomme(GenreLexeme::POINT_VIRGULE, "Attendu un point-virgule ';' après la déclaration de la fonction externe");
@@ -1326,7 +1366,7 @@ void Syntaxeuse::analyse_appel_fonction(noeud::base *noeud)
 	consomme(GenreLexeme::PARENTHESE_FERMANTE, "Attenu ')' à la fin des argument de l'appel");
 }
 
-void Syntaxeuse::analyse_declaration_structure(GenreLexeme id)
+void Syntaxeuse::analyse_declaration_structure(GenreLexeme id, DonneesLexeme &lexeme)
 {
 	auto est_externe = false;
 	auto est_nonsur = false;
@@ -1336,17 +1376,14 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id)
 		avance();
 	}
 
-	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu une chaine de caractères après 'struct'");
-
-	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_STRUCTURE, donnees());
-	auto nom_structure = donnees().chaine;
+	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_STRUCTURE, lexeme);
 
 	if (est_identifiant(type_id::NONSUR)) {
 		est_nonsur = true;
 		avance();
 	}
 
-	if (m_contexte.structure_existe(nom_structure)) {
+	if (m_contexte.structure_existe(lexeme.chaine)) {
 		lance_erreur("Redéfinition de la structure", erreur::type_erreur::STRUCTURE_REDEFINIE);
 	}
 
@@ -1357,9 +1394,9 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id)
 	donnees_structure.est_union = (id == GenreLexeme::UNION);
 	donnees_structure.est_nonsur = est_nonsur;
 
-	m_contexte.ajoute_donnees_structure(nom_structure, donnees_structure);
+	m_contexte.ajoute_donnees_structure(lexeme.chaine, donnees_structure);
 
-	if (nom_structure == "ContexteProgramme") {
+	if (lexeme.chaine == "ContexteProgramme") {
 		auto dt = DonneesTypeFinal();
 		dt.pousse(GenreLexeme::POINTEUR);
 		dt.pousse(m_contexte.typeuse[donnees_structure.index_type]);
@@ -1370,6 +1407,7 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id)
 
 	if (est_externe) {
 		if (est_identifiant(type_id::POINT_VIRGULE)) {
+			std::cerr << "----- point-virgule\n";
 			avance();
 			analyse_membres = false;
 		}
@@ -1392,19 +1430,16 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id)
 	m_assembleuse->depile_noeud(GenreNoeud::DECLARATION_STRUCTURE);
 }
 
-void Syntaxeuse::analyse_declaration_enum(bool est_drapeau)
+void Syntaxeuse::analyse_declaration_enum(bool est_drapeau, DonneesLexeme &lexeme)
 {
-	consomme(GenreLexeme::CHAINE_CARACTERE, "Attendu un nom après 'énum'");
-
-	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_ENUM, donnees());
-	auto nom = noeud_decl->lexeme.chaine;
+	auto noeud_decl = m_assembleuse->empile_noeud(GenreNoeud::DECLARATION_ENUM, lexeme);
 
 	auto donnees_structure = DonneesStructure{};
 	donnees_structure.est_enum = true;
 	donnees_structure.est_drapeau = est_drapeau;
 	donnees_structure.noeud_decl = noeud_decl;
 
-	m_contexte.ajoute_donnees_structure(nom, donnees_structure);
+	m_contexte.ajoute_donnees_structure(lexeme.chaine, donnees_structure);
 
 	noeud_decl->type_declare = analyse_declaration_type();
 

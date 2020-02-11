@@ -1,20 +1,20 @@
-énum type_éditrice {
+type_éditrice :: énum {
 	NULLE     := 0
 	PROPRIETE := 1
 	TEMPS     := 2
 }
 
-struct vec2d {
+vec2d :: struct {
 	x : r32
 	y : r32
 }
 
-struct rect2d {
+rect2d :: struct {
 	pos : vec2d
 	taille : vec2d
 }
 
-struct Editrice {
+Editrice :: struct {
 	nom : chaîne
 	type : type_éditrice
 

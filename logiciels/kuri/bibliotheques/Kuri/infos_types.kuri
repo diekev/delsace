@@ -1,6 +1,6 @@
 // Structures de bases pour contenir les informations d'un type.
 
-énum id_info : z32 {
+id_info :: énum : z32 {
     ENTIER    := 0
 	RÉEL      := 1
 	BOOLÉEN   := 2
@@ -15,53 +15,53 @@
 	OCTET     := 11
 }
 
-struct InfoType {
+InfoType :: struct {
 	id : id_info
 }
 
-struct InfoTypeEntier {
+InfoTypeEntier :: struct {
 	id : id_info // employant InfoType
 	est_signé : bool
 	taille_en_octet : n32
 }
 
-struct InfoTypeRéel {
+InfoTypeRéel :: struct {
 	id : id_info // employant InfoType
 	taille_en_octet : n32
 }
 
-struct InfoTypePointeur {
+InfoTypePointeur :: struct {
 	id : id_info // employant InfoType
 	type_pointé : *InfoType
 	est_référence : bool
 }
 
-struct InfoTypeTableau {
+InfoTypeTableau :: struct {
 	id : id_info // employant InfoType
 	type_pointé : *InfoType
 }
 
-struct InfoTypeMembreStructure {
+InfoTypeMembreStructure :: struct {
 	nom : chaine
 	id : *InfoType
 	décalage : z64 // décalage en octets dans la structure
 	//drapeaux : n32
 }
 
-struct InfoTypeStructure {
+InfoTypeStructure :: struct {
 	id : id_info // employant InfoType
 	nom : chaine
 	membres : []*InfoTypeMembreStructure
 }
 
-struct InfoTypeFonction {
+InfoTypeFonction :: struct {
 	id : id_info // employant InfoType
 	types_entrée : []*InfoType
 	types_sortie : []*InfoType
 	est_coroutine : bool
 }
 
-struct InfoTypeÉnum {
+InfoTypeÉnum :: struct {
 	id : id_info // employant InfoType
 	nom : chaine
 	valeurs : []z32 // À FAIRE typage selon énum

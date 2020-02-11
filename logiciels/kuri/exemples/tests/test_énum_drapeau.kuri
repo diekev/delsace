@@ -1,6 +1,6 @@
 importe Fondation
 
-énum_drapeau Drapeau : z32 {
+Drapeau :: énum_drapeau : z32 {
     FA
     FB
     FC
@@ -8,7 +8,7 @@ importe Fondation
     FE
 }
 
-énum Normal : z32 {
+Normal :: énum : z32 {
     FA
     FB
     FC
@@ -16,7 +16,7 @@ importe Fondation
     FE
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     dyn drapeau : Drapeau
 

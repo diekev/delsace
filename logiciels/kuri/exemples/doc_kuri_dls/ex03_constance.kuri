@@ -1,4 +1,4 @@
-fonc exemple() -> rien
+exemple :: fonc() -> rien
 {
 	// Déclaration d'une variable constante qui ne peut être modifiée.
 	x := 1

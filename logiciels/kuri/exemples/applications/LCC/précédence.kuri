@@ -1,12 +1,12 @@
 charge "lexage"
 
-énum DirAssociativité : z8 {
+DirAssociativité :: énum : z8 {
     GAUCHE
     DROITE
     INVALIDE
 }
 
-fonc associativité(type_lexème : TypeLexème) -> DirAssociativité, z32
+associativité :: fonc(type_lexème : TypeLexème) -> DirAssociativité, z32
 {
 	discr type_lexème {
 		TROIS_POINTS {
@@ -79,7 +79,7 @@ fonc associativité(type_lexème : TypeLexème) -> DirAssociativité, z32
 	}
 }
 
-fonc précédence_faible(lexème1 : TypeLexème, lexème2 : TypeLexème) -> bool
+précédence_faible :: fonc(lexème1 : TypeLexème, lexème2 : TypeLexème) -> bool
 {
 	dir1, prio1 := associativité(lexème1)
 	dir2, prio2 := associativité(lexème2)

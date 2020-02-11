@@ -3,7 +3,7 @@ charge "lexage"
 importe Fondation
 
 // À FAIRE : les énums dont les valeurs sont autres que z32 ne sont pas imprimées (introspection)
-énum TypeNoeud : z32 {
+TypeNoeud :: énum : z32 {
     RACINE
 	PROPRIETE
 	VARIABLE
@@ -24,48 +24,48 @@ importe Fondation
     EXPRESSION_PARENTHESE
 }
 
-struct NoeudSyntaxique {
+NoeudSyntaxique :: struct {
     type : TypeNoeud
     données : DonnéesLexème
     enfants : []*NoeudSyntaxique
 }
 
-fonc détruit_noeud(dyn noeud : *NoeudSyntaxique) -> rien
+détruit_noeud :: fonc(dyn noeud : *NoeudSyntaxique) -> rien
 {
     déloge noeud.enfants
     déloge noeud
 }
 
-fonc pousse(dyn liste : &[]*NoeudSyntaxique, valeur : *NoeudSyntaxique) -> rien
+pousse :: fonc(dyn liste : &[]*NoeudSyntaxique, valeur : *NoeudSyntaxique) -> rien
 {
     taille := liste.taille
     reloge liste : [taille + 1]*NoeudSyntaxique
     liste[taille] = valeur
 }
 
-fonc ajoute_noeud(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) -> rien
+ajoute_noeud :: fonc(dyn noeud : *NoeudSyntaxique, enfant : *NoeudSyntaxique) -> rien
 {
     noeud.enfants.pousse(enfant)
 }
 
-fonc lexème(noeud : *NoeudSyntaxique) -> TypeLexème
+lexème :: fonc(noeud : *NoeudSyntaxique) -> TypeLexème
 {
     retourne noeud.données.lexème
 }
 
 //##############################################################################
 
-struct PileNoeud {
+PileNoeud :: struct {
     données : []*NoeudSyntaxique
     curseur := 0
 }
 
-fonc détruit(dyn pile : &PileNoeud) -> rien
+détruit :: fonc(dyn pile : &PileNoeud) -> rien
 {
     déloge pile.données
 }
 
-fonc empile(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
+empile :: fonc(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
 {
     si pile.curseur == pile.données.taille {
         taille := pile.données.taille
@@ -76,36 +76,36 @@ fonc empile(dyn pile : &PileNoeud, noeud : *NoeudSyntaxique) -> rien
     pile.curseur += 1
 }
 
-fonc dépile(dyn pile : &PileNoeud) -> *NoeudSyntaxique
+dépile :: fonc(dyn pile : &PileNoeud) -> *NoeudSyntaxique
 {
     ret := pile.haut()
     pile.curseur -= 1
     retourne ret
 }
 
-fonc haut(pile : &PileNoeud) -> *NoeudSyntaxique
+haut :: fonc(pile : &PileNoeud) -> *NoeudSyntaxique
 {
     retourne pile.données[pile.curseur - 1]
 }
 
-fonc taille(pile : &PileNoeud) -> z32
+taille :: fonc(pile : &PileNoeud) -> z32
 {
     retourne pile.curseur
 }
 
-fonc est_vide(pile : &PileNoeud) -> bool
+est_vide :: fonc(pile : &PileNoeud) -> bool
 {
     retourne pile.curseur == 0
 }
 
 //##############################################################################
 
-struct AssembleuseArbre {
+AssembleuseArbre :: struct {
     noeuds : []*NoeudSyntaxique
     pile : PileNoeud
 }
 
-fonc construit_assembleuse() -> AssembleuseArbre
+construit_assembleuse :: fonc() -> AssembleuseArbre
 {
     données_lexème : DonnéesLexème
 
@@ -115,7 +115,7 @@ fonc construit_assembleuse() -> AssembleuseArbre
     retourne assembleuse
 }
 
-fonc détruit_assembleuse(dyn assembleuse : &AssembleuseArbre) -> rien
+détruit_assembleuse :: fonc(dyn assembleuse : &AssembleuseArbre) -> rien
 {
     pour noeud dans assembleuse.noeuds {
         // À FAIRE : accès à des références de pointeurs....
@@ -127,7 +127,7 @@ fonc détruit_assembleuse(dyn assembleuse : &AssembleuseArbre) -> rien
     détruit(assembleuse.pile)
 }
 
-fonc empile_noeud(
+empile_noeud :: fonc(
     dyn assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
     données : &DonnéesLexème,
@@ -144,14 +144,14 @@ fonc empile_noeud(
 	retourne noeud
 }
 
-fonc ajoute_noeud(
+ajoute_noeud :: fonc(
     dyn assembleuse : &AssembleuseArbre,
     noeud : *NoeudSyntaxique) -> rien
 {
 	assembleuse.pile.haut().ajoute_noeud(noeud)
 }
 
-fonc crée_noeud(
+crée_noeud :: fonc(
     dyn assembleuse : &AssembleuseArbre,
     type_noeud : TypeNoeud,
     données : &DonnéesLexème) -> *NoeudSyntaxique
@@ -167,7 +167,7 @@ fonc crée_noeud(
 	retourne noeud
 }
 
-fonc dépile_noeud(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
+dépile_noeud :: fonc(dyn assembleuse : &AssembleuseArbre, type_noeud : TypeNoeud) -> rien
 {
 	// assert(assembleuse.pile.haut().type == type_noeud)
 	assembleuse.pile.dépile()

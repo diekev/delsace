@@ -3,9 +3,9 @@ importe "fichier"
 importe "flux"
 importe "chrono"
 
-fonc externe write(filedes : z32, tpn : *z8, nbyte : z64) -> z32;
+write :: fonc externe (filedes : z32, tpn : *z8, nbyte : z64) -> z32;
 
-struct Image {
+Image :: struct {
     tampon : chaine; // À FAIRE : []octet
     chemin : chaine;
     hauteur : z32;
@@ -13,19 +13,19 @@ struct Image {
     channels : z32;
 }
 
-fonc ecris_fichier(df : z32, chn : chaine) -> rien
+ecris_fichier :: fonc(df : z32, chn : chaine) -> rien
 {
     write(df, chn.pointeur, chn.taille);
 }
 
-fonc imprime_fichier(df : z32, args : ...eini) -> rien
+imprime_fichier :: fonc(df : z32, args : ...eini) -> rien
 {
     pour arg dans args {
 	    imprime_valeur(df, arg.pointeur, arg.info, faux);
 	}
 }
 
-fonc génére_image_damier() -> Image
+génére_image_damier :: fonc() -> Image
 {
     dyn image : Image;
     image.largeur = 1024;
@@ -58,7 +58,7 @@ fonc génére_image_damier() -> Image
     retourne image;
 }
 
-fonc génére_image_noire() -> Image
+génére_image_noire :: fonc() -> Image
 {
     dyn image : Image;
     image.largeur = 1024;
@@ -80,7 +80,7 @@ fonc génére_image_noire() -> Image
     retourne image;
 }
 
-fonc abs(x : r32) -> r32
+abs :: fonc(x : r32) -> r32
 {
     si x < 0.0 {
         retourne -x;
@@ -89,7 +89,7 @@ fonc abs(x : r32) -> r32
     retourne x;
 }
 
-fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) -> rien
+dessine_ligne :: fonc(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) -> rien
 {
     dyn tampon := image.tampon;
 
@@ -122,7 +122,7 @@ fonc dessine_ligne(dyn image : &Image, x1 : z32, y1 : z32, x2 : z32, y2 : z32) -
     }
 }
 
-fonc dessine_triangle(
+dessine_triangle :: fonc(
     dyn image : &Image,
     x1 : r64,
     y1 : r64,
@@ -148,12 +148,12 @@ fonc dessine_triangle(
 }
 
 // http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-struct Vec2 {
+Vec2 :: struct {
     x : r64;
     y : r64;
 }
 
-fonc restreint(dyn x : &z32, min : z32, max : z32) -> rien
+restreint :: fonc(dyn x : &z32, min : z32, max : z32) -> rien
 {
     si x <= min {
         x = min;
@@ -163,7 +163,7 @@ fonc restreint(dyn x : &z32, min : z32, max : z32) -> rien
     }
 }
 
-fonc min(a : r64, b : r64) -> r64
+min :: fonc(a : r64, b : r64) -> r64
 {
     si a <= b {
         retourne a;
@@ -176,7 +176,7 @@ fonc min(a : r64, b : r64) -> r64
 //      /\
 //     /  \
 //     ----
-fonc remplis_triangle_bas_plat(
+remplis_triangle_bas_plat :: fonc(
     dyn image : &Image,
     v1 : Vec2,
     v2 : Vec2,
@@ -221,7 +221,7 @@ fonc remplis_triangle_bas_plat(
 //     ----
 //     \  /
 //      \/
-fonc remplis_triangle_haut_plat(
+remplis_triangle_haut_plat :: fonc(
     dyn image : &Image,
     v1 : Vec2,
     v2 : Vec2,
@@ -261,14 +261,14 @@ fonc remplis_triangle_haut_plat(
     }
 }
 
-fonc échange(dyn a : &r64, dyn b : &r64) -> rien
+échange :: fonc(dyn a : &r64, dyn b : &r64) -> rien
 {
     tmp := a;
     a = b;
     b = tmp;
 }
 
-fonc échange(dyn v1 : &Vec2, dyn v2 : &Vec2) -> rien
+échange :: fonc(dyn v1 : &Vec2, dyn v2 : &Vec2) -> rien
 {
     échange(v1.x, v2.x);
     échange(v1.y, v2.y);
@@ -285,7 +285,7 @@ fonc échange(dyn v1 : &Vec2, dyn v2 : &Vec2) -> rien
 //  \ |
 //   \|
 //
-fonc ratisse_triangle(
+ratisse_triangle :: fonc(
     dyn image : &Image,
     x1 : r64,
     y1 : r64,
@@ -329,7 +329,7 @@ fonc ratisse_triangle(
     }
 }
 
-fonc écris_ppm(image : Image, chemin : chaine) -> rien
+écris_ppm :: fonc(image : Image, chemin : chaine) -> rien
 {
     df := ouvre_fichier_ecriture(chemin);
     diffère { ferme_fichier(df); }
@@ -374,7 +374,7 @@ fonc écris_ppm(image : Image, chemin : chaine) -> rien
     imprime("Temps d'écriture = ", delta, "s", '\n');
 }
 
-fonc écris_pnm(image : Image, chemin : chaine) -> rien
+écris_pnm :: fonc(image : Image, chemin : chaine) -> rien
 {
     df := ouvre_fichier_ecriture(chemin);
     diffère { ferme_fichier(df); }
@@ -429,45 +429,45 @@ fonc écris_pnm(image : Image, chemin : chaine) -> rien
 
 //####################
 
-fonc détruit_image(image : *Image) -> rien
+détruit_image :: fonc(image : *Image) -> rien
 {
     déloge image.tampon;
 }
 
-struct externe FILE;
-fonc externe fopen(__filename : *z8, __modes : *z8) -> *FILE;
-fonc externe fclose(__file : *FILE) -> z32;
+FILE :: struct externe ;
+fopen :: fonc externe (__filename : *z8, __modes : *z8) -> *FILE;
+fclose :: fonc externe (__file : *FILE) -> z32;
 
-struct externe jpeg_error_mgr;
-struct externe jpeg_memory_mgr;
-struct externe jpeg_progress_mgr;
-struct externe jpeg_source_mgr;
-struct externe JQUANT_TBL;
-struct externe JHUFF_TBL;
-struct externe jpeg_marker_struct;
-struct externe jpeg_decomp_master;
-struct externe jpeg_d_main_controller;
-struct externe jpeg_d_coef_controller;
-struct externe jpeg_d_post_controller;
-struct externe jpeg_input_controller;
-struct externe jpeg_marker_reader;
-struct externe jpeg_entropy_decoder;
-struct externe jpeg_inverse_dct;
-struct externe jpeg_upsampler;
-struct externe jpeg_color_deconverter;
-struct externe jpeg_color_quantizer;
-struct externe jpeg_comp_master;
-struct externe jpeg_c_main_controller;
-struct externe jpeg_c_prep_controller;
-struct externe jpeg_c_coef_controller;
-struct externe jpeg_marker_writer;
-struct externe jpeg_color_converter;
-struct externe jpeg_downsampler;
-struct externe jpeg_forward_dct;
-struct externe jpeg_entropy_encoder;
-struct externe jpeg_scan_info;
+jpeg_error_mgr :: struct externe ;
+jpeg_memory_mgr :: struct externe ;
+jpeg_progress_mgr :: struct externe ;
+jpeg_source_mgr :: struct externe ;
+JQUANT_TBL :: struct externe ;
+JHUFF_TBL :: struct externe ;
+jpeg_marker_struct :: struct externe ;
+jpeg_decomp_master :: struct externe ;
+jpeg_d_main_controller :: struct externe ;
+jpeg_d_coef_controller :: struct externe ;
+jpeg_d_post_controller :: struct externe ;
+jpeg_input_controller :: struct externe ;
+jpeg_marker_reader :: struct externe ;
+jpeg_entropy_decoder :: struct externe ;
+jpeg_inverse_dct :: struct externe ;
+jpeg_upsampler :: struct externe ;
+jpeg_color_deconverter :: struct externe ;
+jpeg_color_quantizer :: struct externe ;
+jpeg_comp_master :: struct externe ;
+jpeg_c_main_controller :: struct externe ;
+jpeg_c_prep_controller :: struct externe ;
+jpeg_c_coef_controller :: struct externe ;
+jpeg_marker_writer :: struct externe ;
+jpeg_color_converter :: struct externe ;
+jpeg_downsampler :: struct externe ;
+jpeg_forward_dct :: struct externe ;
+jpeg_entropy_encoder :: struct externe ;
+jpeg_scan_info :: struct externe ;
 
-struct externe jpeg_component_info {
+jpeg_component_info :: struct externe  {
     component_id : z32;
     component_index : z32;
     h_samp_factor : z32;
@@ -495,7 +495,7 @@ struct externe jpeg_component_info {
     dct_table : *rien;
 }
 
-struct externe jpeg_decompress_struct {
+jpeg_decompress_struct :: struct externe  {
     err : *jpeg_error_mgr;
     mem : *jpeg_memory_mgr;
     progress : *jpeg_progress_mgr;
@@ -620,17 +620,17 @@ struct externe jpeg_decompress_struct {
     cquantize : *jpeg_color_quantizer;
 }
 
-fonc externe jpeg_std_error(err : *jpeg_error_mgr) -> *jpeg_error_mgr;
-fonc externe jpeg_create_decompress(info : *jpeg_decompress_struct) -> rien;
-fonc externe jpeg_start_decompress(info : *jpeg_decompress_struct) -> rien;
-fonc externe jpeg_finish_decompress(info : *jpeg_decompress_struct) -> rien;
-fonc externe jpeg_destroy_decompress(info : *jpeg_decompress_struct) -> rien;
+jpeg_std_error :: fonc externe (err : *jpeg_error_mgr) -> *jpeg_error_mgr;
+jpeg_create_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_start_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_finish_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
+jpeg_destroy_decompress :: fonc externe (info : *jpeg_decompress_struct) -> rien;
 
-fonc externe jpeg_stdio_src(info : *jpeg_decompress_struct, file : *FILE) -> rien;
-fonc externe jpeg_save_markers(info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) -> rien;
-fonc externe jpeg_read_header(info : *jpeg_decompress_struct, require_image : z32) -> rien;
+jpeg_stdio_src :: fonc externe (info : *jpeg_decompress_struct, file : *FILE) -> rien;
+jpeg_save_markers :: fonc externe (info : *jpeg_decompress_struct, marker_code : z32, length_limit : n32) -> rien;
+jpeg_read_header :: fonc externe (info : *jpeg_decompress_struct, require_image : z32) -> rien;
 
-fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32;
+jpeg_read_scanlines :: fonc externe (info : *jpeg_decompress_struct, scanlines : **z8, max_lines : n32) -> n32;
 
 //soit JPEG_APP0 = 0xE0;
 
@@ -638,7 +638,7 @@ fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z
 
 #bib "jpeg"
 
-fonc lis_jpeg(chemin : chaine) -> Image
+lis_jpeg :: fonc(chemin : chaine) -> Image
 {
     dyn image : Image;
     // nous devons avoir une chaine terminée par '\0' donc copie dans un
@@ -697,7 +697,7 @@ fonc lis_jpeg(chemin : chaine) -> Image
     retourne image;
 }
 
-struct externe jpeg_compress_struct {
+jpeg_compress_struct :: struct externe  {
     err : *jpeg_error_mgr;
     mem : *jpeg_memory_mgr;
     progress : *jpeg_progress_mgr;
@@ -799,19 +799,19 @@ struct externe jpeg_compress_struct {
     script_space_size : z32;
 }
 
-fonc externe jpeg_create_compress(info : *jpeg_compress_struct) -> rien;
-fonc externe jpeg_destroy_compress(info : *jpeg_compress_struct) -> rien;
-fonc externe jpeg_finish_compress(info : *jpeg_compress_struct) -> rien;
-fonc externe jpeg_set_defaults(info : *jpeg_compress_struct) -> rien;
-fonc externe jpeg_stdio_dest(info : *jpeg_compress_struct, file : *FILE) -> rien;
-fonc externe jpeg_set_quality(info : *jpeg_compress_struct, quality : z32, v : z32) -> rien;
-fonc externe jpeg_start_compress(info : *jpeg_compress_struct, v : z32) -> rien;
-fonc externe jpeg_write_scanlines(info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32;
+jpeg_create_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_destroy_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_finish_compress :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_set_defaults :: fonc externe (info : *jpeg_compress_struct) -> rien;
+jpeg_stdio_dest :: fonc externe (info : *jpeg_compress_struct, file : *FILE) -> rien;
+jpeg_set_quality :: fonc externe (info : *jpeg_compress_struct, quality : z32, v : z32) -> rien;
+jpeg_start_compress :: fonc externe (info : *jpeg_compress_struct, v : z32) -> rien;
+jpeg_write_scanlines :: fonc externe (info : *jpeg_compress_struct, scanlines : **z8, max_lines : n32) -> n32;
 
 _JCS_GRAYSCALE := 1;
 _JCS_RGB := 2;
 
-fonc écris_jpeg(image : Image, chemin : chaine) -> rien
+écris_jpeg :: fonc(image : Image, chemin : chaine) -> rien
 {
     // nous devons avoir une chaine terminée par '\0' donc copie dans un
 	// tampon
@@ -860,7 +860,7 @@ fonc écris_jpeg(image : Image, chemin : chaine) -> rien
 	jpeg_destroy_compress(@info);
 }
 
-fonc test_jpeg() -> rien
+test_jpeg :: fonc() -> rien
 {
     imprime_sans_format("Entrée jpeg : mémoire utilisée : ", mémoire_utilisée(), '\n');
 
@@ -878,7 +878,7 @@ fonc test_jpeg() -> rien
 
 //####################
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     image := génére_image_noire();
     ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);

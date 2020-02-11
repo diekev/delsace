@@ -4,7 +4,7 @@
 importe Fondation
 
 // Retourne le nombre d'octets du caractère en début de la séquence encodée en Unicode
-fonc nombre_octets_utf8(caractère : *z8) -> z32
+nombre_octets_utf8 :: fonc(caractère : *z8) -> z32
 {
     si caractère == nul {
         retourne 0
@@ -80,7 +80,7 @@ fonc nombre_octets_utf8(caractère : *z8) -> z32
 }
 
 // Similaire à celle au dessus, avec moins de comparaisons
-fonc nombre_octets_utf8_rapide(caractère : *z8) -> z64
+nombre_octets_utf8_rapide :: fonc(caractère : *z8) -> z64
 {
 	si caractère == nul {
 		retourne 0
@@ -101,7 +101,7 @@ fonc nombre_octets_utf8_rapide(caractère : *z8) -> z64
 	retourne result
 }
 
-fonc décalage_pour_caractère(chn : chaine, i : z64) -> z32
+décalage_pour_caractère :: fonc(chn : chaine, i : z64) -> z32
 {
 	dyn décalage := 0
 	dyn n := nombre_octets_utf8(@chn[i])
@@ -120,23 +120,23 @@ fonc décalage_pour_caractère(chn : chaine, i : z64) -> z32
 // Structure similaire à ce que Go possède pour les caractères Unicode
 // Toutefois, dans Go c'est un type entier sur 32-bit
 // Peut-être en aurons nous un dans le future, notamment pour les impressions
-struct Rune {
+Rune :: struct {
     pointeur : *z8
     taille : z64
 }
 
-fonc converti_en_chaine(rune : &Rune) -> chaine
+converti_en_chaine :: fonc(rune : &Rune) -> chaine
 {
     retourne construit_chaine(rune.pointeur, rune.taille)
 }
 
-fonc construit_rune(pointeur : *z8, taille : z64) -> Rune
+construit_rune :: fonc(pointeur : *z8, taille : z64) -> Rune
 {
     retourne Rune{ pointeur = pointeur, taille = taille }
 }
 
 // Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
-fonc converti_utf8_utf32(caractère : *z8, n : z64) -> z32
+converti_utf8_utf32 :: fonc(caractère : *z8, n : z64) -> z32
 {
 	s0 := transtype(caractère[0] : n8)
 
@@ -168,12 +168,12 @@ fonc converti_utf8_utf32(caractère : *z8, n : z64) -> z32
 	retourne 0
 }
 
-fonc converti_utf8_utf32(rune : Rune) -> z32
+converti_utf8_utf32 :: fonc(rune : Rune) -> z32
 {
     retourne converti_utf8_utf32(rune.pointeur, rune.taille)
 }
 
-fonc converti_utf8_utf32(caractère : *z8) -> z32
+converti_utf8_utf32 :: fonc(caractère : *z8) -> z32
 {
     si caractère == nul {
         retourne -1
@@ -218,7 +218,7 @@ fonc converti_utf8_utf32(caractère : *z8) -> z32
 }
 
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.
-fonc taille_unicode(chn : chaine) -> z64
+taille_unicode :: fonc(chn : chaine) -> z64
 {
     dyn taille : z64 := 0
     dyn i := 0

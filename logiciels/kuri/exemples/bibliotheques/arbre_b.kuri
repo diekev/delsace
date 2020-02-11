@@ -3,7 +3,7 @@
 
 importe Fondation
 
-struct NoeudArbreB {
+NoeudArbreB :: struct {
     clés : []z32
 
     // Degré minimum pour définir la plage pour le nombre de clés
@@ -17,7 +17,7 @@ struct NoeudArbreB {
     est_feuille : bool
 }
 
-struct ArbreB {
+ArbreB :: struct {
     noeuds: []*NoeudArbreB
 
     racine: *NoeudArbreB
@@ -26,7 +26,7 @@ struct ArbreB {
     t: z32
 }
 
-fonc construit_noeud(t : z32, est_feuille : bool) -> *NoeudArbreB
+construit_noeud :: fonc(t : z32, est_feuille : bool) -> *NoeudArbreB
 {
     dyn noeud := loge NoeudArbreB
     noeud.t = t
@@ -38,7 +38,7 @@ fonc construit_noeud(t : z32, est_feuille : bool) -> *NoeudArbreB
     retourne noeud
 }
 
-fonc détruit_noeud(noeud : *NoeudArbreB) -> rien
+détruit_noeud :: fonc(noeud : *NoeudArbreB) -> rien
 {
     imprime_sans_format("détruit_noeud\n")
     déloge noeud.clés
@@ -46,7 +46,7 @@ fonc détruit_noeud(noeud : *NoeudArbreB) -> rien
     déloge noeud
 }
 
-fonc traverse(noeud: *NoeudArbreB) -> rien
+traverse :: fonc(noeud: *NoeudArbreB) -> rien
 {
     // il y a n clés et n + 1 enfants, traverse les n clés, et n premier enfants
     pour i dans 0 ... noeud.n - 1 {
@@ -66,7 +66,7 @@ fonc traverse(noeud: *NoeudArbreB) -> rien
 }
 
 // Recherche une clé dans le sous-arbre du noeud. Retourne nul si la clé k n'est pas trouvée.
-fonc recherche(noeud: *NoeudArbreB, k: z32) -> *NoeudArbreB
+recherche :: fonc(noeud: *NoeudArbreB, k: z32) -> *NoeudArbreB
 {
     dyn i := 0
 
@@ -87,7 +87,7 @@ fonc recherche(noeud: *NoeudArbreB, k: z32) -> *NoeudArbreB
 
 // Auxilliare pour unsérer une nouvelle clé dans ce noeud.
 // La présomption est que le noeud est non-plein quand cette fonction est appelée.
-fonc insère_non_plein(
+insère_non_plein :: fonc(
     dyn arbre: *ArbreB,
     dyn noeud: *NoeudArbreB,
     k: z32) -> rien
@@ -142,7 +142,7 @@ fonc insère_non_plein(
 
 // Auxilliaire pour diviser l'enfant y de ce noeud.
 // y doit être plein quand cet fonction est appelée.
-fonc divise_enfant(
+divise_enfant :: fonc(
     dyn arbre: *ArbreB,
     dyn noeud: *NoeudArbreB,
     i: z32,
@@ -186,7 +186,7 @@ fonc divise_enfant(
 }
 
 // Auxiliaire pour trouver l'index de la première clé qui est supérieure ou égale à k
-fonc trouve_clé(noeud: *NoeudArbreB, k: z32) -> z32
+trouve_clé :: fonc(noeud: *NoeudArbreB, k: z32) -> z32
 {
     dyn idx := 0
 
@@ -205,7 +205,7 @@ fonc trouve_clé(noeud: *NoeudArbreB, k: z32) -> z32
     retourne idx
 }
 
-fonc supprime(dyn noeud: *NoeudArbreB, k: z32) -> rien
+supprime :: fonc(dyn noeud: *NoeudArbreB, k: z32) -> rien
 {
     dyn idx := trouve_clé(noeud, k)
 
@@ -239,7 +239,7 @@ fonc supprime(dyn noeud: *NoeudArbreB, k: z32) -> rien
     }
 }
 
-fonc supprime_depuis_feuille(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+supprime_depuis_feuille :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 {
     pour i dans idx + 1 ... noeud.n - 1 {
         noeud.clés[i-1] = noeud.clés[i]
@@ -248,7 +248,7 @@ fonc supprime_depuis_feuille(dyn noeud: *NoeudArbreB, idx: z32) -> rien
     noeud.n -= 1
 }
 
-fonc supprime_depuis_branche(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+supprime_depuis_branche :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 {
     k := noeud.clés[idx]
 
@@ -268,7 +268,7 @@ fonc supprime_depuis_branche(dyn noeud: *NoeudArbreB, idx: z32) -> rien
     }
 }
 
-fonc clé_précédente(dyn noeud: *NoeudArbreB, idx: z32) -> z32
+clé_précédente :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> z32
 {
     dyn courant := noeud.enfants[idx]
 
@@ -279,7 +279,7 @@ fonc clé_précédente(dyn noeud: *NoeudArbreB, idx: z32) -> z32
     retourne courant.clés[courant.n - 1]
 }
 
-fonc clé_suivante(dyn noeud: *NoeudArbreB, idx: z32) -> z32
+clé_suivante :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> z32
 {
     dyn courant := noeud.enfants[idx + 1]
 
@@ -290,7 +290,7 @@ fonc clé_suivante(dyn noeud: *NoeudArbreB, idx: z32) -> z32
     retourne courant.clés[0]
 }
 
-fonc remplis(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+remplis :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 {
     si idx != 0 {
         si noeud.enfants[idx - 1].n >= noeud.t {
@@ -314,7 +314,7 @@ fonc remplis(dyn noeud: *NoeudArbreB, idx: z32) -> rien
     }
 }
 
-fonc emprunte_du_précédent(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+emprunte_du_précédent :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 {
     dyn child := noeud.enfants[idx]
     dyn sibling := noeud.enfants[idx - 1]
@@ -345,7 +345,7 @@ fonc emprunte_du_précédent(dyn noeud: *NoeudArbreB, idx: z32) -> rien
     sibling.n -= 1
 }
 
-fonc emprunte_du_suivant(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+emprunte_du_suivant :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 {
     dyn child := noeud.enfants[idx]
     dyn sibling := noeud.enfants[idx + 1]
@@ -372,7 +372,7 @@ fonc emprunte_du_suivant(dyn noeud: *NoeudArbreB, idx: z32) -> rien
     sibling.n -= 1
 }
 
-fonc fusionne_suivant(dyn noeud: *NoeudArbreB, idx: z32) -> rien
+fusionne_suivant :: fonc(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 {
     dyn child := noeud.enfants[idx]
     dyn sibling := noeud.enfants[idx + 1]
@@ -407,14 +407,14 @@ fonc fusionne_suivant(dyn noeud: *NoeudArbreB, idx: z32) -> rien
 
 //#######################################
 
-fonc pousse(dyn liste: &[]*NoeudArbreB, valeur: *NoeudArbreB) -> rien
+pousse :: fonc(dyn liste: &[]*NoeudArbreB, valeur: *NoeudArbreB) -> rien
 {
     taille := liste.taille
     reloge liste: [taille + 1]*NoeudArbreB
     liste[taille] = valeur
 }
 
-fonc construit_arbre(t: z32) -> ArbreB
+construit_arbre :: fonc(t: z32) -> ArbreB
 {
     dyn arbre : ArbreB
     arbre.racine = nul
@@ -423,7 +423,7 @@ fonc construit_arbre(t: z32) -> ArbreB
     retourne arbre
 }
 
-fonc détruit_arbre(arbre: *ArbreB) -> rien
+détruit_arbre :: fonc(arbre: *ArbreB) -> rien
 {
     imprime_sans_format("détruit_arbre...\n")
     pour noeud dans arbre.noeuds {
@@ -433,7 +433,7 @@ fonc détruit_arbre(arbre: *ArbreB) -> rien
     déloge arbre.noeuds
 }
 
-fonc traverse(arbre: *ArbreB) -> rien
+traverse :: fonc(arbre: *ArbreB) -> rien
 {
     si arbre.racine == nul {
         retourne
@@ -443,7 +443,7 @@ fonc traverse(arbre: *ArbreB) -> rien
 }
 
 // Recherche une clé dans le sous-arbre du noeud. Retourne nul si la clé k n'est pas trouvée.
-fonc recherche(dyn arbre: *ArbreB, k: z32) -> *NoeudArbreB
+recherche :: fonc(dyn arbre: *ArbreB, k: z32) -> *NoeudArbreB
 {
     si arbre.racine == nul {
         retourne nul
@@ -452,7 +452,7 @@ fonc recherche(dyn arbre: *ArbreB, k: z32) -> *NoeudArbreB
     retourne recherche(arbre.racine, k)
 }
 
-fonc insère(dyn arbre: *ArbreB, k: z32) -> rien
+insère :: fonc(dyn arbre: *ArbreB, k: z32) -> rien
 {
     si arbre.racine == nul {
         arbre.racine = construit_noeud(arbre.t, vrai)
@@ -484,7 +484,7 @@ fonc insère(dyn arbre: *ArbreB, k: z32) -> rien
     insère_non_plein(arbre, arbre.racine, k)
 }
 
-fonc supprime(dyn arbre: *ArbreB, k: z32) -> rien
+supprime :: fonc(dyn arbre: *ArbreB, k: z32) -> rien
 {
     si arbre.racine == nul {
         retourne
@@ -513,13 +513,13 @@ fonc supprime(dyn arbre: *ArbreB, k: z32) -> rien
 // Cache « moins récemment utilisé »
 // https://www.geeksforgeeks.org/lru-cache-implementation/
 
-struct NoeudFile {
+NoeudFile :: struct {
     suivant: *NoeudFile
     précédent: *NoeudFile
     numéro_page: z32
 }
 
-fonc crée_noeud(numéro_page: z32) -> *NoeudFile
+crée_noeud :: fonc(numéro_page: z32) -> *NoeudFile
 {
     dyn n := loge NoeudFile
     n.numéro_page = numéro_page
@@ -529,7 +529,7 @@ fonc crée_noeud(numéro_page: z32) -> *NoeudFile
     retourne n
 }
 
-struct File {
+File :: struct {
     nombre_de_pages := 0
     nombre_de_pages_remplies := 0
 
@@ -537,7 +537,7 @@ struct File {
     cul: *NoeudFile := nul
 }
 
-fonc crée_file(nombre_de_pages: z32) -> *File
+crée_file :: fonc(nombre_de_pages: z32) -> *File
 {
     dyn f := loge File
     f.nombre_de_pages = nombre_de_pages
@@ -548,17 +548,17 @@ fonc crée_file(nombre_de_pages: z32) -> *File
     retourne f
 }
 
-fonc sont_toutes_les_pages_pleines(file: *File) -> bool
+sont_toutes_les_pages_pleines :: fonc(file: *File) -> bool
 {
     retourne file.nombre_de_pages_remplies == file.nombre_de_pages
 }
 
-fonc est_vide(file: *File) -> bool
+est_vide :: fonc(file: *File) -> bool
 {
     retourne file.cul == nul
 }
 
-fonc défile(dyn file: *File) -> rien
+défile :: fonc(dyn file: *File) -> rien
 {
     si file.est_vide() {
         retourne
@@ -580,12 +580,12 @@ fonc défile(dyn file: *File) -> rien
     file.nombre_de_pages_remplies -= 1
 }
 
-struct Hash {
+Hash :: struct {
     noeuds: []*NoeudFile
     capacité := 0
 }
 
-fonc crée_hash(capacité: z32) -> *Hash
+crée_hash :: fonc(capacité: z32) -> *Hash
 {
     dyn h := loge Hash
     h.capacité = 0
@@ -599,7 +599,7 @@ fonc crée_hash(capacité: z32) -> *Hash
     retourne h
 }
 
-fonc enfile(dyn file: *File, dyn hash: *Hash, numéro_page: z32) -> rien
+enfile :: fonc(dyn file: *File, dyn hash: *Hash, numéro_page: z32) -> rien
 {
     si sont_toutes_les_pages_pleines(file) {
         hash.noeuds[file.cul.numéro_page] = nul
@@ -623,7 +623,7 @@ fonc enfile(dyn file: *File, dyn hash: *Hash, numéro_page: z32) -> rien
     file.nombre_de_pages_remplies += 1
 }
 
-fonc référence_page(dyn file: *File, hash: *Hash, numéro_page: z32) -> rien
+référence_page :: fonc(dyn file: *File, hash: *Hash, numéro_page: z32) -> rien
 {
     dyn page_requise := hash.noeuds[numéro_page]
 
@@ -654,13 +654,13 @@ fonc référence_page(dyn file: *File, hash: *Hash, numéro_page: z32) -> rien
 
 //######################################
 
-struct CacheMRU {
+CacheMRU :: struct {
     arbre: *ArbreB = nul
     file: *File = nul
     capacité: z32 = 0
 }
 
-fonc construit_cache(capacité: z32) -> *CacheMRU
+construit_cache :: fonc(capacité: z32) -> *CacheMRU
 {
     dyn cache := loge CacheMRU
     cache.arbre = loge ArbreB
@@ -671,7 +671,7 @@ fonc construit_cache(capacité: z32) -> *CacheMRU
     retourne cache
 }
 
-fonc détruit_cache(dyn cache: *CacheMRU) -> rien
+détruit_cache :: fonc(dyn cache: *CacheMRU) -> rien
 {
     détruit_file(capacité)
     détruit_arbre(arbre)
@@ -679,7 +679,7 @@ fonc détruit_cache(dyn cache: *CacheMRU) -> rien
     déloge cache
 }
 
-fonc référence_page(dyn cache: *CacheMRU, x: z32) -> rien
+référence_page :: fonc(dyn cache: *CacheMRU, x: z32) -> rien
 {
     dyn noeud := cache.arbre.recherche(x)
 
@@ -698,7 +698,7 @@ fonc référence_page(dyn cache: *CacheMRU, x: z32) -> rien
 
 //######################################
 
-fonc imprime_file(file: *File) -> rien
+imprime_file :: fonc(file: *File) -> rien
 {
     dyn ptr := file.front
 
@@ -708,7 +708,7 @@ fonc imprime_file(file: *File) -> rien
     }
 }
 
-fonc détruit_file(file: *File) -> rien
+détruit_file :: fonc(file: *File) -> rien
 {
     dyn ptr := file.front
 
@@ -721,13 +721,13 @@ fonc détruit_file(file: *File) -> rien
     déloge file
 }
 
-fonc détruit_hash(hash: *Hash) -> rien
+détruit_hash :: fonc(hash: *Hash) -> rien
 {
     déloge hash.noeuds
     déloge hash
 }
 
-fonc cherche_clé(arbre: *ArbreB, clé: z32) -> rien
+cherche_clé :: fonc(arbre: *ArbreB, clé: z32) -> rien
 {
     noeud := recherche(arbre, clé)
 
@@ -739,7 +739,7 @@ fonc cherche_clé(arbre: *ArbreB, clé: z32) -> rien
     }
 }
 
-fonc supprime_et_traverse(arbre: *ArbreB, clé: z32) -> rien
+supprime_et_traverse :: fonc(arbre: *ArbreB, clé: z32) -> rien
 {
     arbre.supprime(clé)
     imprime_sans_format("Traverse de l'arbre après la suppression de ", clé, " :\n")
@@ -747,7 +747,7 @@ fonc supprime_et_traverse(arbre: *ArbreB, clé: z32) -> rien
     imprime_sans_format("\n")
 }
 
-fonc principale(args : []*z8) : z32
+principale :: fonc(args : []*z8) : z32
 {
     diffère { imprime_sans_format("mémoire utilisée : ", mémoire_utilisée(), "o\n") }
 

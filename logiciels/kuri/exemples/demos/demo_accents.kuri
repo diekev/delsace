@@ -1,25 +1,25 @@
 importe "flux"
 
 // Ceci est un commentaire.
-énum Énumération : z32 {
+Énumération :: énum : z32 {
     LUMIÈRE := 0
 }
 
-struct Structurée {
+Structurée :: struct {
     membrée : z32
     fn_pointée : fonc()rien
 }
 
-fonc fée() -> rien
+fée :: fonc() -> rien
 {
 }
 
-fonc prend_énum(lumière : Énumération) -> rien
+prend_énum :: fonc(lumière : Énumération) -> rien
 {
     imprime_sans_format("Valeur passée : ", lumière, '\n')
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     début := 0
     fin := 9

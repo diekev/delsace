@@ -1,4 +1,4 @@
-énum_drapeau TypeParamètre : n16 {
+TypeParamètre :: énum_drapeau : n16 {
 	TABLEAU
 	ENT32
 	DEC
@@ -14,7 +14,7 @@
 	INVALIDE
 }
 
-fonc type_paramètre_opengl(type_param : TypeParamètre) -> chaine
+type_paramètre_opengl :: fonc(type_param : TypeParamètre) -> chaine
 {
     discr type_param {
 		DEC { retourne "float" }
@@ -34,7 +34,7 @@ fonc type_paramètre_opengl(type_param : TypeParamètre) -> chaine
     retourne "invalide"
 }
 
-fonc taille_type(type_param : TypeParamètre) -> z32
+taille_type :: fonc(type_param : TypeParamètre) -> z32
 {
 	discr type_param {
 		CHAINE,

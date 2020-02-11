@@ -2,9 +2,9 @@
 
 #bib "mysqlclient"
 
-fonc externe mysql_fetch_row() -> ;
+mysql_fetch_row :: fonc externe () -> ;
 
-corout iter_résultat_requête(resultat)
+iter_résultat_requête :: corout(resultat)
 {
     boucle {
         ligne := mysql_fetch_row(resultat);
@@ -17,7 +17,7 @@ corout iter_résultat_requête(resultat)
     }
 }
 
-fonc iter_résultat_requête(resultat, ligne) -> chaine
+iter_résultat_requête :: fonc(resultat, ligne) -> chaine
 {
     longueurs := mysql_fetch_lengths(resultat);
     nombre_champs := mysql_num_fields(resultat);
@@ -30,7 +30,7 @@ fonc iter_résultat_requête(resultat, ligne) -> chaine
     }
 }
 
-fonc test_mysql()
+test_mysql :: fonc()
 {
     pour ligne dans iter_résultat_requête(resultat) {
         pour champ dans iter_champ_ligne(resultat, ligne) {

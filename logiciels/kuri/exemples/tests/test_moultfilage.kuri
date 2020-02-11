@@ -7,53 +7,53 @@
 
 importe GlibC
 
-fonc externe printf(fmt : *z8, args : ...) -> z32
+printf :: fonc externe (fmt : *z8, args : ...) -> z32
 
 #inclus "pthread.h"
 #bib "pthread"
 #def "_REENTRANT"
 
-struct externe pthread_attr_t
+pthread_attr_t :: struct externe 
 
-fonc externe pthread_create(thread : *n64, attr : *pthread_attr_t,  start_routine : fonc(*rien)*rien, arg : *rien) -> z32
+pthread_create :: fonc externe (thread : *n64, attr : *pthread_attr_t,  start_routine : fonc(*rien)*rien, arg : *rien) -> z32
 
 // Pour arrêter le fil courant
-fonc externe pthread_exit(retval : *rien) -> rien
+pthread_exit :: fonc externe (retval : *rien) -> rien
 
 // Annule l'exécution du fil donné
-fonc externe pthread_cancel(thread : n64) -> z32
+pthread_cancel :: fonc externe (thread : n64) -> z32
 
 // Cette fonction permet de changer le comportement du thread appelant par rapport aux requêtes d'annulations
-fonc externe pthread_setcancelstate (state : z32, etat_pred : *z32) -> z32
+pthread_setcancelstate :: fonc externe  (state : z32, etat_pred : *z32) -> z32
 
-fonc externe pthread_join (thread : n64, thread_return : **rien) -> z32
+pthread_join :: fonc externe  (thread : n64, thread_return : **rien) -> z32
 
-struct externe pthread_mutex_t
+pthread_mutex_t :: struct externe 
 
-fonc externe pthread_mutex_lock(mutex : *pthread_mutex_t) -> z32
+pthread_mutex_lock :: fonc externe (mutex : *pthread_mutex_t) -> z32
 
-fonc externe pthread_mutex_unlock(mutex : *pthread_mutex_t) -> z32
+pthread_mutex_unlock :: fonc externe (mutex : *pthread_mutex_t) -> z32
 
-struct externe pthread_cond_t
+pthread_cond_t :: struct externe 
 
-fonc externe pthread_cond_wait(cond : *pthread_cond_t, mutex : *pthread_mutex_t) -> z32
+pthread_cond_wait :: fonc externe (cond : *pthread_cond_t, mutex : *pthread_mutex_t) -> z32
 
-fonc externe pthread_cond_signal(cond : *pthread_cond_t) -> z32
+pthread_cond_signal :: fonc externe (cond : *pthread_cond_t) -> z32
 
-fonc externe pthread_cond_broadcast(cond : *pthread_cond_t) -> z32
+pthread_cond_broadcast :: fonc externe (cond : *pthread_cond_t) -> z32
 
 //#####################################################################################
 
-fonc externe rand() -> r64
+rand :: fonc externe () -> r64
 
-fonc externe sleep(temps : z32) -> rien
+sleep :: fonc externe (temps : z32) -> rien
 
-fonc externe strerror(args : z32) -> *z8
+strerror :: fonc externe (args : z32) -> *z8
 
 //#####################################################################################
 
 // Structure stockant les informations des threads clients et du magasin.
-struct store_t {
+store_t :: struct {
    stock := 20
 
    thread_store : n64
@@ -65,7 +65,7 @@ struct store_t {
 }
 
 // Fonction pour tirer un nombre au sort entre 0 et max.
-#nulctx fonc get_random(max : z32) -> z32
+#nulctx get_random :: fonc(max : z32) -> z32
 {
 	dyn val : r64
 	val = transtype(max : r64) * rand()
@@ -75,7 +75,7 @@ struct store_t {
 }
 
 // Fonction pour le thread du magasin.
-#nulctx fonc fn_store(p_data : *rien) -> *rien
+#nulctx fn_store :: fonc(p_data : *rien) -> *rien
 {
     dyn store := transtype(p_data : *store_t)
 
@@ -94,7 +94,7 @@ struct store_t {
 }
 
 // Fonction pour les threads des clients.
-#nulctx fonc fn_clients(p_data : *rien) -> *rien
+#nulctx fn_clients :: fonc(p_data : *rien) -> *rien
 {
     dyn store := transtype(p_data : *store_t)
 	nb : z32 = transtype(p_data : z32)
@@ -120,7 +120,7 @@ struct store_t {
 	retourne nul
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     dyn store := store_t{ stock = 20, mutex = loge pthread_mutex_t, cond_clients = loge pthread_cond_t, cond_store = loge pthread_cond_t }
 

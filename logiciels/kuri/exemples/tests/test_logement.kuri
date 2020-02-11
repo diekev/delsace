@@ -1,6 +1,6 @@
 importe "flux"
 
-fonc imprime_tableau(tabl : []r64) -> rien
+imprime_tableau :: fonc(tabl : []r64) -> rien
 {
     imprime_sans_format("imprime_tableau...\n");
     imprime_sans_format("tabl.taille = ", tabl.taille, "\n");
@@ -15,13 +15,13 @@ fonc imprime_tableau(tabl : []r64) -> rien
     }
 }
 
-struct Vecteur {
+Vecteur :: struct {
     x : r64;
     y : r64;
     z : r64;
 }
 
-fonc test() -> rien
+test :: fonc() -> rien
 {
     imprime_sans_format("=========================================\n");
     imprime_sans_format("                 tableau                 \n");
@@ -71,7 +71,7 @@ fonc test() -> rien
     }
 }
 
-fonc logement_tableau() -> rien
+logement_tableau :: fonc() -> rien
 {
     imprime_sans_format("=========================================\n");
     imprime_sans_format("            logements tableau            \n");
@@ -99,7 +99,7 @@ fonc logement_tableau() -> rien
 }
 
 
-fonc logement_chaine() -> rien
+logement_chaine :: fonc() -> rien
 {
     imprime_sans_format("=========================================\n");
     imprime_sans_format("            logements chaine             \n");
@@ -117,7 +117,7 @@ fonc logement_chaine() -> rien
     imprime_sans_format("Taille chaîne  : ", chnr.taille, '\n');
 }
 
-fonc test_fichier() -> rien
+test_fichier :: fonc() -> rien
 {
     imprime_sans_format("=========================================\n");
     imprime_sans_format("                 fichier                 \n");
@@ -152,7 +152,7 @@ fonc test_fichier() -> rien
     }
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     imprime_sans_format("=========================================\n");
     imprime_sans_format("                arguments                \n");

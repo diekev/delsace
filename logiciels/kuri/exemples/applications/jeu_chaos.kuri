@@ -1,26 +1,26 @@
 //#######################################################################
 // https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
 
-struct Point2D {
+Point2D :: struct {
 	x := 0.0;
 	y := 0.0;
 }
 
-struct Rectangle2D {
+Rectangle2D :: struct {
 	gauche := 0.0;
 	bas := 0.0;
 	droite := 0.0;
 	haut := 0.0;
 }
 
-struct MondeVersEcran {
+MondeVersEcran :: struct {
 	A := 0.0;
 	B := 0.0;
 	C := 0.0;
 	D := 0.0;
 }
 
-fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) -> MondeVersEcran
+monde_vers_ecran :: fonc(monde : &Rectangle2D, ecran : &Rectangle2D) -> MondeVersEcran
 {
 	dyn mve : MondeVersEcran;
 
@@ -32,7 +32,7 @@ fonc monde_vers_ecran(monde : &Rectangle2D, ecran : &Rectangle2D) -> MondeVersEc
 	retourne mve;
 }
 
-fonc mappage(mve : &MondeVersEcran, x : r64, y : r64) -> Point2D
+mappage :: fonc(mve : &MondeVersEcran, x : r64, y : r64) -> Point2D
 {
 	dyn pos_ecran : Point2D;
 
@@ -42,14 +42,14 @@ fonc mappage(mve : &MondeVersEcran, x : r64, y : r64) -> Point2D
 	retourne pos_ecran;
 }
 
-fonc mappage(mve : &MondeVersEcran, p : &Point2D) -> Point2D
+mappage :: fonc(mve : &MondeVersEcran, p : &Point2D) -> Point2D
 {
 	retourne mappage(mve, p.x, p.y);
 }
 
 //#######################################################################
 
-fonc dessine_point_rayon(
+dessine_point_rayon :: fonc(
 	cannevas : []z8,
 	hauteur : z32,
 	largeur : z32,
@@ -59,7 +59,7 @@ fonc dessine_point_rayon(
 
 }
 
-fonc dessine_point_rayon(
+dessine_point_rayon :: fonc(
 	cannevas : []z8,
 	hauteur : z32,
 	largeur : z32,
@@ -69,7 +69,7 @@ fonc dessine_point_rayon(
 
 }
 
-fonc dessine_bmp(
+dessine_bmp :: fonc(
 	chemin : chaine,
 	hauteur : z32,
 	largeur : z32,
@@ -108,7 +108,7 @@ fonc dessine_bmp(
 
 //#######################################################################
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
 	monde := Rectangle2D{ gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0 };
 

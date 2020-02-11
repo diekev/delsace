@@ -1,7 +1,7 @@
 //module sys
 
 // Retourne une chaîne de caractère contenant le nom du système d'exploitation.
-fonc sysexp() -> chaine
+sysexp :: fonc() -> chaine
 {
 #si linux
 	retourne "linux";
@@ -15,7 +15,7 @@ fonc sysexp() -> chaine
 }
 
 // Retourne le nombre de bit de l'adressage de la machine.
-fonc adressage() -> z32
+adressage :: fonc() -> z32
 {
 #si arch32
 	retourne 32;
@@ -26,12 +26,12 @@ fonc adressage() -> z32
 #finsi
 }
 
-fonc boutisme() -> chaine
+boutisme :: fonc() -> chaine
 {
 	retourne "petit";
 }
 
-fonc processeur() -> chaine
+processeur :: fonc() -> chaine
 {
 	retourne "";
 }

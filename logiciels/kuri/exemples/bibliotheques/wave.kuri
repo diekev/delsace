@@ -7,13 +7,13 @@ importe "math"
 
 //###############################################################################
 
-struct EntêteWave {
+EntêteWave :: struct {
     id_groupe := "RIFF";
     taille_fichier := 0;
     type_riff := "WAVE";
 }
 
-fonc écris(entête : &EntêteWave, fichier : &Fichier) -> rien
+écris :: fonc(entête : &EntêteWave, fichier : &Fichier) -> rien
 {
     fichier.écris(entête.id_groupe);
     fichier.écris(entête.taille_fichier);
@@ -22,7 +22,7 @@ fonc écris(entête : &EntêteWave, fichier : &Fichier) -> rien
 
 //###############################################################################
 
-struct ChunkFormatWave {
+ChunkFormatWave :: struct {
     id_chunk := "fmt ";
     taille_chunk : n32 = 16;
     tag_format : n16 = 1;
@@ -33,7 +33,7 @@ struct ChunkFormatWave {
     bits_moyens_par_secondes : n32 = échantillons_secondes * alignement_bloc;
 }
 
-fonc écris(chunk : &ChunkFormatWave, fichier : &Fichier) -> rien
+écris :: fonc(chunk : &ChunkFormatWave, fichier : &Fichier) -> rien
 {
 	fichier.écris(chunk.id_chunk);
 	fichier.écris(chunk.taille_chunk);
@@ -47,13 +47,13 @@ fonc écris(chunk : &ChunkFormatWave, fichier : &Fichier) -> rien
 
 //###############################################################################
 
-struct ChunkDonnéesWave {
+ChunkDonnéesWave :: struct {
     id_chunk := "data";
     taille_chunk : n32 = 0;
     données : []z16;
 }
 
-fonc écris(chunk : &ChunkDonnéesWave, fichier : &Fichier) -> rien
+écris :: fonc(chunk : &ChunkDonnéesWave, fichier : &Fichier) -> rien
 {
 	fichier.écris(chunk.id_chunk);
 	fichier.écris(chunk.taille_chunk);
@@ -62,13 +62,13 @@ fonc écris(chunk : &ChunkDonnéesWave, fichier : &Fichier) -> rien
 
 //###############################################################################
 
-struct GénératriceWave {
+GénératriceWave :: struct {
     entête : EntêteWave;
     format : ChunkFormatWave;
     données : ChunkDonnéesWave;
 }
 
-fonc ajoute_fréquence(
+ajoute_fréquence :: fonc(
     génératrice : &GénératriceWave,
     fréquence : r64,
     amplitude : z32,
@@ -102,7 +102,7 @@ fonc ajoute_fréquence(
     //assert(génératrice.données.taille_chunk != 0);
 }
 
-fonc sauvegarde(génératrice : &GénératriceWave, chemin : chaine)
+sauvegarde :: fonc(génératrice : &GénératriceWave, chemin : chaine)
 {
     fichier := fichier.ouvre(chemin);
     écris(génératrice.entête, fichier);

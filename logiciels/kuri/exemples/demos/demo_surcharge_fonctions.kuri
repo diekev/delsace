@@ -2,25 +2,25 @@
 
 importe "flux"
 
-struct TEST {
+TEST :: struct {
     fonction : fonc(eini)z32
 }
 
-fonc foo(args : eini) -> z32
+foo :: fonc(args : eini) -> z32
 {
     imprime_sans_format("appel foo avec eini\n")
     imprime_sans_format(args, '\n')
     retourne 123
 }
 
-fonc foo(args : chaine) -> z32
+foo :: fonc(args : chaine) -> z32
 {
     imprime_sans_format("appel foo avec chaine\n")
     imprime_sans_format(args, '\n')
     retourne 0
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     dyn t : TEST
     t.fonction = foo

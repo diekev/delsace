@@ -15,7 +15,7 @@ int ajoute_conversion(
 //##############################################################################
 
 // À FAIRE : suppression de la mémoire pour les feuilles
-fonc rassemble_feuilles(
+rassemble_feuilles :: fonc(
     noeud_base : *NoeudSyntaxique,
     dyn feuilles : &[]*NoeudSyntaxique) -> rien
 {
@@ -31,7 +31,7 @@ fonc rassemble_feuilles(
 
 //##############################################################################
 
-fonc extrait_entier(chn : chaine) -> z32
+extrait_entier :: fonc(chn : chaine) -> z32
 {
     dyn résultat : z32 = 0
 
@@ -43,7 +43,7 @@ fonc extrait_entier(chn : chaine) -> z32
     retourne résultat
 }
 
-fonc extrait_decimal(chn : chaine) -> r32
+extrait_decimal :: fonc(chn : chaine) -> r32
 {
     dyn résultat := 0.0
     dyn point_trouvé := faux
@@ -68,7 +68,7 @@ fonc extrait_decimal(chn : chaine) -> r32
     retourne transtype(résultat : r32)
 }
 
-fonc type_pour_lexème(type_lexème : TypeLexème) -> TypeParamètre
+type_pour_lexème :: fonc(type_lexème : TypeLexème) -> TypeParamètre
 {
 	discr type_lexème {
 		TypeLexème.CHAINE_LITTERALE { retourne TypeParamètre.CHAINE }
@@ -89,13 +89,13 @@ fonc type_pour_lexème(type_lexème : TypeLexème) -> TypeParamètre
 	retourne TypeParamètre.INVALIDE
 }
 
-énum ConversionOpération {
+ConversionOpération :: énum {
     AUCUNE
 	CONVERTI_TYPE1
 	CONVERTI_TYPE2
 }
 
-fonc calcul_conversion(
+calcul_conversion :: fonc(
 	type1 : TypeParamètre,
 	type2 : TypeParamètre) -> ConversionOpération
 {
@@ -120,17 +120,17 @@ fonc calcul_conversion(
 
 //##############################################################################
 
-struct CodeMachine {
+CodeMachine :: struct {
     pile : []octet
 }
 
-fonc ajoute_instruction(inst : CodeInst) -> rien
+ajoute_instruction :: fonc(inst : CodeInst) -> rien
 {
     ptr := agrandi(cm.pile, taille_de(CodeInst))
     copie_mem_nonsûr(ptr, @inst, taille_de(CodeInst))
 }
 
-fonc agrandi(dyn tabl : &[]octet, taille : n32) -> *octet
+agrandi :: fonc(dyn tabl : &[]octet, taille : n32) -> *octet
 {
     taille_tabl := tabl.taille
     reloge tabl : [taille_tabl + taille]octet
@@ -139,7 +139,7 @@ fonc agrandi(dyn tabl : &[]octet, taille : n32) -> *octet
 
 //##############################################################################
 
-fonc genere_code(
+genere_code :: fonc(
 		base *b,
 		ContexteGenerationCode &contexte_generation,
 		dyn cm : &CodeMachine,

@@ -1,6 +1,6 @@
 importe Fondation
 
-énum TypeDonnées : z32 {
+TypeDonnées :: énum : z32 {
 	NOMBRE_ENTIER
 	NOMBRE_DÉCIMAL
 	DATE
@@ -9,38 +9,38 @@ importe Fondation
 	CHAINE
 }
 
-struct Colonne {
+Colonne :: struct {
 	nom : chaine
 	type : TypeDonnées
 	données : []z32
 }
 
-fonc pousse(dyn liste : &[]Colonne, valeur : Colonne) -> rien
+pousse :: fonc(dyn liste : &[]Colonne, valeur : Colonne) -> rien
 {
 	taille := liste.taille
 	reloge liste : [taille + 1]Colonne
 	liste[taille] = valeur
 }
 
-fonc redimensionne(données : &[]z32) -> rien
+redimensionne :: fonc(données : &[]z32) -> rien
 {
 	reloge données : [données.taille + 1]z32
 }
 
-struct Schéma {
+Schéma :: struct {
 	nom : chaine
 	colonnes : []Colonne
 	lignes : z64
 }
 
-fonc pousse(dyn liste : &[]Schéma, valeur : Schéma) -> rien
+pousse :: fonc(dyn liste : &[]Schéma, valeur : Schéma) -> rien
 {
 	taille := liste.taille
 	reloge liste : [taille + 1]Schéma
 	liste[taille] = valeur
 }
 
-fonc redimensionne_schéma(dyn schéma : &Schéma) -> rien
+redimensionne_schéma :: fonc(dyn schéma : &Schéma) -> rien
 {
 	schéma.lignes += 1
 
@@ -49,7 +49,7 @@ fonc redimensionne_schéma(dyn schéma : &Schéma) -> rien
 	}
 }
 
-fonc trouve_colonne(dyn schéma : &Schéma, nom : chaine) -> *Colonne
+trouve_colonne :: fonc(dyn schéma : &Schéma, nom : chaine) -> *Colonne
 {
 	pour colonne dans schéma.colonnes {
 		si colonne.nom == nom {
@@ -60,7 +60,7 @@ fonc trouve_colonne(dyn schéma : &Schéma, nom : chaine) -> *Colonne
 	retourne nul
 }
 
-fonc ajoute_colonne(dyn schéma : &Schéma, nom : chaine, type : TypeDonnées) -> rien
+ajoute_colonne :: fonc(dyn schéma : &Schéma, nom : chaine, type : TypeDonnées) -> rien
 {
 	colonne_existante := schéma.trouve_colonne(nom)
 
@@ -72,7 +72,7 @@ fonc ajoute_colonne(dyn schéma : &Schéma, nom : chaine, type : TypeDonnées) -
 	schéma.colonnes.pousse(colonne)
 }
 
-struct Noeud {
+Noeud :: struct {
 	schéma : *Schéma
 
 	id_ligne : z64
@@ -83,14 +83,14 @@ struct Noeud {
 	relation : z64
 }
 
-fonc pousse(dyn liste : &[]Noeud, valeur : Noeud) -> rien
+pousse :: fonc(dyn liste : &[]Noeud, valeur : Noeud) -> rien
 {
 	taille := liste.taille
 	reloge liste : [taille + 1]Noeud
 	liste[taille] = valeur
 }
 
-struct Relation {
+Relation :: struct {
 	schéma : *Schéma
 
 	id_ligne : z64
@@ -103,26 +103,26 @@ struct Relation {
 	relation_suivante : z64
 }
 
-fonc pousse(dyn liste : &[]Relation, valeur : Relation) -> rien
+pousse :: fonc(dyn liste : &[]Relation, valeur : Relation) -> rien
 {
 	taille := liste.taille
 	reloge liste : [taille + 1]Relation
 	liste[taille] = valeur
 }
 
-struct Arachné {
+Arachné :: struct {
 	schémas : []Schéma
 	noeuds : []Noeud
 	relations : []Relation
 }
 
-énum TypeErreur : z32 {
+TypeErreur :: énum : z32 {
 	AUCUNE
 	SCHÉMA_EXISTANT
 	SCHÉMA_INEXISTANT
 }
 
-fonc trouve_schéma(arachné : &Arachné, nom : chaine) -> *Schéma
+trouve_schéma :: fonc(arachné : &Arachné, nom : chaine) -> *Schéma
 {
 	pour schéma dans arachné.schémas {
 		si schéma.nom == nom {
@@ -133,7 +133,7 @@ fonc trouve_schéma(arachné : &Arachné, nom : chaine) -> *Schéma
 	retourne nul
 }
 
-fonc crée_schéma(arachné : &Arachné, nom : chaine, colonnes : []Colonne) -> TypeErreur
+crée_schéma :: fonc(arachné : &Arachné, nom : chaine, colonnes : []Colonne) -> TypeErreur
 {
 	schéma_existant := arachné.trouve_schéma(nom)
 
@@ -147,7 +147,7 @@ fonc crée_schéma(arachné : &Arachné, nom : chaine, colonnes : []Colonne) -> 
 	retourne TypeErreur.AUCUNE
 }
 
-fonc crée_noeud(dyn arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
+crée_noeud :: fonc(dyn arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
 {
 	schéma := arachné.trouve_schéma(nom_schéma)
 
@@ -164,7 +164,7 @@ fonc crée_noeud(dyn arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
 	retourne TypeErreur.AUCUNE
 }
 
-fonc crée_relation(dyn arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
+crée_relation :: fonc(dyn arachné : &Arachné, nom_schéma : chaine) -> TypeErreur
 {
 	schéma := arachné.trouve_schéma(nom_schéma)
 
@@ -181,7 +181,7 @@ fonc crée_relation(dyn arachné : &Arachné, nom_schéma : chaine) -> TypeErreu
 	retourne TypeErreur.AUCUNE
 }
 
-fonc connecte_relation(arachné : &Arachné, dyn relation : &Relation, noeud1 : &Noeud, noeud2 : &Noeud) -> rien
+connecte_relation :: fonc(arachné : &Arachné, dyn relation : &Relation, noeud1 : &Noeud, noeud2 : &Noeud) -> rien
 {
 	relation.noeud_de = noeud1.id
 	relation.noeud_vers = noeud2.id
@@ -190,7 +190,7 @@ fonc connecte_relation(arachné : &Arachné, dyn relation : &Relation, noeud1 : 
 	//noeud1.relation_finale.relation_suivante = relation.id
 }
 
-fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32) -> rien
+ajourne_valeur_noeud :: fonc(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32) -> rien
 {
 	// trouve le noeud
 	// trouve la colonne à modifier
@@ -207,7 +207,7 @@ fonc ajourne_valeur_noeud(dyn noeud : &Noeud, nom_colonne : chaine, valeur : z32
 	retourne
 }
 
-fonc trouve_valeur_noeud(noeud : &Noeud, nom_colonne : chaine) -> z32
+trouve_valeur_noeud :: fonc(noeud : &Noeud, nom_colonne : chaine) -> z32
 {
 	schéma := noeud.schéma
 
@@ -220,7 +220,7 @@ fonc trouve_valeur_noeud(noeud : &Noeud, nom_colonne : chaine) -> z32
 	retourne 0
 }
 
-fonc trouve_noeud(arachné : &Arachné, nom_colonne : chaine, valeur : z32) -> *Noeud
+trouve_noeud :: fonc(arachné : &Arachné, nom_colonne : chaine, valeur : z32) -> *Noeud
 {
 	retourne nul
 }
@@ -228,7 +228,7 @@ fonc trouve_noeud(arachné : &Arachné, nom_colonne : chaine, valeur : z32) -> *
 // CRÉE TYPE nom ()
 // CHERCHE (n : TYPE {})
 // CRÉE NOEUD
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
 	dyn arachné : Arachné
 

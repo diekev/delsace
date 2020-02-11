@@ -2,12 +2,12 @@ importe "flux"
 
 N := 5
 
-struct XYZ {
+XYZ :: struct {
     a := 128.0
     b : type_de(a)
 }
 
-fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) -> rien
+copie_vNvN :: fonc(dyn a : [3]z32, b : type_de(a)) -> rien
 {
     pour v, i dans b {
         a[i] = v
@@ -21,12 +21,12 @@ fonc copie_vNvN(dyn a : [3]z32, b : type_de(a)) -> rien
 // - validation sémantique avec contexte des types si non validée pour ces types
 // - tag pour génération avec types
 // lors de la génération
-fonc ajoute(a : $T, b : $T) -> $T
+ajoute :: fonc(a : $T, b : $T) -> $T
 {
     retourne a + b
 }
 
-fonc principale(args : []*z8) -> type_de(N)
+principale :: fonc(args : []*z8) -> type_de(N)
 {
     x := 5.0
     dyn y : type_de(x)

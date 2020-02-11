@@ -24,17 +24,17 @@ dyn __VG_nombre_reallocations__ : z64 = 0
 // Contient le nombre de fois que « déloge » a été appelé.
 dyn __VG_nombre_deallocations__ : z64 = 0
 
-énum ModeAllocatrice : z32 {
+ModeAllocatrice :: énum : z32 {
     ALLOUE
     RÉALLOUE
     DÉSALLOUE
 }
 
-fonc externe malloc(taille : z64) -> *rien
-fonc externe realloc(ptr : *rien, taille : z64) -> *rien
-fonc externe free(ptr : *rien) -> rien
+malloc :: fonc externe (taille : z64) -> *rien
+realloc :: fonc externe (ptr : *rien, taille : z64) -> *rien
+free :: fonc externe (ptr : *rien) -> rien
 
-#nulctx fonc allocatrice_défaut(
+#nulctx allocatrice_défaut :: fonc(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
     ancienne_taille : z64,
@@ -90,43 +90,43 @@ fonc externe free(ptr : *rien) -> rien
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 // À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
 // cette structure.
-struct ContexteProgramme {
+ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
     données_allocatrice : *rien = nul
 }
 
 // Fonction pour accéder à la variable __VG_memoire_utilisee__.
-fonc mémoire_utilisée() -> z64
+mémoire_utilisée :: fonc() -> z64
 {
     retourne __VG_memoire_utilisee__
 }
 
 // Fonction pour accéder à la variable __VG_memoire_utilisee__.
-fonc mémoire_consommée() -> z64
+mémoire_consommée :: fonc() -> z64
 {
     retourne __VG_memoire_consommee__
 }
 
 // Fonction pour accéder à la variable __VG_nombre_allocations__.
-fonc nombre_allocations() -> z64
+nombre_allocations :: fonc() -> z64
 {
     retourne __VG_nombre_allocations__
 }
 
 // Fonction pour accéder à la variable __VG_nombre_reallocations__.
-fonc nombre_réallocations() -> z64
+nombre_réallocations :: fonc() -> z64
 {
     retourne __VG_nombre_reallocations__
 }
 
 // Fonction pour accéder à la variable __VG_nombre_deallocations__.
-fonc nombre_déallocations() -> z64
+nombre_déallocations :: fonc() -> z64
 {
     retourne __VG_nombre_deallocations__
 }
 
 // Fonctions de bases pour les opérateurs de comparaisons de chaines
-fonc sont_chaines_égales(chn1: chaine, chn2: chaine) -> bool
+sont_chaines_égales :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {
 		retourne faux
@@ -144,7 +144,7 @@ fonc sont_chaines_égales(chn1: chaine, chn2: chaine) -> bool
 	retourne vrai
 }
 
-fonc sont_chaines_inégales(chn1: chaine, chn2: chaine) -> bool
+sont_chaines_inégales :: fonc(chn1: chaine, chn2: chaine) -> bool
 {
     retourne !sont_chaines_égales(chn1, chn2)
 }

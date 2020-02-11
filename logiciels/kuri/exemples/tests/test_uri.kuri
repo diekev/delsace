@@ -1,7 +1,7 @@
 importe Fondation
 importe Réseau
 
-fonc vérifie_égalité(chaine1 : chaine, chaine2 : chaine) -> rien
+vérifie_égalité :: fonc(chaine1 : chaine, chaine2 : chaine) -> rien
 {
     si chaine1 == chaine2 {
         retourne
@@ -11,7 +11,7 @@ fonc vérifie_égalité(chaine1 : chaine, chaine2 : chaine) -> rien
     imprime("Les chaines ne sont pas égales '", chaine1, "' et '", chaine2, "'\n")
 }
 
-fonc vérifie_égalité(a : bool, b : bool) -> rien
+vérifie_égalité :: fonc(a : bool, b : bool) -> rien
 {
     si a == b {
         retourne
@@ -20,7 +20,7 @@ fonc vérifie_égalité(a : bool, b : bool) -> rien
     imprime("Les valeurs ne sont pas égales '", a, "' et '", b, "'\n")
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
 	{
 		uri := construit_uri("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top")

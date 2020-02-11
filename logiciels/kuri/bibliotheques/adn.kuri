@@ -11,7 +11,7 @@
 // 0b11 = 't'
 //
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
-fonc encode_adn(valeurs : []octet) -> chaine
+encode_adn :: fonc(valeurs : []octet) -> chaine
 {
 	dyn chn : chaine
 
@@ -38,7 +38,7 @@ fonc encode_adn(valeurs : []octet) -> chaine
 // bases sont groupées en quatre pour former un octet final.
 //
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
-fonc décode_adn(valeurs : []octet) -> chaine
+décode_adn :: fonc(valeurs : []octet) -> chaine
 {
 	dyn chn : chaine
 	taille := valeurs.taille
@@ -72,7 +72,7 @@ fonc décode_adn(valeurs : []octet) -> chaine
 
 // Change directement la chaine passée en paramètre de sorte que chaque base est
 // remplacée par sa paire.
-fonc appariement(dyn chn : []octet) -> rien
+appariement :: fonc(dyn chn : []octet) -> rien
 {
     pour v dans chn {
         discr v {

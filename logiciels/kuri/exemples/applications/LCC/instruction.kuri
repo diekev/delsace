@@ -1,4 +1,4 @@
-énum CodeInst : z32 {
+CodeInst :: énum : z32 {
     // constructions de types natifs
 	CONSTRUIT_TABLEAU
 
@@ -153,7 +153,7 @@
 	TERMINE
 }
 
-fonc est_fonction_mathématique(code , CodeInst) , bool
+est_fonction_mathématique :: fonc(code , CodeInst) , bool
 {
     discr code {
 		FN_AJOUTE,

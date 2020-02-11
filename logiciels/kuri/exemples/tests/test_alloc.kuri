@@ -1,6 +1,6 @@
 importe Fondation
 
-fonc test_alloc_scalaire() -> rien
+test_alloc_scalaire :: fonc() -> rien
 {
     imprime_sans_format("test_alloc_scalaire\n")
     dyn a := loge z32
@@ -16,7 +16,7 @@ fonc test_alloc_scalaire() -> rien
     imprime_sans_format("scalaire délogée : ", a, '\n')
 }
 
-fonc test_alloc_chaine() -> rien
+test_alloc_chaine :: fonc() -> rien
 {
     imprime_sans_format("test_alloc_chaine\n")
     dyn chn := loge chaine(1024)
@@ -27,14 +27,14 @@ fonc test_alloc_chaine() -> rien
     imprime_sans_format("chaine délogée : ", chn.pointeur, '\n')
 }
 
-fonc pousse(dyn tabl : &[]z32, valeur : z32) -> rien
+pousse :: fonc(dyn tabl : &[]z32, valeur : z32) -> rien
 {
     taille := tabl.taille
     reloge tabl: [taille + 1]z32
     tabl[taille] = valeur
 }
 
-fonc test_alloc_tableau() -> rien
+test_alloc_tableau :: fonc() -> rien
 {
     imprime_sans_format("test_alloc_tableau\n")
     dyn tabl := loge [1024]z32
@@ -50,7 +50,7 @@ fonc test_alloc_tableau() -> rien
     imprime_sans_format("tableau délogé : ", tabl.pointeur, '\n')
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     test_alloc_scalaire()
     test_alloc_chaine()

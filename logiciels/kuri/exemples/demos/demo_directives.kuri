@@ -1,6 +1,6 @@
 importe "flux"
 
-#enligne fonc sysexp() -> chaine
+#enligne sysexp :: fonc() -> chaine
 {
 #si linux
     retourne "linux"
@@ -13,7 +13,7 @@ importe "flux"
 #finsi
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     imprime_sans_format("Système d'exploitation : ", sysexp(), '\n')
     retourne 0

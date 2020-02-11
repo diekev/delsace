@@ -3,7 +3,7 @@ importe "sys_fichier"
 
 //###############################################################################
 
-fonc test_chemin_courant() -> rien
+test_chemin_courant :: fonc() -> rien
 {
     dyn chemin := chemin_courant()
 
@@ -19,7 +19,7 @@ fonc test_chemin_courant() -> rien
     déloge chemin.chn
 }
 
-fonc test_itération_dossier() -> rien
+test_itération_dossier :: fonc() -> rien
 {
     chemin := construit_chemin("/home/kevin/")
 
@@ -38,7 +38,7 @@ fonc test_itération_dossier() -> rien
     }
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     chm := construit_chemin("/home/kevin/test_parcer.cc")
     contenu := contenu_fichier_texte(chm)

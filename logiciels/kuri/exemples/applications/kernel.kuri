@@ -5,7 +5,7 @@
 // Par exemple 0x07 représente un écran noir avec un texte gris clair.
 // Les valeurs sont « répétées » pour pouvoir écrire
 // AP_NOIR | TE_GRIS_CLAIR au lieu de (NOIR << 4) | GRIS_CLAIR.
-énum {
+{ :: énum
 	// Arrière-Plan
 	AP_NOIR          := 0x00
 	AP_BLEU          := 0x10
@@ -43,11 +43,11 @@
 	TE_BLANC         := 0x0F
 }
 
-struct Kernel {
+Kernel :: struct {
 	ptr_vidéo : *z8;
 }
 
-fonc clarifie_écran(dyn ptr_vidéo : *z8) -> rien
+clarifie_écran :: fonc(dyn ptr_vidéo : *z8) -> rien
 {
 	// Cette boucle clarifie l'écran.
 	// Il y a 25 lignes de 80 colonnes.
@@ -63,7 +63,7 @@ fonc clarifie_écran(dyn ptr_vidéo : *z8) -> rien
 	retourne;
 }
 
-fonc écris_chaîne(dyn ptr_vidéo : *z8, chaine : *z8) -> rien
+écris_chaîne :: fonc(dyn ptr_vidéo : *z8, chaine : *z8) -> rien
 {
 	dyn i := 0;
 	dyn j := 0;
@@ -87,7 +87,7 @@ fonc écris_chaîne(dyn ptr_vidéo : *z8, chaine : *z8) -> rien
 	retourne;
 }
 
-fonc principale() -> z32
+principale :: fonc() -> z32
 {
 	// En mode protégé, la mémoire vidéo démarre à l'addresse 0xb8000
 	ptr_vidéo := transtype(0xb8000 : *z8);

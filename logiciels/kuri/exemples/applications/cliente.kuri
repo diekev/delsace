@@ -5,13 +5,13 @@ importe Réseau
 
 //###############################################################################
 
-#nulctx fonc rappel_erreur(pointeur : *z8, taille : n64, user_data : *rien) -> z32
+#nulctx rappel_erreur :: fonc(pointeur : *z8, taille : n64, user_data : *rien) -> z32
 {
     write(std_err, pointeur, transtype(taille : z64))
     retourne 0
 }
 
-fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) -> rien
+imprime_erreur_ssl :: fonc(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile : bool) -> rien
 {
 	imprime_sans_format(message)
 
@@ -52,7 +52,7 @@ fonc imprime_erreur_ssl(ssl : *ssl_st, dyn erreur : z32, message : chaine, pile 
 	}
 }
 
-fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
+lance_requête :: fonc(uri : &URI, requête : chaine) -> chaine, z32
 {
     dyn réponse : chaine;
 
@@ -237,7 +237,7 @@ fonc lance_requête(uri : &URI, requête : chaine) -> chaine, z32
     retourne réponse, 0
 }
 
-fonc principale(args : []*z8) -> z32
+principale :: fonc(args : []*z8) -> z32
 {
     si args.taille != 2 {
         chn := converti_chaine_c(args[0])

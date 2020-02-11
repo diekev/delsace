@@ -3,7 +3,7 @@
 #bib "GL"
 #bib "GLEW"
 
-énum OGL : n32 {
+OGL :: énum : n32 {
     ARRAY_BUFFER := 0x8892
     STATIC_DRAW := 0x88E4
     TRIANGLES := 0x0004
@@ -16,42 +16,42 @@
     COMPILE_STATUS := 0x8B81
 }
 
-fonc externe glewInit() -> z32
+glewInit :: fonc externe () -> z32
 
-fonc externe glClear(bit : z32) -> rien
-fonc externe glClearColor(r : r32, g : r32, b : r32, a : r32) -> rien
+glClear :: fonc externe (bit : z32) -> rien
+glClearColor :: fonc externe (r : r32, g : r32, b : r32, a : r32) -> rien
 
-fonc externe glViewport(px : z32, py : z32, tx : z32, ty : z32) -> rien
+glViewport :: fonc externe (px : z32, py : z32, tx : z32, ty : z32) -> rien
 
 //# foncs de VAO
-fonc externe glGenVertexArrays(n : z32, ptr : *n32) -> rien
-fonc externe glDeleteVertexArrays(n : z32, ptr : *n32) -> rien
-fonc externe glBindVertexArray(id : n32) -> rien
+glGenVertexArrays :: fonc externe (n : z32, ptr : *n32) -> rien
+glDeleteVertexArrays :: fonc externe (n : z32, ptr : *n32) -> rien
+glBindVertexArray :: fonc externe (id : n32) -> rien
 
 //# foncs de VBO
-fonc externe glGenBuffers(n : z32, ptr : *n32) -> rien
-fonc externe glDeleteBuffers(n : z32, ptr : *n32) -> rien
-fonc externe glBindBuffer(target : OGL, id : n32) -> rien
-fonc externe glBufferData(target : OGL, size : n64, data : *rien, usage : OGL) -> rien
+glGenBuffers :: fonc externe (n : z32, ptr : *n32) -> rien
+glDeleteBuffers :: fonc externe (n : z32, ptr : *n32) -> rien
+glBindBuffer :: fonc externe (target : OGL, id : n32) -> rien
+glBufferData :: fonc externe (target : OGL, size : n64, data : *rien, usage : OGL) -> rien
 
 //# foncs Arrays
-fonc externe glEnableVertexAttribArray(id : n32) -> rien
-fonc externe glDisableVertexAttribArray(id : n32) -> rien
-fonc externe glVertexAttribPointer(index : n32, size : z32, type_ : OGL, normalized : OGL, stride : z32, pointer : *rien) -> rien
-fonc externe glDrawArrays(mode : OGL, first : z32, count : z64) -> rien
+glEnableVertexAttribArray :: fonc externe (id : n32) -> rien
+glDisableVertexAttribArray :: fonc externe (id : n32) -> rien
+glVertexAttribPointer :: fonc externe (index : n32, size : z32, type_ : OGL, normalized : OGL, stride : z32, pointer : *rien) -> rien
+glDrawArrays :: fonc externe (mode : OGL, first : z32, count : z64) -> rien
 
 //# foncs de nuanceurs/programmes
-fonc externe glShaderSource(shader : n32, count : z64, string : **z8, length : *z32) -> rien
-fonc externe glCreateShader(shaderType : OGL) -> n32
-fonc externe glCompileShader(shader : n32) -> rien
-fonc externe glDeleteShader(shader : n32) -> rien
-fonc externe glDetachShader(program : n32, shader : n32) -> rien
-fonc externe glCreateProgram() -> n32
-fonc externe glAttachShader(program : n32, shader : n32) -> rien
-fonc externe glLinkProgram(program : n32) -> rien
-fonc externe glUseProgram(program : n32) -> rien
-fonc externe glDeleteProgram(program : n32) -> rien
-fonc externe glGetShaderiv(shader : n32, pname : OGL, params : *z32) -> rien
-fonc externe glGetShaderInfoLog(shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
-fonc externe glGetProgramiv(program : n32, pname : OGL, params : *z32) -> rien
-fonc externe glGetProgramInfoLog(shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
+glShaderSource :: fonc externe (shader : n32, count : z64, string : **z8, length : *z32) -> rien
+glCreateShader :: fonc externe (shaderType : OGL) -> n32
+glCompileShader :: fonc externe (shader : n32) -> rien
+glDeleteShader :: fonc externe (shader : n32) -> rien
+glDetachShader :: fonc externe (program : n32, shader : n32) -> rien
+glCreateProgram :: fonc externe () -> n32
+glAttachShader :: fonc externe (program : n32, shader : n32) -> rien
+glLinkProgram :: fonc externe (program : n32) -> rien
+glUseProgram :: fonc externe (program : n32) -> rien
+glDeleteProgram :: fonc externe (program : n32) -> rien
+glGetShaderiv :: fonc externe (shader : n32, pname : OGL, params : *z32) -> rien
+glGetShaderInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien
+glGetProgramiv :: fonc externe (program : n32, pname : OGL, params : *z32) -> rien
+glGetProgramInfoLog :: fonc externe (shader : n32, maxLength : z32, length : *z32, infoLog : *z8) -> rien

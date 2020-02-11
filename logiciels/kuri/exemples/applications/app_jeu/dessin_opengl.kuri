@@ -12,7 +12,7 @@ dyn colorbuffer := transtype(0 : n32)
 dyn tabl_sommets : *tableau = nul
 dyn tabl_couleur : *tableau = nul
 
-fonc charge_programme() -> n32
+charge_programme :: fonc() -> n32
 {
     source_vertex := "
     #version 330 core
@@ -102,7 +102,7 @@ fonc charge_programme() -> n32
     retourne ProgramID_
 }
 
-fonc initialise_tampon_dessin() -> rien
+initialise_tampon_dessin :: fonc() -> rien
 {
     nonsûr {
 		tabl_sommets = crée_tableau(transtype(taille_de(z32) : z64))
@@ -115,7 +115,7 @@ fonc initialise_tampon_dessin() -> rien
     glGenBuffers(1, @colorbuffer)
 }
 
-fonc issitialise_tampon_dessin() -> rien
+issitialise_tampon_dessin :: fonc() -> rien
 {
     glDeleteVertexArrays(1, @VertexArrayID)
     glDeleteBuffers(1, @vertexbuffer)
@@ -125,12 +125,12 @@ fonc issitialise_tampon_dessin() -> rien
     glDeleteProgram(ProgramID)
 }
 
-fonc débute_dessin() -> rien
+débute_dessin :: fonc() -> rien
 {
     glBindVertexArray(VertexArrayID)
 }
 
-fonc termine_dessin() -> rien
+termine_dessin :: fonc() -> rien
 {
     glUseProgram(ProgramID)
 
@@ -157,21 +157,21 @@ fonc termine_dessin() -> rien
     glBindVertexArray(transtype(0 : n32))
 }
 
-fonc ajoute_sommet(x : r32, y : r32, z : r32) -> rien
+ajoute_sommet :: fonc(x : r32, y : r32, z : r32) -> rien
 {
     pousse_tableau(tabl_sommets, @x)
     pousse_tableau(tabl_sommets, @y)
     pousse_tableau(tabl_sommets, @z)
 }
 
-struct Couleur {
+Couleur :: struct {
     r : r32 = transtype(0.0 : r32)
     v : r32 = transtype(0.0 : r32)
     b : r32 = transtype(0.0 : r32)
     a : r32 = transtype(0.0 : r32)
 }
 
-fonc ajoute_couleur(coul : Couleur) -> rien
+ajoute_couleur :: fonc(coul : Couleur) -> rien
 {
     pousse_tableau(tabl_couleur, @coul.r)
     pousse_tableau(tabl_couleur, @coul.v)
@@ -179,7 +179,7 @@ fonc ajoute_couleur(coul : Couleur) -> rien
     pousse_tableau(tabl_couleur, @coul.a)
 }
 
-fonc dessine_triangle() -> rien
+dessine_triangle :: fonc() -> rien
 {
     débute_dessin()
 
@@ -190,7 +190,7 @@ fonc dessine_triangle() -> rien
     termine_dessin()
 }
 
-fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) -> rien
+dessine_carré_ex :: fonc(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) -> rien
 {
     débute_dessin()
 
@@ -216,16 +216,16 @@ fonc dessine_carré_ex(px : r32, py : r32, tx : r32, ty : r32, coul : Couleur) -
     termine_dessin()
 }
 
-fonc dessine_carré() -> rien
+dessine_carré :: fonc() -> rien
 {
     couleur := Couleur{r = transtype(1.0 : r32), v = transtype(1.0 : r32), b = transtype(0.0 : r32), a = transtype(1.0 : r32) }
     dessine_carré_ex(transtype(-0.5 : r32), transtype(-0.5 : r32), transtype(1.0 : r32), transtype(1.0 : r32), couleur)
 }
 
-fonc externe cos(a : r32) -> r32
-fonc externe sin(a : r32) -> r32
+cos :: fonc externe (a : r32) -> r32
+sin :: fonc externe (a : r32) -> r32
 
-fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
+dessine_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
 {
     débute_dessin()
 
@@ -250,7 +250,7 @@ fonc dessine_cercle(cx : r32, cy : r32, rx : r32, ry : r32) -> rien
     termine_dessin()
 }
 
-fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32) -> rien
+dessine_quart_cercle :: fonc(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32) -> rien
 {
     débute_dessin()
 
@@ -275,7 +275,7 @@ fonc dessine_quart_cercle(cx : r32, cy : r32, rx : r32, ry : r32, quadrant : z32
     termine_dessin()
 }
 
-fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) -> rien
+dessine_rect_arrondi :: fonc(largeur : r32, hauteur : r32, arrondis_pixel : r32) -> rien
 {
     rx := arrondis_pixel / largeur
     ry := arrondis_pixel / hauteur
@@ -315,12 +315,12 @@ fonc dessine_rect_arrondi(largeur : r32, hauteur : r32, arrondis_pixel : r32) ->
     dessine_quart_cercle(px + tx, py, rx, ry, 3)
 }
 
-fonc dessine_bouton() -> rien
+dessine_bouton :: fonc() -> rien
 {
 
 }
 
-fonc dessine_image() -> rien
+dessine_image :: fonc() -> rien
 {
     // crée texture
 

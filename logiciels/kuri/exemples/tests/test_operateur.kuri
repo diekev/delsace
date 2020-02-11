@@ -1,11 +1,11 @@
-struct Vecteur3D {
+Vecteur3D :: struct {
 	x : n32;
 	y : n32;
 	z : n32;
 }
 
 #si faux
-fonc racine_carré(x : n32) -> n32
+racine_carré :: fonc(x : n32) -> n32
 {
 #si vrai
 	dyn num := x;
@@ -62,27 +62,27 @@ fonc racine_carré(x : n32) -> n32
 #finsi
 }
 
-fonc carré(x : n32) -> n32
+carré :: fonc(x : n32) -> n32
 {
 	retourne x * x;
 }
 
-fonc longueur_vecteur(v : Vecteur3D) -> n32
+longueur_vecteur :: fonc(v : Vecteur3D) -> n32
 {
 	retourne 0;
 }
 
-fonc longueur(x : n32, y : n32, z : n32) -> n32
+longueur :: fonc(x : n32, y : n32, z : n32) -> n32
 {
 	retourne racine_carré(carré(x) + carré(y) + carré(z));
 }
 
-fonc principale(compte : n32, arguments : []*c8) -> n32
+principale :: fonc(compte : n32, arguments : []*c8) -> n32
 {
 	retourne longueur(compte, compte, compte);
 }
 
-fonc foo(compte : [2][2]n32) -> n32
+foo :: fonc(compte : [2][2]n32) -> n32
 {
 	a := compte[0][0];
 	b := @compte;
@@ -91,7 +91,7 @@ fonc foo(compte : [2][2]n32) -> n32
 #finsi
 
 #si faux
-fonc principale1()
+principale1 :: fonc()
 {
 	t0 := 5 + 2;
 	t1 := 5 - 2;
@@ -105,7 +105,7 @@ fonc principale1()
 	t9 := 5 ^ t0;
 }
 
-fonc principale2()
+principale2 :: fonc()
 {
 	t0 := 5.0 == 2.0;
 	t1 := 5.0 != 2.0;
@@ -115,7 +115,7 @@ fonc principale2()
 	t5 := 5.0 > 2.0;
 }
 
-fonc principale3()
+principale3 :: fonc()
 {
 	t4 := (5.0 == 5.0) && (6.0 == 6.0);
 	t5 := vrai != vrai;

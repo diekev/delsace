@@ -104,7 +104,7 @@
     "fonc": {
         "prefix": "fonc",
         "body": [
-            "fonc ${1:nom_fonction}(${2:parameter_list}) : ${3:type_retour}",
+            "${1:nom_fonction} :: fonc (${2:parameter_list}) : ${3:type_retour}",
             "{",
             "\t${4:retourne}",
             "}"
@@ -114,7 +114,7 @@
     "principale": {
         "prefix": "principale",
         "body": [
-            "fonc principale(args : []*z8) : z32",
+            "principale :: fonc (args : []*z8) : z32",
             "{",
             "\t${1:expression}",
             "\tretourne 0",
@@ -125,7 +125,7 @@
     "corout": {
         "prefix": "corout",
         "body": [
-            "corout ${1:nom_fonction}(${2:parameter_list}) : ${3:type_retour}",
+            "${1:nom_fonction} :: corout (${2:parameter_list}) : ${3:type_retour}",
             "{",
             "\t${4:retiens}",
             "}"
@@ -135,7 +135,7 @@
     "struct": {
         "prefix": "struct",
         "body": [
-            "struct ${1:nom_struct} {",
+            "${1:nom_struct} :: struct {",
             "\t${2:membre}",
             "}"
         ],
@@ -144,7 +144,7 @@
     "énum": {
         "prefix": "énum",
         "body": [
-            "énum ${1:nom_énum} {",
+            "${1:nom_énum} :: énum {",
             "\t${2:membre}",
             "}"
         ],
@@ -153,7 +153,7 @@
     "énum_drapeau": {
         "prefix": "énum_drapeau",
         "body": [
-            "énum_drapeau ${1:nom_énum} {",
+            "${1:nom_énum} :: énum_drapeau {",
             "\t${2:membre}",
             "}"
         ],
@@ -162,7 +162,7 @@
     "union": {
         "prefix": "union",
         "body": [
-            "union ${1:nom_union} {",
+            "${1:nom_union} :: union {",
             "\t${2:membre}",
             "}"
         ],
