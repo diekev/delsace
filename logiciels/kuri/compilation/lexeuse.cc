@@ -365,6 +365,11 @@ void Lexeuse::analyse_caractere_simple()
 		id = id_digraphe(dls::vue_chaine_compacte(m_debut, 2));
 
 		if (id != GenreLexeme::INCONNU) {
+			if (id == GenreLexeme::DEBUT_LIGNE_COMMENTAIRE) {
+				lexe_commentaire();
+				return;
+			}
+
 			this->pousse_caractere(2);
 			this->pousse_mot(id);
 			this->avance(2);
@@ -447,24 +452,7 @@ void Lexeuse::analyse_caractere_simple()
 			}
 			case '#':
 			{
-				if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-					this->enregistre_pos_mot();
-				}
-
-				/* ignore commentaire */
-				while (this->caractere_courant() != '\n') {
-					this->avance();
-					this->pousse_caractere();
-				}
-
-				if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
-					this->pousse_mot(GenreLexeme::COMMENTAIRE);
-				}
-
-				/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
-				 * caractères poussées. */
-				m_taille_mot_courant = 0;
-
+				lexe_commentaire();
 				break;
 			}
 			default:
@@ -519,4 +507,25 @@ void Lexeuse::enregistre_pos_mot()
 {
 	m_pos_mot = m_position_ligne;
 	m_debut_mot = m_debut;
+}
+
+void Lexeuse::lexe_commentaire()
+{
+	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+		this->enregistre_pos_mot();
+	}
+
+	/* ignore commentaire */
+	while (this->caractere_courant() != '\n') {
+		this->avance();
+		this->pousse_caractere();
+	}
+
+	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+		this->pousse_mot(GenreLexeme::COMMENTAIRE);
+	}
+
+	/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
+	 * caractères poussées. */
+	m_taille_mot_courant = 0;
 }

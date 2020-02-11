@@ -79,4 +79,6 @@ private:
 	void pousse_mot(GenreLexeme identifiant);
 
 	void enregistre_pos_mot();
+
+	void lexe_commentaire();
 };
