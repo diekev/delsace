@@ -370,6 +370,11 @@ void Lexeuse::analyse_caractere_simple()
 				return;
 			}
 
+			if (id == GenreLexeme::DEBUT_BLOC_COMMENTAIRE) {
+				lexe_commentaire_bloc();
+				return;
+			}
+
 			this->pousse_caractere(2);
 			this->pousse_mot(id);
 			this->avance(2);
@@ -519,6 +524,51 @@ void Lexeuse::lexe_commentaire()
 	while (this->caractere_courant() != '\n') {
 		this->avance();
 		this->pousse_caractere();
+	}
+
+	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+		this->pousse_mot(GenreLexeme::COMMENTAIRE);
+	}
+
+	/* Lorsqu'on inclus pas les commentaires, il faut ignorer les
+	 * caractères poussées. */
+	m_taille_mot_courant = 0;
+}
+
+void Lexeuse::lexe_commentaire_bloc()
+{
+	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {
+		this->enregistre_pos_mot();
+	}
+
+	this->avance(2);
+	this->pousse_caractere(2);
+
+	// permet d'avoir des blocs de commentaires nichés
+	auto compte_blocs = 0;
+
+	while (!this->fini()) {
+		if (this->caractere_courant() == '/' && this->caractere_voisin(1) == '*') {
+			this->avance(2);
+			this->pousse_caractere(2);
+			compte_blocs += 1;
+			continue;
+		}
+
+		if (this->caractere_courant() == '*' && this->caractere_voisin(1) == '/') {
+			this->avance(2);
+			this->pousse_caractere(2);
+
+			if (compte_blocs == 0) {
+				break;
+			}
+
+			compte_blocs -= 1;
+		}
+		else {
+			this->avance();
+			this->pousse_caractere();
+		}
 	}
 
 	if ((m_drapeaux & INCLUS_COMMENTAIRES) != 0) {

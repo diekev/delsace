@@ -81,4 +81,6 @@ private:
 	void enregistre_pos_mot();
 
 	void lexe_commentaire();
+
+	void lexe_commentaire_bloc();
 };
