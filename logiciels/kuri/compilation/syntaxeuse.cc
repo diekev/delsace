@@ -1407,7 +1407,6 @@ void Syntaxeuse::analyse_declaration_structure(GenreLexeme id, DonneesLexeme &le
 
 	if (est_externe) {
 		if (est_identifiant(type_id::POINT_VIRGULE)) {
-			std::cerr << "----- point-virgule\n";
 			avance();
 			analyse_membres = false;
 		}
