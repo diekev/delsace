@@ -5,7 +5,7 @@ importe Réseau
 
 //###############################################################################
 
-#!nulctx fonc rappel_erreur(pointeur : *z8, taille : n64, user_data : *rien) -> z32
+#nulctx fonc rappel_erreur(pointeur : *z8, taille : n64, user_data : *rien) -> z32
 {
     write(std_err, pointeur, transtype(taille : z64))
     retourne 0

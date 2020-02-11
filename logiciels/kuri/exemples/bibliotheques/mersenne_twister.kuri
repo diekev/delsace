@@ -11,27 +11,27 @@
 
 //###############################################################################
 
-#!enligne fonc hiBit(u : n32) -> n32
+#enligne fonc hiBit(u : n32) -> n32
 {
     retourne u & 0x80000000UL;
 }
 
-#!enligne fonc loBit(u : n32) -> n32
+#enligne fonc loBit(u : n32) -> n32
 {
     retourne u & 0x00000001UL;
 }
 
-#!enligne fonc loBits(u : n32) -> n32
+#enligne fonc loBits(u : n32) -> n32
 {
     retourne u & 0x7fffffffUL;
 }
 
-#!enligne fonc mixBits(u : n32, const uint32& v) -> n32
+#enligne fonc mixBits(u : n32, const uint32& v) -> n32
 {
     retourne hiBit(u) | loBits(v);
 }
 
-#!enligne fonc twist(m : n32, s0 : n32, s1 : n32) const
+#enligne fonc twist(m : n32, s0 : n32, s1 : n32) const
 {
     retourne m ^ (mixBits(s0, s1) >> 1) ^ ((~loBit(s1) + 1) & 0x9908b0dfUL);
 }
@@ -60,7 +60,7 @@ struct MTRand {
     restantes : z32;
 }
 
-#!enligne fonc initialize(empl mers : &MTRand, seed : n32) -> n32
+#enligne fonc initialize(empl mers : &MTRand, seed : n32) -> n32
 {
 	// Initialize generator state with seed
 	// See Knuth TAOCP Vol 2, 3rd Ed, p.106 for multiplier.
@@ -80,7 +80,7 @@ struct MTRand {
 }
 
 
-#!enligne void reload(mers : &MTRand)
+#enligne void reload(mers : &MTRand)
 {
 	// Generate N new values in state
 	// Made clearer and faster by Matthew Bellew (matthew.bellew@home.com)
@@ -96,7 +96,7 @@ struct MTRand {
 }
 
 // Initialise avec une graine simple.
-#!enligne fonc init(mers : &MTRand, graine : n32) -> rien
+#enligne fonc init(mers : &MTRand, graine : n32) -> rien
 {
 	// Seed the generator with a simple uint32
 	initialize(mers, oneSeed);
@@ -104,12 +104,12 @@ struct MTRand {
 }
 
 // Initialise avec "/dev/urandom" ou time() et clock().
-#!enligne fonc init(mers : &MTRand) -> rien
+#enligne fonc init(mers : &MTRand) -> rien
 {
     // seed deterministically to produce reproducible runs
     init(mers, 123456);
 
-#!si faux
+#si faux
 	// Seed the generator with an array from /dev/urandom if available
 	// Otherwise use a hash of time() and clock() values
 
@@ -128,11 +128,11 @@ struct MTRand {
 
 	// Was not successful, so use time() and clock() instead
 	seed(hash(time(NULL), clock()));
-#!finsi
+#finsi
 }
 
 // Initialise avec un tableau de graines.
-#!enligne fonc init(mers : &MTRand, graines : []n32) -> rien
+#enligne fonc init(mers : &MTRand, graines : []n32) -> rien
 {
     seedLength = graines.taille;
     bigSeed = graines.pointeur;
@@ -171,43 +171,43 @@ struct MTRand {
 	reload();
 }
 
-#!enligne double rand(mers : &MTRand)
+#enligne double rand(mers : &MTRand)
 {
     retourne double(randInt()) * (1.0/4294967295.0);
 }
 
-#!enligne double rand(mers : &MTRand, const double& n)
+#enligne double rand(mers : &MTRand, const double& n)
 {
     retourne rand() * n;
 }
 
-#!enligne double randExc(mers : &MTRand)
+#enligne double randExc(mers : &MTRand)
 {
     retourne double(randInt()) * (1.0/4294967296.0);
 }
 
-#!enligne double randExc(mers : &MTRand const double& n)
+#enligne double randExc(mers : &MTRand const double& n)
 {
     retourne randExc() * n;
 }
 
-#!enligne double randDblExc(mers : &MTRand)
+#enligne double randDblExc(mers : &MTRand)
 {
     retourne (double(randInt()) + 0.5) * (1.0/4294967296.0);
 }
 
-#!enligne double randDblExc(mers : &MTRand, const double& n)
+#enligne double randDblExc(mers : &MTRand, const double& n)
 {
     retourne randDblExc() * n;
 }
 
-#!enligne double rand53(mers : &MTRand)
+#enligne double rand53(mers : &MTRand)
 {
 	uint32 a = randInt() >> 5, b = randInt() >> 6;
 	retourne (a * 67108864.0 + b) * (1.0/9007199254740992.0);  // by Isaku Wada
 }
 
-#!enligne double randNorm(mers : &MTRand, const double& mean, const double& variance)
+#enligne double randNorm(mers : &MTRand, const double& mean, const double& variance)
 {
 	// retourne a real number from a normal (Gaussian) distribution with given
 	// mean and variance by Box-Muller method
@@ -216,7 +216,7 @@ struct MTRand {
 	retourne mean + r * cos(phi);
 }
 
-#!enligne uint32 randInt(mers : &MTRand)
+#enligne uint32 randInt(mers : &MTRand)
 {
 	// Pull a 32-bit integer from the generator state
 	// Every other access function simply transforms the numbers extracted here
@@ -232,7 +232,7 @@ struct MTRand {
 	retourne (s1 ^ (s1 >> 18));
 }
 
-#!enligne uint32 randInt(mers : &MTRand, const uint32& n)
+#enligne uint32 randInt(mers : &MTRand, const uint32& n)
 {
 	// Find which bits are used in n
 	// Optimized by Magnus Jonsson (magnus@smartelectronix.com)
@@ -252,7 +252,7 @@ struct MTRand {
 }
 
 
-#!enligne uint32 hash(mers : &MTRand, time_t t, clock_t c)
+#enligne uint32 hash(mers : &MTRand, time_t t, clock_t c)
 {
 	// Get a uint32 from t and c
 	// Better than uint32(x) in case x is floating point in [0,1]

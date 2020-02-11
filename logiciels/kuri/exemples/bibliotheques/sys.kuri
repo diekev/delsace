@@ -3,27 +3,27 @@
 // Retourne une chaîne de caractère contenant le nom du système d'exploitation.
 fonc sysexp() -> chaine
 {
-#!si linux
+#si linux
 	retourne "linux";
-#!sinon si windows
+#sinon si windows
     retourne "windows";
-#!sinon si macos
+#sinon si macos
     retourne "macos";
-#!sinon
+#sinon
     retourne "inconnu";
-#!finsi
+#finsi
 }
 
 // Retourne le nombre de bit de l'adressage de la machine.
 fonc adressage() -> z32
 {
-#!si arch32
+#si arch32
 	retourne 32;
-#!sinon si arch64
+#sinon si arch64
     retourne 64;
-#!sinon
+#sinon
     retourne 0;
-#!finsi
+#finsi
 }
 
 fonc boutisme() -> chaine

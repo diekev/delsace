@@ -1,5 +1,5 @@
-#!inclus "math.h"
-#!bib "m"
+#inclus "math.h"
+#bib "m"
 
 charge "glew"
 

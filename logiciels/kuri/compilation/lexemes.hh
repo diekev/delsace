@@ -31,7 +31,7 @@
 enum class GenreLexeme : unsigned int {
 	EXCLAMATION,
 	GUILLEMET,
-	DIESE,
+	DIRECTIVE,
 	DOLLAR,
 	POURCENT,
 	ESPERLUETTE,
@@ -58,7 +58,6 @@ enum class GenreLexeme : unsigned int {
 	ACCOLADE_FERMANTE,
 	TILDE,
 	DIFFERENCE,
-	DIRECTIVE,
 	MODULO_EGAL,
 	ESP_ESP,
 	ET_EGAL,

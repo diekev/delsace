@@ -455,11 +455,6 @@ void Lexeuse::analyse_caractere_simple()
 				this->pousse_mot(GenreLexeme::CARACTERE);
 				break;
 			}
-			case '#':
-			{
-				lexe_commentaire();
-				break;
-			}
 			default:
 			{
 				this->pousse_caractere();

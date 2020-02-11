@@ -61,9 +61,6 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 		case GenreLexeme::GUILLEMET:
 			os << "\"";
 			return;
-		case GenreLexeme::DIESE:
-			os << "#";
-			return;
 		case GenreLexeme::DOLLAR:
 			os << "$";
 			return;
@@ -146,7 +143,7 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 			os << "!=";
 			return;
 		case GenreLexeme::DIRECTIVE:
-			os << "#!";
+			os << "#";
 			return;
 		case GenreLexeme::MODULO_EGAL:
 			os << "%=";

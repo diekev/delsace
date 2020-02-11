@@ -1,4 +1,4 @@
-#!si faux
+#si faux
 struct NoeudMatrice<$T> {
 	colonne := 0
 	valeur : $T := 0.0
@@ -50,4 +50,4 @@ fonc insère(matrice : &MatriceÉparse<$T>, idx_ligne : z32, idx_colonne : z32, 
 
 	noeud.suivant = crée_noeud(idx_colonne, valeur)
 }
-#!finsi
+#finsi

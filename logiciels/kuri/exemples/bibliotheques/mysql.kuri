@@ -1,6 +1,6 @@
-#!inclus "mysql/mysql.h"
+#inclus "mysql/mysql.h"
 
-#!bib "mysqlclient"
+#bib "mysqlclient"
 
 fonc externe mysql_fetch_row() -> ;
 

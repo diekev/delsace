@@ -634,9 +634,9 @@ fonc externe jpeg_read_scanlines(info : *jpeg_decompress_struct, scanlines : **z
 
 //soit JPEG_APP0 = 0xE0;
 
-#!inclus "jpeglib.h"
+#inclus "jpeglib.h"
 
-#!bib "jpeg"
+#bib "jpeg"
 
 fonc lis_jpeg(chemin : chaine) -> Image
 {

@@ -17,7 +17,7 @@ struct FileÉvènement {
 	taille : z64
 }
 
-#!nulctx fonc enfile(dyn q : *FileÉvènement, évènement : Évènement) -> rien
+#nulctx fonc enfile(dyn q : *FileÉvènement, évènement : Évènement) -> rien
 {
     si q.taille >= 32 {
         // À FAIRE: erreur?
@@ -29,12 +29,12 @@ struct FileÉvènement {
     q.taille += 1
 }
 
-#!nulctx fonc est_vide(q : *FileÉvènement) -> bool
+#nulctx fonc est_vide(q : *FileÉvènement) -> bool
 {
     retourne q.taille == 0
 }
 
-#!nulctx fonc défile(dyn q : *FileÉvènement) -> Évènement
+#nulctx fonc défile(dyn q : *FileÉvènement) -> Évènement
 {
     dyn évènement : Évènement
 
@@ -61,14 +61,14 @@ struct FileÉvènement {
 
 dyn VG_file_évènements : *FileÉvènement = nul
 
-#!nulctx fonc rappel_erreur(erreur : z32, desc : *z8) -> rien
+#nulctx fonc rappel_erreur(erreur : z32, desc : *z8) -> rien
 {
     // À FAIRE : imprime n'a pas de contexte.
     //soit chn = converti_chaine_c(desc);
     //imprime("Erreur ", erreur, " : ", chn, "\n");
 }
 
-#!nulctx fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) -> rien
+#nulctx fonc rappel_clavier(fenetre : *GLFWwindow, cle : type_cle, scancode : z32, action : z32, mods : type_mod) -> rien
 {
     //glfwSetWindowShouldClose(fenetre, 1);
     dyn évènement : Évènement
@@ -89,7 +89,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
     enfile(VG_file_évènements, évènement)
 }
 
-#!nulctx fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
+#nulctx fonc rappel_bouton_souris(fenetre : *GLFWwindow, bouton : bouton_souris, action : z32, mods : type_mod) -> rien
 {
     dyn évènement : Évènement
 
@@ -106,7 +106,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
     enfile(VG_file_évènements, évènement)
 }
 
-#!nulctx fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) -> rien
+#nulctx fonc rappel_position_souris(fenetre : *GLFWwindow, pos_x : r64, pos_y : r64) -> rien
 {
     dyn évènement : Évènement
     évènement.type = type_évènement.SOURIS_BOUGEE
@@ -116,7 +116,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
     enfile(VG_file_évènements, évènement)
 }
 
-#!nulctx fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> rien
+#nulctx fonc rappel_roulette(fenetre : *GLFWwindow, delta_x : r64, delta_y : r64) -> rien
 {
     dyn évènement : Évènement
     évènement.type = type_évènement.SOURIS_ROULETTE
@@ -126,7 +126,7 @@ dyn VG_file_évènements : *FileÉvènement = nul
     enfile(VG_file_évènements, évènement)
 }
 
-#!nulctx fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) -> rien
+#nulctx fonc rappel_dimension(fenetre : *GLFWwindow, x : z32, y : z32) -> rien
 {
 	glViewport(0, 0, x, y)
 

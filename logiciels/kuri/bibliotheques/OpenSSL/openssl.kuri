@@ -1,10 +1,10 @@
 // Interface pour la bibliothèque OpenSSL
 
-#!inclus "openssl/err.h"
-#!inclus "openssl/ssl.h"
+#inclus "openssl/err.h"
+#inclus "openssl/ssl.h"
 
-#!bib "ssl"
-#!bib "crypto"
+#bib "ssl"
+#bib "crypto"
 
 //###############################################################################
 

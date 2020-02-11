@@ -9,9 +9,9 @@ importe GlibC
 
 fonc externe printf(fmt : *z8, args : ...) -> z32
 
-#!inclus "pthread.h"
-#!bib "pthread"
-#!def "_REENTRANT"
+#inclus "pthread.h"
+#bib "pthread"
+#def "_REENTRANT"
 
 struct externe pthread_attr_t
 
@@ -65,7 +65,7 @@ struct store_t {
 }
 
 // Fonction pour tirer un nombre au sort entre 0 et max.
-#!nulctx fonc get_random(max : z32) -> z32
+#nulctx fonc get_random(max : z32) -> z32
 {
 	dyn val : r64
 	val = transtype(max : r64) * rand()
@@ -75,7 +75,7 @@ struct store_t {
 }
 
 // Fonction pour le thread du magasin.
-#!nulctx fonc fn_store(p_data : *rien) -> *rien
+#nulctx fonc fn_store(p_data : *rien) -> *rien
 {
     dyn store := transtype(p_data : *store_t)
 
@@ -94,7 +94,7 @@ struct store_t {
 }
 
 // Fonction pour les threads des clients.
-#!nulctx fonc fn_clients(p_data : *rien) -> *rien
+#nulctx fonc fn_clients(p_data : *rien) -> *rien
 {
     dyn store := transtype(p_data : *store_t)
 	nb : z32 = transtype(p_data : z32)

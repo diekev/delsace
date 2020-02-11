@@ -1,41 +1,41 @@
 // Bibliothèque de travail sur le boutisme des nombres binaires.
 
-#!enligne fonc commute_boutisme(dyn val : &n8) -> rien
+#enligne fonc commute_boutisme(dyn val : &n8) -> rien
 {
     val = (val >> 8) | (val << 8)
 }
 
-#!enligne fonc commute_boutisme(dyn val : &n16) -> rien
+#enligne fonc commute_boutisme(dyn val : &n16) -> rien
 {
 
 }
 
-#!enligne fonc commute_boutisme(dyn val : &n32) -> rien
+#enligne fonc commute_boutisme(dyn val : &n32) -> rien
 {
 
 }
 
-#!enligne fonc commute_boutisme(dyn val : &n64) -> rien
+#enligne fonc commute_boutisme(dyn val : &n64) -> rien
 {
 
 }
 
-#!enligne fonc commute_boutisme(dyn val : &z8) -> rien
+#enligne fonc commute_boutisme(dyn val : &z8) -> rien
 {
     val = (val >> 8) | (val << 8)
 }
 
-#!enligne fonc commute_boutisme(dyn val : &z16) -> rien
+#enligne fonc commute_boutisme(dyn val : &z16) -> rien
 {
 
 }
 
-#!enligne fonc commute_boutisme(dyn val : &z32) -> rien
+#enligne fonc commute_boutisme(dyn val : &z32) -> rien
 {
 
 }
 
-#!enligne fonc commute_boutisme(dyn val : &z64) -> rien
+#enligne fonc commute_boutisme(dyn val : &z64) -> rien
 {
 
 }

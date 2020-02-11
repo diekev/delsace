@@ -16,47 +16,47 @@ struct SHA256 {
     k : [64]n32
 }
 
-#!enligne fonc SHA2_SHFR(x: n32, n: n32) -> n32
+#enligne fonc SHA2_SHFR(x: n32, n: n32) -> n32
 {
     retourne x >> n
 }
 
-#!enligne fonc SHA2_ROTR(x: n32, n: n32) -> n32
+#enligne fonc SHA2_ROTR(x: n32, n: n32) -> n32
 {
     retourne (x >> n) | (x << ((taille_de(n32) << 3) - n))
 }
 
-#!enligne fonc SHA2_ROTL(x: n32, n: n32) -> n32
+#enligne fonc SHA2_ROTL(x: n32, n: n32) -> n32
 {
     retourne (x << n) | (x >> ((taille_de(n32) << 3) - n))
 }
 
-#!enligne fonc SHA2_CH(x: n32, y: n32, z: n32) -> n32
+#enligne fonc SHA2_CH(x: n32, y: n32, z: n32) -> n32
 {
     retourne (x & y) ^ (~x & z)
 }
 
-#!enligne fonc SHA2_MAJ(x: n32, y: n32, z: n32) -> n32
+#enligne fonc SHA2_MAJ(x: n32, y: n32, z: n32) -> n32
 {
     retourne (x & y) ^ (x & z) ^ (y & z)
 }
 
-#!enligne fonc SHA256_F1(x: n32) -> n32
+#enligne fonc SHA256_F1(x: n32) -> n32
 {
     retourne SHA2_ROTR(x,  transtype(2: n32)) ^ SHA2_ROTR(x, transtype(13: n32)) ^ SHA2_ROTR(x, transtype(22: n32))
 }
 
-#!enligne fonc SHA256_F2(x: n32) -> n32
+#enligne fonc SHA256_F2(x: n32) -> n32
 {
     retourne SHA2_ROTR(x,  transtype(6: n32)) ^ SHA2_ROTR(x, transtype(11: n32)) ^ SHA2_ROTR(x, transtype(25: n32))
 }
 
-#!enligne fonc SHA256_F3(x: n32) -> n32
+#enligne fonc SHA256_F3(x: n32) -> n32
 {
     retourne SHA2_ROTR(x,  transtype(7: n32)) ^ SHA2_ROTR(x, transtype(18: n32)) ^ SHA2_SHFR(x,  transtype(3: n32))
 }
 
-#!enligne fonc SHA256_F4(x: n32) -> n32
+#enligne fonc SHA256_F4(x: n32) -> n32
 {
     retourne SHA2_ROTR(x, transtype(17: n32)) ^ SHA2_ROTR(x, transtype(19: n32)) ^ SHA2_SHFR(x, transtype(10: n32))
 }

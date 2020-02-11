@@ -92,7 +92,6 @@ static auto paires_mots_cles = dls::cree_dico(
 
 static auto paires_digraphes = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("!="), GenreLexeme::DIFFERENCE },
-	dls::paire{ dls::vue_chaine_compacte("#!"), GenreLexeme::DIRECTIVE },
 	dls::paire{ dls::vue_chaine_compacte("%="), GenreLexeme::MODULO_EGAL },
 	dls::paire{ dls::vue_chaine_compacte("&&"), GenreLexeme::ESP_ESP },
 	dls::paire{ dls::vue_chaine_compacte("&="), GenreLexeme::ET_EGAL },
@@ -125,7 +124,7 @@ static auto paires_trigraphes = dls::cree_dico(
 static auto paires_caracteres_speciaux = dls::cree_dico(
 	dls::paire{ '!', GenreLexeme::EXCLAMATION },
 	dls::paire{ '"', GenreLexeme::GUILLEMET },
-	dls::paire{ '#', GenreLexeme::DIESE },
+	dls::paire{ '#', GenreLexeme::DIRECTIVE },
 	dls::paire{ '$', GenreLexeme::DOLLAR },
 	dls::paire{ '%', GenreLexeme::POURCENT },
 	dls::paire{ '&', GenreLexeme::ESPERLUETTE },
@@ -160,8 +159,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::EXCLAMATION";
 		case GenreLexeme::GUILLEMET:
 			return "GenreLexeme::GUILLEMET";
-		case GenreLexeme::DIESE:
-			return "GenreLexeme::DIESE";
+		case GenreLexeme::DIRECTIVE:
+			return "GenreLexeme::DIRECTIVE";
 		case GenreLexeme::DOLLAR:
 			return "GenreLexeme::DOLLAR";
 		case GenreLexeme::POURCENT:
@@ -214,8 +213,6 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::TILDE";
 		case GenreLexeme::DIFFERENCE:
 			return "GenreLexeme::DIFFERENCE";
-		case GenreLexeme::DIRECTIVE:
-			return "GenreLexeme::DIRECTIVE";
 		case GenreLexeme::MODULO_EGAL:
 			return "GenreLexeme::MODULO_EGAL";
 		case GenreLexeme::ESP_ESP:

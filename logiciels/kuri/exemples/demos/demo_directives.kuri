@@ -1,16 +1,16 @@
 importe "flux"
 
-#!enligne fonc sysexp() -> chaine
+#enligne fonc sysexp() -> chaine
 {
-#!si linux
+#si linux
     retourne "linux"
-#!sinon si windows
+#sinon si windows
     retourne "windows"
-#!sinon si macos
+#sinon si macos
     retourne "macos"
-#!sinon
+#sinon
     retourne "inconnu"
-#!finsi
+#finsi
 }
 
 fonc principale(args : []*z8) -> z32

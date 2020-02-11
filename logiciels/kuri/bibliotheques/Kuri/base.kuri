@@ -34,7 +34,7 @@ fonc externe malloc(taille : z64) -> *rien
 fonc externe realloc(ptr : *rien, taille : z64) -> *rien
 fonc externe free(ptr : *rien) -> rien
 
-#!nulctx fonc allocatrice_défaut(
+#nulctx fonc allocatrice_défaut(
     mode : ModeAllocatrice,
     nouvelle_taille : z64,
     ancienne_taille : z64,
