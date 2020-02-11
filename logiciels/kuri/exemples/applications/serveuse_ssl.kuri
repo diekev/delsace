@@ -1,0 +1,186 @@
+# exemple de serveur sécurisé tiré de
+# https://simplestcodings.blogspot.com/2010/08/secure-server-client-using-openssl-in-c.html
+
+importe Fondation
+importe GlibC
+importe OpenSSL
+
+################################################################################
+
+fonc OpenListener(port : n16) -> z32
+{
+    prise := socket(_PF_INET, _SOCK_STREAM, 0)
+
+    si prise == -1 {
+        imprime("Ne peut pas créer la prise !\n")
+        abort()
+    }
+
+    dyn addr : sockaddr_in
+    addr.sin_zero[0] = transtype(0 : n8)
+    addr.sin_zero[1] = transtype(0 : n8)
+    addr.sin_zero[2] = transtype(0 : n8)
+    addr.sin_zero[3] = transtype(0 : n8)
+    addr.sin_zero[4] = transtype(0 : n8)
+    addr.sin_zero[5] = transtype(0 : n8)
+    addr.sin_zero[6] = transtype(0 : n8)
+    addr.sin_zero[7] = transtype(0 : n8)
+    addr.sin_family = transtype(_PF_INET : n16)
+    addr.sin_port = htons(port)
+    addr.sin_addr.s_addr = _INADDR_ANY
+
+    si bind(prise, transtype(@addr : *sockaddr), transtype(taille_de(sockaddr) : n64)) != 0 {
+        imprime("can't bind port")
+        abort()
+    }
+
+    si listen(prise, 10) != 0 {
+        imprime("Can't configure listening port")
+        abort()
+    }
+
+    retourne prise
+}
+
+fonc externe printf(fmt: *z8, args: ...) -> z32
+fonc externe sprintf(buf: *z8, fmt: *z8, s: z32) -> rien
+
+fonc isRoot() -> bool
+{
+    retourne getuid() == 0
+}
+
+fonc InitServerCTX() -> *ssl_st
+{
+    OpenSSL_add_all_algorithms()
+    SSL_load_error_strings()
+
+    method := TLSv1_2_server_method()
+
+    # Crée un nouveau contexte depuis la méthode
+    ctx := SSL_CTX_new(method)
+
+    si ctx == nul {
+        # À FAIRE
+        imprime("impossible d'initialiser le contexte SSL")
+        #ERR_print_errors_fp(stderr)
+        abort()
+    }
+
+    retourne ctx
+}
+
+fonc LoadCertificates(ctx: *ssl_st, CertFile: chaine, KeyFile: chaine) -> rien
+{
+    # set the local certificate from CertFile */
+    si SSL_CTX_use_certificate_file(ctx, CertFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
+        #ERR_print_errors_fp(stderr)
+        imprime("Impossible d'utiliser CertFile")
+        abort()
+    }
+
+    # set the private key from KeyFile (may be the same as CertFile) */
+    si SSL_CTX_use_PrivateKey_file(ctx, KeyFile.pointeur, _SSL_FILETYPE_PEM) <= 0 {
+        #ERR_print_errors_fp(stderr)
+        imprime("Impossible d'utiliser KeyFile")
+        abort()
+    }
+
+    # verify private key
+    si SSL_CTX_check_private_key(ctx) == 0 {
+        imprime("Private key does not match the public certificate\n")
+        abort()
+    }
+}
+
+fonc ShowCerts(ssl: *ssl_st) -> rien
+{
+    cert := SSL_get_peer_certificate(ssl)
+
+    si cert == nul {
+        imprime("Aucun certificats !\n")
+        retourne
+    }
+
+    imprime("Server certificates:\n")
+    dyn line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
+    printf("Subject: %s\n".pointeur, line)
+    free(line)
+    line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0)
+    printf("Issuer: %s\n".pointeur, line)
+    free(line)
+    X509_free(cert)
+}
+
+# Sers la connextion -- moultfilable
+fonc Servlet(ssl: *ssl_st) -> rien
+{
+    dyn buf : [1024]z8
+    dyn reply : [1024]z8
+    HTMLecho := "<html><body><pre>%s</pre></body></html>\n\n"
+
+    si SSL_accept(ssl) == -1 {
+        imprime("SSL_accept a échoué !\n")
+        #ERR_print_errors_fp(stderr)
+    }
+    sinon {
+        ShowCerts(ssl)
+        bytes := SSL_read(ssl, @buf[0], 1024)
+
+        si bytes > 0 {
+            buf[bytes] = '\0'
+            printf("Client msg: \"%s\"\n".pointeur, @buf[0])
+            sprintf(@reply[0], HTMLecho.pointeur, @buf[0])
+            SSL_write(ssl, @reply[0], 1024)
+        }
+        sinon {
+            imprime("SSL_read a échoué !\n")
+            #ERR_print_errors_fp(stderr)
+        }
+    }
+
+    sd := SSL_get_fd(ssl)
+    SSL_free(ssl)
+    close(sd)
+}
+
+################################################################################
+
+fonc principale(args : []*z8) -> z32
+{
+    si !isRoot() {
+        imprime("This program must be run as root/sudo user!!\n")
+        exit(0)
+    }
+
+    si args.taille != 2 {
+        printf("Usage: %s <portnum>\n".pointeur, args[0])
+        exit(0)
+    }
+
+    SSL_library_init()
+
+    #portnum := strings[1]
+    ctx := InitServerCTX()
+
+    LoadCertificates(ctx, "mycert.pem", "mycert.pem")
+
+    server := OpenListener(transtype(5005: n16))
+
+    boucle {
+        dyn addr : sockaddr_in # Adresse du connecté
+	    len := transtype(taille_de(sockaddr_in) : n32)
+
+        client := accept(server, transtype(@addr : *sockaddr), @len)
+        printf("Connection: %s:%d\n".pointeur,inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
+
+        ssl := SSL_new(ctx)
+        SSL_set_fd(ssl, client)
+        Servlet(ssl)
+    }
+
+    close(server)
+    SSL_CTX_free(ctx)
+
+    retourne 0
+}
