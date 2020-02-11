@@ -34,12 +34,10 @@ bool est_type_entier(GenreLexeme type)
 		case GenreLexeme::N16:
 		case GenreLexeme::N32:
 		case GenreLexeme::N64:
-		case GenreLexeme::N128:
 		case GenreLexeme::Z8:
 		case GenreLexeme::Z16:
 		case GenreLexeme::Z32:
 		case GenreLexeme::Z64:
-		case GenreLexeme::Z128:
 		case GenreLexeme::OCTET:
 			return true;
 		default:
@@ -54,7 +52,6 @@ bool est_type_entier_naturel(GenreLexeme type)
 		case GenreLexeme::N16:
 		case GenreLexeme::N32:
 		case GenreLexeme::N64:
-		case GenreLexeme::N128:
 			return true;
 		default:
 			return false;
@@ -68,7 +65,6 @@ bool est_type_entier_relatif(GenreLexeme type)
 		case GenreLexeme::Z16:
 		case GenreLexeme::Z32:
 		case GenreLexeme::Z64:
-		case GenreLexeme::Z128:
 			return true;
 		default:
 			return false;
@@ -81,7 +77,6 @@ bool est_type_reel(GenreLexeme type)
 		case GenreLexeme::R16:
 		case GenreLexeme::R32:
 		case GenreLexeme::R64:
-		case GenreLexeme::R128:
 			return true;
 		default:
 			return false;
@@ -247,16 +242,13 @@ bool est_mot_cle(GenreLexeme id)
 		case GenreLexeme::Z16:
 		case GenreLexeme::Z32:
 		case GenreLexeme::Z64:
-		case GenreLexeme::Z128:
 		case GenreLexeme::N8:
 		case GenreLexeme::N16:
 		case GenreLexeme::N32:
 		case GenreLexeme::N64:
-		case GenreLexeme::N128:
 		case GenreLexeme::R16:
 		case GenreLexeme::R32:
 		case GenreLexeme::R64:
-		case GenreLexeme::R128:
 		case GenreLexeme::EINI:
 		case GenreLexeme::BOOL:
 		case GenreLexeme::RIEN:
@@ -307,16 +299,13 @@ bool est_identifiant_type(GenreLexeme identifiant)
 		case GenreLexeme::N16:
 		case GenreLexeme::N32:
 		case GenreLexeme::N64:
-		case GenreLexeme::N128:
 		case GenreLexeme::R16:
 		case GenreLexeme::R32:
 		case GenreLexeme::R64:
-		case GenreLexeme::R128:
 		case GenreLexeme::Z8:
 		case GenreLexeme::Z16:
 		case GenreLexeme::Z32:
 		case GenreLexeme::Z64:
-		case GenreLexeme::Z128:
 		case GenreLexeme::BOOL:
 		case GenreLexeme::RIEN:
 		case GenreLexeme::EINI:

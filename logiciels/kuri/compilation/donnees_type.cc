@@ -214,9 +214,6 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 				case GenreLexeme::N64:
 					os << "n64";
 					break;
-				case GenreLexeme::N128:
-					os << "n128";
-					break;
 				case GenreLexeme::R16:
 					os << "r16";
 					break;
@@ -225,9 +222,6 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 					break;
 				case GenreLexeme::R64:
 					os << "r64";
-					break;
-				case GenreLexeme::R128:
-					os << "r128";
 					break;
 				case GenreLexeme::Z8:
 					os << "z8";
@@ -240,9 +234,6 @@ dls::chaine chaine_type(DonneesTypeFinal const &donnees_type, ContexteGeneration
 					break;
 				case GenreLexeme::Z64:
 					os << "z64";
-					break;
-				case GenreLexeme::Z128:
-					os << "z128";
 					break;
 				case GenreLexeme::BOOL:
 					os << "bool";
@@ -337,9 +328,6 @@ unsigned alignement(
 		case GenreLexeme::R64:
 		case GenreLexeme::N64:
 		case GenreLexeme::Z64:
-		case GenreLexeme::N128:
-		case GenreLexeme::Z128:
-		case GenreLexeme::R128:
 		case GenreLexeme::CHAINE:
 			return 8;
 		case GenreLexeme::CHAINE_CARACTERE:
@@ -416,12 +404,6 @@ unsigned int taille_octet_type(
 		case GenreLexeme::R64:
 		{
 			return 8;
-		}
-		case GenreLexeme::N128:
-		case GenreLexeme::Z128:
-		case GenreLexeme::R128:
-		{
-			return 16;
 		}
 		case GenreLexeme::CHAINE_CARACTERE:
 		{

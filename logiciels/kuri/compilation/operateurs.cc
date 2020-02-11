@@ -454,7 +454,6 @@ void enregistre_operateurs_basiques(
 		contexte.typeuse[TypeBase::N16],
 		contexte.typeuse[TypeBase::N32],
 		contexte.typeuse[TypeBase::N64],
-		contexte.typeuse[TypeBase::N128],
 	};
 
 	static long types_entiers_relatifs[] = {
@@ -462,7 +461,6 @@ void enregistre_operateurs_basiques(
 		contexte.typeuse[TypeBase::Z16],
 		contexte.typeuse[TypeBase::Z32],
 		contexte.typeuse[TypeBase::Z64],
-		contexte.typeuse[TypeBase::Z128],
 	};
 
 	auto type_r16 = contexte.typeuse[TypeBase::R16];

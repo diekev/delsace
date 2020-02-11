@@ -51,7 +51,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("info_de"), GenreLexeme::INFO_DE },
 	dls::paire{ dls::vue_chaine_compacte("loge"), GenreLexeme::LOGE },
 	dls::paire{ dls::vue_chaine_compacte("mémoire"), GenreLexeme::MEMOIRE },
-	dls::paire{ dls::vue_chaine_compacte("n128"), GenreLexeme::N128 },
 	dls::paire{ dls::vue_chaine_compacte("n16"), GenreLexeme::N16 },
 	dls::paire{ dls::vue_chaine_compacte("n32"), GenreLexeme::N32 },
 	dls::paire{ dls::vue_chaine_compacte("n64"), GenreLexeme::N64 },
@@ -61,7 +60,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("octet"), GenreLexeme::OCTET },
 	dls::paire{ dls::vue_chaine_compacte("opérateur"), GenreLexeme::OPERATEUR },
 	dls::paire{ dls::vue_chaine_compacte("pour"), GenreLexeme::POUR },
-	dls::paire{ dls::vue_chaine_compacte("r128"), GenreLexeme::R128 },
 	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
 	dls::paire{ dls::vue_chaine_compacte("r32"), GenreLexeme::R32 },
 	dls::paire{ dls::vue_chaine_compacte("r64"), GenreLexeme::R64 },
@@ -81,7 +79,6 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("type_de"), GenreLexeme::TYPE_DE },
 	dls::paire{ dls::vue_chaine_compacte("union"), GenreLexeme::UNION },
 	dls::paire{ dls::vue_chaine_compacte("vrai"), GenreLexeme::VRAI },
-	dls::paire{ dls::vue_chaine_compacte("z128"), GenreLexeme::Z128 },
 	dls::paire{ dls::vue_chaine_compacte("z16"), GenreLexeme::Z16 },
 	dls::paire{ dls::vue_chaine_compacte("z32"), GenreLexeme::Z32 },
 	dls::paire{ dls::vue_chaine_compacte("z64"), GenreLexeme::Z64 },
@@ -305,8 +302,6 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::LOGE";
 		case GenreLexeme::MEMOIRE:
 			return "GenreLexeme::MEMOIRE";
-		case GenreLexeme::N128:
-			return "GenreLexeme::N128";
 		case GenreLexeme::N16:
 			return "GenreLexeme::N16";
 		case GenreLexeme::N32:
@@ -325,8 +320,6 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::OPERATEUR";
 		case GenreLexeme::POUR:
 			return "GenreLexeme::POUR";
-		case GenreLexeme::R128:
-			return "GenreLexeme::R128";
 		case GenreLexeme::R16:
 			return "GenreLexeme::R16";
 		case GenreLexeme::R32:
@@ -365,8 +358,6 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::UNION";
 		case GenreLexeme::VRAI:
 			return "GenreLexeme::VRAI";
-		case GenreLexeme::Z128:
-			return "GenreLexeme::Z128";
 		case GenreLexeme::Z16:
 			return "GenreLexeme::Z16";
 		case GenreLexeme::Z32:

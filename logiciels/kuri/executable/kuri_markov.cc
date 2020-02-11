@@ -262,9 +262,6 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 		case GenreLexeme::MEMOIRE:
 			os << "mémoire";
 			return;
-		case GenreLexeme::N128:
-			os << "n128";
-			return;
 		case GenreLexeme::N16:
 			os << "n16";
 			return;
@@ -288,9 +285,6 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 			return;
 		case GenreLexeme::POUR:
 			os << "pour";
-			return;
-		case GenreLexeme::R128:
-			os << "r128";
 			return;
 		case GenreLexeme::R16:
 			os << "r16";
@@ -348,9 +342,6 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 			return;
 		case GenreLexeme::VRAI:
 			os << "vrai";
-			return;
-		case GenreLexeme::Z128:
-			os << "z128";
 			return;
 		case GenreLexeme::Z16:
 			os << "z16";

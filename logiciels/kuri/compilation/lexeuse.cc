@@ -54,16 +54,13 @@ static bool doit_ajouter_point_virgule(GenreLexeme dernier_id)
 		case GenreLexeme::N16:
 		case GenreLexeme::N32:
 		case GenreLexeme::N64:
-		case GenreLexeme::N128:
 		case GenreLexeme::R16:
 		case GenreLexeme::R32:
 		case GenreLexeme::R64:
-		case GenreLexeme::R128:
 		case GenreLexeme::Z8:
 		case GenreLexeme::Z16:
 		case GenreLexeme::Z32:
 		case GenreLexeme::Z64:
-		case GenreLexeme::Z128:
 		case GenreLexeme::BOOL:
 		case GenreLexeme::RIEN:
 		case GenreLexeme::EINI:

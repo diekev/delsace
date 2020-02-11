@@ -145,11 +145,6 @@ dls::chaine const &nom_broye_type(
 					flux << "Ksn64";
 					break;
 				}
-				case GenreLexeme::N128:
-				{
-					flux << "Ksn128";
-					break;
-				}
 				case GenreLexeme::R16:
 				{
 					flux << "Ksr16";
@@ -163,11 +158,6 @@ dls::chaine const &nom_broye_type(
 				case GenreLexeme::R64:
 				{
 					flux << "Ksr64";
-					break;
-				}
-				case GenreLexeme::R128:
-				{
-					flux << "Ksr128";
 					break;
 				}
 				case GenreLexeme::Z8:
@@ -188,11 +178,6 @@ dls::chaine const &nom_broye_type(
 				case GenreLexeme::Z64:
 				{
 					flux << "Ksz64";
-					break;
-				}
-				case GenreLexeme::Z128:
-				{
-					flux << "Ksz128";
 					break;
 				}
 				case GenreLexeme::BOOL:

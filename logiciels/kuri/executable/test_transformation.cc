@@ -121,12 +121,12 @@ int main()
 	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::Z8, false);
 	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::REF_Z8, false);
 	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::PTR_Z8, false);
-	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::N128, true);
-	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::REF_N128, false);
+	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::N64, true);
+	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::REF_N64, false);
 	verifie_transformation(typeuse, contexte, TypeBase::N8, TypeBase::CHAINE, false);
-	verifie_transformation(typeuse, contexte, TypeBase::R128, TypeBase::N8, false);
-	verifie_transformation(typeuse, contexte, TypeBase::R128, TypeBase::EINI, true);
-	verifie_transformation(typeuse, contexte, TypeBase::EINI, TypeBase::R128, true);
+	verifie_transformation(typeuse, contexte, TypeBase::R64, TypeBase::N8, false);
+	verifie_transformation(typeuse, contexte, TypeBase::R64, TypeBase::EINI, true);
+	verifie_transformation(typeuse, contexte, TypeBase::EINI, TypeBase::R64, true);
 	verifie_transformation(typeuse, contexte, TypeBase::EINI, TypeBase::EINI, true);
 	// test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
 	verifie_transformation(typeuse, contexte, TypeBase::TABL_OCTET, TypeBase::EINI, true);

@@ -302,19 +302,9 @@ dls::chaine cree_info_type_C(
 			cree_info_type_entier_C(os_decl, 64, false, id_info_type, nom_info_type);
 			break;
 		}
-		case GenreLexeme::N128:
-		{
-			cree_info_type_entier_C(os_decl, 128, false, id_info_type, nom_info_type);
-			break;
-		}
 		case GenreLexeme::Z64:
 		{
 			cree_info_type_entier_C(os_decl, 64, true, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::Z128:
-		{
-			cree_info_type_entier_C(os_decl, 128, true, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::R16:
@@ -330,11 +320,6 @@ dls::chaine cree_info_type_C(
 		case GenreLexeme::R64:
 		{
 			cree_info_type_reel_C(os_decl, 64, id_info_type, nom_info_type);
-			break;
-		}
-		case GenreLexeme::R128:
-		{
-			cree_info_type_reel_C(os_decl, 128, id_info_type, nom_info_type);
 			break;
 		}
 		case GenreLexeme::REFERENCE:

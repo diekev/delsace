@@ -230,11 +230,6 @@ static auto converti_type_simple_C(
 
 			break;
 		}
-		case GenreLexeme::N128:
-		{
-			os << ((echappe) ? "unsigned_long_long" : "unsigned long long");
-			break;
-		}
 		case GenreLexeme::R16:
 		{
 			os << "r16";
@@ -248,11 +243,6 @@ static auto converti_type_simple_C(
 		case GenreLexeme::R64:
 		{
 			os << "double";
-			break;
-		}
-		case GenreLexeme::R128:
-		{
-			os << ((echappe) ? "long_double" : "long double");
 			break;
 		}
 		case GenreLexeme::Z8:
@@ -273,11 +263,6 @@ static auto converti_type_simple_C(
 		case GenreLexeme::Z64:
 		{
 			os << "long";
-			break;
-		}
-		case GenreLexeme::Z128:
-		{
-			os << ((echappe) ? "long_long" : "long long");
 			break;
 		}
 		case GenreLexeme::CHAINE:
