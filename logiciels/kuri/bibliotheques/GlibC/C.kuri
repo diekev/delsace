@@ -47,6 +47,9 @@ fonc externe stat(chemin : *z8, buf : *rien) -> z32
 fonc externe getcwd(ptr : *z8, taille : z64) -> rien
 fonc externe chdir(ptr : *z8) -> rien
 
+fonc externe abort() -> rien
+fonc externe getuid() -> z32
+
 fonc externe rename(orig : *z8, dest : *z8) -> z32
 fonc externe remove(chemin : *z8) -> z32
 
@@ -132,9 +135,11 @@ fonc externe readdir(d : *DIR) -> *dirent
 
 ################################################################################
 
-_AF_INET := 2
+_PF_INET := 2
+_AF_INET := 2 # À FAIRE (bug compileur) _PF_INET
 _SOCK_STREAM := 1
 _WNOHANG := 1
+_INADDR_ANY := transtype(0 : n32)
 
 struct externe hostent {
     h_name : *z8
@@ -164,7 +169,10 @@ fonc externe gethostbyname(arg : *z8) -> *hostent
 
 fonc externe socket(a : z32, b : z32, c : z32) -> z32
 
-fonc externe htons(a : n16) -> n16
+fonc externe htonl(hostlong: n32) -> n32
+fonc externe htons(hostshort: n16) -> n16
+fonc externe ntohl(netlong: n32) -> n32
+fonc externe ntohs(netshort: n16) -> n16
 
 fonc externe connect(prise : z32, addr : *sockaddr, taille : z64) -> z32
 
