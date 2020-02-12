@@ -1,0 +1,533 @@
+sqrt :: fonc externe (v: r64) -> r64
+
+abs :: fonc (v: r64) -> r64
+{
+	si v < 0.0 {
+		retourne -v
+	}
+
+	retourne v
+}
+
+// Compute the local gradient at edge pixels using convolution filters. The gradient is computed only at edge pixels. At other places in the image, it is never used, and it's mostly zero anyway.
+computegradient :: fonc (img : []r64, w : z32, h : z32, dyn gx : []r64, dyn gy : []r64) -> rien
+{
+	// Avoid edges where the kernels would spill over
+	pour i dans 1 ... h - 1 {
+        pour j dans 1 ... w - 1 {
+            k : z32 = i * w + j
+
+            si (img[k] > 0.0) && (img[k] < 1.0) {
+                gx[k] = -img[k - w - 1] - 1.4142136 * img[k - 1] - img[k + w - 1] + img[k - w + 1] + 1.4142136 * img[k + 1] + img[k + w + 1]
+                gy[k] = -img[k - w - 1] - 1.4142136 * img[k - w] - img[k - w + 1] + img[k + w - 1] + 1.4142136 * img[k + w] + img[k + w + 1]
+                dyn glength := gx[k] * gx[k] + gy[k] * gy[k]
+
+                si glength > 0.0 {
+                    glength = sqrt(glength)
+                    gx[k] = gx[k] / glength
+                    gy[k] = gy[k] / glength
+                }
+            }
+        }
+	}
+}
+
+// A somewhat tricky function to approximate the distance to an edge in a certain pixel, with consideration to either the local gradient (gx,gy) or the direction to the pixel (dx,dy) and the pixel greyscale value a. The latter alternative, using (dx,dy), is the metric used by edtaa2(). Using a local estimate of the edge gradient (gx,gy) yields much better accuracy at and near edges, and reduces the error even at distant pixels provided that the gradient direction is accurately estimated.
+edgedf :: fonc (dyn gx : r64, dyn gy : r64, a : r64) -> r64
+{
+	si (gx == 0.0) || (gy == 0.0) {
+		retourne 0.5 - a
+	}
+
+    glength := sqrt(gx * gx + gy * gy)
+
+    si glength > 0.0 {
+        gx = gx / glength
+        gy = gy / glength
+    }
+
+    gx = abs(gx)
+    gy = abs(gy)
+
+    si gx < gy {
+        temp := gx
+        gx = gy
+        gy = temp
+    }
+
+    a1 := 0.5 * gy / gx
+
+	dyn df : r64
+
+    si a < a1 {
+        df = 0.5 * (gx + gy) - sqrt(2.0 * gx * gy * a)
+    }
+    sinon si a < (1.0 - a1) {
+        df = (0.5 - a) * gx
+    }
+    sinon {
+        df = -0.5 * (gx + gy) + sqrt(2.0 * gx * gy * (1.0 - a))
+    }
+
+	retourne df
+}
+
+distaa3 :: fonc (img : []r64, gximg : []r64, gyimg : []r64, w : z32, c : z32, xc : z32, yc : z32, xi : z32, yi : z32) -> r64
+{
+	closest := c - xc - yc * w
+	dyn a := img[closest]
+	gx := gximg[closest]
+	gy := gyimg[closest]
+
+	si a > 1.0 {
+		a = 1.0
+	}
+
+	si a < 0.0 {
+		a = 0.0
+	}
+
+	si a == 0.0 {
+		retourne 1000000.0
+	}
+
+	dx := transtype(xi : r64)
+	dy := transtype(yi : r64)
+	di := sqrt(dx * dx + dy * dy)
+
+	si di == 0.0 {
+        retourne edgedf(gx, gy, a)
+	}
+
+	retourne di + edgedf(dx, dy, a)
+}
+
+edtaa3 :: fonc (
+    img : []r64,
+    gx : []r64,
+    gy : []r64,
+    w : z32,
+    h : z32,
+    dyn distx : []z16,
+    dyn disty : []z16,
+    dyn dist : []r64) -> rien
+{
+	dyn x : z32
+	dyn y : z32
+	dyn c : z32
+	dyn offset_u : z32
+	dyn offset_ur : z32
+	dyn offset_r : z32
+	dyn offset_rd : z32
+	dyn offset_d : z32
+	dyn offset_dl : z32
+	dyn offset_l : z32
+	dyn offset_lu : z32
+	dyn olddist : r64
+	dyn newdist : r64
+	dyn cdistx : z32
+	dyn cdisty : z32
+	dyn newdistx : z32
+	dyn newdisty : z32
+	epsilon : r64 = 0.001
+	offset_u = -w
+	offset_ur = -w + 1
+	offset_r = 1
+	offset_rd = w + 1
+	offset_d = w
+	offset_dl = w - 1
+	offset_l = -1
+	offset_lu = -w - 1
+
+    pour i dans 0 ... w * h - 1 {
+        distx[i] = transtype(0: z16)
+        disty[i] = transtype(0: z16)
+
+        si img[i] <= 0.0 {
+            dist[i] = 1000000.0
+        }
+        sinon si img[i] < 1.0 {
+            dist[i] = edgedf(gx[i], gy[i], img[i])
+        }
+        sinon {
+            dist[i] = 0.0
+        }
+	}
+
+	dyn i : z32
+	dyn changed : bool
+
+	répète {
+		changed = faux
+
+		dyn y = 1
+		tantque y < h {
+            i = y * w
+            olddist = dist[i]
+
+            si olddist > 0.0 {
+                c = i + offset_u
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_ur
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+            }
+            i += 1
+
+            dyn x = 1
+            tantque x < w - 1 {
+                olddist = dist[i]
+
+                si olddist <= 0.0 {
+                    continue
+                }
+                c = i + offset_l
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_lu
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_u
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_ur
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+
+                x += 1
+                i += 1
+            }
+
+            olddist = dist[i]
+
+            si olddist > 0.0 {
+                c = i + offset_l
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_lu
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_u
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx
+                newdisty = cdisty + 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+            }
+            i = y * w + w - 2
+
+            dyn x = w - 2
+            tantque x >= 0 {
+                olddist = dist[i]
+
+                si olddist <= 0.0 {
+                    continue
+                }
+
+                c = i + offset_r
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                        distx[i] = transtype(newdistx: z16)
+                        disty[i] = transtype(newdisty: z16)
+                        dist[i] = newdist
+                        changed = vrai
+                }
+
+                x -= 1
+                i -= 1
+            }
+			y += 1
+		}
+
+		dyn y = h - 2
+		tantque y >= 0 {
+            i = y * w + w - 1
+            olddist = dist[i]
+
+            si olddist > 0.0 {
+                c = i + offset_d
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_dl
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+            }
+
+            i -= 1
+
+            dyn x = w - 2
+            tantque x > 0 {
+                olddist = dist[i]
+
+                si olddist <= 0.0 {
+                    continue
+                }
+
+                c = i + offset_r
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_rd
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_d
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_dl
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+
+                x -= 1
+                i -= 1
+            }
+
+            olddist = dist[i]
+
+            si olddist > 0.0 {
+                c = i + offset_r
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_rd
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx - 1
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    olddist = newdist
+                    changed = vrai
+                }
+
+                c = i + offset_d
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx
+                newdisty = cdisty - 1
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+            }
+
+            i = y * w + 1
+
+            pour xw dans 1 ... w - 1 {
+                olddist = dist[i]
+
+                si olddist <= 0.0 {
+                    continue
+                }
+
+                c = i + offset_l
+                cdistx = distx[c]
+                cdisty = disty[c]
+                newdistx = cdistx + 1
+                newdisty = cdisty
+                newdist = (distaa3(img, gx, gy, w, c, cdistx, cdisty, newdistx, newdisty))
+
+                si newdist < olddist - epsilon {
+                    distx[i] = transtype(newdistx: z16)
+                    disty[i] = transtype(newdisty: z16)
+                    dist[i] = newdist
+                    changed = vrai
+                }
+
+                i += 1
+            }
+
+			y -= 1
+		}
+	} tantque changed
+}

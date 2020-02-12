@@ -1,0 +1,295 @@
+// Vecteur 3-D de nombre entier relatif
+Vec3z :: struct {
+	x := 0
+	y := 0
+	z := 0
+}
+
+Vec4z :: struct {
+	x := 0
+	y := 0
+	z := 0
+	w := 0
+}
+
+memset :: fonc externe (ptr: *rien, valeur: z32, taille: n64) -> rien
+memcpy :: fonc externe (ptr: *rien, src: *rien, taille: n64) -> rien
+
+// A texture atlas is utilisé to pack several small regions into a single texture.
+AtlasTexture :: struct {
+	// Allocated noeuds
+	noeuds : []Vec3z
+	// largeur (in pixels) of the underlying texture
+	largeur : n64
+	// hauteur (in pixels) of the underlying texture
+	hauteur : n64
+	// profondeur (in bytes) of the underlying texture
+	profondeur : n64
+	// Allocated surface size
+	utilisé : n64
+	// Texture identity (OpenGL)
+	id : n32
+	// Atlas données
+	données : []octet
+}
+
+// À FAIRE: gabarits
+tableau_pousse :: fonc(dyn tabl: *[]Vec3z, valeur: Vec3z) -> rien
+{
+	dyn tmp := mémoire(tabl)
+
+	taille := tabl.taille
+	reloge tmp : [taille + 1]Vec3z
+	tmp[taille] = valeur
+
+	mémoire(tabl) = tmp
+}
+
+tableau_insère :: fonc(dyn tabl: *[]Vec3z, index: z32, valeur: Vec3z) -> rien
+{
+	dyn tmp := mémoire(tabl)
+	tmp[index] = valeur
+	mémoire(tabl) = tmp
+}
+
+tableau_supprime :: fonc(dyn tabl: *[]Vec3z, index: z32) -> rien
+{
+	si index < 0 || index >= tabl.taille {
+		retourne
+	}
+
+	dyn tmp := mémoire(tabl)
+
+	taille := tabl.taille
+
+	pour i dans transtype(index: z64) ... taille - 2 {
+		tmp[i] = tmp[i + 1]
+	}
+
+	reloge tmp : [taille - 1]Vec3z
+
+	mémoire(tabl) = tmp
+}
+
+// Creates a new empty texture atlas.
+crée_atlas_texture :: fonc (largeur : n64, hauteur : n64, profondeur : n64) -> *AtlasTexture
+{
+	dyn atlas := loge AtlasTexture
+
+	// À FAIRE(assert)
+	//assert((profondeur == 1) || (profondeur == 3) || (profondeur == 4))
+
+	/*
+	si atlas == nul {
+		fprintf(stderr, "line %d: No more memory for allocating données\n", 30)
+		exit(1)
+	}
+	*/
+
+	atlas.utilisé = transtype(0: n64)
+	atlas.largeur = largeur
+	atlas.hauteur = hauteur
+	atlas.profondeur = profondeur
+	atlas.id = transtype(0: n32)
+
+ 	// Nous désirons une frontière de 1 pixel autour de l'atlas pour éviter tout artefact
+	// lors de l'échantillonnage de textures
+	noeud := Vec3z{ x = 1, y = 1, z = transtype(largeur: z32) - 2 }
+	tableau_pousse(@atlas.noeuds, noeud)
+
+	atlas.données = loge [largeur * hauteur * profondeur]octet
+	memset(atlas.données.pointeur, 0, largeur * hauteur * profondeur)
+
+	/*
+	si atlas.données == (transtype(0 : *rien)) {
+			fprintf(stderr, "line %d: No more memory for allocating données\n", 47)
+			exit(1)
+	}
+	*/
+
+	retourne atlas
+}
+
+// Deletes a texture atlas.
+détruit_atlas :: fonc (atlas : *AtlasTexture) -> rien
+{
+	// À FAIRE(assert)
+	// assert(atlas != nul)
+
+	déloge atlas.noeuds
+	déloge atlas.données
+	déloge atlas
+}
+
+// Upload données to the specified atlas region.
+texture_atlas_set_region :: fonc (atlas : *AtlasTexture, x : n64, y : n64, largeur : n64, hauteur : n64, données : *n8, stride : n64) -> rien
+{
+	// À FAIRE(assert)
+	//assert(atlas != nul)
+	//assert(x > 0)
+	//assert(y > 0)
+	//assert(x < (atlas.largeur - 1))
+	//assert((x + largeur) <= (atlas.largeur - 1))
+	//assert(y < (atlas.hauteur - 1))
+	//assert((y + hauteur) <= (atlas.hauteur - 1))
+	//assert(hauteur == 0 || (données != (transtype(0 : *rien)) && largeur > 0))
+
+	profondeur := atlas.profondeur
+	charsize := taille_de(z8)
+
+	pour i dans transtype(0: n64) ... hauteur - transtype(1: n64) {
+		dst := atlas.données.pointeur + ((y + i) * atlas.largeur + x) * charsize * profondeur
+		src := données + (i * stride) * charsize
+		taille := largeur * charsize * profondeur
+		memcpy(dst, src, taille)
+	}
+}
+
+// ------------------------------------------------------ texture_atlas_fit ---
+texture_atlas_fit :: fonc (atlas : *AtlasTexture, index : n64, largeur : n64, hauteur : n64) -> z32
+{
+	// À FAIRE(assert)
+	//assert(atlas != nul)
+
+	dyn noeud := atlas.noeuds[index]
+	dyn x := noeud.x
+	dyn y := noeud.y
+
+	si (transtype(x : n64) + largeur) > (atlas.largeur - transtype(1 : n64)) {
+		retourne -1
+	}
+
+	dyn i := index
+	dyn largeur_left := largeur
+
+	tantque largeur_left > transtype(0 : n64) {
+		noeud = atlas.noeuds[i]
+
+		si noeud.y > y {
+			y = noeud.y
+		}
+
+		si (transtype(y : n64) + hauteur) > (atlas.hauteur - transtype(1 : n64)) {
+			retourne -1
+		}
+
+		largeur_left -= transtype(noeud.z : n64)
+		i += transtype(1 : n64)
+	}
+
+	retourne y
+}
+
+// ---------------------------------------------------- texture_atlas_merge ---
+texture_atlas_merge :: fonc (dyn atlas : *AtlasTexture) -> rien
+{
+	// À FAIRE(assert)
+	//assert(atlas != nul)
+
+	dyn i := 0
+
+	boucle {
+		si i == atlas.noeuds.taille - 2 {
+			arrête
+		}
+
+		dyn noeud := @atlas.noeuds[i]
+		next := @atlas.noeuds[i + 1]
+
+		si noeud.y == next.y {
+			noeud.z += next.z
+			tableau_supprime(@atlas.noeuds, i + 1)
+			i -= 1
+		}
+
+		i += 1
+	}
+}
+
+// Allocate a new region in the atlas.
+texture_atlas_get_region :: fonc (dyn atlas : *AtlasTexture, largeur : n64, hauteur : n64) -> Vec4z
+{
+	dyn region := Vec4z{ x = 0, y = 0, z = largeur, w = hauteur }
+
+	// À FAIRE(assert)
+	//assert(atlas != nul)
+
+	dyn best_hauteur := transtype(2147483647 * 2 + 1: n64)
+	dyn best_index := -1
+	dyn best_largeur := transtype(2147483647 * 2 + 1: n64)
+
+	pour noeud, idx dans atlas.noeuds {
+		y := texture_atlas_fit(atlas, transtype(idx: n64), largeur, hauteur)
+
+		si y == -1 {
+			continue
+		}
+
+		si ((transtype(y : n64) + hauteur) < best_hauteur) || (((transtype(y : n64) + hauteur) == best_hauteur) && (noeud.z > 0 && transtype(noeud.z : n64) < best_largeur)) {
+			best_hauteur = transtype(y : n64) + hauteur
+			best_index = idx
+			best_largeur = transtype(noeud.z : n64)
+			region.x = noeud.x
+			region.y = y
+		}
+	}
+
+	si best_index == -1 {
+		region.x = -1
+		region.y = -1
+		region.z = 0
+		region.w = 0
+
+		retourne region
+	}
+
+	dyn n := Vec3z{ x = region.x, y = region.y + transtype(hauteur: z32), z = region.z }
+	tableau_insère(@atlas.noeuds, best_index, n)
+
+	dyn i := best_index + 1
+
+	boucle {
+		si i == atlas.noeuds.taille - 1 {
+			arrête
+		}
+
+		dyn noeud := @atlas.noeuds[i]
+		prev := @atlas.noeuds[i - 1]
+
+		si noeud.x >= (prev.x + prev.z) {
+			arrête
+		}
+
+		shrink := prev.x + prev.z - noeud.x
+		noeud.x += shrink
+		noeud.z -= shrink
+
+		si noeud.z > 0 {
+			arrête
+		}
+
+		tableau_supprime(@atlas.noeuds, i)
+		i -= 1
+	}
+
+	texture_atlas_merge(atlas)
+	atlas.utilisé += largeur * hauteur
+
+	retourne region
+}
+
+// Remove all allocated regions from the atlas.
+texture_atlas_clear :: fonc (dyn atlas : *AtlasTexture) -> rien
+{
+	// À FAIRE(assert)
+	//assert(atlas != nul)
+	//assert(atlas.données != nul)
+
+	déloge atlas.noeuds
+	atlas.utilisé = transtype(0: n64)
+
+	noeud := Vec3z{ x = 1, y = 1, z = transtype(atlas.largeur: z32) - 2 }
+	tableau_pousse(@atlas.noeuds, noeud)
+
+	memset(atlas.données.pointeur, 0, atlas.largeur * atlas.hauteur * atlas.profondeur)
+}
