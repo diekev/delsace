@@ -183,7 +183,7 @@ principale :: fonc(args : []*z8) -> z32
 
     dico.insère("lien", transtype(chaine1: *Objet))
 
-    chaine1 := crée_chaine(@gestionnaire)
+    chaine1 = crée_chaine(@gestionnaire)
     chaine1.valeur = "eh ouais..."
 
     dico.insère("variable", transtype(chaine1: *Objet))

@@ -13,8 +13,8 @@ Syntaxeuse :: struct {
 construit_syntaxeuse :: fonc(lexèmes : &[]DonnéesLexème) -> Syntaxeuse
 {
     dyn syntaxeuse : Syntaxeuse
-    syntaxeuse.lexèmes := lexèmes
-	syntaxeuse.assembleuse := construit_assembleuse()
+    syntaxeuse.lexèmes = lexèmes
+	syntaxeuse.assembleuse = construit_assembleuse()
 
     retourne syntaxeuse
 }
@@ -220,7 +220,7 @@ imprime_arbre :: fonc(racine : *NoeudSyntaxique, tab : z32) -> rien
 		imprime_sans_format("  ")
 	}
 
-	imprime(racine.type, " (", racine.données.chn, ")\n")
+	imprime("% (%)\n", racine.type, racine.données.chn)
 
 	pour noeud dans racine.enfants {
 		imprime_arbre(noeud, tab + 1)
