@@ -118,7 +118,6 @@ construit_assembleuse :: fonc() -> AssembleuseArbre
 détruit_assembleuse :: fonc(dyn assembleuse : &AssembleuseArbre) -> rien
 {
     pour noeud dans assembleuse.noeuds {
-        // À FAIRE : accès à des références de pointeurs....
         détruit_noeud(noeud)
     }
 

@@ -275,11 +275,9 @@ calcule_empreinte_sha256 :: fonc(entrée : chaine) -> chaine
     dyn enchaineuse : Enchaineuse
     enchaineuse.réserve(TAILLE_DIGEST * 2)
 
-    pour c, idx dans digest {
-        // À FAIRE(coulisse C): référence
-        co := digest[idx]
-        enchaineuse.pousse(caractère_base_16((co >> 4) & 0xf))
-        enchaineuse.pousse(caractère_base_16(co & 0xf))
+    pour c dans digest {
+        enchaineuse.pousse(caractère_base_16((c >> 4) & 0xf))
+        enchaineuse.pousse(caractère_base_16(c & 0xf))
 	}
 
 	retourne enchaineuse.résultat

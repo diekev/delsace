@@ -148,8 +148,7 @@
 	}
 
     pour o, idx dans destination {
-		// À FAIRE: référence...
-		destination[idx] = transtype(valeur : octet)
+		o = transtype(valeur : octet)
 	}
 }
 

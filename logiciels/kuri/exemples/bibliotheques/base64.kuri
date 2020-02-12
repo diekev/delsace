@@ -22,9 +22,8 @@ encode_impl :: fonc(chn : chaine, table : chaine) -> chaine
 
     dyn longueur := chn.taille
 
-    // À FAIRE: on utilise chn[idx] car c est une référence est la coulisse C ne le gère pas
-    pour c, idx dans chn {
-		char_array_3[i] = transtype(chn[idx]: n8)
+    pour c dans chn {
+		char_array_3[i] = transtype(c: n8)
 
         i += 1
 
@@ -87,13 +86,12 @@ décode_impl :: fonc(chn : chaine, table : chaine, rappel_est_base64: fonc(z8)(b
     dyn longueur := chn.taille
     dyn enchaineuse : Enchaineuse
 
-    // À FAIRE: on utilise chn[idx] car c est une référence est la coulisse C ne le gère pas
-    pour c, idx dans chn {
+    pour c dans chn {
         si c == '=' || !rappel_est_base64(c) {
             arrête
         }
 
-        char_array_4[i] = transtype(chn[idx]: n8)
+        char_array_4[i] = transtype(c: n8)
         i += 1
 
         si i == 4 {
