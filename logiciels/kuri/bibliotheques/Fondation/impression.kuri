@@ -138,6 +138,114 @@ overflow :: fonc(dyn n : &haute_précision, mul : n32) -> n32
 	retourne over;
 }
 
+// ------------------------------------------------------------
+
+Enchaineuse :: struct {
+    résultat : chaine
+    taille : z64
+}
+
+crée_enchaineuse :: fonc() -> Enchaineuse
+{
+    dyn enchaineuse : Enchaineuse
+    retourne enchaineuse
+}
+
+détruit :: fonc(dyn enchaineuse : &Enchaineuse) -> rien
+{
+	déloge enchaineuse.résultat
+	enchaineuse.taille = 0
+}
+
+réserve :: fonc(dyn enchaineuse : &Enchaineuse, taille : z64) -> rien
+{
+	si taille < 0 {
+		// Erreur ?
+		retourne
+	}
+
+	si taille <= enchaineuse.résultat.taille {
+		retourne
+	}
+
+	reloge enchaineuse.résultat : chaine(taille)
+}
+
+appends :: fonc(dyn enchaineuse : &Enchaineuse, chn : chaine) -> rien
+{
+	src := chn.pointeur
+	dst := @enchaineuse.résultat[enchaineuse.taille]
+	taille := chn.taille
+
+    copie_mem_nonsur(src=src, dst=dst, taille=taille)
+    enchaineuse.taille += taille
+}
+
+pousse :: fonc(dyn enchaineuse : &Enchaineuse, lettre : z8) -> rien
+{
+	ancienne_taille := enchaineuse.taille
+	nouvelle_taille := ancienne_taille + 1
+	enchaineuse.réserve(nouvelle_taille)
+	enchaineuse.résultat[enchaineuse.taille] = lettre
+	enchaineuse.taille += 1
+}
+
+pousse :: fonc(dyn enchaineuse : &Enchaineuse, chn : chaine) -> rien
+{
+	si chn.taille == 0 {
+		retourne
+	}
+
+	nouvelle_taille := enchaineuse.taille + chn.taille
+	enchaineuse.réserve(nouvelle_taille)
+	enchaineuse.appends(chn)
+}
+
+pousse :: fonc(dyn enchaineuse : &Enchaineuse, chns : ...chaine) -> rien
+{
+	dyn taille : z64
+
+	pour chn dans chns {
+		taille += chn.taille
+	}
+
+	enchaineuse.réserve(taille)
+
+	pour chn dans chns {
+		enchaineuse.appends(chn)
+	}
+}
+
+pousse :: fonc(dyn enchaineuse : &Enchaineuse, args: ...eini) -> rien
+{
+	pour arg dans args {
+		imprime_valeur(enchaineuse, arg.pointeur, arg.info, faux)
+	}
+}
+
+// Retourne une chaine correspondant à l'enchainement de toutes les chaines
+// spécifiées. La chaine retournée a été logé et doit être délogée par
+// l'appelante.
+enchaine :: fonc(chns : ...chaine) -> chaine
+{
+	dyn enchaineuse : Enchaineuse
+	dyn taille : z64
+
+	// À FAIRE : trouve comment passer des arguments variadiques à
+	// d'autres fonctions
+	pour chn dans chns {
+		taille += chn.taille
+	}
+
+	enchaineuse.réserve(taille)
+
+	pour chn dans chns {
+		enchaineuse.appends(chn)
+	}
+
+	retourne enchaineuse.résultat
+}
+
 //###################################################################################
 
 NombreDécimal :: union nonsûr {
