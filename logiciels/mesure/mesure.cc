@@ -160,7 +160,7 @@ static auto type_fichier(filesystem::path const &chemin)
 	return FICHIER_INCONNU;
 }
 
-int main()
+void calcul_stats_total()
 {
 	auto nombre_total_lignes = 0;
 	auto nombre_total_lignes_source = 0;
@@ -251,6 +251,65 @@ int main()
 	chn_ratio = dls::vers_chaine(static_cast<double>(nombre_total_commentaires) / nombre_total_lignes);
 
 	tableau.ajoute_ligne({ "Total", chn_fichiers, chn_lignes, chn_lignes_fichiers, chn_sources, chn_commentaires, chn_ratio });
+
+	imprime_tableau(tableau);
+}
+
+int main()
+{
+	std::ostream &os = std::cout;
+
+	CHRONOMETRE_PORTEE("Temps d'exécution", os);
+
+	auto nombre_fichiers = 0;
+	auto nombre_total_lignes = 0;
+	auto nombre_total_commentaires = 0;
+
+	using type_donnees = std::pair<dls::chaine, std::pair<int, int>>;
+	dls::tableau<type_donnees> table;
+
+	for (const auto &entree : filesystem::recursive_directory_iterator(filesystem::current_path())) {
+		const auto chemin_fichier = entree.path();
+
+		if (filesystem::is_directory(chemin_fichier)) {
+			continue;
+		}
+
+		auto type = type_fichier(chemin_fichier);
+
+		if (type == FICHIER_INCONNU) {
+			continue;
+		}
+
+		++nombre_fichiers;
+
+		std::ifstream fichier;
+		fichier.open(chemin_fichier.c_str());
+
+		if (!fichier.is_open()) {
+			continue;
+		}
+
+		auto const nombre_lignes = compte_lignes(fichier);
+		nombre_total_lignes += nombre_lignes.first;
+		nombre_total_commentaires += nombre_lignes.second;
+
+		table.pousse({ dls::chaine(chemin_fichier.filename().c_str()	), nombre_lignes });
+	}
+
+	std::sort(table.debut(), table.fin(), [](type_donnees const &a, type_donnees const &b)
+	{
+		return a.second.first > b.second.first;
+	});
+
+	auto tableau = Tableau({ "Fichiers", "Sources", "Commentaires" });
+	tableau.alignement(1, Alignement::DROITE);
+	tableau.alignement(2, Alignement::DROITE);
+
+	for (auto i = 0; i < 30; ++i) {
+		auto &ligne = table[i];
+		tableau.ajoute_ligne({ ligne.first, dls::vers_chaine(ligne.second.first), dls::vers_chaine(ligne.second.second) });
+	}
 
 	imprime_tableau(tableau);
 }
