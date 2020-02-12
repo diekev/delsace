@@ -708,7 +708,9 @@ noeud::base *Syntaxeuse::analyse_expression(
 					expression.pousse(noeud);
 				}
 				/* construction structure : chaine + { */
-				else if ((racine_expr == GenreLexeme::EGAL || racine_expr == type_id::RETOURNE) && est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE)) {
+				else if (dls::outils::est_element(racine_expr, GenreLexeme::EGAL, GenreLexeme::RETOURNE, GenreLexeme::CROCHET_OUVRANT)
+						 && est_identifiant(GenreLexeme::ACCOLADE_OUVRANTE))
+				{
 					auto noeud = m_assembleuse->empile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE, lexeme, false);
 
 					avance();
@@ -718,8 +720,6 @@ noeud::base *Syntaxeuse::analyse_expression(
 					m_assembleuse->depile_noeud(GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE);
 
 					expression.pousse(noeud);
-
-					termine_boucle = true;
 				}
 				/* variable : chaine */
 				else {
