@@ -524,8 +524,9 @@ imprime_valeur :: fonc(
 			}
 		}
 		FONCTION {
-		    // À FAIRE : types paramètres
-            enchaineuse.pousse("fonction()")
+		    // Ne pas oublier qu'il y a un niveau d'indirection.
+			x := mémoire(transtype(pointeur : **z8))
+            imprime_pointeur(enchaineuse, x)
 		}
 		EINI {
 			x := mémoire(transtype(pointeur : *eini))
