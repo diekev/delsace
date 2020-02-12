@@ -8,9 +8,8 @@ imprime_tableau :: fonc(tabl : []r64) -> rien
 
     dyn index = 0;
     pour v dans tabl {
-        // À FAIRE : besoin_dérèf
         x := v;
-        imprime_sans_format("tabl[", index, "] = ", x, "\n");
+        imprime_sans_format("tabl[", index, "] = ", v, "\n");
         index = index + 1;
     }
 }
