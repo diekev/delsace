@@ -471,7 +471,6 @@ void enregistre_operateurs_basiques(
 		type_r32, type_r64
 	};
 
-	auto type_pointeur = contexte.typeuse[TypeBase::PTR_NUL];
 	auto type_octet = contexte.typeuse[TypeBase::OCTET];
 	auto type_bool = contexte.typeuse[TypeBase::BOOL];
 	operateurs.type_bool = type_bool;
@@ -479,16 +478,10 @@ void enregistre_operateurs_basiques(
 	for (auto op : operateurs_entiers_reels) {
 		for (auto type : types_entiers_relatifs) {
 			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
-
-			operateurs.ajoute_basique(op, type, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
-			operateurs.ajoute_basique(op, type_pointeur, type, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 		}
 
 		for (auto type : types_entiers_naturels) {
 			operateurs.ajoute_basique(op, type, type, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-
-			operateurs.ajoute_basique(op, type, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
-			operateurs.ajoute_basique(op, type_pointeur, type, type_pointeur, IndiceTypeOp::ENTIER_NATUREL, RaisonOp::POUR_ARITHMETIQUE);
 		}
 
 		for (auto type : types_reels) {
@@ -496,7 +489,6 @@ void enregistre_operateurs_basiques(
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
-		operateurs.ajoute_basique(op, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	for (auto op : operateurs_comparaisons) {
@@ -513,7 +505,6 @@ void enregistre_operateurs_basiques(
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
-		operateurs.ajoute_basique(op, type_pointeur, type_bool, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_COMPARAISON);
 	}
 
 	for (auto op : operateurs_entiers) {
@@ -526,7 +517,6 @@ void enregistre_operateurs_basiques(
 		}
 
 		operateurs.ajoute_basique(op, type_octet, type_octet, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
-		operateurs.ajoute_basique(op, type_pointeur, type_pointeur, IndiceTypeOp::ENTIER_RELATIF, RaisonOp::POUR_ARITHMETIQUE);
 	}
 
 	// operateurs booléens && || == !=
