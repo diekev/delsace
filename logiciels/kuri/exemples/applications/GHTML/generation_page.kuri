@@ -5,16 +5,27 @@ charge "assemblage_arbre"
 charge "lexage"
 charge "syntaxage"
 
+// À FAIRE: ajout d'un message aux erreurs
+ErreurGénérationPage :: énum : z32 {
+    AUCUNE
+    OBJET_NON_ITÉRABLE
+    OBJET_NON_TROUVÉ
+}
+
 génère_page :: fonc(
     noeud: *NoeudSyntaxique,
     dyn gestionnaire: *GestionnaireObjet,
     dyn dico: *ObjetDictionnaire,
-    enchaineuse: &Enchaineuse) -> rien
+    enchaineuse: &Enchaineuse) -> ErreurGénérationPage
 {
     discr noeud.type {
         BLOC {
             pour enfant dans noeud.enfants {
-                génère_page(enfant, gestionnaire, dico, enchaineuse)
+                erreur := génère_page(enfant, gestionnaire, dico, enchaineuse)
+
+                si erreur != ErreurGénérationPage.AUCUNE {
+                    retourne erreur
+                }
             }
         }
         CHAINE_CARACTÈRE {
@@ -25,7 +36,7 @@ génère_page :: fonc(
             objet_variable := dico.trouve_objet(variable)
 
             si objet_variable == nul {
-                retourne
+                retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
             discr objet_variable.id {
@@ -56,34 +67,38 @@ génère_page :: fonc(
             objet_iter := dico.trouve_objet(propriete)
 
             si objet_iter == nul {
-                retourne
+                retourne ErreurGénérationPage.OBJET_NON_TROUVÉ
             }
 
             variable := noeud.enfants[0].données.chn
 
             discr objet_iter.id {
                 NUL {
-                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet nul n'est pas itérable !")
+                    retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 CHAINE {
-                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet chaine n'est pas itérable !")
+                    retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 ENTIER {
-                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet nombre entier n'est pas itérable !")
+                    retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 RÉEL {
-                    // À FAIRE: erreur
                     enchaineuse.pousse("Objet nombre réel n'est pas itérable !")
+                    retourne ErreurGénérationPage.OBJET_NON_ITÉRABLE
                 }
                 LISTE {
                     liste := transtype(objet_iter : *ObjetListe)
 
                     pour objet dans liste.valeur {
                         dico.insère(variable, objet)
-                        génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+                        erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+
+                        si erreur != ErreurGénérationPage.AUCUNE {
+                            retourne erreur
+                        }
                     }
                 }
                 DICTIONNAIRE {
@@ -94,7 +109,11 @@ génère_page :: fonc(
                         objet_nom.valeur = nom
 
                         dico.insère(variable, transtype(objet_nom : *Objet))
-                        génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+                        erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+
+                        si erreur != ErreurGénérationPage.AUCUNE {
+                            retourne erreur
+                        }
                     }
                 }
             }
@@ -104,13 +123,23 @@ génère_page :: fonc(
             objet_valeur := dico.trouve_objet(variable)
 
             si objet_valeur != nul {
-                génère_page(noeud.enfants[1], gestionnaire, dico, enchaineuse)
+                erreur := génère_page(noeud.enfants[1], gestionnaire, dico, enchaineuse)
+
+                si erreur != ErreurGénérationPage.AUCUNE {
+                    retourne erreur
+                }
             }
             sinon si noeud.enfants.taille > 2 {
-                génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+                erreur := génère_page(noeud.enfants[2], gestionnaire, dico, enchaineuse)
+
+                si erreur != ErreurGénérationPage.AUCUNE {
+                    retourne erreur
+                }
             }
         }
     }
+
+    retourne ErreurGénérationPage.AUCUNE
 }
 
 principale :: fonc(args : []*z8) -> z32
@@ -187,10 +216,15 @@ principale :: fonc(args : []*z8) -> z32
     dyn enchaineuse : Enchaineuse
     diffère { détruit(enchaineuse) }
 
-    génère_page(racine, @gestionnaire, dico, enchaineuse)
+    erreur := génère_page(racine, @gestionnaire, dico, enchaineuse)
 
-    imprime("Page :\n\n")
-    imprime(enchaineuse.résultat, "\n")
+    si erreur != ErreurGénérationPage.AUCUNE {
+        imprime("Erreur lors de la génération de la page : %\n", erreur)
+    }
+    sinon {
+        imprime("Page :\n\n")
+        imprime(enchaineuse.résultat, "\n")
+    }
 
     retourne 0
 }
