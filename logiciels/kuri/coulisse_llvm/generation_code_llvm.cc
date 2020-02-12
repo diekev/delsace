@@ -65,6 +65,7 @@ using denombreuse = lng::decoupeuse_nombre<GenreLexeme>;
  * - prend en compte la portée des blocs pour générer le code des noeuds différés
  * - coroutine, retiens
  * - erreur en cas de débordement des limites, où d'accès à un membre non-actif d'une union
+ * - stockage temporaire
  */
 
 /* ************************************************************************** */

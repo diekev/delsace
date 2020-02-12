@@ -3058,13 +3058,23 @@ void KR__acces_membre_union(
 
 	auto debut_main =
 R"(
+#define TAILLE_STOCKAGE_TEMPORAIRE 16384
+static char DONNEES_STOCKAGE_TEMPORAIRE[TAILLE_STOCKAGE_TEMPORAIRE];
+
 int main(int argc, char **argv)
 {
 	KtKPKsz8 tabl_args;
 	tabl_args.pointeur = argv;
 	tabl_args.taille = argc;
 
+	StockageTemporaire stockage_temp;
+	stockage_temp.donnxC3xA9es = DONNEES_STOCKAGE_TEMPORAIRE;
+	stockage_temp.taille = TAILLE_STOCKAGE_TEMPORAIRE;
+	stockage_temp.occupxC3xA9 = 0;
+	stockage_temp.occupation_maximale = 0;
+
 	KsContexteProgramme contexte;
+	contexte.stockage_temporaire = &stockage_temp;
 )";
 
 	os << debut_main;
@@ -3271,9 +3281,19 @@ void KR__acces_membre_union(
 
 	auto debut_main =
 R"(
+#define TAILLE_STOCKAGE_TEMPORAIRE 16384
+static char DONNEES_STOCKAGE_TEMPORAIRE[TAILLE_STOCKAGE_TEMPORAIRE];
+
 void lance_execution()
 {
+	StockageTemporaire stockage_temp;
+	stockage_temp.donnxC3xA9es = DONNEES_STOCKAGE_TEMPORAIRE;
+	stockage_temp.taille = TAILLE_STOCKAGE_TEMPORAIRE;
+	stockage_temp.occupxC3xA9 = 0;
+	stockage_temp.occupation_maximale = 0;
+
 	KsContexteProgramme contexte;
+	contexte.stockage_temporaire = &stockage_temp;
 )";
 
 	os << debut_main;

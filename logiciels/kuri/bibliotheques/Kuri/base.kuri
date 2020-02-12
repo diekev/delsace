@@ -87,12 +87,128 @@ free :: fonc externe (ptr : *rien) -> rien
     retourne nul
 }
 
+// Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
+// une certaine taille dans l'exécutable où mettre des données temporaire.
+// À FAIRE : option de compilation pour définir la taille du stockage temporaire
+// on attendra que la métoprogrammation soit ici pour passer les options par celle-ci
+StockageTemporaire :: struct {
+    données : *octet
+    taille : z32
+    occupé : z32
+    occupation_maximale : z32
+}
+
 // Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 // À FAIRE : permettre aux utilisateurs du langage d'ajouter des variables dans
 // cette structure.
 ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
     données_allocatrice : *rien = nul
+
+    stockage_temporaire : *StockageTemporaire
+}
+
+// ----------------------------
+// Implémentation des fonctions du stockage temporaire
+
+obtiens_marque_stockage_temporaire :: fonc () -> z32
+{
+    retourne contexte.stockage_temporaire.occupé
+}
+
+set_marque_stockage_temporaire :: fonc (marque: z32) -> rien
+{
+    // À FAIRE(assert)
+    // assert(marque >= 0)
+    // assert(marque < contexte.stockage_temporaire.taille)
+    contexte.stockage_temporaire.occupé = marque
+}
+
+réinitialise_stockage_temporaire :: fonc () -> rien
+{
+    set_marque_stockage_temporaire(0)
+    contexte.stockage_temporaire.occupation_maximale = 0
+}
+
+alloc_stockage_temporaire :: fonc (dyn alloc: *StockageTemporaire, nouvelle_taille: z64) -> *rien
+{
+    si alloc.occupé + nouvelle_taille > alloc.taille {
+        // À FAIRE : utilisation de l'allocatrice par défaut
+        retourne nul
+    }
+
+    ptr := alloc.données + alloc.occupé
+    alloc.occupé += nouvelle_taille
+
+    si alloc.occupé > alloc.occupation_maximale {
+        alloc.occupation_maximale = alloc.occupé
+    }
+
+    retourne ptr
+}
+
+__stockage_temporaire :: fonc(
+    mode : ModeAllocatrice,
+    nouvelle_taille : z64,
+    ancienne_taille : z64,
+    ancien_pointeur : *rien,
+    données : *rien,
+    info : *InfoType) -> *rien
+{
+    dyn alloc := contexte.stockage_temporaire
+
+    discr mode {
+        ALLOUE {
+            retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
+        }
+        RÉALLOUE {
+            ptr := transtype(ancien_pointeur: *octet)
+
+            si ptr == nul {
+                retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
+            }
+
+            delta := nouvelle_taille - ancienne_taille
+
+            // À FAIRE
+            // Nous ne pouvons réallouer que si le pointeur fut le dernier alloué...
+            /*
+            dyn n := ancienne_taille
+
+            si ptr + n != alloc.ptr {
+                retourne nul
+            }
+
+            // ... et qu'il y a suffisament de place pour delta
+
+            n = delta  // arrondis_pour_aligner(delta, 8)
+
+            d := transtype(alloc.ptr: z64)
+            f := transtype(alloc.début + alloc.données.taille: z64)
+
+            si n > (f - d) {
+                retourne nul
+            }
+
+		    alloc.ptr += n
+            */
+
+            alloc.occupé += delta
+
+            si alloc.occupé > alloc.occupation_maximale {
+                alloc.occupation_maximale = alloc.occupé
+            }
+
+            retourne ancien_pointeur
+        }
+        DÉSALLOUE {
+            // À FAIRE
+            alloc.occupé -= ancienne_taille
+            retourne nul
+        }
+    }
+
+    retourne nul
 }
 
 // Fonction pour accéder à la variable __VG_memoire_utilisee__.
