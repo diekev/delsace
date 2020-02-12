@@ -788,7 +788,7 @@ static void genere_code_allocation(
 	// void *pointeur = ...;
 	// void *données = contexte.données_allocatrice;
 	// InfoType *info_type = ...;
-	// contexte.allocatrice(mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
+	// contexte.allocatrice(contexte, mode, nouvelle_taille_octet, ancienne_taille_octet, pointeur, données, info_type);
 	auto const chn_index = dls::vers_chaine(index++);
 	auto const nom_nouvelle_taille = "nouvelle_taille" + chn_index;
 	auto const nom_ancienne_taille = "ancienne_taille" + chn_index;
@@ -801,7 +801,7 @@ static void genere_code_allocation(
 	generatrice.os << "InfoType *" << nom_info_type << " = (InfoType *)(&" << dt.ptr_info_type << ");\n";
 	generatrice.os << "void *" << nom_ancien_pointeur << " = " << expr_pointeur << ";\n";
 	generatrice.os << "void *" << nom_nouveu_pointeur << " = ";
-	generatrice.os << "contexte.allocatrice(";
+	generatrice.os << "contexte.allocatrice(contexte, ";
 	generatrice.os << mode << ',';
 	generatrice.os << nom_nouvelle_taille << ',';
 	generatrice.os << nom_ancienne_taille << ',';
@@ -923,7 +923,7 @@ static void genere_declaration_fonction(
 
 	if (!donnees_fonction->est_externe && !donnees_fonction->est_sans_contexte) {
 		generatrice.os << virgule << '\n';
-		generatrice.os << "ContexteProgramme contexte";
+		generatrice.os << "KsContexteProgramme contexte";
 		virgule = ',';
 	}
 
