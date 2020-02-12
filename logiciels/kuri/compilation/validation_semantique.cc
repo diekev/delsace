@@ -1054,6 +1054,22 @@ static void performe_validation_semantique(
 				return;
 			}
 
+			/* cherche dans les modules importés, À FAIRE: erreur si plusieurs symboles candidats */
+			auto fichier = contexte.fichier(static_cast<size_t>(b->lexeme.fichier));
+			for (auto &nom_module : fichier->modules_importes) {
+				module = contexte.module(nom_module);
+
+				if (module->possede_fonction(b->lexeme.chaine)) {
+					auto &donnees_fonction = module->donnees_fonction(b->lexeme.chaine);
+					b->index_type = donnees_fonction.front().index_type;
+					b->nom_fonction_appel = donnees_fonction.front().nom_broye;
+
+					donnees_dependance.types_utilises.insere(b->index_type);
+					donnees_dependance.fonctions_utilisees.insere(b->nom_fonction_appel);
+					return;
+				}
+			}
+
 			/* Nous avons peut-être une énumération. */
 			if (contexte.structure_existe(b->lexeme.chaine)) {
 				auto &donnees_structure = contexte.donnees_structure(b->lexeme.chaine);
