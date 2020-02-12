@@ -38,20 +38,16 @@ génère_page :: fonc(
                 }
                 ENTIER {
                     objet_nombre := transtype(objet_variable : *ObjetEntier)
-                    // À FAIRE
-                    //tampon += std::to_string(nombre.valeur)
-                    enchaineuse.pousse("nombre entier non supporté")
+                    enchaineuse.pousse(objet_nombre.valeur)
                 }
                 RÉEL {
                     objet_nombre := transtype(objet_variable : *ObjetRéel)
-                    // À FAIRE
-                    //tampon += std::to_string(nombre.valeur)
-                    enchaineuse.pousse("nombre réel non supporté")
+                    enchaineuse.pousse(objet_nombre.valeur)
                 }
                 LISTE,
                 DICTIONNAIRE {
-                    // À FAIRE: imprime pointeur
                     enchaineuse.pousse("objet à ")
+                    enchaineuse.pousse(objet_variable)
                 }
             }
         }
