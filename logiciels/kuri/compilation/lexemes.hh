@@ -113,6 +113,7 @@ enum class GenreLexeme : unsigned int {
 	OCTET,
 	OPERATEUR,
 	POUR,
+	POUSSE_CONTEXTE,
 	R16,
 	R32,
 	R64,

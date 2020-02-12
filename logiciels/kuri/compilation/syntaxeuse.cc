@@ -587,6 +587,15 @@ void Syntaxeuse::analyse_corps_fonction()
 			avance();
 			analyse_bloc();
 		}
+		else if (est_identifiant(GenreLexeme::POUSSE_CONTEXTE)) {
+			avance();
+			m_assembleuse->empile_noeud(GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE, donnees());
+
+			analyse_expression(type_id::ACCOLADE_OUVRANTE, type_id::POUSSE_CONTEXTE);
+			analyse_bloc();
+
+			m_assembleuse->depile_noeud(GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE);
+		}
 		else {
 			auto noeud = analyse_expression(GenreLexeme::POINT_VIRGULE, GenreLexeme::EGAL);
 

@@ -437,6 +437,11 @@ static void imprime_mot(GenreLexeme id, std::ostream &os)
 			os << "::";
 			return;
 		}
+		case GenreLexeme::POUSSE_CONTEXTE:
+		{
+			os << "pousse_contexte";
+			return;
+		}
 	};
 
 	os << "ERREUR";

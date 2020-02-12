@@ -2704,6 +2704,18 @@ void genere_code_C(
 			b->valeur_calculee = '(' + enfant->chaine_calculee() + ')';
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+		{
+			auto variable = b->enfants.front();
+			auto bloc = b->enfants.back();
+
+			generatrice.os << "KsContexteProgramme ancien_contexte = contexte;\n";
+			generatrice.os << "contexte = " << broye_chaine(variable) << ";\n";
+			genere_code_C(bloc, generatrice, contexte, true);
+			generatrice.os << "contexte = ancien_contexte;\n";
+
+			break;
+		}
 	}
 }
 

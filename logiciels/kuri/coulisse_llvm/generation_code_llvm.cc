@@ -2678,6 +2678,11 @@ static llvm::Value *genere_code_llvm(
 
 			return nullptr;
 		}
+		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+		{
+			// À FAIRE
+			return nullptr;
+		}
 	}
 
 	return nullptr;

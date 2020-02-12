@@ -60,6 +60,7 @@ static auto paires_mots_cles = dls::cree_dico(
 	dls::paire{ dls::vue_chaine_compacte("octet"), GenreLexeme::OCTET },
 	dls::paire{ dls::vue_chaine_compacte("opérateur"), GenreLexeme::OPERATEUR },
 	dls::paire{ dls::vue_chaine_compacte("pour"), GenreLexeme::POUR },
+	dls::paire{ dls::vue_chaine_compacte("pousse_contexte"), GenreLexeme::POUSSE_CONTEXTE },
 	dls::paire{ dls::vue_chaine_compacte("r16"), GenreLexeme::R16 },
 	dls::paire{ dls::vue_chaine_compacte("r32"), GenreLexeme::R32 },
 	dls::paire{ dls::vue_chaine_compacte("r64"), GenreLexeme::R64 },
@@ -320,6 +321,8 @@ const char *chaine_identifiant(GenreLexeme id)
 			return "GenreLexeme::OPERATEUR";
 		case GenreLexeme::POUR:
 			return "GenreLexeme::POUR";
+		case GenreLexeme::POUSSE_CONTEXTE:
+			return "GenreLexeme::POUSSE_CONTEXTE";
 		case GenreLexeme::R16:
 			return "GenreLexeme::R16";
 		case GenreLexeme::R32:
@@ -407,7 +410,7 @@ const char *chaine_identifiant(GenreLexeme id)
 	return "ERREUR";
 }
 
-static constexpr auto TAILLE_MAX_MOT_CLE = 13;
+static constexpr auto TAILLE_MAX_MOT_CLE = 15;
 
 static bool tables_caracteres[256] = {};
 static GenreLexeme tables_identifiants[256] = {};

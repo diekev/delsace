@@ -3001,6 +3001,21 @@ static void performe_validation_semantique(
 			b->genre_valeur = b->enfants.front()->genre_valeur;
 			break;
 		}
+		case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
+		{
+			auto variable = b->enfants.front();
+
+			auto type_symbole = cherche_symbole(contexte, variable->chaine());
+
+			if (type_symbole == SYMBOLE_INCONNU) {
+				erreur::lance_erreur("variable inconnu", contexte, variable->lexeme);
+			}
+
+			auto bloc = b->enfants.back();
+			performe_validation_semantique(bloc, contexte, true);
+
+			break;
+		}
 	}
 }
 

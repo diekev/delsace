@@ -96,6 +96,7 @@ const char *chaine_genre_noeud(GenreNoeud genre)
 		CAS_GENRE(GenreNoeud::INSTRUCTION_SINON)
 		CAS_GENRE(GenreNoeud::EXPRESSION_PARENTHESE)
 		CAS_GENRE(GenreNoeud::DIRECTIVE_EXECUTION)
+		CAS_GENRE(GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE)
 	}
 
 	return "erreur : GenreNoeud inconnu";
